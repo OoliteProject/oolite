@@ -40,6 +40,9 @@ Your fair use and other rights are in no way affected by the above.
 */
 
 #import "ResourceManager.h"
+#ifdef GNUSTEP
+#import "Comparison.h"
+#endif
 
 
 @implementation ResourceManager

@@ -44,6 +44,10 @@ Your fair use and other rights are in no way affected by the above.
 #import "ResourceManager.h"
 #import "AI.h"
 
+#ifdef GNUSTEP
+#import "Comparison.h"
+#endif
+
 @implementation PlayerEntity (Scripting)
 
 static NSString * mission_string_value;
