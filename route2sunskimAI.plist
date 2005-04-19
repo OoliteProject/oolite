@@ -1,0 +1,69 @@
+{
+    GLOBAL = {ENTER = ("setStateTo: HEAD_FOR_SUN"); EXIT = (); UPDATE = (); }; 
+    FLEE = {
+        ATTACKED = (fightOrFleeHostiles); 
+		FIGHTING = (setTargetToPrimaryAggressor, "setStateTo: ATTACK_SHIP");
+		FLEEING = (setTargetToPrimaryAggressor, "setStateTo: FLEE");
+        "TARGET_LOST" = (performIdle, "setStateTo: GLOBAL"); 
+        "TARGET_DESTROYED" = (performIdle, "setStateTo: GLOBAL"); 
+        ENTER = ("setDesiredRangeTo: 25600", performFlee); 
+        EXIT = (); 
+        "INCOMING_MISSILE" = (setTargetToPrimaryAggressor, broadcastDistressMessage, fightOrFleeMissile, fightOrFleeHostiles); 
+        "REACHED_SAFETY" = (performIdle, "setStateTo: GLOBAL"); 
+        UPDATE = (); 
+    }; 
+    "ATTACK_SHIP" = {
+        "ENERGY_LOW" = (setTargetToPrimaryAggressor, broadcastDistressMessage, "setStateTo: FLEE"); 
+        ENTER = (broadcastDistressMessage, performAttack); 
+        EXIT = (); 
+        "INCOMING_MISSILE" = (setTargetToPrimaryAggressor, broadcastDistressMessage, fightOrFleeMissile, "setStateTo: FLEE"); 
+        "TARGET_DESTROYED" = ("setStateTo: GLOBAL"); 
+        "TARGET_LOST" = ("setStateTo: GLOBAL"); 
+        UPDATE = (); 
+    }; 
+    "GO_TO_WAYPOINT_SUN" = {
+		ENTER = ("setDesiredRangeTo: 50.0", checkCourseToDestination);
+		"COURSE_OK" = ("setSpeedFactorTo: 0.5", performFlyToRangeFromDestination);
+		"WAYPOINT_SET" = ("setDesiredRangeTo: 50.0", checkCourseToDestination);
+		"DESIRED_RANGE_ACHIEVED" = ("setStateTo: HEAD_FOR_SUN");
+		EXIT = ();
+		UPDATE = ();
+        ATTACKED = (fightOrFleeHostiles); 
+        "INCOMING_MISSILE" = (setTargetToPrimaryAggressor, broadcastDistressMessage, fightOrFleeMissile, fightOrFleeHostiles, "setStateTo: FLEE"); 
+		FIGHTING = (setTargetToPrimaryAggressor, "setStateTo: ATTACK_SHIP");
+		FLEEING = (setTargetToPrimaryAggressor, "setStateTo: FLEE");
+	}; 
+    "HEAD_FOR_SUN" = {
+		ENTER = (setSunSkimStartCoordinates);
+		"WAIT_FOR_SUN" = ("pauseAI: 10.0", setSunSkimStartCoordinates);
+		"APPROACH_COORDINATES" = (setDestinationFromCoordinates, "setDesiredRangeTo: 50000", checkCourseToDestination);
+		"COURSE_OK" = ("setSpeedFactorTo: 0.80", performFlyToRangeFromDestination);
+		"WAYPOINT_SET" = ("setStateTo: GO_TO_WAYPOINT_SUN");
+		"DESIRED_RANGE_ACHIEVED" = (dockEscorts, "setStateTo: GO_TO_SKIM");
+		EXIT = ();
+		UPDATE = ();
+        ATTACKED = (fightOrFleeHostiles); 
+        "INCOMING_MISSILE" = (setTargetToPrimaryAggressor, broadcastDistressMessage, fightOrFleeMissile, fightOrFleeHostiles, "setStateTo: FLEE"); 
+		FIGHTING = (setTargetToPrimaryAggressor, "setStateTo: ATTACK_SHIP");
+		FLEEING = (setTargetToPrimaryAggressor, "setStateTo: FLEE");
+	}; 
+    "GO_TO_SKIM" = {
+		ENTER = (setSunSkimStartCoordinates, setDestinationFromCoordinates, "setDesiredRangeTo: 100", "setSpeedFactorTo: 1.0", performFlyToRangeFromDestination);
+		"DESIRED_RANGE_ACHIEVED" = ("setStateTo: SKIM_SUN");
+		EXIT = ();
+		UPDATE = ();
+	}; 
+    "SKIM_SUN" = {
+		ENTER = (setSunSkimEndCoordinates, setDestinationFromCoordinates, "setDesiredRangeTo: 50", "setSpeedFactorTo: 1.0", performFlyToRangeFromDestination);
+		"DESIRED_RANGE_ACHIEVED" = ("setStateTo: LEAVE_SUN");
+		EXIT = ();
+		UPDATE = ();
+	}; 
+    "LEAVE_SUN" = {
+		ENTER = (setSunSkimExitCoordinates, setDestinationFromCoordinates, "setDesiredRangeTo: 250", "setSpeedFactorTo: 1.0", performFlyToRangeFromDestination);
+		"DESIRED_RANGE_ACHIEVED" = ("setStateTo: EXIT_SYSTEM");
+		EXIT = ();
+		UPDATE = ();
+	}; 
+    "EXIT_SYSTEM" = {ENTER = (); EXIT = (); UPDATE = (performHyperSpaceExit); }; 
+}

@@ -1,0 +1,14 @@
+{
+    LOOT = {
+        ATTACKED = (exitAI); 
+        "COLLISION" = (exitAI); 
+        "CARGO_SCOOPED" = (exitAI); 
+        ENTER = (performCollect); 
+        EXIT = (); 
+        "HOLD_FULL" = (exitAI); 
+        "INCOMING_MISSILE" = (fightOrFleeMissile, exitAI); 
+        "TARGET_LOST" = (exitAI); 
+        UPDATE = (); 
+    }; 
+    GLOBAL = {ENTER = ("setStateTo: LOOT"); EXIT = (); UPDATE = (); }; 
+}

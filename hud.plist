@@ -1,0 +1,284 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple Computer//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>dials</key><!-- these are drawn, in order, after the legends -->
+	<array>
+		<dict><!-- Targetting enhancement -->
+			<key>equipment_required</key>
+			<string>EQ_SCANNER_SHOW_MISSILE_TARGET</string>
+			<key>selector</key>
+			<string>drawTargetReticle:</string>
+		</dict>
+		<dict><!-- scanner -->
+			<key>alpha</key>
+			<real>0.75</real>
+			<key>selector</key>
+			<string>drawScanner:</string>
+			<key>x</key>
+			<integer>0</integer>
+			<key>y</key>
+			<integer>-180</integer>
+			<key>height</key>
+			<real>72</real>
+			<key>width</key>
+			<real>288</real>
+			<key>rgb_color</key>
+			<array>
+				<real>1.0</real>
+				<real>0</real>
+				<real>0</real>
+			</array>
+		</dict>
+		<dict><!-- scanner zoom indicator, uses Images/zoom.png to provide 5 levels -->
+			<key>alpha</key>
+			<real>1</real>
+			<key>selector</key>
+			<string>drawScannerZoomIndicator:</string>
+			<key>x</key>
+			<integer>108</integer>
+			<key>y</key>
+			<integer>-216</integer>
+		</dict>
+		<dict><!-- compass, uses Images/compass.png as background and Images/reddot.png and Images/greendot.png -->
+			<key>alpha</key>
+			<real>1</real>
+			<key>selector</key>
+			<string>drawCompass:</string>
+			<key>x</key>
+			<integer>132</integer>
+			<key>y</key>
+			<integer>-216</integer>
+		</dict>
+		<dict><!-- station aegis, uses Images/aegis.png as indicator -->
+			<key>alpha</key>
+			<real>1</real>
+			<key>selector</key>
+			<string>drawAegis:</string>
+			<key>x</key>
+			<integer>-132</integer>
+			<key>y</key>
+			<integer>-216</integer>
+		</dict>
+		<dict><!-- speed bar, can draw a surround 2 units out from the dial size specified -->
+			<key>draw_surround</key>
+			<true/>
+			<key>height</key>
+			<integer>8</integer>
+			<key>selector</key>
+			<string>drawSpeedBar:</string>
+			<key>width</key>
+			<integer>80</integer>
+			<key>x</key>
+			<integer>200</integer>
+			<key>y</key>
+			<integer>-145</integer>
+		</dict>
+		<dict><!-- roll bar, can draw a surround 2 units out from the dial size specified -->
+			<key>draw_surround</key>
+			<true/>
+			<key>height</key>
+			<integer>8</integer>
+			<key>selector</key>
+			<string>drawRollBar:</string>
+			<key>width</key>
+			<integer>80</integer>
+			<key>x</key>
+			<integer>200</integer>
+			<key>y</key>
+			<integer>-160</integer>
+		</dict>
+		<dict><!-- pitch bar, can draw a surround 2 units out from the dial size specified -->
+			<key>draw_surround</key>
+			<true/>
+			<key>height</key>
+			<integer>8</integer>
+			<key>selector</key>
+			<string>drawPitchBar:</string>
+			<key>width</key>
+			<integer>80</integer>
+			<key>x</key>
+			<integer>200</integer>
+			<key>y</key>
+			<integer>-170</integer>
+		</dict>
+		<dict><!-- energy guage, can draw a surround 2 units out from the dial size specified -->
+			<key>draw_surround</key>
+			<true/>
+			<key>height</key>
+			<integer>48</integer>
+			<key>selector</key>
+			<string>drawEnergyGauge:</string>
+			<key>width</key>
+			<integer>80</integer>
+			<key>x</key>
+			<integer>200</integer>
+			<key>y</key>
+			<integer>-205</integer>
+			<key>labelled</key>
+			<true/>
+		</dict>
+		<dict><!-- forward shield bar, can draw a surround 2 units out from the dial size specified -->
+			<key>draw_surround</key>
+			<true/>
+			<key>height</key>
+			<integer>8</integer>
+			<key>selector</key>
+			<string>drawForwardShieldBar:</string>
+			<key>width</key>
+			<integer>80</integer>
+			<key>x</key>
+			<integer>-200</integer>
+			<key>y</key>
+			<integer>-146</integer>
+		</dict>
+		<dict><!-- aft shield bar, can draw a surround 2 units out from the dial size specified -->
+			<key>draw_surround</key>
+			<true/>
+			<key>height</key>
+			<integer>8</integer>
+			<key>selector</key>
+			<string>drawAftShieldBar:</string>
+			<key>width</key>
+			<integer>80</integer>
+			<key>x</key>
+			<integer>-200</integer>
+			<key>y</key>
+			<integer>-162</integer>
+		</dict>
+		<dict><!-- just draws a surround 2 units around the selected size, you could also use drawGreenSurround: -->
+			<key>height</key>
+			<integer>40</integer>
+			<key>selector</key>
+			<string>drawYellowSurround:</string>
+			<key>width</key>
+			<integer>80</integer>
+			<key>x</key>
+			<integer>-200</integer>
+			<key>y</key>
+			<integer>-194</integer>
+		</dict>
+		<dict><!-- fuel bar -->
+			<key>height</key>
+			<integer>8</integer>
+			<key>selector</key>
+			<string>drawFuelBar:</string>
+			<key>width</key>
+			<integer>80</integer>
+			<key>x</key>
+			<integer>-200</integer>
+			<key>y</key>
+			<integer>-179</integer>
+		</dict>
+		<dict><!-- cabin temperature bar -->
+			<key>height</key>
+			<integer>8</integer>
+			<key>selector</key>
+			<string>drawCabinTempBar:</string>
+			<key>width</key>
+			<integer>80</integer>
+			<key>x</key>
+			<integer>-200</integer>
+			<key>y</key>
+			<integer>-189</integer>
+		</dict>
+		<dict><!-- weapon temperature bar -->
+			<key>height</key>
+			<integer>8</integer>
+			<key>selector</key>
+			<string>drawWeaponTempBar:</string>
+			<key>width</key>
+			<integer>80</integer>
+			<key>x</key>
+			<integer>-200</integer>
+			<key>y</key>
+			<integer>-199</integer>
+		</dict>
+		<dict><!-- altitude bar -->
+			<key>height</key>
+			<integer>8</integer>
+			<key>selector</key>
+			<string>drawAltitudeBar:</string>
+			<key>width</key>
+			<integer>80</integer>
+			<key>x</key>
+			<integer>-200</integer>
+			<key>y</key>
+			<integer>-209</integer>
+		</dict>
+		<dict><!-- missile display, x and y give the location, the x-spacing is given by spacing, the size defines the icon size -->
+			<key>height</key>
+			<integer>12</integer>
+			<key>selector</key>
+			<string>drawMissileDisplay:</string>
+			<key>spacing</key>
+			<integer>16</integer>
+			<key>width</key>
+			<integer>12</integer>
+			<key>x</key>
+			<integer>-228</integer>
+			<key>y</key>
+			<integer>-224</integer>
+		</dict>
+		<dict><!-- status indicator light, x and y give the location, the size defines the icon size -->
+			<key>height</key>
+			<integer>8</integer>
+			<key>selector</key>
+			<string>drawStatusLight:</string>
+			<key>width</key>
+			<integer>8</integer>
+			<key>x</key>
+			<integer>-108</integer>
+			<key>y</key>
+			<integer>-216</integer>
+		</dict>
+		<dict><!-- ship's clock, x and y give the location, the size defines the character size -->
+			<key>height</key>
+			<integer>12</integer>
+			<key>selector</key>
+			<string>drawClock:</string>
+			<key>width</key>
+			<integer>12</integer>
+			<key>x</key>
+			<integer>-48</integer>
+			<key>y</key>
+			<integer>-234</integer>
+		</dict>
+		<dict><!-- fps counter, x and y give the location, the size defines the character size -->
+			<key>height</key>
+			<integer>18</integer>
+			<key>selector</key>
+			<string>drawFPSInfoCounter:</string>
+			<key>width</key>
+			<integer>18</integer>
+			<key>x</key>
+			<integer>-300</integer>
+			<key>y</key>
+			<integer>220</integer>
+		</dict>
+	</array>
+	<key>legends</key><!-- these are drawn, in order, before the dials, add any other images you want here -->
+	<array>
+		<dict>
+			<key>alpha</key>
+			<real>1</real>
+			<key>image</key>
+			<string>legend-left.png</string>
+			<key>x</key>
+			<integer>-256</integer>
+			<key>y</key>
+			<string>-184</string>
+		</dict>
+		<dict>
+			<key>alpha</key>
+			<real>1</real>
+			<key>image</key>
+			<string>legend-right.png</string>
+			<key>x</key>
+			<integer>256</integer>
+			<key>y</key>
+			<string>-184</string>
+		</dict>
+	</array>
+</dict>
+</plist>

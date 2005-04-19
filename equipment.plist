@@ -1,0 +1,211 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple Computer//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<array>
+	<array>
+		<integer>0</integer>
+		<integer>2</integer>
+		<string>Fuel</string>
+		<string>EQ_FUEL</string>
+		<string>Fuel for the witchspace engines.</string>
+	</array>
+	<array>
+		<integer>1</integer>
+		<integer>300</integer>
+		<string>Missile</string>
+		<string>EQ_MISSILE</string>
+		<string>Faulcon de Lacy HM3 homing missile, fast and accurate when used in conjunction with standard targetting scanners.</string>
+	</array>
+	<array>
+		<integer>1</integer>
+		<integer>4000</integer>
+		<string>Large Cargo Bay</string>
+		<string>EQ_CARGO_BAY</string>
+		<string>Retro-fitted hull extensions permit the enclosure of an extra fifteen tons of cargo capacity.</string>
+	</array>
+	<array>
+		<integer>2</integer>
+		<integer>6000</integer>
+		<string>E.C.M. System</string>
+		<string>EQ_ECM</string>
+		<string>High power disruptor circuits capable of remotely detonating inbound missiles.</string>
+	</array>
+	<array>
+		<integer>5</integer>
+		<integer>5250</integer>
+		<string>Fuel Scoops</string>
+		<string>EQ_FUEL_SCOOPS</string>
+		<string>Wide cargo entrance and magnetic scoops enable in-flight capture of mined materials, fuel gasses from the solar corona, and salvage of space debris.</string>
+	</array>
+	<array>
+		<integer>6</integer>
+		<integer>10000</integer>
+		<string>Escape Pod</string>
+		<string>EQ_ESCAPE_POD</string>
+		<string>A simple emergency capsule with a life-support system, purchase includes comprehensive insurance for your ship and systems.</string>
+	</array>
+	<array>
+		<integer>7</integer>
+		<integer>9000</integer>
+		<string>Energy Bomb</string>
+		<string>EQ_ENERGY_BOMB</string>
+		<string>A one-shot super-weapon capable of destroying all small craft within range.</string>
+	</array>
+	<array>
+		<integer>8</integer>
+		<integer>15000</integer>
+		<string>Extra Energy Unit</string>
+		<string>EQ_ENERGY_UNIT</string>
+		<string>An improved efficiency energy recharge unit.</string>
+	</array>
+<!-- next item has a TL too high to be available at all -->
+	<array>
+		<integer>99</integer>
+		<integer>500000</integer>
+		<string>Naval Energy Unit</string>
+		<string>EQ_NAVAL_ENERGY_UNIT</string>
+		<string>A special improved efficiency energy recharge unit, as supplied to Navy vessels.</string>
+	</array>
+	<array>
+		<integer>9</integer>
+		<integer>15000</integer>
+		<string>Docking Computers</string>
+		<string>EQ_DOCK_COMP</string>
+		<string>A simple autopilot and in-system communication system interlocking with local station systems.</string>
+	</array>
+	<array>
+		<integer>10</integer>
+		<integer>50000</integer>
+		<string>Galactic Hyperdrive</string>
+		<string>EQ_GAL_DRIVE</string>
+		<string>A one-shot overcharge for the witchspace engines, enabling inter-galactic travel.</string>
+	</array>
+	<array>
+		<integer>3</integer>
+		<integer>4000</integer>
+		<string>Pulse Laser</string>
+		<string>EQ_WEAPON_PULSE_LASER</string>
+		<string>High powered pulse laser, a basic defense configuration.</string>
+	</array>
+	<array>
+		<integer>4</integer>
+		<integer>10000</integer>
+		<string>Beam Laser</string>
+		<string>EQ_WEAPON_BEAM_LASER</string>
+		<string>Rapid cycle laser, delivers more energy in less time for more effective results.</string>
+	</array>
+	<array>
+		<integer>10</integer>
+		<integer>8000</integer>
+		<string>Mining Laser</string>
+		<string>EQ_WEAPON_MINING_LASER</string>
+		<string>High power, slow recharge. Ideal for mineral extraction from large asteroids.</string>
+	</array>
+	<array>
+		<integer>10</integer>
+		<integer>60000</integer>
+		<string>Military Laser</string>
+		<string>EQ_WEAPON_MILITARY_LASER</string>
+		<string>Increased power beam laser, developed for Naval use.</string>
+	</array>
+	<!-- next item has a TL too high to be available at all -->
+	<array>
+		<integer>99</integer>
+		<integer>500000</integer>
+		<string>Cloaking Device</string>
+		<string>EQ_CLOAKING_DEVICE</string>
+		<string>Experimental Naval cloaking device.</string>
+	</array>
+<!-- next items are new items, don't place new items before this mark -->
+	<array><!-- Passenger Compartment, like missiles this can be bought multiple times -->
+		<integer>5</integer>
+		<integer>8250</integer>
+		<string>Passenger Berth - takes up 5t of cargo space</string>
+		<string>EQ_PASSENGER_BERTH</string>
+		<string>Provides life support, entertainment and comfort for a single passenger.</string>
+	</array>
+	<array><!-- Passenger Compartment Removal -->
+		<integer>1</integer>
+		<integer>1000</integer>
+		<string>Remove Passenger Berth - reclaims 5t of cargo space</string>
+		<string>EQ_PASSENGER_BERTH_REMOVAL</string>
+		<string>Removes a passenger berth.</string>
+	</array>
+	<array>
+		<integer>10</integer>
+		<integer>6000</integer>
+		<string>Witchdrive Fuel Injectors</string>
+		<string>EQ_FUEL_INJECTION</string>
+		<string>A convertor added to your in-system drive that can inject unused witch-drive fuel into your exhaust, massively increasing your speed.</string>
+	</array>
+	<array>
+		<integer>11</integer>
+		<integer>4500</integer>
+		<string>Scanner Targeting Enhancement</string>
+		<string>EQ_SCANNER_SHOW_MISSILE_TARGET</string>
+		<string>Adds a visible indicator, range and legal status display around the target currently locked into your targetting computer.</string>
+	</array>
+	<array>
+		<integer>5</integer>
+		<integer>3250</integer>
+		<string>Multi-Targeting System</string>
+		<string>EQ_MULTI_TARGET</string>
+		<string>Allows switching between missile stations and multiple target locks.</string>
+	</array>
+	<array>
+		<integer>7</integer>
+		<integer>6500</integer>
+		<string>Advanced Space Compass</string>
+		<string>EQ_ADVANCED_COMPASS</string>
+		<string>A Tyley-Feynman GW-99 astro-navigation compass with user-selectable target modes.</string>
+	</array>
+	<array>
+		<integer>99</integer>
+		<integer>150000</integer>
+		<string>Thargoid Laser</string>
+		<string>EQ_WEAPON_THARGOID_LASER</string>
+		<string>Captured Thargoid weapon, self-aiming.</string>
+	</array>
+	<array>
+		<integer>6</integer>
+		<integer>25000</integer>
+		<string>Quirium Cascade Mine</string>
+		<string>EQ_QC_MINE</string>
+		<string>Tyley-Feynman Quirium cascade mine. Mounts in place of a missile, but deploys to the rear of your craft. Capable of massive destruction and triggering chain reactions in the witchdrives of ships caught in its blast range.</string>
+	</array>
+<!-- next item was a test item -->
+<!--
+-->
+	<array>
+		<integer>2</integer>
+		<integer>2000</integer>
+		<string>Twin Plasma Cannon</string>
+		<string>EQ_WEAPON_TWIN_PLASMA_CANNON</string>
+		<string>Basic cannon delivering charged plasma bursts at sublight speed.</string>
+	</array>
+	<!-- removed
+	<array>
+		<integer>0</integer>
+		<integer>7500</integer>
+		<string>Expensive Bogus Item</string>
+		<string>EQ_BOGUS_ITEM</string>
+		<string>A test item here just for debugging.</string>
+	</array>
+	<array>
+		<integer>5</integer>
+		<integer>450</integer>
+		<string>Target Ident System</string>
+		<string>EQ_IDENT_SYSTEM</string>
+		<string>Replaces a missile with a non-launchable target ident system.</string>
+	</array>
+	<array>
+		<integer>9</integer>
+		<integer>12000</integer>
+		<string>Emergency Hyperdrive Unit</string>
+		<string>EQ_EMERGENCY_HYPERDRIVE</string>
+		<string>A one-shot get-you-home hyperdrive unit.</string>
+	</array>
+	-->
+<!-- end of new items -->
+</array>
+</plist>

@@ -1,0 +1,77 @@
+{
+    "HEAD_FOR_PLANET" = {
+		ENTER = (setCourseToPlanet, "setDesiredRangeTo: 50000.0", checkCourseToDestination);
+		"COURSE_OK" = ("setSpeedFactorTo: 0.8", performFlyToRangeFromDestination);
+		"WAYPOINT_SET" = ("setStateTo: GO_TO_WAYPOINT1");
+		"DESIRED_RANGE_ACHIEVED" = ("setStateTo: HEAD_FOR_WITCHPOINT");
+        "GROUP_ATTACK_TARGET" = (setTargetToFoundTarget, "setAITo: interceptAI.plist"); 
+        ATTACKED = (setTargetToPrimaryAggressor, groupAttackTarget); 
+        "INCOMING_MISSILE" = (fightOrFleeMissile, setTargetToPrimaryAggressor, deployEscorts, groupAttackTarget, "setAITo: interceptAI.plist"); 
+        "TARGET_FOUND" = (setTargetToFoundTarget, deployEscorts, groupAttackTarget); 
+        "ACCEPT_DISTRESS_CALL" = (setTargetToFoundTarget, deployEscorts, groupAttackTarget); 
+		EXIT = ();
+		UPDATE = (scanForOffenders, "pauseAI: 10.0");
+        RESTARTED = ("setStateTo: INBOUND_LOOT");
+	}; 
+    "GO_TO_WAYPOINT1" = {
+		ENTER = ("setDesiredRangeTo: 50.0", checkCourseToDestination);
+		"COURSE_OK" = ("setSpeedFactorTo: 0.8", performFlyToRangeFromDestination);
+		"WAYPOINT_SET" = ("setDesiredRangeTo: 50.0", checkCourseToDestination);
+		"DESIRED_RANGE_ACHIEVED" = ("setStateTo: HEAD_FOR_PLANET");
+        "ACCEPT_DISTRESS_CALL" = (setTargetToFoundTarget, deployEscorts, groupAttackTarget); 
+        "GROUP_ATTACK_TARGET" = (setTargetToFoundTarget, "setAITo: interceptAI.plist"); 
+        ATTACKED = (setTargetToPrimaryAggressor, groupAttackTarget); 
+        "INCOMING_MISSILE" = (fightOrFleeMissile, setTargetToPrimaryAggressor, deployEscorts, groupAttackTarget, "setAITo: interceptAI.plist", "setStateTo: INBOUND_LOOT"); 
+		EXIT = ();
+		UPDATE = ();
+        RESTARTED = ("setStateTo: INBOUND_LOOT");
+	}; 
+    "HEAD_FOR_WITCHPOINT" = {
+		ENTER = (setCourseToWitchpoint, checkCourseToDestination);
+		"COURSE_OK" = ("setSpeedFactorTo: 0.8", performFlyToRangeFromDestination);
+		"WAYPOINT_SET" = ("setStateTo: GO_TO_WAYPOINT2");
+		"DESIRED_RANGE_ACHIEVED" = ("setStateTo: HEAD_FOR_PLANET");
+        "GROUP_ATTACK_TARGET" = (setTargetToFoundTarget, "setAITo: interceptAI.plist"); 
+        ATTACKED = (setTargetToPrimaryAggressor, groupAttackTarget); 
+        "INCOMING_MISSILE" = (fightOrFleeMissile, setTargetToPrimaryAggressor, deployEscorts, groupAttackTarget, "setAITo: interceptAI.plist", "setStateTo: OUTBOUND_LOOT"); 
+        "TARGET_FOUND" = (setTargetToFoundTarget, deployEscorts, groupAttackTarget); 
+        "ACCEPT_DISTRESS_CALL" = (setTargetToFoundTarget, deployEscorts, groupAttackTarget); 
+		EXIT = ();
+		UPDATE = (scanForOffenders, "pauseAI: 10.0");
+        RESTARTED = ("setStateTo: OUTBOUND_LOOT");
+	}; 
+    "GO_TO_WAYPOINT2" = {
+		ENTER = ("setDesiredRangeTo: 50.0", checkCourseToDestination);
+		"COURSE_OK" = ("setSpeedFactorTo: 0.8", performFlyToRangeFromDestination);
+		"WAYPOINT_SET" = ("setDesiredRangeTo: 50.0", checkCourseToDestination);
+		"DESIRED_RANGE_ACHIEVED" = ("setStateTo: HEAD_FOR_WITCHPOINT");
+        "ACCEPT_DISTRESS_CALL" = (setTargetToFoundTarget, deployEscorts, groupAttackTarget); 
+        "GROUP_ATTACK_TARGET" = (setTargetToFoundTarget, "setAITo: interceptAI.plist"); 
+        ATTACKED = (setTargetToPrimaryAggressor, groupAttackTarget); 
+        "INCOMING_MISSILE" = (fightOrFleeMissile, setTargetToPrimaryAggressor, deployEscorts, groupAttackTarget, "setAITo: interceptAI.plist", "setStateTo: OUTBOUND_LOOT"); 
+		EXIT = ();
+		UPDATE = ();
+        RESTARTED = ("setStateTo: OUTBOUND_LOOT");
+	}; 
+    "OUTBOUND_LOOT" = {
+        "GROUP_ATTACK_TARGET" = (setTargetToFoundTarget, "setAITo: interceptAI.plist"); 
+        ATTACKED = (setTargetToPrimaryAggressor, groupAttackTarget); 
+        ENTER = ("setSpeedTo: 0.0", performIdle); 
+        EXIT = (); 
+        "INCOMING_MISSILE" = (fightOrFleeMissile, setTargetToPrimaryAggressor, deployEscorts, groupAttackTarget, "setAITo: interceptAI.plist", "setStateTo: OUTBOUND_LOOT"); 
+        "TARGET_FOUND" = (setTargetToFoundTarget, "setAITo: collectLootAI.plist"); 
+        "NOTHING_FOUND" = ("setStateTo: HEAD_FOR_WITCHPOINT"); 
+        UPDATE = (scanForLoot, "pauseAI: 10.0"); 
+    }; 
+    "INBOUND_LOOT" = {
+        "GROUP_ATTACK_TARGET" = (setTargetToFoundTarget, "setAITo: interceptAI.plist"); 
+        ATTACKED = (setTargetToPrimaryAggressor, groupAttackTarget); 
+        ENTER = ("setSpeedTo: 0.0", performIdle); 
+        EXIT = (); 
+        "INCOMING_MISSILE" = (fightOrFleeMissile, setTargetToPrimaryAggressor, deployEscorts, groupAttackTarget, "setAITo: interceptAI.plist", "setStateTo: INBOUND_LOOT"); 
+        "TARGET_FOUND" = (setTargetToFoundTarget, "setAITo: collectLootAI.plist"); 
+        "NOTHING_FOUND" = ("setStateTo: HEAD_FOR_PLANET"); 
+        UPDATE = (scanForLoot, "pauseAI: 10.0"); 
+    }; 
+    GLOBAL = {ENTER = ("setStateTo: HEAD_FOR_WITCHPOINT"); EXIT = (); UPDATE = (); }; 
+}

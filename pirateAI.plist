@@ -1,0 +1,87 @@
+{
+    "ATTACK_SHIP" = {
+        ATTACKED = (setTargetToPrimaryAggressor, "setStateTo: ATTACK_SHIP"); 
+        "ENERGY_LOW" = ("setStateTo: FLEE"); 
+        ENTER = (performAttack); 
+        EXIT = (); 
+        "INCOMING_MISSILE" = (fightOrFleeMissile, "setStateTo: FLEE"); 
+        "TARGET_DESTROYED" = ("setStateTo: COLLECT_LOOT"); 
+        "TARGET_LOST" = ("setStateTo: COLLECT_LOOT"); 
+        UPDATE = (); 
+    }; 
+    "COLLECT_LOOT" = {
+        ATTACKED = (setTargetToPrimaryAggressor, "setStateTo: ATTACK_SHIP"); 
+        ENTER = ("setSpeedTo: 0.0", performIdle); 
+        EXIT = (); 
+        "HOLD_FULL" = ("setStateTo: EXIT_SYSTEM"); 
+        "GROUP_ATTACK_TARGET" = (setTargetToFoundTarget, "setStateTo: ATTACK_SHIP"); 
+        "INCOMING_MISSILE" = (fightOrFleeMissile, "setStateTo: FLEE"); 
+        "TARGET_FOUND" = (setTargetToFoundTarget, "setStateTo: LOOT"); 
+        "NOTHING_FOUND" = ("setStateTo: CONSIDER_DOCKING"); 
+        UPDATE = (scanForLoot, "pauseAI: 5.0"); 
+    }; 
+    "EXIT_SYSTEM" = {ENTER = (performHyperSpaceExit); EXIT = (); UPDATE = (); }; 
+    FLEE = {
+        "ENERGY_FULL" = (performIdle, "setStateTo: LURK"); 
+        "TARGET_LOST" = (performIdle, "setStateTo: LURK"); 
+        ENTER = ("setDesiredRangeTo: 25600", performFlee); 
+        EXIT = (); 
+        "INCOMING_MISSILE" = (fightOrFleeMissile, "setStateTo: FLEE"); 
+        "REACHED_SAFETY" = ("setSpeedTo: 0.0", performIdle, "pauseAI: 10.0"); 
+        UPDATE = (); 
+    }; 
+    GLOBAL = {ENTER = ("setStateTo: TRAVEL_TO_LURK_AREA"); EXIT = (); UPDATE = (); }; 
+    LOOT = {
+        ATTACKED = (setTargetToPrimaryAggressor, "setStateTo: ATTACK_SHIP"); 
+        "CARGO_SCOOPED" = (checkForFullHold, "setStateTo: COLLECT_LOOT"); 
+        ENTER = (performCollect); 
+        EXIT = (); 
+        "GROUP_ATTACK_TARGET" = (setTargetToFoundTarget, "setStateTo: ATTACK_SHIP"); 
+        "HOLD_FULL" = ("setStateTo: CONSIDER_DOCKING"); 
+        "INCOMING_MISSILE" = (fightOrFleeMissile, "setStateTo: FLEE"); 
+        "TARGET_LOST" = ("setStateTo: COLLECT_LOOT"); 
+        UPDATE = (); 
+    }; 
+    LURK = {
+        ATTACKED = (setTargetToPrimaryAggressor, "setStateTo: ATTACK_SHIP"); 
+        ENTER = ("setSpeedTo: 0.0", performIdle); 
+        EXIT = (); 
+        "INCOMING_MISSILE" = (fightOrFleeMissile, "setStateTo: FLEE"); 
+        "NOTHING_FOUND" = ("setStateTo: COLLECT_LOOT"); 
+        "TARGET_FOUND" = (setTargetToFoundTarget, checkGroupOddsVersusTarget); 
+        "ODDS_GOOD" = (groupAttackTarget); 
+        "ODDS_LEVEL" = (groupAttackTarget); 
+        "GROUP_ATTACK_TARGET" = (setTargetToFoundTarget, "setStateTo: ATTACK_SHIP"); 
+        UPDATE = (scanForRandomMerchantmen, "pauseAI: 5.0"); 
+    }; 
+    "TRAVEL_TO_LURK_AREA" = {
+        ATTACKED = (setTargetToPrimaryAggressor, "setStateTo: ATTACK_SHIP"); 
+        "DESIRED_RANGE_ACHIEVED" = ("setStateTo: LURK"); 
+        ENTER = (
+            setDestinationToCurrentLocation, 
+            "setDesiredRangeTo: 1500.0", 
+            performFlyToRangeFromDestination
+        ); 
+        EXIT = (); 
+        "GROUP_ATTACK_TARGET" = (setTargetToFoundTarget, "setStateTo: ATTACK_SHIP"); 
+        "INCOMING_MISSILE" = (fightOrFleeMissile, "setStateTo: FLEE"); 
+        UPDATE = (); 
+    }; 
+    "CONSIDER_DOCKING" = {
+        ATTACKED = (setTargetToPrimaryAggressor, "setStateTo: ATTACK_SHIP"); 
+		ENTER = (checkForMotherStation);
+		"NOTHING_FOUND" = ("setStateTo: LURK");
+		"STATION_FOUND" = ("setAITo: dockingAI.plist");
+		EXIT = ();
+        "INCOMING_MISSILE" = (fightOrFleeMissile, "setStateTo: FLEE"); 
+		UPDATE = ();
+	}; 
+    "DOCK_WITH_STATION" = {
+        ATTACKED = (setTargetToPrimaryAggressor, "setStateTo: ATTACK_SHIP"); 
+		ENTER = (setTargetToStation, "setDesiredRangeTo: 5000.0", performIntercept);
+		"DESIRED_RANGE_ACHIEVED" = ("setAITo: dockingAI.plist");
+		EXIT = ();
+        "INCOMING_MISSILE" = (fightOrFleeMissile, "setStateTo: FLEE"); 
+		UPDATE = ();
+	}; 
+}

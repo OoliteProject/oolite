@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple Computer//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<array>
+	<array>
+		<string>\n</string>
+		<string> </string>
+	</array>
+	<array>
+		<string>\t</string>
+		<string> </string>
+	</array>
+	<array>
+		<string>Cruiser</string><!-- must come before ' Cr' -->
+		<string>[[inpt PHON]]kr1UWz2AXr[[inpt TEXT]]</string>
+	</array>
+	<array>
+		<string> Cr</string>
+		<string> credits</string>
+	</array>
+	<array>
+		<string> s.</string>
+		<string> seconds</string>
+	</array>
+	<array>
+		<string>Purse</string>
+		<string>, Total </string>
+	</array>
+	<array>
+		<string>Mark III</string>
+		<string>Mach Three</string>
+	</array>
+	<array>
+		<string>Mark II</string>
+		<string>Mach Two</string>
+	</array>
+	<array>
+		<string>Mark I</string>
+		<string>Mach One</string>
+	</array>
+	<array>
+		<string>GalCop</string>
+		<string>galactic police</string>
+	</array>
+	<array>
+		<string>Witchspace</string>
+		<string>Witch+space</string>
+	</array>
+	<array>
+		<string>Fer-de-Lance</string>
+		<string>fairdehlauns</string>
+	</array>
+	<array>
+		<string>Sidewinder</string>
+		<string>Side+winder</string>
+	</array>
+	<array>
+		<string>Rebel</string>
+		<string>rebbel</string>
+	</array>
+	<array>
+		<string>Ident</string>
+		<string>Identification</string>
+	</array>
+</array>
+</plist>

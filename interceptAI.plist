@@ -1,0 +1,21 @@
+{
+    "ATTACK_SHIP" = {
+        "ENERGY_LOW" = ("setStateTo: FLEE"); 
+        ENTER = (performAttack); 
+        EXIT = (); 
+        "INCOMING_MISSILE" = (fightOrFleeMissile, "setStateTo: FLEE"); 
+        "TARGET_DESTROYED" = (switchLightsOff, exitAI); 
+        "TARGET_LOST" = (switchLightsOff, exitAI); 
+        UPDATE = (); 
+    }; 
+    FLEE = {
+        "ENERGY_FULL" = ("setStateTo: ATTACK_SHIP"); 
+        "TARGET_LOST" = (switchLightsOff, exitAI); 
+        "TARGET_DESTROYED" = (switchLightsOff, exitAI); 
+        ENTER = ("setDesiredRangeTo: 25600", performFlee); 
+        EXIT = (); 
+        "INCOMING_MISSILE" = (fightOrFleeMissile, "setStateTo: FLEE"); 
+        UPDATE = (); 
+    }; 
+    GLOBAL = {ENTER = (switchLightsOn, "setStateTo: ATTACK_SHIP"); EXIT = (); UPDATE = (); }; 
+}

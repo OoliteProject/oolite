@@ -1,0 +1,35 @@
+{
+    "ATTACK_SHIP" = {
+        "ENERGY_LOW" = ("setSpeedFactorTo: 1.0", "pauseAI: 15.0", "setStateTo: EXIT_SYSTEM"); 
+        ENTER = (performAttack); 
+        EXIT = (); 
+        "INCOMING_MISSILE" = (fightOrFleeMissile, "setSpeedFactorTo: 1.0", "pauseAI: 15.0", "setStateTo: EXIT_SYSTEM"); 
+        "TARGET_DESTROYED" = ("setStateTo: HEAD_AWAY_FROM_PLANET"); 
+        "TARGET_LOST" = ("setStateTo: HEAD_AWAY_FROM_PLANET"); 
+        UPDATE = (); 
+    }; 
+    "EXIT_SYSTEM" = {ENTER = (); EXIT = (); UPDATE = (performHyperSpaceExit); }; 
+    FLEE = {
+        ATTACKED = (fightOrFleeHostiles); 
+		FIGHTING = (setTargetToPrimaryAggressor, "setStateTo: ATTACK_SHIP");
+		FLEEING = (setTargetToPrimaryAggressor, "setStateTo: FLEE");
+        "TARGET_LOST" = (performIdle, "setStateTo: GLOBAL"); 
+        "TARGET_DESTROYED" = (performIdle, "setStateTo: GLOBAL"); 
+        ENTER = ("setDesiredRangeTo: 25600", performFlee); 
+        EXIT = (); 
+        "INCOMING_MISSILE" = (setTargetToPrimaryAggressor, broadcastDistressMessage, fightOrFleeMissile); 
+        "REACHED_SAFETY" = (performIdle, "setStateTo: GLOBAL"); 
+        UPDATE = (); 
+    }; 
+    "HEAD_AWAY_FROM_PLANET" = {
+		ENTER = (getWitchspaceEntryCoordinates, setDestinationFromCoordinates, "setDesiredRangeTo: 100.0", "setSpeedFactorTo: 0.75", performFlyToRangeFromDestination);
+		"DESIRED_RANGE_ACHIEVED" = (dockEscorts, "setSpeedFactorTo: 1.0", "pauseAI: 15.0", "setStateTo: EXIT_SYSTEM");
+        ATTACKED = (fightOrFleeHostiles); 
+		FIGHTING = (setTargetToPrimaryAggressor, "setStateTo: ATTACK_SHIP");
+		FLEEING = (setTargetToPrimaryAggressor, "setStateTo: FLEE");
+        "INCOMING_MISSILE" = (fightOrFleeMissile, "setStateTo: FLEE"); 
+		EXIT = ();
+		UPDATE = ();
+	}; 
+    GLOBAL = {ENTER = ("setStateTo: HEAD_AWAY_FROM_PLANET"); EXIT = (); UPDATE = (); }; 
+}
