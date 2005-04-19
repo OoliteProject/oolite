@@ -43,8 +43,12 @@ Your fair use and other rights are in no way affected by the above.
 #else
 #import <Cocoa/Cocoa.h>
 #endif
-#import <OpenGL/gl.h>
 
+#ifdef LINUX
+#include "oolite-linux.h"
+#else
+#import <OpenGL/gl.h>
+#endif
 
 extern int debug;
 

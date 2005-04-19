@@ -1,0 +1,10 @@
+# Oolite-linux
+# GNUmakefile.postamble: Runs after-compilation scripts.
+# These copy all the base data files into where oolite expects them
+# to live (Contents/Resources)
+#
+after-all:: 
+	$(MKDIRS) $(APP_NAME).app/Contents
+	$(MKDIRS) $(APP_NAME).app/Contents/Resources
+	$(CP) *.png *.plist *.dat $(APP_NAME).app/Contents/Resources
+

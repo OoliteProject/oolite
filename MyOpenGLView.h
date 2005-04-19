@@ -41,9 +41,14 @@ Your fair use and other rights are in no way affected by the above.
 #else
 #import <Cocoa/Cocoa.h>
 #endif
+
+#ifdef LINUX
+#include "oolite-linux.h"
+#else
 #import <OpenGL/OpenGL.h>
 #import <OpenGL/gl.h>
 #import <OpenGL/glext.h>
+#endif
 
 #define MAX_CLEAR_DEPTH		100000000.0
 // 100 000 km.

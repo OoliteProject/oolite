@@ -40,7 +40,11 @@ Your fair use and other rights are in no way affected by the above.
 
 */
 
+#ifdef LINUX
+#include "oolite-linux.h"
+#else
 #import <OpenGL/gl.h>
+#endif
 
 struct vector
 {

@@ -37,8 +37,12 @@ Your fair use and other rights are in no way affected by the above.
 
 */
 
+#ifdef LINUX
+#include "oolite-linux.h"
+#else
 #import <OpenGL/gl.h>
 #import <OpenGL/glu.h>
+#endif
 
 #import "Universe.h"
 

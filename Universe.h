@@ -150,8 +150,12 @@ Your fair use and other rights are in no way affected by the above.
 
 #define	NUMBER_OF_STRICT_EQUIPMENT_ITEMS	16
 
-#import <OpenGL/gl.h>
 //#import <OpenGL/glu.h>
+#ifdef LINUX
+#include "oolite-linux.h"
+#else
+#import <OpenGL/gl.h>
+#endif
 
 #ifdef GNUSTEP
 #import <Foundation/Foundation.h>

@@ -44,8 +44,13 @@ Your fair use and other rights are in no way affected by the above.
 #import <Cocoa/Cocoa.h>
 #endif
 #import <Foundation/Foundation.h>
+
+#ifdef LINUX
+#include "oolite-linux.h"
+#else
 #import <OpenGL/gl.h>
-//#import <OpenGL/glu.h>
+#import <OpenGL/glu.h>
+#endif
 
 #define	OPEN_GL_SPRITE_MIN_WIDTH	64.0
 #define	OPEN_GL_SPRITE_MIN_HEIGHT	64.0

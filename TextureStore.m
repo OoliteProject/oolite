@@ -43,7 +43,12 @@ Your fair use and other rights are in no way affected by the above.
 #else
 #import <Cocoa/Cocoa.h>
 #endif
+
+#ifdef LINUX
+#include "oolite-linux.h"
+#else
 #import <OpenGL/gl.h>
+#endif
 
 #import "ResourceManager.h"
 
