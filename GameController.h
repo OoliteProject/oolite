@@ -48,8 +48,8 @@ Your fair use and other rights are in no way affected by the above.
 #define MODE_FULL_SCREEN	200
 
 #define DISPLAY_MIN_COLOURS	32
-#define DISPLAY_MIN_WIDTH	640
-#define DISPLAY_MIN_HEIGHT	480
+#define DISPLAY_MIN_WIDTH  800	
+#define DISPLAY_MIN_HEIGHT	600
 #define DISPLAY_MAX_WIDTH	2400
 #define DISPLAY_MAX_HEIGHT	1800
 

@@ -322,7 +322,7 @@ static int _compareModes(id arg1, id arg2, void *context)
   
   unsigned int styleMask = NSTitledWindowMask | NSResizableWindowMask | NSMiniaturizableWindowMask;
   
-  rect = NSMakeRect (100, 100, 640, 480);
+  rect = NSMakeRect (100, 100, DISPLAY_MIN_WIDTH, DISPLAY_MIN_HEIGHT);
 
   NSLog(@"GameController.createWindow: creating gameWindow");
   gameWindow = [NSWindow alloc];
@@ -333,7 +333,7 @@ static int _compareModes(id arg1, id arg2, void *context)
   [gameWindow setTitle: @"GNUstep Oolite"];
 
   NSLog(@"GameController.createWindow: creating gameView");
-  tmpView = [[MyOpenGLView alloc] initWithFrame: NSMakeRect(0, 0, 800, 600) pixelFormat: [NSOpenGLView defaultPixelFormat]];
+  tmpView = [[MyOpenGLView alloc] initWithFrame: NSMakeRect(0, 0, DISPLAY_MIN_WIDTH, DISPLAY_MIN_HEIGHT) pixelFormat: [NSOpenGLView defaultPixelFormat]];
   [gameWindow setContentView: tmpView];
   [self setGameView: tmpView];
 }

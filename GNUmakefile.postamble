@@ -3,8 +3,33 @@
 # These copy all the base data files into where oolite expects them
 # to live (Contents/Resources)
 #
+CONTENTS = Contents
+RESOURCES = Resources
+INSTDIR = $(APP_NAME).app/$(CONTENTS)/$(RESOURCES)
+AIDIR = $(INSTDIR)/AIs
+CONFIGDIR = $(INSTDIR)/Config
+IMAGEDIR = $(INSTDIR)/Images
+TEXTUREDIR = $(INSTDIR)/Textures
+SOUNDDIR = $(INSTDIR)/Sounds
+MUSICDIR = $(INSTDIR)/Music
+MODELDIR = $(INSTDIR)/Models
+
 after-all:: 
 	$(MKDIRS) $(APP_NAME).app/Contents
-	$(MKDIRS) $(APP_NAME).app/Contents/Resources
-	$(CP) *.png *.plist *.dat $(APP_NAME).app/Contents/Resources
-
+	$(MKDIRS) $(INSTDIR)
+	$(MKDIRS) $(AIDIR)
+	$(MKDIRS) $(CONFIGDIR)
+	$(MKDIRS) $(IMAGEDIR)
+	$(MKDIRS) $(TEXTUREDIR)
+	$(MKDIRS) $(SOUNDDIR)
+	$(MKDIRS) $(MUSICDIR)
+	$(MKDIRS) $(MODELDIR)
+	$(CP) splash.png $(IMAGEDIR)/splash.png
+	$(CP) splashback.png $(IMAGEDIR)/splashback.png
+	$(CP) cursor.png compass.png aegis.png reddot.png greendot.png zoom.png legend* solar.png $(IMAGEDIR)
+	$(CP) *.png $(TEXTUREDIR)
+	$(CP) *.aiff $(SOUNDDIR)
+#	$(CP) *.mp3 *.mid *.mov $(MUSICDIR)
+	$(CP) *AI.plist $(AIDIR)
+	$(CP) *.dat $(MODELDIR)
+	$(CP) *.plist $(CONFIGDIR)

@@ -9,8 +9,9 @@
  *
  */
 
-#include "GL/gl.h"
-#include "GL/glu.h"
-#include "GL/glext.h"
+#include <GL/gl.h>
+#include <GL/glu.h>
+#include <GL/glext.h>
+#include <math.h>
 
 #endif /* OOLITE_LINUX */
