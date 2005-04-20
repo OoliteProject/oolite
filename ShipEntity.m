@@ -1104,7 +1104,16 @@ Your fair use and other rights are in no way affected by the above.
 	double  damping = 0.5 * delta_t;
 	double confidenceFactor;
 	double targetCR;
+#ifdef GNUSTEP
+   int missile_chance=0;
+   int rhs=(int)(32 * 0.1 / delta_t);
+   if(rhs)
+   {
+      missile_chance = 1 + (ranrot_rand() % rhs);
+   }
+#else   
 	int missile_chance = 1 + (ranrot_rand() % (int)( 32 * 0.1 / delta_t));
+#endif   
 	double hurt_factor = 16 * pow(energy/max_energy, 4.0);
 
 	//

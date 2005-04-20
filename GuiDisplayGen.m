@@ -209,9 +209,11 @@ Your fair use and other rights are in no way affected by the above.
 
 - (void) click
 {
+#ifdef HAVE_SOUND  
 	if ([guiclick isPlaying])
 		[guiclick stop];
 	[guiclick play];
+#endif   
 }
 
 - (void) setColor:(NSColor *) color forRow:(int) row

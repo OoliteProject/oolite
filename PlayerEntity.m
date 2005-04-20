@@ -1237,8 +1237,10 @@ static BOOL galactic_witchjump;
 {
 	// make a warningSound
 //	NSLog(@"player warned about hostiles!");
+#ifdef HAVE_SOUND  
 	if (![warningSound isPlaying])
 		[warningSound play];
+#endif   
 }
 
 - (BOOL) canCollide
@@ -1439,7 +1441,9 @@ static BOOL galactic_witchjump;
 			if ((e == nil)||([e getZeroDistance] > SCANNER_MAX_RANGE2)||([e scanClass] == CLASS_NO_DRAW))	// checking scanClass checks for cloaked ships
 			{
 				[universe addMessage:[universe expandDescription:@"[target-lost]" forSystem:system_seed] forCount:3.0];
+#ifdef HAVE_SOUND            
 				[boopSound play];
+#endif            
 				primaryTarget = NO_TARGET;
 				missile_status = MISSILE_STATUS_SAFE;
 			}
@@ -1462,7 +1466,9 @@ static BOOL galactic_witchjump;
 			if ((!target_ship)||([target_ship getZeroDistance] > SCANNER_MAX_RANGE2))
 			{
 				[universe addMessage:[universe expandDescription:@"[target-lost]" forSystem:system_seed] forCount:3.0];
+#ifdef HAVE_SOUND            
 				[boopSound play];
+#endif            
 				[missile_entity[i] removeTarget:nil];
 				if ((i == active_missile)&&(!ident_engaged))
 				{
@@ -1486,7 +1492,9 @@ static BOOL galactic_witchjump;
 				if ((missile_entity[active_missile])&&(!ident_engaged))
 					[missile_entity[active_missile] addTarget:first_target];
 				[universe addMessage:[NSString stringWithFormat:[universe expandDescription:@"[@-locked-onto-@]" forSystem:system_seed], (ident_engaged)? @"Ident system": @"Missile", [(ShipEntity *)first_target name]] forCount:4.5];
+#ifdef HAVE_SOUND            
 				[beepSound play];
+#endif            
 			}
 		}
 	}
@@ -1681,8 +1689,10 @@ static BOOL galactic_witchjump;
 		
 			if (hyperspeed_locked)
 		{
+#ifdef HAVE_SOUND        
 			if (![boopSound isPlaying])
 				[boopSound play];
+#endif         
 			[universe addMessage:[universe expandDescription:@"[jump-mass-locked]" forSystem:system_seed] forCount:4.5];
 			hyperspeed_engaged = NO;
 		}
@@ -2273,9 +2283,11 @@ static BOOL galactic_witchjump;
 	{
 		// give an audible warning
 //		NSLog(@"WARNING! %d %x", alert_condition, alert_flags);
+#ifdef HAVE_SOUND
 		if ([warningSound isPlaying])
 			[warningSound stop];
 		[warningSound play];
+#endif      
 	}
 	
 	return alert_condition;
@@ -2417,8 +2429,10 @@ static BOOL cloak_pressed;
 						hyperspeed_engaged = !hyperspeed_locked;						
 						if (hyperspeed_locked)
 						{
+#ifdef HAVE_SOUND                    
 							if (![boopSound isPlaying])
 								[boopSound play];
+#endif                     
 							[universe addMessage:[universe expandDescription:@"[jump-mass-locked]" forSystem:system_seed] forCount:1.5];
 						}
 					}
@@ -2442,6 +2456,7 @@ static BOOL cloak_pressed;
 				{
 					if (target_laser_hit != NO_TARGET)
 					{
+#ifdef HAVE_SOUND                 
 						if (weaponHitSound)
 						{
 							if ([weaponHitSound isPlaying])
@@ -2457,6 +2472,7 @@ static BOOL cloak_pressed;
 								[weaponSound stop];
 							[weaponSound play];
 						}
+#endif                  
 					}
 				}
 			}
@@ -2471,8 +2487,10 @@ static BOOL cloak_pressed;
 					BOOL missile_noise = [[missile_entity[active_missile] roles] hasSuffix:@"MISSILE"];
 					if ([self fireMissile])
 					{
+#ifdef HAVE_SOUND                 
 						if (missile_noise)
 							[missileSound play];
+#endif                  
 					}
 				}
 				fire_missile_pressed = YES;
@@ -2504,8 +2522,10 @@ static BOOL cloak_pressed;
 					missile_status = MISSILE_STATUS_ARMED;
 					primaryTarget = NO_TARGET;
 					ident_engaged = YES;
+#ifdef HAVE_SOUND               
 					if (![beepSound isPlaying])
 						[beepSound play];
+#endif               
 					[universe addMessage:[universe expandDescription:@"[ident-on]" forSystem:system_seed] forCount:2.0];
 				}
 				ident_pressed = YES;
@@ -2529,7 +2549,9 @@ static BOOL cloak_pressed;
 							[missile_entity[active_missile] addTarget:[self getPrimaryTarget]];
 							[universe addMessage:[NSString stringWithFormat:[universe expandDescription:@"[missile-locked-onto-@]" forSystem:system_seed], [(ShipEntity *)[self getPrimaryTarget] name]] forCount:4.5];
 						}
+#ifdef HAVE_SOUND                  
 						[beepSound play];
+#endif                  
 					}
 					else
 					{
@@ -2540,8 +2562,10 @@ static BOOL cloak_pressed;
 								[missile_entity[active_missile] removeTarget:nil];
 							[universe addMessage:[universe expandDescription:@"[missile-armed]" forSystem:system_seed] forCount:2.0];
 						}
+#ifdef HAVE_SOUND                  
 						if (![beepSound isPlaying])
 							[beepSound play];
+#endif                  
 					}
 					if ([[missile_entity[active_missile] roles] hasSuffix:@"MINE"])
 					{
@@ -2566,8 +2590,10 @@ static BOOL cloak_pressed;
 						missile_status = MISSILE_STATUS_SAFE;
 						primaryTarget = NO_TARGET;
 						[self safe_all_missiles];
+#ifdef HAVE_SOUND                  
 						if (![boopSound isPlaying])
 							[boopSound play];
+#endif                  
 						[universe addMessage:[universe expandDescription:@"[missile-safe]" forSystem:system_seed] forCount:2.0];
 					}
 					else
@@ -2575,8 +2601,10 @@ static BOOL cloak_pressed;
 						// targetting 'back on' here
 						primaryTarget = [missile_entity[active_missile] getPrimaryTargetID];
 						missile_status = (primaryTarget != NO_TARGET)? MISSILE_STATUS_TARGET_LOCKED : MISSILE_STATUS_SAFE;
+#ifdef HAVE_SOUND                  
 						if (![boopSound isPlaying])
 							[boopSound play];
+#endif                  
 						[universe addMessage:[universe expandDescription:@"[ident-off]" forSystem:system_seed] forCount:2.0];
 					}
 					ident_engaged = NO;
@@ -2594,7 +2622,9 @@ static BOOL cloak_pressed;
 				{
 					if ([self fireECM])
 					{
+#ifdef HAVE_SOUND                 
 						[ecmSound play];
+#endif                  
 						[universe addMessage:[universe expandDescription:@"[ecm-on]" forSystem:system_seed] forCount:3.0];
 					}
 				}
@@ -2620,8 +2650,12 @@ static BOOL cloak_pressed;
 			//
 			if (([gameView isDown:key_dump_cargo])&&([cargo count] > 0))
 			{
+#ifdef HAVE_SOUND           
 				if ([self dumpCargo] != CARGO_NOT_CARGO)
 					[beepSound play];
+#else
+            [self dumpCargo];            
+#endif            
 			}
 			//
 			// autopilot 'c'
@@ -2639,7 +2673,9 @@ static BOOL cloak_pressed;
 					velocity = make_vector( 0, 0, 0);
 					status = STATUS_AUTOPILOT_ENGAGED;
 					[shipAI setState:@"GLOBAL"];	// restart the AI
+#ifdef HAVE_SOUND               
 					[beepSound play];
+#endif               
 					[universe addMessage:[universe expandDescription:@"[autopilot-on]" forSystem:system_seed] forCount:4.5];
 					//
 					if (ootunes_on)
@@ -2668,8 +2704,10 @@ static BOOL cloak_pressed;
 				}
 				else
 				{
+#ifdef HAVE_SOUND              
 					if (![boopSound isPlaying])
 						[boopSound play];
+#endif               
 					[universe addMessage:[universe expandDescription:@"[autopilot-out-of-range]" forSystem:system_seed] forCount:4.5];
 				}
 			}
@@ -2689,7 +2727,9 @@ static BOOL cloak_pressed;
 					velocity = make_vector( 0, 0, 0);
 					status = STATUS_AUTOPILOT_ENGAGED;
 					[shipAI setState:@"GLOBAL"];	// restart the AI
+#ifdef HAVE_SOUND               
 					[beepSound play];
+#endif               
 					[universe addMessage:[universe expandDescription:@"[autopilot-on]" forSystem:system_seed] forCount:4.5];
 					//
 					if (ootunes_on)
@@ -2718,8 +2758,10 @@ static BOOL cloak_pressed;
 				}
 				else
 				{
+#ifdef HAVE_SOUND              
 					if (![boopSound isPlaying])
 						[boopSound play];
+#endif               
 					[universe addMessage:[universe expandDescription:@"Target is not capable of autopilot-docking" forSystem:system_seed] forCount:4.5];
 				}
 			}
@@ -2750,8 +2792,10 @@ static BOOL cloak_pressed;
 				}
 				else
 				{
+#ifdef HAVE_SOUND              
 					if (![boopSound isPlaying])
 						[boopSound play];
+#endif               
 					[universe addMessage:[universe expandDescription:@"[autopilot-out-of-range]" forSystem:system_seed] forCount:4.5];
 				}
 			}
@@ -2767,14 +2811,18 @@ static BOOL cloak_pressed;
 				
 				if ((dx == 0)&&(dy == 0))
 				{
+#ifdef HAVE_SOUND              
 					[boopSound play];
+#endif               
 					[universe addMessage:[universe expandDescription:@"[witch-no-target]" forSystem:system_seed] forCount:3.0];
 					jumpOK = NO;
 				}
 				
 				if (10.0 * distance > fuel)
 				{
+#ifdef HAVE_SOUND              
 					[boopSound play];
+#endif               
 					[universe addMessage:[universe expandDescription:@"[witch-no-fuel]" forSystem:system_seed] forCount:3.0];
 					jumpOK = NO;
 				}
@@ -2787,7 +2835,9 @@ static BOOL cloak_pressed;
 					galactic_witchjump = NO;
 					witchspaceCountdown = 15.0;
 					status = STATUS_WITCHSPACE_COUNTDOWN;
+#ifdef HAVE_SOUND               
 					[beepSound play];
+#endif               
 					// say it!
 					[universe addMessage:[NSString stringWithFormat:[universe expandDescription:@"[witch-to-@-in-f-seconds]" forSystem:system_seed], [universe getSystemName:target_system_seed], witchspaceCountdown] forCount:1.0];
 				}
@@ -2824,7 +2874,9 @@ static BOOL cloak_pressed;
 					galactic_witchjump = YES;
 					witchspaceCountdown = 15.0;
 					status = STATUS_WITCHSPACE_COUNTDOWN;
+#ifdef HAVE_SOUND               
 					[beepSound play];
+#endif               
 					// say it!
 					[universe addMessage:[NSString stringWithFormat:[universe expandDescription:@"[witch-galactic-in-f-seconds]" forSystem:system_seed], witchspaceCountdown] forCount:1.0];
 				}
@@ -2849,10 +2901,12 @@ static BOOL cloak_pressed;
 						[universe addMessage:[universe expandDescription:@"[cloak-off]" forSystem:system_seed] forCount:2];
 					}
 					//
+#ifdef HAVE_SOUND               
 					if (cloaking_device_active)
 						[beepSound play];
 					else
 						[boopSound play];
+#endif               
 				}
 				cloak_pressed = YES;
 			}
@@ -3550,8 +3604,10 @@ static BOOL queryPressed;
 							//NSLog(@"Try Buying Commodity %d",item);
 							if ([self tryBuyingCommodity:item])
 								[self setGuiToMarketScreen];
+#ifdef HAVE_SOUND
 							else
 								[boopSound play];
+#endif                     
 							wait_for_key_up = YES;
 						}
 					}
@@ -3563,8 +3619,10 @@ static BOOL queryPressed;
 							//NSLog(@"Try Selling Commodity %d",item);
 							if ([self trySellingCommodity:item])
 								[self setGuiToMarketScreen];
+#ifdef HAVE_SOUND                     
 							else
 								[boopSound play];
+#endif                     
 							wait_for_key_up = YES;
 						}
 					}
@@ -3581,9 +3639,11 @@ static BOOL queryPressed;
 								for (i = 0; i < yours; i++)
 									[self trySellingCommodity:item];
 								//NSLog(@"... you sold %d.", yours);
+#ifdef HAVE_SOUND                        
 								if ([sellSound isPlaying])
 									[sellSound stop];
 								[sellSound play];
+#endif                        
 								[self setGuiToMarketScreen];
 							}
 							else			// buy as much as possible
@@ -3595,15 +3655,19 @@ static BOOL queryPressed;
 								[self setGuiToMarketScreen];
 								if (amount_bought == 0)
 								{
+#ifdef HAVE_SOUND                          
 									if ([boopSound isPlaying])
 										[boopSound stop];
 									[boopSound play];
+#endif                           
 								}
 								else
 								{
+#ifdef HAVE_SOUND                          
 									if ([buySound isPlaying])
 										[buySound stop];
 									[buySound play];
+#endif                           
 								}
 							}
 							wait_for_key_up = YES;
@@ -3664,16 +3728,20 @@ static BOOL queryPressed;
 					{
 						if ([self pickFromGuiContractsScreen])
 						{
+#ifdef HAVE_SOUND                    
 							if ([buySound isPlaying])
 								[buySound stop];
 							[buySound play];
+#endif                     
 							[self setGuiToContractsScreen];
 						}
 						else
 						{
+#ifdef HAVE_SOUND                    
 							if ([boopSound isPlaying])
 								[boopSound stop];
 							[boopSound play];
+#endif                     
 						}
 					}
 					selectPressed = YES;
@@ -3774,9 +3842,11 @@ static BOOL queryPressed;
 							}
 							else
 							{
+#ifdef HAVE_SOUND                       
 								if ([buySound isPlaying])
 									[buySound stop];
 								[buySound play];
+#endif                        
 								[universe removeDemoShips];
 								[self setGuiToStatusScreen];
 								[self setShowDemoShips:NO];
@@ -3784,12 +3854,14 @@ static BOOL queryPressed;
 								[universe setDisplayCursor:NO];
 							}
 						}
+#ifdef HAVE_SOUND                  
 						else
 						{
 							if ([boopSound isPlaying])
 								[boopSound stop];
 							[boopSound play];
 						}
+#endif                  
 					}
 					selectPressed = YES;
 				}
@@ -4103,7 +4175,9 @@ static BOOL toggling_music;
 		autopilot_engaged = NO;
 		primaryTarget = NO_TARGET;
 		status = STATUS_IN_FLIGHT;
+#ifdef HAVE_SOUND      
 		[beepSound play];
+#endif      
 		[universe addMessage:[universe expandDescription:@"[autopilot-off]" forSystem:system_seed] forCount:4.5];
 		//
 		if (ootunes_on)
@@ -4174,7 +4248,9 @@ static BOOL toggling_music;
 		//NSLog(@"Leaving dock (%@)...%@",docked_station,[docked_station name]);
 		[self leaveDock:docked_station];
 		[universe setDisplayCursor:NO];
+#ifdef HAVE_SOUND      
 		[breakPatternSound play];
+#endif      
 	}
 	//
 	//  text displays
@@ -4336,7 +4412,9 @@ static BOOL toggling_music;
 	
 	if ([ms isEqual:@"INCOMING_MISSILE"])
 	{
+#ifdef HAVE_SOUND     
 		[warningSound play];
+#endif      
 		[universe addMessage:[universe expandDescription:@"[incoming-missile]" forSystem:system_seed] forCount:4.5];
 	}
 	
@@ -4344,11 +4422,15 @@ static BOOL toggling_music;
 		[universe addMessage:[universe expandDescription:@"[energy-low]" forSystem:system_seed] forCount:6.0];
 	
 	if (([ms isEqual:@"ECM"])&&(![ecmSound isPlaying]))
+#ifdef HAVE_SOUND     
 		[ecmSound play];
+#endif   
 	
 	if ([ms isEqual:@"DOCKING_REFUSED"]&&(status == STATUS_AUTOPILOT_ENGAGED))
 	{
+#ifdef HAVE_SOUND     
 		[warningSound play];
+#endif      
 		[universe addMessage:[universe expandDescription:@"[autopilot-denied]" forSystem:system_seed] forCount:4.5];
 		autopilot_engaged = NO;
 		primaryTarget = NO_TARGET;
@@ -4525,7 +4607,9 @@ static BOOL toggling_music;
 		}
 	}
 	[universe addMessage:[universe expandDescription:@"[energy-bomb-activated]" forSystem:system_seed] forCount:4.5];
+#ifdef HAVE_SOUND   
 	[destructionSound play];
+#endif   
 	return YES;
 }
 
@@ -4680,9 +4764,11 @@ static BOOL toggling_music;
 
 	if (damageSound)
 	{
+#ifdef HAVE_SOUND     
 		if ([damageSound isPlaying])
 			[damageSound stop];
 		[damageSound play];
+#endif      
 	}
 		
 	if (d_forward >= 0)
@@ -4719,9 +4805,11 @@ static BOOL toggling_music;
 		energy -= amount;
 		if (scrapeDamageSound)
 		{
+#ifdef HAVE_SOUND        
 			if ([scrapeDamageSound isPlaying])
 				[scrapeDamageSound stop];
 			[scrapeDamageSound play];
+#endif         
 		}	
 	}
 	
@@ -4764,9 +4852,11 @@ static BOOL toggling_music;
 
 	if (scrapeDamageSound)
 	{
+#ifdef HAVE_SOUND     
 		if ([scrapeDamageSound isPlaying])
 			[scrapeDamageSound stop];
 		[scrapeDamageSound play];
+#endif      
 	}	
 	if (d_forward >= 0)
 	{
@@ -4965,7 +5055,9 @@ static BOOL toggling_music;
 	[universe setViewDirection:VIEW_AFT];
 	[self becomeLargeExplosion:4.0];
 	[self moveForward:100.0];
+#ifdef HAVE_SOUND   
 	[destructionSound play];
+#endif   
 	flight_speed = 160.0;
 	status = STATUS_DEAD;
 	[universe displayMessage:@"Game Over" forCount:30.0];
@@ -5013,9 +5105,11 @@ static BOOL toggling_music;
 	[universe setDisplayText:NO];
 	[universe setDisplayCursor:NO];
 	[universe set_up_break_pattern:position quaternion:q_rotation];
+#ifdef HAVE_SOUND   
 	if ([breakPatternSound isPlaying])
 		[breakPatternSound stop];
 	[breakPatternSound play];
+#endif   
 	
 	[station noteDockedShip:self];
 	docked_station = station;
@@ -5127,9 +5221,11 @@ static BOOL toggling_music;
 	[universe setDisplayText:NO];
 	[universe setDisplayCursor:NO];
 	[universe set_up_break_pattern:position quaternion:q_rotation];
+#ifdef HAVE_SOUND
 	if ([breakPatternSound isPlaying])
 		[breakPatternSound stop];
 	[breakPatternSound play];
+#endif   
 	
 	[(MyOpenGLView *)[universe gameView] clearKeys];	// try to stop keybounces
 	
@@ -5263,7 +5359,9 @@ static BOOL toggling_music;
 		galaxy_coordinates.y += target_system_seed.b;
 		galaxy_coordinates.x /= 2;
 		galaxy_coordinates.y /= 2;
+#ifdef HAVE_SOUND      
 		[ecmSound play];
+#endif      
 		[universe set_up_universe_from_misjump];
 	}
 }
@@ -5295,7 +5393,9 @@ static BOOL toggling_music;
 	[universe setDisplayCursor:NO];
 	[universe setDisplayText:NO];
 	[universe set_up_break_pattern:position quaternion:q_rotation];
+#ifdef HAVE_SOUND   
 	[breakPatternSound play];
+#endif   
 }
 
 - (void) performDocking
@@ -6491,9 +6591,11 @@ static int last_outfitting_index;
 		}
 		else
 		{
+#ifdef HAVE_SOUND        
 			if ([buySound isPlaying])
 				[buySound stop];
 			[buySound play];
+#endif         
 			//
 			// wind the clock forward by 10 minutes plus 10 minutes for every 60 credits spent
 			//
@@ -6503,9 +6605,11 @@ static int last_outfitting_index;
 	}
 	else
 	{
+#ifdef HAVE_SOUND     
 		if ([boopSound isPlaying])
 			[boopSound stop];
 		[boopSound play];
+#endif      
 	}
 }
 
@@ -7010,8 +7114,9 @@ NSSound* burnersound;
 		burnersound = afterburner1Sound;
 	
 //	NSLog(@"DEBUG loopAfterburnerSound playing sound %@", burnersound);
-	
+#ifdef HAVE_SOUND	
 	[burnersound play];
+#endif   
 	[self	performSelector:_loopAfterburnerSoundSelector
 				withObject:NULL
 				afterDelay:1.25];	// and swap sounds in 1.25s time
