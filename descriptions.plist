@@ -514,6 +514,11 @@
 	<array>
 		<string>Not enough energy to activate cloaking device.</string>
 	</array>
+	<!-- holds full -->
+	<key>hold-full</key>
+	<array>
+		<string>Cargo holds full.</string>
+	</array>
 	<!-- Assorted messages sent out by ships etc.. -->
 	<!--	%H - homeworld
 			%I - homeworld+ian

@@ -4328,6 +4328,12 @@ static BOOL toggling_music;
 
 - (void) interpretAIMessage:(NSString *)ms
 {
+	if ([ms isEqual:@"HOLD_FULL"])
+	{
+		[boopSound play];	[beepSound play];
+		[universe addMessage:[universe expandDescription:@"[hold-full]" forSystem:system_seed] forCount:4.5];
+	}
+	
 	if ([ms isEqual:@"INCOMING_MISSILE"])
 	{
 		[warningSound play];
@@ -6586,9 +6592,10 @@ static int last_outfitting_index;
 				credits += [universe getPriceForWeaponSystemWithKey:@"EQ_WEAPON_MINING_LASER"];
 				break;
 			case WEAPON_MILITARY_LASER :
-					credits += [universe getPriceForWeaponSystemWithKey:@"EQ_WEAPON_MILITARY_LASER"];
+				credits += [universe getPriceForWeaponSystemWithKey:@"EQ_WEAPON_MILITARY_LASER"];
+				break;
 			case WEAPON_THARGOID_LASER :
-					credits += [universe getPriceForWeaponSystemWithKey:@"EQ_WEAPON_THARGOID_LASER"];
+				credits += [universe getPriceForWeaponSystemWithKey:@"EQ_WEAPON_THARGOID_LASER"];
 				break;
 			case WEAPON_NONE :
 				break;
