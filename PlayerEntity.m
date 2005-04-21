@@ -3315,7 +3315,14 @@ static BOOL queryPressed;
 				int begin_new_row =	GUI_ROW_OPTIONS_BEGIN_NEW;
 				int options_row =   GUI_ROW_OPTIONS_OPTIONS;
 				int display_row =   GUI_ROW_OPTIONS_DISPLAY;
+#ifdef GNUSTEP            
+            // quit only appears in GNUstep as users aren't
+            // used to Cmd-Q equivs.
+            int quit_row = GUI_ROW_OPTIONS_QUIT;
+#else
+            // Macintosh only
 				int speech_row =	GUI_ROW_OPTIONS_SPEECH;
+#endif            
 				int ootunes_row =	GUI_ROW_OPTIONS_OOTUNES;
 				int strict_row =	GUI_ROW_OPTIONS_STRICT;
 				int detail_row =	GUI_ROW_OPTIONS_DETAIL;
@@ -3446,7 +3453,8 @@ static BOOL queryPressed;
 				}
 				if ((![gameView isDown:gvArrowKeyRight])&&(![gameView isDown:gvArrowKeyLeft])&&(![gameView isDown:13]))
 					switching_resolution = NO;
-				
+            
+#ifndef GNUSTEP				
 				if (([gui selectedRow] == speech_row)&&(([gameView isDown:gvArrowKeyRight])||([gameView isDown:gvArrowKeyLeft])))
 				{
 					GuiDisplayGen* gui = [universe gui];
@@ -3459,6 +3467,7 @@ static BOOL queryPressed;
 						[gui setText:@" Spoken messages: OFF "	forRow:speech_row  align:GUI_ALIGN_CENTER];
 					[universe guiUpdated];
 				}
+#endif            
 
 				if (([gui selectedRow] == ootunes_row)&&(([gameView isDown:gvArrowKeyRight])||([gameView isDown:gvArrowKeyLeft])))
 				{
@@ -3466,10 +3475,17 @@ static BOOL queryPressed;
 					if ([gameView isDown:gvArrowKeyRight] != ootunes_on)
 						[gui click];
 					ootunes_on = [gameView isDown:gvArrowKeyRight];
+#ifdef GNUSTEP
+					if (ootunes_on)
+						[gui setText:@" xine integration: ON "	forRow:ootunes_row  align:GUI_ALIGN_CENTER];
+					else
+						[gui setText:@" xine integration: OFF "	forRow:ootunes_row  align:GUI_ALIGN_CENTER];
+#else               
 					if (ootunes_on)
 						[gui setText:@" iTunes integration: ON "	forRow:ootunes_row  align:GUI_ALIGN_CENTER];
 					else
 						[gui setText:@" iTunes integration: OFF "	forRow:ootunes_row  align:GUI_ALIGN_CENTER];
+#endif               
 					[universe guiUpdated];
 				}
 
@@ -3491,6 +3507,13 @@ static BOOL queryPressed;
 					[universe setStrict:![universe strict]];
 				}
 
+#ifdef GNUSTEP
+            // GNUstep only menu quit item
+            if (([gui selectedRow] == quit_row) && [gameView isDown:13])
+            {
+			      [[gameView gameController] exitApp];
+            }
+#endif              
 			}
 			break;
 		
@@ -6141,9 +6164,24 @@ static BOOL toggling_music;
 		NSLog(@"***** couldn't find current display mode switching to basic 640x480");
 		displayModeIndex = 0;
 	}
-	NSDictionary	*mode = [(NSArray *)[controller displayModes] objectAtIndex:displayModeIndex];
+
+   // oolite-linux:
+   // Check that there are display modes listed before trying to
+   // get them or an exception occurs.
+	NSDictionary	*mode = nil;
+   if ([(NSArray *)[controller displayModes] count])
+   {
+      mode=[(NSArray *)[controller displayModes] objectAtIndex:displayModeIndex];
+   }
 #ifdef GNUSTEP
-   // TODO: something
+   // TODO: Full-screen mode selection, need to read X docs.
+   NSString *displayModeString=nil;
+   if(!mode)
+   {
+      // We didn't get any full screen modes.
+      displayModeString=[NSString stringWithFormat:@" No fullscreen modes found"];
+   }
+   // TODO: else clause to init the string similar to the OS X build.
 #else
 	int modeWidth = [[mode objectForKey: (NSString *)kCGDisplayWidth] intValue];
 	int modeHeight = [[mode objectForKey: (NSString *)kCGDisplayHeight] intValue];
@@ -6161,7 +6199,13 @@ static BOOL toggling_music;
 		int begin_new_row =	GUI_ROW_OPTIONS_BEGIN_NEW;
 		int options_row =   GUI_ROW_OPTIONS_OPTIONS;
 		int display_row =   GUI_ROW_OPTIONS_DISPLAY;
+#ifdef GNUSTEP      
+      // GNUstep needs a quit option at present (no Cmd-Q) but
+      // doesn't need speech.
+      int quit_row = GUI_ROW_OPTIONS_QUIT;
+#else      
 		int speech_row =	GUI_ROW_OPTIONS_SPEECH;
+#endif      
 		int ootunes_row =	GUI_ROW_OPTIONS_OOTUNES;
 		int detail_row =	GUI_ROW_OPTIONS_DETAIL;
 		int strict_row =	GUI_ROW_OPTIONS_STRICT;
@@ -6185,10 +6229,24 @@ static BOOL toggling_music;
 			[gui setColor:[NSColor grayColor] forRow:load_row];
 		}
 		[gui setColor:[NSColor grayColor] forRow:options_row];
-#ifndef GNUSTEP
-// TODO: Erk!      
+#ifdef GNUSTEP
+      // TODO: This menu section is preliminary.
+		if (ootunes_on)
+			[gui setText:@" xine integration: ON "	forRow:ootunes_row  align:GUI_ALIGN_CENTER];
+		else
+			[gui setText:@" xine integration: OFF "	forRow:ootunes_row  align:GUI_ALIGN_CENTER];
 		[gui setText:displayModeString	forRow:display_row  align:GUI_ALIGN_CENTER];
-#endif
+      
+      // If we didn't get any modes, grey it out.
+      if(!mode)
+      {
+         [gui setColor:[NSColor grayColor] forRow:display_row];
+      }
+
+      // quit menu option
+      [gui setText:@" Exit game " forRow:quit_row align:GUI_ALIGN_CENTER];
+#else
+      // Macintosh only      
 		if (speech_on)
 			[gui setText:@" Spoken messages: ON "	forRow:speech_row  align:GUI_ALIGN_CENTER];
 		else
@@ -6197,6 +6255,7 @@ static BOOL toggling_music;
 			[gui setText:@" iTunes integration: ON "	forRow:ootunes_row  align:GUI_ALIGN_CENTER];
 		else
 			[gui setText:@" iTunes integration: OFF "	forRow:ootunes_row  align:GUI_ALIGN_CENTER];
+#endif      
 		if ([universe reducedDetail])
 			[gui setText:@" Reduced detail: ON "	forRow:detail_row  align:GUI_ALIGN_CENTER];
 		else
@@ -6205,7 +6264,11 @@ static BOOL toggling_music;
 			[gui setText:@" Reset to unrestricted play. "	forRow:strict_row  align:GUI_ALIGN_CENTER];
 		else
 			[gui setText:@" Reset to strict gameplay. "	forRow:strict_row  align:GUI_ALIGN_CENTER];
+#ifdef GNUSTEP
+      [gui setSelectableRange:NSMakeRange(first_sel_row, 1 + quit_row - first_sel_row)];
+#else      
 		[gui setSelectableRange:NSMakeRange(first_sel_row ,1 + strict_row - first_sel_row)];
+#endif      
 		[gui setSelectedRow: first_sel_row];
 		//
 		
