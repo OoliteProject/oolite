@@ -1,0 +1,71 @@
+Stuff Fixed during Porting
+==========================
+
+The purpose of this file is to list the things I came up against,
+how I fixed them, and what caused them so if you're porting to
+another platform and see something similar, you know where to start
+looking (rather than groping in the dark). It is grouped into 'Symptom'
+and 'Cause'. The cause discussion includes possible solutions.
+
+If you are porting to another platform, and you encounter weird difficulties
+that you overcome please add them to this file and either send it to me,
+or if you have svn commit access to the repo, commit it.
+
+Dylan Smith <dyls@alioth.net>
+
+-------------------------------------------------------------------------
+Symptom:
+Altitude bar drawn right across the screen, time under the scanner
+showing stupid value (it should be something like NNNNNNN:NN:NN:NN),
+probably no rotating Cobra showing on startup (and no view out of the
+window when you launch your ship)
+
+Cause:
+Bad maths.
+floor(), part of the standard C math library, is returning funny values
+or your int type is not at least 32 bits wide.
+Make sure #include <math.h> is done in all applicable files; for Linux
+this was put in oolite-linux.h which is included by every file.
+
+Check that floor() returns a sensible value by writing a short program that
+does:
+
+int result;
+double thing=180058016009.741669;
+result=floor(thing / 86400.0);
+printf("Result is %d and thing is %f\n", result, thing);
+
+Result should equal 2084004. Try it including math.h and not including
+math.h and note any differences. If it gives the right result with math.h
+but the wrong result without, then you've not included math.h
+
+In the case that your int type is only 16 bits, this will probably work:
+#define int long
+
+and put it in your equivalent of oolite-linux.h.
+
+Additional info: see the manpage for floor().
+
+TODO: Include an assertion on startup that causes the game to exit
+immediately with an error message describing the problem if floor()
+doesn't return the correct value. I'll only bother if this problem
+keeps cropping up. An error message that can be reported is much
+better than a vague description of these symptoms by some guy who
+just wants to play the game.
+--------------------------------------------------------------------------
+
+Symptom: Floating point exceptions
+
+Cause: Some rhs of / and % expressions are turning out to be zero (I
+assume this isn't the case on OS X). In some instances, the simple
+fix of doing an if(rhs_of_expression)... before the div or mod
+operation is appropriate. It's probably best to look for the root
+cause of why the rhs is zero in the first place to check that it's not
+harmless and you're not going to hide a new problem or hide the root
+cause by doing this test.
+
+The location of the exception is easily found by doing 'make debug=yes'
+and doing 'debugapp oolite.debug' and then looking at the line of code
+it crashes in.
+
+
