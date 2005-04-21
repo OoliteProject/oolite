@@ -3501,12 +3501,7 @@ static BOOL queryPressed;
 						[gui setText:@" Reduced detail: OFF "	forRow:detail_row  align:GUI_ALIGN_CENTER];
 					[universe guiUpdated];
 				}
-
-				if (([gui selectedRow] == strict_row)&&[gameView isDown:13])
-				{
-					[universe setStrict:![universe strict]];
-				}
-
+            
 #ifdef GNUSTEP
             // GNUstep only menu quit item
             if (([gui selectedRow] == quit_row) && [gameView isDown:13])
@@ -3514,6 +3509,17 @@ static BOOL queryPressed;
 			      [[gameView gameController] exitApp];
             }
 #endif              
+            // TODO: Investigate why this has to be handled last (if the
+            // quit item and this are swapped, the game crashes if
+            // strict mode is selected with SIGSEGV in the ObjC runtime
+            // system. The stack trace shows it crashes when it hits
+            // the if statement, trying to send the message to one of
+            // the things contained.
+				if (([gui selectedRow] == strict_row)&&[gameView isDown:13])
+				{
+					[universe setStrict:![universe strict]];
+				}
+
 			}
 			break;
 		
