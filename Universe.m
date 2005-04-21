@@ -2223,7 +2223,17 @@ Your fair use and other rights are in no way affected by the above.
 		int co_type, co_amount, qr;
 		
 		// select a random point in the histogram
-		qr = ranrot_rand() % total_quantity;
+      // TODO: find out why total_quantity is sometimes zero.
+      // oolite-linux: prevent the SIGFPE if total_quantity is zero
+      if(total_quantity)
+      {
+		   qr = ranrot_rand() % total_quantity;
+      }
+      else
+      {
+         qr = 0;
+      }
+
 		co_type = 0;
 		while (qr > 0)
 		{
