@@ -176,10 +176,10 @@ Vector cross_product (Vector first, Vector second)
 	result.x = (first.y * second.z) - (first.z * second.y);
 	result.y = (first.z * second.x) - (first.x * second.z);
 	result.z = (first.x * second.y) - (first.y * second.x);
-	mag2 = sqrt(result.x * result.x + result.y * result.y + result.z * result.z);
+	mag2 = result.x * result.x + result.y * result.y + result.z * result.z;
 	if (mag2 > 0.0)
 	{
-		det = 1.0 / sqrt(result.x * result.x + result.y * result.y + result.z * result.z);
+		det = 1.0 / sqrt(mag2);
 		result.x *= det;	result.y *= det;	result.z *= det;
 		return result;
 	}
