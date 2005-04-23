@@ -45,7 +45,6 @@
 
 - (BOOL) stop
 {
-   NSLog(@"Stopping it");
    [soundThread stopTrack: self];
    return YES;
 }
@@ -57,7 +56,6 @@
 
 - (void) dealloc
 {
-   NSLog(@"deallocing sound");
    playPosition=NULL;
    [soundThread stopTrack: self];
    [super dealloc];
@@ -67,14 +65,12 @@
 {
    int i;
    int stretchSample=SAMPLERATE / _samplingRate;
-   NSLog(@"Stretching sample by %d", stretchSample);
    long newDataSize=_dataSize * stretchSample; 
    unsigned char *newBuf=(unsigned char *)malloc(newDataSize);
    unsigned char *newBufPtr=newBuf;
-   unsigned char *newBufEnd=newBuf + newDataSize;
-   unsigned char *oldBuf=[_data bytes];
-   unsigned char *oldBufPtr;
-   unsigned char *oldBufEnd=oldBuf+_dataSize;
+   const unsigned char *oldBuf=[_data bytes];
+   const unsigned char *oldBufPtr;
+   const unsigned char *oldBufEnd=oldBuf+_dataSize;
 
    for(oldBufPtr=oldBuf; oldBufPtr < oldBufEnd; oldBufPtr += FRAMESIZE)
    {
@@ -136,19 +132,19 @@
    playPosition=[_data bytes];
 }
 
-- (unsigned char *)getPlayPosition
+- (const unsigned char *)getPlayPosition
 {
    return playPosition;
 }
 
-- (unsigned char *)getBufferEnd;
+- (const unsigned char *)getBufferEnd;
 {
-   unsigned char *buf=[_data bytes];
+   const unsigned char *buf=[_data bytes];
    buf+=_dataSize;
    return buf;
 }
 
-- (void)setPlayPosition: (unsigned char *)pos
+- (void)setPlayPosition: (const unsigned char *)pos
 {
    playPosition=pos;
 }
@@ -195,10 +191,6 @@
       // When the count is nonzero, the thread gets resumed and the
       // semaphore count gets decremented.
       sem_wait(&soundSem);
-    
-      // finally we get to try and play it.
-      NSLog(@"Playing it");
-
       snd_pcm_prepare(pcm_handle);
   
       // play it one chunk at a time.
@@ -244,7 +236,6 @@
    }  
    
    // TODO: investigate mmaped access
-   NSLog(@"Setting access");
    if(snd_pcm_hw_params_set_access(pcm_handle, hwparams,
                      SND_PCM_ACCESS_RW_INTERLEAVED) < 0)
    {
@@ -253,7 +244,6 @@
    }
 
    // assumption...
-   NSLog(@"Setting format");
    if(snd_pcm_hw_params_set_format(pcm_handle, hwparams,
                            SND_PCM_FORMAT_S16_LE) < 0)
    {
@@ -263,7 +253,6 @@
 
    // set sample rate and channels
    int exact_rate=SAMPLERATE;
-   NSLog(@"Setting rate to %d", exact_rate);
    if(snd_pcm_hw_params_set_rate_near
             (pcm_handle, hwparams, &exact_rate, &dir))
    {
@@ -271,7 +260,6 @@
       return NO;
    }
    
-   NSLog(@"Setting channels to %d", CHANNELS);
    if(snd_pcm_hw_params_set_channels(pcm_handle, hwparams, CHANNELS) < 0)
    {
       NSLog(@"ALSA can't set channels to %d", CHANNELS);
@@ -285,7 +273,6 @@
       NSLog(@"ALSA could not set periods");
       return NO;
    }
-   NSLog(@"Setting buffer size");
    if(snd_pcm_hw_params_set_buffer_size
          (pcm_handle, hwparams, fpp) < 0)
    {
@@ -293,7 +280,6 @@
       return NO;
    }
 
-   NSLog(@"Setting hw params");
    if(snd_pcm_hw_params(pcm_handle, hwparams) < 0)
    {
       NSLog(@"ALSA could not set HW params");
@@ -323,7 +309,6 @@
 
       if(!track[i] && !slotAssigned)
       {
-         NSLog(@"assigning track %d", i);
          slot=i;
          slotAssigned=YES;
       }
@@ -334,7 +319,6 @@
       return;
    }
 
-   NSLog(@"Putting sound in slot %d", slot);
    track[slot]=sound;
    [sound startup];
 
@@ -393,8 +377,8 @@
             
 - (Sample *) getSampleBuffer: (OOSound *)sound
 {
-   unsigned char *position=[sound getPlayPosition];
-   unsigned char *end=[sound getBufferEnd];
+   const unsigned char *position=[sound getPlayPosition];
+   const unsigned char *end=[sound getBufferEnd];
    if(position >= end)
    {
       return NULL;
@@ -464,6 +448,7 @@
       {
          track[i]=nil;
          [trackToStop resetState];
+         [trackToStop release];
       }
    }
 }

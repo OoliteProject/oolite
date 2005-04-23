@@ -20,7 +20,7 @@
 @interface OOSound : NSSound
 {
    BOOL isPlaying;
-   unsigned char *playPosition;
+   const unsigned char *playPosition;
 }
 
 - (BOOL) pause;
@@ -40,9 +40,9 @@
 - (long)getDataSize;
 - (long)getFrameCount;
 - (int)getChannelCount;
-- (unsigned char *)getPlayPosition;
-- (unsigned char *)getBufferEnd;
-- (void)setPlayPosition: (unsigned char *)pos;
+- (const unsigned char *)getPlayPosition;
+- (const unsigned char *)getBufferEnd;
+- (void)setPlayPosition: (const unsigned char *)pos;
 - (void)resetPlayPosition;
 
 // call startup when starting to play a sound, and resetState when
@@ -54,7 +54,7 @@
 
 // Some constants. (We normalize anything sent to us to these values)
 #define PERIODS      2
-#define PERIODSIZE   512 
+#define PERIODSIZE   4096
 #define SAMPLERATE   44100
 #define CHANNELS     2
 #define MAXTRACKS    4
