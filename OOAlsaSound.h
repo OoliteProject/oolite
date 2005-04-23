@@ -54,7 +54,7 @@
 
 // Some constants. (We normalize anything sent to us to these values)
 #define PERIODS      2
-#define PERIODSIZE   1024
+#define PERIODSIZE   512 
 #define SAMPLERATE   44100
 #define CHANNELS     2
 #define MAXTRACKS    4
