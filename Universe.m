@@ -4563,7 +4563,18 @@ double estimatedTimeForJourney(double distance, int hops)
 				// do some cunning rounding
 				int superfee = 100000;
 				int rounded_fee = superfee * floor(0.5 + (float)fee / (float)superfee);
-				float ratio = fee / rounded_fee;
+            float ratio;
+            // TODO: investigate this more
+            if(!rounded_fee)
+            {
+               NSLog(@"oops, rounded_fee=0");
+               ratio=1;
+            }
+            else
+            {
+              ratio = fee / rounded_fee;
+            }
+
 				while (((ratio < 0.95)||(ratio > 1.05))&&(superfee > 0))
 				{
 					superfee /= 10;
