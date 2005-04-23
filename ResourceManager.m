@@ -42,6 +42,7 @@ Your fair use and other rights are in no way affected by the above.
 #import "ResourceManager.h"
 #ifdef GNUSTEP
 #import "Comparison.h"
+#import "OOSound.h"
 #endif
 
 
@@ -321,7 +322,11 @@ NSMutableDictionary*	movie_cache;
 		NSString *filepath = [(NSString *)[fpaths objectAtIndex:i] stringByAppendingPathComponent:filename];
 		if ([[NSFileManager defaultManager] fileExistsAtPath:filepath])
 		{
+#ifdef GNUSTEP
+         result = [[[OOSound alloc] initWithContentsOfFile:filepath byReference:NO] autorelease];
+#else    
 			result = [[[NSSound alloc] initWithContentsOfFile:filepath byReference:NO] autorelease];
+#endif         
 			r++;
 		}
 		if (foldername)
@@ -330,7 +335,11 @@ NSMutableDictionary*	movie_cache;
 			//NSLog(@".... checking filepath '%@' for Sounds", filepath);
 			if ([[NSFileManager defaultManager] fileExistsAtPath:filepath])
 			{
+#ifdef GNUSTEP
+				result = [[[OOSound alloc] initWithContentsOfFile:filepath byReference:NO] autorelease];
+#else            
 				result = [[[NSSound alloc] initWithContentsOfFile:filepath byReference:NO] autorelease];
+#endif            
 				r++;
 			}
 		}
