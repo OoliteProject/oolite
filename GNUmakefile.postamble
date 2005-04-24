@@ -5,6 +5,7 @@
 #
 CONTENTS = Contents
 RESOURCES = Resources
+GNUSTEP_OW = $(APP_NAME).app/Resources/Info-gnustep.plist
 INSTDIR = $(APP_NAME).app/$(CONTENTS)/$(RESOURCES)
 AIDIR = $(INSTDIR)/AIs
 CONFIGDIR = $(INSTDIR)/Config
@@ -33,3 +34,5 @@ after-all::
 	$(CP) *AI.plist $(AIDIR)
 	$(CP) *.dat $(MODELDIR)
 	$(CP) *.plist $(CONFIGDIR)
+	$(CP) Info-Oolite.plist $(GNUSTEP_OW)
+
