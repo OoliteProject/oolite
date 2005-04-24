@@ -4564,22 +4564,24 @@ double estimatedTimeForJourney(double distance, int hops)
 				int superfee = 100000;
 				int rounded_fee = superfee * floor(0.5 + (float)fee / (float)superfee);
             float ratio;
-            // TODO: investigate this more
+            
+            // Fascinating. On the Mac, the same thing happens but
+            // SIGFPE is never raised! How bizarre. This simulates
+            // the Mac division by zero behaviour.
+            // TODO: look at this code again later.
             if(!rounded_fee)
-            {
-               NSLog(@"oops, rounded_fee=0");
-               ratio=1;
-            }
+               ratio=0;
             else
-            {
-              ratio = fee / rounded_fee;
-            }
+               ratio = fee / rounded_fee;
 
 				while (((ratio < 0.95)||(ratio > 1.05))&&(superfee > 0))
 				{
 					superfee /= 10;
 					rounded_fee = superfee * floor(0.5 + (float)fee / (float)superfee);
-					ratio = (float)fee / (float)rounded_fee;
+               if(!rounded_fee)
+                  ratio=0;
+               else
+					   ratio = (float)fee / (float)rounded_fee;
 				}
 				if ((ratio > 0.95)&&(ratio < 1.05))
 					fee = rounded_fee;
