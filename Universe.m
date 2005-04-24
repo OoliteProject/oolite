@@ -4570,18 +4570,16 @@ double estimatedTimeForJourney(double distance, int hops)
             // the Mac division by zero behaviour.
             // TODO: look at this code again later.
             if(!rounded_fee)
-               ratio=0;
-            else
-               ratio = fee / rounded_fee;
+               rounded_fee=1;
+            ratio = fee / rounded_fee;
 
 				while (((ratio < 0.95)||(ratio > 1.05))&&(superfee > 0))
 				{
 					superfee /= 10;
 					rounded_fee = superfee * floor(0.5 + (float)fee / (float)superfee);
                if(!rounded_fee)
-                  ratio=0;
-               else
-					   ratio = (float)fee / (float)rounded_fee;
+                  rounded_fee=1;
+					ratio = (float)fee / (float)rounded_fee;
 				}
 				if ((ratio > 0.95)&&(ratio < 1.05))
 					fee = rounded_fee;
