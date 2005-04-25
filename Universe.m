@@ -4860,11 +4860,15 @@ double estimatedTimeForJourney(double distance, int hops)
 						// do some cunning rounding
 						float superfee = 100000;
 						int rounded_fee = superfee * floor(0.5 + fee / superfee);
+						if(!rounded_fee)	// GILES
+						   rounded_fee=1;	// same fix for /0 as before
 						float ratio = fee / (float)rounded_fee;
 						while (((ratio < 0.95)||(ratio > 1.05))&&(superfee > 1))
 						{
 							superfee /= 10;
 							rounded_fee = superfee * floor(0.5 + fee / superfee);
+							if(!rounded_fee)	// GILES
+							   rounded_fee=1;	// same fix for /0 as before
 							ratio = fee / (float)rounded_fee;
 						}
 						if ((ratio > 0.95)&&(ratio < 1.05))
