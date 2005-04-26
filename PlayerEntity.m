@@ -2013,13 +2013,17 @@ static BOOL galactic_witchjump;
 }
 - (double) dial_altitude
 {
+   // are we trapped in witch space?
+   if(![universe planet])
+      return 1.0;
+
 	PlanetEntity	*planet =   [universe planet];
 	PlanetEntity	*sun =		[universe sun];
 	double  planet_zd = [planet getZeroDistance];
 	double  sun_zd = [sun getZeroDistance];
 	double alt = (planet_zd < sun_zd) ? (sqrt(planet_zd) - [planet collisionRadius]) : (sqrt(sun_zd) - [sun collisionRadius]);
 	alt /= PLAYER_DIAL_MAX_ALTITUDE;
-		
+	
 	if (alt > 1.0)
 		alt = 1.0;
 	if (alt < 0.0)

@@ -415,18 +415,29 @@
    {
       short chana;
       short chanb;
-      short sumChanA=0;
-      short sumChanB=0;
+      long sumChanA=0;
+      long sumChanB=0;
       for(i=0; i < numChunks; i++)
       {
          memcpy(&chana, trackPtr[i], sizeof(short));
          memcpy(&chanb, trackPtr[i]+sizeof(short), sizeof(short));
          trackPtr[i]+=sizeof(short) * 2;
-         sumChanA+=chana >> 1;
-         sumChanB+=chanb >> 1;
+         sumChanA+=chana;
+         sumChanB+=chanb; 
       }
-      memcpy(current, &sumChanA, sizeof(short));
-      memcpy(current+sizeof(short), &sumChanB, sizeof(short)); 
+
+      if(sumChanA > 32767)
+         sumChanA=32767;
+      else if(sumChanA < -32767)
+         sumChanA=-32767;
+      if(sumChanB > 32767)
+         sumChanB=32767;
+      if(sumChanB < -32767)
+         sumChanB=-32767;
+      chana=sumChanA;
+      chanb=sumChanB;
+      memcpy(current, &chana, sizeof(short));
+      memcpy(current+sizeof(short), &chanb, sizeof(short)); 
          
    }
 
