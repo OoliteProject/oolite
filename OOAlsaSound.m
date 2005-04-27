@@ -66,18 +66,49 @@
    int i;
    int stretchSample=SAMPLERATE / _samplingRate;
    long newDataSize=_dataSize * stretchSample; 
-   unsigned char *newBuf=(unsigned char *)malloc(newDataSize);
-   unsigned char *newBufPtr=newBuf;
-   const unsigned char *oldBuf=[_data bytes];
-   const unsigned char *oldBufPtr;
-   const unsigned char *oldBufEnd=oldBuf+_dataSize;
+   Frame *newBuf=(Frame *)malloc(newDataSize);
+   Frame *newBufPtr=newBuf;
+   const Frame *oldBuf=(const Frame *)[_data bytes];
+   const Frame *oldBufPtr;
+   const Frame *oldBufEnd=oldBuf+(_dataSize / sizeof(Frame));
 
-   for(oldBufPtr=oldBuf; oldBufPtr < oldBufEnd; oldBufPtr += FRAMESIZE)
+   Sample lastChana;
+   Sample lastChanb;
+   Sample thisChana=0;
+   Sample thisChanb=0;
+
+   for(oldBufPtr=oldBuf; oldBufPtr < oldBufEnd; oldBufPtr ++)
    {
+      // Keep the last sample value and split out the ones
+      // we are looking at (or use zero if we're at the first
+      // frame of the buffer). Then make a simple straight line
+      // between the two to antialise the sound that's being
+      // resampled.
+      lastChana=thisChana;
+      lastChanb=thisChanb;
+
+      thisChana=(*oldBufPtr & 0xFFFF0000) >> 16;
+      thisChanb=*oldBufPtr & 0x0000FFFF;
+
+      short stepChana=(thisChana-lastChana) / stretchSample;
+      short stepChanb=(thisChanb-lastChanb) / stretchSample;
+
+      // we'll increment chana and chanb by the step as we
+      // write them.
+      short chana=lastChana;
+      short chanb=lastChanb;
+         
       for(i=0; i < stretchSample; i++)
       {
-         memcpy(newBufPtr, oldBufPtr, FRAMESIZE);
-         newBufPtr+=FRAMESIZE;
+         *newBufPtr=chana;
+         *newBufPtr <<= 16;
+
+         // see later comment about shorts being aligned on longword
+         // boundaries.
+         *newBufPtr |= (chanb & 0x0000FFFF);
+         chana+=stepChana;
+         chanb+=stepChanb;
+         newBufPtr++;
       }
    }
    [_data release];
@@ -95,7 +126,7 @@
 }
 
 // Float!? Surely an integer Mr. Stallman!
-- (float)getSampleRate
+- (float)getBYTERate
 {
    return _samplingRate;
 }
@@ -273,12 +304,26 @@
       NSLog(@"ALSA could not set periods");
       return NO;
    }
-   if(snd_pcm_hw_params_set_buffer_size
-         (pcm_handle, hwparams, fpp) < 0)
+
+   // bufsz = buffer size in frames. fpp = frames per period.
+   // We try to allocate a buffer of the number of frames per
+   // period but it might not happen.
+   bufsz=fpp;
+   if(snd_pcm_hw_params_set_buffer_size_near
+         (pcm_handle, hwparams, &bufsz) < 0)
    {
       NSLog(@"ALSA could not set the buffer size to %d", fpp);
       return NO;
    }
+
+   if(bufsz != fpp)
+   {
+      NSLog(@"Sound card can't take a buffer of %d - using %d instead",
+             fpp, bufsz);
+   }
+
+   // convert bufsz to bytes to be used in future malloc() calls.
+   bufsz *= FRAMESIZE;
 
    if(snd_pcm_hw_params(pcm_handle, hwparams) < 0)
    {
@@ -335,7 +380,7 @@
 
 - (BOOL) getChunkToPlay: (SoundChunk *)chunk
 {
-   Sample *sbuf;
+   BYTE *sbuf;
    int i;
    int chunki=0;
    int numRelease=0;
@@ -364,7 +409,7 @@
 
    numChunks=chunki;
    chunk->buf=(unsigned char *)[self mixChunks];
-   chunk->frames=(PERIODSIZE * PERIODS) >> 2;
+   chunk->frames=bufsz >> 2;
 
    for(i=0; i < numRelease; i++)
    {
@@ -375,7 +420,7 @@
    return rv;
 }
             
-- (Sample *) getSampleBuffer: (OOSound *)sound
+- (BYTE *) getSampleBuffer: (OOSound *)sound
 {
    const unsigned char *position=[sound getPlayPosition];
    const unsigned char *end=[sound getBufferEnd];
@@ -384,8 +429,7 @@
       return NULL;
    }
 
-   long bufsz=PERIODSIZE * PERIODS;
-   Sample *sbuf=(Sample *)malloc(bufsz);
+   BYTE *sbuf=(BYTE *)malloc(bufsz);
    memset(sbuf, 0, bufsz);
 
    long copyBytes=bufsz;
@@ -398,30 +442,37 @@
    return sbuf;
 }
 
-- (Sample *) mixChunks
+- (BYTE *) mixChunks
 {
    int i;
-   long bufsz=PERIODSIZE * PERIODS;
-   Sample *trackPtr[MAXTRACKS];
+   Frame *trackPtr[MAXTRACKS];
    for(i=0; i < numChunks; i++)
    {
-      trackPtr[i]=chunks[i];
+      trackPtr[i]=(Frame *)chunks[i];
    }
    
-   Sample *chunkBuf=(Sample *)malloc(bufsz);
-   Sample *current;
-   
-   for(current=chunkBuf; current < chunkBuf+bufsz; current+=FRAMESIZE)
+   Frame *chunkBuf=(Frame *)malloc(bufsz);
+   Frame *current;
+  
+   // Note: Everything is aligned on word boundaries. You can stop this
+   // with #pragma pack (2) but this causes GNUstep to crash.
+   // Even though shorts are only 2 bytes long, you still
+   // actually end up with 4 bytes aligned on a longword boundary.
+   for(current=chunkBuf; current < chunkBuf + (bufsz >> 2); current++)
    {
-      short chana;
-      short chanb;
+      Sample chana;
+      Sample chanb;
+
+      // Do the sums with a type bigger than a Sample (signed short).
+      // That way we can check whether we need to clip.
       long sumChanA=0;
       long sumChanB=0;
       for(i=0; i < numChunks; i++)
       {
-         memcpy(&chana, trackPtr[i], sizeof(short));
-         memcpy(&chanb, trackPtr[i]+sizeof(short), sizeof(short));
-         trackPtr[i]+=sizeof(short) * 2;
+         // doing it this way avoids lots of calls to memcpy.
+         chana=(*trackPtr[i] & 0xFFFF0000) >> 16;
+         chanb=*trackPtr[i] & 0x0000FFFF;
+         trackPtr[i]++;
          sumChanA+=chana;
          sumChanB+=chanb; 
       }
@@ -434,11 +485,19 @@
          sumChanB=32767;
       if(sumChanB < -32767)
          sumChanB=-32767;
+
+      // convert back to a short (not withstanding that shorts actually
+      // carry 4 bytes with them, the sign bit is in a different place
+      // and this gives us an easy way to make sure it's in the right
+      // place in the sample that results)
       chana=sumChanA;
       chanb=sumChanB;
-      memcpy(current, &chana, sizeof(short));
-      memcpy(current+sizeof(short), &chanb, sizeof(short)); 
-         
+      *current = chana;
+      *current <<= 16;
+
+      // see earlier comment about shorts still being 4 bytes long
+      // hence we need to mask off the most significant 2 bytes
+      *current |= (chanb & 0x0000ffff);
    }
 
    // free chunks
@@ -447,7 +506,7 @@
       free(chunks[i]);
    }
 
-   return chunkBuf;
+   return (BYTE *)chunkBuf;
 }
 
 - (void) stopTrack: (OOSound *)trackToStop

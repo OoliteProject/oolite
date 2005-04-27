@@ -35,7 +35,7 @@
 
 // accessor methods. Only OOAlsaSoundThread should be calling these.
 - (NSData *)getData;
-- (float)getSampleRate;
+- (float)getBYTERate;
 - (float)getFrameSize;
 - (long)getDataSize;
 - (long)getFrameCount;
@@ -54,7 +54,7 @@
 
 // Some constants. (We normalize anything sent to us to these values)
 #define PERIODS      2
-#define PERIODSIZE   4096
+#define PERIODSIZE   2048
 #define SAMPLERATE   44100
 #define CHANNELS     2
 #define MAXTRACKS    4
@@ -74,15 +74,20 @@ typedef struct _trackPointer
    unsigned char *bufend;
 } TrackPointer;
 
-typedef unsigned char Sample;
+typedef unsigned long Frame;
+typedef short Sample;
+#ifndef BYTE
+typedef unsigned char BYTE;
+#endif
 
 @interface OOAlsaSoundThread : NSObject
 {
    snd_pcm_t           *pcm_handle;
    snd_pcm_hw_params_t *hwparams;
-   int fpp;
-   snd_pcm_uframes_t   periodsize;
-   int periods;
+   int                  fpp;
+   unsigned long        bufsz;
+   snd_pcm_uframes_t    periodsize;
+   int                  periods;
 
    // controlling semapore
    sem_t soundSem;
@@ -90,7 +95,7 @@ typedef unsigned char Sample;
    // sounds to play
    OOSound *track[MAXTRACKS];
    TrackPointer tptr[MAXTRACKS];
-   Sample *chunks[MAXTRACKS];
+   BYTE *chunks[MAXTRACKS];
    int numChunks;
 }
 
@@ -114,8 +119,8 @@ typedef unsigned char Sample;
 // ALSA library code to figure out a better way to do this.
 // If you think this code is bizarre or at best baroque I quite agree!
 - (BOOL) getChunkToPlay: (SoundChunk *)chunk;
-- (Sample *)getSampleBuffer: (OOSound *)sound;
-- (Sample *)mixChunks;
+- (BYTE *)getSampleBuffer: (OOSound *)sound;
+- (BYTE *)mixChunks;
 
 @end
 
