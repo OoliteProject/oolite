@@ -4224,15 +4224,16 @@ Vector randomPositionInBoundingBox(BoundingBox bb)
 
 - (BOOL) collideWithShip:(ShipEntity *)other
 {
-	Vector  loc, opos;
+	Vector  loc, opos, pos;
 	double  inc1, dam1;
 	
 //	NSLog(@"DEBUG %@ %d colliding with other %@ %d", name, universal_id, [other name], [other universal_id]);
 	
+	// calculate line of centers using centres
 	opos = [other getPosition];
 	loc = opos;
 	loc.x -= position.x;	loc.y -= position.y;	loc.z -= position.z;
-	double back_dist = collision_radius + [other collisionRadius] - sqrt(magnitude2(loc));
+	double back_dist = 0.5 * (collision_radius + [other collisionRadius] - sqrt(magnitude2(loc)));
 	
 	loc = unit_vector(&loc);
 	Vector back = make_vector( back_dist * loc.x, back_dist * loc.y, back_dist * loc.z);
@@ -4244,74 +4245,47 @@ Vector randomPositionInBoundingBox(BoundingBox bb)
 		[self scoopUp:other];
 		return NO;
 	}
-	
 	if ([other canScoop:self])
 	{
 		[other scoopUp:self];
 		return NO;
 	}
 	
-//	// recalculate line of centers using collision vectors
-//	//
-//	Vector	l1 = [self collisionVectorForEntity:other];
-//	Vector	l2 = [other collisionVectorForEntity:self];
-//	//
-//	loc = make_vector( l1.x - l2.x, l1.y - l2.y, l1.z - l2.z);
-//	loc = unit_vector(&loc);
-
-	loc = make_vector( position.x - opos.x, position.y - opos.y, position.z - opos.z);
-	loc = unit_vector(&loc);
-
+	// back-off minimum distance
+	pos = position;
+	[self setPosition: pos.x - back.x :pos.y - back.y :pos.z - back.z];
+	pos = [other getPosition];
+	[other setPosition: pos.x + back.x :pos.y + back.y :pos.z + back.z];
 	
-	// retreat v4
-	//
-//	double dt = 0;
-//	do
-//	{
-//		dt -= 0.1;
-//		[self	resetToTime: dt];	// back a tenth of a second
-//		[other	resetToTime: dt];	// back a tenth of a second
-//	} while ([self checkPerPolyCollisionWithShip:other]&&[other checkPerPolyCollisionWithShip:self]&&(dt >= -2.0));
-////	NSLog(@"looped backward %.1fs", dt);
-//	if (dt < -2.0)
-	{
-		// use different back-off routine
-		Vector pos = position;
-		pos.x -= 0.5 * back.x;	pos.y -= 0.5 * back.y;	pos.z -= 0.5 * back.z;
-		[self setPosition:pos];
-		pos = [other getPosition];
-		pos.x += 0.5 * back.x;	pos.y += 0.5 * back.y;	pos.z += 0.5 * back.z;
-		[other setPosition:pos];
-	}
-	
-	// exchange momentum along line of centers
-	//
 	// find velocity along line of centers
 	// 
-	// momentum = mass x (relative) velocity
+	// momentum = mass x velocity
+	// ke = mass x velocity x velocity
 	//
-	Vector	mv =	[self getVelocity];
-	Vector	ov =	[other getVelocity];
-	mv.x -= ov.x;	mv.y -= ov.y;	mv.z -= ov.z;	// relative velocity
+	GLfloat m1 = mass;
+	GLfloat m2 = [other mass];
 	//
-	GLfloat	v_loc = dot_product( mv, loc); // velocity component in direction of line of centers
+	Vector	vel1 =	[self getVelocity];		// mass of self
+	Vector	vel2 =	[other getVelocity];	// mass of other
 	//
-	mv = make_vector ( v_loc * loc.x, v_loc * loc.y, v_loc * loc.z);
+	GLfloat	v1 = dot_product( vel1, loc);	// velocity of self in direction of line of centers
+	GLfloat	v2 = dot_product( vel2, loc);	// velocity of other in direction of line of centers
 	//
-	GLfloat total_mass = mass + [other mass];
+	GLfloat v1a = (2 * m2 * v2 + (m1 - m2) * v1) / ( m1 + m2);	// velocity of self along loc after elastic collision
+	GLfloat v2a = v1 - v2 + v1a;								// velocity of other along loc after elastic collision
 	//
-//	NSLog(@"DEBUG relative velocity is [ %.3f, %.3f, %.3f] %.3f m/s %@ mass is %.3f", mv.x, mv.y, mv.z, v_loc, name, mass);
+	Vector vel1a = make_vector( vel1.x + (v1a - v1) * loc.x, vel1.y + (v1a - v1) * loc.y, vel1.z + (v1a - v1) * loc.z);
+	Vector vel2a = make_vector( vel2.x + (v2a - v2) * loc.x, vel2.y + (v2a - v2) * loc.y, vel2.z + (v2a - v2) * loc.z);
 	//
-	// damage will be proportional to mass x velocity squared
+	[self setVelocity:vel1a];
+	[other setVelocity:vel2a];
 	//
-	dam1 = total_mass * v_loc * v_loc / 100000000;
+	// convert some velocity into damage energy
 	//
-	Vector impact =	make_vector( loc.x * mass * v_loc, loc.y * mass * v_loc, loc.z * mass * v_loc);
+	dam1 = (m1 + m2) * (v1 - v2) * (v1 - v2) / 100000000;
 	//
-//	NSLog(@"DEBUG %@ %d colliding with %@ %d damage %.3f", [self name], [self universal_id], [other name], [other universal_id], dam1);
-	//
-	[self	takeScrapeDamage: dam1 from:other];			[other	takeScrapeDamage: dam1 from:self];
-	[self	addImpactMoment:impact fraction:-1.0];		[other	addImpactMoment:impact fraction: 1.0];	// assume totally inelastic collision
+	[self	takeScrapeDamage: dam1 from:other];
+	[other	takeScrapeDamage: dam1 from:self];
 	//
 	// remove self from other's collision list
 	//
