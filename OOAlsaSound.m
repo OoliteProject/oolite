@@ -56,7 +56,6 @@
 
 - (void) dealloc
 {
-   playPosition=NULL;
    [soundThread stopTrack: self];
    [super dealloc];
 }
@@ -154,18 +153,11 @@
 - (void)resetState
 {
    isPlaying=NO;
-   playPosition=NULL;
 }
 
 - (void)startup
 {
    isPlaying=YES;
-   playPosition=[_data bytes];
-}
-
-- (const unsigned char *)getPlayPosition
-{
-   return playPosition;
 }
 
 - (const unsigned char *)getBufferEnd;
@@ -173,16 +165,6 @@
    const unsigned char *buf=[_data bytes];
    buf+=_dataSize;
    return buf;
-}
-
-- (void)setPlayPosition: (const unsigned char *)pos
-{
-   playPosition=pos;
-}
-
-- (void)resetPlayPosition
-{
-   playPosition = [_data bytes];
 }
 
 @end
@@ -225,12 +207,10 @@
       snd_pcm_prepare(pcm_handle);
   
       // play it one chunk at a time.
-      SoundChunk chunk;
-      while([self getChunkToPlay: &chunk])
+      while([self mixChunks])
       {
-         snd_pcm_writei(pcm_handle, chunk.buf, chunk.frames);
+         snd_pcm_writei(pcm_handle, chunkBuf, bufsz);
       }
-      free(chunk.buf);
       snd_pcm_drain(pcm_handle);
    }
 
@@ -242,9 +222,15 @@
 - (BOOL) initAlsa
 {
    int dir;
-   periods=PERIODS;
-   periodsize=PERIODSIZE;
-   fpp=(periodsize * periods) >> 2;
+   bufsz=DEFAULTBUF;
+   int i;
+
+   // init track pointers.
+   for(i=0; i < MAXTRACKS; i++)
+   {
+      trackBuffer[i].buf=NULL;
+      trackBuffer[i].bufEnd=NULL;
+   }
 
    snd_pcm_stream_t stream = SND_PCM_STREAM_PLAYBACK;
   
@@ -299,31 +285,36 @@
   
 
    // TODO: find out exactly what periods are useful for.
-   if(snd_pcm_hw_params_set_periods(pcm_handle, hwparams, periods, 0) < 0)
-   {
-      NSLog(@"ALSA could not set periods");
-      return NO;
-   }
+   //if(snd_pcm_hw_params_set_periods(pcm_handle, hwparams, periods, 0) < 0)
+   //{
+   //   NSLog(@"ALSA could not set periods");
+   //   return NO;
+   //}
 
    // bufsz = buffer size in frames. fpp = frames per period.
    // We try to allocate a buffer of the number of frames per
    // period but it might not happen.
-   bufsz=fpp;
+   unsigned long hwbufsz=bufsz;
    if(snd_pcm_hw_params_set_buffer_size_near
-         (pcm_handle, hwparams, &bufsz) < 0)
+         (pcm_handle, hwparams, &hwbufsz) < 0)
    {
-      NSLog(@"ALSA could not set the buffer size to %d", fpp);
+      NSLog(@"ALSA could not set the buffer size to %d", hwbufsz);
       return NO;
    }
 
-   if(bufsz != fpp)
+   if(hwbufsz != bufsz)
    {
       NSLog(@"Sound card can't take a buffer of %d - using %d instead",
-             fpp, bufsz);
+             bufsz, hwbufsz);
+
+      // If the hwbufsz is smaller than our default bufsz, downsize
+      // bufsz.
+      if(hwbufsz < bufsz)
+         bufsz=hwbufsz;
    }
 
-   // convert bufsz to bytes to be used in future malloc() calls.
-   bufsz *= FRAMESIZE;
+   // convert bufsz to bytes and allocate our mixer buffer.
+   chunkBuf=(Frame *)malloc(bufsz * FRAMESIZE);
 
    if(snd_pcm_hw_params(pcm_handle, hwparams) < 0)
    {
@@ -346,12 +337,6 @@
    BOOL slotAssigned=NO;
    for(i=0; i < MAXTRACKS; i++)
    {
-      if(track[i] == sound)
-      {
-         NSLog(@"Already playing, aborting");
-         return;
-      }
-
       if(!track[i] && !slotAssigned)
       {
          slot=i;
@@ -365,6 +350,8 @@
    }
 
    track[slot]=sound;
+   trackBuffer[slot].buf=(Frame *)[[sound getData] bytes];
+   trackBuffer[slot].bufEnd=(Frame *)[sound getBufferEnd];
    [sound startup];
 
    // only post if we're actually waiting otherwise the mixer
@@ -378,87 +365,28 @@
    [addlock unlock];
 }
 
-- (BOOL) getChunkToPlay: (SoundChunk *)chunk
+- (BOOL) mixChunks
 {
-   BYTE *sbuf;
    int i;
-   int chunki=0;
-   int numRelease=0;
-   int releasei[MAXTRACKS];
-   BOOL rv=NO;
-   
-   for(i=0; i<MAXTRACKS; i++)
+   Frame *current;
+
+   // Check there's something to mix.
+   for(i=0; i < MAXTRACKS; i++)
    {
       if(track[i])
-      {
-         sbuf=[self getSampleBuffer: track[i]];
-         if(sbuf)
-         {
-            rv=YES;
-            chunks[chunki]=sbuf;
-            chunki++;
-         }
-         else
-         {
-            [track[i] resetState];
-            releasei[numRelease]=i;
-            numRelease++;
-         }
-      }
+         break;
    }
-
-   numChunks=chunki;
-   chunk->buf=(unsigned char *)[self mixChunks];
-   chunk->frames=bufsz >> 2;
-
-   for(i=0; i < numRelease; i++)
+   if(i == MAXTRACKS)
    {
-      int tidx=releasei[i];
-      [track[tidx] release];
-      track[tidx]=nil;
-   }
-   return rv;
-}
-            
-- (BYTE *) getSampleBuffer: (OOSound *)sound
-{
-   const unsigned char *position=[sound getPlayPosition];
-   const unsigned char *end=[sound getBufferEnd];
-   if(position >= end)
-   {
-      return NULL;
-   }
-
-   BYTE *sbuf=(BYTE *)malloc(bufsz);
-   memset(sbuf, 0, bufsz);
-
-   long copyBytes=bufsz;
-   long bytesLeft=end-position;
-   if(copyBytes > bytesLeft)
-      copyBytes=bytesLeft;
-
-   memcpy(sbuf, position, copyBytes);
-   [sound setPlayPosition: position+copyBytes];
-   return sbuf;
-}
-
-- (BYTE *) mixChunks
-{
-   int i;
-   Frame *trackPtr[MAXTRACKS];
-   for(i=0; i < numChunks; i++)
-   {
-      trackPtr[i]=(Frame *)chunks[i];
+      // No tracks to do, exit now.
+      return NO;
    }
    
-   Frame *chunkBuf=(Frame *)malloc(bufsz);
-   Frame *current;
-  
    // Note: Everything is aligned on word boundaries. You can stop this
    // with #pragma pack (2) but this causes GNUstep to crash.
    // Even though shorts are only 2 bytes long, you still
    // actually end up with 4 bytes aligned on a longword boundary.
-   for(current=chunkBuf; current < chunkBuf + (bufsz >> 2); current++)
+   for(current=chunkBuf; current < chunkBuf + bufsz; current++)
    {
       Sample chana;
       Sample chanb;
@@ -467,12 +395,21 @@
       // That way we can check whether we need to clip.
       long sumChanA=0;
       long sumChanB=0;
-      for(i=0; i < numChunks; i++)
+      for(i=0; i < MAXTRACKS; i++)
       {
          // doing it this way avoids lots of calls to memcpy.
-         chana=(*trackPtr[i] & 0xFFFF0000) >> 16;
-         chanb=*trackPtr[i] & 0x0000FFFF;
-         trackPtr[i]++;
+         if(trackBuffer[i].buf && 
+               trackBuffer[i].buf < trackBuffer[i].bufEnd)
+         {  
+            chana=(*trackBuffer[i].buf & 0xFFFF0000) >> 16;
+            chanb=*trackBuffer[i].buf & 0x0000FFFF;
+            trackBuffer[i].buf++;
+         }
+         else
+         {  
+            chana=0;
+            chanb=0;
+         }
          sumChanA+=chana;
          sumChanB+=chanb; 
       }
@@ -483,7 +420,7 @@
          sumChanA=-32767;
       if(sumChanB > 32767)
          sumChanB=32767;
-      if(sumChanB < -32767)
+      else if(sumChanB < -32767)
          sumChanB=-32767;
 
       // convert back to a short (not withstanding that shorts actually
@@ -500,13 +437,17 @@
       *current |= (chanb & 0x0000ffff);
    }
 
-   // free chunks
-   for(i=0; i<numChunks; i++)
+   // drop tracks we don't want any more
+   for(i=0; i < MAXTRACKS; i++)
    {
-      free(chunks[i]);
+      if(trackBuffer[i].buf && trackBuffer[i].buf == trackBuffer[i].bufEnd)
+      {
+         [track[i] release];
+         track[i]=nil;
+         trackBuffer[i].buf=NULL;
+      }
    }
-
-   return (BYTE *)chunkBuf;
+   return YES;
 }
 
 - (void) stopTrack: (OOSound *)trackToStop
@@ -517,6 +458,7 @@
       if(trackToStop == track[i])
       {
          track[i]=nil;
+         trackBuffer[i].buf=NULL;
          [trackToStop resetState];
          [trackToStop release];
       }

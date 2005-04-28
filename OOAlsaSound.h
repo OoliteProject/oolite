@@ -20,7 +20,6 @@
 @interface OOSound : NSSound
 {
    BOOL isPlaying;
-   const unsigned char *playPosition;
 }
 
 - (BOOL) pause;
@@ -40,10 +39,7 @@
 - (long)getDataSize;
 - (long)getFrameCount;
 - (int)getChannelCount;
-- (const unsigned char *)getPlayPosition;
 - (const unsigned char *)getBufferEnd;
-- (void)setPlayPosition: (const unsigned char *)pos;
-- (void)resetPlayPosition;
 
 // call startup when starting to play a sound, and resetState when
 // finishing. The two methods set the pointers right to do stuff.
@@ -55,6 +51,7 @@
 // Some constants. (We normalize anything sent to us to these values)
 #define PERIODS      2
 #define PERIODSIZE   2048
+#define DEFAULTBUF   1024
 #define SAMPLERATE   44100
 #define CHANNELS     2
 #define MAXTRACKS    4
@@ -62,17 +59,6 @@
 
 // Instances of this class control a per-PCM thread that is responsible
 // for controlling access to the hardware.
-typedef struct _soundChunk
-{
-   unsigned char *buf;
-   long frames;
-} SoundChunk;
-
-typedef struct _trackPointer
-{
-   unsigned char *bufptr;
-   unsigned char *bufend;
-} TrackPointer;
 
 typedef unsigned long Frame;
 typedef short Sample;
@@ -80,23 +66,25 @@ typedef short Sample;
 typedef unsigned char BYTE;
 #endif
 
+typedef struct _soundChunk
+{
+   Frame *buf;
+   Frame *bufEnd;
+} SoundChunk;
+
 @interface OOAlsaSoundThread : NSObject
 {
    snd_pcm_t           *pcm_handle;
    snd_pcm_hw_params_t *hwparams;
-   int                  fpp;
    unsigned long        bufsz;
-   snd_pcm_uframes_t    periodsize;
-   int                  periods;
 
    // controlling semapore
    sem_t soundSem;
 
    // sounds to play
    OOSound *track[MAXTRACKS];
-   TrackPointer tptr[MAXTRACKS];
-   BYTE *chunks[MAXTRACKS];
-   int numChunks;
+   SoundChunk trackBuffer[MAXTRACKS];
+   Frame *chunkBuf;
 }
 
 // init creates the thread and returns self.
@@ -118,9 +106,7 @@ typedef unsigned char BYTE;
 // certainly can be improved, but I think it'll take reading the 
 // ALSA library code to figure out a better way to do this.
 // If you think this code is bizarre or at best baroque I quite agree!
-- (BOOL) getChunkToPlay: (SoundChunk *)chunk;
-- (BYTE *)getSampleBuffer: (OOSound *)sound;
-- (BYTE *)mixChunks;
+- (BOOL)mixChunks;
 
 @end
 
