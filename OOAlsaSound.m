@@ -458,6 +458,7 @@
    {
       if(trackBuffer[i].buf && trackBuffer[i].buf == trackBuffer[i].bufEnd)
       {
+         [track[i] resetState];
          [track[i] release];
          track[i]=nil;
          trackBuffer[i].buf=NULL;
