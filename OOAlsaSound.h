@@ -50,11 +50,11 @@
 
 // Some constants. (We normalize anything sent to us to these values)
 #define PERIODS      2
-#define PERIODSIZE   2048
-#define DEFAULTBUF   1024
+#define PERIODSIZE   8192
+#define MIXBUFSIZE   2048
 #define SAMPLERATE   44100
 #define CHANNELS     2
-#define MAXTRACKS    4
+#define MAXTRACKS    6
 #define FRAMESIZE    4
 
 // Instances of this class control a per-PCM thread that is responsible

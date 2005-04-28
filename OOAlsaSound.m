@@ -222,7 +222,10 @@
 - (BOOL) initAlsa
 {
    int dir;
-   bufsz=DEFAULTBUF;
+   int periods = PERIODS;
+   snd_pcm_uframes_t periodsize = PERIODSIZE;
+   bufsz=MIXBUFSIZE;
+   
    int i;
 
    // init track pointers.
@@ -285,16 +288,29 @@
   
 
    // TODO: find out exactly what periods are useful for.
-   //if(snd_pcm_hw_params_set_periods(pcm_handle, hwparams, periods, 0) < 0)
-   //{
-   //   NSLog(@"ALSA could not set periods");
-   //   return NO;
-   //}
+   snd_pcm_uframes_t origPeriods=periods;
+   int periodDir=0;
+   if(snd_pcm_hw_params_set_periods_near
+         (pcm_handle, hwparams, &periods, &periodDir) < 0)
+   {
+      NSLog(@"ALSA could not set periods");
+      return NO;
+   }
+   
+   // http://www.suse.de/~mana/alsa090_howto.html
+   // bufsz is the size in frames not bytes
+   unsigned long hwbufsz=(periods * periodsize) >> 2;
+   unsigned long origbufsz=hwbufsz;
+
+   if(origPeriods != periods)
+   {
+      NSLog(@"Tried to set %d periods but ended up with %d",
+            origPeriods, periods);
+   }
 
    // bufsz = buffer size in frames. fpp = frames per period.
    // We try to allocate a buffer of the number of frames per
    // period but it might not happen.
-   unsigned long hwbufsz=bufsz;
    if(snd_pcm_hw_params_set_buffer_size_near
          (pcm_handle, hwparams, &hwbufsz) < 0)
    {
@@ -302,10 +318,10 @@
       return NO;
    }
 
-   if(hwbufsz != bufsz)
+   if(hwbufsz != origbufsz)
    {
       NSLog(@"Sound card can't take a buffer of %d - using %d instead",
-             bufsz, hwbufsz);
+             origbufsz, hwbufsz);
 
       // If the hwbufsz is smaller than our default bufsz, downsize
       // bufsz.
