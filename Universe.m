@@ -872,6 +872,8 @@ Your fair use and other rights are in no way affected by the above.
 	//
 	if ([systeminfo objectForKey:@"station"])
 		stationDesc = (NSString *)[systeminfo objectForKey:@"station"];
+	if ([systeminfo objectForKey:@"station_roll"])
+		stationRoll = [(NSNumber *)[systeminfo objectForKey:@"station_roll"] doubleValue];
 	
 	//NSLog(@"* INFO *\t>>\tAdding %@ station for TL %d", stationDesc, techlevel);
 	a_station = (StationEntity *)[self getShipWithRole:stationDesc];			   // retain count = 1
