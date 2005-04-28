@@ -28,7 +28,7 @@ on running a shell script in the current directory.
 I'm not sure what the minimum hardware is, however decent OpenGL
 support is a must. I've only been able to personally test it on
 two machines - a 2GHz P4 with a GeForce 4ti and an old Compaq
-733MHz P3 wih onboard Intel graphics. It ran fine on both machines.
+733MHz P3 with ATi Radeon Mobility. It ran fine on both machines.
 I have heard reports of bad things happening with ATi graphics
 cards, but only off one person (textures didn't display), and another
 person with a Matrox graphics card had problems with the text.
