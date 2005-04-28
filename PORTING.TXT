@@ -68,4 +68,19 @@ The location of the exception is easily found by doing 'make debug=yes'
 and doing 'debugapp oolite.debug' and then looking at the line of code
 it crashes in.
 
+--------------------------------------------------------------------------
+
+Sound in general: gnustep_sndd crashes
+
+Cause: Don't know, assume it's a bug in GNUstep.
+
+This has been fixed by writing OOAlsaSound (for Linux) so that sound
+is generated on a thread inside the game instead of using the sound
+daemon. You'll have to implement your platform's specific equivalent
+of ALSA. The file OOSound.m/h includes the correct source at compile
+time; put your #ifdefs here and add your sound class to this so the
+right one gets built.
+
+The base NSSound loads AIFF files just fine so I only subclassed it and
+overrode the playing methods.
 

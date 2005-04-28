@@ -5,7 +5,9 @@ This repository contains the files required to build Oolite for Linux,
 GNUstep and OpenGL. It is possibly easily portable to FreeBSD. It
 won't yet work on Windows due to the lack of OpenGL support in the
 Windows implementation of GNUstep. However, if this is fixed, it
-will probably need very little effort to port.
+will probably need very little effort to port. If you are considering
+porting this to a platform other than Linux, please read PORTING.TXT
+for the troubles that I've encountered - it may save you time.
 
 0. Pre-requisites
 
@@ -14,6 +16,63 @@ will probably need very little effort to port.
 - GNUstep Development libraries. I advise you build GNUstep from source
 since some prepackaged versions don't have a new enough NSOpenGLView.
 It builds easily from source so don't panic.
+
+Tip: Get the GNUstep Startup Version. Everything you need in one
+package. Make sure you do:
+
+PATH=$PATH:.
+
+before running make when you build GNUstep Startup, because it depends
+on running a shell script in the current directory.
+
+I'm not sure what the minimum hardware is, however decent OpenGL
+support is a must. I've only been able to personally test it on
+two machines - a 2GHz P4 with a GeForce 4ti and an old Compaq
+733MHz P3 wih onboard Intel graphics. It ran fine on both machines.
+I have heard reports of bad things happening with ATi graphics
+cards, but only off one person (textures didn't display), and another
+person with a Matrox graphics card had problems with the text.
+
+Building
+========
+Type:
+make
+
+If this fails and you're certain you have GNUstep's development
+stuff installed, make sure you have this in your .bashrc or
+equivalent:
+
+. /usr/GNUstep/System/Library/Makefiles/GNUstep.sh
+
+GNUstep tells you this if you build it but you won't have been told
+if you've installed your distro's GNUstep binaries :-)
+
+Running
+=======
+Type:
+openapp oolite
+
+or
+openapp oolite.debug
+if you built with 'make debug=yes'.
+
+Troubleshooting
+===============
+I suggest you go through some of the GNUstep tutorials and make sure these
+build and run successfully to ensure your build and runtime environment
+is sane. Also, there's a little (and rather nasty) environment tester
+on ftp.alioth.net/oolite/gl-gnustep.tar.gz. If you're having problems
+I recommend you get this running first; it's relatively simple and should
+expose any problems your installation has without possible Oolite problems
+clouding your view.
+
+Is it borked for you?
+=====================
+If you find it's borked, please post a message on the oolite-linux
+forum (see http://aegidean.org/bb). Please provide a backtrace if you
+have one, screenshots, and describe weirdness with sound. Also provide
+log messages from the console. Better still, if you have a fix, send
+us the patch!
 
 Modifications from Stock OSX Oolite
 ===================================
@@ -41,15 +100,17 @@ methods. It looked like a relatively simple category, so rather
 than creating a dependency on the whole of ObjectiveLib, I decided
 to just add these two files.
 
+Addition of OOAlsaSound - The GNUstep sound daemon crashes with oolite,
+so it was replaced with code that plays the sound on a separate thread
+within the game. I have found ALSA to be poorly documented - there
+are probably still problems with this code.
+If you can do a better job *please do* and be sure to send me diffs.
+I recommend you always use the latest svn head revision if you are going
+to tinker with this. I won't feel in the least offended if you tell
+me that my ALSA code is crap.
+
 Major tasks left
 ================
-
-- Crashing: What's here crashes with depressing frequency. I tend
-  to get floating point exceptions mostly.
-- Runtime error when pressing F2 when docked.
-- Load New Commander file dialogue.
-- Sound: The GNUstep sound server appears to have some inadequacies
-  at present - using some other library may be necessary.
 - OpenGL....APPLE functions (optimizations) need a suitable replacement.
 - Full screen modes: not implemented at all at present, Carbon
   API calls need replacing with the equivalent GNUstep or X Window System
@@ -58,28 +119,9 @@ Major tasks left
   that I think is cross-platform.
 - Speech. This is a more 'who cares?' requirement. I don't know of
   a *nix open source speech synth.
+- Keyboard shortcuts (equivalent of Cmd-Q et al.)
 
-Building
-========
-Type:
-make.
-
-Running
-=======
-Type:
-openapp oolite
-
-or
-openapp oolite.debug
-if you built with 'make debug=yes'.
-
-Suggestions
-===========
-I suggest you go through some of the GNUstep tutorials and make sure these
-build and run successfully to ensure your build and runtime environment
-is sane. Also, there's a little (and rather nasty) environment tester
-on ftp.alioth.net/oolite/gl-gnustep.tar.gz. If you're having problems
-I recommend you get this running first; it's relatively simple and should
-expose any problems your installation has without possible Oolite problems
-clouding your view.
-
+Notes for the terminally insane
+===============================
+See PORTING.TXT - it's useful to read this if you're tinkering on Linux
+and not porting. It may save you grief.

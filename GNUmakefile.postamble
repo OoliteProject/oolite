@@ -4,35 +4,11 @@
 # to live (Contents/Resources)
 #
 CONTENTS = Contents
-RESOURCES = Resources
-GNUSTEP_OW = $(APP_NAME).app/Resources/Info-gnustep.plist
-INSTDIR = $(APP_NAME).app/$(CONTENTS)/$(RESOURCES)
-AIDIR = $(INSTDIR)/AIs
-CONFIGDIR = $(INSTDIR)/Config
-IMAGEDIR = $(INSTDIR)/Images
-TEXTUREDIR = $(INSTDIR)/Textures
-SOUNDDIR = $(INSTDIR)/Sounds
-MUSICDIR = $(INSTDIR)/Music
-MODELDIR = $(INSTDIR)/Models
+CONTENTDIR=$(APP_NAME).app/$(CONTENTS)
+GNUSTEP_OW=$(APP_NAME).app/Resources/Info-gnustep.plist
 
 after-all:: 
-	$(MKDIRS) $(APP_NAME).app/Contents
-	$(MKDIRS) $(INSTDIR)
-	$(MKDIRS) $(AIDIR)
-	$(MKDIRS) $(CONFIGDIR)
-	$(MKDIRS) $(IMAGEDIR)
-	$(MKDIRS) $(TEXTUREDIR)
-	$(MKDIRS) $(SOUNDDIR)
-	$(MKDIRS) $(MUSICDIR)
-	$(MKDIRS) $(MODELDIR)
-	$(CP) splash.png $(IMAGEDIR)/splash.png
-	$(CP) splashback.png $(IMAGEDIR)/splashback.png
-	$(CP) cursor.png compass.png aegis.png reddot.png greendot.png zoom.png legend* solar.png $(IMAGEDIR)
-	$(CP) *.png $(TEXTUREDIR)
-	$(CP) *.aiff $(SOUNDDIR)
-#	$(CP) *.mp3 *.mid *.mov $(MUSICDIR)
-	$(CP) *AI.plist $(AIDIR)
-	$(CP) *.dat $(MODELDIR)
-	$(CP) *.plist $(CONFIGDIR)
-	$(CP) Info-Oolite.plist $(GNUSTEP_OW)
+	$(MKDIRS) $(APP_NAME).app/$(CONTENTS)
+	$(CP) -r Resources $(CONTENTDIR)/Resources
+	$(CP) Resources/Info-Oolite.plist $(GNUSTEP_OW)
 
