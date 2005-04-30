@@ -418,6 +418,21 @@ static  Universe	*data_store_universe;
 	{
 		if (basefile)
 		{
+			// calls moved here because they are unsupported in display lists
+			//
+			glDisableClientState(GL_COLOR_ARRAY);
+			glDisableClientState(GL_INDEX_ARRAY);
+			glDisableClientState(GL_EDGE_FLAG_ARRAY);
+			glDisableClientState(GL_TEXTURE_COORD_ARRAY);
+			//
+			glEnableClientState(GL_NORMAL_ARRAY);
+			glEnableClientState(GL_VERTEX_ARRAY);
+			glEnableClientState(GL_TEXTURE_COORD_ARRAY);
+			//
+			glVertexPointer( 3, GL_FLOAT, 0, entityData.vertex_array);
+			glNormalPointer( GL_FLOAT, 0, entityData.normal_array);
+			glTexCoordPointer( 2, GL_FLOAT, 0, entityData.texture_uv_array);
+					
 			if (immediate)
 			{
 #ifdef GNUSTEP
@@ -427,49 +442,32 @@ static  Universe	*data_store_universe;
 					glBindVertexArrayAPPLE(gVertexArrayRangeObjects[0]);
 #endif            
 				
-//				if (usingVAR)
-//					NSLog(@"DEBUG using accelerated memory technique to draw %@ (%@)", self, basefile);
-//				
+				
 				//
-				// experimental gap removal (draws flat polys)
+				// gap removal (draws flat polys)
 				//
-				glDepthMask(GL_FALSE); // don't write to depth buffer
 				GLfloat amb_diff0[] = { 0.5, 0.5, 0.5, 1.0};
 				glMaterialfv( GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE, amb_diff0);
+				glMaterialfv( GL_FRONT_AND_BACK, GL_EMISSION, mat_no);
 				glColor4f( 0.25, 0.25, 0.25, 1.0);	// gray
-
-				glDisableClientState(GL_COLOR_ARRAY);
-				glDisableClientState(GL_INDEX_ARRAY);
-				glDisableClientState(GL_EDGE_FLAG_ARRAY);
-				glDisableClientState(GL_TEXTURE_COORD_ARRAY);
-					
-				glEnableClientState(GL_VERTEX_ARRAY);
-				glVertexPointer( 3, GL_FLOAT, 0, entityData.vertex_array);
-
-				glEnableClientState(GL_NORMAL_ARRAY);
-				glNormalPointer( GL_FLOAT, 0, entityData.normal_array);
-				
-				glDrawArrays( GL_TRIANGLES, 0, entityData.n_triangles);
-				
+				glDepthMask(GL_FALSE); // don't write to depth buffer
+				glDrawArrays( GL_TRIANGLES, 0, entityData.n_triangles);	// draw in gray to mask the edges
 				glDepthMask(GL_TRUE);
 				
 				//
 				// now the textures ...
 				//
-				
-				glEnableClientState(GL_TEXTURE_COORD_ARRAY);
-				glTexCoordPointer( 2, GL_FLOAT, 0, entityData.texture_uv_array);
-				
 				glEnable(GL_TEXTURE_2D);
 				glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
-				glMaterialfv(GL_FRONT, GL_AMBIENT, mat_ambient);
-			
+				glMaterialfv( GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE, mat_ambient);
+				glMaterialfv( GL_FRONT_AND_BACK, GL_EMISSION, mat_no);
+				//
 				for (ti = 1; ti <= n_textures; ti++)
 				{
 					glBindTexture(GL_TEXTURE_2D, texture_name[ti]);
 					glDrawArrays( GL_TRIANGLES, triangle_range[ti].location, triangle_range[ti].length);
 				}
-									
+				//					
 				glDisable(GL_TEXTURE_2D);
 				
 			}
