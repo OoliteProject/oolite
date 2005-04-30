@@ -267,6 +267,20 @@ Your fair use and other rights are in no way affected by the above.
 	
 	NSString	*filepath = [[[NSBundle mainBundle] bundlePath] stringByDeletingLastPathComponent];
 	int imageNo = 1;
+
+   // In the GNUstep source, representationUsingType is marked as
+   // TODO: and does nothing but return NIL! So for GNUstep we fall
+   // back to the methods used in oolite 1.30.
+#ifdef GNUSTEP
+	NSString	*pathToPic = 
+      [filepath stringByAppendingPathComponent:
+         [NSString stringWithFormat:@"oolite-%03d.tiff",imageNo]];
+	while ([[NSFileManager defaultManager] fileExistsAtPath:pathToPic])
+	{
+		imageNo++;
+		pathToPic = [filepath stringByAppendingPathComponent:[NSString stringWithFormat:@"oolite-%03d.tiff",imageNo]];
+	}
+#else   
 	NSString	*pathToPic = [filepath stringByAppendingPathComponent:[NSString stringWithFormat:@"oolite-%03d.png",imageNo]];
 		
 	while ([[NSFileManager defaultManager] fileExistsAtPath:pathToPic])
@@ -274,10 +288,9 @@ Your fair use and other rights are in no way affected by the above.
 		imageNo++;
 		pathToPic = [filepath stringByAppendingPathComponent:[NSString stringWithFormat:@"oolite-%03d.png",imageNo]];
 	}
-		
-//	NSString	*pathToTiff = [[pathToPic stringByDeletingPathExtension] stringByAppendingPathExtension:@"tiff"];
-//	NSString	*pathToJpeg = [[pathToPic stringByDeletingPathExtension] stringByAppendingPathExtension:@"jpg"];
-	NSString	*pathToPng = [[pathToPic stringByDeletingPathExtension] stringByAppendingPathExtension:@"png"];
+	
+   NSString	*pathToPng = [[pathToPic stringByDeletingPathExtension] stringByAppendingPathExtension:@"png"];
+#endif
 	
 	NSLog(@">>>>> Snapshot %d x %d file path chosen = %@", w, h, pathToPic);
 	
@@ -318,9 +331,11 @@ Your fair use and other rights are in no way affected by the above.
 //	
 //	[[bitmapRep representationUsingType:NSJPEGFileType properties:[NSDictionary dictionaryWithObjectsAndKeys:[NSNumber numberWithFloat:0.75], NSImageCompressionFactor, NULL]]
 //		writeToFile:pathToJpeg atomically:YES];			// save JPEG representation of Image
-#ifdef GNUSTEP	
-	[[bitmapRep representationUsingType:NSPNGFileType properties:[NSDictionary dictionaryWithObjectsAndKeys:[NSNumber numberWithBool:YES], nil, NULL]]
-		writeToFile:pathToPng atomically:YES];			// save PNG representation of Image
+#ifdef GNUSTEP
+   NSImage *image=[[NSImage alloc] initWithSize:NSMakeSize(w,h)];
+   [image addRepresentation:bitmapRep];
+   [[image TIFFRepresentation] writeToFile:pathToPic atomically:YES];
+   [image release];
 #else
 	[[bitmapRep representationUsingType:NSPNGFileType properties:[NSDictionary dictionaryWithObjectsAndKeys:[NSNumber numberWithBool:YES], NSImageInterlaced, NULL]]
 		writeToFile:pathToPng atomically:YES];			// save PNG representation of Image
