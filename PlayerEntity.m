@@ -3415,7 +3415,13 @@ static BOOL queryPressed;
 				{
 					disc_operation_in_progress = NO;
 				}
-				
+
+#ifdef GNUSTEP            
+            if (([gui selectedRow] == display_row) && [gameView isDown:13])
+            {
+               [controller goX11Fullscreen];
+            }
+#else
 				if (([gui selectedRow] == display_row)&&(([gameView isDown:gvArrowKeyRight])||([gameView isDown:gvArrowKeyLeft]))&&(!switching_resolution))
 				{
 					int direction = ([gameView isDown:gvArrowKeyRight]) ? 1 : -1;
@@ -3434,9 +3440,6 @@ static BOOL queryPressed;
 							displayModeIndex = 0;
 					}
 					NSDictionary	*mode = [modes objectAtIndex:displayModeIndex];
-#ifdef GNUSTEP
-// TODO: do something
-#else               
 					int modeWidth = [[mode objectForKey: (NSString *)kCGDisplayWidth] intValue];
 					int modeHeight = [[mode objectForKey: (NSString *)kCGDisplayHeight] intValue];
 					int modeRefresh = [[mode objectForKey: (NSString *)kCGDisplayRefreshRate] intValue];
@@ -3453,12 +3456,10 @@ static BOOL queryPressed;
 						[universe guiUpdated];
 					}
 					switching_resolution = YES;
-#endif
 				}
 				if ((![gameView isDown:gvArrowKeyRight])&&(![gameView isDown:gvArrowKeyLeft])&&(![gameView isDown:13]))
 					switching_resolution = NO;
             
-#ifndef GNUSTEP				
 				if (([gui selectedRow] == speech_row)&&(([gameView isDown:gvArrowKeyRight])||([gameView isDown:gvArrowKeyLeft])))
 				{
 					GuiDisplayGen* gui = [universe gui];
@@ -6184,14 +6185,8 @@ static BOOL toggling_music;
       mode=[(NSArray *)[controller displayModes] objectAtIndex:displayModeIndex];
    }
 #ifdef GNUSTEP
-   // TODO: Full-screen mode selection, need to read X docs.
-   NSString *displayModeString=nil;
-   if(!mode)
-   {
-      // We didn't get any full screen modes.
-      displayModeString=[NSString stringWithFormat:@" No fullscreen modes found"];
-   }
-   // TODO: else clause to init the string similar to the OS X build.
+   // Full screen or not full screen are the only options.
+   NSString *displayModeString=[NSString stringWithFormat:@" Full screen"];
 #else
 	int modeWidth = [[mode objectForKey: (NSString *)kCGDisplayWidth] intValue];
 	int modeHeight = [[mode objectForKey: (NSString *)kCGDisplayHeight] intValue];
@@ -6247,12 +6242,6 @@ static BOOL toggling_music;
 			[gui setText:@" xine integration: OFF "	forRow:ootunes_row  align:GUI_ALIGN_CENTER];
 		[gui setText:displayModeString	forRow:display_row  align:GUI_ALIGN_CENTER];
       
-      // If we didn't get any modes, grey it out.
-      if(!mode)
-      {
-         [gui setColor:[NSColor grayColor] forRow:display_row];
-      }
-
       // quit menu option
       [gui setText:@" Exit game " forRow:quit_row align:GUI_ALIGN_CENTER];
 #else

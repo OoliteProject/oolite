@@ -40,6 +40,7 @@ Your fair use and other rights are in no way affected by the above.
 #import <Foundation/Foundation.h>
 #import <AppKit/AppKit.h>
 #import <AppKit/NSOpenGL.h>
+#include <X11/Xlib.h>
 #else
 #import <Cocoa/Cocoa.h>
 #endif
@@ -67,7 +68,10 @@ extern int debug;
     IBOutlet NSTextField	*splashProgressTextField;
     IBOutlet NSView			*splashView;
     IBOutlet MyOpenGLView   *gameView;
+    IBOutlet MyOpenGLView  *switchView;
     IBOutlet NSWindow		*gameWindow;
+    IBOutlet NSWindow      *fsGameWindow;
+    NSRect  fsGeometry;
 
     Universe	*universe;
     NSDate		*old_time;
@@ -164,6 +168,10 @@ extern int debug;
 
 - (void) playiTunesPlaylist:(NSString *)playlist_name;
 - (void) pauseiTunes;
+
+#ifdef GNUSTEP
+- (void) goX11Fullscreen;
+#endif
 
 @end
 

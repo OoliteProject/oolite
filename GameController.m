@@ -475,6 +475,15 @@ static int _compareModes(id arg1, id arg2, void *context)
 	if (universe)
 		[universe update:delta_t];
 	//
+#ifdef GNUSTEP
+   // GNUstep's fullscreen is actually just a full screen window.
+   // So we use the same view regardless of mode.
+   if(gameView)
+      [gameView display];
+   else
+		NSLog(@"***** gameView not set : delta_t %f",(float)delta_t);
+     
+#else
 	if (fullscreen)
 	{
 		if (universe)
@@ -487,6 +496,7 @@ static int _compareModes(id arg1, id arg2, void *context)
 		else
 			NSLog(@"***** gameView not set : delta_t %f",(float)delta_t);
 	}
+#endif   
 	//
 }
 
@@ -841,7 +851,68 @@ static int _compareModes(id arg1, id arg2, void *context)
 }
 #endif
 
+#ifdef GNUSTEP
+- (void) goX11Fullscreen
+{
+   Display *dpy;
+   int screen;
+
+   // already full screen?
+   if(fullscreen)
+      return;
+   fullscreen=YES;
+
+   // use X11 to find the size of the current display.
+   dpy=XOpenDisplay(NULL);
+   if(!dpy)
+   {
+      NSLog(@"XOpenDisplay returned NULL!");
+      return;
+   }
+
+   screen=DefaultScreen(dpy);
+   fsGeometry=NSMakeRect(0, 0, 
+               DisplayWidth(dpy, screen),
+               DisplayHeight(dpy, screen));
+   NSLog(@"fullscreen = %f x %f", fsGeometry.size.width, fsGeometry.size.height);
+   // done with X
+   XCloseDisplay(dpy);
+   
+   fsGameWindow = [NSWindow alloc];
+   fsGameWindow = [gameWindow initWithContentRect: fsGeometry
+                        styleMask: 0
+                        backing: NSBackingStoreBuffered
+                        defer: NO];
+   [fsGameWindow makeKeyAndOrderFront: nil];
+  /* 
+   fullScreenContext = [[NSOpenGLContext alloc] 
+      initWithFormat:[NSOpenGLView defaultPixelFormat] 
+      shareContext:[gameView openGLContext]]; 
+
+	if (fullScreenContext == nil)
+	{
+		NSLog(@"***** Failed to create fullScreenContext");
+		return;
+	} */
+  
+   switchView = [[MyOpenGLView alloc] 
+            initWithFrame: fsGeometry 
+            pixelFormat: [NSOpenGLView defaultPixelFormat]];
+
+   [fsGameWindow setContentView: switchView];
+   //[switchView setOpenGLContext: fullScreenContext];
+   [switchView setOpenGLContext: [gameView openGLContext]];
+	[[switchView openGLContext] setView: switchView];
+	[switchView drawRect: fsGeometry];
+	[fsGameWindow makeFirstResponder: switchView];
+	[[switchView openGLContext] makeCurrentContext];
+   [switchView initialiseGLWithSize: fsGeometry.size];
+	
+   // set up the window to accept mouseMoved events
+	[fsGameWindow setAcceptsMouseMovedEvents:YES];
+   [self setGameView: switchView];
+}
+#endif // ifdef GNUSTEP
+
 @end
-
-
 

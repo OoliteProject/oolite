@@ -8,7 +8,7 @@ CONTENTDIR=$(APP_NAME).app/$(CONTENTS)
 GNUSTEP_OW=$(APP_NAME).app/Resources/Info-gnustep.plist
 
 after-all:: 
-	rm -f $(CONTENTDIR)
+	rm -rf $(CONTENTDIR)
 	$(MKDIRS) $(CONTENTDIR)
 	$(CP) -r Resources $(CONTENTDIR)/Resources
 	$(CP) Resources/Info-Oolite.plist $(GNUSTEP_OW)
