@@ -767,7 +767,7 @@ static  Universe	*data_store_universe;
     //
     [scanner setScanLocation:0];	//reset
     //[scanner scanCharactersFromSet:[NSCharacterSet whitespaceAndNewlineCharacterSet] intoString:nil];
-    if ([scanner scanString:@"NVERTS" intoString:nil])
+    if ([scanner scanString:@"NVERTS" intoString:(NSString **)nil])
     {
         int n_v;
         if ([scanner scanInt:&n_v])
@@ -787,7 +787,7 @@ static  Universe	*data_store_universe;
     // get number of faces
     //
     //[scanner setScanLocation:0];	//reset
-    if ([scanner scanString:@"NFACES" intoString:nil])
+    if ([scanner scanString:@"NFACES" intoString:(NSString **)nil])
     {
         int n_f;
         if ([scanner scanInt:&n_f])
@@ -807,7 +807,7 @@ static  Universe	*data_store_universe;
     // get vertex data
     //
     //[scanner setScanLocation:0];	//reset
-    if ([scanner scanString:@"VERTEX" intoString:nil])
+    if ([scanner scanString:@"VERTEX" intoString:(NSString **)nil])
     {
         for (j = 0; j < n_vertices; j++)
         {
@@ -839,7 +839,7 @@ static  Universe	*data_store_universe;
     
     // get face data
     //
-    if ([scanner scanString:@"FACES" intoString:nil])
+    if ([scanner scanString:@"FACES" intoString:(NSString **)nil])
     {
         for (j = 0; j < n_faces; j++)
         {
@@ -923,7 +923,7 @@ static  Universe	*data_store_universe;
 	
     // get textures data
     //
-    if ([scanner scanString:@"TEXTURES" intoString:nil])
+    if ([scanner scanString:@"TEXTURES" intoString:(NSString **)nil])
     {
         for (j = 0; j < n_faces; j++)
         {
@@ -934,7 +934,7 @@ static  Universe	*data_store_universe;
             {
                 // texfile
                 //
-                [scanner scanCharactersFromSet:[NSCharacterSet whitespaceAndNewlineCharacterSet] intoString:nil];
+                [scanner scanCharactersFromSet:[NSCharacterSet whitespaceAndNewlineCharacterSet] intoString:(NSString **)nil];
                 if (![scanner scanUpToCharactersFromSet:[NSCharacterSet whitespaceCharacterSet] intoString:&texfile])
                 {
                     failFlag = YES;
@@ -1638,7 +1638,7 @@ static  Universe	*data_store_universe;
 		// see if we have supported hardware
 		s = (char *)glGetString(GL_EXTENSIONS);	// get extensions list
 				
-		if (strstr(s, "GL_APPLE_vertex_array_range") == nil)
+		if (strstr(s, "GL_APPLE_vertex_array_range") == NULL)
 		{
 			global_usingVAR &= NO;
 			NSLog(@"Vertex Array Range optimisation - not supported");

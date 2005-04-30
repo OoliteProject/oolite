@@ -60,7 +60,7 @@ Your fair use and other rights are in no way affected by the above.
 	my_mouse_x = my_mouse_y = 0;
 	//
 	playerFileToLoad = nil;
-	pauseSelector = nil;
+	pauseSelector = (SEL)nil;
 	pauseTarget = nil;
 	//
 	game_is_paused = NO;
@@ -121,6 +121,8 @@ Your fair use and other rights are in no way affected by the above.
 
 - (int) indexOfCurrentDisplayMode
 {
+   // TODO: see if fullscreen is actually practical with GNUstep
+#ifndef GNUSTEP
     NSDictionary *mode;
 	
 	//NSLog(@"looking for a display mode that's %d x %d %dHz",width, height, refresh);
@@ -130,19 +132,20 @@ Your fair use and other rights are in no way affected by the above.
 		return NSNotFound;
 	else
 		return [displayModes indexOfObject:mode];
+#else
+   return NSNotFound; 
+#endif   
 }
 
 - (NSDictionary *) findDisplayModeForWidth:(unsigned int) d_width Height:(unsigned int) d_height Refresh:(unsigned int) d_refresh
 {
+#ifndef GNUSTEP
     int i, modeCount;
     NSDictionary *mode;
     unsigned int modeWidth, modeHeight, modeRefresh;
 	
     modeCount = [displayModes count];
 
-#ifdef GNUSTEP
-    // TODO: what goes here?
-#else
 	for (i = 0; i < modeCount; i++)
 	{
         mode = [displayModes objectAtIndex: i];
@@ -164,15 +167,14 @@ Your fair use and other rights are in no way affected by the above.
 
 /* GDC Example code here */
 
+#ifndef GNUSTEP
 static int _compareModes(id arg1, id arg2, void *context)
 {
+   // TODO: If fullscreen mode is practical in GNUstep
     NSDictionary *mode1 = (NSDictionary *)arg1;
     NSDictionary *mode2 = (NSDictionary *)arg2;
     int size1, size2;
    
-#ifdef GNUSTEP
-   // TODO: What goes here?
-#else 
     // Sort first on pixel count
     size1 = [[mode1 objectForKey: (NSString *)kCGDisplayWidth] intValue] *
             [[mode1 objectForKey: (NSString *)kCGDisplayHeight] intValue];
@@ -184,19 +186,17 @@ static int _compareModes(id arg1, id arg2, void *context)
     // Then on refresh rate
     return (int)[[mode1 objectForKey: (NSString *)kCGDisplayRefreshRate] intValue] -
            (int)[[mode2 objectForKey: (NSString *)kCGDisplayRefreshRate] intValue];
-#endif
 }
+#endif
 
 - (void) getDisplayModes
 {
+#ifndef GNUSTEP
     unsigned int modeIndex, modeCount;
     NSArray *modes;
     NSDictionary *mode;
     unsigned int modeWidth, modeHeight, color, modeRefresh, flags;
 
-#ifdef GNUSTEP
- // TODO: what goes here?
-#else   
     // Get the list of all available modes
     modes = [(NSArray *)CGDisplayAvailableModes(kCGDirectMainDisplay) retain];
     
@@ -266,7 +266,7 @@ static int _compareModes(id arg1, id arg2, void *context)
         modeRefresh = [[mode objectForKey: (NSString *)kCGDisplayRefreshRate] intValue];
 		//NSLog(@"()=> %d x %d at %dHz", modeWidth, modeHeight, modeRefresh);
 	}
-#endif
+#endif // ifndef GNUSTEP
 }
 /* end GDC */
 

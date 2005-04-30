@@ -3159,13 +3159,17 @@ static  BOOL	taking_snapshot;
 
 // ***JESTER_START*** 11/08/04
 //Utility function
+#ifndef GNUSTEP
 static NSString* GenerateDisplayString(int inModeWidth, int inModeHeight, int inModeRefresh);
+#endif
 // ***JESTER_END*** 11/08/04
 
 static BOOL pling_pressed;
 static BOOL cursor_moving;
 static BOOL disc_operation_in_progress;
+#ifndef GNUSTEP
 static BOOL switching_resolution;
+#endif
 static BOOL wait_for_key_up;
 static int searchStringLength;
 static double timeLastKeyPress;
@@ -3318,6 +3322,9 @@ static BOOL queryPressed;
 				int load_row =			GUI_ROW_OPTIONS_LOAD;
 				int begin_new_row =	GUI_ROW_OPTIONS_BEGIN_NEW;
 				int options_row =   GUI_ROW_OPTIONS_OPTIONS;
+				int ootunes_row =	GUI_ROW_OPTIONS_OOTUNES;
+				int strict_row =	GUI_ROW_OPTIONS_STRICT;
+				int detail_row =	GUI_ROW_OPTIONS_DETAIL;
 #ifdef GNUSTEP            
             // quit only appears in GNUstep as users aren't
             // used to Cmd-Q equivs.
@@ -3326,13 +3333,9 @@ static BOOL queryPressed;
             // Macintosh only
 				int display_row =   GUI_ROW_OPTIONS_DISPLAY;
 				int speech_row =	GUI_ROW_OPTIONS_SPEECH;
-#endif            
-				int ootunes_row =	GUI_ROW_OPTIONS_OOTUNES;
-				int strict_row =	GUI_ROW_OPTIONS_STRICT;
-				int detail_row =	GUI_ROW_OPTIONS_DETAIL;
-				GameController  *controller = [universe gameController];
 				NSArray *modes = [controller displayModes];
-				
+				GameController  *controller = [universe gameController];
+#endif            
 				
 				if ([gameView isDown:gvArrowKeyDown])
 				{
@@ -7188,6 +7191,7 @@ NSSound* burnersound;
 }
 
 // ***JESTER_START*** 11/08/04
+#ifndef GNUSTEP
 NSString* GenerateDisplayString(int inModeWidth, int inModeHeight, int inModeRefresh)
 {
 	NSString *displayModeString = nil;
@@ -7202,6 +7206,7 @@ NSString* GenerateDisplayString(int inModeWidth, int inModeHeight, int inModeRef
 	}
 	return displayModeString;
 }
+#endif
 // ***JESTER_END*** 11/08/04
 
 - (void) setScript_target:(ShipEntity *)ship

@@ -3566,7 +3566,9 @@ Your fair use and other rights are in no way affected by the above.
 
 - (void) addMessage:(NSString *) text forCount:(int) count
 {
+#ifndef GNUSTEP
 	PlayerEntity* player = (PlayerEntity *)[self entityZero];
+#endif   
 	if (![currentMessage isEqual:text])
     {		
 		//speech synthesis

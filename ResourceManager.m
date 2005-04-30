@@ -433,7 +433,7 @@ NSMutableDictionary*	movie_cache;
 }
 
 #ifdef GNUSTEP
-+ (id *) movieFromFilesNamed:(NSString *)filename inFolder:(NSString *)foldername
++ (id) movieFromFilesNamed:(NSString *)filename inFolder:(NSString *)foldername
 {
    return nil;
 }

@@ -296,7 +296,7 @@ Your fair use and other rights are in no way affected by the above.
 	
     NSBitmapImageRep* bitmapRep = 
         [[NSBitmapImageRep alloc]
-            initWithBitmapDataPlanes:	nil		// --> let the class allocate it
+            initWithBitmapDataPlanes:NULL		// --> let the class allocate it
             pixelsWide:			w
             pixelsHigh:			h
             bitsPerSample:		8		// each component is 8 bits (1 byte)

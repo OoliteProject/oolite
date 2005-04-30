@@ -41,6 +41,7 @@
       [self resample];
    }
    [soundThread playBuffer: self]; 
+   return YES;
 }
 
 - (BOOL) stop
