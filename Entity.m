@@ -408,6 +408,7 @@ static  Universe	*data_store_universe;
 //    int fi,vi;
     int ti;
     GLfloat mat_ambient[] = { 1.0, 1.0, 1.0, 1.0 };
+    GLfloat mat_no[] = { 0.0, 0.0, 0.0, 1.0 };
 	if (is_smooth_shaded)
 		glShadeModel(GL_SMOOTH);
 	else
