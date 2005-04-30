@@ -3318,13 +3318,13 @@ static BOOL queryPressed;
 				int load_row =			GUI_ROW_OPTIONS_LOAD;
 				int begin_new_row =	GUI_ROW_OPTIONS_BEGIN_NEW;
 				int options_row =   GUI_ROW_OPTIONS_OPTIONS;
-				int display_row =   GUI_ROW_OPTIONS_DISPLAY;
 #ifdef GNUSTEP            
             // quit only appears in GNUstep as users aren't
             // used to Cmd-Q equivs.
             int quit_row = GUI_ROW_OPTIONS_QUIT;
 #else
             // Macintosh only
+				int display_row =   GUI_ROW_OPTIONS_DISPLAY;
 				int speech_row =	GUI_ROW_OPTIONS_SPEECH;
 #endif            
 				int ootunes_row =	GUI_ROW_OPTIONS_OOTUNES;
@@ -3416,12 +3416,7 @@ static BOOL queryPressed;
 					disc_operation_in_progress = NO;
 				}
 
-#ifdef GNUSTEP            
-            if (([gui selectedRow] == display_row) && [gameView isDown:13])
-            {
-               [controller goX11Fullscreen];
-            }
-#else
+#ifndef GNUSTEP
 				if (([gui selectedRow] == display_row)&&(([gameView isDown:gvArrowKeyRight])||([gameView isDown:gvArrowKeyLeft]))&&(!switching_resolution))
 				{
 					int direction = ([gameView isDown:gvArrowKeyRight]) ? 1 : -1;
@@ -6184,10 +6179,7 @@ static BOOL toggling_music;
    {
       mode=[(NSArray *)[controller displayModes] objectAtIndex:displayModeIndex];
    }
-#ifdef GNUSTEP
-   // Full screen or not full screen are the only options.
-   NSString *displayModeString=[NSString stringWithFormat:@" Full screen"];
-#else
+#ifndef GNUSTEP
 	int modeWidth = [[mode objectForKey: (NSString *)kCGDisplayWidth] intValue];
 	int modeHeight = [[mode objectForKey: (NSString *)kCGDisplayHeight] intValue];
 	int modeRefresh = [[mode objectForKey: (NSString *)kCGDisplayRefreshRate] intValue];
@@ -6203,19 +6195,23 @@ static BOOL toggling_music;
 		int load_row =		GUI_ROW_OPTIONS_LOAD;
 		int begin_new_row =	GUI_ROW_OPTIONS_BEGIN_NEW;
 		int options_row =   GUI_ROW_OPTIONS_OPTIONS;
-		int display_row =   GUI_ROW_OPTIONS_DISPLAY;
 #ifdef GNUSTEP      
       // GNUstep needs a quit option at present (no Cmd-Q) but
       // doesn't need speech.
       int quit_row = GUI_ROW_OPTIONS_QUIT;
 #else      
+		int display_row =   GUI_ROW_OPTIONS_DISPLAY;
 		int speech_row =	GUI_ROW_OPTIONS_SPEECH;
 #endif      
 		int ootunes_row =	GUI_ROW_OPTIONS_OOTUNES;
 		int detail_row =	GUI_ROW_OPTIONS_DETAIL;
 		int strict_row =	GUI_ROW_OPTIONS_STRICT;
-		
+
+#ifdef GNUSTEP
+      int first_sel_row = (canLoadOrSave)? save_row : ootunes_row;
+#else      
 		int first_sel_row = (canLoadOrSave)? save_row : display_row;
+#endif      
 		if (canQuickSave)
 			first_sel_row = quicksave_row;
 		
@@ -6240,7 +6236,9 @@ static BOOL toggling_music;
 			[gui setText:@" xine integration: ON "	forRow:ootunes_row  align:GUI_ALIGN_CENTER];
 		else
 			[gui setText:@" xine integration: OFF "	forRow:ootunes_row  align:GUI_ALIGN_CENTER];
-		[gui setText:displayModeString	forRow:display_row  align:GUI_ALIGN_CENTER];
+      // full screen mode is probably not possible in GNUstep.
+		// [gui setText:displayModeString	
+      //    forRow:display_row  align:GUI_ALIGN_CENTER];
       
       // quit menu option
       [gui setText:@" Exit game " forRow:quit_row align:GUI_ALIGN_CENTER];

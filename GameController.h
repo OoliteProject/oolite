@@ -169,10 +169,6 @@ extern int debug;
 - (void) playiTunesPlaylist:(NSString *)playlist_name;
 - (void) pauseiTunes;
 
-#ifdef GNUSTEP
-- (void) goX11Fullscreen;
-#endif
-
 @end
 
 
