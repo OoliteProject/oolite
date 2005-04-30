@@ -34,7 +34,7 @@
 
 // accessor methods. Only OOAlsaSoundThread should be calling these.
 - (NSData *)getData;
-- (float)getBYTERate;
+- (float)getSampleRate;
 - (float)getFrameSize;
 - (long)getDataSize;
 - (long)getFrameCount;
@@ -77,9 +77,6 @@ typedef struct _soundChunk
    snd_pcm_t           *pcm_handle;
    snd_pcm_hw_params_t *hwparams;
    unsigned long        bufsz;
-
-   // controlling semapore
-   sem_t soundSem;
 
    // sounds to play
    OOSound *track[MAXTRACKS];

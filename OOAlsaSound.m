@@ -125,7 +125,7 @@
 }
 
 // Float!? Surely an integer Mr. Stallman!
-- (float)getBYTERate
+- (float)getSampleRate
 {
    return _samplingRate;
 }
@@ -178,10 +178,7 @@
 
 - (id)init
 {
-   // all we need to do is initialize the semaphore and crank the
-   // player thread up. It's the equivalent of starting the sound
-   // daemon. (Start it with a count of zero so sem_wait waits)
-   sem_init(&soundSem, 0, 0);
+   // Crank up the player thread.
    [NSThread detachNewThreadSelector:@selector(soundThread:)
                            toTarget:self
                            withObject: nil];
@@ -197,21 +194,41 @@
       return;
    }
 
+
+   unsigned short int silence[1024];
+   memset(silence, 0, sizeof(silence));
+
+   // Prepare/reset the PCM device for playback.
+   // According to ALSA docs, just opening the device
+   // implicitly prepares it, but it can't hurt to make
+   // sure, especially knowing ALSA consistency...
+
+   snd_pcm_prepare(pcm_handle);
+
    // do this forever
+   // Note we have to play silence instead of stopping, it seems
+   // to prevent problems with stalls/buffer underruns with some
+   // hardware. It apparently uses more CPU to actually stop than
+   // keep continously feeding the sound card.
    while(1)
-   { 
-      // wait for the semaphore count to become nonzero.
-      // When the count is nonzero, the thread gets resumed and the
-      // semaphore count gets decremented.
-      sem_wait(&soundSem);
-      snd_pcm_prepare(pcm_handle);
-  
+   {
+      int res; 
       // play it one chunk at a time.
-      while([self mixChunks])
+      if([self mixChunks])
       {
-         snd_pcm_writei(pcm_handle, chunkBuf, bufsz);
+         res = snd_pcm_writei(pcm_handle, chunkBuf, bufsz);
       }
-      snd_pcm_drain(pcm_handle);
+      else // Nothing to play? Play silence so we don't get an underrun.
+      {
+         res = snd_pcm_writei(pcm_handle, silence, sizeof(silence) / 4);
+      }
+      // Check for errors/problems
+      if (res < 0)
+      {
+         NSLog(@"ALSA: error during snd_pcm_writei() (%s), resetting stream.", 
+               snd_strerror(res));
+         snd_pcm_prepare(pcm_handle);
+      }
    }
 
    [pool release]; 
@@ -341,13 +358,12 @@
    return YES; 
 }
 
-// playBuffer adds a buffer to our list of things to play and
-// posts the semaphore so the player thread gets to work.
+// playBuffer doesn't actually do the playing - it merely adds the
+// sound to the list of tracks the player thread should mix.
 - (void) playBuffer: (OOSound *)sound
 {
    NSLock *addlock=[[NSLock alloc] init];
    [addlock lock];
-   [sound retain];   // we don't want it unexpectedly disappearing
    int i;
    int slot=0;
    BOOL slotAssigned=NO;
@@ -365,19 +381,11 @@
       return;
    }
 
+   [sound retain];   // we don't want it unexpectedly disappearing
    track[slot]=sound;
    trackBuffer[slot].buf=(Frame *)[[sound getData] bytes];
    trackBuffer[slot].bufEnd=(Frame *)[sound getBufferEnd];
    [sound startup];
-
-   // only post if we're actually waiting otherwise the mixer
-   // takes care of adding the noise.
-   int semval;
-   sem_getvalue(&soundSem, &semval);
-   if(!semval)
-   {
-      sem_post(&soundSem);
-   }
    [addlock unlock];
 }
 
@@ -398,59 +406,25 @@
       return NO;
    }
    
-   // Note: Everything is aligned on word boundaries. You can stop this
-   // with #pragma pack (2) but this causes GNUstep to crash.
-   // Even though shorts are only 2 bytes long, you still
-   // actually end up with 4 bytes aligned on a longword boundary.
    for(current=chunkBuf; current < chunkBuf + bufsz; current++)
    {
-      Sample chana;
-      Sample chanb;
-
-      // Do the sums with a type bigger than a Sample (signed short).
-      // That way we can check whether we need to clip.
       long sumChanA=0;
       long sumChanB=0;
       for(i=0; i < MAXTRACKS; i++)
       {
-         // doing it this way avoids lots of calls to memcpy.
-         if(trackBuffer[i].buf && 
-               trackBuffer[i].buf < trackBuffer[i].bufEnd)
-         {  
-            chana=(*trackBuffer[i].buf & 0xFFFF0000) >> 16;
-            chanb=*trackBuffer[i].buf & 0x0000FFFF;
-            trackBuffer[i].buf++;
-         }
-         else
-         {  
-            chana=0;
-            chanb=0;
-         }
-         sumChanA+=chana;
-         sumChanB+=chanb; 
+         if(!trackBuffer[i].buf) continue;
+         if(trackBuffer[i].buf >= trackBuffer[i].bufEnd) continue;
+         sumChanA += (long)*trackBuffer[i].buf >> 16;
+         sumChanB += (long)(*trackBuffer[i].buf << 16) >> 16;
+         trackBuffer[i].buf++;
       }
 
-      if(sumChanA > 32767)
-         sumChanA=32767;
-      else if(sumChanA < -32767)
-         sumChanA=-32767;
-      if(sumChanB > 32767)
-         sumChanB=32767;
-      else if(sumChanB < -32767)
-         sumChanB=-32767;
+      if(sumChanA > 32767) sumChanA=32767;
+      else if(sumChanA < -32768) sumChanA=-32768;
+      if(sumChanB > 32767) sumChanB=32767;
+      else if(sumChanB < -32768) sumChanB=-32768;
 
-      // convert back to a short (not withstanding that shorts actually
-      // carry 4 bytes with them, the sign bit is in a different place
-      // and this gives us an easy way to make sure it's in the right
-      // place in the sample that results)
-      chana=sumChanA;
-      chanb=sumChanB;
-      *current = chana;
-      *current <<= 16;
-
-      // see earlier comment about shorts still being 4 bytes long
-      // hence we need to mask off the most significant 2 bytes
-      *current |= (chanb & 0x0000ffff);
+      *current = (sumChanA << 16) | (sumChanB & 0xffff);
    }
 
    // drop tracks we don't want any more
