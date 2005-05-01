@@ -6167,6 +6167,7 @@ static BOOL toggling_music;
 	BOOL	canQuickSave = (canLoadOrSave && ([[(MyOpenGLView *)[universe gameView] gameController] playerFileToLoad] != nil));
 	
 	GameController  *controller = [universe gameController];
+#ifndef GNUSTEP
 	int displayModeIndex = [controller indexOfCurrentDisplayMode];
 	if (displayModeIndex == NSNotFound)
 	{
@@ -6182,7 +6183,6 @@ static BOOL toggling_music;
    {
       mode=[(NSArray *)[controller displayModes] objectAtIndex:displayModeIndex];
    }
-#ifndef GNUSTEP
 	int modeWidth = [[mode objectForKey: (NSString *)kCGDisplayWidth] intValue];
 	int modeHeight = [[mode objectForKey: (NSString *)kCGDisplayHeight] intValue];
 	int modeRefresh = [[mode objectForKey: (NSString *)kCGDisplayRefreshRate] intValue];
