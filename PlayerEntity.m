@@ -6324,7 +6324,6 @@ static int last_outfitting_index;
 	BOOL		option_okay[[equipdata count]];
 	NSMutableArray*	options = [NSMutableArray arrayWithArray:(NSArray*)[(NSDictionary*)[[universe shipyard] objectForKey:ship_desc] objectForKey:KEY_OPTIONAL_EQUIPMENT]];
 	[options addObject:@"EQ_FUEL"];
-//	[options addObject:@"EQ_MISSILE"];
 	[options addObject:@"EQ_PASSENGER_BERTH"];
 	[options addObject:@"EQ_PASSENGER_BERTH_REMOVAL"];
 	[options addObject:@"EQ_ADVANCED_COMPASS"];
@@ -6333,6 +6332,24 @@ static int last_outfitting_index;
 	{
 		NSString* eq_key = (NSString*)[(NSArray*)[equipdata objectAtIndex:i] objectAtIndex:EQUIPMENT_KEY_INDEX];
 		int			min_techlevel   = [(NSNumber *)[(NSArray *)[equipdata objectAtIndex:i] objectAtIndex:EQUIPMENT_TECH_LEVEL_INDEX] intValue];
+
+		// reduce the minimum techlevel occasionally as a bonus..
+		//
+		if ((![universe strict])&&(techlevel < min_techlevel)&&(techlevel > min_techlevel - 3))
+		{
+			int day = i * 13 + floor([universe getTime] / 86400.0);
+			unsigned char day_rnd = (day & 0xff) ^ system_seed.a;
+			int original_min_techlevel = min_techlevel;
+			//
+			while ((min_techlevel > 0)&&(min_techlevel > original_min_techlevel - 3)&&!(day_rnd & 7))	// bargain tech days every 1/8 days
+			{
+				day_rnd = day_rnd >> 2;
+				min_techlevel--;
+			}
+			if (min_techlevel < original_min_techlevel)
+				NSLog(@"DEBUG -- Bargain tech day for %@ (TL %d reduced from %d)", eq_key, min_techlevel, original_min_techlevel);
+		}
+		
 		option_okay[i] = [eq_key hasPrefix:@"EQ_WEAPON"];
 		for (j = 0; j < [options count]; j++)
 		{
@@ -6678,6 +6695,8 @@ static int last_outfitting_index;
 
 - (BOOL) tryBuyingItem:(int) index
 {
+	// note this doesn't check the availability by tech-level
+	//
 	NSArray*	equipdata = [universe equipmentdata];
 	int			price_per_unit  = [(NSNumber *)[(NSArray *)[equipdata objectAtIndex:index] objectAtIndex:EQUIPMENT_PRICE_INDEX] intValue];
 	NSString*   eq_type			= (NSString *)[(NSArray *)[equipdata objectAtIndex:index] objectAtIndex:EQUIPMENT_KEY_INDEX];
@@ -7418,4 +7437,3 @@ NSString* GenerateDisplayString(int inModeWidth, int inModeHeight, int inModeRef
 }
 
 @end
-

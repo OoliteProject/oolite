@@ -863,7 +863,7 @@ Your fair use and other rights are in no way affected by the above.
 		NSString* beaconCode = (NSString*)[dict objectForKey:@"beacon"];
 		const char* bcode = [beaconCode lossyCString];
 		beaconChar = bcode[0];
-		NSLog(@"DEBUG new %@ is a beacon with code: %s", name, bcode);
+//		NSLog(@"DEBUG new %@ is a beacon with code: %s", name, bcode);
 	}
 	else
 	{
@@ -2489,6 +2489,9 @@ Your fair use and other rights are in no way affected by the above.
 	{
 		// quick test of hyperring
 		ParticleEntity *ring = [[ParticleEntity alloc] initHyperringFromShip:self]; // retained
+		Vector ring_vel = [ring getVelocity];
+		ring_vel.x *= 0.25;	ring_vel.y *= 0.25;	ring_vel.z *= 0.25;	// quarter velocity
+		[ring setVelocity:ring_vel];
 		[universe addEntity:ring];
 		[ring release];
 	}
@@ -2507,7 +2510,7 @@ Your fair use and other rights are in no way affected by the above.
 		[fragment setDuration: duration];
 		[fragment setCollisionRadius: 0.0];
 		[fragment setEnergy: 0.0];
-		[fragment setParticleType: PARTICLE_SHOT_GREEN_PLASMA];
+		[fragment setParticleType: PARTICLE_SPARK];
 		[fragment setColor:[NSColor yellowColor]];
 		[universe addEntity:fragment];
 		[fragment release];							//release
@@ -5047,4 +5050,3 @@ Vector randomPositionInBoundingBox(BoundingBox bb)
 }
 
 @end
-
