@@ -13,6 +13,9 @@ for the troubles that I've encountered - it may save you time.
 
 - Objective-C. On Fedora Core, 'up2date -i gcc-objc' installs.
 
+- SDL Development libraries. (Currently used only for sound). Most
+distros have this pre-installed or as an easy-to-install package.
+
 - GNUstep Development libraries. I advise you build GNUstep from source
 since some prepackaged versions don't have a new enough NSOpenGLView.
 It builds easily from source so don't panic.
