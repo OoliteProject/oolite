@@ -342,6 +342,22 @@ static int _compareModes(id arg1, id arg2, void *context)
 
 - (void) applicationDidFinishLaunching: (NSNotification*) notification
 {
+#ifdef GNUSTEP
+	NSLog(@"initialising SDL");
+	if (SDL_Init(SDL_INIT_AUDIO) < 0)
+	{
+		NSLog(@"Unable to init SDL: %s\n", SDL_GetError());
+    }
+	else if (Mix_OpenAudio(44100, AUDIO_S16LSB, 2, 2048) < 0)
+	{
+		NSLog(@"Mix_OpenAudio: %s\n", Mix_GetError());
+	}
+
+	Mix_AllocateChannels(16);
+	//Mix_ChannelFinished(channelDone);
+	//Mix_HookMusicFinished(musicFinished);
+#endif
+
 	//
 	// ensure the gameView is drawn to, so OpenGL is initialised and so textures can initialse.
 	//
@@ -405,7 +421,7 @@ static int _compareModes(id arg1, id arg2, void *context)
 	// dajt: force the OpenGL context to be initialised again as X windows
 	// should have caught up by now
 	// TODO: get rid of hardcoded window size
-	[gameView initialiseGLWithSize: NSMakeSize(640, 480)];
+	[gameView initialiseGLWithSize: NSMakeSize(DISPLAY_MIN_WIDTH, DISPLAY_MIN_HEIGHT)];
 #endif
 
 	[universe setGameView:gameView];

@@ -2695,7 +2695,7 @@ Your fair use and other rights are in no way affected by the above.
 		GLfloat cx_col0[4] = { 0.0, 1.0, 0.0, 0.25};
 		GLfloat cx_col1[4] = { 0.0, 1.0, 0.0, 0.50};
 		GLfloat cx_col2[4] = { 0.0, 1.0, 0.0, 0.75};
-		glEnable(GL_LINE_SMOOTH);									// alpha blending
+		//glEnable(GL_LINE_SMOOTH);									// alpha blending
 		glLineWidth(2.0);
 		
 		switch (weapon)

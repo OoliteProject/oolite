@@ -14,4 +14,7 @@
 #include <GL/glext.h>
 #include <math.h>
 
+#include "SDL.h"
+#include "SDL_mixer.h"
+
 #endif /* OOLITE_LINUX */

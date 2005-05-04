@@ -924,11 +924,9 @@ static BOOL galactic_witchjump;
     if (afterburner1Sound)		[afterburner1Sound release];
     if (afterburner2Sound)		[afterburner2Sound release];
 	//
-#ifndef GNUSTEP
 	if (themeMusic)				[themeMusic release];
 	if (missionMusic)			[missionMusic release];
 	if (dockingMusic)			[dockingMusic release];
-#endif
 	//
 	// allocate sounds
 	//
@@ -956,11 +954,9 @@ static BOOL galactic_witchjump;
 //	[afterburner2Sound setDelegate:self];
 	
 	//
-#ifndef GNUSTEP
-	themeMusic =		[[ResourceManager movieFromFilesNamed:@"OoliteTheme.mp3" inFolder:@"Music"] retain];
-	missionMusic =		[[ResourceManager movieFromFilesNamed:@"OoliteTheme.mp3" inFolder:@"Music"] retain];
-	dockingMusic =		[[ResourceManager movieFromFilesNamed:@"BlueDanube.mp3" inFolder:@"Music"] retain];
-#endif
+    themeMusic =		[[ResourceManager movieFromFilesNamed:@"OoliteTheme.mp3" inFolder:@"Music"] retain];
+    missionMusic =		[[ResourceManager movieFromFilesNamed:@"OoliteTheme.mp3" inFolder:@"Music"] retain];
+    dockingMusic =		[[ResourceManager movieFromFilesNamed:@"BlueDanube.mp3" inFolder:@"Music"] retain];
 	//
 	collision_radius =  50.0;
 	//
@@ -1210,11 +1206,9 @@ static BOOL galactic_witchjump;
     if (warningSound)			[warningSound release];
     if (afterburner1Sound)		[afterburner1Sound release];
     if (afterburner2Sound)		[afterburner2Sound release];
-#ifndef GNUSTEP
     if (themeMusic)				[themeMusic release];
     if (missionMusic)			[missionMusic release];
     if (dockingMusic)			[dockingMusic release];
-#endif
     if (missionBackgroundImage) [missionBackgroundImage release];
 
     if (player_name)			[player_name release];
@@ -2695,6 +2689,10 @@ static BOOL cloak_pressed;
 							if (IsMovieDone ([dockingMusic QTMovie]))
 								GoToBeginningOfMovie ([dockingMusic QTMovie]);
 							StartMovie ([dockingMusic QTMovie]);
+#else
+							[dockingMusic stop];
+							[dockingMusic goToBeginning];
+							[dockingMusic play];
 #endif
 						}
 					}
@@ -2749,6 +2747,10 @@ static BOOL cloak_pressed;
 							if (IsMovieDone ([dockingMusic QTMovie]))
 								GoToBeginningOfMovie ([dockingMusic QTMovie]);
 							StartMovie ([dockingMusic QTMovie]);
+#else
+							[dockingMusic stop];
+							[dockingMusic goToBeginning];
+							[dockingMusic play];
 #endif                     
 						}
 					}
@@ -4223,6 +4225,8 @@ static BOOL toggling_music;
 			{
 #ifndef GNUSTEP            
 				StopMovie ([dockingMusic QTMovie]);
+#else
+				[dockingMusic stop];
 #endif            
 			}
 		}
@@ -4239,12 +4243,19 @@ static BOOL toggling_music;
 				if (IsMovieDone ([dockingMusic QTMovie]))
 					GoToBeginningOfMovie ([dockingMusic QTMovie]);
 				StartMovie ([dockingMusic QTMovie]);
+#else
+				[dockingMusic stop];
+				[dockingMusic goToBeginning];
+				[dockingMusic play];
+
 #endif            
 			}
 			else
 			{
 #ifndef GNUSTEP           
 				StopMovie ([dockingMusic QTMovie]);
+#else
+				[dockingMusic stop];
 #endif            
 			}
 		}
@@ -4256,13 +4267,19 @@ static BOOL toggling_music;
 	}
 	//
 	// keep music playing
-	if ((docking_music_on)&&(!ootunes_on))
+	if (autopilot_engaged && (docking_music_on)&&(!ootunes_on))
 	{
 #ifndef GNUSTEP     
 		if (IsMovieDone ([dockingMusic QTMovie]))
 		{
 			GoToBeginningOfMovie ([dockingMusic QTMovie]);
 			StartMovie ([dockingMusic QTMovie]);
+		}
+#else
+		if ([dockingMusic isPlaying] == NO)
+		{
+			[dockingMusic goToBeginning];
+			[dockingMusic play];
 		}
 #endif      
 	}
@@ -4306,13 +4323,16 @@ static BOOL toggling_music;
 			{
 				if (([gameView isDown:121])||([gameView isDown:89]))	//  'yY'
 				{
-               #ifndef GNUSTEP
 					if (themeMusic)
 					{
-						StopMovie ([themeMusic QTMovie]);
+#ifndef GNUSTEP
+                        StopMovie ([themeMusic QTMovie]);
 						GoToBeginningOfMovie ([themeMusic QTMovie]);
+#else
+						[themeMusic stop];
+						[themeMusic goToBeginning];
+#endif
 					}
-               #endif
 
 					disc_operation_in_progress = YES;
 					if ([[universe gameController] inFullScreenMode])
@@ -4350,13 +4370,18 @@ static BOOL toggling_music;
 				[gui setBackgroundImage:nil];
 				[self setGuiToStatusScreen];
 				[universe setDisplayText:YES];
-#ifndef GNUSTEP            
+
 				if (themeMusic)
 				{
-					StopMovie ([themeMusic QTMovie]);
+#ifndef GNUSTEP
+                    StopMovie ([themeMusic QTMovie]);
 					GoToBeginningOfMovie ([themeMusic QTMovie]);
-				}
+#else
+					[themeMusic stop];
+					[themeMusic goToBeginning];
 #endif
+				}
+
 			}
 			break;
 			
@@ -4478,6 +4503,8 @@ static BOOL toggling_music;
 			{
 #ifndef GNUSTEP           
 				StopMovie ([dockingMusic QTMovie]);
+#else
+				[dockingMusic stop];
 #endif            
 			}
 		}
@@ -5087,6 +5114,14 @@ static BOOL toggling_music;
 	[universe setViewDirection:VIEW_AFT];
 	[self becomeLargeExplosion:4.0];
 	[self moveForward:100.0];
+
+	// todo some check for ootunes
+	if (dockingMusic)
+	{
+		if ([dockingMusic isPlaying])
+			[dockingMusic stop];
+	}
+
 #ifdef HAVE_SOUND   
 	[destructionSound play];
 #endif   
@@ -5221,6 +5256,8 @@ static BOOL toggling_music;
 		{
 #ifndef GNUSTEP        
 			StopMovie ([dockingMusic QTMovie]);
+#else
+			[dockingMusic stop];
 #endif         
 		}
 	}
@@ -6599,13 +6636,18 @@ static int last_outfitting_index;
 	if (gui)
 		gui_screen = GUI_SCREEN_INTRO1;
    
-#ifndef GNUSTEP		
+
 	if (themeMusic)
 	{
-		GoToBeginningOfMovie ([themeMusic QTMovie]);
+#ifndef GNUSTEP
+        GoToBeginningOfMovie ([themeMusic QTMovie]);
 		StartMovie ([themeMusic QTMovie]);
-	}
-#endif   
+#else
+		[themeMusic stop];
+		[themeMusic goToBeginning];
+		[themeMusic play];
+#endif
+    }
 }
 
 - (void) setGuiToIntro2Screen

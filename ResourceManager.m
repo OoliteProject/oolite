@@ -43,6 +43,7 @@ Your fair use and other rights are in no way affected by the above.
 #ifdef GNUSTEP
 #import "Comparison.h"
 #import "OOSound.h"
+#import "OOMusic.h"
 #endif
 
 
@@ -435,7 +436,42 @@ NSMutableDictionary*	movie_cache;
 #ifdef GNUSTEP
 + (id) movieFromFilesNamed:(NSString *)filename inFolder:(NSString *)foldername
 {
-   return nil;
+	OOMusic *result = nil;
+	NSMutableArray *fpaths = [ResourceManager paths];
+	int i, r;
+	r = 0;
+	if (!filename)
+		return nil;
+
+	NSString* movie_key = [NSString stringWithFormat:@"%@:%@", foldername, filename];
+	if (!movie_cache)
+		movie_cache = [[NSMutableDictionary alloc] initWithCapacity:32];
+	if ([movie_cache objectForKey:movie_key])
+		return (id)[movie_cache objectForKey:movie_key];	// return the cached movie
+	
+	for (i = 0; i < [fpaths count]; i++)
+	{
+		NSString *filepath = [(NSString *)[fpaths objectAtIndex:i] stringByAppendingPathComponent:filename];
+		if ([[NSFileManager defaultManager] fileExistsAtPath:filepath])
+			result = [[OOMusic alloc] initWithContentsOfFile:filepath];
+		if (foldername)
+		{
+			filepath = [[(NSString *)[fpaths objectAtIndex:i] stringByAppendingPathComponent:foldername] stringByAppendingPathComponent:filename];
+			if ([[NSFileManager defaultManager] fileExistsAtPath:filepath])
+			{
+				//NSLog(@"DEBUG ResourceManager found %@ at %@",filename,filepath);
+				if (result)
+					[result release];
+				result = [[OOMusic alloc] initWithContentsOfFile:filepath];
+			}
+		}
+	}
+	//NSLog(@"---> ResourceManager found %d file(s) with name '%@' (in folder '%@')", r, filename, foldername);
+	
+	if (result)
+		[movie_cache setObject:result forKey:movie_key];
+
+	return [result autorelease];
 }
 #else
 + (NSMovie *) movieFromFilesNamed:(NSString *)filename inFolder:(NSString *)foldername

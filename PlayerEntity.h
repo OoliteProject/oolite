@@ -41,6 +41,8 @@ Your fair use and other rights are in no way affected by the above.
 
 #ifndef GNUSTEP
 #import <QuickTime/Movies.h>
+#else
+#include "OOMusic.h"
 #endif
 
 #import "ShipEntity.h"
@@ -274,10 +276,14 @@ Your fair use and other rights are in no way affected by the above.
 	BOOL	ecm_in_operation;
 	double	ecm_start_time;
 
-#ifndef GNUSTEP   
+#ifndef GNUSTEP
 	NSMovie*	themeMusic;
 	NSMovie*	missionMusic;
 	NSMovie*	dockingMusic;
+#else
+    OOMusic* themeMusic;
+    OOMusic* missionMusic;
+    OOMusic* dockingMusic;
 #endif
 
 	NSSound*	beepSound;
