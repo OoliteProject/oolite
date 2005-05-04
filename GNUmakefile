@@ -1,7 +1,7 @@
 include $(GNUSTEP_MAKEFILES)/common.make
 CP = cp
 GNUSTEP_INSTALLATION_DIR = $(GNUSTEP_USER_ROOT)
-ADDITIONAL_GUI_LIBS = -lGLU -lGL -lasound -lSDL -lpthread -lSDL_mixer
+ADDITIONAL_GUI_LIBS = -lGLU -lGL -lSDL -lpthread -lSDL_mixer
 ADDITIONAL_CFLAGS = -DLINUX `sdl-config --cflags`
 ADDITIONAL_OBJCFLAGS = -DLINUX -DHAVE_SOUND -Wno-import `sdl-config --cflags`
 APP_NAME = oolite

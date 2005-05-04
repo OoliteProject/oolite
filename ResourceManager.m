@@ -434,7 +434,7 @@ NSMutableDictionary*	movie_cache;
 }
 
 #ifdef GNUSTEP
-+ (id) movieFromFilesNamed:(NSString *)filename inFolder:(NSString *)foldername
++ (OOMusic *) movieFromFilesNamed:(NSString *)filename inFolder:(NSString *)foldername
 {
 	OOMusic *result = nil;
 	NSMutableArray *fpaths = [ResourceManager paths];
@@ -508,7 +508,7 @@ NSMutableDictionary*	movie_cache;
 	}
 	//NSLog(@"---> ResourceManager found %d file(s) with name '%@' (in folder '%@')", r, filename, foldername);
 	
-	if ((result == nil)&&([filename hasSuffix:@"mp3"]))
+	if ((result == nil)&&([filename hasSuffix:@"ogg"]))
 	{
 		// look for an alternative .mid file
 		NSString *midifilename = [[filename stringByDeletingPathExtension] stringByAppendingPathExtension:@"mid"];

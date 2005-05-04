@@ -954,9 +954,9 @@ static BOOL galactic_witchjump;
 //	[afterburner2Sound setDelegate:self];
 	
 	//
-    themeMusic =		[[ResourceManager movieFromFilesNamed:@"OoliteTheme.mp3" inFolder:@"Music"] retain];
-    missionMusic =		[[ResourceManager movieFromFilesNamed:@"OoliteTheme.mp3" inFolder:@"Music"] retain];
-    dockingMusic =		[[ResourceManager movieFromFilesNamed:@"BlueDanube.mp3" inFolder:@"Music"] retain];
+    themeMusic =		[[ResourceManager movieFromFilesNamed:@"OoliteTheme.ogg" inFolder:@"Music"] retain];
+    missionMusic =		[[ResourceManager movieFromFilesNamed:@"OoliteTheme.ogg" inFolder:@"Music"] retain];
+    dockingMusic =		[[ResourceManager movieFromFilesNamed:@"BlueDanube.ogg" inFolder:@"Music"] retain];
 	//
 	collision_radius =  50.0;
 	//

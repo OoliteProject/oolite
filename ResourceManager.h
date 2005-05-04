@@ -41,6 +41,7 @@ Your fair use and other rights are in no way affected by the above.
 #ifdef GNUSTEP
 #import <Foundation/Foundation.h>
 #import <AppKit/AppKit.h>
+#import "OOMusic.h"
 #else
 #import <Cocoa/Cocoa.h>
 #endif
@@ -64,7 +65,12 @@ BOOL always_include_addons;
 + (NSSound *) soundNamed:(NSString *)filename inFolder:(NSString *)foldername;
 + (NSImage *) imageNamed:(NSString *)filename inFolder:(NSString *)foldername;
 + (NSString *) stringFromFilesNamed:(NSString *)filename inFolder:(NSString *)foldername;
-#ifndef GNUSTEP
+#ifdef GNUSTEP
+// This method name looks bizarre, but it's just that on OS X the music
+// is played by QuickTime which calls everything 'movie', even though in
+// this case it isn't.
++ (OOMusic *) movieFromFilesNamed:(NSString *)filename inFolder:(NSString *)foldername;
+#else
 + (NSMovie *) movieFromFilesNamed:(NSString *)filename inFolder:(NSString *)foldername;
 #endif
 
