@@ -10,6 +10,6 @@
 // Dylan Smith, 2005-04-22
 
 #ifdef LINUX
-#import "OOAlsaSound.h"
+#import "SDLSound.h"
 #endif
 
