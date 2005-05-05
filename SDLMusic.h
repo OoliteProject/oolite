@@ -10,17 +10,31 @@
 
 @interface OOMusic : NSObject
 {
-	NSString* filename;
-	BOOL isPlaying;
+    // The SDL_mixer music structure encapsulated by an instance of OOMusic.
 	Mix_Music *music;
 }
 
+// Initialise the OOMusic instance from the contents of "filepath"
 - (id) initWithContentsOfFile:(NSString*) filepath;
-- (BOOL) pause;
+
+// Pause the music if this instance is currently playing
+- (void) pause;
+
+// Returns YES if this instance is playing, otherwise NO.
 - (BOOL) isPlaying;
+
+// Start playing this instance of OOMusic, stopping any other instance
+// currently playing.
 - (BOOL) play;
-- (BOOL) stop;
-- (BOOL) resume;
+
+// Stop the music if this instance is currently playing.
+- (void) stop;
+
+// Resume the music if this instance was paused. Has no effect if a different
+// instance was paused.
+- (void) resume;
+
+// Rewind the music if this instance is the current instance.
 - (void) goToBeginning;
 
 @end
