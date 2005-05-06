@@ -1110,23 +1110,26 @@ static int shipsFound;
 	quaternion_rotate_about_axis(&q2,vector_right_from_quaternion(q2), 0.5 * PI);
 	
 	ship = [universe getShipWithRole: shipKey];   // retain count = 1
-	double cr = [ship collisionRadius];
-	if (debug)
-		NSLog(@"::::: showShipModel:'%@' (%@) (%@)", shipKey, ship, [ship name]);
-	[ship setQRotation: q2];
-	pos.x += 3.6 * cr * v_forward.x;
-	pos.y += 3.6 * cr * v_forward.y;
-	pos.z += 3.6 * cr * v_forward.z;
-		
-	[ship setStatus: STATUS_DEMO];
-	[ship setPosition: pos];
-	[ship setScanClass: CLASS_NO_DRAW];
-	[ship setRoll: PI/5.0];
-	[ship setPitch: PI/10.0];
-	[universe addEntity: ship];
-	[[ship getAI] setStateMachine: @"nullAI.plist"];
+	if (ship)
+	{
+		double cr = ship->collision_radius;
+		if (debug)
+			NSLog(@"::::: showShipModel:'%@' (%@) (%@)", shipKey, ship, [ship name]);
+		[ship setQRotation: q2];
+		pos.x += 3.6 * cr * v_forward.x;
+		pos.y += 3.6 * cr * v_forward.y;
+		pos.z += 3.6 * cr * v_forward.z;
+			
+		[ship setStatus: STATUS_DEMO];
+		[ship setPosition: pos];
+		[ship setScanClass: CLASS_NO_DRAW];
+		[ship setRoll: PI/5.0];
+		[ship setPitch: PI/10.0];
+		[universe addEntity: ship];
+		[[ship getAI] setStateMachine: @"nullAI.plist"];
 
-	[ship release];
+		[ship release];
+	}
 	//
 }
 
@@ -1186,9 +1189,9 @@ static int shipsFound;
 	for (i = 1; i < [ents count]; i++)
 	{
 		Entity* e1 = [ents objectAtIndex:i];
-		if ([e1 isKindOfClass:[ShipEntity class]])
+		if (e1->isShip)
 		{
-			int e_class = [e1 scanClass];
+			int e_class = e1->scan_class;
 			if ((e_class == CLASS_NEUTRAL)||(e_class == CLASS_POLICE)||(e_class == CLASS_THARGOID))
 			{
 				[[(ShipEntity*)e1 getAI] setStateMachine:@"exitingTraderAI.plist"];
@@ -1295,4 +1298,3 @@ static int shipsFound;
 
 
 @end
-

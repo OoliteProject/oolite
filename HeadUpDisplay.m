@@ -334,7 +334,7 @@ static BOOL hostiles;
 	GLfloat police_color2[4] = {1.0, 0.0, 0.5, alpha};		// purpley-red
 	GLfloat col[4];								// can be manipulated
     
-	position = [player getPosition];
+	position = player->position;
 	gl_matrix_into_matrix([player rotationMatrix], rotMatrix);
 	
 //	NSLog(@"drawing grid size %.1f x %.1f", siz.width, siz.height);
@@ -356,15 +356,15 @@ static BOOL hostiles;
 //			BOOL	sent_a_message = NO;
 
 			drawthing = (Entity *)[entityList objectAtIndex:i];
-			int drawClass = [drawthing scanClass];
+			int drawClass = drawthing->scan_class;
 			if (drawClass == CLASS_PLAYER)	drawClass = CLASS_NO_DRAW;
 			
 			// consider large bodies for mass_lock
-			if ([drawthing isKindOfClass:[PlanetEntity class]])
+			if (drawthing->isPlanet)
 			{
 				PlanetEntity* planet = (PlanetEntity *)drawthing;
-				double dist =   [planet getZeroDistance];
-				double rad =	[planet collisionRadius];
+				double dist =   planet->zero_distance;
+				double rad =	planet->collision_radius;
 				double factor = ([planet getPlanetType] == PLANET_TYPE_SUN) ? 2.0 : 4.0;
 				if (dist < rad*rad*factor)
 				{
@@ -377,7 +377,7 @@ static BOOL hostiles;
 				GLfloat x1,y1,y2;
 				float	ms_blip = 0.0;
 
-				if ([drawthing getZeroDistance] <= mass_lock_range2)
+				if (drawthing->zero_distance <= mass_lock_range2)
 				{
 					switch (drawClass)
 					{
@@ -397,12 +397,12 @@ static BOOL hostiles;
 				}
 				[player setAlert_flag:ALERT_FLAG_MASS_LOCK :mass_locked];
 					
-				if ((isnan([drawthing getZeroDistance]))||([drawthing getZeroDistance] > max_scanner_range2))
+				if ((isnan(drawthing->zero_distance))||(drawthing->zero_distance > max_scanner_range2))
 					continue;
 				
 				// has it snt a recent message
 				//
-				if ([drawthing isKindOfClass:[ShipEntity class]]) 
+				if (drawthing->isShip) 
 					ms_blip = 2.0 * [(ShipEntity *)drawthing message_time];
 				if (ms_blip > max_blip)
 				{
@@ -423,10 +423,10 @@ static BOOL hostiles;
 				y2 = y1 + y_factor * relativePosition.y;
 				
 				isHostile = NO;
-				if ([drawthing isKindOfClass:[ShipEntity class]])
+				if (drawthing->isShip)
 				{
 					double wr = [(ShipEntity *)drawthing weapon_range];
-					isHostile = (([(ShipEntity *)drawthing hasHostileTarget])&&([(ShipEntity *)drawthing getPrimaryTarget] == player)&&([(ShipEntity *)drawthing getZeroDistance] < wr*wr));
+					isHostile = (([(ShipEntity *)drawthing hasHostileTarget])&&([(ShipEntity *)drawthing getPrimaryTarget] == player)&&(drawthing->zero_distance < wr*wr));
 //					sent_a_message = (([(ShipEntity *)drawthing message_time] > 0.0)&&(flicker));
 				}
 				
@@ -448,7 +448,7 @@ static BOOL hostiles;
 							col[0] = hostile_color[0];	col[1] = hostile_color[1];	col[2] = hostile_color[2];	col[3] = hostile_color[3];
 						}
 						foundHostiles = YES;
-//						NSLog(@"DEBUG found Thargoid %.0f %.0f", [drawthing getZeroDistance], max_scanner_range2);
+//						NSLog(@"DEBUG found Thargoid %.0f %.0f", drawthing->zero_distance, max_scanner_range2);
 						break;
 					case CLASS_MISSILE :
 						col[0] = missile_color[0];	col[1] = missile_color[1];	col[2] = missile_color[2];	col[3] = missile_color[3];
@@ -502,9 +502,9 @@ static BOOL hostiles;
 				{
 					drawSpecialOval( x1 - 0.5, y2 + 1.5, z1, NSMakeSize(16.0 * (1.0 - ms_blip), 8.0 * (1.0 - ms_blip)), 30, col);
 				}
-				if ([drawthing isKindOfClass:[ParticleEntity class]]&&(drawClass == CLASS_MINE))
+				if ((drawthing->isParticle)&&(drawClass == CLASS_MINE))
 				{
-					double r1 = 2.5 + [drawthing collisionRadius] * upscale;
+					double r1 = 2.5 + drawthing->collision_radius * upscale;
 					double l2 = r1*r1 - relativePosition.y*relativePosition.y;
 					double r0 = (l2 > 0)? sqrt(l2): 0;
 					if (r0 > 0)
@@ -550,7 +550,7 @@ static BOOL hostiles;
 - (void) refreshLastTransmitter
 {
 	Entity* lt = [[player universe] entityForUniversalID:last_transmitter];
-	if ((lt == nil)||(![lt isKindOfClass:[ShipEntity class]]))
+	if ((lt == nil)||(!(lt->isShip)))
 		return;
 	ShipEntity* st = (ShipEntity*)lt;
 //	NSLog(@"DEBUG Last Transmitter (%d) == %@ %d", last_transmitter, [st name], [st universal_id]);
@@ -590,47 +590,58 @@ static BOOL hostiles;
 		alpha = [(NSNumber *)[info objectForKey:ALPHA_KEY] doubleValue];
 	// draw the compass
 	Matrix rotMatrix;
-	Vector position = [player getPosition];
+	Vector position = player->position;
 	gl_matrix_into_matrix([player rotationMatrix], rotMatrix);
 	//
 	[compassSprite blitCentredToX:x Y:y Z:z1 Alpha:alpha];
 	//
-	if (([[player universe] viewDir] != VIEW_DOCKED)&&([[player universe] sun]))
+	PlanetEntity*	the_sun = [[player universe] sun];
+	PlanetEntity*	the_planet = [[player universe] planet];
+	StationEntity*	the_station = [[player universe] station];
+	Entity*			the_target = [player getPrimaryTarget];
+	Entity*			the_next_beacon = [[player universe] entityForUniversalID:[player nextBeaconID]];
+	if (([[player universe] viewDir] != VIEW_DOCKED)&&(the_sun)&&(the_planet))
 	{
 		Vector relativePosition;
 		if ([player compass_mode] == COMPASS_MODE_BASIC)
 		{
-			relativePosition = [[[player universe] planet] getPosition];
-			if ([player checkForAegis] != AEGIS_NONE)
-				relativePosition = [[[player universe] station] getPosition];
+			relativePosition = the_planet->position;
+			if (([player checkForAegis] != AEGIS_NONE)&&(the_station))
+				relativePosition = the_station->position;
 		}
 		else
 		{
 			switch ([player compass_mode])
 			{
 				case COMPASS_MODE_PLANET:
-					relativePosition = [[[player universe] planet] getPosition];
+					relativePosition = the_planet->position;
 					break;
 				case COMPASS_MODE_STATION:
-					relativePosition = [[[player universe] station] getPosition];
+					relativePosition = the_station->position;
 					break;
 				case COMPASS_MODE_SUN:
-					relativePosition = [[[player universe] sun] getPosition];
+					relativePosition = the_sun->position;
 					break;
 				case COMPASS_MODE_TARGET:
-					if ([player getPrimaryTarget])
-						relativePosition = [[player getPrimaryTarget] getPosition];
+					if (the_target)
+						relativePosition = the_target->position;
 					else
 					{
 						[player setCompass_mode:COMPASS_MODE_PLANET];
-						relativePosition = [[[player universe] planet] getPosition];
+						relativePosition = the_planet->position;
 					}	
 					break;
 				case COMPASS_MODE_WITCHPOINT:
 					relativePosition = [[player universe] getWitchspaceExitPosition];
 					break;
 				case COMPASS_MODE_BEACONS:
-					relativePosition = [[[player universe] entityForUniversalID:[player nextBeaconID]] getPosition];
+					if (the_next_beacon)
+						relativePosition = the_next_beacon->position;
+					else
+					{
+						[player setCompass_mode:COMPASS_MODE_PLANET];
+						relativePosition = the_planet->position;
+					}	
 					break;
 			}
 		}
@@ -674,7 +685,7 @@ static BOOL hostiles;
 				case COMPASS_MODE_BEACONS:
 //					[self drawCompassBeaconBlip:[(ShipEntity*)[[player universe] entityForUniversalID:[player nextBeaconID]] beaconChar] At:relativePosition Size:sz Alpha:alpha];
 					[self drawCompassBeaconBlipAt:relativePosition Size:sz Alpha:alpha];
-					drawString(	[NSString stringWithFormat:@"%c", [(ShipEntity*)[[player universe] entityForUniversalID:[player nextBeaconID]] beaconChar]],
+					drawString(	[NSString stringWithFormat:@"%c", [(ShipEntity*)the_next_beacon beaconChar]],
 								x - 2.5 * sz.width, y - 3.0 * sz.height, z1, NSMakeSize(sz.width * 2, sz.height * 2));
 					break;
 			}
@@ -965,7 +976,7 @@ static BOOL hostiles;
 		NSSize dial_size = NSMakeSize(siz.width,qy - 2);
 		int cy = y - (n_bars - 1) * qy / 2;
 		double energy = [player dial_energy]*n_bars;
-		[player setAlert_flag:ALERT_FLAG_ENERGY :((energy < 1.0)&&([player getStatus]==STATUS_IN_FLIGHT))];
+		[player setAlert_flag:ALERT_FLAG_ENERGY :((energy < 1.0)&&(player->status == STATUS_IN_FLIGHT))];
 		int i;
 		for (i = 0; i < n_bars; i++)
 		{
@@ -1096,7 +1107,7 @@ static BOOL hostiles;
 		glColor4fv(red_color);
 	if ((flash)&&(temp > .90))
 		glColor4fv(redplus_color);
-	[player setAlert_flag:ALERT_FLAG_TEMP :((temp > .90)&&([player getStatus]==STATUS_IN_FLIGHT))];
+	[player setAlert_flag:ALERT_FLAG_TEMP :((temp > .90)&&(player->status == STATUS_IN_FLIGHT))];
 	hudDrawBarAt( x, y, z1, siz, temp);
 }
 
@@ -1149,7 +1160,7 @@ static BOOL hostiles;
 		glColor4fv(red_color);
 	if ((flash)&&(alt < .10))
 		glColor4fv(redplus_color);
-	[player setAlert_flag:ALERT_FLAG_ALT :((alt < .10)&&([player getStatus]==STATUS_IN_FLIGHT))];
+	[player setAlert_flag:ALERT_FLAG_ALT :((alt < .10)&&(player->status == STATUS_IN_FLIGHT))];
 	hudDrawBarAt( x, y, z1, siz, alt);
 }
 
@@ -1349,7 +1360,7 @@ static BOOL hostiles;
 		
 		// draw the direction cue
 		Matrix rotMatrix;
-		Vector position = [player getPosition];
+		Vector position = player->position;
 		gl_matrix_into_matrix([player rotationMatrix], rotMatrix);
 		//
 		if ([[player universe] viewDir] != VIEW_DOCKED)
@@ -1357,7 +1368,7 @@ static BOOL hostiles;
 			GLfloat siz1 = CROSSHAIR_SIZE * (1.0 - ONE_EIGHTH);
 			GLfloat siz0 = CROSSHAIR_SIZE * ONE_EIGHTH;
 			GLfloat siz2 = CROSSHAIR_SIZE * (1.0 + ONE_EIGHTH);
-			Vector rpn = [target getPosition];
+			Vector rpn = target->position;
 			// translate the view
 			rpn.x -= position.x;   rpn.y -= position.y;   rpn.z -= position.z;
 			// rotate the view
@@ -1612,8 +1623,9 @@ void hudDrawReticleOnTarget(Entity* target, PlayerEntity* player1, GLfloat z1)
 	//GLfloat z1 = [(MyOpenGLView *)[[player1 universe] gameView] display_z];
 	ShipEntity* target_ship = (ShipEntity *)target;
 	NSString* legal_desc = nil;
-
-	switch ([target_ship scanClass])
+	if ((!target)||(!player1))
+		return;
+	switch (target_ship->scan_class)
 	{
 		case CLASS_NEUTRAL :
 		{
@@ -1648,18 +1660,17 @@ void hudDrawReticleOnTarget(Entity* target, PlayerEntity* player1, GLfloat z1)
 	if ([player1 gui_screen] != GUI_SCREEN_MAIN)	// don't draw on text screens
 		return;
 	
-	if (target == nil)
+	if (!target)
 		return;
 	
 	gl_matrix	back_mat;
-    Quaternion  back_q = [player1 QRotation];
+    Quaternion  back_q = player1->q_rotation;
 	back_q.w = -back_q.w;   // invert
-//	Vector p0 = [player1 getPosition];
 	Vector p0 = [player1 getViewpointPosition];
-	Vector p1 = [target getPosition];
+	Vector p1 = target->position;
 	p1.x -= p0.x;	p1.y -= p0.y;	p1.z -= p0.z;
 	double rdist = sqrt(magnitude2(p1));
-	double rsize = [target collisionRadius];
+	double rsize = target->collision_radius;
 	
 	if (rsize < rdist * ONE_SIXTYFOURTH)
 		rsize = rdist * ONE_SIXTYFOURTH;
@@ -1727,10 +1738,10 @@ void hudDrawReticleOnTarget(Entity* target, PlayerEntity* player1, GLfloat z1)
 	glEnd();
 	
 	// add text for reticle here
-	float range = sqrt([target getZeroDistance])/1000;
+	float range = sqrt(target->zero_distance)/1000;
 	NSSize textsize = NSMakeSize( rdist * ONE_SIXTYFOURTH, rdist * ONE_SIXTYFOURTH);
 	float line_height = rdist * ONE_SIXTYFOURTH;
-	NSString *info1 = [NSString stringWithFormat:@"%@", [(ShipEntity *)target name], [(ShipEntity *)target universal_id]];
+	NSString *info1 = [(ShipEntity *)target name];
 	NSString *info2 = (legal_desc == nil)? [NSString stringWithFormat:@"%0.3f km", range] : [NSString stringWithFormat:@"%0.3f km (%@)", range, legal_desc];
 	// no need to set color - tis green already!
 	drawString( info1, rs0, 0.5 * rs2, 0, textsize);
@@ -1901,4 +1912,3 @@ void drawSpecialOval( double x, double y, double z, NSSize siz, int step, GLfloa
 }
 
 @end
-

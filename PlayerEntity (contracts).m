@@ -1121,7 +1121,7 @@ NSMutableDictionary* currentShipyard;
 	[ship setUniverse:universe];
 	[ship setUpShipFromDictionary:shipDict];
 	
-	double cr = [ship collisionRadius];
+	double cr = ship->collision_radius;
 	if (debug)
 		NSLog(@"::::: showShipModel:'%@'.", [ship name]);
 	[ship setQRotation: q2];
@@ -1302,5 +1302,4 @@ NSMutableDictionary* currentShipyard;
 
 
 @end
-
 

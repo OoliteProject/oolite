@@ -739,6 +739,8 @@ Your fair use and other rights are in no way affected by the above.
 	
 	//
 	[self set_flags_from_extra_equipment];
+	forward_shield = PLAYER_MAX_FORWARD_SHIELD;
+	aft_shield = PLAYER_MAX_AFT_SHIELD;
 	//
 	
 	//  things...
@@ -773,6 +775,8 @@ Your fair use and other rights are in no way affected by the above.
 	//
 	drawDebugParticle = [[ParticleEntity alloc] init];
 	[drawDebugParticle setParticleType:PARTICLE_MARKER];
+	//
+	isPlayer = YES;
 	//
     return self;
 }
@@ -997,6 +1001,9 @@ static BOOL galactic_witchjump;
 	has_galactic_hyperdrive =   NO;
 	has_escape_pod =			NO;
 	has_fuel_injection =		NO;
+	
+	shield_booster =			1;
+	shield_enhancer =			0;
 	
 	// set up missiles
 	missiles =				PLAYER_STARTING_MISSILES;
@@ -1432,7 +1439,7 @@ static BOOL galactic_witchjump;
 		if (missile_status == MISSILE_STATUS_TARGET_LOCKED)
 		{
 			Entity*	e = [universe entityForUniversalID:primaryTarget];
-			if ((e == nil)||([e getZeroDistance] > SCANNER_MAX_RANGE2)||([e scanClass] == CLASS_NO_DRAW))	// checking scanClass checks for cloaked ships
+			if ((e == nil)||(e->zero_distance > SCANNER_MAX_RANGE2)||(e->scan_class == CLASS_NO_DRAW))	// checking scanClass checks for cloaked ships
 			{
 				[universe addMessage:[universe expandDescription:@"[target-lost]" forSystem:system_seed] forCount:3.0];
 #ifdef HAVE_SOUND            
@@ -1457,7 +1464,7 @@ static BOOL galactic_witchjump;
 		if ((missile_entity[i])&&([missile_entity[i] getPrimaryTargetID] != NO_TARGET))
 		{
 			ShipEntity*	target_ship = (ShipEntity *)[missile_entity[i] getPrimaryTarget];
-			if ((!target_ship)||([target_ship getZeroDistance] > SCANNER_MAX_RANGE2))
+			if ((!target_ship)||(target_ship->zero_distance > SCANNER_MAX_RANGE2))
 			{
 				[universe addMessage:[universe expandDescription:@"[target-lost]" forSystem:system_seed] forCount:3.0];
 #ifdef HAVE_SOUND            
@@ -1500,6 +1507,7 @@ static BOOL galactic_witchjump;
 	//
 	double speed_delta = 5.0 * thrust;
 	//
+	PlanetEntity*	sun = [universe sun];
 //	if (weapon_temp > 0.0)
 //	{
 //		weapon_temp -= WEAPON_COOLING_FACTOR * delta_t;
@@ -1617,11 +1625,11 @@ static BOOL galactic_witchjump;
 		}
 	}
 	
-	if ([universe sun])
+	if (sun)
 	{
 		// do Revised sun-skimming check here...
-		double  sun_zd = [[universe sun] getZeroDistance];	// square of distance
-		double  sun_cr = [[universe sun] collisionRadius];
+		double  sun_zd = sun->zero_distance;	// square of distance
+		double  sun_cr = sun->collision_radius;
 		double	alt1 = sun_cr * sun_cr / sun_zd;
 		double	external_temp = SUN_TEMPERATURE * alt1;
 		if ([[universe sun] goneNova])
@@ -2007,17 +2015,16 @@ static BOOL galactic_witchjump;
 }
 - (double) dial_altitude
 {
-   // are we trapped in witch space?
-   if(![universe planet])
-      return 1.0;
-
 	PlanetEntity	*planet =   [universe planet];
 	PlanetEntity	*sun =		[universe sun];
-	double  planet_zd = [planet getZeroDistance];
-	double  sun_zd = [sun getZeroDistance];
-	double alt = (planet_zd < sun_zd) ? (sqrt(planet_zd) - [planet collisionRadius]) : (sqrt(sun_zd) - [sun collisionRadius]);
-	alt /= PLAYER_DIAL_MAX_ALTITUDE;
+	double  planet_zd = (planet)? planet->zero_distance : PLAYER_SUPER_ALTITUDE2;
+	double  sun_zd = (sun)? sun->zero_distance : PLAYER_SUPER_ALTITUDE2;
+	double  planet_cr = (planet)? planet->collision_radius : 0;
+	double  sun_cr = (sun)? sun->collision_radius : 0;
+	double alt = (planet_zd < sun_zd) ? (sqrt(planet_zd) - planet_cr) : (sqrt(sun_zd) - sun_cr);
 	
+	alt /= PLAYER_DIAL_MAX_ALTITUDE;
+		
 	if (alt > 1.0)
 		alt = 1.0;
 	if (alt < 0.0)
@@ -2163,7 +2170,7 @@ static BOOL galactic_witchjump;
 - (NSString *) dial_target_name
 {
 	Entity* target_entity = [universe entityForUniversalID:primaryTarget];
-	if ([target_entity isKindOfClass:[ShipEntity class]])
+	if ((target_entity)&&(target_entity->isShip))
 		return [(ShipEntity*)target_entity name];
 	else
 		return @"No target";
@@ -2718,7 +2725,8 @@ static BOOL cloak_pressed;
 			//
 			if (([gameView isDown:key_autopilot_target])&&(has_docking_computer)&&(![beepSound isPlaying]))   // look for the 'c' key
 			{
-				if ([[self getPrimaryTarget] isKindOfClass:[StationEntity class]])
+				Entity* primeTarget = [self getPrimaryTarget];
+				if ((primeTarget)&&(primeTarget->isStation))
 				{
 					targetStation = primaryTarget;
 					primaryTarget = NO_TARGET;
@@ -4267,7 +4275,7 @@ static BOOL toggling_music;
 	}
 	//
 	// keep music playing
-	if (autopilot_engaged && (docking_music_on)&&(!ootunes_on))
+	if ((docking_music_on)&&(!ootunes_on))
 	{
 #ifndef GNUSTEP     
 		if (IsMovieDone ([dockingMusic QTMovie]))
@@ -4563,7 +4571,7 @@ static BOOL toggling_music;
 	start.y = boundingBox.min_y - 4.0;	// 4m below bounding box
 	start.z = boundingBox.max_z + 1.0;	// 1m ahead of bounding box
 	double  throw_speed = 250.0;
-	Quaternion q1 = [self QRotation];
+	Quaternion q1 = q_rotation;
 	q1.w = -q1.w;   // player view is reversed remember!
 	Entity  *target = [self getPrimaryTarget];
 	
@@ -4601,8 +4609,10 @@ static BOOL toggling_music;
 
 - (BOOL) launchMine:(ShipEntity*) mine
 {
+	if (!mine)
+		return NO;
 //	[self setSpeed: max_flight_speed];
-	double  start = collision_radius + [mine collisionRadius];
+	double  start = collision_radius + mine->collision_radius;
 	double  eject_speed = -500.0;
 	Quaternion  random_direction;
 	Vector  vel;
@@ -4661,7 +4671,7 @@ static BOOL toggling_music;
 		for (i = 0; i < [targets count]; i++)
 		{
 			Entity *e2 = [targets objectAtIndex:i];
-			if ([e2 isKindOfClass:[ShipEntity class]])
+			if (e2->isShip)
 				[(ShipEntity *)e2 takeEnergyDamage:1000 from:self becauseOf:self];
 		}
 	}
@@ -4813,7 +4823,7 @@ static BOOL toggling_music;
 	
 	[ent retain];
 	[other retain];
-	rel_pos = [ent getPosition];
+	rel_pos = (ent)? ent->position: make_vector(0,0,0);
 	
 	rel_pos.x -= position.x;
 	rel_pos.y -= position.y;
@@ -4874,7 +4884,7 @@ static BOOL toggling_music;
 	
 	if (energy <= 0.0)
 	{
-		if ([other isKindOfClass:[ShipEntity class]])
+		if ((other)&&(other->isShip))
 		{
 			ShipEntity* hunter = (ShipEntity *)other;
 			[hunter collectBountyFor:self];
@@ -4901,7 +4911,7 @@ static BOOL toggling_music;
 		return;
 	
 	[ent retain];
-	rel_pos = [ent getPosition];
+	rel_pos = (ent)? ent->position : make_vector(0,0,0);
 	
 	rel_pos.x -= position.x;
 	rel_pos.y -= position.y;
@@ -4947,7 +4957,7 @@ static BOOL toggling_music;
 	energy -= amount;
 	if (energy <= 0.0)
 	{
-		if ([ent isKindOfClass:[ShipEntity class]])
+		if ((ent)&&(ent->isShip))
 		{
 			ShipEntity* hunter = (ShipEntity *)ent;
 			[hunter collectBountyFor:self];
@@ -4971,7 +4981,7 @@ static BOOL toggling_music;
 	int result;
 	//double  start = 10.0;
 	//double  throw_speed = 20.0;
-	Quaternion q1 = [self QRotation];
+	Quaternion q1 = q_rotation;
 	
 	status = STATUS_ESCAPE_SEQUENCE;	// firstly
 	ship_clock_adjust += 43200 + 5400 * (ranrot_rand() & 127);	// add up to 8 days until rescue!
@@ -5061,8 +5071,10 @@ static BOOL toggling_music;
 
 - (void) collectBountyFor:(ShipEntity *)other
 {
+	if (!other)
+		return;
 	int score = 10 * [other getBounty];
-	int killClass = [other scanClass]; // **tgape** change (+line)
+	int killClass = other->scan_class; // **tgape** change (+line)
 	int kill_award = 1;
 	//
 	if ([[other roles] isEqual:@"police"])   // oops, we shot a copper!
@@ -5144,7 +5156,7 @@ static BOOL toggling_music;
 	for (i = 0; i < [entList count] ; i++)
 	{
 		Entity* thing = (Entity *)[entList objectAtIndex:i];
-		if ([thing isKindOfClass:[ShipEntity class]])
+		if (thing->isShip)
 		{
 			ShipEntity* ship = (ShipEntity *)thing;
 			if (self == [ship getPrimaryTarget])
@@ -5192,24 +5204,24 @@ static BOOL toggling_music;
 	
 	[self loseTargetStatus];
 	
-	Vector launchPos = [docked_station getPosition];
-	position = launchPos;
-	
-	q_rotation = [docked_station QRotation];
-	q_rotation.w = -q_rotation.w;   // need this as a fix...
-	
-	// rotate 90 degrees
-	quaternion_rotate_about_z(&q_rotation, PI * 0.5);
-	
-//	[self setPosition:[docked_station getPosition]];
-//	[self setQRotation:[docked_station QRotation]];
+	if (docked_station)
+	{
+		Vector launchPos = docked_station->position;
+		position = launchPos;
+		
+		q_rotation = docked_station->q_rotation;
+		q_rotation.w = -q_rotation.w;   // need this as a fix...
+		
+		// rotate 90 degrees
+		quaternion_rotate_about_z(&q_rotation, PI * 0.5);
+		
+		v_forward = vector_forward_from_quaternion(q_rotation);
+		v_right = vector_right_from_quaternion(q_rotation);
+		v_up = vector_up_from_quaternion(q_rotation);
 
-	v_forward = vector_forward_from_quaternion(q_rotation);
-	v_right = vector_right_from_quaternion(q_rotation);
-	v_up = vector_up_from_quaternion(q_rotation);
-
-	q_rotation.w = -q_rotation.w;   // need this as a fix...
-    quaternion_into_gl_matrix(q_rotation, rotMatrix);
+		q_rotation.w = -q_rotation.w;   // need this as a fix...
+		quaternion_into_gl_matrix(q_rotation, rotMatrix);
+	}
 	
 	flight_roll = 0.0;
 	flight_pitch = 0.0;
@@ -5596,13 +5608,16 @@ static BOOL toggling_music;
 	[universe setViewDirection:VIEW_DOCKED];
 	
 	docked_station = [universe station];
-	[self setPosition:[docked_station getPosition]];
-	[self setQRotation:[docked_station QRotation]];
-	v_forward = vector_forward_from_quaternion(q_rotation);
-	v_right = vector_right_from_quaternion(q_rotation);
-	v_up = vector_up_from_quaternion(q_rotation);
-
-	q_rotation.w = -q_rotation.w;   // need this as a fix...
+	if (docked_station)
+	{
+		position = docked_station->position;
+		[self setQRotation:docked_station->q_rotation];
+		v_forward = vector_forward_from_quaternion(q_rotation);
+		v_right = vector_right_from_quaternion(q_rotation);
+		v_up = vector_up_from_quaternion(q_rotation);
+	
+		q_rotation.w = -q_rotation.w;   // need this as a fix...
+	}
 	
 	flight_roll = 0.0;
 	flight_pitch = 0.0;
@@ -6330,7 +6345,7 @@ static int last_outfitting_index;
 	
 //	NSLog(@"DEBUG EquipShipScreen missiles = %d", missiles);
 	
-	// if skip == -1 then use the last recorded index
+	// if skip < 0 then use the last recorded index
 	if (skip < 0)
 	{
 		if (last_outfitting_index >= 0)
@@ -6635,8 +6650,7 @@ static int last_outfitting_index;
 		
 	if (gui)
 		gui_screen = GUI_SCREEN_INTRO1;
-   
-
+		
 	if (themeMusic)
 	{
 #ifndef GNUSTEP
@@ -7184,6 +7198,11 @@ static int last_outfitting_index;
 		[self add_extra_equipment:@"EQ_DOCK_COMP"];
 	if (has_galactic_hyperdrive)
 		[self add_extra_equipment:@"EQ_GAL_DRIVE"];
+	
+	if (shield_booster > 1)
+		[self add_extra_equipment:@"EQ_SHIELD_BOOSTER"];
+	if (shield_enhancer)
+		[self add_extra_equipment:@"EQ_NAVAL_SHIELD_BOOSTER"];
 }
 
 - (void) set_flags_from_extra_equipment
@@ -7212,7 +7231,9 @@ static int last_outfitting_index;
 		compass_mode = COMPASS_MODE_PLANET;
 	else
 		compass_mode = COMPASS_MODE_BASIC;
-		
+	
+	shield_booster = ([self has_extra_equipment:@"EQ_SHIELD_BOOSTER"])? 2:1;
+	shield_enhancer = ([self has_extra_equipment:@"EQ_NAVAL_SHIELD_BOOSTER"])? 1:0;
 }
 
 
@@ -7407,8 +7428,15 @@ NSString* GenerateDisplayString(int inModeWidth, int inModeHeight, int inModeRef
 {
 //	NSLog(@"DEBUG checking per poly collision %@ %d versus particle", name, universal_id);
 	
+	
 	// This is not currently working so...
+	//
 	return YES;
+	//
+	////
+	
+	if (!other)
+		return NO;
 	
 	Quaternion q_actual = q_rotation;
 	q_actual.w = -q_actual.w;
@@ -7419,9 +7447,9 @@ NSString* GenerateDisplayString(int inModeWidth, int inModeHeight, int inModeRef
 	// check bounding boxes ...
 	//
 	// get position relative to this ship's orientation
-	Vector	o_pos = [other getPosition];
+	Vector	o_pos = other->position;
 	o_pos.x -= position.x;	o_pos.y -= position.y;	o_pos.z -= position.z;
-	double	cr = [other collisionRadius];
+	double	cr = other->collision_radius;
 
 	int f;
 	BOOL all_clear =	YES;

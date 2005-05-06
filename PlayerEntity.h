@@ -96,21 +96,22 @@ Your fair use and other rights are in no way affected by the above.
 
 #define WEAPON_COOLING_FACTOR   6.0
 #define ENERGY_RECHARGE_FACTOR  energy_recharge_rate
-#define SHIELD_RECHARGE_FACTOR  2.0
+#define SHIELD_RECHARGE_FACTOR  (2.0 + shield_enhancer)
 #define ECM_ENERGY_DRAIN_FACTOR 20.0
 #define ECM_DURATION			2.5
 
 #define ROLL_DAMPING_FACTOR			1.0
 #define PITCH_DAMPING_FACTOR		1.0
 
-#define PLAYER_MAX_FORWARD_SHIELD   128.0
-#define PLAYER_MAX_AFT_SHIELD		128.0
+#define PLAYER_MAX_FORWARD_SHIELD   (128.0 * (shield_booster + shield_enhancer))
+#define PLAYER_MAX_AFT_SHIELD		(128.0 * (shield_booster + shield_enhancer))
 #define PLAYER_MAX_WEAPON_TEMP		256.0
 #define PLAYER_MAX_CABIN_TEMP		256.0
 #define PLAYER_MAX_FUEL				70.0
 #define PLAYER_MAX_MISSILES			4
 #define PLAYER_STARTING_MISSILES	3
 #define PLAYER_DIAL_MAX_ALTITUDE	40000.0
+#define PLAYER_SUPER_ALTITUDE2		10000000000.0
 	//  ~~~~~~~~~~~~~~~~~~~~~~~~	= 40km
 	
 #define ALERT_CONDITION_DOCKED		0
@@ -341,6 +342,7 @@ Your fair use and other rights are in no way affected by the above.
 	//				has_energy_bomb;	// BOOL				- from ShipEntity
 	BOOL			has_energy_unit;
 	int				energy_unit;
+	int				shield_booster, shield_enhancer;
 	BOOL			has_docking_computer;
 	BOOL			has_galactic_hyperdrive;
 	//				has_escape_pod;		// BOOL				- from ShipEntity

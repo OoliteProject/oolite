@@ -23,6 +23,7 @@
 			<string>EQ_SCANNER_SHOW_MISSILE_TARGET</string>
 			<string>EQ_MULTI_TARGET</string>
 			<string>EQ_GAL_DRIVE</string>
+			<string>EQ_SHIELD_BOOSTER</string>
 		</array>
 		<key>price</key>
 		<integer>65000</integer>
@@ -63,6 +64,7 @@
 			<string>EQ_MULTI_TARGET</string>
 			<string>EQ_GAL_DRIVE</string>
 			<string>EQ_ADVANCED_COMPASS</string>
+			<string>EQ_SHIELD_BOOSTER</string>
 		</array>
 		<key>price</key>
 		<integer>650000</integer>
@@ -98,6 +100,8 @@
 			<string>EQ_FUEL_INJECTION</string>
 			<string>EQ_GAL_DRIVE</string>
 			<string>EQ_ADVANCED_COMPASS</string>
+			<string>EQ_SHIELD_BOOSTER</string>
+			<string>EQ_NAVAL_SHIELD_BOOSTER</string>
 		</array>
 		<key>price</key>
 		<integer>375000</integer>
@@ -141,6 +145,7 @@
 			<string>EQ_MULTI_TARGET</string>
 			<string>EQ_GAL_DRIVE</string>
 			<string>EQ_ADVANCED_COMPASS</string>
+			<string>EQ_SHIELD_BOOSTER</string>
 		</array>
 		<key>price</key>
 		<integer>450000</integer>
@@ -181,6 +186,8 @@
 			<string>EQ_MULTI_TARGET</string>
 			<string>EQ_GAL_DRIVE</string>
 			<string>EQ_ADVANCED_COMPASS</string>
+			<string>EQ_SHIELD_BOOSTER</string>
+			<string>EQ_NAVAL_SHIELD_BOOSTER</string>
 		</array>
 		<key>price</key>
 		<integer>495000</integer>
@@ -222,6 +229,8 @@
 			<string>EQ_MULTI_TARGET</string>
 			<string>EQ_GAL_DRIVE</string>
 			<string>EQ_ADVANCED_COMPASS</string>
+			<string>EQ_SHIELD_BOOSTER</string>
+			<string>EQ_NAVAL_SHIELD_BOOSTER</string>
 		</array>
 		<key>price</key>
 		<integer>150000</integer>
@@ -261,6 +270,7 @@
 			<string>EQ_SCANNER_SHOW_MISSILE_TARGET</string>
 			<string>EQ_MULTI_TARGET</string>
 			<string>EQ_GAL_DRIVE</string>
+			<string>EQ_SHIELD_BOOSTER</string>
 		</array>
 		<key>price</key>
 		<integer>100000</integer>
@@ -292,6 +302,7 @@
 			<string>EQ_WEAPON_MINING_LASER</string>
 			<string>EQ_WEAPON_MILITARY_LASER</string>
 			<string>EQ_GAL_DRIVE</string>
+			<string>EQ_NAVAL_SHIELD_BOOSTER</string>
 		</array>
 		<key>price</key>
 		<integer>485000</integer>
@@ -309,6 +320,7 @@
 				<string>EQ_FUEL_INJECTION</string>
 				<string>EQ_MULTI_TARGET</string>
 				<string>EQ_DOCK_COMP</string>
+				<string>EQ_SHIELD_BOOSTER</string>
 			</array>
 			<key>forward_weapon_type</key>
 			<string>EQ_WEAPON_BEAM_LASER</string>
@@ -343,6 +355,8 @@
 			<string>EQ_MULTI_TARGET</string>
 			<string>EQ_GAL_DRIVE</string>
 			<string>EQ_ADVANCED_COMPASS</string>
+			<string>EQ_SHIELD_BOOSTER</string>
+			<string>EQ_NAVAL_SHIELD_BOOSTER</string>
 		</array>
 		<key>price</key>
 		<integer>125000</integer>
@@ -384,6 +398,7 @@
 			<string>EQ_MULTI_TARGET</string>
 			<string>EQ_GAL_DRIVE</string>
 			<string>EQ_ADVANCED_COMPASS</string>
+			<string>EQ_SHIELD_BOOSTER</string>
 		</array>
 		<key>price</key>
 		<integer>145000</integer>
@@ -424,6 +439,7 @@
 			<string>EQ_SCANNER_SHOW_MISSILE_TARGET</string>
 			<string>EQ_MULTI_TARGET</string>
 			<string>EQ_GAL_DRIVE</string>
+			<string>EQ_SHIELD_BOOSTER</string>
 		</array>
 		<key>price</key>
 		<integer>200000</integer>

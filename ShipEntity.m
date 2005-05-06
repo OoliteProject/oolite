@@ -171,6 +171,8 @@ Your fair use and other rights are in no way affected by the above.
 	//
 	beaconChar = 0;
 	//
+	isShip = YES;
+	//
 	return self;
 }
 
@@ -311,9 +313,10 @@ Your fair use and other rights are in no way affected by the above.
 			escorter = [universe getShip:escortShipKey];	// retained
 		else
 			escorter = [universe getShipWithRole:escortRole];	// retained
-		
+		if (!escorter)
+			break;
 		// spread them around a little randomly
-		double dd = [escorter collisionRadius];
+		double dd = escorter->collision_radius;
 		ex_pos.x += dd * 6.0 * (randf() - 0.5);
 		ex_pos.y += dd * 6.0 * (randf() - 0.5);
 		ex_pos.z += dd * 6.0 * (randf() - 0.5);
@@ -466,6 +469,9 @@ Your fair use and other rights are in no way affected by the above.
 	[collisionVectorForEntity removeAllObjects];
 	//
 	beaconChar = 0;
+	//
+	isShip = YES;
+	//
 }
 
 - (id) initWithDictionary:(NSDictionary *) dict
@@ -501,6 +507,8 @@ Your fair use and other rights are in no way affected by the above.
 	reportAImessages = NO;
 	//
 	being_fined = NO;
+	//
+	isShip = YES;
 	//
 	return self;
 }
@@ -612,6 +620,14 @@ Your fair use and other rights are in no way affected by the above.
 		has_energy_bomb = (randf() < [(NSNumber *)[dict objectForKey:@"has_energy_bomb"] floatValue]);
 	if ([dict objectForKey:@"has_fuel_injection"])
 		has_fuel_injection = (randf() < [(NSNumber *)[dict objectForKey:@"has_fuel_injection"] floatValue]);
+	//
+	if ([dict objectForKey:@"has_shield_booster"])
+		max_energy += (randf() < [(NSNumber *)[dict objectForKey:@"has_shield_booster"] floatValue])? 256:0;
+	if ([dict objectForKey:@"has_shield_enhancer"])
+	{
+		max_energy += (randf() < [(NSNumber *)[dict objectForKey:@"has_shield_booster"] floatValue])? 256:0;
+		energy_recharge_rate *= 1.5;
+	}
 	//
 	if ([dict objectForKey:@"has_cloaking_device"])
 		has_cloaking_device = (randf() < [(NSNumber *)[dict objectForKey:@"has_cloaking_device"] floatValue]);
@@ -775,7 +791,7 @@ Your fair use and other rights are in no way affected by the above.
 				
 				[subent setOwner: self];
 				
-//				NSLog(@"DEBUG added subentity %@ to position %.3f,%.3f,%.3f", subent, [subent getPosition].x, [subent getPosition].y, [subent getPosition].z );
+//				NSLog(@"DEBUG added subentity %@ to position %.3f,%.3f,%.3f", subent, subent->position.x, subent->position.y, subent->position.z );
 												
 				[subent release];
 			}
@@ -895,10 +911,11 @@ Your fair use and other rights are in no way affected by the above.
 
 - (BOOL) checkCloseCollisionWith:(Entity *)other
 {
+	if (!other)
+		return NO;
 	if ([collidingEntities containsObject:other])	// we know about this already!
 		return NO;
-	
-	if ([other isKindOfClass:[ShipEntity class]])
+	if (other->isShip)
 	{
 		// check bounding boxes ...
 		//
@@ -920,13 +937,13 @@ Your fair use and other rights are in no way affected by the above.
 		else
 			return NO;
 	}
-	if ([other isKindOfClass:[ParticleEntity class]])
+	if (other->isParticle)
 	{
 		// check bounding boxes ...
 		//
 		// get position relative to this ship's orientation
-		Vector	r_pos = [other getPosition];
-		double	cr = [other collisionRadius];
+		Vector	r_pos = other->position;
+		double	cr = other->collision_radius;
 		r_pos.x -= position.x;	r_pos.y -= position.y;	r_pos.z -= position.z;
 		if	((r_pos.x + cr > boundingBox.min_x)&&
 				(r_pos.x - cr < boundingBox.max_x)&&
@@ -1023,13 +1040,16 @@ Your fair use and other rights are in no way affected by the above.
 - (BOOL) checkPerPolyCollisionWithParticle:(ParticleEntity *)other
 {
 //	NSLog(@"DEBUG checking per poly collision %@ %d versus particle", name, universal_id);
-		
+	
+	if (!other)
+		return NO;
+	
 	// check bounding boxes ...
 	//
 	// get position relative to this ship's orientation
-	Vector	o_pos = [other getPosition];
+	Vector	o_pos = other->position;
 	o_pos.x -= position.x;	o_pos.y -= position.y;	o_pos.z -= position.z;
-	double	cr = [other collisionRadius];
+	double	cr = other->collision_radius;
 
 	int f;
 	BOOL all_clear =	YES;
@@ -1239,9 +1259,9 @@ Your fair use and other rights are in no way affected by the above.
 		
 		ShipEntity*	target = (ShipEntity*)[universe entityForUniversalID:primaryTarget];
 		
-		targetCR = [target collisionRadius];
+		targetCR = (target)? target->collision_radius: 0;
 		
-		if ((target == nil)||([target scanClass] == CLASS_NO_DRAW))
+		if ((target == nil)||(target->scan_class == CLASS_NO_DRAW))
 		{
 			 // It's no longer a parrot, it has ceased to be, it has joined the choir invisible...
 			if (primaryTarget != NO_TARGET)
@@ -1575,10 +1595,11 @@ Your fair use and other rights are in no way affected by the above.
 				}
 				else
 				{
-					if ([self proximity_alert])
+					ShipEntity* prox_ship = [self proximity_alert];
+					if (prox_ship)
 					{
-						desired_range = [[self proximity_alert] collisionRadius] * PROXIMITY_AVOID_DISTANCE;
-						destination = [[self proximity_alert] getPosition];
+						desired_range = prox_ship->collision_radius * PROXIMITY_AVOID_DISTANCE;
+						destination = prox_ship->position;
 						destination.x += position.x;	destination.y += position.y;	destination.z += position.z;
 						destination.x *= 0.5;	destination.y *= 0.5;	destination.z *= 0.5;	// point between us and them
 					}
@@ -1595,12 +1616,13 @@ Your fair use and other rights are in no way affected by the above.
 				{
 					double aim = [self ballTrackLeadingTarget:delta_t];
 					ShipEntity* turret_owner = (ShipEntity *)[self owner];
+					ShipEntity* turret_target = (ShipEntity *)[turret_owner getPrimaryTarget];
 					//
-					if ([turret_owner hasHostileTarget])
+					if ((turret_owner)&&(turret_target)&&[turret_owner hasHostileTarget])
 					{
-						Vector p1 = [[turret_owner getPrimaryTarget] getPosition];
-						Vector p0 = [turret_owner getPosition];
-						double cr = [turret_owner collisionRadius];
+						Vector p1 = turret_target->position;
+						Vector p0 = turret_owner->position;
+						double cr = turret_owner->collision_radius;
 						p1.x -= p0.x;	p1.y -= p0.y;	p1.z -= p0.z;
 						if (aim > .95)
 						{
@@ -1643,14 +1665,14 @@ Your fair use and other rights are in no way affected by the above.
 		}
 		//
 		//
-//		if (([self isKindOfClass:[StationEntity class]]) && (sub_entities))
+//		if (isStation && (sub_entities))
 //			NSLog(@"DEBUG %@ sub_entities %@", [self name], [sub_entities description]);
 		if (sub_entities)
 		{
 			int i;
 			for (i = 0; i < [sub_entities count]; i++)
 			{
-//				if (([self isKindOfClass:[StationEntity class]]) && (sub_entities))
+//				if (isStation && (sub_entities))
 //					NSLog(@"DEBUG %@ going to update sub_entity %@", [self name], [sub_entities objectAtIndex:i]);
 				[(Entity *)[sub_entities objectAtIndex:i] update:delta_t];
 			}
@@ -1815,7 +1837,9 @@ Your fair use and other rights are in no way affected by the above.
 	if ([roles isEqual:@"missile"])
 		return;						// missiles are SUPPOSED to collide!
 	
-	if ([self proximity_alert])
+	ShipEntity* prox_ship = [self proximity_alert];
+	
+	if (prox_ship)
 	{
 //		if (self == [universe entityZero])
 //			NSLog(@"DEBUG ***** proximity alert for %@ %d against target %d", name, universal_id, proximity_alert);
@@ -1839,11 +1863,11 @@ Your fair use and other rights are in no way affected by the above.
 		[previousCondition setObject:[NSNumber numberWithFloat:destination.y] forKey:@"destination.y"];
 		[previousCondition setObject:[NSNumber numberWithFloat:destination.z] forKey:@"destination.z"];
 		
-		destination = [[self proximity_alert] getPosition];
+		destination = prox_ship->position;
 		destination.x += position.x;	destination.y += position.y;	destination.z += position.z;
 		destination.x *= 0.5;	destination.y *= 0.5;	destination.z *= 0.5;	// point between us and them
 		
-		desired_range = [[self proximity_alert] collisionRadius] * PROXIMITY_AVOID_DISTANCE;
+		desired_range = prox_ship->collision_radius * PROXIMITY_AVOID_DISTANCE;
 		
 		condition = CONDITION_AVOID_COLLISION;
 	}
@@ -1908,7 +1932,7 @@ Your fair use and other rights are in no way affected by the above.
 
 - (void) setProximity_alert:(ShipEntity*) other
 {
-	if ((other)&&(![other isKindOfClass:[StationEntity class]]))	// don't be alarmed close to stations
+	if ((other)&&(!(other->isStation)))	// don't be alarmed close to stations
 		proximity_alert = [other universal_id];
 	else
 		proximity_alert = NO_TARGET;
@@ -2042,24 +2066,32 @@ Your fair use and other rights are in no way affected by the above.
 
 - (int) checkForAegis
 {
-	// check planet
-	Vector p1 = [[universe planet] getPosition];
-	double cr = [[universe planet] collisionRadius];
+	PlanetEntity* the_planet = [universe planet];
 	
-	if ([universe planet] == nil)
+	if (!the_planet)
 	{	
 		if (aegis_status != AEGIS_NONE)
 			[shipAI message:@"AEGIS_NONE"];
 		return AEGIS_NONE;
 	}
 	
+	// check planet
+	Vector p1 = the_planet->position;
+	double cr = the_planet->collision_radius;
 	int result = AEGIS_NONE;
 	p1.x -= position.x;	p1.y -= position.y;	p1.z -= position.z;
 	double d2 = p1.x*p1.x + p1.y*p1.y + p1.z*p1.z - cr * cr * 9.0; // 3x radius of planet
 	if (d2 < 0.0)
 		result = AEGIS_CLOSE_TO_PLANET;
 	// check station
-	p1 = [[universe station] getPosition];
+	StationEntity* the_station = [universe station];
+	if (!the_station)
+	{	
+		if (aegis_status != AEGIS_NONE)
+			[shipAI message:@"AEGIS_NONE"];
+		return AEGIS_NONE;
+	}
+	p1 = the_station->position;
 	p1.x -= position.x;	p1.y -= position.y;	p1.z -= position.z;
 	d2 = p1.x*p1.x + p1.y*p1.y + p1.z*p1.z - SCANNER_MAX_RANGE2*4.0; // double scanner range
 	if (d2 < 0.0)
@@ -2291,13 +2323,12 @@ Your fair use and other rights are in no way affected by the above.
 		for (i = 0; i < [targets count]; i++)
 		{
 			Entity *e2 = [targets objectAtIndex:i];
-			Vector p2 = [e2 getPosition];
+			Vector p2 = e2->position;
 			p2.x -= position.x;	p2.y -= position.y;	p2.z -= position.z;
-			//double cr = [e2 collisionRadius];
 			double d2 = p2.x*p2.x + p2.y*p2.y + p2.z*p2.z;
 			double damage = weapon_energy*desired_range/d2;
 			[e2 takeEnergyDamage:damage from:self becauseOf:[self owner]];
-			//if ([e2 isKindOfClass:[ShipEntity class]])
+			//if ((e2)&&(e2->isShip))
 			//	//NSLog(@"Doing %.1f damage to %@ %d",damage,[(ShipEntity *)e2 name],[(ShipEntity *)e2 universal_id]);
 		}
 	}
@@ -2309,11 +2340,11 @@ Your fair use and other rights are in no way affected by the above.
 		return;
 	if (amount == 0.0)
 		return;
-	if ([ent isKindOfClass:[ParticleEntity class]]&&([ent scanClass] == CLASS_MINE))
+	if ((ent)&&(ent->isParticle)&&(ent->scan_class == CLASS_MINE))
 	{
 		if (self == [universe station])
 		{
-			if ([other isKindOfClass:[ShipEntity class]])
+			if ((other)&&(other->isShip))
 			{
 				[(ShipEntity*)other markAsOffender:96];
 				[self setPrimaryAggressor:other];
@@ -2336,13 +2367,13 @@ Your fair use and other rights are in no way affected by the above.
 	}
 	//
 	BOOL iAmTheLaw = (scan_class == CLASS_POLICE);
-	BOOL uAreTheLaw = ([other scanClass] == CLASS_POLICE);
+	BOOL uAreTheLaw = ((other)&&(other->scan_class == CLASS_POLICE));
 	//
 	energy -= amount;
 	being_mined = NO;
 	//
 	// if the other entity is a ship note it as an aggressor
-	if ([other isKindOfClass:[ShipEntity class]])
+	if ((other)&&(other->isShip))
 	{
 		ShipEntity* hunter = (ShipEntity *)other;
 		//
@@ -2414,13 +2445,13 @@ Your fair use and other rights are in no way affected by the above.
 			}
 		}
 		
-		if ([other isKindOfClass:[ShipEntity class]])
+		if ((other)&&(other->isShip))
 			being_mined = [(ShipEntity *)other isMining];
 	}
 	// die if I'm out of energy
 	if (energy <= 0.0)
 	{
-		if ([other isKindOfClass:[ShipEntity class]])
+		if ((other)&&(other->isShip))
 		{
 			ShipEntity* hunter = (ShipEntity *)other;
 			[hunter collectBountyFor:self];
@@ -2469,14 +2500,15 @@ Your fair use and other rights are in no way affected by the above.
 	if ([death_actions count])
 	{
 		int i;
-		[(PlayerEntity *)[universe entityZero] setScript_target:self];
+		PlayerEntity* player = (PlayerEntity *)[universe entityZero];
+		[player setScript_target:self];
 		for (i = 0; i < [death_actions count]; i++)
 		{
 			NSObject* action = [death_actions objectAtIndex:i];
 			if ([action isKindOfClass:[NSDictionary class]])
-				[(PlayerEntity *)[universe entityZero] checkCouplet:(NSDictionary *)action onEntity:self];
+				[player checkCouplet:(NSDictionary *)action onEntity:self];
 			if ([action isKindOfClass:[NSString class]])
-				[(PlayerEntity *)[universe entityZero] scriptAction:(NSString *)action onEntity:self];
+				[player scriptAction:(NSString *)action onEntity:self];
 		}
 		[death_actions removeAllObjects];
 	}
@@ -2623,25 +2655,28 @@ Your fair use and other rights are in no way affected by the above.
 			for (i = 0; i < n_rocks; i++)
 			{
 				ShipEntity* rock = [universe getShipWithRole:@"boulder"];   // retain count = 1
-				Vector  rpos = xposition;
-				int  r_speed = 20.0 * [rock max_flight_speed];
-				int cr = 3 * [rock collisionRadius];
-				rpos.x += (ranrot_rand() % cr) - cr/2;
-				rpos.y += (ranrot_rand() % cr) - cr/2;
-				rpos.z += (ranrot_rand() % cr) - cr/2;
-				[rock setPosition:rpos];
-//				NSLog(@"DEBUG Spawned Boulder At (%.1f, %.1f, %.1f)", rpos.x, rpos.y, rpos.z);
-				v.x = 0.1 *((ranrot_rand() % r_speed) - r_speed / 2);
-				v.y = 0.1 *((ranrot_rand() % r_speed) - r_speed / 2);
-				v.z = 0.1 *((ranrot_rand() % r_speed) - r_speed / 2);
-				[rock setVelocity:v];
-				quaternion_set_random(&q);
-				[rock setQRotation:q];
-				[rock setStatus:STATUS_IN_FLIGHT];
-				[rock setScanClass: CLASS_ROCK];
-				[universe addEntity:rock];
-				[[rock getAI] setState:@"GLOBAL"];
-				[rock release];
+				if (rock)
+				{
+					Vector  rpos = xposition;
+					int  r_speed = 20.0 * [rock max_flight_speed];
+					int cr = 3 * rock->collision_radius;
+					rpos.x += (ranrot_rand() % cr) - cr/2;
+					rpos.y += (ranrot_rand() % cr) - cr/2;
+					rpos.z += (ranrot_rand() % cr) - cr/2;
+					[rock setPosition:rpos];
+	//				NSLog(@"DEBUG Spawned Boulder At (%.1f, %.1f, %.1f)", rpos.x, rpos.y, rpos.z);
+					v.x = 0.1 *((ranrot_rand() % r_speed) - r_speed / 2);
+					v.y = 0.1 *((ranrot_rand() % r_speed) - r_speed / 2);
+					v.z = 0.1 *((ranrot_rand() % r_speed) - r_speed / 2);
+					[rock setVelocity:v];
+					quaternion_set_random(&q);
+					[rock setQRotation:q];
+					[rock setStatus:STATUS_IN_FLIGHT];
+					[rock setScanClass: CLASS_ROCK];
+					[universe addEntity:rock];
+					[[rock getAI] setState:@"GLOBAL"];
+					[rock release];
+				}
 			}
 		}
 		[universe removeEntity:self];
@@ -2658,24 +2693,27 @@ Your fair use and other rights are in no way affected by the above.
 			for (i = 0; i < n_rocks; i++)
 			{
 				ShipEntity* rock = [universe getShipWithRole:@"splinter"];   // retain count = 1
-				Vector  rpos = xposition;
-				int  r_speed = 20.0 * [rock max_flight_speed];
-				int cr = 3 * [rock collisionRadius];
-				rpos.x += (ranrot_rand() % cr) - cr/2;
-				rpos.y += (ranrot_rand() % cr) - cr/2;
-				rpos.z += (ranrot_rand() % cr) - cr/2;
-				[rock setPosition:rpos];
-				v.x = 0.1 *((ranrot_rand() % r_speed) - r_speed / 2);
-				v.y = 0.1 *((ranrot_rand() % r_speed) - r_speed / 2);
-				v.z = 0.1 *((ranrot_rand() % r_speed) - r_speed / 2);
-				[rock setVelocity:v];
-				quaternion_set_random(&q);
-				[rock setQRotation:q];
-				[rock setStatus:STATUS_IN_FLIGHT];
-				[rock setScanClass: CLASS_CARGO];
-				[universe addEntity:rock];
-				[[rock getAI] setState:@"GLOBAL"];
-				[rock release];
+				if (rock)
+				{
+					Vector  rpos = xposition;
+					int  r_speed = 20.0 * [rock max_flight_speed];
+					int cr = 3 * rock->collision_radius;
+					rpos.x += (ranrot_rand() % cr) - cr/2;
+					rpos.y += (ranrot_rand() % cr) - cr/2;
+					rpos.z += (ranrot_rand() % cr) - cr/2;
+					[rock setPosition:rpos];
+					v.x = 0.1 *((ranrot_rand() % r_speed) - r_speed / 2);
+					v.y = 0.1 *((ranrot_rand() % r_speed) - r_speed / 2);
+					v.z = 0.1 *((ranrot_rand() % r_speed) - r_speed / 2);
+					[rock setVelocity:v];
+					quaternion_set_random(&q);
+					[rock setQRotation:q];
+					[rock setStatus:STATUS_IN_FLIGHT];
+					[rock setScanClass: CLASS_CARGO];
+					[universe addEntity:rock];
+					[[rock getAI] setState:@"GLOBAL"];
+					[rock release];
+				}
 			}
 		}
 		[universe removeEntity:self];
@@ -2713,15 +2751,15 @@ Your fair use and other rights are in no way affected by the above.
 		for (i = 0; i < [sub_entities count]; i++)
 		{
 			Entity*		se = (Entity *)[sub_entities objectAtIndex:i];
-			if ([se isKindOfClass:[ShipEntity class]])
+			if (se->isShip)
 			{
-				Vector  origin = [se getPosition];
+				Vector  origin = se->position;
 				Entity*		father = self;
 				GLfloat*	r_mat = [father rotationMatrix];
 				while (father)
 				{
 					mult_vector_gl_matrix(&origin, r_mat);
-					Vector pos = [father getPosition];
+					Vector pos = father->position;
 					origin.x += pos.x;	origin.y += pos.y;	origin.z += pos.z;
 					father = [father owner];
 					r_mat = [father rotationMatrix];
@@ -2735,7 +2773,7 @@ Your fair use and other rights are in no way affected by the above.
 	}
 
 	//
-	if (![self isKindOfClass:[PlayerEntity class]])
+	if (!isPlayer)
 		[universe removeEntity:self];
 }
 
@@ -2776,14 +2814,15 @@ Vector randomPositionInBoundingBox(BoundingBox bb)
 	if ([death_actions count])
 	{
 		int i;
-		[(PlayerEntity *)[universe entityZero] setScript_target:self];
+		PlayerEntity* player = (PlayerEntity *)[universe entityZero];
+		[player setScript_target:self];
 		for (i = 0; i < [death_actions count]; i++)
 		{
 			NSObject* action = [death_actions objectAtIndex:i];
 			if ([action isKindOfClass:[NSDictionary class]])
-				[(PlayerEntity *)[universe entityZero] checkCouplet:(NSDictionary *)action onEntity:self];
+				[player checkCouplet:(NSDictionary *)action onEntity:self];
 			if ([action isKindOfClass:[NSString class]])
-				[(PlayerEntity *)[universe entityZero] scriptAction:(NSString *)action onEntity:self];
+				[player scriptAction:(NSString *)action onEntity:self];
 		}
 		[death_actions removeAllObjects];
 	}
@@ -2880,7 +2919,7 @@ Vector randomPositionInBoundingBox(BoundingBox bb)
 	}
 	//
 		
-	if (![self isKindOfClass:[PlayerEntity class]])
+	if (!isPlayer)
 		[universe removeEntity:self];
 }
 
@@ -2910,7 +2949,7 @@ Vector randomPositionInBoundingBox(BoundingBox bb)
 
 - (void) addTarget:(Entity *) targetEntity
 {
-	//if ([targetEntity isKindOfClass:[ShipEntity class]])
+	//if ((targetentity)&&(targetEntity->isShip))
 	//	NSLog(@"DEBUG %@ now targetting %@", [self name], [(ShipEntity *)targetEntity name]);
 	if (targetEntity)
 		primaryTarget = [targetEntity universal_id];
@@ -2920,7 +2959,7 @@ Vector randomPositionInBoundingBox(BoundingBox bb)
 		for (i = 0; i < [sub_entities count]; i++)
 		{
 			Entity* se = [sub_entities objectAtIndex:i];
-			if ([se isKindOfClass:[ShipEntity class]])
+			if (se->isShip)
 				[(ShipEntity *)se addTarget:targetEntity];
 		}
 	}
@@ -2937,7 +2976,7 @@ Vector randomPositionInBoundingBox(BoundingBox bb)
 		for (i = 0; i < [sub_entities count]; i++)
 		{
 			Entity* se = [sub_entities objectAtIndex:i];
-			if ([se isKindOfClass:[ShipEntity class]])
+			if (se->isShip)
 				[(ShipEntity *)se removeTarget:targetEntity];
 		}
 	}
@@ -2994,7 +3033,7 @@ Vector randomPositionInBoundingBox(BoundingBox bb)
 	{
 		mult_vector_gl_matrix(&my_position, r_mat);
 		mult_vector_gl_matrix(&my_ref, r_mat);
-		Vector pos = [father getPosition];
+		Vector pos = father->position;
 		my_position.x += pos.x;	my_position.y += pos.y;	my_position.z += pos.z;
 		
 		father = [father owner];
@@ -3003,7 +3042,7 @@ Vector randomPositionInBoundingBox(BoundingBox bb)
 	
 	if (targent)
 	{
-		vector_to_target = [targent getPosition];
+		vector_to_target = targent->position;
 		//
 		vector_to_target.x -= my_position.x;	vector_to_target.y -= my_position.y;	vector_to_target.z -= my_position.z;
 		vector_to_target = unit_vector(&vector_to_target);	
@@ -3063,7 +3102,7 @@ Vector randomPositionInBoundingBox(BoundingBox bb)
 	{
 		mult_vector_gl_matrix(&my_position, r_mat);
 		mult_vector_gl_matrix(&my_ref, r_mat);
-		Vector pos = [father getPosition];
+		Vector pos = father->position;
 		my_position.x += pos.x;	my_position.y += pos.y;	my_position.z += pos.z;
 		
 		father = [father owner];
@@ -3072,7 +3111,7 @@ Vector randomPositionInBoundingBox(BoundingBox bb)
 	
 	if (targent)
 	{
-		vector_to_target = [targent getPosition];
+		vector_to_target = targent->position;
 		//
 		vector_to_target.x -= my_position.x;	vector_to_target.y -= my_position.y;	vector_to_target.z -= my_position.z;
 		//
@@ -3143,7 +3182,7 @@ Vector randomPositionInBoundingBox(BoundingBox bb)
 	if (retreat)
 		reverse = -1.0;
 	
-	relativePosition = [target getPosition];
+	relativePosition = target->position;
 	relativePosition.x -= position.x;
 	relativePosition.y -= position.y;
 	relativePosition.z -= position.z;
@@ -3151,7 +3190,7 @@ Vector randomPositionInBoundingBox(BoundingBox bb)
 	//jink if retreating
 	if (retreat)
 	{
-		Quaternion q = [target QRotation];
+		Quaternion q = target->q_rotation;
 		Vector vx = vector_right_from_quaternion(q);
 		Vector vy = vector_up_from_quaternion(q);
 		Vector vz = vector_forward_from_quaternion(q);
@@ -3226,14 +3265,16 @@ Vector randomPositionInBoundingBox(BoundingBox bb)
 		flight_pitch -= (flight_pitch > damping) ? damping : flight_pitch;
 
 	// apply stick movement limits
-	if (flight_roll < stick_roll - rate1)
+	if (flight_roll + rate1 < stick_roll)
 		stick_roll = flight_roll + rate1;
-	if (flight_roll > stick_roll + rate1)
+	if (flight_roll - rate1 > stick_roll)
 		stick_roll = flight_roll - rate1;
-	if (flight_pitch < stick_pitch - rate2)
+	if (flight_pitch + rate2 < stick_pitch)
 		stick_pitch = flight_pitch + rate2;
-	if (flight_pitch > stick_pitch + rate2)
+	if (flight_pitch - rate2 > stick_pitch)
 		stick_pitch = flight_pitch - rate2;
+	
+	// apply stick to attitude
 	flight_roll = stick_roll;
 	flight_pitch = stick_pitch;
 			
@@ -3250,7 +3291,8 @@ Vector randomPositionInBoundingBox(BoundingBox bb)
 	Vector  relativePosition;	
 	GLfloat  d_forward, d_up, d_right;
 	
-	BOOL	we_are_docking = ([[self getPrimaryTarget] isKindOfClass:[StationEntity class]]);
+	Entity*	primeTarget = [self getPrimaryTarget];
+	BOOL	we_are_docking = ((primeTarget)&&(primeTarget->isStation));
 	
 	double  damping = 0.5 * delta_t;
 	double  rate2 = 4.0 * delta_t;
@@ -3269,7 +3311,7 @@ Vector randomPositionInBoundingBox(BoundingBox bb)
 	if (retreat)
 		reverse = -reverse;
 
-	if ([self isKindOfClass:[PlayerEntity class]])
+	if (isPlayer)
 		reverse = -reverse;
 		
 	relativePosition = destination;
@@ -3416,12 +3458,12 @@ Vector randomPositionInBoundingBox(BoundingBox bb)
 	Entity  *target = [self getPrimaryTarget];
 	if (target == nil)   // leave now!
 		return 0.0;
-	delta = [target getPosition];
+	delta = target->position;
 	delta.x -= position.x;
 	delta.y -= position.y;
 	delta.z -= position.z;
 	dist = sqrt(delta.x*delta.x + delta.y*delta.y + delta.z*delta.z);
-	dist -= [target collisionRadius];
+	dist -= target->collision_radius;
 	dist -= collision_radius;
 	return dist;
 }
@@ -3436,10 +3478,10 @@ Vector randomPositionInBoundingBox(BoundingBox bb)
 	Entity  *target = [self getPrimaryTarget];
 	if (target == nil)   // leave now!
 		return NO;
-	if ([target getStatus] == STATUS_DEAD)
+	if (target->status == STATUS_DEAD)
 		return NO;
-	radius = [target collisionRadius];
-	rel_pos = [target getPosition];
+	radius = target->collision_radius;
+	rel_pos = target->position;
 	rel_pos.x -= position.x;
 	rel_pos.y -= position.y;
 	rel_pos.z -= position.z;
@@ -3570,7 +3612,7 @@ Vector randomPositionInBoundingBox(BoundingBox bb)
 	while (father)
 	{
 		mult_vector_gl_matrix(&origin, r_mat);
-		Vector pos = [father getPosition];
+		Vector pos = father->position;
 		origin.x += pos.x;	origin.y += pos.y;	origin.z += pos.z;
 		father = [father owner];
 		r_mat = [father rotationMatrix];
@@ -3634,7 +3676,7 @@ Vector randomPositionInBoundingBox(BoundingBox bb)
 	vel.y = v_forward.y * flight_speed;
 	vel.z = v_forward.z * flight_speed;
 
-	if ([self isKindOfClass:[PlayerEntity class]])		// only the player has weapons on other facings
+	if (isPlayer)		// only the player has weapons on other facings
 		direction = [universe viewDir];					// set the weapon facing here
 
 	target_laser_hit = [universe getFirstEntityHitByLaserFromEntity:self inView:direction];
@@ -3646,15 +3688,17 @@ Vector randomPositionInBoundingBox(BoundingBox bb)
 	if (target_laser_hit != NO_TARGET)
 	{
 		Entity *victim = [universe entityForUniversalID:target_laser_hit];
-		Vector p0 = [shot getPosition];
-		Vector p1 = [victim getPosition];
-		p1.x -= p0.x;	p1.y -= p0.y;	p1.z -= p0.z;
-		double dist2 = magnitude2(p1);
-		if (([victim isKindOfClass:[ShipEntity class]])&&(dist2 < range_limit2))
+		if (victim)
 		{
-			[(ShipEntity *)victim takeEnergyDamage:weapon_energy from:self becauseOf:self];	// a very palpable hit
-			[shot setCollisionRadius:sqrt(dist2)];
-			//
+			Vector p0 = shot->position;
+			Vector p1 = victim->position;
+			p1.x -= p0.x;	p1.y -= p0.y;	p1.z -= p0.z;
+			double dist2 = magnitude2(p1);
+			if ((victim->isShip)&&(dist2 < range_limit2))
+			{
+				[(ShipEntity *)victim takeEnergyDamage:weapon_energy from:self becauseOf:self];	// a very palpable hit
+				[shot setCollisionRadius:sqrt(dist2)];
+			}
 		}
 	}
 	[universe addEntity:shot];
@@ -3663,7 +3707,7 @@ Vector randomPositionInBoundingBox(BoundingBox bb)
 	shot_time = 0.0;
 	
 	// random laser over-heating for AI ships
-	if ((![self isKindOfClass:[PlayerEntity class]])&&((ranrot_rand() & 255) < weapon_energy)&&(![self isMining]))
+	if ((!isPlayer)&&((ranrot_rand() & 255) < weapon_energy)&&(![self isMining]))
 		shot_time -= (randf() * weapon_energy);
 	
 	return YES;
@@ -3673,9 +3717,12 @@ Vector randomPositionInBoundingBox(BoundingBox bb)
 {
 //	NSLog(@"DEBUG %@ %d laser fired direct shot on %@ %d", name, universal_id, [(ShipEntity*)[self getPrimaryTarget] name], primaryTarget);
 	
-	ParticleEntity  *shot;
+	Entity*	my_target = [self getPrimaryTarget];
+	if (!my_target)
+		return NO;
+	ParticleEntity*	shot;
 	double			range_limit2 = weapon_range*weapon_range;
-	Vector			r_pos = [[self getPrimaryTarget] getPosition];
+	Vector			r_pos = my_target->position;
 	r_pos.x -= position.x;	r_pos.y -= position.y;	r_pos.z -= position.z;
 	r_pos = unit_vector(&r_pos);
 
@@ -3704,15 +3751,18 @@ Vector randomPositionInBoundingBox(BoundingBox bb)
 	if (target_laser_hit != NO_TARGET)
 	{
 		Entity *victim = [universe entityForUniversalID:target_laser_hit];
-		Vector p0 = [shot getPosition];
-		Vector p1 = [victim getPosition];
-		p1.x -= p0.x;	p1.y -= p0.y;	p1.z -= p0.z;
-		double dist2 = magnitude2(p1);
-		if (([victim isKindOfClass:[ShipEntity class]])&&(dist2 < range_limit2))
+		if (victim)
 		{
-			[(ShipEntity *)victim takeEnergyDamage:weapon_energy from:self becauseOf:self];	// a very palpable hit
-			[shot setCollisionRadius:sqrt(dist2)];
-			//
+			Vector p0 = shot->position;
+			Vector p1 = victim->position;
+			p1.x -= p0.x;	p1.y -= p0.y;	p1.z -= p0.z;
+			double dist2 = magnitude2(p1);
+			if ((victim->isShip)&&(dist2 < range_limit2))
+			{
+				[(ShipEntity *)victim takeEnergyDamage:weapon_energy from:self becauseOf:self];	// a very palpable hit
+				[shot setCollisionRadius:sqrt(dist2)];
+				//
+			}
 		}
 	}
 	[universe addEntity:shot];
@@ -3721,7 +3771,7 @@ Vector randomPositionInBoundingBox(BoundingBox bb)
 	shot_time = 0.0;
 	
 	// random laser over-heating for AI ships
-	if ((![self isKindOfClass:[PlayerEntity class]])&&((ranrot_rand() & 255) < weapon_energy)&&(![self isMining]))
+	if ((!isPlayer)&&((ranrot_rand() & 255) < weapon_energy)&&(![self isMining]))
 		shot_time -= (randf() * weapon_energy);
 	
 	return YES;
@@ -3747,14 +3797,17 @@ Vector randomPositionInBoundingBox(BoundingBox bb)
 	if (target_laser_hit != NO_TARGET)
 	{
 		Entity *victim = [universe entityForUniversalID:target_laser_hit];
-		Vector p0 = [shot getPosition];
-		Vector p1 = [victim getPosition];
-		p1.x -= p0.x;	p1.y -= p0.y;	p1.z -= p0.z;
-		double dist2 = magnitude2(p1);
-		if (([victim isKindOfClass:[ShipEntity class]])&&(dist2 < range_limit2))
+		if (victim)
 		{
-			[(ShipEntity *)victim takeEnergyDamage:weapon_energy from:self becauseOf:self];	// a very palpable hit
-			[shot setCollisionRadius:sqrt(dist2)];
+			Vector p0 = shot->position;
+			Vector p1 = victim->position;
+			p1.x -= p0.x;	p1.y -= p0.y;	p1.z -= p0.z;
+			double dist2 = magnitude2(p1);
+			if ((victim->isShip)&&(dist2 < range_limit2))
+			{
+				[(ShipEntity *)victim takeEnergyDamage:weapon_energy from:self becauseOf:self];	// a very palpable hit
+				[shot setCollisionRadius:sqrt(dist2)];
+			}
 		}
 	}
 	[universe addEntity:shot];
@@ -3763,7 +3816,7 @@ Vector randomPositionInBoundingBox(BoundingBox bb)
 	shot_time = 0.0;
 	
 	// random laser over-heating for AI ships
-	if ((![self isKindOfClass:[PlayerEntity class]])&&((ranrot_rand() & 255) < weapon_energy)&&(![self isMining]))
+	if ((!isPlayer)&&((ranrot_rand() & 255) < weapon_energy)&&(![self isMining]))
 		shot_time -= (randf() * weapon_energy);
 	
 	return YES;
@@ -3827,7 +3880,7 @@ Vector randomPositionInBoundingBox(BoundingBox bb)
 	vel = v_forward;
 	rt = v_right;
 	
-	if ([self isKindOfClass:[PlayerEntity class]])					// player can fire into multiple views!
+	if (isPlayer)					// player can fire into multiple views!
 	{
 		switch ([universe viewDir])
 		{
@@ -3890,7 +3943,7 @@ Vector randomPositionInBoundingBox(BoundingBox bb)
 	start.y = boundingBox.min_y - 4.0;	// 4m below bounding box
 	start.z = boundingBox.max_z + 1.0;	// 1m ahead of bounding box
 	double  throw_speed = 250.0;
-	Quaternion q1 = [self QRotation];
+	Quaternion q1 = q_rotation;
 	Entity  *target = [self getPrimaryTarget];
 	
 	if ((missiles <= 0)||(target == nil))
@@ -3901,7 +3954,7 @@ Vector randomPositionInBoundingBox(BoundingBox bb)
 	
 	missiles--;
 	
-	if ([self isKindOfClass:[PlayerEntity class]])
+	if (isPlayer)
 		q1.w = -q1.w;   // player view is reversed remember!
 		
 	vel.x = (flight_speed + throw_speed) * v_forward.x;
@@ -3928,7 +3981,7 @@ Vector randomPositionInBoundingBox(BoundingBox bb)
 	//[missile setReportAImessages:YES];
 	//
 	[universe addEntity:missile];
-	//NSLog(@"Missile collision radius is %.1f",[missile collisionRadius]);
+	//NSLog(@"Missile collision radius is %.1f",missile->collision_radius);
 	[missile release]; //release
 	
 	[(ShipEntity *)target setPrimaryAggressor:self];
@@ -3947,7 +4000,7 @@ Vector randomPositionInBoundingBox(BoundingBox bb)
 	start.y = boundingBox.min_y - 10.0;	// 10m below bounding box
 	start.z = 1.0;	// 1m ahead of bounding box
 	double  throw_speed = 500.0;
-	Quaternion q1 = [self QRotation];
+	Quaternion q1 = q_rotation;
 	Entity  *target = [self getPrimaryTarget];
 	
 	if ((missiles <= 0)||(target == nil))
@@ -3955,7 +4008,7 @@ Vector randomPositionInBoundingBox(BoundingBox bb)
 	
 	missiles--;
 	
-	if ([self isKindOfClass:[PlayerEntity class]])
+	if (isPlayer)
 		q1.w = -q1.w;   // player view is reversed remember!
 		
 	vel.x = (flight_speed + throw_speed) * v_forward.x;
@@ -3977,7 +4030,7 @@ Vector randomPositionInBoundingBox(BoundingBox bb)
 	[tharglet setOwner:self];
 	//[tharglet setReportAImessages:YES]; // debug
 	[universe addEntity:tharglet];
-	//NSLog(@"tharglet collision radius is %.1f",[tharglet collisionRadius]);
+	//NSLog(@"tharglet collision radius is %.1f",tharglet->collision_radius);
 	
 	[tharglet setGroup_id:group_id];
 	
@@ -4019,7 +4072,9 @@ Vector randomPositionInBoundingBox(BoundingBox bb)
 		return NO;
 	[self setSpeed: max_flight_speed + 300];
 	ShipEntity*	bomb = [universe getShipWithRole:@"energy-bomb"];
-	double  start = collision_radius + [bomb collisionRadius];
+	if (!bomb)
+		return NO;
+	double  start = collision_radius + bomb->collision_radius;
 	double  eject_speed = -800.0;
 	Quaternion  random_direction;
 	Vector  vel;
@@ -4070,9 +4125,9 @@ Vector randomPositionInBoundingBox(BoundingBox bb)
 	double  start = boundingBox.min_y - 10.0;
 	double  throw_speed = 20.0;
 	int co_type, co_amount;
-	Quaternion q1 = [self QRotation];
+	Quaternion q1 = q_rotation;
 	
-	if ([self isKindOfClass:[PlayerEntity class]])
+	if (isPlayer)
 		q1.w = -q1.w;   // player view is reversed remember!
 		
 	vel.x = (-v_forward.x) * throw_speed + flight_speed * v_forward.x;
@@ -4109,7 +4164,9 @@ Vector randomPositionInBoundingBox(BoundingBox bb)
 	if (([cargo count] > 0)&&([universe getTime] - cargo_dump_time > 0.5))  // space them 0.5s or 10m apart
 	{
 		ShipEntity* jetto = [[cargo objectAtIndex:0] retain];
-		double  start = collision_radius + [jetto collisionRadius];
+		if (!jetto)
+			return 0;
+		double  start = collision_radius + jetto->collision_radius;
 		double  eject_speed = -20.0;
 		Quaternion  random_direction;
 		Vector  vel;
@@ -4156,8 +4213,10 @@ Vector randomPositionInBoundingBox(BoundingBox bb)
 
 - (int) dumpItem: (ShipEntity*) jetto
 {
+	if (!jetto)
+		return 0;
 	int result = [jetto getCargoType];
-	double  start = collision_radius + [jetto collisionRadius];
+	double  start = collision_radius + jetto->collision_radius;
 	double  eject_speed = -20.0;
 	Quaternion  random_direction;
 	Vector  vel;
@@ -4206,22 +4265,23 @@ Vector randomPositionInBoundingBox(BoundingBox bb)
 
 	while ([collidingEntities count] > 0)
 	{
-		ent = (Entity *)[collidingEntities objectAtIndex:0];
+		ent = [(Entity *)[collidingEntities objectAtIndex:0] retain];
 		[collidingEntities removeObjectAtIndex:0];
-		if ([ent isKindOfClass:[ShipEntity class]])
+		if (ent->isShip)
 		{
 			other_ship = (ShipEntity *)ent;
 			[self collideWithShip:other_ship];
 		}
-		if ([ent isKindOfClass:[PlanetEntity class]])
+		if (ent->isPlanet)
 		{
-			if ([self isKindOfClass:[PlayerEntity class]])
+			if (isPlayer)
 			{
 				[(PlayerEntity *)self getDestroyed];
 				return;
 			}
 			[self becomeExplosion];
 		}
+		[ent release];
 	}	
 }
 
@@ -4231,12 +4291,14 @@ Vector randomPositionInBoundingBox(BoundingBox bb)
 	double  inc1, dam1;
 	
 //	NSLog(@"DEBUG %@ %d colliding with other %@ %d", name, universal_id, [other name], [other universal_id]);
+	if (!other)
+		return NO;
 	
 	// calculate line of centers using centres
-	opos = [other getPosition];
+	opos = other->position;
 	loc = opos;
 	loc.x -= position.x;	loc.y -= position.y;	loc.z -= position.z;
-	double back_dist = 0.5 * (collision_radius + [other collisionRadius] - sqrt(magnitude2(loc)));
+	double back_dist = 0.5 * (collision_radius + other->collision_radius - sqrt(magnitude2(loc)));
 	
 	loc = unit_vector(&loc);
 	Vector back = make_vector( back_dist * loc.x, back_dist * loc.y, back_dist * loc.z);
@@ -4257,7 +4319,7 @@ Vector randomPositionInBoundingBox(BoundingBox bb)
 	// back-off minimum distance
 	pos = position;
 	[self setPosition: pos.x - back.x :pos.y - back.y :pos.z - back.z];
-	pos = [other getPosition];
+	pos = other->position;
 	[other setPosition: pos.x + back.x :pos.y + back.y :pos.z + back.z];
 	
 	// find velocity along line of centers
@@ -4318,15 +4380,17 @@ Vector randomPositionInBoundingBox(BoundingBox bb)
 - (BOOL) canScoop:(ShipEntity*)other
 {
 //	NSLog(@"DEBUG Checking if %@ %d can scoop %@ %d", name, universal_id, [other name], [other universal_id]);
+	if (!other)										return NO;
+	//
 	if (!has_scoop)									return NO;
 //	NSLog(@"DEBUG scoop okay");
 	if ([cargo count] >= max_cargo)					return NO;
 //	NSLog(@"DEBUG cargo space okay");
-	if ([other scanClass] != CLASS_CARGO)			return NO;
+	if (other->scan_class != CLASS_CARGO)			return NO;
 //	NSLog(@"DEBUG other scan class is CLASS_CARGO okay");
 	if ([other getCargoType] == CARGO_NOT_CARGO)	return NO;
 //	NSLog(@"DEBUG other cargo type is not CARGO_NOT_CARGO okay");
-	Vector  loc = [other getPosition];
+	Vector  loc = other->position;
 	loc.x -= position.x;	loc.y -= position.y;	loc.z -= position.z;
 	loc = unit_vector(&loc);
 	double inc1 = (v_forward.x*loc.x)+(v_forward.y*loc.y)+(v_forward.z*loc.z);
@@ -4387,7 +4451,7 @@ Vector randomPositionInBoundingBox(BoundingBox bb)
 //						[(PlayerEntity *)[universe entityZero] scriptAction:(NSString *)[actions objectAtIndex:i] onEntity:other];
 				}
 //				NSLog(@"DEBUG Scooped scripted item %@ %@ %d", other, [other name], [other universal_id]);
-				if ([self isKindOfClass:[PlayerEntity class]])
+				if (isPlayer)
 				{
 					Random_Seed s_seed;
 					NSString* scoopedMS = [NSString stringWithFormat:[universe expandDescription:@"[@-scooped]" forSystem:s_seed], [other name]];
@@ -4406,7 +4470,7 @@ Vector randomPositionInBoundingBox(BoundingBox bb)
 		if (cargo_flag !=CARGO_FLAG_CANISTERS)
 			cargo_flag = CARGO_FLAG_CANISTERS;
 		//NSLog(@"---> %@ %d scooped %@", name, universal_id, [universe describeCommodity:co_type amount:co_amount]);
-		if ([self isKindOfClass:[PlayerEntity class]])
+		if (isPlayer)
 		{
 			[universe clearPreviousMessage];
 			[universe addMessage:[universe describeCommodity:co_type amount:co_amount] forCount:4.5];
@@ -4430,9 +4494,9 @@ Vector randomPositionInBoundingBox(BoundingBox bb)
 	if ([universe station] == self)				// main stations are indestructible
 		return;
 		
-	if (status == STATUS_LAUNCHING)	// no collisions during launches please
+	if (status == STATUS_LAUNCHING)					// no collisions during launches please
 		return;
-	if ([ent getStatus] == STATUS_LAUNCHING)	// no collisions during launches please
+	if ((ent)&&(ent->status == STATUS_LAUNCHING))	// no collisions during launches please
 		return;
 	
 	//
@@ -4441,7 +4505,7 @@ Vector randomPositionInBoundingBox(BoundingBox bb)
 	if (energy <= 0.0)
 	{
 		being_mined = YES;  // same as using a mining laser
-		if ([ent isKindOfClass:[ShipEntity class]])
+		if ((ent)&&(ent->isShip))
 		{
 			ShipEntity* hunter = (ShipEntity *)ent;
 			[hunter collectBountyFor:self];
@@ -4470,14 +4534,17 @@ Vector randomPositionInBoundingBox(BoundingBox bb)
 
 - (void) leaveDock:(StationEntity *)station
 {
-	Vector launchPos = [station getPosition];
-	Vector stat_f = vector_forward_from_quaternion([station QRotation]);
-	launchPos.x += 500.0*stat_f.x;
-	launchPos.y += 500.0*stat_f.y;
-	launchPos.z += 500.0*stat_f.z;
-    position = launchPos;
-	q_rotation = [station QRotation];
-	flight_roll = [station flight_roll];
+	if (station)
+	{
+		Vector launchPos = station->position;
+		Vector stat_f = vector_forward_from_quaternion(station->q_rotation);
+		launchPos.x += 500.0*stat_f.x;
+		launchPos.y += 500.0*stat_f.y;
+		launchPos.z += 500.0*stat_f.z;
+		position = launchPos;
+		q_rotation = station->q_rotation;
+		flight_roll = [station flight_roll];
+	}
 	flight_pitch = 0.0;
 	flight_speed = max_flight_speed * 0.5;
 	status = STATUS_LAUNCHING;
@@ -4554,7 +4621,7 @@ Vector randomPositionInBoundingBox(BoundingBox bb)
 	for (i = 0; i < [sub_entities count]; i++)
 	{
 		Entity* subent = (Entity*)[sub_entities objectAtIndex:i];
-		if ([subent isKindOfClass:[ParticleEntity class]])
+		if (subent->isParticle)
 		{
 			if ([(ParticleEntity*)subent particleType] == PARTICLE_FLASHER)
 				[subent setStatus:STATUS_EFFECT];
@@ -4569,7 +4636,7 @@ Vector randomPositionInBoundingBox(BoundingBox bb)
 	for (i = 0; i < [sub_entities count]; i++)
 	{
 		Entity* subent = (Entity*)[sub_entities objectAtIndex:i];
-		if ([subent isKindOfClass:[ParticleEntity class]])
+		if (subent->isParticle)
 		{
 			if ([(ParticleEntity*)subent particleType] == PARTICLE_FLASHER)
 				[subent setStatus:STATUS_INACTIVE];
@@ -4725,7 +4792,7 @@ Vector randomPositionInBoundingBox(BoundingBox bb)
 {
 	// check if the group_id (parent ship) points to a station...
 	Entity* mother = [universe entityForUniversalID:group_id];
-	if ([mother isKindOfClass:[StationEntity class]])
+	if ((mother)&&(mother->isStation))
 	{
 		primaryTarget = group_id;
 		targetStation = primaryTarget;
@@ -4741,9 +4808,9 @@ Vector randomPositionInBoundingBox(BoundingBox bb)
 	for (i = 0; i < [entList count]; i++)
 	{
 		Entity* thing = (Entity *)[entList objectAtIndex:i];
-		if ([thing isKindOfClass:[StationEntity class]])
+		if (thing->isStation)
 		{
-			Vector p2 = [thing getPosition];
+			Vector p2 = thing->position;
 			p2.x -= p1.x;   p2.y -= p1.y; p2.z -= p1.z;
 			double range2 = (p2.x * p2.x + p2.y * p2.y + p2.z * p2.z);
 			if (range2 < nearest2)
@@ -4772,9 +4839,9 @@ Vector randomPositionInBoundingBox(BoundingBox bb)
 	for (i = 0; i < [entList count]; i++)
 	{
 		Entity  *thing = (Entity *)[entList objectAtIndex:i];
-		if ([thing isKindOfClass:[PlanetEntity class]])
+		if (thing->isPlanet)
 		{
-			Vector p2 = [thing getPosition];
+			Vector p2 = thing->position;
 			p2.x -= p1.x;   p2.y -= p1.y; p2.z -= p1.z;
 			double range2 = (p2.x * p2.x + p2.y * p2.y + p2.z * p2.z);
 			if ((!the_planet)||(range2 < nearest2))
@@ -4795,7 +4862,7 @@ Vector randomPositionInBoundingBox(BoundingBox bb)
 	for (i = 0; i < [entList count]; i++)
 	{
 		Entity* thing = (Entity *)[entList objectAtIndex:i];
-		if ([thing isKindOfClass:[StationEntity class]])
+		if (thing->isStation)
 			[(StationEntity *)thing abortDockingForShip:self];
 	}
 	[entList release];
@@ -4811,9 +4878,9 @@ Vector randomPositionInBoundingBox(BoundingBox bb)
 	for (i = 0; i < [entList count] ; i++)
 	{
 		Entity* thing = (Entity *)[entList objectAtIndex:i];
-		if ([thing isKindOfClass:[ShipEntity class]])
+		if (thing->isShip)
 		{
-			Vector delta = [thing getPosition];
+			Vector delta = thing->position;
 			delta.x -= position.x;  delta.y -= position.y;  delta.z -= position.z;
 			d2 = delta.x*delta.x + delta.y*delta.y + delta.z*delta.z;
 			if (d2 < found_d2)
@@ -4837,7 +4904,7 @@ Vector randomPositionInBoundingBox(BoundingBox bb)
 	for (i = 0; i < [entList count] ; i++)
 	{
 		Entity* thing = (Entity *)[entList objectAtIndex:i];
-		if ([thing isKindOfClass:[ShipEntity class]])
+		if (thing->isShip)
 		{
 			if ([(ShipEntity *)thing group_id] == ship_group_id)
 				[result addObject:(ShipEntity *)thing];
@@ -4849,12 +4916,15 @@ Vector randomPositionInBoundingBox(BoundingBox bb)
 
 - (void) sendExpandedMessage:(NSString *) message_text toShip:(ShipEntity*) other_ship
 {
-	Vector delta = [other_ship getPosition];
+	if (!other_ship)
+		return;
+	Vector delta = other_ship->position;
 	delta.x -= position.x;  delta.y -= position.y;  delta.z -= position.z;
 	double d2 = delta.x*delta.x + delta.y*delta.y + delta.z*delta.z;
 	if (d2 > scanner_range * scanner_range)
 		return;					// out of comms range
-
+	if (!other_ship)
+		return;
 	NSMutableString* localExpandedMessage = [NSMutableString stringWithString:message_text];
 	[localExpandedMessage	replaceOccurrencesOfString:@"[self:name]"
 							withString:name
@@ -4875,7 +4945,7 @@ Vector randomPositionInBoundingBox(BoundingBox bb)
 
 	[self setCommsMessageColor];
 	[other_ship receiveCommsMessage:[NSString stringWithFormat:@"%@:\n %@", name, expandedMessage]];
-	if ([other_ship isKindOfClass:[PlayerEntity class]])
+	if (other_ship->isPlayer)
 		message_time = 6.0;
 	[universe resetCommsLogColor];
 }
@@ -4894,9 +4964,9 @@ Vector randomPositionInBoundingBox(BoundingBox bb)
 	for (i = 0; i < [entList count] ; i++)
 	{
 		Entity* thing = (Entity *)[entList objectAtIndex:i];
-		if ([thing isKindOfClass:[ShipEntity class]])
+		if (thing->isShip)
 		{
-			Vector delta = [thing getPosition];
+			Vector delta = thing->position;
 			delta.x -= position.x;  delta.y -= position.y;  delta.z -= position.z;
 			d2 = delta.x*delta.x + delta.y*delta.y + delta.z*delta.z;
 			if (d2 < found_d2)
@@ -4904,7 +4974,7 @@ Vector randomPositionInBoundingBox(BoundingBox bb)
 				ShipEntity  *ship = (ShipEntity *)thing;
 				// tell it! //
 				[ship receiveCommsMessage: expandedMessage];
-				if ([ship isKindOfClass:[PlayerEntity class]])
+				if (ship->isPlayer)
 					message_time = 6.0;
 			}
 		}
@@ -4952,7 +5022,7 @@ Vector randomPositionInBoundingBox(BoundingBox bb)
 		Entity* switcher = [universe entityForUniversalID:switcher_id];
 		int rescuer_id = [(NSString*)[tokens objectAtIndex:2] intValue];
 		Entity* rescuer = [universe entityForUniversalID:rescuer_id];
-		if ((switcher_id == primaryAggressor)&&(switcher_id == primaryTarget)&&(switcher)&&([rescuer isKindOfClass:[ShipEntity class]])&&(thanked_ship_id != rescuer_id)&&(scan_class != CLASS_THARGOID))
+		if ((switcher_id == primaryAggressor)&&(switcher_id == primaryTarget)&&(switcher)&&(rescuer)&&(rescuer->isShip)&&(thanked_ship_id != rescuer_id)&&(scan_class != CLASS_THARGOID))
 		{
 			if (scan_class == CLASS_POLICE)
 				[self sendExpandedMessage:@"[police-thanks-for-assist]" toShip:(ShipEntity*)rescuer];
@@ -4968,7 +5038,7 @@ Vector randomPositionInBoundingBox(BoundingBox bb)
 {
 	Vector pv, rv;
 	Vector  rpos = position;
-	Vector  opv = [other getPosition];
+	Vector  opv = (other)? other->position : position;
 	rpos.x -= opv.x;	rpos.y -= opv.y;	rpos.z -= opv.z;
 	rv.x = dot_product(_i,rpos);
 	rv.y = dot_product(_j,rpos);

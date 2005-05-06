@@ -84,17 +84,22 @@ static Vector   circleVertex[65];		// holds vector coordinates for a unit circle
 		circleVertex[i].z = 0.0;
 	}
 	//
+	isParticle = YES;
+	//
     return self;
 }
 
 - (id) initLaserFromShip:(ShipEntity *) ship view:(int) view
 {
     self = [super init];
+	//
+	if (!ship)
+		return self;
     //
 	status = STATUS_EFFECT;
-    position = [ship getPosition];
-	q_rotation = [ship QRotation];
-	if ([ship isKindOfClass:[PlayerEntity class]])
+    position = ship->position;
+	q_rotation = ship->q_rotation;
+	if ((ship)&&(ship->isPlayer))
 		q_rotation.w = -q_rotation.w;   //reverse view direction for the player
 	Vector v_up = vector_up_from_quaternion(q_rotation);
 	Vector v_forward = vector_forward_from_quaternion(q_rotation);
@@ -124,7 +129,7 @@ static Vector   circleVertex[65];		// holds vector coordinates for a unit circle
 	}
     quaternion_into_gl_matrix(q_rotation, rotMatrix);
     //
-	if ([ship isKindOfClass:[PlayerEntity class]])
+	if ((ship)&&(ship->isPlayer))
 	{
 		position.x -= WEAPON_OFFSET_DOWN * v_up.x;	position.y -= WEAPON_OFFSET_DOWN * v_up.y;	position.z -= WEAPON_OFFSET_DOWN * v_up.z;	// offset below the view line
 	}
@@ -140,6 +145,8 @@ static Vector   circleVertex[65];		// holds vector coordinates for a unit circle
 	[self setOwner:ship];
 	//
 	collision_radius = [ship weapon_range];
+	//
+	isParticle = YES;
 	//
     return self;
 }
@@ -175,6 +182,8 @@ static Vector   circleVertex[65];		// holds vector coordinates for a unit circle
 	[self setOwner:ship];
 	//
 	collision_radius = [self findCollisionRadius];
+	//
+	isParticle = YES;
 	//
     return self;
 }
@@ -223,17 +232,21 @@ static Vector   circleVertex[65];		// holds vector coordinates for a unit circle
 	//	
 	collision_radius = [self findCollisionRadius];
 	//
+	isParticle = YES;
+	//
     return self;
 }
 
 - (id) initECMMineFromShip:(ShipEntity *) ship
 {
 	self = [super init];
+	if (!ship)
+		return self;
     //
     time_counter = 0.0;
 	activation_time = 0.5;
 	duration = 2.0;
-	[self setPosition:[ship getPosition]];
+	position = ship->position;
 	//
 	status = STATUS_EFFECT;
 	scan_class = CLASS_NO_DRAW;
@@ -243,7 +256,9 @@ static Vector   circleVertex[65];		// holds vector coordinates for a unit circle
 	particle_type = PARTICLE_ECM_MINE;
 	//
 	[self setOwner:ship];
-	//	
+	//
+	isParticle = YES;
+	//
 	return self;
 }
 
@@ -251,10 +266,12 @@ static Vector   circleVertex[65];		// holds vector coordinates for a unit circle
 {
 	self = [super init];
 	//
+	if (!ship)
+		return self;
     //
     time_counter = 0.0;
 	duration = 20.0;
-	[self setPosition:[ship getPosition]];
+	position = ship->position;
 	//
 	[self setVelocity:make_vector( 0, 0, 0)];
 	//
@@ -271,7 +288,9 @@ static Vector   circleVertex[65];		// holds vector coordinates for a unit circle
 	particle_type = PARTICLE_ENERGY_MINE;
 	//
 	[self setOwner:[ship owner]];
-	//	
+	//
+	isParticle = YES;
+	//
 	return self;
 }
 
@@ -281,12 +300,17 @@ static Vector   circleVertex[65];		// holds vector coordinates for a unit circle
     //
     time_counter = 0.0;
 	duration = 2.0;
-	size.width = [ship collisionRadius] * 0.5;
+	if (!ship)
+	{
+		NSLog(@"ERROR - initHyperringFromShip:NULL");
+		return self;
+	}
+	size.width = ship->collision_radius * 0.5;
 	size.height = size.width * 1.25;
 	ring_inner_radius = size.width;
 	ring_outer_radius = size.height;
-	[self setPosition:[ship getPosition]];
-	[self setQRotation:[ship QRotation]];
+	position = ship->position;
+	[self setQRotation:ship->q_rotation];
 	[self setVelocity:[ship getVelocity]];
 	//
 	status = STATUS_EFFECT;
@@ -302,7 +326,9 @@ static Vector   circleVertex[65];		// holds vector coordinates for a unit circle
 	}
 	//
 	[self setOwner:ship];
-	//	
+	//
+	isParticle = YES;
+	//
     return self;
 }
 
@@ -342,7 +368,7 @@ static Vector   circleVertex[65];		// holds vector coordinates for a unit circle
 		return YES;
 	if (other == [self owner])
 		return NO;
-	return ![other isKindOfClass:[ParticleEntity class]];
+	return !(other->isParticle);
 }
 
 
@@ -414,7 +440,6 @@ static Vector   circleVertex[65];		// holds vector coordinates for a unit circle
 - (void) update:(double) delta_t
 {
 //	NSLog(@"DEBUG update for %@",self);
-	
 	[super update:delta_t];
 	
 	time_counter += delta_t;
@@ -432,11 +457,17 @@ static Vector   circleVertex[65];		// holds vector coordinates for a unit circle
 			case PARTICLE_FLASHER :
 			case PARTICLE_SHOT_PLASMA :
 			case PARTICLE_EXPLOSION :
-				if (!texName)
-					[self initialiseTexture: textureNameString];
-				q_rotation = [[universe entityZero] QRotation];
-				q_rotation.w = -q_rotation.w;
-				quaternion_into_gl_matrix(q_rotation, rotMatrix);
+				{
+					Entity* player = [universe entityZero];
+					if (!texName)
+						[self initialiseTexture: textureNameString];
+					if (player)
+					{
+						q_rotation = player->q_rotation;
+						q_rotation.w = -q_rotation.w;
+						quaternion_into_gl_matrix(q_rotation, rotMatrix);
+					}
+				}
 				break;
 		}
 		switch (particle_type)
@@ -518,7 +549,7 @@ static Vector   circleVertex[65];		// holds vector coordinates for a unit circle
 			for (i = 0; i < [targets count]; i++)
 			{
 				Entity *e2 = [targets objectAtIndex:i];
-				if ([e2 isKindOfClass:[ShipEntity class]])
+				if (e2->isShip)
 					[[(ShipEntity *)e2 getAI] reactToMessage:@"ECM"];
 			}
 		}
@@ -531,8 +562,9 @@ static Vector   circleVertex[65];		// holds vector coordinates for a unit circle
 - (void) updateEnergyMine:(double) delta_t
 {
 	// new billboard routine (working at last!)
+	Entity*	player = [universe entityZero];
 	Vector v0 = position;
-	Vector p0 = [[universe entityZero] getPosition];
+	Vector p0 = (player)? player->position : make_vector(0,0,0);
 	v0.x -= p0.x;	v0.y -= p0.y;	v0.z -= p0.z; // vector from player to position
 	
 	v0 = unit_vector(&v0);
@@ -587,7 +619,7 @@ static Vector   circleVertex[65];		// holds vector coordinates for a unit circle
 		{
 			Entity *	e = (Entity *)[collidingEntities objectAtIndex:i];
 			[e takeEnergyDamage:energy from:self becauseOf:[self owner]];
-//			if ([e isKindOfClass:[ShipEntity class]])
+//			if (e->isShip)
 //			{
 //				ShipEntity*	s = (ShipEntity*)e;
 //				NSLog(@"DEBUG ENERGY BOMB Doing %.3f energy damage to %@ %d", energy, [s name], [s universal_id]);
@@ -711,34 +743,52 @@ static Vector   circleVertex[65];		// holds vector coordinates for a unit circle
 
 - (void) drawSubEntity:(BOOL) immediate :(BOOL) translucent
 {
+//	if (particle_type == PARTICLE_EXHAUST)
+//	{
+//		[super drawSubEntity:immediate :translucent];
+//		return;
+//	}
 	if (particle_type == PARTICLE_EXHAUST)
 	{
-		[super drawSubEntity:immediate :translucent];
+		if (translucent)
+		{
+			glPushMatrix();
+
+			// position and orientation is relative to owner
+			
+			//NSLog(@"DEBUG drawing passive subentity at %.3f, %.3f, %.3f", position.x, position.y, position.z);
+			
+			glTranslated( position.x, position.y, position.z);
+			glMultMatrixf(rotMatrix);
+			
+			[self drawExhaust:immediate];
+				
+			glPopMatrix();
+		}
+		
 		return;
 	}
 
-	if ((owner != NO_TARGET)&&(universe))
+	Entity* my_owner = [universe entityForUniversalID:owner];
+
+	if (my_owner)
 	{
 		// this test provides an opportunity to do simple LoD culling
 		//
-		zero_distance = [[universe entityForUniversalID:owner] getZeroDistance];
+		zero_distance = my_owner->zero_distance;
 		if (zero_distance > no_draw_distance)
-		{
-			//NSLog(@"DEBUG - sub entity '%@' too far away to draw", self);
-			return; // TOO FAR AWAY
-		}
+			return; // TOO FAR AWAY TO DRAW
 	}
 	
 	if ((particle_type == PARTICLE_FLASHER)&&(status != STATUS_INACTIVE))
 	{
-		Vector abspos;  // in control of it's own orientation
-		abspos = position;
-		Entity*		father = [self owner];
+		Vector abspos = position;  // in control of it's own orientation
+		Entity*		father = my_owner;
 		GLfloat*	r_mat = [father rotationMatrix];
 		while (father)
 		{
 			mult_vector_gl_matrix(&abspos, r_mat);
-			Vector pos = [father getPosition];
+			Vector pos = father->position;
 			abspos.x += pos.x;	abspos.y += pos.y;	abspos.z += pos.z;
 			if ([father owner] != father)
 				father = [father owner];
@@ -862,7 +912,7 @@ static Vector   circleVertex[65];		// holds vector coordinates for a unit circle
 {
 	GLfloat flat_ambdiff[4]		= {1.0, 1.0, 1.0, 1.0};   // for alpha
 	GLfloat lase_ambdiff[4]		= {0.0, 0.0, 0.0, 1.0};   // for alpha
-    GLfloat lase_zero[4]		= {0.0, 0.0, 0.0, 1.0};   // nothing
+    GLfloat mat_no[4]		= {0.0, 0.0, 0.0, 1.0};   // nothing
 	double  lase_alpha = 0.75;
 	
 	color_fv[3]		= lase_alpha;  // set alpha
@@ -870,13 +920,26 @@ static Vector   circleVertex[65];		// holds vector coordinates for a unit circle
 	
 	glDisable(GL_CULL_FACE);			// face culling
 		
-	//NSLog(@"drawing laser from %3.1f distant to %3.1f distant with alphas (%3.1f, %3.1f)", sqrt(d0), sqrt(d1), alpha0, alpha1);
+//	NSLog(@"drawing laser %.0f long with lase_ambdiff (%0.3f, %0.3f, %0.3f, %0.3f) color_fv (%0.3f, %0.3f, %0.3f, %0.3f)", collision_radius,
+//		lase_ambdiff[0], lase_ambdiff[1], lase_ambdiff[2], lase_ambdiff[3],
+//		color_fv[0], color_fv[1], color_fv[2], color_fv[3]);
+	
+//	//state check
+//	NSLog(@"DEBUG OpenGL state check: GL_COLOR_MATERIAL : %@",
+//		(glIsEnabled(GL_COLOR_MATERIAL) == GL_TRUE)? @"YES":@"NO");
 	
 	// movies:
 	// draw data required collision_radius, color_fv[0], color_fv[1], color_fv[2]
 	
-	glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE, lase_ambdiff);
-	glMaterialfv(GL_FRONT_AND_BACK, GL_EMISSION, color_fv);
+	glDisable(GL_LIGHTING);
+	
+	glEnable( GL_COLOR_MATERIAL);
+	glColorMaterial( GL_FRONT_AND_BACK, GL_EMISSION);
+	glColor4fv( color_fv);
+	
+	glMaterialfv( GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE, mat_no);
+	glMaterialfv( GL_FRONT_AND_BACK, GL_SPECULAR, mat_no);
+//	glMaterialfv(GL_FRONT_AND_BACK, GL_EMISSION, color_fv);
 	
 	glBegin(GL_QUADS);
 	
@@ -891,9 +954,14 @@ static Vector   circleVertex[65];		// holds vector coordinates for a unit circle
 	glVertex3f(0.0, -0.25, 0.0);
 	
 	glEnd();
-		
-	glMaterialfv(GL_FRONT_AND_BACK, GL_EMISSION, lase_zero);
-	glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE, flat_ambdiff);
+	
+	glDisable( GL_COLOR_MATERIAL);
+	
+	glMaterialfv( GL_FRONT_AND_BACK, GL_EMISSION, mat_no);
+	glMaterialfv( GL_FRONT_AND_BACK, GL_SPECULAR, mat_no);
+	glMaterialfv( GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE, flat_ambdiff);
+	
+	glEnable( GL_LIGHTING);
 	
 	glEnable(GL_CULL_FACE);			// face culling
 }
@@ -902,10 +970,10 @@ static Vector   circleVertex[65];		// holds vector coordinates for a unit circle
 {
     int fi, vi;
 	
-	GLfloat flat_ambdiff[4] = {1.0, 1.0, 1.0, 1.0};   // flat
-	GLfloat ex_ambdiff[4]	= {0.0, 0.0, 0.0, 1.0};   // pale blue
+	GLfloat flat_ambdiff[4] = {1.0, 1.0, 1.0, 1.0};   // flat white
+	GLfloat ex_ambdiff[4]	= {0.0, 0.0, 0.0, 1.0};   // flat black
 	GLfloat ex_emissive[4]	= {0.6, 0.8, 1.0, 0.9};   // pale blue
-    GLfloat ex_zero[4]		= {0.0, 0.0, 0.0, 1.0};   // nothing
+    GLfloat no_mat[4]		= {0.0, 0.0, 0.0, 1.0};   // flat black
 	
 	ShipEntity  *ship =(ShipEntity *)[universe entityForUniversalID:owner];
 	int dam = [ship damage];
@@ -946,12 +1014,12 @@ static Vector   circleVertex[65];		// holds vector coordinates for a unit circle
 	// movies:
 	// draw data required flare_factor, red_factor, green_factor, flare_length
 	
-	glDisable(GL_CULL_FACE);			// face culling
-	glShadeModel(GL_SMOOTH);
-	
 	if (basefile)
 	{
-		glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE, ex_zero);
+		glDisable(GL_CULL_FACE);			// face culling
+		glShadeModel(GL_SMOOTH);
+		
+//		glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE, ex_zero);	// causes TIGER BLACK TEXTURE PROBLEM?
 		glBegin(GL_TRIANGLES);
 		for (fi = 0; fi < n_faces; fi++)
 		{
@@ -970,11 +1038,11 @@ static Vector   circleVertex[65];		// holds vector coordinates for a unit circle
 			
 		}
 		glEnd();
-		glMaterialfv(GL_FRONT_AND_BACK, GL_EMISSION, ex_zero);
 		glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE, flat_ambdiff);
-	}
+		glMaterialfv(GL_FRONT_AND_BACK, GL_EMISSION, no_mat);
 
-	glEnable(GL_CULL_FACE);			// face culling
+		glEnable(GL_CULL_FACE);			// face culling
+	}
 }
 
 - (void) drawHyperring
@@ -1045,4 +1113,3 @@ static Vector   circleVertex[65];		// holds vector coordinates for a unit circle
 }
 
 @end
-

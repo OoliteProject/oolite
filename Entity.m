@@ -108,6 +108,13 @@ static  Universe	*data_store_universe;
 	//
 	usingVAR = NO;
 	//
+	isParticle = NO;
+	isRing = NO;
+	isShip = NO;
+	isStation = NO;
+	isPlanet = NO;
+	isPlayer = NO;
+	//
     return self;
 }
 
@@ -251,7 +258,7 @@ static  Universe	*data_store_universe;
 
 - (NSComparisonResult) compareZeroDistance:(Entity *)otherEntity;
 {
-	if (zero_distance > [otherEntity getZeroDistance])
+	if ((otherEntity)&&(zero_distance > otherEntity->zero_distance))
 		return NSOrderedAscending;
 	else
 		return NSOrderedDescending;
@@ -408,7 +415,7 @@ static  Universe	*data_store_universe;
 //    int fi,vi;
     int ti;
     GLfloat mat_ambient[] = { 1.0, 1.0, 1.0, 1.0 };
-    GLfloat mat_no[] = { 0.0, 0.0, 0.0, 1.0 };
+    GLfloat mat_no[] =		{ 0.0, 0.0, 0.0, 1.0 };
 	if (is_smooth_shaded)
 		glShadeModel(GL_SMOOTH);
 	else
@@ -494,11 +501,12 @@ static  Universe	*data_store_universe;
 
 - (void) drawSubEntity:(BOOL) immediate :(BOOL) translucent
 {
-	if ((owner != NO_TARGET)&&(universe))
+	Entity* my_owner = [universe entityForUniversalID:owner];
+	if (my_owner)
 	{
 		// this test provides an opportunity to do simple LoD culling
 		//
-		zero_distance = [[universe entityForUniversalID:owner] getZeroDistance];
+		zero_distance = my_owner->zero_distance;
 		if (zero_distance > no_draw_distance)
 		{
 			//NSLog(@"DEBUG - sub entity '%@' too far away to draw", self);
@@ -529,14 +537,13 @@ static  Universe	*data_store_universe;
 	}
 	else
 	{
-		Vector abspos;  // STATUS_ACTIVE means it is in control of it's own orientation
-		abspos = position;
-		Entity*		father = [self owner];
+		Vector abspos = position;  // STATUS_ACTIVE means it is in control of it's own orientation
+		Entity*		father = my_owner;
 		GLfloat*	r_mat = [father rotationMatrix];
 		while (father)
 		{
 			mult_vector_gl_matrix(&abspos, r_mat);
-			Vector pos = [father getPosition];
+			Vector pos = father->position;
 			abspos.x += pos.x;	abspos.y += pos.y;	abspos.z += pos.z;
 			father = [father owner];
 			r_mat = [father rotationMatrix];
@@ -567,7 +574,7 @@ static  Universe	*data_store_universe;
         if ((faces[fi].texName == 0)&&(faces[fi].textureFile))
         {
             // load texture into Universe texturestore
-            //NSLog(@"Off to load %@",faces[fi].textureFile);
+//            NSLog(@"Off to load %@",faces[fi].textureFile);
             if (universe)
             {
                 faces[fi].texName = [[universe textureStore] getTextureNameFor:faces[fi].textureFile];
@@ -597,7 +604,7 @@ static  Universe	*data_store_universe;
     if (displayListName != 0)
     {
         glNewList(displayListName, GL_COMPILE);
-        [self drawEntity:YES:NO];
+        [self drawEntity:YES:NO];	//	immediate YES	translucent NO
         glEndList();
     }
 }
@@ -607,7 +614,7 @@ static  Universe	*data_store_universe;
 	Entity* player = [universe entityZero];
 	if (player)
 	{
-		Vector p0 = [player getPosition];
+		Vector p0 = player->position;
 		relative_position = make_vector( position.x - p0.x, position.y - p0.y, position.z - p0.z);
 		zero_distance = magnitude2(relative_position);
 	}
@@ -626,7 +633,7 @@ static  Universe	*data_store_universe;
 		track[track_index].q_rotation =	q_rotation;
 		track[track_index].timeframe =	track_time;
 		track_index = (track_index + 1 ) & 0xff;
-//		if ([self isKindOfClass:[PlayerEntity class]])
+//		if (isPlayer)
 //			NSLog(@"Saving frame %d %.2f", track_index, track_time);
 	}
 }
@@ -1009,7 +1016,7 @@ static  Universe	*data_store_universe;
         [self fakeTexturesWithImageFile:@"metal.png" andMaxSize:NSMakeSize(256.0,256.0)];
 		
 		// dump out data for ships with faked textures
-		//if ([self isKindOfClass:[ShipEntity class]])
+		//if (isShip)
 		//	//NSLog(@"Faked Texture coordinates for this model :\n\n%@\n\n", [self toString]);
     }
     
@@ -1216,7 +1223,7 @@ static  Universe	*data_store_universe;
 {
 	Vector pv, rv;
 	Vector  rpos = position;
-	Vector  opv = [other getPosition];
+	Vector  opv = (other)? other->position : rpos;
 	rpos.x -= opv.x;	rpos.y -= opv.y;	rpos.z -= opv.z;
 	rv.x = dot_product(_i,rpos);
 	rv.y = dot_product(_j,rpos);
@@ -1742,4 +1749,3 @@ static  Universe	*data_store_universe;
 }
 
 @end
-

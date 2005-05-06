@@ -106,7 +106,9 @@ Ringdata	ringentity;
 	velocity.x = 0.0;
 	velocity.y = 0.0;
 	velocity.z = 1.0;
-	
+	//
+	isRing = YES;
+	//
     return self;
 }
 
@@ -190,4 +192,3 @@ Ringdata	ringentity;
 }
 
 @end
-

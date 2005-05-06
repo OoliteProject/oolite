@@ -132,7 +132,9 @@ static GLuint vertex_index_array[3*(20+80+320+1280+5120+20480)];
 	amb_polar_sea[1] = 1.0;
 	amb_polar_sea[2] = 1.0;
 	amb_polar_sea[3] = 1.0;
-		
+	//
+	isPlanet = YES;
+	//
     return self;
 }
 
@@ -211,6 +213,8 @@ static GLuint vertex_index_array[3*(20+80+320+1280+5120+20480)];
 	for (i = 0; i < 729; i++)
 		rvalue[i] = randf();
 	//
+	isPlanet = YES;
+	//
     return self;
 }
 
@@ -222,9 +226,15 @@ static GLuint vertex_index_array[3*(20+80+320+1280+5120+20480)];
 	//
 	self = [super init];
     //
-	position = [planet getPosition];
-	q_rotation = [planet QRotation];
-    collision_radius = [planet collisionRadius] + ATMOSPHERE_DEPTH; //  atmosphere is 500m deep only
+    if (!planet)
+    {
+    	NSLog(@"ERROR Planetentity initAsAtmosphereForPlanet:NULL");
+    	return self;
+    }
+    //
+	position = planet->position;
+	q_rotation = planet->q_rotation;
+    collision_radius = planet->collision_radius + ATMOSPHERE_DEPTH; //  atmosphere is 500m deep only
 	//
 	shuttles_on_ground = 0;
 	last_launch_time = 0.0;
@@ -292,7 +302,8 @@ static GLuint vertex_index_array[3*(20+80+320+1280+5120+20480)];
 	if (usingVAR)
 		[self OGL_AssignVARMemory:sizeof(VertexData) :(void *)&vertexdata :0];
 	//
-
+	isPlanet = YES;
+	//
     return self;
 }
 
@@ -300,9 +311,15 @@ static GLuint vertex_index_array[3*(20+80+320+1280+5120+20480)];
 {    
 	self = [super init];
     //
-	position = [planet getPosition];
+	if (!planet)
+    {
+    	NSLog(@"ERROR Planetentity initAsCoronaForPlanet:NULL");
+    	return self;
+    }
+    //
+	position = planet->position;
 	quaternion_set_identity(&q_rotation);
-    collision_radius = [planet collisionRadius] + ATMOSPHERE_DEPTH * 2; //  atmosphere is 5000m deep only
+    collision_radius = planet->collision_radius + ATMOSPHERE_DEPTH * 2; //  atmosphere is 5000m deep only
 	//
 	shuttles_on_ground = 0;
 	last_launch_time = 0.0;
@@ -320,7 +337,9 @@ static GLuint vertex_index_array[3*(20+80+320+1280+5120+20480)];
 	atmosphere = nil;
 	
 	[self setOwner:planet];
-	
+	//
+	isPlanet = YES;
+	//
     return self;
 }
 
@@ -476,7 +495,9 @@ static GLuint vertex_index_array[3*(20+80+320+1280+5120+20480)];
 	if (usingVAR)
 		[self OGL_AssignVARMemory:sizeof(VertexData) :(void *)&vertexdata :0];
 	//
-
+	//
+	isPlanet = YES;
+	//
     return self;
 }
 
@@ -517,12 +538,14 @@ static GLuint vertex_index_array[3*(20+80+320+1280+5120+20480)];
 - (BOOL) checkCloseCollisionWith:(Entity *)other
 {
 	//NSLog(@"PLANET Collision!");
-	if ([other isKindOfClass:[ShipEntity class]])
+	if (!other)
+		return NO;
+	if (other->isShip)
 	{
 		if ([(ShipEntity *)other reportAImessages])
 		{
 			ShipEntity *ship = (ShipEntity *)other;
-			Vector p1 = [ship getPosition];
+			Vector p1 = ship->position;
 			NSLog(@"%@ %d collided with planet at (%.1f,%.1f,%.1f)",[ship name], [ship universal_id], p1.x,p1.y,p1.z);
 		}
 	}
@@ -561,7 +584,7 @@ static GLuint vertex_index_array[3*(20+80+320+1280+5120+20480)];
 			{
 				[atmosphere update:delta_t];
 				double alt = sqrt_zero_distance - collision_radius;
-				double atmo = 10.0 * ([atmosphere collisionRadius] - collision_radius);	// effect starts at 10x the height of the clouds
+				double atmo = 10.0 * (atmosphere->collision_radius - collision_radius);	// effect starts at 10x the height of the clouds
 								
 				if ((alt > 0)&&(alt <= atmo))
 				{
@@ -589,8 +612,9 @@ static GLuint vertex_index_array[3*(20+80+320+1280+5120+20480)];
 		case PLANET_TYPE_SUN :
 		{
 			// new billboard routine (working at last!)
+			PlayerEntity* player = (PlayerEntity*)[universe entityZero];
 			Vector v0 = position;
-			Vector p0 = [[universe entityZero] getPosition];
+			Vector p0 = (player)? player->position: make_vector(0,0,0);
 			v0.x -= p0.x;	v0.y -= p0.y;	v0.z -= p0.z; // vector from player to position
 			
 			v0 = unit_vector(&v0);
@@ -616,8 +640,8 @@ static GLuint vertex_index_array[3*(20+80+320+1280+5120+20480)];
 
 			if (planet_type == PLANET_TYPE_CORONA)
 			{
-				Vector v_sun = [[universe sun] getPosition];
-				Vector v_p = [[universe entityZero] getPosition];
+				Vector v_sun = [universe sun]->position;
+				Vector v_p = (player)? player->position: make_vector(0,0,0);
 				v_sun.x -= v_p.x;	v_sun.y -= v_p.y;	v_sun.z -= v_p.z;
 				v_sun = unit_vector(&v_sun);
 				polar_color_factor = dot_product( v_sun, v0);
@@ -833,13 +857,14 @@ static GLuint vertex_index_array[3*(20+80+320+1280+5120+20480)];
 		case PLANET_TYPE_CORONA :
 			if (!translucent)
 			{
+				Entity* my_owner = [universe entityForUniversalID:owner];
 				GLfloat bri = 1.0 + polar_color_factor;
 				GLfloat r = 0.42 * bri;
 				GLfloat g = 0.42 * bri;
 				GLfloat b = 0.5 * bri;
 				
 				GLfloat amb_1[4]		= {1.0, 1.0,	1.0,	1.0 };
-				double  r0 = [[universe entityForUniversalID:owner] collisionRadius];
+				double  r0 = (my_owner)? my_owner->collision_radius: 5000;
 //				GLfloat col1[4] = { amb_land[0], amb_land[1], amb_land[2], 1.0};
 //				GLfloat col2[4] = { amb_land[0], amb_land[1], amb_land[2], 0.0};
 				GLfloat col1[4] = { r, g, b, 1.0};
@@ -1371,4 +1396,3 @@ int baseVertexIndexForEdge(int va, int vb)
 
 
 @end
-

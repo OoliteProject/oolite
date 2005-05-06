@@ -459,9 +459,9 @@ Your fair use and other rights are in no way affected by the above.
 {
 	if (usingVAR)
 		[self OGL_UpdateVAR];
-	
+	Entity* player = [universe entityZero];
 	zero_distance = MAX_CLEAR_DEPTH * MAX_CLEAR_DEPTH;
-	position = [[universe entityZero] getPosition];
+	position = (player)? player->position : position;
 }
 
 - (BOOL) canCollide
@@ -611,4 +611,3 @@ Your fair use and other rights are in no way affected by the above.
 
 
 @end
-

@@ -276,7 +276,9 @@
 		<key>has_escape_pod</key>
 		<false/>
 		<key>has_fuel_injection</key>
-		<true/>
+		<real>0.5</real>
+		<key>has_shield_booster</key>
+		<real>0.5</real>
 		<key>has_scoop</key>
 		<true/>
 		<key>likely_cargo</key>
@@ -1053,6 +1055,8 @@
 		<true/>
 		<key>has_scoop</key>
 		<true/>
+		<key>has_shield_booster</key>
+		<real>0.25</real>
 		<key>likely_cargo</key>
 		<integer>3</integer>
 		<key>max_cargo</key>
@@ -1293,6 +1297,10 @@
 		<false/>
 		<key>has_scoop</key>
 		<true/>
+		<key>has_fuel_injection</key>
+		<real>0.25</real>
+		<key>has_shield_booster</key>
+		<real>0.25</real>
 		<key>likely_cargo</key>
 		<integer>2</integer>
 		<key>max_cargo</key>
@@ -1642,7 +1650,11 @@
 		<key>has_escape_pod</key>
 		<false/>
 		<key>has_fuel_injection</key>
-		<true/>
+		<real>0.75</real>
+		<key>has_shield_booster</key>
+		<real>0.5</real>
+		<key>has_shield_enhancer</key>
+		<real>0.5</real>
 		<key>has_scoop</key>
 		<true/>
 		<key>likely_cargo</key>
@@ -1733,6 +1745,8 @@
 		<false/>
 		<key>has_scoop</key>
 		<true/>
+		<key>has_shield_booster</key>
+		<real>0.4</real>
 		<key>likely_cargo</key>
 		<integer>0</integer>
 		<key>max_cargo</key>
@@ -1875,7 +1889,11 @@
 		<key>has_escape_pod</key>
 		<false/>
 		<key>has_fuel_injection</key>
-		<true/>
+		<real>0.65</real>
+		<key>has_shield_booster</key>
+		<real>0.5</real>
+		<key>has_shield_enhancer</key>
+		<real>0.25</real>
 		<key>has_scoop</key>
 		<true/>
 		<key>likely_cargo</key>
@@ -1929,6 +1947,8 @@
 		<false/>
 		<key>has_scoop</key>
 		<true/>
+		<key>has_shield_booster</key>
+		<real>0.25</real>
 		<key>likely_cargo</key>
 		<integer>0</integer>
 		<key>max_cargo</key>
@@ -2076,6 +2096,8 @@
 		<false/>
 		<key>has_scoop</key>
 		<true/>
+		<key>has_shield_booster</key>
+		<real>0.5</real>
 		<key>likely_cargo</key>
 		<integer>0</integer>
 		<key>max_cargo</key>
@@ -2248,6 +2270,8 @@
 		<true/>
 		<key>has_scoop</key>
 		<true/>
+		<key>has_shield_booster</key>
+		<real>0.75</real>
 		<key>likely_cargo</key>
 		<integer>10</integer>
 		<key>max_cargo</key>

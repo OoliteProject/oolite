@@ -270,7 +270,8 @@ Your fair use and other rights are in no way affected by the above.
 	
 	// inform our old target of our new target
 	//
-	if ([[universe entityForUniversalID:primaryTarget] isKindOfClass:[ShipEntity class]])
+	Entity* primeTarget = [universe entityForUniversalID:primaryTarget];
+	if ((primeTarget)&&(primeTarget->isShip))
 	{
 		ShipEntity* currentShip = (ShipEntity*)[universe entityForUniversalID:primaryTarget];
 		[[currentShip getAI] message:[NSString stringWithFormat:@"%@ %d %d", AIMS_AGGRESSOR_SWITCHED_TARGET, universal_id, primaryAggressor]];
@@ -296,16 +297,16 @@ Your fair use and other rights are in no way affected by the above.
 	for (i = 0; i < [entList count] ; i++)
 	{
 		Entity* thing = (Entity *)[entList objectAtIndex:i];
-		if (([thing isKindOfClass:[ShipEntity class]])&&(thing != (Entity *)self))
+		if ((thing->isShip)&&(thing != (Entity *)self))
 		{
 			ShipEntity* ship = (ShipEntity *)thing;
-			if ((([[ship roles] isEqual:@"trader"])||([ship isKindOfClass:[PlayerEntity class]]))&&([ship getStatus] != STATUS_DEAD)&&([ship getStatus] != STATUS_DOCKED))
+			if ((([[ship roles] isEqual:@"trader"])||(ship->isPlayer))&&(ship->status != STATUS_DEAD)&&(ship->status != STATUS_DOCKED))
 			{
 				double d2;
-				Vector delta = [ship getPosition];
+				Vector delta = ship->position;
 				delta.x -= position.x;  delta.y -= position.y;  delta.z -= position.z;
 				d2 = delta.x*delta.x + delta.y*delta.y + delta.z*delta.z;
-				if (([roles isEqual:@"pirate"])&&(d2*d2 < desired_range)&&([ship isKindOfClass:[PlayerEntity class]])&&(PIRATES_PREFER_PLAYER))
+				if (([roles isEqual:@"pirate"])&&(d2*d2 < desired_range)&&(ship->isPlayer)&&(PIRATES_PREFER_PLAYER))
 					d2 = 0.0;
 				if (d2 < found_d2)
 				{
@@ -335,13 +336,13 @@ Your fair use and other rights are in no way affected by the above.
 	for (i = 0; i < [entList count] ; i++)
 	{
 		Entity* thing = (Entity *)[entList objectAtIndex:i];
-		if (([thing isKindOfClass:[ShipEntity class]])&&(thing != (Entity *)self))
+		if ((thing->isShip)&&(thing != (Entity *)self))
 		{
 			ShipEntity* ship = (ShipEntity *)thing;
-			if ((([[ship roles] isEqual:@"trader"])||([ship isKindOfClass:[PlayerEntity class]]))&&([ship getStatus] != STATUS_DEAD)&&([ship getStatus] != STATUS_DOCKED))
+			if ((([[ship roles] isEqual:@"trader"])||(ship->isPlayer))&&(ship->status != STATUS_DEAD)&&(ship->status != STATUS_DOCKED))
 			{
 				double d2;
-				Vector delta = [ship getPosition];
+				Vector delta = ship->position;
 				delta.x -= position.x;  delta.y -= position.y;  delta.z -= position.z;
 				d2 = delta.x*delta.x + delta.y*delta.y + delta.z*delta.z;
 				if (d2 < found_d2)
@@ -367,7 +368,7 @@ Your fair use and other rights are in no way affected by the above.
 - (void) scanForLoot
 {
 	/*-- Locates the nearest debris in range --*/
-	if ((![self isKindOfClass:[StationEntity class]])&&(!has_scoop))
+	if ((!isStation)&&(!has_scoop))
 	{
 		[shipAI message:@"NOTHING_FOUND"];		//can't collect loot if you have no scoop!
 		return;
@@ -380,13 +381,13 @@ Your fair use and other rights are in no way affected by the above.
 	for (i = 0; i < [entList count]; i++)
 	{
 		Entity* thing = (Entity *)[entList objectAtIndex:i];
-		if ([thing isKindOfClass:[ShipEntity class]])
+		if (thing->isShip)
 		{
 			ShipEntity *other = (ShipEntity *)thing;
-			if (([other scanClass] == CLASS_CARGO)&&([other getCargoType] != CARGO_NOT_CARGO))
+			if ((other->scan_class == CLASS_CARGO)&&([other getCargoType] != CARGO_NOT_CARGO))
 			{
 				double d2;
-				Vector delta = [thing getPosition];
+				Vector delta = thing->position;
 				delta.x -= position.x;  delta.y -= position.y;  delta.z -= position.z;
 				d2 = delta.x*delta.x + delta.y*delta.y + delta.z*delta.z;
 				if (d2 < found_d2)
@@ -413,7 +414,7 @@ Your fair use and other rights are in no way affected by the above.
 //	double found_d2 = desired_range*desired_range;
 	double found_d2 = scanner_range * scanner_range;
 	found_target = NO_TARGET;
-	if ((![self isKindOfClass:[StationEntity class]])&&(!has_scoop))
+	if ((!isStation)&&(!has_scoop))
 	{
 		[shipAI message:@"NOTHING_FOUND"];		//can't collect loot if you have no scoop!
 		return;
@@ -422,13 +423,13 @@ Your fair use and other rights are in no way affected by the above.
 	for (i = 0; (i < [entList count])&&(things_found < 16) ; i++)
 	{
 		Entity* thing = (Entity *)[entList objectAtIndex:i];
-		if ([thing isKindOfClass:[ShipEntity class]])
+		if (thing->isShip)
 		{
 			ShipEntity *other = (ShipEntity *)thing;
-			if (([other scanClass] == CLASS_CARGO)&&([other getCargoType] != CARGO_NOT_CARGO))
+			if ((other->scan_class == CLASS_CARGO)&&([other getCargoType] != CARGO_NOT_CARGO))
 			{
 				double d2;
-				Vector delta = [thing getPosition];
+				Vector delta = thing->position;
 				delta.x -= position.x;  delta.y -= position.y;  delta.z -= position.z;
 				d2 = delta.x*delta.x + delta.y*delta.y + delta.z*delta.z;
 				if (d2 < found_d2)
@@ -480,8 +481,8 @@ Your fair use and other rights are in no way affected by the above.
 {
 	/*- requests coordinates from the nearest station it can find (which may be a rock hermit) -*/
 	StationEntity* station =  nil;
-	
-	if ([[universe entityForUniversalID:targetStation] isKindOfClass:[StationEntity class]])
+	Entity* targStation = [universe entityForUniversalID:targetStation];
+	if ((targStation)&&(targStation->isStation))
 	{
 		station = (StationEntity*)[universe entityForUniversalID:targetStation];
 	}
@@ -494,9 +495,9 @@ Your fair use and other rights are in no way affected by the above.
 		for (i = 0; i < [entList count]; i++)
 		{
 			Entity* thing = (Entity *)[entList objectAtIndex:i];
-			if ([thing isKindOfClass:[StationEntity class]])
+			if (thing->isStation)
 			{
-				Vector p2 = [thing getPosition];
+				Vector p2 = thing->position;
 				p2.x -= p1.x;   p2.y -= p1.y; p2.z -= p1.z;
 				double range2 = (p2.x * p2.x + p2.y * p2.y + p2.z * p2.z);
 				if (range2 < nearest2)
@@ -542,9 +543,9 @@ Your fair use and other rights are in no way affected by the above.
 	for (i = 0; i < [entList count]; i++)
 	{
 		Entity* thing = (Entity *)[entList objectAtIndex:i];
-		if ([thing isKindOfClass:[StationEntity class]])
+		if (thing->isStation)
 		{
-			Vector p2 = [thing getPosition];
+			Vector p2 = thing->position;
 			p2.x -= p1.x;   p2.y -= p1.y; p2.z -= p1.z;
 			double range2 = (p2.x * p2.x + p2.y * p2.y + p2.z * p2.z);
 			if (range2 < nearest2)
@@ -557,8 +558,8 @@ Your fair use and other rights are in no way affected by the above.
 	[entList release];
 	if (station)
 	{
-		coordinates = [station getPosition];
-		Vector  vr = vector_right_from_quaternion([station QRotation]);
+		coordinates = station->position;
+		Vector  vr = vector_right_from_quaternion(station->q_rotation);
 		coordinates.x += 10000 * vr.x;  // 10km from station
 		coordinates.y += 10000 * vr.y;
 		coordinates.z += 10000 * vr.z;
@@ -604,7 +605,7 @@ Your fair use and other rights are in no way affected by the above.
 	for (i = 0; (i < [entList count])&&(missile == nil); i++)
 	{
 		Entity* thing = (Entity *)[entList objectAtIndex:i];
-		if ([thing scanClass] == CLASS_MISSILE)
+		if (thing->scan_class == CLASS_MISSILE)
 		{
 			if ([(ShipEntity *)thing getPrimaryTarget] == self)
 				missile = (ShipEntity *)thing;
@@ -683,11 +684,11 @@ Your fair use and other rights are in no way affected by the above.
 	for (i = 0; i < [entList count]; i++)
 	{
 		Entity  *thing = (Entity *)[entList objectAtIndex:i];
-		if ([thing isKindOfClass:[PlanetEntity class]])
+		if (thing->isPlanet)
 		{
 			if ([(PlanetEntity *)thing getPlanetType] == PLANET_TYPE_GREEN)
 			{
-				Vector p2 = [thing getPosition];
+				Vector p2 = thing->position;
 				p2.x -= p1.x;   p2.y -= p1.y; p2.z -= p1.z;
 				double range2 = (p2.x * p2.x + p2.y * p2.y + p2.z * p2.z);
 				if ((!the_planet)||(range2 < nearest2))
@@ -708,8 +709,8 @@ Your fair use and other rights are in no way affected by the above.
 	PlanetEntity	*the_planet =  [self findNearestPlanet];
 	if (the_planet)
 	{
-		destination = [the_planet getPosition];
-		desired_range = [the_planet collisionRadius] + 100.0;   // 100m from the surface
+		destination = the_planet->position;
+		desired_range = the_planet->collision_radius + 100.0;   // 100m from the surface
 	}
 }
 
@@ -719,8 +720,8 @@ Your fair use and other rights are in no way affected by the above.
 	PlanetEntity	*the_planet =  [self findNearestPlanet];
 	if (the_planet)
 	{
-		destination = [the_planet getPosition];
-		desired_range = [the_planet collisionRadius] + 10000.0;   // 10km from the surface
+		destination = the_planet->position;
+		desired_range = the_planet->collision_radius + 10000.0;   // 10km from the surface
 	}
 	else
 		NSLog(@"***** Ackk!! planet not found!!!");
@@ -780,7 +781,9 @@ Your fair use and other rights are in no way affected by the above.
 
 - (void) setDestinationToTarget
 {
-	destination = [[universe entityForUniversalID:primaryTarget] getPosition];
+	Entity* the_target = [universe entityForUniversalID:primaryTarget];
+	if (the_target)
+		destination = the_target->position;
 }
 
 - (void) checkCourseToDestination
@@ -810,10 +813,10 @@ Your fair use and other rights are in no way affected by the above.
 	for (i = 0; i < [entList count] ; i++)
 	{
 		Entity* thing = (Entity *)[entList objectAtIndex:i];
-		if (([thing isKindOfClass:[ShipEntity class]])&&([thing scanClass] != CLASS_CARGO))
+		if ((thing->isShip)&&(thing->scan_class != CLASS_CARGO))
 		{
 			ShipEntity* ship = (ShipEntity *)thing;
-			if (([ship getStatus] != STATUS_DEAD)&&([ship getStatus] != STATUS_DOCKED))
+			if ((ship->status != STATUS_DEAD)&&(ship->status != STATUS_DOCKED))
 			{
 				double	d2;
 				BOOL	is_thargoid = [[ship roles] isEqual:@"thargoid"];
@@ -821,7 +824,7 @@ Your fair use and other rights are in no way affected by the above.
 				if (is_thargoid)
 					legal_factor += 500;
 				int random_factor = ranrot_rand() & 255;   // 25% chance of spotting a fugitive in 15s
-				Vector delta = [ship getPosition];
+				Vector delta = ship->position;
 				delta.x -= position.x;  delta.y -= position.y;  delta.z -= position.z;
 				d2 = delta.x*delta.x + delta.y*delta.y + delta.z*delta.z;
 				if ((d2 < found_d2)&&(random_factor < legal_factor)&&(legal_factor > worst_legal_factor))
@@ -891,16 +894,16 @@ Your fair use and other rights are in no way affected by the above.
 	for (i = 0; i < [entList count] ; i++)
 	{
 		Entity* thing = (Entity *)[entList objectAtIndex:i];
-		if ([thing isKindOfClass:[ShipEntity class]])
+		if (thing->isShip)
 		{
-			Vector delta = [thing getPosition];
+			Vector delta = thing->position;
 			delta.x -= position.x;  delta.y -= position.y;  delta.z -= position.z;
 			d2 = delta.x*delta.x + delta.y*delta.y + delta.z*delta.z;
 			if (d2 < found_d2)
 			{
 				ShipEntity  *ship = (ShipEntity *)thing;
 				// tell it! //
-				if ([ship isKindOfClass:[PlayerEntity class]])
+				if (ship->isPlayer)
 				{
 					if ((primaryAggressor == [ship universal_id])&&(energy < 0.375 * max_energy)&&(!is_buoy))
 					{
@@ -914,7 +917,7 @@ Your fair use and other rights are in no way affected by the above.
 					//
 					thanked_ship_id = NO_TARGET;
 				}
-				if ([ship isKindOfClass:[StationEntity class]])
+				if (ship->isStation)
 					[ship acceptDistressMessageFrom:self];
 				if ([[ship roles] isEqual:@"police"])
 					[ship acceptDistressMessageFrom:self];
@@ -986,11 +989,11 @@ Your fair use and other rights are in no way affected by the above.
 	for (i = 0; i < [entList count] ; i++)
 	{
 		Entity* thing = (Entity *)[entList objectAtIndex:i];
-		if ([thing isKindOfClass:[ShipEntity class]])
+		if (thing->isShip)
 		{
 			double d2;
 			ShipEntity *ship = (ShipEntity *)thing;
-			Vector delta = [thing getPosition];
+			Vector delta = thing->position;
 			delta.x -= position.x;  delta.y -= position.y;  delta.z -= position.z;
 			d2 = delta.x*delta.x + delta.y*delta.y + delta.z*delta.z;
 			if (([[ship roles] isEqual:@"thargoid"])&&(d2 < found_d2))
@@ -1016,7 +1019,7 @@ Your fair use and other rights are in no way affected by the above.
 			for (i = 0; i < [entList count] ; i++)
 			{
 				Entity* thing = (Entity *)[entList objectAtIndex:i];
-				if ([thing isKindOfClass:[ShipEntity class]])
+				if (thing->isShip)
 				{
 					ShipEntity* other = (ShipEntity*)thing;
 					if (([other getPrimaryTarget] == self)&&([other hasHostileTarget]))
@@ -1039,17 +1042,17 @@ Your fair use and other rights are in no way affected by the above.
 	for (i = 0; i < [entList count] ; i++)
 	{
 		Entity* thing = (Entity *)[entList objectAtIndex:i];
-		if ([thing isKindOfClass:[ShipEntity class]])
+		if (thing->isShip)
 		{
 			double d2;
 			NSString *shiproles = [(ShipEntity *)thing roles];
-			Vector delta = [thing getPosition];
+			Vector delta = thing->position;
 			delta.x -= position.x;  delta.y -= position.y;  delta.z -= position.z;
 			d2 = delta.x*delta.x + delta.y*delta.y + delta.z*delta.z;
-			if (([thing scanClass] != CLASS_CARGO)&&([thing getStatus] != STATUS_DOCKED)&&(![shiproles hasPrefix:@"tharg"])&&(d2 < found_d2))
+			if ((thing->scan_class != CLASS_CARGO)&&(thing->status != STATUS_DOCKED)&&(![shiproles hasPrefix:@"tharg"])&&(d2 < found_d2))
 			{
 				found_target = [thing universal_id];
-				if ([thing isKindOfClass:[PlayerEntity class]]) d2 = 0.0;   // prefer the player
+				if (thing->isPlayer) d2 = 0.0;   // prefer the player
 				found_d2 = d2;
 			}
 		}
@@ -1090,13 +1093,13 @@ Your fair use and other rights are in no way affected by the above.
 	for (i = 0; i < [entList count] ; i++)
 	{
 		Entity* thing = (Entity *)[entList objectAtIndex:i];
-		if ([thing isKindOfClass:[ShipEntity class]])
+		if (thing->isShip)
 		{
 			double d2;
-			Vector delta = [thing getPosition];
+			Vector delta = thing->position;
 			delta.x -= position.x;  delta.y -= position.y;  delta.z -= position.z;
 			d2 = delta.x*delta.x + delta.y*delta.y + delta.z*delta.z;
-			if ((([thing scanClass] == CLASS_THARGOID)||(([(ShipEntity *)thing getPrimaryTarget] == self)&&([(ShipEntity *)thing hasHostileTarget])))&&(d2 < found_d2))
+			if (((thing->scan_class == CLASS_THARGOID)||(([(ShipEntity *)thing getPrimaryTarget] == self)&&([(ShipEntity *)thing hasHostileTarget])))&&(d2 < found_d2))
 			{
 				found_target = [thing universal_id];
 				found_d2 = d2;
@@ -1275,7 +1278,7 @@ Your fair use and other rights are in no way affected by the above.
 	for (i = 0; i < [entList count] ; i++)
 	{
 		Entity* thing = (Entity *)[entList objectAtIndex:i];
-		if (([thing isKindOfClass:[ShipEntity class]])&&(thing != (Entity *)self))
+		if ((thing->isShip)&&(thing != (Entity *)self))
 		{
 			ShipEntity* ship = (ShipEntity *)thing;
 			pair_okay = ([roles isEqual:@"escort"]&&[[ship roles] isEqual:@"trader"]);
@@ -1284,7 +1287,7 @@ Your fair use and other rights are in no way affected by the above.
 			if (pair_okay)
 			{
 				double d2;
-				Vector delta = [ship getPosition];
+				Vector delta = ship->position;
 				delta.x -= position.x;  delta.y -= position.y;  delta.z -= position.z;
 				d2 = delta.x*delta.x + delta.y*delta.y + delta.z*delta.z;
 				if (d2 < found_d2)
@@ -1329,11 +1332,15 @@ Your fair use and other rights are in no way affected by the above.
 	{
 //		NSLog(@"DEBUG patrol ship %@ %d has reached patrol check point... %d", name, universal_id, patrol_counter);
 //
-		Vector sun_pos = [[universe sun] getPosition];
-		Vector stn_pos = [[universe station] getPosition];
+		Entity* the_sun = [universe sun];
+		Entity* the_station = [universe station];
+		if ((!the_sun)||(!the_station))
+			return;
+		Vector sun_pos = the_sun->position;
+		Vector stn_pos = the_station->position;
 		Vector sun_dir =  make_vector( sun_pos.x - stn_pos.x, sun_pos.y - stn_pos.y, sun_pos.z - stn_pos.z);
 		Vector vSun = unit_vector( &sun_dir);
-		Vector v0 = vector_forward_from_quaternion([[universe station] QRotation]);
+		Vector v0 = vector_forward_from_quaternion(the_station->q_rotation);
 		Vector v1 = cross_product( v0, vSun);
 		Vector v2 = cross_product( v0, v1);
 		switch (patrol_counter)
@@ -1402,8 +1409,11 @@ Your fair use and other rights are in no way affected by the above.
 
 - (void) setSunSkimExitCoordinates
 {
+	Entity* the_sun = [universe sun];
+	if (!the_sun)
+		return;
 	Vector v1 = [universe getSunSkimEndPositionForShip:self];
-	Vector vs = [[universe sun] getPosition];
+	Vector vs = the_sun->position;
 	Vector vout = make_vector( v1.x - vs.x, v1.y - vs.y, v1.z - vs.z);
 	vout = unit_vector(&vout);
 	v1.x += 10000 * vout.x;	v1.y += 10000 * vout.y;	v1.z += 10000 * vout.z;
@@ -1418,13 +1428,14 @@ Your fair use and other rights are in no way affected by the above.
 
 - (void) checkForMotherStation
 {
-	if (![[self owner] isKindOfClass:[StationEntity class]])
+	Entity* my_owner = [self owner];
+	if ((!my_owner) || (!(my_owner->isStation)))
 	{
 		[shipAI message:@"NOTHING_FOUND"];
 		return;
 	}
 	StationEntity* motherStation = (StationEntity*)[self owner];
-	Vector v0 = [motherStation getPosition];
+	Vector v0 = motherStation->position;
 	Vector rpos = make_vector( position.x - v0.x, position.y - v0.y, position.z - v0.z);
 	double found_d2 = scanner_range * scanner_range;
 	if (magnitude2(rpos) > found_d2)
@@ -1438,7 +1449,7 @@ Your fair use and other rights are in no way affected by the above.
 - (void) sendTargetCommsMessage:(NSString*) message
 {
 	ShipEntity* ship = (ShipEntity*)[self getPrimaryTarget];
-	if ((!ship)||([ship getStatus] == STATUS_DEAD)||([ship getStatus] == STATUS_DOCKED))
+	if ((!ship)||(ship->status == STATUS_DEAD)||(ship->status == STATUS_DOCKED))
 	{
 		primaryTarget = NO_TARGET;
 		[shipAI reactToMessage:@"TARGET_LOST"];
@@ -1450,7 +1461,7 @@ Your fair use and other rights are in no way affected by the above.
 - (void) markTargetForFines
 {
 	ShipEntity* ship = (ShipEntity*)[self getPrimaryTarget];
-	if ((!ship)||([ship getStatus] == STATUS_DEAD)||([ship getStatus] == STATUS_DOCKED))
+	if ((!ship)||(ship->status == STATUS_DEAD)||(ship->status == STATUS_DOCKED))
 	{
 		primaryTarget = NO_TARGET;
 		[shipAI reactToMessage:@"TARGET_LOST"];
@@ -1470,13 +1481,13 @@ Your fair use and other rights are in no way affected by the above.
 	for (i = 0; i < [entList count] ; i++)
 	{
 		Entity* thing = (Entity *)[entList objectAtIndex:i];
-		if ([thing isKindOfClass:[ShipEntity class]])
+		if (thing->isShip)
 		{
 			NSString* ship_role = [(ShipEntity *)thing roles];
 			if ([ship_role isEqual:@"boulder"])
 			{
 				double d2;
-				Vector delta = [thing getPosition];
+				Vector delta = thing->position;
 				delta.x -= position.x;  delta.y -= position.y;  delta.z -= position.z;
 				d2 = delta.x*delta.x + delta.y*delta.y + delta.z*delta.z;
 				if (d2 < found_d2)
@@ -1492,13 +1503,13 @@ Your fair use and other rights are in no way affected by the above.
 		for (i = 0; i < [entList count] ; i++)
 		{
 			Entity* thing = (Entity *)[entList objectAtIndex:i];
-			if ([thing isKindOfClass:[ShipEntity class]])
+			if (thing->isShip)
 			{
 				NSString* ship_role = [(ShipEntity *)thing roles];
 				if ([ship_role isEqual:@"asteroid"])
 				{
 					double d2;
-					Vector delta = [thing getPosition];
+					Vector delta = thing->position;
 					delta.x -= position.x;  delta.y -= position.y;  delta.z -= position.z;
 					d2 = delta.x*delta.x + delta.y*delta.y + delta.z*delta.z;
 					if (d2 < found_d2)
@@ -1524,9 +1535,10 @@ Your fair use and other rights are in no way affected by the above.
 
 - (void) setDestinationToDockingAbort
 {
+	Entity* the_target = [self getPrimaryTarget];
 	double bo_distance = 8000; //	8km back off
 	Vector v0 = position;
-	Vector d0 = [[self getPrimaryTarget] getPosition];
+	Vector d0 = (the_target)? the_target->position : make_vector(0,0,0);
 	v0.x += (randf() - 0.5)*collision_radius;	v0.y += (randf() - 0.5)*collision_radius;	v0.z += (randf() - 0.5)*collision_radius;
 	v0.x -= d0.x;	v0.y -= d0.y;	v0.z -= d0.z;
 	v0 = unit_vector(&v0);
@@ -1560,14 +1572,14 @@ Your fair use and other rights are in no way affected by the above.
 	for (i = 0; i < [entList count] ; i++)
 	{
 		Entity* thing = (Entity *)[entList objectAtIndex:i];
-		if ([thing isKindOfClass:[ShipEntity class]])
+		if (thing->isShip)
 		{
 			double d2;
 			double e1 = [thing getEnergy];
-			Vector delta = [thing getPosition];
+			Vector delta = thing->position;
 			delta.x -= position.x;  delta.y -= position.y;  delta.z -= position.z;
 			d2 = delta.x*delta.x + delta.y*delta.y + delta.z*delta.z;
-			if ((([thing scanClass] == CLASS_THARGOID)||(([(ShipEntity *)thing getPrimaryTarget] == mother)&&([(ShipEntity *)thing hasHostileTarget])))&&(d2 < found_d2))
+			if (((thing->scan_class == CLASS_THARGOID)||(([(ShipEntity *)thing getPrimaryTarget] == mother)&&([(ShipEntity *)thing hasHostileTarget])))&&(d2 < found_d2))
 			{
 				if (e1 > max_e)
 				{
@@ -1587,4 +1599,3 @@ Your fair use and other rights are in no way affected by the above.
 }
 
 @end
-

@@ -173,6 +173,20 @@
 		<string>EQ_QC_MINE</string>
 		<string>Tyley-Feynman Quirium cascade mine. Mounts in place of a missile, but deploys to the rear of your craft. Capable of massive destruction and triggering chain reactions in the witchdrives of ships caught in its blast range.</string>
 	</array>
+	<array>
+		<integer>10</integer>
+		<integer>147500</integer>
+		<string>Shield Boosters</string>
+		<string>EQ_SHIELD_BOOSTER</string>
+		<string>Shield boosting technology dramatically increases the capability of standard defensive shields.</string>
+	</array>
+	<array>
+		<integer>13</integer>
+		<integer>475500</integer>
+		<string>Military Shield Enhancement</string>
+		<string>EQ_NAVAL_SHIELD_BOOSTER</string>
+		<string>Military technology, used in conjunction with ordinary shields and shield boosting technology, further increases the capability of standard defensive shields.</string>
+	</array>
 <!-- next item was a test item -->
 <!--
 -->

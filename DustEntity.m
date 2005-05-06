@@ -132,6 +132,7 @@ Your fair use and other rights are in no way affected by the above.
 
 	if (translucent)
 	{
+		Entity* player = [universe entityZero];
 		glEnable(GL_FOG);
 		glFogi(GL_FOG_MODE, GL_LINEAR);
 		glFogfv(GL_FOG_COLOR, fogcolor);
@@ -150,7 +151,7 @@ Your fair use and other rights are in no way affected by the above.
 		
 		glPushMatrix();
 		
-		offset = [[universe entityZero] getPosition];
+		offset = (player)? player->position: position;
 		
 		if (!warp_stars)
 		{
@@ -197,4 +198,3 @@ Your fair use and other rights are in no way affected by the above.
 }
 
 @end
-

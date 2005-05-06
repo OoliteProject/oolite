@@ -228,7 +228,8 @@ Your fair use and other rights are in no way affected by the above.
 	
 	if ([gameController universe])
 	{
-		Vector sun_pos = [[[gameController universe] sun] getPosition];
+		Entity* the_sun = [[gameController universe] sun];
+		Vector sun_pos = (the_sun)? the_sun->position : make_vector(0,0,0);
 		sun_center_position[0] = sun_pos.x;
 		sun_center_position[1] = sun_pos.y;
 		sun_center_position[2] = sun_pos.z;
@@ -356,6 +357,8 @@ Your fair use and other rights are in no way affected by the above.
 
 //- (BOOL)performKeyEquivalent:(NSEvent *)theEvent
 //{
+//	return NO;
+//	
 //	if ([gameController inFullScreenMode])
 //	{
 //		NSLog(@"DEBUG [gameController inFullScreenMode] MyOpenGLView trying to performKeyEquivalent:%@", [theEvent description]);
@@ -367,7 +370,7 @@ Your fair use and other rights are in no way affected by the above.
 //		return [super performKeyEquivalent: theEvent];
 //	}
 //}
-
+//
 - (void) keyUp:(NSEvent *)theEvent
 {
 	int key = [[theEvent charactersIgnoringModifiers] characterAtIndex:0];
@@ -615,4 +618,3 @@ Your fair use and other rights are in no way affected by the above.
 } 
 
 @end
-

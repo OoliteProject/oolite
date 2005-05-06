@@ -310,11 +310,14 @@ Your fair use and other rights are in no way affected by the above.
 	int			ship_id = [ship universal_id];
 	NSString*   shipID = [NSString stringWithFormat:@"%d", ship_id];
 	
-	if (([ship isKindOfClass:[PlayerEntity class]])&&([ship legal_status] > 50))
+	if (!ship)
+		return position;
+	
+	if ((ship->isPlayer)&&([ship legal_status] > 50))
 	{
 		[[ship getAI] message:@"DOCKING_REFUSED"];
 		[self sendExpandedMessage:@"[station-docking-refused-to-fugitive]" toShip:ship];
-		return [ship getPosition];  // hold position
+		return ship->position;  // hold position
 	}
 	
 	
@@ -328,7 +331,7 @@ Your fair use and other rights are in no way affected by the above.
 	{
 //		NSLog(@"DEBUG %@ %d refusing because of no docking while launching", name, universal_id);
 		[[ship getAI] message:@"TRY_AGAIN_LATER"];
-		return [ship getPosition];  // hold position
+		return ship->position;  // hold position
 	}
 	
 	if	((magnitude2(velocity) > 1.0)||
@@ -337,7 +340,7 @@ Your fair use and other rights are in no way affected by the above.
 //		NSLog(@"DEBUG %@ %d refusing docking to %@ because of motion", name, universal_id, [ship name]);
 		[shipAI message:@"DOCKING_REQUESTED"];	// note the request.
 		[[ship getAI] message:@"HOLD_POSITION"];// send HOLD
-		return [ship getPosition];  // hold position
+		return ship->position;  // hold position
 	}
 	
 	if (![shipsOnApproach objectForKey:shipID])
@@ -385,7 +388,7 @@ Your fair use and other rights are in no way affected by the above.
 				c1.x -= offset2*v_off.x;
 				c1.y -= offset2*v_off.y;
 				c1.z -= offset2*v_off.z;
-				if (distance2(c0,[ship getPosition]) < distance2(c1,[ship getPosition]))
+				if (distance2(c0,ship->position) < distance2(c1,ship->position))
 				{
 					coords = c0;
 				}
@@ -431,7 +434,7 @@ Your fair use and other rights are in no way affected by the above.
 		if ([coordinatesStack count] == 0)
 		{
 			[[ship getAI] message:@"HOLD_POSITION"];	// not docked - try again
-			return [ship getPosition];
+			return ship->position;
 		}
 			
 		NSMutableDictionary* nextCoords = (NSMutableDictionary *)[coordinatesStack objectAtIndex:0];
@@ -449,7 +452,8 @@ Your fair use and other rights are in no way affected by the above.
 		Vector vk = v_forward;
 		if (scan_class == CLASS_STATION)
 		{
-			Vector v0 = [[universe sun] getPosition];
+			Entity* the_sun = [universe sun];
+			Vector v0 = (the_sun)? the_sun->position : make_vector(1,0,0);
 			vi = cross_product(vk,v0);
 			vj = cross_product(vk,vi);
 		}
@@ -458,9 +462,9 @@ Your fair use and other rights are in no way affected by the above.
 		coords.y += rel_coords.x * vi.y + rel_coords.y * vj.y + rel_coords.z * vk.y;
 		coords.z += rel_coords.x * vi.z + rel_coords.y * vj.z + rel_coords.z * vk.z;
 		
-		double allowed_range = 100.0 + [ship collisionRadius];
+		double allowed_range = 100.0 + ship->collision_radius;
 		
-		Vector ship_position = [ship getPosition];
+		Vector ship_position = ship->position;
 		Vector delta = coords;
 		delta.x -= ship_position.x;	delta.y -= ship_position.y;	delta.z -= ship_position.z;
 	
@@ -532,7 +536,8 @@ Your fair use and other rights are in no way affected by the above.
 			Vector vk = v_forward;
 			if (scan_class == CLASS_STATION)
 			{
-				Vector v0 = [[universe sun] getPosition];
+				Entity* the_sun = [universe sun];
+				Vector v0 = (the_sun)? the_sun->position : make_vector(1,0,0);
 				vi = cross_product(vk,v0);
 				vj = cross_product(vk,vi);
 			}
@@ -648,7 +653,9 @@ Your fair use and other rights are in no way affected by the above.
 	
 	Vector result = vector_right_from_quaternion( quaternion_multiply( port_qrotation, q_rotation));
 	
-//	NSLog(@"portUpVector = [%.3f, %.3f, %.3f] v_up = [%.3f, %.3f, %.3f]",
+	result.x = - result.x;	result.y = - result.y;	result.z = - result.z;
+	
+//	NSLog(@"DEBUG %@ portUpVector = [%.3f, %.3f, %.3f] v_up = [%.3f, %.3f, %.3f]", self,
 //		result.x, result.y, result.z, v_up.x, v_up.y, v_up.z);
 	
 	return result;
@@ -699,6 +706,9 @@ Your fair use and other rights are in no way affected by the above.
 	last_patrol_report_time = 0.0;
 	patrol_launch_interval = 300.0;	// 5 minutes
 	last_patrol_report_time -= patrol_launch_interval;
+	//
+	isShip = YES;
+	isStation = YES;
 	
 	return self;
 }
@@ -733,6 +743,9 @@ Your fair use and other rights are in no way affected by the above.
 	police_launched = 0;
 	last_launch_time = 0.0;
 	no_docking_while_launching = NO;
+	//
+	isShip = YES;
+	isStation = YES;
 }
 
 - (id) initWithDictionary:(NSDictionary *) dict
@@ -776,6 +789,9 @@ Your fair use and other rights are in no way affected by the above.
 	int i;
 	for (i = 0; i < MAX_DOCKING_STAGES; i++)
 		id_lock[i] = NO_TARGET;
+
+	isShip = YES;
+	isStation = YES;
 
 	return self;
 }
@@ -899,28 +915,22 @@ Your fair use and other rights are in no way affected by the above.
 
 - (BOOL) checkCloseCollisionWith:(Entity *)other
 {
-//	BOOL standard_port = ![roles isEqual:@"rockhermit"];
+	if (!other)
+		return NO;
 	//
 	//  check if other is within docking corridor
 	//
 	//NSLog(@"Checking Station CloseContact...");
 	//
-	if ([universe strict]&&(self != [universe station])&&[other isKindOfClass:[PlayerEntity class]])
+	if ([universe strict]&&(self != [universe station])&&(other->isPlayer))
 	{
 		// in a strict universe the player can only dock with the main station
 		return [super checkCloseCollisionWith:other];
 	}
 	//
-	if ([other isKindOfClass:[ShipEntity class]])
+	if (other->isShip)
 	{
 		Vector rel_pos, delta, prt_pos;
-//		// port dimensions..
-//		double ww = (standard_port)? 32: 69;
-//		double hh = (standard_port)? 96: 69;
-//		double dd = (standard_port)? 250: 250;
-//		// reduced dimensions for fudging..
-//		double w1 = (standard_port)? 24: 51;
-//		double h1 = (standard_port)? 72: 51;
 		// port dimensions..
 		double ww = port_dimensions.x;
 		double hh = port_dimensions.y;
@@ -929,7 +939,7 @@ Your fair use and other rights are in no way affected by the above.
 		double w1 = ww * 0.75;
 		double h1 = hh * 0.75;
 		ShipEntity* ship =  (ShipEntity *) other;
-		double radius =		[ship collisionRadius];
+		double radius =		ship->collision_radius;
 		
 		// check if the ship is too big for the port and fudge things accordingly
 		BoundingBox shipbb = [ship getBoundingBox];
@@ -940,7 +950,7 @@ Your fair use and other rights are in no way affected by the above.
 				
 		//NSLog(@"DEBUG Checking docking corridor...");
 		prt_pos = [self getPortPosition];
-		rel_pos = [ship getPosition];
+		rel_pos = ship->position;
 		rel_pos.x -= prt_pos.x;
 		rel_pos.y -= prt_pos.y;
 		rel_pos.z -= prt_pos.z;
@@ -1003,7 +1013,7 @@ Your fair use and other rights are in no way affected by the above.
 					delta.x = 0;
 				if ((arbb.max_y > 96)&&(arbb.min_x > - 96))
 					delta.y = 0;
-				Vector pos = [ship getPosition];
+				Vector pos = ship->position;
 				pos.x -= delta.y * v_up.x + delta.x * v_right.x;
 				pos.y -= delta.y * v_up.y + delta.x * v_right.y;
 				pos.z -= delta.y * v_up.z + delta.x * v_right.z;
@@ -1580,7 +1590,7 @@ Your fair use and other rights are in no way affected by the above.
 {
 	// launch docked ships if possible
 	PlayerEntity* player = (PlayerEntity*)[universe entityZero];
-	if (([player getStatus] == STATUS_DOCKED)&&([player docked_station] == self))
+	if ((player)&&(player->status == STATUS_DOCKED)&&([player docked_station] == self))
 	{
 		// undock the player!
 		[player leaveDock:self];
@@ -1640,4 +1650,3 @@ Your fair use and other rights are in no way affected by the above.
 }
 
 @end
-
