@@ -158,16 +158,36 @@ extern int debug;
     //
     Universe	*universe;
 	int			universal_id;				// used to reference the entity
+	//
+	//////////////////////////////////////////////////////
+	//
+	// @public variables:
+	//
+	// we forego encapsulation for some variables in order to
+	// lose the overheads of Obj-C accessor methods...
+	//
+	@public	BOOL	isParticle;
+	@public	BOOL	isRing;
+	@public	BOOL	isShip;
+	@public	BOOL	isStation;
+	@public	BOOL	isPlanet;
+	@public	BOOL	isPlayer;
     //
-    Vector	position;
+	@public	int			scan_class;
+	@public	double		zero_distance;
+	@public	double		collision_radius;
+    @public	Vector		position;
+    @public	Quaternion	q_rotation;
+	@public	int			status;
+	//
+	//////////////////////////////////////////////////////
+	//
     Vector	relative_position;
-	double  zero_distance;
 	double  no_draw_distance;  //  10 km
 	//
 	double  distance_travelled; // set to zero initially
 	//
     Matrix	rotation;
-    Quaternion	q_rotation;
     gl_matrix	rotMatrix;
     //
 	Vector		velocity;
@@ -177,13 +197,8 @@ extern int debug;
 	int		track_index;
 	double	track_time;
 	//
-	int		scan_class;
-    int		status;
-	//
 	double  energy;
 	double  max_energy;
-	//
-	double  collision_radius;
 	//
 	NSMutableArray  *collidingEntities;
     //

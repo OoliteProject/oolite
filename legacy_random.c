@@ -63,7 +63,7 @@ int munge_checksum(int value)
 //
 unsigned int m_high;
 unsigned int m_low;
-void ranrot_srand(unsigned int seed)
+inline void ranrot_srand(unsigned int seed)
 {
 
 //	printf("***** DEBUG Random seed %d\n", seed);
@@ -72,7 +72,7 @@ void ranrot_srand(unsigned int seed)
 	m_high = ~seed;
 	ranrot_rand();	ranrot_rand();	ranrot_rand();  // mix it up a bit
 }
-int ranrot_rand()
+inline int ranrot_rand()
 {
 	m_high = (m_high<<16) + (m_high>>16);
 	m_high += m_low;
@@ -138,7 +138,7 @@ void clear_carry_flag (void)
 	carry_flag = 0;
 }
 
-float randf (void)
+inline float randf (void)
 {
 	return 0.0009765625 * (ranrot_rand() & 1023);
 }

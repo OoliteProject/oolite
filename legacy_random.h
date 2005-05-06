@@ -70,8 +70,8 @@ int munge_checksum(int value);
 // an implementation of RANROT
 // pseudo random number generator
 //
-void ranrot_srand(unsigned int seed);
-int ranrot_rand();
+inline void ranrot_srand(unsigned int seed);
+inline int ranrot_rand();
 
 double distanceBetweenPlanetPositions ( int x1, int y1, int x2, int y2);
 double accurateDistanceBetweenPlanetPositions ( int x1, int y1, int x2, int y2);
@@ -83,7 +83,7 @@ void setRandomSeed (RNG_Seed a_seed);
 int get_carry_flag (void);
 void clear_carry_flag (void);
 
-float randf (void);
+inline float randf (void);
 
 int gen_rnd_number (void);
 

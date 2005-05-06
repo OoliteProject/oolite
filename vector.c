@@ -148,14 +148,14 @@ void mult_vector_gl_matrix (struct vector *vec, GLfloat *glmat)
 
 // returns the square of the magnitude of the vector
 //
-double magnitude2 (Vector vec)
+inline GLfloat magnitude2 (Vector vec)
 {
 	return vec.x * vec.x + vec.y * vec.y + vec.z * vec.z;
 }
 
 // returns the square of the distance between two points
 //
-double distance2 (Vector v1, Vector v2)
+inline GLfloat distance2 (Vector v1, Vector v2)
 {
 	return (v1.x - v2.x) * (v1.x - v2.x) + (v1.y - v2.y) * (v1.y - v2.y) + (v1.z - v2.z) * (v1.z - v2.z);
 }
@@ -163,7 +163,7 @@ double distance2 (Vector v1, Vector v2)
 // Calculate the dot product of two vectors sharing a common point.
 // Returns the cosine of the angle between the two vectors.
 //
-GLfloat dot_product (Vector first, Vector second)
+inline GLfloat dot_product (Vector first, Vector second)
 {
 	return (first.x * second.x) + (first.y * second.y) + (first.z * second.z);	
 }
@@ -201,7 +201,7 @@ Vector normal_to_surface (Vector v1, Vector v2, Vector v3)
 
 // make a vector
 //
-struct vector make_vector (GLfloat vx, GLfloat vy, GLfloat vz)
+inline struct vector make_vector (GLfloat vx, GLfloat vy, GLfloat vz)
 {
 	Vector result;
 	result.x = vx;

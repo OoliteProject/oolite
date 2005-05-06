@@ -86,13 +86,13 @@ void	mult_vector (struct vector *vec, struct vector *mat);
 //
 void mult_vector_gl_matrix (struct vector *vec, GLfloat *glmat);
 
-double magnitude2 (Vector vec);
-double distance2 (Vector v1, Vector v2);
-GLfloat dot_product (Vector first, Vector second);
+inline GLfloat magnitude2 (Vector vec);
+inline GLfloat distance2 (Vector v1, Vector v2);
+inline GLfloat dot_product (Vector first, Vector second);
 Vector cross_product (Vector first, Vector second);
 Vector normal_to_surface (Vector v1, Vector v2, Vector v3);
 
-struct vector make_vector (GLfloat vx, GLfloat vy, GLfloat vz);
+inline struct vector make_vector (GLfloat vx, GLfloat vy, GLfloat vz);
 struct vector unit_vector (struct vector *vec);
 void	set_matrix_identity (struct vector *mat);
 void	tidy_matrix (struct vector *mat);
