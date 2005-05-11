@@ -140,11 +140,6 @@ extern int debug;
 - (NSString *) playerFileToLoad;
 - (void) setPlayerFileToLoad:(NSString *)filename;
 
-#ifdef GNUSTEP
-// dajt: need this to create the window and view
-- (void) applicationWillFinishLaunching: (NSNotification *) notification;
-#endif
-
 // dajt: added to make things a bit neater
 - (void) applicationDidFinishLaunching: (NSNotification*) notification;
 

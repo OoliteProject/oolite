@@ -173,7 +173,7 @@ extern int debug;
 
 @interface Universe : NSObject
 {
-		NSView			*gameView;
+		MyOpenGLView	*gameView;
         TextureStore	*textureStore;
         
 #ifndef GNUSTEP        
@@ -348,8 +348,8 @@ extern int debug;
 - (int) unitsForCommodity:(int) co_type;
 - (NSString *) describeCommodity:(int) co_type amount:(int) co_amount;
 
-- (void) setGameView:(NSView *)view;
-- (NSView *) gameView;
+- (void) setGameView:(MyOpenGLView *)view;
+- (MyOpenGLView *) gameView;
 - (GameController *) gameController;
 
 - (TextureStore *) textureStore;

@@ -90,13 +90,14 @@ enum GameViewKeys
 	
 extern int debug;
 
-@interface MyOpenGLView : NSOpenGLView
+@interface MyOpenGLView : NSObject
 {
 	IBOutlet GameController  *gameController;
 	
 	OpenGLSprite* splashSprite;
 	
 	BOOL keys[NUM_KEYS];
+
 	BOOL opt, ctrl, command, shift;
 	BOOL allowingStringInput;
 	BOOL isAlphabetKeyDown;
@@ -108,13 +109,16 @@ extern int debug;
     double 	squareX,squareY;
 	
 	NSMutableString	*typedString;
-		
+	NSRect bounds;
 	NSSize  viewSize;
 	GLfloat display_z;
 	
-//	GLuint	splashScreenTexture;
-	
 	NSPoint virtualJoystickPosition;
+
+	NSSize screenSizes[3];
+	int currentSize;
+	BOOL fullScreen;
+	SDL_Surface* surface;
 }
 
 // override
@@ -127,6 +131,7 @@ extern int debug;
 - (void) resetTypedString;
 - (void) setTypedString:(NSString*) value;
 
+- (NSRect) bounds;
 - (NSSize) viewSize;
 - (GLfloat) display_z;
 
@@ -136,6 +141,7 @@ extern int debug;
 - (void) initialiseGLWithSize:(NSSize) v_size;
 
 - (void)drawRect:(NSRect)rect;
+- (void) display;
 
 - (void) snapShot;
 
@@ -148,7 +154,6 @@ extern int debug;
 - (NSPoint) virtualJoystickPosition;
 
  - (void) clearKeys;
- - (BOOL) isAlphabetKeyDown;
  - (BOOL) isDown: (int) key;
  - (BOOL) isOptDown;
  - (BOOL) isCtrlDown;
@@ -157,4 +162,3 @@ extern int debug;
  - (int) numKeys;
 
 @end
-

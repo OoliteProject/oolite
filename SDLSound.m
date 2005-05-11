@@ -65,7 +65,7 @@
 {
 	[super init];
 
-	NSLog(@"loading sample: %s", [filepath cString]);
+	//NSLog(@"loading sample: %s", [filepath cString]);
 	sample = Mix_LoadWAV([filepath cString]);
 	if (!sample) {
 		NSLog(@"Mix_LoadWAV: %s\n", Mix_GetError());

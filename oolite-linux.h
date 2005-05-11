@@ -17,4 +17,5 @@
 #include "SDL.h"
 #include "SDL_mixer.h"
 
+#define MAX_CHANNELS 16
 #endif /* OOLITE_LINUX */

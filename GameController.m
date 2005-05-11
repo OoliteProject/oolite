@@ -311,65 +311,25 @@ static int _compareModes(id arg1, id arg2, void *context)
 	[gameView setGameController:self];
 }
 
-#ifdef GNUSTEP
-// dajt: create a window and view - this is required because GNUstep port doesn't use
-// a NIB to do this.
-// TODO: get rid of hardcoded window size
-- (void) applicationWillFinishLaunching: (NSNotification *) notification
-{
-  NSRect rect;
-  MyOpenGLView* tmpView;
-  
-  unsigned int styleMask = NSTitledWindowMask | NSResizableWindowMask | NSMiniaturizableWindowMask;
-  
-  rect = NSMakeRect (100, 100, DISPLAY_MIN_WIDTH, DISPLAY_MIN_HEIGHT);
-
-  NSLog(@"GameController.createWindow: creating gameWindow");
-  gameWindow = [NSWindow alloc];
-  gameWindow = [gameWindow initWithContentRect: rect
-                       styleMask: styleMask
-                       backing: NSBackingStoreBuffered
-                       defer: NO];
-  [gameWindow setTitle: @"GNUstep Oolite"];
-
-  NSLog(@"GameController.createWindow: creating gameView");
-  tmpView = [[MyOpenGLView alloc] initWithFrame: NSMakeRect(0, 0, DISPLAY_MIN_WIDTH, DISPLAY_MIN_HEIGHT) pixelFormat: [NSOpenGLView defaultPixelFormat]];
-  [gameWindow setContentView: tmpView];
-  [self setGameView: tmpView];
-}
-
-#endif
-
 - (void) applicationDidFinishLaunching: (NSNotification*) notification
 {
 #ifdef GNUSTEP
-	NSLog(@"initialising SDL");
-	if (SDL_Init(SDL_INIT_AUDIO) < 0)
-	{
-		NSLog(@"Unable to init SDL: %s\n", SDL_GetError());
-    }
-	else if (Mix_OpenAudio(44100, AUDIO_S16LSB, 2, 2048) < 0)
-	{
-		NSLog(@"Mix_OpenAudio: %s\n", Mix_GetError());
-	}
-
-	Mix_AllocateChannels(16);
-	//Mix_ChannelFinished(channelDone);
-	//Mix_HookMusicFinished(musicFinished);
+	gameView = [[MyOpenGLView alloc] initWithFrame: NSMakeRect(0, 0, DISPLAY_MIN_WIDTH, DISPLAY_MIN_HEIGHT)];
+	[gameView setGameController: self];
 #endif
 
 	//
 	// ensure the gameView is drawn to, so OpenGL is initialised and so textures can initialse.
 	//
 	[gameView drawRect:[gameView bounds]];
-	
+
 	[self beginSplashScreen];
 	[self logProgress:@"initialising..."];
 	//
 	// check user defaults
 	//
-	width = 640;	//  standard screen is 640x480 pixels, 32 bit color, 32 bit z-buffer, refresh rate 75Hz
-	height = 480;
+	width = DISPLAY_MIN_WIDTH;	//  standard screen is 640x480 pixels, 32 bit color, 32 bit z-buffer, refresh rate 75Hz
+	height = DISPLAY_MIN_HEIGHT;
     colorBits = 32;
     depthBits = 32;
     refresh = 75;
@@ -397,38 +357,21 @@ static int _compareModes(id arg1, id arg2, void *context)
 	{
 		// set full screen mode to first available mode
 		fullscreenDisplayMode = [displayModes objectAtIndex:0];
-#ifdef GNUSTEP
-		// dajt: assume windowed mode for GNUstep for now
-	  	NSLog(@"GameController.applicationDidFinishLaunching: showing window");
-		[gameWindow makeKeyAndOrderFront: nil];
-		[gameWindow makeFirstResponder: gameView];
-
-		NSLog(@"GameController.applicationDidFinishLaunching: doing further setup on OpenGL view");
-		[[gameView openGLContext] setView: gameView];
-		[[gameView openGLContext] makeCurrentContext];
-#else
+#ifndef GNUSTEP
         width = [[fullscreenDisplayMode objectForKey: (NSString *)kCGDisplayWidth] intValue];
         height = [[fullscreenDisplayMode objectForKey: (NSString *)kCGDisplayHeight] intValue];
         refresh = [[fullscreenDisplayMode objectForKey: (NSString *)kCGDisplayRefreshRate] intValue];
 #endif
 	}
-	
+
     // moved here to try to avoid initialising this before having an Open GL context
 	[self logProgress:@"initialising universe..."];
     universe = [[Universe alloc] init];
-
-#ifdef GNUSTEP
-	// dajt: force the OpenGL context to be initialised again as X windows
-	// should have caught up by now
-	// TODO: get rid of hardcoded window size
-	[gameView initialiseGLWithSize: NSMakeSize(DISPLAY_MIN_WIDTH, DISPLAY_MIN_HEIGHT)];
-#endif
-
 	[universe setGameView:gameView];
 
 	[self logProgress:@"loading player..."];
 	[self loadPlayerIfRequired];
-	
+
 	//
 	// get the run loop and add the call to doStuff
 	//
@@ -438,10 +381,10 @@ static int _compareModes(id arg1, id arg2, void *context)
     
     [[NSRunLoop currentRunLoop] addTimer:timer forMode:NSDefaultRunLoopMode];
 
-	
 	// set up the window to accept mouseMoved events
+#ifndef GNUSTEP
 	[gameWindow setAcceptsMouseMovedEvents:YES];
-
+#endif
 	//
 	[self endSplashScreen];
 }
@@ -477,8 +420,10 @@ static int _compareModes(id arg1, id arg2, void *context)
 
 - (void) endSplashScreen
 {
+#ifndef GNUSTEP
 	[gameWindow setContentView:gameView];
 	[gameWindow makeFirstResponder:gameView];
+#endif
 }
 
 - (void) doStuff: (id) sender

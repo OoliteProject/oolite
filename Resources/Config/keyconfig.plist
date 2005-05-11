@@ -59,7 +59,7 @@
 	<key>key_map_home</key>
 	<integer>302</integer>
 	<key>key_comms_log</key>
-	<integer>126</integer>
+	<integer>96</integer>
 	<key>key_next_compass_mode</key>
 	<integer>92</integer>
 </dict>
