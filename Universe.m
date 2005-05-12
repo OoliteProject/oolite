@@ -2467,14 +2467,14 @@ Your fair use and other rights are in no way affected by the above.
 
 ////////////////////////////////////////////////////
 
-- (void) setGameView:(NSView *)view
+- (void) setGameView:(MyOpenGLView *)view
 {
     if (gameView)	[gameView release];
     gameView = view;
     [gameView retain];
 }
 
-- (NSView *) gameView
+- (MyOpenGLView *) gameView
 {
     return gameView;
 }

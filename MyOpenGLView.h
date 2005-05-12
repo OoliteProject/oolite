@@ -36,8 +36,6 @@ Your fair use and other rights are in no way affected by the above.
 */
 #ifdef GNUSTEP
 #import <Foundation/Foundation.h>
-#import <AppKit/AppKit.h>
-#import <AppKit/NSOpenGLView.h>
 #else
 #import <Cocoa/Cocoa.h>
 #endif
@@ -92,7 +90,7 @@ extern int debug;
 
 @interface MyOpenGLView : NSObject
 {
-	IBOutlet GameController  *gameController;
+	GameController  *gameController;
 	
 	OpenGLSprite* splashSprite;
 	
@@ -145,11 +143,12 @@ extern int debug;
 
 - (void) snapShot;
 
+/*
 // These are standard methods in NSView.
 - (void)mouseDown:(NSEvent *)theEvent;
 - (void)mouseUp:(NSEvent *)theEvent;
 - (void)mouseDragged:(NSEvent *)theEvent;
-
+*/
 - (void) setVirtualJoystick:(double) vmx :(double) vmy;
 - (NSPoint) virtualJoystickPosition;
 

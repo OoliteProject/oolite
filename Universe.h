@@ -150,6 +150,8 @@ Your fair use and other rights are in no way affected by the above.
 
 #define	NUMBER_OF_STRICT_EQUIPMENT_ITEMS	16
 
+#define UNIVERSE_MAX_ENTITIES           1000
+
 //#import <OpenGL/glu.h>
 #ifdef LINUX
 #include "oolite-linux.h"

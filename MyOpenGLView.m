@@ -34,12 +34,9 @@ Any of these conditions can be waived if you get permission from the copyright h
 Your fair use and other rights are in no way affected by the above.
 
 */
-//#import <OpenGL/glext.h>
-
 #import "MyOpenGLView.h"
 
 #import "GameController.h"
-//#import "AppDelegate.h"
 #import "Universe.h"
 #import "TextureStore.h"
 #import "Entity.h"
@@ -292,7 +289,7 @@ Your fair use and other rights are in no way affected by the above.
 
 - (void) snapShot
 {
-    //NSRect boundsRect = [self bounds];
+	SDL_Surface* tmpSurface;
     int w = viewSize.width;
     int h = viewSize.height;
 
@@ -301,88 +298,48 @@ Your fair use and other rights are in no way affected by the above.
 
     long nPixels = w * h + 1;	
 
-	unsigned char   *red = (unsigned char *) malloc( nPixels);
-	unsigned char   *green = (unsigned char *) malloc( nPixels);
-	unsigned char   *blue = (unsigned char *) malloc( nPixels);
-
 	NSString	*filepath = [[[NSBundle mainBundle] bundlePath] stringByDeletingLastPathComponent];
 	int imageNo = 1;
 
-   // In the GNUstep source, representationUsingType is marked as
-   // TODO: and does nothing but return NIL! So for GNUstep we fall
-   // back to the methods used in oolite 1.30.
-#ifdef GNUSTEP
 	NSString	*pathToPic = 
       [filepath stringByAppendingPathComponent:
-         [NSString stringWithFormat:@"oolite-%03d.tiff",imageNo]];
+         [NSString stringWithFormat:@"oolite-%03d.bmp",imageNo]];
 	while ([[NSFileManager defaultManager] fileExistsAtPath:pathToPic])
 	{
 		imageNo++;
-		pathToPic = [filepath stringByAppendingPathComponent:[NSString stringWithFormat:@"oolite-%03d.tiff",imageNo]];
+		pathToPic = [filepath stringByAppendingPathComponent:[NSString stringWithFormat:@"oolite-%03d.bmp",imageNo]];
 	}
-#else   
-	NSString	*pathToPic = [filepath stringByAppendingPathComponent:[NSString stringWithFormat:@"oolite-%03d.png",imageNo]];
-		
-	while ([[NSFileManager defaultManager] fileExistsAtPath:pathToPic])
-	{
-		imageNo++;
-		pathToPic = [filepath stringByAppendingPathComponent:[NSString stringWithFormat:@"oolite-%03d.png",imageNo]];
-	}
-
-   NSString	*pathToPng = [[pathToPic stringByDeletingPathExtension] stringByAppendingPathExtension:@"png"];
-#endif
 
 	NSLog(@">>>>> Snapshot %d x %d file path chosen = %@", w, h, pathToPic);
 
-    NSBitmapImageRep* bitmapRep = 
-        [[NSBitmapImageRep alloc]
-            initWithBitmapDataPlanes:NULL		// --> let the class allocate it
-            pixelsWide:			w
-            pixelsHigh:			h
-            bitsPerSample:		8		// each component is 8 bits (1 byte)
-            samplesPerPixel:	3		// number of components (R, G, B)
-            hasAlpha:			NO		// no transparency
-            isPlanar:			NO		// data integrated into single plane
-            colorSpaceName:		NSDeviceRGBColorSpace
-            bytesPerRow:		0		// --> let the class figure it out
-            bitsPerPixel:		0		// --> let the class figure it out
-        ];
+	unsigned char *puntos = (unsigned char*)malloc(surface->w * surface->h * 3);
+	SDL_Surface *screen;  
+	glReadPixels(0,0,surface->w,surface->h,GL_RGB,GL_UNSIGNED_BYTE,puntos);
 
-    unsigned char *pixels = [bitmapRep bitmapData];
-
-	glReadPixels(0,0, w,h, GL_RED,   GL_UNSIGNED_BYTE, red);
-	glReadPixels(0,0, w,h, GL_GREEN, GL_UNSIGNED_BYTE, green);
-	glReadPixels(0,0, w,h, GL_BLUE,  GL_UNSIGNED_BYTE, blue);
-
-	int x,y;
-	for (y = 0; y < h; y++)
-	{
-		long index = (h - y - 1)*w;
-		for (x = 0; x < w; x++)		// set bitmap pixels
-		{
-			*pixels++ = red[index];
-			*pixels++ = green[index];
-			*pixels++ = blue[index++];
-		}
+	int pitch = surface->w * 3;
+	unsigned char *aux=  (unsigned char*)malloc( pitch );         
+	short h2=surface->h/2;
+	unsigned char *p1=puntos;
+	unsigned char *p2=puntos+((surface->h-1)*pitch); //go to last line
+	int i;
+	for(i=0; i<h2; i++){
+		memcpy(aux,p1,pitch);
+		memcpy(p1,p2,pitch);
+		memcpy(p2,aux,pitch);
+		p1+=pitch;
+		p2-=pitch;
 	}
-
-#ifdef GNUSTEP
-   NSImage *image=[[NSImage alloc] initWithSize:NSMakeSize(w,h)];
-   [image addRepresentation:bitmapRep];
-   [[image TIFFRepresentation] writeToFile:pathToPic atomically:YES];
-   [image release];
-#else
-	[[bitmapRep representationUsingType:NSPNGFileType properties:[NSDictionary dictionaryWithObjectsAndKeys:[NSNumber numberWithBool:YES], NSImageInterlaced, NULL]]
-		writeToFile:pathToPng atomically:YES];			// save PNG representation of Image
-#endif
-
-	// free allocated objects and memory
-	[bitmapRep release];         
-	free(red);
-	free(green);
-	free(blue);
+	free(aux);
+	
+	tmpSurface=SDL_CreateRGBSurfaceFrom(puntos,surface->w,surface->h,24,surface->w*3,0xFF,0xFF00,0xFF0000,0x0);                
+	SDL_SaveBMP(tmpSurface, [pathToPic cString]);
+	SDL_FreeSurface(tmpSurface);
+	free(puntos);
 }
-
+/*
+ * These are commented out because they use AppKit classes, but left here to remind
+ * me to replace them with SDL code in future.
+ *
 - (void)mouseDown:(NSEvent *)theEvent
 {
     keys[gvMouseLeftButton] = YES; // 'a' down
@@ -418,7 +375,7 @@ Your fair use and other rights are in no way affected by the above.
 	
 	[self setVirtualJoystick:mx :-my];
 }
-
+*/
 - (void) setVirtualJoystick:(double) vmx :(double) vmy
 {
 	virtualJoystickPosition.x = vmx;
