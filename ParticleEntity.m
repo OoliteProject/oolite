@@ -332,6 +332,51 @@ static Vector   circleVertex[65];		// holds vector coordinates for a unit circle
     return self;
 }
 
+- (id) initFragburstFromPosition:(Vector) fragPos
+{
+	int speed_low = 200;
+	int speed_high = 800;
+	int n_fragments = 32;
+	int i;
+	//
+	self = [super init];
+    //
+	basefile = @"Particle";
+	textureNameString   = @"blur256.png";
+	//
+	texName = 0;
+	[self initialiseTexture: textureNameString];
+	size = NSMakeSize(32.0,32.0);
+	//
+	n_vertices = n_fragments;
+    time_counter = 0.0;
+	duration = 1.5;
+	position = fragPos;
+	//
+	for (i = 0 ; i < n_vertices; i++)
+	{
+		int speed = (ranrot_rand() % (speed_high - speed_low)) + speed_low;
+		vertices[i] = make_vector(0,0,0);
+		vertex_normal[i].x = (ranrot_rand() % speed) - speed / 2;
+		vertex_normal[i].y = (ranrot_rand() % speed) - speed / 2;
+		vertex_normal[i].z = (ranrot_rand() % speed) - speed / 2;
+	}
+	//
+	status = STATUS_EFFECT;
+	scan_class = CLASS_NO_DRAW;
+	//
+	particle_type = PARTICLE_FRAGBURST;
+	//
+	collision_radius = 0;
+	energy = 0;
+	[self setColor:[NSColor yellowColor]];
+	owner = NO_TARGET;
+	//
+	isParticle = YES;
+	//
+    return self;
+}
+
 - (void) dealloc
 {
     if (textureNameString)	[textureNameString release];
@@ -354,6 +399,7 @@ static Vector   circleVertex[65];		// holds vector coordinates for a unit circle
 		case PARTICLE_MARKER :
 		case PARTICLE_ECM_MINE :
 		case PARTICLE_SPARK :
+		case PARTICLE_FRAGBURST :
 			return NO;
 			break;
 		default :
@@ -457,6 +503,7 @@ static Vector   circleVertex[65];		// holds vector coordinates for a unit circle
 			case PARTICLE_FLASHER :
 			case PARTICLE_SHOT_PLASMA :
 			case PARTICLE_EXPLOSION :
+			case PARTICLE_FRAGBURST :
 				{
 					Entity* player = [universe entityZero];
 					if (!texName)
@@ -506,6 +553,10 @@ static Vector   circleVertex[65];		// holds vector coordinates for a unit circle
 			
 			case PARTICLE_SPARK :
 				[self updateSpark:delta_t];
+				break;
+			
+			case PARTICLE_FRAGBURST :
+				[self updateFragburst:delta_t];
 				break;
 			
 			case PARTICLE_SHOT_EXPIRED :
@@ -703,6 +754,31 @@ static Vector   circleVertex[65];		// holds vector coordinates for a unit circle
 		[universe removeEntity:self];
 }
 
+- (void) updateFragburst:(double) delta_t
+{
+	int i;
+//	int n_sparks = 48 * (duration - time_counter) / duration;
+	//
+	for (i = 0 ; i < n_vertices; i++)
+	{
+		GLfloat du = 0.5 + 0.03125 * (32 - i);
+		GLfloat alf = 1.0 - time_counter / du;
+		if (alf < 0.0)	alf = 0.0;
+		if (alf > 1.0)	alf = 1.0;
+		faces[i].red = alf * color_fv[0] + 1.0 - alf;
+		faces[i].blue = alf;
+		vertices[i].x += vertex_normal[i].x * delta_t;
+		vertices[i].y += vertex_normal[i].y * delta_t;
+		vertices[i].z += vertex_normal[i].z * delta_t;
+	}
+//	// disappear some sparks
+//	if ((n_sparks > 0)&&(n_sparks < n_vertices))
+//		n_vertices = n_sparks;
+	
+	// disappear eventually
+	if (time_counter > duration)
+		[universe removeEntity:self];
+}
 
 - (void) drawEntity:(BOOL) immediate :(BOOL) translucent;
 {
@@ -732,6 +808,10 @@ static Vector   circleVertex[65];		// holds vector coordinates for a unit circle
 				
 			case PARTICLE_ENERGY_MINE :
 				[self drawEnergyMine];
+				break;
+
+			case PARTICLE_FRAGBURST :
+				[self drawFragburst];
 				break;
 				
 			default :
@@ -1110,6 +1190,70 @@ static Vector   circleVertex[65];		// holds vector coordinates for a unit circle
 	glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE, flat_ambdiff);
 	
 	glEnable(GL_CULL_FACE);			// face culling
+}
+
+- (void) drawFragburst
+{
+    int viewdir, i;
+	GLfloat	colr[4];
+	
+	GLfloat  xx = size.width / 2.0;
+	GLfloat  yy = size.height / 2.0;
+	
+	viewdir = [universe viewDir];
+	
+	glDisable(GL_LIGHTING);
+	glEnable(GL_TEXTURE_2D);
+	glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_BLEND);
+	glBindTexture(GL_TEXTURE_2D, texName);
+	glPushMatrix();
+
+	glBegin(GL_QUADS);
+	for (i = 0; i < n_vertices; i++)
+	{
+		colr[0] = faces[i].red;
+		colr[1] = color_fv[1];
+		colr[2] = color_fv[2];
+		colr[3] = faces[i].blue;
+		glColor4f(1.0, 1.0, 1.0, faces[i].blue);
+		glTexEnvfv(GL_TEXTURE_ENV, GL_TEXTURE_ENV_COLOR, colr);
+		
+		GLfloat x = vertices[i].x;
+		GLfloat y = vertices[i].y;
+		GLfloat z = vertices[i].z;
+		switch (viewdir)
+		{
+			case	VIEW_AFT :
+				glTexCoord2f(0.0, 1.0);	glVertex3f(x+xx, y-yy, z);
+				glTexCoord2f(1.0, 1.0);	glVertex3f(x-xx, y-yy, z);
+				glTexCoord2f(1.0, 0.0);	glVertex3f(x-xx, y+yy, z);
+				glTexCoord2f(0.0, 0.0);	glVertex3f(x+xx, y+yy, z);
+				break;
+			case	VIEW_STARBOARD :
+				glTexCoord2f(0.0, 1.0);	glVertex3f(x, y-yy, z+xx);
+				glTexCoord2f(1.0, 1.0);	glVertex3f(x, y-yy, z-xx);
+				glTexCoord2f(1.0, 0.0);	glVertex3f(x, y+yy, z-xx);
+				glTexCoord2f(0.0, 0.0);	glVertex3f(x, y+yy, z+xx);
+				break;
+			case	VIEW_PORT :
+				glTexCoord2f(0.0, 1.0);	glVertex3f(x, y-yy, z-xx);
+				glTexCoord2f(1.0, 1.0);	glVertex3f(x, y-yy, z+xx);
+				glTexCoord2f(1.0, 0.0);	glVertex3f(x, y+yy, z+xx);
+				glTexCoord2f(0.0, 0.0);	glVertex3f(x, y+yy, z-xx);
+				break;
+			default :
+				glTexCoord2f(0.0, 1.0);	glVertex3f(x-xx, y-yy, z);
+				glTexCoord2f(1.0, 1.0);	glVertex3f(x+xx, y-yy, z);
+				glTexCoord2f(1.0, 0.0);	glVertex3f(x+xx, y+yy, z);
+				glTexCoord2f(0.0, 0.0);	glVertex3f(x-xx, y+yy, z);
+				break;
+		}
+	}
+	glEnd();
+	
+	glPopMatrix();
+	glDisable(GL_TEXTURE_2D);
+	glEnable(GL_LIGHTING);
 }
 
 @end

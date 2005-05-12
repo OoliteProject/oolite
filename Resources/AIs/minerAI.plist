@@ -30,6 +30,7 @@
     "COLLECT_STUFF" = {
         ENTER = (performCollect); 
         UPDATE = (); 
+        FRUSTRATED = ("setStateTo: LOOK_FOR_SPLINTERS"); 
         "CARGO_SCOOPED" = (checkForFullHold, "setStateTo: LOOK_FOR_SPLINTERS"); 
         "TARGET_LOST" = ("setStateTo: LOOK_FOR_SPLINTERS"); 
         "COLLISION" = ("setStateTo: LOOK_FOR_SPLINTERS"); 

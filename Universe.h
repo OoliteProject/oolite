@@ -187,6 +187,13 @@ extern int debug;
 		int					next_universal_id;
 		Entity*				entity_for_uid[MAX_ENTITY_UID];
 		
+		// use a sorted list for drawing and other activities
+		//
+		@public	Entity*				sortedEntities[UNIVERSE_MAX_ENTITIES];
+		@public	int					n_entities;
+		//
+		////
+		
 		NSLock				*recycleLock;
 		NSMutableDictionary *entityRecyclePool;
 
@@ -203,12 +210,7 @@ extern int debug;
 		
 		GLfloat			sky_clear_color[4];
 		
-//        double			messageDisplayDuration;
-//        double			fpsDisplayDuration;
         NSString		*currentMessage;
-//		OpenGLSprite	*messageSprite;
-//		OpenGLSprite	*msSpriteArray[MAX_MESSAGES];
-//		double			msDuration[MAX_MESSAGES];
 		
 		GuiDisplayGen*	gui;
 		GuiDisplayGen*	message_gui;
@@ -273,7 +275,7 @@ extern int debug;
 		BOOL			no_update;
 		
 		NSMutableDictionary*	local_planetinfo_overrides;
-//		NSLock*			universe_lock;
+
 }
 
 - (id) init;
@@ -365,7 +367,7 @@ extern int debug;
 - (BOOL) removeEntity:(Entity *) entity;
 - (void) removeAllEntitiesExceptPlayer:(BOOL) restore;
 - (void) removeDemoShips;
-- (NSArray *) getAllEntities;
+//- (NSArray *) getAllEntities;
 
 - (BOOL) isVectorClearFromEntity:(Entity *) e1 toDistance:(double)dist fromPoint:(Vector) p2;
 - (Vector) getSafeVectorFromEntity:(Entity *) e1 toDistance:(double)dist fromPoint:(Vector) p2;
@@ -500,4 +502,3 @@ NSComparisonResult comparePrice( id dict1, id dict2, void * context);
 ////
 
 @end
-

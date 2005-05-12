@@ -318,11 +318,17 @@ static BOOL hostiles;
 	Vector	position, relativePosition;
 	Matrix rotMatrix;
 	int flash = ((int)([[player universe] getTime] * 4))&1;
-//	int flicker = ((int)([[player universe] getTime] * 16))&1;
+
 	//
 	// use a non-mutable copy so this can't be changed under us.
 	//
-	NSArray  *entityList = [[[player universe] getAllEntities] retain];	// retained
+	Universe*	uni =			[player universe];
+	int			ent_count =		uni->n_entities;
+	Entity**	uni_entities =	uni->sortedEntities;	// grab the public sorted list
+	Entity*		my_entities[ent_count];
+	
+	for (i = 0; i < ent_count; i++)
+		my_entities[i] = [uni_entities[i] retain];	// retained
 	//
 	Entity	*drawthing = nil;
 	GLfloat cargo_color[4] = {0.9, 0.9, 0.9, alpha};		// gray
@@ -351,11 +357,10 @@ static BOOL hostiles;
 		off_scope2 /= upscale * upscale;
 		double max_blip = 0.0;
 		
-		for (i = 0; i < [entityList count]; i++)  // scanner lollypops
+		for (i = 0; i < ent_count; i++)  // scanner lollypops
 		{
-//			BOOL	sent_a_message = NO;
-
-			drawthing = (Entity *)[entityList objectAtIndex:i];
+			drawthing = my_entities[i];
+			
 			int drawClass = drawthing->scan_class;
 			if (drawClass == CLASS_PLAYER)	drawClass = CLASS_NO_DRAW;
 			
@@ -395,12 +400,13 @@ static BOOL hostiles;
 							break;
 					}
 				}
+				
 				[player setAlert_flag:ALERT_FLAG_MASS_LOCK :mass_locked];
 					
 				if ((isnan(drawthing->zero_distance))||(drawthing->zero_distance > max_scanner_range2))
 					continue;
 				
-				// has it snt a recent message
+				// has it sent a recent message
 				//
 				if (drawthing->isShip) 
 					ms_blip = 2.0 * [(ShipEntity *)drawthing message_time];
@@ -427,7 +433,6 @@ static BOOL hostiles;
 				{
 					double wr = [(ShipEntity *)drawthing weapon_range];
 					isHostile = (([(ShipEntity *)drawthing hasHostileTarget])&&([(ShipEntity *)drawthing getPrimaryTarget] == player)&&(drawthing->zero_distance < wr*wr));
-//					sent_a_message = (([(ShipEntity *)drawthing message_time] > 0.0)&&(flicker));
 				}
 				
 				// position the scanner
@@ -448,7 +453,6 @@ static BOOL hostiles;
 							col[0] = hostile_color[0];	col[1] = hostile_color[1];	col[2] = hostile_color[2];	col[3] = hostile_color[3];
 						}
 						foundHostiles = YES;
-//						NSLog(@"DEBUG found Thargoid %.0f %.0f", drawthing->zero_distance, max_scanner_range2);
 						break;
 					case CLASS_MISSILE :
 						col[0] = missile_color[0];	col[1] = missile_color[1];	col[2] = missile_color[2];	col[3] = missile_color[3];
@@ -532,18 +536,17 @@ static BOOL hostiles;
 		//	
 		if ((foundHostiles)&&(!hostiles))
 		{
-//			NSLog(@"FOUND HOSTILES");
 			hostiles = YES;
 		}
 		if ((!foundHostiles)&&(hostiles))
 		{
-//			NSLog(@"LOST HOSTILES");
 			hostiles = NO;					// there are now no hostiles on scope, relax
 		}
 	}
 	
 	//
-	[entityList release];   // we're done with this now.
+	for (i = 0; i < ent_count; i++)
+		[my_entities[i] release];	//	released
 
 }
 

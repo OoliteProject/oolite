@@ -223,6 +223,7 @@ Your fair use and other rights are in no way affected by the above.
 {
 	//NSLog(@"ShipEntity.performFlyToRangeFromDestination NOT YET IMPLEMENTED");
 	condition = CONDITION_FLY_RANGE_FROM_DESTINATION;
+	frustration = 0.0;
 }
 
 - (void) setSpeedTo:(NSString *)speedString
@@ -238,12 +239,14 @@ Your fair use and other rights are in no way affected by the above.
 - (void) performIdle
 {
 	condition = CONDITION_IDLE;
+	frustration = 0.0;
 }
 
 - (void) performHold
 {
 	desired_speed = 0.0;
 	condition = CONDITION_TRACK_TARGET;
+	frustration = 0.0;
 }
 
 - (void) setTargetToPrimaryAggressor
@@ -284,39 +287,42 @@ Your fair use and other rights are in no way affected by the above.
 - (void) performAttack
 {
 	condition = CONDITION_ATTACK_TARGET;
+	frustration = 0.0;
 }
 
 - (void) scanForNearestMerchantmen
 {
 	//-- Locates the nearest merchantman in range --//
-	NSArray* entList = [[universe getAllEntities] retain];
+	if (!universe)
+		return;
+	int			ent_count =		universe->n_entities;
+	Entity**	uni_entities =	universe->sortedEntities;	// grab the public sorted list
+	Entity*		my_entities[ent_count];
 	int i;
-//	double found_d2 = desired_range*desired_range;
+	int ship_count = 0;
+	for (i = 0; i < ent_count; i++)
+		if (uni_entities[i]->isShip)
+			my_entities[ship_count++] = [uni_entities[i] retain];		//	retained
+	//
 	double found_d2 = scanner_range * scanner_range;
 	found_target = NO_TARGET;
-	for (i = 0; i < [entList count] ; i++)
+	for (i = 0; i < ship_count ; i++)
 	{
-		Entity* thing = (Entity *)[entList objectAtIndex:i];
-		if ((thing->isShip)&&(thing != (Entity *)self))
+		ShipEntity* ship = (ShipEntity *)my_entities[i];
+		if ((ship != self)&&(([[ship roles] isEqual:@"trader"])||(ship->isPlayer))&&(ship->status != STATUS_DEAD)&&(ship->status != STATUS_DOCKED))
 		{
-			ShipEntity* ship = (ShipEntity *)thing;
-			if ((([[ship roles] isEqual:@"trader"])||(ship->isPlayer))&&(ship->status != STATUS_DEAD)&&(ship->status != STATUS_DOCKED))
+			double d2 = distance2( position, ship->position);
+			if (([roles isEqual:@"pirate"])&&(d2*d2 < desired_range)&&(ship->isPlayer)&&(PIRATES_PREFER_PLAYER))
+				d2 = 0.0;
+			if (d2 < found_d2)
 			{
-				double d2;
-				Vector delta = ship->position;
-				delta.x -= position.x;  delta.y -= position.y;  delta.z -= position.z;
-				d2 = delta.x*delta.x + delta.y*delta.y + delta.z*delta.z;
-				if (([roles isEqual:@"pirate"])&&(d2*d2 < desired_range)&&(ship->isPlayer)&&(PIRATES_PREFER_PLAYER))
-					d2 = 0.0;
-				if (d2 < found_d2)
-				{
-					found_d2 = d2;
-					found_target = [ship universal_id];
-				}
+				found_d2 = d2;
+				found_target = [ship universal_id];
 			}
 		}
 	}
-	[entList release];
+	for (i = 0; i < ship_count; i++)
+		[my_entities[i] release];		//released
 	if (found_target != NO_TARGET)
 		[shipAI message:@"TARGET_FOUND"];
 	else
@@ -326,34 +332,33 @@ Your fair use and other rights are in no way affected by the above.
 - (void) scanForRandomMerchantmen
 {
 	//-- Locates one of the merchantman in range --//
-	NSArray* entList = [[universe getAllEntities] retain];
-	int ids_found[[entList count]];
-	int n_found = 0;
+	if (!universe)
+		return;
+	int			ent_count =		universe->n_entities;
+	Entity**	uni_entities =	universe->sortedEntities;	// grab the public sorted list
+	Entity*		my_entities[ent_count];
 	int i;
-//	double found_d2 = desired_range*desired_range;
+	int ship_count = 0;
+	for (i = 0; i < ent_count; i++)
+		if (uni_entities[i]->isShip)
+			my_entities[ship_count++] = [uni_entities[i] retain];		//	retained
+	//
+	int ids_found[ship_count];
+	int n_found = 0;
 	double found_d2 = scanner_range * scanner_range;
 	found_target = NO_TARGET;
-	for (i = 0; i < [entList count] ; i++)
+	for (i = 0; i < ship_count ; i++)
 	{
-		Entity* thing = (Entity *)[entList objectAtIndex:i];
-		if ((thing->isShip)&&(thing != (Entity *)self))
+		ShipEntity* ship = (ShipEntity *)my_entities[i];
+		if ((ship != self)&&(([[ship roles] isEqual:@"trader"])||(ship->isPlayer))&&(ship->status != STATUS_DEAD)&&(ship->status != STATUS_DOCKED))
 		{
-			ShipEntity* ship = (ShipEntity *)thing;
-			if ((([[ship roles] isEqual:@"trader"])||(ship->isPlayer))&&(ship->status != STATUS_DEAD)&&(ship->status != STATUS_DOCKED))
-			{
-				double d2;
-				Vector delta = ship->position;
-				delta.x -= position.x;  delta.y -= position.y;  delta.z -= position.z;
-				d2 = delta.x*delta.x + delta.y*delta.y + delta.z*delta.z;
-				if (d2 < found_d2)
-				{
-					ids_found[n_found] = [ship universal_id];
-					n_found++;
-				}
-			}
+			double d2 = distance2( position, ship->position);
+			if (d2 < found_d2)
+				ids_found[n_found++] = [ship universal_id];
 		}
 	}
-	[entList release];
+	for (i = 0; i < ship_count; i++)
+		[my_entities[i] release];		//released
 	if (n_found == 0)
 	{
 		[shipAI message:@"NOTHING_FOUND"];
@@ -373,32 +378,34 @@ Your fair use and other rights are in no way affected by the above.
 		[shipAI message:@"NOTHING_FOUND"];		//can't collect loot if you have no scoop!
 		return;
 	}
-	NSArray* entList = [[universe getAllEntities] retain];
+	if (!universe)
+		return;
+	int			ent_count =		universe->n_entities;
+	Entity**	uni_entities =	universe->sortedEntities;	// grab the public sorted list
+	Entity*		my_entities[ent_count];
 	int i;
-//	double found_d2 = desired_range*desired_range;
+	int ship_count = 0;
+	for (i = 0; i < ent_count; i++)
+		if (uni_entities[i]->isShip)
+			my_entities[ship_count++] = [uni_entities[i] retain];		//	retained
+	//
 	double found_d2 = scanner_range * scanner_range;
 	found_target = NO_TARGET;
-	for (i = 0; i < [entList count]; i++)
+	for (i = 0; i < ship_count; i++)
 	{
-		Entity* thing = (Entity *)[entList objectAtIndex:i];
-		if (thing->isShip)
+		ShipEntity* other = (ShipEntity *)my_entities[i];
+		if ((other->scan_class == CLASS_CARGO)&&([other getCargoType] != CARGO_NOT_CARGO))
 		{
-			ShipEntity *other = (ShipEntity *)thing;
-			if ((other->scan_class == CLASS_CARGO)&&([other getCargoType] != CARGO_NOT_CARGO))
+			double d2 = distance2( position, other->position);
+			if (d2 < found_d2)
 			{
-				double d2;
-				Vector delta = thing->position;
-				delta.x -= position.x;  delta.y -= position.y;  delta.z -= position.z;
-				d2 = delta.x*delta.x + delta.y*delta.y + delta.z*delta.z;
-				if (d2 < found_d2)
-				{
-					found_d2 = d2;
-					found_target = [thing universal_id];
-				}
+				found_d2 = d2;
+				found_target = [other universal_id];
 			}
 		}
 	}
-	[entList release];
+	for (i = 0; i < ship_count; i++)
+		[my_entities[i] release];		//released
 	if (found_target != NO_TARGET)
 		[shipAI message:@"TARGET_FOUND"];
 	else
@@ -408,10 +415,19 @@ Your fair use and other rights are in no way affected by the above.
 - (void) scanForRandomLoot
 {
 	/*-- Locates the all debris in range and chooses a piece at random from the first sixteen found --*/
-	NSArray* entList = [[universe getAllEntities] retain];
+	if (!universe)
+		return;
+	int			ent_count =		universe->n_entities;
+	Entity**	uni_entities =	universe->sortedEntities;	// grab the public sorted list
+	Entity*		my_entities[ent_count];
+	int i;
+	int ship_count = 0;
+	for (i = 0; i < ent_count; i++)
+		if (uni_entities[i]->isShip)
+			my_entities[ship_count++] = [uni_entities[i] retain];		//	retained
+	//
 	int thing_uids_found[16];
-	int i, things_found;
-//	double found_d2 = desired_range*desired_range;
+	int things_found;
 	double found_d2 = scanner_range * scanner_range;
 	found_target = NO_TARGET;
 	if ((!isStation)&&(!has_scoop))
@@ -420,27 +436,21 @@ Your fair use and other rights are in no way affected by the above.
 		return;
 	}
 	things_found = 0;
-	for (i = 0; (i < [entList count])&&(things_found < 16) ; i++)
+	for (i = 0; (i < ship_count)&&(things_found < 16) ; i++)
 	{
-		Entity* thing = (Entity *)[entList objectAtIndex:i];
-		if (thing->isShip)
+		ShipEntity* other = (ShipEntity *)my_entities[i];
+		if ((other->scan_class == CLASS_CARGO)&&([other getCargoType] != CARGO_NOT_CARGO))
 		{
-			ShipEntity *other = (ShipEntity *)thing;
-			if ((other->scan_class == CLASS_CARGO)&&([other getCargoType] != CARGO_NOT_CARGO))
+			double d2 = distance2( position, other->position);
+			if (d2 < found_d2)
 			{
-				double d2;
-				Vector delta = thing->position;
-				delta.x -= position.x;  delta.y -= position.y;  delta.z -= position.z;
-				d2 = delta.x*delta.x + delta.y*delta.y + delta.z*delta.z;
-				if (d2 < found_d2)
-				{
-					found_target = [thing universal_id];
-					thing_uids_found[things_found++] = [thing universal_id];
-				}
+				found_target = [other universal_id];
+				thing_uids_found[things_found++] = found_target;
 			}
 		}
 	}
-	[entList release];
+	for (i = 0; i < ship_count; i++)
+		[my_entities[i] release];		//released
 	if (found_target != NO_TARGET)
 	{
 		found_target = thing_uids_found[ranrot_rand() % things_found];
@@ -465,16 +475,19 @@ Your fair use and other rights are in no way affected by the above.
 - (void) performCollect
 {
 	condition = CONDITION_COLLECT_TARGET;
+	frustration = 0.0;
 }
 
 - (void) performIntercept
 {
 	condition = CONDITION_INTERCEPT_TARGET;
+	frustration = 0.0;
 }
 
 - (void) performFlee
 {
 	condition = CONDITION_FLEE_TARGET;
+	frustration = 0.0;
 }
 
 - (void) requestDockingCoordinates
@@ -488,27 +501,31 @@ Your fair use and other rights are in no way affected by the above.
 	}
 	else
 	{
-		NSArray* entList = [[universe getAllEntities] retain];
-		Vector  p1 = position;
-		double nearest2 = SCANNER_MAX_RANGE2 * 1000000.0; // 1000x scanner range (25600 km), squared.
+		if (!universe)
+			return;
+		int			ent_count =		universe->n_entities;
+		Entity**	uni_entities =	universe->sortedEntities;	// grab the public sorted list
+		Entity*		my_entities[ent_count];
 		int i;
-		for (i = 0; i < [entList count]; i++)
+		int station_count = 0;
+		for (i = 0; i < ent_count; i++)
+			if (uni_entities[i]->isStation)
+				my_entities[station_count++] = [uni_entities[i] retain];		//	retained
+		//
+		double nearest2 = SCANNER_MAX_RANGE2 * 1000000.0; // 1000x scanner range (25600 km), squared.
+		for (i = 0; i < station_count; i++)
 		{
-			Entity* thing = (Entity *)[entList objectAtIndex:i];
-			if (thing->isStation)
+			StationEntity* thing = (StationEntity *)my_entities[i];
+			double range2 = distance2( position, thing->position);
+			if (range2 < nearest2)
 			{
-				Vector p2 = thing->position;
-				p2.x -= p1.x;   p2.y -= p1.y; p2.z -= p1.z;
-				double range2 = (p2.x * p2.x + p2.y * p2.y + p2.z * p2.z);
-				if (range2 < nearest2)
-				{
-					station = (StationEntity *)thing;
-					targetStation = [station universal_id];
-					nearest2 = range2;
-				}
+				station = thing;
+				targetStation = [station universal_id];
+				nearest2 = range2;
 			}
 		}
-		[entList release];
+		for (i = 0; i < station_count; i++)
+			[my_entities[i] release];	//		released
 	}
 	//
 	if (station)
@@ -522,40 +539,40 @@ Your fair use and other rights are in no way affected by the above.
 	}
 }
 
-//- (void) setSpeedAsAdvised
-//{
-//	StationEntity* station = (StationEntity*)[universe entityForUniversalID:targetStation];
-//	if (station)
-//		desired_speed = [station approachSpeedForShip:self];
-//	else
-//		desired_speed = 50.0;
-//}
-//
-
 - (void) getWitchspaceEntryCoordinates
 {
 	/*- calculates coordinates from the nearest station it can find, or just fly 10s forward -*/
-	NSArray* entList = [[universe getAllEntities] retain];
-	StationEntity* station =  nil;
-	Vector  p1 = position;
-	double nearest2 = SCANNER_MAX_RANGE2 * 1000000.0; // 1000x scanner range (25600 km), squared.
-	int i;
-	for (i = 0; i < [entList count]; i++)
+	if (!universe)
 	{
-		Entity* thing = (Entity *)[entList objectAtIndex:i];
-		if (thing->isStation)
+		coordinates = position;
+		coordinates.x += v_forward.x * max_flight_speed * 10.0;
+		coordinates.y += v_forward.y * max_flight_speed * 10.0;
+		coordinates.z += v_forward.z * max_flight_speed * 10.0;
+		return;
+	}
+	int			ent_count =		universe->n_entities;
+	Entity**	uni_entities =	universe->sortedEntities;	// grab the public sorted list
+	Entity*		my_entities[ent_count];
+	int i;
+	int station_count = 0;
+	for (i = 0; i < ent_count; i++)
+		if (uni_entities[i]->isStation)
+			my_entities[station_count++] = [uni_entities[i] retain];		//	retained
+	//
+	StationEntity* station =  nil;
+	double nearest2 = SCANNER_MAX_RANGE2 * 1000000.0; // 1000x scanner range (25600 km), squared.
+	for (i = 0; i < station_count; i++)
+	{
+		StationEntity* thing = (StationEntity *)my_entities[i];
+		double range2 = distance2 (position, thing->position);
+		if (range2 < nearest2)
 		{
-			Vector p2 = thing->position;
-			p2.x -= p1.x;   p2.y -= p1.y; p2.z -= p1.z;
-			double range2 = (p2.x * p2.x + p2.y * p2.y + p2.z * p2.z);
-			if (range2 < nearest2)
-			{
-				station = (StationEntity *)thing;
-				nearest2 = range2;
-			}
+			station = thing;
+			nearest2 = range2;
 		}
 	}
-	[entList release];
+	for (i = 0; i < station_count; i++)
+		[my_entities[i] release];	//		released
 	if (station)
 	{
 		coordinates = station->position;
@@ -587,6 +604,7 @@ Your fair use and other rights are in no way affected by the above.
 - (void) performFaceDestination
 {
 	condition = CONDITION_FACE_DESTINATION;
+	frustration = 0.0;
 }
 
 - (void) performTumble
@@ -595,32 +613,43 @@ Your fair use and other rights are in no way affected by the above.
 	flight_pitch = max_flight_pitch*2.0*(randf() - 0.5);
 //	velocity = make_vector( flight_speed*2.0*(randf() - 0.5), flight_speed*2.0*(randf() - 0.5), flight_speed*2.0*(randf() - 0.5));
 	condition = CONDITION_TUMBLE;
+	frustration = 0.0;
 }
 
 - (void) fightOrFleeMissile
 {
-	NSArray* entList = [[universe getAllEntities] retain];
-	ShipEntity* missile =  nil;
+	if (!universe)
+		return;
+	int			ent_count =		universe->n_entities;
+	Entity**	uni_entities =	universe->sortedEntities;	// grab the public sorted list
+	Entity*		my_entities[ent_count];
 	int i;
-	for (i = 0; (i < [entList count])&&(missile == nil); i++)
+	int ship_count = 0;
+	for (i = 0; i < ent_count; i++)
+		if (uni_entities[i]->isShip)
+			my_entities[ship_count++] = [uni_entities[i] retain];		//	retained
+	//
+	ShipEntity* missile =  nil;
+	for (i = 0; (i < ship_count)&&(missile == nil); i++)
 	{
-		Entity* thing = (Entity *)[entList objectAtIndex:i];
+		ShipEntity* thing = (ShipEntity *)my_entities[i];
 		if (thing->scan_class == CLASS_MISSILE)
 		{
-			if ([(ShipEntity *)thing getPrimaryTarget] == self)
-				missile = (ShipEntity *)thing;
+			if ([thing getPrimaryTarget] == self)
+				missile = thing;
 			if ((n_escorts > 0)&&(missile == nil))
 			{
 				int j;
 				for (j = 0; j < n_escorts; j++)
 				{
-					if ([(ShipEntity *)thing getPrimaryTargetID] == escort_ids[j])
+					if ([thing getPrimaryTargetID] == escort_ids[j])
 						missile = (ShipEntity *)thing;
 				}
 			}
 		}
 	}
-	[entList release];
+	for (i = 0; i < ship_count; i++)
+		[my_entities[i] release];	//		released
 	
 	//NSLog(@"---> %@ %d targetting the Missile %d", name, universal_id, [missile universal_id]);
 	if (missile)
@@ -676,30 +705,34 @@ Your fair use and other rights are in no way affected by the above.
 - (PlanetEntity *) findNearestPlanet
 {
 	/*- selects the nearest planet it can find -*/
-	NSArray			*entList = [[universe getAllEntities] retain];
-	PlanetEntity	*the_planet =  nil;
-	Vector  p1 = position;
-	double nearest2 = SCANNER_MAX_RANGE2 * 10000000000.0; // 100 000x scanner range (2 560 000 km), squared.
+	if (!universe)
+		return nil;
+	int			ent_count =		universe->n_entities;
+	Entity**	uni_entities =	universe->sortedEntities;	// grab the public sorted list
+	Entity*		my_entities[ent_count];
 	int i;
-	for (i = 0; i < [entList count]; i++)
+	int planet_count = 0;
+	for (i = 0; i < ent_count; i++)
+		if (uni_entities[i]->isPlanet)
+			my_entities[planet_count++] = [uni_entities[i] retain];		//	retained
+	//
+	PlanetEntity	*the_planet =  nil;
+	double nearest2 = SCANNER_MAX_RANGE2 * 10000000000.0; // 100 000x scanner range (2 560 000 km), squared.
+	for (i = 0; i < planet_count; i++)
 	{
-		Entity  *thing = (Entity *)[entList objectAtIndex:i];
-		if (thing->isPlanet)
+		PlanetEntity  *thing = (PlanetEntity *)my_entities[i];
+		if ([thing getPlanetType] == PLANET_TYPE_GREEN)
 		{
-			if ([(PlanetEntity *)thing getPlanetType] == PLANET_TYPE_GREEN)
+			double range2 = distance2( position, thing->position);
+			if ((!the_planet)||(range2 < nearest2))
 			{
-				Vector p2 = thing->position;
-				p2.x -= p1.x;   p2.y -= p1.y; p2.z -= p1.z;
-				double range2 = (p2.x * p2.x + p2.y * p2.y + p2.z * p2.z);
-				if ((!the_planet)||(range2 < nearest2))
-				{
-					the_planet = (PlanetEntity *)thing;
-					nearest2 = range2;
-				}
+				the_planet = thing;
+				nearest2 = range2;
 			}
 		}
 	}
-	[entList release];
+	for (i = 0; i < planet_count; i++)
+		[my_entities[i] release];	//		released
 	return the_planet;
 }
 
@@ -802,40 +835,42 @@ Your fair use and other rights are in no way affected by the above.
 	/*-- Locates all the ships in range and compares their legal status or bounty against ranrot_rand() & 255 - chooses the worst offender --*/
 	NSDictionary		*systeminfo = [universe currentSystemData];
 	float gov_factor =	0.4 * [(NSNumber *)[systeminfo objectForKey:KEY_GOVERNMENT] intValue]; // 0 .. 7 (0 anarchic .. 7 most stable) --> [0.0, 0.4, 0.8, 1.2, 1.6, 2.0, 2.4, 2.8]
-
-	NSArray* entList = [[universe getAllEntities] retain];
-	int i;
-	float	worst_legal_factor;
-//	double found_d2 = desired_range*desired_range;
-	double found_d2 = scanner_range * scanner_range;
 	found_target = NO_TARGET;
+
+	if (!universe)
+		return;
+	int			ent_count =		universe->n_entities;
+	Entity**	uni_entities =	universe->sortedEntities;	// grab the public sorted list
+	Entity*		my_entities[ent_count];
+	int i;
+	int ship_count = 0;
+	for (i = 0; i < ent_count; i++)
+		if (uni_entities[i]->isShip)
+			my_entities[ship_count++] = [uni_entities[i] retain];		//	retained
+	//
+	float	worst_legal_factor;
+	double found_d2 = scanner_range * scanner_range;
 	worst_legal_factor = 0;
-	for (i = 0; i < [entList count] ; i++)
+	for (i = 0; i < ship_count ; i++)
 	{
-		Entity* thing = (Entity *)[entList objectAtIndex:i];
-		if ((thing->isShip)&&(thing->scan_class != CLASS_CARGO))
+		ShipEntity* ship = (ShipEntity *)my_entities[i];
+		if ((ship->scan_class != CLASS_CARGO)&&(ship->status != STATUS_DEAD)&&(ship->status != STATUS_DOCKED))
 		{
-			ShipEntity* ship = (ShipEntity *)thing;
-			if ((ship->status != STATUS_DEAD)&&(ship->status != STATUS_DOCKED))
+			double	d2 = distance2( position, ship->position);
+			BOOL	is_thargoid = [[ship roles] isEqual:@"thargoid"];
+			float	legal_factor = [ship legal_status] * gov_factor;
+			if (is_thargoid)
+				legal_factor += 500;
+			int random_factor = ranrot_rand() & 255;   // 25% chance of spotting a fugitive in 15s
+			if ((d2 < found_d2)&&(random_factor < legal_factor)&&(legal_factor > worst_legal_factor))
 			{
-				double	d2;
-				BOOL	is_thargoid = [[ship roles] isEqual:@"thargoid"];
-				float	legal_factor = [ship legal_status] * gov_factor;
-				if (is_thargoid)
-					legal_factor += 500;
-				int random_factor = ranrot_rand() & 255;   // 25% chance of spotting a fugitive in 15s
-				Vector delta = ship->position;
-				delta.x -= position.x;  delta.y -= position.y;  delta.z -= position.z;
-				d2 = delta.x*delta.x + delta.y*delta.y + delta.z*delta.z;
-				if ((d2 < found_d2)&&(random_factor < legal_factor)&&(legal_factor > worst_legal_factor))
-				{
-					found_target = [ship universal_id];
-					worst_legal_factor = legal_factor;
-				}
+				found_target = [ship universal_id];
+				worst_legal_factor = legal_factor;
 			}
 		}
 	}
-	[entList release];
+	for (i = 0; i < ship_count; i++)
+		[my_entities[i] release];	//		released
 	if (found_target != NO_TARGET)
 		[shipAI message:@"TARGET_FOUND"];
 	else
@@ -875,8 +910,17 @@ Your fair use and other rights are in no way affected by the above.
 - (void) broadcastDistressMessage
 {
 	/*-- Locates all the stations, bounty hunters and police ships in range and tells them that you are under attack --*/
-	NSArray* entList = [[universe getAllEntities] retain];
+	if (!universe)
+		return;
+	int			ent_count =		universe->n_entities;
+	Entity**	uni_entities =	universe->sortedEntities;	// grab the public sorted list
+	Entity*		my_entities[ent_count];
 	int i;
+	int ship_count = 0;
+	for (i = 0; i < ent_count; i++)
+		if (uni_entities[i]->isShip)
+			my_entities[ship_count++] = [uni_entities[i] retain];		//	retained
+	//
 	double d2;
 	double found_d2 = SCANNER_MAX_RANGE2;
 	NSString* distress_message;
@@ -891,42 +935,37 @@ Your fair use and other rights are in no way affected by the above.
 	else
 		distress_message = @"[distress-call]";
 	
-	for (i = 0; i < [entList count] ; i++)
+	for (i = 0; i < ship_count; i++)
 	{
-		Entity* thing = (Entity *)[entList objectAtIndex:i];
-		if (thing->isShip)
+		ShipEntity*	ship = (ShipEntity *)my_entities[i];
+		d2 = distance2( position, ship->position);
+		if (d2 < found_d2)
 		{
-			Vector delta = thing->position;
-			delta.x -= position.x;  delta.y -= position.y;  delta.z -= position.z;
-			d2 = delta.x*delta.x + delta.y*delta.y + delta.z*delta.z;
-			if (d2 < found_d2)
+			// tell it! //
+			if (ship->isPlayer)
 			{
-				ShipEntity  *ship = (ShipEntity *)thing;
-				// tell it! //
-				if (ship->isPlayer)
+				if ((primaryAggressor == [ship universal_id])&&(energy < 0.375 * max_energy)&&(!is_buoy))
 				{
-					if ((primaryAggressor == [ship universal_id])&&(energy < 0.375 * max_energy)&&(!is_buoy))
-					{
-						[self sendExpandedMessage:[universe expandDescription:@"[beg-for-mercy]" forSystem:[universe systemSeed]] toShip:ship];
-						[self ejectCargo];
-						[self performFlee];
-					}
-					else
-						[self sendExpandedMessage:[universe expandDescription:distress_message forSystem:[universe systemSeed]] toShip:ship];
-					// reset the thanked_ship_id
-					//
-					thanked_ship_id = NO_TARGET;
+					[self sendExpandedMessage:[universe expandDescription:@"[beg-for-mercy]" forSystem:[universe systemSeed]] toShip:ship];
+					[self ejectCargo];
+					[self performFlee];
 				}
-				if (ship->isStation)
-					[ship acceptDistressMessageFrom:self];
-				if ([[ship roles] isEqual:@"police"])
-					[ship acceptDistressMessageFrom:self];
-				if ([[ship roles] isEqual:@"hunter"])
-					[ship acceptDistressMessageFrom:self];
+				else
+					[self sendExpandedMessage:[universe expandDescription:distress_message forSystem:[universe systemSeed]] toShip:ship];
+				// reset the thanked_ship_id
+				//
+				thanked_ship_id = NO_TARGET;
 			}
+			if (ship->isStation)
+				[ship acceptDistressMessageFrom:self];
+			if ([[ship roles] isEqual:@"police"])
+				[ship acceptDistressMessageFrom:self];
+			if ([[ship roles] isEqual:@"hunter"])
+				[ship acceptDistressMessageFrom:self];
 		}
 	}
-	[entList release];
+	for (i = 0; i < ship_count; i++)
+		[my_entities[i] release];	//		released
 }
 
 - (void) acceptDistressMessageFrom:(ShipEntity *)other
@@ -982,23 +1021,28 @@ Your fair use and other rights are in no way affected by the above.
 - (void) scanForThargoid
 {
 	/*-- Locates all the thargoid warships in range and chooses the nearest --*/
-	NSArray* entList = [[universe getAllEntities] retain];
+	if (!universe)
+		return;
+	int			ent_count =		universe->n_entities;
+	Entity**	uni_entities =	universe->sortedEntities;	// grab the public sorted list
+	Entity*		my_entities[ent_count];
 	int i;
+	int ship_count = 0;
+	for (i = 0; i < ent_count; i++)
+		if (uni_entities[i]->isShip)
+			my_entities[ship_count++] = [uni_entities[i] retain];		//	retained
+	//
 	double found_d2 = scanner_range * scanner_range;
 	found_target = NO_TARGET;
-	for (i = 0; i < [entList count] ; i++)
+	for (i = 0; i < ship_count; i++)
 	{
-		Entity* thing = (Entity *)[entList objectAtIndex:i];
-		if (thing->isShip)
+		ShipEntity *ship = (ShipEntity *)my_entities[i];
+		if ([[ship roles] isEqual:@"thargoid"])
 		{
-			double d2;
-			ShipEntity *ship = (ShipEntity *)thing;
-			Vector delta = thing->position;
-			delta.x -= position.x;  delta.y -= position.y;  delta.z -= position.z;
-			d2 = delta.x*delta.x + delta.y*delta.y + delta.z*delta.z;
-			if (([[ship roles] isEqual:@"thargoid"])&&(d2 < found_d2))
+			double d2 = distance2( position, ship->position);
+			if (d2< found_d2)
 			{
-				found_target = [thing universal_id];
+				found_target = [ship universal_id];
 				found_d2 = d2;
 			}
 		}
@@ -1016,48 +1060,48 @@ Your fair use and other rights are in no way affected by the above.
 			[shipAI setState:@"GLOBAL"];
 			primaryTarget = NO_TARGET;
 			[self setSpeed:0.0];
-			for (i = 0; i < [entList count] ; i++)
+			for (i = 0; i < ship_count; i++)
 			{
-				Entity* thing = (Entity *)[entList objectAtIndex:i];
-				if (thing->isShip)
-				{
-					ShipEntity* other = (ShipEntity*)thing;
-					if (([other getPrimaryTarget] == self)&&([other hasHostileTarget]))
-						[[other getAI] message:@"TARGET_LOST"];
-				}
+				ShipEntity* other = (ShipEntity*)my_entities[i];
+				if (([other getPrimaryTarget] == self)&&([other hasHostileTarget]))
+					[[other getAI] message:@"TARGET_LOST"];
 			}
 		}
 		[shipAI message:@"NOTHING_FOUND"];
 	}
-	[entList release];
+	for (i = 0; i < ship_count; i++)
+		[my_entities[i] release];	//		released
 }
 
 - (void) scanForNonThargoid
 {
 	/*-- Locates all the non thargoid ships in range and chooses the nearest --*/
-	NSArray* entList = [[universe getAllEntities] retain];
-	int i;
-	double found_d2 = scanner_range * scanner_range;
 	found_target = NO_TARGET;
-	for (i = 0; i < [entList count] ; i++)
+	if (!universe)
+		return;
+	int			ent_count =		universe->n_entities;
+	Entity**	uni_entities =	universe->sortedEntities;	// grab the public sorted list
+	Entity*		my_entities[ent_count];
+	int i;
+	int ship_count = 0;
+	for (i = 0; i < ent_count; i++)
+		if (uni_entities[i]->isShip)
+			my_entities[ship_count++] = [uni_entities[i] retain];		//	retained
+	//
+	double found_d2 = scanner_range * scanner_range;
+	for (i = 0; i < ship_count ; i++)
 	{
-		Entity* thing = (Entity *)[entList objectAtIndex:i];
-		if (thing->isShip)
+		ShipEntity* thing = (ShipEntity *)my_entities[i];
+		double d2 = distance2( position, thing->position);
+		if ((thing->scan_class != CLASS_CARGO)&&(thing->status != STATUS_DOCKED)&&(![[thing roles] hasPrefix:@"tharg"])&&(d2 < found_d2))
 		{
-			double d2;
-			NSString *shiproles = [(ShipEntity *)thing roles];
-			Vector delta = thing->position;
-			delta.x -= position.x;  delta.y -= position.y;  delta.z -= position.z;
-			d2 = delta.x*delta.x + delta.y*delta.y + delta.z*delta.z;
-			if ((thing->scan_class != CLASS_CARGO)&&(thing->status != STATUS_DOCKED)&&(![shiproles hasPrefix:@"tharg"])&&(d2 < found_d2))
-			{
-				found_target = [thing universal_id];
-				if (thing->isPlayer) d2 = 0.0;   // prefer the player
-				found_d2 = d2;
-			}
+			found_target = [thing universal_id];
+			if (thing->isPlayer) d2 = 0.0;   // prefer the player
+			found_d2 = d2;
 		}
 	}
-	[entList release];
+	for (i = 0; i < ship_count; i++)
+		[my_entities[i] release];	//		released
 	if (found_target != NO_TARGET)
 		[shipAI message:@"TARGET_FOUND"];
 	else
@@ -1083,31 +1127,33 @@ Your fair use and other rights are in no way affected by the above.
 - (void) scanForHostiles
 {
 	/*-- Locates all the ships in range targetting the receiver and chooses the nearest --*/
-	
-	NSArray* entList = [[universe getAllEntities] retain];
-	int i;
-//	double found_d2 = desired_range*desired_range;
-	double found_d2 = scanner_range * scanner_range;
 	found_target = NO_TARGET;
 	found_hostiles = 0;
-	for (i = 0; i < [entList count] ; i++)
+	if (!universe)
+		return;
+	int			ent_count =		universe->n_entities;
+	Entity**	uni_entities =	universe->sortedEntities;	// grab the public sorted list
+	Entity*		my_entities[ent_count];
+	int i;
+	int ship_count = 0;
+	for (i = 0; i < ent_count; i++)
+		if (uni_entities[i]->isShip)
+			my_entities[ship_count++] = [uni_entities[i] retain];		//	retained
+	//
+	double found_d2 = scanner_range * scanner_range;
+	for (i = 0; i < ship_count ; i++)
 	{
-		Entity* thing = (Entity *)[entList objectAtIndex:i];
-		if (thing->isShip)
+		ShipEntity* thing = (ShipEntity *)my_entities[i];
+		double d2 = distance2( position, thing->position);
+		if (((thing->scan_class == CLASS_THARGOID)||(([thing getPrimaryTarget] == self)&&([thing hasHostileTarget])))&&(d2 < found_d2))
 		{
-			double d2;
-			Vector delta = thing->position;
-			delta.x -= position.x;  delta.y -= position.y;  delta.z -= position.z;
-			d2 = delta.x*delta.x + delta.y*delta.y + delta.z*delta.z;
-			if (((thing->scan_class == CLASS_THARGOID)||(([(ShipEntity *)thing getPrimaryTarget] == self)&&([(ShipEntity *)thing hasHostileTarget])))&&(d2 < found_d2))
-			{
-				found_target = [thing universal_id];
-				found_d2 = d2;
-				found_hostiles++;
-			}
+			found_target = [thing universal_id];
+			found_d2 = d2;
+			found_hostiles++;
 		}
 	}
-	[entList release];
+	for (i = 0; i < ship_count ; i++)
+		[my_entities[i] release];	//		released
 		
 	if (found_target != NO_TARGET)
 	{
@@ -1208,6 +1254,7 @@ Your fair use and other rights are in no way affected by the above.
 - (void) performEscort
 {
 	condition = CONDITION_FORMATION_FORM_UP;
+	frustration = 0.0;
 }
 
 - (int) numberOfShipsInGroup:(int) ship_group_id
@@ -1270,26 +1317,30 @@ Your fair use and other rights are in no way affected by the above.
 {
 	//-- Locates the nearest suitable formation leader in range --//
 	BOOL pair_okay;
-	NSArray* entList = [[universe getAllEntities] retain];
-	int i;
-//	double found_d2 = desired_range*desired_range;
-	double found_d2 = scanner_range * scanner_range;
 	found_target = NO_TARGET;
-	for (i = 0; i < [entList count] ; i++)
+	if (!universe)
+		return;
+	int			ent_count =		universe->n_entities;
+	Entity**	uni_entities =	universe->sortedEntities;	// grab the public sorted list
+	Entity*		my_entities[ent_count];
+	int i;
+	int ship_count = 0;
+	for (i = 0; i < ent_count; i++)
+		if (uni_entities[i]->isShip)
+			my_entities[ship_count++] = [uni_entities[i] retain];		//	retained
+	//
+	double found_d2 = scanner_range * scanner_range;
+	for (i = 0; i < ship_count ; i++)
 	{
-		Entity* thing = (Entity *)[entList objectAtIndex:i];
-		if ((thing->isShip)&&(thing != (Entity *)self))
+		ShipEntity* ship = (ShipEntity *)my_entities[i];
+		if (ship != self)
 		{
-			ShipEntity* ship = (ShipEntity *)thing;
 			pair_okay = ([roles isEqual:@"escort"]&&[[ship roles] isEqual:@"trader"]);
 			pair_okay |= ([roles isEqual:@"wingman"]&&[[ship roles] isEqual:@"police"]);
 			pair_okay |= ([roles isEqual:@"wingman"]&&[[ship roles] isEqual:@"interceptor"]);
 			if (pair_okay)
 			{
-				double d2;
-				Vector delta = ship->position;
-				delta.x -= position.x;  delta.y -= position.y;  delta.z -= position.z;
-				d2 = delta.x*delta.x + delta.y*delta.y + delta.z*delta.z;
+				double d2 = distance2( position, ship->position);
 				if (d2 < found_d2)
 				{
 					found_d2 = d2;
@@ -1298,7 +1349,8 @@ Your fair use and other rights are in no way affected by the above.
 			}
 		}
 	}
-	[entList release];
+	for (i = 0; i < ship_count ; i++)
+		[my_entities[i] release];	//		released
 	if (found_target != NO_TARGET)
 		[shipAI message:@"TARGET_FOUND"];
 	else
@@ -1474,22 +1526,40 @@ Your fair use and other rights are in no way affected by the above.
 - (void) scanForRocks
 {
 	/*-- Locates the all boulders and asteroids in range and selects one of up to 16 --*/
-	NSArray* entList = [[universe getAllEntities] retain];
-	int i;
-	double found_d2 = scanner_range * scanner_range;
 	found_target = NO_TARGET;
-	for (i = 0; i < [entList count] ; i++)
+	if (!universe)
+		return;
+	int			ent_count =		universe->n_entities;
+	Entity**	uni_entities =	universe->sortedEntities;	// grab the public sorted list
+	Entity*		my_entities[ent_count];
+	int i;
+	int ship_count = 0;
+	for (i = 0; i < ent_count; i++)
+		if (uni_entities[i]->isShip)
+			my_entities[ship_count++] = [uni_entities[i] retain];		//	retained
+	//
+	double found_d2 = scanner_range * scanner_range;
+	for (i = 0; i < ship_count; i++)
 	{
-		Entity* thing = (Entity *)[entList objectAtIndex:i];
-		if (thing->isShip)
+		ShipEntity* thing = (ShipEntity *)my_entities[i];
+		if ([[thing roles] isEqual:@"boulder"])
 		{
-			NSString* ship_role = [(ShipEntity *)thing roles];
-			if ([ship_role isEqual:@"boulder"])
+			double d2 = distance2( position, thing->position);
+			if (d2 < found_d2)
 			{
-				double d2;
-				Vector delta = thing->position;
-				delta.x -= position.x;  delta.y -= position.y;  delta.z -= position.z;
-				d2 = delta.x*delta.x + delta.y*delta.y + delta.z*delta.z;
+				found_target = [thing universal_id];
+				found_d2 = d2;
+			}
+		}
+	}
+	if (found_target == NO_TARGET)
+	{
+		for (i = 0; i < ship_count; i++)
+		{
+			ShipEntity* thing = (ShipEntity *)my_entities[i];
+			if ([[thing roles] isEqual:@"asteroid"])
+			{
+				double d2 = distance2( position, thing->position);
 				if (d2 < found_d2)
 				{
 					found_target = [thing universal_id];
@@ -1498,30 +1568,9 @@ Your fair use and other rights are in no way affected by the above.
 			}
 		}
 	}
-	if (found_target == NO_TARGET)
-	{
-		for (i = 0; i < [entList count] ; i++)
-		{
-			Entity* thing = (Entity *)[entList objectAtIndex:i];
-			if (thing->isShip)
-			{
-				NSString* ship_role = [(ShipEntity *)thing roles];
-				if ([ship_role isEqual:@"asteroid"])
-				{
-					double d2;
-					Vector delta = thing->position;
-					delta.x -= position.x;  delta.y -= position.y;  delta.z -= position.z;
-					d2 = delta.x*delta.x + delta.y*delta.y + delta.z*delta.z;
-					if (d2 < found_d2)
-					{
-						found_target = [thing universal_id];
-						found_d2 = d2;
-					}
-				}
-			}
-		}
-	}
-	[entList release];
+	for (i = 0; i < ship_count ; i++)
+		[my_entities[i] release];	//		released
+
 	if (found_target != NO_TARGET)
 		[shipAI message:@"TARGET_FOUND"];
 	else
@@ -1531,6 +1580,7 @@ Your fair use and other rights are in no way affected by the above.
 - (void) performMining
 {
 	condition = CONDITION_ATTACK_MINING_TARGET;
+	frustration = 0.0;
 }
 
 - (void) setDestinationToDockingAbort
@@ -1562,35 +1612,38 @@ Your fair use and other rights are in no way affected by the above.
 	}
 	
 	/*-- Locates all the ships in range targetting the mother ship and chooses the nearest/biggest --*/
-	
-	NSArray* entList = [[universe getAllEntities] retain];
-	int i;
-	double found_d2 = scanner_range * scanner_range;
-	double max_e = 0;
 	found_target = NO_TARGET;
 	found_hostiles = 0;
-	for (i = 0; i < [entList count] ; i++)
+	if (!universe)
+		return;
+	int			ent_count =		universe->n_entities;
+	Entity**	uni_entities =	universe->sortedEntities;	// grab the public sorted list
+	Entity*		my_entities[ent_count];
+	int i;
+	int ship_count = 0;
+	for (i = 0; i < ent_count; i++)
+		if (uni_entities[i]->isShip)
+			my_entities[ship_count++] = [uni_entities[i] retain];		//	retained
+	//
+	double found_d2 = scanner_range * scanner_range;
+	double max_e = 0;
+	for (i = 0; i < ship_count ; i++)
 	{
-		Entity* thing = (Entity *)[entList objectAtIndex:i];
-		if (thing->isShip)
+		ShipEntity* thing = (ShipEntity *)my_entities[i];
+		double d2 = distance2( position, thing->position);
+		double e1 = [thing getEnergy];
+		if (((thing->scan_class == CLASS_THARGOID)||(([thing getPrimaryTarget] == mother)&&([thing hasHostileTarget])))&&(d2 < found_d2))
 		{
-			double d2;
-			double e1 = [thing getEnergy];
-			Vector delta = thing->position;
-			delta.x -= position.x;  delta.y -= position.y;  delta.z -= position.z;
-			d2 = delta.x*delta.x + delta.y*delta.y + delta.z*delta.z;
-			if (((thing->scan_class == CLASS_THARGOID)||(([(ShipEntity *)thing getPrimaryTarget] == mother)&&([(ShipEntity *)thing hasHostileTarget])))&&(d2 < found_d2))
+			if (e1 > max_e)
 			{
-				if (e1 > max_e)
-				{
-					found_target = [thing universal_id];
-					found_d2 = d2;
-				}
-				found_hostiles++;
+				found_target = [thing universal_id];
+				max_e = e1;
 			}
+			found_hostiles++;
 		}
 	}
-	[entList release];
+	for (i = 0; i < ship_count ; i++)
+		[my_entities[i] release];	//		released
 		
 	if (found_target != NO_TARGET)
 		[shipAI message:@"TARGET_FOUND"];

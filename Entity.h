@@ -180,6 +180,8 @@ extern int debug;
     @public	Quaternion	q_rotation;
 	@public	int			status;
 	//
+	@public	int			z_index;
+	//
 	//////////////////////////////////////////////////////
 	//
     Vector	relative_position;
@@ -351,4 +353,3 @@ extern int debug;
 
 
 @end
-

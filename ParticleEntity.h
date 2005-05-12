@@ -46,6 +46,7 @@ Your fair use and other rights are in no way affected by the above.
 #define PARTICLE_TEST				1
 #define PARTICLE_SHOT_EXPIRED		200
 #define PARTICLE_EXPLOSION			201
+#define PARTICLE_FRAGBURST			250
 #define PARTICLE_SHOT_GREEN_PLASMA	100
 #define PARTICLE_SHOT_YELLOW_PLASMA	101
 #define PARTICLE_SPARK				102
@@ -94,6 +95,7 @@ Your fair use and other rights are in no way affected by the above.
 - (id) initECMMineFromShip:(ShipEntity *) ship;
 - (id) initEnergyMineFromShip:(ShipEntity *) ship;
 - (id) initHyperringFromShip:(ShipEntity *) ship;
+- (id) initFragburstFromPosition:(Vector) fragPos;
 
 - (void) updateExplosion:(double) delta_t;
 - (void) updateFlasher:(double) delta_t;
@@ -103,6 +105,7 @@ Your fair use and other rights are in no way affected by the above.
 - (void) updateSpark:(double) delta_t;
 - (void) updateLaser:(double) delta_t;
 - (void) updateHyperring:(double) delta_t;
+- (void) updateFragburst:(double) delta_t;
 
 - (void) setTexture:(NSString *) filename;
 - (void) setColor:(NSColor *) a_color;
@@ -121,6 +124,6 @@ Your fair use and other rights are in no way affected by the above.
 - (void) drawExhaust:(BOOL) immediate;
 - (void) drawHyperring;
 - (void) drawEnergyMine;
+- (void) drawFragburst;
 
 @end
-

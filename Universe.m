@@ -71,6 +71,8 @@ Your fair use and other rights are in no way affected by the above.
 	
 	self = [super init];
 	
+	n_entities = 0;
+	
 	firstBeacon = NO_TARGET;
 	lastBeacon = NO_TARGET;
 	
@@ -346,6 +348,7 @@ Your fair use and other rights are in no way affected by the above.
 	//
 //    entities =				[[NSMutableArray arrayWithCapacity:MAX_NUMBER_OF_ENTITIES] retain];
 	[entities removeAllObjects];
+	n_entities = 0;
 //    entsInDrawOrder =		[[NSMutableArray arrayWithCapacity:MAX_NUMBER_OF_ENTITIES] retain];
 	[entsInDrawOrder removeAllObjects];
 	//
@@ -1675,7 +1678,7 @@ Your fair use and other rights are in no way affected by the above.
 	// adds a ship exiting witchspace (corollary of when ships leave the system)
 	ShipEntity  *ship;
 	ship = [self getShipWithRole:desc];   // retain count = 1
-	if ((ship)&&(ship->scan_class == CLASS_NO_DRAW))
+	if ((ship)&&((ship->scan_class == CLASS_NO_DRAW)||(ship->scan_class == CLASS_NOT_SET)))
 		[ship setScanClass: CLASS_NEUTRAL];
 	if ([desc isEqual:@"trader"])
 	{
@@ -1688,6 +1691,7 @@ Your fair use and other rights are in no way affected by the above.
 	[ship setUniverse:self];
 	[ship leaveWitchspace];				// gets added to the universe here!
 	[[ship getAI] setState:@"GLOBAL"];	// must happen after adding to the universe!
+	[ship setStatus:STATUS_IN_FLIGHT];	// or ships may not werk rite d'uh!
 
 //	[ship setReportAImessages:YES];	// DEBUG
 
@@ -1887,16 +1891,24 @@ Your fair use and other rights are in no way affected by the above.
 		int i;
 		station = NO_TARGET;
 		cachedStation = nil;
-		NSArray* entList = [NSArray arrayWithArray:entities];
-		for (i = 0; ((i < [entList count])&&(station == NO_TARGET)) ; i++)
+		int ent_count = n_entities;
+		Entity* my_entities[ent_count];
+		for (i = 0; i < ent_count; i++)
+			my_entities[i] = [sortedEntities[i] retain];
+//		NSArray* entList = [NSArray arrayWithArray:entities];
+//		for (i = 0; ((i < [entList count])&&(station == NO_TARGET)) ; i++)
+		for (i = 0; ((i < ent_count)&&(station == NO_TARGET)) ; i++)
 		{
-			Entity* thing = (Entity *)[entList objectAtIndex:i];
+//			Entity* thing = (Entity *)[entList objectAtIndex:i];
+			Entity* thing = my_entities[i];
 			if ((thing->scan_class == CLASS_STATION)&&(thing->isStation))
 			{
 				cachedStation = (StationEntity *)thing;
 				station = [thing universal_id];
 			}
 		}
+		for (i = 0; i < ent_count; i++)
+			[my_entities[i] release];
 	}
 	
 	return cachedStation;
@@ -1912,10 +1924,16 @@ Your fair use and other rights are in no way affected by the above.
 		int i;
 		planet = NO_TARGET;
 		cachedPlanet = nil;
-		NSArray* entList = [NSArray arrayWithArray:entities];
-		for (i = 0; ((i < [entList count])&&(planet == NO_TARGET)) ; i++)
+		int ent_count = n_entities;
+		Entity* my_entities[ent_count];
+		for (i = 0; i < ent_count; i++)
+			my_entities[i] = [sortedEntities[i] retain];
+//		NSArray* entList = [NSArray arrayWithArray:entities];
+//		for (i = 0; ((i < [entList count])&&(planet == NO_TARGET)) ; i++)
+		for (i = 0; ((i < ent_count)&&(planet == NO_TARGET)) ; i++)
 		{
-			Entity* thing = (Entity *)[entList objectAtIndex:i];
+//			Entity* thing = (Entity *)[entList objectAtIndex:i];
+			Entity* thing = my_entities[i];
 			if (thing->isPlanet)
 			{
 				cachedPlanet = (PlanetEntity *)thing;
@@ -1923,6 +1941,8 @@ Your fair use and other rights are in no way affected by the above.
 					planet = [cachedPlanet universal_id];
 			}
 		}
+		for (i = 0; i < ent_count; i++)
+			[my_entities[i] release];
 	}
 	return cachedPlanet;
 }
@@ -1937,10 +1957,15 @@ Your fair use and other rights are in no way affected by the above.
 		int i;
 		sun = NO_TARGET;
 		cachedSun = nil;
-		NSArray* entList = [NSArray arrayWithArray:entities];
-		for (i = 0; ((i < [entList count])&&(sun == NO_TARGET)) ; i++)
+		int ent_count = n_entities;
+		Entity* my_entities[ent_count];
+		for (i = 0; i < ent_count; i++)
+			my_entities[i] = [sortedEntities[i] retain];
+//		NSArray* entList = [NSArray arrayWithArray:entities];
+		for (i = 0; ((i < ent_count)&&(sun == NO_TARGET)) ; i++)
 		{
-			Entity* thing = (Entity *)[entList objectAtIndex:i];
+//			Entity* thing = (Entity *)[entList objectAtIndex:i];
+			Entity* thing = my_entities[i];
 			if (thing->isPlanet)
 			{
 				if ([(PlanetEntity *)thing getPlanetType] == PLANET_TYPE_SUN)
@@ -1950,6 +1975,8 @@ Your fair use and other rights are in no way affected by the above.
 				}
 			}
 		}
+		for (i = 0; i < ent_count; i++)
+			[my_entities[i] release];
 	}
 	return cachedSun;
 }
@@ -2465,7 +2492,6 @@ Your fair use and other rights are in no way affected by the above.
 
 - (void) drawFromEntity:(int) n
 {
-//	if ([universe_lock tryLock])
 	if (!no_update)
 	{
 		NS_DURING
@@ -2474,10 +2500,11 @@ Your fair use and other rights are in no way affected by the above.
 			Vector	position, obj_position, view_dir;
 			Matrix rotMatrix;
 			BOOL playerDemo = NO;
+			
 			//
 			// use a non-mutable copy so this can't be changed under us.
 			//
-			NSArray  *entityList = [[NSArray alloc] initWithArray:entities];	// alloc retains
+//			NSArray  *entityList = [[NSArray alloc] initWithArray:entities];	// alloc retains
 			//
 			Entity	*viewthing = nil;
 			Entity	*drawthing = nil;
@@ -2485,12 +2512,16 @@ Your fair use and other rights are in no way affected by the above.
 			position.x = 0.0;	position.y = 0.0;	position.z = 0.0;
 			set_matrix_identity(rotMatrix);
 
-			if (n < [entityList count])
+//			if (n < [entityList count])
+//			{
+//				viewthing = [entityList objectAtIndex:n];
+//			}
+			if (n < n_entities)
 			{
-				viewthing = [entityList objectAtIndex:n];
+				viewthing = [entities objectAtIndex:n];
 			}
 			
-			if (viewthing)
+			if ((viewthing)&&(viewthing == sortedEntities[0]))
 			{
 				position = [viewthing getViewpointPosition];
 				gl_matrix_into_matrix([viewthing rotationMatrix], rotMatrix);
@@ -2499,16 +2530,23 @@ Your fair use and other rights are in no way affected by the above.
 			}
 			else
 			{
+				NSLog(@"***** Universe trying to draw from the view of an entity NOT the player");
+				// throw an exception here...
+				NSException* myException = [NSException
+					exceptionWithName: @"NonPlayerViewException"
+					reason: @"Universe cannot draw from a non-player entity."
+					userInfo: nil];
+				[myException raise];
 				return; // don't draw if there's not a viewing entity!
 			}
 			
-			// make a drawing order
-			//
-			[entsInDrawOrder setArray:entityList];
-//			[entsInDrawOrder removeObject:viewthing];
-			[entsInDrawOrder sortUsingSelector:@selector(compareZeroDistance:)];
-			//
-			[entityList release];   // we're done with this now.
+//			// make a drawing order
+//			//
+//			[entsInDrawOrder setArray:entityList];
+////			[entsInDrawOrder removeObject:viewthing];
+//			[entsInDrawOrder sortUsingSelector:@selector(compareZeroDistance:)];
+//			//
+//			[entityList release];   // we're done with this now.
 			
 			//NSLog(@"Drawing from [%f,%f,%f]", position.x, position.y, position.z);
 			glEnable(GL_LIGHTING);
@@ -2569,10 +2607,12 @@ Your fair use and other rights are in no way affected by the above.
 				//
 				//		DRAW ALL THE OPAQUE ENTITIES
 				//
-				for (i = 0; i < [entsInDrawOrder count]; i++)
+//				for (i = 0; i < [entsInDrawOrder count]; i++)
+				for (i = n_entities - 1; i > 0; i--)
 				{
 					int d_status;
-					drawthing = (Entity *)[entsInDrawOrder objectAtIndex:i];
+//					drawthing = (Entity *)[entsInDrawOrder objectAtIndex:i];
+					drawthing = sortedEntities[i];
 					d_status = drawthing->status;
 					
 					if (((d_status == STATUS_DEMO)&&(playerDemo)) || ((d_status != STATUS_DEMO)&&(!playerDemo)))
@@ -2618,10 +2658,12 @@ Your fair use and other rights are in no way affected by the above.
 				//		DRAW ALL THE TRANSLUCENT entsInDrawOrder
 				//
 				glDepthMask(GL_FALSE);				// don't write to depth buffer
-				for (i = 0; i < [entsInDrawOrder count]; i++)
+//				for (i = 0; i < [entsInDrawOrder count]; i++)
+				for (i = n_entities - 1; i > 0; i--)
 				{
 					int d_status;
-					drawthing = [entsInDrawOrder objectAtIndex:i];
+//					drawthing = [entsInDrawOrder objectAtIndex:i];
+					drawthing = sortedEntities[i];
 					d_status = drawthing->status;
 					
 					if (((d_status == STATUS_DEMO)&&(playerDemo)) || ((d_status != STATUS_DEMO)&&(!playerDemo)))
@@ -2700,7 +2742,7 @@ Your fair use and other rights are in no way affected by the above.
 			NSLog(@"\n\n***** Quitting Oolite *****\n\n");
 			[[self gameController] exitApp];
 		NS_ENDHANDLER
-//		[universe_lock unlock];
+
 	}
 
 }
@@ -2843,6 +2885,8 @@ Your fair use and other rights are in no way affected by the above.
 {
 	if (entity)
 	{
+		int index = n_entities;
+		
 		// don't add things twice!
 		if ([entities containsObject:entity])
 			return YES;
@@ -2873,7 +2917,26 @@ Your fair use and other rights are in no way affected by the above.
 		[entity setUniverse:self];
 		[entities addObject:entity];
 		
-		//NSLog(@"++(%@)\n%@", entity, [entities description]);
+//		NSLog(@"DEBUG ++(%@)", entity);
+		
+		// maintain sorted list
+		double z_distance = distance2( entity->position, [self entityZero]->position);
+		entity->zero_distance = z_distance;
+		index = n_entities;
+		sortedEntities[index] = entity;
+		entity->z_index = index;
+		while ((index > 0)&&(z_distance < sortedEntities[index - 1]->zero_distance))	// bubble into place
+		{
+			sortedEntities[index] = sortedEntities[index - 1];
+			sortedEntities[index]->z_index = index;
+			index--;
+			sortedEntities[index] = entity;
+			entity->z_index = index;
+		}
+		n_entities++;
+//		for (index = 0; index < n_entities; index++)
+//			NSLog(@"+++++ %d %.0f %@", sortedEntities[index]->z_index, sortedEntities[index]->zero_distance, sortedEntities[index]);
+		//
 		
 		return YES;
 	}
@@ -2884,6 +2947,33 @@ Your fair use and other rights are in no way affected by the above.
 {
 	if (entity)
 	{
+
+//		NSLog(@"DEBUG --(%@) from %d", entity, entity->z_index);
+
+		// maintain sorted list
+		int index = entity->z_index;
+		if (index >= 0)
+		{
+			if (sortedEntities[index] != entity)
+			{
+				NSLog(@"ENTITY IS NOT IN THE RIGHT PLACE IN THE SORTED LIST -- EXITING");
+				exit(666);
+			}
+			
+			n_entities--;
+			while (index < n_entities)
+			{
+				sortedEntities[index] = sortedEntities[index + 1];	// copy n+1 -> n (preserves sort order)
+				sortedEntities[index]->z_index = index;				// give it its correct position
+				index++;
+			}
+			sortedEntities[n_entities] = nil;
+			entity->z_index = -1;	// it's GONE!
+		}
+//		for (index = 0; index < n_entities; index++)
+//			NSLog(@"----- %d %.0f %@", sortedEntities[index]->z_index, sortedEntities[index]->zero_distance, sortedEntities[index]);
+		//
+		
 		// remove from the reference dictionary
 		int old_id = [entity universal_id];
 		entity_for_uid[old_id] = nil;
@@ -2949,6 +3039,10 @@ Your fair use and other rights are in no way affected by the above.
 			[self removeEntity:ent];
 		}
 	}
+	
+	// maintain sorted list
+	n_entities = 1;
+	
 	cachedSun = nil;
 	cachedPlanet = nil;
 	cachedStation = nil;
@@ -2960,37 +3054,48 @@ Your fair use and other rights are in no way affected by the above.
 - (void) removeDemoShips
 {
 	int i;
-	NSArray *entlist = [NSArray arrayWithArray:entities];
-	if ([entlist count] <= 1)
-		return;
-	for (i = 1; i < [entlist count]; i++)
+	int ent_count = n_entities;
+	Entity* my_entities[ent_count];
+	for (i = 0; i < ent_count; i++)
+		my_entities[i] = [sortedEntities[i] retain];
+//	NSArray *entlist = [NSArray arrayWithArray:entities];
+	if (ent_count > 1)
 	{
-		Entity* ent = (Entity *)[entlist objectAtIndex:i];
-		if (ent->status == STATUS_DEMO)
-			[self removeEntity:ent];
+		for (i = 1; i < ent_count; i++)
+		{
+			Entity* ent = my_entities[i];
+			if (ent->status == STATUS_DEMO)
+				[self removeEntity:ent];
+		}
 	}
+	for (i = 0; i < ent_count; i++)
+		[my_entities[i] release];
 	demo_ship = nil;
 }
 
-- (NSArray *) getAllEntities
-{
-	NSMutableArray* result = [NSMutableArray arrayWithArray:entities];
-	if ([result count] == 0)
-		return result;
-	Entity* player = (Entity*)[result objectAtIndex:0];
-	int player_status = (player)? player->status : STATUS_IN_FLIGHT;
-	if ((player_status == STATUS_DEAD)||(player_status == STATUS_DOCKED))
-		[result removeObjectAtIndex:0];
-	return result;
-}
+//- (NSArray *) getAllEntities
+//{
+//	NSMutableArray* result = [NSMutableArray arrayWithArray:entities];
+//	if ([result count] == 0)
+//		return result;
+//	Entity* player = (Entity*)[result objectAtIndex:0];
+//	int player_status = (player)? player->status : STATUS_IN_FLIGHT;
+//	if ((player_status == STATUS_DEAD)||(player_status == STATUS_DOCKED))
+//		[result removeObjectAtIndex:0];
+//	return result;
+//}
 
 - (BOOL) isVectorClearFromEntity:(Entity *) e1 toDistance:(double)dist fromPoint:(Vector) p2
 {
 	if (!e1)
 		return NO;
-	NSArray *entlist =  [NSArray arrayWithArray:entities];	// autoreleased
+//	NSArray *entlist =  [NSArray arrayWithArray:entities];	// autoreleased
 	Vector  f1;
 	int i;
+	int ent_count = n_entities;
+	Entity* my_entities[ent_count];
+	for (i = 0; i < ent_count; i++)
+		my_entities[i] = [sortedEntities[i] retain]; //	retained
 	Vector p1 = e1->position;
 	Vector v1 = p2;
 	v1.x -= p1.x;   v1.y -= p1.y;   v1.z -= p1.z;   // vector from entity to p2
@@ -3002,11 +3107,12 @@ Your fair use and other rights are in no way affected by the above.
 	
 	f1 = unit_vector(&v1);   // unit vector in direction of p2 from p1
 	
-	//NSLog(@"f1 = (%.1f,%.1f,%.1f)",f1.x,f1.y,f1.z);
 	
-	for (i = 0; i < [entlist count] ; i++)
+//	for (i = 0; i < [entlist count] ; i++)
+	for (i = 0; i < ent_count ; i++)
 	{
-		Entity *e2 = [entlist objectAtIndex:i];
+//		Entity *e2 = [entlist objectAtIndex:i];
+		Entity *e2 = my_entities[i];
 		if ((e2 != e1)&&([e2 canCollide]))
 		{
 			Vector epos = e2->position;
@@ -3017,31 +3123,24 @@ Your fair use and other rights are in no way affected by the above.
 			if ((d_forward > 0)&&(d_forward < nearest))
 			{
 				double cr = 1.10 * (e2->collision_radius + e1->collision_radius); //  10% safety margin
-				
-//				NSLog(@"... Entity %@ being considered, d_forward is %.1f", entdesc, d_forward);
-				
 				Vector p0 = e1->position;
 				p0.x += d_forward * f1.x;	p0.y += d_forward * f1.y;	p0.z += d_forward * f1.z;
 				// p0 holds nearest point on current course to center of incident object
-				
-//				NSLog(@"... p0 = (%.1f, %.1f, %.1f)", p0.x, p0.y, p0.z);
-				
 				Vector epos = e2->position;
 				p0.x -= epos.x;	p0.y -= epos.y;	p0.z -= epos.z;
 				// compare with center of incident object
-				
 				double  dist2 = p0.x * p0.x + p0.y * p0.y + p0.z * p0.z;
-				
-//				NSLog(@"... which is %.1f from entity.",sqrt(dist2));
-				
 				if (dist2 < cr*cr)
 				{
-//					NSLog(@"... which IS incident = against radius %.1f", cr);
+					for (i = 0; i < ent_count; i++)
+						[my_entities[i] release]; //	released
 					return NO;
 				}
 			}
 		}
 	}
+	for (i = 0; i < ent_count; i++)
+		[my_entities[i] release]; //	released
 	return YES;
 }
 
@@ -3057,10 +3156,14 @@ Your fair use and other rights are in no way affected by the above.
 		NSBeep();
 		return make_vector(0,0,0);
 	}
-	NSArray *entlist = [NSArray arrayWithArray:entities];
+//	NSArray *entlist = [NSArray arrayWithArray:entities];
 	Vector  f1;
 	Vector  result = p2;
 	int i;
+	int ent_count = n_entities;
+	Entity* my_entities[ent_count];
+	for (i = 0; i < ent_count; i++)
+		my_entities[i] = [sortedEntities[i] retain];	// retained
 	Vector p1 = e1->position;
 	Vector v1 = p2;
 	v1.x -= p1.x;   v1.y -= p1.y;   v1.z -= p1.z;   // vector from entity to p2
@@ -3069,9 +3172,11 @@ Your fair use and other rights are in no way affected by the above.
 
 	f1 = unit_vector(&v1);   // unit vector in direction of p2 from p1
 		
-	for (i = 0; i < [entlist count]; i++)
+//	for (i = 0; i < [entlist count]; i++)
+	for (i = 0; i < ent_count; i++)
 	{
-		Entity *e2 = [entlist objectAtIndex:i];
+//		Entity *e2 = [entlist objectAtIndex:i];
+		Entity *e2 = my_entities[i];
 		if ((e2 != e1)&&([e2 canCollide]))
 		{
 			Vector epos = e2->position;
@@ -3142,6 +3247,8 @@ Your fair use and other rights are in no way affected by the above.
 			}
 		}
 	}
+	for (i = 0; i < ent_count; i++)
+		[my_entities[i] release]; //	released
 	return result;
 }
 
@@ -3149,9 +3256,14 @@ Your fair use and other rights are in no way affected by the above.
 {
 	if (!e1)
 		return nil;
-	NSArray *entlist = [NSArray arrayWithArray:entities];
+//	NSArray *entlist = [NSArray arrayWithArray:entities];
 	NSMutableArray *hitlist = [NSMutableArray arrayWithCapacity:4];
 	int i;
+	int ent_count = n_entities;
+	Entity* my_entities[ent_count];
+	for (i = 0; i < ent_count; i++)
+		my_entities[i] = [sortedEntities[i] retain];	// retained
+
 	Vector p1 = e1->position;
 	Quaternion q1 = e1->q_rotation;
 	if ((e1)&&(e1->isPlayer))
@@ -3174,9 +3286,11 @@ Your fair use and other rights are in no way affected by the above.
 	
 	Vector f1 = vector_forward_from_quaternion(q1);
 	
-	for (i = 0; i < [entlist count]; i++)
+//	for (i = 0; i < [entlist count]; i++)
+	for (i = 0; i < ent_count; i++)
 	{
-		Entity *e2 = [entlist objectAtIndex:i];
+//		Entity *e2 = [entlist objectAtIndex:i];
+		Entity *e2 = my_entities[i];
 		if ((e2 != e1)&&([e2 canCollide]))
 		{
 			Vector p2 = e2->position;
@@ -3197,12 +3311,14 @@ Your fair use and other rights are in no way affected by the above.
 			}
 		}
 	}
+	for (i = 0; i < ent_count; i++)
+		[my_entities[i] release];	// released
 	return  [hitlist sortedArrayUsingSelector:@selector(compareZeroDistance:)];
 }
 
 - (int) getFirstEntityHitByLaserFromEntity:(Entity *) e1
 {
-	NSArray *entlist = [NSArray arrayWithArray:entities];
+//	NSArray *entlist = [NSArray arrayWithArray:entities];
 	Entity  *hit_entity = nil;
 	int		result = NO_TARGET;
 	if (!e1)
@@ -3214,15 +3330,22 @@ Your fair use and other rights are in no way affected by the above.
 		nearest = PARTICLE_LASER_LENGTH;
 	//NSLog(@"DEBUG LASER nearest = %.1f",nearest);
 	int i;
+	int ent_count = n_entities;
+	Entity* my_entities[ent_count];
+	for (i = 0; i < ent_count; i++)
+		my_entities[i] = [sortedEntities[i] retain];	// retained
+
 	Quaternion q1 = e1->q_rotation;
 	if ((e1)&&(e1->isPlayer))
 		q1.w = -q1.w;   //  reverse for player viewpoint
 	Vector u1 = vector_up_from_quaternion(q1);
 	Vector f1 = vector_forward_from_quaternion(q1);
 	Vector r1 = vector_right_from_quaternion(q1);
-	for (i = 0; i < [entlist count]; i++)
+//	for (i = 0; i < [entlist count]; i++)
+	for (i = 0; i < ent_count; i++)
 	{
-		Entity *e2 = [entlist objectAtIndex:i];
+//		Entity *e2 = [entlist objectAtIndex:i];
+		Entity *e2 = my_entities[i];
 		if ((e2 != e1)&&([e2 canCollide])&&(e2->isShip))
 		{
 			BoundingBox arbb = [e2 findBoundingBoxRelativeTo:e1 InVectors:r1 :u1 :f1];
@@ -3235,12 +3358,14 @@ Your fair use and other rights are in no way affected by the above.
 	}
 	if (hit_entity)
 		result = [hit_entity universal_id];
+	for (i = 0; i < ent_count; i++)
+		[my_entities[i] release]; //	released
 	return result;
 }
 
 - (int) getFirstEntityHitByLaserFromEntity:(Entity *) e1 inView:(int) viewdir
 {
-	NSArray *entlist = [NSArray arrayWithArray:entities];
+//	NSArray *entlist = [NSArray arrayWithArray:entities];
 	Entity  *hit_entity = nil;
 	int		result = NO_TARGET;
 	double  nearest;
@@ -3252,6 +3377,11 @@ Your fair use and other rights are in no way affected by the above.
 		nearest = PARTICLE_LASER_LENGTH;
 	//NSLog(@"DEBUG LASER nearest = %.1f",nearest);
 	int i;
+	int ent_count = n_entities;
+	Entity* my_entities[ent_count];
+	for (i = 0; i < ent_count; i++)
+		my_entities[i] = [sortedEntities[i] retain];	// retained
+
 	Quaternion q1 = e1->q_rotation;
 	if ((e1)&&(e1->isPlayer))
 		q1.w = -q1.w;   //  reverse for player viewpoint
@@ -3270,9 +3400,11 @@ Your fair use and other rights are in no way affected by the above.
 	}
 	Vector f1 = vector_forward_from_quaternion(q1);
 	Vector r1 = vector_right_from_quaternion(q1);
-	for (i = 0; i < [entlist count]; i++)
+//	for (i = 0; i < [entlist count]; i++)
+	for (i = 0; i < ent_count; i++)
 	{
-		Entity *e2 = [entlist objectAtIndex:i];
+//		Entity *e2 = [entlist objectAtIndex:i];
+		Entity *e2 = my_entities[i];
 		if ((e2 != e1)&&([e2 canCollide])&&(e2->isShip))
 		{
 			BoundingBox arbb = [e2 findBoundingBoxRelativeTo:e1 InVectors:r1 :u1 :f1];
@@ -3286,6 +3418,8 @@ Your fair use and other rights are in no way affected by the above.
 	if (hit_entity)
 		result = [hit_entity universal_id];
 	//NSLog(@"DEBUG LASER hit %@ %d",[hit_entity name],result);
+	for (i = 0; i < ent_count; i++)
+		[my_entities[i] release]; //	released
 	return result;
 }
 
@@ -3293,11 +3427,16 @@ Your fair use and other rights are in no way affected by the above.
 {
 	if (!e1)
 		return NO_TARGET;
-	NSArray *entlist = [NSArray arrayWithArray:entities];
+//	NSArray *entlist = [NSArray arrayWithArray:entities];
 	Entity  *hit_entity = nil;
 	int		result = NO_TARGET;
 	double  nearest = SCANNER_MAX_RANGE;
 	int i;
+	int ent_count = n_entities;
+	Entity* my_entities[ent_count];
+	for (i = 0; i < ent_count; i++)
+		my_entities[i] = [sortedEntities[i] retain];	// retained
+
 	Vector p1 = e1->position;
 	Quaternion q1 = e1->q_rotation;
 	if ((e1)&&(e1->isPlayer))
@@ -3317,9 +3456,11 @@ Your fair use and other rights are in no way affected by the above.
 	}
 	Vector f1 = vector_forward_from_quaternion(q1);
 	Vector r1 = vector_right_from_quaternion(q1);
-	for (i = 0; i < [entlist count]; i++)
+//	for (i = 0; i < [entlist count]; i++)
+	for (i = 0; i < ent_count; i++)
 	{
-		Entity *e2 = [entlist objectAtIndex:i];
+//		Entity *e2 = [entlist objectAtIndex:i];
+		Entity *e2 = my_entities[i];
 		if ((e2 != e1)&&[e2 canCollide]&&(e2->isShip)&&(e2->scan_class != CLASS_NO_DRAW))
 		{
 			Vector rp = e2->position;
@@ -3347,6 +3488,8 @@ Your fair use and other rights are in no way affected by the above.
 		result = [hit_entity universal_id];
 		//NSLog(@"===> First entity Targetted is %@ %d with collisionRadius %.1f", [(ShipEntity *) hit_entity name], [hit_entity universal_id], hit_entity->collision_radius);
 	}
+	for (i = 0; i < ent_count; i++)
+		[my_entities[i] release]; //	released
 	return result;
 }
 
@@ -3354,13 +3497,20 @@ Your fair use and other rights are in no way affected by the above.
 {
 	if (!e1)
 		return nil;
-	NSArray *entlist = [NSArray arrayWithArray:entities];
+//	NSArray *entlist = [NSArray arrayWithArray:entities];
 	NSMutableArray *hitlist = [NSMutableArray arrayWithCapacity:4];
 	int i;
+	int ent_count = n_entities;
+	Entity* my_entities[ent_count];
+	for (i = 0; i < ent_count; i++)
+		my_entities[i] = [sortedEntities[i] retain];	// retained
+
 	Vector p1 = e1->position;
-	for (i = 0; i < [entlist count]; i++)
+//	for (i = 0; i < [entlist count]; i++)
+	for (i = 0; i < ent_count; i++)
 	{
-		Entity *e2 = [entlist objectAtIndex:i];
+//		Entity *e2 = [entlist objectAtIndex:i];
+		Entity *e2 = my_entities[i];
 		if ((e2 != e1)&&([e2 canCollide]))
 		{
 			Vector p2 = e2->position;
@@ -3371,6 +3521,8 @@ Your fair use and other rights are in no way affected by the above.
 				[hitlist addObject:e2];
 		}
 	}
+	for (i = 0; i < ent_count; i++)
+		[my_entities[i] release]; //	released
 	return  [NSArray arrayWithArray:hitlist];
 }
 
@@ -3378,13 +3530,20 @@ Your fair use and other rights are in no way affected by the above.
 {
 	if (!e1)
 		return 0;
+//	NSArray *entlist = [NSArray arrayWithArray:entities];
 	int i, found;
-	NSArray *entlist = [NSArray arrayWithArray:entities];
+	int ent_count = n_entities;
+	Entity* my_entities[ent_count];
+	for (i = 0; i < ent_count; i++)
+		my_entities[i] = [sortedEntities[i] retain];	// retained
+
 	found = 0;
 	Vector p1 = e1->position;
-	for (i = 0; i < [entlist count]; i++)
+//	for (i = 0; i < [entlist count]; i++)
+	for (i = 0; i < ent_count; i++)
 	{
-		Entity *e2 = [entlist objectAtIndex:i];
+//		Entity *e2 = [entlist objectAtIndex:i];
+		Entity *e2 = my_entities[i];
 		if ((e2 != e1)&&(e2->isShip)&&([[(ShipEntity *)e2 roles] isEqual:desc]))
 		{
 			Vector p2 = e2->position;
@@ -3395,34 +3554,54 @@ Your fair use and other rights are in no way affected by the above.
 				found++;
 		}
 	}
+	for (i = 0; i < ent_count; i++)
+		[my_entities[i] release]; //	released
 	return  found;
 }
 
 - (int) countShipsWithRole:(NSString *) desc
 {
+//	NSArray *entlist = [NSArray arrayWithArray:entities];
 	int i, found;
-	NSArray *entlist = [NSArray arrayWithArray:entities];
+	int ent_count = n_entities;
+	Entity* my_entities[ent_count];
+	for (i = 0; i < ent_count; i++)
+		my_entities[i] = [sortedEntities[i] retain];	// retained
+
 	found = 0;
-	for (i = 0; i < [entlist count]; i++)
+//	for (i = 0; i < [entlist count]; i++)
+	for (i = 0; i < ent_count; i++)
 	{
-		Entity *e2 = [entlist objectAtIndex:i];
+//		Entity *e2 = [entlist objectAtIndex:i];
+		Entity *e2 = my_entities[i];
 		if ((e2->isShip)&&([[(ShipEntity *)e2 roles] isEqual:desc]))
 			found++;
 	}
+	for (i = 0; i < ent_count; i++)
+		[my_entities[i] release]; //	released
 	return  found;
 }
 
 - (void) sendShipsWithRole:(NSString *) desc messageToAI:(NSString *) ms
 {
+//	NSArray *entlist = [NSArray arrayWithArray:entities];
 	int i, found;
-	NSArray *entlist = [NSArray arrayWithArray:entities];
+	int ent_count = n_entities;
+	Entity* my_entities[ent_count];
+	for (i = 0; i < ent_count; i++)
+		my_entities[i] = [sortedEntities[i] retain];	// retained
+
 	found = 0;
-	for (i = 0; i < [entlist count]; i++)
+//	for (i = 0; i < [entlist count]; i++)
+	for (i = 0; i < ent_count; i++)
 	{
-		Entity *e2 = [entlist objectAtIndex:i];
+//		Entity *e2 = [entlist objectAtIndex:i];
+		Entity *e2 = my_entities[i];
 		if ((e2->isShip)&&([[(ShipEntity *)e2 roles] isEqual:desc]))
 			[[(ShipEntity *)e2 getAI] reactToMessage:ms];
 	}
+	for (i = 0; i < ent_count; i++)
+		[my_entities[i] release]; //	released
 }
 
 
@@ -3448,20 +3627,26 @@ Your fair use and other rights are in no way affected by the above.
 	//
 	// use a non-mutable copy so this can't be changed under us.
 	//
-	NSArray  *entityList = [[NSArray alloc] initWithArray:entities];	// alloc retains
+	int			ent_count =		n_entities;
+	Entity*		my_entities[ent_count];
+	for (i = 0; i < ent_count; i++)
+		my_entities[i] = [sortedEntities[i] retain];		//	retained
+//	NSArray  *entityList = [[NSArray alloc] initWithArray:entities];	// alloc retains
 	//
-	int ent_count = [entityList count];
+//	int ent_count = [entityList count];
 	
 	for (i = 0; i < ent_count; i++)
 	{
-		e1 = (Entity *)[entityList objectAtIndex:i];
+//		e1 = (Entity *)[entityList objectAtIndex:i];
+		e1 = my_entities[i];
 		[[e1 collisionArray] removeAllObjects];
 	}
 	if (ent_count <= 1)
 		return;
 	for (i = 0; i < ent_count; i++)
 	{
-		e1 = (Entity *)[entityList objectAtIndex:i];
+//		e1 = (Entity *)[entityList objectAtIndex:i];
+		e1 = my_entities[i];
 		if ([e1 canCollide])
 		{
 			if (e1->isShip)
@@ -3470,7 +3655,8 @@ Your fair use and other rights are in no way affected by the above.
 			r1 = e1->collision_radius;
 			for (j = i + 1; j < ent_count; j++)	// was j = 1, which wasted time!
 			{
-				e2 = (Entity *)[entityList objectAtIndex:j];
+//				e2 = (Entity *)[entityList objectAtIndex:j];
+				e2 = my_entities[j];
 				if ([e2 canCollide])
 				{
 					p2 = e2->position;
@@ -3502,16 +3688,17 @@ Your fair use and other rights are in no way affected by the above.
 							}
 						}
 					}
-					if (dumpCollisionInfo)
-						NSLog(@"Entity %d (%.1f) to entity %d (%.1f)- distance  %.1f (%.1f,%.1f,%.1f)", i, r1, j, r2, sqrt(dist), p2.x, p2.y, p2.z);
+//					if (dumpCollisionInfo)
+//						NSLog(@"Entity %d (%.1f) to entity %d (%.1f)- distance  %.1f (%.1f,%.1f,%.1f)", i, r1, j, r2, sqrt(dist), p2.x, p2.y, p2.z);
 				}
 			}
 		}
 	}
-	if (dumpCollisionInfo)
-		dumpCollisionInfo = NO;
+//	if (dumpCollisionInfo)
+//		dumpCollisionInfo = NO;
 	//
-	[entityList release];   // we're done with this now
+	for (i = 0; i < ent_count; i++)
+		[my_entities[i] release];		//	released
 }
 
 - (void) dumpCollisions
@@ -3698,17 +3885,20 @@ Your fair use and other rights are in no way affected by the above.
 		NS_DURING
 			int i;
 			PlayerEntity	*player = (PlayerEntity *)[self entityZero];
+			int				ent_count = n_entities;
+			Entity*			my_entities[ent_count];
+
+			// use a retained copy so this can't be changed under us.
 			//
-			// use a non-mutable copy so this can't be changed under us.
-			//
-			NSArray  *entityList = [[NSArray alloc] initWithArray:entities];	// alloc retains
+			for (i = 0; i < ent_count; i++)
+				my_entities[i] = [sortedEntities[i] retain];	// explicitly retain each one
 			//
 			time_delta = delta_t;
 			universal_time += delta_t;
 			//
 			if ((demo_stage)&&(player)&&(player->status == STATUS_DEMO)&&(universal_time > demo_stage_time)&&([player gui_screen] == GUI_SCREEN_INTRO2))
 			{
-				if ([entityList count] > 1)
+				if (ent_count > 1)
 				{
 					Vector  vel;
 					Quaternion		q2;
@@ -3758,12 +3948,24 @@ Your fair use and other rights are in no way affected by the above.
 			}
 						
 			//
-			for (i = 0; i < [entityList count]; i++)
+			for (i = 0; i < ent_count; i++)
 			{
-				Entity *thing = [[entityList objectAtIndex:i] retain];
+				Entity *thing = my_entities[i];
 				
 				[thing update:delta_t];
 				
+				// maintain sorted list
+				int index = thing->z_index;
+				double z_distance = thing->zero_distance;
+				while ((index > 0)&&(z_distance < sortedEntities[index - 1]->zero_distance))
+				{
+					sortedEntities[index] = sortedEntities[index - 1];	// bubble up the list
+					sortedEntities[index - 1 ] = thing;
+					thing->z_index = index - 1;
+					sortedEntities[index]->z_index = index;
+					index--;
+				}
+								
 				if (thing->isShip)
 				{
 					AI* theShipsAI = [(ShipEntity *)thing getAI];
@@ -3773,8 +3975,6 @@ Your fair use and other rights are in no way affected by the above.
 						[theShipsAI think];
 					}
 				}
-				
-				[thing release];
 			}
 			//
 			//
@@ -3783,7 +3983,8 @@ Your fair use and other rights are in no way affected by the above.
 			//
 			// dispose of the non-mutable copy and everything it references neatly
 			//
-			[entityList release];
+			for (i = 0; i < ent_count; i++)
+				[my_entities[i] release];	// explicitly release each one
 
 		NS_HANDLER
 			NSLog(@"\n\n***** Handling localException: %@ : %@ *****\n\n",[localException name], [localException reason]);
@@ -3793,7 +3994,6 @@ Your fair use and other rights are in no way affected by the above.
 			NSLog(@"\n\n***** Quitting Oolite *****\n\n");
 			[[self gameController] exitApp];
 		NS_ENDHANDLER
-//		[universe_lock unlock];
 	}
 }
 

@@ -40,9 +40,7 @@ Your fair use and other rights are in no way affected by the above.
 
 #include <stdlib.h>
 #include <math.h>
-#ifndef GNUSTEP
-#include <ppc_intrinsics.h>
-#endif
+//#include <ppc_intrinsics.h>
 
 #include "vector.h"
 #include "legacy_random.h"
@@ -168,7 +166,9 @@ inline GLfloat dot_product (Vector first, Vector second)
 	return (first.x * second.x) + (first.y * second.y) + (first.z * second.z);	
 }
 
-
+//	NOTE IMPORTANT
+//	this cross product routine returns the UNIT vector cross product
+//
 Vector cross_product (Vector first, Vector second)
 {
 	Vector result;
@@ -531,16 +531,16 @@ Quaternion	quaternion_rotation_between(Vector v0, Vector v1)	// vectors both nor
 {
 	Quaternion q;
 	quaternion_set_identity(&q);
-	Vector xp = cross_product( v0, v1);
+	Vector xp = make_vector((v0.y * v1.z) - (v0.z * v1.y), (v0.z * v1.x) - (v0.x * v1.z), (v0.x * v1.y) - (v0.y * v1.x));
 	double d = dot_product( v0, v1);
-//	double s = sqrt((1.0 + d) * 2.0);
-//	q.x = xp.x / s;
-//	q.y = xp.y / s;
-//	q.z = xp.z / s;
-//	q.w = s / 2.0;
-	if (d > 0.999)
-		return q;
-	quaternion_rotate_about_axis( &q, xp, acos(d));
+	double s = sqrt((1.0 + d) * 2.0);
+	if (s)
+	{
+		q.x = xp.x / s;
+		q.y = xp.y / s;
+		q.z = xp.z / s;
+		q.w = s / 2.0;
+	}
 	return q;
 }
 

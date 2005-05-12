@@ -44,19 +44,23 @@
 	</array>
 	<array>
 		<string>Witchspace</string>
-		<string>Witch+space</string>
+		<string>[[inpt PHON]]w1IHCsp2EYs[[inpt TEXT]]</string>
 	</array>
 	<array>
 		<string>Fer-de-Lance</string>
-		<string>fairdehlauns</string>
+		<string>[[inpt PHON]]f1&lt;EY&lt;&lt;AE=dEH=l2UXns[[inpt TEXT]]</string>
 	</array>
 	<array>
 		<string>Sidewinder</string>
-		<string>Side+winder</string>
+		<string>[[inpt PHON]]s1AYdw2AYndAX[[inpt TEXT]]</string>
 	</array>
 	<array>
 		<string>Rebel</string>
-		<string>rebbel</string>
+		<string>[[inpt PHON]]rEHbUXl[[inpt TEXT]]</string>
+	</array>
+	<array>
+		<string>Metal fragment</string>
+		<string>metal [[inpt PHON]]fr1AXgmUHnt[[inpt TEXT]]</string>
 	</array>
 	<array>
 		<string>Ident</string>

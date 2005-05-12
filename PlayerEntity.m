@@ -4214,6 +4214,7 @@ static BOOL toggling_music;
 	{
 		[self abortDocking];			// let the station know that you are no longer on approach
 		condition = CONDITION_IDLE;
+		frustration = 0.0;
 		autopilot_engaged = NO;
 		primaryTarget = NO_TARGET;
 		status = STATUS_IN_FLIGHT;
@@ -5151,22 +5152,28 @@ static BOOL toggling_music;
 
 - (void) loseTargetStatus
 {
-	NSArray* entList = [[universe getAllEntities] retain];
+	if (!universe)
+		return;
+	int			ent_count =		universe->n_entities;
+	Entity**	uni_entities =	universe->sortedEntities;	// grab the public sorted list
+	Entity*		my_entities[ent_count];
 	int i;
-	for (i = 0; i < [entList count] ; i++)
+	for (i = 0; i < ent_count; i++)
+		my_entities[i] = [uni_entities[i] retain];		//	retained
+	for (i = 0; i < ent_count ; i++)
 	{
-		Entity* thing = (Entity *)[entList objectAtIndex:i];
+		Entity* thing = my_entities[i];
 		if (thing->isShip)
 		{
 			ShipEntity* ship = (ShipEntity *)thing;
 			if (self == [ship getPrimaryTarget])
 			{
-//				NSLog(@"DEBUG telling %@ %d 'TARGET LOST'", [ship name], [ship universal_id]);
 				[[ship getAI] message:@"TARGET_LOST"];
 			}
 		}
 	}
-	[entList release];
+	for (i = 0; i < ent_count; i++)
+		[my_entities[i] release];		//	released
 }
 
 - (void) enterDock:(StationEntity *)station

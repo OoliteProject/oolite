@@ -53,10 +53,8 @@
         UPDATE = ();
 	};
     "GO_TO_COORDS" = {
-        ENTER = (
-            setDestinationFromCoordinates, 
-            performFaceDestination
-        );
+        ENTER = (setDestinationFromCoordinates, performFaceDestination);
+        FRUSTRATED = (performIdle, "pauseAI: 5.0", setDestinationFromCoordinates, performFaceDestination); 
         "FACING_DESTINATION" = ("setDesiredRangeTo: 50.0", "setSpeedTo: 100.0", performFlyToRangeFromDestination); 
         "DESIRED_RANGE_ACHIEVED" = (requestDockingCoordinates, "setStateTo: AWAIT_COORDS"); 
         "DOCKING_ABORTED" = ("setStateTo: ABORT"); 
@@ -71,6 +69,11 @@
 			setDestinationFromCoordinates, 
             performFaceDestination
         );
+        FRUSTRATED = (
+            setTargetToStation,
+			setDestinationFromCoordinates, 
+            performFaceDestination
+        ); 
         "FACING_DESTINATION" = ("setDesiredRangeTo: 10.0", "setSpeedTo: 50.0", performFlyToRangeFromDestination); 
         "DESIRED_RANGE_ACHIEVED" = (requestDockingCoordinates, "setStateTo: AWAIT_COORDS"); 
         "DOCKING_ABORTED" = ("setStateTo: ABORT"); 

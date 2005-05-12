@@ -128,6 +128,7 @@ Your fair use and other rights are in no way affected by the above.
 	proximity_alert = NO_TARGET;
 	//
 	condition = CONDITION_IDLE;
+	frustration = 0.0;
 	//
 	shipAI = [[AI alloc] init]; // alloc retains
 	[shipAI setOwner:self];
@@ -424,6 +425,7 @@ Your fair use and other rights are in no way affected by the above.
 	targetStation = NO_TARGET;
 	//
 	condition = CONDITION_IDLE;
+	frustration = 0.0;
 	//
 	if (!shipAI)
 		shipAI = [[AI alloc] init]; // alloc retains
@@ -499,8 +501,11 @@ Your fair use and other rights are in no way affected by the above.
 	targetStation = NO_TARGET;
 	//
 	condition = CONDITION_IDLE;
+	frustration = 0.0;
 	//
 	patrol_counter = 0;
+	//
+	scan_class = CLASS_NOT_SET;
 	//
 	[self setUpShipFromDictionary:dict];
 	//
@@ -840,6 +845,8 @@ Your fair use and other rights are in no way affected by the above.
 		if ([s_class isEqual:@"CLASS_ROCK"])
 			scan_class = CLASS_ROCK;
 	}
+	else
+		scan_class = CLASS_NOT_SET;
 	//
 	// scripting	
 	if ([dict objectForKey:KEY_LAUNCH_ACTIONS])
@@ -1135,7 +1142,7 @@ Your fair use and other rights are in no way affected by the above.
 	int missile_chance = 1 + (ranrot_rand() % (int)( 32 * 0.1 / delta_t));
 #endif   
 	double hurt_factor = 16 * pow(energy/max_energy, 4.0);
-
+	double last_success_factor = success_factor;
 	//
 	// deal with collisions
 	//
@@ -1318,6 +1325,9 @@ Your fair use and other rights are in no way affected by the above.
 				{
 					target_speed = [[self getPrimaryTarget] getVelocityAsSpeed];
 					double eta = range / (flight_speed - target_speed);
+					double last_distance = last_success_factor;
+					success_factor = distance;
+					//
 					if ((eta < 3.0)&&(flight_speed > max_flight_speed * 0.02))
 						desired_speed = flight_speed * 0.75;   // cut speed to a minimum of 2 % speed
 					else
@@ -1328,7 +1338,27 @@ Your fair use and other rights are in no way affected by the above.
 						if (target_speed > max_flight_speed)
 							[shipAI reactToMessage:@"TARGET_LOST"];
 					}
+					//
 					[self trackPrimaryTarget:delta_t:NO];
+					//
+					if (distance < last_distance)	// improvement
+					{
+						frustration -= delta_t;
+						if (frustration < 0.0)
+							frustration = 0.0;
+					}
+					else
+					{
+						frustration += delta_t;
+						if (frustration > 10.0)	// 10s of frustration
+						{
+							[self setReportAImessages:YES];	//debug
+							[shipAI reactToMessage:@"FRUSTRATED"];
+							NSLog(@"DEBUG %@ flight_speed %.6f distance %.6f last_distance %.6f", self, flight_speed, distance, last_distance);
+							[self setReportAImessages:NO];	//debug
+							frustration -= 5.0;	//repeat after another five seconds' frustration
+						}
+					}
 				}
 				if ((proximity_alert != NO_TARGET)&&(proximity_alert != primaryTarget))
 					[self avoidCollision];
@@ -1344,6 +1374,7 @@ Your fair use and other rights are in no way affected by the above.
 						condition = CONDITION_ATTACK_FLY_TO_TARGET_SIX;
 					else
 						condition = CONDITION_ATTACK_FLY_TO_TARGET;
+				frustration = 0.0;	// condition changed, so reset frustration
 				break;
 				
 			case CONDITION_ATTACK_FLY_TO_TARGET_SIX :
@@ -1355,14 +1386,17 @@ Your fair use and other rights are in no way affected by the above.
 				if (range > SCANNER_MAX_RANGE)
 				{
 					condition = CONDITION_IDLE;
+					frustration = 0.0;
 					[shipAI reactToMessage:@"TARGET_LOST"];
 				}
 				
 				// if close enough to the six - vector in attack
 				//
 				if (distance < 250)
+				{
 					condition = CONDITION_ATTACK_FLY_TO_TARGET;
-				
+					frustration = 0.0;
+				}
 				// control speed
 				//
 				if (range <= slow_down_range)
@@ -1391,7 +1425,7 @@ Your fair use and other rights are in no way affected by the above.
 				{
 					if (proximity_alert == NO_TARGET)
 					{
-						desired_speed = 0;
+						desired_speed = range * max_flight_speed / (650.0 * 16.0);
 					}
 					else
 					{
@@ -1422,6 +1456,7 @@ Your fair use and other rights are in no way affected by the above.
 							jink.y = (ranrot_rand() % 256) - 128.0;
 							jink.z = 1000.0;
 							condition = CONDITION_ATTACK_FLY_FROM_TARGET;
+							frustration = 0.0;
 							desired_speed = ((has_fuel_injection)&&(fuel > 0))? max_flight_speed * AFTERBURNER_FACTOR : max_flight_speed;
 						}
 						else
@@ -1430,6 +1465,7 @@ Your fair use and other rights are in no way affected by the above.
 							
 							jink = make_vector( 0.0, 0.0, 0.0);
 							condition = CONDITION_RUNNING_DEFENSE;
+							frustration = 0.0;
 							desired_speed = max_flight_speed;
 						}
 					}
@@ -1443,6 +1479,7 @@ Your fair use and other rights are in no way affected by the above.
 					if (range > SCANNER_MAX_RANGE)
 					{
 						condition = CONDITION_IDLE;
+						frustration = 0.0;
 						[shipAI reactToMessage:@"TARGET_LOST"];
 					}
 				}
@@ -1454,7 +1491,30 @@ Your fair use and other rights are in no way affected by the above.
 				else
 					desired_speed = ((has_fuel_injection)&&(fuel > 0)) ? max_flight_speed * AFTERBURNER_FACTOR : max_flight_speed ; // use afterburner to approach
 				
-				[self trackPrimaryTarget:delta_t:NO];
+				last_success_factor = success_factor;
+				success_factor = [self trackPrimaryTarget:delta_t:NO];	// do the actual piloting
+				if ((success_factor > 0.999)||(success_factor > last_success_factor))
+				{
+					frustration -= delta_t;
+					if (frustration < 0.0)
+						frustration = 0.0;
+				}
+				else
+				{
+					frustration += delta_t;
+					if (frustration > 3.0)	// 3s of frustration
+					{
+						[shipAI reactToMessage:@"FRUSTRATED"];
+						// THIS IS HERE AS A TEST ONLY
+						// BREAK OFF
+						jink.x = (ranrot_rand() % 256) - 128.0;
+						jink.y = (ranrot_rand() % 256) - 128.0;
+						jink.z = 1000.0;
+						condition = CONDITION_ATTACK_FLY_FROM_TARGET;
+						frustration = 0.0;
+						desired_speed = max_flight_speed;
+					}
+				}
 				
 				if (missiles > missile_chance * hurt_factor)
 				{
@@ -1472,6 +1532,7 @@ Your fair use and other rights are in no way affected by the above.
 					jink.y = 0.0;
 					jink.z = 0.0;
 					condition = CONDITION_ATTACK_TARGET;
+					frustration = 0.0;
 					desired_speed = ((has_fuel_injection)&&(fuel > 0))? max_flight_speed * AFTERBURNER_FACTOR : max_flight_speed;
 				}
 				[self trackPrimaryTarget:delta_t:YES];
@@ -1490,6 +1551,7 @@ Your fair use and other rights are in no way affected by the above.
 					jink.y = 0.0;
 					jink.z = 0.0;
 					condition = CONDITION_ATTACK_FLY_TO_TARGET;
+					frustration = 0.0;
 					desired_speed = ((has_fuel_injection)&&(fuel > 0))? max_flight_speed * AFTERBURNER_FACTOR : max_flight_speed;
 				}
 				[self trackPrimaryTarget:delta_t:YES];
@@ -1523,17 +1585,19 @@ Your fair use and other rights are in no way affected by the above.
 					condition = CONDITION_FLY_FROM_DESTINATION;
 				else
 					condition = CONDITION_FLY_TO_DESTINATION;
+				frustration = 0.0;
 				break;
 				
 			case CONDITION_FACE_DESTINATION :
 				desired_speed = 0.0;
 //				NSLog(@"DEBUG >>>>> distance %.1f desired_range %.1f", distance, desired_range);
 				confidenceFactor = [self trackDestination:delta_t:NO];
-				if (confidenceFactor > 0.99)
+				if (confidenceFactor > 0.995)	// 0.995 - cos(5 degrees) is close enough
 				{
 					// desired facing achieved
 					[shipAI message:@"FACING_DESTINATION"];
 					condition = CONDITION_IDLE;
+					frustration = 0.0;
 				}
 				if ((proximity_alert != NO_TARGET)&&(proximity_alert != primaryTarget))
 					[self avoidCollision];
@@ -1554,15 +1618,40 @@ Your fair use and other rights are in no way affected by the above.
 					// desired range achieved
 					[shipAI message:@"DESIRED_RANGE_ACHIEVED"];
 					condition = CONDITION_IDLE;
+					frustration = 0.0;
 					desired_speed = 0.0;
 				}
 				else
 				{
+					double last_distance = last_success_factor;
 					double eta = (distance - desired_range) / flight_speed;
+					success_factor = distance;
+					
+					// do the actual piloting!!
+					[self trackDestination:delta_t:NO];
+					
 					if ((eta < 2.0)&&(flight_speed > max_flight_speed * 0.10))
 						desired_speed = flight_speed * 0.50;   // cut speed to a minimum of 10 % speed
+					
+					if (distance < last_distance)	// improvement
+					{
+						frustration -= delta_t;
+						if (frustration < 0.0)
+							frustration = 0.0;
+					}
+					else
+					{
+						frustration += delta_t;
+						if (frustration > 10.0)	// 10s of frustration
+						{
+							[self setReportAImessages:YES];	//debug
+							[shipAI reactToMessage:@"FRUSTRATED"];
+							NSLog(@"DEBUG %@ flight_speed %.6f distance %.6f last_distance %.6f", self, flight_speed, distance, last_distance);
+							[self setReportAImessages:NO];	//debug
+							frustration -= 5.0;	//repeat after another five seconds' frustration
+						}
+					}
 				}
-				[self trackDestination:delta_t:NO];
 				if ((proximity_alert != NO_TARGET)&&(proximity_alert != primaryTarget))
 					[self avoidCollision];
 				break;
@@ -1574,6 +1663,7 @@ Your fair use and other rights are in no way affected by the above.
 					// desired range achieved
 					[shipAI message:@"DESIRED_RANGE_ACHIEVED"];
 					condition = CONDITION_IDLE;
+					frustration = 0.0;
 					desired_speed = 0.0;
 				}
 				else
@@ -1890,6 +1980,7 @@ Your fair use and other rights are in no way affected by the above.
 		
 	[previousCondition release];
 	previousCondition = nil;
+	frustration = 0.0;
 	
 	//[shipAI message:@"RESTART_DOCKING"];	// if docking, start over, other AIs will ignore this message
 }
@@ -2475,6 +2566,7 @@ Your fair use and other rights are in no way affected by the above.
 			[shipAI setStateMachine:@"nullAI.plist"];
 			[shipAI setState:@"GLOBAL"];
 			condition = CONDITION_IDLE;
+			frustration = 0.0;
 			[self launchEscapeCapsule];
 			[self setScanClass: CLASS_NEUTRAL];			// we're unmanned now!
 		}
@@ -2528,25 +2620,10 @@ Your fair use and other rights are in no way affected by the above.
 		[ring release];
 	}
 	
-	for (i = 0 ; i < n_fragments; i++)
-	{
-		int speed = (ranrot_rand() % (speed_high - speed_low)) + speed_low;
-		double duration = 0.5 + randf();
-		v.x = (ranrot_rand() % speed) - speed / 2;
-		v.y = (ranrot_rand() % speed) - speed / 2;
-		v.z = (ranrot_rand() % speed) - speed / 2;
-		fragment = [[ParticleEntity alloc] init];	// alloc retains!
-		[fragment setPosition:xposition]; // here
-		[fragment setScanClass: CLASS_NO_DRAW];
-		[fragment setVelocity: v];
-		[fragment setDuration: duration];
-		[fragment setCollisionRadius: 0.0];
-		[fragment setEnergy: 0.0];
-		[fragment setParticleType: PARTICLE_SPARK];
-		[fragment setColor:[NSColor yellowColor]];
-		[universe addEntity:fragment];
-		[fragment release];							//release
-	}
+	fragment = [[ParticleEntity alloc] initFragburstFromPosition:xposition];
+	[universe addEntity:fragment];
+	[fragment release];
+
 	for (i = 0 ; i < n_fragments / 4; i++)
 	{
 		int speed = ((ranrot_rand() % (speed_high - speed_low)) + speed_low) /8;
@@ -2999,6 +3076,8 @@ Vector randomPositionInBoundingBox(BoundingBox bb)
 
 - (void) setCondition:(int) cond
 {
+	if (cond !=condition)
+		frustration = 0.0;	// change is a GOOD thing
 	condition = cond;
 }
 
@@ -3080,6 +3159,63 @@ Vector randomPositionInBoundingBox(BoundingBox bb)
 	return aim_cos;
 }
 
+- (void) trackOntoTarget:(double) delta_t
+{
+	Vector vector_to_target;
+	Vector my_aim = v_forward;
+	Quaternion q_minarc;
+	quaternion_set_identity(&q_minarc);
+	double fraction = (10.0 * delta_t < 1.0)? 10.0 * delta_t : 1.0;
+	//
+	Entity* targent = [self getPrimaryTarget];
+	//
+	if (!targent)
+		return;
+	
+	vector_to_target = targent->position;
+	vector_to_target.x -= position.x;	vector_to_target.y -= position.y;	vector_to_target.z -= position.z;
+	//
+	vector_to_target = unit_vector(&vector_to_target);
+	
+	// section copied from GPG1
+	//
+	Vector xp = make_vector(	(my_aim.y * vector_to_target.z) - (my_aim.z * vector_to_target.y),
+								(my_aim.z * vector_to_target.x) - (my_aim.x * vector_to_target.z),
+								(my_aim.x * vector_to_target.y) - (my_aim.y * vector_to_target.x));
+	GLfloat d = dot_product( my_aim, vector_to_target);
+	GLfloat s = sqrt((1.0 + d) * 2.0);
+	if (s)
+	{
+		q_minarc.x = xp.x / s;
+		q_minarc.y = xp.y / s;
+		q_minarc.z = xp.z / s;
+		q_minarc.w = s / 2.0;
+	}
+	//
+	////
+	
+	// average with unit vector
+	q_minarc.x *= fraction;
+	q_minarc.y *= fraction;
+	q_minarc.z *= fraction;
+	q_minarc.w = fraction * q_minarc.w + (1.0 - fraction);
+
+//	NSLog(@"DEBUG q_minarc x %.4f y %.4f z %.4f w %.4f",
+//		q_minarc.x, q_minarc.y, q_minarc.z, q_minarc.w);
+
+	q_rotation = quaternion_multiply( q_minarc, q_rotation);
+    quaternion_normalise(&q_rotation);
+    quaternion_into_gl_matrix(q_rotation, rotMatrix);
+	
+	flight_roll = 0.0;
+	flight_pitch = 0.0;
+	
+//	my_aim = vector_forward_from_quaternion(q_rotation);	// DEBUG ONLY
+//	GLfloat d2 = dot_product( vector_to_target, my_aim);
+//	NSLog(@"DEBUG ::::: BEFORE: (%.6f) AFTER: (%.6f) :%@: ", d, d2, (d2 > d)? @"SUCCESS" : @"failure");
+	
+}
+
 - (double) ballTrackLeadingTarget:(double) delta_t
 {
 	Vector vector_to_target;
@@ -3159,6 +3295,7 @@ Vector randomPositionInBoundingBox(BoundingBox bb)
 	Vector  relativePosition;	
 	GLfloat  d_forward, d_up, d_right;
 	Entity  *target;
+	BOOL isMining = ((condition == CONDITION_ATTACK_MINING_TARGET)&&(forward_weapon_type == WEAPON_MINING_LASER));
 	
 	double  damping = 0.5 * delta_t;
 	double  rate2 = 4.0 * delta_t;
@@ -3204,6 +3341,12 @@ Vector randomPositionInBoundingBox(BoundingBox bb)
 	d_right		=   dot_product(relativePosition, v_right);		// = cosine of angle between angle to target and v_right
 	d_up		=   dot_product(relativePosition, v_up);		// = cosine of angle between angle to target and v_up
 	d_forward   =   dot_product(relativePosition, v_forward);	// = cosine of angle between angle to target and v_forward
+
+	if ((d_forward > 0.995)&&(d_forward < 0.9999)&&(!retreat)&&(!isMining))
+	{
+		[self trackOntoTarget: delta_t];
+		return d_forward;
+	}
 
 	// begin rule-of-thumb manoeuvres
 	
@@ -4113,6 +4256,7 @@ Vector randomPositionInBoundingBox(BoundingBox bb)
 	{
 		[self addTarget:bomb];
 		condition = CONDITION_FLEE_TARGET;
+		frustration = 0.0;
 	}
 	return YES;
 }
@@ -4647,6 +4791,7 @@ Vector randomPositionInBoundingBox(BoundingBox bb)
 - (void) setDestination:(Vector) dest
 {
 	destination = dest;
+	frustration = 0.0;	// new destination => no frustration!
 }
 
 - (BOOL) acceptAsEscort:(ShipEntity *) other_ship
@@ -4800,27 +4945,32 @@ Vector randomPositionInBoundingBox(BoundingBox bb)
 	}
 	
 	/*- selects the nearest station it can find -*/
-	NSArray* entList = [[universe getAllEntities] retain];
-	StationEntity* station =  nil;
-	Vector  p1 = position;
-	double nearest2 = SCANNER_MAX_RANGE2 * 1000000.0; // 1000x scanner range (25600 km), squared.
+	if (!universe)
+		return;
+	int			ent_count =		universe->n_entities;
+	Entity**	uni_entities =	universe->sortedEntities;	// grab the public sorted list
+	Entity*		my_entities[ent_count];
 	int i;
-	for (i = 0; i < [entList count]; i++)
+	int station_count = 0;
+	for (i = 0; i < ent_count; i++)
+		if (uni_entities[i]->isStation)
+			my_entities[station_count++] = [uni_entities[i] retain];		//	retained
+	//
+	StationEntity* station =  nil;
+	double nearest2 = SCANNER_MAX_RANGE2 * 1000000.0; // 1000x scanner range (25600 km), squared.
+	for (i = 0; i < station_count; i++)
 	{
-		Entity* thing = (Entity *)[entList objectAtIndex:i];
-		if (thing->isStation)
+		StationEntity* thing = (StationEntity*)my_entities[i];
+		double range2 = distance2( position, thing->position);
+		if (range2 < nearest2)
 		{
-			Vector p2 = thing->position;
-			p2.x -= p1.x;   p2.y -= p1.y; p2.z -= p1.z;
-			double range2 = (p2.x * p2.x + p2.y * p2.y + p2.z * p2.z);
-			if (range2 < nearest2)
-			{
-				station = (StationEntity *)thing;
-				nearest2 = range2;
-			}
+			station = (StationEntity *)thing;
+			nearest2 = range2;
 		}
 	}
-	[entList release];
+	for (i = 0; i < station_count; i++)
+		[my_entities[i] release];		//	released
+	//
 	if (station)
 	{
 		primaryTarget = [station universal_id];
@@ -4831,87 +4981,98 @@ Vector randomPositionInBoundingBox(BoundingBox bb)
 - (PlanetEntity *) findNearestLargeBody
 {
 	/*- selects the nearest planet it can find -*/
-	NSArray			*entList = [[universe getAllEntities] retain];
-	PlanetEntity	*the_planet =  nil;
-	Vector  p1 = position;
-	double nearest2 = SCANNER_MAX_RANGE2 * 10000000000.0; // 100 000x scanner range (2 560 000 km), squared.
+	if (!universe)
+		return nil;
+	int			ent_count =		universe->n_entities;
+	Entity**	uni_entities =	universe->sortedEntities;	// grab the public sorted list
+	Entity*		my_entities[ent_count];
 	int i;
-	for (i = 0; i < [entList count]; i++)
+	int planet_count = 0;
+	for (i = 0; i < ent_count; i++)
+		if (uni_entities[i]->isPlanet)
+			my_entities[planet_count++] = [uni_entities[i] retain];		//	retained
+	//
+	PlanetEntity	*the_planet =  nil;
+	double nearest2 = SCANNER_MAX_RANGE2 * 10000000000.0; // 100 000x scanner range (2 560 000 km), squared.
+	for (i = 0; i < planet_count; i++)
 	{
-		Entity  *thing = (Entity *)[entList objectAtIndex:i];
-		if (thing->isPlanet)
+		PlanetEntity  *thing = (PlanetEntity*)my_entities[i];
+		double range2 = distance2( position, thing->position);
+		if ((!the_planet)||(range2 < nearest2))
 		{
-			Vector p2 = thing->position;
-			p2.x -= p1.x;   p2.y -= p1.y; p2.z -= p1.z;
-			double range2 = (p2.x * p2.x + p2.y * p2.y + p2.z * p2.z);
-			if ((!the_planet)||(range2 < nearest2))
-			{
-				the_planet = (PlanetEntity *)thing;
-				nearest2 = range2;
-			}
+			the_planet = (PlanetEntity *)thing;
+			nearest2 = range2;
 		}
 	}
-	[entList release];
+	for (i = 0; i < planet_count; i++)
+		[my_entities[i] release];		//	released
+	//
 	return the_planet;
 }
 
 - (void) abortDocking
 {
-	NSArray* entList = [[universe getAllEntities] retain];
+	if (!universe)
+		return;
+	int			ent_count =		universe->n_entities;
+	Entity**	uni_entities =	universe->sortedEntities;	// grab the public sorted list
 	int i;
-	for (i = 0; i < [entList count]; i++)
-	{
-		Entity* thing = (Entity *)[entList objectAtIndex:i];
-		if (thing->isStation)
-			[(StationEntity *)thing abortDockingForShip:self];
-	}
-	[entList release];
+	for (i = 0; i < ent_count; i++)
+		if (uni_entities[i]->isStation)
+			[(StationEntity *)uni_entities[i] abortDockingForShip:self];	// action
 }
 
 - (void) broadcastThargoidDestroyed
 {
 	/*-- Locates all tharglets in range and tells them you've gone --*/
-	NSArray* entList = [[universe getAllEntities] retain];
+	if (!universe)
+		return;
+	int			ent_count =		universe->n_entities;
+	Entity**	uni_entities =	universe->sortedEntities;	// grab the public sorted list
+	Entity*		my_entities[ent_count];
 	int i;
+	int ship_count = 0;
+	for (i = 0; i < ent_count; i++)
+		if (uni_entities[i]->isShip)
+			my_entities[ship_count++] = [uni_entities[i] retain];		//	retained
+	//
 	double d2;
 	double found_d2 = SCANNER_MAX_RANGE2;
-	for (i = 0; i < [entList count] ; i++)
+	for (i = 0; i < ship_count ; i++)
 	{
-		Entity* thing = (Entity *)[entList objectAtIndex:i];
-		if (thing->isShip)
-		{
-			Vector delta = thing->position;
-			delta.x -= position.x;  delta.y -= position.y;  delta.z -= position.z;
-			d2 = delta.x*delta.x + delta.y*delta.y + delta.z*delta.z;
-			if (d2 < found_d2)
-			{
-				ShipEntity  *ship = (ShipEntity *)thing;
-				// tell it! //
-				if ([[ship roles] isEqual:@"tharglet"])
-					[[ship getAI] message:@"THARGOID_DESTROYED"];
-			}
-		}
+		ShipEntity* ship = (ShipEntity *)my_entities[i];
+		d2 = distance2( position, ship->position);
+		if ((d2 < found_d2)&&([[ship roles] isEqual:@"tharglet"]))
+			[[ship getAI] message:@"THARGOID_DESTROYED"];
 	}
-	[entList release];
+	for (i = 0; i < ship_count; i++)
+		[my_entities[i] release];		//	released
 }
 
 - (NSArray *) shipsInGroup:(int) ship_group_id
 {
 	//-- Locates all the ships with this particular group id --//
-	NSMutableArray* result = [NSMutableArray arrayWithCapacity:20];
-	NSArray* entList = [[universe getAllEntities] retain];
+	NSMutableArray* result = [NSMutableArray arrayWithCapacity:20];	// is autoreleased
+	if (!universe)
+		return (NSArray *)result;
+	int			ent_count =		universe->n_entities;
+	Entity**	uni_entities =	universe->sortedEntities;	// grab the public sorted list
+	Entity*		my_entities[ent_count];
 	int i;
-	for (i = 0; i < [entList count] ; i++)
+	int ship_count = 0;
+	for (i = 0; i < ent_count; i++)
+		if (uni_entities[i]->isShip)
+			my_entities[ship_count++] = [uni_entities[i] retain];		//	retained
+	//
+	for (i = 0; i < ship_count ; i++)
 	{
-		Entity* thing = (Entity *)[entList objectAtIndex:i];
-		if (thing->isShip)
-		{
-			if ([(ShipEntity *)thing group_id] == ship_group_id)
-				[result addObject:(ShipEntity *)thing];
-		}
+		ShipEntity* ship = (ShipEntity *)my_entities[i];
+		if ([ship group_id] == ship_group_id)
+			[result addObject: ship];
 	}
-	[entList release];
-	return [NSArray arrayWithArray:result];
+	for (i = 0; i < ship_count; i++)
+		[my_entities[i] release];		//	released
+	return (NSArray *)result;
 }
 
 - (void) sendExpandedMessage:(NSString *) message_text toShip:(ShipEntity*) other_ship
@@ -4955,31 +5116,34 @@ Vector randomPositionInBoundingBox(BoundingBox bb)
 	/*-- Locates all the stations, bounty hunters and police ships in range and tells them your message --*/
 	NSString* expandedMessage = [NSString stringWithFormat:@"%@:\n %@", name, [universe expandDescription:message_text forSystem:[universe systemSeed]]];
 
-	NSArray* entList = [[universe getAllEntities] retain];
+	if (!universe)
+		return;
+	int			ent_count =		universe->n_entities;
+	Entity**	uni_entities =	universe->sortedEntities;	// grab the public sorted list
+	Entity*		my_entities[ent_count];
 	int i;
+	int ship_count = 0;
+	for (i = 0; i < ent_count; i++)
+		if (uni_entities[i]->isShip)
+			my_entities[ship_count++] = [uni_entities[i] retain];		//	retained
+	//
 	double d2;
 	double found_d2 = scanner_range * scanner_range;
 	found_target = NO_TARGET;
 	[self setCommsMessageColor];
-	for (i = 0; i < [entList count] ; i++)
+	for (i = 0; i < ship_count ; i++)
 	{
-		Entity* thing = (Entity *)[entList objectAtIndex:i];
-		if (thing->isShip)
+		ShipEntity* ship = (ShipEntity *)my_entities[i];
+		d2 = distance2( position, ship->position);
+		if (d2 < found_d2)
 		{
-			Vector delta = thing->position;
-			delta.x -= position.x;  delta.y -= position.y;  delta.z -= position.z;
-			d2 = delta.x*delta.x + delta.y*delta.y + delta.z*delta.z;
-			if (d2 < found_d2)
-			{
-				ShipEntity  *ship = (ShipEntity *)thing;
-				// tell it! //
-				[ship receiveCommsMessage: expandedMessage];
-				if (ship->isPlayer)
-					message_time = 6.0;
-			}
+			[ship receiveCommsMessage: expandedMessage];
+			if (ship->isPlayer)
+				message_time = 6.0;
 		}
 	}
-	[entList release];
+	for (i = 0; i < ship_count; i++)
+		[my_entities[i] release];		//	released
 	[universe resetCommsLogColor];
 }
 

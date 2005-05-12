@@ -225,7 +225,8 @@ Your fair use and other rights are in no way affected by the above.
 	double		desired_speed;		// speed at which to travel
 	double		launch_time;		// time at which launched
 	
-	int		condition;					// ship's behavioural state
+	int		condition;						// ship's behavioural state
+	double	frustration, success_factor;	// degree of dissatisfaction with the current behavioural state, factor used to test this
 	
 	int		patrol_counter;				// keeps track of where the ship is along a patrol route
 	
@@ -409,6 +410,8 @@ Vector randomPositionInBoundingBox(BoundingBox bb);
 - (int) condition;
 - (void) setCondition:(int) cond;
 
+- (void) trackOntoTarget:(double) delta_t;
+
 - (double) ballTrackTarget:(double) delta_t;
 - (double) ballTrackLeadingTarget:(double) delta_t;
 
@@ -488,4 +491,3 @@ Vector randomPositionInBoundingBox(BoundingBox bb);
 - (BOOL *) face_hit;
 
 @end
-

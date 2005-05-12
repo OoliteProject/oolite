@@ -1184,11 +1184,18 @@ static int shipsFound;
 
 - (void) sendAllShipsAway
 {
-	NSArray* ents = [universe getAllEntities];
+	if (!universe)
+		return;
+	int			ent_count =		universe->n_entities;
+	Entity**	uni_entities =	universe->sortedEntities;	// grab the public sorted list
+	Entity*		my_entities[ent_count];
 	int i;
-	for (i = 1; i < [ents count]; i++)
+	for (i = 0; i < ent_count; i++)
+		my_entities[i] = [uni_entities[i] retain];		//	retained
+	
+	for (i = 1; i < ent_count; i++)
 	{
-		Entity* e1 = [ents objectAtIndex:i];
+		Entity* e1 = my_entities[i];
 		if (e1->isShip)
 		{
 			int e_class = e1->scan_class;
@@ -1200,6 +1207,8 @@ static int shipsFound;
 			}
 		}
 	}
+	for (i = 0; i < ent_count; i++)
+		[my_entities[i] release];		//	released
 }
 
 - (void) debugOn

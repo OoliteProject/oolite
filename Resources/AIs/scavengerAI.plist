@@ -30,6 +30,7 @@
     "COLLECT_STUFF" = {
         ATTACKED = (setTargetToPrimaryAggressor, broadcastDistressMessage, "setStateTo: FLEE"); 
         "CARGO_SCOOPED" = (checkForFullHold, "setStateTo: LOOK_FOR_STUFF"); 
+        FRUSTRATED = ("setStateTo: LOOK_FOR_STUFF"); 
         "TARGET_LOST" = ("setStateTo: LOOK_FOR_STUFF"); 
         "COLLISION" = ("setStateTo: LOOK_FOR_STUFF"); 
         ENTER = (performCollect); 

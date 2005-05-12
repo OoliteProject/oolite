@@ -35,7 +35,8 @@
         ATTACKED = (setTargetToPrimaryAggressor, groupAttackTarget); 
         "INCOMING_MISSILE" = (fightOrFleeMissile, setTargetToPrimaryAggressor, deployEscorts, groupAttackTarget, "setAITo: interceptAI.plist", "setStateTo: OUTBOUND_LOOT"); 
         "TARGET_FOUND" = (setTargetToFoundTarget, deployEscorts, groupAttackTarget); 
-        "ACCEPT_DISTRESS_CALL" = (setTargetToFoundTarget, deployEscorts, groupAttackTarget); 
+        "ACCEPT_DISTRESS_CALL" = (setTargetToFoundTarget, deployEscorts, groupAttackTarget);
+		FRUSTRATED = ("setStateTo: HEAD_FOR_WITCHPOINT");
 		EXIT = ();
 		UPDATE = (scanForOffenders, "pauseAI: 10.0");
         RESTARTED = ("setStateTo: OUTBOUND_LOOT");
