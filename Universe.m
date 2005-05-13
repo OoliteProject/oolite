@@ -117,7 +117,7 @@ Your fair use and other rights are in no way affected by the above.
 	recycleLock =				[[NSLock alloc] init];
 	//
     entities =				[[NSMutableArray arrayWithCapacity:MAX_NUMBER_OF_ENTITIES] retain];
-    entsInDrawOrder =		[[NSMutableArray arrayWithCapacity:MAX_NUMBER_OF_ENTITIES] retain];
+//    entsInDrawOrder =		[[NSMutableArray arrayWithCapacity:MAX_NUMBER_OF_ENTITIES] retain];
 	//
 	sun_center_position[0] = 4000000.0;
 	sun_center_position[1] = 0.0;
@@ -247,7 +247,7 @@ Your fair use and other rights are in no way affected by the above.
     if (recycleLock)			[recycleLock release];
 	
     if (entities)				[entities release];
-    if (entsInDrawOrder)		[entsInDrawOrder release];
+//    if (entsInDrawOrder)		[entsInDrawOrder release];
     if (shipdata)				[shipdata release];
     if (shipyard)				[shipyard release];
 	
@@ -307,9 +307,9 @@ Your fair use and other rights are in no way affected by the above.
 	quaternion_set_identity(&q0);
 	int i;
 	
-	
-//	[universe_lock lock];
 	no_update = YES;
+	
+	[self removeAllEntitiesExceptPlayer:NO];
 	
 	[ResourceManager pathsUsingAddOns:!strict];
 	
@@ -347,10 +347,10 @@ Your fair use and other rights are in no way affected by the above.
 	recycleLock =				[[NSLock alloc] init];
 	//
 //    entities =				[[NSMutableArray arrayWithCapacity:MAX_NUMBER_OF_ENTITIES] retain];
-	[entities removeAllObjects];
-	n_entities = 0;
+//	[entities removeAllObjects];
+//	n_entities = 0;
 //    entsInDrawOrder =		[[NSMutableArray arrayWithCapacity:MAX_NUMBER_OF_ENTITIES] retain];
-	[entsInDrawOrder removeAllObjects];
+//	[entsInDrawOrder removeAllObjects];
 	//
 	sun_center_position[0] = 4000000.0;
 	sun_center_position[1] = 0.0;
@@ -497,7 +497,6 @@ Your fair use and other rights are in no way affected by the above.
 	
 	[player release];
 	
-//	[universe_lock unlock];
 	no_update = NO;
 	
 	[local_planetinfo_overrides removeAllObjects];
@@ -2504,24 +2503,23 @@ Your fair use and other rights are in no way affected by the above.
 			//
 			// use a non-mutable copy so this can't be changed under us.
 			//
-//			NSArray  *entityList = [[NSArray alloc] initWithArray:entities];	// alloc retains
-			//
+			int			ent_count =	n_entities;
+			Entity*		my_entities[ent_count];
+			for (i = 0; i < ent_count; i++)
+				my_entities[i] = [sortedEntities[i] retain];		//	retained
+			
 			Entity	*viewthing = nil;
 			Entity	*drawthing = nil;
 			
 			position.x = 0.0;	position.y = 0.0;	position.z = 0.0;
 			set_matrix_identity(rotMatrix);
 
-//			if (n < [entityList count])
-//			{
-//				viewthing = [entityList objectAtIndex:n];
-//			}
 			if (n < n_entities)
 			{
 				viewthing = [entities objectAtIndex:n];
 			}
 			
-			if ((viewthing)&&(viewthing == sortedEntities[0]))
+			if ((viewthing)&&(viewthing == my_entities[0]))
 			{
 				position = [viewthing getViewpointPosition];
 				gl_matrix_into_matrix([viewthing rotationMatrix], rotMatrix);
@@ -2539,15 +2537,7 @@ Your fair use and other rights are in no way affected by the above.
 				[myException raise];
 				return; // don't draw if there's not a viewing entity!
 			}
-			
-//			// make a drawing order
-//			//
-//			[entsInDrawOrder setArray:entityList];
-////			[entsInDrawOrder removeObject:viewthing];
-//			[entsInDrawOrder sortUsingSelector:@selector(compareZeroDistance:)];
-//			//
-//			[entityList release];   // we're done with this now.
-			
+						
 			//NSLog(@"Drawing from [%f,%f,%f]", position.x, position.y, position.z);
 			glEnable(GL_LIGHTING);
 			glEnable(GL_DEPTH_TEST);
@@ -2602,21 +2592,28 @@ Your fair use and other rights are in no way affected by the above.
 				glTranslatef(-position.x,-position.y,-position.z);
 				
 				// set lighting
+				glEnable(GL_LIGHTING);
 				glLightfv(GL_LIGHT1, GL_POSITION, sun_center_position);
+				glEnable(GL_LIGHT1);		// lighting up the sun
 				
 				//
 				//		DRAW ALL THE OPAQUE ENTITIES
 				//
-//				for (i = 0; i < [entsInDrawOrder count]; i++)
-				for (i = n_entities - 1; i > 0; i--)
+				for (i = ent_count - 1; i > 0; i--)
 				{
 					int d_status;
-//					drawthing = (Entity *)[entsInDrawOrder objectAtIndex:i];
-					drawthing = sortedEntities[i];
+					drawthing = my_entities[i];
 					d_status = drawthing->status;
+					
+					GLfloat flat_ambdiff[4]	= {1.0, 1.0, 1.0, 1.0};   // for alpha
+					GLfloat mat_no[4]		= {0.0, 0.0, 0.0, 1.0};   // nothing
 					
 					if (((d_status == STATUS_DEMO)&&(playerDemo)) || ((d_status != STATUS_DEMO)&&(!playerDemo)))
 					{
+						// reset material properties
+						glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE, flat_ambdiff);
+						glMaterialfv(GL_FRONT_AND_BACK, GL_EMISSION, mat_no);
+						//
 						// experimental - atmospheric fog
 						BOOL fogging = ((sky_clear_color[3] > 0.01)&&(drawthing != [self sun]));
 						
@@ -2658,12 +2655,10 @@ Your fair use and other rights are in no way affected by the above.
 				//		DRAW ALL THE TRANSLUCENT entsInDrawOrder
 				//
 				glDepthMask(GL_FALSE);				// don't write to depth buffer
-//				for (i = 0; i < [entsInDrawOrder count]; i++)
-				for (i = n_entities - 1; i > 0; i--)
+				for (i = ent_count - 1; i > 0; i--)
 				{
 					int d_status;
-//					drawthing = [entsInDrawOrder objectAtIndex:i];
-					drawthing = sortedEntities[i];
+					drawthing = my_entities[i];
 					d_status = drawthing->status;
 					
 					if (((d_status == STATUS_DEMO)&&(playerDemo)) || ((d_status != STATUS_DEMO)&&(!playerDemo)))
@@ -2734,6 +2729,9 @@ Your fair use and other rights are in no way affected by the above.
 			
 			glFlush();	// don't wait around for drawing to complete
 
+			for (i = 0; i < ent_count; i++)
+				[my_entities[i] release];		//	released
+			
 		NS_HANDLER
 			NSLog(@"\n\n***** Handling localException: %@ : %@ *****\n\n",[localException name], [localException reason]);
 			if (![[self gameController] inFullScreenMode])
@@ -2959,14 +2957,14 @@ Your fair use and other rights are in no way affected by the above.
 				NSLog(@"ENTITY IS NOT IN THE RIGHT PLACE IN THE SORTED LIST -- EXITING");
 				exit(666);
 			}
-			
-			n_entities--;
-			while (index < n_entities)
+ 			while (index < n_entities)
 			{
 				sortedEntities[index] = sortedEntities[index + 1];	// copy n+1 -> n (preserves sort order)
-				sortedEntities[index]->z_index = index;				// give it its correct position
+				if (sortedEntities[index])
+					sortedEntities[index]->z_index = index;				// give it its correct position
 				index++;
 			}
+			n_entities--;
 			sortedEntities[n_entities] = nil;
 			entity->z_index = -1;	// it's GONE!
 		}
@@ -3022,6 +3020,9 @@ Your fair use and other rights are in no way affected by the above.
 
 - (void) removeAllEntitiesExceptPlayer:(BOOL) restore
 {
+	BOOL updating = no_update;
+	no_update = YES;			// no drawing while we do this!
+	
 	if (!(((Entity*)[entities objectAtIndex:0])->isPlayer))
 	{
 		NSLog(@"***** First entity is not the player in Universe.removeAllEntitiesExceptPlayer - exiting.");
@@ -3049,6 +3050,8 @@ Your fair use and other rights are in no way affected by the above.
 	cachedEntityZero = nil;
 	firstBeacon = NO_TARGET;
 	lastBeacon = NO_TARGET;
+	
+	no_update = updating;	// restore drawing
 }
 
 - (void) removeDemoShips
