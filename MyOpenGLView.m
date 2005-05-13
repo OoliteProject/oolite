@@ -79,7 +79,7 @@ Your fair use and other rights are in no way affected by the above.
 	SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 16);
 	SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
 
-	screenSizes[0] = NSMakeSize(640, 480);
+	screenSizes[0] = NSMakeSize(1600, 1200);
 	screenSizes[1] = NSMakeSize(800, 600);
 	screenSizes[2] = NSMakeSize(1024, 768);
 	currentSize = 1;

@@ -717,7 +717,15 @@ Your fair use and other rights are in no way affected by the above.
 		NSArray* missile_roles = (NSArray*)[dict objectForKey:@"missile_roles"];
 		if (max_missiles < [missile_roles count])
 			missile_roles = [missile_roles subarrayWithRange:NSMakeRange(0, max_missiles)];
-		if (missiles != [missile_roles count])
+      
+      // TODO: more investigation. If missiles == 0 and is then made = to
+      // missile_roles count, the game hangs on Linux. Doesn't seem to happen
+      // on OS X.
+#ifdef GNUSTEP
+		if (missiles && missiles != [missile_roles count])
+#else
+      if (missiles != [missile_roles count])
+#endif
 			missiles = [missile_roles count];	// sanity check the number of missiles
 		for (i = 0; (i < max_missiles)&&(i < [missile_roles count]); i++)
 		{
