@@ -524,7 +524,8 @@ Your fair use and other rights are in no way affected by the above.
     NSString*   cargo_type_string;
     //NSString*   ai_type_string;
     NSString*   weapon_type_string;
-	
+
+	//NSLog(@"setUpShipFromDictionary");
 	// reset all settings
 	[self reinit];
 	
@@ -630,7 +631,7 @@ Your fair use and other rights are in no way affected by the above.
 		max_energy += (randf() < [(NSNumber *)[dict objectForKey:@"has_shield_booster"] floatValue])? 256:0;
 	if ([dict objectForKey:@"has_shield_enhancer"])
 	{
-		max_energy += (randf() < [(NSNumber *)[dict objectForKey:@"has_shield_booster"] floatValue])? 256:0;
+		max_energy += (randf() < [(NSNumber *)[dict objectForKey:@"has_shield_enhancer"] floatValue])? 256:0;
 		energy_recharge_rate *= 1.5;
 	}
 	//
@@ -638,6 +639,12 @@ Your fair use and other rights are in no way affected by the above.
 		has_cloaking_device = (randf() < [(NSNumber *)[dict objectForKey:@"has_cloaking_device"] floatValue]);
 	//
 	cloaking_device_active = NO;
+/*
+	if (has_ecm) NSLog(@"has ECM");
+	if (has_scoop) NSLog(@"has scoop");
+	if (has_escape_pod) NSLog(@"has escape pod");
+	if (has_energy_bomb) NSLog(@"has energy bomb");
+*/
 	//
 	// /upgrades
 	
