@@ -53,6 +53,31 @@ Your fair use and other rights are in no way affected by the above.
 
 @implementation MyOpenGLView
 
++ (NSSize) getNativeSize
+{
+   SDL_SysWMinfo  dpyInfo;
+   NSSize dpySize;
+
+   SDL_VERSION(&dpyInfo.version);
+   if(SDL_GetWMInfo(&dpyInfo))
+   {
+#ifdef LINUX     
+      dpySize.width=DisplayWidth(dpyInfo.info.x11.display, 0);
+      dpySize.height=DisplayHeight(dpyInfo.info.x11.display, 0);
+#else
+      NSLog(@"Unknown architecture, defaulting to 1024x768");
+      dpySize=NSMakeSize(1024,768);
+#endif      
+   }
+   else
+   {
+      NSLog(@"SDL_GetWMInfo failed, defaulting to 1024x768 for native size");
+      dpySize=NSMakeSize(1024, 768);
+   }
+   return dpySize;
+}
+
+
 - (id) initWithFrame:(NSRect)frameRect
 {
 	self = [super init];
@@ -79,10 +104,10 @@ Your fair use and other rights are in no way affected by the above.
 	SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 16);
 	SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
 
-	screenSizes[0] = NSMakeSize(1600, 1200);
+	screenSizes[0] = [MyOpenGLView getNativeSize];
 	screenSizes[1] = NSMakeSize(800, 600);
 	screenSizes[2] = NSMakeSize(1024, 768);
-	currentSize = 1;
+	currentSize = 0;
 	fullScreen = NO;
 
 	surface = SDL_SetVideoMode((int)frameRect.size.width, (int)frameRect.size.height, 32, SDL_HWSURFACE | SDL_OPENGL);

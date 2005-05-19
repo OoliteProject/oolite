@@ -115,9 +115,12 @@ extern int debug;
 
 	NSSize screenSizes[3];
 	int currentSize;
+	
 	BOOL fullScreen;
 	SDL_Surface* surface;
 }
+
++ (NSSize) getNativeSize;
 
 // override
 - (id) initWithFrame:(NSRect)frameRect;
