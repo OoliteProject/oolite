@@ -91,9 +91,9 @@ extern int debug;
 @interface MyOpenGLView : NSObject
 {
 	GameController  *gameController;
-	
+#ifndef GNUSTEP	
 	OpenGLSprite* splashSprite;
-	
+#endif
 	BOOL keys[NUM_KEYS];
 
 	BOOL opt, ctrl, command, shift;
@@ -163,4 +163,5 @@ extern int debug;
  - (BOOL) isShiftDown;
  - (int) numKeys;
 
+ - (void) pollControls;
 @end

@@ -38,18 +38,6 @@ Your fair use and other rights are in no way affected by the above.
 
 #import "GameController.h"
 #import "Universe.h"
-#import "TextureStore.h"
-#import "Entity.h"
-#import "PlanetEntity.h"
-#import "OpenGLSprite.h"
-#import "ResourceManager.h"
-
-@interface MyOpenGLView(Internal)
-
-- (void) pollControls;
-
-@end
-
 
 @implementation MyOpenGLView
 
@@ -196,7 +184,6 @@ Your fair use and other rights are in no way affected by the above.
 - (void) display
 {
 	[self drawRect: NSMakeRect(0, 0, viewSize.width, viewSize.height)];
-	[self pollControls];
 }
 
 - (void) drawRect:(NSRect)rect
@@ -460,186 +447,200 @@ Your fair use and other rights are in no way affected by the above.
 {
 	SDL_Event event;
 	SDL_KeyboardEvent* kbd_event;
+	Uint32 startTicks;
+	Sint32 sleepTicks;
 
-	while (SDL_PollEvent(&event)) {
-		switch (event.type) {
-			case SDL_KEYDOWN:
-				kbd_event = (SDL_KeyboardEvent*)&event;
-				//printf("Keydown scancode: %d\n", kbd_event->keysym.scancode);
-				switch (kbd_event->keysym.sym) {
-					case SDLK_1: if (shift) { keys[33] = YES; keys[gvNumberKey1] = NO; } else { keys[33] = NO; keys[gvNumberKey1] = YES; } break;
-					case SDLK_2: keys[gvNumberKey2] = YES; break;
-					case SDLK_3: keys[gvNumberKey3] = YES; break;
-					case SDLK_4: keys[gvNumberKey4] = YES; break;
-					case SDLK_5: keys[gvNumberKey5] = YES; break;
-					case SDLK_6: keys[gvNumberKey6] = YES; break;
-					case SDLK_7: keys[gvNumberKey7] = YES; break;
-					case SDLK_8: if (shift) { keys[42] = YES; keys[gvNumberKey8] = NO; } else { keys[42] = NO; keys[gvNumberKey8] = YES; } break;
-					case SDLK_9: keys[gvNumberKey9] = YES; break;
-					case SDLK_0: keys[gvNumberKey0] = YES; break;
-					case SDLK_a: if (shift) { keys[65] = YES; keys[97] = NO; } else { keys[65] = NO; keys[97] = YES; } break;
-					case SDLK_b: if (shift) { keys[66] = YES; keys[98] = NO; } else { keys[66] = NO; keys[98] = YES; } break;
-					case SDLK_c: if (shift) { keys[67] = YES; keys[99] = NO; } else { keys[67] = NO; keys[99] = YES; } break;
-					case SDLK_d: if (shift) { keys[68] = YES; keys[100] = NO; } else { keys[68] = NO; keys[100] = YES; } break;
-					case SDLK_e: if (shift) { keys[69] = YES; keys[101] = NO; } else { keys[69] = NO; keys[101] = YES; } break;
-					case SDLK_f: if (shift) { keys[70] = YES; keys[102] = NO; } else { keys[70] = NO; keys[102] = YES; } break;
-					case SDLK_g: if (shift) { keys[71] = YES; keys[103] = NO; } else { keys[71] = NO; keys[103] = YES; } break;
-					case SDLK_h: if (shift) { keys[72] = YES; keys[104] = NO; } else { keys[72] = NO; keys[104] = YES; } break;
-					case SDLK_i: if (shift) { keys[73] = YES; keys[105] = NO; } else { keys[73] = NO; keys[105] = YES; } break;
-					case SDLK_j: if (shift) { keys[74] = YES; keys[106] = NO; } else { keys[74] = NO; keys[106] = YES; } break;
-					case SDLK_k: if (shift) { keys[75] = YES; keys[107] = NO; } else { keys[75] = NO; keys[107] = YES; } break;
-					case SDLK_l: if (shift) { keys[76] = YES; keys[108] = NO; } else { keys[76] = NO; keys[108] = YES; } break;
-					case SDLK_m: if (shift) { keys[77] = YES; keys[109] = NO; } else { keys[77] = NO; keys[109] = YES; } break;
-					case SDLK_n: if (shift) { keys[78] = YES; keys[110] = NO; } else { keys[78] = NO; keys[110] = YES; } break;
-					case SDLK_o: if (shift) { keys[79] = YES; keys[111] = NO; } else { keys[79] = NO; keys[111] = YES; } break;
-					case SDLK_p: if (shift) { keys[80] = YES; keys[112] = NO; } else { keys[80] = NO; keys[112] = YES; } break;
-					case SDLK_q: if (shift) { keys[81] = YES; keys[113] = NO; } else { keys[81] = NO; keys[113] = YES; } break;
-					case SDLK_r: if (shift) { keys[82] = YES; keys[114] = NO; } else { keys[82] = NO; keys[114] = YES; } break;
-					case SDLK_s: if (shift) { keys[83] = YES; keys[115] = NO; } else { keys[83] = NO; keys[115] = YES; } break;
-					case SDLK_t: if (shift) { keys[84] = YES; keys[116] = NO; } else { keys[84] = NO; keys[116] = YES; } break;
-					case SDLK_u: if (shift) { keys[85] = YES; keys[117] = NO; } else { keys[85] = NO; keys[117] = YES; } break;
-					case SDLK_v: if (shift) { keys[86] = YES; keys[118] = NO; } else { keys[86] = NO; keys[118] = YES; } break;
-					case SDLK_w: if (shift) { keys[87] = YES; keys[119] = NO; } else { keys[87] = NO; keys[119] = YES; } break;
-					case SDLK_x: if (shift) { keys[88] = YES; keys[120] = NO; } else { keys[88] = NO; keys[120] = YES; } break;
-					case SDLK_y: if (shift) { keys[89] = YES; keys[121] = NO; } else { keys[89] = NO; keys[121] = YES; } break;
-					case SDLK_z: if (shift) { keys[90] = YES; keys[122] = NO; } else { keys[90] = NO; keys[122] = YES; } break;
-					case SDLK_BACKSLASH: if (! shift) keys[92] = YES; break;
-					case SDLK_BACKQUOTE: if (! shift) keys[96] = YES; break;
-					case SDLK_HOME: keys[gvHomeKey] = YES; break;
-					case SDLK_SPACE: keys[32] = YES; break;
-					case SDLK_RETURN: keys[13] = YES; break;
-					case SDLK_TAB: keys[9] = YES; break;
-					case SDLK_UP: keys[gvArrowKeyUp] = YES; break;
-					case SDLK_DOWN: keys[gvArrowKeyDown] = YES; break;
-					case SDLK_LEFT: keys[gvArrowKeyLeft] = YES; break;
-					case SDLK_RIGHT: keys[gvArrowKeyRight] = YES; break;
+	while (1)
+	{
+		startTicks = SDL_GetTicks();
 
-					case SDLK_F1: keys[gvFunctionKey1] = YES; break;
-					case SDLK_F2: keys[gvFunctionKey2] = YES; break;
-					case SDLK_F3: keys[gvFunctionKey3] = YES; break;
-					case SDLK_F4: keys[gvFunctionKey4] = YES; break;
-					case SDLK_F5: keys[gvFunctionKey5] = YES; break;
-					case SDLK_F6: keys[gvFunctionKey6] = YES; break;
-					case SDLK_F7: keys[gvFunctionKey7] = YES; break;
-					case SDLK_F8: keys[gvFunctionKey8] = YES; break;
-					case SDLK_F9: keys[gvFunctionKey9] = YES; break;
-					case SDLK_F10: keys[gvFunctionKey10] = YES; break;
+		while (SDL_PollEvent(&event)) {
+			switch (event.type) {
+				case SDL_KEYDOWN:
+					kbd_event = (SDL_KeyboardEvent*)&event;
+					//printf("Keydown scancode: %d\n", kbd_event->keysym.scancode);
+					switch (kbd_event->keysym.sym) {
+						case SDLK_1: if (shift) { keys[33] = YES; keys[gvNumberKey1] = NO; } else { keys[33] = NO; keys[gvNumberKey1] = YES; } break;
+						case SDLK_2: keys[gvNumberKey2] = YES; break;
+						case SDLK_3: keys[gvNumberKey3] = YES; break;
+						case SDLK_4: keys[gvNumberKey4] = YES; break;
+						case SDLK_5: keys[gvNumberKey5] = YES; break;
+						case SDLK_6: keys[gvNumberKey6] = YES; break;
+						case SDLK_7: keys[gvNumberKey7] = YES; break;
+						case SDLK_8: if (shift) { keys[42] = YES; keys[gvNumberKey8] = NO; } else { keys[42] = NO; keys[gvNumberKey8] = YES; } break;
+						case SDLK_9: keys[gvNumberKey9] = YES; break;
+						case SDLK_0: keys[gvNumberKey0] = YES; break;
+						case SDLK_a: if (shift) { keys[65] = YES; keys[97] = NO; } else { keys[65] = NO; keys[97] = YES; } break;
+						case SDLK_b: if (shift) { keys[66] = YES; keys[98] = NO; } else { keys[66] = NO; keys[98] = YES; } break;
+						case SDLK_c: if (shift) { keys[67] = YES; keys[99] = NO; } else { keys[67] = NO; keys[99] = YES; } break;
+						case SDLK_d: if (shift) { keys[68] = YES; keys[100] = NO; } else { keys[68] = NO; keys[100] = YES; } break;
+						case SDLK_e: if (shift) { keys[69] = YES; keys[101] = NO; } else { keys[69] = NO; keys[101] = YES; } break;
+						case SDLK_f: if (shift) { keys[70] = YES; keys[102] = NO; } else { keys[70] = NO; keys[102] = YES; } break;
+						case SDLK_g: if (shift) { keys[71] = YES; keys[103] = NO; } else { keys[71] = NO; keys[103] = YES; } break;
+						case SDLK_h: if (shift) { keys[72] = YES; keys[104] = NO; } else { keys[72] = NO; keys[104] = YES; } break;
+						case SDLK_i: if (shift) { keys[73] = YES; keys[105] = NO; } else { keys[73] = NO; keys[105] = YES; } break;
+						case SDLK_j: if (shift) { keys[74] = YES; keys[106] = NO; } else { keys[74] = NO; keys[106] = YES; } break;
+						case SDLK_k: if (shift) { keys[75] = YES; keys[107] = NO; } else { keys[75] = NO; keys[107] = YES; } break;
+						case SDLK_l: if (shift) { keys[76] = YES; keys[108] = NO; } else { keys[76] = NO; keys[108] = YES; } break;
+						case SDLK_m: if (shift) { keys[77] = YES; keys[109] = NO; } else { keys[77] = NO; keys[109] = YES; } break;
+						case SDLK_n: if (shift) { keys[78] = YES; keys[110] = NO; } else { keys[78] = NO; keys[110] = YES; } break;
+						case SDLK_o: if (shift) { keys[79] = YES; keys[111] = NO; } else { keys[79] = NO; keys[111] = YES; } break;
+						case SDLK_p: if (shift) { keys[80] = YES; keys[112] = NO; } else { keys[80] = NO; keys[112] = YES; } break;
+						case SDLK_q: if (shift) { keys[81] = YES; keys[113] = NO; } else { keys[81] = NO; keys[113] = YES; } break;
+						case SDLK_r: if (shift) { keys[82] = YES; keys[114] = NO; } else { keys[82] = NO; keys[114] = YES; } break;
+						case SDLK_s: if (shift) { keys[83] = YES; keys[115] = NO; } else { keys[83] = NO; keys[115] = YES; } break;
+						case SDLK_t: if (shift) { keys[84] = YES; keys[116] = NO; } else { keys[84] = NO; keys[116] = YES; } break;
+						case SDLK_u: if (shift) { keys[85] = YES; keys[117] = NO; } else { keys[85] = NO; keys[117] = YES; } break;
+						case SDLK_v: if (shift) { keys[86] = YES; keys[118] = NO; } else { keys[86] = NO; keys[118] = YES; } break;
+						case SDLK_w: if (shift) { keys[87] = YES; keys[119] = NO; } else { keys[87] = NO; keys[119] = YES; } break;
+						case SDLK_x: if (shift) { keys[88] = YES; keys[120] = NO; } else { keys[88] = NO; keys[120] = YES; } break;
+						case SDLK_y: if (shift) { keys[89] = YES; keys[121] = NO; } else { keys[89] = NO; keys[121] = YES; } break;
+						case SDLK_z: if (shift) { keys[90] = YES; keys[122] = NO; } else { keys[90] = NO; keys[122] = YES; } break;
+						case SDLK_BACKSLASH: if (! shift) keys[92] = YES; break;
+						case SDLK_BACKQUOTE: if (! shift) keys[96] = YES; break;
+						case SDLK_HOME: keys[gvHomeKey] = YES; break;
+						case SDLK_SPACE: keys[32] = YES; break;
+						case SDLK_RETURN: keys[13] = YES; break;
+						case SDLK_TAB: keys[9] = YES; break;
+						case SDLK_UP: keys[gvArrowKeyUp] = YES; break;
+						case SDLK_DOWN: keys[gvArrowKeyDown] = YES; break;
+						case SDLK_LEFT: keys[gvArrowKeyLeft] = YES; break;
+						case SDLK_RIGHT: keys[gvArrowKeyRight] = YES; break;
 
-					case SDLK_LSHIFT:
-					case SDLK_RSHIFT:
-						shift = YES;
-						break;
+						case SDLK_F1: keys[gvFunctionKey1] = YES; break;
+						case SDLK_F2: keys[gvFunctionKey2] = YES; break;
+						case SDLK_F3: keys[gvFunctionKey3] = YES; break;
+						case SDLK_F4: keys[gvFunctionKey4] = YES; break;
+						case SDLK_F5: keys[gvFunctionKey5] = YES; break;
+						case SDLK_F6: keys[gvFunctionKey6] = YES; break;
+						case SDLK_F7: keys[gvFunctionKey7] = YES; break;
+						case SDLK_F8: keys[gvFunctionKey8] = YES; break;
+						case SDLK_F9: keys[gvFunctionKey9] = YES; break;
+						case SDLK_F10: keys[gvFunctionKey10] = YES; break;
 
-					case SDLK_LCTRL:
-					case SDLK_RCTRL:
-						ctrl = YES;
-						break;
+						case SDLK_LSHIFT:
+						case SDLK_RSHIFT:
+							shift = YES;
+							break;
 
-					case SDLK_F11:
-						currentSize++;
-						if (currentSize > 2)
-							currentSize = 0;
-						[self initialiseGLWithSize:screenSizes[currentSize]];
-						break;
+						case SDLK_LCTRL:
+						case SDLK_RCTRL:
+							ctrl = YES;
+							break;
 
-					case SDLK_F12:
-						if (fullScreen == NO)
-							fullScreen = YES;
-						else
-							fullScreen = NO;
-						[self initialiseGLWithSize:screenSizes[currentSize]];
-						break;
+						case SDLK_F11:
+							currentSize++;
+							if (currentSize > 2)
+								currentSize = 0;
+							[self initialiseGLWithSize:screenSizes[currentSize]];
+							break;
 
-					case SDLK_ESCAPE:
-						if (shift)
-						{
-							SDL_FreeSurface(surface);
-							SDL_Quit();
-							[gameController exitApp];
-						}
-						else
-							keys[27] = YES;
-				}
-				break;
+						case SDLK_F12:
+							if (fullScreen == NO)
+								fullScreen = YES;
+							else
+								fullScreen = NO;
+							[self initialiseGLWithSize:screenSizes[currentSize]];
+							break;
 
-			case SDL_KEYUP:
-				kbd_event = (SDL_KeyboardEvent*)&event;
-				//printf("Keydown scancode: %d\n", kbd_event->keysym.scancode);
-				switch (kbd_event->keysym.sym) {
-					case SDLK_1: keys[33] = NO; keys[gvNumberKey1] = NO; break;
-					case SDLK_2: keys[gvNumberKey2] = NO; break;
-					case SDLK_3: keys[gvNumberKey3] = NO; break;
-					case SDLK_4: keys[gvNumberKey4] = NO; break;
-					case SDLK_5: keys[gvNumberKey5] = NO; break;
-					case SDLK_6: keys[gvNumberKey6] = NO; break;
-					case SDLK_7: keys[gvNumberKey7] = NO; break;
-					case SDLK_8: keys[42] = NO; keys[gvNumberKey8] = NO; break;
-					case SDLK_9: keys[gvNumberKey9] = NO; break;
-					case SDLK_0: keys[gvNumberKey0] = NO; break;
-					case SDLK_a: keys[65] = NO; keys[97] = NO; break;
-					case SDLK_b: keys[66] = NO; keys[98] = NO; break;
-					case SDLK_c: keys[67] = NO; keys[99] = NO; break;
-					case SDLK_d: keys[68] = NO; keys[100] = NO; break;
-					case SDLK_e: keys[69] = NO; keys[101] = NO; break;
-					case SDLK_f: keys[70] = NO; keys[102] = NO; break;
-					case SDLK_g: keys[71] = NO; keys[103] = NO; break;
-					case SDLK_h: keys[72] = NO; keys[104] = NO; break;
-					case SDLK_i: keys[73] = NO; keys[105] = NO; break;
-					case SDLK_j: keys[74] = NO; keys[106] = NO; break;
-					case SDLK_k: keys[75] = NO; keys[107] = NO; break;
-					case SDLK_l: keys[76] = NO; keys[108] = NO; break;
-					case SDLK_m: keys[77] = NO; keys[109] = NO; break;
-					case SDLK_n: keys[78] = NO; keys[110] = NO; break;
-					case SDLK_o: keys[79] = NO; keys[111] = NO; break;
-					case SDLK_p: keys[80] = NO; keys[112] = NO; break;
-					case SDLK_q: keys[81] = NO; keys[113] = NO; break;
-					case SDLK_r: keys[82] = NO; keys[114] = NO; break;
-					case SDLK_s: keys[83] = NO; keys[115] = NO; break;
-					case SDLK_t: keys[84] = NO; keys[116] = NO; break;
-					case SDLK_u: keys[85] = NO; keys[117] = NO; break;
-					case SDLK_v: keys[86] = NO; keys[118] = NO; break;
-					case SDLK_w: keys[87] = NO; keys[119] = NO; break;
-					case SDLK_x: keys[88] = NO; keys[120] = NO; break;
-					case SDLK_y: keys[89] = NO; keys[121] = NO; break;
-					case SDLK_z: keys[90] = NO; keys[122] = NO; break;
-					case SDLK_BACKSLASH: keys[92] = NO; break;
-					case SDLK_BACKQUOTE: keys[96] = NO; break;
-					case SDLK_HOME: keys[gvHomeKey] = NO; break;
-					case SDLK_SPACE: keys[32] = NO; break;
-					case SDLK_RETURN: keys[13] = NO; break;
-					case SDLK_TAB: keys[9] = NO; break;
-					case SDLK_UP: keys[gvArrowKeyUp] = NO; break;
-					case SDLK_DOWN: keys[gvArrowKeyDown] = NO; break;
-					case SDLK_LEFT: keys[gvArrowKeyLeft] = NO; break;
-					case SDLK_RIGHT: keys[gvArrowKeyRight] = NO; break;
+						case SDLK_ESCAPE:
+							if (shift)
+							{
+								SDL_FreeSurface(surface);
+								SDL_Quit();
+								[gameController exitApp];
+							}
+							else
+								keys[27] = YES;
+					}
+					break;
 
-					case SDLK_F1: keys[gvFunctionKey1] = NO; break;
-					case SDLK_F2: keys[gvFunctionKey2] = NO; break;
-					case SDLK_F3: keys[gvFunctionKey3] = NO; break;
-					case SDLK_F4: keys[gvFunctionKey4] = NO; break;
-					case SDLK_F5: keys[gvFunctionKey5] = NO; break;
-					case SDLK_F6: keys[gvFunctionKey6] = NO; break;
-					case SDLK_F7: keys[gvFunctionKey7] = NO; break;
-					case SDLK_F8: keys[gvFunctionKey8] = NO; break;
-					case SDLK_F9: keys[gvFunctionKey9] = NO; break;
-					case SDLK_F10: keys[gvFunctionKey10] = NO; break;
+				case SDL_KEYUP:
+					kbd_event = (SDL_KeyboardEvent*)&event;
+					//printf("Keydown scancode: %d\n", kbd_event->keysym.scancode);
+					switch (kbd_event->keysym.sym) {
+						case SDLK_1: keys[33] = NO; keys[gvNumberKey1] = NO; break;
+						case SDLK_2: keys[gvNumberKey2] = NO; break;
+						case SDLK_3: keys[gvNumberKey3] = NO; break;
+						case SDLK_4: keys[gvNumberKey4] = NO; break;
+						case SDLK_5: keys[gvNumberKey5] = NO; break;
+						case SDLK_6: keys[gvNumberKey6] = NO; break;
+						case SDLK_7: keys[gvNumberKey7] = NO; break;
+						case SDLK_8: keys[42] = NO; keys[gvNumberKey8] = NO; break;
+						case SDLK_9: keys[gvNumberKey9] = NO; break;
+						case SDLK_0: keys[gvNumberKey0] = NO; break;
+						case SDLK_a: keys[65] = NO; keys[97] = NO; break;
+						case SDLK_b: keys[66] = NO; keys[98] = NO; break;
+						case SDLK_c: keys[67] = NO; keys[99] = NO; break;
+						case SDLK_d: keys[68] = NO; keys[100] = NO; break;
+						case SDLK_e: keys[69] = NO; keys[101] = NO; break;
+						case SDLK_f: keys[70] = NO; keys[102] = NO; break;
+						case SDLK_g: keys[71] = NO; keys[103] = NO; break;
+						case SDLK_h: keys[72] = NO; keys[104] = NO; break;
+						case SDLK_i: keys[73] = NO; keys[105] = NO; break;
+						case SDLK_j: keys[74] = NO; keys[106] = NO; break;
+						case SDLK_k: keys[75] = NO; keys[107] = NO; break;
+						case SDLK_l: keys[76] = NO; keys[108] = NO; break;
+						case SDLK_m: keys[77] = NO; keys[109] = NO; break;
+						case SDLK_n: keys[78] = NO; keys[110] = NO; break;
+						case SDLK_o: keys[79] = NO; keys[111] = NO; break;
+						case SDLK_p: keys[80] = NO; keys[112] = NO; break;
+						case SDLK_q: keys[81] = NO; keys[113] = NO; break;
+						case SDLK_r: keys[82] = NO; keys[114] = NO; break;
+						case SDLK_s: keys[83] = NO; keys[115] = NO; break;
+						case SDLK_t: keys[84] = NO; keys[116] = NO; break;
+						case SDLK_u: keys[85] = NO; keys[117] = NO; break;
+						case SDLK_v: keys[86] = NO; keys[118] = NO; break;
+						case SDLK_w: keys[87] = NO; keys[119] = NO; break;
+						case SDLK_x: keys[88] = NO; keys[120] = NO; break;
+						case SDLK_y: keys[89] = NO; keys[121] = NO; break;
+						case SDLK_z: keys[90] = NO; keys[122] = NO; break;
+						case SDLK_BACKSLASH: keys[92] = NO; break;
+						case SDLK_BACKQUOTE: keys[96] = NO; break;
+						case SDLK_HOME: keys[gvHomeKey] = NO; break;
+						case SDLK_SPACE: keys[32] = NO; break;
+						case SDLK_RETURN: keys[13] = NO; break;
+						case SDLK_TAB: keys[9] = NO; break;
+						case SDLK_UP: keys[gvArrowKeyUp] = NO; break;
+						case SDLK_DOWN: keys[gvArrowKeyDown] = NO; break;
+						case SDLK_LEFT: keys[gvArrowKeyLeft] = NO; break;
+						case SDLK_RIGHT: keys[gvArrowKeyRight] = NO; break;
+	
+						case SDLK_F1: keys[gvFunctionKey1] = NO; break;
+						case SDLK_F2: keys[gvFunctionKey2] = NO; break;
+						case SDLK_F3: keys[gvFunctionKey3] = NO; break;
+						case SDLK_F4: keys[gvFunctionKey4] = NO; break;
+						case SDLK_F5: keys[gvFunctionKey5] = NO; break;
+						case SDLK_F6: keys[gvFunctionKey6] = NO; break;
+						case SDLK_F7: keys[gvFunctionKey7] = NO; break;
+						case SDLK_F8: keys[gvFunctionKey8] = NO; break;
+						case SDLK_F9: keys[gvFunctionKey9] = NO; break;
+						case SDLK_F10: keys[gvFunctionKey10] = NO; break;
 
-					case SDLK_LSHIFT:
-					case SDLK_RSHIFT:
-						shift = NO;
-						break;
-
-					case SDLK_LCTRL:
-					case SDLK_RCTRL:
-						ctrl = NO;
-						break;
-
-					case SDLK_ESCAPE:
-						keys[27] = NO;
-						break;
-				}
-				break;
+						case SDLK_LSHIFT:
+						case SDLK_RSHIFT:
+							shift = NO;
+							break;
+	
+						case SDLK_LCTRL:
+						case SDLK_RCTRL:
+							ctrl = NO;
+							break;
+	
+						case SDLK_ESCAPE:
+							keys[27] = NO;
+							break;
+					}
+					break;
+			}
 		}
+
+		[gameController doStuff: nil];
+
+		// Maximise the framerate at around 100fps
+		sleepTicks = 10 - (SDL_GetTicks() - startTicks);
+		if (sleepTicks > 0)
+			SDL_Delay((Uint32)sleepTicks);
 	}
 }
 

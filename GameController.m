@@ -73,7 +73,9 @@ Your fair use and other rights are in no way affected by the above.
 
 - (void) dealloc
 {
+#ifndef GNUSTEP
 	[[[NSWorkspace sharedWorkspace] notificationCenter]	removeObserver:universe];
+#endif
 	//
     if (timer)		[timer release];
     if (gameView)	[gameView release];
@@ -303,10 +305,10 @@ static int _compareModes(id arg1, id arg2, void *context)
 	if (gameView)   [universe setGameView:gameView];
 }
 
-- (void) setGameView:(NSView *)view
+- (void) setGameView:(MyOpenGLView *)view
 {
     if (gameView)	[gameView release];
-    gameView = [(MyOpenGLView *)view retain];
+    gameView = [view retain];
 	if (universe)   [universe setGameView:gameView];
 	[gameView setGameController:self];
 }
@@ -372,21 +374,23 @@ static int _compareModes(id arg1, id arg2, void *context)
 	[self logProgress:@"loading player..."];
 	[self loadPlayerIfRequired];
 
+#ifndef GNUSTEP
 	//
 	// get the run loop and add the call to doStuff
 	//
     NSTimeInterval ti = 0.01;
-    
     timer = [[NSTimer timerWithTimeInterval:ti target:self selector:@selector(doStuff:) userInfo:self repeats:YES] retain];
-    
     [[NSRunLoop currentRunLoop] addTimer:timer forMode:NSDefaultRunLoopMode];
 
 	// set up the window to accept mouseMoved events
-#ifndef GNUSTEP
 	[gameWindow setAcceptsMouseMovedEvents:YES];
 #endif
 	//
 	[self endSplashScreen];
+
+#ifdef GNUSTEP
+	[gameView pollControls];
+#endif
 }
 
 - (void) loadPlayerIfRequired
@@ -414,8 +418,10 @@ static int _compareModes(id arg1, id arg2, void *context)
 - (void) logProgress:(NSString*) message
 {
 //	NSLog(@"progress: %@", message);
+#ifndef GNUSTEP
 	[splashProgressTextField setStringValue:message];
 	[splashProgressTextField display];	// **thanks Jens Ayton **
+#endif
 }
 
 - (void) endSplashScreen
@@ -747,7 +753,12 @@ static int _compareModes(id arg1, id arg2, void *context)
 
 - (void) exitApp
 {
+#ifdef GNUSTEP
+	SDL_Quit();
+	exit(0);
+#else
 	[NSApp  terminate:self];
+#endif
 }
 
 - (void)windowDidResize:(NSNotification *)aNotification
@@ -757,12 +768,13 @@ static int _compareModes(id arg1, id arg2, void *context)
 }
 
 // delegate methods
-
+#ifndef GNUSTEP
 - (BOOL)application:(NSApplication *)theApplication openFile:(NSString *)filename
 {
 	[self setPlayerFileToLoad:filename];
 	return YES;
 }
+#endif
 
 - (NSString *) playerFileToLoad
 {

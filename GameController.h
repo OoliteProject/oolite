@@ -38,9 +38,9 @@ Your fair use and other rights are in no way affected by the above.
 
 #ifdef GNUSTEP
 #import <Foundation/Foundation.h>
-#import <AppKit/AppKit.h>
-#import <AppKit/NSOpenGL.h>
-#include <X11/Xlib.h>
+//#import <AppKit/AppKit.h>
+//#import <AppKit/NSOpenGL.h>
+//#include <X11/Xlib.h>
 #else
 #import <Cocoa/Cocoa.h>
 #endif
@@ -63,15 +63,24 @@ Your fair use and other rights are in no way affected by the above.
 // dajt: is defined as BOOL in main.m
 extern int debug;
 
+#ifdef GNUSTEP
+#define IBOutlet /**/
+#define IBAction void
+#endif
+
 @interface GameController : NSObject
 {
-    IBOutlet NSTextField	*splashProgressTextField;
+#ifndef GNUSTEP
+	IBOutlet NSTextField	*splashProgressTextField;
     IBOutlet NSView			*splashView;
-    IBOutlet MyOpenGLView   *gameView;
-    IBOutlet MyOpenGLView  *switchView;
     IBOutlet NSWindow		*gameWindow;
     IBOutlet NSWindow      *fsGameWindow;
-    NSRect  fsGeometry;
+#endif
+
+	NSRect  fsGeometry;
+
+    IBOutlet MyOpenGLView   *gameView;
+    IBOutlet MyOpenGLView  *switchView;
 
     Universe	*universe;
     NSDate		*old_time;
@@ -101,9 +110,9 @@ extern int debug;
     BOOL          fullscreen;
     NSDictionary *originalDisplayMode;
     NSDictionary *fullscreenDisplayMode;
-	
+#ifndef GNUSTEP
     NSOpenGLContext *fullScreenContext;
-	
+#endif
 	BOOL		stayInFullScreenMode;
 
 	/*  end of GDC */
@@ -155,7 +164,7 @@ extern int debug;
 - (void) stopAnimationTimer;
 
 - (MyOpenGLView *) gameView;
-- (void) setGameView:(NSView *)view;
+- (void) setGameView:(MyOpenGLView *)view;
 - (Universe *) universe;
 - (void) setUniverse:(Universe *) theUniverse;
 
