@@ -2041,7 +2041,7 @@
 		<real>0.0</real>
 		<key>exhaust</key>
 		<array>
-			<string>0.0 0.0 -4.5 2.0 2.0 4.0</string>
+			<string>0.0 0.0 -3.5 2.0 2.0 4.0</string>
 		</array>
 		<key>forward_weapon_type</key>
 		<string>WEAPON_NONE</string>
