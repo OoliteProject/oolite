@@ -114,6 +114,7 @@ static  Universe	*data_store_universe;
 	isStation = NO;
 	isPlanet = NO;
 	isPlayer = NO;
+	isSky = NO;
 	//
     return self;
 }
@@ -218,8 +219,6 @@ static  Universe	*data_store_universe;
     //
     [self checkNormalsAndAdjustWinding];
     //
-	if (is_smooth_shaded)
-		[self calculateVertexNormals];
 	// set the collision radius
 	//
 	collision_radius = [self findCollisionRadius];
@@ -410,9 +409,8 @@ static  Universe	*data_store_universe;
 
 - (void) drawEntity:(BOOL) immediate :(BOOL) translucent
 {
-    // roll out each face and vertex in turn
+    // draw the thing !
     //
-//    int fi,vi;
     int ti;
     GLfloat mat_ambient[] = { 1.0, 1.0, 1.0, 1.0 };
     GLfloat mat_no[] =		{ 0.0, 0.0, 0.0, 1.0 };
@@ -420,8 +418,7 @@ static  Universe	*data_store_universe;
 		glShadeModel(GL_SMOOTH);
 	else
 		glShadeModel(GL_FLAT);	
-	
-    //
+
     if (!translucent)
 	{
 		if (basefile)
@@ -431,16 +428,15 @@ static  Universe	*data_store_universe;
 			glDisableClientState(GL_COLOR_ARRAY);
 			glDisableClientState(GL_INDEX_ARRAY);
 			glDisableClientState(GL_EDGE_FLAG_ARRAY);
-			glDisableClientState(GL_TEXTURE_COORD_ARRAY);
 			//
-			glEnableClientState(GL_NORMAL_ARRAY);
 			glEnableClientState(GL_VERTEX_ARRAY);
+			glEnableClientState(GL_NORMAL_ARRAY);
 			glEnableClientState(GL_TEXTURE_COORD_ARRAY);
-			//
+
 			glVertexPointer( 3, GL_FLOAT, 0, entityData.vertex_array);
 			glNormalPointer( GL_FLOAT, 0, entityData.normal_array);
 			glTexCoordPointer( 2, GL_FLOAT, 0, entityData.texture_uv_array);
-					
+
 			if (immediate)
 			{
 #ifdef GNUSTEP
@@ -454,6 +450,7 @@ static  Universe	*data_store_universe;
 				//
 				// gap removal (draws flat polys)
 				//
+				glDisable(GL_TEXTURE_2D);
 				GLfloat amb_diff0[] = { 0.5, 0.5, 0.5, 1.0};
 				glMaterialfv( GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE, amb_diff0);
 				glMaterialfv( GL_FRONT_AND_BACK, GL_EMISSION, mat_no);
@@ -469,20 +466,19 @@ static  Universe	*data_store_universe;
 				glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
 				glMaterialfv( GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE, mat_ambient);
 				glMaterialfv( GL_FRONT_AND_BACK, GL_EMISSION, mat_no);
-				//
+
 				for (ti = 1; ti <= n_textures; ti++)
 				{
 					glBindTexture(GL_TEXTURE_2D, texture_name[ti]);
 					glDrawArrays( GL_TRIANGLES, triangle_range[ti].location, triangle_range[ti].length);
 				}
-				//					
-				glDisable(GL_TEXTURE_2D);
-				
 			}
 			else
 			{
 				if (displayListName != 0)
+				{
 					glCallList(displayListName);
+				}
 				else
 				{
 					[self initialiseTextures];
@@ -497,6 +493,7 @@ static  Universe	*data_store_universe;
 		}
 	}
 	glShadeModel(GL_SMOOTH);
+	checkGLErrors([NSString stringWithFormat:@"Entity after drawing %@", self]);
 }
 
 - (void) drawSubEntity:(BOOL) immediate :(BOOL) translucent
@@ -606,6 +603,9 @@ static  Universe	*data_store_universe;
         glNewList(displayListName, GL_COMPILE);
         [self drawEntity:YES:NO];	//	immediate YES	translucent NO
         glEndList();
+		//
+		checkGLErrors([NSString stringWithFormat:@"Entity after generateDisplayList for %@", self]);
+		//
     }
 }
 
@@ -1026,6 +1026,14 @@ static  Universe	*data_store_universe;
 	// set the collision radius
 	//
 	collision_radius = [self findCollisionRadius];
+	
+	// check for smooth chading and recalculate normals
+	//
+	if (is_smooth_shaded)
+		[self calculateVertexNormals];
+	//
+	
+	// set up vertex arrays for drawing
 	//
 	[self setUpVertexArrays];
 	//
@@ -1089,27 +1097,50 @@ static  Universe	*data_store_universe;
 
 - (void) calculateVertexNormals
 {
-	int i,j,k;
+//	int i,j;
+//	for (i = 0; i < n_vertices; i++)
+//	{
+//		int shared_faces = 0;
+//		Vector normal_sum;
+//		normal_sum.x = 0.0;	normal_sum.y = 0.0;	normal_sum.z = 0.0;
+//		for (j = 0; j < n_faces; j++)
+//		{
+//			BOOL is_shared = ((faces[j].vertex[0] == i)||(faces[j].vertex[1] == i)||(faces[j].vertex[2] == i));
+//			if (is_shared)
+//			{
+//				normal_sum.x += faces[j].normal.x;	normal_sum.y += faces[j].normal.y;	normal_sum.z += faces[j].normal.z;
+//				shared_faces++;
+//			}
+//		}
+//		normal_sum = unit_vector(&normal_sum);
+//		vertex_normal[i] = normal_sum;
+//	}
+	int i,j;
+	float	triangle_area[n_faces];
+	for (i = 0 ; i < n_faces; i++)
+	{
+		// calculate areas using Herons formula
+		// in the form Area = sqrt(2*(a2*b2+b2*c2+c2*a2)-(a4+b4+c4))/4
+		float	a2 = distance2( vertices[faces[i].vertex[0]], vertices[faces[i].vertex[1]]);
+		float	b2 = distance2( vertices[faces[i].vertex[1]], vertices[faces[i].vertex[2]]);
+		float	c2 = distance2( vertices[faces[i].vertex[2]], vertices[faces[i].vertex[0]]);
+		triangle_area[i] = sqrt( 2.0 * (a2 * b2 + b2 * c2 + c2 * a2) - 0.25 * (a2 * a2 + b2 * b2 +c2 * c2));
+	}
 	for (i = 0; i < n_vertices; i++)
 	{
-		int shared_faces = 0;
 		Vector normal_sum;
 		normal_sum.x = 0.0;	normal_sum.y = 0.0;	normal_sum.z = 0.0;
 		for (j = 0; j < n_faces; j++)
 		{
-			BOOL is_shared = NO;
-			for (k = 0; (k < faces[j].n_verts)&&(!is_shared); k++)
-				is_shared = (faces[j].vertex[k] == i);
+			BOOL is_shared = ((faces[j].vertex[0] == i)||(faces[j].vertex[1] == i)||(faces[j].vertex[2] == i));
 			if (is_shared)
 			{
-				normal_sum.x += faces[j].normal.x;	normal_sum.y += faces[j].normal.y;	normal_sum.z += faces[j].normal.z;
-				shared_faces++;
+				float t = triangle_area[j]; // weight sum by area
+				normal_sum.x += t * faces[j].normal.x;	normal_sum.y += t * faces[j].normal.y;	normal_sum.z += t * faces[j].normal.z;
 			}
 		}
 		normal_sum = unit_vector(&normal_sum);
-		vertex_normal[i].x = normal_sum.x;
-		vertex_normal[i].y = normal_sum.y;
-		vertex_normal[i].z = normal_sum.z;
+		vertex_normal[i] = normal_sum;
 	}
 }
 
@@ -1119,11 +1150,11 @@ static  Universe	*data_store_universe;
 
 	int face, fi, vi, texi;
 	
-	// base model, flat shaded, all triangles
+	// base model, flat or smooth shaded, all triangles
 	int tri_index = 0;
-	int uv_index = 0; // not used
+	int uv_index = 0;
 	int vertex_index = 0;
-	int normal_index = 0;
+//	int normal_index = 0;
 	entityData.textureFile = nil;
 	entityData.texName = 0;
 	
@@ -1153,8 +1184,8 @@ static  Universe	*data_store_universe;
 						if (is_smooth_shaded)
 							normal = vertex_normal[v];
 						entityData.index_array[tri_index++] = vertex_index;
+						entityData.normal_array[vertex_index] = normal;
 						entityData.vertex_array[vertex_index++] = vertices[v];
-						entityData.normal_array[normal_index++] = normal;
 						entityData.texture_uv_array[uv_index++] = faces[fi].s[vi];
 						entityData.texture_uv_array[uv_index++] = faces[fi].t[vi];
 					}
@@ -1746,6 +1777,305 @@ static  Universe	*data_store_universe;
 
 		gVertexArrayRangeData[i].forceUpdate = false;		
 	}		
+}
+
+// log a list of current states
+//
+void logGLState()
+{
+	// we need to report on the material properties
+	GLfloat mat_ambient[4];
+	GLfloat mat_diffuse[4];
+	GLfloat mat_emission[4];
+	GLfloat mat_specular[4];
+	GLfloat mat_shininess[1];
+	//
+	GLfloat current_color[4];
+	//
+	GLint gl_shade_model[1];
+	//
+	GLint gl_texture_env_mode[1];
+	NSString* tex_env_mode_string = nil;
+	//
+	GLint gl_cull_face_mode[1];
+	NSString* cull_face_mode_string = nil;
+	//
+	GLint gl_front_face[1];
+	NSString* front_face_string = nil;
+	//
+	GLint gl_blend_src[1];
+	NSString* blend_src_string = nil;
+	GLint gl_blend_dst[1];
+	NSString* blend_dst_string = nil;
+	//
+	GLenum errCode;
+	const GLubyte *errString;
+
+	glGetMaterialfv( GL_FRONT, GL_AMBIENT, mat_ambient);
+	glGetMaterialfv( GL_FRONT, GL_DIFFUSE, mat_diffuse);
+	glGetMaterialfv( GL_FRONT, GL_EMISSION, mat_emission);
+	glGetMaterialfv( GL_FRONT, GL_SPECULAR, mat_specular);
+	glGetMaterialfv( GL_FRONT, GL_SHININESS, mat_shininess);
+	//
+	glGetFloatv( GL_CURRENT_COLOR, current_color);
+	//
+	glGetIntegerv( GL_SHADE_MODEL, gl_shade_model);
+	//
+	glGetIntegerv( GL_BLEND_SRC, gl_blend_src);
+	switch (gl_blend_src[0])
+	{
+		case GL_ZERO:
+			blend_src_string = @"GL_ZERO";
+			break;
+		case GL_ONE:
+			blend_src_string = @"GL_ONE";
+			break;
+		case GL_DST_COLOR:
+			blend_src_string = @"GL_DST_COLOR";
+			break;
+		case GL_SRC_COLOR:
+			blend_src_string = @"GL_SRC_COLOR";
+			break;
+		case GL_ONE_MINUS_DST_COLOR:
+			blend_src_string = @"GL_ONE_MINUS_DST_COLOR";
+			break;
+		case GL_ONE_MINUS_SRC_COLOR:
+			blend_src_string = @"GL_ONE_MINUS_SRC_COLOR";
+			break;
+		case GL_SRC_ALPHA:
+			blend_src_string = @"GL_SRC_ALPHA";
+			break;
+		case GL_DST_ALPHA:
+			blend_src_string = @"GL_DST_ALPHA";
+			break;
+		case GL_ONE_MINUS_SRC_ALPHA:
+			blend_src_string = @"GL_ONE_MINUS_SRC_ALPHA";
+			break;
+		case GL_ONE_MINUS_DST_ALPHA:
+			blend_src_string = @"GL_ONE_MINUS_DST_ALPHA";
+			break;
+		case GL_SRC_ALPHA_SATURATE:
+			blend_src_string = @"GL_SRC_ALPHA_SATURATE";
+			break;
+		default:
+			break;
+	}
+	//
+	glGetIntegerv( GL_BLEND_DST, gl_blend_dst);
+	switch (gl_blend_dst[0])
+	{
+		case GL_ZERO:
+			blend_dst_string = @"GL_ZERO";
+			break;
+		case GL_ONE:
+			blend_dst_string = @"GL_ONE";
+			break;
+		case GL_DST_COLOR:
+			blend_dst_string = @"GL_DST_COLOR";
+			break;
+		case GL_SRC_COLOR:
+			blend_dst_string = @"GL_SRC_COLOR";
+			break;
+		case GL_ONE_MINUS_DST_COLOR:
+			blend_dst_string = @"GL_ONE_MINUS_DST_COLOR";
+			break;
+		case GL_ONE_MINUS_SRC_COLOR:
+			blend_dst_string = @"GL_ONE_MINUS_SRC_COLOR";
+			break;
+		case GL_SRC_ALPHA:
+			blend_dst_string = @"GL_SRC_ALPHA";
+			break;
+		case GL_DST_ALPHA:
+			blend_dst_string = @"GL_DST_ALPHA";
+			break;
+		case GL_ONE_MINUS_SRC_ALPHA:
+			blend_dst_string = @"GL_ONE_MINUS_SRC_ALPHA";
+			break;
+		case GL_ONE_MINUS_DST_ALPHA:
+			blend_dst_string = @"GL_ONE_MINUS_DST_ALPHA";
+			break;
+		case GL_SRC_ALPHA_SATURATE:
+			blend_dst_string = @"GL_SRC_ALPHA_SATURATE";
+			break;
+		default:
+			break;
+	}
+	//
+	glGetIntegerv( GL_CULL_FACE_MODE, gl_cull_face_mode);
+	switch (gl_cull_face_mode[0])
+	{
+		case GL_BACK:
+			cull_face_mode_string = @"GL_BACK";
+			break;
+		case GL_FRONT:
+			cull_face_mode_string = @"GL_FRONT";
+			break;
+		default:
+			break;
+	}
+	//
+	glGetIntegerv( GL_FRONT_FACE, gl_front_face);
+	switch (gl_front_face[0])
+	{
+		case GL_CCW:
+			front_face_string = @"GL_CCW";
+			break;
+		case GL_CW:
+			front_face_string = @"GL_CW";
+			break;
+		default:
+			break;
+	}
+	//
+	glGetTexEnviv(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, gl_texture_env_mode);
+	switch (gl_texture_env_mode[0])
+	{
+		case GL_DECAL:
+			tex_env_mode_string = @"GL_DECAL";
+			break;
+		case GL_REPLACE:
+			tex_env_mode_string = @"GL_REPLACE";
+			break;
+		case GL_MODULATE:
+			tex_env_mode_string = @"GL_MODULATE";
+			break;
+		case GL_BLEND:
+			tex_env_mode_string = @"GL_BLEND";
+			break;
+		default:
+			break;
+	}
+	//
+	if ((errCode =glGetError()) != GL_NO_ERROR)
+	{
+		errString = gluErrorString(errCode);
+		NSLog(@"OPENGL_DEBUG GL_ERROR (%d) %s", errCode, errString);
+	}
+
+	/*-- MATERIALS --*/
+	NSLog(@"OPENGL_DEBUG GL_AMBIENT ( %.2ff, %.2ff, %.2ff, %.2ff)",
+		mat_ambient[0], mat_ambient[1], mat_ambient[2], mat_ambient[3]);
+	NSLog(@"OPENGL_DEBUG GL_DIFFUSE ( %.2ff, %.2ff, %.2ff, %.2ff)",
+		mat_diffuse[0], mat_diffuse[1], mat_diffuse[2], mat_diffuse[3]);
+	NSLog(@"OPENGL_DEBUG GL_EMISSION ( %.2ff, %.2ff, %.2ff, %.2ff)",
+		mat_emission[0], mat_emission[1], mat_emission[2], mat_emission[3]);
+	NSLog(@"OPENGL_DEBUG GL_SPECULAR ( %.2ff, %.2ff, %.2ff, %.2ff)",
+		mat_specular[0], mat_specular[1], mat_specular[2], mat_specular[3]);
+	NSLog(@"OPENGL_DEBUG GL_SHININESS ( %.2ff)", mat_shininess[0]);
+	/*-- MATERIALS --*/
+
+	//
+	/*-- LIGHTS --*/
+	if (glIsEnabled(GL_LIGHTING))
+	{
+		NSLog(@"OPENGL_DEBUG GL_LIGHTING :ENABLED:");
+		if (glIsEnabled(GL_LIGHT0))
+			NSLog(@"OPENGL_DEBUG GL_LIGHT0 :ENABLED:");
+		if (glIsEnabled(GL_LIGHT1))
+		{
+			NSLog(@"OPENGL_DEBUG GL_LIGHT1 :ENABLED:");
+			GLfloat light_ambient[4];
+			GLfloat light_diffuse[4];
+			GLfloat light_specular[4];
+			glGetLightfv(GL_LIGHT1, GL_AMBIENT, light_ambient);
+			glGetLightfv(GL_LIGHT1, GL_DIFFUSE, light_diffuse);
+			glGetLightfv(GL_LIGHT1, GL_SPECULAR, light_specular);
+			NSLog(@"OPENGL_DEBUG GL_LIGHT1 GL_AMBIENT ( %.2ff, %.2ff, %.2ff, %.2ff)",
+				light_ambient[0], light_ambient[1], light_ambient[2], light_ambient[3]);
+			NSLog(@"OPENGL_DEBUG GL_LIGHT1 GL_DIFFUSE ( %.2ff, %.2ff, %.2ff, %.2ff)",
+				light_diffuse[0], light_diffuse[1], light_diffuse[2], light_diffuse[3]);
+			NSLog(@"OPENGL_DEBUG GL_LIGHT1 GL_SPECULAR ( %.2ff, %.2ff, %.2ff, %.2ff)",
+				light_specular[0], light_specular[1], light_specular[2], light_specular[3]);
+		}
+		if (glIsEnabled(GL_LIGHT2))
+			NSLog(@"OPENGL_DEBUG GL_LIGHT2 :ENABLED:");
+		if (glIsEnabled(GL_LIGHT3))
+			NSLog(@"OPENGL_DEBUG GL_LIGHT3 :ENABLED:");
+		if (glIsEnabled(GL_LIGHT4))
+			NSLog(@"OPENGL_DEBUG GL_LIGHT4 :ENABLED:");
+		if (glIsEnabled(GL_LIGHT5))
+			NSLog(@"OPENGL_DEBUG GL_LIGHT5 :ENABLED:");
+		if (glIsEnabled(GL_LIGHT6))
+			NSLog(@"OPENGL_DEBUG GL_LIGHT6 :ENABLED:");
+		if (glIsEnabled(GL_LIGHT7))
+			NSLog(@"OPENGL_DEBUG GL_LIGHT7 :ENABLED:");
+	}
+	/*-- LIGHTS --*/
+	
+	NSLog(@"OPENGL_DEBUG GL_CURRENT_COLOR ( %.2ff, %.2ff, %.2ff, %.2ff)",
+		current_color[0], current_color[1], current_color[2], current_color[3]);
+	//
+	NSLog(@"OPENGL_DEBUG GL_TEXTURE_ENV_MODE :%@:", tex_env_mode_string);
+	//
+	NSLog(@"OPENGL_DEBUG GL_SHADEMODEL :%@:",  (gl_shade_model[0] == GL_SMOOTH)? @"GL_SMOOTH": @"GL_FLAT");
+	//
+	if (glIsEnabled(GL_FOG))
+		NSLog(@"OPENGL_DEBUG GL_FOG :ENABLED:");
+	//
+	if (glIsEnabled(GL_COLOR_MATERIAL))
+		NSLog(@"OPENGL_DEBUG GL_COLOR_MATERIAL :ENABLED:");
+	//
+	if (glIsEnabled(GL_BLEND))
+	{
+		NSLog(@"OPENGL_DEBUG GL_BLEND :ENABLED:");
+		NSLog(@"OPENGL_DEBUG GL_BLEND_FUNC (:%@:, :%@:)", blend_src_string, blend_dst_string);
+	}
+	//
+	if (glIsEnabled(GL_CULL_FACE))
+		NSLog(@"OPENGL_DEBUG GL_CULL_FACE :ENABLED:");
+	//
+	NSLog(@"OPENGL_DEBUG GL_CULL_FACE_MODE :%@:", cull_face_mode_string);
+	//
+	NSLog(@"OPENGL_DEBUG GL_FRONT_FACE :%@:", front_face_string);
+}
+
+// check for OpenGL errors, reporting them if where is not nil
+//
+BOOL checkGLErrors(NSString* where)
+{
+	GLenum errCode;
+	const GLubyte *errString;
+
+	if ((errCode =glGetError()) != GL_NO_ERROR)
+	{
+		errString = gluErrorString(errCode);
+		if (where)
+			NSLog(@"OPENGL_DEBUG GL_ERROR (%d) '%s' in: %@", errCode, errString, where);
+		return YES;
+	}
+	return NO;
+}
+
+// keep track of various OpenGL states
+//
+void my_glEnable(GLenum gl_state)
+{
+	switch (gl_state)
+	{
+		case GL_TEXTURE_2D:
+			if (mygl_texture_2d)
+				return;
+			mygl_texture_2d = YES;
+			break;
+		default:
+			break;
+	}
+	glEnable(gl_state);
+}
+//
+void my_glDisable(GLenum gl_state)
+{
+	switch (gl_state)
+	{
+		case GL_TEXTURE_2D:
+			if (!mygl_texture_2d)
+				return;
+			mygl_texture_2d = NO;
+			break;
+		default:
+			break;
+	}
+	glDisable(gl_state);
 }
 
 @end

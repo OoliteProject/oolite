@@ -83,7 +83,6 @@ Your fair use and other rights are in no way affected by the above.
     GLuint		texName;
 	
 	int			n_planes;
-	int			n_bytes;
     
     if (![textureDictionary objectForKey:filename])
     {
@@ -105,7 +104,7 @@ Your fair use and other rights are in no way affected by the above.
         
         textureRect.origin= NSMakePoint(0.0,0.0);
     
-        //  NSLog(@"textureSize = %f %f",textureRect.size.width,textureRect.size.height);
+//        NSLog(@"DEBUG %@ imageSize = (%.0f, %.0f) textureSize = (%.0f, %.0f)", filename, imageSize.width, imageSize.height, textureRect.size.width,textureRect.size.height);
     
         image = [[NSImage alloc] initWithSize:textureRect.size]; // is retained
         
@@ -119,12 +118,9 @@ Your fair use and other rights are in no way affected by the above.
 		[texImage drawAtPoint:NSMakePoint(0.0,0.0) fromRect:NSMakeRect(0.0,0.0,imageSize.width,imageSize.height) operation:NSCompositeSourceOver fraction:1.0];
         bitmapImageRep = [[NSBitmapImageRep alloc] initWithFocusedViewRect:textureRect];// is retained
         
-		//  NSLog(@"TextureStore %@ texture has %d planes, %d bytes per plane", filename, [bitmapImageRep numberOfPlanes], [bitmapImageRep bytesPerPlane]);
+//  NSLog(@"TextureStore bitMapImageRep for %@: has %d numberOfPlanes, %d samplesPerPixel", filename, [bitmapImageRep numberOfPlanes], [bitmapImageRep samplesPerPixel]);
 		
-		n_bytes = [bitmapImageRep bytesPerPlane];
-		n_planes = 3;
-		if (n_bytes > textureRect.size.width*textureRect.size.height*3)
-			n_planes = 4;
+		n_planes = [bitmapImageRep samplesPerPixel];
 		
 		[image unlockFocus];
     
@@ -185,4 +181,3 @@ Your fair use and other rights are in no way affected by the above.
 }
 
 @end
-

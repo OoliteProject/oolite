@@ -118,6 +118,8 @@ Your fair use and other rights are in no way affected by the above.
 
 - (Vector) getPortPosition;
 
+- (Vector) getBeaconPosition;
+
 - (double) equipment_price_factor;
 
 - (void) setPlanet:(PlanetEntity *)planet_entity;
@@ -178,4 +180,3 @@ Your fair use and other rights are in no way affected by the above.
 - (void) acceptDockingClearanceRequestFrom:(ShipEntity *)other;
 
 @end
-

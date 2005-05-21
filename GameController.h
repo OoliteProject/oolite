@@ -96,6 +96,7 @@ extern int debug;
 #endif
    
 	NSString	*playerFileToLoad;
+	NSMutableArray*	expansionPathsToInclude;
 	
     NSTimer		*timer;
 	
@@ -174,5 +175,4 @@ extern int debug;
 - (void) pauseiTunes;
 
 @end
-
 

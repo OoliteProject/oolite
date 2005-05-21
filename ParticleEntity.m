@@ -377,6 +377,51 @@ static Vector   circleVertex[65];		// holds vector coordinates for a unit circle
     return self;
 }
 
+- (id) initBurst2FromPosition:(Vector) fragPos
+{
+	int speed_low = 200;
+	int speed_high = 800;
+	int n_fragments = 8;
+	int i;
+	//
+	self = [super init];
+    //
+	basefile = @"Particle";
+	textureNameString   = @"blur256.png";
+	//
+	texName = 0;
+	[self initialiseTexture: textureNameString];
+	size = NSMakeSize(32.0,32.0);
+	//
+	n_vertices = n_fragments;
+    time_counter = 0.0;
+	duration = 1.5;
+	position = fragPos;
+	//
+	for (i = 0 ; i < n_vertices; i++)
+	{
+		int speed = (speed_low + (speed_high - speed_low) * randf()) * 0.20;
+		vertices[i] = make_vector(0,0,0);
+		vertex_normal[i].x = (ranrot_rand() % speed) - speed / 2;
+		vertex_normal[i].y = (ranrot_rand() % speed) - speed / 2;
+		vertex_normal[i].z = (ranrot_rand() % speed) - speed / 2;
+	}
+	//
+	status = STATUS_EFFECT;
+	scan_class = CLASS_NO_DRAW;
+	//
+	particle_type = PARTICLE_BURST2;
+	//
+	collision_radius = 0;
+	energy = 0;
+	[self setColor:[NSColor yellowColor]];
+	owner = NO_TARGET;
+	//
+	isParticle = YES;
+	//
+    return self;
+}
+
 - (void) dealloc
 {
     if (textureNameString)	[textureNameString release];
@@ -400,6 +445,7 @@ static Vector   circleVertex[65];		// holds vector coordinates for a unit circle
 		case PARTICLE_ECM_MINE :
 		case PARTICLE_SPARK :
 		case PARTICLE_FRAGBURST :
+		case PARTICLE_BURST2 :
 			return NO;
 			break;
 		default :
@@ -504,13 +550,14 @@ static Vector   circleVertex[65];		// holds vector coordinates for a unit circle
 			case PARTICLE_SHOT_PLASMA :
 			case PARTICLE_EXPLOSION :
 			case PARTICLE_FRAGBURST :
+			case PARTICLE_BURST2 :
 				{
 					Entity* player = [universe entityZero];
 					if (!texName)
 						[self initialiseTexture: textureNameString];
 					if (player)
 					{
-						q_rotation = player->q_rotation;
+						q_rotation = player->q_rotation;					// Rally simple billboard routine
 						q_rotation.w = -q_rotation.w;
 						quaternion_into_gl_matrix(q_rotation, rotMatrix);
 					}
@@ -559,6 +606,10 @@ static Vector   circleVertex[65];		// holds vector coordinates for a unit circle
 				[self updateFragburst:delta_t];
 				break;
 			
+			case PARTICLE_BURST2 :
+				[self updateBurst2:delta_t];
+				break;
+			
 			case PARTICLE_SHOT_EXPIRED :
 			case PARTICLE_SHOT_YELLOW_PLASMA :
 			case PARTICLE_SHOT_GREEN_PLASMA :
@@ -573,7 +624,8 @@ static Vector   circleVertex[65];		// holds vector coordinates for a unit circle
 
 - (void) updateExplosion:(double) delta_t
 {
-	[self setSize:NSMakeSize((1.0 + time_counter)*64.0,(1.0 + time_counter)*64.0)];
+	float diameter = (1.0 + time_counter)*64.0;
+	[self setSize:NSMakeSize(diameter, diameter)];
 	alpha = (duration - time_counter);
 	if (time_counter > duration)
 		[universe removeEntity:self];
@@ -771,9 +823,32 @@ static Vector   circleVertex[65];		// holds vector coordinates for a unit circle
 		vertices[i].y += vertex_normal[i].y * delta_t;
 		vertices[i].z += vertex_normal[i].z * delta_t;
 	}
-//	// disappear some sparks
-//	if ((n_sparks > 0)&&(n_sparks < n_vertices))
-//		n_vertices = n_sparks;
+	
+	// disappear eventually
+	if (time_counter > duration)
+		[universe removeEntity:self];
+}
+
+- (void) updateBurst2:(double) delta_t
+{
+	int i;
+	float diameter = (1.0 + time_counter)*64.0;
+	[self setSize:NSMakeSize(diameter, diameter)];
+//	size.width = (1.0 + time_counter)*64.0;
+//	size.height = size.width;
+	//
+	for (i = 0 ; i < n_vertices; i++)
+	{
+		GLfloat du = 0.5 + 0.125 * (8 - i);
+		GLfloat alf = 1.0 - time_counter / du;
+		if (alf < 0.0)	alf = 0.0;
+		if (alf > 1.0)	alf = 1.0;
+		faces[i].green = alf;
+		faces[i].blue = alf;
+		vertices[i].x += vertex_normal[i].x * delta_t;
+		vertices[i].y += vertex_normal[i].y * delta_t;
+		vertices[i].z += vertex_normal[i].z * delta_t;
+	}
 	
 	// disappear eventually
 	if (time_counter > duration)
@@ -782,6 +857,8 @@ static Vector   circleVertex[65];		// holds vector coordinates for a unit circle
 
 - (void) drawEntity:(BOOL) immediate :(BOOL) translucent;
 {
+	NSString* debug_type = @"PLAIN";
+	
 	if ([universe breakPatternHide])   return;		// DON'T DRAW DURING BREAK PATTERN
 	
 	if ((particle_type == PARTICLE_FLASHER)&&(zero_distance > no_draw_distance))	return;	// TOO FAR AWAY TO SEE
@@ -792,26 +869,37 @@ static Vector   circleVertex[65];		// holds vector coordinates for a unit circle
 		{
 			case PARTICLE_LASER_BEAM_RED :
 				[self drawLaser];
+				debug_type = @"PARTICLE_LASER_BEAM_RED";
 				break;
 			
 			case PARTICLE_EXHAUST :
 				[self drawExhaust: immediate];
+				debug_type = @"PARTICLE_EXHAUST";
 				break;
 				
 			case PARTICLE_HYPERRING :
 				[self drawHyperring];
+				debug_type = @"PARTICLE_HYPERRING";
 				break;
 				
 			case PARTICLE_ECM_MINE :
 				// not a visible entity
+				debug_type = @"PARTICLE_ECM_MINE";
 				break;
 				
 			case PARTICLE_ENERGY_MINE :
 				[self drawEnergyMine];
+				debug_type = @"PARTICLE_ENERGY_MINE";
 				break;
 
 			case PARTICLE_FRAGBURST :
 				[self drawFragburst];
+				debug_type = @"PARTICLE_FRAGBURST";
+				break;
+				
+			case PARTICLE_BURST2 :
+				[self drawBurst2];
+				debug_type = @"PARTICLE_BURST2";
 				break;
 				
 			default :
@@ -819,15 +907,12 @@ static Vector   circleVertex[65];		// holds vector coordinates for a unit circle
 				break;
 		}
 	}
+	checkGLErrors([NSString stringWithFormat:@"ParticleEntity after drawing %@ %@", self, debug_type]);
 }
 
 - (void) drawSubEntity:(BOOL) immediate :(BOOL) translucent
 {
-//	if (particle_type == PARTICLE_EXHAUST)
-//	{
-//		[super drawSubEntity:immediate :translucent];
-//		return;
-//	}
+
 	if (particle_type == PARTICLE_EXHAUST)
 	{
 		if (translucent)
@@ -984,49 +1069,37 @@ static Vector   circleVertex[65];		// holds vector coordinates for a unit circle
 	glEnd();
 	
 	glPopMatrix();
-	glDisable(GL_TEXTURE_2D);
 	glEnable(GL_LIGHTING);
 }
 
 - (void) drawLaser
 {
-	GLfloat flat_ambdiff[4]		= {1.0, 1.0, 1.0, 1.0};   // for alpha
-	GLfloat lase_ambdiff[4]		= {0.0, 0.0, 0.0, 1.0};   // for alpha
-    GLfloat mat_no[4]		= {0.0, 0.0, 0.0, 1.0};   // nothing
-	double  lase_alpha = 0.75;
-	
-	color_fv[3]		= lase_alpha;  // set alpha
-	lase_ambdiff[3] = lase_alpha;  // set alpha
+	color_fv[3]		= 0.75;  // set alpha
 	
 	glDisable(GL_CULL_FACE);			// face culling
-		
-//	NSLog(@"drawing laser %.0f long with lase_ambdiff (%0.3f, %0.3f, %0.3f, %0.3f) color_fv (%0.3f, %0.3f, %0.3f, %0.3f)", collision_radius,
-//		lase_ambdiff[0], lase_ambdiff[1], lase_ambdiff[2], lase_ambdiff[3],
-//		color_fv[0], color_fv[1], color_fv[2], color_fv[3]);
 	
 //	//state check
-//	NSLog(@"DEBUG OpenGL state check: GL_COLOR_MATERIAL : %@",
-//		(glIsEnabled(GL_COLOR_MATERIAL) == GL_TRUE)? @"YES":@"NO");
+//	NSLog(@"DEBUG before drawing laser %.2f %.2f %.2f %.2f", color_fv[0], color_fv[1], color_fv[2], color_fv[3]);
+//	logGLState();
 	
 	// movies:
 	// draw data required collision_radius, color_fv[0], color_fv[1], color_fv[2]
 	
-	glDisable(GL_LIGHTING);
-	
-	glEnable( GL_COLOR_MATERIAL);
-	glColorMaterial( GL_FRONT_AND_BACK, GL_EMISSION);
-	glColor4fv( color_fv);
-	
-	glMaterialfv( GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE, mat_no);
-	glMaterialfv( GL_FRONT_AND_BACK, GL_SPECULAR, mat_no);
-//	glMaterialfv(GL_FRONT_AND_BACK, GL_EMISSION, color_fv);
-	
+	glDisable(GL_TEXTURE_2D);
+
 	glBegin(GL_QUADS);
+	
+	glMaterialfv( GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE, color_fv);
+	glMaterialfv( GL_FRONT_AND_BACK, GL_EMISSION, color_fv);
+
+	glNormal3f(	0.0, 1.0, 0.0);	// up;
 	
 	glVertex3f(0.25, 0.0, 0.0);
 	glVertex3f(0.25, 0.0, collision_radius);
 	glVertex3f(-0.25, 0.0, collision_radius);
 	glVertex3f(-0.25, 0.0, 0.0);
+	
+	glNormal3f(	1.0, 0.0, 0.0);	// right;
 	
 	glVertex3f(0.0, 0.25, 0.0);
 	glVertex3f(0.0, 0.25, collision_radius);
@@ -1034,14 +1107,10 @@ static Vector   circleVertex[65];		// holds vector coordinates for a unit circle
 	glVertex3f(0.0, -0.25, 0.0);
 	
 	glEnd();
-	
-	glDisable( GL_COLOR_MATERIAL);
-	
-	glMaterialfv( GL_FRONT_AND_BACK, GL_EMISSION, mat_no);
-	glMaterialfv( GL_FRONT_AND_BACK, GL_SPECULAR, mat_no);
-	glMaterialfv( GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE, flat_ambdiff);
-	
-	glEnable( GL_LIGHTING);
+		
+//	//state check
+//	NSLog(@"DEBUG After drawing laser");
+//	logGLState();
 	
 	glEnable(GL_CULL_FACE);			// face culling
 }
@@ -1050,10 +1119,7 @@ static Vector   circleVertex[65];		// holds vector coordinates for a unit circle
 {
     int fi, vi;
 	
-	GLfloat flat_ambdiff[4] = {1.0, 1.0, 1.0, 1.0};   // flat white
-	GLfloat ex_ambdiff[4]	= {0.0, 0.0, 0.0, 1.0};   // flat black
 	GLfloat ex_emissive[4]	= {0.6, 0.8, 1.0, 0.9};   // pale blue
-    GLfloat no_mat[4]		= {0.0, 0.0, 0.0, 1.0};   // flat black
 	
 	ShipEntity  *ship =(ShipEntity *)[universe entityForUniversalID:owner];
 	int dam = [ship damage];
@@ -1096,30 +1162,29 @@ static Vector   circleVertex[65];		// holds vector coordinates for a unit circle
 	
 	if (basefile)
 	{
+		glDisable(GL_TEXTURE_2D);
 		glDisable(GL_CULL_FACE);			// face culling
 		glShadeModel(GL_SMOOTH);
 		
-//		glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE, ex_zero);	// causes TIGER BLACK TEXTURE PROBLEM?
 		glBegin(GL_TRIANGLES);
 		for (fi = 0; fi < n_faces; fi++)
 		{
+			glNormal3f( 0.0f, 0.0f, 1.0f);
 			for (vi = 0; vi < 3; vi++)
 			{
 				int v = faces[fi].vertex[vi];
-				ex_ambdiff[3] = flare_factor * alpha_for_vertex[v];		// fade alpha towards rear of exhaust
 				ex_emissive[3] = flare_factor * alpha_for_vertex[v];	// fade alpha towards rear of exhaust
 				ex_emissive[1] = green_factor * alpha_for_vertex[v];	// diminish green part towards rear of exhaust
 				ex_emissive[0] = red_factor * alpha_for_vertex[v];		// diminish red part towards rear of exhaust
-				glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE, ex_ambdiff);
-				glMaterialfv(GL_FRONT_AND_BACK, GL_EMISSION, ex_emissive);
-				glNormal3f(vertex_normal[v].x,vertex_normal[v].y,vertex_normal[v].z);
+				//
+				glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE, ex_emissive);	// SCREWS UP LASERS
+				glMaterialfv(GL_FRONT_AND_BACK, GL_EMISSION, ex_emissive);				// ALSO SCREWS UP LASERS!
+				//
 				glVertex3f(vertices[v].x, vertices[v].y, vertices[v].z * flare_length);
 			}
 			
 		}
 		glEnd();
-		glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE, flat_ambdiff);
-		glMaterialfv(GL_FRONT_AND_BACK, GL_EMISSION, no_mat);
 
 		glEnable(GL_CULL_FACE);			// face culling
 	}
@@ -1128,16 +1193,16 @@ static Vector   circleVertex[65];		// holds vector coordinates for a unit circle
 - (void) drawHyperring
 {
     int i;
-	GLfloat aleph = (alpha*0.5 < 1.0) ? alpha*0.5 : 1.0;
+	GLfloat aleph = (alpha < 2.0) ? alpha*0.5 : 1.0;
 	
     GLfloat ex_zero[4]		= {0.0, 0.0, 0.0, 1.0};		// black
-	GLfloat flat_ambdiff[4] = {1.0, 1.0, 1.0, 1.0};		// flat
 	GLfloat ex_ambdiff[4]	= {0.0, 0.0, 0.0, aleph};		// black
 	GLfloat ex_em_hi[4]		= {0.6, 0.8, 1.0, aleph};   // pale blue
 	GLfloat ex_em_lo[4]		= {0.2, 0.0, 1.0, 0.0};		// purplish-blue-black
 	
 	glPushMatrix();
 	glDisable(GL_CULL_FACE);			// face culling
+	glDisable(GL_TEXTURE_2D);
 	glShadeModel(GL_SMOOTH);
 
 	//NSLog(@"... drawing hyppering inner_radius:%.1f  alpha:%.2f", ring_inner_radius, aleph);
@@ -1157,8 +1222,6 @@ static Vector   circleVertex[65];		// holds vector coordinates for a unit circle
 		glVertex3f( ring_outer_radius*circleVertex[i].x, ring_outer_radius*circleVertex[i].y, ring_outer_radius*circleVertex[i].z );
 	}
 	glEnd();
-	glMaterialfv(GL_FRONT_AND_BACK, GL_EMISSION, ex_zero);
-	glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE, flat_ambdiff);
 
 	glEnable(GL_CULL_FACE);			// face culling
 	glPopMatrix();
@@ -1168,34 +1231,32 @@ static Vector   circleVertex[65];		// holds vector coordinates for a unit circle
 {
 	double szd = sqrt(zero_distance);
 	
-	GLfloat flat_ambdiff[4]		= {1.0, 1.0, 1.0, 1.0};   // for alpha
 	GLfloat bomb_ambdiff[4]		= {0.0, 0.0, 0.0, 1.0};   // for alpha
-    GLfloat bomb_zero[4]		= {0.0, 0.0, 0.0, 1.0};   // nothing
 	
 	color_fv[3]		= alpha;  // set alpha
 	bomb_ambdiff[3] = alpha;  // set alpha
 	
 	glDisable(GL_CULL_FACE);			// face culling
-	
-	glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE, bomb_ambdiff);
-	glMaterialfv(GL_FRONT_AND_BACK, GL_EMISSION, color_fv);
+	glDisable(GL_TEXTURE_2D);
 	
 	int step = 4;
 
-	drawBall( collision_radius, step, szd);
+	glBegin(GL_TRIANGLE_FAN);
+	//
+	glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE, bomb_ambdiff);	// must be within glBegin/glEnd
+	glMaterialfv(GL_FRONT_AND_BACK, GL_EMISSION, color_fv);
+	//
+	drawBallVertices( collision_radius, step, szd);
+	glEnd();
 	
 //	NSLog(@"DEBUG ENERGY BOMB radius: %.3f, expansion: %.3f, color: [ %.3f, %.3f, %.3f, %.3f]", collision_radius, velocity.z, color_fv[0], color_fv[1], color_fv[2], alpha);
-	
-	glMaterialfv(GL_FRONT_AND_BACK, GL_EMISSION, bomb_zero);
-	glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE, flat_ambdiff);
-	
+		
 	glEnable(GL_CULL_FACE);			// face culling
 }
 
 - (void) drawFragburst
 {
     int viewdir, i;
-	GLfloat	colr[4];
 	
 	GLfloat  xx = size.width / 2.0;
 	GLfloat  yy = size.height / 2.0;
@@ -1207,16 +1268,11 @@ static Vector   circleVertex[65];		// holds vector coordinates for a unit circle
 	glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_BLEND);
 	glBindTexture(GL_TEXTURE_2D, texName);
 	glPushMatrix();
-
+	
 	glBegin(GL_QUADS);
 	for (i = 0; i < n_vertices; i++)
 	{
-		colr[0] = faces[i].red;
-		colr[1] = color_fv[1];
-		colr[2] = color_fv[2];
-		colr[3] = faces[i].blue;
 		glColor4f(1.0, 1.0, 1.0, faces[i].blue);
-		glTexEnvfv(GL_TEXTURE_ENV, GL_TEXTURE_ENV_COLOR, colr);
 		
 		GLfloat x = vertices[i].x;
 		GLfloat y = vertices[i].y;
@@ -1250,6 +1306,70 @@ static Vector   circleVertex[65];		// holds vector coordinates for a unit circle
 		}
 	}
 	glEnd();
+	
+	glPopMatrix();
+	glDisable(GL_TEXTURE_2D);
+	glEnable(GL_LIGHTING);
+}
+
+- (void) drawBurst2
+{
+    int viewdir, i;
+	GLfloat	colr[4];
+	
+	GLfloat  xx = 0.5 * size.width;
+	GLfloat  yy = 0.5 * size.height;
+	
+	viewdir = [universe viewDir];
+	
+	glDisable(GL_LIGHTING);
+	glEnable(GL_TEXTURE_2D);
+	glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_BLEND);
+	glBindTexture(GL_TEXTURE_2D, texName);
+	glPushMatrix();
+
+	for (i = 0; i < n_vertices; i++)
+	{
+		colr[0] = color_fv[0];
+		colr[1] = 0.5 * (color_fv[1] + faces[i].green);
+		colr[2] = color_fv[2];
+		colr[3] = faces[i].blue;
+		glTexEnvfv(GL_TEXTURE_ENV, GL_TEXTURE_ENV_COLOR, colr);
+		glColor4f(1.0, 1.0, 1.0, faces[i].blue);
+		
+		GLfloat x = vertices[i].x;
+		GLfloat y = vertices[i].y;
+		GLfloat z = vertices[i].z;
+		glBegin(GL_QUADS);
+		switch (viewdir)
+		{
+			case	VIEW_AFT :
+				glTexCoord2f(0.0, 1.0);	glVertex3f(x+xx, y-yy, z);
+				glTexCoord2f(1.0, 1.0);	glVertex3f(x-xx, y-yy, z);
+				glTexCoord2f(1.0, 0.0);	glVertex3f(x-xx, y+yy, z);
+				glTexCoord2f(0.0, 0.0);	glVertex3f(x+xx, y+yy, z);
+				break;
+			case	VIEW_STARBOARD :
+				glTexCoord2f(0.0, 1.0);	glVertex3f(x, y-yy, z+xx);
+				glTexCoord2f(1.0, 1.0);	glVertex3f(x, y-yy, z-xx);
+				glTexCoord2f(1.0, 0.0);	glVertex3f(x, y+yy, z-xx);
+				glTexCoord2f(0.0, 0.0);	glVertex3f(x, y+yy, z+xx);
+				break;
+			case	VIEW_PORT :
+				glTexCoord2f(0.0, 1.0);	glVertex3f(x, y-yy, z-xx);
+				glTexCoord2f(1.0, 1.0);	glVertex3f(x, y-yy, z+xx);
+				glTexCoord2f(1.0, 0.0);	glVertex3f(x, y+yy, z+xx);
+				glTexCoord2f(0.0, 0.0);	glVertex3f(x, y+yy, z-xx);
+				break;
+			default :
+				glTexCoord2f(0.0, 1.0);	glVertex3f(x-xx, y-yy, z);
+				glTexCoord2f(1.0, 1.0);	glVertex3f(x+xx, y-yy, z);
+				glTexCoord2f(1.0, 0.0);	glVertex3f(x+xx, y+yy, z);
+				glTexCoord2f(0.0, 0.0);	glVertex3f(x-xx, y+yy, z);
+				break;
+		}
+		glEnd();
+	}
 	
 	glPopMatrix();
 	glDisable(GL_TEXTURE_2D);

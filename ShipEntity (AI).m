@@ -128,6 +128,9 @@ Your fair use and other rights are in no way affected by the above.
 
 - (void) setCourseToWitchpoint;
 
+- (void) setDestinationToWitchpoint;
+- (void) setDestinationToStationBeacon;
+
 - (void) performHyperSpaceExit;
 
 - (void) commsMessage:(NSString *)valueString;
@@ -186,6 +189,8 @@ Your fair use and other rights are in no way affected by the above.
 - (void) setDestinationToDockingAbort;
 
 - (void) requestNewTarget;
+
+- (void) rollD:(NSString*) die_number;
 
 @end
 
@@ -884,6 +889,17 @@ Your fair use and other rights are in no way affected by the above.
 		destination = [universe getWitchspaceExitPosition];
 		desired_range = 10000.0;   // 10km away
 	}
+}
+
+- (void) setDestinationToWitchpoint
+{
+	if (universe)
+		destination = [universe getWitchspaceExitPosition];
+}
+- (void) setDestinationToStationBeacon
+{
+	if ([universe station])
+		destination = [[universe station] getBeaconPosition];
 }
 
 - (void) performHyperSpaceExit
@@ -1650,5 +1666,21 @@ Your fair use and other rights are in no way affected by the above.
 	else
 		[shipAI message:@"NOTHING_FOUND"];
 }
+
+- (void) rollD:(NSString*) die_number
+{
+	int die_sides = [die_number intValue];
+	if (die_sides > 0)
+	{
+		int die_roll = ranrot_rand() % die_sides;
+		NSString* result = [NSString stringWithFormat:@"ROLL_%d", die_roll];
+		[shipAI reactToMessage: result];
+	}
+	else
+	{
+		NSLog(@"***** AI_ERROR - invalid value supplied to rollD: '%@'", die_number);
+	}
+}
+
 
 @end

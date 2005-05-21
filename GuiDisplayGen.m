@@ -580,7 +580,7 @@ Your fair use and other rights are in no way affected by the above.
 
 	[self drawGLDisplay:x - 0.5 * size_in_pixels.width :y - 0.5 * size_in_pixels.height :z :alpha forUniverse:universe];
 
-	glEnable(GL_SMOOTH);
+	glEnable(GL_LINE_SMOOTH);
 
 	if (self == [universe gui])
 	{
@@ -1000,4 +1000,3 @@ Your fair use and other rights are in no way affected by the above.
 }
 
 @end
-

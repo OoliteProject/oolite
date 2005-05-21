@@ -46,7 +46,9 @@ Your fair use and other rights are in no way affected by the above.
 
 #define PI	3.141592653589793
 
-#define NO_DRAW_DISTANCE_FACTOR 512.0
+#define NO_DRAW_DISTANCE_FACTOR		512.0
+#define ABSOLUTE_NO_DRAW_DISTANCE2	2500.0 * 2500.0 * NO_DRAW_DISTANCE_FACTOR * NO_DRAW_DISTANCE_FACTOR
+// ie. the furthest away thing we can draw is at 1280km (a 2.5km wide object would disappear at that range)
 
 #define STATUS_EXPERIMENTAL			99
 #define STATUS_EFFECT				10
@@ -172,9 +174,11 @@ extern int debug;
 	@public	BOOL	isStation;
 	@public	BOOL	isPlanet;
 	@public	BOOL	isPlayer;
+	@public	BOOL	isSky;
     //
 	@public	int			scan_class;
 	@public	double		zero_distance;
+	@public	double		no_draw_distance;  //  10 km initially
 	@public	double		collision_radius;
     @public	Vector		position;
     @public	Quaternion	q_rotation;
@@ -185,7 +189,6 @@ extern int debug;
 	//////////////////////////////////////////////////////
 	//
     Vector	relative_position;
-	double  no_draw_distance;  //  10 km
 	//
 	double  distance_travelled; // set to zero initially
 	//
@@ -351,5 +354,19 @@ extern int debug;
 
 - (void) OGL_UpdateVAR;
 
+// log a list of current states
+//
+void logGLState();
+
+// check for OpenGL errors, reporting them if where is not nil
+//
+BOOL checkGLErrors(NSString* where);
+
+// keep track of various OpenGL states
+//
+BOOL mygl_texture_2d;
+//
+void my_glEnable(GLenum gl_state);
+void my_glDisable(GLenum gl_state);
 
 @end

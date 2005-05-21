@@ -50,6 +50,7 @@ Your fair use and other rights are in no way affected by the above.
 @implementation ResourceManager
 
 static  NSMutableArray* saved_paths;
+static  NSMutableArray* paths_to_load;
 static  NSString* errors;
 
 - (id) init
@@ -142,56 +143,88 @@ NSMutableDictionary*	movie_cache;
 	if (include_addons)
 	{
 		[file_paths addObject:addon_path];
-		NSArray *possibleExpansions = [[NSFileManager defaultManager] directoryContentsAtPath:addon_path];
+		//
+		NSArray*		possibleExpansions = [[NSFileManager defaultManager] directoryContentsAtPath:addon_path];
+		NSMutableArray*	possibleExpansionPaths = [NSMutableArray arrayWithCapacity:[possibleExpansions count]];
 		for (i = 0; i < [possibleExpansions count]; i++)
 		{
-			NSString *item = (NSString *)[possibleExpansions objectAtIndex:i];
+			NSString*	item = (NSString *)[possibleExpansions objectAtIndex:i];
 			if (([[item pathExtension] isEqual:@"oxp"])||([[item pathExtension] isEqual:@"oolite_expansion_pack"]))
 			{
-				BOOL require_test;
 				BOOL dir_test;
-				NSString *possibleExpansionPath = [addon_path stringByAppendingPathComponent:item];
+				NSString*	possibleExpansionPath = [addon_path stringByAppendingPathComponent:item];
 				[[NSFileManager defaultManager] fileExistsAtPath:possibleExpansionPath isDirectory:&dir_test];
 				if (dir_test)
+					[possibleExpansionPaths addObject:possibleExpansionPath];
+			}
+		}
+		//
+		if (paths_to_load)
+			[possibleExpansionPaths addObjectsFromArray:paths_to_load];	// pre-checked as directories with the correct file extension
+		//
+		for (i = 0; i < [possibleExpansionPaths count]; i++)
+		{
+			NSString* possibleExpansionPath = (NSString *)[possibleExpansionPaths objectAtIndex:i];
+			NSString* requiresPath = [possibleExpansionPath stringByAppendingPathComponent:@"requires.plist"];
+			BOOL require_test = YES;
+			// check for compatibility
+			if ([[NSFileManager defaultManager] fileExistsAtPath:requiresPath])
+				require_test = [ResourceManager areRequirementsFulfilled:[NSDictionary dictionaryWithContentsOfFile:requiresPath]];
+			if (require_test)
+				[file_paths addObject:possibleExpansionPath];	// it made it in!
+			else
+			{
+				NSString* version = (NSString *)[[[NSBundle mainBundle] infoDictionary] objectForKey:@"CFBundleVersion"];
+				NSBeep();
+				NSLog(@"ERROR %@ is incompatible with this version %@ of Oolite",possibleExpansionPath,version);
+				if (!errors)
+					errors = [[NSString alloc] initWithFormat:@"\t'%@' is incompatible with version %@ of Oolite",[possibleExpansionPath lastPathComponent],version];
+				else
 				{
-					// check for version compatibility
-					NSString *version = (NSString *)[[[NSBundle mainBundle] infoDictionary] objectForKey:@"CFBundleVersion"];
-					NSString *requiresPath = [possibleExpansionPath stringByAppendingPathComponent:@"requires.plist"];
-					require_test = YES;
-					//NSLog(@"DEBUG checking possibleExpansionPath '%@'",possibleExpansionPath);
-					if ([[NSFileManager defaultManager] fileExistsAtPath:requiresPath])
-					{
-						NSDictionary *requirements = [NSDictionary dictionaryWithContentsOfFile:requiresPath];
-						if ([requirements objectForKey:@"version"])
-						{
-							//NSLog(@"DEBUG checking requirements '%@'", [requirements description]);
-							//NSLog(@"DEBUG checking [requirements objectForKey:@\"version\"] '%@'", [requirements objectForKey:@"version"]);
-							require_test = ([version isGreaterThanOrEqualTo:[requirements objectForKey:@"version"]]);
-						}
-					}
-					if (require_test)
-						[file_paths addObject:possibleExpansionPath];
-					else
-					{
-						NSBeep();
-						NSLog(@"ERROR %@ is incompatible with version %@ of Oolite",possibleExpansionPath,version);
-						if (!errors)
-							errors = [[NSString alloc] initWithFormat:@"\t'%@' is incompatible with version %@ of Oolite",[possibleExpansionPath lastPathComponent],version];
-						else
-						{
-							NSString* old_errors = errors;
-							errors = [[NSString alloc] initWithFormat:@"%@\n\t'%@' is incompatible with version %@ of Oolite",old_errors,[possibleExpansionPath lastPathComponent],version];
-							[old_errors release];
-						}
-					}
+					NSString* old_errors = errors;
+					errors = [[NSString alloc] initWithFormat:@"%@\n\t'%@' is incompatible with version %@ of Oolite",old_errors,[possibleExpansionPath lastPathComponent],version];
+					[old_errors release];
 				}
 			}
 		}
 	}
+	//
 	if (!saved_paths)
 		saved_paths =[file_paths retain];
+	//
 	NSLog(@"---> searching paths:\n%@", [file_paths description]);
+	//
 	return file_paths;
+}
+
++ (BOOL) areRequirementsFulfilled:(NSDictionary*) requirements
+{
+	if ([requirements objectForKey:@"version"])
+	{
+		NSString* version = (NSString *)[[[NSBundle mainBundle] infoDictionary] objectForKey:@"CFBundleVersion"];
+		if ([version isLessThan:[requirements objectForKey:@"version"]])
+			return NO;
+	}
+	return YES;
+}
+
++ (void) addExternalPath:(NSString *)filename
+{
+	int i;
+	if (!filename)
+		return;
+	if (!saved_paths)
+		saved_paths = [[NSMutableArray alloc] initWithObjects: filename, nil];	//retained
+	else
+	{
+		for (i = 0; i < [saved_paths count]; i++)
+			if ([[saved_paths objectAtIndex:i] isEqual:filename])
+				return;
+		[saved_paths addObject:filename];
+	}
+	if (!paths_to_load)
+		paths_to_load = [saved_paths retain];
+//	NSLog(@"DEBUG HERE:::: paths_to_load = %@", paths_to_load);
 }
 
 + (NSDictionary *) dictionaryFromFilesNamed:(NSString *)filename inFolder:(NSString *)foldername andMerge:(BOOL) mergeFiles
@@ -523,4 +556,3 @@ NSMutableDictionary*	movie_cache;
 #endif
 
 @end
-

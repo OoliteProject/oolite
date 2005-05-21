@@ -80,7 +80,7 @@ Your fair use and other rights are in no way affected by the above.
 //	universe_lock = [[NSLock alloc] init];	// alloc retains
 	
 	// init the Resource Manager
-	NSLog(@"DEBUG Universe initialising ResourceManager...");
+//	NSLog(@"DEBUG Universe initialising ResourceManager...");
 	[ResourceManager pathsUsingAddOns:YES];
 	
 	// set up the universal entity data store
@@ -681,6 +681,24 @@ Your fair use and other rights are in no way affected by the above.
 	
 	ranrot_srand([[NSDate date] timeIntervalSince1970]);   // reset randomiser with current time
 	
+	[self setLighting];
+	
+//	// set the lighting color for the sun	
+//	GLfloat	stars_ambient[] = { 0.05, 0.20, 0.05, 1.0};	// ambient light about 20%
+//	GLfloat	sun_ambient[] = { 0.0, 0.0, 0.0, 1.0};	// ambient light nil
+//	GLfloat	sun_diffuse[] = { 0.85, 1.0, 0.85, 1.0};	// paler
+//	GLfloat	sun_specular[] = { 0.95, 1.0, 0.95, 1.0};
+//
+//	glLightfv(GL_LIGHT1, GL_AMBIENT, sun_ambient);
+//	glLightfv(GL_LIGHT1, GL_DIFFUSE, sun_diffuse);
+//	glLightfv(GL_LIGHT1, GL_SPECULAR, sun_specular);
+//
+//	glLightModelfv(GL_LIGHT_MODEL_AMBIENT, stars_ambient);
+	
+//	NSLog(@"DEBUG lighting set to (%.4f, %.4f, %.4f) (%.4f, %.4f, %.4f)",
+//		sun_diffuse[0], sun_diffuse[1], sun_diffuse[2],
+//		sun_ambient[0], sun_ambient[1], sun_ambient[2]);
+	
 	NSLog(@"Populating witchspace ...");
 	
 	//
@@ -770,7 +788,6 @@ Your fair use and other rights are in no way affected by the above.
 	NSColor *col2 = [NSColor colorWithCalibratedHue:h2 saturation:0.5 + randf()/2.0 brightness:0.5 + randf()/2.0 alpha:1.0];
 	
 	thing = [[SkyEntity alloc] initWithColors:col1:col2 andSystemInfo: systeminfo];	// alloc retains!
-	
 	[thing setScanClass: CLASS_NO_DRAW];
 	[self addEntity:thing]; // [entities addObject:thing];
 	bgcolor = [(SkyEntity *)thing sky_color];
@@ -778,6 +795,21 @@ Your fair use and other rights are in no way affected by the above.
 	[thing release];
 	/*--*/
 	
+	[self setLighting];
+	
+//	// ambient lighting!
+//	float r,g,b,a;
+//	[bgcolor getRed:&r green:&g blue:&b alpha:&a];
+//	r = 0.0625 * (1.0 + r) * (1.0 + r);
+//	g = 0.0625 * (1.0 + g) * (1.0 + g);
+//	b = 0.0625 * (1.0 + b) * (1.0 + b);
+//	GLfloat	stars_ambient[] = { r, g, b, 1.0};	// ambient light about 20%
+//	//
+////	NSLog(@"DEBUG stars ambient = ( %.4f, %.4f %.4f)", stars_ambient[0], stars_ambient[1], stars_ambient[2]);
+//	//
+//	glLightModelfv(GL_LIGHT_MODEL_AMBIENT, stars_ambient);
+//	//
+
 	/*- the dust particle system -*/
 	thing = [[DustEntity alloc] init];	// alloc retains!
 	[thing setScanClass: CLASS_NO_DRAW];
@@ -916,12 +948,10 @@ Your fair use and other rights are in no way affected by the above.
 	
 	
 	/*- nav beacon -*/
-	double buoy_distance = 10000.0;				// distance from station entrance
 	nav_buoy = [self getShipWithRole:@"buoy"];	// retain count = 1
-//	[nav_buoy setStatus:STATUS_ACTIVE];
 	[nav_buoy setRoll:	0.10];
 	[nav_buoy setPitch:	0.15];
-	[nav_buoy setPosition:stationPos.x+buoy_distance*vf.x:stationPos.y+buoy_distance*vf.y:stationPos.z+buoy_distance*vf.z];
+	[nav_buoy setPosition: [cachedStation getBeaconPosition]];
 	[nav_buoy setScanClass: CLASS_BUOY];
 	[self addEntity:nav_buoy]; // [entities addObject:nav_buoy];
 	[nav_buoy setStatus:STATUS_IN_FLIGHT];
@@ -998,6 +1028,54 @@ Your fair use and other rights are in no way affected by the above.
 	
 }
 
+- (void) setLighting
+{
+	PlanetEntity*	the_sun = [self sun];
+	SkyEntity*		the_sky = nil;
+	GLfloat			sun_pos[] = {4000000.0, 0.0, 0.0, 1.0};
+	int i;
+	for (i = n_entities - 1; i > 0; i--)
+		if ((sortedEntities[i]) && ([sortedEntities[i] isKindOfClass:[SkyEntity class]]))
+			the_sky = (SkyEntity*)sortedEntities[i];
+	if (the_sun)
+	{
+		GLfloat	sun_ambient[] = { 0.0, 0.0, 0.0, 1.0};	// ambient light about 5%
+		glLightfv(GL_LIGHT1, GL_AMBIENT, sun_ambient);
+		glLightfv(GL_LIGHT1, GL_DIFFUSE, the_sun->sun_diffuse);
+		glLightfv(GL_LIGHT1, GL_SPECULAR, the_sun->sun_specular);
+		sun_pos[0] = the_sun->position.x;
+		sun_pos[1] = the_sun->position.y;
+		sun_pos[2] = the_sun->position.z;
+	}
+	else
+	{
+		// witchspace
+		GLfloat	stars_ambient[] = { 0.05, 0.20, 0.05, 1.0};	// ambient light about 20%
+		GLfloat	sun_ambient[] = { 0.0, 0.0, 0.0, 1.0};	// ambient light nil
+		GLfloat	sun_diffuse[] = { 0.85, 1.0, 0.85, 1.0};	// paler
+		GLfloat	sun_specular[] = { 0.95, 1.0, 0.95, 1.0};
+		glLightfv(GL_LIGHT1, GL_AMBIENT, sun_ambient);
+		glLightfv(GL_LIGHT1, GL_DIFFUSE, sun_diffuse);
+		glLightfv(GL_LIGHT1, GL_SPECULAR, sun_specular);
+		glLightModelfv(GL_LIGHT_MODEL_AMBIENT, stars_ambient);
+	}
+	//
+	glLightfv(GL_LIGHT1, GL_POSITION, sun_pos);
+	//
+	if (the_sky)
+	{
+		// ambient lighting!
+		float r,g,b,a;
+		[[the_sky sky_color] getRed:&r green:&g blue:&b alpha:&a];
+		r = 0.0625 * (1.0 + r) * (1.0 + r);
+		g = 0.0625 * (1.0 + g) * (1.0 + g);
+		b = 0.0625 * (1.0 + b) * (1.0 + b);
+		GLfloat	stars_ambient[] = { r, g, b, 1.0};	// ambient light about 20%
+		glLightModelfv(GL_LIGHT_MODEL_AMBIENT, stars_ambient);
+	}
+
+}
+
 - (void) populateSpaceFromHyperPoint:(Vector) h1_pos toPlanetPosition:(Vector) p1_pos andSunPosition:(Vector) s1_pos
 {
 	int i, r, escorts_added;
@@ -1031,16 +1109,15 @@ Your fair use and other rights are in no way affected by the above.
 	
 	int skim_trading_parties = (ranrot_rand() & 3) + trading_parties * (ranrot_rand() & 31) / 120;	// about 12%
 	
-//	skim_trading_parties += 10;	// DEBUG
-	
 	NSLog(@"... adding %d sun skimming vessels", skim_trading_parties);
 	
 	// pirates
-	int raiding_parties = (8 - government) * trading_parties / 3;
+	int anarchy = (8 - government);
+	int raiding_parties = (ranrot_rand() % anarchy) + (ranrot_rand() % anarchy) + anarchy * trading_parties / 3;	// boosted
 	if (raiding_parties > 0)
 		raiding_parties =  raiding_parties * (randf()+randf());   // randomize
-	while (raiding_parties > 21)
-		raiding_parties = 7 + (ranrot_rand() % raiding_parties);   // reduce
+	while (raiding_parties > 25)
+		raiding_parties = 12 + (ranrot_rand() % raiding_parties);   // reduce
 	
 	NSLog(@"... adding %d pirate vessels", raiding_parties);
 
@@ -1189,7 +1266,6 @@ Your fair use and other rights are in no way affected by the above.
 				hunter_ship = [self getShipWithRole:@"interceptor"];   // retain count = 1
 			else
 				hunter_ship = [self getShipWithRole:@"police"];   // retain count = 1
-			//hunter_ship = [self getShipWithRole:@"police"];   // retain count = 1
 			[hunter_ship setRoles:@"police"];
 			if ((hunter_ship)&&(hunter_ship->scan_class == CLASS_NOT_SET))
 				[hunter_ship setScanClass: CLASS_POLICE];
@@ -1446,6 +1522,7 @@ Your fair use and other rights are in no way affected by the above.
 	for (i = 0; i < cluster_size; i++)
 	{
 		ShipEntity*	asteroid;
+		int n_rocks = 2 + (ranrot_rand() % 5);
 		launch_pos.x = spawnPos.x + SCANNER_MAX_RANGE*(gen_rnd_number()/256.0 - 0.5);
 		launch_pos.y = spawnPos.y + SCANNER_MAX_RANGE*(gen_rnd_number()/256.0 - 0.5);
 		launch_pos.z = spawnPos.z + SCANNER_MAX_RANGE*(gen_rnd_number()/256.0 - 0.5);
@@ -1455,6 +1532,7 @@ Your fair use and other rights are in no way affected by the above.
 		[asteroid setPosition:launch_pos];
 		[asteroid setVelocity:spawnVel];
 		[asteroid setStatus:STATUS_IN_FLIGHT];
+		[asteroid setNumberOfMinedRocks: n_rocks];
 		[self addEntity:asteroid];
 		[[asteroid getAI] setState:@"GLOBAL"];
 		[asteroid release];
@@ -1687,6 +1765,10 @@ Your fair use and other rights are in no way affected by the above.
 		else
 			[[ship getAI] setStateMachine:@"route2sunskimAI.plist"];	// route3 really, but the AI's the same
 	}
+	if ([desc isEqual:@"pirate"])
+	{
+		[ship setBounty: (ranrot_rand() & 7) + (ranrot_rand() & 7) + ((randf() < 0.05)? 63 : 23)];	// they already have a price on their heads
+	}
 	[ship setUniverse:self];
 	[ship leaveWitchspace];				// gets added to the universe here!
 	[[ship getAI] setState:@"GLOBAL"];	// must happen after adding to the universe!
@@ -1880,6 +1962,21 @@ Your fair use and other rights are in no way affected by the above.
 	//
 }
 
+- (void) selectIntro2Previous
+{
+	if (demo_stage != DEMO_SHOW_THING)
+		return;
+	demo_ship_index = (demo_ship_index + [demo_ships count] - 2) % [demo_ships count];
+	demo_stage_time  = universal_time - 1.0;	// force change
+}
+
+- (void) selectIntro2Next
+{
+	if (demo_stage != DEMO_SHOW_THING)
+		return;
+	demo_stage_time  = universal_time - 1.0;	// force change
+}
+
 - (StationEntity *) station
 {
 	if (cachedStation)
@@ -1891,22 +1988,21 @@ Your fair use and other rights are in no way affected by the above.
 		station = NO_TARGET;
 		cachedStation = nil;
 		int ent_count = n_entities;
+		int station_count = 0;
 		Entity* my_entities[ent_count];
 		for (i = 0; i < ent_count; i++)
-			my_entities[i] = [sortedEntities[i] retain];
-//		NSArray* entList = [NSArray arrayWithArray:entities];
-//		for (i = 0; ((i < [entList count])&&(station == NO_TARGET)) ; i++)
-		for (i = 0; ((i < ent_count)&&(station == NO_TARGET)) ; i++)
+			if (sortedEntities[i]->isStation)
+				my_entities[station_count++] = [sortedEntities[i] retain];
+		for (i = 0; ((i < station_count)&&(station == NO_TARGET)) ; i++)
 		{
-//			Entity* thing = (Entity *)[entList objectAtIndex:i];
 			Entity* thing = my_entities[i];
-			if ((thing->scan_class == CLASS_STATION)&&(thing->isStation))
+			if (thing->scan_class == CLASS_STATION)
 			{
 				cachedStation = (StationEntity *)thing;
 				station = [thing universal_id];
 			}
 		}
-		for (i = 0; i < ent_count; i++)
+		for (i = 0; i < station_count; i++)
 			[my_entities[i] release];
 	}
 	
@@ -1924,23 +2020,21 @@ Your fair use and other rights are in no way affected by the above.
 		planet = NO_TARGET;
 		cachedPlanet = nil;
 		int ent_count = n_entities;
+		int planet_count = 0;
 		Entity* my_entities[ent_count];
 		for (i = 0; i < ent_count; i++)
-			my_entities[i] = [sortedEntities[i] retain];
-//		NSArray* entList = [NSArray arrayWithArray:entities];
-//		for (i = 0; ((i < [entList count])&&(planet == NO_TARGET)) ; i++)
-		for (i = 0; ((i < ent_count)&&(planet == NO_TARGET)) ; i++)
+			if (sortedEntities[i]->isPlanet)
+				my_entities[planet_count++] = [sortedEntities[i] retain];
+		for (i = 0; ((i < planet_count)&&(planet == NO_TARGET)) ; i++)
 		{
-//			Entity* thing = (Entity *)[entList objectAtIndex:i];
-			Entity* thing = my_entities[i];
-			if (thing->isPlanet)
+			PlanetEntity* thing = (PlanetEntity *)my_entities[i];
+			if ([thing getPlanetType] == PLANET_TYPE_GREEN)
 			{
-				cachedPlanet = (PlanetEntity *)thing;
-				if ([cachedPlanet getPlanetType] == PLANET_TYPE_GREEN)
-					planet = [cachedPlanet universal_id];
+				cachedPlanet = thing;
+				planet = [cachedPlanet universal_id];
 			}
 		}
-		for (i = 0; i < ent_count; i++)
+		for (i = 0; i < planet_count; i++)
 			[my_entities[i] release];
 	}
 	return cachedPlanet;
@@ -1957,24 +2051,21 @@ Your fair use and other rights are in no way affected by the above.
 		sun = NO_TARGET;
 		cachedSun = nil;
 		int ent_count = n_entities;
+		int planet_count = 0;
 		Entity* my_entities[ent_count];
 		for (i = 0; i < ent_count; i++)
-			my_entities[i] = [sortedEntities[i] retain];
-//		NSArray* entList = [NSArray arrayWithArray:entities];
-		for (i = 0; ((i < ent_count)&&(sun == NO_TARGET)) ; i++)
+			if (sortedEntities[i]->isPlanet)
+				my_entities[planet_count++] = [sortedEntities[i] retain];
+		for (i = 0; ((i < planet_count)&&(sun == NO_TARGET)) ; i++)
 		{
-//			Entity* thing = (Entity *)[entList objectAtIndex:i];
-			Entity* thing = my_entities[i];
-			if (thing->isPlanet)
+			PlanetEntity* thing = (PlanetEntity *)my_entities[i];
+			if ([thing getPlanetType] == PLANET_TYPE_SUN)
 			{
-				if ([(PlanetEntity *)thing getPlanetType] == PLANET_TYPE_SUN)
-				{
-					cachedSun = (PlanetEntity*)thing;
-					sun = [thing universal_id];
-				}
+				cachedSun = (PlanetEntity*)thing;
+				sun = [cachedSun universal_id];
 			}
 		}
-		for (i = 0; i < ent_count; i++)
+		for (i = 0; i < planet_count; i++)
 			[my_entities[i] release];
 	}
 	return cachedSun;
@@ -2494,7 +2585,9 @@ Your fair use and other rights are in no way affected by the above.
 	if (!no_update)
 	{
 		NS_DURING
-
+			
+			no_update = YES;	// block other attempts to draw
+			
 			int i, v_status;
 			Vector	position, obj_position, view_dir;
 			Matrix rotMatrix;
@@ -2505,8 +2598,24 @@ Your fair use and other rights are in no way affected by the above.
 			//
 			int			ent_count =	n_entities;
 			Entity*		my_entities[ent_count];
+			int			draw_count = 0;
 			for (i = 0; i < ent_count; i++)
-				my_entities[i] = [sortedEntities[i] retain];		//	retained
+			{
+				// we check to see that we draw only the things that need to be drawn!
+				Entity* e = sortedEntities[i]; // ordered NEAREST -> FURTHEST AWAY
+				double	zd2 = e->zero_distance;
+				if ((e->isSky)||(e->isPlanet))
+				{
+					my_entities[draw_count++] = [e retain];	// planets and sky are always drawn!
+					continue;
+				}
+				if ((zd2 > ABSOLUTE_NO_DRAW_DISTANCE2)||((e->isShip)&&(zd2 > e->no_draw_distance)))
+					continue;
+				// it passed all drawing tests - and it's not a planet or the sky - we can add it to the list
+				my_entities[draw_count++] = [e retain];		//	retained
+			}
+			
+//			NSLog(@"DEBUG drawing %d entities", draw_count);
 			
 			Entity	*viewthing = nil;
 			Entity	*drawthing = nil;
@@ -2519,7 +2628,7 @@ Your fair use and other rights are in no way affected by the above.
 				viewthing = [entities objectAtIndex:n];
 			}
 			
-			if ((viewthing)&&(viewthing == my_entities[0]))
+			if ((viewthing)&&(viewthing == sortedEntities[0]))
 			{
 				position = [viewthing getViewpointPosition];
 				gl_matrix_into_matrix([viewthing rotationMatrix], rotMatrix);
@@ -2539,6 +2648,9 @@ Your fair use and other rights are in no way affected by the above.
 			}
 						
 			//NSLog(@"Drawing from [%f,%f,%f]", position.x, position.y, position.z);
+			//
+			checkGLErrors(@"Universe before doing anything");
+			//
 			glEnable(GL_LIGHTING);
 			glEnable(GL_DEPTH_TEST);
 			glEnable(GL_CULL_FACE);			// face culling
@@ -2548,15 +2660,15 @@ Your fair use and other rights are in no way affected by the above.
 				glClearColor( sky_clear_color[0], sky_clear_color[1], sky_clear_color[2], sky_clear_color[3]);
 			else
 				glClearColor( 0.0, 0.0, 0.0, 0.0);
-			
+
 			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 			glLoadIdentity();	// reset matrix                         
-			
+
 			gluLookAt(0.0, 0.0, 0.0,	0.0, 0.0, 1.0,	0.0, 1.0, 0.0);
-			
+
 			// HACK BUSTED
 			glScalef(   -1.0,  1.0,	1.0);   // flip left and right
-			
+
 			glPushMatrix(); // save this flat viewpoint
 
 			switch (viewDirection)
@@ -2582,24 +2694,26 @@ Your fair use and other rights are in no way affected by the above.
 			}
 
 			gluLookAt(0.0, 0.0, 0.0,	view_dir.x, view_dir.y, view_dir.z,	0.0, 1.0, 0.0);
-				
+
 			if ((!displayGUI) || (playerDemo))
 			{
-				//
 				// rotate the view
 				glMultMatrixf([viewthing rotationMatrix]);
 				// translate the view
-				glTranslatef(-position.x,-position.y,-position.z);
-				
+				glTranslatef( -position.x, -position.y, -position.z);
+
 				// set lighting
 				glEnable(GL_LIGHTING);
 				glLightfv(GL_LIGHT1, GL_POSITION, sun_center_position);
 				glEnable(GL_LIGHT1);		// lighting up the sun
 				
+				int		furthest = draw_count - 1;
+				int		nearest = 0;
+
 				//
 				//		DRAW ALL THE OPAQUE ENTITIES
 				//
-				for (i = ent_count - 1; i > 0; i--)
+				for (i = furthest; i > nearest; i--)
 				{
 					int d_status;
 					drawthing = my_entities[i];
@@ -2613,8 +2727,8 @@ Your fair use and other rights are in no way affected by the above.
 						// reset material properties
 						glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE, flat_ambdiff);
 						glMaterialfv(GL_FRONT_AND_BACK, GL_EMISSION, mat_no);
-						//
-						// experimental - atmospheric fog
+
+						// atmospheric fog
 						BOOL fogging = ((sky_clear_color[3] > 0.01)&&(drawthing != [self sun]));
 						
 						glPushMatrix();
@@ -2623,9 +2737,8 @@ Your fair use and other rights are in no way affected by the above.
 						glTranslatef(obj_position.x,obj_position.y,obj_position.z);
 						//rotate the object
 						glMultMatrixf([drawthing rotationMatrix]);
-						// draw the thing
-						
-						// experimental - atmospheric fog
+
+						// atmospheric fog
 						if (fogging)
 						{
 							double fog_scale = 0.50 * BILLBOARD_DEPTH / sky_clear_color[3];
@@ -2637,14 +2750,13 @@ Your fair use and other rights are in no way affected by the above.
 							glFogf(GL_FOG_START, half_scale);
 							glFogf(GL_FOG_END, fog_scale);
 						}
-						
+
+						// draw the thing
 						[drawthing drawEntity:NO:NO];
 						
-						// experimental - atmospheric fog
+						// atmospheric fog
 						if (fogging)
-						{
 							glDisable(GL_FOG);
-						}
 						
 						glPopMatrix();
 						
@@ -2655,7 +2767,7 @@ Your fair use and other rights are in no way affected by the above.
 				//		DRAW ALL THE TRANSLUCENT entsInDrawOrder
 				//
 				glDepthMask(GL_FALSE);				// don't write to depth buffer
-				for (i = ent_count - 1; i > 0; i--)
+				for (i = furthest; i > nearest; i--)
 				{
 					int d_status;
 					drawthing = my_entities[i];
@@ -2672,9 +2784,8 @@ Your fair use and other rights are in no way affected by the above.
 						glTranslatef(obj_position.x,obj_position.y,obj_position.z);
 						//rotate the object
 						glMultMatrixf([drawthing rotationMatrix]);
-						// draw the thing
 						
-						// experimental - atmospheric fog
+						// atmospheric fog
 						if (fogging)
 						{
 							double fog_scale = 0.50 * BILLBOARD_DEPTH / sky_clear_color[3];
@@ -2686,14 +2797,13 @@ Your fair use and other rights are in no way affected by the above.
 							glFogf(GL_FOG_START, half_scale);
 							glFogf(GL_FOG_END, fog_scale);
 						}
-						
+
+						// draw the thing
 						[drawthing drawEntity:NO:YES];
 						
-						// experimental - atmospheric fog
+						// atmospheric fog
 						if (fogging)
-						{
 							glDisable(GL_FOG);
-						}
 						
 						glPopMatrix();
 					}
@@ -2702,17 +2812,17 @@ Your fair use and other rights are in no way affected by the above.
 			}
 			
 			glPopMatrix(); //restore saved flat viewpoint
-			
+
 			glDisable(GL_LIGHTING);				// disable lighting
 			glDisable(GL_DEPTH_TEST);			// disable depth test
 			glDisable(GL_CULL_FACE);			// face culling
 			glDepthMask(GL_FALSE);				// don't write to depth buffer
-			//
+
 			GLfloat	line_width = [(MyOpenGLView *)gameView viewSize].width / 1024.0; // restore line size
 			if (line_width < 1.0)
 				line_width = 1.0;
 			glLineWidth(line_width);
-			//
+
 			if ((v_status != STATUS_DEAD)&&(v_status != STATUS_ESCAPE_SEQUENCE))
 			{
 				if ((viewthing->isPlayer)&&([(PlayerEntity *)viewthing hud]))
@@ -2725,12 +2835,19 @@ Your fair use and other rights are in no way affected by the above.
 				if (!displayGUI)
 					[self drawCrosshairs];
 			}
+
 			[self drawMessage];
 			
 			glFlush();	// don't wait around for drawing to complete
-
-			for (i = 0; i < ent_count; i++)
+			//
+			// clear errors - and announce them
+			checkGLErrors(@"Universe after all entity drawing is done.");
+			//
+//			for (i = 0; i < ent_count; i++)
+			for (i = 0; i < draw_count; i++)
 				[my_entities[i] release];		//	released
+			
+			no_update = NO;	// allow other attemts to draw
 			
 		NS_HANDLER
 			NSLog(@"\n\n***** Handling localException: %@ : %@ *****\n\n",[localException name], [localException reason]);
@@ -2742,7 +2859,6 @@ Your fair use and other rights are in no way affected by the above.
 		NS_ENDHANDLER
 
 	}
-
 }
 
 
@@ -3061,7 +3177,6 @@ Your fair use and other rights are in no way affected by the above.
 	Entity* my_entities[ent_count];
 	for (i = 0; i < ent_count; i++)
 		my_entities[i] = [sortedEntities[i] retain];
-//	NSArray *entlist = [NSArray arrayWithArray:entities];
 	if (ent_count > 1)
 	{
 		for (i = 1; i < ent_count; i++)
@@ -3076,23 +3191,11 @@ Your fair use and other rights are in no way affected by the above.
 	demo_ship = nil;
 }
 
-//- (NSArray *) getAllEntities
-//{
-//	NSMutableArray* result = [NSMutableArray arrayWithArray:entities];
-//	if ([result count] == 0)
-//		return result;
-//	Entity* player = (Entity*)[result objectAtIndex:0];
-//	int player_status = (player)? player->status : STATUS_IN_FLIGHT;
-//	if ((player_status == STATUS_DEAD)||(player_status == STATUS_DOCKED))
-//		[result removeObjectAtIndex:0];
-//	return result;
-//}
-
 - (BOOL) isVectorClearFromEntity:(Entity *) e1 toDistance:(double)dist fromPoint:(Vector) p2
 {
 	if (!e1)
 		return NO;
-//	NSArray *entlist =  [NSArray arrayWithArray:entities];	// autoreleased
+
 	Vector  f1;
 	int i;
 	int ent_count = n_entities;
@@ -3111,10 +3214,8 @@ Your fair use and other rights are in no way affected by the above.
 	f1 = unit_vector(&v1);   // unit vector in direction of p2 from p1
 	
 	
-//	for (i = 0; i < [entlist count] ; i++)
 	for (i = 0; i < ent_count ; i++)
 	{
-//		Entity *e2 = [entlist objectAtIndex:i];
 		Entity *e2 = my_entities[i];
 		if ((e2 != e1)&&([e2 canCollide]))
 		{
@@ -3159,7 +3260,6 @@ Your fair use and other rights are in no way affected by the above.
 		NSBeep();
 		return make_vector(0,0,0);
 	}
-//	NSArray *entlist = [NSArray arrayWithArray:entities];
 	Vector  f1;
 	Vector  result = p2;
 	int i;
@@ -3175,10 +3275,8 @@ Your fair use and other rights are in no way affected by the above.
 
 	f1 = unit_vector(&v1);   // unit vector in direction of p2 from p1
 		
-//	for (i = 0; i < [entlist count]; i++)
 	for (i = 0; i < ent_count; i++)
 	{
-//		Entity *e2 = [entlist objectAtIndex:i];
 		Entity *e2 = my_entities[i];
 		if ((e2 != e1)&&([e2 canCollide]))
 		{
@@ -3259,7 +3357,6 @@ Your fair use and other rights are in no way affected by the above.
 {
 	if (!e1)
 		return nil;
-//	NSArray *entlist = [NSArray arrayWithArray:entities];
 	NSMutableArray *hitlist = [NSMutableArray arrayWithCapacity:4];
 	int i;
 	int ent_count = n_entities;
@@ -3289,10 +3386,8 @@ Your fair use and other rights are in no way affected by the above.
 	
 	Vector f1 = vector_forward_from_quaternion(q1);
 	
-//	for (i = 0; i < [entlist count]; i++)
 	for (i = 0; i < ent_count; i++)
 	{
-//		Entity *e2 = [entlist objectAtIndex:i];
 		Entity *e2 = my_entities[i];
 		if ((e2 != e1)&&([e2 canCollide]))
 		{
@@ -3321,7 +3416,6 @@ Your fair use and other rights are in no way affected by the above.
 
 - (int) getFirstEntityHitByLaserFromEntity:(Entity *) e1
 {
-//	NSArray *entlist = [NSArray arrayWithArray:entities];
 	Entity  *hit_entity = nil;
 	int		result = NO_TARGET;
 	if (!e1)
@@ -3334,9 +3428,14 @@ Your fair use and other rights are in no way affected by the above.
 	//NSLog(@"DEBUG LASER nearest = %.1f",nearest);
 	int i;
 	int ent_count = n_entities;
+	int ship_count = 0;
 	Entity* my_entities[ent_count];
+	//
+	// we can only hit ship entities that are in range..
+	//
 	for (i = 0; i < ent_count; i++)
-		my_entities[i] = [sortedEntities[i] retain];	// retained
+		if (sortedEntities[i]->isShip)
+			my_entities[ship_count++] = [sortedEntities[i] retain];	// retained
 
 	Quaternion q1 = e1->q_rotation;
 	if ((e1)&&(e1->isPlayer))
@@ -3344,12 +3443,10 @@ Your fair use and other rights are in no way affected by the above.
 	Vector u1 = vector_up_from_quaternion(q1);
 	Vector f1 = vector_forward_from_quaternion(q1);
 	Vector r1 = vector_right_from_quaternion(q1);
-//	for (i = 0; i < [entlist count]; i++)
-	for (i = 0; i < ent_count; i++)
+	for (i = 0; i < ship_count; i++)
 	{
-//		Entity *e2 = [entlist objectAtIndex:i];
 		Entity *e2 = my_entities[i];
-		if ((e2 != e1)&&([e2 canCollide])&&(e2->isShip))
+		if ((e2 != e1)&&([e2 canCollide]))
 		{
 			BoundingBox arbb = [e2 findBoundingBoxRelativeTo:e1 InVectors:r1 :u1 :f1];
 			if ((arbb.min_x < 0.0)&&(arbb.max_x > 0.0)&&(arbb.min_y < 0.0)&&(arbb.max_y > 0.0)&&(arbb.min_z > 0.0)&&(arbb.min_z < nearest))
@@ -3361,14 +3458,13 @@ Your fair use and other rights are in no way affected by the above.
 	}
 	if (hit_entity)
 		result = [hit_entity universal_id];
-	for (i = 0; i < ent_count; i++)
+	for (i = 0; i < ship_count; i++)
 		[my_entities[i] release]; //	released
 	return result;
 }
 
 - (int) getFirstEntityHitByLaserFromEntity:(Entity *) e1 inView:(int) viewdir
 {
-//	NSArray *entlist = [NSArray arrayWithArray:entities];
 	Entity  *hit_entity = nil;
 	int		result = NO_TARGET;
 	double  nearest;
@@ -3381,9 +3477,11 @@ Your fair use and other rights are in no way affected by the above.
 	//NSLog(@"DEBUG LASER nearest = %.1f",nearest);
 	int i;
 	int ent_count = n_entities;
+	int ship_count = 0;
 	Entity* my_entities[ent_count];
 	for (i = 0; i < ent_count; i++)
-		my_entities[i] = [sortedEntities[i] retain];	// retained
+		if (sortedEntities[i]->isShip)
+			my_entities[ship_count++] = [sortedEntities[i] retain];	// retained
 
 	Quaternion q1 = e1->q_rotation;
 	if ((e1)&&(e1->isPlayer))
@@ -3403,12 +3501,10 @@ Your fair use and other rights are in no way affected by the above.
 	}
 	Vector f1 = vector_forward_from_quaternion(q1);
 	Vector r1 = vector_right_from_quaternion(q1);
-//	for (i = 0; i < [entlist count]; i++)
-	for (i = 0; i < ent_count; i++)
+	for (i = 0; i < ship_count; i++)
 	{
-//		Entity *e2 = [entlist objectAtIndex:i];
 		Entity *e2 = my_entities[i];
-		if ((e2 != e1)&&([e2 canCollide])&&(e2->isShip))
+		if ((e2 != e1)&&([e2 canCollide]))
 		{
 			BoundingBox arbb = [e2 findBoundingBoxRelativeTo:e1 InVectors:r1 :u1 :f1];
 			if ((arbb.min_x < 0.0)&&(arbb.max_x > 0.0)&&(arbb.min_y < 0.0)&&(arbb.max_y > 0.0)&&(arbb.min_z > 0.0)&&(arbb.min_z < nearest))
@@ -3421,7 +3517,7 @@ Your fair use and other rights are in no way affected by the above.
 	if (hit_entity)
 		result = [hit_entity universal_id];
 	//NSLog(@"DEBUG LASER hit %@ %d",[hit_entity name],result);
-	for (i = 0; i < ent_count; i++)
+	for (i = 0; i < ship_count; i++)
 		[my_entities[i] release]; //	released
 	return result;
 }
@@ -3430,15 +3526,16 @@ Your fair use and other rights are in no way affected by the above.
 {
 	if (!e1)
 		return NO_TARGET;
-//	NSArray *entlist = [NSArray arrayWithArray:entities];
 	Entity  *hit_entity = nil;
 	int		result = NO_TARGET;
 	double  nearest = SCANNER_MAX_RANGE;
 	int i;
 	int ent_count = n_entities;
+	int ship_count = 0;
 	Entity* my_entities[ent_count];
 	for (i = 0; i < ent_count; i++)
-		my_entities[i] = [sortedEntities[i] retain];	// retained
+		if (sortedEntities[i]->isShip)
+			my_entities[ship_count++] = [sortedEntities[i] retain];	// retained
 
 	Vector p1 = e1->position;
 	Quaternion q1 = e1->q_rotation;
@@ -3459,12 +3556,10 @@ Your fair use and other rights are in no way affected by the above.
 	}
 	Vector f1 = vector_forward_from_quaternion(q1);
 	Vector r1 = vector_right_from_quaternion(q1);
-//	for (i = 0; i < [entlist count]; i++)
-	for (i = 0; i < ent_count; i++)
+	for (i = 0; i < ship_count; i++)
 	{
-//		Entity *e2 = [entlist objectAtIndex:i];
 		Entity *e2 = my_entities[i];
-		if ((e2 != e1)&&[e2 canCollide]&&(e2->isShip)&&(e2->scan_class != CLASS_NO_DRAW))
+		if ((e2 != e1)&&[e2 canCollide]&&(e2->scan_class != CLASS_NO_DRAW))
 		{
 			Vector rp = e2->position;
 			rp.x -= p1.x;	rp.y -= p1.y;	rp.z -= p1.z;
@@ -3491,7 +3586,7 @@ Your fair use and other rights are in no way affected by the above.
 		result = [hit_entity universal_id];
 		//NSLog(@"===> First entity Targetted is %@ %d with collisionRadius %.1f", [(ShipEntity *) hit_entity name], [hit_entity universal_id], hit_entity->collision_radius);
 	}
-	for (i = 0; i < ent_count; i++)
+	for (i = 0; i < ship_count; i++)
 		[my_entities[i] release]; //	released
 	return result;
 }
@@ -3500,7 +3595,6 @@ Your fair use and other rights are in no way affected by the above.
 {
 	if (!e1)
 		return nil;
-//	NSArray *entlist = [NSArray arrayWithArray:entities];
 	NSMutableArray *hitlist = [NSMutableArray arrayWithCapacity:4];
 	int i;
 	int ent_count = n_entities;
@@ -3509,10 +3603,8 @@ Your fair use and other rights are in no way affected by the above.
 		my_entities[i] = [sortedEntities[i] retain];	// retained
 
 	Vector p1 = e1->position;
-//	for (i = 0; i < [entlist count]; i++)
 	for (i = 0; i < ent_count; i++)
 	{
-//		Entity *e2 = [entlist objectAtIndex:i];
 		Entity *e2 = my_entities[i];
 		if ((e2 != e1)&&([e2 canCollide]))
 		{
@@ -3533,21 +3625,20 @@ Your fair use and other rights are in no way affected by the above.
 {
 	if (!e1)
 		return 0;
-//	NSArray *entlist = [NSArray arrayWithArray:entities];
 	int i, found;
 	int ent_count = n_entities;
+	int ship_count = 0;
 	Entity* my_entities[ent_count];
 	for (i = 0; i < ent_count; i++)
-		my_entities[i] = [sortedEntities[i] retain];	// retained
+		if (sortedEntities[i]->isShip)
+			my_entities[ship_count++] = [sortedEntities[i] retain];	// retained
 
 	found = 0;
 	Vector p1 = e1->position;
-//	for (i = 0; i < [entlist count]; i++)
-	for (i = 0; i < ent_count; i++)
+	for (i = 0; i < ship_count; i++)
 	{
-//		Entity *e2 = [entlist objectAtIndex:i];
 		Entity *e2 = my_entities[i];
-		if ((e2 != e1)&&(e2->isShip)&&([[(ShipEntity *)e2 roles] isEqual:desc]))
+		if ((e2 != e1)&&([[(ShipEntity *)e2 roles] isEqual:desc]))
 		{
 			Vector p2 = e2->position;
 			p2.x -= p1.x;	p2.y -= p1.y;	p2.z -= p1.z;
@@ -3557,53 +3648,51 @@ Your fair use and other rights are in no way affected by the above.
 				found++;
 		}
 	}
-	for (i = 0; i < ent_count; i++)
+	for (i = 0; i < ship_count; i++)
 		[my_entities[i] release]; //	released
 	return  found;
 }
 
 - (int) countShipsWithRole:(NSString *) desc
 {
-//	NSArray *entlist = [NSArray arrayWithArray:entities];
 	int i, found;
 	int ent_count = n_entities;
+	int ship_count = 0;
 	Entity* my_entities[ent_count];
 	for (i = 0; i < ent_count; i++)
-		my_entities[i] = [sortedEntities[i] retain];	// retained
+		if (sortedEntities[i]->isShip)
+			my_entities[ship_count++] = [sortedEntities[i] retain];	// retained
 
 	found = 0;
-//	for (i = 0; i < [entlist count]; i++)
-	for (i = 0; i < ent_count; i++)
+	for (i = 0; i < ship_count; i++)
 	{
-//		Entity *e2 = [entlist objectAtIndex:i];
 		Entity *e2 = my_entities[i];
-		if ((e2->isShip)&&([[(ShipEntity *)e2 roles] isEqual:desc]))
+		if (([[(ShipEntity *)e2 roles] isEqual:desc]))
 			found++;
 	}
-	for (i = 0; i < ent_count; i++)
+	for (i = 0; i < ship_count; i++)
 		[my_entities[i] release]; //	released
 	return  found;
 }
 
 - (void) sendShipsWithRole:(NSString *) desc messageToAI:(NSString *) ms
 {
-//	NSArray *entlist = [NSArray arrayWithArray:entities];
 	int i, found;
 	int ent_count = n_entities;
+	int ship_count = 0;
 	Entity* my_entities[ent_count];
 	for (i = 0; i < ent_count; i++)
-		my_entities[i] = [sortedEntities[i] retain];	// retained
+		if (sortedEntities[i]->isShip)
+			my_entities[ship_count++] = [sortedEntities[i] retain];	// retained
 
 	found = 0;
-//	for (i = 0; i < [entlist count]; i++)
-	for (i = 0; i < ent_count; i++)
+	for (i = 0; i < ship_count; i++)
 	{
-//		Entity *e2 = [entlist objectAtIndex:i];
 		Entity *e2 = my_entities[i];
-		if ((e2->isShip)&&([[(ShipEntity *)e2 roles] isEqual:desc]))
+		if ([[(ShipEntity *)e2 roles] isEqual:desc])
 			[[(ShipEntity *)e2 getAI] reactToMessage:ms];
 	}
-	for (i = 0; i < ent_count; i++)
+	for (i = 0; i < ship_count; i++)
 		[my_entities[i] release]; //	released
 }
 
@@ -3634,13 +3723,9 @@ Your fair use and other rights are in no way affected by the above.
 	Entity*		my_entities[ent_count];
 	for (i = 0; i < ent_count; i++)
 		my_entities[i] = [sortedEntities[i] retain];		//	retained
-//	NSArray  *entityList = [[NSArray alloc] initWithArray:entities];	// alloc retains
-	//
-//	int ent_count = [entityList count];
 	
 	for (i = 0; i < ent_count; i++)
 	{
-//		e1 = (Entity *)[entityList objectAtIndex:i];
 		e1 = my_entities[i];
 		[[e1 collisionArray] removeAllObjects];
 	}
@@ -3648,7 +3733,6 @@ Your fair use and other rights are in no way affected by the above.
 		return;
 	for (i = 0; i < ent_count; i++)
 	{
-//		e1 = (Entity *)[entityList objectAtIndex:i];
 		e1 = my_entities[i];
 		if ([e1 canCollide])
 		{
@@ -3658,7 +3742,6 @@ Your fair use and other rights are in no way affected by the above.
 			r1 = e1->collision_radius;
 			for (j = i + 1; j < ent_count; j++)	// was j = 1, which wasted time!
 			{
-//				e2 = (Entity *)[entityList objectAtIndex:j];
 				e2 = my_entities[j];
 				if ([e2 canCollide])
 				{

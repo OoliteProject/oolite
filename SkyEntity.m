@@ -92,7 +92,8 @@ Your fair use and other rights are in no way affected by the above.
 		[self OGL_AssignVARMemory:sizeof(SkyBlobsData) :(void *)&blobsData :1];
 	}
 	//
-
+	isSky = YES;
+	//
     return self;
 }
 
@@ -142,7 +143,8 @@ Your fair use and other rights are in no way affected by the above.
 		[self OGL_AssignVARMemory:sizeof(SkyBlobsData) :(void *)&blobsData :1];
 	}
 	//
-
+	isSky = YES;
+	//
     return self;
 }
 
@@ -221,8 +223,7 @@ Your fair use and other rights are in no way affected by the above.
 	// init stars
 	//
 	[self set_up_billboards:color1 :color2];
-	//
-
+	
 	//
 	usingVAR = [self OGL_InitVAR];
 	//
@@ -232,7 +233,8 @@ Your fair use and other rights are in no way affected by the above.
 		[self OGL_AssignVARMemory:sizeof(SkyBlobsData) :(void *)&blobsData :1];
 	}
 	//
-
+	isSky = YES;
+	//
     return self;
 }
 
@@ -280,7 +282,8 @@ Your fair use and other rights are in no way affected by the above.
 		[self OGL_AssignVARMemory:sizeof(SkyBlobsData) :(void *)&blobsData :1];
 	}
 	//
-
+	isSky = YES;
+	//
     return self;
 }
 
@@ -604,6 +607,7 @@ Your fair use and other rights are in no way affected by the above.
 		glEnable(GL_DEPTH_TEST);	// read the depth buffer
 		glDepthMask(GL_TRUE);	// restore write to depth buffer
 	}
+	checkGLErrors([NSString stringWithFormat:@"SkyEntity after drawing %@", self]);
 }
 
 

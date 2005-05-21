@@ -38,6 +38,7 @@ Your fair use and other rights are in no way affected by the above.
 
 #import "GameController.h"
 #import "Universe.h"
+#import "ResourceManager.h"
 #import "MyOpenGLView.h"
 #import "TextureStore.h"
 
@@ -60,6 +61,7 @@ Your fair use and other rights are in no way affected by the above.
 	my_mouse_x = my_mouse_y = 0;
 	//
 	playerFileToLoad = nil;
+	expansionPathsToInclude = nil;
 	pauseSelector = (SEL)nil;
 	pauseTarget = nil;
 	//
@@ -83,6 +85,8 @@ Your fair use and other rights are in no way affected by the above.
     if (old_time)	[old_time release];
 	//
     if (playerFileToLoad)	[playerFileToLoad release];
+    if (expansionPathsToInclude)	[expansionPathsToInclude release];
+	//
     [super dealloc];
 }
 
@@ -176,7 +180,7 @@ static int _compareModes(id arg1, id arg2, void *context)
     NSDictionary *mode1 = (NSDictionary *)arg1;
     NSDictionary *mode2 = (NSDictionary *)arg2;
     int size1, size2;
-   
+    
     // Sort first on pixel count
     size1 = [[mode1 objectForKey: (NSString *)kCGDisplayWidth] intValue] *
             [[mode1 objectForKey: (NSString *)kCGDisplayHeight] intValue];
@@ -198,7 +202,7 @@ static int _compareModes(id arg1, id arg2, void *context)
     NSArray *modes;
     NSDictionary *mode;
     unsigned int modeWidth, modeHeight, color, modeRefresh, flags;
-
+	
     // Get the list of all available modes
     modes = [(NSArray *)CGDisplayAvailableModes(kCGDirectMainDisplay) retain];
     
@@ -227,7 +231,7 @@ static int _compareModes(id arg1, id arg2, void *context)
 	// to pick up refresh rates. Logged as Radar 3759831.
 	// In order to deal with this, we'll just edit out the duplicates.
 	
-	int j;
+	unsigned int j;
 	for(j = 0, mode = [displayModes objectAtIndex: j]; j + 1 < [displayModes count];)
 	{
 		modeWidth = [[mode objectForKey: (NSString *)kCGDisplayWidth] intValue];
@@ -313,6 +317,8 @@ static int _compareModes(id arg1, id arg2, void *context)
 	[gameView setGameController:self];
 }
 
+
+
 - (void) applicationDidFinishLaunching: (NSNotification*) notification
 {
 #ifdef GNUSTEP
@@ -324,7 +330,7 @@ static int _compareModes(id arg1, id arg2, void *context)
 	// ensure the gameView is drawn to, so OpenGL is initialised and so textures can initialse.
 	//
 	[gameView drawRect:[gameView bounds]];
-
+	
 	[self beginSplashScreen];
 	[self logProgress:@"initialising..."];
 	//
@@ -365,12 +371,22 @@ static int _compareModes(id arg1, id arg2, void *context)
         refresh = [[fullscreenDisplayMode objectForKey: (NSString *)kCGDisplayRefreshRate] intValue];
 #endif
 	}
-
+	
+	// moved to before the Universe is created
+	[self logProgress:@"loading selected expansion packs..."];
+	if (expansionPathsToInclude)
+	{
+		int i;
+		for (i = 0; i < [expansionPathsToInclude count]; i++)
+			[ResourceManager addExternalPath: (NSString*)[expansionPathsToInclude objectAtIndex: i]];
+	}
+	
     // moved here to try to avoid initialising this before having an Open GL context
 	[self logProgress:@"initialising universe..."];
     universe = [[Universe alloc] init];
+	
 	[universe setGameView:gameView];
-
+		
 	[self logProgress:@"loading player..."];
 	[self loadPlayerIfRequired];
 
@@ -719,7 +735,7 @@ static int _compareModes(id arg1, id arg2, void *context)
 		[self startAnimationTimer];
 
 		// Mark our view as needing drawing.  (The animation has advanced while we were in FullScreen mode, so its current contents are stale.)
-		[gameView initialiseGLWithSize:NSMakeSize(640,480)];
+//		[gameView initialiseGLWithSize:NSMakeSize(640,480)];
 		[gameView setNeedsDisplay:YES];
 		
 		if (pauseTarget)
@@ -771,8 +787,25 @@ static int _compareModes(id arg1, id arg2, void *context)
 #ifndef GNUSTEP
 - (BOOL)application:(NSApplication *)theApplication openFile:(NSString *)filename
 {
-	[self setPlayerFileToLoad:filename];
-	return YES;
+	if ([[filename pathExtension] isEqual:@"oolite-save"])
+	{
+		[self setPlayerFileToLoad:filename];
+		return YES;
+	}
+	if ([[filename pathExtension] isEqual:@"oxp"]||[[filename pathExtension] isEqual:@"oolite_expansion_pack"])
+	{
+		BOOL dir_test;
+		[[NSFileManager defaultManager] fileExistsAtPath:filename isDirectory:&dir_test];
+		if (dir_test)
+		{
+//			NSLog(@"Including expansion pack : %@", filename);
+			if (!expansionPathsToInclude)
+				expansionPathsToInclude = [[NSMutableArray alloc] initWithCapacity: 4];	// retained
+			[expansionPathsToInclude addObject: filename];
+			return YES;
+		}
+	}
+	return NO;
 }
 #endif
 

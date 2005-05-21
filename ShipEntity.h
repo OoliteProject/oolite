@@ -485,6 +485,7 @@ Vector randomPositionInBoundingBox(BoundingBox bb);
 - (BOOL) markForFines;
 
 - (BOOL) isMining;
+- (void) setNumberOfMinedRocks:(int) value;
 
 - (void) spawn:(NSString *)roles_number;
 

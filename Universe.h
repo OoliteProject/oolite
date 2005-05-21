@@ -150,7 +150,7 @@ Your fair use and other rights are in no way affected by the above.
 
 #define	NUMBER_OF_STRICT_EQUIPMENT_ITEMS	16
 
-#define UNIVERSE_MAX_ENTITIES           1000
+#define	UNIVERSE_MAX_ENTITIES		1000
 
 //#import <OpenGL/glu.h>
 #ifdef LINUX
@@ -202,7 +202,7 @@ extern int debug;
 		NSMutableDictionary *preloadedDataFiles;
 
 		NSMutableArray	*entities;
-        NSMutableArray	*entsInDrawOrder;
+//        NSMutableArray	*entsInDrawOrder;
 				
 		int				station;
 		int				sun;
@@ -297,6 +297,7 @@ extern int debug;
 - (void) set_up_universe_from_misjump;
 - (void) set_up_witchspace;
 - (void) set_up_space;
+- (void) setLighting;
 - (void) populateSpaceFromHyperPoint:(Vector) h1_pos toPlanetPosition:(Vector) p1_pos andSunPosition:(Vector) s1_pos;
 - (int)	scatterAsteroidsAt:(Vector) spawnPos withVelocity:(Vector) spawnVel includingRockHermit:(BOOL) spawnHermit;
 - (void) addShipWithRole:(NSString *) desc nearRouteOneAt:(double) route_fraction;
@@ -308,6 +309,8 @@ extern int debug;
 
 - (void) set_up_intro1;
 - (void) set_up_intro2;
+- (void) selectIntro2Previous;
+- (void) selectIntro2Next;
 
 - (StationEntity *) station;
 - (PlanetEntity *) planet;

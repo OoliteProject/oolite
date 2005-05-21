@@ -108,6 +108,18 @@ Your fair use and other rights are in no way affected by the above.
 	return result;
 }
 
+- (Vector) getBeaconPosition
+{
+	double buoy_distance = 10000.0;				// distance from station entrance
+	Vector result = position;
+	Vector v_f = vector_forward_from_quaternion(q_rotation);
+	result.x += buoy_distance * v_f.x;
+	result.y += buoy_distance * v_f.y;
+	result.z += buoy_distance * v_f.z;
+	return result;
+}
+
+
 - (double) equipment_price_factor
 {
 	return equipment_price_factor;

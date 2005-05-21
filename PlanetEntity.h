@@ -80,6 +80,9 @@ typedef struct
 	GLfloat		amb_sea[4];
 	GLfloat		amb_polar_sea[4];
 	
+	@public GLfloat		sun_diffuse[4];
+	@public GLfloat		sun_specular[4];
+	
 	PlanetEntity*   atmosphere;				// secondary sphere used to show atmospheric details
 	
 	int			shuttles_on_ground;			// starting number of shuttles
@@ -115,6 +118,7 @@ GLfloat		rvalue[729];			// stores random values for adjusting colors in the coro
 - (id) initWithSeed:(Random_Seed) p_seed fromUniverse:(Universe *) uni;
 
 void drawBall (double radius, int step, double z_distance);
+void drawBallVertices (double radius, int step, double z_distance);
 void drawCorona (double inner_radius, double outer_radius, int step, double z_distance, GLfloat* col4v1, GLfloat* col4v2);
 void drawActiveCorona (double inner_radius, double outer_radius, int step, double z_distance, GLfloat* col4v1, int rv);
 
@@ -154,4 +158,3 @@ int baseVertexIndexForEdge(int va, int vb);
 - (void) setGoingNova:(BOOL) yesno inTime:(double)interval;
 
 @end
-

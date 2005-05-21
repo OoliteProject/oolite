@@ -717,8 +717,8 @@ Your fair use and other rights are in no way affected by the above.
 		NSArray* missile_roles = (NSArray*)[dict objectForKey:@"missile_roles"];
 		if (max_missiles < [missile_roles count])
 			missile_roles = [missile_roles subarrayWithRange:NSMakeRange(0, max_missiles)];
-      
-		if (missiles && missiles != [missile_roles count])
+//		if (missiles != [missile_roles count])
+		if ((missiles) && (missiles != [missile_roles count]))
 			missiles = [missile_roles count];	// sanity check the number of missiles
 		for (i = 0; (i < max_missiles)&&(i < [missile_roles count]); i++)
 		{
@@ -1214,9 +1214,11 @@ static BOOL galactic_witchjump;
     if (warningSound)			[warningSound release];
     if (afterburner1Sound)		[afterburner1Sound release];
     if (afterburner2Sound)		[afterburner2Sound release];
+
     if (themeMusic)				[themeMusic release];
     if (missionMusic)			[missionMusic release];
     if (dockingMusic)			[dockingMusic release];
+
     if (missionBackgroundImage) [missionBackgroundImage release];
 
     if (player_name)			[player_name release];
@@ -1750,7 +1752,7 @@ static BOOL galactic_witchjump;
 	quaternion_rotate_about_z( &q_rotation, -roll1);
 	quaternion_rotate_about_x( &q_rotation, -climb1);
 	
-    quaternion_normalise(&q_rotation);
+    quaternion_normalise(&q_rotation);	// probably not strictly necessary but good to do to keep q_rotation sane
     quaternion_into_gl_matrix(q_rotation, rotMatrix);
 
 	v_right.x = rotMatrix[0];
@@ -1861,6 +1863,7 @@ static BOOL galactic_witchjump;
 	}
 
 --*/
+	checkGLErrors([NSString stringWithFormat:@"after drawing Entity %@", self]);
 }
 
 - (void) drawCollisionHitIndicator:(NSDictionary *) info depth:(GLfloat)z1
@@ -2126,13 +2129,15 @@ static BOOL galactic_witchjump;
 				if ([self getPrimaryTarget])
 					[self setCompass_mode:COMPASS_MODE_TARGET];
 				else
-					[self setCompass_mode:COMPASS_MODE_WITCHPOINT];
+				{
+					nextBeaconID = [[universe firstBeacon] universal_id];
+					if (nextBeaconID != NO_TARGET)
+						[self setCompass_mode:COMPASS_MODE_BEACONS];
+					else
+						[self setCompass_mode:COMPASS_MODE_PLANET];
+				}
 				break;
 			case COMPASS_MODE_TARGET:
-				[self setCompass_mode:COMPASS_MODE_WITCHPOINT];
-				break;
-			case COMPASS_MODE_WITCHPOINT:
-//				[self setCompass_mode:COMPASS_MODE_PLANET];
 				nextBeaconID = [[universe firstBeacon] universal_id];
 				if (nextBeaconID != NO_TARGET)
 					[self setCompass_mode:COMPASS_MODE_BEACONS];
@@ -3468,7 +3473,7 @@ static BOOL queryPressed;
 				}
 				if ((![gameView isDown:gvArrowKeyRight])&&(![gameView isDown:gvArrowKeyLeft])&&(![gameView isDown:13]))
 					switching_resolution = NO;
-            
+				
 				if (([gui selectedRow] == speech_row)&&(([gameView isDown:gvArrowKeyRight])||([gameView isDown:gvArrowKeyLeft])))
 				{
 					GuiDisplayGen* gui = [universe gui];
@@ -4391,8 +4396,18 @@ static BOOL toggling_music;
 					[themeMusic goToBeginning];
 #endif
 				}
-
 			}
+			if ([gameView isDown:gvArrowKeyLeft])	//  '<--'
+			{
+				if (!upDownKeyPressed)
+					[universe selectIntro2Previous];
+			}
+			if ([gameView isDown:gvArrowKeyRight])	//  '-->'
+			{
+				if (!upDownKeyPressed)
+					[universe selectIntro2Next];
+			}
+			upDownKeyPressed = (([gameView isDown:gvArrowKeyLeft])||([gameView isDown:gvArrowKeyRight]));
 			break;
 			
 		case	GUI_SCREEN_MISSION :
@@ -5717,7 +5732,9 @@ static BOOL toggling_music;
 		[gui setText:@"Equipment:"  forRow:9];
 		
 		int i = 0;
-		int n_equip_rows = 9;
+		int n_equip_rows = 5;
+		while ([gear count] > n_equip_rows * 2)	// make room for larger numbers of items
+			n_equip_rows++;						// by extending the length of the two columns
 		for (i = 0; i < n_equip_rows; i++)
 		{
 			NSMutableArray*		row_info = [NSMutableArray arrayWithCapacity:3];

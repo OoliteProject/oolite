@@ -223,11 +223,12 @@ Your fair use and other rights are in no way affected by the above.
 - (void) initialiseGLWithSize:(NSSize) v_size
 {
 	int videoModeFlags;
-	GLfloat	sun_ambient[] =	{0.1, 0.1, 0.1, 1.0};
+	GLfloat	sun_ambient[] =	{0.0, 0.0, 0.0, 1.0};
 	GLfloat	sun_diffuse[] =	{1.0, 1.0, 1.0, 1.0};
 	GLfloat	sun_specular[] = 	{1.0, 1.0, 1.0, 1.0};
 	GLfloat	sun_center_position[] = {4000000.0, 0.0, 0.0, 1.0};
-
+	GLfloat stars_ambient[] =	{0.25, 0.2, 0.25, 1.0};
+	
 	viewSize = v_size;
 	if (viewSize.width/viewSize.height > 4.0/3.0)
 		display_z = 480.0 * viewSize.width/viewSize.height;
@@ -281,13 +282,17 @@ Your fair use and other rights are in no way affected by the above.
 		sun_center_position[0] = sun_pos.x;
 		sun_center_position[1] = sun_pos.y;
 		sun_center_position[2] = sun_pos.z;
+		[[gameController universe] setLighting];
 	}
-
-	glLightfv(GL_LIGHT1, GL_AMBIENT, sun_ambient);
-	glLightfv(GL_LIGHT1, GL_SPECULAR, sun_specular);
-	glLightfv(GL_LIGHT1, GL_DIFFUSE, sun_diffuse);
-	glLightfv(GL_LIGHT1, GL_POSITION, sun_center_position);
-
+	else
+	{
+		glLightfv(GL_LIGHT1, GL_AMBIENT, sun_ambient);
+		glLightfv(GL_LIGHT1, GL_SPECULAR, sun_specular);
+		glLightfv(GL_LIGHT1, GL_DIFFUSE, sun_diffuse);
+		glLightfv(GL_LIGHT1, GL_POSITION, sun_center_position);
+		glLightModelfv(GL_LIGHT_MODEL_AMBIENT, stars_ambient);
+	}
+	
 	glEnable(GL_LIGHTING);		// lighting
 	glEnable(GL_LIGHT1);		// lighting
 

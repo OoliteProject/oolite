@@ -218,6 +218,9 @@ GLuint ascii_texture_name;
 	z1 = [(MyOpenGLView *)[[player universe] gameView] display_z];
 	for (i = 0; i < [legendArray count]; i++)
 		[self drawLegend:(NSDictionary *)[legendArray objectAtIndex:i]];
+//
+checkGLErrors(@"HeadUpDisplay after drawLegends");
+//
 }
 
 - (void) drawDials
@@ -228,6 +231,9 @@ GLuint ascii_texture_name;
 	z1 = [(MyOpenGLView *)[[player universe] gameView] display_z];
 	for (i = 0; i < [dialArray count]; i++)
 		[self drawHUDItem:(NSDictionary *)[dialArray objectAtIndex:i]];
+//
+checkGLErrors(@"HeadUpDisplay after drawDials");
+//
 }
 
 
@@ -264,6 +270,9 @@ GLuint ascii_texture_name;
 		else
 			NSLog(@"DEBUG HeadUpDisplay does not respond to '%@'",[info objectForKey:SELECTOR_KEY]);
 	}
+//
+checkGLErrors([NSString stringWithFormat:@"HeadUpDisplay after drawHUDItem %@", info]);
+//
 }
 
 //---------------------------------------------------------------------//
@@ -634,9 +643,6 @@ static BOOL hostiles;
 						relativePosition = the_planet->position;
 					}	
 					break;
-				case COMPASS_MODE_WITCHPOINT:
-					relativePosition = [[player universe] getWitchspaceExitPosition];
-					break;
 				case COMPASS_MODE_BEACONS:
 					if (the_next_beacon)
 						relativePosition = the_next_beacon->position;
@@ -682,11 +688,7 @@ static BOOL hostiles;
 				case COMPASS_MODE_TARGET:
 					[self drawCompassTargetBlipAt:relativePosition Size:sz Alpha:alpha];
 					break;
-				case COMPASS_MODE_WITCHPOINT:
-					[self drawCompassWitchpointBlipAt:relativePosition Size:sz Alpha:alpha];
-					break;
 				case COMPASS_MODE_BEACONS:
-//					[self drawCompassBeaconBlip:[(ShipEntity*)[[player universe] entityForUniversalID:[player nextBeaconID]] beaconChar] At:relativePosition Size:sz Alpha:alpha];
 					[self drawCompassBeaconBlipAt:relativePosition Size:sz Alpha:alpha];
 					drawString(	[NSString stringWithFormat:@"%c", [(ShipEntity*)the_next_beacon beaconChar]],
 								x - 2.5 * sz.width, y - 3.0 * sz.height, z1, NSMakeSize(sz.width * 2, sz.height * 2));
@@ -1893,7 +1895,7 @@ void drawSpecialOval( double x, double y, double z, NSSize siz, int step, GLfloa
 	int i;
 	GLfloat ww = 0.5 * siz.width;
 	GLfloat hh = 0.5 * siz.height;
-	glEnable(GL_SMOOTH);
+	glEnable(GL_LINE_SMOOTH);
 	glBegin(GL_LINE_LOOP);
 	for (i = 0; i < 360; i += step)
 	{

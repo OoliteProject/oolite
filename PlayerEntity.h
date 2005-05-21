@@ -185,7 +185,7 @@ Your fair use and other rights are in no way affected by the above.
 #define COMPASS_MODE_STATION		2
 #define COMPASS_MODE_SUN			3
 #define COMPASS_MODE_TARGET			4
-#define COMPASS_MODE_WITCHPOINT		5
+//#define COMPASS_MODE_WITCHPOINT		5
 #define COMPASS_MODE_BEACONS		6
 #define COMPASS_MODE_ADVANCED_OKAY	((compass_mode >= 1)&&(compass_mode <= 10))
 
@@ -572,4 +572,3 @@ Your fair use and other rights are in no way affected by the above.
 - (void) getFined;
 
 @end
-

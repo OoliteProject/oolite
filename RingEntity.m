@@ -184,6 +184,7 @@ Ringdata	ringentity;
 		}
 	}
 	glEnable(GL_LIGHTING);
+	checkGLErrors([NSString stringWithFormat:@"RingEntity after drawing %@", self]);
 }
 
 - (BOOL) canCollide

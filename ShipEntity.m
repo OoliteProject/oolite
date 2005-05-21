@@ -524,8 +524,7 @@ Your fair use and other rights are in no way affected by the above.
     NSString*   cargo_type_string;
     //NSString*   ai_type_string;
     NSString*   weapon_type_string;
-
-	//NSLog(@"setUpShipFromDictionary");
+	
 	// reset all settings
 	[self reinit];
 	
@@ -639,12 +638,6 @@ Your fair use and other rights are in no way affected by the above.
 		has_cloaking_device = (randf() < [(NSNumber *)[dict objectForKey:@"has_cloaking_device"] floatValue]);
 	//
 	cloaking_device_active = NO;
-/*
-	if (has_ecm) NSLog(@"has ECM");
-	if (has_scoop) NSLog(@"has scoop");
-	if (has_escape_pod) NSLog(@"has escape pod");
-	if (has_energy_bomb) NSLog(@"has energy bomb");
-*/
 	//
 	// /upgrades
 	
@@ -1269,7 +1262,7 @@ Your fair use and other rights are in no way affected by the above.
 		double  range = [self rangeToPrimaryTarget];
 		double  distance = [self rangeToDestination];
 		double  target_speed = max_flight_speed;
-		double	slow_down_range = weapon_range * COMBAT_WEAPON_RANGE_FACTOR * ((flight_speed > max_flight_speed)? AFTERBURNER_FACTOR : 1.0);
+		double	slow_down_range = weapon_range * COMBAT_WEAPON_RANGE_FACTOR * ((flight_speed > max_flight_speed)? 2.0 * AFTERBURNER_FACTOR : 1.0);
 		
 		ShipEntity*	target = (ShipEntity*)[universe entityForUniversalID:primaryTarget];
 		
@@ -1359,10 +1352,10 @@ Your fair use and other rights are in no way affected by the above.
 						frustration += delta_t;
 						if (frustration > 10.0)	// 10s of frustration
 						{
-							[self setReportAImessages:YES];	//debug
+//							[self setReportAImessages:YES];	//debug
 							[shipAI reactToMessage:@"FRUSTRATED"];
-							NSLog(@"DEBUG %@ flight_speed %.6f distance %.6f last_distance %.6f", self, flight_speed, distance, last_distance);
-							[self setReportAImessages:NO];	//debug
+//							NSLog(@"DEBUG %@ flight_speed %.6f distance %.6f last_distance %.6f", self, flight_speed, distance, last_distance);
+//							[self setReportAImessages:NO];	//debug
 							frustration -= 5.0;	//repeat after another five seconds' frustration
 						}
 					}
@@ -1406,7 +1399,7 @@ Your fair use and other rights are in no way affected by the above.
 				}
 				// control speed
 				//
-				if (range <= slow_down_range)
+				if (range < slow_down_range)
 					desired_speed = (target_speed < max_flight_speed)? target_speed: max_flight_speed;   // within the weapon's range don't use afterburner
 				else
 					desired_speed = ((has_fuel_injection)&&(fuel > 0)) ? max_flight_speed * AFTERBURNER_FACTOR : max_flight_speed ; // use afterburner to approach
@@ -1651,10 +1644,10 @@ Your fair use and other rights are in no way affected by the above.
 						frustration += delta_t;
 						if (frustration > 10.0)	// 10s of frustration
 						{
-							[self setReportAImessages:YES];	//debug
+//							[self setReportAImessages:YES];	//debug
 							[shipAI reactToMessage:@"FRUSTRATED"];
-							NSLog(@"DEBUG %@ flight_speed %.6f distance %.6f last_distance %.6f", self, flight_speed, distance, last_distance);
-							[self setReportAImessages:NO];	//debug
+//							NSLog(@"DEBUG %@ flight_speed %.6f distance %.6f last_distance %.6f", self, flight_speed, distance, last_distance);
+//							[self setReportAImessages:NO];	//debug
 							frustration -= 5.0;	//repeat after another five seconds' frustration
 						}
 					}
@@ -1812,6 +1805,10 @@ Your fair use and other rights are in no way affected by the above.
 	//debug
 	//NSLog(@"DEBUG drawn ship (%@ %d)", name, universal_id);
 	
+	//
+	checkGLErrors([NSString stringWithFormat:@"ShipEntity after drawing Entity (main) %@", self]);
+	//
+	
 	if (immediate)
 		return;		// don't draw sub-entities when constructing a displayList
 	
@@ -1826,6 +1823,9 @@ Your fair use and other rights are in no way affected by the above.
 			[se drawSubEntity:immediate:translucent];
 		}
 	}
+	//
+	checkGLErrors([NSString stringWithFormat:@"ShipEntity after drawing Entity (subentities) %@", self]);
+	//
 }
 
 - (void) addExhaust:(ParticleEntity *)exhaust
@@ -1920,7 +1920,7 @@ Your fair use and other rights are in no way affected by the above.
 	
 	q_rotation = quaternion_multiply( q1, q_rotation);
 	
-    quaternion_normalise(&q_rotation);
+	quaternion_normalise(&q_rotation);	// probably not strictly necessary but good to do to keep q_rotation sane
     quaternion_into_gl_matrix(q_rotation, rotMatrix);
 	
 	v_forward   = vector_forward_from_quaternion(q_rotation);
@@ -2588,8 +2588,6 @@ Your fair use and other rights are in no way affected by the above.
 	Vector v;
 	Quaternion q;
 	int speed_low = 200;
-	int speed_high = 800;
-	int n_fragments = 32;
 	int n_alloys = floor((boundingBox.max_z - boundingBox.min_z) / 50.0);
 	
 	if (status == STATUS_DEAD)
@@ -2627,30 +2625,15 @@ Your fair use and other rights are in no way affected by the above.
 		[ring release];
 	}
 	
+	// two parts to the explosion:
+	// 1. fast sparks
 	fragment = [[ParticleEntity alloc] initFragburstFromPosition:xposition];
 	[universe addEntity:fragment];
 	[fragment release];
-
-	for (i = 0 ; i < n_fragments / 4; i++)
-	{
-		int speed = ((ranrot_rand() % (speed_high - speed_low)) + speed_low) /8;
-		double duration = 0.5 + (ranrot_rand() % 256) / 256.0;
-		v.x = (ranrot_rand() % speed) - speed / 2;
-		v.y = (ranrot_rand() % speed) - speed / 2;
-		v.z = (ranrot_rand() % speed) - speed / 2;
-		fragment = [[ParticleEntity alloc] init];	// alloc retains!
-		[fragment setPosition:xposition]; // here
-		[fragment setScanClass: CLASS_NO_DRAW];
-		[fragment setVelocity: v];
-		[fragment setDuration: duration];
-		[fragment setCollisionRadius: 0.0];
-		[fragment setEnergy: 0.0];
-		[fragment setParticleType: PARTICLE_EXPLOSION];
-		[fragment setColor:[NSColor yellowColor]];
-		[universe addEntity:fragment];
-		[fragment release];							//release
-	}
-	
+	// 2. slow clouds
+	fragment = [[ParticleEntity alloc] initBurst2FromPosition:xposition];
+	[universe addEntity:fragment];
+	[fragment release];	
 	
 	// we need to throw out cargo at this point.
 	NSArray *jetsam = nil;  // this will contain the stuff to get thrown out
@@ -2733,7 +2716,8 @@ Your fair use and other rights are in no way affected by the above.
 		if ((being_mined)||(randf() < 0.20))
 		{
 			// if hit by a mining laser, break up into 2..6 boulders
-			int n_rocks = 2 + (ranrot_rand() % 5);
+//			int n_rocks = 2 + (ranrot_rand() % 5);
+			int n_rocks = likely_cargo;
 //			NSLog(@"DEBUG %@ %d Throwing %d boulders", name, universal_id, n_rocks);
 //			NSLog(@"DEBUG At (%.1f, %.1f, %.1f)", xposition.x, xposition.y, xposition.z);
 			for (i = 0; i < n_rocks; i++)
@@ -2883,11 +2867,6 @@ Vector randomPositionInBoundingBox(BoundingBox bb)
 {
 	Vector xposition = position;
 	ParticleEntity  *fragment;
-	int i;
-	Vector v;
-	int speed_low = 200;
-	int speed_high = 800;
-	int n_fragments = 32*factor;
 	int n_cargo = (ranrot_rand() % (likely_cargo + 1));
 	
 	if (status == STATUS_DEAD)
@@ -2911,44 +2890,26 @@ Vector randomPositionInBoundingBox(BoundingBox bb)
 		[death_actions removeAllObjects];
 	}
 	
-	for (i = 0 ; i < n_fragments; i++)
+	// two parts to the explosion:
+	// 1. fast sparks
+	float how_many = factor;
+	while (how_many > 0.5f)
 	{
-		int speed = (ranrot_rand() % (speed_high - speed_low)) + speed_low;
-		double duration = factor*(0.5 + (ranrot_rand() % 256) / 256.0);
-		v.x = (ranrot_rand() % speed) - speed / 2;
-		v.y = (ranrot_rand() % speed) - speed / 2;
-		v.z = (ranrot_rand() % speed) - speed / 2;
-		fragment = [[ParticleEntity alloc] init];	// alloc retains!
-		[fragment setPosition:xposition]; // here
-		[fragment setScanClass: CLASS_NO_DRAW];
-		[fragment setVelocity: v];
-		[fragment setDuration: duration];
-		[fragment setCollisionRadius: 0.0];
-		[fragment setEnergy: 0.0];
-		[fragment setParticleType: PARTICLE_SHOT_GREEN_PLASMA];
-		[fragment setColor:[NSColor yellowColor]];
+		fragment = [[ParticleEntity alloc] initFragburstFromPosition:xposition];
 		[universe addEntity:fragment];
-		[fragment release];							//release
+		[fragment release];
+		how_many -= 1.0f;
 	}
-	for (i = 0 ; i < n_fragments / 4; i++)
+	// 2. slow clouds
+	how_many = factor;
+	while (how_many > 0.5f)
 	{
-		int speed = ((ranrot_rand() % (speed_high - speed_low)) + speed_low) /8;
-		double duration = factor*(0.5 + (ranrot_rand() % 256) / 256.0);
-		v.x = (ranrot_rand() % speed) - speed / 2;
-		v.y = (ranrot_rand() % speed) - speed / 2;
-		v.z = (ranrot_rand() % speed) - speed / 2;
-		fragment = [[ParticleEntity alloc] init];	// alloc retains!
-		[fragment setPosition:xposition]; // here
-		[fragment setScanClass: CLASS_NO_DRAW];
-		[fragment setVelocity: v];
-		[fragment setDuration: duration];
-		[fragment setCollisionRadius: 0.0];
-		[fragment setEnergy: 0.0];
-		[fragment setParticleType: PARTICLE_EXPLOSION];
-		[fragment setColor:[NSColor yellowColor]];
+		fragment = [[ParticleEntity alloc] initBurst2FromPosition:xposition];
 		[universe addEntity:fragment];
-		[fragment release];							//release
+		[fragment release];	
+		how_many -= 1.0f;
 	}
+	
 	
 	// we need to throw out cargo at this point.
 	int cargo_chance = 10;
@@ -5180,6 +5141,13 @@ Vector randomPositionInBoundingBox(BoundingBox bb)
 - (BOOL) isMining
 {
 	return ((condition == CONDITION_ATTACK_MINING_TARGET)&&(forward_weapon_type == WEAPON_MINING_LASER));
+}
+
+- (void) setNumberOfMinedRocks:(int) value
+{
+	if (![roles isEqual:@"asteroid"])
+		return;
+	likely_cargo = value;
 }
 
 - (void) interpretAIMessage:(NSString *)ms

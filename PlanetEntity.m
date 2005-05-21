@@ -170,6 +170,28 @@ static GLuint vertex_index_array[3*(20+80+320+1280+5120+20480)];
 	//
 	float hue_drift = 0.25 * (randf() - randf());
 	
+	// set the lighting color for the sun
+	GLfloat r,g,b,a;
+	[sun_color getRed:&r green:&g blue:&b alpha:&a];
+	
+	GLfloat	sun_ambient[] = { 0.0, 0.0, 0.0, 1.0};	// ambient light about 5%
+	sun_diffuse[0] = 0.5 * (1.0 + r);	// paler
+	sun_diffuse[1] = 0.5 * (1.0 + g);	// paler
+	sun_diffuse[2] = 0.5 * (1.0 + b);	// paler
+	sun_diffuse[3] = 1.0;	// paler
+	sun_specular[0] = r;
+	sun_specular[1] = g;
+	sun_specular[2] = b;
+	sun_specular[3] = 1.0;
+
+	glLightfv(GL_LIGHT1, GL_AMBIENT, sun_ambient);
+	glLightfv(GL_LIGHT1, GL_DIFFUSE, sun_diffuse);
+	glLightfv(GL_LIGHT1, GL_SPECULAR, sun_specular);
+	
+//	NSLog(@"DEBUG sun color set to (%.4f, %.4f, %.4f) (%.4f, %.4f, %.4f)",
+//		sun_diffuse[0], sun_diffuse[1], sun_diffuse[2],
+//		sun_ambient[0], sun_ambient[1], sun_ambient[2]);
+	
 	//
 	// main disc less saturation more brightness
 	color = [NSColor colorWithCalibratedHue:hue saturation:sat * 0.5 brightness:(bri + 3.0)/4.0 alpha:alf];
@@ -731,7 +753,7 @@ static GLuint vertex_index_array[3*(20+80+320+1280+5120+20480)];
 - (void) drawEntity:(BOOL) immediate :(BOOL) translucent;
 {
 	int		subdivideLevel =	2;		// 4 is probably the maximum!
-	//double  drawRatio =			no_draw_distance / zero_distance;
+
 	double  drawFactor = [(MyOpenGLView *)[universe gameView] viewSize].width / 100.0;
 	double  drawRatio2 = drawFactor * collision_radius / sqrt_zero_distance; // equivalent to size on screen in pixels
 
@@ -760,43 +782,70 @@ static GLuint vertex_index_array[3*(20+80+320+1280+5120+20480)];
 	switch (planet_type)
 	{
 		case PLANET_TYPE_ATMOSPHERE :
-				glMultMatrixf(rotMatrix);	// rotate the clouds!
+			glMultMatrixf(rotMatrix);	// rotate the clouds!
 		case PLANET_TYPE_GREEN :
 			if (!translucent)
 			{
-				GLfloat amb_1[]		= {1.0, 1.0,	1.0,	1.0 };
+				GLfloat mat1[]		= { 1.0, 1.0, 1.0, 1.0 };	// opaque white
 				
-				glColor4f(1.0, 1.0, 1.0, 1.0);
+				glDisable(GL_TEXTURE_2D);	// stop any problems from this being left on!
 				glShadeModel(GL_SMOOTH);
-				
-				glMaterialfv(GL_FRONT, GL_AMBIENT_AND_DIFFUSE, amb_1);
-				
+
+				glColor4fv(mat1);
+				glMaterialfv(GL_FRONT, GL_AMBIENT_AND_DIFFUSE, mat1);
+
 				glFrontFace(GL_CCW);
 				if (displayListNames[subdivideLevel] != 0)
 				{
+					//
+					glDisableClientState(GL_INDEX_ARRAY);
+					glDisableClientState(GL_TEXTURE_COORD_ARRAY);
+					glDisableClientState(GL_EDGE_FLAG_ARRAY);
+					//
+					glEnableClientState(GL_VERTEX_ARRAY);
+					glVertexPointer( 3, GL_FLOAT, 0, vertexdata.vertex_array);
+					glEnableClientState(GL_COLOR_ARRAY);
+					glColorPointer( 4, GL_FLOAT, 0, vertexdata.color_array);
+					glEnableClientState(GL_NORMAL_ARRAY);
+					glNormalPointer(GL_FLOAT, 0, vertexdata.normal_array);
+					//
 					glCallList(displayListNames[subdivideLevel]);
+					//
 				}
 				else
 				{
+					glEnableClientState(GL_VERTEX_ARRAY);
+					glVertexPointer( 3, GL_FLOAT, 0, vertexdata.vertex_array);
+					glEnableClientState(GL_COLOR_ARRAY);
+					glColorPointer( 4, GL_FLOAT, 0, vertexdata.color_array);
+					glEnableClientState(GL_NORMAL_ARRAY);
+					glNormalPointer(GL_FLOAT, 0, vertexdata.normal_array);
+					glDisableClientState(GL_INDEX_ARRAY);
+					glDisableClientState(GL_TEXTURE_COORD_ARRAY);
+					glDisableClientState(GL_EDGE_FLAG_ARRAY);
+					//
 					displayListNames[subdivideLevel] = glGenLists(1);
-					if (displayListNames[subdivideLevel] != 0)
+					if (displayListNames[subdivideLevel] != 0)	// sanity check
 					{
 						//NSLog(@"Generating planet data for subdivide %d",subdivideLevel);
 						glNewList(displayListNames[subdivideLevel], GL_COMPILE);
-						
+						//
+						glColor4fv(mat1);
+						glMaterialfv(GL_FRONT, GL_AMBIENT_AND_DIFFUSE, mat1);
+						//
 						glColorMaterial(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE);
 						glEnable(GL_COLOR_MATERIAL);
 						//
 						[self drawModelWithVertexArraysAndSubdivision:subdivideLevel];
 						//
 						glDisable(GL_COLOR_MATERIAL);
-						
+						//
 						glEndList();
 					}
 				}
 				glFrontFace(GL_CW);
 				
-				glMaterialfv(GL_FRONT, GL_AMBIENT_AND_DIFFUSE, amb_1);
+				glMaterialfv(GL_FRONT, GL_AMBIENT_AND_DIFFUSE, mat1);
 
 				if (atmosphere)
 				{
@@ -882,6 +931,7 @@ static GLuint vertex_index_array[3*(20+80+320+1280+5120+20480)];
 			break;
 	}
 	glFrontFace(GL_CCW);			// face culling - front faces are AntiClockwise!
+	checkGLErrors([NSString stringWithFormat:@"PlanetEntity after drawing %@", self]);
 }
 
 void drawBall (double radius, int step, double z_distance)
@@ -903,6 +953,25 @@ void drawBall (double radius, int step, double z_distance)
 	}
 	glVertex3f( 0.0, r, 0.0);	//repeat the zero value to close
 	glEnd();
+}
+
+void drawBallVertices (double radius, int step, double z_distance)
+{
+	if ((radius <= 0)||(step < 1))
+		return;
+	if (radius >= z_distance) // inside the sphere
+		return;
+	int i;
+	double s, c;
+	double r = radius * z_distance / sqrt( z_distance * z_distance - radius * radius); 
+	glVertex3i( 0, 0, 0);
+	for ( i = 0; i < 360; i += step )
+	{
+		s = r * sin_value[i];
+		c = r * sin_value[(i + 90) % 360];
+		glVertex3f(s,c,0.0);
+	}
+	glVertex3f( 0.0, r, 0.0);	//repeat the zero value to close
 }
 
 void drawCorona (double inner_radius, double outer_radius, int step, double z_distance, GLfloat* col4v1, GLfloat* col4v2)
@@ -1076,30 +1145,30 @@ void drawActiveCorona (double inner_radius, double outer_radius, int step, doubl
 //	if (usingVAR)
 //		NSLog(@"DEBUG using accelerated memory technique to draw %@ (%@)", self, basefile);
 				
-	glEnableClientState(GL_VERTEX_ARRAY);
-	glVertexPointer( 3, GL_FLOAT, 0, vertexdata.vertex_array);
-	// 3 coords per vertex
-	// of type GL_FLOAT
-	// 0 stride (tightly packed)
-	// pointer to first vertex
-
-	glEnableClientState(GL_COLOR_ARRAY);
-	glColorPointer( 4, GL_FLOAT, 0, vertexdata.color_array);
-	// 4 values per vertex color
-	// of type GL_FLOAT
-	// 0 stride (tightly packed)
-	// pointer to quadruplet
-
-	glEnableClientState(GL_NORMAL_ARRAY);
-	glNormalPointer(GL_FLOAT, 0, vertexdata.normal_array);
-	// of type GL_FLOAT
-	// 0 stride (tightly packed)
-	// pointer to vertex
-
-	glDisableClientState(GL_INDEX_ARRAY);
-	glDisableClientState(GL_TEXTURE_COORD_ARRAY);
-	glDisableClientState(GL_EDGE_FLAG_ARRAY);
-
+//	glEnableClientState(GL_VERTEX_ARRAY);
+//	glVertexPointer( 3, GL_FLOAT, 0, vertexdata.vertex_array);
+//	// 3 coords per vertex
+//	// of type GL_FLOAT
+//	// 0 stride (tightly packed)
+//	// pointer to first vertex
+//
+//	glEnableClientState(GL_COLOR_ARRAY);
+//	glColorPointer( 4, GL_FLOAT, 0, vertexdata.color_array);
+//	// 4 values per vertex color
+//	// of type GL_FLOAT
+//	// 0 stride (tightly packed)
+//	// pointer to quadruplet
+//
+//	glEnableClientState(GL_NORMAL_ARRAY);
+//	glNormalPointer(GL_FLOAT, 0, vertexdata.normal_array);
+//	// of type GL_FLOAT
+//	// 0 stride (tightly packed)
+//	// pointer to vertex
+//
+//	glDisableClientState(GL_INDEX_ARRAY);
+//	glDisableClientState(GL_TEXTURE_COORD_ARRAY);
+//	glDisableClientState(GL_EDGE_FLAG_ARRAY);
+//
 	glDrawElements( GL_TRIANGLES, 3 * n_triangles[subdivide], GL_UNSIGNED_INT, &vertexdata.index_array[triangle_start[subdivide]]);
 }
 

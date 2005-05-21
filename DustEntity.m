@@ -105,17 +105,42 @@ Your fair use and other rights are in no way affected by the above.
 
 - (void) update:(double) delta_t
 {
+	PlayerEntity* player = (PlayerEntity*)[universe entityZero];
+	if (!player)						return;	//	DON'T UPDATE
 	// do nowt!
 	zero_distance = 0.0;
+			
+	Vector offset = (player)? player->position: position;
+	double  half_scale = DUST_SCALE * 0.50;
+	int vi;
+	for (vi = 0; vi < n_vertices; vi++)
+	{
+		while (vertices[vi].x - offset.x < -half_scale)
+			vertices[vi].x += DUST_SCALE;
+		while (vertices[vi].x - offset.x > half_scale)
+			vertices[vi].x -= DUST_SCALE;
+		
+		while (vertices[vi].y - offset.y < -half_scale)
+			vertices[vi].y += DUST_SCALE;
+		while (vertices[vi].y - offset.y > half_scale)
+			vertices[vi].y -= DUST_SCALE;
+		
+		while (vertices[vi].z - offset.z < -half_scale)
+			vertices[vi].z += DUST_SCALE;
+		while (vertices[vi].z - offset.z > half_scale)
+			vertices[vi].z -= DUST_SCALE;
+	}
+						
 }
 
 - (void) drawEntity:(BOOL) immediate :(BOOL) translucent
 {
-    // roll out vertex in turn
+	PlayerEntity* player = (PlayerEntity*)[universe entityZero];
+	if (!player)						return;	//	DON'T DRAW
     //
     int ct;
 	int vi;
-	Vector  offset;
+
     GLfloat *fogcolor = [universe sky_clear_color];
 	int  dust_size = floor([(MyOpenGLView *)[universe gameView] viewSize].width / 480.0);
 	if (dust_size < 1.0)
@@ -125,14 +150,14 @@ Your fair use and other rights are in no way affected by the above.
 		line_size = 1.0;
 	double  half_scale = DUST_SCALE * 0.50;
 	double  quarter_scale = DUST_SCALE * 0.25;
-	BOOL	warp_stars = [(PlayerEntity *)[universe entityZero] atHyperspeed];
-	Vector  warp_vector = [(PlayerEntity *)[universe entityZero] velocityVector];
 	
-	if ([universe breakPatternHide])   return; // DON'T DRAW
+	if ([universe breakPatternHide])	return;	// DON'T DRAW
 
+	BOOL	warp_stars = [player atHyperspeed];
+	Vector  warp_vector = [player velocityVector];
+		
 	if (translucent)
 	{
-		Entity* player = [universe entityZero];
 		glEnable(GL_FOG);
 		glFogi(GL_FOG_MODE, GL_LINEAR);
 		glFogfv(GL_FOG_COLOR, fogcolor);
@@ -140,61 +165,49 @@ Your fair use and other rights are in no way affected by the above.
 		glFogf(GL_FOG_START, quarter_scale);
 		glFogf(GL_FOG_END, half_scale);
 		//
-		// disapply lighting
+		// disapply lighting and texture
 		glDisable(GL_LIGHTING);
-		
-		glEnable(GL_SMOOTH);
-		
+		glDisable(GL_TEXTURE_2D);
+		//
 		glColor4f([dust_color redComponent], [dust_color greenComponent], [dust_color blueComponent], [dust_color alphaComponent]);
-		
 		ct = 0;
 		
-		glPushMatrix();
-		
-		offset = (player)? player->position: position;
+		GLenum	dustmode = GL_POINTS;
 		
 		if (!warp_stars)
 		{
 			glEnable(GL_POINT_SMOOTH);
 			glPointSize(dust_size);
-			glBegin(GL_POINTS);
 		}
 		else
 		{
-			//glEnable(GL_LINE_SMOOTH);
+			glEnable(GL_LINE_SMOOTH);
 			glLineWidth(line_size);
-			glBegin(GL_LINES);
+			dustmode = GL_LINES;
 		}
+		
+		glBegin(dustmode);
+		
 		for (vi = 0; vi < n_vertices; vi++)
 		{
-			
-			while (vertices[vi].x - offset.x < -half_scale)
-				vertices[vi].x += DUST_SCALE;
-			while (vertices[vi].x - offset.x > half_scale)
-				vertices[vi].x -= DUST_SCALE;
-			
-			while (vertices[vi].y - offset.y < -half_scale)
-				vertices[vi].y += DUST_SCALE;
-			while (vertices[vi].y - offset.y > half_scale)
-				vertices[vi].y -= DUST_SCALE;
-			
-			while (vertices[vi].z - offset.z < -half_scale)
-				vertices[vi].z += DUST_SCALE;
-			while (vertices[vi].z - offset.z > half_scale)
-				vertices[vi].z -= DUST_SCALE;
-						
-			glVertex3f(vertices[vi].x, vertices[vi].y, vertices[vi].z);
+			glVertex3f( vertices[vi].x, vertices[vi].y, vertices[vi].z);
 			if (warp_stars)
-				glVertex3f(vertices[vi].x-warp_vector.x/HYPERSPEED_FACTOR, vertices[vi].y-warp_vector.y/HYPERSPEED_FACTOR, vertices[vi].z-warp_vector.z/HYPERSPEED_FACTOR);
+			{
+				Vector vh = make_vector(vertices[vi].x-warp_vector.x/HYPERSPEED_FACTOR, vertices[vi].y-warp_vector.y/HYPERSPEED_FACTOR, vertices[vi].z-warp_vector.z/HYPERSPEED_FACTOR);
+				glVertex3f( vh.x, vh.y, vh.z);
+			}
+//	//
+//	checkGLErrors(@"DustEntity after p1");	// NOTA BENE: YOU CANNOT CHECK FOR GL_ERRORs BETWEEN GL_BEGIN AND GL_END
+//	//
 		}
 		glEnd();
-		
-		glPopMatrix();
-				
 		// reapply lighting etc.
 		glEnable(GL_LIGHTING);
 		glDisable(GL_FOG);
 	}
+	//
+	checkGLErrors([NSString stringWithFormat:@"DustEntity after drawing %@", self]);
+	//
 }
 
 @end
