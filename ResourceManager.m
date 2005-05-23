@@ -79,6 +79,9 @@ NSMutableDictionary*	image_cache;
 NSMutableDictionary*	sound_cache;
 NSMutableDictionary*	string_cache;
 NSMutableDictionary*	movie_cache;
+#ifdef GNUSTEP
+NSMutableDictionary*	surface_cache;
+#endif
 
 - (void) dealloc
 {
@@ -506,6 +509,59 @@ NSMutableDictionary*	movie_cache;
 
 	return [result autorelease];
 }
+
++ (SDLImage *) surfaceNamed:(NSString *)filename inFolder:(NSString *)foldername
+{
+	SDLImage *result = 0;
+	SDL_Surface *surface;
+	NSMutableArray *fpaths = [ResourceManager paths];
+	NSString *finalFilename;
+	int i, r;
+	r = 0;
+	if (!filename)
+		return 0;
+
+	NSString* image_key = [NSString stringWithFormat:@"%@:%@", foldername, filename];
+	if (!surface_cache)
+		surface_cache = [[NSMutableDictionary alloc] initWithCapacity:32];
+	if ([surface_cache objectForKey:image_key])
+		return (SDLImage *)[surface_cache objectForKey:image_key];
+
+	for (i = 0; i < [fpaths count]; i++)
+	{
+		NSString *filepath = [(NSString *)[fpaths objectAtIndex:i] stringByAppendingPathComponent:filename];
+		if ([[NSFileManager defaultManager] fileExistsAtPath:filepath])
+		{
+			//if (surface != 0)
+			//	SDL_FreeSurface(surface);
+			//surface = IMG_Load([filepath cString]);
+			finalFilename = [NSString stringWithString: filepath];
+			r++;
+		}
+		if (foldername)
+		{
+			filepath = [[(NSString *)[fpaths objectAtIndex:i] stringByAppendingPathComponent:foldername] stringByAppendingPathComponent:filename];
+			if ([[NSFileManager defaultManager] fileExistsAtPath:filepath])
+			{
+				//if (surface != 0)
+				//	SDL_FreeSurface(surface);
+				//surface = IMG_Load([filepath cString]);
+				finalFilename = [NSString stringWithString: filepath];
+				r++;
+			}
+		}
+	}
+
+	if (finalFilename != nil)
+	{
+		surface = IMG_Load([finalFilename cString]);
+		result = [[SDLImage alloc] initWithSurface: surface];
+		[surface_cache setObject:result forKey:image_key];
+	}
+
+	return result;
+}
+
 #else
 + (NSMovie *) movieFromFilesNamed:(NSString *)filename inFolder:(NSString *)foldername
 {

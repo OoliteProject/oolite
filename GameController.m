@@ -322,6 +322,11 @@ static int _compareModes(id arg1, id arg2, void *context)
 - (void) applicationDidFinishLaunching: (NSNotification*) notification
 {
 #ifdef GNUSTEP
+	// A bunch of things get allocated while this method runs and an autorelease pool
+	// is required. The one from main had to be released already because we never go
+	// back there under GNUstep.
+	NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
+
 	gameView = [[MyOpenGLView alloc] initWithFrame: NSMakeRect(0, 0, DISPLAY_MIN_WIDTH, DISPLAY_MIN_HEIGHT)];
 	[gameView setGameController: self];
 #endif
@@ -405,6 +410,8 @@ static int _compareModes(id arg1, id arg2, void *context)
 	[self endSplashScreen];
 
 #ifdef GNUSTEP
+	// Release anything allocated above that is not required.
+	[pool release];
 	[gameView pollControls];
 #endif
 }

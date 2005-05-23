@@ -41,7 +41,10 @@ Your fair use and other rights are in no way affected by the above.
 #ifdef GNUSTEP
 #import <Foundation/Foundation.h>
 #import <AppKit/AppKit.h>
+#include <SDL.h>
+#include <SDL_image.h>
 #import "OOMusic.h"
+#import "SDLImage.h"
 #else
 #import <Cocoa/Cocoa.h>
 #endif
@@ -72,6 +75,7 @@ BOOL always_include_addons;
 // is played by QuickTime which calls everything 'movie', even though in
 // this case it isn't.
 + (OOMusic *) movieFromFilesNamed:(NSString *)filename inFolder:(NSString *)foldername;
++ (SDLImage *) surfaceNamed:(NSString *)filename inFolder:(NSString *)foldername;
 #else
 + (NSMovie *) movieFromFilesNamed:(NSString *)filename inFolder:(NSString *)foldername;
 #endif

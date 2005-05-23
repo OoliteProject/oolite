@@ -34,8 +34,9 @@ Any of these conditions can be waived if you get permission from the copyright h
 Your fair use and other rights are in no way affected by the above.
 
 */
-#import "MyOpenGLView.h"
+#import <Foundation/NSAutoreleasePool.h>
 
+#import "MyOpenGLView.h"
 #import "GameController.h"
 #import "Universe.h"
 
@@ -640,7 +641,10 @@ Your fair use and other rights are in no way affected by the above.
 			}
 		}
 
+		NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
 		[gameController doStuff: nil];
+		// Clean up any autoreleased objects that were created this time through the loop.
+		[pool release];
 
 		// Maximise the framerate at around 100fps
 		sleepTicks = 10 - (SDL_GetTicks() - startTicks);

@@ -2159,7 +2159,7 @@ Your fair use and other rights are in no way affected by the above.
 
 - (void) setReportAImessages:(BOOL) yn
 {
-	reportAImessages = yn;
+	reportAImessages = NO; //yn;
 }
 
 - (int) checkForAegis

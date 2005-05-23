@@ -12,16 +12,23 @@ int debug = NO;
 int main(int argc, const char *argv[])
 {
 #ifdef GNUSTEP
-	// This is still necessary for NSFont calls
+	// This is still necessary for NSFont calls.
 	[NSApplication sharedApplication];
 
-	// Need this because we're not using the default run loop's autorelease pool
-	[[NSAutoreleasePool alloc] init];
+	// Need this because we're not using the default run loop's autorelease
+	// pool.
+	NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
 
-	// dajt: allocate and set the NSApplication delegate manually because not using NIB to do this
+	// dajt: allocate and set the NSApplication delegate manually because not
+	// using NIB to do this
 	controller = [[GameController alloc] init];
+	
+	// Release anything allocated during the controller initialisation that
+	// is no longer required.
+	[pool release];
 
-	// Call applicationDidFinishLaunching because NSApp is not running in GNUstep port
+	// Call applicationDidFinishLaunching because NSApp is not running in
+	// GNUstep port.
 	[controller applicationDidFinishLaunching: nil];
 #else
 	return NSApplicationMain(argc, argv);
@@ -32,7 +39,8 @@ int main(int argc, const char *argv[])
 }
 
 /*
- * This is called from a couple of places, and having it here saves one more AppKit dependency.
+ * This is called from a couple of places, and having it here saves one more
+ * AppKit dependency.
  */
 void NSBeep()
 {
