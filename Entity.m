@@ -116,6 +116,9 @@ static  Universe	*data_store_universe;
 	isPlayer = NO;
 	isSky = NO;
 	//
+	isSunlit = YES;
+	shadingEntityID = NO_TARGET;
+	//
     return self;
 }
 
@@ -620,6 +623,11 @@ static  Universe	*data_store_universe;
 	}
 	else
 		zero_distance = -1;
+		
+	has_moved = ((position.x != last_position.x)||(position.y != last_position.y)||(position.z != last_position.z));
+	last_position = position;
+	has_rotated = ((q_rotation.w != last_q_rotation.w)||(q_rotation.x != last_q_rotation.x)||(q_rotation.y != last_q_rotation.y)||(q_rotation.z != last_q_rotation.z));
+	last_q_rotation = q_rotation;
 }
 
 - (void) saveToLastFrame
@@ -1751,6 +1759,7 @@ static  Universe	*data_store_universe;
       // TODO: find out what non-AAPL OpenGL stuff is equivalent
 #else      
 		// BIND THIS VAR OBJECT SO WE CAN DO STUFF TO IT
+
 		glBindVertexArrayAPPLE(gVertexArrayRangeObjects[i]);				
 
 		// SEE IF THIS IS THE FIRST TIME IN

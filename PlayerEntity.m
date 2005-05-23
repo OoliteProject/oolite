@@ -1271,6 +1271,13 @@ static BOOL galactic_witchjump;
 
 - (void) update:(double) delta_t
 {
+	// update flags
+	//
+	has_moved = ((position.x != last_position.x)||(position.y != last_position.y)||(position.z != last_position.z));
+	last_position = position;
+	has_rotated = ((q_rotation.w != last_q_rotation.w)||(q_rotation.x != last_q_rotation.x)||(q_rotation.y != last_q_rotation.y)||(q_rotation.z != last_q_rotation.z));
+	last_q_rotation = q_rotation;
+	
 	// update timers
 	//
 	shot_time += delta_t;
@@ -4385,7 +4392,6 @@ static BOOL toggling_music;
 				[gui setBackgroundImage:nil];
 				[self setGuiToStatusScreen];
 				[universe setDisplayText:YES];
-
 				if (themeMusic)
 				{
 #ifndef GNUSTEP

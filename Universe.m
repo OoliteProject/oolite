@@ -1040,9 +1040,17 @@ Your fair use and other rights are in no way affected by the above.
 	if (the_sun)
 	{
 		GLfloat	sun_ambient[] = { 0.0, 0.0, 0.0, 1.0};	// ambient light about 5%
+		sun_diffuse[0] = the_sun->sun_diffuse[0];
+		sun_diffuse[1] = the_sun->sun_diffuse[1];
+		sun_diffuse[2] = the_sun->sun_diffuse[2];
+		sun_diffuse[3] = the_sun->sun_diffuse[3];
+		sun_specular[0] = the_sun->sun_specular[0];
+		sun_specular[1] = the_sun->sun_specular[1];
+		sun_specular[2] = the_sun->sun_specular[2];
+		sun_specular[3] = the_sun->sun_specular[3];
 		glLightfv(GL_LIGHT1, GL_AMBIENT, sun_ambient);
-		glLightfv(GL_LIGHT1, GL_DIFFUSE, the_sun->sun_diffuse);
-		glLightfv(GL_LIGHT1, GL_SPECULAR, the_sun->sun_specular);
+		glLightfv(GL_LIGHT1, GL_DIFFUSE, sun_diffuse);
+		glLightfv(GL_LIGHT1, GL_SPECULAR, sun_specular);
 		sun_pos[0] = the_sun->position.x;
 		sun_pos[1] = the_sun->position.y;
 		sun_pos[2] = the_sun->position.z;
@@ -1050,10 +1058,10 @@ Your fair use and other rights are in no way affected by the above.
 	else
 	{
 		// witchspace
-		GLfloat	stars_ambient[] = { 0.05, 0.20, 0.05, 1.0};	// ambient light about 20%
 		GLfloat	sun_ambient[] = { 0.0, 0.0, 0.0, 1.0};	// ambient light nil
-		GLfloat	sun_diffuse[] = { 0.85, 1.0, 0.85, 1.0};	// paler
-		GLfloat	sun_specular[] = { 0.95, 1.0, 0.95, 1.0};
+		stars_ambient[0] = 0.05;	stars_ambient[1] = 0.20;	stars_ambient[2] = 0.05;	stars_ambient[3] = 1.0;
+		sun_diffuse[0] = 0.85;	sun_diffuse[1] = 1.0;	sun_diffuse[2] = 0.85;	sun_diffuse[3] = 1.0;
+		sun_specular[0] = 0.95;	sun_specular[1] = 1.0;	sun_specular[2] = 0.95;	sun_specular[3] = 1.0;
 		glLightfv(GL_LIGHT1, GL_AMBIENT, sun_ambient);
 		glLightfv(GL_LIGHT1, GL_DIFFUSE, sun_diffuse);
 		glLightfv(GL_LIGHT1, GL_SPECULAR, sun_specular);
@@ -1067,10 +1075,11 @@ Your fair use and other rights are in no way affected by the above.
 		// ambient lighting!
 		float r,g,b,a;
 		[[the_sky sky_color] getRed:&r green:&g blue:&b alpha:&a];
-		r = 0.0625 * (1.0 + r) * (1.0 + r);
-		g = 0.0625 * (1.0 + g) * (1.0 + g);
-		b = 0.0625 * (1.0 + b) * (1.0 + b);
-		GLfloat	stars_ambient[] = { r, g, b, 1.0};	// ambient light about 20%
+		stars_ambient[0] = 0.0625 * (1.0 + r) * (1.0 + r);
+		stars_ambient[1] = 0.0625 * (1.0 + g) * (1.0 + g);
+		stars_ambient[2] = 0.0625 * (1.0 + b) * (1.0 + b);
+		stars_ambient[3] = 1.0;
+//		GLfloat	stars_ambient[] = { r, g, b, 1.0};	// ambient light about 20%
 		glLightModelfv(GL_LIGHT_MODEL_AMBIENT, stars_ambient);
 	}
 
@@ -2177,6 +2186,12 @@ Your fair use and other rights are in no way affected by the above.
 		entlist = (NSMutableArray *)[entityRecyclePool objectForKey:classname];
 		
 		[entity setScanClass: CLASS_NO_DRAW];   //  housekeeping, keeps glitches from appearing on scanner
+		
+		// reset a few flags
+		entity->isSunlit = YES;
+		entity->shadingEntityID = NO_TARGET;
+		entity->position = make_vector(0,0,0);
+		
 		if (entity->isShip)
 		{
 			ShipEntity* ship = (ShipEntity*)entity;
@@ -2656,6 +2671,24 @@ Your fair use and other rights are in no way affected by the above.
 			glEnable(GL_CULL_FACE);			// face culling
 			glDepthMask(GL_TRUE);	// restore write to depth buffer
 
+			// if we are in a demo mode set LIGHT0 to a bright white light at the origin
+			if (playerDemo)
+			{
+				Vector orig = viewthing->position;
+				GLfloat	black[] = { 0.0, 0.0, 0.0, 1.0};	// white light
+				GLfloat	white[] = { 1.0, 1.0, 1.0, 1.0};	// white light
+				GLfloat	origin[] = { orig.x, orig.y + 1500.0, orig.z - 1000.0};	// origin -1km z +1.5km y
+				glLightfv(GL_LIGHT0, GL_AMBIENT, black);
+				glLightfv(GL_LIGHT0, GL_DIFFUSE, white);
+				glLightfv(GL_LIGHT0, GL_SPECULAR, white);
+				glLightfv(GL_LIGHT0, GL_POSITION, origin);
+				glEnable(GL_LIGHT0);		// light for demos
+			}
+			else
+			{
+				glDisable(GL_LIGHT0);
+			}
+			
 			if (!displayGUI)
 				glClearColor( sky_clear_color[0], sky_clear_color[1], sky_clear_color[2], sky_clear_color[3]);
 			else
@@ -2706,6 +2739,7 @@ Your fair use and other rights are in no way affected by the above.
 				glEnable(GL_LIGHTING);
 				glLightfv(GL_LIGHT1, GL_POSITION, sun_center_position);
 				glEnable(GL_LIGHT1);		// lighting up the sun
+				BOOL sunlit = YES;
 				
 				int		furthest = draw_count - 1;
 				int		nearest = 0;
@@ -2750,8 +2784,24 @@ Your fair use and other rights are in no way affected by the above.
 							glFogf(GL_FOG_START, half_scale);
 							glFogf(GL_FOG_END, fog_scale);
 						}
-
+						
+						// lighting
+						if (drawthing->isSunlit != sunlit)
+						{
+							if (drawthing->isSunlit)
+							{
+								glEnable(GL_LIGHT1);
+								sunlit = YES;	// track the state of GL_LIGHT1
+							}
+							else
+							{
+								glDisable(GL_LIGHT1);
+								sunlit = NO;	// track the state of GL_LIGHT1
+							}
+						}
+						
 						// draw the thing
+						//
 						[drawthing drawEntity:NO:NO];
 						
 						// atmospheric fog
@@ -2797,7 +2847,22 @@ Your fair use and other rights are in no way affected by the above.
 							glFogf(GL_FOG_START, half_scale);
 							glFogf(GL_FOG_END, fog_scale);
 						}
-
+						
+						// lighting
+						if (drawthing->isSunlit != sunlit)
+						{
+							if (drawthing->isSunlit)
+							{
+								glEnable(GL_LIGHT1);
+								sunlit = YES;	// track the state of GL_LIGHT1
+							}
+							else
+							{
+								glDisable(GL_LIGHT1);
+								sunlit = NO;	// track the state of GL_LIGHT1
+							}
+						}
+						
 						// draw the thing
 						[drawthing drawEntity:NO:YES];
 						
@@ -3066,22 +3131,39 @@ Your fair use and other rights are in no way affected by the above.
 
 		// maintain sorted list
 		int index = entity->z_index;
+		int n = 1;
 		if (index >= 0)
 		{
 			if (sortedEntities[index] != entity)
 			{
-				NSLog(@"ENTITY IS NOT IN THE RIGHT PLACE IN THE SORTED LIST -- EXITING");
-				exit(666);
+				NSLog(@"DEBUG Universe removeEntity: ENTITY IS NOT IN THE RIGHT PLACE IN THE SORTED LIST -- FIXING...");
+				int i;
+				index = -1;
+				for (i = 0; (i < n_entities)&&(index == -1); i++)
+					if (sortedEntities[i] == entity)
+						index = i;
+				if (index == -1)
+					 NSLog(@"DEBUG Universe removeEntity: ENTITY IS NOT IN THE SORTED LIST -- CONTINUING...");
 			}
- 			while (index < n_entities)
+ 			if (index != -1)
 			{
-				sortedEntities[index] = sortedEntities[index + 1];	// copy n+1 -> n (preserves sort order)
-				if (sortedEntities[index])
-					sortedEntities[index]->z_index = index;				// give it its correct position
-				index++;
+				while (index < n_entities)
+				{
+					while ((index + n < n_entities)&&(sortedEntities[index + n] == entity))
+						n++;	// ie there's a duplicate entry for this entity
+					sortedEntities[index] = sortedEntities[index + n];	// copy entity[index + n] -> entity[index] (preserves sort order)
+					if (sortedEntities[index])
+						sortedEntities[index]->z_index = index;				// give it its correct position
+					index++;
+				}
+				if (n > 1)
+					 NSLog(@"DEBUG Universe removeEntity: REMOVED %d EXTRA COPIES OF %@ FROM THE SORTED LIST", n - 1, entity);
+				while (n--)
+				{
+					n_entities--;
+					sortedEntities[n_entities] = nil;
+				}
 			}
-			n_entities--;
-			sortedEntities[n_entities] = nil;
 			entity->z_index = -1;	// it's GONE!
 		}
 //		for (index = 0; index < n_entities; index++)
@@ -4063,6 +4145,77 @@ Your fair use and other rights are in no way affected by the above.
 				}
 			}
 			//
+			// lighting considerations..
+			PlanetEntity* the_sun = cachedSun;
+			if (the_sun)
+			{
+				for (i = 0; i < ent_count; i++)
+				{
+					Entity* e1 = my_entities[i];
+					BOOL occluder_moved = NO;
+					if (e1->isSunlit == NO)
+					{
+						Entity* occluder = [self entityForUniversalID:e1->shadingEntityID];
+						if (occluder)
+							occluder_moved = occluder->has_moved;
+					}
+					if (((e1->isShip)||(e1->isPlanet))&&((e1->has_moved)||occluder_moved))
+					{
+						int j;
+						e1->isSunlit = YES;				// sunlit by default
+						e1->shadingEntityID = NO_TARGET;
+						for (j = 0; (j < ent_count)&&(e1->isSunlit) ; j++)
+						{
+							Entity* e2 = my_entities[j];
+							//
+							// simple tests
+							if (j == i)
+								continue;	// you can't shade self
+							//
+							if (e2 == the_sun)
+								continue;	// sun can't shade itself
+							//
+							if ((e2->isShip == NO)&&(e2->isPlanet == NO))
+								continue;	// only ships and planets shade
+							//
+							if (e2->collision_radius < e1->collision_radius)
+								continue;	// smaller can't shade bigger
+							//
+							if (e2->isSunlit == NO)
+								continue;	// things already /in/ shade can't shade things more.
+							//
+							// check projected sizes of discs
+							GLfloat d2_sun = distance2( e1->position, the_sun->position);
+							GLfloat d2_e2 = distance2( e1->position, e2->position);
+							GLfloat cr_sun = the_sun->collision_radius;
+							GLfloat cr_e2 = e2->collision_radius;
+							if (e2->isShip)
+								cr_e2 *= 0.90;	// 10% smaller shadow for ships
+							GLfloat cr2_sun_scaled = cr_sun * cr_sun * d2_e2 / d2_sun;
+							if (cr_e2 * cr_e2 < cr2_sun_scaled)
+								continue;	// if solar disc projected to the distance of e2 > collision radius it can't be shaded by e2
+							//
+							// check angles subtended by sun and occluder
+							double theta_sun = asin( cr_sun / sqrt(d2_sun));	// 1/2 angle subtended by sun
+							double theta_e2 = asin( cr_e2 / sqrt(d2_e2));		// 1/2 angle subtended by e2
+							Vector p_sun = the_sun->position;
+							Vector p_e2 = e2->position;
+							Vector p_e1 = e1->position;
+							Vector v_sun = make_vector( p_sun.x - p_e1.x, p_sun.y - p_e1.y, p_sun.z - p_e1.z);
+							v_sun = unit_vector( &v_sun);
+							Vector v_e2 = make_vector( p_e2.x - p_e1.x, p_e2.y - p_e1.y, p_e2.z - p_e1.z);
+							v_e2 = unit_vector( &v_e2);
+							double phi = acos( dot_product( v_sun, v_e2));		// angle between sun and e2 from e1's viewpoint
+							if (theta_sun + phi > theta_e2)
+								continue;	// sun is not occluded
+							// all tests done e1 is in shade!
+//							NSLog(@"DEBUG %@ occluded by %@", e1, e2);
+							e1->isSunlit = NO;
+							e1->shadingEntityID = [e2 universal_id];
+						}
+					}
+				}
+			}
 			//
 			//
 			[self findCollisions];

@@ -49,10 +49,10 @@ Your fair use and other rights are in no way affected by the above.
 @interface DustEntity : Entity
 {
 	NSColor *dust_color;
+	GLfloat color_fv[4];
 }
 
 - (void) setDustColor:(NSColor *) color;
 - (NSColor *) dust_color;
 
 @end
-

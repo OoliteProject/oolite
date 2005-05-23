@@ -186,11 +186,21 @@ extern int debug;
 	//
 	@public	int			z_index;
 	//
+	// experimental lighting:
+	@public BOOL		isSunlit;
+	@public int			shadingEntityID;
+	//
 	//////////////////////////////////////////////////////
 	//
     Vector	relative_position;
 	//
 	double  distance_travelled; // set to zero initially
+	//
+	// to keep track of changes:
+	Vector	last_position;
+	Quaternion last_q_rotation;
+	BOOL	has_moved;
+	BOOL	has_rotated;
 	//
     Matrix	rotation;
     gl_matrix	rotMatrix;

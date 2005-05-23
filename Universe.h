@@ -196,6 +196,14 @@ extern int debug;
 		//
 		////
 		
+		// colors
+		//
+		@public GLfloat sun_diffuse[4];
+		@public GLfloat sun_specular[4];
+		@public GLfloat stars_ambient[4];
+		//
+		////
+		
 		NSLock				*recycleLock;
 		NSMutableDictionary *entityRecyclePool;
 

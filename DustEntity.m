@@ -91,6 +91,7 @@ Your fair use and other rights are in no way affected by the above.
 {
 	if (dust_color) [dust_color release];
 	dust_color = [color retain];
+	[dust_color getRed:&color_fv[0] green:&color_fv[1] blue:&color_fv[2] alpha:&color_fv[3]];
 }
 
 - (NSColor *) dust_color
@@ -136,8 +137,9 @@ Your fair use and other rights are in no way affected by the above.
 - (void) drawEntity:(BOOL) immediate :(BOOL) translucent
 {
 	PlayerEntity* player = (PlayerEntity*)[universe entityZero];
-	if (!player)						return;	//	DON'T DRAW
-    //
+	if (!player)
+		return;	//	DON'T DRAW
+	//
     int ct;
 	int vi;
 
@@ -169,7 +171,11 @@ Your fair use and other rights are in no way affected by the above.
 		glDisable(GL_LIGHTING);
 		glDisable(GL_TEXTURE_2D);
 		//
-		glColor4f([dust_color redComponent], [dust_color greenComponent], [dust_color blueComponent], [dust_color alphaComponent]);
+		if (player->isSunlit)
+			glColor4fv(color_fv);
+		else
+			glColor4fv(universe->stars_ambient);
+		//
 		ct = 0;
 		
 		GLenum	dustmode = GL_POINTS;

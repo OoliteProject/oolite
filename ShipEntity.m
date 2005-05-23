@@ -1913,13 +1913,17 @@ Your fair use and other rights are in no way affected by the above.
 {	
 	Quaternion q1;
 	
+	if ((roll1 == 0.0)&&(climb1 == 0.0)&&(!has_rotated))
+		return;
+	
 	quaternion_set_identity(&q1);
 	
-	quaternion_rotate_about_z( &q1, -roll1);
-	quaternion_rotate_about_x( &q1, -climb1);
+	if (roll1 != 0.0)
+		quaternion_rotate_about_z( &q1, -roll1);
+	if (climb1 != 0.0)
+		quaternion_rotate_about_x( &q1, -climb1);
 	
 	q_rotation = quaternion_multiply( q1, q_rotation);
-	
 	quaternion_normalise(&q_rotation);	// probably not strictly necessary but good to do to keep q_rotation sane
     quaternion_into_gl_matrix(q_rotation, rotMatrix);
 	
@@ -2159,7 +2163,7 @@ Your fair use and other rights are in no way affected by the above.
 
 - (void) setReportAImessages:(BOOL) yn
 {
-	reportAImessages = NO; //yn;
+	reportAImessages = yn;
 }
 
 - (int) checkForAegis
@@ -3591,6 +3595,8 @@ Vector randomPositionInBoundingBox(BoundingBox bb)
 		return NO;
 	if (target->status == STATUS_DEAD)
 		return NO;
+	if (isSunlit && (target->isSunlit == NO) && (randf() < 0.75))
+		return NO;	// 3/4 of the time you can't see from a lit place into a darker place
 	radius = target->collision_radius;
 	rel_pos = target->position;
 	rel_pos.x -= position.x;
