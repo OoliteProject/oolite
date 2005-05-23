@@ -1756,8 +1756,13 @@ static BOOL galactic_witchjump;
 
 - (void) applyRoll:(GLfloat) roll1 andClimb:(GLfloat) climb1
 {	
-	quaternion_rotate_about_z( &q_rotation, -roll1);
-	quaternion_rotate_about_x( &q_rotation, -climb1);
+	if ((roll1 == 0.0)&&(climb1 == 0.0)&&(!has_rotated))
+		return;
+	
+	if (roll1)
+		quaternion_rotate_about_z( &q_rotation, -roll1);
+	if (climb1)
+		quaternion_rotate_about_x( &q_rotation, -climb1);
 	
     quaternion_normalise(&q_rotation);	// probably not strictly necessary but good to do to keep q_rotation sane
     quaternion_into_gl_matrix(q_rotation, rotMatrix);

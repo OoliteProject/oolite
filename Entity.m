@@ -347,8 +347,13 @@ static  Universe	*data_store_universe;
 
 - (void) applyRoll:(GLfloat) roll andClimb:(GLfloat) climb
 {	
-	quaternion_rotate_about_z( &q_rotation, -roll);
-	quaternion_rotate_about_x( &q_rotation, -climb);
+	if ((roll == 0.0)&&(climb == 0.0)&&(!has_rotated))
+		return;
+	
+	if (roll)
+		quaternion_rotate_about_z( &q_rotation, -roll);
+	if (climb)
+		quaternion_rotate_about_x( &q_rotation, -climb);
 	
     quaternion_normalise(&q_rotation);
     quaternion_into_gl_matrix(q_rotation, rotMatrix);
@@ -356,9 +361,15 @@ static  Universe	*data_store_universe;
 
 - (void) applyRoll:(GLfloat) roll climb:(GLfloat) climb andYaw:(GLfloat) yaw
 {
-	quaternion_rotate_about_z( &q_rotation, -roll);
-	quaternion_rotate_about_x( &q_rotation, -climb);
-	quaternion_rotate_about_y( &q_rotation, -yaw);
+	if ((roll == 0.0)&&(climb == 0.0)&&(yaw == 0.0)&&(!has_rotated))
+		return;
+	
+	if (roll)
+		quaternion_rotate_about_z( &q_rotation, -roll);
+	if (climb)
+		quaternion_rotate_about_x( &q_rotation, -climb);
+	if (yaw)
+		quaternion_rotate_about_y( &q_rotation, -yaw);
 	
     quaternion_normalise(&q_rotation);
     quaternion_into_gl_matrix(q_rotation, rotMatrix);
