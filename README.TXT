@@ -28,6 +28,8 @@ PATH=$PATH:.
 before running make when you build GNUstep Startup, because it depends
 on running a shell script in the current directory.
 
+- SDL and SDL_gfx development libraries, header files and shared libs.
+
 I'm not sure what the minimum hardware is, however decent OpenGL
 support is a must. I've only been able to personally test it on
 two machines - a 2GHz P4 with a GeForce 4ti and an old Compaq
@@ -103,23 +105,17 @@ methods. It looked like a relatively simple category, so rather
 than creating a dependency on the whole of ObjectiveLib, I decided
 to just add these two files.
 
-Addition of OOAlsaSound - The GNUstep sound daemon crashes with oolite,
-so it was replaced with code that plays the sound on a separate thread
-within the game. I have found ALSA to be poorly documented - there
-are probably still problems with this code.
-If you can do a better job *please do* and be sure to send me diffs.
-I recommend you always use the latest svn head revision if you are going
-to tinker with this. I won't feel in the least offended if you tell
-me that my ALSA code is crap.
+Sound uses SDL instead of the AppKit's sound (the sound daemon crashes).
+Graphics use SDL instead of NSOpenGLView.
 
 Major tasks left
 ================
 - OpenGL....APPLE functions (optimizations) need a suitable replacement.
-- Full screen modes: not implemented at all at present, Carbon
-  API calls need replacing with the equivalent GNUstep or X Window System
-  xlib function calls.
-- Music. I suspect we can use Xine for music; xine provides a library
-  that I think is cross-platform.
+- Improve full-screen selection
+- Get rid of AppKit dependencies (in progress; moving to SDL). This
+  will make the game portable to more platforms - in particular,
+  GNUstep AppKit's OpenGL source is non-existent on Redmondware.
+  Much of this work has been done.
 - Speech. This is a more 'who cares?' requirement. I don't know of
   a *nix open source speech synth.
 - Keyboard shortcuts (equivalent of Cmd-Q et al.)
