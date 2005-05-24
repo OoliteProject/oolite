@@ -74,7 +74,7 @@ clouding your view.
 Is it borked for you?
 =====================
 If you find it's borked, please post a message on the oolite-linux
-forum (see http://aegidean.org/bb). Please provide a backtrace if you
+forum (see http://aegidian.org/bb). Please provide a backtrace if you
 have one, screenshots, and describe weirdness with sound. Also provide
 log messages from the console. Better still, if you have a fix, send
 us the patch!
