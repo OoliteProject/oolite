@@ -51,14 +51,281 @@ and value are enclosed in double quotes.</p>
 
 <p>When an AI state machine is started it is always put into the state GLOBAL, and the ENTER message will be sent.</p>
 
-<p>The following AI state machine messages are defined by the game:</p>
+<p>The following table describes each message the game engine may send to an
+AI state machine.</p>
 
-<table border="1">
-<tr><td>ENTER</td><td>Always sent to the new state when a state change happens.</td></tr>
-<tr><td>UPDATE</td><td>Sent to the current state each time the AI gets a chance to "think".</td></tr>
-<tr><td>EXIT</td><td>Always sent to the current state immediately before a state change.</td></tr>
-<tr><td>RESTARTED</td><td>Sent to the current state when an AI state machine becomes the current
-state machine in a stack of AI state machines.</td></tr>
+<p>These messages may be sent while processing commands executed by the AI
+state machine, or while the AI's controlled entity is performing it's
+current task.</p>
+
+<table border="1" width="100%">
+<tr><td><code>ACCEPT_DISTRESS_CALL</code></td>
+<td>
+
+</td></tr>
+<tr><td><code>AEGIS_CLOSE_TO_PLANET</code></td>
+<td>
+
+</td></tr>
+<tr><td><code>AEGIS_IN_DOCKING_RANGE</code></td>
+<td>
+
+</td></tr>
+<tr><td><code>AEGIS_LEAVING_DOCKING_RANGE</code></td>
+<td>
+
+</td></tr>
+<tr><td><code>AEGIS_NONE</code></td>
+<td>
+
+</td></tr>
+<tr><td><code>APPROACH_COORDINATES</code></td>
+<td>
+
+</td></tr>
+<tr><td><code>APPROACH_START</code></td>
+<td>
+
+</td></tr>
+<tr><td><code>APPROACH_STATION</code></td>
+<td>
+
+</td></tr>
+<tr><td><code>ATTACKED</code></td>
+<td>
+
+</td></tr>
+<tr><td><code>CARGO_SCOOPED</code></td>
+<td>
+
+</td></tr>
+<tr><td><code>COLLISION</code></td>
+<td>
+
+</td></tr>
+<tr><td><code>CONDITION_GREEN</code></td>
+<td>
+
+</td></tr>
+<tr><td><code>CONDITION_YELLOW</code></td>
+<td>
+
+</td></tr>
+<tr><td><code>COURSE_OK</code></td>
+<td>
+
+</td></tr>
+<tr><td><code>DEPLOYING_ESCORTS</code></td>
+<td>
+
+</td></tr>
+<tr><td><code>DESIRED_RANGE_ACHIEVED</code></td>
+<td>
+
+</td></tr>
+<tr><td><code>DOCKED</code></td>
+<td>
+
+</td></tr>
+<tr><td><code>DOCKING_ABORTED</code></td>
+<td>
+
+</td></tr>
+<tr><td><code>DOCKING_COMPLETE</code></td>
+<td>
+
+</td></tr>
+<tr><td><code>DOCKING_REFUSED</code></td>
+<td>
+
+</td></tr>
+<tr><td><code>DOCKING_REQUESTED</code></td>
+<td>
+
+</td></tr>
+<tr><td><code>ECM</code></td>
+<td>
+
+</td></tr>
+<tr><td><code>ENERGY_FULL</code></td>
+<td>
+
+</td></tr>
+<tr><td><code>ENERGY_LOW</code></td>
+<td>
+
+</td></tr>
+<tr><td><code>ENTER</code></td>
+<td>
+<p>Always sent to the new (now current) state of the AI state machine after switching to a new state.</p>
+</td></tr>
+<tr><td><code>ENTERED_WITCHSPACE</code></td>
+<td>
+
+</td></tr>
+<tr><td><code>ESCORTING</code></td>
+<td>
+
+</td></tr>
+<tr><td><code>EXIT</code></td>
+<td>
+<p>Always sent to the current state of the AI state machine before switching to a new state.</p>
+</td></tr>
+<tr><td><code>EXITED_WITCHSPACE</code></td>
+<td>
+
+</td></tr>
+<tr><td><code>FACING_DESTINATION</code></td>
+<td>
+
+</td></tr>
+<tr><td><code>FIGHTING</code></td>
+<td>
+
+</td></tr>
+<tr><td><code>FLEEING</code></td>
+<td>
+
+</td></tr>
+<tr><td><code>FRUSTRATED</code></td>
+<td>
+
+</td></tr>
+<tr><td><code>GONE_BEYOND_RANGE</code></td>
+<td>
+
+</td></tr>
+<tr><td><code>GROUP_ATTACK_TARGET</code></td>
+<td>
+
+</td></tr>
+<tr><td><code>HOLD_FULL</code></td>
+<td>
+
+</td></tr>
+<tr><td><code>HOLD_POSITION</code></td>
+<td>
+
+</td></tr>
+<tr><td><code>INCOMING_MISSILE</code></td>
+<td>
+
+</td></tr>
+<tr><td><code>LANDED_ON_PLANET</code></td>
+<td>
+
+</td></tr>
+<tr><td><code>LAUNCHED</code></td>
+<td>
+
+</td></tr>
+<tr><td><code>MOTHER_LOST</code></td>
+<td>
+
+</td></tr>
+<tr><td><code>NO_STATION_FOUND</code></td>
+<td>
+
+</td></tr>
+<tr><td><code>NO_TARGET</code></td>
+<td>
+
+</td></tr>
+<tr><td><code>NOT_ESCORTING</code></td>
+<td>
+
+</td></tr>
+<tr><td><code>NOTHING_FOUND</code></td>
+<td>
+
+</td></tr>
+<tr><td><code>ODDS_BAD</code></td>
+<td>
+
+</td></tr>
+<tr><td><code>ODDS_GOOD</code></td>
+<td>
+
+</td></tr>
+<tr><td><code>ODDS_LEVEL</code></td>
+<td>
+
+</td></tr>
+<tr><td><code>REACHED_SAFETY</code></td>
+<td>
+<p>Sent when the ship controlled by the AI is fleeing it's <code class="prop">primary_target</code> and is at least
+<code class="prop">desired_range</code> kms from it.
+</td></tr>
+<tr><td><code>RED_ALERT</code></td>
+<td>
+
+</td></tr>
+<tr><td><code>RESTARTED</code></td>
+<td>
+<p>Sent when an AI state machine is made the current AI state machine by becoming the top of the AI state machine
+stack for a particular entity.</p>
+</td></tr>
+<tr><td><code>STATION_FOUND</code></td>
+<td>
+
+</td></tr>
+<tr><td><code>TARGET_CLEAN</code></td>
+<td>
+
+</td></tr>
+<tr><td><code>TARGET_DESTROYED</code></td>
+<td>
+
+</td></tr>
+<tr><td><code>TARGET_FOUND</code></td>
+<td>
+<p>Sent when searching for a target and something suitable is found. The <code class="prop">found_target</code> can be made the
+primary target by calling <code class="func">setTargetToFoundTarget</code> in response to this message.</p>
+</td></tr>
+<tr><td><code>TARGET_FUGITIVE</code></td>
+<td>
+
+</td></tr>
+<tr><td><code>TARGET_LOST</code></td>
+<td>
+
+</td></tr>
+<tr><td><code>TARGET_MARKED</code></td>
+<td>
+
+</td></tr>
+<tr><td><code>TARGET_MINOR_OFFENDER</code></td>
+<td>
+
+</td></tr>
+<tr><td><code>TARGET_OFFENDER</code></td>
+<td>
+
+</td></tr>
+<tr><td><code>THARGOID_DESTROYED</code></td>
+<td>
+
+</td></tr>
+<tr><td><code>TRY_AGAIN_LATER</code></td>
+<td>
+
+</td></tr>
+<tr><td><code>UPDATE</code></td>
+<td>
+<p>This message is sent to the current state each time the AI gets a chance to "think".</p>
+</td></tr>
+<tr><td><code>WAIT_FOR_SUN</code></td>
+<td>
+
+</td></tr>
+<tr><td><code>WAYPOINT_SET</code></td>
+<td>
+
+</td></tr>
+<tr><td><code>YELLOW_ALERT</code></td>
+<td>
+
+</td></tr>
 </table>
 
 <h2>AI State Machine Function Reference</h2>
@@ -402,13 +669,16 @@ be received once the primary target is at least as far away as the current value
 
 </table>
 
-<!--
 <h2>Ship AI</h2>
-<p>The following table details the condition an AI ship may be in. An AI is only ever in one of these conditions at a time.
-The condition is changed during calls to AI functions rather than directly by the AI script.</p>
+<p>The following table details the conditions an AI controlled ship may be in. An AI 
+controlled ship is only ever in one of these conditions at a time. The condition is
+changed during calls to functions during message handlers rather than directly by
+the AI script.</p>
 
-<table border="1">
-<tr><td>CONDITION_IDLE</td><td></td></tr>
+<table border="1" width="100%">
+<tr><td>CONDITION_IDLE</td>
+<td>The ship will centre it's roll and pitch controls. It will continue to travel at it's
+current speed.</td></tr>
 <tr><td>CONDITION_TRACK_TARGET</td><td></td></tr>
 <tr><td>CONDITION_FLY_TO_TARGET</td><td></td></tr>
 <tr><td>CONDITION_HANDS_OFF</td><td></td></tr>
@@ -419,7 +689,8 @@ The condition is changed during calls to AI functions rather than directly by th
 <tr><td>CONDITION_RUNNING_DEFENSE</td><td></td></tr>
 <tr><td>CONDITION_ATTACK_FLY_TO_TARGET_SIX</td><td></td></tr>
 <tr><td>CONDITION_ATTACK_MINING_TARGET</td><td></td></tr>
-<tr><td>CONDITION_FLEE_TARGET</td><td></td></tr>
+<tr><td>CONDITION_FLEE_TARGET</td>
+<td>The ship will flee from it's primary target at maximum speed.</td></tr>
 <tr><td>CONDITION_AVOID_COLLISION</td><td></td></tr>
 <tr><td>CONDITION_TRACK_AS_TURRET</td><td></td></tr>
 <tr><td>CONDITION_FLY_RANGE_FROM_DESTINATION</td><td></td></tr>
@@ -434,7 +705,6 @@ The condition is changed during calls to AI functions rather than directly by th
 <tr><td>CONDITION_FORMATION_BREAK</td><td></td></tr>
 <tr><td>CONDITION_ENERGY_BOMB_COUNTDOWN</td><td></td></tr>
 </table>
--->
 
-</body>
 </html>
+</body>
