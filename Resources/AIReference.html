@@ -1,0 +1,440 @@
+<html>
+<head><title>oolite AI Reference</title></head>
+<body>
+<h1>oolite AI Reference</h1>
+<p>This page contains reference information regarding the AI system used by
+oolite. It will be useful for anyone creating an OXP that contains AI
+elements, or for tinkering with the default AI.</p>
+
+<h2>AI Script Format</h2>
+<p>The AI system consists of a stack of state machines (only the top one  
+of which is active), which respond to game events sent to them as  
+messages. They respond by calling a series of methods which affect  
+the behaviour of the entity and possibly trigger changes to the AI by  
+changing the state or (more drastically) the state machine.</p>
+
+<p>Each state machine (or AI script) is described in a property list in  
+either ASCII or XML format, which can be edited with a text editor or  
+with Property List Editor. The structure is of a dictionary  
+containing each of the machine's possible states referenced by an  
+identifying state name. Each state comprises a dictionary of  
+responses to messages the AI might receive, referenced by the message  
+itself. Each response is an array of methods that will be called when  
+the AI receives that message.</p>
+
+<p>The AI function calls within a message handler are separated from each
+other by a comma. If a function takes a parameter the value is separated
+from the function name by a colon and a space, and both the function name
+and value are enclosed in double quotes.</p>
+
+<p>In ASCII format a simple (two-state) machine looks like this:</p>
+<pre><code>
+{
+     "STATE_1" = {
+         "ENTER" = ();
+         "MESSAGE_A" = ("method1: value", method2, method3);
+         "MESSAGE_B" = (method4, "setStateTo: STATE_2");
+         EXIT = ();
+         UPDATE = ();
+     };
+     "STATE_2" = {
+         "ENTER" = ();
+         "MESSAGE_A" = ("method1: another_value", method5);
+         "MESSAGE_B" = (method6, method7, "setStateTo: STATE_1");
+         EXIT = ();
+         UPDATE = ();
+     };
+}
+</code></pre>
+
+<h2>Game defined states and messages</h2>
+
+<p>When an AI state machine is started it is always put into the state GLOBAL, and the ENTER message will be sent.</p>
+
+<p>The following AI state machine messages are defined by the game:</p>
+
+<table border="1">
+<tr><td>ENTER</td><td>Always sent to the new state when a state change happens.</td></tr>
+<tr><td>UPDATE</td><td>Sent to the current state each time the AI gets a chance to "think".</td></tr>
+<tr><td>EXIT</td><td>Always sent to the current state immediately before a state change.</td></tr>
+<tr><td>RESTARTED</td><td>Sent to the current state when an AI state machine becomes the current
+state machine in a stack of AI state machines.</td></tr>
+</table>
+
+<h2>AI State Machine Function Reference</h2>
+
+<table border="1">
+<tr style="background: #CCCCCC">
+<td colspan="3"><code>pauseAI</code></td>
+</tr>
+<tr>
+<td>Parameters</td><td><code>double interval</code></td><td>The number of seconds to pause this AI.</td>
+</tr>
+<tr>
+<td colspan="3">This method pauses the calling AI for the number of seconds specified by the <code>interval</code> parameter.</td>
+</tr>
+
+<tr><td colspan="3">&nbsp;</td></tr>
+
+<tr style="background: #CCCCCC">
+<td colspan="3"><code>setDestinationToCurrentLocation</code></td>
+</tr>
+<tr>
+<td>Parameters</td><td>none</td><td>&nbsp;</td>
+</tr>
+<tr>
+<td colspan="3">This method sets the destination of the current entity to its current location plus a random offset of up to 0.5 metres in the X, Y, and Z coordinates.
+This can be used to make a ship idle in a small area of space without being completely still.</td>
+</tr>
+
+<tr><td colspan="3">&nbsp;</td></tr>
+
+<tr style="background: #CCCCCC">
+<td colspan="3"><code>setDesiredRangeTo</code></td>
+</tr>
+<tr>
+<td>Parameters</td><td><code>double range</code></td><td>The desired range for some operation, in metres.</td>
+</tr>
+<tr>
+<td colspan="3"><p>Some methods (such as scanForNearestMerchantmen, checkCourseToDestination, checkDistanceTravelled, etc) require a "desired range" parameter
+to be set before they can be used.</p>
+
+<p>This method is used to set the desired range. There is only one value for desired range within an instance of the AI. The value of desired range is
+modified internally by AI methods such as fightOrFleeMissile, setCourseToWitchpoint, and setPlanetPatrolCoordinates.</p></td>
+</tr>
+
+<tr><td colspan="3">&nbsp;</td></tr>
+
+<tr style="background: #CCCCCC">
+<td colspan="3"><code>setSpeedTo</code></td>
+</tr>
+<tr>
+<td>Parameters</td><td><code>double speed</code></td><td>The desired absolute speed for the current entity.</td>
+</tr>
+<tr>
+<td colspan="3"><p>Sets the speed of the current entity to an absolute value.</p>
+
+<p>If this value is greater than the current entity's maximum speed the entity
+will travel at maximum speed.</p></td>
+</tr>
+
+<tr><td colspan="3">&nbsp;</td></tr>
+
+<tr style="background: #CCCCCC">
+<td colspan="3"><code>setSpeedFactorTo</code></td>
+</tr>
+<tr>
+<td>Parameters</td><td><code>double speed</code></td><td>The fraction of maximum speed to use.</td>
+</tr>
+<tr>
+<td colspan="3"><p>Sets the speed of the current entity to a fraction of its maximum speed.</p>
+
+<p>For example, to set an entity to move at 35% of its maximum speed, supply a speed parameter of value "0.35".</p></td>
+</tr>
+
+<tr><td colspan="3">&nbsp;</td></tr>
+
+<tr style="background: #CCCCCC">
+<td colspan="3"><code>performFlyToRangeFromDestination</code></td>
+</tr>
+<tr>
+<td>Parameters</td><td>none</td><td>&nbsp;</td>
+</tr>
+<tr>
+<td>Condition on exit</td><td><code>CONDITION_FLY_RANGE_FROM_DESTINATION</code></td><td>Always.</td>
+</tr>
+
+<tr>
+<td colspan="3"><p>Sets the AI's current state to CONDITION_FLY_RANGE_FROM_DESTINATION.</p>
+
+<p>While in this state the entity will attempt to fly to its current destination, stopping at the desired range from it.</p></td>
+</tr>
+
+<tr><td colspan="3">&nbsp;</td></tr>
+
+<tr style="background: #CCCCCC">
+<td colspan="3"><code>performIdle</code></td>
+</tr>
+<tr>
+<td>Parameters</td><td>none</td><td>&nbsp;</td>
+</tr>
+<tr>
+<td>Condition on exit</td><td><code>CONDITION_IDLE</code></td><td>Always.</td>
+</tr>
+
+<tr>
+<td colspan="3"><p>Sets the AI's current state to CONDITION_IDLE and resets the frustration factor to zero.</p>
+
+<p>Unlike performHold the current speed is not modified.</p></td>
+</tr>
+
+<tr><td colspan="3">&nbsp;</td></tr>
+
+<tr style="background: #CCCCCC">
+<td colspan="3"><code>performHold</code></td>
+</tr>
+<tr>
+<td>Parameters</td><td>none</td><td>&nbsp;</td>
+</tr>
+<tr>
+<td>Condition on exit</td><td><code>CONDITION_TRACK_TARGET</code></td><td>Always.</td>
+</tr>
+<tr>
+<td colspan="3"><p>Sets the entity's speed to zero, sets the AI's current state to CONDITION_TRACK_TARGET and resets the frustration factor to zero.</p>
+</tr>
+
+<tr><td colspan="3">&nbsp;</td></tr>
+
+<tr style="background: #CCCCCC">
+<td colspan="3"><code>setTargetToPrimaryAggressor</code></td>
+</tr>
+<tr>
+<td>Parameters</td><td>none</td><td>&nbsp;</td>
+</tr>
+<tr>
+<td colspan="3"><p>If there is no current primary agressor against the caller, or the caller has already targeted
+the primary agressor, this function does nothing.</p>
+<p>If there is a primary agressor and the caller is not currently attacking another target, the primary agressor
+is targeted.</p>
+<p>If the caller is already attacking another entity there is a 75% chance it will continue to attack the current
+target rather than change its target to the primary agressor.</p>
+<p>The game decides which entity, if any, is currently the primary agressor against the caller.</p>
+</tr>
+
+<tr><td colspan="3">&nbsp;</td></tr>
+
+<tr style="background: #CCCCCC">
+<td colspan="3"><code>performAttack</code></td>
+</tr>
+<tr>
+<td>Parameters</td><td>none</td><td>&nbsp;</td>
+</tr>
+<tr>
+<td>Condition on exit</td><td><code>CONDITION_ATTACK_TARGET</code></td><td>Always.</td>
+</tr>
+<tr>
+<td colspan="3"><p>Tells the caller to start attacking its current target.</p>
+</tr>
+
+<tr><td colspan="3">&nbsp;</td></tr>
+
+<tr style="background: #CCCCCC">
+<td colspan="3"><code>scanForNearestMerchantmen</code></td>
+</tr>
+<tr>
+<td>Parameters</td><td>none</td><td>&nbsp;</td>
+</tr>
+<tr>
+<td>Message</td><td><code>TARGET_FOUND</code></td><td>If a suitable merchant vessel is found within scanner range.</td>
+</tr>
+<tr>
+<td>Message</td><td><code>NOTHING_FOUND</code></td><td>If no suitable vessel is found within scanner range.</td>
+</tr>
+<tr>
+<td colspan="3"><p>Looks for the nearest merchant vessel (including the player's ship) within scanner range.</p>
+<p> The calling
+entity remembers the targeted ship, but it does not become the current target. It can be made the current
+target by responding to the TARGET_FOUND message with a call to <code>setTargetToFoundTarget</code>.</p>
+</tr>
+
+<tr><td colspan="3">&nbsp;</td></tr>
+
+<tr style="background: #CCCCCC">
+<td colspan="3"><code>scanForRandomMerchantmen</code></td>
+</tr>
+<tr>
+<td>Parameters</td><td>none</td><td>&nbsp;</td>
+</tr>
+<tr>
+<td>Message</td><td><code>TARGET_FOUND</code></td><td>If at least one merchant vessel is found within scanner range.</td>
+</tr>
+<tr>
+<td>Message</td><td><code>NOTHING_FOUND</code></td><td>If no merchant vessels are within scanner range.</td>
+</tr>
+<tr>
+<td colspan="3"><p>Randomly selects one of the merchant vessels within scanner range.</p>
+
+<p>The calling entity remembers the targeted ship, but it does not become the
+current target. It can be made the current target by responding to the
+TARGET_FOUND message with a call to <code>setTargetToFoundTarget</code>.</p>
+
+<p>The player's ship has an equal chance of being selected, if it is within
+scanner range. The internal game setting of PIRATES_PREFER_PLAYER is ignored
+in this function.</p>
+</tr>
+
+<tr><td colspan="3">&nbsp;</td></tr>
+
+<tr style="background: #CCCCCC">
+<td colspan="3"><code>scanForLoot</code></td>
+</tr>
+<tr>
+<td>Parameters</td><td>none</td><td>&nbsp;</td>
+</tr>
+<tr>
+<td>Message</td><td><code>TARGET_FOUND</code></td><td>If at least one scoopable item is found within scanner range.</td>
+</tr>
+<tr>
+<td>Message</td><td><code>NOTHING_FOUND</code></td><td>If there are no scoopable items in scanner range,
+controlling entity does not have a fuel scoop, or controlling entity is a station.</td>
+</tr>
+<tr>
+<td colspan="3"><p>Selects the nearest scoopable item within scanner range.</p>
+
+<p>The calling entity remembers the item, but it does not become the
+current target. It can be made the current target by responding to the
+TARGET_FOUND message with a call to <code>setTargetToFoundTarget</code>.</p>
+</tr>
+
+<tr><td colspan="3">&nbsp;</td></tr>
+
+<tr style="background: #CCCCCC">
+<td colspan="3"><code>scanForRandomLoot</code></td>
+</tr>
+<tr>
+<td>Parameters</td><td>none</td><td>&nbsp;</td>
+</tr>
+<tr>
+<td>Message</td><td><code>TARGET_FOUND</code></td><td>If at least one scoopable item is found within scanner range.</td>
+</tr>
+<tr>
+<td>Message</td><td><code>NOTHING_FOUND</code></td><td>If there are no scoopable items in scanner range,
+controlling entity does not have a fuel scoop, or controlling entity is a station.</td>
+</tr>
+<tr>
+<td colspan="3"><p>Selects a random scoopable item from all those within scanner range.</p>
+
+<p>The calling entity remembers the item, but it does not become the
+current target. It can be made the current target by responding to the
+TARGET_FOUND message with a call to <code>setTargetToFoundTarget</code>.</p>
+</tr>
+
+<tr><td colspan="3">&nbsp;</td></tr>
+
+<tr style="background: #CCCCCC">
+<td colspan="3"><code>setTargetToFoundTarget</code></td>
+</tr>
+<tr>
+<td>Parameters</td><td>none</td><td>&nbsp;</td>
+</tr>
+<tr>
+<td colspan="3"><p>Makes most recently found target the current target.</p>
+</tr>
+
+<tr><td colspan="3">&nbsp;</td></tr>
+
+<tr style="background: #CCCCCC">
+<td colspan="3"><code>checkForFullHold</code></td>
+</tr>
+<tr>
+<td>Parameters</td><td>none</td><td>&nbsp;</td>
+</tr>
+<tr>
+<td>Message</td><td><code>HOLD_FULL</code></td><td>If the calling ship's cargo hold is full.</td>
+</tr>
+<tr>
+<td colspan="3"><p>Checks the amount of cargo in the calling ship's hold, and
+if the hold is full sends the HOLD_FULL message.</p>
+</tr>
+
+<tr><td colspan="3">&nbsp;</td></tr>
+
+<tr style="background: #CCCCCC">
+<td colspan="3"><code>performCollect</code></td>
+</tr>
+<tr>
+<td>Parameters</td><td>none</td><td>&nbsp;</td>
+</tr>
+<tr>
+<td>Property change</td><td><code>condition</code></td><td>CONDITION_COLLECT_TARGET</td>
+</tr>
+<tr>
+<td>Property change</td><td><code>frustration</code></td><td>0.0</td>
+</tr>
+<tr>
+<td colspan="3"><p>Sets the caller to collect the primary target, assumed to be a scoopable item.</p>
+<p>While in the CONDITION_COLLECT_TARGET condition, the TARGET_LOST message will be received if the
+target is travelling faster than the collecting ship, and the FRUSTRATED message will be sent after
+10 seconds, and thereafter every 5 seconds, while the item has not been collected.</p>
+</tr>
+
+<tr><td colspan="3">&nbsp;</td></tr>
+
+<tr style="background: #CCCCCC">
+<td colspan="3"><code>performIntercept</code></td>
+</tr>
+<tr>
+<td>Parameters</td><td>none</td><td>&nbsp;</td>
+</tr>
+<tr>
+<td>Property change</td><td><code>condition</code></td><td>CONDITION_INTERCEPT_TARGET</td>
+</tr>
+<tr>
+<td>Property change</td><td><code>frustration</code></td><td>0.0</td>
+</tr>
+<tr>
+<td colspan="3"><p>Sets the caller to intercept the primary target at maximum speed.</p>
+<p>While in the CONDITION_INTERCEPT_TARGET condition, the DESIRED_RANGE_ACHIEVED message will
+be received if the target is within the current <code>desired_range</code>.</p>
+</tr>
+
+<tr><td colspan="3">&nbsp;</td></tr>
+
+<tr style="background: #CCCCCC">
+<td colspan="3"><code>performFlee</code></td>
+</tr>
+<tr>
+<td>Parameters</td><td>none</td><td>&nbsp;</td>
+</tr>
+<tr>
+<td>Property change</td><td><code>condition</code></td><td>CONDITION_FLEE_TARGET</td>
+</tr>
+<tr>
+<td>Property change</td><td><code>frustration</code></td><td>0.0</td>
+</tr>
+<tr>
+<td colspan="3"><p>Sets the caller to flee from the primary target at maximum speed.</p>
+<p>While in the CONDITION_INTERCEPT_TARGET condition, the REACHED_SAFETY message will
+be received once the primary target is at least as far away as the current value of
+<code>desired_range</code>.</p>
+<p>If the caller has a cloaking device, it will be activated.</p>
+</tr>
+
+</table>
+
+<!--
+<h2>Ship AI</h2>
+<p>The following table details the condition an AI ship may be in. An AI is only ever in one of these conditions at a time.
+The condition is changed during calls to AI functions rather than directly by the AI script.</p>
+
+<table border="1">
+<tr><td>CONDITION_IDLE</td><td></td></tr>
+<tr><td>CONDITION_TRACK_TARGET</td><td></td></tr>
+<tr><td>CONDITION_FLY_TO_TARGET</td><td></td></tr>
+<tr><td>CONDITION_HANDS_OFF</td><td></td></tr>
+<tr><td>CONDITION_TUMBLE</td><td></td></tr>
+<tr><td>CONDITION_ATTACK_TARGET</td><td></td></tr>
+<tr><td>CONDITION_ATTACK_FLY_TO_TARGET</td><td></td></tr>
+<tr><td>CONDITION_ATTACK_FLY_FROM_TARGET</td><td></td></tr>
+<tr><td>CONDITION_RUNNING_DEFENSE</td><td></td></tr>
+<tr><td>CONDITION_ATTACK_FLY_TO_TARGET_SIX</td><td></td></tr>
+<tr><td>CONDITION_ATTACK_MINING_TARGET</td><td></td></tr>
+<tr><td>CONDITION_FLEE_TARGET</td><td></td></tr>
+<tr><td>CONDITION_AVOID_COLLISION</td><td></td></tr>
+<tr><td>CONDITION_TRACK_AS_TURRET</td><td></td></tr>
+<tr><td>CONDITION_FLY_RANGE_FROM_DESTINATION</td><td></td></tr>
+<tr><td>CONDITION_FLY_TO_DESTINATION</td><td></td></tr>
+<tr><td>CONDITION_FLY_FROM_DESTINATION</td><td></td></tr>
+<tr><td>CONDITION_FACE_DESTINATION</td><td></td></tr>
+<tr><td>CONDITION_COLLECT_TARGET</td><td></td></tr>
+<tr><td>CONDITION_INTERCEPT_TARGET</td><td></td></tr>
+<tr><td>CONDITION_MISSILE_FLY_TO_TARGET</td><td></td></tr>
+<tr><td>CONDITION_EXPERIMENTAL</td><td></td></tr>
+<tr><td>CONDITION_FORMATION_FORM_UP</td><td></td></tr>
+<tr><td>CONDITION_FORMATION_BREAK</td><td></td></tr>
+<tr><td>CONDITION_ENERGY_BOMB_COUNTDOWN</td><td></td></tr>
+</table>
+-->
+
+</body>
+</html>
