@@ -146,10 +146,10 @@ extern int debug;
 
 - (void) snapShot;
 
+- (BOOL) inFullScreenMode;
+
 /*
 // These are standard methods in NSView.
-- (void)mouseDown:(NSEvent *)theEvent;
-- (void)mouseUp:(NSEvent *)theEvent;
 - (void)mouseDragged:(NSEvent *)theEvent;
 */
 - (void) setVirtualJoystick:(double) vmx :(double) vmy;

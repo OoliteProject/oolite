@@ -763,7 +763,11 @@ static int _compareModes(id arg1, id arg2, void *context)
 
 - (BOOL) inFullScreenMode
 {
+#ifdef GNUSTEP
+	return [gameView inFullScreenMode];
+#else
 	return fullscreen;
+#endif
 }
 
 

@@ -1,7 +1,9 @@
-#import <Foundation/NSAutoreleasePool.h>
 #import <AppKit/NSApplication.h>
 
 #ifdef GNUSTEP
+#import <Foundation/NSAutoreleasePool.h>
+#import <Foundation/NSString.h>
+
 #import "GameController.h"
 
 GameController* controller;
@@ -26,6 +28,9 @@ int main(int argc, const char *argv[])
 	// Release anything allocated during the controller initialisation that
 	// is no longer required.
 	[pool release];
+
+	if (argc > 1)
+		[controller setPlayerFileToLoad: [NSString stringWithCString: argv[argc - 1]]];
 
 	// Call applicationDidFinishLaunching because NSApp is not running in
 	// GNUstep port.

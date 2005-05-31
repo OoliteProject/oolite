@@ -182,6 +182,11 @@ Your fair use and other rights are in no way affected by the above.
 	gameController = controller;
 }
 
+- (BOOL) inFullScreenMode
+{
+	return fullScreen;
+}
+
 - (void) display
 {
 	[self drawRect: NSMakeRect(0, 0, viewSize.width, viewSize.height)];
@@ -358,42 +363,14 @@ Your fair use and other rights are in no way affected by the above.
  * These are commented out because they use AppKit classes, but left here to remind
  * me to replace them with SDL code in future.
  *
-- (void)mouseDown:(NSEvent *)theEvent
-{
-    keys[gvMouseLeftButton] = YES; // 'a' down
-}
-
-- (void)mouseUp:(NSEvent *)theEvent
-{
-	keys[gvMouseLeftButton] = NO;  // 'a' up
-}
-
 - (void)mouseDragged:(NSEvent *)theEvent
 {
     squareX = [theEvent locationInWindow].x - mouseDragStartPoint.x;
     squareY = [theEvent locationInWindow].y - mouseDragStartPoint.y;
     //[self setNeedsDisplay:YES];
 }
-
-- (void)mouseMoved:(NSEvent *)theEvent
-{
-	double mx = [theEvent locationInWindow].x - viewSize.width/2.0;
-	double my = [theEvent locationInWindow].y - viewSize.height/2.0;
-		
-	if (display_z > 640.0)
-	{
-		mx /= viewSize.width * MAIN_GUI_PIXEL_WIDTH / display_z;
-		my /= viewSize.height;
-	}
-	else
-	{
-		mx /= MAIN_GUI_PIXEL_WIDTH * viewSize.width / 640.0;
-		my /= MAIN_GUI_PIXEL_HEIGHT * viewSize.width / 640.0;
-	}
-	
-	[self setVirtualJoystick:mx :-my];
-}
 */
+
 - (void) setVirtualJoystick:(double) vmx :(double) vmy
 {
 	virtualJoystickPosition.x = vmx;
@@ -453,6 +430,8 @@ Your fair use and other rights are in no way affected by the above.
 {
 	SDL_Event event;
 	SDL_KeyboardEvent* kbd_event;
+	SDL_MouseButtonEvent* mbtn_event;
+	SDL_MouseMotionEvent *mmove_event;
 	Uint32 startTicks;
 	Sint32 sleepTicks;
 
@@ -462,6 +441,44 @@ Your fair use and other rights are in no way affected by the above.
 
 		while (SDL_PollEvent(&event)) {
 			switch (event.type) {
+				case SDL_MOUSEBUTTONDOWN:
+					mbtn_event = (SDL_MouseButtonEvent*)&event;
+					if (mbtn_event->button == SDL_BUTTON_LEFT)
+					{
+						//NSLog(@"LMB down");
+						keys[gvMouseLeftButton] = YES;
+					}
+					break;
+
+				case SDL_MOUSEBUTTONUP:
+					mbtn_event = (SDL_MouseButtonEvent*)&event;
+					if (mbtn_event->button == SDL_BUTTON_LEFT)
+					{
+						//NSLog(@"LMB up");
+						keys[gvMouseLeftButton] = NO;
+					}
+					break;
+
+				case SDL_MOUSEMOTION:
+					mmove_event = (SDL_MouseMotionEvent*)&event;
+
+					double mx = mmove_event->x - viewSize.width/2.0;
+					double my = mmove_event->y - viewSize.height/2.0;
+
+					if (display_z > 640.0)
+					{
+						mx /= viewSize.width * MAIN_GUI_PIXEL_WIDTH / display_z;
+						my /= viewSize.height;
+					}
+					else
+					{
+						mx /= MAIN_GUI_PIXEL_WIDTH * viewSize.width / 640.0;
+						my /= MAIN_GUI_PIXEL_HEIGHT * viewSize.width / 640.0;
+					}
+
+					[self setVirtualJoystick:mx :my];
+					break;
+
 				case SDL_KEYDOWN:
 					kbd_event = (SDL_KeyboardEvent*)&event;
 					//printf("Keydown scancode: %d\n", kbd_event->keysym.scancode);

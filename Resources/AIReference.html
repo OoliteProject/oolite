@@ -448,6 +448,7 @@ will travel at maximum speed.</p></td>
 </tr>
 <tr>
 <td colspan="3"><p>Sets the entity's speed to zero, sets the AI's current state to CONDITION_TRACK_TARGET and resets the frustration factor to zero.</p>
+</td>
 </tr>
 
 <tr><td colspan="3">&nbsp;</td></tr>
@@ -466,6 +467,7 @@ is targeted.</p>
 <p>If the caller is already attacking another entity there is a 75% chance it will continue to attack the current
 target rather than change its target to the primary agressor.</p>
 <p>The game decides which entity, if any, is currently the primary agressor against the caller.</p>
+</td>
 </tr>
 
 <tr><td colspan="3">&nbsp;</td></tr>
@@ -481,6 +483,7 @@ target rather than change its target to the primary agressor.</p>
 </tr>
 <tr>
 <td colspan="3"><p>Tells the caller to start attacking its current target.</p>
+</td>
 </tr>
 
 <tr><td colspan="3">&nbsp;</td></tr>
@@ -502,6 +505,7 @@ target rather than change its target to the primary agressor.</p>
 <p> The calling
 entity remembers the targeted ship, but it does not become the current target. It can be made the current
 target by responding to the TARGET_FOUND message with a call to <code>setTargetToFoundTarget</code>.</p>
+</td>
 </tr>
 
 <tr><td colspan="3">&nbsp;</td></tr>
@@ -528,6 +532,7 @@ TARGET_FOUND message with a call to <code>setTargetToFoundTarget</code>.</p>
 <p>The player's ship has an equal chance of being selected, if it is within
 scanner range. The internal game setting of PIRATES_PREFER_PLAYER is ignored
 in this function.</p>
+</td>
 </tr>
 
 <tr><td colspan="3">&nbsp;</td></tr>
@@ -551,6 +556,7 @@ controlling entity does not have a fuel scoop, or controlling entity is a statio
 <p>The calling entity remembers the item, but it does not become the
 current target. It can be made the current target by responding to the
 TARGET_FOUND message with a call to <code>setTargetToFoundTarget</code>.</p>
+</td>
 </tr>
 
 <tr><td colspan="3">&nbsp;</td></tr>
@@ -574,6 +580,7 @@ controlling entity does not have a fuel scoop, or controlling entity is a statio
 <p>The calling entity remembers the item, but it does not become the
 current target. It can be made the current target by responding to the
 TARGET_FOUND message with a call to <code>setTargetToFoundTarget</code>.</p>
+</td>
 </tr>
 
 <tr><td colspan="3">&nbsp;</td></tr>
@@ -586,6 +593,7 @@ TARGET_FOUND message with a call to <code>setTargetToFoundTarget</code>.</p>
 </tr>
 <tr>
 <td colspan="3"><p>Makes most recently found target the current target.</p>
+</td>
 </tr>
 
 <tr><td colspan="3">&nbsp;</td></tr>
@@ -601,7 +609,7 @@ TARGET_FOUND message with a call to <code>setTargetToFoundTarget</code>.</p>
 </tr>
 <tr>
 <td colspan="3"><p>Checks the amount of cargo in the calling ship's hold, and
-if the hold is full sends the HOLD_FULL message.</p>
+if the hold is full sends the HOLD_FULL message.</p></td>
 </tr>
 
 <tr><td colspan="3">&nbsp;</td></tr>
@@ -622,7 +630,7 @@ if the hold is full sends the HOLD_FULL message.</p>
 <td colspan="3"><p>Sets the caller to collect the primary target, assumed to be a scoopable item.</p>
 <p>While in the CONDITION_COLLECT_TARGET condition, the TARGET_LOST message will be received if the
 target is travelling faster than the collecting ship, and the FRUSTRATED message will be sent after
-10 seconds, and thereafter every 5 seconds, while the item has not been collected.</p>
+10 seconds, and thereafter every 5 seconds, while the item has not been collected.</p></td>
 </tr>
 
 <tr><td colspan="3">&nbsp;</td></tr>
@@ -642,7 +650,7 @@ target is travelling faster than the collecting ship, and the FRUSTRATED message
 <tr>
 <td colspan="3"><p>Sets the caller to intercept the primary target at maximum speed.</p>
 <p>While in the CONDITION_INTERCEPT_TARGET condition, the DESIRED_RANGE_ACHIEVED message will
-be received if the target is within the current <code>desired_range</code>.</p>
+be received if the target is within the current <code>desired_range</code>.</p></td>
 </tr>
 
 <tr><td colspan="3">&nbsp;</td></tr>
@@ -664,7 +672,146 @@ be received if the target is within the current <code>desired_range</code>.</p>
 <p>While in the CONDITION_INTERCEPT_TARGET condition, the REACHED_SAFETY message will
 be received once the primary target is at least as far away as the current value of
 <code>desired_range</code>.</p>
-<p>If the caller has a cloaking device, it will be activated.</p>
+<p>If the caller has a cloaking device, it will be activated.</p></td>
+</tr>
+
+<tr><td colspan="3">&nbsp;</td></tr>
+
+<tr style="background: #CCCCCC">
+<td colspan="3"><code>requestDockingCoordinates</code></td>
+</tr>
+<tr>
+<td>Parameters</td><td>none</td><td>&nbsp;</td>
+</tr>
+<tr>
+<td>Property change</td><td><code>coordinates</code></td><td>The coordinates of the nearest station, if any.</td>
+</tr>
+<tr>
+<td>Message</td><td><code>NO_STATION_FOUND</code></td><td>If there are no dockable entities in the current "universe".</td>
+</tr>
+<tr>
+<td colspan="3"><p>Sets the current <code class="prop">coordinates</code> to the nearest space station or other
+dockable entity in the current game area.</p>
+
+<p>There may be no stations, for example in witchspace, in which case the <code class="msg">NO_STATION_FOUND</code>
+message is sent to the current AI state.</p></td>
+</tr>
+
+<tr><td colspan="3">&nbsp;</td></tr>
+
+<tr style="background: #CCCCCC">
+<td colspan="3"><code>getWitchspaceEntryCoordinates</code></td>
+</tr>
+<tr>
+<td>Parameters</td><td>none</td><td>&nbsp;</td>
+</tr>
+<tr>
+<td>Property change</td><td><code>coordinates</code></td><td>Set to appropriate coordinates to enter witchspace.</td>
+</tr>
+<tr>
+<td colspan="3"><p>Sets the current <code class="prop">coordinates</code> to an appropriate point to make a witchspace jump.</p>
+
+<p>"Appropriate" means either 10kms away from the nearest station, or if no station is found, the distance that can be
+flown forward in 10 seconds of flying at maximum speed (note that actual speed is not changed).</p></td>
+</tr>
+
+<tr><td colspan="3">&nbsp;</td></tr>
+
+<tr style="background: #CCCCCC">
+<td colspan="3"><code>setDestinationFromCoordinates</code></td>
+</tr>
+<tr>
+<td>Parameters</td><td>none</td><td>&nbsp;</td>
+</tr>
+<tr>
+<td>Property change</td><td><code>destination</code></td><td>Set to the current value of <code class="prop">coordinates</code>.</td>
+</tr>
+<tr>
+<td colspan="3"><p>Sets the ship's <code class="prop">destination</code> to the current value of <code class="prop">coordinates</code>.</p>
+</td>
+</tr>
+
+<tr><td colspan="3">&nbsp;</td></tr>
+
+<tr style="background: #CCCCCC">
+<td colspan="3"><code>performDocking</code></td>
+</tr>
+<tr>
+<td>Parameters</td><td>none</td><td>&nbsp;</td>
+</tr>
+<tr>
+<td colspan="3"><p>Not implemented yet - does nothing.</p></td>
+</tr>
+
+<tr><td colspan="3">&nbsp;</td></tr>
+
+<tr style="background: #CCCCCC">
+<td colspan="3"><code>performFaceDestination</code></td>
+</tr>
+<tr>
+<td>Parameters</td><td>none</td><td>&nbsp;</td>
+</tr>
+<tr>
+<td>Property change</td><td><code>condition</code></td><td>CONDITION_FACE_DESTINATION</td>
+</tr>
+<tr>
+<td colspan="3">Requests the ship stop and face the location given by <code class="prop">destination</code>.</p>
+
+<p>The message <code class="msg">FACING_DESTINATION</code> will be sent when this has been achieved.</p>
+</td>
+</tr>
+
+<tr><td colspan="3">&nbsp;</td></tr>
+
+<tr style="background: #CCCCCC">
+<td colspan="3"><code>performTumble</code></td>
+</tr>
+<tr>
+<td>Parameters</td><td>none</td><td>&nbsp;</td>
+</tr>
+<tr>
+<td>Property change</td><td><code>condition</code></td><td>CONDITION_TUMBLE</td>
+</tr>
+<tr>
+<td colspan="3">Requests the ship randomly vary it's pitch and roll until taken out of <code style="cond">CONDITION_TUMBLE</code>.</p>
+<p>Current speed is not affected.</p>
+</td>
+</tr>
+
+<tr><td colspan="3">&nbsp;</td></tr>
+
+<tr style="background: #CCCCCC">
+<td colspan="3"><code>fightOrFleeMissile</code></td>
+</tr>
+<tr>
+<td>Parameters</td><td>none</td><td>&nbsp;</td>
+</tr>
+<tr>
+<td>Property change</td><td><code>found_target</code></td><td>Is set to the missile if AI's ship or one of it's
+ group is the target of the missle. The other ships in the group also have their <code class="prop">found_target</code> changed to the missle.
+</td>
+</tr>
+<tr>
+<td>Property change</td><td><code>primary_aggressor</code></td><td>Is set to the missile if AI's ship or one of it's
+ group is the target of the missle. The other ships in the group also have their <code class="prop">found_target</code> changed to the missle.
+</td>
+</tr>
+<tr>
+<td>Property change</td><td><code>desired_range</code></td><td>Is set to 10 kms if the ship decides to flee.</td>
+</tr>
+<tr>
+<td>Message</td><td><code>FLEEING</code></td><td>If the missile is targetted at the AI's ship or one of it's group, and the
+AI's ship does not have an ECM.</td>
+</tr>
+<tr>
+<td colspan="3">If a missile is in flight and is targetting the AI's ship or another ship in
+it's group, all ships in the group have their <code class="prop">found_target</code> and
+<code class="prop">primary_aggressor</code> properties changed to that missle.</p>
+<p>The first missle found is dealt with, range and bearing are not taken into account.</p>
+<p>If the AI's ship has an ECM it will use it. If not, the AI's ship and any ships in it's group will flee the missle
+using <code class="func">performFlee</code> with a <code class="prop">desired_range</code> of 10 kms. In this case the <code class="msg">FLEEING</code> message is sent
+to the current AI state.</p>
+</td>
 </tr>
 
 </table>
