@@ -192,6 +192,10 @@ Your fair use and other rights are in no way affected by the above.
 
 - (void) rollD:(NSString*) die_number;
 
+- (void) scanForNearestShipWithRole:(NSString*) scanRole;
+
+- (void) setCoordinates:(NSString *)system_x_y_z;
+
 @end
 
 
@@ -917,6 +921,8 @@ Your fair use and other rights are in no way affected by the above.
 	very_random_seed.e = rand() & 255;
 	very_random_seed.f = rand() & 255;
 	seed_RNG_only_for_planet_description(very_random_seed);
+
+//	NSLog(@"%@ %d sends unexpanded message '%@'", name, universal_id, valueString);
 	NSString* expandedMessage = [universe expandDescription:valueString forSystem:[universe systemSeed]];
 
 //	NSLog(@"%@ %d sends message '%@'", name, universal_id, expandedMessage);
@@ -1680,6 +1686,81 @@ Your fair use and other rights are in no way affected by the above.
 	{
 		NSLog(@"***** AI_ERROR - invalid value supplied to rollD: '%@'", die_number);
 	}
+}
+
+- (void) scanForNearestShipWithRole:(NSString*) scanRole
+{
+	/*-- Locates all the ships in range and chooses the nearest --*/
+	found_target = NO_TARGET;
+	if (!universe)
+		return;
+	int			ent_count =		universe->n_entities;
+	Entity**	uni_entities =	universe->sortedEntities;	// grab the public sorted list
+	Entity*		my_entities[ent_count];
+	int i;
+	int ship_count = 0;
+	for (i = 0; i < ent_count; i++)
+		if (uni_entities[i]->isShip)
+			my_entities[ship_count++] = [uni_entities[i] retain];		//	retained
+	//
+	double found_d2 = scanner_range * scanner_range;
+	for (i = 0; i < ship_count ; i++)
+	{
+		ShipEntity* thing = (ShipEntity *)my_entities[i];
+		double d2 = distance2( position, thing->position);
+		if ((thing->scan_class != CLASS_CARGO)&&(thing->status != STATUS_DOCKED)&&([[thing roles] isEqual:scanRole])&&(d2 < found_d2))
+		{
+			found_target = [thing universal_id];
+			found_d2 = d2;
+		}
+	}
+	for (i = 0; i < ship_count; i++)
+		[my_entities[i] release];	//		released
+	if (found_target != NO_TARGET)
+		[shipAI message:@"TARGET_FOUND"];
+	else
+		[shipAI message:@"NOTHING_FOUND"];
+}
+
+- (void) setCoordinates:(NSString *)system_x_y_z
+{
+	NSMutableArray*	tokens = [NSMutableArray arrayWithArray:[system_x_y_z componentsSeparatedByString:@" "]];
+	int i = 0;
+	while (i < [tokens count])	// remove empty tokens
+	{
+		if ([(NSString*)[tokens objectAtIndex:i] isEqual:@""])
+			[tokens removeObjectAtIndex:i];
+		else
+			i++;
+	}
+	NSString*	systemString = nil;
+	NSString*	xString = nil;
+	NSString*	yString = nil;
+	NSString*	zString = nil;
+
+	if ([tokens count] != 4)
+	{
+		NSLog(@"***** AI_ERROR CANNOT setCoordinates: '%@'",system_x_y_z);
+		return;
+	}
+	
+	systemString = (NSString *)[tokens objectAtIndex:0];
+	xString = (NSString *)[tokens objectAtIndex:1];
+	if ([xString hasPrefix:@"rand:"])
+		xString = [NSString stringWithFormat:@"%.3f", bellf([(NSString*)[[xString componentsSeparatedByString:@":"] objectAtIndex:1] intValue])];
+	yString = (NSString *)[tokens objectAtIndex:2];
+	if ([yString hasPrefix:@"rand:"])
+		yString = [NSString stringWithFormat:@"%.3f", bellf([(NSString*)[[yString componentsSeparatedByString:@":"] objectAtIndex:1] intValue])];
+	zString = (NSString *)[tokens objectAtIndex:3];
+	if ([zString hasPrefix:@"rand:"])
+		zString = [NSString stringWithFormat:@"%.3f", bellf([(NSString*)[[zString componentsSeparatedByString:@":"] objectAtIndex:1] intValue])];
+	
+	Vector posn = make_vector( [xString floatValue], [yString floatValue], [zString floatValue]);
+	GLfloat	scalar = 1.0;
+	//
+	coordinates = [universe coordinatesForPosition:posn withCoordinateSystem:systemString returningScalar:&scalar];
+	//
+	[shipAI message:@"APPROACH_COORDINATES"];
 }
 
 

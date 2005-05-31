@@ -828,7 +828,7 @@ static int _compareModes(id arg1, id arg2, void *context)
 - (void) setPlayerFileToLoad:(NSString *)filename
 {
 	if (playerFileToLoad)
-		[playerFileToLoad release];
+		[playerFileToLoad autorelease];
 	playerFileToLoad = nil;
 	if ([[filename pathExtension] isEqual:@"oolite-save"])
 		playerFileToLoad = [[NSString stringWithString:filename] retain];
@@ -869,4 +869,5 @@ static int _compareModes(id arg1, id arg2, void *context)
 #endif
 
 @end
+
 

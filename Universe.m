@@ -456,7 +456,7 @@ Your fair use and other rights are in no way affected by the above.
 	
 	[[(MyOpenGLView*)gameView gameController] setPlayerFileToLoad:nil];		// reset Quicksave
 
-	[player set_up];
+//	[player set_up];
 
 	galaxy_seed = [player galaxy_seed];
 	
@@ -1079,10 +1079,16 @@ Your fair use and other rights are in no way affected by the above.
 		stars_ambient[1] = 0.0625 * (1.0 + g) * (1.0 + g);
 		stars_ambient[2] = 0.0625 * (1.0 + b) * (1.0 + b);
 		stars_ambient[3] = 1.0;
-//		GLfloat	stars_ambient[] = { r, g, b, 1.0};	// ambient light about 20%
 		glLightModelfv(GL_LIGHT_MODEL_AMBIENT, stars_ambient);
 	}
-
+	//
+	// light for demo ships display..
+	GLfloat	gray[] = { 0.1, 0.1, 0.1, 1.0};		// gray light
+	GLfloat	white[] = { 1.0, 1.0, 1.0, 1.0};	// white light
+	glLightfv(GL_LIGHT0, GL_AMBIENT, gray);
+	glLightfv(GL_LIGHT0, GL_DIFFUSE, white);
+	glLightfv(GL_LIGHT0, GL_SPECULAR, white);
+			
 }
 
 - (void) populateSpaceFromHyperPoint:(Vector) h1_pos toPlanetPosition:(Vector) p1_pos andSunPosition:(Vector) s1_pos
@@ -1606,6 +1612,131 @@ Your fair use and other rights are in no way affected by the above.
 	//
 }
 
+- (Vector) coordinatesForPosition:(Vector) pos withCoordinateSystem:(NSString *) system returningScalar:(GLfloat*) my_scalar
+{
+	/*	the point is described using a system selected by a string
+		consisting of a three letter code.
+		
+		The first letter indicates the feature that is the origin of the coordinate system.
+			w => witchpoint
+			s => sun
+			p => planet
+			
+		The next letter indicates the feature on the 'z' axis of the coordinate system.
+			w => witchpoint
+			s => sun
+			p => planet
+			
+		Then the 'y' axis of the system is normal to the plane formed by the planet, sun and witchpoint.
+		And the 'x' axis of the system is normal to the y and z axes.
+		So:
+			ps:		z axis = (planet -> sun)		y axis = normal to (planet - sun - witchpoint)	x axis = normal to y and z axes
+			pw:		z axis = (planet -> witchpoint)	y axis = normal to (planet - witchpoint - sun)	x axis = normal to y and z axes
+			sp:		z axis = (sun -> planet)		y axis = normal to (sun - planet - witchpoint)	x axis = normal to y and z axes
+			sw:		z axis = (sun -> witchpoint)	y axis = normal to (sun - witchpoint - planet)	x axis = normal to y and z axes
+			wp:		z axis = (witchpoint -> planet)	y axis = normal to (witchpoint - planet - sun)	x axis = normal to y and z axes
+			ws:		z axis = (witchpoint -> sun)	y axis = normal to (witchpoint - sun - planet)	x axis = normal to y and z axes
+			
+		The third letter denotes the units used:
+			m:		meters
+			p:		planetary radii
+			s:		solar radii
+			u:		distance between first two features indicated (eg. spu means that u = distance from sun to the planet)
+	*/
+	//
+	NSString* l_sys = [system lowercaseString];
+	if ([l_sys length] != 3)
+		return make_vector(0,0,0);
+	PlanetEntity* the_planet = [self planet];
+	PlanetEntity* the_sun = [self sun];
+	if ((!the_planet)||(!the_sun))
+	{
+		NSLog(@"ERROR - coordinatesForPosition:withCoordinateSystem: in system with no sun or planet!");
+		return make_vector(0,0,0);
+	}
+	Vector  w_pos = [self getWitchspaceExitPosition];
+	Vector  p_pos = the_planet->position;
+	Vector  s_pos = the_sun->position;
+	//
+	const char* c_sys = [l_sys lossyCString];
+	Vector p0 = make_vector(1,0,0);
+	Vector p1 = make_vector(0,1,0);
+	Vector p2 = make_vector(0,0,1);
+	
+//	NSLog(@"DEBUG addShipAt (system %s)", c_sys);
+	
+	switch (c_sys[0])
+	{
+		case 'w':
+			p0 = w_pos;
+			switch (c_sys[1])
+			{
+				case 'p':
+					p1 = p_pos;	p2 = s_pos;	break;
+				case 's':
+					p1 = s_pos;	p2 = p_pos;	break;
+				default:
+					return make_vector(0,0,0);
+			}
+			break;
+		case 'p':		
+			p0 = p_pos;
+			switch (c_sys[1])
+			{
+				case 'w':
+					p1 = w_pos;	p2 = s_pos;	break;
+				case 's':
+					p1 = s_pos;	p2 = w_pos;	break;
+				default:
+					return make_vector(0,0,0);
+			}
+			break;
+		case 's':
+			p0 = s_pos;
+			switch (c_sys[1])
+			{
+				case 'w':
+					p1 = w_pos;	p2 = p_pos;	break;
+				case 'p':
+					p1 = p_pos;	p2 = w_pos;	break;
+				default:
+					return make_vector(0,0,0);
+			}
+			break;
+		default:
+			return make_vector(0,0,0);
+	}
+	Vector k = make_vector(p1.x - p0.x, p1.y - p0.y, p1.z - p0.z);
+	k = unit_vector(&k);				//	'forward'
+	Vector v = make_vector(p2.x - p0.x, p2.y - p0.y, p2.z - p0.z);
+	v = unit_vector (&v);				//	temporary vector in plane of 'forward' and 'right'
+	Vector j = cross_product( k, v);	// 'up'
+	Vector i = cross_product( j, k);	// 'right'
+	GLfloat scalar = 1.0;
+	switch (c_sys[2])
+	{
+		case 'p':
+			scalar = ([self planet])? [self planet]->collision_radius: 5000;	break;
+		case 's':
+			scalar = ([self sun])? [self sun]->collision_radius: 100000;	break;
+		case 'u':
+			scalar = sqrt(magnitude2(make_vector(p1.x - p0.x, p1.y - p0.y, p1.z - p0.z)));	break;
+		case 'm':
+			scalar = 1.0;	break;
+		default:
+			return make_vector(0,0,0);
+	}
+	*my_scalar = scalar;
+	
+	// result = p0 + ijk
+	Vector result = p0;	// origin
+	result.x += scalar * (pos.x * i.x + pos.y * j.x + pos.z * k.x);
+	result.y += scalar * (pos.x * i.y + pos.y * j.y + pos.z * k.y);
+	result.z += scalar * (pos.x * i.z + pos.y * j.z + pos.z * k.z);
+	//
+	return result;
+}
+
 - (BOOL) addShipWithRole:(NSString *) desc nearPosition:(Vector) pos withCoordinateSystem:(NSString *) system
 {
 	/*	adds a ship within scanner range of a selected point
@@ -1638,101 +1769,9 @@ Your fair use and other rights are in no way affected by the above.
 			s:		solar radii
 			u:		distance between first two features indicated (eg. spu means that u = distance from sun to the planet)
 	*/
-	//
-	NSString* l_sys = [system lowercaseString];
-	if ([l_sys length] != 3)
-		return NO;
-	PlanetEntity* the_planet = [self planet];
-	PlanetEntity* the_sun = [self sun];
-	if ((!the_planet)||(!the_sun))
-	{
-		NSLog(@"ERROR - addShipWithRole:nearPosition:withCoordinateSystem: in system with no sun or planet!");
-		return NO;
-	}
-	Vector  w_pos = [self getWitchspaceExitPosition];
-	Vector  p_pos = the_planet->position;
-	Vector  s_pos = the_sun->position;
-	//
-	const char* c_sys = [l_sys lossyCString];
-	Vector p0 = make_vector(1,0,0);
-	Vector p1 = make_vector(0,1,0);
-	Vector p2 = make_vector(0,0,1);
-	
-//	NSLog(@"DEBUG addShipAt (system %s)", c_sys);
-	
-	switch (c_sys[0])
-	{
-		case 'w':
-			p0 = w_pos;
-			switch (c_sys[1])
-			{
-				case 'p':
-					p1 = p_pos;	p2 = s_pos;	break;
-				case 's':
-					p1 = s_pos;	p2 = p_pos;	break;
-				default:
-					return NO;
-			}
-			break;
-		case 'p':		
-			p0 = p_pos;
-			switch (c_sys[1])
-			{
-				case 'w':
-					p1 = w_pos;	p2 = s_pos;	break;
-				case 's':
-					p1 = s_pos;	p2 = w_pos;	break;
-				default:
-					return NO;
-			}
-			break;
-		case 's':
-			p0 = s_pos;
-			switch (c_sys[1])
-			{
-				case 'w':
-					p1 = w_pos;	p2 = p_pos;	break;
-				case 'p':
-					p1 = p_pos;	p2 = w_pos;	break;
-				default:
-					return NO;
-			}
-			break;
-		default:
-			return NO;
-	}
-	Vector k = make_vector(p1.x - p0.x, p1.y - p0.y, p1.z - p0.z);
-	k = unit_vector(&k);				//	'forward'
-	Vector v = make_vector(p2.x - p0.x, p2.y - p0.y, p2.z - p0.z);
-	v = unit_vector (&v);				//	temporary vector in plane of 'forward' and 'right'
-	Vector j = cross_product( k, v);	// 'up'
-	Vector i = cross_product( j, k);	// 'right'
-	GLfloat scalar = 1.0;
-	switch (c_sys[2])
-	{
-		case 'p':
-			scalar = ([self planet])? [self planet]->collision_radius: 5000;	break;
-		case 's':
-			scalar = ([self sun])? [self sun]->collision_radius: 100000;	break;
-		case 'u':
-			scalar = sqrt(magnitude2(make_vector(p1.x - p0.x, p1.y - p0.y, p1.z - p0.z)));	break;
-		case 'm':
-			scalar = 1.0;	break;
-		default:
-			return NO;
-	}
-	
-//	NSLog(@"DEBUG POSITION i (%.3f, %.3f, %.3f)", i.x, i.y, i.z);
-//	
-//	NSLog(@"DEBUG POSITION j (%.3f, %.3f, %.3f)", j.x, j.y, j.z);
-//	
-//	NSLog(@"DEBUG POSITION k (%.3f, %.3f, %.3f)", k.x, k.y, k.z);
-	
 	// initial position
-	Vector launch_pos = p0;	// origin
-	launch_pos.x += scalar * (pos.x * i.x + pos.y * j.x + pos.z * k.x);
-	launch_pos.y += scalar * (pos.x * i.y + pos.y * j.y + pos.z * k.y);
-	launch_pos.z += scalar * (pos.x * i.z + pos.y * j.z + pos.z * k.z);
+	GLfloat scalar = 1.0;
+	Vector launch_pos = [self coordinatesForPosition:pos withCoordinateSystem:system returningScalar:&scalar];
 	//	randomise
 	GLfloat rfactor = scalar;
 	if (rfactor > SCANNER_MAX_RANGE)
@@ -2671,24 +2710,6 @@ Your fair use and other rights are in no way affected by the above.
 			glEnable(GL_CULL_FACE);			// face culling
 			glDepthMask(GL_TRUE);	// restore write to depth buffer
 
-			// if we are in a demo mode set LIGHT0 to a bright white light at the origin
-			if (playerDemo)
-			{
-				Vector orig = viewthing->position;
-				GLfloat	black[] = { 0.0, 0.0, 0.0, 1.0};	// white light
-				GLfloat	white[] = { 1.0, 1.0, 1.0, 1.0};	// white light
-				GLfloat	origin[] = { orig.x, orig.y + 1500.0, orig.z - 1000.0};	// origin -1km z +1.5km y
-				glLightfv(GL_LIGHT0, GL_AMBIENT, black);
-				glLightfv(GL_LIGHT0, GL_DIFFUSE, white);
-				glLightfv(GL_LIGHT0, GL_SPECULAR, white);
-				glLightfv(GL_LIGHT0, GL_POSITION, origin);
-				glEnable(GL_LIGHT0);		// light for demos
-			}
-			else
-			{
-				glDisable(GL_LIGHT0);
-			}
-			
 			if (!displayGUI)
 				glClearColor( sky_clear_color[0], sky_clear_color[1], sky_clear_color[2], sky_clear_color[3]);
 			else
@@ -2730,15 +2751,37 @@ Your fair use and other rights are in no way affected by the above.
 
 			if ((!displayGUI) || (playerDemo))
 			{
+				// set up the light for demo ships
+				GLfloat origin[] = { 500.0f, 2500.0f, -1000.0f};
+				glLightfv(GL_LIGHT0, GL_POSITION, origin);
+				
+				////
+				//
 				// rotate the view
 				glMultMatrixf([viewthing rotationMatrix]);
 				// translate the view
 				glTranslatef( -position.x, -position.y, -position.z);
-
-				// set lighting
+				//
+				////
+				
+				// position the sun correctly
+				glLightfv(GL_LIGHT1, GL_POSITION, sun_center_position);	// this is necessary or the sun will move with the player
+				
+				// decide which lights to use
+				if (playerDemo)
+				{
+					glEnable(GL_LIGHT0);		// switch on the light for demo ships
+					glDisable(GL_LIGHT1);		// switch the sun off inside the space station
+				}
+				else
+				{
+					glDisable(GL_LIGHT0);		// switch off the demo-ship light
+					glEnable(GL_LIGHT1);		// lighting up the sun
+				}
+				
+				// turn on lighting
 				glEnable(GL_LIGHTING);
-				glLightfv(GL_LIGHT1, GL_POSITION, sun_center_position);
-				glEnable(GL_LIGHT1);		// lighting up the sun
+				
 				BOOL sunlit = YES;
 				
 				int		furthest = draw_count - 1;

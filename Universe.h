@@ -309,6 +309,7 @@ extern int debug;
 - (void) populateSpaceFromHyperPoint:(Vector) h1_pos toPlanetPosition:(Vector) p1_pos andSunPosition:(Vector) s1_pos;
 - (int)	scatterAsteroidsAt:(Vector) spawnPos withVelocity:(Vector) spawnVel includingRockHermit:(BOOL) spawnHermit;
 - (void) addShipWithRole:(NSString *) desc nearRouteOneAt:(double) route_fraction;
+- (Vector) coordinatesForPosition:(Vector) pos withCoordinateSystem:(NSString *) system returningScalar:(GLfloat*) my_scalar;
 - (BOOL) addShipWithRole:(NSString *) desc nearPosition:(Vector) pos withCoordinateSystem:(NSString *) system;
 - (void) witchspaceShipWithRole:(NSString *) desc;
 - (void) spawnShipWithRole:(NSString *) desc near:(Entity *) entity;

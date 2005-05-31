@@ -643,6 +643,7 @@ Your fair use and other rights are in no way affected by the above.
 	
 	if ([dict objectForKey:@"fuel"])
 		fuel = [(NSNumber *)[dict objectForKey:@"fuel"] intValue];
+		
 	//
 	if ([dict objectForKey:@"bounty"])
 		bounty = [(NSNumber *)[dict objectForKey:@"bounty"] intValue];
@@ -1141,8 +1142,15 @@ Your fair use and other rights are in no way affected by the above.
 #else   
 	int missile_chance = 1 + (ranrot_rand() % (int)( 32 * 0.1 / delta_t));
 #endif   
-	double hurt_factor = 16 * pow(energy/max_energy, 4.0);
-	double last_success_factor = success_factor;
+	double	hurt_factor = 16 * pow(energy/max_energy, 4.0);
+	double	last_success_factor = success_factor;
+	//
+	BOOL	canBurn = has_fuel_injection && (fuel > 0);
+	BOOL	isUsingAfterburner = canBurn && (flight_speed > max_flight_speed);
+	//
+	double	max_available_speed = (canBurn)? max_flight_speed * AFTERBURNER_FACTOR : max_flight_speed;
+	//
+	
 	//
 	// deal with collisions
 	//
@@ -1152,6 +1160,14 @@ Your fair use and other rights are in no way affected by the above.
 	// super update
 	//
 	[super update:delta_t];
+	
+	// DEBUGGING
+	//
+	if (reportAImessages && (debug_condition != condition))
+	{
+		NSLog(@"DEBUG %@ condition is now %d", self, condition);
+		debug_condition = condition;
+	}
 	
 	// update time between shots
 	//
@@ -1262,7 +1278,13 @@ Your fair use and other rights are in no way affected by the above.
 		double  range = [self rangeToPrimaryTarget];
 		double  distance = [self rangeToDestination];
 		double  target_speed = max_flight_speed;
-		double	slow_down_range = weapon_range * COMBAT_WEAPON_RANGE_FACTOR * ((flight_speed > max_flight_speed)? 2.0 * AFTERBURNER_FACTOR : 1.0);
+		double	slow_down_range = weapon_range * COMBAT_WEAPON_RANGE_FACTOR * ((isUsingAfterburner)? 2.0 * AFTERBURNER_FACTOR : 1.0);
+		
+		if (reportAImessages)
+		{
+			NSLog(@"DEBUG SPEED %@ [:%d:] range %.1f/%.1f slow_down_range (isUsingAfterBurner :%@:) (canBurn :%@:)",
+				self, condition, range, slow_down_range, (isUsingAfterburner)?@"YES":@"NO", (canBurn)?@"YES":@"NO");
+		}
 		
 		ShipEntity*	target = (ShipEntity*)[universe entityForUniversalID:primaryTarget];
 		
@@ -1366,18 +1388,26 @@ Your fair use and other rights are in no way affected by the above.
 				
 			case CONDITION_ATTACK_TARGET :
 				[self activateCloakingDevice];
-				desired_speed = ((has_fuel_injection)&&(fuel > 0))? max_flight_speed * AFTERBURNER_FACTOR : max_flight_speed;
+				desired_speed = max_available_speed;
 				if (range < 0.035 * weapon_range)
 					condition = CONDITION_ATTACK_FLY_FROM_TARGET;
 				else
 					if (universal_id & 1)	// 50% of ships are smart S.M.R.T. smart!
-						condition = CONDITION_ATTACK_FLY_TO_TARGET_SIX;
+					{
+						if (randf() < 0.75)
+							condition = CONDITION_ATTACK_FLY_TO_TARGET_SIX;
+						else
+							condition = CONDITION_ATTACK_FLY_TO_TARGET_TWELVE;
+					}
 					else
+					{
 						condition = CONDITION_ATTACK_FLY_TO_TARGET;
+					}
 				frustration = 0.0;	// condition changed, so reset frustration
 				break;
 				
 			case CONDITION_ATTACK_FLY_TO_TARGET_SIX :
+			case CONDITION_ATTACK_FLY_TO_TARGET_TWELVE :
 				
 				// deal with collisions and lost targets
 				//
@@ -1390,23 +1420,44 @@ Your fair use and other rights are in no way affected by the above.
 					[shipAI reactToMessage:@"TARGET_LOST"];
 				}
 				
-				// if close enough to the six - vector in attack
-				//
-				if (distance < 250)
-				{
-					condition = CONDITION_ATTACK_FLY_TO_TARGET;
-					frustration = 0.0;
-				}
 				// control speed
 				//
 				if (range < slow_down_range)
-					desired_speed = (target_speed < max_flight_speed)? target_speed: max_flight_speed;   // within the weapon's range don't use afterburner
+				{
+					desired_speed = target_speed;
+					// avoid head-on collision
+					//
+					if ((range < 0.5 * distance)&&(condition == CONDITION_ATTACK_FLY_TO_TARGET_SIX))
+						condition = CONDITION_ATTACK_FLY_TO_TARGET_TWELVE;
+				}
 				else
-					desired_speed = ((has_fuel_injection)&&(fuel > 0)) ? max_flight_speed * AFTERBURNER_FACTOR : max_flight_speed ; // use afterburner to approach
+					desired_speed = max_available_speed; // use afterburner to approach
 				
-				// head for a point 1km to the six of the target
+				
+				// if within 0.75km of the target's six or twelve then vector in attack
 				//
-				destination = [target one_km_six];
+				if (distance < 750.0)
+				{
+					condition = CONDITION_ATTACK_FLY_TO_TARGET;
+					frustration = 0.0;
+					desired_speed = target_speed;   // within the weapon's range don't use afterburner
+				}
+				
+				// target-six
+				if (condition == CONDITION_ATTACK_FLY_TO_TARGET_SIX)
+				{
+					// head for a point weapon-range * 0.5 to the six of the target
+					//
+					destination = [target distance_six:0.5 * weapon_range];
+				}
+				// target-twelve
+				if (condition == CONDITION_ATTACK_FLY_TO_TARGET_TWELVE)
+				{
+					// head for a point 1.25km above the target
+					//
+					destination = [target distance_twelve:1250];
+				}
+				
 				[self trackDestination:delta_t :NO];
 				
 				// use weaponry
@@ -1457,7 +1508,7 @@ Your fair use and other rights are in no way affected by the above.
 							jink.z = 1000.0;
 							condition = CONDITION_ATTACK_FLY_FROM_TARGET;
 							frustration = 0.0;
-							desired_speed = ((has_fuel_injection)&&(fuel > 0))? max_flight_speed * AFTERBURNER_FACTOR : max_flight_speed;
+							desired_speed = max_available_speed;
 						}
 						else
 						{
@@ -1487,9 +1538,9 @@ Your fair use and other rights are in no way affected by the above.
 				// control speed
 				//
 				if (range <= slow_down_range)
-					desired_speed = (target_speed < max_flight_speed)? target_speed: max_flight_speed;   // within the weapon's range don't use afterburner
+					desired_speed = target_speed;   // within the weapon's range don't use afterburner
 				else
-					desired_speed = ((has_fuel_injection)&&(fuel > 0)) ? max_flight_speed * AFTERBURNER_FACTOR : max_flight_speed ; // use afterburner to approach
+					desired_speed = max_available_speed; // use afterburner to approach
 				
 				last_success_factor = success_factor;
 				success_factor = [self trackPrimaryTarget:delta_t:NO];	// do the actual piloting
@@ -1533,7 +1584,6 @@ Your fair use and other rights are in no way affected by the above.
 					jink.z = 0.0;
 					condition = CONDITION_ATTACK_TARGET;
 					frustration = 0.0;
-					desired_speed = ((has_fuel_injection)&&(fuel > 0))? max_flight_speed * AFTERBURNER_FACTOR : max_flight_speed;
 				}
 				[self trackPrimaryTarget:delta_t:YES];
 				if (missiles > missile_chance * hurt_factor)
@@ -1552,7 +1602,6 @@ Your fair use and other rights are in no way affected by the above.
 					jink.z = 0.0;
 					condition = CONDITION_ATTACK_FLY_TO_TARGET;
 					frustration = 0.0;
-					desired_speed = ((has_fuel_injection)&&(fuel > 0))? max_flight_speed * AFTERBURNER_FACTOR : max_flight_speed;
 				}
 				[self trackPrimaryTarget:delta_t:YES];
 				[self fireAftWeapon:range];
@@ -1566,10 +1615,7 @@ Your fair use and other rights are in no way affected by the above.
 				}
 				else
 				{
-					desired_speed = ((has_fuel_injection)&&(fuel > 0))? max_flight_speed * AFTERBURNER_FACTOR : max_flight_speed;
-//					
-//					if (desired_speed > max_flight_speed)
-//						NSLog(@"DEBUG Ship %@ %d n CONDITION_FLEE_TARGET overspeed %.1f/%.1f fuel:%d", name, universal_id, desired_speed, max_flight_speed, fuel);
+					desired_speed = max_available_speed;
 				}
 				[self trackPrimaryTarget:delta_t:YES];
 				if (([(ShipEntity *)[self getPrimaryTarget] getPrimaryTarget] == self)&&(missiles > missile_chance * hurt_factor))
@@ -1854,6 +1900,8 @@ Your fair use and other rights are in no way affected by the above.
 
 - (void) applyThrust:(double) delta_t
 {
+	double max_available_speed = (has_fuel_injection && (fuel > 0))? max_flight_speed * AFTERBURNER_FACTOR : max_flight_speed;
+	
 	velocity.x += momentum.x / mass;	momentum.x = 0;
 	velocity.y += momentum.y / mass;	momentum.y = 0;
 	velocity.z += momentum.z / mass;	momentum.z = 0;
@@ -1878,11 +1926,9 @@ Your fair use and other rights are in no way affected by the above.
 	if (condition == CONDITION_TUMBLE)  return; //testing
 
 	
-	// check for fuel - out
-	if ((desired_speed > max_flight_speed)&&(fuel <= 0))
-	{
-		desired_speed = max_flight_speed;
-	}
+	// check for speed
+	if (desired_speed > max_available_speed)
+		desired_speed = max_available_speed;
 	
 	if (flight_speed > desired_speed)
 	{
@@ -1897,10 +1943,10 @@ Your fair use and other rights are in no way affected by the above.
 	[self moveForward:delta_t*flight_speed];
 	
 	// burn fuel at the appropriate rate
-	if ((fuel > 0)&&(flight_speed > max_flight_speed))
+	if ((flight_speed > max_flight_speed) && has_fuel_injection && (fuel > 0))
 	{
 		fuel_accumulator -= delta_t * AFTERBURNER_BURNRATE;
-		if (fuel_accumulator <= 0)
+		while (fuel_accumulator <= 0)
 		{
 			fuel--;
 			fuel_accumulator += 1.0;
@@ -3065,6 +3111,20 @@ Vector randomPositionInBoundingBox(BoundingBox bb)
 	return six;
 }
 
+- (Vector) distance_six: (GLfloat) dist
+{
+	Vector six = position;
+	six.x -= dist * v_forward.x;	six.y -= dist * v_forward.y;	six.z -= dist * v_forward.z;
+	return six;
+}
+
+- (Vector) distance_twelve: (GLfloat) dist
+{
+	Vector twelve = position;
+	twelve.x += dist * v_up.x;	twelve.y += dist * v_up.y;	twelve.z += dist * v_up.z;
+	return twelve;
+}
+
 - (double) ballTrackTarget:(double) delta_t
 {
 	Vector vector_to_target;
@@ -3265,7 +3325,7 @@ Vector randomPositionInBoundingBox(BoundingBox bb)
 - (double) trackPrimaryTarget:(double) delta_t :(BOOL) retreat
 {
 	Vector  relativePosition;	
-	GLfloat  d_forward, d_up, d_right;
+	GLfloat  d_forward, d_up, d_right, range2;
 	Entity  *target;
 	BOOL isMining = ((condition == CONDITION_ATTACK_MINING_TARGET)&&(forward_weapon_type == WEAPON_MINING_LASER));
 	
@@ -3296,13 +3356,26 @@ Vector randomPositionInBoundingBox(BoundingBox bb)
 	relativePosition.y -= position.y;
 	relativePosition.z -= position.z;
 	
+	range2 = magnitude2(relativePosition);
+	
 	//jink if retreating
-	if (retreat)
+	if (retreat && (range2 > 250000.0))	// don't jink if closer than 500m - just RUN
 	{
-		Quaternion q = target->q_rotation;
-		Vector vx = vector_right_from_quaternion(q);
-		Vector vy = vector_up_from_quaternion(q);
-		Vector vz = vector_forward_from_quaternion(q);
+		Vector vx, vy, vz;
+		if (target->isShip)
+		{
+			ShipEntity* targetShip = (ShipEntity*)target;
+			vx = targetShip->v_right;
+			vy = targetShip->v_up;
+			vz = targetShip->v_forward;
+		}
+		else
+		{
+			Quaternion q = target->q_rotation;
+			vx = vector_right_from_quaternion(q);
+			vy = vector_up_from_quaternion(q);
+			vz = vector_forward_from_quaternion(q);
+		}
 		relativePosition.x += jink.x * vx.x + jink.y * vy.x + jink.z * vz.x;
 		relativePosition.y += jink.x * vx.y + jink.y * vy.y + jink.z * vz.y;
 		relativePosition.z += jink.x * vx.z + jink.y * vy.z + jink.z * vz.z;

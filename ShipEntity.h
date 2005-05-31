@@ -48,19 +48,20 @@ Your fair use and other rights are in no way affected by the above.
 #define CONDITION_HANDS_OFF		3
 #define CONDITION_TUMBLE		4
 
-#define IS_CONDITION_HOSTILE(c)				((c > 100)&&(c < 110))
-#define CONDITION_ATTACK_TARGET				101
-#define CONDITION_ATTACK_FLY_TO_TARGET		102
-#define CONDITION_ATTACK_FLY_FROM_TARGET	103
-#define CONDITION_RUNNING_DEFENSE			104
+#define IS_CONDITION_HOSTILE(c)					((c > 100)&&(c < 120))
+#define CONDITION_ATTACK_TARGET					101
+#define CONDITION_ATTACK_FLY_TO_TARGET			102
+#define CONDITION_ATTACK_FLY_FROM_TARGET		103
+#define CONDITION_RUNNING_DEFENSE				104
+// fleeing
+#define CONDITION_FLEE_TARGET					105
 // advanced combat...
-#define CONDITION_ATTACK_FLY_TO_TARGET_SIX	106
-#define CONDITION_ATTACK_MINING_TARGET		107
+#define CONDITION_ATTACK_FLY_TO_TARGET_SIX		106
+#define CONDITION_ATTACK_MINING_TARGET			107
+// further advanced combat...
+#define CONDITION_ATTACK_FLY_TO_TARGET_TWELVE	112
 
-
-#define CONDITION_FLEE_TARGET				105
-
-#define CONDITION_AVOID_COLLISION			110
+#define CONDITION_AVOID_COLLISION			130
 
 #define CONDITION_TRACK_AS_TURRET			150
 
@@ -74,15 +75,15 @@ Your fair use and other rights are in no way affected by the above.
 
 #define CONDITION_MISSILE_FLY_TO_TARGET		901
 
-#define CONDITION_EXPERIMENTAL				54321
-
 #define CONDITION_FORMATION_FORM_UP			501
 #define CONDITION_FORMATION_BREAK			502
 
 #define CONDITION_ENERGY_BOMB_COUNTDOWN		601
 
+#define CONDITION_EXPERIMENTAL				54321
 
-#define MAX_TARGETS				24
+
+#define MAX_TARGETS							24
 #define RAIDER_MAX_CARGO					5
 #define MERCHANTMAN_MAX_CARGO				125
 
@@ -248,7 +249,7 @@ Your fair use and other rights are in no way affected by the above.
 	
 	// navigation
 	//
-	Vector v_forward, v_up, v_right;	// unit vectors derived from the direction faced
+	@public Vector v_forward, v_up, v_right;	// unit vectors derived from the direction faced
 		
 	double flight_speed;				// current speed
 	double flight_roll;					// current roll rate
@@ -280,6 +281,9 @@ Your fair use and other rights are in no way affected by the above.
 	char	beaconChar;					// character displayed for this beacon
 	int		nextBeaconID;				// next beacon in sequence
 	
+	
+	// DEBUGGING
+	int debug_condition;
 }
 
 	// beacons
@@ -420,6 +424,8 @@ Vector randomPositionInBoundingBox(BoundingBox bb);
 
 - (Vector) destination;
 - (Vector) one_km_six;
+- (Vector) distance_six: (GLfloat) dist;
+- (Vector) distance_twelve: (GLfloat) dist;
 
 - (double) trackPrimaryTarget:(double) delta_t :(BOOL) retreat;
 - (double) rangeToPrimaryTarget;

@@ -143,6 +143,15 @@ inline float randf (void)
 	return 0.0009765625 * (ranrot_rand() & 1023);
 }
 
+inline float bellf (int n)
+{
+	int i = n;
+	float total = 0;
+	while (i-- > 0)
+		total += (ranrot_rand() & 1023);
+	return 0.0009765625 * total / n;
+}
+
 int gen_rnd_number (void)
 {
 	int a,x;

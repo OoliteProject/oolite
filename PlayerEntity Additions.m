@@ -820,7 +820,7 @@ static int shipsFound;
 - (void) addShipsAt:(NSString *)roles_number_system_x_y_z
 {
 	NSMutableArray*	tokens = [NSMutableArray arrayWithArray:[roles_number_system_x_y_z componentsSeparatedByString:@" "]];
-	int i;
+	int i = 0;
 	while (i < [tokens count])	// remove empty tokens
 	{
 		if ([(NSString*)[tokens objectAtIndex:i] isEqual:@""])

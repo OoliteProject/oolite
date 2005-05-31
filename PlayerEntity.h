@@ -407,8 +407,12 @@ Your fair use and other rights are in no way affected by the above.
 	//
 	int key_cloaking_device;
 	
+	// save-file
+	NSString* save_path;
+	
 	// DEBUG
 	ParticleEntity* drawDebugParticle;
+	int		debugShipID;
 	
 }
 

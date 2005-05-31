@@ -779,6 +779,8 @@ Your fair use and other rights are in no way affected by the above.
 	//
 	isPlayer = YES;
 	//
+	save_path = nil;
+	//
     return self;
 }
 
@@ -1040,6 +1042,12 @@ static BOOL galactic_witchjump;
 	if (specialCargo)
 		[specialCargo release];
 	specialCargo = nil;
+	
+	debugShipID = NO_TARGET;
+	
+	if (save_path)
+		[save_path autorelease];
+	save_path = nil;
 }
 
 - (void) setUpShipFromDictionary:(NSDictionary *) dict
@@ -1225,6 +1233,8 @@ static BOOL galactic_witchjump;
     if (shipCommodityData)		[shipCommodityData release];
 
 	if (specialCargo)			[specialCargo release];
+	
+	if (save_path)				[save_path release];
 	
 	int i;
 	for (i = 0; i < SHIPENTITY_MAX_MISSILES; i++)
@@ -2499,6 +2509,30 @@ static BOOL cloak_pressed;
 					}
 				}
 			}
+//			//
+//			//  shoot '9'   // ship debugger
+//			//
+//			if ([gameView isDown: 57])
+//			{
+//				// debug for the target ship only
+//				if ([self getPrimaryTarget])
+//				{
+//					ShipEntity* ship = (ShipEntity*)[self getPrimaryTarget];
+//					ShipEntity* debugShip = (ShipEntity*)[universe entityForUniversalID:debugShipID];
+//					if (ship != debugShip)
+//					{
+//						[debugShip setReportAImessages:NO];
+//						[ship setReportAImessages:YES];
+//						debugShipID = [ship universal_id];
+//					}
+//				}
+//				else
+//				{
+//					ShipEntity* debugShip = (ShipEntity*)[universe entityForUniversalID:debugShipID];
+//					[debugShip setReportAImessages:NO];
+//					debugShipID = NO_TARGET;
+//				}
+//			}
 			//
 			//  shoot 'm'   // launch missile
 			//
@@ -4360,7 +4394,6 @@ static BOOL toggling_music;
 						[themeMusic goToBeginning];
 #endif
 					}
-
 					disc_operation_in_progress = YES;
 					if ([[universe gameController] inFullScreenMode])
 						[[universe gameController] pauseFullScreenModeToPerform:@selector(loadPlayer) onTarget:self];
@@ -5147,6 +5180,10 @@ static BOOL toggling_music;
 - (void) getDestroyed
 {
 	NSString* scoreMS = [NSString stringWithFormat:@"Score: %.1f Credits",credits/10.0];
+
+	if (![[universe gameController] playerFileToLoad])
+		[[universe gameController] setPlayerFileToLoad: save_path];	// make sure we load the correct game
+
 	energy = 0.0;
 	afterburner_engaged = NO;
 	[universe setDisplayText:NO];
@@ -5524,7 +5561,9 @@ static BOOL toggling_music;
 
 - (void) quicksavePlayer
 {
-	NSString* filename = [[(MyOpenGLView *)[universe gameView] gameController] playerFileToLoad];
+	NSString* filename = save_path;
+	if (!filename)
+		filename = [[(MyOpenGLView *)[universe gameView] gameController] playerFileToLoad];
 	if (!filename)
 	{
 		NSBeep();
@@ -5551,6 +5590,9 @@ static BOOL toggling_music;
 	{
 		[universe clearPreviousMessage];	// allow this to be given time and again
 		[universe addMessage:[universe expandDescription:@"[game-saved]" forSystem:system_seed] forCount:2];
+		if (save_path)
+			[save_path autorelease];
+		save_path = [filename retain];
 	}
 	[self setGuiToStatusScreen];
 }
@@ -5595,7 +5637,10 @@ static BOOL toggling_music;
 		}
 		else
 		{
-			[[(MyOpenGLView *)[universe gameView] gameController] setPlayerFileToLoad:[sp filename]];
+			if (save_path)
+				[save_path autorelease];
+			save_path = [[NSString stringWithString:[sp filename]] retain];
+			[[(MyOpenGLView *)[universe gameView] gameController] setPlayerFileToLoad:save_path];
 		}
 	}
 	[self setGuiToStatusScreen];
@@ -5624,16 +5669,20 @@ static BOOL toggling_music;
 		{
 			[self set_up];
 			[self setCommanderDataFromDictionary:fileDic];
+			if (save_path)
+				[save_path autorelease];
+			save_path = [fileToOpen retain];
 			loadedOK = YES;
 		}
 	}
-	if (!loadedOK)
-		NSBeep();
+	if (loadedOK)
+		[[(MyOpenGLView *)[universe gameView] gameController] setPlayerFileToLoad:fileToOpen];
 	else
 	{
-		[[(MyOpenGLView *)[universe gameView] gameController] setPlayerFileToLoad:fileToOpen];
+		NSBeep();
+		NSLog(@"***** FILE LOADING ERROR!! *****");
 	}
-
+	
 	[universe setSystemTo:system_seed];
 	[universe removeAllEntitiesExceptPlayer:NO];
 	[universe set_up_space];

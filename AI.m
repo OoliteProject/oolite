@@ -258,7 +258,8 @@ Your fair use and other rights are in no way affected by the above.
 	
 	if ([tokens count] > 1)
 	{
-		dataString = (NSString *)[tokens objectAtIndex:1];
+//		dataString = (NSString *)[tokens objectAtIndex:1];
+		dataString = [[tokens subarrayWithRange:NSMakeRange(1, [tokens count] - 1)] componentsJoinedByString:@" "];
 	}
 	
 	_selector = NSSelectorFromString(my_selector);
@@ -345,4 +346,3 @@ Your fair use and other rights are in no way affected by the above.
 }
 
 @end
-
