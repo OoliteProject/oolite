@@ -1050,6 +1050,62 @@ Your fair use and other rights are in no way affected by the above.
 	return YES;
 }
 
+- (BOOL) dockingCorridorIsEmpty
+{
+	if (!universe)
+		return NO;
+	
+	double unitime = [universe getTime];
+	
+	if (unitime < last_launch_time + STATION_DELAY_BETWEEN_LAUNCHES)	// leave sufficient pause between launches
+		return NO;
+	
+	// check against all ships
+	BOOL		isEmpty = YES;
+	int			ent_count =		universe->n_entities;
+	Entity**	uni_entities =	universe->sortedEntities;	// grab the public sorted list
+	Entity*		my_entities[ent_count];
+	int i;
+	int ship_count = 0;
+	for (i = 0; i < ent_count; i++)
+		if (uni_entities[i]->isShip)
+			my_entities[ship_count++] = [uni_entities[i] retain];		//	retained
+
+	for (i = 0; (i < ship_count)&&(isEmpty); i++)
+	{
+		ShipEntity*	ship = (ShipEntity*)my_entities[i];
+		double		d2 = distance2( position, ship->position);
+		if ((ship != self)&&(d2 < 25000000)&&(ship->status != STATUS_DOCKED))	// within 5km
+		{
+			Vector ppos = [self getPortPosition];
+			d2 = distance2( ppos, ship->position);
+			if (d2 < 4000000)	// within 2km of the port entrance
+			{
+				Quaternion q1 = q_rotation;
+				q1 = quaternion_multiply(port_qrotation, q1);
+				//
+				Vector v_out = vector_forward_from_quaternion(q1);
+				Vector r_pos = make_vector(ship->position.x - ppos.x, ship->position.y - ppos.y, ship->position.z - ppos.z);
+				r_pos = unit_vector(&r_pos);
+				//
+				double vdp = dot_product( v_out, r_pos); //== cos of the angle between r_pos and v_out
+				//
+				if (vdp > 0.86)
+				{
+					isEmpty = NO;
+//					NSLog(@"DEBUG %@ is blocking %@ launch corridor distance = %.0f (%.0f).", ship, self, sqrt(d2), d2);
+					last_launch_time = unitime;
+				}
+			}
+		}
+	}
+	
+	for (i = 0; i < ship_count; i++)
+		[my_entities[i] release];		//released
+
+	return isEmpty;
+}
+
 - (void) update:(double) delta_t
 {
 	BOOL isRockHermit = (scan_class == CLASS_ROCK);
@@ -1062,7 +1118,8 @@ Your fair use and other rights are in no way affected by the above.
 	
 	[super update:delta_t];
 	
-	if (([launchQueue count] > 0)&&([shipsOnApproach count] == 0)&&(unitime > last_launch_time + STATION_DELAY_BETWEEN_LAUNCHES))
+//	if (([launchQueue count] > 0)&&([shipsOnApproach count] == 0)&&(unitime > last_launch_time + STATION_DELAY_BETWEEN_LAUNCHES))
+	if (([launchQueue count] > 0)&&([shipsOnApproach count] == 0)&&[self dockingCorridorIsEmpty])
 	{
 		[self launchShip:(ShipEntity *)[launchQueue objectAtIndex:0]];
 		[launchQueue removeObjectAtIndex:0];
@@ -1144,14 +1201,14 @@ Your fair use and other rights are in no way affected by the above.
 		launchSpeed = 0.5 * [ship max_flight_speed] * (1.0 + flight_speed/max_flight_speed);
 	Quaternion q1 = q_rotation;
 	q1 = quaternion_multiply(port_qrotation, q1);
-	quaternion_rotate_about_axis(&q1, vector_forward_from_quaternion(q1),PI*0.5);  // to account for the slot being at 90 degrees to vertical
+	Vector launchVector = vector_forward_from_quaternion(q1);
+	quaternion_rotate_about_axis(&q1, launchVector, PI*0.5);  // to account for the slot being at 90 degrees to vertical
 	// launch position
 	launchPos.x += port_position.x * v_right.x + port_position.y * v_up.x + port_position.z * v_forward.x;
 	launchPos.y += port_position.x * v_right.y + port_position.y * v_up.y + port_position.z * v_forward.y;
 	launchPos.z += port_position.x * v_right.z + port_position.y * v_up.z + port_position.z * v_forward.z;
     [ship setPosition:launchPos];
 	// launch speed
-	Vector launchVector = vector_forward_from_quaternion(q1);
 	launchVel.x += launchSpeed * launchVector.x;	launchVel.y += launchSpeed * launchVector.y;	launchVel.z += launchSpeed * launchVector.z;
 	[ship setSpeed:sqrt(magnitude2(launchVel))];
 	[ship setVelocity:launchVel];

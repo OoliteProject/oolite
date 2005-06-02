@@ -1192,9 +1192,10 @@ static Vector   circleVertex[65];		// holds vector coordinates for a unit circle
 
 - (void) drawHyperring
 {
-    int i;
+	int i;
 	GLfloat aleph = (alpha < 2.0) ? alpha*0.5 : 1.0;
 	
+    GLfloat ex_one[4]		= {1.0, 1.0, 1.0, 1.0};		// white
     GLfloat ex_zero[4]		= {0.0, 0.0, 0.0, 1.0};		// black
 	GLfloat ex_ambdiff[4]	= {0.0, 0.0, 0.0, aleph};		// black
 	GLfloat ex_em_hi[4]		= {0.6, 0.8, 1.0, aleph};   // pale blue
@@ -1220,6 +1221,8 @@ static Vector   circleVertex[65];		// holds vector coordinates for a unit circle
 		glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE, ex_ambdiff);
 		glMaterialfv(GL_FRONT_AND_BACK, GL_EMISSION, ex_em_hi);
 		glVertex3f( ring_outer_radius*circleVertex[i].x, ring_outer_radius*circleVertex[i].y, ring_outer_radius*circleVertex[i].z );
+		glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE, ex_one);	// reset to white -
+		glMaterialfv(GL_FRONT_AND_BACK, GL_EMISSION, ex_zero);				// reset to black - necessary to stop texture 'black outs'
 	}
 	glEnd();
 

@@ -266,6 +266,7 @@ extern int debug;
 void hudDrawIndicatorAt(int x, int y, int z, NSSize siz, double amount);
 void hudDrawBarAt(int x, int y, int z, NSSize siz, double amount);
 void hudDrawSurroundAt(int x, int y, int z, NSSize siz);
+void hudDrawSpecialIconAt(NSArray* ptsArray, int x, int y, int z, NSSize siz);
 void hudDrawMineIconAt(int x, int y, int z, NSSize siz);
 void hudDrawMissileIconAt(int x, int y, int z, NSSize siz);
 void hudDrawStatusIconAt(int x, int y, int z, NSSize siz);
@@ -285,4 +286,3 @@ void drawSpecialOval( double x, double y, double z, NSSize siz, int step, GLfloa
 - (GLfloat) line_width;
 
 @end
-

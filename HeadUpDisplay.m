@@ -1195,14 +1195,22 @@ static BOOL hostiles;
 			if ([player missile_for_station:i])
 			{
 				NSString* miss_roles = [[player missile_for_station:i] roles];
+				NSObject* miss_icon = [[[player universe] descriptions] objectForKey:miss_roles];
 				if (i == [player active_missile])
 				{
 					glColor4fv(yellow_color);
 					glBegin(GL_POLYGON);
-					if ([miss_roles hasSuffix:@"MISSILE"])
-						hudDrawMissileIconAt( x + i * sp + 2, y + 1, z1, NSMakeSize( siz.width + 4, siz.height + 4));
-					if ([miss_roles hasSuffix:@"MINE"])
-						hudDrawMineIconAt( x + i * sp + 2, y + 1, z1, NSMakeSize( siz.width + 4, siz.height + 4));
+					if (miss_icon)
+					{
+						hudDrawSpecialIconAt( (NSArray*)miss_icon, x + i * sp + 2, y + 1, z1, NSMakeSize( siz.width + 4, siz.height + 4));
+					}
+					else
+					{
+						if ([miss_roles hasSuffix:@"MISSILE"])
+							hudDrawMissileIconAt( x + i * sp + 2, y + 1, z1, NSMakeSize( siz.width + 4, siz.height + 4));
+						if ([miss_roles hasSuffix:@"MINE"])
+							hudDrawMineIconAt( x + i * sp + 2, y + 1, z1, NSMakeSize( siz.width + 4, siz.height + 4));
+					}
 					glEnd();
 					switch ([player dial_missile_status])
 					{
@@ -1222,21 +1230,33 @@ static BOOL hostiles;
 						glColor4fv(green_color);
 				}
 				glBegin(GL_POLYGON);
-				if ([miss_roles hasSuffix:@"MISSILE"])
-					hudDrawMissileIconAt( x + i * sp, y, z1, siz);
-				if ([miss_roles hasSuffix:@"MINE"])
-					hudDrawMineIconAt( x + i * sp, y, z1, siz);
-//				hudDrawMissileIconAt( x + i * sp, y, z1, siz);
+				if (miss_icon)
+				{
+					hudDrawSpecialIconAt( (NSArray*)miss_icon, x + i * sp, y, z1, siz);
+				}
+				else
+				{
+					if ([miss_roles hasSuffix:@"MISSILE"])
+						hudDrawMissileIconAt( x + i * sp, y, z1, siz);
+					if ([miss_roles hasSuffix:@"MINE"])
+						hudDrawMineIconAt( x + i * sp, y, z1, siz);
+				}
 				glEnd();
 				if (i != [player active_missile])
 				{
 					glColor4fv(green_color);
 					glBegin(GL_LINE_LOOP);
-					if ([miss_roles hasSuffix:@"MISSILE"])
-						hudDrawMissileIconAt( x + i * sp, y, z1, siz);
-					if ([miss_roles hasSuffix:@"MINE"])
-						hudDrawMineIconAt( x + i * sp, y, z1, siz);
-//					hudDrawMissileIconAt( x + i * sp, y, z1, siz);
+					if (miss_icon)
+					{
+						hudDrawSpecialIconAt( (NSArray*)miss_icon, x + i * sp, y, z1, siz);
+					}
+					else
+					{
+						if ([miss_roles hasSuffix:@"MISSILE"])
+							hudDrawMissileIconAt( x + i * sp, y, z1, siz);
+						if ([miss_roles hasSuffix:@"MINE"])
+							hudDrawMineIconAt( x + i * sp, y, z1, siz);
+					}
 					glEnd();
 				}
 			}
@@ -1572,6 +1592,24 @@ void hudDrawSurroundAt(int x, int y, int z, NSSize siz)
 		glVertex3i( dial_ox+siz.width+2, dial_oy+siz.height+2, z);
 		glVertex3i( dial_ox-2, dial_oy+siz.height+2, z);
 	glEnd();
+}
+
+void hudDrawSpecialIconAt(NSArray* ptsArray, int x, int y, int z, NSSize siz)
+{
+	if (!ptsArray)
+		return;
+	int ox = x - siz.width / 2.0;
+	int oy = y - siz.height / 2.0;
+	int w = siz.width / 4.0;
+	int h = siz.height / 4.0; 
+	int i = 0;
+	int npts = [ptsArray count] & 0xfffe;	// make sure it's an even number
+	while (i < npts)
+	{
+		int x = [(NSNumber*)[ptsArray objectAtIndex:i++] intValue];
+		int y = [(NSNumber*)[ptsArray objectAtIndex:i++] intValue];
+		glVertex3i( ox + x * w, oy + y * h, z);
+	}
 }
 
 void hudDrawMissileIconAt(int x, int y, int z, NSSize siz)

@@ -1801,6 +1801,28 @@ static  Universe	*data_store_universe;
 
 // log a list of current states
 //
+// we need to report on the material properties
+GLfloat stored_mat_ambient[4];
+GLfloat stored_mat_diffuse[4];
+GLfloat stored_mat_emission[4];
+GLfloat stored_mat_specular[4];
+GLfloat stored_mat_shininess[1];
+//
+GLfloat stored_current_color[4];
+//
+GLint stored_gl_shade_model[1];
+//
+GLint stored_gl_texture_env_mode[1];
+//
+GLint stored_gl_cull_face_mode[1];
+//
+GLint stored_gl_front_face[1];
+//
+GLint stored_gl_blend_src[1];
+GLint stored_gl_blend_dst[1];
+//
+GLenum stored_errCode;
+//
 void logGLState()
 {
 	// we need to report on the material properties
@@ -1973,15 +1995,25 @@ void logGLState()
 	}
 
 	/*-- MATERIALS --*/
-	NSLog(@"OPENGL_DEBUG GL_AMBIENT ( %.2ff, %.2ff, %.2ff, %.2ff)",
-		mat_ambient[0], mat_ambient[1], mat_ambient[2], mat_ambient[3]);
-	NSLog(@"OPENGL_DEBUG GL_DIFFUSE ( %.2ff, %.2ff, %.2ff, %.2ff)",
-		mat_diffuse[0], mat_diffuse[1], mat_diffuse[2], mat_diffuse[3]);
-	NSLog(@"OPENGL_DEBUG GL_EMISSION ( %.2ff, %.2ff, %.2ff, %.2ff)",
-		mat_emission[0], mat_emission[1], mat_emission[2], mat_emission[3]);
-	NSLog(@"OPENGL_DEBUG GL_SPECULAR ( %.2ff, %.2ff, %.2ff, %.2ff)",
-		mat_specular[0], mat_specular[1], mat_specular[2], mat_specular[3]);
-	NSLog(@"OPENGL_DEBUG GL_SHININESS ( %.2ff)", mat_shininess[0]);
+	if ((stored_mat_ambient[0] != mat_ambient[0])||(stored_mat_ambient[1] != mat_ambient[1])||(stored_mat_ambient[2] != mat_ambient[2])||(stored_mat_ambient[3] != mat_ambient[2]))
+		NSLog(@"OPENGL_DEBUG GL_AMBIENT ( %.2ff, %.2ff, %.2ff, %.2ff)",
+			mat_ambient[0], mat_ambient[1], mat_ambient[2], mat_ambient[3]);
+	if ((stored_mat_diffuse[0] != mat_diffuse[0])||(stored_mat_diffuse[1] != mat_diffuse[1])||(stored_mat_diffuse[2] != mat_diffuse[2])||(stored_mat_diffuse[3] != mat_diffuse[2]))
+		NSLog(@"OPENGL_DEBUG GL_DIFFUSE ( %.2ff, %.2ff, %.2ff, %.2ff)",
+			mat_diffuse[0], mat_diffuse[1], mat_diffuse[2], mat_diffuse[3]);
+	if ((stored_mat_emission[0] != mat_emission[0])||(stored_mat_emission[1] != mat_emission[1])||(stored_mat_emission[2] != mat_emission[2])||(stored_mat_emission[3] != mat_emission[2]))
+		NSLog(@"OPENGL_DEBUG GL_EMISSION ( %.2ff, %.2ff, %.2ff, %.2ff)",
+			mat_emission[0], mat_emission[1], mat_emission[2], mat_emission[3]);
+	if ((stored_mat_specular[0] != mat_specular[0])||(stored_mat_specular[1] != mat_specular[1])||(stored_mat_specular[2] != mat_specular[2])||(stored_mat_specular[3] != mat_specular[2]))
+		NSLog(@"OPENGL_DEBUG GL_SPECULAR ( %.2ff, %.2ff, %.2ff, %.2ff)",
+			mat_specular[0], mat_specular[1], mat_specular[2], mat_specular[3]);
+	if (stored_mat_shininess[0] != mat_shininess[0])
+		NSLog(@"OPENGL_DEBUG GL_SHININESS ( %.2ff)", mat_shininess[0]);
+	stored_mat_ambient[0] = mat_ambient[0];	stored_mat_ambient[1] = mat_ambient[1];	stored_mat_ambient[2] = mat_ambient[2];	stored_mat_ambient[3] = mat_ambient[3];
+	stored_mat_diffuse[0] = mat_diffuse[0];	stored_mat_diffuse[1] = mat_diffuse[1];	stored_mat_diffuse[2] = mat_diffuse[2];	stored_mat_diffuse[3] = mat_diffuse[3];
+	stored_mat_emission[0] = mat_emission[0];	stored_mat_emission[1] = mat_emission[1];	stored_mat_emission[2] = mat_emission[2];	stored_mat_emission[3] = mat_emission[3];
+	stored_mat_specular[0] = mat_specular[0];	stored_mat_specular[1] = mat_specular[1];	stored_mat_specular[2] = mat_specular[2];	stored_mat_specular[3] = mat_specular[3];
+	stored_mat_shininess[0] = mat_shininess[0];
 	/*-- MATERIALS --*/
 
 	//

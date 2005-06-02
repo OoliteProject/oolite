@@ -400,9 +400,12 @@ static int _compareModes(id arg1, id arg2, void *context)
 	// get the run loop and add the call to doStuff
 	//
     NSTimeInterval ti = 0.01;
+    
     timer = [[NSTimer timerWithTimeInterval:ti target:self selector:@selector(doStuff:) userInfo:self repeats:YES] retain];
+    
     [[NSRunLoop currentRunLoop] addTimer:timer forMode:NSDefaultRunLoopMode];
 
+	
 	// set up the window to accept mouseMoved events
 	[gameWindow setAcceptsMouseMovedEvents:YES];
 #endif

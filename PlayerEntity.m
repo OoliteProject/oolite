@@ -2430,7 +2430,6 @@ static BOOL cloak_pressed;
 			if ((!afterburner_engaged)&&(afterburnerSoundLooping))
 				[self stopAfterburnerSound];
 			//
-//			if (([gameView isDown:key_increase_speed])&&(!hyperspeed_engaged)&&(!afterburner_engaged))
 			if (([gameView isDown:key_increase_speed])&&(flight_speed < max_flight_speed)&&(!afterburner_engaged))
 			{
 				if (flight_speed < max_flight_speed)

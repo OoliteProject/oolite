@@ -872,12 +872,19 @@ static GLuint vertex_index_array[3*(20+80+320+1280+5120+20480)];
 				
 				int steps = 2 * (MAX_SUBDIVIDE - subdivideLevel);
 				
+				glDisable(GL_TEXTURE_2D);
 				glDisable(GL_LIGHTING);
 
-				glMaterialfv(GL_FRONT, GL_AMBIENT_AND_DIFFUSE, amb_1);
+				glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE, amb_1);
+				glMaterialfv(GL_FRONT_AND_BACK, GL_EMISSION, amb_land);
 				glColor4fv( amb_land);
-				
-				drawBall( collision_radius, steps, sqrt_zero_distance);
+
+				glBegin(GL_TRIANGLE_FAN);
+					glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE, amb_1);	// do this between glBegin/glEnd
+					glMaterialfv(GL_FRONT_AND_BACK, GL_EMISSION, amb_land);			// as well (for consistency)
+					glColor4fv( amb_land);
+					drawBallVertices( collision_radius, steps, sqrt_zero_distance);
+				glEnd();
 												
 				if (![universe reducedDetail])
 				{
