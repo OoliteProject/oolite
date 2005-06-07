@@ -1533,12 +1533,7 @@ static BOOL galactic_witchjump;
 	double speed_delta = 5.0 * thrust;
 	//
 	PlanetEntity*	sun = [universe sun];
-//	if (weapon_temp > 0.0)
-//	{
-//		weapon_temp -= WEAPON_COOLING_FACTOR * delta_t;
-//		if (weapon_temp < 0.0)
-//			weapon_temp = 0.0;
-//	}
+
 	// cool all weapons
 	//
 	if (forward_weapon_temp > 0.0)
@@ -1633,6 +1628,10 @@ static BOOL galactic_witchjump;
 			aft_shield = PLAYER_MAX_AFT_SHIELD;
 		}
 	}
+	if (forward_shield > PLAYER_MAX_FORWARD_SHIELD)
+		forward_shield = PLAYER_MAX_FORWARD_SHIELD;
+	if (aft_shield > PLAYER_MAX_FORWARD_SHIELD)
+		aft_shield = PLAYER_MAX_AFT_SHIELD;
 	if (ecm_in_operation)
 	{
 		if (energy > 0.0)
