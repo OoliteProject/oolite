@@ -242,7 +242,14 @@ NSMutableDictionary*	surface_cache;
 	if (!dictionary_cache)
 		dictionary_cache = [[NSMutableDictionary alloc] initWithCapacity:32];
 	if ([dictionary_cache objectForKey:dict_key])
+	{
+//		NSLog(@"DEBUG ResourceManager RETURNING CACHED '%@' dictionary", dict_key);
 		return [NSDictionary dictionaryWithDictionary:(NSDictionary *)[dictionary_cache objectForKey:dict_key]];	// return the cached dictionary
+	}
+//	else
+//	{
+//		NSLog(@"DEBUG ResourceManager LOADING '%@' dictionary", dict_key);
+//	}
 	
 	for (i = 0; i < [fpaths count]; i++)
 	{
@@ -270,15 +277,25 @@ NSMutableDictionary*	surface_cache;
 	}
 	if ([results count] == 0)
 		return nil;
+		
+	// got results we may want to cache
+	//
+	NSMutableDictionary *result = [NSMutableDictionary dictionaryWithCapacity:128];
 	//NSLog(@"---> ResourceManager found %d file(s) with name '%@' (in folder '%@')", [results count], filename, foldername);
 	if (!mergeFiles)
-		return [NSDictionary dictionaryWithDictionary:(NSDictionary *)[results objectAtIndex:[results count] - 1]];
-	NSMutableDictionary *result = [NSMutableDictionary dictionaryWithCapacity:128];
-	for (i = 0; i < [results count]; i++)
-		[result addEntriesFromDictionary:(NSDictionary *)[results objectAtIndex:i]];
-		
+	{
+		[result addEntriesFromDictionary:(NSDictionary *)[results objectAtIndex:[results count] - 1]];// the last loaded file
+	}
+	else
+	{
+		for (i = 0; i < [results count]; i++)
+			[result addEntriesFromDictionary:(NSDictionary *)[results objectAtIndex:i]];
+	}	
+	//
 	if (result)
 		[dictionary_cache setObject:result forKey:dict_key];
+	
+//	NSLog(@"DEBUG ResourceManager dictionary_cache keys:\n%@", [dictionary_cache allKeys]);
 		
 	return [NSDictionary dictionaryWithDictionary:result];
 }
@@ -326,13 +343,20 @@ NSMutableDictionary*	surface_cache;
 	}
 	if ([results count] == 0)
 		return nil;
+	
+	// got results we may want to cache
+	//
 	//NSLog(@"---> ResourceManager found %d file(s) with name '%@' (in folder '%@')", [results count], filename, foldername);
-	if (!mergeFiles)
-		return [NSArray arrayWithArray:(NSArray *)[results objectAtIndex:[results count] - 1]];
 	NSMutableArray *result = [NSMutableArray arrayWithCapacity:128];
-	for (i = 0; i < [results count]; i++)
-		[result addObjectsFromArray:(NSArray *)[results objectAtIndex:i]];
-		
+	if (!mergeFiles)
+	{
+		[result addObjectsFromArray:(NSArray *)[results objectAtIndex:[results count] - 1]];	// last loaded file
+	}
+	else
+	{
+		for (i = 0; i < [results count]; i++)
+			[result addObjectsFromArray:(NSArray *)[results objectAtIndex:i]];
+	}	
 	if (result)
 		[array_cache setObject:result forKey:array_key];
 	

@@ -406,6 +406,8 @@ Your fair use and other rights are in no way affected by the above.
 	int key_next_compass_mode;
 	//
 	int key_cloaking_device;
+	//
+	int key_contract_info;
 	
 	// save-file
 	NSString* save_path;

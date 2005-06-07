@@ -3966,6 +3966,11 @@ Your fair use and other rights are in no way affected by the above.
 	currentMessage = nil;
 }
 
+- (void) setMessageGuiBackgroundColor:(NSColor *) some_color
+{
+	[message_gui setBackgroundColor:some_color];
+}
+
 - (void) displayMessage:(NSString *) text forCount:(int) count
 {
 	if (![currentMessage isEqual:text])

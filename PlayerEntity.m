@@ -100,6 +100,8 @@ Your fair use and other rights are in no way affected by the above.
 	//
 	key_cloaking_device = 48;		// '0'
 	//
+	key_contract_info = 63;			// '?'
+	//
 	// now check the keyconfig dictionary...
 	if ([kdic objectForKey:@"key_roll_left"])		key_roll_left = [(NSNumber *)[kdic objectForKey:@"key_roll_left"] intValue];
 	if ([kdic objectForKey:@"key_roll_right"])		key_roll_right = [(NSNumber *)[kdic objectForKey:@"key_roll_right"] intValue];
@@ -144,6 +146,9 @@ Your fair use and other rights are in no way affected by the above.
 	//
 	if ([kdic objectForKey:@"key_cloaking_device"])
 		key_cloaking_device = [(NSNumber *)[kdic objectForKey:@"key_cloaking_device"] intValue];
+	//
+	if ([kdic objectForKey:@"key_contract_info"])
+		key_contract_info = [(NSNumber *)[kdic objectForKey:@"key_contract_info"] intValue];
 	//
 	// other keys are SET and cannot be varied
 }
@@ -2847,6 +2852,16 @@ static BOOL cloak_pressed;
 						}
 						else
 						{
+							if (legal_status > 0)
+							{
+								// there's a slight chance you'll be fined for your past offences when autodocking
+								//
+								int fine_chance = ranrot_rand() & 0x03ff;	//	0..1023
+								int government = 1 + [(NSNumber *)[[universe currentSystemData] objectForKey:KEY_GOVERNMENT] intValue];	// 1..8
+								fine_chance /= government;
+								if (fine_chance < legal_status)
+									[self markForFines];
+							}
 							ship_clock_adjust = 300.0;			// 5 minutes penalty to enter dock
 							ident_engaged = NO;
 							[self safe_all_missiles];
@@ -3282,25 +3297,11 @@ static BOOL queryPressed;
 				planetSearchString = nil;
 			}
 			//
-			if ((status == STATUS_DOCKED)&&([gameView isDown:63]))  // '?' toggle between map and contract screen
-			{
-				if (!queryPressed)
-				{
-					[self setGuiToContractsScreen];
-					if ((oldSelection >= [gui selectableRange].location)&&(oldSelection < [gui selectableRange].location + [gui selectableRange].length))
-						[gui setSelectedRow:oldSelection];
-					[self setGuiToContractsScreen];
-					[universe setDisplayCursor:NO];
-				}
-				queryPressed = YES;
-			}
-			else
-				queryPressed = NO;
-			//
 			moving |= (searchStringLength != [[gameView typedString] length]);
 			searchStringLength = [[gameView typedString] length];
 			//
 		case	GUI_SCREEN_SHORT_RANGE_CHART :
+			//
 			if (status != STATUS_WITCHSPACE_COUNTDOWN)
 			{
 				if ([gameView isDown:gvMouseLeftButton])
@@ -3374,6 +3375,23 @@ static BOOL queryPressed;
 				if ((cursor_moving)&&(gui_screen == GUI_SCREEN_LONG_RANGE_CHART)) [self setGuiToLongRangeChartScreen]; // update graphics
 				if ((cursor_moving)&&(gui_screen == GUI_SCREEN_SHORT_RANGE_CHART)) [self setGuiToShortRangeChartScreen]; // update graphics
 			}
+			//
+		case	GUI_SCREEN_SYSTEM_DATA :
+			//
+			if ((status == STATUS_DOCKED)&&([gameView isDown:key_contract_info]))  // '?' toggle between maps/info and contract screen
+			{
+				if (!queryPressed)
+				{
+					[self setGuiToContractsScreen];
+					if ((oldSelection >= [gui selectableRange].location)&&(oldSelection < [gui selectableRange].location + [gui selectableRange].length))
+						[gui setSelectedRow:oldSelection];
+					[self setGuiToContractsScreen];
+					[universe setDisplayCursor:NO];
+				}
+				queryPressed = YES;
+			}
+			else
+				queryPressed = NO;
 			break;
 
 		case	GUI_SCREEN_OPTIONS :
@@ -3844,7 +3862,7 @@ static BOOL queryPressed;
 					selectPressed = NO;
 				}
 				//
-				if ([gameView isDown:63])   // '?' toggle between contracts screen and map
+				if ([gameView isDown:key_contract_info])   // '?' toggle between contracts screen and map
 				{
 					if (!queryPressed)
 					{
@@ -5264,11 +5282,11 @@ static BOOL toggling_music;
 	docked_station = station;
 	
 	[(MyOpenGLView *)[universe gameView] clearKeys];	// try to stop key bounces
+	
 }
 
 - (void) docked
 {
-//	NSString* dockedMS = @"Docked with station.";
 	status = STATUS_DOCKED;
 	[universe setViewDirection:VIEW_DOCKED];
 	
@@ -5323,7 +5341,9 @@ static BOOL toggling_music;
 		[self setGuiToStatusScreen];
 	
 	[universe setDisplayText:YES];
-//	[universe displayMessage:dockedMS forCount:3.0];
+	
+	// set a dark but see-through message gui background
+	[universe setMessageGuiBackgroundColor:[NSColor colorWithCalibratedRed:0 green:0 blue:0 alpha:0.25]];
 	
 	if (ootunes_on)
 	{
@@ -5354,6 +5374,8 @@ static BOOL toggling_music;
 
 - (void) leaveDock:(StationEntity *)station
 {
+	[universe setMessageGuiBackgroundColor:[NSColor clearColor]];	// clear the message gui background
+	
 	if (station == [universe station])
 		legal_status |= [universe legal_status_of_manifest:shipCommodityData];  // 'leaving with those guns were you sir?'
 	[self loadCargoPods];
