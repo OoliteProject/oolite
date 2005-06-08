@@ -1,356 +1,461 @@
-{
-    "adder-player" = {
-	chance = <*R0.25>;
-	optional_equipment = (
-	    EQ_ECM,
-	    EQ_FUEL_SCOOPS,
-	    EQ_ESCAPE_POD,
-	    EQ_ENERGY_BOMB,
-	    EQ_ENERGY_UNIT,
-	    EQ_NAVAL_ENERGY_UNIT,
-	    EQ_DOCK_COMP,
-	    EQ_WEAPON_PULSE_LASER,
-	    EQ_WEAPON_BEAM_LASER,
-	    EQ_WEAPON_MINING_LASER,
-	    EQ_WEAPON_MILITARY_LASER,
-	    EQ_FUEL_INJECTION,
-	    EQ_SCANNER_SHOW_MISSILE_TARGET,
-	    EQ_MULTI_TARGET,
-	    EQ_GAL_DRIVE,
-	    EQ_SHIELD_BOOSTER
-	);
-	price = <*I65000>;
-	standard_equipment = {
-	    extras = (
-	    );
-	    forward_weapon_type = EQ_WEAPON_PULSE_LASER;
-	    missiles = <*I1>;
-	};
-	techlevel = <*I4>;
-	weapon_facings = <*I1>;
-    };
-    "anaconda-player" = {
-	chance = <*R0.125>;
-	optional_equipment = (
-	    EQ_ECM,
-	    EQ_FUEL_SCOOPS,
-	    EQ_PASSENGER_BERTH,
-	    EQ_ESCAPE_POD,
-	    EQ_ENERGY_BOMB,
-	    EQ_ENERGY_UNIT,
-	    EQ_NAVAL_ENERGY_UNIT,
-	    EQ_DOCK_COMP,
-	    EQ_WEAPON_PULSE_LASER,
-	    EQ_WEAPON_BEAM_LASER,
-	    EQ_WEAPON_MINING_LASER,
-	    EQ_WEAPON_MILITARY_LASER,
-	    EQ_FUEL_INJECTION,
-	    EQ_SCANNER_SHOW_MISSILE_TARGET,
-	    EQ_MULTI_TARGET,
-	    EQ_GAL_DRIVE,
-	    EQ_ADVANCED_COMPASS,
-	    EQ_SHIELD_BOOSTER
-	);
-	price = <*I650000>;
-	standard_equipment = {
-	    extras = (
-	    );
-	    forward_weapon_type = EQ_WEAPON_PULSE_LASER;
-	    missiles = <*I3>;
-	};
-	techlevel = <*I8>;
-	weapon_facings = <*I15>;
-    };
-    "asp-player" = {
-	chance = <*R0.5>;
-	optional_equipment = (
-	    EQ_ECM,
-	    EQ_ESCAPE_POD,
-	    EQ_ENERGY_BOMB,
-	    EQ_ENERGY_UNIT,
-	    EQ_NAVAL_ENERGY_UNIT,
-	    EQ_DOCK_COMP,
-	    EQ_WEAPON_PULSE_LASER,
-	    EQ_WEAPON_BEAM_LASER,
-	    EQ_WEAPON_MILITARY_LASER,
-	    EQ_FUEL_INJECTION,
-	    EQ_GAL_DRIVE,
-	    EQ_ADVANCED_COMPASS,
-	    EQ_SHIELD_BOOSTER,
-	    EQ_NAVAL_SHIELD_BOOSTER
-	);
-	price = <*I375000>;
-	standard_equipment = {
-	    extras = (
-		EQ_SCANNER_SHOW_MISSILE_TARGET,
-		EQ_MULTI_TARGET
-	    );
-	    forward_weapon_type = EQ_WEAPON_PULSE_LASER;
-	    missiles = <*I1>;
-	};
-	techlevel = <*I10>;
-	weapon_facings = <*I3>;
-    };
-    "boa-mk2-player" = {
-	chance = <*R0.325>;
-	optional_equipment = (
-	    EQ_ECM,
-	    EQ_FUEL_SCOOPS,
-	    EQ_PASSENGER_BERTH,
-	    EQ_ESCAPE_POD,
-	    EQ_ENERGY_BOMB,
-	    EQ_ENERGY_UNIT,
-	    EQ_NAVAL_ENERGY_UNIT,
-	    EQ_DOCK_COMP,
-	    EQ_WEAPON_PULSE_LASER,
-	    EQ_WEAPON_BEAM_LASER,
-	    EQ_WEAPON_MINING_LASER,
-	    EQ_WEAPON_MILITARY_LASER,
-	    EQ_FUEL_INJECTION,
-	    EQ_SCANNER_SHOW_MISSILE_TARGET,
-	    EQ_MULTI_TARGET,
-	    EQ_GAL_DRIVE,
-	    EQ_ADVANCED_COMPASS,
-	    EQ_SHIELD_BOOSTER,
-	    EQ_NAVAL_SHIELD_BOOSTER
-	);
-	price = <*I495000>;
-	standard_equipment = {
-	    extras = (
-	    );
-	    forward_weapon_type = EQ_WEAPON_BEAM_LASER;
-	    missiles = <*I5>;
-	};
-	techlevel = <*I7>;
-	weapon_facings = <*I15>;
-    };
-    "boa-player" = {
-	chance = <*R0.375>;
-	optional_equipment = (
-	    EQ_ECM,
-	    EQ_FUEL_SCOOPS,
-	    EQ_PASSENGER_BERTH,
-	    EQ_ESCAPE_POD,
-	    EQ_ENERGY_BOMB,
-	    EQ_ENERGY_UNIT,
-	    EQ_NAVAL_ENERGY_UNIT,
-	    EQ_DOCK_COMP,
-	    EQ_WEAPON_PULSE_LASER,
-	    EQ_WEAPON_BEAM_LASER,
-	    EQ_WEAPON_MINING_LASER,
-	    EQ_WEAPON_MILITARY_LASER,
-	    EQ_FUEL_INJECTION,
-	    EQ_SCANNER_SHOW_MISSILE_TARGET,
-	    EQ_MULTI_TARGET,
-	    EQ_GAL_DRIVE,
-	    EQ_ADVANCED_COMPASS,
-	    EQ_SHIELD_BOOSTER
-	);
-	price = <*I450000>;
-	standard_equipment = {
-	    extras = (
-	    );
-	    forward_weapon_type = EQ_WEAPON_PULSE_LASER;
-	    missiles = <*I3>;
-	};
-	techlevel = <*I6>;
-	weapon_facings = <*I15>;
-    };
-    "cobra3-player" = {
-	chance = <*R0.5>;
-	optional_equipment = (
-	    EQ_CARGO_BAY,
-	    EQ_ECM,
-	    EQ_FUEL_SCOOPS,
-	    EQ_PASSENGER_BERTH,
-	    EQ_ESCAPE_POD,
-	    EQ_ENERGY_BOMB,
-	    EQ_ENERGY_UNIT,
-	    EQ_NAVAL_ENERGY_UNIT,
-	    EQ_DOCK_COMP,
-	    EQ_WEAPON_PULSE_LASER,
-	    EQ_WEAPON_BEAM_LASER,
-	    EQ_WEAPON_MINING_LASER,
-	    EQ_WEAPON_MILITARY_LASER,
-	    EQ_FUEL_INJECTION,
-	    EQ_SCANNER_SHOW_MISSILE_TARGET,
-	    EQ_MULTI_TARGET,
-	    EQ_GAL_DRIVE,
-	    EQ_ADVANCED_COMPASS,
-	    EQ_SHIELD_BOOSTER,
-	    EQ_NAVAL_SHIELD_BOOSTER
-	);
-	price = <*I150000>;
-	standard_equipment = {
-	    extras = (
-	    );
-	    forward_weapon_type = EQ_WEAPON_PULSE_LASER;
-	    missiles = <*I3>;
-	};
-	techlevel = <*I6>;
-	weapon_facings = <*I15>;
-    };
-    "cobramk1-player" = {
-	chance = <*R0.375>;
-	optional_equipment = (
-	    EQ_ECM,
-	    EQ_FUEL_SCOOPS,
-	    EQ_PASSENGER_BERTH,
-	    EQ_ESCAPE_POD,
-	    EQ_ENERGY_BOMB,
-	    EQ_ENERGY_UNIT,
-	    EQ_NAVAL_ENERGY_UNIT,
-	    EQ_DOCK_COMP,
-	    EQ_WEAPON_PULSE_LASER,
-	    EQ_WEAPON_BEAM_LASER,
-	    EQ_WEAPON_MINING_LASER,
-	    EQ_WEAPON_MILITARY_LASER,
-	    EQ_FUEL_INJECTION,
-	    EQ_SCANNER_SHOW_MISSILE_TARGET,
-	    EQ_MULTI_TARGET,
-	    EQ_GAL_DRIVE,
-	    EQ_SHIELD_BOOSTER
-	);
-	price = <*I100000>;
-	standard_equipment = {
-	    extras = (
-	    );
-	    forward_weapon_type = EQ_WEAPON_PULSE_LASER;
-	    missiles = <*I1>;
-	};
-	techlevel = <*I4>;
-	weapon_facings = <*I3>;
-    };
-    "ferdelance-player" = {
-	chance = <*R0.25>;
-	optional_equipment = (
-	    EQ_ENERGY_BOMB,
-	    EQ_ENERGY_UNIT,
-	    EQ_NAVAL_ENERGY_UNIT,
-	    EQ_WEAPON_PULSE_LASER,
-	    EQ_WEAPON_BEAM_LASER,
-	    EQ_WEAPON_MINING_LASER,
-	    EQ_WEAPON_MILITARY_LASER,
-	    EQ_GAL_DRIVE,
-	    EQ_NAVAL_SHIELD_BOOSTER
-	);
-	price = <*I485000>;
-	standard_equipment = {
-	    extras = (
-		EQ_PASSENGER_BERTH,
-		EQ_PASSENGER_BERTH,
-		EQ_FUEL_SCOOPS,
-		EQ_ECM,
-		EQ_ESCAPE_POD,
-		EQ_ADVANCED_COMPASS,
-		EQ_SCANNER_SHOW_MISSILE_TARGET,
-		EQ_FUEL_INJECTION,
-		EQ_MULTI_TARGET,
-		EQ_DOCK_COMP,
-		EQ_SHIELD_BOOSTER
-	    );
-	    forward_weapon_type = EQ_WEAPON_BEAM_LASER;
-	    missiles = <*I3>;
-	};
-	techlevel = <*I8>;
-	weapon_facings = <*I15>;
-    };
-    "moray-player" = {
-	chance = <*R0.375>;
-	optional_equipment = (
-	    EQ_ECM,
-	    EQ_FUEL_SCOOPS,
-	    EQ_PASSENGER_BERTH,
-	    EQ_ESCAPE_POD,
-	    EQ_ENERGY_BOMB,
-	    EQ_ENERGY_UNIT,
-	    EQ_NAVAL_ENERGY_UNIT,
-	    EQ_DOCK_COMP,
-	    EQ_WEAPON_PULSE_LASER,
-	    EQ_WEAPON_BEAM_LASER,
-	    EQ_WEAPON_MINING_LASER,
-	    EQ_WEAPON_MILITARY_LASER,
-	    EQ_FUEL_INJECTION,
-	    EQ_SCANNER_SHOW_MISSILE_TARGET,
-	    EQ_MULTI_TARGET,
-	    EQ_GAL_DRIVE,
-	    EQ_ADVANCED_COMPASS,
-	    EQ_SHIELD_BOOSTER,
-	    EQ_NAVAL_SHIELD_BOOSTER
-	);
-	price = <*I125000>;
-	standard_equipment = {
-	    extras = (
-	    );
-	    forward_weapon_type = EQ_WEAPON_PULSE_LASER;
-	    missiles = <*I2>;
-	};
-	techlevel = <*I5>;
-	weapon_facings = <*I15>;
-    };
-    "morayMED-player" = {
-	chance = <*R0.275>;
-	optional_equipment = (
-	    EQ_CARGO_BAY,
-	    EQ_ECM,
-	    EQ_FUEL_SCOOPS,
-	    EQ_PASSENGER_BERTH,
-	    EQ_ESCAPE_POD,
-	    EQ_ENERGY_BOMB,
-	    EQ_ENERGY_UNIT,
-	    EQ_NAVAL_ENERGY_UNIT,
-	    EQ_DOCK_COMP,
-	    EQ_WEAPON_PULSE_LASER,
-	    EQ_WEAPON_BEAM_LASER,
-	    EQ_WEAPON_MINING_LASER,
-	    EQ_WEAPON_MILITARY_LASER,
-	    EQ_FUEL_INJECTION,
-	    EQ_SCANNER_SHOW_MISSILE_TARGET,
-	    EQ_MULTI_TARGET,
-	    EQ_GAL_DRIVE,
-	    EQ_ADVANCED_COMPASS,
-	    EQ_SHIELD_BOOSTER
-	);
-	price = <*I145000>;
-	standard_equipment = {
-	    extras = (
-	    );
-	    forward_weapon_type = EQ_WEAPON_NONE;
-	    missiles = <*I0>;
-	};
-	techlevel = <*I6>;
-	weapon_facings = <*I1>;
-    };
-    "python-player" = {
-	chance = <*R0.5>;
-	optional_equipment = (
-	    EQ_CARGO_BAY,
-	    EQ_ECM,
-	    EQ_FUEL_SCOOPS,
-	    EQ_PASSENGER_BERTH,
-	    EQ_ESCAPE_POD,
-	    EQ_ENERGY_BOMB,
-	    EQ_ENERGY_UNIT,
-	    EQ_NAVAL_ENERGY_UNIT,
-	    EQ_DOCK_COMP,
-	    EQ_WEAPON_PULSE_LASER,
-	    EQ_WEAPON_BEAM_LASER,
-	    EQ_WEAPON_MINING_LASER,
-	    EQ_WEAPON_MILITARY_LASER,
-	    EQ_FUEL_INJECTION,
-	    EQ_SCANNER_SHOW_MISSILE_TARGET,
-	    EQ_MULTI_TARGET,
-	    EQ_GAL_DRIVE,
-	    EQ_SHIELD_BOOSTER
-	);
-	price = <*I200000>;
-	standard_equipment = {
-	    extras = (
-	    );
-	    forward_weapon_type = EQ_WEAPON_PULSE_LASER;
-	    missiles = <*I1>;
-	};
-	techlevel = <*I4>;
-	weapon_facings = <*I15>;
-    };
-}
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple Computer//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>adder-player</key>
+	<dict>
+		<key>chance</key>
+		<real>0.25</real>
+		<key>optional_equipment</key>
+		<array>
+			<string>EQ_ECM</string>
+			<string>EQ_FUEL_SCOOPS</string>
+			<string>EQ_ESCAPE_POD</string>
+			<string>EQ_ENERGY_BOMB</string>
+			<string>EQ_ENERGY_UNIT</string>
+			<string>EQ_NAVAL_ENERGY_UNIT</string>
+			<string>EQ_DOCK_COMP</string>
+			<string>EQ_WEAPON_PULSE_LASER</string>
+			<string>EQ_WEAPON_BEAM_LASER</string>
+			<string>EQ_WEAPON_MINING_LASER</string>
+			<string>EQ_WEAPON_MILITARY_LASER</string>
+			<string>EQ_FUEL_INJECTION</string>
+			<string>EQ_SCANNER_SHOW_MISSILE_TARGET</string>
+			<string>EQ_MULTI_TARGET</string>
+			<string>EQ_GAL_DRIVE</string>
+			<string>EQ_SHIELD_BOOSTER</string>
+		</array>
+		<key>price</key>
+		<integer>65000</integer>
+		<key>standard_equipment</key>
+		<dict>
+			<key>extras</key>
+			<array/>
+			<key>forward_weapon_type</key>
+			<string>EQ_WEAPON_PULSE_LASER</string>
+			<key>missiles</key>
+			<integer>1</integer>
+		</dict>
+		<key>techlevel</key>
+		<integer>4</integer>
+		<key>weapon_facings</key>
+		<integer>1</integer>
+	</dict>
+	<key>anaconda-player</key>
+	<dict>
+		<key>chance</key>
+		<real>0.125</real>
+		<key>optional_equipment</key>
+		<array>
+			<string>EQ_ECM</string>
+			<string>EQ_FUEL_SCOOPS</string>
+			<string>EQ_PASSENGER_BERTH</string>
+			<string>EQ_ESCAPE_POD</string>
+			<string>EQ_ENERGY_BOMB</string>
+			<string>EQ_ENERGY_UNIT</string>
+			<string>EQ_NAVAL_ENERGY_UNIT</string>
+			<string>EQ_DOCK_COMP</string>
+			<string>EQ_WEAPON_PULSE_LASER</string>
+			<string>EQ_WEAPON_BEAM_LASER</string>
+			<string>EQ_WEAPON_MINING_LASER</string>
+			<string>EQ_WEAPON_MILITARY_LASER</string>
+			<string>EQ_FUEL_INJECTION</string>
+			<string>EQ_SCANNER_SHOW_MISSILE_TARGET</string>
+			<string>EQ_MULTI_TARGET</string>
+			<string>EQ_GAL_DRIVE</string>
+			<string>EQ_ADVANCED_COMPASS</string>
+			<string>EQ_SHIELD_BOOSTER</string>
+		</array>
+		<key>price</key>
+		<integer>650000</integer>
+		<key>standard_equipment</key>
+		<dict>
+			<key>extras</key>
+			<array/>
+			<key>forward_weapon_type</key>
+			<string>EQ_WEAPON_PULSE_LASER</string>
+			<key>missiles</key>
+			<integer>3</integer>
+		</dict>
+		<key>techlevel</key>
+		<integer>8</integer>
+		<key>weapon_facings</key>
+		<integer>15</integer>
+	</dict>
+	<key>asp-player</key>
+	<dict>
+		<key>chance</key>
+		<real>0.5</real>
+		<key>optional_equipment</key>
+		<array>
+			<string>EQ_ECM</string>
+			<string>EQ_ESCAPE_POD</string>
+			<string>EQ_ENERGY_BOMB</string>
+			<string>EQ_ENERGY_UNIT</string>
+			<string>EQ_NAVAL_ENERGY_UNIT</string>
+			<string>EQ_DOCK_COMP</string>
+			<string>EQ_WEAPON_PULSE_LASER</string>
+			<string>EQ_WEAPON_BEAM_LASER</string>
+			<string>EQ_WEAPON_MILITARY_LASER</string>
+			<string>EQ_FUEL_INJECTION</string>
+			<string>EQ_GAL_DRIVE</string>
+			<string>EQ_ADVANCED_COMPASS</string>
+			<string>EQ_SHIELD_BOOSTER</string>
+			<string>EQ_NAVAL_SHIELD_BOOSTER</string>
+		</array>
+		<key>price</key>
+		<integer>375000</integer>
+		<key>standard_equipment</key>
+		<dict>
+			<key>extras</key>
+			<array>
+                <string>EQ_SCANNER_SHOW_MISSILE_TARGET</string>
+                <string>EQ_MULTI_TARGET</string>
+			</array>
+			<key>forward_weapon_type</key>
+			<string>EQ_WEAPON_PULSE_LASER</string>
+			<key>missiles</key>
+			<integer>1</integer>
+		</dict>
+		<key>techlevel</key>
+		<integer>10</integer>
+		<key>weapon_facings</key>
+		<integer>3</integer>
+	</dict>
+	<key>boa-player</key>
+	<dict>
+		<key>chance</key>
+		<real>0.375</real>
+		<key>optional_equipment</key>
+		<array>
+			<string>EQ_ECM</string>
+			<string>EQ_FUEL_SCOOPS</string>
+			<string>EQ_PASSENGER_BERTH</string>
+			<string>EQ_ESCAPE_POD</string>
+			<string>EQ_ENERGY_BOMB</string>
+			<string>EQ_ENERGY_UNIT</string>
+			<string>EQ_NAVAL_ENERGY_UNIT</string>
+			<string>EQ_DOCK_COMP</string>
+			<string>EQ_WEAPON_PULSE_LASER</string>
+			<string>EQ_WEAPON_BEAM_LASER</string>
+			<string>EQ_WEAPON_MINING_LASER</string>
+			<string>EQ_WEAPON_MILITARY_LASER</string>
+			<string>EQ_FUEL_INJECTION</string>
+			<string>EQ_SCANNER_SHOW_MISSILE_TARGET</string>
+			<string>EQ_MULTI_TARGET</string>
+			<string>EQ_GAL_DRIVE</string>
+			<string>EQ_ADVANCED_COMPASS</string>
+			<string>EQ_SHIELD_BOOSTER</string>
+		</array>
+		<key>price</key>
+		<integer>450000</integer>
+		<key>standard_equipment</key>
+		<dict>
+			<key>extras</key>
+			<array/>
+			<key>forward_weapon_type</key>
+			<string>EQ_WEAPON_PULSE_LASER</string>
+			<key>missiles</key>
+			<integer>3</integer>
+		</dict>
+		<key>techlevel</key>
+		<integer>6</integer>
+		<key>weapon_facings</key>
+		<integer>15</integer>
+	</dict>
+	<key>boa-mk2-player</key>
+	<dict>
+		<key>chance</key>
+		<real>0.325</real>
+		<key>optional_equipment</key>
+		<array>
+			<string>EQ_ECM</string>
+			<string>EQ_FUEL_SCOOPS</string>
+			<string>EQ_PASSENGER_BERTH</string>
+			<string>EQ_ESCAPE_POD</string>
+			<string>EQ_ENERGY_BOMB</string>
+			<string>EQ_ENERGY_UNIT</string>
+			<string>EQ_NAVAL_ENERGY_UNIT</string>
+			<string>EQ_DOCK_COMP</string>
+			<string>EQ_WEAPON_PULSE_LASER</string>
+			<string>EQ_WEAPON_BEAM_LASER</string>
+			<string>EQ_WEAPON_MINING_LASER</string>
+			<string>EQ_WEAPON_MILITARY_LASER</string>
+			<string>EQ_FUEL_INJECTION</string>
+			<string>EQ_SCANNER_SHOW_MISSILE_TARGET</string>
+			<string>EQ_MULTI_TARGET</string>
+			<string>EQ_GAL_DRIVE</string>
+			<string>EQ_ADVANCED_COMPASS</string>
+			<string>EQ_SHIELD_BOOSTER</string>
+			<string>EQ_NAVAL_SHIELD_BOOSTER</string>
+		</array>
+		<key>price</key>
+		<integer>495000</integer>
+		<key>standard_equipment</key>
+		<dict>
+			<key>extras</key>
+			<array/>
+			<key>forward_weapon_type</key>
+			<string>EQ_WEAPON_BEAM_LASER</string>
+			<key>missiles</key>
+			<integer>5</integer>
+		</dict>
+		<key>techlevel</key>
+		<integer>7</integer>
+		<key>weapon_facings</key>
+		<integer>15</integer>
+	</dict>
+	<key>cobra3-player</key>
+	<dict>
+		<key>chance</key>
+		<real>0.5</real>
+		<key>optional_equipment</key>
+		<array>
+            <string>EQ_CARGO_BAY</string>
+			<string>EQ_ECM</string>
+			<string>EQ_FUEL_SCOOPS</string>
+			<string>EQ_PASSENGER_BERTH</string>
+			<string>EQ_ESCAPE_POD</string>
+			<string>EQ_ENERGY_BOMB</string>
+			<string>EQ_ENERGY_UNIT</string>
+			<string>EQ_NAVAL_ENERGY_UNIT</string>
+			<string>EQ_DOCK_COMP</string>
+			<string>EQ_WEAPON_PULSE_LASER</string>
+			<string>EQ_WEAPON_BEAM_LASER</string>
+			<string>EQ_WEAPON_MINING_LASER</string>
+			<string>EQ_WEAPON_MILITARY_LASER</string>
+			<string>EQ_FUEL_INJECTION</string>
+			<string>EQ_SCANNER_SHOW_MISSILE_TARGET</string>
+			<string>EQ_MULTI_TARGET</string>
+			<string>EQ_GAL_DRIVE</string>
+			<string>EQ_ADVANCED_COMPASS</string>
+			<string>EQ_SHIELD_BOOSTER</string>
+			<string>EQ_NAVAL_SHIELD_BOOSTER</string>
+		</array>
+		<key>price</key>
+		<integer>150000</integer>
+		<key>standard_equipment</key>
+		<dict>
+			<key>extras</key>
+			<array/>
+			<key>forward_weapon_type</key>
+			<string>EQ_WEAPON_PULSE_LASER</string>
+			<key>missiles</key>
+			<integer>3</integer>
+		</dict>
+		<key>techlevel</key>
+		<integer>6</integer>
+		<key>weapon_facings</key>
+		<integer>15</integer>
+	</dict>
+	<key>cobramk1-player</key>
+	<dict>
+		<key>chance</key>
+		<real>0.375</real>
+		<key>optional_equipment</key>
+		<array>
+			<string>EQ_ECM</string>
+			<string>EQ_FUEL_SCOOPS</string>
+			<string>EQ_PASSENGER_BERTH</string>
+			<string>EQ_ESCAPE_POD</string>
+			<string>EQ_ENERGY_BOMB</string>
+			<string>EQ_ENERGY_UNIT</string>
+			<string>EQ_NAVAL_ENERGY_UNIT</string>
+			<string>EQ_DOCK_COMP</string>
+			<string>EQ_WEAPON_PULSE_LASER</string>
+			<string>EQ_WEAPON_BEAM_LASER</string>
+			<string>EQ_WEAPON_MINING_LASER</string>
+			<string>EQ_WEAPON_MILITARY_LASER</string>
+			<string>EQ_FUEL_INJECTION</string>
+			<string>EQ_SCANNER_SHOW_MISSILE_TARGET</string>
+			<string>EQ_MULTI_TARGET</string>
+			<string>EQ_GAL_DRIVE</string>
+			<string>EQ_SHIELD_BOOSTER</string>
+		</array>
+		<key>price</key>
+		<integer>100000</integer>
+		<key>standard_equipment</key>
+		<dict>
+			<key>extras</key>
+			<array/>
+			<key>forward_weapon_type</key>
+			<string>EQ_WEAPON_PULSE_LASER</string>
+			<key>missiles</key>
+			<integer>1</integer>
+		</dict>
+		<key>techlevel</key>
+		<integer>4</integer>
+		<key>weapon_facings</key>
+		<integer>3</integer>
+	</dict>
+	<key>ferdelance-player</key>
+	<dict>
+		<key>chance</key>
+		<real>0.25</real>
+		<key>optional_equipment</key>
+		<array>
+			<string>EQ_ENERGY_BOMB</string>
+			<string>EQ_ENERGY_UNIT</string>
+			<string>EQ_NAVAL_ENERGY_UNIT</string>
+			<string>EQ_WEAPON_PULSE_LASER</string>
+			<string>EQ_WEAPON_BEAM_LASER</string>
+			<string>EQ_WEAPON_MINING_LASER</string>
+			<string>EQ_WEAPON_MILITARY_LASER</string>
+			<string>EQ_GAL_DRIVE</string>
+			<string>EQ_NAVAL_SHIELD_BOOSTER</string>
+		</array>
+		<key>price</key>
+		<integer>485000</integer>
+		<key>standard_equipment</key>
+		<dict>
+			<key>extras</key>
+			<array>
+				<string>EQ_PASSENGER_BERTH</string>
+				<string>EQ_PASSENGER_BERTH</string>
+				<string>EQ_FUEL_SCOOPS</string>
+				<string>EQ_ECM</string>
+				<string>EQ_ESCAPE_POD</string>
+				<string>EQ_ADVANCED_COMPASS</string>
+				<string>EQ_SCANNER_SHOW_MISSILE_TARGET</string>
+				<string>EQ_FUEL_INJECTION</string>
+				<string>EQ_MULTI_TARGET</string>
+				<string>EQ_DOCK_COMP</string>
+				<string>EQ_SHIELD_BOOSTER</string>
+			</array>
+			<key>forward_weapon_type</key>
+			<string>EQ_WEAPON_BEAM_LASER</string>
+			<key>missiles</key>
+			<integer>3</integer>
+		</dict>
+		<key>techlevel</key>
+		<integer>8</integer>
+		<key>weapon_facings</key>
+		<integer>15</integer>
+	</dict>
+	<key>moray-player</key>
+	<dict>
+		<key>chance</key>
+		<real>0.375</real>
+		<key>optional_equipment</key>
+		<array>
+			<string>EQ_ECM</string>
+			<string>EQ_FUEL_SCOOPS</string>
+			<string>EQ_PASSENGER_BERTH</string>
+			<string>EQ_ESCAPE_POD</string>
+			<string>EQ_ENERGY_BOMB</string>
+			<string>EQ_ENERGY_UNIT</string>
+			<string>EQ_NAVAL_ENERGY_UNIT</string>
+			<string>EQ_DOCK_COMP</string>
+			<string>EQ_WEAPON_PULSE_LASER</string>
+			<string>EQ_WEAPON_BEAM_LASER</string>
+			<string>EQ_WEAPON_MINING_LASER</string>
+			<string>EQ_WEAPON_MILITARY_LASER</string>
+			<string>EQ_FUEL_INJECTION</string>
+			<string>EQ_SCANNER_SHOW_MISSILE_TARGET</string>
+			<string>EQ_MULTI_TARGET</string>
+			<string>EQ_GAL_DRIVE</string>
+			<string>EQ_ADVANCED_COMPASS</string>
+			<string>EQ_SHIELD_BOOSTER</string>
+			<string>EQ_NAVAL_SHIELD_BOOSTER</string>
+		</array>
+		<key>price</key>
+		<integer>125000</integer>
+		<key>standard_equipment</key>
+		<dict>
+			<key>extras</key>
+			<array/>
+			<key>forward_weapon_type</key>
+			<string>EQ_WEAPON_PULSE_LASER</string>
+			<key>missiles</key>
+			<integer>2</integer>
+		</dict>
+		<key>techlevel</key>
+		<integer>5</integer>
+		<key>weapon_facings</key>
+		<integer>15</integer>
+	</dict>
+	<key>morayMED-player</key>
+	<dict>
+		<key>chance</key>
+		<real>0.275</real>
+		<key>optional_equipment</key>
+		<array>
+            <string>EQ_CARGO_BAY</string>
+			<string>EQ_ECM</string>
+			<string>EQ_FUEL_SCOOPS</string>
+			<string>EQ_PASSENGER_BERTH</string>
+			<string>EQ_ESCAPE_POD</string>
+			<string>EQ_ENERGY_BOMB</string>
+			<string>EQ_ENERGY_UNIT</string>
+			<string>EQ_NAVAL_ENERGY_UNIT</string>
+			<string>EQ_DOCK_COMP</string>
+			<string>EQ_WEAPON_PULSE_LASER</string>
+			<string>EQ_WEAPON_BEAM_LASER</string>
+			<string>EQ_WEAPON_MINING_LASER</string>
+			<string>EQ_WEAPON_MILITARY_LASER</string>
+			<string>EQ_FUEL_INJECTION</string>
+			<string>EQ_SCANNER_SHOW_MISSILE_TARGET</string>
+			<string>EQ_MULTI_TARGET</string>
+			<string>EQ_GAL_DRIVE</string>
+			<string>EQ_ADVANCED_COMPASS</string>
+			<string>EQ_SHIELD_BOOSTER</string>
+		</array>
+		<key>price</key>
+		<integer>145000</integer>
+		<key>standard_equipment</key>
+		<dict>
+			<key>extras</key>
+			<array/>
+			<key>forward_weapon_type</key>
+			<string>EQ_WEAPON_NONE</string>
+			<key>missiles</key>
+			<integer>0</integer>
+		</dict>
+		<key>techlevel</key>
+		<integer>6</integer>
+		<key>weapon_facings</key>
+		<integer>1</integer>
+	</dict>
+	<key>python-player</key>
+	<dict>
+		<key>chance</key>
+		<real>0.5</real>
+		<key>optional_equipment</key>
+		<array>
+            <string>EQ_CARGO_BAY</string>
+			<string>EQ_ECM</string>
+			<string>EQ_FUEL_SCOOPS</string>
+			<string>EQ_PASSENGER_BERTH</string>
+			<string>EQ_ESCAPE_POD</string>
+			<string>EQ_ENERGY_BOMB</string>
+			<string>EQ_ENERGY_UNIT</string>
+			<string>EQ_NAVAL_ENERGY_UNIT</string>
+			<string>EQ_DOCK_COMP</string>
+			<string>EQ_WEAPON_PULSE_LASER</string>
+			<string>EQ_WEAPON_BEAM_LASER</string>
+			<string>EQ_WEAPON_MINING_LASER</string>
+			<string>EQ_WEAPON_MILITARY_LASER</string>
+			<string>EQ_FUEL_INJECTION</string>
+			<string>EQ_SCANNER_SHOW_MISSILE_TARGET</string>
+			<string>EQ_MULTI_TARGET</string>
+			<string>EQ_GAL_DRIVE</string>
+			<string>EQ_SHIELD_BOOSTER</string>
+		</array>
+		<key>price</key>
+		<integer>200000</integer>
+		<key>standard_equipment</key>
+		<dict>
+			<key>extras</key>
+			<array/>
+			<key>forward_weapon_type</key>
+			<string>EQ_WEAPON_PULSE_LASER</string>
+			<key>missiles</key>
+			<integer>1</integer>
+		</dict>
+		<key>techlevel</key>
+		<integer>4</integer>
+		<key>weapon_facings</key>
+		<integer>15</integer>
+	</dict>
+</dict>
+</plist>

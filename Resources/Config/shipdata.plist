@@ -1,1907 +1,3223 @@
-{
-    adder = {
-	ai_type = scavengerAI.plist;
-	bounty = <*I0>;
-	cargo_type = CARGO_NOT_CARGO;
-	energy_recharge_rate = <*R2>;
-	exhaust = (
-	    "-9.0 0.0 -22.5 10.0 8.0 8.0",
-	    "9.0 0.0 -22.5 10.0 8.0 8.0"
-	);
-	forward_weapon_type = WEAPON_PULSE_LASER;
-	has_ecm = <*BN>
-;
-	has_escape_pod = <*BN>
-;
-	has_scoop = <*BY>
-;
-	likely_cargo = <*I0>;
-	max_cargo = <*I5>;
-	max_energy = <*R85>;
-	max_flight_pitch = <*R2>;
-	max_flight_roll = <*R2.8>;
-	max_flight_speed = <*R240>;
-	max_missiles = <*I1>;
-	missiles = <*I1>;
-	model = adder.dat;
-	name = Adder;
-	roles = "hunter scavenger shuttle hermit-ship";
-	thrust = <*R30>;
-	weapon_energy = <*R8>;
-	weapon_offset_x = <*R0>;
-    };
-    "adder-player" = {
-	energy_recharge_rate = <*R2>;
-	exhaust = (
-	    "-9.0 0.0 -22.5 10.0 8.0 8.0",
-	    "9.0 0.0 -22.5 10.0 8.0 8.0"
-	);
-	forward_weapon_type = WEAPON_PULSE_LASER;
-	hud = "hud-small.plist";
-	max_cargo = <*I2>;
-	max_energy = <*R85>;
-	max_flight_pitch = <*R2>;
-	max_flight_roll = <*R2.8>;
-	max_flight_speed = <*R240>;
-	max_missiles = <*I1>;
-	missiles = <*I1>;
-	model = adder.dat;
-	name = Adder;
-	roles = player;
-	thrust = <*R30>;
-    };
-    alloy = {
-	ai_type = nullAI.plist;
-	bounty = <*I1>;
-	cargo_type = CARGO_ALLOY;
-	energy_recharge_rate = <*R0>;
-	forward_weapon_type = WEAPON_NONE;
-	likely_cargo = <*I0>;
-	max_cargo = <*I0>;
-	max_energy = <*R1>;
-	max_flight_pitch = <*R0.5>;
-	max_flight_roll = <*R0.5>;
-	max_flight_speed = <*R50>;
-	missiles = <*I0>;
-	model = alloy.dat;
-	name = "Metal fragment";
-	roles = alloy;
-	thrust = <*R0>;
-    };
-    anaconda = {
-	aft_weapon_type = WEAPON_PULSE_LASER;
-	ai_type = route1traderAI.plist;
-	bounty = <*I0>;
-	cargo_type = CARGO_NOT_CARGO;
-	energy_recharge_rate = <*R3>;
-	"escort-ship" = cobramk1;
-	escorts = <*I6>;
-	exhaust = (
-	    "-23.5.0 0.0 -74.5 16.0 16.0 14.0",
-	    "23.5.0 0.0 -74.5 16.0 16.0 14.0"
-	);
-	forward_weapon_type = WEAPON_PULSE_LASER;
-	has_ecm = <*BY>
-;
-	has_escape_pod = <*BY>
-;
-	has_scoop = <*BY>
-;
-	likely_cargo = <*I7>;
-	max_cargo = <*I750>;
-	max_energy = <*R500>;
-	max_flight_pitch = <*R0.4>;
-	max_flight_roll = <*R0.75>;
-	max_flight_speed = <*R140>;
-	max_missiles = <*I7>;
-	missiles = <*I7>;
-	model = anaconda.dat;
-	name = Anaconda;
-	roles = trader;
-	thrust = <*R14>;
-	weapon_energy = <*R31>;
-	weapon_offset_x = <*R0>;
-    };
-    "anaconda-player" = {
-	energy_recharge_rate = <*R3>;
-	exhaust = (
-	    "-23.5.0 0.0 -74.5 16.0 16.0 14.0",
-	    "23.5.0 0.0 -74.5 16.0 16.0 14.0"
-	);
-	forward_weapon_type = WEAPON_PULSE_LASER;
-	hud = hud.plist;
-	max_cargo = <*I750>;
-	max_energy = <*R500>;
-	max_flight_pitch = <*R0.4>;
-	max_flight_roll = <*R0.75>;
-	max_flight_speed = <*R140>;
-	max_missiles = <*I7>;
-	missiles = <*I3>;
-	model = anaconda.dat;
-	name = Anaconda;
-	roles = player;
-	thrust = <*R14>;
-    };
-    "arc-detail" = {
-	ai_type = nullAI.plist;
-	model = arcdetail.dat;
-	name = "Arc Detail";
-	roles = "arc-detail";
-    };
-    asp = {
-	ai_type = pirateAI.plist;
-	bounty = <*I0>;
-	cargo_type = CARGO_NOT_CARGO;
-	energy_recharge_rate = <*R4>;
-	exhaust = (
-	    "0.0 0.0 -27.0 8.0 6.0 8.0"
-	);
-	forward_weapon_type = WEAPON_BEAM_LASER;
-	fuel = <*I80>;
-	has_ecm = <*BY>
-;
-	has_escape_pod = <*BN>
-;
-	has_fuel_injection = <*R0.5>;
-	has_scoop = <*BY>
-;
-	has_shield_booster = <*R0.5>;
-	likely_cargo = <*I0>;
-	max_cargo = <*I0>;
-	max_energy = <*R350>;
-	max_flight_pitch = <*R1>;
-	max_flight_roll = <*R2>;
-	max_flight_speed = <*R400>;
-	max_missiles = <*I1>;
-	missiles = <*I1>;
-	model = aspmk2.dat;
-	name = "Asp Mark II";
-	roles = "hunter pirate asp-pirate";
-	thrust = <*R50>;
-	weapon_energy = <*R15>;
-	weapon_offset_x = <*R5>;
-    };
-    "asp-cloaked" = {
-	ai_type = pirateAI.plist;
-	bounty = <*I150>;
-	cargo_type = CARGO_NOT_CARGO;
-	death_actions = (
-	    debugOn,
-	    "spawn: cloaking-device 1",
-	    "set: mission_cloak COMPLETE",
-	    debugOff
-	);
-	energy_recharge_rate = <*R4>;
-	exhaust = (
-	    "0.0 0.0 -27.0 8.0 6.0 8.0"
-	);
-	forward_weapon_type = WEAPON_BEAM_LASER;
-	has_cloaking_device = <*BY>
-;
-	has_scoop = <*BY>
-;
-	likely_cargo = <*I0>;
-	max_cargo = <*I0>;
-	max_energy = <*R320>;
-	max_flight_pitch = <*R1>;
-	max_flight_roll = <*R2>;
-	max_flight_speed = <*R400>;
-	max_missiles = <*I1>;
-	missiles = <*I1>;
-	model = aspmk2.dat;
-	name = "Asp Mark II";
-	roles = "asp-cloaked";
-	thrust = <*R50>;
-	weapon_energy = <*R15>;
-	weapon_offset_x = <*R5>;
-    };
-    "asp-player" = {
-	energy_recharge_rate = <*R4>;
-	exhaust = (
-	    "0.0 0.0 -27.0 8.0 6.0 8.0"
-	);
-	forward_weapon_type = WEAPON_BEAM_LASER;
-	hud = hud.plist;
-	max_cargo = <*I0>;
-	max_energy = <*R350>;
-	max_flight_pitch = <*R1>;
-	max_flight_roll = <*R2>;
-	max_flight_speed = <*R400>;
-	max_missiles = <*I1>;
-	missiles = <*I1>;
-	model = aspmk2.dat;
-	name = "Asp Mark II";
-	roles = player;
-	thrust = <*R50>;
-    };
-    asteroid = {
-	ai_type = dumbAI.plist;
-	bounty = <*I10>;
-	cargo_type = CARGO_NOT_CARGO;
-	energy_recharge_rate = <*R0>;
-	forward_weapon_type = WEAPON_NONE;
-	has_ecm = <*BN>
-;
-	has_escape_pod = <*BN>
-;
-	has_scoop = <*BN>
-;
-	likely_cargo = <*I0>;
-	max_cargo = <*I0>;
-	max_energy = <*R100>;
-	max_flight_pitch = <*R0.1>;
-	max_flight_roll = <*R0.1>;
-	max_flight_speed = <*R0>;
-	missiles = <*I0>;
-	model = asteroid.dat;
-	name = Asteroid;
-	roles = asteroid;
-	scanClass = CLASS_ROCK;
-	smooth = <*BY>
-;
-	thrust = <*R0>;
-	weapon_energy = <*R0>;
-	weapon_offset_x = <*R0>;
-    };
-    "asteroid-alternative" = {
-	ai_type = dumbAI.plist;
-	bounty = <*I10>;
-	cargo_type = CARGO_NOT_CARGO;
-	energy_recharge_rate = <*R0>;
-	forward_weapon_type = WEAPON_NONE;
-	has_ecm = <*BN>
-;
-	has_escape_pod = <*BN>
-;
-	has_scoop = <*BN>
-;
-	likely_cargo = <*I0>;
-	max_cargo = <*I0>;
-	max_energy = <*R100>;
-	max_flight_pitch = <*R0.1>;
-	max_flight_roll = <*R0.1>;
-	max_flight_speed = <*R0>;
-	missiles = <*I0>;
-	model = asteroid1.dat;
-	name = Asteroid;
-	roles = asteroid;
-	scanClass = CLASS_ROCK;
-	smooth = <*BY>
-;
-	thrust = <*R0>;
-	weapon_energy = <*R0>;
-	weapon_offset_x = <*R0>;
-    };
-    barrel = {
-	ai_type = dumbAI.plist;
-	bounty = <*I1>;
-	cargo_type = CARGO_RANDOM;
-	energy_recharge_rate = <*R0>;
-	forward_weapon_type = WEAPON_NONE;
-	has_ecm = <*BN>
-;
-	has_escape_pod = <*BN>
-;
-	has_scoop = <*BN>
-;
-	likely_cargo = <*I0>;
-	max_cargo = <*I0>;
-	max_energy = <*R1>;
-	max_flight_pitch = <*R0.5>;
-	max_flight_roll = <*R0.5>;
-	max_flight_speed = <*R50>;
-	missiles = <*I0>;
-	model = barrel.dat;
-	name = "Cargo container";
-	roles = cargopod;
-	thrust = <*R0>;
-	weapon_energy = <*R0>;
-	weapon_offset_x = <*R0>;
-    };
-    boa = {
-	aft_weapon_type = WEAPON_BEAM_LASER;
-	ai_type = route1traderAI.plist;
-	bounty = <*I0>;
-	cargo_type = CARGO_NOT_CARGO;
-	energy_recharge_rate = <*R3>;
-	escorts = <*I4>;
-	exhaust = (
-	    "0.0 0.0 -61.5 16.0 16.0 14.0"
-	);
-	forward_weapon_type = WEAPON_PULSE_LASER;
-	has_ecm = <*BY>
-;
-	has_escape_pod = <*BY>
-;
-	has_scoop = <*BY>
-;
-	likely_cargo = <*I5>;
-	max_cargo = <*I125>;
-	max_energy = <*R450>;
-	max_flight_pitch = <*R1>;
-	max_flight_roll = <*R2.8>;
-	max_flight_speed = <*R240>;
-	max_missiles = <*I4>;
-	missiles = <*I4>;
-	model = boa.dat;
-	name = Boa;
-	roles = trader;
-	thrust = <*R36>;
-	weapon_energy = <*R15>;
-	weapon_offset_x = <*R0>;
-    };
-    "boa-mk2" = {
-	aft_weapon_type = WEAPON_BEAM_LASER;
-	ai_type = route1traderAI.plist;
-	bounty = <*I0>;
-	cargo_type = CARGO_NOT_CARGO;
-	energy_recharge_rate = <*R3.2>;
-	escorts = <*I4>;
-	exhaust = (
-	    "5.0 0.0 -113 12.0 12.0 16.0",
-	    "-5.0 0.0 -113 12.0 12.0 16.0"
-	);
-	forward_weapon_type = WEAPON_BEAM_LASER;
-	has_ecm = <*BY>
-;
-	has_escape_pod = <*BY>
-;
-	has_scoop = <*BY>
-;
-	likely_cargo = <*I15>;
-	max_cargo = <*I175>;
-	max_energy = <*R525>;
-	max_flight_pitch = <*R1>;
-	max_flight_roll = <*R2.5>;
-	max_flight_speed = <*R312>;
-	max_missiles = <*I5>;
-	missiles = <*I5>;
-	model = "boa-mk2.dat";
-	name = "Boa Class Cruiser";
-	roles = "trader sunskim-trader";
-	thrust = <*R40>;
-	weapon_energy = <*R15>;
-	weapon_offset_x = <*R0>;
-    };
-    "boa-mk2-player" = {
-	energy_recharge_rate = <*R3.2>;
-	escorts = <*I4>;
-	exhaust = (
-	    "5.0 0.0 -113 12.0 12.0 16.0",
-	    "-5.0 0.0 -113 12.0 12.0 16.0"
-	);
-	forward_weapon_type = WEAPON_BEAM_LASER;
-	hud = hud.plist;
-	max_cargo = <*I175>;
-	max_energy = <*R525>;
-	max_flight_pitch = <*R1>;
-	max_flight_roll = <*R2.5>;
-	max_flight_speed = <*R312>;
-	max_missiles = <*I5>;
-	missiles = <*I5>;
-	model = "boa-mk2.dat";
-	name = "Boa Class Cruiser";
-	roles = player;
-	thrust = <*R40>;
-    };
-    "boa-player" = {
-	energy_recharge_rate = <*R3>;
-	exhaust = (
-	    "0.0 0.0 -61.5 16.0 16.0 14.0"
-	);
-	forward_weapon_type = WEAPON_PULSE_LASER;
-	hud = hud.plist;
-	max_cargo = <*I125>;
-	max_energy = <*R450>;
-	max_flight_pitch = <*R1>;
-	max_flight_roll = <*R2.8>;
-	max_flight_speed = <*R240>;
-	max_missiles = <*I4>;
-	missiles = <*I4>;
-	model = boa.dat;
-	name = Boa;
-	roles = player;
-	thrust = <*R36>;
-    };
-    boulder = {
-	ai_type = dumbAI.plist;
-	bounty = <*I5>;
-	cargo_type = CARGO_NOT_CARGO;
-	energy_recharge_rate = <*R0>;
-	forward_weapon_type = WEAPON_NONE;
-	has_ecm = <*BN>
-;
-	has_escape_pod = <*BN>
-;
-	has_scoop = <*BN>
-;
-	likely_cargo = <*I0>;
-	max_cargo = <*I0>;
-	max_energy = <*R25>;
-	max_flight_pitch = <*R0.5>;
-	max_flight_roll = <*R0.5>;
-	max_flight_speed = <*R5>;
-	missiles = <*I0>;
-	model = boulder.dat;
-	name = Boulder;
-	roles = boulder;
-	scanClass = CLASS_ROCK;
-	smooth = <*BY>
-;
-	thrust = <*R0>;
-	weapon_energy = <*R0>;
-	weapon_offset_x = <*R0>;
-    };
-    "boulder-alternative" = {
-	ai_type = dumbAI.plist;
-	bounty = <*I5>;
-	cargo_type = CARGO_NOT_CARGO;
-	energy_recharge_rate = <*R0>;
-	forward_weapon_type = WEAPON_NONE;
-	has_ecm = <*BN>
-;
-	has_escape_pod = <*BN>
-;
-	has_scoop = <*BN>
-;
-	likely_cargo = <*I0>;
-	max_cargo = <*I0>;
-	max_energy = <*R25>;
-	max_flight_pitch = <*R0.5>;
-	max_flight_roll = <*R0.5>;
-	max_flight_speed = <*R5>;
-	missiles = <*I0>;
-	model = boulder1.dat;
-	name = Boulder;
-	roles = boulder;
-	scanClass = CLASS_ROCK;
-	smooth = <*BY>
-;
-	thrust = <*R0>;
-	weapon_energy = <*R0>;
-	weapon_offset_x = <*R0>;
-    };
-    buoy = {
-	ai_type = buoyAI.plist;
-	beacon = "N0100 Navigation Buoy";
-	bounty = <*I0>;
-	cargo_type = CARGO_NOT_CARGO;
-	energy_recharge_rate = <*R2>;
-	forward_weapon_type = WEAPON_NONE;
-	has_ecm = <*BN>
-;
-	has_escape_pod = <*BN>
-;
-	has_scoop = <*BN>
-;
-	likely_cargo = <*I0>;
-	max_cargo = <*I0>;
-	max_energy = <*R250>;
-	max_flight_pitch = <*R2>;
-	max_flight_roll = <*R2>;
-	max_flight_speed = <*R0>;
-	missiles = <*I0>;
-	model = buoy.dat;
-	name = "Navigation Buoy";
-	roles = buoy;
-	thrust = <*R100>;
-	weapon_energy = <*R0>;
-	weapon_offset_x = <*R0>;
-    };
-    "buoy-witchpoint" = {
-	ai_type = buoyAI.plist;
-	beacon = "W0100 Navigation Buoy (Witchpoint)";
-	bounty = <*I0>;
-	cargo_type = CARGO_NOT_CARGO;
-	energy_recharge_rate = <*R2>;
-	forward_weapon_type = WEAPON_NONE;
-	likely_cargo = <*I0>;
-	max_cargo = <*I0>;
-	max_energy = <*R250>;
-	max_flight_pitch = <*R2>;
-	max_flight_roll = <*R2>;
-	max_flight_speed = <*R0>;
-	missiles = <*I0>;
-	model = buoy.dat;
-	name = "Witchpoint Beacon";
-	roles = "buoy-witchpoint";
-	subentities = (
-	    "*FLASHER* 0 0 60 60 0.15 1 150",
-	    "*FLASHER* 0 0 -60 30 0.15 0.0 150",
-	    "*FLASHER* 0 0 60 5 2 0.0 25",
-	    "*FLASHER* 0 0 -60 5 2 0.0 25"
-	);
-	thrust = <*R100>;
-	weapon_energy = <*R0>;
-	weapon_offset_x = <*R0>;
-    };
-    "cloaking-device" = {
-	ai_type = dumbAI.plist;
-	bounty = <*I1>;
-	cargo_type = CARGO_SCRIPTED_ITEM;
-	energy_recharge_rate = <*R0>;
-	forward_weapon_type = WEAPON_NONE;
-	likely_cargo = <*I0>;
-	max_cargo = <*I0>;
-	max_energy = <*R5>;
-	max_flight_pitch = <*R0.5>;
-	max_flight_roll = <*R0.5>;
-	max_flight_speed = <*R50>;
-	model = barrel.dat;
-	name = "Unusual cargo container";
-	roles = "cloaking-device";
-	scanClass = CLASS_CARGO;
-	script_actions = (
-	    debugOn,
-	    "testForEquipment: EQ_CLOAKING_DEVICE",
-	    {
-		conditions = (
-		    "foundEquipment_bool equal NO"
-		);
-		do = (
-		    "awardEquipment: EQ_CLOAKING_DEVICE"
-		);
-	    },
-	    {
-		conditions = (
-		    "foundEquipment_bool equal YES"
-		);
-		do = (
-		    "awardCargo: 100 Gold"
-		);
-	    },
-	    debugOff
-	);
-	thrust = <*R0>;
-    };
-    "cobra3-alternate" = {
-	ai_type = route1traderAI.plist;
-	bounty = <*I0>;
-	cargo_type = CARGO_NOT_CARGO;
-	energy_recharge_rate = <*R3>;
-	exhaust = (
-	    "-19 0.0 -21.5 15.0 7.5 12.5",
-	    "19 0.0 -21.5 15.0 7.5 12.5"
-	);
-	forward_weapon_type = WEAPON_BEAM_LASER;
-	has_ecm = <*BY>
-;
-	has_escape_pod = <*BY>
-;
-	has_scoop = <*BY>
-;
-	likely_cargo = <*I3>;
-	max_cargo = <*I35>;
-	max_energy = <*R250>;
-	max_flight_pitch = <*R1>;
-	max_flight_roll = <*R2>;
-	max_flight_speed = <*R320>;
-	missiles = <*I3>;
-	model = cobramk3alt.dat;
-	name = "Cobra Mark III";
-	roles = "hunter pirate trader hermit-ship sunskim-trader";
-	thrust = <*R32>;
-	weapon_energy = <*R15>;
-	weapon_offset_x = <*R10>;
-    };
-    "cobra3-pirate" = {
-	ai_type = pirateAI.plist;
-	bounty = <*I50>;
-	cargo_type = CARGO_NOT_CARGO;
-	energy_recharge_rate = <*R3>;
-	exhaust = (
-	    "-19 0.0 -21.5 15.0 7.5 12.5",
-	    "19 0.0 -21.5 15.0 7.5 12.5"
-	);
-	forward_weapon_type = WEAPON_PULSE_LASER;
-	has_ecm = <*BN>
-;
-	has_escape_pod = <*BY>
-;
-	has_scoop = <*BY>
-;
-	has_shield_booster = <*R0.25>;
-	likely_cargo = <*I3>;
-	max_cargo = <*I5>;
-	max_energy = <*R250>;
-	max_flight_pitch = <*R1>;
-	max_flight_roll = <*R2>;
-	max_flight_speed = <*R300>;
-	missiles = <*I1>;
-	model = cobramk3.dat;
-	name = "Cobra Mark III";
-	roles = "pirate hunter";
-	thrust = <*R30>;
-	weapon_energy = <*R9>;
-	weapon_offset_x = <*R10>;
-    };
-    "cobra3-player" = {
-	energy_recharge_rate = <*R4>;
-	exhaust = (
-	    "-19 0.0 -21.5 15.0 7.5 12.5",
-	    "19 0.0 -21.5 15.0 7.5 12.5"
-	);
-	forward_weapon_type = WEAPON_PULSE_LASER;
-	hud = hud.plist;
-	laser_color = redColor;
-	max_cargo = <*I20>;
-	max_energy = <*R256>;
-	max_flight_pitch = <*R1>;
-	max_flight_roll = <*R2>;
-	max_flight_speed = <*R350>;
-	max_missiles = <*I4>;
-	missiles = <*I3>;
-	model = cobramk3.dat;
-	name = "Cobra Mark III";
-	roles = player;
-	thrust = <*R32>;
-    };
-    "cobra3-trader" = {
-	ai_type = route1traderAI.plist;
-	bounty = <*I0>;
-	cargo_type = CARGO_NOT_CARGO;
-	energy_recharge_rate = <*R2>;
-	exhaust = (
-	    "-19 0.0 -21.5 15.0 7.5 12.5",
-	    "19 0.0 -21.5 15.0 7.5 12.5"
-	);
-	forward_weapon_type = WEAPON_BEAM_LASER;
-	has_ecm = <*BN>
-;
-	has_escape_pod = <*BY>
-;
-	has_scoop = <*BY>
-;
-	likely_cargo = <*I3>;
-	max_cargo = <*I20>;
-	max_energy = <*R150>;
-	max_flight_pitch = <*R1>;
-	max_flight_roll = <*R2>;
-	max_flight_speed = <*R300>;
-	missiles = <*I3>;
-	model = cobramk3.dat;
-	name = "Cobra Mark III";
-	roles = "trader scavenger sunskim-trader";
-	thrust = <*R30>;
-	weapon_energy = <*R9>;
-	weapon_offset_x = <*R10>;
-    };
-    cobramk1 = {
-	ai_type = pirateAI.plist;
-	bounty = <*I0>;
-	cargo_type = CARGO_NOT_CARGO;
-	energy_recharge_rate = <*R2.5>;
-	exhaust = (
-	    "-12.0 0.0 -19.5 10.0 4.0 5.0",
-	    "12.0 0.0 -19.5 10.0 4.0 5.0"
-	);
-	forward_weapon_type = WEAPON_PULSE_LASER;
-	has_ecm = <*BN>
-;
-	has_escape_pod = <*BN>
-;
-	has_scoop = <*BY>
-;
-	likely_cargo = <*I2>;
-	max_cargo = <*I10>;
-	max_energy = <*R150>;
-	max_flight_pitch = <*R1.2>;
-	max_flight_roll = <*R2>;
-	max_flight_speed = <*R260>;
-	missiles = <*I1>;
-	model = cobramk1.dat;
-	name = "Cobra Mark I";
-	roles = "pirate scavenger trader hunter hermit-ship";
-	thrust = <*R25>;
-	weapon_energy = <*R9>;
-	weapon_offset_x = <*R10>;
-    };
-    "cobramk1-alt" = {
-	ai_type = pirateAI.plist;
-	bounty = <*I0>;
-	cargo_type = CARGO_NOT_CARGO;
-	energy_recharge_rate = <*R3.75>;
-	exhaust = (
-	    "-12.0 0.0 -19.5 10.0 4.0 5.0",
-	    "12.0 0.0 -19.5 10.0 4.0 5.0"
-	);
-	forward_weapon_type = WEAPON_BEAM_LASER;
-	has_ecm = <*BN>
-;
-	has_escape_pod = <*BN>
-;
-	has_fuel_injection = <*R0.25>;
-	has_scoop = <*BY>
-;
-	has_shield_booster = <*R0.25>;
-	likely_cargo = <*I2>;
-	max_cargo = <*I10>;
-	max_energy = <*R200>;
-	max_flight_pitch = <*R1.2>;
-	max_flight_roll = <*R2>;
-	max_flight_speed = <*R260>;
-	max_missiles = <*I1>;
-	missiles = <*I1>;
-	model = cobramk1alt.dat;
-	name = "Cobra Mark I";
-	roles = pirate;
-	thrust = <*R30>;
-	weapon_energy = <*R15>;
-	weapon_offset_x = <*R10>;
-    };
-    "cobramk1-miner" = {
-	accuracy = <*I8>;
-	ai_type = minerAI.plist;
-	bounty = <*I0>;
-	cargo_type = CARGO_NOT_CARGO;
-	energy_recharge_rate = <*R2.5>;
-	exhaust = (
-	    "-12.0 0.0 -19.5 10.0 4.0 5.0",
-	    "12.0 0.0 -19.5 10.0 4.0 5.0"
-	);
-	forward_weapon_type = WEAPON_MINING_LASER;
-	has_ecm = <*BN>
-;
-	has_escape_pod = <*BN>
-;
-	has_scoop = <*BY>
-;
-	likely_cargo = <*I0>;
-	max_cargo = <*I10>;
-	max_energy = <*R150>;
-	max_flight_pitch = <*R1.2>;
-	max_flight_roll = <*R2>;
-	max_flight_speed = <*R260>;
-	missiles = <*I1>;
-	model = cobramk1miner.dat;
-	name = "Cobra Mark I";
-	roles = miner;
-	thrust = <*R25>;
-	weapon_energy = <*R50>;
-	weapon_offset_x = <*R10>;
-    };
-    "cobramk1-player" = {
-	energy_recharge_rate = <*R2.5>;
-	exhaust = (
-	    "-12.0 0.0 -19.5 10.0 4.0 5.0",
-	    "12.0 0.0 -19.5 10.0 4.0 5.0"
-	);
-	forward_weapon_type = WEAPON_PULSE_LASER;
-	hud = "hud-small.plist";
-	max_cargo = <*I10>;
-	max_energy = <*R150>;
-	max_flight_pitch = <*R1.2>;
-	max_flight_roll = <*R2>;
-	max_flight_speed = <*R260>;
-	max_missiles = <*I1>;
-	missiles = <*I1>;
-	model = cobramk1.dat;
-	name = "Cobra Mark I";
-	roles = player;
-	thrust = <*R25>;
-    };
-    constrictor = {
-	ai_type = pirateAI.plist;
-	bounty = <*I250>;
-	cargo_type = CARGO_NOT_CARGO;
-	death_actions = (
-	    "set: mission_conhunt CONSTRICTOR_DESTROYED"
-	);
-	energy_recharge_rate = <*R5>;
-	exhaust = (
-	    "0.0 0.0 -38.0 27.0 18.0 18.0"
-	);
-	forward_weapon_type = WEAPON_MILITARY_LASER;
-	fuel = <*I60>;
-	has_ecm = <*BY>
-;
-	has_escape_pod = <*BN>
-;
-	has_fuel_injection = <*BY>
-;
-	has_scoop = <*BN>
-;
-	launch_actions = (
-	);
-	likely_cargo = <*I0>;
-	max_cargo = <*I15>;
-	max_energy = <*R450>;
-	max_flight_pitch = <*R1.75>;
-	max_flight_roll = <*R2.5>;
-	max_flight_speed = <*R600>;
-	max_missiles = <*I3>;
-	missiles = <*I3>;
-	model = constrictor.dat;
-	name = Constrictor;
-	roles = constrictor;
-	thrust = <*R50>;
-	weapon_energy = <*R21>;
-	weapon_offset_x = <*R0>;
-    };
-    "coriolis-station" = {
-	ai_type = stationAI.plist;
-	bounty = <*I0>;
-	cargo_type = CARGO_NOT_CARGO;
-	energy_recharge_rate = <*R100>;
-	forward_weapon_type = WEAPON_NONE;
-	has_ecm = <*BY>
-;
-	has_escape_pod = <*BN>
-;
-	has_scoop = <*BN>
-;
-	likely_cargo = <*I0>;
-	max_cargo = <*I0>;
-	max_energy = <*R25000>;
-	max_flight_pitch = <*R8>;
-	max_flight_roll = <*R8>;
-	max_flight_speed = <*R0>;
-	max_missiles = <*I0>;
-	missiles = <*I0>;
-	model = new_coriolis.dat;
-	name = "Coriolis Station";
-	port_radius = <*R500>;
-	roles = "coriolis station";
-	subentities = (
-	    "dock 0 0 500 1 0 0 0",
-	    "arc-detail 0 0 0 1 0 0 0",
-	    "arc-detail 0 0 0 1 0 0 1",
-	    "arc-detail 0 0 0 0 0 0 1",
-	    "arc-detail 0 0 0 1 0 0 -1",
-	    "*FLASHER* 0 92 475 60.0 1 -0.50 12",
-	    "*FLASHER* 0 92 425 75.0 1 -0.60 12",
-	    "*FLASHER* 0 92 375 90.0 1 -0.70 12",
-	    "*FLASHER* 0 92 325 105.0 1 -0.80 12",
-	    "*FLASHER* 0 92 275 120.0 1 -0.90 12",
-	    "*FLASHER* 0 -92 475 60.0 1 -0.50 12",
-	    "*FLASHER* 0 -92 425 75.0 1 -0.60 12",
-	    "*FLASHER* 0 -92 375 90.0 1 -0.70 12",
-	    "*FLASHER* 0 -92 325 105.0 1 -0.80 12",
-	    "*FLASHER* 0 -92 275 120.0 1 -0.90 12",
-	    "*FLASHER* 0 -16 252 30.0 1 0.5 12",
-	    "*FLASHER* 0 16 252 30.0 1 0.5 12",
-	    "*FLASHER* 16 0 252 30.0 1 0.0 12",
-	    "*FLASHER* -16 0 252 30.0 1 0.0 12"
-	);
-	thrust = <*R100>;
-	weapon_energy = <*R0>;
-	weapon_offset_x = <*R0>;
-    };
-    dock = {
-	ai_type = nullAI.plist;
-	model = dock.dat;
-	name = "Docking Slit";
-	roles = "docking-slit";
-    };
-    "dodecahedron-station" = {
-	ai_type = stationAI.plist;
-	bounty = <*I0>;
-	cargo_type = CARGO_NOT_CARGO;
-	energy_recharge_rate = <*R100>;
-	forward_weapon_type = WEAPON_NONE;
-	has_ecm = <*BY>
-;
-	has_escape_pod = <*BN>
-;
-	has_scoop = <*BN>
-;
-	likely_cargo = <*I0>;
-	max_cargo = <*I0>;
-	max_energy = <*R25000>;
-	max_flight_pitch = <*R8>;
-	max_flight_roll = <*R8>;
-	max_flight_speed = <*R0>;
-	max_missiles = <*I0>;
-	missiles = <*I0>;
-	model = "new-dodo.dat";
-	name = "Dodecahedron Station";
-	port_radius = <*R392>;
-	roles = "dodo dodec dodecahedron station";
-	subentities = (
-	    "dock 0 0 392 1 0 0 0",
-	    "*FLASHER* 0 92 360 60.0 1 -0.50 12",
-	    "*FLASHER* 0 92 315 75.0 1 -0.60 12",
-	    "*FLASHER* 0 92 270 90.0 1 -0.70 12",
-	    "*FLASHER* 0 92 225 105.0 1 -0.80 12",
-	    "*FLASHER* 0 92 180 120.0 1 -0.90 12",
-	    "*FLASHER* 0 -92 360 60.0 1 -0.50 12",
-	    "*FLASHER* 0 -92 315 75.0 1 -0.60 12",
-	    "*FLASHER* 0 -92 270 90.0 1 -0.70 12",
-	    "*FLASHER* 0 -92 225 105.0 1 -0.80 12",
-	    "*FLASHER* 0 -92 180 120.0 1 -0.90 12",
-	    "*FLASHER* 0 -16 144 30.0 1 0.5 12",
-	    "*FLASHER* 0 16 144 30.0 1 0.5 12",
-	    "*FLASHER* 16 0 144 30.0 1 0.0 12",
-	    "*FLASHER* -16 0 144 30.0 1 0.0 12"
-	);
-	thrust = <*R100>;
-	weapon_energy = <*R0>;
-	weapon_offset_x = <*R0>;
-    };
-    "escape-capsule" = {
-	ai_type = homeAI.plist;
-	bounty = <*I0>;
-	cargo_type = CARGO_SLAVES;
-	energy_recharge_rate = <*R2>;
-	forward_weapon_type = WEAPON_NONE;
-	has_ecm = <*BN>
-;
-	has_escape_pod = <*BN>
-;
-	has_scoop = <*BN>
-;
-	likely_cargo = <*I0>;
-	max_cargo = <*I0>;
-	max_energy = <*R25>;
-	max_flight_pitch = <*R0.5>;
-	max_flight_roll = <*R0.5>;
-	max_flight_speed = <*R50>;
-	max_missiles = <*I0>;
-	missiles = <*I0>;
-	model = escapepod.dat;
-	name = "Escape capsule";
-	roles = "escape-capsule";
-	subentities = (
-	    "*FLASHER* 0 1.25 0 30.0 4 0.0 2"
-	);
-	thrust = <*R1>;
-	weapon_energy = <*R0>;
-	weapon_offset_x = <*R0>;
-    };
-    ferdelance = {
-	ai_type = pirateAI.plist;
-	bounty = <*I0>;
-	cargo_type = CARGO_NOT_CARGO;
-	energy_recharge_rate = <*R4.5>;
-	exhaust = (
-	    "0.0 0.0 -40.0 6.0 6.0 8.0"
-	);
-	forward_weapon_type = WEAPON_BEAM_LASER;
-	fuel = <*I50>;
-	has_ecm = <*BY>
-;
-	has_escape_pod = <*BN>
-;
-	has_fuel_injection = <*R0.75>;
-	has_scoop = <*BY>
-;
-	has_shield_booster = <*R0.5>;
-	has_shield_enhancer = <*R0.5>;
-	likely_cargo = <*I2>;
-	max_cargo = <*I12>;
-	max_energy = <*R150>;
-	max_flight_pitch = <*R1>;
-	max_flight_roll = <*R3.6>;
-	max_flight_speed = <*R300>;
-	max_missiles = <*I2>;
-	missiles = <*I2>;
-	model = ferdelance.dat;
-	name = "Fer-de-Lance";
-	roles = "pirate hunter";
-	thrust = <*R36>;
-	weapon_energy = <*R15>;
-	weapon_offset_x = <*R0>;
-    };
-    "ferdelance-player" = {
-	energy_recharge_rate = <*R4.5>;
-	exhaust = (
-	    "0.0 0.0 -40.0 6.0 6.0 8.0"
-	);
-	forward_weapon_type = WEAPON_BEAM_LASER;
-	has_scoop = <*BY>
-;
-	hud = hud.plist;
-	max_cargo = <*I12>;
-	max_energy = <*R150>;
-	max_flight_pitch = <*R1>;
-	max_flight_roll = <*R3.6>;
-	max_flight_speed = <*R300>;
-	max_missiles = <*I2>;
-	missiles = <*I2>;
-	model = ferdelance.dat;
-	name = "Fer-de-Lance";
-	roles = player;
-	thrust = <*R25>;
-    };
-    gecko = {
-	ai_type = pirateAI.plist;
-	bounty = <*I0>;
-	cargo_type = CARGO_NOT_CARGO;
-	energy_recharge_rate = <*R4>;
-	exhaust = (
-	    "0.0 0.0 -12.0 5.0 4.0 4.0"
-	);
-	forward_weapon_type = WEAPON_BEAM_LASER;
-	has_ecm = <*BN>
-;
-	has_escape_pod = <*BN>
-;
-	has_scoop = <*BY>
-;
-	has_shield_booster = <*R0.4>;
-	likely_cargo = <*I0>;
-	max_cargo = <*I3>;
-	max_energy = <*R250>;
-	max_flight_pitch = <*R1.5>;
-	max_flight_roll = <*R3>;
-	max_flight_speed = <*R300>;
-	max_missiles = <*I1>;
-	missiles = <*I1>;
-	model = gecko.dat;
-	name = Gecko;
-	roles = pirate;
-	thrust = <*R45>;
-	weapon_energy = <*R15>;
-	weapon_offset_x = <*R0>;
-    };
-    "hermit-docking-slit" = {
-	ai_type = nullAI.plist;
-	model = "rock-dock.dat";
-	name = "Docking Slit";
-	roles = "docking-slit";
-    };
-    hermitage = {
-	ai_type = nullAI.plist;
-	model = "rock-box.dat";
-	name = "Rock Hermit living area";
-	roles = "rock-box";
-    };
-    "icosahedron-station" = {
-	ai_type = stationAI.plist;
-	bounty = <*I0>;
-	cargo_type = CARGO_NOT_CARGO;
-	energy_recharge_rate = <*R100>;
-	forward_weapon_type = WEAPON_NONE;
-	has_ecm = <*BY>
-;
-	has_escape_pod = <*BN>
-;
-	has_scoop = <*BN>
-;
-	likely_cargo = <*I0>;
-	max_cargo = <*I0>;
-	max_energy = <*R25000>;
-	max_flight_pitch = <*R8>;
-	max_flight_roll = <*R8>;
-	max_flight_speed = <*R0>;
-	max_missiles = <*I0>;
-	missiles = <*I0>;
-	model = "new-icos.dat";
-	name = "Icosahedron Station";
-	port_radius = <*R500>;
-	roles = "ico icosa icosahedron station";
-	subentities = (
-	    "dock 0 0 500 1 0 0 0",
-	    "*FLASHER* 0 92 475 60.0 1 -0.50 12",
-	    "*FLASHER* 0 92 425 75.0 1 -0.60 12",
-	    "*FLASHER* 0 92 375 90.0 1 -0.70 12",
-	    "*FLASHER* 0 92 325 105.0 1 -0.80 12",
-	    "*FLASHER* 0 92 275 120.0 1 -0.90 12",
-	    "*FLASHER* 0 -92 475 60.0 1 -0.50 12",
-	    "*FLASHER* 0 -92 425 75.0 1 -0.60 12",
-	    "*FLASHER* 0 -92 375 90.0 1 -0.70 12",
-	    "*FLASHER* 0 -92 325 105.0 1 -0.80 12",
-	    "*FLASHER* 0 -92 275 120.0 1 -0.90 12",
-	    "*FLASHER* 0 -16 252 30.0 1 0.5 12",
-	    "*FLASHER* 0 16 252 30.0 1 0.5 12",
-	    "*FLASHER* 16 0 252 30.0 1 0.0 12",
-	    "*FLASHER* -16 0 252 30.0 1 0.0 12"
-	);
-	thrust = <*R100>;
-	weapon_energy = <*R0>;
-	weapon_offset_x = <*R0>;
-    };
-    krait = {
-	ai_type = pirateAI.plist;
-	bounty = <*I0>;
-	cargo_type = CARGO_NOT_CARGO;
-	energy_recharge_rate = <*R2.5>;
-	exhaust = (
-	    "-14.0 0.0 -16.0 6.0 6.0 7.0",
-	    "14.0 0.0 -16.0 6.0 6.0 7.0"
-	);
-	forward_weapon_type = WEAPON_BEAM_LASER;
-	fuel = <*I30>;
-	has_ecm = <*BN>
-;
-	has_escape_pod = <*BN>
-;
-	has_fuel_injection = <*R0.65>;
-	has_scoop = <*BY>
-;
-	has_shield_booster = <*R0.5>;
-	has_shield_enhancer = <*R0.25>;
-	likely_cargo = <*I2>;
-	max_cargo = <*I2>;
-	max_energy = <*R250>;
-	max_flight_pitch = <*R1.5>;
-	max_flight_roll = <*R2.75>;
-	max_flight_speed = <*R300>;
-	max_missiles = <*I0>;
-	missiles = <*I0>;
-	model = krait.dat;
-	name = Krait;
-	roles = pirate;
-	thrust = <*R35>;
-	weapon_energy = <*R15>;
-	weapon_offset_x = <*R30>;
-    };
-    mamba = {
-	ai_type = pirateAI.plist;
-	bounty = <*I0>;
-	cargo_type = CARGO_NOT_CARGO;
-	energy_recharge_rate = <*R3>;
-	exhaust = (
-	    "0.0 0.0 -16.0 12.0 12.0 16.0"
-	);
-	forward_weapon_type = WEAPON_BEAM_LASER;
-	has_ecm = <*BN>
-;
-	has_escape_pod = <*BN>
-;
-	has_scoop = <*BY>
-;
-	has_shield_booster = <*R0.25>;
-	likely_cargo = <*I0>;
-	max_cargo = <*I4>;
-	max_energy = <*R240>;
-	max_flight_pitch = <*R1.4>;
-	max_flight_roll = <*R2.1>;
-	max_flight_speed = <*R320>;
-	max_missiles = <*I0>;
-	missiles = <*I0>;
-	model = mamba.dat;
-	name = Mamba;
-	roles = pirate;
-	thrust = <*R32>;
-	weapon_energy = <*R12>;
-	weapon_offset_x = <*R0>;
-    };
-    "mamba-escort" = {
-	ai_type = pirateAI.plist;
-	bounty = <*I0>;
-	cargo_type = CARGO_NOT_CARGO;
-	energy_recharge_rate = <*R3>;
-	exhaust = (
-	    "0.0 0.0 -16.0 12.0 12.0 16.0"
-	);
-	forward_weapon_type = WEAPON_BEAM_LASER;
-	has_ecm = <*BN>
-;
-	has_escape_pod = <*BN>
-;
-	has_scoop = <*BN>
-;
-	likely_cargo = <*I0>;
-	max_cargo = <*I4>;
-	max_energy = <*R240>;
-	max_flight_pitch = <*R1.4>;
-	max_flight_roll = <*R2.1>;
-	max_flight_speed = <*R320>;
-	max_missiles = <*I0>;
-	missiles = <*I0>;
-	model = mamba_escort.dat;
-	name = "Mamba Escort";
-	roles = escort;
-	thrust = <*R32>;
-	weapon_energy = <*R18>;
-	weapon_offset_x = <*R0>;
-    };
-    missile = {
-	ai_type = missileAI.plist;
-	bounty = <*I0>;
-	cargo_type = CARGO_NOT_CARGO;
-	energy_recharge_rate = <*R0>;
-	exhaust = (
-	    "0.0 0.0 -3.5 2.0 2.0 4.0"
-	);
-	forward_weapon_type = WEAPON_NONE;
-	likely_cargo = <*I0>;
-	max_cargo = <*I0>;
-	max_energy = <*R5>;
-	max_flight_pitch = <*R8>;
-	max_flight_roll = <*R10>;
-	max_flight_speed = <*R750>;
-	max_missiles = <*I0>;
-	missiles = <*I0>;
-	model = missile.dat;
-	name = Missile;
-	roles = "missile EQ_MISSILE";
-	thrust = <*R250>;
-	weapon_energy = <*R12500>;
-	weapon_offset_x = <*R0>;
-    };
-    moray = {
-	ai_type = pirateAI.plist;
-	bounty = <*I0>;
-	cargo_type = CARGO_NOT_CARGO;
-	energy_recharge_rate = <*R3>;
-	exhaust = (
-	    "0.0 0.0 -22.0 10.0 8.0 16.0"
-	);
-	forward_weapon_type = WEAPON_PULSE_LASER;
-	has_ecm = <*BN>
-;
-	has_escape_pod = <*BN>
-;
-	has_scoop = <*BY>
-;
-	has_shield_booster = <*R0.5>;
-	likely_cargo = <*I0>;
-	max_cargo = <*I7>;
-	max_energy = <*R240>;
-	max_flight_pitch = <*R1.5>;
-	max_flight_roll = <*R2.5>;
-	max_flight_speed = <*R300>;
-	max_missiles = <*I2>;
-	missiles = <*I2>;
-	model = moray.dat;
-	name = "Moray Star Boat";
-	roles = pirate;
-	thrust = <*R32>;
-	weapon_energy = <*R12>;
-	weapon_offset_x = <*R0>;
-    };
-    "moray-player" = {
-	energy_recharge_rate = <*R3>;
-	exhaust = (
-	    "0.0 0.0 -22.0 10.0 8.0 16.0"
-	);
-	forward_weapon_type = WEAPON_PULSE_LASER;
-	hud = hud.plist;
-	max_cargo = <*I7>;
-	max_energy = <*R240>;
-	max_flight_pitch = <*R1.5>;
-	max_flight_roll = <*R2.5>;
-	max_flight_speed = <*R300>;
-	max_missiles = <*I2>;
-	missiles = <*I2>;
-	model = moray.dat;
-	name = "Moray Star Boat";
-	roles = player;
-	thrust = <*R32>;
-    };
-    morayMED = {
-	ai_type = pirateAI.plist;
-	bounty = <*I0>;
-	cargo_type = CARGO_NOT_CARGO;
-	energy_recharge_rate = <*R3>;
-	exhaust = (
-	    "0.0 0.0 -22.0 10.0 8.0 16.0"
-	);
-	forward_weapon_type = WEAPON_PULSE_LASER;
-	has_ecm = <*BN>
-;
-	has_escape_pod = <*BN>
-;
-	has_scoop = <*BY>
-;
-	likely_cargo = <*I7>;
-	max_cargo = <*I22>;
-	max_energy = <*R240>;
-	max_flight_pitch = <*R1.5>;
-	max_flight_roll = <*R2.5>;
-	max_flight_speed = <*R300>;
-	max_missiles = <*I2>;
-	missiles = <*I2>;
-	model = morayMED.dat;
-	name = "Moray Medical Boat";
-	roles = "trader sunskim-trader";
-	thrust = <*R32>;
-	weapon_energy = <*R12>;
-	weapon_offset_x = <*R0>;
-    };
-    "morayMED-player" = {
-	energy_recharge_rate = <*R2.75>;
-	exhaust = (
-	    "0.0 0.0 -22.0 10.0 8.0 16.0"
-	);
-	forward_weapon_type = WEAPON_PULSE_LASER;
-	hud = hud.plist;
-	max_cargo = <*I7>;
-	max_energy = <*R240>;
-	max_flight_pitch = <*R1.5>;
-	max_flight_roll = <*R2.5>;
-	max_flight_speed = <*R300>;
-	max_missiles = <*I2>;
-	missiles = <*I2>;
-	model = morayMED.dat;
-	name = "Moray Medical Boat";
-	roles = player;
-	thrust = <*R32>;
-    };
-    python = {
-	ai_type = pirateAI.plist;
-	bounty = <*I0>;
-	cargo_type = CARGO_NOT_CARGO;
-	energy_recharge_rate = <*R2.5>;
-	exhaust = (
-	    "0.0 0.0 -64.5 12.0 12.0 13.0"
-	);
-	forward_weapon_type = WEAPON_BEAM_LASER;
-	has_ecm = <*BN>
-;
-	has_escape_pod = <*BY>
-;
-	has_scoop = <*BY>
-;
-	has_shield_booster = <*R0.75>;
-	likely_cargo = <*I10>;
-	max_cargo = <*I100>;
-	max_energy = <*R450>;
-	max_flight_pitch = <*R0.8>;
-	max_flight_roll = <*R2>;
-	max_flight_speed = <*R200>;
-	max_missiles = <*I2>;
-	missiles = <*I2>;
-	model = python.dat;
-	name = Python;
-	roles = pirate;
-	thrust = <*R20>;
-	weapon_energy = <*R15>;
-	weapon_offset_x = <*R0>;
-    };
-    "python-player" = {
-	energy_recharge_rate = <*R2.5>;
-	exhaust = (
-	    "0.0 0.0 -64.5 12.0 12.0 13.0"
-	);
-	forward_weapon_type = WEAPON_PULSE_LASER;
-	hud = hud.plist;
-	max_cargo = <*I100>;
-	max_energy = <*R450>;
-	max_flight_pitch = <*R0.8>;
-	max_flight_roll = <*R2>;
-	max_flight_speed = <*R200>;
-	max_missiles = <*I2>;
-	missiles = <*I2>;
-	model = python.dat;
-	name = Python;
-	roles = player;
-	thrust = <*R20>;
-    };
-    "python-trader" = {
-	ai_type = route1traderAI.plist;
-	bounty = <*I0>;
-	cargo_type = CARGO_NOT_CARGO;
-	energy_recharge_rate = <*R2.5>;
-	escorts = <*I2>;
-	exhaust = (
-	    "0.0 0.0 -64.5 12.0 12.0 13.0"
-	);
-	forward_weapon_type = WEAPON_BEAM_LASER;
-	has_ecm = <*BN>
-;
-	has_escape_pod = <*BY>
-;
-	has_scoop = <*BY>
-;
-	likely_cargo = <*I10>;
-	max_cargo = <*I100>;
-	max_energy = <*R450>;
-	max_flight_pitch = <*R0.8>;
-	max_flight_roll = <*R2>;
-	max_flight_speed = <*R200>;
-	max_missiles = <*I2>;
-	missiles = <*I2>;
-	model = python.dat;
-	name = Python;
-	roles = trader;
-	thrust = <*R20>;
-	weapon_energy = <*R15>;
-	weapon_offset_x = <*R0>;
-    };
-    qbomb = {
-	ai_type = timebombAI.plist;
-	energy_recharge_rate = <*R0>;
-	max_energy = <*R10>;
-	max_flight_pitch = <*R2>;
-	max_flight_roll = <*R2>;
-	max_flight_speed = <*R1000>;
-	model = qbomb.dat;
-	name = "Quirium Cascade Mine";
-	roles = "energy-bomb EQ_QC_MINE";
-	thrust = <*R0>;
-    };
-    "rock-hermit" = {
-	ai_type = rockHermitAI.plist;
-	bounty = <*I0>;
-	cargo_type = CARGO_NOT_CARGO;
-	energy_recharge_rate = <*R5>;
-	equipment_price_factor = <*R4.5>;
-	equivalent_tech_level = <*I1>;
-	forward_weapon_type = WEAPON_NONE;
-	has_ecm = <*BY>
-;
-	has_escape_pod = <*BN>
-;
-	has_scoop = <*BN>
-;
-	likely_cargo = <*I0>;
-	max_cargo = <*I0>;
-	max_defense_ships = <*I2>;
-	max_energy = <*R1000>;
-	max_flight_pitch = <*R8>;
-	max_flight_roll = <*R8>;
-	max_flight_speed = <*R0>;
-	max_missiles = <*I0>;
-	max_scavengers = <*I1>;
-	missiles = <*I0>;
-	model = "new-rock.dat";
-	name = "Rock Hermit";
-	port_radius = <*R250>;
-	roles = "rockhermit station";
-	smooth = <*BY>
-;
-	subentities = (
-	    "hermit-docking-slit 0 0 0 1 0 0 0",
-	    "hermitage 15 -80 210 1 0 0 0",
-	    "strut 0 -105 205 1 0 0 0",
-	    "strut 30 -105 205 1 0 0 0",
-	    "*FLASHER* 0 -16 -78 20.0 1 0.5 12",
-	    "*FLASHER* 0 16 -78 20.0 1 0.5 12",
-	    "*FLASHER* 16 0 -78 30.0 1 0.0 12",
-	    "*FLASHER* -16 0 -78 30.0 1 0.0 12"
-	);
-	thrust = <*R100>;
-	weapon_energy = <*R0>;
-	weapon_offset_x = <*R0>;
-    };
-    "scarred-alloy" = {
-	ai_type = nullAI.plist;
-	bounty = <*I1>;
-	cargo_type = CARGO_ALLOY;
-	energy_recharge_rate = <*R0>;
-	forward_weapon_type = WEAPON_NONE;
-	likely_cargo = <*I0>;
-	max_cargo = <*I0>;
-	max_energy = <*R1>;
-	max_flight_pitch = <*R0.5>;
-	max_flight_roll = <*R0.5>;
-	max_flight_speed = <*R50>;
-	missiles = <*I0>;
-	model = scarred_alloy.dat;
-	name = "Metal fragment";
-	roles = alloy;
-	thrust = <*R0>;
-    };
-    shuttle = {
-	ai_type = nullAI.plist;
-	bounty = <*I0>;
-	cargo_type = CARGO_NOT_CARGO;
-	energy_recharge_rate = <*R1>;
-	exhaust = (
-	    "7.5 7.5 -13.0 4.0 4.0 5.0",
-	    "-7.5 7.5 -13.0 4.0 4.0 5.0",
-	    "-7.5 -7.5 -13.0 4.0 4.0 5.0",
-	    "7.5 -7.5 -13.0 4.0 4.0 5.0"
-	);
-	forward_weapon_type = WEAPON_NONE;
-	has_ecm = <*BN>
-;
-	has_escape_pod = <*BN>
-;
-	has_scoop = <*BN>
-;
-	likely_cargo = <*I0>;
-	max_cargo = <*I30>;
-	max_energy = <*R120>;
-	max_flight_pitch = <*R0.9>;
-	max_flight_roll = <*R2>;
-	max_flight_speed = <*R80>;
-	max_missiles = <*I0>;
-	missiles = <*I0>;
-	model = shuttle.dat;
-	name = "Orbital Shuttle";
-	roles = shuttle;
-	thrust = <*R16>;
-	weapon_energy = <*R0>;
-	weapon_offset_x = <*R0>;
-    };
-    sidewinder = {
-	ai_type = pirateAI.plist;
-	bounty = <*I0>;
-	cargo_type = CARGO_NOT_CARGO;
-	energy_recharge_rate = <*R2>;
-	exhaust = (
-	    "0.0 0.0 -14.0 8.0 6.0 12.0"
-	);
-	forward_weapon_type = WEAPON_PULSE_LASER;
-	has_ecm = <*BN>
-;
-	has_escape_pod = <*BN>
-;
-	has_scoop = <*BN>
-;
-	likely_cargo = <*I0>;
-	max_cargo = <*I0>;
-	max_energy = <*R240>;
-	max_flight_pitch = <*R1.6>;
-	max_flight_roll = <*R2.8>;
-	max_flight_speed = <*R370>;
-	max_missiles = <*I0>;
-	missiles = <*I0>;
-	model = sidewinder.dat;
-	name = "Sidewinder Scout Ship";
-	roles = "pirate hunter";
-	thrust = <*R37>;
-	weapon_energy = <*R18>;
-	weapon_offset_x = <*R0>;
-    };
-    "sidewinder-escort" = {
-	ai_type = pirateAI.plist;
-	bounty = <*I0>;
-	cargo_type = CARGO_NOT_CARGO;
-	energy_recharge_rate = <*R2.5>;
-	exhaust = (
-	    "0.0 0.0 -14.0 8.0 6.0 12.0"
-	);
-	forward_weapon_type = WEAPON_BEAM_LASER;
-	has_ecm = <*BN>
-;
-	has_escape_pod = <*BN>
-;
-	has_scoop = <*BN>
-;
-	likely_cargo = <*I0>;
-	max_cargo = <*I0>;
-	max_energy = <*R240>;
-	max_flight_pitch = <*R1.8>;
-	max_flight_roll = <*R2.8>;
-	max_flight_speed = <*R370>;
-	max_missiles = <*I0>;
-	missiles = <*I0>;
-	model = sidewinder.dat;
-	name = "Sidewinder Scout Ship";
-	roles = escort;
-	thrust = <*R37>;
-	weapon_energy = <*R18>;
-	weapon_offset_x = <*R0>;
-    };
-    splinter = {
-	ai_type = dumbAI.plist;
-	bounty = <*I1>;
-	cargo_type = CARGO_MINERALS;
-	energy_recharge_rate = <*R0>;
-	forward_weapon_type = WEAPON_NONE;
-	has_ecm = <*BN>
-;
-	has_escape_pod = <*BN>
-;
-	has_scoop = <*BN>
-;
-	likely_cargo = <*I0>;
-	max_cargo = <*I0>;
-	max_energy = <*R5>;
-	max_flight_pitch = <*R1>;
-	max_flight_roll = <*R1>;
-	max_flight_speed = <*R10>;
-	missiles = <*I0>;
-	model = splinter.dat;
-	name = Splinter;
-	roles = splinter;
-	smooth = <*BY>
-;
-	thrust = <*R0>;
-	weapon_energy = <*R0>;
-	weapon_offset_x = <*R0>;
-    };
-    "splinter-alternative" = {
-	ai_type = dumbAI.plist;
-	bounty = <*I1>;
-	cargo_type = CARGO_MINERALS;
-	energy_recharge_rate = <*R0>;
-	forward_weapon_type = WEAPON_NONE;
-	has_ecm = <*BN>
-;
-	has_escape_pod = <*BN>
-;
-	has_scoop = <*BN>
-;
-	likely_cargo = <*I0>;
-	max_cargo = <*I0>;
-	max_energy = <*R5>;
-	max_flight_pitch = <*R1>;
-	max_flight_roll = <*R1>;
-	max_flight_speed = <*R10>;
-	missiles = <*I0>;
-	model = splinter1.dat;
-	name = Splinter;
-	roles = splinter;
-	smooth = <*BY>
-;
-	thrust = <*R0>;
-	weapon_energy = <*R0>;
-	weapon_offset_x = <*R0>;
-    };
-    strut = {
-	ai_type = nullAI.plist;
-	model = strut.dat;
-	name = "Strut 10-10-30";
-	roles = strut;
-    };
-    tharglet = {
-	ai_type = thargletAI.plist;
-	bounty = <*I50>;
-	cargo_type = CARGO_THARGOID;
-	energy_recharge_rate = <*R3>;
-	forward_weapon_type = WEAPON_PULSE_LASER;
-	has_ecm = <*BN>
-;
-	has_escape_pod = <*BN>
-;
-	has_scoop = <*BN>
-;
-	laser_color = greenColor;
-	likely_cargo = <*I0>;
-	max_cargo = <*I0>;
-	max_energy = <*R150>;
-	max_flight_pitch = <*R1>;
-	max_flight_roll = <*R2>;
-	max_flight_speed = <*R450>;
-	missiles = <*I0>;
-	model = tharglet.dat;
-	name = "Thargoid Robot Fighter";
-	roles = tharglet;
-	scanClass = CLASS_THARGOID;
-	scanner_range = <*R30000>;
-	thrust = <*R40>;
-	weapon_energy = <*R21>;
-	weapon_offset_x = <*R0>;
-    };
-    thargoid = {
-	aft_weapon_type = WEAPON_THARGOID_LASER;
-	ai_type = thargoidAI.plist;
-	bounty = <*I100>;
-	cargo_type = CARGO_NOT_CARGO;
-	death_actions = (
-	    "commsMessage: [thargoid_curses]"
-	);
-	energy_recharge_rate = <*R4>;
-	forward_weapon_type = WEAPON_THARGOID_LASER;
-	has_ecm = <*BY>
-;
-	has_escape_pod = <*BN>
-;
-	has_scoop = <*BN>
-;
-	laser_color = greenColor;
-	likely_cargo = <*I0>;
-	max_cargo = <*I0>;
-	max_energy = <*R600>;
-	max_flight_pitch = <*R1>;
-	max_flight_roll = <*R2>;
-	max_flight_speed = <*R500>;
-	max_missiles = <*I5>;
-	missiles = <*I5>;
-	model = thargoid.dat;
-	name = "Thargoid Warship";
-	roles = thargoid;
-	scanClass = CLASS_THARGOID;
-	scanner_range = <*R60000>;
-	thrust = <*R50>;
-	weapon_energy = <*R21>;
-	weapon_offset_x = <*R0>;
-    };
-    transporter = {
-	ai_type = nullAI.plist;
-	bounty = <*I0>;
-	cargo_type = CARGO_NOT_CARGO;
-	energy_recharge_rate = <*R3>;
-	exhaust = (
-	    "-7.0 0.0 -11.5 3.0 3.0 4.0",
-	    "7.0 0.0 -11.5 3.0 3.0 4.0"
-	);
-	forward_weapon_type = WEAPON_PULSE_LASER;
-	has_ecm = <*BN>
-;
-	has_escape_pod = <*BN>
-;
-	has_scoop = <*BN>
-;
-	likely_cargo = <*I0>;
-	max_cargo = <*I12>;
-	max_energy = <*R150>;
-	max_flight_pitch = <*R1>;
-	max_flight_roll = <*R2>;
-	max_flight_speed = <*R100>;
-	max_missiles = <*I0>;
-	missiles = <*I0>;
-	model = transporter.dat;
-	name = Transporter;
-	roles = shuttle;
-	thrust = <*R20>;
-	weapon_energy = <*R8>;
-	weapon_offset_x = <*R0>;
-    };
-    "transporter-miner" = {
-	accuracy = <*I8>;
-	ai_type = minerAI.plist;
-	bounty = <*I0>;
-	cargo_type = CARGO_NOT_CARGO;
-	energy_recharge_rate = <*R3>;
-	exhaust = (
-	    "-7.0 0.0 -11.5 3.0 3.0 4.0",
-	    "7.0 0.0 -11.5 3.0 3.0 4.0"
-	);
-	forward_weapon_type = WEAPON_MINING_LASER;
-	has_ecm = <*BN>
-;
-	has_escape_pod = <*BN>
-;
-	has_scoop = <*BY>
-;
-	likely_cargo = <*I0>;
-	max_cargo = <*I12>;
-	max_energy = <*R150>;
-	max_flight_pitch = <*R1>;
-	max_flight_roll = <*R2>;
-	max_flight_speed = <*R100>;
-	max_missiles = <*I0>;
-	missiles = <*I0>;
-	model = transporter.dat;
-	name = "Mining Transporter";
-	roles = miner;
-	thrust = <*R20>;
-	weapon_energy = <*R50>;
-	weapon_offset_x = <*R0>;
-    };
-    viper = {
-	ai_type = route1patrolAI.plist;
-	bounty = <*I0>;
-	cargo_type = CARGO_NOT_CARGO;
-	energy_recharge_rate = <*R4>;
-	exhaust = (
-	    "-24.0 0.0 -23.7 10.0 10.0 12.0",
-	    "24.0 0.0 -23.7 10.0 10.0 12.0"
-	);
-	forward_weapon_type = WEAPON_BEAM_LASER;
-	has_ecm = <*BY>
-;
-	has_escape_pod = <*BN>
-;
-	has_scoop = <*BN>
-;
-	laser_color = magentaColor;
-	likely_cargo = <*I0>;
-	max_cargo = <*I0>;
-	max_energy = <*R180>;
-	max_flight_pitch = <*R1.8>;
-	max_flight_roll = <*R2.8>;
-	max_flight_speed = <*R320>;
-	max_missiles = <*I1>;
-	missiles = <*I1>;
-	model = viper.dat;
-	name = "GalCop Viper";
-	roles = police;
-	subentities = (
-	    "*FLASHER* -48 0 -24 260.0 2 0.5 8",
-	    "*FLASHER* -42 0 -12 260.0 2 0.6 8",
-	    "*FLASHER* -36 0 0 260.0 2 0.7 8",
-	    "*FLASHER* -30 0 12 260.0 2 0.8 8",
-	    "*FLASHER* -24 0 24 260.0 2 0.9 8",
-	    "*FLASHER* 48 0 -24 310.0 2 0 8",
-	    "*FLASHER* 42 0 -12 310.0 2 0.1 8",
-	    "*FLASHER* 36 0 0 310.0 2 0.2 8",
-	    "*FLASHER* 30 0 12 310.0 2 0.3 8",
-	    "*FLASHER* 24 0 24 310.0 2 0.4 8",
-	    "*FLASHER* -25 16 -24 260.0 2 0 8",
-	    "*FLASHER* 25 16 -24 310.0 2 0.25 8"
-	);
-	thrust = <*R32>;
-	weapon_energy = <*R15>;
-	weapon_offset_x = <*R0>;
-    };
-    "viper-interceptor" = {
-	ai_type = route1patrolAI.plist;
-	bounty = <*I0>;
-	cargo_type = CARGO_NOT_CARGO;
-	energy_recharge_rate = <*R6>;
-	exhaust = (
-	    "-32.0 0.0 -18.0 8.0 8.0 10.0",
-	    "32.0 0.0 -18.0 8.0 8.0 10.0",
-	    "0.0 0.0 -23.0 12.0 12.0 16.0"
-	);
-	forward_weapon_type = WEAPON_MILITARY_LASER;
-	fuel = <*I160>;
-	has_ecm = <*BY>
-;
-	has_escape_pod = <*BN>
-;
-	has_fuel_injection = <*BY>
-;
-	has_scoop = <*BN>
-;
-	laser_color = magentaColor;
-	likely_cargo = <*I0>;
-	max_cargo = <*I0>;
-	max_energy = <*R280>;
-	max_flight_pitch = <*R2>;
-	max_flight_roll = <*R4.2>;
-	max_flight_speed = <*R520>;
-	max_missiles = <*I3>;
-	missiles = <*I3>;
-	model = viper_interceptor.dat;
-	name = "GalCop Viper Interceptor";
-	roles = "interceptor wingman";
-	subentities = (
-	    "*FLASHER* -49 0 -9.5 260.0 2 0.5 8",
-	    "*FLASHER* -44 0 1.125 260.0 2 0.6 8",
-	    "*FLASHER* -40 0 11.25 260.0 2 0.7 8",
-	    "*FLASHER* -36 0 21.375 260.0 2 0.8 8",
-	    "*FLASHER* -32 0 31.5 260.0 2 0.9 8",
-	    "*FLASHER* 49 0 -9.5 310.0 2 0 8",
-	    "*FLASHER* 44 0 1.125 310.0 2 0.1 8",
-	    "*FLASHER* 40 0 11.25 310.0 2 0.2 8",
-	    "*FLASHER* 36 0 21.375 310.0 2 0.3 8",
-	    "*FLASHER* 32 0 31.5 310.0 2 0.4 8",
-	    "*FLASHER* -25 16 -24 260.0 2 0 8",
-	    "*FLASHER* 25 16 -24 310.0 2 0.25 8"
-	);
-	thrust = <*R50>;
-	weapon_energy = <*R21>;
-	weapon_offset_x = <*R0>;
-    };
-    "viper-pursuit" = {
-	ai_type = route1patrolAI.plist;
-	bounty = <*I0>;
-	cargo_type = CARGO_NOT_CARGO;
-	energy_recharge_rate = <*R4>;
-	exhaust = (
-	    "-24.0 0.0 -23.7 10.0 10.0 12.0",
-	    "24.0 0.0 -23.7 10.0 10.0 12.0"
-	);
-	forward_weapon_type = WEAPON_BEAM_LASER;
-	has_ecm = <*BY>
-;
-	has_escape_pod = <*BN>
-;
-	has_scoop = <*BN>
-;
-	laser_color = magentaColor;
-	likely_cargo = <*I0>;
-	max_cargo = <*I0>;
-	max_energy = <*R180>;
-	max_flight_pitch = <*R1.8>;
-	max_flight_roll = <*R2.8>;
-	max_flight_speed = <*R360>;
-	max_missiles = <*I1>;
-	missiles = <*I1>;
-	model = viper.dat;
-	name = "GalCop Viper";
-	roles = wingman;
-	thrust = <*R36>;
-	weapon_energy = <*R18>;
-	weapon_offset_x = <*R0>;
-    };
-    worm = {
-	ai_type = nullAI.plist;
-	bounty = <*I0>;
-	cargo_type = CARGO_NOT_CARGO;
-	energy_recharge_rate = <*R2>;
-	exhaust = (
-	    "0.0 0.0 -12.2 7.5 4.5 6.0"
-	);
-	forward_weapon_type = WEAPON_NONE;
-	has_ecm = <*BN>
-;
-	has_escape_pod = <*BN>
-;
-	has_scoop = <*BN>
-;
-	likely_cargo = <*I0>;
-	max_cargo = <*I2>;
-	max_energy = <*R75>;
-	max_flight_pitch = <*R1>;
-	max_flight_roll = <*R2>;
-	max_flight_speed = <*R110>;
-	max_missiles = <*I0>;
-	missiles = <*I0>;
-	model = worm.dat;
-	name = Worm;
-	roles = shuttle;
-	thrust = <*R12>;
-	weapon_energy = <*R8>;
-	weapon_offset_x = <*R0>;
-    };
-}
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple Computer//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>qbomb</key>
+	<dict>
+		<key>ai_type</key>
+		<string>timebombAI.plist</string>
+		<key>energy_recharge_rate</key>
+		<real>0</real>
+		<key>max_energy</key>
+		<real>10</real>
+		<key>max_flight_pitch</key>
+		<real>2</real>
+		<key>max_flight_roll</key>
+		<real>2</real>
+		<key>max_flight_speed</key>
+		<real>1000</real>
+		<key>model</key>
+		<string>qbomb.dat</string>
+		<key>name</key>
+		<string>Quirium Cascade Mine</string>
+		<key>roles</key>
+		<string>energy-bomb EQ_QC_MINE</string>
+		<key>thrust</key>
+		<real>0</real>
+	</dict>
+	<key>adder</key>
+	<dict>
+		<key>ai_type</key>
+		<string>scavengerAI.plist</string>
+		<key>bounty</key>
+		<integer>0</integer>
+		<key>cargo_type</key>
+		<string>CARGO_NOT_CARGO</string>
+		<key>energy_recharge_rate</key>
+		<real>2</real>
+		<key>exhaust</key>
+		<array>
+			<string>-9.0 0.0 -22.5 10.0 8.0 8.0</string>
+			<string>9.0 0.0 -22.5 10.0 8.0 8.0</string>
+		</array>
+		<key>forward_weapon_type</key>
+		<string>WEAPON_PULSE_LASER</string>
+		<key>has_ecm</key>
+		<false/>
+		<key>has_escape_pod</key>
+		<false/>
+		<key>has_scoop</key>
+		<true/>
+		<key>likely_cargo</key>
+		<integer>0</integer>
+		<key>max_cargo</key>
+		<integer>5</integer>
+		<key>max_energy</key>
+		<real>85</real>
+		<key>max_flight_pitch</key>
+		<real>2</real>
+		<key>max_flight_roll</key>
+		<real>2.8</real>
+		<key>max_flight_speed</key>
+		<real>240</real>
+		<key>max_missiles</key>
+		<integer>1</integer>
+		<key>missiles</key>
+		<integer>1</integer>
+		<key>model</key>
+		<string>adder.dat</string>
+		<key>name</key>
+		<string>Adder</string>
+		<key>roles</key>
+		<string>hunter scavenger shuttle hermit-ship</string>
+		<key>thrust</key>
+		<real>30</real>
+		<key>weapon_energy</key>
+		<real>8</real>
+		<key>weapon_offset_x</key>
+		<real>0.0</real>
+	</dict>
+	<key>adder-player</key>
+	<dict>
+		<key>energy_recharge_rate</key>
+		<real>2</real>
+		<key>exhaust</key>
+		<array>
+			<string>-9.0 0.0 -22.5 10.0 8.0 8.0</string>
+			<string>9.0 0.0 -22.5 10.0 8.0 8.0</string>
+		</array>
+		<key>forward_weapon_type</key>
+		<string>WEAPON_PULSE_LASER</string>
+		<key>hud</key>
+		<string>hud-small.plist</string>
+		<key>max_cargo</key>
+		<integer>2</integer>
+		<key>max_energy</key>
+		<real>85</real>
+		<key>max_flight_pitch</key>
+		<real>2</real>
+		<key>max_flight_roll</key>
+		<real>2.8</real>
+		<key>max_flight_speed</key>
+		<real>240</real>
+		<key>max_missiles</key>
+		<integer>1</integer>
+		<key>missiles</key>
+		<integer>1</integer>
+		<key>model</key>
+		<string>adder.dat</string>
+		<key>name</key>
+		<string>Adder</string>
+		<key>roles</key>
+		<string>player</string>
+		<key>thrust</key>
+		<real>30</real>
+	</dict>
+	<key>alloy</key>
+	<dict>
+		<key>ai_type</key>
+		<string>nullAI.plist</string>
+		<key>bounty</key>
+		<integer>1</integer>
+		<key>cargo_type</key>
+		<string>CARGO_ALLOY</string>
+		<key>energy_recharge_rate</key>
+		<real>0.0</real>
+		<key>forward_weapon_type</key>
+		<string>WEAPON_NONE</string>
+		<key>likely_cargo</key>
+		<integer>0</integer>
+		<key>max_cargo</key>
+		<integer>0</integer>
+		<key>max_energy</key>
+		<real>1</real>
+		<key>max_flight_pitch</key>
+		<real>0.5</real>
+		<key>max_flight_roll</key>
+		<real>0.5</real>
+		<key>max_flight_speed</key>
+		<real>50</real>
+		<key>missiles</key>
+		<integer>0</integer>
+		<key>model</key>
+		<string>alloy.dat</string>
+		<key>name</key>
+		<string>Metal fragment</string>
+		<key>roles</key>
+		<string>alloy</string>
+		<key>thrust</key>
+		<real>0.0</real>
+	</dict>
+	<key>anaconda</key>
+	<dict>
+		<key>aft_weapon_type</key>
+		<string>WEAPON_PULSE_LASER</string>
+		<key>ai_type</key>
+		<string>route1traderAI.plist</string>
+		<key>bounty</key>
+		<integer>0</integer>
+		<key>cargo_type</key>
+		<string>CARGO_NOT_CARGO</string>
+		<key>energy_recharge_rate</key>
+		<real>3</real>
+		<key>escorts</key>
+		<integer>6</integer>
+		<key>escort-ship</key>
+		<string>cobramk1</string>
+		<key>exhaust</key>
+		<array>
+			<string>-23.5.0 0.0 -74.5 16.0 16.0 14.0</string>
+			<string>23.5.0 0.0 -74.5 16.0 16.0 14.0</string>
+		</array>
+		<key>forward_weapon_type</key>
+		<string>WEAPON_PULSE_LASER</string>
+		<key>has_ecm</key>
+		<true/>
+		<key>has_escape_pod</key>
+		<true/>
+		<key>has_scoop</key>
+		<true/>
+		<key>likely_cargo</key>
+		<integer>7</integer>
+		<key>max_cargo</key>
+		<integer>750</integer>
+		<key>max_energy</key>
+		<real>500</real>
+		<key>max_flight_pitch</key>
+		<real>0.4</real>
+		<key>max_flight_roll</key>
+		<real>0.75</real>
+		<key>max_flight_speed</key>
+		<real>140</real>
+		<key>max_missiles</key>
+		<integer>7</integer>
+		<key>missiles</key>
+		<integer>7</integer>
+		<key>model</key>
+		<string>anaconda.dat</string>
+		<key>name</key>
+		<string>Anaconda</string>
+		<key>roles</key>
+		<string>trader</string>
+		<key>thrust</key>
+		<real>14</real>
+		<key>weapon_energy</key>
+		<real>31</real>
+		<key>weapon_offset_x</key>
+		<real>0.0</real>
+	</dict>
+	<key>anaconda-player</key>
+	<dict>
+		<key>energy_recharge_rate</key>
+		<real>3</real>
+		<key>exhaust</key>
+		<array>
+			<string>-23.5.0 0.0 -74.5 16.0 16.0 14.0</string>
+			<string>23.5.0 0.0 -74.5 16.0 16.0 14.0</string>
+		</array>
+		<key>forward_weapon_type</key>
+		<string>WEAPON_PULSE_LASER</string>
+		<key>hud</key>
+		<string>hud.plist</string>
+		<key>max_cargo</key>
+		<integer>750</integer>
+		<key>max_energy</key>
+		<real>500</real>
+		<key>max_flight_pitch</key>
+		<real>0.4</real>
+		<key>max_flight_roll</key>
+		<real>0.75</real>
+		<key>max_flight_speed</key>
+		<real>140</real>
+		<key>max_missiles</key>
+		<integer>7</integer>
+		<key>missiles</key>
+		<integer>3</integer>
+		<key>model</key>
+		<string>anaconda.dat</string>
+		<key>name</key>
+		<string>Anaconda</string>
+		<key>roles</key>
+		<string>player</string>
+		<key>thrust</key>
+		<real>14</real>
+	</dict>
+	<key>arc-detail</key>
+	<dict>
+		<key>ai_type</key>
+		<string>nullAI.plist</string>
+		<key>model</key>
+		<string>arcdetail.dat</string>
+		<key>name</key>
+		<string>Arc Detail</string>
+		<key>roles</key>
+		<string>arc-detail</string>
+	</dict>
+	<key>asp</key>
+	<dict>
+		<key>ai_type</key>
+		<string>pirateAI.plist</string>
+		<key>bounty</key>
+		<integer>0</integer>
+		<key>cargo_type</key>
+		<string>CARGO_NOT_CARGO</string>
+		<key>energy_recharge_rate</key>
+		<real>4</real>
+		<key>exhaust</key>
+		<array>
+			<string>0.0 0.0 -27.0 8.0 6.0 8.0</string>
+		</array>
+		<key>forward_weapon_type</key>
+		<string>WEAPON_BEAM_LASER</string>
+		<key>fuel</key>
+		<integer>80</integer>
+		<key>has_ecm</key>
+		<true/>
+		<key>has_escape_pod</key>
+		<false/>
+		<key>has_fuel_injection</key>
+		<real>0.5</real>
+		<key>has_shield_booster</key>
+		<real>0.5</real>
+		<key>has_scoop</key>
+		<true/>
+		<key>likely_cargo</key>
+		<integer>0</integer>
+		<key>max_cargo</key>
+		<integer>0</integer>
+		<key>max_energy</key>
+		<real>350</real>
+		<key>max_flight_pitch</key>
+		<real>1</real>
+		<key>max_flight_roll</key>
+		<real>2</real>
+		<key>max_flight_speed</key>
+		<real>400</real>
+		<key>max_missiles</key>
+		<integer>1</integer>
+		<key>missiles</key>
+		<integer>1</integer>
+		<key>model</key>
+		<string>aspmk2.dat</string>
+		<key>name</key>
+		<string>Asp Mark II</string>
+		<key>roles</key>
+		<string>hunter pirate asp-pirate</string>
+		<key>thrust</key>
+		<real>50</real>
+		<key>weapon_energy</key>
+		<real>15</real>
+		<key>weapon_offset_x</key>
+		<real>5</real>
+	</dict>
+	<key>asp-cloaked</key>
+	<dict>
+		<key>ai_type</key>
+		<string>pirateAI.plist</string>
+		<key>bounty</key>
+		<integer>150</integer>
+		<key>cargo_type</key>
+		<string>CARGO_NOT_CARGO</string>
+		<key>energy_recharge_rate</key>
+		<real>4</real>
+		<key>exhaust</key>
+		<array>
+			<string>0.0 0.0 -27.0 8.0 6.0 8.0</string>
+		</array>
+		<key>death_actions</key>
+		<array>
+			<string>debugOn</string>
+			<string>spawn: cloaking-device 1</string>
+			<string>set: mission_cloak COMPLETE</string>
+			<string>debugOff</string>
+		</array>
+		<key>forward_weapon_type</key>
+		<string>WEAPON_BEAM_LASER</string>
+		<key>has_cloaking_device</key>
+		<true/>
+		<key>has_scoop</key>
+		<true/>
+		<key>likely_cargo</key>
+		<integer>0</integer>
+		<key>max_cargo</key>
+		<integer>0</integer>
+		<key>max_energy</key>
+		<real>320</real>
+		<key>max_flight_pitch</key>
+		<real>1</real>
+		<key>max_flight_roll</key>
+		<real>2</real>
+		<key>max_flight_speed</key>
+		<real>400</real>
+		<key>max_missiles</key>
+		<integer>1</integer>
+		<key>missiles</key>
+		<integer>1</integer>
+		<key>model</key>
+		<string>aspmk2.dat</string>
+		<key>name</key>
+		<string>Asp Mark II</string>
+		<key>roles</key>
+		<string>asp-cloaked</string>
+		<key>thrust</key>
+		<real>50</real>
+		<key>weapon_energy</key>
+		<real>15</real>
+		<key>weapon_offset_x</key>
+		<real>5</real>
+	</dict>
+	<key>cloaking-device</key>
+	<dict>
+		<key>ai_type</key>
+		<string>dumbAI.plist</string>
+		<key>bounty</key>
+		<integer>1</integer>
+		<key>cargo_type</key>
+		<string>CARGO_SCRIPTED_ITEM</string>
+		<key>energy_recharge_rate</key>
+		<real>0.0</real>
+		<key>forward_weapon_type</key>
+		<string>WEAPON_NONE</string>
+		<key>likely_cargo</key>
+		<integer>0</integer>
+		<key>max_cargo</key>
+		<integer>0</integer>
+		<key>max_energy</key>
+		<real>5</real>
+		<key>max_flight_pitch</key>
+		<real>0.5</real>
+		<key>max_flight_roll</key>
+		<real>0.5</real>
+		<key>max_flight_speed</key>
+		<real>50</real>
+		<key>model</key>
+		<string>barrel.dat</string>
+		<key>name</key>
+		<string>Unusual cargo container</string>
+		<key>roles</key>
+		<string>cloaking-device</string>
+		<key>scanClass</key>
+		<string>CLASS_CARGO</string>
+		<key>script_actions</key><!-- triggered when scooped -->
+		<array>
+			<string>debugOn</string>
+			<string>testForEquipment: EQ_CLOAKING_DEVICE</string>
+			<dict>
+				<key>conditions</key>
+				<array>
+					<string>foundEquipment_bool equal NO</string>
+				</array>
+				<key>do</key>
+				<array>
+					<string>awardEquipment: EQ_CLOAKING_DEVICE</string>
+				</array>
+			</dict>
+			<dict>
+				<key>conditions</key>
+				<array>
+					<string>foundEquipment_bool equal YES</string>
+				</array>
+				<key>do</key>
+				<array>
+					<string>awardCargo: 100 Gold</string>
+				</array>
+			</dict>
+			<string>debugOff</string>
+		</array>
+		<key>thrust</key>
+		<real>0.0</real>
+	</dict>
+	<key>asp-player</key>
+	<dict>
+		<key>energy_recharge_rate</key>
+		<real>4</real>
+		<key>exhaust</key>
+		<array>
+			<string>0.0 0.0 -27.0 8.0 6.0 8.0</string>
+		</array>
+		<key>forward_weapon_type</key>
+		<string>WEAPON_BEAM_LASER</string>
+		<key>hud</key>
+		<string>hud.plist</string>
+		<key>max_cargo</key>
+		<integer>0</integer>
+		<key>max_energy</key>
+		<real>350</real>
+		<key>max_flight_pitch</key>
+		<real>1</real>
+		<key>max_flight_roll</key>
+		<real>2</real>
+		<key>max_flight_speed</key>
+		<real>400</real>
+		<key>max_missiles</key>
+		<integer>1</integer>
+		<key>missiles</key>
+		<integer>1</integer>
+		<key>model</key>
+		<string>aspmk2.dat</string>
+		<key>name</key>
+		<string>Asp Mark II</string>
+		<key>roles</key>
+		<string>player</string>
+		<key>thrust</key>
+		<real>50</real>
+	</dict>
+	<key>asteroid</key>
+	<dict>
+		<key>ai_type</key>
+		<string>dumbAI.plist</string>
+		<key>bounty</key>
+		<integer>10</integer>
+		<key>cargo_type</key>
+		<string>CARGO_NOT_CARGO</string>
+		<key>energy_recharge_rate</key>
+		<real>0.0</real>
+		<key>forward_weapon_type</key>
+		<string>WEAPON_NONE</string>
+		<key>has_ecm</key>
+		<false/>
+		<key>has_escape_pod</key>
+		<false/>
+		<key>has_scoop</key>
+		<false/>
+		<key>likely_cargo</key>
+		<integer>0</integer>
+		<key>max_cargo</key>
+		<integer>0</integer>
+		<key>max_energy</key>
+		<real>100</real>
+		<key>max_flight_pitch</key>
+		<real>0.10000000000000001</real>
+		<key>max_flight_roll</key>
+		<real>0.10000000000000001</real>
+		<key>max_flight_speed</key>
+		<real>0.0</real>
+		<key>missiles</key>
+		<integer>0</integer>
+		<key>model</key>
+		<string>asteroid.dat</string>
+		<key>name</key>
+		<string>Asteroid</string>
+		<key>roles</key>
+		<string>asteroid</string>
+		<key>scanClass</key>
+		<string>CLASS_ROCK</string>
+		<key>smooth</key>
+		<true/>
+		<key>thrust</key>
+		<real>0.0</real>
+		<key>weapon_energy</key>
+		<real>0.0</real>
+		<key>weapon_offset_x</key>
+		<real>0.0</real>
+	</dict>
+	<key>asteroid-alternative</key>
+	<dict>
+		<key>ai_type</key>
+		<string>dumbAI.plist</string>
+		<key>bounty</key>
+		<integer>10</integer>
+		<key>cargo_type</key>
+		<string>CARGO_NOT_CARGO</string>
+		<key>energy_recharge_rate</key>
+		<real>0.0</real>
+		<key>forward_weapon_type</key>
+		<string>WEAPON_NONE</string>
+		<key>has_ecm</key>
+		<false/>
+		<key>has_escape_pod</key>
+		<false/>
+		<key>has_scoop</key>
+		<false/>
+		<key>likely_cargo</key>
+		<integer>0</integer>
+		<key>max_cargo</key>
+		<integer>0</integer>
+		<key>max_energy</key>
+		<real>100</real>
+		<key>max_flight_pitch</key>
+		<real>0.10000000000000001</real>
+		<key>max_flight_roll</key>
+		<real>0.10000000000000001</real>
+		<key>max_flight_speed</key>
+		<real>0.0</real>
+		<key>missiles</key>
+		<integer>0</integer>
+		<key>model</key>
+		<string>asteroid1.dat</string>
+		<key>name</key>
+		<string>Asteroid</string>
+		<key>roles</key>
+		<string>asteroid</string>
+		<key>scanClass</key>
+		<string>CLASS_ROCK</string>
+		<key>smooth</key>
+		<true/>
+		<key>thrust</key>
+		<real>0.0</real>
+		<key>weapon_energy</key>
+		<real>0.0</real>
+		<key>weapon_offset_x</key>
+		<real>0.0</real>
+	</dict>
+	<key>barrel</key>
+	<dict>
+		<key>ai_type</key>
+		<string>dumbAI.plist</string>
+		<key>bounty</key>
+		<integer>1</integer>
+		<key>cargo_type</key>
+		<string>CARGO_RANDOM</string>
+		<key>energy_recharge_rate</key>
+		<real>0.0</real>
+		<key>forward_weapon_type</key>
+		<string>WEAPON_NONE</string>
+		<key>has_ecm</key>
+		<false/>
+		<key>has_escape_pod</key>
+		<false/>
+		<key>has_scoop</key>
+		<false/>
+		<key>likely_cargo</key>
+		<integer>0</integer>
+		<key>max_cargo</key>
+		<integer>0</integer>
+		<key>max_energy</key>
+		<real>1</real>
+		<key>max_flight_pitch</key>
+		<real>0.5</real>
+		<key>max_flight_roll</key>
+		<real>0.5</real>
+		<key>max_flight_speed</key>
+		<real>50</real>
+		<key>missiles</key>
+		<integer>0</integer>
+		<key>model</key>
+		<string>barrel.dat</string>
+		<key>name</key>
+		<string>Cargo container</string>
+		<key>roles</key>
+		<string>cargopod</string>
+		<key>thrust</key>
+		<real>0.0</real>
+		<key>weapon_energy</key>
+		<real>0.0</real>
+		<key>weapon_offset_x</key>
+		<real>0.0</real>
+	</dict>
+	<key>boa</key>
+	<dict>
+		<key>aft_weapon_type</key>
+		<string>WEAPON_BEAM_LASER</string>
+		<key>ai_type</key>
+		<string>route1traderAI.plist</string>
+		<key>bounty</key>
+		<integer>0</integer>
+		<key>cargo_type</key>
+		<string>CARGO_NOT_CARGO</string>
+		<key>energy_recharge_rate</key>
+		<real>3</real>
+		<key>escorts</key>
+		<integer>4</integer>
+		<key>exhaust</key>
+		<array>
+			<string>0.0 0.0 -61.5 16.0 16.0 14.0</string>
+		</array>
+		<key>forward_weapon_type</key>
+		<string>WEAPON_PULSE_LASER</string>
+		<key>has_ecm</key>
+		<true/>
+		<key>has_escape_pod</key>
+		<true/>
+		<key>has_scoop</key>
+		<true/>
+		<key>likely_cargo</key>
+		<integer>5</integer>
+		<key>max_cargo</key>
+		<integer>125</integer>
+		<key>max_energy</key>
+		<real>450</real>
+		<key>max_flight_pitch</key>
+		<real>1</real>
+		<key>max_flight_roll</key>
+		<real>2.8</real>
+		<key>max_flight_speed</key>
+		<real>240</real>
+		<key>max_missiles</key>
+		<integer>4</integer>
+		<key>missiles</key>
+		<integer>4</integer>
+		<key>model</key>
+		<string>boa.dat</string>
+		<key>name</key>
+		<string>Boa</string>
+		<key>roles</key>
+		<string>trader</string>
+		<key>thrust</key>
+		<real>36</real>
+		<key>weapon_energy</key>
+		<real>15</real>
+		<key>weapon_offset_x</key>
+		<real>0.0</real>
+	</dict>
+	<key>boa-player</key>
+	<dict>
+		<key>energy_recharge_rate</key>
+		<real>3</real>
+		<key>exhaust</key>
+		<array>
+			<string>0.0 0.0 -61.5 16.0 16.0 14.0</string>
+		</array>
+		<key>forward_weapon_type</key>
+		<string>WEAPON_PULSE_LASER</string>
+		<key>hud</key>
+		<string>hud.plist</string>
+		<key>max_cargo</key>
+		<integer>125</integer>
+		<key>max_energy</key>
+		<real>450</real>
+		<key>max_flight_pitch</key>
+		<real>1</real>
+		<key>max_flight_roll</key>
+		<real>2.8</real>
+		<key>max_flight_speed</key>
+		<real>240</real>
+		<key>max_missiles</key>
+		<integer>4</integer>
+		<key>missiles</key>
+		<integer>4</integer>
+		<key>model</key>
+		<string>boa.dat</string>
+		<key>name</key>
+		<string>Boa</string>
+		<key>roles</key>
+		<string>player</string>
+		<key>thrust</key>
+		<real>36</real>
+	</dict>
+	<key>boa-mk2</key>
+	<dict>
+		<key>aft_weapon_type</key>
+		<string>WEAPON_BEAM_LASER</string>
+		<key>ai_type</key>
+		<string>route1traderAI.plist</string>
+		<key>bounty</key>
+		<integer>0</integer>
+		<key>cargo_type</key>
+		<string>CARGO_NOT_CARGO</string>
+		<key>energy_recharge_rate</key>
+		<real>3.2</real>
+		<key>escorts</key>
+		<integer>4</integer>
+		<key>exhaust</key>
+		<array>
+			<string>5.0 0.0 -113 12.0 12.0 16.0</string>
+			<string>-5.0 0.0 -113 12.0 12.0 16.0</string>
+		</array>
+		<key>forward_weapon_type</key>
+		<string>WEAPON_BEAM_LASER</string>
+		<key>has_ecm</key>
+		<true/>
+		<key>has_escape_pod</key>
+		<true/>
+		<key>has_scoop</key>
+		<true/>
+		<key>likely_cargo</key>
+		<integer>15</integer>
+		<key>max_cargo</key>
+		<integer>175</integer>
+		<key>max_energy</key>
+		<real>525</real>
+		<key>max_flight_pitch</key>
+		<real>1</real>
+		<key>max_flight_roll</key>
+		<real>2.5</real>
+		<key>max_flight_speed</key>
+		<real>312</real>
+		<key>max_missiles</key>
+		<integer>5</integer>
+		<key>missiles</key>
+		<integer>5</integer>
+		<key>model</key>
+		<string>boa-mk2.dat</string>
+		<key>name</key>
+		<string>Boa Class Cruiser</string>
+		<key>roles</key>
+		<string>trader sunskim-trader</string>
+		<key>thrust</key>
+		<real>40</real>
+		<key>weapon_energy</key>
+		<real>15</real>
+		<key>weapon_offset_x</key>
+		<real>0.0</real>
+	</dict>
+	<key>boa-mk2-player</key>
+	<dict>
+		<key>energy_recharge_rate</key>
+		<real>3.2</real>
+		<key>escorts</key>
+		<integer>4</integer>
+		<key>exhaust</key>
+		<array>
+			<string>5.0 0.0 -113 12.0 12.0 16.0</string>
+			<string>-5.0 0.0 -113 12.0 12.0 16.0</string>
+		</array>
+		<key>forward_weapon_type</key>
+		<string>WEAPON_BEAM_LASER</string>
+		<key>hud</key>
+		<string>hud.plist</string>
+		<key>max_cargo</key>
+		<integer>175</integer>
+		<key>max_energy</key>
+		<real>525</real>
+		<key>max_flight_pitch</key>
+		<real>1</real>
+		<key>max_flight_roll</key>
+		<real>2.5</real>
+		<key>max_flight_speed</key>
+		<real>312</real>
+		<key>max_missiles</key>
+		<integer>5</integer>
+		<key>missiles</key>
+		<integer>5</integer>
+		<key>model</key>
+		<string>boa-mk2.dat</string>
+		<key>name</key>
+		<string>Boa Class Cruiser</string>
+		<key>roles</key>
+		<string>player</string>
+		<key>thrust</key>
+		<real>40</real>
+	</dict>
+	<key>boulder</key>
+	<dict>
+		<key>ai_type</key>
+		<string>dumbAI.plist</string>
+		<key>bounty</key>
+		<integer>5</integer>
+		<key>cargo_type</key>
+		<string>CARGO_NOT_CARGO</string>
+		<key>energy_recharge_rate</key>
+		<real>0.0</real>
+		<key>forward_weapon_type</key>
+		<string>WEAPON_NONE</string>
+		<key>has_ecm</key>
+		<false/>
+		<key>has_escape_pod</key>
+		<false/>
+		<key>has_scoop</key>
+		<false/>
+		<key>likely_cargo</key>
+		<integer>0</integer>
+		<key>max_cargo</key>
+		<integer>0</integer>
+		<key>max_energy</key>
+		<real>25</real>
+		<key>max_flight_pitch</key>
+		<real>0.5</real>
+		<key>max_flight_roll</key>
+		<real>0.5</real>
+		<key>max_flight_speed</key>
+		<real>5</real>
+		<key>missiles</key>
+		<integer>0</integer>
+		<key>model</key>
+		<string>boulder.dat</string>
+		<key>name</key>
+		<string>Boulder</string>
+		<key>roles</key>
+		<string>boulder</string>
+		<key>scanClass</key>
+		<string>CLASS_ROCK</string>
+		<key>smooth</key>
+		<true/>
+		<key>thrust</key>
+		<real>0.0</real>
+		<key>weapon_energy</key>
+		<real>0.0</real>
+		<key>weapon_offset_x</key>
+		<real>0.0</real>
+	</dict>
+	<key>boulder-alternative</key>
+	<dict>
+		<key>ai_type</key>
+		<string>dumbAI.plist</string>
+		<key>bounty</key>
+		<integer>5</integer>
+		<key>cargo_type</key>
+		<string>CARGO_NOT_CARGO</string>
+		<key>energy_recharge_rate</key>
+		<real>0.0</real>
+		<key>forward_weapon_type</key>
+		<string>WEAPON_NONE</string>
+		<key>has_ecm</key>
+		<false/>
+		<key>has_escape_pod</key>
+		<false/>
+		<key>has_scoop</key>
+		<false/>
+		<key>likely_cargo</key>
+		<integer>0</integer>
+		<key>max_cargo</key>
+		<integer>0</integer>
+		<key>max_energy</key>
+		<real>25</real>
+		<key>max_flight_pitch</key>
+		<real>0.5</real>
+		<key>max_flight_roll</key>
+		<real>0.5</real>
+		<key>max_flight_speed</key>
+		<real>5</real>
+		<key>missiles</key>
+		<integer>0</integer>
+		<key>model</key>
+		<string>boulder1.dat</string>
+		<key>name</key>
+		<string>Boulder</string>
+		<key>roles</key>
+		<string>boulder</string>
+		<key>scanClass</key>
+		<string>CLASS_ROCK</string>
+		<key>smooth</key>
+		<true/>
+		<key>thrust</key>
+		<real>0.0</real>
+		<key>weapon_energy</key>
+		<real>0.0</real>
+		<key>weapon_offset_x</key>
+		<real>0.0</real>
+	</dict>
+	<key>buoy</key>
+	<dict>
+		<key>ai_type</key>
+		<string>buoyAI.plist</string>
+		<key>beacon</key>
+		<string>N0100 Navigation Buoy</string>
+		<key>bounty</key>
+		<integer>0</integer>
+		<key>cargo_type</key>
+		<string>CARGO_NOT_CARGO</string>
+		<key>energy_recharge_rate</key>
+		<real>2</real>
+		<key>forward_weapon_type</key>
+		<string>WEAPON_NONE</string>
+		<key>has_ecm</key>
+		<false/>
+		<key>has_escape_pod</key>
+		<false/>
+		<key>has_scoop</key>
+		<false/>
+		<key>likely_cargo</key>
+		<integer>0</integer>
+		<key>max_cargo</key>
+		<integer>0</integer>
+		<key>max_energy</key>
+		<real>250</real>
+		<key>max_flight_pitch</key>
+		<real>2.0</real>
+		<key>max_flight_roll</key>
+		<real>2.0</real>
+		<key>max_flight_speed</key>
+		<real>0.0</real>
+		<key>missiles</key>
+		<integer>0</integer>
+		<key>model</key>
+		<string>buoy.dat</string>
+		<key>name</key>
+		<string>Navigation Buoy</string>
+		<key>roles</key>
+		<string>buoy</string>
+		<key>thrust</key>
+		<real>100</real>
+		<key>weapon_energy</key>
+		<real>0.0</real>
+		<key>weapon_offset_x</key>
+		<real>0.0</real>
+	</dict>
+	<key>buoy-witchpoint</key>
+	<dict>
+		<key>ai_type</key>
+		<string>buoyAI.plist</string>
+		<key>beacon</key>
+		<string>W0100 Navigation Buoy (Witchpoint)</string>
+		<key>bounty</key>
+		<integer>0</integer>
+		<key>cargo_type</key>
+		<string>CARGO_NOT_CARGO</string>
+		<key>energy_recharge_rate</key>
+		<real>2</real>
+		<key>forward_weapon_type</key>
+		<string>WEAPON_NONE</string>
+		<key>likely_cargo</key>
+		<integer>0</integer>
+		<key>max_cargo</key>
+		<integer>0</integer>
+		<key>max_energy</key>
+		<real>250</real>
+		<key>max_flight_pitch</key>
+		<real>2.0</real>
+		<key>max_flight_roll</key>
+		<real>2.0</real>
+		<key>max_flight_speed</key>
+		<real>0.0</real>
+		<key>missiles</key>
+		<integer>0</integer>
+		<key>model</key>
+		<string>buoy.dat</string>
+		<key>name</key>
+		<string>Witchpoint Beacon</string>
+		<key>roles</key>
+		<string>buoy-witchpoint</string>
+        <key>subentities</key>
+		<array>
+			<string>*FLASHER* 0 0 60 60 0.15 1 150</string>
+			<string>*FLASHER* 0 0 -60 30 0.15 0.0 150</string>
+			<string>*FLASHER* 0 0 60 5 2 0.0 25</string>
+			<string>*FLASHER* 0 0 -60 5 2 0.0 25</string>
+		</array>
+		<key>thrust</key>
+		<real>100</real>
+		<key>weapon_energy</key>
+		<real>0.0</real>
+		<key>weapon_offset_x</key>
+		<real>0.0</real>
+	</dict>
+	<key>cobra3-alternate</key>
+	<dict>
+		<key>ai_type</key>
+		<string>route1traderAI.plist</string>
+		<key>bounty</key>
+		<integer>0</integer>
+		<key>cargo_type</key>
+		<string>CARGO_NOT_CARGO</string>
+		<key>energy_recharge_rate</key>
+		<real>3</real>
+		<key>exhaust</key>
+		<array>
+			<string>-19 0.0 -21.5 15.0 7.5 12.5</string>
+			<string>19 0.0 -21.5 15.0 7.5 12.5</string>
+		</array>
+		<key>forward_weapon_type</key>
+		<string>WEAPON_BEAM_LASER</string>
+		<key>has_ecm</key>
+		<true/>
+		<key>has_escape_pod</key>
+		<true/>
+		<key>has_scoop</key>
+		<true/>
+		<key>likely_cargo</key>
+		<integer>3</integer>
+		<key>max_cargo</key>
+		<integer>35</integer>
+		<key>max_energy</key>
+		<real>250</real>
+		<key>max_flight_pitch</key>
+		<real>1</real>
+		<key>max_flight_roll</key>
+		<real>2</real>
+		<key>max_flight_speed</key>
+		<real>320</real>
+		<key>missiles</key>
+		<integer>3</integer>
+		<key>model</key>
+		<string>cobramk3alt.dat</string>
+		<key>name</key>
+		<string>Cobra Mark III</string>
+		<key>roles</key>
+		<string>hunter pirate trader hermit-ship sunskim-trader</string>
+		<key>thrust</key>
+		<real>32</real>
+		<key>weapon_energy</key>
+		<real>15</real>
+		<key>weapon_offset_x</key>
+		<real>10</real>
+	</dict>
+	<key>cobra3-pirate</key>
+	<dict>
+		<key>ai_type</key>
+		<string>pirateAI.plist</string>
+		<key>bounty</key>
+		<integer>50</integer>
+		<key>cargo_type</key>
+		<string>CARGO_NOT_CARGO</string>
+		<key>energy_recharge_rate</key>
+		<real>3</real>
+		<key>exhaust</key>
+		<array>
+			<string>-19 0.0 -21.5 15.0 7.5 12.5</string>
+			<string>19 0.0 -21.5 15.0 7.5 12.5</string>
+		</array>
+		<key>forward_weapon_type</key>
+		<string>WEAPON_PULSE_LASER</string>
+		<key>has_ecm</key>
+		<false/>
+		<key>has_escape_pod</key>
+		<true/>
+		<key>has_scoop</key>
+		<true/>
+		<key>has_shield_booster</key>
+		<real>0.25</real>
+		<key>likely_cargo</key>
+		<integer>3</integer>
+		<key>max_cargo</key>
+		<integer>5</integer>
+		<key>max_energy</key>
+		<real>250</real>
+		<key>max_flight_pitch</key>
+		<real>1</real>
+		<key>max_flight_roll</key>
+		<real>2</real>
+		<key>max_flight_speed</key>
+		<real>300</real>
+		<key>missiles</key>
+		<integer>1</integer>
+		<key>model</key>
+		<string>cobramk3.dat</string>
+		<key>name</key>
+		<string>Cobra Mark III</string>
+		<key>roles</key>
+		<string>pirate hunter</string>
+		<key>thrust</key>
+		<real>30</real>
+		<key>weapon_energy</key>
+		<real>9</real>
+		<key>weapon_offset_x</key>
+		<real>10</real>
+	</dict>
+	<key>cobra3-player</key>
+	<dict>
+		<key>energy_recharge_rate</key>
+		<real>4</real>
+		<key>exhaust</key>
+		<array>
+			<string>-19 0.0 -21.5 15.0 7.5 12.5</string>
+			<string>19 0.0 -21.5 15.0 7.5 12.5</string>
+		</array>
+		<key>forward_weapon_type</key>
+		<string>WEAPON_PULSE_LASER</string>
+		<key>hud</key>
+		<string>hud.plist</string>
+		<key>laser_color</key>
+		<string>redColor</string>
+		<key>max_cargo</key>
+		<integer>20</integer>
+		<key>max_energy</key>
+		<real>256</real>
+		<key>max_flight_pitch</key>
+		<real>1</real>
+		<key>max_flight_roll</key>
+		<real>2</real>
+		<key>max_flight_speed</key>
+		<real>350</real>
+		<key>max_missiles</key>
+		<integer>4</integer>
+		<key>missiles</key>
+		<integer>3</integer>
+		<key>model</key>
+		<string>cobramk3.dat</string>
+		<key>name</key>
+		<string>Cobra Mark III</string>
+		<key>roles</key>
+		<string>player</string>
+		<key>thrust</key>
+		<real>32</real>
+	</dict>
+	<key>cobra3-trader</key>
+	<dict>
+		<key>ai_type</key>
+		<string>route1traderAI.plist</string>
+		<key>bounty</key>
+		<integer>0</integer>
+		<key>cargo_type</key>
+		<string>CARGO_NOT_CARGO</string>
+		<key>energy_recharge_rate</key>
+		<real>2</real>
+		<key>exhaust</key>
+		<array>
+			<string>-19 0.0 -21.5 15.0 7.5 12.5</string>
+			<string>19 0.0 -21.5 15.0 7.5 12.5</string>
+		</array>
+		<key>forward_weapon_type</key>
+		<string>WEAPON_BEAM_LASER</string>
+		<key>has_ecm</key>
+		<false/>
+		<key>has_escape_pod</key>
+		<true/>
+		<key>has_scoop</key>
+		<true/>
+		<key>likely_cargo</key>
+		<integer>3</integer>
+		<key>max_cargo</key>
+		<integer>20</integer>
+		<key>max_energy</key>
+		<real>150</real>
+		<key>max_flight_pitch</key>
+		<real>1</real>
+		<key>max_flight_roll</key>
+		<real>2</real>
+		<key>max_flight_speed</key>
+		<real>300</real>
+		<key>missiles</key>
+		<integer>3</integer>
+		<key>model</key>
+		<string>cobramk3.dat</string>
+		<key>name</key>
+		<string>Cobra Mark III</string>
+		<key>roles</key>
+		<string>trader scavenger sunskim-trader</string>
+		<key>thrust</key>
+		<real>30</real>
+		<key>weapon_energy</key>
+		<real>9</real>
+		<key>weapon_offset_x</key>
+		<real>10</real>
+	</dict>
+	<key>cobramk1</key>
+	<dict>
+		<key>ai_type</key>
+		<string>pirateAI.plist</string>
+		<key>bounty</key>
+		<integer>0</integer>
+		<key>cargo_type</key>
+		<string>CARGO_NOT_CARGO</string>
+		<key>energy_recharge_rate</key>
+		<real>2.5</real>
+		<key>exhaust</key>
+		<array>
+			<string>-12.0 0.0 -19.5 10.0 4.0 5.0</string>
+			<string>12.0 0.0 -19.5 10.0 4.0 5.0</string>
+		</array>
+		<key>forward_weapon_type</key>
+		<string>WEAPON_PULSE_LASER</string>
+		<key>has_ecm</key>
+		<false/>
+		<key>has_escape_pod</key>
+		<false/>
+		<key>has_scoop</key>
+		<true/>
+		<key>likely_cargo</key>
+		<integer>2</integer>
+		<key>max_cargo</key>
+		<integer>10</integer>
+		<key>max_energy</key>
+		<real>150</real>
+		<key>max_flight_pitch</key>
+		<real>1.2</real>
+		<key>max_flight_roll</key>
+		<real>2</real>
+		<key>max_flight_speed</key>
+		<real>260</real>
+		<key>missiles</key>
+		<integer>1</integer>
+		<key>model</key>
+		<string>cobramk1.dat</string>
+		<key>name</key>
+		<string>Cobra Mark I</string>
+		<key>roles</key>
+		<string>pirate scavenger trader hunter hermit-ship</string>
+		<key>thrust</key>
+		<real>25</real>
+		<key>weapon_energy</key>
+		<real>9</real>
+		<key>weapon_offset_x</key>
+		<real>10</real>
+	</dict>
+	<key>cobramk1-miner</key>
+	<dict>
+		<key>accuracy</key>
+		<integer>8</integer>
+		<key>ai_type</key>
+		<string>minerAI.plist</string>
+		<key>bounty</key>
+		<integer>0</integer>
+		<key>cargo_type</key>
+		<string>CARGO_NOT_CARGO</string>
+		<key>energy_recharge_rate</key>
+		<real>2.5</real>
+		<key>exhaust</key>
+		<array>
+			<string>-12.0 0.0 -19.5 10.0 4.0 5.0</string>
+			<string>12.0 0.0 -19.5 10.0 4.0 5.0</string>
+		</array>
+		<key>forward_weapon_type</key>
+		<string>WEAPON_MINING_LASER</string>
+		<key>has_ecm</key>
+		<false/>
+		<key>has_escape_pod</key>
+		<false/>
+		<key>has_scoop</key>
+		<true/>
+		<key>likely_cargo</key>
+		<integer>0</integer>
+		<key>max_cargo</key>
+		<integer>10</integer>
+		<key>max_energy</key>
+		<real>150</real>
+		<key>max_flight_pitch</key>
+		<real>1.2</real>
+		<key>max_flight_roll</key>
+		<real>2</real>
+		<key>max_flight_speed</key>
+		<real>260</real>
+		<key>missiles</key>
+		<integer>1</integer>
+		<key>model</key>
+		<string>cobramk1miner.dat</string>
+		<key>name</key>
+		<string>Cobra Mark I</string>
+		<key>roles</key>
+		<string>miner</string>
+		<key>thrust</key>
+		<real>25</real>
+		<key>weapon_energy</key>
+		<real>50</real>
+		<key>weapon_offset_x</key>
+		<real>10</real>
+	</dict>
+	<key>cobramk1-alt</key>
+	<dict>
+		<key>ai_type</key>
+		<string>pirateAI.plist</string>
+		<key>bounty</key>
+		<integer>0</integer>
+		<key>cargo_type</key>
+		<string>CARGO_NOT_CARGO</string>
+		<key>energy_recharge_rate</key>
+		<real>3.75</real>
+		<key>exhaust</key>
+		<array>
+			<string>-12.0 0.0 -19.5 10.0 4.0 5.0</string>
+			<string>12.0 0.0 -19.5 10.0 4.0 5.0</string>
+		</array>
+		<key>forward_weapon_type</key>
+		<string>WEAPON_BEAM_LASER</string>
+		<key>has_ecm</key>
+		<false/>
+		<key>has_escape_pod</key>
+		<false/>
+		<key>has_scoop</key>
+		<true/>
+		<key>has_fuel_injection</key>
+		<real>0.25</real>
+		<key>has_shield_booster</key>
+		<real>0.25</real>
+		<key>likely_cargo</key>
+		<integer>2</integer>
+		<key>max_cargo</key>
+		<integer>10</integer>
+		<key>max_energy</key>
+		<real>200</real>
+		<key>max_flight_pitch</key>
+		<real>1.2</real>
+		<key>max_flight_roll</key>
+		<real>2</real>
+		<key>max_flight_speed</key>
+		<real>260</real>
+		<key>max_missiles</key>
+		<integer>1</integer>
+		<key>missiles</key>
+		<integer>1</integer>
+		<key>model</key>
+		<string>cobramk1alt.dat</string>
+		<key>name</key>
+		<string>Cobra Mark I</string>
+		<key>roles</key>
+		<string>pirate</string>
+		<key>thrust</key>
+		<real>30</real>
+		<key>weapon_energy</key>
+		<real>15</real>
+		<key>weapon_offset_x</key>
+		<real>10</real>
+	</dict>
+	<key>cobramk1-player</key>
+	<dict>
+		<key>energy_recharge_rate</key>
+		<real>2.5</real>
+		<key>exhaust</key>
+		<array>
+			<string>-12.0 0.0 -19.5 10.0 4.0 5.0</string>
+			<string>12.0 0.0 -19.5 10.0 4.0 5.0</string>
+		</array>
+		<key>forward_weapon_type</key>
+		<string>WEAPON_PULSE_LASER</string>
+		<key>hud</key>
+		<string>hud-small.plist</string>
+		<key>max_cargo</key>
+		<integer>10</integer>
+		<key>max_energy</key>
+		<real>150</real>
+		<key>max_flight_pitch</key>
+		<real>1.2</real>
+		<key>max_flight_roll</key>
+		<real>2</real>
+		<key>max_flight_speed</key>
+		<real>260</real>
+		<key>max_missiles</key>
+		<integer>1</integer>
+		<key>missiles</key>
+		<integer>1</integer>
+		<key>model</key>
+		<string>cobramk1.dat</string>
+		<key>name</key>
+		<string>Cobra Mark I</string>
+		<key>roles</key>
+		<string>player</string>
+		<key>thrust</key>
+		<real>25</real>
+	</dict>
+	<key>constrictor</key>
+	<dict>
+		<key>ai_type</key>
+		<string>pirateAI.plist</string>
+		<key>bounty</key>
+		<integer>250</integer>
+		<key>cargo_type</key>
+		<string>CARGO_NOT_CARGO</string>
+		<key>death_actions</key>
+		<array>
+			<string>set: mission_conhunt CONSTRICTOR_DESTROYED</string>
+		</array>
+		<key>energy_recharge_rate</key>
+		<real>5</real>
+		<key>exhaust</key>
+		<array>
+			<string>0.0 0.0 -38.0 27.0 18.0 18.0</string>
+		</array>
+		<key>forward_weapon_type</key>
+		<string>WEAPON_MILITARY_LASER</string>
+		<key>fuel</key>
+		<integer>60</integer>
+		<key>has_ecm</key>
+		<true/>
+		<key>has_escape_pod</key>
+		<false/>
+		<key>has_fuel_injection</key>
+		<true/>
+		<key>has_scoop</key>
+		<false/>
+		<key>launch_actions</key>
+		<array/>
+		<key>likely_cargo</key>
+		<integer>0</integer>
+		<key>max_cargo</key>
+		<integer>15</integer>
+		<key>max_energy</key>
+		<real>450</real>
+		<key>max_flight_pitch</key>
+		<real>1.75</real>
+		<key>max_flight_roll</key>
+		<real>2.5</real>
+		<key>max_flight_speed</key>
+		<real>600</real>
+		<key>max_missiles</key>
+		<integer>3</integer>
+		<key>missiles</key>
+		<integer>3</integer>
+		<key>model</key>
+		<string>constrictor.dat</string>
+		<key>name</key>
+		<string>Constrictor</string>
+		<key>roles</key>
+		<string>constrictor</string>
+		<key>thrust</key>
+		<real>50</real>
+		<key>weapon_energy</key>
+		<real>21</real>
+		<key>weapon_offset_x</key>
+		<real>0.0</real>
+	</dict>
+	<key>coriolis-station</key>
+	<dict>
+		<key>ai_type</key>
+		<string>stationAI.plist</string>
+		<key>bounty</key>
+		<integer>0</integer>
+		<key>cargo_type</key>
+		<string>CARGO_NOT_CARGO</string>
+		<key>energy_recharge_rate</key>
+		<real>100</real>
+		<key>forward_weapon_type</key>
+		<string>WEAPON_NONE</string>
+		<key>has_ecm</key>
+		<true/>
+		<key>has_escape_pod</key>
+		<false/>
+		<key>has_scoop</key>
+		<false/>
+		<key>likely_cargo</key>
+		<integer>0</integer>
+		<key>max_cargo</key>
+		<integer>0</integer>
+		<key>max_energy</key>
+		<real>25000</real>
+		<key>max_flight_pitch</key>
+		<real>8</real>
+		<key>max_flight_roll</key>
+		<real>8</real>
+		<key>max_flight_speed</key>
+		<real>0.0</real>
+		<key>max_missiles</key>
+		<integer>0</integer>
+		<key>missiles</key>
+		<integer>0</integer>
+		<key>model</key>
+		<string>new_coriolis.dat</string>
+		<key>name</key>
+		<string>Coriolis Station</string>
+		<key>port_radius</key>
+		<real>500</real>
+		<key>roles</key>
+		<string>coriolis station</string>
+		<key>subentities</key>
+		<array>
+			<string>dock 0 0 500 1 0 0 0</string>
+			<string>arc-detail 0 0 0 1 0 0 0</string>
+			<string>arc-detail 0 0 0 1 0 0 1</string>
+			<string>arc-detail 0 0 0 0 0 0 1</string>
+			<string>arc-detail 0 0 0 1 0 0 -1</string>
+			<string>*FLASHER* 0 92 475 60.0 1 -0.50 12</string>
+			<string>*FLASHER* 0 92 425 75.0 1 -0.60 12</string>
+			<string>*FLASHER* 0 92 375 90.0 1 -0.70 12</string>
+			<string>*FLASHER* 0 92 325 105.0 1 -0.80 12</string>
+			<string>*FLASHER* 0 92 275 120.0 1 -0.90 12</string>
+			<string>*FLASHER* 0 -92 475 60.0 1 -0.50 12</string>
+			<string>*FLASHER* 0 -92 425 75.0 1 -0.60 12</string>
+			<string>*FLASHER* 0 -92 375 90.0 1 -0.70 12</string>
+			<string>*FLASHER* 0 -92 325 105.0 1 -0.80 12</string>
+			<string>*FLASHER* 0 -92 275 120.0 1 -0.90 12</string>
+			<string>*FLASHER* 0 -16 252 30.0 1 0.5 12</string>
+			<string>*FLASHER* 0 16 252 30.0 1 0.5 12</string>
+			<string>*FLASHER* 16 0 252 30.0 1 0.0 12</string>
+			<string>*FLASHER* -16 0 252 30.0 1 0.0 12</string>
+		</array>
+		<key>thrust</key>
+		<real>100</real>
+		<key>weapon_energy</key>
+		<real>0.0</real>
+		<key>weapon_offset_x</key>
+		<real>0.0</real>
+	</dict>
+	<key>dock</key>
+	<dict>
+		<key>ai_type</key>
+		<string>nullAI.plist</string>
+		<key>model</key>
+		<string>dock.dat</string>
+		<key>name</key>
+		<string>Docking Slit</string>
+		<key>roles</key>
+		<string>docking-slit</string>
+	</dict>
+	<key>dodecahedron-station</key>
+	<dict>
+		<key>ai_type</key>
+		<string>stationAI.plist</string>
+		<key>bounty</key>
+		<integer>0</integer>
+		<key>cargo_type</key>
+		<string>CARGO_NOT_CARGO</string>
+		<key>energy_recharge_rate</key>
+		<real>100</real>
+		<key>forward_weapon_type</key>
+		<string>WEAPON_NONE</string>
+		<key>has_ecm</key>
+		<true/>
+		<key>has_escape_pod</key>
+		<false/>
+		<key>has_scoop</key>
+		<false/>
+		<key>likely_cargo</key>
+		<integer>0</integer>
+		<key>max_cargo</key>
+		<integer>0</integer>
+		<key>max_energy</key>
+		<real>25000</real>
+		<key>max_flight_pitch</key>
+		<real>8</real>
+		<key>max_flight_roll</key>
+		<real>8</real>
+		<key>max_flight_speed</key>
+		<real>0.0</real>
+		<key>max_missiles</key>
+		<integer>0</integer>
+		<key>missiles</key>
+		<integer>0</integer>
+		<key>model</key>
+		<string>new-dodo.dat</string>
+		<key>name</key>
+		<string>Dodecahedron Station</string>
+		<key>port_radius</key>
+		<real>392</real>
+		<key>roles</key>
+		<string>dodo dodec dodecahedron station</string>
+		<key>subentities</key>
+		<array>
+			<string>dock 0 0 392 1 0 0 0</string>
+			<string>*FLASHER* 0 92 360 60.0 1 -0.50 12</string>
+			<string>*FLASHER* 0 92 315 75.0 1 -0.60 12</string>
+			<string>*FLASHER* 0 92 270 90.0 1 -0.70 12</string>
+			<string>*FLASHER* 0 92 225 105.0 1 -0.80 12</string>
+			<string>*FLASHER* 0 92 180 120.0 1 -0.90 12</string>
+			<string>*FLASHER* 0 -92 360 60.0 1 -0.50 12</string>
+			<string>*FLASHER* 0 -92 315 75.0 1 -0.60 12</string>
+			<string>*FLASHER* 0 -92 270 90.0 1 -0.70 12</string>
+			<string>*FLASHER* 0 -92 225 105.0 1 -0.80 12</string>
+			<string>*FLASHER* 0 -92 180 120.0 1 -0.90 12</string>
+			<string>*FLASHER* 0 -16 144 30.0 1 0.5 12</string>
+			<string>*FLASHER* 0 16 144 30.0 1 0.5 12</string>
+			<string>*FLASHER* 16 0 144 30.0 1 0.0 12</string>
+			<string>*FLASHER* -16 0 144 30.0 1 0.0 12</string>
+		</array>
+		<key>thrust</key>
+		<real>100</real>
+		<key>weapon_energy</key>
+		<real>0.0</real>
+		<key>weapon_offset_x</key>
+		<real>0.0</real>
+	</dict>
+	<key>escape-capsule</key>
+	<dict>
+		<key>ai_type</key>
+		<string>homeAI.plist</string>
+		<key>bounty</key>
+		<integer>0</integer>
+		<key>cargo_type</key>
+		<string>CARGO_SLAVES</string>
+		<key>energy_recharge_rate</key>
+		<real>2</real>
+		<key>forward_weapon_type</key>
+		<string>WEAPON_NONE</string>
+		<key>has_ecm</key>
+		<false/>
+		<key>has_escape_pod</key>
+		<false/>
+		<key>has_scoop</key>
+		<false/>
+		<key>likely_cargo</key>
+		<integer>0</integer>
+		<key>max_cargo</key>
+		<integer>0</integer>
+		<key>max_energy</key>
+		<real>25</real>
+		<key>max_flight_pitch</key>
+		<real>0.5</real>
+		<key>max_flight_roll</key>
+		<real>0.5</real>
+		<key>max_flight_speed</key>
+		<real>50</real>
+		<key>max_missiles</key>
+		<integer>0</integer>
+		<key>missiles</key>
+		<integer>0</integer>
+		<key>model</key>
+		<string>escapepod.dat</string>
+		<key>name</key>
+		<string>Escape capsule</string>
+		<key>roles</key>
+		<string>escape-capsule</string>
+		<key>subentities</key>
+		<array>
+			<string>*FLASHER* 0 1.25 0 30.0 4 0.0 2</string>
+		</array>
+		<key>thrust</key>
+		<real>1</real>
+		<key>weapon_energy</key>
+		<real>0.0</real>
+		<key>weapon_offset_x</key>
+		<real>0.0</real>
+	</dict>
+	<key>ferdelance</key>
+	<dict>
+		<key>ai_type</key>
+		<string>pirateAI.plist</string>
+		<key>bounty</key>
+		<integer>0</integer>
+		<key>cargo_type</key>
+		<string>CARGO_NOT_CARGO</string>
+		<key>energy_recharge_rate</key>
+		<real>4.5</real>
+		<key>exhaust</key>
+		<array>
+			<string>0.0 0.0 -40.0 6.0 6.0 8.0</string>
+		</array>
+		<key>forward_weapon_type</key>
+		<string>WEAPON_BEAM_LASER</string>
+		<key>fuel</key>
+		<integer>50</integer>
+		<key>has_ecm</key>
+		<true/>
+		<key>has_escape_pod</key>
+		<false/>
+		<key>has_fuel_injection</key>
+		<real>0.75</real>
+		<key>has_shield_booster</key>
+		<real>0.5</real>
+		<key>has_shield_enhancer</key>
+		<real>0.5</real>
+		<key>has_scoop</key>
+		<true/>
+		<key>likely_cargo</key>
+		<integer>2</integer>
+		<key>max_cargo</key>
+		<integer>12</integer>
+		<key>max_energy</key>
+		<real>150</real>
+		<key>max_flight_pitch</key>
+		<real>1</real>
+		<key>max_flight_roll</key>
+		<real>3.6</real>
+		<key>max_flight_speed</key>
+		<real>300</real>
+		<key>max_missiles</key>
+		<integer>2</integer>
+		<key>missiles</key>
+		<integer>2</integer>
+		<key>model</key>
+		<string>ferdelance.dat</string>
+		<key>name</key>
+		<string>Fer-de-Lance</string>
+		<key>roles</key>
+		<string>pirate hunter</string>
+		<key>thrust</key>
+		<real>36</real>
+		<key>weapon_energy</key>
+		<real>15</real>
+		<key>weapon_offset_x</key>
+		<real>0.0</real>
+	</dict>
+	<key>ferdelance-player</key>
+	<dict>
+		<key>energy_recharge_rate</key>
+		<real>4.5</real>
+		<key>exhaust</key>
+		<array>
+			<string>0.0 0.0 -40.0 6.0 6.0 8.0</string>
+		</array>
+		<key>forward_weapon_type</key>
+		<string>WEAPON_BEAM_LASER</string>
+		<key>has_scoop</key>
+		<true/>
+		<key>hud</key>
+		<string>hud.plist</string>
+		<key>max_cargo</key>
+		<integer>12</integer>
+		<key>max_energy</key>
+		<real>150</real>
+		<key>max_flight_pitch</key>
+		<real>1</real>
+		<key>max_flight_roll</key>
+		<real>3.6</real>
+		<key>max_flight_speed</key>
+		<real>300</real>
+		<key>max_missiles</key>
+		<integer>2</integer>
+		<key>missiles</key>
+		<integer>2</integer>
+		<key>model</key>
+		<string>ferdelance.dat</string>
+		<key>name</key>
+		<string>Fer-de-Lance</string>
+		<key>roles</key>
+		<string>player</string>
+		<key>thrust</key>
+		<real>25</real>
+	</dict>
+	<key>gecko</key>
+	<dict>
+		<key>ai_type</key>
+		<string>pirateAI.plist</string>
+		<key>bounty</key>
+		<integer>0</integer>
+		<key>cargo_type</key>
+		<string>CARGO_NOT_CARGO</string>
+		<key>energy_recharge_rate</key>
+		<real>4</real>
+		<key>exhaust</key>
+		<array>
+			<string>0.0 0.0 -12.0 5.0 4.0 4.0</string>
+		</array>
+		<key>forward_weapon_type</key>
+		<string>WEAPON_BEAM_LASER</string>
+		<key>has_ecm</key>
+		<false/>
+		<key>has_escape_pod</key>
+		<false/>
+		<key>has_scoop</key>
+		<true/>
+		<key>has_shield_booster</key>
+		<real>0.4</real>
+		<key>likely_cargo</key>
+		<integer>0</integer>
+		<key>max_cargo</key>
+		<integer>3</integer>
+		<key>max_energy</key>
+		<real>250</real>
+		<key>max_flight_pitch</key>
+		<real>1.5</real>
+		<key>max_flight_roll</key>
+		<real>3</real>
+		<key>max_flight_speed</key>
+		<real>300</real>
+		<key>max_missiles</key>
+		<integer>1</integer>
+		<key>missiles</key>
+		<integer>1</integer>
+		<key>model</key>
+		<string>gecko.dat</string>
+		<key>name</key>
+		<string>Gecko</string>
+		<key>roles</key>
+		<string>pirate</string>
+		<key>thrust</key>
+		<real>45</real>
+		<key>weapon_energy</key>
+		<real>15</real>
+		<key>weapon_offset_x</key>
+		<real>0.0</real>
+	</dict>
+	<key>hermit-docking-slit</key>
+	<dict>
+		<key>ai_type</key>
+		<string>nullAI.plist</string>
+		<key>model</key>
+		<string>rock-dock.dat</string>
+		<key>name</key>
+		<string>Docking Slit</string>
+		<key>roles</key>
+		<string>docking-slit</string>
+	</dict>
+	<key>hermitage</key>
+	<dict>
+		<key>ai_type</key>
+		<string>nullAI.plist</string>
+		<key>model</key>
+		<string>rock-box.dat</string>
+		<key>name</key>
+		<string>Rock Hermit living area</string>
+		<key>roles</key>
+		<string>rock-box</string>
+	</dict>
+	<key>icosahedron-station</key>
+	<dict>
+		<key>ai_type</key>
+		<string>stationAI.plist</string>
+		<key>bounty</key>
+		<integer>0</integer>
+		<key>cargo_type</key>
+		<string>CARGO_NOT_CARGO</string>
+		<key>energy_recharge_rate</key>
+		<real>100</real>
+		<key>forward_weapon_type</key>
+		<string>WEAPON_NONE</string>
+		<key>has_ecm</key>
+		<true/>
+		<key>has_escape_pod</key>
+		<false/>
+		<key>has_scoop</key>
+		<false/>
+		<key>likely_cargo</key>
+		<integer>0</integer>
+		<key>max_cargo</key>
+		<integer>0</integer>
+		<key>max_energy</key>
+		<real>25000</real>
+		<key>max_flight_pitch</key>
+		<real>8</real>
+		<key>max_flight_roll</key>
+		<real>8</real>
+		<key>max_flight_speed</key>
+		<real>0.0</real>
+		<key>max_missiles</key>
+		<integer>0</integer>
+		<key>missiles</key>
+		<integer>0</integer>
+		<key>model</key>
+		<string>new-icos.dat</string>
+		<key>name</key>
+		<string>Icosahedron Station</string>
+		<key>port_radius</key>
+		<real>500</real>
+		<key>roles</key>
+		<string>ico icosa icosahedron station</string>
+		<key>subentities</key>
+		<array>
+			<string>dock 0 0 500 1 0 0 0</string>
+			<string>*FLASHER* 0 92 475 60.0 1 -0.50 12</string>
+			<string>*FLASHER* 0 92 425 75.0 1 -0.60 12</string>
+			<string>*FLASHER* 0 92 375 90.0 1 -0.70 12</string>
+			<string>*FLASHER* 0 92 325 105.0 1 -0.80 12</string>
+			<string>*FLASHER* 0 92 275 120.0 1 -0.90 12</string>
+			<string>*FLASHER* 0 -92 475 60.0 1 -0.50 12</string>
+			<string>*FLASHER* 0 -92 425 75.0 1 -0.60 12</string>
+			<string>*FLASHER* 0 -92 375 90.0 1 -0.70 12</string>
+			<string>*FLASHER* 0 -92 325 105.0 1 -0.80 12</string>
+			<string>*FLASHER* 0 -92 275 120.0 1 -0.90 12</string>
+			<string>*FLASHER* 0 -16 252 30.0 1 0.5 12</string>
+			<string>*FLASHER* 0 16 252 30.0 1 0.5 12</string>
+			<string>*FLASHER* 16 0 252 30.0 1 0.0 12</string>
+			<string>*FLASHER* -16 0 252 30.0 1 0.0 12</string>
+		</array>
+		<key>thrust</key>
+		<real>100</real>
+		<key>weapon_energy</key>
+		<real>0.0</real>
+		<key>weapon_offset_x</key>
+		<real>0.0</real>
+	</dict>
+	<key>krait</key>
+	<dict>
+		<key>ai_type</key>
+		<string>pirateAI.plist</string>
+		<key>bounty</key>
+		<integer>0</integer>
+		<key>cargo_type</key>
+		<string>CARGO_NOT_CARGO</string>
+		<key>energy_recharge_rate</key>
+		<real>2.5</real>
+		<key>exhaust</key>
+		<array>
+			<string>-14.0 0.0 -16.0 6.0 6.0 7.0</string>
+			<string>14.0 0.0 -16.0 6.0 6.0 7.0</string>
+		</array>
+		<key>forward_weapon_type</key>
+		<string>WEAPON_BEAM_LASER</string>
+		<key>fuel</key>
+		<integer>30</integer>
+		<key>has_ecm</key>
+		<false/>
+		<key>has_escape_pod</key>
+		<false/>
+		<key>has_fuel_injection</key>
+		<real>0.65</real>
+		<key>has_shield_booster</key>
+		<real>0.5</real>
+		<key>has_shield_enhancer</key>
+		<real>0.25</real>
+		<key>has_scoop</key>
+		<true/>
+		<key>likely_cargo</key>
+		<integer>2</integer>
+		<key>max_cargo</key>
+		<integer>2</integer>
+		<key>max_energy</key>
+		<real>250</real>
+		<key>max_flight_pitch</key>
+		<real>1.5</real>
+		<key>max_flight_roll</key>
+		<real>2.75</real>
+		<key>max_flight_speed</key>
+		<real>300</real>
+		<key>max_missiles</key>
+		<integer>0</integer>
+		<key>missiles</key>
+		<integer>0</integer>
+		<key>model</key>
+		<string>krait.dat</string>
+		<key>name</key>
+		<string>Krait</string>
+		<key>roles</key>
+		<string>pirate</string>
+		<key>thrust</key>
+		<real>35</real>
+		<key>weapon_energy</key>
+		<real>15</real>
+		<key>weapon_offset_x</key>
+		<real>30</real>
+	</dict>
+	<key>mamba</key>
+	<dict>
+		<key>ai_type</key>
+		<string>pirateAI.plist</string>
+		<key>bounty</key>
+		<integer>0</integer>
+		<key>cargo_type</key>
+		<string>CARGO_NOT_CARGO</string>
+		<key>energy_recharge_rate</key>
+		<real>3</real>
+		<key>exhaust</key>
+		<array>
+			<string>0.0 0.0 -16.0 12.0 12.0 16.0</string>
+		</array>
+		<key>forward_weapon_type</key>
+		<string>WEAPON_BEAM_LASER</string>
+		<key>has_ecm</key>
+		<false/>
+		<key>has_escape_pod</key>
+		<false/>
+		<key>has_scoop</key>
+		<true/>
+		<key>has_shield_booster</key>
+		<real>0.25</real>
+		<key>likely_cargo</key>
+		<integer>0</integer>
+		<key>max_cargo</key>
+		<integer>4</integer>
+		<key>max_energy</key>
+		<real>240</real>
+		<key>max_flight_pitch</key>
+		<real>1.3999999999999999</real>
+		<key>max_flight_roll</key>
+		<real>2.1000000000000001</real>
+		<key>max_flight_speed</key>
+		<real>320</real>
+		<key>max_missiles</key>
+		<integer>0</integer>
+		<key>missiles</key>
+		<integer>0</integer>
+		<key>model</key>
+		<string>mamba.dat</string>
+		<key>name</key>
+		<string>Mamba</string>
+		<key>roles</key>
+		<string>pirate</string>
+		<key>thrust</key>
+		<real>32</real>
+		<key>weapon_energy</key>
+		<real>12</real>
+		<key>weapon_offset_x</key>
+		<real>0.0</real>
+	</dict>
+	<key>mamba-escort</key>
+	<dict>
+		<key>ai_type</key>
+		<string>pirateAI.plist</string>
+		<key>bounty</key>
+		<integer>0</integer>
+		<key>cargo_type</key>
+		<string>CARGO_NOT_CARGO</string>
+		<key>energy_recharge_rate</key>
+		<real>3</real>
+		<key>exhaust</key>
+		<array>
+			<string>0.0 0.0 -16.0 12.0 12.0 16.0</string>
+		</array>
+		<key>forward_weapon_type</key>
+		<string>WEAPON_BEAM_LASER</string>
+		<key>has_ecm</key>
+		<false/>
+		<key>has_escape_pod</key>
+		<false/>
+		<key>has_scoop</key>
+		<false/>
+		<key>likely_cargo</key>
+		<integer>0</integer>
+		<key>max_cargo</key>
+		<integer>4</integer>
+		<key>max_energy</key>
+		<real>240</real>
+		<key>max_flight_pitch</key>
+		<real>1.3999999999999999</real>
+		<key>max_flight_roll</key>
+		<real>2.1000000000000001</real>
+		<key>max_flight_speed</key>
+		<real>320</real>
+		<key>max_missiles</key>
+		<integer>0</integer>
+		<key>missiles</key>
+		<integer>0</integer>
+		<key>model</key>
+		<string>mamba_escort.dat</string>
+		<key>name</key>
+		<string>Mamba Escort</string>
+		<key>roles</key>
+		<string>escort</string>
+		<key>thrust</key>
+		<real>32</real>
+		<key>weapon_energy</key>
+		<real>18</real>
+		<key>weapon_offset_x</key>
+		<real>0.0</real>
+	</dict>
+	<key>missile</key>
+	<dict>
+		<key>ai_type</key>
+		<string>missileAI.plist</string>
+		<key>bounty</key>
+		<integer>0</integer>
+		<key>cargo_type</key>
+		<string>CARGO_NOT_CARGO</string>
+		<key>energy_recharge_rate</key>
+		<real>0.0</real>
+		<key>exhaust</key>
+		<array>
+			<string>0.0 0.0 -4.5 2.0 2.0 4.0</string>
+		</array>
+		<key>forward_weapon_type</key>
+		<string>WEAPON_NONE</string>
+		<key>likely_cargo</key>
+		<integer>0</integer>
+		<key>max_cargo</key>
+		<integer>0</integer>
+		<key>max_energy</key>
+		<real>5</real>
+		<key>max_flight_pitch</key>
+		<real>8</real>
+		<key>max_flight_roll</key>
+		<real>10</real>
+		<key>max_flight_speed</key>
+		<real>750</real>
+		<key>max_missiles</key>
+		<integer>0</integer>
+		<key>missiles</key>
+		<integer>0</integer>
+		<key>model</key>
+		<string>missile.dat</string>
+		<key>name</key>
+		<string>Missile</string>
+		<key>roles</key>
+		<string>missile EQ_MISSILE</string>
+		<key>thrust</key>
+		<real>250</real>
+		<key>weapon_energy</key>
+		<real>12500</real>
+		<key>weapon_offset_x</key>
+		<real>0.0</real>
+	</dict>
+	<key>moray</key>
+	<dict>
+		<key>ai_type</key>
+		<string>pirateAI.plist</string>
+		<key>bounty</key>
+		<integer>0</integer>
+		<key>cargo_type</key>
+		<string>CARGO_NOT_CARGO</string>
+		<key>energy_recharge_rate</key>
+		<real>3</real>
+		<key>exhaust</key>
+		<array>
+			<string>0.0 0.0 -22.0 10.0 8.0 16.0</string>
+		</array>
+		<key>forward_weapon_type</key>
+		<string>WEAPON_PULSE_LASER</string>
+		<key>has_ecm</key>
+		<false/>
+		<key>has_escape_pod</key>
+		<false/>
+		<key>has_scoop</key>
+		<true/>
+		<key>has_shield_booster</key>
+		<real>0.5</real>
+		<key>likely_cargo</key>
+		<integer>0</integer>
+		<key>max_cargo</key>
+		<integer>7</integer>
+		<key>max_energy</key>
+		<real>240</real>
+		<key>max_flight_pitch</key>
+		<real>1.5</real>
+		<key>max_flight_roll</key>
+		<real>2.5</real>
+		<key>max_flight_speed</key>
+		<real>300</real>
+		<key>max_missiles</key>
+		<integer>2</integer>
+		<key>missiles</key>
+		<integer>2</integer>
+		<key>model</key>
+		<string>moray.dat</string>
+		<key>name</key>
+		<string>Moray Star Boat</string>
+		<key>roles</key>
+		<string>pirate</string>
+		<key>thrust</key>
+		<real>32</real>
+		<key>weapon_energy</key>
+		<real>12</real>
+		<key>weapon_offset_x</key>
+		<real>0.0</real>
+	</dict>
+	<key>morayMED</key>
+	<dict>
+		<key>ai_type</key>
+		<string>pirateAI.plist</string>
+		<key>bounty</key>
+		<integer>0</integer>
+		<key>cargo_type</key>
+		<string>CARGO_NOT_CARGO</string>
+		<key>energy_recharge_rate</key>
+		<real>3</real>
+		<key>exhaust</key>
+		<array>
+			<string>0.0 0.0 -22.0 10.0 8.0 16.0</string>
+		</array>
+		<key>forward_weapon_type</key>
+		<string>WEAPON_PULSE_LASER</string>
+		<key>has_ecm</key>
+		<false/>
+		<key>has_escape_pod</key>
+		<false/>
+		<key>has_scoop</key>
+		<true/>
+		<key>likely_cargo</key>
+		<integer>7</integer>
+		<key>max_cargo</key>
+		<integer>22</integer>
+		<key>max_energy</key>
+		<real>240</real>
+		<key>max_flight_pitch</key>
+		<real>1.5</real>
+		<key>max_flight_roll</key>
+		<real>2.5</real>
+		<key>max_flight_speed</key>
+		<real>300</real>
+		<key>max_missiles</key>
+		<integer>2</integer>
+		<key>missiles</key>
+		<integer>2</integer>
+		<key>model</key>
+		<string>morayMED.dat</string>
+		<key>name</key>
+		<string>Moray Medical Boat</string>
+		<key>roles</key>
+		<string>trader sunskim-trader</string>
+		<key>thrust</key>
+		<real>32</real>
+		<key>weapon_energy</key>
+		<real>12</real>
+		<key>weapon_offset_x</key>
+		<real>0.0</real>
+	</dict>
+	<key>moray-player</key>
+	<dict>
+		<key>energy_recharge_rate</key>
+		<real>3</real>
+		<key>exhaust</key>
+		<array>
+			<string>0.0 0.0 -22.0 10.0 8.0 16.0</string>
+		</array>
+		<key>forward_weapon_type</key>
+		<string>WEAPON_PULSE_LASER</string>
+		<key>hud</key>
+		<string>hud.plist</string>
+		<key>max_cargo</key>
+		<integer>7</integer>
+		<key>max_energy</key>
+		<real>240</real>
+		<key>max_flight_pitch</key>
+		<real>1.5</real>
+		<key>max_flight_roll</key>
+		<real>2.5</real>
+		<key>max_flight_speed</key>
+		<real>300</real>
+		<key>max_missiles</key>
+		<integer>2</integer>
+		<key>missiles</key>
+		<integer>2</integer>
+		<key>model</key>
+		<string>moray.dat</string>
+		<key>name</key>
+		<string>Moray Star Boat</string>
+		<key>roles</key>
+		<string>player</string>
+		<key>thrust</key>
+		<real>32</real>
+	</dict>
+	<key>morayMED-player</key>
+	<dict>
+		<key>energy_recharge_rate</key>
+		<real>2.75</real>
+		<key>exhaust</key>
+		<array>
+			<string>0.0 0.0 -22.0 10.0 8.0 16.0</string>
+		</array>
+		<key>forward_weapon_type</key>
+		<string>WEAPON_PULSE_LASER</string>
+		<key>hud</key>
+		<string>hud.plist</string>
+		<key>max_cargo</key>
+		<integer>7</integer>
+		<key>max_energy</key>
+		<real>240</real>
+		<key>max_flight_pitch</key>
+		<real>1.5</real>
+		<key>max_flight_roll</key>
+		<real>2.5</real>
+		<key>max_flight_speed</key>
+		<real>300</real>
+		<key>max_missiles</key>
+		<integer>2</integer>
+		<key>missiles</key>
+		<integer>2</integer>
+		<key>model</key>
+		<string>morayMED.dat</string>
+		<key>name</key>
+		<string>Moray Medical Boat</string>
+		<key>roles</key>
+		<string>player</string>
+		<key>thrust</key>
+		<real>32</real>
+	</dict>
+	<key>python</key>
+	<dict>
+		<key>ai_type</key>
+		<string>pirateAI.plist</string>
+		<key>bounty</key>
+		<integer>0</integer>
+		<key>cargo_type</key>
+		<string>CARGO_NOT_CARGO</string>
+		<key>energy_recharge_rate</key>
+		<real>2.5</real>
+		<key>exhaust</key>
+		<array>
+			<string>0.0 0.0 -64.5 12.0 12.0 13.0</string>
+		</array>
+		<key>forward_weapon_type</key>
+		<string>WEAPON_BEAM_LASER</string>
+		<key>has_ecm</key>
+		<false/>
+		<key>has_escape_pod</key>
+		<true/>
+		<key>has_scoop</key>
+		<true/>
+		<key>has_shield_booster</key>
+		<real>0.75</real>
+		<key>likely_cargo</key>
+		<integer>10</integer>
+		<key>max_cargo</key>
+		<integer>100</integer>
+		<key>max_energy</key>
+		<real>450</real>
+		<key>max_flight_pitch</key>
+		<real>0.8</real>
+		<key>max_flight_roll</key>
+		<real>2</real>
+		<key>max_flight_speed</key>
+		<real>200</real>
+		<key>max_missiles</key>
+		<integer>2</integer>
+		<key>missiles</key>
+		<integer>2</integer>
+		<key>model</key>
+		<string>python.dat</string>
+		<key>name</key>
+		<string>Python</string>
+		<key>roles</key>
+		<string>pirate</string>
+		<key>thrust</key>
+		<real>20</real>
+		<key>weapon_energy</key>
+		<real>15</real>
+		<key>weapon_offset_x</key>
+		<real>0.0</real>
+	</dict>
+	<key>python-player</key>
+	<dict>
+		<key>energy_recharge_rate</key>
+		<real>2.5</real>
+		<key>exhaust</key>
+		<array>
+			<string>0.0 0.0 -64.5 12.0 12.0 13.0</string>
+		</array>
+		<key>forward_weapon_type</key>
+		<string>WEAPON_PULSE_LASER</string>
+		<key>hud</key>
+		<string>hud.plist</string>
+		<key>max_cargo</key>
+		<integer>100</integer>
+		<key>max_energy</key>
+		<real>450</real>
+		<key>max_flight_pitch</key>
+		<real>0.8</real>
+		<key>max_flight_roll</key>
+		<real>2</real>
+		<key>max_flight_speed</key>
+		<real>200</real>
+		<key>max_missiles</key>
+		<integer>2</integer>
+		<key>missiles</key>
+		<integer>2</integer>
+		<key>model</key>
+		<string>python.dat</string>
+		<key>name</key>
+		<string>Python</string>
+		<key>roles</key>
+		<string>player</string>
+		<key>thrust</key>
+		<real>20</real>
+	</dict>
+	<key>python-trader</key>
+	<dict>
+		<key>ai_type</key>
+		<string>route1traderAI.plist</string>
+		<key>bounty</key>
+		<integer>0</integer>
+		<key>cargo_type</key>
+		<string>CARGO_NOT_CARGO</string>
+		<key>energy_recharge_rate</key>
+		<real>2.5</real>
+		<key>escorts</key>
+		<integer>2</integer>
+		<key>exhaust</key>
+		<array>
+			<string>0.0 0.0 -64.5 12.0 12.0 13.0</string>
+		</array>
+		<key>forward_weapon_type</key>
+		<string>WEAPON_BEAM_LASER</string>
+		<key>has_ecm</key>
+		<false/>
+		<key>has_escape_pod</key>
+		<true/>
+		<key>has_scoop</key>
+		<true/>
+		<key>likely_cargo</key>
+		<integer>10</integer>
+		<key>max_cargo</key>
+		<integer>100</integer>
+		<key>max_energy</key>
+		<real>450</real>
+		<key>max_flight_pitch</key>
+		<real>0.8</real>
+		<key>max_flight_roll</key>
+		<real>2</real>
+		<key>max_flight_speed</key>
+		<real>200</real>
+		<key>max_missiles</key>
+		<integer>2</integer>
+		<key>missiles</key>
+		<integer>2</integer>
+		<key>model</key>
+		<string>python.dat</string>
+		<key>name</key>
+		<string>Python</string>
+		<key>roles</key>
+		<string>trader</string>
+		<key>thrust</key>
+		<real>20</real>
+		<key>weapon_energy</key>
+		<real>15</real>
+		<key>weapon_offset_x</key>
+		<real>0.0</real>
+	</dict>
+	<key>rock-hermit</key>
+	<dict>
+		<key>ai_type</key>
+		<string>rockHermitAI.plist</string>
+		<key>bounty</key>
+		<integer>0</integer>
+		<key>cargo_type</key>
+		<string>CARGO_NOT_CARGO</string>
+		<key>energy_recharge_rate</key>
+		<real>5</real>
+		<key>equipment_price_factor</key>
+		<real>4.5</real>
+		<key>equivalent_tech_level</key>
+		<integer>1</integer>
+		<key>forward_weapon_type</key>
+		<string>WEAPON_NONE</string>
+		<key>has_ecm</key>
+		<true/>
+		<key>has_escape_pod</key>
+		<false/>
+		<key>has_scoop</key>
+		<false/>
+		<key>likely_cargo</key>
+		<integer>0</integer>
+		<key>max_cargo</key>
+		<integer>0</integer>
+		<key>max_defense_ships</key>
+		<integer>2</integer>
+		<key>max_energy</key>
+		<real>1000</real>
+		<key>max_flight_pitch</key>
+		<real>8</real>
+		<key>max_flight_roll</key>
+		<real>8</real>
+		<key>max_flight_speed</key>
+		<real>0.0</real>
+		<key>max_scavengers</key>
+		<integer>1</integer>
+		<key>max_missiles</key>
+		<integer>0</integer>
+		<key>missiles</key>
+		<integer>0</integer>
+		<key>model</key>
+		<string>new-rock.dat</string>
+		<key>name</key>
+		<string>Rock Hermit</string>
+		<key>port_radius</key>
+		<real>250</real>
+		<key>roles</key>
+		<string>rockhermit station</string>
+		<key>smooth</key>
+		<true/>
+		<key>subentities</key>
+		<array>
+			<string>hermit-docking-slit 0 0 0 1 0 0 0</string>
+			<string>hermitage 15 -80 210 1 0 0 0</string>
+			<string>strut 0 -105 205 1 0 0 0</string>
+			<string>strut 30 -105 205 1 0 0 0</string>
+			<string>*FLASHER* 0 -16 -78 20.0 1 0.5 12</string>
+			<string>*FLASHER* 0 16 -78 20.0 1 0.5 12</string>
+			<string>*FLASHER* 16 0 -78 30.0 1 0.0 12</string>
+			<string>*FLASHER* -16 0 -78 30.0 1 0.0 12</string>
+		</array>
+		<key>thrust</key>
+		<real>100</real>
+		<key>weapon_energy</key>
+		<real>0.0</real>
+		<key>weapon_offset_x</key>
+		<real>0.0</real>
+	</dict>
+	<key>scarred-alloy</key>
+	<dict>
+		<key>ai_type</key>
+		<string>nullAI.plist</string>
+		<key>bounty</key>
+		<integer>1</integer>
+		<key>cargo_type</key>
+		<string>CARGO_ALLOY</string>
+		<key>energy_recharge_rate</key>
+		<real>0.0</real>
+		<key>forward_weapon_type</key>
+		<string>WEAPON_NONE</string>
+		<key>likely_cargo</key>
+		<integer>0</integer>
+		<key>max_cargo</key>
+		<integer>0</integer>
+		<key>max_energy</key>
+		<real>1</real>
+		<key>max_flight_pitch</key>
+		<real>0.5</real>
+		<key>max_flight_roll</key>
+		<real>0.5</real>
+		<key>max_flight_speed</key>
+		<real>50</real>
+		<key>missiles</key>
+		<integer>0</integer>
+		<key>model</key>
+		<string>scarred_alloy.dat</string>
+		<key>name</key>
+		<string>Metal fragment</string>
+		<key>roles</key>
+		<string>alloy</string>
+		<key>thrust</key>
+		<real>0.0</real>
+	</dict>
+	<key>shuttle</key>
+	<dict>
+		<key>ai_type</key>
+		<string>nullAI.plist</string>
+		<key>bounty</key>
+		<integer>0</integer>
+		<key>cargo_type</key>
+		<string>CARGO_NOT_CARGO</string>
+		<key>energy_recharge_rate</key>
+		<real>1</real>
+		<key>exhaust</key>
+		<array>
+			<string>7.5 7.5 -13.0 4.0 4.0 5.0</string>
+			<string>-7.5 7.5 -13.0 4.0 4.0 5.0</string>
+			<string>-7.5 -7.5 -13.0 4.0 4.0 5.0</string>
+			<string>7.5 -7.5 -13.0 4.0 4.0 5.0</string>
+		</array>
+		<key>forward_weapon_type</key>
+		<string>WEAPON_NONE</string>
+		<key>has_ecm</key>
+		<false/>
+		<key>has_escape_pod</key>
+		<false/>
+		<key>has_scoop</key>
+		<false/>
+		<key>likely_cargo</key>
+		<integer>0</integer>
+		<key>max_cargo</key>
+		<integer>30</integer>
+		<key>max_energy</key>
+		<real>120</real>
+		<key>max_flight_pitch</key>
+		<real>0.90000000000000002</real>
+		<key>max_flight_roll</key>
+		<real>2</real>
+		<key>max_flight_speed</key>
+		<real>80</real>
+		<key>max_missiles</key>
+		<integer>0</integer>
+		<key>missiles</key>
+		<integer>0</integer>
+		<key>model</key>
+		<string>shuttle.dat</string>
+		<key>name</key>
+		<string>Orbital Shuttle</string>
+		<key>roles</key>
+		<string>shuttle</string>
+		<key>thrust</key>
+		<real>16</real>
+		<key>weapon_energy</key>
+		<real>0.0</real>
+		<key>weapon_offset_x</key>
+		<real>0.0</real>
+	</dict>
+	<key>sidewinder</key>
+	<dict>
+		<key>ai_type</key>
+		<string>pirateAI.plist</string>
+		<key>bounty</key>
+		<integer>0</integer>
+		<key>cargo_type</key>
+		<string>CARGO_NOT_CARGO</string>
+		<key>energy_recharge_rate</key>
+		<real>2</real>
+		<key>exhaust</key>
+		<array>
+			<string>0.0 0.0 -14.0 8.0 6.0 12.0</string>
+		</array>
+		<key>forward_weapon_type</key>
+		<string>WEAPON_PULSE_LASER</string>
+		<key>has_ecm</key>
+		<false/>
+		<key>has_escape_pod</key>
+		<false/>
+		<key>has_scoop</key>
+		<false/>
+		<key>likely_cargo</key>
+		<integer>0</integer>
+		<key>max_cargo</key>
+		<integer>0</integer>
+		<key>max_energy</key>
+		<real>240</real>
+		<key>max_flight_pitch</key>
+		<real>1.6000000000000001</real>
+		<key>max_flight_roll</key>
+		<real>2.7999999999999998</real>
+		<key>max_flight_speed</key>
+		<real>370</real>
+		<key>max_missiles</key>
+		<integer>0</integer>
+		<key>missiles</key>
+		<integer>0</integer>
+		<key>model</key>
+		<string>sidewinder.dat</string>
+		<key>name</key>
+		<string>Sidewinder Scout Ship</string>
+		<key>roles</key>
+		<string>pirate hunter</string>
+		<key>thrust</key>
+		<real>37</real>
+		<key>weapon_energy</key>
+		<real>18</real>
+		<key>weapon_offset_x</key>
+		<real>0.0</real>
+	</dict>
+	<key>sidewinder-escort</key>
+	<dict>
+		<key>ai_type</key>
+		<string>pirateAI.plist</string>
+		<key>bounty</key>
+		<integer>0</integer>
+		<key>cargo_type</key>
+		<string>CARGO_NOT_CARGO</string>
+		<key>energy_recharge_rate</key>
+		<real>2.5</real>
+		<key>exhaust</key>
+		<array>
+			<string>0.0 0.0 -14.0 8.0 6.0 12.0</string>
+		</array>
+		<key>forward_weapon_type</key>
+		<string>WEAPON_BEAM_LASER</string>
+		<key>has_ecm</key>
+		<false/>
+		<key>has_escape_pod</key>
+		<false/>
+		<key>has_scoop</key>
+		<false/>
+		<key>likely_cargo</key>
+		<integer>0</integer>
+		<key>max_cargo</key>
+		<integer>0</integer>
+		<key>max_energy</key>
+		<real>240</real>
+		<key>max_flight_pitch</key>
+		<real>1.8</real>
+		<key>max_flight_roll</key>
+		<real>2.7999999999999998</real>
+		<key>max_flight_speed</key>
+		<real>370</real>
+		<key>max_missiles</key>
+		<integer>0</integer>
+		<key>missiles</key>
+		<integer>0</integer>
+		<key>model</key>
+		<string>sidewinder.dat</string>
+		<key>name</key>
+		<string>Sidewinder Scout Ship</string>
+		<key>roles</key>
+		<string>escort</string>
+		<key>thrust</key>
+		<real>37</real>
+		<key>weapon_energy</key>
+		<real>18</real>
+		<key>weapon_offset_x</key>
+		<real>0.0</real>
+	</dict>
+	<key>splinter</key>
+	<dict>
+		<key>ai_type</key>
+		<string>dumbAI.plist</string>
+		<key>bounty</key>
+		<integer>1</integer>
+		<key>cargo_type</key>
+		<string>CARGO_MINERALS</string>
+		<key>energy_recharge_rate</key>
+		<real>0.0</real>
+		<key>forward_weapon_type</key>
+		<string>WEAPON_NONE</string>
+		<key>has_ecm</key>
+		<false/>
+		<key>has_escape_pod</key>
+		<false/>
+		<key>has_scoop</key>
+		<false/>
+		<key>likely_cargo</key>
+		<integer>0</integer>
+		<key>max_cargo</key>
+		<integer>0</integer>
+		<key>max_energy</key>
+		<real>5</real>
+		<key>max_flight_pitch</key>
+		<real>1</real>
+		<key>max_flight_roll</key>
+		<real>1</real>
+		<key>max_flight_speed</key>
+		<real>10</real>
+		<key>missiles</key>
+		<integer>0</integer>
+		<key>model</key>
+		<string>splinter.dat</string>
+		<key>name</key>
+		<string>Splinter</string>
+		<key>roles</key>
+		<string>splinter</string>
+		<key>smooth</key>
+		<true/>
+		<key>thrust</key>
+		<real>0.0</real>
+		<key>weapon_energy</key>
+		<real>0.0</real>
+		<key>weapon_offset_x</key>
+		<real>0.0</real>
+	</dict>
+	<key>splinter-alternative</key>
+	<dict>
+		<key>ai_type</key>
+		<string>dumbAI.plist</string>
+		<key>bounty</key>
+		<integer>1</integer>
+		<key>cargo_type</key>
+		<string>CARGO_MINERALS</string>
+		<key>energy_recharge_rate</key>
+		<real>0.0</real>
+		<key>forward_weapon_type</key>
+		<string>WEAPON_NONE</string>
+		<key>has_ecm</key>
+		<false/>
+		<key>has_escape_pod</key>
+		<false/>
+		<key>has_scoop</key>
+		<false/>
+		<key>likely_cargo</key>
+		<integer>0</integer>
+		<key>max_cargo</key>
+		<integer>0</integer>
+		<key>max_energy</key>
+		<real>5</real>
+		<key>max_flight_pitch</key>
+		<real>1</real>
+		<key>max_flight_roll</key>
+		<real>1</real>
+		<key>max_flight_speed</key>
+		<real>10</real>
+		<key>missiles</key>
+		<integer>0</integer>
+		<key>model</key>
+		<string>splinter1.dat</string>
+		<key>name</key>
+		<string>Splinter</string>
+		<key>roles</key>
+		<string>splinter</string>
+		<key>smooth</key>
+		<true/>
+		<key>thrust</key>
+		<real>0.0</real>
+		<key>weapon_energy</key>
+		<real>0.0</real>
+		<key>weapon_offset_x</key>
+		<real>0.0</real>
+	</dict>
+	<key>strut</key>
+	<dict>
+		<key>ai_type</key>
+		<string>nullAI.plist</string>
+		<key>model</key>
+		<string>strut.dat</string>
+		<key>name</key>
+		<string>Strut 10-10-30</string>
+		<key>roles</key>
+		<string>strut</string>
+	</dict>
+	<key>tharglet</key>
+	<dict>
+		<key>ai_type</key>
+		<string>thargletAI.plist</string>
+		<key>bounty</key>
+		<integer>50</integer>
+		<key>cargo_type</key>
+		<string>CARGO_THARGOID</string>
+		<key>energy_recharge_rate</key>
+		<real>3</real>
+		<key>forward_weapon_type</key>
+		<string>WEAPON_PULSE_LASER</string>
+		<key>has_ecm</key>
+		<false/>
+		<key>has_escape_pod</key>
+		<false/>
+		<key>has_scoop</key>
+		<false/>
+		<key>laser_color</key>
+		<string>greenColor</string>
+		<key>likely_cargo</key>
+		<integer>0</integer>
+		<key>max_cargo</key>
+		<integer>0</integer>
+		<key>max_energy</key>
+		<real>150</real>
+		<key>max_flight_pitch</key>
+		<real>1</real>
+		<key>max_flight_roll</key>
+		<real>2</real>
+		<key>max_flight_speed</key>
+		<real>450</real>
+		<key>missiles</key>
+		<integer>0</integer>
+		<key>model</key>
+		<string>tharglet.dat</string>
+		<key>name</key>
+		<string>Thargoid Robot Fighter</string>
+		<key>roles</key>
+		<string>tharglet</string>
+		<key>scanner_range</key>
+		<real>30000</real>
+		<key>scanClass</key>
+		<string>CLASS_THARGOID</string>
+		<key>thrust</key>
+		<real>40</real>
+		<key>weapon_energy</key>
+		<real>21</real>
+		<key>weapon_offset_x</key>
+		<real>0.0</real>
+	</dict>
+	<key>thargoid</key>
+	<dict>
+		<key>aft_weapon_type</key>
+		<string>WEAPON_THARGOID_LASER</string>
+		<key>ai_type</key>
+		<string>thargoidAI.plist</string>
+		<key>bounty</key>
+		<integer>100</integer>
+		<key>cargo_type</key>
+		<string>CARGO_NOT_CARGO</string>
+		<key>death_actions</key>
+		<array>
+			<string>commsMessage: [thargoid_curses]</string>
+		</array>
+		<key>energy_recharge_rate</key>
+		<real>4</real>
+		<key>forward_weapon_type</key>
+		<string>WEAPON_THARGOID_LASER</string>
+		<key>has_ecm</key>
+		<true/>
+		<key>has_escape_pod</key>
+		<false/>
+		<key>has_scoop</key>
+		<false/>
+		<key>laser_color</key>
+		<string>greenColor</string>
+		<key>likely_cargo</key>
+		<integer>0</integer>
+		<key>max_cargo</key>
+		<integer>0</integer>
+		<key>max_energy</key>
+		<real>600</real>
+		<key>max_flight_pitch</key>
+		<real>1</real>
+		<key>max_flight_roll</key>
+		<real>2</real>
+		<key>max_flight_speed</key>
+		<real>500</real>
+		<key>max_missiles</key>
+		<integer>5</integer>
+		<key>missiles</key>
+		<integer>5</integer>
+		<key>model</key>
+		<string>thargoid.dat</string>
+		<key>name</key>
+		<string>Thargoid Warship</string>
+		<key>roles</key>
+		<string>thargoid</string>
+		<key>scanner_range</key>
+		<real>60000</real>
+		<key>scanClass</key>
+		<string>CLASS_THARGOID</string>
+		<key>thrust</key>
+		<real>50</real>
+		<key>weapon_energy</key>
+		<real>21</real>
+		<key>weapon_offset_x</key>
+		<real>0.0</real>
+	</dict>
+	<key>transporter</key>
+	<dict>
+		<key>ai_type</key>
+		<string>nullAI.plist</string>
+		<key>bounty</key>
+		<integer>0</integer>
+		<key>cargo_type</key>
+		<string>CARGO_NOT_CARGO</string>
+		<key>energy_recharge_rate</key>
+		<real>3</real>
+		<key>exhaust</key>
+		<array>
+			<string>-7.0 0.0 -11.5 3.0 3.0 4.0</string>
+			<string>7.0 0.0 -11.5 3.0 3.0 4.0</string>
+		</array>
+		<key>forward_weapon_type</key>
+		<string>WEAPON_PULSE_LASER</string>
+		<key>has_ecm</key>
+		<false/>
+		<key>has_escape_pod</key>
+		<false/>
+		<key>has_scoop</key>
+		<false/>
+		<key>likely_cargo</key>
+		<integer>0</integer>
+		<key>max_cargo</key>
+		<integer>12</integer>
+		<key>max_energy</key>
+		<real>150</real>
+		<key>max_flight_pitch</key>
+		<real>1</real>
+		<key>max_flight_roll</key>
+		<real>2</real>
+		<key>max_flight_speed</key>
+		<real>100</real>
+		<key>max_missiles</key>
+		<integer>0</integer>
+		<key>missiles</key>
+		<integer>0</integer>
+		<key>model</key>
+		<string>transporter.dat</string>
+		<key>name</key>
+		<string>Transporter</string>
+		<key>roles</key>
+		<string>shuttle</string>
+		<key>thrust</key>
+		<real>20</real>
+		<key>weapon_energy</key>
+		<real>8</real>
+		<key>weapon_offset_x</key>
+		<real>0.0</real>
+	</dict>
+	<key>transporter-miner</key>
+	<dict>
+		<key>accuracy</key>
+		<integer>8</integer>
+		<key>ai_type</key>
+		<string>minerAI.plist</string>
+		<key>bounty</key>
+		<integer>0</integer>
+		<key>cargo_type</key>
+		<string>CARGO_NOT_CARGO</string>
+		<key>energy_recharge_rate</key>
+		<real>3</real>
+		<key>exhaust</key>
+		<array>
+			<string>-7.0 0.0 -11.5 3.0 3.0 4.0</string>
+			<string>7.0 0.0 -11.5 3.0 3.0 4.0</string>
+		</array>
+		<key>forward_weapon_type</key>
+		<string>WEAPON_MINING_LASER</string>
+		<key>has_ecm</key>
+		<false/>
+		<key>has_escape_pod</key>
+		<false/>
+		<key>has_scoop</key>
+		<true/>
+		<key>likely_cargo</key>
+		<integer>0</integer>
+		<key>max_cargo</key>
+		<integer>12</integer>
+		<key>max_energy</key>
+		<real>150</real>
+		<key>max_flight_pitch</key>
+		<real>1</real>
+		<key>max_flight_roll</key>
+		<real>2</real>
+		<key>max_flight_speed</key>
+		<real>100</real>
+		<key>max_missiles</key>
+		<integer>0</integer>
+		<key>missiles</key>
+		<integer>0</integer>
+		<key>model</key>
+		<string>transporter.dat</string>
+		<key>name</key>
+		<string>Mining Transporter</string>
+		<key>roles</key>
+		<string>miner</string>
+		<key>thrust</key>
+		<real>20</real>
+		<key>weapon_energy</key>
+		<real>50</real>
+		<key>weapon_offset_x</key>
+		<real>0.0</real>
+	</dict>
+	<key>viper</key>
+	<dict>
+		<key>ai_type</key>
+		<string>route1patrolAI.plist</string>
+		<key>bounty</key>
+		<integer>0</integer>
+		<key>cargo_type</key>
+		<string>CARGO_NOT_CARGO</string>
+		<key>energy_recharge_rate</key>
+		<real>4</real>
+		<key>exhaust</key>
+		<array>
+			<string>-24.0 0.0 -23.7 10.0 10.0 12.0</string>
+			<string>24.0 0.0 -23.7 10.0 10.0 12.0</string>
+		</array>
+		<key>forward_weapon_type</key>
+		<string>WEAPON_BEAM_LASER</string>
+		<key>has_ecm</key>
+		<true/>
+		<key>has_escape_pod</key>
+		<false/>
+		<key>has_scoop</key>
+		<false/>
+		<key>laser_color</key>
+		<string>magentaColor</string>
+		<key>likely_cargo</key>
+		<integer>0</integer>
+		<key>max_cargo</key>
+		<integer>0</integer>
+		<key>max_energy</key>
+		<real>180</real>
+		<key>max_flight_pitch</key>
+		<real>1.8</real>
+		<key>max_flight_roll</key>
+		<real>2.7999999999999998</real>
+		<key>max_flight_speed</key>
+		<real>320</real>
+		<key>max_missiles</key>
+		<integer>1</integer>
+		<key>missiles</key>
+		<integer>1</integer>
+		<key>model</key>
+		<string>viper.dat</string>
+		<key>name</key>
+		<string>GalCop Viper</string>
+		<key>roles</key>
+		<string>police</string>
+		<key>subentities</key>
+		<array>
+			<string>*FLASHER* -48 0 -24 260.0 2 0.5 8</string>
+			<string>*FLASHER* -42 0 -12 260.0 2 0.6 8</string>
+			<string>*FLASHER* -36 0 0 260.0 2 0.7 8</string>
+			<string>*FLASHER* -30 0 12 260.0 2 0.8 8</string>
+			<string>*FLASHER* -24 0 24 260.0 2 0.9 8</string>
+			<string>*FLASHER* 48 0 -24 310.0 2 0 8</string>
+			<string>*FLASHER* 42 0 -12 310.0 2 0.1 8</string>
+			<string>*FLASHER* 36 0 0 310.0 2 0.2 8</string>
+			<string>*FLASHER* 30 0 12 310.0 2 0.3 8</string>
+			<string>*FLASHER* 24 0 24 310.0 2 0.4 8</string>
+			<string>*FLASHER* -25 16 -24 260.0 2 0 8</string>
+			<string>*FLASHER* 25 16 -24 310.0 2 0.25 8</string>
+		</array>
+		<key>thrust</key>
+		<real>32</real>
+		<key>weapon_energy</key>
+		<real>15</real>
+		<key>weapon_offset_x</key>
+		<real>0.0</real>
+	</dict>
+	<key>viper-interceptor</key>
+	<dict>
+		<key>ai_type</key>
+		<string>route1patrolAI.plist</string>
+		<key>bounty</key>
+		<integer>0</integer>
+		<key>cargo_type</key>
+		<string>CARGO_NOT_CARGO</string>
+		<key>energy_recharge_rate</key>
+		<real>6</real>
+		<key>exhaust</key>
+		<array>
+			<string>-32.0 0.0 -18.0 8.0 8.0 10.0</string>
+			<string>32.0 0.0 -18.0 8.0 8.0 10.0</string>
+			<string>0.0 0.0 -23.0 12.0 12.0 16.0</string>
+		</array>
+		<key>forward_weapon_type</key>
+		<string>WEAPON_MILITARY_LASER</string>
+		<key>fuel</key>
+		<integer>160</integer>
+		<key>has_ecm</key>
+		<true/>
+		<key>has_escape_pod</key>
+		<false/>
+		<key>has_fuel_injection</key>
+		<true/>
+		<key>has_scoop</key>
+		<false/>
+		<key>laser_color</key>
+		<string>magentaColor</string>
+		<key>likely_cargo</key>
+		<integer>0</integer>
+		<key>max_cargo</key>
+		<integer>0</integer>
+		<key>max_energy</key>
+		<real>280</real>
+		<key>max_flight_pitch</key>
+		<real>2</real>
+		<key>max_flight_roll</key>
+		<real>4.2000000000000002</real>
+		<key>max_flight_speed</key>
+		<real>520</real>
+		<key>max_missiles</key>
+		<integer>3</integer>
+		<key>missiles</key>
+		<integer>3</integer>
+		<key>model</key>
+		<string>viper_interceptor.dat</string>
+		<key>name</key>
+		<string>GalCop Viper Interceptor</string>
+		<key>roles</key>
+		<string>interceptor wingman</string>
+		<key>subentities</key>
+		<array>
+			<string>*FLASHER* -49 0 -9.5 260.0 2 0.5 8</string>
+			<string>*FLASHER* -44 0 1.125 260.0 2 0.6 8</string>
+			<string>*FLASHER* -40 0 11.25 260.0 2 0.7 8</string>
+			<string>*FLASHER* -36 0 21.375 260.0 2 0.8 8</string>
+			<string>*FLASHER* -32 0 31.5 260.0 2 0.9 8</string>
+			<string>*FLASHER* 49 0 -9.5 310.0 2 0 8</string>
+			<string>*FLASHER* 44 0 1.125 310.0 2 0.1 8</string>
+			<string>*FLASHER* 40 0 11.25 310.0 2 0.2 8</string>
+			<string>*FLASHER* 36 0 21.375 310.0 2 0.3 8</string>
+			<string>*FLASHER* 32 0 31.5 310.0 2 0.4 8</string>
+			<string>*FLASHER* -25 16 -24 260.0 2 0 8</string>
+			<string>*FLASHER* 25 16 -24 310.0 2 0.25 8</string>
+		</array>
+		<key>thrust</key>
+		<real>50</real>
+		<key>weapon_energy</key>
+		<real>21</real>
+		<key>weapon_offset_x</key>
+		<real>0.0</real>
+	</dict>
+	<key>viper-pursuit</key>
+	<dict>
+		<key>ai_type</key>
+		<string>route1patrolAI.plist</string>
+		<key>bounty</key>
+		<integer>0</integer>
+		<key>cargo_type</key>
+		<string>CARGO_NOT_CARGO</string>
+		<key>energy_recharge_rate</key>
+		<real>4</real>
+		<key>exhaust</key>
+		<array>
+			<string>-24.0 0.0 -23.7 10.0 10.0 12.0</string>
+			<string>24.0 0.0 -23.7 10.0 10.0 12.0</string>
+		</array>
+		<key>forward_weapon_type</key>
+		<string>WEAPON_BEAM_LASER</string>
+		<key>has_ecm</key>
+		<true/>
+		<key>has_escape_pod</key>
+		<false/>
+		<key>has_scoop</key>
+		<false/>
+		<key>laser_color</key>
+		<string>magentaColor</string>
+		<key>likely_cargo</key>
+		<integer>0</integer>
+		<key>max_cargo</key>
+		<integer>0</integer>
+		<key>max_energy</key>
+		<real>180</real>
+		<key>max_flight_pitch</key>
+		<real>1.8</real>
+		<key>max_flight_roll</key>
+		<real>2.7999999999999998</real>
+		<key>max_flight_speed</key>
+		<real>360</real>
+		<key>max_missiles</key>
+		<integer>1</integer>
+		<key>missiles</key>
+		<integer>1</integer>
+		<key>model</key>
+		<string>viper.dat</string>
+		<key>name</key>
+		<string>GalCop Viper</string>
+		<key>roles</key>
+		<string>wingman</string>
+		<key>thrust</key>
+		<real>36</real>
+		<key>weapon_energy</key>
+		<real>18</real>
+		<key>weapon_offset_x</key>
+		<real>0.0</real>
+	</dict>
+	<key>worm</key>
+	<dict>
+		<key>ai_type</key>
+		<string>nullAI.plist</string>
+		<key>bounty</key>
+		<integer>0</integer>
+		<key>cargo_type</key>
+		<string>CARGO_NOT_CARGO</string>
+		<key>energy_recharge_rate</key>
+		<real>2</real>
+		<key>exhaust</key>
+		<array>
+			<string>0.0 0.0 -12.2 7.5 4.5 6.0</string>
+		</array>
+		<key>forward_weapon_type</key>
+		<string>WEAPON_NONE</string>
+		<key>has_ecm</key>
+		<false/>
+		<key>has_escape_pod</key>
+		<false/>
+		<key>has_scoop</key>
+		<false/>
+		<key>likely_cargo</key>
+		<integer>0</integer>
+		<key>max_cargo</key>
+		<integer>2</integer>
+		<key>max_energy</key>
+		<real>75</real>
+		<key>max_flight_pitch</key>
+		<real>1</real>
+		<key>max_flight_roll</key>
+		<real>2</real>
+		<key>max_flight_speed</key>
+		<real>110</real>
+		<key>max_missiles</key>
+		<integer>0</integer>
+		<key>missiles</key>
+		<integer>0</integer>
+		<key>model</key>
+		<string>worm.dat</string>
+		<key>name</key>
+		<string>Worm</string>
+		<key>roles</key>
+		<string>shuttle</string>
+		<key>thrust</key>
+		<real>12</real>
+		<key>weapon_energy</key>
+		<real>8</real>
+		<key>weapon_offset_x</key>
+		<real>0.0</real>
+	</dict>
+</dict>
+</plist>

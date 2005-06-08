@@ -1,32 +1,66 @@
-{
-    key_autodock = <*I68>;
-    key_autopilot = <*I99>;
-    key_comms_log = <*I96>;
-    key_decrease_speed = <*I115>;
-    key_docking_music = <*I115>;
-    key_dump_cargo = <*I100>;
-    key_ecm = <*I101>;
-    key_emergency_hyperdrive = <*I72>;
-    key_energy_bomb = <*I9>;
-    key_fire_lasers = <*I97>;
-    key_galactic_hyperspace = <*I103>;
-    key_hyperspace = <*I104>;
-    key_ident_system = <*I114>;
-    key_increase_speed = <*I119>;
-    key_inject_fuel = <*I105>;
-    key_jumpdrive = <*I106>;
-    key_launch_escapepod = <*I27>;
-    key_launch_missile = <*I109>;
-    key_map_dump = <*I33>;
-    key_map_home = <*I302>;
-    key_next_compass_mode = <*I92>;
-    key_next_missile = <*I121>;
-    key_pitch_back = <*I254>;
-    key_pitch_forward = <*I255>;
-    key_roll_left = <*I253>;
-    key_roll_right = <*I252>;
-    key_scanner_zoom = <*I122>;
-    key_snapshot = <*I42>;
-    key_target_missile = <*I116>;
-    key_untarget_missile = <*I117>;
-}
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple Computer//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>key_roll_left</key>
+	<integer>253</integer>
+	<key>key_roll_right</key>
+	<integer>252</integer>
+	<key>key_pitch_forward</key>
+	<integer>255</integer>
+	<key>key_pitch_back</key>
+	<integer>254</integer>
+	<key>key_increase_speed</key>
+	<integer>119</integer>
+	<key>key_inject_fuel</key>
+	<integer>105</integer>
+	<key>key_decrease_speed</key>
+	<integer>115</integer>
+	<key>key_fire_lasers</key>
+	<integer>97</integer>
+	<key>key_target_missile</key>
+	<integer>116</integer>
+	<key>key_untarget_missile</key>
+	<integer>117</integer>
+	<key>key_launch_missile</key>
+	<integer>109</integer>
+	<key>key_next_missile</key>
+	<integer>121</integer>
+	<key>key_ident_system</key>
+	<integer>114</integer>
+	<key>key_ecm</key>
+	<integer>101</integer>
+	<key>key_launch_escapepod</key>
+	<integer>27</integer>
+	<key>key_energy_bomb</key>
+	<integer>9</integer>
+	<key>key_galactic_hyperspace</key>
+	<integer>103</integer>
+	<key>key_emergency_hyperdrive</key>
+	<integer>72</integer>
+	<key>key_hyperspace</key>
+	<integer>104</integer>
+	<key>key_jumpdrive</key>
+	<integer>106</integer>
+	<key>key_dump_cargo</key>
+	<integer>100</integer>
+	<key>key_autopilot</key>
+	<integer>99</integer>
+	<key>key_autodock</key>
+	<integer>68</integer>
+	<key>key_snapshot</key>
+	<integer>42</integer>
+	<key>key_docking_music</key>
+	<integer>115</integer>
+	<key>key_scanner_zoom</key>
+	<integer>122</integer>
+	<key>key_map_dump</key>
+	<integer>33</integer>
+	<key>key_map_home</key>
+	<integer>302</integer>
+	<key>key_comms_log</key>
+	<integer>96</integer>
+	<key>key_next_compass_mode</key>
+	<integer>92</integer>
+</dict>
+</plist>

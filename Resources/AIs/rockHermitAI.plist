@@ -1,126 +1,43 @@
 {
-    CHECK_FOR_DEBRIS = {
-	ATTACKED = (
-	    setTargetToPrimaryAggressor,
-	    increaseAlertLevel,
-	    "setStateTo: DEFENSE_MODE"
-	);
-	ENTER = (
-	);
-	EXIT = (
-	);
-	INCOMING_MISSILE = (
-	    fireECM,
-	    increaseAlertLevel
-	);
-	NOTHING_FOUND = (
-	    "setStateTo: CHECK_FOR_ROCKS",
-	    "pauseAI: 20.0"
-	);
-	TARGET_FOUND = (
-	    launchScavenger,
-	    "setStateTo: IDLE"
-	);
-	UPDATE = (
-	    scanForLoot,
-	    "pauseAI: 20.0"
-	);
-    };
-    CHECK_FOR_ROCKS = {
-	ATTACKED = (
-	    setTargetToPrimaryAggressor,
-	    increaseAlertLevel,
-	    "setStateTo: DEFENSE_MODE"
-	);
-	ENTER = (
-	);
-	EXIT = (
-	);
-	INCOMING_MISSILE = (
-	    fireECM,
-	    increaseAlertLevel
-	);
-	NOTHING_FOUND = (
-	    "setStateTo: IDLE",
-	    "pauseAI: 20.0"
-	);
-	TARGET_FOUND = (
-	    launchMiner,
-	    "setStateTo: IDLE"
-	);
-	UPDATE = (
-	    scanForRocks,
-	    "pauseAI: 20.0"
-	);
-    };
-    DEFENSE_MODE = {
-	ATTACKED = (
-	    setTargetToPrimaryAggressor,
-	    increaseAlertLevel
-	);
-	CONDITION_GREEN = (
-	    "setStateTo: CHECK_FOR_DEBRIS"
-	);
-	CONDITION_YELLOW = (
-	    "setStateTo: IDLE"
-	);
-	ENERGY_FULL = (
-	    "pauseAI: 20.0",
-	    "setStateTo: IDLE"
-	);
-	ENTER = (
-	);
-	EXIT = (
-	);
-	INCOMING_MISSILE = (
-	    increaseAlertLevel
-	);
-	NO_TARGET = (
-	    "pauseAI: 20.0",
-	    "setStateTo: IDLE"
-	);
-	RED_ALERT = (
-	    launchDefenseShip
-	);
-	TARGET_DESTROYED = (
-	    "pauseAI: 20.0",
-	    "setStateTo: IDLE"
-	);
-	TARGET_LOST = (
-	    "pauseAI: 20.0",
-	    "setStateTo: IDLE"
-	);
-	UPDATE = (
-	);
-	YELLOW_ALERT = (
-	    "setStateTo: IDLE"
-	);
-    };
-    GLOBAL = {
-	ENTER = (
-	    "setStateTo: IDLE"
-	);
-	EXIT = (
-	);
-	UPDATE = (
-	);
-    };
+    "DEFENSE_MODE" = {
+        ATTACKED = (setTargetToPrimaryAggressor, increaseAlertLevel); 
+        ENTER = (); 
+        EXIT = (); 
+        "RED_ALERT" = (launchDefenseShip); 
+        "YELLOW_ALERT" = ("setStateTo: IDLE"); 
+        "CONDITION_YELLOW" = ("setStateTo: IDLE"); 
+        "CONDITION_GREEN" = ("setStateTo: CHECK_FOR_DEBRIS"); 
+        "INCOMING_MISSILE" = (increaseAlertLevel); 
+        "ENERGY_FULL" = ("pauseAI: 20.0", "setStateTo: IDLE"); 
+        "TARGET_DESTROYED" = ("pauseAI: 20.0", "setStateTo: IDLE"); 
+        "TARGET_LOST" = ("pauseAI: 20.0", "setStateTo: IDLE"); 
+        "NO_TARGET" = ("pauseAI: 20.0", "setStateTo: IDLE"); 
+        UPDATE = (); 
+    }; 
+    "CHECK_FOR_DEBRIS" = {
+        ENTER = (); 
+        UPDATE = (scanForLoot, "pauseAI: 20.0"); 
+        "TARGET_FOUND" = (launchScavenger, "setStateTo: IDLE"); 
+        "NOTHING_FOUND" = ("setStateTo: CHECK_FOR_ROCKS", "pauseAI: 20.0"); 
+        EXIT = (); 
+        ATTACKED = (setTargetToPrimaryAggressor, increaseAlertLevel, "setStateTo: DEFENSE_MODE"); 
+        "INCOMING_MISSILE" = (fireECM, increaseAlertLevel); 
+    }; 
+    "CHECK_FOR_ROCKS" = {
+        ENTER = (); 
+        UPDATE = (scanForRocks, "pauseAI: 20.0"); 
+        "TARGET_FOUND" = (launchMiner, "setStateTo: IDLE"); 
+        "NOTHING_FOUND" = ("setStateTo: IDLE", "pauseAI: 20.0"); 
+        EXIT = (); 
+        ATTACKED = (setTargetToPrimaryAggressor, increaseAlertLevel, "setStateTo: DEFENSE_MODE"); 
+        "INCOMING_MISSILE" = (fireECM, increaseAlertLevel); 
+    }; 
+    GLOBAL = {ENTER = ("setStateTo: IDLE"); EXIT = (); UPDATE = (); }; 
     IDLE = {
-	ATTACKED = (
-	    setTargetToPrimaryAggressor,
-	    increaseAlertLevel,
-	    "setStateTo: DEFENSE_MODE"
-	);
-	ENTER = (
-	);
-	EXIT = (
-	);
-	INCOMING_MISSILE = (
-	    increaseAlertLevel
-	);
-	UPDATE = (
-	    decreaseAlertLevel,
-	    "setStateTo: CHECK_FOR_DEBRIS"
-	);
-    };
+        ATTACKED = (setTargetToPrimaryAggressor, increaseAlertLevel, "setStateTo: DEFENSE_MODE"); 
+        ENTER = (); 
+        EXIT = (); 
+        "INCOMING_MISSILE" = (increaseAlertLevel); 
+        UPDATE = (decreaseAlertLevel, "setStateTo: CHECK_FOR_DEBRIS"); 
+    }; 
 }

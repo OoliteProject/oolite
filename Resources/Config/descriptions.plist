@@ -1,578 +1,668 @@
-{
-    "@-ejected" = (
-	"%@ ejected."
-    );
-    "@-locked-onto-@" = (
-	"%@ locked onto %@."
-    );
-    "@-scooped" = (
-	"%@ scooped."
-    );
-    "autopilot-denied" = (
-	"Station refuses to issue docking instructions."
-    );
-    "autopilot-off" = (
-	"Autopilot disengaged."
-    );
-    "autopilot-on" = (
-	"Autopilot engaged."
-    );
-    "autopilot-out-of-range" = (
-	"Could not contact station for docking instructions."
-    );
-    "beg-for-mercy" = (
-	"No!",
-	"Help! Anyone!",
-	"Our systems are failing, please let us flee!",
-	"Leave us alone!",
-	"Don't shoot, please!",
-	"Please stop! Have mercy!",
-	"Please don't kill us! I beg you!",
-	"S.O.S. ... S.O.S. ... S.O.S. ..."
-    );
-    "bounty-d" = (
-	"Bounty: %d"
-    );
-    "buoy-distress-call" = (
-	"You have attacked a Navigational Beacon. This is an illegal act.",
-	"%H Navigational Beacon reports an illegal act of vandalism.",
-	"%H Navigational Beacon to attacking craft. Please desist.",
-	"Attacking a Navigational Beacon is illegal. Police are on their way."
-    );
-    "cloak-low-juice" = (
-	"Not enough energy to activate cloaking device."
-    );
-    "cloak-off" = (
-	"Cloaking device deactivated."
-    );
-    "cloak-on" = (
-	"Cloaking device activated."
-    );
-    condition = (
-	Docked,
-	Green,
-	Yellow,
-	Red
-    );
-    "describe-Pirate" = (
-	Brigand,
-	Pirate,
-	"Hostile vessel",
-	Marauder,
-	Criminal
-    );
-    "describe-pirate" = (
-	brigand,
-	pirate,
-	"hostile vessel",
-	marauder,
-	criminal
-    );
-    digrams = "ABOUSEITILETSTONLONUTHNOALLEXEGEZACEBISOUSESARMAINDIREA'ERATENBERALAVETIEDORQUANTEISRION";
-    "distress-call" = (
-	"We are [7] by [describe-pirate]s! Please help!",
-	"Our vessel is under attack, please help us.",
-	"[describe-Pirate]s are attacking us. Please assist!",
-	"Help! Anyone!",
-	"Mayday! Mayday! Mayday! We are under attack.",
-	"Help! They're firing on us!",
-	"Mayday! Please assist. Mayday! Please assist.",
-	"S.O.S. ... S.O.S. ... S.O.S. ..."
-    );
-    "docking-begin-final-aproach" = (
-	"You are on final approach.",
-	"Beginning final approach sequence."
-    );
-    "docking-welcome" = (
-	"Docking systems active.",
-	"Docking permission granted. We have uploaded docking instructions to your flight console."
-    );
-    "ecm-on" = (
-	"ECM system activated."
-    );
-    "ecm-out-of-juice" = (
-	"ECM system deactivated (no energy left)."
-    );
-    economy = (
-	"Rich Industrial",
-	"Average Industrial",
-	"Poor Industrial",
-	"Mainly Industrial",
-	"Mainly Agricultural",
-	"Rich Agricultural",
-	"Average Agricultural",
-	"Poor Agricultural"
-    );
-    "energy-bomb-activated" = (
-	"Energy bomb triggered."
-    );
-    "energy-low" = (
-	"Energy low."
-    );
-    "escape-sequence" = (
-	"Escape sequence active."
-    );
-    fined = (
-	"You have been fined %d credits.",
-	"You have been fined %d credits, and made to pick up litter in the main hanger deck.",
-	"You have been fined %d credits, and are forced to clean up after the [6]oids.",
-	"You have been fined %d credits, and sent for 'attitude adjustment'."
-    );
-    "fuel-inject-on" = (
-	"Fuel injection engaged."
-    );
-    "fuel-out" = (
-	"Witchdrive fuel exhausted."
-    );
-    "game-paused" = (
-	"Game paused."
-    );
-    "game-saved" = (
-	"Game saved."
-    );
-    government = (
-	Anarchy,
-	Feudal,
-	"Multi-Government",
-	Dictatorship,
-	Communist,
-	Confederacy,
-	Democracy,
-	"Corporate State"
-    );
-    "hold-full" = (
-	"Cargo holds full."
-    );
-    "ident-off" = (
-	"Ident system deactivated."
-    );
-    "ident-on" = (
-	"Ident system active."
-    );
-    "incoming-missile" = (
-	"Incoming missile."
-    );
-    inhabitants = (
-	(
-	    Large,
-	    Fierce,
-	    Small
-	),
-	(
-	    Green,
-	    Red,
-	    Yellow,
-	    Blue,
-	    Black,
-	    Harmless
-	),
-	(
-	    Slimy,
-	    "Bug-Eyed",
-	    Horned,
-	    Bony,
-	    Fat,
-	    Furry
-	),
-	(
-	    Rodent,
-	    Frog,
-	    Lizard,
-	    Lobster,
-	    Bird,
-	    Humanoid,
-	    Feline,
-	    Insect
-	)
-    );
-    "jump-mass-locked" = (
-	"Hyperspeed mass-locked."
-    );
-    legal_status = (
-	Clean,
-	Offender,
-	Fugitive
-    );
-    "mine-armed" = (
-	"Mine armed."
-    );
-    "missile-armed" = (
-	"Missile armed."
-    );
-    "missile-locked-onto-@" = (
-	"Missile locked onto %@."
-    );
-    "missile-safe" = (
-	"Missiles on safety."
-    );
-    "mouse-off" = (
-	"Mouse control off."
-    );
-    "mouse-on" = (
-	"Mouse control on."
-    );
-    "nova-system-description" = (
-	"The %I sun has gone nova, destroying the planet and all life here. Beware of navigational and radiological hazards in this system."
-    );
-    phonograms = "AEb=UW==sEH=IHt=IHl=EHt=st==AAn=lOW=nUW=T===nOW=AEl=lEY=hEY=JEH=zEY=sEH=bIY=sOW=UHs=EHz=AEr=mAE=IHn=dIY=rEY=EH==UXr=AEt=EHn=bEH=rAX=lAX=vEH=tIY=EHd=AAr=kw==AXn=tEY=IHz=rIY=AAn=";
-    "police-attack-warning" = (
-	"Offender, your craft will be destroyed under GalCop codes.",
-	"Please slow your engines and do not attempt to dodge our lasers, [describe-pirate]!",
-	"%R! Leave now, or face Police retribution.",
-	"[describe-Pirate], you are not welcome in this system.",
-	"Offender vessel, this is %H Police. Leave now or be fired upon.",
-	"[describe-Pirate], you have been scheduled for termination.",
-	"Leave %H now or be destroyed.",
-	"%H Police. Offending ship targeted. Moving to intercept."
-    );
-    "police-thanks-for-assist" = (
-	"Thank you for the assistance.",
-	"%H Police thank you for your assistance."
-    );
-    "police-warning" = (
-	"Offender vessel, this is %H Police. You have been scanned and will face penalties if you choose to dock here.",
-	"[describe-Pirate], this is %H Police. Fines will be imposed if you dock here.",
-	"This is the police. Docking at %H will require legal compensation for your offences.",
-	"This is the police. %H Station will fine you for your offences when you dock."
-    );
-    rating = (
-	Harmless,
-	"Mostly Harmless",
-	Poor,
-	Average,
-	"Above Average",
-	Competent,
-	Dangerous,
-	Deadly,
-	"---- E L I T E ----"
-    );
-    "right-on-commander" = (
-	"Right On, Commander!"
-    );
-    "station-begin-final-aproach" = (
-	"You are on final approach to %H Station.",
-	"Now entering %H space dock.",
-	"Beginning final approach sequence.",
-	"Entering final approach to %H Station."
-    );
-    "station-docking-refused-to-fugitive" = (
-	"%H Station does NOT welcome fugitives!"
-    );
-    "station-hold-position" = (
-	"Please be patient - you are being held in a docking queue.",
-	"Docking sequence will recommence shortly. Thank you for your patience.",
-	"Traffic is heavy, please continue to hold until we can clear an approach for you.",
-	"You are being queued for docking. Thank you for your patience."
-    );
-    "station-welcome" = (
-	"Welcome to %H space dock.",
-	"Docking systems active. Welcome to %H.",
-	"Welcome to %H. Please have your ship manifest ready for inspection upon docking",
-	"%H Station here. We have uploaded docking instructions to your flight console.",
-	"Salutations spacefarer! Welcome to %H.",
-	"%H welcomes you. Docking procedures should take no more than a few minutes, please stand by.",
-	"Welcome to %H. Please be patient while we guide your ship into space dock.",
-	"Greetings! %H Station traffic control welcomes you."
-    );
-    system_description = (
-	(
-	    fabled,
-	    notable,
-	    "well known",
-	    famous,
-	    noted
-	),
-	(
-	    very,
-	    mildly,
-	    most,
-	    reasonably,
-	    ""
-	),
-	(
-	    ancient,
-	    "[20]",
-	    great,
-	    vast,
-	    pink
-	),
-	(
-	    "[29] [28] plantations",
-	    mountains,
-	    "[27]",
-	    "[19] forests",
-	    oceans
-	),
-	(
-	    shyness,
-	    silliness,
-	    "mating traditions",
-	    "loathing of [5]",
-	    "love for [5]"
-	),
-	(
-	    "food blenders",
-	    tourists,
-	    poetry,
-	    discos,
-	    "[13]"
-	),
-	(
-	    "talking tree",
-	    crab,
-	    bat,
-	    lobst,
-	    "%R"
-	),
-	(
-	    beset,
-	    plagued,
-	    ravaged,
-	    cursed,
-	    scourged
-	),
-	(
-	    "[21] civil war",
-	    "[26] [23] [24]s",
-	    "a [26] disease",
-	    "[21] earthquakes",
-	    "[21] solar activity"
-	),
-	(
-	    "its [2] [3]",
-	    "the %I [23] [24]",
-	    "its inhabitants' [25] [4]",
-	    "[32]",
-	    "its [12] [13]"
-	),
-	(
-	    juice,
-	    brandy,
-	    water,
-	    brew,
-	    "gargle blasters"
-	),
-	(
-	    "%R",
-	    "%I [24]",
-	    "%I %R",
-	    "%I [26]",
-	    "[26] %R"
-	),
-	(
-	    fabulous,
-	    exotic,
-	    hoopy,
-	    unusual,
-	    exciting
-	),
-	(
-	    cuisine,
-	    "night life",
-	    casinos,
-	    "sit coms",
-	    "[32]"
-	),
-	(
-	    "%H",
-	    "The planet %H",
-	    "The world %H",
-	    "This planet",
-	    "This world"
-	),
-	(
-	    "n unremarkable",
-	    " boring",
-	    " dull",
-	    " tedious",
-	    " revolting"
-	),
-	(
-	    planet,
-	    world,
-	    place,
-	    "little planet",
-	    dump
-	),
-	(
-	    wasp,
-	    moth,
-	    grub,
-	    ant,
-	    "%R"
-	),
-	(
-	    poet,
-	    "arts graduate",
-	    yak,
-	    snail,
-	    slug
-	),
-	(
-	    tropical,
-	    dense,
-	    rain,
-	    impenetrable,
-	    exuberant
-	),
-	(
-	    funny,
-	    weird,
-	    unusual,
-	    strange,
-	    peculiar
-	),
-	(
-	    frequent,
-	    occasional,
-	    unpredictable,
-	    dreadful,
-	    deadly
-	),
-	(
-	    "[1] [0] for [9]",
-	    "[1] [0] for [9] and [9]",
-	    "[7] by [8]",
-	    "[1] [0] for [9] but [7] by [8]",
-	    "a [15] [16]"
-	),
-	(
-	    "[26]",
-	    mountain,
-	    edible,
-	    tree,
-	    spotted
-	),
-	(
-	    "[30]",
-	    "[31]",
-	    "[6]oid",
-	    "[18]",
-	    "[17]"
-	),
-	(
-	    ancient,
-	    exceptional,
-	    eccentric,
-	    ingrained,
-	    "[20]"
-	),
-	(
-	    killer,
-	    deadly,
-	    evil,
-	    lethal,
-	    vicious
-	),
-	(
-	    "parking meters",
-	    "dust clouds",
-	    "ice bergs",
-	    "rock formations",
-	    volcanoes
-	),
-	(
-	    plant,
-	    tulip,
-	    banana,
-	    corn,
-	    "%Rweed"
-	),
-	(
-	    "%R",
-	    "%I %R",
-	    "%I [26]",
-	    inhabitant,
-	    "%I %R"
-	),
-	(
-	    shrew,
-	    beast,
-	    bison,
-	    snake,
-	    wolf
-	),
-	(
-	    leopard,
-	    cat,
-	    monkey,
-	    goat,
-	    fish
-	),
-	(
-	    "[11] [10]",
-	    "%I [30] [33]",
-	    "its [12] [31] [33]",
-	    "[34] [35]",
-	    "[11] [10]"
-	),
-	(
-	    meat,
-	    cutlet,
-	    steak,
-	    burgers,
-	    soup
-	),
-	(
-	    ice,
-	    mud,
-	    "Zero-G",
-	    vacuum,
-	    "%I ultra"
-	),
-	(
-	    hockey,
-	    cricket,
-	    karate,
-	    polo,
-	    tennis
-	)
-    );
-    "target-lost" = (
-	"Target lost."
-    );
-    "thanks-for-assist" = (
-	"Thank you for the assistance.",
-	"Thanks!.",
-	"%R bless you!",
-	"Oh thank you! Help at last!"
-    );
-    thargoid_curses = (
-	"Guard your [4], human [18]-[31]!",
-	"Eat [6], [5]!",
-	"We'll use your [20] [27] for our [33]!",
-	"%R! %R! %R!"
-    );
-    "total-f-credits" = (
-	"Total: %.1f Cr"
-    );
-    "weapon-out-of-juice" = (
-	"Weapon system inactive (no energy left)."
-    );
-    "weapon-overheat" = (
-	"Weapon system overheated."
-    );
-    weapon_name = (
-	none,
-	"Twin Plasma Cannon",
-	"Pulse Laser",
-	"Beam Laser",
-	"Mining Laser",
-	"Military Laser"
-    );
-    "witch-engine-malfunction" = (
-	"Witchspace engine malfunction!"
-    );
-    "witch-galactic-in-f-seconds" = (
-	"Intergalactic jump in %.0f s."
-    );
-    "witch-no-fuel" = (
-	"Insufficient fuel for witchspace jump."
-    );
-    "witch-no-target" = (
-	"No target system set."
-    );
-    "witch-to-@-in-f-seconds" = (
-	"Witchspace to %@ in %.0f s."
-    );
-}
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple Computer//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>condition</key>
+	<array>
+		<string>Docked</string>
+		<string>Green</string>
+		<string>Yellow</string>
+		<string>Red</string>
+	</array>
+	<key>economy</key>
+	<array>
+		<string>Rich Industrial</string>
+		<string>Average Industrial</string>
+		<string>Poor Industrial</string>
+		<string>Mainly Industrial</string>
+		<string>Mainly Agricultural</string>
+		<string>Rich Agricultural</string>
+		<string>Average Agricultural</string>
+		<string>Poor Agricultural</string>
+	</array>
+	<key>government</key>
+	<array>
+		<string>Anarchy</string>
+		<string>Feudal</string>
+		<string>Multi-Government</string>
+		<string>Dictatorship</string>
+		<string>Communist</string>
+		<string>Confederacy</string>
+		<string>Democracy</string>
+		<string>Corporate State</string>
+	</array>
+	<key>inhabitants</key>
+	<array>
+		<array>
+			<string>Large</string>
+			<string>Fierce</string>
+			<string>Small</string>
+		</array>
+		<array>
+			<string>Green</string>
+			<string>Red</string>
+			<string>Yellow</string>
+			<string>Blue</string>
+			<string>Black</string>
+			<string>Harmless</string>
+		</array>
+		<array>
+			<string>Slimy</string>
+			<string>Bug-Eyed</string>
+			<string>Horned</string>
+			<string>Bony</string>
+			<string>Fat</string>
+			<string>Furry</string>
+		</array>
+		<array>
+			<string>Rodent</string>
+			<string>Frog</string>
+			<string>Lizard</string>
+			<string>Lobster</string>
+			<string>Bird</string>
+			<string>Humanoid</string>
+			<string>Feline</string>
+			<string>Insect</string>
+		</array>
+	</array>
+	<key>legal_status</key>
+	<array>
+		<string>Clean</string>
+		<string>Offender</string>
+		<string>Fugitive</string>
+	</array>
+	<key>rating</key>
+	<array>
+		<string>Harmless</string>
+		<string>Mostly Harmless</string>
+		<string>Poor</string>
+		<string>Average</string>
+		<string>Above Average</string>
+		<string>Competent</string>
+		<string>Dangerous</string>
+		<string>Deadly</string>
+		<string>---- E L I T E ----</string>
+	</array>
+	<key>system_description</key>
+	<array>
+		<array>
+			<string>fabled</string>
+			<string>notable</string>
+			<string>well known</string>
+			<string>famous</string>
+			<string>noted</string>
+		</array>
+		<array>
+			<string>very</string>
+			<string>mildly</string>
+			<string>most</string>
+			<string>reasonably</string>
+			<string></string>
+		</array>
+		<array>
+			<string>ancient</string>
+			<string>[20]</string>
+			<string>great</string>
+			<string>vast</string>
+			<string>pink</string>
+		</array>
+		<array>
+			<string>[29] [28] plantations</string>
+			<string>mountains</string>
+			<string>[27]</string>
+			<string>[19] forests</string>
+			<string>oceans</string>
+		</array>
+		<array>
+			<string>shyness</string>
+			<string>silliness</string>
+			<string>mating traditions</string>
+			<string>loathing of [5]</string>
+			<string>love for [5]</string>
+		</array>
+		<array>
+			<string>food blenders</string>
+			<string>tourists</string>
+			<string>poetry</string>
+			<string>discos</string>
+			<string>[13]</string>
+		</array>
+		<array>
+			<string>talking tree</string>
+			<string>crab</string>
+			<string>bat</string>
+			<string>lobst</string>
+			<string>%R</string>
+		</array>
+		<array>
+			<string>beset</string>
+			<string>plagued</string>
+			<string>ravaged</string>
+			<string>cursed</string>
+			<string>scourged</string>
+		</array>
+		<array>
+			<string>[21] civil war</string>
+			<string>[26] [23] [24]s</string>
+			<string>a [26] disease</string>
+			<string>[21] earthquakes</string>
+			<string>[21] solar activity</string>
+		</array>
+		<array>
+			<string>its [2] [3]</string>
+			<string>the %I [23] [24]</string>
+			<string>its inhabitants' [25] [4]</string>
+			<string>[32]</string>
+			<string>its [12] [13]</string>
+		</array>
+		<array>
+			<string>juice</string>
+			<string>brandy</string>
+			<string>water</string>
+			<string>brew</string>
+			<string>gargle blasters</string>
+		</array>
+		<array>
+			<string>%R</string>
+			<string>%I [24]</string>
+			<string>%I %R</string>
+			<string>%I [26]</string>
+			<string>[26] %R</string>
+		</array>
+		<array>
+			<string>fabulous</string>
+			<string>exotic</string>
+			<string>hoopy</string>
+			<string>unusual</string>
+			<string>exciting</string>
+		</array>
+		<array>
+			<string>cuisine</string>
+			<string>night life</string>
+			<string>casinos</string>
+			<string>sit coms</string>
+			<string>[32]</string>
+		</array>
+		<array>
+			<string>%H</string>
+			<string>The planet %H</string>
+			<string>The world %H</string>
+			<string>This planet</string>
+			<string>This world</string>
+		</array>
+		<array>
+			<string>n unremarkable</string>
+			<string> boring</string>
+			<string> dull</string>
+			<string> tedious</string>
+			<string> revolting</string>
+		</array>
+		<array>
+			<string>planet</string>
+			<string>world</string>
+			<string>place</string>
+			<string>little planet</string>
+			<string>dump</string>
+		</array>
+		<array>
+			<string>wasp</string>
+			<string>moth</string>
+			<string>grub</string>
+			<string>ant</string>
+			<string>%R</string>
+		</array>
+		<array>
+			<string>poet</string>
+			<string>arts graduate</string>
+			<string>yak</string>
+			<string>snail</string>
+			<string>slug</string>
+		</array>
+		<array>
+			<string>tropical</string>
+			<string>dense</string>
+			<string>rain</string>
+			<string>impenetrable</string>
+			<string>exuberant</string>
+		</array>
+		<array>
+			<string>funny</string>
+			<string>weird</string>
+			<string>unusual</string>
+			<string>strange</string>
+			<string>peculiar</string>
+		</array>
+		<array>
+			<string>frequent</string>
+			<string>occasional</string>
+			<string>unpredictable</string>
+			<string>dreadful</string>
+			<string>deadly</string>
+		</array>
+		<array>
+			<string>[1] [0] for [9]</string>
+			<string>[1] [0] for [9] and [9]</string>
+			<string>[7] by [8]</string>
+			<string>[1] [0] for [9] but [7] by [8]</string>
+			<string>a [15] [16]</string>
+		</array>
+		<array>
+			<string>[26]</string>
+			<string>mountain</string>
+			<string>edible</string>
+			<string>tree</string>
+			<string>spotted</string>
+		</array>
+		<array>
+			<string>[30]</string>
+			<string>[31]</string>
+			<string>[6]oid</string>
+			<string>[18]</string>
+			<string>[17]</string>
+		</array>
+		<array>
+			<string>ancient</string>
+			<string>exceptional</string>
+			<string>eccentric</string>
+			<string>ingrained</string>
+			<string>[20]</string>
+		</array>
+		<array>
+			<string>killer</string>
+			<string>deadly</string>
+			<string>evil</string>
+			<string>lethal</string>
+			<string>vicious</string>
+		</array>
+		<array>
+			<string>parking meters</string>
+			<string>dust clouds</string>
+			<string>ice bergs</string>
+			<string>rock formations</string>
+			<string>volcanoes</string>
+		</array>
+		<array>
+			<string>plant</string>
+			<string>tulip</string>
+			<string>banana</string>
+			<string>corn</string>
+			<string>%Rweed</string>
+		</array>
+		<array>
+			<string>%R</string>
+			<string>%I %R</string>
+			<string>%I [26]</string>
+			<string>inhabitant</string>
+			<string>%I %R</string>
+		</array>
+		<array>
+			<string>shrew</string>
+			<string>beast</string>
+			<string>bison</string>
+			<string>snake</string>
+			<string>wolf</string>
+		</array>
+		<array>
+			<string>leopard</string>
+			<string>cat</string>
+			<string>monkey</string>
+			<string>goat</string>
+			<string>fish</string>
+		</array>
+		<array>
+			<string>[11] [10]</string>
+			<string>%I [30] [33]</string>
+			<string>its [12] [31] [33]</string>
+			<string>[34] [35]</string>
+			<string>[11] [10]</string>
+		</array>
+		<array>
+			<string>meat</string>
+			<string>cutlet</string>
+			<string>steak</string>
+			<string>burgers</string>
+			<string>soup</string>
+		</array>
+		<array>
+			<string>ice</string>
+			<string>mud</string>
+			<string>Zero-G</string>
+			<string>vacuum</string>
+			<string>%I ultra</string>
+		</array>
+		<array>
+			<string>hockey</string>
+			<string>cricket</string>
+			<string>karate</string>
+			<string>polo</string>
+			<string>tennis</string>
+		</array>
+	</array>
+	<key>weapon_name</key>
+	<array>
+		<string>none</string>
+		<string>Twin Plasma Cannon</string>
+		<string>Pulse Laser</string>
+		<string>Beam Laser</string>
+		<string>Mining Laser</string>
+		<string>Military Laser</string>
+	</array>
+	<key>digrams</key><!-- this string must always be the same length -->
+	<string>ABOUSEITILETSTONLONUTHNOALLEXEGEZACEBISOUSESARMAINDIREA'ERATENBERALAVETIEDORQUANTEISRION</string>
+	<key>phonograms</key><!-- this string represents the 4 character phonemes associated with each digram -->
+	<string>AEb=UW==sEH=IHt=IHl=EHt=st==AAn=lOW=nUW=T===nOW=AEl=lEY=hEY=JEH=zEY=sEH=bIY=sOW=UHs=EHz=AEr=mAE=IHn=dIY=rEY=EH==UXr=AEt=EHn=bEH=rAX=lAX=vEH=tIY=EHd=AAr=kw==AXn=tEY=IHz=rIY=AAn=</string>
+	<!-- Messages used when awarding bounties -->
+	<key>bounty-d</key>
+	<array>
+		<string>Bounty: %d</string>
+	</array>
+	<key>total-f-credits</key>
+	<array>
+		<string>Total: %.1f Cr</string>
+	</array>
+	<key>right-on-commander</key>
+	<array>
+		<string>Right On, Commander!</string>
+	</array>
+	<!-- Assorted messages used by the onboard computer -->
+	<key>autopilot-on</key>
+	<array>
+		<string>Autopilot engaged.</string>
+	</array>
+	<key>autopilot-off</key>
+	<array>
+		<string>Autopilot disengaged.</string>
+	</array>
+	<key>autopilot-out-of-range</key>
+	<array>
+		<string>Could not contact station for docking instructions.</string>
+	</array>
+	<key>autopilot-denied</key>
+	<array>
+		<string>Station refuses to issue docking instructions.</string>
+	</array>
+	<key>witch-to-@-in-f-seconds</key>
+	<array>
+		<string>Witchspace to %@ in %.0f s.</string>
+	</array>
+	<key>witch-no-target</key>
+	<array>
+		<string>No target system set.</string>
+	</array>
+	<key>witch-no-fuel</key>
+	<array>
+		<string>Insufficient fuel for witchspace jump.</string>
+	</array>
+	<key>witch-engine-malfunction</key>
+	<array>
+		<string>Witchspace engine malfunction!</string>
+	</array>
+	<key>witch-galactic-in-f-seconds</key>
+	<array>
+		<string>Intergalactic jump in %.0f s.</string>
+	</array>
+	<key>game-paused</key>
+	<array>
+		<string>Game paused.</string>
+	</array>
+	<key>game-saved</key>
+	<array>
+		<string>Game saved.</string>
+	</array>
+	<key>mouse-on</key>
+	<array>
+		<string>Mouse control on.</string>
+	</array>
+	<key>mouse-off</key>
+	<array>
+		<string>Mouse control off.</string>
+	</array>
+	<key>target-lost</key>
+	<array>
+		<string>Target lost.</string>
+	</array>
+	<key>@-locked-onto-@</key>
+	<array>
+		<string>%@ locked onto %@.</string>
+	</array>
+	<key>ecm-on</key>
+	<array>
+		<string>ECM system activated.</string>
+	</array>
+	<key>ecm-out-of-juice</key>
+	<array>
+		<string>ECM system deactivated (no energy left).</string>
+	</array>
+	<key>jump-mass-locked</key>
+	<array>
+		<string>Hyperspeed mass-locked.</string>
+	</array>
+	<key>fuel-inject-on</key>
+	<array>
+		<string>Fuel injection engaged.</string>
+	</array>
+	<key>fuel-out</key>
+	<array>
+		<string>Witchdrive fuel exhausted.</string>
+	</array>
+	<key>ident-on</key>
+	<array>
+		<string>Ident system active.</string>
+	</array>
+	<key>ident-off</key>
+	<array>
+		<string>Ident system deactivated.</string>
+	</array>
+	<key>missile-locked-onto-@</key>
+	<array>
+		<string>Missile locked onto %@.</string>
+	</array>
+	<key>missile-armed</key>
+	<array>
+		<string>Missile armed.</string>
+	</array>
+	<key>mine-armed</key>
+	<array>
+		<string>Mine armed.</string>
+	</array>
+	<key>missile-safe</key>
+	<array>
+		<string>Missiles on safety.</string>
+	</array>
+	<key>incoming-missile</key>
+	<array>
+		<string>Incoming missile.</string>
+	</array>
+	<key>energy-low</key>
+	<array>
+		<string>Energy low.</string>
+	</array>
+	<key>energy-bomb-activated</key>
+	<array>
+		<string>Energy bomb triggered.</string>
+	</array>
+	<key>weapon-overheat</key>
+	<array>
+		<string>Weapon system overheated.</string>
+	</array>
+	<key>weapon-out-of-juice</key>
+	<array>
+		<string>Weapon system inactive (no energy left).</string>
+	</array>
+	<key>escape-sequence</key>
+	<array>
+		<string>Escape sequence active.</string>
+	</array>
+	<key>@-ejected</key>
+	<array>
+		<string>%@ ejected.</string>
+	</array>
+	<key>@-scooped</key>
+	<array>
+		<string>%@ scooped.</string>
+	</array>
+	<!-- cloaking device .. -->
+	<key>cloak-on</key>
+	<array>
+		<string>Cloaking device activated.</string>
+	</array>
+	<key>cloak-off</key>
+	<array>
+		<string>Cloaking device deactivated.</string>
+	</array>
+	<key>cloak-low-juice</key>
+	<array>
+		<string>Not enough energy to activate cloaking device.</string>
+	</array>
+	<!-- holds full -->
+	<key>hold-full</key>
+	<array>
+		<string>Cargo holds full.</string>
+	</array>
+	<!-- Assorted messages sent out by ships etc.. -->
+	<!--	%H - homeworld
+			%I - homeworld+ian
+			%R - random digrams
+			%@ - text to be inserted at this point
+			%d, %f, %x etc. - printf type variables to be inserted
+			[$text] = $text is an entry here that will be expanded
+	-->
+	<key>beg-for-mercy</key>
+	<array>
+		<string>No!</string>
+		<string>Help! Anyone!</string>
+		<string>Our systems are failing, please let us flee!</string>
+		<string>Leave us alone!</string>
+		<string>Don't shoot, please!</string>
+		<string>Please stop! Have mercy!</string>
+		<string>Please don't kill us! I beg you!</string>
+		<string>S.O.S. ... S.O.S. ... S.O.S. ...</string>
+	</array>
+	<key>describe-pirate</key>
+	<array>
+		<string>brigand</string>
+		<string>pirate</string>
+		<string>hostile vessel</string>
+		<string>marauder</string>
+		<string>criminal</string>
+	</array>
+	<key>describe-Pirate</key>
+	<array>
+		<string>Brigand</string>
+		<string>Pirate</string>
+		<string>Hostile vessel</string>
+		<string>Marauder</string>
+		<string>Criminal</string>
+	</array>
+	<key>distress-call</key>
+	<array>
+		<string>We are [7] by [describe-pirate]s! Please help!</string>
+		<string>Our vessel is under attack, please help us.</string>
+		<string>[describe-Pirate]s are attacking us. Please assist!</string>
+		<string>Help! Anyone!</string>
+		<string>Mayday! Mayday! Mayday! We are under attack.</string>
+		<string>Help! They're firing on us!</string>
+		<string>Mayday! Please assist. Mayday! Please assist.</string>
+		<string>S.O.S. ... S.O.S. ... S.O.S. ...</string>
+	</array>
+	<key>buoy-distress-call</key>
+	<array>
+		<string>You have attacked a Navigational Beacon. This is an illegal act.</string>
+		<string>%H Navigational Beacon reports an illegal act of vandalism.</string>
+		<string>%H Navigational Beacon to attacking craft. Please desist.</string>
+		<string>Attacking a Navigational Beacon is illegal. Police are on their way.</string>
+	</array>
+	<key>thanks-for-assist</key>
+	<array>
+		<string>Thank you for the assistance.</string>
+		<string>Thanks!.</string>
+		<string>%R bless you!</string>
+		<string>Oh thank you! Help at last!</string>
+	</array>
+	<key>police-thanks-for-assist</key>
+	<array>
+		<string>Thank you for the assistance.</string>
+		<string>%H Police thank you for your assistance.</string>
+	</array>
+	<key>thargoid_curses</key>
+	<array>
+		<string>Guard your [4], human [18]-[31]!</string>
+		<string>Eat [6], [5]!</string>
+		<string>We'll use your [20] [27] for our [33]!</string>
+		<string>%R! %R! %R!</string>
+	</array>
+	<key>police-warning</key>
+	<array>
+		<string>Offender vessel, this is %H Police. You have been scanned and will face penalties if you choose to dock here.</string>
+		<string>[describe-Pirate], this is %H Police. Fines will be imposed if you dock here.</string>
+		<string>This is the police. Docking at %H will require legal compensation for your offences.</string>
+		<string>This is the police. %H Station will fine you for your offences when you dock.</string>
+	</array>
+	<key>police-attack-warning</key>
+	<array>
+		<string>Offender, your craft will be destroyed under GalCop codes.</string>
+		<string>Please slow your engines and do not attempt to dodge our lasers, [describe-pirate]!</string>
+		<string>%R! Leave now, or face Police retribution.</string>
+		<string>[describe-Pirate], you are not welcome in this system.</string>
+		<string>Offender vessel, this is %H Police. Leave now or be fired upon.</string>
+		<string>[describe-Pirate], you have been scheduled for termination.</string>
+		<string>Leave %H now or be destroyed.</string>
+		<string>%H Police. Offending ship targeted. Moving to intercept.</string>
+	</array>
+	<!-- /general docking -->
+	<key>docking-welcome</key>
+	<array>
+		<string>Docking systems active.</string>
+		<string>Docking permission granted. We have uploaded docking instructions to your flight console.</string>
+	</array>
+	<key>docking-begin-final-aproach</key>
+	<array>
+		<string>You are on final approach.</string>
+		<string>Beginning final approach sequence.</string>
+	</array>
+	<!-- /general docking -->
+	<!-- station -->
+	<key>station-welcome</key>
+	<array>
+		<string>Welcome to %H space dock.</string>
+		<string>Docking systems active. Welcome to %H.</string>
+		<string>Welcome to %H. Please have your ship manifest ready for inspection upon docking</string>
+		<string>%H Station here. We have uploaded docking instructions to your flight console.</string>
+		<string>Salutations spacefarer! Welcome to %H.</string>
+		<string>%H welcomes you. Docking procedures should take no more than a few minutes, please stand by.</string>
+		<string>Welcome to %H. Please be patient while we guide your ship into space dock.</string>
+		<string>Greetings! %H Station traffic control welcomes you.</string>
+	</array>
+	<key>station-begin-final-aproach</key>
+	<array>
+		<string>You are on final approach to %H Station.</string>
+		<string>Now entering %H space dock.</string>
+		<string>Beginning final approach sequence.</string>
+		<string>Entering final approach to %H Station.</string>
+	</array>
+	<key>station-hold-position</key>
+	<array>
+		<string>Please be patient - you are being held in a docking queue.</string>
+		<string>Docking sequence will recommence shortly. Thank you for your patience.</string>
+		<string>Traffic is heavy, please continue to hold until we can clear an approach for you.</string>
+		<string>You are being queued for docking. Thank you for your patience.</string>
+	</array>
+	<key>station-docking-refused-to-fugitive</key>
+	<array>
+		<string>%H Station does NOT welcome fugitives!</string>
+	</array>
+	<!-- /station -->
+	<key>fined</key>
+	<array>
+		<string>You have been fined %d credits.</string>
+		<string>You have been fined %d credits, and made to pick up litter in the main hanger deck.</string>
+		<string>You have been fined %d credits, and are forced to clean up after the [6]oids.</string>
+		<string>You have been fined %d credits, and sent for 'attitude adjustment'.</string>
+	</array>
+	<!-- system description after a nova -->
+	<key>nova-system-description</key>
+	<array>
+		<string>The %I sun has gone nova, destroying the planet and all life here. Beware of navigational and radiological hazards in this system.</string>
+	</array>
+</dict>
+</plist>
