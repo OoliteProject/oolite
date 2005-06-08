@@ -1,23 +1,73 @@
 {
-    "GO_TO_WAYPOINT" = {
-		ENTER = ("setDesiredRangeTo: 50.0", checkCourseToDestination);
-		"COURSE_OK" = ("setSpeedFactorTo: 1.0", performFlyToRangeFromDestination);
-		"WAYPOINT_SET" = ("setDesiredRangeTo: 50.0", checkCourseToDestination);
-		"DESIRED_RANGE_ACHIEVED" = ("setStateTo: GLOBAL");
-        ATTACKED = (setTargetToPrimaryAggressor, broadcastDistressMessage, "setStateTo: FLEE"); 
-        "INCOMING_MISSILE" = (fightOrFleeMissile, "setStateTo: FLEE"); 
-		EXIT = ();
-		UPDATE = ();
-	}; 
-    "FLY_HOME" = {
-		ENTER = (setCourseToPlanet, checkCourseToDestination);
-		"COURSE_OK" = ("setSpeedFactorTo: 1.0", performFlyToRangeFromDestination);
-		"WAYPOINT_SET" = ("setStateTo: GO_TO_WAYPOINT");
-		"DESIRED_RANGE_ACHIEVED" = (landOnPlanet);
-		EXIT = ();
-        ATTACKED = (setTargetToPrimaryAggressor, broadcastDistressMessage, "setStateTo: FLEE"); 
-        "INCOMING_MISSILE" = (fightOrFleeMissile, "setStateTo: FLEE"); 
-		UPDATE = (checkCourseToDestination, "pauseAI: 10.0");
-	}; 
-    GLOBAL = {ENTER = ("setSpeedFactorTo: 0.25", "setStateTo: FLY_HOME"); EXIT = (); UPDATE = (); }; 
+    FLY_HOME = {
+	ATTACKED = (
+	    setTargetToPrimaryAggressor,
+	    broadcastDistressMessage,
+	    "setStateTo: FLEE"
+	);
+	COURSE_OK = (
+	    "setSpeedFactorTo: 1.0",
+	    performFlyToRangeFromDestination
+	);
+	DESIRED_RANGE_ACHIEVED = (
+	    landOnPlanet
+	);
+	ENTER = (
+	    setCourseToPlanet,
+	    checkCourseToDestination
+	);
+	EXIT = (
+	);
+	INCOMING_MISSILE = (
+	    fightOrFleeMissile,
+	    "setStateTo: FLEE"
+	);
+	UPDATE = (
+	    checkCourseToDestination,
+	    "pauseAI: 10.0"
+	);
+	WAYPOINT_SET = (
+	    "setStateTo: GO_TO_WAYPOINT"
+	);
+    };
+    GLOBAL = {
+	ENTER = (
+	    "setSpeedFactorTo: 0.25",
+	    "setStateTo: FLY_HOME"
+	);
+	EXIT = (
+	);
+	UPDATE = (
+	);
+    };
+    GO_TO_WAYPOINT = {
+	ATTACKED = (
+	    setTargetToPrimaryAggressor,
+	    broadcastDistressMessage,
+	    "setStateTo: FLEE"
+	);
+	COURSE_OK = (
+	    "setSpeedFactorTo: 1.0",
+	    performFlyToRangeFromDestination
+	);
+	DESIRED_RANGE_ACHIEVED = (
+	    "setStateTo: GLOBAL"
+	);
+	ENTER = (
+	    "setDesiredRangeTo: 50.0",
+	    checkCourseToDestination
+	);
+	EXIT = (
+	);
+	INCOMING_MISSILE = (
+	    fightOrFleeMissile,
+	    "setStateTo: FLEE"
+	);
+	UPDATE = (
+	);
+	WAYPOINT_SET = (
+	    "setDesiredRangeTo: 50.0",
+	    checkCourseToDestination
+	);
+    };
 }

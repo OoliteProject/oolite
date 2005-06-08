@@ -1,26 +1,71 @@
 {
-    "ATTACK_SHIP" = {
-        ENTER = (performAttack); 
-        "THARGOID_DESTROYED" = ("setStateTo: CHECK_FOR_CONTROL"); 
-        "TARGET_DESTROYED" = ("setStateTo: CHECK_FOR_CONTROL"); 
-        "TARGET_LOST" = ("setStateTo: CHECK_FOR_CONTROL"); 
-        UPDATE = (scanForThargoid, "pauseAI: 5.0"); 
-        "NOTHING_FOUND" = ("setStateTo: CHECK_FOR_CONTROL"); 
-        EXIT = (); 
-    }; 
-    "CHECK_FOR_CONTROL" = {
-        "THARGOID_DESTROYED" = ("setStateTo: CHECK_FOR_CONTROL"); 
-		"TARGET_FOUND" = ("setStateTo: LOOK_FOR_TARGETS"); 
-		ENTER = ("setSpeedTo: 0.0", performTumble);
-		EXIT = ();
-		UPDATE = (scanForThargoid, "pauseAI: 1.0");
-	}; 
-    "LOOK_FOR_TARGETS" = {
-        "THARGOID_DESTROYED" = ("setStateTo: CHECK_FOR_CONTROL"); 
-		"TARGET_FOUND" = (setTargetToFoundTarget, "setStateTo: ATTACK_SHIP"); 
-		ENTER = (scanForNonThargoid, "pauseAI: 1.0");
-		EXIT = ();
-		UPDATE = (scanForNonThargoid, "pauseAI: 10.0");
-	}; 
-    GLOBAL = {ENTER = ("setStateTo: ATTACK_SHIP"); EXIT = (); UPDATE = (); }; 
+    ATTACK_SHIP = {
+	ENTER = (
+	    performAttack
+	);
+	EXIT = (
+	);
+	NOTHING_FOUND = (
+	    "setStateTo: CHECK_FOR_CONTROL"
+	);
+	TARGET_DESTROYED = (
+	    "setStateTo: CHECK_FOR_CONTROL"
+	);
+	TARGET_LOST = (
+	    "setStateTo: CHECK_FOR_CONTROL"
+	);
+	THARGOID_DESTROYED = (
+	    "setStateTo: CHECK_FOR_CONTROL"
+	);
+	UPDATE = (
+	    scanForThargoid,
+	    "pauseAI: 5.0"
+	);
+    };
+    CHECK_FOR_CONTROL = {
+	ENTER = (
+	    "setSpeedTo: 0.0",
+	    performTumble
+	);
+	EXIT = (
+	);
+	TARGET_FOUND = (
+	    "setStateTo: LOOK_FOR_TARGETS"
+	);
+	THARGOID_DESTROYED = (
+	    "setStateTo: CHECK_FOR_CONTROL"
+	);
+	UPDATE = (
+	    scanForThargoid,
+	    "pauseAI: 1.0"
+	);
+    };
+    GLOBAL = {
+	ENTER = (
+	    "setStateTo: ATTACK_SHIP"
+	);
+	EXIT = (
+	);
+	UPDATE = (
+	);
+    };
+    LOOK_FOR_TARGETS = {
+	ENTER = (
+	    scanForNonThargoid,
+	    "pauseAI: 1.0"
+	);
+	EXIT = (
+	);
+	TARGET_FOUND = (
+	    setTargetToFoundTarget,
+	    "setStateTo: ATTACK_SHIP"
+	);
+	THARGOID_DESTROYED = (
+	    "setStateTo: CHECK_FOR_CONTROL"
+	);
+	UPDATE = (
+	    scanForNonThargoid,
+	    "pauseAI: 10.0"
+	);
+    };
 }

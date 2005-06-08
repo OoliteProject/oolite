@@ -75,37 +75,48 @@ Your fair use and other rights are in no way affected by the above.
 
 - (GLuint) getTextureNameFor:(NSString *)filename
 {
+#ifndef GNUSTEP
     NSBitmapImageRep	*bitmapImageRep;
-    NSRect		textureRect = NSMakeRect(0.0,0.0,4.0,4.0);
     NSImage		*texImage, *image;
+#else
+	SDLImage *texImage;
+#endif
+    NSRect		textureRect = NSMakeRect(0.0,0.0,4.0,4.0);
     NSSize		imageSize;
     NSData		*textureData;
     GLuint		texName;
 	
 	int			n_planes;
+	int			n_bytes;
     
     if (![textureDictionary objectForKey:filename])
     {
         NSMutableDictionary*	texProps = [NSMutableDictionary dictionaryWithCapacity:3];  // autoreleased
-        
+#ifndef GNUSTEP        
         texImage = [ResourceManager imageNamed:filename inFolder:@"Textures"];
+#else
+		texImage = [ResourceManager surfaceNamed:filename inFolder:@"Textures"];
+#endif
         if (!texImage)
         {
             NSLog(@"***** Couldn't find texture : %@", filename);
                 return 0;
         }
-        
+
+#ifndef GNUSTEP        
         imageSize = [texImage size];
-    
+#else
+		imageSize = NSMakeSize([texImage surface]->w, [texImage surface]->h);
+#endif
         while (textureRect.size.width < imageSize.width)
             textureRect.size.width *= 2.0;
         while (textureRect.size.height < imageSize.height)
             textureRect.size.height *= 2.0;
-        
+
         textureRect.origin= NSMakePoint(0.0,0.0);
-    
-//        NSLog(@"DEBUG %@ imageSize = (%.0f, %.0f) textureSize = (%.0f, %.0f)", filename, imageSize.width, imageSize.height, textureRect.size.width,textureRect.size.height);
-    
+
+        //  NSLog(@"textureSize = %f %f",textureRect.size.width,textureRect.size.height);
+#ifndef GNUSTEP    
         image = [[NSImage alloc] initWithSize:textureRect.size]; // is retained
         
         // draw the texImage into an image of an appropriate size
@@ -118,13 +129,32 @@ Your fair use and other rights are in no way affected by the above.
 		[texImage drawAtPoint:NSMakePoint(0.0,0.0) fromRect:NSMakeRect(0.0,0.0,imageSize.width,imageSize.height) operation:NSCompositeSourceOver fraction:1.0];
         bitmapImageRep = [[NSBitmapImageRep alloc] initWithFocusedViewRect:textureRect];// is retained
         
-//  NSLog(@"TextureStore bitMapImageRep for %@: has %d numberOfPlanes, %d samplesPerPixel", filename, [bitmapImageRep numberOfPlanes], [bitmapImageRep samplesPerPixel]);
+		//  NSLog(@"TextureStore %@ texture has %d planes, %d bytes per plane", filename, [bitmapImageRep numberOfPlanes], [bitmapImageRep bytesPerPlane]);
 		
-		n_planes = [bitmapImageRep samplesPerPixel];
+		n_bytes = [bitmapImageRep bytesPerPlane];
+		n_planes = 3;
+		if (n_bytes > textureRect.size.width*textureRect.size.height*3)
+			n_planes = 4;
 		
 		[image unlockFocus];
     
         textureData = [[NSData dataWithBytes:[bitmapImageRep bitmapData] length:(int)(textureRect.size.width*textureRect.size.height*n_planes)] retain];
+#else
+		double zoomx = textureRect.size.width / imageSize.width;
+		double zoomy = textureRect.size.height / imageSize.height;
+#ifdef WIN32
+		SDL_Surface* scaledImage = [texImage surface];
+#else
+		SDL_Surface* scaledImage = zoomSurface([texImage surface], zoomx, zoomy, SMOOTHING_OFF);
+#endif
+		SDL_LockSurface(scaledImage);
+		textureData = [[NSData dataWithBytes:scaledImage->pixels length:scaledImage->w * scaledImage->h * scaledImage->format->BytesPerPixel] retain];
+
+		n_planes = scaledImage->format->BytesPerPixel;
+
+		SDL_UnlockSurface(scaledImage);
+		SDL_FreeSurface(scaledImage);
+#endif
                 
         glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
         glGenTextures(1, &texName);			// get a new unique texture name
@@ -149,10 +179,12 @@ Your fair use and other rights are in no way affected by the above.
 
         [textureDictionary setObject:texProps forKey:filename];
         
+#ifndef GNUSTEP        
         [image autorelease]; // is released
-        
+
         [bitmapImageRep autorelease];// is released
-        
+#endif
+
 		[textureData autorelease];// is released (retain count has been incremented by adding it to the texProps dictionary) 
     
     }
@@ -181,3 +213,4 @@ Your fair use and other rights are in no way affected by the above.
 }
 
 @end
+

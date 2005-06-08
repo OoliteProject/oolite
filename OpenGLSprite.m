@@ -39,6 +39,21 @@ Your fair use and other rights are in no way affected by the above.
 
 #import "OpenGLSprite.h"
 
+#ifdef GNUSTEP
+/* SDL interprets each pixel as a 32-bit number, so our masks must depend
+   on the endianness (byte order) of the machine */
+#if SDL_BYTEORDER == SDL_BIG_ENDIAN
+Uint32 rmask = 0xff000000;
+Uint32 gmask = 0x00ff0000;
+Uint32 bmask = 0x0000ff00;
+Uint32 amask = 0x000000ff;
+#else
+Uint32 rmask = 0x000000ff;
+Uint32 gmask = 0x0000ff00;
+Uint32 bmask = 0x00ff0000;
+Uint32 amask = 0xff000000;
+#endif
+#endif
 
 @implementation OpenGLSprite
 
@@ -58,6 +73,7 @@ Your fair use and other rights are in no way affected by the above.
 
 - (id) initWithText:(NSString *)str
 {
+#ifndef GNUSTEP
     NSImage	*image;
     NSSize	strsize;
     NSMutableDictionary *stringAttributes = [NSMutableDictionary dictionaryWithObjectsAndKeys:
@@ -82,11 +98,14 @@ Your fair use and other rights are in no way affected by the above.
 	[image release];
 	
     return self;
-
+#else
+	return nil;
+#endif
 }
 
 - (id) initWithText:(NSString *)str ofColor:(NSColor *) textColor
 {
+#ifndef GNUSTEP
     NSImage	*image;
     NSSize	strsize;
     NSMutableDictionary *stringAttributes = [NSMutableDictionary dictionaryWithObjectsAndKeys:
@@ -111,7 +130,9 @@ Your fair use and other rights are in no way affected by the above.
 	[image release];
 	
     return self;
-
+#else
+	return nil;
+#endif
 }
 
 - (void) dealloc
@@ -168,6 +189,7 @@ Your fair use and other rights are in no way affected by the above.
 
 - (void) setText:(NSString *)str
 {
+#ifndef GNUSTEP
     NSImage	*image;
     NSSize	strsize;
 
@@ -195,6 +217,7 @@ Your fair use and other rights are in no way affected by the above.
     //
     //NSLog(@"%@ message sprite [ %f, %f ]", str, [image size].width, [image size].height);
     //
+#endif
 }
 
 
@@ -359,6 +382,100 @@ Your fair use and other rights are in no way affected by the above.
     }
     [bitmapImageRep release];
 }
+
+#ifdef GNUSTEP
+- (id) initWithSurface:(SDLImage *)textureImage cropRectangle:(NSRect)cropRect size:(NSSize) spriteSize
+{
+    self = [super init];
+    [self makeTextureFromSurface:textureImage cropRectangle:cropRect size:spriteSize];
+    return self;
+}
+
+- (void)makeTextureFromSurface:(SDLImage *)texImage cropRectangle:(NSRect)cropRect size:(NSSize)spriteSize
+{
+    //NSBitmapImageRep *bitmapImageRep;
+    NSRect textureRect = NSMakeRect(0.0,0.0,OPEN_GL_SPRITE_MIN_WIDTH,OPEN_GL_SPRITE_MIN_HEIGHT);
+    SDL_Surface *surface;
+
+    if (!texImage)
+        return;
+
+    SDL_Surface *texSurface = [texImage surface];
+    SDL_SetAlpha(texSurface, 0, SDL_ALPHA_OPAQUE);
+    //NSLog(@"makeTextureFromSurface: texImage dimensions: %d x %d", texSurface->w, texSurface->h);
+
+    size = spriteSize;
+    textureCropRect = cropRect;
+
+    while (textureRect.size.width < cropRect.size.width)
+        textureRect.size.width *= 2;
+    while (textureRect.size.height < cropRect.size.height)
+        textureRect.size.height *= 2;
+    
+    textureRect.origin= NSMakePoint(0,0);
+    textureCropRect.origin= NSMakePoint(0,0);
+
+    textureSize = textureRect.size;
+
+    //image = [[NSImage alloc] initWithSize:textureRect.size];	// retained
+    //NSLog(@"makeTextureFromSurface: texture surface dimensions: %d x %d", (int)textureRect.size.width, (int)textureRect.size.height);
+    surface = SDL_CreateRGBSurface(SDL_SWSURFACE, (int)textureRect.size.width, (int)textureRect.size.height, 32, rmask, gmask, bmask, amask);
+
+    //[image lockFocus];
+    //[[NSColor clearColor] set];
+    //NSRectFill(textureRect);
+    SDL_FillRect(surface, (SDL_Rect *)0x00, SDL_MapRGBA(surface->format, 0, 0, 0, SDL_ALPHA_TRANSPARENT));
+
+    //[texImage drawInRect:textureCropRect fromRect:cropRect operation:NSCompositeSourceOver fraction:1.0];
+    //bitmapImageRep = [[NSBitmapImageRep alloc] initWithFocusedViewRect:textureRect];	// retained
+    //[image unlockFocus];
+
+    SDL_Rect srcRect, destRect;
+   	srcRect.x = (int)cropRect.origin.x; srcRect.y = (int)cropRect.origin.y; srcRect.w = (int)cropRect.size.width; srcRect.h = (int)cropRect.size.height;
+   	destRect.x = 0; destRect.y = 0;
+    SDL_BlitSurface(texSurface, &srcRect, surface, &destRect);
+    //NSLog(@"destRect x: %d, y: %d, w: %d, h: %d", destRect.x, destRect.y, destRect.w, destRect.h);
+
+    //[image release]; // released
+
+    // normalise textureCropRect size to 0.0 -> 1.0
+    textureCropRect.size.width /= textureRect.size.width;
+    textureCropRect.size.height /= textureRect.size.height;
+
+	int n_bytes = surface->format->BytesPerPixel * surface->w * surface->h;
+	//unsigned char *buffer = malloc(n_bytes);
+	SDL_LockSurface(surface);
+	//memcpy(buffer, surface->pixels, n_bytes);
+
+    if (textureData)
+        [textureData release];
+    //textureData = [[NSData dataWithBytes:[bitmapImageRep bitmapData] length:n_bytes] retain];
+    //[bitmapImageRep release]; // released
+    //textureData = [[NSData dataWithBytesNoCopy: buffer length: n_bytes] retain];
+    textureData = [[NSData dataWithBytes:surface->pixels length:surface->w * surface->h * surface->format->BytesPerPixel] retain];
+
+    SDL_UnlockSurface(surface);
+    SDL_FreeSurface(surface);
+
+    if (texName !=0)
+    {
+        const GLuint	delTextures[1] = { texName };
+        glDeleteTextures(1, delTextures);
+        texName = 0;	// clean up the texture from the 3d card's memory
+    }    
+
+    glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+    glGenTextures(1, &texName);			// get a new unique texture name
+    glBindTexture(GL_TEXTURE_2D, texName);	// initialise it
+
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, textureRect.size.width, textureRect.size.height, 0, GL_RGBA, GL_UNSIGNED_BYTE, [textureData bytes]);
+}
+#endif
 
 @end
 

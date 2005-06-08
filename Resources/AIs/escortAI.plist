@@ -1,33 +1,95 @@
 {
-    "FLYING_ESCORT" = {
-        ENTER = (performEscort); 
-        "GROUP_ATTACK_TARGET" = (setTargetToFoundTarget, "setAITo: interceptAI.plist"); 
-        RESTARTED = ("setStateTo: BEGIN_BUSINESS");
-		ESCORTING = ("setDesiredRangeTo: 0.0", performEscort);
-        "INCOMING_MISSILE" = ("messageMother: INCOMING_MISSILE"); 
-        "ATTACKED" = ("messageMother: ATTACKED"); 
-        "NOT_ESCORTING" = ("setStateTo: LOOK_FOR_BUSINESS"); 
-        "TARGET_LOST" = ("setStateTo: LOOK_FOR_BUSINESS"); 
-        "TARGET_DESTROYED" = ("setStateTo: LOOK_FOR_BUSINESS"); 
-		EXIT = ();
-        UPDATE = (escortCheckMother, "pauseAI: 15"); 
-    }; 
-    "BEGIN_BUSINESS" = {
-        ATTACKED = (setTargetToPrimaryAggressor, "setAITo: interceptAI.plist");
-        ENTER = (escortCheckMother); 
-        EXIT = ();
-		ESCORTING = ("setDesiredRangeTo: 0.0", performEscort);
-        "NOT_ESCORTING" = ("setStateTo: LOOK_FOR_BUSINESS"); 
-        UPDATE = (); 
-    }; 
-    "LOOK_FOR_BUSINESS" = {
-        ATTACKED = (setTargetToPrimaryAggressor, "setAITo: interceptAI.plist");
-        RESTARTED = ("setStateTo: BEGIN_BUSINESS");
-        ENTER = ("setSpeedTo: 0.0", performIdle); 
-        EXIT = ();
-		ESCORTING = ("setDesiredRangeTo: 0.0", "setStateTo: FLYING_ESCORT");
-        "TARGET_FOUND" = (setTargetToFoundTarget, suggestEscort); 
-        UPDATE = (scanForFormationLeader, "pauseAI: 15.0"); 
-    }; 
-    GLOBAL = {ENTER = ("setStateTo: BEGIN_BUSINESS"); EXIT = (); UPDATE = (); }; 
+    BEGIN_BUSINESS = {
+	ATTACKED = (
+	    setTargetToPrimaryAggressor,
+	    "setAITo: interceptAI.plist"
+	);
+	ENTER = (
+	    escortCheckMother
+	);
+	ESCORTING = (
+	    "setDesiredRangeTo: 0.0",
+	    performEscort
+	);
+	EXIT = (
+	);
+	NOT_ESCORTING = (
+	    "setStateTo: LOOK_FOR_BUSINESS"
+	);
+	UPDATE = (
+	);
+    };
+    FLYING_ESCORT = {
+	ATTACKED = (
+	    "messageMother: ATTACKED"
+	);
+	ENTER = (
+	    performEscort
+	);
+	ESCORTING = (
+	    "setDesiredRangeTo: 0.0",
+	    performEscort
+	);
+	EXIT = (
+	);
+	GROUP_ATTACK_TARGET = (
+	    setTargetToFoundTarget,
+	    "setAITo: interceptAI.plist"
+	);
+	INCOMING_MISSILE = (
+	    "messageMother: INCOMING_MISSILE"
+	);
+	NOT_ESCORTING = (
+	    "setStateTo: LOOK_FOR_BUSINESS"
+	);
+	RESTARTED = (
+	    "setStateTo: BEGIN_BUSINESS"
+	);
+	TARGET_DESTROYED = (
+	    "setStateTo: LOOK_FOR_BUSINESS"
+	);
+	TARGET_LOST = (
+	    "setStateTo: LOOK_FOR_BUSINESS"
+	);
+	UPDATE = (
+	    escortCheckMother,
+	    "pauseAI: 15"
+	);
+    };
+    GLOBAL = {
+	ENTER = (
+	    "setStateTo: BEGIN_BUSINESS"
+	);
+	EXIT = (
+	);
+	UPDATE = (
+	);
+    };
+    LOOK_FOR_BUSINESS = {
+	ATTACKED = (
+	    setTargetToPrimaryAggressor,
+	    "setAITo: interceptAI.plist"
+	);
+	ENTER = (
+	    "setSpeedTo: 0.0",
+	    performIdle
+	);
+	ESCORTING = (
+	    "setDesiredRangeTo: 0.0",
+	    "setStateTo: FLYING_ESCORT"
+	);
+	EXIT = (
+	);
+	RESTARTED = (
+	    "setStateTo: BEGIN_BUSINESS"
+	);
+	TARGET_FOUND = (
+	    setTargetToFoundTarget,
+	    suggestEscort
+	);
+	UPDATE = (
+	    scanForFormationLeader,
+	    "pauseAI: 15.0"
+	);
+    };
 }

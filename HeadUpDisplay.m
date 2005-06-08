@@ -89,6 +89,7 @@ float char_widths[128] = {
 	}
 	
 //	// init sprites
+#ifndef WIN32
 	compassSprite = [[OpenGLSprite alloc]   initWithImage:[ResourceManager imageNamed:COMPASS_IMAGE inFolder:@"Images"]
 											cropRectangle:NSMakeRect(0, 0, COMPASS_SIZE, COMPASS_SIZE)
 											size:NSMakeSize(COMPASS_HALF_SIZE, COMPASS_HALF_SIZE)];			// alloc retains
@@ -110,7 +111,30 @@ float char_widths[128] = {
 														cropRectangle:NSMakeRect(w1*i, 0, w1, h1)
 														size:NSMakeSize(16, 16)];	// alloc retains
 	}
-	
+#else
+	compassSprite = [[OpenGLSprite alloc]   initWithSurface:[ResourceManager surfaceNamed:COMPASS_IMAGE inFolder:@"Images"]
+											cropRectangle:NSMakeRect(0, 0, COMPASS_SIZE, COMPASS_SIZE)
+											size:NSMakeSize(COMPASS_HALF_SIZE, COMPASS_HALF_SIZE)];			// alloc retains
+	reddotSprite = [[OpenGLSprite alloc]   initWithSurface:[ResourceManager surfaceNamed:COMPASS_REDDOT_IMAGE inFolder:@"Images"]
+											cropRectangle:NSMakeRect(0, 0, COMPASS_DOT_SIZE, COMPASS_DOT_SIZE)
+											size:NSMakeSize(COMPASS_HALF_DOT_SIZE, COMPASS_HALF_DOT_SIZE)];	// alloc retains
+	greendotSprite = [[OpenGLSprite alloc]   initWithSurface:[ResourceManager surfaceNamed:COMPASS_GREENDOT_IMAGE inFolder:@"Images"]
+											cropRectangle:NSMakeRect(0, 0, COMPASS_DOT_SIZE, COMPASS_DOT_SIZE)
+											size:NSMakeSize(COMPASS_HALF_DOT_SIZE, COMPASS_HALF_DOT_SIZE)];	// alloc retains
+	aegisSprite = [[OpenGLSprite alloc]   initWithSurface:[ResourceManager surfaceNamed:AEGIS_IMAGE inFolder:@"Images"]
+											cropRectangle:NSMakeRect(0, 0, 32, 32)
+											size:NSMakeSize(32, 32)];	// alloc retains
+	SDLImage *zoomLevelImage = [ResourceManager surfaceNamed:ZOOM_LEVELS_IMAGE inFolder:@"Images"];
+	int w1 = [zoomLevelImage size].width / SCANNER_ZOOM_LEVELS;
+	int h1 = [zoomLevelImage size].height;
+	for (i = 0; i < SCANNER_ZOOM_LEVELS; i++)
+	{
+		zoomLevelSprite[i] = [[OpenGLSprite alloc]   initWithSurface:zoomLevelImage
+														cropRectangle:NSMakeRect(w1*i, 0, w1, h1)
+														size:NSMakeSize(16, 16)];	// alloc retains
+	}
+#endif
+
 	// init arrays
 	dialArray = [[NSMutableArray alloc] initWithCapacity:16];   // alloc retains
 	legendArray = [[NSMutableArray alloc] initWithCapacity:16]; // alloc retains
@@ -175,6 +199,7 @@ GLuint ascii_texture_name;
 	if ([info objectForKey:IMAGE_KEY])
 	{
 		//NSLog(@"DEBUG adding Legend %@",[info objectForKey:IMAGE_KEY]);
+#ifndef WIN32
 		NSImage			*legendImage = [ResourceManager imageNamed:(NSString *)[info objectForKey:IMAGE_KEY] inFolder:@"Images"];
 		NSSize			imageSize = [legendImage size];
 		NSSize			spriteSize = imageSize;
@@ -182,8 +207,21 @@ GLuint ascii_texture_name;
 			spriteSize.width = [(NSNumber *)[info objectForKey:WIDTH_KEY] intValue];
 		if ([info objectForKey:HEIGHT_KEY])
 			spriteSize.height = [(NSNumber *)[info objectForKey:HEIGHT_KEY] intValue];
+
 		OpenGLSprite *legendSprite = [[OpenGLSprite alloc] initWithImage:legendImage
 										cropRectangle:NSMakeRect(0, 0, imageSize.width, imageSize.height) size:spriteSize]; // retained
+#else
+		SDLImage		*legendImage = [ResourceManager surfaceNamed:(NSString *)[info objectForKey:IMAGE_KEY] inFolder:@"Images"];
+		NSSize			imageSize = [legendImage size];
+		NSSize			spriteSize = imageSize;
+		if ([info objectForKey:WIDTH_KEY])
+			spriteSize.width = [(NSNumber *)[info objectForKey:WIDTH_KEY] intValue];
+		if ([info objectForKey:HEIGHT_KEY])
+			spriteSize.height = [(NSNumber *)[info objectForKey:HEIGHT_KEY] intValue];
+
+		OpenGLSprite *legendSprite = [[OpenGLSprite alloc] initWithSurface:legendImage
+										cropRectangle:NSMakeRect(0, 0, imageSize.width, imageSize.height) size:spriteSize]; // retained
+#endif
 		NSMutableDictionary *legendDict = [NSMutableDictionary dictionaryWithDictionary:info];
 		[legendDict setObject:legendSprite forKey:SPRITE_KEY];
 		[legendArray addObject:legendDict];																	

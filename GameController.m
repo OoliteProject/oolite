@@ -327,7 +327,9 @@ static int _compareModes(id arg1, id arg2, void *context)
 	// back there under GNUstep.
 	NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
 
-	gameView = [[MyOpenGLView alloc] initWithFrame: NSMakeRect(0, 0, DISPLAY_MIN_WIDTH, DISPLAY_MIN_HEIGHT)];
+	gameView = [MyOpenGLView alloc];
+	[gameView setFullScreenMode: fullscreen];
+	[gameView initWithFrame: NSMakeRect(0, 0, DISPLAY_MIN_WIDTH, DISPLAY_MIN_HEIGHT)];
 	[gameView setGameController: self];
 #endif
 
@@ -772,6 +774,13 @@ static int _compareModes(id arg1, id arg2, void *context)
 	return fullscreen;
 #endif
 }
+
+#ifdef GNUSTEP
+- (void) setFullScreenMode:(BOOL)fsm
+{
+	fullscreen = fsm;
+}
+#endif
 
 
 - (void) pauseFullScreenModeToPerform:(SEL) selector onTarget:(id) target

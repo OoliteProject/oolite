@@ -1,3 +1,11 @@
 {
-    GLOBAL = {ENTER = ("performTumble"); EXIT = (); UPDATE = (); }; 
+    GLOBAL = {
+	ENTER = (
+	    performTumble
+	);
+	EXIT = (
+	);
+	UPDATE = (
+	);
+    };
 }

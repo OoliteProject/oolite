@@ -138,9 +138,14 @@ NSMutableDictionary*	surface_cache;
 		[errors release];
 		errors = nil;
 	}
-	
+
+#ifndef WIN32	
 	NSString	*app_path = [[[[NSBundle mainBundle] bundlePath] stringByAppendingPathComponent:@"Contents"] stringByAppendingPathComponent:@"Resources"];
 	NSString	*addon_path = [[[[NSBundle mainBundle] bundlePath] stringByDeletingLastPathComponent] stringByAppendingPathComponent:@"AddOns"];
+#else
+	NSString	*app_path = @"oolite.app/Contents/Resources";
+	NSString	*addon_path = @"AddOns";
+#endif
 	NSMutableArray *file_paths = [NSMutableArray arrayWithCapacity:16];
 	[file_paths addObject:app_path];
 	if (include_addons)

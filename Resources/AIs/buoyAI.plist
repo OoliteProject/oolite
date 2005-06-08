@@ -1,8 +1,15 @@
 {
     GLOBAL = {
-        ATTACKED = (setTargetToPrimaryAggressor, broadcastDistressMessage); 
-        ENTER = (performIdle); 
-        EXIT = (); 
-        UPDATE = (); 
-    }; 
+	ATTACKED = (
+	    setTargetToPrimaryAggressor,
+	    broadcastDistressMessage
+	);
+	ENTER = (
+	    performIdle
+	);
+	EXIT = (
+	);
+	UPDATE = (
+	);
+    };
 }

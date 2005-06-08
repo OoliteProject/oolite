@@ -39,7 +39,7 @@ Your fair use and other rights are in no way affected by the above.
 
 #ifdef GNUSTEP
 #import <Foundation/Foundation.h>
-#import <AppKit/AppKit.h>
+//#import <AppKit/AppKit.h>
 #else
 #import <Cocoa/Cocoa.h>
 #endif

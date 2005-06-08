@@ -126,9 +126,15 @@ Your fair use and other rights are in no way affected by the above.
     //
 	textureStore = [[TextureStore alloc] init];	// alloc retains
 	//
+#ifndef WIN32
 	cursorSprite = [[OpenGLSprite alloc]   initWithImage:[ResourceManager imageNamed:@"cursor.png" inFolder:@"Images"]
 											cropRectangle:NSMakeRect(0, 0, 128, 128)
 											size:NSMakeSize(32, 32)];	// alloc retains
+#else
+	cursorSprite = [[OpenGLSprite alloc]   initWithSurface:[ResourceManager surfaceNamed:@"cursor.png" inFolder:@"Images"]
+											cropRectangle:NSMakeRect(0, 0, 128, 128)
+											size:NSMakeSize(32, 32)];	// alloc retains
+#endif
 	//
     gui = [[GuiDisplayGen alloc] init]; // alloc retains
     displayGUI = NO;
@@ -363,9 +369,15 @@ Your fair use and other rights are in no way affected by the above.
 	//
 	if (cursorSprite)
 		[cursorSprite release];
+#ifndef WIN32
 	cursorSprite = [[OpenGLSprite alloc]   initWithImage:[ResourceManager imageNamed:@"cursor.png" inFolder:@"Images"]
 											cropRectangle:NSMakeRect(0, 0, 128, 128)
 											size:NSMakeSize(32, 32)];	// alloc retains
+#else
+	cursorSprite = [[OpenGLSprite alloc]   initWithSurface:[ResourceManager surfaceNamed:@"cursor.png" inFolder:@"Images"]
+											cropRectangle:NSMakeRect(0, 0, 128, 128)
+											size:NSMakeSize(32, 32)];	// alloc retains
+#endif
 	//
 	if (gui)
 		[gui release];

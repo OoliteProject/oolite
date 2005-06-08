@@ -47,6 +47,7 @@ Your fair use and other rights are in no way affected by the above.
 
 #ifdef LINUX
 #include "oolite-linux.h"
+#include "SDLImage.h"
 #else
 #import <OpenGL/gl.h>
 #import <OpenGL/glu.h>
@@ -85,6 +86,11 @@ extern int debug;
 
 - (void)replaceTextureFromImage:(NSImage *)texImage cropRectangle:(NSRect)cropRect;
 - (void)substituteTextureFromImage:(NSImage *)texImage;
+
+#ifdef GNUSTEP
+- (id) initWithSurface:(SDLImage *)textureImage cropRectangle:(NSRect)cropRect size:(NSSize) spriteSize;
+- (void)makeTextureFromSurface:(SDLImage *)texImage cropRectangle:(NSRect)cropRect size:(NSSize)spriteSize;
+#endif
 
 @end
 

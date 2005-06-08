@@ -1,60 +1,28 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<!DOCTYPE plist PUBLIC "-//Apple Computer//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
-<plist version="1.0">
-<dict>
-	<key>constrictor_hunt_0_150</key>
-	<string>"The constrictor was last seen at Reesdice, Commander."</string>
-	<key>constrictor_hunt_0_28</key>
-	<string>"Yep, an unusual new ship had a galactic hyperdrive fitted here, used it too."</string>
-	<key>constrictor_hunt_0_36</key>
-	<string>"A strange looking ship left here a while back. Looked bound for Arexe."</string>
-	<key>constrictor_hunt_1_118</key>
-	<string>"You can tackle the vicious scoundrel if you like. He's at Orarra."</string>
-	<key>constrictor_hunt_1_193</key>
-	<string>"There's a real deadly pirate out there."</string>
-	<key>constrictor_hunt_1_253</key>
-	<string>"This strange ship dehyped here from nowhere, sun skimmed and jumped. I hear it went to Inbibe."</string>
-	<key>constrictor_hunt_1_53</key>
-	<string>"Oh dear me yes. A frightful rogue with what I believe you people call a lead posterior shot up lots of beastly pirates and went to Usleri."</string>
-	<key>constrictor_hunt_1_79</key>
-	<string>"Rogue ship went for me at Ausar. My lasers didn't even scratch its hull."</string>
-	<key>constrictor_hunt_1_A</key>
-	<string>"I hear a weird looking ship was seen at Errius."</string>
-	<key>constrictor_hunt_brief1</key>
-	<string>---INCOMING MESSAGE\n\nGreetings Commander,\n\nI am Captain Curruthers of Her Imperial Majesty's Space Navy and I beg a moment of your valuable time. We would like you to do a little job for us.\nThe ship you see here is a new model, the Constrictor, equipped with a top secret new shield generator.\n\nUnfortunately it's been stolen.\n</string>
-	<key>conhunt_short_desc1</key>
-	<string>Hunt for the constrictor stolen from Xeer.</string>
-	<key>constrictor_hunt_brief1a</key>
-	<string>It went missing from our ship yard on Xeer five months ago and was last seen at Reesdice. Your mission should you decide to accept it, is to seek and destroy this ship. You are cautioned that only Military Lasers will get through the new shields and that the Constrictor is fitted with an E.C.M. System.\n\nGood Luck, Commander.\n\n---MESSAGE ENDS.</string>
-	<key>constrictor_hunt_brief1b</key>
-	<string>It went missing from our ship yard on Xeer five months ago and is believed to have jumped to this galaxy. Your mission should you decide to accept it, is to seek and destroy this ship. You are cautioned that only Military Lasers will get through the new shields and that the Constrictor is fitted with an E.C.M. System.\n\nGood Luck, Commander.\n\n---MESSAGE ENDS.</string>
-	<key>constrictor_hunt_debrief</key>
-	<string>---INCOMING MESSAGE\n\nCongratulations Commander!\n\nThere will always be a place for you in Her Imperial Majesty's Space Navy.\n\nAnd maybe sooner than you think...\n\n---MESSAGE ENDS.</string>
-	<key>thargoid_plans_debrief</key>
-	<string>---INCOMING MESSAGE\n\nYou have served us well and we shall remember.\n\nWe did not expect the Thargoids to find out about you.\n\nFor the moment please accept this Navy Extra Energy Unit as payment.\n\n---MESSAGE ENDS.</string>
-	<key>thargoid_plans_intro_brief</key>
-	<string>---INCOMING MESSAGE\n\nAttention Commander, I am Captain Fortesque of Her Imperial Majesty's Space Navy.\n\nWe have need of your services again.\n\nIf you would be so good as to go to Ceerdi you will be briefed.\n\nIf successful, you will be rewarded.\n\n---MESSAGE ENDS.</string>
-	<key>thargplans_short_desc1</key>
-	<string>Go to Ceerdi for a briefing.</string>
-	<key>thargoid_plans_main_brief</key>
-	<string>---INCOMING MESSAGE\n\nGood Day Commander.\n\nI am Agent Blake of Naval Intelligence.\nAs you know, the Navy have been keeping the Thargoids off your ass out in deep space for many years now.\nWell the situation has changed. Our boys are ready for a push right to the home system of those murderers.\n\nI have obtained the defence plans for their Hive Worlds. The beetles know we've got something but not what. If I transmit the plans to our base on Birera they'll intercept the transmission. I need a ship to make the run. You're elected.\n\nThe plans are unipulse coded within this transmission. You will be paid.\n\nGood luck Commander.\n\n---MESSAGE ENDS.</string>
-	<key>thargplans_short_desc2</key>
-	<string>Convey the secret plans to Birera.</string>
-	<!-- Nova mission -->
-	<key>nova_missiondesc</key>
-	<string>Get the refugees to safety.</string>
-	<key>nova_1</key>
-	<string>You've arrived at an unfortunate time, Commander.\n\nOur sun has become unstable and is due to go nova at any moment. All our ships are evacuating the system, the last few refugees have come here to find a ship to take them to safety.\n\nPlease, please help us to escape!</string>
-	<key>nova_hero</key>
-	<string>Commander, we thank you.\n\nYou've bought us all to safety but we have no money with which we can reward you\n- our last credits were taken by those who took us to the space station.\n\nInstead we offer you undying gratitude... and what few valuable possessions we can spare.\n\nYou are our hero!</string>
-	<!-- test follows -->
-	<key>nova_yesno</key>
-	<dict>
-		<key>YES</key>
-		<string>Okay, I'll help.</string>
-		<key>NO</key>
-		<string>No, sorry.</string>
-	</dict>
-	<!-- end test -->
-</dict>
-</plist>
+{
+    conhunt_short_desc1 = "Hunt for the constrictor stolen from Xeer.";
+    constrictor_hunt_0_150 = "\"The constrictor was last seen at Reesdice, Commander.\"";
+    constrictor_hunt_0_28 = "\"Yep, an unusual new ship had a galactic hyperdrive fitted here, used it too.\"";
+    constrictor_hunt_0_36 = "\"A strange looking ship left here a while back. Looked bound for Arexe.\"";
+    constrictor_hunt_1_118 = "\"You can tackle the vicious scoundrel if you like. He's at Orarra.\"";
+    constrictor_hunt_1_193 = "\"There's a real deadly pirate out there.\"";
+    constrictor_hunt_1_253 = "\"This strange ship dehyped here from nowhere, sun skimmed and jumped. I hear it went to Inbibe.\"";
+    constrictor_hunt_1_53 = "\"Oh dear me yes. A frightful rogue with what I believe you people call a lead posterior shot up lots of beastly pirates and went to Usleri.\"";
+    constrictor_hunt_1_79 = "\"Rogue ship went for me at Ausar. My lasers didn't even scratch its hull.\"";
+    constrictor_hunt_1_A = "\"I hear a weird looking ship was seen at Errius.\"";
+    constrictor_hunt_brief1 = "---INCOMING MESSAGE\\n\\nGreetings Commander,\\n\\nI am Captain Curruthers of Her Imperial Majesty's Space Navy and I beg a moment of your valuable time. We would like you to do a little job for us.\\nThe ship you see here is a new model, the Constrictor, equipped with a top secret new shield generator.\\n\\nUnfortunately it's been stolen.\\n";
+    constrictor_hunt_brief1a = "It went missing from our ship yard on Xeer five months ago and was last seen at Reesdice. Your mission should you decide to accept it, is to seek and destroy this ship. You are cautioned that only Military Lasers will get through the new shields and that the Constrictor is fitted with an E.C.M. System.\\n\\nGood Luck, Commander.\\n\\n---MESSAGE ENDS.";
+    constrictor_hunt_brief1b = "It went missing from our ship yard on Xeer five months ago and is believed to have jumped to this galaxy. Your mission should you decide to accept it, is to seek and destroy this ship. You are cautioned that only Military Lasers will get through the new shields and that the Constrictor is fitted with an E.C.M. System.\\n\\nGood Luck, Commander.\\n\\n---MESSAGE ENDS.";
+    constrictor_hunt_debrief = "---INCOMING MESSAGE\\n\\nCongratulations Commander!\\n\\nThere will always be a place for you in Her Imperial Majesty's Space Navy.\\n\\nAnd maybe sooner than you think...\\n\\n---MESSAGE ENDS.";
+    nova_1 = "You've arrived at an unfortunate time, Commander.\\n\\nOur sun has become unstable and is due to go nova at any moment. All our ships are evacuating the system, the last few refugees have come here to find a ship to take them to safety.\\n\\nPlease, please help us to escape!";
+    nova_hero = "Commander, we thank you.\\n\\nYou've bought us all to safety but we have no money with which we can reward you\\n- our last credits were taken by those who took us to the space station.\\n\\nInstead we offer you undying gratitude... and what few valuable possessions we can spare.\\n\\nYou are our hero!";
+    nova_missiondesc = "Get the refugees to safety.";
+    nova_yesno = {
+	NO = "No, sorry.";
+	YES = "Okay, I'll help.";
+    };
+    thargoid_plans_debrief = "---INCOMING MESSAGE\\n\\nYou have served us well and we shall remember.\\n\\nWe did not expect the Thargoids to find out about you.\\n\\nFor the moment please accept this Navy Extra Energy Unit as payment.\\n\\n---MESSAGE ENDS.";
+    thargoid_plans_intro_brief = "---INCOMING MESSAGE\\n\\nAttention Commander, I am Captain Fortesque of Her Imperial Majesty's Space Navy.\\n\\nWe have need of your services again.\\n\\nIf you would be so good as to go to Ceerdi you will be briefed.\\n\\nIf successful, you will be rewarded.\\n\\n---MESSAGE ENDS.";
+    thargoid_plans_main_brief = "---INCOMING MESSAGE\\n\\nGood Day Commander.\\n\\nI am Agent Blake of Naval Intelligence.\\nAs you know, the Navy have been keeping the Thargoids off your ass out in deep space for many years now.\\nWell the situation has changed. Our boys are ready for a push right to the home system of those murderers.\\n\\nI have obtained the defence plans for their Hive Worlds. The beetles know we've got something but not what. If I transmit the plans to our base on Birera they'll intercept the transmission. I need a ship to make the run. You're elected.\\n\\nThe plans are unipulse coded within this transmission. You will be paid.\\n\\nGood luck Commander.\\n\\n---MESSAGE ENDS.";
+    thargplans_short_desc1 = "Go to Ceerdi for a briefing.";
+    thargplans_short_desc2 = "Convey the secret plans to Birera.";
+}

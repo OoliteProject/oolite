@@ -1,43 +1,139 @@
 {
-    "ATTACK_SHIP" = {
-        "ATTACKED" = (setTargetToPrimaryAggressor, "setStateTo: ATTACK_SHIP"); 
-        ENTER = (performAttack); 
-        EXIT = (); 
-        "INCOMING_MISSILE" = (fightOrFleeMissile, setTargetToPrimaryAggressor, "setStateTo: ATTACK_SHIP"); 
-        "TARGET_DESTROYED" = ("setStateTo: LOOK_FOR_TARGETS"); 
-		"TARGET_FOUND" = (setTargetToFoundTarget, "setStateTo: ATTACK_SHIP"); 
-        "TARGET_LOST" = ("setStateTo: LOOK_FOR_TARGETS"); 
-        UPDATE = (scanForNonThargoid, "pauseAI: 15.0"); 
-    }; 
-    "LOOK_FOR_TARGETS" = {
-        "ATTACKED" = (setTargetToPrimaryAggressor, "setStateTo: ATTACK_SHIP"); 
-        "INCOMING_MISSILE" = (fightOrFleeMissile, setTargetToPrimaryAggressor, "setStateTo: ATTACK_SHIP"); 
-		"TARGET_FOUND" = (setTargetToFoundTarget, "setStateTo: ATTACK_SHIP"); 
-        "NOTHING_FOUND" = ("setStateTo: HEAD_FOR_PLANET"); 
-		ENTER = ("setSpeedTo: 0.0", performTumble, scanForNonThargoid, "pauseAI: 5.0");
-		EXIT = ();
-		UPDATE = (scanForNonThargoid, "pauseAI: 5.0");
-	}; 
-    "HEAD_FOR_PLANET" = {
-		ENTER = (setCourseToPlanet, "setDesiredRangeTo: 80000.0", checkCourseToDestination);
-		"COURSE_OK" = ("setSpeedFactorTo: 1.0", performFlyToRangeFromDestination);
-		"WAYPOINT_SET" = ("setStateTo: GO_TO_WAYPOINT1");
-		"DESIRED_RANGE_ACHIEVED" = ("setStateTo: LOOK_FOR_TARGETS");
-        ATTACKED = (setTargetToPrimaryAggressor, "setStateTo: ATTACK_SHIP"); 
-        "INCOMING_MISSILE" = (fightOrFleeMissile, setTargetToPrimaryAggressor, "setStateTo: ATTACK_SHIP"); 
-        "TARGET_FOUND" = (setTargetToFoundTarget, "setStateTo: ATTACK_SHIP"); 
-		EXIT = ();
-		UPDATE = (scanForNonThargoid, "pauseAI: 10.0");
-	}; 
-    "GO_TO_WAYPOINT1" = {
-		ENTER = ("setDesiredRangeTo: 50.0", checkCourseToDestination);
-		"COURSE_OK" = ("setSpeedFactorTo: 1.0", performFlyToRangeFromDestination);
-		"WAYPOINT_SET" = ("setDesiredRangeTo: 50.0", checkCourseToDestination);
-		"DESIRED_RANGE_ACHIEVED" = ("setStateTo: HEAD_FOR_PLANET");
-        ATTACKED = (setTargetToPrimaryAggressor, "setStateTo: ATTACK_SHIP"); 
-        "INCOMING_MISSILE" = (fightOrFleeMissile, setTargetToPrimaryAggressor, "setStateTo: ATTACK_SHIP"); 
-		EXIT = ();
-		UPDATE = (scanForNonThargoid, "pauseAI: 10.0");
-	}; 
-    GLOBAL = {ENTER = ("setStateTo: LOOK_FOR_TARGETS"); EXIT = (); UPDATE = (); }; 
+    ATTACK_SHIP = {
+	ATTACKED = (
+	    setTargetToPrimaryAggressor,
+	    "setStateTo: ATTACK_SHIP"
+	);
+	ENTER = (
+	    performAttack
+	);
+	EXIT = (
+	);
+	INCOMING_MISSILE = (
+	    fightOrFleeMissile,
+	    setTargetToPrimaryAggressor,
+	    "setStateTo: ATTACK_SHIP"
+	);
+	TARGET_DESTROYED = (
+	    "setStateTo: LOOK_FOR_TARGETS"
+	);
+	TARGET_FOUND = (
+	    setTargetToFoundTarget,
+	    "setStateTo: ATTACK_SHIP"
+	);
+	TARGET_LOST = (
+	    "setStateTo: LOOK_FOR_TARGETS"
+	);
+	UPDATE = (
+	    scanForNonThargoid,
+	    "pauseAI: 15.0"
+	);
+    };
+    GLOBAL = {
+	ENTER = (
+	    "setStateTo: LOOK_FOR_TARGETS"
+	);
+	EXIT = (
+	);
+	UPDATE = (
+	);
+    };
+    GO_TO_WAYPOINT1 = {
+	ATTACKED = (
+	    setTargetToPrimaryAggressor,
+	    "setStateTo: ATTACK_SHIP"
+	);
+	COURSE_OK = (
+	    "setSpeedFactorTo: 1.0",
+	    performFlyToRangeFromDestination
+	);
+	DESIRED_RANGE_ACHIEVED = (
+	    "setStateTo: HEAD_FOR_PLANET"
+	);
+	ENTER = (
+	    "setDesiredRangeTo: 50.0",
+	    checkCourseToDestination
+	);
+	EXIT = (
+	);
+	INCOMING_MISSILE = (
+	    fightOrFleeMissile,
+	    setTargetToPrimaryAggressor,
+	    "setStateTo: ATTACK_SHIP"
+	);
+	UPDATE = (
+	    scanForNonThargoid,
+	    "pauseAI: 10.0"
+	);
+	WAYPOINT_SET = (
+	    "setDesiredRangeTo: 50.0",
+	    checkCourseToDestination
+	);
+    };
+    HEAD_FOR_PLANET = {
+	ATTACKED = (
+	    setTargetToPrimaryAggressor,
+	    "setStateTo: ATTACK_SHIP"
+	);
+	COURSE_OK = (
+	    "setSpeedFactorTo: 1.0",
+	    performFlyToRangeFromDestination
+	);
+	DESIRED_RANGE_ACHIEVED = (
+	    "setStateTo: LOOK_FOR_TARGETS"
+	);
+	ENTER = (
+	    setCourseToPlanet,
+	    "setDesiredRangeTo: 80000.0",
+	    checkCourseToDestination
+	);
+	EXIT = (
+	);
+	INCOMING_MISSILE = (
+	    fightOrFleeMissile,
+	    setTargetToPrimaryAggressor,
+	    "setStateTo: ATTACK_SHIP"
+	);
+	TARGET_FOUND = (
+	    setTargetToFoundTarget,
+	    "setStateTo: ATTACK_SHIP"
+	);
+	UPDATE = (
+	    scanForNonThargoid,
+	    "pauseAI: 10.0"
+	);
+	WAYPOINT_SET = (
+	    "setStateTo: GO_TO_WAYPOINT1"
+	);
+    };
+    LOOK_FOR_TARGETS = {
+	ATTACKED = (
+	    setTargetToPrimaryAggressor,
+	    "setStateTo: ATTACK_SHIP"
+	);
+	ENTER = (
+	    "setSpeedTo: 0.0",
+	    performTumble,
+	    scanForNonThargoid,
+	    "pauseAI: 5.0"
+	);
+	EXIT = (
+	);
+	INCOMING_MISSILE = (
+	    fightOrFleeMissile,
+	    setTargetToPrimaryAggressor,
+	    "setStateTo: ATTACK_SHIP"
+	);
+	NOTHING_FOUND = (
+	    "setStateTo: HEAD_FOR_PLANET"
+	);
+	TARGET_FOUND = (
+	    setTargetToFoundTarget,
+	    "setStateTo: ATTACK_SHIP"
+	);
+	UPDATE = (
+	    scanForNonThargoid,
+	    "pauseAI: 5.0"
+	);
+    };
 }

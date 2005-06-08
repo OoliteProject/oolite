@@ -15,10 +15,12 @@
 @interface SDLImage : NSObject
 {
 	SDL_Surface *m_surface;
+	NSSize m_size;
 }
 
 - (id) initWithSurface: (SDL_Surface *)surface;
 - (SDL_Surface *) surface;
+- (NSSize) size;
 @end
 
 #endif

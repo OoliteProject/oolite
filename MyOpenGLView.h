@@ -147,6 +147,9 @@ extern int debug;
 - (void) snapShot;
 
 - (BOOL) inFullScreenMode;
+#ifdef GNUSTEP
+- (void) setFullScreenMode:(BOOL)fsm;
+#endif
 
 /*
 // These are standard methods in NSView.

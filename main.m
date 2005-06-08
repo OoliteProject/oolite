@@ -14,6 +14,8 @@ int debug = NO;
 int main(int argc, const char *argv[])
 {
 #ifdef GNUSTEP
+	int i;
+
 	// This is still necessary for NSFont calls.
 	[NSApplication sharedApplication];
 
@@ -29,8 +31,18 @@ int main(int argc, const char *argv[])
 	// is no longer required.
 	[pool release];
 
-	if (argc > 1)
-		[controller setPlayerFileToLoad: [NSString stringWithCString: argv[argc - 1]]];
+	for (i = 0; i < argc; i++)
+	{
+		if (strcmp("-fullscreen", argv[i]) == 0)
+			[controller setFullScreenMode: YES];
+
+		if (strcmp("-load", argv[i]) == 0)
+		{
+			i++;
+			if (i < argc)
+				[controller setPlayerFileToLoad: [NSString stringWithCString: argv[i]]];
+		}
+	}
 
 	// Call applicationDidFinishLaunching because NSApp is not running in
 	// GNUstep port.

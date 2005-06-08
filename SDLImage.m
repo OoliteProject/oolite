@@ -12,12 +12,19 @@
 {
 	self = [super init];
 	m_surface = surface;
+	m_size.width = surface->w;
+	m_size.height = surface->h;
 	return self;
 }
 
 - (SDL_Surface *) surface
 {
 	return m_surface;
+}
+
+- (NSSize) size
+{
+	return m_size;
 }
 
 @end

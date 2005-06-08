@@ -1,3 +1,10 @@
 {
-    GLOBAL = {ENTER = (); EXIT = (); UPDATE = (); }; 
+    GLOBAL = {
+	ENTER = (
+	);
+	EXIT = (
+	);
+	UPDATE = (
+	);
+    };
 }

@@ -1,64 +1,216 @@
 {
+    ATTACK_SHIP = {
+	ENERGY_LOW = (
+	    setTargetToPrimaryAggressor,
+	    broadcastDistressMessage,
+	    "setStateTo: FLEE"
+	);
+	ENTER = (
+	    broadcastDistressMessage,
+	    performAttack
+	);
+	EXIT = (
+	);
+	INCOMING_MISSILE = (
+	    setTargetToPrimaryAggressor,
+	    broadcastDistressMessage,
+	    fightOrFleeMissile,
+	    "setStateTo: FLEE"
+	);
+	TARGET_DESTROYED = (
+	    "setStateTo: HEAD_FOR_PLANET"
+	);
+	TARGET_LOST = (
+	    "setStateTo: HEAD_FOR_PLANET"
+	);
+	UPDATE = (
+	);
+    };
     FLEE = {
-        ATTACKED = (fightOrFleeHostiles); 
-		FIGHTING = (setTargetToPrimaryAggressor, "setStateTo: ATTACK_SHIP");
-		FLEEING = (setTargetToPrimaryAggressor, "setStateTo: FLEE");
-        "TARGET_LOST" = (performIdle, "setStateTo: GLOBAL"); 
-        "TARGET_DESTROYED" = (performIdle, "setStateTo: GLOBAL"); 
-        ENTER = ("setDesiredRangeTo: 25600", performFlee); 
-        EXIT = (); 
-        "INCOMING_MISSILE" = (setTargetToPrimaryAggressor, broadcastDistressMessage, fightOrFleeMissile, fightOrFleeHostiles); 
-        "REACHED_SAFETY" = (performIdle, "setStateTo: GLOBAL"); 
-        UPDATE = (); 
-    }; 
-    "ATTACK_SHIP" = {
-        "ENERGY_LOW" = (setTargetToPrimaryAggressor, broadcastDistressMessage, "setStateTo: FLEE"); 
-        ENTER = (broadcastDistressMessage, performAttack); 
-        EXIT = (); 
-        "INCOMING_MISSILE" = (setTargetToPrimaryAggressor, broadcastDistressMessage, fightOrFleeMissile, "setStateTo: FLEE"); 
-        "TARGET_DESTROYED" = ("setStateTo: HEAD_FOR_PLANET"); 
-        "TARGET_LOST" = ("setStateTo: HEAD_FOR_PLANET"); 
-        UPDATE = (); 
-    }; 
-    "GO_TO_WAYPOINT" = {
-		ENTER = ("setDesiredRangeTo: 50.0", checkCourseToDestination);
-		"COURSE_OK" = ("setSpeedFactorTo: 0.5", performFlyToRangeFromDestination);
-		"WAYPOINT_SET" = ("setDesiredRangeTo: 50.0", checkCourseToDestination);
-		"DESIRED_RANGE_ACHIEVED" = ("setStateTo: GO_TO_STATION");
-        ATTACKED = (fightOrFleeHostiles); 
-        "INCOMING_MISSILE" = (setTargetToPrimaryAggressor, broadcastDistressMessage, fightOrFleeMissile, fightOrFleeHostiles, "setStateTo: FLEE"); 
-		EXIT = ();
-        "TARGET_FOUND" = (fightOrFleeHostiles); 
-		FIGHTING = (setTargetToPrimaryAggressor, "setStateTo: ATTACK_SHIP");
-		FLEEING = (setTargetToPrimaryAggressor, "setStateTo: FLEE");
-		UPDATE = (scanForHostiles, "pauseAI: 10.0");
-	}; 
-    "GO_TO_STATION" = {
-		ENTER = (setTargetToStation, "setDesiredRangeTo: 5000.0", setDestinationToTarget, checkCourseToDestination);
-		"COURSE_OK" = ("setSpeedFactorTo: 0.5", performFlyToRangeFromDestination);
-		"WAYPOINT_SET" = ("setStateTo: GO_TO_WAYPOINT");
-		"DESIRED_RANGE_ACHIEVED" = (dockEscorts, "setAITo: dockingAI.plist");
-		"AEGIS_IN_DOCKING_RANGE" = (dockEscorts, "setAITo: dockingAI.plist");
-		EXIT = ();
-        ATTACKED = (fightOrFleeHostiles); 
-        "INCOMING_MISSILE" = (setTargetToPrimaryAggressor, broadcastDistressMessage, fightOrFleeMissile, fightOrFleeHostiles, "setStateTo: FLEE"); 
-        "TARGET_FOUND" = (fightOrFleeHostiles); 
-		FIGHTING = (setTargetToPrimaryAggressor, "setStateTo: ATTACK_SHIP");
-		FLEEING = (setTargetToPrimaryAggressor, "setStateTo: FLEE");
-		UPDATE = (scanForHostiles, "pauseAI: 10.0");
-	}; 
-    "HEAD_FOR_PLANET" = {
-		ENTER = (setCourseToPlanet, "setDesiredRangeTo: 30000.0", "setSpeedFactorTo: 0.5", performFlyToRangeFromDestination);
-		"AEGIS_CLOSE_TO_PLANET" = ("setStateTo: GO_TO_STATION");
-		"AEGIS_IN_DOCKING_RANGE" = (dockEscorts, "setStateTo: GO_TO_STATION");
-		"DESIRED_RANGE_ACHIEVED" = ("setStateTo: GO_TO_STATION");
-        ATTACKED = (fightOrFleeHostiles); 
-        "INCOMING_MISSILE" = (setTargetToPrimaryAggressor, broadcastDistressMessage, fightOrFleeMissile, fightOrFleeHostiles, "setStateTo: FLEE"); 
-		EXIT = ();
-        "TARGET_FOUND" = (fightOrFleeHostiles);
-		FIGHTING = (setTargetToPrimaryAggressor, "setStateTo: ATTACK_SHIP");
-		FLEEING = (setTargetToPrimaryAggressor, "setStateTo: FLEE");
-		UPDATE = (scanForHostiles, "pauseAI: 10.0");
-	}; 
-    GLOBAL = {ENTER = ("setStateTo: HEAD_FOR_PLANET"); EXIT = (); UPDATE = (); }; 
+	ATTACKED = (
+	    fightOrFleeHostiles
+	);
+	ENTER = (
+	    "setDesiredRangeTo: 25600",
+	    performFlee
+	);
+	EXIT = (
+	);
+	FIGHTING = (
+	    setTargetToPrimaryAggressor,
+	    "setStateTo: ATTACK_SHIP"
+	);
+	FLEEING = (
+	    setTargetToPrimaryAggressor,
+	    "setStateTo: FLEE"
+	);
+	INCOMING_MISSILE = (
+	    setTargetToPrimaryAggressor,
+	    broadcastDistressMessage,
+	    fightOrFleeMissile,
+	    fightOrFleeHostiles
+	);
+	REACHED_SAFETY = (
+	    performIdle,
+	    "setStateTo: GLOBAL"
+	);
+	TARGET_DESTROYED = (
+	    performIdle,
+	    "setStateTo: GLOBAL"
+	);
+	TARGET_LOST = (
+	    performIdle,
+	    "setStateTo: GLOBAL"
+	);
+	UPDATE = (
+	);
+    };
+    GLOBAL = {
+	ENTER = (
+	    "setStateTo: HEAD_FOR_PLANET"
+	);
+	EXIT = (
+	);
+	UPDATE = (
+	);
+    };
+    GO_TO_STATION = {
+	AEGIS_IN_DOCKING_RANGE = (
+	    dockEscorts,
+	    "setAITo: dockingAI.plist"
+	);
+	ATTACKED = (
+	    fightOrFleeHostiles
+	);
+	COURSE_OK = (
+	    "setSpeedFactorTo: 0.5",
+	    performFlyToRangeFromDestination
+	);
+	DESIRED_RANGE_ACHIEVED = (
+	    dockEscorts,
+	    "setAITo: dockingAI.plist"
+	);
+	ENTER = (
+	    setTargetToStation,
+	    "setDesiredRangeTo: 5000.0",
+	    setDestinationToTarget,
+	    checkCourseToDestination
+	);
+	EXIT = (
+	);
+	FIGHTING = (
+	    setTargetToPrimaryAggressor,
+	    "setStateTo: ATTACK_SHIP"
+	);
+	FLEEING = (
+	    setTargetToPrimaryAggressor,
+	    "setStateTo: FLEE"
+	);
+	INCOMING_MISSILE = (
+	    setTargetToPrimaryAggressor,
+	    broadcastDistressMessage,
+	    fightOrFleeMissile,
+	    fightOrFleeHostiles,
+	    "setStateTo: FLEE"
+	);
+	TARGET_FOUND = (
+	    fightOrFleeHostiles
+	);
+	UPDATE = (
+	    scanForHostiles,
+	    "pauseAI: 10.0"
+	);
+	WAYPOINT_SET = (
+	    "setStateTo: GO_TO_WAYPOINT"
+	);
+    };
+    GO_TO_WAYPOINT = {
+	ATTACKED = (
+	    fightOrFleeHostiles
+	);
+	COURSE_OK = (
+	    "setSpeedFactorTo: 0.5",
+	    performFlyToRangeFromDestination
+	);
+	DESIRED_RANGE_ACHIEVED = (
+	    "setStateTo: GO_TO_STATION"
+	);
+	ENTER = (
+	    "setDesiredRangeTo: 50.0",
+	    checkCourseToDestination
+	);
+	EXIT = (
+	);
+	FIGHTING = (
+	    setTargetToPrimaryAggressor,
+	    "setStateTo: ATTACK_SHIP"
+	);
+	FLEEING = (
+	    setTargetToPrimaryAggressor,
+	    "setStateTo: FLEE"
+	);
+	INCOMING_MISSILE = (
+	    setTargetToPrimaryAggressor,
+	    broadcastDistressMessage,
+	    fightOrFleeMissile,
+	    fightOrFleeHostiles,
+	    "setStateTo: FLEE"
+	);
+	TARGET_FOUND = (
+	    fightOrFleeHostiles
+	);
+	UPDATE = (
+	    scanForHostiles,
+	    "pauseAI: 10.0"
+	);
+	WAYPOINT_SET = (
+	    "setDesiredRangeTo: 50.0",
+	    checkCourseToDestination
+	);
+    };
+    HEAD_FOR_PLANET = {
+	AEGIS_CLOSE_TO_PLANET = (
+	    "setStateTo: GO_TO_STATION"
+	);
+	AEGIS_IN_DOCKING_RANGE = (
+	    dockEscorts,
+	    "setStateTo: GO_TO_STATION"
+	);
+	ATTACKED = (
+	    fightOrFleeHostiles
+	);
+	DESIRED_RANGE_ACHIEVED = (
+	    "setStateTo: GO_TO_STATION"
+	);
+	ENTER = (
+	    setCourseToPlanet,
+	    "setDesiredRangeTo: 30000.0",
+	    "setSpeedFactorTo: 0.5",
+	    performFlyToRangeFromDestination
+	);
+	EXIT = (
+	);
+	FIGHTING = (
+	    setTargetToPrimaryAggressor,
+	    "setStateTo: ATTACK_SHIP"
+	);
+	FLEEING = (
+	    setTargetToPrimaryAggressor,
+	    "setStateTo: FLEE"
+	);
+	INCOMING_MISSILE = (
+	    setTargetToPrimaryAggressor,
+	    broadcastDistressMessage,
+	    fightOrFleeMissile,
+	    fightOrFleeHostiles,
+	    "setStateTo: FLEE"
+	);
+	TARGET_FOUND = (
+	    fightOrFleeHostiles
+	);
+	UPDATE = (
+	    scanForHostiles,
+	    "pauseAI: 10.0"
+	);
+    };
 }

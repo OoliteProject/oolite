@@ -134,6 +134,9 @@ extern int debug;
 - (IBAction) goFullscreen:(id) sender;
 - (void) exitFullScreenMode;
 - (BOOL) inFullScreenMode;
+#ifdef GNUSTEP
+- (void) setFullScreenMode:(BOOL)fsm;
+#endif
 
 - (void) pauseFullScreenModeToPerform:(SEL) selector onTarget:(id) target;
 - (void) exitApp;
