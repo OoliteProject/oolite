@@ -6110,6 +6110,21 @@ NSComparisonResult comparePrice( id dict1, id dict2, void * context)
 - (void) setDisplayCursor:(BOOL) value
 {
 	displayCursor = value;
+#ifdef GNUSTEP
+	if ([gameView inFullScreenMode])
+	{
+		if (displayCursor == YES)
+		{
+			if (SDL_ShowCursor(SDL_QUERY) == SDL_DISABLE)
+				SDL_ShowCursor(SDL_ENABLE);
+		}
+		else
+		{
+			if (SDL_ShowCursor(SDL_QUERY) == SDL_ENABLE)
+				SDL_ShowCursor(SDL_DISABLE);
+		}
+	}
+#endif
 }
 
 - (BOOL) displayCursor

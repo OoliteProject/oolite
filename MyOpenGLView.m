@@ -106,6 +106,17 @@ Your fair use and other rights are in no way affected by the above.
 	bounds.size.width = surface->w;
 	bounds.size.height = surface->h;
 
+	if (fullScreen)
+	{
+		if (SDL_ShowCursor(SDL_QUERY) == SDL_ENABLE)
+			SDL_ShowCursor(SDL_DISABLE);
+	}
+	else
+	{
+		if (SDL_ShowCursor(SDL_QUERY) == SDL_DISABLE)
+			SDL_ShowCursor(SDL_ENABLE);
+	}
+
 	virtualJoystickPosition = NSMakePoint(0.0,0.0);
 	
 	typedString = [[NSMutableString alloc] initWithString:@""];
@@ -265,6 +276,17 @@ Your fair use and other rights are in no way affected by the above.
 		videoModeFlags |= SDL_FULLSCREEN;
 
 	surface = SDL_SetVideoMode((int)v_size.width, (int)v_size.height, 32, videoModeFlags);
+
+	if (fullScreen)
+	{
+		if (SDL_ShowCursor(SDL_QUERY) == SDL_ENABLE)
+			SDL_ShowCursor(SDL_DISABLE);
+	}
+	else
+	{
+		if (SDL_ShowCursor(SDL_QUERY) == SDL_DISABLE)
+			SDL_ShowCursor(SDL_ENABLE);
+	}
 
 	glShadeModel(GL_FLAT);
 	glClearColor(0.0, 0.0, 0.0, 0.0);
