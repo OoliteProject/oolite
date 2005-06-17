@@ -1199,7 +1199,7 @@ static int shipsFound;
 		if (e1->isShip)
 		{
 			int e_class = e1->scan_class;
-			if ((e_class == CLASS_NEUTRAL)||(e_class == CLASS_POLICE)||(e_class == CLASS_THARGOID))
+			if ((e_class == CLASS_NEUTRAL)||(e_class == CLASS_POLICE)||(e_class == CLASS_MILITARY)||(e_class == CLASS_THARGOID))
 			{
 				[[(ShipEntity*)e1 getAI] setStateMachine:@"exitingTraderAI.plist"];
 				[[(ShipEntity*)e1 getAI] setState:@"EXIT_SYSTEM"];

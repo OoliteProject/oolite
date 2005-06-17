@@ -207,7 +207,6 @@ GLuint ascii_texture_name;
 			spriteSize.width = [(NSNumber *)[info objectForKey:WIDTH_KEY] intValue];
 		if ([info objectForKey:HEIGHT_KEY])
 			spriteSize.height = [(NSNumber *)[info objectForKey:HEIGHT_KEY] intValue];
-
 		OpenGLSprite *legendSprite = [[OpenGLSprite alloc] initWithImage:legendImage
 										cropRectangle:NSMakeRect(0, 0, imageSize.width, imageSize.height) size:spriteSize]; // retained
 #else
@@ -378,14 +377,8 @@ static BOOL hostiles;
 		my_entities[i] = [uni_entities[i] retain];	// retained
 	//
 	Entity	*drawthing = nil;
-	GLfloat cargo_color[4] = {0.9, 0.9, 0.9, alpha};		// gray
-	GLfloat hostile_color[4] = {1.0, 0.25, 0.0, alpha};	// red/orange
-	GLfloat neutral_color[4] = {1.0, 1.0, 0.0, alpha};	// yellow
-	GLfloat friendly_color[4] = {0.0, 1.0, 0.0, alpha};   // green
-	GLfloat missile_color[4] = {0.0, 1.0, 1.0, alpha};	// cyan
-	GLfloat police_color1[4] = {0.5, 0.0, 1.0, alpha};		// purpley-blue
-	GLfloat police_color2[4] = {1.0, 0.0, 0.5, alpha};		// purpley-red
-	GLfloat col[4];								// can be manipulated
+	//
+	GLfloat col[4] =	{ 1.0, 1.0, 1.0, 1.0};	// can be manipulated
     
 	position = player->position;
 	gl_matrix_into_matrix([player rotationMatrix], rotMatrix);
@@ -442,6 +435,7 @@ static BOOL hostiles;
 						case CLASS_MISSILE :
 						case CLASS_STATION :
 						case CLASS_POLICE :
+						case CLASS_MILITARY :
 						default :
 							mass_locked = YES;
 							break;
@@ -478,75 +472,31 @@ static BOOL hostiles;
 				isHostile = NO;
 				if (drawthing->isShip)
 				{
-					double wr = [(ShipEntity *)drawthing weapon_range];
-					isHostile = (([(ShipEntity *)drawthing hasHostileTarget])&&([(ShipEntity *)drawthing getPrimaryTarget] == player)&&(drawthing->zero_distance < wr*wr));
+					ShipEntity* ship = (ShipEntity *)drawthing;
+					double wr = [ship weapon_range];
+					isHostile = (([ship hasHostileTarget])&&([ship getPrimaryTarget] == player)&&(drawthing->zero_distance < wr*wr));
+					GLfloat* base_col = [ship scannerDisplayColorForShip:player :isHostile :flash];
+					col[0] = base_col[0];	col[1] = base_col[1];	col[2] = base_col[2];	col[3] = alpha * base_col[3];
 				}
 				
 				// position the scanner
 				x1 += scanner_cx;   y1 += scanner_cy;   y2 += scanner_cy;
 				switch (drawClass)
 				{
-					case CLASS_ROCK :
-					case CLASS_CARGO :
-						col[0] = cargo_color[0];	col[1] = cargo_color[1];	col[2] = cargo_color[2];	col[3] = cargo_color[3];
-						break;
 					case CLASS_THARGOID :
-						if (flash)
-						{
-							col[0] = friendly_color[0];	col[1] = friendly_color[1];	col[2] = friendly_color[2];	col[3] = friendly_color[3];
-						}
-						else
-						{
-							col[0] = hostile_color[0];	col[1] = hostile_color[1];	col[2] = hostile_color[2];	col[3] = hostile_color[3];
-						}
 						foundHostiles = YES;
 						break;
+					case CLASS_ROCK :
+					case CLASS_CARGO :
 					case CLASS_MISSILE :
-						col[0] = missile_color[0];	col[1] = missile_color[1];	col[2] = missile_color[2];	col[3] = missile_color[3];
-						break;
 					case CLASS_STATION :
-						col[0] = friendly_color[0];	col[1] = friendly_color[1];	col[2] = friendly_color[2];	col[3] = friendly_color[3];
-						break;
 					case CLASS_BUOY :
-						if (flash)
-						{
-							col[0] = neutral_color[0];	col[1] = neutral_color[1];	col[2] = neutral_color[2];	col[3] = neutral_color[3];
-						}
-						else
-						{
-							col[0] = friendly_color[0];	col[1] = friendly_color[1];	col[2] = friendly_color[2];	col[3] = friendly_color[3];
-						}
-						break;
 					case CLASS_POLICE :
-						if ((isHostile)&&(flash))
-						{
-							col[0] = police_color2[0];	col[1] = police_color2[1];	col[2] = police_color2[2];	col[3] = police_color2[3];
-						}
-						else
-						{
-							col[0] = police_color1[0];	col[1] = police_color1[1];	col[2] = police_color1[2];	col[3] = police_color1[3];
-						}
-						break;
+					case CLASS_MILITARY :
 					case CLASS_MINE :
-						if (flash)
-						{
-							col[0] = neutral_color[0];	col[1] = neutral_color[1];	col[2] = neutral_color[2];	col[3] = neutral_color[3];
-						}
-						else
-						{
-							col[0] = hostile_color[0];	col[1] = hostile_color[1];	col[2] = hostile_color[2];	col[3] = hostile_color[3];
-						}
-						break;
 					default :
 						if (isHostile)
-						{
-							col[0] = hostile_color[0];	col[1] = hostile_color[1];	col[2] = hostile_color[2];	col[3] = hostile_color[3];
 							foundHostiles = YES;
-						}
-						else
-						{
-							col[0] = neutral_color[0];	col[1] = neutral_color[1];	col[2] = neutral_color[2];	col[3] = neutral_color[3];
-						}
 						break;
 				}
 				if (ms_blip > 0.0)
@@ -1726,6 +1676,10 @@ void hudDrawReticleOnTarget(Entity* target, PlayerEntity* player1, GLfloat z1)
 		legal_desc = @"System Vessel";
 		break;
 		
+		case CLASS_MILITARY :
+		legal_desc = @"Military Vessel";
+		break;
+		
 		default :
 		case CLASS_BUOY :
 		case CLASS_CARGO :
@@ -1822,8 +1776,8 @@ void hudDrawReticleOnTarget(Entity* target, PlayerEntity* player1, GLfloat z1)
 	float range = sqrt(target->zero_distance)/1000;
 	NSSize textsize = NSMakeSize( rdist * ONE_SIXTYFOURTH, rdist * ONE_SIXTYFOURTH);
 	float line_height = rdist * ONE_SIXTYFOURTH;
-	NSString *info1 = [(ShipEntity *)target name];
-	NSString *info2 = (legal_desc == nil)? [NSString stringWithFormat:@"%0.3f km", range] : [NSString stringWithFormat:@"%0.3f km (%@)", range, legal_desc];
+	NSString*	info1 = [target_ship identFromShip: player1];
+	NSString*	info2 = (legal_desc == nil)? [NSString stringWithFormat:@"%0.3f km", range] : [NSString stringWithFormat:@"%0.3f km (%@)", range, legal_desc];
 	// no need to set color - tis green already!
 	drawString( info1, rs0, 0.5 * rs2, 0, textsize);
 	drawString( info2, rs0, 0.5 * rs2 - line_height, 0, textsize);

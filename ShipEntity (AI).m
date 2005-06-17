@@ -196,6 +196,8 @@ Your fair use and other rights are in no way affected by the above.
 
 - (void) setCoordinates:(NSString *)system_x_y_z;
 
+- (void) checkForNormalSpace;
+
 @end
 
 
@@ -844,6 +846,10 @@ Your fair use and other rights are in no way affected by the above.
 	/*-- Locates all the ships in range and compares their legal status or bounty against ranrot_rand() & 255 - chooses the worst offender --*/
 	NSDictionary		*systeminfo = [universe currentSystemData];
 	float gov_factor =	0.4 * [(NSNumber *)[systeminfo objectForKey:KEY_GOVERNMENT] intValue]; // 0 .. 7 (0 anarchic .. 7 most stable) --> [0.0, 0.4, 0.8, 1.2, 1.6, 2.0, 2.4, 2.8]
+	//
+	if (![universe sun])
+		gov_factor = 1.0;
+	//
 	found_target = NO_TARGET;
 
 	if (!universe)
@@ -866,10 +872,7 @@ Your fair use and other rights are in no way affected by the above.
 		if ((ship->scan_class != CLASS_CARGO)&&(ship->status != STATUS_DEAD)&&(ship->status != STATUS_DOCKED))
 		{
 			double	d2 = distance2( position, ship->position);
-			BOOL	is_thargoid = [[ship roles] isEqual:@"thargoid"];
 			float	legal_factor = [ship legal_status] * gov_factor;
-			if (is_thargoid)
-				legal_factor += 500;
 			int random_factor = ranrot_rand() & 255;   // 25% chance of spotting a fugitive in 15s
 			if ((d2 < found_d2)&&(random_factor < legal_factor)&&(legal_factor > worst_legal_factor))
 			{
@@ -880,6 +883,9 @@ Your fair use and other rights are in no way affected by the above.
 	}
 	for (i = 0; i < ship_count; i++)
 		[my_entities[i] release];	//		released
+		
+//	NSLog(@"DEBUG %@'s scanForOffenders found %@ with legal_factor %.1f", self, [universe entityForUniversalID:found_target], worst_legal_factor);
+		
 	if (found_target != NO_TARGET)
 		[shipAI message:@"TARGET_FOUND"];
 	else
@@ -1761,6 +1767,14 @@ Your fair use and other rights are in no way affected by the above.
 	coordinates = [universe coordinatesForPosition:posn withCoordinateSystem:systemString returningScalar:&scalar];
 	//
 	[shipAI message:@"APPROACH_COORDINATES"];
+}
+
+- (void) checkForNormalSpace
+{
+	if ([universe sun] && [universe planet])
+		[shipAI message:@"NORMAL_SPACE"];
+	else
+		[shipAI message:@"INTERSTELLAR_SPACE"];
 }
 
 

@@ -1050,6 +1050,14 @@ static BOOL galactic_witchjump;
 	
 	debugShipID = NO_TARGET;
 	
+	// views
+	//
+	forwardViewOffset = make_vector( 0, 0, 0);
+	aftViewOffset = make_vector( 0, 0, 0);
+	portViewOffset = make_vector( 0, 0, 0);
+	starboardViewOffset = make_vector( 0, 0, 0);
+	
+	
 	if (save_path)
 		[save_path autorelease];
 	save_path = nil;
@@ -1187,7 +1195,19 @@ static BOOL galactic_witchjump;
 		missile_entity[i] = [universe getShipWithRole:@"EQ_MISSILE"];   // retain count = 1
 	[self setActive_missile: 0];
 	//
-
+	
+	// set view offsets
+	[self setDefaultViewOffsets];
+	//
+	if ([dict objectForKey:@"view_position_forward"])
+		forwardViewOffset = [Entity vectorFromString: (NSString *)[dict objectForKey:@"view_position_forward"]];
+	if ([dict objectForKey:@"view_position_aft"])
+		aftViewOffset = [Entity vectorFromString: (NSString *)[dict objectForKey:@"view_position_aft"]];
+	if ([dict objectForKey:@"view_position_port"])
+		portViewOffset = [Entity vectorFromString: (NSString *)[dict objectForKey:@"view_position_port"]];
+	if ([dict objectForKey:@"view_position_starboard"])
+		starboardViewOffset = [Entity vectorFromString: (NSString *)[dict objectForKey:@"view_position_starboard"]];
+	//
 }
 
 - (void) dealloc
@@ -1464,7 +1484,9 @@ static BOOL galactic_witchjump;
 		if (missile_status == MISSILE_STATUS_TARGET_LOCKED)
 		{
 			Entity*	e = [universe entityForUniversalID:primaryTarget];
-			if ((e == nil)||(e->zero_distance > SCANNER_MAX_RANGE2)||(e->scan_class == CLASS_NO_DRAW))	// checking scanClass checks for cloaked ships
+			if ((e == nil)||(e->zero_distance > SCANNER_MAX_RANGE2)||
+				(e->scan_class == CLASS_NO_DRAW)||						// checking scanClass checks for cloaked ships
+				((e->isShip)&&(!has_military_scanner_filter)&&([(ShipEntity*)e isJammingScanning])))	// checks for activated jammer
 			{
 				[universe addMessage:[universe expandDescription:@"[target-lost]" forSystem:system_seed] forCount:3.0];
 #ifdef HAVE_SOUND            
@@ -1601,6 +1623,22 @@ static BOOL galactic_witchjump;
 		}
 	}
 	
+	// military_jammer
+	if (has_military_jammer)
+	{
+		if (military_jammer_active)
+		{
+			energy -= delta_t * MILITARY_JAMMER_ENERGY_RATE;
+			if (energy < MILITARY_JAMMER_MIN_ENERGY)
+				military_jammer_active = NO;
+		}
+		else
+		{
+			if (energy > 1.5 * MILITARY_JAMMER_MIN_ENERGY)
+				military_jammer_active = YES;
+		}
+	}
+
 	if (energy < max_energy)
 	{
 		double energy_multiplier = 1.0 + 0.1 * energy_unit; // 1.5x recharge with normal energy unit, 2x with naval!
@@ -1802,33 +1840,41 @@ static BOOL galactic_witchjump;
 	position.z += amount * v_forward.z;
 }
 
-
+// originally:
 // return a point 36u back from the front of the ship
 // this equates with the centre point of a cobra mk3
+//
+// now:
+// return the viewpoibnt set by the relevant view Offset
 //
 - (Vector) getViewpointPosition
 {
 	Vector	viewpoint = position;
-	float	offset;
+	Vector offset = make_vector ( 0, 0, 0);
 	switch ([universe viewDir])
 	{
 		case VIEW_FORWARD:
-			offset = boundingBox.max_z - 36.0;
-			viewpoint.x += offset * v_forward.x;	viewpoint.y += offset * v_forward.y;	viewpoint.z += offset * v_forward.z;
-			break;
+			offset = forwardViewOffset;	break;
 		case VIEW_AFT:
-			offset = boundingBox.min_z + 36.0;
-			viewpoint.x += offset * v_forward.x;	viewpoint.y += offset * v_forward.y;	viewpoint.z += offset * v_forward.z;
-			break;
+			offset = aftViewOffset;	break;
 		case VIEW_PORT:
-			offset = boundingBox.min_x + 36.0;
-			viewpoint.x += offset * v_right.x;	viewpoint.y += offset * v_right.y;	viewpoint.z += offset * v_right.z;
-			break;
+			offset = portViewOffset;	break;
 		case VIEW_STARBOARD:
-			offset = boundingBox.max_x - 36.0;
-			viewpoint.x += offset * v_right.x;	viewpoint.y += offset * v_right.y;	viewpoint.z += offset * v_right.z;
-			break;
+			offset = starboardViewOffset;	break;
 	}
+	if (offset.x)
+	{
+		viewpoint.x += offset.x * v_right.x;	viewpoint.y += offset.x * v_right.y;	viewpoint.z += offset.x * v_right.z;
+	}
+	if (offset.y)
+	{
+		viewpoint.x += offset.y * v_up.x;		viewpoint.y += offset.y * v_up.y;		viewpoint.z += offset.y * v_up.z;
+	}
+	if (offset.z)
+	{
+		viewpoint.x += offset.z * v_forward.x;	viewpoint.y += offset.z * v_forward.y;	viewpoint.z += offset.z * v_forward.z;
+	}
+	
 	return viewpoint;
 }
 
@@ -2157,6 +2203,11 @@ static BOOL galactic_witchjump;
 				else
 				{
 					nextBeaconID = [[universe firstBeacon] universal_id];
+					while ((nextBeaconID != NO_TARGET)&&[(ShipEntity*)[universe entityForUniversalID:nextBeaconID] isJammingScanning])
+					{
+						nextBeaconID = [(ShipEntity*)[universe entityForUniversalID:nextBeaconID] nextBeaconID];
+					}
+					//
 					if (nextBeaconID != NO_TARGET)
 						[self setCompass_mode:COMPASS_MODE_BEACONS];
 					else
@@ -2165,13 +2216,22 @@ static BOOL galactic_witchjump;
 				break;
 			case COMPASS_MODE_TARGET:
 				nextBeaconID = [[universe firstBeacon] universal_id];
+				while ((nextBeaconID != NO_TARGET)&&[(ShipEntity*)[universe entityForUniversalID:nextBeaconID] isJammingScanning])
+				{
+					nextBeaconID = [(ShipEntity*)[universe entityForUniversalID:nextBeaconID] nextBeaconID];
+				}
+				//
 				if (nextBeaconID != NO_TARGET)
 					[self setCompass_mode:COMPASS_MODE_BEACONS];
 				else
 					[self setCompass_mode:COMPASS_MODE_PLANET];
 				break;
 			case COMPASS_MODE_BEACONS:
-				nextBeaconID = [(ShipEntity*)[universe entityForUniversalID:nextBeaconID] nextBeaconID];
+				do
+				{
+					nextBeaconID = [(ShipEntity*)[universe entityForUniversalID:nextBeaconID] nextBeaconID];
+				} while ((nextBeaconID != NO_TARGET)&&[(ShipEntity*)[universe entityForUniversalID:nextBeaconID] isJammingScanning]);
+				//
 				if (nextBeaconID == NO_TARGET)
 					[self setCompass_mode:COMPASS_MODE_PLANET];
 				break;
@@ -2203,7 +2263,7 @@ static BOOL galactic_witchjump;
 {
 	Entity* target_entity = [universe entityForUniversalID:primaryTarget];
 	if ((target_entity)&&(target_entity->isShip))
-		return [(ShipEntity*)target_entity name];
+		return [(ShipEntity*)target_entity identFromShip:self];
 	else
 		return @"No target";
 }
@@ -2607,7 +2667,7 @@ static BOOL cloak_pressed;
 						{
 							missile_status = MISSILE_STATUS_TARGET_LOCKED;
 							[missile_entity[active_missile] addTarget:[self getPrimaryTarget]];
-							[universe addMessage:[NSString stringWithFormat:[universe expandDescription:@"[missile-locked-onto-@]" forSystem:system_seed], [(ShipEntity *)[self getPrimaryTarget] name]] forCount:4.5];
+							[universe addMessage:[NSString stringWithFormat:[universe expandDescription:@"[missile-locked-onto-@]" forSystem:system_seed], [(ShipEntity *)[self getPrimaryTarget] identFromShip: self]] forCount:4.5];
 						}
 #ifdef HAVE_SOUND                  
 						[beepSound play];
@@ -2629,7 +2689,7 @@ static BOOL cloak_pressed;
 					}
 					if ([[missile_entity[active_missile] roles] hasSuffix:@"MINE"])
 					{
-						[universe addMessage:[NSString stringWithFormat:[universe expandDescription:@"[mine-armed]" forSystem:system_seed], [(ShipEntity *)[self getPrimaryTarget] name]] forCount:4.5];
+						[universe addMessage:[universe expandDescription:@"[mine-armed]" forSystem:system_seed] forCount:4.5];
 					}
 					ident_engaged = NO;
 				}
@@ -5342,7 +5402,7 @@ static BOOL toggling_music;
 	[universe setDisplayText:YES];
 	
 	// set a dark but see-through message gui background
-	[universe setMessageGuiBackgroundColor:[NSColor colorWithCalibratedRed:0 green:0 blue:0 alpha:0.25]];
+//	[universe setMessageGuiBackgroundColor:[NSColor colorWithCalibratedRed:0 green:0 blue:0 alpha:0.25]];
 	
 	if (ootunes_on)
 	{
@@ -5373,7 +5433,7 @@ static BOOL toggling_music;
 
 - (void) leaveDock:(StationEntity *)station
 {
-	[universe setMessageGuiBackgroundColor:[NSColor clearColor]];	// clear the message gui background
+//	[universe setMessageGuiBackgroundColor:[NSColor clearColor]];	// clear the message gui background
 	
 	if (station == [universe station])
 		legal_status |= [universe legal_status_of_manifest:shipCommodityData];  // 'leaving with those guns were you sir?'
@@ -7325,6 +7385,8 @@ static int last_outfitting_index;
 	has_docking_computer = [self has_extra_equipment:@"EQ_DOCK_COMP"];
 	has_galactic_hyperdrive = [self has_extra_equipment:@"EQ_GAL_DRIVE"];
 	has_cloaking_device = [self has_extra_equipment:@"EQ_CLOAKING_DEVICE"];
+	has_military_jammer = [self has_extra_equipment:@"EQ_MILITARY_JAMMER"];
+	has_military_scanner_filter = [self has_extra_equipment:@"EQ_MILITARY_SCANNER_FILTER"];
 
 	has_energy_unit = ([self has_extra_equipment:@"EQ_ENERGY_UNIT"]||[self has_extra_equipment:@"EQ_NAVAL_ENERGY_UNIT"]);
 	if (has_energy_unit)
@@ -7609,6 +7671,17 @@ NSString* GenerateDisplayString(int inModeWidth, int inModeHeight, int inModeRef
 		return YES;
 	}
 	return NO;
+}
+
+- (void) setDefaultViewOffsets
+{
+	float halfLength = 0.5 * (boundingBox.max_z - boundingBox.min_z);
+	float halfWidth = 0.5 * (boundingBox.max_x - boundingBox.min_x);
+	
+	forwardViewOffset = make_vector( 0.0, 0.0, boundingBox.max_z - halfLength);
+	aftViewOffset = make_vector( 0.0, 0.0, boundingBox.min_z + halfLength);
+	portViewOffset = make_vector( boundingBox.min_x + halfWidth, 0.0, 0.0);
+	starboardViewOffset = make_vector( boundingBox.max_x - halfWidth, 0.0, 0.0);
 }
 
 @end

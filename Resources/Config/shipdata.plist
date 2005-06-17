@@ -1121,6 +1121,14 @@
 		<string>player</string>
 		<key>thrust</key>
 		<real>32</real>
+		<key>view_position_forward</key>
+		<string>0.0 0.0 0.0</string>
+		<key>view_position_aft</key>
+		<string>0.0 0.0 0.0</string>
+		<key>view_position_port</key>
+		<string>-36.0 0.0 0.0</string>
+		<key>view_position_starboard</key>
+		<string>36.0 0.0 0.0</string>
 	</dict>
 	<key>cobra3-trader</key>
 	<dict>
@@ -2041,7 +2049,7 @@
 		<real>0.0</real>
 		<key>exhaust</key>
 		<array>
-			<string>0.0 0.0 -4.5 2.0 2.0 4.0</string>
+			<string>0.0 0.0 -3.5 2.0 2.0 4.0</string>
 		</array>
 		<key>forward_weapon_type</key>
 		<string>WEAPON_NONE</string>

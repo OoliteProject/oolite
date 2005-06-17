@@ -187,9 +187,7 @@
 		<string>EQ_NAVAL_SHIELD_BOOSTER</string>
 		<string>Military technology, used in conjunction with ordinary shields and shield boosting technology, further increases the capability of standard defensive shields.</string>
 	</array>
-<!-- next item was a test item -->
-<!--
--->
+	<!-- next item was a test item -->
 	<array>
 		<integer>2</integer>
 		<integer>2000</integer>
@@ -197,29 +195,21 @@
 		<string>EQ_WEAPON_TWIN_PLASMA_CANNON</string>
 		<string>Basic cannon delivering charged plasma bursts at sublight speed.</string>
 	</array>
-	<!-- removed
+	<!-- next item has a TL too high to be available at all -->
 	<array>
-		<integer>0</integer>
-		<integer>7500</integer>
-		<string>Expensive Bogus Item</string>
-		<string>EQ_BOGUS_ITEM</string>
-		<string>A test item here just for debugging.</string>
+		<integer>99</integer>
+		<integer>1500000</integer>
+		<string>Military Anti-Scanner Countermeasures (MASC'M)</string>
+		<string>EQ_MILITARY_JAMMER</string>
+		<string>Developed from experimental cloaking prototypes, this jamming device stops enemy ships from scanning your craft.</string>
 	</array>
+	<!-- next item has a TL too high to be available at all -->
 	<array>
-		<integer>5</integer>
-		<integer>450</integer>
-		<string>Target Ident System</string>
-		<string>EQ_IDENT_SYSTEM</string>
-		<string>Replaces a missile with a non-launchable target ident system.</string>
+		<integer>99</integer>
+		<integer>250000</integer>
+		<string>Military Scanner Filtering</string>
+		<string>EQ_MILITARY_SCANNER_FILTER</string>
+		<string>Filters out the jamming signals from MASC'M devices.</string>
 	</array>
-	<array>
-		<integer>9</integer>
-		<integer>12000</integer>
-		<string>Emergency Hyperdrive Unit</string>
-		<string>EQ_EMERGENCY_HYPERDRIVE</string>
-		<string>A one-shot get-you-home hyperdrive unit.</string>
-	</array>
-	-->
-<!-- end of new items -->
 </array>
 </plist>

@@ -61,7 +61,7 @@
         EXIT = (); 
         "INCOMING_MISSILE" = (fightOrFleeMissile, setTargetToPrimaryAggressor, deployEscorts, groupAttackTarget, "setAITo: interceptAI.plist", "setStateTo: OUTBOUND_LOOT"); 
         "TARGET_FOUND" = (setTargetToFoundTarget, "setAITo: collectLootAI.plist"); 
-        "NOTHING_FOUND" = ("setStateTo: HEAD_FOR_WITCHPOINT"); 
+        "NOTHING_FOUND" = ("setStateTo: OUTBOUND_CHECK"); 
         UPDATE = (scanForLoot, "pauseAI: 10.0"); 
     }; 
     "INBOUND_LOOT" = {
@@ -71,8 +71,29 @@
         EXIT = (); 
         "INCOMING_MISSILE" = (fightOrFleeMissile, setTargetToPrimaryAggressor, deployEscorts, groupAttackTarget, "setAITo: interceptAI.plist", "setStateTo: INBOUND_LOOT"); 
         "TARGET_FOUND" = (setTargetToFoundTarget, "setAITo: collectLootAI.plist"); 
-        "NOTHING_FOUND" = ("setStateTo: HEAD_FOR_PLANET"); 
+        "NOTHING_FOUND" = ("setStateTo: INBOUND_CHECK"); 
         UPDATE = (scanForLoot, "pauseAI: 10.0"); 
     }; 
+    "INBOUND_CHECK" = {
+        ENTER = (scanForOffenders, checkForNormalSpace); 
+        EXIT = (); 
+        "TARGET_FOUND" = (setTargetToFoundTarget, deployEscorts, groupAttackTarget); 
+        "GROUP_ATTACK_TARGET" = (setTargetToFoundTarget, "setAITo: interceptAI.plist"); 
+        RESTARTED = ("setStateTo: INBOUND_LOOT");
+        "NORMAL_SPACE" = ("setStateTo: HEAD_FOR_PLANET"); 
+        "INTERSTELLAR_SPACE" = ("setSpeedFactorTo: 1.0", "pauseAI: 15.0", "setStateTo: HYPER_OUT"); 
+        UPDATE = (); 
+    }; 
+    "OUTBOUND_CHECK" = {
+        ENTER = (scanForOffenders, checkForNormalSpace); 
+        EXIT = (); 
+        "TARGET_FOUND" = (setTargetToFoundTarget, deployEscorts, groupAttackTarget); 
+        "GROUP_ATTACK_TARGET" = (setTargetToFoundTarget, "setAITo: interceptAI.plist"); 
+        RESTARTED = ("setStateTo: OUTBOUND_LOOT");
+        "NORMAL_SPACE" = ("setStateTo: HEAD_FOR_WITCHPOINT"); 
+        "INTERSTELLAR_SPACE" = ("setSpeedFactorTo: 1.0", "pauseAI: 15.0", "setStateTo: HYPER_OUT"); 
+        UPDATE = (); 
+    }; 
+    "HYPER_OUT" = {ENTER = (); EXIT = (); UPDATE = (performHyperSpaceExit); }; 
     GLOBAL = {ENTER = ("setStateTo: HEAD_FOR_WITCHPOINT"); EXIT = (); UPDATE = (); }; 
 }

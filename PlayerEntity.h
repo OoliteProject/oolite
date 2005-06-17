@@ -311,9 +311,9 @@ Your fair use and other rights are in no way affected by the above.
 
 	int			current_cargo;
 
-	NSPoint			cursor_coordinates;
-	Random_Seed		system_seed;
-	Random_Seed		target_system_seed;
+	NSPoint					cursor_coordinates;
+	@public	Random_Seed		system_seed;
+	@public	Random_Seed		target_system_seed;
 	
 	double		witchspaceCountdown;
 //	double		fuel_accumulator;							- from ShipEntity
@@ -411,6 +411,9 @@ Your fair use and other rights are in no way affected by the above.
 	
 	// save-file
 	NSString* save_path;
+	
+	// position of viewports
+	Vector forwardViewOffset, aftViewOffset, portViewOffset, starboardViewOffset;
 	
 	// DEBUG
 	ParticleEntity* drawDebugParticle;
@@ -576,5 +579,7 @@ Your fair use and other rights are in no way affected by the above.
 - (ShipEntity*) script_target;
  
 - (void) getFined;
+
+- (void) setDefaultViewOffsets;
 
 @end

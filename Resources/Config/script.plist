@@ -304,7 +304,11 @@
             ); 
         }, 
         {
-            conditions = ("mission_nova equal NOVA_ESCAPE_HERO", "dockedAtMainStation_bool equal YES"); 
+            conditions = ("mission_nova equal NOVA_ESCAPE_HERO", "status_string equal STATUS_EXITING_WITCHSPACE"); 
+            do = ("set: mission_nova NOVA_ESCAPED_SYSTEM"); 
+        }, 
+        {
+            conditions = ("mission_nova equal NOVA_ESCAPED_SYSTEM", "dockedAtMainStation_bool equal YES"); 
             do = (
                 removeAllCargo, 
                 "awardCargo: 100 Gem-Stones", 

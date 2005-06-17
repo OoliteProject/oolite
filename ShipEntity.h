@@ -38,7 +38,6 @@ Your fair use and other rights are in no way affected by the above.
 */
 
 #import <Foundation/Foundation.h>
-#import <AppKit/AppKit.h>
 
 #import "Entity.h"
 
@@ -127,6 +126,9 @@ Your fair use and other rights are in no way affected by the above.
 #define CLOAKING_DEVICE_MIN_ENERGY		128
 #define CLOAKING_DEVICE_START_ENERGY	0.75
 
+#define MILITARY_JAMMER_ENERGY_RATE		3
+#define MILITARY_JAMMER_MIN_ENERGY		128
+
 #define COMBAT_IN_RANGE_FACTOR						0.035
 #define COMBAT_OUT_RANGE_FACTOR						0.500
 #define COMBAT_WEAPON_RANGE_FACTOR					1.200
@@ -182,6 +184,10 @@ Your fair use and other rights are in no way affected by the above.
 
 	BOOL	has_cloaking_device;	// cloaking_device
 	BOOL	cloaking_device_active;	// cloaking_device
+
+	BOOL	has_military_jammer;	// military_jammer
+	BOOL	military_jammer_active;	// military_jammer
+	BOOL	has_military_scanner_filter;	// military_scanner
 
 	BOOL	has_fuel_injection;		// afterburners
 	int     fuel;					// witch-space fuel
@@ -300,6 +306,11 @@ Your fair use and other rights are in no way affected by the above.
 - (id) initWithDictionary:(NSDictionary *) dict;
 - (void) setUpShipFromDictionary:(NSDictionary *) dict;
 
+- (GLfloat *) scannerDisplayColorForShip:(ShipEntity*)otherShip :(BOOL)isHostile :(BOOL)flash;
+
+- (BOOL) isJammingScanning;
+- (BOOL) hasMilitaryScannerFilter;
+
 - (void) addExhaust:(ParticleEntity *) exhaust;
 - (void) addExhaustAt:(Vector) ex_position withScale:(Vector) ex_scale;
 
@@ -321,6 +332,7 @@ Your fair use and other rights are in no way affected by the above.
 - (void) setProximity_alert:(ShipEntity*) other;
 
 - (NSString *) name;
+- (NSString *) identFromShip:(ShipEntity*) otherShip; // name displayed to other ships
 - (NSString *) roles;
 - (void) setRoles:(NSString *) value;
 

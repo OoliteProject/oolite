@@ -68,6 +68,71 @@ static  Universe	*data_store_universe;
 	return data_store_universe;
 }
 
++ (Vector) vectorFromString:(NSString*) xyzString
+{
+	GLfloat xyz[] = {0.0, 0.0, 0.0};
+	int i = 0;
+	BOOL failed = NO;
+	NSString* error;
+	NSScanner*	scanner = [NSScanner scannerWithString:xyzString];
+	while ((![scanner isAtEnd])&&(i < 3)&&(!failed))
+	{
+		float value;
+		if ([scanner scanFloat:&value])
+			xyz[i++] = value;
+		else
+		{
+			failed = YES;
+			error = @"Could not scan a float value.";
+		}
+	}
+	if (i < 3)
+	{
+		failed = YES;
+		error = @"Found less than three float values.";
+	}
+	if (failed)
+	{
+		NSLog(@"***** ERROR cannot make vector from '%@' because '%@'", xyzString, error);
+	}
+	return make_vector( xyz[0], xyz[1], xyz[2]);
+}
+
++ (Quaternion) quaternionFromString:(NSString*) wxyzString
+{
+	Quaternion result;
+	GLfloat wxyz[] = {1.0, 0.0, 0.0, 0.0};
+	int i = 0;
+	BOOL failed = NO;
+	NSString* error;
+	NSScanner* scanner = [NSScanner scannerWithString:wxyzString];
+	while ((![scanner isAtEnd])&&(i < 4)&&(!failed))
+	{
+		float value;
+		if ([scanner scanFloat:&value])
+			wxyz[i++] = value;
+		else
+		{
+			failed = YES;
+			error = @"Could not scan a float value.";
+		}
+	}
+	if (i < 4)
+	{
+		failed = YES;
+		error = @"Found less than four float values.";
+	}
+	result.w = wxyz[0];
+	result.x = wxyz[1];
+	result.y = wxyz[2];
+	result.z = wxyz[3];
+	if (failed)
+	{
+		NSLog(@"***** ERROR cannot make quaternion from '%@' because '%@'", wxyzString, error);
+	}
+	return result;
+}
+
 - (id) init
 {    
     self = [super init];

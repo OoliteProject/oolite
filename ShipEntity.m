@@ -69,6 +69,7 @@ Your fair use and other rights are in no way affected by the above.
 	//
 	velocity = make_vector( 0.0, 0.0, 0.0);
 	momentum = make_vector( 0.0, 0.0, 0.0);
+	quaternion_set_identity(&subentity_rotational_velocity);
 	//
 	v_forward   = vector_forward_from_quaternion(q_rotation);
 	v_up		= vector_up_from_quaternion(q_rotation);
@@ -117,6 +118,8 @@ Your fair use and other rights are in no way affected by the above.
 	has_energy_bomb = NO;
 	has_fuel_injection = NO;
 	has_cloaking_device = NO;
+	has_military_jammer = NO;
+	has_military_scanner_filter = NO;
 	fuel_accumulator = 1.0;
 	//
 	bounty = 0;
@@ -379,6 +382,7 @@ Your fair use and other rights are in no way affected by the above.
 	position = make_vector( 0.0, 0.0, 0.0);
 	velocity = make_vector( 0.0, 0.0, 0.0);
 	momentum = make_vector( 0.0, 0.0, 0.0);
+	quaternion_set_identity(&subentity_rotational_velocity);
 	//
 	zero_distance = SCANNER_MAX_RANGE2 * 2.0;   // beyond scanner range to avoid the momentary blip
 	//
@@ -416,6 +420,8 @@ Your fair use and other rights are in no way affected by the above.
 	has_energy_bomb = NO;
 	has_fuel_injection = NO;
 	has_cloaking_device = NO;
+	has_military_jammer = NO;
+	has_military_scanner_filter = NO;
 	fuel_accumulator = 1.0;
 	//
 	bounty = 0;
@@ -639,6 +645,14 @@ Your fair use and other rights are in no way affected by the above.
 	//
 	cloaking_device_active = NO;
 	//
+	if ([dict objectForKey:@"has_military_jammer"])
+		has_military_jammer = (randf() < [(NSNumber *)[dict objectForKey:@"has_military_jammer"] floatValue]);
+	//
+	military_jammer_active = NO;
+	//
+	if ([dict objectForKey:@"has_military_scanner_filter"])
+		has_military_scanner_filter = (randf() < [(NSNumber *)[dict objectForKey:@"has_military_scanner_filter"] floatValue]);
+	//
 	// /upgrades
 	
 	if ([dict objectForKey:@"fuel"])
@@ -837,6 +851,8 @@ Your fair use and other rights are in no way affected by the above.
 			scan_class = CLASS_CARGO;
 		if ([s_class isEqual:@"CLASS_POLICE"])
 			scan_class = CLASS_POLICE;
+		if ([s_class isEqual:@"CLASS_MILITARY"])
+			scan_class = CLASS_MILITARY;
 		if ([s_class isEqual:@"CLASS_BUOY"])
 			scan_class = CLASS_BUOY;
 		if ([s_class isEqual:@"CLASS_NO_DRAW"])
@@ -892,6 +908,17 @@ Your fair use and other rights are in no way affected by the above.
 	else
 	{
 		beaconChar = 0;
+	}
+
+	// rotating subentities
+	//
+	if ([dict objectForKey:@"rotational_velocity"])
+	{
+		subentity_rotational_velocity = [Entity quaternionFromString: (NSString*)[dict objectForKey:@"rotational_velocity"]];
+	}
+	else
+	{
+		quaternion_set_identity(&subentity_rotational_velocity);
 	}
 
 }
@@ -1216,7 +1243,22 @@ Your fair use and other rights are in no way affected by the above.
 				}
 			}
 		}
-//		NSLog(@"%@ %d Cloaking Device %@ energy %.2f target %d condition %d", name, universal_id, (cloaking_device_active)? @"ACTIVE" : @"inactive", energy / max_energy, primaryTarget, condition);
+	}
+	
+	// military_jammer
+	if (has_military_jammer)
+	{
+		if (military_jammer_active)
+		{
+			energy -= delta_t * MILITARY_JAMMER_ENERGY_RATE;
+			if (energy < MILITARY_JAMMER_MIN_ENERGY)
+				military_jammer_active = NO;
+		}
+		else
+		{
+			if (energy > 1.5 * MILITARY_JAMMER_MIN_ENERGY)
+				military_jammer_active = YES;
+		}
 	}
 
 	// check outside factors
@@ -1800,6 +1842,18 @@ Your fair use and other rights are in no way affected by the above.
 			}
 		}
 		//
+		// subentity rotation
+		//
+		if ((subentity_rotational_velocity.x)||(subentity_rotational_velocity.y)||(subentity_rotational_velocity.z)||(subentity_rotational_velocity.w != 1.0))
+		{
+			Quaternion qf = subentity_rotational_velocity;
+			qf.w *= (1.0 - delta_t);
+			qf.x *= delta_t;
+			qf.y *= delta_t;
+			qf.z *= delta_t;
+			q_rotation = quaternion_multiply( qf, q_rotation);
+		}
+		//
 		//
 //		if (isStation && (sub_entities))
 //			NSLog(@"DEBUG %@ sub_entities %@", [self name], [sub_entities description]);
@@ -1873,6 +1927,85 @@ Your fair use and other rights are in no way affected by the above.
 	checkGLErrors([NSString stringWithFormat:@"ShipEntity after drawing Entity (subentities) %@", self]);
 	//
 }
+
+static GLfloat cargo_color[4] =		{ 0.9, 0.9, 0.9, 1.0};	// gray
+static GLfloat hostile_color[4] =	{ 1.0, 0.25, 0.0, 1.0};	// red/orange
+static GLfloat neutral_color[4] =	{ 1.0, 1.0, 0.0, 1.0};	// yellow
+static GLfloat friendly_color[4] =	{ 0.0, 1.0, 0.0, 1.0};	// green
+static GLfloat missile_color[4] =	{ 0.0, 1.0, 1.0, 1.0};	// cyan
+static GLfloat police_color1[4] =	{ 0.5, 0.0, 1.0, 1.0};	// purpley-blue
+static GLfloat police_color2[4] =	{ 1.0, 0.0, 0.5, 1.0};	// purpley-red
+static GLfloat jammed_color[4] =	{ 0.0, 0.0, 0.0, 0.0};	// clear black
+static GLfloat mascem_color1[4] =	{ 0.3, 0.3, 0.3, 1.0};	// dark gray
+static GLfloat mascem_color2[4] =	{ 0.4, 0.1, 0.4, 1.0};	// purple
+
+- (GLfloat *) scannerDisplayColorForShip:(ShipEntity*)otherShip :(BOOL)isHostile :(BOOL)flash
+{
+	
+	if (has_military_jammer && military_jammer_active)
+	{
+		if (![otherShip hasMilitaryScannerFilter])
+			return jammed_color;
+		else
+		{
+			if (flash)
+				return mascem_color1;
+			else
+			{
+				if (isHostile)
+					return hostile_color;
+				else
+					return mascem_color2;
+			}
+		}
+	}
+							
+	switch (scan_class)
+	{
+		case CLASS_ROCK :
+		case CLASS_CARGO :
+			return cargo_color;
+		case CLASS_THARGOID :
+			if (flash)
+				return hostile_color;
+			else
+				return friendly_color;
+		case CLASS_MISSILE :
+			return missile_color;
+		case CLASS_STATION :
+			return friendly_color;
+		case CLASS_BUOY :
+			if (flash)
+				return friendly_color;
+			else
+				return neutral_color;
+		case CLASS_POLICE :
+		case CLASS_MILITARY :
+			if ((isHostile)&&(flash))
+				return police_color2;
+			else
+				return police_color1;
+		case CLASS_MINE :
+			if (flash)
+				return neutral_color;
+			else
+				return hostile_color;
+		default :
+			if (isHostile)
+				return hostile_color;
+	}
+	return neutral_color;
+}
+
+- (BOOL) isJammingScanning
+{
+	return (has_military_jammer && military_jammer_active);
+}	
+
+- (BOOL) hasMilitaryScannerFilter
+{
+	return has_military_scanner_filter;
+}	
 
 - (void) addExhaust:(ParticleEntity *)exhaust
 {
@@ -2088,6 +2221,13 @@ Your fair use and other rights are in no way affected by the above.
 
 - (NSString *) name
 {
+	return name;
+}
+
+- (NSString *) identFromShip:(ShipEntity*) otherShip
+{
+	if (has_military_jammer && military_jammer_active && (![otherShip hasMilitaryScannerFilter]))
+		return @"Unknown Target";
 	return name;
 }
 
@@ -2317,6 +2457,8 @@ Your fair use and other rights are in no way affected by the above.
 
 - (int) legal_status
 {
+	if (scan_class == CLASS_THARGOID)
+		return 5 * collision_radius;
 	if ([roles isEqual:@"asteroid"])
 		return 0;
 	if ([roles isEqual:@"boulder"])
@@ -4136,7 +4278,8 @@ Vector randomPositionInBoundingBox(BoundingBox bb)
 	Quaternion q1 = q_rotation;
 	Entity  *target = [self getPrimaryTarget];
 	
-	if ((missiles <= 0)||(target == nil))
+	if	((missiles <= 0)||(target == nil)||(target->scan_class == CLASS_NO_DRAW)||
+		((target->isShip)&&(!has_military_scanner_filter)&&([(ShipEntity*)target isJammingScanning])))	// no missile lock!
 		return NO;
 		
 	if ([roles isEqual:@"thargoid"])
@@ -4156,8 +4299,10 @@ Vector randomPositionInBoundingBox(BoundingBox bb)
 	origin.z = position.z + v_right.z * start.x + v_up.z * start.y + v_forward.z * start.z;
 	
 	//vel.x *= throw_speed;	vel.y *= throw_speed;	vel.z *= throw_speed;
-	
-	missile = [universe getShipWithRole:@"missile"];   // retain count = 1
+	if (randf() < 0.90)	// choose a standard missile 90% of the time
+		missile = [universe getShipWithRole:@"EQ_MISSILE"];   // retained
+	else				// otherwise choose any with the role 'missile' - which may include alternative weapons
+		missile = [universe getShipWithRole:@"missile"];   // retained
 	[missile setPosition:origin];						// directly below
 	[missile setScanClass: CLASS_MISSILE];
 	[missile addTarget:target];
@@ -5138,7 +5283,7 @@ Vector randomPositionInBoundingBox(BoundingBox bb)
 							withString:name
 							options:NSLiteralSearch range:NSMakeRange( 0, [localExpandedMessage length])];
 	[localExpandedMessage	replaceOccurrencesOfString:@"[target:name]"
-							withString:[other_ship name]
+							withString:[other_ship identFromShip: self]
 							options:NSLiteralSearch range:NSMakeRange( 0, [localExpandedMessage length])];
 	
 	Random_Seed very_random_seed;

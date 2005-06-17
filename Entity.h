@@ -78,9 +78,10 @@ Your fair use and other rights are in no way affected by the above.
 #define CLASS_ROCK		7
 #define CLASS_MINE		8
 #define CLASS_THARGOID	9
+#define CLASS_BUOY		10
 #define CLASS_PLAYER	100
 #define CLASS_POLICE	999
-#define CLASS_BUOY		666
+#define CLASS_MILITARY	333
 
 #define NO_TARGET		0
 
@@ -207,6 +208,8 @@ extern int debug;
     //
 	Vector		velocity;
 	//
+	Quaternion	subentity_rotational_velocity;
+	//
 	// positions+rotations for trails and trackbacks
 	Frame	track[256];
 	int		track_index;
@@ -254,6 +257,9 @@ extern int debug;
 
 + (void) setDataStore:(Universe *)univ; // class methods, they set the underlying data_storage universe
 + (Universe *) dataStore;
+
++ (Vector) vectorFromString:(NSString*) xyzString;
++ (Quaternion) quaternionFromString:(NSString*) wxyzString;
 
 - (id) init;
 - (void) dealloc;

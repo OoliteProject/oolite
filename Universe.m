@@ -660,8 +660,31 @@ Your fair use and other rights are in no way affected by the above.
 	// new system is hyper-centric : witchspace exit point is origin
 
     Entity				*thing;
-	
+	PlayerEntity*		player = (PlayerEntity*)[self entityZero];
 	Quaternion			randomQ;
+	
+	NSMutableDictionary*	systeminfo = [NSMutableDictionary dictionaryWithCapacity:4];
+
+	if (player)
+	{
+		Random_Seed		s1 = player->system_seed;
+		Random_Seed		s2 = player->target_system_seed;
+		NSString*		override_key = [self keyForInterstellarOverridesForSystemSeeds:s1 :s2 inGalaxySeed:galaxy_seed];
+		
+//		NSLog(@"DEBUG checking interstellar overrides for key '%@'", override_key);
+		
+		// check at this point
+		// for scripted overrides for this insterstellar area
+		if ([planetinfo objectForKey:PLANETINFO_UNIVERSAL_KEY])
+			[systeminfo addEntriesFromDictionary:(NSDictionary *)[planetinfo objectForKey:PLANETINFO_UNIVERSAL_KEY]];
+		if ([planetinfo objectForKey:override_key])
+			[systeminfo addEntriesFromDictionary:(NSDictionary *)[planetinfo objectForKey:override_key]];
+		if ([local_planetinfo_overrides objectForKey:override_key])
+			[systeminfo addEntriesFromDictionary:(NSDictionary *)[local_planetinfo_overrides objectForKey:override_key]];
+		
+//		NSLog(@"DEBUGsysteminfo now:\n%@", systeminfo);
+		
+	}
 	
 	//
 	// fixed entities (part of the graphics system really) come first...
@@ -694,23 +717,7 @@ Your fair use and other rights are in no way affected by the above.
 	ranrot_srand([[NSDate date] timeIntervalSince1970]);   // reset randomiser with current time
 	
 	[self setLighting];
-	
-//	// set the lighting color for the sun	
-//	GLfloat	stars_ambient[] = { 0.05, 0.20, 0.05, 1.0};	// ambient light about 20%
-//	GLfloat	sun_ambient[] = { 0.0, 0.0, 0.0, 1.0};	// ambient light nil
-//	GLfloat	sun_diffuse[] = { 0.85, 1.0, 0.85, 1.0};	// paler
-//	GLfloat	sun_specular[] = { 0.95, 1.0, 0.95, 1.0};
-//
-//	glLightfv(GL_LIGHT1, GL_AMBIENT, sun_ambient);
-//	glLightfv(GL_LIGHT1, GL_DIFFUSE, sun_diffuse);
-//	glLightfv(GL_LIGHT1, GL_SPECULAR, sun_specular);
-//
-//	glLightModelfv(GL_LIGHT_MODEL_AMBIENT, stars_ambient);
-	
-//	NSLog(@"DEBUG lighting set to (%.4f, %.4f, %.4f) (%.4f, %.4f, %.4f)",
-//		sun_diffuse[0], sun_diffuse[1], sun_diffuse[2],
-//		sun_ambient[0], sun_ambient[1], sun_ambient[2]);
-	
+		
 	NSLog(@"Populating witchspace ...");
 	
 	//
@@ -752,6 +759,27 @@ Your fair use and other rights are in no way affected by the above.
 		[thargoid release];
 	}
 	
+	// NEW
+	//
+	// systeminfo might have a 'script_actions' resource we want to activate now...
+	//
+	if ([systeminfo objectForKey:KEY_SCRIPT_ACTIONS])
+	{
+//		NSLog(@"DEBUG executing systeminfo script_actions");
+//		debug = YES;
+		
+		NSArray* script_actions = (NSArray *)[systeminfo objectForKey:KEY_SCRIPT_ACTIONS];
+		int i;
+		for (i = 0; i < [script_actions count]; i++)
+		{
+			if ([[script_actions objectAtIndex:i] isKindOfClass:[NSDictionary class]])
+				[player checkCouplet:(NSDictionary *)[script_actions objectAtIndex:i] onEntity:nil];
+			if ([[script_actions objectAtIndex:i] isKindOfClass:[NSString class]])
+				[player scriptAction:(NSString *)[script_actions objectAtIndex:i] onEntity:nil];
+		}
+		
+//		debug = NO;
+	}
 	
 }
 
@@ -809,19 +837,6 @@ Your fair use and other rights are in no way affected by the above.
 	
 	[self setLighting];
 	
-//	// ambient lighting!
-//	float r,g,b,a;
-//	[bgcolor getRed:&r green:&g blue:&b alpha:&a];
-//	r = 0.0625 * (1.0 + r) * (1.0 + r);
-//	g = 0.0625 * (1.0 + g) * (1.0 + g);
-//	b = 0.0625 * (1.0 + b) * (1.0 + b);
-//	GLfloat	stars_ambient[] = { r, g, b, 1.0};	// ambient light about 20%
-//	//
-////	NSLog(@"DEBUG stars ambient = ( %.4f, %.4f %.4f)", stars_ambient[0], stars_ambient[1], stars_ambient[2]);
-//	//
-//	glLightModelfv(GL_LIGHT_MODEL_AMBIENT, stars_ambient);
-//	//
-
 	/*- the dust particle system -*/
 	thing = [[DustEntity alloc] init];	// alloc retains!
 	[thing setScanClass: CLASS_NO_DRAW];
@@ -1611,6 +1626,8 @@ Your fair use and other rights are in no way affected by the above.
 	//
 	ShipEntity  *ship;
 	ship = [self getShipWithRole:desc];   // retain count = 1
+	if ((ship)&&((ship->scan_class == CLASS_NO_DRAW)||(ship->scan_class == CLASS_NOT_SET)))
+		[ship setScanClass: CLASS_NEUTRAL];
 	[ship setPosition:launch_pos];
 	[self addEntity:ship];
 	[[ship getAI] setState:@"GLOBAL"];	// must happen after adding to the universe!
@@ -1654,6 +1671,9 @@ Your fair use and other rights are in no way affected by the above.
 			p:		planetary radii
 			s:		solar radii
 			u:		distance between first two features indicated (eg. spu means that u = distance from sun to the planet)
+		
+		in witchspace (== no sun) coordinates are absolute irrespective of the system used
+		
 	*/
 	//
 	NSString* l_sys = [system lowercaseString];
@@ -1663,8 +1683,9 @@ Your fair use and other rights are in no way affected by the above.
 	PlanetEntity* the_sun = [self sun];
 	if ((!the_planet)||(!the_sun))
 	{
-		NSLog(@"ERROR - coordinatesForPosition:withCoordinateSystem: in system with no sun or planet!");
-		return make_vector(0,0,0);
+//		NSLog(@"NO ERROR - Universe coordinatesForPosition:withCoordinateSystem: in system with no sun or planet returned as an absolute position");
+		*my_scalar = 1.0;
+		return pos;
 	}
 	Vector  w_pos = [self getWitchspaceExitPosition];
 	Vector  p_pos = the_planet->position;
@@ -1799,6 +1820,8 @@ Your fair use and other rights are in no way affected by the above.
 	//
 	ShipEntity  *ship;
 	ship = [self getShipWithRole:desc];   // retain count = 1
+	if ((ship)&&((ship->scan_class == CLASS_NO_DRAW)||(ship->scan_class == CLASS_NOT_SET)))
+		[ship setScanClass: CLASS_NEUTRAL];
 	if (ship == nil)
 		return NO;
 	[ship setPosition:launch_pos];
@@ -2166,15 +2189,15 @@ Your fair use and other rights are in no way affected by the above.
 			firstBeacon = lastBeacon;
 		
 //		NSLog(@"DEBUG Universe Beacon Sequence:");
-		{
-			int bid = firstBeacon;
-			while (bid != NO_TARGET)
-			{
-				ShipEntity* beacon = (ShipEntity*)[self entityForUniversalID:bid];
-//				NSLog(@"DEBUG >>>>> Beacon: %@", beacon);
-				bid = [beacon nextBeaconID];
-			}
-		}
+//		{
+//			int bid = firstBeacon;
+//			while (bid != NO_TARGET)
+//			{
+//				ShipEntity* beacon = (ShipEntity*)[self entityForUniversalID:bid];
+////				NSLog(@"DEBUG >>>>> Beacon: %@", beacon);
+//				bid = [beacon nextBeaconID];
+//			}
+//		}
 	}
 	else
 	{
@@ -3663,7 +3686,7 @@ Your fair use and other rights are in no way affected by the above.
 {
 	if (!e1)
 		return NO_TARGET;
-	Entity  *hit_entity = nil;
+	ShipEntity*	hit_entity = nil;
 	int		result = NO_TARGET;
 	double  nearest = SCANNER_MAX_RANGE;
 	int i;
@@ -3695,7 +3718,7 @@ Your fair use and other rights are in no way affected by the above.
 	Vector r1 = vector_right_from_quaternion(q1);
 	for (i = 0; i < ship_count; i++)
 	{
-		Entity *e2 = my_entities[i];
+		ShipEntity *e2 = (ShipEntity *)my_entities[i];
 		if ((e2 != e1)&&[e2 canCollide]&&(e2->scan_class != CLASS_NO_DRAW))
 		{
 			Vector rp = e2->position;
@@ -3718,6 +3741,13 @@ Your fair use and other rights are in no way affected by the above.
 			}
 		}
 	}
+	// check for MASC'M
+	if ((hit_entity) && [hit_entity isJammingScanning])
+	{
+		if ((e1->isShip)&&(![(ShipEntity*)e1 hasMilitaryScannerFilter]))
+			hit_entity = nil;
+	}
+	//
 	if (hit_entity)
 	{
 		result = [hit_entity universal_id];
@@ -4387,6 +4417,29 @@ Your fair use and other rights are in no way affected by the above.
 		g0.f = rotate_byte_left(g0.f);
 	}
 	return [NSString stringWithFormat:@"%d %d", gnum, pnum];
+}
+
+- (NSString *) keyForInterstellarOverridesForSystemSeeds:(Random_Seed) s_seed1 :(Random_Seed) s_seed2 inGalaxySeed:(Random_Seed) g_seed
+{
+	Random_Seed g0 = {0x4a, 0x5a, 0x48, 0x02, 0x53, 0xb7};
+	int pnum1 = [self findSystemNumberAtCoords:NSMakePoint(s_seed1.d,s_seed1.b) withGalaxySeed:g_seed];
+	int pnum2 = [self findSystemNumberAtCoords:NSMakePoint(s_seed2.d,s_seed2.b) withGalaxySeed:g_seed];
+	if (pnum1 > pnum2)
+	{	// swap them
+		int t = pnum1;	pnum1 = pnum2;	pnum2 = t;
+	}
+	int gnum = 0;
+	while (((g_seed.a != g0.a)||(g_seed.b != g0.b)||(g_seed.c != g0.c)||(g_seed.d != g0.d)||(g_seed.e != g0.e)||(g_seed.f != g0.f))&&(gnum < 8))
+	{
+		gnum++;
+		g0.a = rotate_byte_left(g0.a);
+		g0.b = rotate_byte_left(g0.b);
+		g0.c = rotate_byte_left(g0.c);
+		g0.d = rotate_byte_left(g0.d);
+		g0.e = rotate_byte_left(g0.e);
+		g0.f = rotate_byte_left(g0.f);
+	}
+	return [NSString stringWithFormat:@"interstellar: %d %d %d", gnum, pnum1, pnum2];
 }
 
 - (NSDictionary *) generateSystemData:(Random_Seed) s_seed
