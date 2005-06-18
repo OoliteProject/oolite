@@ -179,6 +179,10 @@ static NSString * mission_key;
 	constant_expression can now also be an accessor selector recognised by having the suffix
 	"_bool", "_number" or "_string". 
 	
+	dajt: black ops
+	a new comparison operator "oneof" can be used to test a numeric variable against a set of
+	comma separated numeric constants (eg "planet_number oneof 1,5,9,12,14,234").
+
 	*/
 	NSArray*	tokens = [scriptCondition componentsSeparatedByString:@" "];
 	NSString*   selectorString = nil;
@@ -213,6 +217,10 @@ static NSString * mission_key;
 			comparator = COMPARISON_LESSTHAN;
 		if (([comparisonString isEqual:@"greaterthan"])||([comparisonString isEqual:@"morethan"]))
 			comparator = COMPARISON_GREATERTHAN;
+// +dajt: black ops
+		if ([comparisonString isEqual:@"oneof"])
+			comparator = COMPARISON_ONEOF;
+// -dajt: black ops
 		if ([comparisonString isEqual:@"undefined"])
 			comparator = COMPARISON_UNDEFINED;
 	}
@@ -230,11 +238,11 @@ static NSString * mission_key;
 			}
 		}
 	}
-			
+
 	_selector = NSSelectorFromString(selectorString);
 	if (![self respondsToSelector:_selector])
 		return NO;
-		
+
 	// test string values (method returns NSString*)
 	if ([selectorString hasSuffix:@"_string"])
 	{
@@ -263,23 +271,47 @@ static NSString * mission_key;
 	if ([selectorString hasSuffix:@"_number"])
 	{
 		NSNumber *result = [self performSelector:_selector];
-		NSNumber *value = [NSNumber numberWithDouble:[valueString doubleValue]];
-		
-		if (debug)
-			NSLog(@"DEBUG ..... comparing \"%@\" to \"%@\"", result, value);
-		
-		switch (comparator)
+// +dajt: black ops
+		if (comparator == COMPARISON_ONEOF)
 		{
-			case COMPARISON_UNDEFINED :
-			case COMPARISON_NO :
-				return NO;
-			case COMPARISON_EQUAL :
-				return ([result isEqual:value]);
-			case COMPARISON_LESSTHAN :
-				return ([result isLessThan:value]);
-			case COMPARISON_GREATERTHAN :
-				return ([result isGreaterThan:value]);
+			NSArray *valueStrings = [valueString componentsSeparatedByString:@","];
+			NSLog(@"performing a ONEOF comparison with %d elements", [valueStrings count]);
+			int i;
+			for (i = 0; i < [valueStrings count]; i++)
+			{
+				NSNumber *value = [NSNumber numberWithDouble:[[valueStrings objectAtIndex: i] doubleValue]];
+				if ([result isEqual:value])
+				{
+					if (debug)
+						NSLog(@"found a match in ONEOF!");
+					return YES;
+				}
+			}
+			if (debug)
+				NSLog(@"No match in ONEOF");
+			return NO;
 		}
+		else
+		{
+			NSNumber *value = [NSNumber numberWithDouble:[valueString doubleValue]];
+			
+			if (debug)
+				NSLog(@"DEBUG ..... comparing \"%@\" to \"%@\"", result, value);
+			
+			switch (comparator)
+			{
+				case COMPARISON_UNDEFINED :
+				case COMPARISON_NO :
+					return NO;
+				case COMPARISON_EQUAL :
+					return ([result isEqual:value]);
+				case COMPARISON_LESSTHAN :
+					return ([result isLessThan:value]);
+				case COMPARISON_GREATERTHAN :
+					return ([result isGreaterThan:value]);
+			}
+		}
+// -dajt: black ops
 	}
 	// test boolean values (method returns @"YES" or @"NO")
 	if ([selectorString hasSuffix:@"_bool"])

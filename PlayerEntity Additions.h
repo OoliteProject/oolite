@@ -42,6 +42,9 @@ Your fair use and other rights are in no way affected by the above.
 #define COMPARISON_EQUAL		001
 #define COMPARISON_LESSTHAN		002
 #define COMPARISON_GREATERTHAN  003
+// +dajt: black ops
+#define COMPARISON_ONEOF        004
+// -dajt: black ops
 #define COMPARISON_UNDEFINED	010
 
 @interface PlayerEntity (Scripting)
