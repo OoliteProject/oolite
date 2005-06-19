@@ -67,7 +67,12 @@ static NSString * mission_key;
 		mission_key = missionTitle;
 		int j;
 		for (j = 0; j < [mission count]; j++)
-			[self checkCouplet:(NSDictionary *)[mission objectAtIndex:j] onEntity:nil];
+		{
+			if ([[mission objectAtIndex:j] isKindOfClass:[NSDictionary class]])
+				[self checkCouplet:(NSDictionary *)[mission objectAtIndex:j] onEntity:self];
+			if ([[mission objectAtIndex:j] isKindOfClass:[NSString class]])
+				[self scriptAction:(NSString *)[mission objectAtIndex:j] onEntity:self];
+		}
 	}
 }
 
@@ -227,16 +232,26 @@ static NSString * mission_key;
 	
 	if ([tokens count] > 2)
 	{
-		valueString = (NSString *)[tokens objectAtIndex:2];
-		if (([valueString hasSuffix:@"_number"])||([valueString hasSuffix:@"_bool"])||([valueString hasSuffix:@"_string"]))
+		NSMutableString* allValues = [NSMutableString stringWithString:@""];
+		int value_index = 2;
+		while (value_index < [tokens count])
 		{
-			SEL value_selector = NSSelectorFromString(valueString);
-			if ([self respondsToSelector:value_selector])
+			valueString = [(NSString *)[tokens objectAtIndex:value_index++] stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceCharacterSet]];
+			if (![valueString isEqual:@""])
 			{
-				// substitute into valueString the result of the call
-				valueString = [NSString stringWithFormat:@"%@", [self performSelector:value_selector]];
+				if (([valueString hasSuffix:@"_number"])||([valueString hasSuffix:@"_bool"])||([valueString hasSuffix:@"_string"]))
+				{
+					SEL value_selector = NSSelectorFromString(valueString);
+					if ([self respondsToSelector:value_selector])
+					{
+						// substitute into valueString the result of the call
+						valueString = [NSString stringWithFormat:@"%@", [self performSelector:value_selector]];
+					}
+				}
+				[allValues appendFormat:@"%@ ", valueString];
 			}
 		}
+		valueString = allValues;
 	}
 
 	_selector = NSSelectorFromString(selectorString);
@@ -257,14 +272,28 @@ static NSString * mission_key;
 				return NO;
 			case COMPARISON_EQUAL :
 				return ([result isEqual:valueString]);
-//			case COMPARISON_LESSTHAN :
-//				return ([result isLessThan:valueString]);
-//			case COMPARISON_GREATERTHAN :
-//				return ([result isGreaterThan:valueString]);
 			case COMPARISON_LESSTHAN :
 				return ([result floatValue] < [valueString floatValue]);
 			case COMPARISON_GREATERTHAN :
 				return ([result floatValue] > [valueString floatValue]);
+			case COMPARISON_ONEOF:
+				{
+					int i;
+					NSArray *valueStrings = [valueString componentsSeparatedByString:@","];
+					if (debug)
+						NSLog(@"performing a ONEOF comparison: is %@ ONEOF %@ ?", result, valueStrings);
+					NSString* r1 = [result stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceCharacterSet]];
+					for (i = 0; i < [valueStrings count]; i++)
+					{
+						if ([r1 isEqual:[(NSString*)[valueStrings objectAtIndex:i] stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceCharacterSet]]])
+						{
+							if (debug)
+								NSLog(@"found a match in ONEOF!");
+							return YES;
+						}
+					}
+				}
+				return NO;
 		}
 	}
 	// test number values (method returns NSNumber*)
@@ -275,7 +304,8 @@ static NSString * mission_key;
 		if (comparator == COMPARISON_ONEOF)
 		{
 			NSArray *valueStrings = [valueString componentsSeparatedByString:@","];
-			NSLog(@"performing a ONEOF comparison with %d elements", [valueStrings count]);
+			if (debug)
+				NSLog(@"performing a ONEOF comparison with %d elements: is %@ ONEOF %@", [valueStrings count], result, valueStrings);
 			int i;
 			for (i = 0; i < [valueStrings count]; i++)
 			{
@@ -1245,11 +1275,13 @@ static int shipsFound;
 
 - (void) debugOn
 {
+	NSLog(@"SCRIPT debug messages ON");
 	debug = YES;
 }
 
 - (void) debugOff
 {
+	NSLog(@"SCRIPT debug messages OFF");
 	debug = NO;
 }
 
