@@ -48,6 +48,8 @@ Your fair use and other rights are in no way affected by the above.
 #import "ShipEntity.h"
 #import "HeadUpDisplay.h"
 
+@class GuiDisplayGen;
+
 #define SCRIPT_TIMER_INTERVAL			10.0
 
 #define GUI_SCREEN_MAIN					000
@@ -64,6 +66,8 @@ Your fair use and other rights are in no way affected by the above.
 #define GUI_SCREEN_CONTRACTS			116
 #define GUI_SCREEN_INVENTORY			107
 #define GUI_SCREEN_OPTIONS				108
+#define GUI_SCREEN_LOAD             118
+#define GUI_SCREEN_SAVE             128
 #define GUI_SCREEN_MISSION				201
 #define GUI_SCREEN_REPORT				301
 
@@ -508,6 +512,9 @@ Your fair use and other rights are in no way affected by the above.
 - (void) pollFlightControls:(double) delta_t;
 - (void) pollFlightArrowKeyControls:(double) delta_t;
 - (void) pollGuiArrowKeyControls:(double) delta_t;
+- (void) handleGUIUpDownArrowKeys:(GuiDisplayGen *)gui 
+                                 :(MyOpenGLView *)gameView
+                                 :(int) miss_row;
 - (void) pollViewControls;
 - (void) pollGuiScreenControls;
 - (void) pollGameOverControls:(double) delta_t;

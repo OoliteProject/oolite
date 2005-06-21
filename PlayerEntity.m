@@ -49,6 +49,10 @@ Your fair use and other rights are in no way affected by the above.
 #import "AI.h"
 #import "MyOpenGLView.h"
 
+#ifdef GNUSTEP
+#import "LoadSave.h"
+#endif
+
 @implementation PlayerEntity
 
 - (void) init_keys
@@ -3312,6 +3316,48 @@ static BOOL upDownKeyPressed;
 static int oldSelection;
 static BOOL selectPressed;
 static BOOL queryPressed;
+
+// DJS: Moved from the big switch/case block in pollGuiArrowKeyControls
+- (void) handleGUIUpDownArrowKeys
+         : (GuiDisplayGen *)gui
+         : (MyOpenGLView *)gameView
+         : (int) miss_row
+{
+   if ([gameView isDown:gvArrowKeyDown])
+	{
+		if ((!upDownKeyPressed) ||
+          (script_time > timeLastKeyPress + KEY_REPEAT_INTERVAL))
+		{
+		   if ([gui setSelectedRow:[gui selectedRow] + 1])
+			{
+				if ([gui selectedRow] == miss_row)
+				[gui setSelectedRow:[gui selectedRow] + 1];
+				[gui click];
+				[universe guiUpdated];
+			}
+						
+			timeLastKeyPress = script_time;
+		}
+	}
+	if ([gameView isDown:gvArrowKeyUp])
+	{
+		if ((!upDownKeyPressed) ||
+          (script_time > timeLastKeyPress + KEY_REPEAT_INTERVAL))
+		{
+			if ([gui setSelectedRow:[gui selectedRow] - 1])
+			{
+				if ([gui selectedRow] == miss_row)
+				[gui setSelectedRow:[gui selectedRow] - 1];
+				[gui click];
+				[universe guiUpdated];
+			}
+			timeLastKeyPress = script_time;
+		}
+	}
+	upDownKeyPressed = (([gameView isDown:gvArrowKeyUp])
+                  ||  ([gameView isDown:gvArrowKeyDown]));
+}
+
 - (void) pollGuiArrowKeyControls:(double) delta_t
 {
 	MyOpenGLView	*gameView = (MyOpenGLView *)[universe gameView];
@@ -3453,6 +3499,14 @@ static BOOL queryPressed;
 				queryPressed = NO;
 			break;
 
+      // DJS: Farm off load/save screen options to LoadSave.m
+      case GUI_SCREEN_LOAD:
+         [self commanderSelector: gui :gameView];
+         break;
+
+      case GUI_SCREEN_SAVE:
+         break;
+
 		case	GUI_SCREEN_OPTIONS :
 			{
 				int quicksave_row =		GUI_ROW_OPTIONS_QUICKSAVE;
@@ -3475,38 +3529,8 @@ static BOOL queryPressed;
 				GameController  *controller = [universe gameController];
 #endif            
 				
-				if ([gameView isDown:gvArrowKeyDown])
-				{
-					if ((!upDownKeyPressed)||(script_time > timeLastKeyPress + KEY_REPEAT_INTERVAL))
-					{
-						
-						if ([gui setSelectedRow:[gui selectedRow] + 1])
-						{
-							if ([gui selectedRow] == options_row)
-								[gui setSelectedRow:[gui selectedRow] + 1];
-							[gui click];
-							[universe guiUpdated];
-						}
-						
-						timeLastKeyPress = script_time;
-					}
-				}
-				if ([gameView isDown:gvArrowKeyUp])
-				{
-					if ((!upDownKeyPressed)||(script_time > timeLastKeyPress + KEY_REPEAT_INTERVAL))
-					{
-						if ([gui setSelectedRow:[gui selectedRow] - 1])
-						{
-							if ([gui selectedRow] == options_row)
-								[gui setSelectedRow:[gui selectedRow] - 1];
-							[gui click];
-							[universe guiUpdated];
-						}
-						timeLastKeyPress = script_time;
-					}
-				}
-				upDownKeyPressed = (([gameView isDown:gvArrowKeyUp])||([gameView isDown:gvArrowKeyDown]));
-				
+			   [self handleGUIUpDownArrowKeys: gui :gameView :options_row];
+
 				if ([gameView isDown:13])   // 'enter'
 				{
 					if (([gui selectedRow] == quicksave_row)&&(!disc_operation_in_progress))
@@ -3541,10 +3565,15 @@ static BOOL queryPressed;
 					if (([gui selectedRow] == load_row)&&(!disc_operation_in_progress))
 					{
 						disc_operation_in_progress = YES;
+// DJS: WIP                  
+//#ifdef GNUSTEP
+//                  [self setGuiToLoadCommanderScreen];
+//#else
 						if ([[universe gameController] inFullScreenMode])
 							[[universe gameController] pauseFullScreenModeToPerform:@selector(loadPlayer) onTarget:self];
 						else
 							[self loadPlayer];
+//#endif                  
 					}
 					if (([gui selectedRow] == begin_new_row)&&(!disc_operation_in_progress))
 					{
