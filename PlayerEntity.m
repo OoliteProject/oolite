@@ -3364,8 +3364,14 @@ static BOOL queryPressed;
 	BOOL			moving = NO;
 	double			cursor_speed = 10.0;
 	GuiDisplayGen*  gui = [universe gui];
-	
-	[gameView allowStringInput:(gui_screen == GUI_SCREEN_LONG_RANGE_CHART)];
+
+#ifdef GNUSTEP   
+	[gameView allowStringInput:
+      (gui_screen == GUI_SCREEN_LONG_RANGE_CHART ||
+       gui_screen == GUI_SCREEN_SAVE)];
+#else
+   [gameView allowStringInput: (gui_screen == GUI_SCREEN_LONG_RANGE_CHART)];
+#endif   
 
 	switch (gui_screen)
 	{
@@ -3503,9 +3509,9 @@ static BOOL queryPressed;
       case GUI_SCREEN_LOAD:
          [self commanderSelector: gui :gameView];
          break;
-
       case GUI_SCREEN_SAVE:
-         break;
+         [self saveCommanderInputHandler: gui :gameView];
+         break;         
 
 		case	GUI_SCREEN_OPTIONS :
 			{
@@ -3557,10 +3563,15 @@ static BOOL queryPressed;
 					if (([gui selectedRow] == save_row)&&(!disc_operation_in_progress))
 					{
 						disc_operation_in_progress = YES;
+// DJS: WIP                  
+//#ifdef GNUSTEP
+//                  [self setGuiToSaveCommanderScreen];
+//#else                 
 						if ([[universe gameController] inFullScreenMode])
 							[[universe gameController] pauseFullScreenModeToPerform:@selector(savePlayer) onTarget:self];
 						else
 							[self savePlayer];
+//#endif                  
 					}
 					if (([gui selectedRow] == load_row)&&(!disc_operation_in_progress))
 					{

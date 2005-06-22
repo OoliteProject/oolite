@@ -19,8 +19,9 @@
 #import "Universe.h"
 
 #define STARTROW 2
-#define ENDROW 20
+#define ENDROW 14
 #define COLUMNS 2
+#define INPUTROW 16
 
 @interface PlayerEntity (LoadSave)
 
@@ -29,6 +30,8 @@
    - (void) lsCommanders: (GuiDisplayGen *)gui;
    - (void) commanderSelector: (GuiDisplayGen *)gui
                              : (MyOpenGLView *)gameView;
+   - (void) saveCommanderInputHandler: (GuiDisplayGen *)gui
+                                     : (MyOpenGLView *)gameView;   
    
 @end
 

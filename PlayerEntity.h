@@ -236,6 +236,11 @@ Your fair use and other rights are in no way affected by the above.
 	int						fps_counter;
 
 	NSString				*planetSearchString;
+
+#ifdef GNUSTEP
+   // For GUI/SDL based save screen
+   NSString          *commanderNameString;
+#endif   
 	
 	StationEntity			*docked_station;
 	

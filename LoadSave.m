@@ -35,6 +35,29 @@
 
 - (void) setGuiToSaveCommanderScreen
 {
+   GameController *controller=[universe gameController];
+   GuiDisplayGen *gui=[universe gui];
+
+   gui_screen = GUI_SCREEN_SAVE;
+
+   [gui clear];
+   [gui setTitle:[NSString stringWithFormat:@"Save Commander"]];
+   
+   [self lsCommanders: gui];
+   [gui setSelectedRow: STARTROW];
+   if(commanderNameString)
+   {
+      [gui setText:[NSString stringWithFormat:@"Commander name: %@",
+                  commanderNameString] forRow: INPUTROW];
+   }
+   else
+   {
+      [gui setText:@"Commander name: " forRow: INPUTROW];
+   }
+   [gui setColor:[NSColor cyanColor] forRow:16];
+   [gui setShowTextCursor: YES];
+   [gui setCurrentRow: 16];
+   [universe guiUpdated];
 }
 
 - (void) lsCommanders: (GuiDisplayGen *)gui
@@ -61,6 +84,15 @@
             : (MyOpenGLView *)gameView
 {
    [self handleGUIUpDownArrowKeys: gui :gameView :-1];
+}
+
+- (void) saveCommanderInputHandler
+            : (GuiDisplayGen *)gui
+            : (MyOpenGLView *)gameView
+{
+   [self handleGUIUpDownArrowKeys: gui :gameView :-1];
+   if([[gameView typedString] length])
+      commanderNameString=[gameView typedString];
 }
 
 @end
