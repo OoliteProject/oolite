@@ -95,6 +95,7 @@ extern int debug;
 	OpenGLSprite* splashSprite;
 #endif
 	BOOL keys[NUM_KEYS];
+   BOOL supressKeys;    // DJS
 
 	BOOL opt, ctrl, command, shift;
 	BOOL allowingStringInput;
@@ -159,6 +160,7 @@ extern int debug;
 - (NSPoint) virtualJoystickPosition;
 
  - (void) clearKeys;
+ - (void) supressKeysUntilKeyUp; // DJS
  - (BOOL) isDown: (int) key;
  - (BOOL) isOptDown;
  - (BOOL) isCtrlDown;
@@ -167,4 +169,5 @@ extern int debug;
  - (int) numKeys;
 
  - (void) pollControls;
+ - (void) handleStringInput: (SDL_KeyboardEvent *) kbd_event; // DJS
 @end

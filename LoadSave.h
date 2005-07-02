@@ -26,9 +26,9 @@
 @interface PlayerEntity (LoadSave)
 
    - (void) setGuiToLoadCommanderScreen;
-   - (void) setGuiToSaveCommanderScreen;
+   - (void) setGuiToSaveCommanderScreen: (NSString *)cdrName;
    - (void) lsCommanders: (GuiDisplayGen *)gui;
-   - (void) commanderSelector: (GuiDisplayGen *)gui
+   - (NSString *) commanderSelector: (GuiDisplayGen *)gui
                              : (MyOpenGLView *)gameView;
    - (void) saveCommanderInputHandler: (GuiDisplayGen *)gui
                                      : (MyOpenGLView *)gameView;   

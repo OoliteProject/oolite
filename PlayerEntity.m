@@ -3364,6 +3364,7 @@ static BOOL queryPressed;
 	BOOL			moving = NO;
 	double			cursor_speed = 10.0;
 	GuiDisplayGen*  gui = [universe gui];
+   NSString    *commanderFile;
 
 #ifdef GNUSTEP   
 	[gameView allowStringInput:
@@ -3507,7 +3508,12 @@ static BOOL queryPressed;
 
       // DJS: Farm off load/save screen options to LoadSave.m
       case GUI_SCREEN_LOAD:
-         [self commanderSelector: gui :gameView];
+         commanderFile=[self commanderSelector: gui :gameView];
+         if(commanderFile)
+         {
+		      [self loadPlayerFromFile: commanderFile];
+				[self setGuiToStatusScreen];
+         }
          break;
       case GUI_SCREEN_SAVE:
          [self saveCommanderInputHandler: gui :gameView];
@@ -3565,7 +3571,8 @@ static BOOL queryPressed;
 						disc_operation_in_progress = YES;
 // DJS: WIP                  
 //#ifdef GNUSTEP
-//                  [self setGuiToSaveCommanderScreen];
+//                  [gameView clearKeys];
+//                  [self setGuiToSaveCommanderScreen: player_name];
 //#else                 
 						if ([[universe gameController] inFullScreenMode])
 							[[universe gameController] pauseFullScreenModeToPerform:@selector(savePlayer) onTarget:self];

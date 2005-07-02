@@ -40,6 +40,8 @@ Your fair use and other rights are in no way affected by the above.
 #import "GameController.h"
 #import "Universe.h"
 
+#include <ctype.h>
+
 @implementation MyOpenGLView
 
 + (NSSize) getNativeSize
@@ -424,8 +426,20 @@ Your fair use and other rights are in no way affected by the above.
 		keys[i] = NO;
 }
 
+// DJS: When entering submenus in the gui, it is not helpful if the
+// key down that brought you into the submenu is still registered
+// as down when we're in. This makes isDown return NO until a key up
+// event has been received from SDL.
+- (void) supressKeysUntilKeyUp
+{
+   supressKeys = YES;
+   [self clearKeys];
+}
+
 - (BOOL) isDown: (int) key
 {
+   if ( supressKeys )
+      return NO;
 	if ( key < 0 )
 		return NO;
 	if ( key >= [self numKeys] )
@@ -513,6 +527,12 @@ Your fair use and other rights are in no way affected by the above.
 
 				case SDL_KEYDOWN:
 					kbd_event = (SDL_KeyboardEvent*)&event;
+
+               if(allowingStringInput)
+               {
+                  [self handleStringInput: kbd_event];
+               }
+
 					//printf("Keydown scancode: %d\n", kbd_event->keysym.scancode);
 					switch (kbd_event->keysym.sym) {
 						case SDLK_1: if (shift) { keys[33] = YES; keys[gvNumberKey1] = NO; } else { keys[33] = NO; keys[gvNumberKey1] = YES; } break;
@@ -611,6 +631,7 @@ Your fair use and other rights are in no way affected by the above.
 					break;
 
 				case SDL_KEYUP:
+               supressKeys = NO;    // DJS
 					kbd_event = (SDL_KeyboardEvent*)&event;
 					//printf("Keydown scancode: %d\n", kbd_event->keysym.scancode);
 					switch (kbd_event->keysym.sym) {
@@ -702,4 +723,42 @@ Your fair use and other rights are in no way affected by the above.
 	}
 }
 
+// DJS: String input handler. Since for SDL versions we're also handling
+// freeform typing this has necessarily got more complex than the non-SDL
+// versions.
+- (void) handleStringInput: (SDL_KeyboardEvent *) kbd_event;
+{
+   char key=kbd_event->keysym.sym;
+
+   // keys a-z
+   if(key >= 'a' && key <= 'z')
+   {
+      isAlphabetKeyDown=YES;
+      if(shift)
+      {
+         key=toupper(key);
+      }
+      [typedString appendFormat:@"%c", key];
+   }
+
+   // keys 0-9, Space
+   if((key >= '0' && key <= '9') || key == ' ')
+   {
+      [typedString appendFormat:@"%c", key];
+   }
+
+   // Del, Backspace
+   if(key == SDLK_BACKSPACE || key == SDLK_DELETE)
+   {
+      if([typedString length] > 1)
+      {
+         [typedString deleteCharactersInRange: 
+            NSMakeRange([typedString length]-1, 1)];
+      }
+      else
+      {
+         [self resetTypedString];
+      }
+   }
+}
 @end

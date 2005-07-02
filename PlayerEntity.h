@@ -240,6 +240,7 @@ Your fair use and other rights are in no way affected by the above.
 #ifdef GNUSTEP
    // For GUI/SDL based save screen
    NSString          *commanderNameString;
+   NSArray           *cdrArray;
 #endif   
 	
 	StationEntity			*docked_station;
