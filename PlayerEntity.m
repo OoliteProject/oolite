@@ -2710,15 +2710,10 @@ static BOOL cloak_pressed;
 					{
 						if (docking_music_on)
 						{
-#ifndef GNUSTEP
-							if (IsMovieDone ([dockingMusic QTMovie]))
-								GoToBeginningOfMovie ([dockingMusic QTMovie]);
-							StartMovie ([dockingMusic QTMovie]);
-#else
-							[dockingMusic stop];
-							[dockingMusic goToBeginning];
+//							if (IsMovieDone ([dockingMusic QTMovie]))
+//								GoToBeginningOfMovie ([dockingMusic QTMovie]);
+//							StartMovie ([dockingMusic QTMovie]);
 							[dockingMusic play];
-#endif
 						}
 					}
 					//
@@ -2769,15 +2764,10 @@ static BOOL cloak_pressed;
 					{
 						if (docking_music_on)
 						{
-#ifndef GNUSTEP                    
-							if (IsMovieDone ([dockingMusic QTMovie]))
-								GoToBeginningOfMovie ([dockingMusic QTMovie]);
-							StartMovie ([dockingMusic QTMovie]);
-#else
-							[dockingMusic stop];
-							[dockingMusic goToBeginning];
+//							if (IsMovieDone ([dockingMusic QTMovie]))
+//								GoToBeginningOfMovie ([dockingMusic QTMovie]);
+//							StartMovie ([dockingMusic QTMovie]);
 							[dockingMusic play];
-#endif                     
 						}
 					}
 					//
@@ -4307,11 +4297,8 @@ static BOOL toggling_music;
 		{
 			if (docking_music_on)
 			{
-#ifndef GNUSTEP            
-				StopMovie ([dockingMusic QTMovie]);
-#else
+//				StopMovie ([dockingMusic QTMovie]);
 				[dockingMusic stop];
-#endif            
 			}
 		}
 	}
@@ -4353,19 +4340,13 @@ static BOOL toggling_music;
 	// keep music playing
 	if ((docking_music_on)&&(!ootunes_on))
 	{
-#ifndef GNUSTEP     
-		if (IsMovieDone ([dockingMusic QTMovie]))
-		{
-			GoToBeginningOfMovie ([dockingMusic QTMovie]);
-			StartMovie ([dockingMusic QTMovie]);
-		}
-#else
-		if ([dockingMusic isPlaying] == NO)
-		{
-			[dockingMusic goToBeginning];
+		if (![dockingMusic isPlaying])
 			[dockingMusic play];
-		}
-#endif      
+//		if (IsMovieDone ([dockingMusic QTMovie]))
+//		{
+//			GoToBeginningOfMovie ([dockingMusic QTMovie]);
+//			StartMovie ([dockingMusic QTMovie]);
+//		}
 	}
 
 }
@@ -4409,13 +4390,9 @@ static BOOL toggling_music;
 				{
 					if (themeMusic)
 					{
-#ifndef GNUSTEP
-                        StopMovie ([themeMusic QTMovie]);
-						GoToBeginningOfMovie ([themeMusic QTMovie]);
-#else
+//						StopMovie ([themeMusic QTMovie]);
+//						GoToBeginningOfMovie ([themeMusic QTMovie]);
 						[themeMusic stop];
-						[themeMusic goToBeginning];
-#endif
 					}
 					disc_operation_in_progress = YES;
 					if ([[universe gameController] inFullScreenMode])
@@ -4455,13 +4432,9 @@ static BOOL toggling_music;
 				[universe setDisplayText:YES];
 				if (themeMusic)
 				{
-#ifndef GNUSTEP
-                    StopMovie ([themeMusic QTMovie]);
-					GoToBeginningOfMovie ([themeMusic QTMovie]);
-#else
+//					StopMovie ([themeMusic QTMovie]);
+//					GoToBeginningOfMovie ([themeMusic QTMovie]);
 					[themeMusic stop];
-					[themeMusic goToBeginning];
-#endif
 				}
 			}
 			if ([gameView isDown:gvArrowKeyLeft])	//  '<--'
@@ -4490,8 +4463,9 @@ static BOOL toggling_music;
 #ifndef GNUSTEP
 					if (missionMusic)
 					{
-						StopMovie ([missionMusic QTMovie]);
-						GoToBeginningOfMovie ([missionMusic QTMovie]);
+//						StopMovie ([missionMusic QTMovie]);
+//						GoToBeginningOfMovie ([missionMusic QTMovie]);
+						[missionMusic stop];
 					}
 #endif               
 				}
@@ -4538,8 +4512,9 @@ static BOOL toggling_music;
 #ifndef GNUSTEP               
 					if (missionMusic)
 					{
-						StopMovie ([missionMusic QTMovie]);
-						GoToBeginningOfMovie ([missionMusic QTMovie]);
+//						StopMovie ([missionMusic QTMovie]);
+//						GoToBeginningOfMovie ([missionMusic QTMovie]);
+						[missionMusic stop];
 					}
 #endif
 					//
@@ -4593,11 +4568,8 @@ static BOOL toggling_music;
 		{
 			if (docking_music_on)
 			{
-#ifndef GNUSTEP           
-				StopMovie ([dockingMusic QTMovie]);
-#else
+//				StopMovie ([dockingMusic QTMovie]);
 				[dockingMusic stop];
-#endif            
 			}
 		}
 	}
@@ -5380,11 +5352,8 @@ static BOOL toggling_music;
 	{
 		if (docking_music_on)
 		{
-#ifndef GNUSTEP        
-			StopMovie ([dockingMusic QTMovie]);
-#else
+//			StopMovie ([dockingMusic QTMovie]);
 			[dockingMusic stop];
-#endif         
 		}
 	}
 	
@@ -6783,15 +6752,10 @@ static int last_outfitting_index;
 		
 	if (themeMusic)
 	{
-#ifndef GNUSTEP
-        GoToBeginningOfMovie ([themeMusic QTMovie]);
-		StartMovie ([themeMusic QTMovie]);
-#else
-		[themeMusic stop];
-		[themeMusic goToBeginning];
+//		GoToBeginningOfMovie ([themeMusic QTMovie]);
+//		StartMovie ([themeMusic QTMovie]);
 		[themeMusic play];
-#endif
-    }
+	}
 }
 
 - (void) setGuiToIntro2Screen
