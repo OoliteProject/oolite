@@ -193,8 +193,6 @@ extern int debug;
 	PlayerEntity*   player;
 
 	OpenGLSprite	*compassSprite;
-	OpenGLSprite	*greendotSprite;
-	OpenGLSprite	*reddotSprite;
 	OpenGLSprite	*aegisSprite;
 	
 	NSMutableArray  *legendArray;
@@ -232,7 +230,6 @@ extern int debug;
 - (void) drawScannerZoomIndicator:(NSDictionary *) info;
 
 - (void) drawCompass:(NSDictionary *) info;
-- (void) drawCompassPlanetBlipAt:(Vector) relativePosition Alpha:(GLfloat) alpha;
 - (void) drawCompassPlanetBlipAt:(Vector) relativePosition Size:(NSSize) siz Alpha:(GLfloat) alpha;
 - (void) drawCompassStationBlipAt:(Vector) relativePosition Size:(NSSize) siz Alpha:(GLfloat) alpha;
 - (void) drawCompassSunBlipAt:(Vector) relativePosition Size:(NSSize) siz Alpha:(GLfloat) alpha;
@@ -260,8 +257,6 @@ extern int debug;
 
 - (void) drawGreenSurround:(NSDictionary *) info;
 - (void) drawYellowSurround:(NSDictionary *) info;
-
-- (void) drawCollisionHitIndicator:(NSDictionary *) info;
 
 void hudDrawIndicatorAt(int x, int y, int z, NSSize siz, double amount);
 void hudDrawBarAt(int x, int y, int z, NSSize siz, double amount);

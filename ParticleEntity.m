@@ -104,6 +104,8 @@ static Vector   circleVertex[65];		// holds vector coordinates for a unit circle
 	Vector v_up = vector_up_from_quaternion(q_rotation);
 	Vector v_forward = vector_forward_from_quaternion(q_rotation);
 	Vector v_right = vector_right_from_quaternion(q_rotation);
+	double fs = [ship flight_speed];
+	velocity = make_vector( v_forward.x * fs, v_forward.y * fs, v_forward.z * fs);
 	double distance;
 	switch (view)
 	{
@@ -151,6 +153,75 @@ static Vector   circleVertex[65];		// holds vector coordinates for a unit circle
     return self;
 }
 
+- (id) initLaserFromSubentity:(ShipEntity *) subent view:(int) view
+{
+    self = [super init];
+	//
+	if (!subent)
+		return self;
+	Entity* parent = [subent owner];
+	if (!parent)
+		return self;
+    //
+	status = STATUS_EFFECT;
+	BoundingBox bbox = [subent getBoundingBox];
+	Vector midfrontplane = make_vector( 0.5 * (bbox.max_x + bbox.min_x), 0.5 * (bbox.max_y + bbox.min_y), bbox.max_z);
+    position = [subent absolutePositionForSubentityOffset:midfrontplane];
+	q_rotation = parent->q_rotation;
+	if (parent->isPlayer)
+		q_rotation.w = -q_rotation.w;   //reverse view direction for the player
+	Vector v_up = vector_up_from_quaternion(q_rotation);
+	Vector v_forward = vector_forward_from_quaternion(q_rotation);
+	Vector v_right = vector_right_from_quaternion(q_rotation);
+	double fs = [(ShipEntity*)parent flight_speed];
+	velocity = make_vector( v_forward.x * fs, v_forward.y * fs, v_forward.z * fs);
+	double distance;
+	switch (view)
+	{
+		case VIEW_FORWARD :
+			distance = [subent getBoundingBox].max_z;
+			position.x += distance * v_forward.x;	position.y += distance * v_forward.y;	position.z += distance * v_forward.z;
+			break;
+		case VIEW_AFT :
+			quaternion_rotate_about_axis(&q_rotation, v_up, PI);
+			distance = [subent getBoundingBox].min_z;
+			position.x += distance * v_forward.x;	position.y += distance * v_forward.y;	position.z += distance * v_forward.z;
+			break;
+		case VIEW_PORT :
+			quaternion_rotate_about_axis(&q_rotation, v_up, PI/2.0);
+			distance = [subent getBoundingBox].min_x;
+			position.x += distance * v_right.x;	position.y += distance * v_right.y;	position.z += distance * v_right.z;
+			break;
+		case VIEW_STARBOARD :
+			quaternion_rotate_about_axis(&q_rotation, v_up, -PI/2.0);
+			distance = [subent getBoundingBox].max_x;
+			position.x += distance * v_right.x;	position.y += distance * v_right.y;	position.z += distance * v_right.z;
+			break;
+	}
+    quaternion_into_gl_matrix(q_rotation, rotMatrix);
+    //
+	if (parent->isPlayer)
+	{
+		position.x -= WEAPON_OFFSET_DOWN * v_up.x;	position.y -= WEAPON_OFFSET_DOWN * v_up.y;	position.z -= WEAPON_OFFSET_DOWN * v_up.z;	// offset below the view line
+	}
+	//
+	time_counter = 0.0;
+	//
+	particle_type = PARTICLE_LASER_BEAM_RED;
+	//
+	[self setColor:[NSColor redColor]];
+	//
+	duration = PARTICLE_LASER_DURATION;
+	//
+	[self setOwner:parent];
+	//
+	collision_radius = [subent weapon_range];
+	//
+	isParticle = YES;
+	//
+    return self;
+}
+
 - (id) initExhaustFromShip:(ShipEntity *) ship offsetVector:(Vector) offset scaleVector:(Vector) scale
 {
     int i;
@@ -182,6 +253,7 @@ static Vector   circleVertex[65];		// holds vector coordinates for a unit circle
 	[self setOwner:ship];
 	//
 	collision_radius = [self findCollisionRadius];
+	actual_radius = collision_radius;
 	//
 	isParticle = YES;
 	//
@@ -191,7 +263,8 @@ static Vector   circleVertex[65];		// holds vector coordinates for a unit circle
 - (id) initExhaustFromShip:(ShipEntity *) ship details:(NSString *) details
 {
     int i;
-	NSArray *values = [details componentsSeparatedByString:@" "];
+//	NSArray *values = [details componentsSeparatedByString:@" "];
+	NSArray *values = [Entity scanTokensFromString:details];
 	if ([values count] != 6)
 		return nil;
 	Vector offset, scale;
@@ -231,6 +304,7 @@ static Vector   circleVertex[65];		// holds vector coordinates for a unit circle
 	[self setOwner:ship];
 	//	
 	collision_radius = [self findCollisionRadius];
+	actual_radius = collision_radius;
 	//
 	isParticle = YES;
 	//
@@ -696,7 +770,7 @@ static Vector   circleVertex[65];		// holds vector coordinates for a unit circle
 	double tf = time_counter / duration;
 	double stf = tf * tf;
 //	double srtf = sqrt(tf);
-	double expansion_speed;
+	double expansion_speed = 0.0;
 	if (time_counter > 0)
 		expansion_speed = 240 + 10 / (tf * tf);
 	if (expansion_speed > 1000.0)

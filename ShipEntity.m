@@ -177,6 +177,8 @@ Your fair use and other rights are in no way affected by the above.
 	//
 	isShip = YES;
 	//
+	isFrangible = YES;
+	//
 	return self;
 }
 
@@ -196,8 +198,8 @@ Your fair use and other rights are in no way affected by the above.
 	
 	if (previousCondition)	[previousCondition release];
 	
-	if (collisionVectorForEntity)
-							[collisionVectorForEntity release];
+	if (collisionInfoForEntity)
+							[collisionInfoForEntity release];
 	[super dealloc];
 }
 
@@ -474,11 +476,13 @@ Your fair use and other rights are in no way affected by the above.
 	//
 	scan_class = CLASS_NOT_SET;
 	//
-	[collisionVectorForEntity removeAllObjects];
+	[collisionInfoForEntity removeAllObjects];
 	//
 	beaconChar = 0;
 	//
 	isShip = YES;
+	//
+	isFrangible = YES;
 	//
 }
 
@@ -521,6 +525,8 @@ Your fair use and other rights are in no way affected by the above.
 	//
 	isShip = YES;
 	//
+	isFrangible = YES;
+	//
 	return self;
 }
 
@@ -534,10 +540,10 @@ Your fair use and other rights are in no way affected by the above.
 	// reset all settings
 	[self reinit];
 	
-	if (collisionVectorForEntity)
-		[collisionVectorForEntity removeAllObjects];
+	if (collisionInfoForEntity)
+		[collisionInfoForEntity removeAllObjects];
 	else
-		collisionVectorForEntity = [[NSMutableDictionary alloc] initWithCapacity:12];
+		collisionInfoForEntity = [[NSMutableDictionary alloc] initWithCapacity:12];
 	
 	shipinfoDictionary = [[NSDictionary alloc] initWithDictionary:dict];	// retained
 	
@@ -710,6 +716,7 @@ Your fair use and other rights are in no way affected by the above.
 	else
 		is_smooth_shaded = NO;
 	//
+	// must do this next one before checking subentities
 	if ([dict objectForKey:@"model"])
 		[self setModel:(NSString *)[dict objectForKey:@"model"]];
 	//
@@ -748,7 +755,9 @@ Your fair use and other rights are in no way affected by the above.
 		NSArray *subs = (NSArray *)[dict objectForKey:@"subentities"];
 		for (i = 0; i < [subs count]; i++)
 		{
-			NSArray* details = [(NSString *)[subs objectAtIndex:i] componentsSeparatedByString:@" "];
+//			NSArray* details = [(NSString *)[subs objectAtIndex:i] componentsSeparatedByString:@" "];
+			NSArray* details = [Entity scanTokensFromString:(NSString *)[subs objectAtIndex:i]];
+			
 			if ([details count] == 8)
 			{
 				//NSLog(@"DEBUG adding subentity...");
@@ -788,14 +797,18 @@ Your fair use and other rights are in no way affected by the above.
 					
 //					NSLog(@"DEBUG adding subentity %@ %@ to new %@ at %.3f,%.3f,%.3f", subent, [(ShipEntity*)subent name], name, sub_pos.x, sub_pos.y, sub_pos.z );
 					[(ShipEntity*)subent setStatus:STATUS_INACTIVE];
-					if ([[(ShipEntity*)subent roles] isEqual:@"docking-slit"])
-						[subent setStatus:STATUS_EFFECT];			// hack keeps docking slit visible when at reduced detail
 					//
 					ref = vector_forward_from_quaternion(sub_q);	// VECTOR FORWARD
 					//
 					[(ShipEntity*)subent setReference: ref];
-					[(ShipEntity*)subent setPosition:sub_pos];
-					[(ShipEntity*)subent setQRotation:sub_q];
+					[(ShipEntity*)subent setPosition: sub_pos];
+					[(ShipEntity*)subent setQRotation: sub_q];
+					//
+					if ([[(ShipEntity*)subent roles] isEqual:@"docking-slit"])
+						[subent setStatus:STATUS_EFFECT];			// hack keeps docking slit visible when at reduced detail
+					else
+						[self addSolidSubentityToCollisionRadius:(ShipEntity*)subent];	// hack - ignore docking-slit for collision radius 
+					//
 				}
 				//NSLog(@"DEBUG reference (%.1f,%.1f,%.1f)", ref.x, ref.y, ref.z);
 				if (sub_entities == nil)
@@ -818,6 +831,9 @@ Your fair use and other rights are in no way affected by the above.
 		}
 //		NSLog(@"DEBUG %@ subentities : %@", name, sub_entities);
 	}
+	//
+	if ([dict objectForKey:@"frangible"])	// if an object has frangible == YES then it can have its subentities shot away!
+		isFrangible = [(NSNumber *)[dict objectForKey:@"frangible"] boolValue];
 	//	
 	if ([dict objectForKey:@"laser_color"])
 	{
@@ -933,15 +949,20 @@ Your fair use and other rights are in no way affected by the above.
 
 //////////////////////////////////////////////
 
-- (BOOL) canCollide
+BOOL ship_canCollide (ShipEntity* ship)
 {
-	if ((status == STATUS_DEMO)||(status == STATUS_DEAD))
+	int		s_status =		ship->status;
+	int		s_scan_class =	ship->scan_class;
+	if ((s_status == STATUS_DEMO)||(s_status == STATUS_DEAD))
 		return NO;
-	if ((scan_class == CLASS_MISSILE)&&(shot_time < 0.25)) // not yet fused
-		return NO;
-	if ((shot_time < 0.25)&&([roles isEqual:@"tharglet"])) // not yet fused
+	if (((s_scan_class == CLASS_THARGOID) || (s_scan_class == CLASS_MISSILE)) && (ship->shot_time < 0.25)) // not yet fused
 		return NO;
 	return YES;
+}
+
+- (BOOL) canCollide
+{
+	return ship_canCollide(self);
 }
 
 - (BOOL) checkCloseCollisionWith:(Entity *)other
@@ -950,6 +971,88 @@ Your fair use and other rights are in no way affected by the above.
 		return NO;
 	if ([collidingEntities containsObject:other])	// we know about this already!
 		return NO;
+	
+	if (other->isShip)
+	{
+		// check bounding spheres versus bounding spheres
+		ShipEntity* other_ship = (ShipEntity*)other;
+		int i,j;
+		NSArray* other_subs = other_ship->sub_entities;
+		int n_subs1 = [sub_entities count];
+		int n_subs2 = [other_subs count];
+		ShipEntity* entity1[ 1 + n_subs1 ];
+		ShipEntity* entity2[ 1 + n_subs2 ];
+		Vector sphere_positions1[ 1 + n_subs1 ];
+		Vector sphere_positions2[ 1 + n_subs2 ];
+		double sphere_rad1[ 1 + n_subs1 ];
+		double sphere_rad2[ 1 + n_subs2 ];
+		int n_spheres1 = 1;
+		int n_spheres2 = 1;
+		sphere_positions1[0] = position;
+		sphere_rad1[0] = actual_radius;
+		entity1[0] = self;
+		sphere_positions2[0] = other->position;
+		sphere_rad2[0] = other->actual_radius;
+		entity2[0] = other_ship;
+		for (i = 0; i < n_subs1; i++)
+		{
+			Entity* se = [sub_entities objectAtIndex:i];
+			if ((se)&&[se canCollide]&&(se->isShip))
+			{
+				entity1[n_spheres1] = (ShipEntity*)se;
+				sphere_positions1[n_spheres1] = [(ShipEntity*)se absolutePositionForSubentity];
+				sphere_rad1[n_spheres1] = se->actual_radius;
+				n_spheres1++;
+			}
+		}
+		for (i = 0; i < n_subs2; i++)
+		{
+			Entity* se = [other_subs objectAtIndex:i];
+			if ((se)&&[se canCollide]&&(se->isShip))
+			{
+				entity2[n_spheres2] = (ShipEntity*)se;
+				sphere_positions2[n_spheres2] = [(ShipEntity*)se absolutePositionForSubentity];
+				sphere_rad2[n_spheres2] = se->actual_radius;
+				n_spheres2++;
+			}
+		}
+		for (i = 0; i < n_spheres1; i++)
+		{
+			for (j = 0; j < n_spheres2; j++)
+			{
+				double d1 = sphere_rad1[i] + sphere_rad2[j];
+				double d2 = distance2( sphere_positions1[i], sphere_positions2[j]);
+				if (d2 < d1 * d1)
+				{
+//					NSLog(@"DEBUG performing further checks for collision between %@ and %@", entity1[i], entity2[j]);
+					
+					BOOL collision = YES;
+					if (i == 0)
+					{
+						if (j == 0)
+							collision = [self checkBoundingBoxCollisionWith: other];
+					}
+					else
+					{
+						if (j == 0)
+							collision = [entity1[i] subentityCheckBoundingBoxCollisionWith: other];
+					}
+					if (collision)
+					{
+						collider = entity2[j];
+						return YES;
+					}
+				}
+			}
+		}
+		return NO;
+	}
+	collider = other;
+	return YES;
+}
+
+- (BOOL) checkBoundingBoxCollisionWith:(Entity *)other
+{
 	if (other->isShip)
 	{
 		// check bounding boxes ...
@@ -958,16 +1061,15 @@ Your fair use and other rights are in no way affected by the above.
 		BoundingBox arbb = [other findBoundingBoxRelativeTo:self InVectors: v_right: v_up: v_forward];
 		
 		// construct 6 rectangles based on the sides of the possibly overlapping bounding boxes
-		NSRect  ship_x_rect = NSMakeRect(boundingBox.min_z, boundingBox.min_y, boundingBox.max_z - boundingBox.min_z, boundingBox.max_y - boundingBox.min_y);
-		NSRect  ship_y_rect = NSMakeRect(boundingBox.min_x, boundingBox.min_z, boundingBox.max_x - boundingBox.min_x, boundingBox.max_z - boundingBox.min_z);
-		NSRect  ship_z_rect = NSMakeRect(boundingBox.min_x, boundingBox.min_y, boundingBox.max_x - boundingBox.min_x, boundingBox.max_y - boundingBox.min_y);
-
 		NSRect  other_x_rect = NSMakeRect(arbb.min_z, arbb.min_y, arbb.max_z - arbb.min_z, arbb.max_y - arbb.min_y);
 		NSRect  other_y_rect = NSMakeRect(arbb.min_x, arbb.min_z, arbb.max_x - arbb.min_x, arbb.max_z - arbb.min_z);
 		NSRect  other_z_rect = NSMakeRect(arbb.min_x, arbb.min_y, arbb.max_x - arbb.min_x, arbb.max_y - arbb.min_y);
 
+		NSRect  ship_x_rect = NSMakeRect(boundingBox.min_z, boundingBox.min_y, boundingBox.max_z - boundingBox.min_z, boundingBox.max_y - boundingBox.min_y);
+		NSRect  ship_y_rect = NSMakeRect(boundingBox.min_x, boundingBox.min_z, boundingBox.max_x - boundingBox.min_x, boundingBox.max_z - boundingBox.min_z);
+		NSRect  ship_z_rect = NSMakeRect(boundingBox.min_x, boundingBox.min_y, boundingBox.max_x - boundingBox.min_x, boundingBox.max_y - boundingBox.min_y);
+
 		if (NSIntersectsRect(ship_x_rect,other_x_rect) && NSIntersectsRect(ship_y_rect,other_y_rect) && NSIntersectsRect(ship_z_rect,other_z_rect))
-//			return [self checkPerPolyCollisionWithShip:(ShipEntity*)other];
 			return YES;
 		else
 			return NO;
@@ -986,7 +1088,6 @@ Your fair use and other rights are in no way affected by the above.
 				(r_pos.y - cr < boundingBox.max_y)&&
 				(r_pos.z + cr > boundingBox.min_z)&&
 				(r_pos.z - cr < boundingBox.max_z))
-//			return [self checkPerPolyCollisionWithParticle:(ParticleEntity*)other];
 			return YES;
 		else
 			return NO;
@@ -994,165 +1095,204 @@ Your fair use and other rights are in no way affected by the above.
 	return YES;
 }
 
-- (BOOL) checkPerPolyCollisionWithShip:(ShipEntity *)other
+- (BOOL) subentityCheckBoundingBoxCollisionWith:(Entity *)other
 {
-//	NSLog(@"DEBUG checking per poly collision %@ %d versus %@ %d", name, universal_id, [other name], [other universal_id]);
-//	NSLog(@"DEBUG %@ %d n_faces %d n_vertices %d", name, universal_id, n_faces, n_vertices);
+//	NSLog(@"DEBUG [%@ subentityCheckBoundingBoxCollisionWith:%@]", self, other);
 	
-	// DEBUG - TEMPORARY
-//	return YES;
+	BoundingBox sebb = [self findSubentityBoundingBox];
+		
+//	NSLog(@"DEBUG bounding box for subentity: %@ [%.1fm %.1fm]x [%.1fm %.1fm]y [%.1fm %.1fm]z", self,
+//		sebb.min_x, sebb.max_x, sebb.min_y, sebb.max_y, sebb.min_z, sebb.max_z);
 	
-	// check each surface versus the other's particle cloud ...
-	//
-	int f;
-	BOOL all_clear =	YES;
-	int surfs_hit =		0;
-	Vector	incidence = make_vector( 0, 0, 0);
-	Vector	direction = make_vector( 0, 0, 0);
-	for (f = 0; f < n_faces; f++)
+	if (other->isShip)
 	{
-		face_hit[f] = NO;
+		// check bounding boxes ...
+		Entity* parent = [self owner];
+		if (!parent)
+			return NO;
+		Vector i = vector_right_from_quaternion(parent->q_rotation);
+		Vector j = vector_up_from_quaternion(parent->q_rotation);
+		Vector k = vector_forward_from_quaternion(parent->q_rotation);
 		
-		Vector v0 = vertices[faces[f].vertex[0]];
-		Vector v1 = vertices[faces[f].vertex[1]];
-		Vector v2 = vertices[faces[f].vertex[2]];
+		//
+		// get bounding box relative to this ship's orientation
+		BoundingBox arbb = [other findBoundingBoxRelativeTo:parent InVectors: i: j: k];
+		
+//		NSLog(@"DEBUG bounding box for other: %@ [%.1fm %.1fm]x [%.1fm %.1fm]y [%.1fm %.1fm]z", other,
+//			arbb.min_x, arbb.max_x, arbb.min_y, arbb.max_y, arbb.min_z, arbb.max_z);
+	
+		// construct 6 rectangles based on the sides of the possibly overlapping bounding boxes
+		NSRect  x_rect = NSMakeRect(sebb.min_z, sebb.min_y, sebb.max_z - sebb.min_z, sebb.max_y - sebb.min_y);
+		NSRect  y_rect = NSMakeRect(sebb.min_x, sebb.min_z, sebb.max_x - sebb.min_x, sebb.max_z - sebb.min_z);
+		NSRect  z_rect = NSMakeRect(sebb.min_x, sebb.min_y, sebb.max_x - sebb.min_x, sebb.max_y - sebb.min_y);
+		NSRect  other_x_rect = NSMakeRect(arbb.min_z, arbb.min_y, arbb.max_z - arbb.min_z, arbb.max_y - arbb.min_y);
+		NSRect  other_y_rect = NSMakeRect(arbb.min_x, arbb.min_z, arbb.max_x - arbb.min_x, arbb.max_z - arbb.min_z);
+		NSRect  other_z_rect = NSMakeRect(arbb.min_x, arbb.min_y, arbb.max_x - arbb.min_x, arbb.max_y - arbb.min_y);
+		
+//		NSLog(@"DEBUG intersects in x:%@: y:%@: z:%@",
+//			NSIntersectsRect(x_rect,other_x_rect)? @"YES": @"NO ",
+//			NSIntersectsRect(y_rect,other_y_rect)? @"YES": @"NO ",
+//			NSIntersectsRect(z_rect,other_z_rect)? @"YES": @"NO ");
 
-		mult_vector_gl_matrix(&v0, rotMatrix);
-		mult_vector_gl_matrix(&v1, rotMatrix);
-		mult_vector_gl_matrix(&v2, rotMatrix);
-
-		Vector vi = make_vector(v1.x - v0.x, v1.y - v0.y, v1.z - v0.z);
-		Vector vj = make_vector(v2.x - v0.x, v2.y - v0.y, v2.z - v0.z);
-		Vector vs = faces[f].normal;
-		mult_vector_gl_matrix(&vs, rotMatrix);
-		
-		// get bounding box relative to this surface's orientation
-		BoundingBox arbb = [other findBoundingBoxRelativeToPosition:make_vector(position.x+v0.x,position.y+v0.y, position.z+v0.z) InVectors: vi : vj : vs];
-		
-		if	((arbb.max_x < 0.0)					// all p.vi < 0
-			||(arbb.min_x > 1.0)				// all p.vi > 1
-			||(arbb.max_y < 0.0)				// all p.vj < 0
-			||(arbb.min_y > 1.0)				// all p.vj > 1
-			||(arbb.min_x + arbb.min_y > 1.0)	// all p.vi + p.vj > 1
-			||(arbb.min_z > 0.0)				// all p.vs > 0
-			||(arbb.max_z < 0.0))				// all p.vs < 0
-			continue;							// this surface doesn't intersect the point cloud;
+		if (NSIntersectsRect(x_rect,other_x_rect) && NSIntersectsRect(y_rect,other_y_rect) && NSIntersectsRect(z_rect,other_z_rect))
+			return YES;
 		else
-		{
-			// this surface intersects the point cloud
-			incidence.x += vs.x;	incidence.y += vs.y;	incidence.z += vs.z;
-			
-			Vector	 dir = make_vector( v0.x + v1.x + v2.x, v0.y + v1.y + v2.y, v0.z + v1.z + v2.z);
-			dir = unit_vector(&dir);
-			direction.x += dir.x;	direction.y += dir.y;	direction.z += dir.z;
-			
-			face_hit[f] = YES;
-			all_clear = NO;
-			surfs_hit++;
-		}
+			return NO;
 	}
-	if (!all_clear)
+	if (other->isParticle)
 	{
-		collision_vector = unit_vector(&incidence);
-		if (isnan(collision_vector.x)||isnan(collision_vector.y)||isnan(collision_vector.z))
-			collision_vector = unit_vector(&direction);
-		
-//		NSLog(	@"Ship %@ %d versus other %@ %d collision, %d surfaces intersected, incidence [%.3f, %.3f, %.3f]",
-//				name, universal_id, [other name], [other universal_id],
-//				surfs_hit, collision_vector.x, collision_vector.y, collision_vector.z);
-		
-		[collisionVectorForEntity
-			setObject:[NSArray arrayWithObjects:	[NSNumber numberWithFloat:collision_vector.x],
-													[NSNumber numberWithFloat:collision_vector.y],
-													[NSNumber numberWithFloat:collision_vector.z], nil]
-			forKey:[NSString stringWithFormat:@"%@", other]];
-		
-		return YES;
-	}	
-	return NO;
+		// check bounding boxes ...
+		//
+		// get position relative to this ship's orientation
+		Vector	r_pos = other->position;
+		double	cr = other->collision_radius;
+		r_pos.x -= position.x;	r_pos.y -= position.y;	r_pos.z -= position.z;
+		if	((r_pos.x + cr > sebb.min_x)&&
+				(r_pos.x - cr < sebb.max_x)&&
+				(r_pos.y + cr > sebb.min_y)&&
+				(r_pos.y - cr < sebb.max_y)&&
+				(r_pos.z + cr > sebb.min_z)&&
+				(r_pos.z - cr < sebb.max_z))
+			return YES;
+		else
+			return NO;
+	}
+	return YES;
 }
 
-- (BOOL) checkPerPolyCollisionWithParticle:(ParticleEntity *)other
+- (BoundingBox) findSubentityBoundingBox 
 {
-//	NSLog(@"DEBUG checking per poly collision %@ %d versus particle", name, universal_id);
+	BoundingBox result;
+	Vector  v = vertices[0];
+	mult_vector_gl_matrix(&v, rotMatrix);
+	v.x += position.x;	v.y += position.y;	v.z += position.z;
+	bounding_box_reset_to_vector(&result,v);
+	int i;
+    for (i = 1; i < n_vertices; i++)
+    {
+		v = vertices[i];
+		mult_vector_gl_matrix(&v, rotMatrix);
+		v.x += position.x;	v.y += position.y;	v.z += position.z;
+		bounding_box_add_vector(&result,v);
+    }
 	
-	if (!other)
-		return NO;
+//	NSLog(@"DEBUG subentity bounding box for %@ of %@ is [%.1fm %.1fm]x [%.1fm %.1fm]y [%.1fm %.1fm]z", self, [self owner],
+//		result.min_x, result.max_x, result.min_y, result.max_y, result.min_z, result.max_z);
 	
-	// check bounding boxes ...
-	//
-	// get position relative to this ship's orientation
-	Vector	o_pos = other->position;
-	o_pos.x -= position.x;	o_pos.y -= position.y;	o_pos.z -= position.z;
-	double	cr = other->collision_radius;
-
-	int f;
-	BOOL all_clear =	YES;
-	int surfs_hit =		0;
-	Vector	incidence = make_vector( 0, 0, 0);
-	Vector	direction = make_vector( 0, 0, 0);
-	for (f = 0; f < n_faces; f++)
-	{
-		Vector v0 = vertices[faces[f].vertex[0]];
-		Vector v1 = vertices[faces[f].vertex[1]];
-		Vector v2 = vertices[faces[f].vertex[2]];
-
-		mult_vector_gl_matrix(&v0, rotMatrix);
-		mult_vector_gl_matrix(&v1, rotMatrix);
-		mult_vector_gl_matrix(&v2, rotMatrix);
-
-		Vector vs = faces[f].normal;
-		mult_vector_gl_matrix(&vs, rotMatrix);
-					
-		Vector q0 = make_vector( o_pos.x - v0.x, o_pos.y - v0.y, o_pos.z - v0.z);
-		GLfloat dist = dot_product( q0, vs);
-
-		if	(dist < cr)	// p2 inside sphere
-		{
-			// this surface intersects the sphere
-			incidence.x += vs.x;	incidence.y += vs.y;	incidence.z += vs.z;
-
-			Vector	 dir = make_vector( v0.x + v1.x + v2.x, v0.y + v1.y + v2.y, v0.z + v1.z + v2.z);
-			dir = unit_vector(&dir);
-			direction.x += dir.x;	direction.y += dir.y;	direction.z += dir.z;
-			
-			all_clear = NO;
-			surfs_hit++;
-		}
-
-	}
-	if (!all_clear)
-	{
-		collision_vector = unit_vector(&incidence);
-		if (isnan(collision_vector.x)||isnan(collision_vector.y)||isnan(collision_vector.z))
-			collision_vector = unit_vector(&direction);
-		
-//			NSLog(	@"Ship %@ %d versus particle collision, %d surfaces intersected, incidence [%.3f, %.3f, %.3f]",
-//					name, universal_id, surfs_hit, collision_vector.x, collision_vector.y, collision_vector.z);
-		
-		[collisionVectorForEntity
-			setObject:[NSArray arrayWithObjects:	[NSNumber numberWithFloat:collision_vector.x],
-													[NSNumber numberWithFloat:collision_vector.y],
-													[NSNumber numberWithFloat:collision_vector.z], nil]
-			forKey:[NSString stringWithFormat:@"%@", other]];
-		
-		return YES;
-	}
-	return NO;
+	return result;
 }
 
-- (Vector) collisionVectorForEntity:(Entity *)other
+- (BoundingBox) findSubentityBoundingBoxRelativeTo: (Entity*)other inVectors: (Vector)vi: (Vector)vj: (Vector)vk
 {
-	Vector v = make_vector (0,0,0);
-	if ([collisionVectorForEntity objectForKey:[NSString stringWithFormat:@"%@", other]])
-	{
-		NSArray* va = (NSArray*)[collisionVectorForEntity objectForKey:[NSString stringWithFormat:@"%@", other]];
-		v.x = [(NSNumber*)[ va objectAtIndex:0] floatValue];
-		v.y = [(NSNumber*)[ va objectAtIndex:1] floatValue];
-		v.z = [(NSNumber*)[ va objectAtIndex:2] floatValue];
-	}
-	return v;
+	Entity* parent = [self owner];
+	Vector	othpos = other->position;
+	Vector	parent_pos = parent->position;
+	Vector	relpos = make_vector( parent_pos.x - othpos.x, parent_pos.y - othpos.y, parent_pos.z - othpos.z);
+	GLfloat*	parent_rotmatrix = [parent rotationMatrix];
+	BoundingBox result;
+	Vector	v,	w;
+	v = vertices[0];
+	mult_vector_gl_matrix(&v, rotMatrix);
+	v.x += position.x;	v.y += position.y;	v.z += position.z;
+	mult_vector_gl_matrix(&v, parent_rotmatrix);
+	v.x += relpos.x;	v.y += relpos.y;	v.z += relpos.z;
+	w = make_vector( dot_product( v, vi), dot_product( v, vj), dot_product( v, vk));
+	bounding_box_reset_to_vector(&result,w);
+	int i;
+    for (i = 1; i < n_vertices; i++)
+    {
+		v = vertices[i];
+		mult_vector_gl_matrix(&v, rotMatrix);
+		v.x += position.x;	v.y += position.y;	v.z += position.z;
+		mult_vector_gl_matrix(&v, parent_rotmatrix);
+		v.x += relpos.x;	v.y += relpos.y;	v.z += relpos.z;
+		w = make_vector( dot_product( v, vi), dot_product( v, vj), dot_product( v, vk));
+		bounding_box_add_vector(&result,w);
+    }
+		
+	return result;
 }
+
+- (BoundingBox) findSubentityBoundingBoxRelativeToPosition: (Vector)othpos inVectors: (Vector)vi: (Vector)vj: (Vector)vk
+{
+	Entity* parent = [self owner];
+	Vector	parent_pos = parent->position;
+	Vector	relpos = make_vector( parent_pos.x - othpos.x, parent_pos.y - othpos.y, parent_pos.z - othpos.z);
+	GLfloat*	parent_rotmatrix = [parent rotationMatrix];
+	BoundingBox result;
+	Vector	v,	w;
+	v = vertices[0];
+	mult_vector_gl_matrix(&v, rotMatrix);
+	v.x += position.x;	v.y += position.y;	v.z += position.z;
+	mult_vector_gl_matrix(&v, parent_rotmatrix);
+	v.x += relpos.x;	v.y += relpos.y;	v.z += relpos.z;
+	w = make_vector( dot_product( v, vi), dot_product( v, vj), dot_product( v, vk));
+	bounding_box_reset_to_vector(&result,w);
+	int i;
+    for (i = 1; i < n_vertices; i++)
+    {
+		v = vertices[i];
+		mult_vector_gl_matrix(&v, rotMatrix);
+		v.x += position.x;	v.y += position.y;	v.z += position.z;
+		mult_vector_gl_matrix(&v, parent_rotmatrix);
+		v.x += relpos.x;	v.y += relpos.y;	v.z += relpos.z;
+		w = make_vector( dot_product( v, vi), dot_product( v, vj), dot_product( v, vk));
+		bounding_box_add_vector(&result,w);
+    }
+	return result;
+}
+
+
+- (Vector) absolutePositionForSubentity
+{
+	Vector		abspos = position;
+	Entity*		father = [self owner];
+	while (father)
+	{
+		GLfloat* r_mat = [father rotationMatrix];
+		mult_vector_gl_matrix(&abspos, r_mat);
+		Vector pos = father->position;
+		abspos.x += pos.x;	abspos.y += pos.y;	abspos.z += pos.z;
+		if (father != [father owner])
+			father = [father owner];
+		else
+			father = nil;
+	}
+	return abspos;
+}
+
+- (Vector) absolutePositionForSubentityOffset:(Vector) offset
+{
+	
+	Vector		off = offset;
+	mult_vector_gl_matrix(&off, rotMatrix);
+	Vector		abspos = make_vector( position.x + off.x, position.y + off.y, position.z + off.z);
+	Entity*		father = [self owner];
+	while (father)
+	{
+		GLfloat* r_mat = [father rotationMatrix];
+		mult_vector_gl_matrix(&abspos, r_mat);
+		Vector pos = father->position;
+		abspos.x += pos.x;	abspos.y += pos.y;	abspos.z += pos.z;
+		if (father != [father owner])
+			father = [father owner];
+		else
+			father = nil;
+	}
+	return abspos;
+}
+
+- (void) addSolidSubentityToCollisionRadius:(ShipEntity*) subent
+{
+	if (!subent)
+		return;
+//	double old_cr = collision_radius;
+	double distance = sqrt(magnitude2(subent->position)) + subent->collision_radius;
+	if (distance > collision_radius)
+		collision_radius = distance;
+//	NSLog(@"DEBUG - Added the collision radius of %@ to %@ (was %.2fm now %.2fm)", subent, self, old_cr, collision_radius);
+}
+
 
 - (void) update:(double) delta_t
 {
@@ -1778,8 +1918,7 @@ Your fair use and other rights are in no way affected by the above.
 					{
 						desired_range = prox_ship->collision_radius * PROXIMITY_AVOID_DISTANCE;
 						destination = prox_ship->position;
-						destination.x += position.x;	destination.y += position.y;	destination.z += position.z;
-						destination.x *= 0.5;	destination.y *= 0.5;	destination.z *= 0.5;	// point between us and them
+//						destination = [prox_ship distance_six:-[prox_ship flight_speed]];	// where it'll be in one seconds's time
 					}
 					double dq = [self trackDestination:delta_t:YES];
 					if (dq >= 0)
@@ -2114,8 +2253,11 @@ static GLfloat mascem_color2[4] =	{ 0.4, 0.1, 0.4, 1.0};	// purple
 
 - (void) avoidCollision
 {
-	if ([roles isEqual:@"missile"])
+	if (scan_class == CLASS_MISSILE)
 		return;						// missiles are SUPPOSED to collide!
+
+//	NSLog(@"DEBUG ***** %@ in AVOID COLLISION!", self);
+
 	
 	ShipEntity* prox_ship = [self proximity_alert];
 	
@@ -2172,6 +2314,8 @@ static GLfloat mascem_color2[4] =	{ 0.4, 0.1, 0.4, 1.0};	// purple
 	previousCondition = nil;
 	frustration = 0.0;
 	
+	proximity_alert = NO_TARGET;
+	
 	//[shipAI message:@"RESTART_DOCKING"];	// if docking, start over, other AIs will ignore this message
 }
 
@@ -2213,10 +2357,39 @@ static GLfloat mascem_color2[4] =	{ 0.4, 0.1, 0.4, 1.0};	// purple
 
 - (void) setProximity_alert:(ShipEntity*) other
 {
-	if ((other)&&(!(other->isStation)))	// don't be alarmed close to stations
-		proximity_alert = [other universal_id];
-	else
+	if (!other)
+	{
 		proximity_alert = NO_TARGET;
+		return;
+	}
+	
+	if (isStation||(other->isStation))	// don't be alarmed close to stations
+		return;
+	
+	if ((scan_class == CLASS_CARGO)||(scan_class == CLASS_BUOY)||(scan_class == CLASS_MISSILE)||(scan_class == CLASS_ROCK))	// rocks and stuff don't get alarmed easily
+		return;
+	
+	if (condition == CONDITION_AVOID_COLLISION)	//	already avoiding something
+	{
+		ShipEntity* prox = (ShipEntity*)[universe entityForUniversalID:proximity_alert];
+		if (other == prox)
+		{
+//			NSLog(@"DEBUG %@ already alerted to proximity of %@", self, other);
+			return;
+		}
+		if (prox)
+		{
+			GLfloat d_prox = distance2(position, prox->position) - prox->collision_radius *  prox->collision_radius;
+			GLfloat d_other = distance2(position, other->position) - other->collision_radius *  other->collision_radius;
+			if (d_prox < d_other)
+			{
+//				NSLog(@"DEBUG %@ is already avoiding %@", self, prox);
+				return;
+			}
+		}
+	}
+	proximity_alert = [other universal_id];
+//	NSLog(@"DEBUG PROXIMITY ALERT FOR %@  VS %@ == %d", self, other, proximity_alert);
 }
 
 - (NSString *) name
@@ -2315,9 +2488,9 @@ static GLfloat mascem_color2[4] =	{ 0.4, 0.1, 0.4, 1.0};	// purple
 			weapon_range =			30000;
 			break;
 		case WEAPON_NONE :
-			weapon_energy =			0.0;
-			weapon_recharge_rate =	30;
-			weapon_range =			0;
+			weapon_energy =			0.0;	// indicating no weapon!
+			weapon_recharge_rate =	0.20;	// maximum rate
+			weapon_range =			32000;
 			break;
 	}
 }
@@ -2649,10 +2822,20 @@ static GLfloat mascem_color2[4] =	{ 0.4, 0.1, 0.4, 1.0};	// purple
 		//
 		if ((amount > energy)&&(energy > 10))
 		{
-			ParticleEntity* chain_reaction = [[ParticleEntity alloc] initEnergyMineFromShip:self];
-			[universe addEntity:chain_reaction];
-			[chain_reaction setOwner:[ent owner]];
-			[chain_reaction release];
+//			NSLog(@"DEBUG %@ taking damage from Mine", self);
+//			ShipEntity* parent = (ShipEntity*)[self owner];
+//			if ((isShip)&&(parent)&&(parent->isShip)&&[parent->sub_entities containsObject:self])
+//			{
+//				// we are a subentity - do nothing!
+//				NSLog(@"DEBUG subentity %@ of %@ hit by mine wavefront", self, parent);
+//			}
+//			else
+//			{
+				ParticleEntity* chain_reaction = [[ParticleEntity alloc] initEnergyMineFromShip:self];
+				[universe addEntity:chain_reaction];
+				[chain_reaction setOwner:[ent owner]];
+				[chain_reaction release];
+//			}
 		}
 	}
 	//
@@ -2751,6 +2934,7 @@ static GLfloat mascem_color2[4] =	{ 0.4, 0.1, 0.4, 1.0};	// purple
 				[[hunter getAI] message:@"TARGET_DESTROYED"];
 			}
 		}
+		
 		[self becomeExplosion];
 	}
 	else
@@ -2774,6 +2958,22 @@ static GLfloat mascem_color2[4] =	{ 0.4, 0.1, 0.4, 1.0};	// purple
 
 - (void) becomeExplosion
 {
+	// check if we're destroying a subentity
+	ShipEntity* parent = (ShipEntity*)[self owner];
+	if ((parent)&&(parent != self)&&(parent->isShip)&&[parent->sub_entities containsObject:self])
+	{
+		ShipEntity* this_ship = [self retain];
+		Vector this_pos = [self absolutePositionForSubentity];
+		// remove this ship from its parent's subentity list
+		NSMutableArray *temp = [NSMutableArray arrayWithArray:parent->sub_entities];
+		[temp removeObject:this_ship];
+		[parent->sub_entities autorelease];
+		parent->sub_entities = [[NSArray arrayWithArray:temp] retain];
+		[universe addEntity:this_ship];
+		this_ship->position = this_pos;
+		[this_ship release];
+	}
+		
 	Vector	xposition = position;
 	ParticleEntity  *fragment;
 	int i;
@@ -3013,17 +3213,7 @@ static GLfloat mascem_color2[4] =	{ 0.4, 0.1, 0.4, 1.0};	// purple
 			Entity*		se = (Entity *)[sub_entities objectAtIndex:i];
 			if (se->isShip)
 			{
-				Vector  origin = se->position;
-				Entity*		father = self;
-				GLfloat*	r_mat = [father rotationMatrix];
-				while (father)
-				{
-					mult_vector_gl_matrix(&origin, r_mat);
-					Vector pos = father->position;
-					origin.x += pos.x;	origin.y += pos.y;	origin.z += pos.z;
-					father = [father owner];
-					r_mat = [father rotationMatrix];
-				}
+				Vector  origin = [(ShipEntity*)se absolutePositionForSubentity];
 				[se setPosition:origin];	// is this what's messing thing up??
 				[(ShipEntity *)se becomeExplosion];
 			}
@@ -3849,12 +4039,13 @@ Vector randomPositionInBoundingBox(BoundingBox bb)
 	if (![self onTarget:YES])
 		return NO;
 	//
+	BOOL fired = NO;
 	switch (forward_weapon_type)
 	{
 		case WEAPON_PLASMA_CANNON :
 			[self firePlasmaShot:weapon_offset_x:1500.0:[NSColor yellowColor]];
 			[self firePlasmaShot:weapon_offset_x:1500.0:[NSColor yellowColor]];
-			return YES;
+			fired = YES;
 			break;
 			
 		case WEAPON_PULSE_LASER :
@@ -3862,16 +4053,30 @@ Vector randomPositionInBoundingBox(BoundingBox bb)
 		case WEAPON_MINING_LASER :
 		case WEAPON_MILITARY_LASER :
 			[self fireLaserShot];
-			return YES;
+			fired = YES;
 			break;
 			
 		case WEAPON_THARGOID_LASER :
 			[self fireDirectLaserShot];
-			return YES;
+			fired = YES;
 			break;
 			
 	}
-	return NO;
+	
+	//can we fire lasers from our subentities?
+	int n_subs = [sub_entities count];
+	if (n_subs)
+	{
+		int i = 0;
+		for (i = 0; i < n_subs; i++)
+		{	
+			ShipEntity* subent = (ShipEntity*)[sub_entities objectAtIndex:i];
+			if ((subent)&&(subent->isShip))
+				fired |= [subent fireSubentityLaserShot: range];
+		}
+	}
+		
+	return fired;
 }
 
 - (BOOL) fireAftWeapon:(double) range
@@ -3999,24 +4204,18 @@ Vector randomPositionInBoundingBox(BoundingBox bb)
 {
 	ParticleEntity  *shot;
 	int				direction = VIEW_FORWARD;
-	//double			range_limit = PARTICLE_LASER_RANGE_LIMIT;
 	double			range_limit2 = weapon_range*weapon_range;
-	Vector  vel;
 	target_laser_hit = NO_TARGET;
-	
-	vel.x = v_forward.x * flight_speed;
-	vel.y = v_forward.y * flight_speed;
-	vel.z = v_forward.z * flight_speed;
-
+		
 	if (isPlayer)		// only the player has weapons on other facings
 		direction = [universe viewDir];					// set the weapon facing here
-
+	
 	target_laser_hit = [universe getFirstEntityHitByLaserFromEntity:self inView:direction];
-
+	
 	shot = [[ParticleEntity alloc] initLaserFromShip:self view:direction];	// alloc retains!
+	
 	[shot setColor:laser_color];
 	[shot setScanClass: CLASS_NO_DRAW];
-	[shot setVelocity: vel];
 	if (target_laser_hit != NO_TARGET)
 	{
 		Entity *victim = [universe entityForUniversalID:target_laser_hit];
@@ -4024,12 +4223,27 @@ Vector randomPositionInBoundingBox(BoundingBox bb)
 		{
 			Vector p0 = shot->position;
 			Vector p1 = victim->position;
-			p1.x -= p0.x;	p1.y -= p0.y;	p1.z -= p0.z;
-			double dist2 = magnitude2(p1);
+			if (victim->isShip)
+			{
+				ShipEntity* ship_hit = ((ShipEntity*)victim); 
+				ShipEntity* subent = ship_hit->subentity_taking_damage;
+				if ((subent) && [ship_hit->sub_entities containsObject:subent])
+				{
+					if (ship_hit->isFrangible)
+					{
+						p1 = [subent absolutePositionForSubentity];
+						victim = subent;
+						// do 1% bleed-through damage...
+						[ship_hit takeEnergyDamage: 0.01 * weapon_energy from:subent becauseOf:self];
+					}
+				}
+			}
+			//
+			double dist2 = distance2( p0, p1);
 			if ((victim->isShip)&&(dist2 < range_limit2))
 			{
 				[(ShipEntity *)victim takeEnergyDamage:weapon_energy from:self becauseOf:self];	// a very palpable hit
-				[shot setCollisionRadius:sqrt(dist2)];
+				[shot setCollisionRadius:sqrt(dist2)];	// so it's drawn to the right size
 			}
 		}
 	}
@@ -4038,9 +4252,86 @@ Vector randomPositionInBoundingBox(BoundingBox bb)
 	
 	shot_time = 0.0;
 	
+//	//can we fire lasers from our subentities?
+//	int n_subs = [sub_entities count];
+//	if (n_subs)
+//	{
+//		int i = 0;
+//		for (i = 0; i < n_subs; i++)
+//		{	
+//			ShipEntity* subent = (ShipEntity*)[sub_entities objectAtIndex:i];
+//			if ((subent)&&(subent->isShip))
+//				[subent fireSubentityLaserShot];
+//		}
+//	}
+//	
 	// random laser over-heating for AI ships
 	if ((!isPlayer)&&((ranrot_rand() & 255) < weapon_energy)&&(![self isMining]))
 		shot_time -= (randf() * weapon_energy);
+	
+	return YES;
+}
+
+- (BOOL) fireSubentityLaserShot: (double) range
+{
+	ParticleEntity  *shot;
+	int				direction = VIEW_FORWARD;
+	target_laser_hit = NO_TARGET;
+		
+	if (forward_weapon_type == WEAPON_NONE)
+		return NO;
+	[self set_weapon_data_from_type:forward_weapon_type];
+
+	ShipEntity* parent = (ShipEntity*)[self owner];
+	
+	if (shot_time < weapon_recharge_rate)
+		return NO;
+	
+	if (range > weapon_range)
+		return NO;
+	
+	target_laser_hit = [universe getFirstEntityHitByLaserFromEntity:self inView:direction];
+	
+//	NSLog(@"DEBUG target hit by SubEntityLaserShot: %d %@", target_laser_hit, [universe entityForUniversalID:target_laser_hit]);
+	
+	shot = [[ParticleEntity alloc] initLaserFromSubentity:self view:direction];	// alloc retains!
+	[shot setColor:laser_color];
+	[shot setScanClass: CLASS_NO_DRAW];
+	if (target_laser_hit != NO_TARGET)
+	{
+		Entity *victim = [universe entityForUniversalID:target_laser_hit];
+		if (victim)
+		{
+			Vector p0 = shot->position;
+			Vector p1 = victim->position;
+			if (victim->isShip)
+			{
+				ShipEntity* ship_hit = ((ShipEntity*)victim); 
+				ShipEntity* subent = ship_hit->subentity_taking_damage;
+				if ((subent) && [ship_hit->sub_entities containsObject:subent])
+				{
+					if (ship_hit->isFrangible)
+					{
+						p1 = [subent absolutePositionForSubentity];
+						victim = subent;
+						// do 1% bleed-through damage...
+						[ship_hit takeEnergyDamage: 0.01 * weapon_energy from:subent becauseOf:self];
+					}
+				}
+			}
+			//
+			double dist2 = distance2( p0, p1);
+			if ((victim->isShip)&&(dist2 < weapon_range*weapon_range))
+			{
+				[(ShipEntity *)victim takeEnergyDamage:weapon_energy from:self becauseOf:parent];	// a very palpable hit
+				[shot setCollisionRadius:sqrt(dist2)];	// so it's drawn to the right size
+			}
+		}
+	}
+	[universe addEntity:shot];
+	[shot release]; //release
+	
+	shot_time = 0.0;
 	
 	return YES;
 }
@@ -4068,7 +4359,7 @@ Vector randomPositionInBoundingBox(BoundingBox bb)
 	
 	Quaternion q_save = q_rotation;	// save rotation
 	q_rotation = q_laser;			// face in direction of laser
-	target_laser_hit = [universe getFirstEntityHitByLaserFromEntity:self];
+	target_laser_hit = [universe getFirstEntityHitByLaserFromEntity:self inView:VIEW_FORWARD];
 	q_rotation = q_save;			// restore rotation
 
 	Vector  vel = make_vector( v_forward.x * flight_speed, v_forward.y * flight_speed, v_forward.z * flight_speed);
@@ -4083,6 +4374,24 @@ Vector randomPositionInBoundingBox(BoundingBox bb)
 	if (target_laser_hit != NO_TARGET)
 	{
 		Entity *victim = [universe entityForUniversalID:target_laser_hit];
+
+		if ((victim) && (victim->isShip))
+		{
+			ShipEntity* parent = (ShipEntity*)[victim owner];
+			if ((parent) && (parent != victim) && [parent->sub_entities containsObject:victim])
+			{
+				if (parent->isFrangible)
+				{
+//					NSLog(@"DEBUG Direct Laser hit on subentity %@ of frangible entity %@", victim, parent);
+				}
+				else
+				{
+//					NSLog(@"DEBUG Direct Laser hit on subentity %@ of NON-frangible entity %@", victim, parent);
+					victim = parent;
+				}
+			}
+		}
+		
 		if (victim)
 		{
 			Vector p0 = shot->position;
@@ -4129,6 +4438,24 @@ Vector randomPositionInBoundingBox(BoundingBox bb)
 	if (target_laser_hit != NO_TARGET)
 	{
 		Entity *victim = [universe entityForUniversalID:target_laser_hit];
+		
+		if ((victim) && (victim->isShip))
+		{
+			ShipEntity* parent = (ShipEntity*)[victim owner];
+			if ((parent) && (parent != victim) && [parent->sub_entities containsObject:victim])
+			{
+				if (parent->isFrangible)
+				{
+//					NSLog(@"DEBUG Laser hit on subentity %@ of frangible entity %@", victim, parent);
+				}
+				else
+				{
+//					NSLog(@"DEBUG Laser hit on subentity %@ of NON-frangible entity %@", victim, parent);
+					victim = parent;
+				}
+			}
+		}
+		
 		if (victim)
 		{
 			Vector p0 = shot->position;
@@ -4271,9 +4598,17 @@ Vector randomPositionInBoundingBox(BoundingBox bb)
 	Vector  vel;
 	Vector  origin = position;
 	Vector  start;
+	
+	// default launching position
 	start.x = 0.0;						// in the middle
 	start.y = boundingBox.min_y - 4.0;	// 4m below bounding box
 	start.z = boundingBox.max_z + 1.0;	// 1m ahead of bounding box
+	// custom launching position
+	if ([shipinfoDictionary objectForKey:@"missile_launch_position"])
+	{
+		start = [Entity vectorFromString:(NSString *)[shipinfoDictionary objectForKey:@"missile_launch_position"]];
+	}
+	
 	double  throw_speed = 250.0;
 	Quaternion q1 = q_rotation;
 	Entity  *target = [self getPrimaryTarget];
@@ -4456,36 +4791,12 @@ Vector randomPositionInBoundingBox(BoundingBox bb)
 - (int) launchEscapeCapsule
 {
 	ShipEntity *pod;
-	Vector  vel;
-	Vector  origin = position;
-	double  start = boundingBox.min_y - 10.0;
-	double  throw_speed = 20.0;
-	int co_type, co_amount;
-	Quaternion q1 = q_rotation;
-	
-	if (isPlayer)
-		q1.w = -q1.w;   // player view is reversed remember!
-		
-	vel.x = (-v_forward.x) * throw_speed + flight_speed * v_forward.x;
-	vel.y = (-v_forward.y) * throw_speed + flight_speed * v_forward.y;
-	vel.z = (-v_forward.z) * throw_speed + flight_speed * v_forward.z;
-	
-	origin.x += vel.x * start / throw_speed;
-	origin.y += vel.y * start / throw_speed;
-	origin.z += vel.z * start / throw_speed;
 	
 	pod = [universe getShipWithRole:@"escape-capsule"];   // retain count = 1
-	[pod setPosition:origin];						// directly below
-	[pod setScanClass: CLASS_CARGO];
-	co_type = [universe commodityForName:@"Slaves"];
-	co_amount = 1;
-	[pod setCommodity:co_type andAmount:co_amount];
-	[pod setQRotation:q1];
-	[pod setVelocity: vel];
 	[pod setOwner:self];
-	[[pod getAI] setState:@"GLOBAL"];   // set the AI going
-	[pod setStatus: STATUS_IN_FLIGHT];  // necessary to get it going!
-	[universe addEntity:pod];
+	[pod setScanClass: CLASS_CARGO];
+	[pod setCommodity:[universe commodityForName:@"Slaves"] andAmount:1];
+	[self dumpItem:pod];
 	[pod release]; //release
 		
 	return [pod universal_id];
@@ -4499,48 +4810,11 @@ Vector randomPositionInBoundingBox(BoundingBox bb)
 	int result = CARGO_NOT_CARGO;
 	if (([cargo count] > 0)&&([universe getTime] - cargo_dump_time > 0.5))  // space them 0.5s or 10m apart
 	{
-		ShipEntity* jetto = [[cargo objectAtIndex:0] retain];
+		ShipEntity* jetto = [cargo objectAtIndex:0];
 		if (!jetto)
 			return 0;
-		double  start = collision_radius + jetto->collision_radius;
-		double  eject_speed = -20.0;
-		Quaternion  random_direction;
-		Vector  vel;
-		Vector  rpos = position;
-		double random_roll =	((ranrot_rand() % 1024) - 512.0)/1024.0;  //  -0.5 to +0.5
-		double random_pitch =   ((ranrot_rand() % 1024) - 512.0)/1024.0;  //  -0.5 to +0.5
-		quaternion_set_random(&random_direction);
-		rpos.x -= v_forward.x * start;
-		rpos.y -= v_forward.y * start;
-		rpos.z -= v_forward.z * start;
-		vel.x = v_forward.x * flight_speed;
-		vel.y = v_forward.y * flight_speed;
-		vel.z = v_forward.z * flight_speed;
-
-		vel.x += v_forward.x * eject_speed;
-		vel.y += v_forward.y * eject_speed;
-		vel.z += v_forward.z * eject_speed;
-		eject_speed *= 0.1 * ((ranrot_rand() % 10) - 5);   //  -0.5x .. +0.5x
-		vel.x += v_up.x * eject_speed;
-		vel.y += v_up.y * eject_speed;
-		vel.z += v_up.z * eject_speed;
-		eject_speed *= 0.1 * ((ranrot_rand() % 10) - 5);   //  -0.25x .. +0.25x
-		vel.x += v_right.x * eject_speed;
-		vel.y += v_right.y * eject_speed;
-		vel.z += v_right.z * eject_speed;
-		
 		result = [jetto getCommodityType];
-		[jetto setStatus:STATUS_TEST];
-		[jetto setPosition:rpos];
-		[jetto setQRotation:random_direction];
-		[jetto setRoll:random_roll];
-		[jetto setPitch:random_pitch];
-		[jetto setVelocity:vel];
-		[jetto setScanClass: CLASS_CARGO];
-		[jetto setStatus: STATUS_IN_FLIGHT];
-		[universe addEntity:jetto];
-		[[jetto getAI] setState:@"GLOBAL"];
-		[jetto release];
+		[self dumpItem:jetto];
 		[cargo removeObjectAtIndex:0];
 		cargo_dump_time = [universe getTime];
 	}
@@ -4552,7 +4826,8 @@ Vector randomPositionInBoundingBox(BoundingBox bb)
 	if (!jetto)
 		return 0;
 	int result = [jetto getCargoType];
-	double  start = collision_radius + jetto->collision_radius;
+	Vector start;
+
 	double  eject_speed = -20.0;
 	Quaternion  random_direction;
 	Vector  vel;
@@ -4560,9 +4835,22 @@ Vector randomPositionInBoundingBox(BoundingBox bb)
 	double random_roll =	((ranrot_rand() % 1024) - 512.0)/1024.0;  //  -0.5 to +0.5
 	double random_pitch =   ((ranrot_rand() % 1024) - 512.0)/1024.0;  //  -0.5 to +0.5
 	quaternion_set_random(&random_direction);
-	rpos.x -= v_forward.x * start;
-	rpos.y -= v_forward.y * start;
-	rpos.z -= v_forward.z * start;
+
+	// default launching position
+	start.x = 0.0;						// in the middle
+	start.y = 0.0;						//
+	start.z = boundingBox.min_z - 1.0;	// 1m behind of bounding box
+	// custom launching position
+	if ([shipinfoDictionary objectForKey:@"aft_eject_position"])
+	{
+		start = [Entity vectorFromString:(NSString *)[shipinfoDictionary objectForKey:@"aft_eject_position"]];
+	}
+	start.z -= jetto->collision_radius;
+	
+	rpos.x +=	v_right.x * start.x +	v_up.x * start.y +	v_forward.x * start.z;
+	rpos.y +=	v_right.y * start.x +	v_up.y * start.y +	v_forward.y * start.z;
+	rpos.z +=	v_right.z * start.x +	v_up.z * start.y +	v_forward.z * start.z;	
+	
 	vel.x = v_forward.x * flight_speed;
 	vel.y = v_forward.y * flight_speed;
 	vel.z = v_forward.z * flight_speed;
@@ -4587,7 +4875,6 @@ Vector randomPositionInBoundingBox(BoundingBox bb)
 	[jetto setStatus: STATUS_IN_FLIGHT];
 	[universe addEntity:jetto];
 	[[jetto getAI] setState:@"GLOBAL"];
-	[jetto release];
 	cargo_dump_time = [universe getTime];
 	return result;
 }
@@ -4630,11 +4917,17 @@ Vector randomPositionInBoundingBox(BoundingBox bb)
 	if (!other)
 		return NO;
 	
+	ShipEntity* parent = (ShipEntity*)[other owner];
+	BOOL isSubentity = ((parent)&&(parent != other)&&([parent->sub_entities containsObject:other]));
+	
 	// calculate line of centers using centres
-	opos = other->position;
+	if (isSubentity)
+		opos = [other absolutePositionForSubentity];
+	else
+		opos = other->position;
 	loc = opos;
 	loc.x -= position.x;	loc.y -= position.y;	loc.z -= position.z;
-	double back_dist = 0.5 * (collision_radius + other->collision_radius - sqrt(magnitude2(loc)));
+	double back_dist = 0.5 * (actual_radius + other->actual_radius - sqrt(magnitude2(loc)));
 	
 	loc = unit_vector(&loc);
 	Vector back = make_vector( back_dist * loc.x, back_dist * loc.y, back_dist * loc.z);
@@ -4653,21 +4946,36 @@ Vector randomPositionInBoundingBox(BoundingBox bb)
 	}
 	
 	// back-off minimum distance
-	pos = position;
-	[self setPosition: pos.x - back.x :pos.y - back.y :pos.z - back.z];
-	pos = other->position;
-	[other setPosition: pos.x + back.x :pos.y + back.y :pos.z + back.z];
+	if (isSubentity)
+	{
+		pos = position;
+		[self setPosition: pos.x - 2.0 * back.x :pos.y - 2.0 * back.y :pos.z - 2.0 * back.z];
+	}
+	else
+	{
+		pos = position;
+		[self setPosition: pos.x - back.x :pos.y - back.y :pos.z - back.z];
+		pos = other->position;
+		[other setPosition: pos.x + back.x :pos.y + back.y :pos.z + back.z];
+	}
 	
 	// find velocity along line of centers
 	// 
 	// momentum = mass x velocity
 	// ke = mass x velocity x velocity
 	//
-	GLfloat m1 = mass;
-	GLfloat m2 = [other mass];
+	GLfloat m1 = mass;			// mass of self
+	GLfloat m2 = [other mass];	// mass of other
 	//
-	Vector	vel1 =	[self getVelocity];		// mass of self
-	Vector	vel2 =	[other getVelocity];	// mass of other
+	Vector	vel1 =	[self getVelocity];	
+	Vector	vel2 =	[other getVelocity];
+	if (isSubentity)
+	{
+		if (parent)
+			vel2 = [parent getVelocity];
+		else
+			vel2 = make_vector( 0, 0, 0);
+	}
 	//
 	GLfloat	v1 = dot_product( vel1, loc);	// velocity of self in direction of line of centers
 	GLfloat	v2 = dot_product( vel2, loc);	// velocity of other in direction of line of centers
@@ -4678,15 +4986,27 @@ Vector randomPositionInBoundingBox(BoundingBox bb)
 	Vector vel1a = make_vector( vel1.x + (v1a - v1) * loc.x, vel1.y + (v1a - v1) * loc.y, vel1.z + (v1a - v1) * loc.z);
 	Vector vel2a = make_vector( vel2.x + (v2a - v2) * loc.x, vel2.y + (v2a - v2) * loc.y, vel2.z + (v2a - v2) * loc.z);
 	//
-	[self setVelocity:vel1a];
-	[other setVelocity:vel2a];
+	if (isSubentity)
+	{
+		[self setVelocity:vel1a];
+		if (parent)
+			[parent setVelocity:vel2a];
+	}
+	else
+	{
+		[self setVelocity:vel1a];
+		[other setVelocity:vel2a];
+	}
 	//
 	// convert some velocity into damage energy
 	//
 	dam1 = (m1 + m2) * (v1 - v2) * (v1 - v2) / 100000000;
 	//
 	[self	takeScrapeDamage: dam1 from:other];
-	[other	takeScrapeDamage: dam1 from:self];
+	if ((isSubentity) && (parent) && !(parent->isFrangible))
+		[parent takeScrapeDamage: dam1 from:self];
+	else
+		[other	takeScrapeDamage: dam1 from:self];
 	//
 	// remove self from other's collision list
 	//
@@ -5380,7 +5700,8 @@ Vector randomPositionInBoundingBox(BoundingBox bb)
 	{
 		// if I'm under attack send a thank-you message to the rescuer
 		//
-		NSArray* tokens = [ms componentsSeparatedByString:@" "];
+//		NSArray* tokens = [ms componentsSeparatedByString:@" "];
+		NSArray* tokens = [Entity scanTokensFromString:ms];
 		int switcher_id = [(NSString*)[tokens objectAtIndex:1] intValue];
 		Entity* switcher = [universe entityForUniversalID:switcher_id];
 		int rescuer_id = [(NSString*)[tokens objectAtIndex:2] intValue];
@@ -5399,17 +5720,20 @@ Vector randomPositionInBoundingBox(BoundingBox bb)
 
 - (BoundingBox) findBoundingBoxRelativeTo:(Entity *)other InVectors:(Vector) _i :(Vector) _j :(Vector) _k
 {
-	Vector pv, rv;
-	Vector  rpos = position;
+	Vector	pv, rv;
 	Vector  opv = (other)? other->position : position;
+	Vector  rpos = position;
 	rpos.x -= opv.x;	rpos.y -= opv.y;	rpos.z -= opv.z;
-	rv.x = dot_product(_i,rpos);
-	rv.y = dot_product(_j,rpos);
-	rv.z = dot_product(_k,rpos);
+	pv.x = rpos.x + v_right.x * vertices[0].x + v_up.x * vertices[0].y + v_forward.x * vertices[0].z;
+	pv.y = rpos.y + v_right.y * vertices[0].x + v_up.y * vertices[0].y + v_forward.y * vertices[0].z;
+	pv.z = rpos.z + v_right.z * vertices[0].x + v_up.z * vertices[0].y + v_forward.z * vertices[0].z;
+	rv.x = dot_product(_i,pv);
+	rv.y = dot_product(_j,pv);
+	rv.z = dot_product(_k,pv);
 	BoundingBox result;
 	bounding_box_reset_to_vector(&result,rv);
 	int i;
-    for (i = 0; i < n_vertices; i++)
+    for (i = 1; i < n_vertices; i++)
     {
 		pv.x = rpos.x + v_right.x * vertices[i].x + v_up.x * vertices[i].y + v_forward.x * vertices[i].z;
 		pv.y = rpos.y + v_right.y * vertices[i].x + v_up.y * vertices[i].y + v_forward.y * vertices[i].z;
@@ -5425,16 +5749,19 @@ Vector randomPositionInBoundingBox(BoundingBox bb)
 
 - (BoundingBox) findBoundingBoxRelativeToPosition:(Vector)opv InVectors:(Vector) _i :(Vector) _j :(Vector) _k
 {
-	Vector pv, rv;
+	Vector	pv, rv;
 	Vector  rpos = position;
 	rpos.x -= opv.x;	rpos.y -= opv.y;	rpos.z -= opv.z;
 	rv.x = dot_product(_i,rpos);
 	rv.y = dot_product(_j,rpos);
 	rv.z = dot_product(_k,rpos);
+	pv.x = rpos.x + v_right.x * vertices[0].x + v_up.x * vertices[0].y + v_forward.x * vertices[0].z;
+	pv.y = rpos.y + v_right.y * vertices[0].x + v_up.y * vertices[0].y + v_forward.y * vertices[0].z;
+	pv.z = rpos.z + v_right.z * vertices[0].x + v_up.z * vertices[0].y + v_forward.z * vertices[0].z;
 	BoundingBox result;
 	bounding_box_reset_to_vector(&result,rv);
 	int i;
-    for (i = 0; i < n_vertices; i++)
+    for (i = 1; i < n_vertices; i++)
     {
 		pv.x = rpos.x + v_right.x * vertices[i].x + v_up.x * vertices[i].y + v_forward.x * vertices[i].z;
 		pv.y = rpos.y + v_right.y * vertices[i].x + v_up.y * vertices[i].y + v_forward.y * vertices[i].z;
@@ -5450,7 +5777,8 @@ Vector randomPositionInBoundingBox(BoundingBox bb)
 
 - (void) spawn:(NSString *)roles_number
 {
-	NSMutableArray*	tokens = [NSMutableArray arrayWithArray:[roles_number componentsSeparatedByString:@" "]];
+//	NSMutableArray*	tokens = [NSMutableArray arrayWithArray:[roles_number componentsSeparatedByString:@" "]];
+	NSArray*	tokens = [Entity scanTokensFromString:roles_number];
 	NSString*   roleString = nil;
 	NSString*	numberString = nil;
 
@@ -5470,16 +5798,6 @@ Vector randomPositionInBoundingBox(BoundingBox bb)
 
 	while (number--)
 		[universe spawnShipWithRole:roleString near:self];
-}
-
-//- (Vector) getVelocity
-//{
-//	return make_vector( velocity.x + v_forward.x * flight_speed, velocity.y + v_forward.y * flight_speed, velocity.z + v_forward.z * flight_speed);
-//}
-
-- (BOOL *) face_hit
-{
-	return face_hit;
 }
 
 @end

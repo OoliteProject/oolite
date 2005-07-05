@@ -1730,15 +1730,8 @@ Your fair use and other rights are in no way affected by the above.
 
 - (void) setCoordinates:(NSString *)system_x_y_z
 {
-	NSMutableArray*	tokens = [NSMutableArray arrayWithArray:[system_x_y_z componentsSeparatedByString:@" "]];
-	int i = 0;
-	while (i < [tokens count])	// remove empty tokens
-	{
-		if ([(NSString*)[tokens objectAtIndex:i] isEqual:@""])
-			[tokens removeObjectAtIndex:i];
-		else
-			i++;
-	}
+//	NSMutableArray*	tokens = [NSMutableArray arrayWithArray:[system_x_y_z componentsSeparatedByString:@" "]];
+	NSArray*	tokens = [Entity scanTokensFromString:system_x_y_z];
 	NSString*	systemString = nil;
 	NSString*	xString = nil;
 	NSString*	yString = nil;

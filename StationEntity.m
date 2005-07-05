@@ -828,7 +828,8 @@ Your fair use and other rights are in no way affected by the above.
 		NSArray *subs = (NSArray *)[dict objectForKey:@"subentities"];
 		for (i = 0; i < [subs count]; i++)
 		{
-			NSArray* details = [(NSString *)[subs objectAtIndex:i] componentsSeparatedByString:@" "];
+//			NSArray* details = [(NSString *)[subs objectAtIndex:i] componentsSeparatedByString:@" "];
+			NSArray* details = [Entity scanTokensFromString:(NSString *)[subs objectAtIndex:i]];
 			if (([details count] == 8)&&([(NSString *)[details objectAtIndex:0] isEqual:@"dock"]))
 			{
 				port_position.x = [(NSString *)[details objectAtIndex:1] floatValue];
@@ -1714,8 +1715,11 @@ Your fair use and other rights are in no way affected by the above.
 
 - (NSString *) roles
 {
-	NSString* all_roles = [shipinfoDictionary objectForKey:@"roles"];
-	return [[all_roles componentsSeparatedByString:@" "] objectAtIndex:0];
+	NSArray* all_roles = [Entity scanTokensFromString:[shipinfoDictionary objectForKey:@"roles"]];
+	if ([all_roles count])
+		return (NSString *)[all_roles objectAtIndex:0];
+	else
+		return @"station";
 }
 
 @end

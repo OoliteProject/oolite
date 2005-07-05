@@ -146,150 +146,159 @@ Your fair use and other rights are in no way affected by the above.
 
 @interface ShipEntity : Entity {
 	
-	// per poly collisions...
-	BOOL	face_hit[MAX_FACES_PER_ENTITY];
-	// per collision directions
-	NSMutableDictionary* collisionVectorForEntity;
-	
-	//set-up
-	NSDictionary*	shipinfoDictionary;
-	
-	//scripting
-	NSMutableArray *launch_actions;
-	NSMutableArray *script_actions;
-	NSMutableArray *death_actions;
-	
-	int escort_ids[MAX_ESCORTS];	// replaces the mutable array
-	int n_escorts;					// initially, number of escorts to set up, later number of escorts available
-	int group_id;					// id of group leader
-	int last_escort_target;			// last target an escort was deployed after
-	int found_hostiles;				// number of hostiles found
-	BOOL escortsAreSetUp;			// set to YES once escorts are initialised (a bit of a hack)
-	
-	NSArray *sub_entities;
-	NSColor *laser_color;
-	
-	// per ship-type variables
-	//
-	double  max_flight_speed;		// top speed			(160.0 for player)  (200.0 for fast raider)
-	double  max_flight_roll;		// maximum roll rate	(2.0 for player)	(3.0 for fast raider)	
-	double  max_flight_pitch;		// maximum pitch rate   (1.0 for player)	(1.5 for fast raider) also radians/sec for (* turrets *)
-	
-	double  thrust;					// acceleration
-	
-	BOOL	has_ecm;				// anti-missile system
-	BOOL	has_scoop;				// fuel/cargo scoops
-	BOOL	has_escape_pod;			// escape pod
-	BOOL	has_energy_bomb;		// energy_bomb
-
-	BOOL	has_cloaking_device;	// cloaking_device
-	BOOL	cloaking_device_active;	// cloaking_device
-
-	BOOL	has_military_jammer;	// military_jammer
-	BOOL	military_jammer_active;	// military_jammer
-	BOOL	has_military_scanner_filter;	// military_scanner
-
-	BOOL	has_fuel_injection;		// afterburners
-	int     fuel;					// witch-space fuel
-	double	fuel_accumulator;
-	
-	int		likely_cargo;			// likely amount of cargo (for merchantmen, this is what is spilled as loot)
-	int		max_cargo;				// capacity of cargo hold
-	int		bounty;					// bounty (if any)
-	int		cargo_type;				// if this is scooped, this is indicates contents
-	int		cargo_flag;				// indicates contents for merchantmen
-	
-	double  energy_recharge_rate;   // recharge rate for energy banks
-	
-	int		forward_weapon_type;	// type of forward weapon (allows lasers, plasma cannon, others)
-	int		aft_weapon_type;	// type of forward weapon (allows lasers, plasma cannon, others)
-	double  weapon_energy;			// energy used/delivered by weapon
-	double  weapon_range;			// range of the weapon (in meters)
-	double  weapon_offset_x;		// if weapon is in twin configuration this is the distance from the centerline to the weapon
-	
-	double	scanner_range;			// typically 25600
-	
-	int		missiles;				// number of on-board missiles
-	
-	AI*		shipAI;					// ship's AI system
-	
-	NSString*   name;				// descriptive name
-	NSString*   roles;				// names fo roles a ship can take, eg. trader, hunter, police, pirate, scavenger &c.
-	
-	// AI stuff
-	//
-	Vector		jink;				// x and y set factors for offsetting a pursuing ship's position
-	Vector		destination;		// for flying to/from a set point
-	Vector		coordinates;		// for flying to/from a set point
-	Vector		reference;			// a direction vector of magnitude 1 (* turrets *)
-	int			primaryTarget;		// for combat or rendezvous
-	int			primaryAggressor;   // recorded after an attack
-	int			targetStation;		// for docking
-	int			found_target;		// from scans
-	int			target_laser_hit;   // u-id for the entity hit by the last laser shot
-	int			owner_id;			// u-id for the controlling owner of this entity (* turrets *)
-	double		desired_range;		// range to which to journey/scan
-	double		desired_speed;		// speed at which to travel
-	double		launch_time;		// time at which launched
-	
-	int		condition;						// ship's behavioural state
-	double	frustration, success_factor;	// degree of dissatisfaction with the current behavioural state, factor used to test this
-	
-	int		patrol_counter;				// keeps track of where the ship is along a patrol route
-	
-	int		proximity_alert;			// id of a ShipEntity within 2x collision_radius
-	NSMutableDictionary*	previousCondition;	// restored after collision avoidance
-	
-	// derived variables
-	//
-	double  shot_time;					// time elapsed since last shot was fired
-	double  weapon_recharge_rate;		// time between shots
-	int		shot_counter;				// number of shots fired
-	double  cargo_dump_time;			// time cargo was last dumped
-	
-	NSMutableArray* cargo;				// cargo containers go in here
-	
-	int commodity_type;					// type of commodity in a container
-	int commodity_amount;				// 1 if unit is TONNES (0), possibly more if precious metals KILOGRAMS (1)
-										// or gem stones GRAMS (2) 
-	
-	// navigation
-	//
-	@public Vector v_forward, v_up, v_right;	// unit vectors derived from the direction faced
+	@public
+		//
+		NSArray*	sub_entities;
+		ShipEntity*	subentity_taking_damage;	//	frangible => subentities can be damaged individually
+		BOOL		isFrangible;				//	frangible => subentities can be damaged individually
 		
-	double flight_speed;				// current speed
-	double flight_roll;					// current roll rate
-	double flight_pitch;				// current pitch rate
-	
-	double pitch_tolerance;
-	
-	BOOL	pitching_over;				// set to YES if executing a sharp loop
+		// derived variables
+		//
+		double  shot_time;			// time elapsed since last shot was fired
+		
+		// navigation
+		//
+		Vector v_forward, v_up, v_right;	// unit vectors derived from the direction faced
 
-	BOOL	within_station_aegis;		// set to YES when within the station's protective zone
-	int		aegis_status;				// set to YES when within the station's protective zone
-	
-	BOOL	reportAImessages;			// normally NO, suppressing AI message reporting
-	
-	BOOL	being_mined;				// normally NO, set to Yes when fired on by mining laser
-	
-	BOOL	being_fined;
-	
-	double	message_time;				// counts down the seconds a radio message is active for
-	
-	double	next_spark_time;			// time of next spark when throwing sparks
-	
-	int		thanked_ship_id;			// last ship thanked
-	
-	Vector	momentum;					// accumulates impacts
-	Vector	collision_vector;			// direction of colliding thing.
-	
-	// beacons
-	char	beaconChar;					// character displayed for this beacon
-	int		nextBeaconID;				// next beacon in sequence
-	
-	
-	// DEBUGGING
-	int debug_condition;
+	@protected
+
+		// per collision directions
+		NSMutableDictionary* collisionInfoForEntity;
+		
+		//set-up
+		NSDictionary*	shipinfoDictionary;
+		
+		//scripting
+		NSMutableArray *launch_actions;
+		NSMutableArray *script_actions;
+		NSMutableArray *death_actions;
+		
+		int escort_ids[MAX_ESCORTS];	// replaces the mutable array
+		int n_escorts;					// initially, number of escorts to set up, later number of escorts available
+		int group_id;					// id of group leader
+		int last_escort_target;			// last target an escort was deployed after
+		int found_hostiles;				// number of hostiles found
+		BOOL escortsAreSetUp;			// set to YES once escorts are initialised (a bit of a hack)
+		
+		NSColor *laser_color;
+		
+		// per ship-type variables
+		//
+		double  max_flight_speed;		// top speed			(160.0 for player)  (200.0 for fast raider)
+		double  max_flight_roll;		// maximum roll rate	(2.0 for player)	(3.0 for fast raider)	
+		double  max_flight_pitch;		// maximum pitch rate   (1.0 for player)	(1.5 for fast raider) also radians/sec for (* turrets *)
+		
+		double  thrust;					// acceleration
+		
+		BOOL	has_ecm;				// anti-missile system
+		BOOL	has_scoop;				// fuel/cargo scoops
+		BOOL	has_escape_pod;			// escape pod
+		BOOL	has_energy_bomb;		// energy_bomb
+
+		BOOL	has_cloaking_device;	// cloaking_device
+		BOOL	cloaking_device_active;	// cloaking_device
+
+		BOOL	has_military_jammer;	// military_jammer
+		BOOL	military_jammer_active;	// military_jammer
+		BOOL	has_military_scanner_filter;	// military_scanner
+
+		BOOL	has_fuel_injection;		// afterburners
+		int     fuel;					// witch-space fuel
+		double	fuel_accumulator;
+		
+		int		likely_cargo;			// likely amount of cargo (for merchantmen, this is what is spilled as loot)
+		int		max_cargo;				// capacity of cargo hold
+		int		bounty;					// bounty (if any)
+		int		cargo_type;				// if this is scooped, this is indicates contents
+		int		cargo_flag;				// indicates contents for merchantmen
+		
+		double  energy_recharge_rate;   // recharge rate for energy banks
+		
+		int		forward_weapon_type;	// type of forward weapon (allows lasers, plasma cannon, others)
+		int		aft_weapon_type;	// type of forward weapon (allows lasers, plasma cannon, others)
+		double  weapon_energy;			// energy used/delivered by weapon
+		double  weapon_range;			// range of the weapon (in meters)
+		double  weapon_offset_x;		// if weapon is in twin configuration this is the distance from the centerline to the weapon
+		
+		double	scanner_range;			// typically 25600
+		
+		int		missiles;				// number of on-board missiles
+		
+		AI*		shipAI;					// ship's AI system
+		
+		NSString*   name;				// descriptive name
+		NSString*   roles;				// names fo roles a ship can take, eg. trader, hunter, police, pirate, scavenger &c.
+		
+		// AI stuff
+		//
+		Vector		jink;				// x and y set factors for offsetting a pursuing ship's position
+		Vector		destination;		// for flying to/from a set point
+		Vector		coordinates;		// for flying to/from a set point
+		Vector		reference;			// a direction vector of magnitude 1 (* turrets *)
+		int			primaryTarget;		// for combat or rendezvous
+		int			primaryAggressor;   // recorded after an attack
+		int			targetStation;		// for docking
+		int			found_target;		// from scans
+		int			target_laser_hit;   // u-id for the entity hit by the last laser shot
+		int			owner_id;			// u-id for the controlling owner of this entity (* turrets *)
+		double		desired_range;		// range to which to journey/scan
+		double		desired_speed;		// speed at which to travel
+		double		launch_time;		// time at which launched
+		
+		int		condition;						// ship's behavioural state
+		double	frustration, success_factor;	// degree of dissatisfaction with the current behavioural state, factor used to test this
+		
+		int		patrol_counter;				// keeps track of where the ship is along a patrol route
+		
+		int		proximity_alert;			// id of a ShipEntity within 2x collision_radius
+		NSMutableDictionary*	previousCondition;	// restored after collision avoidance
+		
+		// derived variables
+		//
+		double  weapon_recharge_rate;		// time between shots
+		int		shot_counter;				// number of shots fired
+		double  cargo_dump_time;			// time cargo was last dumped
+		
+		NSMutableArray* cargo;				// cargo containers go in here
+		
+		int commodity_type;					// type of commodity in a container
+		int commodity_amount;				// 1 if unit is TONNES (0), possibly more if precious metals KILOGRAMS (1)
+											// or gem stones GRAMS (2) 
+		
+		// navigation
+		//		
+		double flight_speed;				// current speed
+		double flight_roll;					// current roll rate
+		double flight_pitch;				// current pitch rate
+		
+		double pitch_tolerance;
+		
+		BOOL	pitching_over;				// set to YES if executing a sharp loop
+
+		BOOL	within_station_aegis;		// set to YES when within the station's protective zone
+		int		aegis_status;				// set to YES when within the station's protective zone
+		
+		BOOL	reportAImessages;			// normally NO, suppressing AI message reporting
+		
+		BOOL	being_mined;				// normally NO, set to Yes when fired on by mining laser
+		
+		BOOL	being_fined;
+		
+		double	message_time;				// counts down the seconds a radio message is active for
+		
+		double	next_spark_time;			// time of next spark when throwing sparks
+		
+		int		thanked_ship_id;			// last ship thanked
+		
+		Vector	momentum;					// accumulates impacts
+		Vector	collision_vector;			// direction of colliding thing.
+		
+		// beacons
+		char	beaconChar;					// character displayed for this beacon
+		int		nextBeaconID;				// next beacon in sequence
+		
+		// DEBUGGING
+		int debug_condition;
 }
 
 	// beacons
@@ -405,10 +414,16 @@ Vector randomPositionInBoundingBox(BoundingBox bb);
 
 - (void) collectBountyFor:(ShipEntity *)other;
 
-//- (BOOL) checkPerPolyCollisionWith:(Entity *)other;
-- (BOOL) checkPerPolyCollisionWithShip:(ShipEntity *)other;
-- (BOOL) checkPerPolyCollisionWithParticle:(ParticleEntity *)other;
-- (Vector) collisionVectorForEntity:(Entity *)other;
+- (BOOL) checkBoundingBoxCollisionWith:(Entity *)other;
+- (BOOL) subentityCheckBoundingBoxCollisionWith:(Entity *)other;
+- (BoundingBox) findSubentityBoundingBox;
+- (BoundingBox) findSubentityBoundingBoxRelativeTo: (Entity*)other inVectors: (Vector)vi: (Vector)vj: (Vector)vk;
+- (BoundingBox) findSubentityBoundingBoxRelativeToPosition: (Vector)othpos inVectors: (Vector)vi: (Vector)vj: (Vector)vk;
+
+- (Vector) absolutePositionForSubentity;
+- (Vector) absolutePositionForSubentityOffset:(Vector) offset;
+
+- (void) addSolidSubentityToCollisionRadius:(ShipEntity*) subent;
 
 /*-----------------------------------------
 
@@ -448,6 +463,7 @@ Vector randomPositionInBoundingBox(BoundingBox bb);
 - (BOOL) fireTurretCannon:(double) range;
 - (void) setLaserColor:(NSColor *) color;
 - (BOOL) fireLaserShot;
+- (BOOL) fireSubentityLaserShot: (double) range;
 - (BOOL) fireDirectLaserShot;
 - (BOOL) fireLaserShotInDirection: (int) direction;
 - (BOOL) firePlasmaShot:(double) offset :(double) speed :(NSColor *) color;
@@ -507,6 +523,12 @@ Vector randomPositionInBoundingBox(BoundingBox bb);
 
 - (void) spawn:(NSString *)roles_number;
 
-- (BOOL *) face_hit;
+/****************************************************************
+
+straight c stuff
+
+****************************************************************/
+
+BOOL ship_canCollide (ShipEntity* ship);
 
 @end

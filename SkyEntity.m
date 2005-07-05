@@ -187,7 +187,8 @@ Your fair use and other rights are in no way affected by the above.
 	if ([systeminfo objectForKey:@"sky_rgb_colors"])
 	{
 		NSString*   value = (NSString *)[systeminfo objectForKey:@"sky_rgb_colors"];
-		NSArray*	tokens = [value componentsSeparatedByString:@" "];
+//		NSArray*	tokens = [value componentsSeparatedByString:@" "];
+		NSArray*	tokens = [Entity scanTokensFromString:value];
 		if ([tokens count] == 6)
 		{
 			float r1 = [(NSString *)[tokens objectAtIndex:0] floatValue];

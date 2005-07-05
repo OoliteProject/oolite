@@ -134,8 +134,12 @@ Your fair use and other rights are in no way affected by the above.
 	if ([kdic objectForKey:@"key_map_dump"])		key_map_dump = [(NSNumber *)[kdic objectForKey:@"key_map_dump"] intValue];
 	if ([kdic objectForKey:@"key_map_home"])		key_map_home = [(NSNumber *)[kdic objectForKey:@"key_map_home"] intValue];
 	//
-	if ([kdic objectForKey:@"key_emergency_hyperdrive"])
-		key_emergency_hyperdrive = [(NSNumber *)[kdic objectForKey:@"key_emergency_hyperdrive"] intValue];
+	if ([kdic objectForKey:@"key_mouse_control"])
+		key_mouse_control = [(NSNumber *)[kdic objectForKey:@"key_mouse_control"] intValue];
+	if ([kdic objectForKey:@"key_pausebutton"])
+		key_pausebutton = [(NSNumber *)[kdic objectForKey:@"key_pausebutton"] intValue];
+	if ([kdic objectForKey:@"key_show_fps"])
+		key_show_fps = [(NSNumber *)[kdic objectForKey:@"key_show_fps"] intValue];
 	//
 	if ([kdic objectForKey:@"key_next_missile"])
 		key_next_missile = [(NSNumber *)[kdic objectForKey:@"key_next_missile"] intValue];
@@ -484,7 +488,8 @@ Your fair use and other rights are in no way affected by the above.
 	
 	if ([dict objectForKey:@"galaxy_seed"])
 	{
-		NSArray *seed_vals = [(NSString *)[dict objectForKey:@"galaxy_seed"] componentsSeparatedByString:@" "];
+//		NSArray *seed_vals = [(NSString *)[dict objectForKey:@"galaxy_seed"] componentsSeparatedByString:@" "];
+		NSArray *seed_vals = [Entity scanTokensFromString:(NSString *)[dict objectForKey:@"galaxy_seed"]];
 		galaxy_seed.a = (unsigned char)[(NSString *)[seed_vals objectAtIndex:0] intValue];
 		galaxy_seed.b = (unsigned char)[(NSString *)[seed_vals objectAtIndex:1] intValue];
 		galaxy_seed.c = (unsigned char)[(NSString *)[seed_vals objectAtIndex:2] intValue];
@@ -495,7 +500,8 @@ Your fair use and other rights are in no way affected by the above.
 	
 	if ([dict objectForKey:@"galaxy_coordinates"])
 	{
-		NSArray *coord_vals = [(NSString *)[dict objectForKey:@"galaxy_coordinates"] componentsSeparatedByString:@" "];
+//		NSArray *coord_vals = [(NSString *)[dict objectForKey:@"galaxy_coordinates"] componentsSeparatedByString:@" "];
+		NSArray *coord_vals = [Entity scanTokensFromString:(NSString *)[dict objectForKey:@"galaxy_coordinates"]];
 		galaxy_coordinates.x = (unsigned char)[(NSString *)[coord_vals objectAtIndex:0] intValue];
 		galaxy_coordinates.y = (unsigned char)[(NSString *)[coord_vals objectAtIndex:1] intValue];
 	}
@@ -1884,114 +1890,7 @@ static BOOL galactic_witchjump;
 
 - (void) drawEntity:(BOOL) immediate :(BOOL) translucent
 {
-
-/*--
-//	NSLog(@"DEBUG checking per poly collision Player versus %@ %d", [other name], [other universal_id]);
-
-//	Matrix rMat;
-//	rMat[0] = v_forward;
-//	rMat[1] = v_up;
-//	rMat[2] = v_right;
-	
-	Quaternion q_actual = q_rotation;
-	q_actual.w = -q_actual.w;				// reverse rotation
-	
-	gl_matrix rMatrix;
-	quaternion_into_gl_matrix( q_actual, rMatrix);
-	
-	// DEBUG - TEMPORARY
-//	return YES;
-	
-	glPopMatrix();
-	glPushMatrix();
-	
-//	glTranslatef( position.x, position.y, position.z);
-//	glMultMatrixf( rMatrix);
-	
-	int v;
-	for (v = 0; v < n_vertices; v++)
-	{
-		Vector v0 = vertices[v];
-
-//		Vector p0 = make_vector( 3.0 * v0.x, 3.0 * v0.y, 3.0 * v0.z);
-		
-		mult_vector_gl_matrix(&v0, rMatrix);
-//		mult_vector(&v0, rMat);
-		
-		Vector q0 = make_vector( position.x + 3.0 * v0.x, position.y + 3.0 * v0.y, position.z + 3.0 * v0.z);
-		glTranslatef( q0.x, q0.y, q0.z);
-		
-//		glPushMatrix();
-//		glTranslatef( p0.x, p0.y, p0.z);
-
-		glBegin(GL_QUADS);
-			
-		glVertex3i(0,0,0);	glVertex3i(0,1,0);	glVertex3i(1,1,0);	glVertex3i(1,0,0);
-		glVertex3i(0,0,0);	glVertex3i(1,0,0);	glVertex3i(1,1,0);	glVertex3i(0,1,0);
-		glVertex3i(0,0,0);	glVertex3i(0,0,1);	glVertex3i(0,1,1);	glVertex3i(0,1,0);
-		glVertex3i(0,0,0);	glVertex3i(0,1,0);	glVertex3i(0,1,1);	glVertex3i(0,0,1);
-		glVertex3i(0,0,0);	glVertex3i(0,0,1);	glVertex3i(1,0,1);	glVertex3i(1,0,0);
-		glVertex3i(0,0,0);	glVertex3i(1,0,0);	glVertex3i(1,0,1);	glVertex3i(0,0,1);
-		
-		glEnd();
-		
-//		glPopMatrix();
-	}
-
---*/
 	checkGLErrors([NSString stringWithFormat:@"after drawing Entity %@", self]);
-}
-
-- (void) drawCollisionHitIndicator:(NSDictionary *) info depth:(GLfloat)z1
-{	
-//    NSLog(@"DEBUG PlayerEntity drawCollisionHitIndicator");
-	
-	int x = HIT_INDICATOR_CENTRE_X;
-	int y = HIT_INDICATOR_CENTRE_Y;
-	double alpha = 1.0;
-	if ([info objectForKey:X_KEY])
-		x =		[(NSNumber *)[info objectForKey:X_KEY] intValue];
-	if ([info objectForKey:Y_KEY])
-		y =		[(NSNumber *)[info objectForKey:Y_KEY] intValue];
-	if ([info objectForKey:ALPHA_KEY])
-		alpha = [(NSNumber *)[info objectForKey:ALPHA_KEY] doubleValue];
-				
-	Vector	scale = make_vector (1.0, 1.0, 0.0);
-	
-//	x = 0; y = 0;
-
-	int fi;
-	glColor4f( 0.0, 1.0, 0.0, alpha);	// green
-	for (fi = 0; fi < n_faces; fi++)
-	{
-		Vector v0 = vertices[faces[fi].vertex[0]];
-		Vector v1 = vertices[faces[fi].vertex[1]];
-		Vector v2 = vertices[faces[fi].vertex[2]];
-		Vector vv0 = make_vector( x + v0.x * scale.x, y + v0.z * scale.y, z1 + v0.y * scale.z);
-		Vector vv1 = make_vector( x + v1.x * scale.x, y + v1.z * scale.y, z1 + v1.y * scale.z);
-		Vector vv2 = make_vector( x + v2.x * scale.x, y + v2.z * scale.y, z1 + v2.y * scale.z);
-		
-		glBegin(GL_LINE_LOOP);
-		glVertex3f( vv0.x, vv0.y, vv0.z);	glVertex3f( vv1.x, vv1.y, vv1.z);	glVertex3f( vv2.x, vv2.y, vv2.z);
-		glEnd();
-	}
-	glColor4f( 1.0, 0.0, 0.0, alpha);	// red
-	for (fi = 0; fi < n_faces; fi++)
-	{
-		if (face_hit[fi])
-		{
-			Vector v0 = vertices[faces[fi].vertex[0]];
-			Vector v1 = vertices[faces[fi].vertex[1]];
-			Vector v2 = vertices[faces[fi].vertex[2]];
-			Vector vv0 = make_vector( x + v0.x * scale.x, y + v0.z * scale.y, z1 + v0.y * scale.z);
-			Vector vv1 = make_vector( x + v1.x * scale.x, y + v1.z * scale.y, z1 + v1.y * scale.z);
-			Vector vv2 = make_vector( x + v2.x * scale.x, y + v2.z * scale.y, z1 + v2.y * scale.z);
-			glBegin(GL_TRIANGLES);
-			glVertex3f( vv0.x, vv0.y, vv0.z);	glVertex3f( vv1.x, vv1.y, vv1.z);	glVertex3f( vv2.x, vv2.y, vv2.z);
-			glEnd();
-		}
-	}
-	
 }
 
 
@@ -3313,6 +3212,7 @@ static BOOL wait_for_key_up;
 static int searchStringLength;
 static double timeLastKeyPress;
 static BOOL upDownKeyPressed;
+static BOOL volumeControlPressed;
 static int oldSelection;
 static BOOL selectPressed;
 static BOOL queryPressed;
@@ -3364,7 +3264,7 @@ static BOOL queryPressed;
 	BOOL			moving = NO;
 	double			cursor_speed = 10.0;
 	GuiDisplayGen*  gui = [universe gui];
-   NSString    *commanderFile;
+	NSString    *commanderFile;
 
 #ifdef GNUSTEP   
 	[gameView allowStringInput:
@@ -4739,6 +4639,8 @@ static BOOL toggling_music;
 	if ([[missile roles] hasSuffix:@"MINE"]&&((missile_status == MISSILE_STATUS_ARMED)||(missile_status == MISSILE_STATUS_TARGET_LOCKED)))
 	{
 		BOOL launchedOK = [self launchMine:missile];
+		if (launchedOK)
+			[missile release];	//  release
 		missile_entity[active_missile] = nil;
 		[self select_next_missile];
 		missiles = [self calc_missiles];
@@ -4751,9 +4653,17 @@ static BOOL toggling_music;
 	Vector  vel;
 	Vector  origin = position;
 	Vector  start;
+
+	// default launching position
 	start.x = 0.0;						// in the middle
 	start.y = boundingBox.min_y - 4.0;	// 4m below bounding box
 	start.z = boundingBox.max_z + 1.0;	// 1m ahead of bounding box
+	// custom launching position
+	if ([shipinfoDictionary objectForKey:@"missile_launch_position"])
+	{
+		start = [Entity vectorFromString:(NSString *)[shipinfoDictionary objectForKey:@"missile_launch_position"]];
+	}
+	
 	double  throw_speed = 250.0;
 	Quaternion q1 = q_rotation;
 	q1.w = -q1.w;   // player view is reversed remember!
@@ -4795,8 +4705,7 @@ static BOOL toggling_music;
 {
 	if (!mine)
 		return NO;
-//	[self setSpeed: max_flight_speed];
-	double  start = collision_radius + mine->collision_radius;
+	Vector start;
 	double  eject_speed = -500.0;
 	Quaternion  random_direction;
 	Vector  vel;
@@ -4804,9 +4713,22 @@ static BOOL toggling_music;
 	double random_roll =	randf() - 0.5;  //  -0.5 to +0.5
 	double random_pitch = 	randf() - 0.5;  //  -0.5 to +0.5
 	quaternion_set_random(&random_direction);
-	rpos.x -= v_forward.x * start;
-	rpos.y -= v_forward.y * start;
-	rpos.z -= v_forward.z * start;
+
+	// default launching position
+	start.x = 0.0;						// in the middle
+	start.y = 0.0;						//
+	start.z = boundingBox.min_z - 1.0;	// 1m behind of bounding box
+	// custom launching position
+	if ([shipinfoDictionary objectForKey:@"aft_eject_position"])
+	{
+		start = [Entity vectorFromString:(NSString *)[shipinfoDictionary objectForKey:@"aft_eject_position"]];
+	}
+	start.z -= mine->collision_radius;
+	
+	rpos.x +=	v_right.x * start.x +	v_up.x * start.y +	v_forward.x * start.z;
+	rpos.y +=	v_right.y * start.x +	v_up.y * start.y +	v_forward.y * start.z;
+	rpos.z +=	v_right.z * start.x +	v_up.z * start.y +	v_forward.z * start.z;	
+
 	vel.x = v_forward.x * (flight_speed + eject_speed);
 	vel.y = v_forward.y * (flight_speed + eject_speed);
 	vel.z = v_forward.z * (flight_speed + eject_speed);
@@ -4828,9 +4750,7 @@ static BOOL toggling_music;
 	[mine setCondition: CONDITION_IDLE];
 	[mine setOwner: self];
 	[universe addEntity:mine];
-//	[mine setReportAImessages:YES];
 	[[mine getAI] setState:@"GLOBAL"];	// start the timer !!!!
-	[mine release];
 	return YES;
 }
 
@@ -5163,8 +5083,6 @@ static BOOL toggling_music;
 	Vector  vel;
 	Vector  origin = position;
 	int result;
-	//double  start = 10.0;
-	//double  throw_speed = 20.0;
 	Quaternion q1 = q_rotation;
 	
 	status = STATUS_ESCAPE_SEQUENCE;	// firstly
@@ -7530,7 +7448,7 @@ NSString* GenerateDisplayString(int inModeWidth, int inModeHeight, int inModeRef
 	if (legal_status == 0)
 		return;				// nothing to pay for
 	int local_gov = [(NSNumber*)[[universe currentSystemData] objectForKey:KEY_GOVERNMENT] intValue];
-	int fine = 50 + ((local_gov < 2)||(local_gov > 5))? 50:0;
+	int fine = 500 + ((local_gov < 2)||(local_gov > 5))? 500:0;
 	fine *= legal_status;
 	if (fine > credits)
 	{
@@ -7543,181 +7461,12 @@ NSString* GenerateDisplayString(int inModeWidth, int inModeHeight, int inModeRef
 		legal_status = 0;
 		credits -= fine;
 	}
+	fine /= 10;	// divide by ten for display
 	NSString* fined_message = [NSString stringWithFormat:[universe expandDescription:@"[fined]" forSystem:system_seed], fine];
 	[universe addMessage:fined_message forCount:6];
 	ship_clock_adjust = 24 * 3600;	// take up a day
 	if (gui_screen = GUI_SCREEN_STATUS)
 		[self setGuiToStatusScreen];
-}
-
-- (BOOL) checkPerPolyCollisionWithShip:(ShipEntity *)other	// overrides the ShipEntity version
-{
-//	NSLog(@"DEBUG checking per poly collision Player versus %@ %d", [other name], [other universal_id]);
-
-	// This is not currently working so...
-	return YES;
-	
-	Quaternion q_actual = q_rotation;
-	q_actual.w = -q_actual.w;				// reverse rotation
-	
-	gl_matrix rMatrix;
-	quaternion_into_gl_matrix( q_actual, rMatrix);
-	
-	// DEBUG - TEMPORARY
-//	return YES;
-	
-	// check each surface versus the other's particle cloud ...
-	//
-	int f;
-	BOOL all_clear =	YES;
-	int surfs_hit =		0;
-	Vector	incidence = make_vector( 0, 0, 0);
-	Vector	direction = make_vector( 0, 0, 0);
-	for (f = 0; f < n_faces; f++)
-	{
-		face_hit[f] = NO;
-
-		Vector v0 = vertices[faces[f].vertex[0]];
-		Vector v1 = vertices[faces[f].vertex[1]];
-		Vector v2 = vertices[faces[f].vertex[2]];
-		mult_vector_gl_matrix( &v0, rMatrix);
-		mult_vector_gl_matrix( &v1, rMatrix);
-		mult_vector_gl_matrix( &v2, rMatrix);
-
-		Vector vi = make_vector(v1.x - v0.x, v1.y - v0.y, v1.z - v0.z);
-		Vector vj = make_vector(v2.x - v0.x, v2.y - v0.y, v2.z - v0.z);
-
-		Vector vs = faces[f].normal;
-		mult_vector_gl_matrix( &vs, rMatrix);
-	
-		Vector p0 = make_vector( position.x + v0.x, position.y + v0.y, position.z + v0.z);
-
-		// get bounding box relative to this surface's orientation
-		BoundingBox arbb = [other findBoundingBoxRelativeToPosition:p0 InVectors: vi : vj : vs];
-
-		if	((arbb.max_x < 0.0)					// all p.vi < 0
-			||(arbb.min_x > 1.0)				// all p.vi > 1
-			||(arbb.max_y < 0.0)				// all p.vj < 0
-			||(arbb.min_y > 1.0)				// all p.vj > 1
-			||(arbb.min_x + arbb.min_y > 1.0)	// all p.vi + p.vj > 1
-			||(arbb.min_z > 0.0)				// all p.vs > 0
-			||(arbb.max_z < 0.0))				// all p.vs < 0
-			continue;							// this surface doesn't intersect the point cloud;
-		else
-		{
-			// this surface intersects the point cloud
-			incidence.x += vs.x;    incidence.y += vs.y;    incidence.z += vs.z;
-			
-			Vector   dir = make_vector( v0.x + v1.x + v2.x, v0.y + v1.y + v2.y, v0.z + v1.z + v2.z);
-			dir = unit_vector(&dir);
-			direction.x += dir.x;   direction.y += dir.y;   direction.z += dir.z;
-			
-			face_hit[f] = YES;
-			all_clear = NO;
-			surfs_hit++;
-		}
-	}
- 	if (!all_clear)
-	{
-		collision_vector = unit_vector(&incidence);
-		if (isnan(collision_vector.x)||isnan(collision_vector.y)||isnan(collision_vector.z))
-			collision_vector = unit_vector(&direction);
-		
-		NSLog(	@"DEBUG Player Ship %@ %d versus other %@ %d collision, %d surfaces intersected, incidence [%.3f, %.3f, %.3f]",
-				name, universal_id, [other name], [other universal_id],
-				surfs_hit, collision_vector.x, collision_vector.y, collision_vector.z);
-		
-		[collisionVectorForEntity
-			setObject:[NSArray arrayWithObjects:	[NSNumber numberWithFloat:collision_vector.x],
-													[NSNumber numberWithFloat:collision_vector.y],
-													[NSNumber numberWithFloat:collision_vector.z], nil]
-			forKey:[NSString stringWithFormat:@"%@", other]];
-		
-		return YES;
-	}	
-	return NO;
-}
-
-- (BOOL) checkPerPolyCollisionWithParticle:(ParticleEntity *)other
-{
-//	NSLog(@"DEBUG checking per poly collision %@ %d versus particle", name, universal_id);
-	
-	
-	// This is not currently working so...
-	//
-	return YES;
-	//
-	////
-	
-	if (!other)
-		return NO;
-	
-	Quaternion q_actual = q_rotation;
-	q_actual.w = -q_actual.w;
-	
-	gl_matrix rMatrix;
-	quaternion_into_gl_matrix( q_actual, rMatrix);
-	
-	// check bounding boxes ...
-	//
-	// get position relative to this ship's orientation
-	Vector	o_pos = other->position;
-	o_pos.x -= position.x;	o_pos.y -= position.y;	o_pos.z -= position.z;
-	double	cr = other->collision_radius;
-
-	int f;
-	BOOL all_clear =	YES;
-	int surfs_hit =		0;
-	Vector	incidence = make_vector( 0, 0, 0);
-	Vector	direction = make_vector( 0, 0, 0);
-	for (f = 0; f < n_faces; f++)
-	{
-		Vector v0 = vertices[faces[f].vertex[0]];
-		Vector v1 = vertices[faces[f].vertex[1]];
-		Vector v2 = vertices[faces[f].vertex[2]];
-
-		mult_vector_gl_matrix(&v0, rMatrix);
-		mult_vector_gl_matrix(&v1, rMatrix);
-		mult_vector_gl_matrix(&v2, rMatrix);
-
-		Vector vs = faces[f].normal;
-		mult_vector_gl_matrix(&vs, rMatrix);
-					
-		Vector q0 = make_vector( o_pos.x - v0.x, o_pos.y - v0.y, o_pos.z - v0.z);
-		GLfloat dist = dot_product( q0, vs);
-
-		if	(dist < cr)	// p2 inside sphere
-		{
-			// this surface intersects the sphere
-			incidence.x += vs.x;	incidence.y += vs.y;	incidence.z += vs.z;
-
-			Vector	 dir = make_vector( v0.x + v1.x + v2.x, v0.y + v1.y + v2.y, v0.z + v1.z + v2.z);
-			dir = unit_vector(&dir);
-			direction.x += dir.x;	direction.y += dir.y;	direction.z += dir.z;
-			
-			all_clear = NO;
-			surfs_hit++;
-		}
-
-	}
-	if (!all_clear)
-	{
-		collision_vector = unit_vector(&incidence);
-		if (isnan(collision_vector.x)||isnan(collision_vector.y)||isnan(collision_vector.z))
-			collision_vector = unit_vector(&direction);
-		
-//			NSLog(	@"Ship %@ %d versus particle collision, %d surfaces intersected, incidence [%.3f, %.3f, %.3f]",
-//					name, universal_id, surfs_hit, collision_vector.x, collision_vector.y, collision_vector.z);
-		
-		[collisionVectorForEntity
-			setObject:[NSArray arrayWithObjects:	[NSNumber numberWithFloat:collision_vector.x],
-													[NSNumber numberWithFloat:collision_vector.y],
-													[NSNumber numberWithFloat:collision_vector.z], nil]
-			forKey:[NSString stringWithFormat:@"%@", other]];
-		
-		return YES;
-	}
-	return NO;
 }
 
 - (void) setDefaultViewOffsets

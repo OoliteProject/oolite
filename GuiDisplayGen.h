@@ -178,4 +178,3 @@ extern int debug;
 - (void) drawGalaxyChart:(GLfloat) x:(GLfloat) y:(GLfloat) z:(GLfloat) alpha forUniverse:(Universe*) universe;
 
 @end
-

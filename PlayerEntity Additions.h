@@ -109,6 +109,7 @@ Your fair use and other rights are in no way affected by the above.
 - (void) addShips:(NSString *)roles_number;
 - (void) addSystemShips:(NSString *)roles_number_position;
 - (void) addShipsAt:(NSString *)roles_number_system_x_y_z;
+- (void) addShipsAtPrecisely:(NSString *)roles_number_system_x_y_z;
 - (void) set:(NSString *)missionvariable_value;
 - (void) reset:(NSString *)missionvariable;
 /*

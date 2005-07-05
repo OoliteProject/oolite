@@ -443,27 +443,9 @@ static GLuint vertex_index_array[3*(20+80+320+1280+5120+20480)];
 	//// possibly get land_hsb and sea_hsb from planetinfo.plist entry
 	//
 	if ([planetinfo objectForKey:@"land_hsb_color"])
-	{
-		NSString* value = (NSString *)[planetinfo objectForKey:@"land_hsb_color"];
-		NSArray* tokens = [value componentsSeparatedByString:@" "];
-		if ([tokens count] == 3)
-		{
-			land_hsb.x = [(NSString *)[tokens objectAtIndex:0] floatValue];
-			land_hsb.y = [(NSString *)[tokens objectAtIndex:1] floatValue];
-			land_hsb.z = [(NSString *)[tokens objectAtIndex:2] floatValue];
-		}
-	}
+		land_hsb = [Entity vectorFromString:(NSString *)[planetinfo objectForKey:@"land_hsb_color"]];
 	if ([planetinfo objectForKey:@"sea_hsb_color"])
-	{
-		NSString* value = (NSString *)[planetinfo objectForKey:@"sea_hsb_color"];
-		NSArray* tokens = [value componentsSeparatedByString:@" "];
-		if ([tokens count] == 3)
-		{
-			sea_hsb.x = [(NSString *)[tokens objectAtIndex:0] floatValue];
-			sea_hsb.y = [(NSString *)[tokens objectAtIndex:1] floatValue];
-			sea_hsb.z = [(NSString *)[tokens objectAtIndex:2] floatValue];
-		}
-	}
+		sea_hsb = [Entity vectorFromString:(NSString *)[planetinfo objectForKey:@"sea_hsb_color"]];
 	//
 	////
 	

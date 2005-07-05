@@ -93,12 +93,6 @@ float char_widths[128] = {
 	compassSprite = [[OpenGLSprite alloc]   initWithImage:[ResourceManager imageNamed:COMPASS_IMAGE inFolder:@"Images"]
 											cropRectangle:NSMakeRect(0, 0, COMPASS_SIZE, COMPASS_SIZE)
 											size:NSMakeSize(COMPASS_HALF_SIZE, COMPASS_HALF_SIZE)];			// alloc retains
-	reddotSprite = [[OpenGLSprite alloc]   initWithImage:[ResourceManager imageNamed:COMPASS_REDDOT_IMAGE inFolder:@"Images"]
-											cropRectangle:NSMakeRect(0, 0, COMPASS_DOT_SIZE, COMPASS_DOT_SIZE)
-											size:NSMakeSize(COMPASS_HALF_DOT_SIZE, COMPASS_HALF_DOT_SIZE)];	// alloc retains
-	greendotSprite = [[OpenGLSprite alloc]   initWithImage:[ResourceManager imageNamed:COMPASS_GREENDOT_IMAGE inFolder:@"Images"]
-											cropRectangle:NSMakeRect(0, 0, COMPASS_DOT_SIZE, COMPASS_DOT_SIZE)
-											size:NSMakeSize(COMPASS_HALF_DOT_SIZE, COMPASS_HALF_DOT_SIZE)];	// alloc retains
 	aegisSprite = [[OpenGLSprite alloc]   initWithImage:[ResourceManager imageNamed:AEGIS_IMAGE inFolder:@"Images"]
 											cropRectangle:NSMakeRect(0, 0, 32, 32)
 											size:NSMakeSize(32, 32)];	// alloc retains
@@ -115,12 +109,6 @@ float char_widths[128] = {
 	compassSprite = [[OpenGLSprite alloc]   initWithSurface:[ResourceManager surfaceNamed:COMPASS_IMAGE inFolder:@"Images"]
 											cropRectangle:NSMakeRect(0, 0, COMPASS_SIZE, COMPASS_SIZE)
 											size:NSMakeSize(COMPASS_HALF_SIZE, COMPASS_HALF_SIZE)];			// alloc retains
-	reddotSprite = [[OpenGLSprite alloc]   initWithSurface:[ResourceManager surfaceNamed:COMPASS_REDDOT_IMAGE inFolder:@"Images"]
-											cropRectangle:NSMakeRect(0, 0, COMPASS_DOT_SIZE, COMPASS_DOT_SIZE)
-											size:NSMakeSize(COMPASS_HALF_DOT_SIZE, COMPASS_HALF_DOT_SIZE)];	// alloc retains
-	greendotSprite = [[OpenGLSprite alloc]   initWithSurface:[ResourceManager surfaceNamed:COMPASS_GREENDOT_IMAGE inFolder:@"Images"]
-											cropRectangle:NSMakeRect(0, 0, COMPASS_DOT_SIZE, COMPASS_DOT_SIZE)
-											size:NSMakeSize(COMPASS_HALF_DOT_SIZE, COMPASS_HALF_DOT_SIZE)];	// alloc retains
 	aegisSprite = [[OpenGLSprite alloc]   initWithSurface:[ResourceManager surfaceNamed:AEGIS_IMAGE inFolder:@"Images"]
 											cropRectangle:NSMakeRect(0, 0, 32, 32)
 											size:NSMakeSize(32, 32)];	// alloc retains
@@ -162,8 +150,6 @@ float char_widths[128] = {
 {
 	int i;
     if (compassSprite)			[compassSprite release];
-    if (greendotSprite)			[greendotSprite release];
-    if (reddotSprite)			[reddotSprite release];
     if (aegisSprite)			[aegisSprite release];
 
 	for (i = 0; i < SCANNER_ZOOM_LEVELS; i++) if (zoomLevelSprite[i]) [zoomLevelSprite[i] release];
@@ -654,7 +640,9 @@ static BOOL hostiles;
 
 		if ([player compass_mode] == COMPASS_MODE_BASIC)
 		{
-			[self drawCompassPlanetBlipAt:relativePosition Alpha:alpha];
+			NSSize oldblipsize = NSMakeSize( 6, 6);
+//			[self drawCompassPlanetBlipAt:relativePosition Alpha:alpha];
+			[self drawCompassPlanetBlipAt:relativePosition Size:oldblipsize Alpha:alpha];
 		}
 		else
 		{
@@ -686,14 +674,6 @@ static BOOL hostiles;
 	}
 }
 
-- (void) drawCompassPlanetBlipAt:(Vector) relativePosition Alpha:(GLfloat) alpha
-{
-	if (relativePosition.z >= 0)
-		[greendotSprite blitCentredToX:relativePosition.x Y:relativePosition.y Z:z1 Alpha:alpha];
-	else
-		[reddotSprite blitCentredToX:relativePosition.x Y:relativePosition.y Z:z1 Alpha:alpha];
-}
-
 - (void) drawCompassPlanetBlipAt:(Vector) relativePosition Size:(NSSize) siz Alpha:(GLfloat) alpha
 {
 	if (relativePosition.z >= 0)
@@ -715,12 +695,10 @@ static BOOL hostiles;
 	if (relativePosition.z >= 0)
 	{
 		glColor4f(0.0,1.0,0.0,alpha);
-//		drawOval( relativePosition.x, relativePosition.y, z1, siz, 90);
 	}
 	else
 	{
 		glColor4f(1.0,0.0,0.0,alpha);
-//		drawOval( relativePosition.x, relativePosition.y, z1, siz, 90);
 	}
 	glBegin(GL_LINE_LOOP);
 	glVertex3f(relativePosition.x - 0.5 * siz.width, relativePosition.y - 0.5 * siz.height, z1);
@@ -1435,12 +1413,20 @@ static BOOL hostiles;
 
 - (void) drawFPSInfoCounter:(NSDictionary *) info
 {
-    if (![[player universe] displayFPS])
+    Universe* universe = [player universe];
+	
+	if (![universe displayFPS])
 		return;
+	
+	if ((!player)||(!universe))
+		return;
+	
+	NSString* positionInfo = [universe expressPosition:player->position inCoordinateSystem:@"pwm"];
 	
 	int x = FPSINFO_DISPLAY_X;
 	int y = FPSINFO_DISPLAY_Y;
 	NSSize siz = NSMakeSize( FPSINFO_DISPLAY_WIDTH, FPSINFO_DISPLAY_HEIGHT);
+	NSSize siz08 = NSMakeSize( 0.8 * FPSINFO_DISPLAY_WIDTH, 0.8 * FPSINFO_DISPLAY_HEIGHT);
 	
 	if ([info objectForKey:X_KEY])
 		x = [(NSNumber *)[info objectForKey:X_KEY] intValue];
@@ -1454,6 +1440,8 @@ static BOOL hostiles;
 	glColor4f( 0.0, 1.0, 0.0, 1.0);
 	drawString( [player dial_fpsinfo], x, y, z1, siz);
 	drawString( [player dial_objinfo], x, y - siz.height, z1, siz);
+	
+	drawString( positionInfo, x, y - 1.8 * siz.height, z1, siz08);
 }
 
 - (void) drawGreenSurround:(NSDictionary *) info
@@ -1506,11 +1494,6 @@ static BOOL hostiles;
 	// draw aft_shield surround
 	glColor4fv(yellow_color);
 	hudDrawSurroundAt( x, y, z1, siz);
-}
-
-- (void) drawCollisionHitIndicator:(NSDictionary *) info
-{	
-    [player drawCollisionHitIndicator:info depth:z1];
 }
 
 //---------------------------------------------------------------------//
@@ -1705,7 +1688,7 @@ void hudDrawReticleOnTarget(Entity* target, PlayerEntity* player1, GLfloat z1)
 	Vector p1 = target->position;
 	p1.x -= p0.x;	p1.y -= p0.y;	p1.z -= p0.z;
 	double rdist = sqrt(magnitude2(p1));
-	double rsize = target->collision_radius;
+	double rsize = target->actual_radius;
 	
 	if (rsize < rdist * ONE_SIXTYFOURTH)
 		rsize = rdist * ONE_SIXTYFOURTH;

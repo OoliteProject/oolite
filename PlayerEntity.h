@@ -49,6 +49,9 @@ Your fair use and other rights are in no way affected by the above.
 #import "HeadUpDisplay.h"
 
 @class GuiDisplayGen;
+#ifndef GNUSTEP
+@class OOSound;
+#endif
 
 #define SCRIPT_TIMER_INTERVAL			10.0
 
@@ -193,242 +196,234 @@ Your fair use and other rights are in no way affected by the above.
 #define COMPASS_MODE_BEACONS		6
 #define COMPASS_MODE_ADVANCED_OKAY	((compass_mode >= 1)&&(compass_mode <= 10))
 
-@interface PlayerEntity : ShipEntity {
+@interface PlayerEntity : ShipEntity
+{
+	@public
 	
-	NSString				*ship_desc;
-	int						ship_trade_in_factor;
+		Random_Seed		system_seed;
+		Random_Seed		target_system_seed;
 	
-	NSDictionary			*script;
-	NSMutableDictionary		*mission_variables;
-	int						missionTextRow;
-	ShipEntity				*script_target;
-	NSString				*missionChoice;
-	
-	NSString*				specialCargo;
-	
-	NSMutableArray*			comm_log;
-	
-	NSImage					*missionBackgroundImage;
-	
-	NSMutableDictionary		*extra_equipment;
-	BOOL					found_equipment;
-	
-	NSMutableDictionary		*reputation;
-	
-	int						max_passengers;
-	NSMutableArray			*passengers;
-	NSMutableDictionary		*passenger_record;
+	@protected
+		
+		NSString				*ship_desc;
+		int						ship_trade_in_factor;
+		
+		NSDictionary			*script;
+		NSMutableDictionary		*mission_variables;
+		int						missionTextRow;
+		ShipEntity				*script_target;
+		NSString				*missionChoice;
+		
+		NSString*				specialCargo;
+		
+		NSMutableArray*			comm_log;
+		
+		NSImage					*missionBackgroundImage;
+		
+		NSMutableDictionary		*extra_equipment;
+		BOOL					found_equipment;
+		
+		NSMutableDictionary		*reputation;
+		
+		int						max_passengers;
+		NSMutableArray			*passengers;
+		NSMutableDictionary		*passenger_record;
 
-	NSMutableArray			*contracts;
-	NSMutableDictionary		*contract_record;
-	
-	NSMutableDictionary		*shipyard_record;
+		NSMutableArray			*contracts;
+		NSMutableDictionary		*contract_record;
+		
+		NSMutableDictionary		*shipyard_record;
 
-	double					script_time;
-	double					script_time_check;
-	double					script_time_interval;
-	NSString				*lastTextKey;
-	
-	double					ship_clock;
-	double					ship_clock_adjust;
+		double					script_time;
+		double					script_time_check;
+		double					script_time_interval;
+		NSString				*lastTextKey;
+		
+		double					ship_clock;
+		double					ship_clock_adjust;
 
-	double					fps_check_time;
-	int						fps_counter;
+		double					fps_check_time;
+		int						fps_counter;
 
-	NSString				*planetSearchString;
+		NSString				*planetSearchString;
 
 #ifdef GNUSTEP
-   // For GUI/SDL based save screen
-   NSString          *commanderNameString;
-   NSArray           *cdrArray;
+	   // For GUI/SDL based save screen
+	   NSString          *commanderNameString;
+	   NSArray           *cdrArray;
 #endif   
-	
-	StationEntity			*docked_station;
-	
-	HeadUpDisplay			*hud;
-	
-	BOOL	showDemoShips;
-	
-	BOOL rolling, pitching;
-	BOOL using_mining_laser;
-	
-	BOOL mouse_control_on;
-	
-	BOOL speech_on;
-	BOOL ootunes_on;
-
-	BOOL docking_music_on;
-
-	double  roll_delta, pitch_delta;
-	
-	double  forward_shield, aft_shield;
-	double  weapon_temp;
-	double  forward_weapon_temp, aft_weapon_temp, port_weapon_temp, starboard_weapon_temp;
-	double  weapon_energy_per_shot, weapon_heat_increment_per_shot, weapon_reload_time;
-	double  cabin_temp;
-	
-	int		chosen_weapon_facing;   // for purchasing weapons
-	
-	BOOL	game_over;
-	BOOL	docked;
-	BOOL	finished;
-	BOOL	bomb_detonated;
-	BOOL	autopilot_engaged;
 		
-	BOOL	afterburner_engaged;
-	BOOL	afterburnerSoundLooping;
+		StationEntity			*docked_station;
 		
-	BOOL	hyperspeed_engaged;
-	BOOL	travelling_at_hyperspeed;
-	BOOL	hyperspeed_locked;
+		HeadUpDisplay			*hud;
+		
+		BOOL	showDemoShips;
+		
+		BOOL rolling, pitching;
+		BOOL using_mining_laser;
+		
+		BOOL mouse_control_on;
+		
+		BOOL speech_on;
+		BOOL ootunes_on;
+
+		BOOL docking_music_on;
+
+		double  roll_delta, pitch_delta;
+		
+		double  forward_shield, aft_shield;
+		double  weapon_temp;
+		double  forward_weapon_temp, aft_weapon_temp, port_weapon_temp, starboard_weapon_temp;
+		double  weapon_energy_per_shot, weapon_heat_increment_per_shot, weapon_reload_time;
+		double  cabin_temp;
+		
+		int		chosen_weapon_facing;   // for purchasing weapons
+		
+		BOOL	game_over;
+		BOOL	docked;
+		BOOL	finished;
+		BOOL	bomb_detonated;
+		BOOL	autopilot_engaged;
+			
+		BOOL	afterburner_engaged;
+		BOOL	afterburnerSoundLooping;
+			
+		BOOL	hyperspeed_engaged;
+		BOOL	travelling_at_hyperspeed;
+		BOOL	hyperspeed_locked;
+		
+		BOOL	ident_engaged;
+
+		BOOL	ecm_in_operation;
+		double	ecm_start_time;
 	
-	BOOL	ident_engaged;
-
-	BOOL	ecm_in_operation;
-	double	ecm_start_time;
-
 #ifndef GNUSTEP
-	NSMovie*	themeMusic;
-	NSMovie*	missionMusic;
-	NSMovie*	dockingMusic;
+		NSMovie*	themeMusic;
+		NSMovie*	missionMusic;
+		NSMovie*	dockingMusic;
 #else
-    OOMusic* themeMusic;
-    OOMusic* missionMusic;
-    OOMusic* dockingMusic;
+		OOMusic* themeMusic;
+		OOMusic* missionMusic;
+		OOMusic* dockingMusic;
 #endif
 
-	NSSound*	beepSound;
-	NSSound*	boopSound;
-	NSSound*	weaponSound;
-	NSSound*	weaponHitSound;
-	NSSound*	missileSound;
-	NSSound*	damageSound;
-	NSSound*	scrapeDamageSound;
-	NSSound*	destructionSound;
-	NSSound*	breakPatternSound;
-	NSSound*	ecmSound;
-	NSSound*	buySound;
-	NSSound*	sellSound;
-	NSSound*	warningSound;
-	NSSound*	afterburner1Sound;
-	NSSound*	afterburner2Sound;
-	
-	int			gui_screen;
-	int			alert_flags;
-	int			alert_condition;
-	int			missile_status;
-	int			active_missile;
+		NSSound*	beepSound;
+		NSSound*	boopSound;
+		NSSound*	weaponSound;
+		NSSound*	weaponHitSound;
+		NSSound*	missileSound;
+		NSSound*	damageSound;
+		NSSound*	scrapeDamageSound;
+		NSSound*	destructionSound;
+		NSSound*	breakPatternSound;
+		NSSound*	ecmSound;
+		NSSound*	buySound;
+		NSSound*	sellSound;
+		NSSound*	warningSound;
+		NSSound*	afterburner1Sound;
+		NSSound*	afterburner2Sound;
+		
+		int			gui_screen;
+		int			alert_flags;
+		int			alert_condition;
+		int			missile_status;
+		int			active_missile;
 
-	int			current_cargo;
+		int			current_cargo;
 
-	NSPoint					cursor_coordinates;
-	@public	Random_Seed		system_seed;
-	@public	Random_Seed		target_system_seed;
-	
-	double		witchspaceCountdown;
-//	double		fuel_accumulator;							- from ShipEntity
-	
-	// player commander data
-	//
-	NSString*		player_name;
-	NSPoint			galaxy_coordinates;
+		NSPoint		cursor_coordinates;
+		double		witchspaceCountdown;
+		
+		// player commander data
+		//
+		NSString*		player_name;
+		NSPoint			galaxy_coordinates;
 
-	Random_Seed		galaxy_seed;
+		Random_Seed		galaxy_seed;
 
-	int				credits;
-	//int				fuel;			// int				- from ShipEntity
-	
-	int				galaxy_number;
-	int				forward_weapon;
-	int				aft_weapon;
-	int				port_weapon;
-	int				starboard_weapon;
-	
-	//				max_cargo			// int				- from ShipEntity
-	////			cargo				// NSMutableArray   - from ShipEntity
-	NSArray*		shipCommodityData;
-	//				has_ecm				// BOOL				- from ShipEntity
-	//				has_scoop			// BOOL				- from ShipEntity
-	//				has_energy_bomb;	// BOOL				- from ShipEntity
-	BOOL			has_energy_unit;
-	int				energy_unit;
-	int				shield_booster, shield_enhancer;
-	BOOL			has_docking_computer;
-	BOOL			has_galactic_hyperdrive;
-	//				has_escape_pod;		// BOOL				- from ShipEntity
-	
-	//				missiles			// int				- from ShipEntity
-	int				max_missiles;		// int				- no. of missile pylons
-	ShipEntity*		missile_entity[SHIPENTITY_MAX_MISSILES];	// holds the actual missile entities or equivalents
-	
-	int				legal_status;
-	//NSArray*		stationCommodityData;   // no longer required
-	int				market_rnd;
-	int				ship_kills;
-	BOOL			saved;
-	
-	int				compass_mode;
-	
-	double			fuel_leak_rate;
-	
-	// keys!
-	int key_roll_left;
-	int key_roll_right;
-	int key_pitch_forward;
-	int key_pitch_back;
-	int key_increase_speed;
-	int key_decrease_speed;
-	//
-	int key_inject_fuel;
-	//
-	int key_fire_lasers;
-	int key_target_missile;
-	int key_untarget_missile;
-	int key_launch_missile;
-	int key_ecm;
-	int key_launch_escapepod;
-	int key_energy_bomb;
-	int key_galactic_hyperspace;
-	int key_hyperspace;
-	int key_jumpdrive;
-	int key_dump_cargo;
-	int key_autopilot;
-	int key_autopilot_target;
-	int key_autodock;
-	int key_snapshot;
-	int key_docking_music;
-	int key_scanner_zoom;
-	//
-	int key_map_dump;
-	int key_map_home;
-	//
-	int key_pausebutton;
-	int key_show_fps;
-	int key_mouse_control;
-	//
-	int key_emergency_hyperdrive;
-	//
-	int key_next_missile;
-	int key_ident_system;
-	//
-	int key_comms_log;
-	//
-	int key_next_compass_mode;
-	//
-	int key_cloaking_device;
-	//
-	int key_contract_info;
-	
-	// save-file
-	NSString* save_path;
-	
-	// position of viewports
-	Vector forwardViewOffset, aftViewOffset, portViewOffset, starboardViewOffset;
-	
-	// DEBUG
-	ParticleEntity* drawDebugParticle;
-	int		debugShipID;
-	
+		int				credits;	
+		int				galaxy_number;
+		int				forward_weapon;
+		int				aft_weapon;
+		int				port_weapon;
+		int				starboard_weapon;
+		
+		NSArray*		shipCommodityData;
+		BOOL			has_energy_unit;
+		int				energy_unit;
+		int				shield_booster, shield_enhancer;
+		BOOL			has_docking_computer;
+		BOOL			has_galactic_hyperdrive;
+
+		int				max_missiles;		// int				- no. of missile pylons
+		ShipEntity*		missile_entity[SHIPENTITY_MAX_MISSILES];	// holds the actual missile entities or equivalents
+		
+		int				legal_status;
+		int				market_rnd;
+		int				ship_kills;
+		BOOL			saved;
+		
+		int				compass_mode;
+		
+		double			fuel_leak_rate;
+		
+		// keys!
+		int key_roll_left;
+		int key_roll_right;
+		int key_pitch_forward;
+		int key_pitch_back;
+		int key_increase_speed;
+		int key_decrease_speed;
+		//
+		int key_inject_fuel;
+		//
+		int key_fire_lasers;
+		int key_target_missile;
+		int key_untarget_missile;
+		int key_launch_missile;
+		int key_ecm;
+		int key_launch_escapepod;
+		int key_energy_bomb;
+		int key_galactic_hyperspace;
+		int key_hyperspace;
+		int key_jumpdrive;
+		int key_dump_cargo;
+		int key_autopilot;
+		int key_autopilot_target;
+		int key_autodock;
+		int key_snapshot;
+		int key_docking_music;
+		int key_scanner_zoom;
+		//
+		int key_map_dump;
+		int key_map_home;
+		//
+		int key_pausebutton;
+		int key_show_fps;
+		int key_mouse_control;
+		//
+		int key_emergency_hyperdrive;
+		//
+		int key_next_missile;
+		int key_ident_system;
+		//
+		int key_comms_log;
+		//
+		int key_next_compass_mode;
+		//
+		int key_cloaking_device;
+		//
+		int key_contract_info;
+		
+		// save-file
+		NSString* save_path;
+		
+		// position of viewports
+		Vector forwardViewOffset, aftViewOffset, portViewOffset, starboardViewOffset;
+		
+		// DEBUG
+		ParticleEntity* drawDebugParticle;
+		int		debugShipID;
 }
 
 - (void) init_keys;
@@ -452,8 +447,6 @@ Your fair use and other rights are in no way affected by the above.
 - (void) set_up;
 
 - (void) doBookkeeping:(double) delta_t;
-
-- (void) drawCollisionHitIndicator:(NSDictionary *) info depth:(GLfloat)z1;
 
 - (BOOL) massLocked;
 - (BOOL) atHyperspeed;

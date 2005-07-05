@@ -1,12 +1,12 @@
 {
     GLOBAL = {
-        ENTER = (setPlanetPatrolCoordinates, "setStateTo: AWAIT_COORDS"); 
+        ENTER = ("setStateTo: NEXT_COORDS"); 
         EXIT = (); 
         UPDATE = (); 
     }; 
-    "AWAIT_COORDS" = {
+    "NEXT_COORDS" = {
         "APPROACH_COORDINATES" = ("setStateTo: GO_TO_COORDS"); 
-        ENTER = (); 
+        ENTER = (setPlanetPatrolCoordinates); 
         EXIT = (); 
         UPDATE = (); 
     }; 
@@ -28,7 +28,7 @@
         );
 		"WAYPOINT_SET" = ("setStateTo: GO_TO_WAYPOINT");
 		"COURSE_OK" = ("setSpeedFactorTo: 0.5", performFlyToRangeFromDestination);
-        "DESIRED_RANGE_ACHIEVED" = (setPlanetPatrolCoordinates, "setStateTo: AWAIT_COORDS"); 
+        "DESIRED_RANGE_ACHIEVED" = ("setStateTo: NEXT_COORDS"); 
         EXIT = (); 
         UPDATE = (scanForOffenders, "pauseAI: 7.5");
         "TARGET_FOUND" = (setTargetToFoundTarget, checkTargetLegalStatus); 

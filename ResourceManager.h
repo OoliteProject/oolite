@@ -65,8 +65,10 @@ BOOL always_include_addons;
 + (NSMutableArray *) pathsUsingAddOns:(BOOL) include_addons;
 + (BOOL) areRequirementsFulfilled:(NSDictionary*) requirements;
 + (void) addExternalPath:(NSString *)filename;
+
 + (NSDictionary *) dictionaryFromFilesNamed:(NSString *)filename inFolder:(NSString *)foldername andMerge:(BOOL) mergeFiles;
 + (NSArray *) arrayFromFilesNamed:(NSString *)filename inFolder:(NSString *)foldername andMerge:(BOOL) mergeFiles;
+
 + (NSSound *) soundNamed:(NSString *)filename inFolder:(NSString *)foldername;
 + (NSImage *) imageNamed:(NSString *)filename inFolder:(NSString *)foldername;
 + (NSString *) stringFromFilesNamed:(NSString *)filename inFolder:(NSString *)foldername;

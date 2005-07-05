@@ -115,7 +115,8 @@ static NSString * mission_key;
 	is used to set a mission variable to the given string_expression
 	
 	*/
-	NSMutableArray*	tokens = [NSMutableArray arrayWithArray:[scriptAction componentsSeparatedByString:@" "]];
+//	NSMutableArray*	tokens = [NSMutableArray arrayWithArray:[scriptAction componentsSeparatedByString:@" "]];
+	NSMutableArray*	tokens = [Entity scanTokensFromString:scriptAction];
 	NSString*   selectorString = nil;
 	NSString*	valueString = nil;
 	SEL			_selector;
@@ -189,7 +190,8 @@ static NSString * mission_key;
 	comma separated numeric constants (eg "planet_number oneof 1,5,9,12,14,234").
 
 	*/
-	NSArray*	tokens = [scriptCondition componentsSeparatedByString:@" "];
+//	NSArray*	tokens = [scriptCondition componentsSeparatedByString:@" "];
+	NSArray*	tokens = [Entity scanTokensFromString:scriptCondition];
 	NSString*   selectorString = nil;
 	NSString*	comparisonString = nil;
 	NSString*	valueString = nil;
@@ -236,20 +238,19 @@ static NSString * mission_key;
 		int value_index = 2;
 		while (value_index < [tokens count])
 		{
-			valueString = [(NSString *)[tokens objectAtIndex:value_index++] stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceCharacterSet]];
-			if (![valueString isEqual:@""])
+			valueString = (NSString *)[tokens objectAtIndex:value_index++];
+			if (([valueString hasSuffix:@"_number"])||([valueString hasSuffix:@"_bool"])||([valueString hasSuffix:@"_string"]))
 			{
-				if (([valueString hasSuffix:@"_number"])||([valueString hasSuffix:@"_bool"])||([valueString hasSuffix:@"_string"]))
+				SEL value_selector = NSSelectorFromString(valueString);
+				if ([self respondsToSelector:value_selector])
 				{
-					SEL value_selector = NSSelectorFromString(valueString);
-					if ([self respondsToSelector:value_selector])
-					{
-						// substitute into valueString the result of the call
-						valueString = [NSString stringWithFormat:@"%@", [self performSelector:value_selector]];
-					}
+					// substitute into valueString the result of the call
+					valueString = [NSString stringWithFormat:@"%@", [self performSelector:value_selector]];
 				}
-				[allValues appendFormat:@"%@ ", valueString];
 			}
+			[allValues appendString:valueString];
+			if (value_index < [tokens count])
+				[allValues appendString:@" "];
 		}
 		valueString = allValues;
 	}
@@ -669,7 +670,8 @@ static int shipsFound;
 
 - (void) awardCargo:(NSString *)amount_typeString
 {
-	NSArray*	tokens = [amount_typeString componentsSeparatedByString:@" "];
+//	NSArray*	tokens = [amount_typeString componentsSeparatedByString:@" "];
+	NSArray*	tokens = [Entity scanTokensFromString:amount_typeString];
 	NSString*   amountString = nil;
 	NSString*	typeString = nil;
 
@@ -803,7 +805,8 @@ static int shipsFound;
 
 - (void) messageShipAIs:(NSString *)roles_message
 {
-	NSMutableArray*	tokens = [NSMutableArray arrayWithArray:[roles_message componentsSeparatedByString:@" "]];
+//	NSMutableArray*	tokens = [NSMutableArray arrayWithArray:[roles_message componentsSeparatedByString:@" "]];
+	NSMutableArray*	tokens = [Entity scanTokensFromString:roles_message];
 	NSString*   roleString = nil;
 	NSString*	messageString = nil;
 
@@ -830,7 +833,8 @@ static int shipsFound;
 
 - (void) addShips:(NSString *)roles_number
 {
-	NSMutableArray*	tokens = [NSMutableArray arrayWithArray:[roles_number componentsSeparatedByString:@" "]];
+//	NSMutableArray*	tokens = [NSMutableArray arrayWithArray:[roles_number componentsSeparatedByString:@" "]];
+	NSMutableArray*	tokens = [Entity scanTokensFromString:roles_number];
 	NSString*   roleString = nil;
 	NSString*	numberString = nil;
 
@@ -854,7 +858,8 @@ static int shipsFound;
 
 - (void) addSystemShips:(NSString *)roles_number_position
 {
-	NSMutableArray*	tokens = [NSMutableArray arrayWithArray:[roles_number_position componentsSeparatedByString:@" "]];
+//	NSMutableArray*	tokens = [NSMutableArray arrayWithArray:[roles_number_position componentsSeparatedByString:@" "]];
+	NSMutableArray*	tokens = [Entity scanTokensFromString:roles_number_position];
 	NSString*   roleString = nil;
 	NSString*	numberString = nil;
 	NSString*	positionString = nil;
@@ -881,15 +886,9 @@ static int shipsFound;
 
 - (void) addShipsAt:(NSString *)roles_number_system_x_y_z
 {
-	NSMutableArray*	tokens = [NSMutableArray arrayWithArray:[roles_number_system_x_y_z componentsSeparatedByString:@" "]];
-	int i = 0;
-	while (i < [tokens count])	// remove empty tokens
-	{
-		if ([(NSString*)[tokens objectAtIndex:i] isEqual:@""])
-			[tokens removeObjectAtIndex:i];
-		else
-			i++;
-	}
+//	NSMutableArray*	tokens = [NSMutableArray arrayWithArray:[roles_number_system_x_y_z componentsSeparatedByString:@" "]];
+	NSMutableArray*	tokens = [Entity scanTokensFromString:roles_number_system_x_y_z];
+
 	NSString*   roleString = nil;
 	NSString*	numberString = nil;
 	NSString*	systemString = nil;
@@ -917,19 +916,58 @@ static int shipsFound;
 	if (debug)
 		NSLog(@"DEBUG Going to add %d ship(s) with role '%@' at point (%.3f, %.3f, %.3f) using system %@", number, roleString, posn.x, posn.y, posn.z, systemString);
 
-	while (number--)
+//	while (number--)
+//	{
+//		if (![universe addShipWithRole:roleString nearPosition: posn withCoordinateSystem: systemString])
+//		{
+//			NSLog(@"***** CANNOT addShipsAt: '%@' (should be addShipsAt: role number coordinate_system x y z)",roles_number_system_x_y_z);
+//			return;
+//		}
+//	}
+	if (![universe addShips: number withRole:roleString nearPosition: posn withCoordinateSystem: systemString])
+		NSLog(@"***** CANNOT addShipsAt: '%@' (should be addShipsAt: role number coordinate_system x y z)",roles_number_system_x_y_z);			
+}
+
+- (void) addShipsAtPrecisely:(NSString *)roles_number_system_x_y_z
+{
+//	NSMutableArray*	tokens = [NSMutableArray arrayWithArray:[roles_number_system_x_y_z componentsSeparatedByString:@" "]];
+	NSMutableArray*	tokens = [Entity scanTokensFromString:roles_number_system_x_y_z];
+
+	NSString*   roleString = nil;
+	NSString*	numberString = nil;
+	NSString*	systemString = nil;
+	NSString*	xString = nil;
+	NSString*	yString = nil;
+	NSString*	zString = nil;
+
+	if ([tokens count] != 6)
 	{
-		if (![universe addShipWithRole:roleString nearPosition: posn withCoordinateSystem: systemString])
-		{
-			NSLog(@"***** CANNOT addShipsAt: '%@' (should be addShipsAt: role number coordinate_system x y z)",roles_number_system_x_y_z);
-			return;
-		}
+		NSLog(@"***** CANNOT ADDSYSTEMSHIPSAT: '%@'",roles_number_system_x_y_z);
+		return;
 	}
+	
+	roleString = (NSString *)[tokens objectAtIndex:0];
+	numberString = (NSString *)[tokens objectAtIndex:1];
+	systemString = (NSString *)[tokens objectAtIndex:2];
+	xString = (NSString *)[tokens objectAtIndex:3];
+	yString = (NSString *)[tokens objectAtIndex:4];
+	zString = (NSString *)[tokens objectAtIndex:5];
+	
+	Vector posn = make_vector( [xString floatValue], [yString floatValue], [zString floatValue]);
+	
+	int number = [numberString intValue];
+	
+	if (debug)
+		NSLog(@"DEBUG Going to add %d ship(s) with role '%@' precisely at point (%.3f, %.3f, %.3f) using system %@", number, roleString, posn.x, posn.y, posn.z, systemString);
+
+	if (![universe addShips: number withRole:roleString atPosition: posn withCoordinateSystem: systemString])
+		NSLog(@"***** CANNOT addShipsAtPrecisely: '%@' (should be addShipsAt: role number coordinate_system x y z)",roles_number_system_x_y_z);			
 }
 
 - (void) set:(NSString *)missionvariable_value
 {
-	NSMutableArray*	tokens = [NSMutableArray arrayWithArray:[missionvariable_value componentsSeparatedByString:@" "]];
+//	NSMutableArray*	tokens = [NSMutableArray arrayWithArray:[missionvariable_value componentsSeparatedByString:@" "]];
+	NSMutableArray*	tokens = [Entity scanTokensFromString:missionvariable_value];
 	NSString*   missionVariableString = nil;
 	NSString*	valueString = nil;
 
@@ -998,7 +1036,8 @@ static int shipsFound;
 	NSString*   missionVariableString = nil;
 	NSString*   valueString;
 	double	value;
-	NSMutableArray*	tokens = [NSMutableArray arrayWithArray:[missionVariableString_value componentsSeparatedByString:@" "]];
+//	NSMutableArray*	tokens = [NSMutableArray arrayWithArray:[missionVariableString_value componentsSeparatedByString:@" "]];
+	NSMutableArray*	tokens = [Entity scanTokensFromString:missionVariableString_value];
 
 	if ([tokens count] < 2)
 	{
@@ -1038,7 +1077,8 @@ static int shipsFound;
 	NSString*   missionVariableString = nil;
 	NSString*   valueString;
 	double	value;
-	NSMutableArray*	tokens = [NSMutableArray arrayWithArray:[missionVariableString_value componentsSeparatedByString:@" "]];
+//	NSMutableArray*	tokens = [NSMutableArray arrayWithArray:[missionVariableString_value componentsSeparatedByString:@" "]];
+	NSMutableArray*	tokens = [Entity scanTokensFromString:missionVariableString_value];
 
 	if ([tokens count] < 2)
 	{
@@ -1289,7 +1329,8 @@ static int shipsFound;
 {
 	NSString*   valueString;
 	int i;
-	NSMutableArray*	tokens = [NSMutableArray arrayWithArray:[args componentsSeparatedByString:@" "]];
+//	NSMutableArray*	tokens = [NSMutableArray arrayWithArray:[args componentsSeparatedByString:@" "]];
+	NSMutableArray*	tokens = [Entity scanTokensFromString:args];
 
 	for (i = 0; i < [tokens  count]; i++)
 	{
@@ -1357,8 +1398,9 @@ static int shipsFound;
 #else   
 	if ((missionMusic)&&(!ootunes_on))
 	{
-		GoToBeginningOfMovie ([missionMusic QTMovie]);
-		StartMovie ([missionMusic QTMovie]);
+//		GoToBeginningOfMovie ([missionMusic QTMovie]);
+//		StartMovie ([missionMusic QTMovie]);
+		[missionMusic play];
 	}
 #endif   
 

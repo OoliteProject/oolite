@@ -106,6 +106,7 @@ Your fair use and other rights are in no way affected by the above.
 
 #define MAX_MESSAGES		5
 
+#define PROXIMITY_WARN_DISTANCE		6.0
 #define PROXIMITY_WARN_DISTANCE2	36.0
 #define PROXIMITY_AVOID_DISTANCE	10.0
 
@@ -175,11 +176,28 @@ extern int debug;
 
 @interface Universe : NSObject
 {
+		@public
+			// use a sorted list for drawing and other activities
+			//
+			Entity*				sortedEntities[UNIVERSE_MAX_ENTITIES];
+			int					n_entities;
+			//
+			////
+			
+			// colors
+			//
+			GLfloat sun_diffuse[4];
+			GLfloat sun_specular[4];
+			GLfloat stars_ambient[4];
+			
+		@protected
 		MyOpenGLView	*gameView;
         TextureStore	*textureStore;
         
 #ifndef GNUSTEP        
-		SpeechChannel		speechChannel;
+//		SpeechChannel		speechChannel;				// used only to support OS X 10.2.8
+		NSSpeechSynthesizer*	speechSynthesizer;		// use this from OS X 10.3 onwards
+		
 		//Jester Speech Begin
 		NSArray				*speechArray;
 		//Jester Speech End
@@ -189,18 +207,6 @@ extern int debug;
 		int					next_universal_id;
 		Entity*				entity_for_uid[MAX_ENTITY_UID];
 		
-		// use a sorted list for drawing and other activities
-		//
-		@public	Entity*				sortedEntities[UNIVERSE_MAX_ENTITIES];
-		@public	int					n_entities;
-		//
-		////
-		
-		// colors
-		//
-		@public GLfloat sun_diffuse[4];
-		@public GLfloat sun_specular[4];
-		@public GLfloat stars_ambient[4];
 		//
 		////
 		
@@ -306,13 +312,19 @@ extern int debug;
 - (void) set_up_witchspace;
 - (void) set_up_space;
 - (void) setLighting;
+
 - (void) populateSpaceFromHyperPoint:(Vector) h1_pos toPlanetPosition:(Vector) p1_pos andSunPosition:(Vector) s1_pos;
 - (int)	scatterAsteroidsAt:(Vector) spawnPos withVelocity:(Vector) spawnVel includingRockHermit:(BOOL) spawnHermit;
 - (void) addShipWithRole:(NSString *) desc nearRouteOneAt:(double) route_fraction;
 - (Vector) coordinatesForPosition:(Vector) pos withCoordinateSystem:(NSString *) system returningScalar:(GLfloat*) my_scalar;
+- (NSString *) expressPosition:(Vector) pos inCoordinateSystem:(NSString *) system;
 - (BOOL) addShipWithRole:(NSString *) desc nearPosition:(Vector) pos withCoordinateSystem:(NSString *) system;
+- (BOOL) addShips:(int) howMany withRole:(NSString *) desc atPosition:(Vector) pos withCoordinateSystem:(NSString *) system;
+- (BOOL) addShips:(int) howMany withRole:(NSString *) desc nearPosition:(Vector) pos withCoordinateSystem:(NSString *) system;
+- (BOOL) addShips:(int) howMany withRole:(NSString *) desc intoBoundingBox:(BoundingBox) bbox;
 - (void) witchspaceShipWithRole:(NSString *) desc;
 - (void) spawnShipWithRole:(NSString *) desc near:(Entity *) entity;
+
 - (void) set_up_break_pattern:(Vector) pos quaternion:(Quaternion) q;
 - (void) game_over;
 
@@ -386,8 +398,6 @@ extern int debug;
 - (BOOL) isVectorClearFromEntity:(Entity *) e1 toDistance:(double)dist fromPoint:(Vector) p2;
 - (Vector) getSafeVectorFromEntity:(Entity *) e1 toDistance:(double)dist fromPoint:(Vector) p2;
 
-- (NSArray *) getLaserLineEntitiesForEntity:(Entity *) e1 inView:(int) viewdir;
-- (int) getFirstEntityHitByLaserFromEntity:(Entity *) e1;
 - (int) getFirstEntityHitByLaserFromEntity:(Entity *) e1 inView:(int) viewdir;
 - (int) getFirstEntityTargettedFromEntity:(Entity *) e1 inView:(int) viewdir;
 

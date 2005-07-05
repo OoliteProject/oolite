@@ -251,7 +251,14 @@ Vector unit_vector (struct vector *vec)
 	ly = vec->y;
 	lz = vec->z;
 
-	det = 1.0 / sqrt (lx * lx + ly * ly + lz * lz);
+	if (lx || ly || lz)
+		det = 1.0 / sqrt (lx * lx + ly * ly + lz * lz);
+	else
+	{
+		det = 1.0;
+		printf("***** ERROR - attempt to normalise vector ( %.5f, %.5f, %.5f)\n", lx, ly, lz);
+		//	catches div-by-zero problem
+	}
 
 	res.x = lx * det;
 	res.y = ly * det;
@@ -380,7 +387,7 @@ void	bounding_box_reset_to_vector(struct boundingBox *box, Vector vec)
 Quaternion	quaternion_multiply(Quaternion q1, Quaternion q2)
 {
     Quaternion	result;
-    result.w = q1.w * q2.w - q2.x * q1.x - q1.y * q2.y - q1.z * q2.z;
+    result.w = q1.w * q2.w - q1.x * q2.x - q1.y * q2.y - q1.z * q2.z;
     result.x = q1.w * q2.x + q1.x * q2.w + q1.y * q2.z - q1.z * q2.y;
     result.y = q1.w * q2.y + q1.y * q2.w + q1.z * q2.x - q1.x * q2.z;
     result.z = q1.w * q2.z + q1.z * q2.w + q1.x * q2.y - q1.y * q2.x;

@@ -91,6 +91,7 @@ Your fair use and other rights are in no way affected by the above.
 }
 
 - (id) initLaserFromShip:(ShipEntity *) ship view:(int) view;
+- (id) initLaserFromSubentity:(ShipEntity *) subent view:(int) view;
 - (id) initExhaustFromShip:(ShipEntity *) ship offsetVector:(Vector) offset scaleVector:(Vector) scale;
 - (id) initExhaustFromShip:(ShipEntity *) ship details:(NSString *) details;
 - (id) initECMMineFromShip:(ShipEntity *) ship;

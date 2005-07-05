@@ -951,7 +951,7 @@ NSMutableDictionary* currentShipyard;
 		//
 		[gui setTabStops:tab_stops];
 		//
-		int n_rows, start_row, previous;
+		int n_rows, start_row, previous = 0;
 		//
 		if (n_ships < MAX_ROWS_SHIPS_FOR_SALE)
 		{

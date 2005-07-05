@@ -73,7 +73,7 @@ static  Universe	*data_store_universe;
 	GLfloat xyz[] = {0.0, 0.0, 0.0};
 	int i = 0;
 	BOOL failed = NO;
-	NSString* error;
+	NSString* error = @"No error";
 	NSScanner*	scanner = [NSScanner scannerWithString:xyzString];
 	while ((![scanner isAtEnd])&&(i < 3)&&(!failed))
 	{
@@ -104,7 +104,7 @@ static  Universe	*data_store_universe;
 	GLfloat wxyz[] = {1.0, 0.0, 0.0, 0.0};
 	int i = 0;
 	BOOL failed = NO;
-	NSString* error;
+	NSString* error = @"No error";
 	NSScanner* scanner = [NSScanner scannerWithString:wxyzString];
 	while ((![scanner isAtEnd])&&(i < 4)&&(!failed))
 	{
@@ -132,6 +132,59 @@ static  Universe	*data_store_universe;
 	}
 	return result;
 }
+
++ (BOOL) scanVector:(Vector *) vector_ptr andQuaternion:(Quaternion *) quaternion_ptr fromString:(NSString*) xyzwxyzString
+{
+	GLfloat xyzwxyz[] = { 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0};
+	int i = 0;
+	BOOL failed = NO;
+	NSString* error = @"No error";
+	NSScanner* scanner = [NSScanner scannerWithString:xyzwxyzString];
+	while ((![scanner isAtEnd])&&(i < 7)&&(!failed))
+	{
+		float value;
+		if ([scanner scanFloat:&value])
+			xyzwxyz[i++] = value;
+		else
+		{
+			failed = YES;
+			error = @"Could not scan a float value.";
+		}
+	}
+	if (i < 7)
+	{
+		failed = YES;
+		error = @"Found less than seven float values.";
+	}
+	if (failed)
+	{
+		NSLog(@"***** ERROR cannot make quaternion from '%@' because '%@'", xyzwxyzString, error);
+		return NO;
+	}
+	vector_ptr->x = xyzwxyz[0];
+	vector_ptr->y = xyzwxyz[1];
+	vector_ptr->z = xyzwxyz[2];
+	quaternion_ptr->w = xyzwxyz[3];
+	quaternion_ptr->x = xyzwxyz[4];
+	quaternion_ptr->y = xyzwxyz[5];
+	quaternion_ptr->z = xyzwxyz[6];
+	return YES;
+}
+
++ (NSMutableArray *) scanTokensFromString:(NSString*) values
+{
+	NSMutableArray* result = [NSMutableArray arrayWithCapacity:8];
+	NSScanner* scanner = [NSScanner scannerWithString:values];
+	NSString* token;
+	while (![scanner isAtEnd])
+	{
+		[scanner scanCharactersFromSet:[NSCharacterSet whitespaceAndNewlineCharacterSet] intoString:(NSString * *)nil];
+		if ([scanner scanUpToCharactersFromSet:[NSCharacterSet whitespaceAndNewlineCharacterSet] intoString:&token])
+			[result addObject:[NSString stringWithString:token]];
+	}
+	return result;
+}
+
 
 - (id) init
 {    
@@ -290,6 +343,7 @@ static  Universe	*data_store_universe;
 	// set the collision radius
 	//
 	collision_radius = [self findCollisionRadius];
+	actual_radius = collision_radius;
 	//NSLog(@"Entity with model '%@' collision radius set to %f",modelName, collision_radius);
 	//
 }
@@ -1110,6 +1164,7 @@ static  Universe	*data_store_universe;
 	// set the collision radius
 	//
 	collision_radius = [self findCollisionRadius];
+	actual_radius = collision_radius;
 	
 	// check for smooth chading and recalculate normals
 	//
@@ -1356,7 +1411,6 @@ static  Universe	*data_store_universe;
 		rv.z = dot_product(_k,pv);
 		bounding_box_add_vector(&result,rv);
     }
-	
 	return result;
 }
 

@@ -158,10 +158,6 @@ extern int debug;
 @interface Entity : NSObject
 {
     // the base object for ships/stations/anything actually
-    //
-    Universe	*universe;
-	int			universal_id;				// used to reference the entity
-	//
 	//////////////////////////////////////////////////////
 	//
 	// @public variables:
@@ -169,39 +165,52 @@ extern int debug;
 	// we forego encapsulation for some variables in order to
 	// lose the overheads of Obj-C accessor methods...
 	//
-	@public	BOOL	isParticle;
-	@public	BOOL	isRing;
-	@public	BOOL	isShip;
-	@public	BOOL	isStation;
-	@public	BOOL	isPlanet;
-	@public	BOOL	isPlayer;
-	@public	BOOL	isSky;
-    //
-	@public	int			scan_class;
-	@public	double		zero_distance;
-	@public	double		no_draw_distance;  //  10 km initially
-	@public	double		collision_radius;
-    @public	Vector		position;
-    @public	Quaternion	q_rotation;
-	@public	int			status;
-	//
-	@public	int			z_index;
-	//
-	// experimental lighting:
-	@public BOOL		isSunlit;
-	@public int			shadingEntityID;
+	@public
+		//
+		BOOL	isParticle;
+		BOOL	isRing;
+		BOOL	isShip;
+		BOOL	isStation;
+		BOOL	isPlanet;
+		BOOL	isPlayer;
+		BOOL	isSky;
+		//
+		int			scan_class;
+		double		zero_distance;
+		double		no_draw_distance;  //  10 km initially
+		double		collision_radius;
+		double		actual_radius;
+		Vector		position;
+		Quaternion	q_rotation;
+		int			status;
+		//
+		int			z_index;
+		//
+		// experimental lighting:
+		BOOL		isSunlit;
+		int			shadingEntityID;
+		//
+		// to keep track of changes:
+		BOOL	has_moved;
+		BOOL	has_rotated;
+		BOOL	has_collided;
+		//
+		Entity*	collider;
+		//
+	@protected
 	//
 	//////////////////////////////////////////////////////
+	//
+    //
+    Universe	*universe;
+	int			universal_id;				// used to reference the entity
+	//
+	Vector	last_position;
+	Quaternion last_q_rotation;
 	//
     Vector	relative_position;
 	//
 	double  distance_travelled; // set to zero initially
-	//
-	// to keep track of changes:
-	Vector	last_position;
-	Quaternion last_q_rotation;
-	BOOL	has_moved;
-	BOOL	has_rotated;
 	//
     Matrix	rotation;
     gl_matrix	rotMatrix;
@@ -260,6 +269,10 @@ extern int debug;
 
 + (Vector) vectorFromString:(NSString*) xyzString;
 + (Quaternion) quaternionFromString:(NSString*) wxyzString;
+
++ (BOOL) scanVector:(Vector *) vector_ptr andQuaternion:(Quaternion *) quaternion_ptr fromString:(NSString*) xyzwxyzString;
+
++ (NSMutableArray *) scanTokensFromString:(NSString*) values;
 
 - (id) init;
 - (void) dealloc;

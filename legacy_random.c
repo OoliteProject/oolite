@@ -147,6 +147,13 @@ inline float bellf (int n)
 {
 	int i = n;
 	float total = 0;
+	
+	if (i <= 0)
+	{
+		printf("***** ERROR - attempt to generate bellf(%d)\n", n);
+		return 0.0;	// catch possible div-by-zero problem
+	}
+	
 	while (i-- > 0)
 		total += (ranrot_rand() & 1023);
 	return 0.0009765625 * total / n;

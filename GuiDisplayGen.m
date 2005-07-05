@@ -377,7 +377,8 @@ Your fair use and other rights are in no way affected by the above.
 	}
 	else
 	{
-		NSMutableArray*	words = [NSMutableArray arrayWithArray:[str componentsSeparatedByString:@" "]];
+//		NSMutableArray*	words = [NSMutableArray arrayWithArray:[str componentsSeparatedByString:@" "]];
+		NSMutableArray*	words = [Entity scanTokensFromString:str];
 		NSMutableString* string1 = [NSMutableString stringWithString:@""];
 		NSMutableString* string2 = [NSMutableString stringWithString:@""];
 		strsize.width = 0.0;
@@ -431,7 +432,8 @@ Your fair use and other rights are in no way affected by the above.
 	}
 	else
 	{
-		NSMutableArray*	words = [NSMutableArray arrayWithArray:[str componentsSeparatedByString:@" "]];
+//		NSMutableArray*	words = [NSMutableArray arrayWithArray:[str componentsSeparatedByString:@" "]];
+		NSMutableArray*	words = [Entity scanTokensFromString:str];
 		NSMutableString* string1 = [NSMutableString stringWithString:@""];
 		NSMutableString* string2 = [NSMutableString stringWithString:@""];
 		strsize.width = 0.0;
