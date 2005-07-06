@@ -1453,6 +1453,8 @@
 		<false/>
 		<key>has_scoop</key>
 		<false/>
+		<key>frangible</key>
+		<false/>
 		<key>likely_cargo</key>
 		<integer>0</integer>
 		<key>max_cargo</key>
@@ -1519,6 +1521,8 @@
 	</dict>
 	<key>dodecahedron-station</key>
 	<dict>
+		<key>frangible</key>
+		<false/>
 		<key>ai_type</key>
 		<string>stationAI.plist</string>
 		<key>bounty</key>
@@ -1808,6 +1812,8 @@
 	</dict>
 	<key>icosahedron-station</key>
 	<dict>
+		<key>frangible</key>
+		<false/>
 		<key>ai_type</key>
 		<string>stationAI.plist</string>
 		<key>bounty</key>
@@ -2399,6 +2405,8 @@
 	</dict>
 	<key>rock-hermit</key>
 	<dict>
+		<key>frangible</key>
+		<false/>
 		<key>ai_type</key>
 		<string>rockHermitAI.plist</string>
 		<key>bounty</key>
