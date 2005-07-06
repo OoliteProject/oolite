@@ -1087,7 +1087,10 @@ Your fair use and other rights are in no way affected by the above.
 				//
 				Vector v_out = vector_forward_from_quaternion(q1);
 				Vector r_pos = make_vector(ship->position.x - ppos.x, ship->position.y - ppos.y, ship->position.z - ppos.z);
-				r_pos = unit_vector(&r_pos);
+				if (r_pos.x||r_pos.y||r_pos.z)
+					r_pos = unit_vector(&r_pos);
+				else
+					r_pos.z = 1.0;
 				//
 				double vdp = dot_product( v_out, r_pos); //== cos of the angle between r_pos and v_out
 				//

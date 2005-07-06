@@ -1419,7 +1419,9 @@ Your fair use and other rights are in no way affected by the above.
 		Vector sun_pos = the_sun->position;
 		Vector stn_pos = the_station->position;
 		Vector sun_dir =  make_vector( sun_pos.x - stn_pos.x, sun_pos.y - stn_pos.y, sun_pos.z - stn_pos.z);
-		Vector vSun = unit_vector( &sun_dir);
+		Vector vSun = make_vector( 0, 0, 1);
+		if (sun_dir.x||sun_dir.y||sun_dir.z)
+			vSun = unit_vector(&sun_dir);
 		Vector v0 = vector_forward_from_quaternion(the_station->q_rotation);
 		Vector v1 = cross_product( v0, vSun);
 		Vector v2 = cross_product( v0, v1);
@@ -1495,7 +1497,10 @@ Your fair use and other rights are in no way affected by the above.
 	Vector v1 = [universe getSunSkimEndPositionForShip:self];
 	Vector vs = the_sun->position;
 	Vector vout = make_vector( v1.x - vs.x, v1.y - vs.y, v1.z - vs.z);
-	vout = unit_vector(&vout);
+	if (vout.x||vout.y||vout.z)
+		vout = unit_vector(&vout);
+	else
+		vout.z = 1.0;
 	v1.x += 10000 * vout.x;	v1.y += 10000 * vout.y;	v1.z += 10000 * vout.z;
 	coordinates = v1;
 	[shipAI message:@"APPROACH_COORDINATES"];
@@ -1619,7 +1624,10 @@ Your fair use and other rights are in no way affected by the above.
 	Vector d0 = (the_target)? the_target->position : make_vector(0,0,0);
 	v0.x += (randf() - 0.5)*collision_radius;	v0.y += (randf() - 0.5)*collision_radius;	v0.z += (randf() - 0.5)*collision_radius;
 	v0.x -= d0.x;	v0.y -= d0.y;	v0.z -= d0.z;
-	v0 = unit_vector(&v0);
+	if (v0.x||v0.y||v0.z)
+		v0 = unit_vector(&v0);
+	else
+		v0.z = -1.0;
 	v0.x *= bo_distance;	v0.y *= bo_distance;	v0.z *= bo_distance;
 	v0.x += d0.x;	v0.y += d0.y;	v0.z += d0.z;
 	coordinates = v0;

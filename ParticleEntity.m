@@ -743,8 +743,10 @@ static Vector   circleVertex[65];		// holds vector coordinates for a unit circle
 	Vector v0 = position;
 	Vector p0 = (player)? player->position : make_vector(0,0,0);
 	v0.x -= p0.x;	v0.y -= p0.y;	v0.z -= p0.z; // vector from player to position
-	
-	v0 = unit_vector(&v0);
+	if (v0.x||v0.y||v0.z)
+		v0 = unit_vector(&v0);
+	else
+		v0.z = 1.0;
 	//equivalent of v_forward
 	
 	Vector arb1;

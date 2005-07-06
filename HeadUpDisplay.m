@@ -632,6 +632,10 @@ static BOOL hostiles;
 		relativePosition.x -= position.x;   relativePosition.y -= position.y;   relativePosition.z -= position.z;
 		// rotate the view
 		mult_vector(&relativePosition, rotMatrix);
+		if (relativePosition.x||relativePosition.y||relativePosition.z)
+			relativePosition = unit_vector(&relativePosition);
+		else
+			relativePosition.z = 1.0;
 		relativePosition = unit_vector(&relativePosition);
 		relativePosition.x *= [compassSprite size].width * 0.4;
 		relativePosition.y *= [compassSprite size].height * 0.4;
@@ -1377,17 +1381,20 @@ static BOOL hostiles;
 					break;
 			}
 			rpn.z = 0;	// flatten vector
-			rpn = unit_vector(&rpn);
-			glBegin(GL_LINES);
-				glColor4fv(clear_color);
-				glVertex3f( rpn.x * siz1 - rpn.y * siz0, rpn.y * siz1 + rpn.x * siz0, z1);
-				glColor4fv(green_color);
-				glVertex3f( rpn.x * siz2, rpn.y * siz2, z1);
-				glColor4fv(clear_color);
-				glVertex3f( rpn.x * siz1 + rpn.y * siz0, rpn.y * siz1 - rpn.x * siz0, z1);
-				glColor4fv(green_color);
-				glVertex3f( rpn.x * siz2, rpn.y * siz2, z1);
-			glEnd();
+			if (rpn.x||rpn.y)
+			{
+				rpn = unit_vector(&rpn);
+				glBegin(GL_LINES);
+					glColor4fv(clear_color);
+					glVertex3f( rpn.x * siz1 - rpn.y * siz0, rpn.y * siz1 + rpn.x * siz0, z1);
+					glColor4fv(green_color);
+					glVertex3f( rpn.x * siz2, rpn.y * siz2, z1);
+					glColor4fv(clear_color);
+					glVertex3f( rpn.x * siz1 + rpn.y * siz0, rpn.y * siz1 - rpn.x * siz0, z1);
+					glColor4fv(green_color);
+					glVertex3f( rpn.x * siz2, rpn.y * siz2, z1);
+				glEnd();
+			}
 		}
 	}
 }

@@ -1236,24 +1236,6 @@ static  Universe	*data_store_universe;
 
 - (void) calculateVertexNormals
 {
-//	int i,j;
-//	for (i = 0; i < n_vertices; i++)
-//	{
-//		int shared_faces = 0;
-//		Vector normal_sum;
-//		normal_sum.x = 0.0;	normal_sum.y = 0.0;	normal_sum.z = 0.0;
-//		for (j = 0; j < n_faces; j++)
-//		{
-//			BOOL is_shared = ((faces[j].vertex[0] == i)||(faces[j].vertex[1] == i)||(faces[j].vertex[2] == i));
-//			if (is_shared)
-//			{
-//				normal_sum.x += faces[j].normal.x;	normal_sum.y += faces[j].normal.y;	normal_sum.z += faces[j].normal.z;
-//				shared_faces++;
-//			}
-//		}
-//		normal_sum = unit_vector(&normal_sum);
-//		vertex_normal[i] = normal_sum;
-//	}
 	int i,j;
 	float	triangle_area[n_faces];
 	for (i = 0 ; i < n_faces; i++)
@@ -1267,8 +1249,7 @@ static  Universe	*data_store_universe;
 	}
 	for (i = 0; i < n_vertices; i++)
 	{
-		Vector normal_sum;
-		normal_sum.x = 0.0;	normal_sum.y = 0.0;	normal_sum.z = 0.0;
+		Vector normal_sum = make_vector( 0, 0, 0);
 		for (j = 0; j < n_faces; j++)
 		{
 			BOOL is_shared = ((faces[j].vertex[0] == i)||(faces[j].vertex[1] == i)||(faces[j].vertex[2] == i));
@@ -1278,7 +1259,10 @@ static  Universe	*data_store_universe;
 				normal_sum.x += t * faces[j].normal.x;	normal_sum.y += t * faces[j].normal.y;	normal_sum.z += t * faces[j].normal.z;
 			}
 		}
-		normal_sum = unit_vector(&normal_sum);
+		if (normal_sum.x||normal_sum.y||normal_sum.z)
+			normal_sum = unit_vector(&normal_sum);
+		else
+			normal_sum.z = 1.0;
 		vertex_normal[i] = normal_sum;
 	}
 }

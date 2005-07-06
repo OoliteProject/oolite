@@ -3488,7 +3488,10 @@ Vector randomPositionInBoundingBox(BoundingBox bb)
 		vector_to_target = targent->position;
 		//
 		vector_to_target.x -= my_position.x;	vector_to_target.y -= my_position.y;	vector_to_target.z -= my_position.z;
-		vector_to_target = unit_vector(&vector_to_target);	
+		if (vector_to_target.x||vector_to_target.y||vector_to_target.z)
+			vector_to_target = unit_vector(&vector_to_target);
+		else
+			vector_to_target.z = 1.0;
 		//	
 		// do the tracking!
 		aim_cos = dot_product(vector_to_target, my_aim);
@@ -3538,8 +3541,10 @@ Vector randomPositionInBoundingBox(BoundingBox bb)
 	
 	vector_to_target = targent->position;
 	vector_to_target.x -= position.x;	vector_to_target.y -= position.y;	vector_to_target.z -= position.z;
-	//
-	vector_to_target = unit_vector(&vector_to_target);
+	if (vector_to_target.x||vector_to_target.y||vector_to_target.z)
+		vector_to_target = unit_vector(&vector_to_target);
+	else
+		vector_to_target.z = 1.0;
 	
 	// section copied from GPG1
 	//
@@ -3618,7 +3623,10 @@ Vector randomPositionInBoundingBox(BoundingBox bb)
 		float lead = sqrt(magnitude2(vector_to_target)) / TURRET_SHOT_SPEED;
 		//
 		vector_to_target.x += lead * leading.x;	vector_to_target.y += lead * leading.y;	vector_to_target.z += lead * leading.z;
-		vector_to_target = unit_vector(&vector_to_target);	
+		if (vector_to_target.x||vector_to_target.y||vector_to_target.z)
+			vector_to_target = unit_vector(&vector_to_target);
+		else
+			vector_to_target.z = 1.0;
 		//	
 		// do the tracking!
 		aim_cos = dot_product(vector_to_target, my_aim);
@@ -3713,7 +3721,10 @@ Vector randomPositionInBoundingBox(BoundingBox bb)
 		relativePosition.z += jink.x * vx.z + jink.y * vy.z + jink.z * vz.z;
 	}
 	
-	relativePosition = unit_vector(&relativePosition);
+	if (relativePosition.x||relativePosition.y||relativePosition.z)
+		relativePosition = unit_vector(&relativePosition);
+	else
+		relativePosition.z = 1.0;
 	
 	d_right		=   dot_product(relativePosition, v_right);		// = cosine of angle between angle to target and v_right
 	d_up		=   dot_product(relativePosition, v_up);		// = cosine of angle between angle to target and v_up
@@ -3839,7 +3850,10 @@ Vector randomPositionInBoundingBox(BoundingBox bb)
 	relativePosition.y -= position.y;
 	relativePosition.z -= position.z;
 	
-	relativePosition = unit_vector(&relativePosition);
+	if (relativePosition.x||relativePosition.y||relativePosition.z)
+		relativePosition = unit_vector(&relativePosition);
+	else
+		relativePosition.z = 1.0;
 	
 	d_right		=   dot_product(relativePosition, v_right);
 	d_up		=   dot_product(relativePosition, v_up);
@@ -4008,7 +4022,10 @@ Vector randomPositionInBoundingBox(BoundingBox bb)
 	rel_pos.y -= position.y;
 	rel_pos.z -= position.z;
 	d2 = magnitude2(rel_pos);
-	urp = unit_vector(&rel_pos);
+	if (d2)
+		urp = unit_vector(&rel_pos);
+	else
+		urp = make_vector( 0, 0, 1);
 	dq = dot_product(urp, v_forward);				// cosine of angle between v_forward and unit relative position
 	if (((fwd_weapon)&&(dq < 0.0)) || ((!fwd_weapon)&&(dq > 0.0)))
 		return NO;
@@ -4347,7 +4364,10 @@ Vector randomPositionInBoundingBox(BoundingBox bb)
 	double			range_limit2 = weapon_range*weapon_range;
 	Vector			r_pos = my_target->position;
 	r_pos.x -= position.x;	r_pos.y -= position.y;	r_pos.z -= position.z;
-	r_pos = unit_vector(&r_pos);
+	if (r_pos.x||r_pos.y||r_pos.z)
+		r_pos = unit_vector(&r_pos);
+	else
+		r_pos.z = 1.0;
 
 //	target_laser_hit = primaryTarget;
 
@@ -4929,7 +4949,11 @@ Vector randomPositionInBoundingBox(BoundingBox bb)
 	loc.x -= position.x;	loc.y -= position.y;	loc.z -= position.z;
 	double back_dist = 0.5 * (actual_radius + other->actual_radius - sqrt(magnitude2(loc)));
 	
-	loc = unit_vector(&loc);
+	if (loc.x||loc.y||loc.z)
+		loc = unit_vector(&loc);
+	else
+		loc.z = 1.0;
+	
 	Vector back = make_vector( back_dist * loc.x, back_dist * loc.y, back_dist * loc.z);
 	
 	inc1 = (v_forward.x*loc.x)+(v_forward.y*loc.y)+(v_forward.z*loc.z);
@@ -5048,7 +5072,12 @@ Vector randomPositionInBoundingBox(BoundingBox bb)
 //	NSLog(@"DEBUG other cargo type is not CARGO_NOT_CARGO okay");
 	Vector  loc = other->position;
 	loc.x -= position.x;	loc.y -= position.y;	loc.z -= position.z;
-	loc = unit_vector(&loc);
+	
+	if (loc.x||loc.y||loc.z)
+		loc = unit_vector(&loc);
+	else
+		loc.z = 1.0;
+	
 	double inc1 = (v_forward.x*loc.x)+(v_forward.y*loc.y)+(v_forward.z*loc.z);
 	if (inc1 < 0)									return NO;
 //	NSLog(@"DEBUG incidence 1 okay");

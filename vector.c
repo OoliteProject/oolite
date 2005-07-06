@@ -277,37 +277,6 @@ void set_matrix_identity (struct vector *mat)
             mat[i] = start_matrix[i];
 }
 
-
-// orthonormalisation
-//
-void tidy_matrix (struct vector *mat)
-{
-	mat[2] = unit_vector (&mat[2]);
-
-	if ((mat[2].x > -1) && (mat[2].x < 1))
-	{
-		if ((mat[2].y > -1) && (mat[2].y < 1))
-		{
-			mat[1].z = -(mat[2].x * mat[1].x + mat[2].y * mat[1].y) / mat[2].z;
-		}
-		else
-		{
-			mat[1].y = -(mat[2].x * mat[1].x + mat[2].z * mat[1].z) / mat[2].y;
-		}
-	}
-	else
-	{
-		mat[1].x = -(mat[2].y * mat[1].y + mat[2].z * mat[1].z) / mat[2].x;
-	}
-	
-	mat[1] = unit_vector (&mat[1]);
-	
-	mat[0].x = mat[1].y * mat[2].z - mat[1].z * mat[2].y;
-	mat[0].y = mat[1].z * mat[2].x - mat[1].x * mat[2].z;
-	mat[0].z = mat[1].x * mat[2].y - mat[1].y * mat[2].x;
-}
-
-
 // produce a GL_matrix from a rotation matrix
 //
 void	matrix_into_gl_matrix(struct vector *mat, GLfloat *glmat)
@@ -478,8 +447,11 @@ Vector	vector_right_from_quaternion(Quaternion quat)
     zz = z * zz;
 
     res.x	= 1.0 - yy - zz;	res.y	= xy - wz;			res.z	= xz + wy;
-	
-	return unit_vector(&res);
+
+	if (res.x||res.y||res.z)
+		return unit_vector(&res);
+	else
+		return make_vector( 1, 0, 0);
 }
 // produce an up vector from a quaternion
 //
@@ -504,7 +476,10 @@ Vector	vector_up_from_quaternion(Quaternion quat)
 
     res.x	= xy + wz;	res.y	= 1.0 - xx - zz;			res.z	= yz - wx;
 	
-	return unit_vector(&res);
+	if (res.x||res.y||res.z)
+		return unit_vector(&res);
+	else
+		return make_vector( 0, 1, 0);
 }
 // produce a forward vector from a quaternion
 //
@@ -528,8 +503,11 @@ Vector	vector_forward_from_quaternion(Quaternion quat)
     zz = z * zz;
 
     res.x	= xz - wy;	res.y	= yz + wx;			res.z	= 1.0 - xx - yy;
-	
-	return unit_vector(&res);
+
+	if (res.x||res.y||res.z)
+		return unit_vector(&res);
+	else
+		return make_vector( 0, 0, 1);
 }
 
 // produce a quaternion representing an angle between two vectors

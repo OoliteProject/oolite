@@ -621,7 +621,10 @@ static GLuint vertex_index_array[3*(20+80+320+1280+5120+20480)];
 			Vector p0 = (player)? player->position: make_vector(0,0,0);
 			v0.x -= p0.x;	v0.y -= p0.y;	v0.z -= p0.z; // vector from player to position
 			
-			v0 = unit_vector(&v0);
+			if (v0.x||v0.y||v0.z)
+				v0 = unit_vector(&v0);
+			else
+				v0.z = 1.0;
 			//equivalent of v_forward
 			
 			Vector arb1;
@@ -647,7 +650,10 @@ static GLuint vertex_index_array[3*(20+80+320+1280+5120+20480)];
 				Vector v_sun = [universe sun]->position;
 				Vector v_p = (player)? player->position: make_vector(0,0,0);
 				v_sun.x -= v_p.x;	v_sun.y -= v_p.y;	v_sun.z -= v_p.z;
-				v_sun = unit_vector(&v_sun);
+				if (v_sun.x||v_sun.y||v_sun.z)
+					v_sun = unit_vector(&v_sun);
+				else
+					v_sun.z = 1.0;
 				polar_color_factor = dot_product( v_sun, v0);
 			}
 			
@@ -1114,7 +1120,7 @@ void drawActiveCorona (double inner_radius, double outer_radius, int step, doubl
     {
         if ((vert.x == 0.0)&&(vert.y == 0.0)&&(vert.z == 0.0))
 			continue;
-		vert = unit_vector(&vertices[i]);
+		vert = unit_vector(&vertices[i]);	// guaranteed non-zero
 		vert.x *= rad;
 		vert.y *= rad;
 		vert.z *= rad;
@@ -1304,7 +1310,7 @@ int baseVertexIndexForEdge(int va, int vb)
 		base_vertex_array[vindex].x += base_vertex_array[vb].x;
 		base_vertex_array[vindex].y += base_vertex_array[vb].y;
 		base_vertex_array[vindex].z += base_vertex_array[vb].z;
-		base_vertex_array[vindex] = unit_vector(&base_vertex_array[vindex]);
+		base_vertex_array[vindex] = unit_vector(&base_vertex_array[vindex]);	// guaranteed non-zero
 		
 		// add new edge to the look-up
 		[edge_to_vertex setObject:[NSNumber numberWithInt:vindex] forKey:key];

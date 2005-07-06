@@ -1,5 +1,3 @@
-#ifndef VECTOR_H
-#define VECTOR_H
 /*
 
 Provides utility routines for Vectors, Quaternions, rotation matrices, and conversion to OpenGL transformation matrices
@@ -39,6 +37,8 @@ Any of these conditions can be waived if you get permission from the copyright h
 Your fair use and other rights are in no way affected by the above.
 
 */
+#ifndef VECTOR_H
+#define VECTOR_H
 
 #ifdef LINUX
 #include "oolite-linux.h"
@@ -95,7 +95,6 @@ Vector normal_to_surface (Vector v1, Vector v2, Vector v3);
 inline struct vector make_vector (GLfloat vx, GLfloat vy, GLfloat vz);
 struct vector unit_vector (struct vector *vec);
 void	set_matrix_identity (struct vector *mat);
-void	tidy_matrix (struct vector *mat);
 
 void	matrix_into_gl_matrix(struct vector *mat, GLfloat *glmat);
 void	vectors_into_gl_matrix(Vector vf, Vector vr, Vector vu, GLfloat *glmat);
@@ -153,5 +152,6 @@ void	quaternion_rotate_about_axis(struct quaternion *quat, Vector axis, GLfloat 
 // normalise
 //
 void	quaternion_normalise(struct quaternion *quat);
+
 #endif
 

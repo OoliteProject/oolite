@@ -1206,7 +1206,11 @@ Your fair use and other rights are in no way affected by the above.
 	Vector  v_route1 = p1_pos;
 	v_route1.x -= h1_pos.x;	v_route1.y -= h1_pos.y;	v_route1.z -= h1_pos.z;
 	double d_route1 = sqrt(v_route1.x*v_route1.x + v_route1.y*v_route1.y + v_route1.z*v_route1.z) - 60000.0; // -60km to avoid planet
-	v_route1 = unit_vector(&v_route1);
+
+	if (v_route1.x||v_route1.y||v_route1.z)
+		v_route1 = unit_vector(&v_route1);
+	else
+		v_route1.z = 1.0;
 	
 	// add the traders to route1 (witchspace exit to space-station / planet)
 	for (i = 0; (i < trading_parties)&&(!sun_gone_nova); i++)
@@ -1390,7 +1394,11 @@ Your fair use and other rights are in no way affected by the above.
 	Vector  v_route2 = s1_pos;
 	v_route2.x -= p1_pos.x;	v_route2.y -= p1_pos.y;	v_route2.z -= p1_pos.z;
 	double d_route2 = sqrt(magnitude2(v_route2));
-	v_route2 = unit_vector(&v_route2);
+	
+	if (v_route2.x||v_route2.y||v_route2.z)
+		v_route2 = unit_vector(&v_route1);
+	else
+		v_route2.x = 1.0;
 	
 	// add the traders to route2
 	for (i = 0; (i < skim_trading_parties)&&(!sun_gone_nova); i++)
@@ -1740,9 +1748,15 @@ Your fair use and other rights are in no way affected by the above.
 			return make_vector(0,0,0);
 	}
 	Vector k = make_vector(p1.x - p0.x, p1.y - p0.y, p1.z - p0.z);
-	k = unit_vector(&k);				//	'forward'
+	if (k.x||k.y||k.z)
+		k = unit_vector(&k);	//	'forward'
+	else
+		k.z = 1.0;
 	Vector v = make_vector(p2.x - p0.x, p2.y - p0.y, p2.z - p0.z);
-	v = unit_vector (&v);				//	temporary vector in plane of 'forward' and 'right'
+	if (v.x||v.y||v.z)
+		v = unit_vector(&v);		//	temporary vector in plane of 'forward' and 'right'
+	else
+		v.x = 1.0;
 	Vector j = cross_product( k, v);	// 'up'
 	Vector i = cross_product( j, k);	// 'right'
 	GLfloat scalar = 1.0;
@@ -1834,9 +1848,15 @@ Your fair use and other rights are in no way affected by the above.
 			return nil;
 	}
 	Vector k = make_vector(p1.x - p0.x, p1.y - p0.y, p1.z - p0.z);
-	k = unit_vector(&k);				//	'z' axis in m
+	if (k.x||k.y||k.z)
+		k = unit_vector(&k);			//	'z' axis in m
+	else
+		k.z = 1.0;
 	Vector v = make_vector(p2.x - p0.x, p2.y - p0.y, p2.z - p0.z);
-	v = unit_vector (&v);				//	temporary vector in plane of 'forward' and 'right'
+	if (v.x||v.y||v.z)
+		v = unit_vector(&v);		//	temporary vector in plane of 'forward' and 'right'
+	else
+		v.x = 1.0;
 	Vector j = cross_product( k, v);	// 'y' axis in m
 	Vector i = cross_product( j, k);	// 'x' axis in m
 	GLfloat scalar = 1.0;
@@ -1928,7 +1948,7 @@ Your fair use and other rights are in no way affected by the above.
 				v_from_center.y += walk_factor * (randf() - 0.5);
 				v_from_center.z += walk_factor * (randf() - 0.5);	// drunkards walk
 			} while ((v_from_center.x == 0.0)&&(v_from_center.y == 0.0)&&(v_from_center.z == 0.0));
-			v_from_center = unit_vector(&v_from_center);
+			v_from_center = unit_vector(&v_from_center);	// guaranteed non-zero
 						
 			ship_pos = make_vector(	launch_pos.x + distance_from_center * v_from_center.x,
 									launch_pos.y + distance_from_center * v_from_center.y,
@@ -3596,6 +3616,8 @@ Your fair use and other rights are in no way affected by the above.
 	
 	if (v1.x || v1.y || v1.z)
 		f1 = unit_vector(&v1);   // unit vector in direction of p2 from p1
+	else
+		f1 = make_vector( 0, 0, 1);
 	
 	for (i = 0; i < ent_count ; i++)
 	{
@@ -3658,6 +3680,8 @@ Your fair use and other rights are in no way affected by the above.
 	
 	if (v1.x || v1.y || v1.z)
 		f1 = unit_vector(&v1);   // unit vector in direction of p2 from p1
+	else
+		f1 = make_vector( 0, 0, 1);
 		
 	for (i = 0; i < ent_count; i++)
 	{
@@ -3701,12 +3725,18 @@ Your fair use and other rights are in no way affected by the above.
 					
 					Vector outward = nearest_point;
 					outward.x -= result.x;	outward.y -= result.y;	outward.z -= result.z;
-					outward = unit_vector(&outward);
+					if (outward.x||outward.y||outward.z)
+						outward = unit_vector(&outward);
+					else
+						outward.y = 1.0;
 					// outward holds unit vector through the nearest point on the line from the center of incident object
 					
 					Vector backward = p1;
 					backward.x -= result.x;	backward.y -= result.y;	backward.z -= result.z;
-					backward = unit_vector(&backward);
+					if (backward.x||backward.y||backward.z)
+						backward = unit_vector(&backward);
+					else
+						backward.z = -1.0;
 					// backward holds unit vector from center of the incident object to the center of the ship
 					
 					Vector dd = result;
@@ -4525,9 +4555,15 @@ Your fair use and other rights are in no way affected by the above.
 							Vector p_e2 = e2->position;
 							Vector p_e1 = e1->position;
 							Vector v_sun = make_vector( p_sun.x - p_e1.x, p_sun.y - p_e1.y, p_sun.z - p_e1.z);
-							v_sun = unit_vector( &v_sun);
+							if (v_sun.x||v_sun.y||v_sun.z)
+								v_sun = unit_vector( &v_sun);
+							else
+								v_sun.z = 1.0;
 							Vector v_e2 = make_vector( p_e2.x - p_e1.x, p_e2.y - p_e1.y, p_e2.z - p_e1.z);
-							v_e2 = unit_vector( &v_e2);
+							if (v_e2.x||v_e2.y||v_e2.z)
+								v_e2 = unit_vector( &v_e2);
+							else
+								v_e2.x = 1.0;
 							double phi = acos( dot_product( v_sun, v_e2));		// angle between sun and e2 from e1's viewpoint
 							if (theta_sun + phi > theta_e2)
 								continue;	// sun is not occluded
@@ -6319,7 +6355,10 @@ NSComparisonResult comparePrice( id dict1, id dict2, void * context)
 	Vector v0 = the_sun->position;
 	Vector v1 = ship->position;
 	v1.x -= v0.x;	v1.y -= v0.y;	v1.z -= v0.z;	// vector from sun to ship
-	v1 = unit_vector(&v1);
+	if (v1.x||v1.y||v1.z)
+		v1 = unit_vector(&v1);
+	else
+		v1.z = 1.0;
 	double radius = SUN_SKIM_RADIUS_FACTOR * the_sun->collision_radius - 250.0; // 250 m inside the skim radius
 	v1.x *= radius;	v1.y *= radius;	v1.z *= radius;
 	v1.x += v0.x;	v1.y += v0.y;	v1.z += v0.z;
@@ -6346,17 +6385,29 @@ NSComparisonResult comparePrice( id dict1, id dict2, void * context)
 	Vector v0 = the_sun->position;
 	Vector v1 = ship->position;
 	v1.x -= v0.x;	v1.y -= v0.y;	v1.z -= v0.z;
-	v1 = unit_vector(&v1);
+	if (v1.x||v1.y||v1.z)
+		v1 = unit_vector(&v1);
+	else
+		v1.z = 1.0;
 	Vector v2 = make_vector(randf()-0.5, randf()-0.5, randf()-0.5);	// random vector
-	v2 = unit_vector(&v2);
+	if (v2.x||v2.y||v2.z)
+		v2 = unit_vector(&v2);
+	else
+		v2.x = 1.0;
 	Vector v3 = cross_product( v1, v2);	// random vector at 90 degrees to v1 and v2 (random Vector)
-	v3 = unit_vector(&v3);
+	if (v3.x||v3.y||v3.z)
+		v3 = unit_vector(&v3);
+	else
+		v3.y = 1.0;
 	double radius = the_sun->collision_radius * SUN_SKIM_RADIUS_FACTOR - 250.0; // 250 m inside the skim radius
 	v1.x *= radius;	v1.y *= radius;	v1.z *= radius;
 	v1.x += v0.x;	v1.y += v0.y;	v1.z += v0.z;
 	v1.x += 15000 * v3.x;	v1.y += 15000 * v3.y;	v1.z += 15000 * v3.z;	// point 15000m at a tangent to sun from v1
 	v1.x -= v0.x;	v1.y -= v0.y;	v1.z -= v0.z;
-	v1 = unit_vector(&v1);
+	if (v1.x||v1.y||v1.z)
+		v1 = unit_vector(&v1);
+	else
+		v1.z = 1.0;
 	v1.x *= radius;	v1.y *= radius;	v1.z *= radius;
 	v1.x += v0.x;	v1.y += v0.y;	v1.z += v0.z;
 	
