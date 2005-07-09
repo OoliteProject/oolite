@@ -177,7 +177,15 @@ NSMutableDictionary*	surface_cache;
 			BOOL require_test = YES;
 			// check for compatibility
 			if ([[NSFileManager defaultManager] fileExistsAtPath:requiresPath])
-				require_test = [ResourceManager areRequirementsFulfilled:[NSDictionary dictionaryWithContentsOfFile:requiresPath]];
+			{
+				NSDictionary* requires_dic = [NSDictionary dictionaryWithContentsOfFile:requiresPath];
+				
+				// FIX FOR WINDOWS GNUSTEP NOT PARSING XML PLISTS
+				if (!requires_dic)	// try parsing it using our home-grown XML parser
+					requires_dic = (NSDictionary*)[ResourceManager parseXMLPropertyList:[NSString stringWithContentsOfFile:requiresPath]];
+					
+				require_test = [ResourceManager areRequirementsFulfilled:requires_dic];
+			}
 			if (require_test)
 				[file_paths addObject:possibleExpansionPath];	// it made it in!
 			else
