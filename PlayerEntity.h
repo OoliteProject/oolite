@@ -348,7 +348,8 @@ Your fair use and other rights are in no way affected by the above.
 		int				port_weapon;
 		int				starboard_weapon;
 		
-		NSArray*		shipCommodityData;
+		NSMutableArray*	shipCommodityData;
+		
 		BOOL			has_energy_unit;
 		int				energy_unit;
 		int				shield_booster, shield_enhancer;

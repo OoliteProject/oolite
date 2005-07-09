@@ -1,6 +1,27 @@
 {
+    "DOCKING_PLANET" = {
+		ENTER = ("setSpeedFactorTo: 0.0", performIdle);
+		"DOCKING_COMPLETE" = ("setStateTo: HEAD_FOR_PLANET");
+        "GROUP_ATTACK_TARGET" = (setTargetToFoundTarget); 
+        ATTACKED = (setTargetToPrimaryAggressor, groupAttackTarget); 
+        "INCOMING_MISSILE" = (fightOrFleeMissile, setTargetToPrimaryAggressor, groupAttackTarget); 
+        "TARGET_FOUND" = (setTargetToFoundTarget, groupAttackTarget); 
+		EXIT = ();
+		UPDATE = (scanForHostiles, "pauseAI: 10.0");
+	}; 
+    "DOCKING_WITCHPOINT" = {
+		ENTER = ("setSpeedFactorTo: 0.0", performIdle);
+		"DOCKING_COMPLETE" = ("setStateTo: HEAD_FOR_WITCHPOINT");
+        "GROUP_ATTACK_TARGET" = (setTargetToFoundTarget, "setStateTo: ATTACK_TARGET"); 
+        ATTACKED = (setTargetToPrimaryAggressor, groupAttackTarget); 
+        "INCOMING_MISSILE" = (fightOrFleeMissile, setTargetToPrimaryAggressor, launchDefenseShip, groupAttackTarget, "setStateTo: ATTACK_TARGET"); 
+        "TARGET_FOUND" = (setTargetToFoundTarget, launchDefenseShip, groupAttackTarget); 
+		EXIT = ();
+		UPDATE = (scanForHostiles, "pauseAI: 10.0");
+	}; 
     "HEAD_FOR_PLANET" = {
 		ENTER = (setCourseToPlanet, "setDesiredRangeTo: 50000.0", checkCourseToDestination);
+        "DOCKING_REQUESTED" = ("setSpeedFactorTo: 0.0", "setStateTo: DOCKING_PLANET"); 
 		"COURSE_OK" = ("setSpeedFactorTo: 0.8", performFlyToRangeFromDestination);
 		"WAYPOINT_SET" = ("setStateTo: GO_TO_WAYPOINT1");
 		"DESIRED_RANGE_ACHIEVED" = ("setStateTo: HEAD_FOR_WITCHPOINT");
@@ -15,6 +36,7 @@
 	}; 
     "GO_TO_WAYPOINT1" = {
 		ENTER = ("setDesiredRangeTo: 50.0", checkCourseToDestination);
+        "DOCKING_REQUESTED" = ("setSpeedFactorTo: 0.0", "setStateTo: DOCKING_PLANET"); 
 		"COURSE_OK" = ("setSpeedFactorTo: 0.8", performFlyToRangeFromDestination);
 		"WAYPOINT_SET" = ("setDesiredRangeTo: 50.0", checkCourseToDestination);
 		"DESIRED_RANGE_ACHIEVED" = ("setStateTo: HEAD_FOR_PLANET");
@@ -28,6 +50,7 @@
 	}; 
     "HEAD_FOR_WITCHPOINT" = {
 		ENTER = (setCourseToWitchpoint, checkCourseToDestination);
+        "DOCKING_REQUESTED" = ("setSpeedFactorTo: 0.0", "setStateTo: DOCKING_WITCHPOINT"); 
 		"COURSE_OK" = ("setSpeedFactorTo: 0.8", performFlyToRangeFromDestination);
 		"WAYPOINT_SET" = ("setStateTo: GO_TO_WAYPOINT2");
 		"DESIRED_RANGE_ACHIEVED" = ("setStateTo: HEAD_FOR_PLANET");
@@ -43,6 +66,7 @@
 	}; 
     "GO_TO_WAYPOINT2" = {
 		ENTER = ("setDesiredRangeTo: 50.0", checkCourseToDestination);
+        "DOCKING_REQUESTED" = ("setSpeedFactorTo: 0.0", "setStateTo: DOCKING_WITCHPOINT"); 
 		"COURSE_OK" = ("setSpeedFactorTo: 0.8", performFlyToRangeFromDestination);
 		"WAYPOINT_SET" = ("setDesiredRangeTo: 50.0", checkCourseToDestination);
 		"DESIRED_RANGE_ACHIEVED" = ("setStateTo: HEAD_FOR_WITCHPOINT");
@@ -56,6 +80,7 @@
 	}; 
     "OUTBOUND_LOOT" = {
         "GROUP_ATTACK_TARGET" = (setTargetToFoundTarget, "setAITo: interceptAI.plist"); 
+        "DOCKING_REQUESTED" = ("setSpeedFactorTo: 0.0", "setStateTo: DOCKING_WITCHPOINT"); 
         ATTACKED = (setTargetToPrimaryAggressor, groupAttackTarget); 
         ENTER = ("setSpeedTo: 0.0", performIdle); 
         EXIT = (); 
@@ -66,6 +91,7 @@
     }; 
     "INBOUND_LOOT" = {
         "GROUP_ATTACK_TARGET" = (setTargetToFoundTarget, "setAITo: interceptAI.plist"); 
+        "DOCKING_REQUESTED" = ("setSpeedFactorTo: 0.0", "setStateTo: DOCKING_PLANET"); 
         ATTACKED = (setTargetToPrimaryAggressor, groupAttackTarget); 
         ENTER = ("setSpeedTo: 0.0", performIdle); 
         EXIT = (); 

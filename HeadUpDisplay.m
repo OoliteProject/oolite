@@ -942,9 +942,7 @@ static BOOL hostiles;
 		glColor4fv(yellow_color);
 		hudDrawSurroundAt( x, y, z1, siz);
 	}
-	// draw energy surround
-	glColor4fv(yellow_color);
-	hudDrawSurroundAt( x, y, z1, siz);
+
 	// draw energy banks
 	{
 		int qy = siz.height / n_bars;
@@ -1535,7 +1533,7 @@ void hudDrawBarAt(int x, int y, int z, NSSize siz, double amount)
 {
 	GLfloat dial_ox =   x - siz.width/2;
 	GLfloat dial_oy =   y - siz.height/2;
-	if (siz.width > siz.height)
+	if (fabs(siz.width) > fabs(siz.height))
 	{
 		GLfloat position =  dial_ox + amount * siz.width;
 		

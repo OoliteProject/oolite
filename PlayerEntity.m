@@ -168,12 +168,15 @@ Your fair use and other rights are in no way affected by the above.
 	NSMutableArray* localMarket = [docked_station localMarket]; 
 	NSMutableArray* manifest = [[NSMutableArray arrayWithArray:localMarket] retain];  // retain
 	//
-	// zero the quantities in the manifest, making a mutable array of mutable arrays
+	// copy the quantities in ShipCommodityData to the manifest
+	// (was: zero the quantities in the manifest, making a mutable array of mutable arrays)
 	//
 	for (i = 0; i < [manifest count]; i++)
 	{
 		NSMutableArray* commodityInfo = [NSMutableArray arrayWithArray:(NSArray *)[manifest objectAtIndex:i]];
-		[commodityInfo replaceObjectAtIndex:MARKET_QUANTITY withObject:[NSNumber numberWithInt:0]];
+		NSArray* shipCommInfo = [NSArray arrayWithArray:(NSArray *)[shipCommodityData objectAtIndex:i]];
+//		[commodityInfo replaceObjectAtIndex:MARKET_QUANTITY withObject:[NSNumber numberWithInt:0]];
+		[commodityInfo replaceObjectAtIndex:MARKET_QUANTITY withObject:[shipCommInfo objectAtIndex:MARKET_QUANTITY]];
 		[manifest replaceObjectAtIndex:i withObject:commodityInfo];
 	}
 	//
@@ -226,18 +229,19 @@ Your fair use and other rights are in no way affected by the above.
 
 			if (units != UNITS_TONS)
 			{
-				int amount_per_container = (units == UNITS_KILOGRAMS)? 1000 : 1000000;
-				while (quantity > 0)
-				{
-					int smaller_quantity = 1 + ((quantity - 1) % amount_per_container);
-					ShipEntity* container = [universe getShipWithRole:@"cargopod"];
-					[container setUniverse:universe];
-					[container setScanClass: CLASS_CARGO];
-					[container setCommodity:i andAmount:smaller_quantity];
-					[cargo addObject:container];
-					[container release];
-					quantity -= smaller_quantity;
-				}
+				// do nothing!
+//				int amount_per_container = (units == UNITS_KILOGRAMS)? 1000 : 1000000;
+//				while (quantity > 0)
+//				{
+//					int smaller_quantity = 1 + ((quantity - 1) % amount_per_container);
+//					ShipEntity* container = [universe getShipWithRole:@"cargopod"];
+//					[container setUniverse:universe];
+//					[container setScanClass: CLASS_CARGO];
+//					[container setCommodity:i andAmount:smaller_quantity];
+//					[cargo addObject:container];
+//					[container release];
+//					quantity -= smaller_quantity;
+//				}
 			}
 			else
 			{
@@ -252,10 +256,14 @@ Your fair use and other rights are in no way affected by the above.
 					[cargo addObject:container];
 					[container release];
 				}
+				// zero this commodity
+				[commodityInfo setArray:(NSArray *)[localMarket objectAtIndex:i]];
+				[commodityInfo replaceObjectAtIndex:MARKET_QUANTITY withObject:[NSNumber numberWithInt:0]];
+				[manifest replaceObjectAtIndex:i withObject:[NSArray arrayWithArray:commodityInfo]];
 			}
-			[commodityInfo setArray:(NSArray *)[localMarket objectAtIndex:i]];
-			[commodityInfo replaceObjectAtIndex:MARKET_QUANTITY withObject:[NSNumber numberWithInt:0]];
-			[manifest replaceObjectAtIndex:i withObject:[NSArray arrayWithArray:commodityInfo]];
+//			[commodityInfo setArray:(NSArray *)[localMarket objectAtIndex:i]];
+//			[commodityInfo replaceObjectAtIndex:MARKET_QUANTITY withObject:[NSNumber numberWithInt:0]];
+//			[manifest replaceObjectAtIndex:i withObject:[NSArray arrayWithArray:commodityInfo]];
 		}
 		[commodityInfo release]; // release, done
 	}
@@ -5889,21 +5897,22 @@ static BOOL toggling_music;
 	int in_hold[n_commodities];
 	int i;
 	//
-	if (status == STATUS_DOCKED)
-	{
+	// following changed to work whether docked or not
+//	if (status == STATUS_DOCKED)
+//	{
 		for (i = 0; i < n_commodities; i++)
 			in_hold[i] = [(NSNumber *)[(NSArray *)[shipCommodityData objectAtIndex:i] objectAtIndex:MARKET_QUANTITY] intValue];
-	}
-	else
-	{
-		for (i = 0; i < n_commodities; i++)
-			in_hold[i] = 0;
+//	}
+//	else
+//	{
+//		for (i = 0; i < n_commodities; i++)
+//			in_hold[i] = 0;
 		for (i = 0; i < [cargo count]; i++)
 		{
 			ShipEntity *container = (ShipEntity *)[cargo objectAtIndex:i];
 			in_hold[[container getCommodityType]] += [container getCommodityAmount];
 		}
-	}
+//	}
 	//
 	for (i = 0; i < n_commodities; i++)
 	{
@@ -7040,21 +7049,23 @@ static int last_outfitting_index;
 		int n_commodities = [localMarket count];
 		int in_hold[n_commodities];
 		
-		if (status == STATUS_DOCKED)
-		{
+		// following changed to work whether docked or not
+		//
+//		if (status == STATUS_DOCKED)
+//		{
 			for (i = 0; i < n_commodities; i++)
 				in_hold[i] = [(NSNumber *)[(NSArray *)[shipCommodityData objectAtIndex:i] objectAtIndex:MARKET_QUANTITY] intValue];
-		}
-		else
-		{
-			for (i = 0; i < n_commodities; i++)
-				in_hold[i] = 0;
+//		}
+//		else
+//		{
+//			for (i = 0; i < n_commodities; i++)
+//				in_hold[i] = 0;
 			for (i = 0; i < [cargo count]; i++)
 			{
 				ShipEntity *container = (ShipEntity *)[cargo objectAtIndex:i];
 				in_hold[[container getCommodityType]] += [container getCommodityAmount];
 			}
-		}
+//		}
 		
 		[gui clear];
 		[gui setTitle:[NSString stringWithFormat:@"%@ Commodity Market",[universe getSystemName:system_seed]]];
