@@ -936,7 +936,6 @@ NSMutableDictionary*	surface_cache;
 	//
 	if ([tag isEqual:@"true/"])
 		return [ResourceManager trueFromXMLContent:content];
-	//
 	if ([tag isEqual:@"false/"])
 		return [ResourceManager trueFromXMLContent:content];
 	//
@@ -948,6 +947,8 @@ NSMutableDictionary*	surface_cache;
 	//
 	if ([tag isEqual:@"string"])
 		return [ResourceManager stringFromXMLContent:content];
+	if ([tag isEqual:@"string/"])
+		return @"";
 	//
 	if ([tag isEqual:@"date"])
 		return [ResourceManager dateFromXMLContent:content];
@@ -957,9 +958,13 @@ NSMutableDictionary*	surface_cache;
 	//
 	if ([tag isEqual:@"array"])
 		return [ResourceManager arrayFromXMLContent:content];
+	if ([tag isEqual:@"array/"])
+		return [NSArray arrayWithObjects:nil];
 	//
 	if ([tag isEqual:@"dict"])
 		return [ResourceManager dictionaryFromXMLContent:content];
+	if ([tag isEqual:@"dict/"])
+		return [NSDictionary dictionaryWithObjectsAndKeys:nil];
 	//
 	if ([tag isEqual:@"key"])
 		return [ResourceManager stringFromXMLContent:content];
