@@ -937,7 +937,7 @@ NSMutableDictionary*	surface_cache;
 	if ([tag isEqual:@"true/"])
 		return [ResourceManager trueFromXMLContent:content];
 	if ([tag isEqual:@"false/"])
-		return [ResourceManager trueFromXMLContent:content];
+		return [ResourceManager falseFromXMLContent:content];
 	//
 	if ([tag isEqual:@"real"])
 		return [ResourceManager realFromXMLContent:content];
