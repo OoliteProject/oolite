@@ -49,6 +49,12 @@ Your fair use and other rights are in no way affected by the above.
 #import <Cocoa/Cocoa.h>
 #endif
 
+typedef struct
+{
+	NSString*		tag;		// name of the tag
+	NSObject*		content;	// content of tag
+} OOXMLElement;
+
 extern int debug;
 
 BOOL always_include_addons;
