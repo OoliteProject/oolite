@@ -5687,6 +5687,11 @@ static BOOL toggling_music;
 	if (fileToOpen)
 	{
 		fileDic = [NSDictionary dictionaryWithContentsOfFile:fileToOpen];
+		
+		// FIX FOR WINDOWS GNUSTEP NOT PARSING XML PLISTS
+		if (!fileDic)	// try parsing it using our home-grown XML parser
+			fileDic = (NSDictionary*)[ResourceManager parseXMLPropertyList:[NSString stringWithContentsOfFile:fileToOpen]];
+					
 		if (fileDic)
 		{
 			[self set_up];
