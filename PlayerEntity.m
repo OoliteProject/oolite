@@ -7042,6 +7042,20 @@ static int last_outfitting_index;
 	}
 		
 //	NSLog(@"DEBUG local market = %@  [universe station] = %@", [localMarket description], [universe station]);
+	// fix problems with economies in witch-space
+	if (![universe station])
+	{
+		int i;
+		NSMutableArray* ourEconomy = [NSMutableArray arrayWithArray:[universe commodityDataForEconomy:0 andStation:(StationEntity*)nil andRandomFactor:0]];
+		for (i = 0; i < [ourEconomy count]; i++)
+		{
+			NSMutableArray *commodityInfo = [NSMutableArray arrayWithArray:[ourEconomy objectAtIndex:i]];
+			[commodityInfo replaceObjectAtIndex:MARKET_PRICE withObject:[NSNumber numberWithInt: 0]];
+			[commodityInfo replaceObjectAtIndex:MARKET_QUANTITY withObject:[NSNumber numberWithInt: 0]];
+			[ourEconomy replaceObjectAtIndex:i withObject:[NSArray arrayWithArray:commodityInfo]];
+		}
+		localMarket = [NSArray arrayWithArray:ourEconomy];
+	}
 	
 	// GUI stuff
 	{
@@ -7051,26 +7065,18 @@ static int last_outfitting_index;
 		int row = start_row;
 		int i;
 		int tab_stops[GUI_MAX_COLUMNS]; 
-		int n_commodities = [localMarket count];
+		int n_commodities = [shipCommodityData count];
 		int in_hold[n_commodities];
 		
 		// following changed to work whether docked or not
 		//
-//		if (status == STATUS_DOCKED)
-//		{
-			for (i = 0; i < n_commodities; i++)
-				in_hold[i] = [(NSNumber *)[(NSArray *)[shipCommodityData objectAtIndex:i] objectAtIndex:MARKET_QUANTITY] intValue];
-//		}
-//		else
-//		{
-//			for (i = 0; i < n_commodities; i++)
-//				in_hold[i] = 0;
-			for (i = 0; i < [cargo count]; i++)
-			{
-				ShipEntity *container = (ShipEntity *)[cargo objectAtIndex:i];
-				in_hold[[container getCommodityType]] += [container getCommodityAmount];
-			}
-//		}
+		for (i = 0; i < n_commodities; i++)
+			in_hold[i] = [(NSNumber *)[(NSArray *)[shipCommodityData objectAtIndex:i] objectAtIndex:MARKET_QUANTITY] intValue];
+		for (i = 0; i < [cargo count]; i++)
+		{
+			ShipEntity *container = (ShipEntity *)[cargo objectAtIndex:i];
+			in_hold[[container getCommodityType]] += [container getCommodityAmount];
+		}
 		
 		[gui clear];
 		[gui setTitle:[NSString stringWithFormat:@"%@ Commodity Market",[universe getSystemName:system_seed]]];
