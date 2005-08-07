@@ -181,4 +181,6 @@ Your fair use and other rights are in no way affected by the above.
 
 - (void) acceptDockingClearanceRequestFrom:(ShipEntity *)other;
 
+- (BOOL) isRotatingStation;
+
 @end

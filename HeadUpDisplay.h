@@ -258,6 +258,8 @@ extern int debug;
 - (void) drawGreenSurround:(NSDictionary *) info;
 - (void) drawYellowSurround:(NSDictionary *) info;
 
+- (void) drawTrumbles:(NSDictionary *) info;
+
 void hudDrawIndicatorAt(int x, int y, int z, NSSize siz, double amount);
 void hudDrawBarAt(int x, int y, int z, NSSize siz, double amount);
 void hudDrawSurroundAt(int x, int y, int z, NSSize siz);

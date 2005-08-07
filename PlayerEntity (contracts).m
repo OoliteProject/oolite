@@ -873,8 +873,6 @@ Your fair use and other rights are in no way affected by the above.
 		[gui setText:@"Press Space Commander" forRow:21 align:GUI_ALIGN_CENTER];
 		[gui setColor:[NSColor yellowColor] forRow:21];
 		
-//		[gui generateDisplay];
-		
 		[gui setShowTextCursor:NO];
 		
 		[universe guiUpdated];

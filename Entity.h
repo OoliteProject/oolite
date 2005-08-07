@@ -67,6 +67,7 @@ Your fair use and other rights are in no way affected by the above.
 #define STATUS_EXITING_WITCHSPACE   412
 #define STATUS_ESCAPE_SEQUENCE		500
 #define STATUS_IN_HOLD				600
+#define STATUS_HANDLING_ERROR		999
 
 #define CLASS_NOT_SET	-1
 #define CLASS_NO_DRAW	0

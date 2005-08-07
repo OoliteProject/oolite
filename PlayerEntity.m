@@ -175,8 +175,8 @@ Your fair use and other rights are in no way affected by the above.
 	{
 		NSMutableArray* commodityInfo = [NSMutableArray arrayWithArray:(NSArray *)[manifest objectAtIndex:i]];
 		NSArray* shipCommInfo = [NSArray arrayWithArray:(NSArray *)[shipCommodityData objectAtIndex:i]];
-//		[commodityInfo replaceObjectAtIndex:MARKET_QUANTITY withObject:[NSNumber numberWithInt:0]];
-		[commodityInfo replaceObjectAtIndex:MARKET_QUANTITY withObject:[shipCommInfo objectAtIndex:MARKET_QUANTITY]];
+		int amount = [(NSNumber*)[shipCommInfo objectAtIndex:MARKET_QUANTITY] intValue];
+		[commodityInfo replaceObjectAtIndex:MARKET_QUANTITY withObject:[NSNumber numberWithInt:amount]];
 		[manifest replaceObjectAtIndex:i withObject:commodityInfo];
 	}
 	//
@@ -192,7 +192,7 @@ Your fair use and other rights are in no way affected by the above.
 		co_type = [(ShipEntity *)[cargoArray objectAtIndex:i] getCommodityType];
 		co_amount = [(ShipEntity *)[cargoArray objectAtIndex:i] getCommodityAmount];
 
-		//NSLog(@"unloading a %@ with %@", [(ShipEntity *)[cargoArray objectAtIndex:i] name], [universe describeCommodity:co_type amount:co_amount]);
+//		NSLog(@"unloading a %@ with %@", [(ShipEntity *)[cargoArray objectAtIndex:i] name], [universe describeCommodity:co_type amount:co_amount]);
 
 		commodityInfo = (NSMutableArray *)[manifest objectAtIndex:co_type];
 		quantity =  [(NSNumber *)[commodityInfo objectAtIndex:MARKET_QUANTITY] intValue] + co_amount;
@@ -222,28 +222,12 @@ Your fair use and other rights are in no way affected by the above.
 		NSMutableArray* commodityInfo = [[NSMutableArray arrayWithArray:(NSArray *)[manifest objectAtIndex:i]] retain];  // retain
 		int quantity =  [(NSNumber *)[commodityInfo objectAtIndex:MARKET_QUANTITY] intValue];
 		int units =		[universe unitsForCommodity:i];
-		
+//		NSLog(@"DEBUG Commodity index:%d %@ units:%d", i, [commodityInfo objectAtIndex:MARKET_NAME], units);
 		if (quantity > 0)
 		{
 			//NSLog(@"loading containers with %@",[universe describeCommodity:i amount:quantity]);
 
-			if (units != UNITS_TONS)
-			{
-				// do nothing!
-//				int amount_per_container = (units == UNITS_KILOGRAMS)? 1000 : 1000000;
-//				while (quantity > 0)
-//				{
-//					int smaller_quantity = 1 + ((quantity - 1) % amount_per_container);
-//					ShipEntity* container = [universe getShipWithRole:@"cargopod"];
-//					[container setUniverse:universe];
-//					[container setScanClass: CLASS_CARGO];
-//					[container setCommodity:i andAmount:smaller_quantity];
-//					[cargo addObject:container];
-//					[container release];
-//					quantity -= smaller_quantity;
-//				}
-			}
-			else
+			if (units == UNITS_TONS)
 			{
 				// put each ton in a separate container
 				for (j = 0; j < quantity; j++)
@@ -261,9 +245,6 @@ Your fair use and other rights are in no way affected by the above.
 				[commodityInfo replaceObjectAtIndex:MARKET_QUANTITY withObject:[NSNumber numberWithInt:0]];
 				[manifest replaceObjectAtIndex:i withObject:[NSArray arrayWithArray:commodityInfo]];
 			}
-//			[commodityInfo setArray:(NSArray *)[localMarket objectAtIndex:i]];
-//			[commodityInfo replaceObjectAtIndex:MARKET_QUANTITY withObject:[NSNumber numberWithInt:0]];
-//			[manifest replaceObjectAtIndex:i withObject:[NSArray arrayWithArray:commodityInfo]];
 		}
 		[commodityInfo release]; // release, done
 	}
@@ -1225,7 +1206,11 @@ static BOOL galactic_witchjump;
 		portViewOffset = [Entity vectorFromString: (NSString *)[dict objectForKey:@"view_position_port"]];
 	if ([dict objectForKey:@"view_position_starboard"])
 		starboardViewOffset = [Entity vectorFromString: (NSString *)[dict objectForKey:@"view_position_starboard"]];
-	//
+
+//	NSLog(@"DEBUG in PlayerEntity setUpShipFromDictionary");
+
+	[self setDefaultWeaponOffsets];
+
 }
 
 - (void) dealloc
@@ -1547,7 +1532,7 @@ static BOOL galactic_witchjump;
 	
 	if ((missile_status == MISSILE_STATUS_ARMED)&&(ident_engaged||[[missile_entity[active_missile] roles] hasSuffix:@"MISSILE"])&&((status == STATUS_IN_FLIGHT)||(status == STATUS_WITCHSPACE_COUNTDOWN)))
 	{
-		int first_target_id = [universe getFirstEntityTargettedFromEntity:self inView:[universe viewDir]];
+		int first_target_id = [universe getFirstEntityTargettedByPlayer:self];
 		if (first_target_id != NO_TARGET)
 		{
 			Entity *first_target = [universe entityForUniversalID:first_target_id];
@@ -1863,7 +1848,7 @@ static BOOL galactic_witchjump;
 // this equates with the centre point of a cobra mk3
 //
 // now:
-// return the viewpoibnt set by the relevant view Offset
+// return the viewpoint set by the relevant view Offset
 //
 - (Vector) getViewpointPosition
 {
@@ -2342,6 +2327,7 @@ static BOOL galactic_witchjump;
 				break;
 								
 			case	STATUS_ESCAPE_SEQUENCE :
+			case	STATUS_HANDLING_ERROR :
 			default :
 				break;
 		}
@@ -2883,23 +2869,6 @@ static BOOL cloak_pressed;
 				}
 			}
 			//
-			// emergency hyperspace 'H'
-			//
-//			if ([gameView isDown:key_emergency_hyperdrive])   // look for the 'h' key
-//			{
-//				BOOL		jumpOK = [self has_extra_equipment:@"EQ_EMERGENCY_HYPERDRIVE"];
-//				
-//				if (status == STATUS_WITCHSPACE_COUNTDOWN)
-//					jumpOK = NO;
-//				
-//				if (jumpOK)
-//				{
-//					galactic_witchjump = NO;
-//					[universe addMessage:@"Emergency witch-jump!" forCount:2.0];
-//					[self enterWitchspaceWithEmergencyDrive];
-//				}
-//			}
-			//
 			// Galactic hyperspace 'g'
 			//
 			if (([gameView isDown:key_galactic_hyperspace])&&(has_galactic_hyperdrive))// look for the 'g' key
@@ -2955,31 +2924,22 @@ static BOOL cloak_pressed;
 			
 		}
 
-//		// test novas
-//		if ([gameView isDown:48])	//  '0'
-//		{
-//			if (![[universe sun] willGoNova])
-//			{
-//				[[universe sun] setGoingNova:YES inTime:10.0];
-//				[self warnAboutHostiles];
-//				[universe addMessage:@"Sun going nova in 10 s." forCount:6];
-//				NSLog(@"DEBUG NOVA activated!");
-//			}
-//			else
-//			{
-//				if (fuel_leak_rate <= 0.0)
-//				{
-//					fuel_leak_rate = 25.0;
-//					[universe addMessage:@"Danger! Fuel leak!" forCount:6];
-//					NSLog(@"DEBUG FUEL LEAK activated!");
-//				}
-//			}
-//		}
-			
 		//
 		//  text displays
 		//
 		[self pollGuiScreenControls];
+	}
+	else
+	{
+		// game is paused look for debugging keys
+		if ([gameView isDown:48])// look for the '0' key
+		{
+			if (!cloak_pressed)
+				[universe obj_dump];	// dump objects
+			cloak_pressed = YES;
+		}
+		else
+			cloak_pressed = NO;
 	}
 	//
 	// Pause game 'p'
@@ -3034,6 +2994,16 @@ static  BOOL	taking_snapshot;
 		if (([gameView isCommandDown])&&([gameView isDown:113]))   //  command q
 		{
 			[[gameView gameController] pauseFullScreenModeToPerform:@selector(exitApp) onTarget:[gameView gameController]];
+		}
+	}
+	//
+	// handle pressing Q or [esc] in error-handling mode
+	//
+	if (status == STATUS_HANDLING_ERROR)
+	{
+		if ([gameView isDown:113]||[gameView isDown:81]||[gameView isDown:27])   // 'q' | 'Q' | esc
+		{
+			[[gameView gameController] exitApp];
 		}
 	}
 	//
@@ -3210,50 +3180,68 @@ static BOOL wait_for_key_up;
 static int searchStringLength;
 static double timeLastKeyPress;
 static BOOL upDownKeyPressed;
+static BOOL leftRightKeyPressed;
 static BOOL volumeControlPressed;
 static int oldSelection;
 static BOOL selectPressed;
 static BOOL queryPressed;
 
-// DJS: Moved from the big switch/case block in pollGuiArrowKeyControls
-- (void) handleGUIUpDownArrowKeys
+// DJS + aegidian : Moved from the big switch/case block in pollGuiArrowKeyControls
+- (BOOL) handleGUIUpDownArrowKeys
          : (GuiDisplayGen *)gui
          : (MyOpenGLView *)gameView
-         : (int) miss_row
 {
-   if ([gameView isDown:gvArrowKeyDown])
+	BOOL result = NO;
+	BOOL arrow_up = [gameView isDown:gvArrowKeyUp];
+	BOOL arrow_down = [gameView isDown:gvArrowKeyDown];
+	BOOL mouse_click = [gameView isDown:gvMouseLeftButton];
+	//
+	if (arrow_down)
 	{
-		if ((!upDownKeyPressed) ||
-          (script_time > timeLastKeyPress + KEY_REPEAT_INTERVAL))
+		if ((!upDownKeyPressed) || (script_time > timeLastKeyPress + KEY_REPEAT_INTERVAL))
 		{
-		   if ([gui setSelectedRow:[gui selectedRow] + 1])
+		   if ([gui setNextRow: +1])
 			{
-				if ([gui selectedRow] == miss_row)
-				[gui setSelectedRow:[gui selectedRow] + 1];
 				[gui click];
 				[universe guiUpdated];
-			}
-						
-			timeLastKeyPress = script_time;
-		}
-	}
-	if ([gameView isDown:gvArrowKeyUp])
-	{
-		if ((!upDownKeyPressed) ||
-          (script_time > timeLastKeyPress + KEY_REPEAT_INTERVAL))
-		{
-			if ([gui setSelectedRow:[gui selectedRow] - 1])
-			{
-				if ([gui selectedRow] == miss_row)
-				[gui setSelectedRow:[gui selectedRow] - 1];
-				[gui click];
-				[universe guiUpdated];
+				result = YES;
 			}
 			timeLastKeyPress = script_time;
 		}
 	}
-	upDownKeyPressed = (([gameView isDown:gvArrowKeyUp])
-                  ||  ([gameView isDown:gvArrowKeyDown]));
+	//
+	if (arrow_up)
+	{
+		if ((!upDownKeyPressed) || (script_time > timeLastKeyPress + KEY_REPEAT_INTERVAL))
+		{
+			if ([gui setNextRow: -1])
+			{
+				[gui click];
+				[universe guiUpdated];
+				result = YES;
+			}
+			timeLastKeyPress = script_time;
+		}
+	}
+	//
+	if (mouse_click)
+	{
+		if (!upDownKeyPressed)
+		{
+			int click_row = 0;
+			if (universe)
+				click_row = universe->cursor_row;
+			if ([gui setSelectedRow:click_row])
+			{
+				[universe guiUpdated];
+				result = YES;
+			}
+		}
+	}
+	//
+	upDownKeyPressed = (arrow_up || arrow_down || mouse_click);
+	//
+	return result;
 }
 
 - (void) pollGuiArrowKeyControls:(double) delta_t
@@ -3288,13 +3276,10 @@ static BOOL queryPressed;
 			if ([[gameView typedString] length])
 			{
 				planetSearchString = [gameView typedString];
-				//NSLog(@"searching for %@", planetSearchString);
 				NSPoint search_coords = [universe findSystemCoordinatesWithPrefix:planetSearchString withGalaxySeed:galaxy_seed];
 				if ((search_coords.x >= 0.0)&&(search_coords.y >= 0.0))
 				{
-					//NSLog(@"found somewhere");
 					moving = ((cursor_coordinates.x != search_coords.x)||(cursor_coordinates.y != search_coords.y));
-					//searchStringLength = [[gameView typedString] length];
 					cursor_coordinates = search_coords;
 				}
 				else
@@ -3338,6 +3323,14 @@ static BOOL queryPressed;
 					}
 					[gameView resetTypedString];
 					moving = YES;
+				}
+				if ([gameView isDown:gvMouseDoubleClick])
+				{
+					[gameView clearMouse];
+					[self setGuiToSystemDataScreen];
+					[self checkScript];
+					[universe setDisplayText:YES];
+					[universe setDisplayCursor:NO];
 				}
 				if ([gameView isDown:key_map_home])
 				{
@@ -3439,9 +3432,12 @@ static BOOL queryPressed;
 				GameController  *controller = [universe gameController];
 #endif            
 				
-			   [self handleGUIUpDownArrowKeys: gui :gameView :options_row];
-
-				if ([gameView isDown:13])   // 'enter'
+				[self handleGUIUpDownArrowKeys: gui :gameView];
+				BOOL selectKeyPress = ([gameView isDown:13]||[gameView isDown:gvMouseDoubleClick]);
+				if ([gameView isDown:gvMouseDoubleClick])
+					[gameView clearMouse];
+				
+				if (selectKeyPress)   // 'enter'
 				{
 					if (([gui selectedRow] == quicksave_row)&&(!disc_operation_in_progress))
 					{
@@ -3538,7 +3534,7 @@ static BOOL queryPressed;
 					}
 					switching_resolution = YES;
 				}
-				if ((![gameView isDown:gvArrowKeyRight])&&(![gameView isDown:gvArrowKeyLeft])&&(![gameView isDown:13]))
+				if ((![gameView isDown:gvArrowKeyRight])&&(![gameView isDown:gvArrowKeyLeft])&&(!selectKeyPress))
 					switching_resolution = NO;
 				
 				if (([gui selectedRow] == speech_row)&&(([gameView isDown:gvArrowKeyRight])||([gameView isDown:gvArrowKeyLeft])))
@@ -3611,35 +3607,16 @@ static BOOL queryPressed;
 		
 		case	GUI_SCREEN_EQUIP_SHIP :
 			{
-				if ([gameView isDown:gvArrowKeyDown])
+				//
+				if ([self handleGUIUpDownArrowKeys:gui :gameView])
 				{
-					if ((!upDownKeyPressed)||(script_time > timeLastKeyPress + KEY_REPEAT_INTERVAL))
-					{
-						if ([gui setSelectedRow:[gui selectedRow] + 1])
-						{
-							[gui click];
-							[self showInformationForSelectedUpgrade];
-							[universe guiUpdated];
-						}
-						timeLastKeyPress = script_time;
-					}
+					[self showInformationForSelectedUpgrade];
+					[universe guiUpdated];
 				}
-				if ([gameView isDown:gvArrowKeyUp])
-				{
-					if ((!upDownKeyPressed)||(script_time > timeLastKeyPress + KEY_REPEAT_INTERVAL))
-					{
-						if ([gui setSelectedRow:[gui selectedRow] - 1])
-						{
-							[gui click];
-							[self showInformationForSelectedUpgrade];
-							[universe guiUpdated];
-						}
-						timeLastKeyPress = script_time;
-					}
-				}
+				//
 				if ([gameView isDown:gvArrowKeyLeft])
 				{
-					if ((!upDownKeyPressed)||(script_time > timeLastKeyPress + KEY_REPEAT_INTERVAL))
+					if ((!leftRightKeyPressed)||(script_time > timeLastKeyPress + KEY_REPEAT_INTERVAL))
 					{
 						if ([[gui keyForRow:GUI_ROW_EQUIPMENT_START] hasPrefix:@"More:"])
 						{
@@ -3652,7 +3629,7 @@ static BOOL queryPressed;
 				}
 				if ([gameView isDown:gvArrowKeyRight])
 				{
-					if ((!upDownKeyPressed)||(script_time > timeLastKeyPress + KEY_REPEAT_INTERVAL))
+					if ((!leftRightKeyPressed)||(script_time > timeLastKeyPress + KEY_REPEAT_INTERVAL))
 					{
 						if ([[gui keyForRow:GUI_ROW_EQUIPMENT_START + GUI_MAX_ROWS_EQUIPMENT - 1] hasPrefix:@"More:"])
 						{
@@ -3663,10 +3640,15 @@ static BOOL queryPressed;
 						timeLastKeyPress = script_time;
 					}
 				}
-				upDownKeyPressed = (([gameView isDown:gvArrowKeyUp])||([gameView isDown:gvArrowKeyDown])||([gameView isDown:gvArrowKeyRight])||([gameView isDown:gvArrowKeyLeft]));
+				leftRightKeyPressed = [gameView isDown:gvArrowKeyRight]|[gameView isDown:gvArrowKeyLeft];
 				
-				if ([gameView isDown:13])   // 'enter'
+				if ([gameView isDown:13]||[gameView isDown:gvMouseDoubleClick])   // 'enter'
 				{
+					if ([gameView isDown:gvMouseDoubleClick])
+					{
+						selectPressed = NO;
+						[gameView clearMouse];
+					}
 					if ((!selectPressed)&&([gui selectedRow] > -1))
 					{
 						[self buySelectedItem];
@@ -3683,33 +3665,10 @@ static BOOL queryPressed;
 		case	GUI_SCREEN_MARKET :
 			if (status == STATUS_DOCKED)
 			{
-				if ([gameView isDown:gvArrowKeyDown])
-				{
-					if ((!upDownKeyPressed)||(script_time > timeLastKeyPress + KEY_REPEAT_INTERVAL))
-					{
-						if ([gui setSelectedRow:[gui selectedRow] + 1])
-						{
-							[gui click];
-							[universe guiUpdated];
-						}
-						timeLastKeyPress = script_time;
-					}
-				}
-				if ([gameView isDown:gvArrowKeyUp])
-				{
-					if ((!upDownKeyPressed)||(script_time > timeLastKeyPress + KEY_REPEAT_INTERVAL))
-					{
-						if ([gui setSelectedRow:[gui selectedRow] - 1])
-						{
-							[gui click];
-							[universe guiUpdated];
-						}
-						timeLastKeyPress = script_time;
-					}
-				}
-				upDownKeyPressed = (([gameView isDown:gvArrowKeyUp])||([gameView isDown:gvArrowKeyDown]));
-				
-				if (([gameView isDown:gvArrowKeyRight])||([gameView isDown:gvArrowKeyLeft])||([gameView isDown:13]))
+				//
+				[self handleGUIUpDownArrowKeys:gui :gameView];
+				//
+				if (([gameView isDown:gvArrowKeyRight])||([gameView isDown:gvArrowKeyLeft])||([gameView isDown:13]||[gameView isDown:gvMouseDoubleClick]))
 				{
 					if ([gameView isDown:gvArrowKeyRight])   // -->
 					{
@@ -3741,8 +3700,13 @@ static BOOL queryPressed;
 							wait_for_key_up = YES;
 						}
 					}
-					if ([gameView isDown:13])   // 'enter'
+					if ([gameView isDown:13]||[gameView isDown:gvMouseDoubleClick])   // 'enter'
 					{
+						if ([gameView isDown:gvMouseDoubleClick])
+						{
+							wait_for_key_up = NO;
+							[gameView clearMouse];
+						}
 						if (!wait_for_key_up)
 						{
 							int item = [(NSString *)[gui selectedRowKey] intValue];
@@ -3799,46 +3763,14 @@ static BOOL queryPressed;
 		case	GUI_SCREEN_CONTRACTS :
 			if (status == STATUS_DOCKED)
 			{
-				if ([gameView isDown:gvArrowKeyDown])
-				{
-					if ((!upDownKeyPressed)||(script_time > timeLastKeyPress + KEY_REPEAT_INTERVAL))
-					{
-						int next_row = [gui selectedRow] + 1;
-						if (![[gui keyForRow:next_row] isEqual:GUI_KEY_OK])
-						{
-							while ((![[gui keyForRow:next_row] isEqual:GUI_KEY_OK])&&(next_row < GUI_ROW_MARKET_CASH))
-								next_row++;
-						}
-						if ([gui setSelectedRow:next_row])
-						{
-							[gui click];
-							[self setGuiToContractsScreen];
-						}
-						timeLastKeyPress = script_time;
-					}
-				}
-				if ([gameView isDown:gvArrowKeyUp])
-				{
-					if ((!upDownKeyPressed)||(script_time > timeLastKeyPress + KEY_REPEAT_INTERVAL))
-					{
-						int next_row = [gui selectedRow] - 1;
-						if (![[gui keyForRow:next_row] isEqual:GUI_KEY_OK])
-						{
-							while ((![[gui keyForRow:next_row] isEqual:GUI_KEY_OK])&&(next_row > GUI_ROW_PASSENGERS_START))
-								next_row--;
-						}
-						if ([gui setSelectedRow:next_row])
-						{
-							[gui click];
-							[self setGuiToContractsScreen];
-						}
-						timeLastKeyPress = script_time;
-					}
-				}
-				upDownKeyPressed = (([gameView isDown:gvArrowKeyUp])||([gameView isDown:gvArrowKeyDown]));
 				//
-				if ((status == STATUS_DOCKED)&&([gameView isDown:13]))   // 'enter'
+				if ([self handleGUIUpDownArrowKeys:gui :gameView])
+					[self setGuiToContractsScreen];
+				//
+				if ((status == STATUS_DOCKED)&&([gameView isDown:13]||[gameView isDown:gvMouseDoubleClick]))   // 'enter' | doubleclick
 				{
+					if ([gameView isDown:gvMouseDoubleClick])
+						[gameView clearMouse];
 					if (!selectPressed)
 					{
 						if ([self pickFromGuiContractsScreen])
@@ -3891,33 +3823,16 @@ static BOOL queryPressed;
 		case	GUI_SCREEN_SHIPYARD :
 			{
 				GuiDisplayGen* gui = [universe gui];
-				if ([gameView isDown:gvArrowKeyDown])
+				//
+				if ([self handleGUIUpDownArrowKeys:gui :gameView])
 				{
-					if ((!upDownKeyPressed)||(script_time > timeLastKeyPress + KEY_REPEAT_INTERVAL))
-					{
-						if ([gui setSelectedRow:[gui selectedRow] + 1])
-						{
-							[gui click];
-							[self showShipyardInfoForSelection];
-						}
-						timeLastKeyPress = script_time;
-					}
+					[self showShipyardInfoForSelection];
+					[universe guiUpdated];
 				}
-				if ([gameView isDown:gvArrowKeyUp])
-				{
-					if ((!upDownKeyPressed)||(script_time > timeLastKeyPress + KEY_REPEAT_INTERVAL))
-					{
-						if ([gui setSelectedRow:[gui selectedRow] - 1])
-						{
-							[gui click];
-							[self showShipyardInfoForSelection];
-						}
-						timeLastKeyPress = script_time;
-					}
-				}
+				//
 				if ([gameView isDown:gvArrowKeyLeft])
 				{
-					if ((!upDownKeyPressed)||(script_time > timeLastKeyPress + KEY_REPEAT_INTERVAL))
+					if ((!leftRightKeyPressed)||(script_time > timeLastKeyPress + KEY_REPEAT_INTERVAL))
 					{
 						if ([[gui keyForRow:GUI_ROW_SHIPYARD_START] hasPrefix:@"More:"])
 						{
@@ -3930,7 +3845,7 @@ static BOOL queryPressed;
 				}
 				if ([gameView isDown:gvArrowKeyRight])
 				{
-					if ((!upDownKeyPressed)||(script_time > timeLastKeyPress + KEY_REPEAT_INTERVAL))
+					if ((!leftRightKeyPressed)||(script_time > timeLastKeyPress + KEY_REPEAT_INTERVAL))
 					{
 						if ([[gui keyForRow:GUI_ROW_SHIPYARD_START + MAX_ROWS_SHIPS_FOR_SALE - 1] hasPrefix:@"More:"])
 						{
@@ -3941,9 +3856,9 @@ static BOOL queryPressed;
 						timeLastKeyPress = script_time;
 					}
 				}
-				upDownKeyPressed = (([gameView isDown:gvArrowKeyUp])||([gameView isDown:gvArrowKeyDown])||([gameView isDown:gvArrowKeyLeft])||([gameView isDown:gvArrowKeyRight]));
+				leftRightKeyPressed = [gameView isDown:gvArrowKeyRight]|[gameView isDown:gvArrowKeyLeft];
 				
-				if ([gameView isDown:13])   // 'enter'
+				if ([gameView isDown:13])   // 'enter' NOT double-click
 				{
 					if (!selectPressed)
 					{
@@ -4169,7 +4084,9 @@ static BOOL switching_equipship_screens;
 		{
 			[gameView clearKeys];
 			[self setGuiToLoadSaveScreen];
-			[universe setDisplayCursor:NO];
+			[universe setDisplayText:YES];
+//			[universe setDisplayCursor:NO];
+			[universe setDisplayCursor:YES];
 		}
 		//
 		if (([gameView isDown:gvFunctionKey3])||([gameView isDown:gvNumberKey3]))
@@ -4192,7 +4109,9 @@ static BOOL switching_equipship_screens;
 					[[universe gui] setSelectedRow:GUI_ROW_EQUIPMENT_START];
 					[universe guiUpdated];
 				}
-				[universe setDisplayCursor:NO];
+				[universe setDisplayText:YES];
+//				[universe setDisplayCursor:NO];
+				[universe setDisplayCursor:YES];
 			}
 			switching_equipship_screens = YES;
 		}
@@ -4220,7 +4139,8 @@ static BOOL switching_equipship_screens;
 					[universe guiUpdated];
 				}
 				[universe setDisplayText:YES];
-				[universe setDisplayCursor:NO];
+//				[universe setDisplayCursor:NO];
+				[universe setDisplayCursor:YES];
 			}
 			switching_market_screens = YES;
 		}
@@ -4239,7 +4159,8 @@ static BOOL switching_equipship_screens;
 				[[universe gui] setSelectedRow:GUI_ROW_MARKET_START];
 				[universe guiUpdated];
 				[universe setDisplayText:YES];
-				[universe setDisplayCursor:NO];
+//				[universe setDisplayCursor:NO];
+				[universe setDisplayCursor:YES];
 			}
 			switching_market_screens = YES;
 		}
@@ -4417,15 +4338,15 @@ static BOOL toggling_music;
 				[self setGuiToIntro2Screen];
 			}
 			
-//			// test exception handling
-//			if ([gameView isDown:48])	//  '0'
-//			{
-//				NSException* myException = [NSException
-//					exceptionWithName:	@"TestException"
-//					reason:				@"The Foo throggled the Bar!"
-//					userInfo:			nil];
-//				[myException raise];
-//			}
+			// test exception handling
+			if ([gameView isDown:48])	//  '0'
+			{
+				NSException* myException = [NSException
+					exceptionWithName:	@"OoliteException"
+					reason:				@"Testing: The Foo throggled the Bar!"
+					userInfo:			nil];
+				[myException raise];
+			}
 			
 			break;
 
@@ -4831,7 +4752,6 @@ static BOOL toggling_music;
 	
 	energy -= weapon_energy_per_shot;
 
-//	weapon_temp += weapon_heat_increment_per_shot;
 	switch ([universe viewDir])
 	{
 		case VIEW_DOCKED:
@@ -5602,7 +5522,7 @@ static BOOL toggling_music;
 		NSBeep();
 		NSLog(@"***** ERROR: Save to %@ failed!", filename);
 		NSException* myException = [NSException
-			exceptionWithName:@"GameNotSavedException"
+			exceptionWithName:@"OoliteException"
 			reason:[NSString stringWithFormat:@"Attempt to save game to file '%@' failed for some reason", filename]
 			userInfo:nil];
 		[myException raise];
@@ -5651,7 +5571,7 @@ static BOOL toggling_music;
 			NSBeep();
 			NSLog(@"***** ERROR: Save to %@ failed!", [sp filename]);
 			NSException* myException = [NSException
-				exceptionWithName:@"GameNotSavedException"
+				exceptionWithName:@"OoliteException"
 				reason:[NSString stringWithFormat:@"Attempt to save game to file '%@' failed for some reason", [sp filename]]
 				userInfo:nil];
 			[myException raise];
@@ -6387,16 +6307,28 @@ static BOOL toggling_music;
 		[gui setTitle:[NSString stringWithFormat:@"Commander %@",   player_name]];
 		//
 		if (canQuickSave)
+		{
 			[gui setText:@" Quick-Save "	forRow:quicksave_row	align:GUI_ALIGN_CENTER];
+			[gui setKey:GUI_KEY_OK forRow:quicksave_row];
+		}
+		//
 		[gui setText:@" Save Commander "	forRow:save_row			align:GUI_ALIGN_CENTER];
 		[gui setText:@" Load Commander "	forRow:load_row			align:GUI_ALIGN_CENTER];
-		[gui setText:@" Begin New Game "	forRow:begin_new_row	align:GUI_ALIGN_CENTER];
-		[gui setText:@"Game Options:"		forRow:options_row		align:GUI_ALIGN_CENTER];
-		if (!canLoadOrSave)
+		if (canLoadOrSave)
+		{
+			[gui setKey:GUI_KEY_OK forRow:save_row];
+			[gui setKey:GUI_KEY_OK forRow:load_row];
+		}
+		else
 		{
 			[gui setColor:[NSColor grayColor] forRow:save_row];
 			[gui setColor:[NSColor grayColor] forRow:load_row];
 		}
+		//
+		[gui setText:@" Begin New Game "	forRow:begin_new_row	align:GUI_ALIGN_CENTER];
+		[gui setKey:GUI_KEY_OK forRow:begin_new_row];
+		//
+		[gui setText:@"Game Options:"		forRow:options_row		align:GUI_ALIGN_CENTER];
 		[gui setColor:[NSColor grayColor] forRow:options_row];
 #ifdef GNUSTEP
       // TODO: This menu section is preliminary.
@@ -6416,19 +6348,27 @@ static BOOL toggling_music;
 			[gui setText:@" Spoken messages: ON "	forRow:speech_row  align:GUI_ALIGN_CENTER];
 		else
 			[gui setText:@" Spoken messages: OFF "	forRow:speech_row  align:GUI_ALIGN_CENTER];
+		[gui setKey:GUI_KEY_OK forRow:speech_row];
+		//
 		if (ootunes_on)
 			[gui setText:@" iTunes integration: ON "	forRow:ootunes_row  align:GUI_ALIGN_CENTER];
 		else
 			[gui setText:@" iTunes integration: OFF "	forRow:ootunes_row  align:GUI_ALIGN_CENTER];
+		[gui setKey:GUI_KEY_OK forRow:ootunes_row];
+		//
 #endif      
 		if ([universe reducedDetail])
 			[gui setText:@" Reduced detail: ON "	forRow:detail_row  align:GUI_ALIGN_CENTER];
 		else
 			[gui setText:@" Reduced detail: OFF "	forRow:detail_row  align:GUI_ALIGN_CENTER];
+		[gui setKey:GUI_KEY_OK forRow:detail_row];
+		//
 		if ([universe strict])
 			[gui setText:@" Reset to unrestricted play. "	forRow:strict_row  align:GUI_ALIGN_CENTER];
 		else
 			[gui setText:@" Reset to strict gameplay. "	forRow:strict_row  align:GUI_ALIGN_CENTER];
+		[gui setKey:GUI_KEY_OK forRow:strict_row];
+		//
 #ifdef GNUSTEP
       [gui setSelectableRange:NSMakeRange(first_sel_row, 1 + quit_row - first_sel_row)];
 #else      
@@ -6439,7 +6379,6 @@ static BOOL toggling_music;
 		
 		[gui setShowTextCursor:NO];
 		
-//		[gui generateDisplay];
 		[universe guiUpdated];
 	}
 	/* ends */
@@ -7464,6 +7403,33 @@ NSString* GenerateDisplayString(int inModeWidth, int inModeHeight, int inModeRef
 	aftViewOffset = make_vector( 0.0, 0.0, boundingBox.min_z + halfLength);
 	portViewOffset = make_vector( boundingBox.min_x + halfWidth, 0.0, 0.0);
 	starboardViewOffset = make_vector( boundingBox.max_x - halfWidth, 0.0, 0.0);
+}
+
+- (Vector) viewOffset
+{
+	switch ([universe viewDir])
+	{
+		case VIEW_FORWARD:
+			return forwardViewOffset;
+		case VIEW_AFT:
+			return aftViewOffset;	break;
+		case VIEW_PORT:
+			return portViewOffset;	break;
+		case VIEW_STARBOARD:
+			return starboardViewOffset;	break;
+	}
+	return make_vector ( 0, 0, 0);
+}
+
+- (void) setDefaultWeaponOffsets
+{
+	float halfLength = 0.5 * (boundingBox.max_z - boundingBox.min_z);
+	float halfWidth = 0.5 * (boundingBox.max_x - boundingBox.min_x);
+		
+	forwardWeaponOffset = make_vector( 0.0, -5.0, boundingBox.max_z - halfLength);
+	aftWeaponOffset = make_vector( 0.0, -5.0, boundingBox.min_z + halfLength);
+	portWeaponOffset = make_vector( boundingBox.min_x + halfWidth, -5.0, 0.0);
+	starboardWeaponOffset = make_vector( boundingBox.max_x - halfWidth, -5.0, 0.0);
 }
 
 @end

@@ -47,8 +47,10 @@ Your fair use and other rights are in no way affected by the above.
 #define BILLBOARD_DEPTH	50000.0
 // 50 km away!
 
-#define SKY_MAX_STARS			480
-#define SKY_MAX_BLOBS			128
+#define SKY_N_STARS				480
+#define SKY_N_BLOBS				128
+#define SKY_MAX_STARS			4800
+#define SKY_MAX_BLOBS			1280
 #define SKY_BLOB_CLUSTER_CHANCE	0.80
 #define SKY_BLOB_ALPHA			0.10
 #define SKY_BLOB_SCALE			10.0
@@ -88,6 +90,8 @@ typedef struct
 	double blob_scale_prime;
 	
 	double delta;
+	
+	int n_stars, n_blobs;
 	
 }
 

@@ -1478,7 +1478,7 @@
 		<key>port_radius</key>
 		<real>500</real>
 		<key>roles</key>
-		<string>coriolis station</string>
+		<string>coriolis rotating-station station</string>
 		<key>subentities</key>
 		<array>
 			<string>dock 0 0 500 1 0 0 0</string>
@@ -1562,7 +1562,7 @@
 		<key>port_radius</key>
 		<real>392</real>
 		<key>roles</key>
-		<string>dodo dodec dodecahedron station</string>
+		<string>dodo dodec dodecahedron rotating-station station</string>
 		<key>subentities</key>
 		<array>
 			<string>dock 0 0 392 1 0 0 0</string>
@@ -1853,7 +1853,7 @@
 		<key>port_radius</key>
 		<real>500</real>
 		<key>roles</key>
-		<string>ico icosa icosahedron station</string>
+		<string>ico icosa icosahedron rotating-station station</string>
 		<key>subentities</key>
 		<array>
 			<string>dock 0 0 500 1 0 0 0</string>

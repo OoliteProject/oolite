@@ -321,6 +321,7 @@ Your fair use and other rights are in no way affected by the above.
 	Vector		coords;
 	int			ship_id = [ship universal_id];
 	NSString*   shipID = [NSString stringWithFormat:@"%d", ship_id];
+	BOOL		isRotating = [self isRotatingStation];
 	
 	if (!ship)
 		return position;
@@ -347,7 +348,7 @@ Your fair use and other rights are in no way affected by the above.
 	}
 	
 	if	((magnitude2(velocity) > 1.0)||
-		((scan_class != CLASS_STATION)&&((fabs(flight_pitch) > 0.01)||(fabs(flight_roll) > 0.01))))		// no docking while moving
+		((![self isRotatingStation])&&((fabs(flight_pitch) > 0.01)||(fabs(flight_roll) > 0.01))))		// no docking while moving
 	{
 //		NSLog(@"DEBUG %@ %d refusing docking to %@ because of motion", name, universal_id, [ship name]);
 		[shipAI message:@"DOCKING_REQUESTED"];	// note the request.
@@ -462,7 +463,7 @@ Your fair use and other rights are in no way affected by the above.
 		Vector vi = v_right;
 		Vector vj = v_up;
 		Vector vk = v_forward;
-		if (scan_class == CLASS_STATION)
+		if (isRotating)	// need fixed vi, vj directions...
 		{
 			Entity* the_sun = [universe sun];
 			Vector v0 = (the_sun)? the_sun->position : make_vector(1,0,0);
@@ -493,12 +494,6 @@ Your fair use and other rights are in no way affected by the above.
 					
 			if (docking_stage == 0)
 			{
-//				// COMM-CHATTER
-//				if (self == [universe station])
-//					[self sendExpandedMessage: @"[station-welcome]" toShip: ship];
-//				else
-//					[self sendExpandedMessage: @"[docking-welcome]" toShip: ship];
-//
 				[[ship getAI] message:@"APPROACH_START"];
 			}
 			else
@@ -546,7 +541,7 @@ Your fair use and other rights are in no way affected by the above.
 			Vector vi = v_right;
 			Vector vj = v_up;
 			Vector vk = v_forward;
-			if (scan_class == CLASS_STATION)
+			if (isRotating)	// need fixed vi, vj directions...
 			{
 				Entity* the_sun = [universe sun];
 				Vector v0 = (the_sun)? the_sun->position : make_vector(1,0,0);
@@ -1122,7 +1117,6 @@ Your fair use and other rights are in no way affected by the above.
 	
 	[super update:delta_t];
 	
-//	if (([launchQueue count] > 0)&&([shipsOnApproach count] == 0)&&(unitime > last_launch_time + STATION_DELAY_BETWEEN_LAUNCHES))
 	if (([launchQueue count] > 0)&&([shipsOnApproach count] == 0)&&[self dockingCorridorIsEmpty])
 	{
 		[self launchShip:(ShipEntity *)[launchQueue objectAtIndex:0]];
@@ -1723,6 +1717,14 @@ Your fair use and other rights are in no way affected by the above.
 		return (NSString *)[all_roles objectAtIndex:0];
 	else
 		return @"station";
+}
+
+- (BOOL) isRotatingStation
+{
+	NSString*	shipRoles = (NSString *)[shipinfoDictionary objectForKey:@"roles"];
+	BOOL		isRotatingStation = ([shipRoles rangeOfString:@"rotating-station"].location != NSNotFound);
+		
+	return isRotatingStation;
 }
 
 @end

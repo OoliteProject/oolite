@@ -99,7 +99,7 @@ static Vector   circleVertex[65];		// holds vector coordinates for a unit circle
 	status = STATUS_EFFECT;
     position = ship->position;
 	q_rotation = ship->q_rotation;
-	if ((ship)&&(ship->isPlayer))
+	if (ship->isPlayer)
 		q_rotation.w = -q_rotation.w;   //reverse view direction for the player
 	Vector v_up = vector_up_from_quaternion(q_rotation);
 	Vector v_forward = vector_forward_from_quaternion(q_rotation);
@@ -136,6 +136,60 @@ static Vector   circleVertex[65];		// holds vector coordinates for a unit circle
 		position.x -= WEAPON_OFFSET_DOWN * v_up.x;	position.y -= WEAPON_OFFSET_DOWN * v_up.y;	position.z -= WEAPON_OFFSET_DOWN * v_up.z;	// offset below the view line
 	}
 	//
+	time_counter = 0.0;
+	//
+	particle_type = PARTICLE_LASER_BEAM_RED;
+	//
+	[self setColor:[NSColor redColor]];
+	//
+	duration = PARTICLE_LASER_DURATION;
+	//
+	[self setOwner:ship];
+	//
+	collision_radius = [ship weapon_range];
+	//
+	isParticle = YES;
+	//
+    return self;
+}
+
+- (id) initLaserFromShip:(ShipEntity *) ship view:(int) view offset:(Vector)offset
+{
+    self = [super init];
+	//
+	if (!ship)
+		return self;
+    //
+	status = STATUS_EFFECT;
+    position = ship->position;
+	q_rotation = ship->q_rotation;
+	if (ship->isPlayer)
+		q_rotation.w = -q_rotation.w;   //reverse view direction for the player
+	Vector v_up = vector_up_from_quaternion(q_rotation);
+	Vector v_forward = vector_forward_from_quaternion(q_rotation);
+	Vector v_right = vector_right_from_quaternion(q_rotation);
+	double fs = [ship flight_speed];
+	velocity = make_vector( v_forward.x * fs, v_forward.y * fs, v_forward.z * fs);
+	
+//	NSLog(@"DEBUG firing laser with offset [ %.3f, %.3f, %.3f]", offset.x, offset.y, offset.z);
+	
+	position.x += offset.x * v_right.x + offset.y * v_up.x + offset.z * v_forward.x;
+	position.y += offset.x * v_right.y + offset.y * v_up.y + offset.z * v_forward.y;
+	position.z += offset.x * v_right.z + offset.y * v_up.z + offset.z * v_forward.z;
+	switch (view)
+	{
+		case VIEW_AFT :
+			quaternion_rotate_about_axis(&q_rotation, v_up, PI);
+			break;
+		case VIEW_PORT :
+			quaternion_rotate_about_axis(&q_rotation, v_up, PI/2.0);
+			break;
+		case VIEW_STARBOARD :
+			quaternion_rotate_about_axis(&q_rotation, v_up, -PI/2.0);
+			break;
+	}
+    quaternion_into_gl_matrix(q_rotation, rotMatrix);
+    //
 	time_counter = 0.0;
 	//
 	particle_type = PARTICLE_LASER_BEAM_RED;
@@ -503,6 +557,52 @@ static Vector   circleVertex[65];		// holds vector coordinates for a unit circle
     [super dealloc];
 }
 
+- (NSString*) description
+{
+	NSString* type_string;
+	switch (particle_type)
+	{
+		case PARTICLE_SHOT_GREEN_PLASMA :
+			type_string = @"PARTICLE_SHOT_GREEN_PLASMA";	break;
+		case PARTICLE_SHOT_YELLOW_PLASMA :
+			type_string = @"PARTICLE_SHOT_YELLOW_PLASMA";	break;
+		case PARTICLE_SHOT_PLASMA :
+			type_string = @"PARTICLE_SHOT_PLASMA";	break;
+		case PARTICLE_ENERGY_MINE :
+			type_string = @"PARTICLE_ENERGY_MINE";	break;
+		case PARTICLE_TEST :
+			type_string = @"PARTICLE_TEST";	break;
+		case PARTICLE_LASER_BEAM_RED :
+			type_string = @"PARTICLE_LASER_BEAM_RED";	break;
+		case PARTICLE_LASER_BEAM :
+			type_string = @"PARTICLE_LASER_BEAM";	break;
+		case PARTICLE_EXPLOSION :
+			type_string = @"PARTICLE_EXPLOSION";	break;
+		case PARTICLE_SHOT_EXPIRED :
+			type_string = @"PARTICLE_SHOT_EXPIRED";	break;
+		case PARTICLE_EXHAUST :
+			type_string = @"PARTICLE_EXHAUST";	break;
+		case PARTICLE_HYPERRING :
+			type_string = @"PARTICLE_HYPERRING";	break;
+		case PARTICLE_FLASHER :
+			type_string = @"PARTICLE_FLASHER";	break;
+		case PARTICLE_MARKER :
+			type_string = @"PARTICLE_MARKER";	break;
+		case PARTICLE_ECM_MINE :
+			type_string = @"PARTICLE_ECM_MINE";	break;
+		case PARTICLE_SPARK :
+			type_string = @"PARTICLE_SPARK";	break;
+		case PARTICLE_FRAGBURST :
+			type_string = @"PARTICLE_FRAGBURST";	break;
+		case PARTICLE_BURST2 :
+			type_string = @"PARTICLE_BURST2";	break;
+		default :
+			type_string = @"UNKNOWN";
+	}
+	NSString* result = [[NSString alloc] initWithFormat:@"<ParticleEntity %d %@ ttl: %.3fs>", particle_type, type_string, duration - time_counter];
+	return [result autorelease];
+}
+
 - (BOOL) canCollide
 {
 	switch (particle_type)
@@ -631,7 +731,7 @@ static Vector   circleVertex[65];		// holds vector coordinates for a unit circle
 						[self initialiseTexture: textureNameString];
 					if (player)
 					{
-						q_rotation = player->q_rotation;					// Rally simple billboard routine
+						q_rotation = player->q_rotation;					// Really simple billboard routine
 						q_rotation.w = -q_rotation.w;
 						quaternion_into_gl_matrix(q_rotation, rotMatrix);
 					}
@@ -689,6 +789,7 @@ static Vector   circleVertex[65];		// holds vector coordinates for a unit circle
 			case PARTICLE_SHOT_GREEN_PLASMA :
 			case PARTICLE_MARKER :
 			case PARTICLE_SHOT_PLASMA :
+			default :	// hoping to correct the multiplying-entities problem
 				[self updateShot:delta_t];
 				break;
 		}
@@ -771,7 +872,6 @@ static Vector   circleVertex[65];		// holds vector coordinates for a unit circle
 	
 	double tf = time_counter / duration;
 	double stf = tf * tf;
-//	double srtf = sqrt(tf);
 	double expansion_speed = 0.0;
 	if (time_counter > 0)
 		expansion_speed = 240 + 10 / (tf * tf);
@@ -798,11 +898,6 @@ static Vector   circleVertex[65];		// holds vector coordinates for a unit circle
 		{
 			Entity *	e = (Entity *)[collidingEntities objectAtIndex:i];
 			[e takeEnergyDamage:energy from:self becauseOf:[self owner]];
-//			if (e->isShip)
-//			{
-//				ShipEntity*	s = (ShipEntity*)e;
-//				NSLog(@"DEBUG ENERGY BOMB Doing %.3f energy damage to %@ %d", energy, [s name], [s universal_id]);
-//			}
 		}
 	}
 	if (time_counter > duration)	// until the timer runs out!
@@ -885,7 +980,6 @@ static Vector   circleVertex[65];		// holds vector coordinates for a unit circle
 - (void) updateFragburst:(double) delta_t
 {
 	int i;
-//	int n_sparks = 48 * (duration - time_counter) / duration;
 	//
 	for (i = 0 ; i < n_vertices; i++)
 	{
@@ -910,8 +1004,6 @@ static Vector   circleVertex[65];		// holds vector coordinates for a unit circle
 	int i;
 	float diameter = (1.0 + time_counter)*64.0;
 	[self setSize:NSMakeSize(diameter, diameter)];
-//	size.width = (1.0 + time_counter)*64.0;
-//	size.height = size.width;
 	//
 	for (i = 0 ; i < n_vertices; i++)
 	{

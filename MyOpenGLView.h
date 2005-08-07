@@ -53,6 +53,8 @@ Your fair use and other rights are in no way affected by the above.
 
 #define NUM_KEYS			320
 
+#define MOUSE_DOUBLE_CLICK_INTERVAL	0.40
+
 @class Entity, GameController, OpenGLSprite;
 
 enum GameViewKeys
@@ -73,6 +75,7 @@ enum GameViewKeys
 	gvFunctionKey10 = 250,
 	gvFunctionKey11 = 251,
 	gvMouseLeftButton = 301,
+	gvMouseDoubleClick = 303,
 	gvHomeKey = 302,
 	gvNumberKey0 = 48,
 	gvNumberKey1 = 49,
@@ -106,6 +109,9 @@ extern int debug;
 	BOOL	m_glContextInitialized;
     NSPoint	mouseDragStartPoint;
     double 	squareX,squareY;
+	
+	NSTimeInterval timeIntervalAtLastClick;
+	BOOL doubleClick;
 	
 	NSMutableString	*typedString;
 	NSRect bounds;
@@ -154,12 +160,16 @@ extern int debug;
 
 /*
 // These are standard methods in NSView.
+- (void)mouseDown:(NSEvent *)theEvent;
+- (void)mouseUp:(NSEvent *)theEvent;
 - (void)mouseDragged:(NSEvent *)theEvent;
 */
 - (void) setVirtualJoystick:(double) vmx :(double) vmy;
 - (NSPoint) virtualJoystickPosition;
 
  - (void) clearKeys;
+ - (void) clearMouse;
+ - (BOOL) isAlphabetKeyDown;
  - (void) supressKeysUntilKeyUp; // DJS
  - (BOOL) isDown: (int) key;
  - (BOOL) isOptDown;

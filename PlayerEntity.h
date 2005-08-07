@@ -512,9 +512,8 @@ Your fair use and other rights are in no way affected by the above.
 - (void) pollFlightControls:(double) delta_t;
 - (void) pollFlightArrowKeyControls:(double) delta_t;
 - (void) pollGuiArrowKeyControls:(double) delta_t;
-- (void) handleGUIUpDownArrowKeys:(GuiDisplayGen *)gui 
-                                 :(MyOpenGLView *)gameView
-                                 :(int) miss_row;
+- (BOOL) handleGUIUpDownArrowKeys:(GuiDisplayGen *)gui 
+                                 :(MyOpenGLView *)gameView;
 - (void) pollViewControls;
 - (void) pollGuiScreenControls;
 - (void) pollGameOverControls:(double) delta_t;
@@ -588,5 +587,6 @@ Your fair use and other rights are in no way affected by the above.
 - (void) getFined;
 
 - (void) setDefaultViewOffsets;
+- (Vector) viewOffset;
 
 @end

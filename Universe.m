@@ -521,6 +521,16 @@ Your fair use and other rights are in no way affected by the above.
 	return [entities count];
 }
 
+- (void) obj_dump
+{
+	NSLog(@"DEBUG ENTITY DUMP: [entities count] = %d,\tn_entities = %d", [entities count], n_entities);
+	int i;
+	for (i = 0; i < n_entities; i++)
+		NSLog(@"-> Ent:%d\t\t%@", i, sortedEntities[i]);
+	if ([entities count] != n_entities)
+		NSLog(@"entities = %@", [entities description]);
+}
+
 - (void) sleepytime: (id) thing
 {
 	// deal with the machine going to sleep
@@ -557,7 +567,6 @@ Your fair use and other rights are in no way affected by the above.
 				Entity* ent = [entities objectAtIndex:index];
 				if ((ent != player)&&(ent != docked_station))
 				{
-//					if (ent->isStation)  // clear out queues
 					if (ent->isStation)  // clear out queues
 						[(StationEntity *)ent clear];
 					[self removeEntity:ent];
@@ -795,7 +804,7 @@ Your fair use and other rights are in no way affected by the above.
     PlanetEntity		*a_planet;
 	
 	Vector				stationPos;
-	double				stationRoll;
+//	double				stationRoll;
 	
 	Vector				vf;
 
@@ -921,7 +930,7 @@ Your fair use and other rights are in no way affected by the above.
 	stationPos.y -= station_orbit * vf.y;
 	stationPos.z -= station_orbit * vf.z;
 	//NSLog(@"Station added at vector (%.1f,%.1f,%.1f) from planet",-vf.x,-vf.y,-vf.z);
-	stationRoll =   0.4;
+//	stationRoll =   0.4;
 	stationDesc = @"coriolis";
 	if (techlevel > 10)
 	{
@@ -935,15 +944,15 @@ Your fair use and other rights are in no way affected by the above.
 	//
 	if ([systeminfo objectForKey:@"station"])
 		stationDesc = (NSString *)[systeminfo objectForKey:@"station"];
-	if ([systeminfo objectForKey:@"station_roll"])
-		stationRoll = [(NSNumber *)[systeminfo objectForKey:@"station_roll"] doubleValue];
+//	if ([systeminfo objectForKey:@"station_roll"])
+//		stationRoll = [(NSNumber *)[systeminfo objectForKey:@"station_roll"] doubleValue];
 	
 	//NSLog(@"* INFO *\t>>\tAdding %@ station for TL %d", stationDesc, techlevel);
 	a_station = (StationEntity *)[self getShipWithRole:stationDesc];			   // retain count = 1
 	[a_station setStatus:STATUS_ACTIVE];
 	[a_station setQRotation: q_station];
 	[a_station setPosition: stationPos];
-	[a_station setRoll: stationRoll];
+//	[a_station setRoll: stationRoll];
 	[a_station setPitch: 0.0];
 	[a_station setScanClass: CLASS_STATION];
 	[a_station setPlanet:(PlanetEntity *)[self entityForUniversalID:planet]];
@@ -2075,6 +2084,61 @@ Your fair use and other rights are in no way affected by the above.
 	return YES;	// success at last!
 }
 
+- (BOOL) spawnShip:(NSString *) shipdesc
+{
+	ShipEntity* ship;
+	NSDictionary* shipdict = [self getDictionaryForShip:shipdesc];
+	if (!shipdict)
+		return NO;
+	ship = [self getShip:shipdesc];
+	if (!ship)
+		return NO;
+	// set any spawning characteristics
+	NSDictionary* spawndict = (NSDictionary*)[shipdict objectForKey:@"spawn"];
+	// position
+	if ([spawndict objectForKey:@"position"])
+	{
+		Vector pos = make_vector( 0, 0, 0);
+		NSString* positionString = (NSString*)[spawndict objectForKey:@"position"];
+		NSArray* positiontokens = [ResourceManager scanTokensFromString:positionString];
+		if ([positiontokens count] == 4)
+		{
+			GLfloat scalar;
+			pos = make_vector(	[[positiontokens objectAtIndex:1] floatValue],
+								[[positiontokens objectAtIndex:2] floatValue],
+								[[positiontokens objectAtIndex:3] floatValue]);
+			pos = [self coordinatesForPosition:pos withCoordinateSystem:(NSString *)[positiontokens objectAtIndex:0] returningScalar:&scalar];
+		}
+		[ship setPosition:pos];
+	}
+	// facing_position
+	if ([spawndict objectForKey:@"facing_position"])
+	{
+		Vector pos, rpos;
+		Vector spos = [ship getPosition];
+		Quaternion q1;
+		NSString* positionString = (NSString*)[spawndict objectForKey:@"facing_position"];
+		NSArray* positiontokens = [ResourceManager scanTokensFromString:positionString];
+		if ([positiontokens count] == 4)
+		{
+			GLfloat scalar;
+			pos = make_vector(	[[positiontokens objectAtIndex:1] floatValue],
+								[[positiontokens objectAtIndex:2] floatValue],
+								[[positiontokens objectAtIndex:3] floatValue]);
+			rpos = [self coordinatesForPosition:pos withCoordinateSystem:(NSString *)[positiontokens objectAtIndex:0] returningScalar:&scalar];
+		}
+		rpos.x -= spos.x;	rpos.y -= spos.y;	rpos.z -= spos.z; // position relative to ship
+		if (rpos.x || rpos.y || rpos.z)
+		{
+			rpos = unit_vector(&rpos);
+			q1 = quaternion_rotation_between( make_vector(0,0,1), rpos);
+			[ship setQRotation:q1];
+		}
+	}
+
+	return YES;
+}
+
 
 - (void) witchspaceShipWithRole:(NSString *) desc
 {
@@ -2259,7 +2323,6 @@ Your fair use and other rights are in no way affected by the above.
 	ship = [self getShip:[demo_ships objectAtIndex:0]];   // retain count = 1
 	if (ship)
 	{
-		[ship setStatus:STATUS_DEMO];
 		[ship setQRotation:q2];
 		[ship setPosition:0.0:0.0: 3.6 * ship->actual_radius];
 		
@@ -2270,6 +2333,9 @@ Your fair use and other rights are in no way affected by the above.
 		[ship setPitch:PI/10.0];
 		[[ship getAI] setStateMachine:@"nullAI.plist"];
 		[self addEntity:ship];
+		
+		// set status here because addEntity may affect status
+		[ship setStatus:STATUS_DEMO];
 		
 		demo_ship = ship;
 		
@@ -2625,7 +2691,7 @@ Your fair use and other rights are in no way affected by the above.
 		NSLog(@"***** Universe couldn't find a dictionary for a ship with description '%@'",desc);
 		// throw an exception here...
 		NSException* myException = [NSException
-			exceptionWithName:@"ShipNotFoundException"
+			exceptionWithName:@"OoliteException"
 			reason:[NSString stringWithFormat:@"No ship called '%@' could be found in the Oolite folder.", desc]
 			userInfo:nil];
 		[myException raise];
@@ -2973,7 +3039,7 @@ Your fair use and other rights are in no way affected by the above.
 				NSLog(@"***** Universe trying to draw from the view of an entity NOT the player");
 				// throw an exception here...
 				NSException* myException = [NSException
-					exceptionWithName: @"NonPlayerViewException"
+					exceptionWithName: @"OoliteException"
 					reason: @"Universe cannot draw from a non-player entity."
 					userInfo: nil];
 				[myException raise];
@@ -3230,19 +3296,25 @@ Your fair use and other rights are in no way affected by the above.
 			// clear errors - and announce them
 			checkGLErrors(@"Universe after all entity drawing is done.");
 			//
-//			for (i = 0; i < ent_count; i++)
 			for (i = 0; i < draw_count; i++)
 				[my_entities[i] release];		//	released
 			
 			no_update = NO;	// allow other attemts to draw
 			
 		NS_HANDLER
-			NSLog(@"\n\n***** Handling localException: %@ : %@ *****\n\n",[localException name], [localException reason]);
-			if (![[self gameController] inFullScreenMode])
-				NSRunAlertPanel(@"Unexpected Error!", @"Error during [universe drawFromEntity:]\n\n'%@'", @"QUIT", nil, nil,localException);
+		
+			if ([[localException name] hasPrefix:@"Oolite"])
+				[self handleOoliteException:localException];
 			else
-			NSLog(@"\n\n***** Quitting Oolite *****\n\n");
-			[[self gameController] exitApp];
+			{
+				NSLog(@"\n\n***** Handling localException: %@ : %@ *****\n\n",[localException name], [localException reason]);
+				if (![[self gameController] inFullScreenMode])
+					NSRunAlertPanel(@"Unexpected Error!", @"Error during [universe update:]\n\n'%@'", @"QUIT", nil, nil,localException);
+				else
+				NSLog(@"\n\n***** Quitting Oolite *****\n\n");
+				[[self gameController] exitApp];
+			}
+		
 		NS_ENDHANDLER
 
 	}
@@ -3353,6 +3425,12 @@ Your fair use and other rights are in no way affected by the above.
 		double cursor_y = -MAIN_GUI_PIXEL_HEIGHT * [(MyOpenGLView *)gameView virtualJoystickPosition].y;
 		if (cursor_y < -MAIN_GUI_PIXEL_HEIGHT * 0.5)  cursor_y = -MAIN_GUI_PIXEL_HEIGHT * 0.5;
 		if (cursor_y > MAIN_GUI_PIXEL_HEIGHT * 0.5)   cursor_y = MAIN_GUI_PIXEL_HEIGHT * 0.5;
+		
+		cursor_row = 1 + floor((0.5 * MAIN_GUI_PIXEL_HEIGHT - MAIN_GUI_PIXEL_ROW_START - cursor_y) / MAIN_GUI_ROW_HEIGHT);
+//		int column = floor((cursor_x + 0.5 * MAIN_GUI_PIXEL_WIDTH) / MAIN_GUI_ROW_WIDTH);
+		
+//		NSLog(@"DEBUG text cursor position [ row %d ] %@", cursor_row, [gui objectForRow: cursor_row]);
+		
 		[cursorSprite blitCentredToX:cursor_x Y:cursor_y Z:z1 Alpha:1.0];
 		[(MyOpenGLView *)gameView setVirtualJoystick:cursor_x/MAIN_GUI_PIXEL_WIDTH :-cursor_y/MAIN_GUI_PIXEL_HEIGHT];
 	}
@@ -3391,6 +3469,19 @@ Your fair use and other rights are in no way affected by the above.
 		// don't add things twice!
 		if ([entities containsObject:entity])
 			return YES;
+			
+		if (n_entities >= UNIVERSE_MAX_ENTITIES - 1)
+		{
+			// throw an exception here...
+			NSLog(@"***** Universe cannot addEntity:%@ Universe is full (%d entities out of %d)", entity, n_entities, UNIVERSE_MAX_ENTITIES);
+			[self obj_dump];
+			NSException* myException = [NSException
+				exceptionWithName:@"OoliteException"
+				reason:[NSString stringWithFormat:@"Maximum number of entities (%d) in Universe reached. Cannot add %@", UNIVERSE_MAX_ENTITIES, entity]
+				userInfo:nil];
+			[myException raise];
+			return NO;
+		}
 		//
 		if (!(entity->isParticle))
 		{
@@ -3411,6 +3502,29 @@ Your fair use and other rights are in no way affected by the above.
 				[[se getAI] setState:@"GLOBAL"];
 				if ([se isBeacon])
 					[self setNextBeacon:se];
+				if (se->isStation)
+				{
+					double stationRoll =   0.4;
+					// check for ststion_roll override
+					NSDictionary*	systeminfo = [self generateSystemData:system_seed];
+					if ([systeminfo objectForKey:@"station_roll"])
+						stationRoll = [(NSNumber *)[systeminfo objectForKey:@"station_roll"] doubleValue];
+					// check if it is a proper rotating station (ie. roles contains the word "station")
+					if ([(StationEntity*)se isRotatingStation])
+					{
+						[se setRoll: stationRoll];
+						[(StationEntity*)se setPlanet:[self planet]];
+						[se setStatus:STATUS_ACTIVE];
+//						NSLog(@"DEBUG setting %@ roll to %.2f", se, stationRoll);
+					}
+					else
+					{
+						[se setRoll: 0.0];
+						[(StationEntity*)se setPlanet:[self planet]];
+						[se setStatus:STATUS_ACTIVE];
+//						NSLog(@"DEBUG setting %@ roll to %.2f", se, 0.0);
+					}
+				}
 			}
 		}
 		else
@@ -3457,14 +3571,14 @@ Your fair use and other rights are in no way affected by the above.
 		{
 			if (sortedEntities[index] != entity)
 			{
-				NSLog(@"DEBUG Universe removeEntity: ENTITY IS NOT IN THE RIGHT PLACE IN THE SORTED LIST -- FIXING...");
+				NSLog(@"DEBUG Universe removeEntity:%@ ENTITY IS NOT IN THE RIGHT PLACE IN THE SORTED LIST -- FIXING...", entity);
 				int i;
 				index = -1;
 				for (i = 0; (i < n_entities)&&(index == -1); i++)
 					if (sortedEntities[i] == entity)
 						index = i;
 				if (index == -1)
-					 NSLog(@"DEBUG Universe removeEntity: ENTITY IS NOT IN THE SORTED LIST -- CONTINUING...");
+					 NSLog(@"DEBUG Universe removeEntity:%@ ENTITY IS NOT IN THE SORTED LIST -- CONTINUING...", entity);
 			}
  			if (index != -1)
 			{
@@ -3769,7 +3883,6 @@ Your fair use and other rights are in no way affected by the above.
 
 - (int) getFirstEntityHitByLaserFromEntity:(Entity *) e1 inView:(int) viewdir
 {
-//	BOOL debug_laser = NO;
 	BOOL isSubentity = NO;
 	ShipEntity  *hit_entity = nil;
 	ShipEntity  *hit_subentity = nil;
@@ -3784,18 +3897,11 @@ Your fair use and other rights are in no way affected by the above.
 	{	// we're a subentity!
 		BoundingBox bbox = [e1 getBoundingBox];
 		Vector midfrontplane = make_vector( 0.5 * (bbox.max_x + bbox.min_x), 0.5 * (bbox.max_y + bbox.min_y), bbox.max_z);
-//		Vector p1 = parent->position;
 		p0 = [(ShipEntity*)e1 absolutePositionForSubentityOffset:midfrontplane];
 		q1 = parent->q_rotation;
 		if (parent->isPlayer)
 			q1.w = -q1.w;
 		isSubentity = YES;
-		
-//		ShipEntity* parent_target = (ShipEntity*)[parent getPrimaryTarget];
-//		NSLog(@"DEBUG laser subentity %@ targetting from [ %.1f, %.1f, %.1f] which is %.1f from the parent entity %@ at [ %.1f, %.1f, %.1f] attacking target: %@",
-//				e1, p0.x, p0.y, p0.z, sqrt(distance2(p0, parent->position)),
-//				parent,	p1.x,	p1.y,	p1.z, parent_target);
-//		debug_laser = ((parent_target)&&(parent_target->isPlayer));
 	}
 	
 	int		result = NO_TARGET;
@@ -3931,28 +4037,56 @@ Your fair use and other rights are in no way affected by the above.
 	return result;
 }
 
-- (int) getFirstEntityTargettedFromEntity:(Entity *) e1 inView:(int) viewdir
+- (int) getFirstEntityHitByLaserFromEntity:(Entity *) e1 inView:(int) viewdir offset:(Vector) offset
 {
-	if (!e1)
-		return NO_TARGET;
-	ShipEntity*	hit_entity = nil;
-	int		result = NO_TARGET;
-	double  nearest = SCANNER_MAX_RANGE;
-	int i;
-	int ent_count = n_entities;
-	int ship_count = 0;
-	Entity* my_entities[ent_count];
-	for (i = 0; i < ent_count; i++)
-		if (sortedEntities[i]->isShip)
-			my_entities[ship_count++] = [sortedEntities[i] retain];	// retained
-
-	Vector p1 = e1->position;
+	BOOL isSubentity = NO;
+	ShipEntity  *hit_entity = nil;
+	ShipEntity  *hit_subentity = nil;
+	
+	Vector p0 = e1->position;
 	Quaternion q1 = e1->q_rotation;
 	if ((e1)&&(e1->isPlayer))
 		q1.w = -q1.w;   //  reverse for player viewpoint
+	
+	ShipEntity* parent = (ShipEntity*)[e1 owner];
+	if ((e1)&&(e1->isShip)&&(parent)&&(parent != e1)&&(parent->isShip)&&([parent->sub_entities containsObject:e1]))
+	{	// we're a subentity!
+		BoundingBox bbox = [e1 getBoundingBox];
+		Vector midfrontplane = make_vector( 0.5 * (bbox.max_x + bbox.min_x), 0.5 * (bbox.max_y + bbox.min_y), bbox.max_z);
+		p0 = [(ShipEntity*)e1 absolutePositionForSubentityOffset:midfrontplane];
+		q1 = parent->q_rotation;
+		if (parent->isPlayer)
+			q1.w = -q1.w;
+		isSubentity = YES;
+	}
+	
+	int		result = NO_TARGET;
+	double  nearest;
+	if (!e1)
+		return NO_TARGET;
+	if (e1->isShip)
+		nearest = [(ShipEntity *)e1 weapon_range];
+	else
+		nearest = PARTICLE_LASER_LENGTH;
+//	NSLog(@"DEBUG LASER nearest = %.1f",nearest);
+	
+	int i;
+	int ent_count = n_entities;
+	int ship_count = 0;
+	ShipEntity* my_entities[ent_count];
+	for (i = 0; i < ent_count; i++)
+	{
+		Entity* ent = sortedEntities[i];
+		if ((ent->isShip) && (ent != e1) && (ent != parent) && [ent canCollide])
+			my_entities[ship_count++] = [ent retain];	// retained
+	}
+	
 	Vector u1 = vector_up_from_quaternion(q1);
 	Vector f1 = vector_forward_from_quaternion(q1);
 	Vector r1 = vector_right_from_quaternion(q1);
+	p0.x += offset.x * r1.x + offset.y * u1.x + offset.z * f1.x;
+	p0.y += offset.x * r1.y + offset.y * u1.y + offset.z * f1.y;
+	p0.z += offset.x * r1.z + offset.y * u1.z + offset.z * f1.z;
 	switch (viewdir)
 	{
 		case VIEW_AFT :
@@ -3965,10 +4099,151 @@ Your fair use and other rights are in no way affected by the above.
 			quaternion_rotate_about_axis(&q1, u1, -PI/2.0);
 			break;
 	}
+	f1 = vector_forward_from_quaternion(q1);
+	r1 = vector_right_from_quaternion(q1);
+	for (i = 0; i < ship_count; i++)
+	{
+		ShipEntity *e2 = my_entities[i];
+		
+//		if (debug_laser)
+//			NSLog(@"DEBUG >>>>> %@", e2);
+		
+		// check outermost bounding sphere
+		GLfloat cr = e2->collision_radius;
+		Vector rpos = make_vector( e2->position.x - p0.x, e2->position.y - p0.y, e2->position.z - p0.z);
+		Vector v_off = make_vector( dot_product( rpos, r1), dot_product( rpos, u1), dot_product( rpos, f1));
+		if ((v_off.z > 0.0)&&(v_off.z < nearest + cr)								// ahead AND within range
+			&&(v_off.x < cr)&&(v_off.x > -cr)&&(v_off.y < cr)&&(v_off.y > -cr)		// AND not off to one side or another
+			&&(v_off.x*v_off.x + v_off.y*v_off.y < cr*cr))							// AND not off to both sides
+		{
+			//  within the bounding sphere - do further tests
+//			if (debug_laser)
+//				NSLog(@"DEBUG LASER within outermost bounding sphere of %@", e2);
+			// find any subentities for later testing
+			int n_subs = 0;
+			NSArray* subs = e2->sub_entities;
+			if (subs)
+				n_subs = [subs count];
+			// check bounding spheres of main model and subentities
+			// main model
+			GLfloat ar = e2->actual_radius;
+			if ((v_off.z > 0.0)&&(v_off.z < nearest + ar)								// ahead AND within range
+				&&(v_off.x < ar)&&(v_off.x > -ar)&&(v_off.y < ar)&&(v_off.y > -ar)		// AND not off to one side or another
+				&&(v_off.x*v_off.x + v_off.y*v_off.y < ar*ar))							// AND not off to both sides
+			{
+//				if (debug_laser)
+//					NSLog(@"DEBUG LASER within actual bounding sphere of %@", e2);
+				// check bounding box of main model
+				BoundingBox arbb = [e2 findBoundingBoxRelativeToPosition:p0 InVectors:r1 :u1 :f1];
+				if ((arbb.min_x < 0.0)&&(arbb.max_x > 0.0)&&(arbb.min_y < 0.0)&&(arbb.max_y > 0.0)&&(arbb.min_z > 0.0)&&(arbb.min_z < nearest))
+				{
+					hit_subentity = nil;
+					hit_entity = e2;
+					nearest = arbb.min_z;
+				}
+			}
+			if ((hit_entity != e2)&&(n_subs))	// didn't hit main body but there are subs to chcek
+			{
+//				if (debug_laser)
+//					NSLog(@"DEBUG LASER checking subentities of %@", e2);
+				// check subentity bounding spheres
+				int si;
+				for (si = 0; (hit_entity != e2)&&(si < n_subs); si++)
+				{
+					Entity* e3 = (Entity*)[subs objectAtIndex:si];
+					if ([e3 canCollide]&&(e3->isShip))
+					{
+						ShipEntity* se3 = (ShipEntity*)e3;
+						GLfloat sr = e3->actual_radius;
+						Vector sepos = [se3 absolutePositionForSubentity];
+						Vector rpos = make_vector( sepos.x - p0.x, sepos.y - p0.y, sepos.z - p0.z);
+						Vector v_off = make_vector( dot_product( rpos, r1), dot_product( rpos, u1), dot_product( rpos, f1));
+						if ((v_off.z > 0.0)&&(v_off.z < nearest + sr)								// ahead AND within range
+							&&(v_off.x < sr)&&(v_off.x > -sr)&&(v_off.y < sr)&&(v_off.y > -sr)		// AND not off to one side or another
+							&&(v_off.x*v_off.x + v_off.y*v_off.y < sr*sr))							// AND not off to both sides
+						{
+//							if (debug_laser)
+//								NSLog(@"DEBUG LASER within actual bounding sphere of %@", se3);
+							// check subentity bounding box
+							BoundingBox sebb = [se3 findSubentityBoundingBoxRelativeToPosition:p0 inVectors:r1 :u1 :f1];
+							if ((sebb.min_x < 0.0)&&(sebb.max_x > 0.0)&&(sebb.min_y < 0.0)&&(sebb.max_y > 0.0)&&(sebb.min_z > 0.0)&&(sebb.min_z < nearest))
+							{
+//								if (debug_laser)
+//									NSLog(@"DEBUG Laser hits subentity %@ of %@", se3, e2);
+								hit_subentity = se3;
+								hit_entity = e2;
+								nearest = sebb.min_z;
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+	//
+	if (hit_entity)
+	{
+		result = [hit_entity universal_id];
+		if ((hit_subentity)&&[hit_entity->sub_entities containsObject:hit_subentity])
+			hit_entity->subentity_taking_damage = hit_subentity;
+			
+	}
+	//
+//	if (debug_laser)
+//		NSLog(@"DEBUG LASER hit %@ %d",[hit_entity name],result);
+	//
+	for (i = 0; i < ship_count; i++)
+		[my_entities[i] release]; //	released
+	//
+	return result;
+}
+
+- (int) getFirstEntityTargettedByPlayer:(PlayerEntity*) player
+{
+	if ((!player)||(!player->isPlayer))
+		return NO_TARGET;
+	
+	ShipEntity*	hit_entity = nil;
+	
+	int		result = NO_TARGET;
+	double  nearest = SCANNER_MAX_RANGE;
+	int i;
+	
+	int ent_count = n_entities;
+	int ship_count = 0;
+	Entity* my_entities[ent_count];
+	for (i = 0; i < ent_count; i++)
+		if ((sortedEntities[i]->isShip)&&(sortedEntities[i] != player))
+			my_entities[ship_count++] = [sortedEntities[i] retain];	// retained
+
+	Vector p1 = player->position;
+	Quaternion q1 = player->q_rotation;
+	q1.w = -q1.w;   //  reverse for player viewpoint
+	Vector u1 = vector_up_from_quaternion(q1);
+	Vector f1 = vector_forward_from_quaternion(q1);
+	Vector r1 = vector_right_from_quaternion(q1);
+	Vector offset = [player viewOffset];
+	p1.x += offset.x * r1.x + offset.y * u1.x + offset.z * f1.x;
+	p1.y += offset.x * r1.y + offset.y * u1.y + offset.z * f1.y;
+	p1.z += offset.x * r1.z + offset.y * u1.z + offset.z * f1.z;
+	switch (viewDirection)
+	{
+		case VIEW_AFT :
+			quaternion_rotate_about_axis(&q1, u1, PI);
+			break;
+		case VIEW_PORT :
+			quaternion_rotate_about_axis(&q1, u1, 0.5 * PI);
+			break;
+		case VIEW_STARBOARD :
+			quaternion_rotate_about_axis(&q1, u1, -0.5 * PI);
+			break;
+	}
+	f1 = vector_forward_from_quaternion(q1);
+	r1 = vector_right_from_quaternion(q1);
 	for (i = 0; i < ship_count; i++)
 	{
 		ShipEntity *e2 = (ShipEntity *)my_entities[i];
-		if ((e2 != e1)&&[e2 canCollide]&&(e2->scan_class != CLASS_NO_DRAW))
+		if ([e2 canCollide]&&(e2->scan_class != CLASS_NO_DRAW))
 		{
 			Vector rp = e2->position;
 			rp.x -= p1.x;	rp.y -= p1.y;	rp.z -= p1.z;
@@ -3991,19 +4266,15 @@ Your fair use and other rights are in no way affected by the above.
 		}
 	}
 	// check for MASC'M
-	if ((hit_entity) && [hit_entity isJammingScanning])
-	{
-		if ((e1->isShip)&&(![(ShipEntity*)e1 hasMilitaryScannerFilter]))
-			hit_entity = nil;
-	}
+	if ((hit_entity) && [hit_entity isJammingScanning] && (![player hasMilitaryScannerFilter]))
+		hit_entity = nil;
 	//
 	if (hit_entity)
-	{
 		result = [hit_entity universal_id];
-		//NSLog(@"===> First entity Targetted is %@ %d with collisionRadius %.1f", [(ShipEntity *) hit_entity name], [hit_entity universal_id], hit_entity->collision_radius);
-	}
+	//
 	for (i = 0; i < ship_count; i++)
 		[my_entities[i] release]; //	released
+	//
 	return result;
 }
 
@@ -4517,7 +4788,7 @@ Your fair use and other rights are in no way affected by the above.
 						int j;
 						e1->isSunlit = YES;				// sunlit by default
 						e1->shadingEntityID = NO_TARGET;
-						for (j = 0; (j < ent_count)&&(e1->isSunlit) ; j++)
+						for (j = 0; (j < ent_count)&&(e1->isSunlit)&&(e1->status != STATUS_DEMO) ; j++)
 						{
 							Entity* e2 = my_entities[j];
 							//
@@ -4585,12 +4856,19 @@ Your fair use and other rights are in no way affected by the above.
 				[my_entities[i] release];	// explicitly release each one
 
 		NS_HANDLER
-			NSLog(@"\n\n***** Handling localException: %@ : %@ *****\n\n",[localException name], [localException reason]);
-			if (![[self gameController] inFullScreenMode])
-				NSRunAlertPanel(@"Unexpected Error!", @"Error during [universe update:]\n\n'%@'", @"QUIT", nil, nil,localException);
+		
+			if ([[localException name] hasPrefix:@"Oolite"])
+				[self handleOoliteException:localException];
 			else
-			NSLog(@"\n\n***** Quitting Oolite *****\n\n");
-			[[self gameController] exitApp];
+			{
+				NSLog(@"\n\n***** Handling localException: %@ : %@ *****\n\n",[localException name], [localException reason]);
+				if (![[self gameController] inFullScreenMode])
+					NSRunAlertPanel(@"Unexpected Error!", @"Error during [universe update:]\n\n'%@'", @"QUIT", nil, nil,localException);
+				else
+				NSLog(@"\n\n***** Quitting Oolite *****\n\n");
+				[[self gameController] exitApp];
+			}
+		
 		NS_ENDHANDLER
 	}
 }
@@ -5822,6 +6100,7 @@ double estimatedTimeForJourney(double distance, int hops)
 	NSMutableArray*	resultArray = [NSMutableArray arrayWithCapacity:32];
 	NSMutableDictionary* resultDictionary = [NSMutableDictionary dictionaryWithCapacity:32];
 	
+	float tech_price_boost = (ship_seed.a + ship_seed.b) / 256.0;
 	int i = 0;
 	
 //	NSLog(@"DEBUG ships for sale generator...\n");
@@ -5923,7 +6202,7 @@ double estimatedTimeForJourney(double distance, int hops)
 						// higher tech items are rarer!
 						if (randf() * (eq_techlevel - techlevel) < 1.0)
 						{
-							eq_price *= randf() + randf() + eq_techlevel - techlevel;
+							eq_price *= tech_price_boost + eq_techlevel - techlevel;
 						}
 						else
 						{
@@ -6078,6 +6357,16 @@ double estimatedTimeForJourney(double distance, int hops)
 	
 //	[resultArray sortUsingFunction:comparePrice context:nil];
 	[resultArray sortUsingFunction:compareName context:nil];
+	
+	// remove identically priced ships of the same name
+	i = 1;
+	while (i < [resultArray count])
+	{
+		if (compareName( [resultArray objectAtIndex:i - 1], [resultArray objectAtIndex:i], nil) == NSOrderedSame )
+			[resultArray removeObjectAtIndex: i];
+		else
+			i++;
+	}
 	
 //	NSLog(@"Ships for sale:\n%@", [resultArray description]);
 	
@@ -6498,6 +6787,25 @@ NSComparisonResult comparePrice( id dict1, id dict2, void * context)
 {
 	return reducedDetail;
 }
+
+
+- (void) handleOoliteException:(NSException*) ooliteException
+{
+	if (ooliteException)
+	{
+		exception = [ooliteException retain];
+		
+		PlayerEntity* player = (PlayerEntity*)[self entityZero];
+		[player setStatus:STATUS_HANDLING_ERROR];
+		
+		NSLog(@"* ERROR * Handling : %@ : %@ * ERROR *",[exception name], [exception reason]);
+		NSString* exception_msg = [NSString stringWithFormat:@"Exception : %@ : %@ Please take a screenshot and/or press esc or Q to quit.", [exception name], [exception reason]];
+		[self addMessage:exception_msg forCount:30.0];
+		[[self gameController] pause_game];	
+	}
+}
+
+
 
 // speech routines
 //

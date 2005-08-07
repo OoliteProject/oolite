@@ -52,8 +52,8 @@ Your fair use and other rights are in no way affected by the above.
 	n_columns		= 6;
 	n_rows			= 24;
 	pixel_row_center = size_in_pixels.width / 2;
-	pixel_row_height = 16;
-	pixel_row_start	= 40;		// first position down the page...
+	pixel_row_height = MAIN_GUI_ROW_HEIGHT;
+	pixel_row_start	= MAIN_GUI_PIXEL_ROW_START;		// first position down the page...
 
 	pixel_text_size = NSMakeSize( 0.9 * pixel_row_height, pixel_row_height);	// main gui has 18x20 characters
 	
@@ -248,13 +248,32 @@ Your fair use and other rights are in no way affected by the above.
 
 - (BOOL) setSelectedRow:(int) row
 {
+	if ((row == selectedRow)&&(row >= selectableRange.location)&&(row < selectableRange.location+selectableRange.length))
+		return YES;
 	if ((row >= selectableRange.location) && (row < selectableRange.location+selectableRange.length))
 	{
-		selectedRow = row;
-		return YES;
+		if (![[rowKey objectAtIndex:row] isEqual:GUI_KEY_SKIP])
+		{
+			selectedRow = row;
+			return YES;
+		}
 	}
-	else
-		return NO;
+	return NO;
+}
+
+- (BOOL) setNextRow:(int) direction
+{
+	int row = selectedRow + direction;
+	while ((row >= selectableRange.location) && (row < selectableRange.location+selectableRange.length))
+	{
+		if (![[rowKey objectAtIndex:row] isEqual:GUI_KEY_SKIP])
+		{
+			selectedRow = row;
+			return YES;
+		}
+		row += direction;
+	}
+	return NO;
 }
 
 - (void) setNoSelectedRow
@@ -324,7 +343,7 @@ Your fair use and other rights are in no way affected by the above.
 		[self setText:@"" forRow:i align:GUI_ALIGN_LEFT];
 		[self setColor:textColor forRow:i];
 		//
-		[self setKey:@"" forRow:i];
+		[self setKey:GUI_KEY_SKIP forRow:i];
 		//
 		rowFadeTime[i] = 0.0;
 	}

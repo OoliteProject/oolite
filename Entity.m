@@ -41,6 +41,7 @@ Your fair use and other rights are in no way affected by the above.
 
 #import "vector.h"
 #import "Universe.h"
+#import "GameController.h"
 #import "TextureStore.h"
 #import "ResourceManager.h"
 
@@ -547,86 +548,99 @@ static  Universe	*data_store_universe;
     int ti;
     GLfloat mat_ambient[] = { 1.0, 1.0, 1.0, 1.0 };
     GLfloat mat_no[] =		{ 0.0, 0.0, 0.0, 1.0 };
-	if (is_smooth_shaded)
-		glShadeModel(GL_SMOOTH);
-	else
-		glShadeModel(GL_FLAT);	
 
-    if (!translucent)
-	{
-		if (basefile)
+	NS_DURING
+
+		if (is_smooth_shaded)
+			glShadeModel(GL_SMOOTH);
+		else
+			glShadeModel(GL_FLAT);	
+
+		if (!translucent)
 		{
-			// calls moved here because they are unsupported in display lists
-			//
-			glDisableClientState(GL_COLOR_ARRAY);
-			glDisableClientState(GL_INDEX_ARRAY);
-			glDisableClientState(GL_EDGE_FLAG_ARRAY);
-			//
-			glEnableClientState(GL_VERTEX_ARRAY);
-			glEnableClientState(GL_NORMAL_ARRAY);
-			glEnableClientState(GL_TEXTURE_COORD_ARRAY);
-
-			glVertexPointer( 3, GL_FLOAT, 0, entityData.vertex_array);
-			glNormalPointer( GL_FLOAT, 0, entityData.normal_array);
-			glTexCoordPointer( 2, GL_FLOAT, 0, entityData.texture_uv_array);
-
-			if (immediate)
+			if (basefile)
 			{
-#ifdef GNUSTEP
-           // TODO: Find out what these APPLE functions can be replaced with
-#else
-				if (usingVAR)
-					glBindVertexArrayAPPLE(gVertexArrayRangeObjects[0]);
-#endif            
-				
-				
+				// calls moved here because they are unsupported in display lists
 				//
-				// gap removal (draws flat polys)
+				glDisableClientState(GL_COLOR_ARRAY);
+				glDisableClientState(GL_INDEX_ARRAY);
+				glDisableClientState(GL_EDGE_FLAG_ARRAY);
 				//
-				glDisable(GL_TEXTURE_2D);
-				GLfloat amb_diff0[] = { 0.5, 0.5, 0.5, 1.0};
-				glMaterialfv( GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE, amb_diff0);
-				glMaterialfv( GL_FRONT_AND_BACK, GL_EMISSION, mat_no);
-				glColor4f( 0.25, 0.25, 0.25, 1.0);	// gray
-				glDepthMask(GL_FALSE); // don't write to depth buffer
-				glDrawArrays( GL_TRIANGLES, 0, entityData.n_triangles);	// draw in gray to mask the edges
-				glDepthMask(GL_TRUE);
-				
-				//
-				// now the textures ...
-				//
-				glEnable(GL_TEXTURE_2D);
-				glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
-				glMaterialfv( GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE, mat_ambient);
-				glMaterialfv( GL_FRONT_AND_BACK, GL_EMISSION, mat_no);
+				glEnableClientState(GL_VERTEX_ARRAY);
+				glEnableClientState(GL_NORMAL_ARRAY);
+				glEnableClientState(GL_TEXTURE_COORD_ARRAY);
 
-				for (ti = 1; ti <= n_textures; ti++)
+				glVertexPointer( 3, GL_FLOAT, 0, entityData.vertex_array);
+				glNormalPointer( GL_FLOAT, 0, entityData.normal_array);
+				glTexCoordPointer( 2, GL_FLOAT, 0, entityData.texture_uv_array);
+
+				if (immediate)
 				{
-					glBindTexture(GL_TEXTURE_2D, texture_name[ti]);
-					glDrawArrays( GL_TRIANGLES, triangle_range[ti].location, triangle_range[ti].length);
+
+#ifdef GNUSTEP
+           			// TODO: Find out what these APPLE functions can be replaced with
+#else
+					if (usingVAR)
+						glBindVertexArrayAPPLE(gVertexArrayRangeObjects[0]);
+#endif            
+
+					//
+					// gap removal (draws flat polys)
+					//
+					glDisable(GL_TEXTURE_2D);
+					GLfloat amb_diff0[] = { 0.5, 0.5, 0.5, 1.0};
+					glMaterialfv( GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE, amb_diff0);
+					glMaterialfv( GL_FRONT_AND_BACK, GL_EMISSION, mat_no);
+					glColor4f( 0.25, 0.25, 0.25, 1.0);	// gray
+					glDepthMask(GL_FALSE); // don't write to depth buffer
+					glDrawArrays( GL_TRIANGLES, 0, entityData.n_triangles);	// draw in gray to mask the edges
+					glDepthMask(GL_TRUE);
+					
+					//
+					// now the textures ...
+					//
+					glEnable(GL_TEXTURE_2D);
+					glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
+					glMaterialfv( GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE, mat_ambient);
+					glMaterialfv( GL_FRONT_AND_BACK, GL_EMISSION, mat_no);
+
+					for (ti = 1; ti <= n_textures; ti++)
+					{
+						glBindTexture(GL_TEXTURE_2D, texture_name[ti]);
+						glDrawArrays( GL_TRIANGLES, triangle_range[ti].location, triangle_range[ti].length);
+					}
+				}
+				else
+				{
+					if (displayListName != 0)
+					{
+						glCallList(displayListName);
+					}
+					else
+					{
+						[self initialiseTextures];
+						[self generateDisplayList];
+					}
 				}
 			}
 			else
 			{
-				if (displayListName != 0)
-				{
-					glCallList(displayListName);
-				}
-				else
-				{
-					[self initialiseTextures];
-					[self generateDisplayList];
-				}
+				NSLog(@"ERROR no basefile for entity %@");
+				NSBeep();
 			}
 		}
-		else
-		{
-			NSLog(@"ERROR no basefile for entity %@");
-			NSBeep();
-		}
-	}
-	glShadeModel(GL_SMOOTH);
-	checkGLErrors([NSString stringWithFormat:@"Entity after drawing %@", self]);
+		glShadeModel(GL_SMOOTH);
+		checkGLErrors([NSString stringWithFormat:@"Entity after drawing %@", self]);
+	
+	NS_HANDLER
+	
+		NSLog(@"\n\n***** [Entity drawEntity::] handling exception: %@ : %@ *****",[localException name], [localException reason]);
+		NSLog(@"***** Removing entity %@ from universe *****", self);
+		if ([[localException name] hasPrefix:@"Oolite"])
+			[universe handleOoliteException:localException];
+		[universe removeEntity:self];
+		
+	NS_ENDHANDLER
 }
 
 - (void) drawSubEntity:(BOOL) immediate :(BOOL) translucent

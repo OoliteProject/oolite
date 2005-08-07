@@ -56,6 +56,7 @@ Your fair use and other rights are in no way affected by the above.
     //
 	//NSLog(@"--- init GameController");
 	//
+   last_timeInterval = [NSDate timeIntervalSinceReferenceDate];
     delta_t = 0.01; // one hundredth of a second
 	//
 	my_mouse_x = my_mouse_y = 0;
@@ -82,7 +83,6 @@ Your fair use and other rights are in no way affected by the above.
     if (timer)		[timer release];
     if (gameView)	[gameView release];
     if (universe)	[universe release];
-    if (old_time)	[old_time release];
 	//
     if (playerFileToLoad)	[playerFileToLoad release];
     if (expansionPathsToInclude)	[expansionPathsToInclude release];
@@ -276,22 +276,6 @@ static int _compareModes(id arg1, id arg2, void *context)
 }
 /* end GDC */
 
-
-- (void) updateTiming
-{
-    NSDate	*now = [NSDate date];
-    NSTimeInterval	ti;
-    if (old_time)
-    {
-        ti = [now timeIntervalSinceDate:old_time];
-        [old_time release];
-        delta_t = ti;
-		if (delta_t > MINIMUM_GAME_TICK)
-			delta_t = MINIMUM_GAME_TICK;		//peg the maximum pause (at 0.5->1.0 seconds) to protect against when the machine sleeps
-    }
-    old_time = [now retain];
-}
-
 - (MyOpenGLView *) gameView
 {
     return gameView;
@@ -462,10 +446,16 @@ static int _compareModes(id arg1, id arg2, void *context)
 
 - (void) doStuff: (id) sender
 {
-    [self updateTiming];
     //
     if (game_is_paused)
 		delta_t = 0.0;  // no movement!
+	else
+	{
+		delta_t = [NSDate timeIntervalSinceReferenceDate] - last_timeInterval;
+		last_timeInterval += delta_t;
+		if (delta_t > MINIMUM_GAME_TICK)
+			delta_t = MINIMUM_GAME_TICK;		// peg the maximum pause (at 0.5->1.0 seconds) to protect against when the machine sleeps	
+	}
 	//
 	if (universe)
 		[universe update:delta_t];

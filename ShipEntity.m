@@ -534,7 +534,6 @@ Your fair use and other rights are in no way affected by the above.
 - (void) setUpShipFromDictionary:(NSDictionary *) dict
 {
     NSString*   cargo_type_string;
-    //NSString*   ai_type_string;
     NSString*   weapon_type_string;
 	
 	// reset all settings
@@ -937,6 +936,27 @@ Your fair use and other rights are in no way affected by the above.
 		quaternion_set_identity(&subentity_rotational_velocity);
 	}
 
+	// set weapon offsets
+	[self setDefaultWeaponOffsets];
+	//
+	if ([dict objectForKey:@"weapon_position_forward"])
+		forwardWeaponOffset = [Entity vectorFromString: (NSString *)[dict objectForKey:@"weapon_position_forward"]];
+	if ([dict objectForKey:@"weapon_position_aft"])
+		aftWeaponOffset = [Entity vectorFromString: (NSString *)[dict objectForKey:@"weapon_position_aft"]];
+	if ([dict objectForKey:@"weapon_position_port"])
+		portWeaponOffset = [Entity vectorFromString: (NSString *)[dict objectForKey:@"weapon_position_port"]];
+	if ([dict objectForKey:@"weapon_position_starboard"])
+		starboardWeaponOffset = [Entity vectorFromString: (NSString *)[dict objectForKey:@"weapon_position_starboard"]];
+	//
+}
+
+
+- (void) setDefaultWeaponOffsets
+{
+	forwardWeaponOffset = make_vector( 0.0, 0.0, 0.0);
+	aftWeaponOffset = make_vector( 0.0, 0.0, 0.0);
+	portWeaponOffset = make_vector( 0.0, 0.0, 0.0);
+	starboardWeaponOffset = make_vector( 0.0, 0.0, 0.0);
 }
 
 - (int) scanClass
@@ -1495,7 +1515,7 @@ BOOL ship_canCollide (ShipEntity* ship)
 		switch (condition)
 		{
 			case CONDITION_IDLE :
-				if ((scan_class != CLASS_STATION)&&(scan_class != CLASS_BUOY))
+				if ((!isStation)&&(scan_class != CLASS_BUOY))
 				{
 					// damp roll and pitch
 					if (flight_roll < 0)
@@ -2051,7 +2071,6 @@ BOOL ship_canCollide (ShipEntity* ship)
 	if (immediate)
 		return;		// don't draw sub-entities when constructing a displayList
 	
-//	if ((sub_entities)&&(status != STATUS_DEMO))
 	if (sub_entities)
 	{
 		int i;
@@ -2983,7 +3002,10 @@ static GLfloat mascem_color2[4] =	{ 0.4, 0.1, 0.4, 1.0};	// purple
 	int n_alloys = floor((boundingBox.max_z - boundingBox.min_z) / 50.0);
 	
 	if (status == STATUS_DEAD)
+	{
+		[universe removeEntity:self];
 		return;
+	}
 	status = STATUS_DEAD;
 	//scripting
 	if ([death_actions count])
@@ -3215,6 +3237,7 @@ static GLfloat mascem_color2[4] =	{ 0.4, 0.1, 0.4, 1.0};	// purple
 			{
 				Vector  origin = [(ShipEntity*)se absolutePositionForSubentity];
 				[se setPosition:origin];	// is this what's messing thing up??
+				[universe addEntity:se];
 				[(ShipEntity *)se becomeExplosion];
 			}
 		}
@@ -4223,13 +4246,33 @@ Vector randomPositionInBoundingBox(BoundingBox bb)
 	int				direction = VIEW_FORWARD;
 	double			range_limit2 = weapon_range*weapon_range;
 	target_laser_hit = NO_TARGET;
-		
+	
+	Vector			laserPortOffset = forwardWeaponOffset;
+	Vector			aimOffset = make_vector( 0, 0, 0);
+	
 	if (isPlayer)		// only the player has weapons on other facings
+	{
 		direction = [universe viewDir];					// set the weapon facing here
+		switch(direction)
+		{
+			case VIEW_AFT:
+				laserPortOffset = aftWeaponOffset;
+				break;
+			case VIEW_PORT:
+				laserPortOffset = portWeaponOffset;
+				break;
+			case VIEW_STARBOARD:
+				laserPortOffset = starboardWeaponOffset;
+				break;
+			default:
+				laserPortOffset = forwardWeaponOffset;
+		}
+		aimOffset = [(PlayerEntity*)self viewOffset];
+	}
 	
-	target_laser_hit = [universe getFirstEntityHitByLaserFromEntity:self inView:direction];
+	target_laser_hit = [universe getFirstEntityHitByLaserFromEntity:self inView:direction offset:aimOffset];
 	
-	shot = [[ParticleEntity alloc] initLaserFromShip:self view:direction];	// alloc retains!
+	shot = [[ParticleEntity alloc] initLaserFromShip:self view:direction offset:laserPortOffset];	// alloc retains!
 	
 	[shot setColor:laser_color];
 	[shot setScanClass: CLASS_NO_DRAW];
@@ -4269,19 +4312,6 @@ Vector randomPositionInBoundingBox(BoundingBox bb)
 	
 	shot_time = 0.0;
 	
-//	//can we fire lasers from our subentities?
-//	int n_subs = [sub_entities count];
-//	if (n_subs)
-//	{
-//		int i = 0;
-//		for (i = 0; i < n_subs; i++)
-//		{	
-//			ShipEntity* subent = (ShipEntity*)[sub_entities objectAtIndex:i];
-//			if ((subent)&&(subent->isShip))
-//				[subent fireSubentityLaserShot];
-//		}
-//	}
-//	
 	// random laser over-heating for AI ships
 	if ((!isPlayer)&&((ranrot_rand() & 255) < weapon_energy)&&(![self isMining]))
 		shot_time -= (randf() * weapon_energy);

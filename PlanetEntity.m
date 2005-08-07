@@ -523,6 +523,26 @@ static GLuint vertex_index_array[3*(20+80+320+1280+5120+20480)];
 	[super dealloc];
 }
 
+- (NSString*) description
+{
+	NSString* type_string;
+	switch (planet_type)
+	{
+		case PLANET_TYPE_SUN :
+			type_string = @"PLANET_TYPE_SUN";	break;
+		case PLANET_TYPE_GREEN :
+			type_string = @"PLANET_TYPE_GREEN";	break;
+		case PLANET_TYPE_CORONA :
+			type_string = @"PLANET_TYPE_CORONA";	break;
+		case PLANET_TYPE_ATMOSPHERE :
+			type_string = @"PLANET_TYPE_ATMOSPHERE";	break;
+		default :
+			type_string = @"UNKNOWN";
+	}
+	NSString* result = [[NSString alloc] initWithFormat:@"<PlanetEntity %@ diameter %.0fkm>", type_string, 0.001 * collision_radius];
+	return [result autorelease];
+}
+
 - (BOOL) canCollide
 {
 	switch (planet_type)

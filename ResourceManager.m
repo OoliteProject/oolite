@@ -187,7 +187,7 @@ NSMutableDictionary*	surface_cache;
 				require_test = [ResourceManager areRequirementsFulfilled:requires_dic];
 			}
 			if (require_test)
-				[file_paths addObject:possibleExpansionPath];	// it made it in!
+				[file_paths addObject:possibleExpansionPath];
 			else
 			{
 				NSString* version = (NSString *)[[[NSBundle mainBundle] infoDictionary] objectForKey:@"CFBundleVersion"];
@@ -961,8 +961,8 @@ NSMutableDictionary*	surface_cache;
 	if ([tag isEqual:@"date"])
 		return [ResourceManager dateFromXMLContent:content];
 	//
-//	if ([tag isEqual:@"data"])
-//		return [Resourcemanager dataFromXMLContent:content];
+	if ([tag isEqual:@"data"])
+		return [ResourceManager dataFromXMLContent:content];
 	//
 	if ([tag isEqual:@"array"])
 		return [ResourceManager arrayFromXMLContent:content];
@@ -1029,6 +1029,44 @@ NSMutableDictionary*	surface_cache;
 + (NSData*) dataFromXMLContent:(NSObject*) xmlContent
 {
 	// we don't use this for Oolite
+	if ([xmlContent isKindOfClass:[NSString class]])
+	{
+		// we're going to decode the string from base64
+		NSString* base64String = @"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=";
+		NSMutableData* resultingData = [NSMutableData dataWithLength:0];
+		NSString* dataString = (NSString *)xmlContent;
+		char bytes3[3];
+		int n_64Chars;
+		int tripletValue;
+		int n_chars = [dataString length];
+		int i = 0;
+		while (i < n_chars)
+		{
+			n_64Chars = 0;
+			tripletValue = 0;
+			while ((n_64Chars < 4)&(i < n_chars))
+			{
+				int b64 = [base64String rangeOfString:[dataString substringWithRange:NSMakeRange(i,1)]].location;
+				if (b64 != NSNotFound)
+				{
+					tripletValue *= 64;
+					tripletValue += (b64 & 63);
+					n_64Chars++;
+				}
+				i++;
+			}
+			while (n_64Chars < 4)	//shouldn't need to pad, but we do just in case
+			{
+				tripletValue *= 64;
+				n_64Chars++;
+			}
+			bytes3[0] = (tripletValue & 0xff0000) >> 16; 
+			bytes3[1] = (tripletValue & 0xff00) >> 8; 
+			bytes3[2] = (tripletValue & 0xff);
+			[resultingData appendBytes:(const void *)bytes3 length:3];
+		}
+		return [NSData dataWithData:resultingData];
+	}
 	return nil;
 }
 

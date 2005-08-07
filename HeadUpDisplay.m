@@ -55,18 +55,20 @@ GLfloat yellow_color[4] =   {1.0, 1.0, 0.0, 1.0};
 GLfloat green_color[4] =	{0.0, 1.0, 0.0, 1.0};
 
 float char_widths[128] = {
-	6.0, 6.0, 6.0, 6.0, 6.0, 6.0, 6.0, 6.0, 6.0, 6.0, 6.0, 6.0, 6.0, 6.0, 6.0, 6.0,
-    6.0, 6.0, 6.0, 6.0, 6.0, 6.0, 6.0, 6.0, 6.0, 6.0, 6.0, 6.0, 6.0, 6.0, 6.0, 6.0,
-    3.0, 2.5, 3.0, 4.0, 4.0, 6.0, 5.0, 2.0, 2.5, 3.0, 3.0, 4.5, 2.0, 3.0, 2.0, 3.0,
-    4.0, 4.0, 4.0, 4.0, 4.0, 4.0, 4.0, 4.0, 4.0, 4.0, 2.5, 2.5, 4.5, 4.5, 4.5, 4.5,
-    6.5, 4.7, 4.8, 4.9, 4.7, 4.7, 4.5, 4.8, 4.7, 2.0, 3.7, 4.7, 4.5, 5.7, 4.8, 5.0,
-    4.7, 5.5, 5.0, 4.7, 4.7, 4.7, 4.7, 6.5, 4.7, 4.7, 4.7, 2.5, 3.0, 2.5, 4.0, 4.5,
-    2.0, 3.8, 3.8, 3.8, 3.8, 3.8, 2.4, 3.8, 3.8, 1.7, 1.9, 3.8, 1.7, 5.7, 3.8, 3.9,
-    3.8, 3.8, 2.7, 3.8, 2.3, 3.8, 3.8, 4.9, 3.8, 3.8, 3.8, 3.0, 2.0, 3.0, 4.5, 6.0	};
+	6.000,	6.000,	6.000,	6.000,	6.000,	6.000,	6.000,	6.000,	6.000,	6.000,	6.000,	6.000,	6.000,	6.000,	6.000,	6.000,
+	6.000,	6.000,	6.000,	6.000,	6.000,	6.000,	6.000,	6.000,	6.000,	6.000,	6.000,	6.000,	6.000,	6.000,	6.000,	6.000,
+	1.750,	2.098,	2.987,	3.504,	3.504,	5.602,	4.550,	1.498,	2.098,	2.098,	2.452,	3.679,	1.750,	2.098,	1.750,	1.750,
+	4.000,	4.000,	4.000,	4.000,	4.000,	4.000,	4.000,	4.000,	4.000,	4.000,	2.098,	2.098,	3.679,	3.679,	3.679,	3.848,
+	6.143,	4.550,	4.550,	4.550,	4.550,	4.202,	3.848,	4.900,	4.550,	1.750,	3.504,	4.550,	3.848,	5.248,	4.550,	4.900,
+	4.202,	4.900,	4.550,	4.202,	3.848,	4.550,	4.202,	5.946,	4.202,	4.202,	3.848,	2.098,	1.750,	2.098,	3.679,	3.504,
+	2.098,	3.504,	3.848,	3.504,	3.848,	3.504,	2.098,	3.848,	3.848,	1.750,	1.750,	3.504,	1.750,	5.602,	3.848,	3.848,
+	3.848,	3.848,	2.452,	3.504,	2.098,	3.848,	3.504,	4.900,	3.504,	3.504,	3.150,	2.452,	1.763,	2.452,	3.679,	6.000
+};
 
 - (id) initWithDictionary:(NSDictionary *) hudinfo;
 {
 	int i;
+	BOOL areTrumblesToBeDrawn;
 	
 	self = [super init];
 	
@@ -75,18 +77,31 @@ float char_widths[128] = {
 	for (i = 0; i < 360; i++)
 		sin_value[i] = sin(i * PI / 180);	// also used by PlanetEntity, but can't hurt to init it here too!
 	
-	int ch;
-    NSMutableDictionary *stringAttributes = [NSMutableDictionary dictionaryWithObjectsAndKeys:
-        [NSFont fontWithName:@"Helvetica-Bold" size:28], NSFontAttributeName,
-        [NSColor blackColor], NSForegroundColorAttributeName, NULL];
-	for (ch = 32; ch < 127; ch++)
-	{
-		unichar	 uch = (unichar) ch;
-		NSString* chr = [NSString stringWithCharacters:&uch length:1];
-		NSSize strsize = [chr sizeWithAttributes:stringAttributes];
-		if ((ch < 48)||(ch > 57))	// exclude the digits which should be fixed width
-			char_widths[ch] = strsize.width * .225;
-	}
+//	int ch;
+//    NSMutableDictionary *stringAttributes = [NSMutableDictionary dictionaryWithObjectsAndKeys:
+//        [NSFont fontWithName:@"Helvetica-Bold" size:28], NSFontAttributeName,
+//        [NSColor blackColor], NSForegroundColorAttributeName, NULL];
+//	for (ch = 32; ch < 127; ch++)
+//	{
+//		unichar	 uch = (unichar) ch;
+//		NSString* chr = [NSString stringWithCharacters:&uch length:1];
+//		NSSize strsize = [chr sizeWithAttributes:stringAttributes];
+//		if ((ch < 48)||(ch > 57))	// exclude the digits which should be fixed width
+//			char_widths[ch] = strsize.width * .225;
+//	}
+//	
+//	// output the character sizes for hardcoding
+//	//
+//	printf("hard code this:\n\nfloat char_widths[128] = {");
+//	for (ch = 0; ch < 128; ch++)
+//	{
+//		if (!(ch & 15))
+//			printf("\n");
+//		printf("\t%.3f", char_widths[ch]);
+//		if (ch < 127)
+//			printf(",");
+//	}
+//	printf("\n\n");
 	
 //	// init sprites
 #ifndef WIN32
@@ -132,7 +147,16 @@ float char_widths[128] = {
 	{
 		NSArray *dials = [hudinfo objectForKey:DIALS_KEY];
 		for (i = 0; i < [dials count]; i++)
-			[self addDial:(NSDictionary *)[dials objectAtIndex:i]];
+		{
+			NSDictionary* dial_info = (NSDictionary *)[dials objectAtIndex:i];
+			areTrumblesToBeDrawn |= [(NSString*)[dial_info objectForKey:SELECTOR_KEY] isEqual:@"drawTrumbles:"];
+			[self addDial: dial_info];
+		}
+	}
+	if (!areTrumblesToBeDrawn)	// naughty - a hud with no built-in drawTrumbles: - one must be added!
+	{
+			NSDictionary* trumble_dial_info = [NSDictionary dictionaryWithObjectsAndKeys: @"drawTrumbles:", SELECTOR_KEY, nil];
+			[self addDial: trumble_dial_info];
 	}
 	if ([hudinfo objectForKey:LEGENDS_KEY])
 	{
@@ -284,6 +308,10 @@ checkGLErrors(@"HeadUpDisplay after drawDials");
 
 - (void) drawHUDItem:(NSDictionary *) info
 {
+	if (([info objectForKey:EQUIPMENT_REQUIRED_KEY])&&
+		(![player has_extra_equipment:(NSString *)[info objectForKey:EQUIPMENT_REQUIRED_KEY]]))
+		return;
+	
 	if ([info objectForKey:SELECTOR_KEY])
 	{
 		//NSLog(@"DEBUG about to '%@'",[info objectForKey:SELECTOR_KEY]);
@@ -1268,10 +1296,10 @@ static BOOL hostiles;
 {
 	// the missile target reticle is an advanced option
 	// so we need to check for its extra equipment flag first
-	if (([info objectForKey:EQUIPMENT_REQUIRED_KEY])&&
-		(![player has_extra_equipment:(NSString *)[info objectForKey:EQUIPMENT_REQUIRED_KEY]]))
-		return;
-	
+//	if (([info objectForKey:EQUIPMENT_REQUIRED_KEY])&&
+//		(![player has_extra_equipment:(NSString *)[info objectForKey:EQUIPMENT_REQUIRED_KEY]]))
+//		return;
+//	
 	if ([player dial_missile_status] == MISSILE_STATUS_TARGET_LOCKED)
 	{
 		//Entity *target = [player getPrimaryTarget];
@@ -1499,6 +1527,11 @@ static BOOL hostiles;
 	// draw aft_shield surround
 	glColor4fv(yellow_color);
 	hudDrawSurroundAt( x, y, z1, siz);
+}
+
+- (void) drawTrumbles:(NSDictionary *) info
+{
+
 }
 
 //---------------------------------------------------------------------//

@@ -100,6 +100,9 @@ Your fair use and other rights are in no way affected by the above.
 - (id) initWithColors:(NSColor *) col1:(NSColor *) col2
 {    
     self = [super init];
+	//
+	n_stars = SKY_N_STARS;
+	n_blobs = SKY_N_BLOBS;
     //
     quaternion_set_identity(&q_rotation);
     quaternion_into_gl_matrix(q_rotation, rotMatrix);
@@ -154,6 +157,9 @@ Your fair use and other rights are in no way affected by the above.
 	NSColor* color2 = col2;
 	
 	self = [super init];
+	//
+	n_stars = SKY_N_STARS;
+	n_blobs = SKY_N_BLOBS;
     //
     quaternion_set_identity(&q_rotation);
     quaternion_into_gl_matrix(q_rotation, rotMatrix);
@@ -187,7 +193,6 @@ Your fair use and other rights are in no way affected by the above.
 	if ([systeminfo objectForKey:@"sky_rgb_colors"])
 	{
 		NSString*   value = (NSString *)[systeminfo objectForKey:@"sky_rgb_colors"];
-//		NSArray*	tokens = [value componentsSeparatedByString:@" "];
 		NSArray*	tokens = [Entity scanTokensFromString:value];
 		if ([tokens count] == 6)
 		{
@@ -217,6 +222,26 @@ Your fair use and other rights are in no way affected by the above.
 		blob_scale = [value doubleValue];
 	}
 	//
+	if ([systeminfo objectForKey:@"sky_n_stars"])
+	{
+		NSNumber*   value = (NSNumber *)[systeminfo objectForKey:@"sky_n_stars"];
+		n_stars = [value doubleValue];
+		if (n_stars < 0)
+			n_stars = 0;
+		if (n_stars > SKY_MAX_STARS)
+			n_stars = SKY_MAX_STARS;
+	}
+	//
+	if ([systeminfo objectForKey:@"sky_n_blurs"])
+	{
+		NSNumber*   value = (NSNumber *)[systeminfo objectForKey:@"sky_n_blurs"];
+		n_blobs = [value doubleValue];
+		if (n_blobs < 0)
+			n_blobs = 0;
+		if (n_blobs > SKY_MAX_BLOBS)
+			n_blobs = SKY_MAX_BLOBS;
+	}
+	//
 	////
 	
 	sky_color = [[color2 blendedColorWithFraction:0.5 ofColor:color1] retain];
@@ -243,6 +268,9 @@ Your fair use and other rights are in no way affected by the above.
 {
     self = [super init];
     //
+	n_stars = SKY_N_STARS;
+	n_blobs = SKY_N_BLOBS;
+	//
     quaternion_set_identity(&q_rotation);
     quaternion_into_gl_matrix(q_rotation, rotMatrix);
     //
@@ -291,20 +319,20 @@ Your fair use and other rights are in no way affected by the above.
 - (void) set_up_billboards:(NSColor *) col1:(NSColor *) col2
 {
 	// stars
-	Vector  star_vector[SKY_MAX_STARS];
-	GLfloat star_color[SKY_MAX_STARS][4];
-	Vector  star_quad[4][SKY_MAX_STARS];
+	Vector  star_vector[n_stars];
+	GLfloat star_color[n_stars][4];
+	Vector  star_quad[4][n_stars];
 	
 	// blobs
-	Vector  blob_vector[SKY_MAX_BLOBS];
-	GLfloat blob_color[SKY_MAX_BLOBS][4];
-	Vector  blob_quad[4][SKY_MAX_BLOBS];
+	Vector  blob_vector[n_blobs];
+	GLfloat blob_color[n_blobs][4];
+	Vector  blob_quad[4][n_blobs];
 
 	int i;
 	//
 	// init stars
 	//
-	for (i = 0; i < SKY_MAX_STARS; i++)
+	for (i = 0; i < n_stars; i++)
 	{
 		NSColor *col3 = [col1 blendedColorWithFraction:(ranrot_rand() % 1024)/1024.0 ofColor:col2];
 		star_color[i][0] = [col3 redComponent];
@@ -367,7 +395,7 @@ Your fair use and other rights are in no way affected by the above.
 	//
 	// init blobs
 	//
-	for (i = 0; i < SKY_MAX_BLOBS; i++)
+	for (i = 0; i < n_blobs; i++)
 	{
 		NSColor *col3 = [col1 blendedColorWithFraction:(ranrot_rand() % 1024)/1024.0 ofColor:col2];
 		float hu, sa, br, al;
@@ -377,7 +405,7 @@ Your fair use and other rights are in no way affected by the above.
 		col3 = [NSColor colorWithCalibratedHue:hu saturation:sa brightness:br alpha:al];
 		Quaternion q;
 		quaternion_set_random(&q);
-		while ((i < SKY_MAX_BLOBS)&&(randf() < blob_cluster_chance))
+		while ((i < n_blobs)&&(randf() < blob_cluster_chance))
 		{
 			Vector vi = vector_right_from_quaternion(q);
 			Vector vj = vector_up_from_quaternion(q);
@@ -544,7 +572,7 @@ Your fair use and other rights are in no way affected by the above.
 					glDisableClientState(GL_NORMAL_ARRAY);
 					glDisableClientState(GL_EDGE_FLAG_ARRAY);
 					
-					glDrawArrays( GL_QUADS, 0, 4 * SKY_MAX_STARS);
+					glDrawArrays( GL_QUADS, 0, 4 * n_stars);
 					
 					//
 					// blobs
@@ -583,7 +611,7 @@ Your fair use and other rights are in no way affected by the above.
 						glDisableClientState(GL_NORMAL_ARRAY);
 						glDisableClientState(GL_EDGE_FLAG_ARRAY);
 						
-						glDrawArrays( GL_QUADS, 0, 4 * SKY_MAX_BLOBS);
+						glDrawArrays( GL_QUADS, 0, 4 * n_blobs);
 
 					}
 					glDisable(GL_TEXTURE_2D);

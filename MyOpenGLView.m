@@ -37,6 +37,7 @@ Your fair use and other rights are in no way affected by the above.
 #import <Foundation/NSAutoreleasePool.h>
 
 #import "MyOpenGLView.h"
+
 #import "GameController.h"
 #import "Universe.h"
 
@@ -124,7 +125,9 @@ Your fair use and other rights are in no way affected by the above.
 	typedString = [[NSMutableString alloc] initWithString:@""];
 	allowingStringInput = NO;
 	isAlphabetKeyDown = NO;
-
+		
+	timeIntervalAtLastClick = [NSDate timeIntervalSinceReferenceDate];
+	 
 	m_glContextInitialized = NO;
 
     return self;
@@ -256,16 +259,16 @@ Your fair use and other rights are in no way affected by the above.
 	GLfloat	sun_diffuse[] =	{1.0, 1.0, 1.0, 1.0};
 	GLfloat	sun_specular[] = 	{1.0, 1.0, 1.0, 1.0};
 	GLfloat	sun_center_position[] = {4000000.0, 0.0, 0.0, 1.0};
-	GLfloat stars_ambient[] =	{0.25, 0.2, 0.25, 1.0};
-	
+	GLfloat	stars_ambient[] =	{0.25, 0.2, 0.25, 1.0};
+
 	viewSize = v_size;
 	if (viewSize.width/viewSize.height > 4.0/3.0)
 		display_z = 480.0 * viewSize.width/viewSize.height;
 	else
 		display_z = 640.0;
-
+		
 //	NSLog(@">>>>> display_z = %.1f", display_z);
-
+	
 	float	ratio = 0.5;
 	float   aspect = viewSize.height/viewSize.width;
 
@@ -304,17 +307,17 @@ Your fair use and other rights are in no way affected by the above.
 	glFrustum( -ratio, ratio, -aspect*ratio, aspect*ratio, 1.0, MAX_CLEAR_DEPTH);	// set projection matrix
 
 	glMatrixMode( GL_MODELVIEW);
-
+	
 	glEnable( GL_DEPTH_TEST);		// depth buffer
 	glDepthFunc( GL_LESS);			// depth buffer
-
+	
 	glFrontFace( GL_CCW);			// face culling - front faces are AntiClockwise!
 	glCullFace( GL_BACK);			// face culling
 	glEnable( GL_CULL_FACE);		// face culling
-
+	
 	glEnable( GL_BLEND);								// alpha blending
 	glBlendFunc( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);	// alpha blending
-
+	
 	if ([gameController universe])
 	{
 		Entity* the_sun = [[gameController universe] sun];
@@ -335,12 +338,12 @@ Your fair use and other rights are in no way affected by the above.
 	
 	glEnable(GL_LIGHTING);		// lighting
 	glEnable(GL_LIGHT1);		// lighting
-
+	
 	// world's simplest OpenGL optimisations...
 	glHint(GL_TRANSFORM_HINT_APPLE, GL_FASTEST);
 	glDisable(GL_NORMALIZE);
 	glDisable(GL_RESCALE_NORMAL);
-
+		
 	m_glContextInitialized = YES;
 }
 
@@ -349,10 +352,10 @@ Your fair use and other rights are in no way affected by the above.
 	SDL_Surface* tmpSurface;
     int w = viewSize.width;
     int h = viewSize.height;
-
+	
 	if (w & 3)
 		w = w + 4 - (w & 3);
-
+	
     long nPixels = w * h + 1;	
 
 	NSString	*filepath = [[[NSBundle mainBundle] bundlePath] stringByDeletingLastPathComponent];
@@ -397,11 +400,133 @@ Your fair use and other rights are in no way affected by the above.
  * These are commented out because they use AppKit classes, but left here to remind
  * me to replace them with SDL code in future.
  *
+- (void)mouseDown:(NSEvent *)theEvent
+{
+    if (doubleClick)
+	{
+		doubleClick = NO;
+		keys[gvMouseDoubleClick] = NO;
+	}
+	keys[gvMouseLeftButton] = YES; // 'a' down
+}
+
+- (void)mouseUp:(NSEvent *)theEvent
+{
+	NSTimeInterval timeBetweenClicks = [NSDate timeIntervalSinceReferenceDate] - timeIntervalAtLastClick;
+	timeIntervalAtLastClick += timeBetweenClicks;
+	
+	if (!doubleClick)
+	{
+		doubleClick = (timeBetweenClicks < MOUSE_DOUBLE_CLICK_INTERVAL);	// One fifth of a second
+		keys[gvMouseDoubleClick] = doubleClick;
+//		if (doubleClick)
+//			NSLog(@"DEBUG registering a double-click!");
+	}
+	
+	keys[gvMouseLeftButton] = NO;  // 'a' up
+}
+
 - (void)mouseDragged:(NSEvent *)theEvent
 {
     squareX = [theEvent locationInWindow].x - mouseDragStartPoint.x;
     squareY = [theEvent locationInWindow].y - mouseDragStartPoint.y;
-    //[self setNeedsDisplay:YES];
+    [self setNeedsDisplay:YES];
+}
+
+- (void)mouseMoved:(NSEvent *)theEvent
+{
+	double mx = [theEvent locationInWindow].x - viewSize.width/2.0;
+	double my = [theEvent locationInWindow].y - viewSize.height/2.0;
+		
+	if (display_z > 640.0)
+	{
+		mx /= viewSize.width * MAIN_GUI_PIXEL_WIDTH / display_z;
+		my /= viewSize.height;
+	}
+	else
+	{
+		mx /= MAIN_GUI_PIXEL_WIDTH * viewSize.width / 640.0;
+		my /= MAIN_GUI_PIXEL_HEIGHT * viewSize.width / 640.0;
+	}
+	
+	[self setVirtualJoystick:mx :-my];
+}
+
+/////////////////////////////////////////////////////////////
+/*     Turn the Cocoa ArrowKeys into our arrow key constants. */
+- (int) translateKeyCode: (int) input
+{
+	int key = input;
+	switch ( input )
+	{
+		case NSUpArrowFunctionKey:
+			key = gvArrowKeyUp;
+			break;
+		
+		case NSDownArrowFunctionKey:
+			key = gvArrowKeyDown;
+			break;
+			
+		case NSLeftArrowFunctionKey:
+			key = gvArrowKeyLeft;
+			break;
+			
+		case NSRightArrowFunctionKey:
+			key = gvArrowKeyRight;
+			break;
+		
+		case NSF1FunctionKey:
+			key = gvFunctionKey1;
+			break;
+			
+		case NSF2FunctionKey:
+			key = gvFunctionKey2;
+			break;
+			
+		case NSF3FunctionKey:
+			key = gvFunctionKey3;
+			break;
+			
+		case NSF4FunctionKey:
+			key = gvFunctionKey4;
+			break;
+			
+		case NSF5FunctionKey:
+			key = gvFunctionKey5;
+			break;
+			
+		case NSF6FunctionKey:
+			key = gvFunctionKey6;
+			break;
+			
+		case NSF7FunctionKey:
+			key = gvFunctionKey7;
+			break;
+			
+		case NSF8FunctionKey:
+			key = gvFunctionKey8;
+			break;
+			
+		case NSF9FunctionKey:
+			key = gvFunctionKey9;
+			break;
+			
+		case NSF10FunctionKey:
+			key = gvFunctionKey10;
+			break;
+			
+		case NSF11FunctionKey:
+			key = gvFunctionKey11;
+			break;
+			
+		case NSHomeFunctionKey:
+			key = gvHomeKey;
+			break;
+			
+		default:
+			break;
+	}
+	return key;
 }
 */
 
@@ -424,6 +549,18 @@ Your fair use and other rights are in no way affected by the above.
 	int i;
 	for (i = 0; i < [self numKeys]; i++)
 		keys[i] = NO;
+}
+
+- (void) clearMouse
+{
+	keys[gvMouseDoubleClick] = NO;
+	keys[gvMouseLeftButton] = NO;
+	doubleClick = NO;
+}
+
+- (BOOL) isAlphabetKeyDown
+{
+	return isAlphabetKeyDown = NO;;
 }
 
 // DJS: When entering submenus in the gui, it is not helpful if the

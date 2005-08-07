@@ -151,7 +151,7 @@ Your fair use and other rights are in no way affected by the above.
 
 #define	NUMBER_OF_STRICT_EQUIPMENT_ITEMS	16
 
-#define	UNIVERSE_MAX_ENTITIES		1000
+#define	UNIVERSE_MAX_ENTITIES		512
 
 //#import <OpenGL/glu.h>
 #ifdef LINUX
@@ -181,6 +181,7 @@ extern int debug;
 			//
 			Entity*				sortedEntities[UNIVERSE_MAX_ENTITIES];
 			int					n_entities;
+			int					cursor_row;
 			//
 			////
 			
@@ -291,6 +292,8 @@ extern int debug;
 		BOOL			no_update;
 		
 		NSMutableDictionary*	local_planetinfo_overrides;
+		
+		NSException*	exception;
 
 }
 
@@ -303,6 +306,7 @@ extern int debug;
 - (void) reinit;
 
 - (int) obj_count;
+- (void) obj_dump;
 
 - (void) sleepytime: (id) thing;
 
@@ -322,6 +326,7 @@ extern int debug;
 - (BOOL) addShips:(int) howMany withRole:(NSString *) desc atPosition:(Vector) pos withCoordinateSystem:(NSString *) system;
 - (BOOL) addShips:(int) howMany withRole:(NSString *) desc nearPosition:(Vector) pos withCoordinateSystem:(NSString *) system;
 - (BOOL) addShips:(int) howMany withRole:(NSString *) desc intoBoundingBox:(BoundingBox) bbox;
+- (BOOL) spawnShip:(NSString *) shipdesc;
 - (void) witchspaceShipWithRole:(NSString *) desc;
 - (void) spawnShipWithRole:(NSString *) desc near:(Entity *) entity;
 
@@ -399,7 +404,8 @@ extern int debug;
 - (Vector) getSafeVectorFromEntity:(Entity *) e1 toDistance:(double)dist fromPoint:(Vector) p2;
 
 - (int) getFirstEntityHitByLaserFromEntity:(Entity *) e1 inView:(int) viewdir;
-- (int) getFirstEntityTargettedFromEntity:(Entity *) e1 inView:(int) viewdir;
+- (int) getFirstEntityHitByLaserFromEntity:(Entity *) e1 inView:(int) viewdir offset:(Vector) offset;
+- (int) getFirstEntityTargettedByPlayer:(PlayerEntity*) player;
 
 - (NSArray *) getEntitiesWithinRange:(double) range1 ofEntity:(Entity *) e1;
 - (int) countShipsWithRole:(NSString *) desc inRange:(double) range1 ofEntity:(Entity *)e1;
@@ -516,6 +522,8 @@ NSComparisonResult comparePrice( id dict1, id dict2, void * context);
 
 - (void) setReducedDetail:(BOOL) value;
 - (BOOL) reducedDetail;
+
+- (void) handleOoliteException:(NSException*) ooliteException;
 
 // speech routines
 //

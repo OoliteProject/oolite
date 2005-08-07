@@ -83,7 +83,8 @@ extern int debug;
     IBOutlet MyOpenGLView  *switchView;
 
     Universe	*universe;
-    NSDate		*old_time;
+
+    NSTimeInterval		last_timeInterval;
     double		delta_t;
     
 	int		my_mouse_x, my_mouse_y;
@@ -147,8 +148,6 @@ extern int debug;
 - (int) indexOfCurrentDisplayMode;
 
 - (void) getDisplayModes;
-
-- (void) updateTiming;
 
 - (NSString *) playerFileToLoad;
 - (void) setPlayerFileToLoad:(NSString *)filename;

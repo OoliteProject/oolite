@@ -87,7 +87,6 @@ Your fair use and other rights are in no way affected by the above.
     GLuint		texName;
 	
 	int			n_planes;
-	int			n_bytes;
     
     if (![textureDictionary objectForKey:filename])
     {
@@ -100,7 +99,13 @@ Your fair use and other rights are in no way affected by the above.
         if (!texImage)
         {
             NSLog(@"***** Couldn't find texture : %@", filename);
-                return 0;
+			// ERROR no closing bracket for tag
+			NSException* myException = [NSException
+				exceptionWithName: @"OoliteException"
+				reason: [NSString stringWithFormat:@"Oolite couldn't find texture : %@ on any search-path.", filename]
+				userInfo: nil];
+			[myException raise];
+			return 0;
         }
 
 #ifndef GNUSTEP        
@@ -112,7 +117,7 @@ Your fair use and other rights are in no way affected by the above.
             textureRect.size.width *= 2.0;
         while (textureRect.size.height < imageSize.height)
             textureRect.size.height *= 2.0;
-
+        
         textureRect.origin= NSMakePoint(0.0,0.0);
 
         //  NSLog(@"textureSize = %f %f",textureRect.size.width,textureRect.size.height);
@@ -129,12 +134,9 @@ Your fair use and other rights are in no way affected by the above.
 		[texImage drawAtPoint:NSMakePoint(0.0,0.0) fromRect:NSMakeRect(0.0,0.0,imageSize.width,imageSize.height) operation:NSCompositeSourceOver fraction:1.0];
         bitmapImageRep = [[NSBitmapImageRep alloc] initWithFocusedViewRect:textureRect];// is retained
         
-		//  NSLog(@"TextureStore %@ texture has %d planes, %d bytes per plane", filename, [bitmapImageRep numberOfPlanes], [bitmapImageRep bytesPerPlane]);
+//  NSLog(@"TextureStore bitMapImageRep for %@: has %d numberOfPlanes, %d samplesPerPixel", filename, [bitmapImageRep numberOfPlanes], [bitmapImageRep samplesPerPixel]);
 		
-		n_bytes = [bitmapImageRep bytesPerPlane];
-		n_planes = 3;
-		if (n_bytes > textureRect.size.width*textureRect.size.height*3)
-			n_planes = 4;
+		n_planes = [bitmapImageRep samplesPerPixel];
 		
 		[image unlockFocus];
     
@@ -181,7 +183,7 @@ Your fair use and other rights are in no way affected by the above.
         
 #ifndef GNUSTEP        
         [image autorelease]; // is released
-
+        
         [bitmapImageRep autorelease];// is released
 #endif
 
@@ -213,4 +215,3 @@ Your fair use and other rights are in no way affected by the above.
 }
 
 @end
-

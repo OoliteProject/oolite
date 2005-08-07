@@ -297,6 +297,9 @@ Your fair use and other rights are in no way affected by the above.
 		char	beaconChar;					// character displayed for this beacon
 		int		nextBeaconID;				// next beacon in sequence
 		
+		//position of gun ports
+		Vector forwardWeaponOffset, aftWeaponOffset, portWeaponOffset, starboardWeaponOffset;
+
 		// DEBUGGING
 		int debug_condition;
 }
@@ -314,6 +317,8 @@ Your fair use and other rights are in no way affected by the above.
 
 - (id) initWithDictionary:(NSDictionary *) dict;
 - (void) setUpShipFromDictionary:(NSDictionary *) dict;
+
+- (void) setDefaultWeaponOffsets;
 
 - (GLfloat *) scannerDisplayColorForShip:(ShipEntity*)otherShip :(BOOL)isHostile :(BOOL)flash;
 

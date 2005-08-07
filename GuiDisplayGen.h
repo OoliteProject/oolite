@@ -47,13 +47,17 @@ Your fair use and other rights are in no way affected by the above.
 #define GUI_MAX_ROWS			64
 #define GUI_MAX_COLUMNS			40
 #define MAIN_GUI_PIXEL_HEIGHT		480
-#define MAIN_GUI_PIXEL_WIDTH			480
+#define MAIN_GUI_PIXEL_WIDTH		480
+#define MAIN_GUI_ROW_HEIGHT			16
+#define MAIN_GUI_ROW_WIDTH			16
+#define MAIN_GUI_PIXEL_ROW_START	40
 
 #define GUI_ALIGN_LEFT			0
 #define GUI_ALIGN_RIGHT			1
 #define GUI_ALIGN_CENTER		2
 
 #define GUI_KEY_OK				@"OK"
+#define GUI_KEY_SKIP			@"SKIP-ROW"
 
 #import "OpenGLSprite.h"
 #import "HeadUpDisplay.h"
@@ -133,6 +137,7 @@ extern int debug;
 - (NSString*) keyForRow:(int) row;
 - (int) selectedRow;
 - (BOOL) setSelectedRow:(int) row;
+- (BOOL) setNextRow:(int) direction;
 - (void) setNoSelectedRow;
 - (NSString *) selectedRowText;
 - (NSString *) selectedRowKey;
