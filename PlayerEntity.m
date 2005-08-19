@@ -6342,6 +6342,7 @@ static BOOL toggling_music;
       
       // quit menu option
       [gui setText:@" Exit game " forRow:quit_row align:GUI_ALIGN_CENTER];
+      [gui setKey:GUI_KEY_OK forRow:quit_row];
 #else
       // Macintosh only      
 		if (speech_on)
