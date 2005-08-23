@@ -149,6 +149,24 @@ Your fair use and other rights are in no way affected by the above.
 #else
 		SDL_Surface* scaledImage = zoomSurface([texImage surface], zoomx, zoomy, SMOOTHING_OFF);
 #endif
+      // This is a bit of a hack. I apologise. DJS.
+      if(scaledImage->w != (scaledImage->w & -(scaledImage->w)) ||
+         scaledImage->h != (scaledImage->h & -(scaledImage->h)))
+      {
+         NSLog(@"In texture %@: Warning:", filename);
+         NSLog(@"Image dimensions are NOT a power of two!");
+         SDL_Surface *borked=scaledImage;
+         int nrstW=pow(2, ceil(log(scaledImage->w)/log(2)));
+         int nrstH=pow(2, ceil(log(scaledImage->h)/log(2)));
+         NSLog(@"Old w=%d h=%d. New w=%d h=%d",
+               scaledImage->w, scaledImage->h, nrstW, nrstH);
+         scaledImage=SDL_CreateRGBSurface
+            (0, nrstW, nrstH, 24, 0, 0, 0, 0);
+         SDL_BlitSurface(borked, 0, scaledImage, 0);
+         free(borked);
+      }
+      // End hack.
+      
 		SDL_LockSurface(scaledImage);
 		textureData = [[NSData dataWithBytes:scaledImage->pixels length:scaledImage->w * scaledImage->h * scaledImage->format->BytesPerPixel] retain];
 
