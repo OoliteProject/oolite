@@ -2,7 +2,7 @@
 //  TextureStore.m
 /*
  *
- *  Oolite
+ *  Oolite (Linux/Windows + SDL)
  *
  *  Created by Giles Williams on Sat Apr 03 2004.
  *  Copyright (c) 2004 for aegidian.org. All rights reserved.
@@ -76,17 +76,21 @@ Your fair use and other rights are in no way affected by the above.
 - (GLuint) getTextureNameFor:(NSString *)filename
 {
 #ifndef GNUSTEP
-    NSBitmapImageRep	*bitmapImageRep;
-    NSImage		*texImage, *image;
+    NSBitmapImageRep	*bitmapImageRep = nil;
+    NSImage				*texImage;
 #else
 	SDLImage *texImage;
 #endif
-    NSRect		textureRect = NSMakeRect(0.0,0.0,4.0,4.0);
     NSSize		imageSize;
     NSData		*textureData;
     GLuint		texName;
 	
-	int			n_planes;
+	int			texture_h = 4;
+	int			texture_w = 4;
+	int			image_h, image_w;
+	int			n_planes, im_bytes, tex_bytes;
+    
+	int			texi = 0; 
     
     if (![textureDictionary objectForKey:filename])
     {
@@ -99,7 +103,6 @@ Your fair use and other rights are in no way affected by the above.
         if (!texImage)
         {
             NSLog(@"***** Couldn't find texture : %@", filename);
-			// ERROR no closing bracket for tag
 			NSException* myException = [NSException
 				exceptionWithName: @"OoliteException"
 				reason: [NSString stringWithFormat:@"Oolite couldn't find texture : %@ on any search-path.", filename]
@@ -113,69 +116,107 @@ Your fair use and other rights are in no way affected by the above.
 #else
 		imageSize = NSMakeSize([texImage surface]->w, [texImage surface]->h);
 #endif
-        while (textureRect.size.width < imageSize.width)
-            textureRect.size.width *= 2.0;
-        while (textureRect.size.height < imageSize.height)
-            textureRect.size.height *= 2.0;
-        
-        textureRect.origin= NSMakePoint(0.0,0.0);
+		image_w = imageSize.width;
+		image_h = imageSize.height;
 
-        //  NSLog(@"textureSize = %f %f",textureRect.size.width,textureRect.size.height);
+        while (texture_w < image_w)
+            texture_w *= 2;
+        while (texture_h < image_h)
+            texture_h *= 2;
+
 #ifndef GNUSTEP    
-        image = [[NSImage alloc] initWithSize:textureRect.size]; // is retained
-        
-        // draw the texImage into an image of an appropriate size
-        //
-        [image lockFocus];
-        
-		[[NSColor clearColor] set];
-        NSRectFill(textureRect);
-        
-		[texImage drawAtPoint:NSMakePoint(0.0,0.0) fromRect:NSMakeRect(0.0,0.0,imageSize.width,imageSize.height) operation:NSCompositeSourceOver fraction:1.0];
-        bitmapImageRep = [[NSBitmapImageRep alloc] initWithFocusedViewRect:textureRect];// is retained
-        
-//  NSLog(@"TextureStore bitMapImageRep for %@: has %d numberOfPlanes, %d samplesPerPixel", filename, [bitmapImageRep numberOfPlanes], [bitmapImageRep samplesPerPixel]);
+		NSArray* reps = [texImage representations];
+		int i;
+		for (i = 0; ((i < [reps count]) && !bitmapImageRep); i++)
+		{
+			NSObject* imageRep = [reps objectAtIndex:i];
+			if ([imageRep isKindOfClass:[NSBitmapImageRep class]])
+				bitmapImageRep = (NSBitmapImageRep*)imageRep;
+		}
+		if (!bitmapImageRep)
+		{
+            NSLog(@"***** Couldn't find a representation for texture : %@ %@", filename, texImage);
+			NSException* myException = [NSException
+				exceptionWithName: @"OoliteException"
+				reason: [NSString stringWithFormat:@"Oolite couldn't find a NSBitMapImageRep for texture : %@ : %@.", filename, texImage]
+				userInfo: nil];
+			[myException raise];
+			return 0;
+		}
 		
 		n_planes = [bitmapImageRep samplesPerPixel];
-		
-		[image unlockFocus];
-    
-        textureData = [[NSData dataWithBytes:[bitmapImageRep bitmapData] length:(int)(textureRect.size.width*textureRect.size.height*n_planes)] retain];
+		unsigned char* imageBuffer = [bitmapImageRep bitmapData];
 #else
-		double zoomx = textureRect.size.width / imageSize.width;
-		double zoomy = textureRect.size.height / imageSize.height;
-#ifdef WIN32
-		SDL_Surface* scaledImage = [texImage surface];
-#else
-		SDL_Surface* scaledImage = zoomSurface([texImage surface], zoomx, zoomy, SMOOTHING_OFF);
+		n_planes = [texImage surface]->format->BytesPerPixel;
+		unsigned char* imageBuffer = [texImage surface]->pixels;
 #endif
-      // This is a bit of a hack. I apologise. DJS.
-      if(scaledImage->w != (scaledImage->w & -(scaledImage->w)) ||
-         scaledImage->h != (scaledImage->h & -(scaledImage->h)))
-      {
-         NSLog(@"In texture %@: Warning:", filename);
-         NSLog(@"Image dimensions are NOT a power of two!");
-         SDL_Surface *borked=scaledImage;
-         int nrstW=pow(2, ceil(log(scaledImage->w)/log(2)));
-         int nrstH=pow(2, ceil(log(scaledImage->h)/log(2)));
-         NSLog(@"Old w=%d h=%d. New w=%d h=%d",
-               scaledImage->w, scaledImage->h, nrstW, nrstH);
-         scaledImage=SDL_CreateRGBSurface
-            (0, nrstW, nrstH, 24, 0, 0, 0, 0);
-         SDL_BlitSurface(borked, 0, scaledImage, 0);
-         free(borked);
-      }
-      // End hack.
-      
-		SDL_LockSurface(scaledImage);
-		textureData = [[NSData dataWithBytes:scaledImage->pixels length:scaledImage->w * scaledImage->h * scaledImage->format->BytesPerPixel] retain];
 
-		n_planes = scaledImage->format->BytesPerPixel;
+		im_bytes = image_w * image_h * n_planes;
+		tex_bytes = texture_w * texture_h * n_planes;
 
-		SDL_UnlockSurface(scaledImage);
-		SDL_FreeSurface(scaledImage);
-#endif
-                
+ 		if ((texture_w > image_w)||(texture_h > image_h))	// we need to scale the image to the texture dimensions
+		{
+			unsigned char textureBuffer[tex_bytes];
+			
+			// do bilinear scaling
+			int x, y, n;
+			float texel_w = (float)image_w / (float)texture_w;
+			float texel_h = (float)image_h / (float)texture_h;
+//			NSLog(@"scaling image %@ : %@\n scale (%d  x %d) to (%d x %d) scale (%.3f x %.3f)", filename, texImage, image_w, image_h, texture_w, texture_h, texel_w, texel_h);
+
+			for ( y = 0; y < texture_h; y++)
+			{
+				float y_lo = texel_h * y;
+				float y_hi = y_lo + texel_h - 0.001;
+				int y0 = floor(y_lo);
+				int y1 = floor(y_hi);
+
+				float py0 = 1.0;
+				float py1 = 0.0;
+				if (y1 > y0)
+				{
+					py0 = (y1 - y_lo) / texel_h;
+					py1 = 1.0 - py0;
+				}
+				
+				for ( x = 0; x < texture_w; x++)
+				{
+					float x_lo = texel_w * x;
+					float x_hi = x_lo + texel_w - 0.001;
+					int x0 = floor(x_lo);
+					int x1 = floor(x_hi);
+					float acc = 0;
+					
+					float px0 = 1.0;
+					float px1 = 0.0;
+					if (x1 > x0)
+					{
+						px0 = (x1 - x_lo) / texel_w;
+						px1 = 1.0 - px0;
+					}
+					
+					int	xy00 = n_planes * (y0 * texture_w + x0);
+					int	xy10 = n_planes * (y0 * texture_w + x1);
+					int	xy01 = n_planes * (y1 * texture_w + x0);
+					int	xy11 = n_planes * (y1 * texture_w + x1);
+					
+					for (n = 0; n < n_planes; n++)
+					{
+						acc = py0 * (px0 * imageBuffer[ xy00 + n] + px1 * imageBuffer[ xy10 + n])
+							+ py1 * (px0 * imageBuffer[ xy01 + n] + px1 * imageBuffer[ xy11 + n]);
+						textureBuffer[ texi++] = (char)acc;	// float -> char
+					}
+				}
+			}
+			textureData = [NSData dataWithBytes:textureBuffer length: tex_bytes];	// copies the data
+			
+		}
+		else
+		{
+			// no scaling required - we will use the image data directly
+			textureData = [NSData dataWithBytes:imageBuffer length: im_bytes];	// copies the data
+		}
+		               
         glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
         glGenTextures(1, &texName);			// get a new unique texture name
         glBindTexture(GL_TEXTURE_2D, texName);	// initialise it
@@ -198,15 +239,6 @@ Your fair use and other rights are in no way affected by the above.
         [texProps setObject:[NSNumber numberWithInt:textureRect.size.height] forKey:@"height"];
 
         [textureDictionary setObject:texProps forKey:filename];
-        
-#ifndef GNUSTEP        
-        [image autorelease]; // is released
-        
-        [bitmapImageRep autorelease];// is released
-#endif
-
-		[textureData autorelease];// is released (retain count has been incremented by adding it to the texProps dictionary) 
-    
     }
     else
     {
