@@ -81,6 +81,7 @@ Your fair use and other rights are in no way affected by the above.
 #else
 	SDLImage *texImage;
 #endif
+    NSRect     textureRect;
     NSSize		imageSize;
     NSData		*textureData;
     GLuint		texName;
@@ -123,6 +124,7 @@ Your fair use and other rights are in no way affected by the above.
             texture_w *= 2;
         while (texture_h < image_h)
             texture_h *= 2;
+      textureRect=NSMakeRect(0.0, 0.0, texture_w, texture_h);        
 
 #ifndef GNUSTEP    
 		NSArray* reps = [texImage representations];
