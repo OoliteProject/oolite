@@ -748,10 +748,19 @@ Your fair use and other rights are in no way affected by the above.
 
 						case SDLK_F12:
 							if (fullScreen == NO)
+                     {
+                        // default fullscreen size is native display
+                        // resolution
 								fullScreen = YES;
+                        [self initialiseGLWithSize:
+                           [MyOpenGLView getNativeSize]];
+                     }
 							else
+                     {
+                        // flip to user-selected size
 								fullScreen = NO;
-							[self initialiseGLWithSize:screenSizes[currentSize]];
+							   [self initialiseGLWithSize:screenSizes[currentSize]];
+                     }
 							break;
 
 						case SDLK_ESCAPE:
