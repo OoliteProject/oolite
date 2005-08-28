@@ -605,14 +605,9 @@ NSMutableDictionary*	surface_cache;
 
 	if (finalFilename != nil)
 	{
-      NSLog(@"finalFilename:");
-      NSLog(@"%s", [finalFilename cString]);
 		surface = IMG_Load([finalFilename cString]);
-      NSLog(@"IMG_Load complete");
 		result = [[SDLImage alloc] initWithSurface: surface];
-      NSLog(@"SDLImage alloc complete");
 		[surface_cache setObject:result forKey:image_key];
-      NSLog(@"surface_cache added to");
 	}
 
 	return result;
