@@ -3464,28 +3464,27 @@ static BOOL queryPressed;
 					{
 						disc_operation_in_progress = YES;
 // DJS: WIP                  
-//#ifdef GNUSTEP
-//                  [gameView clearKeys];
-//                  [self setGuiToSaveCommanderScreen: player_name];
-//#else                 
+#ifdef GNUSTEP
+                  [self setGuiToSaveCommanderScreen: player_name];
+#else                 
 						if ([[universe gameController] inFullScreenMode])
 							[[universe gameController] pauseFullScreenModeToPerform:@selector(savePlayer) onTarget:self];
 						else
 							[self savePlayer];
-//#endif                  
+#endif                  
 					}
 					if (([gui selectedRow] == load_row)&&(!disc_operation_in_progress))
 					{
 						disc_operation_in_progress = YES;
 // DJS: WIP                  
-//#ifdef GNUSTEP
-//                  [self setGuiToLoadCommanderScreen];
-//#else
+#ifdef GNUSTEP
+                  [self setGuiToLoadCommanderScreen];
+#else
 						if ([[universe gameController] inFullScreenMode])
 							[[universe gameController] pauseFullScreenModeToPerform:@selector(loadPlayer) onTarget:self];
 						else
 							[self loadPlayer];
-//#endif                  
+#endif                  
 					}
 					if (([gui selectedRow] == begin_new_row)&&(!disc_operation_in_progress))
 					{
@@ -4324,12 +4323,19 @@ static BOOL toggling_music;
 						[themeMusic stop];
 					}
 					disc_operation_in_progress = YES;
+#ifdef GNUSTEP
+				   [self setStatus:STATUS_DOCKED];
+				   [universe removeDemoShips];
+				   [gui setBackgroundImage:nil];
+               [self setGuiToLoadCommanderScreen];
+#else               
 					if ([[universe gameController] inFullScreenMode])
 						[[universe gameController] pauseFullScreenModeToPerform:@selector(loadPlayer) onTarget:self];
 					else
 						[self loadPlayer];
 					[self setStatus:STATUS_DOCKED];
 					[self setGuiToStatusScreen];
+#endif               
 					[universe setDisplayText:YES];
 				}
 			}

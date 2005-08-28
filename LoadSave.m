@@ -29,7 +29,7 @@
    [gui clear];
    [gui setTitle:[NSString stringWithFormat:@"Select Commander"]];
    
-   [self lsCommanders: gui];
+   [self lsCommanders:gui  pageNumber:0];
    [gui setSelectedRow: STARTROW];
    [universe guiUpdated];
    [[universe gameView] supressKeysUntilKeyUp];
@@ -46,12 +46,12 @@
    [gui clear];
    [gui setTitle:[NSString stringWithFormat:@"Save Commander"]];
    
-   [self lsCommanders: gui];
+   [self lsCommanders: gui  pageNumber:0];
    [gui setSelectedRow: STARTROW];
    [gui setText:@"Commander name: " forRow: INPUTROW];
-   [gui setColor:[NSColor cyanColor] forRow:16];
+   [gui setColor:[NSColor cyanColor] forRow:INPUTROW];
    [gui setShowTextCursor: YES];
-   [gui setCurrentRow: 16];
+   [gui setCurrentRow: INPUTROW];
 
    [gameView setTypedString: cdrName];
    [gameView supressKeysUntilKeyUp];
@@ -59,23 +59,46 @@
 }
 
 - (void) lsCommanders: (GuiDisplayGen *)gui
+                       pageNumber: (int)page
 {
    NSFileManager *cdrFileManager=[NSFileManager defaultManager];
-   NSEnumerator *cdrEnum;
    NSString *cdrName;
+   int rangeStart=STARTROW;
+   int firstIndex=page * NUMROWS;
+   int lastIndex;
+   int i;
    int row=STARTROW;
-
+   
    // cdrArray defined in PlayerEntity.h
    cdrArray=[cdrFileManager commanderContents];
 
-   cdrEnum=[cdrArray objectEnumerator];
-   while((cdrName=[cdrEnum nextObject]) != nil)
-   {   
-      [gui setText:cdrName forRow:row align:GUI_ALIGN_CENTER];
+   if(page)
+   {
+      [gui setText:@"<- Back" forRow:STARTROW-1 align:GUI_ALIGN_CENTER];
+      [gui setKey:GUI_KEY_OK forRow:STARTROW-1];
+      rangeStart=STARTROW-1;
+   }
+
+   if(firstIndex + NUMROWS > [cdrArray count])
+   {
+      lastIndex=[cdrArray count];
+      [gui setSelectableRange: NSMakeRange(rangeStart, lastIndex)];
+   }
+   else
+   {
+      lastIndex=(page * NUMROWS) + NUMROWS;
+      [gui setText:@"More ->" forRow:ENDROW align:GUI_ALIGN_CENTER];
+      [gui setKey:GUI_KEY_OK forRow:ENDROW];
+      [gui setSelectableRange: NSMakeRange(rangeStart, NUMROWS+1)];
+   }
+  
+   for(i=firstIndex; i < lastIndex; i++)
+   { 
+      [gui setText:[cdrArray objectAtIndex: i] forRow:row align:GUI_ALIGN_CENTER];
+      [gui setKey:GUI_KEY_OK forRow:row];
       row++;
    }
-   [gui setSelectableRange: 
-                  NSMakeRange(STARTROW, [cdrArray count])];
+   [gui setSelectedRow: rangeStart];
 
    // need this later, make sure it's not garbage collected.
    [cdrArray retain];
@@ -85,24 +108,45 @@
             : (GuiDisplayGen *)gui
             : (MyOpenGLView *)gameView
 {
-   [self handleGUIUpDownArrowKeys: gui :gameView :-1];
+   int idx;
+   [self handleGUIUpDownArrowKeys: gui :gameView];
    
    // Enter pressed - find the commander name underneath.
    if ([gameView isDown:13])
    {
-      int idx=[gui selectedRow] - STARTROW;
-      NSString *cdr=[NSString stringWithString:[cdrArray objectAtIndex: idx]];
+      NSLog(@"Row = %d", [gui selectedRow]);
+      switch ([gui selectedRow])
+      {
+         case BACKROW:
+            currentPage--;
+            [gui clear];
+            [self lsCommanders: gui  pageNumber: currentPage];
+            [gameView supressKeysUntilKeyUp];
+            break;
+         case MOREROW:
+            NSLog(@"Plus one page");
+            [gui clear];
+            currentPage++;
+            [self lsCommanders: gui  pageNumber: currentPage];
+            [gameView supressKeysUntilKeyUp];
+            break;
+         default:
+            idx=([gui selectedRow] - STARTROW) + (currentPage * NUMROWS);
+            NSLog(@"Loading idx = %d", idx);
+            NSString *cdr=[NSString stringWithString:[cdrArray objectAtIndex: idx]];
 
-      [cdrArray release];
-      return cdr; 
+            [cdrArray release];
+            return cdr; 
+      }
    } 
+   return nil;
 }
 
 - (void) saveCommanderInputHandler
             : (GuiDisplayGen *)gui
             : (MyOpenGLView *)gameView
 {
-   [self handleGUIUpDownArrowKeys: gui :gameView :-1];
+   [self handleGUIUpDownArrowKeys: gui :gameView];
    commanderNameString=[gameView typedString];
    if([commanderNameString length])
    {
@@ -110,6 +154,36 @@
          [NSString stringWithFormat:@"Commander name: %@", commanderNameString]
          forRow: INPUTROW];
    }
+   
+   if([gameView isDown: 13])
+   {
+      [self nativeSavePlayer: commanderNameString];
+   }
+}
+
+// essentially the same as savePlayer but omitting all the AppKit dialog
+// stuff and taking a string instead.
+- (void) nativeSavePlayer
+            : (NSString *)cdrName
+{
+   NSMutableString *saveString=[[NSMutableString alloc] initWithString: cdrName];
+   [saveString appendString: @".oolite-save"];
+   if (player_name) [player_name release];
+   player_name=[cdrName retain];
+
+   if(![[self commanderDataDictionary] writeToFile:saveString atomically:YES])
+   {
+      NSBeep();
+      NSLog(@"***** ERROR: Save to %@ failed!", saveString);
+      NSException *myException=
+            [NSException exceptionWithName:@"ooliteException"
+             reason:[NSString stringWithFormat:@"Attempt to save '%@' failed",
+                  saveString]
+             userInfo:nil];
+      [myException raise];
+      return;
+   }      
+   [self setGuiToStatusScreen];
 }
 
 @end

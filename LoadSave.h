@@ -18,20 +18,24 @@
 #import "MyOpenGLView.h"
 #import "Universe.h"
 
+#define BACKROW 1
 #define STARTROW 2
-#define ENDROW 14
+#define ENDROW 18
+#define MOREROW 18
+#define NUMROWS 16
 #define COLUMNS 2
-#define INPUTROW 16
+#define INPUTROW 20
 
 @interface PlayerEntity (LoadSave)
 
    - (void) setGuiToLoadCommanderScreen;
    - (void) setGuiToSaveCommanderScreen: (NSString *)cdrName;
-   - (void) lsCommanders: (GuiDisplayGen *)gui;
+   - (void) lsCommanders: (GuiDisplayGen *)gui  pageNumber: (int)page;
    - (NSString *) commanderSelector: (GuiDisplayGen *)gui
                              : (MyOpenGLView *)gameView;
    - (void) saveCommanderInputHandler: (GuiDisplayGen *)gui
-                                     : (MyOpenGLView *)gameView;   
-   
+                                     : (MyOpenGLView *)gameView;
+   - (void) nativeSavePlayer: (NSString *)cdrName;
+
 @end
 
