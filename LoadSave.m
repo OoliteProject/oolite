@@ -148,14 +148,11 @@
 {
    [self handleGUIUpDownArrowKeys: gui :gameView];
    commanderNameString=[gameView typedString];
-   if([commanderNameString length])
-   {
-      [gui setText:
+   [gui setText:
          [NSString stringWithFormat:@"Commander name: %@", commanderNameString]
          forRow: INPUTROW];
-   }
    
-   if([gameView isDown: 13])
+   if([gameView isDown: 13] && [commanderNameString length])
    {
       [self nativeSavePlayer: commanderNameString];
    }

@@ -878,7 +878,10 @@ Your fair use and other rights are in no way affected by the above.
    }
 
    // keys 0-9, Space
-   if((key >= '0' && key <= '9') || key == ' ')
+   // TODO: Investigation.
+   // there seems to be some problem with '0' and '2' randomly popping
+   // up. Possible SDL fault? Not a big loss not to have them though.
+   if(/*(key >= '0' && key <= '9') || */key == ' ')
    {
       [typedString appendFormat:@"%c", key];
    }
@@ -886,7 +889,7 @@ Your fair use and other rights are in no way affected by the above.
    // Del, Backspace
    if(key == SDLK_BACKSPACE || key == SDLK_DELETE)
    {
-      if([typedString length] > 1)
+      if([typedString length] >= 1)
       {
          [typedString deleteCharactersInRange: 
             NSMakeRange([typedString length]-1, 1)];
