@@ -75,13 +75,8 @@ Your fair use and other rights are in no way affected by the above.
 
 - (GLuint) getTextureNameFor:(NSString *)filename
 {
-#ifndef GNUSTEP
-    NSBitmapImageRep	*bitmapImageRep = nil;
-    NSImage				*texImage;
-#else
-	SDLImage *texImage;
-#endif
-    NSRect     textureRect;
+      NSBitmapImageRep	*bitmapImageRep = nil;
+    NSImage		*texImage;
     NSSize		imageSize;
     NSData		*textureData;
     GLuint		texName;
@@ -92,15 +87,12 @@ Your fair use and other rights are in no way affected by the above.
 	int			n_planes, im_bytes, tex_bytes;
     
 	int			texi = 0; 
-    
+	
     if (![textureDictionary objectForKey:filename])
     {
         NSMutableDictionary*	texProps = [NSMutableDictionary dictionaryWithCapacity:3];  // autoreleased
-#ifndef GNUSTEP        
+        
         texImage = [ResourceManager imageNamed:filename inFolder:@"Textures"];
-#else
-		texImage = [ResourceManager surfaceNamed:filename inFolder:@"Textures"];
-#endif
         if (!texImage)
         {
             NSLog(@"***** Couldn't find texture : %@", filename);
@@ -111,22 +103,16 @@ Your fair use and other rights are in no way affected by the above.
 			[myException raise];
 			return 0;
         }
-
-#ifndef GNUSTEP        
+		        
         imageSize = [texImage size];
-#else
-		imageSize = NSMakeSize([texImage surface]->w, [texImage surface]->h);
-#endif
 		image_w = imageSize.width;
 		image_h = imageSize.height;
-
+		
         while (texture_w < image_w)
             texture_w *= 2;
         while (texture_h < image_h)
             texture_h *= 2;
-      textureRect=NSMakeRect(0.0, 0.0, texture_w, texture_h);        
-
-#ifndef GNUSTEP    
+		
 		NSArray* reps = [texImage representations];
 		int i;
 		for (i = 0; ((i < [reps count]) && !bitmapImageRep); i++)
@@ -147,16 +133,12 @@ Your fair use and other rights are in no way affected by the above.
 		}
 		
 		n_planes = [bitmapImageRep samplesPerPixel];
-		unsigned char* imageBuffer = [bitmapImageRep bitmapData];
-#else
-		n_planes = [texImage surface]->format->BytesPerPixel;
-		unsigned char* imageBuffer = [texImage surface]->pixels;
-#endif
-
 		im_bytes = image_w * image_h * n_planes;
 		tex_bytes = texture_w * texture_h * n_planes;
-
- 		if ((texture_w > image_w)||(texture_h > image_h))	// we need to scale the image to the texture dimensions
+		unsigned char* imageBuffer = [bitmapImageRep bitmapData];
+//		NSLog(@"TextureStore bitMapImageRep for %@: has numberOfPlanes %d, width %d, height %d, %d bytes", filename, n_planes, image_w, image_h, im_bytes);
+		
+		if ((texture_w > image_w)||(texture_h > image_h))	// we need to scale the image to the texture dimensions
 		{
 			unsigned char textureBuffer[tex_bytes];
 			
@@ -197,10 +179,10 @@ Your fair use and other rights are in no way affected by the above.
 						px1 = 1.0 - px0;
 					}
 					
-					int	xy00 = n_planes * (y0 * texture_w + x0);
-					int	xy10 = n_planes * (y0 * texture_w + x1);
-					int	xy01 = n_planes * (y1 * texture_w + x0);
-					int	xy11 = n_planes * (y1 * texture_w + x1);
+					int	xy00 = n_planes * (y0 * image_w + x0);
+					int	xy10 = n_planes * (y0 * image_w + x1);
+					int	xy01 = n_planes * (y1 * image_w + x0);
+					int	xy11 = n_planes * (y1 * image_w + x1);
 					
 					for (n = 0; n < n_planes; n++)
 					{
@@ -218,7 +200,9 @@ Your fair use and other rights are in no way affected by the above.
 			// no scaling required - we will use the image data directly
 			textureData = [NSData dataWithBytes:imageBuffer length: im_bytes];	// copies the data
 		}
-		               
+		
+
+                
         glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
         glGenTextures(1, &texName);			// get a new unique texture name
         glBindTexture(GL_TEXTURE_2D, texName);	// initialise it
@@ -229,16 +213,16 @@ Your fair use and other rights are in no way affected by the above.
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);	// adjust this
     
         if (n_planes == 4)
-			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, textureRect.size.width, textureRect.size.height, 0, GL_RGBA, GL_UNSIGNED_BYTE, [textureData bytes]);
+			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, texture_w, texture_h, 0, GL_RGBA, GL_UNSIGNED_BYTE, [textureData bytes]);
 		else
-			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, textureRect.size.width, textureRect.size.height, 0, GL_RGB, GL_UNSIGNED_BYTE, [textureData bytes]);
+			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, texture_w, texture_h, 0, GL_RGB, GL_UNSIGNED_BYTE, [textureData bytes]);
     
         // add to dictionary
         //
         [texProps setObject:textureData forKey:@"textureData"];
         [texProps setObject:[NSNumber numberWithInt:texName] forKey:@"texName"];
-        [texProps setObject:[NSNumber numberWithInt:textureRect.size.width] forKey:@"width"];
-        [texProps setObject:[NSNumber numberWithInt:textureRect.size.height] forKey:@"height"];
+        [texProps setObject:[NSNumber numberWithInt:texture_w] forKey:@"width"];
+        [texProps setObject:[NSNumber numberWithInt:texture_h] forKey:@"height"];
 
         [textureDictionary setObject:texProps forKey:filename];
     }
@@ -247,6 +231,7 @@ Your fair use and other rights are in no way affected by the above.
         texName = (GLuint)[(NSNumber *)[[textureDictionary objectForKey:filename] objectForKey:@"texName"] intValue];
     }
     return texName;
+
 }
 
 - (NSSize) getSizeOfTexture:(NSString *)filename
