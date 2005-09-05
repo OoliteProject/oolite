@@ -3,7 +3,7 @@ CP = cp
 GNUSTEP_INSTALLATION_DIR = $(GNUSTEP_USER_ROOT)
 ADDITIONAL_GUI_LIBS = -lGLU -lGL -lSDL -lpthread -lSDL_mixer -lSDL_image -lSDL_gfx
 ADDITIONAL_CFLAGS = -DLINUX `sdl-config --cflags`
-ADDITIONAL_OBJCFLAGS = -DLINUX -DHAVE_SOUND -Wno-import `sdl-config --cflags`
+ADDITIONAL_OBJCFLAGS = -DLOADSAVEGUI -DLINUX -DHAVE_SOUND -Wno-import `sdl-config --cflags`
 APP_NAME = oolite
 oolite_LIB_DIRS += -L/usr/X11R6/lib/
 

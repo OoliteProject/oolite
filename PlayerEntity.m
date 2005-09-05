@@ -49,7 +49,7 @@ Your fair use and other rights are in no way affected by the above.
 #import "AI.h"
 #import "MyOpenGLView.h"
 
-#ifdef GNUSTEP
+#ifdef LOADSAVEGUI
 #import "LoadSave.h"
 #endif
 
@@ -3252,7 +3252,7 @@ static BOOL queryPressed;
 	GuiDisplayGen*  gui = [universe gui];
 	NSString    *commanderFile;
 
-#ifdef GNUSTEP   
+#ifdef LOADSAVEGUI
 	[gameView allowStringInput:
       (gui_screen == GUI_SCREEN_LONG_RANGE_CHART ||
        gui_screen == GUI_SCREEN_SAVE)];
@@ -3398,6 +3398,7 @@ static BOOL queryPressed;
 			break;
 
       // DJS: Farm off load/save screen options to LoadSave.m
+#ifdef LOADSAVEGUI         
       case GUI_SCREEN_LOAD:
          commanderFile=[self commanderSelector: gui :gameView];
          if(commanderFile)
@@ -3408,7 +3409,8 @@ static BOOL queryPressed;
          break;
       case GUI_SCREEN_SAVE:
          [self saveCommanderInputHandler: gui :gameView];
-         break;         
+         break;
+#endif         
 
 		case	GUI_SCREEN_OPTIONS :
 			{
@@ -3464,7 +3466,7 @@ static BOOL queryPressed;
 					{
 						disc_operation_in_progress = YES;
 // DJS: WIP                  
-#ifdef GNUSTEP
+#ifdef LOADSAVEGUI
                   [self setGuiToSaveCommanderScreen: player_name];
 #else                 
 						if ([[universe gameController] inFullScreenMode])
@@ -3477,7 +3479,7 @@ static BOOL queryPressed;
 					{
 						disc_operation_in_progress = YES;
 // DJS: WIP                  
-#ifdef GNUSTEP
+#ifdef LOADSAVEGUI
                   [self setGuiToLoadCommanderScreen];
 #else
 						if ([[universe gameController] inFullScreenMode])
@@ -4323,7 +4325,7 @@ static BOOL toggling_music;
 						[themeMusic stop];
 					}
 					disc_operation_in_progress = YES;
-#ifdef GNUSTEP
+#ifdef LOADSAVEGUI
 				   [self setStatus:STATUS_DOCKED];
 				   [universe removeDemoShips];
 				   [gui setBackgroundImage:nil];

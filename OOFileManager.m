@@ -1,3 +1,4 @@
+#ifdef LOADSAVEGUI
 //
 // Created for the Oolite-Linux project
 // 
@@ -50,3 +51,5 @@
 }
 
 @end
+#endif
+

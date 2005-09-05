@@ -1,3 +1,4 @@
+#ifdef LOADSAVEGUI
 //
 // LoadSave.m
 //
@@ -190,3 +191,4 @@
 }
 
 @end
+#endif

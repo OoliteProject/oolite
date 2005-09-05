@@ -1,3 +1,4 @@
+#ifdef LOADSAVEGUI
 //
 // OOFileManager.h
 //
@@ -23,4 +24,5 @@
    - (BOOL)chdirToDefaultCommanderPath;
 
 @end
+#endif
 

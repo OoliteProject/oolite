@@ -1,3 +1,4 @@
+#ifdef LOADSAVEGUI
 //
 // LoadSave.h
 //
@@ -38,4 +39,4 @@
    - (void) nativeSavePlayer: (NSString *)cdrName;
 
 @end
-
+#endif

@@ -247,7 +247,7 @@ Your fair use and other rights are in no way affected by the above.
 
 		NSString				*planetSearchString;
 
-#ifdef GNUSTEP
+#ifdef LOADSAVEGUI
 	   // For GUI/SDL based save screen
 	   NSString          *commanderNameString;
 	   NSArray           *cdrArray;
