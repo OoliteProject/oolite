@@ -71,6 +71,12 @@
    
    // cdrArray defined in PlayerEntity.h
    cdrArray=[cdrFileManager commanderContents];
+   if(![cdrArray count])
+   {
+      // Empty directory; tell the user and exit immediately.
+      [gui setText:@"No commanders found" forRow:STARTROW align:GUI_ALIGN_CENTER];
+      return;
+   }
 
    if(page)
    {
