@@ -3165,17 +3165,13 @@ static  BOOL	taking_snapshot;
 
 // ***JESTER_START*** 11/08/04
 //Utility function
-#ifndef GNUSTEP
 static NSString* GenerateDisplayString(int inModeWidth, int inModeHeight, int inModeRefresh);
-#endif
 // ***JESTER_END*** 11/08/04
 
 static BOOL pling_pressed;
 static BOOL cursor_moving;
 static BOOL disc_operation_in_progress;
-#ifndef GNUSTEP
 static BOOL switching_resolution;
-#endif
 static BOOL wait_for_key_up;
 static int searchStringLength;
 static double timeLastKeyPress;
@@ -3419,7 +3415,9 @@ static BOOL queryPressed;
 				int load_row =			GUI_ROW_OPTIONS_LOAD;
 				int begin_new_row =	GUI_ROW_OPTIONS_BEGIN_NEW;
 				int options_row =   GUI_ROW_OPTIONS_OPTIONS;
+#ifndef GNUSTEP            
 				int ootunes_row =	GUI_ROW_OPTIONS_OOTUNES;
+#endif            
 				int strict_row =	GUI_ROW_OPTIONS_STRICT;
 				int detail_row =	GUI_ROW_OPTIONS_DETAIL;
 #ifdef GNUSTEP            
@@ -3428,11 +3426,11 @@ static BOOL queryPressed;
             int quit_row = GUI_ROW_OPTIONS_QUIT;
 #else
             // Macintosh only
-				int display_row =   GUI_ROW_OPTIONS_DISPLAY;
 				int speech_row =	GUI_ROW_OPTIONS_SPEECH;
-				NSArray *modes = [controller displayModes];
-				GameController  *controller = [universe gameController];
 #endif            
+				int display_row =   GUI_ROW_OPTIONS_DISPLAY;
+				GameController  *controller = [universe gameController];
+				NSArray *modes = [controller displayModes];
 				
 				[self handleGUIUpDownArrowKeys: gui :gameView];
 				BOOL selectKeyPress = ([gameView isDown:13]||[gameView isDown:gvMouseDoubleClick]);
@@ -3499,14 +3497,13 @@ static BOOL queryPressed;
 					disc_operation_in_progress = NO;
 				}
 
-#ifndef GNUSTEP
 				if (([gui selectedRow] == display_row)&&(([gameView isDown:gvArrowKeyRight])||([gameView isDown:gvArrowKeyLeft]))&&(!switching_resolution))
 				{
 					int direction = ([gameView isDown:gvArrowKeyRight]) ? 1 : -1;
 					int displayModeIndex = [controller indexOfCurrentDisplayMode];
 					if (displayModeIndex == NSNotFound)
 					{
-						NSLog(@"***** couldn't find current display mode switching to basic 640x480");
+						NSLog(@"***** couldn't find current display mode switching to native display resolution");
 						displayModeIndex = 0;
 					}
 					else
@@ -3522,6 +3519,12 @@ static BOOL queryPressed;
 					int modeHeight = [[mode objectForKey: (NSString *)kCGDisplayHeight] intValue];
 					int modeRefresh = [[mode objectForKey: (NSString *)kCGDisplayRefreshRate] intValue];
 					[controller setDisplayWidth:modeWidth Height:modeHeight Refresh:modeRefresh];
+#ifdef GNUSTEP
+               // TODO: The gameView for the SDL game currently holds and
+               // sets the actual screen resolution (controller just stores
+               // it). This probably ought to change.
+               [gameView setScreenSize: displayModeIndex]; 
+#endif
 					// ****JESTER_START*** 11/08/04
 					//NSString	*displayModeString = [NSString stringWithFormat:@" Fullscreen: %d x %d at %d Hz ", modeWidth, modeHeight, modeRefresh];
 					NSString *displayModeString = GenerateDisplayString(modeWidth, modeHeight, modeRefresh);
@@ -3537,7 +3540,8 @@ static BOOL queryPressed;
 				}
 				if ((![gameView isDown:gvArrowKeyRight])&&(![gameView isDown:gvArrowKeyLeft])&&(!selectKeyPress))
 					switching_resolution = NO;
-				
+
+#ifndef GNUSTEP				
 				if (([gui selectedRow] == speech_row)&&(([gameView isDown:gvArrowKeyRight])||([gameView isDown:gvArrowKeyLeft])))
 				{
 					GuiDisplayGen* gui = [universe gui];
@@ -3550,7 +3554,6 @@ static BOOL queryPressed;
 						[gui setText:@" Spoken messages: OFF "	forRow:speech_row  align:GUI_ALIGN_CENTER];
 					[universe guiUpdated];
 				}
-#endif            
 
 				if (([gui selectedRow] == ootunes_row)&&(([gameView isDown:gvArrowKeyRight])||([gameView isDown:gvArrowKeyLeft])))
 				{
@@ -3558,19 +3561,13 @@ static BOOL queryPressed;
 					if ([gameView isDown:gvArrowKeyRight] != ootunes_on)
 						[gui click];
 					ootunes_on = [gameView isDown:gvArrowKeyRight];
-#ifdef GNUSTEP
-					if (ootunes_on)
-						[gui setText:@" xine integration: ON "	forRow:ootunes_row  align:GUI_ALIGN_CENTER];
-					else
-						[gui setText:@" xine integration: OFF "	forRow:ootunes_row  align:GUI_ALIGN_CENTER];
-#else               
 					if (ootunes_on)
 						[gui setText:@" iTunes integration: ON "	forRow:ootunes_row  align:GUI_ALIGN_CENTER];
 					else
 						[gui setText:@" iTunes integration: OFF "	forRow:ootunes_row  align:GUI_ALIGN_CENTER];
-#endif               
 					[universe guiUpdated];
 				}
+#endif
 
 				if (([gui selectedRow] == detail_row)&&(([gameView isDown:gvArrowKeyRight])||([gameView isDown:gvArrowKeyLeft])))
 				{
@@ -6260,7 +6257,6 @@ static BOOL toggling_music;
 	BOOL	canQuickSave = (canLoadOrSave && ([[(MyOpenGLView *)[universe gameView] gameController] playerFileToLoad] != nil));
 	
 	GameController  *controller = [universe gameController];
-#ifndef GNUSTEP
 	int displayModeIndex = [controller indexOfCurrentDisplayMode];
 	if (displayModeIndex == NSNotFound)
 	{
@@ -6280,8 +6276,7 @@ static BOOL toggling_music;
 	int modeHeight = [[mode objectForKey: (NSString *)kCGDisplayHeight] intValue];
 	int modeRefresh = [[mode objectForKey: (NSString *)kCGDisplayRefreshRate] intValue];
 	
-	NSString	*displayModeString = [NSString stringWithFormat:@" Fullscreen: %d x %d at %d Hz ", modeWidth, modeHeight, modeRefresh];
-#endif
+	NSString	*displayModeString = GenerateDisplayString(modeWidth, modeHeight, modeRefresh);
 		
 	// GUI stuff
 	{
@@ -6296,18 +6291,14 @@ static BOOL toggling_music;
       // doesn't need speech.
       int quit_row = GUI_ROW_OPTIONS_QUIT;
 #else      
-		int display_row =   GUI_ROW_OPTIONS_DISPLAY;
 		int speech_row =	GUI_ROW_OPTIONS_SPEECH;
-#endif      
 		int ootunes_row =	GUI_ROW_OPTIONS_OOTUNES;
+#endif      
+		int display_row =   GUI_ROW_OPTIONS_DISPLAY;
 		int detail_row =	GUI_ROW_OPTIONS_DETAIL;
 		int strict_row =	GUI_ROW_OPTIONS_STRICT;
 
-#ifdef GNUSTEP
-      int first_sel_row = (canLoadOrSave)? save_row : ootunes_row;
-#else      
 		int first_sel_row = (canLoadOrSave)? save_row : display_row;
-#endif      
 		if (canQuickSave)
 			first_sel_row = quicksave_row;
 		
@@ -6338,15 +6329,10 @@ static BOOL toggling_music;
 		//
 		[gui setText:@"Game Options:"		forRow:options_row		align:GUI_ALIGN_CENTER];
 		[gui setColor:[NSColor grayColor] forRow:options_row];
+      //
+      [gui setText:displayModeString forRow:display_row align:GUI_ALIGN_CENTER];
+      [gui setKey:GUI_KEY_OK forRow:display_row];
 #ifdef GNUSTEP
-      // TODO: This menu section is preliminary.
-		if (ootunes_on)
-			[gui setText:@" xine integration: ON "	forRow:ootunes_row  align:GUI_ALIGN_CENTER];
-		else
-			[gui setText:@" xine integration: OFF "	forRow:ootunes_row  align:GUI_ALIGN_CENTER];
-      // full screen mode is probably not possible in GNUstep.
-		// [gui setText:displayModeString	
-      //    forRow:display_row  align:GUI_ALIGN_CENTER];
       
       // quit menu option
       [gui setText:@" Exit game " forRow:quit_row align:GUI_ALIGN_CENTER];
@@ -7339,10 +7325,14 @@ NSSound* burnersound;
 }
 
 // ***JESTER_START*** 11/08/04
-#ifndef GNUSTEP
 NSString* GenerateDisplayString(int inModeWidth, int inModeHeight, int inModeRefresh)
 {
 	NSString *displayModeString = nil;
+#ifdef GNUSTEP
+   // We don't actually know the refresh rate.
+   displayModeString=[NSString stringWithFormat:@" Fullscreen: %d x %d ",
+                      inModeWidth, inModeHeight];
+#else
 	if(inModeRefresh != 0)
 	{
 		displayModeString = [NSString stringWithFormat:@" Fullscreen: %d x %d at %d Hz ", inModeWidth, inModeHeight, inModeRefresh];
@@ -7352,9 +7342,9 @@ NSString* GenerateDisplayString(int inModeWidth, int inModeHeight, int inModeRef
 		//Let's not bother showing the useless modeRefresh info on Powerbooks that don't have refresh info.
 		displayModeString = [NSString stringWithFormat:@" Fullscreen: %d x %d ", inModeWidth, inModeHeight];
 	}
+#endif
 	return displayModeString;
 }
-#endif
 // ***JESTER_END*** 11/08/04
 
 - (void) setScript_target:(ShipEntity *)ship

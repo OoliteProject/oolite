@@ -96,6 +96,7 @@ Your fair use and other rights are in no way affected by the above.
 	SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 16);
 	SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
 
+   NSLog(@"CREATING MODE LIST");
 	screenSizes[0] = [MyOpenGLView getNativeSize];
 	screenSizes[1] = NSMakeSize(800, 600);
 	screenSizes[2] = NSMakeSize(1024, 768);
@@ -210,6 +211,30 @@ Your fair use and other rights are in no way affected by the above.
 - (void) setFullScreenMode:(BOOL)fsm
 {
 	fullScreen = fsm;
+}
+
+- (int) indexOfCurrentSize
+{
+   return currentSize;
+}
+
+- (void) setScreenSize: (int)sizeIndex
+{
+   currentSize=sizeIndex;
+	[self initialiseGLWithSize:screenSizes[currentSize]];
+}
+
+- (NSSize *)getSimpleSizeArray
+{
+   return screenSizes;
+}
+
+- (int)getSimpleSizeArrayCount
+{
+   // TODO: Yuck. Need a proper screen size enumerator.
+   // This is temporary until we get the SDL code working the same as Mac
+   // code.
+   return 3;
 }
 #endif
 

@@ -127,7 +127,6 @@ Your fair use and other rights are in no way affected by the above.
 
 - (int) indexOfCurrentDisplayMode
 {
-   // TODO: see if fullscreen is actually practical with GNUstep
 #ifndef GNUSTEP
     NSDictionary *mode;
 	
@@ -139,8 +138,11 @@ Your fair use and other rights are in no way affected by the above.
 	else
 		return [displayModes indexOfObject:mode];
 #else
-   return NSNotFound; 
+   // TODO: The screen mode array needs to be 'grown up' into proper
+   // ObjC code, but that's a battle for another day right now.
+   return [gameView indexOfCurrentSize];
 #endif   
+   return NSNotFound; 
 }
 
 - (NSDictionary *) findDisplayModeForWidth:(unsigned int) d_width Height:(unsigned int) d_height Refresh:(unsigned int) d_refresh
@@ -272,7 +274,30 @@ static int _compareModes(id arg1, id arg2, void *context)
         modeRefresh = [[mode objectForKey: (NSString *)kCGDisplayRefreshRate] intValue];
 		//NSLog(@"()=> %d x %d at %dHz", modeWidth, modeHeight, modeRefresh);
 	}
-#endif // ifndef GNUSTEP
+#else  // ifndef GNUSTEP
+   // TODO: The low-level act of getting resolutions/count of resolutions
+   // probably shouldn't belong in the game view but in a support class
+   // possibly emulating the Macintosh to reduce code differences.
+   displayModes = [[NSMutableArray alloc] init];
+   NSSize *sizes=[gameView getSimpleSizeArray];
+   int sizeCount=[gameView getSimpleSizeArrayCount];
+   int i;
+
+   for(i=0; i < sizeCount; i++)
+   {
+      NSMutableDictionary *mode=[[NSMutableDictionary alloc] init];
+      [mode setValue: [NSNumber numberWithInt: (int)sizes->width] 
+                       forKey: kCGDisplayWidth];
+      [mode setValue: [NSNumber numberWithInt: (int)sizes->height] 
+                       forKey: kCGDisplayHeight];
+      [mode setValue: [NSNumber numberWithInt: 0] 
+                       forKey: kCGDisplayRefreshRate];
+      [displayModes addObject: mode];
+      NSLog(@"Added mode %@", mode);
+      sizes++;
+   }
+   
+#endif // ifndef GNUSTEP #else
 }
 /* end GDC */
 
@@ -356,12 +381,11 @@ static int _compareModes(id arg1, id arg2, void *context)
 	{
 		// set full screen mode to first available mode
 		fullscreenDisplayMode = [displayModes objectAtIndex:0];
-#ifndef GNUSTEP
         width = [[fullscreenDisplayMode objectForKey: (NSString *)kCGDisplayWidth] intValue];
         height = [[fullscreenDisplayMode objectForKey: (NSString *)kCGDisplayHeight] intValue];
         refresh = [[fullscreenDisplayMode objectForKey: (NSString *)kCGDisplayRefreshRate] intValue];
-#endif
 	}
+   NSLog(@"fullScreenDisplayMode=%@", fullscreenDisplayMode);
 	
 	// moved to before the Universe is created
 	[self logProgress:@"loading selected expansion packs..."];

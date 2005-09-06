@@ -79,14 +79,14 @@ Your fair use and other rights are in no way affected by the above.
 #define GUI_ROW_OPTIONS_LOAD		9
 #define GUI_ROW_OPTIONS_BEGIN_NEW	10
 #define GUI_ROW_OPTIONS_OPTIONS		11
+#define GUI_ROW_OPTIONS_DISPLAY		12
 
 #ifdef GNUSTEP
-#define GUI_ROW_OPTIONS_OOTUNES     12
+//#define GUI_ROW_OPTIONS_OOTUNES     12
 #define GUI_ROW_OPTIONS_DETAIL      13
 #define GUI_ROW_OPTIONS_STRICT      14
 #define GUI_ROW_OPTIONS_QUIT        15
 #else
-#define GUI_ROW_OPTIONS_DISPLAY		12
 #define GUI_ROW_OPTIONS_SPEECH		13
 #define GUI_ROW_OPTIONS_OOTUNES		14
 #define GUI_ROW_OPTIONS_DETAIL		15

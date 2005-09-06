@@ -17,4 +17,10 @@
 #include "SDL_syswm.h"
 
 #define MAX_CHANNELS 16
+
+// Macintosh compatibility defines
+#define kCGDisplayWidth (@"Width")
+#define kCGDisplayHeight (@"Height")
+#define kCGDisplayRefreshRate (@"RefreshRate")
+
 #endif /* OOLITE_LINUX */
