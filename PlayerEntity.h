@@ -83,9 +83,10 @@ Your fair use and other rights are in no way affected by the above.
 
 #ifdef GNUSTEP
 //#define GUI_ROW_OPTIONS_OOTUNES     12
-#define GUI_ROW_OPTIONS_DETAIL      13
-#define GUI_ROW_OPTIONS_STRICT      14
-#define GUI_ROW_OPTIONS_QUIT        15
+#define GUI_ROW_OPTIONS_DISPLAYSTYLE 13
+#define GUI_ROW_OPTIONS_DETAIL      14
+#define GUI_ROW_OPTIONS_STRICT      15
+#define GUI_ROW_OPTIONS_QUIT        16
 #else
 #define GUI_ROW_OPTIONS_SPEECH		13
 #define GUI_ROW_OPTIONS_OOTUNES		14

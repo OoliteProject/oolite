@@ -211,6 +211,24 @@ Your fair use and other rights are in no way affected by the above.
 - (void) setFullScreenMode:(BOOL)fsm
 {
 	fullScreen = fsm;
+
+   // Save the settings for later.
+   [[NSUserDefaults standardUserDefaults] 
+      setBool: fullScreen forKey:@"fullscreen"];
+   [[NSUserDefaults standardUserDefaults] synchronize];
+}
+
+- (void) toggleScreenMode
+{
+   [self setFullScreenMode: !fullScreen];
+   [self initialiseGLWithSize:screenSizes[currentSize]];
+}
+
+- (void) setDisplayMode:(int)mode  fullScreen:(BOOL)fsm
+{
+   [self setFullScreenMode: fsm];
+   currentSize=mode;
+   [self initialiseGLWithSize: screenSizes[mode]]; 
 }
 
 - (int) indexOfCurrentSize
@@ -792,7 +810,6 @@ Your fair use and other rights are in no way affected by the above.
 							if (shift)
 							{
 								SDL_FreeSurface(surface);
-								SDL_Quit();
 								[gameController exitApp];
 							}
 							else

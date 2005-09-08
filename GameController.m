@@ -120,6 +120,12 @@ Your fair use and other rights are in no way affected by the above.
 		[[NSUserDefaults standardUserDefaults]   setInteger:height  forKey:@"display_height"];
 		[[NSUserDefaults standardUserDefaults]   setInteger:refresh forKey:@"display_refresh"];
 		//
+#ifdef GNUSTEP
+      // The SDL game is not strictly a GNUstep app so synchronize
+      // never actually gets called automatically. 
+      // Therefore we need to explicitly call it.
+      [[NSUserDefaults standardUserDefaults] synchronize];
+#endif
 		return YES;
 	}
 	return NO;
@@ -127,7 +133,6 @@ Your fair use and other rights are in no way affected by the above.
 
 - (int) indexOfCurrentDisplayMode
 {
-#ifndef GNUSTEP
     NSDictionary *mode;
 	
 	//NSLog(@"looking for a display mode that's %d x %d %dHz",width, height, refresh);
@@ -137,17 +142,12 @@ Your fair use and other rights are in no way affected by the above.
 		return NSNotFound;
 	else
 		return [displayModes indexOfObject:mode];
-#else
-   // TODO: The screen mode array needs to be 'grown up' into proper
-   // ObjC code, but that's a battle for another day right now.
-   return [gameView indexOfCurrentSize];
-#endif   
+
    return NSNotFound; 
 }
 
 - (NSDictionary *) findDisplayModeForWidth:(unsigned int) d_width Height:(unsigned int) d_height Refresh:(unsigned int) d_refresh
 {
-#ifndef GNUSTEP
     int i, modeCount;
     NSDictionary *mode;
     unsigned int modeWidth, modeHeight, modeRefresh;
@@ -161,9 +161,11 @@ Your fair use and other rights are in no way affected by the above.
         modeHeight = [[mode objectForKey: (NSString *)kCGDisplayHeight] intValue];
         modeRefresh = [[mode objectForKey: (NSString *)kCGDisplayRefreshRate] intValue];
 		if ((modeWidth == d_width)&&(modeHeight == d_height)&&(modeRefresh == d_refresh))
+      {
+         NSLog(@"Found mode %@", mode);
 			return mode;
+      }
 	}
-#endif
 
 	return nil;
 }
@@ -337,7 +339,6 @@ static int _compareModes(id arg1, id arg2, void *context)
 	NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
 
 	gameView = [MyOpenGLView alloc];
-	[gameView setFullScreenMode: fullscreen];
 	[gameView initWithFrame: NSMakeRect(0, 0, DISPLAY_MIN_WIDTH, DISPLAY_MIN_HEIGHT)];
 	[gameView setGameController: self];
 #endif
@@ -386,6 +387,26 @@ static int _compareModes(id arg1, id arg2, void *context)
         refresh = [[fullscreenDisplayMode objectForKey: (NSString *)kCGDisplayRefreshRate] intValue];
 	}
    NSLog(@"fullScreenDisplayMode=%@", fullscreenDisplayMode);
+   
+#ifdef GNUSTEP
+   // Note: Under GNUstep (until we have a drag-resizable SDL window)
+   // fullscreenDisplayMode isn't just fullscreen - it's the windowed size
+   // too if the user's default is windowed and not full screen.
+   int modenum=[displayModes indexOfObject:fullscreenDisplayMode];
+   if([userDefaults objectForKey:@"fullscreen"])
+   {
+      [gameView setDisplayMode: modenum 
+                    fullScreen: [userDefaults boolForKey:@"fullscreen"]];
+   }
+   else
+   {
+      // Most Linux/Win32 game players expect games to start full
+      // screen by default, so if this is the first time they have ever
+      // run oolite, they will go into fullscreen in the currently set
+      // resolution.
+      [gameView setDisplayMode:modenum  fullScreen:YES];
+   }
+#endif      
 	
 	// moved to before the Universe is created
 	[self logProgress:@"loading selected expansion packs..."];

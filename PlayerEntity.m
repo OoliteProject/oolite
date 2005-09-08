@@ -3422,8 +3422,10 @@ static BOOL queryPressed;
 				int detail_row =	GUI_ROW_OPTIONS_DETAIL;
 #ifdef GNUSTEP            
             // quit only appears in GNUstep as users aren't
-            // used to Cmd-Q equivs.
+            // used to Cmd-Q equivs. Same goes for window
+            // vs fullscreen.
             int quit_row = GUI_ROW_OPTIONS_QUIT;
+            int display_style_row = GUI_ROW_OPTIONS_DISPLAYSTYLE;
 #else
             // Macintosh only
 				int speech_row =	GUI_ROW_OPTIONS_SPEECH;
@@ -3587,6 +3589,13 @@ static BOOL queryPressed;
             if (([gui selectedRow] == quit_row) && [gameView isDown:13])
             {
 			      [[gameView gameController] exitApp];
+            }
+            if (([gui selectedRow] == display_style_row) && [gameView isDown: 13])
+            {
+               [gameView toggleScreenMode];
+
+               // redraw GUI
+               [self setGuiToLoadSaveScreen];
             }
 #endif              
             // TODO: Investigate why this has to be handled last (if the
@@ -6290,6 +6299,7 @@ static BOOL toggling_music;
       // GNUstep needs a quit option at present (no Cmd-Q) but
       // doesn't need speech.
       int quit_row = GUI_ROW_OPTIONS_QUIT;
+      int display_style_row = GUI_ROW_OPTIONS_DISPLAYSTYLE;
 #else      
 		int speech_row =	GUI_ROW_OPTIONS_SPEECH;
 		int ootunes_row =	GUI_ROW_OPTIONS_OOTUNES;
@@ -6337,6 +6347,17 @@ static BOOL toggling_music;
       // quit menu option
       [gui setText:@" Exit game " forRow:quit_row align:GUI_ALIGN_CENTER];
       [gui setKey:GUI_KEY_OK forRow:quit_row];
+
+      // window/fullscreen
+      if([[universe gameView] inFullScreenMode])
+      {
+         [gui setText:@" Windowed mode " forRow:display_style_row align:GUI_ALIGN_CENTER];
+      }
+      else
+      {
+         [gui setText:@" Fullscreen mode " forRow:display_style_row align:GUI_ALIGN_CENTER];
+      }
+      [gui setKey: GUI_KEY_OK forRow: display_style_row];
 #else
       // Macintosh only      
 		if (speech_on)
@@ -7330,8 +7351,8 @@ NSString* GenerateDisplayString(int inModeWidth, int inModeHeight, int inModeRef
 	NSString *displayModeString = nil;
 #ifdef GNUSTEP
    // We don't actually know the refresh rate.
-   displayModeString=[NSString stringWithFormat:@" Fullscreen: %d x %d ",
-                      inModeWidth, inModeHeight];
+   displayModeString=[NSString stringWithFormat:@" Display size: %d x %d ",
+                     inModeWidth, inModeHeight];
 #else
 	if(inModeRefresh != 0)
 	{

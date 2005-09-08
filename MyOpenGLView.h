@@ -156,6 +156,9 @@ extern int debug;
 - (BOOL) inFullScreenMode;
 #ifdef GNUSTEP
 - (void) setFullScreenMode:(BOOL)fsm;
+- (void) toggleScreenMode;
+- (void) setDisplayMode:(int)mode fullScreen:(BOOL)fsm;
+
 - (int) indexOfCurrentSize;
 - (void) setScreenSize: (int)sizeIndex;
 - (NSSize *)getSimpleSizeArray;
