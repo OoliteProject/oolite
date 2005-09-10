@@ -251,8 +251,8 @@ Your fair use and other rights are in no way affected by the above.
 #ifdef LOADSAVEGUI
 	   // For GUI/SDL based save screen
 	   NSString          *commanderNameString;
-	   NSArray           *cdrArray;
-   int               currentPage;
+	   NSMutableArray    *cdrDetailArray;
+      int               currentPage;
 #endif   
 		
 		StationEntity			*docked_station;
@@ -549,6 +549,7 @@ Your fair use and other rights are in no way affected by the above.
 - (void) changePlayerName;
 
 - (void) setGuiToStatusScreen;
+- (int) getRatingFromKills: (int)shipKills;
 - (NSArray *) equipmentList;
 - (NSArray *) cargoList;
 - (void) setGuiToSystemDataScreen;

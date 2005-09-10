@@ -5723,12 +5723,7 @@ static BOOL toggling_music;
 		int legal_index = 0;
 		if (legal_status != 0)
 			legal_index = (legal_status <= 50) ? 1 : 2;
-		int rating = 0;
-		int kills[8] = { 0x0008,  0x0010,  0x0020,  0x0040,  0x0080,  0x0200,  0x0A00,  0x1900 };
-		while ((rating < 8)&&(kills[rating] <= ship_kills))
-		{
-			rating ++;
-		}
+		int rating = [self getRatingFromKills: ship_kills];
 		
 		NSDictionary *ship_dict = [universe getDictionaryForShip:ship_desc];
 		NSString* shipName = (NSString*)[ship_dict objectForKey:KEY_NAME];
@@ -5791,6 +5786,22 @@ static BOOL toggling_music;
 	
 	[self setShowDemoShips:NO];
 	gui_screen = GUI_SCREEN_STATUS;
+}
+
+// DJS: moved from the above method because there are
+// now two places where the rating needs to be calculated.
+// (The other place is in LoadSave.m - tag to help find
+// this change if this is integrated with OS X - 
+// #define LOADSAVEGUI ...)
+- (int) getRatingFromKills: (int)shipKills
+{
+   int rating = 0;
+	int kills[8] = { 0x0008,  0x0010, 0x0020,  0x0040,  0x0080,  0x0200,  0x0A00,  0x1900 };
+	while ((rating < 8)&&(kills[rating] <= shipKills))
+	{
+		rating ++;
+	}
+   return rating;
 }
 
 - (NSArray *) equipmentList
