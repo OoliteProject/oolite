@@ -3308,9 +3308,11 @@ Your fair use and other rights are in no way affected by the above.
 			else
 			{
 				NSLog(@"\n\n***** Handling localException: %@ : %@ *****\n\n",[localException name], [localException reason]);
+#ifndef GNUSTEP
 				if (![[self gameController] inFullScreenMode])
 					NSRunAlertPanel(@"Unexpected Error!", @"Error during [universe update:]\n\n'%@'", @"QUIT", nil, nil,localException);
 				else
+#endif
 				NSLog(@"\n\n***** Quitting Oolite *****\n\n");
 				[[self gameController] exitApp];
 			}
@@ -4862,9 +4864,11 @@ Your fair use and other rights are in no way affected by the above.
 			else
 			{
 				NSLog(@"\n\n***** Handling localException: %@ : %@ *****\n\n",[localException name], [localException reason]);
+#ifndef GNUSTEP
 				if (![[self gameController] inFullScreenMode])
 					NSRunAlertPanel(@"Unexpected Error!", @"Error during [universe update:]\n\n'%@'", @"QUIT", nil, nil,localException);
 				else
+#endif
 				NSLog(@"\n\n***** Quitting Oolite *****\n\n");
 				[[self gameController] exitApp];
 			}

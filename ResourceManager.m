@@ -889,7 +889,11 @@ NSMutableDictionary*	surface_cache;
 		if ([[localException name] isEqual:@"OOXMLException"])
 		{
 			NSLog(@"\nDEBUG ***** %@ : %@ *****\n\n",[localException name], [localException reason]);
+#ifndef GNUSTEP
+         // will cause a hang in full screen mode, don't do it with GNUstep
+         // The debug message should be enough.
 			NSRunAlertPanel(@"Oolite XML Exception", @"'%@'", @"Continue", nil, nil,localException);
+#endif
 			return nil;
 		}
 		else
