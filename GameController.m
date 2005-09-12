@@ -277,27 +277,8 @@ static int _compareModes(id arg1, id arg2, void *context)
 		//NSLog(@"()=> %d x %d at %dHz", modeWidth, modeHeight, modeRefresh);
 	}
 #else  // ifndef GNUSTEP
-   // TODO: The low-level act of getting resolutions/count of resolutions
-   // probably shouldn't belong in the game view but in a support class
-   // possibly emulating the Macintosh to reduce code differences.
-   displayModes = [[NSMutableArray alloc] init];
-   NSSize *sizes=[gameView getSimpleSizeArray];
-   int sizeCount=[gameView getSimpleSizeArrayCount];
-   int i;
-
-   for(i=0; i < sizeCount; i++)
-   {
-      NSMutableDictionary *mode=[[NSMutableDictionary alloc] init];
-      [mode setValue: [NSNumber numberWithInt: (int)sizes->width] 
-                       forKey: kCGDisplayWidth];
-      [mode setValue: [NSNumber numberWithInt: (int)sizes->height] 
-                       forKey: kCGDisplayHeight];
-      [mode setValue: [NSNumber numberWithInt: 0] 
-                       forKey: kCGDisplayRefreshRate];
-      [displayModes addObject: mode];
-      NSLog(@"Added mode %@", mode);
-      sizes++;
-   }
+   // SDL code all lives in the gameview.
+   displayModes = [gameView getScreenSizeArray];
    
 #endif // ifndef GNUSTEP #else
 }

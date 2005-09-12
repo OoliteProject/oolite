@@ -120,14 +120,14 @@ extern int debug;
 	
 	NSPoint virtualJoystickPosition;
 
-	NSSize screenSizes[3];
+	NSMutableArray *screenSizes;
 	int currentSize;
 	
 	BOOL fullScreen;
 	SDL_Surface* surface;
 }
 
-+ (NSSize) getNativeSize;
++ (NSMutableDictionary *) getNativeSize;
 
 // override
 - (id) initWithFrame:(NSRect)frameRect;
@@ -161,8 +161,9 @@ extern int debug;
 
 - (int) indexOfCurrentSize;
 - (void) setScreenSize: (int)sizeIndex;
-- (NSSize *)getSimpleSizeArray;
-- (int) getSimpleSizeArrayCount;
+- (NSMutableArray *)getScreenSizeArray;
+- (void) populateFullScreenModelist;
+- (NSSize) modeAsSize: (int)sizeIndex;
 #endif
 
 /*

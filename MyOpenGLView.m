@@ -45,30 +45,36 @@ Your fair use and other rights are in no way affected by the above.
 
 @implementation MyOpenGLView
 
-+ (NSSize) getNativeSize
++ (NSMutableDictionary *) getNativeSize
 {
    SDL_SysWMinfo  dpyInfo;
-   NSSize dpySize;
+   NSMutableDictionary *mode=[[NSMutableDictionary alloc] init];
 
    SDL_VERSION(&dpyInfo.version);
    if(SDL_GetWMInfo(&dpyInfo))
    {
 #if defined(LINUX) && ! defined (WIN32)
-      dpySize.width=DisplayWidth(dpyInfo.info.x11.display, 0);
-      dpySize.height=DisplayHeight(dpyInfo.info.x11.display, 0);
+      [mode setValue: [NSNumber numberWithInt: DisplayWidth(dpyInfo.info.x11.display, 0)]
+              forKey: kCGDisplayWidth];
+      [mode setValue: [NSNumber numberWithInt: DisplayHeight(dpyInfo.info.x11.display, 0)]
+              forKey: kCGDisplayHeight];
+      [mode setValue: [NSNumber numberWithInt: 0] forKey: kCGDisplayRefreshRate];
 #else
       NSLog(@"Unknown architecture, defaulting to 1024x768");
-      dpySize=NSMakeSize(1024, 768);
+      [mode setValue: [NSNumber numberWithInt: 1024] forKey: kCGDisplayWidth];
+      [mode setValue: [NSNumber numberWithInt: 768] forKey: kCGDisplayHeight];
+      [mode setValue: [NSNumber numberWithInt: 0] forKey: kCGDisplayRefreshRate];
 #endif      
    }
    else
    {
       NSLog(@"SDL_GetWMInfo failed, defaulting to 1024x768 for native size");
-      dpySize=NSMakeSize(1024, 768);
+      [mode setValue: [NSNumber numberWithInt: 1024] forKey: kCGDisplayWidth];
+      [mode setValue: [NSNumber numberWithInt: 768] forKey: kCGDisplayHeight];
+      [mode setValue: [NSNumber numberWithInt: 0] forKey: kCGDisplayRefreshRate];
    }
-   return dpySize;
+   return mode;
 }
-
 
 - (id) initWithFrame:(NSRect)frameRect
 {
@@ -97,9 +103,7 @@ Your fair use and other rights are in no way affected by the above.
 	SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
 
    NSLog(@"CREATING MODE LIST");
-	screenSizes[0] = [MyOpenGLView getNativeSize];
-	screenSizes[1] = NSMakeSize(800, 600);
-	screenSizes[2] = NSMakeSize(1024, 768);
+   [self populateFullScreenModelist];
 	currentSize = 0;
 
 	int videoModeFlags = SDL_HWSURFACE | SDL_OPENGL;
@@ -221,14 +225,14 @@ Your fair use and other rights are in no way affected by the above.
 - (void) toggleScreenMode
 {
    [self setFullScreenMode: !fullScreen];
-   [self initialiseGLWithSize:screenSizes[currentSize]];
+   [self initialiseGLWithSize:[self modeAsSize: currentSize]];
 }
 
 - (void) setDisplayMode:(int)mode  fullScreen:(BOOL)fsm
 {
    [self setFullScreenMode: fsm];
    currentSize=mode;
-   [self initialiseGLWithSize: screenSizes[mode]]; 
+   [self initialiseGLWithSize: [self modeAsSize: mode]]; 
 }
 
 - (int) indexOfCurrentSize
@@ -239,21 +243,21 @@ Your fair use and other rights are in no way affected by the above.
 - (void) setScreenSize: (int)sizeIndex
 {
    currentSize=sizeIndex;
-	[self initialiseGLWithSize:screenSizes[currentSize]];
+	[self initialiseGLWithSize: [self modeAsSize: currentSize]];
 }
 
-- (NSSize *)getSimpleSizeArray
+- (NSMutableArray *)getScreenSizeArray
 {
    return screenSizes;
 }
 
-- (int)getSimpleSizeArrayCount
+- (NSSize) modeAsSize:(int)sizeIndex
 {
-   // TODO: Yuck. Need a proper screen size enumerator.
-   // This is temporary until we get the SDL code working the same as Mac
-   // code.
-   return 3;
+   NSDictionary *mode=[screenSizes objectAtIndex: sizeIndex];
+   return NSMakeSize([[mode objectForKey: kCGDisplayWidth] intValue],
+                     [[mode objectForKey: kCGDisplayHeight] intValue]);
 }
+
 #endif
 
 - (void) display
@@ -786,23 +790,20 @@ Your fair use and other rights are in no way affected by the above.
 							currentSize++;
 							if (currentSize > 2)
 								currentSize = 0;
-							[self initialiseGLWithSize:screenSizes[currentSize]];
+							[self initialiseGLWithSize: [self modeAsSize: currentSize]];
 							break;
 
 						case SDLK_F12:
 							if (fullScreen == NO)
                      {
-                        // default fullscreen size is native display
-                        // resolution
 								fullScreen = YES;
-                        [self initialiseGLWithSize:
-                           [MyOpenGLView getNativeSize]];
+                        [self initialiseGLWithSize: [self modeAsSize: currentSize]];
                      }
 							else
                      {
                         // flip to user-selected size
 								fullScreen = NO;
-							   [self initialiseGLWithSize:screenSizes[currentSize]];
+							   [self initialiseGLWithSize: [self modeAsSize: currentSize]];
                      }
 							break;
 
@@ -950,5 +951,59 @@ Your fair use and other rights are in no way affected by the above.
          [self resetTypedString];
       }
    }
+}
+
+// Full screen mode enumerator.
+- (void) populateFullScreenModelist
+{
+   int i;
+   SDL_Rect **modes;
+   NSMutableDictionary *mode;
+   
+   screenSizes=[[NSMutableArray alloc] init];
+   [screenSizes retain];
+
+   // The default resolution (slot 0) is the resolution we are
+   // already in since this is guaranteed to work.
+   mode=[MyOpenGLView getNativeSize];
+   [screenSizes addObject: mode];
+
+   modes=SDL_ListModes(NULL, SDL_FULLSCREEN|SDL_HWSURFACE);
+   if(modes == (SDL_Rect **)NULL)
+   {
+      NSLog(@"SDL didn't return any screen modes");
+      return;
+   }
+
+   if(modes == (SDL_Rect **)-1)
+   {
+      NSLog(@"SDL claims 'all resolutions available' which is unhelpful in the extreme");
+      return;
+   }
+
+   int lastw=[[mode objectForKey: kCGDisplayWidth] intValue];
+   int lasth=[[mode objectForKey: kCGDisplayHeight] intValue];
+   for(i=0; modes[i]; i++)
+   {
+      // SDL_ListModes often lists a mode several times,
+      // presumably because each mode has several refresh rates.
+      // But the modes pointer is an SDL_Rect which can't represent
+      // refresh rates. WHY!?
+      if(modes[i]->w != lastw && modes[i]->h != lasth)
+      {
+         // new resolution, save it
+         mode=[[NSMutableDictionary alloc] init];
+         [mode setValue: [NSNumber numberWithInt: (int)modes[i]->w] 
+                 forKey: kCGDisplayWidth];
+         [mode setValue: [NSNumber numberWithInt: (int)modes[i]->h]
+                 forKey: kCGDisplayHeight];
+         [mode setValue: [NSNumber numberWithInt: 0]
+                 forKey: kCGDisplayRefreshRate];
+         [screenSizes addObject: mode];
+         NSLog(@"Added res %d x %d", modes[i]->w, modes[i]->h);
+         lastw=modes[i]->w;
+         lasth=modes[i]->h;
+      }
+   } 
 }
 @end
