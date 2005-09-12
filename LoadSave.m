@@ -1,3 +1,4 @@
+/* */
 #ifdef LOADSAVEGUI
 //
 // LoadSave.m
@@ -121,7 +122,6 @@
       // figure out what page we need to be on
       page=highlightIdx/NUMROWS;
       highlightRowOnPage=highlightIdx % NUMROWS + STARTROW;
-      NSLog(@"Page=%d  Highlight=%d  Cdr index=%d", page, highlightRowOnPage, highlightIdx);
    }
 
    // We now know for certain what page we're on - 
@@ -195,7 +195,6 @@
    {
       int guiSelectedRow=[gui selectedRow];
       idx=(guiSelectedRow - STARTROW) + (currentPage * NUMROWS);
-      NSLog(@"idx = %d", idx);
       if(guiSelectedRow != MOREROW && guiSelectedRow != BACKROW)
       {
          [self showCommanderShip: idx];
@@ -210,7 +209,8 @@
    // Enter pressed - find the commander name underneath.
    if ([gameView isDown:13])
    {
-      NSLog(@"Row = %d", [gui selectedRow]);
+      NSDictionary *cdr;
+      NSString *filename;
       switch ([gui selectedRow])
       {
          case BACKROW:
@@ -220,16 +220,14 @@
             [gameView supressKeysUntilKeyUp];
             break;
          case MOREROW:
-            NSLog(@"Plus one page");
             [gui clear];
             currentPage++;
             [self lsCommanders: gui  pageNumber: currentPage  highlightName: nil];
             [gameView supressKeysUntilKeyUp];
             break;
          default:
-            NSLog(@"Loading idx = %d", idx);
-            NSDictionary *cdr=[cdrDetailArray objectAtIndex: idx];
-            NSString *filename=[NSString stringWithFormat:
+            cdr=[cdrDetailArray objectAtIndex: idx];
+            filename=[NSString stringWithFormat:
                @"%@.oolite-save", (NSString *)[cdr objectForKey:@"player_name"]];
             return filename;
       }
