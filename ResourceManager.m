@@ -567,7 +567,6 @@ NSMutableDictionary*	surface_cache;
 	SDL_Surface *surface;
 	NSMutableArray *fpaths = [ResourceManager paths];
 	NSString *finalFilename=nil;
-   NSLog(@"Entering surfaceNamed");
 	int i, r;
 	r = 0;
 	if (!filename)
