@@ -2210,9 +2210,34 @@ static BOOL galactic_witchjump;
 	missile_status = MISSILE_STATUS_SAFE;
 }
 
+- (void) tidyMissilePylons
+{
+   // Shuffle missiles up so there's:
+   // no gaps between missiles
+   // the first missile is in the first pylon
+   int i;
+   int pylon=0;
+   for(i = 0; i < SHIPENTITY_MAX_MISSILES; i++)
+   {
+      if(missile_entity[i])
+      {
+         missile_entity[pylon]=missile_entity[i];
+         pylon++;
+      }
+   }
+
+   // missiles have been shoved up, now make sure the remainder
+   // of the pylons are cleaned up.
+   for(i = pylon; i < SHIPENTITY_MAX_MISSILES; i++)
+   {
+      missile_entity[i]=nil;
+   }
+}
+
 - (void) select_next_missile
 {
 	int i;
+      
 	for (i = 1; i < max_missiles; i++)
 	{
 		int next_missile = (active_missile + i) % max_missiles;

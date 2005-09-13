@@ -1248,6 +1248,9 @@ NSMutableDictionary* currentShipyard;
 	has_scoop = NO;
 	energy_unit = ENERGY_UNIT_NONE;
 	
+   // ensure all missiles are tidied up and start at pylon 0
+   [self tidyMissilePylons];
+
 	// get missiles from ship_info
 	missiles = [(NSNumber*)[(NSDictionary*)[ship_info objectForKey:SHIPYARD_KEY_SHIP] objectForKey:@"missiles"] intValue];
 	

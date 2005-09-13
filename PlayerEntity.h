@@ -504,6 +504,7 @@ Your fair use and other rights are in no way affected by the above.
 - (void) sort_missiles;
 - (void) safe_all_missiles;
 - (void) select_next_missile;
+- (void) tidyMissilePylons;
 
 - (void) clearAlert_flags;
 - (void) setAlert_flag:(int) flag :(BOOL) value;
