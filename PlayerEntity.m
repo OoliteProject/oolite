@@ -159,6 +159,11 @@ Your fair use and other rights are in no way affected by the above.
 		key_contract_info = [(NSNumber *)[kdic objectForKey:@"key_contract_info"] intValue];
 	//
 	// other keys are SET and cannot be varied
+
+#ifdef LOADSAVEGUI
+   // Enable polling
+   pollControls=YES;
+#endif
 }
 
 - (void) unloadCargoPods
@@ -3000,9 +3005,16 @@ static  BOOL	m_key_pressed;
 static  BOOL	taking_snapshot;
 - (void) pollApplicationControls
 {
+#ifdef LOADSAVEGUI
+   if(!pollControls)
+      return;
+#endif
+
 	// does fullscreen / quit / snapshot
 	//
 	MyOpenGLView  *gameView = (MyOpenGLView *)[universe gameView];
+
+   //
 	//
 	//  command-key controls
 	//
@@ -3963,6 +3975,11 @@ static BOOL queryPressed;
 
 - (void) pollViewControls
 {
+#ifdef LOADSAVEGUI
+   if(!pollControls)
+      return;
+#endif
+
 	MyOpenGLView  *gameView = (MyOpenGLView *)[universe gameView];
 	//
 	//  view keys
@@ -4056,6 +4073,11 @@ static BOOL switching_market_screens;
 static BOOL switching_equipship_screens;
 - (void) pollGuiScreenControls
 {
+#ifdef LOADSAVEGUI
+   if(!pollControls)
+      return;
+#endif
+
 	MyOpenGLView  *gameView = (MyOpenGLView *)[universe gameView];
 	BOOL docked_okay = (status == STATUS_DOCKED) || ((status == STATUS_DEMO) && (gui_screen == GUI_SCREEN_SHIPYARD));
 	//
@@ -4314,19 +4336,26 @@ static BOOL toggling_music;
 
 - (void) pollDockedControls:(double) delta_t
 {
-	MyOpenGLView  *gameView = (MyOpenGLView *)[universe gameView];
-	if (([gameView isDown:gvFunctionKey1])||([gameView isDown:gvNumberKey1]))   // look for the f1 key
-	{
-		[universe set_up_universe_from_station]; // launch!
-		if (!docked_station)
-			docked_station = [universe station];
-		//NSLog(@"Leaving dock (%@)...%@",docked_station,[docked_station name]);
-		[self leaveDock:docked_station];
-		[universe setDisplayCursor:NO];
+#ifdef LOADSAVEGUI
+   if(pollControls)
+   {
+#endif     
+      MyOpenGLView  *gameView = (MyOpenGLView *)[universe gameView];
+      if (([gameView isDown:gvFunctionKey1])||([gameView isDown:gvNumberKey1]))   // look for the f1 key
+      {
+         [universe set_up_universe_from_station]; // launch!
+         if (!docked_station)
+            docked_station = [universe station];
+         //NSLog(@"Leaving dock (%@)...%@",docked_station,[docked_station name]);
+         [self leaveDock:docked_station];
+         [universe setDisplayCursor:NO];
 #ifdef HAVE_SOUND      
-		[breakPatternSound play];
+         [breakPatternSound play];
 #endif      
-	}
+      }
+#ifdef LOADSAVEGUI      
+   }
+#endif   
 	//
 	//  text displays
 	//

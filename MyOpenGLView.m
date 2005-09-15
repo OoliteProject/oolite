@@ -916,28 +916,8 @@ Your fair use and other rights are in no way affected by the above.
 // versions.
 - (void) handleStringInput: (SDL_KeyboardEvent *) kbd_event;
 {
-   char key=kbd_event->keysym.sym;
-
-   // keys a-z
-   if(key >= 'a' && key <= 'z')
-   {
-      isAlphabetKeyDown=YES;
-      if(shift)
-      {
-         key=toupper(key);
-      }
-      [typedString appendFormat:@"%c", key];
-   }
-
-   // keys 0-9, Space
-   // TODO: Investigation.
-   // there seems to be some problem with '0' and '2' randomly popping
-   // up. Possible SDL fault? Not a big loss not to have them though.
-   if(/*(key >= '0' && key <= '9') || */key == ' ')
-   {
-      [typedString appendFormat:@"%c", key];
-   }
-
+   SDLKey key=kbd_event->keysym.sym;
+   
    // Del, Backspace
    if(key == SDLK_BACKSPACE || key == SDLK_DELETE)
    {
@@ -949,6 +929,30 @@ Your fair use and other rights are in no way affected by the above.
       else
       {
          [self resetTypedString];
+      }
+   }
+  
+   // Note: if we start using this handler for anything other
+   // than savegames, a more flexible mechanism is needed
+   // for max. string length. 
+   if([typedString length] < 40)
+   {
+      // keys a-z
+      if(key >= SDLK_a && key <= SDLK_z)
+      {
+         isAlphabetKeyDown=YES;
+         if(shift)
+         {
+            key=toupper(key);
+         }
+         [typedString appendFormat:@"%c", key];
+      }
+
+      // keys 0-9, Space
+      // Left-Shift seems to produce the key code for 0 :/
+      if((key >= SDLK_0 && key <= SDLK_9) || key == SDLK_SPACE)
+      {
+         [typedString appendFormat:@"%c", key];
       }
    }
 }

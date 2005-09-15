@@ -253,6 +253,7 @@ Your fair use and other rights are in no way affected by the above.
 	   NSString          *commanderNameString;
 	   NSMutableArray    *cdrDetailArray;
       int               currentPage;
+      BOOL              pollControls;
 #endif   
 		
 		StationEntity			*docked_station;

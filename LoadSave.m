@@ -44,6 +44,9 @@
    GuiDisplayGen *gui=[universe gui];
    MyOpenGLView *gameView=[universe gameView];
 
+   // Don't poll controls
+   pollControls=NO;
+
    gui_screen = GUI_SCREEN_SAVE;
 
    [gui clear];
@@ -231,7 +234,12 @@
                @"%@.oolite-save", (NSString *)[cdr objectForKey:@"player_name"]];
             return filename;
       }
-   } 
+   }
+
+   if([gameView isDown: 27])
+   {
+      [self setGuiToStatusScreen];
+   }
    return nil;
 }
 
@@ -244,10 +252,18 @@
    [gui setText:
          [NSString stringWithFormat:@"Commander name: %@", commanderNameString]
          forRow: INPUTROW];
-   
+
    if([gameView isDown: 13] && [commanderNameString length])
    {
+      pollControls=YES;
       [self nativeSavePlayer: commanderNameString];
+   }
+
+   if([gameView isDown: 27])
+   {
+      // esc was pressed - get out of here
+      pollControls=YES;
+      [self setGuiToStatusScreen];
    }
 }
 
