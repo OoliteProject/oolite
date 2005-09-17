@@ -89,7 +89,7 @@ Your fair use and other rights are in no way affected by the above.
 	
 	title = @"Test Page";
 	
-	guiclick =  [[ResourceManager soundNamed:@"guiclick.aiff" inFolder:@"Sounds"] retain];
+	guiclick =  [[ResourceManager soundNamed:@"guiclick.ogg" inFolder:@"Sounds"] retain];
 
 	backgroundImage = nil;
 	backgroundColor = nil;
@@ -137,7 +137,7 @@ Your fair use and other rights are in no way affected by the above.
 	
 	title = [gui_title retain];
 	
-	guiclick =  [[ResourceManager soundNamed:@"guiclick.aiff" inFolder:@"Sounds"] retain];
+	guiclick =  [[ResourceManager soundNamed:@"guiclick.ogg" inFolder:@"Sounds"] retain];
 
 	backgroundImage = nil;
 	backgroundColor = nil;

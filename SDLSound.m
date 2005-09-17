@@ -33,6 +33,7 @@ static int mixChan=0;
 
 - (BOOL) play
 {
+   [self stop];
 	if (sample)
 	{
       mixChan++;

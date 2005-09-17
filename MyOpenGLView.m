@@ -87,7 +87,7 @@ Your fair use and other rights are in no way affected by the above.
 		[self dealloc];
 		return nil;
     }
-	else if (Mix_OpenAudio(22050, AUDIO_S16LSB, 2, 1024) < 0)
+	else if (Mix_OpenAudio(44100, AUDIO_S16LSB, 2, 2048) < 0)
 	{
 		NSLog(@"Mix_OpenAudio: %s\n", Mix_GetError());
 		[self dealloc];

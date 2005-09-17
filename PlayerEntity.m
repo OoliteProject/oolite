@@ -946,22 +946,22 @@ static BOOL galactic_witchjump;
 	//
 	// allocate sounds
 	//
-	beepSound =			[[ResourceManager soundNamed:@"beep.aiff" inFolder:@"Sounds"] retain];
-	boopSound =			[[ResourceManager soundNamed:@"boop.aiff" inFolder:@"Sounds"] retain];
-	weaponSound =		[[ResourceManager soundNamed:@"laser.aiff" inFolder:@"Sounds"] retain];
-	weaponHitSound =	[[ResourceManager soundNamed:@"laserhits.aiff" inFolder:@"Sounds"] retain];
-	missileSound =		[[ResourceManager soundNamed:@"missile.aiff" inFolder:@"Sounds"] retain];
-	damageSound =		[[ResourceManager soundNamed:@"hit.aiff" inFolder:@"Sounds"] retain];
-	scrapeDamageSound = [[ResourceManager soundNamed:@"hullbang.aiff" inFolder:@"Sounds"] retain];
-	destructionSound =  [[ResourceManager soundNamed:@"bigbang.aiff" inFolder:@"Sounds"] retain];
-	breakPatternSound = [[ResourceManager soundNamed:@"breakpattern.aiff" inFolder:@"Sounds"] retain];
+	beepSound =			[[ResourceManager soundNamed:@"beep.ogg" inFolder:@"Sounds"] retain];
+	boopSound =			[[ResourceManager soundNamed:@"boop.ogg" inFolder:@"Sounds"] retain];
+	weaponSound =		[[ResourceManager soundNamed:@"laser.ogg" inFolder:@"Sounds"] retain];
+	weaponHitSound =	[[ResourceManager soundNamed:@"laserhits.ogg" inFolder:@"Sounds"] retain];
+	missileSound =		[[ResourceManager soundNamed:@"missile.ogg" inFolder:@"Sounds"] retain];
+	damageSound =		[[ResourceManager soundNamed:@"hit.ogg" inFolder:@"Sounds"] retain];
+	scrapeDamageSound = [[ResourceManager soundNamed:@"hullbang.ogg" inFolder:@"Sounds"] retain];
+	destructionSound =  [[ResourceManager soundNamed:@"bigbang.ogg" inFolder:@"Sounds"] retain];
+	breakPatternSound = [[ResourceManager soundNamed:@"breakpattern.ogg" inFolder:@"Sounds"] retain];
 	//
-	ecmSound =			[[ResourceManager soundNamed:@"ecm.aiff" inFolder:@"Sounds"] retain];
-	buySound =			[[ResourceManager soundNamed:@"buy.aiff" inFolder:@"Sounds"] retain];
-	sellSound =			[[ResourceManager soundNamed:@"sell.aiff" inFolder:@"Sounds"] retain];
-	warningSound =		[[ResourceManager soundNamed:@"warning.aiff" inFolder:@"Sounds"] retain];
-	afterburner1Sound =  [[ResourceManager soundNamed:@"afterburner1.aiff" inFolder:@"Sounds"] retain];
-	afterburner2Sound =  [[ResourceManager soundNamed:@"afterburner2.aiff" inFolder:@"Sounds"] retain];
+	ecmSound =			[[ResourceManager soundNamed:@"ecm.ogg" inFolder:@"Sounds"] retain];
+	buySound =			[[ResourceManager soundNamed:@"buy.ogg" inFolder:@"Sounds"] retain];
+	sellSound =			[[ResourceManager soundNamed:@"sell.ogg" inFolder:@"Sounds"] retain];
+	warningSound =		[[ResourceManager soundNamed:@"warning.ogg" inFolder:@"Sounds"] retain];
+	afterburner1Sound =  [[ResourceManager soundNamed:@"afterburner1.ogg" inFolder:@"Sounds"] retain];
+	afterburner2Sound =  [[ResourceManager soundNamed:@"afterburner2.ogg" inFolder:@"Sounds"] retain];
 	//
 	
 //	//// for looping sounds set the sound's delegate to self
