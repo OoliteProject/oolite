@@ -787,9 +787,18 @@ Your fair use and other rights are in no way affected by the above.
 							break;
 
 						case SDLK_F11:
-							currentSize++;
-							if (currentSize > 2)
-								currentSize = 0;
+                     if(shift)
+                     {
+                        currentSize--;
+                        if (currentSize < 0)
+                           currentSize = [screenSizes count] - 1;
+                     }
+                     else
+                     {
+							   currentSize++;
+							   if (currentSize >= [screenSizes count])
+								   currentSize = 0;
+                     }
 							[self initialiseGLWithSize: [self modeAsSize: currentSize]];
 							break;
 
