@@ -6,6 +6,8 @@
 //
 
 #import "SDLSound.h"
+#include "oolite-linux.h"
+static int mixChan=0;
 
 @implementation OOSound
 
@@ -33,7 +35,12 @@
 {
 	if (sample)
 	{
-		currentChannel = Mix_PlayChannel(-1, sample, 0);
+      mixChan++;
+      if(mixChan >= MAX_CHANNELS)
+      {
+         mixChan=0;
+      }
+		currentChannel = Mix_PlayChannel(mixChan, sample, 0);
 		if (currentChannel < 0)
 			NSLog(@"Mix_PlayChannel: %s\n", Mix_GetError());
 			return NO;

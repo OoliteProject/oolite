@@ -16,7 +16,7 @@
 #include "SDL_mixer.h"
 #include "SDL_syswm.h"
 
-#define MAX_CHANNELS 16
+#define MAX_CHANNELS 32
 
 // Macintosh compatibility defines
 #define kCGDisplayWidth (@"Width")
