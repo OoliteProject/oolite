@@ -407,15 +407,17 @@ static int _compareModes(id arg1, id arg2, void *context)
 	[self logProgress:@"loading player..."];
 	[self loadPlayerIfRequired];
 
-#ifndef GNUSTEP
 	//
 	// get the run loop and add the call to doStuff
 	//
-    NSTimeInterval ti = 0.01;
+   NSTimeInterval ti = 0.01;
+#ifdef GNUSTEP
+   timer = [[NSTimer timerWithTimeInterval:ti target:gameView selector:@selector(pollControls:) userInfo:self repeats:YES] retain];
+   [[NSRunLoop currentRunLoop] addTimer:timer forMode:NSDefaultRunLoopMode];
+#else   
+   timer = [[NSTimer timerWithTimeInterval:ti target:self selector:@selector(doStuff:) userInfo:self repeats:YES] retain];
     
-    timer = [[NSTimer timerWithTimeInterval:ti target:self selector:@selector(doStuff:) userInfo:self repeats:YES] retain];
-    
-    [[NSRunLoop currentRunLoop] addTimer:timer forMode:NSDefaultRunLoopMode];
+   [[NSRunLoop currentRunLoop] addTimer:timer forMode:NSDefaultRunLoopMode];
 
 	
 	// set up the window to accept mouseMoved events
@@ -427,7 +429,7 @@ static int _compareModes(id arg1, id arg2, void *context)
 #ifdef GNUSTEP
 	// Release anything allocated above that is not required.
 	[pool release];
-	[gameView pollControls];
+   [[NSRunLoop currentRunLoop] run];
 #endif
 }
 

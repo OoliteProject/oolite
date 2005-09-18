@@ -186,6 +186,6 @@ extern int debug;
  - (BOOL) isShiftDown;
  - (int) numKeys;
 
- - (void) pollControls;
+ - (void) pollControls: (id)sender;
  - (void) handleStringInput: (SDL_KeyboardEvent *) kbd_event; // DJS
 @end
