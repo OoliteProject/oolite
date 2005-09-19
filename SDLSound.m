@@ -33,14 +33,25 @@ static int mixChan=0;
 
 - (BOOL) play
 {
-   [self stop];
+   int chansScanned=1;
 	if (sample)
 	{
-      mixChan++;
-      if(mixChan >= MAX_CHANNELS)
+      [self stop];
+
+      // avoid treading on channels that are already playing
+      do
       {
-         mixChan=0;
-      }
+         mixChan++;
+         if(mixChan >= MAX_CHANNELS)
+         {
+            mixChan=0;
+         }
+         if(chansScanned++ > MAX_CHANNELS)
+         {
+            NSLog(@"Out of channels!");
+            break;
+         }
+      } while(Mix_Playing(mixChan));
 		currentChannel = Mix_PlayChannel(mixChan, sample, 0);
 		if (currentChannel < 0)
 			NSLog(@"Mix_PlayChannel: %s\n", Mix_GetError());
