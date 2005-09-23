@@ -40,6 +40,7 @@ Your fair use and other rights are in no way affected by the above.
 
 #import "GameController.h"
 #import "Universe.h"
+#import "JoystickHandler.h" // TODO: Not here!
 
 #include <ctype.h>
 
@@ -80,13 +81,15 @@ Your fair use and other rights are in no way affected by the above.
 {
 	self = [super init];
 
+   // TODO: This code up to and including stickHandler really ought
+   // not to be in this class.
 	NSLog(@"initialising SDL");
-	if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO) < 0)
+	if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO | SDL_INIT_JOYSTICK) < 0)
 	{
 		NSLog(@"Unable to init SDL: %s\n", SDL_GetError());
 		[self dealloc];
 		return nil;
-    }
+   }
 	else if (Mix_OpenAudio(44100, AUDIO_S16LSB, 2, 2048) < 0)
 	{
 		NSLog(@"Mix_OpenAudio: %s\n", Mix_GetError());
@@ -95,6 +98,8 @@ Your fair use and other rights are in no way affected by the above.
 	}
 
 	Mix_AllocateChannels(MAX_CHANNELS);
+   stickHandler=[[JoystickHandler alloc] init];
+   // end TODO
 
 	SDL_GL_SetAttribute(SDL_GL_RED_SIZE, 5);
 	SDL_GL_SetAttribute(SDL_GL_GREEN_SIZE, 5);
@@ -666,6 +671,12 @@ Your fair use and other rights are in no way affected by the above.
 
    while (SDL_PollEvent(&event)) {
       switch (event.type) {
+         case SDL_JOYAXISMOTION:
+         case SDL_JOYBUTTONUP:
+         case SDL_JOYBUTTONDOWN:
+            [stickHandler handleSDLEvent: &event];
+            break;
+
          case SDL_MOUSEBUTTONDOWN:
             mbtn_event = (SDL_MouseButtonEvent*)&event;
             if (mbtn_event->button == SDL_BUTTON_LEFT)
@@ -1009,4 +1020,10 @@ Your fair use and other rights are in no way affected by the above.
       }
    } 
 }
+
+- (JoystickHandler *) getStickHandler
+{
+   return stickHandler;
+}
+
 @end

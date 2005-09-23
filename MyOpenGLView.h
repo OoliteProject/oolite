@@ -55,7 +55,7 @@ Your fair use and other rights are in no way affected by the above.
 
 #define MOUSE_DOUBLE_CLICK_INTERVAL	0.40
 
-@class Entity, GameController, OpenGLSprite;
+@class Entity, GameController, OpenGLSprite, JoystickHandler;
 
 enum GameViewKeys
 {
@@ -125,6 +125,8 @@ extern int debug;
 	
 	BOOL fullScreen;
 	SDL_Surface* surface;
+
+   JoystickHandler *stickHandler;
 }
 
 + (NSMutableDictionary *) getNativeSize;
@@ -188,4 +190,5 @@ extern int debug;
 
  - (void) pollControls: (id)sender;
  - (void) handleStringInput: (SDL_KeyboardEvent *) kbd_event; // DJS
+ - (JoystickHandler *)getStickHandler; // DJS
 @end

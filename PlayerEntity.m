@@ -48,6 +48,7 @@ Your fair use and other rights are in no way affected by the above.
 #import "Universe.h"
 #import "AI.h"
 #import "MyOpenGLView.h"
+#import "JoystickHandler.h"
 
 #ifdef LOADSAVEGUI
 #import "LoadSave.h"
@@ -2473,7 +2474,7 @@ static BOOL cloak_pressed;
 			//
 			//  shoot 'a'
 			//
-			if ((([gameView isDown:key_fire_lasers])||((mouse_control_on)&&([gameView isDown:gvMouseLeftButton])))&&(shot_time > weapon_reload_time))
+			if ((([gameView isDown:key_fire_lasers])||((mouse_control_on)&&([gameView isDown:gvMouseLeftButton]))||[stickHandler getButtonState: BUTTON_FIRE])&&(shot_time > weapon_reload_time))
 			{
 				if ([self fireMainWeapon])
 				{
@@ -3098,15 +3099,36 @@ static  BOOL	taking_snapshot;
 - (void) pollFlightArrowKeyControls:(double) delta_t
 {
 	MyOpenGLView	*gameView = (MyOpenGLView *)[universe gameView];
-	NSPoint			virtualStick =[gameView virtualJoystickPosition];
-	double sensitivity = 2.0;
-	virtualStick.x *= sensitivity;
-	virtualStick.y *= sensitivity;
+	NSPoint			virtualStick;
+
+   // TODO: Rework who owns the stick.
+   if(!stickHandler)
+   {
+      stickHandler=[gameView getStickHandler];
+      numSticks=[stickHandler getNumSticks];
+   }
+
+   // DJS: Handle inputs on the joy roll/pitch axis.
+   // Mouse control on takes precidence over joysticks.
+   // We have to assume the player has a reason for switching mouse
+   // control on if they have a joystick - let them do it.
+   if(mouse_control_on)
+   {
+      virtualStick=[gameView virtualJoystickPosition];
+	   double sensitivity = 2.0;
+	   virtualStick.x *= sensitivity;
+	   virtualStick.y *= sensitivity;
+   }
+   else if(numSticks)
+   {
+      virtualStick=[stickHandler getRollPitchAxis];
+   }
+
 	double roll_dampner = ROLL_DAMPING_FACTOR * delta_t;
 	double pitch_dampner = PITCH_DAMPING_FACTOR * delta_t;
 	
 	rolling = NO;
-	if (!mouse_control_on)
+	if (!mouse_control_on )
 	{
 		if ([gameView isDown:key_roll_left])
 		{
@@ -3121,7 +3143,7 @@ static  BOOL	taking_snapshot;
 			rolling = YES;
 		}
 	}
-	else
+	if(mouse_control_on || numSticks)
 	{
 		double stick_roll = max_flight_roll * virtualStick.x;
 		if (flight_roll < stick_roll)
@@ -3138,6 +3160,7 @@ static  BOOL	taking_snapshot;
 		}
 		rolling = (abs(virtualStick.x) > .10);
 	}
+
 	if (!rolling)
 	{
 		if (flight_roll > 0.0)
@@ -3168,7 +3191,7 @@ static  BOOL	taking_snapshot;
 			pitching = YES;
 		}
 	}
-	else
+   if(mouse_control_on || numSticks)
 	{
 		double stick_pitch = max_flight_pitch * virtualStick.y;
 		if (flight_pitch < stick_pitch)

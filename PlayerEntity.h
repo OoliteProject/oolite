@@ -48,7 +48,7 @@ Your fair use and other rights are in no way affected by the above.
 #import "ShipEntity.h"
 #import "HeadUpDisplay.h"
 
-@class GuiDisplayGen;
+@class GuiDisplayGen, JoystickHandler;
 #ifndef GNUSTEP
 @class OOSound;
 #endif
@@ -428,6 +428,10 @@ Your fair use and other rights are in no way affected by the above.
 		// DEBUG
 		ParticleEntity* drawDebugParticle;
 		int		debugShipID;
+
+      // Keeping track of joysticks
+      int numSticks;
+      JoystickHandler *stickHandler;
 }
 
 - (void) init_keys;
