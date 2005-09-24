@@ -54,6 +54,8 @@ Your fair use and other rights are in no way affected by the above.
 #import "LoadSave.h"
 #endif
 
+#import "PlayerEntity_StickMapper.h"
+
 @implementation PlayerEntity
 
 - (void) init_keys
@@ -3467,6 +3469,9 @@ static BOOL queryPressed;
          [self saveCommanderInputHandler: gui :gameView];
          break;
 #endif         
+      case GUI_SCREEN_STICKMAPPER:
+         [self stickMapperInputHandler: gui view: gameView];
+         break;
 
 		case	GUI_SCREEN_OPTIONS :
 			{
@@ -3491,6 +3496,7 @@ static BOOL queryPressed;
 				int speech_row =	GUI_ROW_OPTIONS_SPEECH;
 #endif            
 				int display_row =   GUI_ROW_OPTIONS_DISPLAY;
+            int stickmap_row = GUI_ROW_OPTIONS_STICKMAPPER;
 				GameController  *controller = [universe gameController];
 				NSArray *modes = [controller displayModes];
 				
@@ -3548,6 +3554,10 @@ static BOOL queryPressed;
 							[self loadPlayer];
 #endif                  
 					}
+               if ([gui selectedRow] == stickmap_row)
+               {
+                  [self setGuiToStickMapperScreen];
+               }
 					if (([gui selectedRow] == begin_new_row)&&(!disc_operation_in_progress))
 					{
 						disc_operation_in_progress = YES;
@@ -6345,6 +6355,7 @@ static BOOL toggling_music;
 - (void) setGuiToLoadSaveScreen
 {
 	BOOL	canLoadOrSave = NO;
+   MyOpenGLView *gameView=[universe gameView];
 	if (status == STATUS_DOCKED)
 	{
 		if (!docked_station)
@@ -6395,6 +6406,7 @@ static BOOL toggling_music;
 		int display_row =   GUI_ROW_OPTIONS_DISPLAY;
 		int detail_row =	GUI_ROW_OPTIONS_DETAIL;
 		int strict_row =	GUI_ROW_OPTIONS_STRICT;
+      int stickmap_row = GUI_ROW_OPTIONS_STICKMAPPER;
 
 		int first_sel_row = (canLoadOrSave)? save_row : display_row;
 		if (canQuickSave)
@@ -6472,6 +6484,17 @@ static BOOL toggling_music;
 		else
 			[gui setText:@" Reset to strict gameplay. "	forRow:strict_row  align:GUI_ALIGN_CENTER];
 		[gui setKey:GUI_KEY_OK forRow:strict_row];
+      [gui setText:@" Joystick setup" forRow: stickmap_row align: GUI_ALIGN_CENTER];
+      if ([[gameView getStickHandler] getNumSticks])
+      {
+         // TODO: Modify input code to put this in a better place
+         stickHandler=[gameView getStickHandler];
+         numSticks=[stickHandler getNumSticks];
+         // end TODO
+
+         [gui setKey: GUI_KEY_OK forRow: stickmap_row];
+      }
+         
 		//
 #ifdef GNUSTEP
       [gui setSelectableRange:NSMakeRange(first_sel_row, 1 + quit_row - first_sel_row)];

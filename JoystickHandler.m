@@ -48,7 +48,7 @@
       
    // Make some sensible mappings. This also ensures unassigned
    // axes and buttons are set to unassigned (STICK_NOFUNCTION).
-   [self setDefaultMapping]; 
+   [self loadStickSettings];
    [self clearStickStates];
 
    return self;
@@ -87,6 +87,87 @@
 - (double) getPrecision
 {
    return precision;
+}
+
+- (NSArray *)listSticks
+{
+   int i;
+   NSMutableArray *stickList=[[NSMutableArray alloc] init];
+   for(i=0; i < numSticks; i++)
+   {
+      [stickList addObject: [NSString stringWithFormat: @"%s", SDL_JoystickName(i)]];
+   }
+   return stickList;
+}
+
+- (NSDictionary *)getAxisFunctions
+{
+   int i,j;
+   NSMutableDictionary *fnList=[[NSMutableDictionary alloc] init];
+
+   // Add axes
+   for(i=0; i < AXIS_end; i++)
+   {
+      for(j=0; j < MAX_STICKS; j++)
+      {
+         if(axismap[j][i] >= 0)
+         {
+            NSDictionary *fnDict=[NSDictionary dictionaryWithObjectsAndKeys:
+                                    [NSNumber numberWithBool: YES], STICK_ISAXIS,
+                                    [NSNumber numberWithInt: j], STICK_NUMBER, 
+                                    [NSNumber numberWithInt: i], STICK_AXBUT,
+                                    nil];
+            [fnList setValue: fnDict
+                      forKey: ENUMKEY(axismap[j][i])];
+         }
+      }
+   }
+   return fnList;
+}
+
+- (NSDictionary *)getButtonFunctions
+{
+   int i, j;
+   NSMutableDictionary *fnList=[[NSMutableDictionary alloc] init];
+
+   // Add buttons
+   for(i=0; i < BUTTON_end; i++)
+   {
+      for(j=0; j < MAX_STICKS; j++)
+      {
+         if(buttonmap[j][i] >= 0)
+         {
+            NSDictionary *fnDict=[NSDictionary dictionaryWithObjectsAndKeys:
+                                    [NSNumber numberWithBool: NO], STICK_ISAXIS, 
+                                    [NSNumber numberWithInt: j], STICK_NUMBER, 
+                                    [NSNumber numberWithInt: i], STICK_AXBUT, 
+                                    nil];
+            [fnList setValue: fnDict
+                      forKey: ENUMKEY(buttonmap[j][i])];
+         }
+      }
+   }
+   return fnList;
+}
+
+- (void) setFunction: (int)function  withDict: (NSDictionary *)stickFn
+{
+   BOOL isAxis=[(NSNumber *)[stickFn objectForKey: STICK_ISAXIS] boolValue];
+   int stickNum=[(NSNumber *)[stickFn objectForKey: STICK_NUMBER] intValue];
+   int stickAxBt=[(NSNumber *)[stickFn objectForKey: STICK_AXBUT] intValue];
+      
+   if(isAxis)
+   {
+      [self setFunctionForAxis: stickAxBt 
+                      function: function
+                         stick: stickNum];
+   }
+   else
+   {
+      [self setFunctionForButton: stickAxBt
+                        function: function
+                           stick: stickNum];
+   }
 }
 
 - (void) setFunctionForAxis: (int)axis 
@@ -129,9 +210,18 @@
 
 - (void) setDefaultMapping
 {
+   // assign the simplest mapping: stick 0 having
+   // axis 0/1 being roll/pitch and button 0 being fire, 1 being missile
+   // All joysticks should at least have two axes and two buttons.
+   axismap[0][0]=AXIS_ROLL;
+   axismap[0][1]=AXIS_PITCH;
+   buttonmap[0][0]=BUTTON_FIRE;
+   buttonmap[0][1]=BUTTON_LAUNCHMISSILE;
+}
+
+- (void) clearMappings
+{
    int i, j;
-   
-   // Ensure the default action is unassigned.
    for(i=0; i < AXIS_end; i++)
    {
       for(j=0; j < MAX_STICKS; j++)
@@ -146,14 +236,6 @@
          buttonmap[j][i]=STICK_NOFUNCTION;
       }
    }
-
-   // assign the simplest mapping: stick 0 having
-   // axis 0/1 being roll/pitch and button 0 being fire, 1 being missile
-   // All joysticks should at least have two axes and two buttons.
-   axismap[0][0]=AXIS_ROLL;
-   axismap[0][1]=AXIS_PITCH;
-   buttonmap[0][0]=BUTTON_FIRE;
-   buttonmap[0][1]=BUTTON_LAUNCHMISSILE;
 }
 
 - (void) clearStickStates
@@ -213,6 +295,51 @@
 - (int)getNumSticks
 {
    return numSticks;
+}
+
+- (void)saveStickSettings
+{
+   NSUserDefaults *defaults=[NSUserDefaults standardUserDefaults];
+   [defaults setObject: [self getAxisFunctions]
+                forKey: AXIS_SETTINGS];
+   [defaults setObject: [self getButtonFunctions]
+                forKey: BUTTON_SETTINGS];
+   
+   [defaults synchronize];
+}
+
+- (void)loadStickSettings
+{
+   int i;
+   [self clearMappings];                  
+   NSUserDefaults *defaults=[NSUserDefaults standardUserDefaults];
+   NSDictionary *axisSettings=[defaults objectForKey: AXIS_SETTINGS];
+   NSDictionary *buttonSettings=[defaults objectForKey: BUTTON_SETTINGS];
+   if(axisSettings)
+   {
+      NSArray *keys=[axisSettings allKeys];
+      for(i=0; i < [keys count]; i++)
+      {
+         NSString *key=[keys objectAtIndex: i];
+         [self setFunction: [key intValue]
+                  withDict: [axisSettings objectForKey: key]];
+      }
+   }
+   if(buttonSettings)
+   {
+      NSArray *keys=[buttonSettings allKeys];
+      for(i=0; i < [keys count]; i++)
+      {
+         NSString *key=[keys objectAtIndex: i];
+         [self setFunction: [key intValue]
+                  withDict: [buttonSettings objectForKey: key]];
+      }
+   }
+   else
+   {
+      // Nothing to load - set useful defaults
+      [self setDefaultMapping];
+   }
 }
 
 @end

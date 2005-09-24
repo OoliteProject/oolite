@@ -8,15 +8,21 @@
 // JoystickHandler handles joystick events from SDL, and translates them
 // into the appropriate action via a lookup table. The lookup table is
 // stored as a simple array rather than an ObjC dictionary since this
-// will be examined fairly often. The table is however converted to
-// an NSDictionary and back so it can be saved into the user's defaults
-// file.
+// will be examined fairly often (once per frame during gameplay). 
+//
+// Conversion methods are provided to convert between the internal
+// representation and an NSDictionary (for loading/saving user defaults
+// and for use in areas where portability/ease of coding are more important
+// than performance such as the GUI)
 //
 // oolite: (c) 2004 Giles C Williams.
 // This work is licensed under the Creative Commons Attribution NonCommercial
 // ShareAlike license.
 //
 
+// Enums are used here rather than a more complex ObjC object because
+// these are required very frequently (once per frame) so must be light
+// on CPU cycles (try and avoid too many objc sendmsgs).
 // Controls that can be an axis
 enum {
   AXIS_ROLL,
@@ -56,9 +62,20 @@ enum {
   BUTTON_end
 } butfn;
 
-#define MAX_STICKS 4
+// Stick constants
+#define MAX_STICKS 2
 #define STICK_NOFUNCTION -1
 #define STICK_REPORTFUNCTION -2
+
+// Dictionary keys - used in the defaults file
+#define AXIS_SETTINGS @"JoystickAxes"  // NSUserDefaults
+#define BUTTON_SETTINGS @"JoystickButs" // NSUserDefaults
+#define STICK_ISAXIS @"isAxis"      // YES=axis NO=button
+#define STICK_NUMBER @"stickNum"    // Stick number 0 to 4
+#define STICK_AXBUT  @"stickAxBt"   // Axis or button number
+// shortcut to make code more readable when using enum as key for
+// an NSDictionary
+#define ENUMKEY(x) [NSString stringWithFormat: @"%d", x]
 
 #import <Foundation/Foundation.h>
 #import <SDL/SDL.h>
@@ -96,15 +113,30 @@ enum {
 - (void) setFunctionForButton: (int)button 
                      function: (int)function
                         stick: (int)stickNum;
+// convert a dictionary into the internal function map
+- (void) setFunction: (int)function withDict: (NSDictionary *)stickFn;
 
-// Accessors
+// Accessors and discovery about the hardware.
+// These work directly on the internal lookup table so to be fast
+// since they are likely to be called by the game loop.
 - (int) getNumSticks;
-- (int) getButtonState: (int)function;
+- (BOOL) getButtonState: (int)function;
+
+// Hardware introspection.
+- (NSArray *)listSticks;
+
+// These use NSDictionary/NSArray since they are used outside the game
+// loop and are needed for loading/saving defaults.
+- (NSDictionary *)getAxisFunctions;
+- (NSDictionary *)getButtonFunctions;
 
 // Methods generally only used by this class.
 - (void) setDefaultMapping;
+- (void) clearMappings;
 - (void) clearStickStates;
 - (void) decodeAxisEvent: (SDL_JoyAxisEvent *)evt;
 - (void) decodeButtonEvent: (SDL_JoyButtonEvent *)evt;
+- (void) saveStickSettings;
+- (void) loadStickSettings;
 
 @end
