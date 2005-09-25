@@ -435,6 +435,9 @@ Your fair use and other rights are in no way affected by the above.
       // Keeping track of joysticks
       int numSticks;
       JoystickHandler *stickHandler;
+      int selFunctionIdx;
+      BOOL waitingForStickCallback;
+      NSArray *stickFunctions; 
 }
 
 - (void) init_keys;

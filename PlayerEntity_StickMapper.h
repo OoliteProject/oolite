@@ -27,20 +27,20 @@
 #define KEY_ALLOWABLE @"allowable"
 #define KEY_AXISFN @"axisfunc"
 #define KEY_BUTTONFN @"buttonfunc"
-#define ALLOW_AXISONLY 1
-#define ALLOW_BUTTONONLY 2
-#define ALLOW_ALL 3                           
 
 @interface PlayerEntity (StickMapper)
 
    - (void) setGuiToStickMapperScreen;
    - (void) stickMapperInputHandler: (GuiDisplayGen *)gui
                                view: (MyOpenGLView *)gameView;
+   // Callback method
+   - (void) updateFunction: (NSDictionary *)hwDict;
 
    // internal methods
    - (NSArray *)getStickFunctionList;
    - (void)displayFunctionList: (GuiDisplayGen *)gui;
    - (NSString *)describeStickDict: (NSDictionary *)stickDict;
+   - (NSString *)hwToString: (int)hwFlags;
 
    // Future: populate via plist
    - (NSDictionary *)makeStickGuiDict: (NSString *)what 

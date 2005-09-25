@@ -251,20 +251,49 @@
    }
 }
 
+- (void)setCallback: (SEL) selector
+             object: (id) obj
+           hardware: (char)hwflags
+{
+   cbObject=obj;
+   cbSelector=selector;
+   cbHardware=hwflags;
+}
+
+- (void)clearCallback
+{
+   cbObject=nil;
+   cbHardware=0;
+}
+
 - (void)decodeAxisEvent: (SDL_JoyAxisEvent *)evt
 {
    // Which axis moved? Does the value need to be made to fit a
    // certain function? Convert axis value to a double.
    double axisvalue=(double)evt->value;
+
+   // Is there a callback we need to make?
+   if(cbObject && (cbHardware & HW_AXIS) && abs(axisvalue) > AXCBTHRESH)
+   {
+      NSDictionary *fnDict=[NSDictionary dictionaryWithObjectsAndKeys:
+          [NSNumber numberWithBool: YES], STICK_ISAXIS,
+          [NSNumber numberWithInt: evt->which], STICK_NUMBER, 
+          [NSNumber numberWithInt: evt->axis], STICK_AXBUT,
+           nil];
+      cbHardware=0;
+      [cbObject performSelector:cbSelector withObject:fnDict];
+      cbObject=nil;
+
+      // we are done.
+      return;
+   }
+
    int function=axismap[evt->which][evt->axis];
    switch (function)
    {
       case STICK_NOFUNCTION:
          // do nothing
          break;
-      case STICK_REPORTFUNCTION:
-         // TODO
-         break;         
       case AXIS_ROLL:
       case AXIS_PITCH:
          // Normalize roll/pitch to what the game expects.
@@ -279,6 +308,23 @@
 - (void)decodeButtonEvent: (SDL_JoyButtonEvent *)evt
 {
    BOOL bs=NO;
+
+   // Is there a callback we need to make?
+   if(cbObject && (cbHardware & HW_BUTTON))
+   {
+      NSDictionary *fnDict=[NSDictionary dictionaryWithObjectsAndKeys:
+          [NSNumber numberWithBool: NO], STICK_ISAXIS,
+          [NSNumber numberWithInt: evt->which], STICK_NUMBER, 
+          [NSNumber numberWithInt: evt->button], STICK_AXBUT,
+           nil];
+      cbHardware=0;
+      [cbObject performSelector:cbSelector withObject:fnDict];
+      cbObject=nil;
+
+      // we are done.
+      return;
+   }
+
    int function=buttonmap[evt->which][evt->button];
    if(evt->type == SDL_JOYBUTTONDOWN)
    {

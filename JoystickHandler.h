@@ -65,7 +65,15 @@ enum {
 // Stick constants
 #define MAX_STICKS 2
 #define STICK_NOFUNCTION -1
-#define STICK_REPORTFUNCTION -2
+
+// Kind of stick device (these are bits - if any more are added,
+// the next one is 4 and so on).
+#define HW_AXIS 1
+#define HW_BUTTON 2
+
+// The threshold at which an axis can trigger a call back.
+// The max of abs(axis) is 32767.
+#define AXCBTHRESH 20000
 
 // Dictionary keys - used in the defaults file
 #define AXIS_SETTINGS @"JoystickAxes"  // NSUserDefaults
@@ -73,6 +81,7 @@ enum {
 #define STICK_ISAXIS @"isAxis"      // YES=axis NO=button
 #define STICK_NUMBER @"stickNum"    // Stick number 0 to 4
 #define STICK_AXBUT  @"stickAxBt"   // Axis or button number
+#define STICK_FUNCTION @"stickFunc" // Function of axis/button
 // shortcut to make code more readable when using enum as key for
 // an NSDictionary
 #define ENUMKEY(x) [NSString stringWithFormat: @"%d", x]
@@ -92,6 +101,13 @@ enum {
       SDL_Joystick *stick[MAX_STICKS];
       double precision;
       int numSticks;
+
+      // Handle callbacks - the object, selector to call
+      // the desired function, and the hardware (axis or button etc.)
+      id cbObject;
+      SEL cbSelector;
+      int cbFunc;
+      char cbHardware;
 }
 
 // General.
@@ -129,6 +145,13 @@ enum {
 // loop and are needed for loading/saving defaults.
 - (NSDictionary *)getAxisFunctions;
 - (NSDictionary *)getButtonFunctions;
+
+// Set a callback for the next moved axis/pressed button. hwflags
+// is in the form HW_AXIS | HW_BUTTON (or just one of).
+- (void)setCallback: (SEL)selector 
+             object: (id)obj 
+           hardware: (char)hwflags;
+- (void)clearCallback;           
 
 // Methods generally only used by this class.
 - (void) setDefaultMapping;

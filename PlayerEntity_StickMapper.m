@@ -47,7 +47,7 @@
       [NSString stringWithString: @"Select a function and press Enter to modify."], nil]
           forRow: INSTRUCT_ROW];
 
-   [gui setSelectedRow: FUNCSTART_ROW];
+   [gui setSelectedRow: selFunctionIdx + FUNCSTART_ROW];
    [universe guiUpdated];
    [[universe gameView] supressKeysUntilKeyUp];
 
@@ -56,11 +56,84 @@
 - (void) stickMapperInputHandler: (GuiDisplayGen *)gui
                             view: (MyOpenGLView *)gameView
 {
+   // Don't do anything if the user is supposed to be selecting
+   // a function - other than look for Escape.
+   if(waitingForStickCallback)
+   {
+      if([gameView isDown: 27])
+      {
+         [stickHandler clearCallback];
+         [gui setArray: [NSArray arrayWithObjects:
+            [NSString stringWithString: @"Function setting aborted."], nil]
+            forRow: INSTRUCT_ROW];
+         waitingForStickCallback=NO;
+      }
+
+      // Break out now.
+      return;
+   }
+   
    [self handleGUIUpDownArrowKeys: gui: gameView];
+   
    if([gameView isDown: 13])
    {
-      int funcIdx=[gui selectedRow] - FUNCSTART_ROW;
+      selFunctionIdx=[gui selectedRow]-FUNCSTART_ROW;
+      NSDictionary *entry=[stickFunctions objectAtIndex: selFunctionIdx];
+      int hw=[(NSNumber *)[entry objectForKey: KEY_ALLOWABLE] intValue];
+      [stickHandler setCallback: @selector(updateFunction:)
+                         object: self 
+                       hardware: hw];
+
+      // Print instructions
+      NSString *instructions;
+      switch(hw)
+      {
+         case HW_AXIS:
+            instructions=[NSString stringWithString: 
+               @"Fully deflect the axis you want to use for this function. Esc aborts."];
+            break;
+         case HW_BUTTON:
+            instructions=[NSString stringWithString:
+               @"Press the button you want to use for this function. Esc aborts."];
+            break;
+         default:
+            instructions=[NSString stringWithString:
+               @"Press the button or deflect the axis you want to use for this function."];
+      }
+      [gui setArray: [NSArray arrayWithObjects: instructions, nil] forRow: INSTRUCT_ROW];
+      waitingForStickCallback=YES;
    }
+}
+
+// Callback function, called by JoystickHandler when the callback
+// is set. The dictionary contains the thing that was pressed/moved.
+- (void) updateFunction: (NSDictionary *)hwDict
+{
+   waitingForStickCallback=NO;
+
+   // Right time and the right place?
+   if(gui_screen != GUI_SCREEN_STICKMAPPER)
+   {
+      NSLog(@"updateFunction: Oops, we weren't expecting that callback");
+      return;
+   }
+   
+   // What moved?
+   int function;
+   NSDictionary *entry=[stickFunctions objectAtIndex: selFunctionIdx];
+   if([(NSNumber *)[hwDict objectForKey: STICK_ISAXIS] boolValue] == YES)
+   {
+      function=[(NSNumber *)[entry objectForKey: KEY_AXISFN] intValue];
+   }
+   else
+   {
+      function=[(NSNumber *)[entry objectForKey: KEY_BUTTONFN] intValue];
+   }
+   [stickHandler setFunction: function withDict: hwDict];
+   [stickHandler saveStickSettings];
+
+   // Update the GUI (this will refresh the function list).
+   [self setGuiToStickMapperScreen];
 }
 
 - (void) displayFunctionList: (GuiDisplayGen *)gui
@@ -71,26 +144,29 @@
       @"Function", @"Assigned to", @"Type", nil]
           forRow: HEADINGROW];
 
-   NSArray *functions=[self getStickFunctionList];
+   if(!stickFunctions)
+   {
+      stickFunctions=[self getStickFunctionList];
+   }
    NSDictionary *assignedAxes=[stickHandler getAxisFunctions];
    NSDictionary *assignedButs=[stickHandler getButtonFunctions];
    
-   for(i=0; i < [functions count]; i++)
+   for(i=0; i < [stickFunctions count]; i++)
    {
       NSString *allowedThings;
       NSString *assignment;
-      NSDictionary *entry=[functions objectAtIndex: i];
+      NSDictionary *entry=[stickFunctions objectAtIndex: i];
       NSString *axFuncKey=[(NSNumber *)[entry objectForKey: KEY_AXISFN] stringValue];
       NSString *butFuncKey=[(NSNumber *)[entry objectForKey: KEY_BUTTONFN] stringValue];
       int allowable=[(NSNumber *)[entry objectForKey: KEY_ALLOWABLE] intValue];
       switch(allowable)
       {
-         case ALLOW_AXISONLY:
+         case HW_AXIS:
             allowedThings=[NSString stringWithString: @"Axis"];
             assignment=[self describeStickDict:
                [assignedAxes objectForKey: axFuncKey]];
             break;
-         case ALLOW_BUTTONONLY:
+         case HW_BUTTON:
             allowedThings=[NSString stringWithString: @"Button"];
             assignment=[self describeStickDict:
                [assignedButs objectForKey: butFuncKey]];
@@ -108,7 +184,7 @@
       
       // Find out what's assigned for this function currently.
       if(!assignment)
-         assignment=[NSString stringWithString: @"  - "];
+         assignment=[NSString stringWithString: @"   -   "];
 
       [gui setArray: [NSArray arrayWithObjects: 
          [entry objectForKey: KEY_GUIDESC], assignment, allowedThings, nil]
@@ -143,6 +219,23 @@
    return desc;
 }
 
+- (NSString *)hwToString: (int)hwFlags
+{
+   NSString *hwString;
+   switch(hwFlags)
+   {
+      case HW_AXIS:
+         hwString=[NSString stringWithString: @"axis"];
+         break;
+      case HW_BUTTON:
+         hwString=[NSString stringWithString: @"button"];
+         break;
+      default:
+         hwString=[NSString stringWithString: @"axis/button"];
+   }
+   return hwString;   
+}
+
 // TODO:
 // FUTURE: This data could be put into a plist (i18n or just modifiable by
 // the user). It is otherwise an ugly method, but it'll do for testing.
@@ -152,62 +245,62 @@
 
    [funcList addObject: 
       [self makeStickGuiDict: @"Roll" 
-                   allowable: ALLOW_AXISONLY
+                   allowable: HW_AXIS
                       axisfn: AXIS_ROLL
                        butfn: STICK_NOFUNCTION]];
    [funcList addObject: 
       [self makeStickGuiDict: @"Pitch"
-                   allowable: ALLOW_AXISONLY
+                   allowable: HW_AXIS
                       axisfn: AXIS_PITCH
                        butfn: STICK_NOFUNCTION]];
    [funcList addObject:
       [self makeStickGuiDict: @"Increase thrust"
-                   allowable: ALLOW_ALL
+                   allowable: HW_AXIS|HW_BUTTON
                       axisfn: AXIS_THRUST
                        butfn: BUTTON_INCTHRUST]];
    [funcList addObject:
       [self makeStickGuiDict: @"Decrease thrust"
-                   allowable: ALLOW_ALL
+                   allowable: HW_AXIS|HW_BUTTON
                       axisfn: AXIS_THRUST
                        butfn: BUTTON_DECTHRUST]];
    [funcList addObject:
       [self makeStickGuiDict: @"Primary weapon"
-                   allowable: ALLOW_BUTTONONLY
+                   allowable: HW_BUTTON
                       axisfn: STICK_NOFUNCTION
                        butfn: BUTTON_FIRE]];
    [funcList addObject:
       [self makeStickGuiDict: @"Secondary weapon"
-                   allowable: ALLOW_BUTTONONLY
+                   allowable: HW_BUTTON
                       axisfn: STICK_NOFUNCTION
                        butfn: BUTTON_LAUNCHMISSILE]];
    [funcList addObject:
       [self makeStickGuiDict: @"Arm secondary"
-                   allowable: ALLOW_BUTTONONLY
+                   allowable: HW_BUTTON
                       axisfn: STICK_NOFUNCTION
                        butfn: BUTTON_ARMMISSILE]];
    [funcList addObject:
       [self makeStickGuiDict: @"Disarm secondary"
-                   allowable: ALLOW_BUTTONONLY
+                   allowable: HW_BUTTON
                       axisfn: STICK_NOFUNCTION
                        butfn: BUTTON_UNARM]];
    [funcList addObject:
       [self makeStickGuiDict: @"Cycle secondary"
-                   allowable: ALLOW_BUTTONONLY
+                   allowable: HW_BUTTON
                       axisfn: STICK_NOFUNCTION
                        butfn: BUTTON_CYCLEMISSILE]];
    [funcList addObject:
       [self makeStickGuiDict: @"ECM"
-                   allowable: ALLOW_BUTTONONLY
+                   allowable: HW_BUTTON
                       axisfn: STICK_NOFUNCTION
                        butfn: BUTTON_ECM]];
    [funcList addObject:
       [self makeStickGuiDict: @"Toggle ID"
-                   allowable: ALLOW_BUTTONONLY
+                   allowable: HW_BUTTON
                       axisfn: STICK_NOFUNCTION
                        butfn: BUTTON_ID]];
    [funcList addObject:
       [self makeStickGuiDict: @"Fuel Injection"
-                   allowable: ALLOW_BUTTONONLY
+                   allowable: HW_BUTTON
                       axisfn: STICK_NOFUNCTION
                        butfn: BUTTON_FUELINJECT]];
    return funcList;
