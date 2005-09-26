@@ -2381,7 +2381,7 @@ static BOOL cloak_pressed;
 - (void) pollFlightControls:(double) delta_t
 {
 	MyOpenGLView  *gameView = (MyOpenGLView *)[universe gameView];
-   const BOOL *joyButtonState=[stickHandler getAllButtonStates];
+   const BOOL *joyButtonState=[[gameView getStickHandler] getAllButtonStates];
 	BOOL paused = [[gameView gameController] game_is_paused];
 	double speed_delta = 5.0 * thrust;
 	
