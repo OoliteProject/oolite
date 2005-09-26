@@ -2381,6 +2381,7 @@ static BOOL cloak_pressed;
 - (void) pollFlightControls:(double) delta_t
 {
 	MyOpenGLView  *gameView = (MyOpenGLView *)[universe gameView];
+   const BOOL *joyButtonState=[stickHandler getAllButtonStates];
 	BOOL paused = [[gameView gameController] game_is_paused];
 	double speed_delta = 5.0 * thrust;
 	
@@ -2402,7 +2403,7 @@ static BOOL cloak_pressed;
 		if (![universe displayCursor])
 		{
 			//
-			if (([gameView isDown:key_inject_fuel])&&(has_fuel_injection)&&(!hyperspeed_engaged)&&(status != STATUS_WITCHSPACE_COUNTDOWN))
+			if ((joyButtonState[BUTTON_FUELINJECT] || [gameView isDown:key_inject_fuel])&&(has_fuel_injection)&&(!hyperspeed_engaged)&&(status != STATUS_WITCHSPACE_COUNTDOWN))
 			{
 				if ((fuel > 0)&&(!afterburner_engaged))
 				{
@@ -2424,7 +2425,7 @@ static BOOL cloak_pressed;
 			if ((!afterburner_engaged)&&(afterburnerSoundLooping))
 				[self stopAfterburnerSound];
 			//
-			if (([gameView isDown:key_increase_speed])&&(flight_speed < max_flight_speed)&&(!afterburner_engaged))
+			if (([gameView isDown:key_increase_speed] || joyButtonState[BUTTON_INCTHRUST])&&(flight_speed < max_flight_speed)&&(!afterburner_engaged))
 			{
 				if (flight_speed < max_flight_speed)
 					flight_speed += speed_delta * delta_t;
@@ -2433,7 +2434,7 @@ static BOOL cloak_pressed;
 			}
 			// if (([gameView isDown:key_decrease_speed])&&(!hyperspeed_engaged)&&(!afterburner_engaged))
 			// ** tgape ** - decrease obviously means no hyperspeed
-			if (([gameView isDown:key_decrease_speed])&&(!afterburner_engaged))
+			if (([gameView isDown:key_decrease_speed] || joyButtonState[BUTTON_DECTHRUST])&&(!afterburner_engaged))
 			{
 				if (flight_speed > 0.0)
 					flight_speed -= speed_delta * delta_t;
@@ -2445,7 +2446,7 @@ static BOOL cloak_pressed;
 			//
 			//  hyperspeed controls
 			//
-			if ([gameView isDown:key_jumpdrive])		// 'j'
+			if ([gameView isDown:key_jumpdrive] || joyButtonState[BUTTON_HYPERSPEED])		// 'j'
 			{
 				if (!jump_pressed)
 				{
@@ -2476,7 +2477,7 @@ static BOOL cloak_pressed;
 			//
 			//  shoot 'a'
 			//
-			if ((([gameView isDown:key_fire_lasers])||((mouse_control_on)&&([gameView isDown:gvMouseLeftButton]))||[stickHandler getButtonState: BUTTON_FIRE])&&(shot_time > weapon_reload_time))
+			if ((([gameView isDown:key_fire_lasers])||((mouse_control_on)&&([gameView isDown:gvMouseLeftButton]))||joyButtonState[BUTTON_FIRE])&&(shot_time > weapon_reload_time))
 			{
 				if ([self fireMainWeapon])
 				{
@@ -2529,7 +2530,7 @@ static BOOL cloak_pressed;
 			//
 			//  shoot 'm'   // launch missile
 			//
-			if ([gameView isDown:key_launch_missile])
+			if ([gameView isDown:key_launch_missile] || joyButtonState[BUTTON_LAUNCHMISSILE])
 			{
 				// launch here
 				if (!fire_missile_pressed)
@@ -2550,7 +2551,7 @@ static BOOL cloak_pressed;
 			//
 			//  shoot 'y'   // next target
 			//
-			if ([gameView isDown:key_next_missile])
+			if ([gameView isDown:key_next_missile] || joyButtonState[BUTTON_CYCLEMISSILE])
 			{
 				if ((!ident_engaged)&&(!next_target_pressed)&&([self has_extra_equipment:@"EQ_MULTI_TARGET"]))
 				{
@@ -2564,7 +2565,7 @@ static BOOL cloak_pressed;
 			//
 			//  shoot 'r'   // switch on ident system
 			//
-			if ([gameView isDown:key_ident_system])
+			if ([gameView isDown:key_ident_system] || joyButtonState[BUTTON_ID])
 			{
 				// ident 'on' here
 				if (!ident_pressed)
@@ -2585,7 +2586,7 @@ static BOOL cloak_pressed;
 			//
 			//  shoot 't'   // switch on missile targetting
 			//
-			if (([gameView isDown:key_target_missile])&&(missile_entity[active_missile]))
+			if (([gameView isDown:key_target_missile] || joyButtonState[BUTTON_ARMMISSILE])&&(missile_entity[active_missile]))
 			{
 				// targetting 'on' here
 				if (!target_missile_pressed)
@@ -2630,7 +2631,7 @@ static BOOL cloak_pressed;
 			//
 			//  shoot 'u'   // disarm missile targetting
 			//
-			if ([gameView isDown:key_untarget_missile])
+			if ([gameView isDown:key_untarget_missile] || joyButtonState[BUTTON_UNARM])
 			{
 				if (!safety_pressed)
 				{
@@ -2666,7 +2667,7 @@ static BOOL cloak_pressed;
 			//
 			//  shoot 'e'   // ECM
 			//
-			if (([gameView isDown:key_ecm])&&(has_ecm))
+			if (([gameView isDown:key_ecm] || joyButtonState[BUTTON_ECM])&&(has_ecm))
 			{
 				if (!ecm_in_operation)
 				{
@@ -2682,7 +2683,7 @@ static BOOL cloak_pressed;
 			//
 			//  shoot 'tab'   // Energy bomb
 			//
-			if (([gameView isDown:key_energy_bomb])&&(has_energy_bomb))
+			if (([gameView isDown:key_energy_bomb] || joyButtonState[BUTTON_ENERGYBOMB])&&(has_energy_bomb))
 			{
 				// original energy bomb routine
 				[self fireEnergyBomb];
@@ -2691,14 +2692,14 @@ static BOOL cloak_pressed;
 			//
 			//  shoot 'escape'   // Escape pod launch
 			//
-			if (([gameView isDown:key_launch_escapepod])&&(has_escape_pod)&&([universe station]))
+			if (([gameView isDown:key_launch_escapepod] || joyButtonState[BUTTON_ESCAPE])&&(has_escape_pod)&&([universe station]))
 			{
 				found_target = [self launchEscapeCapsule];
 			}
 			//
 			//  shoot 'd'   // Dump Cargo
 			//
-			if (([gameView isDown:key_dump_cargo])&&([cargo count] > 0))
+			if (([gameView isDown:key_dump_cargo] || joyButtonState[BUTTON_JETTISON])&&([cargo count] > 0))
 			{
 #ifdef HAVE_SOUND           
 				if ([self dumpCargo] != CARGO_NOT_CARGO)
@@ -2710,7 +2711,7 @@ static BOOL cloak_pressed;
 			//
 			// autopilot 'c'
 			//
-			if (([gameView isDown:key_autopilot])&&(has_docking_computer)&&(![beepSound isPlaying]))   // look for the 'c' key
+			if (([gameView isDown:key_autopilot] || joyButtonState[BUTTON_DOCKCPU])&&(has_docking_computer)&&(![beepSound isPlaying]))   // look for the 'c' key
 			{
 				if ([self checkForAegis] == AEGIS_IN_DOCKING_RANGE)
 				{
@@ -2763,7 +2764,7 @@ static BOOL cloak_pressed;
 			//
 			// autopilot 'C' - dock with target
 			//
-			if (([gameView isDown:key_autopilot_target])&&(has_docking_computer)&&(![beepSound isPlaying]))   // look for the 'c' key
+			if (([gameView isDown:key_autopilot_target] || joyButtonState[BUTTON_DOCKCPUTARGET])&&(has_docking_computer)&&(![beepSound isPlaying]))   // look for the 'c' key
 			{
 				Entity* primeTarget = [self getPrimaryTarget];
 				if ((primeTarget)&&(primeTarget->isStation))
@@ -2817,7 +2818,7 @@ static BOOL cloak_pressed;
 			//
 			// autopilot 'D'
 			//
-			if (([gameView isDown:key_autodock])&&(has_docking_computer)&&(![beepSound isPlaying]))   // look for the 'D' key
+			if (([gameView isDown:key_autodock] || joyButtonState[BUTTON_DOCKCPUFAST])&&(has_docking_computer)&&(![beepSound isPlaying]))   // look for the 'D' key
 			{
 				if ([self checkForAegis] == AEGIS_IN_DOCKING_RANGE)
 				{
@@ -2861,7 +2862,7 @@ static BOOL cloak_pressed;
 			//
 			// hyperspace 'h'
 			//
-			if ([gameView isDown:key_hyperspace])   // look for the 'h' key
+			if ([gameView isDown:key_hyperspace] || joyButtonState[BUTTON_HYPERDRIVE])   // look for the 'h' key
 			{
 				float			dx = target_system_seed.d - galaxy_coordinates.x;
 				float			dy = target_system_seed.b - galaxy_coordinates.y;
@@ -2904,7 +2905,7 @@ static BOOL cloak_pressed;
 			//
 			// Galactic hyperspace 'g'
 			//
-			if (([gameView isDown:key_galactic_hyperspace])&&(has_galactic_hyperdrive))// look for the 'g' key
+			if (([gameView isDown:key_galactic_hyperspace] || joyButtonState[BUTTON_GALACTICDRIVE])&&(has_galactic_hyperdrive))// look for the 'g' key
 			{
 				BOOL	jumpOK = YES;
 				
@@ -2926,7 +2927,7 @@ static BOOL cloak_pressed;
 			//
 			//  shoot '0'   // Cloaking Device
 			//
-			if ([gameView isDown:key_cloaking_device] && has_cloaking_device)
+			if (([gameView isDown:key_cloaking_device] || joyButtonState[BUTTON_CLOAK]) && has_cloaking_device)
 			{
 				if (!cloak_pressed)
 				{

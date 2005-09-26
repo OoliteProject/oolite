@@ -84,6 +84,11 @@
    return butstate[function];
 }
 
+- (const BOOL *)getAllButtonStates
+{
+   return butstate;
+}
+
 - (double) getPrecision
 {
    return precision;
