@@ -45,11 +45,18 @@
       }
       SDL_JoystickEventState(SDL_ENABLE);
    }
+
+   // set initial values for stick buttons/axes (NO for buttons,
+   // STICK_AXISUNASSIGNED for axes). Caution: calling this again
+   // after axes have been assigned will set all the axes to
+   // STICK_AXISUNASSIGNED so if there is a need to do something
+   // like this, then do it some other way, or change this method
+   // so it doesn't do that.
+   [self clearStickStates];
       
    // Make some sensible mappings. This also ensures unassigned
    // axes and buttons are set to unassigned (STICK_NOFUNCTION).
    [self loadStickSettings];
-   [self clearStickStates];
 
    return self;
 }
@@ -87,6 +94,11 @@
 - (const BOOL *)getAllButtonStates
 {
    return butstate;
+}
+
+- (double) getAxisState: (int)function
+{
+   return axstate[function];
 }
 
 - (double) getPrecision
@@ -192,6 +204,7 @@
       }
    }
    axismap[stickNum][axis]=function;
+   axstate[function]=0;
 }
 
 - (void) setFunctionForButton: (int)button 
@@ -211,6 +224,39 @@
       }
    }
    buttonmap[stickNum][button]=function;
+}
+
+- (void) unsetAxisFunction: (int)function
+{
+   int i, j;
+   for(i=0; i < AXIS_end; i++)
+   {
+      for(j=0; j < MAX_STICKS; j++)
+      {
+         if(axismap[j][i] == function)
+         {
+            axismap[j][i]=STICK_NOFUNCTION;
+            axstate[function]=STICK_AXISUNASSIGNED;
+            break;
+         }
+      }
+   }
+}
+
+- (void) unsetButtonFunction: (int)function
+{
+   int i,j;
+   for(i=0; i < BUTTON_end; i++)
+   {
+      for(j=0; j < MAX_STICKS; j++)
+      {
+         if(buttonmap[j][i] == function)
+         {
+            buttonmap[j][i]=STICK_NOFUNCTION;
+            break;
+         }
+      }
+   }
 }
 
 - (void) setDefaultMapping
@@ -248,7 +294,7 @@
    int i;
    for(i=0; i < AXIS_end; i++)
    {
-      axstate[i]=0;
+      axstate[i]=STICK_AXISUNASSIGNED;
    }
    for(i=0; i < BUTTON_end; i++)
    {
@@ -299,14 +345,13 @@
       case STICK_NOFUNCTION:
          // do nothing
          break;
-      case AXIS_ROLL:
-      case AXIS_PITCH:
-         // Normalize roll/pitch to what the game expects.
-         axstate[function]=axisvalue / 32768;
+      case AXIS_THRUST:
+         // Normalize the thrust setting.
+         axstate[function]=(65536 - (axisvalue + 32768)) / 65536;
          break;
       default:
          // set the state with no modification.
-         axstate[function]=axisvalue;         
+         axstate[function]=axisvalue / 32768;         
    }
 }
 

@@ -37,6 +37,7 @@
    - (void) updateFunction: (NSDictionary *)hwDict;
 
    // internal methods
+   - (void) removeFunction: (int)selFunctionIdx;
    - (NSArray *)getStickFunctionList;
    - (void)displayFunctionList: (GuiDisplayGen *)gui;
    - (NSString *)describeStickDict: (NSDictionary *)stickDict;

@@ -44,7 +44,7 @@
    [self displayFunctionList: gui];
 
    [gui setArray: [NSArray arrayWithObjects:
-      [NSString stringWithString: @"Select a function and press Enter to modify."], nil]
+      [NSString stringWithString: @"Select a function and press Enter to modify or 'u' to unset."], nil]
           forRow: INSTRUCT_ROW];
 
    [gui setSelectedRow: selFunctionIdx + FUNCSTART_ROW];
@@ -103,6 +103,11 @@
       [gui setArray: [NSArray arrayWithObjects: instructions, nil] forRow: INSTRUCT_ROW];
       waitingForStickCallback=YES;
    }
+
+   if([gameView isDown: 'u'])
+   {
+      [self removeFunction: [gui selectedRow]-FUNCSTART_ROW];
+   }
 }
 
 // Callback function, called by JoystickHandler when the callback
@@ -133,6 +138,27 @@
    [stickHandler saveStickSettings];
 
    // Update the GUI (this will refresh the function list).
+   [self setGuiToStickMapperScreen];
+}
+
+- (void) removeFunction: (int)idx
+{
+   selFunctionIdx=idx;
+   NSDictionary *entry=[stickFunctions objectAtIndex: idx];
+   NSNumber *butfunc=[entry objectForKey: KEY_BUTTONFN];
+   NSNumber *axfunc=[entry objectForKey: KEY_AXISFN];
+
+   // Some things can have either axis or buttons - make sure we clear
+   // both!
+   if(butfunc)
+   {
+      [stickHandler unsetButtonFunction: [butfunc intValue]];
+   }
+   if(axfunc)
+   {
+      [stickHandler unsetAxisFunction: [axfunc intValue]];
+   }
+   [stickHandler saveStickSettings];
    [self setGuiToStickMapperScreen];
 }
 
@@ -303,6 +329,11 @@
                    allowable: HW_BUTTON
                       axisfn: STICK_NOFUNCTION
                        butfn: BUTTON_FUELINJECT]];
+   [funcList addObject:
+      [self makeStickGuiDict: @"Hyperspeed"
+                   allowable: HW_BUTTON
+                      axisfn: STICK_NOFUNCTION
+                       butfn: BUTTON_HYPERSPEED]];
    return funcList;
 }
 

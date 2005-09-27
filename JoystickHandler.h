@@ -65,6 +65,7 @@ enum {
 // Stick constants
 #define MAX_STICKS 2
 #define STICK_NOFUNCTION -1
+#define STICK_AXISUNASSIGNED -10.0
 
 // Kind of stick device (these are bits - if any more are added,
 // the next one is 4 and so on).
@@ -131,12 +132,15 @@ enum {
                         stick: (int)stickNum;
 // convert a dictionary into the internal function map
 - (void) setFunction: (int)function withDict: (NSDictionary *)stickFn;
+- (void) unsetAxisFunction: (int)function;
+- (void) unsetButtonFunction: (int)function;
 
 // Accessors and discovery about the hardware.
 // These work directly on the internal lookup table so to be fast
 // since they are likely to be called by the game loop.
 - (int) getNumSticks;
 - (BOOL) getButtonState: (int)function;
+- (double) getAxisState: (int)function;
 
 // This one just returns a pointer to the entire state array to
 // allow for multiple lookups with only one objc_sendMsg

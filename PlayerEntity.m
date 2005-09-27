@@ -2381,7 +2381,13 @@ static BOOL cloak_pressed;
 - (void) pollFlightControls:(double) delta_t
 {
 	MyOpenGLView  *gameView = (MyOpenGLView *)[universe gameView];
-   const BOOL *joyButtonState=[[gameView getStickHandler] getAllButtonStates];
+   
+   // DJS: TODO: Sort where SDL keeps its stuff.
+   if(!stickHandler)
+   {
+      stickHandler=[gameView getStickHandler];
+   }
+   const BOOL *joyButtonState=[stickHandler getAllButtonStates];
 	BOOL paused = [[gameView gameController] game_is_paused];
 	double speed_delta = 5.0 * thrust;
 	
@@ -2425,24 +2431,41 @@ static BOOL cloak_pressed;
 			if ((!afterburner_engaged)&&(afterburnerSoundLooping))
 				[self stopAfterburnerSound];
 			//
-			if (([gameView isDown:key_increase_speed] || joyButtonState[BUTTON_INCTHRUST])&&(flight_speed < max_flight_speed)&&(!afterburner_engaged))
-			{
-				if (flight_speed < max_flight_speed)
-					flight_speed += speed_delta * delta_t;
-				if (flight_speed > max_flight_speed)
-					flight_speed = max_flight_speed;
-			}
-			// if (([gameView isDown:key_decrease_speed])&&(!hyperspeed_engaged)&&(!afterburner_engaged))
-			// ** tgape ** - decrease obviously means no hyperspeed
-			if (([gameView isDown:key_decrease_speed] || joyButtonState[BUTTON_DECTHRUST])&&(!afterburner_engaged))
-			{
-				if (flight_speed > 0.0)
-					flight_speed -= speed_delta * delta_t;
-				if (flight_speed < 0.0)
-					flight_speed = 0.0;
-				// ** tgape ** - decrease obviously means no hyperspeed
-				hyperspeed_engaged = NO;
-			}
+         // DJS: Thrust can be an axis or a button. Axis takes precidence.
+         double reqSpeed=[stickHandler getAxisState: AXIS_THRUST];
+         if(reqSpeed == STICK_AXISUNASSIGNED)
+         {
+            // DJS: original keyboard code 
+            if (([gameView isDown:key_increase_speed] || joyButtonState[BUTTON_INCTHRUST])&&(flight_speed < max_flight_speed)&&(!afterburner_engaged))
+            {
+               if (flight_speed < max_flight_speed)
+                  flight_speed += speed_delta * delta_t;
+               if (flight_speed > max_flight_speed)
+                  flight_speed = max_flight_speed;
+            }
+            // if (([gameView isDown:key_decrease_speed])&&(!hyperspeed_engaged)&&(!afterburner_engaged))
+            // ** tgape ** - decrease obviously means no hyperspeed
+            if (([gameView isDown:key_decrease_speed] || joyButtonState[BUTTON_DECTHRUST])&&(!afterburner_engaged))
+            {
+               if (flight_speed > 0.0)
+                  flight_speed -= speed_delta * delta_t;
+               if (flight_speed < 0.0)
+                  flight_speed = 0.0;
+               // ** tgape ** - decrease obviously means no hyperspeed
+               hyperspeed_engaged = NO;
+            }
+         } // DJS: STICK_NOFUNCTION else...a joystick axis is assigned to thrust.
+         else
+         {
+            if(flight_speed < max_flight_speed * reqSpeed)
+            {
+               flight_speed += speed_delta * delta_t;
+            }
+            if(flight_speed > max_flight_speed * reqSpeed)
+            {
+               flight_speed -= speed_delta * delta_t;
+            }
+         } // DJS: end joystick thrust axis
 			//
 			//  hyperspeed controls
 			//
@@ -3108,8 +3131,8 @@ static  BOOL	taking_snapshot;
    if(!stickHandler)
    {
       stickHandler=[gameView getStickHandler];
-      numSticks=[stickHandler getNumSticks];
    }
+   numSticks=[stickHandler getNumSticks];
 
    // DJS: Handle inputs on the joy roll/pitch axis.
    // Mouse control on takes precidence over joysticks.
