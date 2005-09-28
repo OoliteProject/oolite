@@ -3148,6 +3148,19 @@ static  BOOL	taking_snapshot;
    else if(numSticks)
    {
       virtualStick=[stickHandler getRollPitchAxis];
+      if(virtualStick.x == STICK_AXISUNASSIGNED ||
+         virtualStick.y == STICK_AXISUNASSIGNED)
+      {
+         // Not assigned - set to zero.
+         virtualStick.x=0;
+         virtualStick.y=0;
+      }
+      else if(virtualStick.x != 0 ||
+              virtualStick.y != 0)
+      {
+         // cancel keyboard override, stick has been waggled
+         keyboardRollPitchOverride=NO;
+      }
    }
 
 	double roll_dampner = ROLL_DAMPING_FACTOR * delta_t;
@@ -3158,18 +3171,20 @@ static  BOOL	taking_snapshot;
 	{
 		if ([gameView isDown:key_roll_left])
 		{
+         keyboardRollPitchOverride=YES;
 			if (flight_roll > 0.0)  flight_roll = 0.0;
 			[self decrease_flight_roll:delta_t*roll_delta];
 			rolling = YES;
 		}
 		if ([gameView isDown:key_roll_right])
 		{
+         keyboardRollPitchOverride=YES;
 			if (flight_roll < 0.0)  flight_roll = 0.0;
 			[self increase_flight_roll:delta_t*roll_delta];
 			rolling = YES;
 		}
 	}
-	if(mouse_control_on || numSticks)
+	if((mouse_control_on || numSticks) && !keyboardRollPitchOverride)
 	{
 		double stick_roll = max_flight_roll * virtualStick.x;
 		if (flight_roll < stick_roll)
@@ -3206,18 +3221,20 @@ static  BOOL	taking_snapshot;
 	{
 		if ([gameView isDown:key_pitch_back])
 		{
+         keyboardRollPitchOverride=YES;
 			if (flight_pitch < 0.0)  flight_pitch = 0.0;
 			[self increase_flight_pitch:delta_t*pitch_delta];
 			pitching = YES;
 		}
 		if ([gameView isDown:key_pitch_forward])
 		{
+         keyboardRollPitchOverride=YES;
 			if (flight_pitch > 0.0)  flight_pitch = 0.0;
 			[self decrease_flight_pitch:delta_t*pitch_delta];
 			pitching = YES;
 		}
 	}
-   if(mouse_control_on || numSticks)
+   if((mouse_control_on || numSticks) && !keyboardRollPitchOverride)
 	{
 		double stick_pitch = max_flight_pitch * virtualStick.y;
 		if (flight_pitch < stick_pitch)
