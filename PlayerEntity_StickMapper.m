@@ -334,6 +334,11 @@
                    allowable: HW_BUTTON
                       axisfn: STICK_NOFUNCTION
                        butfn: BUTTON_HYPERSPEED]];
+   [funcList addObject:
+      [self makeStickGuiDict: @"Roll/pitch precision toggle"
+                   allowable: HW_BUTTON
+                      axisfn: STICK_NOFUNCTION
+                       butfn: BUTTON_PRECISION]];
    return funcList;
 }
 

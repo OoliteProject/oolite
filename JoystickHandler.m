@@ -58,6 +58,7 @@
    // axes and buttons are set to unassigned (STICK_NOFUNCTION).
    [self loadStickSettings];
 
+   precisionMode=NO;
    return self;
 }
 
@@ -99,11 +100,6 @@
 - (double) getAxisState: (int)function
 {
    return axstate[function];
-}
-
-- (double) getPrecision
-{
-   return precision;
 }
 
 - (NSArray *)listSticks
@@ -349,6 +345,17 @@
          // Normalize the thrust setting.
          axstate[function]=(65536 - (axisvalue + 32768)) / 65536;
          break;
+      case AXIS_ROLL:
+      case AXIS_PITCH:
+         if(precisionMode)
+         {
+            axstate[function]=axisvalue / STICK_PRECISIONDIV;
+         }
+         else
+         {
+            axstate[function]=axisvalue / STICK_NORMALDIV;
+         }
+         break;
       default:
          // set the state with no modification.
          axstate[function]=axisvalue / 32768;         
@@ -379,6 +386,22 @@
    if(evt->type == SDL_JOYBUTTONDOWN)
    {
       bs=YES;
+      if(function == BUTTON_PRECISION)
+      {
+         precisionMode=!precisionMode;
+         
+         // adjust current states now
+         if(precisionMode)
+         {
+            axstate[AXIS_PITCH] /= STICK_PRECISIONFAC;
+            axstate[AXIS_ROLL] /= STICK_PRECISIONFAC;
+         }
+         else
+         {
+            axstate[AXIS_PITCH] *= STICK_PRECISIONFAC;
+            axstate[AXIS_ROLL] *= STICK_PRECISIONFAC;
+         }
+      }
    }
 
    if(function >= 0)

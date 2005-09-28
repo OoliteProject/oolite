@@ -66,6 +66,9 @@ enum {
 #define MAX_STICKS 2
 #define STICK_NOFUNCTION -1
 #define STICK_AXISUNASSIGNED -10.0
+#define STICK_PRECISIONDIV 98304 // 3 times more precise
+#define STICK_NORMALDIV 32768
+#define STICK_PRECISIONFAC (STICK_PRECISIONDIV/STICK_NORMALDIV)
 
 // Kind of stick device (these are bits - if any more are added,
 // the next one is 4 and so on).
@@ -100,7 +103,7 @@ enum {
       double axstate[AXIS_end];
       BOOL butstate[BUTTON_end];
       SDL_Joystick *stick[MAX_STICKS];
-      double precision;
+      BOOL precisionMode;
       int numSticks;
 
       // Handle callbacks - the object, selector to call
@@ -121,7 +124,6 @@ enum {
 
 // Roll/pitch axis
 - (NSPoint) getRollPitchAxis;
-- (double) getPrecision;
 
 // Setting button and axis functions
 - (void) setFunctionForAxis: (int)axis 
