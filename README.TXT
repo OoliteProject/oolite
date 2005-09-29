@@ -2,12 +2,7 @@ Oolite-Linux
 ============
 
 This repository contains the files required to build Oolite for Linux,
-GNUstep and OpenGL. It is possibly easily portable to FreeBSD. It
-won't yet work on Windows due to the lack of OpenGL support in the
-Windows implementation of GNUstep. However, if this is fixed, it
-will probably need very little effort to port. If you are considering
-porting this to a platform other than Linux, please read PORTING.TXT
-for the troubles that I've encountered - it may save you time.
+GNUstep and OpenGL. It should be easily portable to FreeBSD.
 
 0. Pre-requisites
 
@@ -15,6 +10,8 @@ for the troubles that I've encountered - it may save you time.
 
 - SDL Development libraries. (Currently used only for sound). Most
 distros have this pre-installed or as an easy-to-install package.
+Also, SDL_Mixer and SDL_Image are required (they are standard SDL
+libraries, but most Linux distros don't install them by default)
 
 - GNUstep Development libraries. I advise you build GNUstep from source
 since some prepackaged versions don't have a new enough NSOpenGLView.
@@ -27,8 +24,6 @@ PATH=$PATH:.
 
 before running make when you build GNUstep Startup, because it depends
 on running a shell script in the current directory.
-
-- SDL and SDL_gfx development libraries, header files and shared libs.
 
 I'm not sure what the minimum hardware is, however decent OpenGL
 support is a must. I've only been able to personally test it on
@@ -110,15 +105,12 @@ Graphics use SDL instead of NSOpenGLView.
 
 Major tasks left
 ================
-- OpenGL....APPLE functions (optimizations) need a suitable replacement.
-- Improve full-screen selection
 - Get rid of AppKit dependencies (in progress; moving to SDL). This
   will make the game portable to more platforms - in particular,
   GNUstep AppKit's OpenGL source is non-existent on Redmondware.
   Much of this work has been done.
 - Speech. This is a more 'who cares?' requirement. I don't know of
   a *nix open source speech synth.
-- Keyboard shortcuts (equivalent of Cmd-Q et al.)
 
 Notes for the terminally insane
 ===============================
