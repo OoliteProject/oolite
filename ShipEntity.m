@@ -179,6 +179,8 @@ Your fair use and other rights are in no way affected by the above.
 	//
 	isFrangible = YES;
 	//
+	dockingInstructions = nil;
+	//
 	return self;
 }
 
@@ -200,6 +202,10 @@ Your fair use and other rights are in no way affected by the above.
 	
 	if (collisionInfoForEntity)
 							[collisionInfoForEntity release];
+
+	if (dockingInstructions)
+							[dockingInstructions release];
+
 	[super dealloc];
 }
 
@@ -252,6 +258,8 @@ Your fair use and other rights are in no way affected by the above.
 			[(Entity *)[sub_entities objectAtIndex:i] setUniverse:univ];
 		}
 	}
+	//
+	[self resetTracking];	// resets stuff for tracking/exhausts
 }
 
 - (BOOL)	isBeacon
@@ -484,6 +492,11 @@ Your fair use and other rights are in no way affected by the above.
 	//
 	isFrangible = YES;
 	//
+	if (dockingInstructions)
+	{
+		[dockingInstructions release];
+		dockingInstructions = nil;
+	}
 }
 
 - (id) initWithDictionary:(NSDictionary *) dict
@@ -1481,12 +1494,7 @@ BOOL ship_canCollide (ShipEntity* ship)
 		double  distance = [self rangeToDestination];
 		double  target_speed = max_flight_speed;
 		double	slow_down_range = weapon_range * COMBAT_WEAPON_RANGE_FACTOR * ((isUsingAfterburner)? 2.0 * AFTERBURNER_FACTOR : 1.0);
-		
-		if (reportAImessages)
-		{
-			NSLog(@"DEBUG SPEED %@ [:%d:] range %.1f/%.1f slow_down_range (isUsingAfterBurner :%@:) (canBurn :%@:)",
-				self, condition, range, slow_down_range, (isUsingAfterburner)?@"YES":@"NO", (canBurn)?@"YES":@"NO");
-		}
+		double	max_cos = 0.995;
 		
 		ShipEntity*	target = (ShipEntity*)[universe entityForUniversalID:primaryTarget];
 		
@@ -1497,7 +1505,6 @@ BOOL ship_canCollide (ShipEntity* ship)
 			 // It's no longer a parrot, it has ceased to be, it has joined the choir invisible...
 			if (primaryTarget != NO_TARGET)
 			{
-//				NSLog(@"---> %@ %d has lost its target.", name, universal_id);
 				[shipAI reactToMessage:@"TARGET_LOST"];
 				primaryTarget = NO_TARGET;
 			}
@@ -1552,10 +1559,14 @@ BOOL ship_canCollide (ShipEntity* ship)
 					double last_distance = last_success_factor;
 					success_factor = distance;
 					//
-					if ((eta < 3.0)&&(flight_speed > max_flight_speed * 0.02))
-						desired_speed = flight_speed * 0.75;   // cut speed to a minimum of 2 % speed
+					double slowdownTime = 96.0 / thrust;	// more thrust implies better slowing
+					double minTurnSpeedFactor = 0.005 * max_flight_pitch * max_flight_roll;	// faster turning implies higher speeds
+					
+					if ((eta < slowdownTime)&&(flight_speed > max_flight_speed * minTurnSpeedFactor))
+						desired_speed = flight_speed * 0.75;   // cut speed by 50% to a minimum minTurnSpeedFactor of speed
 					else
 						desired_speed = max_flight_speed;
+					
 					if (desired_speed < target_speed)
 					{
 						desired_speed += target_speed;
@@ -1576,10 +1587,7 @@ BOOL ship_canCollide (ShipEntity* ship)
 						frustration += delta_t;
 						if (frustration > 10.0)	// 10s of frustration
 						{
-//							[self setReportAImessages:YES];	//debug
 							[shipAI reactToMessage:@"FRUSTRATED"];
-//							NSLog(@"DEBUG %@ flight_speed %.6f distance %.6f last_distance %.6f", self, flight_speed, distance, last_distance);
-//							[self setReportAImessages:NO];	//debug
 							frustration -= 5.0;	//repeat after another five seconds' frustration
 						}
 					}
@@ -1839,8 +1847,12 @@ BOOL ship_canCollide (ShipEntity* ship)
 			case CONDITION_FACE_DESTINATION :
 				desired_speed = 0.0;
 //				NSLog(@"DEBUG >>>>> distance %.1f desired_range %.1f", distance, desired_range);
+				if (desired_range > 1.0)
+					max_cos = sqrt(1 - desired_range*desired_range/(distance * distance));
+				else
+					max_cos = 0.995;	// 0.995 - cos(5 degrees) is close enough
 				confidenceFactor = [self trackDestination:delta_t:NO];
-				if (confidenceFactor > 0.995)	// 0.995 - cos(5 degrees) is close enough
+				if (confidenceFactor > max_cos)
 				{
 					// desired facing achieved
 					[shipAI message:@"FACING_DESTINATION"];
@@ -1861,7 +1873,7 @@ BOOL ship_canCollide (ShipEntity* ship)
 						desired_speed = max_flight_speed;
 				}
 			case CONDITION_FLY_TO_DESTINATION :
-				if (distance < desired_range + collision_radius)
+				if (distance < desired_range)// + collision_radius)
 				{
 					// desired range achieved
 					[shipAI message:@"DESIRED_RANGE_ACHIEVED"];
@@ -1873,13 +1885,17 @@ BOOL ship_canCollide (ShipEntity* ship)
 				{
 					double last_distance = last_success_factor;
 					double eta = (distance - desired_range) / flight_speed;
+					
 					success_factor = distance;
 					
 					// do the actual piloting!!
 					[self trackDestination:delta_t:NO];
 					
-					if ((eta < 2.0)&&(flight_speed > max_flight_speed * 0.10))
-						desired_speed = flight_speed * 0.50;   // cut speed to a minimum of 10 % speed
+					double slowdownTime = 64.0 / thrust;	// more thrust implies better slowing
+					double minTurnSpeedFactor = 0.05 * max_flight_pitch * max_flight_roll;	// faster turning implies higher speeds
+					
+					if ((eta < slowdownTime)&&(flight_speed > max_flight_speed * minTurnSpeedFactor))
+						desired_speed = flight_speed * 0.50;   // cut speed by 50% to a minimum minTurnSpeedFactor of speed
 					
 					if (distance < last_distance)	// improvement
 					{
@@ -1890,13 +1906,13 @@ BOOL ship_canCollide (ShipEntity* ship)
 					else
 					{
 						frustration += delta_t;
-						if (frustration > 10.0)	// 10s of frustration
+						if (frustration > slowdownTime * 10.0)	// 10x slowdownTime of frustration
 						{
 //							[self setReportAImessages:YES];	//debug
 							[shipAI reactToMessage:@"FRUSTRATED"];
 //							NSLog(@"DEBUG %@ flight_speed %.6f distance %.6f last_distance %.6f", self, flight_speed, distance, last_distance);
 //							[self setReportAImessages:NO];	//debug
-							frustration -= 5.0;	//repeat after another five seconds' frustration
+							frustration -= slowdownTime * 5.0;	//repeat after another five units of frustration
 						}
 					}
 				}
@@ -2038,6 +2054,80 @@ BOOL ship_canCollide (ShipEntity* ship)
 			}
 		}
     }
+}
+
+// override Entity saveToLastFrame
+//
+- (void) saveToLastFrame
+{
+	double t_now = [universe getTime];
+	if (t_now >= track_time + 0.1)		// update every 1/10 of a second
+	{
+		// save previous data
+		track_time = t_now;
+		track[track_index].position =	position;
+		track[track_index].q_rotation =	q_rotation;
+		track[track_index].timeframe =	track_time;
+		track[track_index].k =	v_forward;
+		//
+		if (sub_entities)
+		{
+//			NSLog(@"DEBUG %@'s subentities ...", self);
+			int i;
+			int n = [sub_entities count];
+			Frame thisFrame;
+			thisFrame.q_rotation = q_rotation;
+			thisFrame.timeframe = track_time;
+			thisFrame.k = v_forward;
+			for (i = 0; i < n; i++)
+			{
+				Entity* se = (Entity*)[sub_entities objectAtIndex:i];
+				Vector	sepos = se->position;
+				if ((se->isParticle)&&([(ParticleEntity*)se particleType] == PARTICLE_EXHAUST))
+				{
+					thisFrame.position = make_vector(
+						position.x + v_right.x * sepos.x + v_up.x * sepos.y + v_forward.x * sepos.z,
+						position.y + v_right.y * sepos.x + v_up.y * sepos.y + v_forward.y * sepos.z,
+						position.z + v_right.z * sepos.x + v_up.z * sepos.y + v_forward.z * sepos.z);
+					[se saveFrame:thisFrame atIndex:track_index];	// syncs subentity track_index to this entity
+//					NSLog(@"DEBUG ... %@ %@ [%.2f %.2f %.2f]", self, se, thisFrame.position.x - position.x, thisFrame.position.y - position.y, thisFrame.position.z - position.z);
+				}
+			}
+		}
+		//
+		track_index = (track_index + 1 ) & 0xff;
+		//
+	}
+}
+
+// reset position tracking
+//
+- (void) resetTracking
+{
+	Frame resetFrame;
+	resetFrame.position = position;
+	resetFrame.q_rotation = q_rotation;
+	resetFrame.k = v_forward;
+	Vector vel = make_vector( v_forward.x * flight_speed, v_forward.y * flight_speed, v_forward.z * flight_speed); 
+	[self resetFramesFromFrame:resetFrame withVelocity:vel];
+	if (sub_entities)
+	{
+		int i;
+		int n = [sub_entities count];
+		for (i = 0; i < n; i++)
+		{
+			Entity* se = (Entity*)[sub_entities objectAtIndex:i];
+			Vector	sepos = se->position;
+			if ((se->isParticle)&&([(ParticleEntity*)se particleType] == PARTICLE_EXHAUST))
+			{
+				resetFrame.position = make_vector(
+					position.x + v_right.x * sepos.x + v_up.x * sepos.y + v_forward.x * sepos.z,
+					position.y + v_right.y * sepos.x + v_up.y * sepos.y + v_forward.y * sepos.z,
+					position.z + v_right.z * sepos.x + v_up.z * sepos.y + v_forward.z * sepos.z);
+				[se resetFramesFromFrame:resetFrame withVelocity:vel];
+			}
+		}
+	}
 }
 
 // return a point 36u back from the front of the ship
@@ -2605,8 +2695,6 @@ static GLfloat mascem_color2[4] =	{ 0.4, 0.1, 0.4, 1.0};	// purple
 	status = stat;
 	if ((status == STATUS_LAUNCHING)&&(universe))
 		launch_time = [universe getTime];
-	//if (status == STATUS_IN_FLIGHT)
-	//	accepts_escorts = YES;
 }
 
 - (void) setAI:(AI *) ai
@@ -2682,6 +2770,11 @@ static GLfloat mascem_color2[4] =	{ 0.4, 0.1, 0.4, 1.0};	// purple
 - (int) getCargoType
 {
 	return cargo_type;
+}
+
+- (NSMutableArray*) cargo
+{
+	return cargo;
 }
 
 - (void) setCargo:(NSArray *) some_cargo
@@ -2841,15 +2934,6 @@ static GLfloat mascem_color2[4] =	{ 0.4, 0.1, 0.4, 1.0};	// purple
 		//
 		if ((amount > energy)&&(energy > 10))
 		{
-//			NSLog(@"DEBUG %@ taking damage from Mine", self);
-//			ShipEntity* parent = (ShipEntity*)[self owner];
-//			if ((isShip)&&(parent)&&(parent->isShip)&&[parent->sub_entities containsObject:self])
-//			{
-//				// we are a subentity - do nothing!
-//				NSLog(@"DEBUG subentity %@ of %@ hit by mine wavefront", self, parent);
-//			}
-//			else
-//			{
 				ParticleEntity* chain_reaction = [[ParticleEntity alloc] initEnergyMineFromShip:self];
 				[universe addEntity:chain_reaction];
 				[chain_reaction setOwner:[ent owner]];
@@ -3039,13 +3123,17 @@ static GLfloat mascem_color2[4] =	{ 0.4, 0.1, 0.4, 1.0};	// purple
 		[ring release];
 	}
 	
-	// two parts to the explosion:
+	// several parts to the explosion:
 	// 1. fast sparks
-	fragment = [[ParticleEntity alloc] initFragburstFromPosition:xposition];
+	fragment = [[ParticleEntity alloc] initFragburstSize: collision_radius FromPosition: xposition];
 	[universe addEntity:fragment];
 	[fragment release];
 	// 2. slow clouds
-	fragment = [[ParticleEntity alloc] initBurst2FromPosition:xposition];
+	fragment = [[ParticleEntity alloc] initBurst2Size: collision_radius FromPosition: xposition];
+	[universe addEntity:fragment];
+	[fragment release];	
+	// 3. flash
+	fragment = [[ParticleEntity alloc] initFlashSize: collision_radius FromPosition: xposition];
 	[universe addEntity:fragment];
 	[fragment release];	
 	
@@ -3300,7 +3388,8 @@ Vector randomPositionInBoundingBox(BoundingBox bb)
 	float how_many = factor;
 	while (how_many > 0.5f)
 	{
-		fragment = [[ParticleEntity alloc] initFragburstFromPosition:xposition];
+	//	fragment = [[ParticleEntity alloc] initFragburstFromPosition:xposition];
+		fragment = [[ParticleEntity alloc] initFragburstSize: collision_radius FromPosition:xposition];
 		[universe addEntity:fragment];
 		[fragment release];
 		how_many -= 1.0f;
@@ -3309,7 +3398,7 @@ Vector randomPositionInBoundingBox(BoundingBox bb)
 	how_many = factor;
 	while (how_many > 0.5f)
 	{
-		fragment = [[ParticleEntity alloc] initBurst2FromPosition:xposition];
+		fragment = [[ParticleEntity alloc] initBurst2Size: collision_radius FromPosition:xposition];
 		[universe addEntity:fragment];
 		[fragment release];	
 		how_many -= 1.0f;
@@ -3858,9 +3947,10 @@ Vector randomPositionInBoundingBox(BoundingBox bb)
 	double reverse = 1.0;
 	
 	double min_d = 0.004;
+	double max_cos = 0.85;
 	
-	if (we_are_docking &&(desired_speed = 50.0))	// test for docking stuff
-		min_d = 0.012;	// less accuracy required - better to match spin
+//	if (we_are_docking && (desired_speed < 100.0))	// test for docking stuff
+//		min_d = 0.012;	// less accuracy required - better to match spin
 	
 	if (retreat)
 		reverse = -reverse;
@@ -3873,6 +3963,10 @@ Vector randomPositionInBoundingBox(BoundingBox bb)
 	relativePosition.y -= position.y;
 	relativePosition.z -= position.z;
 	
+	double range2 = magnitude2(relativePosition);
+
+	max_cos = sqrt(1 - desired_range*desired_range/range2);
+	
 	if (relativePosition.x||relativePosition.y||relativePosition.z)
 		relativePosition = unit_vector(&relativePosition);
 	else
@@ -3880,84 +3974,82 @@ Vector randomPositionInBoundingBox(BoundingBox bb)
 	
 	d_right		=   dot_product(relativePosition, v_right);
 	d_up		=   dot_product(relativePosition, v_up);
-	d_forward   =   dot_product(relativePosition, v_forward);
+	d_forward   =   dot_product(relativePosition, v_forward);	// == cos of angle between v_forward and vector to target
 
 	// begin rule-of-thumb manoeuvres
-	
-	if (d_forward < -0.99)  // hack to avoid just flying away from the destination
-	{
-		d_up = min_d * 2.0;
-	}
-	
 	stick_pitch = 0.0;
 	stick_roll = 0.0;
+	
+//	if (isPlayer)
+//		NSLog(@"DEBUG trackDestination:: max_cos %.4f, d_forward %.4f, we_are_docking %@", max_cos, d_forward, (we_are_docking)? @":YES:" : @":NO:");
+	
+	// check if we are flying toward the destination..
+	if ((d_forward < max_cos)||(retreat))	// not on course so we must adjust controls..
+	{
 		
-	if (d_up > min_d)
-	{
-		if (d_right > min_d)
-			stick_roll = stick_roll - max_flight_roll * reverse * 0.25;  //roll_roll * reverse;
-		if (d_right < -min_d)
-			stick_roll = stick_roll + max_flight_roll * reverse * 0.25; //roll_roll * reverse;
-	}
-	if (d_up < -min_d) // half a meter
-	{
-		if (d_right > min_d)
-			stick_roll = stick_roll + max_flight_roll * reverse * 0.25;  //roll_roll * reverse;
-		if (d_right < -min_d)
-			stick_roll = stick_roll - max_flight_roll * reverse * 0.25; //roll_roll * reverse;
-	}
-	
-	if (stick_roll == 0.0)
-	{
-		if (d_up > min_d)
-			stick_pitch = -max_flight_pitch * reverse * 0.25;  //pitch_pitch * reverse;
-		if (d_up < -min_d)
-			stick_pitch = max_flight_pitch * reverse * 0.25;  //pitch_pitch * reverse;
-	}
-	
-	if (we_are_docking)
-	{
-		/* we are docking and need to consider the rotation/orientation of the space station */
-		Vector up_vec = [(StationEntity *)[self getPrimaryTarget] portUpVector];
-		double rot_up = dot_product(up_vec, v_up);
-		double fast_slow = dot_product(up_vec, v_right);
-//		if (self == [universe entityZero])
-//			NSLog(@"DEBUG docking rot_up %.3f %.3f",rot_up, fast_slow);
-		if (fast_slow*rot_up < 0)
-			fast_slow = 0.0;
-		else
-			fast_slow = 1.0;
-		double station_roll = [(StationEntity *)[self getPrimaryTarget] flight_roll];
-		rot_up *= rot_up;
-		if ((stick_pitch == 0.0)&&(stick_roll == 0.0))
+		if (d_forward < -max_cos)  // hack to avoid just flying away from the destination
 		{
-			if (rot_up > 0.975)
-				stick_roll = station_roll;
-			else
-			{
-				if (fabs(station_roll) > 0.1)
-				{
-					// station is rotating
-					if (max_flight_roll > fabs(station_roll))
-					{
-						if (rot_up > 0.8)
-							stick_roll = (station_roll > 0)? max_flight_roll*fast_slow: -max_flight_roll*fast_slow;
-						else
-							stick_roll = 0;	// flip over
-					}
-					else
-						stick_roll = 0;	// flip over
-				}
-				else
-				{
-					// station is not rotating
-					if (fast_slow > 0.0)
-						stick_roll = 0.5;
-					else
-						stick_roll = -0.5;	// flip over
-				}
-			}
+			d_up = min_d * 2.0;
 		}
+		
+		if (d_up > min_d)
+		{
+			if (d_right > min_d)
+				stick_roll = stick_roll - max_flight_roll * reverse * 0.25;  //roll_roll * reverse;
+			if (d_right < -min_d)
+				stick_roll = stick_roll + max_flight_roll * reverse * 0.25; //roll_roll * reverse;
+		}
+		if (d_up < -min_d) // half a meter
+		{
+			if (d_right > min_d)
+				stick_roll = stick_roll + max_flight_roll * reverse * 0.25;  //roll_roll * reverse;
+			if (d_right < -min_d)
+				stick_roll = stick_roll - max_flight_roll * reverse * 0.25; //roll_roll * reverse;
+		}
+		
+		if (stick_roll == 0.0)
+		{
+			if (d_up > min_d)
+				stick_pitch = -max_flight_pitch * reverse * 0.25;  //pitch_pitch * reverse;
+			if (d_up < -min_d)
+				stick_pitch = max_flight_pitch * reverse * 0.25;  //pitch_pitch * reverse;
+		}
+	}
+	
+	if (we_are_docking && docking_match_rotation && (d_forward > max_cos))
+	{
+		/* we are docking and need to consider the rotation/orientation of the docking port */
+		Vector up_vec = [(StationEntity *)[self getPrimaryTarget] portUpVector];
+		double cosTheta = dot_product(up_vec, v_up);	// == cos of angle between up vectors
+		double sinTheta = dot_product(up_vec, v_right);
+		
+		double station_roll = [(StationEntity *)[self getPrimaryTarget] flight_roll];
+		
+		if (!isPlayer)
+		{
+			station_roll = -station_roll;	// make necessary corrections for a different viewpoint
+			sinTheta = -sinTheta;
+		}
+		
+		if (cosTheta < 0)
+		{
+			cosTheta = -cosTheta;
+			sinTheta = -sinTheta;
+		}
+		
+		if (sinTheta > 0.0)
+		{
+			// increase roll rate
+			stick_roll = cosTheta * cosTheta * station_roll + sinTheta * sinTheta * max_flight_roll;
+		}
+		else
+		{
+			// decrease roll rate
+			stick_roll = cosTheta * cosTheta * station_roll - sinTheta * sinTheta * max_flight_roll;
+		}
+
+//		NSLog(@"DEBUG %@ matching rotation .. docking cosTheta %.3f sinTheta %.3f station_roll %.3f stick_roll %.3f",
+//			self, cosTheta, sinTheta, station_roll, stick_roll);
 	}
 	
 	// end rule-of-thumb manoeuvres
@@ -3973,12 +4065,13 @@ Vector randomPositionInBoundingBox(BoundingBox bb)
 		stick_pitch = flight_pitch - rate2;
 
 	// apply damping
-	if (!we_are_docking)
+	if ((!docking_match_rotation)||(!we_are_docking))
 	{
+		double damproll = (flight_speed > 2.0)? damping : 2.0 * damping;	// double damping if we're going very slowly
 		if (flight_roll < 0)
-			flight_roll += (flight_roll < -damping) ? damping : -flight_roll;
+			flight_roll += (flight_roll < -damproll)? damproll : -flight_roll;
 		if (flight_roll > 0)
-			flight_roll -= (flight_roll > damping) ? damping : flight_roll;
+			flight_roll -= (flight_roll > damproll)? damproll : flight_roll;
 	}
 	if (flight_pitch < 0)
 		flight_pitch += (flight_pitch < -damping) ? damping : -flight_pitch;
@@ -3994,6 +4087,10 @@ Vector randomPositionInBoundingBox(BoundingBox bb)
 
 	if (d_forward < 0.0)
 		return 0.0;
+		
+	if ((!flight_roll)&&(!flight_pitch))	// no correction
+		return 1.0;
+	
 	return d_forward;
 }
 
@@ -4553,7 +4650,11 @@ Vector randomPositionInBoundingBox(BoundingBox bb)
 	origin.y += lr * v_right.y;
 	origin.z += lr * v_right.z;
 	
-	float	sz = 8.0 + randf() * 16.0;
+	float	w = boundingBox.max_x - boundingBox.min_x;
+	float	h = boundingBox.max_y - boundingBox.min_y;
+	float	m = (w < h) ? 0.25 * w: 0.25 * h;
+	
+	float	sz = m * (1 + randf() + randf());	// half minimum dimension on average
 	
 	vel = make_vector( 2.0 * (origin.x - position.x), 2.0 * (origin.y - position.y), 2.0 * (origin.z - position.z));
 	
@@ -4647,7 +4748,7 @@ Vector randomPositionInBoundingBox(BoundingBox bb)
 	ShipEntity *missile;
 	Vector  vel;
 	Vector  origin = position;
-	Vector  start;
+	Vector  start, v_eject;
 	
 	// default launching position
 	start.x = 0.0;						// in the middle
@@ -4670,7 +4771,28 @@ Vector randomPositionInBoundingBox(BoundingBox bb)
 	if ([roles isEqual:@"thargoid"])
 		return [self fireTharglet];
 	
+	//vel.x *= throw_speed;	vel.y *= throw_speed;	vel.z *= throw_speed;
+	if (randf() < 0.90)	// choose a standard missile 90% of the time
+		missile = [universe getShipWithRole:@"EQ_MISSILE"];   // retained
+	else				// otherwise choose any with the role 'missile' - which may include alternative weapons
+		missile = [universe getShipWithRole:@"missile"];   // retained
+	
+	if (!missile)
+		return NO;
+	
 	missiles--;
+	
+	double mcr = missile->collision_radius;
+
+	v_eject = unit_vector( &start);
+	
+	// check if start is within bounding box...
+	while (	(start.x > boundingBox.min_x - mcr)&&(start.x < boundingBox.max_x + mcr)&&
+			(start.y > boundingBox.min_y - mcr)&&(start.y < boundingBox.max_y + mcr)&&
+			(start.z > boundingBox.min_z - mcr)&&(start.z < boundingBox.max_z + mcr))
+	{
+		start.x += mcr * v_eject.x;	start.y += mcr * v_eject.y;	start.z += mcr * v_eject.z;
+	}
 	
 	if (isPlayer)
 		q1.w = -q1.w;   // player view is reversed remember!
@@ -4683,12 +4805,7 @@ Vector randomPositionInBoundingBox(BoundingBox bb)
 	origin.y = position.y + v_right.y * start.x + v_up.y * start.y + v_forward.y * start.z;
 	origin.z = position.z + v_right.z * start.x + v_up.z * start.y + v_forward.z * start.z;
 	
-	//vel.x *= throw_speed;	vel.y *= throw_speed;	vel.z *= throw_speed;
-	if (randf() < 0.90)	// choose a standard missile 90% of the time
-		missile = [universe getShipWithRole:@"EQ_MISSILE"];   // retained
-	else				// otherwise choose any with the role 'missile' - which may include alternative weapons
-		missile = [universe getShipWithRole:@"missile"];   // retained
-	[missile setPosition:origin];						// directly below
+	[missile setPosition:origin];
 	[missile setScanClass: CLASS_MISSILE];
 	[missile addTarget:target];
 	[missile setQRotation:q1];
@@ -4878,9 +4995,12 @@ Vector randomPositionInBoundingBox(BoundingBox bb)
 	int result = [jetto getCargoType];
 	Vector start;
 
-	double  eject_speed = -20.0;
+	double  eject_speed = 20.0;
+	double  eject_reaction = -eject_speed * [jetto mass] / [self mass];
+	double	jcr = jetto->collision_radius;
+
 	Quaternion  random_direction;
-	Vector  vel;
+	Vector  vel, v_eject;
 	Vector  rpos = position;
 	double random_roll =	((ranrot_rand() % 1024) - 512.0)/1024.0;  //  -0.5 to +0.5
 	double random_pitch =   ((ranrot_rand() % 1024) - 512.0)/1024.0;  //  -0.5 to +0.5
@@ -4889,33 +5009,46 @@ Vector randomPositionInBoundingBox(BoundingBox bb)
 	// default launching position
 	start.x = 0.0;						// in the middle
 	start.y = 0.0;						//
-	start.z = boundingBox.min_z - 1.0;	// 1m behind of bounding box
+	start.z = boundingBox.min_z - jcr;	// 1m behind of bounding box
+		
 	// custom launching position
 	if ([shipinfoDictionary objectForKey:@"aft_eject_position"])
 	{
 		start = [Entity vectorFromString:(NSString *)[shipinfoDictionary objectForKey:@"aft_eject_position"]];
+	}	
+		
+	v_eject = unit_vector( &start);
+	
+	// check if start is within bounding box...
+	while (	(start.x > boundingBox.min_x - jcr)&&(start.x < boundingBox.max_x + jcr)&&
+			(start.y > boundingBox.min_y - jcr)&&(start.y < boundingBox.max_y + jcr)&&
+			(start.z > boundingBox.min_z - jcr)&&(start.z < boundingBox.max_z + jcr))
+	{
+		start.x += jcr * v_eject.x;	start.y += jcr * v_eject.y;	start.z += jcr * v_eject.z;
 	}
-	start.z -= jetto->collision_radius;
 	
-	rpos.x +=	v_right.x * start.x +	v_up.x * start.y +	v_forward.x * start.z;
-	rpos.y +=	v_right.y * start.x +	v_up.y * start.y +	v_forward.y * start.z;
-	rpos.z +=	v_right.z * start.x +	v_up.z * start.y +	v_forward.z * start.z;	
+	v_eject = make_vector(	v_right.x * start.x +	v_up.x * start.y +	v_forward.x * start.z,
+							v_right.y * start.x +	v_up.y * start.y +	v_forward.y * start.z,
+							v_right.z * start.x +	v_up.z * start.y +	v_forward.z * start.z);
 	
-	vel.x = v_forward.x * flight_speed;
-	vel.y = v_forward.y * flight_speed;
-	vel.z = v_forward.z * flight_speed;
-
-	vel.x += v_forward.x * eject_speed;
-	vel.y += v_forward.y * eject_speed;
-	vel.z += v_forward.z * eject_speed;
-	eject_speed *= 0.1 * ((ranrot_rand() % 10) - 5);   //  -0.5x .. +0.5x
-	vel.x += v_up.x * eject_speed;
-	vel.y += v_up.y * eject_speed;
-	vel.z += v_up.z * eject_speed;
-	eject_speed *= 0.1 * ((ranrot_rand() % 10) - 5);   //  -0.25x .. +0.25x
-	vel.x += v_right.x * eject_speed;
-	vel.y += v_right.y * eject_speed;
-	vel.z += v_right.z * eject_speed;
+	rpos.x +=	v_eject.x;
+	rpos.y +=	v_eject.y;
+	rpos.z +=	v_eject.z;
+	
+	v_eject = unit_vector( &v_eject);
+	
+	v_eject.x += (randf() - randf())/eject_speed;
+	v_eject.y += (randf() - randf())/eject_speed;
+	v_eject.z += (randf() - randf())/eject_speed;
+	
+	vel.x =	v_forward.x * flight_speed + v_eject.x * eject_speed;
+	vel.y = v_forward.y * flight_speed + v_eject.y * eject_speed;
+	vel.z = v_forward.z * flight_speed + v_eject.z * eject_speed;
+	
+	velocity.x += v_eject.x * eject_reaction;
+	velocity.y += v_eject.y * eject_reaction;
+	velocity.z += v_eject.z * eject_reaction;
+	
 	[jetto setPosition:rpos];
 	[jetto setQRotation:random_direction];
 	[jetto setRoll:random_roll];

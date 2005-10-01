@@ -130,8 +130,8 @@ Your fair use and other rights are in no way affected by the above.
 
 - (void) autoDockShipsOnApproach;
 
-- (Vector) nextDockingCoordinatesForShip:(ShipEntity *) ship;
-- (double) approachSpeedForShip:(ShipEntity *) ship;
+- (NSDictionary *) dockingInstructionsForShip:(ShipEntity *) ship;
+- (void) addShipToShipsOnApproach:(ShipEntity *) ship;
 
 - (Vector) portUpVector;
 

@@ -31,7 +31,6 @@
    [gui setTitle:[NSString stringWithFormat:@"Select Commander"]];
    
    [self lsCommanders:gui  pageNumber:0 highlightName: nil];
-   [universe guiUpdated];
    [[universe gameView] supressKeysUntilKeyUp];
    
    [self setShowDemoShips: YES];
@@ -60,7 +59,6 @@
 
    [gameView setTypedString: cdrName];
    [gameView supressKeysUntilKeyUp];
-   [universe guiUpdated];
    
    [self setShowDemoShips: YES];
    [universe setDisplayText: YES];
@@ -202,7 +200,6 @@
       {
          [self showCommanderShip: idx];
       }
-      [universe guiUpdated];
    }
    else
    {

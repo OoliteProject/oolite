@@ -573,11 +573,7 @@ Your fair use and other rights are in no way affected by the above.
 			[gui addLongText:long_info startingAtRow:GUI_ROW_CONTRACT_INFO_START align:GUI_ALIGN_LEFT];
 		}
 		//
-//		[gui generateDisplay];
-		
 		[gui setShowTextCursor:NO];
-		
-		[universe guiUpdated];
 	}
 	
 	[self setShowDemoShips:NO];
@@ -836,12 +832,7 @@ Your fair use and other rights are in no way affected by the above.
 				}
 			}
 		}
-
-//		[gui generateDisplay];
-		
 		[gui setShowTextCursor:NO];
-		
-		[universe guiUpdated];
 	}
 	/* ends */
 	
@@ -874,8 +865,6 @@ Your fair use and other rights are in no way affected by the above.
 		[gui setColor:[NSColor yellowColor] forRow:21];
 		
 		[gui setShowTextCursor:NO];
-		
-		[universe guiUpdated];
 	}
 	/* ends */
 	
@@ -1022,10 +1011,7 @@ NSMutableDictionary* currentShipyard;
 		[gui setText:[NSString stringWithFormat:@"Your %@'s trade-in value: %d.0 Cr.", shipName, trade_in]  forRow: GUI_ROW_MARKET_CASH - 1];
 		[gui setText:[NSString stringWithFormat:@"Total available: %.1f Cr.\t(%.1f Cr. Cash + %d.0 Cr. Trade.)", 0.1*credits + (float)trade_in, 0.1*credits, trade_in]  forRow: GUI_ROW_MARKET_CASH];
 		//
-		
 		[gui setShowTextCursor:NO];
-		
-		[universe guiUpdated];
 	}
 	
 	if (n_ships)
@@ -1094,8 +1080,6 @@ NSMutableDictionary* currentShipyard;
 		// build an array from the entries for that model in the currentShipyard TODO
 		// 
 	}
-	[universe guiUpdated];
-
 }
 
 - (void) showShipyardModel: (NSDictionary *)shipDict
@@ -1186,7 +1170,6 @@ NSMutableDictionary* currentShipyard;
 	}
 	
 	// first check you can afford it!
-//	NSDictionary* ship_info = (NSDictionary *)[[docked_station localShipyard] objectAtIndex:sel_row - GUI_ROW_SHIPYARD_START];
 	NSDictionary* ship_info = (NSDictionary *)[currentShipyard objectForKey:key];
 	int price = [(NSNumber*)[ship_info objectForKey:SHIPYARD_KEY_PRICE] intValue];
 	int trade_in = [self yourTradeInValue];

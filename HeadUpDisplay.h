@@ -260,9 +260,10 @@ extern int debug;
 
 - (void) drawTrumbles:(NSDictionary *) info;
 
-void hudDrawIndicatorAt(int x, int y, int z, NSSize siz, double amount);
-void hudDrawBarAt(int x, int y, int z, NSSize siz, double amount);
-void hudDrawSurroundAt(int x, int y, int z, NSSize siz);
+void hudDrawIndicatorAt( GLfloat x, GLfloat y, GLfloat z, NSSize siz, double amount);
+void hudDrawMarkerAt( GLfloat x, GLfloat y, GLfloat z, NSSize siz, double amount);
+void hudDrawBarAt( GLfloat x, GLfloat y, GLfloat z, NSSize siz, double amount);
+void hudDrawSurroundAt( GLfloat x, GLfloat y, GLfloat z, NSSize siz);
 void hudDrawSpecialIconAt(NSArray* ptsArray, int x, int y, int z, NSSize siz);
 void hudDrawMineIconAt(int x, int y, int z, NSSize siz);
 void hudDrawMissileIconAt(int x, int y, int z, NSSize siz);

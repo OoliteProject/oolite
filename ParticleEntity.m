@@ -277,26 +277,12 @@ static Vector   circleVertex[65];		// holds vector coordinates for a unit circle
 }
 
 - (id) initExhaustFromShip:(ShipEntity *) ship offsetVector:(Vector) offset scaleVector:(Vector) scale
-{
-    int i;
-	
+{	
 	self = [super init];	// sets rotMatrix and q_rotation to initial identities
     //
 	status = STATUS_EFFECT;
 
-	// set a smooth shaded model :
-	is_smooth_shaded = YES;
-	[self setModel:@"exhaust.dat"];
-	
-	// adjust vertices according to scale
-	//
-	for (i = 0; i < n_vertices; i++)
-	{
-		alpha_for_vertex[i] = 1.0 + (vertices[i].z / 10.0);	// gives the alpha value at that point...
-		vertices[i].x *= scale.x;
-		vertices[i].y *= scale.y;
-		vertices[i].z *= scale.z;
-	}
+	exhaustScale = scale;
 	
 	position.x = offset.x;  // position is relative to owner
 	position.y = offset.y;
@@ -316,8 +302,6 @@ static Vector   circleVertex[65];		// holds vector coordinates for a unit circle
 
 - (id) initExhaustFromShip:(ShipEntity *) ship details:(NSString *) details
 {
-    int i;
-//	NSArray *values = [details componentsSeparatedByString:@" "];
 	NSArray *values = [Entity scanTokensFromString:details];
 	if ([values count] != 6)
 		return nil;
@@ -333,22 +317,9 @@ static Vector   circleVertex[65];		// holds vector coordinates for a unit circle
     //
 	status = STATUS_EFFECT;
 	
-//	NSLog(@"Adding an exhaust to a %@ at ( %3.1f, %3.1f, %3.1f)", [ship name], offset.x, offset.y, offset.z);
+	exhaustScale = scale;
+//	NSLog(@"Adding an exhaust to %@ >>%@<< scale: ( %3.1f, %3.1f, %3.1f)", ship, details, exhaustScale.x, exhaustScale.y, exhaustScale.z);
 	
-	// set a smooth shaded model :
-	is_smooth_shaded = YES;
-	[self setModel:@"exhaust.dat"];
-	
-	// adjust vertices according to scale
-	//
-	for (i = 0; i < n_vertices; i++)
-	{
-		alpha_for_vertex[i] = 1.0 + (vertices[i].z / 10.0);	// gives the alpha value at that point...
-		vertices[i].x *= scale.x;
-		vertices[i].y *= scale.y;
-		vertices[i].z *= scale.z;
-	}
-
 	position.x = offset.x;  // position is relative to owner
 	position.y = offset.y;
 	position.z = offset.z;
@@ -357,9 +328,6 @@ static Vector   circleVertex[65];		// holds vector coordinates for a unit circle
 	//
 	[self setOwner:ship];
 	//	
-	collision_radius = [self findCollisionRadius];
-	actual_radius = collision_radius;
-	//
 	isParticle = YES;
 	//
     return self;
@@ -480,14 +448,19 @@ static Vector   circleVertex[65];		// holds vector coordinates for a unit circle
     time_counter = 0.0;
 	duration = 1.5;
 	position = fragPos;
+	[self setColor:[NSColor yellowColor]];
 	//
 	for (i = 0 ; i < n_vertices; i++)
 	{
 		int speed = (ranrot_rand() % (speed_high - speed_low)) + speed_low;
-		vertices[i] = make_vector(0,0,0);
-		vertex_normal[i].x = (ranrot_rand() % speed) - speed / 2;
+		vertices[i] = make_vector(0,0,0);							// position
+		vertex_normal[i].x = (ranrot_rand() % speed) - speed / 2;	// velocity
 		vertex_normal[i].y = (ranrot_rand() % speed) - speed / 2;
 		vertex_normal[i].z = (ranrot_rand() % speed) - speed / 2;
+		faces[i].red = color_fv[0] + (randf() - 0.5) * 0.1;			// color
+		faces[i].green = color_fv[2] + (randf() - 0.5) * 0.1;
+		faces[i].blue = color_fv[1] + (randf() - 0.5) * 0.1;
+		faces[i].normal.x = 16.0 * speed_low / speed;				// size
 	}
 	//
 	status = STATUS_EFFECT;
@@ -497,7 +470,62 @@ static Vector   circleVertex[65];		// holds vector coordinates for a unit circle
 	//
 	collision_radius = 0;
 	energy = 0;
-	[self setColor:[NSColor yellowColor]];
+	owner = NO_TARGET;
+	//
+	isParticle = YES;
+	//
+    return self;
+}
+
+- (id) initFragburstSize:(GLfloat) fragSize FromPosition:(Vector) fragPos
+{
+	int speed_low = 100;
+	int speed_high = 400;
+	int n_fragments = 0.4 * fragSize;
+	if (n_fragments > 63)
+		n_fragments = 63;	// must also be less than MAX_FACES_PER_ENTITY
+	n_fragments |= 12;
+	int i;
+	//
+	self = [super init];
+    //
+	basefile = @"Particle";
+	textureNameString   = @"blur256.png";
+	//
+	texName = 0;
+	[self initialiseTexture: textureNameString];
+	size = NSMakeSize( fragSize, fragSize);
+	//
+	n_vertices = n_fragments;
+    time_counter = 0.0;
+	duration = 1.5;
+	position = fragPos;
+	[self setColor:[NSColor colorWithCalibratedHue:0.12 + 0.08 * randf() saturation:1.0 brightness:1.0 alpha:1.0]]; // yellow/orage (0.12) through yellow (0.1667) to yellow/slightly green (0.20)
+	//
+	for (i = 0 ; i < n_fragments; i++)
+	{
+		GLfloat speed = speed_low + 0.5 * (randf()+randf()) * (speed_high - speed_low);	// speed tends toward mean of speed_high and speed_low
+		vertices[i] = make_vector(0,0,0);	// position
+		vertex_normal[i] = make_vector(randf() - 0.5, randf() - 0.5, randf() - 0.5);
+		vertex_normal[i] = unit_vector(&vertex_normal[i]);
+		vertex_normal[i].x *= speed;	// velocity
+		vertex_normal[i].y *= speed;
+		vertex_normal[i].z *= speed;
+		Vector col = make_vector(color_fv[0] * 0.1 * (9.5 + randf()), color_fv[1] * 0.1 * (9.5 + randf()), color_fv[2] * 0.1 * (9.5 + randf()));
+		col = unit_vector(&col);
+		faces[i].red	= col.x;
+		faces[i].green	= col.y;
+		faces[i].blue	= col.z;
+		faces[i].normal.x = 16.0 * speed_low / speed;
+	}
+	//
+	status = STATUS_EFFECT;
+	scan_class = CLASS_NO_DRAW;
+	//
+	particle_type = PARTICLE_FRAGBURST;
+	//
+	collision_radius = 0;
+	energy = 0;
 	owner = NO_TARGET;
 	//
 	isParticle = YES;
@@ -507,8 +535,8 @@ static Vector   circleVertex[65];		// holds vector coordinates for a unit circle
 
 - (id) initBurst2FromPosition:(Vector) fragPos
 {
-	int speed_low = 200;
-	int speed_high = 800;
+	int speed_low = 40;
+	int speed_high = 160;
 	int n_fragments = 8;
 	int i;
 	//
@@ -528,7 +556,7 @@ static Vector   circleVertex[65];		// holds vector coordinates for a unit circle
 	//
 	for (i = 0 ; i < n_vertices; i++)
 	{
-		int speed = (speed_low + (speed_high - speed_low) * randf()) * 0.20;
+		int speed = speed_low + ranrot_rand() % (speed_high - speed_low);
 		vertices[i] = make_vector(0,0,0);
 		vertex_normal[i].x = (ranrot_rand() % speed) - speed / 2;
 		vertex_normal[i].y = (ranrot_rand() % speed) - speed / 2;
@@ -542,11 +570,104 @@ static Vector   circleVertex[65];		// holds vector coordinates for a unit circle
 	//
 	collision_radius = 0;
 	energy = 0;
-	[self setColor:[NSColor yellowColor]];
+	[self setColor:[[NSColor yellowColor] blendedColorWithFraction:0.5 ofColor:[NSColor whiteColor]]];
 	owner = NO_TARGET;
 	//
 	isParticle = YES;
 	//
+    return self;
+}
+
+- (id) initBurst2Size:(GLfloat) burstSize FromPosition:(Vector) fragPos
+{
+	int speed_low = 1 + burstSize * 0.5;
+	int speed_high = speed_low * 4;
+	int n_fragments = 0.2 * burstSize;
+	if (n_fragments > 15)
+		n_fragments = 15;	// must also be less than MAX_FACES_PER_ENTITY
+	n_fragments |= 3;
+	int i;
+	//
+	self = [super init];
+    //
+	basefile = @"Particle";
+	textureNameString   = @"blur256.png";
+	//
+	texName = 0;
+	[self initialiseTexture: textureNameString];
+	size = NSMakeSize( burstSize, burstSize);
+	//
+	n_vertices = n_fragments;
+    time_counter = 0.0;
+	duration = 1.0;
+	position = fragPos;
+	//
+	[self setColor:[[NSColor yellowColor] blendedColorWithFraction:0.5 ofColor:[NSColor whiteColor]]];
+	//
+	for (i = 0 ; i < n_fragments; i++)
+	{
+		GLfloat speed = speed_low + 0.5 * (randf()+randf()) * (speed_high - speed_low);	// speed tends toward mean of speed_high and speed_low
+		vertices[i] = make_vector(0,0,0);	// position
+		vertex_normal[i] = make_vector(randf() - 0.5, randf() - 0.5, randf() - 0.5);
+		vertex_normal[i] = unit_vector(&vertex_normal[i]);
+		vertex_normal[i].x *= speed;	// velocity
+		vertex_normal[i].y *= speed;
+		vertex_normal[i].z *= speed;
+		Vector col = make_vector(color_fv[0] * 0.1 * (9.5 + randf()), color_fv[1] * 0.1 * (9.5 + randf()), color_fv[2] * 0.1 * (9.5 + randf()));
+		col = unit_vector(&col);
+		faces[i].red = col.x;
+		faces[i].green = col.y;
+		faces[i].blue = col.z;
+		faces[i].normal.z = 1.0;
+	}
+	//
+	status = STATUS_EFFECT;
+	scan_class = CLASS_NO_DRAW;
+	//
+	particle_type = PARTICLE_BURST2;
+	//
+	collision_radius = 0;
+	energy = 0;
+	owner = NO_TARGET;
+	//
+	isParticle = YES;
+	//
+    return self;
+}
+
+- (id) initFlashSize:(GLfloat) flashSize FromPosition:(Vector) fragPos
+{
+	//
+	self = [super init];
+    //
+	basefile = @"Particle";
+	textureNameString   = @"flare256.png";
+	//
+	texName = 0;
+	[self initialiseTexture: textureNameString];
+	size = NSMakeSize( flashSize, flashSize);
+	//
+    time_counter = 0.0;
+	duration = 0.4;
+	position = fragPos;
+	//
+	[self setColor:[NSColor whiteColor]];
+	color_fv[3] = 1.0;
+	//
+	status = STATUS_EFFECT;
+	scan_class = CLASS_NO_DRAW;
+	//
+	particle_type = PARTICLE_FLASH;
+	//
+	collision_radius = 0;
+	energy = 0;
+	owner = NO_TARGET;
+	//
+	isParticle = YES;
+	//
+	
+//	NSLog(@"DEBUG *FLASH* initialised at [ %.2f, %.2f, %.2f]", fragPos.x, fragPos.y, fragPos.z);
+	
     return self;
 }
 
@@ -620,6 +741,7 @@ static Vector   circleVertex[65];		// holds vector coordinates for a unit circle
 		case PARTICLE_SPARK :
 		case PARTICLE_FRAGBURST :
 		case PARTICLE_BURST2 :
+		case PARTICLE_FLASH :
 			return NO;
 			break;
 		default :
@@ -725,6 +847,7 @@ static Vector   circleVertex[65];		// holds vector coordinates for a unit circle
 			case PARTICLE_EXPLOSION :
 			case PARTICLE_FRAGBURST :
 			case PARTICLE_BURST2 :
+			case PARTICLE_FLASH :
 				{
 					Entity* player = [universe entityZero];
 					if (!texName)
@@ -758,6 +881,7 @@ static Vector   circleVertex[65];		// holds vector coordinates for a unit circle
 				break;
 			
 			case PARTICLE_EXHAUST :
+				[self updateExhaust2:delta_t];
 				break;
 			
 			case PARTICLE_ECM_MINE :
@@ -782,6 +906,10 @@ static Vector   circleVertex[65];		// holds vector coordinates for a unit circle
 			
 			case PARTICLE_BURST2 :
 				[self updateBurst2:delta_t];
+				break;
+			
+			case PARTICLE_FLASH :
+				[self updateFlash:delta_t];
 				break;
 			
 			case PARTICLE_SHOT_EXPIRED :
@@ -987,8 +1115,7 @@ static Vector   circleVertex[65];		// holds vector coordinates for a unit circle
 		GLfloat alf = 1.0 - time_counter / du;
 		if (alf < 0.0)	alf = 0.0;
 		if (alf > 1.0)	alf = 1.0;
-		faces[i].red = alf * color_fv[0] + 1.0 - alf;
-		faces[i].blue = alf;
+		faces[i].normal.z = alf;
 		vertices[i].x += vertex_normal[i].x * delta_t;
 		vertices[i].y += vertex_normal[i].y * delta_t;
 		vertices[i].z += vertex_normal[i].z * delta_t;
@@ -1002,17 +1129,18 @@ static Vector   circleVertex[65];		// holds vector coordinates for a unit circle
 - (void) updateBurst2:(double) delta_t
 {
 	int i;
-	float diameter = (1.0 + time_counter)*64.0;
-	[self setSize:NSMakeSize(diameter, diameter)];
+	size.width = (1.0 + time_counter) * size.height;	// current size vs starting size
 	//
+	GLfloat di = 1.0 / (n_vertices - 1);
 	for (i = 0 ; i < n_vertices; i++)
 	{
-		GLfloat du = 0.5 + 0.125 * (8 - i);
+		GLfloat du = duration * (0.5 + di * i);
 		GLfloat alf = 1.0 - time_counter / du;
 		if (alf < 0.0)	alf = 0.0;
 		if (alf > 1.0)	alf = 1.0;
-		faces[i].green = alf;
-		faces[i].blue = alf;
+//		faces[i].green *= alf;
+//		faces[i].blue *= alf;
+		faces[i].normal.z = alf;
 		vertices[i].x += vertex_normal[i].x * delta_t;
 		vertices[i].y += vertex_normal[i].y * delta_t;
 		vertices[i].z += vertex_normal[i].z * delta_t;
@@ -1023,11 +1151,210 @@ static Vector   circleVertex[65];		// holds vector coordinates for a unit circle
 		[universe removeEntity:self];
 }
 
+- (void) updateFlash:(double) delta_t
+{
+	double tf = duration * 0.667;
+	double tf1 = duration - tf;
+	
+	// scale up
+	float growth = 12000; // * duration / time_counter;
+	size.width += delta_t * growth;
+	size.height = size.width;
+	
+	// fade up
+	if ((time_counter)&&(time_counter < tf))
+		alpha = time_counter/tf;
+	
+	// fade out
+	if (time_counter > tf)
+		alpha = (duration - time_counter)/tf1;
+	
+	// disappear eventually
+	if (time_counter > duration)
+		[universe removeEntity:self];
+	
+//	NSLog(@"DEBUG *FLASH* time: %.2f size: %.2f alpha: %.2f", time_counter, size.width, alpha);
+
+}
+
+- (void) updateExhaust2:(double) delta_t
+{
+	GLfloat ex_emissive[4]	= {0.6, 0.8, 1.0, 0.9};   // pale blue
+	GLfloat s1[8] = { 0.0, 0.707, 1.0, 0.707, 0.0, -0.707, -1.0, -0.707};
+	GLfloat c1[8] = { 1.0, 0.707, 0.0, -0.707, -1.0, -0.707, 0.0, 0.707};
+	ShipEntity  *ship =(ShipEntity *)[universe entityForUniversalID:owner];
+	
+	if (!ship)
+		return;
+	
+	Frame zero;
+	zero.q_rotation = ship->q_rotation;
+	int dam = [ship damage];
+	double flare_length = [ship speed_factor];
+
+	if (!flare_length)	// don't draw if there's no fire!
+		return;
+
+	double flare_factor = flare_length * ex_emissive[3];
+	double red_factor = flare_length * ex_emissive[0] * (ranrot_rand() % 11) * 0.1;	// random fluctuations
+	double green_factor = flare_length * ex_emissive[1];
+
+	if (flare_length > 1.0)	// afterburner!
+	{
+		red_factor = 1.5;
+		flare_length = 1.0 + 0.25 * flare_length;
+	}
+	
+	if ((ranrot_rand() % 50) < dam - 50)   // flicker the damaged engines
+		red_factor = 0.0;
+	if ((ranrot_rand() % 40) < dam - 60)
+		green_factor = 0.0;
+	if ((ranrot_rand() % 25) < dam - 75)
+		flare_factor = 0.0;
+	
+	if (flare_length < 0.1)   flare_length = 0.1;	
+	Vector currentPos = ship->position;
+	Vector master_i = vector_right_from_quaternion(ship->q_rotation);
+	Vector vi,vj,vk;
+	vi = master_i;
+	vj = vector_up_from_quaternion(ship->q_rotation);
+	vk = cross_product( vi, vj);
+	zero.position = make_vector(	currentPos.x + vi.x * position.x + vj.x * position.y + vk.x * position.z,
+									currentPos.y + vi.y * position.x + vj.y * position.y + vk.y * position.z,
+									currentPos.z + vi.z * position.x + vj.z * position.y + vk.z * position.z);
+	
+	GLfloat i01 = -0.03;// * flare_length;
+	GLfloat i04 = -0.12;// * flare_length;
+	GLfloat i06 = -0.25;// * flare_length;
+	GLfloat i08 = -0.32;// * flare_length;
+	GLfloat i10 = -0.40;// * flare_length;
+	Frame	f01 = [self frameAtTime: i01 fromFrame: zero];
+	Frame	f03 = [self frameAtTime: i04 fromFrame: zero];
+	Frame	f06 = [self frameAtTime: i06 fromFrame: zero];
+	Frame	f08 = [self frameAtTime: i08 fromFrame: zero];
+	Frame	f10 = [self frameAtTime: i10 fromFrame: zero];
+
+	int ci = 0;
+	int iv = 0;
+	int i;
+	float r1;
+	//
+	ex_emissive[3] = flare_factor;	// fade alpha towards rear of exhaust
+	ex_emissive[1] = green_factor;	// diminish green part towards rear of exhaust
+	ex_emissive[0] = red_factor;		// diminish red part towards rear of exhaust
+	verts[iv++] = f03.position.x;// + zero.k.x * flare_factor * 4.0;
+	verts[iv++] = f03.position.y;// + zero.k.y * flare_factor * 4.0;
+	verts[iv++] = f03.position.z;// + zero.k.z * flare_factor * 4.0;
+	exhaustBaseColors[ci++] = ex_emissive[0];
+	exhaustBaseColors[ci++] = ex_emissive[1];
+	exhaustBaseColors[ci++] = ex_emissive[2];
+	exhaustBaseColors[ci++] = ex_emissive[3];
+	//
+	ex_emissive[3] = 0.9 * flare_factor;	// fade alpha towards rear of exhaust
+	ex_emissive[1] = 0.9 * green_factor;	// diminish green part towards rear of exhaust
+	ex_emissive[0] = 0.9 * red_factor;		// diminish red part towards rear of exhaust
+	Vector k1 = f01.k;
+	Vector j1 = cross_product( master_i, k1);
+	Vector i1 = cross_product( j1, k1);
+	
+	f01.position = make_vector(zero.position.x - vk.x, zero.position.y - vk.y, zero.position.z - vk.z);// 1m out from zero
+//	i1 = vi;
+//	j1 = vj;	// initial vars
+	
+	i1.x *= exhaustScale.x;	i1.y *= exhaustScale.x;	i1.z *= exhaustScale.x;
+	j1.x *= exhaustScale.y;	j1.y *= exhaustScale.y;	j1.z *= exhaustScale.y;
+	for (i = 0; i < 8; i++)
+	{
+		verts[iv++] =	f01.position.x + s1[i] * i1.x + c1[i] * j1.x;
+		verts[iv++] =	f01.position.y + s1[i] * i1.y + c1[i] * j1.y;
+		verts[iv++] =	f01.position.z + s1[i] * i1.z + c1[i] * j1.z;
+		exhaustBaseColors[ci++] = ex_emissive[0];
+		exhaustBaseColors[ci++] = ex_emissive[1];
+		exhaustBaseColors[ci++] = ex_emissive[2];
+		exhaustBaseColors[ci++] = ex_emissive[3];
+	}
+	//
+	ex_emissive[3] = 0.6 * flare_factor;	// fade alpha towards rear of exhaust
+	ex_emissive[1] = 0.6 * green_factor;	// diminish green part towards rear of exhaust
+	ex_emissive[0] = 0.6 * red_factor;		// diminish red part towards rear of exhaust
+	k1 = f03.k;
+	j1 = cross_product( master_i, k1);
+	i1 = cross_product( j1, k1);
+	i1.x *= exhaustScale.x;	i1.y *= exhaustScale.x;	i1.z *= exhaustScale.x;
+	j1.x *= exhaustScale.y;	j1.y *= exhaustScale.y;	j1.z *= exhaustScale.y;
+	for (i = 0; i < 8; i++)
+	{
+		r1 = randf();
+		verts[iv++] =	f03.position.x + s1[i] * i1.x + c1[i] * j1.x + r1 * k1.x;
+		verts[iv++] =	f03.position.y + s1[i] * i1.y + c1[i] * j1.y + r1 * k1.y;
+		verts[iv++] =	f03.position.z + s1[i] * i1.z + c1[i] * j1.z + r1 * k1.z;
+		exhaustBaseColors[ci++] = ex_emissive[0];
+		exhaustBaseColors[ci++] = ex_emissive[1];
+		exhaustBaseColors[ci++] = ex_emissive[2];
+		exhaustBaseColors[ci++] = ex_emissive[3];
+	}
+	//
+	ex_emissive[3] = 0.4 * flare_factor;	// fade alpha towards rear of exhaust
+	ex_emissive[1] = 0.4 * green_factor;	// diminish green part towards rear of exhaust
+	ex_emissive[0] = 0.4 * red_factor;		// diminish red part towards rear of exhaust
+	k1 = f06.k;
+	j1 = cross_product( master_i, k1);
+	i1 = cross_product( j1, k1);
+	i1.x *= 0.8 * exhaustScale.x;	i1.y *= 0.8 * exhaustScale.x;	i1.z *= 0.8 * exhaustScale.x;
+	j1.x *= 0.8 * exhaustScale.y;	j1.y *= 0.8 * exhaustScale.y;	j1.z *= 0.8 * exhaustScale.y;
+	for (i = 0; i < 8; i++)
+	{
+		r1 = randf();
+		verts[iv++] =	f06.position.x + s1[i] * i1.x + c1[i] * j1.x + r1 * k1.x;
+		verts[iv++] =	f06.position.y + s1[i] * i1.y + c1[i] * j1.y + r1 * k1.y;
+		verts[iv++] =	f06.position.z + s1[i] * i1.z + c1[i] * j1.z + r1 * k1.z;
+		exhaustBaseColors[ci++] = ex_emissive[0];
+		exhaustBaseColors[ci++] = ex_emissive[1];
+		exhaustBaseColors[ci++] = ex_emissive[2];
+		exhaustBaseColors[ci++] = ex_emissive[3];
+	}
+	//
+	ex_emissive[3] = 0.2 * flare_factor;	// fade alpha towards rear of exhaust
+	ex_emissive[1] = 0.2 * green_factor;	// diminish green part towards rear of exhaust
+	ex_emissive[0] = 0.2 * red_factor;		// diminish red part towards rear of exhaust
+	k1 = f08.k;
+	j1 = cross_product( master_i, k1);
+	i1 = cross_product( j1, k1);
+	i1.x *= 0.5 * exhaustScale.x;	i1.y *= 0.5 * exhaustScale.x;	i1.z *= 0.5 * exhaustScale.x;
+	j1.x *= 0.5 * exhaustScale.y;	j1.y *= 0.5 * exhaustScale.y;	j1.z *= 0.5 * exhaustScale.y;
+	for (i = 0; i < 8; i++)
+	{
+		r1 = randf();
+		verts[iv++] =	f08.position.x + s1[i] * i1.x + c1[i] * j1.x + r1 * k1.x;
+		verts[iv++] =	f08.position.y + s1[i] * i1.y + c1[i] * j1.y + r1 * k1.y;
+		verts[iv++] =	f08.position.z + s1[i] * i1.z + c1[i] * j1.z + r1 * k1.z;
+		exhaustBaseColors[ci++] = ex_emissive[0];
+		exhaustBaseColors[ci++] = ex_emissive[1];
+		exhaustBaseColors[ci++] = ex_emissive[2];
+		exhaustBaseColors[ci++] = ex_emissive[3];
+	}
+	//
+	ex_emissive[3] = 0.0;	// fade alpha towards rear of exhaust
+	ex_emissive[1] = 0.0;	// diminish green part towards rear of exhaust
+	ex_emissive[0] = 0.0;		// diminish red part towards rear of exhaust
+	verts[iv++] = f10.position.x;
+	verts[iv++] = f10.position.y;
+	verts[iv++] = f10.position.z;
+	exhaustBaseColors[ci++] = ex_emissive[0];
+	exhaustBaseColors[ci++] = ex_emissive[1];
+	exhaustBaseColors[ci++] = ex_emissive[2];
+	exhaustBaseColors[ci++] = ex_emissive[3];
+}
+
 - (void) drawEntity:(BOOL) immediate :(BOOL) translucent;
 {
 	NSString* debug_type = @"PLAIN";
 	
-	if ([universe breakPatternHide])   return;		// DON'T DRAW DURING BREAK PATTERN
+	if (!universe)
+		return;
+	
+	if ([universe breakPatternHide])
+		return;		// DON'T DRAW DURING BREAK PATTERN
 	
 	if ((particle_type == PARTICLE_FLASHER)&&(zero_distance > no_draw_distance))	return;	// TOO FAR AWAY TO SEE
 	
@@ -1041,7 +1368,7 @@ static Vector   circleVertex[65];		// holds vector coordinates for a unit circle
 				break;
 			
 			case PARTICLE_EXHAUST :
-				[self drawExhaust: immediate];
+				[self drawExhaust2];
 				debug_type = @"PARTICLE_EXHAUST";
 				break;
 				
@@ -1070,6 +1397,11 @@ static Vector   circleVertex[65];		// holds vector coordinates for a unit circle
 				debug_type = @"PARTICLE_BURST2";
 				break;
 				
+			case PARTICLE_FLASH :
+				debug_type = @"PARTICLE_FLASH";				
+				[self drawParticle];
+				break;
+				
 			default :
 				[self drawParticle];
 				break;
@@ -1080,25 +1412,12 @@ static Vector   circleVertex[65];		// holds vector coordinates for a unit circle
 
 - (void) drawSubEntity:(BOOL) immediate :(BOOL) translucent
 {
+//	NSLog(@"DEBUG drawing subentity %@ for %@", self, [universe entityForUniversalID:owner]);
 
 	if (particle_type == PARTICLE_EXHAUST)
-	{
+	{		
 		if (translucent)
-		{
-			glPushMatrix();
-
-			// position and orientation is relative to owner
-			
-			//NSLog(@"DEBUG drawing passive subentity at %.3f, %.3f, %.3f", position.x, position.y, position.z);
-			
-			glTranslated( position.x, position.y, position.z);
-			glMultMatrixf(rotMatrix);
-			
-			[self drawExhaust:immediate];
-				
-			glPopMatrix();
-		}
-		
+			[self drawExhaust2];
 		return;
 	}
 
@@ -1132,7 +1451,7 @@ static Vector   circleVertex[65];		// holds vector coordinates for a unit circle
 		glPopMatrix();  // restore zero!
 		glPushMatrix();
 				// position and orientation is absolute
-		glTranslated( abspos.x, abspos.y, abspos.z);
+		glTranslatef( abspos.x, abspos.y, abspos.z);
 		glMultMatrixf(rotMatrix);
 		
 		[self drawEntity:immediate :translucent];
@@ -1157,7 +1476,6 @@ static Vector   circleVertex[65];		// holds vector coordinates for a unit circle
 	// movies:
 	// draw data required xx, yy, color_fv[0], color_fv[1], color_fv[2]
 	
-	glDisable(GL_LIGHTING);
 	glEnable(GL_TEXTURE_2D);
 	glPushMatrix();
 	
@@ -1235,9 +1553,7 @@ static Vector   circleVertex[65];		// holds vector coordinates for a unit circle
 	}
 
 	glEnd();
-	
 	glPopMatrix();
-	glEnable(GL_LIGHTING);
 }
 
 - (void) drawLaser
@@ -1246,29 +1562,20 @@ static Vector   circleVertex[65];		// holds vector coordinates for a unit circle
 	
 	glDisable(GL_CULL_FACE);			// face culling
 	
-//	//state check
-//	NSLog(@"DEBUG before drawing laser %.2f %.2f %.2f %.2f", color_fv[0], color_fv[1], color_fv[2], color_fv[3]);
-//	logGLState();
-	
 	// movies:
 	// draw data required collision_radius, color_fv[0], color_fv[1], color_fv[2]
 	
 	glDisable(GL_TEXTURE_2D);
 
-	glBegin(GL_QUADS);
-	
-	glMaterialfv( GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE, color_fv);
-	glMaterialfv( GL_FRONT_AND_BACK, GL_EMISSION, color_fv);
+	glColor4fv(color_fv);
 
-	glNormal3f(	0.0, 1.0, 0.0);	// up;
-	
+	glBegin(GL_QUADS);
+		
 	glVertex3f(0.25, 0.0, 0.0);
 	glVertex3f(0.25, 0.0, collision_radius);
 	glVertex3f(-0.25, 0.0, collision_radius);
 	glVertex3f(-0.25, 0.0, 0.0);
-	
-	glNormal3f(	1.0, 0.0, 0.0);	// right;
-	
+		
 	glVertex3f(0.0, 0.25, 0.0);
 	glVertex3f(0.0, 0.25, collision_radius);
 	glVertex3f(0.0, -0.25, collision_radius);
@@ -1276,86 +1583,50 @@ static Vector   circleVertex[65];		// holds vector coordinates for a unit circle
 	
 	glEnd();
 		
-//	//state check
-//	NSLog(@"DEBUG After drawing laser");
-//	logGLState();
-	
 	glEnable(GL_CULL_FACE);			// face culling
 }
 
-- (void) drawExhaust:(BOOL) immediate
+- (void) drawExhaust2
 {
-    int fi, vi;
-	
-	GLfloat ex_emissive[4]	= {0.6, 0.8, 1.0, 0.9};   // pale blue
-	
-	ShipEntity  *ship =(ShipEntity *)[universe entityForUniversalID:owner];
-	int dam = [ship damage];
-	double flare_length = [ship speed_factor];
-	
-	if (!ship)
-	{
-//		NSLog(@"DEBUG exhaust '%@' has no owner", self);
-		return;
-	}
-	
-	if (flare_length == 0.0)	// don't draw if there's no fire!
-	{
-//		NSLog(@"DEBUG ship '%@' has no exhaust because of no speed", [ship name]);
-		return;
-	}
-	
-	double flare_factor = flare_length * ex_emissive[3];
-	double red_factor = flare_length * ex_emissive[0] * (ranrot_rand() % 11) * 0.1;	// random fluctuations
-	double green_factor = flare_length * ex_emissive[1];
-	//double blue_factor = flare_length * ex_emissive[2];
-	
-	if (flare_length > 1.0)	// afterburner!
-	{
-		red_factor = 1.5;
-		flare_length = 1.0 + 0.25 * flare_length;
-	}
-	
-	if ((ranrot_rand() % 50) < dam - 50)   // flicker the damaged engines
-		red_factor = 0.0;
-	if ((ranrot_rand() % 40) < dam - 60)
-		green_factor = 0.0;
-	if ((ranrot_rand() % 25) < dam - 75)
-		flare_factor = 0.0;
-	
-	if (flare_length < 0.1)   flare_length = 0.1;	
-
-	// movies:
-	// draw data required flare_factor, red_factor, green_factor, flare_length
-	
-	if (basefile)
-	{
-		glDisable(GL_TEXTURE_2D);
-		glDisable(GL_CULL_FACE);			// face culling
-		glShadeModel(GL_SMOOTH);
+	GLuint tfan1[10] = {	0,	1,	2,	3,	4,	5,	6,	7,	8,	1};		// initial fan 0..9
+	GLuint qstrip1[18] = {	1,	9,	2,	10,	3,	11,	4,	12,	5,	13,	6,	14,	7,	15,	8,	16,	1,	9};		// first quadstrip 10..27
+	GLuint qstrip2[18] = {	9,	17,	10,	18,	11,	19,	12,	20,	13,	21,	14,	22,	15,	23,	16,	24,	9,	17};	// second quadstrip 28..45
+	GLuint qstrip3[18] = {	17,	25,	18,	26,	19,	27,	20,	28,	21,	29,	22,	30,	23,	31,	24,	32,	17,	25};	// third quadstrip 46..63
+	GLuint tfan2[10] = {	33,	25,	26,	27,	28,	29,	30,	31,	32,	25};	// final fan 64..73
 		
-		glBegin(GL_TRIANGLES);
-		for (fi = 0; fi < n_faces; fi++)
-		{
-			glNormal3f( 0.0f, 0.0f, 1.0f);
-			for (vi = 0; vi < 3; vi++)
-			{
-				int v = faces[fi].vertex[vi];
-				ex_emissive[3] = flare_factor * alpha_for_vertex[v];	// fade alpha towards rear of exhaust
-				ex_emissive[1] = green_factor * alpha_for_vertex[v];	// diminish green part towards rear of exhaust
-				ex_emissive[0] = red_factor * alpha_for_vertex[v];		// diminish red part towards rear of exhaust
-				//
-				glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE, ex_emissive);	// SCREWS UP LASERS
-				glMaterialfv(GL_FRONT_AND_BACK, GL_EMISSION, ex_emissive);				// ALSO SCREWS UP LASERS!
-				//
-				glVertex3f(vertices[v].x, vertices[v].y, vertices[v].z * flare_length);
-			}
-			
-		}
-		glEnd();
+	ShipEntity  *ship =(ShipEntity *)[universe entityForUniversalID:owner];
+	if (!ship)
+		return;
+	
+	double flare_length = [ship speed_factor];
 
-		glEnable(GL_CULL_FACE);			// face culling
-	}
+	if (!flare_length)	// don't draw if there's no fire!
+		return;
+
+	glPopMatrix();	// restore absolute positioning
+	glPushMatrix();	// restore absolute positioning
+
+	glDisable( GL_TEXTURE_2D);
+	glDisable( GL_CULL_FACE);		// face culling
+	glShadeModel( GL_SMOOTH);
+		
+	glEnableClientState(GL_VERTEX_ARRAY);
+	glVertexPointer( 3, GL_FLOAT, 0, verts);
+	glEnableClientState(GL_COLOR_ARRAY);
+	glColorPointer( 4, GL_FLOAT, 0, exhaustBaseColors);
+	glDisableClientState(GL_NORMAL_ARRAY);
+	glDisableClientState(GL_INDEX_ARRAY);
+	glDisableClientState(GL_TEXTURE_COORD_ARRAY);
+	glDisableClientState(GL_EDGE_FLAG_ARRAY);
+	//
+	glDrawElements( GL_TRIANGLE_FAN, 10, GL_UNSIGNED_INT, tfan1);
+	glDrawElements( GL_QUAD_STRIP, 18, GL_UNSIGNED_INT, qstrip1);
+	glDrawElements( GL_QUAD_STRIP, 18, GL_UNSIGNED_INT, qstrip2);
+	glDrawElements( GL_QUAD_STRIP, 18, GL_UNSIGNED_INT, qstrip3);
+	glDrawElements( GL_TRIANGLE_FAN, 10, GL_UNSIGNED_INT, tfan2);
+	
+	glEnable( GL_CULL_FACE);		// face culling
+	glEnable( GL_TEXTURE_2D);
 }
 
 - (void) drawHyperring
@@ -1363,9 +1634,6 @@ static Vector   circleVertex[65];		// holds vector coordinates for a unit circle
 	int i;
 	GLfloat aleph = (alpha < 2.0) ? alpha*0.5 : 1.0;
 	
-    GLfloat ex_one[4]		= {1.0, 1.0, 1.0, 1.0};		// white
-    GLfloat ex_zero[4]		= {0.0, 0.0, 0.0, 1.0};		// black
-	GLfloat ex_ambdiff[4]	= {0.0, 0.0, 0.0, aleph};		// black
 	GLfloat ex_em_hi[4]		= {0.6, 0.8, 1.0, aleph};   // pale blue
 	GLfloat ex_em_lo[4]		= {0.2, 0.0, 1.0, 0.0};		// purplish-blue-black
 	
@@ -1379,18 +1647,13 @@ static Vector   circleVertex[65];		// holds vector coordinates for a unit circle
 	// movies:
 	// draw data required ring_inner_radius, ring_outer_radius
 	
-	glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE, ex_zero);
 	glBegin(GL_TRIANGLE_STRIP);
 	for (i = 0; i < 65; i++)
 	{
-		glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE, ex_em_lo);
-		glMaterialfv(GL_FRONT_AND_BACK, GL_EMISSION, ex_em_lo);
+		glColor4fv(ex_em_lo);
 		glVertex3f( ring_inner_radius*circleVertex[i].x, ring_inner_radius*circleVertex[i].y, ring_inner_radius*circleVertex[i].z );
-		glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE, ex_ambdiff);
-		glMaterialfv(GL_FRONT_AND_BACK, GL_EMISSION, ex_em_hi);
+		glColor4fv(ex_em_hi);
 		glVertex3f( ring_outer_radius*circleVertex[i].x, ring_outer_radius*circleVertex[i].y, ring_outer_radius*circleVertex[i].z );
-		glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE, ex_one);	// reset to white -
-		glMaterialfv(GL_FRONT_AND_BACK, GL_EMISSION, ex_zero);				// reset to black - necessary to stop texture 'black outs'
 	}
 	glEnd();
 
@@ -1402,22 +1665,18 @@ static Vector   circleVertex[65];		// holds vector coordinates for a unit circle
 {
 	double szd = sqrt(zero_distance);
 	
-	GLfloat bomb_ambdiff[4]		= {0.0, 0.0, 0.0, 1.0};   // for alpha
-	
 	color_fv[3]		= alpha;  // set alpha
-	bomb_ambdiff[3] = alpha;  // set alpha
 	
 	glDisable(GL_CULL_FACE);			// face culling
 	glDisable(GL_TEXTURE_2D);
 	
 	int step = 4;
 
+	glColor4fv( color_fv);
 	glBegin(GL_TRIANGLE_FAN);
 	//
-	glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE, bomb_ambdiff);	// must be within glBegin/glEnd
-	glMaterialfv(GL_FRONT_AND_BACK, GL_EMISSION, color_fv);
-	//
 	drawBallVertices( collision_radius, step, szd);
+	//
 	glEnd();
 	
 //	NSLog(@"DEBUG ENERGY BOMB radius: %.3f, expansion: %.3f, color: [ %.3f, %.3f, %.3f, %.3f]", collision_radius, velocity.z, color_fv[0], color_fv[1], color_fv[2], alpha);
@@ -1427,124 +1686,88 @@ static Vector   circleVertex[65];		// holds vector coordinates for a unit circle
 
 - (void) drawFragburst
 {
-    int viewdir, i;
+    int i;
 	
-	GLfloat  xx = size.width / 2.0;
-	GLfloat  yy = size.height / 2.0;
+	int viewdir = universe->viewDirection;
 	
-	viewdir = [universe viewDir];
-	
-	glDisable(GL_LIGHTING);
 	glEnable(GL_TEXTURE_2D);
-	glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_BLEND);
+	glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
 	glBindTexture(GL_TEXTURE_2D, texName);
 	glPushMatrix();
 	
 	glBegin(GL_QUADS);
 	for (i = 0; i < n_vertices; i++)
 	{
-		glColor4f(1.0, 1.0, 1.0, faces[i].blue);
-		
-		GLfloat x = vertices[i].x;
-		GLfloat y = vertices[i].y;
-		GLfloat z = vertices[i].z;
-		switch (viewdir)
-		{
-			case	VIEW_AFT :
-				glTexCoord2f(0.0, 1.0);	glVertex3f(x+xx, y-yy, z);
-				glTexCoord2f(1.0, 1.0);	glVertex3f(x-xx, y-yy, z);
-				glTexCoord2f(1.0, 0.0);	glVertex3f(x-xx, y+yy, z);
-				glTexCoord2f(0.0, 0.0);	glVertex3f(x+xx, y+yy, z);
-				break;
-			case	VIEW_STARBOARD :
-				glTexCoord2f(0.0, 1.0);	glVertex3f(x, y-yy, z+xx);
-				glTexCoord2f(1.0, 1.0);	glVertex3f(x, y-yy, z-xx);
-				glTexCoord2f(1.0, 0.0);	glVertex3f(x, y+yy, z-xx);
-				glTexCoord2f(0.0, 0.0);	glVertex3f(x, y+yy, z+xx);
-				break;
-			case	VIEW_PORT :
-				glTexCoord2f(0.0, 1.0);	glVertex3f(x, y-yy, z-xx);
-				glTexCoord2f(1.0, 1.0);	glVertex3f(x, y-yy, z+xx);
-				glTexCoord2f(1.0, 0.0);	glVertex3f(x, y+yy, z+xx);
-				glTexCoord2f(0.0, 0.0);	glVertex3f(x, y+yy, z-xx);
-				break;
-			default :
-				glTexCoord2f(0.0, 1.0);	glVertex3f(x-xx, y-yy, z);
-				glTexCoord2f(1.0, 1.0);	glVertex3f(x+xx, y-yy, z);
-				glTexCoord2f(1.0, 0.0);	glVertex3f(x+xx, y+yy, z);
-				glTexCoord2f(0.0, 0.0);	glVertex3f(x-xx, y+yy, z);
-				break;
-		}
+		glColor4f( faces[i].red, faces[i].green, faces[i].blue, faces[i].normal.z);
+		drawQuadForView( viewdir, vertices[i].x, vertices[i].y, vertices[i].z, faces[i].normal.x, faces[i].normal.x);
 	}
 	glEnd();
 	
 	glPopMatrix();
 	glDisable(GL_TEXTURE_2D);
-	glEnable(GL_LIGHTING);
 }
 
 - (void) drawBurst2
 {
-    int viewdir, i;
-	GLfloat	colr[4];
+    int i;
 	
-	GLfloat  xx = 0.5 * size.width;
-	GLfloat  yy = 0.5 * size.height;
+	int viewdir = universe->viewDirection;
 	
-	viewdir = [universe viewDir];
-	
-	glDisable(GL_LIGHTING);
 	glEnable(GL_TEXTURE_2D);
-	glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_BLEND);
+	glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
 	glBindTexture(GL_TEXTURE_2D, texName);
 	glPushMatrix();
 
+	glBegin(GL_QUADS);
 	for (i = 0; i < n_vertices; i++)
 	{
-		colr[0] = color_fv[0];
-		colr[1] = 0.5 * (color_fv[1] + faces[i].green);
-		colr[2] = color_fv[2];
-		colr[3] = faces[i].blue;
-		glTexEnvfv(GL_TEXTURE_ENV, GL_TEXTURE_ENV_COLOR, colr);
-		glColor4f(1.0, 1.0, 1.0, faces[i].blue);
-		
-		GLfloat x = vertices[i].x;
-		GLfloat y = vertices[i].y;
-		GLfloat z = vertices[i].z;
-		glBegin(GL_QUADS);
-		switch (viewdir)
-		{
-			case	VIEW_AFT :
-				glTexCoord2f(0.0, 1.0);	glVertex3f(x+xx, y-yy, z);
-				glTexCoord2f(1.0, 1.0);	glVertex3f(x-xx, y-yy, z);
-				glTexCoord2f(1.0, 0.0);	glVertex3f(x-xx, y+yy, z);
-				glTexCoord2f(0.0, 0.0);	glVertex3f(x+xx, y+yy, z);
-				break;
-			case	VIEW_STARBOARD :
-				glTexCoord2f(0.0, 1.0);	glVertex3f(x, y-yy, z+xx);
-				glTexCoord2f(1.0, 1.0);	glVertex3f(x, y-yy, z-xx);
-				glTexCoord2f(1.0, 0.0);	glVertex3f(x, y+yy, z-xx);
-				glTexCoord2f(0.0, 0.0);	glVertex3f(x, y+yy, z+xx);
-				break;
-			case	VIEW_PORT :
-				glTexCoord2f(0.0, 1.0);	glVertex3f(x, y-yy, z-xx);
-				glTexCoord2f(1.0, 1.0);	glVertex3f(x, y-yy, z+xx);
-				glTexCoord2f(1.0, 0.0);	glVertex3f(x, y+yy, z+xx);
-				glTexCoord2f(0.0, 0.0);	glVertex3f(x, y+yy, z-xx);
-				break;
-			default :
-				glTexCoord2f(0.0, 1.0);	glVertex3f(x-xx, y-yy, z);
-				glTexCoord2f(1.0, 1.0);	glVertex3f(x+xx, y-yy, z);
-				glTexCoord2f(1.0, 0.0);	glVertex3f(x+xx, y+yy, z);
-				glTexCoord2f(0.0, 0.0);	glVertex3f(x-xx, y+yy, z);
-				break;
-		}
-		glEnd();
+		glColor4f( faces[i].red, faces[i].green, faces[i].blue, faces[i].normal.z);
+		drawQuadForView( viewdir, vertices[i].x, vertices[i].y, vertices[i].z, size.width, size.width);
 	}
+	glEnd();
 	
 	glPopMatrix();
 	glDisable(GL_TEXTURE_2D);
-	glEnable(GL_LIGHTING);
+}
+
+//- (void) drawFlash
+//{	
+//	
+////	NSLog(@"DEBUG *FLASH* being drawn at [ %.2f, %.2f, %.2f] size %.2f", position.x, position.y, position.z, size.width);
+//
+//	alpha = color_fv[3];
+//	[self drawParticle];
+//}
+
+void drawQuadForView(int viewdir, GLfloat x, GLfloat y, GLfloat z, GLfloat xx, GLfloat yy)
+{
+	switch (viewdir)
+	{
+		case	VIEW_AFT :
+			glTexCoord2f(0.0, 1.0);	glVertex3f(x+xx, y-yy, z);
+			glTexCoord2f(1.0, 1.0);	glVertex3f(x-xx, y-yy, z);
+			glTexCoord2f(1.0, 0.0);	glVertex3f(x-xx, y+yy, z);
+			glTexCoord2f(0.0, 0.0);	glVertex3f(x+xx, y+yy, z);
+			break;
+		case	VIEW_STARBOARD :
+			glTexCoord2f(0.0, 1.0);	glVertex3f(x, y-yy, z+xx);
+			glTexCoord2f(1.0, 1.0);	glVertex3f(x, y-yy, z-xx);
+			glTexCoord2f(1.0, 0.0);	glVertex3f(x, y+yy, z-xx);
+			glTexCoord2f(0.0, 0.0);	glVertex3f(x, y+yy, z+xx);
+			break;
+		case	VIEW_PORT :
+			glTexCoord2f(0.0, 1.0);	glVertex3f(x, y-yy, z-xx);
+			glTexCoord2f(1.0, 1.0);	glVertex3f(x, y-yy, z+xx);
+			glTexCoord2f(1.0, 0.0);	glVertex3f(x, y+yy, z+xx);
+			glTexCoord2f(0.0, 0.0);	glVertex3f(x, y+yy, z-xx);
+			break;
+		default :
+			glTexCoord2f(0.0, 1.0);	glVertex3f(x-xx, y-yy, z);
+			glTexCoord2f(1.0, 1.0);	glVertex3f(x+xx, y-yy, z);
+			glTexCoord2f(1.0, 0.0);	glVertex3f(x+xx, y+yy, z);
+			glTexCoord2f(0.0, 0.0);	glVertex3f(x-xx, y+yy, z);
+			break;
+	}
 }
 
 @end

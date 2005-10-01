@@ -246,6 +246,7 @@ static  Universe	*data_store_universe;
     if (universe)	[universe release];
     if (basefile)	[basefile release];
 	if (collidingEntities)	[collidingEntities release];
+	if (trackLock) [trackLock release];
 	[super dealloc];
 }
 
@@ -784,9 +785,46 @@ static  Universe	*data_store_universe;
 		track[track_index].position =	position;
 		track[track_index].q_rotation =	q_rotation;
 		track[track_index].timeframe =	track_time;
+		track[track_index].k =	vector_forward_from_quaternion(q_rotation);
 		track_index = (track_index + 1 ) & 0xff;
-//		if (isPlayer)
-//			NSLog(@"Saving frame %d %.2f", track_index, track_time);
+	}
+}
+
+- (void) savePosition:(Vector)pos atTime:(double)t_time atIndex:(int)t_index
+{
+	track_time = t_time;
+	track[t_index].position = pos;
+	track[t_index].timeframe =	t_time;
+	track_index = (t_index + 1 ) & 0xff;
+}
+
+- (void) saveFrame:(Frame)frame atIndex:(int)t_index
+{
+	track[t_index] = frame;
+	track_time = frame.timeframe;
+	track_index = (t_index + 1 ) & 0xff;
+}
+
+// reset frames
+//
+- (void) resetFramesFromFrame:(Frame) resetFrame withVelocity:(Vector) vel1
+{
+	Vector v1 = make_vector( 0.1 * vel1.x, 0.1 * vel1.y, 0.1 * vel1.z);
+	double t_now = [universe getTime];
+	Frame setFrame = resetFrame;
+	setFrame.timeframe = t_now;
+	track_time = t_now;
+	int i;
+	int index = (track_index - 1) & 0xff;
+	for (i = 0; i < 256; i++)
+	{
+		track[index] = setFrame;
+		setFrame.position.x -= v1.x;
+		setFrame.position.y -= v1.y;
+		setFrame.position.z -= v1.z;
+		setFrame.timeframe -= 0.1;
+		index --;
+		index &= 0xff;
 	}
 }
 
@@ -807,6 +845,7 @@ static  Universe	*data_store_universe;
 	result.position = position;
 	result.q_rotation = q_rotation;
 	result.timeframe = [universe getTime];
+	result.k = vector_forward_from_quaternion(q_rotation);
 	//
 	if (t_frame >= 0.0)
 		return result;
@@ -817,7 +856,7 @@ static  Universe	*data_store_universe;
 		int t1 = (track_index - 1)&0xff;	// last saved moment
 		double period = result.timeframe - track_time;
 		double f0 = (result.timeframe - moment_in_time)/period;
-		double f1 = 1 - f0;
+		double f1 = 1.0 - f0;
 		Vector posn;
 		posn.x =	f0 * result.position.x + f1 * track[t1].position.x;
 		posn.y =	f0 * result.position.y + f1 * track[t1].position.y;
@@ -830,6 +869,7 @@ static  Universe	*data_store_universe;
 		result.position = posn;
 		result.q_rotation = qrot;
 		result.timeframe = moment_in_time;
+		result.k = vector_forward_from_quaternion(qrot);
 		return result;
 	}
 	//
@@ -858,6 +898,70 @@ static  Universe	*data_store_universe;
 	result.position = posn;
 	result.q_rotation = qrot;
 	result.timeframe = moment_in_time;
+	result.k = vector_forward_from_quaternion(qrot);
+	return result;
+}
+
+- (Frame) frameAtTime:(double) t_frame fromFrame:(Frame) frame_zero	// t_frame is relative to now ie. -0.5 = half a second ago.
+{
+	Frame result = frame_zero;
+	//
+	if (t_frame >= 0.0)
+		return result;
+	//
+	double moment_in_time = [universe getTime] + t_frame;
+	if (moment_in_time > track_time)					// between the last saved frame and now
+	{
+		Frame fr1 = track[(track_index - 1)&0xff];	// last saved moment
+		double period = (moment_in_time - t_frame) - track_time;
+		double f1 =	-t_frame/period;
+		double f0 =	1.0 - f1;
+//		NSLog(@"DEBUG m-i-t:%.3f track_time:%.3f t_frame:%.3f period:%.3f f0:f1 %.3f:%.3f",
+//					moment_in_time, track_time, t_frame, period, f0, f1);
+		Vector posn;
+		posn.x =	f0 * result.position.x + f1 * fr1.position.x;
+		posn.y =	f0 * result.position.y + f1 * fr1.position.y;
+		posn.z =	f0 * result.position.z + f1 * fr1.position.z;
+		Quaternion qrot;
+		qrot.w =	f0 * result.q_rotation.w + f1 * fr1.q_rotation.w;
+		qrot.x =	f0 * result.q_rotation.x + f1 * fr1.q_rotation.x;
+		qrot.y =	f0 * result.q_rotation.y + f1 * fr1.q_rotation.y;
+		qrot.z =	f0 * result.q_rotation.z + f1 * fr1.q_rotation.z;
+		result.position = posn;
+		result.q_rotation = qrot;
+		result.timeframe = moment_in_time;
+		result.k = vector_forward_from_quaternion(qrot);
+		return result;
+	}
+	//
+	if (moment_in_time < track[track_index].timeframe)	// more than 256 frames back
+	{
+		return track[track_index];
+	}
+	//
+	int t1 = (track_index - 1)&0xff;
+	while (moment_in_time < track[t1].timeframe)
+		t1 = (t1 - 1) & 0xff;
+	int t0 = (t1 + 1) & 0xff;
+	// interpolate between t0 and t1
+	double period = track[t0].timeframe - track[t1].timeframe;
+	double f0 = (moment_in_time - track[t1].timeframe)/period;
+	double f1 = 1.0 - f0;
+//		NSLog(@"DEBUG m-i-t:%.3f t0.timeframe:%.3f t1.timeframe:%.3f period:%.3f f0:f1 %.3f:%.3f",
+//					moment_in_time, track[t0].timeframe, track[t1].timeframe, period, f0, f1);
+	Vector posn;
+	posn.x =	f0 * track[t0].position.x + f1 * track[t1].position.x;
+	posn.y =	f0 * track[t0].position.y + f1 * track[t1].position.y;
+	posn.z =	f0 * track[t0].position.z + f1 * track[t1].position.z;
+	Quaternion qrot;
+	qrot.w =	f0 * track[t0].q_rotation.w + f1 * track[t1].q_rotation.w;
+	qrot.x =	f0 * track[t0].q_rotation.x + f1 * track[t1].q_rotation.x;
+	qrot.y =	f0 * track[t0].q_rotation.y + f1 * track[t1].q_rotation.y;
+	qrot.z =	f0 * track[t0].q_rotation.z + f1 * track[t1].q_rotation.z;
+	result.position = posn;
+	result.q_rotation = qrot;
+	result.timeframe = moment_in_time;
+	result.k = vector_forward_from_quaternion(qrot);
 	return result;
 }
 
@@ -893,6 +997,18 @@ static  Universe	*data_store_universe;
 	{
 		data = [ResourceManager stringFromFilesNamed:filename inFolder:@"Models"];
 		using_preloaded = NO;
+	}
+	
+	if (data == nil)
+	{
+		NSLog(@"ERROR - could not find %@", filename);
+		failFlag = YES;
+		// ERROR model file not found
+		NSException* myException = [NSException
+			exceptionWithName:@"OoliteException"
+			reason:[NSString stringWithFormat:@"No model called '%@' could be found in %@.", filename, [ResourceManager paths]]
+			userInfo:nil];
+		[myException raise];
 	}
     
     // strip out comments and commas between values
@@ -1812,7 +1928,7 @@ static  Universe	*data_store_universe;
 		// see if we have supported hardware
 		s = (char *)glGetString(GL_EXTENSIONS);	// get extensions list
 				
-		if (strstr(s, "GL_APPLE_vertex_array_range") == NULL)
+		if (strstr(s, "GL_APPLE_vertex_array_range") == nil)
 		{
 			global_usingVAR &= NO;
 			NSLog(@"Vertex Array Range optimisation - not supported");

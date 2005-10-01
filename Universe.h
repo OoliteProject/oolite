@@ -191,6 +191,10 @@ extern int debug;
 			GLfloat sun_specular[4];
 			GLfloat stars_ambient[4];
 			
+			GLfloat				air_resist_factor;
+		
+			int					viewDirection;	// read only
+			
 		@protected
 		MyOpenGLView	*gameView;
         TextureStore	*textureStore;
@@ -241,10 +245,7 @@ extern int debug;
         
 		BOOL			displayFPS;		
         OpenGLSprite	*cursorSprite;
-		
-		
-		int				viewDirection;
-		
+				
 		double			universal_time;
 		double			time_delta;
 		double			ai_think_time;
@@ -506,8 +507,6 @@ NSComparisonResult comparePrice( id dict1, id dict2, void * context);
 
 - (GuiDisplayGen *) gui;
 - (GuiDisplayGen *) comm_log_gui;
-
-- (void) guiUpdated;
 
 - (void) resetCommsLogColor;
 

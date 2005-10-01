@@ -315,318 +315,341 @@ Your fair use and other rights are in no way affected by the above.
 	[shipAI message:@"DOCKING_COMPLETE"];
 }
 
-
-- (Vector) nextDockingCoordinatesForShip:(ShipEntity *) ship
-{
+// this routine does more than set coordinates - it provides a whole set of docking instructions and messages at each stage..
+//
+- (NSDictionary *) dockingInstructionsForShip:(ShipEntity *) ship
+{	
 	Vector		coords;
+
+	Vector		approach_coords;
+	float		approach_speed;
+	float		approach_to_range;
+	
 	int			ship_id = [ship universal_id];
 	NSString*   shipID = [NSString stringWithFormat:@"%d", ship_id];
-	BOOL		isRotating = [self isRotatingStation];
+
+	Quaternion q1 = q_rotation;
+	q1 = quaternion_multiply(port_qrotation, q1);
+	Vector launchVector = vector_forward_from_quaternion(q1);
+	Vector temp = (fabsf(launchVector.x) < 0.8)? make_vector(1,0,0) : make_vector(0,1,0);
+	temp = cross_product( launchVector, temp);	// 90 deg to launchVector & temp
+	Vector vi = cross_product( launchVector, temp);
+	Vector vj = cross_product( launchVector, vi);
+	Vector vk = launchVector;
 	
 	if (!ship)
-		return position;
+		return nil;
 	
 	if ((ship->isPlayer)&&([ship legal_status] > 50))
 	{
-		[[ship getAI] message:@"DOCKING_REFUSED"];
-		[self sendExpandedMessage:@"[station-docking-refused-to-fugitive]" toShip:ship];
-		return ship->position;  // hold position
-	}
+		// refuse docking to the fugitive
 	
-	
-	if (![shipsOnApproach objectForKey:shipID])
-	{
-//		NSLog(@"DEBUG %@ %d noting docking request", name, universal_id);
-		[shipAI message:@"DOCKING_REQUESTED"];	// note the request.
+		approach_coords = ship->position;
+		approach_speed = 0;
+		approach_to_range = 100;
+		
+		return	[NSDictionary dictionaryWithObjectsAndKeys:
+					[NSString stringWithFormat:@"%.2f %.2f %.2f", approach_coords.x, approach_coords.y, approach_coords.z], @"destination",
+					[NSNumber numberWithFloat:approach_speed], @"speed",
+					[NSNumber numberWithFloat:approach_to_range], @"range",
+					@"[station-docking-refused-to-fugitive]", @"comms_message",
+					[NSNumber numberWithInt:universal_id], @"station_id",
+					@"DOCKING_REFUSED", @"ai_message", nil];  // hold position
 	}
 	
 	if (no_docking_while_launching)
 	{
 //		NSLog(@"DEBUG %@ %d refusing because of no docking while launching", name, universal_id);
-		[[ship getAI] message:@"TRY_AGAIN_LATER"];
-		return ship->position;  // hold position
-	}
-	
-	if	((magnitude2(velocity) > 1.0)||
-		((![self isRotatingStation])&&((fabs(flight_pitch) > 0.01)||(fabs(flight_roll) > 0.01))))		// no docking while moving
-	{
-//		NSLog(@"DEBUG %@ %d refusing docking to %@ because of motion", name, universal_id, [ship name]);
-		[shipAI message:@"DOCKING_REQUESTED"];	// note the request.
-		[[ship getAI] message:@"HOLD_POSITION"];// send HOLD
-		return ship->position;  // hold position
+
+		approach_coords = ship->position;
+		approach_speed = 0;
+		approach_to_range = 100;
+		
+		return	[NSDictionary dictionaryWithObjectsAndKeys:
+					[NSString stringWithFormat:@"%.2f %.2f %.2f", approach_coords.x, approach_coords.y, approach_coords.z], @"destination",
+					[NSNumber numberWithFloat:approach_speed], @"speed",
+					[NSNumber numberWithFloat:approach_to_range], @"range",
+					[NSNumber numberWithInt:universal_id], @"station_id",
+					@"TRY_AGAIN_LATER", @"ai_message", nil];  // try again
 	}
 	
 	if (![shipsOnApproach objectForKey:shipID])
-	{		
-		Vector v_off;
-		// will select a direction for offset based on the shipID
-		//
-		int offset_id = ship_id & 0xf;	// 16  point compass
-		double c = cos(offset_id * PI * ONE_EIGHTH);
-		double s = sin(offset_id * PI * ONE_EIGHTH);
-		v_off.x = c * v_up.x + s * v_right.x;
-		v_off.y = c * v_up.y + s * v_right.y;
-		v_off.z = c * v_up.z + s * v_right.z;
-		//
-		NSMutableArray*		coordinatesStack =  [NSMutableArray arrayWithCapacity:3];
-		NSString*			speedMessage = @"SLOW";
-		double offset = 6 * port_radius;
-		double offset2 = 6 * port_radius + approach_spacing;
-		approach_spacing += 500;  // space out incoming ships by 500m
-		//
-		int docking_stage = 0;
-		//
-		while (offset >= 0.0)
-		{
-			//
-			NSMutableDictionary*	nextCoords =	[NSMutableDictionary dictionaryWithCapacity:3];
-			
-			Vector rel_coords = make_vector( s * offset2, c * offset2, offset - port_radius);
+		[shipAI message:@"DOCKING_REQUESTED"];	// note the request.
+	
+	if	((magnitude2(velocity) > 1.0)||((![self isRotatingStation])&&((fabs(flight_pitch) > 0.01)||(fabs(flight_roll) > 0.01))))		// no docking while moving
+	{
+//		NSLog(@"DEBUG %@ %d refusing docking to %@ because of motion", name, universal_id, [ship name]);
 
-			Vector coords = [self getPortPosition];	// docking slit exit position
+		[shipAI message:@"DOCKING_REQUESTED"];	// note the request again!
 
-			coords.x -= port_radius*v_forward.x;	// correct back to 'center'
-			coords.y -= port_radius*v_forward.y;	//
-			coords.z -= port_radius*v_forward.z;	//
-			coords.x += offset*v_forward.x;
-			coords.y += offset*v_forward.y;
-			coords.z += offset*v_forward.z;
-			if (offset2 > 0)
-			{
-				Vector c0 = coords;
-				Vector c1 = coords;
-				c0.x += offset2*v_off.x;
-				c0.y += offset2*v_off.y;
-				c0.z += offset2*v_off.z;
-				c1.x -= offset2*v_off.x;
-				c1.y -= offset2*v_off.y;
-				c1.z -= offset2*v_off.z;
-				if (distance2(c0,ship->position) < distance2(c1,ship->position))
-				{
-					coords = c0;
-				}
-				else
-				{
-					coords = c1;
-					rel_coords = make_vector( -s * offset2, -c * offset2, offset - port_radius);
-				}
-				offset2 = 0;	// only the first one is offset to one side
-			}
-//			//NSLog(@"docking coordinates [%d] = (%.2f, %.2f, %.2f)", 3-i, coords.x, coords.y, coords.z);
-			[nextCoords setObject:[NSNumber numberWithInt:docking_stage++] forKey:@"docking_stage"];
-//			//
-			[nextCoords setObject:[NSNumber numberWithFloat:rel_coords.x] forKey:@"rx"];
-			[nextCoords setObject:[NSNumber numberWithFloat:rel_coords.y] forKey:@"ry"];
-			[nextCoords setObject:[NSNumber numberWithFloat:rel_coords.z] forKey:@"rz"];
-
-			[nextCoords setObject:[NSString stringWithFormat:@"%@",speedMessage] forKey:@"speed"];
-			[coordinatesStack addObject:nextCoords];
-			offset -= port_radius;
-			if (offset <= 3 * port_radius)
-				speedMessage = @"DEAD_SLOW";
-		}
-				
-		[shipsOnApproach setObject:coordinatesStack forKey:shipID];
+		approach_coords = ship->position;
+		approach_speed = 0;
+		approach_to_range = 100;
 		
-		// COMM-CHATTER
-		if (self == [universe station])
-			[self sendExpandedMessage: @"[station-welcome]" toShip: ship];
-		else
-			[self sendExpandedMessage: @"[docking-welcome]" toShip: ship];
+		return	[NSDictionary dictionaryWithObjectsAndKeys:
+					[NSString stringWithFormat:@"%.2f %.2f %.2f", approach_coords.x, approach_coords.y, approach_coords.z], @"destination",
+					[NSNumber numberWithFloat:approach_speed], @"speed",
+					[NSNumber numberWithFloat:approach_to_range], @"range",
+					[NSNumber numberWithInt:universal_id], @"station_id",
+					@"HOLD_POSITION", @"ai_message", nil];  // hold position
+	}
+	
+	// check if this is a new ship on approach
+	//
+	if (![shipsOnApproach objectForKey:shipID])
+		[self addShipToShipsOnApproach: ship];
 
+	if (![shipsOnApproach objectForKey:shipID])
+	{
+		// some error has occurred - log it, and send the try-again message
+		NSLog(@"ERROR - couldn't addShipToShipsOnApproach:%@ in %@ for some reason.", ship, self);
+		//
+		approach_coords = ship->position;
+		approach_speed = 0;
+		approach_to_range = 100;
+		
+		return	[NSDictionary dictionaryWithObjectsAndKeys:
+					[NSString stringWithFormat:@"%.2f %.2f %.2f", approach_coords.x, approach_coords.y, approach_coords.z], @"destination",
+					[NSNumber numberWithFloat:approach_speed], @"speed",
+					[NSNumber numberWithFloat:approach_to_range], @"range",
+					[NSNumber numberWithInt:universal_id], @"station_id",
+					@"TRY_AGAIN_LATER", @"ai_message", nil];  // try again
 	}
 
-	//
+
 	//	shipsOnApproach now has an entry for the ship.
 	//
-	if ([shipsOnApproach objectForKey:shipID])
+	NSMutableArray* coordinatesStack = (NSMutableArray *)[shipsOnApproach objectForKey:shipID];
+//	NSLog(@"DEBUG coordinatesStack = %@", [coordinatesStack description]);
+
+	if ([coordinatesStack count] == 0)
 	{
-		NSMutableArray* coordinatesStack = (NSMutableArray *)[shipsOnApproach objectForKey:shipID];
-//		NSLog(@"DEBUG coordinatesStack = %@", [coordinatesStack description]);
+		NSLog(@"DEBUG ERROR! -- coordinatesStack = %@", [coordinatesStack description]);
+		approach_coords = ship->position;
+		approach_speed = 0;
+		approach_to_range = 100;
+	
+		return	[NSDictionary dictionaryWithObjectsAndKeys:
+					[NSString stringWithFormat:@"%.2f %.2f %.2f", approach_coords.x, approach_coords.y, approach_coords.z], @"destination",
+					[NSNumber numberWithFloat:approach_speed], @"speed",
+					[NSNumber numberWithFloat:approach_to_range], @"range",
+					[NSNumber numberWithInt:universal_id], @"station_id",
+					@"HOLD_POSITION", @"ai_message", nil];  // hold position
+	}
+		
+	NSMutableDictionary* nextCoords = (NSMutableDictionary *)[coordinatesStack objectAtIndex:0];
+	int docking_stage = [(NSNumber *)[nextCoords objectForKey:@"docking_stage"] intValue];
+	float speedAdvised = [(NSNumber *)[nextCoords objectForKey:@"speed"] floatValue];
+	float rangeAdvised = [(NSNumber *)[nextCoords objectForKey:@"range"] floatValue];
+	BOOL match_rotation = ([nextCoords objectForKey:@"match_rotation"] != nil);
+	NSString* comms_message = (NSString*)[nextCoords objectForKey:@"comms_message"];
+	
+	Vector rel_coords;
+	rel_coords.x = [(NSNumber *)[nextCoords objectForKey:@"rx"] floatValue];
+	rel_coords.y = [(NSNumber *)[nextCoords objectForKey:@"ry"] floatValue];
+	rel_coords.z = [(NSNumber *)[nextCoords objectForKey:@"rz"] floatValue];
+	
+	coords = [self getPortPosition];
+	coords.x += rel_coords.x * vi.x + rel_coords.y * vj.x + rel_coords.z * vk.x;
+	coords.y += rel_coords.x * vi.y + rel_coords.y * vj.y + rel_coords.z * vk.y;
+	coords.z += rel_coords.x * vi.z + rel_coords.y * vj.z + rel_coords.z * vk.z;
+	
+	double allowed_range = 100.0 + ship->collision_radius;
+	
+	Vector ship_position = ship->position;
+	Vector delta = coords;
+	delta.x -= ship_position.x;	delta.y -= ship_position.y;	delta.z -= ship_position.z;
 
-		if ([coordinatesStack count] == 0)
-		{
-			[[ship getAI] message:@"HOLD_POSITION"];	// not docked - try again
-			return ship->position;
-		}
-			
-		NSMutableDictionary* nextCoords = (NSMutableDictionary *)[coordinatesStack objectAtIndex:0];
-		int docking_stage = [(NSNumber *)[nextCoords objectForKey:@"docking_stage"] intValue];
-		NSString* speedMessage = (NSString *)[nextCoords objectForKey:@"speed"];
-
-		Vector rel_coords;
+	if (magnitude2(delta) > allowed_range * allowed_range)	// further than 100m from the coordinates - do not remove them from the stack!
+	{
+		approach_coords = coords;
+		approach_speed = speedAdvised;
+		approach_to_range = rangeAdvised;
+							
+			return	[NSDictionary dictionaryWithObjectsAndKeys:
+						[NSString stringWithFormat:@"%.2f %.2f %.2f", approach_coords.x, approach_coords.y, approach_coords.z], @"destination",
+						[NSNumber numberWithFloat:approach_speed], @"speed",
+						[NSNumber numberWithFloat:approach_to_range], @"range",
+						[NSNumber numberWithInt:universal_id], @"station_id",
+						@"APPROACH_COORDINATES", @"ai_message", nil];  // proceed to coordinates
+	}
+	else
+	{
+		// reached the current coordinates okay..
+	
+		// get the NEXT coordinates
+		nextCoords = (NSMutableDictionary *)[coordinatesStack objectAtIndex:1];
+		docking_stage = [(NSNumber *)[nextCoords objectForKey:@"docking_stage"] intValue];
+		speedAdvised = [(NSNumber *)[nextCoords objectForKey:@"speed"] floatValue];
+		rangeAdvised = [(NSNumber *)[nextCoords objectForKey:@"range"] floatValue];
+		match_rotation = ([nextCoords objectForKey:@"match_rotation"] != nil);
+		comms_message = (NSString*)[nextCoords objectForKey:@"comms_message"];
+		
+		if (comms_message)
+			[self sendExpandedMessage: comms_message toShip: ship];
+				
+		// set the docking coordinates
 		rel_coords.x = [(NSNumber *)[nextCoords objectForKey:@"rx"] floatValue];
 		rel_coords.y = [(NSNumber *)[nextCoords objectForKey:@"ry"] floatValue];
 		rel_coords.z = [(NSNumber *)[nextCoords objectForKey:@"rz"] floatValue];
-		
-//		NSLog(@"DEBUG New system coordinates [%.3f, %.3f, %.3f]", rel_coords.x, rel_coords.y, rel_coords.z);
-		Vector vi = v_right;
-		Vector vj = v_up;
-		Vector vk = v_forward;
-		if (isRotating)	// need fixed vi, vj directions...
-		{
-			Entity* the_sun = [universe sun];
-			Vector v0 = (the_sun)? the_sun->position : make_vector(1,0,0);
-			vi = cross_product(vk,v0);
-			vj = cross_product(vk,vi);
-		}
+
 		coords = [self getPortPosition];
 		coords.x += rel_coords.x * vi.x + rel_coords.y * vj.x + rel_coords.z * vk.x;
 		coords.y += rel_coords.x * vi.y + rel_coords.y * vj.y + rel_coords.z * vk.y;
 		coords.z += rel_coords.x * vi.z + rel_coords.y * vj.z + rel_coords.z * vk.z;
 		
-		double allowed_range = 100.0 + ship->collision_radius;
-		
-		Vector ship_position = ship->position;
-		Vector delta = coords;
-		delta.x -= ship_position.x;	delta.y -= ship_position.y;	delta.z -= ship_position.z;
-	
-		if (magnitude2(delta) > allowed_range * allowed_range)	// further than 100m from the coordinates - do not remove them from the stack!
+		int i;	// clear any previously owned docking stages
+		for (i = 2; i < MAX_DOCKING_STAGES; i++)
+			if ((id_lock[i] == ship_id)||([universe entityForUniversalID:id_lock[i]] == nil))
+				id_lock[i] = NO_TARGET;
+				
+		if ((id_lock[docking_stage] == NO_TARGET)
+			&&(id_lock[docking_stage + 1] == NO_TARGET)	
+			&&(id_lock[docking_stage + 2] == NO_TARGET))	// check three stages ahead
 		{
-//			NSLog(@"DEBUG ::::: %@ %d is %.1fm from its docking coordinates for docking stage %d.", [ship name], ship_id, sqrt(magnitude2(delta)), docking_stage);
-//			NSLog(@"DEBUG ::::: %@ %d Continue to given coordinates...", [ship name], ship_id);
+			// approach is clear - move to next position
+			//
+			if (docking_stage > 1)	// don't claim first docking stage
+				id_lock[docking_stage] = ship_id;	// claim this docking stage
 			
-//			// debug
-//			[ship setReportAImessages:YES];
-			
+			//remove the previous stage from the stack
+			[coordinatesStack removeObjectAtIndex:0];
 
-//			NSLog(@">>:::: %@ %d docking stage %d", [ship name], [ship universal_id], docking_stage);
-					
-			if (docking_stage == 0)
-			{
-				[[ship getAI] message:@"APPROACH_START"];
-			}
-			else
-			{
-				if ([speedMessage isEqual:@"DEAD_SLOW"])
-					[[ship getAI] message:@"APPROACH_STATION"];
-				else
-					[[ship getAI] message:@"APPROACH_COORDINATES"];
-			}
+//			NSLog(@"DEBUG ::::: %@ %d Next docking coordinates ---> (%.2f, %.2f, %.2f)", [ship name], ship_id, coords.x, coords.y, coords.z);
 			
-			return coords;
+			approach_coords = coords;
+			approach_speed = speedAdvised;
+			approach_to_range = rangeAdvised;
+								
+			return	[NSDictionary dictionaryWithObjectsAndKeys:
+						[NSString stringWithFormat:@"%.2f %.2f %.2f", approach_coords.x, approach_coords.y, approach_coords.z], @"destination",
+						[NSNumber numberWithFloat:approach_speed], @"speed",
+						[NSNumber numberWithFloat:approach_to_range], @"range",
+						[NSNumber numberWithBool:match_rotation], @"match_rotation",
+						[NSNumber numberWithInt:universal_id], @"station_id",
+						@"APPROACH_COORDINATES", @"ai_message", nil];  // hold position
 		}
 		else
 		{
-			// save the current coordinates
-			Vector oldCoords = coords;
-
-//			NSLog(@"::>>:: %@ %d docking stage %d", [ship name], [ship universal_id], docking_stage);
-					
-			if (docking_stage == 1)
+			// approach isn't clear - hold position..
+			//
+//			NSLog(@"DEBUG ::::: %@ %d Hold position ...", [ship name], ship_id);
+			[[ship getAI] message:@"HOLD_POSITION"];
+			
+			if (![nextCoords objectForKey:@"hold_message_given"])
 			{
 				// COMM-CHATTER
-				if (self == [universe station])
-					[self sendExpandedMessage: @"[station-begin-final-aproach]" toShip: ship];
-				else
-					[self sendExpandedMessage: @"[docking-begin-final-aproach]" toShip: ship];
+				[universe clearPreviousMessage];
+				[self sendExpandedMessage: @"[station-hold-position]" toShip: ship];
+				[nextCoords setObject:@"YES" forKey:@"hold_message_given"];
 			}
-			
-			if ([coordinatesStack count] < 2)
-			{
-//				NSLog(@"DEBUG ::::: %@ %d Final docking coordinates ---> (%.2f, %.2f, %.2f)", [ship name], ship_id, coords.x, coords.y, coords.z);
-				[[ship getAI] message:@"APPROACH_STATION"];
-				return coords;
-			}
-
-			// get the NEXT coordinates
-			nextCoords = (NSMutableDictionary *)[coordinatesStack objectAtIndex:1];
-			docking_stage = [(NSNumber *)[nextCoords objectForKey:@"docking_stage"] intValue];
-			speedMessage = (NSString *)[nextCoords objectForKey:@"speed"];
-			
-			// set the docking coordinates
-			rel_coords.x = [(NSNumber *)[nextCoords objectForKey:@"rx"] floatValue];
-			rel_coords.y = [(NSNumber *)[nextCoords objectForKey:@"ry"] floatValue];
-			rel_coords.z = [(NSNumber *)[nextCoords objectForKey:@"rz"] floatValue];
-			Vector vi = v_right;
-			Vector vj = v_up;
-			Vector vk = v_forward;
-			if (isRotating)	// need fixed vi, vj directions...
-			{
-				Entity* the_sun = [universe sun];
-				Vector v0 = (the_sun)? the_sun->position : make_vector(1,0,0);
-				vi = cross_product(vk,v0);
-				vj = cross_product(vk,vi);
-			}
-			coords = [self getPortPosition];
-			coords.x += rel_coords.x * vi.x + rel_coords.y * vj.x + rel_coords.z * vk.x;
-			coords.y += rel_coords.x * vi.y + rel_coords.y * vj.y + rel_coords.z * vk.y;
-			coords.z += rel_coords.x * vi.z + rel_coords.y * vj.z + rel_coords.z * vk.z;
-			
-			int i;	// clear any previously owned docking stages
-			for (i = 1; i < MAX_DOCKING_STAGES; i++)
-				if ((id_lock[i] == ship_id)||([universe entityForUniversalID:id_lock[i]] == nil))
-					id_lock[i] = NO_TARGET;
-					
-			if ((id_lock[docking_stage] == NO_TARGET)&&(id_lock[docking_stage + 1] == NO_TARGET))	// check two stages ahead
-			{
-				id_lock[docking_stage] = ship_id;	// claim this docking stage
-				
-				//remove the previous stage from the stack
-				[coordinatesStack removeObjectAtIndex:0];
-
-//				NSLog(@"DEBUG ::::: %@ %d Next docking coordinates ---> (%.2f, %.2f, %.2f)", [ship name], ship_id, coords.x, coords.y, coords.z);
-				
-				//determine the approach speed advice
-				if ([speedMessage isEqual:@"DEAD_SLOW"])
-					[[ship getAI] message:@"APPROACH_STATION"];
-				else
-					[[ship getAI] message:@"APPROACH_COORDINATES"];
-				
-				// show the locked approach positions
-//				NSLog(@"DEBUG ::::: %d :: %d :: %d :: %d :: %d :: %d :: %d :: %d :: %d :: %d <<",
-//					id_lock[10],id_lock[9],id_lock[8],id_lock[7],id_lock[6],id_lock[5],id_lock[4],id_lock[3],id_lock[2],id_lock[1]);
-				
-				return coords;
-			}
-			else
-			{
-//				NSLog(@"DEBUG ::::: %@ %d Hold position ...", [ship name], ship_id);
-				[[ship getAI] message:@"HOLD_POSITION"];
-				
-				if (![nextCoords objectForKey:@"hold_message_given"])
-				{
-					// COMM-CHATTER
-					[universe clearPreviousMessage];
-					[self sendExpandedMessage: @"[station-hold-position]" toShip: ship];
-					[nextCoords setObject:@"YES" forKey:@"hold_message_given"];
-				}
-				
-				return oldCoords;
-			}
+						
+			approach_coords = position;
+			approach_speed = 0;
+			approach_to_range = 100;
+								
+			return	[NSDictionary dictionaryWithObjectsAndKeys:
+						[NSString stringWithFormat:@"%.2f %.2f %.2f", approach_coords.x, approach_coords.y, approach_coords.z], @"destination",
+						[NSNumber numberWithFloat:approach_speed], @"speed",
+						[NSNumber numberWithFloat:approach_to_range], @"range",
+						[NSNumber numberWithInt:universal_id], @"station_id",
+						@"HOLD_POSITION", @"ai_message", nil];  // hold position
 		}
 	}
 	
-	return coords;
+	// we should never reach here.
+	
+	approach_coords = coords;
+	approach_speed = 50;
+	approach_to_range = 10;
+						
+	return	[NSDictionary dictionaryWithObjectsAndKeys:
+				[NSString stringWithFormat:@"%.2f %.2f %.2f", approach_coords.x, approach_coords.y, approach_coords.z], @"destination",
+				[NSNumber numberWithFloat:approach_speed], @"speed",
+				[NSNumber numberWithFloat:approach_to_range], @"range",
+				[NSNumber numberWithInt:universal_id], @"station_id",
+				@"APPROACH_COORDINATES", @"ai_message", nil];  // hold position
 }
 
-- (double) approachSpeedForShip:(ShipEntity *) ship
-{
+- (void) addShipToShipsOnApproach:(ShipEntity *) ship
+{		
+	int			corridor_distance[] =	{	-1,	1,	3,	5,	7,	9,	11,	12,	11};
+	int			corridor_offset[] =		{	0,	0,	0,	0,	0,	0,	1,	3,	12};
+	int			corridor_speed[] =		{	48,	48,	48,	48,	36,	48,	64,	128, 512};	// how fast to approach the next point
+	int			corridor_range[] =		{	24,	12,	6,	4,	4,	6,	15,	38,	96};	// how close you have to get to the target point
+	int			corridor_rotate[] =		{	1,	1,	1,	1,	0,	0,	0,	0,	0};		// whether to match the station rotation
+	int			corridor_count = 9;
+	int			corridor_final_approach = 3;
+	
 	int			ship_id = [ship universal_id];
 	NSString*   shipID = [NSString stringWithFormat:@"%d", ship_id];
 
-	double approach_speed = 50.0;
-	if ([shipsOnApproach objectForKey:shipID])
+	Quaternion q1 = q_rotation;
+	q1 = quaternion_multiply(port_qrotation, q1);
+	Vector launchVector = vector_forward_from_quaternion(q1);
+	Vector temp = (fabsf(launchVector.x) < 0.8)? make_vector(1,0,0) : make_vector(0,1,0);
+	temp = cross_product( launchVector, temp);	// 90 deg to launchVector & temp
+	Vector rightVector = cross_product( launchVector, temp);
+	Vector upVector = cross_product( launchVector, rightVector);
+	
+	Vector v_off;
+	// will select a direction for offset based on the shipID
+	//
+	int offset_id = ship_id & 0xf;	// 16  point compass
+	double c = cos(offset_id * PI * ONE_EIGHTH);
+	double s = sin(offset_id * PI * ONE_EIGHTH);
+	v_off.x = c * upVector.x + s * rightVector.x;
+	v_off.y = c * upVector.y + s * rightVector.y;
+	v_off.z = c * upVector.z + s * rightVector.z;
+	//
+	NSMutableArray*		coordinatesStack =  [NSMutableArray arrayWithCapacity: MAX_DOCKING_STAGES];
+	double port_depth = 250;	// 250m deep standard port
+	//
+	int i;
+	for (i = corridor_count - 1; i >= 0; i--)
 	{
-		NSMutableArray* coordinatesStack = (NSMutableArray *)[shipsOnApproach objectForKey:shipID];
-		NSDictionary* nextCoords = (NSDictionary *)[coordinatesStack objectAtIndex:0];
-		NSString* speedMessage = (NSString *)[nextCoords objectForKey:@"speed"];
-		if ([coordinatesStack count] > 0)
+		NSMutableDictionary*	nextCoords =	[NSMutableDictionary dictionaryWithCapacity:3];
+		
+		int offset = corridor_offset[i];
+		
+		// space out first coordinate further if there are many ships
+		if ((i == corridor_count - 1) && offset)
+			offset += approach_spacing / port_depth;
+		
+		[nextCoords setObject:[NSNumber numberWithInt: corridor_count - i] forKey:@"docking_stage"];
+
+		[nextCoords setObject:[NSNumber numberWithFloat: s * port_depth * offset]				forKey:@"rx"];
+		[nextCoords setObject:[NSNumber numberWithFloat: c * port_depth * offset]				forKey:@"ry"];
+		[nextCoords setObject:[NSNumber numberWithFloat: port_depth * corridor_distance[i]]		forKey:@"rz"];
+
+		[nextCoords setObject:[NSNumber numberWithFloat: corridor_speed[i]] forKey:@"speed"];
+
+		[nextCoords setObject:[NSNumber numberWithFloat: corridor_range[i]] forKey:@"range"];
+		
+		if (corridor_rotate[i])
+			[nextCoords setObject:@"YES" forKey:@"match_rotation"];
+		
+		if (i == corridor_final_approach)
 		{
-			int next_docking_stage = [(NSNumber *)[nextCoords objectForKey:@"docking_stage"] intValue];
-			
-			if (id_lock[next_docking_stage] == NO_TARGET)
-			{
-				if ([speedMessage isEqual:@"DEAD_SLOW"])
-					approach_speed = 25.0;
-				else
-					approach_speed = 50.0;
-			}
+			if (self == [universe station])
+				[nextCoords setObject:@"[station-begin-final-aproach]" forKey:@"comms_message"];
 			else
-				approach_speed = 1.0;	// the next docking stage is not clear - go slow
+				[nextCoords setObject:@"[docking-begin-final-aproach]" forKey:@"comms_message"];
 		}
+
+		[coordinatesStack addObject:nextCoords];
 	}
-	return approach_speed;
+					
+	[shipsOnApproach setObject:coordinatesStack forKey:shipID];
+
+	approach_spacing += 500;  // space out incoming ships by 500m
+	
+	// COMM-CHATTER
+	if (self == [universe station])
+		[self sendExpandedMessage: @"[station-welcome]" toShip: ship];
+	else
+		[self sendExpandedMessage: @"[docking-welcome]" toShip: ship];
+
 }
 
 - (void) abortDockingForShip:(ShipEntity *) ship
@@ -655,12 +678,10 @@ Your fair use and other rights are in no way affected by the above.
 
 - (Vector) portUpVector
 {
-	if (scan_class == CLASS_STATION)
-		return v_right; // because the slot is horizontal dammit
 	
 	Vector result = vector_right_from_quaternion( quaternion_multiply( port_qrotation, q_rotation));
 	
-	result.x = - result.x;	result.y = - result.y;	result.z = - result.z;
+//	result.x = - result.x;	result.y = - result.y;	result.z = - result.z;
 	
 //	NSLog(@"DEBUG %@ portUpVector = [%.3f, %.3f, %.3f] v_up = [%.3f, %.3f, %.3f]", self,
 //		result.x, result.y, result.z, v_up.x, v_up.y, v_up.z);

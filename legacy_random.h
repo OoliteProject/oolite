@@ -66,6 +66,9 @@ typedef struct random_seed RNG_Seed;
 void clear_checksum();
 int munge_checksum(int value);
 
+// cunning price rounding routine:
+//
+float cunningFee(float value);
 
 // an implementation of RANROT
 // pseudo random number generator

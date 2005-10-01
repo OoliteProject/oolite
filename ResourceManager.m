@@ -1124,6 +1124,36 @@ NSMutableDictionary*	surface_cache;
 	return nil;
 }
 
++ (NSString*) stringFromGLFloats: (GLfloat*) float_array : (int) n_floats
+{
+	NSMutableString* result = [NSMutableString stringWithString:@""];
+	int i;
+	for ( i = 0; i < n_floats ; i++)
+		[result appendFormat:@"%f ", float_array[i]];
+	return [NSString stringWithString: result];
+}
 
++ (void) GLFloatsFromString: (NSString*) float_string: (GLfloat*) float_array
+{
+	NSArray* tokens = [ResourceManager scanTokensFromString:float_string];
+	int i;
+	int n_tokens = [tokens count];
+	for (i = 0; i < n_tokens; i++)
+		float_array[i] = [[tokens objectAtIndex:i] floatValue];
+}
+
++ (NSString*) stringFromNSPoint: (NSPoint) point
+{
+	return [NSString stringWithFormat:@"%f %f", point.x, point.y];
+}
+
++ (NSPoint) NSPointFromString: (NSString*) point_string
+{
+	NSArray* tokens = [ResourceManager scanTokensFromString:point_string];
+	int n_tokens = [tokens count];
+	if (n_tokens != 2)
+		return NSMakePoint( 0.0, 0.0);
+	return NSMakePoint( [[tokens objectAtIndex:0] floatValue], [[tokens objectAtIndex:1] floatValue]);
+}
 
 @end

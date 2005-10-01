@@ -152,6 +152,7 @@ typedef struct
 	double		timeframe;		// universal time for this frame
 	Vector		position;		// position
 	Quaternion	q_rotation;		// rotation
+	Vector		k;			// direction vectors
 } Frame;
 
 extern int debug;
@@ -224,6 +225,7 @@ extern int debug;
 	Frame	track[256];
 	int		track_index;
 	double	track_time;
+	NSLock	*trackLock;
 	//
 	double  energy;
 	double  max_energy;
@@ -350,8 +352,12 @@ extern int debug;
 
 - (void) update:(double) delta_t;
 - (void) saveToLastFrame;
+- (void) savePosition:(Vector)pos atTime:(double)t_time atIndex:(int)t_index;
+- (void) saveFrame:(Frame)frame atIndex:(int)t_index;
+- (void) resetFramesFromFrame:(Frame) resetFrame withVelocity:(Vector) vel1;
 - (BOOL) resetToTime:(double) t_frame;
 - (Frame) frameAtTime:(double) t_frame;	// timeframe is relative to now ie. -0.5 = half a second ago.
+- (Frame) frameAtTime:(double) t_frame fromFrame:(Frame) frame_zero;	// t_frame is relative to now ie. -0.5 = half a second ago.
 
 - (void) loadData:(NSString *) filename;
 - (void) checkNormalsAndAdjustWinding;

@@ -499,6 +499,10 @@ static NSString * mission_key;
 {
 	return [NSNumber numberWithInt:ship_kills];
 }
+- (NSNumber *) credits_number
+{
+	return [NSNumber numberWithFloat: 0.1 * credits];
+}
 - (NSNumber *) scriptTimer_number
 {
 	return [NSNumber numberWithDouble:script_time];
@@ -964,6 +968,18 @@ static int shipsFound;
 		NSLog(@"***** CANNOT addShipsAtPrecisely: '%@' (should be addShipsAt: role number coordinate_system x y z)",roles_number_system_x_y_z);			
 }
 
+- (void) spawnShip:(NSString *)ship_key
+{
+	BOOL spawnedOkay = [universe spawnShip:ship_key];
+	if (debug)
+	{
+		if (spawnedOkay)
+			NSLog(@"DEBUG Spawned ship with shipdata key '%@'.", ship_key);
+		else
+			NSLog(@"***** Could not spawn ship with shipdata key '%@'.", ship_key);
+	}
+}
+
 - (void) set:(NSString *)missionvariable_value
 {
 //	NSMutableArray*	tokens = [NSMutableArray arrayWithArray:[missionvariable_value componentsSeparatedByString:@" "]];
@@ -1143,8 +1159,6 @@ static int shipsFound;
 	if (lastTextKey)
 		[lastTextKey release];
 	lastTextKey = [[NSString stringWithString:textKey] retain];  // 
-//	[gui generateDisplay];
-	[universe guiUpdated];
 }
 
 - (void) setMissionChoices:(NSString *)choicesKey	// choicesKey is a key for a dictionary of
@@ -1377,8 +1391,6 @@ static int shipsFound;
 		[gui setBackgroundImage:missionBackgroundImage];
 		
 		[gui setShowTextCursor:NO];
-		
-		[universe guiUpdated];
 	}
 	/* ends */
 	

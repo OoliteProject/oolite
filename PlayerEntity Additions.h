@@ -62,6 +62,7 @@ Your fair use and other rights are in no way affected by the above.
 - (NSNumber *) galaxy_number;
 - (NSNumber *) planet_number;
 - (NSNumber *) score_number;
+- (NSNumber *) credits_number;
 - (NSNumber *) scriptTimer_number;
 - (NSNumber *) shipsFound_number;
 
@@ -110,6 +111,7 @@ Your fair use and other rights are in no way affected by the above.
 - (void) addSystemShips:(NSString *)roles_number_position;
 - (void) addShipsAt:(NSString *)roles_number_system_x_y_z;
 - (void) addShipsAtPrecisely:(NSString *)roles_number_system_x_y_z;
+- (void) spawnShip:(NSString *)ship_key;
 - (void) set:(NSString *)missionvariable_value;
 - (void) reset:(NSString *)missionvariable;
 /*

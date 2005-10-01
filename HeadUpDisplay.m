@@ -46,6 +46,7 @@ Your fair use and other rights are in no way affected by the above.
 #import "PlayerEntity.h"
 #import "Universe.h"
 #import "TextureStore.h"
+#import "OOTrumble.h"
 
 @implementation HeadUpDisplay
 
@@ -68,7 +69,7 @@ float char_widths[128] = {
 - (id) initWithDictionary:(NSDictionary *) hudinfo;
 {
 	int i;
-	BOOL areTrumblesToBeDrawn;
+	BOOL areTrumblesToBeDrawn = NO;
 	
 	self = [super init];
 	
@@ -1066,7 +1067,9 @@ static BOOL hostiles;
 
 - (void) drawFuelBar:(NSDictionary *) info
 {	
-    int x = FUEL_BAR_CENTRE_X;
+    float fu = [player dial_fuel];
+	float hr = [player dial_hyper_range];
+	int x = FUEL_BAR_CENTRE_X;
 	int y = FUEL_BAR_CENTRE_Y;
 	NSSize siz = NSMakeSize( FUEL_BAR_WIDTH, FUEL_BAR_HEIGHT);
 	if ([info objectForKey:X_KEY])
@@ -1080,7 +1083,14 @@ static BOOL hostiles;
 
 	// draw fuel bar
 	glColor4fv(yellow_color);
-	hudDrawBarAt( x, y, z1, siz, [player dial_fuel]);
+	hudDrawBarAt( x, y, z1, siz, fu);
+	
+	// draw range indicator
+	if ((hr > 0)&&(hr <= 1.0))
+	{
+		glColor4fv((fu < hr)? red_color : green_color);
+		hudDrawMarkerAt( x, y, z1, siz, hr);
+	}
 }
 
 - (void) drawCabinTempBar:(NSDictionary *) info
@@ -1530,39 +1540,86 @@ static BOOL hostiles;
 }
 
 - (void) drawTrumbles:(NSDictionary *) info
-{
-
+{	
+	if (!player)
+		return;
+		
+	double dt = [[player universe] getTimeDelta];
+	
+	OOTrumble** trumbles = [player trumbleArray];
+	int i;
+	for (i = [player n_trumbles]; i > 0; i--)
+	{
+		OOTrumble* trum = trumbles[i - 1];
+//		NSPoint trumpos = [trum position];
+//		trumpos.x -= 32;
+//		trumpos.y += 32;
+		
+		[trum updateTrumble:dt];
+		[trum drawTrumble: z1];
+		
+//		glColor4fv(yellow_color);
+//		hudDrawSurroundAt(trumpos.x, trumpos.y, z1, NSMakeSize(32, 12));
+//		hudDrawBarAt(trumpos.x, trumpos.y + 4, z1, NSMakeSize(32, 4), [trum discomfort]);
+//		hudDrawBarAt(trumpos.x, trumpos.y - 4, z1, NSMakeSize(32, 4), [trum hunger]);
+	}
 }
 
 //---------------------------------------------------------------------//
 
-void hudDrawIndicatorAt(int x, int y, int z, NSSize siz, double amount)
+void hudDrawIndicatorAt( GLfloat x, GLfloat y, GLfloat z, NSSize siz, double amount)
 {
 	if (siz.width > siz.height)
 	{
-		int dial_oy =   y - siz.height/2;
-		int position =  x + amount * siz.width / 2;
+		GLfloat dial_oy =   y - siz.height/2;
+		GLfloat position =  x + amount * siz.width / 2;
 		glBegin(GL_QUADS);
-			glVertex3i( position, dial_oy, z);
-			glVertex3i( position+2, y, z);
-			glVertex3i( position, dial_oy+siz.height, z);
-			glVertex3i( position-2, y, z);
+			glVertex3f( position, dial_oy, z);
+			glVertex3f( position+2, y, z);
+			glVertex3f( position, dial_oy+siz.height, z);
+			glVertex3f( position-2, y, z);
 		glEnd();
 	}
 	else
 	{
-		int dial_ox =   x - siz.width/2;
-		int position =  y + amount * siz.height / 2;
+		GLfloat dial_ox =   x - siz.width/2;
+		GLfloat position =  y + amount * siz.height / 2;
 		glBegin(GL_QUADS);
-			glVertex3i( dial_ox, position, z);
-			glVertex3i( x, position+2, z);
-			glVertex3i( dial_ox + siz.width, position, z);
-			glVertex3i( x, position-2, z);
+			glVertex3f( dial_ox, position, z);
+			glVertex3f( x, position+2, z);
+			glVertex3f( dial_ox + siz.width, position, z);
+			glVertex3f( x, position-2, z);
 		glEnd();
 	}
 }
 
-void hudDrawBarAt(int x, int y, int z, NSSize siz, double amount)
+void hudDrawMarkerAt( GLfloat x, GLfloat y, GLfloat z, NSSize siz, double amount)
+{
+	if (siz.width > siz.height)
+	{
+		GLfloat dial_oy =   y - siz.height/2;
+		GLfloat position =  x + amount * siz.width - siz.width/2;
+		glBegin(GL_QUADS);
+			glVertex3f( position+1, dial_oy+1, z);
+			glVertex3f( position+1, dial_oy+siz.height-1, z);
+			glVertex3f( position-1, dial_oy+siz.height-1, z);
+			glVertex3f( position-1, dial_oy+1, z);
+		glEnd();
+	}
+	else
+	{
+		GLfloat dial_ox =   x - siz.width/2;
+		GLfloat position =  y + amount * siz.height - siz.height/2;
+		glBegin(GL_QUADS);
+			glVertex3f( dial_ox+1, position+1, z);
+			glVertex3f( dial_ox + siz.width-1, position+1, z);
+			glVertex3f( dial_ox + siz.width-1, position-1, z);
+			glVertex3f( dial_ox+1, position-1, z);
+		glEnd();
+	}
+}
+
+void hudDrawBarAt( GLfloat x, GLfloat y, GLfloat z, NSSize siz, double amount)
 {
 	GLfloat dial_ox =   x - siz.width/2;
 	GLfloat dial_oy =   y - siz.height/2;
@@ -1590,16 +1647,16 @@ void hudDrawBarAt(int x, int y, int z, NSSize siz, double amount)
 	}
 }
 
-void hudDrawSurroundAt(int x, int y, int z, NSSize siz)
+void hudDrawSurroundAt( GLfloat x, GLfloat y, GLfloat z, NSSize siz)
 {
-	int dial_ox = x - siz.width/2;
-	int dial_oy = y - siz.height/2;
+	GLfloat dial_ox = x - siz.width/2;
+	GLfloat dial_oy = y - siz.height/2;
 
 	glBegin(GL_LINE_LOOP);
-		glVertex3i( dial_ox-2, dial_oy-2, z);
-		glVertex3i( dial_ox+siz.width+2, dial_oy-2, z);
-		glVertex3i( dial_ox+siz.width+2, dial_oy+siz.height+2, z);
-		glVertex3i( dial_ox-2, dial_oy+siz.height+2, z);
+		glVertex3f( dial_ox-2, dial_oy-2, z);
+		glVertex3f( dial_ox+siz.width+2, dial_oy-2, z);
+		glVertex3f( dial_ox+siz.width+2, dial_oy+siz.height+2, z);
+		glVertex3f( dial_ox-2, dial_oy+siz.height+2, z);
 	glEnd();
 }
 

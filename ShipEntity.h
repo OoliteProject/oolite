@@ -173,6 +173,10 @@ Your fair use and other rights are in no way affected by the above.
 		NSMutableArray *script_actions;
 		NSMutableArray *death_actions;
 		
+		//docking instructions
+		NSDictionary* dockingInstructions;
+		BOOL docking_match_rotation;
+		
 		int escort_ids[MAX_ESCORTS];	// replaces the mutable array
 		int n_escorts;					// initially, number of escorts to set up, later number of escorts available
 		int group_id;					// id of group leader
@@ -320,6 +324,8 @@ Your fair use and other rights are in no way affected by the above.
 
 - (void) setDefaultWeaponOffsets;
 
+- (void) resetTracking;
+
 - (GLfloat *) scannerDisplayColorForShip:(ShipEntity*)otherShip :(BOOL)isHostile :(BOOL)flash;
 
 - (BOOL) isJammingScanning;
@@ -389,6 +395,7 @@ Your fair use and other rights are in no way affected by the above.
 
 - (int) getMaxCargo;
 - (int) getCargoType;
+- (NSMutableArray*) cargo;
 - (void) setCargo:(NSArray *) some_cargo;
 
 - (int) cargoFlag;

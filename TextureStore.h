@@ -65,5 +65,7 @@ extern int debug;
 
 - (void) reloadTextures;
 
+void fillSquareImageDataWithBlur(unsigned char * imageBuffer, int width, int nplanes);
+
 @end
 

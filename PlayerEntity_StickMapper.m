@@ -48,7 +48,6 @@
           forRow: INSTRUCT_ROW];
 
    [gui setSelectedRow: selFunctionIdx + FUNCSTART_ROW];
-   [universe guiUpdated];
    [[universe gameView] supressKeysUntilKeyUp];
 
 }

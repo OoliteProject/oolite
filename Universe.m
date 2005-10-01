@@ -1119,9 +1119,8 @@ Your fair use and other rights are in no way affected by the above.
 	}
 	//
 	// light for demo ships display..
-	GLfloat	gray[] = { 0.1, 0.1, 0.1, 1.0};		// gray light
 	GLfloat	white[] = { 1.0, 1.0, 1.0, 1.0};	// white light
-	glLightfv(GL_LIGHT0, GL_AMBIENT, gray);
+	glLightfv(GL_LIGHT0, GL_AMBIENT, white);
 	glLightfv(GL_LIGHT0, GL_DIFFUSE, white);
 	glLightfv(GL_LIGHT0, GL_SPECULAR, white);
 			
@@ -2090,7 +2089,7 @@ Your fair use and other rights are in no way affected by the above.
 	NSDictionary* shipdict = [self getDictionaryForShip:shipdesc];
 	if (!shipdict)
 		return NO;
-	ship = [self getShip:shipdesc];
+	ship = [self getShip:shipdesc];	// retain count is 1
 	if (!ship)
 		return NO;
 	// set any spawning characteristics
@@ -2135,6 +2134,11 @@ Your fair use and other rights are in no way affected by the above.
 			[ship setQRotation:q1];
 		}
 	}
+
+	[self addEntity:ship];
+	[[ship getAI] setState:@"GLOBAL"];	// must happen after adding to the universe!
+	[ship setStatus:STATUS_IN_FLIGHT];	// or ships that were 'demo' ships become invisible!
+	[ship release];
 
 	return YES;
 }
@@ -2341,7 +2345,6 @@ Your fair use and other rights are in no way affected by the above.
 		
 		[gui setText:[ship name] forRow:19 align:GUI_ALIGN_CENTER];
 		[gui setColor:[NSColor whiteColor] forRow:19];
-		[self guiUpdated];
 		
 		[ship release];
 	}
@@ -2356,16 +2359,14 @@ Your fair use and other rights are in no way affected by the above.
 
 - (void) selectIntro2Previous
 {
-	if (demo_stage != DEMO_SHOW_THING)
-		return;
+	demo_stage = DEMO_SHOW_THING;
 	demo_ship_index = (demo_ship_index + [demo_ships count] - 2) % [demo_ships count];
 	demo_stage_time  = universal_time - 1.0;	// force change
 }
 
 - (void) selectIntro2Next
 {
-	if (demo_stage != DEMO_SHOW_THING)
-		return;
+	demo_stage = DEMO_SHOW_THING;
 	demo_stage_time  = universal_time - 1.0;	// force change
 }
 
@@ -2525,6 +2526,7 @@ Your fair use and other rights are in no way affected by the above.
 	sky_clear_color[1] = green;
 	sky_clear_color[2] = blue;
 	sky_clear_color[3] = alpha;
+	air_resist_factor = alpha;
 }  
 
 
@@ -2635,7 +2637,6 @@ Your fair use and other rights are in no way affected by the above.
 	for (i = 0; i < [shipKeys count]; i++)
 	{
 		NSDictionary*	shipDict = (NSDictionary *)[shipdata objectForKey:[shipKeys objectAtIndex:i]];
-//		NSArray*		shipRoles = [(NSString *)[shipDict objectForKey:@"roles"] componentsSeparatedByString:@" "];
 		NSArray*		shipRoles = [Entity scanTokensFromString:(NSString *)[shipDict objectForKey:@"roles"]];
 		
 //		NSLog(@"... checking if %@ contains a %@", [shipRoles description], desc);
@@ -2991,6 +2992,7 @@ Your fair use and other rights are in no way affected by the above.
 			Vector	position, obj_position, view_dir;
 			Matrix rotMatrix;
 			BOOL playerDemo = NO;
+			GLfloat	white[] = { 1.0, 1.0, 1.0, 1.0};	// white light
 			
 			//
 			// use a non-mutable copy so this can't be changed under us.
@@ -3112,9 +3114,13 @@ Your fair use and other rights are in no way affected by the above.
 				// position the sun correctly
 				glLightfv(GL_LIGHT1, GL_POSITION, sun_center_position);	// this is necessary or the sun will move with the player
 				
-				// decide which lights to use
 				if (playerDemo)
 				{
+					// light for demo ships display.. 
+					glLightfv(GL_LIGHT0, GL_AMBIENT, white);
+					glLightfv(GL_LIGHT0, GL_DIFFUSE, white);
+					glLightfv(GL_LIGHT0, GL_SPECULAR, white);
+					//
 					glEnable(GL_LIGHT0);		// switch on the light for demo ships
 					glDisable(GL_LIGHT1);		// switch the sun off inside the space station
 				}
@@ -3151,7 +3157,7 @@ Your fair use and other rights are in no way affected by the above.
 						glMaterialfv(GL_FRONT_AND_BACK, GL_EMISSION, mat_no);
 
 						// atmospheric fog
-						BOOL fogging = ((sky_clear_color[3] > 0.01)&&(drawthing != [self sun]));
+						BOOL fogging = ((air_resist_factor > 0.01)&&(drawthing != [self sun]));
 						
 						glPushMatrix();
 						obj_position = drawthing->position;
@@ -3163,7 +3169,7 @@ Your fair use and other rights are in no way affected by the above.
 						// atmospheric fog
 						if (fogging)
 						{
-							double fog_scale = 0.50 * BILLBOARD_DEPTH / sky_clear_color[3];
+							double fog_scale = 0.50 * BILLBOARD_DEPTH / air_resist_factor;
 							double half_scale = fog_scale * 0.50;
 							glEnable(GL_FOG);
 							glFogi(GL_FOG_MODE, GL_LINEAR);
@@ -3205,6 +3211,7 @@ Your fair use and other rights are in no way affected by the above.
 				//		DRAW ALL THE TRANSLUCENT entsInDrawOrder
 				//
 				glDepthMask(GL_FALSE);				// don't write to depth buffer
+				glDisable(GL_LIGHTING);	// ++TEST++
 				for (i = furthest; i > nearest; i--)
 				{
 					int d_status;
@@ -3214,7 +3221,7 @@ Your fair use and other rights are in no way affected by the above.
 					if (((d_status == STATUS_DEMO)&&(playerDemo)) || ((d_status != STATUS_DEMO)&&(!playerDemo)))
 					{
 						// experimental - atmospheric fog
-						BOOL fogging = (sky_clear_color[3] > 0.01);
+						BOOL fogging = (air_resist_factor > 0.01);
 						
 						glPushMatrix();
 						obj_position = drawthing->position;
@@ -3226,7 +3233,7 @@ Your fair use and other rights are in no way affected by the above.
 						// atmospheric fog
 						if (fogging)
 						{
-							double fog_scale = 0.50 * BILLBOARD_DEPTH / sky_clear_color[3];
+							double fog_scale = 0.50 * BILLBOARD_DEPTH / air_resist_factor;
 							double half_scale = fog_scale * 0.50;
 							glEnable(GL_FOG);
 							glFogi(GL_FOG_MODE, GL_LINEAR);
@@ -3234,21 +3241,6 @@ Your fair use and other rights are in no way affected by the above.
 							glHint(GL_FOG_HINT, GL_NICEST);
 							glFogf(GL_FOG_START, half_scale);
 							glFogf(GL_FOG_END, fog_scale);
-						}
-						
-						// lighting
-						if (drawthing->isSunlit != sunlit)
-						{
-							if (drawthing->isSunlit)
-							{
-								glEnable(GL_LIGHT1);
-								sunlit = YES;	// track the state of GL_LIGHT1
-							}
-							else
-							{
-								glDisable(GL_LIGHT1);
-								sunlit = NO;	// track the state of GL_LIGHT1
-							}
 						}
 						
 						// draw the thing
@@ -3266,7 +3258,7 @@ Your fair use and other rights are in no way affected by the above.
 			
 			glPopMatrix(); //restore saved flat viewpoint
 
-			glDisable(GL_LIGHTING);				// disable lighting
+			glDisable(GL_LIGHTING);				// disable lighting ++TEST++
 			glDisable(GL_DEPTH_TEST);			// disable depth test
 			glDisable(GL_CULL_FACE);			// face culling
 			glDepthMask(GL_FALSE);				// don't write to depth buffer
@@ -3276,8 +3268,12 @@ Your fair use and other rights are in no way affected by the above.
 				line_width = 1.0;
 			glLineWidth(line_width);
 
+			[self drawMessage];
+
 			if ((v_status != STATUS_DEAD)&&(v_status != STATUS_ESCAPE_SEQUENCE))
 			{
+				if (!displayGUI)
+					[self drawCrosshairs];
 				if ((viewthing->isPlayer)&&([(PlayerEntity *)viewthing hud]))
 				{
 					HeadUpDisplay *the_hud = [(PlayerEntity *)viewthing hud];
@@ -3285,11 +3281,30 @@ Your fair use and other rights are in no way affected by the above.
 					[the_hud drawLegends];
 					[the_hud drawDials];
 				}
-				if (!displayGUI)
-					[self drawCrosshairs];
 			}
-
-			[self drawMessage];
+			
+//			// test texture stuff...
+//			glEnable(GL_TEXTURE_2D);
+//			glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
+//			glColor4f( 1.0, 1.0, 1.0, 1.0);
+//			glBindTexture(GL_TEXTURE_2D, [textureStore getTextureNameFor:@"cobra3_redux.png"]);
+//			glBegin(GL_QUADS);
+//
+//			glTexCoord2f(0.0, 0.0);
+//			glVertex3f(0, 0, 640);
+//
+//			glTexCoord2f(1.0, 0.0);
+//			glVertex3f(256, 0, 640);
+//
+//			glTexCoord2f(1.0, 1.0);
+//			glVertex3f(256, -256, 640);
+//
+//			glTexCoord2f(0.0, 1.0);
+//			glVertex3f(0, -256, 640);
+//
+//			glEnd();
+//			glDisable(GL_TEXTURE_2D);
+			
 			
 			glFlush();	// don't wait around for drawing to complete
 			//
@@ -3500,7 +3515,7 @@ Your fair use and other rights are in no way affected by the above.
 			if (entity->isShip)
 			{
 				ShipEntity* se = (ShipEntity *)entity;
-				[[se getAI] setOwner:(ShipEntity *)entity];
+				[[se getAI] setOwner:se];
 				[[se getAI] setState:@"GLOBAL"];
 				if ([se isBeacon])
 					[self setNextBeacon:se];
@@ -4678,10 +4693,11 @@ Your fair use and other rights are in no way affected by the above.
 	{
 		NS_DURING
 			int i;
-			PlayerEntity	*player = (PlayerEntity *)[self entityZero];
+			PlayerEntity*	player = (PlayerEntity *)[self entityZero];
 			int				ent_count = n_entities;
 			Entity*			my_entities[ent_count];
-
+			BOOL			playerDemo = [player showDemoShips];
+			
 			// use a retained copy so this can't be changed under us.
 			//
 			for (i = 0; i < ent_count; i++)
@@ -4733,7 +4749,6 @@ Your fair use and other rights are in no way affected by the above.
 								[demo_ship setPitch:PI/10.0];
 								[gui setText:[demo_ship name] forRow:19 align:GUI_ALIGN_CENTER];
 							}
-							[self guiUpdated];
 							demo_stage = DEMO_FLY_IN;
 							demo_stage_time = universal_time + 1.5;
 							break;
@@ -4788,7 +4803,14 @@ Your fair use and other rights are in no way affected by the above.
 					if (((e1->isShip)||(e1->isPlanet))&&((e1->has_moved)||occluder_moved))
 					{
 						int j;
+//						if (e1->isPlayer)
+//							NSLog(@"\nDEBUG checking occlusion for %@", e1);
 						e1->isSunlit = YES;				// sunlit by default
+						//
+						// check demo mode here..
+						if (playerDemo)
+							continue;	// don't check shading in demo mode
+						//
 						e1->shadingEntityID = NO_TARGET;
 						for (j = 0; (j < ent_count)&&(e1->isSunlit)&&(e1->status != STATUS_DEMO) ; j++)
 						{
@@ -4810,17 +4832,38 @@ Your fair use and other rights are in no way affected by the above.
 							if (e2->isSunlit == NO)
 								continue;	// things already /in/ shade can't shade things more.
 							//
+//							//
+//							if (e1->isPlayer)
+//								NSLog(@"DEBUG checking DISTANCE for occlusion against %@", e2);
+//							//
 							// check projected sizes of discs
 							GLfloat d2_sun = distance2( e1->position, the_sun->position);
+							GLfloat d2_e2sun = distance2( e2->position, the_sun->position);
+							if (d2_e2sun > d2_sun)
+								continue;	// you are nearer the sun than the potential occluder, so it can't shade you
+//							//
+//							if (e1->isPlayer)
+//								NSLog(@"DEBUG checking SIZE for occlusion against %@", e2);
+//							//
 							GLfloat d2_e2 = distance2( e1->position, e2->position);
 							GLfloat cr_sun = the_sun->collision_radius;
 							GLfloat cr_e2 = e2->actual_radius;
 							if (e2->isShip)
 								cr_e2 *= 0.90;	// 10% smaller shadow for ships
+							if (e2->isPlanet)
+								cr_e2 = e2->collision_radius;	// use collision radius for planets
+//							//
+//							if (e1->isPlayer)
+//								NSLog(@"DEBUG checking cr_sun %.2fm vs cr_e2 %.2fm", cr_sun, cr_e2);
+//							//
 							GLfloat cr2_sun_scaled = cr_sun * cr_sun * d2_e2 / d2_sun;
 							if (cr_e2 * cr_e2 < cr2_sun_scaled)
 								continue;	// if solar disc projected to the distance of e2 > collision radius it can't be shaded by e2
 							//
+//							//
+//							if (e1->isPlayer)
+//								NSLog(@"DEBUG checking ANGLES for occlusion against %@", e2);
+//							//
 							// check angles subtended by sun and occluder
 							double theta_sun = asin( cr_sun / sqrt(d2_sun));	// 1/2 angle subtended by sun
 							double theta_e2 = asin( cr_e2 / sqrt(d2_e2));		// 1/2 angle subtended by e2
@@ -4841,7 +4884,8 @@ Your fair use and other rights are in no way affected by the above.
 							if (theta_sun + phi > theta_e2)
 								continue;	// sun is not occluded
 							// all tests done e1 is in shade!
-//							NSLog(@"DEBUG %@ occluded by %@", e1, e2);
+//							if (e1->isPlayer)
+//								NSLog(@"DEBUG %@ occluded by %@", e1, e2);
 							e1->isSunlit = NO;
 							e1->shadingEntityID = [e2 universal_id];
 						}
@@ -5720,22 +5764,23 @@ double estimatedTimeForJourney(double distance, int hops)
 				// 50 cr per hop + 8..15 cr per LY + bonus for low government level of destination
 				int fee = route_hops * 50 + route_length * (8 + (passenger_seed.e & 7)) + 5 * (7 - destination_government) * (7 - destination_government);
 				
-				// do some cunning rounding
-				int superfee = 100000;
-				int rounded_fee = superfee * floor(0.5 + (float)fee / (float)superfee);
-				if (!rounded_fee)
-					rounded_fee = 1;
-				float ratio = fee / rounded_fee;
-				while (((ratio < 0.95)||(ratio > 1.05))&&(superfee > 0))
-				{
-					superfee /= 10;
-					rounded_fee = superfee * floor(0.5 + (float)fee / (float)superfee);
-					if (!rounded_fee)
-						rounded_fee = 1;
-					ratio = (float)fee / (float)rounded_fee;
-				}
-				if ((ratio > 0.95)&&(ratio < 1.05))
-					fee = rounded_fee;
+//				// do some cunning rounding
+//				int superfee = 100000;
+//				int rounded_fee = superfee * floor(0.5 + (float)fee / (float)superfee);
+//				if (!rounded_fee)
+//					rounded_fee = 1;
+//				float ratio = fee / rounded_fee;
+//				while (((ratio < 0.95)||(ratio > 1.05))&&(superfee > 0))
+//				{
+//					superfee /= 10;
+//					rounded_fee = superfee * floor(0.5 + (float)fee / (float)superfee);
+//					if (!rounded_fee)
+//						rounded_fee = 1;
+//					ratio = (float)fee / (float)rounded_fee;
+//				}
+//				if ((ratio > 0.95)&&(ratio < 1.05))
+//					fee = rounded_fee;
+				fee = cunningFee(fee);
 				
 				// premium = 20% of fee
 				int premium = fee * 20 / 100;
@@ -6010,22 +6055,23 @@ double estimatedTimeForJourney(double distance, int hops)
 						// what the contract pays
 						float fee = profit_for_trip * contract_share / 100;
 						
-						// do some cunning rounding
-						float superfee = 100000;
-						int rounded_fee = superfee * floor(0.5 + fee / superfee);
-						if (!rounded_fee)
-							rounded_fee = 1;
-						float ratio = fee / (float)rounded_fee;
-						while (((ratio < 0.95)||(ratio > 1.05))&&(superfee > 1))
-						{
-							superfee /= 10;
-							rounded_fee = superfee * floor(0.5 + fee / superfee);
-							if (!rounded_fee)
-								rounded_fee = 1;
-							ratio = fee / (float)rounded_fee;
-						}
-						if ((ratio > 0.95)&&(ratio < 1.05))
-							fee = rounded_fee;
+//						// do some cunning rounding
+//						float superfee = 100000;
+//						int rounded_fee = superfee * floor(0.5 + fee / superfee);
+//						if (!rounded_fee)
+//							rounded_fee = 1;
+//						float ratio = fee / (float)rounded_fee;
+//						while (((ratio < 0.95)||(ratio > 1.05))&&(superfee > 1))
+//						{
+//							superfee /= 10;
+//							rounded_fee = superfee * floor(0.5 + fee / superfee);
+//							if (!rounded_fee)
+//								rounded_fee = 1;
+//							ratio = fee / (float)rounded_fee;
+//						}
+//						if ((ratio > 0.95)&&(ratio < 1.05))
+//							fee = rounded_fee;
+						fee = cunningFee(fee);
 
 						// premium = local price
 						float premium = local_cargo_value;
@@ -6312,20 +6358,21 @@ double estimatedTimeForJourney(double distance, int hops)
 				[short_description appendFormat:@" Forward weapon upgraded to %@.", [fwd_weapon_desc lowercaseString]];
 			}
 			
-			// do some cunning rounding
-			price -= base_price;
-			float superprice = 1000000;
-			int rounded_price = superprice * floor(0.5 + price / superprice);
-			float ratio = (float)rounded_price / price;
-			while (((ratio < 0.99)||(ratio > 1.05))&&(superprice > 1))
-			{
-				superprice /= 10;
-				rounded_price = superprice * floor(0.5 + price / superprice);
-				ratio = (float)rounded_price / price;
-			}
-			if ((ratio > 0.99)&&(ratio < 1.05))
-				price = rounded_price;
-			price += base_price;
+//			// do some cunning rounding
+//			price -= base_price;
+//			float superprice = 1000000;
+//			int rounded_price = superprice * floor(0.5 + price / superprice);
+//			float ratio = (float)rounded_price / price;
+//			while (((ratio < 0.99)||(ratio > 1.05))&&(superprice > 1))
+//			{
+//				superprice /= 10;
+//				rounded_price = superprice * floor(0.5 + price / superprice);
+//				ratio = (float)rounded_price / price;
+//			}
+//			if ((ratio > 0.99)&&(ratio < 1.05))
+//				price = rounded_price;
+//			price += base_price;
+			price = base_price + cunningFee(price - base_price);
 				
 			[description appendFormat:@" Selling price %d Cr.", price];
 			[short_description appendFormat:@" Price %d Cr.", price];
@@ -6725,11 +6772,6 @@ NSComparisonResult comparePrice( id dict1, id dict2, void * context)
 	[message_gui clear];
 	[comm_log_gui clear];
 	[comm_log_gui printLongText:@"Communications Log" Align:GUI_ALIGN_CENTER Color:[NSColor yellowColor] FadeTime:0 Key:nil AddToArray:nil];
-}
-
-- (void) guiUpdated
-{
-	[gui updateGui];
 }
 
 - (void) resetCommsLogColor

@@ -39,6 +39,7 @@ Your fair use and other rights are in no way affected by the above.
 
 
 #ifdef GNUSTEP
+#include "oolite-linux.h"
 #import <Foundation/Foundation.h>
 #import <AppKit/AppKit.h>
 #include <SDL.h>
@@ -102,5 +103,11 @@ BOOL always_include_addons;
 + (NSData*) dataFromXMLContent:(NSObject*) xmlContent;
 + (NSArray*) arrayFromXMLContent:(NSObject*) xmlContent;
 + (NSDictionary*) dictionaryFromXMLContent:(NSObject*) xmlContent;
+
++ (NSString*) stringFromGLFloats: (GLfloat*) float_array : (int) n_floats;
++ (void) GLFloatsFromString: (NSString*) float_string: (GLfloat*) float_array;
+
++ (NSString*) stringFromNSPoint: (NSPoint) point;
++ (NSPoint) NSPointFromString: (NSString*) point_string;
 
 @end

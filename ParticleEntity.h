@@ -46,6 +46,8 @@ Your fair use and other rights are in no way affected by the above.
 #define PARTICLE_TEST				1
 #define PARTICLE_SHOT_EXPIRED		200
 #define PARTICLE_EXPLOSION			201
+#define PARTICLE_FLASH				230
+#define PARTICLE_FIREBALL			240
 #define PARTICLE_FRAGBURST			250
 #define PARTICLE_BURST2				270
 #define PARTICLE_SHOT_GREEN_PLASMA	100
@@ -55,6 +57,7 @@ Your fair use and other rights are in no way affected by the above.
 #define PARTICLE_LASER_BEAM_RED		150
 #define PARTICLE_LASER_BEAM			160
 #define PARTICLE_EXHAUST			300
+#define PARTICLE_EXHAUST2			301
 #define PARTICLE_ECM_MINE			400
 #define PARTICLE_ENERGY_MINE		500
 #define PARTICLE_FLASHER			600
@@ -88,6 +91,9 @@ Your fair use and other rights are in no way affected by the above.
 	double		alpha_for_vertex[MAX_VERTICES_PER_ENTITY];
 		
     NSSize	size;
+
+	Vector exhaustScale;
+	GLfloat exhaustBaseColors[34 * 4], verts[34 * 3];
 }
 
 - (id) initLaserFromShip:(ShipEntity *) ship view:(int) view;
@@ -99,7 +105,10 @@ Your fair use and other rights are in no way affected by the above.
 - (id) initEnergyMineFromShip:(ShipEntity *) ship;
 - (id) initHyperringFromShip:(ShipEntity *) ship;
 - (id) initFragburstFromPosition:(Vector) fragPos;
+- (id) initFragburstSize:(GLfloat) fragSize FromPosition:(Vector) fragPos;
 - (id) initBurst2FromPosition:(Vector) fragPos;
+- (id) initBurst2Size:(GLfloat) burstSize FromPosition:(Vector) fragPos;
+- (id) initFlashSize:(GLfloat) burstSize FromPosition:(Vector) fragPos;
 
 - (void) updateExplosion:(double) delta_t;
 - (void) updateFlasher:(double) delta_t;
@@ -111,6 +120,8 @@ Your fair use and other rights are in no way affected by the above.
 - (void) updateHyperring:(double) delta_t;
 - (void) updateFragburst:(double) delta_t;
 - (void) updateBurst2:(double) delta_t;
+- (void) updateExhaust2:(double) delta_t;
+- (void) updateFlash:(double) delta_t;
 
 - (void) setTexture:(NSString *) filename;
 - (void) setColor:(NSColor *) a_color;
@@ -126,10 +137,13 @@ Your fair use and other rights are in no way affected by the above.
 
 - (void) drawParticle;
 - (void) drawLaser;
-- (void) drawExhaust:(BOOL) immediate;
+- (void) drawExhaust2;
 - (void) drawHyperring;
 - (void) drawEnergyMine;
 - (void) drawFragburst;
 - (void) drawBurst2;
+//- (void) drawFlash;
+
+void drawQuadForView(int viewdir, GLfloat x, GLfloat y, GLfloat z, GLfloat xx, GLfloat yy);
 
 @end

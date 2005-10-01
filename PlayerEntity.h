@@ -46,9 +46,8 @@ Your fair use and other rights are in no way affected by the above.
 #endif
 
 #import "ShipEntity.h"
-#import "HeadUpDisplay.h"
 
-@class GuiDisplayGen, JoystickHandler;
+@class GuiDisplayGen, OOTrumble, MyOpenGLView, HeadUpDisplay, ShipEntity, JoystickHandler;
 #ifndef GNUSTEP
 @class OOSound;
 #endif
@@ -118,11 +117,15 @@ Your fair use and other rights are in no way affected by the above.
 #define PLAYER_MAX_AFT_SHIELD		(128.0 * (shield_booster + shield_enhancer))
 #define PLAYER_MAX_WEAPON_TEMP		256.0
 #define PLAYER_MAX_CABIN_TEMP		256.0
+#define PLAYER_MIN_CABIN_TEMP		60.0
 #define PLAYER_MAX_FUEL				70.0
 #define PLAYER_MAX_MISSILES			4
 #define PLAYER_STARTING_MISSILES	3
 #define PLAYER_DIAL_MAX_ALTITUDE	40000.0
 #define PLAYER_SUPER_ALTITUDE2		10000000000.0
+
+#define PLAYER_MAX_TRUMBLES			24
+
 	//  ~~~~~~~~~~~~~~~~~~~~~~~~	= 40km
 	
 #define ALERT_CONDITION_DOCKED		0
@@ -135,7 +138,9 @@ Your fair use and other rights are in no way affected by the above.
 #define HYPERSPEED_FACTOR			32.0
 
 #define PLAYER_SHIP_DESC			@"cobra3-player"
-#define PLAYER_MODEL				@"cobramk3.dat"
+#define PLAYER_MODEL				@"cobra3_redux.dat"
+
+#define KEY_DOCKING_MUSIC			@"docking_music"
 
 #define ESCAPE_SEQUENCE_TIME		10.0
 
@@ -199,6 +204,8 @@ Your fair use and other rights are in no way affected by the above.
 //#define COMPASS_MODE_WITCHPOINT		5
 #define COMPASS_MODE_BEACONS		6
 #define COMPASS_MODE_ADVANCED_OKAY	((compass_mode >= 1)&&(compass_mode <= 10))
+
+#define PLAYER_INTERNAL_DAMAGE_FACTOR 31
 
 @interface PlayerEntity : ShipEntity
 {
@@ -431,6 +438,10 @@ Your fair use and other rights are in no way affected by the above.
 		// DEBUG
 		ParticleEntity* drawDebugParticle;
 		int		debugShipID;
+		
+		// trumbles
+		int n_trumbles;
+		OOTrumble*	trumble[PLAYER_MAX_TRUMBLES];
 
       // Keeping track of joysticks
       int numSticks;
@@ -490,6 +501,8 @@ Your fair use and other rights are in no way affected by the above.
 - (double) dial_max_energy;
 
 - (double) dial_fuel;
+- (double) dial_hyper_range;
+
 - (double) dial_cabin_temp;
 - (double) dial_weapon_temp;
 - (double) dial_altitude;
@@ -551,6 +564,8 @@ Your fair use and other rights are in no way affected by the above.
 
 - (void) interpretAIMessage:(NSString *)ms;
 
+- (void) takeInternalDamage;
+- (NSDictionary*) damageInformation;
 - (void) getDestroyed;
 
 - (void) loseTargetStatus;
@@ -606,5 +621,16 @@ Your fair use and other rights are in no way affected by the above.
 
 - (void) setDefaultViewOffsets;
 - (Vector) viewOffset;
+
+- (void) setUpTrumbles;
+- (void) addTrumble:(OOTrumble*) papaTrumble;
+- (void) removeTrumble:(OOTrumble*) deadTrumble;
+- (OOTrumble**) trumbleArray;
+- (int) n_trumbles;
+// loading and saving n_trummbles
+- (NSObject*) trumbleValue;
+- (void) setTrumbleValueFrom:(NSObject*) trumbleValue;
+
+- (void) munge_checksum_with_NSString:(NSString*) str;
 
 @end

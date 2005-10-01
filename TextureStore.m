@@ -51,6 +51,7 @@ Your fair use and other rights are in no way affected by the above.
 #endif
 
 #import "ResourceManager.h"
+#import "legacy_random.h"
 
 #import "TextureStore.h"
 
@@ -268,6 +269,48 @@ Your fair use and other rights are in no way affected by the above.
 {
 	[textureDictionary removeAllObjects];
 	return;
+}
+
+void fillSquareImageDataWithBlur(unsigned char * imageBuffer, int width, int nplanes)
+{
+	int x, y;
+	int r = width / 2;
+	float r1 = 1.0 / r;
+	float i_error = 0;
+	for (y = 0; y < r; y++) for (x = 0; x < r; x++)
+	{
+		int x1 = r - x - 1;
+		int x2 = r + x;
+		int y1 = r - y - 1;
+		int y2 = r + y;
+		float d = sqrt(x*x + y*y);
+		if (d > r)
+			d = r;
+		float fi = 255 - 255 * d * r1;
+		unsigned char i = 255 - 255 * d * r1;
+		
+		i_error += fi - i;	// accumulate the error between i and fi
+		
+		if ((i_error > 1.0)&&(i < 255))
+		{
+//			NSLog(@"DEBUG err correct");
+			i_error -= 1.0;
+			i++;
+		}
+		
+		int p;
+		for (p = 0; p < nplanes - 1; p++)
+		{
+			imageBuffer[ p + nplanes * (y1 * width + x1) ] = 128 | ranrot_rand() & 127;
+			imageBuffer[ p + nplanes * (y1 * width + x2) ] = 128 | ranrot_rand() & 127;
+			imageBuffer[ p + nplanes * (y2 * width + x1) ] = 128 | ranrot_rand() & 127;
+			imageBuffer[ p + nplanes * (y2 * width + x2) ] = 128 | ranrot_rand() & 127;
+		}
+		imageBuffer[ p + nplanes * (y1 * width + x1) ] = i;	// hoping RGBA last plane is alpha
+		imageBuffer[ p + nplanes * (y1 * width + x2) ] = i;
+		imageBuffer[ p + nplanes * (y2 * width + x1) ] = i;
+		imageBuffer[ p + nplanes * (y2 * width + x2) ] = i;
+	}
 }
 
 @end

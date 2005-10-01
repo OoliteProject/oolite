@@ -587,11 +587,6 @@ Your fair use and other rights are in no way affected by the above.
 	}
 }
 
-- (void) updateGui
-{
-}
-
-
 - (void) drawGUI:(GLfloat) x :(GLfloat) y :(GLfloat) z :(GLfloat) alpha forUniverse:(Universe*) universe
 {
 	if (alpha < 0.05)

@@ -48,6 +48,7 @@ Your fair use and other rights are in no way affected by the above.
 #import "Universe.h"
 #import "AI.h"
 #import "MyOpenGLView.h"
+#import "OOTrumble.h"
 #import "JoystickHandler.h"
 
 #ifdef LOADSAVEGUI
@@ -421,6 +422,9 @@ Your fair use and other rights are in no way affected by the above.
 		[result setObject:[universe local_planetinfo_overrides] forKey:@"local_planetinfo_overrides"];
 	}
 	
+	// trumble information
+	[result setObject:[self trumbleValue] forKey:@"trumbles"];
+	
 	// create checksum
 	clear_checksum();
 	munge_checksum(galaxy_seed.a);	munge_checksum(galaxy_seed.b);	munge_checksum(galaxy_seed.c);
@@ -763,11 +767,12 @@ Your fair use and other rights are in no way affected by the above.
 	cursor_coordinates = galaxy_coordinates;
 	//
 	
+	// trumble information
+	[self setUpTrumbles];
+	[self setTrumbleValueFrom:[dict objectForKey:@"trumbles"]];	// if it doesn't exist we'll check user-defaults
+	
 	// finally
 	missiles = [self calc_missiles];
-	
-//	[universe removeAllEntitiesExceptPlayer:NO];	// reset the universe outside the station
-//	[universe setSystemTo:system_seed];
 }
 
 /////////////////////////////////////////////////////////////
@@ -872,7 +877,9 @@ static BOOL galactic_witchjump;
 	//
 	mouse_control_on = NO;
 	//
-	docking_music_on = YES;
+	docking_music_on = YES;	// check user defaults for whether we like docking music or not...
+	if ([[NSUserDefaults standardUserDefaults] objectForKey:KEY_DOCKING_MUSIC])
+		docking_music_on = [[NSUserDefaults standardUserDefaults] boolForKey:KEY_DOCKING_MUSIC];
 	//
 	if (name)
 		[name release];
@@ -895,6 +902,9 @@ static BOOL galactic_witchjump;
     displayListName =   0;
     //
     status =			STATUS_TEST;
+	//
+	shield_booster =			1;
+	shield_enhancer =			0;
 	forward_shield =	PLAYER_MAX_FORWARD_SHIELD;
 	aft_shield =		PLAYER_MAX_AFT_SHIELD;
 	energy =			256;
@@ -1068,10 +1078,16 @@ static BOOL galactic_witchjump;
 	if (save_path)
 		[save_path autorelease];
 	save_path = nil;
+	
+	[self setUpTrumbles];
 }
 
 - (void) setUpShipFromDictionary:(NSDictionary *) dict
 {	
+	if (shipinfoDictionary)
+		[shipinfoDictionary release];
+	shipinfoDictionary = [[NSDictionary alloc] initWithDictionary:dict];	// retained
+
 	//NSLog(@"DEBUG Playerentity - setUpShipFromDictionary:(NSDictionary *) dict");
 	//
 	// set things from dictionary from here out
@@ -1279,6 +1295,12 @@ static BOOL galactic_witchjump;
 			[missile_entity[i] release];
 	}
 	
+	for (i = 0; i < PLAYER_MAX_TRUMBLES; i++)
+	{
+		if (trumble[i])
+			[trumble[i] release];
+	}
+
     [super dealloc];
 }
 
@@ -1566,7 +1588,11 @@ static BOOL galactic_witchjump;
 	double speed_delta = 5.0 * thrust;
 	//
 	PlanetEntity*	sun = [universe sun];
-
+	double	external_temp = 0;
+	GLfloat	air_friction = 0.0;
+	if (universe)
+		air_friction = 0.5 * universe->air_resist_factor;
+		
 	// cool all weapons
 	//
 	if (forward_weapon_temp > 0.0)
@@ -1700,23 +1726,15 @@ static BOOL galactic_witchjump;
 	
 	if (sun)
 	{
-		// do Revised sun-skimming check here...
+		// set the ambient temperature here
 		double  sun_zd = sun->zero_distance;	// square of distance
 		double  sun_cr = sun->collision_radius;
 		double	alt1 = sun_cr * sun_cr / sun_zd;
-		double	external_temp = SUN_TEMPERATURE * alt1;
+		external_temp = SUN_TEMPERATURE * alt1;
 		if ([[universe sun] goneNova])
 			external_temp *= 100;
-		if (external_temp < 60.0)
-			external_temp = 60.0;
-		if (external_temp > cabin_temp)
-		{
-			//NSLog(@"DEBUG sun skim >>>> sun alt1 = %.3f ext temp = %.3f", alt1, external_temp);
-			cabin_temp += (external_temp - cabin_temp) * delta_t * CABIN_INSULATION_FACTOR;
-		}
-		else
-			cabin_temp += (external_temp - cabin_temp) * delta_t * CABIN_COOLING_FACTOR;
 
+		// do Revised sun-skimming check here...
 		if (([self has_extra_equipment:@"EQ_FUEL_SCOOPS"])&&(alt1 > 0.75)&&(fuel < 70))
 		{
 			fuel_accumulator += delta_t * flight_speed * 0.010;
@@ -1728,6 +1746,18 @@ static BOOL galactic_witchjump;
 			if (fuel > 70)	fuel = 70;
 			[universe displayMessage:@"Fuel Scoop Active" forCount:1.0];
 		}
+	}
+	
+	// work on the cabin temperature
+	//
+	cabin_temp += delta_t * flight_speed * air_friction;	// wind_speed
+	//
+	if (external_temp > cabin_temp)
+		cabin_temp += (external_temp - cabin_temp) * delta_t * CABIN_INSULATION_FACTOR;
+	else
+	{
+		if (cabin_temp > PLAYER_MIN_CABIN_TEMP)
+			cabin_temp += (external_temp - cabin_temp) * delta_t * CABIN_COOLING_FACTOR;
 	}
 
 	if (cabin_temp > PLAYER_MAX_CABIN_TEMP)
@@ -1944,11 +1974,11 @@ static BOOL galactic_witchjump;
 
 - (double) dial_roll
 {
-	return flight_roll/max_flight_roll;
+	return flight_roll / max_flight_roll;
 }
 - (double) dial_pitch
 {
-	return flight_pitch/max_flight_pitch;
+	return flight_pitch / max_flight_pitch;
 }
 - (double) dial_speed
 {
@@ -1984,6 +2014,11 @@ static BOOL galactic_witchjump;
 - (double) dial_fuel
 {
 	return fuel / PLAYER_MAX_FUEL;
+}
+- (double) dial_hyper_range
+{
+	double distance = distanceBetweenPlanetPositions(target_system_seed.d,target_system_seed.b,galaxy_coordinates.x,galaxy_coordinates.y);
+	return 10.0 * distance / PLAYER_MAX_FUEL;
 }
 - (double) dial_cabin_temp
 {
@@ -2364,6 +2399,41 @@ static BOOL galactic_witchjump;
 			default :
 				break;
 		}
+		
+		// handle docking music generically
+		if (status == STATUS_AUTOPILOT_ENGAGED)
+		{
+			if (docking_music_on) 
+			{
+				if (![dockingMusic isPlaying])
+				{
+//					NSLog(@"DEBUG playing docking music");
+					[dockingMusic play];
+				}
+				if ([dockingMusic isPaused])
+				{
+//					NSLog(@"DEBUG resuming docking music");
+					[dockingMusic resume];
+				}
+			}
+			else
+			{
+				if ([dockingMusic isPlaying] && ![dockingMusic isPaused])
+				{
+//					NSLog(@"DEBUG pausing docking music");
+					[dockingMusic pause];
+				}
+			}
+		}
+		else
+		{
+			if ([dockingMusic isPlaying])
+			{
+//				NSLog(@"DEBUG stopping docking music");
+				[dockingMusic stop];
+			}
+		}
+		
 	}
 }
 
@@ -2743,7 +2813,6 @@ static BOOL cloak_pressed;
 					autopilot_engaged = YES;
 					ident_engaged = NO;
 					[self safe_all_missiles];
-//					velocity = make_vector(v_forward.x * flight_speed, v_forward.y * flight_speed, v_forward.z * flight_speed);
 					velocity = make_vector( 0, 0, 0);
 					status = STATUS_AUTOPILOT_ENGAGED;
 					[shipAI setState:@"GLOBAL"];	// restart the AI
@@ -2755,17 +2824,8 @@ static BOOL cloak_pressed;
 					if (ootunes_on)
 					{
 						// ootunes - play docking music
-						[[universe gameController] playiTunesPlaylist:@"Oolite-Docking"];	
-					}
-					else
-					{
-						if (docking_music_on)
-						{
-//							if (IsMovieDone ([dockingMusic QTMovie]))
-//								GoToBeginningOfMovie ([dockingMusic QTMovie]);
-//							StartMovie ([dockingMusic QTMovie]);
-							[dockingMusic play];
-						}
+						[[universe gameController] playiTunesPlaylist:@"Oolite-Docking"];
+						docking_music_on = NO;
 					}
 					//
 					if (afterburner_engaged)
@@ -2787,7 +2847,7 @@ static BOOL cloak_pressed;
 			//
 			// autopilot 'C' - dock with target
 			//
-			if (([gameView isDown:key_autopilot_target] || joyButtonState[BUTTON_DOCKCPUTARGET])&&(has_docking_computer)&&(![beepSound isPlaying]))   // look for the 'c' key
+			if (([gameView isDown:key_autopilot_target])&&(has_docking_computer)&&(![beepSound isPlaying]))   // look for the 'c' key
 			{
 				Entity* primeTarget = [self getPrimaryTarget];
 				if ((primeTarget)&&(primeTarget->isStation))
@@ -2797,7 +2857,6 @@ static BOOL cloak_pressed;
 					autopilot_engaged = YES;
 					ident_engaged = NO;
 					[self safe_all_missiles];
-//					velocity = make_vector(v_forward.x * flight_speed, v_forward.y * flight_speed, v_forward.z * flight_speed);
 					velocity = make_vector( 0, 0, 0);
 					status = STATUS_AUTOPILOT_ENGAGED;
 					[shipAI setState:@"GLOBAL"];	// restart the AI
@@ -2809,17 +2868,8 @@ static BOOL cloak_pressed;
 					if (ootunes_on)
 					{
 						// ootunes - play docking music
-						[[universe gameController] playiTunesPlaylist:@"Oolite-Docking"];	
-					}
-					else
-					{
-						if (docking_music_on)
-						{
-//							if (IsMovieDone ([dockingMusic QTMovie]))
-//								GoToBeginningOfMovie ([dockingMusic QTMovie]);
-//							StartMovie ([dockingMusic QTMovie]);
-							[dockingMusic play];
-						}
+						[[universe gameController] playiTunesPlaylist:@"Oolite-Docking"];
+						docking_music_on = NO;	
 					}
 					//
 					if (afterburner_engaged)
@@ -3302,7 +3352,6 @@ static BOOL queryPressed;
 		   if ([gui setNextRow: +1])
 			{
 				[gui click];
-				[universe guiUpdated];
 				result = YES;
 			}
 			timeLastKeyPress = script_time;
@@ -3316,7 +3365,6 @@ static BOOL queryPressed;
 			if ([gui setNextRow: -1])
 			{
 				[gui click];
-				[universe guiUpdated];
 				result = YES;
 			}
 			timeLastKeyPress = script_time;
@@ -3332,7 +3380,6 @@ static BOOL queryPressed;
 				click_row = universe->cursor_row;
 			if ([gui setSelectedRow:click_row])
 			{
-				[universe guiUpdated];
 				result = YES;
 			}
 		}
@@ -3647,7 +3694,6 @@ static BOOL queryPressed;
 						GuiDisplayGen* gui = [universe gui];
 						int display_row =   GUI_ROW_OPTIONS_DISPLAY;
 						[gui setText:displayModeString	forRow:display_row  align:GUI_ALIGN_CENTER];
-						[universe guiUpdated];
 					}
 					switching_resolution = YES;
 				}
@@ -3665,7 +3711,6 @@ static BOOL queryPressed;
 						[gui setText:@" Spoken messages: ON "	forRow:speech_row  align:GUI_ALIGN_CENTER];
 					else
 						[gui setText:@" Spoken messages: OFF "	forRow:speech_row  align:GUI_ALIGN_CENTER];
-					[universe guiUpdated];
 				}
 
 				if (([gui selectedRow] == ootunes_row)&&(([gameView isDown:gvArrowKeyRight])||([gameView isDown:gvArrowKeyLeft])))
@@ -3678,7 +3723,6 @@ static BOOL queryPressed;
 						[gui setText:@" iTunes integration: ON "	forRow:ootunes_row  align:GUI_ALIGN_CENTER];
 					else
 						[gui setText:@" iTunes integration: OFF "	forRow:ootunes_row  align:GUI_ALIGN_CENTER];
-					[universe guiUpdated];
 				}
 #endif
 
@@ -3692,7 +3736,6 @@ static BOOL queryPressed;
 						[gui setText:@" Reduced detail: ON "	forRow:detail_row  align:GUI_ALIGN_CENTER];
 					else
 						[gui setText:@" Reduced detail: OFF "	forRow:detail_row  align:GUI_ALIGN_CENTER];
-					[universe guiUpdated];
 				}
             
 #ifdef GNUSTEP
@@ -3729,7 +3772,6 @@ static BOOL queryPressed;
 				if ([self handleGUIUpDownArrowKeys:gui :gameView])
 				{
 					[self showInformationForSelectedUpgrade];
-					[universe guiUpdated];
 				}
 				//
 				if ([gameView isDown:gvArrowKeyLeft])
@@ -3945,7 +3987,6 @@ static BOOL queryPressed;
 				if ([self handleGUIUpDownArrowKeys:gui :gameView])
 				{
 					[self showShipyardInfoForSelection];
-					[universe guiUpdated];
 				}
 				//
 				if ([gameView isDown:gvArrowKeyLeft])
@@ -4235,7 +4276,6 @@ static BOOL switching_equipship_screens;
 					[gameView clearKeys];
 					[self setGuiToEquipShipScreen:0:-1];
 					[[universe gui] setSelectedRow:GUI_ROW_EQUIPMENT_START];
-					[universe guiUpdated];
 				}
 				[universe setDisplayText:YES];
 //				[universe setDisplayCursor:NO];
@@ -4257,14 +4297,12 @@ static BOOL switching_equipship_screens;
 					[gameView clearKeys];
 					[self setGuiToContractsScreen];
 					[[universe gui] setSelectedRow:GUI_ROW_PASSENGERS_START];
-					[universe guiUpdated];
 				}
 				else
 				{
 					[gameView clearKeys];
 					[self setGuiToMarketScreen];
 					[[universe gui] setSelectedRow:GUI_ROW_MARKET_START];
-					[universe guiUpdated];
 				}
 				[universe setDisplayText:YES];
 //				[universe setDisplayCursor:NO];
@@ -4285,7 +4323,6 @@ static BOOL switching_equipship_screens;
 			{
 				[self setGuiToMarketScreen];
 				[[universe gui] setSelectedRow:GUI_ROW_MARKET_START];
-				[universe guiUpdated];
 				[universe setDisplayText:YES];
 //				[universe setDisplayCursor:NO];
 				[universe setDisplayCursor:YES];
@@ -4349,14 +4386,7 @@ static BOOL toggling_music;
 		{
 			// ootunes - play inflight music
 			[[universe gameController] playiTunesPlaylist:@"Oolite-Inflight"];
-		}
-		else
-		{
-			if (docking_music_on)
-			{
-//				StopMovie ([dockingMusic QTMovie]);
-				[dockingMusic stop];
-			}
+			docking_music_on = NO;
 		}
 	}
 	//
@@ -4365,27 +4395,8 @@ static BOOL toggling_music;
 		if (!toggling_music)
 		{
 			docking_music_on = !docking_music_on;
-			if (docking_music_on)
-			{
-#ifndef GNUSTEP           
-				if (IsMovieDone ([dockingMusic QTMovie]))
-					GoToBeginningOfMovie ([dockingMusic QTMovie]);
-				StartMovie ([dockingMusic QTMovie]);
-#else
-				[dockingMusic stop];
-				[dockingMusic goToBeginning];
-				[dockingMusic play];
-
-#endif            
-			}
-			else
-			{
-#ifndef GNUSTEP           
-				StopMovie ([dockingMusic QTMovie]);
-#else
-				[dockingMusic stop];
-#endif            
-			}
+			// set defaults..
+			[[NSUserDefaults standardUserDefaults]  setBool:docking_music_on forKey:KEY_DOCKING_MUSIC];
 		}
 		toggling_music = YES;
 	}
@@ -4394,17 +4405,6 @@ static BOOL toggling_music;
 		toggling_music = NO;
 	}
 	//
-	// keep music playing
-	if ((docking_music_on)&&(!ootunes_on))
-	{
-		if (![dockingMusic isPlaying])
-			[dockingMusic play];
-//		if (IsMovieDone ([dockingMusic QTMovie]))
-//		{
-//			GoToBeginningOfMovie ([dockingMusic QTMovie]);
-//			StartMovie ([dockingMusic QTMovie]);
-//		}
-	}
 
 }
 
@@ -4454,8 +4454,6 @@ static BOOL toggling_music;
 				{
 					if (themeMusic)
 					{
-//						StopMovie ([themeMusic QTMovie]);
-//						GoToBeginningOfMovie ([themeMusic QTMovie]);
 						[themeMusic stop];
 					}
 					disc_operation_in_progress = YES;
@@ -4503,8 +4501,6 @@ static BOOL toggling_music;
 				[universe setDisplayText:YES];
 				if (themeMusic)
 				{
-//					StopMovie ([themeMusic QTMovie]);
-//					GoToBeginningOfMovie ([themeMusic QTMovie]);
 					[themeMusic stop];
 				}
 			}
@@ -4534,8 +4530,6 @@ static BOOL toggling_music;
 #ifndef GNUSTEP
 					if (missionMusic)
 					{
-//						StopMovie ([missionMusic QTMovie]);
-//						GoToBeginningOfMovie ([missionMusic QTMovie]);
 						[missionMusic stop];
 					}
 #endif               
@@ -4550,7 +4544,6 @@ static BOOL toggling_music;
 						if ([gui setSelectedRow:[gui selectedRow] + 1])
 						{
 							[gui click];
-							[universe guiUpdated];
 						}
 						timeLastKeyPress = script_time;
 					}
@@ -4562,7 +4555,6 @@ static BOOL toggling_music;
 						if ([gui setSelectedRow:[gui selectedRow] - 1])
 						{
 							[gui click];
-							[universe guiUpdated];
 						}
 						timeLastKeyPress = script_time;
 					}
@@ -4580,14 +4572,10 @@ static BOOL toggling_music;
 					[gui setBackgroundImage:nil];
 					[self setGuiToStatusScreen];
 					[universe setDisplayText:YES];
-#ifndef GNUSTEP               
 					if (missionMusic)
 					{
-//						StopMovie ([missionMusic QTMovie]);
-//						GoToBeginningOfMovie ([missionMusic QTMovie]);
 						[missionMusic stop];
 					}
-#endif
 					//
 					[self checkScript];
 				}
@@ -4634,14 +4622,7 @@ static BOOL toggling_music;
 		{
 			// ootunes - play inflight music
 			[[universe gameController] playiTunesPlaylist:@"Oolite-Inflight"];
-		}
-		else
-		{
-			if (docking_music_on)
-			{
-//				StopMovie ([dockingMusic QTMovie]);
-				[dockingMusic stop];
-			}
+			docking_music_on = NO;
 		}
 	}
 	
@@ -4679,6 +4660,8 @@ static BOOL toggling_music;
 	if (missile == nil)
 		return NO;
 	
+	double mcr = missile->collision_radius;
+	
 	if ([[missile roles] hasSuffix:@"MINE"]&&((missile_status == MISSILE_STATUS_ARMED)||(missile_status == MISSILE_STATUS_TARGET_LOCKED)))
 	{
 		BOOL launchedOK = [self launchMine:missile];
@@ -4695,7 +4678,7 @@ static BOOL toggling_music;
 		
 	Vector  vel;
 	Vector  origin = position;
-	Vector  start;
+	Vector  start, v_eject;
 
 	// default launching position
 	start.x = 0.0;						// in the middle
@@ -4710,6 +4693,7 @@ static BOOL toggling_music;
 	double  throw_speed = 250.0;
 	Quaternion q1 = q_rotation;
 	q1.w = -q1.w;   // player view is reversed remember!
+	
 	Entity  *target = [self getPrimaryTarget];
 	
 	// select a new active missile and decrease the missiles count
@@ -4717,6 +4701,17 @@ static BOOL toggling_music;
 	[self select_next_missile];
 	missiles = [self calc_missiles];
 	
+
+	v_eject = unit_vector( &start);
+	
+	// check if start is within bounding box...
+	while (	(start.x > boundingBox.min_x - mcr)&&(start.x < boundingBox.max_x + mcr)&&
+			(start.y > boundingBox.min_y - mcr)&&(start.y < boundingBox.max_y + mcr)&&
+			(start.z > boundingBox.min_z - mcr)&&(start.z < boundingBox.max_z + mcr))
+	{
+		start.x += mcr * v_eject.x;	start.y += mcr * v_eject.y;	start.z += mcr * v_eject.z;
+	}
+			
 	vel.x = (flight_speed + throw_speed) * v_forward.x;
 	vel.y = (flight_speed + throw_speed) * v_forward.y;
 	vel.z = (flight_speed + throw_speed) * v_forward.z;
@@ -4724,8 +4719,8 @@ static BOOL toggling_music;
 	origin.x = position.x + v_right.x * start.x + v_up.x * start.y + v_forward.x * start.z;
 	origin.y = position.y + v_right.y * start.x + v_up.y * start.y + v_forward.y * start.z;
 	origin.z = position.z + v_right.z * start.x + v_up.z * start.y + v_forward.z * start.z;
-		
-	[missile setPosition:origin];						// directly below
+	
+	[missile setPosition:origin];
 	[missile setScanClass: CLASS_MISSILE];
 	[missile addTarget:target];
 	[missile setQRotation:q1];
@@ -4734,9 +4729,12 @@ static BOOL toggling_music;
 	[missile setSpeed:150.0];
 	[missile setOwner:self];
 	[missile setDistanceTravelled:0.0];
+	//debug
+	//[missile setReportAImessages:YES];
 	//
 	[universe addEntity:missile];
-	[missile release];									// released
+	//NSLog(@"Missile collision radius is %.1f",missile->collision_radius);
+	[missile release]; //release
 	
 	[(ShipEntity *)target setPrimaryAggressor:self];
 	[[(ShipEntity *)target getAI] reactToMessage:@"INCOMING_MISSILE"];
@@ -4748,51 +4746,17 @@ static BOOL toggling_music;
 {
 	if (!mine)
 		return NO;
-	Vector start;
-	double  eject_speed = -500.0;
-	Quaternion  random_direction;
-	Vector  vel;
-	Vector  rpos = position;
-	double random_roll =	randf() - 0.5;  //  -0.5 to +0.5
-	double random_pitch = 	randf() - 0.5;  //  -0.5 to +0.5
-	quaternion_set_random(&random_direction);
-
-	// default launching position
-	start.x = 0.0;						// in the middle
-	start.y = 0.0;						//
-	start.z = boundingBox.min_z - 1.0;	// 1m behind of bounding box
-	// custom launching position
-	if ([shipinfoDictionary objectForKey:@"aft_eject_position"])
-	{
-		start = [Entity vectorFromString:(NSString *)[shipinfoDictionary objectForKey:@"aft_eject_position"]];
-	}
-	start.z -= mine->collision_radius;
-	
-	rpos.x +=	v_right.x * start.x +	v_up.x * start.y +	v_forward.x * start.z;
-	rpos.y +=	v_right.y * start.x +	v_up.y * start.y +	v_forward.y * start.z;
-	rpos.z +=	v_right.z * start.x +	v_up.z * start.y +	v_forward.z * start.z;	
-
-	vel.x = v_forward.x * (flight_speed + eject_speed);
-	vel.y = v_forward.y * (flight_speed + eject_speed);
-	vel.z = v_forward.z * (flight_speed + eject_speed);
-	eject_speed *= 0.5 * (randf() - 0.5);   //  -0.25x .. +0.25x
-	vel.x += v_up.x * eject_speed;
-	vel.y += v_up.y * eject_speed;
-	vel.z += v_up.z * eject_speed;
-	eject_speed *= 0.5 * (randf() - 0.5);   //  -0.0625x .. +0.0625x
-	vel.x += v_right.x * eject_speed;
-	vel.y += v_right.y * eject_speed;
-	vel.z += v_right.z * eject_speed;
-	[mine setPosition:rpos];
-	[mine setQRotation:random_direction];
-	[mine setRoll:random_roll];
-	[mine setPitch:random_pitch];
-	[mine setVelocity:vel];
+	double  mine_speed = 500.0;
+	[self dumpItem: mine];
+	Vector mvel = [mine getVelocity];
+	mvel.x -= mine_speed * v_forward.x;
+	mvel.y -= mine_speed * v_forward.y;
+	mvel.z -= mine_speed * v_forward.z;
+	[mine setVelocity: mvel];
 	[mine setScanClass: CLASS_MINE];
 	[mine setStatus: STATUS_IN_FLIGHT];
 	[mine setCondition: CONDITION_IDLE];
 	[mine setOwner: self];
-	[universe addEntity:mine];
 	[[mine getAI] setState:@"GLOBAL"];	// start the timer !!!!
 	return YES;
 }
@@ -4961,6 +4925,7 @@ static BOOL toggling_music;
 {
 	Vector  rel_pos;
 	double  d_forward;
+	BOOL	internal_damage = NO;	// base chance
 	
 	if (status == STATUS_DEAD)
 		return;
@@ -5017,6 +4982,7 @@ static BOOL toggling_music;
 	
 	if (amount > 0.0)
 	{
+		internal_damage = ((ranrot_rand() & PLAYER_INTERNAL_DAMAGE_FACTOR) < amount);	// base chance of damage to systems
 		energy -= amount;
 		if (scrapeDamageSound)
 		{
@@ -5025,10 +4991,11 @@ static BOOL toggling_music;
 				[scrapeDamageSound stop];
 			[scrapeDamageSound play];
 #endif         
-		}	
+		}
+		cabin_temp += amount;
 	}
 	
-	if (energy <= 0.0)
+	if ((energy <= 0.0)||(cabin_temp > PLAYER_MAX_CABIN_TEMP))
 	{
 		if ((other)&&(other->isShip))
 		{
@@ -5043,6 +5010,12 @@ static BOOL toggling_music;
 		[self getDestroyed];
 	}
 	
+	if (internal_damage)
+	{
+//		NSLog(@"DEBUG ***** triggered chance of internal damage! *****");
+		[self takeInternalDamage];
+	}
+	
 	[ent release];
 	[other release];
 	//
@@ -5052,6 +5025,7 @@ static BOOL toggling_music;
 {
 	Vector  rel_pos;
 	double  d_forward;
+	BOOL	internal_damage = NO;	// base chance
 	
 	if (status == STATUS_DEAD)
 		return;
@@ -5100,6 +5074,9 @@ static BOOL toggling_music;
 		}
 	}
 	
+	if (amount)
+		internal_damage = ((ranrot_rand() & PLAYER_INTERNAL_DAMAGE_FACTOR) < amount);	// base chance of damage to systems
+
 	energy -= amount;
 	if (energy <= 0.0)
 	{
@@ -5115,6 +5092,13 @@ static BOOL toggling_music;
 		}
 		[self getDestroyed];
 	}
+
+	if (internal_damage)
+	{
+//		NSLog(@"DEBUG ***** triggered chance of internal damage! *****");
+		[self takeInternalDamage];
+	}
+	
 	//
 	[ent release];
 }
@@ -5160,7 +5144,7 @@ static BOOL toggling_music;
 	[doppelganger release]; //release
 	
 	// set up you
-	[self setModel:@"capsule.dat"];				// look right to anyone else (for multiplayer later)
+	[self setModel:@"escpod_redux.dat"];				// look right to anyone else (for multiplayer later)
 	[universe setViewDirection:VIEW_FORWARD];
 	flight_speed = 1.0;
 	flight_pitch = 0.2 * (randf() - 0.5);
@@ -5178,6 +5162,10 @@ static BOOL toggling_music;
 	// reset legal status
 	legal_status = 0;
 	bounty = 0;
+	
+	// reset trumbles
+	if (n_trumbles)
+		n_trumbles = 1;
 	
 	// remove cargo
 	[cargo removeAllObjects];
@@ -5260,6 +5248,59 @@ static BOOL toggling_music;
 	}
 }
 
+- (void) takeInternalDamage
+{
+	int n_cargo = max_cargo;
+	int n_mass = [self mass] / 10000;
+	int n_considered = n_cargo + n_mass;
+	int damage_to = ranrot_rand() % n_considered;
+//	NSLog(@"DEBUG ***** max cargo [%d] + mass (/10t) [%d] = [%d]\t hit = [%d]", n_cargo, n_mass, n_considered, damage_to);
+	if (damage_to < [cargo count])
+	{
+//		NSLog(@"DEBUG ***** cargo item %d (%@) destroyed", damage_to, [cargo objectAtIndex:damage_to]);
+		ShipEntity* pod = (ShipEntity*)[cargo objectAtIndex:damage_to];
+		NSString* cargo_desc = [universe nameForCommodity:[pod getCommodityType]];
+		[universe clearPreviousMessage];
+		[universe addMessage:[NSString stringWithFormat:[universe expandDescription:@"[@-destroyed]" forSystem:system_seed],cargo_desc] forCount:4.5];
+		[cargo removeObject:pod];
+		return;
+	}
+	else
+	{
+		damage_to = n_considered - (damage_to + 1);	// reverse the die-roll
+	}
+	if (damage_to < [extra_equipment count])
+	{
+		NSArray* systems = [extra_equipment allKeys];
+		NSString* system_key = [systems objectAtIndex:damage_to];
+		NSString* system_name = nil;
+//		NSLog(@"DEBUG ***** system %d (%@) destroyed", damage_to, system_key);
+		if (([system_key hasSuffix:@"MISSILE"])||([system_key hasSuffix:@"MINE"])||([system_key isEqual:@"EQ_CARGO_BAY"]))
+			return;
+		NSArray* eq = [universe equipmentdata];
+		int i;
+		for (i = 0; (i < [eq count])&&(!system_name); i++)
+		{
+			NSArray* eqd = (NSArray*)[eq objectAtIndex:i];
+			if ([system_key isEqual:[eqd objectAtIndex:EQUIPMENT_KEY_INDEX]])
+				system_name = (NSString*)[eqd objectAtIndex:EQUIPMENT_SHORT_DESC_INDEX];
+		}
+		[universe clearPreviousMessage];
+		[universe addMessage:[NSString stringWithFormat:[universe expandDescription:@"[@-destroyed]" forSystem:system_seed],system_name] forCount:4.5];
+		[self removeEquipment:system_key];
+		if (![universe strict])
+			[self add_extra_equipment:[NSString stringWithFormat:@"%@_DAMAGED", system_key]];	// for possible future repair
+		
+//		NSLog(@"DEBUG extra_equipment now : %@", extra_equipment);
+	}
+}
+
+- (NSDictionary*) damageInformation
+{
+//	int cost = 0;
+	return nil;
+}
+
 - (void) getDestroyed
 {
 	NSString* scoreMS = [NSString stringWithFormat:@"Score: %.1f Credits",credits/10.0];
@@ -5274,13 +5315,6 @@ static BOOL toggling_music;
 	[universe setViewDirection:VIEW_AFT];
 	[self becomeLargeExplosion:4.0];
 	[self moveForward:100.0];
-
-	// todo some check for ootunes
-	if (dockingMusic)
-	{
-		if ([dockingMusic isPlaying])
-			[dockingMusic stop];
-	}
 
 #ifdef HAVE_SOUND   
 	[destructionSound play];
@@ -5417,14 +5451,7 @@ static BOOL toggling_music;
 		[[universe gameController] pauseiTunes];
 		// ootunes - play inflight music
 		[[universe gameController] playiTunesPlaylist:@"Oolite-Docked"];
-	}
-	else
-	{
-		if (docking_music_on)
-		{
-//			StopMovie ([dockingMusic QTMovie]);
-			[dockingMusic stop];
-		}
+		docking_music_on = NO;
 	}
 	
 	// time to check the script!
@@ -5562,8 +5589,11 @@ static BOOL toggling_music;
 	//
 	//  perform any check here for forced witchspace encounters
 	//
-    ranrot_srand([[NSDate date] timeIntervalSince1970]);	// seed randomiser by time
-	BOOL misjump = ((flight_pitch == max_flight_pitch)||((ranrot_rand() & 0xff) > 253));
+	int misjump_chance = 253;
+    if (ship_trade_in_factor < 80)
+		misjump_chance -= (1 + ranrot_rand() % (81-ship_trade_in_factor)) / 2;	// increase chance of misjump in worn-out craft
+	ranrot_srand([[NSDate date] timeIntervalSince1970]);	// seed randomiser by time
+	BOOL misjump = ((flight_pitch == max_flight_pitch)||((ranrot_rand() & 0xff) > misjump_chance));
 	
 	fuel -= 10.0 * distance;								// fuel cost to target system
 	ship_clock_adjust = distance * distance * 3600.0;		// LY * LY hrs
@@ -5900,8 +5930,6 @@ static BOOL toggling_music;
 		
 		[gui setShowTextCursor:NO];
 		
-//		[gui generateDisplay];
-		[universe guiUpdated];
 	}
 	/* ends */
 	
@@ -5976,21 +6004,13 @@ static BOOL toggling_music;
 	int i;
 	//
 	// following changed to work whether docked or not
-//	if (status == STATUS_DOCKED)
-//	{
-		for (i = 0; i < n_commodities; i++)
-			in_hold[i] = [(NSNumber *)[(NSArray *)[shipCommodityData objectAtIndex:i] objectAtIndex:MARKET_QUANTITY] intValue];
-//	}
-//	else
-//	{
-//		for (i = 0; i < n_commodities; i++)
-//			in_hold[i] = 0;
-		for (i = 0; i < [cargo count]; i++)
-		{
-			ShipEntity *container = (ShipEntity *)[cargo objectAtIndex:i];
-			in_hold[[container getCommodityType]] += [container getCommodityAmount];
-		}
-//	}
+	for (i = 0; i < n_commodities; i++)
+		in_hold[i] = [(NSNumber *)[(NSArray *)[shipCommodityData objectAtIndex:i] objectAtIndex:MARKET_QUANTITY] intValue];
+	for (i = 0; i < [cargo count]; i++)
+	{
+		ShipEntity *container = (ShipEntity *)[cargo objectAtIndex:i];
+		in_hold[[container getCommodityType]] += [container getCommodityAmount];
+	}
 	//
 	for (i = 0; i < n_commodities; i++)
 	{
@@ -6083,7 +6103,6 @@ static BOOL toggling_music;
 		
 		[gui setShowTextCursor:NO];
 		
-		[universe guiUpdated];
 	}
 	/* ends */
 	
@@ -6158,7 +6177,6 @@ static BOOL toggling_music;
 		[gui setCurrentRow:16];
 		
 		//
-		[universe guiUpdated];
 	}
 	/* ends */
 	
@@ -6380,8 +6398,6 @@ static BOOL toggling_music;
 		//
 		
 		[gui setShowTextCursor:NO];
-		
-		[universe guiUpdated];
 	}
 	/* ends */
 	
@@ -6546,8 +6562,6 @@ static BOOL toggling_music;
 		//
 		
 		[gui setShowTextCursor:NO];
-		
-		[universe guiUpdated];
 	}
 	/* ends */
 	
@@ -6598,12 +6612,19 @@ static int last_outfitting_index;
 	[options addObject:@"EQ_FUEL"];
 	[options addObject:@"EQ_PASSENGER_BERTH"];
 	[options addObject:@"EQ_PASSENGER_BERTH_REMOVAL"];
-	[options addObject:@"EQ_ADVANCED_COMPASS"];
+	[options addObject:@"EQ_ADVANCED_COMPASS"];	// available to all ships
+	[options addObject:@"EQ_GAL_DRIVE"];	// available to all ships
+	[options addObject:@"EQ_MISSILE_REMOVAL"];	// available to all ships
 	int i,j;
 	for (i = 0; i < [equipdata count]; i++)
 	{
-		NSString* eq_key = (NSString*)[(NSArray*)[equipdata objectAtIndex:i] objectAtIndex:EQUIPMENT_KEY_INDEX];
+		NSString*	eq_key = (NSString*)[(NSArray*)[equipdata objectAtIndex:i] objectAtIndex:EQUIPMENT_KEY_INDEX];
+		NSString*	eq_key_damaged	= [NSString stringWithFormat:@"%@_DAMAGED", eq_key];
 		int			min_techlevel   = [(NSNumber *)[(NSArray *)[equipdata objectAtIndex:i] objectAtIndex:EQUIPMENT_TECH_LEVEL_INDEX] intValue];
+
+		// if you have a dmaged system you can get it repaired at a tech level one less than that required to buy it
+		if ([self has_extra_equipment:eq_key_damaged])
+			min_techlevel--;
 
 		// reduce the minimum techlevel occasionally as a bonus..
 		//
@@ -6618,8 +6639,8 @@ static int last_outfitting_index;
 				day_rnd = day_rnd >> 2;
 				min_techlevel--;
 			}
-			if (min_techlevel < original_min_techlevel)
-				NSLog(@"DEBUG -- Bargain tech day for %@ (TL %d reduced from %d)", eq_key, min_techlevel, original_min_techlevel);
+//			if (min_techlevel < original_min_techlevel)
+//				NSLog(@"DEBUG -- Bargain tech day for %@ (TL %d reduced from %d)", eq_key, min_techlevel, original_min_techlevel);
 		}
 		
 		option_okay[i] = [eq_key hasPrefix:@"EQ_WEAPON"];
@@ -6636,6 +6657,8 @@ static int last_outfitting_index;
 			option_okay[i] = NO;
 		if (([eq_key hasSuffix:@"MISSILE"]||[eq_key hasSuffix:@"MINE"]))
 			option_okay[i] = (missiles < max_missiles);
+		if ([eq_key isEqual:@"EQ_MISSILE_REMOVAL"])
+			option_okay[i] = (missiles > 0);
 		if (([eq_key isEqual:@"EQ_PASSENGER_BERTH"])&&(cargo_space < 5))
 			option_okay[i] = NO;
 		if (([eq_key isEqual:@"EQ_PASSENGER_BERTH_REMOVAL"])&&(max_passengers - [passengers count] < 1))
@@ -6646,6 +6669,12 @@ static int last_outfitting_index;
 			option_okay[i] = NO;
 		if (techlevel < min_techlevel)
 			option_okay[i] = NO;
+		
+		if ([eq_key isEqual:@"EQ_RENOVATION"])
+		{
+//			NSLog(@"DEBUG : ship trade in factor is %d%", ship_trade_in_factor);
+			option_okay[i] = ((75 <= ship_trade_in_factor)&&(ship_trade_in_factor < 85));
+		}
 		
 		if (option_okay[i])
 			[equipment_allowed addObject: [NSNumber numberWithInt:i]];
@@ -6710,10 +6739,27 @@ static int last_outfitting_index;
 
 				int			price_per_unit  = [(NSNumber *)[(NSArray *)[equipdata objectAtIndex:item] objectAtIndex:EQUIPMENT_PRICE_INDEX] intValue];
 				NSString*   desc			= [NSString stringWithFormat:@" %@ ",[(NSArray *)[equipdata objectAtIndex:item] objectAtIndex:EQUIPMENT_SHORT_DESC_INDEX]];
-				NSString*   eq_type			= (NSString *)[(NSArray *)[equipdata objectAtIndex:item] objectAtIndex:EQUIPMENT_KEY_INDEX];
-				double		price			= ([eq_type isEqual:@"EQ_FUEL"]) ? ((70 - fuel) * price_per_unit) : (price_per_unit) ;
+				NSString*   eq_key			= (NSString *)[(NSArray *)[equipdata objectAtIndex:item] objectAtIndex:EQUIPMENT_KEY_INDEX];
+				double		price			= ([eq_key isEqual:@"EQ_FUEL"]) ? ((70 - fuel) * price_per_unit) : (price_per_unit) ;
+				NSString*	eq_key_damaged	= [NSString stringWithFormat:@"%@_DAMAGED", eq_key];
 
+				if ([eq_key isEqual:@"EQ_RENOVATION"])
+				{
+					price = cunningFee(0.1 * [universe tradeInValueForCommanderDictionary:[self commanderDataDictionary]]);
+				}
+				
 				price *= price_factor;  // increased prices at some stations
+				
+				// color repairs and renovation items orange
+				//
+				if ([self has_extra_equipment:eq_key_damaged])
+				{
+					desc = [NSString stringWithFormat:@" Repair:%@", desc];
+					price /= 2.0;
+					[gui setColor:[NSColor orangeColor] forRow:row];
+				}
+				if ([eq_key isEqual:@"EQ_RENOVATION"])
+					[gui setColor:[NSColor orangeColor] forRow:row];
 				
 				NSString*	priceString		= [NSString stringWithFormat:@" %.1f ",0.1*price];
 
@@ -6768,8 +6814,6 @@ static int last_outfitting_index;
 		}
 		
 		[gui setShowTextCursor:NO];
-		
-		[universe guiUpdated];
 	}
 	/* ends */
 		
@@ -6794,6 +6838,10 @@ static int last_outfitting_index;
 		{
 			int item = [key intValue];
 			NSString*   desc = (NSString *)[(NSArray *)[[universe equipmentdata] objectAtIndex:item] objectAtIndex:EQUIPMENT_LONG_DESC_INDEX];
+			NSString*   eq_key			= (NSString *)[(NSArray *)[[universe equipmentdata] objectAtIndex:item] objectAtIndex:EQUIPMENT_KEY_INDEX];
+			NSString*	eq_key_damaged	= [NSString stringWithFormat:@"%@_DAMAGED", eq_key];
+			if ([self has_extra_equipment:eq_key_damaged])
+				desc = [NSString stringWithFormat:@"%@ (Price is for repairing the existing system).", desc];
 			[gui addLongText:desc startingAtRow:GUI_ROW_EQUIPMENT_DETAIL align:GUI_ALIGN_LEFT];
 		}
 	}
@@ -6856,11 +6904,7 @@ static int last_outfitting_index;
 			}
 		}
 		
-//		[gui generateDisplay];
-		
 		[gui setShowTextCursor:NO];
-		
-		[universe guiUpdated];
 	}
 	/* ends */
 	
@@ -6873,8 +6917,6 @@ static int last_outfitting_index;
 		
 	if (themeMusic)
 	{
-//		GoToBeginningOfMovie ([themeMusic QTMovie]);
-//		StartMovie ([themeMusic QTMovie]);
 		[themeMusic play];
 	}
 }
@@ -6891,11 +6933,7 @@ static int last_outfitting_index;
 		[gui setText:@"Press Space Commander" forRow:21 align:GUI_ALIGN_CENTER];
 		[gui setColor:[NSColor yellowColor] forRow:21];
 		//
-//		[gui generateDisplay];
-		
 		[gui setShowTextCursor:NO];
-		
-		[universe guiUpdated];
 	}
 	/* ends */
 	
@@ -6970,11 +7008,16 @@ static int last_outfitting_index;
 	//
 	NSArray*	equipdata = [universe equipmentdata];
 	int			price_per_unit  = [(NSNumber *)[(NSArray *)[equipdata objectAtIndex:index] objectAtIndex:EQUIPMENT_PRICE_INDEX] intValue];
-	NSString*   eq_type			= (NSString *)[(NSArray *)[equipdata objectAtIndex:index] objectAtIndex:EQUIPMENT_KEY_INDEX];
-	double		price			= ([eq_type isEqual:@"EQ_FUEL"]) ? ((70 - fuel) * price_per_unit) : (price_per_unit) ;
+	NSString*   eq_key			= (NSString *)[(NSArray *)[equipdata objectAtIndex:index] objectAtIndex:EQUIPMENT_KEY_INDEX];
+	double		price			= ([eq_key isEqual:@"EQ_FUEL"]) ? ((70 - fuel) * price_per_unit) : (price_per_unit) ;
 	double		price_factor	= 1.0;
 	int			cargo_space = max_cargo - current_cargo;
 
+	if ([eq_key isEqual:@"EQ_RENOVATION"])
+	{
+		price = cunningFee(0.1 * [universe tradeInValueForCommanderDictionary:[self commanderDataDictionary]]);
+	}
+				
 	if (docked_station)
 	{
 		price_factor = [docked_station equipment_price_factor];
@@ -6987,28 +7030,28 @@ static int last_outfitting_index;
 		return NO;
 	}
 	
-	if (([eq_type hasPrefix:@"EQ_WEAPON"])&&(chosen_weapon_facing == WEAPON_FACING_NONE))
+	if (([eq_key hasPrefix:@"EQ_WEAPON"])&&(chosen_weapon_facing == WEAPON_FACING_NONE))
 	{
 		[self setGuiToEquipShipScreen:-1:index];											// reset
 		return YES;
 	}
 
-	if (([eq_type hasPrefix:@"EQ_WEAPON"])&&(chosen_weapon_facing != WEAPON_FACING_NONE))
+	if (([eq_key hasPrefix:@"EQ_WEAPON"])&&(chosen_weapon_facing != WEAPON_FACING_NONE))
 	{
 		int chosen_weapon = WEAPON_NONE;
 		int current_weapon = WEAPON_NONE;
 		
-		if ([eq_type isEqual:@"EQ_WEAPON_TWIN_PLASMA_CANNON"])
+		if ([eq_key isEqual:@"EQ_WEAPON_TWIN_PLASMA_CANNON"])
 			chosen_weapon = WEAPON_PLASMA_CANNON;
-		if ([eq_type isEqual:@"EQ_WEAPON_PULSE_LASER"])
+		if ([eq_key isEqual:@"EQ_WEAPON_PULSE_LASER"])
 			chosen_weapon = WEAPON_PULSE_LASER;
-		if ([eq_type isEqual:@"EQ_WEAPON_BEAM_LASER"])
+		if ([eq_key isEqual:@"EQ_WEAPON_BEAM_LASER"])
 			chosen_weapon = WEAPON_BEAM_LASER;
-		if ([eq_type isEqual:@"EQ_WEAPON_MINING_LASER"])
+		if ([eq_key isEqual:@"EQ_WEAPON_MINING_LASER"])
 			chosen_weapon = WEAPON_MINING_LASER;
-		if ([eq_type isEqual:@"EQ_WEAPON_MILITARY_LASER"])
+		if ([eq_key isEqual:@"EQ_WEAPON_MILITARY_LASER"])
 			chosen_weapon = WEAPON_MILITARY_LASER;
-		if ([eq_type isEqual:@"EQ_WEAPON_THARGOID_LASER"])
+		if ([eq_key isEqual:@"EQ_WEAPON_THARGOID_LASER"])
 			chosen_weapon = WEAPON_THARGOID_LASER;
 			
 		switch (chosen_weapon_facing)
@@ -7062,13 +7105,13 @@ static int last_outfitting_index;
 		return YES;
 	}
 	
-	if (([eq_type hasSuffix:@"MISSILE"]||[eq_type hasSuffix:@"MINE"])&&(missiles >= max_missiles))
+	if (([eq_key hasSuffix:@"MISSILE"]||[eq_key hasSuffix:@"MINE"])&&(missiles >= max_missiles))
 		return NO;	
 
-	if (([eq_type isEqual:@"EQ_PASSENGER_BERTH"])&&(cargo_space < 5))
+	if (([eq_key isEqual:@"EQ_PASSENGER_BERTH"])&&(cargo_space < 5))
 		return NO;	
 
-	if ([eq_type isEqual:@"EQ_FUEL"])
+	if ([eq_key isEqual:@"EQ_FUEL"])
 	{
 		fuel = 70;
 		credits -= price;
@@ -7076,9 +7119,23 @@ static int last_outfitting_index;
 		return YES;
 	}
 	
-	if ([eq_type hasSuffix:@"MISSILE"]||[eq_type hasSuffix:@"MINE"])
+	if ([eq_key isEqual:@"EQ_RENOVATION"])
 	{
-		ShipEntity* weapon = [[universe getShipWithRole:eq_type] autorelease];
+		int techlevel =		[(NSNumber *)[[universe generateSystemData:system_seed] objectForKey:KEY_TECHLEVEL] intValue];
+		if ((docked_station)&&([docked_station equivalent_tech_level] != NSNotFound))
+			techlevel = [docked_station equivalent_tech_level];
+		credits -= price;
+		ship_trade_in_factor += 5 + techlevel;	// you get better value at high-tech repair bases
+		if (ship_trade_in_factor > 100)
+			ship_trade_in_factor = 100;
+//		NSLog(@"DEBUG : Ship trade in value now %d\%", ship_trade_in_factor);
+		[self setGuiToEquipShipScreen:-1:-1];
+		return YES;
+	}
+				
+	if ([eq_key hasSuffix:@"MISSILE"]||[eq_key hasSuffix:@"MINE"])
+	{
+		ShipEntity* weapon = [[universe getShipWithRole:eq_key] autorelease];
 		BOOL mounted_okay = [self mountMissile:weapon];
 		if (mounted_okay)
 		{
@@ -7091,7 +7148,7 @@ static int last_outfitting_index;
 		return mounted_okay;
 	}
 		
-	if ([eq_type isEqual:@"EQ_PASSENGER_BERTH"])
+	if ([eq_key isEqual:@"EQ_PASSENGER_BERTH"])
 	{
 		max_passengers++;
 		max_cargo -= 5;
@@ -7100,7 +7157,7 @@ static int last_outfitting_index;
 		return YES;
 	}
 			
-	if ([eq_type isEqual:@"EQ_PASSENGER_BERTH_REMOVAL"])
+	if ([eq_key isEqual:@"EQ_PASSENGER_BERTH_REMOVAL"])
 	{
 		max_passengers--;
 		max_cargo += 5;
@@ -7109,15 +7166,40 @@ static int last_outfitting_index;
 		return YES;
 	}
 			
+	if ([eq_key isEqual:@"EQ_MISSILE_REMOVAL"])
+	{
+		credits -= price;
+		[self safe_all_missiles];
+		[self sort_missiles];
+		int i;
+		for (i = 0; i < missiles; i++)
+		{
+			ShipEntity* weapon = missile_entity[i];
+			missile_entity[i] = nil;
+			if (weapon)
+			{
+				NSString* weapon_key = [weapon roles];
+				int weapon_value = [universe getPriceForWeaponSystemWithKey:weapon_key];
+//				NSLog(@"..... selling a %@ worth %f", weapon_key, 0.1 * weapon_value);
+				credits += weapon_value;
+				[universe recycleOrDiscard: weapon];
+				[weapon release];
+			}
+		}
+		missiles = 0;
+		[self setGuiToEquipShipScreen:-1:-1];
+		return YES;
+	}
+			
 	int i;
 	for (i =0; i < [equipdata count]; i++)
 	{
 		NSString *w_key = (NSString *)[(NSArray *)[equipdata objectAtIndex:i] objectAtIndex:EQUIPMENT_KEY_INDEX];
-		if (([eq_type isEqual:w_key])&&(![self has_extra_equipment:eq_type]))
+		if (([eq_key isEqual:w_key])&&(![self has_extra_equipment:eq_key]))
 		{
-			//NSLog(@"adding %@",eq_type);
+			//NSLog(@"adding %@",eq_key);
 			credits -= price;
-			[self add_extra_equipment:eq_type];
+			[self add_extra_equipment:eq_key];
 			[self setGuiToEquipShipScreen:-1:-1];
 			
 			return YES;
@@ -7241,8 +7323,6 @@ static int last_outfitting_index;
 		//
 		
 		[gui setShowTextCursor:NO];
-		
-		[universe guiUpdated];
 	}
 	
 	[self setShowDemoShips:NO];
@@ -7378,6 +7458,19 @@ static int last_outfitting_index;
 
 - (void) add_extra_equipment:(NSString *) eq_key
 {
+	// if we've got a damaged one of these - remove it first
+	NSString* damaged_eq_key = [NSString stringWithFormat:@"%@_DAMAGED", eq_key];
+	if ([extra_equipment objectForKey:damaged_eq_key])
+		[extra_equipment removeObjectForKey:damaged_eq_key];
+	//
+	// deal with trumbles..
+	if ([eq_key isEqual:@"EQ_TRUMBLE"] && (n_trumbles < 1))
+	{
+		[self addTrumble:trumble[ranrot_rand() % PLAYER_MAX_TRUMBLES]];	// first one!
+		return;
+	}
+	//
+	// add the equipment and set the necessary flags and data accordingly
 	[extra_equipment setObject:[NSNumber numberWithBool:YES] forKey:eq_key];
 	[self set_flags_from_extra_equipment];
 }
@@ -7602,6 +7695,223 @@ NSString* GenerateDisplayString(int inModeWidth, int inModeHeight, int inModeRef
 	aftWeaponOffset = make_vector( 0.0, -5.0, boundingBox.min_z + halfLength);
 	portWeaponOffset = make_vector( boundingBox.min_x + halfWidth, -5.0, 0.0);
 	starboardWeaponOffset = make_vector( boundingBox.max_x - halfWidth, -5.0, 0.0);
+}
+
+- (void) setUpTrumbles
+{
+//	NSLog(@"DEBUG setting up trumbles for %@%@", player_name, basefile);
+	
+	NSMutableString* trumbleDigrams = [NSMutableString stringWithString:@""];
+	unichar	xchar = (unichar)0;
+	unichar digramchars[2];
+	
+	while ([trumbleDigrams length] < PLAYER_MAX_TRUMBLES + 2)
+	{
+		if ((player_name)&&[player_name length])
+			[trumbleDigrams appendFormat:@"%@%@", player_name, basefile];
+		else
+			[trumbleDigrams appendString:@"Some Random Text!"];
+	}
+	int i;
+	for (i = 0; i < PLAYER_MAX_TRUMBLES; i++)
+	{
+		digramchars[0] = ([trumbleDigrams characterAtIndex:i] & 0x007f) | 0x0020;
+		digramchars[1] = (([trumbleDigrams characterAtIndex:i + 1] ^ xchar) & 0x007f) | 0x0020;
+		xchar = digramchars[0];
+		NSString* digramstring = [NSString stringWithCharacters:digramchars length:2];
+		if (trumble[i])
+			[trumble[i] release];
+		trumble[i] = [[OOTrumble alloc] initForPlayer:self digram:digramstring];
+	}
+	//
+	n_trumbles = 0;
+	//
+	trumbleAppetiteAccumulator = 0.0;
+}
+
+- (void) addTrumble:(OOTrumble*) papaTrumble
+{
+	if (n_trumbles >= PLAYER_MAX_TRUMBLES)
+	{
+		NSLog(@"DEBUG trumble maximum population reached!");
+		return;
+	}
+	OOTrumble* trumblePup = trumble[n_trumbles];
+	[trumblePup spawnFrom:papaTrumble];
+	n_trumbles++;
+}
+
+- (void) removeTrumble:(OOTrumble*) deadTrumble
+{
+	if (n_trumbles <= 0)
+	{
+		NSLog(@"DEBUG trumble minimum population reached!");
+		return;
+	}
+	int trumble_index = NSNotFound;
+	int i;
+	for (i = 0; (trumble_index == NSNotFound)&&(i < n_trumbles); i++)
+	{
+		if (trumble[i] == deadTrumble)
+			trumble_index = i;
+	}
+	if (trumble_index == NSNotFound)
+	{
+		NSLog(@"DEBUG can't get rid of inactive trumble %@", deadTrumble);
+		return;
+	}
+	n_trumbles--;	// reduce number of trumbles
+	trumble[trumble_index] = trumble[n_trumbles];	// swap with the current last trumble
+	trumble[n_trumbles] = deadTrumble;				// swap with the current last trumble
+}
+
+
+- (OOTrumble**) trumbleArray
+{
+	return trumble;
+}
+
+- (int) n_trumbles
+{
+	return n_trumbles;
+}
+
+- (NSObject*) trumbleValue
+{
+	// debugging - force an increase in the trumble population
+	if ([[player_name lowercaseString] hasPrefix:@"trumble"])
+		n_trumbles = PLAYER_MAX_TRUMBLES / 2;
+	//
+	NSString* namekey = [NSString stringWithFormat:@"%@-humbletrash", player_name];
+	int trumbleHash;
+	clear_checksum();
+	[self munge_checksum_with_NSString:player_name];
+	munge_checksum(credits);
+	munge_checksum(ship_kills);
+	trumbleHash = munge_checksum(n_trumbles);
+	//
+	[[NSUserDefaults standardUserDefaults]  setInteger:trumbleHash forKey:namekey];
+	//
+	int i;
+	NSMutableArray* trumbleArray = [NSMutableArray arrayWithCapacity:PLAYER_MAX_TRUMBLES];
+	for (i = 0; i < PLAYER_MAX_TRUMBLES; i++)
+		[trumbleArray addObject:[trumble[i] dictionary]];
+	//
+	return [NSArray arrayWithObjects:[NSNumber numberWithInt:n_trumbles],[NSNumber numberWithInt:trumbleHash], trumbleArray, nil];
+}
+
+- (void) setTrumbleValueFrom:(NSObject*) trumbleValue
+{
+	BOOL info_failed = NO;
+	int trumbleHash;
+	int putativeHash = 0;
+	int putativeNTrumbles = 0;
+	NSArray* putativeTrumbleArray = nil;
+	int i;
+	NSString* namekey = [NSString stringWithFormat:@"%@-humbletrash", player_name];
+	//
+	[self setUpTrumbles];
+//	NSLog(@"DEBUG setting trumble values from %@", trumbleValue);
+	//
+	if (trumbleValue)
+	{
+		BOOL possible_cheat = NO;
+		if (![trumbleValue isKindOfClass:[NSArray class]])
+			info_failed = YES;
+		else
+		{
+			NSArray* values = (NSArray*) trumbleValue;
+			if ([values count] >= 1)
+				putativeNTrumbles = [[values objectAtIndex:0] intValue];
+			if ([values count] >= 2)
+				putativeHash = [[values objectAtIndex:1] intValue];
+			if ([values count] >= 3)
+				putativeTrumbleArray = (NSArray*)[values objectAtIndex:2];
+		}
+		// calculate a hash for the putative values
+		clear_checksum();
+		[self munge_checksum_with_NSString:player_name];
+		munge_checksum(credits);
+		munge_checksum(ship_kills);
+		trumbleHash = munge_checksum(putativeNTrumbles);
+		//
+		if (putativeHash != trumbleHash)
+			info_failed = YES;
+		//
+		if (info_failed)
+		{
+			NSLog(@"POSSIBLE CHEAT DETECTED");
+			possible_cheat = YES;
+		}
+		//
+		for (i = 1; (info_failed)&&(i < PLAYER_MAX_TRUMBLES); i++)
+		{
+			// try to determine n_trumbles from the key in the saved game
+			clear_checksum();
+			[self munge_checksum_with_NSString:player_name];
+			munge_checksum(credits);
+			munge_checksum(ship_kills);
+			trumbleHash = munge_checksum(i);
+			if (putativeHash == trumbleHash)
+			{
+				info_failed = NO;
+				putativeNTrumbles = i;
+			}
+		}
+		//
+		if (possible_cheat && !info_failed)
+			NSLog(@"CHEAT DEFEATED - that's not the way to get rid of trumbles!");
+	}
+	//
+	if (info_failed && [[NSUserDefaults standardUserDefaults] objectForKey:namekey])
+	{
+		// try to determine n_trumbles from the key in user defaults
+		putativeHash = [[NSUserDefaults standardUserDefaults] integerForKey:namekey];
+		for (i = 1; (info_failed)&&(i < PLAYER_MAX_TRUMBLES); i++)
+		{
+			clear_checksum();
+			[self munge_checksum_with_NSString:player_name];
+			munge_checksum(credits);
+			munge_checksum(ship_kills);
+			trumbleHash = munge_checksum(i);
+			if (putativeHash == trumbleHash)
+			{
+				info_failed = NO;
+				putativeNTrumbles = i;
+			}
+		}
+		//
+		if (!info_failed)
+			NSLog(@"CHEAT DEFEATED - that's not the way to get rid of trumbles!");
+	}
+	// at this stage we've done the best we can to stop cheaters
+	n_trumbles = putativeNTrumbles;
+	
+//	NSLog(@"DEBUG putativeTrumbleArray = \n%@", putativeTrumbleArray);
+	
+	if ((putativeTrumbleArray != nil) && ([putativeTrumbleArray count] == PLAYER_MAX_TRUMBLES))
+	{
+		for (i = 0; i < PLAYER_MAX_TRUMBLES; i++)
+			[trumble[i] setFromDictionary:(NSDictionary *)[putativeTrumbleArray objectAtIndex:i]];
+	}
+	//
+	clear_checksum();
+	[self munge_checksum_with_NSString:player_name];
+	munge_checksum(credits);
+	munge_checksum(ship_kills);
+	trumbleHash = munge_checksum(n_trumbles);
+	//
+	[[NSUserDefaults standardUserDefaults]  setInteger:trumbleHash forKey:namekey];
+}
+
+- (void) munge_checksum_with_NSString:(NSString*) str
+{
+	if (!str)
+		return;
+	int i;
+	int len = [str length];
+	for (i = 0; i < len; i++)
+		munge_checksum((int)[str characterAtIndex:i]);
 }
 
 @end

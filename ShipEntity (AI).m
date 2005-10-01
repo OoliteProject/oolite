@@ -198,6 +198,8 @@ Your fair use and other rights are in no way affected by the above.
 
 - (void) checkForNormalSpace;
 
+- (void) recallDockingInstructions;
+
 @end
 
 
@@ -541,8 +543,30 @@ Your fair use and other rights are in no way affected by the above.
 	//
 	if (station)
 	{
-		//NSLog(@"Station '%@' %@ with universal_id %d",[station name],station,[station universal_id]);
-		coordinates = [station nextDockingCoordinatesForShip:self];
+		NSDictionary*	instructions = [station dockingInstructionsForShip:self];
+//		NSLog(@"DEBUG docking instructions for %@ :\n%@", self, instructions);
+		coordinates = [Entity vectorFromString:(NSString *)[instructions objectForKey:@"destination"]];
+		destination = coordinates;
+		desired_speed = [(NSNumber *)[instructions objectForKey:@"speed"] floatValue];
+		if (desired_speed > max_flight_speed)
+			desired_speed = max_flight_speed;
+		desired_range = [(NSNumber *)[instructions objectForKey:@"range"] floatValue];
+		if ([instructions objectForKey:@"ai_message"])
+			[shipAI message:(NSString *)[instructions objectForKey:@"ai_message"]];
+		if ([instructions objectForKey:@"comms_message"])
+			[station sendExpandedMessage:(NSString *)[instructions objectForKey:@"comms_message"] toShip:self];
+		if ([dockingInstructions objectForKey:@"station_id"])
+		{
+			primaryTarget = [(NSNumber *)[dockingInstructions objectForKey:@"station_id"] intValue];
+			targetStation = primaryTarget;
+		}
+		if ([dockingInstructions objectForKey:@"match_rotation"])
+			docking_match_rotation = [(NSNumber*)[dockingInstructions objectForKey:@"match_rotation"] boolValue];
+		else
+			docking_match_rotation = NO;
+		if (dockingInstructions)
+			[dockingInstructions release];
+		dockingInstructions = [instructions retain];
 	}
 	else
 	{
@@ -1776,6 +1800,29 @@ Your fair use and other rights are in no way affected by the above.
 		[shipAI message:@"NORMAL_SPACE"];
 	else
 		[shipAI message:@"INTERSTELLAR_SPACE"];
+}
+
+- (void) recallDockingInstructions
+{
+	if (dockingInstructions)
+	{
+		NSLog(@"DEBUG recalling docking instructions for %@ :\n%@", self, dockingInstructions);
+		coordinates = [Entity vectorFromString:(NSString *)[dockingInstructions objectForKey:@"destination"]];
+		destination = coordinates;
+		desired_speed = [(NSNumber *)[dockingInstructions objectForKey:@"speed"] floatValue];
+		if (desired_speed > max_flight_speed)
+			desired_speed = max_flight_speed;
+		desired_range = [(NSNumber *)[dockingInstructions objectForKey:@"range"] floatValue];
+		if ([dockingInstructions objectForKey:@"match_rotation"])
+			docking_match_rotation = [(NSNumber*)[dockingInstructions objectForKey:@"match_rotation"] boolValue];
+		else
+			docking_match_rotation = NO;
+		if ([dockingInstructions objectForKey:@"station_id"])
+		{
+			primaryTarget = [(NSNumber *)[dockingInstructions objectForKey:@"station_id"] intValue];
+			targetStation = primaryTarget;
+		}
+	}
 }
 
 

@@ -171,8 +171,6 @@ extern int debug;
 
 - (void) setBackgroundImage:(NSImage *) bg_image;
 
-- (void) updateGui;
-
 //- (OpenGLSprite *) openGLSprite;
 
 - (void) drawGUI:(GLfloat) x :(GLfloat) y :(GLfloat) z :(GLfloat) alpha forUniverse:(Universe*) universe;
