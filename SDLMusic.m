@@ -74,7 +74,15 @@ void musicFinished()
 {
     // Only pause the music if this instance is the one being played.
     if (current == self)
+    { 
 	    Mix_PauseMusic();
+       paused=YES;
+    }
+}
+
+- (BOOL) isPaused
+{
+   return paused;
 }
 
 /*
@@ -101,6 +109,7 @@ void musicFinished()
 - (BOOL) play
 {
 	int rc;
+   paused=NO;
 
     // Self is already playing, so do nothing.
 	if (current == self)
@@ -161,7 +170,10 @@ void musicFinished()
 {
     // Only resume playing the music if this instance is the one being played.
     if (current == self)
+    {
 	    Mix_ResumeMusic();
+       paused=NO;
+    }
 }
 
 /*

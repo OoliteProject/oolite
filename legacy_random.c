@@ -36,6 +36,9 @@ Your fair use and other rights are in no way affected by the above.
 
 */
 
+#ifdef GNUSTEP
+#include "oolite-linux.h"
+#endif
 #include "legacy_random.h"
 
 static struct random_seed   rnd_seed;

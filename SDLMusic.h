@@ -12,6 +12,7 @@
 {
     // The SDL_mixer music structure encapsulated by an instance of OOMusic.
 	Mix_Music *music;
+   BOOL paused;
 }
 
 // Initialise the OOMusic instance from the contents of "filepath"
@@ -19,6 +20,7 @@
 
 // Pause the music if this instance is currently playing
 - (void) pause;
+- (BOOL) isPaused;
 
 // Returns YES if this instance is playing, otherwise NO.
 - (BOOL) isPlaying;
