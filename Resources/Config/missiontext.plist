@@ -47,7 +47,6 @@
 	<string>You've arrived at an unfortunate time, Commander.\n\nOur sun has become unstable and is due to go nova at any moment. All our ships are evacuating the system, the last few refugees have come here to find a ship to take them to safety.\n\nPlease, please help us to escape!</string>
 	<key>nova_hero</key>
 	<string>Commander, we thank you.\n\nYou've bought us all to safety but we have no money with which we can reward you\n- our last credits were taken by those who took us to the space station.\n\nInstead we offer you undying gratitude... and what few valuable possessions we can spare.\n\nYou are our hero!</string>
-	<!-- test follows -->
 	<key>nova_yesno</key>
 	<dict>
 		<key>YES</key>
@@ -55,6 +54,17 @@
 		<key>NO</key>
 		<string>No, sorry.</string>
 	</dict>
-	<!-- end test -->
+	<!-- /Nova -->
+	<!-- trumbles -->
+	<key>trumble_offer</key>
+	<string>Commander,\n\nYou look like a man who could use a Trumble!\n\nThis one's yours for only 30 credits.</string>
+	<key>trumble_offer_yesno</key>
+	<dict>
+		<key>NO</key>
+		<string>No thanks. No pets on my ship.</string>
+		<key>YES</key>
+		<string>Okay, I'll take one, it looks cute.</string>
+	</dict>
+	<!-- /trumbles -->
 </dict>
 </plist>

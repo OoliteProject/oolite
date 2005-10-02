@@ -131,6 +131,13 @@
 		<string>EQ_PASSENGER_BERTH_REMOVAL</string>
 		<string>Removes a passenger berth.</string>
 	</array>
+	<array><!-- Missile Removal -->
+		<integer>1</integer>
+		<integer>200</integer>
+		<string>Unmount and sell all pylon mounted weapons</string>
+		<string>EQ_MISSILE_REMOVAL</string>
+		<string>Unmounts, safes, and re-sells at full market value all missiles and mines currently mounted on your craft.</string>
+	</array>
 	<array>
 		<integer>10</integer>
 		<integer>6000</integer>
@@ -194,6 +201,14 @@
 		<string>Twin Plasma Cannon</string>
 		<string>EQ_WEAPON_TWIN_PLASMA_CANNON</string>
 		<string>Basic cannon delivering charged plasma bursts at sublight speed.</string>
+	</array>
+	<!-- renovation -->
+	<array>
+		<integer>6</integer>
+		<integer>1000</integer>	<!-- dummy value, actually 10% of the ship's value which will vary by ship -->
+		<string>Maintenance Overhaul</string>
+		<string>EQ_RENOVATION</string>
+		<string>Covers dry docking fees, cleaning and replating of damaged hull sections, shield and scoop system de-ionization, systems tune-up, repainting and detailed valeting.</string>
 	</array>
 	<!-- next item has a TL too high to be available at all -->
 	<array>

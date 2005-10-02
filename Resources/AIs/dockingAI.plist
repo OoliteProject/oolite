@@ -2,7 +2,6 @@
     "AWAIT_COORDS" = {
         "APPROACH_START" = ("setStateTo: GO_TO_START"); 
         "APPROACH_COORDINATES" = ("setStateTo: GO_TO_COORDS"); 
-        "APPROACH_STATION" = ("setStateTo: GO_TO_STATION"); 
         "HOLD_POSITION" = (performIdle, "pauseAI: 10.0", "setStateTo: GLOBAL"); 
         "DOCKING_ABORTED" = ("setStateTo: ABORT"); 
         "TRY_AGAIN_LATER" = ("pauseAI: 30.0", "setStateTo: ABORT"); 
@@ -53,9 +52,9 @@
         UPDATE = ();
 	};
     "GO_TO_COORDS" = {
-        ENTER = (setDestinationFromCoordinates, performFaceDestination);
-        FRUSTRATED = (performIdle, "pauseAI: 5.0", setDestinationFromCoordinates, performFaceDestination); 
-        "FACING_DESTINATION" = ("setDesiredRangeTo: 50.0", "setSpeedTo: 100.0", performFlyToRangeFromDestination); 
+        ENTER = (performFaceDestination);
+        FRUSTRATED = (performIdle, "pauseAI: 5.0", performFaceDestination); 
+        "FACING_DESTINATION" = (recallDockingInstructions, performFlyToRangeFromDestination); 
         "DESIRED_RANGE_ACHIEVED" = (requestDockingCoordinates, "setStateTo: AWAIT_COORDS"); 
         "DOCKING_ABORTED" = ("setStateTo: ABORT"); 
         "COLLISION" = ("setStateTo: ABORT"); 
@@ -63,23 +62,4 @@
         EXIT = (); 
         UPDATE = ();
 	};
-    "GO_TO_STATION" = {
-        ENTER = (
-            setTargetToStation,
-			setDestinationFromCoordinates, 
-            performFaceDestination
-        );
-        FRUSTRATED = (
-            setTargetToStation,
-			setDestinationFromCoordinates, 
-            performFaceDestination
-        ); 
-        "FACING_DESTINATION" = ("setDesiredRangeTo: 10.0", "setSpeedTo: 50.0", performFlyToRangeFromDestination); 
-        "DESIRED_RANGE_ACHIEVED" = (requestDockingCoordinates, "setStateTo: AWAIT_COORDS"); 
-        "DOCKING_ABORTED" = ("setStateTo: ABORT"); 
-        "RESTART_DOCKING" = ("setStateTo: GLOBAL"); 
-        "COLLISION" = ("setStateTo: ABORT"); 
-        EXIT = (); 
-        UPDATE = (); 
-    }; 
 }

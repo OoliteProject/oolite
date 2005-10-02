@@ -341,4 +341,61 @@
             ); 
         }
     ); 
+    trumbles = (
+        {
+            conditions = (
+                "dockedAtMainStation_bool equal YES", 
+                "mission_trumbles undefined", 
+                "credits_number greaterthan 6553.5"
+            ); 
+            do = ("set: mission_trumbles BUY_ME"); 
+        }, 
+        {
+            conditions = (
+                "status_string equal STATUS_DOCKED", 
+                "mission_trumbles equal BUY_ME", 
+                "d100_number lessthan 20", 
+                "missionChoice_string undefined"
+            ); 
+            do = (
+                setGuiToMissionScreen, 
+                "set: mission_trumbles OFFER_MADE", 
+                "addMissionText: trumble_offer", 
+                "setMissionChoices: trumble_offer_yesno"
+            ); 
+        }, 
+        {
+            conditions = (
+                "status_string equal STATUS_DOCKED", 
+                "mission_trumbles equal OFFER_MADE", 
+                "missionChoice_string equal YES"
+            ); 
+            do = (
+                setGuiToStatusScreen, 
+                "set: mission_trumbles TRUMBLE_BOUGHT", 
+                "awardCredits: -30", 
+                "awardEquipment: EQ_TRUMBLE"
+            ); 
+        }, 
+        {
+            conditions = (
+                "status_string equal STATUS_DOCKED", 
+                "mission_trumbles equal OFFER_MADE", 
+                "missionChoice_string equal NO"
+            ); 
+            do = (
+            	setGuiToStatusScreen,
+            	"set: mission_trumbles NOT_NOW",
+            	resetMissionChoice
+            ); 
+        }, 
+        {
+            conditions = (
+                "status_string equal STATUS_EXITING_WITCHSPACE", 
+                "mission_trumbles equal NOT_NOW", 
+                "d100_number lessthan 25"
+            ); 
+            do = ("set: mission_trumbles BUY_ME", resetMissionChoice); 
+        }
+    ); 
 }

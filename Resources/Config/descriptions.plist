@@ -664,5 +664,15 @@
 	<array>
 		<string>The %I sun has gone nova, destroying the planet and all life here. Beware of navigational and radiological hazards in this system.</string>
 	</array>
+	<!-- trumbles -->
+	<key>trumbles-eat-@</key>
+	<array>
+		<string>Trumbles have eaten a cargopod of %@.</string>
+	</array>
+	<!-- internal damage -->
+	<key>@-destroyed</key>
+	<array>
+		<string>%@ destroyed.</string>
+	</array>
 </dict>
 </plist>
