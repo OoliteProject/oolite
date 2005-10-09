@@ -161,6 +161,12 @@ Your fair use and other rights are in no way affected by the above.
 		im_bytes = image_w * image_h * n_planes;
 		tex_bytes = texture_w * texture_h * n_planes;
 
+		if (([filename hasPrefix:@"blur"])&&(texture_w == image_w)&&(texture_h == image_h))
+		{
+			NSLog(@"DEBUG filling image data for %@ (%d x %d) with special sauce!", filename, texture_w, texture_h);
+			fillSquareImageDataWithBlur(imageBuffer, texture_w, n_planes);
+		}
+
 		if ((texture_w > image_w)||(texture_h > image_h))		// we need to scale the image to the texture dimensions
 		{
 			unsigned char textureBuffer[tex_bytes];
