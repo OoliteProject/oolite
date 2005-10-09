@@ -8,8 +8,51 @@
 #import "SDLSound.h"
 #include "oolite-linux.h"
 static int mixChan=0;
+static float masterVol=1.0;
+static BOOL isSetUp=NO;
 
 @implementation OOSound
+
+// DJS: Volume controls compatible with OS X's fmod controls
+// The GUI sets and expects a float volume with the range
+// 0.0 to 1.0. SDL_Mixer expects an int value of 0 to MIX_MAX_VOLUME (128).
++ (void) setUp
+{
+   NSUserDefaults *dfl=[NSUserDefaults standardUserDefaults];
+   if([dfl objectForKey: KEY_VOLUME_CONTROL])
+   {
+      [OOSound setMasterVolume: [dfl floatForKey: KEY_VOLUME_CONTROL]];
+   }
+   else
+   {
+      [OOSound setMasterVolume: 1.0];
+   }
+   isSetUp=YES;
+}
+
++ (float) masterVolume
+{
+   if(!isSetUp) [OOSound setUp];
+   return masterVol;  
+}
+
++ (void) setMasterVolume: (float)vol
+{
+   masterVol=vol;
+   if(masterVol < 0.0)
+      masterVol=0;
+   if(masterVol > 1.0)
+      masterVol=1.0;
+   int mixVol=(float)MIX_MAX_VOLUME * masterVol;
+
+   // -1 = all channels
+   Mix_Volume(-1, mixVol);
+   Mix_VolumeMusic(mixVol);
+
+   // save it
+   [[NSUserDefaults standardUserDefaults]
+         setFloat: masterVol forKey: KEY_VOLUME_CONTROL];
+}
 
 - (BOOL) pause
 {
@@ -33,6 +76,7 @@ static int mixChan=0;
 
 - (BOOL) play
 {
+   if(!isSetUp) [OOSound setUp];
    int chansScanned=1;
 	if (sample)
 	{
@@ -83,6 +127,7 @@ static int mixChan=0;
 - (id) initWithContentsOfFile:(NSString*)filepath byReference:(BOOL)ref
 {
 	[super init];
+   if(!isSetUp) [OOSound setUp];
 
 	//NSLog(@"loading sample: %s", [filepath cString]);
 	sample = Mix_LoadWAV([filepath cString]);

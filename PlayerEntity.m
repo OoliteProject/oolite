@@ -3589,7 +3589,8 @@ static BOOL queryPressed;
 #else
             // Macintosh only
 				int speech_row =	GUI_ROW_OPTIONS_SPEECH;
-#endif            
+#endif      
+            int volume_row = GUI_ROW_OPTIONS_VOLUME;      
 				int display_row =   GUI_ROW_OPTIONS_DISPLAY;
             int stickmap_row = GUI_ROW_OPTIONS_STICKMAPPER;
 				GameController  *controller = [universe gameController];
@@ -3720,6 +3721,7 @@ static BOOL queryPressed;
 						[gui setText:@" Spoken messages: OFF "	forRow:speech_row  align:GUI_ALIGN_CENTER];
 				}
 
+
 				if (([gui selectedRow] == ootunes_row)&&(([gameView isDown:gvArrowKeyRight])||([gameView isDown:gvArrowKeyLeft])))
 				{
 					GuiDisplayGen* gui = [universe gui];
@@ -3732,6 +3734,37 @@ static BOOL queryPressed;
 						[gui setText:@" iTunes integration: OFF "	forRow:ootunes_row  align:GUI_ALIGN_CENTER];
 				}
 #endif
+				if (([gui selectedRow] == volume_row)
+					&&(([gameView isDown:gvArrowKeyRight])||([gameView isDown:gvArrowKeyLeft]))
+					&&[OOSound respondsToSelector:@selector(masterVolume)])
+				{
+					if ((!volumeControlPressed)||(script_time > timeLastKeyPress + KEY_REPEAT_INTERVAL))
+					{
+						BOOL rightKeyDown = [gameView isDown:gvArrowKeyRight];
+						BOOL leftKeyDown = [gameView isDown:gvArrowKeyLeft];
+						GuiDisplayGen* gui = [universe gui];
+						int volume = 100 * [OOSound masterVolume];
+						volume += (((rightKeyDown && (volume < 100)) ? 5 : 0) - ((leftKeyDown && (volume > 0)) ? 5 : 0));
+						if (volume > 100) volume = 100;
+						if (volume < 0) volume = 0;
+						[OOSound setMasterVolume: 0.01 * volume];
+						[gui click];
+						if (volume > 0)
+						{
+							NSString* v1_string = @"|||||||||||||||||||||||||";
+							NSString* v0_string = @".........................";
+							v1_string = [v1_string substringToIndex:volume / 5];
+							v0_string = [v0_string substringToIndex:20 - volume / 5];
+							[gui setText:[NSString stringWithFormat:@" Sound Volume: %@%@ ", v1_string, v0_string]	forRow:volume_row  align:GUI_ALIGN_CENTER];
+						}
+						else
+							[gui setText:@" Sound Volume: MUTE "	forRow:volume_row  align:GUI_ALIGN_CENTER];
+						timeLastKeyPress = script_time;
+					}
+					volumeControlPressed = YES;
+				}
+				else
+					volumeControlPressed = NO;
 
 				if (([gui selectedRow] == detail_row)&&(([gameView isDown:gvArrowKeyRight])||([gameView isDown:gvArrowKeyLeft])))
 				{
@@ -6469,7 +6502,8 @@ static BOOL toggling_music;
 #else      
 		int speech_row =	GUI_ROW_OPTIONS_SPEECH;
 		int ootunes_row =	GUI_ROW_OPTIONS_OOTUNES;
-#endif      
+#endif
+      int volume_row = GUI_ROW_OPTIONS_VOLUME;      
 		int display_row =   GUI_ROW_OPTIONS_DISPLAY;
 		int detail_row =	GUI_ROW_OPTIONS_DETAIL;
 		int strict_row =	GUI_ROW_OPTIONS_STRICT;
@@ -6540,6 +6574,26 @@ static BOOL toggling_music;
 		[gui setKey:GUI_KEY_OK forRow:ootunes_row];
 		//
 #endif      
+		//
+		// volume control
+		if ([OOSound respondsToSelector:@selector(masterVolume)])
+		{
+			int volume = 20 * [OOSound masterVolume];
+			NSString* v1_string = @"|||||||||||||||||||||||||";
+			NSString* v0_string = @".........................";
+			v1_string = [v1_string substringToIndex:volume];
+			v0_string = [v0_string substringToIndex:20 - volume];
+			if (volume > 0)
+				[gui setText:[NSString stringWithFormat:@" Sound Volume: %@%@", v1_string, v0_string]	forRow:volume_row  align:GUI_ALIGN_CENTER];
+			else
+				[gui setText:@" Sound Volume: MUTE "	forRow:volume_row  align:GUI_ALIGN_CENTER];
+			[gui setKey:GUI_KEY_OK forRow:volume_row];
+		}
+		else
+		{
+			[gui setText:@" Sound Volume: External Control Only"	forRow:volume_row  align:GUI_ALIGN_CENTER];
+			[gui setColor:[NSColor grayColor] forRow:volume_row];
+		}
 		if ([universe reducedDetail])
 			[gui setText:@" Reduced detail: ON "	forRow:detail_row  align:GUI_ALIGN_CENTER];
 		else

@@ -12,6 +12,8 @@
 #include "SDL.h"
 #include "SDL_mixer.h"
 
+#define KEY_VOLUME_CONTROL @"volume_control"
+
 @interface OOSound : NSObject
 {
 	BOOL isPlaying;
@@ -20,6 +22,11 @@
 }
 
 + (void) channelDone:(int) channel;
+
+// DJS: Volume controls compatible with OS X's fmod sound
++ (void) setUp;
++ (float) masterVolume;
++ (void) setMasterVolume: (float) fraction;
 
 - (id) initWithContentsOfFile:(NSString*) filepath byReference:(BOOL) ref;
 - (BOOL) pause;
