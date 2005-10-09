@@ -516,15 +516,53 @@ Quaternion	quaternion_rotation_between(Vector v0, Vector v1)	// vectors both nor
 {
 	Quaternion q;
 	quaternion_set_identity(&q);
-	Vector xp = make_vector((v0.y * v1.z) - (v0.z * v1.y), (v0.z * v1.x) - (v0.x * v1.z), (v0.x * v1.y) - (v0.y * v1.x));
-	double d = dot_product( v0, v1);
-	double s = sqrt((1.0 + d) * 2.0);
+	GLfloat s = (GLfloat)sqrt((1.0 + v0.x * v1.x + v0.y * v1.y + v0.z * v1.z) * 2.0);
 	if (s)
 	{
-		q.x = xp.x / s;
-		q.y = xp.y / s;
-		q.z = xp.z / s;
-		q.w = s / 2.0;
+		q.x = (v0.y * v1.z - v0.z * v1.y) / s;
+		q.y = (v0.z * v1.x - v0.x * v1.z) / s;
+		q.z = (v0.x * v1.y - v0.y * v1.x) / s;
+		q.w = s * 0.5;
+	}
+	else
+	{
+		printf("ERROR * minarc s == zero ! *\n");
+	}
+	return q;
+}
+
+// produce a quaternion representing an angle between two vectors with a maximum arc
+//
+Quaternion	quaternion_limited_rotation_between(Vector v0, Vector v1, float maxArc)	// vectors both normalised
+{
+	Quaternion q;
+	quaternion_set_identity(&q);
+	GLfloat min_s = 2.0 * cos( 0.5 * maxArc);
+	GLfloat s = (GLfloat)sqrt((1.0 + v0.x * v1.x + v0.y * v1.y + v0.z * v1.z) * 2.0);
+	if (s)
+	{
+		if (s < min_s)	// larger angle => smaller cos
+		{
+			GLfloat a = maxArc * 0.5;
+			GLfloat w = cos(a);
+			GLfloat scale = sin(a);
+			printf("DEBUG using maxArc %.5f \tw %.5f \tscale %.5f\n", maxArc, w, scale);
+			q.x = (v0.y * v1.z - v0.z * v1.y) * scale;
+			q.y = (v0.z * v1.x - v0.x * v1.z) * scale;
+			q.z = (v0.x * v1.y - v0.y * v1.x) * scale;
+			q.w = w;
+		}
+		else
+		{
+			q.x = (v0.y * v1.z - v0.z * v1.y) / s;
+			q.y = (v0.z * v1.x - v0.x * v1.z) / s;
+			q.z = (v0.x * v1.y - v0.y * v1.x) / s;
+			q.w = s * 0.5;
+		}
+	}
+	else
+	{
+		printf("ERROR * minarc s == zero ! *\n");
 	}
 	return q;
 }

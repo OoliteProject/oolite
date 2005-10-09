@@ -197,6 +197,8 @@ extern int debug;
 		BOOL	has_rotated;
 		BOOL	has_collided;
 		//
+		Vector	relative_position;
+		//
 		Entity*	collider;
 		//
 	@protected
@@ -209,8 +211,6 @@ extern int debug;
 	//
 	Vector	last_position;
 	Quaternion last_q_rotation;
-	//
-    Vector	relative_position;
 	//
 	double  distance_travelled; // set to zero initially
 	//

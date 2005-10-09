@@ -130,6 +130,7 @@ Your fair use and other rights are in no way affected by the above.
 
 - (void) autoDockShipsOnApproach;
 
+NSDictionary* instructions(int station_id, Vector coords, float speed, float range, NSString* ai_message, NSString* comms_message, BOOL match_rotation);
 - (NSDictionary *) dockingInstructionsForShip:(ShipEntity *) ship;
 - (void) addShipToShipsOnApproach:(ShipEntity *) ship;
 

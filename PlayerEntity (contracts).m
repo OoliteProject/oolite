@@ -758,7 +758,7 @@ Your fair use and other rights are in no way affected by the above.
 		[gui clear];
 		[gui setTitle:[NSString stringWithFormat:@"Ship's Manifest",   player_name]];
 		//
-		[gui setText:@"Cargo:"			forRow:cargo_row - 1];
+		[gui setText:[NSString stringWithFormat:@"Cargo %dt (%dt):", (status == STATUS_DOCKED)? current_cargo : [cargo count], max_cargo]	forRow:cargo_row - 1];
 		[gui setText:@"\tNone."				forRow:cargo_row];
 		[gui setColor:[NSColor yellowColor]	forRow:cargo_row - 1];
 		[gui setColor:[NSColor greenColor]	forRow:cargo_row];
@@ -786,7 +786,7 @@ Your fair use and other rights are in no way affected by the above.
 		else
 			passenger_row = cargo_row + n_manifest_rows + 2;
 		//
-		[gui setText:@"Passengers:"			forRow:passenger_row - 1];
+		[gui setText:[NSString stringWithFormat:@"Passengers %d (%d):", [passengerManifest count], max_passengers]	forRow:passenger_row - 1];
 		[gui setText:@"\tNone."				forRow:passenger_row];
 		[gui setColor:[NSColor yellowColor]	forRow:passenger_row - 1];
 		[gui setColor:[NSColor greenColor]	forRow:passenger_row];
@@ -1231,8 +1231,8 @@ NSMutableDictionary* currentShipyard;
 	has_scoop = NO;
 	energy_unit = ENERGY_UNIT_NONE;
 	
-   // ensure all missiles are tidied up and start at pylon 0
-   [self tidyMissilePylons];
+	// ensure all missiles are tidied up and start at pylon 0
+	[self tidyMissilePylons];
 
 	// get missiles from ship_info
 	missiles = [(NSNumber*)[(NSDictionary*)[ship_info objectForKey:SHIPYARD_KEY_SHIP] objectForKey:@"missiles"] intValue];

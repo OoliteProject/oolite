@@ -106,8 +106,8 @@ Your fair use and other rights are in no way affected by the above.
 
 #define MAX_MESSAGES		5
 
-#define PROXIMITY_WARN_DISTANCE		6.0
-#define PROXIMITY_WARN_DISTANCE2	36.0
+#define PROXIMITY_WARN_DISTANCE		6.5
+#define PROXIMITY_WARN_DISTANCE2	42.25
 #define PROXIMITY_AVOID_DISTANCE	10.0
 
 #define SUN_SKIM_RADIUS_FACTOR		1.15470053838
@@ -151,7 +151,7 @@ Your fair use and other rights are in no way affected by the above.
 
 #define	NUMBER_OF_STRICT_EQUIPMENT_ITEMS	16
 
-#define	UNIVERSE_MAX_ENTITIES		512
+#define	UNIVERSE_MAX_ENTITIES		2048
 
 //#import <OpenGL/glu.h>
 #ifdef LINUX

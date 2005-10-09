@@ -1345,7 +1345,7 @@ BOOL ship_canCollide (ShipEntity* ship)
 	double	hurt_factor = 16 * pow(energy/max_energy, 4.0);
 	double	last_success_factor = success_factor;
 	//
-	BOOL	canBurn = has_fuel_injection && (fuel > 0);
+	BOOL	canBurn = has_fuel_injection && (fuel > 1);	// (was &&(fuel > 0) this is a quickfix)
 	BOOL	isUsingAfterburner = canBurn && (flight_speed > max_flight_speed);
 	//
 	double	max_available_speed = (canBurn)? max_flight_speed * AFTERBURNER_FACTOR : max_flight_speed;
@@ -1554,7 +1554,7 @@ BOOL ship_canCollide (ShipEntity* ship)
 				}
 				else
 				{
-					target_speed = [[self getPrimaryTarget] getVelocityAsSpeed];
+					target_speed = [target getVelocityAsSpeed];
 					double eta = range / (flight_speed - target_speed);
 					double last_distance = last_success_factor;
 					success_factor = distance;
@@ -1574,7 +1574,13 @@ BOOL ship_canCollide (ShipEntity* ship)
 							[shipAI reactToMessage:@"TARGET_LOST"];
 					}
 					//
-					[self trackPrimaryTarget:delta_t:NO];
+//					[self trackPrimaryTarget:delta_t:NO];	// we used to do this instead of the following...
+					if (target)	// check introduced to stop crash at next line
+					{
+						destination = target->position;		/* HEISENBUG crash here */
+						desired_range = 0.5 * target->actual_radius;
+						[self trackDestination: delta_t : NO];
+					}
 					//
 					if (distance < last_distance)	// improvement
 					{
@@ -1884,14 +1890,14 @@ BOOL ship_canCollide (ShipEntity* ship)
 				else
 				{
 					double last_distance = last_success_factor;
-					double eta = (distance - desired_range) / flight_speed;
+					double eta = distance / flight_speed;
 					
 					success_factor = distance;
 					
 					// do the actual piloting!!
 					[self trackDestination:delta_t:NO];
 					
-					double slowdownTime = 64.0 / thrust;	// more thrust implies better slowing
+					double slowdownTime = (thrust > 0.0)? flight_speed / thrust : 4.0;	// 10% safety margin
 					double minTurnSpeedFactor = 0.05 * max_flight_pitch * max_flight_roll;	// faster turning implies higher speeds
 					
 					if ((eta < slowdownTime)&&(flight_speed > max_flight_speed * minTurnSpeedFactor))
@@ -1908,10 +1914,7 @@ BOOL ship_canCollide (ShipEntity* ship)
 						frustration += delta_t;
 						if (frustration > slowdownTime * 10.0)	// 10x slowdownTime of frustration
 						{
-//							[self setReportAImessages:YES];	//debug
 							[shipAI reactToMessage:@"FRUSTRATED"];
-//							NSLog(@"DEBUG %@ flight_speed %.6f distance %.6f last_distance %.6f", self, flight_speed, distance, last_distance);
-//							[self setReportAImessages:NO];	//debug
 							frustration -= slowdownTime * 5.0;	//repeat after another five units of frustration
 						}
 					}
@@ -2281,7 +2284,7 @@ static GLfloat mascem_color2[4] =	{ 0.4, 0.1, 0.4, 1.0};	// purple
 
 - (void) applyThrust:(double) delta_t
 {
-	double max_available_speed = (has_fuel_injection && (fuel > 0))? max_flight_speed * AFTERBURNER_FACTOR : max_flight_speed;
+	double max_available_speed = (has_fuel_injection && (fuel > 1))? max_flight_speed * AFTERBURNER_FACTOR : max_flight_speed;
 	
 	velocity.x += momentum.x / mass;	momentum.x = 0;
 	velocity.y += momentum.y / mass;	momentum.y = 0;
@@ -2340,14 +2343,21 @@ static GLfloat mascem_color2[4] =	{ 0.4, 0.1, 0.4, 1.0};	// purple
 {	
 	Quaternion q1;
 	
-	if ((roll1 == 0.0)&&(climb1 == 0.0)&&(!has_rotated))
+	if ((!roll1)&&(!climb1)&&(!has_rotated))
 		return;
 	
 	quaternion_set_identity(&q1);
 	
-	if (roll1 != 0.0)
+	if (roll1)
 		quaternion_rotate_about_z( &q1, -roll1);
-	if (climb1 != 0.0)
+//	if (roll1 != 0.0)
+//	{
+//		if (scan_class == CLASS_MISSILE)
+//			quaternion_rotate_about_y( &q1, -roll1);	// *hack* yaw instead of roll
+//		else
+//			quaternion_rotate_about_z( &q1, -roll1);
+//	}
+	if (climb1)
 		quaternion_rotate_about_x( &q1, -climb1);
 	
 	q_rotation = quaternion_multiply( q1, q_rotation);
@@ -3638,63 +3648,39 @@ Vector randomPositionInBoundingBox(BoundingBox bb)
 	return aim_cos;
 }
 
-- (void) trackOntoTarget:(double) delta_t
+- (void) trackOntoTarget:(double) delta_t withDForward: (GLfloat) dp
 {
 	Vector vector_to_target;
-	Vector my_aim = v_forward;
 	Quaternion q_minarc;
-	quaternion_set_identity(&q_minarc);
-	double fraction = (10.0 * delta_t < 1.0)? 10.0 * delta_t : 1.0;
 	//
 	Entity* targent = [self getPrimaryTarget];
 	//
 	if (!targent)
 		return;
-	
+		
 	vector_to_target = targent->position;
 	vector_to_target.x -= position.x;	vector_to_target.y -= position.y;	vector_to_target.z -= position.z;
+	//
+	GLfloat range2 =		magnitude2( vector_to_target);
+	GLfloat	targetRadius =	0.75 * targent->actual_radius;
+	GLfloat	max_cos =		sqrt(1 - targetRadius*targetRadius/range2);
+	//
+	if (dp > max_cos)
+		return;	// ON TARGET!
+	//
 	if (vector_to_target.x||vector_to_target.y||vector_to_target.z)
 		vector_to_target = unit_vector(&vector_to_target);
 	else
 		vector_to_target.z = 1.0;
-	
-	// section copied from GPG1
+	//	
+	q_minarc = quaternion_rotation_between( v_forward, vector_to_target);
 	//
-	Vector xp = make_vector(	(my_aim.y * vector_to_target.z) - (my_aim.z * vector_to_target.y),
-								(my_aim.z * vector_to_target.x) - (my_aim.x * vector_to_target.z),
-								(my_aim.x * vector_to_target.y) - (my_aim.y * vector_to_target.x));
-	GLfloat d = dot_product( my_aim, vector_to_target);
-	GLfloat s = sqrt((1.0 + d) * 2.0);
-	if (s)
-	{
-		q_minarc.x = xp.x / s;
-		q_minarc.y = xp.y / s;
-		q_minarc.z = xp.z / s;
-		q_minarc.w = s / 2.0;
-	}
-	//
-	////
-	
-	// average with unit vector
-	q_minarc.x *= fraction;
-	q_minarc.y *= fraction;
-	q_minarc.z *= fraction;
-	q_minarc.w = fraction * q_minarc.w + (1.0 - fraction);
-
-//	NSLog(@"DEBUG q_minarc x %.4f y %.4f z %.4f w %.4f",
-//		q_minarc.x, q_minarc.y, q_minarc.z, q_minarc.w);
-
 	q_rotation = quaternion_multiply( q_minarc, q_rotation);
     quaternion_normalise(&q_rotation);
     quaternion_into_gl_matrix(q_rotation, rotMatrix);
-	
+	//
 	flight_roll = 0.0;
 	flight_pitch = 0.0;
-	
-//	my_aim = vector_forward_from_quaternion(q_rotation);	// DEBUG ONLY
-//	GLfloat d2 = dot_product( vector_to_target, my_aim);
-//	NSLog(@"DEBUG ::::: BEFORE: (%.6f) AFTER: (%.6f) :%@: ", d, d2, (d2 > d)? @"SUCCESS" : @"failure");
-	
 }
 
 - (double) ballTrackLeadingTarget:(double) delta_t
@@ -3776,39 +3762,22 @@ Vector randomPositionInBoundingBox(BoundingBox bb)
 
 - (double) trackPrimaryTarget:(double) delta_t :(BOOL) retreat
 {
-	Vector  relativePosition;	
-	GLfloat  d_forward, d_up, d_right, range2;
-	Entity  *target;
-	BOOL isMining = ((condition == CONDITION_ATTACK_MINING_TARGET)&&(forward_weapon_type == WEAPON_MINING_LASER));
+	Entity*	target = [self getPrimaryTarget];
 	
-	double  damping = 0.5 * delta_t;
-	double  rate2 = 4.0 * delta_t;
-	double  rate1 = 2.0 * delta_t;
-	
-	double stick_roll = 0.0;	//desired roll and pitch
-	double stick_pitch = 0.0;
-	
-	double pitch_pitch = 0.0;
-	double roll_roll = 0.0;
-	
-	double reverse = 1.0;
-	
-	double tolerance1 = pitch_tolerance;
-	
-	target = [self getPrimaryTarget];
-	
-	if (target == nil)   // leave now!
+	if (!target)   // leave now!
 		return 0.0;
 	
-	if (retreat)
-		reverse = -1.0;
+	if (scan_class == CLASS_MISSILE)
+		return [self missileTrackPrimaryTarget: delta_t];
 	
-	relativePosition = target->position;
+	GLfloat  d_forward, d_up, d_right;
+
+	Vector  relativePosition = target->position;	
 	relativePosition.x -= position.x;
 	relativePosition.y -= position.y;
 	relativePosition.z -= position.z;
-	
-	range2 = magnitude2(relativePosition);
+
+	double	range2 = magnitude2(relativePosition);
 	
 	//jink if retreating
 	if (retreat && (range2 > 250000.0))	// don't jink if closer than 500m - just RUN
@@ -3832,6 +3801,163 @@ Vector randomPositionInBoundingBox(BoundingBox bb)
 		relativePosition.y += jink.x * vx.y + jink.y * vy.y + jink.z * vz.y;
 		relativePosition.z += jink.x * vx.z + jink.y * vy.z + jink.z * vz.z;
 	}
+
+	if (relativePosition.x||relativePosition.y||relativePosition.z)
+		relativePosition = unit_vector(&relativePosition);
+	else
+		relativePosition.z = 1.0;
+	
+	double	targetRadius = 0.75 * target->actual_radius;
+	
+	double	max_cos = sqrt(1 - targetRadius*targetRadius/range2);
+	
+	double  damping = 0.5 * delta_t;
+	double  rate2 = 4.0 * delta_t;
+	double  rate1 = 2.0 * delta_t;
+	
+	double stick_roll = 0.0;	//desired roll and pitch
+	double stick_pitch = 0.0;
+		
+	double reverse = (retreat)? -1.0: 1.0;
+	
+	double min_d = 0.004;
+	
+	d_right		=   dot_product(relativePosition, v_right);
+	d_up		=   dot_product(relativePosition, v_up);
+	d_forward   =   dot_product(relativePosition, v_forward);	// == cos of angle between v_forward and vector to target
+
+	if (d_forward * reverse > max_cos)	// on_target!
+		return d_forward;
+		
+	// begin rule-of-thumb manoeuvres
+	stick_pitch = 0.0;
+	stick_roll = 0.0;
+	
+	
+	if ((reverse * d_forward < -0.5) && !pitching_over) // we're going the wrong way!
+		pitching_over = YES;
+	
+	if (pitching_over)
+	{
+		if (reverse * d_up > 0) // pitch up
+			stick_pitch = -max_flight_pitch;
+		else
+			stick_pitch = max_flight_pitch;
+		pitching_over = (reverse * d_forward < 0.707);
+	}
+
+	// treat missiles specially
+	if ((scan_class == CLASS_MISSILE) && (d_forward > cos( delta_t * max_flight_pitch)))
+	{
+		NSLog(@"missile %@ in tracking mode", self);
+		[self trackOntoTarget: delta_t withDForward: d_forward];
+		return d_forward;
+	}	
+
+	// check if we are flying toward the destination..
+	if ((d_forward < max_cos)||(retreat))	// not on course so we must adjust controls..
+	{
+		if (d_forward < -max_cos)  // hack to avoid just flying away from the destination
+		{
+			d_up = min_d * 2.0;
+		}
+		
+		if (d_up > min_d)
+		{
+			int factor = sqrt( fabs(d_right) / fabs(min_d));
+			if (factor > 8)
+				factor = 8;
+			if (d_right > min_d)
+				stick_roll = - max_flight_roll * reverse * 0.125 * factor;
+			if (d_right < -min_d)
+				stick_roll = + max_flight_roll * reverse * 0.125 * factor;
+		}
+		if (d_up < -min_d)
+		{
+			int factor = sqrt( fabs(d_right) / fabs(min_d));
+			if (factor > 8)
+				factor = 8;
+			if (d_right > min_d)
+				stick_roll = + max_flight_roll * reverse * 0.125 * factor;
+			if (d_right < -min_d)
+				stick_roll = - max_flight_roll * reverse * 0.125 * factor;
+		}
+		
+		if (stick_roll == 0.0)
+		{
+			int factor = sqrt( fabs(d_up) / fabs(min_d));
+			if (factor > 8)
+				factor = 8;
+			if (d_up > min_d)
+				stick_pitch = - max_flight_pitch * reverse * 0.125 * factor;
+			if (d_up < -min_d)
+				stick_pitch = + max_flight_pitch * reverse * 0.125 * factor;
+		}
+	}
+	
+	// end rule-of-thumb manoeuvres
+
+	// apply stick movement limits
+	if (flight_roll < stick_roll - rate1)
+		stick_roll = flight_roll + rate1;
+	if (flight_roll > stick_roll + rate1)
+		stick_roll = flight_roll - rate1;
+	if (flight_pitch < stick_pitch - rate2)
+		stick_pitch = flight_pitch + rate2;
+	if (flight_pitch > stick_pitch + rate2)
+		stick_pitch = flight_pitch - rate2;
+
+	// apply damping
+	double damproll = (flight_speed > 2.0)? damping : 2.0 * damping;	// double damping if we're going very slowly
+	if (flight_roll < 0)
+		flight_roll += (flight_roll < -damproll)? damproll : -flight_roll;
+	if (flight_roll > 0)
+		flight_roll -= (flight_roll > damproll)? damproll : flight_roll;
+	if (flight_pitch < 0)
+		flight_pitch += (flight_pitch < -damping) ? damping : -flight_pitch;
+	if (flight_pitch > 0)
+		flight_pitch -= (flight_pitch > damping) ? damping : flight_pitch;
+	
+	// apply stick to attitude control
+	flight_roll = stick_roll;
+	flight_pitch = stick_pitch;
+
+	if (retreat)
+		d_forward *= d_forward;	// make positive AND decrease granularity
+
+	if (d_forward < 0.0)
+		return 0.0;
+		
+	if ((!flight_roll)&&(!flight_pitch))	// no correction
+		return 1.0;
+	
+	return d_forward;
+}
+
+- (double) missileTrackPrimaryTarget:(double) delta_t
+{
+	Vector  relativePosition;	
+	GLfloat  d_forward, d_up, d_right, range2;
+	Entity  *target = [self getPrimaryTarget];
+	
+	if (!target)   // leave now!
+		return 0.0;
+	
+	double  damping = 0.5 * delta_t;
+	double  rate2 = 4.0 * delta_t;
+	double  rate1 = 2.0 * delta_t;
+	
+	double stick_roll = 0.0;	//desired roll and pitch
+	double stick_pitch = 0.0;
+	
+	double tolerance1 = pitch_tolerance;
+	
+	relativePosition = target->position;
+	relativePosition.x -= position.x;
+	relativePosition.y -= position.y;
+	relativePosition.z -= position.z;
+	
+	range2 = magnitude2(relativePosition);
 	
 	if (relativePosition.x||relativePosition.y||relativePosition.z)
 		relativePosition = unit_vector(&relativePosition);
@@ -3842,12 +3968,6 @@ Vector randomPositionInBoundingBox(BoundingBox bb)
 	d_up		=   dot_product(relativePosition, v_up);		// = cosine of angle between angle to target and v_up
 	d_forward   =   dot_product(relativePosition, v_forward);	// = cosine of angle between angle to target and v_forward
 
-	if ((d_forward > 0.995)&&(d_forward < 0.9999)&&(!retreat)&&(!isMining))
-	{
-		[self trackOntoTarget: delta_t];
-		return d_forward;
-	}
-
 	// begin rule-of-thumb manoeuvres
 	
 	stick_roll = 0.0;
@@ -3855,44 +3975,23 @@ Vector randomPositionInBoundingBox(BoundingBox bb)
 	if (pitching_over)
 		pitching_over = (stick_pitch != 0.0);
 	
-	if ((d_forward*reverse < -tolerance1) && (!pitching_over))
+	if ((d_forward < -tolerance1) && (!pitching_over))
 	{
 		pitching_over = YES;
-		pitch_pitch = 1.0;
-		//NSLog(@"Pitch - over");
 		if (d_up >= 0)
-			stick_pitch = -max_flight_pitch * pitch_pitch * reverse;
+			stick_pitch = -max_flight_pitch;
 		if (d_up < 0)
-			stick_pitch = max_flight_pitch * pitch_pitch * reverse;
+			stick_pitch = max_flight_pitch;
 	}
 	
-			
 	if (pitching_over)
 	{
-		pitching_over = (d_forward * reverse < 0.5);
+		pitching_over = (d_forward < 0.5);
 	}
 	else
 	{
-		stick_pitch = 0.0;
-		pitch_pitch = d_up;
-		if (pitch_pitch < 0.0)
-			pitch_pitch = -pitch_pitch;
-		roll_roll = d_right;
-		if (roll_roll < 0.0)
-			roll_roll = -roll_roll;
-		
-		if (retreat)
-			pitch_pitch = 1.0 - pitch_pitch;
-				
-		if (d_up > 0.0)
-			stick_pitch = -max_flight_pitch * pitch_pitch * reverse;
-		if (d_up < 0.0)
-			stick_pitch = max_flight_pitch * pitch_pitch * reverse;
-
-		if (d_right > 0.0)
-			stick_roll = -max_flight_roll * roll_roll;
-		if (d_right < 0.0)
-			stick_roll = max_flight_roll * roll_roll;
+		stick_pitch = -max_flight_pitch * d_up;
+		stick_roll = -max_flight_roll * d_right;
 	}
 	
 	// end rule-of-thumb manoeuvres
@@ -3949,9 +4048,6 @@ Vector randomPositionInBoundingBox(BoundingBox bb)
 	double min_d = 0.004;
 	double max_cos = 0.85;
 	
-//	if (we_are_docking && (desired_speed < 100.0))	// test for docking stuff
-//		min_d = 0.012;	// less accuracy required - better to match spin
-	
 	if (retreat)
 		reverse = -reverse;
 
@@ -3994,25 +4090,34 @@ Vector randomPositionInBoundingBox(BoundingBox bb)
 		
 		if (d_up > min_d)
 		{
+			int factor = sqrt( fabs(d_right) / fabs(min_d));
+			if (factor > 8)
+				factor = 8;
 			if (d_right > min_d)
-				stick_roll = stick_roll - max_flight_roll * reverse * 0.25;  //roll_roll * reverse;
+				stick_roll = - max_flight_roll * reverse * 0.125 * factor;  //roll_roll * reverse;
 			if (d_right < -min_d)
-				stick_roll = stick_roll + max_flight_roll * reverse * 0.25; //roll_roll * reverse;
+				stick_roll = + max_flight_roll * reverse * 0.125 * factor; //roll_roll * reverse;
 		}
-		if (d_up < -min_d) // half a meter
+		if (d_up < -min_d)
 		{
+			int factor = sqrt( fabs(d_right) / fabs(min_d));
+			if (factor > 8)
+				factor = 8;
 			if (d_right > min_d)
-				stick_roll = stick_roll + max_flight_roll * reverse * 0.25;  //roll_roll * reverse;
+				stick_roll = + max_flight_roll * reverse * 0.125 * factor;  //roll_roll * reverse;
 			if (d_right < -min_d)
-				stick_roll = stick_roll - max_flight_roll * reverse * 0.25; //roll_roll * reverse;
+				stick_roll = - max_flight_roll * reverse * 0.125 * factor; //roll_roll * reverse;
 		}
 		
 		if (stick_roll == 0.0)
 		{
+			int factor = sqrt( fabs(d_up) / fabs(min_d));
+			if (factor > 8)
+				factor = 8;
 			if (d_up > min_d)
-				stick_pitch = -max_flight_pitch * reverse * 0.25;  //pitch_pitch * reverse;
+				stick_pitch = - max_flight_pitch * reverse * 0.125 * factor;  //pitch_pitch * reverse;
 			if (d_up < -min_d)
-				stick_pitch = max_flight_pitch * reverse * 0.25;  //pitch_pitch * reverse;
+				stick_pitch = + max_flight_pitch * reverse * 0.125 * factor;  //pitch_pitch * reverse;
 		}
 	}
 	
@@ -4149,10 +4254,10 @@ Vector randomPositionInBoundingBox(BoundingBox bb)
 	dq = dot_product(urp, v_forward);				// cosine of angle between v_forward and unit relative position
 	if (((fwd_weapon)&&(dq < 0.0)) || ((!fwd_weapon)&&(dq > 0.0)))
 		return NO;
-	astq = sqrt(d2) / sqrt (d2 + radius * radius);	// cosine of half angle subtended by target
-//	if ([roles isEqual:@"miner"])
-//		NSLog(@"DEBUG ..... dq: %.5f astq: %.5f onTarget: %@", dq, astq, (dq > astq)?@"YES":@"NO");
-	return (dq >= astq);
+
+	astq = sqrt(1.0 - radius * radius / d2);	// cosine of half angle subtended by target
+
+	return (fabs(dq) >= astq);
 }
 
 - (BOOL) fireMainWeapon:(double) range
@@ -4806,9 +4911,9 @@ Vector randomPositionInBoundingBox(BoundingBox bb)
 	origin.z = position.z + v_right.z * start.x + v_up.z * start.y + v_forward.z * start.z;
 	
 	[missile setPosition:origin];
-	[missile setScanClass: CLASS_MISSILE];
-	[missile addTarget:target];
 	[missile setQRotation:q1];
+	[missile setScanClass: CLASS_NO_DRAW];	// make it invisible
+	[missile addTarget:target];
 	[missile setStatus: STATUS_IN_FLIGHT];  // necessary to get it going!
 	[missile setVelocity: vel];
 	[missile setSpeed:150.0];
@@ -4818,6 +4923,7 @@ Vector randomPositionInBoundingBox(BoundingBox bb)
 	//[missile setReportAImessages:YES];
 	//
 	[universe addEntity:missile];
+	[missile setScanClass: CLASS_MISSILE];	// make it visible
 	//NSLog(@"Missile collision radius is %.1f",missile->collision_radius);
 	[missile release]; //release
 	
@@ -4963,7 +5069,9 @@ Vector randomPositionInBoundingBox(BoundingBox bb)
 	[pod setOwner:self];
 	[pod setScanClass: CLASS_CARGO];
 	[pod setCommodity:[universe commodityForName:@"Slaves"] andAmount:1];
+	[[pod getAI] setStateMachine:@"homeAI.plist"];
 	[self dumpItem:pod];
+	[[pod getAI] setState:@"GLOBAL"];
 	[pod release]; //release
 		
 	return [pod universal_id];
@@ -5502,22 +5610,25 @@ Vector randomPositionInBoundingBox(BoundingBox bb)
 {
 	BOOL pairing_okay = NO;
 	
-	// check status
-	//if (!accepts_escorts)
-	//	return NO;
-	
 	// if not in standard ai mode reject approach
 	//NSLog(@"%@ %d asked to accept %@ %d as escort when ai_stack_depth is %d", name, universal_id, [other_ship name], [other_ship universal_id], [shipAI ai_stack_depth]);
 	if ([shipAI ai_stack_depth] > 1)
 		return NO;
 	
-//	pairing_okay |= (([roles isEqual:@"trader"])&&([[other_ship roles] isEqual:@"escort"]));
 	pairing_okay |= (([roles isEqual:@"trader"])&&([[other_ship roles] isEqual:@"escort"]));
 	pairing_okay |= (([roles isEqual:@"police"])&&([[other_ship roles] isEqual:@"wingman"]));
 	pairing_okay |= (([roles isEqual:@"interceptor"])&&([[other_ship roles] isEqual:@"wingman"]));
 	
 	if (pairing_okay)
 	{
+		// copy legal status across
+		if (bounty)
+		{
+			int extra = 1 | (ranrot_rand() & 15);
+			bounty += extra;	// obviously we're dodgier than we thought!
+			[other_ship setBounty: extra];
+		}
+		
 		// check it's not already been accepted
 		int i;
 		for (i = 0; i < n_escorts; i++)

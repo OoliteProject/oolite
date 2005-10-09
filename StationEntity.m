@@ -315,22 +315,32 @@ Your fair use and other rights are in no way affected by the above.
 	[shipAI message:@"DOCKING_COMPLETE"];
 }
 
+NSDictionary* instructions(int station_id, Vector coords, float speed, float range, NSString* ai_message, NSString* comms_message, BOOL match_rotation)
+{
+	NSMutableDictionary* acc = [NSMutableDictionary dictionaryWithCapacity:8];
+	[acc setObject:[NSString stringWithFormat:@"%.2f %.2f %.2f", coords.x, coords.y, coords.z] forKey:@"destination"];
+	[acc setObject:[NSNumber numberWithFloat:speed] forKey:@"speed"];
+	[acc setObject:[NSNumber numberWithFloat:range] forKey:@"range"];
+	[acc setObject:[NSNumber numberWithInt:station_id] forKey:@"station_id"];
+	[acc setObject:[NSNumber numberWithBool:match_rotation] forKey:@"match_rotation"];
+	if (ai_message)
+		[acc setObject:ai_message forKey:@"ai_message"];
+	if (comms_message)
+		[acc setObject:comms_message forKey:@"comms_message"];
+	//
+	return [NSDictionary dictionaryWithDictionary:acc];
+}
+
 // this routine does more than set coordinates - it provides a whole set of docking instructions and messages at each stage..
 //
 - (NSDictionary *) dockingInstructionsForShip:(ShipEntity *) ship
 {	
 	Vector		coords;
-
-	Vector		approach_coords;
-	float		approach_speed;
-	float		approach_to_range;
 	
 	int			ship_id = [ship universal_id];
 	NSString*   shipID = [NSString stringWithFormat:@"%d", ship_id];
 
-	Quaternion q1 = q_rotation;
-	q1 = quaternion_multiply(port_qrotation, q1);
-	Vector launchVector = vector_forward_from_quaternion(q1);
+	Vector launchVector = vector_forward_from_quaternion( quaternion_multiply(port_qrotation, q_rotation));
 	Vector temp = (fabsf(launchVector.x) < 0.8)? make_vector(1,0,0) : make_vector(0,1,0);
 	temp = cross_product( launchVector, temp);	// 90 deg to launchVector & temp
 	Vector vi = cross_product( launchVector, temp);
@@ -343,34 +353,12 @@ Your fair use and other rights are in no way affected by the above.
 	if ((ship->isPlayer)&&([ship legal_status] > 50))
 	{
 		// refuse docking to the fugitive
-	
-		approach_coords = ship->position;
-		approach_speed = 0;
-		approach_to_range = 100;
-		
-		return	[NSDictionary dictionaryWithObjectsAndKeys:
-					[NSString stringWithFormat:@"%.2f %.2f %.2f", approach_coords.x, approach_coords.y, approach_coords.z], @"destination",
-					[NSNumber numberWithFloat:approach_speed], @"speed",
-					[NSNumber numberWithFloat:approach_to_range], @"range",
-					@"[station-docking-refused-to-fugitive]", @"comms_message",
-					[NSNumber numberWithInt:universal_id], @"station_id",
-					@"DOCKING_REFUSED", @"ai_message", nil];  // hold position
+		return instructions( universal_id, ship->position, 0, 100, @"DOCKING_REFUSED", @"[station-docking-refused-to-fugitive]", NO);
 	}
 	
 	if (no_docking_while_launching)
 	{
-//		NSLog(@"DEBUG %@ %d refusing because of no docking while launching", name, universal_id);
-
-		approach_coords = ship->position;
-		approach_speed = 0;
-		approach_to_range = 100;
-		
-		return	[NSDictionary dictionaryWithObjectsAndKeys:
-					[NSString stringWithFormat:@"%.2f %.2f %.2f", approach_coords.x, approach_coords.y, approach_coords.z], @"destination",
-					[NSNumber numberWithFloat:approach_speed], @"speed",
-					[NSNumber numberWithFloat:approach_to_range], @"range",
-					[NSNumber numberWithInt:universal_id], @"station_id",
-					@"TRY_AGAIN_LATER", @"ai_message", nil];  // try again
+		return instructions( universal_id, ship->position, 0, 100, @"TRY_AGAIN_LATER", nil, NO);
 	}
 	
 	if (![shipsOnApproach objectForKey:shipID])
@@ -379,64 +367,50 @@ Your fair use and other rights are in no way affected by the above.
 	if	((magnitude2(velocity) > 1.0)||((![self isRotatingStation])&&((fabs(flight_pitch) > 0.01)||(fabs(flight_roll) > 0.01))))		// no docking while moving
 	{
 //		NSLog(@"DEBUG %@ %d refusing docking to %@ because of motion", name, universal_id, [ship name]);
+//
+//		[shipAI message:@"DOCKING_REQUESTED"];	// note the request again!
 
-		[shipAI message:@"DOCKING_REQUESTED"];	// note the request again!
-
-		approach_coords = ship->position;
-		approach_speed = 0;
-		approach_to_range = 100;
-		
-		return	[NSDictionary dictionaryWithObjectsAndKeys:
-					[NSString stringWithFormat:@"%.2f %.2f %.2f", approach_coords.x, approach_coords.y, approach_coords.z], @"destination",
-					[NSNumber numberWithFloat:approach_speed], @"speed",
-					[NSNumber numberWithFloat:approach_to_range], @"range",
-					[NSNumber numberWithInt:universal_id], @"station_id",
-					@"HOLD_POSITION", @"ai_message", nil];  // hold position
+		return instructions( universal_id, ship->position, 0, 100, @"HOLD_POSITION", nil, NO);
 	}
 	
 	// check if this is a new ship on approach
 	//
 	if (![shipsOnApproach objectForKey:shipID])
-		[self addShipToShipsOnApproach: ship];
+	{
+		Vector	delta = ship->position;
+		delta.x -= position.x;	delta.y -= position.y;	delta.z -= position.z;
+		float	ship_distance = sqrt( magnitude2( delta));
 
+		[self addShipToShipsOnApproach: ship];
+		
+		if (ship_distance < 1000.0 + collision_radius + ship->collision_radius)	// too close - back off
+			return instructions( universal_id, position, 0, 5000, @"BACK_OFF", nil, NO);
+		
+		if (ship_distance > 12500.0)	// long way off - approach more closely
+			return instructions( universal_id, position, 0, 10000, @"APPROACH", nil, NO);
+	}
+	
 	if (![shipsOnApproach objectForKey:shipID])
 	{
 		// some error has occurred - log it, and send the try-again message
 		NSLog(@"ERROR - couldn't addShipToShipsOnApproach:%@ in %@ for some reason.", ship, self);
 		//
-		approach_coords = ship->position;
-		approach_speed = 0;
-		approach_to_range = 100;
-		
-		return	[NSDictionary dictionaryWithObjectsAndKeys:
-					[NSString stringWithFormat:@"%.2f %.2f %.2f", approach_coords.x, approach_coords.y, approach_coords.z], @"destination",
-					[NSNumber numberWithFloat:approach_speed], @"speed",
-					[NSNumber numberWithFloat:approach_to_range], @"range",
-					[NSNumber numberWithInt:universal_id], @"station_id",
-					@"TRY_AGAIN_LATER", @"ai_message", nil];  // try again
+		return instructions( universal_id, ship->position, 0, 100, @"TRY_AGAIN_LATER", nil, NO);
 	}
 
 
 	//	shipsOnApproach now has an entry for the ship.
 	//
 	NSMutableArray* coordinatesStack = (NSMutableArray *)[shipsOnApproach objectForKey:shipID];
-//	NSLog(@"DEBUG coordinatesStack = %@", [coordinatesStack description]);
 
 	if ([coordinatesStack count] == 0)
 	{
 		NSLog(@"DEBUG ERROR! -- coordinatesStack = %@", [coordinatesStack description]);
-		approach_coords = ship->position;
-		approach_speed = 0;
-		approach_to_range = 100;
-	
-		return	[NSDictionary dictionaryWithObjectsAndKeys:
-					[NSString stringWithFormat:@"%.2f %.2f %.2f", approach_coords.x, approach_coords.y, approach_coords.z], @"destination",
-					[NSNumber numberWithFloat:approach_speed], @"speed",
-					[NSNumber numberWithFloat:approach_to_range], @"range",
-					[NSNumber numberWithInt:universal_id], @"station_id",
-					@"HOLD_POSITION", @"ai_message", nil];  // hold position
-	}
 		
+		return instructions( universal_id, ship->position, 0, 100, @"HOLD_POSITION", nil, NO);
+	}
+	
+	// get the docking information from the instructions	
 	NSMutableDictionary* nextCoords = (NSMutableDictionary *)[coordinatesStack objectAtIndex:0];
 	int docking_stage = [(NSNumber *)[nextCoords objectForKey:@"docking_stage"] intValue];
 	float speedAdvised = [(NSNumber *)[nextCoords objectForKey:@"speed"] floatValue];
@@ -444,34 +418,31 @@ Your fair use and other rights are in no way affected by the above.
 	BOOL match_rotation = ([nextCoords objectForKey:@"match_rotation"] != nil);
 	NSString* comms_message = (NSString*)[nextCoords objectForKey:@"comms_message"];
 	
+	// calculate world coordinates from relative coordinates
 	Vector rel_coords;
 	rel_coords.x = [(NSNumber *)[nextCoords objectForKey:@"rx"] floatValue];
 	rel_coords.y = [(NSNumber *)[nextCoords objectForKey:@"ry"] floatValue];
 	rel_coords.z = [(NSNumber *)[nextCoords objectForKey:@"rz"] floatValue];
-	
 	coords = [self getPortPosition];
 	coords.x += rel_coords.x * vi.x + rel_coords.y * vj.x + rel_coords.z * vk.x;
 	coords.y += rel_coords.x * vi.y + rel_coords.y * vj.y + rel_coords.z * vk.y;
 	coords.z += rel_coords.x * vi.z + rel_coords.y * vj.z + rel_coords.z * vk.z;
 	
-	double allowed_range = 100.0 + ship->collision_radius;
-	
-	Vector ship_position = ship->position;
-	Vector delta = coords;
-	delta.x -= ship_position.x;	delta.y -= ship_position.y;	delta.z -= ship_position.z;
+	// check if the ship is at the control point
+	double max_allowed_range = 2.0 * rangeAdvised + ship->collision_radius;	// maximum distance permitted from control point - twice advised range
+	Vector delta = ship->position;
+	delta.x -= coords.x;	delta.y -= coords.y;	delta.z -= coords.z;
 
-	if (magnitude2(delta) > allowed_range * allowed_range)	// further than 100m from the coordinates - do not remove them from the stack!
+//	if (ship->isPlayer)
+//		NSLog(@"DEBUG docking_stage %d: ship is %.2fm from control point ( %.2f, %.2f, %.2f)",
+//			docking_stage, sqrt(magnitude2(delta)), coords.x, coords.y, coords.z);
+
+	if (magnitude2(delta) > max_allowed_range * max_allowed_range)	// too far from the coordinates - do not remove them from the stack!
 	{
-		approach_coords = coords;
-		approach_speed = speedAdvised;
-		approach_to_range = rangeAdvised;
-							
-			return	[NSDictionary dictionaryWithObjectsAndKeys:
-						[NSString stringWithFormat:@"%.2f %.2f %.2f", approach_coords.x, approach_coords.y, approach_coords.z], @"destination",
-						[NSNumber numberWithFloat:approach_speed], @"speed",
-						[NSNumber numberWithFloat:approach_to_range], @"range",
-						[NSNumber numberWithInt:universal_id], @"station_id",
-						@"APPROACH_COORDINATES", @"ai_message", nil];  // proceed to coordinates
+		if ((docking_stage == 1) &&(magnitude2(delta) < 1000000.0))	// 1km*1km
+			speedAdvised *= 0.5;	// half speed
+		
+		return instructions( universal_id, coords, speedAdvised, rangeAdvised, @"APPROACH_COORDINATES", nil, NO);
 	}
 	else
 	{
@@ -488,52 +459,38 @@ Your fair use and other rights are in no way affected by the above.
 		if (comms_message)
 			[self sendExpandedMessage: comms_message toShip: ship];
 				
-		// set the docking coordinates
+		// calculate world coordinates from relative coordinates
 		rel_coords.x = [(NSNumber *)[nextCoords objectForKey:@"rx"] floatValue];
 		rel_coords.y = [(NSNumber *)[nextCoords objectForKey:@"ry"] floatValue];
 		rel_coords.z = [(NSNumber *)[nextCoords objectForKey:@"rz"] floatValue];
-
 		coords = [self getPortPosition];
 		coords.x += rel_coords.x * vi.x + rel_coords.y * vj.x + rel_coords.z * vk.x;
 		coords.y += rel_coords.x * vi.y + rel_coords.y * vj.y + rel_coords.z * vk.y;
 		coords.z += rel_coords.x * vi.z + rel_coords.y * vj.z + rel_coords.z * vk.z;
 		
-		int i;	// clear any previously owned docking stages
-		for (i = 2; i < MAX_DOCKING_STAGES; i++)
-			if ((id_lock[i] == ship_id)||([universe entityForUniversalID:id_lock[i]] == nil))
-				id_lock[i] = NO_TARGET;
-				
 		if ((id_lock[docking_stage] == NO_TARGET)
 			&&(id_lock[docking_stage + 1] == NO_TARGET)	
 			&&(id_lock[docking_stage + 2] == NO_TARGET))	// check three stages ahead
 		{
 			// approach is clear - move to next position
 			//
+			int i;	// clear any previously owned docking stages
+			for (i = 1; i < MAX_DOCKING_STAGES; i++)
+				if ((id_lock[i] == ship_id)||([universe entityForUniversalID:id_lock[i]] == nil))
+					id_lock[i] = NO_TARGET;
+					
 			if (docking_stage > 1)	// don't claim first docking stage
-				id_lock[docking_stage] = ship_id;	// claim this docking stage
+				id_lock[docking_stage] = ship_id;	// otherwise - claim this docking stage
 			
 			//remove the previous stage from the stack
 			[coordinatesStack removeObjectAtIndex:0];
-
-//			NSLog(@"DEBUG ::::: %@ %d Next docking coordinates ---> (%.2f, %.2f, %.2f)", [ship name], ship_id, coords.x, coords.y, coords.z);
 			
-			approach_coords = coords;
-			approach_speed = speedAdvised;
-			approach_to_range = rangeAdvised;
-								
-			return	[NSDictionary dictionaryWithObjectsAndKeys:
-						[NSString stringWithFormat:@"%.2f %.2f %.2f", approach_coords.x, approach_coords.y, approach_coords.z], @"destination",
-						[NSNumber numberWithFloat:approach_speed], @"speed",
-						[NSNumber numberWithFloat:approach_to_range], @"range",
-						[NSNumber numberWithBool:match_rotation], @"match_rotation",
-						[NSNumber numberWithInt:universal_id], @"station_id",
-						@"APPROACH_COORDINATES", @"ai_message", nil];  // hold position
+			return instructions( universal_id, coords, speedAdvised, rangeAdvised, @"APPROACH_COORDINATES", nil, match_rotation);
 		}
 		else
 		{
 			// approach isn't clear - hold position..
 			//
-//			NSLog(@"DEBUG ::::: %@ %d Hold position ...", [ship name], ship_id);
 			[[ship getAI] message:@"HOLD_POSITION"];
 			
 			if (![nextCoords objectForKey:@"hold_message_given"])
@@ -543,37 +500,18 @@ Your fair use and other rights are in no way affected by the above.
 				[self sendExpandedMessage: @"[station-hold-position]" toShip: ship];
 				[nextCoords setObject:@"YES" forKey:@"hold_message_given"];
 			}
-						
-			approach_coords = position;
-			approach_speed = 0;
-			approach_to_range = 100;
-								
-			return	[NSDictionary dictionaryWithObjectsAndKeys:
-						[NSString stringWithFormat:@"%.2f %.2f %.2f", approach_coords.x, approach_coords.y, approach_coords.z], @"destination",
-						[NSNumber numberWithFloat:approach_speed], @"speed",
-						[NSNumber numberWithFloat:approach_to_range], @"range",
-						[NSNumber numberWithInt:universal_id], @"station_id",
-						@"HOLD_POSITION", @"ai_message", nil];  // hold position
+
+			return instructions( universal_id, ship->position, 0, 100, @"HOLD_POSITION", nil, NO);
 		}
 	}
 	
 	// we should never reach here.
-	
-	approach_coords = coords;
-	approach_speed = 50;
-	approach_to_range = 10;
-						
-	return	[NSDictionary dictionaryWithObjectsAndKeys:
-				[NSString stringWithFormat:@"%.2f %.2f %.2f", approach_coords.x, approach_coords.y, approach_coords.z], @"destination",
-				[NSNumber numberWithFloat:approach_speed], @"speed",
-				[NSNumber numberWithFloat:approach_to_range], @"range",
-				[NSNumber numberWithInt:universal_id], @"station_id",
-				@"APPROACH_COORDINATES", @"ai_message", nil];  // hold position
+	return instructions( universal_id, coords, 50, 10, @"APPROACH_COORDINATES", nil, NO);
 }
 
 - (void) addShipToShipsOnApproach:(ShipEntity *) ship
 {		
-	int			corridor_distance[] =	{	-1,	1,	3,	5,	7,	9,	11,	12,	11};
+	int			corridor_distance[] =	{	-1,	1,	3,	5,	7,	9,	11,	12,	12};
 	int			corridor_offset[] =		{	0,	0,	0,	0,	0,	0,	1,	3,	12};
 	int			corridor_speed[] =		{	48,	48,	48,	48,	36,	48,	64,	128, 512};	// how fast to approach the next point
 	int			corridor_range[] =		{	24,	12,	6,	4,	4,	6,	15,	38,	96};	// how close you have to get to the target point
@@ -581,26 +519,41 @@ Your fair use and other rights are in no way affected by the above.
 	int			corridor_count = 9;
 	int			corridor_final_approach = 3;
 	
+//	NSLog(@"DEBUG adding %@ to shipsOnApproach", ship);
+	
 	int			ship_id = [ship universal_id];
 	NSString*   shipID = [NSString stringWithFormat:@"%d", ship_id];
 
-	Quaternion q1 = q_rotation;
-	q1 = quaternion_multiply(port_qrotation, q1);
-	Vector launchVector = vector_forward_from_quaternion(q1);
+	Vector launchVector = vector_forward_from_quaternion( quaternion_multiply(port_qrotation, q_rotation));
 	Vector temp = (fabsf(launchVector.x) < 0.8)? make_vector(1,0,0) : make_vector(0,1,0);
 	temp = cross_product( launchVector, temp);	// 90 deg to launchVector & temp
 	Vector rightVector = cross_product( launchVector, temp);
 	Vector upVector = cross_product( launchVector, rightVector);
 	
-	Vector v_off;
 	// will select a direction for offset based on the shipID
 	//
 	int offset_id = ship_id & 0xf;	// 16  point compass
 	double c = cos(offset_id * PI * ONE_EIGHTH);
 	double s = sin(offset_id * PI * ONE_EIGHTH);
-	v_off.x = c * upVector.x + s * rightVector.x;
-	v_off.y = c * upVector.y + s * rightVector.y;
-	v_off.z = c * upVector.z + s * rightVector.z;
+	
+	// test if this points at the ship
+	Vector point1 = [self getPortPosition];
+	point1.x += launchVector.x * corridor_offset[corridor_count - 1];
+	point1.y += launchVector.x * corridor_offset[corridor_count - 1];
+	point1.z += launchVector.x * corridor_offset[corridor_count - 1];
+	Vector alt1 = point1;
+	point1.x += c * upVector.x * corridor_offset[corridor_count - 1] + s * rightVector.x * corridor_offset[corridor_count - 1];
+	point1.y += c * upVector.y * corridor_offset[corridor_count - 1] + s * rightVector.y * corridor_offset[corridor_count - 1];
+	point1.z += c * upVector.z * corridor_offset[corridor_count - 1] + s * rightVector.z * corridor_offset[corridor_count - 1];
+	alt1.x -= c * upVector.x * corridor_offset[corridor_count - 1] + s * rightVector.x * corridor_offset[corridor_count - 1];
+	alt1.y -= c * upVector.y * corridor_offset[corridor_count - 1] + s * rightVector.y * corridor_offset[corridor_count - 1];
+	alt1.z -= c * upVector.z * corridor_offset[corridor_count - 1] + s * rightVector.z * corridor_offset[corridor_count - 1];
+	if (distance2( alt1, ship->position) < distance2( point1, ship->position))
+	{
+		s = -s;
+		c = -c;	// turn 180 degrees
+	}
+	
 	//
 	NSMutableArray*		coordinatesStack =  [NSMutableArray arrayWithCapacity: MAX_DOCKING_STAGES];
 	double port_depth = 250;	// 250m deep standard port
@@ -641,7 +594,7 @@ Your fair use and other rights are in no way affected by the above.
 	}
 					
 	[shipsOnApproach setObject:coordinatesStack forKey:shipID];
-
+	
 	approach_spacing += 500;  // space out incoming ships by 500m
 	
 	// COMM-CHATTER

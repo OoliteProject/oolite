@@ -1579,6 +1579,14 @@ static BOOL galactic_witchjump;
 			}
 		}
 	}
+	
+	// update trumbles (moved from drawTrumbles
+	OOTrumble** trumbles = [self trumbleArray];
+	for (i = [self n_trumbles]; i > 0; i--)
+	{
+		OOTrumble* trum = trumbles[i - 1];
+		[trum updateTrumble:delta_t];
+	}
 }
 
 - (void) doBookkeeping:(double) delta_t
@@ -2255,32 +2263,31 @@ static BOOL galactic_witchjump;
 
 - (void) tidyMissilePylons
 {
-   // Shuffle missiles up so there's:
-   // no gaps between missiles
-   // the first missile is in the first pylon
-   int i;
-   int pylon=0;
-   for(i = 0; i < SHIPENTITY_MAX_MISSILES; i++)
-   {
-      if(missile_entity[i])
-      {
-         missile_entity[pylon]=missile_entity[i];
-         pylon++;
-      }
-   }
+	// Shuffle missiles up so there's:
+	// no gaps between missiles
+	// the first missile is in the first pylon
+	int i;
+	int pylon=0;
+	for(i = 0; i < SHIPENTITY_MAX_MISSILES; i++)
+	{
+		if(missile_entity[i])
+			{
+			missile_entity[pylon]=missile_entity[i];
+			pylon++;
+			}
+	}
 
-   // missiles have been shoved up, now make sure the remainder
-   // of the pylons are cleaned up.
-   for(i = pylon; i < SHIPENTITY_MAX_MISSILES; i++)
-   {
-      missile_entity[i]=nil;
-   }
+	// missiles have been shoved up, now make sure the remainder
+	// of the pylons are cleaned up.
+	for(i = pylon; i < SHIPENTITY_MAX_MISSILES; i++)
+	{
+		missile_entity[i]=nil;
+	}
 }
 
 - (void) select_next_missile
 {
 	int i;
-      
 	for (i = 1; i < max_missiles; i++)
 	{
 		int next_missile = (active_missile + i) % max_missiles;
@@ -5229,11 +5236,15 @@ static BOOL toggling_music;
 	//
 	credits += score;
 	//
-	NSString* bonusMS1 = [NSString stringWithFormat:[universe expandDescription:@"[bounty-d]" forSystem:system_seed], score / 10];
-	NSString* bonusMS2 = [NSString stringWithFormat:[universe expandDescription:@"[total-f-credits]" forSystem:system_seed], 0.1 * credits];
-	//
-	[universe addDelayedMessage:bonusMS1 forCount:6 afterDelay:0.15];
-	[universe addDelayedMessage:bonusMS2 forCount:6 afterDelay:0.15];
+	if (score)
+	{
+		NSString* bonusMS1 = [NSString stringWithFormat:[universe expandDescription:@"[bounty-d]" forSystem:system_seed], score / 10];
+		NSString* bonusMS2 = [NSString stringWithFormat:[universe expandDescription:@"[total-f-credits]" forSystem:system_seed], 0.1 * credits];
+		//
+		if (score > 9)
+			[universe addDelayedMessage:bonusMS1 forCount:6 afterDelay:0.15];
+		[universe addDelayedMessage:bonusMS2 forCount:6 afterDelay:0.15];
+	}
 	//
 	while (kill_award > 0)
 	{
@@ -5254,12 +5265,12 @@ static BOOL toggling_music;
 	int n_mass = [self mass] / 10000;
 	int n_considered = n_cargo + n_mass;
 	int damage_to = ranrot_rand() % n_considered;
-//	NSLog(@"DEBUG ***** max cargo [%d] + mass (/10t) [%d] = [%d]\t hit = [%d]", n_cargo, n_mass, n_considered, damage_to);
 	if (damage_to < [cargo count])
 	{
-//		NSLog(@"DEBUG ***** cargo item %d (%@) destroyed", damage_to, [cargo objectAtIndex:damage_to]);
 		ShipEntity* pod = (ShipEntity*)[cargo objectAtIndex:damage_to];
 		NSString* cargo_desc = [universe nameForCommodity:[pod getCommodityType]];
+		if (!cargo_desc)
+			return;
 		[universe clearPreviousMessage];
 		[universe addMessage:[NSString stringWithFormat:[universe expandDescription:@"[@-destroyed]" forSystem:system_seed],cargo_desc] forCount:4.5];
 		[cargo removeObject:pod];
@@ -5274,7 +5285,6 @@ static BOOL toggling_music;
 		NSArray* systems = [extra_equipment allKeys];
 		NSString* system_key = [systems objectAtIndex:damage_to];
 		NSString* system_name = nil;
-//		NSLog(@"DEBUG ***** system %d (%@) destroyed", damage_to, system_key);
 		if (([system_key hasSuffix:@"MISSILE"])||([system_key hasSuffix:@"MINE"])||([system_key isEqual:@"EQ_CARGO_BAY"]))
 			return;
 		NSArray* eq = [universe equipmentdata];
@@ -5285,13 +5295,13 @@ static BOOL toggling_music;
 			if ([system_key isEqual:[eqd objectAtIndex:EQUIPMENT_KEY_INDEX]])
 				system_name = (NSString*)[eqd objectAtIndex:EQUIPMENT_SHORT_DESC_INDEX];
 		}
+		if (!system_name)
+			return;
 		[universe clearPreviousMessage];
 		[universe addMessage:[NSString stringWithFormat:[universe expandDescription:@"[@-destroyed]" forSystem:system_seed],system_name] forCount:4.5];
 		[self removeEquipment:system_key];
 		if (![universe strict])
 			[self add_extra_equipment:[NSString stringWithFormat:@"%@_DAMAGED", system_key]];	// for possible future repair
-		
-//		NSLog(@"DEBUG extra_equipment now : %@", extra_equipment);
 	}
 }
 
@@ -6621,7 +6631,16 @@ static int last_outfitting_index;
 		NSString*	eq_key = (NSString*)[(NSArray*)[equipdata objectAtIndex:i] objectAtIndex:EQUIPMENT_KEY_INDEX];
 		NSString*	eq_key_damaged	= [NSString stringWithFormat:@"%@_DAMAGED", eq_key];
 		int			min_techlevel   = [(NSNumber *)[(NSArray *)[equipdata objectAtIndex:i] objectAtIndex:EQUIPMENT_TECH_LEVEL_INDEX] intValue];
-
+		
+		// check if this is a mission special ..
+		if (min_techlevel == 99)
+		{
+			// check mission variables for the existence of a revised tech level (given when item is awarded)
+			NSString* mission_eq_tl_key = [NSString stringWithFormat:@"mission_TL_FOR_%@", eq_key];
+			if ([mission_variables objectForKey:mission_eq_tl_key])
+				min_techlevel = [[mission_variables objectForKey:mission_eq_tl_key] intValue];
+		}
+		
 		// if you have a dmaged system you can get it repaired at a tech level one less than that required to buy it
 		if ([self has_extra_equipment:eq_key_damaged])
 			min_techlevel--;
@@ -7119,6 +7138,28 @@ static int last_outfitting_index;
 		return YES;
 	}
 	
+	// check energy unit replacement
+	if ([eq_key hasSuffix:@"ENERGY_UNIT"]&&(energy_unit != ENERGY_UNIT_NONE))
+	{
+		switch (energy_unit)
+		{
+			case ENERGY_UNIT_NAVAL :
+				[self removeEquipment:@"EQ_NAVAL_ENERGY_UNIT"];
+				credits += [universe getPriceForWeaponSystemWithKey:@"EQ_NAVAL_ENERGY_UNIT"] / 2;	// 50 % refund
+				break;
+				
+			case ENERGY_UNIT_NORMAL :
+				[self removeEquipment:@"EQ_ENERGY_UNIT"];
+				credits += [universe getPriceForWeaponSystemWithKey:@"EQ_ENERGY_UNIT"] * 3 / 4;	// 75 % refund
+				break;
+				
+			case ENERGY_UNIT_NONE :
+			default :
+				break;
+		}
+	}
+	
+	// repair damaged system
 	if ([eq_key isEqual:@"EQ_RENOVATION"])
 	{
 		int techlevel =		[(NSNumber *)[[universe generateSystemData:system_seed] objectForKey:KEY_TECHLEVEL] intValue];

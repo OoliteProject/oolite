@@ -3002,6 +3002,12 @@ Your fair use and other rights are in no way affected by the above.
 			int			draw_count = 0;
 			for (i = 0; i < ent_count; i++)
 			{
+				/* LOOKING FOR THE HEISENBUG
+				
+				have I considered what may happen if sortedEntities changes during this loop ????
+				
+				*/
+				
 				// we check to see that we draw only the things that need to be drawn!
 				Entity* e = sortedEntities[i]; // ordered NEAREST -> FURTHEST AWAY
 				double	zd2 = e->zero_distance;
@@ -3551,9 +3557,13 @@ Your fair use and other rights are in no way affected by the above.
 		
 //		NSLog(@"DEBUG ++(%@)", entity);
 		
-		// maintain sorted list
-		double z_distance = distance2( entity->position, [self entityZero]->position);
+		// maintain sorted list (and for the scanner relative position)
+		Vector player_pos = [self entityZero]->position;
+		Vector entity_pos = entity->position;
+		Vector delta = make_vector( entity_pos.x - player_pos.x, entity_pos.y - player_pos.y, entity_pos.z - player_pos.z);
+		double z_distance = magnitude2( delta);
 		entity->zero_distance = z_distance;
+		entity->relative_position = delta;
 		index = n_entities;
 		sortedEntities[index] = entity;
 		entity->z_index = index;
@@ -3581,6 +3591,13 @@ Your fair use and other rights are in no way affected by the above.
 	{
 //		NSLog(@"DEBUG --(%@) from %d", entity, entity->z_index);
 
+		// moved forward ^^
+		// remove from the reference dictionary
+		int old_id = [entity universal_id];
+		entity_for_uid[old_id] = nil;
+		[entity setUniversal_id:NO_TARGET];
+		[entity setUniverse:nil];
+		
 		// maintain sorted list
 		int index = entity->z_index;
 		int n = 1;
@@ -3621,12 +3638,6 @@ Your fair use and other rights are in no way affected by the above.
 //		for (index = 0; index < n_entities; index++)
 //			NSLog(@"----- %d %.0f %@", sortedEntities[index]->z_index, sortedEntities[index]->zero_distance, sortedEntities[index]);
 		//
-		
-		// remove from the reference dictionary
-		int old_id = [entity universal_id];
-		entity_for_uid[old_id] = nil;
-		[entity setUniversal_id:NO_TARGET];
-		[entity setUniverse:nil];
 		
 		// remove from the definitive list
 		if ([entities containsObject:entity])
@@ -5764,22 +5775,6 @@ double estimatedTimeForJourney(double distance, int hops)
 				// 50 cr per hop + 8..15 cr per LY + bonus for low government level of destination
 				int fee = route_hops * 50 + route_length * (8 + (passenger_seed.e & 7)) + 5 * (7 - destination_government) * (7 - destination_government);
 				
-//				// do some cunning rounding
-//				int superfee = 100000;
-//				int rounded_fee = superfee * floor(0.5 + (float)fee / (float)superfee);
-//				if (!rounded_fee)
-//					rounded_fee = 1;
-//				float ratio = fee / rounded_fee;
-//				while (((ratio < 0.95)||(ratio > 1.05))&&(superfee > 0))
-//				{
-//					superfee /= 10;
-//					rounded_fee = superfee * floor(0.5 + (float)fee / (float)superfee);
-//					if (!rounded_fee)
-//						rounded_fee = 1;
-//					ratio = (float)fee / (float)rounded_fee;
-//				}
-//				if ((ratio > 0.95)&&(ratio < 1.05))
-//					fee = rounded_fee;
 				fee = cunningFee(fee);
 				
 				// premium = 20% of fee
@@ -6016,9 +6011,9 @@ double estimatedTimeForJourney(double distance, int hops)
 					co_amount += (1 + (ranrot_rand() & 31)) * (1 + (ranrot_rand() & 15)) * [self getRandomAmountOfCommodity:co_type];
 					
 				// calculate a quantity discount
-				int discount = floor (0.1 * co_amount);
-				if (discount > 20)
-					discount = 20;
+				int discount = 10 + floor (0.1 * co_amount);
+				if (discount > 35)
+					discount = 35;
 				
 				int price_per_unit = [(NSNumber *)[(NSArray *)[localMarket objectAtIndex:co_type] objectAtIndex:MARKET_PRICE] intValue] * (100 - discount) / 100 ;
 				
@@ -6026,7 +6021,7 @@ double estimatedTimeForJourney(double distance, int hops)
 				float local_cargo_value = 0.1 * co_amount * price_per_unit;
 				
 				// and the mark-up
-				float destination_cargo_value = 0.1 * co_amount * [(NSNumber *)[(NSArray *)[destinationMarket objectAtIndex:co_type] objectAtIndex:MARKET_PRICE] intValue];
+				float destination_cargo_value = 0.1 * co_amount * [(NSNumber *)[(NSArray *)[destinationMarket objectAtIndex:co_type] objectAtIndex:MARKET_PRICE] intValue] * (200 + discount) / 200 ;
 				
 				// total profit
 				float profit_for_trip = destination_cargo_value - local_cargo_value;
@@ -6055,22 +6050,6 @@ double estimatedTimeForJourney(double distance, int hops)
 						// what the contract pays
 						float fee = profit_for_trip * contract_share / 100;
 						
-//						// do some cunning rounding
-//						float superfee = 100000;
-//						int rounded_fee = superfee * floor(0.5 + fee / superfee);
-//						if (!rounded_fee)
-//							rounded_fee = 1;
-//						float ratio = fee / (float)rounded_fee;
-//						while (((ratio < 0.95)||(ratio > 1.05))&&(superfee > 1))
-//						{
-//							superfee /= 10;
-//							rounded_fee = superfee * floor(0.5 + fee / superfee);
-//							if (!rounded_fee)
-//								rounded_fee = 1;
-//							ratio = fee / (float)rounded_fee;
-//						}
-//						if ((ratio > 0.95)&&(ratio < 1.05))
-//							fee = rounded_fee;
 						fee = cunningFee(fee);
 
 						// premium = local price
@@ -6358,20 +6337,6 @@ double estimatedTimeForJourney(double distance, int hops)
 				[short_description appendFormat:@" Forward weapon upgraded to %@.", [fwd_weapon_desc lowercaseString]];
 			}
 			
-//			// do some cunning rounding
-//			price -= base_price;
-//			float superprice = 1000000;
-//			int rounded_price = superprice * floor(0.5 + price / superprice);
-//			float ratio = (float)rounded_price / price;
-//			while (((ratio < 0.99)||(ratio > 1.05))&&(superprice > 1))
-//			{
-//				superprice /= 10;
-//				rounded_price = superprice * floor(0.5 + price / superprice);
-//				ratio = (float)rounded_price / price;
-//			}
-//			if ((ratio > 0.99)&&(ratio < 1.05))
-//				price = rounded_price;
-//			price += base_price;
 			price = base_price + cunningFee(price - base_price);
 				
 			[description appendFormat:@" Selling price %d Cr.", price];

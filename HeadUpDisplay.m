@@ -1544,8 +1544,6 @@ static BOOL hostiles;
 	if (!player)
 		return;
 		
-	double dt = [[player universe] getTimeDelta];
-	
 	OOTrumble** trumbles = [player trumbleArray];
 	int i;
 	for (i = [player n_trumbles]; i > 0; i--)
@@ -1555,7 +1553,7 @@ static BOOL hostiles;
 //		trumpos.x -= 32;
 //		trumpos.y += 32;
 		
-		[trum updateTrumble:dt];
+//		[trum updateTrumble:dt];
 		[trum drawTrumble: z1];
 		
 //		glColor4fv(yellow_color);

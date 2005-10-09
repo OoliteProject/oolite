@@ -386,10 +386,17 @@ Your fair use and other rights are in no way affected by the above.
 		glLightfv(GL_LIGHT1, GL_DIFFUSE, sun_diffuse);
 		glLightfv(GL_LIGHT1, GL_POSITION, sun_center_position);
 		glLightModelfv(GL_LIGHT_MODEL_AMBIENT, stars_ambient);
+		//
+		// light for demo ships display.. 
+		GLfloat	white[] = { 1.0, 1.0, 1.0, 1.0};	// white light
+		glLightfv(GL_LIGHT0, GL_AMBIENT, white);
+		glLightfv(GL_LIGHT0, GL_DIFFUSE, white);
+		glLightfv(GL_LIGHT0, GL_SPECULAR, white);
 	}
 	
-	glEnable(GL_LIGHTING);		// lighting
 	glEnable(GL_LIGHT1);		// lighting
+	glEnable(GL_LIGHT0);		// lighting
+	glEnable(GL_LIGHTING);		// lighting
 	
 	// world's simplest OpenGL optimisations...
 	glHint(GL_TRANSFORM_HINT_APPLE, GL_FASTEST);

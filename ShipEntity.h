@@ -453,7 +453,7 @@ Vector randomPositionInBoundingBox(BoundingBox bb);
 - (int) condition;
 - (void) setCondition:(int) cond;
 
-- (void) trackOntoTarget:(double) delta_t;
+- (void) trackOntoTarget:(double) delta_t withDForward: (GLfloat) dp;
 
 - (double) ballTrackTarget:(double) delta_t;
 - (double) ballTrackLeadingTarget:(double) delta_t;
@@ -467,6 +467,7 @@ Vector randomPositionInBoundingBox(BoundingBox bb);
 - (Vector) distance_twelve: (GLfloat) dist;
 
 - (double) trackPrimaryTarget:(double) delta_t :(BOOL) retreat;
+- (double) missileTrackPrimaryTarget:(double) delta_t;
 - (double) rangeToPrimaryTarget;
 - (BOOL) onTarget:(BOOL) fwd_weapon;
 

@@ -503,77 +503,6 @@ Your fair use and other rights are in no way affected by the above.
 	frustration = 0.0;
 }
 
-- (void) requestDockingCoordinates
-{
-	/*- requests coordinates from the nearest station it can find (which may be a rock hermit) -*/
-	StationEntity* station =  nil;
-	Entity* targStation = [universe entityForUniversalID:targetStation];
-	if ((targStation)&&(targStation->isStation))
-	{
-		station = (StationEntity*)[universe entityForUniversalID:targetStation];
-	}
-	else
-	{
-		if (!universe)
-			return;
-		int			ent_count =		universe->n_entities;
-		Entity**	uni_entities =	universe->sortedEntities;	// grab the public sorted list
-		Entity*		my_entities[ent_count];
-		int i;
-		int station_count = 0;
-		for (i = 0; i < ent_count; i++)
-			if (uni_entities[i]->isStation)
-				my_entities[station_count++] = [uni_entities[i] retain];		//	retained
-		//
-		double nearest2 = SCANNER_MAX_RANGE2 * 1000000.0; // 1000x scanner range (25600 km), squared.
-		for (i = 0; i < station_count; i++)
-		{
-			StationEntity* thing = (StationEntity *)my_entities[i];
-			double range2 = distance2( position, thing->position);
-			if (range2 < nearest2)
-			{
-				station = thing;
-				targetStation = [station universal_id];
-				nearest2 = range2;
-			}
-		}
-		for (i = 0; i < station_count; i++)
-			[my_entities[i] release];	//		released
-	}
-	//
-	if (station)
-	{
-		NSDictionary*	instructions = [station dockingInstructionsForShip:self];
-//		NSLog(@"DEBUG docking instructions for %@ :\n%@", self, instructions);
-		coordinates = [Entity vectorFromString:(NSString *)[instructions objectForKey:@"destination"]];
-		destination = coordinates;
-		desired_speed = [(NSNumber *)[instructions objectForKey:@"speed"] floatValue];
-		if (desired_speed > max_flight_speed)
-			desired_speed = max_flight_speed;
-		desired_range = [(NSNumber *)[instructions objectForKey:@"range"] floatValue];
-		if ([instructions objectForKey:@"ai_message"])
-			[shipAI message:(NSString *)[instructions objectForKey:@"ai_message"]];
-		if ([instructions objectForKey:@"comms_message"])
-			[station sendExpandedMessage:(NSString *)[instructions objectForKey:@"comms_message"] toShip:self];
-		if ([dockingInstructions objectForKey:@"station_id"])
-		{
-			primaryTarget = [(NSNumber *)[dockingInstructions objectForKey:@"station_id"] intValue];
-			targetStation = primaryTarget;
-		}
-		if ([dockingInstructions objectForKey:@"match_rotation"])
-			docking_match_rotation = [(NSNumber*)[dockingInstructions objectForKey:@"match_rotation"] boolValue];
-		else
-			docking_match_rotation = NO;
-		if (dockingInstructions)
-			[dockingInstructions release];
-		dockingInstructions = [instructions retain];
-	}
-	else
-	{
-		[shipAI message:@"NO_STATION_FOUND"];
-	}
-}
-
 - (void) getWitchspaceEntryCoordinates
 {
 	/*- calculates coordinates from the nearest station it can find, or just fly 10s forward -*/
@@ -1802,26 +1731,95 @@ Your fair use and other rights are in no way affected by the above.
 		[shipAI message:@"INTERSTELLAR_SPACE"];
 }
 
+- (void) requestDockingCoordinates
+{
+	/*- requests coordinates from the nearest station it can find (which may be a rock hermit) -*/
+	StationEntity* station =  nil;
+	Entity* targStation = [universe entityForUniversalID:targetStation];
+	if ((targStation)&&(targStation->isStation))
+	{
+		station = (StationEntity*)[universe entityForUniversalID:targetStation];
+	}
+	else
+	{
+		if (!universe)
+			return;
+		int			ent_count =		universe->n_entities;
+		Entity**	uni_entities =	universe->sortedEntities;	// grab the public sorted list
+		Entity*		my_entities[ent_count];
+		int i;
+		int station_count = 0;
+		for (i = 0; i < ent_count; i++)
+			if (uni_entities[i]->isStation)
+				my_entities[station_count++] = [uni_entities[i] retain];		//	retained
+		//
+		double nearest2 = SCANNER_MAX_RANGE2 * 1000000.0; // 1000x scanner range (25600 km), squared.
+		for (i = 0; i < station_count; i++)
+		{
+			StationEntity* thing = (StationEntity *)my_entities[i];
+			double range2 = distance2( position, thing->position);
+			if (range2 < nearest2)
+			{
+				station = thing;
+				targetStation = [station universal_id];
+				nearest2 = range2;
+			}
+		}
+		for (i = 0; i < station_count; i++)
+			[my_entities[i] release];	//		released
+	}
+	//
+	if (station)
+	{
+		NSDictionary*	instructions = [[station dockingInstructionsForShip:self] retain];	// NOTE: retained!
+//		if (isPlayer)	NSLog(@"DEBUG docking instructions for %@ :\n%@", self, instructions);
+		coordinates = [Entity vectorFromString:(NSString *)[instructions objectForKey:@"destination"]];
+		destination = coordinates;
+		desired_speed = [(NSNumber *)[instructions objectForKey:@"speed"] floatValue];
+		if (desired_speed > max_flight_speed)
+			desired_speed = max_flight_speed;
+		desired_range = [(NSNumber *)[instructions objectForKey:@"range"] floatValue];
+		if ([instructions objectForKey:@"ai_message"])
+			[shipAI message:(NSString *)[instructions objectForKey:@"ai_message"]];
+		if ([instructions objectForKey:@"comms_message"])
+			[station sendExpandedMessage:(NSString *)[instructions objectForKey:@"comms_message"] toShip:self];
+		if ([dockingInstructions objectForKey:@"station_id"])
+		{
+			primaryTarget = [(NSNumber *)[dockingInstructions objectForKey:@"station_id"] intValue];
+			targetStation = primaryTarget;
+		}
+		docking_match_rotation = NO;
+		if ([dockingInstructions objectForKey:@"match_rotation"])
+			docking_match_rotation = [(NSNumber*)[dockingInstructions objectForKey:@"match_rotation"] boolValue];
+		// release the old instructions
+		if (dockingInstructions)	[dockingInstructions release];
+		dockingInstructions = instructions;	// NOTE: already retained!
+	}
+	else
+	{
+		[shipAI message:@"NO_STATION_FOUND"];
+	}
+}
+
 - (void) recallDockingInstructions
 {
 	if (dockingInstructions)
 	{
-		NSLog(@"DEBUG recalling docking instructions for %@ :\n%@", self, dockingInstructions);
+//		if (isPlayer)	NSLog(@"DEBUG recalling docking instructions for %@ :\n%@", self, dockingInstructions);
 		coordinates = [Entity vectorFromString:(NSString *)[dockingInstructions objectForKey:@"destination"]];
 		destination = coordinates;
 		desired_speed = [(NSNumber *)[dockingInstructions objectForKey:@"speed"] floatValue];
 		if (desired_speed > max_flight_speed)
 			desired_speed = max_flight_speed;
 		desired_range = [(NSNumber *)[dockingInstructions objectForKey:@"range"] floatValue];
-		if ([dockingInstructions objectForKey:@"match_rotation"])
-			docking_match_rotation = [(NSNumber*)[dockingInstructions objectForKey:@"match_rotation"] boolValue];
-		else
-			docking_match_rotation = NO;
 		if ([dockingInstructions objectForKey:@"station_id"])
 		{
 			primaryTarget = [(NSNumber *)[dockingInstructions objectForKey:@"station_id"] intValue];
 			targetStation = primaryTarget;
 		}
+		docking_match_rotation = NO;
+		if ([dockingInstructions objectForKey:@"match_rotation"])
+			docking_match_rotation = [(NSNumber*)[dockingInstructions objectForKey:@"match_rotation"] boolValue];
 	}
 }
 

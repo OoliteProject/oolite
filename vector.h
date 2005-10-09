@@ -141,6 +141,10 @@ Vector	vector_forward_from_quaternion(Quaternion quat);
 //
 Quaternion	quaternion_rotation_between(Vector v0, Vector v1);
 
+// produce a quaternion representing an angle between two vectors with a maximum arc
+//
+Quaternion	quaternion_limited_rotation_between(Vector v0, Vector v1, float maxArc);	// vectors both normalised
+
 //
 // rotate about fixed axes
 //

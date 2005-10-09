@@ -223,35 +223,37 @@ Your fair use and other rights are in no way affected by the above.
 			// no scaling required - we will use the image data directly
 			textureData = [NSData dataWithBytes:imageBuffer length: im_bytes];		// copies the data
 		}
-					   
-		glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
-		glGenTextures(1, &texName);						// get a new unique texture name
-		glBindTexture(GL_TEXTURE_2D, texName);	// initialise it
-	
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);		// adjust this
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);		// adjust this
-	
-		if (n_planes == 4)
-			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, textureRect.size.width, textureRect.size.height, 0, GL_RGBA, GL_UNSIGNED_BYTE, [textureData bytes]);
-		else
-			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, textureRect.size.width, textureRect.size.height, 0, GL_RGB, GL_UNSIGNED_BYTE, [textureData bytes]);
-	
-		// add to dictionary
-		//
-		[texProps setObject:textureData forKey:@"textureData"];
-		[texProps setObject:[NSNumber numberWithInt:texName] forKey:@"texName"];
-		[texProps setObject:[NSNumber numberWithInt:textureRect.size.width] forKey:@"width"];
-		[texProps setObject:[NSNumber numberWithInt:textureRect.size.height] forKey:@"height"];
+		
 
-		[textureDictionary setObject:texProps forKey:filename];
-	}
-	else
-	{
-		texName = (GLuint)[(NSNumber *)[[textureDictionary objectForKey:filename] objectForKey:@"texName"] intValue];
-	}
-	return texName;
+                
+        glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+        glGenTextures(1, &texName);			// get a new unique texture name
+        glBindTexture(GL_TEXTURE_2D, texName);	// initialise it
+    
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);	// adjust this
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);	// adjust this
+    
+        if (n_planes == 4)
+			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, texture_w, texture_h, 0, GL_RGBA, GL_UNSIGNED_BYTE, [textureData bytes]);
+		else
+			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, texture_w, texture_h, 0, GL_RGB, GL_UNSIGNED_BYTE, [textureData bytes]);
+    
+        // add to dictionary
+        //
+        [texProps setObject:textureData forKey:@"textureData"];
+        [texProps setObject:[NSNumber numberWithInt:texName] forKey:@"texName"];
+        [texProps setObject:[NSNumber numberWithInt:texture_w] forKey:@"width"];
+        [texProps setObject:[NSNumber numberWithInt:texture_h] forKey:@"height"];
+
+        [textureDictionary setObject:texProps forKey:filename];
+    }
+    else
+    {
+        texName = (GLuint)[(NSNumber *)[[textureDictionary objectForKey:filename] objectForKey:@"texName"] intValue];
+    }
+    return texName;
 }
 
 - (NSSize) getSizeOfTexture:(NSString *)filename
