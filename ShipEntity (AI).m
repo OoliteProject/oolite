@@ -1340,9 +1340,10 @@ Your fair use and other rights are in no way affected by the above.
 		if ([roles isEqual:@"wingman"])
 		{
 			// become free-lance police :)
-			[shipAI release];
-			shipAI = [[AI alloc] initWithStateMachine:@"route1patrolAI.plist" andState:@"GLOBAL"];
-			[shipAI setOwner: self];
+			[shipAI setStateMachine:@"route1patrolAI.plist"];	// use this to avoid referencing a released AI
+//			[shipAI release];
+//			shipAI = [[AI alloc] initWithStateMachine:@"route1patrolAI.plist" andState:@"GLOBAL"];
+//			[shipAI setOwner: self];
 		}
 	}
 
