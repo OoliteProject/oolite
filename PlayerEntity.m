@@ -6631,6 +6631,10 @@ static BOOL toggling_music;
 
          [gui setKey: GUI_KEY_OK forRow: stickmap_row];
       }
+      else
+      {
+		   [gui setColor:[NSColor grayColor] forRow:stickmap_row];
+      }
          
 		//
 #ifdef GNUSTEP
