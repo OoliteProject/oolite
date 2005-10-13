@@ -147,12 +147,6 @@ Your fair use and other rights are in no way affected by the above.
 
 - (void) setStateMachine:(NSString *) smName
 {
-    //NSString *filepath;
-	
-	//
-	//filepath = [[[[[NSBundle mainBundle] bundlePath] stringByAppendingPathComponent:@"Contents"] stringByAppendingPathComponent:@"Resources"] stringByAppendingPathComponent:smName];
-    //
-    //NSLog(@"Loading AI data from %@",filepath);
     //
 	[aiLock lock];
 	//
@@ -162,7 +156,6 @@ Your fair use and other rights are in no way affected by the above.
 		[stateMachine release];
     }
 	stateMachine = [[ResourceManager dictionaryFromFilesNamed:smName inFolder:@"AIs" andMerge:NO] retain];
-	//stateMachine = [[NSDictionary alloc] initWithContentsOfFile:filepath]; // alloc retains
 	//
 	[aiLock unlock];
 	//
@@ -344,6 +337,12 @@ Your fair use and other rights are in no way affected by the above.
 - (double) thinkTimeInterval
 {
 	return thinkTimeInterval;
+}
+
+- (NSString*) description
+{
+	NSString* result = [[NSString alloc] initWithFormat:@"<AI in state '%@'>", currentState ];
+	return [result autorelease];
 }
 
 @end

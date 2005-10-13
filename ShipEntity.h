@@ -509,6 +509,8 @@ Vector randomPositionInBoundingBox(BoundingBox bb);
 - (void) switchLightsOff;
 
 - (void) setDestination:(Vector) dest;
+
+inline BOOL pairOK(NSString* my_role, NSString* their_role);
 - (BOOL) acceptAsEscort:(ShipEntity *) other_ship;
 - (Vector) getCoordinatesForEscortPosition:(int) f_pos;
 - (void) deployEscorts;

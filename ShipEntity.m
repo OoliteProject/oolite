@@ -58,11 +58,9 @@ Your fair use and other rights are in no way affected by the above.
 	death_actions = [[NSMutableArray alloc] initWithCapacity:4];
 	//
 	// escorts
-	//escorts = [[NSMutableArray alloc] initWithCapacity:4];
 	last_escort_target = NO_TARGET;
 	n_escorts = 0;
     escortsAreSetUp = YES;
-	//accepts_escorts = NO;
 	//
     quaternion_set_identity(&q_rotation);
     quaternion_into_gl_matrix(q_rotation, rotMatrix);
@@ -338,7 +336,7 @@ Your fair use and other rights are in no way affected by the above.
 		
 		[escorter setScanClass: CLASS_NEUTRAL];
 		[escorter setPosition:ex_pos];
-		[escorter setBounty:0];
+		
 		[escorter setStatus:STATUS_IN_FLIGHT];
 		
 		[escorter setRoles:escortRole];
@@ -353,9 +351,25 @@ Your fair use and other rights are in no way affected by the above.
 		[escorter setGroup_id:universal_id];
 		[self setGroup_id:universal_id];		// make self part of same group
 		
+		[escorter setOwner: self];	// make self group leader
+		
 		[[escorter getAI] setState:@"FLYING_ESCORT"];	// begin immediately
 		
-//		NSLog(@"DEBUG set up escort ship %@ %d for %@ %@ %d", [escorter name], [escorter universal_id], roles, name, universal_id);
+		if (bounty)
+		{
+			int extra = 1 | (ranrot_rand() & 15);
+			bounty += extra;	// obviously we're dodgier than we thought!
+			[escorter setBounty: extra];
+//			NSLog(@"DEBUG setting bounty for %@ escorting %@ to %d", escorter, self, extra);
+			
+//			[escorter setReportAImessages: YES ]; // debug
+		}
+		else
+		{
+			[escorter setBounty:0];
+		}
+		
+//		NSLog(@"DEBUG set up escort ship %@ for %@", escorter, self);
 						
 		[escorter release];
 		n_escorts--;
@@ -5606,36 +5620,35 @@ Vector randomPositionInBoundingBox(BoundingBox bb)
 	frustration = 0.0;	// new destination => no frustration!
 }
 
-- (BOOL) acceptAsEscort:(ShipEntity *) other_ship
+inline BOOL pairOK(NSString* my_role, NSString* their_role)
 {
 	BOOL pairing_okay = NO;
+	
+	pairing_okay |= (![my_role isEqual:@"escort"] && ![my_role isEqual:@"wingman"] && [their_role isEqual:@"escort"]);
+	pairing_okay |= (([my_role isEqual:@"police"]||[my_role isEqual:@"interceptor"]) && [their_role isEqual:@"wingman"]);
+	
+	return pairing_okay;
+}
+
+- (BOOL) acceptAsEscort:(ShipEntity *) other_ship
+{	
+	// can't pair with self
+	if (self == other_ship)
+		return NO;
 	
 	// if not in standard ai mode reject approach
 	//NSLog(@"%@ %d asked to accept %@ %d as escort when ai_stack_depth is %d", name, universal_id, [other_ship name], [other_ship universal_id], [shipAI ai_stack_depth]);
 	if ([shipAI ai_stack_depth] > 1)
 		return NO;
 	
-	pairing_okay |= (([roles isEqual:@"trader"])&&([[other_ship roles] isEqual:@"escort"]));
-	pairing_okay |= (([roles isEqual:@"police"])&&([[other_ship roles] isEqual:@"wingman"]));
-	pairing_okay |= (([roles isEqual:@"interceptor"])&&([[other_ship roles] isEqual:@"wingman"]));
-	
-	if (pairing_okay)
+	if (pairOK( roles, [other_ship roles]))
 	{
-		// copy legal status across
-		if (bounty)
-		{
-			int extra = 1 | (ranrot_rand() & 15);
-			bounty += extra;	// obviously we're dodgier than we thought!
-			[other_ship setBounty: extra];
-		}
-		
 		// check it's not already been accepted
 		int i;
 		for (i = 0; i < n_escorts; i++)
 		{
 			if (escort_ids[i] == [other_ship universal_id])
 			{
-				//NSLog(@"DEBUG trader %@ %d has already accepted escort %@ %d", name, universal_id, [other_ship name], [other_ship universal_id]);
 				[other_ship setGroup_id:universal_id];
 				[self setGroup_id:universal_id];		// make self part of same group
 				return YES;
@@ -5650,7 +5663,7 @@ Vector randomPositionInBoundingBox(BoundingBox bb)
 			n_escorts++;
 			
 			//debug
-			//NSLog(@"DEBUG %@ %@ %d accepts escort %@ %d", roles, name, universal_id, [other_ship name], [other_ship universal_id]);
+//			NSLog(@"DEBUG ::YES:: %@ accepts escort %@", self, other_ship);
 			
 			return YES;
 		}

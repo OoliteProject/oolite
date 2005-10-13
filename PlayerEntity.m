@@ -2455,6 +2455,9 @@ static BOOL target_missile_pressed;
 static BOOL ident_pressed;
 static BOOL safety_pressed;
 static BOOL cloak_pressed;
+static int				saved_view_direction;
+static double			saved_script_time;
+static NSTimeInterval	time_last_frame;
 - (void) pollFlightControls:(double) delta_t
 {
 	MyOpenGLView  *gameView = (MyOpenGLView *)[universe gameView];
@@ -2603,30 +2606,6 @@ static BOOL cloak_pressed;
 					}
 				}
 			}
-//			//
-//			//  shoot '9'   // ship debugger
-//			//
-//			if ([gameView isDown: 57])
-//			{
-//				// debug for the target ship only
-//				if ([self getPrimaryTarget])
-//				{
-//					ShipEntity* ship = (ShipEntity*)[self getPrimaryTarget];
-//					ShipEntity* debugShip = (ShipEntity*)[universe entityForUniversalID:debugShipID];
-//					if (ship != debugShip)
-//					{
-//						[debugShip setReportAImessages:NO];
-//						[ship setReportAImessages:YES];
-//						debugShipID = [ship universal_id];
-//					}
-//				}
-//				else
-//				{
-//					ShipEntity* debugShip = (ShipEntity*)[universe entityForUniversalID:debugShipID];
-//					[debugShip setReportAImessages:NO];
-//					debugShipID = NO_TARGET;
-//				}
-//			}
 			//
 			//  shoot 'm'   // launch missile
 			//
@@ -3045,7 +3024,29 @@ static BOOL cloak_pressed;
 	}
 	else
 	{
-		// game is paused look for debugging keys
+		// game is paused
+		
+		// check options menu request
+		if ((([gameView isDown:gvFunctionKey2])||([gameView isDown:gvNumberKey2]))&&(gui_screen != GUI_SCREEN_OPTIONS))
+		{
+			[gameView clearKeys];
+			[self setGuiToLoadSaveScreen];
+			[universe setDisplayText:YES];
+			[universe setDisplayCursor:YES];
+		}
+		//
+		if (gui_screen == GUI_SCREEN_OPTIONS)
+		{
+			NSTimeInterval time_this_frame = [NSDate timeIntervalSinceReferenceDate];
+			double time_delta = time_this_frame - time_last_frame;
+			time_last_frame = time_this_frame;
+			if ((time_delta > MINIMUM_GAME_TICK)||(time_delta < 0.0))
+				time_delta = MINIMUM_GAME_TICK;		// peg the maximum pause (at 0.5->1.0 seconds) to protect against when the machine sleeps	
+			script_time += time_delta;
+			[self pollGuiArrowKeyControls:time_delta];
+		}
+
+		// look for debugging keys
 		if ([gameView isDown:48])// look for the '0' key
 		{
 			if (!cloak_pressed)
@@ -3064,12 +3065,20 @@ static BOOL cloak_pressed;
 		{
 			if (paused)
 			{
+				script_time = saved_script_time;
+				gui_screen = GUI_SCREEN_MAIN;
+				[gameView allowStringInput:NO];
+				[universe setDisplayCursor:NO];
 				[universe clearPreviousMessage];
+				[universe setViewDirection:saved_view_direction];
 				[[gameView gameController] unpause_game];
 			}
 			else
 			{
+				saved_view_direction = [universe viewDir];
+				saved_script_time = script_time;
 				[universe addMessage:[universe expandDescription:@"[game-paused]" forSystem:system_seed] forCount:1.0];
+				[universe addMessage:[universe expandDescription:@"[game-paused-options]" forSystem:system_seed] forCount:1.0];
 				[[gameView gameController] pause_game];
 			}
 		}
@@ -6536,7 +6545,14 @@ static BOOL toggling_music;
 		}
 		//
 		[gui setText:@" Begin New Game "	forRow:begin_new_row	align:GUI_ALIGN_CENTER];
-		[gui setKey:GUI_KEY_OK forRow:begin_new_row];
+		if (![[universe gameController] game_is_paused])
+		{
+			[gui setKey:GUI_KEY_OK forRow:begin_new_row];
+		}
+		else
+		{
+			[gui setColor:[NSColor grayColor] forRow:begin_new_row];
+		}
 		//
 		[gui setText:@"Game Options:"		forRow:options_row		align:GUI_ALIGN_CENTER];
 		[gui setColor:[NSColor grayColor] forRow:options_row];

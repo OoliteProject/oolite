@@ -162,6 +162,8 @@ Your fair use and other rights are in no way affected by the above.
 	ai_think_time = AI_THINK_INTERVAL;				// one eighth of a second
 	//
 	shipdata = [[ResourceManager dictionaryFromFilesNamed:@"shipdata.plist" inFolder:@"Config" andMerge:YES] retain];
+//	[shipdata writeToFile:@"full-shipdata.plist" atomically:YES];	// dump for testing
+	//
 	shipyard = [[ResourceManager dictionaryFromFilesNamed:@"shipyard.plist" inFolder:@"Config" andMerge:YES] retain];
 	//
 	commoditylists = [(NSDictionary *)[ResourceManager dictionaryFromFilesNamed:@"commodities.plist" inFolder:@"Config" andMerge:YES] retain];
@@ -526,7 +528,11 @@ Your fair use and other rights are in no way affected by the above.
 	NSLog(@"DEBUG ENTITY DUMP: [entities count] = %d,\tn_entities = %d", [entities count], n_entities);
 	int i;
 	for (i = 0; i < n_entities; i++)
-		NSLog(@"-> Ent:%d\t\t%@", i, sortedEntities[i]);
+	{
+		ShipEntity* se = (sortedEntities[i]->isShip)? (ShipEntity*)sortedEntities[i]: nil;
+		NSString* ai_status = [[se getAI] description];
+		NSLog(@"-> Ent:%d\t\t%@ %@", i, sortedEntities[i], ai_status);
+	}
 	if ([entities count] != n_entities)
 		NSLog(@"entities = %@", [entities description]);
 }
@@ -701,7 +707,10 @@ Your fair use and other rights are in no way affected by the above.
 	//
 	
 	/*- the sky backdrop -*/
-	thing = [[SkyEntity alloc] initAsWitchspace];	// alloc retains!
+	NSColor *col1 = [NSColor colorWithCalibratedRed:0.0 green:1.0 blue:0.5 alpha:1.0];
+	NSColor *col2 = [NSColor colorWithCalibratedRed:0.0 green:1.0 blue:0.0 alpha:1.0];
+//	thing = [[SkyEntity alloc] initAsWitchspace];	// alloc retains!
+	thing = [[SkyEntity alloc] initWithColors:col1:col2 andSystemInfo: systeminfo];	// alloc retains!
 	[thing setScanClass: CLASS_NO_DRAW];
 	quaternion_set_random(&randomQ);
 	[thing setQRotation:randomQ];
@@ -868,7 +877,7 @@ Your fair use and other rights are in no way affected by the above.
 	
 	[a_planet setPlanetType:PLANET_TYPE_GREEN];
 	[a_planet setStatus:STATUS_ACTIVE];
-	[a_planet setPosition:0.0:0.0:(12.0 + (ranrot_rand() % 3) - (ranrot_rand() % 3) ) * planet_radius]; // 10..14 pr (planet radii)  ahead
+	[a_planet setPosition:0.0:0.0:(12.0 + (ranrot_rand() & 3) - (ranrot_rand() & 3) ) * planet_radius]; // 10..14 pr (planet radii)  ahead
 	[a_planet setScanClass: CLASS_NO_DRAW];
 	[a_planet setEnergy:  1000000.0];
 	[self addEntity:a_planet]; // [entities addObject:a_planet];

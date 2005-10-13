@@ -1207,6 +1207,15 @@ Your fair use and other rights are in no way affected by the above.
 	{
 		if ([mother acceptAsEscort:self])
 		{
+			// copy legal status across
+			if (([mother legal_status] > 0)&&(bounty <= 0))
+			{
+				int extra = 1 | (ranrot_rand() & 15);
+				[mother setBounty: [mother legal_status] + extra];
+				bounty += extra;	// obviously we're dodgier than we thought!
+//				NSLog(@"DEBUG setting new bounty for %@ escorting %@ to %d", self, mother, extra);
+			}
+			//
 			[self setOwner:mother];
 			[shipAI message:@"ESCORTING"];
 			return;
@@ -1297,7 +1306,6 @@ Your fair use and other rights are in no way affected by the above.
 - (void) scanForFormationLeader
 {
 	//-- Locates the nearest suitable formation leader in range --//
-	BOOL pair_okay;
 	found_target = NO_TARGET;
 	if (!universe)
 		return;
@@ -1316,10 +1324,7 @@ Your fair use and other rights are in no way affected by the above.
 		ShipEntity* ship = (ShipEntity *)my_entities[i];
 		if (ship != self)
 		{
-			pair_okay = ([roles isEqual:@"escort"]&&[[ship roles] isEqual:@"trader"]);
-			pair_okay |= ([roles isEqual:@"wingman"]&&[[ship roles] isEqual:@"police"]);
-			pair_okay |= ([roles isEqual:@"wingman"]&&[[ship roles] isEqual:@"interceptor"]);
-			if (pair_okay)
+			if (pairOK( roles, [ship roles]))
 			{
 				double d2 = distance2( position, ship->position);
 				if (d2 < found_d2)
@@ -1341,9 +1346,6 @@ Your fair use and other rights are in no way affected by the above.
 		{
 			// become free-lance police :)
 			[shipAI setStateMachine:@"route1patrolAI.plist"];	// use this to avoid referencing a released AI
-//			[shipAI release];
-//			shipAI = [[AI alloc] initWithStateMachine:@"route1patrolAI.plist" andState:@"GLOBAL"];
-//			[shipAI setOwner: self];
 		}
 	}
 

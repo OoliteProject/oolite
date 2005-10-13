@@ -405,6 +405,10 @@
 	<array>
 		<string>Game paused.</string>
 	</array>
+	<key>game-paused-options</key>
+	<array>
+		<string>Press F2 for options, P to resume.</string>
+	</array>
 	<key>game-saved</key>
 	<array>
 		<string>Game saved.</string>
