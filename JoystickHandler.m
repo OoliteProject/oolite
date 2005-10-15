@@ -322,6 +322,7 @@
    // Is there a callback we need to make?
    if(cbObject && (cbHardware & HW_AXIS) && abs(axisvalue) > AXCBTHRESH)
    {
+      NSLog(@"Callback...");
       NSDictionary *fnDict=[NSDictionary dictionaryWithObjectsAndKeys:
           [NSNumber numberWithBool: YES], STICK_ISAXIS,
           [NSNumber numberWithInt: evt->which], STICK_NUMBER, 
@@ -335,7 +336,23 @@
       return;
    }
 
-   int function=axismap[evt->which][evt->axis];
+   // SDL seems to have some bizarre (perhaps a bug) behaviour when
+   // events get queued up because the game isn't ready to handle
+   // them (perhaps it's loading a commander and initializing the
+   // universe, and the main event loop is blocked).
+   // What happens is SDL lies about the axis that was triggered. For
+   // each queued event it adds 1 to the axis number!! This does
+   // not seem to happen with buttons.
+   int function;
+   if(evt->axis < MAX_AXES)
+   {
+      function=axismap[evt->which][evt->axis];
+   }
+   else
+   {
+      NSLog(@"Stick axis out of range - axis was %d", evt->axis);
+      return;
+   }
    switch (function)
    {
       case STICK_NOFUNCTION:
@@ -382,7 +399,17 @@
       return;
    }
 
-   int function=buttonmap[evt->which][evt->button];
+   // Defensive measure - see comments in the axis handler for why.
+   int function;
+   if(evt->button < MAX_BUTTONS)
+   {
+      function=buttonmap[evt->which][evt->button];
+   }
+   else
+   {
+      NSLog(@"Joystick button out of range: %d", evt->button);
+      return;
+   }
    if(evt->type == SDL_JOYBUTTONDOWN)
    {
       bs=YES;
