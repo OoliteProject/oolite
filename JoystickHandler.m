@@ -119,7 +119,7 @@
    NSMutableDictionary *fnList=[[NSMutableDictionary alloc] init];
 
    // Add axes
-   for(i=0; i < AXIS_end; i++)
+   for(i=0; i < MAX_AXES; i++)
    {
       for(j=0; j < MAX_STICKS; j++)
       {
@@ -144,7 +144,7 @@
    NSMutableDictionary *fnList=[[NSMutableDictionary alloc] init];
 
    // Add buttons
-   for(i=0; i < BUTTON_end; i++)
+   for(i=0; i < MAX_BUTTONS; i++)
    {
       for(j=0; j < MAX_STICKS; j++)
       {
@@ -188,7 +188,7 @@
                       stick: (int)stickNum
 {
    int i, j;
-   for(i=0; i < AXIS_end; i++)
+   for(i=0; i < MAX_AXES; i++)
    {
       for(j=0; j < MAX_STICKS; j++)
       {
@@ -208,7 +208,7 @@
                         stick: (int)stickNum
 {
    int i, j;
-   for(i=0; i < BUTTON_end; i++)
+   for(i=0; i < MAX_BUTTONS; i++)
    {
       for(j=0; j < MAX_STICKS; j++)
       {
@@ -225,7 +225,7 @@
 - (void) unsetAxisFunction: (int)function
 {
    int i, j;
-   for(i=0; i < AXIS_end; i++)
+   for(i=0; i < MAX_AXES; i++)
    {
       for(j=0; j < MAX_STICKS; j++)
       {
@@ -242,7 +242,7 @@
 - (void) unsetButtonFunction: (int)function
 {
    int i,j;
-   for(i=0; i < BUTTON_end; i++)
+   for(i=0; i < MAX_BUTTONS; i++)
    {
       for(j=0; j < MAX_STICKS; j++)
       {
@@ -269,14 +269,14 @@
 - (void) clearMappings
 {
    int i, j;
-   for(i=0; i < AXIS_end; i++)
+   for(i=0; i < MAX_AXES; i++)
    {
       for(j=0; j < MAX_STICKS; j++)
       {
          axismap[j][i]=STICK_NOFUNCTION;
       }
    }
-   for(i=0; i < BUTTON_end; i++)
+   for(i=0; i < MAX_BUTTONS; i++)
    {
       for(j=0; j < MAX_STICKS; j++)
       {
