@@ -120,10 +120,14 @@ extern int debug;
 	
 	NSPoint virtualJoystickPosition;
 
+   // Full screen sizes
 	NSMutableArray *screenSizes;
 	int currentSize;
-	
 	BOOL fullScreen;
+
+   // Windowed mode
+   NSSize currentWindowSize;
+
 	SDL_Surface* surface;
 
    JoystickHandler *stickHandler;
@@ -132,7 +136,7 @@ extern int debug;
 + (NSMutableDictionary *) getNativeSize;
 
 // override
-- (id) initWithFrame:(NSRect)frameRect;
+- (id) init;
 - (void) dealloc;
 
 - (void) allowStringInput: (BOOL) value;
@@ -166,6 +170,12 @@ extern int debug;
 - (NSMutableArray *)getScreenSizeArray;
 - (void) populateFullScreenModelist;
 - (NSSize) modeAsSize: (int)sizeIndex;
+- (void) saveWindowSize: (NSSize) windowSize;
+- (NSSize) loadWindowSize;
+- (int) loadFullscreenSettings;
+- (int) findDisplayModeForWidth: (unsigned int) d_width Height:(unsigned int) d_height
+                        Refresh: (unsigned int)d_refresh;
+- (NSSize) currentScreenSize;                        
 #endif
 
 /*

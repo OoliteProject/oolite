@@ -148,6 +148,7 @@ Your fair use and other rights are in no way affected by the above.
 
 - (NSDictionary *) findDisplayModeForWidth:(unsigned int) d_width Height:(unsigned int) d_height Refresh:(unsigned int) d_refresh
 {
+#ifndef GNUSTEP
     int i, modeCount;
     NSDictionary *mode;
     unsigned int modeWidth, modeHeight, modeRefresh;
@@ -166,8 +167,12 @@ Your fair use and other rights are in no way affected by the above.
 			return mode;
       }
 	}
-
 	return nil;
+#else
+   int modenum=[gameView findDisplayModeForWidth: d_width Height: d_height Refresh: d_refresh];
+   return [displayModes objectAtIndex: modenum];
+#endif
+   
 }
 
 - (NSArray *) displayModes
@@ -318,9 +323,8 @@ static int _compareModes(id arg1, id arg2, void *context)
 	// is required. The one from main had to be released already because we never go
 	// back there under GNUstep.
 	NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
-
 	gameView = [MyOpenGLView alloc];
-	[gameView initWithFrame: NSMakeRect(0, 0, DISPLAY_MIN_WIDTH, DISPLAY_MIN_HEIGHT)];
+	[gameView init];
 	[gameView setGameController: self];
 #endif
 
@@ -331,64 +335,18 @@ static int _compareModes(id arg1, id arg2, void *context)
 	
 	[self beginSplashScreen];
 	[self logProgress:@"initialising..."];
-	//
-	// check user defaults
-	//
-	width = DISPLAY_MIN_WIDTH;	//  standard screen is 640x480 pixels, 32 bit color, 32 bit z-buffer, refresh rate 75Hz
-	height = DISPLAY_MIN_HEIGHT;
-    colorBits = 32;
-    depthBits = 32;
-    refresh = 75;
-	//
-	//NSLog(@"--- loading userdefaults");
-	//
-	NSUserDefaults *userDefaults = [NSUserDefaults standardUserDefaults];
-	//
-	if ([userDefaults objectForKey:@"display_width"])
-		width = [userDefaults integerForKey:@"display_width"];
-	if ([userDefaults objectForKey:@"display_height"])
-		height = [userDefaults integerForKey:@"display_height"];
-	if ([userDefaults objectForKey:@"display_refresh"])
-		refresh = [userDefaults integerForKey:@"display_refresh"];
-	
 	/* GDC example code */
 
 	[self logProgress:@"getting display modes..."];
 	[self getDisplayModes];
+
+   // keep track of the current full screen mode size
+   NSSize fsmSize=[gameView currentScreenSize];
+   width=fsmSize.width;
+   height=fsmSize.height;
 	
 	/* end GDC */
    
-	fullscreenDisplayMode = [self findDisplayModeForWidth:width Height:height Refresh:refresh];
-	if (fullscreenDisplayMode == nil)
-	{
-		// set full screen mode to first available mode
-		fullscreenDisplayMode = [displayModes objectAtIndex:0];
-        width = [[fullscreenDisplayMode objectForKey: (NSString *)kCGDisplayWidth] intValue];
-        height = [[fullscreenDisplayMode objectForKey: (NSString *)kCGDisplayHeight] intValue];
-        refresh = [[fullscreenDisplayMode objectForKey: (NSString *)kCGDisplayRefreshRate] intValue];
-	}
-   NSLog(@"fullScreenDisplayMode=%@", fullscreenDisplayMode);
-   
-#ifdef GNUSTEP
-   // Note: Under GNUstep (until we have a drag-resizable SDL window)
-   // fullscreenDisplayMode isn't just fullscreen - it's the windowed size
-   // too if the user's default is windowed and not full screen.
-   int modenum=[displayModes indexOfObject:fullscreenDisplayMode];
-   if([userDefaults objectForKey:@"fullscreen"])
-   {
-      [gameView setDisplayMode: modenum 
-                    fullScreen: [userDefaults boolForKey:@"fullscreen"]];
-   }
-   else
-   {
-      // Most Linux/Win32 game players expect games to start full
-      // screen by default, so if this is the first time they have ever
-      // run oolite, they will go into fullscreen in the currently set
-      // resolution.
-      [gameView setDisplayMode:modenum  fullScreen:YES];
-   }
-#endif      
-	
 	// moved to before the Universe is created
 	[self logProgress:@"loading selected expansion packs..."];
 	if (expansionPathsToInclude)

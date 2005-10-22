@@ -77,7 +77,7 @@ Your fair use and other rights are in no way affected by the above.
    return mode;
 }
 
-- (id) initWithFrame:(NSRect)frameRect
+- (id) init
 {
 	self = [super init];
 
@@ -111,11 +111,25 @@ Your fair use and other rights are in no way affected by the above.
    [self populateFullScreenModelist];
 	currentSize = 0;
 
+   // Find what the full screen and windowed settings are.
+   [self loadFullscreenSettings];
+   [self loadWindowSize];
+
 	int videoModeFlags = SDL_HWSURFACE | SDL_OPENGL;
 	if (fullScreen)
+   {
 		videoModeFlags |= SDL_FULLSCREEN;
+      NSSize fs=[self modeAsSize: currentSize];
+	   surface = SDL_SetVideoMode(fs.width, fs.height, 32, videoModeFlags);
+   }
+   else
+   {
+      videoModeFlags |= SDL_RESIZABLE;
+	   surface = SDL_SetVideoMode(currentWindowSize.width, 
+                                 currentWindowSize.height, 
+                                 32, videoModeFlags);
+   }
 
-	surface = SDL_SetVideoMode((int)frameRect.size.width, (int)frameRect.size.height, 32, videoModeFlags);
 	bounds.size.width = surface->w;
 	bounds.size.height = surface->h;
 
@@ -140,7 +154,7 @@ Your fair use and other rights are in no way affected by the above.
 	 
 	m_glContextInitialized = NO;
 
-    return self;
+   return self;
 }
 
 - (void) dealloc
@@ -230,14 +244,18 @@ Your fair use and other rights are in no way affected by the above.
 - (void) toggleScreenMode
 {
    [self setFullScreenMode: !fullScreen];
-   [self initialiseGLWithSize:[self modeAsSize: currentSize]];
+   if(fullScreen)
+      [self initialiseGLWithSize:[self modeAsSize: currentSize]];
+   else
+      [self initialiseGLWithSize: currentWindowSize];
 }
 
 - (void) setDisplayMode:(int)mode  fullScreen:(BOOL)fsm
 {
    [self setFullScreenMode: fsm];
    currentSize=mode;
-   [self initialiseGLWithSize: [self modeAsSize: mode]]; 
+   if(fullScreen)
+      [self initialiseGLWithSize: [self modeAsSize: mode]]; 
 }
 
 - (int) indexOfCurrentSize
@@ -248,7 +266,8 @@ Your fair use and other rights are in no way affected by the above.
 - (void) setScreenSize: (int)sizeIndex
 {
    currentSize=sizeIndex;
-	[self initialiseGLWithSize: [self modeAsSize: currentSize]];
+   if(fullScreen)
+   	[self initialiseGLWithSize: [self modeAsSize: currentSize]];
 }
 
 - (NSMutableArray *)getScreenSizeArray
@@ -331,6 +350,8 @@ Your fair use and other rights are in no way affected by the above.
 	videoModeFlags = SDL_HWSURFACE | SDL_OPENGL;
 	if (fullScreen == YES)
 		videoModeFlags |= SDL_FULLSCREEN;
+   else
+      videoModeFlags |= SDL_RESIZABLE;
 
 	surface = SDL_SetVideoMode((int)v_size.width, (int)v_size.height, 32, videoModeFlags);
 
@@ -801,6 +822,8 @@ Your fair use and other rights are in no way affected by the above.
                   break;
 
                case SDLK_F11:
+                  if(!fullScreen)
+                     break;
                   if(shift)
                   {
                      currentSize--;
@@ -919,6 +942,15 @@ Your fair use and other rights are in no way affected by the above.
                   break;
             }
             break;
+            
+         case SDL_VIDEORESIZE:
+         {
+            SDL_ResizeEvent *rsevt=(SDL_ResizeEvent *)&event;
+            NSSize newSize=NSMakeSize(rsevt->w, rsevt->h);
+            [self initialiseGLWithSize: newSize];
+            [self saveWindowSize: newSize];
+            break;
+         }
       }
    }
 
@@ -1026,6 +1058,95 @@ Your fair use and other rights are in no way affected by the above.
          lasth=modes[i]->h;
       }
    } 
+}
+
+// Save and restore window sizes to/from defaults.
+- (void) saveWindowSize: (NSSize) windowSize
+{
+   NSUserDefaults *defaults=[NSUserDefaults standardUserDefaults];
+   [defaults setInteger: (int)windowSize.width forKey: @"window_width"];
+   [defaults setInteger: (int)windowSize.height forKey: @"window_height"];
+   currentWindowSize=windowSize;
+}
+
+- (NSSize) loadWindowSize
+{
+   NSSize windowSize;
+   NSUserDefaults *defaults=[NSUserDefaults standardUserDefaults];
+   if([defaults objectForKey:@"window_width"] &&
+      [defaults objectForKey:@"window_height"])
+   {
+      windowSize=NSMakeSize([defaults integerForKey: @"window_width"],
+                            [defaults integerForKey: @"window_height"]);
+   }
+   else
+   {  
+      windowSize=NSMakeSize(800, 600);
+   }
+   currentWindowSize=windowSize;
+   return windowSize;
+}
+
+- (int) loadFullscreenSettings
+{
+   currentSize=0;
+   int width, height, refresh;
+
+  	NSUserDefaults *userDefaults = [NSUserDefaults standardUserDefaults];
+	if ([userDefaults objectForKey:@"display_width"])
+		width = [userDefaults integerForKey:@"display_width"];
+	if ([userDefaults objectForKey:@"display_height"])
+		height = [userDefaults integerForKey:@"display_height"];
+	if ([userDefaults objectForKey:@"display_refresh"])
+		refresh = [userDefaults integerForKey:@"display_refresh"];
+   if([userDefaults objectForKey:@"fullscreen"])
+      fullScreen=[userDefaults boolForKey:@"fullscreen"];
+  
+   if(width && height)
+   {
+      currentSize=[self findDisplayModeForWidth: width Height: height Refresh: refresh];
+      return currentSize;
+   }
+   return currentSize;
+} 
+
+- (int) findDisplayModeForWidth:(unsigned int) d_width Height:(unsigned int) d_height Refresh:(unsigned int) d_refresh
+{
+   int i, modeCount;
+   NSDictionary *mode;
+   unsigned int modeWidth, modeHeight, modeRefresh;
+	
+   modeCount = [screenSizes count];
+
+	for (i = 0; i < modeCount; i++)
+	{
+      mode = [screenSizes objectAtIndex: i];
+      modeWidth = [[mode objectForKey: (NSString *)kCGDisplayWidth] intValue];
+      modeHeight = [[mode objectForKey: (NSString *)kCGDisplayHeight] intValue];
+      modeRefresh = [[mode objectForKey: (NSString *)kCGDisplayRefreshRate] intValue];
+	   if ((modeWidth == d_width)&&(modeHeight == d_height)&&(modeRefresh == d_refresh))
+      {
+         NSLog(@"Found mode %@", mode);
+		   return i;
+      }
+	}
+
+   NSLog(@"Failed to find mode: width=%d height=%d refresh=%d", d_width, d_height, d_refresh);
+   NSLog(@"Contents of list: %@", screenSizes);
+	return 0;
+}
+
+- (NSSize) currentScreenSize
+{
+   NSDictionary *mode=[screenSizes objectAtIndex: currentSize];
+   
+   if(mode)
+   {
+      return NSMakeSize([[mode objectForKey: (NSString *)kCGDisplayWidth] intValue],
+                        [[mode objectForKey: (NSString *)kCGDisplayHeight] intValue]);
+   }
+   NSLog(@"Screen size unknown!");
+   return NSMakeSize(800, 600);
 }
 
 - (JoystickHandler *) getStickHandler
