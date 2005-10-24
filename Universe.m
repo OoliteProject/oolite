@@ -118,7 +118,6 @@ Your fair use and other rights are in no way affected by the above.
 	recycleLock =				[[NSLock alloc] init];
 	//
     entities =				[[NSMutableArray arrayWithCapacity:MAX_NUMBER_OF_ENTITIES] retain];
-//    entsInDrawOrder =		[[NSMutableArray arrayWithCapacity:MAX_NUMBER_OF_ENTITIES] retain];
 	//
 	sun_center_position[0] = 4000000.0;
 	sun_center_position[1] = 0.0;
@@ -162,7 +161,6 @@ Your fair use and other rights are in no way affected by the above.
 	ai_think_time = AI_THINK_INTERVAL;				// one eighth of a second
 	//
 	shipdata = [[ResourceManager dictionaryFromFilesNamed:@"shipdata.plist" inFolder:@"Config" andMerge:YES] retain];
-//	[shipdata writeToFile:@"full-shipdata.plist" atomically:YES];	// dump for testing
 	//
 	shipyard = [[ResourceManager dictionaryFromFilesNamed:@"shipyard.plist" inFolder:@"Config" andMerge:YES] retain];
 	//
@@ -198,7 +196,8 @@ Your fair use and other rights are in no way affected by the above.
 	player = [[PlayerEntity alloc] init];	// alloc retains!
 	[self addEntity:player];
 	[player set_up];
-	[player setUpShipFromDictionary:[self getDictionaryForShip:[player ship_desc]]];
+	
+	[player setUpShipFromDictionary:[self getDictionaryForShip:[player ship_desc]]];	// ship desc is the standard cobra at this point
 
 	[player setStatus:STATUS_DEMO];
 	
@@ -355,12 +354,6 @@ Your fair use and other rights are in no way affected by the above.
 		[recycleLock release];
 	recycleLock =				[[NSLock alloc] init];
 	//
-//    entities =				[[NSMutableArray arrayWithCapacity:MAX_NUMBER_OF_ENTITIES] retain];
-//	[entities removeAllObjects];
-//	n_entities = 0;
-//    entsInDrawOrder =		[[NSMutableArray arrayWithCapacity:MAX_NUMBER_OF_ENTITIES] retain];
-//	[entsInDrawOrder removeAllObjects];
-	//
 	sun_center_position[0] = 4000000.0;
 	sun_center_position[1] = 0.0;
 	sun_center_position[2] = 0.0;
@@ -385,7 +378,6 @@ Your fair use and other rights are in no way affected by the above.
 	if (gui)
 		[gui release];
 	gui = [[GuiDisplayGen alloc] init]; // alloc retains
-//    displayGUI = NO;
 	
 	//
 	if (message_gui)
@@ -471,8 +463,6 @@ Your fair use and other rights are in no way affected by the above.
 	
 	[[(MyOpenGLView*)gameView gameController] setPlayerFileToLoad:nil];		// reset Quicksave
 
-//	[player set_up];
-
 	galaxy_seed = [player galaxy_seed];
 	
 	// systems
@@ -499,8 +489,8 @@ Your fair use and other rights are in no way affected by the above.
 	
 	//
 	[player set_up];
-//	NSLog(@"About to set up ship from '%@'", [player ship_desc]);
-	[player setUpShipFromDictionary:[self getDictionaryForShip:[player ship_desc]]];
+	//
+	[player setUpShipFromDictionary:[self getDictionaryForShip:[player ship_desc]]];	// ship_desc is the standard Cobra at this point
 	//
 	[player setStatus:STATUS_DOCKED];
 	[self setViewDirection:VIEW_DOCKED];
@@ -531,7 +521,7 @@ Your fair use and other rights are in no way affected by the above.
 	{
 		ShipEntity* se = (sortedEntities[i]->isShip)? (ShipEntity*)sortedEntities[i]: nil;
 		NSString* ai_status = [[se getAI] description];
-		NSLog(@"-> Ent:%d\t\t%@ %@", i, sortedEntities[i], ai_status);
+		NSLog(@"-> Ent:%d\t\t%@ mass %.2f %@", i, sortedEntities[i], [sortedEntities[i] mass], ai_status);
 	}
 	if ([entities count] != n_entities)
 		NSLog(@"entities = %@", [entities description]);
@@ -757,25 +747,28 @@ Your fair use and other rights are in no way affected by the above.
 	{
 		Quaternion  tharg_quaternion;
 		ShipEntity  *thargoid = [self getShipWithRole:@"thargoid"]; // is retained
-		Vector		tharg_pos = tharg_start_pos;
-		
-		tharg_pos.x += 1.5 * SCANNER_MAX_RANGE * (randf() - 0.5);
-		tharg_pos.y += 1.5 * SCANNER_MAX_RANGE * (randf() - 0.5);
-		tharg_pos.z += 1.5 * SCANNER_MAX_RANGE * (randf() - 0.5);
-		[thargoid setPosition:tharg_pos];
-		quaternion_set_random(&tharg_quaternion);
-		[thargoid setQRotation:tharg_quaternion];
-		[thargoid setScanClass: CLASS_THARGOID];
-		[thargoid setBounty:100];
-		[thargoid setStatus:STATUS_IN_FLIGHT];
-//		[thargoid setReportAImessages:YES];
-		[self addEntity:thargoid];
-		if (thargoid_group == NO_TARGET)
-			thargoid_group = [thargoid universal_id];
-		
-		[thargoid setGroup_id:thargoid_group];
-		
-		[thargoid release];
+		if (thargoid)
+		{
+			Vector		tharg_pos = tharg_start_pos;
+			
+			tharg_pos.x += 1.5 * SCANNER_MAX_RANGE * (randf() - 0.5);
+			tharg_pos.y += 1.5 * SCANNER_MAX_RANGE * (randf() - 0.5);
+			tharg_pos.z += 1.5 * SCANNER_MAX_RANGE * (randf() - 0.5);
+			[thargoid setPosition:tharg_pos];
+			quaternion_set_random(&tharg_quaternion);
+			[thargoid setQRotation:tharg_quaternion];
+			[thargoid setScanClass: CLASS_THARGOID];
+			[thargoid setBounty:100];
+			[thargoid setStatus:STATUS_IN_FLIGHT];
+	//		[thargoid setReportAImessages:YES];
+			[self addEntity:thargoid];
+			if (thargoid_group == NO_TARGET)
+				thargoid_group = [thargoid universal_id];
+			
+			[thargoid setGroup_id:thargoid_group];
+			
+			[thargoid release];
+		}
 	}
 	
 	// NEW
@@ -892,15 +885,27 @@ Your fair use and other rights are in no way affected by the above.
 	double		sun_distance = (20.0 + (ranrot_rand() % 5) - (ranrot_rand() % 5) ) * planet_radius;
 	double		sun_radius = (2.5 + randf() - randf() ) * planet_radius;
 	Quaternion  q_sun;
-	Vector		sunPos = a_planet->position;
-	quaternion_set_random(&q_sun);
-	// set up planet's direction in space so it gets a proper day
-	[a_planet setQRotation:q_sun];
+	Vector		sunPos = make_vector(0,0,0);
 	
-	vf = vector_right_from_quaternion(q_sun);
-	sunPos.x -= sun_distance * vf.x;	// back off from the planet by 16..24 pr
-	sunPos.y -= sun_distance * vf.y;
-	sunPos.z -= sun_distance * vf.z;
+	// here we need to check if the sun collides with (or is too close to) the witchpoint
+	// otherwise at (for example) Maregais in Galaxy 1 we go BANG!
+	do {
+		// show for debugging
+//		if (magnitude2(sunPos))
+//			NSLog(@"DEBUG looping to avoid sun-witchpoint collision!");
+		
+		sunPos = a_planet->position;
+		
+		quaternion_set_random(&q_sun);
+		// set up planet's direction in space so it gets a proper day
+		[a_planet setQRotation:q_sun];
+		
+		vf = vector_right_from_quaternion(q_sun);
+		sunPos.x -= sun_distance * vf.x;	// back off from the planet by 16..24 pr
+		sunPos.y -= sun_distance * vf.y;
+		sunPos.z -= sun_distance * vf.z;
+	
+	} while (magnitude2(sunPos) < 16 * sun_radius * sun_radius);	// stay at least 4 radii away!
 	
 	a_sun = [[PlanetEntity alloc] initAsSunWithColor:pale_bgcolor];	// alloc retains!
 	[a_sun setPlanetType:PLANET_TYPE_SUN];
@@ -939,7 +944,6 @@ Your fair use and other rights are in no way affected by the above.
 	stationPos.y -= station_orbit * vf.y;
 	stationPos.z -= station_orbit * vf.z;
 	//NSLog(@"Station added at vector (%.1f,%.1f,%.1f) from planet",-vf.x,-vf.y,-vf.z);
-//	stationRoll =   0.4;
 	stationDesc = @"coriolis";
 	if (techlevel > 10)
 	{
@@ -953,22 +957,21 @@ Your fair use and other rights are in no way affected by the above.
 	//
 	if ([systeminfo objectForKey:@"station"])
 		stationDesc = (NSString *)[systeminfo objectForKey:@"station"];
-//	if ([systeminfo objectForKey:@"station_roll"])
-//		stationRoll = [(NSNumber *)[systeminfo objectForKey:@"station_roll"] doubleValue];
 	
 	//NSLog(@"* INFO *\t>>\tAdding %@ station for TL %d", stationDesc, techlevel);
 	a_station = (StationEntity *)[self getShipWithRole:stationDesc];			   // retain count = 1
-	[a_station setStatus:STATUS_ACTIVE];
-	[a_station setQRotation: q_station];
-	[a_station setPosition: stationPos];
-//	[a_station setRoll: stationRoll];
-	[a_station setPitch: 0.0];
-	[a_station setScanClass: CLASS_STATION];
-	[a_station setPlanet:(PlanetEntity *)[self entityForUniversalID:planet]];
-	[a_station set_equivalent_tech_level:techlevel];
-	[self addEntity:a_station];
-	station = [a_station universal_id];
-	
+	if (a_station)
+	{
+		[a_station setStatus:STATUS_ACTIVE];
+		[a_station setQRotation: q_station];
+		[a_station setPosition: stationPos];
+		[a_station setPitch: 0.0];
+		[a_station setScanClass: CLASS_STATION];
+		[a_station setPlanet:(PlanetEntity *)[self entityForUniversalID:planet]];
+		[a_station set_equivalent_tech_level:techlevel];
+		[self addEntity:a_station];
+		station = [a_station universal_id];
+	}
 
 	cachedSun = a_sun;
 	cachedPlanet = a_planet;
@@ -995,25 +998,31 @@ Your fair use and other rights are in no way affected by the above.
 	
 	/*- nav beacon -*/
 	nav_buoy = [self getShipWithRole:@"buoy"];	// retain count = 1
-	[nav_buoy setRoll:	0.10];	// zero for debugging
-	[nav_buoy setPitch:	0.15];	// zero for debugging
-	[nav_buoy setPosition: [cachedStation getBeaconPosition]];
-	[nav_buoy setScanClass: CLASS_BUOY];
-	[self addEntity:nav_buoy];
-	[nav_buoy setStatus:STATUS_IN_FLIGHT];
-	[nav_buoy release];
+	if (nav_buoy)
+	{
+		[nav_buoy setRoll:	0.10];	// zero for debugging
+		[nav_buoy setPitch:	0.15];	// zero for debugging
+		[nav_buoy setPosition: [cachedStation getBeaconPosition]];
+		[nav_buoy setScanClass: CLASS_BUOY];
+		[self addEntity:nav_buoy];
+		[nav_buoy setStatus:STATUS_IN_FLIGHT];
+		[nav_buoy release];
+	}
 	/*--*/
 	
 	/*- nav beacon witchpoint -*/
 	Vector witchpoint = [self getWitchspaceExitPosition];	// witchpoint
 	nav_buoy = [self getShipWithRole:@"buoy-witchpoint"];	// retain count = 1
-	[nav_buoy setRoll:	0.10];
-	[nav_buoy setPitch:	0.15];
-	[nav_buoy setPosition: witchpoint.x: witchpoint.y: witchpoint.z];
-	[nav_buoy setScanClass: CLASS_BUOY];
-	[self addEntity:nav_buoy];
-	[nav_buoy setStatus:STATUS_IN_FLIGHT];
-	[nav_buoy release];
+	if (nav_buoy)
+	{
+		[nav_buoy setRoll:	0.10];
+		[nav_buoy setPitch:	0.15];
+		[nav_buoy setPosition: witchpoint.x: witchpoint.y: witchpoint.z];
+		[nav_buoy setScanClass: CLASS_BUOY];
+		[self addEntity:nav_buoy];
+		[nav_buoy setStatus:STATUS_IN_FLIGHT];
+		[nav_buoy release];
+	}
 	/*--*/
 	
 	if (sun_gone_nova)
@@ -1241,24 +1250,27 @@ Your fair use and other rights are in no way affected by the above.
 		launch_pos.y += ship_location * v_route1.y + SCANNER_MAX_RANGE*((ranrot_rand() & 255)/256.0 - 0.5);
 		launch_pos.z += ship_location * v_route1.z + SCANNER_MAX_RANGE*((ranrot_rand() & 255)/256.0 - 0.5);
 		trader_ship = [self getShipWithRole:@"trader"];   // retain count = 1
-		if ((trader_ship)&&(trader_ship->scan_class == CLASS_NOT_SET))
-			[trader_ship setScanClass: CLASS_NEUTRAL];
-		[trader_ship setPosition:launch_pos];
-		[trader_ship setBounty:0];
-		[trader_ship setCargoFlag:CARGO_FLAG_FULL_SCARCE];
-		[trader_ship setStatus:STATUS_IN_FLIGHT];
-		
-		if (([trader_ship n_escorts] > 0)&&((ranrot_rand() % 7) < government))	// remove escorts if we feel safe
+		if (trader_ship)
 		{
-			int nx = [trader_ship n_escorts] - 2 * (1 + ranrot_rand() & 3);	// remove 2,4,6, or 8 escorts
-			[trader_ship setN_escorts:(nx > 0) ? nx : 0];
-		}
-		
-		//[trader_ship setReportAImessages: (i == 0) ? YES:NO ]; // debug
+			if (trader_ship->scan_class == CLASS_NOT_SET)
+				[trader_ship setScanClass: CLASS_NEUTRAL];
+			[trader_ship setPosition:launch_pos];
+			[trader_ship setBounty:0];
+			[trader_ship setCargoFlag:CARGO_FLAG_FULL_SCARCE];
+			[trader_ship setStatus:STATUS_IN_FLIGHT];
+			
+			if (([trader_ship n_escorts] > 0)&&((ranrot_rand() % 7) < government))	// remove escorts if we feel safe
+			{
+				int nx = [trader_ship n_escorts] - 2 * (1 + ranrot_rand() & 3);	// remove 2,4,6, or 8 escorts
+				[trader_ship setN_escorts:(nx > 0) ? nx : 0];
+			}
+			
+			//[trader_ship setReportAImessages: (i == 0) ? YES:NO ]; // debug
 
-		[self addEntity:trader_ship];
-		[[trader_ship getAI] setStateMachine:@"route1traderAI.plist"];	// must happen after adding to the universe!
-		[trader_ship release];
+			[self addEntity:trader_ship];
+			[[trader_ship getAI] setStateMachine:@"route1traderAI.plist"];	// must happen after adding to the universe!
+			[trader_ship release];
+		}
 	}
 	
 	// add the raiders to route1 (witchspace exit to space-station / planet)
@@ -1288,24 +1300,28 @@ Your fair use and other rights are in no way affected by the above.
 			wolfPackCounter = 0;
 		}
 		pirate_ship = [self getShipWithRole:@"pirate"];   // retain count = 1
-		if ((pirate_ship)&&(pirate_ship->scan_class == CLASS_NOT_SET))
-			[pirate_ship setScanClass: CLASS_NEUTRAL];
-		[pirate_ship setPosition:launch_pos];
-		[pirate_ship setStatus:STATUS_IN_FLIGHT];
-		[pirate_ship setBounty:20 + government + wolfPackCounter + (ranrot_rand() % 5)];
-		
-		//[pirate_ship setReportAImessages: (i == 0) ? YES:NO ]; // debug
-
-		[self addEntity:pirate_ship];
-		
-		if (wolfPackCounter == 0)	// first ship
+		if (pirate_ship)
 		{
-			wolfPackGroup_id = [pirate_ship universal_id];
+			if (pirate_ship->scan_class == CLASS_NOT_SET)
+				[pirate_ship setScanClass: CLASS_NEUTRAL];
+			[pirate_ship setPosition:launch_pos];
+			[pirate_ship setStatus:STATUS_IN_FLIGHT];
+			[pirate_ship setBounty: 20 + government + wolfPackCounter + (ranrot_rand() & 7)];
+			[pirate_ship setCargoFlag: CARGO_FLAG_PIRATE];
+
+			//[pirate_ship setReportAImessages: (i == 0) ? YES:NO ]; // debug
+
+			[self addEntity:pirate_ship];
+			
+			if (wolfPackCounter == 0)	// first ship
+			{
+				wolfPackGroup_id = [pirate_ship universal_id];
+			}
+			[pirate_ship setGroup_id:wolfPackGroup_id];
+			
+			[[pirate_ship getAI] setStateMachine:@"pirateAI.plist"];	// must happen after adding to the universe!
+			[pirate_ship release];
 		}
-		[pirate_ship setGroup_id:wolfPackGroup_id];
-		
-		[[pirate_ship getAI] setStateMachine:@"pirateAI.plist"];	// must happen after adding to the universe!
-		[pirate_ship release];
 	}
 	
 	// add the hunters and police ships to route1 (witchspace exit to space-station / planet)
@@ -1329,17 +1345,17 @@ Your fair use and other rights are in no way affected by the above.
 				hunter_ship = [self getShipWithRole:@"interceptor"];   // retain count = 1
 			else
 				hunter_ship = [self getShipWithRole:@"police"];   // retain count = 1
-			[hunter_ship setRoles:@"police"];
-			if ((hunter_ship)&&(hunter_ship->scan_class == CLASS_NOT_SET))
-				[hunter_ship setScanClass: CLASS_POLICE];
-
-			while (((ranrot_rand() & 7) < government - 2)&&([hunter_ship n_escorts] < 6))
+			if (hunter_ship)
 			{
-				[hunter_ship setN_escorts:[hunter_ship n_escorts] + 2];
+				[hunter_ship setRoles:@"police"];
+				if (hunter_ship->scan_class == CLASS_NOT_SET)
+					[hunter_ship setScanClass: CLASS_POLICE];
+				while (((ranrot_rand() & 7) < government - 2)&&([hunter_ship n_escorts] < 6))
+				{
+					[hunter_ship setN_escorts:[hunter_ship n_escorts] + 2];
+				}
+				escorts_added = [hunter_ship n_escorts];
 			}
-			
-			escorts_added = [hunter_ship n_escorts];
-			
 		}
 		else
 		{
@@ -1347,21 +1363,23 @@ Your fair use and other rights are in no way affected by the above.
 			if ((hunter_ship)&&(hunter_ship->scan_class == CLASS_NOT_SET))
 				[hunter_ship setScanClass: CLASS_NEUTRAL];
 		}
-		
-		hunting_parties -= escorts_added / 2;	// reduce the number needed so we don't get huge swarms!
-		
-		[hunter_ship setPosition:launch_pos];
-		[hunter_ship setStatus:STATUS_IN_FLIGHT];
-		[hunter_ship setBounty:0];
-		
-		//[hunter_ship setReportAImessages: (i == 0) ? YES:NO ]; // debug
+		if (hunter_ship)
+		{
+			hunting_parties -= escorts_added / 2;	// reduce the number needed so we don't get huge swarms!
+			
+			[hunter_ship setPosition:launch_pos];
+			[hunter_ship setStatus:STATUS_IN_FLIGHT];
+			[hunter_ship setBounty:0];
+			
+			//[hunter_ship setReportAImessages: (i == 0) ? YES:NO ]; // debug
 
-		[self addEntity:hunter_ship];
-		[[hunter_ship getAI] setStateMachine:@"route1patrolAI.plist"];	// must happen after adding to the universe!
+			[self addEntity:hunter_ship];
+			[[hunter_ship getAI] setStateMachine:@"route1patrolAI.plist"];	// must happen after adding to the universe!
 
-		//NSLog(@"DEBUG hunter ship %@ %@ %d has %d escorts", [hunter_ship roles], [hunter_ship name], [hunter_ship universal_id], escorts_added); 
+			//NSLog(@"DEBUG hunter ship %@ %@ %d has %d escorts", [hunter_ship roles], [hunter_ship name], [hunter_ship universal_id], escorts_added); 
 
-		[hunter_ship release];
+			[hunter_ship release];
+		}
 	}
 	
 	// add the thargoids to route1 (witchspace exit to space-station / planet) clustered together
@@ -1376,14 +1394,17 @@ Your fair use and other rights are in no way affected by the above.
 		launch_pos.y = h1_pos.y + thargoid_location * v_route1.y + SCANNER_MAX_RANGE*((ranrot_rand() & 255)/256.0 - 0.5);
 		launch_pos.z = h1_pos.z + thargoid_location * v_route1.z + SCANNER_MAX_RANGE*((ranrot_rand() & 255)/256.0 - 0.5);
 		thargoid_ship = [self getShipWithRole:@"thargoid"];   // retain count = 1
-		if ((thargoid_ship)&&(thargoid_ship->scan_class == CLASS_NOT_SET))
-			[thargoid_ship setScanClass: CLASS_THARGOID];
-		[thargoid_ship setPosition:launch_pos];
-		[thargoid_ship setBounty:100];
-		[thargoid_ship setStatus:STATUS_IN_FLIGHT];
-		[self addEntity:thargoid_ship];
-		[[thargoid_ship getAI] setState:@"GLOBAL"];
-		[thargoid_ship release];
+		if (thargoid_ship)
+		{
+			if (thargoid_ship->scan_class == CLASS_NOT_SET)
+				[thargoid_ship setScanClass: CLASS_THARGOID];
+			[thargoid_ship setPosition:launch_pos];
+			[thargoid_ship setBounty:100];
+			[thargoid_ship setStatus:STATUS_IN_FLIGHT];
+			[self addEntity:thargoid_ship];
+			[[thargoid_ship getAI] setState:@"GLOBAL"];
+			[thargoid_ship release];
+		}
 	}
 	
 	// add the asteroids to route1 (witchspace exit to space-station / planet) clustered together in a preset location.
@@ -1436,26 +1457,29 @@ Your fair use and other rights are in no way affected by the above.
 		launch_pos.y += ship_location * v_route2.y + SCANNER_MAX_RANGE*((ranrot_rand() & 255)/256.0 - 0.5);
 		launch_pos.z += ship_location * v_route2.z + SCANNER_MAX_RANGE*((ranrot_rand() & 255)/256.0 - 0.5);
 		trader_ship = [self getShipWithRole:@"sunskim-trader"];   // retain count = 1
-		[trader_ship setRoles:@"trader"];	// set this to allow escorts to pair with the ship
-		if ((trader_ship)&&(trader_ship->scan_class == CLASS_NOT_SET))
-			[trader_ship setScanClass: CLASS_NEUTRAL];
-		[trader_ship setPosition:launch_pos];
-		[trader_ship setBounty:0];
-		[trader_ship setCargoFlag:CARGO_FLAG_FULL_PLENTIFUL];
-		[trader_ship setStatus:STATUS_IN_FLIGHT];
-		
-		if (([trader_ship n_escorts] > 0)&&((ranrot_rand() % 7) < government))	// remove escorts if we feel safe
+		if (trader_ship)
 		{
-			int nx = [trader_ship n_escorts] - 2 * (1 + ranrot_rand() & 3);	// remove 2,4,6, or 8 escorts
-			[trader_ship setN_escorts:(nx > 0) ? nx : 0];
+			[trader_ship setRoles:@"trader"];	// set this to allow escorts to pair with the ship
+			if ((trader_ship)&&(trader_ship->scan_class == CLASS_NOT_SET))
+				[trader_ship setScanClass: CLASS_NEUTRAL];
+			[trader_ship setPosition:launch_pos];
+			[trader_ship setBounty:0];
+			[trader_ship setCargoFlag:CARGO_FLAG_FULL_PLENTIFUL];
+			[trader_ship setStatus:STATUS_IN_FLIGHT];
+			
+			if (([trader_ship n_escorts] > 0)&&((ranrot_rand() % 7) < government))	// remove escorts if we feel safe
+			{
+				int nx = [trader_ship n_escorts] - 2 * (1 + ranrot_rand() & 3);	// remove 2,4,6, or 8 escorts
+				[trader_ship setN_escorts:(nx > 0) ? nx : 0];
+			}
+			
+			[self addEntity:trader_ship];
+			[[trader_ship getAI] setStateMachine:@"route2sunskimAI.plist"];	// must happen after adding to the universe!
+
+	//		[trader_ship setReportAImessages: (i == 0) ? YES:NO ]; // debug
+
+			[trader_ship release];
 		}
-		
-		[self addEntity:trader_ship];
-		[[trader_ship getAI] setStateMachine:@"route2sunskimAI.plist"];	// must happen after adding to the universe!
-
-//		[trader_ship setReportAImessages: (i == 0) ? YES:NO ]; // debug
-
-		[trader_ship release];
 	}
 	
 	// add the raiders to route2
@@ -1486,23 +1510,27 @@ Your fair use and other rights are in no way affected by the above.
 			wolfPackCounter = 0;
 		}
 		pirate_ship = [self getShipWithRole:@"pirate"];   // retain count = 1
-		if ((pirate_ship)&&(pirate_ship->scan_class == CLASS_NOT_SET))
-			[pirate_ship setScanClass: CLASS_NEUTRAL];
-		[pirate_ship setPosition:launch_pos];
-		[pirate_ship setStatus:STATUS_IN_FLIGHT];
-		[pirate_ship setBounty:20 + government + wolfPackCounter + (ranrot_rand() % 5)];
-		
-//		[pirate_ship setReportAImessages: (i == 0) ? YES:NO ]; // debug
+		if (pirate_ship)
+		{
+			if (pirate_ship->scan_class == CLASS_NOT_SET)
+				[pirate_ship setScanClass: CLASS_NEUTRAL];
+			[pirate_ship setPosition: launch_pos];
+			[pirate_ship setStatus: STATUS_IN_FLIGHT];
+			[pirate_ship setBounty: 20 + government + wolfPackCounter + (ranrot_rand() % 7)];
+			[pirate_ship setCargoFlag: CARGO_FLAG_PIRATE];
+			
+	//		[pirate_ship setReportAImessages: (i == 0) ? YES:NO ]; // debug
 
-		[self addEntity:pirate_ship];
-		
-		if (wolfPackCounter == 0)	// first ship
-			wolfPackGroup_id = [pirate_ship universal_id];
+			[self addEntity:pirate_ship];
+			
+			if (wolfPackCounter == 0)	// first ship
+				wolfPackGroup_id = [pirate_ship universal_id];
 
-		[pirate_ship setGroup_id:wolfPackGroup_id];
-		
-		[[pirate_ship getAI] setStateMachine:@"pirateAI.plist"];	// must happen after adding to the universe!
-		[pirate_ship release];
+			[pirate_ship setGroup_id:wolfPackGroup_id];
+			
+			[[pirate_ship getAI] setStateMachine:@"pirateAI.plist"];	// must happen after adding to the universe!
+			[pirate_ship release];
+		}
 	}
 	
 	// add the hunters and police ships to route2
@@ -1527,14 +1555,17 @@ Your fair use and other rights are in no way affected by the above.
 				hunter_ship = [self getShipWithRole:@"interceptor"];   // retain count = 1
 			else
 				hunter_ship = [self getShipWithRole:@"police"];   // retain count = 1
-			[hunter_ship setRoles:@"police"];
-			if ((hunter_ship)&&(hunter_ship->scan_class == CLASS_NOT_SET))
-				[hunter_ship setScanClass: CLASS_POLICE];
-			while (((ranrot_rand() & 7) < government - 2)&&([hunter_ship n_escorts] < 6))
+			if (hunter_ship)
 			{
-				[hunter_ship setN_escorts:[hunter_ship n_escorts] + 2];
+				[hunter_ship setRoles:@"police"];
+				if (hunter_ship->scan_class == CLASS_NOT_SET)
+					[hunter_ship setScanClass: CLASS_POLICE];
+				while (((ranrot_rand() & 7) < government - 2)&&([hunter_ship n_escorts] < 6))
+				{
+					[hunter_ship setN_escorts:[hunter_ship n_escorts] + 2];
+				}
+				escorts_added = [hunter_ship n_escorts];
 			}
-			escorts_added = [hunter_ship n_escorts];
 		}
 		else
 		{
@@ -1542,22 +1573,25 @@ Your fair use and other rights are in no way affected by the above.
 			if ((hunter_ship)&&(hunter_ship->scan_class == CLASS_NOT_SET))
 				[hunter_ship setScanClass: CLASS_NEUTRAL];
 		}
-				
-		[hunter_ship setPosition:launch_pos];
-		[hunter_ship setStatus:STATUS_IN_FLIGHT];
-		[hunter_ship setBounty:0];
 		
-//		[hunter_ship setReportAImessages: (i == 0) ? YES:NO ]; // debug
+		if (hunter_ship)
+		{
+			[hunter_ship setPosition:launch_pos];
+			[hunter_ship setStatus:STATUS_IN_FLIGHT];
+			[hunter_ship setBounty:0];
+			
+	//		[hunter_ship setReportAImessages: (i == 0) ? YES:NO ]; // debug
 
-		[self addEntity:hunter_ship];
-		[[hunter_ship getAI] setStateMachine:@"route2patrolAI.plist"];	// must happen after adding to the universe!
-		
-		if (randf() > 0.50)	// 50% chance
-			[[hunter_ship getAI] setState:@"HEAD_FOR_PLANET"];
-		else
-			[[hunter_ship getAI] setState:@"HEAD_FOR_SUN"];
-		
-		[hunter_ship release];
+			[self addEntity:hunter_ship];
+			[[hunter_ship getAI] setStateMachine:@"route2patrolAI.plist"];	// must happen after adding to the universe!
+			
+			if (randf() > 0.50)	// 50% chance
+				[[hunter_ship getAI] setState:@"HEAD_FOR_PLANET"];
+			else
+				[[hunter_ship getAI] setState:@"HEAD_FOR_SUN"];
+			
+			[hunter_ship release];
+		}
 	}
 
 	// add the asteroids to route2 clustered together in a preset location.
@@ -1594,16 +1628,19 @@ Your fair use and other rights are in no way affected by the above.
 		launch_pos.y = spawnPos.y + SCANNER_MAX_RANGE*(gen_rnd_number()/256.0 - 0.5);
 		launch_pos.z = spawnPos.z + SCANNER_MAX_RANGE*(gen_rnd_number()/256.0 - 0.5);
 		asteroid = [self getShipWithRole:@"asteroid"];   // retain count = 1
-		if ((asteroid)&&(asteroid->scan_class == CLASS_NOT_SET))
-			[asteroid setScanClass: CLASS_ROCK];
-		[asteroid setPosition:launch_pos];
-		[asteroid setVelocity:spawnVel];
-		[asteroid setStatus:STATUS_IN_FLIGHT];
-		[asteroid setNumberOfMinedRocks: n_rocks];
-		[self addEntity:asteroid];
-		[[asteroid getAI] setState:@"GLOBAL"];
-		[asteroid release];
-		rocks++;
+		if (asteroid)
+		{
+			if (asteroid->scan_class == CLASS_NOT_SET)
+				[asteroid setScanClass: CLASS_ROCK];
+			[asteroid setPosition:launch_pos];
+			[asteroid setVelocity:spawnVel];
+			[asteroid setStatus:STATUS_IN_FLIGHT];
+			[asteroid setNumberOfMinedRocks: n_rocks];
+			[self addEntity:asteroid];
+			[[asteroid getAI] setState:@"GLOBAL"];
+			[asteroid release];
+			rocks++;
+		}
 	}
 	// rock-hermit : chance is related to the number of asteroids
 	// hermits are placed near to other asteroids for obvious reasons
@@ -1620,14 +1657,17 @@ Your fair use and other rights are in no way affected by the above.
 		launch_pos.y = spawnPos.y + 0.5 * SCANNER_MAX_RANGE * ((ranrot_rand() & 255)/256.0 - 0.5);
 		launch_pos.z = spawnPos.z + 0.5 * SCANNER_MAX_RANGE * ((ranrot_rand() & 255)/256.0 - 0.5);
 		hermit = (StationEntity *)[self getShipWithRole:@"rockhermit"];   // retain count = 1
-		if ((hermit)&&(hermit->scan_class == CLASS_NOT_SET))
-			[hermit setScanClass: CLASS_ROCK];
-		[hermit setPosition:launch_pos];
-		[hermit setVelocity:spawnVel];
-		[hermit setStatus:STATUS_IN_FLIGHT];
-		[self addEntity:hermit];
-		[[hermit getAI] setState:@"GLOBAL"];
-		[hermit release];
+		if (hermit)
+		{
+			if (hermit->scan_class == CLASS_NOT_SET)
+				[hermit setScanClass: CLASS_ROCK];
+			[hermit setPosition:launch_pos];
+			[hermit setVelocity:spawnVel];
+			[hermit setStatus:STATUS_IN_FLIGHT];
+			[self addEntity:hermit];
+			[[hermit getAI] setState:@"GLOBAL"];
+			[hermit release];
+		}
 	}
 	return rocks;
 }
@@ -1651,18 +1691,21 @@ Your fair use and other rights are in no way affected by the above.
 	//
 	ShipEntity  *ship;
 	ship = [self getShipWithRole:desc];   // retain count = 1
-	if ((ship)&&((ship->scan_class == CLASS_NO_DRAW)||(ship->scan_class == CLASS_NOT_SET)))
-		[ship setScanClass: CLASS_NEUTRAL];
-	[ship setPosition:launch_pos];
-	[self addEntity:ship];
-	[[ship getAI] setState:@"GLOBAL"];	// must happen after adding to the universe!
-	
-	[ship setStatus:STATUS_IN_FLIGHT];	// or ships that were 'demo' ships become invisible!
-	
-//	NSLog(@"DEBUG added %@ %@ %d to universe at (%.0f,%.0f,%.0f)", ship, [ship name], [ship universal_id],
-//		ship->position.x, ship->position.y, ship->position.z);
-	
-	[ship release];
+	if (ship)
+	{
+		if ((ship->scan_class == CLASS_NO_DRAW)||(ship->scan_class == CLASS_NOT_SET))
+			[ship setScanClass: CLASS_NEUTRAL];
+		[ship setPosition:launch_pos];
+		[self addEntity:ship];
+		[[ship getAI] setState:@"GLOBAL"];	// must happen after adding to the universe!
+		
+		[ship setStatus:STATUS_IN_FLIGHT];	// or ships that were 'demo' ships become invisible!
+		
+	//	NSLog(@"DEBUG added %@ %@ %d to universe at (%.0f,%.0f,%.0f)", ship, [ship name], [ship universal_id],
+	//		ship->position.x, ship->position.y, ship->position.z);
+		
+		[ship release];
+	}
 	//
 }
 
@@ -1920,17 +1963,19 @@ Your fair use and other rights are in no way affected by the above.
 	//
 	ShipEntity  *ship;
 	ship = [self getShipWithRole:desc];   // retain count = 1
-	if ((ship)&&((ship->scan_class == CLASS_NO_DRAW)||(ship->scan_class == CLASS_NOT_SET)))
-		[ship setScanClass: CLASS_NEUTRAL];
-	if (ship == nil)
-		return NO;
-	[ship setPosition:launch_pos];
-	[self addEntity:ship];
-	[[ship getAI] setState:@"GLOBAL"];	// must happen after adding to the universe!
-	[ship setStatus:STATUS_IN_FLIGHT];	// or ships that were 'demo' ships become invisible!
-	[ship release];
+	if (ship)
+	{
+		if ((ship->scan_class == CLASS_NO_DRAW)||(ship->scan_class == CLASS_NOT_SET))
+			[ship setScanClass: CLASS_NEUTRAL];
+		[ship setPosition:launch_pos];
+		[self addEntity:ship];
+		[[ship getAI] setState:@"GLOBAL"];	// must happen after adding to the universe!
+		[ship setStatus:STATUS_IN_FLIGHT];	// or ships that were 'demo' ships become invisible!
+		[ship release];
+		return YES;
+	}
 	//
-	return YES;	// success at last!
+	return NO;
 }
 
 - (BOOL) addShips:(int) howMany withRole:(NSString *) desc atPosition:(Vector) pos withCoordinateSystem:(NSString *) system
@@ -1956,6 +2001,8 @@ Your fair use and other rights are in no way affected by the above.
 		//
 		BOOL safe;
 		//
+		int limit_count = 8;
+		//
 		v_from_center = make_vector( 0, 0, 0);
 		do
 		{
@@ -1979,8 +2026,17 @@ Your fair use and other rights are in no way affected by the above.
 				safe = (safe && (distance2( ship_pos, ship_positions[j]) > safe_distance2));
 				j--;
 			}
-//			if (!safe)
+			if (!safe)
+			{
 //				NSLog(@"DEBUG - AddShips %d/%d : proposed position clashed with ship %d", i, howMany, j + 1);
+				limit_count--;
+				if (!limit_count)	// give up and expand the shell
+				{
+//					NSLog(@"DEBUG - limit_count depleted, expanding area...");
+					limit_count = 8;
+					distance_from_center += sqrt(safe_distance2);	// expand to the next distance
+				}
+			}
 			
 			
 		} while (!safe);
@@ -2079,28 +2135,46 @@ Your fair use and other rights are in no way affected by the above.
 	//
 	ShipEntity  *ship;
 	ship = [self getShipWithRole:desc];   // retain count = 1
-	if ((ship)&&((ship->scan_class == CLASS_NO_DRAW)||(ship->scan_class == CLASS_NOT_SET)))
-		[ship setScanClass: CLASS_NEUTRAL];
-	if (ship == nil)
-		return NO;
-	[ship setPosition: pos];
-	[self addEntity:ship];
-	[[ship getAI] setState:@"GLOBAL"];	// must happen after adding to the universe!
-	[ship setStatus:STATUS_IN_FLIGHT];	// or ships that were 'demo' ships become invisible!
-	[ship release];
-	//
-	return YES;	// success at last!
+	if (ship)
+	{
+		if ((ship->scan_class == CLASS_NO_DRAW)||(ship->scan_class == CLASS_NOT_SET))
+			[ship setScanClass: CLASS_NEUTRAL];
+		[ship setPosition: pos];
+		[self addEntity:ship];
+		[[ship getAI] setState:@"GLOBAL"];	// must happen after adding to the universe!
+		[ship setStatus:STATUS_IN_FLIGHT];	// or ships that were 'demo' ships become invisible!
+		[ship release];
+		//
+		return YES;	// success at last!
+	}
+	return NO;
 }
 
 - (BOOL) spawnShip:(NSString *) shipdesc
 {
 	ShipEntity* ship;
-	NSDictionary* shipdict = [self getDictionaryForShip:shipdesc];
+	NSDictionary* shipdict = nil;
+	
+	NS_DURING	
+		shipdict = [self getDictionaryForShip:shipdesc];	// handle OOLITE_EXCEPTION_SHIP_NOT_FOUND
+	NS_HANDLER
+		if ([[localException name] isEqual: OOLITE_EXCEPTION_SHIP_NOT_FOUND])
+		{
+			NSLog(@"***** Oolite Exception : '%@' in [Universe spawnShip: %@ ] *****", [localException reason], shipdesc);
+			shipdict = nil;
+		}
+		else
+			[localException raise];
+	NS_ENDHANDLER
+	
 	if (!shipdict)
 		return NO;
+	
 	ship = [self getShip:shipdesc];	// retain count is 1
+	
 	if (!ship)
 		return NO;
+	
 	// set any spawning characteristics
 	NSDictionary* spawndict = (NSDictionary*)[shipdict objectForKey:@"spawn"];
 	// position
@@ -2158,28 +2232,30 @@ Your fair use and other rights are in no way affected by the above.
 	// adds a ship exiting witchspace (corollary of when ships leave the system)
 	ShipEntity  *ship;
 	ship = [self getShipWithRole:desc];   // retain count = 1
-	if ((ship)&&((ship->scan_class == CLASS_NO_DRAW)||(ship->scan_class == CLASS_NOT_SET)))
-		[ship setScanClass: CLASS_NEUTRAL];
-	if ([desc isEqual:@"trader"])
+	if (ship)
 	{
-		[ship setCargoFlag: CARGO_FLAG_FULL_SCARCE];
-		if (randf() > 0.10)
-			[[ship getAI] setStateMachine:@"route1traderAI.plist"];
-		else
-			[[ship getAI] setStateMachine:@"route2sunskimAI.plist"];	// route3 really, but the AI's the same
-	}
-	if ([desc isEqual:@"pirate"])
-	{
-		[ship setBounty: (ranrot_rand() & 7) + (ranrot_rand() & 7) + ((randf() < 0.05)? 63 : 23)];	// they already have a price on their heads
-	}
-	[ship setUniverse:self];
-	[ship leaveWitchspace];				// gets added to the universe here!
-	[[ship getAI] setState:@"GLOBAL"];	// must happen after adding to the universe!
-	[ship setStatus:STATUS_IN_FLIGHT];	// or ships may not werk rite d'uh!
+		if ((ship->scan_class == CLASS_NO_DRAW)||(ship->scan_class == CLASS_NOT_SET))
+			[ship setScanClass: CLASS_NEUTRAL];
+		if ([desc isEqual:@"trader"])
+		{
+			[ship setCargoFlag: CARGO_FLAG_FULL_SCARCE];
+			if (randf() > 0.10)
+				[[ship getAI] setStateMachine:@"route1traderAI.plist"];
+			else
+				[[ship getAI] setStateMachine:@"route2sunskimAI.plist"];	// route3 really, but the AI's the same
+		}
+		if ([desc isEqual:@"pirate"])
+		{
+			[ship setCargoFlag: CARGO_FLAG_PIRATE];
+			[ship setBounty: (ranrot_rand() & 7) + (ranrot_rand() & 7) + ((randf() < 0.05)? 63 : 23)];	// they already have a price on their heads
+		}
+		[ship setUniverse:self];
+		[ship leaveWitchspace];				// gets added to the universe here!
+		[[ship getAI] setState:@"GLOBAL"];	// must happen after adding to the universe!
+		[ship setStatus:STATUS_IN_FLIGHT];	// or ships may not werk rite d'uh!
 
-//	[ship setReportAImessages:YES];	// DEBUG
-
-	[ship release];
+		[ship release];
+	}
 }
 
 - (void) spawnShipWithRole:(NSString *) desc near:(Entity *) entity
@@ -2194,21 +2270,17 @@ Your fair use and other rights are in no way affected by the above.
 	GLfloat		offset = (randf() + randf()) * entity->collision_radius;
 	spawn_pos.x += offset * vf.x;	spawn_pos.y += offset * vf.y;	spawn_pos.z += offset * vf.z;
 	ship = [self getShipWithRole:desc];   // retain count = 1
-	if ((ship)&&(ship->scan_class <= CLASS_NO_DRAW))
-		[ship setScanClass: CLASS_NEUTRAL];
-	[ship setPosition:spawn_pos];
-	[ship setQRotation:spawn_q];
-	[self addEntity:ship];
-	[[ship getAI] setState:@"GLOBAL"];	// must happen after adding to the universe!
-	[ship setStatus:STATUS_IN_FLIGHT];
-
-
-//	NSLog(@"DEBUG Spawned: %@ %@ %d at (%.1f, %.1f, %.1f) origin (%.1f, %.1f, %.1f) scanClass %d",
-//		ship, [ship name], [ship universal_id],
-//		spawn_pos.x, spawn_pos.y, spawn_pos.z, entity->position.x, entity->position.y, entity->position.z,
-//		ship->scan_class);
-
-	[ship release];
+	if (ship)
+	{
+		if (ship->scan_class <= CLASS_NO_DRAW)
+			[ship setScanClass: CLASS_NEUTRAL];
+		[ship setPosition:spawn_pos];
+		[ship setQRotation:spawn_q];
+		[self addEntity:ship];
+		[[ship getAI] setState:@"GLOBAL"];	// must happen after adding to the universe!
+		[ship setStatus:STATUS_IN_FLIGHT];
+		[ship release];
+	}
 }
 
 - (void) set_up_break_pattern:(Vector) pos quaternion:(Quaternion) q
@@ -2244,7 +2316,7 @@ Your fair use and other rights are in no way affected by the above.
 	[self removeAllEntitiesExceptPlayer:NO];	// don't want to restore afterwards
 	//
 	[player set_up];						//reset the player
-	[player setUpShipFromDictionary:[self getDictionaryForShip:[player ship_desc]]];
+	[player setUpShipFromDictionary:[self getDictionaryForShip:[player ship_desc]]];	// ship_desc is the standard Cobra at this point
 	//
 	[[(MyOpenGLView *)gameView gameController] loadPlayerIfRequired];
 	//
@@ -2639,10 +2711,14 @@ Your fair use and other rights are in no way affected by the above.
 	int i, j, found;
 	ShipEntity		*ship;
 	NSMutableArray  *foundShips = [NSMutableArray arrayWithCapacity:16];
+	NSMutableArray  *foundChance = [NSMutableArray arrayWithCapacity:16];
 	NSArray			*shipKeys = [shipdata allKeys];
+	float foundf = 0.0;
+	float selectedf = randf();
 	
 //	NSLog(@"DEBUG [Universe getShipWithRole:] looking for %@ ...", desc);
 	
+	found = 0;
 	for (i = 0; i < [shipKeys count]; i++)
 	{
 		NSDictionary*	shipDict = (NSDictionary *)[shipdata objectForKey:[shipKeys objectAtIndex:i]];
@@ -2652,35 +2728,94 @@ Your fair use and other rights are in no way affected by the above.
 		
 		for (j = 0; j < [shipRoles count]; j++)
 		{
-			if ([[(NSString*)[shipRoles objectAtIndex:j] stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceCharacterSet]] isEqual:desc])
-				[foundShips addObject:[shipKeys objectAtIndex:i]];
+			NSString* putative_roles = (NSString*)[shipRoles objectAtIndex:j];
+		
+//			NSLog(@"... %d putative_roles = %@", j, putative_roles);
+		
+			GLfloat chance = 1.0;
+			if (putative_roles)
+			{
+				if ([putative_roles hasPrefix:desc] && ([putative_roles rangeOfString:@"("].location != NSNotFound))
+				{
+//					NSLog(@"DEBUG chance to be derived from '%@'", putative_roles);
+					
+					NSScanner* scanner = [NSScanner scannerWithString:putative_roles];	// scanner
+					NSString* scanrole;
+					[scanner scanUpToString:@"(" intoString:&scanrole];					// look for '('
+					[scanner scanString:@"(" intoString:(NSString**)nil];				// skip over it
+					if (![scanner scanFloat:&chance])	chance = 1.0;					// try to scan a float
+					putative_roles = [NSString stringWithString:scanrole];				// ignore from '(' onwards (lazy)
+
+//					NSLog(@"DEBUG chance derived from '%@' is %.3f", putative_roles, chance);
+					
+				}
+		
+//				NSLog(@"... ... putative_roles = '%@' desc = '%@' isEqual = %@", putative_roles, desc, ([putative_roles isEqual:desc])? @":YES:" : @":NO:");
+		
+				if ([putative_roles isEqual:desc])
+				{
+					[foundShips addObject:	[shipKeys objectAtIndex:i]];
+					[foundChance addObject:	[NSNumber numberWithFloat:chance]];
+					found++;
+					foundf += chance;
+				}
+			}
 		}
 	}
-	
-//	NSLog(@"... candidates are: %@", [foundShips description]);
-	
-	found = [foundShips count];
+
 	if (found == 0)
 		return nil;
-	i = ranrot_rand() % found;
-	ship = [self getShip:(NSString *)[foundShips objectAtIndex:i]];
 	
-//	NSLog(@"... we chose %@",(NSString *)[foundShips objectAtIndex:i]);
+	i = 0;
 	
-	[ship setRoles:desc];								// set its roles to this one particular chosen role
+	if (found > 1)
+	{
+		
+//		NSLog(@"... candidates are: %d (%.3f) %@", found, foundf, [foundShips description]);
+		
+//		NSLog(@"... selection is: %.3f", selectedf * foundf);
+		
+		selectedf *= foundf;
+		while (selectedf > [[foundChance objectAtIndex:i] floatValue])
+		{
+			selectedf -= [[foundChance objectAtIndex:i] floatValue];
+			i++;
+		}
+		
+		if (i >= found)	// sanity check
+			i = 0;
+//		NSLog(@"... we chose %@",(NSString *)[foundShips objectAtIndex:i]);
+		
+	}
+	
+	ship = [self getShip:(NSString *)[foundShips objectAtIndex:i]];	// may return nil if not found!
+	[ship setRoles:desc];											// set its roles to this one particular chosen role
 	return ship;
 }
 
 
 - (ShipEntity *) getShip:(NSString *) desc
 {
-	NSDictionary	*shipDict;
-	ShipEntity		*ship;
-	shipDict = [self getDictionaryForShip:desc];
-	NSString	*shipRoles = (NSString *)[shipDict objectForKey:@"roles"];
-	BOOL		isStation = ([shipRoles rangeOfString:@"station"].location != NSNotFound)||([shipRoles rangeOfString:@"carrier"].location != NSNotFound);
+	NSDictionary	*shipDict = nil;
+	ShipEntity		*ship = nil;
+
+	NS_DURING	
+		shipDict = [self getDictionaryForShip: desc];	// handle OOLITE_EXCEPTION_SHIP_NOT_FOUND
+	NS_HANDLER
+		if ([[localException name] isEqual: OOLITE_EXCEPTION_SHIP_NOT_FOUND])
+		{
+			NSLog(@"***** Oolite Exception : '%@' in [Universe getShip: %@ ] *****", [localException reason], desc);
+			shipDict = nil;
+		}
+		else
+			[localException raise];
+	NS_ENDHANDLER
+
 	if (!shipDict)
 		return nil;
+
+	NSString	*shipRoles = (NSString *)[shipDict objectForKey:@"roles"];
+	BOOL		isStation = ([shipRoles rangeOfString:@"station"].location != NSNotFound)||([shipRoles rangeOfString:@"carrier"].location != NSNotFound);
 
 	if (isStation)
 		ship = (StationEntity *)[self recycledOrNew:@"StationEntity"];
@@ -2701,7 +2836,7 @@ Your fair use and other rights are in no way affected by the above.
 		NSLog(@"***** Universe couldn't find a dictionary for a ship with description '%@'",desc);
 		// throw an exception here...
 		NSException* myException = [NSException
-			exceptionWithName:@"OoliteException"
+			exceptionWithName: OOLITE_EXCEPTION_SHIP_NOT_FOUND
 			reason:[NSString stringWithFormat:@"No ship called '%@' could be found in the Oolite folder.", desc]
 			userInfo:nil];
 		[myException raise];
@@ -2772,7 +2907,7 @@ Your fair use and other rights are in no way affected by the above.
 	// quantities is now used to determine which good get into the containers
 	for (i = 0; i < how_many; i++)
 	{
-		ShipEntity* container = [self getShipWithRole:@"cargopod"];
+		ShipEntity* container = [self getShipWithRole:@"cargopod"];	// retained
 		int co_type, co_amount, qr;
 		
 		// select a random point in the histogram
@@ -2799,11 +2934,14 @@ Your fair use and other rights are in no way affected by the above.
 		//NSLog(@"... loading with plentiful %@",[self describeCommodity:co_type amount:co_amount]);
 		
 		// into the barrel it goes...
-		[container setUniverse:self];
-		[container setScanClass: CLASS_CARGO];
-		[container setCommodity:co_type andAmount:co_amount];
-		[accumulator addObject:container];
-		[container release];
+		if (container)
+		{
+			[container setUniverse:self];
+			[container setScanClass: CLASS_CARGO];
+			[container setCommodity:co_type andAmount:co_amount];
+			[accumulator addObject:container];
+			[container release];	// released
+		}
 	}
 	return [NSArray arrayWithArray:accumulator];	
 }
@@ -2843,12 +2981,14 @@ Your fair use and other rights are in no way affected by the above.
 		co_amount = [self getRandomAmountOfCommodity:co_type];
 		
 		//NSLog(@"... loading with scarce %@",[self describeCommodity:co_type amount:co_amount]);
-		
-		[container setUniverse:self];
-		[container setScanClass: CLASS_CARGO];
-		[container setCommodity:co_type andAmount:co_amount];
-		[accumulator addObject:container];
-		[container release];
+		if (container)
+		{
+			[container setUniverse:self];
+			[container setScanClass: CLASS_CARGO];
+			[container setCommodity:co_type andAmount:co_amount];
+			[accumulator addObject:container];
+			[container release];
+		}
 	}
 	return [NSArray arrayWithArray:accumulator];	
 }
@@ -2873,11 +3013,18 @@ Your fair use and other rights are in no way affected by the above.
 		if (amount > how_much)
 			amount = how_much;
 		// into the barrel it goes...
-		[container setUniverse:self];
-		[container setScanClass: CLASS_CARGO];
-		[container setCommodity:commodity_type andAmount:amount];
-		[accumulator addObject:container];
-		[container release];
+		if (container)
+		{
+			[container setUniverse:self];
+			[container setScanClass: CLASS_CARGO];
+			[container setCommodity:commodity_type andAmount:amount];
+			[accumulator addObject:container];
+			[container release];
+		}
+		else
+		{
+			NSLog(@"***** ERROR failed to find a container to fill with %@ *****", commodity_name);
+		}
 		how_much -= amount;
 	}
 	return [NSArray arrayWithArray:accumulator];	
@@ -3298,29 +3445,6 @@ Your fair use and other rights are in no way affected by the above.
 				}
 			}
 			
-//			// test texture stuff...
-//			glEnable(GL_TEXTURE_2D);
-//			glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
-//			glColor4f( 1.0, 1.0, 1.0, 1.0);
-//			glBindTexture(GL_TEXTURE_2D, [textureStore getTextureNameFor:@"cobra3_redux.png"]);
-//			glBegin(GL_QUADS);
-//
-//			glTexCoord2f(0.0, 0.0);
-//			glVertex3f(0, 0, 640);
-//
-//			glTexCoord2f(1.0, 0.0);
-//			glVertex3f(256, 0, 640);
-//
-//			glTexCoord2f(1.0, 1.0);
-//			glVertex3f(256, -256, 640);
-//
-//			glTexCoord2f(0.0, 1.0);
-//			glVertex3f(0, -256, 640);
-//
-//			glEnd();
-//			glDisable(GL_TEXTURE_2D);
-			
-			
 			glFlush();	// don't wait around for drawing to complete
 			//
 			// clear errors - and announce them
@@ -3329,7 +3453,7 @@ Your fair use and other rights are in no way affected by the above.
 			for (i = 0; i < draw_count; i++)
 				[my_entities[i] release];		//	released
 			
-			no_update = NO;	// allow other attemts to draw
+			no_update = NO;	// allow other attempts to draw
 			
 		NS_HANDLER
 		
@@ -3373,6 +3497,10 @@ Your fair use and other rights are in no way affected by the above.
 		switch (weapon)
 		{
 			case WEAPON_NONE :
+				glBegin(GL_LINES);
+				glColor4fv(cx_col0);	glVertex3f(k3, 0.0, z1);	glColor4fv(cx_col2);	glVertex3f(k1, 0.0, z1);
+				glColor4fv(cx_col0);	glVertex3f(-k3, 0.0, z1);   glColor4fv(cx_col2);	glVertex3f(-k1, 0.0, z1);
+				glEnd();
 				break;
 			case WEAPON_MILITARY_LASER :
 				glBegin(GL_LINES);
@@ -3482,14 +3610,16 @@ Your fair use and other rights are in no way affected by the above.
 {
 	if ((u_id == NO_TARGET)||(!entity_for_uid[u_id]))
 		return nil;
-	
-	int ent_status = entity_for_uid[u_id]->status;
+	Entity* ent = entity_for_uid[u_id];
+	if (ent->isParticle)	// particles SHOULD NOT HAVE U_IDs!
+		return nil;
+	int ent_status = ent->status;
 	if (ent_status == STATUS_DEAD)
 		return nil;
 	if (ent_status == STATUS_DOCKED)
 		return nil;
 
-	return entity_for_uid[u_id];
+	return ent;
 }
 
 - (BOOL) addEntity:(Entity *) entity
@@ -5142,7 +5272,7 @@ Your fair use and other rights are in no way affected by the above.
 		
 //	NSString*			digrams = @"ABOUSEITILETSTONLONUTHNOALLEXEGEZACEBISOUSESARMAINDIREA'ERATENBERALAVETIEDORQUANTEISRION";
 	NSString*			digrams = [descriptions objectForKey:@"digrams"];
-	NSMutableString*	name = [NSMutableString stringWithString:@""];
+	NSMutableString*	name = [NSMutableString stringWithCapacity:256];
 	int size = 4;
 	
 	if ((s_seed.a & 0x40) == 0)
@@ -5173,7 +5303,7 @@ Your fair use and other rights are in no way affected by the above.
 //	NSString*			digrams = @"ABOUSEITILETSTONLONUTHNOALLEXEGEZACEBISOUSESARMAINDIREA?ERATENBERALAVETIEDORQUANTEISRION";
 //	NSString*			phonograms = @"AEb=UW==sEH=IHt=IHl=EHt=st==AAn=lOW=nUW=T===nOW=AEl=lEY=hEY=JEH=zEY=sEH=bIY=sOW=UHs=EHz=AEr=mAE=IHn=dIY=rEY=EH==UXr=AEt=EHn=bEH=rAX=lAX=vEH=tIY=EHd=AAr=kw==AXn=tEY=IHz=rIY=AAn=";
 	NSString*			phonograms = [descriptions objectForKey:@"phonograms"];
-	NSMutableString*	name = [NSMutableString stringWithString:@""];
+	NSMutableString*	name = [NSMutableString stringWithCapacity:256];
 	int size = 4;
 	
 	if ((s_seed.a & 0x40) == 0)
@@ -5197,7 +5327,7 @@ Your fair use and other rights are in no way affected by the above.
 
 - (NSString *) generateSystemInhabitants:(Random_Seed) s_seed
 {
-	NSMutableString* inhabitants= [NSMutableString stringWithString:@""];
+	NSMutableString* inhabitants= [NSMutableString stringWithCapacity:256];
 
 	if (s_seed.e < 127)
 		[inhabitants appendString:@"Human Colonial"];
@@ -5236,7 +5366,7 @@ Your fair use and other rights are in no way affected by the above.
 	if (!equal_seeds( gal_seed, galaxy_seed))
 		[self setGalaxy_seed:gal_seed];
 
-	Random_Seed system;
+	Random_Seed system = gal_seed;
 	int distance, dx, dy;
 	int i;
     int min_dist = 10000;
@@ -6176,8 +6306,8 @@ double estimatedTimeForJourney(double distance, int hops)
 		if ((days_until_sale > 0.0) && (days_until_sale < 30.0) && (ship_techlevel < techlevel) && (randf() < chance))
 		{			
 			NSMutableDictionary* ship_dict = [NSMutableDictionary dictionaryWithDictionary:[self getDictionaryForShip:ship_key]];
-			NSMutableString* description = [NSMutableString stringWithString:@""];
-			NSMutableString* short_description = [NSMutableString stringWithString:@""];
+			NSMutableString* description = [NSMutableString stringWithCapacity:256];
+			NSMutableString* short_description = [NSMutableString stringWithCapacity:256];
 			int price = [(NSNumber*)[ship_info objectForKey:KEY_PRICE] intValue];
 			int base_price = price;
 			NSMutableArray* extras = [NSMutableArray arrayWithArray:[(NSDictionary*)[ship_info objectForKey:KEY_STANDARD_EQUIPMENT] objectForKey:KEY_EQUIPMENT_EXTRAS]];
@@ -6608,7 +6738,7 @@ NSComparisonResult comparePrice( id dict1, id dict2, void * context)
 	int len = gen_rnd_number() & 3;	
 //	NSString*			digrams = @"ABOUSEITILETSTONLONUTHNOALLEXEGEZACEBISOUSESARMAINDIREA'ERATENBERALAVETIEDORQUANTEISRION";
 	NSString*			digrams = [descriptions objectForKey:@"digrams"];
-	NSMutableString*	name = [NSMutableString stringWithString:@""];
+	NSMutableString*	name = [NSMutableString stringWithCapacity:256];
 	for (i = 0; i <=len; i++)
 	{
 		int x =  gen_rnd_number() & 0x3e;
@@ -6813,15 +6943,22 @@ NSComparisonResult comparePrice( id dict1, id dict2, void * context)
 {
 	if (ooliteException)
 	{
-		exception = [ooliteException retain];
-		
-		PlayerEntity* player = (PlayerEntity*)[self entityZero];
-		[player setStatus:STATUS_HANDLING_ERROR];
-		
-		NSLog(@"* ERROR * Handling : %@ : %@ * ERROR *",[exception name], [exception reason]);
-		NSString* exception_msg = [NSString stringWithFormat:@"Exception : %@ : %@ Please take a screenshot and/or press esc or Q to quit.", [exception name], [exception reason]];
-		[self addMessage:exception_msg forCount:30.0];
-		[[self gameController] pause_game];	
+		if ([[ooliteException name] isEqual: OOLITE_EXCEPTION_FATAL])
+		{
+			exception = [ooliteException retain];
+			
+			PlayerEntity* player = (PlayerEntity*)[self entityZero];
+			[player setStatus:STATUS_HANDLING_ERROR];
+			
+			NSLog(@"***** Handling Fatal : %@ : %@ *****",[exception name], [exception reason]);
+			NSString* exception_msg = [NSString stringWithFormat:@"Exception : %@ : %@ Please take a screenshot and/or press esc or Q to quit.", [exception name], [exception reason]];
+			[self addMessage:exception_msg forCount:30.0];
+			[[self gameController] pause_game];
+		}
+		else
+		{
+			NSLog(@"***** Handling Non-fatal : %@ : %@ *****",[ooliteException name], [ooliteException reason]);
+		}
 	}
 }
 

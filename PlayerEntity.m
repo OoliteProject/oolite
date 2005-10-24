@@ -92,6 +92,7 @@ Your fair use and other rights are in no way affected by the above.
 	//
 	key_map_dump = 33;				// '!'
 	key_map_home = gvHomeKey;		// 'home'
+	key_map_info = 105;				// 'i'
 	//
 	key_pausebutton = 112;			// 'p'
 	key_show_fps = 70;				// 'F'
@@ -161,6 +162,9 @@ Your fair use and other rights are in no way affected by the above.
 	//
 	if ([kdic objectForKey:@"key_contract_info"])
 		key_contract_info = [(NSNumber *)[kdic objectForKey:@"key_contract_info"] intValue];
+	//
+	if ([kdic objectForKey:@"key_map_info"])
+		key_map_info = [(NSNumber *)[kdic objectForKey:@"key_map_info"] intValue];
 	//
 	// other keys are SET and cannot be varied
 
@@ -242,12 +246,25 @@ Your fair use and other rights are in no way affected by the above.
 				for (j = 0; j < quantity; j++)
 				{
 					ShipEntity* container = [universe getShipWithRole:@"cargopod"];
-					[container setUniverse:universe];
-					[container setScanClass: CLASS_CARGO];
-					[container setStatus:STATUS_IN_HOLD];
-					[container setCommodity:i andAmount:1];
-					[cargo addObject:container];
-					[container release];
+					if (container)
+					{
+						[container setUniverse:universe];
+						[container setScanClass: CLASS_CARGO];
+						[container setStatus:STATUS_IN_HOLD];
+						[container setCommodity:i andAmount:1];
+						[cargo addObject:container];
+						[container release];
+					}
+					else
+					{
+						NSLog(@"***** ERROR couldn't find a container while trying to [PlayerEntity loadCargoPods] *****");
+						// throw an exception here...
+						NSException* myException = [NSException
+							exceptionWithName: OOLITE_EXCEPTION_FATAL
+							reason:@"[PlayerEntity loadCargoPods] failed to create a container for cargo with role 'cargopod'"
+							userInfo:nil];
+						[myException raise];
+					}
 				}
 				// zero this commodity
 				[commodityInfo setArray:(NSArray *)[localMarket objectAtIndex:i]];
@@ -457,7 +474,6 @@ Your fair use and other rights are in no way affected by the above.
 			NSLog(@"DEBUG loading a STRICT player dictionary ..1");
 			[universe setStrict:YES];
 			NSLog(@"DEBUG loading a STRICT player dictionary ..2");
-//			[self setCommanderDataFromDictionary:dict];
 		}
 	}
 	else
@@ -468,17 +484,33 @@ Your fair use and other rights are in no way affected by the above.
 			NSLog(@"DEBUG loading a UNRESTRICTED player dictionary ..1");
 			[universe setStrict:NO];
 			NSLog(@"DEBUG loading a UNRESTRICTED player dictionary ..2");
-//			[self setCommanderDataFromDictionary:dict];
 		}
 	}
 	//base ship description
 	if ([dict objectForKey:@"ship_desc"])
 	{
+		NSDictionary*	ship_dict = nil;
 		if (ship_desc) [ship_desc release];
 		ship_desc = [(NSString *)[dict objectForKey:@"ship_desc"] retain];
-		NSDictionary *ship_dict = [universe getDictionaryForShip:ship_desc];
+		NS_DURING
+			ship_dict = [universe getDictionaryForShip:ship_desc];
+		NS_HANDLER
+			if ([[localException name] isEqual: OOLITE_EXCEPTION_SHIP_NOT_FOUND])
+				ship_dict = nil;
+			else
+				[localException raise];
+		NS_ENDHANDLER
 		if (ship_dict)
 			[self setUpShipFromDictionary:ship_dict];
+		else
+		{
+			NSException* myException = [NSException
+				exceptionWithName: OOLITE_EXCEPTION_SHIP_NOT_FOUND
+				reason:[NSString stringWithFormat:@"Couldn't set player ship to '%@' (it couldn't be found)", ship_desc]
+				userInfo:nil];
+			[myException raise];
+			return;
+		}
 	}
 	
 	// ship depreciation
@@ -489,7 +521,6 @@ Your fair use and other rights are in no way affected by the above.
 	
 	if ([dict objectForKey:@"galaxy_seed"])
 	{
-//		NSArray *seed_vals = [(NSString *)[dict objectForKey:@"galaxy_seed"] componentsSeparatedByString:@" "];
 		NSArray *seed_vals = [Entity scanTokensFromString:(NSString *)[dict objectForKey:@"galaxy_seed"]];
 		galaxy_seed.a = (unsigned char)[(NSString *)[seed_vals objectAtIndex:0] intValue];
 		galaxy_seed.b = (unsigned char)[(NSString *)[seed_vals objectAtIndex:1] intValue];
@@ -501,7 +532,6 @@ Your fair use and other rights are in no way affected by the above.
 	
 	if ([dict objectForKey:@"galaxy_coordinates"])
 	{
-//		NSArray *coord_vals = [(NSString *)[dict objectForKey:@"galaxy_coordinates"] componentsSeparatedByString:@" "];
 		NSArray *coord_vals = [Entity scanTokensFromString:(NSString *)[dict objectForKey:@"galaxy_coordinates"]];
 		galaxy_coordinates.x = (unsigned char)[(NSString *)[coord_vals objectAtIndex:0] intValue];
 		galaxy_coordinates.y = (unsigned char)[(NSString *)[coord_vals objectAtIndex:1] intValue];
@@ -741,14 +771,27 @@ Your fair use and other rights are in no way affected by the above.
 			NSString* missile_desc = (NSString*)[missile_roles objectAtIndex:i];
 			if (![missile_desc isEqual:@"NONE"])
 			{
-				missile_entity[i] = [universe getShipWithRole:missile_desc];   // retain count = 1
+				ShipEntity* amiss = [universe getShipWithRole:missile_desc];
+				if (amiss)
+					missile_entity[i] = amiss;   // retain count = 1
+				else
+				{
+					NSLog(@"***** ERROR couldn't find a missile of role '%@' while trying to [PlayerEntity setCommanderDataFromDictionary:] *****", missile_desc);
+					// throw an exception here...
+					NSException* myException = [NSException
+						exceptionWithName: OOLITE_EXCEPTION_FATAL
+						reason: [NSString stringWithFormat:@"[PlayerEntity setCommanderDataFromDictionary:] failed to create a missile with role '%@'", missile_desc]
+						userInfo:nil];
+					[myException raise];
+				}
 			}
 		}
 	}
 	else
 	{
 		for (i = 0; i < missiles; i++)
-			missile_entity[i] = [universe getShipWithRole:@"EQ_MISSILE"];   // retain count = 1
+			missile_entity[i] = [universe getShipWithRole:@"EQ_MISSILE"];   // retain count = 1 - should be okay as long as we keep a missile with this role
+																			// in the base package.
 	}
 	while ((missiles > 0)&&(missile_entity[active_missile] == nil))
 		[self select_next_missile];
@@ -798,6 +841,7 @@ Your fair use and other rights are in no way affected by the above.
 	//
 	save_path = nil;
 	//
+	//
     return self;
 }
 
@@ -809,6 +853,7 @@ static BOOL galactic_witchjump;
 	//
 	showDemoShips = NO;
 	//
+	show_info_flag = NO;
 	
 	if (ship_desc)
 		[ship_desc release];
@@ -907,6 +952,7 @@ static BOOL galactic_witchjump;
 	shield_enhancer =			0;
 	forward_shield =	PLAYER_MAX_FORWARD_SHIELD;
 	aft_shield =		PLAYER_MAX_AFT_SHIELD;
+	//
 	energy =			256;
 	weapon_temp =			0.0;
 	forward_weapon_temp =	0.0;
@@ -952,6 +998,8 @@ static BOOL galactic_witchjump;
     if (warningSound)			[warningSound release];
     if (afterburner1Sound)		[afterburner1Sound release];
     if (afterburner2Sound)		[afterburner2Sound release];
+	//
+    if (witchAbortSound)		[witchAbortSound release];
 	//
 	if (themeMusic)				[themeMusic release];
 	if (missionMusic)			[missionMusic release];
@@ -1102,7 +1150,6 @@ static BOOL galactic_witchjump;
 	if ([dict objectForKey:@"thrust"])
 	{
 		thrust = [(NSNumber *)[dict objectForKey:@"thrust"] doubleValue];
-//		speed_delta = thrust;
 	}
 	//
 	if ([dict objectForKey:@"max_energy"])
@@ -1274,6 +1321,8 @@ static BOOL galactic_witchjump;
     if (warningSound)			[warningSound release];
     if (afterburner1Sound)		[afterburner1Sound release];
     if (afterburner2Sound)		[afterburner2Sound release];
+
+    if (witchAbortSound)		[witchAbortSound release];
 
     if (themeMusic)				[themeMusic release];
     if (missionMusic)			[missionMusic release];
@@ -1469,10 +1518,21 @@ static BOOL galactic_witchjump;
 		if (witchspaceCountdown == 0.0)
 		{
 			[self safe_all_missiles];
-			if (galactic_witchjump)
-				[self enterGalacticWitchspace];
+			ShipEntity* blocker = (ShipEntity*)[universe entityForUniversalID:[self checkShipsInVicinityForWitchJumpExit]];
+			if (blocker)
+			{
+				[universe clearPreviousMessage];
+				[universe addMessage:[NSString stringWithFormat:[universe expandDescription:@"[witch-blocked-by-@]" forSystem:system_seed], [blocker name]] forCount: 4.5];
+				[witchAbortSound play];
+				status = STATUS_IN_FLIGHT;
+			}
 			else
-				[self enterWitchspace];
+			{
+				if (galactic_witchjump)
+					[self enterGalacticWitchspace];
+				else
+					[self enterWitchspace];
+			}
 		}
 	}
 	
@@ -1779,8 +1839,11 @@ static BOOL galactic_witchjump;
 		{
 			// restore player ship
 			ShipEntity *player_ship = [universe getShip: ship_desc];	// retained
-			[self setModel:[player_ship getModel]];
-			[player_ship release];						// we only wanted it for its polygons!
+			if (player_ship)
+			{
+				[self setModel:[player_ship getModel]];
+				[player_ship release];						// we only wanted it for its polygons!
+			}
 			[universe setViewDirection:VIEW_FORWARD];
 			[self enterDock:(StationEntity *)[self getPrimaryTarget]];
 		}
@@ -2446,6 +2509,8 @@ static BOOL galactic_witchjump;
 
 //static BOOL fuel_inject_pressed;
 static BOOL jump_pressed;
+static BOOL hyperspace_pressed;
+static BOOL galhyperspace_pressed;
 static BOOL pause_pressed;
 static BOOL zoom_pressed;
 static BOOL compass_mode_pressed;
@@ -2923,67 +2988,94 @@ static NSTimeInterval	time_last_frame;
 			//
 			if ([gameView isDown:key_hyperspace] || joyButtonState[BUTTON_HYPERDRIVE])   // look for the 'h' key
 			{
-				float			dx = target_system_seed.d - galaxy_coordinates.x;
-				float			dy = target_system_seed.b - galaxy_coordinates.y;
-				double		distance = distanceBetweenPlanetPositions(target_system_seed.d,target_system_seed.b,galaxy_coordinates.x,galaxy_coordinates.y); 
-				BOOL		jumpOK = YES;
-				
-				if ((dx == 0)&&(dy == 0))
+				if (!hyperspace_pressed)
 				{
-#ifdef HAVE_SOUND              
-					[boopSound play];
-#endif               
-					[universe addMessage:[universe expandDescription:@"[witch-no-target]" forSystem:system_seed] forCount:3.0];
-					jumpOK = NO;
+					float			dx = target_system_seed.d - galaxy_coordinates.x;
+					float			dy = target_system_seed.b - galaxy_coordinates.y;
+					double		distance = distanceBetweenPlanetPositions(target_system_seed.d,target_system_seed.b,galaxy_coordinates.x,galaxy_coordinates.y); 
+					BOOL		jumpOK = YES;
+					
+					if ((dx == 0)&&(dy == 0))
+					{
+						[boopSound play];
+						[universe clearPreviousMessage];
+						[universe addMessage:[universe expandDescription:@"[witch-no-target]" forSystem:system_seed] forCount:3.0];
+						jumpOK = NO;
+					}
+					
+					if (10.0 * distance > fuel)
+					{
+						[boopSound play];
+						[universe clearPreviousMessage];
+						[universe addMessage:[universe expandDescription:@"[witch-no-fuel]" forSystem:system_seed] forCount:3.0];
+						jumpOK = NO;
+					}
+					
+					if (status == STATUS_WITCHSPACE_COUNTDOWN)
+					{
+						// abort!
+						jumpOK = NO;
+						galactic_witchjump = NO;
+						status = STATUS_IN_FLIGHT;
+						[boopSound play];
+						// say it!
+						[universe clearPreviousMessage];
+						[universe addMessage:[universe expandDescription:@"[witch-user-abort]" forSystem:system_seed] forCount:3.0];
+					}
+					
+					if (jumpOK)
+					{
+						galactic_witchjump = NO;
+						witchspaceCountdown = 15.0;
+						status = STATUS_WITCHSPACE_COUNTDOWN;
+						[beepSound play];
+						// say it!
+						[universe clearPreviousMessage];
+						[universe addMessage:[NSString stringWithFormat:[universe expandDescription:@"[witch-to-@-in-f-seconds]" forSystem:system_seed], [universe getSystemName:target_system_seed], witchspaceCountdown] forCount:1.0];
+					}
 				}
-				
-				if (10.0 * distance > fuel)
-				{
-#ifdef HAVE_SOUND              
-					[boopSound play];
-#endif               
-					[universe addMessage:[universe expandDescription:@"[witch-no-fuel]" forSystem:system_seed] forCount:3.0];
-					jumpOK = NO;
-				}
-				
-				if (status == STATUS_WITCHSPACE_COUNTDOWN)
-					jumpOK = NO;
-				
-				if (jumpOK)
-				{
-					galactic_witchjump = NO;
-					witchspaceCountdown = 15.0;
-					status = STATUS_WITCHSPACE_COUNTDOWN;
-#ifdef HAVE_SOUND               
-					[beepSound play];
-#endif               
-					// say it!
-					[universe addMessage:[NSString stringWithFormat:[universe expandDescription:@"[witch-to-@-in-f-seconds]" forSystem:system_seed], [universe getSystemName:target_system_seed], witchspaceCountdown] forCount:1.0];
-				}
+				hyperspace_pressed = YES;
 			}
+			else
+				hyperspace_pressed = NO;
 			//
 			// Galactic hyperspace 'g'
 			//
 			if (([gameView isDown:key_galactic_hyperspace] || joyButtonState[BUTTON_GALACTICDRIVE])&&(has_galactic_hyperdrive))// look for the 'g' key
 			{
-				BOOL	jumpOK = YES;
-				
-				if (status == STATUS_WITCHSPACE_COUNTDOWN)
-					jumpOK = NO;
-				
-				if (jumpOK)
+				if (!galhyperspace_pressed)
 				{
-					galactic_witchjump = YES;
-					witchspaceCountdown = 15.0;
-					status = STATUS_WITCHSPACE_COUNTDOWN;
-#ifdef HAVE_SOUND               
-					[beepSound play];
-#endif               
-					// say it!
-					[universe addMessage:[NSString stringWithFormat:[universe expandDescription:@"[witch-galactic-in-f-seconds]" forSystem:system_seed], witchspaceCountdown] forCount:1.0];
+					BOOL	jumpOK = YES;
+					
+					if (status == STATUS_WITCHSPACE_COUNTDOWN)
+					{
+						// abort!
+						jumpOK = NO;
+						galactic_witchjump = NO;
+						status = STATUS_IN_FLIGHT;
+						[boopSound play];
+						// say it!
+						[universe clearPreviousMessage];
+						[universe addMessage:[universe expandDescription:@"[witch-user-abort]" forSystem:system_seed] forCount:3.0];
+					}
+					
+					if (jumpOK)
+					{
+						galactic_witchjump = YES;
+						witchspaceCountdown = 15.0;
+						status = STATUS_WITCHSPACE_COUNTDOWN;
+	#ifdef HAVE_SOUND               
+						[beepSound play];
+	#endif               
+						// say it!
+						[universe addMessage:[NSString stringWithFormat:[universe expandDescription:@"[witch-galactic-in-f-seconds]" forSystem:system_seed], witchspaceCountdown] forCount:1.0];
+					}
 				}
+				galhyperspace_pressed = YES;
 			}
-			//
+			else
+				galhyperspace_pressed = NO;
+					//
 			//  shoot '0'   // Cloaking Device
 			//
 			if (([gameView isDown:key_cloaking_device] || joyButtonState[BUTTON_CLOAK]) && has_cloaking_device)
@@ -3458,6 +3550,8 @@ static BOOL queryPressed;
 			searchStringLength = [[gameView typedString] length];
 			//
 		case	GUI_SCREEN_SHORT_RANGE_CHART :
+			//
+			show_info_flag = ([gameView isDown:key_map_info] && ![universe strict]);
 			//
 			if (status != STATUS_WITCHSPACE_COUNTDOWN)
 			{
@@ -4689,7 +4783,9 @@ static BOOL toggling_music;
 
 - (BOOL) mountMissile: (ShipEntity *)missile
 {
-	int i;
+	if (!missile)
+		return NO;
+	int i;	
 	for (i = 0; i < max_missiles; i++)
 	{
 		if (missile_entity[i] == nil)
@@ -5157,7 +5253,7 @@ static BOOL toggling_music;
 	ShipEntity *doppelganger;
 	Vector  vel;
 	Vector  origin = position;
-	int result;
+	int result = NO;
 	Quaternion q1 = q_rotation;
 	
 	status = STATUS_ESCAPE_SEQUENCE;	// firstly
@@ -5173,24 +5269,27 @@ static BOOL toggling_music;
 	vel.z = flight_speed * v_forward.z;
 	
 	doppelganger = [universe getShip: ship_desc];   // retain count = 1
-	[doppelganger setPosition: origin];						// directly below
-	[doppelganger setScanClass: CLASS_NEUTRAL];
-	[doppelganger setQRotation: q1];
-	[doppelganger setVelocity: vel];
-	[doppelganger setSpeed: flight_speed];
-	[doppelganger setRoll:0.2 * (randf() - 0.5)];
-	[doppelganger setDesiredSpeed: flight_speed];
-	[doppelganger setOwner: self];
-	[doppelganger setStatus: STATUS_IN_FLIGHT];  // necessary to get it going!
-	[doppelganger setCondition: CONDITION_IDLE];
-	
-	[universe addEntity:doppelganger];
-	
-	[[doppelganger getAI] setStateMachine:@"nullAI.plist"];  // fly straight on
-	
-	result = [doppelganger universal_id];
-	
-	[doppelganger release]; //release
+	if (doppelganger)
+	{
+		[doppelganger setPosition: origin];						// directly below
+		[doppelganger setScanClass: CLASS_NEUTRAL];
+		[doppelganger setQRotation: q1];
+		[doppelganger setVelocity: vel];
+		[doppelganger setSpeed: flight_speed];
+		[doppelganger setRoll:0.2 * (randf() - 0.5)];
+		[doppelganger setDesiredSpeed: flight_speed];
+		[doppelganger setOwner: self];
+		[doppelganger setStatus: STATUS_IN_FLIGHT];  // necessary to get it going!
+		[doppelganger setCondition: CONDITION_IDLE];
+		
+		[universe addEntity:doppelganger];
+		
+		[[doppelganger getAI] setStateMachine:@"nullAI.plist"];  // fly straight on
+		
+		result = [doppelganger universal_id];
+		
+		[doppelganger release]; //release
+	}
 	
 	// set up you
 	[self setModel:@"escpod_redux.dat"];				// look right to anyone else (for multiplayer later)
@@ -5486,16 +5585,7 @@ static BOOL toggling_music;
 
 	[self unloadCargoPods];
 	
-	NSString* deliveryReport = [self checkPassengerContracts];
-	if (deliveryReport)
-		[self setGuiToDeliveryReportScreenWithText:deliveryReport];
-	else
-		[self setGuiToStatusScreen];
-	
 	[universe setDisplayText:YES];
-	
-	// set a dark but see-through message gui background
-//	[universe setMessageGuiBackgroundColor:[NSColor colorWithCalibratedRed:0 green:0 blue:0 alpha:0.25]];
 	
 	if (ootunes_on)
 	{
@@ -5509,9 +5599,21 @@ static BOOL toggling_music;
 	// time to check the script!
 	[self checkScript];
 	
-	if (being_fined)
-		[self getFined];
-
+	// if we've not switched to the mission screen then proceed normally..
+	if (gui_screen != GUI_SCREEN_MISSION)
+	{
+		// check for fines
+		if (being_fined)
+			[self getFined];
+		
+		// check contracts
+		NSString* deliveryReport = [self checkPassengerContracts];
+		if (deliveryReport)
+			[self setGuiToDeliveryReportScreenWithText:deliveryReport];
+		else
+			[self setGuiToStatusScreen];
+	}
+	
 }
 
 - (void) leaveDock:(StationEntity *)station
@@ -5826,32 +5928,66 @@ static BOOL toggling_music;
 
 - (void) loadPlayerFromFile:(NSString *)fileToOpen
 {
-	BOOL loadedOK = NO;
-	NSDictionary *fileDic = nil;
+	BOOL loadedOK = YES;
+	NSDictionary*	fileDic = nil;
+	NSString*	fail_reason = nil;
 	if (fileToOpen)
 	{
 		fileDic = [NSDictionary dictionaryWithContentsOfFile:fileToOpen];
 		
 		// FIX FOR WINDOWS GNUSTEP NOT PARSING XML PLISTS
-		if (!fileDic)	// try parsing it using our home-grown XML parser
-			fileDic = (NSDictionary*)[ResourceManager parseXMLPropertyList:[NSString stringWithContentsOfFile:fileToOpen]];
+		NS_DURING
+			if (!fileDic)	// try parsing it using our home-grown XML parser
+				fileDic = (NSDictionary*)[ResourceManager parseXMLPropertyList:[NSString stringWithContentsOfFile:fileToOpen]];
+		NS_HANDLER
+			fileDic = nil;
+			loadedOK = NO;
+			if ([[localException name] isEqual: OOLITE_EXCEPTION_XML_PARSING_FAILURE])	// note it happened here 
+			{
+				NSLog(@"***** [PlayerEntity loadPlayerFromFile:] encountered exception : %@ : %@ *****",[localException name], [localException reason]);
+				fail_reason = [NSString stringWithFormat:@"Couldn't parse %@ as an Oolite saved game", fileToOpen];
+			}
+			else
+				[localException raise];
+		NS_ENDHANDLER
 					
 		if (fileDic)
 		{
 			[self set_up];
-			[self setCommanderDataFromDictionary:fileDic];
-			if (save_path)
-				[save_path autorelease];
-			save_path = [fileToOpen retain];
-			loadedOK = YES;
+			NS_DURING
+				[self setCommanderDataFromDictionary:fileDic];
+			NS_HANDLER
+				loadedOK = NO;
+				if ([[localException name] isEqual: OOLITE_EXCEPTION_SHIP_NOT_FOUND])
+				{
+					NSLog(@"***** Oolite Exception : '%@' in [PlayerEntity loadPlayerFromFile: %@ ] *****", [localException reason], fileToOpen);
+					fail_reason = @"Couldn't load Commander details for some reason (AddOns folder missing an OXP perhaps?)";
+				}
+				else
+					[localException raise];
+			NS_ENDHANDLER
 		}
+		else
+			loadedOK = NO;
 	}
 	if (loadedOK)
+	{
+		if (save_path)
+			[save_path autorelease];
+		save_path = [fileToOpen retain];
 		[[(MyOpenGLView *)[universe gameView] gameController] setPlayerFileToLoad:fileToOpen];
+	}
 	else
 	{
-		NSBeep();
 		NSLog(@"***** FILE LOADING ERROR!! *****");
+		NSBeep();
+		[[universe gameController] setPlayerFileToLoad:nil];
+		[universe game_over];
+		[universe clearPreviousMessage];
+		[universe addMessage:@"Saved game failed to load." forCount: 9.0];
+		if (fail_reason)
+			[universe addMessage: fail_reason forCount: 9.0];
+		return;
 	}
 	
 	[universe setSystemTo:system_seed];
@@ -7102,9 +7238,16 @@ static int last_outfitting_index;
 	NSArray*	equipdata = [universe equipmentdata];
 	int			price_per_unit  = [(NSNumber *)[(NSArray *)[equipdata objectAtIndex:index] objectAtIndex:EQUIPMENT_PRICE_INDEX] intValue];
 	NSString*   eq_key			= (NSString *)[(NSArray *)[equipdata objectAtIndex:index] objectAtIndex:EQUIPMENT_KEY_INDEX];
+	NSString*	eq_key_damaged	= [NSString stringWithFormat:@"%@_DAMAGED", eq_key];
 	double		price			= ([eq_key isEqual:@"EQ_FUEL"]) ? ((70 - fuel) * price_per_unit) : (price_per_unit) ;
 	double		price_factor	= 1.0;
 	int			cargo_space = max_cargo - current_cargo;
+
+	// repairs cost 50%
+	if ([self has_extra_equipment:eq_key_damaged])
+	{
+		price /= 2.0;
+	}
 
 	if ([eq_key isEqual:@"EQ_RENOVATION"])
 	{
@@ -7233,7 +7376,7 @@ static int last_outfitting_index;
 		}
 	}
 	
-	// repair damaged system
+	// maintain ship
 	if ([eq_key isEqual:@"EQ_RENOVATION"])
 	{
 		int techlevel =		[(NSNumber *)[[universe generateSystemData:system_seed] objectForKey:KEY_TECHLEVEL] intValue];
@@ -7770,7 +7913,7 @@ NSString* GenerateDisplayString(int inModeWidth, int inModeHeight, int inModeRef
 	NSString* fined_message = [NSString stringWithFormat:[universe expandDescription:@"[fined]" forSystem:system_seed], fine];
 	[universe addMessage:fined_message forCount:6];
 	ship_clock_adjust = 24 * 3600;	// take up a day
-	if (gui_screen = GUI_SCREEN_STATUS)
+	if (gui_screen != GUI_SCREEN_STATUS)
 		[self setGuiToStatusScreen];
 }
 
@@ -7816,7 +7959,7 @@ NSString* GenerateDisplayString(int inModeWidth, int inModeHeight, int inModeRef
 {
 //	NSLog(@"DEBUG setting up trumbles for %@%@", player_name, basefile);
 	
-	NSMutableString* trumbleDigrams = [NSMutableString stringWithString:@""];
+	NSMutableString* trumbleDigrams = [NSMutableString stringWithCapacity:256];
 	unichar	xchar = (unichar)0;
 	unichar digramchars[2];
 	

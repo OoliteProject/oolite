@@ -50,6 +50,11 @@ Your fair use and other rights are in no way affected by the above.
 #import <Cocoa/Cocoa.h>
 #endif
 
+#define OOLITE_EXCEPTION_XML_PARSING_FAILURE	@"OOXMLException"
+#define OOLITE_EXCEPTION_FATAL					@"OoliteFatalException"
+
+@class OOSound;
+
 typedef struct
 {
 	NSString*		tag;		// name of the tag

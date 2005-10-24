@@ -1131,6 +1131,11 @@ NSMutableDictionary* currentShipyard;
 	[ship setPitch: PI/25.0];
 	[universe addEntity: ship];
 	[[ship getAI] setStateMachine: @"nullAI.plist"];
+	
+//	[universe setDisplayText:YES];	// tryout for lighting
+//	ship->isSunlit = NO;	// DEBUG TEST
+//
+//	NSLog(@"DEBUG demo ship %@ %@", ship, (ship->isSunlit)? @"is SUNLIT.":@"is not sunlit.");
 
 	[ship release];
 	//

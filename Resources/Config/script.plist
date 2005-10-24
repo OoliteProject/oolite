@@ -70,6 +70,13 @@
                 "awardEquipment: EQ_NAVAL_ENERGY_UNIT",
 				clearMissionDescription
             ); 
+        },
+        {
+            conditions = (
+                "mission_thargplans equal MISSION_COMPLETE", 
+                "mission_TL_FOR_EQ_NAVAL_ENERGY_UNIT undefined"
+            ); 
+            do = ("set: mission_TL_FOR_EQ_NAVAL_ENERGY_UNIT 13"); 
         }
     );
 	"constrictor_hunt" = (
@@ -287,7 +294,7 @@
                 "setMissionDescription: nova_missiondesc", 
                 launchFromStation, 
                 "set: mission_nova NOVA_ESCAPE_HERO", 
-                "setSunNovaIn: 12"
+                "setSunNovaIn: 30"
             ); 
         }, 
         {
@@ -358,7 +365,9 @@
                 "missionChoice_string undefined"
             ); 
             do = (
-                setGuiToMissionScreen, 
+                setGuiToMissionScreen,
+				"showShipModel: none",
+				"setMissionImage: none",
                 "set: mission_trumbles OFFER_MADE", 
                 "addMissionText: trumble_offer", 
                 "setMissionChoices: trumble_offer_yesno"

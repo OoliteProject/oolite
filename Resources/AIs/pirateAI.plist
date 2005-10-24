@@ -22,13 +22,15 @@
     }; 
     "EXIT_SYSTEM" = {ENTER = (performHyperSpaceExit); EXIT = (); UPDATE = (); }; 
     FLEE = {
+        ENTER = ("setDesiredRangeTo: 25600", performFlee); 
         "ENERGY_FULL" = (performIdle, "setStateTo: LURK"); 
         "TARGET_LOST" = (performIdle, "setStateTo: LURK"); 
-        ENTER = ("setDesiredRangeTo: 25600", performFlee); 
-        EXIT = (); 
+        "DESIRED_RANGE_ACHIEVED" = (performIdle, "setStateTo: LURK"); 
         "INCOMING_MISSILE" = (fightOrFleeMissile, "setStateTo: FLEE"); 
         "REACHED_SAFETY" = ("setSpeedTo: 0.0", performIdle, "pauseAI: 10.0"); 
+        ATTACKED = (setTargetToPrimaryAggressor, "setStateTo: FLEE"); 
         UPDATE = (); 
+        EXIT = (); 
     }; 
     GLOBAL = {ENTER = ("setStateTo: TRAVEL_TO_LURK_AREA"); EXIT = (); UPDATE = (); }; 
     LOOT = {
@@ -43,8 +45,8 @@
         UPDATE = (); 
     }; 
     LURK = {
-        ATTACKED = (setTargetToPrimaryAggressor, "setStateTo: ATTACK_SHIP"); 
         ENTER = ("setSpeedTo: 0.0", performIdle); 
+        ATTACKED = (setTargetToPrimaryAggressor, "setStateTo: ATTACK_SHIP"); 
         EXIT = (); 
         "INCOMING_MISSILE" = (fightOrFleeMissile, "setStateTo: FLEE"); 
         "NOTHING_FOUND" = ("setStateTo: COLLECT_LOOT"); 

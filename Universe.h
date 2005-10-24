@@ -153,6 +153,9 @@ Your fair use and other rights are in no way affected by the above.
 
 #define	UNIVERSE_MAX_ENTITIES		2048
 
+#define OOLITE_EXCEPTION_SHIP_NOT_FOUND	@"OoliteShipNotFoundException"
+#define OOLITE_EXCEPTION_FATAL			@"OoliteFatalException"
+
 //#import <OpenGL/glu.h>
 #ifdef LINUX
 #include "oolite-linux.h"
@@ -399,7 +402,6 @@ extern int debug;
 - (BOOL) removeEntity:(Entity *) entity;
 - (void) removeAllEntitiesExceptPlayer:(BOOL) restore;
 - (void) removeDemoShips;
-//- (NSArray *) getAllEntities;
 
 - (BOOL) isVectorClearFromEntity:(Entity *) e1 toDistance:(double)dist fromPoint:(Vector) p2;
 - (Vector) getSafeVectorFromEntity:(Entity *) e1 toDistance:(double)dist fromPoint:(Vector) p2;

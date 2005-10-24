@@ -53,35 +53,11 @@ Your fair use and other rights are in no way affected by the above.
 		return;
 	}
 	
-	//NSLog(@"DEBUG %@ %d responding to distress message from %@ %d", name, universal_id, [other name], [other universal_id]);
-	{
-		int police_target = [[other getPrimaryTarget] universal_id];
-		[(ShipEntity *)[universe entityForUniversalID:police_target] markAsOffender:8];
-		if (police_launched < STATION_MAX_POLICE)
-		{
-			ShipEntity  *police_ship;
-			if (![universe entityForUniversalID:police_target])
-			{
-				[shipAI reactToMessage:@"TARGET_LOST"];
-				return;
-			}
-				
-			//NSLog(@"DEBUG Launching Police Ship to intercept %@",[universe entityForUniversalID:police_target]);
-				
-			police_ship = [universe getShipWithRole:@"police"];   // retain count = 1
-			[police_ship addTarget:[universe entityForUniversalID:police_target]];
-			[police_ship setScanClass: CLASS_POLICE];
-			
-			//[police_ship setReportAImessages:YES]; // debug
-			
-			[[police_ship getAI] setStateMachine:@"policeInterceptAI.plist"];
-			[self addShipToLaunchQueue:police_ship];
-			[police_ship release];
-			police_launched++;
-		}
-		no_docking_while_launching = YES;
-		[self abortAllDockings];
-	}
+	int old_target = primaryTarget;
+	primaryTarget = [[other getPrimaryTarget] universal_id];
+	[self launchDefenseShip];
+	primaryTarget = old_target;
+
 }
 
 - (int) equivalent_tech_level
@@ -1319,17 +1295,17 @@ NSDictionary* instructions(int station_id, Vector coords, float speed, float ran
 			police_ship = [universe getShipWithRole:@"interceptor"];   // retain count = 1
 		else
 			police_ship = [universe getShipWithRole:@"police"];   // retain count = 1
-		[police_ship setRoles:@"police"];
-		[police_ship addTarget:[universe entityForUniversalID:police_target]];
-		[police_ship setScanClass: CLASS_POLICE];
-		[police_ship setBounty:0];
-		
-		//[police_ship setReportAImessages:YES]; // debug
-		
-		[[police_ship getAI] setStateMachine:@"policeInterceptAI.plist"];
-		[self addShipToLaunchQueue:police_ship];
-		[police_ship release];
-		police_launched++;
+		if (police_ship)
+		{
+			[police_ship setRoles:@"police"];
+			[police_ship addTarget:[universe entityForUniversalID:police_target]];
+			[police_ship setScanClass: CLASS_POLICE];
+			[police_ship setBounty:0];
+			[[police_ship getAI] setStateMachine:@"policeInterceptAI.plist"];
+			[self addShipToLaunchQueue:police_ship];
+			[police_ship release];
+			police_launched++;
+		}
 	}
 	no_docking_while_launching = YES;
 	[self abortAllDockings];
@@ -1338,12 +1314,28 @@ NSDictionary* instructions(int station_id, Vector coords, float speed, float ran
 - (void) launchDefenseShip
 {
 	int defense_target = primaryTarget;
-	//int n_ships = [universe countShipsWithRole:@"hermit-ship"] + [self countShipsInLaunchQueueWithRole:@"hermit-ship"];
 	ShipEntity  *defense_ship;
 	NSString* defense_ship_key		= nil;
 	NSString* defense_ship_role_key	= nil;
-	NSString* defense_ship_ai		= nil;
+	NSString* defense_ship_ai		= @"policeInterceptAI.plist";
 	
+	int techlevel = [self equivalent_tech_level];
+	if (techlevel == NSNotFound)
+	techlevel = 6;
+	if ((ranrot_rand() & 7) + 6 <= techlevel)
+		defense_ship_role_key	= @"interceptor";
+	else
+		defense_ship_role_key	= @"police";
+	
+	if (police_launched >= max_defense_ships)   // shuttles are to rockhermits what police ships are to stations
+		return;
+	
+	if (![universe entityForUniversalID:defense_target])
+	{
+		[shipAI reactToMessage:@"TARGET_LOST"];
+		return;
+	}
+		
 	if ([shipinfoDictionary objectForKey:@"defense_ship"])
 	{
 //		NSLog(@"DEBUG Defense ship key found: %@", [shipinfoDictionary objectForKey:@"defense_ship"]);
@@ -1355,19 +1347,8 @@ NSDictionary* instructions(int station_id, Vector coords, float speed, float ran
 		defense_ship_role_key = (NSString*)[shipinfoDictionary objectForKey:@"defense_ship_role"];
 	}
 	
-	if (police_launched >= max_defense_ships)   // shuttles are to rockhermits what police ships are to stations
-		return;
-	
-	if (![universe entityForUniversalID:defense_target])
-	{
-		[shipAI reactToMessage:@"TARGET_LOST"];
-		return;
-	}
-		
 //	NSLog(@"DEBUG Launching defense ship to intercept %@",[(ShipEntity *)[universe entityForUniversalID:defense_target] name]);
-	
-	police_launched++;
-	
+
 	if (defense_ship_key)
 	{
 		defense_ship = [universe getShip:defense_ship_key];
@@ -1376,33 +1357,28 @@ NSDictionary* instructions(int station_id, Vector coords, float speed, float ran
 	}
 	else
 	{
-		if (defense_ship_role_key)
-		{
-			defense_ship = [universe getShipWithRole:defense_ship_role_key];
-//			NSLog(@"DEBUG launchDefenseShip Got ship with defense_ship_role '%@' : %@", defense_ship_role_key, defense_ship);
-			[defense_ship setRoles:@"defense_ship"];
-		}
-		else
-		{
-			defense_ship = [universe getShipWithRole:@"hermit-ship"];   // retain count = 1
-			defense_ship_ai = @"policeInterceptAI.plist";
-		}
+		defense_ship = [universe getShipWithRole:defense_ship_role_key];
+//		NSLog(@"DEBUG launchDefenseShip Got ship with defense_ship_role '%@' : %@", defense_ship_role_key, defense_ship);
+		[defense_ship setRoles:@"defense_ship"];
 	}
 	
+	if (!defense_ship)
+		return;
+	
+	police_launched++;
+	
 	[defense_ship setGroup_id:universal_id];	// who's your Daddy
+	if (defense_ship_ai)
+		[[defense_ship getAI] setStateMachine:defense_ship_ai];
 	[defense_ship addTarget:[universe entityForUniversalID:defense_target]];
 
 	if ((scan_class != CLASS_ROCK)&&(scan_class != CLASS_STATION))
 		[defense_ship setScanClass: scan_class];	// same as self
-	else
-		[defense_ship setScanClass: CLASS_NEUTRAL];	// or neutral
 	
 	//[defense_ship setReportAImessages:YES]; // debug
 	
 //	NSLog(@"DEBUG Launching defense ship %@ %@", defense_ship, [defense_ship name]);
 
-	if (defense_ship_ai)
-		[[defense_ship getAI] setStateMachine:defense_ship_ai];
 	[self addShipToLaunchQueue:defense_ship];
 	[defense_ship release];
 	no_docking_while_launching = YES;
@@ -1429,14 +1405,14 @@ NSDictionary* instructions(int station_id, Vector coords, float speed, float ran
 	scavengers_launched++;
 		
 	scavenger_ship = [universe getShipWithRole:@"scavenger"];   // retain count = 1
-	[scavenger_ship setScanClass: CLASS_NEUTRAL];
-
-	//[scavenger_ship setReportAImessages:YES]; // debug
-
-	[scavenger_ship setGroup_id:universal_id];	// who's your Daddy
-	[[scavenger_ship getAI] setStateMachine:@"scavengerAI.plist"];
-	[self addShipToLaunchQueue:scavenger_ship];
-	[scavenger_ship release];
+	if (scavenger_ship)
+	{
+		[scavenger_ship setScanClass: CLASS_NEUTRAL];
+		[scavenger_ship setGroup_id:universal_id];	// who's your Daddy
+		[[scavenger_ship getAI] setStateMachine:@"scavengerAI.plist"];
+		[self addShipToLaunchQueue:scavenger_ship];
+		[scavenger_ship release];
+	}
 }
 
 - (void) launchMiner
@@ -1455,17 +1431,16 @@ NSDictionary* instructions(int station_id, Vector coords, float speed, float ran
 	//	
 //	NSLog(@"Launching Miner");
 	//
-	scavengers_launched++;
-		
 	miner_ship = [universe getShipWithRole:@"miner"];   // retain count = 1
-	[miner_ship setScanClass: CLASS_NEUTRAL];
-
-//	[miner_ship setReportAImessages:YES]; // debug
-
-	[miner_ship setGroup_id:universal_id];	// who's your Daddy
-	[[miner_ship getAI] setStateMachine:@"minerAI.plist"];
-	[self addShipToLaunchQueue:miner_ship];
-	[miner_ship release];
+	if (miner_ship)
+	{
+		scavengers_launched++;
+		[miner_ship setScanClass: CLASS_NEUTRAL];
+		[miner_ship setGroup_id:universal_id];	// who's your Daddy
+		[[miner_ship getAI] setStateMachine:@"minerAI.plist"];
+		[self addShipToLaunchQueue:miner_ship];
+		[miner_ship release];
+	}
 }
 
 /**Lazygun** added the following method. A complete rip-off of launchDefenseShip. 
@@ -1487,28 +1462,26 @@ NSDictionary* instructions(int station_id, Vector coords, float speed, float ran
 	
 	police_launched++;
 	
-//	pirate_ship = [universe getShipWithRole:@"hermit-ship"];   // retain count = 1
 	// Yep! The standard hermit defence ships, even if they're the aggressor.
 	pirate_ship = [universe getShipWithRole:@"pirate"];   // retain count = 1
 	// Nope, use standard pirates in a generic method.
 	
-	// set the owner of the ship to the station so that it can check back for docking later
-	[pirate_ship setOwner:self];
-	[pirate_ship setGroup_id:universal_id];	// who's your Daddy
-	
-	[pirate_ship addTarget:[universe entityForUniversalID:defense_target]];
-	[pirate_ship setScanClass: CLASS_NEUTRAL];
-	//**Lazygun** added 30 Nov 04 to put a bounty on those pirates' heads.
-	[pirate_ship setBounty: 10 + floor(randf() * 20)];	// modified for variety
-	
-	//[pirate_ship setReportAImessages:YES]; // debug
-//	//**Lazygun** changed name of the AI on 30 Nov 04 from "pirateAI.plist"
-//	[[pirate_ship getAI] setStateMachine:@"launchedPirateAI.plist"];
-	
-	[self addShipToLaunchQueue:pirate_ship];
-	[pirate_ship release];
-	no_docking_while_launching = YES;
-	[self abortAllDockings];
+	if (pirate_ship)
+	{
+		// set the owner of the ship to the station so that it can check back for docking later
+		[pirate_ship setOwner:self];
+		[pirate_ship setGroup_id:universal_id];	// who's your Daddy
+		
+		[pirate_ship addTarget:[universe entityForUniversalID:defense_target]];
+		[pirate_ship setScanClass: CLASS_NEUTRAL];
+		//**Lazygun** added 30 Nov 04 to put a bounty on those pirates' heads.
+		[pirate_ship setBounty: 10 + floor(randf() * 20)];	// modified for variety
+
+		[self addShipToLaunchQueue:pirate_ship];
+		[pirate_ship release];
+		no_docking_while_launching = YES;
+		[self abortAllDockings];
+	}
 }
 
 
@@ -1517,18 +1490,18 @@ NSDictionary* instructions(int station_id, Vector coords, float speed, float ran
 	ShipEntity  *shuttle_ship;
 		
 	shuttle_ship = [universe getShipWithRole:@"shuttle"];   // retain count = 1
-	[shuttle_ship setScanClass: CLASS_NEUTRAL];
 	
-	[shuttle_ship setCargoFlag:CARGO_FLAG_FULL_SCARCE];
+	if (shuttle_ship)
+	{
+		[shuttle_ship setScanClass: CLASS_NEUTRAL];
+		[shuttle_ship setCargoFlag:CARGO_FLAG_FULL_SCARCE];
+		[[shuttle_ship getAI] setStateMachine:@"fallingShuttleAI.plist"];
+		[self addShipToLaunchQueue:shuttle_ship];
 
-//	[shuttle_ship setReportAImessages:YES]; // debug
-
-	[[shuttle_ship getAI] setStateMachine:@"fallingShuttleAI.plist"];
-	[self addShipToLaunchQueue:shuttle_ship];
-
-	//NSLog(@"%@ Prepping shuttle: %@ %d for launch.", [self name], [shuttle_ship name], [shuttle_ship universal_id]);
-	
-	[shuttle_ship release];
+		//NSLog(@"%@ Prepping shuttle: %@ %d for launch.", [self name], [shuttle_ship name], [shuttle_ship universal_id]);
+		
+		[shuttle_ship release];
+	}
 }
 
 - (void) launchTrader
@@ -1541,32 +1514,33 @@ NSDictionary* instructions(int station_id, Vector coords, float speed, float ran
 	else
 		trader_ship = [universe getShipWithRole:@"sunskim_trader"];   // retain count = 1
 	
-	[trader_ship setRoles:@"trader"];
-	[trader_ship setScanClass: CLASS_NEUTRAL];
-	[trader_ship setCargoFlag:CARGO_FLAG_FULL_PLENTIFUL];
-
-	//[trader_ship setReportAImessages:YES]; // debug
-
-	if (sunskimmer)
+	if (trader_ship)
 	{
-		int escorts = [trader_ship n_escorts];
-		[[trader_ship getAI] setStateMachine:@"route2sunskimAI.plist"];
-		[trader_ship setN_escorts:0];
-		while (escorts--)
+		[trader_ship setRoles:@"trader"];
+		[trader_ship setScanClass: CLASS_NEUTRAL];
+		[trader_ship setCargoFlag:CARGO_FLAG_FULL_PLENTIFUL];
+
+		if (sunskimmer)
 		{
-			[self launchEscort];
+			int escorts = [trader_ship n_escorts];
+			[[trader_ship getAI] setStateMachine:@"route2sunskimAI.plist"];
+			[trader_ship setN_escorts:0];
+			while (escorts--)
+			{
+				[self launchEscort];
+			}
 		}
-	}
-	else
-	{
-		[[trader_ship getAI] setStateMachine:@"exitingTraderAI.plist"];
-	}
-	
-	[self addShipToLaunchQueue:trader_ship];
-
-	//NSLog(@"%@ Prepping trader: %@ %d for launch.", [self name], [trader_ship name], [trader_ship universal_id]);
+		else
+		{
+			[[trader_ship getAI] setStateMachine:@"exitingTraderAI.plist"];
+		}
 		
-	[trader_ship release];
+		[self addShipToLaunchQueue:trader_ship];
+
+		//NSLog(@"%@ Prepping trader: %@ %d for launch.", [self name], [trader_ship name], [trader_ship universal_id]);
+			
+		[trader_ship release];
+	}
 }
 
 - (void) launchEscort
@@ -1574,18 +1548,15 @@ NSDictionary* instructions(int station_id, Vector coords, float speed, float ran
 	ShipEntity  *escort_ship;
 		
 	escort_ship = [universe getShipWithRole:@"escort"];   // retain count = 1
-	[escort_ship setScanClass: CLASS_NEUTRAL];
 	
-	[escort_ship setCargoFlag:CARGO_FLAG_FULL_PLENTIFUL];
-
-	//[escort_ship setReportAImessages:YES]; // debug
-
-	[[escort_ship getAI] setStateMachine:@"escortAI.plist"];
-	[self addShipToLaunchQueue:escort_ship];
-
-	//NSLog(@"%@ Prepping escort: %@ %d for launch.", [self name], [escort_ship name], [escort_ship universal_id]);
-		
-	[escort_ship release];
+	if (escort_ship)
+	{
+		[escort_ship setScanClass: CLASS_NEUTRAL];
+		[escort_ship setCargoFlag:CARGO_FLAG_FULL_PLENTIFUL];
+		[[escort_ship getAI] setStateMachine:@"escortAI.plist"];
+		[self addShipToLaunchQueue:escort_ship];
+		[escort_ship release];
+	}
 }
 
 - (BOOL) launchPatrol
@@ -1604,27 +1575,21 @@ NSDictionary* instructions(int station_id, Vector coords, float speed, float ran
 			patrol_ship = [universe getShipWithRole:@"interceptor"];   // retain count = 1
 		else
 			patrol_ship = [universe getShipWithRole:@"police"];   // retain count = 1
-		[patrol_ship switchLightsOff];
-		[patrol_ship setScanClass: CLASS_POLICE];
-		[patrol_ship setRoles:@"police"];
-		[patrol_ship setBounty:0];
-
-//		[patrol_ship setReportAImessages:YES]; // debug
-
-		[patrol_ship setGroup_id:universal_id];	// who's your Daddy
-		[[patrol_ship getAI] setStateMachine:@"planetPatrolAI.plist"];
-		[self addShipToLaunchQueue:patrol_ship];
-
-		[self acceptPatrolReportFrom:patrol_ship];
-
-//		NSLog(@"%@ Prepping patrol: %@ %d for launch.", [self name], [patrol_ship name], [patrol_ship universal_id]);
-			
-		[patrol_ship release];
-		
-		return YES;
+		if (patrol_ship)
+		{
+			[patrol_ship switchLightsOff];
+			[patrol_ship setScanClass: CLASS_POLICE];
+			[patrol_ship setRoles:@"police"];
+			[patrol_ship setBounty:0];
+			[patrol_ship setGroup_id:universal_id];	// who's your Daddy
+			[[patrol_ship getAI] setStateMachine:@"planetPatrolAI.plist"];
+			[self addShipToLaunchQueue:patrol_ship];
+			[self acceptPatrolReportFrom:patrol_ship];
+			[patrol_ship release];
+			return YES;
+		}
 	}
-	else
-		return NO;
+	return NO;
 }
 
 - (void) becomeExplosion

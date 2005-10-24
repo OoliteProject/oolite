@@ -43,8 +43,6 @@ Your fair use and other rights are in no way affected by the above.
 
 static struct random_seed   rnd_seed;
 
-static int					carry_flag;
-
 static int checksum;
 void clear_checksum()
 {
@@ -155,16 +153,6 @@ void setRandomSeed (RNG_Seed a_seed)
 }
 
 
-int get_carry_flag (void)
-{
-	return carry_flag;
-}
-
-void clear_carry_flag (void)
-{
-	carry_flag = 0;
-}
-
 inline float randf (void)
 {
 	return 0.0009765625 * (ranrot_rand() & 1023);
@@ -210,7 +198,6 @@ void rotate_seed (struct rand_seed_6uc *seed_ptr)
 {
     unsigned int x;
 	unsigned int y;
-	extern int carry_flag;
 
 	x = seed_ptr->a + seed_ptr->c;
     y = seed_ptr->b + seed_ptr->d;
@@ -233,11 +220,6 @@ void rotate_seed (struct rand_seed_6uc *seed_ptr)
 
 	if (x > 0xFF)
 		y++;
-
-	if (y > 0xFF)
-		carry_flag = 1;
-	else
-		carry_flag = 0;
 
     x &= 0xFF;
 	y &= 0xFF;

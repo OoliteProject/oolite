@@ -321,7 +321,7 @@
 		<key>has_shield_booster</key>
 		<real>0.5</real>
 		<key>likely_cargo</key>
-		<integer>0</integer>
+		<integer>1</integer>
 		<key>max_cargo</key>
 		<integer>0</integer>
 		<key>max_energy</key>
@@ -375,10 +375,10 @@
 		<string>CARGO_NOT_CARGO</string>
 		<key>death_actions</key>
 		<array>
-			<string>debugOn</string>
+			<!-- <string>debugOn</string> -->
 			<string>spawn: cloaking-device 1</string>
 			<string>set: mission_cloak COMPLETE</string>
-			<string>debugOff</string>
+			<!-- <string>debugOff</string> -->
 		</array>
 		<key>energy_recharge_rate</key>
 		<real>4</real>
@@ -1638,7 +1638,7 @@
 		<key>launch_actions</key>
 		<array/>
 		<key>likely_cargo</key>
-		<integer>0</integer>
+		<integer>3</integer>
 		<key>max_cargo</key>
 		<integer>15</integer>
 		<key>max_energy</key>
@@ -2049,7 +2049,7 @@
 		<key>has_shield_booster</key>
 		<real>0.40000000000000002</real>
 		<key>likely_cargo</key>
-		<integer>0</integer>
+		<integer>1</integer>
 		<key>max_cargo</key>
 		<integer>3</integer>
 		<key>max_energy</key>
@@ -2277,7 +2277,7 @@
 		<key>has_shield_booster</key>
 		<real>0.25</real>
 		<key>likely_cargo</key>
-		<integer>0</integer>
+		<integer>1</integer>
 		<key>max_cargo</key>
 		<integer>4</integer>
 		<key>max_energy</key>
@@ -2338,7 +2338,7 @@
 		<key>forward_weapon_type</key>
 		<string>WEAPON_BEAM_LASER</string>
 		<key>likely_cargo</key>
-		<integer>0</integer>
+		<integer>1</integer>
 		<key>max_cargo</key>
 		<integer>4</integer>
 		<key>max_energy</key>
@@ -2448,7 +2448,7 @@
 		<key>has_shield_booster</key>
 		<real>0.5</real>
 		<key>likely_cargo</key>
-		<integer>0</integer>
+		<integer>2</integer>
 		<key>max_cargo</key>
 		<integer>7</integer>
 		<key>max_energy</key>
@@ -3583,6 +3583,8 @@
 		<string>GalCop Viper</string>
 		<key>roles</key>
 		<string>police</string>
+		<key>scanClass</key>
+		<string>CLASS_POLICE</string>
 		<key>subentities</key>
 		<array>
 			<string>*FLASHER* -25.00 0.0 -27.50 260.0 2 0.5 8</string>
@@ -3669,6 +3671,8 @@
 		<string>GalCop Viper Interceptor</string>
 		<key>roles</key>
 		<string>interceptor wingman</string>
+		<key>scanClass</key>
+		<string>CLASS_POLICE</string>
 		<key>subentities</key>
 		<array>
 			<string>*FLASHER* -32.00 0.00 -22.00 260.0 2 0.5 8</string>
@@ -3892,6 +3896,50 @@
 		<string>-12.5 -3.0 -2.5</string>
 		<key>weapon_position_starboard</key>
 		<string>12.5 -3.0 -2.5</string>
+	</dict>
+	<!-- ecm hardened missile -->
+	<key>ecm-proof-missile</key>
+	<dict>
+		<key>ai_type</key>
+		<string>hardMissileAI.plist</string>
+		<key>bounty</key>
+		<integer>0</integer>
+		<key>cargo_type</key>
+		<string>CARGO_NOT_CARGO</string>
+		<key>energy_recharge_rate</key>
+		<real>0.0</real>
+		<key>exhaust</key>
+		<array>
+			<string>0.0 0.0 -3.5 2.0 2.0 4.0</string>
+		</array>
+		<key>forward_weapon_type</key>
+		<string>WEAPON_NONE</string>
+		<key>likely_cargo</key>
+		<integer>0</integer>
+		<key>max_cargo</key>
+		<integer>0</integer>
+		<key>max_energy</key>
+		<real>5</real>
+		<key>max_flight_pitch</key>
+		<real>8</real>
+		<key>max_flight_roll</key>
+		<real>10</real>
+		<key>max_flight_speed</key>
+		<real>750</real>
+		<key>max_missiles</key>
+		<integer>0</integer>
+		<key>missiles</key>
+		<integer>0</integer>
+		<key>model</key>
+		<string>missile.dat</string>
+		<key>name</key>
+		<string>ECM Hardened Missile</string>
+		<key>roles</key>
+		<string>missile EQ_HARDENED_MISSILE</string>
+		<key>thrust</key>
+		<real>250</real>
+		<key>weapon_energy</key>
+		<real>12500</real>
 	</dict>
 </dict>
 </plist>

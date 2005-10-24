@@ -83,8 +83,6 @@ void seed_for_planet_description (Random_Seed s_seed);
 void seed_RNG_only_for_planet_description (Random_Seed s_seed);
 RNG_Seed currentRandomSeed (void);
 void setRandomSeed (RNG_Seed a_seed);
-int get_carry_flag (void);
-void clear_carry_flag (void);
 
 inline float randf (void);
 inline float bellf (int n);

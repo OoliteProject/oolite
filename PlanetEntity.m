@@ -48,6 +48,7 @@ Your fair use and other rights are in no way affected by the above.
 
 #import "AI.h"
 #import "Universe.h"
+#import "TextureStore.h"
 #import "MyOpenGLView.h"
 
 #define LIM500  500.0*500.0 * NO_DRAW_DISTANCE_FACTOR*NO_DRAW_DISTANCE_FACTOR
@@ -56,14 +57,22 @@ Your fair use and other rights are in no way affected by the above.
 #define LIM16K  16000.0*16000.0 * NO_DRAW_DISTANCE_FACTOR*NO_DRAW_DISTANCE_FACTOR
 
 // straight c
-static Vector base_vertex_array[10242];
-static int base_terrain_array[10242];
+static Vector base_vertex_array[10400];
+static int base_terrain_array[10400];
 static int next_free_vertex;
-NSMutableDictionary*	edge_to_vertex;
+NSMutableDictionary*	edge_to_vertex = nil;
 
 static int n_triangles[MAX_SUBDIVIDE];
 static int triangle_start[MAX_SUBDIVIDE];
 static GLuint vertex_index_array[3*(20+80+320+1280+5120+20480)];
+
+static GLfloat	texture_uv_array[10400 * 2];
+
+//BOOL	saved_texture_uv_array = NO;
+//BOOL	saved_texture_vertices = NO;
+//static GLuint	textured_vertices[3*(20+80+320+1280+5120+20480)];
+//BOOL	saved_plain_vertices = NO;
+//static GLuint	plain_vertices[3*(20+80+320+1280+5120+20480)];
 
 @implementation PlanetEntity
 
@@ -74,8 +83,9 @@ static GLuint vertex_index_array[3*(20+80+320+1280+5120+20480)];
 	double  aleph =  1.0 / sqrt(2.0);
 	//
 	self = [super init];
-	
-    //
+	//
+	isTextured = NO;
+	//
     collision_radius = 25000.0; //  25km across
 	//
 	for (i = 0; i < 360; i++)
@@ -146,6 +156,8 @@ static GLuint vertex_index_array[3*(20+80+320+1280+5120+20480)];
 	//
 	self = [super init];
     //
+	isTextured = NO;
+	//
     collision_radius = 100000.0; //  100km across
 	//
 	lim4k =		LIM4K;
@@ -168,7 +180,7 @@ static GLuint vertex_index_array[3*(20+80+320+1280+5120+20480)];
 	//
 	[sun_color getHue:&hue saturation:&sat brightness:&bri alpha:&alf];
 	//
-	float hue_drift = 0.25 * (randf() - randf());
+	float hue_drift = 0.34 * (randf() - randf());
 	
 	// set the lighting color for the sun
 	GLfloat r,g,b,a;
@@ -248,6 +260,8 @@ static GLuint vertex_index_array[3*(20+80+320+1280+5120+20480)];
 	//
 	self = [super init];
     //
+	isTextured = NO;
+	//
     if (!planet)
     {
     	NSLog(@"ERROR Planetentity initAsAtmosphereForPlanet:NULL");
@@ -294,7 +308,7 @@ static GLuint vertex_index_array[3*(20+80+320+1280+5120+20480)];
 	amb_polar_land[0] = gen_rnd_number() / 256.0;
 	amb_polar_land[1] = gen_rnd_number() / 256.0;
 	amb_polar_land[2] = gen_rnd_number() / 256.0;
-	amb_polar_land[3] = 0.25;	// 25% gray clouds
+	amb_polar_land[3] = 0.34;	// 25% gray clouds
 	amb_polar_sea[0] = 0.9 + gen_rnd_number() / 2560.0;
 	amb_polar_sea[1] = 0.9 + gen_rnd_number() / 2560.0;
 	amb_polar_sea[2] = 0.9 + gen_rnd_number() / 2560.0;
@@ -333,6 +347,8 @@ static GLuint vertex_index_array[3*(20+80+320+1280+5120+20480)];
 {    
 	self = [super init];
     //
+	isTextured = NO;
+	//
 	if (!planet)
     {
     	NSLog(@"ERROR Planetentity initAsCoronaForPlanet:NULL");
@@ -373,6 +389,9 @@ static GLuint vertex_index_array[3*(20+80+320+1280+5120+20480)];
 	//
 	self = [super init];
     //
+	isTextured = NO;
+	textureName = [[uni textureStore] getTextureNameFor:@"metal.png"];	//debug texture
+	//
 	seed_for_planet_description(p_seed);
 	//
 	NSDictionary*   planetinfo = [uni generateSystemData:p_seed];
@@ -403,7 +422,7 @@ static GLuint vertex_index_array[3*(20+80+320+1280+5120+20480)];
 	for (i = 0; i < 5; i++)
 		displayListNames[i] = 0;	// empty for now!
 	//
-	[self setModel:@"icosahedron.dat"];
+	[self setModel:(isTextured)? @"icostextured.dat" : @"icosahedron.dat"];
 	//
 	[self rescaleTo:1.0];
 	//
@@ -705,7 +724,6 @@ static GLuint vertex_index_array[3*(20+80+320+1280+5120+20480)];
 						NSLog(@"DEBUG NOVA final radius %.1f", collision_radius);
 						// reset at the new size
 						velocity = make_vector( 0, 0, 0);
-//						throw_sparks = NO;
 						throw_sparks = YES;	// keep throw_sparks at YES to indicate the higher temperature
 					}
 				}
@@ -796,7 +814,14 @@ static GLuint vertex_index_array[3*(20+80+320+1280+5120+20480)];
 			{
 				GLfloat mat1[]		= { 1.0, 1.0, 1.0, 1.0 };	// opaque white
 				
-				glDisable(GL_TEXTURE_2D);	// stop any problems from this being left on!
+				if (!isTextured)
+					glDisable(GL_TEXTURE_2D);	// stop any problems from this being left on!
+				else
+				{
+					glEnable(GL_TEXTURE_2D);
+					glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);	//wrap around horizontally
+				}
+					
 				glShadeModel(GL_SMOOTH);
 
 				glColor4fv(mat1);
@@ -807,13 +832,31 @@ static GLuint vertex_index_array[3*(20+80+320+1280+5120+20480)];
 				{
 					//
 					glDisableClientState(GL_INDEX_ARRAY);
-					glDisableClientState(GL_TEXTURE_COORD_ARRAY);
 					glDisableClientState(GL_EDGE_FLAG_ARRAY);
+					//
+					if (!isTextured)
+					{
+						glDisableClientState(GL_TEXTURE_COORD_ARRAY);
+						//
+						glEnableClientState(GL_COLOR_ARRAY);
+						glColorPointer( 4, GL_FLOAT, 0, vertexdata.color_array);
+					}
+					else
+					{
+//						glDisableClientState(GL_COLOR_ARRAY);
+						//
+						glEnableClientState(GL_COLOR_ARRAY);		// test shading
+						glColorPointer( 4, GL_FLOAT, 0, vertexdata.color_array);
+						//
+						glEnableClientState(GL_TEXTURE_COORD_ARRAY);
+						glTexCoordPointer( 2, GL_FLOAT, 0, vertexdata.uv_array);
+						glBindTexture(GL_TEXTURE_2D, textureName);
+						glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
+						glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);	//wrap around horizontally
+					}
 					//
 					glEnableClientState(GL_VERTEX_ARRAY);
 					glVertexPointer( 3, GL_FLOAT, 0, vertexdata.vertex_array);
-					glEnableClientState(GL_COLOR_ARRAY);
-					glColorPointer( 4, GL_FLOAT, 0, vertexdata.color_array);
 					glEnableClientState(GL_NORMAL_ARRAY);
 					glNormalPointer(GL_FLOAT, 0, vertexdata.normal_array);
 					//
@@ -822,15 +865,35 @@ static GLuint vertex_index_array[3*(20+80+320+1280+5120+20480)];
 				}
 				else
 				{
+					glDisableClientState(GL_INDEX_ARRAY);
+					glDisableClientState(GL_EDGE_FLAG_ARRAY);
+					if (!isTextured)
+					{
+						glDisableClientState(GL_TEXTURE_COORD_ARRAY);
+						//
+						glEnableClientState(GL_COLOR_ARRAY);
+						glColorPointer( 4, GL_FLOAT, 0, vertexdata.color_array);
+					}
+					else
+					{
+//						glDisableClientState(GL_COLOR_ARRAY);
+						//
+						glEnableClientState(GL_COLOR_ARRAY);		// test shading
+						glColorPointer( 4, GL_FLOAT, 0, vertexdata.color_array);
+						//
+						glEnableClientState(GL_TEXTURE_COORD_ARRAY);
+						glTexCoordPointer( 2, GL_FLOAT, 0, vertexdata.uv_array);
+						glBindTexture(GL_TEXTURE_2D, textureName);
+						glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
+						glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);	//wrap around horizontally
+					}
+					//
 					glEnableClientState(GL_VERTEX_ARRAY);
 					glVertexPointer( 3, GL_FLOAT, 0, vertexdata.vertex_array);
-					glEnableClientState(GL_COLOR_ARRAY);
-					glColorPointer( 4, GL_FLOAT, 0, vertexdata.color_array);
+//					glEnableClientState(GL_COLOR_ARRAY);
+//					glColorPointer( 4, GL_FLOAT, 0, vertexdata.color_array);
 					glEnableClientState(GL_NORMAL_ARRAY);
 					glNormalPointer(GL_FLOAT, 0, vertexdata.normal_array);
-					glDisableClientState(GL_INDEX_ARRAY);
-					glDisableClientState(GL_TEXTURE_COORD_ARRAY);
-					glDisableClientState(GL_EDGE_FLAG_ARRAY);
 					//
 					displayListNames[subdivideLevel] = glGenLists(1);
 					if (displayListNames[subdivideLevel] != 0)	// sanity check
@@ -841,12 +904,16 @@ static GLuint vertex_index_array[3*(20+80+320+1280+5120+20480)];
 						glColor4fv(mat1);
 						glMaterialfv(GL_FRONT, GL_AMBIENT_AND_DIFFUSE, mat1);
 						//
-						glColorMaterial(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE);
-						glEnable(GL_COLOR_MATERIAL);
+//						if (!isTextured)
+						{
+							glColorMaterial(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE);
+							glEnable(GL_COLOR_MATERIAL);
+						}
 						//
 						[self drawModelWithVertexArraysAndSubdivision:subdivideLevel];
 						//
-						glDisable(GL_COLOR_MATERIAL);
+//						if (!isTextured)
+							glDisable(GL_COLOR_MATERIAL);
 						//
 						glEndList();
 					}
@@ -929,8 +996,7 @@ static GLuint vertex_index_array[3*(20+80+320+1280+5120+20480)];
 				
 				GLfloat amb_1[4]		= {1.0, 1.0,	1.0,	1.0 };
 				double  r0 = (my_owner)? my_owner->collision_radius: 5000;
-//				GLfloat col1[4] = { amb_land[0], amb_land[1], amb_land[2], 1.0};
-//				GLfloat col2[4] = { amb_land[0], amb_land[1], amb_land[2], 0.0};
+
 				GLfloat col1[4] = { r, g, b, 1.0};
 				GLfloat col2[4] = { r, g, b, 0.0};
 				
@@ -1034,7 +1100,7 @@ void drawActiveCorona (double inner_radius, double outer_radius, int step, doubl
 		return;
 	int i;
 	
-	NSRange activity = NSMakeRange(0.25, 1.0);
+	NSRange activity = NSMakeRange(0.34, 1.0);
 	
 	double s0, c0, s1, c1;
 	
@@ -1138,9 +1204,10 @@ void drawActiveCorona (double inner_radius, double outer_radius, int step, doubl
 		
     for (i = 0; i < n_vertices; i++)
     {
+		vert = vertices[i];			// not guaranteed non-zero
         if ((vert.x == 0.0)&&(vert.y == 0.0)&&(vert.z == 0.0))
 			continue;
-		vert = unit_vector(&vertices[i]);	// guaranteed non-zero
+		vert = unit_vector(&vert);	// guaranteed non-zero
 		vert.x *= rad;
 		vert.y *= rad;
 		vert.z *= rad;
@@ -1157,33 +1224,6 @@ void drawActiveCorona (double inner_radius, double outer_radius, int step, doubl
 		glBindVertexArrayAPPLE(gVertexArrayRangeObjects[0]);
 #endif
 	
-//	if (usingVAR)
-//		NSLog(@"DEBUG using accelerated memory technique to draw %@ (%@)", self, basefile);
-				
-//	glEnableClientState(GL_VERTEX_ARRAY);
-//	glVertexPointer( 3, GL_FLOAT, 0, vertexdata.vertex_array);
-//	// 3 coords per vertex
-//	// of type GL_FLOAT
-//	// 0 stride (tightly packed)
-//	// pointer to first vertex
-//
-//	glEnableClientState(GL_COLOR_ARRAY);
-//	glColorPointer( 4, GL_FLOAT, 0, vertexdata.color_array);
-//	// 4 values per vertex color
-//	// of type GL_FLOAT
-//	// 0 stride (tightly packed)
-//	// pointer to quadruplet
-//
-//	glEnableClientState(GL_NORMAL_ARRAY);
-//	glNormalPointer(GL_FLOAT, 0, vertexdata.normal_array);
-//	// of type GL_FLOAT
-//	// 0 stride (tightly packed)
-//	// pointer to vertex
-//
-//	glDisableClientState(GL_INDEX_ARRAY);
-//	glDisableClientState(GL_TEXTURE_COORD_ARRAY);
-//	glDisableClientState(GL_EDGE_FLAG_ARRAY);
-//
 	glDrawElements( GL_TRIANGLES, 3 * n_triangles[subdivide], GL_UNSIGNED_INT, &vertexdata.index_array[triangle_start[subdivide]]);
 }
 
@@ -1203,23 +1243,26 @@ void drawActiveCorona (double inner_radius, double outer_radius, int step, doubl
 	launch_pos.z += start_distance * vf.z;
 	
 	shuttle_ship = [universe getShipWithRole:@"shuttle"];   // retain count = 1
-	[shuttle_ship setPosition:launch_pos];
-	[shuttle_ship setQRotation:q1];
-	
-	[shuttle_ship setScanClass: CLASS_NEUTRAL];
-	
-	[shuttle_ship setCargoFlag:CARGO_FLAG_FULL_PLENTIFUL];
-	
-	[shuttle_ship setStatus:STATUS_IN_FLIGHT];
-	
-	//[shuttle_ship setReportAImessages:YES]; // debug
-
-	[universe addEntity:shuttle_ship];
-	[[shuttle_ship getAI] setStateMachine:@"risingShuttleAI.plist"];	// must happen after adding to the universe!
-
-	//NSLog(@"Planet %@ in universe %@ Launching shuttle: %@ %d", self, universe, [shuttle_ship name], [shuttle_ship universal_id]);
+	if (shuttle_ship)
+	{
+		[shuttle_ship setPosition:launch_pos];
+		[shuttle_ship setQRotation:q1];
 		
-	[shuttle_ship release];
+		[shuttle_ship setScanClass: CLASS_NEUTRAL];
+		
+		[shuttle_ship setCargoFlag:CARGO_FLAG_FULL_PLENTIFUL];
+		
+		[shuttle_ship setStatus:STATUS_IN_FLIGHT];
+		
+		//[shuttle_ship setReportAImessages:YES]; // debug
+
+		[universe addEntity:shuttle_ship];
+		[[shuttle_ship getAI] setStateMachine:@"risingShuttleAI.plist"];	// must happen after adding to the universe!
+
+		//NSLog(@"Planet %@ in universe %@ Launching shuttle: %@ %d", self, universe, [shuttle_ship name], [shuttle_ship universal_id]);
+			
+		[shuttle_ship release];
+	}
 }
 
 - (void) welcomeShuttle:(ShipEntity *) shuttle
@@ -1234,21 +1277,37 @@ void drawActiveCorona (double inner_radius, double outer_radius, int step, doubl
 	edge_to_vertex = nil;
 }
 
+static BOOL last_one_was_textured;
+
 - (void) initialiseBaseVertexArray
 {
+	int i;
+	
+	if (last_one_was_textured != isTextured)
+	{
+		[PlanetEntity resetBaseVertexArray];
+		last_one_was_textured = isTextured;
+	}
+
+//	if (isTextured)
+//		NSLog(@"DEBUG %@ creating textured vertex data texture_uv_array = <%x>", self, texture_uv_array);
+//	else
+//		NSLog(@"DEBUG %@ creating plain vertex data", self);
+	
 	if (edge_to_vertex == nil)
 	{
-		edge_to_vertex = [[NSMutableDictionary dictionaryWithCapacity:7680] retain];
+		edge_to_vertex = [[NSMutableDictionary dictionaryWithCapacity:7680] retain];	// make a new one
 		
 		int vi,fi;
 		next_free_vertex = 0;
-		// set first 12 vertices
-		for (vi = 0; vi < 12; vi++)
-		{
+		//
+		// set first 12 or 14 vertices
+		//
+		for (vi = 0; vi < n_vertices; vi++)
 			base_vertex_array[next_free_vertex++] =  vertices[vi];
-	//		NSLog(@"%d (%.3f, %.3f, %.3f) = (%.3f,%.3f,%.3f)", vi, vertices[vi].x, vertices[vi].y, vertices[vi].z, base_vertex_array[vi].x, base_vertex_array[vi].y, base_vertex_array[vi].z);
-		}
+		//
 		// set first 20 triangles
+		//
 		triangle_start[0] = 0;
 		n_triangles[0] = n_faces;
 		for (fi = 0; fi < n_faces; fi++)
@@ -1256,10 +1315,15 @@ void drawActiveCorona (double inner_radius, double outer_radius, int step, doubl
 			vertex_index_array[fi * 3 + 0] = faces[fi].vertex[0];
 			vertex_index_array[fi * 3 + 1] = faces[fi].vertex[1];
 			vertex_index_array[fi * 3 + 2] = faces[fi].vertex[2];
-			
-			
-	//		NSLog(@"%d %d %d", faces[fi].vertex[0], faces[fi].vertex[1], faces[fi].vertex[2]);
-			
+			if (isTextured)
+			{
+				texture_uv_array[faces[fi].vertex[0] * 2]		= faces[fi].s[0];
+				texture_uv_array[faces[fi].vertex[0] * 2 + 1]	= faces[fi].t[0];
+				texture_uv_array[faces[fi].vertex[1] * 2]		= faces[fi].s[1];
+				texture_uv_array[faces[fi].vertex[1] * 2 + 1]	= faces[fi].t[1];
+				texture_uv_array[faces[fi].vertex[2] * 2]		= faces[fi].s[2];
+				texture_uv_array[faces[fi].vertex[2] * 2 + 1]	= faces[fi].t[2];
+			}
 		}
 		//
 		// for the next levels of subdivision simply build up from the level below!...
@@ -1272,7 +1336,7 @@ void drawActiveCorona (double inner_radius, double outer_radius, int step, doubl
 			n_triangles[newlevel] = n_triangles[sublevel] * 4;
 			//
 			
-	//		NSLog(@"Building new level of subdivision - level %d.", newlevel);
+//			NSLog(@"Building new level of subdivision - level %d.", newlevel);
 			
 			int tri;
 			for (tri = 0; tri < n_triangles[sublevel]; tri++)
@@ -1281,9 +1345,9 @@ void drawActiveCorona (double inner_radius, double outer_radius, int step, doubl
 				int v0 = vertex_index_array[triangle_start[sublevel] + tri * 3 + 0];
 				int v1 = vertex_index_array[triangle_start[sublevel] + tri * 3 + 1];
 				int v2 = vertex_index_array[triangle_start[sublevel] + tri * 3 + 2];
-				int v01 = baseVertexIndexForEdge(v0,v1);	// sets it up if required
-				int v12 = baseVertexIndexForEdge(v1,v2);	// ..
-				int v20 = baseVertexIndexForEdge(v2,v0);	// ..
+				int v01 = baseVertexIndexForEdge( v0, v1, isTextured);	// sets it up if required
+				int v12 = baseVertexIndexForEdge( v1, v2, isTextured);	// ..
+				int v20 = baseVertexIndexForEdge( v2, v0, isTextured);	// ..
 				// v0 v01 v20
 				vertex_index_array[triangle_start[newlevel] + tri * 12 + 0] = v0;
 				vertex_index_array[triangle_start[newlevel] + tri * 12 + 1] = v01;
@@ -1300,23 +1364,21 @@ void drawActiveCorona (double inner_radius, double outer_radius, int step, doubl
 				vertex_index_array[triangle_start[newlevel] + tri * 12 + 9] = v01;
 				vertex_index_array[triangle_start[newlevel] + tri * 12 +10] = v12;
 				vertex_index_array[triangle_start[newlevel] + tri * 12 +11] = v20;
-				
+								
 			}
 
-	//		NSLog(@"Current total number of vertices %d.", next_free_vertex);
-			
+//			NSLog(@"Current total number of vertices %d.", next_free_vertex);
 		}
 	}
 	
 	// all done - copy the indices to the instance
 	//
-	int i;
 	for (i = 0; i < MAX_TRI_INDICES; i++)
 		vertexdata.index_array[i] = vertex_index_array[i];
 	
 }
 
-int baseVertexIndexForEdge(int va, int vb)
+int baseVertexIndexForEdge(int va, int vb, BOOL textured)
 {
 	NSString* key = [NSString stringWithFormat:@"%d:%d", (va < vb)? va:vb, (va < vb)? vb:va];
 	if ([edge_to_vertex objectForKey:key])
@@ -1332,6 +1394,25 @@ int baseVertexIndexForEdge(int va, int vb)
 		base_vertex_array[vindex].z += base_vertex_array[vb].z;
 		base_vertex_array[vindex] = unit_vector(&base_vertex_array[vindex]);	// guaranteed non-zero
 		
+//		NSLog(@"%d [%@]= (%.3f,%.3f,%.3f)",	vindex, key, base_vertex_array[vindex].x, base_vertex_array[vindex].y, base_vertex_array[vindex].z);
+
+		if (textured)
+		{
+			//calculate new texture coordinates
+			//
+			NSPoint	uva = NSMakePoint( texture_uv_array[va * 2], texture_uv_array[va * 2 + 1]);
+			NSPoint	uvb = NSMakePoint( texture_uv_array[vb * 2], texture_uv_array[vb * 2 + 1]);
+			//
+			// if either of these is the polar vertex treat it specially to helop with polar distortion:
+			if ((uva.y == 0.0)||(uva.y == 1.0))
+				uva.x = uvb.x;
+			if ((uvb.y == 0.0)||(uvb.y == 1.0))
+				uvb.x = uva.x;
+			//
+			texture_uv_array[vindex * 2] = 0.5 * (uva.x + uvb.x);
+			texture_uv_array[vindex * 2 + 1] = 0.5 * (uva.y + uvb.y);
+		}
+
 		// add new edge to the look-up
 		[edge_to_vertex setObject:[NSNumber numberWithInt:vindex] forKey:key];
 		
@@ -1342,7 +1423,7 @@ int baseVertexIndexForEdge(int va, int vb)
 - (void) initialiseBaseTerrainArray:(int) percent_land
 {
 	int vi;
-	// set first 12 vertices
+	// set first 12 or 14 vertices
 	for (vi = 0; vi < n_vertices; vi++)
 	{
 		if (gen_rnd_number() < percent_land)
@@ -1364,9 +1445,9 @@ int baseVertexIndexForEdge(int va, int vb)
 			int v0 = vertex_index_array[triangle_start[sublevel] + tri * 3 + 0];
 			int v1 = vertex_index_array[triangle_start[sublevel] + tri * 3 + 1];
 			int v2 = vertex_index_array[triangle_start[sublevel] + tri * 3 + 2];
-			int v01 = baseVertexIndexForEdge(v0,v1);	// sets it up if required
-			int v12 = baseVertexIndexForEdge(v1,v2);	// ..
-			int v20 = baseVertexIndexForEdge(v2,v0);	// ..
+			int v01 = baseVertexIndexForEdge( v0, v1, isTextured);	// sets it up if required
+			int v12 = baseVertexIndexForEdge( v1, v2, isTextured);	// ..
+			int v20 = baseVertexIndexForEdge( v2, v0, isTextured);	// ..
 			// v01
 			if (base_terrain_array[v0] == base_terrain_array[v1])
 				base_terrain_array[v01] = base_terrain_array[v0];
@@ -1410,7 +1491,7 @@ int baseVertexIndexForEdge(int va, int vb)
 	GLfloat paint_sea[4] = { 0.0, 0.2, 0.9, 1.0};
 	GLfloat paint_color[4];
 	Vector	v = base_vertex_array[vi];
-	int		r = base_terrain_array[vi];
+	int		r = (isTextured)? 0 : base_terrain_array[vi];	// use land color (0) for textured planets
 	int i;
 	double pole_blend = v.z * v.z * polar_color_factor;
 	paint_land[0] = (1.0 - pole_blend)*amb_land[0] + pole_blend*amb_polar_land[0];
@@ -1426,10 +1507,6 @@ int baseVertexIndexForEdge(int va, int vb)
 	}
 
 	ranrot_srand(seed+v.x*1000+v.y*100+v.z*10);
-//
-// for some reason this preceding line has been messing up the armosphere/ planet drawing!
-//
-//	ranrot_srand(seed * vi);
 
 	for (i = 0; i < 3; i++)
 	{
@@ -1443,7 +1520,6 @@ int baseVertexIndexForEdge(int va, int vb)
 		paint_color[i] = (r * paint_sea[i])*0.01 + ((100 - r) * paint_land[i])*0.01;
 		
 		// finally initialise the color array entry
-//		color_array[vi*4 + i] = paint_color[i];
 		vertexdata.color_array[vi*4 + i] = paint_color[i];
 	}
 }
@@ -1456,7 +1532,32 @@ int baseVertexIndexForEdge(int va, int vb)
 		Vector	v = base_vertex_array[vi];
 		vertexdata.normal_array[vi] = v;
 		vertexdata.vertex_array[vi] = make_vector( v.x * collision_radius, v.y * collision_radius, v.z * collision_radius);
+		//
+		vertexdata.uv_array[vi * 2] = texture_uv_array[vi * 2];
+		vertexdata.uv_array[vi * 2 + 1] = texture_uv_array[vi * 2 + 1];
 	}
+}
+
+double longitudeFromVector(Vector v)
+{
+	double lon = 0.0;
+	if (v.z != 0.0)
+	{
+		if (v.z > 0)
+			lon = -atan( v.x / v.z);
+		else
+			lon = -PI - atan( v.x / v.z);
+	}
+	else
+	{
+		if (v.x > 0)
+			lon = -0.5 * PI;
+		else
+			lon = -1.5 * PI;
+	}
+	while (lon < 0)
+		lon += 2 * PI;
+	return lon;
 }
 
 - (BOOL) willGoNova

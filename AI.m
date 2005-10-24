@@ -234,7 +234,6 @@ Your fair use and other rights are in no way affected by the above.
 
 - (void) takeAction:(NSString *) action
 {
-//	NSArray*	tokens = [action componentsSeparatedByString:@" "];
 	NSArray*	tokens = [Entity scanTokensFromString:action];
 	NSString*	dataString = nil;
 	NSString*   my_selector;

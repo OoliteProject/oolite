@@ -175,14 +175,26 @@ NSMutableDictionary*	surface_cache;
 			NSString* possibleExpansionPath = (NSString *)[possibleExpansionPaths objectAtIndex:i];
 			NSString* requiresPath = [possibleExpansionPath stringByAppendingPathComponent:@"requires.plist"];
 			BOOL require_test = YES;
+			BOOL failed_parsing = NO;
 			// check for compatibility
 			if ([[NSFileManager defaultManager] fileExistsAtPath:requiresPath])
 			{
 				NSDictionary* requires_dic = [NSDictionary dictionaryWithContentsOfFile:requiresPath];
 				
 				// FIX FOR WINDOWS GNUSTEP NOT PARSING XML PLISTS
-				if (!requires_dic)	// try parsing it using our home-grown XML parser
-					requires_dic = (NSDictionary*)[ResourceManager parseXMLPropertyList:[NSString stringWithContentsOfFile:requiresPath]];
+				NS_DURING
+					if (!requires_dic)	// try parsing it using our home-grown XML parser
+						requires_dic = (NSDictionary*)[ResourceManager parseXMLPropertyList:[NSString stringWithContentsOfFile:requiresPath]];
+				NS_HANDLER
+					if ([[localException name] isEqual: OOLITE_EXCEPTION_XML_PARSING_FAILURE])	// note it happened here 
+					{
+						NSLog(@"***** [ResourceManager pathsUsingAddOns:] encountered exception : %@ : %@ *****",[localException name], [localException reason]);
+						NSLog(@"***** ignoring this path from now on *****",[localException name], [localException reason]);
+						failed_parsing = YES;
+					}
+					else
+						[localException raise];
+				NS_ENDHANDLER
 					
 				require_test = [ResourceManager areRequirementsFulfilled:requires_dic];
 			}
@@ -192,14 +204,23 @@ NSMutableDictionary*	surface_cache;
 			{
 				NSString* version = (NSString *)[[[NSBundle mainBundle] infoDictionary] objectForKey:@"CFBundleVersion"];
 				NSBeep();
-				NSLog(@"ERROR %@ is incompatible with this version %@ of Oolite",possibleExpansionPath,version);
-				if (!errors)
-					errors = [[NSString alloc] initWithFormat:@"\t'%@' is incompatible with version %@ of Oolite",[possibleExpansionPath lastPathComponent],version];
-				else
+				if (!failed_parsing)
 				{
 					NSString* old_errors = errors;
-					errors = [[NSString alloc] initWithFormat:@"%@\n\t'%@' is incompatible with version %@ of Oolite",old_errors,[possibleExpansionPath lastPathComponent],version];
+					errors = [[NSString alloc] initWithFormat:@"%@\n\t'%@' requirements property list could not be parsed",old_errors, [possibleExpansionPath lastPathComponent]];
 					[old_errors release];
+				}
+				else
+				{
+					NSLog(@"ERROR %@ is incompatible with this version %@ of Oolite",possibleExpansionPath,version);
+					if (!errors)
+						errors = [[NSString alloc] initWithFormat:@"\t'%@' is incompatible with version %@ of Oolite",[possibleExpansionPath lastPathComponent],version];
+					else
+					{
+						NSString* old_errors = errors;
+						errors = [[NSString alloc] initWithFormat:@"%@\n\t'%@' is incompatible with version %@ of Oolite",old_errors,[possibleExpansionPath lastPathComponent],version];
+						[old_errors release];
+					}
 				}
 			}
 		}
@@ -215,6 +236,8 @@ NSMutableDictionary*	surface_cache;
 
 + (BOOL) areRequirementsFulfilled:(NSDictionary*) requirements
 {
+	if (!requirements)
+		return YES;
 	if ([requirements objectForKey:@"version"])
 	{
 		NSString* version = (NSString *)[[[NSBundle mainBundle] infoDictionary] objectForKey:@"CFBundleVersion"];
@@ -267,9 +290,18 @@ NSMutableDictionary*	surface_cache;
 			NSDictionary* found_dic = [NSDictionary dictionaryWithContentsOfFile:filepath];
 			
 			// FIX FOR WINDOWS GNUSTEP NOT PARSING XML PLISTS
-			if (!found_dic)	// try parsing it using our home-grown XML parser
-				found_dic = (NSDictionary*)[ResourceManager parseXMLPropertyList:[NSString stringWithContentsOfFile:filepath]];
-				
+			NS_DURING
+				if (!found_dic)	// try parsing it using our home-grown XML parser
+					found_dic = (NSDictionary*)[ResourceManager parseXMLPropertyList:[NSString stringWithContentsOfFile:filepath]];
+			NS_HANDLER
+				if ([[localException name] isEqual: OOLITE_EXCEPTION_XML_PARSING_FAILURE])	// note it happened here 
+				{
+					NSLog(@"***** [ResourceManager dictionaryFromFilesNamed:::] encountered exception : %@ : %@ *****",[localException name], [localException reason]);
+				}
+				else
+					[localException raise];
+			NS_ENDHANDLER
+
 			if (found_dic)
 				[results addObject:found_dic];
 			else
@@ -283,8 +315,18 @@ NSMutableDictionary*	surface_cache;
 				NSDictionary* found_dic = [NSDictionary dictionaryWithContentsOfFile:filepath];
 			
 				// FIX FOR WINDOWS GNUSTEP NOT PARSING XML PLISTS
-				if (!found_dic)	// try parsing it using our home-grown XML parser
-					found_dic = (NSDictionary*)[ResourceManager parseXMLPropertyList:[NSString stringWithContentsOfFile:filepath]];
+				NS_DURING
+					if (!found_dic)	// try parsing it using our home-grown XML parser
+						found_dic = (NSDictionary*)[ResourceManager parseXMLPropertyList:[NSString stringWithContentsOfFile:filepath]];
+				NS_HANDLER
+					if ([[localException name] isEqual: OOLITE_EXCEPTION_XML_PARSING_FAILURE])	// note it happened here 
+					{
+						NSLog(@"***** [ResourceManager dictionaryFromFilesNamed:::] encountered exception : %@ : %@ *****",[localException name], [localException reason]);
+					}
+					else
+						[localException raise];
+				NS_ENDHANDLER
+
 				
 				if (found_dic)
 					[results addObject:found_dic];
@@ -339,9 +381,18 @@ NSMutableDictionary*	surface_cache;
 			NSArray* found_array = [NSArray arrayWithContentsOfFile:filepath];
 			
 			// FIX FOR WINDOWS GNUSTEP NOT PARSING XML PLISTS
-			if (!found_array)	// try parsing it using our home-grown XML parser
-				found_array = (NSArray*)[ResourceManager parseXMLPropertyList:[NSString stringWithContentsOfFile:filepath]];
-				
+			NS_DURING
+				if (!found_array)	// try parsing it using our home-grown XML parser
+					found_array = (NSArray*)[ResourceManager parseXMLPropertyList:[NSString stringWithContentsOfFile:filepath]];
+			NS_HANDLER
+				if ([[localException name] isEqual: OOLITE_EXCEPTION_XML_PARSING_FAILURE])	// note it happened here 
+				{
+					NSLog(@"***** [ResourceManager arrayFromFilesNamed:::] encountered exception : %@ : %@ *****",[localException name], [localException reason]);
+				}
+				else
+					[localException raise];
+			NS_ENDHANDLER
+
 			if (found_array)
 				[results addObject:found_array];
 			else
@@ -357,8 +408,17 @@ NSMutableDictionary*	surface_cache;
 				NSArray* found_array = [NSArray arrayWithContentsOfFile:filepath];
 				
 				// FIX FOR WINDOWS GNUSTEP NOT PARSING XML PLISTS
-				if (!found_array)	// try parsing it using our home-grown XML parser
-					found_array = (NSArray*)[ResourceManager parseXMLPropertyList:[NSString stringWithContentsOfFile:filepath]];
+				NS_DURING
+					if (!found_array)	// try parsing it using our home-grown XML parser
+						found_array = (NSArray*)[ResourceManager parseXMLPropertyList:[NSString stringWithContentsOfFile:filepath]];
+				NS_HANDLER
+					if ([[localException name] isEqual: OOLITE_EXCEPTION_XML_PARSING_FAILURE])	// note it happened here 
+					{
+						NSLog(@"***** [ResourceManager arrayFromFilesNamed:::] encountered exception : %@ : %@ *****",[localException name], [localException reason]);
+					}
+					else
+						[localException raise];
+				NS_ENDHANDLER
 					
 				if (found_array)
 					[results addObject:found_array];
@@ -665,13 +725,19 @@ NSMutableDictionary*	surface_cache;
 + (NSMutableArray *) scanTokensFromString:(NSString*) values
 {
 	NSMutableArray* result = [NSMutableArray arrayWithCapacity:8];
-	NSScanner* scanner = [NSScanner scannerWithString:values];
-	NSString* token;
-	while (![scanner isAtEnd])
+	if ([values retain])
 	{
-		[scanner scanCharactersFromSet:[NSCharacterSet whitespaceAndNewlineCharacterSet] intoString:(NSString * *)nil];
-		if ([scanner scanUpToCharactersFromSet:[NSCharacterSet whitespaceAndNewlineCharacterSet] intoString:&token])
-			[result addObject:[NSString stringWithString:token]];
+		NSScanner* scanner = [NSScanner scannerWithString:values];
+		NSCharacterSet* space_set = [NSCharacterSet whitespaceAndNewlineCharacterSet];
+		NSCharacterSet* notspace_set = [space_set invertedSet];
+		NSString* token;
+		while (![scanner isAtEnd])
+		{
+			[scanner scanCharactersFromSet: space_set intoString:(NSString * *)nil];	// skip any blank space
+			if ([scanner scanCharactersFromSet: notspace_set intoString:&token])	// record any non-blank space
+				[result addObject:[NSString stringWithString:token]];
+		}
+		[values release];
 	}
 	return result;
 }
@@ -695,6 +761,10 @@ NSMutableDictionary*	surface_cache;
 + (OOXMLElement) parseOOXMLElement:(NSScanner*) scanner upTo:(NSString*)closingTag
 {
 	OOXMLElement	result, element;
+	element.tag = nil;
+	element.content = nil;
+	result.tag = nil;
+	result.content = nil;
 	NSMutableArray* elements = [NSMutableArray arrayWithCapacity:4];	// arbitrarily choose 4
 	BOOL done = NO;
 	while ((!done)&&(![scanner isAtEnd]))
@@ -735,7 +805,7 @@ NSMutableDictionary*	surface_cache;
 			{
 				// ERROR no closing bracket for tag
 				NSException* myException = [NSException
-					exceptionWithName: @"OOXMLException"
+					exceptionWithName: OOLITE_EXCEPTION_XML_PARSING_FAILURE
 					reason: [NSString stringWithFormat:@"Tag without closing bracket: \"%@\"", tag]
 					userInfo: nil];
 				[myException raise];
@@ -747,7 +817,7 @@ NSMutableDictionary*	surface_cache;
 			{
 				// ERROR empty tag
 				NSException* myException = [NSException
-					exceptionWithName: @"OOXMLException"
+					exceptionWithName: OOLITE_EXCEPTION_XML_PARSING_FAILURE
 					reason: [NSString stringWithFormat:@"Empty tag \"<>\" encountered.", tag]
 					userInfo: nil];
 				[myException raise];
@@ -774,7 +844,7 @@ NSMutableDictionary*	surface_cache;
 					{
 						// ERROR comment without closing -->
 						NSException* myException = [NSException
-							exceptionWithName: @"OOXMLException"
+							exceptionWithName: OOLITE_EXCEPTION_XML_PARSING_FAILURE
 							reason: [NSString stringWithFormat:@"No closing --> for comment", tag]
 							userInfo: nil];
 						[myException raise];
@@ -819,7 +889,7 @@ NSMutableDictionary*	surface_cache;
 					{
 						// ERROR closing tag without opening tag
 						NSException* myException = [NSException
-							exceptionWithName: @"OOXMLException"
+							exceptionWithName: OOLITE_EXCEPTION_XML_PARSING_FAILURE
 							reason: [NSString stringWithFormat:@"Closing tag \"<%@>\" without opening tag.", tag]
 							userInfo: nil];
 						[myException raise];
@@ -837,7 +907,7 @@ NSMutableDictionary*	surface_cache;
 					{
 						// ERROR empty opening tag
 						NSException* myException = [NSException
-							exceptionWithName: @"OOXMLException"
+							exceptionWithName: OOLITE_EXCEPTION_XML_PARSING_FAILURE
 							reason: [NSString stringWithFormat:@"Empty tag encountered.", tag]
 							userInfo: nil];
 						[myException raise];
@@ -886,20 +956,11 @@ NSMutableDictionary*	surface_cache;
 	NS_DURING
 		xml = [ResourceManager parseOOXMLElement:scanner upTo:@"ROOT"];
 	NS_HANDLER
-		if ([[localException name] isEqual:@"OOXMLException"])
+		if ([[localException name] isEqual: OOLITE_EXCEPTION_XML_PARSING_FAILURE])	// note it happened here 
 		{
-			NSLog(@"\nDEBUG ***** %@ : %@ *****\n\n",[localException name], [localException reason]);
-#ifndef GNUSTEP
-         // will cause a hang in full screen mode, don't do it with GNUstep
-         // The debug message should be enough.
-			NSRunAlertPanel(@"Oolite XML Exception", @"'%@'", @"Continue", nil, nil,localException);
-#endif
-			return nil;
+			NSLog(@"***** [ResourceManager parseXMLPropertyList:] encountered exception : %@ : %@ *****",[localException name], [localException reason]);
 		}
-		else
-		{
-			[localException raise];
-		}
+		[localException raise];
 	NS_ENDHANDLER
 	if (!xml.content)
 		return nil;
@@ -937,7 +998,7 @@ NSMutableDictionary*	surface_cache;
 	{
 		// bad xml element
 		NSException* myException = [NSException
-			exceptionWithName: @"OOXMLException"
+			exceptionWithName: OOLITE_EXCEPTION_XML_PARSING_FAILURE
 			reason: [NSString stringWithFormat:@"Bad XMLElement %@ passed to objectFromXMLElement:", xmlElement]
 			userInfo: nil];
 		[myException raise];
@@ -1126,7 +1187,7 @@ NSMutableDictionary*	surface_cache;
 
 + (NSString*) stringFromGLFloats: (GLfloat*) float_array : (int) n_floats
 {
-	NSMutableString* result = [NSMutableString stringWithString:@""];
+	NSMutableString* result = [NSMutableString stringWithCapacity:256];
 	int i;
 	for ( i = 0; i < n_floats ; i++)
 		[result appendFormat:@"%f ", float_array[i]];

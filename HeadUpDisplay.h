@@ -273,6 +273,7 @@ void hudDrawReticleOnTarget(Entity* target, PlayerEntity* player1, GLfloat z1);
 
 double drawCharacterQuad(int chr, double x, double y, double z, NSSize siz);
 void drawString(NSString *text, double x, double y, double z, NSSize siz);
+void drawPlanetInfo(int gov, int eco, int tec, double x, double y, double z, NSSize siz);
 NSRect rectForString(NSString *text, double x, double y, NSSize siz);
 
 void drawScannerGrid( double x, double y, double z, NSSize siz, int v_dir, GLfloat thickness);

@@ -107,6 +107,7 @@ Your fair use and other rights are in no way affected by the above.
 #define CARGO_FLAG_NONE					400
 #define CARGO_FLAG_FULL_PLENTIFUL		501
 #define CARGO_FLAG_FULL_SCARCE			502
+#define CARGO_FLAG_PIRATE				505
 #define CARGO_FLAG_FULL_UNIFORM			510
 #define CARGO_FLAG_CANISTERS			600
 
@@ -119,6 +120,7 @@ Your fair use and other rights are in no way affected by the above.
 #define TURRET_MINIMUM_COS				0.20
 
 #define AFTERBURNER_BURNRATE			0.25
+#define AFTERBURNER_NPC_BURNRATE		1.0
 #define AFTERBURNER_TIME_PER_FUEL		4.0
 #define AFTERBURNER_FACTOR				7.0
 
@@ -377,6 +379,7 @@ Your fair use and other rights are in no way affected by the above.
 - (int) checkForAegis;
 - (BOOL) within_station_aegis;
 
+- (void) setStateMachine:(NSString *) ai_desc;
 - (void) setAI:(AI *) ai;
 - (AI *) getAI;
 
@@ -537,6 +540,8 @@ inline BOOL pairOK(NSString* my_role, NSString* their_role);
 - (void) setNumberOfMinedRocks:(int) value;
 
 - (void) spawn:(NSString *)roles_number;
+
+- (int) checkShipsInVicinityForWitchJumpExit;
 
 /****************************************************************
 

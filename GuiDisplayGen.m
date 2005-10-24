@@ -396,10 +396,9 @@ Your fair use and other rights are in no way affected by the above.
 	}
 	else
 	{
-//		NSMutableArray*	words = [NSMutableArray arrayWithArray:[str componentsSeparatedByString:@" "]];
 		NSMutableArray*	words = [Entity scanTokensFromString:str];
-		NSMutableString* string1 = [NSMutableString stringWithString:@""];
-		NSMutableString* string2 = [NSMutableString stringWithString:@""];
+		NSMutableString* string1 = [NSMutableString stringWithCapacity:256];
+		NSMutableString* string2 = [NSMutableString stringWithCapacity:256];
 		strsize.width = 0.0;
 		while ((strsize.width < size_in_pixels.width)&&([words count] > 0))
 		{
@@ -451,10 +450,9 @@ Your fair use and other rights are in no way affected by the above.
 	}
 	else
 	{
-//		NSMutableArray*	words = [NSMutableArray arrayWithArray:[str componentsSeparatedByString:@" "]];
 		NSMutableArray*	words = [Entity scanTokensFromString:str];
-		NSMutableString* string1 = [NSMutableString stringWithString:@""];
-		NSMutableString* string2 = [NSMutableString stringWithString:@""];
+		NSMutableString* string1 = [NSMutableString stringWithCapacity:256];
+		NSMutableString* string2 = [NSMutableString stringWithCapacity:256];
 		strsize.width = 0.0;
 		while ((strsize.width < size_in_pixels.width)&&([words count] > 0))
 		{
@@ -785,6 +783,9 @@ Your fair use and other rights are in no way affected by the above.
 {
 	PlayerEntity* player = (PlayerEntity*)[universe entityZero];
 
+	if (!player)
+		return;
+
 	NSPoint	galaxy_coordinates = [player galaxy_coordinates];
 	NSPoint	cursor_coordinates = [player cursor_coordinates];
 	NSPoint	cu;
@@ -804,24 +805,28 @@ Your fair use and other rights are in no way affected by the above.
 	if ((abs(cursor_coordinates.x-galaxy_coordinates.x)>=20)||(abs(cursor_coordinates.y-galaxy_coordinates.y)>=38))
 		cursor_coordinates = galaxy_coordinates;	// home
 	
+	// get a list of systems marked as contract destinations
+	NSArray* markedDestinations = [player markedDestinations];
+
 	// draw fuel range circle
 	//
 	glColor4f( 0.0, 1.0, 0.0, alpha);	//	green
 	glLineWidth(2.0);
 	cu = NSMakePoint(hscale*galaxy_coordinates.x+hoffset,vscale*galaxy_coordinates.y+voffset);
 	drawOval( x + cu.x, y + cu.y, z, NSMakeSize( fuel*hscale, 2*fuel*vscale), 5);
-	
-	// draw stars
+		
+	// draw marks and stars
 	//
+	glLineWidth( 1.5);
 	glColor4f(1.0, 1.0, 0.75, alpha);	// pale yellow
-	clear_carry_flag();
+
 	for (i = 0; i < 256; i++)
 	{
 		g_seed = [universe systemSeedForSystemNumber:i];
 		
 		int dx, dy;
-		float blob_size = 2.0 * ((g_seed.e & 1) + 2 + get_carry_flag());
-		
+		float blob_size = 4.0 + 0.5 * (g_seed.f & 15);
+				
 		star.x = g_seed.d * hscale + hoffset;
 		star.y = g_seed.b * vscale + voffset;
 		
@@ -829,7 +834,21 @@ Your fair use and other rights are in no way affected by the above.
 		dy = abs(galaxy_coordinates.y - g_seed.b);
 		
 		if ((dx < 20)&&(dy < 38))
+		{
+			if ([(NSNumber*)[markedDestinations objectAtIndex:i] boolValue])	// is marked
+			{
+				GLfloat mark_size = 0.5 * blob_size + 2.5;
+				glColor4f( 1.0, 0.0, 0.0, alpha);	// red
+				glBegin( GL_LINES);
+					glVertex3f( x + star.x - mark_size,	y + star.y - mark_size,	z);
+					glVertex3f( x + star.x + mark_size,	y + star.y + mark_size,	z);
+					glVertex3f( x + star.x - mark_size,	y + star.y + mark_size,	z);
+					glVertex3f( x + star.x + mark_size,	y + star.y - mark_size,	z);
+				glEnd();
+				glColor4f(1.0, 1.0, 0.75, alpha);	// pale yellow
+			}
 			drawFilledOval( x + star.x, y + star.y, z, NSMakeSize(blob_size,blob_size), 15);
+		}
 	}
 	
 	// draw names
@@ -849,8 +868,15 @@ Your fair use and other rights are in no way affected by the above.
 		
 		if ((dx < 20)&&(dy < 38))
 		{
-			NSString*   p_name = [universe getSystemName:g_seed];
-			drawString( p_name, x + star.x, y + star.y, z, NSMakeSize(pixel_row_height,pixel_row_height));
+			NSDictionary* sys_info = [universe generateSystemData:g_seed];
+			int tec = [[sys_info objectForKey:KEY_TECHLEVEL] intValue];
+			int eco = [[sys_info objectForKey:KEY_ECONOMY] intValue];
+			int gov = [[sys_info objectForKey:KEY_GOVERNMENT] intValue];
+			NSString*   p_name = (NSString*)[sys_info objectForKey:KEY_NAME];
+			if (!player->show_info_flag)
+				drawString( p_name, x + star.x, y + star.y, z, NSMakeSize(pixel_row_height,pixel_row_height));
+			else
+				drawPlanetInfo( gov, eco, tec, x + star.x + 2.0, y + star.y + 2.0, z, NSMakeSize(pixel_row_height,pixel_row_height));
 		}
 	}
 	
@@ -948,11 +974,12 @@ Your fair use and other rights are in no way affected by the above.
 	glColor4f( 1.0, 0.0, 0.0, alpha);
 	for (i = 0; i < 256; i++)
 	{
+		g_seed = [universe systemSeedForSystemNumber:i];
 		BOOL mark = [(NSNumber*)[markedDestinations objectAtIndex:i] boolValue];
 		if (mark)
 		{
-			star.x = [universe systemSeedForSystemNumber:i].d * hscale + hoffset;
-			star.y = [universe systemSeedForSystemNumber:i].b * vscale + voffset;
+			star.x = g_seed.d * hscale + hoffset;
+			star.y = g_seed.b * vscale + voffset;
 			glBegin( GL_LINES);
 				glVertex3f( x + star.x - 2.5,	y + star.y - 2.5,	z);
 				glVertex3f( x + star.x + 2.5,	y + star.y + 2.5,	z);
@@ -966,15 +993,15 @@ Your fair use and other rights are in no way affected by the above.
 	//
 	glColor4f( 1.0, 1.0, 1.0, alpha);
 	glBegin( GL_QUADS);
-//	glPointSize(1);
 	for (i = 0; i < 256; i++)
 	{
-		star.x = [universe systemSeedForSystemNumber:i].d * hscale + hoffset;
-		star.y = [universe systemSeedForSystemNumber:i].b * vscale + voffset;
-
-		double sz = ((g_seed.e | 0x50) < 0x90) ? 0.85 : 1.5;
+		g_seed = [universe systemSeedForSystemNumber:i];
 		
-//		drawFilledOval( x + star.x, y + star.y, z, NSMakeSize( sz * 2.0, sz * 2.0), 30);
+		star.x = g_seed.d * hscale + hoffset;
+		star.y = g_seed.b * vscale + voffset;
+
+		double sz = (4.0 + 0.5 * (0x03 | g_seed.f & 0x0f)) / 7.0;
+		
 		glVertex3f( x + star.x,			y + star.y + sz,	z);
 		glVertex3f( x + star.x + sz,	y + star.y,			z);
 		glVertex3f( x + star.x,			y + star.y - sz,	z);
@@ -989,10 +1016,11 @@ Your fair use and other rights are in no way affected by the above.
 	for (i = 0; i < 256; i++)
 	{
 		BOOL mark = systems_found[i];
+		g_seed = [universe systemSeedForSystemNumber:i];
 		if (mark)
 		{
-			star.x = [universe systemSeedForSystemNumber:i].d * hscale + hoffset;
-			star.y = [universe systemSeedForSystemNumber:i].b * vscale + voffset;
+			star.x = g_seed.d * hscale + hoffset;
+			star.y = g_seed.b * vscale + voffset;
 			glBegin( GL_LINE_LOOP);
 				glVertex3f( x + star.x - 2.0,	y + star.y - 2.0,	z);
 				glVertex3f( x + star.x + 2.0,	y + star.y - 2.0,	z);

@@ -48,6 +48,8 @@ Your fair use and other rights are in no way affected by the above.
 #import "TextureStore.h"
 #import "OOTrumble.h"
 
+static const char *toAscii(unsigned inCodePoint);
+
 @implementation HeadUpDisplay
 
 GLfloat red_color[4] =		{1.0, 0.0, 0.0, 1.0};
@@ -56,8 +58,8 @@ GLfloat yellow_color[4] =   {1.0, 1.0, 0.0, 1.0};
 GLfloat green_color[4] =	{0.0, 1.0, 0.0, 1.0};
 
 float char_widths[128] = {
-	6.000,	6.000,	6.000,	6.000,	6.000,	6.000,	6.000,	6.000,	6.000,	6.000,	6.000,	6.000,	6.000,	6.000,	6.000,	6.000,
-	6.000,	6.000,	6.000,	6.000,	6.000,	6.000,	6.000,	6.000,	6.000,	6.000,	6.000,	6.000,	6.000,	6.000,	6.000,	6.000,
+	8.000,	7.000,	8.000,	8.000,	7.000,	6.000,	7.000,	6.000,	6.000,	6.000,	6.000,	6.000,	6.000,	6.000,	6.000,	6.000,
+	5.000,	6.000,	6.000,	6.000,	6.000,	6.000,	7.500,	8.000,	6.000,	6.000,	6.000,	6.000,	6.000,	6.000,	6.000,	6.000,
 	1.750,	2.098,	2.987,	3.504,	3.504,	5.602,	4.550,	1.498,	2.098,	2.098,	2.452,	3.679,	1.750,	2.098,	1.750,	1.750,
 	4.000,	4.000,	4.000,	4.000,	4.000,	4.000,	4.000,	4.000,	4.000,	4.000,	2.098,	2.098,	3.679,	3.679,	3.679,	3.848,
 	6.143,	4.550,	4.550,	4.550,	4.550,	4.202,	3.848,	4.900,	4.550,	1.750,	3.504,	4.550,	3.848,	5.248,	4.550,	4.900,
@@ -156,8 +158,10 @@ float char_widths[128] = {
 	}
 	if (!areTrumblesToBeDrawn)	// naughty - a hud with no built-in drawTrumbles: - one must be added!
 	{
-			NSDictionary* trumble_dial_info = [NSDictionary dictionaryWithObjectsAndKeys: @"drawTrumbles:", SELECTOR_KEY, nil];
-			[self addDial: trumble_dial_info];
+//		NSLog(@"DEBUG 	// naughty - a hud with no built-in drawTrumbles: - one must be added!");
+		//
+		NSDictionary* trumble_dial_info = [NSDictionary dictionaryWithObjectsAndKeys: @"drawTrumbles:", SELECTOR_KEY, nil];
+		[self addDial: trumble_dial_info];
 	}
 	if ([hudinfo objectForKey:LEGENDS_KEY])
 	{
@@ -473,7 +477,7 @@ static BOOL hostiles;
 				}
 				ms_blip -= floor(ms_blip);
 				
-				relativePosition = [drawthing relative_position];
+				relativePosition = drawthing->relative_position;
 
 				// rotate the view
 				mult_vector(&relativePosition, rotMatrix);
@@ -1884,19 +1888,146 @@ void drawString(NSString *text, double x, double y, double z, NSSize siz)
 {
 	int i;
 	double cx = x;
+	const char *string;
+	char simple[2] = {0, 0};
+	unsigned ch, next, length;
+	
 //	NSLog(@"DEBUG drawing string (%@) at %.1f, %.1f, %.1f (%.1f x %.1f)", text, x, y, z, siz.width, siz.height);
 	glEnable(GL_TEXTURE_2D);
 	glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
 	glBindTexture(GL_TEXTURE_2D, ascii_texture_name);
-//	glColor4f( 0.0, 1.0, 0.0, 1.0);
 
 	glBegin(GL_QUADS);
-	for (i = 0; i < [text length]; i++)
+	length = [text length];
+	for (i = 0; i < length; i++)
 	{
-		int ch = (int)[text characterAtIndex:i];
-		ch = ch & 0x7f;
-		cx += drawCharacterQuad( ch, cx, y, z, siz);
+		ch = [text characterAtIndex:i];
+		if (ch & 0xFC00 == 0xD800)
+		{
+			// This is a high surrogate. NSStrings don’t automagically handle surrogate pairs
+			// for us for historical reasons.
+			if (i != length - 1)
+			{
+				// Check if next is a low surrogate
+				next = [text characterAtIndex:i + 1];
+				if (next & 0xFC00 == 0xDC00)
+				{
+					// It is; merge the surrogate pair into a code point in ch and skip
+					++i;
+					ch = ((ch & 0x03FF) << 10) | (next & 0x03FF);
+				}
+			}
+		}
+		
+		if (0x7f < ch) string = toAscii(ch);
+		else
+		{
+			// An alternative for tabs would be to round cx up to the next multiple of foo
+			if (ch == '\t') ch = ' ';
+			simple[0] = ch;
+			string = simple;
+		}
+		
+		while (*string)
+		{
+			assert(!(*string & 0x80));
+			cx += drawCharacterQuad(*string++, cx, y, z, siz);
+		}
 	}
+	glEnd();
+
+	glDisable(GL_TEXTURE_2D);
+	
+}
+
+static const char *toAscii(unsigned inCodePoint)
+{
+	// Convert some Unicode code points likely(ish) to occur in Roman text to ASCII near equivalents.
+	// Doesn’t do characters with diacritics, 'cos there's loads.
+	switch (inCodePoint)
+	{
+		case 0x2018:	// Left single quotation mark
+		case 0x2019:	// Right single quotation mark
+		case 0x201B:	// Single high-reversed-9 quotation mark
+			return "'";
+		
+		case 0x201A:	// Single low-9 quotation mark
+			return ",";
+		
+		case 0x201C:	// Left double quotation mark
+		case 0x201D:	// Right double quotation mark
+		case 0x201F:	// Double high-reversed-9 quotation mark
+			return "\"";
+		
+		case 0x201E:	// Double low-9 quotation mark
+			return ",,";
+		
+		case 0x2026:	// Horizontal ellipsis
+			return "...";
+		
+		case 0x2010:	// Hyphen
+		case 0x2011:	// Hyphen
+		case 0x00AD:	// Soft hyphen
+		case 0x2012:	// Figure dash
+		case 0x2013:	// En dash
+		case 0x00B7:	// Middle dot
+			return "-";
+		
+		case 0x2014:	// Em dash
+		case 0x2015:	// Horizontal bar
+			return "--";
+		
+		case 0x2318:	// Place of interest sign (Command key)
+			return "(Cmd)";
+		
+		case 0x2325:	// Option Key
+			return "(Option)";
+		
+		case 0x2303:	// Up arrowhead (Control Key)
+			return "(Control)";
+		
+		// For GrowlTunes:
+		case 0x2605:	// Black star
+		case 0x272F:	// Pinwheel star
+			return "*";
+		
+		case 0x2606:	// White star
+			return "-";
+		
+		default:
+			return "?";
+	}
+}
+
+void drawPlanetInfo(int gov, int eco, int tec, double x, double y, double z, NSSize siz)
+{
+	GLfloat govcol[] = {	0.5, 0.0, 0.7,
+							0.7, 0.5, 0.3,
+							0.0, 1.0, 0.3,
+							1.0, 0.8, 0.1,
+							1.0, 0.0, 0.0,
+							0.1, 0.5, 1.0,
+							0.7, 0.7, 0.7,
+							0.7, 1.0, 1.0};
+
+	double cx = x;
+	int tl = tec + 1;
+	GLfloat ce1 = 1.0 - 0.125 * eco;
+	
+	glEnable(GL_TEXTURE_2D);
+	glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
+	glBindTexture(GL_TEXTURE_2D, ascii_texture_name);
+
+	glBegin(GL_QUADS);
+	
+	glColor4f( ce1, 1.0, 0.0, 1.0);
+	cx += drawCharacterQuad( 23 - eco, cx, y, z, siz);	// characters 16..23 are economy symbols
+	glColor3fv(&govcol[gov * 3]);
+	cx += drawCharacterQuad( gov, cx, y, z, siz) - 1.0;		// charcters 0..7 are government symbols
+	glColor4f(0.5, 1.0, 1.0, 1.0);
+	if (tl > 9)
+		cx += drawCharacterQuad( 49, cx, y - 2, z, siz) - 2.0;
+	cx += drawCharacterQuad( 48 + (tl % 10), cx, y - 2, z, siz);
 	glEnd();
 
 	glDisable(GL_TEXTURE_2D);

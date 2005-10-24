@@ -108,7 +108,7 @@ Your fair use and other rights are in no way affected by the above.
 		{
 			NSLog(@"***** Couldn't find texture : %@", filename);
 						NSException* myException = [NSException
-								exceptionWithName: @"OoliteException"
+								exceptionWithName: OOLITE_EXCEPTION_TEXTURE_NOT_FOUND
 								reason: [NSString stringWithFormat:@"Oolite couldn't find texture : %@ on any search-path.", filename]
 								userInfo: nil];
 						[myException raise];
@@ -142,7 +142,7 @@ Your fair use and other rights are in no way affected by the above.
 		{
 			NSLog(@"***** Couldn't find a representation for texture : %@ %@", filename, texImage);
 			NSException* myException = [NSException
-					exceptionWithName: @"OoliteException"
+					exceptionWithName: OOLITE_EXCEPTION_TEXTURE_NOT_FOUND
 					reason: [NSString stringWithFormat:@"Oolite couldn't find a NSBitMapImageRep for texture : %@ : %@.", filename, texImage]
 					userInfo: nil];
 			[myException raise];
@@ -294,8 +294,8 @@ void fillSquareImageDataWithBlur(unsigned char * imageBuffer, int width, int npl
 		float d = sqrt(x*x + y*y);
 		if (d > r)
 			d = r;
-		float fi = 255 - 255 * d * r1;
-		unsigned char i = 255 - 255 * d * r1;
+		float fi = 255.0 - 255.0 * d * r1;
+		unsigned char i = (unsigned char)fi;
 		
 		i_error += fi - i;	// accumulate the error between i and fi
 		

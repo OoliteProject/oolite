@@ -325,8 +325,10 @@ Your fair use and other rights are in no way affected by the above.
 			escorter = [universe getShip:escortShipKey];	// retained
 		else
 			escorter = [universe getShipWithRole:escortRole];	// retained
+		
 		if (!escorter)
 			break;
+		
 		// spread them around a little randomly
 		double dd = escorter->collision_radius;
 		ex_pos.x += dd * 6.0 * (randf() - 0.5);
@@ -819,21 +821,24 @@ Your fair use and other rights are in no way affected by the above.
 					
 //					NSLog(@"DEBUG universe = %@", universe);
 					
-					subent = [universe getShip:subdesc];	// retained -- ODDLY UNIVERSE SEEMS SOMETIMES TO BE NIL HERE ?!!! - FIXED
+					subent = [universe getShip:subdesc];	// retained
 					
+					if (subent)
+					{
 //					NSLog(@"DEBUG adding subentity %@ %@ to new %@ at %.3f,%.3f,%.3f", subent, [(ShipEntity*)subent name], name, sub_pos.x, sub_pos.y, sub_pos.z );
-					[(ShipEntity*)subent setStatus:STATUS_INACTIVE];
-					//
-					ref = vector_forward_from_quaternion(sub_q);	// VECTOR FORWARD
-					//
-					[(ShipEntity*)subent setReference: ref];
-					[(ShipEntity*)subent setPosition: sub_pos];
-					[(ShipEntity*)subent setQRotation: sub_q];
-					//
-					if ([[(ShipEntity*)subent roles] isEqual:@"docking-slit"])
-						[subent setStatus:STATUS_EFFECT];			// hack keeps docking slit visible when at reduced detail
-					else
-						[self addSolidSubentityToCollisionRadius:(ShipEntity*)subent];	// hack - ignore docking-slit for collision radius 
+						[(ShipEntity*)subent setStatus:STATUS_INACTIVE];
+						//
+						ref = vector_forward_from_quaternion(sub_q);	// VECTOR FORWARD
+						//
+						[(ShipEntity*)subent setReference: ref];
+						[(ShipEntity*)subent setPosition: sub_pos];
+						[(ShipEntity*)subent setQRotation: sub_q];
+						//
+						if ([[(ShipEntity*)subent roles] isEqual:@"docking-slit"])
+							[subent setStatus:STATUS_EFFECT];			// hack keeps docking slit visible when at reduced detail
+						else
+							[self addSolidSubentityToCollisionRadius:(ShipEntity*)subent];	// hack - ignore docking-slit for collision radius
+					}
 					//
 				}
 				//NSLog(@"DEBUG reference (%.1f,%.1f,%.1f)", ref.x, ref.y, ref.z);
@@ -1359,7 +1364,7 @@ BOOL ship_canCollide (ShipEntity* ship)
 	double	hurt_factor = 16 * pow(energy/max_energy, 4.0);
 	double	last_success_factor = success_factor;
 	//
-	BOOL	canBurn = has_fuel_injection && (fuel > 1);	// (was &&(fuel > 0) this is a quickfix)
+	BOOL	canBurn = has_fuel_injection && (fuel > 1);	// was &&(fuel > 0)
 	BOOL	isUsingAfterburner = canBurn && (flight_speed > max_flight_speed);
 	//
 	double	max_available_speed = (canBurn)? max_flight_speed * AFTERBURNER_FACTOR : max_flight_speed;
@@ -1924,9 +1929,15 @@ BOOL ship_canCollide (ShipEntity* ship)
 							frustration = 0.0;
 					}
 					else
-					{
+					{						
+//						double old_frustration = frustration;
+						
 						frustration += delta_t;
-						if (frustration > slowdownTime * 10.0)	// 10x slowdownTime of frustration
+						
+//						if (floor(old_frustration * 5.0) < floor(frustration * 5.0))
+//							NSLog(@"DEBUG %@ has increasing frustration (%.4f)", self, frustration);
+//						
+						if ((frustration > slowdownTime * 10.0)||(frustration > 15.0))	// 10x slowdownTime or 15s of frustration
 						{
 							[shipAI reactToMessage:@"FRUSTRATED"];
 							frustration -= slowdownTime * 5.0;	//repeat after another five units of frustration
@@ -2067,7 +2078,16 @@ BOOL ship_canCollide (ShipEntity* ship)
 			for (i = 0; i < n_escorts; i++)
 			{
 				ShipEntity *escorter = (ShipEntity *)[universe entityForUniversalID:escort_ids[i]];
-				[escorter setDestination:[self getCoordinatesForEscortPosition:i]];
+				// check it's still an escort ship
+				BOOL escorter_okay = YES;
+				if (!escorter)
+					escorter_okay = NO;
+				else
+					escorter_okay = escorter->isShip;
+				if (escorter_okay)
+					[escorter setDestination:[self getCoordinatesForEscortPosition:i]];	// update its destination
+				else
+					escort_ids[i--] = escort_ids[--n_escorts];	// remove the escort
 			}
 		}
     }
@@ -2343,13 +2363,13 @@ static GLfloat mascem_color2[4] =	{ 0.4, 0.1, 0.4, 1.0};	// purple
 	// burn fuel at the appropriate rate
 	if ((flight_speed > max_flight_speed) && has_fuel_injection && (fuel > 0))
 	{
-		fuel_accumulator -= delta_t * AFTERBURNER_BURNRATE;
-		while (fuel_accumulator <= 0)
+		fuel_accumulator -= delta_t * AFTERBURNER_NPC_BURNRATE;
+		while (fuel_accumulator < 0.0)
 		{
-			fuel--;
+			if (fuel-- < 1)
+				max_available_speed = max_flight_speed;
 			fuel_accumulator += 1.0;
 		}
-		//NSLog(@"DEBUG %@ %d fuel %d", name, universal_id, fuel);
 	}
 }
 
@@ -2364,13 +2384,7 @@ static GLfloat mascem_color2[4] =	{ 0.4, 0.1, 0.4, 1.0};	// purple
 	
 	if (roll1)
 		quaternion_rotate_about_z( &q1, -roll1);
-//	if (roll1 != 0.0)
-//	{
-//		if (scan_class == CLASS_MISSILE)
-//			quaternion_rotate_about_y( &q1, -roll1);	// *hack* yaw instead of roll
-//		else
-//			quaternion_rotate_about_z( &q1, -roll1);
-//	}
+
 	if (climb1)
 		quaternion_rotate_about_x( &q1, -climb1);
 	
@@ -2719,6 +2733,11 @@ static GLfloat mascem_color2[4] =	{ 0.4, 0.1, 0.4, 1.0};	// purple
 	status = stat;
 	if ((status == STATUS_LAUNCHING)&&(universe))
 		launch_time = [universe getTime];
+}
+
+- (void) setStateMachine:(NSString *) ai_desc
+{
+	[shipAI setStateMachine: ai_desc];
 }
 
 - (void) setAI:(AI *) ai
@@ -3079,6 +3098,9 @@ static GLfloat mascem_color2[4] =	{ 0.4, 0.1, 0.4, 1.0};	// purple
 			frustration = 0.0;
 			[self launchEscapeCapsule];
 			[self setScanClass: CLASS_NEUTRAL];			// we're unmanned now!
+			thrust = thrust * 0.5;
+			desired_speed = 0.0;
+			max_flight_speed = 0.0;
 		}
 	}
 }
@@ -3173,43 +3195,54 @@ static GLfloat mascem_color2[4] =	{ 0.4, 0.1, 0.4, 1.0};	// purple
 		cargo_chance = 100;  //  chance of any given piece of cargo surviving decompression
 		cargo_flag = CARGO_FLAG_CANISTERS;
 	}
-	if (cargo_flag == CARGO_FLAG_FULL_UNIFORM)
+	
+	int cargo_to_go = max_cargo * cargo_chance / 100;
+	while (cargo_to_go > 15)
+		cargo_to_go = ranrot_rand() % cargo_to_go;
+	cargo_chance = 100;  //  chance of any given piece of cargo surviving decompression
+	switch (cargo_flag)
 	{
-		int cargo_to_go = max_cargo * cargo_chance / 100;
-		while (cargo_to_go > 15)
-			cargo_to_go = ranrot_rand() % cargo_to_go;
-		NSString* commodity_name = (NSString*)[shipinfoDictionary objectForKey:@"cargo_carried"];
-		jetsam = [[universe getContainersOfCommodity:commodity_name :cargo_to_go] retain];
-		cargo_chance = 100;  //  chance of any given piece of cargo surviving decompression
+		case	CARGO_FLAG_FULL_UNIFORM :
+//			NSLog(@"DEBUG dropping uniform cargo (CARGO_FLAG_FULL_UNIFORM)");
+			{
+				NSString* commodity_name = (NSString*)[shipinfoDictionary objectForKey:@"cargo_carried"];
+				jetsam = [universe getContainersOfCommodity:commodity_name :cargo_to_go];
+			}
+			break;
+		
+		case	CARGO_FLAG_FULL_PLENTIFUL :
+//			NSLog(@"DEBUG dropping plentiful cargo (CARGO_FLAG_FULL_PLENTIFUL)");
+			jetsam = [universe getContainersOfPlentifulGoods:cargo_to_go];
+			break;
+		
+		case	CARGO_FLAG_PIRATE :
+//			NSLog(@"DEBUG dropping pirated cargo (CARGO_FLAG_PIRATE)");
+			cargo_to_go = likely_cargo;
+			while (cargo_to_go > 15)
+				cargo_to_go = ranrot_rand() % cargo_to_go;
+			cargo_chance = 65;	// 35% chance of spoilage
+			jetsam = [universe getContainersOfScarceGoods:cargo_to_go];
+			break;
+			
+		case	CARGO_FLAG_FULL_SCARCE :
+//			NSLog(@"DEBUG dropping scarce cargo (CARGO_FLAG_FULL_SCARCE)");
+			jetsam = [universe getContainersOfScarceGoods:cargo_to_go];
+			break;
+		
+		case	CARGO_FLAG_CANISTERS:
+//			NSLog(@"DEBUG dropping ship's scooped cargo (CARGO_FLAG_CANISTERS)");
+			jetsam = [NSArray arrayWithArray:cargo];   // what the ship is carrying
+			[cargo removeAllObjects];   // dispense with it!
+			break;
 	}
-	if (cargo_flag == CARGO_FLAG_FULL_PLENTIFUL)
-	{
-		int cargo_to_go = max_cargo * cargo_chance / 100;
-		while (cargo_to_go > 15)
-			cargo_to_go = ranrot_rand() % cargo_to_go;
-		jetsam = [[universe getContainersOfPlentifulGoods:cargo_to_go] retain];
-		cargo_chance = 100;  //  chance of any given piece of cargo surviving decompression
-	}
-	if (cargo_flag == CARGO_FLAG_FULL_SCARCE)
-	{
-		int cargo_to_go = max_cargo * cargo_chance / 100;
-		while (cargo_to_go > 15)
-			cargo_to_go = ranrot_rand() % cargo_to_go;
-		jetsam = [[universe getContainersOfScarceGoods:cargo_to_go] retain];
-		cargo_chance = 100;  //  chance of any given piece of cargo surviving decompression
-	}
-	if (cargo_flag == CARGO_FLAG_CANISTERS)
-	{
-		jetsam = [[NSArray arrayWithArray:cargo] retain];   // what the ship is carrying
-		[cargo removeAllObjects];   // dispense with it!
-	}
+	
 	if (jetsam)
 	{
 		for (i = 0; i < [jetsam count]; i++)
 		{
 			if (ranrot_rand() % 100 < cargo_chance)  //  chance of any given piece of cargo surviving decompression
 			{
-				ShipEntity* container = [[jetsam objectAtIndex:i] retain];
+				ShipEntity* container = [jetsam objectAtIndex:i];
 				Vector  rpos = xposition;
 				Vector	rrand = randomPositionInBoundingBox(boundingBox);
 				rpos.x += rrand.x;	rpos.y += rrand.y;	rpos.z += rrand.z;
@@ -3228,10 +3261,8 @@ static GLfloat mascem_color2[4] =	{ 0.4, 0.1, 0.4, 1.0};	// purple
 				[universe addEntity:container];
 				[[container getAI] setState:@"GLOBAL"];
 				//NSLog(@"Launched %@ %d with %@",[container name], [container universal_id], [universe describeCommodity:[container getCommodityType] amount:[container getCommodityAmount]]);
-				[container release];
 			}
 		}
-		[jetsam release];   // done with this now!
 	}
 
 	//
@@ -3318,25 +3349,28 @@ static GLfloat mascem_color2[4] =	{ 0.4, 0.1, 0.4, 1.0};	// purple
 	for (i = 0; i < n_alloys; i++)
 	{
 		ShipEntity* plate = [universe getShipWithRole:@"alloy"];   // retain count = 1
-		Vector  rpos = xposition;
-		Vector	rrand = randomPositionInBoundingBox(boundingBox);
-		rpos.x += rrand.x;	rpos.y += rrand.y;	rpos.z += rrand.z;
-		rpos.x += (ranrot_rand() % 7) - 3;
-		rpos.y += (ranrot_rand() % 7) - 3;
-		rpos.z += (ranrot_rand() % 7) - 3;
-		[plate setPosition:rpos];
-		v.x = 0.1 *((ranrot_rand() % speed_low) - speed_low / 2);
-		v.y = 0.1 *((ranrot_rand() % speed_low) - speed_low / 2);
-		v.z = 0.1 *((ranrot_rand() % speed_low) - speed_low / 2);
-		[plate setVelocity:v];
-		quaternion_set_random(&q);
-		[plate setQRotation:q];
-		[plate setStatus:STATUS_TEST];
-		[plate setScanClass: CLASS_CARGO];
-		[plate setCommodity:9 andAmount:1];
-		[universe addEntity:plate];
-		[[plate getAI] setState:@"GLOBAL"];
-		[plate release];
+		if (plate)
+		{
+			Vector  rpos = xposition;
+			Vector	rrand = randomPositionInBoundingBox(boundingBox);
+			rpos.x += rrand.x;	rpos.y += rrand.y;	rpos.z += rrand.z;
+			rpos.x += (ranrot_rand() % 7) - 3;
+			rpos.y += (ranrot_rand() % 7) - 3;
+			rpos.z += (ranrot_rand() % 7) - 3;
+			[plate setPosition:rpos];
+			v.x = 0.1 *((ranrot_rand() % speed_low) - speed_low / 2);
+			v.y = 0.1 *((ranrot_rand() % speed_low) - speed_low / 2);
+			v.z = 0.1 *((ranrot_rand() % speed_low) - speed_low / 2);
+			[plate setVelocity:v];
+			quaternion_set_random(&q);
+			[plate setQRotation:q];
+			[plate setStatus:STATUS_TEST];
+			[plate setScanClass: CLASS_CARGO];
+			[plate setCommodity:9 andAmount:1];
+			[universe addEntity:plate];
+			[[plate getAI] setState:@"GLOBAL"];
+			[plate release];
+		}
 	}
 	//
 	if (sub_entities)
@@ -3779,7 +3813,10 @@ Vector randomPositionInBoundingBox(BoundingBox bb)
 	Entity*	target = [self getPrimaryTarget];
 	
 	if (!target)   // leave now!
+	{
+		[shipAI message:@"TARGET_LOST"];
 		return 0.0;
+	}
 	
 	if (scan_class == CLASS_MISSILE)
 		return [self missileTrackPrimaryTarget: delta_t];
@@ -3792,6 +3829,12 @@ Vector randomPositionInBoundingBox(BoundingBox bb)
 	relativePosition.z -= position.z;
 
 	double	range2 = magnitude2(relativePosition);
+	
+	if (range2 > SCANNER_MAX_RANGE2)
+	{
+		[shipAI message:@"TARGET_LOST"];
+		return 0.0;
+	}
 	
 	//jink if retreating
 	if (retreat && (range2 > 250000.0))	// don't jink if closer than 500m - just RUN
@@ -4977,23 +5020,27 @@ Vector randomPositionInBoundingBox(BoundingBox bb)
 	origin.z = position.z + v_right.z * start.x + v_up.z * start.y + v_forward.z * start.z;
 		
 	tharglet = [universe getShipWithRole:@"tharglet"];   // retain count = 1
-	[tharglet setPosition:origin];						// directly below
-	[tharglet setScanClass: CLASS_THARGOID];
-	[tharglet addTarget:target];
-	[tharglet setQRotation:q1];
-	[tharglet setStatus: STATUS_IN_FLIGHT];  // necessary to get it going!
-	[tharglet setVelocity: vel];
-	[tharglet setSpeed:350.0];
-	[tharglet setOwner:self];
-	//[tharglet setReportAImessages:YES]; // debug
-	[universe addEntity:tharglet];
-	//NSLog(@"tharglet collision radius is %.1f",tharglet->collision_radius);
-	
-	[tharglet setGroup_id:group_id];
-	
-	[tharglet release]; //release
-	
-	return YES;
+	if (tharglet)
+	{
+		[tharglet setPosition:origin];						// directly below
+		[tharglet setScanClass: CLASS_THARGOID];
+		[tharglet addTarget:target];
+		[tharglet setQRotation:q1];
+		[tharglet setStatus: STATUS_IN_FLIGHT];  // necessary to get it going!
+		[tharglet setVelocity: vel];
+		[tharglet setSpeed:350.0];
+		[tharglet setOwner:self];
+		//[tharglet setReportAImessages:YES]; // debug
+		[universe addEntity:tharglet];
+		//NSLog(@"tharglet collision radius is %.1f",tharglet->collision_radius);
+		
+		[tharglet setGroup_id:group_id];
+		
+		[tharglet release]; //release
+		
+		return YES;
+	}
+	return NO;
 }
 
 - (BOOL) fireECM
@@ -5080,15 +5127,18 @@ Vector randomPositionInBoundingBox(BoundingBox bb)
 	ShipEntity *pod;
 	
 	pod = [universe getShipWithRole:@"escape-capsule"];   // retain count = 1
-	[pod setOwner:self];
-	[pod setScanClass: CLASS_CARGO];
-	[pod setCommodity:[universe commodityForName:@"Slaves"] andAmount:1];
-	[[pod getAI] setStateMachine:@"homeAI.plist"];
-	[self dumpItem:pod];
-	[[pod getAI] setState:@"GLOBAL"];
-	[pod release]; //release
-		
-	return [pod universal_id];
+	if (pod)
+	{
+		[pod setOwner:self];
+		[pod setScanClass: CLASS_CARGO];
+		[pod setCommodity:[universe commodityForName:@"Slaves"] andAmount:1];
+		[[pod getAI] setStateMachine:@"homeAI.plist"];
+		[self dumpItem:pod];
+		[[pod getAI] setState:@"GLOBAL"];
+		[pod release]; //release
+		return [pod universal_id];
+	}
+	return NO_TARGET;
 }
 
 - (int) dumpCargo
@@ -5713,25 +5763,35 @@ inline BOOL pairOK(NSString* my_role, NSString* their_role)
 	//NSLog(@"DEBUG %@ %d deploying %d escorts", name, universal_id, n_deploy);
 	
 	int i_deploy = n_escorts - 1;
-	while (n_deploy > 0)
+	while ((n_deploy > 0)&&(n_escorts > 0))
 	{
 		int escort_id = escort_ids[i_deploy];
 		ShipEntity  *escorter = (ShipEntity *)[universe entityForUniversalID:escort_id];
-		if (escorter)
+		// check it's still an escort ship
+		BOOL escorter_okay = YES;
+		if (!escorter)
+			escorter_okay = NO;
+		else
+			escorter_okay = escorter->isShip;
+		if (escorter_okay)
 		{
 			[escorter setGroup_id:NO_TARGET];	// act individually now!
 			[escorter addTarget:[self getPrimaryTarget]];
 			[[escorter getAI] setStateMachine:@"interceptAI.plist"];
 			[[escorter getAI] setState:@"GLOBAL"];
 			
+			escort_ids[i_deploy] = NO_TARGET;
+			i_deploy--;
+			n_deploy--;
+			n_escorts--;
 			//debug
 			//NSLog(@"DEBUG trader %@ %d deploys escort %@ %d", name, universal_id, [escorter name], [escorter universal_id]);
 			//[escorter setReportAImessages:YES];
 		}
-		escort_ids[i_deploy] = NO_TARGET;
-		i_deploy--;
-		n_deploy--;
-		n_escorts--;
+		else
+		{
+			escort_ids[i_deploy--] = escort_ids[--n_escorts];	// remove the escort
+		}
 	}
 	
 }
@@ -5746,7 +5806,13 @@ inline BOOL pairOK(NSString* my_role, NSString* their_role)
 	{
 		int escort_id = escort_ids[i];
 		ShipEntity  *escorter = (ShipEntity *)[universe entityForUniversalID:escort_id];
-		if (escorter)
+		// check it's still an escort ship
+		BOOL escorter_okay = YES;
+		if (!escorter)
+			escorter_okay = NO;
+		else
+			escorter_okay = escorter->isShip;
+		if (escorter_okay)
 		{
 			SEL _setSM =	@selector(setStateMachine:);
 			SEL _setSt =	@selector(setState:);
@@ -6093,7 +6159,6 @@ inline BOOL pairOK(NSString* my_role, NSString* their_role)
 
 - (void) spawn:(NSString *)roles_number
 {
-//	NSMutableArray*	tokens = [NSMutableArray arrayWithArray:[roles_number componentsSeparatedByString:@" "]];
 	NSArray*	tokens = [Entity scanTokensFromString:roles_number];
 	NSString*   roleString = nil;
 	NSString*	numberString = nil;
@@ -6114,6 +6179,45 @@ inline BOOL pairOK(NSString* my_role, NSString* their_role)
 
 	while (number--)
 		[universe spawnShipWithRole:roleString near:self];
+}
+
+- (int) checkShipsInVicinityForWitchJumpExit
+{
+	// checks if there are any large masses close by
+	// since we want to place the space station at least 10km away
+	// the formula we'll use is K x m / d2 < 1.0
+	// (m = mass, d2 = distance squared)
+	// coriolis station is mass 1,000,000,000
+	// 10km is 10,000m,
+	// 10km squared is 100,000,000
+	// therefore K is 0.10
+	
+	int result = NO_TARGET;
+	
+	GLfloat k = 0.1;
+	
+	int			ent_count =		universe->n_entities;
+	Entity**	uni_entities =	universe->sortedEntities;	// grab the public sorted list
+	ShipEntity*	my_entities[ent_count];
+	int i;
+	
+	int ship_count = 0;
+	for (i = 0; i < ent_count; i++)
+		if ((uni_entities[i]->isShip)&&(uni_entities[i] != self))
+			my_entities[ship_count++] = (ShipEntity*)[uni_entities[i] retain];		//	retained
+	//
+	for (i = 0; (i < ship_count)&&(result == NO_TARGET) ; i++)
+	{
+		ShipEntity* ship = my_entities[i];
+		Vector delta = ship->position;
+		delta.x -= position.x;	delta.y -= position.y;	delta.z -= position.z;
+		if ((delta.x < 10000.0)&&(delta.y < 10000.0)&&(delta.z < 10000.0)&&( k * [ship mass] / magnitude2(delta) > 1.0))
+			result = [ship universal_id];
+	}
+	for (i = 0; i < ship_count; i++)
+		[my_entities[i] release];	//		released
+
+	return result;
 }
 
 @end

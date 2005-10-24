@@ -3,7 +3,7 @@
         ATTACKED = (setTargetToPrimaryAggressor, increaseAlertLevel); 
         ENTER = (checkTargetLegalStatus); 
         EXIT = (); 
-        "RED_ALERT" = (launchPolice); 
+        "RED_ALERT" = (launchDefenseShip); 
         "YELLOW_ALERT" = ("setStateTo: IDLE"); 
         "CONDITION_YELLOW" = ("setStateTo: IDLE"); 
         "CONDITION_GREEN" = ("setStateTo: CHECK_FOR_DEBRIS"); 

@@ -120,11 +120,6 @@ Your fair use and other rights are in no way affected by the above.
     status = STATUS_EFFECT;
 	sky_type = SKY_BILLBOARDS;
 	//
-	float h1 = (ranrot_rand() % 1024)/1024.0;
-	float h2 = h1 + 1.0 / (1.0 + (ranrot_rand() % 5));
-	while (h2 > 1.0)
-		h2 -= 1.0;
-	//
 	sky_color = [[col2 blendedColorWithFraction:0.5 ofColor:col1] retain];
 	//
 	// init stars
@@ -177,11 +172,6 @@ Your fair use and other rights are in no way affected by the above.
     status = STATUS_EFFECT;
 	sky_type = SKY_BILLBOARDS;
 	//
-	float h1 = (ranrot_rand() % 1024)/1024.0;
-	float h2 = h1 + 1.0 / (1.0 + (ranrot_rand() % 5));
-	while (h2 > 1.0)
-		h2 -= 1.0;
-	//
 	blob_cluster_chance = SKY_BLOB_CLUSTER_CHANCE;
 	blob_alpha = SKY_BLOB_ALPHA;
 	blob_scale = SKY_BLOB_SCALE;
@@ -231,6 +221,10 @@ Your fair use and other rights are in no way affected by the above.
 		if (n_stars > SKY_MAX_STARS)
 			n_stars = SKY_MAX_STARS;
 	}
+	else
+	{
+		n_stars = SKY_MAX_STARS * 0.5 * randf() * randf();	// around 0.125
+	}
 	//
 	if ([systeminfo objectForKey:@"sky_n_blurs"])
 	{
@@ -240,6 +234,10 @@ Your fair use and other rights are in no way affected by the above.
 			n_blobs = 0;
 		if (n_blobs > SKY_MAX_BLOBS)
 			n_blobs = SKY_MAX_BLOBS;
+	}
+	else
+	{
+		n_blobs = SKY_MAX_BLOBS * 0.4 * randf() * randf();	// around 0.10
 	}
 	//
 	////
@@ -418,8 +416,18 @@ Your fair use and other rights are in no way affected by the above.
 			blob_vector[i].x *= BILLBOARD_DEPTH;
 			blob_vector[i].y *= BILLBOARD_DEPTH;
 			blob_vector[i].z *= BILLBOARD_DEPTH;
-			double p_size = blob_scale * (1 + (ranrot_rand() & 15)) * BILLBOARD_DEPTH / 500.0;
+			int r1 = 1 + (ranrot_rand() & 15);
+			double p_size = blob_scale * r1 * BILLBOARD_DEPTH / 500.0;
+			blob_color[i][3] *= 0.5 + (float)r1 / 32.0;	// make smaller blobs dimmer
 			blob_quad[0][i] = blob_vector[i];
+			
+			// rotate vi and vj a random amount
+			double r = randf() * PI * 2.0;
+			quaternion_rotate_about_axis(&q, vk, r);
+			vi = vector_right_from_quaternion(q);
+			vj = vector_up_from_quaternion(q);
+			//
+			
 			blob_quad[1][i].x = blob_quad[0][i].x + p_size * vj.x;
 			blob_quad[1][i].y = blob_quad[0][i].y + p_size * vj.y;
 			blob_quad[1][i].z = blob_quad[0][i].z + p_size * vj.z;

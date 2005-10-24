@@ -138,6 +138,13 @@
 		<string>EQ_MISSILE_REMOVAL</string>
 		<string>Unmounts, safes, and re-sells at full market value all missiles and mines currently mounted on your craft.</string>
 	</array>
+	<array><!-- ecm hardened missile -->
+		<integer>9</integer>
+		<integer>3500</integer>
+		<string>ECM Hardened Missile</string>
+		<string>EQ_HARDENED_MISSILE</string>
+		<string>Faulcon de Lacy HMX5 homing missile - hardened against ECM.</string>
+	</array>
 	<array>
 		<integer>10</integer>
 		<integer>6000</integer>

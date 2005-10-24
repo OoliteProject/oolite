@@ -215,6 +215,8 @@ Your fair use and other rights are in no way affected by the above.
 	
 		Random_Seed		system_seed;
 		Random_Seed		target_system_seed;
+		
+		BOOL			show_info_flag;
 	
 	@protected
 		
@@ -337,6 +339,7 @@ Your fair use and other rights are in no way affected by the above.
 		NSSound*	warningSound;
 		NSSound*	afterburner1Sound;
 		NSSound*	afterburner2Sound;
+		NSSound*	witchAbortSound;
 		
 		int			gui_screen;
 		int			alert_flags;
@@ -413,6 +416,7 @@ Your fair use and other rights are in no way affected by the above.
 		//
 		int key_map_dump;
 		int key_map_home;
+		int key_map_info;
 		//
 		int key_pausebutton;
 		int key_show_fps;

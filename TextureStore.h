@@ -50,6 +50,10 @@ Your fair use and other rights are in no way affected by the above.
 #import <OpenGL/gl.h>
 #endif
 
+#define OOLITE_EXCEPTION_TEXTURE_NOT_FOUND  @"OoliteTextureNotFoundException"
+#define OOLITE_EXCEPTION_FATAL              @"OoliteFatalException"
+
+
 extern int debug;
 
 @interface TextureStore : NSObject

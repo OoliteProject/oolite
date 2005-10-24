@@ -173,15 +173,22 @@ static  Universe	*data_store_universe;
 }
 
 + (NSMutableArray *) scanTokensFromString:(NSString*) values
-{
+{	
 	NSMutableArray* result = [NSMutableArray arrayWithCapacity:8];
-	NSScanner* scanner = [NSScanner scannerWithString:values];
-	NSString* token;
-	while (![scanner isAtEnd])
+	if ([values retain])
 	{
-		[scanner scanCharactersFromSet:[NSCharacterSet whitespaceAndNewlineCharacterSet] intoString:(NSString * *)nil];
-		if ([scanner scanUpToCharactersFromSet:[NSCharacterSet whitespaceAndNewlineCharacterSet] intoString:&token])
-			[result addObject:[NSString stringWithString:token]];
+		NSScanner* scanner = [[NSScanner alloc] initWithString:values];
+		NSCharacterSet* space_set = [NSCharacterSet whitespaceAndNewlineCharacterSet];
+		NSCharacterSet* notspace_set = [space_set invertedSet];
+		NSString* token;
+		while (![scanner isAtEnd])
+		{
+			[scanner scanCharactersFromSet: space_set intoString:(NSString * *)nil];	// skip any blank space
+			if ([scanner scanCharactersFromSet: notspace_set intoString:&token])	// record any non-blank space
+				[result addObject:[NSString stringWithString:token]];
+		}
+		[values release];
+		[scanner release];
 	}
 	return result;
 }
@@ -635,11 +642,13 @@ static  Universe	*data_store_universe;
 	
 	NS_HANDLER
 	
-		NSLog(@"\n\n***** [Entity drawEntity::] handling exception: %@ : %@ *****",[localException name], [localException reason]);
+		NSLog(@"***** [Entity drawEntity::] encountered exception: %@ : %@ *****",[localException name], [localException reason]);
 		NSLog(@"***** Removing entity %@ from universe *****", self);
-		if ([[localException name] hasPrefix:@"Oolite"])
-			[universe handleOoliteException:localException];
 		[universe removeEntity:self];
+		if ([[localException name] hasPrefix:@"Oolite"])
+			[universe handleOoliteException:localException];	// handle these ourself
+		else
+			[localException raise];	// pass these on
 		
 	NS_ENDHANDLER
 }
@@ -709,7 +718,7 @@ static  Universe	*data_store_universe;
 
 - (void) initialiseTextures
 {
-    // roll out each face and tetxure in turn
+    // roll out each face and texture in turn
     //
     int fi,ti ;
     //
@@ -1496,8 +1505,6 @@ static  Universe	*data_store_universe;
 	no_draw_distance = d_squared * NO_DRAW_DISTANCE_FACTOR * NO_DRAW_DISTANCE_FACTOR;	// no longer based on the collision radius
 	
 	mass =	(boundingBox.max_x - boundingBox.min_x) * (boundingBox.max_y - boundingBox.min_y) * (boundingBox.max_z - boundingBox.min_z);
-	
-//	NSLog(@"%@ has mass %.3f", basefile, mass);
 	
 	return sqrt(result);
 }

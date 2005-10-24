@@ -57,6 +57,8 @@ static NSString * mission_key;
 {
 	int i;
 	
+	[self setScript_target:self];
+	
 	if (debug)
 		NSLog(@"----- checkScript");
 
@@ -234,7 +236,7 @@ static NSString * mission_key;
 	
 	if ([tokens count] > 2)
 	{
-		NSMutableString* allValues = [NSMutableString stringWithString:@""];
+		NSMutableString* allValues = [NSMutableString stringWithCapacity:256];
 		int value_index = 2;
 		while (value_index < [tokens count])
 		{
@@ -603,19 +605,30 @@ static int shipsFound;
 
 - (void) awardCredits:(NSString *)valueString
 {
+
+	if ((!script_target)||(!script_target->isPlayer))
+		return;
+
 	int award = 10 * [valueString intValue];
 	credits += award;
 }
 
 - (void) awardShipKills:(NSString *)valueString
 {
+
+	if ((!script_target)||(!script_target->isPlayer))
+		return;
+
 	ship_kills += [valueString intValue];
 }
 
 - (void) awardEquipment:(NSString *)equipString  //eg. EQ_NAVAL_ENERGY_UNIT
 {
 	NSString*   eq_type		= equipString;
-	
+
+	if ((!script_target)||(!script_target->isPlayer))
+		return;
+
 	if ([eq_type isEqual:@"EQ_FUEL"])
 	{
 		fuel = 70;
@@ -640,6 +653,9 @@ static int shipsFound;
 {
 	NSString*   eq_type		= equipString;
 	
+	if ((!script_target)||(!script_target->isPlayer))
+		return;
+
 	if ([eq_type isEqual:@"EQ_FUEL"])
 	{
 		fuel = 0;
@@ -675,6 +691,10 @@ static int shipsFound;
 - (void) awardCargo:(NSString *)amount_typeString
 {
 //	NSArray*	tokens = [amount_typeString componentsSeparatedByString:@" "];
+
+	if ((!script_target)||(!script_target->isPlayer))
+		return;
+
 	NSArray*	tokens = [Entity scanTokensFromString:amount_typeString];
 	NSString*   amountString = nil;
 	NSString*	typeString = nil;
@@ -719,11 +739,14 @@ static int shipsFound;
 					if ([cargo count] < max_cargo)
 					{
 						ShipEntity* container = [universe getShipWithRole:@"cargopod"];
-						[container setUniverse:universe];
-						[container setScanClass: CLASS_CARGO];
-						[container setCommodity:type andAmount:smaller_quantity];
-						[cargo addObject:container];
-						[container release];
+						if (container)
+						{
+							[container setUniverse:universe];
+							[container setScanClass: CLASS_CARGO];
+							[container setCommodity:type andAmount:smaller_quantity];
+							[cargo addObject:container];
+							[container release];
+						}
 					}
 					amount -= smaller_quantity;
 				}
@@ -736,12 +759,15 @@ static int shipsFound;
 					if ([cargo count] < max_cargo)
 					{
 						ShipEntity* container = [universe getShipWithRole:@"cargopod"];
-						[container setUniverse:universe];
-						[container setScanClass: CLASS_CARGO];
-						[container setStatus:STATUS_IN_HOLD];
-						[container setCommodity:type andAmount:1];
-						[cargo addObject:container];
-						[container release];
+						if (container)
+						{
+							[container setUniverse:universe];
+							[container setScanClass: CLASS_CARGO];
+							[container setStatus:STATUS_IN_HOLD];
+							[container setCommodity:type andAmount:1];
+							[cargo addObject:container];
+							[container release];
+						}
 					}
 					amount--;
 				}
@@ -772,6 +798,9 @@ static int shipsFound;
 {
 	int type;
 
+	if ((!script_target)||(!script_target->isPlayer))
+		return;
+
 	if (debug)
 		NSLog(@"DEBUG ..... Going to removeAllCargo");
 		
@@ -795,6 +824,10 @@ static int shipsFound;
 
 - (void) useSpecialCargo:(NSString *)descriptionString;
 {
+
+	if ((!script_target)||(!script_target->isPlayer))
+		return;
+
 	[self removeAllCargo];
 	specialCargo = [[universe expandDescription:descriptionString forSystem:system_seed] retain];
 	//
@@ -809,7 +842,6 @@ static int shipsFound;
 
 - (void) messageShipAIs:(NSString *)roles_message
 {
-//	NSMutableArray*	tokens = [NSMutableArray arrayWithArray:[roles_message componentsSeparatedByString:@" "]];
 	NSMutableArray*	tokens = [Entity scanTokensFromString:roles_message];
 	NSString*   roleString = nil;
 	NSString*	messageString = nil;
@@ -832,12 +864,12 @@ static int shipsFound;
 	ShipEntity* item = [universe getShip:item_key];
 	if (script_target == nil)
 		script_target = self;
-	[script_target dumpItem:item];
+	if (item)
+		[script_target dumpItem:item];
 }
 
 - (void) addShips:(NSString *)roles_number
 {
-//	NSMutableArray*	tokens = [NSMutableArray arrayWithArray:[roles_number componentsSeparatedByString:@" "]];
 	NSMutableArray*	tokens = [Entity scanTokensFromString:roles_number];
 	NSString*   roleString = nil;
 	NSString*	numberString = nil;
@@ -862,7 +894,6 @@ static int shipsFound;
 
 - (void) addSystemShips:(NSString *)roles_number_position
 {
-//	NSMutableArray*	tokens = [NSMutableArray arrayWithArray:[roles_number_position componentsSeparatedByString:@" "]];
 	NSMutableArray*	tokens = [Entity scanTokensFromString:roles_number_position];
 	NSString*   roleString = nil;
 	NSString*	numberString = nil;
@@ -890,7 +921,6 @@ static int shipsFound;
 
 - (void) addShipsAt:(NSString *)roles_number_system_x_y_z
 {
-//	NSMutableArray*	tokens = [NSMutableArray arrayWithArray:[roles_number_system_x_y_z componentsSeparatedByString:@" "]];
 	NSMutableArray*	tokens = [Entity scanTokensFromString:roles_number_system_x_y_z];
 
 	NSString*   roleString = nil;
@@ -920,14 +950,6 @@ static int shipsFound;
 	if (debug)
 		NSLog(@"DEBUG Going to add %d ship(s) with role '%@' at point (%.3f, %.3f, %.3f) using system %@", number, roleString, posn.x, posn.y, posn.z, systemString);
 
-//	while (number--)
-//	{
-//		if (![universe addShipWithRole:roleString nearPosition: posn withCoordinateSystem: systemString])
-//		{
-//			NSLog(@"***** CANNOT addShipsAt: '%@' (should be addShipsAt: role number coordinate_system x y z)",roles_number_system_x_y_z);
-//			return;
-//		}
-//	}
 	if (![universe addShips: number withRole:roleString nearPosition: posn withCoordinateSystem: systemString])
 		NSLog(@"***** CANNOT addShipsAt: '%@' (should be addShipsAt: role number coordinate_system x y z)",roles_number_system_x_y_z);			
 }
@@ -982,7 +1004,6 @@ static int shipsFound;
 
 - (void) set:(NSString *)missionvariable_value
 {
-//	NSMutableArray*	tokens = [NSMutableArray arrayWithArray:[missionvariable_value componentsSeparatedByString:@" "]];
 	NSMutableArray*	tokens = [Entity scanTokensFromString:missionvariable_value];
 	NSString*   missionVariableString = nil;
 	NSString*	valueString = nil;
@@ -1052,7 +1073,6 @@ static int shipsFound;
 	NSString*   missionVariableString = nil;
 	NSString*   valueString;
 	double	value;
-//	NSMutableArray*	tokens = [NSMutableArray arrayWithArray:[missionVariableString_value componentsSeparatedByString:@" "]];
 	NSMutableArray*	tokens = [Entity scanTokensFromString:missionVariableString_value];
 
 	if ([tokens count] < 2)
@@ -1093,7 +1113,6 @@ static int shipsFound;
 	NSString*   missionVariableString = nil;
 	NSString*   valueString;
 	double	value;
-//	NSMutableArray*	tokens = [NSMutableArray arrayWithArray:[missionVariableString_value componentsSeparatedByString:@" "]];
 	NSMutableArray*	tokens = [Entity scanTokensFromString:missionVariableString_value];
 
 	if ([tokens count] < 2)
@@ -1343,7 +1362,6 @@ static int shipsFound;
 {
 	NSString*   valueString;
 	int i;
-//	NSMutableArray*	tokens = [NSMutableArray arrayWithArray:[args componentsSeparatedByString:@" "]];
 	NSMutableArray*	tokens = [Entity scanTokensFromString:args];
 
 	for (i = 0; i < [tokens  count]; i++)

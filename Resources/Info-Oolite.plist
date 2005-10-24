@@ -63,7 +63,7 @@
 	<key>CFBundleSignature</key>
 	<string>Ool8</string>
 	<key>CFBundleVersion</key>
-	<string>1.56</string>
+	<string>1.58</string>
 	<key>NSMainNibFile</key>
 	<string>MainMenu</string>
 	<key>NSPrincipalClass</key>

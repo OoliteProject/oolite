@@ -53,9 +53,10 @@ Your fair use and other rights are in no way affected by the above.
 
 typedef struct
 {
-	Vector					vertex_array[10242];
-	GLfloat					color_array[4*10242];
-	Vector					normal_array[10242];
+	Vector					vertex_array[10400 + 2];
+	GLfloat					color_array[4*10400];
+	GLfloat					uv_array[2*10400];
+	Vector					normal_array[10400];
 	GLuint					index_array[MAX_TRI_INDICES];
 }	VertexData;
 
@@ -64,7 +65,7 @@ typedef struct
 	@public
 		GLfloat		sun_diffuse[4];
 		GLfloat		sun_specular[4];
-	
+		
 	@protected
 		int planet_type;
 		int r_seed[MAX_VERTICES_PER_ENTITY];
@@ -75,6 +76,9 @@ typedef struct
 														// 4 -> 5120 verts
 														// 5 -> 20480 verts !!
 		
+		BOOL		isTextured;
+		GLuint		textureName;
+	
 		int			planet_seed;
 		double		polar_color_factor;
 		
@@ -144,11 +148,13 @@ void drawActiveCorona (double inner_radius, double outer_radius, int step, doubl
 + (void) resetBaseVertexArray;
 - (void) initialiseBaseVertexArray;
 
-int baseVertexIndexForEdge(int va, int vb);
+int baseVertexIndexForEdge(int va, int vb, BOOL textured);
 
 - (void) initialiseBaseTerrainArray:(int) percent_land;
 - (void) paintVertex:(int) vi :(int) seed;
 - (void) scaleVertices;
+
+double longitudeFromVector(Vector v);
 
 - (BOOL) willGoNova;
 - (BOOL) goneNova;

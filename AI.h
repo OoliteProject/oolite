@@ -96,4 +96,3 @@ extern int debug;
 - (double) thinkTimeInterval;
 
 @end
-

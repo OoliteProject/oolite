@@ -385,6 +385,14 @@
 	<array>
 		<string>Witchspace to %@ in %.0f s.</string>
 	</array>
+	<key>witch-blocked-by-@</key>
+	<array>
+		<string>Witchspace jump aborted (too close to %@.)</string>
+	</array>
+	<key>witch-user-abort</key>
+	<array>
+		<string>Witchspace jump aborted.</string>
+	</array>
 	<key>witch-no-target</key>
 	<array>
 		<string>No target system set.</string>
@@ -677,6 +685,16 @@
 	<key>@-destroyed</key>
 	<array>
 		<string>%@ destroyed.</string>
+	</array>
+	<!-- icons for the hud -->
+	<key>EQ_HARDENED_MISSILE</key>
+	<array>
+		<integer>0</integer>	<integer>3</integer>
+		<integer>2</integer>	<integer>1</integer>
+		<integer>2</integer>	<integer>-3</integer>
+		<integer>0</integer>	<integer>-1</integer>
+		<integer>-2</integer>	<integer>-3</integer>
+		<integer>-2</integer>	<integer>1</integer>
 	</array>
 </dict>
 </plist>
