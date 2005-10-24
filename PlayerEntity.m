@@ -1023,6 +1023,8 @@ static BOOL galactic_witchjump;
 	warningSound =		[[ResourceManager soundNamed:@"warning.ogg" inFolder:@"Sounds"] retain];
 	afterburner1Sound =  [[ResourceManager soundNamed:@"afterburner1.ogg" inFolder:@"Sounds"] retain];
 	afterburner2Sound =  [[ResourceManager soundNamed:@"afterburner2.ogg" inFolder:@"Sounds"] retain];
+	witchAbortSound =[[ResourceManager soundNamed:@"witchabort.ogg" inFolder:@"Sounds"] retain];
+
 	//
 	
 //	//// for looping sounds set the sound's delegate to self
