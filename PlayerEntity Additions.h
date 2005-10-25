@@ -153,6 +153,9 @@ Your fair use and other rights are in no way affected by the above.
 - (void) launchFromStation;
 - (void) sendAllShipsAway;
 
+- (void) addPlanet: (NSString *)planetKey;
+- (void) addMoon: (NSString *)moonKey;
+
 - (void) debugOn;
 - (void) debugOff;
 - (void) debugMessage:(NSString *)args;

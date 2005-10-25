@@ -472,6 +472,8 @@ extern int debug;
 - (NSMutableDictionary*) local_planetinfo_overrides;
 - (void) setLocal_planetinfo_overrides:(NSDictionary*) dict;
 
+- (NSDictionary*) planetinfo;
+
 - (NSArray *) equipmentdata;
 - (NSDictionary *) commoditylists;
 - (NSArray *) commoditydata;

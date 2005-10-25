@@ -2709,7 +2709,10 @@ Your fair use and other rights are in no way affected by the above.
 - (ShipEntity *) getShipWithRole:(NSString *) desc
 {
 	int i, j, found;
-	ShipEntity		*ship;
+	ShipEntity		*ship = nil;
+	
+	NSAutoreleasePool* mypool = [[NSAutoreleasePool alloc] init];	// let's make sure we tidy up each time this is called
+	
 	NSMutableArray  *foundShips = [NSMutableArray arrayWithCapacity:16];
 	NSMutableArray  *foundChance = [NSMutableArray arrayWithCapacity:16];
 	NSArray			*shipKeys = [shipdata allKeys];
@@ -2763,9 +2766,6 @@ Your fair use and other rights are in no way affected by the above.
 		}
 	}
 
-	if (found == 0)
-		return nil;
-	
 	i = 0;
 	
 	if (found > 1)
@@ -2788,8 +2788,14 @@ Your fair use and other rights are in no way affected by the above.
 		
 	}
 	
-	ship = [self getShip:(NSString *)[foundShips objectAtIndex:i]];	// may return nil if not found!
-	[ship setRoles:desc];											// set its roles to this one particular chosen role
+	if (found)
+	{	
+		ship = [self getShip:(NSString *)[foundShips objectAtIndex:i]];	// may return nil if not found!
+		[ship setRoles:desc];											// set its roles to this one particular chosen role
+	}
+	
+	[mypool release];	// tidy everything up
+	
 	return ship;
 }
 
@@ -3158,12 +3164,6 @@ Your fair use and other rights are in no way affected by the above.
 			int			draw_count = 0;
 			for (i = 0; i < ent_count; i++)
 			{
-				/* LOOKING FOR THE HEISENBUG
-				
-				have I considered what may happen if sortedEntities changes during this loop ????
-				
-				*/
-				
 				// we check to see that we draw only the things that need to be drawn!
 				Entity* e = sortedEntities[i]; // ordered NEAREST -> FURTHEST AWAY
 				double	zd2 = e->zero_distance;
@@ -3319,7 +3319,7 @@ Your fair use and other rights are in no way affected by the above.
 						glMaterialfv(GL_FRONT_AND_BACK, GL_EMISSION, mat_no);
 
 						// atmospheric fog
-						BOOL fogging = ((air_resist_factor > 0.01)&&(drawthing != [self sun]));
+						BOOL fogging = ((air_resist_factor > 0.01)&&(!drawthing->isPlanet));
 						
 						glPushMatrix();
 						obj_position = drawthing->position;
@@ -4847,6 +4847,11 @@ Your fair use and other rights are in no way affected by the above.
 			Entity*			my_entities[ent_count];
 			BOOL			playerDemo = [player showDemoShips];
 			
+			sky_clear_color[0] = 0.0;
+			sky_clear_color[1] = 0.0;
+			sky_clear_color[2] = 0.0;
+			sky_clear_color[3] = 0.0;
+			
 			// use a retained copy so this can't be changed under us.
 			//
 			for (i = 0; i < ent_count; i++)
@@ -5738,6 +5743,11 @@ Your fair use and other rights are in no way affected by the above.
 	if (local_planetinfo_overrides)
 		[local_planetinfo_overrides release];
 	local_planetinfo_overrides = [[NSMutableDictionary dictionaryWithDictionary:dict] retain];
+}
+
+- (NSDictionary*) planetinfo
+{
+	return planetinfo;
 }
 
 - (NSArray *) equipmentdata

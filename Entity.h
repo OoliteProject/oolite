@@ -359,6 +359,9 @@ extern int debug;
 - (Frame) frameAtTime:(double) t_frame;	// timeframe is relative to now ie. -0.5 = half a second ago.
 - (Frame) frameAtTime:(double) t_frame fromFrame:(Frame) frame_zero;	// t_frame is relative to now ie. -0.5 = half a second ago.
 
+- (NSDictionary*) modelData;
+- (void) setModelFromModelData:(NSDictionary*) dict;
+
 - (void) loadData:(NSString *) filename;
 - (void) checkNormalsAndAdjustWinding;
 - (void) calculateVertexNormals;

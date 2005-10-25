@@ -517,7 +517,7 @@ Your fair use and other rights are in no way affected by the above.
 	if ([dict objectForKey:@"ship_trade_in_factor"])
 		ship_trade_in_factor = [(NSNumber*)[dict objectForKey:@"ship_trade_in_factor"] intValue];
 	else
-		ship_trade_in_factor = 75;
+		ship_trade_in_factor = 95;
 	
 	if ([dict objectForKey:@"galaxy_seed"])
 	{
@@ -858,7 +858,7 @@ static BOOL galactic_witchjump;
 	if (ship_desc)
 		[ship_desc release];
 	ship_desc = [[NSString stringWithString:PLAYER_SHIP_DESC] retain];
-	ship_trade_in_factor = 75;
+	ship_trade_in_factor = 95;
 	//
 	NSDictionary *huddict = [ResourceManager dictionaryFromFilesNamed:@"hud.plist" inFolder:@"Config" andMerge:YES];
 	if (hud)
@@ -1023,8 +1023,6 @@ static BOOL galactic_witchjump;
 	warningSound =		[[ResourceManager soundNamed:@"warning.ogg" inFolder:@"Sounds"] retain];
 	afterburner1Sound =  [[ResourceManager soundNamed:@"afterburner1.ogg" inFolder:@"Sounds"] retain];
 	afterburner2Sound =  [[ResourceManager soundNamed:@"afterburner2.ogg" inFolder:@"Sounds"] retain];
-	witchAbortSound =[[ResourceManager soundNamed:@"witchabort.ogg" inFolder:@"Sounds"] retain];
-
 	//
 	
 //	//// for looping sounds set the sound's delegate to self
@@ -1568,7 +1566,9 @@ static BOOL galactic_witchjump;
 	
 	if ((status == STATUS_DEAD)&&(shot_time > 30.0))
 	{
+		BOOL was_mouse_control_on = mouse_control_on;
 		[universe game_over];				//  we restart the universe
+		mouse_control_on = was_mouse_control_on;
 	}
 	
 	//
@@ -2103,13 +2103,34 @@ static BOOL galactic_witchjump;
 }
 - (double) dial_altitude
 {
-	PlanetEntity	*planet =   [universe planet];
-	PlanetEntity	*sun =		[universe sun];
-	double  planet_zd = (planet)? planet->zero_distance : PLAYER_SUPER_ALTITUDE2;
-	double  sun_zd = (sun)? sun->zero_distance : PLAYER_SUPER_ALTITUDE2;
-	double  planet_cr = (planet)? planet->collision_radius : 0;
-	double  sun_cr = (sun)? sun->collision_radius : 0;
-	double alt = (planet_zd < sun_zd) ? (sqrt(planet_zd) - planet_cr) : (sqrt(sun_zd) - sun_cr);
+	// find nearest planet type entity...
+	if (!universe)
+		return 1.0;
+	
+	int			ent_count =		universe->n_entities;
+	Entity**	uni_entities =	universe->sortedEntities;	// grab the public sorted list
+	PlanetEntity* nearest_planet = nil;
+	int i;
+	for (i = 0; ((i < ent_count)&&(!nearest_planet)); i++)
+		if (uni_entities[i]->isPlanet)
+			nearest_planet = [uni_entities[i] retain];		//	retained
+	
+	if (!nearest_planet)
+		return 1.0;
+
+	double  zd = nearest_planet->zero_distance;
+	double  cr = nearest_planet->collision_radius;
+	double alt = sqrt(zd) - cr;
+	
+	[nearest_planet release];
+	
+//	PlanetEntity	*planet =   [universe planet];
+//	PlanetEntity	*sun =		[universe sun];
+//	double  planet_zd = (planet)? planet->zero_distance : PLAYER_SUPER_ALTITUDE2;
+//	double  sun_zd = (sun)? sun->zero_distance : PLAYER_SUPER_ALTITUDE2;
+//	double  planet_cr = (planet)? planet->collision_radius : 0;
+//	double  sun_cr = (sun)? sun->collision_radius : 0;
+//	double alt = (planet_zd < sun_zd) ? (sqrt(planet_zd) - planet_cr) : (sqrt(sun_zd) - sun_cr);
 	
 	alt /= PLAYER_DIAL_MAX_ALTITUDE;
 		
@@ -3200,8 +3221,6 @@ static  BOOL	taking_snapshot;
 	// does fullscreen / quit / snapshot
 	//
 	MyOpenGLView  *gameView = (MyOpenGLView *)[universe gameView];
-
-   //
 	//
 	//  command-key controls
 	//
@@ -3361,7 +3380,6 @@ static  BOOL	taking_snapshot;
 		}
 		rolling = (abs(virtualStick.x) > .10);
 	}
-
 	if (!rolling)
 	{
 		if (flight_roll > 0.0)
@@ -4487,9 +4505,7 @@ static BOOL switching_equipship_screens;
 	if ([gameView isDown:32])   // look for the spacebar
 	{
 		[universe displayMessage:@"" forCount:1.0];
-		[self set_up];
-		[universe game_over]; // restart
-		//[breakPatternSound play];
+		shot_time = 31.0;	// force restart
 	}
 }
 

@@ -118,6 +118,9 @@ GLfloat		rvalue[729];			// stores random values for adjusting colors in the coro
 - (id) initAsCoronaForPlanet:(PlanetEntity *) planet;
 - (id) initWithSeed:(Random_Seed) p_seed fromUniverse:(Universe *) uni;
 
+- (id) initPlanetFromDictionary:(NSDictionary*) dict inUniverse:(Universe *) uni;
+- (id) initMoonFromDictionary:(NSDictionary*) dict inUniverse:(Universe *) uni;
+
 void drawBall (double radius, int step, double z_distance);
 void drawBallVertices (double radius, int step, double z_distance);
 void drawCorona (double inner_radius, double outer_radius, int step, double z_distance, GLfloat* col4v1, GLfloat* col4v2);

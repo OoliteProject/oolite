@@ -173,22 +173,16 @@ static  Universe	*data_store_universe;
 }
 
 + (NSMutableArray *) scanTokensFromString:(NSString*) values
-{	
+{
 	NSMutableArray* result = [NSMutableArray arrayWithCapacity:8];
-	if ([values retain])
+	NSScanner* scanner = [NSScanner scannerWithString:values];
+	NSCharacterSet* space_set = [NSCharacterSet whitespaceAndNewlineCharacterSet];
+	NSString* token;
+	while (![scanner isAtEnd])
 	{
-		NSScanner* scanner = [[NSScanner alloc] initWithString:values];
-		NSCharacterSet* space_set = [NSCharacterSet whitespaceAndNewlineCharacterSet];
-		NSCharacterSet* notspace_set = [space_set invertedSet];
-		NSString* token;
-		while (![scanner isAtEnd])
-		{
-			[scanner scanCharactersFromSet: space_set intoString:(NSString * *)nil];	// skip any blank space
-			if ([scanner scanCharactersFromSet: notspace_set intoString:&token])	// record any non-blank space
-				[result addObject:[NSString stringWithString:token]];
-		}
-		[values release];
-		[scanner release];
+		[scanner scanCharactersFromSet:space_set intoString:(NSString * *)nil];
+		if ([scanner scanUpToCharactersFromSet:space_set intoString:&token])
+			[result addObject:[NSString stringWithString:token]];
 	}
 	return result;
 }
@@ -339,6 +333,8 @@ static  Universe	*data_store_universe;
 
 - (void) setModel:(NSString *) modelName
 {    
+	// use our own pool to save big memory
+	NSAutoreleasePool* mypool = [[NSAutoreleasePool alloc] init];
 	// clear old data
 	if (basefile)	[basefile release];
     basefile = [modelName retain];
@@ -355,6 +351,7 @@ static  Universe	*data_store_universe;
 	actual_radius = collision_radius;
 	//NSLog(@"Entity with model '%@' collision radius set to %f",modelName, collision_radius);
 	//
+	[mypool release];
 }
 - (NSString *) getModel
 {
@@ -974,6 +971,52 @@ static  Universe	*data_store_universe;
 	return result;
 }
 
+- (NSDictionary*) modelData
+{
+	NSMutableDictionary*	mdict = [NSMutableDictionary dictionaryWithCapacity:8];
+	[mdict setObject:[NSNumber numberWithInt: n_vertices]	forKey:@"n_vertices"];
+	[mdict setObject:[NSData dataWithBytes: vertices		length: sizeof(Vector)*n_vertices]	forKey:@"vertices"];
+	[mdict setObject:[NSData dataWithBytes: vertex_normal	length: sizeof(Vector)*n_vertices]	forKey:@"normals"];
+	[mdict setObject:[NSNumber numberWithInt: n_faces] forKey:@"n_faces"];
+	[mdict setObject:[NSData dataWithBytes: faces			length: sizeof(Face)*n_faces]		forKey:@"faces"];
+	return [NSDictionary dictionaryWithDictionary:mdict];
+}
+
+- (void) setModelFromModelData:(NSDictionary*) dict
+{
+	n_vertices = [[dict objectForKey:@"n_vertices"] intValue];
+	n_faces = [[dict objectForKey:@"n_faces"] intValue];
+	NSData* vdata = (NSData*)[dict objectForKey:@"vertices"];
+	NSData* ndata = (NSData*)[dict objectForKey:@"normals"];
+	NSData* fdata = (NSData*)[dict objectForKey:@"faces"];
+	if (vdata && ndata && fdata)
+	{
+		Vector* vbytes = (Vector*)[vdata bytes];
+		Vector* nbytes = (Vector*)[ndata bytes];
+		Face* fbytes = (Face*)[fdata bytes];
+		int i;
+		for (i = 0; i < n_vertices; i++)
+		{
+			vertices[i] = vbytes[i];
+			vertex_normal[i] = nbytes[i];
+		}
+		for (i = 0; i < n_faces; i++)
+		{
+			faces[i] = fbytes[i];
+		}
+	}
+	else
+	{
+		NSLog(@"ERROR setModelFromData: %@ FAILED", dict);
+		// should throw an oolite-fatal-exception here
+		NSException* myException = [NSException
+			exceptionWithName: OOLITE_EXCEPTION_FATAL
+			reason:[NSString stringWithFormat:@"Failed during [Entity setModelFromModelData: %@]", dict]
+			userInfo:nil];
+		[myException raise];
+	}
+}
+
 - (void) loadData:(NSString *) filename
 {
     NSScanner		*scanner;
@@ -982,6 +1025,8 @@ static  Universe	*data_store_universe;
     BOOL			failFlag = NO;
     NSString		*failString = @"***** ";
     int	i, j;
+	
+	NSString*		data_key = [NSString stringWithFormat:@"%@>>data", filename];
     
 	BOOL using_preloaded = NO;
 	
@@ -1001,315 +1046,314 @@ static  Universe	*data_store_universe;
 		}
 	}
 	
-	// failsafe in case the stored data fails
-	if (data == nil)
+	if ([[data_store_universe preloadedDataFiles] objectForKey:data_key])
 	{
-		data = [ResourceManager stringFromFilesNamed:filename inFolder:@"Models"];
-		using_preloaded = NO;
+//		NSLog(@"DEBUG setting model %@ from saved vertex data", filename);
+		[self setModelFromModelData:(NSDictionary *)[[data_store_universe preloadedDataFiles] objectForKey:data_key]];
 	}
-	
-	if (data == nil)
+	else
 	{
-		NSLog(@"ERROR - could not find %@", filename);
-		failFlag = YES;
-		// ERROR model file not found
-		NSException* myException = [NSException
-			exceptionWithName:@"OoliteException"
-			reason:[NSString stringWithFormat:@"No model called '%@' could be found in %@.", filename, [ResourceManager paths]]
-			userInfo:nil];
-		[myException raise];
-	}
-    
-    // strip out comments and commas between values
-    //
-    lines = [NSMutableArray arrayWithArray:[data componentsSeparatedByString:@"\n"]];
-    for (i = 0; i < [ lines count]; i++)
-    {
-        NSString *line = [lines objectAtIndex:i];
-        NSArray *parts;
-        //
-        // comments
-        //
-        parts = [line componentsSeparatedByString:@"#"];
-        line = [parts objectAtIndex:0];
-        parts = [line componentsSeparatedByString:@"//"];
-        line = [parts objectAtIndex:0];
-        //
-        // commas
-        //
-        line = [[line componentsSeparatedByString:@","] componentsJoinedByString:@" "];
-        //
-        [lines replaceObjectAtIndex:i withObject:line];
-    }
-    data = [lines componentsJoinedByString:@"\n"];
-    
-    //NSLog(@"More data:\n%@",data);
-   
-    scanner = [NSScanner scannerWithString:data];
-    
-    // get number of vertices
-    //
-    [scanner setScanLocation:0];	//reset
-    //[scanner scanCharactersFromSet:[NSCharacterSet whitespaceAndNewlineCharacterSet] intoString:nil];
-    if ([scanner scanString:@"NVERTS" intoString:(NSString **)nil])
-    {
-        int n_v;
-        if ([scanner scanInt:&n_v])
-            n_vertices = n_v;
-        else
-        {
-            failFlag = YES;
-            failString = [NSString stringWithFormat:@"%@Failed to read value of NVERTS\n",failString];
-        }
-    }
-    else
-    {
-        failFlag = YES;
-        failString = [NSString stringWithFormat:@"%@Failed to read NVERTS\n",failString];
-    }
-    
-    // get number of faces
-    //
-    //[scanner setScanLocation:0];	//reset
-    if ([scanner scanString:@"NFACES" intoString:(NSString **)nil])
-    {
-        int n_f;
-        if ([scanner scanInt:&n_f])
-            n_faces = n_f;
-        else
-        {
-            failFlag = YES;
-            failString = [NSString stringWithFormat:@"%@Failed to read value of NFACES\n",failString];
-        }
-    }
-    else
-    {
-        failFlag = YES;
-        failString = [NSString stringWithFormat:@"%@Failed to read NFACES\n",failString];
-    }
-    
-    // get vertex data
-    //
-    //[scanner setScanLocation:0];	//reset
-    if ([scanner scanString:@"VERTEX" intoString:(NSString **)nil])
-    {
-        for (j = 0; j < n_vertices; j++)
-        {
-            float x, y, z;
-            if (!failFlag)
-            {
-                if (![scanner scanFloat:&x])
-                    failFlag = YES;
-                if (![scanner scanFloat:&y])
-                    failFlag = YES;
-                if (![scanner scanFloat:&z])
-                    failFlag = YES;
-                if (!failFlag)
-                {
-                    vertices[j].x = x;	vertices[j].y = y;	vertices[j].z = z;
-                }
-                else
-                {
-                    failString = [NSString stringWithFormat:@"%@Failed to read a value for vertex[%d] in VERTEX\n", failString, j];
-                }
-            }
-        }
-    }
-    else
-    {
-        failFlag = YES;
-        failString = [NSString stringWithFormat:@"%@Failed to find VERTEX data\n",failString];
-    }
-    
-    // get face data
-    //
-    if ([scanner scanString:@"FACES" intoString:(NSString **)nil])
-    {
-        for (j = 0; j < n_faces; j++)
-        {
-            int r, g, b;
-            float nx, ny, nz;
-            int n_v;
-            if (!failFlag)
-            {
-                // colors
-                //
-                if (![scanner scanInt:&r])
-                    failFlag = YES;
-                if (![scanner scanInt:&g])
-                    failFlag = YES;
-                if (![scanner scanInt:&b])
-                    failFlag = YES;
-                if (!failFlag)
-                {
-                    faces[j].red = r/255.0;    faces[j].green = g/255.0;    faces[j].blue = b/255.0;
-                }
-                else
-                {
-                    failString = [NSString stringWithFormat:@"%@Failed to read a color for face[%d] in FACES\n", failString, j];
-                }
-                
-                // normal
-                //
-                if (![scanner scanFloat:&nx])
-                    failFlag = YES;
-                if (![scanner scanFloat:&ny])
-                    failFlag = YES;
-                if (![scanner scanFloat:&nz])
-                    failFlag = YES;
-                if (!failFlag)
-                {
-                    faces[j].normal.x = nx;    faces[j].normal.y = ny;    faces[j].normal.z = nz;
-                }
-                else
-                {
-                    failString = [NSString stringWithFormat:@"%@Failed to read a normal for face[%d] in FACES\n", failString, j];
-                }
-                
-                // vertices
-                //
-                if ([scanner scanInt:&n_v])
-                {
-                    faces[j].n_verts = n_v;
-                }
-                else
-                {
-                    failFlag = YES;
-                    failString = [NSString stringWithFormat:@"%@Failed to read number of vertices for face[%d] in FACES\n", failString, j];
-                }
-                //
-                if (!failFlag)
-                {
-                    int vi;
-                    for (i = 0; i < n_v; i++)
-                    {
-                        if ([scanner scanInt:&vi])
-                        {
-                            faces[j].vertex[i] = vi;
-                        }
-                        else
-                        {
-                            failFlag = YES;
-                            failString = [NSString stringWithFormat:@"%@Failed to read vertex[%d] for face[%d] in FACES\n", failString, i, j];
-                        }
-                    }
-                }
-            }
-        }
-    }
-    else
-    {
-        failFlag = YES;
-        failString = [NSString stringWithFormat:@"%@Failed to find FACES data\n",failString];
-    }
-    
-	NSMutableDictionary* facesForTexture = [NSMutableDictionary dictionaryWithCapacity:MAX_TEXTURES_PER_ENTITY];
-	
-    // get textures data
-    //
-    if ([scanner scanString:@"TEXTURES" intoString:(NSString **)nil])
-    {
-        for (j = 0; j < n_faces; j++)
-        {
-            NSString	*texfile;
-            float	max_x, max_y;
-            float	s, t;
-            if (!failFlag)
-            {
-                // texfile
-                //
-                [scanner scanCharactersFromSet:[NSCharacterSet whitespaceAndNewlineCharacterSet] intoString:(NSString **)nil];
-                if (![scanner scanUpToCharactersFromSet:[NSCharacterSet whitespaceCharacterSet] intoString:&texfile])
-                {
-                    failFlag = YES;
-                    failString = [NSString stringWithFormat:@"%@Failed to read texture filename for face[%d] in TEXTURES\n", failString, j];
-                }
-                else
-                {
-                    faces[j].textureFile = [texfile retain];
-					
-					// create/extend a list of faces for this texture
-					NSMutableArray* facesForThisTexture;
-					if ([facesForTexture objectForKey:texfile])
-						facesForThisTexture = (NSMutableArray*)[facesForTexture objectForKey:texfile];
-					else
-						facesForThisTexture = [NSMutableArray arrayWithCapacity:32];
-					[facesForThisTexture addObject:[NSNumber numberWithInt:j]];
-					[facesForTexture setObject:facesForThisTexture forKey:texfile];
-					
-                }
-                faces[j].texName = 0;
-                
-                // texture size
-                //
-               if (!failFlag)
-                {
-                    if (![scanner scanFloat:&max_x])
-                        failFlag = YES;
-                    if (![scanner scanFloat:&max_y])
-                        failFlag = YES;
-                    if (failFlag)
-                        failString = [NSString stringWithFormat:@"%@Failed to read texture size for max_x and max_y in face[%d] in TEXTURES\n", failString, j];
-                }
-                
-                // vertices
-                //
-                if (!failFlag)
-                {
-                    for (i = 0; i < faces[j].n_verts; i++)
-                    {
-                        if (![scanner scanFloat:&s])
-                            failFlag = YES;
-                        if (![scanner scanFloat:&t])
-                            failFlag = YES;
-                        if (!failFlag)
-                        {
-                            faces[j].s[i] = s / max_x;    faces[j].t[i] = t / max_y;
-                            
-                            //NSLog(@" st %f %f", faces[j].s[i], faces[j].t[i]);
-                        }
-                        else
-                            failString = [NSString stringWithFormat:@"%@Failed to read s t coordinates for vertex[%d] in face[%d] in TEXTURES\n", failString, i, j];
-                    }
-                }
-            }
-        }
-    }
-    else
-    {
-        failFlag = YES;
-        failString = [NSString stringWithFormat:@"%@Failed to find TEXTURES data\n",failString];
-    }
-	
-//	NSLog(@"Loading data for %@: facesForTexture:\n%@", filename, [facesForTexture description]);
-	
-	// check normals before creating new textures
-	//
-    [self checkNormalsAndAdjustWinding];
-    
-    if ((failFlag)&&([failString rangeOfString:@"TEXTURES"].location != NSNotFound))
-    {
-        //NSLog(@"Off to make new textures!");
-        [self fakeTexturesWithImageFile:@"metal.png" andMaxSize:NSMakeSize(256.0,256.0)];
 		
-		// dump out data for ships with faked textures
-		//if (isShip)
-		//	//NSLog(@"Faked Texture coordinates for this model :\n\n%@\n\n", [self toString]);
-    }
-    
-    if (failFlag)
-        NSLog([NSString stringWithFormat:@"%@ ..... from %@ %@", failString, filename, (using_preloaded)? @"(from preloaded data)" : @"(from file)"]);
-	
+		// failsafe in case the stored data fails
+		if (data == nil)
+		{
+			data = [ResourceManager stringFromFilesNamed:filename inFolder:@"Models"];
+			using_preloaded = NO;
+		}
+		
+		if (data == nil)
+		{
+			NSLog(@"ERROR - could not find %@", filename);
+			failFlag = YES;
+			// ERROR model file not found
+			NSException* myException = [NSException
+				exceptionWithName:@"OoliteException"
+				reason:[NSString stringWithFormat:@"No model called '%@' could be found in %@.", filename, [ResourceManager paths]]
+				userInfo:nil];
+			[myException raise];
+		}
+		
+		// strip out comments and commas between values
+		//
+		lines = [NSMutableArray arrayWithArray:[data componentsSeparatedByString:@"\n"]];
+		for (i = 0; i < [ lines count]; i++)
+		{
+			NSString *line = [lines objectAtIndex:i];
+			NSArray *parts;
+			//
+			// comments
+			//
+			parts = [line componentsSeparatedByString:@"#"];
+			line = [parts objectAtIndex:0];
+			parts = [line componentsSeparatedByString:@"//"];
+			line = [parts objectAtIndex:0];
+			//
+			// commas
+			//
+			line = [[line componentsSeparatedByString:@","] componentsJoinedByString:@" "];
+			//
+			[lines replaceObjectAtIndex:i withObject:line];
+		}
+		data = [lines componentsJoinedByString:@"\n"];
+		
+		//NSLog(@"More data:\n%@",data);
+	   
+		scanner = [NSScanner scannerWithString:data];
+		
+		// get number of vertices
+		//
+		[scanner setScanLocation:0];	//reset
+		if ([scanner scanString:@"NVERTS" intoString:(NSString **)nil])
+		{
+			int n_v;
+			if ([scanner scanInt:&n_v])
+				n_vertices = n_v;
+			else
+			{
+				failFlag = YES;
+				failString = [NSString stringWithFormat:@"%@Failed to read value of NVERTS\n",failString];
+			}
+		}
+		else
+		{
+			failFlag = YES;
+			failString = [NSString stringWithFormat:@"%@Failed to read NVERTS\n",failString];
+		}
+		
+		// get number of faces
+		//
+		//[scanner setScanLocation:0];	//reset
+		if ([scanner scanString:@"NFACES" intoString:(NSString **)nil])
+		{
+			int n_f;
+			if ([scanner scanInt:&n_f])
+				n_faces = n_f;
+			else
+			{
+				failFlag = YES;
+				failString = [NSString stringWithFormat:@"%@Failed to read value of NFACES\n",failString];
+			}
+		}
+		else
+		{
+			failFlag = YES;
+			failString = [NSString stringWithFormat:@"%@Failed to read NFACES\n",failString];
+		}
+		
+		// get vertex data
+		//
+		//[scanner setScanLocation:0];	//reset
+		if ([scanner scanString:@"VERTEX" intoString:(NSString **)nil])
+		{
+			for (j = 0; j < n_vertices; j++)
+			{
+				float x, y, z;
+				if (!failFlag)
+				{
+					if (![scanner scanFloat:&x])
+						failFlag = YES;
+					if (![scanner scanFloat:&y])
+						failFlag = YES;
+					if (![scanner scanFloat:&z])
+						failFlag = YES;
+					if (!failFlag)
+					{
+						vertices[j].x = x;	vertices[j].y = y;	vertices[j].z = z;
+					}
+					else
+					{
+						failString = [NSString stringWithFormat:@"%@Failed to read a value for vertex[%d] in VERTEX\n", failString, j];
+					}
+				}
+			}
+		}
+		else
+		{
+			failFlag = YES;
+			failString = [NSString stringWithFormat:@"%@Failed to find VERTEX data\n",failString];
+		}
+		
+		// get face data
+		//
+		if ([scanner scanString:@"FACES" intoString:(NSString **)nil])
+		{
+			for (j = 0; j < n_faces; j++)
+			{
+				int r, g, b;
+				float nx, ny, nz;
+				int n_v;
+				if (!failFlag)
+				{
+					// colors
+					//
+					if (![scanner scanInt:&r])
+						failFlag = YES;
+					if (![scanner scanInt:&g])
+						failFlag = YES;
+					if (![scanner scanInt:&b])
+						failFlag = YES;
+					if (!failFlag)
+					{
+						faces[j].red = r/255.0;    faces[j].green = g/255.0;    faces[j].blue = b/255.0;
+					}
+					else
+					{
+						failString = [NSString stringWithFormat:@"%@Failed to read a color for face[%d] in FACES\n", failString, j];
+					}
+					
+					// normal
+					//
+					if (![scanner scanFloat:&nx])
+						failFlag = YES;
+					if (![scanner scanFloat:&ny])
+						failFlag = YES;
+					if (![scanner scanFloat:&nz])
+						failFlag = YES;
+					if (!failFlag)
+					{
+						faces[j].normal.x = nx;    faces[j].normal.y = ny;    faces[j].normal.z = nz;
+					}
+					else
+					{
+						failString = [NSString stringWithFormat:@"%@Failed to read a normal for face[%d] in FACES\n", failString, j];
+					}
+					
+					// vertices
+					//
+					if ([scanner scanInt:&n_v])
+					{
+						faces[j].n_verts = n_v;
+					}
+					else
+					{
+						failFlag = YES;
+						failString = [NSString stringWithFormat:@"%@Failed to read number of vertices for face[%d] in FACES\n", failString, j];
+					}
+					//
+					if (!failFlag)
+					{
+						int vi;
+						for (i = 0; i < n_v; i++)
+						{
+							if ([scanner scanInt:&vi])
+							{
+								faces[j].vertex[i] = vi;
+							}
+							else
+							{
+								failFlag = YES;
+								failString = [NSString stringWithFormat:@"%@Failed to read vertex[%d] for face[%d] in FACES\n", failString, i, j];
+							}
+						}
+					}
+				}
+			}
+		}
+		else
+		{
+			failFlag = YES;
+			failString = [NSString stringWithFormat:@"%@Failed to find FACES data\n",failString];
+		}
+				
+		// get textures data
+		//
+		if ([scanner scanString:@"TEXTURES" intoString:(NSString **)nil])
+		{
+			for (j = 0; j < n_faces; j++)
+			{
+				NSString	*texfile;
+				float	max_x, max_y;
+				float	s, t;
+				if (!failFlag)
+				{
+					// texfile
+					//
+					[scanner scanCharactersFromSet:[NSCharacterSet whitespaceAndNewlineCharacterSet] intoString:(NSString **)nil];
+					if (![scanner scanUpToCharactersFromSet:[NSCharacterSet whitespaceCharacterSet] intoString:&texfile])
+					{
+						failFlag = YES;
+						failString = [NSString stringWithFormat:@"%@Failed to read texture filename for face[%d] in TEXTURES\n", failString, j];
+					}
+					else
+					{
+						faces[j].textureFile = [texfile retain];
+					}
+					faces[j].texName = 0;
+					
+					// texture size
+					//
+				   if (!failFlag)
+					{
+						if (![scanner scanFloat:&max_x])
+							failFlag = YES;
+						if (![scanner scanFloat:&max_y])
+							failFlag = YES;
+						if (failFlag)
+							failString = [NSString stringWithFormat:@"%@Failed to read texture size for max_x and max_y in face[%d] in TEXTURES\n", failString, j];
+					}
+					
+					// vertices
+					//
+					if (!failFlag)
+					{
+						for (i = 0; i < faces[j].n_verts; i++)
+						{
+							if (![scanner scanFloat:&s])
+								failFlag = YES;
+							if (![scanner scanFloat:&t])
+								failFlag = YES;
+							if (!failFlag)
+							{
+								faces[j].s[i] = s / max_x;    faces[j].t[i] = t / max_y;
+							}
+							else
+								failString = [NSString stringWithFormat:@"%@Failed to read s t coordinates for vertex[%d] in face[%d] in TEXTURES\n", failString, i, j];
+						}
+					}
+				}
+			}
+		}
+		else
+		{
+			failFlag = YES;
+			failString = [NSString stringWithFormat:@"%@Failed to find TEXTURES data\n",failString];
+		}
+				
+		// check normals before creating new textures
+		//
+		[self checkNormalsAndAdjustWinding];
+		
+		if ((failFlag)&&([failString rangeOfString:@"TEXTURES"].location != NSNotFound))
+		{
+			//NSLog(@"Off to make new textures!");
+			[self fakeTexturesWithImageFile:@"metal.png" andMaxSize:NSMakeSize(256.0,256.0)];
+			
+			// dump out data for ships with faked textures
+			//if (isShip)
+			//	//NSLog(@"Faked Texture coordinates for this model :\n\n%@\n\n", [self toString]);
+		}
+		
+		if (failFlag)
+			NSLog([NSString stringWithFormat:@"%@ ..... from %@ %@", failString, filename, (using_preloaded)? @"(from preloaded data)" : @"(from file)"]);
+		
+		// check for smooth chading and recalculate normals
+		//
+		if (is_smooth_shaded)
+			[self calculateVertexNormals];
+		//
+		
+		// save the resulting data for possible reuse
+		//
+		if (![[data_store_universe preloadedDataFiles] objectForKey: data_key])
+		{
+			[[data_store_universe preloadedDataFiles] setObject:[self modelData] forKey: data_key];
+		}
+	}
+		
 	// set the collision radius
 	//
 	collision_radius = [self findCollisionRadius];
 	actual_radius = collision_radius;
-	
-	// check for smooth chading and recalculate normals
-	//
-	if (is_smooth_shaded)
-		[self calculateVertexNormals];
-	//
 	
 	// set up vertex arrays for drawing
 	//

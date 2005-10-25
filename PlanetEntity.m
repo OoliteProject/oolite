@@ -524,6 +524,376 @@ static GLfloat	texture_uv_array[10400 * 2];
     return self;
 }
 
+- (id) initPlanetFromDictionary:(NSDictionary*) dict inUniverse:(Universe *) uni
+{    
+    int		i;
+	int		percent_land;
+	double  aleph =  1.0 / sqrt(2.0);
+	//
+	self = [super init];
+	//
+	Random_Seed	p_seed = [uni systemSeed];
+    //
+	if ([dict objectForKey:@"texture"])
+	{
+		textureName = [[uni textureStore] getTextureNameFor:(NSString*)[dict objectForKey:@"texture"]];
+		isTextured = (textureName != 0);
+	}
+	else
+	{
+		isTextured = NO;
+		textureName = [[uni textureStore] getTextureNameFor:@"metal.png"];	//debug texture
+	}
+    //
+	if ([dict objectForKey:@"seed"])
+	{
+		NSArray* tokens = [Entity scanTokensFromString:(NSString*)[dict objectForKey:@"seed"]];
+		if ([tokens count] != 6)
+			NSLog(@"ERROR planet seed '%@' requires 6 values", [dict objectForKey:@"seed"]);
+		else
+		{
+			p_seed.a = [[tokens objectAtIndex:0] intValue];
+			p_seed.b = [[tokens objectAtIndex:1] intValue];
+			p_seed.c = [[tokens objectAtIndex:2] intValue];
+			p_seed.d = [[tokens objectAtIndex:3] intValue];
+			p_seed.e = [[tokens objectAtIndex:4] intValue];
+			p_seed.f = [[tokens objectAtIndex:5] intValue];
+		}
+	}
+	//
+	seed_for_planet_description(p_seed);
+	//
+	NSDictionary*   planetinfo = [uni generateSystemData:p_seed];
+	int radius_km =		[(NSNumber *)[planetinfo objectForKey:KEY_RADIUS] intValue];
+	if ([dict objectForKey:@"radius"])
+	{
+		radius_km = [[dict objectForKey:@"radius"] intValue];
+	}
+		
+	shuttles_on_ground = 0;
+	last_launch_time = 0.0;
+	shuttle_launch_interval = 3600.0 / shuttles_on_ground; // all are launched in an hour
+	last_launch_time = 3600.0;
+	
+	//NSLog(@"shuttles on ground:%d launch_interval:%.1f minutes", shuttles_on_ground, shuttle_launch_interval/60);
+	
+	collision_radius = radius_km * 10.0; // scale down by a factor of 100 !
+	//
+	scan_class = CLASS_NO_DRAW;
+	//
+	q_rotation.w =  aleph;		// represents a 90 degree rotation around x axis
+	q_rotation.x =  aleph;		// (I hope!)
+	q_rotation.y =  0.0;
+	q_rotation.z =  0.0;
+	//
+	planet_type =   PLANET_TYPE_GREEN;  // generic planet type
+	//
+	for (i = 0; i < 5; i++)
+		displayListNames[i] = 0;	// empty for now!
+	//
+	[self setModel:(isTextured)? @"icostextured.dat" : @"icosahedron.dat"];
+	//
+	[self rescaleTo:1.0];
+	//
+	
+	percent_land = (gen_rnd_number() % 48);
+	if ([dict objectForKey:@"percent_land"])
+	{
+		percent_land = [(NSNumber *)[dict objectForKey:@"percent_land"] intValue];
+	}
+	if (isTextured)
+		percent_land = 0;
+	
+	// save the current random number generator seed
+	RNG_Seed saved_seed = currentRandomSeed();
+	
+	//NSLog(@"Planet surface is %d percent land.",percent_land);
+	for (i = 0; i < n_vertices; i++)
+	{
+		if (gen_rnd_number() < 256 * percent_land / 100)
+			r_seed[i] = 0;  // land
+		else
+			r_seed[i] = 100;  // sea
+	}
+	//
+	polar_color_factor = 1.0;
+	if ([dict objectForKey:@"polar_color_factor"])
+		polar_color_factor = [[dict objectForKey:@"polar_color_factor"] doubleValue];
+	//
+	Vector land_hsb, sea_hsb, land_polar_hsb, sea_polar_hsb;
+	
+	if (!isTextured)
+	{
+		land_hsb.x = gen_rnd_number() / 256.0;  land_hsb.y = gen_rnd_number() / 256.0;  land_hsb.z = 0.5 + gen_rnd_number() / 512.0;  
+		sea_hsb.x = gen_rnd_number() / 256.0;  sea_hsb.y = gen_rnd_number() / 256.0;  sea_hsb.z = 0.5 + gen_rnd_number() / 512.0;  
+		while (dot_product(land_hsb,sea_hsb) > .80) // make sure land and sea colors differ significantly
+		{
+			sea_hsb.x = gen_rnd_number() / 256.0;  sea_hsb.y = gen_rnd_number() / 256.0;  sea_hsb.z = 0.5 + gen_rnd_number() / 512.0;  
+		}
+	}
+	else
+	{
+		land_hsb.x = 0.0;	land_hsb.y = 0.0;	land_hsb.z = 1.0;	// non-saturated fully bright (white)
+		sea_hsb.x = 0.0;	sea_hsb.y = 1.0;	sea_hsb.z = 1.0;	// fully-saturated fully bright (red)
+	}
+	
+	//// possibly get land_hsb and sea_hsb from planetinfo.plist entry
+	//
+	if ([dict objectForKey:@"land_hsb_color"])
+	{
+		land_hsb = [Entity vectorFromString:(NSString *)[dict objectForKey:@"land_hsb_color"]];
+	}
+	if ([dict objectForKey:@"sea_hsb_color"])
+	{
+		sea_hsb = [Entity vectorFromString:(NSString *)[dict objectForKey:@"sea_hsb_color"]];
+	}
+	//
+	////
+	
+	// polar areas are brighter but have less color (closer to white)
+	//
+	land_polar_hsb.x = land_hsb.x;  land_polar_hsb.y = (land_hsb.y / 5.0);  land_polar_hsb.z = 1.0 - (land_hsb.z / 10.0);  
+	sea_polar_hsb.x = sea_hsb.x;  sea_polar_hsb.y = (sea_hsb.y / 5.0);  sea_polar_hsb.z = 1.0 - (sea_hsb.z / 10.0);  
+
+	amb_land[0] = [[NSColor colorWithCalibratedHue:land_hsb.x saturation:land_hsb.y brightness:land_hsb.z alpha:1.0] redComponent];
+	amb_land[1] = [[NSColor colorWithCalibratedHue:land_hsb.x saturation:land_hsb.y brightness:land_hsb.z alpha:1.0] blueComponent];
+	amb_land[2] = [[NSColor colorWithCalibratedHue:land_hsb.x saturation:land_hsb.y brightness:land_hsb.z alpha:1.0] greenComponent];
+	amb_land[3] = 1.0;
+	amb_sea[0] = [[NSColor colorWithCalibratedHue:sea_hsb.x saturation:sea_hsb.y brightness:sea_hsb.z alpha:1.0] redComponent];
+	amb_sea[1] = [[NSColor colorWithCalibratedHue:sea_hsb.x saturation:sea_hsb.y brightness:sea_hsb.z alpha:1.0] blueComponent];
+	amb_sea[2] = [[NSColor colorWithCalibratedHue:sea_hsb.x saturation:sea_hsb.y brightness:sea_hsb.z alpha:1.0] greenComponent];
+	amb_sea[3] = 1.0;
+	amb_polar_land[0] = [[NSColor colorWithCalibratedHue:land_polar_hsb.x saturation:land_polar_hsb.y brightness:land_polar_hsb.z alpha:1.0] redComponent];
+	amb_polar_land[1] = [[NSColor colorWithCalibratedHue:land_polar_hsb.x saturation:land_polar_hsb.y brightness:land_polar_hsb.z alpha:1.0] blueComponent];
+	amb_polar_land[2] = [[NSColor colorWithCalibratedHue:land_polar_hsb.x saturation:land_polar_hsb.y brightness:land_polar_hsb.z alpha:1.0] greenComponent];
+	amb_polar_land[3] = 1.0;
+	amb_polar_sea[0] = [[NSColor colorWithCalibratedHue:sea_polar_hsb.x saturation:sea_polar_hsb.y brightness:sea_polar_hsb.z alpha:1.0] redComponent];
+	amb_polar_sea[1] = [[NSColor colorWithCalibratedHue:sea_polar_hsb.x saturation:sea_polar_hsb.y brightness:sea_polar_hsb.z alpha:1.0] blueComponent];
+	amb_polar_sea[2] = [[NSColor colorWithCalibratedHue:sea_polar_hsb.x saturation:sea_polar_hsb.y brightness:sea_polar_hsb.z alpha:1.0] greenComponent];
+	amb_polar_sea[3] = 1.0;
+	
+//	NSLog(@"DEBUG testing [PlanetEntity initialiseBaseVertexArray]");
+	[self initialiseBaseVertexArray];
+	
+//	NSLog(@"DEBUG testing [PlanetEntity initialiseBaseTerrainArray:%d]", percent_land);
+	setRandomSeed(saved_seed);
+	[self initialiseBaseTerrainArray:percent_land];
+	
+//	NSLog(@"DEBUG painting %d vertices", next_free_vertex);
+	for (i =  0; i < next_free_vertex; i++)
+		[self paintVertex:i :planet_seed];
+	
+//	NSLog(@"DEBUG scaling %d vertices", next_free_vertex);
+	[self scaleVertices];
+	
+	// set speed of rotation
+	rotational_velocity = 0.01 * randf();	// 0.0 .. 0.01 avr 0.005;
+	if ([dict objectForKey:@"rotational_velocity"])
+		rotational_velocity = [[dict objectForKey:@"rotational_velocity"] doubleValue];
+	
+	// do atmosphere
+	//
+	atmosphere = [[PlanetEntity alloc] initAsAtmosphereForPlanet:self];
+	[atmosphere setUniverse:universe];
+
+	// set energy
+	energy = collision_radius * 1000.0;
+	
+	//
+	usingVAR = [self OGL_InitVAR];
+	//
+	if (usingVAR)
+		[self OGL_AssignVARMemory:sizeof(VertexData) :(void *)&vertexdata :0];
+	//
+	isPlanet = YES;
+	//
+    return self;
+}
+
+- (id) initMoonFromDictionary:(NSDictionary*) dict inUniverse:(Universe *) uni
+{    
+    int		i;
+	int		percent_land;
+	double  aleph =  1.0 / sqrt(2.0);
+	//
+	self = [super init];
+	//
+	Random_Seed	p_seed = [uni systemSeed];
+    //
+	if ([dict objectForKey:@"texture"])
+	{
+		textureName = [[uni textureStore] getTextureNameFor:(NSString*)[dict objectForKey:@"texture"]];
+		isTextured = (textureName != 0);
+	}
+	else
+	{
+		isTextured = NO;
+		textureName = [[uni textureStore] getTextureNameFor:@"metal.png"];	//debug texture
+	}
+    //
+	if ([dict objectForKey:@"seed"])
+	{
+		NSArray* tokens = [Entity scanTokensFromString:(NSString*)[dict objectForKey:@"seed"]];
+		if ([tokens count] != 6)
+			NSLog(@"ERROR planet seed '%@' requires 6 values", [dict objectForKey:@"seed"]);
+		else
+		{
+			p_seed.a = [[tokens objectAtIndex:0] intValue];
+			p_seed.b = [[tokens objectAtIndex:1] intValue];
+			p_seed.c = [[tokens objectAtIndex:2] intValue];
+			p_seed.d = [[tokens objectAtIndex:3] intValue];
+			p_seed.e = [[tokens objectAtIndex:4] intValue];
+			p_seed.f = [[tokens objectAtIndex:5] intValue];
+		}
+	}
+	//
+	seed_for_planet_description(p_seed);
+	//
+	NSDictionary*   planetinfo = [uni generateSystemData:p_seed];
+	int radius_km =		[(NSNumber *)[planetinfo objectForKey:KEY_RADIUS] intValue];
+	if ([dict objectForKey:@"radius"])
+	{
+		radius_km = [[dict objectForKey:@"radius"] intValue];
+	}
+		
+	shuttles_on_ground = 0;
+	last_launch_time = 0.0;
+	shuttle_launch_interval = 3600.0 / shuttles_on_ground; // all are launched in an hour
+	last_launch_time = 3600.0;
+	
+	//NSLog(@"shuttles on ground:%d launch_interval:%.1f minutes", shuttles_on_ground, shuttle_launch_interval/60);
+	
+	collision_radius = radius_km * 10.0; // scale down by a factor of 100 !
+	//
+	scan_class = CLASS_NO_DRAW;
+	//
+	q_rotation.w =  aleph;		// represents a 90 degree rotation around x axis
+	q_rotation.x =  aleph;		// (I hope!)
+	q_rotation.y =  0.0;
+	q_rotation.z =  0.0;
+	//
+	planet_type =   PLANET_TYPE_GREEN;  // generic planet type
+	//
+	for (i = 0; i < 5; i++)
+		displayListNames[i] = 0;	// empty for now!
+	//
+	[self setModel:(isTextured)? @"icostextured.dat" : @"icosahedron.dat"];
+	//
+	[self rescaleTo:1.0];
+	//
+	
+	percent_land = (gen_rnd_number() % 48);
+	if ([dict objectForKey:@"percent_land"])
+	{
+		percent_land = [(NSNumber *)[dict objectForKey:@"percent_land"] intValue];
+	}
+	if (isTextured)
+		percent_land = 100;
+	
+	// save the current random number generator seed
+	RNG_Seed saved_seed = currentRandomSeed();
+	
+	//NSLog(@"Planet surface is %d percent land.",percent_land);
+	for (i = 0; i < n_vertices; i++)
+	{
+		if (gen_rnd_number() < 256 * percent_land / 100)
+			r_seed[i] = 0;  // land
+		else
+			r_seed[i] = 100;  // sea
+	}
+	//
+	polar_color_factor = 1.0;
+	if ([dict objectForKey:@"polar_color_factor"])
+		polar_color_factor = [[dict objectForKey:@"polar_color_factor"] doubleValue];
+	//
+	Vector land_hsb, sea_hsb, land_polar_hsb, sea_polar_hsb;
+	
+	if (!isTextured)
+	{
+		land_hsb.x = gen_rnd_number() / 256.0;  land_hsb.y = gen_rnd_number() / 256.0;  land_hsb.z = 0.5 + gen_rnd_number() / 512.0;  
+		sea_hsb.x = gen_rnd_number() / 256.0;  sea_hsb.y = gen_rnd_number() / 256.0;  sea_hsb.z = 0.5 + gen_rnd_number() / 512.0;  
+		while (dot_product(land_hsb,sea_hsb) > .80) // make sure land and sea colors differ significantly
+		{
+			sea_hsb.x = gen_rnd_number() / 256.0;  sea_hsb.y = gen_rnd_number() / 256.0;  sea_hsb.z = 0.5 + gen_rnd_number() / 512.0;  
+		}
+	}
+	else
+	{
+		land_hsb.x = 0.0;	land_hsb.y = 0.0;	land_hsb.z = 1.0;	// non-saturated fully bright (white)
+		sea_hsb.x = 0.0;	sea_hsb.y = 1.0;	sea_hsb.z = 1.0;	// fully-saturated fully bright (red)
+	}
+	
+	//// possibly get land_hsb and sea_hsb from planetinfo.plist entry
+	//
+	if ([dict objectForKey:@"land_hsb_color"])
+	{
+		land_hsb = [Entity vectorFromString:(NSString *)[dict objectForKey:@"land_hsb_color"]];
+	}
+	if ([dict objectForKey:@"sea_hsb_color"])
+	{
+		sea_hsb = [Entity vectorFromString:(NSString *)[dict objectForKey:@"sea_hsb_color"]];
+	}
+	//
+	////
+	
+	// polar areas are brighter but have less color (closer to white)
+	//
+	land_polar_hsb.x = land_hsb.x;  land_polar_hsb.y = (land_hsb.y / 5.0);  land_polar_hsb.z = 1.0 - (land_hsb.z / 10.0);  
+	sea_polar_hsb.x = sea_hsb.x;  sea_polar_hsb.y = (sea_hsb.y / 5.0);  sea_polar_hsb.z = 1.0 - (sea_hsb.z / 10.0);  
+
+	amb_land[0] = [[NSColor colorWithCalibratedHue:land_hsb.x saturation:land_hsb.y brightness:land_hsb.z alpha:1.0] redComponent];
+	amb_land[1] = [[NSColor colorWithCalibratedHue:land_hsb.x saturation:land_hsb.y brightness:land_hsb.z alpha:1.0] blueComponent];
+	amb_land[2] = [[NSColor colorWithCalibratedHue:land_hsb.x saturation:land_hsb.y brightness:land_hsb.z alpha:1.0] greenComponent];
+	amb_land[3] = 1.0;
+	amb_sea[0] = [[NSColor colorWithCalibratedHue:sea_hsb.x saturation:sea_hsb.y brightness:sea_hsb.z alpha:1.0] redComponent];
+	amb_sea[1] = [[NSColor colorWithCalibratedHue:sea_hsb.x saturation:sea_hsb.y brightness:sea_hsb.z alpha:1.0] blueComponent];
+	amb_sea[2] = [[NSColor colorWithCalibratedHue:sea_hsb.x saturation:sea_hsb.y brightness:sea_hsb.z alpha:1.0] greenComponent];
+	amb_sea[3] = 1.0;
+	amb_polar_land[0] = [[NSColor colorWithCalibratedHue:land_polar_hsb.x saturation:land_polar_hsb.y brightness:land_polar_hsb.z alpha:1.0] redComponent];
+	amb_polar_land[1] = [[NSColor colorWithCalibratedHue:land_polar_hsb.x saturation:land_polar_hsb.y brightness:land_polar_hsb.z alpha:1.0] blueComponent];
+	amb_polar_land[2] = [[NSColor colorWithCalibratedHue:land_polar_hsb.x saturation:land_polar_hsb.y brightness:land_polar_hsb.z alpha:1.0] greenComponent];
+	amb_polar_land[3] = 1.0;
+	amb_polar_sea[0] = [[NSColor colorWithCalibratedHue:sea_polar_hsb.x saturation:sea_polar_hsb.y brightness:sea_polar_hsb.z alpha:1.0] redComponent];
+	amb_polar_sea[1] = [[NSColor colorWithCalibratedHue:sea_polar_hsb.x saturation:sea_polar_hsb.y brightness:sea_polar_hsb.z alpha:1.0] blueComponent];
+	amb_polar_sea[2] = [[NSColor colorWithCalibratedHue:sea_polar_hsb.x saturation:sea_polar_hsb.y brightness:sea_polar_hsb.z alpha:1.0] greenComponent];
+	amb_polar_sea[3] = 1.0;
+	
+//	NSLog(@"DEBUG testing [PlanetEntity initialiseBaseVertexArray]");
+	[self initialiseBaseVertexArray];
+	
+//	NSLog(@"DEBUG testing [PlanetEntity initialiseBaseTerrainArray:%d]", percent_land);
+	setRandomSeed(saved_seed);
+	[self initialiseBaseTerrainArray:percent_land];
+	
+//	NSLog(@"DEBUG painting %d vertices", next_free_vertex);
+	for (i =  0; i < next_free_vertex; i++)
+		[self paintVertex:i :planet_seed];
+	
+//	NSLog(@"DEBUG scaling %d vertices", next_free_vertex);
+	[self scaleVertices];
+	
+	// set speed of rotation
+	rotational_velocity = 0.01 * randf();	// 0.0 .. 0.01 avr 0.005;
+	if ([dict objectForKey:@"rotational_velocity"])
+		rotational_velocity = [[dict objectForKey:@"rotational_velocity"] doubleValue];
+	
+	// do NO atmosphere
+	//
+	atmosphere = nil;
+	
+	energy = collision_radius * 1000.0;
+
+	//
+	usingVAR = [self OGL_InitVAR];
+	//
+	if (usingVAR)
+		[self OGL_AssignVARMemory:sizeof(VertexData) :(void *)&vertexdata :0];
+	//
+	isPlanet = YES;
+	//
+    return self;
+}
+
 - (void) setUniverse:(Universe *)univ
 {
     if (univ)
@@ -636,8 +1006,6 @@ static GLfloat	texture_uv_array[10400 * 2];
 					if (aleph > 1.0) aleph = 1.0;
 					[universe setSky_clear_color:0.8 * aleph * aleph :0.8 * aleph * aleph :0.9 * aleph :aleph];	// test - blue
 				}
-				else
-					[universe setSky_clear_color:0 :0 :0 :0];	// back to black
 			}
 		}
 		break;
@@ -1282,6 +1650,7 @@ static BOOL last_one_was_textured;
 - (void) initialiseBaseVertexArray
 {
 	int i;
+	NSAutoreleasePool* mypool = [[NSAutoreleasePool alloc] init];	// use our own pool since this routine is quite hard on memory
 	
 	if (last_one_was_textured != isTextured)
 	{
@@ -1376,6 +1745,7 @@ static BOOL last_one_was_textured;
 	for (i = 0; i < MAX_TRI_INDICES; i++)
 		vertexdata.index_array[i] = vertex_index_array[i];
 	
+	[mypool release];
 }
 
 int baseVertexIndexForEdge(int va, int vb, BOOL textured)
@@ -1494,6 +1864,9 @@ int baseVertexIndexForEdge(int va, int vb, BOOL textured)
 	int		r = (isTextured)? 0 : base_terrain_array[vi];	// use land color (0) for textured planets
 	int i;
 	double pole_blend = v.z * v.z * polar_color_factor;
+	if (pole_blend < 0.0)	pole_blend = 0.0;
+	if (pole_blend > 1.0)	pole_blend = 1.0;
+	//
 	paint_land[0] = (1.0 - pole_blend)*amb_land[0] + pole_blend*amb_polar_land[0];
 	paint_land[1] = (1.0 - pole_blend)*amb_land[1] + pole_blend*amb_polar_land[1];
 	paint_land[2] = (1.0 - pole_blend)*amb_land[2] + pole_blend*amb_polar_land[2];

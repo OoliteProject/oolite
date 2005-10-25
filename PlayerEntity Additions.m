@@ -1346,6 +1346,97 @@ static int shipsFound;
 		[my_entities[i] release];		//	released
 }
 
+- (void) addPlanet: (NSString *)planetKey
+{
+	if (debug)
+		NSLog(@"DEBUG addPlanet: %@", planetKey);
+	
+	if (!universe)
+		return;
+	NSDictionary* dict = (NSDictionary*)[[universe planetinfo] objectForKey:planetKey];
+	if (!dict)
+	{
+		NSLog(@"ERROR - could not find an entry in planetinfo.plist for '%@'", planetKey);
+		return;
+	}
+	
+	/*- add planet -*/
+	if (debug)
+		NSLog(@"DEBUG initPlanetFromDictionary: %@", dict);
+	//
+	PlanetEntity*	planet = [[PlanetEntity alloc] initPlanetFromDictionary:dict inUniverse:universe];	// alloc retains!
+	[planet setStatus:STATUS_ACTIVE];
+	
+	if ([dict objectForKey:@"orientation"])
+		[planet setQRotation: [Entity quaternionFromString:(NSString *)[dict objectForKey:@"orientation"]]];
+
+	if (![dict objectForKey:@"position"])
+	{
+		NSLog(@"ERROR - you must specify a position for scripted planet '%@' before it can be created", planetKey);
+		[planet release];
+		return;
+	}
+	//
+	Vector posn = [Entity vectorFromString:(NSString *)[dict objectForKey:@"position"]];
+	if (debug)
+	{
+		NSLog(@"DEBUG planet position (%.2f %.2f %.2f) derived from %@",
+			posn.x, posn.y, posn.z, [dict objectForKey:@"position"]);
+	}
+	//
+	[planet setPosition: posn];
+	//
+	[universe addEntity:planet];
+	//
+	[planet release];
+	//
+}
+
+- (void) addMoon: (NSString *)moonKey
+{
+	if (debug)
+		NSLog(@"DEBUG addMoon: %@", moonKey);
+	
+	if (!universe)
+		return;
+	NSDictionary* dict = (NSDictionary*)[[universe planetinfo] objectForKey:moonKey];
+	if (!dict)
+	{
+		NSLog(@"ERROR - could not find an entry in planetinfo.plist for '%@'", moonKey);
+		return;
+	}
+	
+	if (debug)
+		NSLog(@"DEBUG initMoonFromDictionary: %@", dict);
+	//
+	PlanetEntity*	planet = [[PlanetEntity alloc] initMoonFromDictionary:dict inUniverse:universe];	// alloc retains!
+	[planet setStatus:STATUS_ACTIVE];
+	
+	if ([dict objectForKey:@"orientation"])
+		[planet setQRotation: [Entity quaternionFromString:(NSString *)[dict objectForKey:@"orientation"]]];
+
+	if (![dict objectForKey:@"position"])
+	{
+		NSLog(@"ERROR - you must specify a position for scripted moon '%@' before it can be created", moonKey);
+		[planet release];
+		return;
+	}
+	//
+	Vector posn = [Entity vectorFromString:(NSString *)[dict objectForKey:@"position"]];
+	if (debug)
+	{
+		NSLog(@"DEBUG moon position (%.2f %.2f %.2f) derived from %@",
+			posn.x, posn.y, posn.z, [dict objectForKey:@"position"]);
+	}
+	//
+	[planet setPosition: posn];
+	//
+	[universe addEntity:planet];
+	//
+	[planet release];
+	//
+}
+
 - (void) debugOn
 {
 	NSLog(@"SCRIPT debug messages ON");
