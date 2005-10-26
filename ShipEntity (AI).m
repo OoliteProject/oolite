@@ -867,7 +867,48 @@ Your fair use and other rights are in no way affected by the above.
 
 - (void) performHyperSpaceExit
 {
-	[self enterWitchspace];
+	// get a list of destinations within range
+	NSArray* dests = [universe nearbyDestinationsWithinRange: 0.1 * fuel];
+	int n_dests = [dests count];
+	
+	// if none available report to the AI and exit
+	if (!n_dests)
+	{
+		[shipAI reactToMessage:@"WITCHSPACE UNAVAILABLE"];
+		return;
+	}
+	
+	// check if we're clear of nearby masses
+	ShipEntity* blocker = (ShipEntity*)[universe entityForUniversalID:[self checkShipsInVicinityForWitchJumpExit]];
+	if (!n_dests)
+	{
+		found_target = [blocker universal_id];
+		[shipAI reactToMessage:@"WITCHSPACE BLOCKED"];
+		return;
+	}
+	
+	// select one at random
+	int i = 0;
+	if (n_dests > 1)
+		i = ranrot_rand() % n_dests;
+	
+	NSString* systemSeedKey = [(NSDictionary*)[dests objectAtIndex:i] objectForKey:@"system_seed"];
+	Random_Seed targetSystem = [Entity seedFromString:systemSeedKey];
+	fuel -= 10 * [[(NSDictionary*)[dests objectAtIndex:i] objectForKey:@"distance"] doubleValue];
+	
+	NSLog(@"DEBUG %@ leaving this system for  %@", self, [universe getSystemName:targetSystem]);
+	
+	// create wormhole
+	WormholeEntity* whole = [[WormholeEntity alloc] initWormholeTo: targetSystem fromShip: self];
+	[universe addEntity: whole];
+	
+	// tell the ship we're about to jump (so it can inform escorts etc).
+	primaryTarget = [whole universal_id];
+	found_target = primaryTarget;
+	[shipAI reactToMessage:@"WITCHSPACE OKAY"];	// must be a reaction, the ship is about to disappear
+	
+//	[self enterWitchspace];
+	[self enterWormhole: whole];	// TODO
 }
 
 - (void) commsMessage:(NSString *)valueString

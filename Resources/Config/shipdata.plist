@@ -21,6 +21,8 @@
 		</array>
 		<key>forward_weapon_type</key>
 		<string>WEAPON_PULSE_LASER</string>
+		<key>fuel</key>
+		<integer>70</integer>
 		<key>has_ecm</key>
 		<real>0.01</real>
 		<key>has_scoop</key>
@@ -184,6 +186,8 @@
 		</array>
 		<key>forward_weapon_type</key>
 		<string>WEAPON_PULSE_LASER</string>
+		<key>fuel</key>
+		<integer>70</integer>
 		<key>has_ecm</key>
 		<real>0.94999999999999996</real>
 		<key>has_escape_pod</key>
@@ -311,7 +315,7 @@
 		<key>forward_weapon_type</key>
 		<string>WEAPON_BEAM_LASER</string>
 		<key>fuel</key>
-		<integer>80</integer>
+		<integer>70</integer>
 		<key>has_ecm</key>
 		<real>0.84999999999999998</real>
 		<key>has_fuel_injection</key>
@@ -388,6 +392,8 @@
 		</array>
 		<key>forward_weapon_type</key>
 		<string>WEAPON_BEAM_LASER</string>
+		<key>fuel</key>
+		<integer>70</integer>
 		<key>has_cloaking_device</key>
 		<real>1</real>
 		<key>has_scoop</key>
@@ -649,6 +655,8 @@
 		</array>
 		<key>forward_weapon_type</key>
 		<string>WEAPON_PULSE_LASER</string>
+		<key>fuel</key>
+		<integer>70</integer>
 		<key>has_ecm</key>
 		<real>0.75</real>
 		<key>has_escape_pod</key>
@@ -721,6 +729,8 @@
 		</array>
 		<key>forward_weapon_type</key>
 		<string>WEAPON_BEAM_LASER</string>
+		<key>fuel</key>
+		<integer>70</integer>
 		<key>has_ecm</key>
 		<real>0.94999999999999996</real>
 		<key>has_escape_pod</key>
@@ -1158,6 +1168,8 @@
 		</array>
 		<key>forward_weapon_type</key>
 		<string>WEAPON_BEAM_LASER</string>
+		<key>fuel</key>
+		<integer>70</integer>
 		<key>has_ecm</key>
 		<real>0.94999999999999996</real>
 		<key>has_escape_pod</key>
@@ -1220,6 +1232,8 @@
 		</array>
 		<key>forward_weapon_type</key>
 		<string>WEAPON_PULSE_LASER</string>
+		<key>fuel</key>
+		<integer>70</integer>
 		<key>has_ecm</key>
 		<real>0.10000000000000001</real>
 		<key>has_escape_pod</key>
@@ -1338,6 +1352,8 @@
 		</array>
 		<key>forward_weapon_type</key>
 		<string>WEAPON_BEAM_LASER</string>
+		<key>fuel</key>
+		<integer>70</integer>
 		<key>has_ecm</key>
 		<real>0.14999999999999999</real>
 		<key>has_escape_pod</key>
@@ -1396,6 +1412,8 @@
 		</array>
 		<key>forward_weapon_type</key>
 		<string>WEAPON_PULSE_LASER</string>
+		<key>fuel</key>
+		<integer>70</integer>
 		<key>has_scoop</key>
 		<real>0.94999999999999996</real>
 		<key>likely_cargo</key>
@@ -1450,6 +1468,8 @@
 		</array>
 		<key>forward_weapon_type</key>
 		<string>WEAPON_BEAM_LASER</string>
+		<key>fuel</key>
+		<integer>70</integer>
 		<key>has_fuel_injection</key>
 		<real>0.25</real>
 		<key>has_scoop</key>
@@ -1512,6 +1532,8 @@
 		</array>
 		<key>forward_weapon_type</key>
 		<string>WEAPON_MINING_LASER</string>
+		<key>fuel</key>
+		<integer>70</integer>
 		<key>has_scoop</key>
 		<real>1</real>
 		<key>likely_cargo</key>
@@ -1626,7 +1648,7 @@
 		<key>forward_weapon_type</key>
 		<string>WEAPON_MILITARY_LASER</string>
 		<key>fuel</key>
-		<integer>60</integer>
+		<integer>70</integer>
 		<key>has_ecm</key>
 		<true/>
 		<key>has_escape_pod</key>
@@ -1921,7 +1943,7 @@
 		<key>forward_weapon_type</key>
 		<string>WEAPON_BEAM_LASER</string>
 		<key>fuel</key>
-		<integer>50</integer>
+		<integer>70</integer>
 		<key>has_ecm</key>
 		<real>1</real>
 		<key>has_escape_pod</key>
@@ -2202,7 +2224,7 @@
 		<key>forward_weapon_type</key>
 		<string>WEAPON_BEAM_LASER</string>
 		<key>fuel</key>
-		<integer>30</integer>
+		<integer>70</integer>
 		<key>has_fuel_injection</key>
 		<real>0.65000000000000002</real>
 		<key>has_scoop</key>
@@ -2443,6 +2465,8 @@
 		</array>
 		<key>forward_weapon_type</key>
 		<string>WEAPON_PULSE_LASER</string>
+		<key>fuel</key>
+		<integer>70</integer>
 		<key>has_scoop</key>
 		<real>1</real>
 		<key>has_shield_booster</key>
@@ -2555,6 +2579,8 @@
 		</array>
 		<key>forward_weapon_type</key>
 		<string>WEAPON_PULSE_LASER</string>
+		<key>fuel</key>
+		<integer>70</integer>
 		<key>has_scoop</key>
 		<real>1</real>
 		<key>likely_cargo</key>
@@ -2665,6 +2691,8 @@
 		</array>
 		<key>forward_weapon_type</key>
 		<string>WEAPON_BEAM_LASER</string>
+		<key>fuel</key>
+		<integer>70</integer>
 		<key>has_escape_pod</key>
 		<real>0.75</real>
 		<key>has_scoop</key>
@@ -2726,6 +2754,8 @@
 		</array>
 		<key>forward_weapon_type</key>
 		<string>WEAPON_BEAM_LASER</string>
+		<key>fuel</key>
+		<integer>70</integer>
 		<key>has_ecm</key>
 		<real>0.75</real>
 		<key>has_escape_pod</key>
@@ -2844,6 +2874,8 @@
 		</array>
 		<key>forward_weapon_type</key>
 		<string>WEAPON_BEAM_LASER</string>
+		<key>fuel</key>
+		<integer>70</integer>
 		<key>has_escape_pod</key>
 		<real>1</real>
 		<key>has_scoop</key>
@@ -3373,6 +3405,8 @@
 		<real>4</real>
 		<key>forward_weapon_type</key>
 		<string>WEAPON_THARGOID_LASER</string>
+		<key>fuel</key>
+		<integer>150</integer>
 		<key>has_ecm</key>
 		<real>1</real>
 		<key>laser_color</key>

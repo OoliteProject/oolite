@@ -17,8 +17,17 @@
         ENTER = (escortCheckMother); 
         EXIT = ();
 		ESCORTING = ("setDesiredRangeTo: 0.0", performEscort);
-        "NOT_ESCORTING" = ("setStateTo: LOOK_FOR_BUSINESS"); 
+        "NOT_ESCORTING" = ("setStateTo: LOOK_FOR_BUSINESS");
+		"LAUNCHED_OKAY" = ("setStateTo: CLEAR_STATION");
         UPDATE = (); 
+    }; 
+    "CLEAR_STATION" = {
+		ENTER = (setTargetToStation, "setDesiredRangeTo: 5000.0", "setSpeedFactorTo: 0.5", performFlyToRangeFromDestination);
+		"DESIRED_RANGE_ACHIEVED" = ("setStateTo: LOOK_FOR_BUSINESS");
+        UPDATE = (scanForFormationLeader, "pauseAI: 15.0"); 
+        "TARGET_FOUND" = (setTargetToFoundTarget, suggestEscort); 
+  		ESCORTING = ("setDesiredRangeTo: 0.0", "setStateTo: FLYING_ESCORT");
+		EXIT = ();
     }; 
     "LOOK_FOR_BUSINESS" = {
         ATTACKED = (setTargetToPrimaryAggressor, "setAITo: interceptAI.plist");

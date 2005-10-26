@@ -40,6 +40,7 @@
         "WAYPOINT_SET" = ("setDesiredRangeTo: 50.0", checkCourseToDestination); 
     }; 
     "HEAD_FOR_SUN" = {
+		"EXITED WITCHSPACE" = ("setAITo: route1traderAI.plist");
         ATTACKED = (fightOrFleeHostiles); 
         "COURSE_OK" = (
             "setDesiredRangeTo: 500.0", 

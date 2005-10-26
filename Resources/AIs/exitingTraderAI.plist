@@ -8,7 +8,11 @@
         "TARGET_LOST" = ("setStateTo: HEAD_AWAY_FROM_PLANET"); 
         UPDATE = (); 
     }; 
-    "EXIT_SYSTEM" = {ENTER = (); EXIT = (); UPDATE = (performHyperSpaceExit); }; 
+    "EXIT_SYSTEM" = {
+		ENTER = ();
+		EXIT = ();
+		UPDATE = (performHyperSpaceExit);
+	}; 
     FLEE = {
         ATTACKED = (fightOrFleeHostiles); 
 		FIGHTING = (setTargetToPrimaryAggressor, "setStateTo: ATTACK_SHIP");
@@ -28,6 +32,7 @@
 		FIGHTING = (setTargetToPrimaryAggressor, "setStateTo: ATTACK_SHIP");
 		FLEEING = (setTargetToPrimaryAggressor, "setStateTo: FLEE");
         "INCOMING_MISSILE" = (fightOrFleeMissile, "setStateTo: FLEE"); 
+		"EXITED WITCHSPACE" = ("setAITo: route1traderAI.plist");
 		EXIT = ();
 		UPDATE = ();
 	}; 

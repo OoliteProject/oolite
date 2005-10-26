@@ -1474,6 +1474,7 @@ BOOL ship_canCollide (ShipEntity* ship)
 		if ([universe getTime] > launch_time + LAUNCH_DELAY)		// move for while before thinking
 		{
 			status = STATUS_IN_FLIGHT;
+			[shipAI reactToMessage: @"LAUNCHED OKAY"];
 			//accepts_escorts = YES;
 		}
 		else
@@ -5259,6 +5260,19 @@ Vector randomPositionInBoundingBox(BoundingBox bb)
 			}
 			[self becomeExplosion];
 		}
+		if (ent->isWormhole)
+		{
+			WormholeEntity* whole = (WormholeEntity*)ent;
+			if (isPlayer)
+			{
+				[(PlayerEntity*)self enterWormhole: whole];
+				return;
+			}
+			else
+			{
+				[whole suckInShip: self];
+			}
+		}
 		[ent release];
 	}	
 }
@@ -5570,6 +5584,25 @@ Vector randomPositionInBoundingBox(BoundingBox bb)
 	status = STATUS_LAUNCHING;
 	[shipAI message:@"LAUNCHED"];
 	[universe addEntity:self];
+}
+
+- (void) enterWormhole:(WormholeEntity *) w_hole
+{
+	// witchspace entry effects here
+	ParticleEntity *ring1 = [[ParticleEntity alloc] initHyperringFromShip:self]; // retained
+	[universe addEntity:ring1];
+	[ring1 release];
+	ParticleEntity *ring2 = [[ParticleEntity alloc] initHyperringFromShip:self]; // retained
+	[ring2 setSize:NSMakeSize([ring2 size].width * -2.5 ,[ring2 size].height * -2.0 )]; // shrinking!
+	[universe addEntity:ring2];
+	[ring2 release];
+	
+	[shipAI message:@"ENTERED_WITCHSPACE"];
+	
+	if (![[universe sun] willGoNova])				// if the sun's not going nova
+		[universe witchspaceShipWithRole:roles];	// then add a new ship like this one leaving!
+	
+	[w_hole suckInShip: self];	// removes ship from universe
 }
 
 - (void) enterWitchspace

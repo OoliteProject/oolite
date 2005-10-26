@@ -220,6 +220,9 @@ Your fair use and other rights are in no way affected by the above.
 //	NSLog(@"Galaxy coords are (%f, %f)", [player galaxy_coordinates].x, [player galaxy_coordinates].y);
 	
 //	NSLog(@"Well whaddayaknow - we're at %@", [self getSystemName:system_seed]);
+	
+	
+	activeWormholes = [[NSMutableArray arrayWithCapacity:16] retain];
 
 	
 	[self set_up_space];
@@ -245,7 +248,6 @@ Your fair use and other rights are in no way affected by the above.
     if (message_gui)			[message_gui release];
     if (comm_log_gui)			[comm_log_gui release];
 	
-//    if (messageSprite)			[messageSprite release];
     if (cursorSprite)			[cursorSprite release];
 
     if (textureStore)			[textureStore release];
@@ -255,7 +257,6 @@ Your fair use and other rights are in no way affected by the above.
     if (recycleLock)			[recycleLock release];
 	
     if (entities)				[entities release];
-//    if (entsInDrawOrder)		[entsInDrawOrder release];
     if (shipdata)				[shipdata release];
     if (shipyard)				[shipyard release];
 	
@@ -279,8 +280,8 @@ Your fair use and other rights are in no way affected by the above.
 	if (local_planetinfo_overrides)
 								[local_planetinfo_overrides release];
 	
-//	if (universe_lock)			[universe_lock release];
-	
+	if (activeWormholes)		[activeWormholes release];
+								
 	// reset/dealloc the universal planet edge thingy
 	[PlanetEntity resetBaseVertexArray];
 	
@@ -483,6 +484,9 @@ Your fair use and other rights are in no way affected by the above.
 	
 //	NSLog(@"Well whaddayaknow - we're at %@", [self getSystemName:system_seed]);
 	
+	if (activeWormholes)		[activeWormholes release];
+	activeWormholes = [[NSMutableArray arrayWithCapacity:16] retain];
+
 	[self set_up_space];
 
 	demo_ship = nil;
@@ -806,7 +810,6 @@ Your fair use and other rights are in no way affected by the above.
     PlanetEntity		*a_planet;
 	
 	Vector				stationPos;
-//	double				stationRoll;
 	
 	Vector				vf;
 
@@ -890,10 +893,6 @@ Your fair use and other rights are in no way affected by the above.
 	// here we need to check if the sun collides with (or is too close to) the witchpoint
 	// otherwise at (for example) Maregais in Galaxy 1 we go BANG!
 	do {
-		// show for debugging
-//		if (magnitude2(sunPos))
-//			NSLog(@"DEBUG looping to avoid sun-witchpoint collision!");
-		
 		sunPos = a_planet->position;
 		
 		quaternion_set_random(&q_sun);
@@ -978,6 +977,9 @@ Your fair use and other rights are in no way affected by the above.
 	cachedStation = a_station;
 	
 	ranrot_srand([[NSDate date] timeIntervalSince1970]);   // reset randomiser with current time
+	
+	[self populateSpaceFromActiveWormholes];
+	
 	[self populateSpaceFromHyperPoint:[self getWitchspaceExitPosition] toPlanetPosition: a_planet->position andSunPosition: a_sun->position];
 	
 	// log positions and info against debugging 
@@ -1143,6 +1145,29 @@ Your fair use and other rights are in no way affected by the above.
 	glLightfv(GL_LIGHT0, GL_SPECULAR, white);
 			
 }
+
+- (void) populateSpaceFromActiveWormholes
+{
+	NSLog(@"DEBUG populating from activeWormholes:\n%@", activeWormholes);
+	//
+	while ([activeWormholes count])
+	{
+		WormholeEntity* whole = (WormholeEntity*)[activeWormholes objectAtIndex:0];
+		
+		[whole setUniverse: self];
+		
+		NSLog(@"DEBUG considering wormhole %@ destination %@ (system %@)",
+			whole, [self systemSeedString:[whole destination]], [self systemSeedString:system_seed]);
+		
+		if (equal_seeds( [whole destination], system_seed))
+		{			
+			// this is a wormhole to this system
+			[whole disgorgeShips];
+		}
+		[activeWormholes removeObjectAtIndex:0];	// empty it out
+	}
+}
+
 
 - (void) populateSpaceFromHyperPoint:(Vector) h1_pos toPlanetPosition:(Vector) p1_pos andSunPosition:(Vector) s1_pos
 {
@@ -2793,6 +2818,10 @@ Your fair use and other rights are in no way affected by the above.
 		ship = [self getShip:(NSString *)[foundShips objectAtIndex:i]];	// may return nil if not found!
 		[ship setRoles:desc];											// set its roles to this one particular chosen role
 	}
+	else
+	{
+		NSLog(@"DEBUG [Universe getShipWithRole: %@] couldn't find a ship!", desc);
+	}
 	
 	[mypool release];	// tidy everything up
 	
@@ -3717,6 +3746,8 @@ Your fair use and other rights are in no way affected by the above.
 //		for (index = 0; index < n_entities; index++)
 //			NSLog(@"+++++ %d %.0f %@", sortedEntities[index]->z_index, sortedEntities[index]->zero_distance, sortedEntities[index]);
 		//
+		if (entity->isWormhole)
+			[activeWormholes addObject:entity];
 		
 		return YES;
 	}
@@ -3808,9 +3839,96 @@ Your fair use and other rights are in no way affected by the above.
 			}
 			
 			[entities removeObject:[self recycleOrDiscard:entity]];
+			//
+			if (entity->isWormhole)
+				[activeWormholes removeObject:entity];
 			
 			//NSLog(@"--(%@)\n%@", entity, [entities description]);
 			
+			return YES;
+		}
+	}
+	return NO;
+}
+
+- (BOOL) removeWithoutRecyclingEntity:(Entity *) entity
+{
+	if (entity)
+	{
+		int old_id = [entity universal_id];
+		entity_for_uid[old_id] = nil;
+		[entity setUniversal_id:NO_TARGET];
+		[entity setUniverse:nil];
+		// maintain sorted list
+		int index = entity->z_index;
+		int n = 1;
+		if (index >= 0)
+		{
+			if (sortedEntities[index] != entity)
+			{
+				NSLog(@"DEBUG Universe removeWithoutRecyclingEntity:%@ ENTITY IS NOT IN THE RIGHT PLACE IN THE SORTED LIST -- FIXING...", entity);
+				int i;
+				index = -1;
+				for (i = 0; (i < n_entities)&&(index == -1); i++)
+					if (sortedEntities[i] == entity)
+						index = i;
+				if (index == -1)
+					 NSLog(@"DEBUG Universe removeWithoutRecyclingEntity:%@ ENTITY IS NOT IN THE SORTED LIST -- CONTINUING...", entity);
+			}
+ 			if (index != -1)
+			{
+				while (index < n_entities)
+				{
+					while ((index + n < n_entities)&&(sortedEntities[index + n] == entity))
+						n++;	// ie there's a duplicate entry for this entity
+					sortedEntities[index] = sortedEntities[index + n];	// copy entity[index + n] -> entity[index] (preserves sort order)
+					if (sortedEntities[index])
+						sortedEntities[index]->z_index = index;				// give it its correct position
+					index++;
+				}
+				if (n > 1)
+					 NSLog(@"DEBUG Universe removeWithoutRecyclingEntity: REMOVED %d EXTRA COPIES OF %@ FROM THE SORTED LIST", n - 1, entity);
+				while (n--)
+				{
+					n_entities--;
+					sortedEntities[n_entities] = nil;
+				}
+			}
+			entity->z_index = -1;	// it's GONE!
+		}
+		// remove from the definitive list
+		if ([entities containsObject:entity])
+		{
+			if (entity->isRing)
+				breakPatternCounter--;
+			if (entity->isShip)
+			{
+				int bid = firstBeacon;
+				ShipEntity* se = (ShipEntity*)entity;
+				if ([se isBeacon])
+				{
+					if (bid == old_id)
+						firstBeacon = [se nextBeaconID];
+					else
+					{
+						ShipEntity* beacon = (ShipEntity*)[self entityForUniversalID:bid];
+						while ((beacon != nil)&&([beacon nextBeaconID] != old_id))
+							beacon = (ShipEntity*)[self entityForUniversalID:[beacon nextBeaconID]];
+						//
+						[beacon setNextBeacon:(ShipEntity*)[self entityForUniversalID:[se nextBeaconID]]];
+						//
+						while ([beacon nextBeaconID] != NO_TARGET)
+							beacon = (ShipEntity*)[self entityForUniversalID:[beacon nextBeaconID]];
+						lastBeacon = [beacon universal_id];
+					}
+				}
+				[se setBeaconChar:0];
+			}
+			[entities removeObject: entity];
+			//
+			if (entity->isWormhole)
+				[activeWormholes removeObject:entity];
+			//
 			return YES;
 		}
 	}
@@ -3828,6 +3946,9 @@ Your fair use and other rights are in no way affected by the above.
 		exit(1);
 	}
 	
+	// preserve wormholes
+	NSArray* savedWormholes = [NSArray arrayWithArray:activeWormholes];
+	
 	while ([entities count] > 1)
 	{
 		Entity* ent = [entities objectAtIndex:1];
@@ -3839,6 +3960,8 @@ Your fair use and other rights are in no way affected by the above.
 			[self removeEntity:ent];
 		}
 	}
+	
+	[activeWormholes addObjectsFromArray:savedWormholes];	// will be cleared out by populateFromActiveWormholes
 	
 	// maintain sorted list
 	n_entities = 1;
@@ -5304,8 +5427,6 @@ Your fair use and other rights are in no way affected by the above.
 {
 	int i;
 		
-//	NSString*			digrams = @"ABOUSEITILETSTONLONUTHNOALLEXEGEZACEBISOUSESARMAINDIREA?ERATENBERALAVETIEDORQUANTEISRION";
-//	NSString*			phonograms = @"AEb=UW==sEH=IHt=IHl=EHt=st==AAn=lOW=nUW=T===nOW=AEl=lEY=hEY=JEH=zEY=sEH=bIY=sOW=UHs=EHz=AEr=mAE=IHn=dIY=rEY=EH==UXr=AEt=EHn=bEH=rAX=lAX=vEH=tIY=EHd=AAr=kw==AXn=tEY=IHz=rIY=AAn=";
 	NSString*			phonograms = [descriptions objectForKey:@"phonograms"];
 	NSMutableString*	name = [NSMutableString stringWithCapacity:256];
 	int size = 4;
@@ -5393,6 +5514,36 @@ Your fair use and other rights are in no way affected by the above.
 	}
 
 	return system;
+}
+
+- (NSString*) systemSeedString:(Random_Seed) s
+{
+	return [NSString stringWithFormat: @"%d %d %d %d %d %d", s.a, s.b, s.c, s.d, s.e, s.f];
+}
+
+- (NSArray*) nearbyDestinationsWithinRange:(double) range
+{
+	Random_Seed here = [self systemSeed];
+	int i;
+    NSMutableArray* result = [NSMutableArray arrayWithCapacity:16];
+
+	// make list of connected systems
+	for (i = 0; i < 256; i++)
+	{
+		double dist = distanceBetweenPlanetPositions(here.d, here.b, systems[i].d, systems[i].b);
+		if ((dist > 0) && (dist <= range))
+		{
+			[result addObject: [NSDictionary dictionaryWithObjectsAndKeys:
+				[self systemSeedString:systems[i]], @"system_seed",
+				[NSNumber numberWithDouble: dist], @"distance",
+				[self getSystemName:systems[i]], @"name",
+				nil]];
+		}
+	}
+	
+//	NSLog(@"DEBUG found possible destinations: %@", result);
+	
+	return result;
 }
 
 - (Random_Seed) findNeighbouringSystemToCoords:(NSPoint) coords withGalaxySeed:(Random_Seed) gal_seed

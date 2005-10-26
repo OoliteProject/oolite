@@ -144,7 +144,7 @@ Your fair use and other rights are in no way affected by the above.
 
 #define AIMS_AGGRESSOR_SWITCHED_TARGET	@"AGGRESSOR_SWITCHED_TARGET"
 
-@class StationEntity, ParticleEntity, PlanetEntity, AI;
+@class StationEntity, ParticleEntity, PlanetEntity, WormholeEntity, AI;
 
 @interface ShipEntity : Entity {
 	
@@ -503,6 +503,7 @@ Vector randomPositionInBoundingBox(BoundingBox bb);
 - (void) enterDock:(StationEntity *)station;
 - (void) leaveDock:(StationEntity *)station;
 
+- (void) enterWormhole:(WormholeEntity *) w_hole;
 - (void) enterWitchspace;
 - (void) leaveWitchspace;
 

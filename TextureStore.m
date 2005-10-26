@@ -77,97 +77,109 @@ Your fair use and other rights are in no way affected by the above.
 - (GLuint) getTextureNameFor:(NSString *)filename
 {
 #ifndef GNUSTEP
-	NSBitmapImageRep	*bitmapImageRep = nil;
-	NSImage				*texImage;
+    NSBitmapImageRep	*bitmapImageRep = nil;
+    NSImage		*texImage;
 #else
-	SDLImage			*texImage;
+	SDLImage	*texImage;
 #endif
-	NSRect		textureRect;
-	NSSize		imageSize;
-	NSData		*textureData;
-	GLuint		texName;
-		
+    NSSize		imageSize;
+    NSData		*textureData;
+    GLuint		texName;
+	
 	int			texture_h = 4;
 	int			texture_w = 4;
 	int			image_h, image_w;
 	int			n_planes, im_bytes, tex_bytes;
 	
 	int			im_bytesPerRow;
-
+    
 	int			texi = 0; 
 	
-	if (![textureDictionary objectForKey:filename])
-	{
-		NSMutableDictionary*	texProps = [NSMutableDictionary dictionaryWithCapacity:3];	// autoreleased
+    if (![textureDictionary objectForKey:filename])
+    {
+        NSMutableDictionary*	texProps = [NSMutableDictionary dictionaryWithCapacity:3];  // autoreleased
 #ifndef GNUSTEP		   
 		texImage = [ResourceManager imageNamed:filename inFolder:@"Textures"];
 #else
 		texImage = [ResourceManager surfaceNamed:filename inFolder:@"Textures"];
 #endif
-		if (!texImage)
-		{
-			NSLog(@"***** Couldn't find texture : %@", filename);
-						NSException* myException = [NSException
-								exceptionWithName: OOLITE_EXCEPTION_TEXTURE_NOT_FOUND
-								reason: [NSString stringWithFormat:@"Oolite couldn't find texture : %@ on any search-path.", filename]
-								userInfo: nil];
-						[myException raise];
-						return 0;
-		}
-
-#ifndef GNUSTEP		   
-		imageSize = [texImage size];
-#else
-		imageSize = NSMakeSize([texImage surface]->w, [texImage surface]->h);
-#endif
-		image_w = imageSize.width;
-		image_h = imageSize.height;
-
-		while (texture_w < image_w)
-			texture_w *= 2;
-		while (texture_h < image_h)
-			texture_h *= 2;
-		textureRect=NSMakeRect(0.0, 0.0, texture_w, texture_h);		 
-
-#ifndef GNUSTEP	   
+        if (!texImage)
+        {
+            NSLog(@"***** Couldn't find texture : %@", filename);
+			NSException* myException = [NSException
+				exceptionWithName: OOLITE_EXCEPTION_TEXTURE_NOT_FOUND
+				reason: [NSString stringWithFormat:@"Oolite couldn't find texture : %@ on any search-path.", filename]
+				userInfo: [NSDictionary dictionaryWithObjectsAndKeys: filename, @"texture", nil]];
+			[myException raise];
+			return 0;
+        }
+		        
+#ifndef GNUSTEP
 		NSArray* reps = [texImage representations];
+		
+//		NSLog(@"DEBUG texture %@ representations:\n%@", filename, reps);
+		
 		int i;
 		for (i = 0; ((i < [reps count]) && !bitmapImageRep); i++)
 		{
-				NSObject* imageRep = [reps objectAtIndex:i];
-				if ([imageRep isKindOfClass:[NSBitmapImageRep class]])
-						bitmapImageRep = (NSBitmapImageRep*)imageRep;
+			NSObject* imageRep = [reps objectAtIndex:i];
+			if ([imageRep isKindOfClass:[NSBitmapImageRep class]])
+				bitmapImageRep = (NSBitmapImageRep*)imageRep;
 		}
 		if (!bitmapImageRep)
 		{
-			NSLog(@"***** Couldn't find a representation for texture : %@ %@", filename, texImage);
+            NSLog(@"***** Couldn't find a representation for texture : %@ %@", filename, texImage);
 			NSException* myException = [NSException
-					exceptionWithName: OOLITE_EXCEPTION_TEXTURE_NOT_FOUND
-					reason: [NSString stringWithFormat:@"Oolite couldn't find a NSBitMapImageRep for texture : %@ : %@.", filename, texImage]
-					userInfo: nil];
+				exceptionWithName: OOLITE_EXCEPTION_TEXTURE_NOT_FOUND
+				reason: [NSString stringWithFormat:@"Oolite couldn't find a NSBitMapImageRep for texture : %@ : %@.", filename, texImage]
+				userInfo: [NSDictionary dictionaryWithObjectsAndKeys: filename, @"texture", nil]];
 			[myException raise];
 			return 0;
 		}
 		
+//        imageSize = [texImage size];	// NOT RESOLUTION INDEPENDENT
+        imageSize = NSMakeSize( [bitmapImageRep pixelsWide], [bitmapImageRep pixelsHigh]);	// resolution independent
+		image_w = imageSize.width;
+		image_h = imageSize.height;
+		
+        while (texture_w < image_w)
+            texture_w *= 2;
+        while (texture_h < image_h)
+            texture_h *= 2;
+		
 		n_planes = [bitmapImageRep samplesPerPixel];
+		im_bytes = image_w * image_h * n_planes;
+		tex_bytes = texture_w * texture_h * n_planes;
 		im_bytesPerRow = [bitmapImageRep bytesPerRow];
+
+		
 		unsigned char* imageBuffer = [bitmapImageRep bitmapData];
 #else
+		imageSize = NSMakeSize([texImage surface]->w, [texImage surface]->h);
+		image_w = imageSize.width;
+		image_h = imageSize.height;
+		
+        while (texture_w < image_w)
+            texture_w *= 2;
+        while (texture_h < image_h)
+            texture_h *= 2;
+		
 		n_planes = [texImage surface]->format->BytesPerPixel;
 		im_bytesPerRow = [texImage surface]->pitch;
 		unsigned char* imageBuffer = [texImage surface]->pixels;
-#endif
-
 		im_bytes = image_w * image_h * n_planes;
 		tex_bytes = texture_w * texture_h * n_planes;
+		im_bytesPerRow = [texImage surface]->pitch;
+
+#endif
 
 		if (([filename hasPrefix:@"blur"])&&(texture_w == image_w)&&(texture_h == image_h))
 		{
-			NSLog(@"DEBUG filling image data for %@ (%d x %d) with special sauce!", filename, texture_w, texture_h);
+//			NSLog(@"DEBUG filling image data for %@ (%d x %d) with special sauce!", filename, texture_w, texture_h);
 			fillSquareImageDataWithBlur(imageBuffer, texture_w, n_planes);
 		}
-
-		if ((texture_w > image_w)||(texture_h > image_h))		// we need to scale the image to the texture dimensions
+				
+		if ((texture_w > image_w)||(texture_h > image_h))	// we need to scale the image to the texture dimensions
 		{
 			unsigned char textureBuffer[tex_bytes];
 			
@@ -175,7 +187,7 @@ Your fair use and other rights are in no way affected by the above.
 			int x, y, n;
 			float texel_w = (float)image_w / (float)texture_w;
 			float texel_h = (float)image_h / (float)texture_h;
-//						NSLog(@"scaling image %@ : %@\n scale (%d  x %d) to (%d x %d) scale (%.3f x %.3f)", filename, texImage, image_w, image_h, texture_w, texture_h, texel_w, texel_h);
+//			NSLog(@"scaling image %@ : %@\n scale (%d  x %d) to (%d x %d) texels: (%.3f x %.3f)", filename, texImage, image_w, image_h, texture_w, texture_h, texel_w, texel_h);
 
 			for ( y = 0; y < texture_h; y++)
 			{
@@ -212,14 +224,15 @@ Your fair use and other rights are in no way affected by the above.
 					int	xy01 = y0 * im_bytesPerRow + n_planes * x1;
 					int	xy10 = y1 * im_bytesPerRow + n_planes * x0;
 					int	xy11 = y1 * im_bytesPerRow + n_planes * x1;
-			
+					
 					for (n = 0; n < n_planes; n++)
 					{
 						acc = py0 * (px0 * imageBuffer[ xy00 + n] + px1 * imageBuffer[ xy10 + n])
-								+ py1 * (px0 * imageBuffer[ xy01 + n] + px1 * imageBuffer[ xy11 + n]);
-						textureBuffer[ texi++] = (char)acc;		// float -> char
+							+ py1 * (px0 * imageBuffer[ xy01 + n] + px1 * imageBuffer[ xy11 + n]);
+						textureBuffer[ texi++] = (char)acc;	// float -> char
 					}
 				}
+				
 			}
 			textureData = [NSData dataWithBytes:textureBuffer length: tex_bytes];	// copies the data
 			
@@ -227,7 +240,7 @@ Your fair use and other rights are in no way affected by the above.
 		else
 		{
 			// no scaling required - we will use the image data directly
-			textureData = [NSData dataWithBytes:imageBuffer length: im_bytes];		// copies the data
+			textureData = [NSData dataWithBytes:imageBuffer length: im_bytes];	// copies the data
 		}
 		
 

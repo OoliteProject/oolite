@@ -56,6 +56,7 @@ GLfloat red_color[4] =		{1.0, 0.0, 0.0, 1.0};
 GLfloat redplus_color[4] =  {1.0, 0.0, 0.5, 1.0};
 GLfloat yellow_color[4] =   {1.0, 1.0, 0.0, 1.0};
 GLfloat green_color[4] =	{0.0, 1.0, 0.0, 1.0};
+GLfloat blue_color[4] =		{0.0, 0.0, 1.0, 1.0};
 
 float char_widths[128] = {
 	8.000,	7.000,	8.000,	8.000,	7.000,	6.000,	7.000,	6.000,	6.000,	6.000,	6.000,	6.000,	6.000,	6.000,	6.000,	6.000,
@@ -374,7 +375,8 @@ static BOOL hostiles;
 
 	int scanner_scale = SCANNER_MAX_RANGE * 2.5 / siz.width;
 
-	double max_scanner_range2 = SCANNER_SCALE*SCANNER_SCALE*10000.0/(scanner_zoom*scanner_zoom);
+	double max_scanner_range2 = SCANNER_SCALE*SCANNER_SCALE*10000.0;
+	double max_zoomed_range2 = SCANNER_SCALE*SCANNER_SCALE*10000.0/(scanner_zoom*scanner_zoom);
 	
 	BOOL	isHostile = NO;
 	BOOL	foundHostiles = NO;
@@ -398,7 +400,7 @@ static BOOL hostiles;
 	Entity	*drawthing = nil;
 	//
 	GLfloat col[4] =	{ 1.0, 1.0, 1.0, 1.0};	// can be manipulated
-    
+
 	position = player->position;
 	gl_matrix_into_matrix([player rotationMatrix], rotMatrix);
 	
@@ -455,6 +457,7 @@ static BOOL hostiles;
 						case CLASS_STATION :
 						case CLASS_POLICE :
 						case CLASS_MILITARY :
+						case CLASS_WORMHOLE :
 						default :
 							mass_locked = YES;
 							break;
@@ -462,7 +465,8 @@ static BOOL hostiles;
 				}
 				
 				[player setAlert_flag:ALERT_FLAG_MASS_LOCK :mass_locked];
-					
+				
+				// exit if it's too far away
 				if ((isnan(drawthing->zero_distance))||(drawthing->zero_distance > max_scanner_range2))
 					continue;
 				
@@ -498,6 +502,11 @@ static BOOL hostiles;
 					col[0] = base_col[0];	col[1] = base_col[1];	col[2] = base_col[2];	col[3] = alpha * base_col[3];
 				}
 				
+				if (drawthing->isWormhole)
+				{
+					col[0] = blue_color[0];	col[1] = (flash)? 1.0 : blue_color[1];	col[2] = blue_color[2];	col[3] = alpha * blue_color[3];
+				}
+				
 				// position the scanner
 				x1 += scanner_cx;   y1 += scanner_cy;   y2 += scanner_cy;
 				switch (drawClass)
@@ -513,11 +522,16 @@ static BOOL hostiles;
 					case CLASS_POLICE :
 					case CLASS_MILITARY :
 					case CLASS_MINE :
+					case CLASS_WORMHOLE :
 					default :
 						if (isHostile)
 							foundHostiles = YES;
 						break;
 				}
+				// exit if it's off-scanner
+				if (drawthing->zero_distance > max_zoomed_range2)
+					continue;
+
 				if (ms_blip > 0.0)
 				{
 					drawSpecialOval( x1 - 0.5, y2 + 1.5, z1, NSMakeSize(16.0 * (1.0 - ms_blip), 8.0 * (1.0 - ms_blip)), 30, col);

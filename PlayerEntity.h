@@ -566,7 +566,7 @@ Your fair use and other rights are in no way affected by the above.
 - (int) weaponForView:(int) view;
 
 - (void) enterGalacticWitchspace;
-- (void) enterWitchspaceWithEmergencyDrive;
+- (void) enterWormhole:(WormholeEntity*) w_hole;
 
 - (void) interpretAIMessage:(NSString *)ms;
 

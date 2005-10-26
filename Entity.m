@@ -134,6 +134,43 @@ static  Universe	*data_store_universe;
 	return result;
 }
 
++ (Random_Seed) seedFromString:(NSString*) abcdefString
+{
+	Random_Seed result;
+	int abcdef[] = { 0, 0, 0, 0, 0, 0};
+	int i = 0;
+	BOOL failed = NO;
+	NSString* error = @"No error";
+	NSScanner* scanner = [NSScanner scannerWithString: abcdefString];
+	while ((![scanner isAtEnd])&&(i < 6)&&(!failed))
+	{
+		int value;
+		if ([scanner scanInt:&value])
+			abcdef[i++] = value;
+		else
+		{
+			failed = YES;
+			error = @"Could not scan a int value.";
+		}
+	}
+	if (i < 6)
+	{
+		failed = YES;
+		error = @"Found less than six int values.";
+	}
+	result.a = abcdef[0];
+	result.b = abcdef[1];
+	result.c = abcdef[2];
+	result.d = abcdef[3];
+	result.e = abcdef[4];
+	result.f = abcdef[5];
+	if (failed)
+	{
+		NSLog(@"***** ERROR cannot make Random_Seed from '%@' because '%@'", abcdefString, error);
+	}
+	return result;
+}
+
 + (BOOL) scanVector:(Vector *) vector_ptr andQuaternion:(Quaternion *) quaternion_ptr fromString:(NSString*) xyzwxyzString
 {
 	GLfloat xyzwxyz[] = { 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0};

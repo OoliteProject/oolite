@@ -654,10 +654,9 @@ NSDictionary* instructions(int station_id, Vector coords, float speed, float ran
 	last_shuttle_launch_time = 0.0;
 	shuttle_launch_interval = 15.0 * 60.0;  // every 15 minutes
 	last_shuttle_launch_time = - (ranrot_rand() % 60) * shuttle_launch_interval / 60.0;
-	
-	docked_traders = 1 + (ranrot_rand() % 3);   // 1..3;
-	last_trader_launch_time = 0.0;
-	trader_launch_interval = ((ranrot_rand() % 10) + 20.0) * 60.0;  // every few minutes
+
+	docked_traders = 3 + (ranrot_rand() & 7);   // 1..3;
+	trader_launch_interval = 3600.0 / docked_traders;  // every few minutes
 	last_trader_launch_time = 60.0 - trader_launch_interval; // in one minute's time
 	
 	last_patrol_report_time = 0.0;
@@ -737,10 +736,9 @@ NSDictionary* instructions(int station_id, Vector coords, float speed, float ran
 	last_shuttle_launch_time = 0.0;
 	shuttle_launch_interval = 15.0 * 60.0;  // every 15 minutes
 	last_shuttle_launch_time = - (ranrot_rand() % 60) * shuttle_launch_interval / 60.0;
-	
-	docked_traders = 1 + (ranrot_rand() % 3);   // 1..3;
-	last_trader_launch_time = 0.0;
-	trader_launch_interval = ((ranrot_rand() % 10) + 20.0) * 60.0;  // every few minutes
+
+	docked_traders = 3 + (ranrot_rand() & 7);   // 1..3;
+	trader_launch_interval = 3600.0 / docked_traders;  // every few minutes
 	last_trader_launch_time = 60.0 - trader_launch_interval; // in one minute's time
 	
 	int i;
@@ -837,17 +835,15 @@ NSDictionary* instructions(int station_id, Vector coords, float speed, float ran
 	for (i = 0; i < MAX_DOCKING_STAGES; i++)
 		id_lock[i] = NO_TARGET;
 
-	//localMarket = nil;
-
-	if (([roles isEqual:@"coriolis"])||([roles isEqual:@"dodecahedron"])||([roles isEqual:@"icosahedron"]))
+	if ([self isRotatingStation])
 	{
-		docked_shuttles = ranrot_rand() % 4;   // 0..3;
+		docked_shuttles = ranrot_rand() & 3;   // 0..3;
 		last_shuttle_launch_time = 0.0;
 		shuttle_launch_interval = 15.0 * 60.0;  // every 15 minutes
-		last_shuttle_launch_time = - (ranrot_rand() % 60) * shuttle_launch_interval / 60.0;
-		docked_traders = 1 + (ranrot_rand() % 3);   // 1..3;
-		last_trader_launch_time = 0.0;
-		trader_launch_interval = ((ranrot_rand() % 10) + 20.0) * 60.0;  // every few minutes
+		last_shuttle_launch_time = - (ranrot_rand() & 63) * shuttle_launch_interval / 60.0;
+
+		docked_traders = 3 + (ranrot_rand() & 7);   // 1..3;
+		trader_launch_interval = 3600.0 / docked_traders;  // every few minutes
 		last_trader_launch_time = 60.0 - trader_launch_interval; // in one minute's time
 	}
 	else
@@ -889,6 +885,10 @@ NSDictionary* instructions(int station_id, Vector coords, float speed, float ran
 	if (other->isShip)
 	{
 		Vector rel_pos, delta, prt_pos;
+		
+		if (other->status == STATUS_LAUNCHING)
+			return NO;
+		
 		// port dimensions..
 		double ww = port_dimensions.x;
 		double hh = port_dimensions.y;
@@ -1088,11 +1088,13 @@ NSDictionary* instructions(int station_id, Vector coords, float speed, float ran
 			last_shuttle_launch_time = unitime;
 		}
 	}
+
 	if ((docked_traders > 0)&&(!isRockHermit))
 	{
+//		NSLog(@"DEBUG1 %f %f", unitime, last_trader_launch_time + trader_launch_interval);
 		if (unitime > last_trader_launch_time + trader_launch_interval)
 		{
-			//NSLog(@"O ---> %d docked traders  at %.1f (%.1f and every %.1f)", docked_traders, [universe getTime], last_trader_launch_time + trader_launch_interval, trader_launch_interval);
+//			NSLog(@"DEBUG O ---> %d docked traders  at %.1f (%.1f and every %.1f)", docked_traders, [universe getTime], last_trader_launch_time + trader_launch_interval, trader_launch_interval);
 			[self launchTrader];
 			docked_traders--;
 			last_trader_launch_time = unitime;
@@ -1164,7 +1166,7 @@ NSDictionary* instructions(int station_id, Vector coords, float speed, float ran
 	[ship setQRotation:q1];
 	[ship setRoll:flight_roll];
 	[ship setPitch:0.0];
-	[ship setStatus:STATUS_LAUNCHING];
+	[ship setStatus: STATUS_LAUNCHING];
 	[[ship getAI] reactToMessage:@"pauseAI: 2.0"]; // pause while launching
 	[universe addEntity:ship];
 	last_launch_time = [universe getTime];
@@ -1509,19 +1511,25 @@ NSDictionary* instructions(int station_id, Vector coords, float speed, float ran
 	BOOL		sunskimmer = (randf() < 0.1);	// 10%
 	ShipEntity  *trader_ship;
 	
-	if (sunskimmer)
+//	NSLog(@"DEBUG %@ [StationEntity launchTrader]", self);
+	
+	
+	if (!sunskimmer)
 		trader_ship = [universe getShipWithRole:@"trader"];   // retain count = 1
 	else
-		trader_ship = [universe getShipWithRole:@"sunskim_trader"];   // retain count = 1
+		trader_ship = [universe getShipWithRole:@"sunskim-trader"];   // retain count = 1
+	
+//	NSLog(@"DEBUG [StationEntity launchTrader] ---> %@ ", trader_ship);
 	
 	if (trader_ship)
 	{
 		[trader_ship setRoles:@"trader"];
 		[trader_ship setScanClass: CLASS_NEUTRAL];
 		[trader_ship setCargoFlag:CARGO_FLAG_FULL_PLENTIFUL];
-
+		
 		if (sunskimmer)
 		{
+			// add escorts to the sunskimmer
 			int escorts = [trader_ship n_escorts];
 			[[trader_ship getAI] setStateMachine:@"route2sunskimAI.plist"];
 			[trader_ship setN_escorts:0];
@@ -1534,10 +1542,11 @@ NSDictionary* instructions(int station_id, Vector coords, float speed, float ran
 		{
 			[[trader_ship getAI] setStateMachine:@"exitingTraderAI.plist"];
 		}
-		
+
 		[self addShipToLaunchQueue:trader_ship];
 
-		//NSLog(@"%@ Prepping trader: %@ %d for launch.", [self name], [trader_ship name], [trader_ship universal_id]);
+		
+//		NSLog(@"%@ Prepping trader: %@ %d for launch.", [self name], [trader_ship name], [trader_ship universal_id]);
 			
 		[trader_ship release];
 	}

@@ -37,7 +37,7 @@ Your fair use and other rights are in no way affected by the above.
 
 */
 
-#import "SkyEntity.h"
+#import "ParticleEntity.h"
 #import "entities.h"
 
 #import "Universe.h"

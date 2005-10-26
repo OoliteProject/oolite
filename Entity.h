@@ -80,6 +80,7 @@ Your fair use and other rights are in no way affected by the above.
 #define CLASS_MINE		8
 #define CLASS_THARGOID	9
 #define CLASS_BUOY		10
+#define CLASS_WORMHOLE	444
 #define CLASS_PLAYER	100
 #define CLASS_POLICE	999
 #define CLASS_MILITARY	333
@@ -176,6 +177,7 @@ extern int debug;
 		BOOL	isPlanet;
 		BOOL	isPlayer;
 		BOOL	isSky;
+		BOOL	isWormhole;
 		//
 		int			scan_class;
 		double		zero_distance;
@@ -272,6 +274,7 @@ extern int debug;
 
 + (Vector) vectorFromString:(NSString*) xyzString;
 + (Quaternion) quaternionFromString:(NSString*) wxyzString;
++ (Random_Seed) seedFromString:(NSString*) abcdefString;
 
 + (BOOL) scanVector:(Vector *) vector_ptr andQuaternion:(Quaternion *) quaternion_ptr fromString:(NSString*) xyzwxyzString;
 

@@ -37,37 +37,6 @@ Your fair use and other rights are in no way affected by the above.
 
 */
 
-#define SCANNER_CENTRE_X	0
-#define SCANNER_CENTRE_Y	-180
-#define SCANNER_SCALE		256
-
-#define SCANNER_MAX_ZOOM			5.0
-#define SCANNER_ZOOM_LEVELS			5
-#define ZOOM_INDICATOR_CENTRE_X		108
-#define ZOOM_INDICATOR_CENTRE_Y		-216
-
-#define COMPASS_IMAGE			@"compass.png"
-#define COMPASS_CENTRE_X		132
-#define COMPASS_CENTRE_Y		-216
-#define COMPASS_SIZE			64
-#define COMPASS_HALF_SIZE		32
-#define COMPASS_REDDOT_IMAGE	@"reddot.png"
-#define COMPASS_GREENDOT_IMAGE  @"greendot.png"
-#define COMPASS_DOT_SIZE		16
-#define COMPASS_HALF_DOT_SIZE	8
-
-#define TEXT_MESSAGE_Y			-144
-
-#define AEGIS_CENTRE_X		-132
-#define AEGIS_CENTRE_Y		-216
-
-#define SCANNER_IMAGE			@"scanner.png"
-#define SCANNER_IMAGE_WIDTH		512
-#define SCANNER_IMAGE_HEIGHT	128
-
-#define CROSSHAIR_IMAGE			@"crosshair.png"
-#define CROSSHAIR_IMAGE_WIDTH   64
-#define CROSSHAIR_IMAGE_HEIGHT	64
 #define CROSSHAIR_SIZE			32.0
 
 #define VIEW_FORWARD			0
@@ -224,7 +193,6 @@ extern int debug;
 		NSMutableDictionary *preloadedDataFiles;
 
 		NSMutableArray	*entities;
-//        NSMutableArray	*entsInDrawOrder;
 				
 		int				station;
 		int				sun;
@@ -298,6 +266,8 @@ extern int debug;
 		NSMutableDictionary*	local_planetinfo_overrides;
 		
 		NSException*	exception;
+		
+		NSMutableArray*	activeWormholes;
 
 }
 
@@ -321,6 +291,7 @@ extern int debug;
 - (void) set_up_space;
 - (void) setLighting;
 
+- (void) populateSpaceFromActiveWormholes;
 - (void) populateSpaceFromHyperPoint:(Vector) h1_pos toPlanetPosition:(Vector) p1_pos andSunPosition:(Vector) s1_pos;
 - (int)	scatterAsteroidsAt:(Vector) spawnPos withVelocity:(Vector) spawnVel includingRockHermit:(BOOL) spawnHermit;
 - (void) addShipWithRole:(NSString *) desc nearRouteOneAt:(double) route_fraction;
@@ -400,6 +371,7 @@ extern int debug;
 - (Entity *) entityForUniversalID:(int)u_id;
 - (BOOL) addEntity:(Entity *) entity;
 - (BOOL) removeEntity:(Entity *) entity;
+- (BOOL) removeWithoutRecyclingEntity:(Entity *) entity;
 - (void) removeAllEntitiesExceptPlayer:(BOOL) restore;
 - (void) removeDemoShips;
 
@@ -460,6 +432,8 @@ extern int debug;
 - (NSString *) generatePhoneticSystemName:(Random_Seed) s_seed;
 - (NSString *) generateSystemInhabitants:(Random_Seed) s_seed;
 - (Random_Seed) findSystemAtCoords:(NSPoint) coords withGalaxySeed:(Random_Seed) gal_seed;
+- (NSString*) systemSeedString:(Random_Seed) s;
+- (NSArray*) nearbyDestinationsWithinRange:(double) range;
 - (Random_Seed) findNeighbouringSystemToCoords:(NSPoint) coords withGalaxySeed:(Random_Seed) gal_seed;
 - (Random_Seed) findConnectedSystemAtCoords:(NSPoint) coords withGalaxySeed:(Random_Seed) gal_seed;
 - (int) findSystemNumberAtCoords:(NSPoint) coords withGalaxySeed:(Random_Seed) gal_seed;

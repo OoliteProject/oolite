@@ -1023,6 +1023,7 @@ static BOOL galactic_witchjump;
 	warningSound =		[[ResourceManager soundNamed:@"warning.ogg" inFolder:@"Sounds"] retain];
 	afterburner1Sound =  [[ResourceManager soundNamed:@"afterburner1.ogg" inFolder:@"Sounds"] retain];
 	afterburner2Sound =  [[ResourceManager soundNamed:@"afterburner2.ogg" inFolder:@"Sounds"] retain];
+   witchAbortSound = [[ResourceManager soundNamed:@"witchabort.ogg" inFolder:@"Sounds"] retain];
 	//
 	
 //	//// for looping sounds set the sound's delegate to self
@@ -5716,29 +5717,38 @@ static BOOL toggling_music;
 	[universe set_up_universe_from_witchspace];
 }
 
-- (void) enterWitchspaceWithEmergencyDrive
+- (void) enterWormhole:(WormholeEntity*) w_hole
 {
-	system_seed = [universe findNeighbouringSystemToCoords:galaxy_coordinates withGalaxySeed:galaxy_seed];
-	target_system_seed = system_seed;
-	
+	target_system_seed = [w_hole destination];
 	status = STATUS_ENTERING_WITCHSPACE;
 	
 	hyperspeed_engaged = NO;
 	
+	//
+	//	reset the compass
+	//
+	if ([self has_extra_equipment:@"EQ_ADVANCED_COMPASS"])
+		compass_mode = COMPASS_MODE_PLANET;
+	else
+		compass_mode = COMPASS_MODE_BASIC;
+
+	double		distance = distanceBetweenPlanetPositions(target_system_seed.d,target_system_seed.b,galaxy_coordinates.x,galaxy_coordinates.y); 
+	ship_clock_adjust = distance * distance * 3600.0;		// LY * LY hrs
+	
 	[universe setDisplayText:NO];
 	[universe removeAllEntitiesExceptPlayer:NO];
-	
-	[self remove_extra_equipment:@"EQ_EMERGENCY_HYPERDRIVE"];
-	fuel = 0;								// use up all the fuel
-	
 	[universe setSystemTo:target_system_seed];
+	
 	system_seed = target_system_seed;
 	galaxy_coordinates.x = system_seed.d;
 	galaxy_coordinates.y = system_seed.b;
+	legal_status /= 2;										// 'another day, another system'
 	ranrot_srand([[NSDate date] timeIntervalSince1970]);	// seed randomiser by time
 	market_rnd = ranrot_rand() & 255;						// random factor for market values is reset
 	//
 	[universe set_up_universe_from_witchspace];
+	[[universe planet] update: 2.34375 * market_rnd];	// from 0..10 minutes
+	[[universe station] update: 2.34375 * market_rnd];	// from 0..10 minutes
 }
 
 - (void) enterWitchspace
@@ -5777,10 +5787,10 @@ static BOOL toggling_music;
 		galaxy_coordinates.y = system_seed.b;
 		legal_status /= 2;								// 'another day, another system'
 		market_rnd = ranrot_rand() & 255;				// random factor for market values is reset
-		if (market_rnd < 16)
-			[self erodeReputation];						// every 16 systems or so, drop back towards 'unknown'
+		if (market_rnd < 8)
+			[self erodeReputation];						// every 32 systems or so, drop back towards 'unknown'
 		//
-		if (market_rnd < ship_trade_in_factor)				// every four jumps or so
+		if (2 * market_rnd < ship_trade_in_factor)			// every eight jumps or so
 			ship_trade_in_factor -= 1 + (market_rnd & 3);	// drop the price down towards 75%
 		if (ship_trade_in_factor < 75)
 			ship_trade_in_factor = 75;						// lower limit for trade in value is 75%
