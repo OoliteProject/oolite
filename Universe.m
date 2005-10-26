@@ -3838,10 +3838,11 @@ Your fair use and other rights are in no way affected by the above.
 				[se setBeaconChar:0];
 			}
 			
-			[entities removeObject:[self recycleOrDiscard:entity]];
 			//
 			if (entity->isWormhole)
 				[activeWormholes removeObject:entity];
+			//
+			[entities removeObject:[self recycleOrDiscard:entity]];
 			
 			//NSLog(@"--(%@)\n%@", entity, [entities description]);
 			
@@ -3924,10 +3925,11 @@ Your fair use and other rights are in no way affected by the above.
 				}
 				[se setBeaconChar:0];
 			}
-			[entities removeObject: entity];
 			//
 			if (entity->isWormhole)
 				[activeWormholes removeObject:entity];
+			//
+			[entities removeObject:[self recycleOrDiscard:entity]];
 			//
 			return YES;
 		}
