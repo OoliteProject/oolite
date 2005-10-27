@@ -1740,6 +1740,8 @@ static BOOL last_one_was_textured;
 		}
 	}
 	
+//	NSLog(@"edge_to_vertex %@", edge_to_vertex);
+	
 	// all done - copy the indices to the instance
 	//
 	for (i = 0; i < MAX_TRI_INDICES; i++)
@@ -1773,7 +1775,7 @@ int baseVertexIndexForEdge(int va, int vb, BOOL textured)
 			NSPoint	uva = NSMakePoint( texture_uv_array[va * 2], texture_uv_array[va * 2 + 1]);
 			NSPoint	uvb = NSMakePoint( texture_uv_array[vb * 2], texture_uv_array[vb * 2 + 1]);
 			//
-			// if either of these is the polar vertex treat it specially to helop with polar distortion:
+			// if either of these is the polar vertex treat it specially to help with polar distortion:
 			if ((uva.y == 0.0)||(uva.y == 1.0))
 				uva.x = uvb.x;
 			if ((uvb.y == 0.0)||(uvb.y == 1.0))

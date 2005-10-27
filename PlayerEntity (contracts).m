@@ -881,7 +881,7 @@ Your fair use and other rights are in no way affected by the above.
 
 // ---------------------------------------------------------------------- //
 
-NSMutableDictionary* currentShipyard;
+static NSMutableDictionary* currentShipyard = nil;
 
 - (void) setGuiToShipyardScreen:(int) skip
 {
@@ -905,6 +905,7 @@ NSMutableDictionary* currentShipyard;
 	
 	if (currentShipyard)	[currentShipyard release];
 	currentShipyard = [[NSMutableDictionary alloc] initWithCapacity:[shipyard count]];
+
 	for (i = 0; i < [shipyard count]; i++)
 	{
 		[currentShipyard	setObject:[shipyard objectAtIndex:i]

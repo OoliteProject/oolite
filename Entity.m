@@ -45,6 +45,8 @@ Your fair use and other rights are in no way affected by the above.
 #import "TextureStore.h"
 #import "ResourceManager.h"
 
+#import "ScannerExtension.h"
+
 // global flag for VAR
 BOOL global_usingVAR;
 BOOL global_testForVAR;
@@ -217,8 +219,8 @@ static  Universe	*data_store_universe;
 	NSString* token;
 	while (![scanner isAtEnd])
 	{
-		[scanner scanCharactersFromSet:space_set intoString:(NSString * *)nil];
-		if ([scanner scanUpToCharactersFromSet:space_set intoString:&token])
+		[scanner ooliteScanCharactersFromSet:space_set intoString:(NSString * *)nil];
+		if ([scanner ooliteScanUpToCharactersFromSet:space_set intoString:&token])
 			[result addObject:[NSString stringWithString:token]];
 	}
 	return result;

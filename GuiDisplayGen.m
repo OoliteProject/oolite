@@ -396,13 +396,7 @@ Your fair use and other rights are in no way affected by the above.
 	}
 	else
 	{
-      // DANGER WILL ROBINSON. TEMPORARY KLUDGE
-      char cstr[255];
-      [str getCString: cstr maxLength: 255];
-      NSString *str2=[NSString stringWithFormat: @"%s", cstr];
-		NSMutableArray*	words = [Entity scanTokensFromString:str2];
-      // END KLUDGE
-
+		NSMutableArray*	words = [Entity scanTokensFromString:str];
 		NSMutableString* string1 = [NSMutableString stringWithCapacity:256];
 		NSMutableString* string2 = [NSMutableString stringWithCapacity:256];
 		strsize.width = 0.0;

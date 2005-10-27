@@ -88,8 +88,8 @@ Your fair use and other rights are in no way affected by the above.
 		[Entity setDataStore:self];
 	//
 	
-	//set the universal planet edge thingy
-	[PlanetEntity resetBaseVertexArray];
+//	//set the universal planet edge thingy
+//	[PlanetEntity resetBaseVertexArray];
 	
 	reducedDetail = NO;
 
@@ -282,8 +282,8 @@ Your fair use and other rights are in no way affected by the above.
 	
 	if (activeWormholes)		[activeWormholes release];
 								
-	// reset/dealloc the universal planet edge thingy
-	[PlanetEntity resetBaseVertexArray];
+//	// reset/dealloc the universal planet edge thingy
+//	[PlanetEntity resetBaseVertexArray];
 	
 	int i;
 	for (i = 0; i < 256; i++)
@@ -3929,7 +3929,7 @@ Your fair use and other rights are in no way affected by the above.
 			if (entity->isWormhole)
 				[activeWormholes removeObject:entity];
 			//
-			[entities removeObject:[self recycleOrDiscard:entity]];
+			[entities removeObject:entity];
 			//
 			return YES;
 		}
@@ -5385,21 +5385,20 @@ Your fair use and other rights are in no way affected by the above.
 {
 	NSDictionary	*systemDic =	[self generateSystemData:s_seed];
 	NSString		*name =			(NSString *)[systemDic objectForKey:KEY_NAME];
-	return [NSString stringWithString:[name capitalizedString]];
+	return [name capitalizedString];
 }
 
 - (NSString *) getSystemInhabitants:(Random_Seed) s_seed
 {
 	NSDictionary	*systemDic =	[self generateSystemData:s_seed];
 	NSString		*inhabitants =  (NSString *)[systemDic objectForKey:KEY_INHABITANTS];
-	return [NSString stringWithString:inhabitants];
+	return inhabitants;
 }
 
 - (NSString *) generateSystemName:(Random_Seed) s_seed
 {
 	int i;
 		
-//	NSString*			digrams = @"ABOUSEITILETSTONLONUTHNOALLEXEGEZACEBISOUSESARMAINDIREA'ERATENBERALAVETIEDORQUANTEISRION";
 	NSString*			digrams = [descriptions objectForKey:@"digrams"];
 	NSMutableString*	name = [NSMutableString stringWithCapacity:256];
 	int size = 4;
@@ -5422,7 +5421,7 @@ Your fair use and other rights are in no way affected by the above.
 		rotate_seed(&s_seed);
 	}
 	
-	return [NSString stringWithString:[name capitalizedString]];
+	return [name capitalizedString];
 }
 
 - (NSString *) generatePhoneticSystemName:(Random_Seed) s_seed
@@ -5484,7 +5483,7 @@ Your fair use and other rights are in no way affected by the above.
 	}
 	[inhabitants appendString:@"s"];
 	//	
-	return [NSString stringWithString:inhabitants];
+	return inhabitants;
 }
 
 
@@ -6817,15 +6816,15 @@ NSComparisonResult comparePrice( id dict1, id dict2, void * context)
 	switch (weapon)
 	{
 		case WEAPON_PULSE_LASER :
-			return [NSString stringWithString:@"EQ_WEAPON_PULSE_LASER"];
+			return	@"EQ_WEAPON_PULSE_LASER";
 		case WEAPON_BEAM_LASER :
-			return [NSString stringWithString:@"EQ_WEAPON_BEAM_LASER"];
+			return	@"EQ_WEAPON_BEAM_LASER";
 		case WEAPON_MINING_LASER :
-			return [NSString stringWithString:@"EQ_WEAPON_MINING_LASER"];
+			return	@"EQ_WEAPON_MINING_LASER";
 		case WEAPON_MILITARY_LASER :
-			return [NSString stringWithString:@"EQ_WEAPON_MILITARY_LASER"];
+			return	@"EQ_WEAPON_MILITARY_LASER";
 		case WEAPON_THARGOID_LASER :
-			return [NSString stringWithString:@"EQ_WEAPON_THARGOID_LASER"];
+			return	@"EQ_WEAPON_THARGOID_LASER";
 	}
 	return nil;
 }
@@ -6891,14 +6890,13 @@ NSComparisonResult comparePrice( id dict1, id dict2, void * context)
 				withString:[self getRandomDigrams]
 				options:NSLiteralSearch range:NSMakeRange(0, [partial length])];
 
-	return [NSString stringWithString:partial]; 
+	return partial; 
 }
 
 - (NSString *) getRandomDigrams
 {
 	int i;
 	int len = gen_rnd_number() & 3;	
-//	NSString*			digrams = @"ABOUSEITILETSTONLONUTHNOALLEXEGEZACEBISOUSESARMAINDIREA'ERATENBERALAVETIEDORQUANTEISRION";
 	NSString*			digrams = [descriptions objectForKey:@"digrams"];
 	NSMutableString*	name = [NSMutableString stringWithCapacity:256];
 	for (i = 0; i <=len; i++)
@@ -6906,7 +6904,7 @@ NSComparisonResult comparePrice( id dict1, id dict2, void * context)
 		int x =  gen_rnd_number() & 0x3e;
 		[name appendString:[digrams substringWithRange:NSMakeRange(x,2)]];
 	}
-	return [NSString stringWithString:[name capitalizedString]]; 
+	return [name capitalizedString]; 
 }
 
 - (Vector) getWitchspaceExitPosition

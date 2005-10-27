@@ -40,6 +40,7 @@ Your fair use and other rights are in no way affected by the above.
 */
 
 #import "ResourceManager.h"
+#import "ScannerExtension.h"
 #ifdef GNUSTEP
 #import "Comparison.h"
 #import "OOSound.h"
@@ -725,19 +726,14 @@ NSMutableDictionary*	surface_cache;
 + (NSMutableArray *) scanTokensFromString:(NSString*) values
 {
 	NSMutableArray* result = [NSMutableArray arrayWithCapacity:8];
-	if ([values retain])
+	NSScanner* scanner = [NSScanner scannerWithString:values];
+	NSCharacterSet* space_set = [NSCharacterSet whitespaceAndNewlineCharacterSet];
+	NSString* token;
+	while (![scanner isAtEnd])
 	{
-		NSScanner* scanner = [NSScanner scannerWithString:values];
-		NSCharacterSet* space_set = [NSCharacterSet whitespaceAndNewlineCharacterSet];
-		NSCharacterSet* notspace_set = [space_set invertedSet];
-		NSString* token;
-		while (![scanner isAtEnd])
-		{
-			[scanner scanCharactersFromSet: space_set intoString:(NSString * *)nil];	// skip any blank space
-			if ([scanner scanCharactersFromSet: notspace_set intoString:&token])	// record any non-blank space
-				[result addObject:[NSString stringWithString:token]];
-		}
-		[values release];
+		[scanner ooliteScanCharactersFromSet:space_set intoString:(NSString * *)nil];
+		if ([scanner ooliteScanUpToCharactersFromSet:space_set intoString:&token])
+			[result addObject:[NSString stringWithString:token]];
 	}
 	return result;
 }
@@ -1077,7 +1073,7 @@ NSMutableDictionary*	surface_cache;
 {
 	if ([xmlContent isKindOfClass:[NSString class]])
 	{
-		return [NSString stringWithString:(NSString*)xmlContent];
+		return (NSString*)xmlContent;
 	}
 	return nil;
 }
@@ -1191,7 +1187,7 @@ NSMutableDictionary*	surface_cache;
 	int i;
 	for ( i = 0; i < n_floats ; i++)
 		[result appendFormat:@"%f ", float_array[i]];
-	return [NSString stringWithString: result];
+	return result;
 }
 
 + (void) GLFloatsFromString: (NSString*) float_string: (GLfloat*) float_array
