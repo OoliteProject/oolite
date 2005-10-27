@@ -2602,7 +2602,7 @@ static NSTimeInterval	time_last_frame;
 			//
          // DJS: Thrust can be an axis or a button. Axis takes precidence.
          double reqSpeed=[stickHandler getAxisState: AXIS_THRUST];
-         if(reqSpeed == STICK_AXISUNASSIGNED)
+         if(reqSpeed == STICK_AXISUNASSIGNED || [stickHandler getNumSticks] == 0)
          {
             // DJS: original keyboard code 
             if (([gameView isDown:key_increase_speed] || joyButtonState[BUTTON_INCTHRUST])&&(flight_speed < max_flight_speed)&&(!afterburner_engaged))
