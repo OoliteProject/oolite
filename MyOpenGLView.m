@@ -795,9 +795,13 @@ Your fair use and other rights are in no way affected by the above.
                case SDLK_SPACE: keys[32] = YES; break;
                case SDLK_RETURN: keys[13] = YES; break;
                case SDLK_TAB: keys[9] = YES; break;
+               case SDLK_KP8:                              
                case SDLK_UP: keys[gvArrowKeyUp] = YES; break;
+               case SDLK_KP2:
                case SDLK_DOWN: keys[gvArrowKeyDown] = YES; break;
+               case SDLK_KP4:
                case SDLK_LEFT: keys[gvArrowKeyLeft] = YES; break;
+               case SDLK_KP6:
                case SDLK_RIGHT: keys[gvArrowKeyRight] = YES; break;
 
                case SDLK_F1: keys[gvFunctionKey1] = YES; break;
@@ -911,9 +915,13 @@ Your fair use and other rights are in no way affected by the above.
                case SDLK_SPACE: keys[32] = NO; break;
                case SDLK_RETURN: keys[13] = NO; break;
                case SDLK_TAB: keys[9] = NO; break;
+               case SDLK_KP8:                              
                case SDLK_UP: keys[gvArrowKeyUp] = NO; break;
+               case SDLK_KP2:
                case SDLK_DOWN: keys[gvArrowKeyDown] = NO; break;
+               case SDLK_KP4:
                case SDLK_LEFT: keys[gvArrowKeyLeft] = NO; break;
+               case SDLK_KP6:
                case SDLK_RIGHT: keys[gvArrowKeyRight] = NO; break;
 
                case SDLK_F1: keys[gvFunctionKey1] = NO; break;
