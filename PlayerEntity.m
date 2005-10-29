@@ -3151,7 +3151,8 @@ static NSTimeInterval	time_last_frame;
 			[universe setDisplayCursor:YES];
 		}
 		//
-		if (gui_screen == GUI_SCREEN_OPTIONS)
+		if (gui_screen == GUI_SCREEN_OPTIONS ||
+          gui_screen == GUI_SCREEN_STICKMAPPER)
 		{
 			NSTimeInterval time_this_frame = [NSDate timeIntervalSinceReferenceDate];
 			double time_delta = time_this_frame - time_last_frame;
