@@ -133,6 +133,8 @@ Your fair use and other rights are in no way affected by the above.
 		[ship setPitch: 0.0];
 		[ship setRoll: 0.0];
 		
+		[ship setBounty:[ship getBounty]/2];	// adjust legal status for new system
+		
 		[universe addEntity:ship];
 		[[ship getAI] reactToMessage:@"EXITED WITCHSPACE"];
 		
@@ -157,8 +159,8 @@ Your fair use and other rights are in no way affected by the above.
 
 - (NSString*) description
 {
-	NSString* result = [[NSString alloc] initWithFormat:@"<WormholeEntity to %@ ttl: %.2fs>", [universe getSystemName: destination], WORMHOLE_EXPIRES_TIMEINTERVAL - time_counter];
-	return [result autorelease];
+	NSString* whereto = (universe)? [universe getSystemName: destination] : [Universe systemSeedString: destination];
+	return [NSString stringWithFormat:@"<WormholeEntity to %@ ttl: %.2fs>", whereto, WORMHOLE_EXPIRES_TIMEINTERVAL - time_counter];
 }
 
 - (BOOL) canCollide

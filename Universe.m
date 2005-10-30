@@ -981,8 +981,9 @@ Your fair use and other rights are in no way affected by the above.
 	[self populateSpaceFromActiveWormholes];
 	
 	[self populateSpaceFromHyperPoint:[self getWitchspaceExitPosition] toPlanetPosition: a_planet->position andSunPosition: a_sun->position];
+
 	
-	// log positions and info against debugging 
+//	// log positions and info against debugging 
 //	NSLog(@"DEBUG ** System :\t%@", [self generateSystemName:system_seed]);
 //	NSLog(@"DEBUG ** Planet position\t( %.0f, %.0f, %.0f)",
 //		a_planet->position.x, a_planet->position.y, a_planet->position.z);
@@ -996,6 +997,16 @@ Your fair use and other rights are in no way affected by the above.
 //	NSLog(@"DEBUG ** Station q_station\t( %.3f, %.3f, %.3f, %.3f)",
 //		q_station.w, q_station.x, q_station.y, q_station.z);
 //	NSLog(@"DEBUG **\n\n");
+
+
+//	// debug name gen
+//	int i;
+//	Random_Seed p_seed = system_seed;
+//	for (i = 0; i < 200; i++)
+//	{
+//		rotate_seed(&p_seed);
+//		NSLog([NSString stringWithFormat:@"Human Name: %@ %@", [self expandDescription:@"%R" forSystem:p_seed], [self expandDescription:@"[nom]" forSystem:p_seed]]);
+//	}
 	
 	
 	/*- nav beacon -*/
@@ -1157,7 +1168,7 @@ Your fair use and other rights are in no way affected by the above.
 		[whole setUniverse: self];
 		
 		NSLog(@"DEBUG considering wormhole %@ destination %@ (system %@)",
-			whole, [self systemSeedString:[whole destination]], [self systemSeedString:system_seed]);
+			whole, [Universe systemSeedString:[whole destination]], [Universe systemSeedString:system_seed]);
 		
 		if (equal_seeds( [whole destination], system_seed))
 		{			
@@ -4497,7 +4508,7 @@ Your fair use and other rights are in no way affected by the above.
 	ShipEntity*	hit_entity = nil;
 	
 	int		result = NO_TARGET;
-	double  nearest = SCANNER_MAX_RANGE;
+	double  nearest = SCANNER_MAX_RANGE - 10;	// 10m shorter than range at which target is lost
 	int i;
 	
 	int ent_count = n_entities;
@@ -4965,6 +4976,7 @@ Your fair use and other rights are in no way affected by the above.
 {
     if (!no_update)
 	{
+		NSString*	update_stage = @"initialisation";
 		NS_DURING
 			int i;
 			PlayerEntity*	player = (PlayerEntity *)[self entityZero];
@@ -4985,6 +4997,7 @@ Your fair use and other rights are in no way affected by the above.
 			time_delta = delta_t;
 			universal_time += delta_t;
 			//
+			update_stage = @"demo management";
 			if ((demo_stage)&&(player)&&(player->status == STATUS_DEMO)&&(universal_time > demo_stage_time)&&([player gui_screen] == GUI_SCREEN_INTRO2))
 			{
 				if (ent_count > 1)
@@ -5036,6 +5049,7 @@ Your fair use and other rights are in no way affected by the above.
 			}
 						
 			//
+			update_stage = @"update:entity";
 			for (i = 0; i < ent_count; i++)
 			{
 				Entity *thing = my_entities[i];
@@ -5066,6 +5080,7 @@ Your fair use and other rights are in no way affected by the above.
 			}
 			//
 			// lighting considerations..
+			update_stage = @"occlusion testing";
 			PlanetEntity* the_sun = cachedSun;
 			if (the_sun)
 			{
@@ -5173,10 +5188,12 @@ Your fair use and other rights are in no way affected by the above.
 			}
 			//
 			//
+			update_stage = @"collision detection";
 			[self findCollisions];
 			//
 			// dispose of the non-mutable copy and everything it references neatly
 			//
+			update_stage = @"clean up";
 			for (i = 0; i < ent_count; i++)
 				[my_entities[i] release];	// explicitly release each one
 
@@ -5186,14 +5203,13 @@ Your fair use and other rights are in no way affected by the above.
 				[self handleOoliteException:localException];
 			else
 			{
-				NSLog(@"\n\n***** Handling localException: %@ : %@ *****\n\n",[localException name], [localException reason]);
-#ifndef GNUSTEP
-				if (![[self gameController] inFullScreenMode])
-					NSRunAlertPanel(@"Unexpected Error!", @"Error during [universe update:]\n\n'%@'", @"QUIT", nil, nil,localException);
-				else
-#endif
-				NSLog(@"\n\n***** Quitting Oolite *****\n\n");
-				[[self gameController] exitApp];
+				NSLog(@"\n\n***** Encountered localException during %@ in [Universe update:] : %@ : %@ *****\n\n", update_stage, [localException name], [localException reason]);
+//				if (![[self gameController] inFullScreenMode])
+//					NSRunAlertPanel(@"Unexpected Error!", @"Error during [universe update:]\n\n'%@'", @"QUIT", nil, nil,localException);
+//				else
+//				NSLog(@"\n\n***** Quitting Oolite *****\n\n");
+//				[[self gameController] exitApp];
+				[localException raise];
 			}
 		
 		NS_ENDHANDLER
@@ -5517,7 +5533,7 @@ Your fair use and other rights are in no way affected by the above.
 	return system;
 }
 
-- (NSString*) systemSeedString:(Random_Seed) s
++ (NSString*) systemSeedString:(Random_Seed) s
 {
 	return [NSString stringWithFormat: @"%d %d %d %d %d %d", s.a, s.b, s.c, s.d, s.e, s.f];
 }
@@ -5532,10 +5548,10 @@ Your fair use and other rights are in no way affected by the above.
 	for (i = 0; i < 256; i++)
 	{
 		double dist = distanceBetweenPlanetPositions(here.d, here.b, systems[i].d, systems[i].b);
-		if ((dist > 0) && (dist <= range))
+		if ((dist > 0) && (dist <= range) && (dist <= 7.0))	// limit to systems within 7LY
 		{
 			[result addObject: [NSDictionary dictionaryWithObjectsAndKeys:
-				[self systemSeedString:systems[i]], @"system_seed",
+				[Universe systemSeedString:systems[i]], @"system_seed",
 				[NSNumber numberWithDouble: dist], @"distance",
 				[self getSystemName:systems[i]], @"name",
 				nil]];
@@ -6059,6 +6075,8 @@ double estimatedTimeForJourney(double distance, int hops)
 //			seed_for_planet_description(passenger_seed);	// set the random number generator
 			seed_RNG_only_for_planet_description(passenger_seed);
 			NSString* passenger_name = [NSString stringWithFormat:@"%@ %@", [self expandDescription:@"%R" forSystem:passenger_seed], [self expandDescription:@"%R" forSystem:passenger_seed]];
+			if ([passenger_species_string hasPrefix:@"human"])
+				passenger_name = [NSString stringWithFormat:@"%@ %@", [self expandDescription:@"%R" forSystem:passenger_seed], [self expandDescription:@"[nom]" forSystem:passenger_seed]];
 			
 			// determine information about the route...
 			NSDictionary* routeInfo = [self routeFromSystem:start ToSystem:passenger_destination];

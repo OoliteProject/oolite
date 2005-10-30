@@ -1007,12 +1007,6 @@
 		<real>2</real>
 		<key>forward_weapon_type</key>
 		<string>WEAPON_NONE</string>
-		<key>has_ecm</key>
-		<false/>
-		<key>has_escape_pod</key>
-		<false/>
-		<key>has_scoop</key>
-		<false/>
 		<key>likely_cargo</key>
 		<integer>0</integer>
 		<key>max_cargo</key>

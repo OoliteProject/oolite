@@ -509,10 +509,8 @@ Your fair use and other rights are in no way affected by the above.
 	isFrangible = YES;
 	//
 	if (dockingInstructions)
-	{
 		[dockingInstructions release];
-		dockingInstructions = nil;
-	}
+	dockingInstructions = nil;
 }
 
 - (id) initWithDictionary:(NSDictionary *) dict
@@ -1513,7 +1511,7 @@ BOOL ship_canCollide (ShipEntity* ship)
 		double  range = [self rangeToPrimaryTarget];
 		double  distance = [self rangeToDestination];
 		double  target_speed = max_flight_speed;
-		double	slow_down_range = weapon_range * COMBAT_WEAPON_RANGE_FACTOR * ((isUsingAfterburner)? 2.0 * AFTERBURNER_FACTOR : 1.0);
+		double	slow_down_range = weapon_range * COMBAT_WEAPON_RANGE_FACTOR * ((isUsingAfterburner)? 3.0 * AFTERBURNER_FACTOR : 1.0);
 		double	max_cos = 0.995;
 		
 		ShipEntity*	target = (ShipEntity*)[universe entityForUniversalID:primaryTarget];
@@ -1961,10 +1959,11 @@ BOOL ship_canCollide (ShipEntity* ship)
 				}
 				else
 				{
-					double eta = (desired_range - distance) / flight_speed;
+//					double eta = (desired_range - distance) / flight_speed;
 					desired_speed = max_flight_speed;
-					if ((eta < 1.0)&&(flight_speed > max_flight_speed*0.25))
-						desired_speed = flight_speed * 0.5;   // cut speed to a minimum of 1/4 speed
+					// don't cut speed on retreating...
+//					if ((eta < 1.0)&&(flight_speed > max_flight_speed*0.25))
+//						desired_speed = flight_speed * 0.5;   // cut speed to a minimum of 1/4 speed
 				}
 				[self trackDestination:delta_t:YES];
 				if ((proximity_alert != NO_TARGET)&&(proximity_alert != primaryTarget))
@@ -5783,7 +5782,8 @@ inline BOOL pairOK(NSString* my_role, NSString* their_role)
 		
 	if (primaryTarget == last_escort_target)
 	{
-		NSLog(@"DEBUG attempting to deploy more escorts onto same target - denied");
+		// already deployed escorts onto this target!
+//		NSLog(@"DEBUG attempting to deploy more escorts onto same target - denied");
 		return;
 	}
 	

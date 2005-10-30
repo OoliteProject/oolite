@@ -432,7 +432,8 @@ extern int debug;
 - (NSString *) generatePhoneticSystemName:(Random_Seed) s_seed;
 - (NSString *) generateSystemInhabitants:(Random_Seed) s_seed;
 - (Random_Seed) findSystemAtCoords:(NSPoint) coords withGalaxySeed:(Random_Seed) gal_seed;
-- (NSString*) systemSeedString:(Random_Seed) s;
+
++ (NSString*) systemSeedString:(Random_Seed) s;
 - (NSArray*) nearbyDestinationsWithinRange:(double) range;
 - (Random_Seed) findNeighbouringSystemToCoords:(NSPoint) coords withGalaxySeed:(Random_Seed) gal_seed;
 - (Random_Seed) findConnectedSystemAtCoords:(NSPoint) coords withGalaxySeed:(Random_Seed) gal_seed;

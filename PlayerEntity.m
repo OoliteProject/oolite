@@ -1518,7 +1518,9 @@ static BOOL galactic_witchjump;
 			[universe displayCountdownMessage:[NSString stringWithFormat:[universe expandDescription:@"[witch-to-@-in-f-seconds]" forSystem:system_seed], [universe getSystemName:target_system_seed], witchspaceCountdown] forCount:1.0];
 		if (witchspaceCountdown == 0.0)
 		{
-			[self safe_all_missiles];
+			BOOL go = YES;
+			
+			// check nearby masses
 			ShipEntity* blocker = (ShipEntity*)[universe entityForUniversalID:[self checkShipsInVicinityForWitchJumpExit]];
 			if (blocker)
 			{
@@ -1526,9 +1528,23 @@ static BOOL galactic_witchjump;
 				[universe addMessage:[NSString stringWithFormat:[universe expandDescription:@"[witch-blocked-by-@]" forSystem:system_seed], [blocker name]] forCount: 4.5];
 				[witchAbortSound play];
 				status = STATUS_IN_FLIGHT;
+				go = NO;
 			}
-			else
+			
+			// check fuel level
+			double		fuel_required = 10.0 * distanceBetweenPlanetPositions(target_system_seed.d,target_system_seed.b,galaxy_coordinates.x,galaxy_coordinates.y); 
+			if (fuel < fuel_required)
 			{
+				[universe clearPreviousMessage];
+				[universe addMessage:[universe expandDescription:@"[witch-no-fuel]" forSystem:system_seed] forCount: 4.5];
+				[witchAbortSound play];
+				status = STATUS_IN_FLIGHT;
+				go = NO;
+			}
+			
+			if (go)
+			{
+				[self safe_all_missiles];
 				if (galactic_witchjump)
 					[self enterGalacticWitchspace];
 				else
@@ -1550,7 +1566,6 @@ static BOOL galactic_witchjump;
 			if ([universe planet])
 				[universe addMessage:[NSString stringWithFormat:@" %@. ",[universe getSystemName:system_seed]] forCount:3.0];
 			else
-//				[universe addMessage:@"Witchspace engine malfunction!" forCount:3.0];
 				[universe addMessage:[universe expandDescription:@"[witch-engine-malfunction]" forSystem:system_seed] forCount:3.0];
 			
 			status = STATUS_IN_FLIGHT;
@@ -5426,6 +5441,7 @@ static BOOL toggling_music;
 	int n_mass = [self mass] / 10000;
 	int n_considered = n_cargo + n_mass;
 	int damage_to = ranrot_rand() % n_considered;
+	// cargo damage
 	if (damage_to < [cargo count])
 	{
 		ShipEntity* pod = (ShipEntity*)[cargo objectAtIndex:damage_to];
@@ -5441,6 +5457,7 @@ static BOOL toggling_music;
 	{
 		damage_to = n_considered - (damage_to + 1);	// reverse the die-roll
 	}
+	// equipment damage
 	if (damage_to < [extra_equipment count])
 	{
 		NSArray* systems = [extra_equipment allKeys];
@@ -5463,7 +5480,11 @@ static BOOL toggling_music;
 		[self removeEquipment:system_key];
 		if (![universe strict])
 			[self add_extra_equipment:[NSString stringWithFormat:@"%@_DAMAGED", system_key]];	// for possible future repair
+		return;
 	}
+	//cosmetic damage
+	if ((damage_to & 7 == 7)&&(ship_trade_in_factor > 75))
+		ship_trade_in_factor--;
 }
 
 - (NSDictionary*) damageInformation

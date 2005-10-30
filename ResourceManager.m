@@ -139,32 +139,57 @@ NSMutableDictionary*	surface_cache;
 		[errors release];
 		errors = nil;
 	}
-
-#ifndef WIN32	
-	NSString	*app_path = [[[[NSBundle mainBundle] bundlePath] stringByAppendingPathComponent:@"Contents"] stringByAppendingPathComponent:@"Resources"];
-	NSString	*addon_path = [[[[NSBundle mainBundle] bundlePath] stringByDeletingLastPathComponent] stringByAppendingPathComponent:@"AddOns"];
-#else
+	
+#ifdef WIN32
 	NSString	*app_path = @"oolite.app/Contents/Resources";
-	NSString	*addon_path = @"AddOns";
+	NSString	*app_addon_path = @"AddOns";
+	NSString	*appsupport_path=nil;
+	NSString	*nix_path=nil;
+#else
+	NSString*	app_path = [[[[NSBundle mainBundle] bundlePath]
+								stringByAppendingPathComponent:@"Contents"]
+								stringByAppendingPathComponent:@"Resources"];
+	NSString*	app_addon_path = [[[[NSBundle mainBundle] bundlePath]
+								stringByDeletingLastPathComponent]
+								stringByAppendingPathComponent:@"AddOns"];
+	NSString*	appsupport_path = [[[[NSHomeDirectory()
+									stringByAppendingPathComponent:@"Library"]
+									stringByAppendingPathComponent:@"Application Support"]
+									stringByAppendingPathComponent:@"Oolite"]
+									stringByAppendingPathComponent:@"AddOns"];
+	NSString*	nix_path = [[NSHomeDirectory()
+							stringByAppendingPathComponent:@".Oolite"]
+							stringByAppendingPathComponent:@"AddOns"];
 #endif
+	//
+	// set up the default locations to look for expansion packs
+	NSArray*	extra_paths = [NSArray arrayWithObjects: app_addon_path, appsupport_path, nix_path, nil];
+	//
 	NSMutableArray *file_paths = [NSMutableArray arrayWithCapacity:16];
-	[file_paths addObject:app_path];
+	//
+	[file_paths addObject: app_path];
+	[file_paths addObjectsFromArray: extra_paths];
+	//
 	if (include_addons)
 	{
-		[file_paths addObject:addon_path];
+		NSMutableArray*	possibleExpansionPaths = [NSMutableArray arrayWithCapacity: 16];
 		//
-		NSArray*		possibleExpansions = [[NSFileManager defaultManager] directoryContentsAtPath:addon_path];
-		NSMutableArray*	possibleExpansionPaths = [NSMutableArray arrayWithCapacity:[possibleExpansions count]];
-		for (i = 0; i < [possibleExpansions count]; i++)
+		// check the default locations for expansion packs..
+		for (i = 0; i < [extra_paths count]; i++)
 		{
-			NSString*	item = (NSString *)[possibleExpansions objectAtIndex:i];
-			if (([[item pathExtension] isEqual:@"oxp"])||([[item pathExtension] isEqual:@"oolite_expansion_pack"]))
+			NSString*		addon_path = (NSString*)[extra_paths objectAtIndex: i];
+			NSArray*		possibleExpansions = [[NSFileManager defaultManager] directoryContentsAtPath: addon_path];
+			for (i = 0; i < [possibleExpansions count]; i++)
 			{
-				BOOL dir_test;
-				NSString*	possibleExpansionPath = [addon_path stringByAppendingPathComponent:item];
-				[[NSFileManager defaultManager] fileExistsAtPath:possibleExpansionPath isDirectory:&dir_test];
-				if (dir_test)
-					[possibleExpansionPaths addObject:possibleExpansionPath];
+				NSString*	item = (NSString *)[possibleExpansions objectAtIndex: i];
+				if (([[item pathExtension] isEqual:@"oxp"])||([[item pathExtension] isEqual:@"oolite_expansion_pack"]))
+				{
+					BOOL dir_test = NO;
+					NSString*	possibleExpansionPath = [addon_path stringByAppendingPathComponent:item];
+					[[NSFileManager defaultManager] fileExistsAtPath:possibleExpansionPath isDirectory:&dir_test];
+					if (dir_test)
+						[possibleExpansionPaths addObject:possibleExpansionPath];
+				}
 			}
 		}
 		//
