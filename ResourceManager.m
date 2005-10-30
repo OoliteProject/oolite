@@ -131,7 +131,7 @@ NSMutableDictionary*	surface_cache;
 		saved_paths = nil;
 	}
 	//
-	int i;
+	int i, j;
 	if (saved_paths)
 		return saved_paths;
 	if (errors)
@@ -179,7 +179,7 @@ NSMutableDictionary*	surface_cache;
 		{
 			NSString*		addon_path = (NSString*)[extra_paths objectAtIndex: i];
 			NSArray*		possibleExpansions = [[NSFileManager defaultManager] directoryContentsAtPath: addon_path];
-			for (i = 0; i < [possibleExpansions count]; i++)
+			for (j = 0; j < [possibleExpansions count]; j++)
 			{
 				NSString*	item = (NSString *)[possibleExpansions objectAtIndex: i];
 				if (([[item pathExtension] isEqual:@"oxp"])||([[item pathExtension] isEqual:@"oolite_expansion_pack"]))

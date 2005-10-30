@@ -1098,7 +1098,7 @@ Your fair use and other rights are in no way affected by the above.
 - (int) loadFullscreenSettings
 {
    currentSize=0;
-   int width, height, refresh;
+   int width=0, height=0, refresh=0;
 
   	NSUserDefaults *userDefaults = [NSUserDefaults standardUserDefaults];
 	if ([userDefaults objectForKey:@"display_width"])
