@@ -181,7 +181,7 @@ NSMutableDictionary*	surface_cache;
 			NSArray*		possibleExpansions = [[NSFileManager defaultManager] directoryContentsAtPath: addon_path];
 			for (j = 0; j < [possibleExpansions count]; j++)
 			{
-				NSString*	item = (NSString *)[possibleExpansions objectAtIndex: i];
+				NSString*	item = (NSString *)[possibleExpansions objectAtIndex: j];
 				if (([[item pathExtension] isEqual:@"oxp"])||([[item pathExtension] isEqual:@"oolite_expansion_pack"]))
 				{
 					BOOL dir_test = NO;
