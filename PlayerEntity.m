@@ -4352,20 +4352,13 @@ static BOOL queryPressed;
 	//
 	if ([gameView isDown:key_scanner_zoom]) // look for the 'z' key
 	{
-		if (!zoom_pressed)
+		if (!scanner_zoom_rate)
 		{
-			double zoom = [hud scanner_zoom];
-			if (zoom < SCANNER_MAX_ZOOM)
-				zoom += 1.0;
+			if ([hud scanner_zoom] < 5.0)
+				scanner_zoom_rate = SCANNER_ZOOM_RATE_UP;
 			else
-				zoom = 1.0;
-			[hud setScannerZoom:zoom];
+				scanner_zoom_rate = SCANNER_ZOOM_RATE_DOWN;		
 		}
-		zoom_pressed = YES;
-	}
-	else
-	{
-		zoom_pressed = NO;
 	}
 	//
 	// Compass mode '/'

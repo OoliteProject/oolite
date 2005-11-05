@@ -113,7 +113,7 @@ Your fair use and other rights are in no way affected by the above.
 		[shortDescription autorelease];
 	shortDescription = [value retain];
 }
-- setLongDescription: (NSString*) longDescription
+- setLongDescription: (NSString*) value
 {
 	if (longDescription)
 		[longDescription autorelease];
@@ -131,7 +131,7 @@ Your fair use and other rights are in no way affected by the above.
 {
 	legalStatus = value;
 }
-- setInsuranceCredits; (int) value
+- setInsuranceCredits: (int) value
 {
 	insuranceCredits = value;
 }

@@ -1,3 +1,5 @@
+#ifndef LEGACY_RANDOM_H
+#define LEGACY_RANDOM_H
 /*
  *  legacy_random.h
  *
@@ -93,3 +95,5 @@ void rotate_seed (struct rand_seed_6uc *seed_ptr);
 int rotate_byte_left (int x);
 
 int equal_seeds (Random_Seed seed1, Random_Seed seed2);
+#endif
+
