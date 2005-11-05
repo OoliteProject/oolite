@@ -305,6 +305,9 @@ Your fair use and other rights are in no way affected by the above.
 		
 		//position of gun ports
 		Vector forwardWeaponOffset, aftWeaponOffset, portWeaponOffset, starboardWeaponOffset;
+		
+		// crew (typically one OOCharacter - the pilot)
+		NSArray*	crew;
 
 		// DEBUGGING
 		int debug_condition;
@@ -379,9 +382,14 @@ Your fair use and other rights are in no way affected by the above.
 - (int) checkForAegis;
 - (BOOL) within_station_aegis;
 
+- (void) setCrew: (NSArray*) crewArray;
+
 - (void) setStateMachine:(NSString *) ai_desc;
 - (void) setAI:(AI *) ai;
 - (AI *) getAI;
+
+- (int) fuel;
+- (void) setFuel:(int) amount;
 
 - (void) setRoll:(double) amount;
 - (void) setPitch:(double) amount;

@@ -276,7 +276,7 @@ void drawString(NSString *text, double x, double y, double z, NSSize siz);
 void drawPlanetInfo(int gov, int eco, int tec, double x, double y, double z, NSSize siz);
 NSRect rectForString(NSString *text, double x, double y, NSSize siz);
 
-void drawScannerGrid( double x, double y, double z, NSSize siz, int v_dir, GLfloat thickness);
+void drawScannerGrid( double x, double y, double z, NSSize siz, int v_dir, GLfloat thickness, double zoom);
 void drawOval( double x, double y, double z, NSSize siz, int step);
 void drawFilledOval( double x, double y, double z, NSSize siz, int step);
 void drawSpecialOval( double x, double y, double z, NSSize siz, int step, GLfloat* color4v);

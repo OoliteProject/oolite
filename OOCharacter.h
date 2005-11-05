@@ -1,14 +1,14 @@
 //
-//  WormholeEntity.h
+//  OOCharacter.h
 /*
  *
  *  Oolite
  *
- *  Created by Giles Williams on Wed 26 Oct 2005.
- *  Copyright (c) 2005 for aegidian.org. All rights reserved.
+ *  Created by Giles Williams on Thu Nov 03 2004.
+ *  Copyright (c) 2004 for aegidian.org. All rights reserved.
  *
 
-Copyright (c) 2005, Giles C Williams
+Copyright (c) 2004, Giles C Williams
 All rights reserved.
 
 This work is licensed under the Creative Commons Attribution-NonCommercial-ShareAlike License.
@@ -39,32 +39,36 @@ Your fair use and other rights are in no way affected by the above.
 
 #import <Foundation/Foundation.h>
 
-#import "Entity.h"
+#import "legacy_random.h"
 
-#define WORMHOLE_EXPIRES_TIMEINTERVAL	900.0
-#define WORMHOLE_SHRINK_RATE			4000.0
-
-@class ShipEntity, Universe;
-
-@interface WormholeEntity : Entity {
-
-	double			time_counter, expiry_time;
-	
-	Random_Seed		destination;
-	
-	NSMutableArray*	shipsInTransit;
-	
-	double			witch_mass;
-	
+@interface OOCharacter : NSObject
+{
+	NSString*	name;
+	NSString*	shortDescription;
+	NSString*	longDescription;
+	Random_Seed	originSystemSeed;
+	Random_Seed	genSeed;
+	int			legalStatus;
+	int			insuranceCredits;
 }
 
-- (id) initWormholeTo:(Random_Seed) s_seed fromShip:(ShipEntity *) ship;
+- (id) initWithGenSeed:(Random_Seed) g_seed andSystemSeed:(Random_Seed) s_seed;
+- (id) initWithRole:(NSString*) role andOriginalSystemSeed:(Random_Seed) s_seed;
 
-- (BOOL) suckInShip:(ShipEntity *) ship;
-- (void) disgorgeShips;
+- (NSString*)	name;
+- (NSString*)	shortDescription;
+- (NSString*)	longDescription;
+- (Random_Seed)	originSystemSeed;
+- (Random_Seed)	genSeed;
+- (int)			legalStatus;
+- (int)			insuranceCredits;
 
-- (Random_Seed) destination;
-
-void drawWormholeCorona (double inner_radius, double outer_radius, int step, double z_distance, GLfloat* col4v1);
+- setName: (NSString*) value;
+- setShortDescription: (NSString*) value;
+- setLongDescription: (NSString*) value;
+- setOriginSystemSeed: (Random_Seed) value;
+- setGenSeed: (Random_Seed) value;
+- setLegalStatus: (int) value;
+- setInsuranceCredits: (int) value;
 
 @end

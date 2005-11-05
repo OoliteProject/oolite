@@ -345,14 +345,14 @@ Your fair use and other rights are in no way affected by the above.
 		entity_for_uid[i] = nil;
 	//
 	if (preloadedDataFiles)
-		[preloadedDataFiles release];
+		[preloadedDataFiles autorelease];
 	preloadedDataFiles =   [[NSMutableDictionary dictionaryWithCapacity:16] retain];
 	//
 	if (entityRecyclePool)
-		[entityRecyclePool release];
+		[entityRecyclePool autorelease];
 	entityRecyclePool =			[[NSMutableDictionary dictionaryWithCapacity:MAX_NUMBER_OF_ENTITIES] retain];
 	if (recycleLock)
-		[recycleLock release];
+		[recycleLock autorelease];
 	recycleLock =				[[NSLock alloc] init];
 	//
 	sun_center_position[0] = 4000000.0;
@@ -361,11 +361,11 @@ Your fair use and other rights are in no way affected by the above.
 	sun_center_position[3] = 1.0;
     //
 	if (textureStore)
-		[textureStore release];
+		[textureStore autorelease];
 	textureStore = [[TextureStore alloc] init];	// alloc retains
 	//
 	if (cursorSprite)
-		[cursorSprite release];
+		[cursorSprite autorelease];
 #ifndef WIN32
 	cursorSprite = [[OpenGLSprite alloc]   initWithImage:[ResourceManager imageNamed:@"cursor.png" inFolder:@"Images"]
 											cropRectangle:NSMakeRect(0, 0, 128, 128)
@@ -377,19 +377,19 @@ Your fair use and other rights are in no way affected by the above.
 #endif
 	//
 	if (gui)
-		[gui release];
+		[gui autorelease];
 	gui = [[GuiDisplayGen alloc] init]; // alloc retains
 	
 	//
 	if (message_gui)
-		[message_gui release];
+		[message_gui autorelease];
 	message_gui = [[GuiDisplayGen alloc] initWithPixelSize:NSMakeSize( 480, 160) Columns:1 Rows:8 RowHeight:20 RowStart:20 Title:nil];
 	[message_gui setCurrentRow:7];
 	[message_gui setCharacterSize:NSMakeSize(16,20)];	// slightly narrower characters
 	
 	//
 	if (comm_log_gui)
-		[comm_log_gui release];
+		[comm_log_gui autorelease];
 	comm_log_gui = [[GuiDisplayGen alloc] initWithPixelSize:NSMakeSize( 360, 120) Columns:1 Rows:10 RowHeight:12 RowStart:12 Title:nil];
 	[comm_log_gui setCurrentRow:9];
 	[comm_log_gui setBackgroundColor:[NSColor colorWithCalibratedRed:0.0 green:0.05 blue:0.45 alpha:0.5]];
@@ -402,37 +402,37 @@ Your fair use and other rights are in no way affected by the above.
 	ai_think_time = AI_THINK_INTERVAL;				// one eighth of a second
 	//
 	if (shipdata)
-		[shipdata release];
+		[shipdata autorelease];
 	shipdata = [[ResourceManager dictionaryFromFilesNamed:@"shipdata.plist" inFolder:@"Config" andMerge:YES] retain];
 	if (shipyard)
-		[shipyard release];
+		[shipyard autorelease];
 	shipyard = [[ResourceManager dictionaryFromFilesNamed:@"shipyard.plist" inFolder:@"Config" andMerge:YES] retain];
 	//
 	if (commoditylists)
-		[commoditylists release];
+		[commoditylists autorelease];
 	commoditylists = [(NSDictionary *)[ResourceManager dictionaryFromFilesNamed:@"commodities.plist" inFolder:@"Config" andMerge:YES] retain];
 	if (commoditydata)
-		[commoditydata release];
+		[commoditydata autorelease];
 	commoditydata = [[NSArray arrayWithArray:(NSArray *)[commoditylists objectForKey:@"default"]] retain];
 	//
 	if (illegal_goods)
-		[illegal_goods release];
+		[illegal_goods autorelease];
 	illegal_goods = [[ResourceManager dictionaryFromFilesNamed:@"illegal_goods.plist" inFolder:@"Config" andMerge:YES] retain];
 	//
 	if (descriptions)
-		[descriptions release];
+		[descriptions autorelease];
 	descriptions = [[ResourceManager dictionaryFromFilesNamed:@"descriptions.plist" inFolder:@"Config" andMerge:YES] retain];
 	//
 	if (planetinfo)
-		[planetinfo release];
+		[planetinfo autorelease];
 	planetinfo = [[ResourceManager dictionaryFromFilesNamed:@"planetinfo.plist" inFolder:@"Config" andMerge:YES] retain];
 	//
 	if (missiontext)
-		[missiontext release];
+		[missiontext autorelease];
 	missiontext = [[ResourceManager dictionaryFromFilesNamed:@"missiontext.plist" inFolder:@"Config" andMerge:YES] retain];
 	//
 	if (equipmentdata)
-		[equipmentdata release];
+		[equipmentdata autorelease];
 	equipmentdata = [[ResourceManager arrayFromFilesNamed:@"equipment.plist" inFolder:@"Config" andMerge:YES] retain];
 	if (strict && ([equipmentdata count] > NUMBER_OF_STRICT_EQUIPMENT_ITEMS))
 	{
@@ -443,7 +443,7 @@ Your fair use and other rights are in no way affected by the above.
 //	NSLog(@"DEBUG equipmentdata = %@", [equipmentdata description]);
 	//
 	if (demo_ships)
-		[demo_ships release];
+		[demo_ships autorelease];
 	demo_ships = [[ResourceManager arrayFromFilesNamed:@"demoships.plist" inFolder:@"Config" andMerge:YES] retain];
 	demo_ship_index = 0;
 	//
@@ -484,7 +484,8 @@ Your fair use and other rights are in no way affected by the above.
 	
 //	NSLog(@"Well whaddayaknow - we're at %@", [self getSystemName:system_seed]);
 	
-	if (activeWormholes)		[activeWormholes release];
+	if (activeWormholes)
+		[activeWormholes autorelease];
 	activeWormholes = [[NSMutableArray arrayWithCapacity:16] retain];
 
 	[self set_up_space];
@@ -2836,6 +2837,12 @@ Your fair use and other rights are in no way affected by the above.
 	
 	[mypool release];	// tidy everything up
 	
+	// check a trader has fuel
+	if ((![ship fuel])&&([[ship roles] rangeOfString:@"trader"].location != NSNotFound))
+	{
+		[ship setFuel: 70];
+	}
+	
 	return ship;
 }
 
@@ -2910,8 +2917,8 @@ Your fair use and other rights are in no way affected by the above.
 	int price = 0;
 	for (i = 0; ((i < [equipmentdata count])&&(price == 0)) ; i++)
 	{
-		int			price_per_unit  = [(NSNumber *)[(NSArray *)[equipmentdata objectAtIndex:i] objectAtIndex:1] intValue];
-		NSString*   eq_type			= (NSString *)[(NSArray *)[equipmentdata objectAtIndex:i] objectAtIndex:3];
+		int			price_per_unit  = [(NSNumber *)[(NSArray *)[equipmentdata objectAtIndex:i] objectAtIndex:EQUIPMENT_PRICE_INDEX] intValue];
+		NSString*   eq_type			= (NSString *)[(NSArray *)[equipmentdata objectAtIndex:i] objectAtIndex:EQUIPMENT_KEY_INDEX];
 		if ([eq_type isEqual:weapon_key])
 			price = price_per_unit;
 	}
@@ -4109,7 +4116,7 @@ Your fair use and other rights are in no way affected by the above.
 			double d_forward = dot_product(epos,f1);
 			if ((d_forward > 0)&&(d_forward < nearest))
 			{
-				double cr = 1.10 * (e2->collision_radius + e1->collision_radius); //  10% safety margin
+				double cr = 1.20 * (e2->collision_radius + e1->collision_radius); //  20% safety margin
 					
 				Vector p0 = e1->position;
 				p0.x += d_forward * f1.x;	p0.y += d_forward * f1.y;	p0.z += d_forward * f1.z;
@@ -6495,7 +6502,10 @@ double estimatedTimeForJourney(double distance, int hops)
 			int max_cargo = 0;
 			if ([ship_dict objectForKey:@"max_cargo"])
 				max_cargo = [(NSNumber*)[ship_dict objectForKey:@"max_cargo"] intValue];
-			
+
+//			// more info for potential purchasers - how to reveal this I'm not yet sure...
+//			NSString* brochure_desc = [self brochureDescriptionWithDictionary: ship_dict standardEquipment: extras optionalEquipment: options];
+//			NSLog(@"%@ Brochure description : \"%@\"", [ship_dict objectForKey:KEY_NAME], brochure_desc);
 			
 			[description appendFormat:@"%@:", [ship_dict objectForKey:KEY_NAME]];
 			[short_description appendFormat:@"%@:", [ship_dict objectForKey:KEY_NAME]];
@@ -6672,7 +6682,6 @@ double estimatedTimeForJourney(double distance, int hops)
 				extras,							KEY_EQUIPMENT_EXTRAS,
 				NULL];
 			
-//			[resultArray addObject:contract_info_dictionary];
 			[resultDictionary setObject:ship_info_dictionary forKey:ship_id];	// should order them fairly randomly
 		}
 		
@@ -6846,6 +6855,128 @@ NSComparisonResult comparePrice( id dict1, id dict2, void * context)
 	}
 	return nil;
 }
+
+
+- (NSString*) brochureDescriptionWithDictionary:(NSDictionary*) dict standardEquipment:(NSArray*) extras optionalEquipment:(NSArray*) options
+{
+	NSMutableArray* mut_extras = [NSMutableArray arrayWithArray:extras];
+	NSString* allOptions = [options componentsJoinedByString:@" "];
+	
+	NSMutableString* desc = [NSMutableString stringWithFormat:@"The %@.", [dict objectForKey: KEY_NAME]];
+
+	// cargo capacity and expansion
+	int max_cargo = 0;
+	if ([dict objectForKey:@"max_cargo"])
+		max_cargo = [(NSNumber*)[dict objectForKey:@"max_cargo"] intValue];
+	if (max_cargo)
+	{
+		[desc appendFormat:@" Cargo capacity %dt", max_cargo];
+		BOOL canExpand = ([allOptions rangeOfString:@"EQ_CARGO_BAY"].location != NSNotFound);
+		if (canExpand)
+			[desc appendFormat:@" (expandable to %dt at most starports)", max_cargo + 15];
+		[desc appendString:@"."];
+	}
+
+	// speed
+	int top_speed = 0;
+	if ([dict objectForKey:@"max_flight_speed"])
+		top_speed = [(NSNumber*)[dict objectForKey:@"max_flight_speed"] intValue];
+	[desc appendFormat:@" Top speed %.3 fLS.", 0.001 * top_speed];
+
+	// passenger berths
+	if ([mut_extras count])
+	{
+		int n_berths = 0;
+		int i;
+		for (i = 0; i < [mut_extras count]; i++)
+		{
+			NSString* item_key = (NSString*)[mut_extras objectAtIndex:i];
+			if ([item_key isEqual:@"EQ_PASSENGER_BERTH"])
+			{
+				n_berths++;
+				[mut_extras removeObjectAtIndex:i--];
+			}
+		}
+		if (n_berths)
+		{
+			if (n_berths == 1)
+				[desc appendString:@" Includes luxury accomodation for a single passenger."];
+			else
+				[desc appendFormat:@" Includes luxury accomodation for %d passengers.", n_berths];
+		}
+	}
+	
+	// standard fittings
+	if ([mut_extras count])
+	{
+		[desc appendString:@"\nComes with"];
+		int i, j;
+		for (i = 0; i < [mut_extras count]; i++)
+		{
+			NSString* item_key = (NSString*)[mut_extras objectAtIndex:i];
+			NSString* item_desc = nil;
+			for (j = 0; ((j < [equipmentdata count])&&(!item_desc)) ; j++)
+			{
+				NSString*   eq_type			= (NSString *)[(NSArray *)[equipmentdata objectAtIndex:j] objectAtIndex:EQUIPMENT_KEY_INDEX];
+				if ([eq_type isEqual: item_key])
+					item_desc = (NSString *)[(NSArray *)[equipmentdata objectAtIndex:j] objectAtIndex:EQUIPMENT_SHORT_DESC_INDEX];
+			}
+			if (item_desc)
+			{
+				int c = [mut_extras count] - i;
+				switch (c)
+				{
+					case 1:
+						[desc appendFormat:@" %@ fitted as standard.", item_desc];
+						break;
+					case 2:
+						[desc appendFormat:@" %@ and", item_desc];
+						break;
+					default:
+						[desc appendFormat:@" %@,", item_desc];
+						break;
+				}
+			}
+		}
+	}
+	
+	// optional fittings
+	if ([options count])
+	{
+		[desc appendString:@"\nCan additionally be outfitted with"];
+		int i, j;
+		for (i = 0; i < [options count]; i++)
+		{
+			NSString* item_key = (NSString*)[options objectAtIndex:i];
+			NSString* item_desc = nil;
+			for (j = 0; ((j < [equipmentdata count])&&(!item_desc)) ; j++)
+			{
+				NSString*   eq_type			= (NSString *)[(NSArray *)[equipmentdata objectAtIndex:j] objectAtIndex:EQUIPMENT_KEY_INDEX];
+				if ([eq_type isEqual: item_key])
+					item_desc = (NSString *)[(NSArray *)[equipmentdata objectAtIndex:j] objectAtIndex:EQUIPMENT_SHORT_DESC_INDEX];
+			}
+			if (item_desc)
+			{
+				int c = [options count] - i;
+				switch (c)
+				{
+					case 1:
+						[desc appendFormat:@" %@ at suitably equipped starports.", item_desc];
+						break;
+					case 2:
+						[desc appendFormat:@" %@ and/or", item_desc];
+						break;
+					default:
+						[desc appendFormat:@" %@,", item_desc];
+						break;
+				}
+			}
+		}
+	}
+
+	return desc;
+}
+
 
 
 - (NSString *) generateSystemDescription:(Random_Seed) s_seed

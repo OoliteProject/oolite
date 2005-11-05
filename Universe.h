@@ -469,6 +469,7 @@ NSComparisonResult comparePrice( id dict1, id dict2, void * context);
 - (int) tradeInValueForCommanderDictionary:(NSDictionary*) cmdr_dict;
 - (int) weaponForEquipmentKey:(NSString*) weapon_string;
 - (NSString*) equipmentKeyForWeapon:(int) weapon;
+- (NSString*) brochureDescriptionWithDictionary:(NSDictionary*) dict standardEquipment:(NSArray*) extras optionalEquipment:(NSArray*) options;
 
 - (NSString *) generateSystemDescription:(Random_Seed) s_seed;
 - (NSString *) expandDescription:(NSString *) desc forSystem:(Random_Seed)s_seed;

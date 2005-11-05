@@ -95,4 +95,6 @@ extern int debug;
 
 - (double) thinkTimeInterval;
 
+- (void) clearStack;
+
 @end

@@ -58,6 +58,8 @@ Your fair use and other rights are in no way affected by the above.
 	//
 	thinkTimeInterval = AI_THINK_INTERVAL;
 	//
+	stateMachine = nil;
+	//
     return self;
 }
 
@@ -342,6 +344,16 @@ Your fair use and other rights are in no way affected by the above.
 {
 	NSString* result = [[NSString alloc] initWithFormat:@"<AI in state '%@'>", currentState ];
 	return [result autorelease];
+}
+
+- (void) clearStack
+{
+	[aiLock lock];
+	//
+	if (ai_stack)
+		[ai_stack removeAllObjects];
+	//
+	[aiLock unlock];
 }
 
 @end

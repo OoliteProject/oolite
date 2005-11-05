@@ -7,6 +7,7 @@
         "INCOMING_MISSILE" = (fightOrFleeMissile, "setStateTo: FLEE"); 
         "TARGET_DESTROYED" = ("setStateTo: COLLECT_LOOT"); 
         "TARGET_LOST" = ("setStateTo: COLLECT_LOOT"); 
+		"ENTER WORMHOLE" = ("setStateTo: ENTER_WORMHOLE");
         UPDATE = (); 
     }; 
     "COLLECT_LOOT" = {
@@ -18,9 +19,17 @@
         "INCOMING_MISSILE" = (fightOrFleeMissile, "setStateTo: FLEE"); 
         "TARGET_FOUND" = (setTargetToFoundTarget, "setStateTo: LOOT"); 
         "NOTHING_FOUND" = ("setStateTo: CONSIDER_DOCKING"); 
+		"ENTER WORMHOLE" = ("setStateTo: ENTER_WORMHOLE");
         UPDATE = (scanForLoot, "pauseAI: 5.0"); 
     }; 
-    "EXIT_SYSTEM" = {ENTER = (performHyperSpaceExit); EXIT = (); UPDATE = (); }; 
+    "EXIT_SYSTEM" = {
+		ENTER = ();
+		EXIT = ();
+		UPDATE = (performHyperSpaceExit);
+		"WITCHSPACE OKAY" = (wormholeEscorts, wormholeGroup);
+		"WITCHSPACE BLOCKED" = (setTargetToFoundTarget, setDestinationWithinTarget, "setDesiredRangeTo: 10000.0", performFlyToRangeFromDestination);
+		"WITCHSPACE UNAVAILABLE" = ("setStateTo: DOCK_WITH_STATION");
+	}; 
     FLEE = {
         ENTER = ("setDesiredRangeTo: 25600", performFlee); 
         "ENERGY_FULL" = (performIdle, "setStateTo: LURK"); 
@@ -42,6 +51,7 @@
         "HOLD_FULL" = ("setStateTo: CONSIDER_DOCKING"); 
         "INCOMING_MISSILE" = (fightOrFleeMissile, "setStateTo: FLEE"); 
         "TARGET_LOST" = ("setStateTo: COLLECT_LOOT"); 
+		"ENTER WORMHOLE" = ("setStateTo: ENTER_WORMHOLE");
         UPDATE = (); 
     }; 
     LURK = {
@@ -54,6 +64,7 @@
         "ODDS_GOOD" = (groupAttackTarget); 
         "ODDS_LEVEL" = (groupAttackTarget); 
         "GROUP_ATTACK_TARGET" = (setTargetToFoundTarget, "setStateTo: ATTACK_SHIP"); 
+		"ENTER WORMHOLE" = ("setStateTo: ENTER_WORMHOLE");
         UPDATE = (scanForRandomMerchantmen, "pauseAI: 5.0"); 
     }; 
     "TRAVEL_TO_LURK_AREA" = {
@@ -67,6 +78,8 @@
         EXIT = (); 
         "GROUP_ATTACK_TARGET" = (setTargetToFoundTarget, "setStateTo: ATTACK_SHIP"); 
         "INCOMING_MISSILE" = (fightOrFleeMissile, "setStateTo: FLEE"); 
+		"ENTER WORMHOLE" = ("setStateTo: ENTER_WORMHOLE");
+		"EXITED WITCHSPACE" = ("switchAITo: enteringPirateAI.plist");
         UPDATE = (); 
     }; 
     "CONSIDER_DOCKING" = {
@@ -86,4 +99,9 @@
         "INCOMING_MISSILE" = (fightOrFleeMissile, "setStateTo: FLEE"); 
 		UPDATE = ();
 	}; 
+    "ENTER_WORMHOLE" = {
+		ENTER = (setDestinationToTarget, "setDesiredRangeTo: 1.0", "setSpeedFactorTo: 1.0", performFlyToRangeFromDestination);
+        UPDATE = (); 
+		EXIT = ();
+    }; 
 }

@@ -1,0 +1,11 @@
+{
+    GLOBAL = {ENTER = ("setStateTo: DECIDE_ROUTE"); EXIT = (); UPDATE = (); }; 
+    "DECIDE_ROUTE" = {
+		ENTER = ("rollD: 3");
+		"ROLL_1" = ("switchAITo: route1traderAI.plist");
+		"ROLL_2" = ("switchAITo: route1traderAI.plist");
+		"ROLL_3" = ("switchAITo: route2sunskimAI.plist");
+		EXIT = ();
+		UPDATE = ();
+	}; 
+}

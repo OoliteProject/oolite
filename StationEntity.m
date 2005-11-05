@@ -673,22 +673,22 @@ NSDictionary* instructions(int station_id, Vector coords, float speed, float ran
 {
 	[super reinit];
 	
-	if (localMarket) [localMarket release];
+	if (localMarket) [localMarket autorelease];
 	localMarket = nil;
 	
-	if (localPassengers) [localPassengers release];
+	if (localPassengers) [localPassengers autorelease];
 	localPassengers = nil;
 	
-	if (localContracts) [localContracts release];
+	if (localContracts) [localContracts autorelease];
 	localContracts = nil;
 	
-	if (localShipyard) [localShipyard release];
+	if (localShipyard) [localShipyard autorelease];
 	localShipyard = nil;
 	
-	if (shipsOnApproach) [shipsOnApproach release];
+	if (shipsOnApproach) [shipsOnApproach autorelease];
 	shipsOnApproach = [[NSMutableDictionary alloc] initWithCapacity:5]; // alloc retains
 	
-	if (launchQueue) [launchQueue release];
+	if (launchQueue) [launchQueue autorelease];
 	launchQueue = [[NSMutableArray alloc] initWithCapacity:16]; // retained
 
 	int i;
@@ -1053,6 +1053,65 @@ NSDictionary* instructions(int station_id, Vector coords, float speed, float ran
 		[my_entities[i] release];		//released
 
 	return isEmpty;
+}
+
+- (void) clearDockingCorridor
+{
+	if (!universe)
+		return;
+		
+	// check against all ships
+	BOOL		isClear = YES;
+	int			ent_count =		universe->n_entities;
+	Entity**	uni_entities =	universe->sortedEntities;	// grab the public sorted list
+	Entity*		my_entities[ent_count];
+	int i;
+	int ship_count = 0;
+	for (i = 0; i < ent_count; i++)
+		if (uni_entities[i]->isShip)
+			my_entities[ship_count++] = [uni_entities[i] retain];		//	retained
+
+	for (i = 0; i < ship_count; i++)
+	{
+		ShipEntity*	ship = (ShipEntity*)my_entities[i];
+		double		d2 = distance2( position, ship->position);
+		if ((ship != self)&&(d2 < 25000000)&&(ship->status != STATUS_DOCKED))	// within 5km
+		{
+			Vector ppos = [self getPortPosition];
+			do
+			{
+				isClear = YES;
+				d2 = distance2( ppos, ship->position);
+				if (d2 < 4000000)	// within 2km of the port entrance
+				{
+					Quaternion q1 = q_rotation;
+					q1 = quaternion_multiply(port_qrotation, q1);
+					//
+					Vector v_out = vector_forward_from_quaternion(q1);
+					Vector r_pos = make_vector(ship->position.x - ppos.x, ship->position.y - ppos.y, ship->position.z - ppos.z);
+					if (r_pos.x||r_pos.y||r_pos.z)
+						r_pos = unit_vector(&r_pos);
+					else
+						r_pos.z = 1.0;
+					//
+					double vdp = dot_product( v_out, r_pos); //== cos of the angle between r_pos and v_out
+					//
+					if (vdp > 0.86)
+					{
+						isClear = NO;
+						// okay it's in the way .. give it a wee nudge (0.25s)
+//						NSLog(@"DEBUG [StationEntity clearDockingCorridor] nudging %@", ship);
+						[ship update: 0.25];
+					}
+				}
+			} while (!isClear);
+		}
+	}
+	
+	for (i = 0; i < ship_count; i++)
+		[my_entities[i] release];		//released
+
+	return;
 }
 
 - (void) update:(double) delta_t
@@ -1513,11 +1572,12 @@ NSDictionary* instructions(int station_id, Vector coords, float speed, float ran
 	
 //	NSLog(@"DEBUG %@ [StationEntity launchTrader]", self);
 	
-	
+	//
 	if (!sunskimmer)
 		trader_ship = [universe getShipWithRole:@"trader"];   // retain count = 1
 	else
 		trader_ship = [universe getShipWithRole:@"sunskim-trader"];   // retain count = 1
+	//
 	
 //	NSLog(@"DEBUG [StationEntity launchTrader] ---> %@ ", trader_ship);
 	
@@ -1529,23 +1589,21 @@ NSDictionary* instructions(int station_id, Vector coords, float speed, float ran
 		
 		if (sunskimmer)
 		{
-			// add escorts to the sunskimmer
-			int escorts = [trader_ship n_escorts];
 			[[trader_ship getAI] setStateMachine:@"route2sunskimAI.plist"];
-			[trader_ship setN_escorts:0];
-			while (escorts--)
-			{
-				[self launchEscort];
-			}
 		}
 		else
 		{
 			[[trader_ship getAI] setStateMachine:@"exitingTraderAI.plist"];
 		}
-
 		[self addShipToLaunchQueue:trader_ship];
 
-		
+		// add escorts to the trader
+		int escorts = [trader_ship n_escorts];
+		//
+		[trader_ship setN_escorts:0];
+		while (escorts--)
+			[self launchEscort];
+
 //		NSLog(@"%@ Prepping trader: %@ %d for launch.", [self name], [trader_ship name], [trader_ship universal_id]);
 			
 		[trader_ship release];
@@ -1561,9 +1619,12 @@ NSDictionary* instructions(int station_id, Vector coords, float speed, float ran
 	if (escort_ship)
 	{
 		[escort_ship setScanClass: CLASS_NEUTRAL];
-		[escort_ship setCargoFlag:CARGO_FLAG_FULL_PLENTIFUL];
+		[escort_ship setCargoFlag: CARGO_FLAG_FULL_PLENTIFUL];
 		[[escort_ship getAI] setStateMachine:@"escortAI.plist"];
 		[self addShipToLaunchQueue:escort_ship];
+		
+//		[escort_ship setReportAImessages: YES];
+		
 		[escort_ship release];
 	}
 }

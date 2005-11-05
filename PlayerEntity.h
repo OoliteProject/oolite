@@ -203,9 +203,11 @@ Your fair use and other rights are in no way affected by the above.
 #define COMPASS_MODE_STATION		2
 #define COMPASS_MODE_SUN			3
 #define COMPASS_MODE_TARGET			4
-//#define COMPASS_MODE_WITCHPOINT		5
 #define COMPASS_MODE_BEACONS		6
 #define COMPASS_MODE_ADVANCED_OKAY	((compass_mode >= 1)&&(compass_mode <= 10))
+
+#define SCANNER_ZOOM_RATE_UP		2.0
+#define SCANNER_ZOOM_RATE_DOWN		-8.0
 
 #define PLAYER_INTERNAL_DAMAGE_FACTOR 31
 
@@ -448,6 +450,9 @@ Your fair use and other rights are in no way affected by the above.
 		// trumbles
 		int n_trumbles;
 		OOTrumble*	trumble[PLAYER_MAX_TRUMBLES];
+
+		// smart zoom
+		double scanner_zoom_rate;
 
       // Keeping track of joysticks
       int numSticks;

@@ -40,171 +40,11 @@ Your fair use and other rights are in no way affected by the above.
 */
 //
 
-#import "ShipEntity.h"
+#import "ShipEntity (AI).h"
 #import "entities.h"
 #import "vector.h"
 #import "Universe.h"
 #import "AI.h"
-
-@interface ShipEntity (AI)
-
-/*-----------------------------------------
-
-	methods for AI
-
------------------------------------------*/
-
-- (void) pauseAI:(NSString *)intervalString;
-
-- (void) setDestinationToCurrentLocation;
-
-- (void) setDesiredRangeTo:(NSString *)rangeString;
-
-- (void) setSpeedTo:(NSString *)speedString;
-
-- (void) setSpeedFactorTo:(NSString *)speedString;
-
-- (void) performFlyToRangeFromDestination;
-
-- (void) performIdle;
-
-- (void) performHold;
-
-- (void) setTargetToPrimaryAggressor;
-
-- (void) performAttack;
-
-- (void) scanForNearestMerchantmen;
-- (void) scanForRandomMerchantmen;
-
-- (void) scanForLoot;
-
-- (void) scanForRandomLoot;
-
-- (void) setTargetToFoundTarget;
-
-- (void) checkForFullHold;
-
-- (void) performCollect;
-
-- (void) performIntercept;
-
-- (void) performFlee;
-
-- (void) requestDockingCoordinates;
-//- (void) setSpeedAsAdvised;
-
-- (void) getWitchspaceEntryCoordinates;
-
-- (void) setDestinationFromCoordinates;
-
-- (void) performDocking;
-
-- (void) performFaceDestination;
-
-- (void) performTumble;
-
-- (void) fightOrFleeMissile;
-
-- (PlanetEntity *) findNearestPlanet;
-
-- (void) setCourseToPlanet;
-
-- (void) setTakeOffFromPlanet;
-
-- (void) landOnPlanet;
-
-- (void) setAITo:(NSString *)aiString;
-
-- (void) checkTargetLegalStatus;
-
-- (void) exitAI;
-
-- (void) setDestinationToTarget;
-
-- (void) checkCourseToDestination;
-
-- (void) scanForOffenders;
-
-- (void) setCourseToWitchpoint;
-
-- (void) setDestinationToWitchpoint;
-- (void) setDestinationToStationBeacon;
-
-- (void) performHyperSpaceExit;
-
-- (void) commsMessage:(NSString *)valueString;
-- (void) broadcastDistressMessage;
-- (void) acceptDistressMessageFrom:(ShipEntity *)other;
-
-- (void) ejectCargo;
-
-- (void) scanForThargoid;
-- (void) scanForNonThargoid;
-
-- (void) initialiseTurret;
-
-- (void) checkDistanceTravelled;
-
-- (void) scanForHostiles;
-
-- (void) fightOrFleeHostiles;
-
-- (void) suggestEscort;
-
-- (void) escortCheckMother;
-
-- (void) performEscort;
-
-- (int) numberOfShipsInGroup:(int) ship_group_id;
-
-- (void) checkGroupOddsVersusTarget;
-
-- (void) groupAttackTarget;
-
-- (void) scanForFormationLeader;
-
-- (void) messageMother:(NSString *)msgString;
-
-- (void) setPlanetPatrolCoordinates;
-
-- (void) setSunSkimStartCoordinates;
-
-- (void) setSunSkimEndCoordinates;
-
-- (void) setSunSkimExitCoordinates;
-
-- (void) patrolReportIn;
-
-- (void) checkForMotherStation;
-
-- (void) sendTargetCommsMessage:(NSString*) message;
-
-- (void) markTargetForFines;
-
-- (void) scanForRocks;
-
-- (void) performMining;
-
-- (void) setDestinationToDockingAbort;
-
-- (void) requestNewTarget;
-
-- (void) rollD:(NSString*) die_number;
-
-- (void) scanForNearestShipWithRole:(NSString*) scanRole;
-
-- (void) setCoordinates:(NSString *)system_x_y_z;
-
-- (void) checkForNormalSpace;
-
-- (void) recallDockingInstructions;
-
-@end
-
-
-/*****************************************/
-
 
 @implementation ShipEntity (AI)
 
@@ -706,8 +546,17 @@ Your fair use and other rights are in no way affected by the above.
 	PlanetEntity	*the_planet =  [self findNearestPlanet];
 	if (the_planet)
 	{
-		destination = the_planet->position;
-		desired_range = the_planet->collision_radius + 100.0;   // 100m from the surface
+		Vector p_pos = the_planet->position;
+		double p_cr = 250.0 + the_planet->collision_radius;   // 250m from the surface
+		Vector p1 = vector_between( p_pos, position);
+		Vector v1 = make_vector (randf() - 0.5, randf() - 0.5, randf() - 0.5);	// arbitrary vector
+		p1 = unit_vector(&p1);			// vector towards ship
+		v1 = unit_vector(&v1);
+		v1 = cross_product( v1, p1);	// vector 90° to p1
+		p1 = make_vector ( v1.x + p1.x + p1.x, v1.y + p1.y + p1.y, v1.z + p1.z + p1.z);
+		p1 = unit_vector(&p1); 
+		destination = make_vector( p_pos.x + p1.x * p_cr, p_pos.y + p1.y * p_cr, p_pos.z + p1.z * p_cr);	// on surface
+		desired_range = 250.0;   // +250m from the destination
 	}
 }
 
@@ -739,6 +588,12 @@ Your fair use and other rights are in no way affected by the above.
 - (void) setAITo:(NSString *)aiString
 {
 	[[self getAI] setStateMachine:aiString];
+}
+
+- (void) switchAITo:(NSString *)aiString
+{
+	[[self getAI] setStateMachine:aiString];
+	[[self getAI] clearStack];
 }
 
 - (void) checkTargetLegalStatus
@@ -781,6 +636,19 @@ Your fair use and other rights are in no way affected by the above.
 	Entity* the_target = [universe entityForUniversalID:primaryTarget];
 	if (the_target)
 		destination = the_target->position;
+}
+
+- (void) setDestinationWithinTarget
+{
+	Entity* the_target = [universe entityForUniversalID:primaryTarget];
+	if (the_target)
+	{
+		Vector pos = the_target->position;
+		Quaternion q;	quaternion_set_random(&q);
+		Vector v = vector_forward_from_quaternion(q);
+		GLfloat d = (randf() - randf()) * the_target->collision_radius;
+		destination = make_vector( pos.x + d * v.x, pos.y + d * v.y, pos.z + d * v.z);
+	}
 }
 
 - (void) checkCourseToDestination
@@ -865,8 +733,12 @@ Your fair use and other rights are in no way affected by the above.
 		destination = [[universe station] getBeaconPosition];
 }
 
+WormholeEntity*	whole;
+//
 - (void) performHyperSpaceExit
 {
+	whole = nil;
+	
 	// get a list of destinations within range
 	NSArray* dests = [universe nearbyDestinationsWithinRange: 0.1 * fuel];
 	int n_dests = [dests count];
@@ -896,10 +768,10 @@ Your fair use and other rights are in no way affected by the above.
 	Random_Seed targetSystem = [Entity seedFromString:systemSeedKey];
 	fuel -= 10 * [[(NSDictionary*)[dests objectAtIndex:i] objectForKey:@"distance"] doubleValue];
 	
-	NSLog(@"DEBUG %@ leaving this system for  %@", self, [universe getSystemName:targetSystem]);
+//	NSLog(@"DEBUG %@ leaving this system for  %@", self, [universe getSystemName:targetSystem]);
 	
 	// create wormhole
-	WormholeEntity* whole = [[WormholeEntity alloc] initWormholeTo: targetSystem fromShip: self];
+	whole = [[[WormholeEntity alloc] initWormholeTo: targetSystem fromShip: self] autorelease];
 	[universe addEntity: whole];
 	
 	// tell the ship we're about to jump (so it can inform escorts etc).
@@ -907,8 +779,76 @@ Your fair use and other rights are in no way affected by the above.
 	found_target = primaryTarget;
 	[shipAI reactToMessage:@"WITCHSPACE OKAY"];	// must be a reaction, the ship is about to disappear
 	
-//	[self enterWitchspace];
 	[self enterWormhole: whole];	// TODO
+}
+
+- (void) wormholeEscorts
+{
+	if (n_escorts < 1)
+		return;
+	
+	if (!whole)
+		return;
+		
+	int i;
+	for (i = 0; i < n_escorts; i++)
+	{
+		int escort_id = escort_ids[i];
+		ShipEntity  *escorter = (ShipEntity *)[universe entityForUniversalID:escort_id];
+		// check it's still an escort ship
+		BOOL escorter_okay = YES;
+		if (!escorter)
+			escorter_okay = NO;
+		else
+			escorter_okay = escorter->isShip;
+		if (escorter_okay)
+		{
+			[escorter addTarget: whole];
+			[[escorter getAI] reactToMessage:@"ENTER WORMHOLE"];
+		}
+		escort_ids[i] = NO_TARGET;
+	}
+	
+	[self setN_escorts:0];
+
+}
+
+- (void) wormholeGroup
+{
+	NSArray* group = [self shipsInGroup: universal_id];	// ships in group of which this is a leader
+	
+	if (![group count])
+		return;
+
+	int i;
+	for (i = 0; i < [group count]; i++)
+	{
+		ShipEntity  *ship = (ShipEntity *)[group objectAtIndex:i];
+		if ((ship)&&(ship->isShip))	
+		{
+			[ship addTarget: whole];
+			[[ship getAI] reactToMessage:@"ENTER WORMHOLE"];
+		}
+	}
+}
+
+- (void) wormholeEntireGroup
+{
+	NSArray* group = [self shipsInGroup: group_id];	// ships in this group
+	
+	if (![group count])
+		return;
+
+	int i;
+	for (i = 0; i < [group count]; i++)
+	{
+		ShipEntity  *ship = (ShipEntity *)[group objectAtIndex:i];
+		if ((ship)&&(ship->isShip))	
+		{
+			[ship addTarget: whole];
+			[[ship getAI] reactToMessage:@"ENTER WORMHOLE"];
+		}
+	}
 }
 
 - (void) commsMessage:(NSString *)valueString
@@ -1246,6 +1186,9 @@ Your fair use and other rights are in no way affected by the above.
 	ShipEntity   *mother = (ShipEntity *)[universe entityForUniversalID:primaryTarget];
 	if (mother)
 	{
+		if (reportAImessages)
+			NSLog(@"DEBUG %@ suggests escorting %@", self, mother);
+
 		if ([mother acceptAsEscort:self])
 		{
 			// copy legal status across
@@ -1261,6 +1204,10 @@ Your fair use and other rights are in no way affected by the above.
 			[shipAI message:@"ESCORTING"];
 			return;
 		}
+		
+		if (reportAImessages)
+			NSLog(@"DEBUG %@ refused by %@", self, mother);
+
 	}
 	[self setOwner:NO_TARGET];
 	[shipAI message:@"NOT_ESCORTING"];
@@ -1363,16 +1310,13 @@ Your fair use and other rights are in no way affected by the above.
 	for (i = 0; i < ship_count ; i++)
 	{
 		ShipEntity* ship = (ShipEntity *)my_entities[i];
-		if (ship != self)
+		if ((ship != self)&&(!ship->isPlayer)&&([ship scanClass] == scan_class))	// look for alike
 		{
-			if (pairOK( roles, [ship roles]))
+			double d2 = distance2( position, ship->position);
+			if ((d2 < found_d2)&&(pairOK( [ship roles], roles)))
 			{
-				double d2 = distance2( position, ship->position);
-				if (d2 < found_d2)
-				{
-					found_d2 = d2;
-					found_target = [ship universal_id];
-				}
+				found_d2 = d2;
+				found_target = [ship universal_id];
 			}
 		}
 	}
@@ -1689,7 +1633,7 @@ Your fair use and other rights are in no way affected by the above.
 	int die_sides = [die_number intValue];
 	if (die_sides > 0)
 	{
-		int die_roll = ranrot_rand() % die_sides;
+		int die_roll = 1 + (ranrot_rand() % die_sides);
 		NSString* result = [NSString stringWithFormat:@"ROLL_%d", die_roll];
 		[shipAI reactToMessage: result];
 	}
@@ -1867,5 +1811,12 @@ Your fair use and other rights are in no way affected by the above.
 	}
 }
 
+- (void) addFuel:(NSString*) fuel_number
+{
+	int	extra_fuel = [fuel_number intValue];
+	fuel += 10 * extra_fuel;
+	if (fuel > 70)
+		fuel = 70;
+}
 
 @end

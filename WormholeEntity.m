@@ -94,10 +94,23 @@ Your fair use and other rights are in no way affected by the above.
 		witch_mass += [ship mass];
 		expiry_time = time_counter + WORMHOLE_EXPIRES_TIMEINTERVAL;
 		collision_radius = 0.5 * PI * pow( witch_mass, 1.0/3.0);
-		//
-		NSLog(@"DEBUG %@ sucks in %@", self, ship);
-		//
+
+//		NSLog(@"DEBUG %@ sucks in %@", self, ship);
+
+		// witchspace entry effects here
+		ParticleEntity *ring = [[ParticleEntity alloc] initHyperringFromShip:ship]; // retained
+		[universe addEntity:ring];
+		[ring release];
+		ring = [[ParticleEntity alloc] initHyperringFromShip:ship]; // retained
+		[ring setSize:NSMakeSize([ring size].width * -2.5 ,[ring size].height * -2.0 )]; // shrinking!
+		[universe addEntity:ring];
+		[ring release];
+		
+		[[ship getAI] message:@"ENTERED_WITCHSPACE"];
+	
 		[universe removeWithoutRecyclingEntity: ship];
+		[[ship getAI] clearStack];	// get rid of any preserved states
+		
 		//
 		return YES;
 	}
@@ -136,9 +149,12 @@ Your fair use and other rights are in no way affected by the above.
 		[ship setBounty:[ship getBounty]/2];	// adjust legal status for new system
 		
 		[universe addEntity:ship];
+		
 		[[ship getAI] reactToMessage:@"EXITED WITCHSPACE"];
 		
-		NSLog(@"DEBUG %@ disgorged %@", self, ship);
+//		[ship setReportAImessages:YES];	// DEBUG
+		
+//		NSLog(@"DEBUG %@ disgorged %@", self, ship);
 		
 		// update the ships's position
 		[ship update: time_passed];
@@ -175,15 +191,34 @@ Your fair use and other rights are in no way affected by the above.
 
 - (void) update:(double) delta_t
 {
-//	NSLog(@"DEBUG update for %@",self);
 	[super update:delta_t];
 	
 	Entity* player = [universe entityZero];
 	if (player)
 	{
-		q_rotation = player->q_rotation;					// Really simple billboard routine
-		q_rotation.w = -q_rotation.w;
-		quaternion_into_gl_matrix(q_rotation, rotMatrix);
+		// new billboard routine (from Planetentity.m)
+		Vector v0 = position;
+		Vector p0 = (player)? player->position: make_vector(0,0,0);
+		v0.x -= p0.x;	v0.y -= p0.y;	v0.z -= p0.z; // vector from player to position
+		if (v0.x||v0.y||v0.z)
+			v0 = unit_vector(&v0);
+		else
+			v0.z = 1.0;
+		//equivalent of v_forward
+		Vector arb1;
+		if ((v0.x == 0.0)&&(v0.y == 0.0))
+		{
+			arb1.x = 1.0;   arb1.y = 0.0; arb1.z = 0.0; // arbitrary axis - not aligned with v0
+		}
+		else
+		{
+			arb1.x = 0.0;   arb1.y = 0.0; arb1.z = 1.0;
+		}
+		Vector v1 = cross_product( v0, arb1 ); // 90 degrees to (v0 x arb1)
+		//equivalent of v_right
+		Vector v2 = cross_product( v0, v1 );   // 90 degrees to (v0 x v1)
+		//equivalent of v_up
+		vectors_into_gl_matrix( v0, v1, v2, rotMatrix);
 	}
 	
 	time_counter += delta_t;

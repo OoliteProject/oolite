@@ -407,7 +407,7 @@ static BOOL hostiles;
 //	NSLog(@"drawing grid size %.1f x %.1f", siz.width, siz.height);
 	
 	glColor4fv( scanner_color);
-	drawScannerGrid( x, y, z1, siz, [[player universe] viewDir], line_width);
+	drawScannerGrid( x, y, z1, siz, [[player universe] viewDir], line_width, scanner_zoom);
 	
 	GLfloat off_scope2 = (siz.width > siz.height) ? siz.width * siz.width : siz.height * siz.height;
 	
@@ -2062,17 +2062,30 @@ NSRect rectForString(NSString *text, double x, double y, NSSize siz)
 	return NSMakeRect( x, y, w, siz.height);
 }
 
-void drawScannerGrid( double x, double y, double z, NSSize siz, int v_dir, GLfloat thickness)
+void drawScannerGrid( double x, double y, double z, NSSize siz, int v_dir, GLfloat thickness, double zoom)
 {
+	GLfloat w1, h1;
 	GLfloat ww = 0.5 * siz.width;
-	GLfloat w1 = 0.125 * siz.width;
-	GLfloat w2 = 0.250 * siz.width;
-//	GLfloat w3 = 0.375 * siz.width;
 	GLfloat hh = 0.5 * siz.height;
-	GLfloat h1 = 0.125 * siz.height;
+
+	GLfloat w2 = 0.250 * siz.width;
 	GLfloat h2 = 0.250 * siz.height;
-	GLfloat h3 = 0.375 * siz.height;
-//	glColor4f( 1.0, 0.0, 0.0, alpha);
+
+	GLfloat km_scan = 0.001 * SCANNER_MAX_RANGE / zoom;	// calculate kilometer divisions
+	GLfloat hdiv = 0.5 * siz.height / km_scan;
+	GLfloat wdiv = 0.25 * siz.width / km_scan;
+	
+	int i, ii;
+	
+	if (wdiv < 4.0)
+	{
+		wdiv *= 2.0;
+		ii = 5;
+	}
+	else
+	{
+		ii = 1;
+	}
 	
 	glLineWidth(2.0 * thickness);
 	
@@ -2083,12 +2096,22 @@ void drawScannerGrid( double x, double y, double z, NSSize siz, int v_dir, GLflo
 	glBegin(GL_LINES);
 		glVertex3f(x, y - hh, z);	glVertex3f(x, y + hh, z);
 		glVertex3f(x - ww, y, z);	glVertex3f(x + ww, y, z);
-		glVertex3f(x - w1, y - h1, z);	glVertex3f(x + w1, y - h1, z);
-		glVertex3f(x - w1, y - h2, z);	glVertex3f(x + w1, y - h2, z);
-		glVertex3f(x - w1, y - h3, z);	glVertex3f(x + w1, y - h3, z);
-		glVertex3f(x - w1, y + h1, z);	glVertex3f(x + w1, y + h1, z);
-		glVertex3f(x - w1, y + h2, z);	glVertex3f(x + w1, y + h2, z);
-		glVertex3f(x - w1, y + h3, z);	glVertex3f(x + w1, y + h3, z);
+
+		for (i = ii; 2.0 * hdiv * i < siz.height; i += ii)
+		{
+			h1 = i * hdiv;
+			w1 = wdiv;
+			if (i % 5 == 0)
+				w1 = w1 * 2.5;
+			if (i % 10 == 0)
+				w1 = w1 * 2.0;
+			if (w1 > 3.5)	// don't draw tiny marks
+			{
+				glVertex3f(x - w1, y + h1, z);	glVertex3f(x + w1, y + h1, z);
+				glVertex3f(x - w1, y - h1, z);	glVertex3f(x + w1, y - h1, z);
+			}
+		}
+
 		switch (v_dir)
 		{
 			case VIEW_BREAK_PATTERN :

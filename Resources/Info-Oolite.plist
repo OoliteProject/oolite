@@ -28,25 +28,10 @@
 			<key>CFBundleTypeName</key>
 			<string>Oolite Expansion Pack</string>
 			<key>CFBundleTypeRole</key>
-			<string>Editor</string>
+			<string>Viewer</string>
 			<key>LSTypeIsPackage</key>
 			<true/>
 		</dict>
-		<dict>
-			<key>CFBundleTypeExtensions</key>
-			<array>
-				<string>oolite_expansion_pack</string>
-			</array>
-			<key>CFBundleTypeIconFile</key>
-			<string>oolite-expansion-document</string>
-			<key>CFBundleTypeName</key>
-			<string>Oolite Expansion Pack</string>
-			<key>CFBundleTypeRole</key>
-			<string>Editor</string>
-			<key>LSTypeIsPackage</key>
-			<true/>
-		</dict>
-		<dict/>
 	</array>
 	<key>CFBundleExecutable</key>
 	<string>Oolite</string>
@@ -63,10 +48,49 @@
 	<key>CFBundleSignature</key>
 	<string>Ool8</string>
 	<key>CFBundleVersion</key>
-	<string>1.59</string>
+	<string>1.60</string>
 	<key>NSMainNibFile</key>
 	<string>MainMenu</string>
 	<key>NSPrincipalClass</key>
 	<string>OoliteApp</string>
+	<key>UTExportedTypeDeclarations</key>
+	<array>
+		<dict>
+			<key>UTTypeIdentifier</key>
+			<string>org.aegidian.oolite.save</string>
+			<key>UTTypeDescription</key>
+			<string>Oolite Saved Game</string>
+			<key>UTTypeConformsTo</key>
+			<array>
+				<string>public.data</string>
+				<string>public.content</string>
+			</array>
+			<key>UTTypeTagSpecification</key>
+			<dict>
+				<key>public.filename-extension</key>
+				<array>
+					<string>oolite-save</string>
+				</array>
+			</dict>
+		</dict>
+		<dict>
+			<key>UTTypeIdentifier</key>
+			<string>org.aegidian.oolite.oxp</string>
+			<key>UTTypeDescription</key>
+			<string>Oolite Expansion Pack</string>
+			<key>UTTypeConformsTo</key>
+			<array>
+				<string>public.data</string>
+				<string>com.apple.package</string>
+			</array>
+			<key>UTTypeTagSpecification</key>
+			<dict>
+				<key>public.filename-extension</key>
+				<array>
+					<string>oxp</string>
+				</array>
+			</dict>
+		</dict>
+	</array>
 </dict>
 </plist>

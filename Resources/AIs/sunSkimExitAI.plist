@@ -13,7 +13,14 @@
         "TARGET_LOST" = ("setStateTo: HEAD_AWAY_FROM_PLANET"); 
         UPDATE = (); 
     }; 
-    "EXIT_SYSTEM" = {ENTER = (); EXIT = (); UPDATE = (performHyperSpaceExit); }; 
+    "EXIT_SYSTEM" = {
+		ENTER = ();
+		EXIT = ();
+		UPDATE = (performHyperSpaceExit);
+		"WITCHSPACE OKAY" = (wormholeEscorts);
+		"WITCHSPACE BLOCKED" = (setTargetToFoundTarget, setDestinationWithinTarget, "setDesiredRangeTo: 10000.0", performFlyToRangeFromDestination);
+		"WITCHSPACE UNAVAILABLE" = ("setAITo: route1traderAI.plist");
+	}; 
     FLEE = {
         ATTACKED = (fightOrFleeHostiles); 
         ENTER = ("setDesiredRangeTo: 25600", performFlee); 
@@ -62,7 +69,7 @@
     }; 
     "LEAVE_SUN" = {
         ATTACKED = (fightOrFleeHostiles); 
-        "DESIRED_RANGE_ACHIEVED" = ("setStateTo: EXIT_SYSTEM"); 
+        "DESIRED_RANGE_ACHIEVED" = ("addFuel: 70", "setStateTo: EXIT_SYSTEM"); 
         ENTER = (
             setSunSkimExitCoordinates, 
             setDestinationFromCoordinates, 

@@ -866,6 +866,7 @@ static BOOL galactic_witchjump;
 	hud = [[HeadUpDisplay alloc] initWithDictionary:huddict];
 	[hud setPlayer:self];
 	[hud setScannerZoom:1.0];
+	scanner_zoom_rate = 0.0;
 	//
 	script = [[ResourceManager dictionaryFromFilesNamed:@"script.plist" inFolder:@"Config" andMerge:YES] retain];
 	mission_variables =[[NSMutableDictionary dictionaryWithCapacity:16] retain];
@@ -1533,6 +1534,8 @@ static BOOL galactic_witchjump;
 			
 			// check fuel level
 			double		fuel_required = 10.0 * distanceBetweenPlanetPositions(target_system_seed.d,target_system_seed.b,galaxy_coordinates.x,galaxy_coordinates.y); 
+			if (galactic_witchjump)
+				fuel_required = 0.0;
 			if (fuel < fuel_required)
 			{
 				[universe clearPreviousMessage];
@@ -1923,6 +1926,8 @@ static BOOL galactic_witchjump;
 	//
 	////
 	
+	// fuel leakage
+	//
 	if ((fuel_leak_rate > 0.0)&&(fuel > 0))
 	{
 		fuel_accumulator -= fuel_leak_rate * delta_t;
@@ -1933,6 +1938,30 @@ static BOOL galactic_witchjump;
 		}
 		if (fuel == 0)
 			fuel_leak_rate = 0;
+	}
+	
+	// smart_zoom
+	if (scanner_zoom_rate)
+	{
+		double z = [hud scanner_zoom];
+		double z1 = z + scanner_zoom_rate * delta_t;
+		if (scanner_zoom_rate > 0.0)
+		{
+			if (floor(z1) > floor(z))
+			{
+				z1 = floor(z1);
+				scanner_zoom_rate = 0.0;
+			}
+		}
+		else
+		{
+			if (z1 < 1.0)
+			{
+				z1 = 1.0;
+				scanner_zoom_rate = 0.0;
+			}
+		}
+		[hud setScannerZoom:z1];
 	}
 }
 
@@ -2551,7 +2580,6 @@ static BOOL jump_pressed;
 static BOOL hyperspace_pressed;
 static BOOL galhyperspace_pressed;
 static BOOL pause_pressed;
-static BOOL zoom_pressed;
 static BOOL compass_mode_pressed;
 static BOOL next_target_pressed;
 static BOOL fire_missile_pressed;
@@ -3804,7 +3832,7 @@ static BOOL queryPressed;
 				{
 					disc_operation_in_progress = NO;
 				}
-
+				
 				if (([gui selectedRow] == display_row)&&(([gameView isDown:gvArrowKeyRight])||([gameView isDown:gvArrowKeyLeft]))&&(!switching_resolution))
 				{
 					int direction = ([gameView isDown:gvArrowKeyRight]) ? 1 : -1;
@@ -5561,6 +5589,7 @@ static BOOL toggling_music;
 	missile_status = MISSILE_STATUS_SAFE;
 	
 	[hud setScannerZoom:1.0];
+	scanner_zoom_rate = 0.0;
 	[universe setDisplayText:NO];
 	[universe setDisplayCursor:NO];
 	[universe set_up_break_pattern:position quaternion:q_rotation];
@@ -5665,7 +5694,9 @@ static BOOL toggling_music;
 		legal_status |= [universe legal_status_of_manifest:shipCommodityData];  // 'leaving with those guns were you sir?'
 	[self loadCargoPods];
 	
-	[station autoDockShipsOnApproach];  // clear the way
+	// clear the way
+	[station autoDockShipsOnApproach];
+	[station clearDockingCorridor];
 	
 	[station launchShip:self];
 	q_rotation.w = -q_rotation.w;   // need this as a fix...
@@ -5674,6 +5705,7 @@ static BOOL toggling_music;
 	[self setAlert_flag:ALERT_FLAG_DOCKED :NO];
 	
 	[hud setScannerZoom:1.0];
+	scanner_zoom_rate = 0.0;
 	gui_screen = GUI_SCREEN_MAIN;
 	[self setShowDemoShips:NO];
 	[universe setDisplayText:NO];
@@ -5706,6 +5738,9 @@ static BOOL toggling_music;
 	
 	hyperspeed_engaged = NO;
 	
+	[hud setScannerZoom:1.0];
+	scanner_zoom_rate = 0.0;
+
 	[universe setDisplayText:NO];
 	[universe removeAllEntitiesExceptPlayer:NO];
 	
@@ -5757,6 +5792,9 @@ static BOOL toggling_music;
 	double		distance = distanceBetweenPlanetPositions(target_system_seed.d,target_system_seed.b,galaxy_coordinates.x,galaxy_coordinates.y); 
 	ship_clock_adjust = distance * distance * 3600.0;		// LY * LY hrs
 	
+	[hud setScannerZoom:1.0];
+	scanner_zoom_rate = 0.0;
+
 	[universe setDisplayText:NO];
 	[universe removeAllEntitiesExceptPlayer:NO];
 	[universe setSystemTo:target_system_seed];
@@ -5781,6 +5819,9 @@ static BOOL toggling_music;
 	
 	hyperspeed_engaged = NO;
 	
+	[hud setScannerZoom:1.0];
+	scanner_zoom_rate = 0.0;
+
 	[universe setDisplayText:NO];
 	[universe removeAllEntitiesExceptPlayer:NO];
 	//
@@ -5793,11 +5834,15 @@ static BOOL toggling_music;
 	//
 	//  perform any check here for forced witchspace encounters
 	//
-	int misjump_chance = 253;
+	int malfunc_chance = 253;
     if (ship_trade_in_factor < 80)
-		misjump_chance -= (1 + ranrot_rand() % (81-ship_trade_in_factor)) / 2;	// increase chance of misjump in worn-out craft
+		malfunc_chance -= (1 + ranrot_rand() % (81-ship_trade_in_factor)) / 2;	// increase chance of misjump in worn-out craft
 	ranrot_srand([[NSDate date] timeIntervalSince1970]);	// seed randomiser by time
-	BOOL misjump = ((flight_pitch == max_flight_pitch)||((ranrot_rand() & 0xff) > misjump_chance));
+	BOOL malfunc = ((ranrot_rand() & 0xff) > malfunc_chance);
+	// 75% of the time a malfunction means a misjump
+	BOOL misjump = ((flight_pitch == max_flight_pitch) || (malfunc && (randf() > 0.75)));
+
+//	malfunc = (malfunc || (flight_pitch == -max_flight_pitch));	// DEBUGGING
 	
 	fuel -= 10.0 * distance;								// fuel cost to target system
 	ship_clock_adjust = distance * distance * 3600.0;		// LY * LY hrs
@@ -5820,6 +5865,16 @@ static BOOL toggling_music;
 		[universe set_up_universe_from_witchspace];
 		[[universe planet] update: 2.34375 * market_rnd];	// from 0..10 minutes
 		[[universe station] update: 2.34375 * market_rnd];	// from 0..10 minutes
+		if (malfunc)
+		{
+			if (randf() > 0.5)
+				[self setFuelLeak:[NSString stringWithFormat:@"%f", (randf() + randf()) * 5.0]];
+			else
+			{
+				[warningSound play];
+				[self takeInternalDamage];
+			}
+		}
 	}
 	else
 	{

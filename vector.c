@@ -199,6 +199,13 @@ Vector normal_to_surface (Vector v1, Vector v2, Vector v3)
 	return cross_product(d0,d1);	
 }
 
+// vector from a to b
+//
+inline Vector vector_between (Vector a, Vector b)
+{
+	return make_vector( b.x - a.x, b.y - a.y, b.z - a.z);
+}
+
 // make a vector
 //
 inline struct vector make_vector (GLfloat vx, GLfloat vy, GLfloat vz)

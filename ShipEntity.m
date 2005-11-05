@@ -44,6 +44,7 @@ Your fair use and other rights are in no way affected by the above.
 #import "Universe.h"
 
 #import "AI.h"
+#import "OOCharacter.h"
 
 
 @implementation ShipEntity
@@ -179,6 +180,8 @@ Your fair use and other rights are in no way affected by the above.
 	//
 	dockingInstructions = nil;
 	//
+	crew = nil;
+	//
 	return self;
 }
 
@@ -204,6 +207,8 @@ Your fair use and other rights are in no way affected by the above.
 	if (dockingInstructions)
 							[dockingInstructions release];
 
+	if (crew)				[crew release];
+	
 	[super dealloc];
 }
 
@@ -459,8 +464,9 @@ Your fair use and other rights are in no way affected by the above.
 	condition = CONDITION_IDLE;
 	frustration = 0.0;
 	//
-	if (!shipAI)
-		shipAI = [[AI alloc] init]; // alloc retains
+	if (shipAI)
+		[shipAI autorelease];
+	shipAI = [[AI alloc] init]; // alloc retains
 	[shipAI setOwner:self];
 	[shipAI setState:@"GLOBAL"];
 	//
@@ -476,16 +482,16 @@ Your fair use and other rights are in no way affected by the above.
 	//
 	reportAImessages = NO;
 	//
-	if (previousCondition) [previousCondition release];
+	if (previousCondition) [previousCondition autorelease];
 	previousCondition = nil;
 	//
-	if (sub_entities) [sub_entities release];
+	if (sub_entities) [sub_entities autorelease];
 	sub_entities = nil;
 	//
 	scanner_range = 25600.0;
 	//
 	if (shipinfoDictionary)
-		[shipinfoDictionary release];
+		[shipinfoDictionary autorelease];
 	shipinfoDictionary = nil;
 	//
 	being_fined = NO;
@@ -509,8 +515,13 @@ Your fair use and other rights are in no way affected by the above.
 	isFrangible = YES;
 	//
 	if (dockingInstructions)
-		[dockingInstructions release];
+		[dockingInstructions autorelease];
 	dockingInstructions = nil;
+	//
+	if (crew)
+		[crew autorelease];
+	crew = nil;
+	
 }
 
 - (id) initWithDictionary:(NSDictionary *) dict
@@ -543,6 +554,8 @@ Your fair use and other rights are in no way affected by the above.
 	patrol_counter = 0;
 	//
 	scan_class = CLASS_NOT_SET;
+	//
+	crew = nil;
 	//
 	[self setUpShipFromDictionary:dict];
 	//
@@ -2735,6 +2748,16 @@ static GLfloat mascem_color2[4] =	{ 0.4, 0.1, 0.4, 1.0};	// purple
 		launch_time = [universe getTime];
 }
 
+- (void) setCrew: (NSArray*) crewArray
+{
+	if (crew)
+		[crew autorelease];
+	if (crewArray)
+		crew = [[NSArray arrayWithArray:crewArray] retain];
+	else
+		crew = nil;
+}
+
 - (void) setStateMachine:(NSString *) ai_desc
 {
 	[shipAI setStateMachine: ai_desc];
@@ -2749,6 +2772,20 @@ static GLfloat mascem_color2[4] =	{ 0.4, 0.1, 0.4, 1.0};	// purple
 - (AI *) getAI
 {
 	return shipAI;
+}
+
+- (int) fuel
+{
+	return fuel;
+}
+
+- (void) setFuel:(int) amount
+{
+	fuel = amount;
+	if (fuel < 0)
+		fuel = 0;
+	if (fuel > 70)
+		fuel = 70;
 }
 
 - (void) setRoll:(double) amount
@@ -5132,6 +5169,12 @@ Vector randomPositionInBoundingBox(BoundingBox bb)
 		[pod setOwner:self];
 		[pod setScanClass: CLASS_CARGO];
 		[pod setCommodity:[universe commodityForName:@"Slaves"] andAmount:1];
+		if (crew)
+		{
+			[pod setCrew: crew];
+			[crew autorelease];
+			crew = nil;
+		}
 		[[pod getAI] setStateMachine:@"homeAI.plist"];
 		[self dumpItem:pod];
 		[[pod getAI] setState:@"GLOBAL"];
@@ -5587,17 +5630,6 @@ Vector randomPositionInBoundingBox(BoundingBox bb)
 
 - (void) enterWormhole:(WormholeEntity *) w_hole
 {
-	// witchspace entry effects here
-	ParticleEntity *ring1 = [[ParticleEntity alloc] initHyperringFromShip:self]; // retained
-	[universe addEntity:ring1];
-	[ring1 release];
-	ParticleEntity *ring2 = [[ParticleEntity alloc] initHyperringFromShip:self]; // retained
-	[ring2 setSize:NSMakeSize([ring2 size].width * -2.5 ,[ring2 size].height * -2.0 )]; // shrinking!
-	[universe addEntity:ring2];
-	[ring2 release];
-	
-	[shipAI message:@"ENTERED_WITCHSPACE"];
-	
 	if (![[universe sun] willGoNova])				// if the sun's not going nova
 		[universe witchspaceShipWithRole:roles];	// then add a new ship like this one leaving!
 	
@@ -5634,9 +5666,7 @@ Vector randomPositionInBoundingBox(BoundingBox bb)
 	Quaternion	q1 = q_rtn;
 	quaternion_set_random(&q1);
 	Vector		v1 = vector_forward_from_quaternion(q1);
-//	position.x += SCANNER_MAX_RANGE*((ranrot_rand() % 256)/256.0 - 0.5); // randomise exit position
-//	position.y += SCANNER_MAX_RANGE*((ranrot_rand() % 256)/256.0 - 0.5);
-//	position.z += SCANNER_MAX_RANGE*((ranrot_rand() % 256)/256.0 - 0.5);
+
 	position.x += v1.x * d1; // randomise exit position
 	position.y += v1.y * d1;
 	position.z += v1.z * d1;
@@ -5709,6 +5739,8 @@ inline BOOL pairOK(NSString* my_role, NSString* their_role)
 	pairing_okay |= (![my_role isEqual:@"escort"] && ![my_role isEqual:@"wingman"] && [their_role isEqual:@"escort"]);
 	pairing_okay |= (([my_role isEqual:@"police"]||[my_role isEqual:@"interceptor"]) && [their_role isEqual:@"wingman"]);
 	
+//	NSLog(@"checking if pairOK for ( %@, %@) >> %@", my_role, their_role, (pairing_okay)? @"YES":@"NO");
+	
 	return pairing_okay;
 }
 
@@ -5718,13 +5750,19 @@ inline BOOL pairOK(NSString* my_role, NSString* their_role)
 	if (self == other_ship)
 		return NO;
 	
+//	NSLog(@"DEBUG %@ %d asked to accept %@ %d as escort when ai_stack_depth is %d", name, universal_id, [other_ship name], [other_ship universal_id], [shipAI ai_stack_depth]);
+	
 	// if not in standard ai mode reject approach
-	//NSLog(@"%@ %d asked to accept %@ %d as escort when ai_stack_depth is %d", name, universal_id, [other_ship name], [other_ship universal_id], [shipAI ai_stack_depth]);
 	if ([shipAI ai_stack_depth] > 1)
 		return NO;
 	
+//	NSLog(@"DEBUG pairOK( %@, %@) = %@", roles, [other_ship roles], (pairOK( roles, [other_ship roles]))? @"YES":@"NO");
+	
 	if (pairOK( roles, [other_ship roles]))
 	{
+		// check total number acceptable
+		int max_escorts = [(NSNumber *)[shipinfoDictionary objectForKey:@"escorts"] intValue];
+		
 		// check it's not already been accepted
 		int i;
 		for (i = 0; i < n_escorts; i++)
@@ -5737,7 +5775,7 @@ inline BOOL pairOK(NSString* my_role, NSString* their_role)
 			}
 		}
 		
-		if (n_escorts < MAX_ESCORTS)
+		if ((n_escorts < MAX_ESCORTS)&&(n_escorts < max_escorts))
 		{
 			escort_ids[n_escorts] = [other_ship universal_id];
 			[other_ship setGroup_id:universal_id];

@@ -387,7 +387,7 @@ static NSString * mission_key;
 	NSString		*text = (NSString *)[[universe missiontext] objectForKey:textKey];
 	if (!text)
 	{
-		NSLog(@"SCRIPT ERROR ***** no missiontext set for key '%@'", textKey);
+		NSLog(@"SCRIPT ERROR ***** no missiontext set for key '%@' [universe missiontext] is:\n%@ ", textKey, [universe missiontext]);
 		return;
 	}
 	if (!mission_key)
@@ -1336,6 +1336,7 @@ static int shipsFound;
 			int e_class = e1->scan_class;
 			if ((e_class == CLASS_NEUTRAL)||(e_class == CLASS_POLICE)||(e_class == CLASS_MILITARY)||(e_class == CLASS_THARGOID))
 			{
+				[(ShipEntity*)e1 setFuel: 70];
 				[[(ShipEntity*)e1 getAI] setStateMachine:@"exitingTraderAI.plist"];
 				[[(ShipEntity*)e1 getAI] setState:@"EXIT_SYSTEM"];
 				[[(ShipEntity*)e1 getAI] reactToMessage:[NSString stringWithFormat:@"pauseAI: %d", 3 + ranrot_rand() & 15]];

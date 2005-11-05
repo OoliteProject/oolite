@@ -138,6 +138,8 @@ NSDictionary* instructions(int station_id, Vector coords, float speed, float ran
 
 - (BOOL) dockingCorridorIsEmpty;
 
+- (void) clearDockingCorridor;
+
 - (void) clear;
 
 

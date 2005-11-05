@@ -92,6 +92,8 @@ inline GLfloat dot_product (Vector first, Vector second);
 Vector cross_product (Vector first, Vector second);
 Vector normal_to_surface (Vector v1, Vector v2, Vector v3);
 
+inline Vector vector_between (Vector a, Vector b);
+
 inline struct vector make_vector (GLfloat vx, GLfloat vy, GLfloat vz);
 struct vector unit_vector (struct vector *vec);
 void	set_matrix_identity (struct vector *mat);
