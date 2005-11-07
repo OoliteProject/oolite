@@ -70,6 +70,7 @@ Your fair use and other rights are in no way affected by the above.
 #define GUI_SCREEN_OPTIONS				108
 #define GUI_SCREEN_LOAD             118
 #define GUI_SCREEN_SAVE             128
+#define GUI_SCREEN_SAVE_OVERWRITE		129
 #define GUI_SCREEN_STICKMAPPER      138
 #define GUI_SCREEN_MISSION				201
 #define GUI_SCREEN_REPORT				301
@@ -450,7 +451,7 @@ Your fair use and other rights are in no way affected by the above.
 		// trumbles
 		int n_trumbles;
 		OOTrumble*	trumble[PLAYER_MAX_TRUMBLES];
-
+		
 		// smart zoom
 		double scanner_zoom_rate;
 

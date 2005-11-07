@@ -95,7 +95,8 @@ extern int debug;
 #else   
 	CGMouseDelta mouse_dx, mouse_dy;
 #endif
-   
+  
+   NSString *playerFileDirectory; 
 	NSString	*playerFileToLoad;
 	NSMutableArray*	expansionPathsToInclude;
 	
@@ -154,6 +155,9 @@ extern int debug;
 
 // dajt: added to make things a bit neater
 - (void) applicationDidFinishLaunching: (NSNotification*) notification;
+
+- (NSString *) playerFileDirectory;
+- (void) setPlayerFileDirectory:(NSString *)filename;
 
 - (void) loadPlayerIfRequired;
 

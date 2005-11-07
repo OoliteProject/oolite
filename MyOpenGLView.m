@@ -173,15 +173,24 @@ Your fair use and other rights are in no way affected by the above.
 	[super dealloc];
 }
 
-- (void) allowStringInput: (BOOL) value
+- (void) setStringInput: (enum StringInput) value
 {
 	allowingStringInput = value;
 }
 
--(BOOL) allowingStringInput
+- (void) allowStringInput: (BOOL) value
+{
+	if (value)
+		allowingStringInput = gvStringInputAlpha;
+	else
+		allowingStringInput = gvStringInputNo;
+}
+
+-(enum StringInput) allowingStringInput
 {
 	return allowingStringInput;
 }
+
 
 - (NSString *) typedString
 {

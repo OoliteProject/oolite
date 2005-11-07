@@ -2381,7 +2381,6 @@ Your fair use and other rights are in no way affected by the above.
 	//
 	[player setStatus:STATUS_DOCKED];
 	[player setGuiToStatusScreen];
-	[self setViewDirection:VIEW_DOCKED];
 	displayGUI = YES;
 	//
 	[player release];    

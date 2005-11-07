@@ -1339,6 +1339,8 @@ static BOOL galactic_witchjump;
 	
 	if (save_path)				[save_path release];
 	
+	if (cdrDetailArray)			[cdrDetailArray release];
+	
 	int i;
 	for (i = 0; i < SHIPENTITY_MAX_MISSILES; i++)
 	{
@@ -1433,8 +1435,22 @@ static BOOL galactic_witchjump;
 	// scripting
 	if (script_time > script_time_check)
 	{
-		[self checkScript];
-		script_time_check += script_time_interval;
+		switch (gui_screen)
+		{
+			// screens from which it's safe to jump to the mission screen
+			case GUI_SCREEN_CONTRACTS:
+			case GUI_SCREEN_EQUIP_SHIP:
+			case GUI_SCREEN_INVENTORY:
+			case GUI_SCREEN_LONG_RANGE_CHART:
+			case GUI_SCREEN_MANIFEST:
+			case GUI_SCREEN_SHIPYARD:
+			case GUI_SCREEN_SHORT_RANGE_CHART:
+			case GUI_SCREEN_STATUS:
+			case GUI_SCREEN_SYSTEM_DATA:		
+				[self checkScript];
+				script_time_check += script_time_interval;
+				break;
+		}
 	}
 	
 	// deal with collisions
@@ -3190,8 +3206,6 @@ static NSTimeInterval	time_last_frame;
 		{
 			[gameView clearKeys];
 			[self setGuiToLoadSaveScreen];
-			[universe setDisplayText:YES];
-			[universe setDisplayCursor:YES];
 		}
 		//
 		if (gui_screen == GUI_SCREEN_OPTIONS ||
@@ -3570,13 +3584,13 @@ static BOOL queryPressed;
 	double			cursor_speed = 10.0;
 	GuiDisplayGen*  gui = [universe gui];
 	NSString    *commanderFile;
-
+	
+	if (gui_screen == GUI_SCREEN_LONG_RANGE_CHART)
+		[gameView setStringInput: gvStringInputAlpha];
+		
 #ifdef LOADSAVEGUI
-	[gameView allowStringInput:
-      (gui_screen == GUI_SCREEN_LONG_RANGE_CHART ||
-       gui_screen == GUI_SCREEN_SAVE)];
-#else
-   [gameView allowStringInput: (gui_screen == GUI_SCREEN_LONG_RANGE_CHART)];
+	if (gui_screen == GUI_SCREEN_SAVE)
+		[gameView setStringInput: gvStringInputAll];
 #endif   
 
 	switch (gui_screen)
@@ -3650,8 +3664,6 @@ static BOOL queryPressed;
 					[gameView clearMouse];
 					[self setGuiToSystemDataScreen];
 					[self checkScript];
-					[universe setDisplayText:YES];
-					[universe setDisplayCursor:NO];
 				}
 				if ([gameView isDown:key_map_home])
 				{
@@ -3710,7 +3722,6 @@ static BOOL queryPressed;
 					if ((oldSelection >= [gui selectableRange].location)&&(oldSelection < [gui selectableRange].location + [gui selectableRange].length))
 						[gui setSelectedRow:oldSelection];
 					[self setGuiToContractsScreen];
-					[universe setDisplayCursor:NO];
 				}
 				queryPressed = YES;
 			}
@@ -3720,17 +3731,20 @@ static BOOL queryPressed;
 
       // DJS: Farm off load/save screen options to LoadSave.m
 #ifdef LOADSAVEGUI         
-      case GUI_SCREEN_LOAD:
-         commanderFile=[self commanderSelector: gui :gameView];
-         if(commanderFile)
-         {
-		      [self loadPlayerFromFile: commanderFile];
-				[self setGuiToStatusScreen];
-         }
-         break;
-      case GUI_SCREEN_SAVE:
-         [self saveCommanderInputHandler: gui :gameView];
-         break;
+			case GUI_SCREEN_LOAD:
+				commanderFile=[self commanderSelector: gui :gameView];
+				if(commanderFile)
+				{
+					[self loadPlayerFromFile: commanderFile];
+					[self setGuiToStatusScreen];
+				}
+				break;
+			case GUI_SCREEN_SAVE:
+				[self saveCommanderInputHandler: gui :gameView];
+				break;
+			case GUI_SCREEN_SAVE_OVERWRITE:
+				[self overwriteCommanderInputHandler: gui :gameView];
+				break;
 #endif         
       case GUI_SCREEN_STICKMAPPER:
          [self stickMapperInputHandler: gui view: gameView];
@@ -3797,7 +3811,7 @@ static BOOL queryPressed;
 						disc_operation_in_progress = YES;
 // DJS: WIP                  
 #ifdef LOADSAVEGUI
-                  [self setGuiToSaveCommanderScreen: player_name];
+						[self setGuiToSaveCommanderScreen: player_name];
 #else                 
 						if ([[universe gameController] inFullScreenMode])
 							[[universe gameController] pauseFullScreenModeToPerform:@selector(savePlayer) onTarget:self];
@@ -3810,7 +3824,7 @@ static BOOL queryPressed;
 						disc_operation_in_progress = YES;
 // DJS: WIP                  
 #ifdef LOADSAVEGUI
-                  [self setGuiToLoadCommanderScreen];
+						[self setGuiToLoadCommanderScreen];
 #else
 						if ([[universe gameController] inFullScreenMode])
 							[[universe gameController] pauseFullScreenModeToPerform:@selector(loadPlayer) onTarget:self];
@@ -4246,9 +4260,6 @@ static BOOL queryPressed;
 #endif                        
 								[universe removeDemoShips];
 								[self setGuiToStatusScreen];
-								[self setShowDemoShips:NO];
-								[universe setDisplayText:YES];
-								[universe setDisplayCursor:NO];
 							}
 						}
 #ifdef HAVE_SOUND                  
@@ -4409,8 +4420,6 @@ static BOOL switching_equipship_screens;
 			else
 				[self setGuiToStatusScreen];
 			[self checkScript];
-			[universe setDisplayText:YES];
-			[universe setDisplayCursor:NO];
 		}
 	}
 	else
@@ -4427,8 +4436,6 @@ static BOOL switching_equipship_screens;
 				[self setGuiToLongRangeChartScreen];
 			else
 				[self setGuiToShortRangeChartScreen];
-			[universe setDisplayText:YES];
-			[universe setDisplayCursor:YES];
 		}
 	}
 	else
@@ -4443,8 +4450,6 @@ static BOOL switching_equipship_screens;
 			[self setGuiToSystemDataScreen];
 			[self checkScript];
 		}
-		[universe setDisplayText:YES];
-		[universe setDisplayCursor:NO];
 	}
 	
 	
@@ -4454,9 +4459,6 @@ static BOOL switching_equipship_screens;
 		{
 			[gameView clearKeys];
 			[self setGuiToLoadSaveScreen];
-			[universe setDisplayText:YES];
-//			[universe setDisplayCursor:NO];
-			[universe setDisplayCursor:YES];
 		}
 		//
 		if (([gameView isDown:gvFunctionKey3])||([gameView isDown:gvNumberKey3]))
@@ -4478,9 +4480,6 @@ static BOOL switching_equipship_screens;
 					[self setGuiToEquipShipScreen:0:-1];
 					[[universe gui] setSelectedRow:GUI_ROW_EQUIPMENT_START];
 				}
-				[universe setDisplayText:YES];
-//				[universe setDisplayCursor:NO];
-				[universe setDisplayCursor:YES];
 			}
 			switching_equipship_screens = YES;
 		}
@@ -4505,9 +4504,6 @@ static BOOL switching_equipship_screens;
 					[self setGuiToMarketScreen];
 					[[universe gui] setSelectedRow:GUI_ROW_MARKET_START];
 				}
-				[universe setDisplayText:YES];
-//				[universe setDisplayCursor:NO];
-				[universe setDisplayCursor:YES];
 			}
 			switching_market_screens = YES;
 		}
@@ -4524,9 +4520,6 @@ static BOOL switching_equipship_screens;
 			{
 				[self setGuiToMarketScreen];
 				[[universe gui] setSelectedRow:GUI_ROW_MARKET_START];
-				[universe setDisplayText:YES];
-//				[universe setDisplayCursor:NO];
-				[universe setDisplayCursor:YES];
 			}
 			switching_market_screens = YES;
 		}
@@ -4657,10 +4650,10 @@ static BOOL toggling_music;
 					}
 					disc_operation_in_progress = YES;
 #ifdef LOADSAVEGUI
-				   [self setStatus:STATUS_DOCKED];
-				   [universe removeDemoShips];
-				   [gui setBackgroundImage:nil];
-               [self setGuiToLoadCommanderScreen];
+					[self setStatus:STATUS_DOCKED];
+					[universe removeDemoShips];
+					[gui setBackgroundImage:nil];
+					[self setGuiToLoadCommanderScreen];
 #else               
 					if ([[universe gameController] inFullScreenMode])
 						[[universe gameController] pauseFullScreenModeToPerform:@selector(loadPlayer) onTarget:self];
@@ -4669,7 +4662,6 @@ static BOOL toggling_music;
 					[self setStatus:STATUS_DOCKED];
 					[self setGuiToStatusScreen];
 #endif               
-					[universe setDisplayText:YES];
 				}
 			}
 			if (([gameView isDown:110])||([gameView isDown:78]))	//  'nN'
@@ -4697,7 +4689,6 @@ static BOOL toggling_music;
 				[universe removeDemoShips];
 				[gui setBackgroundImage:nil];
 				[self setGuiToStatusScreen];
-				[universe setDisplayText:YES];
 				if (themeMusic)
 				{
 					[themeMusic stop];
@@ -4725,7 +4716,6 @@ static BOOL toggling_music;
 					[universe removeDemoShips];
 					[gui setBackgroundImage:nil];
 					[self setGuiToStatusScreen];
-					[universe setDisplayText:YES];
 #ifndef GNUSTEP
 					if (missionMusic)
 					{
@@ -4770,7 +4760,6 @@ static BOOL toggling_music;
 					[universe removeDemoShips];
 					[gui setBackgroundImage:nil];
 					[self setGuiToStatusScreen];
-					[universe setDisplayText:YES];
 					if (missionMusic)
 					{
 						[missionMusic stop];
@@ -6003,10 +5992,12 @@ static BOOL toggling_music;
 		}
 		else
 		{
+			// set this as the default file to load / save
 			if (save_path)
 				[save_path autorelease];
 			save_path = [[NSString stringWithString:[sp filename]] retain];
-			[[(MyOpenGLView *)[universe gameView] gameController] setPlayerFileToLoad:save_path];
+			[[universe gameController] setPlayerFileToLoad:save_path];
+			[[universe gameController] setPlayerFileDirectory:save_path];
 		}
 	}
 	[self setGuiToStatusScreen];
@@ -6074,6 +6065,7 @@ static BOOL toggling_music;
 			[save_path autorelease];
 		save_path = [fileToOpen retain];
 		[[(MyOpenGLView *)[universe gameView] gameController] setPlayerFileToLoad:fileToOpen];
+		[[(MyOpenGLView *)[universe gameView] gameController] setPlayerFileDirectory:fileToOpen];
 	}
 	else
 	{
@@ -6226,8 +6218,12 @@ static BOOL toggling_music;
 		lastTextKey = nil;
 	}
 	
-	[self setShowDemoShips:NO];
 	gui_screen = GUI_SCREEN_STATUS;
+
+	[self setShowDemoShips: NO];
+	[universe setDisplayText: YES];
+	[universe setDisplayCursor: NO];
+	[universe setViewDirection: VIEW_DOCKED];
 }
 
 // DJS: moved from the above method because there are
@@ -6393,9 +6389,6 @@ static BOOL toggling_music;
 	/* ends */
 	
 	//NSLog(@"gui_screen = GUI_SCREEN_SYSTEM_DATA for system %@ at (%d,%d)",targetSystemName,target_system_seed.d,target_system_seed.b);
-	
-	[self setShowDemoShips:NO];
-	gui_screen = GUI_SCREEN_SYSTEM_DATA;
 
 	if (lastTextKey)
 	{
@@ -6405,6 +6398,13 @@ static BOOL toggling_music;
 	
 	[targetSystemData release]; // released
 	[targetSystemName release]; // released
+	
+	gui_screen = GUI_SCREEN_SYSTEM_DATA;
+
+	[self setShowDemoShips: NO];
+	[universe setDisplayText: YES];
+	[universe setDisplayCursor: NO];
+	[universe setViewDirection: VIEW_DOCKED];
 }
 
 - (NSArray *) markedDestinations
@@ -6468,10 +6468,14 @@ static BOOL toggling_music;
 	
 	//NSLog(@"gui_screen = GUI_SCREEN_LONG_RANGE_CHART");
 	
-	[self setShowDemoShips:NO];
 	gui_screen = GUI_SCREEN_LONG_RANGE_CHART;
 	
 	[targetSystemName release]; // released
+
+	[self setShowDemoShips: NO];
+	[universe setDisplayText: YES];
+	[universe setDisplayCursor: YES];
+	[universe setViewDirection: VIEW_DOCKED];
 }
 
 - (void) starChartDump
@@ -6689,10 +6693,14 @@ static BOOL toggling_music;
 	
 	//NSLog(@"gui_screen = GUI_SCREEN_LONG_RANGE_CHART");
 	
-	[self setShowDemoShips:NO];
 	gui_screen = GUI_SCREEN_SHORT_RANGE_CHART;
 	
 	[targetSystemName release]; // released
+
+	[self setShowDemoShips: NO];
+	[universe setDisplayText: YES];
+	[universe setDisplayCursor: YES];
+	[universe setViewDirection: VIEW_DOCKED];
 }
 
 - (void) setGuiToLoadSaveScreen
@@ -6887,6 +6895,11 @@ static BOOL toggling_music;
 	
 	[self setShowDemoShips:NO];
 	gui_screen = GUI_SCREEN_OPTIONS;
+
+	[self setShowDemoShips: NO];
+	[universe setDisplayText: YES];
+	[universe setDisplayCursor: YES];
+	[universe setViewDirection: VIEW_DOCKED];
 }
 
 static int last_outfitting_index;
@@ -7147,6 +7160,11 @@ static int last_outfitting_index;
 	chosen_weapon_facing = WEAPON_FACING_NONE;
 	[self setShowDemoShips:NO];
 	gui_screen = GUI_SCREEN_EQUIP_SHIP;
+	
+	[self setShowDemoShips: NO];
+	[universe setDisplayText: YES];
+	[universe setDisplayCursor: YES];
+	[universe setViewDirection: VIEW_DOCKED];
 }
 
 - (void) showInformationForSelectedUpgrade
@@ -7246,6 +7264,12 @@ static int last_outfitting_index;
 	{
 		[themeMusic play];
 	}
+
+	
+	[self setShowDemoShips: YES];
+	[universe setDisplayText: YES];
+	[universe setDisplayCursor: NO];
+	[universe setViewDirection: VIEW_DOCKED];
 }
 
 - (void) setGuiToIntro2Screen
@@ -7268,6 +7292,11 @@ static int last_outfitting_index;
 		
 	if (gui)
 		gui_screen = GUI_SCREEN_INTRO2;
+
+	[self setShowDemoShips: YES];
+	[universe setDisplayText: YES];
+	[universe setDisplayCursor: NO];
+	[universe setViewDirection: VIEW_DOCKED];
 }
 
 - (void) buySelectedItem
@@ -7681,8 +7710,12 @@ static int last_outfitting_index;
 		[gui setShowTextCursor:NO];
 	}
 	
-	[self setShowDemoShips:NO];
 	gui_screen = GUI_SCREEN_MARKET;
+
+	[self setShowDemoShips: NO];
+	[universe setDisplayText: YES];
+	[universe setDisplayCursor: (status == STATUS_DOCKED)];
+	[universe setViewDirection: VIEW_DOCKED];
 }
 
 - (int) gui_screen

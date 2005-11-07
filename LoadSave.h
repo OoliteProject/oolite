@@ -28,20 +28,23 @@
 #define COLUMNS 2
 #define INPUTROW 20
 #define CDRDESCROW 18
+#define SAVE_OVERWRITE_WARN_ROW	5
+#define SAVE_OVERWRITE_YES_ROW	8
+#define SAVE_OVERWRITE_NO_ROW	9
 
 @interface PlayerEntity (LoadSave)
 
-   - (void) setGuiToLoadCommanderScreen;
-   - (void) setGuiToSaveCommanderScreen: (NSString *)cdrName;
-   - (void) lsCommanders: (GuiDisplayGen *)gui  pageNumber: (int)page
-                          highlightName: (NSString *)highlightName;
-   - (NSString *) commanderSelector: (GuiDisplayGen *)gui
-                             : (MyOpenGLView *)gameView;
-   - (void) saveCommanderInputHandler: (GuiDisplayGen *)gui
-                                     : (MyOpenGLView *)gameView;
-   - (void) nativeSavePlayer: (NSString *)cdrName;
-   - (void) showCommanderShip: (int)cdrArrayIndex;
-   - (int) findIndexOfCommander: (NSString *)cdrName;
+- (void) setGuiToLoadCommanderScreen;
+- (void) setGuiToSaveCommanderScreen: (NSString *)cdrName;
+- (void) setGuiToOverwriteScreen: (NSString *)cdrName;
+- (void) lsCommanders: (GuiDisplayGen *)gui directory: (NSString*)directory pageNumber: (int)page highlightName: (NSString *)highlightName;
+- (NSString *) commanderSelector: (GuiDisplayGen *)gui : (MyOpenGLView *)gameView;
+- (void) saveCommanderInputHandler: (GuiDisplayGen *)gui : (MyOpenGLView *)gameView;
+- (void) overwriteCommanderInputHandler: (GuiDisplayGen *)gui : (MyOpenGLView *)gameView;
+- (void) nativeSavePlayer: (NSString *)cdrName;
+- (BOOL) existingNativeSave: (NSString *)cdrName;
+- (void) showCommanderShip: (int)cdrArrayIndex;
+- (int) findIndexOfCommander: (NSString *)cdrName;
 
 @end
 #endif

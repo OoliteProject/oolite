@@ -576,8 +576,12 @@ Your fair use and other rights are in no way affected by the above.
 		[gui setShowTextCursor:NO];
 	}
 	
-	[self setShowDemoShips:NO];
 	gui_screen = GUI_SCREEN_CONTRACTS;
+
+	[self setShowDemoShips: NO];
+	[universe setDisplayText: YES];
+	[universe setDisplayCursor: YES];
+	[universe setViewDirection: VIEW_DOCKED];
 }
 
 
@@ -669,7 +673,6 @@ Your fair use and other rights are in no way affected by the above.
 		NSString* passenger_dest_name = (NSString *)[passenger_info objectForKey:PASSENGER_KEY_DESTINATION_NAME];
 		[gameView setTypedString:[passenger_dest_name lowercaseString]];
 		[self setGuiToLongRangeChartScreen];
-		[universe setDisplayCursor:YES];
 	}
 	
 	if (([gui selectedRow] >= GUI_ROW_CARGO_START)&&([gui selectedRow] < GUI_ROW_MARKET_CASH))
@@ -678,7 +681,6 @@ Your fair use and other rights are in no way affected by the above.
 		NSString* contract_dest_name = (NSString *)[contract_info objectForKey:CONTRACT_KEY_DESTINATION_NAME];
 		[gameView setTypedString:[contract_dest_name lowercaseString]];
 		[self setGuiToLongRangeChartScreen];
-		[universe setDisplayCursor:YES];
 	}
 }
 
@@ -842,8 +844,12 @@ Your fair use and other rights are in no way affected by the above.
 		lastTextKey = nil;
 	}
 	
-	[self setShowDemoShips:NO];
 	gui_screen = GUI_SCREEN_MANIFEST;
+
+	[self setShowDemoShips: NO];
+	[universe setDisplayText: YES];
+	[universe setDisplayCursor: NO];
+	[universe setViewDirection: VIEW_DOCKED];
 }
 
 - (void) setGuiToDeliveryReportScreenWithText:(NSString*) report
@@ -875,8 +881,12 @@ Your fair use and other rights are in no way affected by the above.
 		lastTextKey = nil;
 	}
 	
-	[self setShowDemoShips:NO];
 	gui_screen = GUI_SCREEN_REPORT;
+
+	[self setShowDemoShips: NO];
+	[universe setDisplayText: YES];
+	[universe setDisplayCursor: NO];
+	[universe setViewDirection: VIEW_DOCKED];
 }
 
 // ---------------------------------------------------------------------- //
@@ -1015,13 +1025,14 @@ static NSMutableDictionary* currentShipyard = nil;
 		[gui setShowTextCursor:NO];
 	}
 	
-	if (n_ships)
-		[self setShowDemoShips:YES];
 	gui_screen = GUI_SCREEN_SHIPYARD;
 	
 	// the following are necessary...
-	[universe setDisplayText:YES];
-	[universe setViewDirection:VIEW_DOCKED];
+
+	[self setShowDemoShips: (n_ships > 0)];
+	[universe setDisplayText: YES];
+	[universe setDisplayCursor: YES];
+	[universe setViewDirection: VIEW_DOCKED];
 }
 
 - (void) showShipyardInfoForSelection
@@ -1171,7 +1182,6 @@ static NSMutableDictionary* currentShipyard = nil;
 			[[universe gui] setSelectedRow:GUI_ROW_SHIPYARD_START];
 		if (from_ship == 0)
 			[[universe gui] setSelectedRow:GUI_ROW_SHIPYARD_START + MAX_ROWS_SHIPS_FOR_SALE - 1];
-//		[[universe gui] click];
 		return YES;
 	}
 	

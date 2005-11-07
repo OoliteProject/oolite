@@ -62,6 +62,7 @@ Your fair use and other rights are in no way affected by the above.
 	my_mouse_x = my_mouse_y = 0;
 	//
 	playerFileToLoad = nil;
+	playerFileDirectory = nil;
 	expansionPathsToInclude = nil;
 	pauseSelector = (SEL)nil;
 	pauseTarget = nil;
@@ -85,7 +86,8 @@ Your fair use and other rights are in no way affected by the above.
     if (universe)	[universe release];
 	//
     if (playerFileToLoad)	[playerFileToLoad release];
-    if (expansionPathsToInclude)	[expansionPathsToInclude release];
+	if (playerFileDirectory)	[playerFileDirectory release];
+	if (expansionPathsToInclude)	[expansionPathsToInclude release];
 	//
     [super dealloc];
 }
@@ -364,7 +366,7 @@ static int _compareModes(id arg1, id arg2, void *context)
 		
 	[self logProgress:@"loading player..."];
 	[self loadPlayerIfRequired];
-
+	
 	//
 	// get the run loop and add the call to doStuff
 	//
@@ -400,7 +402,6 @@ static int _compareModes(id arg1, id arg2, void *context)
 		[player loadPlayerFromFile:playerFileToLoad];
 		[player setStatus:STATUS_DOCKED];
 		[player setGuiToStatusScreen];
-		[universe setDisplayText:YES];
 	}
 }
 
@@ -789,6 +790,7 @@ static int _compareModes(id arg1, id arg2, void *context)
 	if ([[filename pathExtension] isEqual:@"oolite-save"])
 	{
 		[self setPlayerFileToLoad:filename];
+		[self setPlayerFileDirectory:filename];
 		return YES;
 	}
 	if ([[filename pathExtension] isEqual:@"oxp"]||[[filename pathExtension] isEqual:@"oolite_expansion_pack"])
@@ -820,6 +822,22 @@ static int _compareModes(id arg1, id arg2, void *context)
 	playerFileToLoad = nil;
 	if ([[filename pathExtension] isEqual:@"oolite-save"])
 		playerFileToLoad = [[NSString stringWithString:filename] retain];
+}
+
+- (NSString *) playerFileDirectory
+{
+	return playerFileDirectory;
+}
+
+- (void) setPlayerFileDirectory:(NSString *)filename
+{	
+	if (playerFileDirectory)
+		[playerFileDirectory autorelease];
+	playerFileDirectory = nil;
+	if ([[filename pathExtension] isEqual:@"oolite-save"])
+		playerFileDirectory = [[filename stringByDeletingLastPathComponent] retain];
+	else
+		playerFileDirectory = [filename retain];
 }
 
 // only OS X has these two methods

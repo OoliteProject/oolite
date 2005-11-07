@@ -20,8 +20,10 @@
 
 @interface NSFileManager ( OOFileManager )
 
-   - (NSArray *)commanderContents;
-   - (BOOL)chdirToDefaultCommanderPath;
+- (NSArray*)	commanderContents;
+- (NSArray*)	commanderContentsOfPath:(NSString*) savePath;
+- (BOOL)	chdirToDefaultCommanderPath;
+- (NSString*)	defaultCommanderPath;
 
 @end
 #endif

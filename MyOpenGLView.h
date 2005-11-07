@@ -88,7 +88,14 @@ enum GameViewKeys
 	gvNumberKey8 = 56,
 	gvNumberKey9 = 57
 };
-	
+
+enum StringInput
+{
+	gvStringInputNo = 0,
+	gvStringInputAlpha = 1,
+	gvStringInputAll = 2
+};
+
 extern int debug;
 
 @interface MyOpenGLView : NSObject
@@ -139,8 +146,9 @@ extern int debug;
 - (id) init;
 - (void) dealloc;
 
+- (void) setStringInput: (enum StringInput) value;
 - (void) allowStringInput: (BOOL) value;
-- (BOOL) allowingStringInput;
+- (enum StringInput) allowingStringInput;
 - (NSString *) typedString;
 - (void) resetTypedString;
 - (void) setTypedString:(NSString*) value;
