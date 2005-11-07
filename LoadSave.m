@@ -337,7 +337,7 @@
 					return [cdr objectForKey:@"saved_game_path"];
 				else
 				{
-					if ([gameView isCommandDown]||[gameView isDown:gvMouseDoubleClick])
+					if ([gameView isCtrlDown]||[gameView isDown:gvMouseDoubleClick])
 					{
 						// change directory to the selected path
 						NSString* newDir = (NSString*)[cdr objectForKey:@"saved_game_path"];
@@ -404,7 +404,7 @@
    
 	if(([gameView isDown: 13]||[gameView isDown:gvMouseDoubleClick]) && [commanderNameString length])
 	{
-		if ([gameView isCommandDown]||[gameView isDown:gvMouseDoubleClick])
+		if ([gameView isCtrlDown]||[gameView isDown:gvMouseDoubleClick])
 		{
 			int guiSelectedRow=[gui selectedRow];
 			int	idx = (guiSelectedRow - STARTROW) + (currentPage * NUMROWS);
@@ -531,7 +531,7 @@
 	          
 	if ([cdr objectForKey:@"isFolder"])
 	{
-		NSString *folderDesc=[NSString stringWithFormat: @"Hold command and press return to open folder: %@", [(NSString *)[cdr objectForKey:@"saved_game_path"] lastPathComponent]];
+		NSString *folderDesc=[NSString stringWithFormat: @"Hold Ctrl and press return to open folder: %@", [(NSString *)[cdr objectForKey:@"saved_game_path"] lastPathComponent]];
             
 		[gui addLongText: folderDesc startingAtRow: CDRDESCROW align: GUI_ALIGN_LEFT];             
 		
@@ -540,7 +540,7 @@
 	
 	if ([cdr objectForKey:@"isParentFolder"])
 	{
-		NSString *folderDesc=[NSString stringWithFormat: @"Hold command and press return to open parent folder: %@", [(NSString *)[cdr objectForKey:@"saved_game_path"] lastPathComponent]];
+		NSString *folderDesc=[NSString stringWithFormat: @"Hold Ctrl and press return to open parent folder: %@", [(NSString *)[cdr objectForKey:@"saved_game_path"] lastPathComponent]];
             
 		[gui addLongText: folderDesc startingAtRow: CDRDESCROW align: GUI_ALIGN_LEFT];             
 		
