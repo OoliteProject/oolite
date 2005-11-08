@@ -5726,8 +5726,24 @@ static BOOL toggling_music;
 	[universe setDisplayText:NO];
 	[universe removeAllEntitiesExceptPlayer:NO];
 	
+	// remove any contracts for the old galaxy
+	if (contracts)
+		[contracts removeAllObjects];
+	
+	// expire passenger contracts for the old galaxy
+	if (passengers)
+	{
+		int i;
+		for (i = 0; i < [passengers count]; i++)
+		{
+			// set the expected arrival time to now, so they storm off the ship at the first port
+			NSMutableDictionary* passenger_info = [NSMutableDictionary dictionaryWithDictionary:(NSDictionary *)[passengers objectAtIndex:i]];
+			[passenger_info setObject:[NSNumber numberWithDouble:ship_clock] forKey:PASSENGER_KEY_ARRIVAL_TIME];
+			[passengers replaceObjectAtIndex:i withObject:passenger_info];
+		}
+	}
+	
 	[self remove_extra_equipment:@"EQ_GAL_DRIVE"];
-	//has_galactic_hyperdrive = NO;								// fuel cost to target system
 	
 	galaxy_number++;
 	galaxy_number &= 7;

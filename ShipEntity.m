@@ -1531,7 +1531,7 @@ BOOL ship_canCollide (ShipEntity* ship)
 		
 		targetCR = (target)? target->collision_radius: 0;
 		
-		if ((target == nil)||(target->scan_class == CLASS_NO_DRAW))
+		if ((target == nil)||(target->scan_class == CLASS_NO_DRAW)||(!target->isShip))
 		{
 			 // It's no longer a parrot, it has ceased to be, it has joined the choir invisible...
 			if (primaryTarget != NO_TARGET)
@@ -1903,9 +1903,10 @@ BOOL ship_canCollide (ShipEntity* ship)
 			case CONDITION_FORMATION_FORM_UP :
 				// get updated destination from owner
 				{
+					ShipEntity* leadShip = (ShipEntity *)[universe entityForUniversalID:owner];
 					double eta = (distance - desired_range) / flight_speed;
-					if (eta < 5.0)
-						desired_speed = [(ShipEntity *)[universe entityForUniversalID:owner] flight_speed] * 1.25;
+					if ((eta < 5.0)&&(leadShip->isShip))
+						desired_speed = [leadShip flight_speed] * 1.25;
 					else
 						desired_speed = max_flight_speed;
 				}
@@ -1995,7 +1996,6 @@ BOOL ship_canCollide (ShipEntity* ship)
 					{
 						desired_range = prox_ship->collision_radius * PROXIMITY_AVOID_DISTANCE;
 						destination = prox_ship->position;
-//						destination = [prox_ship distance_six:-[prox_ship flight_speed]];	// where it'll be in one seconds's time
 					}
 					double dq = [self trackDestination:delta_t:YES];
 					if (dq >= 0)
@@ -4600,6 +4600,16 @@ Vector randomPositionInBoundingBox(BoundingBox bb)
 			{
 				[(ShipEntity *)victim takeEnergyDamage:weapon_energy from:self becauseOf:self];	// a very palpable hit
 				[shot setCollisionRadius:sqrt(dist2)];	// so it's drawn to the right size
+				
+				// calculate where to draw flash
+				double cr = shot->collision_radius - victim->collision_radius;
+				Vector vd = vector_forward_from_quaternion(shot->q_rotation);
+				Vector p0 = shot->position;
+				p0.x += vd.x * cr;	p0.y += vd.y * cr;	p0.z += vd.z * cr;
+				ParticleEntity* laserFlash = [[ParticleEntity alloc] initFlashSize:1.0 FromPosition: p0 Color:laser_color];
+				[laserFlash setVelocity:[victim getVelocity]];
+				[universe addEntity:laserFlash];
+				[laserFlash release];
 			}
 		}
 	}
@@ -4668,6 +4678,16 @@ Vector randomPositionInBoundingBox(BoundingBox bb)
 			{
 				[(ShipEntity *)victim takeEnergyDamage:weapon_energy from:self becauseOf:parent];	// a very palpable hit
 				[shot setCollisionRadius:sqrt(dist2)];	// so it's drawn to the right size
+				
+				// calculate where to draw flash
+				double cr = shot->collision_radius - victim->collision_radius;
+				Vector vd = vector_forward_from_quaternion(shot->q_rotation);
+				Vector p0 = shot->position;
+				p0.x += vd.x * cr;	p0.y += vd.y * cr;	p0.z += vd.z * cr;
+				ParticleEntity* laserFlash = [[ParticleEntity alloc] initFlashSize:1.0 FromPosition: p0 Color:laser_color];
+				[laserFlash setVelocity:[victim getVelocity]];
+				[universe addEntity:laserFlash];
+				[laserFlash release];
 			}
 		}
 	}
@@ -4748,7 +4768,16 @@ Vector randomPositionInBoundingBox(BoundingBox bb)
 			{
 				[(ShipEntity *)victim takeEnergyDamage:weapon_energy from:self becauseOf:self];	// a very palpable hit
 				[shot setCollisionRadius:sqrt(dist2)];
-				//
+
+				// calculate where to draw flash
+				double cr = shot->collision_radius - victim->collision_radius;
+				Vector vd = vector_forward_from_quaternion(shot->q_rotation);
+				Vector p0 = shot->position;
+				p0.x += vd.x * cr;	p0.y += vd.y * cr;	p0.z += vd.z * cr;
+				ParticleEntity* laserFlash = [[ParticleEntity alloc] initFlashSize:1.0 FromPosition: p0 Color:laser_color];
+				[laserFlash setVelocity:[victim getVelocity]];
+				[universe addEntity:laserFlash];
+				[laserFlash release];
 			}
 		}
 	}
@@ -4812,6 +4841,16 @@ Vector randomPositionInBoundingBox(BoundingBox bb)
 			{
 				[(ShipEntity *)victim takeEnergyDamage:weapon_energy from:self becauseOf:self];	// a very palpable hit
 				[shot setCollisionRadius:sqrt(dist2)];
+				
+				// calculate where to draw flash
+				double cr = shot->collision_radius - victim->collision_radius;
+				Vector vd = vector_forward_from_quaternion(shot->q_rotation);
+				Vector p0 = shot->position;
+				p0.x += vd.x * cr;	p0.y += vd.y * cr;	p0.z += vd.z * cr;
+				ParticleEntity* laserFlash = [[ParticleEntity alloc] initFlashSize:1.0 FromPosition: p0 Color:laser_color];
+				[laserFlash setVelocity:[victim getVelocity]];
+				[universe addEntity:laserFlash];
+				[laserFlash release];
 			}
 		}
 	}

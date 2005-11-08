@@ -6192,6 +6192,9 @@ double estimatedTimeForJourney(double distance, int hops)
 	NSString* result = @"";
 	int parts = 0;
 	
+	if (interval <= 0.0)
+		return @"no time";
+	
 	if ((parts < 2)&&(r_time > 86400))
 	{
 		int days = floor(r_time / 86400);

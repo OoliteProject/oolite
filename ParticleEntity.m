@@ -93,7 +93,7 @@ static Vector   circleVertex[65];		// holds vector coordinates for a unit circle
 {
     self = [super init];
 	//
-	if (!ship)
+	if ((!ship)||(!ship->isShip))
 		return self;
     //
 	status = STATUS_EFFECT;
@@ -157,7 +157,7 @@ static Vector   circleVertex[65];		// holds vector coordinates for a unit circle
 {
     self = [super init];
 	//
-	if (!ship)
+	if ((!ship)||(!ship->isShip))
 		return self;
     //
 	status = STATUS_EFFECT;
@@ -211,7 +211,7 @@ static Vector   circleVertex[65];		// holds vector coordinates for a unit circle
 {
     self = [super init];
 	//
-	if (!subent)
+	if ((!subent)||(!subent->isShip))
 		return self;
 	Entity* parent = [subent owner];
 	if (!parent)
@@ -647,6 +647,8 @@ static Vector   circleVertex[65];		// holds vector coordinates for a unit circle
 	[self initialiseTexture: textureNameString];
 	size = NSMakeSize( flashSize, flashSize);
 	//
+	growth_rate = 150.0 * flashSize; // if average flashSize is 80 then this is 12000
+	//
     time_counter = 0.0;
 	duration = 0.4;
 	position = fragPos;
@@ -665,6 +667,46 @@ static Vector   circleVertex[65];		// holds vector coordinates for a unit circle
 	//
 	isParticle = YES;
 	//
+	[self setVelocity: make_vector( 0.0, 0.0,0.0)];
+	
+//	NSLog(@"DEBUG *FLASH* initialised at [ %.2f, %.2f, %.2f]", fragPos.x, fragPos.y, fragPos.z);
+	
+    return self;
+}
+
+- (id) initFlashSize:(GLfloat) flashSize FromPosition:(Vector) fragPos Color:(NSColor*) flashColor
+{
+	//
+	self = [super init];
+    //
+	basefile = @"Particle";
+	textureNameString   = @"flare256.png";
+	//
+	texName = 0;
+	[self initialiseTexture: textureNameString];
+	size = NSMakeSize( flashSize, flashSize);
+	//
+	growth_rate = 150.0 * flashSize; // if average flashSize is 80 then this is 12000
+	//
+    time_counter = 0.0;
+	duration = 0.4;
+	position = fragPos;
+	//
+	[self setColor:flashColor];
+	color_fv[3] = 1.0;
+	//
+	status = STATUS_EFFECT;
+	scan_class = CLASS_NO_DRAW;
+	//
+	particle_type = PARTICLE_FLASH;
+	//
+	collision_radius = 0;
+	energy = 0;
+	owner = NO_TARGET;
+	//
+	isParticle = YES;
+	//
+	[self setVelocity: make_vector( 0.0, 0.0,0.0)];
 	
 //	NSLog(@"DEBUG *FLASH* initialised at [ %.2f, %.2f, %.2f]", fragPos.x, fragPos.y, fragPos.z);
 	
@@ -1156,9 +1198,13 @@ static Vector   circleVertex[65];		// holds vector coordinates for a unit circle
 	double tf = duration * 0.667;
 	double tf1 = duration - tf;
 	
+	// move as necessary
+	position.x += velocity.x * delta_t;
+	position.y += velocity.y * delta_t;
+	position.z += velocity.z * delta_t;
+
 	// scale up
-	float growth = 12000; // * duration / time_counter;
-	size.width += delta_t * growth;
+	size.width += delta_t * growth_rate;
 	size.height = size.width;
 	
 	// fade up
@@ -1479,10 +1525,10 @@ static Vector   circleVertex[65];		// holds vector coordinates for a unit circle
 	glEnable(GL_TEXTURE_2D);
 	glPushMatrix();
 	
-	if (particle_type == PARTICLE_FLASHER)
+//	if (particle_type == PARTICLE_FLASHER)
 		glColor4f( color_fv[0], color_fv[1], color_fv[2], alpha);
-	else
-		glColor4f(1.0, 1.0, 1.0, alpha);
+//	else
+//		glColor4f(1.0, 1.0, 1.0, alpha);
 	
 	glTexEnvfv(GL_TEXTURE_ENV, GL_TEXTURE_ENV_COLOR, color_fv);
 

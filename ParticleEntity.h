@@ -68,6 +68,8 @@ Your fair use and other rights are in no way affected by the above.
 #define PARTICLE_LASER_LENGTH		10000.0
 #define PARTICLE_LASER_RANGE_LIMIT	1000000000.0
 
+#define LASER_FLASH_SIZE			1.0
+
 @class Entity;
 
 @interface ParticleEntity : Entity {
@@ -83,6 +85,7 @@ Your fair use and other rights are in no way affected by the above.
 	
 	double		duration;
 	double		activation_time;
+	double		growth_rate;
 		
 	double		ring_inner_radius, ring_outer_radius;
 		
@@ -109,6 +112,7 @@ Your fair use and other rights are in no way affected by the above.
 - (id) initBurst2FromPosition:(Vector) fragPos;
 - (id) initBurst2Size:(GLfloat) burstSize FromPosition:(Vector) fragPos;
 - (id) initFlashSize:(GLfloat) burstSize FromPosition:(Vector) fragPos;
+- (id) initFlashSize:(GLfloat) flashSize FromPosition:(Vector) fragPos Color:(NSColor*) flashColor;
 
 - (void) updateExplosion:(double) delta_t;
 - (void) updateFlasher:(double) delta_t;
