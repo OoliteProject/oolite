@@ -272,9 +272,9 @@
 		}
 	}
 	[gui setSelectedRow: highlightRowOnPage];
-
-   // show the first ship, this will be the selected row
-   [self showCommanderShip: highlightIdx];
+	highlightIdx = (highlightRowOnPage - STARTROW) + (currentPage * NUMROWS);
+	// show the first ship, this will be the selected row
+	[self showCommanderShip: highlightIdx];
 
 }
 
@@ -531,7 +531,7 @@
 	          
 	if ([cdr objectForKey:@"isFolder"])
 	{
-		NSString *folderDesc=[NSString stringWithFormat: @"Hold Ctrl and press return to open folder: %@", [(NSString *)[cdr objectForKey:@"saved_game_path"] lastPathComponent]];
+		NSString *folderDesc=[NSString stringWithFormat: @"Hold command and press return to open folder: %@", [(NSString *)[cdr objectForKey:@"saved_game_path"] lastPathComponent]];
             
 		[gui addLongText: folderDesc startingAtRow: CDRDESCROW align: GUI_ALIGN_LEFT];             
 		
@@ -540,7 +540,7 @@
 	
 	if ([cdr objectForKey:@"isParentFolder"])
 	{
-		NSString *folderDesc=[NSString stringWithFormat: @"Hold Ctrl and press return to open parent folder: %@", [(NSString *)[cdr objectForKey:@"saved_game_path"] lastPathComponent]];
+		NSString *folderDesc=[NSString stringWithFormat: @"Hold command and press return to open parent folder: %@", [(NSString *)[cdr objectForKey:@"saved_game_path"] lastPathComponent]];
             
 		[gui addLongText: folderDesc startingAtRow: CDRDESCROW align: GUI_ALIGN_LEFT];             
 		

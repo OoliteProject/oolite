@@ -1905,7 +1905,7 @@ BOOL ship_canCollide (ShipEntity* ship)
 				{
 					ShipEntity* leadShip = (ShipEntity *)[universe entityForUniversalID:owner];
 					double eta = (distance - desired_range) / flight_speed;
-					if ((eta < 5.0)&&(leadShip->isShip))
+					if ((eta < 5.0)&&(leadShip)&&(leadShip->isShip))
 						desired_speed = [leadShip flight_speed] * 1.25;
 					else
 						desired_speed = max_flight_speed;
@@ -5327,34 +5327,37 @@ Vector randomPositionInBoundingBox(BoundingBox bb)
 	{
 		ent = [(Entity *)[collidingEntities objectAtIndex:0] retain];
 		[collidingEntities removeObjectAtIndex:0];
-		if (ent->isShip)
+		if (ent)
 		{
-			other_ship = (ShipEntity *)ent;
-			[self collideWithShip:other_ship];
-		}
-		if (ent->isPlanet)
-		{
-			if (isPlayer)
+			if (ent->isShip)
 			{
-				[(PlayerEntity *)self getDestroyed];
-				return;
+				other_ship = (ShipEntity *)ent;
+				[self collideWithShip:other_ship];
 			}
-			[self becomeExplosion];
-		}
-		if (ent->isWormhole)
-		{
-			WormholeEntity* whole = (WormholeEntity*)ent;
-			if (isPlayer)
+			if (ent->isPlanet)
 			{
-				[(PlayerEntity*)self enterWormhole: whole];
-				return;
+				if (isPlayer)
+				{
+					[(PlayerEntity *)self getDestroyed];
+					return;
+				}
+				[self becomeExplosion];
 			}
-			else
+			if (ent->isWormhole)
 			{
-				[whole suckInShip: self];
+				WormholeEntity* whole = (WormholeEntity*)ent;
+				if (isPlayer)
+				{
+					[(PlayerEntity*)self enterWormhole: whole];
+					return;
+				}
+				else
+				{
+					[whole suckInShip: self];
+				}
 			}
+			[ent release];
 		}
-		[ent release];
 	}	
 }
 

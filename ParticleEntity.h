@@ -68,7 +68,7 @@ Your fair use and other rights are in no way affected by the above.
 #define PARTICLE_LASER_LENGTH		10000.0
 #define PARTICLE_LASER_RANGE_LIMIT	1000000000.0
 
-#define LASER_FLASH_SIZE			1.0
+#define LASER_FLASH_SIZE			1.0 + 2.0 * randf()
 
 @class Entity;
 

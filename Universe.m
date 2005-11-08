@@ -3103,7 +3103,7 @@ Your fair use and other rights are in no way affected by the above.
 			return 1 + (ranrot_rand() % 6) + (ranrot_rand() % 6) + (ranrot_rand() % 6);
 			break;
 		case 2 :	// GRAMS
-			return 1 + (ranrot_rand() % 6) + (ranrot_rand() % 6);
+			return 4 + 3 * (ranrot_rand() % 6) + 2 * (ranrot_rand() % 6) + (ranrot_rand() % 6);
 			break;
 	}
 	return 1;

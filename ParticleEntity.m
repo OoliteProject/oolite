@@ -635,6 +635,7 @@ static Vector   circleVertex[65];		// holds vector coordinates for a unit circle
     return self;
 }
 
+// used exclusively for explosion flashes
 - (id) initFlashSize:(GLfloat) flashSize FromPosition:(Vector) fragPos
 {
 	//
@@ -648,6 +649,8 @@ static Vector   circleVertex[65];		// holds vector coordinates for a unit circle
 	size = NSMakeSize( flashSize, flashSize);
 	//
 	growth_rate = 150.0 * flashSize; // if average flashSize is 80 then this is 12000
+	if (growth_rate < 6000.0)
+		growth_rate = 6000.0;	// put a minimum size on it
 	//
     time_counter = 0.0;
 	duration = 0.4;
@@ -674,6 +677,7 @@ static Vector   circleVertex[65];		// holds vector coordinates for a unit circle
     return self;
 }
 
+// used for laser flashes
 - (id) initFlashSize:(GLfloat) flashSize FromPosition:(Vector) fragPos Color:(NSColor*) flashColor
 {
 	//
@@ -689,7 +693,7 @@ static Vector   circleVertex[65];		// holds vector coordinates for a unit circle
 	growth_rate = 150.0 * flashSize; // if average flashSize is 80 then this is 12000
 	//
     time_counter = 0.0;
-	duration = 0.4;
+	duration = 0.3;
 	position = fragPos;
 	//
 	[self setColor:flashColor];

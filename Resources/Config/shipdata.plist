@@ -129,7 +129,7 @@
 	<key>alloy</key>
 	<dict>
 		<key>ai_type</key>
-		<string>nullAI.plist</string>
+		<string>dumbAI.plist</string>
 		<key>bounty</key>
 		<integer>1</integer>
 		<key>cargo_type</key>
@@ -600,12 +600,6 @@
 		<real>0.0</real>
 		<key>forward_weapon_type</key>
 		<string>WEAPON_NONE</string>
-		<key>has_ecm</key>
-		<false/>
-		<key>has_escape_pod</key>
-		<false/>
-		<key>has_scoop</key>
-		<false/>
 		<key>likely_cargo</key>
 		<integer>0</integer>
 		<key>max_cargo</key>
@@ -3007,7 +3001,7 @@
 	<key>scarred-alloy</key>
 	<dict>
 		<key>ai_type</key>
-		<string>nullAI.plist</string>
+		<string>dumbAI.plist</string>
 		<key>bounty</key>
 		<integer>1</integer>
 		<key>cargo_type</key>
