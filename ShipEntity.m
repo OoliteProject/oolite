@@ -461,6 +461,8 @@ Your fair use and other rights are in no way affected by the above.
 	//
 	targetStation = NO_TARGET;
 	//
+	proximity_alert = NO_TARGET;
+	//
 	condition = CONDITION_IDLE;
 	frustration = 0.0;
 	//
@@ -547,6 +549,8 @@ Your fair use and other rights are in no way affected by the above.
 	primaryTarget = NO_TARGET;
 	//
 	targetStation = NO_TARGET;
+	//
+	proximity_alert = NO_TARGET;
 	//
 	condition = CONDITION_IDLE;
 	frustration = 0.0;
@@ -2528,20 +2532,29 @@ static GLfloat mascem_color2[4] =	{ 0.4, 0.1, 0.4, 1.0};	// purple
 	
 	if ((scan_class == CLASS_CARGO)||(scan_class == CLASS_BUOY)||(scan_class == CLASS_MISSILE)||(scan_class == CLASS_ROCK))	// rocks and stuff don't get alarmed easily
 		return;
+		
+	// check vectors
+	Vector vdiff = vector_between( position, other->position);
+	GLfloat d_forward = dot_product( vdiff, v_forward);
+	GLfloat d_up = dot_product( vdiff, v_up);
+	GLfloat d_right = dot_product( vdiff, v_right);
+	if ((d_forward > 0.0)&&(flight_speed > 0.0))	// it's ahead of us and we're moving forward
+		d_forward *= 0.25 * max_flight_speed / flight_speed;	// extend the collision zone forward up to 400%
+	double d2 = d_forward * d_forward + d_up * d_up + d_right * d_right;	
+	double cr2 = collision_radius * 2.0 + other->collision_radius;	cr2 *= cr2;	// check with twice the combined radius
+	
+	if (d2 > cr2) // we're okay
+		return;
 	
 	if (condition == CONDITION_AVOID_COLLISION)	//	already avoiding something
 	{
 		ShipEntity* prox = (ShipEntity*)[universe entityForUniversalID:proximity_alert];
-		if (other == prox)
+		if ((prox)&&(prox != other))
 		{
-//			NSLog(@"DEBUG %@ already alerted to proximity of %@", self, other);
-			return;
-		}
-		if (prox)
-		{
-			GLfloat d_prox = distance2(position, prox->position) - prox->collision_radius *  prox->collision_radius;
-			GLfloat d_other = distance2(position, other->position) - other->collision_radius *  other->collision_radius;
-			if (d_prox < d_other)
+			// check which subtends the greatest angle
+			GLfloat sa_prox = prox->collision_radius * prox->collision_radius / distance2(position, prox->position);
+			GLfloat sa_other = other->collision_radius *  other->collision_radius / distance2(position, other->position);
+			if (sa_prox < sa_other)
 			{
 //				NSLog(@"DEBUG %@ is already avoiding %@", self, prox);
 				return;
@@ -2549,6 +2562,7 @@ static GLfloat mascem_color2[4] =	{ 0.4, 0.1, 0.4, 1.0};	// purple
 		}
 	}
 	proximity_alert = [other universal_id];
+	other->proximity_alert = universal_id;
 //	NSLog(@"DEBUG PROXIMITY ALERT FOR %@  VS %@ == %d", self, other, proximity_alert);
 }
 
@@ -2985,6 +2999,27 @@ static GLfloat mascem_color2[4] =	{ 0.4, 0.1, 0.4, 1.0};	// purple
 			[e2 takeEnergyDamage:damage from:self becauseOf:[self owner]];
 			//if ((e2)&&(e2->isShip))
 			//	//NSLog(@"Doing %.1f damage to %@ %d",damage,[(ShipEntity *)e2 name],[(ShipEntity *)e2 universal_id]);
+		}
+	}
+}
+
+- (void) dealMomentumWithinDesiredRange:(double)amount
+{
+	NSArray* targets = [universe getEntitiesWithinRange:desired_range ofEntity:self];
+	if ([targets count] > 0)
+	{
+		int i;
+		for (i = 0; i < [targets count]; i++)
+		{
+			ShipEntity *e2 = (ShipEntity*)[targets objectAtIndex:i];
+			if (e2->isShip)
+			{
+				Vector p2 = e2->position;
+				p2.x -= position.x;	p2.y -= position.y;	p2.z -= position.z;
+				double d2 = p2.x*p2.x + p2.y*p2.y + p2.z*p2.z;
+				double moment = amount*desired_range/d2;
+				[e2 addImpactMoment:unit_vector(&p2) fraction:moment];
+			}
 		}
 	}
 }
@@ -3427,6 +3462,11 @@ static GLfloat mascem_color2[4] =	{ 0.4, 0.1, 0.4, 1.0};	// purple
 		[sub_entities release]; // releases each subentity too!
 		sub_entities = nil;
 	}
+
+	// EXPERIMENT with momentum from explosions
+	desired_range = collision_radius * 2.0;
+	[self dealMomentumWithinDesiredRange: mass * 0.025];
+
 
 	//
 	if (!isPlayer)

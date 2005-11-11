@@ -4709,7 +4709,7 @@ Your fair use and other rights are in no way affected by the above.
 	//
 	Entity *e1,*e2;
 	Vector p1, p2;
-	double dist, r1, r2, min_dist;
+	double dist2, r1, r2, min_dist2;
 	int i,j;
 	//
 	// use a non-mutable copy so this can't be changed under us.
@@ -4749,21 +4749,21 @@ Your fair use and other rights are in no way affected by the above.
 			p2 = e2->position;
 			r2 = e2->collision_radius;
 			p2.x -= p1.x;   p2.y -= p1.y;   p2.z -= p1.z;
-			dist = p2.x*p2.x + p2.y*p2.y + p2.z*p2.z;
-			min_dist = (r1 + r2) * (r1 + r2);
+			dist2 = p2.x*p2.x + p2.y*p2.y + p2.z*p2.z;
+			min_dist2 = (r1 + r2) * (r1 + r2);
 			if (e1->isShip && (e2 == cachedSun))
-				[e1 setThrowSparks:(dist < SUN_SPARKS_RADIUS_FACTOR * min_dist)];
+				[e1 setThrowSparks:(dist2 < SUN_SPARKS_RADIUS_FACTOR * min_dist2)];
 			if (e2->isShip && (e1 == cachedSun))
-				[e2 setThrowSparks:(dist < SUN_SPARKS_RADIUS_FACTOR * min_dist)];
-			if (dist < PROXIMITY_WARN_DISTANCE2 * min_dist)
+				[e2 setThrowSparks:(dist2 < SUN_SPARKS_RADIUS_FACTOR * min_dist2)];
+			if (dist2 < PROXIMITY_WARN_DISTANCE2 * min_dist2)
 			{
 				if ((e1->isShip) && (e2->isShip))
 				{
 //					NSLog(@"PROXIMITY ALERT %@ VS %@", e1, e2);
-					if (dist < PROXIMITY_WARN_DISTANCE2 * r2 * r2) [(ShipEntity*)e1 setProximity_alert:(ShipEntity*)e2];
-					if (dist < PROXIMITY_WARN_DISTANCE2 * r1 * r1) [(ShipEntity*)e2 setProximity_alert:(ShipEntity*)e1];
+					if (dist2 < PROXIMITY_WARN_DISTANCE2 * r2 * r2) [(ShipEntity*)e1 setProximity_alert:(ShipEntity*)e2];
+					if (dist2 < PROXIMITY_WARN_DISTANCE2 * r1 * r1) [(ShipEntity*)e2 setProximity_alert:(ShipEntity*)e1];
 				}
-				if (dist < min_dist)
+				if (dist2 < min_dist2)
 				{
 					BOOL	coll1 = [e1 checkCloseCollisionWith:e2];
 					BOOL	coll2 = [e2 checkCloseCollisionWith:e1];
@@ -4786,7 +4786,7 @@ Your fair use and other rights are in no way affected by the above.
 				}
 			}
 //			if (dumpCollisionInfo)
-//				NSLog(@"Entity %d (%.1f) to entity %d (%.1f)- distance  %.1f (%.1f,%.1f,%.1f)", i, r1, j, r2, sqrt(dist), p2.x, p2.y, p2.z);
+//				NSLog(@"Entity %d (%.1f) to entity %d (%.1f)- dist2ance  %.1f (%.1f,%.1f,%.1f)", i, r1, j, r2, sqrt(dist2), p2.x, p2.y, p2.z);
 		}
 	}
 //	if (dumpCollisionInfo)

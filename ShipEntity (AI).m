@@ -752,7 +752,7 @@ WormholeEntity*	whole;
 	
 	// check if we're clear of nearby masses
 	ShipEntity* blocker = (ShipEntity*)[universe entityForUniversalID:[self checkShipsInVicinityForWitchJumpExit]];
-	if (!n_dests)
+	if (blocker)
 	{
 		found_target = [blocker universal_id];
 		[shipAI reactToMessage:@"WITCHSPACE BLOCKED"];

@@ -429,6 +429,8 @@ Your fair use and other rights are in no way affected by the above.
 - (double) speed_factor;
 
 - (int) damage;
+- (void) dealEnergyDamageWithinDesiredRange;
+- (void) dealMomentumWithinDesiredRange:(double)amount;
 
 - (void) becomeExplosion;
 - (void) becomeLargeExplosion:(double) factor;

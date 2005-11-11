@@ -402,7 +402,7 @@
             conditions = (
                 "status_string equal STATUS_EXITING_WITCHSPACE", 
                 "mission_trumbles equal NOT_NOW", 
-                "d100_number lessthan 25"
+                "d100_number lessthan 5"
             ); 
             do = ("set: mission_trumbles BUY_ME", resetMissionChoice); 
         }
