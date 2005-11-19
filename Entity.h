@@ -203,13 +203,13 @@ extern int debug;
 		//
 		Entity*	collider;
 		//
+	   int			universal_id;				// used to reference the entity
 	@protected
 	//
 	//////////////////////////////////////////////////////
 	//
     //
     Universe	*universe;
-	int			universal_id;				// used to reference the entity
 	//
 	Vector	last_position;
 	Quaternion last_q_rotation;

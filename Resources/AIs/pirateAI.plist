@@ -101,6 +101,7 @@
 	}; 
     "ENTER_WORMHOLE" = {
 		ENTER = (setDestinationToTarget, "setDesiredRangeTo: 1.0", "setSpeedFactorTo: 1.0", performFlyToRangeFromDestination);
+		"PLAYER WITCHSPACE" = (enterTargetWormhole);
         UPDATE = (); 
 		EXIT = ();
     }; 

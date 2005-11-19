@@ -204,4 +204,8 @@ Your fair use and other rights are in no way affected by the above.
 
 - (void) addFuel:(NSString*) fuel_number;
 
+- (void) enterTargetWormhole;
+
+- (void) scriptActionOnTarget:(NSString*) action;
+
 @end

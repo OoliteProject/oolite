@@ -1568,16 +1568,19 @@ NSDictionary* instructions(int station_id, Vector coords, float speed, float ran
 - (void) launchTrader
 {
 	BOOL		sunskimmer = (randf() < 0.1);	// 10%
-	ShipEntity  *trader_ship;
+	ShipEntity  *trader_ship = nil;
 	
 //	NSLog(@"DEBUG %@ [StationEntity launchTrader]", self);
 	
+//	do {
+//	[trader_ship release];
 	//
 	if (!sunskimmer)
 		trader_ship = [universe getShipWithRole:@"trader"];   // retain count = 1
 	else
 		trader_ship = [universe getShipWithRole:@"sunskim-trader"];   // retain count = 1
 	//
+//	} while (![trader_ship n_escorts]);	// DEBUG we NEED escorts
 	
 //	NSLog(@"DEBUG [StationEntity launchTrader] ---> %@ ", trader_ship);
 	
@@ -1734,6 +1737,13 @@ NSDictionary* instructions(int station_id, Vector coords, float speed, float ran
 	BOOL		isRotatingStation = ([shipRoles rangeOfString:@"rotating-station"].location != NSNotFound);
 		
 	return isRotatingStation;
+}
+
+- (NSString*) description
+{
+	NSString* result = [[NSString alloc] initWithFormat:@"<StationEntity %@ %d (%@)%@%@>",
+		name, universal_id, roles, (universe == nil)? @" (not in universe)":@"", ([self isRotatingStation])? @" (rotating)":@""];
+	return [result autorelease];
 }
 
 @end

@@ -1819,4 +1819,53 @@ WormholeEntity*	whole;
 		fuel = 70;
 }
 
+- (void) enterTargetWormhole
+{
+	WormholeEntity* whole = nil;
+
+	// locate nearest wormhole
+	int				ent_count =		universe->n_entities;
+	Entity**		uni_entities =	universe->sortedEntities;	// grab the public sorted list
+	WormholeEntity*	wormholes[ent_count];
+	int i;
+	int wh_count = 0;
+	for (i = 0; i < ent_count; i++)
+		if (uni_entities[i]->isWormhole)
+			wormholes[wh_count++] = [uni_entities[i] retain];		//	retained
+	//
+	double found_d2 = scanner_range * scanner_range;
+	for (i = 0; i < wh_count ; i++)
+	{
+		WormholeEntity* wh = wormholes[i];
+		double d2 = distance2( position, wh->position);
+		if (d2 < found_d2)
+		{
+			whole = wh;
+			found_d2 = d2;
+		}
+		[wh release];	//		released
+	}
+
+//	NSLog(@"DEBUG %@ told to enter wormhole %@", self, whole);
+	
+	if (!whole)
+		return;
+	if (!whole->isWormhole)
+		return;
+	[whole suckInShip:self];
+}
+
+
+- (void) scriptActionOnTarget:(NSString*) action
+{
+	PlayerEntity*	player = (PlayerEntity*)[universe entityZero];
+	Entity*			targEnt = [universe entityForUniversalID:primaryTarget];
+	if ((targEnt)&&(player))
+	{
+		[player scriptAction: action onEntity: targEnt];
+		[player checkScript];	// react immediately to any changes this makes
+	}
+}
+
+
 @end

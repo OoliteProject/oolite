@@ -50,10 +50,7 @@ Your fair use and other rights are in no way affected by the above.
 #import "MyOpenGLView.h"
 #import "OOTrumble.h"
 #import "JoystickHandler.h"
-
-#ifdef LOADSAVEGUI
 #import "LoadSave.h"
-#endif
 
 #import "PlayerEntity_StickMapper.h"
 
@@ -5724,6 +5721,9 @@ static BOOL toggling_music;
 	scanner_zoom_rate = 0.0;
 
 	[universe setDisplayText:NO];
+
+	[universe allShipAIsReactToMessage:@"PLAYER WITCHSPACE"];
+
 	[universe removeAllEntitiesExceptPlayer:NO];
 	
 	// remove any contracts for the old galaxy
@@ -5794,6 +5794,9 @@ static BOOL toggling_music;
 	scanner_zoom_rate = 0.0;
 
 	[universe setDisplayText:NO];
+
+	[universe allShipAIsReactToMessage:@"PLAYER WITCHSPACE"];
+
 	[universe removeAllEntitiesExceptPlayer:NO];
 	[universe setSystemTo:target_system_seed];
 	
@@ -5821,6 +5824,9 @@ static BOOL toggling_music;
 	scanner_zoom_rate = 0.0;
 
 	[universe setDisplayText:NO];
+
+	[universe allShipAIsReactToMessage:@"PLAYER WITCHSPACE"];
+
 	[universe removeAllEntitiesExceptPlayer:NO];
 	//
 	//	reset the compass

@@ -48,7 +48,7 @@
 - (void) setGuiToSaveCommanderScreen: (NSString *)cdrName
 {
 	GuiDisplayGen *gui=[universe gui];
-	MyOpenGLView *gameView=[universe gameView];
+	MyOpenGLView*	gameView = (MyOpenGLView*)[universe gameView];
 	NSString*	dir = [[universe gameController] playerFileDirectory];
 	if (!dir)	dir = [[NSFileManager defaultManager] defaultCommanderPath];
 	
@@ -81,7 +81,7 @@
 - (void) setGuiToOverwriteScreen: (NSString *)cdrName
 {
 	GuiDisplayGen *gui=[universe gui];
-	MyOpenGLView *gameView=[universe gameView];
+	MyOpenGLView*	gameView = (MyOpenGLView*)[universe gameView];
 
 	// Don't poll controls
 	pollControls=NO;

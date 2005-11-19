@@ -268,6 +268,8 @@ extern int debug;
 		NSException*	exception;
 		
 		NSMutableArray*	activeWormholes;
+		
+		NSMutableArray* characterPool;
 
 }
 
@@ -480,6 +482,8 @@ NSComparisonResult comparePrice( id dict1, id dict2, void * context);
 
 - (Vector) getSunSkimStartPositionForShip:(ShipEntity*) ship;
 - (Vector) getSunSkimEndPositionForShip:(ShipEntity*) ship;
+
+- (void) allShipAIsReactToMessage:(NSString*) message;
 
 ///////////////////////////////////////
 

@@ -1065,6 +1065,8 @@ static Vector   circleVertex[65];		// holds vector coordinates for a unit circle
 	color_fv[1] = 1.0 - 5.0 * tf;
 	if (color_fv[1] > 1.0)	color_fv[1] = 1.0;
 	if (color_fv[1] < 0.0)	color_fv[1] = 0.0;
+	
+	// manageCollisions
 	if ([collidingEntities count] > 0)
 	{
 		int i;
@@ -1074,6 +1076,8 @@ static Vector   circleVertex[65];		// holds vector coordinates for a unit circle
 			[e takeEnergyDamage:energy from:self becauseOf:[self owner]];
 		}
 	}
+	
+	// expire after ttl
 	if (time_counter > duration)	// until the timer runs out!
 		[universe removeEntity:self];
 }
@@ -1484,6 +1488,9 @@ static Vector   circleVertex[65];		// holds vector coordinates for a unit circle
 	
 	if ((particle_type == PARTICLE_FLASHER)&&(status != STATUS_INACTIVE))
 	{
+		gl_matrix	temp_matrix;
+		glGetFloatv(GL_MODELVIEW_MATRIX, temp_matrix);
+		
 		Vector abspos = position;  // in control of it's own orientation
 		Entity*		father = my_owner;
 		GLfloat*	r_mat = [father rotationMatrix];
@@ -1498,6 +1505,7 @@ static Vector   circleVertex[65];		// holds vector coordinates for a unit circle
 				father = nil;
 			r_mat = [father rotationMatrix];
 		}
+		
 		glPopMatrix();  // restore zero!
 		glPushMatrix();
 				// position and orientation is absolute
@@ -1505,6 +1513,8 @@ static Vector   circleVertex[65];		// holds vector coordinates for a unit circle
 		glMultMatrixf(rotMatrix);
 		
 		[self drawEntity:immediate :translucent];
+		
+		glLoadMatrixf( temp_matrix);
 	}
 }
 
@@ -1527,12 +1537,9 @@ static Vector   circleVertex[65];		// holds vector coordinates for a unit circle
 	// draw data required xx, yy, color_fv[0], color_fv[1], color_fv[2]
 	
 	glEnable(GL_TEXTURE_2D);
-	glPushMatrix();
+	glPushMatrix();	
 	
-//	if (particle_type == PARTICLE_FLASHER)
-		glColor4f( color_fv[0], color_fv[1], color_fv[2], alpha);
-//	else
-//		glColor4f(1.0, 1.0, 1.0, alpha);
+	glColor4f( color_fv[0], color_fv[1], color_fv[2], alpha);
 	
 	glTexEnvfv(GL_TEXTURE_ENV, GL_TEXTURE_ENV_COLOR, color_fv);
 
@@ -1547,58 +1554,58 @@ static Vector   circleVertex[65];		// holds vector coordinates for a unit circle
 	{
 		case	VIEW_AFT :
 			glTexCoord2f(0.0, 1.0);
-			glVertex3f(xx, -yy, 0);
+			glVertex3f(xx, -yy, xx);
 
 			glTexCoord2f(1.0, 1.0);
-			glVertex3f(-xx, -yy, 0);
+			glVertex3f(-xx, -yy, xx);
 
 			glTexCoord2f(1.0, 0.0);
-			glVertex3f(-xx, yy, 0);
+			glVertex3f(-xx, yy, xx);
 			
 			glTexCoord2f(0.0, 0.0);
-			glVertex3f(xx, yy, 0);
+			glVertex3f(xx, yy, xx);
 			break;
 			
 		case	VIEW_STARBOARD :
 			glTexCoord2f(0.0, 1.0);
-			glVertex3f(0, -yy, xx);
+			glVertex3f(-xx, -yy, xx);
 
 			glTexCoord2f(1.0, 1.0);
-			glVertex3f(0, -yy, -xx);
+			glVertex3f(-xx, -yy, -xx);
 
 			glTexCoord2f(1.0, 0.0);
-			glVertex3f(0, yy, -xx);
+			glVertex3f(-xx, yy, -xx);
 			
 			glTexCoord2f(0.0, 0.0);
-			glVertex3f(0, yy, xx);
+			glVertex3f(-xx, yy, xx);
 			break;
 			
 		case	VIEW_PORT :
 			glTexCoord2f(0.0, 1.0);
-			glVertex3f(0, -yy, -xx);
+			glVertex3f(xx, -yy, -xx);
 
 			glTexCoord2f(1.0, 1.0);
-			glVertex3f(0, -yy, xx);
+			glVertex3f(xx, -yy, xx);
 
 			glTexCoord2f(1.0, 0.0);
-			glVertex3f(0, yy, xx);
+			glVertex3f(xx, yy, xx);
 			
 			glTexCoord2f(0.0, 0.0);
-			glVertex3f(0, yy, -xx);
+			glVertex3f(xx, yy, -xx);
 			break;
 			
 		default :
 			glTexCoord2f(0.0, 1.0);
-			glVertex3f(-xx, -yy, 0);
+			glVertex3f(-xx, -yy, -xx);
 
 			glTexCoord2f(1.0, 1.0);
-			glVertex3f(xx, -yy, 0);
+			glVertex3f(xx, -yy, -xx);
 
 			glTexCoord2f(1.0, 0.0);
-			glVertex3f(xx, yy, 0);
+			glVertex3f(xx, yy, -xx);
 			
 			glTexCoord2f(0.0, 0.0);
-			glVertex3f(-xx, yy, 0);
+			glVertex3f(-xx, yy, -xx);
 			break;
 	}
 

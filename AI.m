@@ -66,6 +66,7 @@ Your fair use and other rights are in no way affected by the above.
 - (void) dealloc
 {
 	[aiLock lock];	// LOCK the AI preventing reaction to messages
+	//
 	if (owner_desc)			[owner_desc release];
 	[ai_stack removeAllObjects];	// releasing them all
 	if (ai_stack)			[ai_stack release];
@@ -73,7 +74,8 @@ Your fair use and other rights are in no way affected by the above.
     if (currentState)		[currentState release];
 	[pendingMessages removeAllObjects];	// releasing them all
 	if (pendingMessages)	[pendingMessages release];
-//	[aiLock unlock];
+	//
+	[aiLock unlock];
 	if (aiLock)				[aiLock release];
 	[super dealloc];
 }
@@ -196,6 +198,9 @@ Your fair use and other rights are in no way affected by the above.
 	int i;
 	NSArray* actions;
 	NSDictionary* messagesForState;
+	
+	if (!message)
+		return;
 	
 	if ([owner universal_id] == NO_TARGET)  // don't think until launched
 		return;
@@ -352,6 +357,24 @@ Your fair use and other rights are in no way affected by the above.
 	//
 	if (ai_stack)
 		[ai_stack removeAllObjects];
+	//
+	[aiLock unlock];
+}
+
+- (void) clearAllData
+{
+	[aiLock lock];
+	//
+	if (ai_stack)
+		[ai_stack removeAllObjects];
+	//
+	//
+	if (pendingMessages)
+		[pendingMessages removeAllObjects];
+	//
+	//
+	nextThinkTime += 36000.0;	// should dealloc in under ten hours!
+	thinkTimeInterval = 36000.0;
 	//
 	[aiLock unlock];
 }

@@ -50,7 +50,7 @@ Your fair use and other rights are in no way affected by the above.
 @interface PlayerEntity (Scripting)
 
 - (void) checkScript;
-- (void) checkCouplet:(NSDictionary *) couplet onEntity:(Entity *) entity;
+- (BOOL) checkCouplet:(NSDictionary *) couplet onEntity:(Entity *) entity;
 - (void) scriptAction:(NSString *) scriptAction onEntity:(Entity *) entity;
 - (BOOL) scriptTestCondition:(NSString *) scriptCondition;
 
@@ -159,6 +159,8 @@ Your fair use and other rights are in no way affected by the above.
 - (void) debugOn;
 - (void) debugOff;
 - (void) debugMessage:(NSString *)args;
+
+- (NSString*) replaceVariablesInString:(NSString*) args;
 
 /*-----------------------------------------------------*/
 

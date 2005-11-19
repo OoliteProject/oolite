@@ -225,6 +225,9 @@ Your fair use and other rights are in no way affected by the above.
 	activeWormholes = [[NSMutableArray arrayWithCapacity:16] retain];
 
 	
+	characterPool = [[NSMutableArray arrayWithCapacity:256] retain];
+
+	
 	[self set_up_space];
 	
 
@@ -281,6 +284,8 @@ Your fair use and other rights are in no way affected by the above.
 								[local_planetinfo_overrides release];
 	
 	if (activeWormholes)		[activeWormholes release];
+								
+	if (characterPool)			[characterPool release];
 								
 //	// reset/dealloc the universal planet edge thingy
 //	[PlanetEntity resetBaseVertexArray];
@@ -487,6 +492,8 @@ Your fair use and other rights are in no way affected by the above.
 	if (activeWormholes)
 		[activeWormholes autorelease];
 	activeWormholes = [[NSMutableArray arrayWithCapacity:16] retain];
+	
+	[characterPool removeAllObjects];
 
 	[self set_up_space];
 
@@ -1160,7 +1167,7 @@ Your fair use and other rights are in no way affected by the above.
 
 - (void) populateSpaceFromActiveWormholes
 {
-	NSLog(@"DEBUG populating from activeWormholes:\n%@", activeWormholes);
+//	NSLog(@"DEBUG populating from activeWormholes:\n%@", activeWormholes);
 	//
 	while ([activeWormholes count])
 	{
@@ -1168,8 +1175,8 @@ Your fair use and other rights are in no way affected by the above.
 		
 		[whole setUniverse: self];
 		
-		NSLog(@"DEBUG considering wormhole %@ destination %@ (system %@)",
-			whole, [Universe systemSeedString:[whole destination]], [Universe systemSeedString:system_seed]);
+//		NSLog(@"DEBUG considering wormhole %@ destination %@ (system %@)",
+//			whole, [Universe systemSeedString:[whole destination]], [Universe systemSeedString:system_seed]);
 		
 		if (equal_seeds( [whole destination], system_seed))
 		{			
@@ -1194,7 +1201,7 @@ Your fair use and other rights are in no way affected by the above.
 	int government =	[(NSNumber *)[systeminfo objectForKey:KEY_GOVERNMENT] intValue]; // 0 .. 7 (0 anarchic .. 7 most stable)
 	int economy =		[(NSNumber *)[systeminfo objectForKey:KEY_ECONOMY] intValue];	// 0 .. 7 (0 richest .. 7 poorest)
 	int thargoidChance = (system_seed.e < 127) ? 10 : 3; // if Human Colonials live here, there's a greater % chance the Thargoids will attack!
-	Vector  lastPiratePosition;
+	Vector  lastPiratePosition = p1_pos;
 	int		wolfPackCounter = 0;
 	int		wolfPackGroup_id = NO_TARGET;
 	
@@ -2251,6 +2258,11 @@ Your fair use and other rights are in no way affected by the above.
 		{
 			rpos = unit_vector(&rpos);
 			q1 = quaternion_rotation_between( make_vector(0,0,1), rpos);
+			
+			GLfloat check = dot_product( vector_forward_from_quaternion(q1), rpos);
+			if (check < 0)
+				quaternion_rotate_about_axis(&q1, vector_right_from_quaternion(q1), PI);	// 180 degree flip
+			
 			[ship setQRotation:q1];
 		}
 	}
@@ -2697,7 +2709,8 @@ Your fair use and other rights are in no way affected by the above.
 		if (entity->isShip)
 		{
 			ShipEntity* ship = (ShipEntity*)entity;
-			[[ship getAI] setOwner:nil];					//  save ai misreporting
+			[[ship getAI] setOwner: nil];					//  save ai misreporting
+			[ship setAI: nil];	// remove it.
 		}
 		
 		if ([entlist count] < 100)		//  keep only up to 100 of each thing
@@ -2866,8 +2879,10 @@ Your fair use and other rights are in no way affected by the above.
 	if (!shipDict)
 		return nil;
 
+	BOOL		isStation = NO;
 	NSString	*shipRoles = (NSString *)[shipDict objectForKey:@"roles"];
-	BOOL		isStation = ([shipRoles rangeOfString:@"station"].location != NSNotFound)||([shipRoles rangeOfString:@"carrier"].location != NSNotFound);
+	if (shipRoles)
+		isStation = ([shipRoles rangeOfString:@"station"].location != NSNotFound)||([shipRoles rangeOfString:@"carrier"].location != NSNotFound);
 
 	if (isStation)
 		ship = (StationEntity *)[self recycledOrNew:@"StationEntity"];
@@ -2876,7 +2891,7 @@ Your fair use and other rights are in no way affected by the above.
 	[ship setUniverse:self];
 	[ship setUpShipFromDictionary:shipDict];
 
-//	NSLog(@"DEBUG getShip:%@ returns %@", desc, ship);
+//	NSLog(@"DEBUG getShip:%@ (roles '%@') returns %@", desc, shipRoles, ship);
 
 	return ship;   // retain count = 1
 }
@@ -6475,12 +6490,28 @@ double estimatedTimeForJourney(double distance, int hops)
 		
 		double days_until_sale = (ship_sold_time - current_time) / 86400.0;
 		
+		NSMutableArray* keysForShips = [NSMutableArray arrayWithArray:[shipyard allKeys]];
+		int si;
+		for (si = 0; si < [keysForShips count]; si++)
+		{
+			//eliminate any ships that fail a 'conditions test'
+			NSString* key = [keysForShips objectAtIndex: si];
+			NSDictionary* dict = (NSDictionary*)[shipyard objectForKey: key];
+			if ([dict objectForKey:@"conditions"])
+			{
+				PlayerEntity* player = (PlayerEntity*)[self entityZero];
+				if ((player) && (player->isPlayer) && (![player checkCouplet: dict onEntity: player]))
+					[keysForShips removeObjectAtIndex: si--];
+			}
+		}
+		
+		
 		NSDictionary* systemInfo = [self generateSystemData:system_seed];
 		int techlevel = [(NSNumber*)[systemInfo objectForKey:KEY_TECHLEVEL] intValue];
 		
-		int ship_index = (ship_seed.d * 0x100 + ship_seed.e) % [[shipyard allKeys] count];
+		int ship_index = (ship_seed.d * 0x100 + ship_seed.e) % [keysForShips count];
 		
-		NSString* ship_key = [[shipyard allKeys] objectAtIndex:ship_index];
+		NSString* ship_key = [keysForShips objectAtIndex:ship_index];
 		NSDictionary* ship_info = (NSDictionary*)[shipyard objectForKey:ship_key];
 		int ship_techlevel = [(NSNumber*)[ship_info objectForKey:KEY_TECHLEVEL] intValue];
 		
@@ -6697,10 +6728,9 @@ double estimatedTimeForJourney(double distance, int hops)
 	
 	NSArray* shipsForSale = [resultDictionary allKeys];
 	
-	for (i = 0; (i < [shipsForSale count])/**&&(i < MAX_SHIPS_FOR_SALE)**/; i++)
+	for (i = 0; i < [shipsForSale count]; i++)
 		[resultArray addObject:[resultDictionary objectForKey:[shipsForSale objectAtIndex:i]]];
 	
-//	[resultArray sortUsingFunction:comparePrice context:nil];
 	[resultArray sortUsingFunction:compareName context:nil];
 	
 	// remove identically priced ships of the same name
@@ -7167,6 +7197,27 @@ NSComparisonResult comparePrice( id dict1, id dict2, void * context)
 	v1.x += v0.x;	v1.y += v0.y;	v1.z += v0.z;
 	
 	return v1;
+}
+
+- (void) allShipAIsReactToMessage:(NSString*) message
+{
+	
+//	NSLog(@"DEBUG sending all ships '%@'", message);
+	
+	int i;
+	int ent_count = n_entities;
+	int ship_count = 0;
+	ShipEntity* my_ships[ent_count];
+	for (i = 0; i < ent_count; i++)
+		if (sortedEntities[i]->isShip)
+			my_ships[ship_count++] = [sortedEntities[i] retain];	// retained
+
+	for (i = 0; i < ship_count; i++)
+	{
+		ShipEntity* se = my_ships[i];
+		[[se getAI] reactToMessage:message];
+		[se release]; //	released
+	}
 }
 
 ///////////////////////////////////////

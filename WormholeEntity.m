@@ -78,7 +78,7 @@ Your fair use and other rights are in no way affected by the above.
 	//
 	isWormhole = YES;
 	//
-	NSLog(@"DEBUG %@ created!", self);
+//	NSLog(@"DEBUG %@ created!", self);
 	//
 	return self;
 }
@@ -120,7 +120,7 @@ Your fair use and other rights are in no way affected by the above.
 
 - (void) disgorgeShips
 {
-	NSLog(@"disgorging %@", shipsInTransit);
+//	NSLog(@"disgorging %@", shipsInTransit);
 	
 	int n_ships = [shipsInTransit count];
 	

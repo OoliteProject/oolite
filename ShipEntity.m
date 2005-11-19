@@ -182,11 +182,15 @@ Your fair use and other rights are in no way affected by the above.
 	//
 	crew = nil;
 	//
+	[self setTrackCloseContacts:NO];
+	//
 	return self;
 }
 
 - (void) dealloc
 {
+	[self setTrackCloseContacts:NO];	// deallocs tracking dictionary
+
 	if (shipinfoDictionary)	[shipinfoDictionary release];
 	if (shipAI)				[shipAI release];
 	if (cargo)				[cargo release];
@@ -523,7 +527,9 @@ Your fair use and other rights are in no way affected by the above.
 	if (crew)
 		[crew autorelease];
 	crew = nil;
-	
+	//
+	[self setTrackCloseContacts:NO];
+	//
 }
 
 - (id) initWithDictionary:(NSDictionary *) dict
@@ -579,6 +585,7 @@ Your fair use and other rights are in no way affected by the above.
 {
     NSString*   cargo_type_string;
     NSString*   weapon_type_string;
+	NSMutableDictionary* shipdict = [NSMutableDictionary dictionaryWithDictionary:dict];
 	
 	// reset all settings
 	[self reinit];
@@ -588,40 +595,76 @@ Your fair use and other rights are in no way affected by the above.
 	else
 		collisionInfoForEntity = [[NSMutableDictionary alloc] initWithCapacity:12];
 	
-	shipinfoDictionary = [[NSDictionary alloc] initWithDictionary:dict];	// retained
+	// check if this is based upon a different ship
+	while ([shipdict objectForKey:@"like_ship"])
+	{
+		if (universe)
+		{
+			NSString*		other_shipdesc = (NSString *)[shipdict objectForKey:@"like_ship"];
+			NSDictionary*	other_shipdict = nil;
+			if (other_shipdesc)
+			{
+				NS_DURING	
+					other_shipdict = [universe getDictionaryForShip:other_shipdesc];	// handle OOLITE_EXCEPTION_SHIP_NOT_FOUND
+				NS_HANDLER
+					if ([[localException name] isEqual: OOLITE_EXCEPTION_SHIP_NOT_FOUND])
+					{
+						NSLog(@"***** Oolite Exception : '%@' in [ShipEntity setUpShipFromDictionary:] while basing a ship upon '%@' *****", [localException reason], other_shipdesc);
+						other_shipdict = nil;
+					}
+					else
+						[localException raise];
+				NS_ENDHANDLER
+			}
+			if (other_shipdict)
+			{
+				[shipdict removeObjectForKey:@"like_ship"];	// so it may inherit a new one from the like_ship
+				
+//				NSLog(@"DEBUG setting up ship alike unto : %@", other_shipdesc);
+				
+				NSMutableDictionary* this_shipdict = [NSMutableDictionary dictionaryWithDictionary:other_shipdict]; // basics from that one
+				[this_shipdict addEntriesFromDictionary:shipdict];	// overrides from this one
+				shipdict = [NSMutableDictionary dictionaryWithDictionary:this_shipdict];	// synthesis'
+				
+//				NSLog(@"DEBUG resulting shipdict is :\n%@", shipdict);
+			}
+		}
+	}
+	
+	shipinfoDictionary = [[NSDictionary alloc] initWithDictionary:shipdict];	// retained
 	
 	//
 	// set things from dictionary from here out
 	//
-	if ([dict objectForKey:@"max_flight_speed"])
-		max_flight_speed = [(NSNumber *)[dict objectForKey:@"max_flight_speed"] doubleValue];
-	if ([dict objectForKey:@"max_flight_roll"])
-		max_flight_roll = [(NSNumber *)[dict objectForKey:@"max_flight_roll"] doubleValue];
-	if ([dict objectForKey:@"max_flight_pitch"])
-		max_flight_pitch = [(NSNumber *)[dict objectForKey:@"max_flight_pitch"] doubleValue];
+	if ([shipdict objectForKey:@"max_flight_speed"])
+		max_flight_speed = [(NSNumber *)[shipdict objectForKey:@"max_flight_speed"] doubleValue];
+	if ([shipdict objectForKey:@"max_flight_roll"])
+		max_flight_roll = [(NSNumber *)[shipdict objectForKey:@"max_flight_roll"] doubleValue];
+	if ([shipdict objectForKey:@"max_flight_pitch"])
+		max_flight_pitch = [(NSNumber *)[shipdict objectForKey:@"max_flight_pitch"] doubleValue];
 	//
-	if ([dict objectForKey:@"thrust"])
-		thrust = [(NSNumber *)[dict objectForKey:@"thrust"] doubleValue];
+	if ([shipdict objectForKey:@"thrust"])
+		thrust = [(NSNumber *)[shipdict objectForKey:@"thrust"] doubleValue];
 	//
-	if ([dict objectForKey:@"accuracy"])
+	if ([shipdict objectForKey:@"accuracy"])
 	{
-		int accuracy = [(NSNumber *)[dict objectForKey:@"accuracy"] intValue];
+		int accuracy = [(NSNumber *)[shipdict objectForKey:@"accuracy"] intValue];
 		if ((accuracy >= -5)&&(accuracy <= 10))
 			pitch_tolerance = 0.01 * (85 + accuracy);
 	}
 	//
-	if ([dict objectForKey:@"max_energy"])
-		max_energy = [(NSNumber *)[dict objectForKey:@"max_energy"] doubleValue];
-	if ([dict objectForKey:@"energy_recharge_rate"])
-		energy_recharge_rate = [(NSNumber *)[dict objectForKey:@"energy_recharge_rate"] doubleValue];
+	if ([shipdict objectForKey:@"max_energy"])
+		max_energy = [(NSNumber *)[shipdict objectForKey:@"max_energy"] doubleValue];
+	if ([shipdict objectForKey:@"energy_recharge_rate"])
+		energy_recharge_rate = [(NSNumber *)[shipdict objectForKey:@"energy_recharge_rate"] doubleValue];
 	energy = max_energy;
 	//
-	if ([dict objectForKey:@"weapon_offset_x"])
-		weapon_offset_x = [(NSNumber *)[dict objectForKey:@"weapon_offset_x"] doubleValue];
+	if ([shipdict objectForKey:@"weapon_offset_x"])
+		weapon_offset_x = [(NSNumber *)[shipdict objectForKey:@"weapon_offset_x"] doubleValue];
 	//
-	if ([dict objectForKey:@"aft_weapon_type"])
+	if ([shipdict objectForKey:@"aft_weapon_type"])
 	{
-		weapon_type_string = (NSString *)[dict objectForKey:@"aft_weapon_type"];
+		weapon_type_string = (NSString *)[shipdict objectForKey:@"aft_weapon_type"];
 		if ([weapon_type_string isEqual:@"WEAPON_PULSE_LASER"])
 			aft_weapon_type = WEAPON_PULSE_LASER;
 		if ([weapon_type_string isEqual:@"WEAPON_BEAM_LASER"])
@@ -638,9 +681,9 @@ Your fair use and other rights are in no way affected by the above.
 			aft_weapon_type = WEAPON_NONE;
 	}
 	//
-	if ([dict objectForKey:@"forward_weapon_type"])
+	if ([shipdict objectForKey:@"forward_weapon_type"])
 	{
-		weapon_type_string = (NSString *)[dict objectForKey:@"forward_weapon_type"];
+		weapon_type_string = (NSString *)[shipdict objectForKey:@"forward_weapon_type"];
 		if ([weapon_type_string isEqual:@"WEAPON_PULSE_LASER"])
 			forward_weapon_type = WEAPON_PULSE_LASER;
 		if ([weapon_type_string isEqual:@"WEAPON_BEAM_LASER"])
@@ -658,82 +701,82 @@ Your fair use and other rights are in no way affected by the above.
 		[self set_weapon_data_from_type:forward_weapon_type];
 	}
 	//
-	if ([dict objectForKey:@"weapon_energy"])
-		weapon_energy = [(NSNumber *)[dict objectForKey:@"weapon_energy"] doubleValue];
+	if ([shipdict objectForKey:@"weapon_energy"])
+		weapon_energy = [(NSNumber *)[shipdict objectForKey:@"weapon_energy"] doubleValue];
 	//
-	if ([dict objectForKey:@"scanner_range"])
-		scanner_range = [(NSNumber *)[dict objectForKey:@"scanner_range"] doubleValue];
+	if ([shipdict objectForKey:@"scanner_range"])
+		scanner_range = [(NSNumber *)[shipdict objectForKey:@"scanner_range"] doubleValue];
 	//
-	if ([dict objectForKey:@"missiles"])
-		missiles = [(NSNumber *)[dict objectForKey:@"missiles"] intValue];
+	if ([shipdict objectForKey:@"missiles"])
+		missiles = [(NSNumber *)[shipdict objectForKey:@"missiles"] intValue];
 		
 	// upgrades:	
 	//		did use [NSNumber boolValue], but now have a random chance instead
 	//
-	if ([dict objectForKey:@"has_ecm"])
-		has_ecm = (randf() < [(NSNumber *)[dict objectForKey:@"has_ecm"] floatValue]);
-	if ([dict objectForKey:@"has_scoop"])
-		has_scoop = (randf() < [(NSNumber *)[dict objectForKey:@"has_scoop"] floatValue]);
-	if ([dict objectForKey:@"has_escape_pod"])
-		has_escape_pod = (randf() < [(NSNumber *)[dict objectForKey:@"has_escape_pod"] floatValue]);
-	if ([dict objectForKey:@"has_energy_bomb"])
-		has_energy_bomb = (randf() < [(NSNumber *)[dict objectForKey:@"has_energy_bomb"] floatValue]);
-	if ([dict objectForKey:@"has_fuel_injection"])
-		has_fuel_injection = (randf() < [(NSNumber *)[dict objectForKey:@"has_fuel_injection"] floatValue]);
+	if ([shipdict objectForKey:@"has_ecm"])
+		has_ecm = (randf() < [(NSNumber *)[shipdict objectForKey:@"has_ecm"] floatValue]);
+	if ([shipdict objectForKey:@"has_scoop"])
+		has_scoop = (randf() < [(NSNumber *)[shipdict objectForKey:@"has_scoop"] floatValue]);
+	if ([shipdict objectForKey:@"has_escape_pod"])
+		has_escape_pod = (randf() < [(NSNumber *)[shipdict objectForKey:@"has_escape_pod"] floatValue]);
+	if ([shipdict objectForKey:@"has_energy_bomb"])
+		has_energy_bomb = (randf() < [(NSNumber *)[shipdict objectForKey:@"has_energy_bomb"] floatValue]);
+	if ([shipdict objectForKey:@"has_fuel_injection"])
+		has_fuel_injection = (randf() < [(NSNumber *)[shipdict objectForKey:@"has_fuel_injection"] floatValue]);
 	//
-	if ([dict objectForKey:@"has_shield_booster"])
-		max_energy += (randf() < [(NSNumber *)[dict objectForKey:@"has_shield_booster"] floatValue])? 256:0;
-	if ([dict objectForKey:@"has_shield_enhancer"])
+	if ([shipdict objectForKey:@"has_shield_booster"])
+		max_energy += (randf() < [(NSNumber *)[shipdict objectForKey:@"has_shield_booster"] floatValue])? 256:0;
+	if ([shipdict objectForKey:@"has_shield_enhancer"])
 	{
-		max_energy += (randf() < [(NSNumber *)[dict objectForKey:@"has_shield_enhancer"] floatValue])? 256:0;
+		max_energy += (randf() < [(NSNumber *)[shipdict objectForKey:@"has_shield_enhancer"] floatValue])? 256:0;
 		energy_recharge_rate *= 1.5;
 	}
 	//
-	if ([dict objectForKey:@"has_cloaking_device"])
-		has_cloaking_device = (randf() < [(NSNumber *)[dict objectForKey:@"has_cloaking_device"] floatValue]);
+	if ([shipdict objectForKey:@"has_cloaking_device"])
+		has_cloaking_device = (randf() < [(NSNumber *)[shipdict objectForKey:@"has_cloaking_device"] floatValue]);
 	//
 	cloaking_device_active = NO;
 	//
-	if ([dict objectForKey:@"has_military_jammer"])
-		has_military_jammer = (randf() < [(NSNumber *)[dict objectForKey:@"has_military_jammer"] floatValue]);
+	if ([shipdict objectForKey:@"has_military_jammer"])
+		has_military_jammer = (randf() < [(NSNumber *)[shipdict objectForKey:@"has_military_jammer"] floatValue]);
 	//
 	military_jammer_active = NO;
 	//
-	if ([dict objectForKey:@"has_military_scanner_filter"])
-		has_military_scanner_filter = (randf() < [(NSNumber *)[dict objectForKey:@"has_military_scanner_filter"] floatValue]);
+	if ([shipdict objectForKey:@"has_military_scanner_filter"])
+		has_military_scanner_filter = (randf() < [(NSNumber *)[shipdict objectForKey:@"has_military_scanner_filter"] floatValue]);
 	//
 	// /upgrades
 	
-	if ([dict objectForKey:@"fuel"])
-		fuel = [(NSNumber *)[dict objectForKey:@"fuel"] intValue];
+	if ([shipdict objectForKey:@"fuel"])
+		fuel = [(NSNumber *)[shipdict objectForKey:@"fuel"] intValue];
 		
 	//
-	if ([dict objectForKey:@"bounty"])
-		bounty = [(NSNumber *)[dict objectForKey:@"bounty"] intValue];
+	if ([shipdict objectForKey:@"bounty"])
+		bounty = [(NSNumber *)[shipdict objectForKey:@"bounty"] intValue];
 	//
-	if ([dict objectForKey:@"ai_type"])
+	if ([shipdict objectForKey:@"ai_type"])
 	{
 		if (shipAI)
 			[shipAI autorelease];
 		shipAI = [[AI alloc] init]; // alloc retains
 		[shipAI setOwner:self];
-		[shipAI setStateMachine:(NSString *)[dict objectForKey:@"ai_type"]];
+		[shipAI setStateMachine:(NSString *)[shipdict objectForKey:@"ai_type"]];
 		[shipAI setState:@"GLOBAL"];
 	}
 	//
-	if ([dict objectForKey:@"max_cargo"])
-		max_cargo = [(NSNumber *)[dict objectForKey:@"max_cargo"] intValue];
-	if ([dict objectForKey:@"likely_cargo"])
-		likely_cargo = [(NSNumber *)[dict objectForKey:@"likely_cargo"] intValue];
+	if ([shipdict objectForKey:@"max_cargo"])
+		max_cargo = [(NSNumber *)[shipdict objectForKey:@"max_cargo"] intValue];
+	if ([shipdict objectForKey:@"likely_cargo"])
+		likely_cargo = [(NSNumber *)[shipdict objectForKey:@"likely_cargo"] intValue];
 	//
-	if ([dict objectForKey:@"cargo_carried"])
+	if ([shipdict objectForKey:@"cargo_carried"])
 	{
 		cargo_flag = CARGO_FLAG_FULL_UNIFORM;
 	}
 	//
-	if ([dict objectForKey:@"cargo_type"])
+	if ([shipdict objectForKey:@"cargo_type"])
 	{
-		cargo_type_string = (NSString *)[dict objectForKey:@"cargo_type"];
+		cargo_type_string = (NSString *)[shipdict objectForKey:@"cargo_type"];
 		if ([cargo_type_string isEqual:@"CARGO_THARGOID"])
 			cargo_type = CARGO_THARGOID;
 		if ([cargo_type_string isEqual:@"CARGO_ALLOY"])
@@ -754,35 +797,35 @@ Your fair use and other rights are in no way affected by the above.
 	}
 	//
 	// A HACK!! - must do this before the model is set
-	if ([dict objectForKey:@"smooth"])
+	if ([shipdict objectForKey:@"smooth"])
 		is_smooth_shaded = YES;
 	else
 		is_smooth_shaded = NO;
 	//
 	// must do this next one before checking subentities
-	if ([dict objectForKey:@"model"])
-		[self setModel:(NSString *)[dict objectForKey:@"model"]];
+	if ([shipdict objectForKey:@"model"])
+		[self setModel:(NSString *)[shipdict objectForKey:@"model"]];
 	//
-	if ([dict objectForKey:KEY_NAME])
+	if ([shipdict objectForKey:KEY_NAME])
 	{
 		if (name)
 			[name release];
-		name = [[NSString stringWithString:(NSString *)[dict objectForKey:KEY_NAME]] retain];
+		name = [[NSString stringWithString:(NSString *)[shipdict objectForKey:KEY_NAME]] retain];
 	}
 	//
-	if ([dict objectForKey:@"roles"])
+	if ([shipdict objectForKey:@"roles"])
 	{
 		if (roles)
 			[roles release];
-		roles = [[NSString stringWithString:(NSString *)[dict objectForKey:@"roles"]] retain];
+		roles = [[NSString stringWithString:(NSString *)[shipdict objectForKey:@"roles"]] retain];
 	}
 	//
 	[self setOwner:self];
 	//
-	if ([dict objectForKey:@"exhaust"])
+	if ([shipdict objectForKey:@"exhaust"])
 	{
 		int i;
-		NSArray *plumes = (NSArray *)[dict objectForKey:@"exhaust"];
+		NSArray *plumes = (NSArray *)[shipdict objectForKey:@"exhaust"];
 		for (i = 0; i < [plumes count]; i++)
 		{
 			ParticleEntity *exhaust = [[ParticleEntity alloc] initExhaustFromShip:self details:(NSString *)[plumes objectAtIndex:i]];
@@ -791,99 +834,102 @@ Your fair use and other rights are in no way affected by the above.
 		}
 	}		
 	//	
-	if ((universe)&&([dict objectForKey:@"subentities"]))
+	if ([shipdict objectForKey:@"subentities"])
 	{
-		//NSLog(@"DEBUG adding subentity...");
-		int i;
-		NSArray *subs = (NSArray *)[dict objectForKey:@"subentities"];
-		for (i = 0; i < [subs count]; i++)
+		if (universe)
 		{
-//			NSArray* details = [(NSString *)[subs objectAtIndex:i] componentsSeparatedByString:@" "];
-			NSArray* details = [Entity scanTokensFromString:(NSString *)[subs objectAtIndex:i]];
-			
-			if ([details count] == 8)
+			//NSLog(@"DEBUG adding subentity...");
+			int i;
+			NSArray *subs = (NSArray *)[shipdict objectForKey:@"subentities"];
+			for (i = 0; i < [subs count]; i++)
 			{
-				//NSLog(@"DEBUG adding subentity...");
-				Vector sub_pos, ref;
-				Quaternion sub_q;
-				Entity* subent;
-				NSString* subdesc = (NSString *)[details objectAtIndex:0];
-				sub_pos.x = [(NSString *)[details objectAtIndex:1] floatValue];
-				sub_pos.y = [(NSString *)[details objectAtIndex:2] floatValue];
-				sub_pos.z = [(NSString *)[details objectAtIndex:3] floatValue];
-				sub_q.w = [(NSString *)[details objectAtIndex:4] floatValue];
-				sub_q.x = [(NSString *)[details objectAtIndex:5] floatValue];
-				sub_q.y = [(NSString *)[details objectAtIndex:6] floatValue];
-				sub_q.z = [(NSString *)[details objectAtIndex:7] floatValue];
+	//			NSArray* details = [(NSString *)[subs objectAtIndex:i] componentsSeparatedByString:@" "];
+				NSArray* details = [Entity scanTokensFromString:(NSString *)[subs objectAtIndex:i]];
 				
-//				NSLog(@"DEBUG adding subentity... %@ %f %f %f - %f %f %f %f", subdesc, sub_pos.x, sub_pos.y, sub_pos.z, sub_q.w, sub_q.x, sub_q.y, sub_q.z);
+				if ([details count] == 8)
+				{
+					//NSLog(@"DEBUG adding subentity...");
+					Vector sub_pos, ref;
+					Quaternion sub_q;
+					Entity* subent;
+					NSString* subdesc = (NSString *)[details objectAtIndex:0];
+					sub_pos.x = [(NSString *)[details objectAtIndex:1] floatValue];
+					sub_pos.y = [(NSString *)[details objectAtIndex:2] floatValue];
+					sub_pos.z = [(NSString *)[details objectAtIndex:3] floatValue];
+					sub_q.w = [(NSString *)[details objectAtIndex:4] floatValue];
+					sub_q.x = [(NSString *)[details objectAtIndex:5] floatValue];
+					sub_q.y = [(NSString *)[details objectAtIndex:6] floatValue];
+					sub_q.z = [(NSString *)[details objectAtIndex:7] floatValue];
+					
+	//				NSLog(@"DEBUG adding subentity... %@ %f %f %f - %f %f %f %f", subdesc, sub_pos.x, sub_pos.y, sub_pos.z, sub_q.w, sub_q.x, sub_q.y, sub_q.z);
 
-				if ([subdesc isEqual:@"*FLASHER*"])
-				{
-					subent = [[ParticleEntity alloc] init];	// retained
-					[(ParticleEntity*)subent setColor:[NSColor colorWithCalibratedHue: sub_q.w/360.0 saturation:1.0 brightness:1.0 alpha:1.0]];
-					[(ParticleEntity*)subent setDuration: sub_q.x];
-					[(ParticleEntity*)subent setEnergy: 2.0 * sub_q.y];
-					[(ParticleEntity*)subent setSize:NSMakeSize( sub_q.z, sub_q.z)];
-					[(ParticleEntity*)subent setParticleType:PARTICLE_FLASHER];
-					[(ParticleEntity*)subent setStatus:STATUS_EFFECT];
-					[(ParticleEntity*)subent setPosition:sub_pos];
-					[subent setUniverse:universe];
-				}
-				else
-				{
-					quaternion_normalise(&sub_q);
-					
-//					NSLog(@"DEBUG universe = %@", universe);
-					
-					subent = [universe getShip:subdesc];	// retained
-					
-					if (subent)
+					if ([subdesc isEqual:@"*FLASHER*"])
 					{
-//					NSLog(@"DEBUG adding subentity %@ %@ to new %@ at %.3f,%.3f,%.3f", subent, [(ShipEntity*)subent name], name, sub_pos.x, sub_pos.y, sub_pos.z );
-						[(ShipEntity*)subent setStatus:STATUS_INACTIVE];
-						//
-						ref = vector_forward_from_quaternion(sub_q);	// VECTOR FORWARD
-						//
-						[(ShipEntity*)subent setReference: ref];
-						[(ShipEntity*)subent setPosition: sub_pos];
-						[(ShipEntity*)subent setQRotation: sub_q];
-						//
-						if ([[(ShipEntity*)subent roles] isEqual:@"docking-slit"])
-							[subent setStatus:STATUS_EFFECT];			// hack keeps docking slit visible when at reduced detail
-						else
-							[self addSolidSubentityToCollisionRadius:(ShipEntity*)subent];	// hack - ignore docking-slit for collision radius
+						subent = [[ParticleEntity alloc] init];	// retained
+						[(ParticleEntity*)subent setColor:[NSColor colorWithCalibratedHue: sub_q.w/360.0 saturation:1.0 brightness:1.0 alpha:1.0]];
+						[(ParticleEntity*)subent setDuration: sub_q.x];
+						[(ParticleEntity*)subent setEnergy: 2.0 * sub_q.y];
+						[(ParticleEntity*)subent setSize:NSMakeSize( sub_q.z, sub_q.z)];
+						[(ParticleEntity*)subent setParticleType:PARTICLE_FLASHER];
+						[(ParticleEntity*)subent setStatus:STATUS_EFFECT];
+						[(ParticleEntity*)subent setPosition:sub_pos];
+						[subent setUniverse:universe];
 					}
-					//
+					else
+					{
+						quaternion_normalise(&sub_q);
+						
+	//					NSLog(@"DEBUG universe = %@", universe);
+						
+						subent = [universe getShip:subdesc];	// retained
+						
+						if (subent)
+						{
+	//					NSLog(@"DEBUG adding subentity %@ %@ to new %@ at %.3f,%.3f,%.3f", subent, [(ShipEntity*)subent name], name, sub_pos.x, sub_pos.y, sub_pos.z );
+							[(ShipEntity*)subent setStatus:STATUS_INACTIVE];
+							//
+							ref = vector_forward_from_quaternion(sub_q);	// VECTOR FORWARD
+							//
+							[(ShipEntity*)subent setReference: ref];
+							[(ShipEntity*)subent setPosition: sub_pos];
+							[(ShipEntity*)subent setQRotation: sub_q];
+							//
+							if ([[(ShipEntity*)subent roles] isEqual:@"docking-slit"])
+								[subent setStatus:STATUS_EFFECT];			// hack keeps docking slit visible when at reduced detail
+							else
+								[self addSolidSubentityToCollisionRadius:(ShipEntity*)subent];	// hack - ignore docking-slit for collision radius
+						}
+						//
+					}
+					//NSLog(@"DEBUG reference (%.1f,%.1f,%.1f)", ref.x, ref.y, ref.z);
+					if (sub_entities == nil)
+						sub_entities = [[NSArray arrayWithObject:subent] retain];
+					else
+					{
+						NSMutableArray *temp = [NSMutableArray arrayWithArray:sub_entities];
+	//					if (subent != nil)
+							[temp addObject:subent];
+						[sub_entities release];
+						sub_entities = [[NSArray arrayWithArray:temp] retain];
+					}
+					
+					[subent setOwner: self];
+					
+	//				NSLog(@"DEBUG added subentity %@ to position %.3f,%.3f,%.3f", subent, subent->position.x, subent->position.y, subent->position.z );
+													
+					[subent release];
 				}
-				//NSLog(@"DEBUG reference (%.1f,%.1f,%.1f)", ref.x, ref.y, ref.z);
-				if (sub_entities == nil)
-					sub_entities = [[NSArray arrayWithObject:subent] retain];
-				else
-				{
-					NSMutableArray *temp = [NSMutableArray arrayWithArray:sub_entities];
-//					if (subent != nil)
-						[temp addObject:subent];
-					[sub_entities release];
-					sub_entities = [[NSArray arrayWithArray:temp] retain];
-				}
-				
-				[subent setOwner: self];
-				
-//				NSLog(@"DEBUG added subentity %@ to position %.3f,%.3f,%.3f", subent, subent->position.x, subent->position.y, subent->position.z );
-												
-				[subent release];
 			}
+	//		NSLog(@"DEBUG %@ subentities : %@", name, sub_entities);
 		}
-//		NSLog(@"DEBUG %@ subentities : %@", name, sub_entities);
 	}
 	//
-	if ([dict objectForKey:@"frangible"])	// if an object has frangible == YES then it can have its subentities shot away!
-		isFrangible = [(NSNumber *)[dict objectForKey:@"frangible"] boolValue];
+	if ([shipdict objectForKey:@"frangible"])	// if an object has frangible == YES then it can have its subentities shot away!
+		isFrangible = [(NSNumber *)[shipdict objectForKey:@"frangible"] boolValue];
 	//	
-	if ([dict objectForKey:@"laser_color"])
+	if ([shipdict objectForKey:@"laser_color"])
 	{
-		NSString *laser_color_string = (NSString *)[dict objectForKey:@"laser_color"];
+		NSString *laser_color_string = (NSString *)[shipdict objectForKey:@"laser_color"];
 		SEL color_selector = NSSelectorFromString(laser_color_string);
 		if ([NSColor respondsToSelector:color_selector])
 		{
@@ -896,9 +942,9 @@ Your fair use and other rights are in no way affected by the above.
 		[self setLaserColor:[NSColor redColor]];
 	//
 	// scan class
-	if ([dict objectForKey:@"scanClass"])
+	if ([shipdict objectForKey:@"scanClass"])
 	{
-		NSString *s_class= (NSString *)[dict objectForKey:@"scanClass"];
+		NSString *s_class= (NSString *)[shipdict objectForKey:@"scanClass"];
 		
 		//NSLog(@"----- initialising ship with scan class '%@'",s_class);
 		
@@ -928,41 +974,44 @@ Your fair use and other rights are in no way affected by the above.
 		scan_class = CLASS_NOT_SET;
 	//
 	// scripting	
-	if ([dict objectForKey:KEY_LAUNCH_ACTIONS])
-		[launch_actions addObjectsFromArray:(NSArray *)[dict objectForKey:KEY_LAUNCH_ACTIONS]];
-	if ([dict objectForKey:KEY_SCRIPT_ACTIONS])
-		[script_actions addObjectsFromArray:(NSArray *)[dict objectForKey:KEY_SCRIPT_ACTIONS]];
-	if ([dict objectForKey:KEY_DEATH_ACTIONS])
-		[death_actions addObjectsFromArray:(NSArray *)[dict objectForKey:KEY_DEATH_ACTIONS]];
-	if ([dict objectForKey:KEY_SETUP_ACTIONS])
+	if ([shipdict objectForKey:KEY_LAUNCH_ACTIONS])
+		[launch_actions addObjectsFromArray:(NSArray *)[shipdict objectForKey:KEY_LAUNCH_ACTIONS]];
+	if ([shipdict objectForKey:KEY_SCRIPT_ACTIONS])
+		[script_actions addObjectsFromArray:(NSArray *)[shipdict objectForKey:KEY_SCRIPT_ACTIONS]];
+	if ([shipdict objectForKey:KEY_DEATH_ACTIONS])
+		[death_actions addObjectsFromArray:(NSArray *)[shipdict objectForKey:KEY_DEATH_ACTIONS]];
+	if ([shipdict objectForKey:KEY_SETUP_ACTIONS])
 	{
-		PlayerEntity* player = (PlayerEntity*)[universe entityZero];
-		[player setScript_target:self];
-		NSArray * setup_actions = (NSArray *)[dict objectForKey:KEY_SETUP_ACTIONS];
-		int i;
-		for (i = 0; i < [setup_actions count]; i++)
+		if (universe)
 		{
-			if ([[setup_actions objectAtIndex:i] isKindOfClass:[NSDictionary class]])
-				[player checkCouplet:(NSDictionary *)[setup_actions objectAtIndex:i] onEntity:self];
-			if ([[setup_actions objectAtIndex:i] isKindOfClass:[NSString class]])
-				[player scriptAction:(NSString *)[setup_actions objectAtIndex:i] onEntity:self];
+			PlayerEntity* player = (PlayerEntity*)[universe entityZero];
+			[player setScript_target:self];
+			NSArray * setup_actions = (NSArray *)[shipdict objectForKey:KEY_SETUP_ACTIONS];
+			int i;
+			for (i = 0; i < [setup_actions count]; i++)
+			{
+				if ([[setup_actions objectAtIndex:i] isKindOfClass:[NSDictionary class]])
+					[player checkCouplet:(NSDictionary *)[setup_actions objectAtIndex:i] onEntity:self];
+				if ([[setup_actions objectAtIndex:i] isKindOfClass:[NSString class]])
+					[player scriptAction:(NSString *)[setup_actions objectAtIndex:i] onEntity:self];
+			}
 		}
 	}
 	
 	//  escorts
 	//
-	if ([dict objectForKey:@"escorts"])
+	if ([shipdict objectForKey:@"escorts"])
 	{
-		n_escorts = [(NSNumber *)[dict objectForKey:@"escorts"] intValue];
+		n_escorts = [(NSNumber *)[shipdict objectForKey:@"escorts"] intValue];
 		//NSLog(@"DEBUG adding %d escorts for new %@", n_escorts, name);
 		escortsAreSetUp = (n_escorts == 0);
 	}
 	
 	// beacons
 	//
-	if ([dict objectForKey:@"beacon"])
+	if ([shipdict objectForKey:@"beacon"])
 	{
-		NSString* beaconCode = (NSString*)[dict objectForKey:@"beacon"];
+		NSString* beaconCode = (NSString*)[shipdict objectForKey:@"beacon"];
 		const char* bcode = [beaconCode lossyCString];
 		beaconChar = bcode[0];
 //		NSLog(@"DEBUG new %@ is a beacon with code: %s", name, bcode);
@@ -974,26 +1023,39 @@ Your fair use and other rights are in no way affected by the above.
 
 	// rotating subentities
 	//
-	if ([dict objectForKey:@"rotational_velocity"])
+	if ([shipdict objectForKey:@"rotational_velocity"])
 	{
-		subentity_rotational_velocity = [Entity quaternionFromString: (NSString*)[dict objectForKey:@"rotational_velocity"]];
+		subentity_rotational_velocity = [Entity quaternionFromString: (NSString*)[shipdict objectForKey:@"rotational_velocity"]];
 	}
 	else
 	{
 		quaternion_set_identity(&subentity_rotational_velocity);
 	}
 
+	// contact tracking entities
+	//
+	if ([shipdict objectForKey:@"track_contacts"])
+	{
+		[self setTrackCloseContacts:[[shipdict objectForKey:@"track_contacts"] boolValue]];
+		// DEBUG....
+		[self setReportAImessages:YES];
+	}
+	else
+	{
+		[self setTrackCloseContacts:NO];
+	}
+
 	// set weapon offsets
 	[self setDefaultWeaponOffsets];
 	//
-	if ([dict objectForKey:@"weapon_position_forward"])
-		forwardWeaponOffset = [Entity vectorFromString: (NSString *)[dict objectForKey:@"weapon_position_forward"]];
-	if ([dict objectForKey:@"weapon_position_aft"])
-		aftWeaponOffset = [Entity vectorFromString: (NSString *)[dict objectForKey:@"weapon_position_aft"]];
-	if ([dict objectForKey:@"weapon_position_port"])
-		portWeaponOffset = [Entity vectorFromString: (NSString *)[dict objectForKey:@"weapon_position_port"]];
-	if ([dict objectForKey:@"weapon_position_starboard"])
-		starboardWeaponOffset = [Entity vectorFromString: (NSString *)[dict objectForKey:@"weapon_position_starboard"]];
+	if ([shipdict objectForKey:@"weapon_position_forward"])
+		forwardWeaponOffset = [Entity vectorFromString: (NSString *)[shipdict objectForKey:@"weapon_position_forward"]];
+	if ([shipdict objectForKey:@"weapon_position_aft"])
+		aftWeaponOffset = [Entity vectorFromString: (NSString *)[shipdict objectForKey:@"weapon_position_aft"]];
+	if ([shipdict objectForKey:@"weapon_position_port"])
+		portWeaponOffset = [Entity vectorFromString: (NSString *)[shipdict objectForKey:@"weapon_position_port"]];
+	if ([shipdict objectForKey:@"weapon_position_starboard"])
+		starboardWeaponOffset = [Entity vectorFromString: (NSString *)[shipdict objectForKey:@"weapon_position_starboard"]];
 	//
 }
 
@@ -1038,6 +1100,25 @@ BOOL ship_canCollide (ShipEntity* ship)
 		return NO;
 	if ([collidingEntities containsObject:other])	// we know about this already!
 		return NO;
+	
+	if (trackCloseContacts)
+	{
+		// in update we check if close contacts have gone out of touch range (origin within our collision_radius)
+		// here we check if something has come within that range
+		NSString* other_key = [NSString stringWithFormat:@"%d", other->universal_id];
+		if ((![closeContactsInfo objectForKey: other_key]) && (distance2( position, other->position) < collision_radius * collision_radius))
+		{
+			// calculate position with respect to our own position and orientation
+			Vector	dpos = vector_between( position, other->position);
+			Vector  rpos = make_vector( dot_product(dpos, v_right), dot_product(dpos, v_up), dot_product(dpos, v_forward));
+			[closeContactsInfo setObject:[NSString stringWithFormat:@"%f %f %f", rpos.x, rpos.y, rpos.z] forKey: other_key];
+			// send AI a message about the touch
+			int	temp_id = primaryTarget;
+			primaryTarget = other->universal_id;
+			[shipAI reactToMessage:@"CLOSE CONTACT"];
+			primaryTarget = temp_id;
+		}
+	}
 	
 	if (other->isShip)
 	{
@@ -1364,18 +1445,9 @@ BOOL ship_canCollide (ShipEntity* ship)
 - (void) update:(double) delta_t
 {
 	double  damping = 0.5 * delta_t;
-	double confidenceFactor;
-	double targetCR;
-#ifdef GNUSTEP
-   int missile_chance=0;
-   int rhs=(int)(32 * 0.1 / delta_t);
-   if(rhs)
-   {
-      missile_chance = 1 + (ranrot_rand() % rhs);
-   }
-#else   
-	int missile_chance = 1 + (ranrot_rand() % (int)( 32 * 0.1 / delta_t));
-#endif   
+	double	confidenceFactor;
+	double	targetCR;
+	int		missile_chance = 1 + (ranrot_rand() % (int)( 32 * 0.1 / delta_t));
 	double	hurt_factor = 16 * pow(energy/max_energy, 4.0);
 	double	last_success_factor = success_factor;
 	//
@@ -1391,6 +1463,50 @@ BOOL ship_canCollide (ShipEntity* ship)
 	[self manageCollisions];
 	[self saveToLastFrame];
 
+	
+	if (trackCloseContacts)
+	{
+		// in checkCloseCollisionWith: we check if some thing has come within touch range (origin within our collision_radius)
+		// here we check if it has gone outside that range
+		NSArray* shipIDs = [closeContactsInfo allKeys];
+		int i = 0;
+		int n_ships = [shipIDs count];
+		for (i = 0; i < n_ships; i++)
+		{
+			NSString*	other_key = (NSString*)[shipIDs objectAtIndex:i];
+			ShipEntity* other = (ShipEntity*)[universe entityForUniversalID:[other_key intValue]];
+			if ((other != nil) && (other->isShip))
+			{
+				if (distance2( position, other->position) > collision_radius * collision_radius)	// moved beyond our sphere!
+				{
+					// calculate position with respect to our own position and orientation
+					Vector	dpos = vector_between( position, other->position);
+					Vector  pos1 = make_vector( dot_product(dpos, v_right), dot_product(dpos, v_up), dot_product(dpos, v_forward));
+					Vector	pos0 = [Entity vectorFromString:(NSString *)[closeContactsInfo objectForKey: other_key]];
+					// send AI messages about the contact
+					int	temp_id = primaryTarget;
+					primaryTarget = other->universal_id;
+					if ((pos0.x < 0.0)&&(pos1.x > 0.0))
+						[shipAI reactToMessage:@"POSITIVE X TRAVERSE"];
+					if ((pos0.x > 0.0)&&(pos1.x < 0.0))
+						[shipAI reactToMessage:@"NEGATIVE X TRAVERSE"];
+					if ((pos0.y < 0.0)&&(pos1.y > 0.0))
+						[shipAI reactToMessage:@"POSITIVE Y TRAVERSE"];
+					if ((pos0.y > 0.0)&&(pos1.y < 0.0))
+						[shipAI reactToMessage:@"NEGATIVE Y TRAVERSE"];
+					if ((pos0.z < 0.0)&&(pos1.z > 0.0))
+						[shipAI reactToMessage:@"POSITIVE Z TRAVERSE"];
+					if ((pos0.z > 0.0)&&(pos1.z < 0.0))
+						[shipAI reactToMessage:@"NEGATIVE Z TRAVERSE"];
+					primaryTarget = temp_id;
+					[closeContactsInfo removeObjectForKey: other_key];
+				}
+			}
+			else
+				[closeContactsInfo removeObjectForKey: other_key];
+		}
+	}
+	
 	// super update
 	//
 	[super update:delta_t];
@@ -1557,6 +1673,7 @@ BOOL ship_canCollide (ShipEntity* ship)
 		switch (condition)
 		{
 			case CONDITION_IDLE :
+			case CONDITION_STATION_KEEPING :
 				if ((!isStation)&&(scan_class != CLASS_BUOY))
 				{
 					// damp roll and pitch
@@ -2762,6 +2879,11 @@ static GLfloat mascem_color2[4] =	{ 0.4, 0.1, 0.4, 1.0};	// purple
 		launch_time = [universe getTime];
 }
 
+- (NSArray*) crew
+{
+	return crew;
+}
+
 - (void) setCrew: (NSArray*) crewArray
 {
 	if (crew)
@@ -2779,8 +2901,13 @@ static GLfloat mascem_color2[4] =	{ 0.4, 0.1, 0.4, 1.0};	// purple
 
 - (void) setAI:(AI *) ai
 {
-	if (shipAI) [shipAI release];
-	shipAI = [ai retain];
+	[ai retain];
+	if (shipAI)
+	{
+		[shipAI clearAllData];
+		[shipAI autorelease];
+	}
+	shipAI = ai;
 }
 
 - (AI *) getAI
@@ -3017,6 +3144,11 @@ static GLfloat mascem_color2[4] =	{ 0.4, 0.1, 0.4, 1.0};	// purple
 				Vector p2 = e2->position;
 				p2.x -= position.x;	p2.y -= position.y;	p2.z -= position.z;
 				double d2 = p2.x*p2.x + p2.y*p2.y + p2.z*p2.z;
+				while (d2 == 0.0)
+				{
+					p2 = make_vector( randf() - 0.5, randf() - 0.5, randf() - 0.5);
+					d2 = p2.x*p2.x + p2.y*p2.y + p2.z*p2.z;
+				}
 				double moment = amount*desired_range/d2;
 				[e2 addImpactMoment:unit_vector(&p2) fraction:moment];
 			}
@@ -6371,6 +6503,26 @@ inline BOOL pairOK(NSString* my_role, NSString* their_role)
 		[my_entities[i] release];	//		released
 
 	return result;
+}
+
+- (void) setTrackCloseContacts:(BOOL) value
+{
+	if (value == trackCloseContacts)
+		return;
+	trackCloseContacts = value;
+	if (trackCloseContacts)
+	{
+		if (closeContactsInfo)
+			[closeContactsInfo removeAllObjects];
+		else
+			closeContactsInfo = [[NSMutableDictionary dictionaryWithCapacity:16] retain];
+	}
+	else
+	{
+		if (closeContactsInfo)
+			[closeContactsInfo release];
+		closeContactsInfo = nil;
+	}
 }
 
 @end

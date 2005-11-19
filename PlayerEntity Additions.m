@@ -78,28 +78,45 @@ static NSString * mission_key;
 	}
 }
 
-- (void) checkCouplet:(NSDictionary *) couplet onEntity:(Entity *) entity
+- (BOOL) checkCouplet:(NSDictionary *) couplet onEntity:(Entity *) entity
 {
 	NSArray *conditions = (NSArray *)[couplet objectForKey:@"conditions"];
 	NSArray *actions = (NSArray *)[couplet objectForKey:@"do"];
 	BOOL success = YES;
 	int i;
-	if ((conditions == nil)||(actions == nil))
+	if (conditions == nil)
 	{
-		NSLog(@"SCRIPT ERROR no 'conditions' or no 'do' in %@", [couplet description]);
+		NSLog(@"SCRIPT ERROR no 'conditions' in %@ - returning YES.", [couplet description]);
 		NSBeep();
-		return;
+		return success;
+	}
+	if (![conditions isKindOfClass:[NSArray class]])
+	{
+		NSLog(@"SCRIPT ERROR \"conditions = %@\" is not an array - returning YES.", [conditions description]);
+		NSBeep();
+		return success;
 	}
 	for (i = 0; (i < [conditions count])&&(success); i++)
 		success &= [self scriptTestCondition:(NSString *)[conditions objectAtIndex:i]];
-	if (success)
-	for (i = 0; i < [actions count]; i++)
+	if ((success) && (actions))
 	{
-		if ([[actions objectAtIndex:i] isKindOfClass:[NSDictionary class]])
-			[self checkCouplet:(NSDictionary *)[actions objectAtIndex:i] onEntity:entity];
-		if ([[actions objectAtIndex:i] isKindOfClass:[NSString class]])
-			[self scriptAction:(NSString *)[actions objectAtIndex:i] onEntity:entity];
+		if (![actions isKindOfClass:[NSArray class]])
+		{
+			NSLog(@"SCRIPT ERROR \"actions = %@\" is not an array.", [actions description]);
+			NSBeep();
+		}
+		else
+		{
+			for (i = 0; i < [actions count]; i++)
+			{
+				if ([[actions objectAtIndex:i] isKindOfClass:[NSDictionary class]])
+					[self checkCouplet:(NSDictionary *)[actions objectAtIndex:i] onEntity:entity];
+				if ([[actions objectAtIndex:i] isKindOfClass:[NSString class]])
+					[self scriptAction:(NSString *)[actions objectAtIndex:i] onEntity:entity];
+			}
+		}
 	}
+	return success;
 }
 
 - (void) scriptAction:(NSString *) scriptAction onEntity:(Entity *) entity
@@ -396,6 +413,8 @@ static NSString * mission_key;
 		return;
 	}
 	text = [universe expandDescription:text forSystem:system_seed];
+	text = [self replaceVariablesInString: text];
+
 	[mission_variables setObject:text forKey:mission_key];
 }
 
@@ -594,6 +613,7 @@ static int shipsFound;
 	very_random_seed.f = rand() & 255;
 	seed_RNG_only_for_planet_description(very_random_seed);
 	NSString* expandedMessage = [universe expandDescription:valueString forSystem:[universe systemSeed]];
+	expandedMessage = [self replaceVariablesInString: expandedMessage];
 
 	[universe addCommsMessage:expandedMessage forCount:4.5];
 }
@@ -1105,7 +1125,7 @@ static int shipsFound;
 	value = [missionVariableString doubleValue];
 	value += [valueString doubleValue];
 	
-	[mission_variables setObject:[NSString stringWithFormat:@"%r", value] forKey:missionVariableString];
+	[mission_variables setObject:[NSString stringWithFormat:@"%f", value] forKey:missionVariableString];
 }
 
 - (void) subtract:(NSString *)missionVariableString_value
@@ -1145,7 +1165,7 @@ static int shipsFound;
 	value = [missionVariableString doubleValue];
 	value -= [valueString doubleValue];
 	
-	[mission_variables setObject:[NSString stringWithFormat:@"%r", value] forKey:missionVariableString];
+	[mission_variables setObject:[NSString stringWithFormat:@"%f", value] forKey:missionVariableString];
 }
 
 - (void) checkForShips: (NSString *)roleString
@@ -1173,7 +1193,7 @@ static int shipsFound;
 	{
 		int i;
 		for (i = 0; i < [paras count]; i++)
-			missionTextRow = [gui addLongText:(NSString *)[paras objectAtIndex:i] startingAtRow:missionTextRow align:GUI_ALIGN_LEFT];
+			missionTextRow = [gui addLongText:[self replaceVariablesInString:(NSString *)[paras objectAtIndex:i]] startingAtRow:missionTextRow align:GUI_ALIGN_LEFT];
 	}
 	if (lastTextKey)
 		[lastTextKey release];
@@ -1452,6 +1472,34 @@ static int shipsFound;
 
 - (void) debugMessage:(NSString *)args
 {
+//	NSString*   valueString;
+//	int i;
+//	NSMutableArray*	tokens = [Entity scanTokensFromString:args];
+//
+//	for (i = 0; i < [tokens  count]; i++)
+//	{
+//		valueString = (NSString *)[tokens objectAtIndex:i];
+//
+//		if ([mission_variables objectForKey:valueString])
+//		{
+//			[tokens replaceObjectAtIndex:i withObject:[mission_variables objectForKey:valueString]];
+//		}
+//	
+//		if (([valueString hasSuffix:@"_number"])||([valueString hasSuffix:@"_bool"])||([valueString hasSuffix:@"_string"]))
+//		{
+//			SEL value_selector = NSSelectorFromString(valueString);
+//			if ([self respondsToSelector:value_selector])
+//			{
+//				[tokens replaceObjectAtIndex:i withObject:[NSString stringWithFormat:@"%@", [self performSelector:value_selector]]];
+//			}
+//		}
+//	}
+//	NSLog(@"SCRIPT debugMessage: %@", [tokens componentsJoinedByString:@" "]);
+	NSLog(@"SCRIPT debugMessage: %@", [self replaceVariablesInString: args]);
+}
+
+- (NSString*) replaceVariablesInString:(NSString*) args
+{
 	NSString*   valueString;
 	int i;
 	NSMutableArray*	tokens = [Entity scanTokensFromString:args];
@@ -1474,7 +1522,7 @@ static int shipsFound;
 			}
 		}
 	}
-	NSLog(@"SCRIPT debugMessage: %@", [tokens componentsJoinedByString:@" "]);
+	return [tokens componentsJoinedByString:@" "];
 }
 
 

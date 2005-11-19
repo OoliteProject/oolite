@@ -47,6 +47,8 @@ Your fair use and other rights are in no way affected by the above.
 #define CONDITION_HANDS_OFF		3
 #define CONDITION_TUMBLE		4
 
+#define CONDITION_STATION_KEEPING		10
+
 #define IS_CONDITION_HOSTILE(c)					((c > 100)&&(c < 120))
 #define CONDITION_ATTACK_TARGET					101
 #define CONDITION_ATTACK_FLY_TO_TARGET			102
@@ -308,6 +310,10 @@ Your fair use and other rights are in no way affected by the above.
 		
 		// crew (typically one OOCharacter - the pilot)
 		NSArray*	crew;
+		
+		// close contact / collision tracking
+		BOOL					trackCloseContacts;
+		NSMutableDictionary*	closeContactsInfo;
 
 		// DEBUGGING
 		int debug_condition;
@@ -382,6 +388,7 @@ Your fair use and other rights are in no way affected by the above.
 - (int) checkForAegis;
 - (BOOL) within_station_aegis;
 
+- (NSArray*) crew;
 - (void) setCrew: (NSArray*) crewArray;
 
 - (void) setStateMachine:(NSString *) ai_desc;
@@ -553,6 +560,8 @@ inline BOOL pairOK(NSString* my_role, NSString* their_role);
 - (void) spawn:(NSString *)roles_number;
 
 - (int) checkShipsInVicinityForWitchJumpExit;
+
+- (void) setTrackCloseContacts:(BOOL) value;
 
 /****************************************************************
 

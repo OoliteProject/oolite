@@ -97,4 +97,6 @@ extern int debug;
 
 - (void) clearStack;
 
+- (void) clearAllData;
+
 @end

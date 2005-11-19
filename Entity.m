@@ -214,6 +214,10 @@ static  Universe	*data_store_universe;
 + (NSMutableArray *) scanTokensFromString:(NSString*) values
 {
 	NSMutableArray* result = [NSMutableArray arrayWithCapacity:8];
+	if (!values)
+	{
+		return result;	// nothing scanned
+	}
 	NSScanner* scanner = [NSScanner scannerWithString:values];
 	NSCharacterSet* space_set = [NSCharacterSet whitespaceAndNewlineCharacterSet];
 	NSString* token;
@@ -1517,7 +1521,7 @@ static  Universe	*data_store_universe;
 			
 			for (fi = 0; fi < n_faces; fi++)
 			{
-				Vector normal;
+				Vector normal = make_vector( 0.0, 0.0, 1.0);
 				int v;
 				if (!is_smooth_shaded)
 					normal = faces[fi].normal;
@@ -1562,7 +1566,10 @@ static  Universe	*data_store_universe;
 	double d_squared, result, length_longest_axis, length_shortest_axis;
 	
 	result = 0.0;
-	bounding_box_reset(&boundingBox);
+	if (n_vertices)
+		bounding_box_reset_to_vector(&boundingBox,vertices[0]);
+	else
+		bounding_box_reset(&boundingBox);
 	
     for (i = 0; i < n_vertices; i++)
     {
