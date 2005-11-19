@@ -1447,7 +1447,15 @@ BOOL ship_canCollide (ShipEntity* ship)
 	double  damping = 0.5 * delta_t;
 	double	confidenceFactor;
 	double	targetCR;
-	int		missile_chance = 1 + (ranrot_rand() % (int)( 32 * 0.1 / delta_t));
+
+   // this all prevents a sigfpe (division by zero)
+   int      missile_chance=0;
+   int      rhs=(int)(32 * 0.1 / delta_t);
+   if(rhs)
+   {
+      missile_chance=1+(ranrot_rand() % rhs);
+   }
+   //
 	double	hurt_factor = 16 * pow(energy/max_energy, 4.0);
 	double	last_success_factor = success_factor;
 	//
