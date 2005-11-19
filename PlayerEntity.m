@@ -2634,7 +2634,7 @@ static NSTimeInterval	time_last_frame;
 		if (![universe displayCursor])
 		{
 			//
-			if ((joyButtonState[BUTTON_FUELINJECT] || [gameView isDown:key_inject_fuel])&&(has_fuel_injection)&&(!hyperspeed_engaged)&&(status != STATUS_WITCHSPACE_COUNTDOWN))
+			if ((joyButtonState[BUTTON_FUELINJECT] || [gameView isDown:key_inject_fuel])&&(has_fuel_injection)&&(!hyperspeed_engaged))
 			{
 				if ((fuel > 0)&&(!afterburner_engaged))
 				{
