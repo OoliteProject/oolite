@@ -8,6 +8,10 @@
 		<string>Fuel</string>
 		<string>EQ_FUEL</string>
 		<string>Fuel for the witchspace engines.</string>
+		<dict>
+			<key>available_to_all</key>
+			<true/>
+		</dict>
 	</array>
 	<array>
 		<integer>1</integer>
@@ -79,6 +83,10 @@
 		<string>Galactic Hyperdrive</string>
 		<string>EQ_GAL_DRIVE</string>
 		<string>A one-shot overcharge for the witchspace engines, enabling inter-galactic travel.</string>
+		<dict>
+			<key>available_to_all</key>
+			<true/>
+		</dict>
 	</array>
 	<array>
 		<integer>3</integer>
@@ -123,6 +131,10 @@
 		<string>Passenger Berth - takes up 5t of cargo space</string>
 		<string>EQ_PASSENGER_BERTH</string>
 		<string>Provides life support, entertainment and comfort for a single passenger.</string>
+		<dict>
+			<key>available_to_all</key>
+			<true/>
+		</dict>
 	</array>
 	<array><!-- Passenger Compartment Removal -->
 		<integer>1</integer>
@@ -130,6 +142,10 @@
 		<string>Remove Passenger Berth - reclaims 5t of cargo space</string>
 		<string>EQ_PASSENGER_BERTH_REMOVAL</string>
 		<string>Removes a passenger berth.</string>
+		<dict>
+			<key>available_to_all</key>
+			<true/>
+		</dict>
 	</array>
 	<array><!-- Missile Removal -->
 		<integer>1</integer>
@@ -137,6 +153,10 @@
 		<string>Unmount and sell all pylon mounted weapons</string>
 		<string>EQ_MISSILE_REMOVAL</string>
 		<string>Unmounts, safes, and re-sells at full market value all missiles and mines currently mounted on your craft.</string>
+		<dict>
+			<key>available_to_all</key>
+			<true/>
+		</dict>
 	</array>
 	<array><!-- ecm hardened missile -->
 		<integer>9</integer>
@@ -172,6 +192,10 @@
 		<string>Advanced Space Compass</string>
 		<string>EQ_ADVANCED_COMPASS</string>
 		<string>A Tyley-Feynman GW-99 astro-navigation compass with user-selectable target modes.</string>
+		<dict>
+			<key>available_to_all</key>
+			<true/>
+		</dict>
 	</array>
 	<array>
 		<integer>99</integer>
@@ -216,6 +240,10 @@
 		<string>External Heat Shielding</string>
 		<string>EQ_HEAT_SHIELD</string>
 		<string>Additional ceramid-fibre blanketing and tiles, no armour value but provides extra solar insulation.</string>
+		<dict>
+			<key>available_to_all</key>
+			<true/>
+		</dict>
 	</array>
 	<!-- renovation -->
 	<array>

@@ -72,11 +72,12 @@ Your fair use and other rights are in no way affected by the above.
 #define MARKET_MASK_QUANTITY		8
 #define MARKET_UNITS				9
 
-#define EQUIPMENT_TECH_LEVEL_INDEX  0
+#define EQUIPMENT_TECH_LEVEL_INDEX	0
 #define EQUIPMENT_PRICE_INDEX		1
-#define EQUIPMENT_SHORT_DESC_INDEX  2
+#define EQUIPMENT_SHORT_DESC_INDEX	2
 #define EQUIPMENT_KEY_INDEX			3
-#define EQUIPMENT_LONG_DESC_INDEX   4
+#define EQUIPMENT_LONG_DESC_INDEX	4
+#define EQUIPMENT_EXTRA_INFO_INDEX	5
 
 #define MAX_MESSAGES		5
 

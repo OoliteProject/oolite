@@ -4990,18 +4990,25 @@ static int last_outfitting_index;
 	// find options that agree with this ship
 	BOOL		option_okay[[equipdata count]];
 	NSMutableArray*	options = [NSMutableArray arrayWithArray:(NSArray*)[(NSDictionary*)[[universe shipyard] objectForKey:ship_desc] objectForKey:KEY_OPTIONAL_EQUIPMENT]];
-	[options addObject:@"EQ_FUEL"];
-	[options addObject:@"EQ_PASSENGER_BERTH"];
-	[options addObject:@"EQ_PASSENGER_BERTH_REMOVAL"];
-	[options addObject:@"EQ_ADVANCED_COMPASS"];	// available to all ships
-	[options addObject:@"EQ_GAL_DRIVE"];	// available to all ships
-	[options addObject:@"EQ_MISSILE_REMOVAL"];	// available to all ships
+//	[options addObject:@"EQ_FUEL"];
+//	[options addObject:@"EQ_PASSENGER_BERTH"];
+//	[options addObject:@"EQ_PASSENGER_BERTH_REMOVAL"];
+//	[options addObject:@"EQ_ADVANCED_COMPASS"];	// available to all ships
+//	[options addObject:@"EQ_GAL_DRIVE"];	// available to all ships
+//	[options addObject:@"EQ_MISSILE_REMOVAL"];	// available to all ships
 	int i,j;
 	for (i = 0; i < [equipdata count]; i++)
 	{
 		NSString*	eq_key = (NSString*)[(NSArray*)[equipdata objectAtIndex:i] objectAtIndex:EQUIPMENT_KEY_INDEX];
 		NSString*	eq_key_damaged	= [NSString stringWithFormat:@"%@_DAMAGED", eq_key];
 		int			min_techlevel   = [(NSNumber *)[(NSArray *)[equipdata objectAtIndex:i] objectAtIndex:EQUIPMENT_TECH_LEVEL_INDEX] intValue];
+		NSMutableDictionary*	eq_extra_info_dict = [NSMutableDictionary dictionary];
+		if ([(NSArray *)[equipdata objectAtIndex:i] count] > 5)
+			[eq_extra_info_dict addEntriesFromDictionary:(NSDictionary *)[(NSArray *)[equipdata objectAtIndex:i] objectAtIndex:EQUIPMENT_EXTRA_INFO_INDEX]];
+		
+		// check special availability
+		if ([eq_extra_info_dict objectForKey:@"available_to_all"])
+			[options addObject: eq_key];
 		
 		// check if this is a mission special ..
 		if (min_techlevel == 99)
@@ -5033,6 +5040,7 @@ static int last_outfitting_index;
 //				NSLog(@"DEBUG -- Bargain tech day for %@ (TL %d reduced from %d)", eq_key, min_techlevel, original_min_techlevel);
 		}
 		
+		// set initial availability
 		option_okay[i] = [eq_key hasPrefix:@"EQ_WEAPON"];
 		for (j = 0; j < [options count]; j++)
 		{
@@ -5043,27 +5051,41 @@ static int last_outfitting_index;
 				j = [options count];
 			}
 		}
-		if (([eq_key isEqual:@"EQ_FUEL"])&&(fuel >= 70))
-			option_okay[i] = NO;
-		if (([eq_key hasSuffix:@"MISSILE"]||[eq_key hasSuffix:@"MINE"]))
-			option_okay[i] = (missiles < max_missiles);
+		//
+		// check usual requirements
+		if (([eq_key isEqual:@"EQ_FUEL"])&&(fuel >= 70))	// check if fuel space free
+			option_okay[i] &= NO;
+		if (([eq_key hasSuffix:@"MISSILE"]||[eq_key hasSuffix:@"MINE"]))	// check if pylon is free
+			option_okay[i] &= (missiles < max_missiles);
 		if ([eq_key isEqual:@"EQ_MISSILE_REMOVAL"])
-			option_okay[i] = (missiles > 0);
+			option_okay[i] &= (missiles > 0);
 		if (([eq_key isEqual:@"EQ_PASSENGER_BERTH"])&&(cargo_space < 5))
-			option_okay[i] = NO;
+			option_okay[i] &= NO;
 		if (([eq_key isEqual:@"EQ_PASSENGER_BERTH_REMOVAL"])&&(max_passengers - [passengers count] < 1))
-			option_okay[i] = NO;
+			option_okay[i] &= NO;
 		if ([self has_extra_equipment:eq_key])
-			option_okay[i] = NO;
+			option_okay[i] &= NO;
 		if ([eq_key isEqual:@"EQ_ENERGY_UNIT"]&&[self has_extra_equipment:@"EQ_NAVAL_ENERGY_UNIT"])
-			option_okay[i] = NO;
+			option_okay[i] &= NO;
 		if (techlevel < min_techlevel)
-			option_okay[i] = NO;
-		
+			option_okay[i] &= NO;
+		//
+		// check special requirements
+		if ([eq_extra_info_dict objectForKey:@"requires_empty_pylon"])
+			option_okay[i] &= (missiles < max_missiles);
+		if ([eq_extra_info_dict objectForKey:@"requires_mounted_pylon"])
+			option_okay[i] &= (missiles > 0);
+		if ([eq_extra_info_dict objectForKey:@"requires_equipment"])
+			option_okay[i] &= [self has_extra_equipment:(NSString*)[eq_extra_info_dict objectForKey:@"requires_equipment"]];
+		if ([eq_extra_info_dict objectForKey:@"requires_cargo_space"])
+			option_okay[i] &= (cargo_space >= [[eq_extra_info_dict objectForKey:@"requires_cargo_space"] intValue]);
+		if ([eq_extra_info_dict objectForKey:@"requires_clean"])
+			option_okay[i] &= ([self legal_status] == 0);
+			
 		if ([eq_key isEqual:@"EQ_RENOVATION"])
 		{
 //			NSLog(@"DEBUG : ship trade in factor is %d%", ship_trade_in_factor);
-			option_okay[i] = ((75 <= ship_trade_in_factor)&&(ship_trade_in_factor < 85));
+			option_okay[i] &= ((75 <= ship_trade_in_factor)&&(ship_trade_in_factor < 85));
 		}
 		
 		if (option_okay[i])
