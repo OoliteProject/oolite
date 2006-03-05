@@ -1,8 +1,8 @@
 {
     GLOBAL = {
-        "DESIRED_RANGE_ACHIEVED" = (landOnPlanet); 
-        ENTER = (setCourseToPlanet, performFlyToRangeFromDestination); 
+        ENTER = (); 
         EXIT = (); 
-        UPDATE = (); 
+        UPDATE = (setCourseToPlanet, "setSpeedFactorTo: 1.0", performFlyToRangeFromDestination); 
+        "DESIRED_RANGE_ACHIEVED" = (landOnPlanet); 
     }; 
 }

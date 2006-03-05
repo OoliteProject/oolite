@@ -30,7 +30,9 @@
 		<key>standard_equipment</key>
 		<dict>
 			<key>extras</key>
-			<array/>
+			<array>
+				<string>EQ_HEAT_SHIELD</string>
+			</array>
 			<key>forward_weapon_type</key>
 			<string>EQ_WEAPON_PULSE_LASER</string>
 			<key>missiles</key>
@@ -65,6 +67,7 @@
 			<string>EQ_GAL_DRIVE</string>
 			<string>EQ_ADVANCED_COMPASS</string>
 			<string>EQ_SHIELD_BOOSTER</string>
+			<string>EQ_HEAT_SHIELD</string>
 		</array>
 		<key>price</key>
 		<integer>650000</integer>
@@ -102,6 +105,7 @@
 			<string>EQ_ADVANCED_COMPASS</string>
 			<string>EQ_SHIELD_BOOSTER</string>
 			<string>EQ_NAVAL_SHIELD_BOOSTER</string>
+			<string>EQ_HEAT_SHIELD</string>
 		</array>
 		<key>price</key>
 		<integer>375000</integer>
@@ -146,6 +150,7 @@
 			<string>EQ_GAL_DRIVE</string>
 			<string>EQ_ADVANCED_COMPASS</string>
 			<string>EQ_SHIELD_BOOSTER</string>
+			<string>EQ_HEAT_SHIELD</string>
 		</array>
 		<key>price</key>
 		<integer>450000</integer>
@@ -188,6 +193,7 @@
 			<string>EQ_ADVANCED_COMPASS</string>
 			<string>EQ_SHIELD_BOOSTER</string>
 			<string>EQ_NAVAL_SHIELD_BOOSTER</string>
+			<string>EQ_HEAT_SHIELD</string>
 		</array>
 		<key>price</key>
 		<integer>495000</integer>
@@ -231,6 +237,7 @@
 			<string>EQ_ADVANCED_COMPASS</string>
 			<string>EQ_SHIELD_BOOSTER</string>
 			<string>EQ_NAVAL_SHIELD_BOOSTER</string>
+			<string>EQ_HEAT_SHIELD</string>
 		</array>
 		<key>price</key>
 		<integer>150000</integer>
@@ -271,6 +278,7 @@
 			<string>EQ_MULTI_TARGET</string>
 			<string>EQ_GAL_DRIVE</string>
 			<string>EQ_SHIELD_BOOSTER</string>
+			<string>EQ_HEAT_SHIELD</string>
 		</array>
 		<key>price</key>
 		<integer>100000</integer>
@@ -303,6 +311,7 @@
 			<string>EQ_WEAPON_MILITARY_LASER</string>
 			<string>EQ_GAL_DRIVE</string>
 			<string>EQ_NAVAL_SHIELD_BOOSTER</string>
+			<string>EQ_HEAT_SHIELD</string>
 		</array>
 		<key>price</key>
 		<integer>485000</integer>
@@ -363,7 +372,9 @@
 		<key>standard_equipment</key>
 		<dict>
 			<key>extras</key>
-			<array/>
+			<array>
+				<string>EQ_HEAT_SHIELD</string>
+			</array>
 			<key>forward_weapon_type</key>
 			<string>EQ_WEAPON_PULSE_LASER</string>
 			<key>missiles</key>
@@ -405,7 +416,9 @@
 		<key>standard_equipment</key>
 		<dict>
 			<key>extras</key>
-			<array/>
+			<array>
+				<string>EQ_HEAT_SHIELD</string>
+			</array>
 			<key>forward_weapon_type</key>
 			<string>EQ_WEAPON_NONE</string>
 			<key>missiles</key>
@@ -440,6 +453,7 @@
 			<string>EQ_MULTI_TARGET</string>
 			<string>EQ_GAL_DRIVE</string>
 			<string>EQ_SHIELD_BOOSTER</string>
+			<string>EQ_HEAT_SHIELD</string>
 		</array>
 		<key>price</key>
 		<integer>200000</integer>

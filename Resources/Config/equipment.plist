@@ -21,7 +21,7 @@
 		<integer>4000</integer>
 		<string>Large Cargo Bay</string>
 		<string>EQ_CARGO_BAY</string>
-		<string>Retro-fitted hull extensions permit the enclosure of an extra fifteen tons of cargo capacity.</string>
+		<string>Retro-fitted hull extensions permit the enclosure of a few extra tons of cargo capacity.</string>
 	</array>
 	<array>
 		<integer>2</integer>
@@ -208,6 +208,14 @@
 		<string>Twin Plasma Cannon</string>
 		<string>EQ_WEAPON_TWIN_PLASMA_CANNON</string>
 		<string>Basic cannon delivering charged plasma bursts at sublight speed.</string>
+	</array>
+	<!-- new items -->
+	<array>
+		<integer>4</integer>
+		<integer>15000</integer>
+		<string>External Heat Shielding</string>
+		<string>EQ_HEAT_SHIELD</string>
+		<string>Additional ceramid-fibre blanketing and tiles, no armour value but provides extra solar insulation.</string>
 	</array>
 	<!-- renovation -->
 	<array>

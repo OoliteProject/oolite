@@ -239,6 +239,14 @@
     ); 
     nova = (
         {
+            conditions = ("status_string equal STATUS_IN_FLIGHT", "sunGoneNova_bool equal YES"); 
+            do = (sendAllShipsAway); 
+        }, 
+        {
+            conditions = ("status_string equal STATUS_IN_FLIGHT", "sunWillGoNova_bool equal YES"); 
+            do = (sendAllShipsAway); 
+        },
+        {
             conditions = ("galaxy_number equal 3", "mission_novacount undefined"); 
             do = ("set: mission_novacount 0"); 
         }, 
@@ -264,11 +272,8 @@
             ); 
         }, 
         {
-            conditions = ("mission_nova equal 2HRS_TO_ZERO", "status_string equal STATUS_IN_FLIGHT"); 
-            do = (
-                {conditions = ("sunWillGoNova_bool equal NO"); do = ("reset: mission_nova"); }, 
-                {conditions = ("sunWillGoNova_bool equal YES"); do = (sendAllShipsAway); }
-            ); 
+            conditions = ("mission_nova equal 2HRS_TO_ZERO", "status_string equal STATUS_IN_FLIGHT", "sunWillGoNova_bool equal NO"); 
+            do = (sendAllShipsAway); 
         }, 
         {
             conditions = (
@@ -293,6 +298,7 @@
                 "useSpecialCargo: A hold full of %I refugees.", 
                 "setMissionDescription: nova_missiondesc", 
                 launchFromStation, 
+                blowUpStation, 
                 "set: mission_nova NOVA_ESCAPE_HERO", 
                 "setSunNovaIn: 30"
             ); 
@@ -365,12 +371,12 @@
                 "missionChoice_string undefined"
             ); 
             do = (
-                setGuiToMissionScreen,
 				"showShipModel: none",
-				"setMissionImage: none",
-                "set: mission_trumbles OFFER_MADE", 
+                "setMissionImage: trumblebox.png", 
+                setGuiToMissionScreen,
                 "addMissionText: trumble_offer", 
-                "setMissionChoices: trumble_offer_yesno"
+                "setMissionChoices: trumble_offer_yesno",
+                "set: mission_trumbles OFFER_MADE"
             ); 
         }, 
         {
@@ -381,6 +387,7 @@
             ); 
             do = (
                 setGuiToStatusScreen, 
+                "setMissionImage: none", 
                 "set: mission_trumbles TRUMBLE_BOUGHT", 
                 "awardCredits: -30", 
                 "awardEquipment: EQ_TRUMBLE"
@@ -394,6 +401,7 @@
             ); 
             do = (
             	setGuiToStatusScreen,
+                "setMissionImage: none", 
             	"set: mission_trumbles NOT_NOW",
             	resetMissionChoice
             ); 

@@ -1,14 +1,15 @@
 {
     GLOBAL = {ENTER = ("setStateTo: CHECK_HOLD"); EXIT = (); UPDATE = (); }; 
     "CHECK_HOLD" = {
-		ENTER = (checkForFullHold, "switchStateTo: STILL_HUNGRY");
+		ENTER = (checkForFullHold);
         "HOLD_FULL" = ("switchAITo: enteringTraderAI.plist");
 		EXIT = ();
-		UPDATE = ();
+		UPDATE = ("setStateTo: STILL_HUNGRY");
 	}; 
     "STILL_HUNGRY" = {
 		ENTER = ();
 		EXIT = ();
+        "HOLD_FULL" = ("switchAITo: enteringTraderAI.plist");
 		UPDATE = ("switchAITo: pirateAI.plist");
 	}; 
 }

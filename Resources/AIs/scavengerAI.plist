@@ -28,12 +28,13 @@
     }; 
     GLOBAL = {ENTER = ("setSpeedFactorTo: 1.0", "setStateTo: LOOK_FOR_STUFF"); EXIT = (); UPDATE = (); }; 
     "COLLECT_STUFF" = {
-        ATTACKED = (setTargetToPrimaryAggressor, broadcastDistressMessage, "setStateTo: FLEE"); 
+        ENTER = (performCollect); 
+        FRUSTRATED = ("setSpeedTo: 0.0", setDestinationToTarget, "setDesiredRangeTo: 2.0", performFaceDestination); 
+        "FACING_DESTINATION" = (performCollect); 
         "CARGO_SCOOPED" = (checkForFullHold, "setStateTo: LOOK_FOR_STUFF"); 
-        FRUSTRATED = ("setStateTo: LOOK_FOR_STUFF"); 
+        ATTACKED = (setTargetToPrimaryAggressor, broadcastDistressMessage, "setStateTo: FLEE"); 
         "TARGET_LOST" = ("setStateTo: LOOK_FOR_STUFF"); 
         "COLLISION" = ("setStateTo: LOOK_FOR_STUFF"); 
-        ENTER = (performCollect); 
         EXIT = (); 
         "HOLD_FULL" = ("setStateTo: DOCK_WITH_STATION"); 
         "INCOMING_MISSILE" = (fightOrFleeMissile, "setStateTo: FLEE"); 

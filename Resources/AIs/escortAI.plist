@@ -9,20 +9,27 @@
         "NOT_ESCORTING" = ("setStateTo: LOOK_FOR_BUSINESS"); 
         "TARGET_LOST" = ("setStateTo: LOOK_FOR_BUSINESS"); 
         "TARGET_DESTROYED" = ("setStateTo: LOOK_FOR_BUSINESS"); 
+		"ENTER WORMHOLE" = ("setStateTo: ENTER_WORMHOLE");
 		EXIT = ();
         UPDATE = (escortCheckMother, "pauseAI: 15"); 
     }; 
     "BEGIN_BUSINESS" = {
+		"LAUNCHED OKAY" = ("setStateTo: CLEAR_STATION");
         ATTACKED = (setTargetToPrimaryAggressor, "setAITo: interceptAI.plist");
         ENTER = (escortCheckMother); 
         EXIT = ();
 		ESCORTING = ("setDesiredRangeTo: 0.0", performEscort);
         "NOT_ESCORTING" = ("setStateTo: LOOK_FOR_BUSINESS");
-		"LAUNCHED_OKAY" = ("setStateTo: CLEAR_STATION");
         UPDATE = (); 
     }; 
+    "ENTER_WORMHOLE" = {
+		ENTER = (setDestinationToTarget, "setDesiredRangeTo: 1.0", "setSpeedFactorTo: 1.0", performFlyToRangeFromDestination);
+		"PLAYER WITCHSPACE" = (enterTargetWormhole);
+        UPDATE = (); 
+		EXIT = ();
+    }; 
     "CLEAR_STATION" = {
-		ENTER = (setTargetToStation, "setDesiredRangeTo: 5000.0", "setSpeedFactorTo: 0.5", performFlyToRangeFromDestination);
+		ENTER = (setTargetToStation, setDestinationWithinTarget, "setDesiredRangeTo: 8000.0", "setSpeedFactorTo: 0.5", performFlyToRangeFromDestination);
 		"DESIRED_RANGE_ACHIEVED" = ("setStateTo: LOOK_FOR_BUSINESS");
         UPDATE = (scanForFormationLeader, "pauseAI: 15.0"); 
         "TARGET_FOUND" = (setTargetToFoundTarget, suggestEscort); 
@@ -30,14 +37,15 @@
 		EXIT = ();
     }; 
     "LOOK_FOR_BUSINESS" = {
+		"LAUNCHED OKAY" = ("setStateTo: CLEAR_STATION");
         ATTACKED = (setTargetToPrimaryAggressor, "setAITo: interceptAI.plist");
         RESTARTED = ("setStateTo: BEGIN_BUSINESS");
-        ENTER = ("setSpeedTo: 0.0", performIdle); 
+        ENTER = (scanForFormationLeader); 
         EXIT = ();
 		ESCORTING = ("setDesiredRangeTo: 0.0", "setStateTo: FLYING_ESCORT");
         "TARGET_FOUND" = (setTargetToFoundTarget, suggestEscort); 
         "NOTHING_FOUND" = ("setStateMachine: route1patrolAI.plist"); 
-        UPDATE = (scanForFormationLeader, "pauseAI: 15.0"); 
+        UPDATE = ("pauseAI: 7.5", scanForFormationLeader); 
     }; 
     GLOBAL = {ENTER = ("setStateTo: BEGIN_BUSINESS"); EXIT = (); UPDATE = (); }; 
 }

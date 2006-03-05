@@ -44,6 +44,8 @@
 	<integer>106</integer>
 	<key>key_dump_cargo</key>
 	<integer>100</integer>
+	<key>key_rotate_cargo</key>
+	<integer>82</integer>
 	<key>key_autopilot</key>
 	<integer>99</integer>
 	<key>key_autodock</key>

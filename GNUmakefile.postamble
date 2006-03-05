@@ -11,5 +11,5 @@ after-all::
 	rm -rf $(CONTENTDIR)
 	$(MKDIRS) $(CONTENTDIR)
 	$(CP) -r Resources $(CONTENTDIR)/Resources
-	$(CP) Resources/Info-Oolite.plist $(GNUSTEP_OW)
+	$(CP) src/Cocoa/Info-Oolite.plist $(GNUSTEP_OW)
 

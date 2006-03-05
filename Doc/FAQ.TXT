@@ -1,0 +1,148 @@
+Oolite-Linux Frequently Asked Questions
+=======================================
+
+Note: Long answers to questions about installing and gameplay can be
+found in README.TXT and PLAYING.TXT respectively.
+
+General questions about Oolite for any platform
+-----------------------------------------------
+1. What's the point of the game?
+To fly from planet to planet, buying and selling goods, shooting pirates 
+or committing acts of piracy. There's no goal other than perhaps to achieve 
+the rank of ELITE.
+
+1.1. I'm still confused, how do I play?
+Have a look at Ian Bell's Flight Training Manual for the original BBC Elite, 
+some of Oolite's control keys are different from the original, so be sure 
+to read it alongside the Oolite PLAYING.TXT file..
+( http://www.iancgbell.clara.net/elite/ )
+
+1.2. What do the various colors represent on the radar?
+White - unpowered items that can't mass-lock the in-system drive.
+Green/Yellow - navigation buoys.
+Yellow - powered craft.
+Red - powered craft identified as hostile.
+Green - space stations.
+Green/Red - thargoids
+Purple - police
+Blue/Red - police on intercept
+Red/Yellow - active mine (about to detonate)
+
+1.3. Why are the ships so slow? It takes up to half-an-hour to get to the 
+spacestation when you enter a system!
+Oolite is a simulation game — one based on a game design that comes from 
+a time before 'twitch' gaming. That said, there are plenty of ways to speed 
+up your game and cut that journey time dramatically. For the full story 
+read this post on the Oolite Bulletin Board.
+( http://aegidian.org/bb/viewtopic.php?t=301 )
+
+1.4. My keyboard doesn't have a particular key used by Oolite, what can 
+I do to change the keys?
+Oolite reads a key configuration file called keyconfig.plist that (from v1.40) 
+you can find at /AddOns/Config/keyconfig.plist (previous versions of 
+Oolite can also read this file but you have to create it first). You 
+can open this file in any text editor and change the ASCII values of 
+the keys used to suit your own preferences.
+
+2. Does it work on Mac OS X 10.2 (Jaguar)?
+Yes, from version 1.20 to version 1.51 Oolite works with Mac OS X 10.2.8.
+There are still has some problems with Speech Synthesis and handling 
+events in full-screen mode though, so you're advised not to use those 
+options.
+Keeping Oolite compatible with 10.2.8 has been a task with diminishing 
+returns for me, and from v1.52 I will only be supporting Mac OS X 10.3 
+and higher.
+
+3. Is there a port for the PC or Linux?
+Yes. Some people are working on this, porting my code to GNUStep and SDL. 
+You can find links to their work under 'Ports' in the nav-bar to the left
+
+4. I have a question not answered here, where can I get help?
+At the Oolite Bulletin Boards, the Elite Bulletin Board System, or by 
+emailing the author.
+Oolite BBS: http://aegidian.org/bb
+Elite BBS:  http://www.alioth.net/cgi-bin/bbs.pl?siteId=1&action=show
+Author:     <oolite@aegidian.org>
+Linux port: <dyls@alioth.net> / <dajt@...>
+
+
+Linux Specific Questions
+------------------------
+1. Why does Oolite use GNUstep?
+Oolite was written for the Macintosh and was at 'production level' for about
+a year before the Linux port was started. Mac OS X is essentially what
+NeXTstep/OpenStep became when Apple bought NeXT. Oolite was written in
+Objective-C using Cocoa (the Macintosh Objective-C libraries). GNUstep
+provide the same Objective-C classes that are used by Mac OS X for building
+utilities and applications.
+To not need GNUstep, Oolite would have to be totally rewritten from scratch.
+There was a project early on to make a Win32 port by converting objc to C++
+automatically, but the project seems to have vanished. It is likely that
+the mechanical conversion of objc to C++ would be the easy bit - then
+you still have to re-implement Cocoa/GNUstep as C++ classes; a task
+of truly epic proportions.
+Even if it was practical, it would mean that any new features implemented
+for a C++ version of the game would have to be backported into the ObjC
+version of the game on the Mac, a much more troublesome task than the
+simple code merges that are possible now, as the GNUstep code and
+Mac OS X code are 99% the same.
+
+2. What are the positives of using GNUstep?
+A well developed object oriented library for Objective-C, plus the just mentioned commonality with the OS X code base which forms the
+root of Oolite.
+Oolite probably also has the distinction of being the only proper
+GNUstep OpenGL game :-)
+
+3. What are the downsides of using GNUstep?
+Most Linux users don't have GNUstep installed. This is easily solved with
+the dependency pack that comes with this Oolite binary installer, but it
+does mean Oolite uses a bit more memory than you'd expect if the game
+was written just with C and SDL/OpenGL, and the performance probably
+takes a bit of a hit because Objective-C uses more 'real' message passing
+than languages like C++. However, I do have a 5 year old laptop I do 
+tests on, and it runs fine on that.
+
+4. What distros will Oolite run on?
+Hopefully any distro that came out within the last couple of years
+with a 2.4 or 2.6 kernel.
+The package you have now is known to run on:
+- Gentoo
+- Fedora Core 2
+- CentOS 4.1
+- Ubuntu 5.04
+- Debian Sid (Sept 2005)
+- Knoppix 3.7 (with the 2.4 kernel)
+
+5. What dependencies do I need?
+Aside from X, you'll need accelerated OpenGL. The game plays well with
+relatively modest accelerated 3D hardware - the frame rate is acceptable
+on thte Radeon Mobility M6 on older laptops, and I've found it playable
+on HP/Compaq 'business' PCs such as the d510 which has cheap integrated
+onboard Intel graphics. Of course it plays VERY well on my development
+system with is a P4 with a GeForce 4 Ti 4200.
+Aside from that, you shouldn't need any additional software dependencies
+since most of the libraries are part of the dependencies pack that's
+included with this package.
+
+6. Where can I get the source code for the game?
+You can get the full game source from the following two places:
+FTP:  ftp://ftp.alioth.net/oolite (look for the 'src' tarballs)
+HTTP: http://oolite-linux.berlios.de
+
+You can also get the latest source by anonymous SVN - see
+http://oolite-linux.berlios.de for more details.
+
+Source code (mainly tarballs) for the dependency pack can be found
+at ftp.alioth.net/oolite-depends-source
+
+7. What about other (non x86) architectures?
+Sadly, I don't have any non-x86 architecture systems I can install Linux on
+to build the game. However, binaries for other architectures are always
+welcome - please contact <dyls@alioth.net> if you've successfully built
+and run the game on non-x86 platforms. You shouldn't run into endian-ness
+problems as it already runs on macppc under OS X, but I've heard the odd
+report that building GNUstep on 64-bit archs failed - but if you have
+an amd64 system - please try and build it and let me know the results!
+(Additionally, last time I tried to build GNUstep on Fedora Core 4 it failed
+due to an internal compiler error in gcc 4)
+

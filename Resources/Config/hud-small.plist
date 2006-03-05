@@ -16,11 +16,13 @@
 			<key>selector</key>
 			<string>drawAegis:</string>
 			<key>x</key>
-			<integer>-108</integer>
+			<integer>-116</integer>
 			<key>y</key>
-			<integer>-222</integer>
+			<integer>-228</integer>
 			<key>width</key>
-			<integer>8</integer>
+			<integer>16</integer>
+			<key>height</key>
+			<integer>16</integer>
 		</dict>
 		<dict><!-- scanner -->
 			<key>alpha</key>

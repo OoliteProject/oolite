@@ -18,6 +18,7 @@
 		EXIT = ();
 		UPDATE = ();
         ATTACKED = (setTargetToPrimaryAggressor, "setAITo: interceptAI.plist"); 
+        "OFFENCE_COMMITTED" = (setTargetToFoundTarget, "markTargetForOffence: 7", "sendTargetCommsMessage: [police-attack-warning]", "setAITo: interceptAI.plist"); 
 	}; 
     "GO_TO_COORDS" = {
         ENTER = (
@@ -37,6 +38,7 @@
         "TARGET_OFFENDER" = ("sendTargetCommsMessage: [police-attack-warning]", "setAITo: interceptAI.plist"); 
         "TARGET_FUGITIVE" = ("setAITo: interceptAI.plist"); 
         ATTACKED = (setTargetToPrimaryAggressor, "setAITo: interceptAI.plist"); 
+        "OFFENCE_COMMITTED" = (setTargetToFoundTarget, "markTargetForOffence: 7", "sendTargetCommsMessage: [police-attack-warning]", "setAITo: interceptAI.plist"); 
 	};
     "EXIT_SYSTEM" = {ENTER = (performDocking, exitAI); EXIT = (); UPDATE = (); }; 
 }

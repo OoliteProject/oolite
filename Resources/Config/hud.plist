@@ -30,7 +30,7 @@
 				<real>0</real>
 			</array>
 		</dict>
-		<dict><!-- scanner zoom indicator, uses Images/zoom.png to provide 5 levels -->
+		<dict><!-- scanner zoom indicator -->
 			<key>alpha</key>
 			<real>1</real>
 			<key>selector</key>
@@ -40,7 +40,7 @@
 			<key>y</key>
 			<integer>-216</integer>
 		</dict>
-		<dict><!-- compass, uses Images/compass.png as background and Images/reddot.png and Images/greendot.png -->
+		<dict><!-- compass -->
 			<key>alpha</key>
 			<real>1</real>
 			<key>selector</key>
@@ -50,7 +50,7 @@
 			<key>y</key>
 			<integer>-216</integer>
 		</dict>
-		<dict><!-- station aegis, uses Images/aegis.png as indicator -->
+		<dict><!-- station aegis -->
 			<key>alpha</key>
 			<real>1</real>
 			<key>selector</key>
@@ -59,6 +59,16 @@
 			<integer>-132</integer>
 			<key>y</key>
 			<integer>-216</integer>
+		</dict>
+		<dict><!-- fuel scoop status -->
+			<key>alpha</key>
+			<real>0.75</real>
+			<key>selector</key>
+			<string>drawScoopStatus:</string>
+			<key>x</key>
+			<integer>-132</integer>
+			<key>y</key>
+			<integer>-152</integer>
 		</dict>
 		<dict><!-- speed bar, can draw a surround 2 units out from the dial size specified -->
 			<key>draw_surround</key>

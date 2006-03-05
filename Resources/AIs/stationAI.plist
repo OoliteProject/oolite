@@ -11,6 +11,7 @@
         "TARGET_OFFENDER" = (increaseAlertLevel); 
         "TARGET_FUGITIVE" = (increaseAlertLevel); 
         "ENERGY_FULL" = ("pauseAI: 20.0", "setStateTo: IDLE"); 
+        "OFFENCE_COMMITTED" = (setTargetToFoundTarget, "markTargetForOffence: 15", launchDefenseShip, increaseAlertLevel); 
         "TARGET_DESTROYED" = ("pauseAI: 20.0", "setStateTo: IDLE"); 
         "TARGET_LOST" = ("pauseAI: 20.0", "setStateTo: IDLE"); 
         "NO_TARGET" = ("pauseAI: 20.0", "setStateTo: IDLE"); 
@@ -28,6 +29,7 @@
     GLOBAL = {ENTER = ("setStateTo: IDLE"); EXIT = (); UPDATE = (); }; 
     IDLE = {
         ATTACKED = (setTargetToPrimaryAggressor, increaseAlertLevel, "setStateTo: DEFENSE_MODE"); 
+        "OFFENCE_COMMITTED" = (setTargetToFoundTarget, "markTargetForOffence: 15", launchDefenseShip, increaseAlertLevel); 
         ENTER = (); 
         EXIT = (); 
         "INCOMING_MISSILE" = (fireECM, increaseAlertLevel); 

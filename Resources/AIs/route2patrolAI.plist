@@ -9,6 +9,7 @@
         "TARGET_FOUND" = (setTargetToFoundTarget, deployEscorts, groupAttackTarget); 
         "GROUP_ATTACK_TARGET" = (setTargetToFoundTarget, "setAITo: interceptAI.plist"); 
         "ACCEPT_DISTRESS_CALL" = (setTargetToFoundTarget, deployEscorts, groupAttackTarget); 
+        "OFFENCE_COMMITTED" = (setTargetToFoundTarget, "markTargetForOffence: 7", deployEscorts, groupAttackTarget); 
 		EXIT = ();
 		UPDATE = (scanForOffenders, "pauseAI: 10.0");
         RESTARTED = ("setStateTo: INBOUND_LOOT");
@@ -22,6 +23,7 @@
         "INCOMING_MISSILE" = (fightOrFleeMissile, setTargetToPrimaryAggressor, deployEscorts, groupAttackTarget, "setAITo: interceptAI.plist", "setStateTo: INBOUND_LOOT"); 
         "GROUP_ATTACK_TARGET" = (setTargetToFoundTarget, "setAITo: interceptAI.plist"); 
         "ACCEPT_DISTRESS_CALL" = (setTargetToFoundTarget, deployEscorts, groupAttackTarget); 
+        "OFFENCE_COMMITTED" = (setTargetToFoundTarget, "markTargetForOffence: 7", deployEscorts, groupAttackTarget); 
 		EXIT = ();
 		UPDATE = ();
         RESTARTED = ("setStateTo: INBOUND_LOOT");
@@ -37,6 +39,7 @@
         "TARGET_FOUND" = (setTargetToFoundTarget, deployEscorts, groupAttackTarget); 
         "GROUP_ATTACK_TARGET" = (setTargetToFoundTarget, "setAITo: interceptAI.plist"); 
         "ACCEPT_DISTRESS_CALL" = (setTargetToFoundTarget, deployEscorts, groupAttackTarget); 
+        "OFFENCE_COMMITTED" = (setTargetToFoundTarget, "markTargetForOffence: 7", deployEscorts, groupAttackTarget); 
 		EXIT = ();
 		UPDATE = (scanForOffenders, "pauseAI: 10.0");
         RESTARTED = ("setStateTo: OUTBOUND_LOOT");
@@ -48,6 +51,7 @@
 		"DESIRED_RANGE_ACHIEVED" = ("setStateTo: HEAD_FOR_SUN");
         "ACCEPT_DISTRESS_CALL" = (setTargetToFoundTarget, deployEscorts, groupAttackTarget); 
         "GROUP_ATTACK_TARGET" = (setTargetToFoundTarget, "setAITo: interceptAI.plist"); 
+        "OFFENCE_COMMITTED" = (setTargetToFoundTarget, "markTargetForOffence: 7", deployEscorts, groupAttackTarget); 
         ATTACKED = (setTargetToPrimaryAggressor, groupAttackTarget); 
         "INCOMING_MISSILE" = (fightOrFleeMissile, setTargetToPrimaryAggressor, deployEscorts, groupAttackTarget, "setAITo: interceptAI.plist", "setStateTo: OUTBOUND_LOOT"); 
 		EXIT = ();

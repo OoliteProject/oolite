@@ -509,9 +509,30 @@
 	<array>
 		<string>%@ ejected.</string>
 	</array>
+	<key>@-ready-to-eject</key>
+	<array>
+		<string>Ready to eject %@.</string>
+	</array>
+	<key>ready-to-eject-@</key>
+	<array>
+		<string>Ready to eject %@.</string>
+	</array>
 	<key>@-scooped</key>
 	<array>
 		<string>%@ scooped.</string>
+	</array>
+	<key>fuel-scoop-active</key>
+	<array>
+		<string>Fuel scoop active.</string>
+	</array>
+	<key>hold-locked</key>
+	<array>
+		<string>Cargo ejection system offline (speed too high).</string>
+	</array>
+	<!-- holds full -->
+	<key>hold-full</key>
+	<array>
+		<string>Cargo holds full.</string>
 	</array>
 	<!-- cloaking device .. -->
 	<key>cloak-on</key>
@@ -525,11 +546,6 @@
 	<key>cloak-low-juice</key>
 	<array>
 		<string>Not enough energy to activate cloaking device.</string>
-	</array>
-	<!-- holds full -->
-	<key>hold-full</key>
-	<array>
-		<string>Cargo holds full.</string>
 	</array>
 	<!-- Assorted messages sent out by ships etc.. -->
 	<!--	%H - homeworld
@@ -667,7 +683,7 @@
 	<key>fined</key>
 	<array>
 		<string>You have been fined %d credits.</string>
-		<string>You have been fined %d credits, and made to pick up litter in the main hanger deck.</string>
+		<string>You have been fined %d credits, and made to pick up litter in the main hangar deck.</string>
 		<string>You have been fined %d credits, and are forced to clean up after the [6]oids.</string>
 		<string>You have been fined %d credits, and sent for 'attitude adjustment'.</string>
 	</array>
@@ -682,6 +698,10 @@
 		<string>Trumbles have eaten a cargopod of %@.</string>
 	</array>
 	<!-- internal damage -->
+	<key>@-damaged</key>
+	<array>
+		<string>%@ damaged.</string>
+	</array>
 	<key>@-destroyed</key>
 	<array>
 		<string>%@ destroyed.</string>

@@ -619,7 +619,7 @@
 		<key>name</key>
 		<string>Cargo container</string>
 		<key>roles</key>
-		<string>cargopod</string>
+		<string>cargopod 1t-cargopod</string>
 		<key>thrust</key>
 		<real>0.0</real>
 		<key>weapon_energy</key>
@@ -2431,7 +2431,7 @@
 		<key>thrust</key>
 		<real>250</real>
 		<key>weapon_energy</key>
-		<real>12500</real>
+		<real>4500</real>
 		<key>weapon_offset_x</key>
 		<real>0.0</real>
 	</dict>
@@ -3961,7 +3961,7 @@
 		<key>thrust</key>
 		<real>250</real>
 		<key>weapon_energy</key>
-		<real>12500</real>
+		<real>4500</real>
 	</dict>
 </dict>
 </plist>

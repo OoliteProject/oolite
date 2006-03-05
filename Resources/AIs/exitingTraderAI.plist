@@ -12,6 +12,9 @@
 		ENTER = ();
 		EXIT = ();
 		UPDATE = (performHyperSpaceExit);
+		"WITCHSPACE OKAY" = (wormholeEscorts);
+		"WITCHSPACE BLOCKED" = (setTargetToFoundTarget, setDestinationWithinTarget, "setDesiredRangeTo: 10000.0", performFlyToRangeFromDestination);
+		"WITCHSPACE UNAVAILABLE" = ("setAITo: route1traderAI.plist");
 	}; 
     FLEE = {
         ATTACKED = (fightOrFleeHostiles); 
@@ -27,12 +30,12 @@
     }; 
     "HEAD_AWAY_FROM_PLANET" = {
 		ENTER = (getWitchspaceEntryCoordinates, setDestinationFromCoordinates, "setDesiredRangeTo: 100.0", "setSpeedFactorTo: 0.75", performFlyToRangeFromDestination);
-		"DESIRED_RANGE_ACHIEVED" = (dockEscorts, "setSpeedFactorTo: 1.0", "pauseAI: 15.0", "setStateTo: EXIT_SYSTEM");
+		"DESIRED_RANGE_ACHIEVED" = ("setSpeedFactorTo: 1.0", "pauseAI: 15.0", "setStateTo: EXIT_SYSTEM");
         ATTACKED = (fightOrFleeHostiles); 
 		FIGHTING = (setTargetToPrimaryAggressor, "setStateTo: ATTACK_SHIP");
 		FLEEING = (setTargetToPrimaryAggressor, "setStateTo: FLEE");
         "INCOMING_MISSILE" = (fightOrFleeMissile, "setStateTo: FLEE"); 
-		"EXITED WITCHSPACE" = ("setAITo: route1traderAI.plist");
+		"EXITED WITCHSPACE" = ("switchAITo: enteringTraderAI.plist");
 		EXIT = ();
 		UPDATE = ();
 	}; 

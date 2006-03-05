@@ -6,6 +6,7 @@
         "TARGET_DESTROYED" = ("setStateTo: EXPLODE"); 
         "TARGET_LOST" = ("setStateTo: EXPLODE"); 
         "GONE_BEYOND_RANGE" = ("setStateTo: EXPLODE"); 
+        "ECM" = ("setStateTo: CHECK_EXPLOSION"); 
         UPDATE = ("setDesiredRangeTo: 30000.0", checkDistanceTravelled, "setDesiredRangeTo: 25.0", "pauseAI: 5.0"); 
     }; 
     DETONATE = {
@@ -17,6 +18,13 @@
         ENTER = (becomeExplosion); 
         EXIT = (); 
         UPDATE = (); 
+    }; 
+    "CHECK_EXPLOSION" = {
+        ENTER = ("rollD: 20"); 
+        "ROLL_1" = ("setStateTo: DETONATE"); 
+        "ROLL_2" = ("setStateTo: EXPLODE"); 
+        EXIT = (); 
+        UPDATE = ("setStateTo: ATTACK_SHIP"); 
     }; 
     GLOBAL = {
         ENTER = ("setSpeedFactorTo: 1.0", "setStateTo: ATTACK_SHIP"); 
