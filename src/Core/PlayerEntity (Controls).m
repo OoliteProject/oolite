@@ -1539,12 +1539,31 @@ static BOOL queryPressed;
 					if (([gui selectedRow] == save_row)&&(!disc_operation_in_progress))
 					{
 						disc_operation_in_progress = YES;
-						[self setGuiToSaveCommanderScreen: player_name];           
+#ifdef GNUSTEP
+						// for GNUstep it is always preferable to use the OOgui - GNUstep's
+						// Load/Save dialog doesn't play well with an SDL window (stacking
+						// order always seems to be wrong)
+						[self setGuiToSaveCommanderScreen: player_name];
+#else
+						// for OS X it is preferable to use the Cocoa dialog when in windowed mode.
+						if ([[universe gameController] inFullScreenMode])
+							[self setGuiToSaveCommanderScreen: player_name];
+						else
+							[self savePlayer];						
+#endif
 					}
 					if (([gui selectedRow] == load_row)&&(!disc_operation_in_progress))
 					{
 						disc_operation_in_progress = YES;
-						[self setGuiToLoadCommanderScreen];    
+#ifdef GNUSTEP
+						// see comments above for save player
+						[self setGuiToLoadCommanderScreen];  
+#else
+						if ([[universe gameController] inFullScreenMode])
+							[self setGuiToLoadCommanderScreen];
+						else
+							[self loadPlayer];
+#endif
 					}
 						
 #ifdef GNUSTEP						
