@@ -6040,6 +6040,8 @@ Vector randomPositionInBoundingBox(BoundingBox bb)
 //	NSLog(@"DEBUG other cargo type is not CARGO_NOT_CARGO okay");
 //	if (([other getCargoType] != CARGO_SCRIPTED_ITEM) && ([other getCommodityAmount] < 1))
 //													return NO;
+	if (other->isStation)
+		return NO;
 
 	Vector  loc = vector_between( position, other->position);
 	
