@@ -22,8 +22,6 @@
 		2512834609BA281500F43D55 /* CollisionRegion.h in Headers */ = {isa = PBXBuildFile; fileRef = 2512834409BA281500F43D55 /* CollisionRegion.h */; };
 		2512834709BA281500F43D55 /* CollisionRegion.m in Sources */ = {isa = PBXBuildFile; fileRef = 2512834509BA281500F43D55 /* CollisionRegion.m */; };
 		25160E2F0995362F0037C2E1 /* OOCocoa.h in Headers */ = {isa = PBXBuildFile; fileRef = 25160E2E0995362F0037C2E1 /* OOCocoa.h */; };
-		25160E69099539D50037C2E1 /* libOgg.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 25160E67099539D50037C2E1 /* libOgg.a */; };
-		25160E6A099539D50037C2E1 /* libVorbisAll.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 25160E68099539D50037C2E1 /* libVorbisAll.a */; };
 		251610DD099544090037C2E1 /* OOCABufferedSound.h in Headers */ = {isa = PBXBuildFile; fileRef = 251610CA099544090037C2E1 /* OOCABufferedSound.h */; };
 		251610DE099544090037C2E1 /* OOCASoundMixer.h in Headers */ = {isa = PBXBuildFile; fileRef = 251610CB099544090037C2E1 /* OOCASoundMixer.h */; };
 		251610DF099544090037C2E1 /* OOCASoundSource.h in Headers */ = {isa = PBXBuildFile; fileRef = 251610CC099544090037C2E1 /* OOCASoundSource.h */; };
@@ -110,7 +108,6 @@
 		25161196099544390037C2E1 /* Universe.h in Headers */ = {isa = PBXBuildFile; fileRef = 25161144099544390037C2E1 /* Universe.h */; };
 		25161197099544390037C2E1 /* TextureStore.m in Sources */ = {isa = PBXBuildFile; fileRef = 25161145099544390037C2E1 /* TextureStore.m */; };
 		2576E7B309B4F418007410F7 /* MyOpenGLView.h in Headers */ = {isa = PBXBuildFile; fileRef = 2576E7B209B4F418007410F7 /* MyOpenGLView.h */; };
-		25CD0C4E09B4F5A70060106D /* Growl.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 25CD0C4D09B4F5A70060106D /* Growl.framework */; };
 		25F3E6310994F033002F25FD /* legacy_random.h in Headers */ = {isa = PBXBuildFile; fileRef = 25F3E6300994F033002F25FD /* legacy_random.h */; };
 		25F3E6330994F04C002F25FD /* legacy_random.c in Sources */ = {isa = PBXBuildFile; fileRef = 25F3E6320994F04C002F25FD /* legacy_random.c */; };
 		25F3E6350994F05C002F25FD /* vector.h in Headers */ = {isa = PBXBuildFile; fileRef = 25F3E6340994F05C002F25FD /* vector.h */; };
@@ -752,9 +749,6 @@
 				1A472922096B5468000E78D8 /* AudioUnit.framework in Frameworks */,
 				25F3E8EB099502BB002F25FD /* libOgg.a in Frameworks */,
 				25F3E8EC099502BB002F25FD /* libVorbisAll.a in Frameworks */,
-				25160E69099539D50037C2E1 /* libOgg.a in Frameworks */,
-				25160E6A099539D50037C2E1 /* libVorbisAll.a in Frameworks */,
-				25CD0C4E09B4F5A70060106D /* Growl.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1626,7 +1620,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 1;
 			shellPath = /bin/sh;
-			shellScript = "echo \"current directory:-\"\npwd\ncd $INSTALL_PATH/$UNLOCALIZED_RESOURCES_FOLDER_PATH\necho \"chosen directory:-\"\npwd\necho \"script moving files . . .\"\nmkdir -p Images\nmv splash.png splash.pngx\nmv splashback.png splashback.pngx\nmv -f cursor.png Images/\nmv -f compass.png Images/\nmv -f aegis.png Images/\nmv -f zoom.png Images/\nmv -f solar.png Images/\nmv -f trumblebox.png Images/\nmkdir -p Textures\nmv -f *.png Textures/\nmv splash.pngx splash.png\nmv splashback.pngx splashback.png\nmkdir -p Music\nmv -f *.mp3 Music/\nmv -f *.mid Music/\nmv -f *.mov Music/\nmv -f BlueDanube.ogg Music/\nmv -f OoliteTheme.ogg Music/\nmkdir -p Sounds\nmv -f *.ogg Sounds/\nmv -f *.aiff Sounds/\nmkdir -p AIs\nmv -f *AI.plist AIs/\nmkdir -p Models\nmv -f *.dat Models/\nmkdir -p Config\nmv -f *.plist Config/\necho \"script is done moving files\"\n";
+			shellScript = "echo \"current directory:-\"\npwd\ncd $INSTALL_PATH/$UNLOCALIZED_RESOURCES_FOLDER_PATH\necho \"chosen directory:-\"\npwd\necho \"script moving files . . .\"\nmkdir -p Images\nmv splash.png splash.pngx\nmv splashback.png splashback.pngx\nmv -f solar.png Images/\nmv -f trumblebox.png Images/\nmkdir -p Textures\nmv -f *.png Textures/\nmv splash.pngx splash.png\nmv splashback.pngx splashback.png\nmkdir -p Music\nmv -f BlueDanube.ogg Music/\nmv -f OoliteTheme.ogg Music/\nmkdir -p Sounds\nmv -f *.ogg Sounds/\nmkdir -p AIs\nmv -f *AI.plist AIs/\nmkdir -p Models\nmv -f *.dat Models/\nmkdir -p Config\nmv -f *.plist Config/\necho \"script is done moving files\"\n";
 		};
 /* End PBXShellScriptBuildPhase section */
 
