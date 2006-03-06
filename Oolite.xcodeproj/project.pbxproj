@@ -409,7 +409,7 @@
 
 /* Begin PBXFileReference section */
 		06AFA01500A58FB77F000001 /* OpenGL.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = OpenGL.framework; path = /System/Library/Frameworks/OpenGL.framework; sourceTree = "<absolute>"; };
-		0865432206B8447D000CA0AB /* OoliteDev.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = OoliteDev.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		0865432206B8447D000CA0AB /* Oolite.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Oolite.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		0878FD2F086EF845004CB752 /* Carbon.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Carbon.framework; path = /System/Library/Frameworks/Carbon.framework; sourceTree = "<absolute>"; };
 		1058C7A1FEA54F0111CA2CBB /* Cocoa.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Cocoa.framework; path = /System/Library/Frameworks/Cocoa.framework; sourceTree = "<absolute>"; };
 		1A472916096B5454000E78D8 /* CoreAudio.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreAudio.framework; path = /System/Library/Frameworks/CoreAudio.framework; sourceTree = "<absolute>"; };
@@ -1043,7 +1043,7 @@
 		19C28FACFE9D520D11CA2CBB /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				0865432206B8447D000CA0AB /* OoliteDev.app */,
+				0865432206B8447D000CA0AB /* Oolite.app */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -1177,7 +1177,7 @@
 			name = Audio;
 			sourceTree = "<group>";
 		};
-		29B97314FDCFA39411CA2CEA /* GL_BotChallenge */ = {
+		29B97314FDCFA39411CA2CEA /* Oolite_GUSTO */ = {
 			isa = PBXGroup;
 			children = (
 				25F3E8E9099502BB002F25FD /* libOgg.a */,
@@ -1200,7 +1200,7 @@
 				25F3E8BD09950088002F25FD /* Info-OoliteDev.plist */,
 				25F3E8BE09950088002F25FD /* Info-OoliteUB.plist */,
 			);
-			name = GL_BotChallenge;
+			name = Oolite_GUSTO;
 			sourceTree = "<group>";
 		};
 		29B97315FDCFA39411CA2CEA /* Other Sources */ = {
@@ -1349,8 +1349,8 @@
 			);
 			name = Oolite;
 			productInstallPath = "$(HOME)/Applications";
-			productName = GL_BotChallenge;
-			productReference = 0865432206B8447D000CA0AB /* OoliteDev.app */;
+			productName = Oolite;
+			productReference = 0865432206B8447D000CA0AB /* Oolite.app */;
 			productType = "com.apple.product-type.application";
 		};
 /* End PBXNativeTarget section */
@@ -1368,7 +1368,7 @@
 				4A9504CDFFE6A4B311CA0CBA /* Deployment */,
 			);
 			hasScannedForEncodings = 1;
-			mainGroup = 29B97314FDCFA39411CA2CEA /* GL_BotChallenge */;
+			mainGroup = 29B97314FDCFA39411CA2CEA /* Oolite_GUSTO */;
 			projectDirPath = "";
 			projectReferences = (
 				{
