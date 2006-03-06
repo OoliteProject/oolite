@@ -1825,6 +1825,19 @@ BOOL ship_canCollide (ShipEntity* ship)
 		}
 	}
 	//
+	// double check scooped condition
+	//
+	if (status == STATUS_BEING_SCOOPED)
+	{
+		if (condition != CONDITION_TRACTORED)
+		{
+			// escaped tractor beam
+			status = STATUS_IN_FLIGHT;	// should correct 'uncollidable objects' bug
+			condition = CONDITION_IDLE;
+			frustration = 0.0;
+		}
+	}
+	//
 	if (status == STATUS_DEMO)
     {
         [self applyRoll:delta_t*flight_roll andClimb:delta_t*flight_pitch];
