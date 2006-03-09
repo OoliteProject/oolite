@@ -1110,6 +1110,7 @@ Your fair use and other rights are in no way affected by the above.
 
 - (void) setLighting
 {
+	NSDictionary*	systeminfo = [self generateSystemData:system_seed];
 	PlanetEntity*	the_sun = [self sun];
 	SkyEntity*		the_sky = nil;
 	GLfloat			sun_pos[] = {4000000.0, 0.0, 0.0, 1.0};
@@ -1155,9 +1156,10 @@ Your fair use and other rights are in no way affected by the above.
 		// ambient lighting!
 		float r,g,b,a;
 		[[the_sky sky_color] getRed:&r green:&g blue:&b alpha:&a];
-		stars_ambient[0] = 0.0625 * (1.0 + r) * (1.0 + r);
-		stars_ambient[1] = 0.0625 * (1.0 + g) * (1.0 + g);
-		stars_ambient[2] = 0.0625 * (1.0 + b) * (1.0 + b);
+		GLfloat ambient_level = [[systeminfo objectForKey: @"ambient_level"] floatValue];
+		stars_ambient[0] = ambient_level * 0.0625 * (1.0 + r) * (1.0 + r);
+		stars_ambient[1] = ambient_level * 0.0625 * (1.0 + g) * (1.0 + g);
+		stars_ambient[2] = ambient_level * 0.0625 * (1.0 + b) * (1.0 + b);
 		stars_ambient[3] = 1.0;
 		glLightModelfv(GL_LIGHT_MODEL_AMBIENT, stars_ambient);
 	}
