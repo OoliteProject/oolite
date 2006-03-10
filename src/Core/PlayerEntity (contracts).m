@@ -1061,12 +1061,15 @@ static NSMutableDictionary* currentShipyard = nil;
 		NSString* sales_pitch = (NSString*)[info objectForKey:KEY_SHORT_DESCRIPTION];
 		
 		int cargo_rating = [(NSNumber*)[(NSDictionary *)[info objectForKey:SHIPYARD_KEY_SHIP] objectForKey:@"max_cargo"] intValue];
+		int cargo_extra = 15;
+		if ([[info objectForKey:SHIPYARD_KEY_SHIP] objectForKey:@"extra_cargo"])
+			cargo_extra = [[[info objectForKey:SHIPYARD_KEY_SHIP] objectForKey:@"extra_cargo"] intValue];
 		float speed_rating = 0.001 * [(NSNumber*)[(NSDictionary *)[info objectForKey:SHIPYARD_KEY_SHIP] objectForKey:@"max_flight_speed"] intValue];
 		NSArray* ship_extras = (NSArray*)[info objectForKey:KEY_EQUIPMENT_EXTRAS];
 		for (i = 0; i < [ship_extras count]; i++)
 		{
 			if ([(NSString*)[ship_extras objectAtIndex:i] isEqual:@"EQ_CARGO_BAY"])
-				cargo_rating += 15;
+				cargo_rating += cargo_extra;
 			if ([(NSString*)[ship_extras objectAtIndex:i] isEqual:@"EQ_PASSENGER_BERTH"])
 				cargo_rating -= 5;
 		}
