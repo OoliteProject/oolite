@@ -14,7 +14,7 @@
 #
 
 OS=`uname`
-CPU=`uname -p`
+CPU=`uname -m`
 VERSION=`grep SoftwareVersion autopackage/default.apspec|cut -d ' ' -f 2`
 DESTINATION=$1
 TREEROOT=`pwd`
@@ -43,7 +43,7 @@ then
    exit 0
 fi
 
-if [ $CPU == 'i686' ]
+if [ "$CPU" == 'i686' ]
 then
    CPU="x86"
 fi

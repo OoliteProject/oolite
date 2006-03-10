@@ -1,6 +1,6 @@
 #!/bin/sh
 OS=`uname`
-CPU=`uname -p`
+CPU=`uname -m`
 VERSION=`grep SoftwareVersion autopackage/default.apspec|cut -d ' ' -f 2`
 DESTINATION=`pwd`/TarballPackages
 TREEROOT=`pwd`
