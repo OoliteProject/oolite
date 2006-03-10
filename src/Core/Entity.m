@@ -1187,6 +1187,18 @@ static  Universe	*data_store_universe;
 			failString = [NSString stringWithFormat:@"%@Failed to read NVERTS\n",failString];
 		}
 		
+		if (n_vertices > MAX_VERTICES_PER_ENTITY)
+		{
+			NSLog(@"ERROR - model %@ has too many vertices (model has %d, maximum is %d)", filename, n_vertices, MAX_VERTICES_PER_ENTITY);
+			failFlag = YES;
+			// ERROR model file not found
+			NSException* myException = [NSException
+				exceptionWithName:@"OoliteException"
+				reason:[NSString stringWithFormat:@"ERROR - model %@ has too many vertices (model has %d, maximum is %d)", filename, n_vertices, MAX_VERTICES_PER_ENTITY]
+				userInfo:nil];
+			[myException raise];
+		}
+		
 		// get number of faces
 		//
 		//[scanner setScanLocation:0];	//reset
@@ -1205,6 +1217,18 @@ static  Universe	*data_store_universe;
 		{
 			failFlag = YES;
 			failString = [NSString stringWithFormat:@"%@Failed to read NFACES\n",failString];
+		}
+		
+		if (n_faces > MAX_FACES_PER_ENTITY)
+		{
+			NSLog(@"ERROR - model %@ has too many faces (model has %d, maximum is %d)", filename, n_faces, MAX_FACES_PER_ENTITY);
+			failFlag = YES;
+			// ERROR model file not found
+			NSException* myException = [NSException
+				exceptionWithName:@"OoliteException"
+				reason:[NSString stringWithFormat:@"ERROR - model %@ has too many faces (model has %d, maximum is %d)", filename, n_faces, MAX_FACES_PER_ENTITY]
+				userInfo:nil];
+			[myException raise];
 		}
 		
 		// get vertex data
