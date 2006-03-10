@@ -58,7 +58,7 @@ fi
 make > make.out 2> make.error
 if [ $? != 0 ]
 then
-   echo "Oolite mknightly died with exit code $?"
+   echo "Oolite mknightly died."
    exit $?
 fi
 
@@ -73,5 +73,5 @@ echo $VERSION-$THISBUILD > release.txt
 echo "Oolite-$OS $CPU (`whoami`@`uname -n`) SVN revision $THISBUILD" \
    > buildinfo.txt
 echo "Build date: `date`" >> buildinfo.txt
-echo "Nigtly build complete for Oolite-$OS version $VERSION-$THISBUILD"
+echo "Nightly build complete for Oolite-$OS version $VERSION-$THISBUILD"
 
