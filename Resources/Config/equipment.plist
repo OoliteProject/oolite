@@ -19,6 +19,10 @@
 		<string>Missile</string>
 		<string>EQ_MISSILE</string>
 		<string>Faulcon de Lacy HM3 homing missile, fast and accurate when used in conjunction with standard targetting scanners.</string>
+		<dict>
+			<key>available_to_all</key>
+			<true/>
+		</dict>
 	</array>
 	<array>
 		<integer>1</integer>
@@ -94,6 +98,10 @@
 		<string>Pulse Laser</string>
 		<string>EQ_WEAPON_PULSE_LASER</string>
 		<string>High powered pulse laser, a basic defense configuration.</string>
+		<dict>
+			<key>available_to_all</key>
+			<true/>
+		</dict>
 	</array>
 	<array>
 		<integer>4</integer>
@@ -101,6 +109,10 @@
 		<string>Beam Laser</string>
 		<string>EQ_WEAPON_BEAM_LASER</string>
 		<string>Rapid cycle laser, delivers more energy in less time for more effective results.</string>
+		<dict>
+			<key>available_to_all</key>
+			<true/>
+		</dict>
 	</array>
 	<array>
 		<integer>10</integer>
@@ -108,6 +120,10 @@
 		<string>Mining Laser</string>
 		<string>EQ_WEAPON_MINING_LASER</string>
 		<string>High power, slow recharge. Ideal for mineral extraction from large asteroids.</string>
+		<dict>
+			<key>available_to_all</key>
+			<true/>
+		</dict>
 	</array>
 	<array>
 		<integer>10</integer>
@@ -115,6 +131,10 @@
 		<string>Military Laser</string>
 		<string>EQ_WEAPON_MILITARY_LASER</string>
 		<string>Increased power beam laser, developed for Naval use.</string>
+		<dict>
+			<key>available_to_all</key>
+			<true/>
+		</dict>
 	</array>
 	<!-- next item has a TL too high to be available at all -->
 	<array>
@@ -164,6 +184,10 @@
 		<string>ECM Hardened Missile</string>
 		<string>EQ_HARDENED_MISSILE</string>
 		<string>Faulcon de Lacy HMX5 homing missile - hardened against ECM.</string>
+		<dict>
+			<key>available_to_all</key>
+			<true/>
+		</dict>
 	</array>
 	<array>
 		<integer>10</integer>
@@ -210,6 +234,10 @@
 		<string>Quirium Cascade Mine</string>
 		<string>EQ_QC_MINE</string>
 		<string>Tyley-Feynman Quirium cascade mine. Mounts in place of a missile, but deploys to the rear of your craft. Capable of massive destruction and triggering chain reactions in the witchdrives of ships caught in its blast range.</string>
+		<dict>
+			<key>available_to_all</key>
+			<true/>
+		</dict>
 	</array>
 	<array>
 		<integer>10</integer>
@@ -252,6 +280,10 @@
 		<string>Maintenance Overhaul</string>
 		<string>EQ_RENOVATION</string>
 		<string>Covers dry docking fees, cleaning and replating of damaged hull sections, shield and scoop system de-ionization, systems tune-up, repainting and detailed valeting.</string>
+		<dict>
+			<key>available_to_all</key>
+			<true/>
+		</dict>
 	</array>
 	<!-- next item has a TL too high to be available at all -->
 	<array>
