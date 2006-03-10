@@ -242,10 +242,32 @@ Your fair use and other rights are in no way affected by the above.
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);	// adjust this
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);	// adjust this
 		
-		if (n_planes == 4)
-			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, texture_w, texture_h, 0, GL_RGBA, GL_UNSIGNED_BYTE, texBytes);
-		else
-			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, texture_w, texture_h, 0, GL_RGB, GL_UNSIGNED_BYTE, texBytes);
+		switch (n_planes)	// fromt he number of planes work out how to treat the image as a texture
+		{
+			case 4:
+				glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, texture_w, texture_h, 0, GL_RGBA, GL_UNSIGNED_BYTE, texBytes);
+				break;
+			case 3:
+				glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, texture_w, texture_h, 0, GL_RGB, GL_UNSIGNED_BYTE, texBytes);
+				break;
+			case 1:
+				glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, texture_w, texture_h, 0, GL_LUMINANCE, GL_UNSIGNED_BYTE, texBytes);
+				break;
+			default:
+				// throw an error - we don't know how to deal with this texture format...
+				NSLog(@"***** Couldn't deal with format of texture : %@ (%d image planes)", filename, n_planes);
+				NSException* myException = [NSException
+					exceptionWithName: OOLITE_EXCEPTION_TEXTURE_NOT_UNDERSTOOD
+					reason: [NSString stringWithFormat:@"Oolite couldn't understand the format of texture : %@ (%d image planes)", filename, n_planes]
+					userInfo: [NSDictionary dictionaryWithObjectsAndKeys: filename, @"texture", nil]];
+				[myException raise];
+				return 0;
+		}
+//		
+//		if (n_planes == 4)
+//			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, texture_w, texture_h, 0, GL_RGBA, GL_UNSIGNED_BYTE, texBytes);
+//		else
+//			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, texture_w, texture_h, 0, GL_RGB, GL_UNSIGNED_BYTE, texBytes);
 		
 		if (freeTexBytes) free(texBytes);
 		
