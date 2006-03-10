@@ -2911,6 +2911,8 @@ Your fair use and other rights are in no way affected by the above.
 	NSString	*shipRoles = (NSString *)[shipDict objectForKey:@"roles"];
 	if (shipRoles)
 		isStation = ([shipRoles rangeOfString:@"station"].location != NSNotFound)||([shipRoles rangeOfString:@"carrier"].location != NSNotFound);
+	if ([shipDict objectForKey:@"isCarrier"])
+		isStation = [[shipDict objectForKey:@"isCarrier"] boolValue];
 
 	if (isStation)
 		ship = (StationEntity *)[self recycledOrNew:@"StationEntity"];
