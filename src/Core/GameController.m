@@ -155,20 +155,20 @@ Your fair use and other rights are in no way affected by the above.
 
 	for (i = 0; i < modeCount; i++)
 	{
-        mode = [displayModes objectAtIndex: i];
-        modeWidth = [[mode objectForKey: (NSString *)kCGDisplayWidth] intValue];
-        modeHeight = [[mode objectForKey: (NSString *)kCGDisplayHeight] intValue];
-        modeRefresh = [[mode objectForKey: (NSString *)kCGDisplayRefreshRate] intValue];
+		mode = [displayModes objectAtIndex: i];
+		modeWidth = [[mode objectForKey: (NSString *)kCGDisplayWidth] intValue];
+		modeHeight = [[mode objectForKey: (NSString *)kCGDisplayHeight] intValue];
+		modeRefresh = [[mode objectForKey: (NSString *)kCGDisplayRefreshRate] intValue];
 		if ((modeWidth == d_width)&&(modeHeight == d_height)&&(modeRefresh == d_refresh))
-      {
-         NSLog(@"Found mode %@", mode);
+		{
+//			NSLog(@"Found mode %@", mode);
 			return mode;
-      }
+		}
 	}
 	return nil;
 #else
-   int modenum=[gameView findDisplayModeForWidth: d_width Height: d_height Refresh: d_refresh];
-   return [displayModes objectAtIndex: modenum];
+	int modenum=[gameView findDisplayModeForWidth: d_width Height: d_height Refresh: d_refresh];
+	return [displayModes objectAtIndex: modenum];
 #endif
    
 }
