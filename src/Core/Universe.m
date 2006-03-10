@@ -1156,7 +1156,9 @@ Your fair use and other rights are in no way affected by the above.
 		// ambient lighting!
 		float r,g,b,a;
 		[[the_sky sky_color] getRed:&r green:&g blue:&b alpha:&a];
-		GLfloat ambient_level = [[systeminfo objectForKey: @"ambient_level"] floatValue];
+		GLfloat ambient_level = 1.0;
+		if ([systeminfo objectForKey: @"ambient_level"])
+			ambient_level = [[systeminfo objectForKey: @"ambient_level"] floatValue];
 		stars_ambient[0] = ambient_level * 0.0625 * (1.0 + r) * (1.0 + r);
 		stars_ambient[1] = ambient_level * 0.0625 * (1.0 + g) * (1.0 + g);
 		stars_ambient[2] = ambient_level * 0.0625 * (1.0 + b) * (1.0 + b);
