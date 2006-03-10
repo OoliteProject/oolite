@@ -5006,6 +5006,9 @@ static int last_outfitting_index;
 		if ([(NSArray *)[equipdata objectAtIndex:i] count] > 5)
 			[eq_extra_info_dict addEntriesFromDictionary:(NSDictionary *)[(NSArray *)[equipdata objectAtIndex:i] objectAtIndex:EQUIPMENT_EXTRA_INFO_INDEX]];
 		
+		// set initial availability to NO
+		option_okay[i] = NO;
+		
 		// check special availability
 		if ([eq_extra_info_dict objectForKey:@"available_to_all"])
 			[options addObject: eq_key];
@@ -5034,14 +5037,11 @@ static int last_outfitting_index;
 			while ((min_techlevel > 0)&&(min_techlevel > original_min_techlevel - 3)&&!(day_rnd & 7))	// bargain tech days every 1/8 days
 			{
 				day_rnd = day_rnd >> 2;
-				min_techlevel--;
+				min_techlevel--;	// occasional bonus items according to TL
 			}
-//			if (min_techlevel < original_min_techlevel)
-//				NSLog(@"DEBUG -- Bargain tech day for %@ (TL %d reduced from %d)", eq_key, min_techlevel, original_min_techlevel);
 		}
 		
-		// set initial availability
-		option_okay[i] = [eq_key hasPrefix:@"EQ_WEAPON"];
+		// check initial availability against options
 		for (j = 0; j < [options count]; j++)
 		{
 			if ([eq_key isEqual:[options objectAtIndex:j]])
@@ -5081,6 +5081,8 @@ static int last_outfitting_index;
 			option_okay[i] &= (cargo_space >= [[eq_extra_info_dict objectForKey:@"requires_cargo_space"] intValue]);
 		if ([eq_extra_info_dict objectForKey:@"requires_clean"])
 			option_okay[i] &= ([self legal_status] == 0);
+		if ([eq_extra_info_dict objectForKey:@"requires_not_clean"])
+			option_okay[i] &= ([self legal_status] != 0);
 			
 		if ([eq_key isEqual:@"EQ_RENOVATION"])
 		{
