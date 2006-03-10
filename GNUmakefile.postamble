@@ -3,13 +3,17 @@
 # These copy all the base data files into where oolite expects them
 # to live (Contents/Resources)
 #
+ifeq ($(debug),yes)
+	EXTENSION=debug
+else
+	EXTENSION=app
+endif
 CONTENTS = Contents
-CONTENTDIR=$(APP_NAME).app/$(CONTENTS)
-GNUSTEP_OW=$(APP_NAME).app/Resources/Info-gnustep.plist
+CONTENTDIR=$(APP_NAME).$(EXTENSION)/$(CONTENTS)
+GNUSTEP_OW=$(APP_NAME).$(EXTENSION)/Resources/Info-gnustep.plist
 
 after-all:: 
 	rm -rf $(CONTENTDIR)
 	$(MKDIRS) $(CONTENTDIR)
 	$(CP) -r Resources $(CONTENTDIR)/Resources
 	$(CP) src/Cocoa/Info-Oolite.plist $(GNUSTEP_OW)
-
