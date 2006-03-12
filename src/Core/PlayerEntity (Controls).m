@@ -1319,8 +1319,11 @@ static BOOL queryPressed;
 	if (gui_screen == GUI_SCREEN_LONG_RANGE_CHART)
 		[gameView setStringInput: gvStringInputAlpha];
 		
-	if (gui_screen == GUI_SCREEN_SAVE)
+   else if (gui_screen == GUI_SCREEN_SAVE)
 		[gameView setStringInput: gvStringInputAll];   
+
+   else
+      [gameView allowStringInput: NO];
 
 	switch (gui_screen)
 	{
@@ -2349,6 +2352,9 @@ static BOOL toggling_music;
 		MyOpenGLView  *gameView = (MyOpenGLView *)[universe gameView];
 		if (([gameView isDown:gvFunctionKey1])||([gameView isDown:gvNumberKey1]))   // look for the f1 key
 		{
+         // ensure we've not left keyboard entry on
+         [gameView allowStringInput: NO];
+
 			[universe set_up_universe_from_station]; // launch!
 			if (!docked_station)
 				docked_station = [universe station];
