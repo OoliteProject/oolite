@@ -21,12 +21,10 @@ typedef int32_t CGMouseDelta;
 typedef char Str255[256];
 
 /* Define the application support cache dir */
-#define OOLITE_CACHE  [[[[[NSHomeDirectory() \
+#define OOLITE_CACHE  [[[NSHomeDirectory() \
                   stringByAppendingPathComponent:@"GNUstep"] \
 						stringByAppendingPathComponent:@"Library"] \
-						stringByAppendingPathComponent:@"Application Support"] \
-						stringByAppendingPathComponent:@"Oolite"] \
-						stringByAppendingPathComponent:@"cache"];
+						stringByAppendingPathComponent:@"Oolite-cache"];
 
 #else
 
