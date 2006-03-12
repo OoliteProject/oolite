@@ -188,6 +188,7 @@
                       stick: (int)stickNum
 {
    int i, j;
+   Sint16 axisvalue=SDL_JoystickGetAxis(stick[stickNum], axis);
    for(i=0; i < MAX_AXES; i++)
    {
       for(j=0; j < MAX_STICKS; j++)
@@ -200,7 +201,18 @@
       }
    }
    axismap[stickNum][axis]=function;
-   axstate[function]=0;
+
+   // initialize the throttle to what it's set to now (or else the
+   // commander has to waggle the throttle to wake it up). Other axes
+   // set as default.
+   if(function == AXIS_THRUST)
+   {
+      axstate[function]=(float)(65536 - (axisvalue + 32768)) / 65536;
+   }
+   else
+   {
+      axstate[function]=(float)axisvalue / STICK_NORMALDIV;
+   }
 }
 
 - (void) setFunctionForButton: (int)button 
@@ -360,7 +372,7 @@
          break;
       case AXIS_THRUST:
          // Normalize the thrust setting.
-         axstate[function]=(65536 - (axisvalue + 32768)) / 65536;
+         axstate[function]=(float)(65536 - (axisvalue + 32768)) / 65536;
          break;
       case AXIS_ROLL:
       case AXIS_PITCH:
