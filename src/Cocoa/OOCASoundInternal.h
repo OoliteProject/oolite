@@ -59,7 +59,7 @@ Your fair use and other rights are in no way affected by the above.
 @interface OOCASoundMixer (Internal)
 
 - (BOOL)connectChannel:(OOCASoundChannel *)inChannel;
-- (void)disconnectChannel:(OOCASoundChannel *)inChannel;
+- (OSStatus)disconnectChannel:(OOCASoundChannel *)inChannel;
 
 @end
 

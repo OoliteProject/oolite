@@ -55,6 +55,7 @@ typedef  OSStatus (*OOCASoundChannel_RenderIMP)(id inSelf, SEL inSelector, Audio
 	uint8_t						_state,
 								_id,
 								_stopReq;
+	OSStatus					_error;
 }
 
 + (BOOL)setUp;
@@ -76,6 +77,8 @@ typedef  OSStatus (*OOCASoundChannel_RenderIMP)(id inSelf, SEL inSelector, Audio
 - (void)stop;
 
 - (OOSound *)sound;
+
+- (BOOL)isOK;
 
 @end
 

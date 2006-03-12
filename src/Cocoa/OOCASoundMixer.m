@@ -263,6 +263,16 @@ static OOCASoundMixer *sSingleton = nil;
 
 - (void)channel:(OOCASoundChannel *)inChannel didFinishPlayingSound:(OOSound *)inSound
 {
+	uint32_t				ID;
+	
+	if (![inChannel isOK])
+	{
+		NSLog(@"Replacing broken channel %@.", inChannel);
+		ID = [inChannel ID];
+		[inChannel release];
+		inChannel = [[OOCASoundChannel alloc] initWithID:ID auGraph:_graph];
+	}
+	
 	[self pushChannel:inChannel];
 }
 
@@ -379,12 +389,16 @@ static OOCASoundMixer *sSingleton = nil;
 }
 
 
-- (void)disconnectChannel:(OOCASoundChannel *)inChannel
+- (OSStatus)disconnectChannel:(OOCASoundChannel *)inChannel
 {
+	OSStatus					err;
+	
 	assert(nil != inChannel);
 	
-	AUGraphDisconnectNodeInput(_graph, _mixerNode, [inChannel ID]);
-	AUGraphUpdate(_graph, NULL);
+	err = AUGraphDisconnectNodeInput(_graph, _mixerNode, [inChannel ID]);
+	if (noErr == err) AUGraphUpdate(_graph, NULL);
+	
+	return err;
 }
 
 @end
