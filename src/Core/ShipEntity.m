@@ -132,7 +132,7 @@ Your fair use and other rights are in no way affected by the above.
 	//
 	proximity_alert = NO_TARGET;
 	//
-	condition = CONDITION_IDLE;
+	behaviour = BEHAVIOUR_IDLE;
 	frustration = 0.0;
 	//
 	shipAI = [[AI alloc] init]; // alloc retains
@@ -541,7 +541,7 @@ static NSMutableDictionary* smallOctreeDict = nil;
 	//
 	proximity_alert = NO_TARGET;
 	//
-	condition = CONDITION_IDLE;
+	behaviour = BEHAVIOUR_IDLE;
 	frustration = 0.0;
 	//
 	if (shipAI)
@@ -647,7 +647,7 @@ static NSMutableDictionary* smallOctreeDict = nil;
 	//
 	proximity_alert = NO_TARGET;
 	//
-	condition = CONDITION_IDLE;
+	behaviour = BEHAVIOUR_IDLE;
 	frustration = 0.0;
 	//
 	patrol_counter = 0;
@@ -1687,10 +1687,10 @@ BOOL ship_canCollide (ShipEntity* ship)
 	
 	// DEBUGGING
 	//
-	if (reportAImessages && (debug_condition != condition))
+	if (reportAImessages && (debug_condition != behaviour))
 	{
-		NSLog(@"DEBUG %@ condition is now %d", self, condition);
-		debug_condition = condition;
+		NSLog(@"DEBUG %@ behaviour is now %d", self, behaviour);
+		debug_condition = behaviour;
 	}
 	
 	// update time between shots
@@ -1801,7 +1801,7 @@ BOOL ship_canCollide (ShipEntity* ship)
 		[launch_actions removeAllObjects];
 	}
 	
-	// behaviours according to status and condition
+	// behaviours according to status and behaviour
     //
 	if (status == STATUS_LAUNCHING)
 	{
@@ -1813,7 +1813,7 @@ BOOL ship_canCollide (ShipEntity* ship)
 		}
 		else
 		{
-			// ignore condition just keep moving...
+			// ignore behaviour just keep moving...
 			[self applyRoll:delta_t*flight_roll andClimb:delta_t*flight_pitch];
 			[self applyThrust:delta_t];
 			if (energy < max_energy)
@@ -1829,15 +1829,15 @@ BOOL ship_canCollide (ShipEntity* ship)
 		}
 	}
 	//
-	// double check scooped condition
+	// double check scooped behaviour
 	//
 	if (status == STATUS_BEING_SCOOPED)
 	{
-		if (condition != CONDITION_TRACTORED)
+		if (behaviour != BEHAVIOUR_TRACTORED)
 		{
 			// escaped tractor beam
 			status = STATUS_IN_FLIGHT;	// should correct 'uncollidable objects' bug
-			condition = CONDITION_IDLE;
+			behaviour = BEHAVIOUR_IDLE;
 			frustration = 0.0;
 		}
 	}
@@ -1886,10 +1886,10 @@ BOOL ship_canCollide (ShipEntity* ship)
 			}
 		}
 				
-		switch (condition)
+		switch (behaviour)
 		{
-			case CONDITION_IDLE :
-			case CONDITION_STATION_KEEPING :
+			case BEHAVIOUR_IDLE :
+			case BEHAVIOUR_STATION_KEEPING :
 				if ((!isStation)&&(scan_class != CLASS_BUOY))
 				{
 					// damp roll and pitch
@@ -1902,10 +1902,10 @@ BOOL ship_canCollide (ShipEntity* ship)
 					if (flight_pitch > 0)
 						flight_pitch -= (flight_pitch > damping) ? damping : flight_pitch;
 				}
-			case CONDITION_TUMBLE :
+			case BEHAVIOUR_TUMBLE :
 				break;
 
-			case CONDITION_TRACTORED :
+			case BEHAVIOUR_TRACTORED :
 				{
 					ShipEntity* hauler = (ShipEntity*)[self owner];
 					if ((hauler)&&(hauler->isShip))
@@ -1934,7 +1934,7 @@ BOOL ship_canCollide (ShipEntity* ship)
 							{
 								// escaped tractor beam
 								status = STATUS_IN_FLIGHT;
-								condition = CONDITION_IDLE;
+								behaviour = BEHAVIOUR_IDLE;
 								frustration = 0.0;
 								[shipAI exitStateMachine];	// exit nullAI.plist
 							}
@@ -1947,15 +1947,15 @@ BOOL ship_canCollide (ShipEntity* ship)
 				}
 				break;
 			
-			case CONDITION_TRACK_TARGET :
+			case BEHAVIOUR_TRACK_TARGET :
 				[self trackPrimaryTarget:delta_t:NO];
 				if ((proximity_alert != NO_TARGET)&&(proximity_alert != primaryTarget))
 					[self avoidCollision];
 				break;
 				
-			case CONDITION_INTERCEPT_TARGET :
-			case CONDITION_COLLECT_TARGET :
-				if (condition == CONDITION_INTERCEPT_TARGET)
+			case BEHAVIOUR_INTERCEPT_TARGET :
+			case BEHAVIOUR_COLLECT_TARGET :
+				if (behaviour == BEHAVIOUR_INTERCEPT_TARGET)
 				{
 					desired_speed = max_flight_speed;
 					if (range < desired_range)
@@ -2012,28 +2012,28 @@ BOOL ship_canCollide (ShipEntity* ship)
 					[self avoidCollision];
 				break;
 				
-			case CONDITION_ATTACK_TARGET :
+			case BEHAVIOUR_ATTACK_TARGET :
 				[self activateCloakingDevice];
 				desired_speed = max_available_speed;
 				if (range < 0.035 * weapon_range)
-					condition = CONDITION_ATTACK_FLY_FROM_TARGET;
+					behaviour = BEHAVIOUR_ATTACK_FLY_FROM_TARGET;
 				else
 					if (universal_id & 1)	// 50% of ships are smart S.M.R.T. smart!
 					{
 						if (randf() < 0.75)
-							condition = CONDITION_ATTACK_FLY_TO_TARGET_SIX;
+							behaviour = BEHAVIOUR_ATTACK_FLY_TO_TARGET_SIX;
 						else
-							condition = CONDITION_ATTACK_FLY_TO_TARGET_TWELVE;
+							behaviour = BEHAVIOUR_ATTACK_FLY_TO_TARGET_TWELVE;
 					}
 					else
 					{
-						condition = CONDITION_ATTACK_FLY_TO_TARGET;
+						behaviour = BEHAVIOUR_ATTACK_FLY_TO_TARGET;
 					}
-				frustration = 0.0;	// condition changed, so reset frustration
+				frustration = 0.0;	// behaviour changed, so reset frustration
 				break;
 				
-			case CONDITION_ATTACK_FLY_TO_TARGET_SIX :
-			case CONDITION_ATTACK_FLY_TO_TARGET_TWELVE :
+			case BEHAVIOUR_ATTACK_FLY_TO_TARGET_SIX :
+			case BEHAVIOUR_ATTACK_FLY_TO_TARGET_TWELVE :
 				
 				// deal with collisions and lost targets
 				//
@@ -2041,7 +2041,7 @@ BOOL ship_canCollide (ShipEntity* ship)
 					[self avoidCollision];
 				if (range > SCANNER_MAX_RANGE)
 				{
-					condition = CONDITION_IDLE;
+					behaviour = BEHAVIOUR_IDLE;
 					frustration = 0.0;
 					[shipAI reactToMessage:@"TARGET_LOST"];
 				}
@@ -2053,8 +2053,8 @@ BOOL ship_canCollide (ShipEntity* ship)
 					desired_speed = target_speed;
 					// avoid head-on collision
 					//
-					if ((range < 0.5 * distance)&&(condition == CONDITION_ATTACK_FLY_TO_TARGET_SIX))
-						condition = CONDITION_ATTACK_FLY_TO_TARGET_TWELVE;
+					if ((range < 0.5 * distance)&&(behaviour == BEHAVIOUR_ATTACK_FLY_TO_TARGET_SIX))
+						behaviour = BEHAVIOUR_ATTACK_FLY_TO_TARGET_TWELVE;
 				}
 				else
 					desired_speed = max_available_speed; // use afterburner to approach
@@ -2064,20 +2064,20 @@ BOOL ship_canCollide (ShipEntity* ship)
 				//
 				if (distance < 750.0)
 				{
-					condition = CONDITION_ATTACK_FLY_TO_TARGET;
+					behaviour = BEHAVIOUR_ATTACK_FLY_TO_TARGET;
 					frustration = 0.0;
 					desired_speed = target_speed;   // within the weapon's range don't use afterburner
 				}
 				
 				// target-six
-				if (condition == CONDITION_ATTACK_FLY_TO_TARGET_SIX)
+				if (behaviour == BEHAVIOUR_ATTACK_FLY_TO_TARGET_SIX)
 				{
 					// head for a point weapon-range * 0.5 to the six of the target
 					//
 					destination = [target distance_six:0.5 * weapon_range];
 				}
 				// target-twelve
-				if (condition == CONDITION_ATTACK_FLY_TO_TARGET_TWELVE)
+				if (behaviour == BEHAVIOUR_ATTACK_FLY_TO_TARGET_TWELVE)
 				{
 					// head for a point 1.25km above the target
 					//
@@ -2097,7 +2097,7 @@ BOOL ship_canCollide (ShipEntity* ship)
 				[self fireMainWeapon:range];
 				break;
 				
-			case CONDITION_ATTACK_MINING_TARGET :
+			case BEHAVIOUR_ATTACK_MINING_TARGET :
 				if ((range < 650)||(proximity_alert != NO_TARGET))
 				{
 					if (proximity_alert == NO_TARGET)
@@ -2113,7 +2113,7 @@ BOOL ship_canCollide (ShipEntity* ship)
 				{
 					if (range > SCANNER_MAX_RANGE)
 					{
-						condition = CONDITION_IDLE;
+						behaviour = BEHAVIOUR_IDLE;
 						[shipAI reactToMessage:@"TARGET_LOST"];
 					}
 					desired_speed = max_flight_speed * 0.375;
@@ -2122,7 +2122,7 @@ BOOL ship_canCollide (ShipEntity* ship)
 				[self fireMainWeapon:range];
 				break;				
 				
-			case CONDITION_ATTACK_FLY_TO_TARGET :
+			case BEHAVIOUR_ATTACK_FLY_TO_TARGET :
 				if ((range < COMBAT_IN_RANGE_FACTOR * weapon_range)||(proximity_alert != NO_TARGET))
 				{
 					if (proximity_alert == NO_TARGET)
@@ -2132,7 +2132,7 @@ BOOL ship_canCollide (ShipEntity* ship)
 							jink.x = (ranrot_rand() % 256) - 128.0;
 							jink.y = (ranrot_rand() % 256) - 128.0;
 							jink.z = 1000.0;
-							condition = CONDITION_ATTACK_FLY_FROM_TARGET;
+							behaviour = BEHAVIOUR_ATTACK_FLY_FROM_TARGET;
 							frustration = 0.0;
 							desired_speed = max_available_speed;
 						}
@@ -2141,7 +2141,7 @@ BOOL ship_canCollide (ShipEntity* ship)
 							//NSLog(@"DEBUG >>>>> %@ %d entering running defense mode", name, universal_id);
 							
 							jink = make_vector( 0.0f, 0.0f, 0.0f);
-							condition = CONDITION_RUNNING_DEFENSE;
+							behaviour = BEHAVIOUR_RUNNING_DEFENSE;
 							frustration = 0.0;
 							desired_speed = max_flight_speed;
 						}
@@ -2155,7 +2155,7 @@ BOOL ship_canCollide (ShipEntity* ship)
 				{
 					if (range > SCANNER_MAX_RANGE)
 					{
-						condition = CONDITION_IDLE;
+						behaviour = BEHAVIOUR_IDLE;
 						frustration = 0.0;
 						[shipAI reactToMessage:@"TARGET_LOST"];
 					}
@@ -2187,7 +2187,7 @@ BOOL ship_canCollide (ShipEntity* ship)
 						jink.x = (ranrot_rand() % 256) - 128.0;
 						jink.y = (ranrot_rand() % 256) - 128.0;
 						jink.z = 1000.0;
-						condition = CONDITION_ATTACK_FLY_FROM_TARGET;
+						behaviour = BEHAVIOUR_ATTACK_FLY_FROM_TARGET;
 						frustration = 0.0;
 						desired_speed = max_flight_speed;
 					}
@@ -2202,13 +2202,13 @@ BOOL ship_canCollide (ShipEntity* ship)
 				[self fireMainWeapon:range];
 				break;
 				
-			case CONDITION_ATTACK_FLY_FROM_TARGET :
+			case BEHAVIOUR_ATTACK_FLY_FROM_TARGET :
 				if (range > COMBAT_OUT_RANGE_FACTOR * weapon_range + 15.0 * jink.x)
 				{
 					jink.x = 0.0;
 					jink.y = 0.0;
 					jink.z = 0.0;
-					condition = CONDITION_ATTACK_TARGET;
+					behaviour = BEHAVIOUR_ATTACK_TARGET;
 					frustration = 0.0;
 				}
 				[self trackPrimaryTarget:delta_t:YES];
@@ -2220,13 +2220,13 @@ BOOL ship_canCollide (ShipEntity* ship)
 				[self activateCloakingDevice];
 				break;
 				
-			case CONDITION_RUNNING_DEFENSE :
+			case BEHAVIOUR_RUNNING_DEFENSE :
 				if (range > weapon_range)
 				{
 					jink.x = 0.0;
 					jink.y = 0.0;
 					jink.z = 0.0;
-					condition = CONDITION_ATTACK_FLY_TO_TARGET;
+					behaviour = BEHAVIOUR_ATTACK_FLY_TO_TARGET;
 					frustration = 0.0;
 				}
 				[self trackPrimaryTarget:delta_t:YES];
@@ -2234,7 +2234,7 @@ BOOL ship_canCollide (ShipEntity* ship)
 				[self activateCloakingDevice];
 				break;
 				
-			case CONDITION_FLEE_TARGET :
+			case BEHAVIOUR_FLEE_TARGET :
 				if (range > desired_range)
 				{
 					[shipAI message:@"REACHED_SAFETY"];
@@ -2252,15 +2252,15 @@ BOOL ship_canCollide (ShipEntity* ship)
 				[self activateCloakingDevice];
 				break;
 			
-			case CONDITION_FLY_RANGE_FROM_DESTINATION :
+			case BEHAVIOUR_FLY_RANGE_FROM_DESTINATION :
 				if (distance < desired_range)
-					condition = CONDITION_FLY_FROM_DESTINATION;
+					behaviour = BEHAVIOUR_FLY_FROM_DESTINATION;
 				else
-					condition = CONDITION_FLY_TO_DESTINATION;
+					behaviour = BEHAVIOUR_FLY_TO_DESTINATION;
 				frustration = 0.0;
 				break;
 				
-			case CONDITION_FACE_DESTINATION :
+			case BEHAVIOUR_FACE_DESTINATION :
 				desired_speed = 0.0;
 //				NSLog(@"DEBUG >>>>> distance %.1f desired_range %.1f", distance, desired_range);
 				if (desired_range > 1.0)
@@ -2272,14 +2272,14 @@ BOOL ship_canCollide (ShipEntity* ship)
 				{
 					// desired facing achieved
 					[shipAI message:@"FACING_DESTINATION"];
-					condition = CONDITION_IDLE;
+					behaviour = BEHAVIOUR_IDLE;
 					frustration = 0.0;
 				}
 				if ((proximity_alert != NO_TARGET)&&(proximity_alert != primaryTarget))
 					[self avoidCollision];
 				break;
 			
-			case CONDITION_FORMATION_FORM_UP :
+			case BEHAVIOUR_FORMATION_FORM_UP :
 				// get updated destination from owner
 				{
 					ShipEntity* leadShip = (ShipEntity *)[universe entityForUniversalID:owner];
@@ -2289,12 +2289,12 @@ BOOL ship_canCollide (ShipEntity* ship)
 					else
 						desired_speed = max_flight_speed;
 				}
-			case CONDITION_FLY_TO_DESTINATION :
+			case BEHAVIOUR_FLY_TO_DESTINATION :
 				if (distance < desired_range)// + collision_radius)
 				{
 					// desired range achieved
 					[shipAI message:@"DESIRED_RANGE_ACHIEVED"];
-					condition = CONDITION_IDLE;
+					behaviour = BEHAVIOUR_IDLE;
 					frustration = 0.0;
 					desired_speed = 0.0;
 				}
@@ -2340,13 +2340,13 @@ BOOL ship_canCollide (ShipEntity* ship)
 					[self avoidCollision];
 				break;
 			
-			case CONDITION_FORMATION_BREAK :
-			case CONDITION_FLY_FROM_DESTINATION :
+			case BEHAVIOUR_FORMATION_BREAK :
+			case BEHAVIOUR_FLY_FROM_DESTINATION :
 				if (distance > desired_range)
 				{
 					// desired range achieved
 					[shipAI message:@"DESIRED_RANGE_ACHIEVED"];
-					condition = CONDITION_IDLE;
+					behaviour = BEHAVIOUR_IDLE;
 					frustration = 0.0;
 					desired_speed = 0.0;
 				}
@@ -2363,7 +2363,7 @@ BOOL ship_canCollide (ShipEntity* ship)
 					[self avoidCollision];
 				break;
 				
-			case CONDITION_AVOID_COLLISION :
+			case BEHAVIOUR_AVOID_COLLISION :
 				if (distance > desired_range)
 				{
 					[self resumePostProximityAlert];
@@ -2385,7 +2385,7 @@ BOOL ship_canCollide (ShipEntity* ship)
 				}
 				break;
 				
-			case CONDITION_TRACK_AS_TURRET :
+			case BEHAVIOUR_TRACK_AS_TURRET :
 				{
 					double aim = [self ballTrackLeadingTarget:delta_t];
 					ShipEntity* turret_owner = (ShipEntity *)[self owner];
@@ -2406,7 +2406,7 @@ BOOL ship_canCollide (ShipEntity* ship)
 				}
 				break;
 				
-			case CONDITION_EXPERIMENTAL :
+			case BEHAVIOUR_EXPERIMENTAL :
 				{
 					double aim = [self ballTrackTarget:delta_t];
 					if (aim > .95)
@@ -2420,7 +2420,7 @@ BOOL ship_canCollide (ShipEntity* ship)
 		//
 		// in (almost) every case...
 		//
-		if (condition != CONDITION_TRACK_AS_TURRET)
+		if (behaviour != BEHAVIOUR_TRACK_AS_TURRET)
 		{
 			[self applyRoll:delta_t*flight_roll andClimb:delta_t*flight_pitch];
 			[self applyThrust:delta_t];
@@ -2803,7 +2803,7 @@ static GLfloat mascem_color2[4] =	{ 0.4, 0.1, 0.4, 1.0};	// purple
 		}
 	}
 
-	if (condition == CONDITION_TUMBLE)  return; //testing
+	if (behaviour == BEHAVIOUR_TUMBLE)  return; //testing
 
 	
 	// check for speed
@@ -2886,7 +2886,7 @@ static GLfloat mascem_color2[4] =	{ 0.4, 0.1, 0.4, 1.0};	// purple
 		
 		previousCondition = [[NSMutableDictionary alloc] initWithCapacity:16];
 		
-		[previousCondition setObject:[NSNumber numberWithInt:condition] forKey:@"condition"];
+		[previousCondition setObject:[NSNumber numberWithInt:behaviour] forKey:@"behaviour"];
 		[previousCondition setObject:[NSNumber numberWithInt:primaryTarget] forKey:@"primaryTarget"];
 		[previousCondition setObject:[NSNumber numberWithFloat:desired_range] forKey:@"desired_range"];
 		[previousCondition setObject:[NSNumber numberWithFloat:desired_speed] forKey:@"desired_speed"];
@@ -2900,7 +2900,7 @@ static GLfloat mascem_color2[4] =	{ 0.4, 0.1, 0.4, 1.0};	// purple
 		
 		desired_range = prox_ship->collision_radius * PROXIMITY_AVOID_DISTANCE;
 		
-		condition = CONDITION_AVOID_COLLISION;
+		behaviour = BEHAVIOUR_AVOID_COLLISION;
 	}
 }
 
@@ -2911,7 +2911,7 @@ static GLfloat mascem_color2[4] =	{ 0.4, 0.1, 0.4, 1.0};	// purple
 		
 //	NSLog(@"DEBUG ***** proximity alert for %@ %d over", name, universal_id, proximity_alert);
 		
-	condition =		[(NSNumber*)[previousCondition objectForKey:@"condition"] intValue];
+	behaviour =		[(NSNumber*)[previousCondition objectForKey:@"behaviour"] intValue];
 	primaryTarget =	[(NSNumber*)[previousCondition objectForKey:@"primaryTarget"] intValue];
 	desired_range =	[(NSNumber*)[previousCondition objectForKey:@"desired_range"] floatValue];
 	desired_speed =	[(NSNumber*)[previousCondition objectForKey:@"desired_speed"] floatValue];
@@ -2991,7 +2991,7 @@ static GLfloat mascem_color2[4] =	{ 0.4, 0.1, 0.4, 1.0};	// purple
 	if (d2 > cr2) // we're okay
 		return;
 	
-	if (condition == CONDITION_AVOID_COLLISION)	//	already avoiding something
+	if (behaviour == BEHAVIOUR_AVOID_COLLISION)	//	already avoiding something
 	{
 		ShipEntity* prox = (ShipEntity*)[universe entityForUniversalID:proximity_alert];
 		if ((prox)&&(prox != other))
@@ -3039,12 +3039,12 @@ static GLfloat mascem_color2[4] =	{ 0.4, 0.1, 0.4, 1.0};	// purple
 {
 	if (primaryTarget == NO_TARGET)
 		return NO;
-	if ((condition == CONDITION_AVOID_COLLISION)&&(previousCondition))
+	if ((behaviour == BEHAVIOUR_AVOID_COLLISION)&&(previousCondition))
 	{
-		int old_condition = [(NSNumber*)[previousCondition objectForKey:@"condition"] intValue];
-		return IS_CONDITION_HOSTILE(old_condition);
+		int old_behaviour = [(NSNumber*)[previousCondition objectForKey:@"behaviour"] intValue];
+		return IS_BEHAVIOUR_HOSTILE(old_behaviour);
 	}
-	return IS_CONDITION_HOSTILE(condition);
+	return IS_BEHAVIOUR_HOSTILE(behaviour);
 }
 
 - (NSMutableArray *) launch_actions
@@ -3607,9 +3607,9 @@ static GLfloat mascem_color2[4] =	{ 0.4, 0.1, 0.4, 1.0};	// purple
 		// avoid shooting each other
 		if (([hunter group_id] == group_id)||(iAmTheLaw && uAreTheLaw))
 		{
-			if ([hunter condition] == CONDITION_ATTACK_FLY_TO_TARGET)	// avoid me please!
+			if ([hunter behaviour] == BEHAVIOUR_ATTACK_FLY_TO_TARGET)	// avoid me please!
 			{
-				[hunter setCondition:CONDITION_ATTACK_FLY_FROM_TARGET];
+				[hunter setBehaviour:BEHAVIOUR_ATTACK_FLY_FROM_TARGET];
 				[hunter setDesiredSpeed:[hunter max_flight_speed]];
 			}
 		}
@@ -3644,7 +3644,7 @@ static GLfloat mascem_color2[4] =	{ 0.4, 0.1, 0.4, 1.0};	// purple
 			//NSLog(@"Escape Pod launched");
 			[shipAI setStateMachine:@"nullAI.plist"];
 			[shipAI setState:@"GLOBAL"];
-			condition = CONDITION_IDLE;
+			behaviour = BEHAVIOUR_IDLE;
 			frustration = 0.0;
 			[self launchEscapeCapsule];
 			[self setScanClass: CLASS_CARGO];			// we're unmanned now!
@@ -4132,16 +4132,16 @@ Vector randomPositionInBoundingBox(BoundingBox bb)
 	return primaryTarget;
 }
 
-- (int) condition
+- (int) behaviour
 {
-	return condition;
+	return behaviour;
 }
 
-- (void) setCondition:(int) cond
+- (void) setBehaviour:(int) cond
 {
-	if (cond !=condition)
+	if (cond !=behaviour)
 		frustration = 0.0;	// change is a GOOD thing
-	condition = cond;
+	behaviour = cond;
 }
 
 - (Vector) destination
@@ -5655,7 +5655,7 @@ Vector randomPositionInBoundingBox(BoundingBox bb)
 	[bomb setScanClass: CLASS_MINE];	// TODO should be CLASS_ENERGY_BOMB
 	[bomb setStatus: STATUS_IN_FLIGHT];
 	[bomb setEnergy: 5.0];	// 5 second countdown
-	[bomb setCondition: CONDITION_ENERGY_BOMB_COUNTDOWN];
+	[bomb setBehaviour: BEHAVIOUR_ENERGY_BOMB_COUNTDOWN];
 	[bomb setOwner: self];
 	[universe addEntity:bomb];
 	[[bomb getAI] setState:@"GLOBAL"];
@@ -5663,7 +5663,7 @@ Vector randomPositionInBoundingBox(BoundingBox bb)
 	if (self != [universe entityZero])	// get the heck out of here
 	{
 		[self addTarget:bomb];
-		condition = CONDITION_FLEE_TARGET;
+		behaviour = BEHAVIOUR_FLEE_TARGET;
 		frustration = 0.0;
 	}
 	return YES;
@@ -6061,8 +6061,8 @@ Vector randomPositionInBoundingBox(BoundingBox bb)
 - (void) getTractoredBy:(ShipEntity *)other
 {
 	desired_speed = 0.0;
-	[self setAITo:@"nullAI.plist"];	// prevent AI from changing status or condition
-	condition = CONDITION_TRACTORED;
+	[self setAITo:@"nullAI.plist"];	// prevent AI from changing status or behaviour
+	behaviour = BEHAVIOUR_TRACTORED;
 	status = STATUS_BEING_SCOOPED;
 	[self addTarget: other];
 	[self setOwner: other];
@@ -6802,7 +6802,7 @@ inline BOOL pairOK(NSString* my_role, NSString* their_role)
 
 - (BOOL) isMining
 {
-	return ((condition == CONDITION_ATTACK_MINING_TARGET)&&(forward_weapon_type == WEAPON_MINING_LASER));
+	return ((behaviour == BEHAVIOUR_ATTACK_MINING_TARGET)&&(forward_weapon_type == WEAPON_MINING_LASER));
 }
 
 - (void) setNumberOfMinedRocks:(int) value

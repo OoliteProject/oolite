@@ -1256,12 +1256,12 @@ NSDictionary* instructions(int station_id, Vector coords, float speed, float ran
 {
 	if (primaryTarget == NO_TARGET)
 		return NO;
-	if ((condition == CONDITION_AVOID_COLLISION)&&(previousCondition))
+	if ((behaviour == BEHAVIOUR_AVOID_COLLISION)&&(previousCondition))
 	{
-		int old_condition = [(NSNumber*)[previousCondition objectForKey:@"condition"] intValue];
-		return IS_CONDITION_HOSTILE(old_condition);
+		int old_behaviour = [(NSNumber*)[previousCondition objectForKey:@"behaviour"] intValue];
+		return IS_BEHAVIOUR_HOSTILE(old_behaviour);
 	}
-	return IS_CONDITION_HOSTILE(condition)||(alert_level == STATION_ALERT_LEVEL_YELLOW)||(alert_level == STATION_ALERT_LEVEL_RED);
+	return IS_BEHAVIOUR_HOSTILE(behaviour)||(alert_level == STATION_ALERT_LEVEL_YELLOW)||(alert_level == STATION_ALERT_LEVEL_RED);
 }
 
 //////////////////////////////////////////////// extra AI routines

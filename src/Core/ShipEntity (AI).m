@@ -76,7 +76,7 @@ static	Vector	zero_vector = { 0.0f, 0.0f, 0.0f};
 
 - (void) performFlyToRangeFromDestination
 {
-	condition = CONDITION_FLY_RANGE_FROM_DESTINATION;
+	behaviour = BEHAVIOUR_FLY_RANGE_FROM_DESTINATION;
 	frustration = 0.0;
 }
 
@@ -92,14 +92,14 @@ static	Vector	zero_vector = { 0.0f, 0.0f, 0.0f};
 
 - (void) performIdle
 {
-	condition = CONDITION_IDLE;
+	behaviour = BEHAVIOUR_IDLE;
 	frustration = 0.0;
 }
 
 - (void) performHold
 {
 	desired_speed = 0.0;
-	condition = CONDITION_TRACK_TARGET;
+	behaviour = BEHAVIOUR_TRACK_TARGET;
 	frustration = 0.0;
 }
 
@@ -113,10 +113,10 @@ static	Vector	zero_vector = { 0.0f, 0.0f, 0.0f};
 	// a more considered approach here:
 	// if we're already busy attacking a target we don't necessarily want to break off
 	//
-	switch (condition)
+	switch (behaviour)
 	{
-		case CONDITION_ATTACK_FLY_FROM_TARGET:
-		case CONDITION_ATTACK_FLY_TO_TARGET:
+		case BEHAVIOUR_ATTACK_FLY_FROM_TARGET:
+		case BEHAVIOUR_ATTACK_FLY_TO_TARGET:
 			if (randf() < 0.75)	// if I'm attacking, ignore 75% of new aggressor's attacks
 				return;
 			break;
@@ -140,7 +140,7 @@ static	Vector	zero_vector = { 0.0f, 0.0f, 0.0f};
 
 - (void) performAttack
 {
-	condition = CONDITION_ATTACK_TARGET;
+	behaviour = BEHAVIOUR_ATTACK_TARGET;
 	frustration = 0.0;
 }
 
@@ -343,19 +343,19 @@ static	Vector	zero_vector = { 0.0f, 0.0f, 0.0f};
 
 - (void) performCollect
 {
-	condition = CONDITION_COLLECT_TARGET;
+	behaviour = BEHAVIOUR_COLLECT_TARGET;
 	frustration = 0.0;
 }
 
 - (void) performIntercept
 {
-	condition = CONDITION_INTERCEPT_TARGET;
+	behaviour = BEHAVIOUR_INTERCEPT_TARGET;
 	frustration = 0.0;
 }
 
 - (void) performFlee
 {
-	condition = CONDITION_FLEE_TARGET;
+	behaviour = BEHAVIOUR_FLEE_TARGET;
 	frustration = 0.0;
 }
 
@@ -423,7 +423,7 @@ static	Vector	zero_vector = { 0.0f, 0.0f, 0.0f};
 
 - (void) performFaceDestination
 {
-	condition = CONDITION_FACE_DESTINATION;
+	behaviour = BEHAVIOUR_FACE_DESTINATION;
 	frustration = 0.0;
 }
 
@@ -432,7 +432,7 @@ static	Vector	zero_vector = { 0.0f, 0.0f, 0.0f};
 	flight_roll = max_flight_roll*2.0*(randf() - 0.5);
 	flight_pitch = max_flight_pitch*2.0*(randf() - 0.5);
 //	velocity = make_vector( flight_speed*2.0*(randf() - 0.5), flight_speed*2.0*(randf() - 0.5), flight_speed*2.0*(randf() - 0.5));
-	condition = CONDITION_TUMBLE;
+	behaviour = BEHAVIOUR_TUMBLE;
 	frustration = 0.0;
 }
 
@@ -952,15 +952,15 @@ WormholeEntity*	whole;
 - (void) acceptDistressMessageFrom:(ShipEntity *)other
 {
 	found_target = [[other getPrimaryTarget] universal_id];
-	switch (condition)
+	switch (behaviour)
 	{
-		case CONDITION_ATTACK_TARGET :
-		case CONDITION_ATTACK_FLY_TO_TARGET :
-		case CONDITION_ATTACK_FLY_FROM_TARGET :
+		case BEHAVIOUR_ATTACK_TARGET :
+		case BEHAVIOUR_ATTACK_FLY_TO_TARGET :
+		case BEHAVIOUR_ATTACK_FLY_FROM_TARGET :
 			// busy - ignore the request
 			break;
 			
-		case CONDITION_FLEE_TARGET :
+		case BEHAVIOUR_FLEE_TARGET :
 			// scared - ignore the request;
 			break;
 			
@@ -1093,7 +1093,7 @@ WormholeEntity*	whole;
 - (void) initialiseTurret
 {
 //	NSLog(@"DEBUG initialising ball turret %@ (%@)", self, basefile);
-	[self setCondition: CONDITION_TRACK_AS_TURRET];
+	[self setBehaviour: BEHAVIOUR_TRACK_AS_TURRET];
 	weapon_recharge_rate = 0.5;	// test
 //	weapon_energy = 0.1;		// test
 	[self setStatus: STATUS_ACTIVE];
@@ -1251,7 +1251,7 @@ WormholeEntity*	whole;
 
 - (void) performEscort
 {
-	condition = CONDITION_FORMATION_FORM_UP;
+	behaviour = BEHAVIOUR_FORMATION_FORM_UP;
 	frustration = 0.0;
 }
 
@@ -1591,7 +1591,7 @@ WormholeEntity*	whole;
 
 - (void) performMining
 {
-	condition = CONDITION_ATTACK_MINING_TARGET;
+	behaviour = BEHAVIOUR_ATTACK_MINING_TARGET;
 	frustration = 0.0;
 }
 

@@ -2329,7 +2329,7 @@ static BOOL toggling_music;
 	if (([gameView isDown:key_autopilot])&&(has_docking_computer)&&(![self isBeeping]))   // look for the 'c' key
 	{
 		[self abortDocking];			// let the station know that you are no longer on approach
-		condition = CONDITION_IDLE;
+		behaviour = BEHAVIOUR_IDLE;
 		frustration = 0.0;
 		autopilot_engaged = NO;
 		primaryTarget = NO_TARGET;

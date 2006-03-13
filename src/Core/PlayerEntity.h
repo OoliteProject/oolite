@@ -38,8 +38,8 @@ Your fair use and other rights are in no way affected by the above.
 */
 
 #import <Foundation/Foundation.h>
-
 #import "ShipEntity.h"
+
 #ifdef GNUSTEP
 #import "SDLImage.h"
 #endif

@@ -2847,7 +2847,7 @@ double scoopSoundPlayTime = 0.0;
 	[mine setVelocity: mvel];
 	[mine setScanClass: CLASS_MINE];
 	[mine setStatus: STATUS_IN_FLIGHT];
-	[mine setCondition: CONDITION_IDLE];
+	[mine setBehaviour: BEHAVIOUR_IDLE];
 	[mine setOwner: self];
 	[[mine getAI] setState:@"GLOBAL"];	// start the timer !!!!
 	return YES;
@@ -3284,7 +3284,7 @@ double scoopSoundPlayTime = 0.0;
 		[doppelganger setDesiredSpeed: flight_speed];
 		[doppelganger setOwner: self];
 		[doppelganger setStatus: STATUS_IN_FLIGHT];  // necessary to get it going!
-		[doppelganger setCondition: CONDITION_IDLE];
+		[doppelganger setBehaviour: BEHAVIOUR_IDLE];
 		
 		[universe addEntity:doppelganger];
 		

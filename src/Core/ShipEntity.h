@@ -41,49 +41,49 @@ Your fair use and other rights are in no way affected by the above.
 
 #import "Entity.h"
 
-#define CONDITION_IDLE			0
-#define CONDITION_TRACK_TARGET	1
-#define CONDITION_FLY_TO_TARGET	2
-#define CONDITION_HANDS_OFF		3
-#define CONDITION_TUMBLE		4
+#define BEHAVIOUR_IDLE			0
+#define BEHAVIOUR_TRACK_TARGET	1
+#define BEHAVIOUR_FLY_TO_TARGET	2
+#define BEHAVIOUR_HANDS_OFF		3
+#define BEHAVIOUR_TUMBLE		4
 
-#define CONDITION_STATION_KEEPING		10
+#define BEHAVIOUR_STATION_KEEPING		10
 
-#define IS_CONDITION_HOSTILE(c)					((c > 100)&&(c < 120))
-#define CONDITION_ATTACK_TARGET					101
-#define CONDITION_ATTACK_FLY_TO_TARGET			102
-#define CONDITION_ATTACK_FLY_FROM_TARGET		103
-#define CONDITION_RUNNING_DEFENSE				104
+#define IS_BEHAVIOUR_HOSTILE(c)					((c > 100)&&(c < 120))
+#define BEHAVIOUR_ATTACK_TARGET					101
+#define BEHAVIOUR_ATTACK_FLY_TO_TARGET			102
+#define BEHAVIOUR_ATTACK_FLY_FROM_TARGET		103
+#define BEHAVIOUR_RUNNING_DEFENSE				104
 // fleeing
-#define CONDITION_FLEE_TARGET					105
+#define BEHAVIOUR_FLEE_TARGET					105
 // advanced combat...
-#define CONDITION_ATTACK_FLY_TO_TARGET_SIX		106
-#define CONDITION_ATTACK_MINING_TARGET			107
+#define BEHAVIOUR_ATTACK_FLY_TO_TARGET_SIX		106
+#define BEHAVIOUR_ATTACK_MINING_TARGET			107
 // further advanced combat...
-#define CONDITION_ATTACK_FLY_TO_TARGET_TWELVE	112
+#define BEHAVIOUR_ATTACK_FLY_TO_TARGET_TWELVE	112
 
-#define CONDITION_AVOID_COLLISION			130
+#define BEHAVIOUR_AVOID_COLLISION			130
 
-#define CONDITION_TRACK_AS_TURRET			150
+#define BEHAVIOUR_TRACK_AS_TURRET			150
 
-#define CONDITION_FLY_RANGE_FROM_DESTINATION	200
-#define CONDITION_FLY_TO_DESTINATION			201
-#define CONDITION_FLY_FROM_DESTINATION			202
-#define CONDITION_FACE_DESTINATION				203
+#define BEHAVIOUR_FLY_RANGE_FROM_DESTINATION	200
+#define BEHAVIOUR_FLY_TO_DESTINATION			201
+#define BEHAVIOUR_FLY_FROM_DESTINATION			202
+#define BEHAVIOUR_FACE_DESTINATION				203
 
-#define CONDITION_COLLECT_TARGET			300
-#define CONDITION_INTERCEPT_TARGET			350
+#define BEHAVIOUR_COLLECT_TARGET			300
+#define BEHAVIOUR_INTERCEPT_TARGET			350
 
-#define CONDITION_MISSILE_FLY_TO_TARGET		901
+#define BEHAVIOUR_MISSILE_FLY_TO_TARGET		901
 
-#define CONDITION_FORMATION_FORM_UP			501
-#define CONDITION_FORMATION_BREAK			502
+#define BEHAVIOUR_FORMATION_FORM_UP			501
+#define BEHAVIOUR_FORMATION_BREAK			502
 
-#define CONDITION_ENERGY_BOMB_COUNTDOWN		601
+#define BEHAVIOUR_ENERGY_BOMB_COUNTDOWN		601
 
-#define CONDITION_TRACTORED					701
+#define BEHAVIOUR_TRACTORED					701
 
-#define CONDITION_EXPERIMENTAL				54321
+#define BEHAVIOUR_EXPERIMENTAL				54321
 
 
 #define MAX_TARGETS							24
@@ -271,7 +271,7 @@ Your fair use and other rights are in no way affected by the above.
 		double		desired_speed;		// speed at which to travel
 		double		launch_time;		// time at which launched
 		
-		int		condition;						// ship's behavioural state
+		int		behaviour;						// ship's behavioural state
 		double	frustration, success_factor;	// degree of dissatisfaction with the current behavioural state, factor used to test this
 		
 		int		patrol_counter;				// keeps track of where the ship is along a patrol route
@@ -507,8 +507,8 @@ Vector randomPositionInBoundingBox(BoundingBox bb);
 - (Entity *) getPrimaryTarget;
 - (int) getPrimaryTargetID;
 
-- (int) condition;
-- (void) setCondition:(int) cond;
+- (int) behaviour;
+- (void) setBehaviour:(int) cond;
 
 - (void) trackOntoTarget:(double) delta_t withDForward: (GLfloat) dp;
 
