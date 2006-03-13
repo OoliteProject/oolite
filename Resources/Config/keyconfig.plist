@@ -66,5 +66,9 @@
 	<integer>96</integer>
 	<key>key_next_compass_mode</key>
 	<integer>92</integer>
+	<key>key_next_target</key>
+	<integer>45</integer>
+	<key>key_previous_target</key>
+	<integer>43</integer>
 </dict>
 </plist>

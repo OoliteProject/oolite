@@ -123,6 +123,9 @@ Your fair use and other rights are in no way affected by the above.
 	//
 	key_contract_info = 63;			// '?'
 	//
+	key_next_target = 45;			// '+'
+	key_previous_target = 43;		// '-'
+	//
 	// now check the keyconfig dictionary...
 	if ([kdic objectForKey:@"key_roll_left"])		key_roll_left = [(NSNumber *)[kdic objectForKey:@"key_roll_left"] intValue];
 	if ([kdic objectForKey:@"key_roll_right"])		key_roll_right = [(NSNumber *)[kdic objectForKey:@"key_roll_right"] intValue];
@@ -150,6 +153,9 @@ Your fair use and other rights are in no way affected by the above.
 	if ([kdic objectForKey:@"key_scanner_zoom"])	key_scanner_zoom = [(NSNumber *)[kdic objectForKey:@"key_scanner_zoom"] intValue];
 	if ([kdic objectForKey:@"key_scanner_unzoom"])	key_scanner_unzoom = [(NSNumber *)[kdic objectForKey:@"key_scanner_unzoom"] intValue];
 	//
+	if ([kdic objectForKey:@"key_next_target"])		key_next_target = [(NSNumber *)[kdic objectForKey:@"key_next_target"] intValue];
+	if ([kdic objectForKey:@"key_previous_target"])	key_previous_target = [(NSNumber *)[kdic objectForKey:@"key_previous_target"] intValue];
+	//
 	if ([kdic objectForKey:@"key_map_dump"])		key_map_dump = [(NSNumber *)[kdic objectForKey:@"key_map_dump"] intValue];
 	if ([kdic objectForKey:@"key_map_home"])		key_map_home = [(NSNumber *)[kdic objectForKey:@"key_map_home"] intValue];
 	//
@@ -176,6 +182,11 @@ Your fair use and other rights are in no way affected by the above.
 	//
 	if ([kdic objectForKey:@"key_contract_info"])
 		key_contract_info = [(NSNumber *)[kdic objectForKey:@"key_contract_info"] intValue];
+	//
+	if ([kdic objectForKey:@"key_next_target"])
+		key_next_target = [(NSNumber *)[kdic objectForKey:@"key_next_target"] intValue];
+	if ([kdic objectForKey:@"key_previous_target"])
+		key_previous_target = [(NSNumber *)[kdic objectForKey:@"key_previous_target"] intValue];
 	//
 	if ([kdic objectForKey:@"key_map_info"])
 		key_map_info = [(NSNumber *)[kdic objectForKey:@"key_map_info"] intValue];
@@ -868,6 +879,8 @@ Your fair use and other rights are in no way affected by the above.
 	[self setUpSound];
 	//
 	scoopsActive = NO;
+	//
+	target_memory_index = 0;
 	//
     return self;
 }
@@ -1783,7 +1796,7 @@ double scoopSoundPlayTime = 0.0;
 			Entity *first_target = [universe entityForUniversalID:first_target_id];
 			if ([first_target isKindOfClass:[ShipEntity class]])
 			{
-				primaryTarget = first_target_id;
+				[self addTarget: first_target];
 				missile_status = MISSILE_STATUS_TARGET_LOCKED;
 				if ((missile_entity[active_missile])&&(!ident_engaged))
 					[missile_entity[active_missile] addTarget:first_target];
@@ -3635,6 +3648,7 @@ double scoopSoundPlayTime = 0.0;
 	missile_status =	MISSILE_STATUS_SAFE;
 	
 	primaryTarget = NO_TARGET;
+	[self clearTargetMemory];
 	
 	forward_shield =	PLAYER_MAX_FORWARD_SHIELD;
 	aft_shield =		PLAYER_MAX_AFT_SHIELD;
@@ -3701,6 +3715,7 @@ double scoopSoundPlayTime = 0.0;
 	[hud setScannerZoom:1.0];
 	scanner_zoom_rate = 0.0;
 	gui_screen = GUI_SCREEN_MAIN;
+	[self clearTargetMemory];
 	[self setShowDemoShips:NO];
 	[universe setDisplayText:NO];
 	[universe setDisplayCursor:NO];
@@ -3936,6 +3951,7 @@ double scoopSoundPlayTime = 0.0;
 	status = STATUS_EXITING_WITCHSPACE;
 	gui_screen = GUI_SCREEN_MAIN;
 	being_fined = NO;				// until you're scanned by a copper!
+	[self clearTargetMemory];
 	[self setShowDemoShips:NO];
 	[universe setDisplayCursor:NO];
 	[universe setDisplayText:NO];
@@ -6375,6 +6391,101 @@ OOSound* burnersound;
 {
 	scoopsActive = YES;
 }
+
+// override shipentity addTarget to implement target_memory
+//
+- (void) addTarget:(Entity *) targetEntity
+{
+	[super addTarget:targetEntity];
+	if ([self has_extra_equipment:@"EQ_TARGET_MEMORY"])
+	{
+		int i = 0;
+		// if targetted previously use that memory space
+		for (i = 0; i < PLAYER_TARGET_MEMORY_SIZE; i++)
+		{
+			if (primaryTarget == target_memory[i])
+			{
+				target_memory_index = i;
+				return;
+			}
+		}
+		// find and use a blank space in memory
+		for (i = 0; i < PLAYER_TARGET_MEMORY_SIZE; i++)
+		{
+			if (target_memory[target_memory_index] == NO_TARGET)
+			{
+				target_memory[target_memory_index] = primaryTarget;
+				return;
+			}
+			target_memory_index = (target_memory_index + 1) % PLAYER_TARGET_MEMORY_SIZE;
+		}
+		// use the next memory space
+		target_memory_index = (target_memory_index + 1) % PLAYER_TARGET_MEMORY_SIZE;
+		target_memory[target_memory_index] = primaryTarget;
+		return;
+	}
+}
+
+- (void) clearTargetMemory
+{
+	int i = 0;
+	for (i = 0; i < PLAYER_TARGET_MEMORY_SIZE; i++)
+		target_memory[i] = NO_TARGET;
+	target_memory_index = 0;
+}
+
+- (BOOL) selectNextTargetFromMemory
+{
+	int i = 0;
+	while (i++ < PLAYER_TARGET_MEMORY_SIZE)	// limit loops
+	{
+		if (++target_memory_index >= PLAYER_TARGET_MEMORY_SIZE)
+			target_memory_index -= PLAYER_TARGET_MEMORY_SIZE;
+		int targ_id = target_memory[target_memory_index];
+		ShipEntity* potential_target = (ShipEntity*)[universe entityForUniversalID: targ_id];
+				
+		if ((potential_target)&&(potential_target->isShip))
+		{
+			if (potential_target->zero_distance < SCANNER_MAX_RANGE2)
+			{
+				[super addTarget:potential_target];
+				missile_status = MISSILE_STATUS_TARGET_LOCKED;
+				[universe addMessage:[NSString stringWithFormat:[universe expandDescription:@"[@-locked-onto-@]" forSystem:system_seed], (ident_engaged)? @"Ident system": @"Missile", [(ShipEntity *)potential_target name]] forCount:4.5];
+				return YES;
+			}
+		}
+		else
+			target_memory[target_memory_index] = NO_TARGET;	// tidy up
+	}
+	return NO;
+}
+
+- (BOOL) selectPreviousTargetFromMemory;
+{
+	int i = 0;
+	while (i++ < PLAYER_TARGET_MEMORY_SIZE)	// limit loops
+	{
+		if (--target_memory_index < 0)
+			target_memory_index += PLAYER_TARGET_MEMORY_SIZE;
+		int targ_id = target_memory[target_memory_index];
+		ShipEntity* potential_target = (ShipEntity*)[universe entityForUniversalID: targ_id];
+		
+		if ((potential_target)&&(potential_target->isShip))
+		{
+			if (potential_target->zero_distance < SCANNER_MAX_RANGE2)
+			{
+				[super addTarget:potential_target];
+				missile_status = MISSILE_STATUS_TARGET_LOCKED;
+				[universe addMessage:[NSString stringWithFormat:[universe expandDescription:@"[@-locked-onto-@]" forSystem:system_seed], (ident_engaged)? @"Ident system": @"Missile", [(ShipEntity *)potential_target name]] forCount:4.5];
+				return YES;
+			}
+		}
+		else
+			target_memory[target_memory_index] = NO_TARGET;	// tidy_up
+	}
+	return NO;
+}
+
 
 
 @end

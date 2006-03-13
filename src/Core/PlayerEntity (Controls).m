@@ -149,6 +149,8 @@ static BOOL galhyperspace_pressed;
 static BOOL pause_pressed;
 static BOOL compass_mode_pressed;
 static BOOL next_target_pressed;
+static BOOL previous_target_pressed;
+static BOOL next_missile_pressed;
 static BOOL fire_missile_pressed;
 static BOOL target_missile_pressed;
 static BOOL ident_pressed;
@@ -368,7 +370,7 @@ static NSTimeInterval	time_last_frame;
 			else
 				fire_missile_pressed = NO;
 			//
-			//  shoot 'y'   // next target
+			//  shoot 'y'   // next missile
 			//
 #ifdef GNUSTEP		 
 			if ([gameView isDown:key_next_missile] || joyButtonState[BUTTON_CYCLEMISSILE])
@@ -376,15 +378,47 @@ static NSTimeInterval	time_last_frame;
 			if ([gameView isDown:key_next_missile])
 #endif				
 			{
-				if ((!ident_engaged)&&(!next_target_pressed)&&([self has_extra_equipment:@"EQ_MULTI_TARGET"]))
+				if ((!ident_engaged)&&(!next_missile_pressed)&&([self has_extra_equipment:@"EQ_MULTI_TARGET"]))
 				{
 					[[universe gui] click];
 					[self select_next_missile];
+				}
+				next_missile_pressed = YES;
+			}
+			else
+				next_missile_pressed = NO;
+			//
+			//	'+' // next target
+			//
+			if ([gameView isDown:key_next_target])
+			{
+				if ((!next_target_pressed)&&([self has_extra_equipment:@"EQ_TARGET_MEMORY"]))
+				{
+					if ([self selectNextTargetFromMemory])
+						[[universe gui] click];
+					else
+						[boopSound play];
 				}
 				next_target_pressed = YES;
 			}
 			else
 				next_target_pressed = NO;
+			//
+			//	'-' // previous target
+			//
+			if ([gameView isDown:key_previous_target])
+			{
+				if ((!previous_target_pressed)&&([self has_extra_equipment:@"EQ_TARGET_MEMORY"]))
+				{
+					if ([self selectPreviousTargetFromMemory])
+						[[universe gui] click];
+					else
+						[boopSound play];
+				}
+				previous_target_pressed = YES;
+			}
+			else
+				previous_target_pressed = NO;
 			//
 			//  shoot 'r'   // switch on ident system
 			//

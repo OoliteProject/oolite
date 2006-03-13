@@ -138,6 +138,8 @@ enum
 
 #define PLAYER_MAX_TRUMBLES				24
 
+#define	PLAYER_TARGET_MEMORY_SIZE		16
+
 	//  ~~~~~~~~~~~~~~~~~~~~~~~~	= 40km
 	
 #define ALERT_CONDITION_DOCKED			0
@@ -450,6 +452,9 @@ enum
 	
 	int						key_contract_info;
 	
+	int						key_next_target;
+	int						key_previous_target;
+	
 	// save-file
 	NSString				*save_path;
 	
@@ -472,6 +477,10 @@ enum
 	
 	// smart fuelscoops
 	BOOL					scoopsActive;
+	
+	// target memory
+	int						target_memory[PLAYER_TARGET_MEMORY_SIZE];
+	int						target_memory_index;
 
 
 #ifdef GNUSTEP
@@ -661,6 +670,10 @@ enum
 - (void) suppressTargetLost;
 
 - (void) setScoopsActive;
+
+- (void) clearTargetMemory;
+- (BOOL) selectNextTargetFromMemory;
+- (BOOL) selectPreviousTargetFromMemory;
 
 
 @end

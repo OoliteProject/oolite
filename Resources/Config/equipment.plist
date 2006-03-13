@@ -222,6 +222,17 @@
 		</dict>
 	</array>
 	<array>
+		<integer>8</integer>
+		<integer>12500</integer>
+		<string>Target System Memory Expansion</string>
+		<string>EQ_TARGET_MEMORY</string>
+		<string>A sixteen core target memory matrix. Allows selection of previous target locks.</string>
+		<dict>
+			<key>available_to_all</key>
+			<true/>
+		</dict>
+	</array>
+	<array>
 		<integer>99</integer>
 		<integer>150000</integer>
 		<string>Thargoid Laser</string>
