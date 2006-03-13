@@ -33,13 +33,24 @@ then
 fi
 
 svn up >/dev/null 
+if [ $? != 0 ]
+then
+   echo "Nightly build could not svn up"
+   exit 255
+fi
 
 # check whether we should even bother building
 LASTBUILD=`cat LASTBUILD` 
 THISBUILD=`svn info . | grep Revision | cut -d ' ' -f 2`
+if [ $? != 0 ]
+then
+   echo "Could not get build revision"
+   exit 255
+fi
+
 if [ "$LASTBUILD" == "$THISBUILD" ]
 then
-   echo "Debug: Up to date - lastbuild=$LASTBUILD thisbuild=$THISBUILD"
+   echo "Nightly build up to date - lastbuild=$LASTBUILD thisbuild=$THISBUILD"
    exit 0
 fi
 
