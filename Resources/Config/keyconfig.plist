@@ -56,6 +56,8 @@
 	<integer>115</integer>
 	<key>key_scanner_zoom</key>
 	<integer>122</integer>
+	<key>key_scanner_unzoom</key>
+	<integer>90</integer>
 	<key>key_map_dump</key>
 	<integer>33</integer>
 	<key>key_map_home</key>

@@ -420,6 +420,7 @@ enum
 	int						key_snapshot;
 	int						key_docking_music;
 	int						key_scanner_zoom;
+	int						key_scanner_unzoom;
 	
 	int						key_map_dump;
 	int						key_map_home;

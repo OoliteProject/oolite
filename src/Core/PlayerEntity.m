@@ -100,6 +100,7 @@ Your fair use and other rights are in no way affected by the above.
 	key_snapshot = 42;				// '*'
 	key_docking_music = 115;		// 's'
 	key_scanner_zoom = 122;			// 'z'
+	key_scanner_unzoom = 90;		// 'Z'
 	//
 	key_map_dump = 33;				// '!'
 	key_map_home = gvHomeKey;		// 'home'
@@ -147,6 +148,7 @@ Your fair use and other rights are in no way affected by the above.
 	if ([kdic objectForKey:@"key_snapshot"])		key_snapshot = [(NSNumber *)[kdic objectForKey:@"key_snapshot"] intValue];
 	if ([kdic objectForKey:@"key_docking_music"])   key_docking_music = [(NSNumber *)[kdic objectForKey:@"key_docking_music"] intValue];
 	if ([kdic objectForKey:@"key_scanner_zoom"])	key_scanner_zoom = [(NSNumber *)[kdic objectForKey:@"key_scanner_zoom"] intValue];
+	if ([kdic objectForKey:@"key_scanner_unzoom"])	key_scanner_unzoom = [(NSNumber *)[kdic objectForKey:@"key_scanner_unzoom"] intValue];
 	//
 	if ([kdic objectForKey:@"key_map_dump"])		key_map_dump = [(NSNumber *)[kdic objectForKey:@"key_map_dump"] intValue];
 	if ([kdic objectForKey:@"key_map_home"])		key_map_home = [(NSNumber *)[kdic objectForKey:@"key_map_home"] intValue];

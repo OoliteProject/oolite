@@ -2121,6 +2121,14 @@ static BOOL zoom_pressed;
 	else
 		zoom_pressed = NO;
 	//
+	// Unzoom scanner 'Z'
+	//
+	if ([gameView isDown:key_scanner_unzoom] && ([gameView allowingStringInput] == gvStringInputNo)) // look for the 'Z' key
+	{
+		if ((!scanner_zoom_rate)&&([hud scanner_zoom] > 1.0))
+			scanner_zoom_rate = SCANNER_ZOOM_RATE_DOWN;
+	}
+	//
 	// Compass mode '/'
 	//
 	if ([gameView isDown:key_next_compass_mode]) // look for the '/' key
