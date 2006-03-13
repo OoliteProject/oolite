@@ -279,6 +279,7 @@ static  Universe	*data_store_universe;
 	isPlanet = NO;
 	isPlayer = NO;
 	isSky = NO;
+	isSubentity = NO;
 	//
 	isSunlit = YES;
 	shadingEntityID = NO_TARGET;

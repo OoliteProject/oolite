@@ -463,7 +463,9 @@ static NSMutableDictionary* smallOctreeDict = nil;
 
 - (void) reinit
 {
-    //
+	//
+	isSubentity = NO;
+	//
     quaternion_set_identity(&q_rotation);
     quaternion_into_gl_matrix(q_rotation, rotMatrix);
 	//
@@ -1010,6 +1012,8 @@ static NSMutableDictionary* smallOctreeDict = nil;
 								[subent setStatus:STATUS_EFFECT];			// hack keeps docking slit visible when at reduced detail
 							else
 								[self addSolidSubentityToCollisionRadius:(ShipEntity*)subent];	// hack - ignore docking-slit for collision radius
+							//
+							subent->isSubentity = YES;
 						}
 						//
 					}

@@ -177,6 +177,8 @@ extern int debug;
 		BOOL	isSky;
 		BOOL	isWormhole;
 		//
+		BOOL	isSubentity;
+		//
 		int			scan_class;
 		double		zero_distance;
 		double		no_draw_distance;  //  10 km initially
