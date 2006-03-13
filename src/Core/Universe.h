@@ -377,7 +377,7 @@ extern int debug;
 - (double) getTime;
 - (double) getTimeDelta;
 
-- (void) findCollisions;
+- (void) findCollisionsAndShadows;
 - (NSString*) collisionDescription;
 - (void) dumpCollisions;
 

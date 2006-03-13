@@ -88,6 +88,8 @@ NSArray* subregionsContainingPosition( Vector position, CollisionRegion* region)
 - (BOOL) checkEntity:(Entity*) ent;
 //
 - (void) findCollisionsInUniverse:(Universe*) universe;
+//
+- (void) findShadowedEntitiesIn:(Universe*) universe;
 
 - (NSString*) debugOut;
 

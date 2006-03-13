@@ -4677,10 +4677,10 @@ GLfloat	starboard_matrix[] = {	0.0f, 0.0f, 1.0f, 0.0f,		0.0f, 1.0f, 0.0f, 0.0f,	
 	return time_delta;
 }
 
-- (void) findCollisions
+- (void) findCollisionsAndShadows
 {
 	//
-	// According to Shark, this is where Oolite spends most time!
+	// According to Shark, this is where Oolite spent most time!
 	//
 	int i;
 	//
@@ -4692,106 +4692,10 @@ GLfloat	starboard_matrix[] = {	0.0f, 0.0f, 1.0f, 0.0f,		0.0f, 1.0f, 0.0f, 0.0f,	
 	//
 	[universeRegion findCollisionsInUniverse: self];
 	//
+	// do check for entities that can't see the sun!
+	[universeRegion findShadowedEntitiesIn: self];
+	//
 }
-//{
-//	//
-//	// According to Shark, this is where Oolite spends most time!
-//	//
-//	Entity *e1,*e2;
-//	Vector p1, p2;
-//	double dist2, r1, r2, r0, min_dist2;
-//	int i,j;
-//	//
-//	// use a non-mutable copy so this can't be changed under us.
-//	//
-//	int			ent_count =		n_entities;
-//	int			n_test = 0;
-//	Entity*		my_entities[ent_count];
-//	for (i = 0; i < ent_count; i++)
-//	{
-//		if ([sortedEntities[i] canCollide])	// on Jens' suggestion only check collidables
-//			my_entities[n_test++] = [sortedEntities[i] retain];		//	retained
-//	}
-//	if (n_test <= 1)
-//		return;
-//	//
-//	//	clear collision vars
-//	for (i = 0; i < n_test; i++)
-//	{
-//		e1 = my_entities[i];
-//		if (e1->has_collided)
-//			[[e1 collisionArray] removeAllObjects];
-//		e1->has_collided = NO;
-//		if (e1->isShip)
-//			[(ShipEntity*)e1 setProximity_alert:nil];
-//		e1->collider = nil;
-//	}
-//	//
-//	// test each entity against the others
-//	for (i = 0; i < n_test; i++)
-//	{
-//		e1 = my_entities[i];
-//		p1 = e1->position;
-//		r1 = e1->collision_radius;
-//		for (j = i + 1; j < n_test; j++)	// was j = 1, which wasted time!
-//		{
-//			e2 = my_entities[j];
-//			p2 = e2->position;
-//			r2 = e2->collision_radius;
-//			r0 = r1 + r2;
-//			p2.x -= p1.x;   p2.y -= p1.y;   p2.z -= p1.z;
-//			if ((p2.x > r0)||(p2.x < -r0))	// test for simple x distance
-//				continue;	// next j
-//			if ((p2.y > r0)||(p2.y < -r0))	// test for simple y distance
-//				continue;	// next j
-//			if ((p2.z > r0)||(p2.z < -r0))	// test for simple z distance
-//				continue;	// next j
-//			dist2 = p2.x*p2.x + p2.y*p2.y + p2.z*p2.z;
-//			min_dist2 = r0 * r0;
-//			if (e1->isShip && (e2 == cachedSun))
-//				[e1 setThrowSparks:(dist2 < SUN_SPARKS_RADIUS_FACTOR * min_dist2)];
-//			if (e2->isShip && (e1 == cachedSun))
-//				[e2 setThrowSparks:(dist2 < SUN_SPARKS_RADIUS_FACTOR * min_dist2)];
-//			if (dist2 < PROXIMITY_WARN_DISTANCE2 * min_dist2)
-//			{
-//				if ((e1->isShip) && (e2->isShip))
-//				{
-////					NSLog(@"PROXIMITY ALERT %@ VS %@", e1, e2);
-//					if (dist2 < PROXIMITY_WARN_DISTANCE2 * r2 * r2) [(ShipEntity*)e1 setProximity_alert:(ShipEntity*)e2];
-//					if (dist2 < PROXIMITY_WARN_DISTANCE2 * r1 * r1) [(ShipEntity*)e2 setProximity_alert:(ShipEntity*)e1];
-//				}
-//				if (dist2 < min_dist2)
-//				{
-//					BOOL	coll1 = [e1 checkCloseCollisionWith:e2];
-//					BOOL	coll2 = [e2 checkCloseCollisionWith:e1];
-////					NSLog(@"Checking close collision between entities [%@:%@] = :%@: :%@:",e1,e2, coll1? @"YES":@"NO ", coll2? @"YES":@"NO ");
-//					if ( coll1 && coll2 )
-//					{
-//						//NSLog(@"collision!");
-//						if (e1->collider)
-//							[[e1 collisionArray] addObject:e1->collider];
-//						else
-//							[[e1 collisionArray] addObject:e2];
-//						e1->has_collided = YES;
-//						//
-//						if (e2->collider)
-//							[[e2 collisionArray] addObject:e2->collider];
-//						else
-//							[[e2 collisionArray] addObject:e1];
-//						e2->has_collided = YES;
-//					}
-//				}
-//			}
-////			if (dumpCollisionInfo)
-////				NSLog(@"Entity %d (%.1f) to entity %d (%.1f)- dist2ance  %.1f (%.1f,%.1f,%.1f)", i, r1, j, r2, sqrt(dist2), p2.x, p2.y, p2.z);
-//		}
-//	}
-////	if (dumpCollisionInfo)
-////		dumpCollisionInfo = NO;
-//	//
-//	for (i = 0; i < n_test; i++)
-//		[my_entities[i] release];		//	released
-//}
 
 - (NSString*) collisionDescription
 {
@@ -4988,7 +4892,6 @@ GLfloat	starboard_matrix[] = {	0.0f, 0.0f, 1.0f, 0.0f,		0.0f, 1.0f, 0.0f, 0.0f,	
 			PlayerEntity*	player = (PlayerEntity *)[self entityZero];
 			int				ent_count = n_entities;
 			Entity*			my_entities[ent_count];
-			BOOL			playerDemo = [player showDemoShips];
 			
 			sky_clear_color[0] = 0.0;
 			sky_clear_color[1] = 0.0;
@@ -5089,117 +4992,10 @@ GLfloat	starboard_matrix[] = {	0.0f, 0.0f, 1.0f, 0.0f,		0.0f, 1.0f, 0.0f, 0.0f,	
 				}
 			}
 			//
-			// lighting considerations..
-			update_stage = @"occlusion testing";
-			PlanetEntity* the_sun = cachedSun;
-			if (the_sun)
-			{
-				for (i = 0; i < ent_count; i++)
-				{
-					Entity* e1 = my_entities[i];
-					BOOL occluder_moved = NO;
-					if (e1->isSunlit == NO)
-					{
-						Entity* occluder = [self entityForUniversalID:e1->shadingEntityID];
-						if (occluder)
-							occluder_moved = occluder->has_moved;
-					}
-					if (((e1->isShip)||(e1->isPlanet))&&((e1->has_moved)||occluder_moved))
-					{
-						int j;
-//						if (e1->isPlayer)
-//							NSLog(@"\nDEBUG checking occlusion for %@", e1);
-						e1->isSunlit = YES;				// sunlit by default
-						//
-						// check demo mode here..
-						if (playerDemo)
-							continue;	// don't check shading in demo mode
-						//
-						e1->shadingEntityID = NO_TARGET;
-						for (j = 0; (j < ent_count)&&(e1->isSunlit)&&(e1->status != STATUS_DEMO) ; j++)
-						{
-							Entity* e2 = my_entities[j];
-							//
-							// simple tests
-							if (j == i)
-								continue;	// you can't shade self
-							//
-							if (e2 == the_sun)
-								continue;	// sun can't shade itself
-							//
-							if ((e2->isShip == NO)&&(e2->isPlanet == NO))
-								continue;	// only ships and planets shade
-							//
-							if (e2->collision_radius < e1->collision_radius)
-								continue;	// smaller can't shade bigger
-							//
-							if (e2->isSunlit == NO)
-								continue;	// things already /in/ shade can't shade things more.
-							//
-//							//
-//							if (e1->isPlayer)
-//								NSLog(@"DEBUG checking DISTANCE for occlusion against %@", e2);
-//							//
-							// check projected sizes of discs
-							GLfloat d2_sun = distance2( e1->position, the_sun->position);
-							GLfloat d2_e2sun = distance2( e2->position, the_sun->position);
-							if (d2_e2sun > d2_sun)
-								continue;	// you are nearer the sun than the potential occluder, so it can't shade you
-//							//
-//							if (e1->isPlayer)
-//								NSLog(@"DEBUG checking SIZE for occlusion against %@", e2);
-//							//
-							GLfloat d2_e2 = distance2( e1->position, e2->position);
-							GLfloat cr_sun = the_sun->collision_radius;
-							GLfloat cr_e2 = e2->actual_radius;
-							if (e2->isShip)
-								cr_e2 *= 0.90;	// 10% smaller shadow for ships
-							if (e2->isPlanet)
-								cr_e2 = e2->collision_radius;	// use collision radius for planets
-//							//
-//							if (e1->isPlayer)
-//								NSLog(@"DEBUG checking cr_sun %.2fm vs cr_e2 %.2fm", cr_sun, cr_e2);
-//							//
-							GLfloat cr2_sun_scaled = cr_sun * cr_sun * d2_e2 / d2_sun;
-							if (cr_e2 * cr_e2 < cr2_sun_scaled)
-								continue;	// if solar disc projected to the distance of e2 > collision radius it can't be shaded by e2
-							//
-//							//
-//							if (e1->isPlayer)
-//								NSLog(@"DEBUG checking ANGLES for occlusion against %@", e2);
-//							//
-							// check angles subtended by sun and occluder
-							double theta_sun = asin( cr_sun / sqrt(d2_sun));	// 1/2 angle subtended by sun
-							double theta_e2 = asin( cr_e2 / sqrt(d2_e2));		// 1/2 angle subtended by e2
-							Vector p_sun = the_sun->position;
-							Vector p_e2 = e2->position;
-							Vector p_e1 = e1->position;
-							Vector v_sun = make_vector( p_sun.x - p_e1.x, p_sun.y - p_e1.y, p_sun.z - p_e1.z);
-							if (v_sun.x||v_sun.y||v_sun.z)
-								v_sun = unit_vector( &v_sun);
-							else
-								v_sun.z = 1.0;
-							Vector v_e2 = make_vector( p_e2.x - p_e1.x, p_e2.y - p_e1.y, p_e2.z - p_e1.z);
-							if (v_e2.x||v_e2.y||v_e2.z)
-								v_e2 = unit_vector( &v_e2);
-							else
-								v_e2.x = 1.0;
-							double phi = acos( dot_product( v_sun, v_e2));		// angle between sun and e2 from e1's viewpoint
-							if (theta_sun + phi > theta_e2)
-								continue;	// sun is not occluded
-							// all tests done e1 is in shade!
-//							if (e1->isPlayer)
-//								NSLog(@"DEBUG %@ occluded by %@", e1, e2);
-							e1->isSunlit = NO;
-							e1->shadingEntityID = [e2 universal_id];
-						}
-					}
-				}
-			}
+			// detect collisions and light ships that can see the sun
 			//
-			//
-			update_stage = @"collision detection";
-			[self findCollisions];
+			update_stage = @"collision and shadow detection";
+			[self findCollisionsAndShadows];
 			//
 			// dispose of the non-mutable copy and everything it references neatly
 			//
@@ -5214,11 +5010,6 @@ GLfloat	starboard_matrix[] = {	0.0f, 0.0f, 1.0f, 0.0f,		0.0f, 1.0f, 0.0f, 0.0f,	
 			else
 			{
 				NSLog(@"\n\n***** Encountered localException during %@ in [Universe update:] : %@ : %@ *****\n\n", update_stage, [localException name], [localException reason]);
-//				if (![[self gameController] inFullScreenMode])
-//					NSRunAlertPanel(@"Unexpected Error!", @"Error during [universe update:]\n\n'%@'", @"QUIT", nil, nil,localException);
-//				else
-//				NSLog(@"\n\n***** Quitting Oolite *****\n\n");
-//				[[self gameController] exitApp];
 				[localException raise];
 			}
 		

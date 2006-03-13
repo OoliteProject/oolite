@@ -389,6 +389,154 @@ NSArray* subregionsContainingPosition( Vector position, CollisionRegion* region)
 	}
 }
 
+BOOL testEntityOccludedByEntity(Entity* e1, Entity* e2, PlanetEntity* the_sun)
+{
+	// simple tests
+	if (e1 == e2)
+		return NO;	// you can't shade self
+	//
+	if (e2 == the_sun)
+		return NO;	// sun can't shade itself
+	//
+	if ((e2->isShip == NO)&&(e2->isPlanet == NO))
+		return NO;	// only ships and planets shade
+	//
+	if (e2->collision_radius < e1->collision_radius)
+		return NO;	// smaller can't shade bigger
+	//
+	if (e2->isSunlit == NO)
+		return NO;	// things already /in/ shade can't shade things more.
+	//
+	// check projected sizes of discs
+	GLfloat d2_sun = distance2( e1->position, the_sun->position);
+	GLfloat d2_e2sun = distance2( e2->position, the_sun->position);
+	if (d2_e2sun > d2_sun)
+		return NO;	// you are nearer the sun than the potential occluder, so it can't shade you
+	//
+	GLfloat d2_e2 = distance2( e1->position, e2->position);
+	GLfloat cr_sun = the_sun->collision_radius;
+	GLfloat cr_e2 = e2->actual_radius;
+	if (e2->isShip)
+		cr_e2 *= 0.90;	// 10% smaller shadow for ships
+	if (e2->isPlanet)
+		cr_e2 = e2->collision_radius;	// use collision radius for planets
+	//
+	GLfloat cr2_sun_scaled = cr_sun * cr_sun * d2_e2 / d2_sun;
+	if (cr_e2 * cr_e2 < cr2_sun_scaled)
+		return NO;	// if solar disc projected to the distance of e2 > collision radius it can't be shaded by e2
+	//
+	// check angles subtended by sun and occluder
+	double theta_sun = asin( cr_sun / sqrt(d2_sun));	// 1/2 angle subtended by sun
+	double theta_e2 = asin( cr_e2 / sqrt(d2_e2));		// 1/2 angle subtended by e2
+	Vector p_sun = the_sun->position;
+	Vector p_e2 = e2->position;
+	Vector p_e1 = e1->position;
+	Vector v_sun = make_vector( p_sun.x - p_e1.x, p_sun.y - p_e1.y, p_sun.z - p_e1.z);
+	if (v_sun.x||v_sun.y||v_sun.z)
+		v_sun = unit_vector( &v_sun);
+	else
+		v_sun.z = 1.0;
+	//
+	Vector v_e2 = make_vector( p_e2.x - p_e1.x, p_e2.y - p_e1.y, p_e2.z - p_e1.z);
+	if (v_e2.x||v_e2.y||v_e2.z)
+		v_e2 = unit_vector( &v_e2);
+	else
+		v_e2.x = 1.0;
+	double phi = acos( dot_product( v_sun, v_e2));		// angle between sun and e2 from e1's viewpoint
+	//
+	if (theta_sun + phi > theta_e2)
+		return NO;	// sun is not occluded
+	//
+	// all tests done e1 is in shade!
+	//
+	return YES;
+}
+
+- (void) findShadowedEntitiesIn:(Universe*) universe
+{
+	//
+	// Copy/pasting the collision code to detect occlusion!
+	//
+	Entity* e1;
+	int i,j;
+	
+	if (!universe)
+		return;	// universe is required!
+	
+	PlanetEntity* the_sun = [universe sun];
+	
+	if (!the_sun)
+		return;	// sun is required
+		
+	//
+	// get a list of planet entities because they can shade across regions
+	int			ent_count =		universe->n_entities;
+	Entity**	uni_entities =	universe->sortedEntities;	// grab the public sorted list
+	Entity*		planets[ent_count];
+	int n_planets = 0;
+	for (i = 0; i < ent_count; i++)
+		if ((uni_entities[i]->isPlanet)&&(uni_entities[i] != the_sun))
+			planets[n_planets++] = uni_entities[i];		//	don't bother retaining - nothing will happen to them!
+	//
+	
+	// reject trivial cases
+	//
+	if (n_entities < 2)
+		return;
+	
+	// test for shadows in each subregion
+	//
+	int n_subs = [subregions count];
+	for (i = 0; i < n_subs; i++)
+		[(CollisionRegion*)[subregions objectAtIndex: i] findShadowedEntitiesIn:(Universe*) universe];
+	//
+	
+	// test each entity in this region against the others
+	//
+	for (i = 0; i < n_entities; i++)
+	{
+		e1 = entity_array[i];
+		BOOL occluder_moved = NO;
+		if (e1->isSunlit == NO)
+		{
+			Entity* occluder = [universe entityForUniversalID:e1->shadingEntityID];
+			if (occluder)
+				occluder_moved = occluder->has_moved;
+		}
+		if (((e1->isShip)||(e1->isPlanet))&&((e1->has_moved)||occluder_moved))
+		{
+			e1->isSunlit = YES;				// sunlit by default
+			e1->shadingEntityID = NO_TARGET;
+			//
+			// check demo mode here..
+			if ((e1->isPlayer)&&(e1->status == STATUS_DEMO))
+				continue;	// don't check shading in demo mode
+			//
+			//	test planets
+			//
+			for (j = 0; j < n_planets; j++)
+			{
+				if (testEntityOccludedByEntity(e1, planets[j], the_sun))
+				{
+					e1->isSunlit = NO;
+					e1->shadingEntityID = [planets[j] universal_id];
+				}
+			}
+			//
+			// test local entities
+			//
+			for (j = i + 1; j < n_entities; j++)
+			{
+				if (testEntityOccludedByEntity(e1, entity_array[j], the_sun))
+				{
+					e1->isSunlit = NO;
+					e1->shadingEntityID = [entity_array[j] universal_id];
+				}
+			}
+		}
+	}
+}
+
 - (NSString*) debugOut
 {
 	int i;
