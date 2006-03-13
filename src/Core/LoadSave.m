@@ -21,6 +21,9 @@
 #import "PlayerEntity (Controls).h"
 #import "OOXMLExtensions.h"
 #import "OOSound.h"
+#ifdef WIN32
+#import "ResourceManager.h"
+#endif
 
 @implementation PlayerEntity (LoadSave)
 

@@ -76,7 +76,11 @@ extern int debug;
 	
 	OOSound			*guiclick;
 
+#ifdef WIN32
+	SDLImage		*backgroundImage;
+#else
 	NSImage			*backgroundImage;
+#endif
 	NSColor			*backgroundColor;
 	NSColor			*textColor;
 	
@@ -164,7 +168,11 @@ extern int debug;
 
 - (void) scrollUp:(int) how_much;
 
+#ifdef WIN32
+- (void) setBackgroundImage:(SDLImage *) bg_image;
+#else
 - (void) setBackgroundImage:(NSImage *) bg_image;
+#endif
 
 - (void) drawGUI:(GLfloat) x :(GLfloat) y :(GLfloat) z :(GLfloat) alpha forUniverse:(Universe*) universe;
 

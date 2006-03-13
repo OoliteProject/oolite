@@ -40,6 +40,7 @@ Your fair use and other rights are in no way affected by the above.
 #import <Foundation/Foundation.h>
 
 #import "ShipEntity.h"
+#import "SDLImage.h"
 
 @class GuiDisplayGen, OOTrumble, MyOpenGLView, HeadUpDisplay, ShipEntity;
 @class OOSound, OOMusic, OOSoundSource, OOSoundReferencePoint;
@@ -236,8 +237,12 @@ enum
 	NSString*				specialCargo;
 	
 	NSMutableArray*			comm_log;
-	
+
+#ifdef WIN32
+ 	SDLImage				*missionBackgroundImage;
+#else
 	NSImage					*missionBackgroundImage;
+#endif
 	
 	NSMutableDictionary		*extra_equipment;
 	BOOL					found_equipment;

@@ -565,8 +565,11 @@ Your fair use and other rights are in no way affected by the above.
 }
 
 
-
+#ifdef WIN32
+- (void) setBackgroundImage:(SDLImage *) bg_image;
+#else
 - (void) setBackgroundImage:(NSImage *) bg_image;
+#endif
 {
 	if (backgroundImage)
 		[backgroundImage release];
@@ -575,10 +578,18 @@ Your fair use and other rights are in no way affected by the above.
 	if (bg_image)
 	{
 		backgroundImage = [bg_image retain];
+#ifdef WIN32
+ 		backgroundSprite = [[OpenGLSprite alloc]
+ 								initWithSurface:backgroundImage
+ 								cropRectangle:NSMakeRect( 0.0, 0.0, [backgroundImage size].width, [backgroundImage size].height)
+ 								size:[backgroundImage size]];	// retained
+#else
+
 		backgroundSprite = [[OpenGLSprite alloc]
 								initWithImage:backgroundImage
 								cropRectangle:NSMakeRect( 0.0, 0.0, [backgroundImage size].width, [backgroundImage size].height)
 								size:[backgroundImage size]];	// retained
+#endif
 	}
 	else
 	{

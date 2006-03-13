@@ -1492,7 +1492,13 @@ static int shipsFound;
 	if ([[value lowercaseString] isEqual:@"none"])
 		missionBackgroundImage = nil;
 	else
+ 	{ 	
+#ifdef WIN32
+ 		missionBackgroundImage =  [[ResourceManager surfaceNamed:value inFolder:@"Images"] retain];
+#else
 		missionBackgroundImage =  [[ResourceManager imageNamed:value inFolder:@"Images"] retain];
+#endif
+ 	}
 }
 
 - (void) setFuelLeak: (NSString *)value

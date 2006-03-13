@@ -919,6 +919,16 @@ static  BOOL	taking_snapshot;
 			[[gameView gameController] pauseFullScreenModeToPerform:@selector(exitApp) onTarget:[gameView gameController]];
 		}
 	}
+
+#ifdef WIN32
+          // Allow Win32 Quit
+          if ( ([gameView isDown:'Q']) )
+          {
+                  [[gameView gameController] exitApp];
+                  exit(0); // Force it
+          }
+#endif
+
 	//
 	// handle pressing Q or [esc] in error-handling mode
 	//

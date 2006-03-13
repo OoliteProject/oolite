@@ -175,15 +175,24 @@ GLuint ascii_texture_name;
 	if ([info objectForKey:IMAGE_KEY])
 	{
 		//NSLog(@"DEBUG adding Legend %@",[info objectForKey:IMAGE_KEY]);
+#ifdef WIN32
+		SDLImage		*legendImage = [ResourceManager surfaceNamed:(NSString *)[info objectForKey:IMAGE_KEY] inFolder:@"Images"];
+#else
 		NSImage			*legendImage = [ResourceManager imageNamed:(NSString *)[info objectForKey:IMAGE_KEY] inFolder:@"Images"];
+#endif
 		NSSize			imageSize = [legendImage size];
 		NSSize			spriteSize = imageSize;
 		if ([info objectForKey:WIDTH_KEY])
 			spriteSize.width = [(NSNumber *)[info objectForKey:WIDTH_KEY] intValue];
 		if ([info objectForKey:HEIGHT_KEY])
 			spriteSize.height = [(NSNumber *)[info objectForKey:HEIGHT_KEY] intValue];
+#ifdef WIN32
+ 		OpenGLSprite *legendSprite = [[OpenGLSprite alloc] initWithSurface:legendImage
+ 										cropRectangle:NSMakeRect(0, 0, imageSize.width, imageSize.height) size:spriteSize]; // retained
+#else
 		OpenGLSprite *legendSprite = [[OpenGLSprite alloc] initWithImage:legendImage
 										cropRectangle:NSMakeRect(0, 0, imageSize.width, imageSize.height) size:spriteSize]; // retained
+#endif
 		NSMutableDictionary *legendDict = [NSMutableDictionary dictionaryWithDictionary:info];
 		[legendDict setObject:legendSprite forKey:SPRITE_KEY];
 		[legendArray addObject:legendDict];																	

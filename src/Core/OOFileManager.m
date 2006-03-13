@@ -14,6 +14,9 @@
 //
 #include <stdlib.h>
 #import "OOFileManager.h"
+#ifdef WIN32
+#import "ResourceManager.h"
+#endif
 
 @implementation NSFileManager ( OOFileManager )
 
