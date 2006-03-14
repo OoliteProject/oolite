@@ -2440,8 +2440,6 @@
 		<real>250</real>
 		<key>weapon_energy</key>
 		<real>4500</real>
-		<key>weapon_offset_x</key>
-		<real>0.0</real>
 	</dict>
 	<key>moray</key>
 	<dict>
@@ -3968,6 +3966,8 @@
 		<string>ECM Hardened Missile</string>
 		<key>roles</key>
 		<string>missile EQ_HARDENED_MISSILE</string>
+		<key>scanClass</key>
+		<string>CLASS_MISSILE</string>
 		<key>thrust</key>
 		<real>250</real>
 		<key>weapon_energy</key>
