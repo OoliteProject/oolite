@@ -1733,7 +1733,9 @@
 		<key>port_radius</key>
 		<real>500</real>
 		<key>roles</key>
-		<string>coriolis rotating-station station</string>
+		<string>coriolis station</string>
+		<key>rotating</key>
+		<true/>
 		<key>subentities</key>
 		<array>
 			<string>dock 0 0 500 1 0 0 0</string>
@@ -1817,7 +1819,9 @@
 		<key>port_radius</key>
 		<real>392</real>
 		<key>roles</key>
-		<string>dodo dodec dodecahedron rotating-station station</string>
+		<string>dodo dodec dodecahedron station</string>
+		<key>rotating</key>
+		<true/>
 		<key>subentities</key>
 		<array>
 			<string>dock 0 0 392 1 0 0 0</string>
@@ -2166,7 +2170,9 @@
 		<key>port_radius</key>
 		<real>500</real>
 		<key>roles</key>
-		<string>ico icosa icosahedron rotating-station station</string>
+		<string>ico icosa icosahedron station</string>
+		<key>rotating</key>
+		<true/>
 		<key>subentities</key>
 		<array>
 			<string>dock 0 0 500 1 0 0 0</string>
@@ -2428,6 +2434,8 @@
 		<string>Missile</string>
 		<key>roles</key>
 		<string>missile EQ_MISSILE</string>
+		<key>scanClass</key>
+		<string>CLASS_MISSILE</string>
 		<key>thrust</key>
 		<real>250</real>
 		<key>weapon_energy</key>
@@ -3357,7 +3365,7 @@
 		<key>name</key>
 		<string>Thargoid Robot Fighter</string>
 		<key>roles</key>
-		<string>tharglet</string>
+		<string>tharglet thargon</string>
 		<key>scanClass</key>
 		<string>CLASS_THARGOID</string>
 		<key>scanner_range</key>
@@ -3413,6 +3421,8 @@
 		<real>500</real>
 		<key>max_missiles</key>
 		<integer>5</integer>
+		<key>missile_role</key>
+		<string>thargon</string>
 		<key>missile_launch_position</key>
 		<string>0.0 0.0 -20.5</string>
 		<key>missiles</key>

@@ -96,6 +96,13 @@ static	Vector	zero_vector = { 0.0f, 0.0f, 0.0f};
 	frustration = 0.0;
 }
 
+- (void) performStop
+{
+	behaviour = BEHAVIOUR_STOP_STILL;
+	desired_speed = 0.0;
+	frustration = 0.0;
+}
+
 - (void) performHold
 {
 	desired_speed = 0.0;
@@ -1032,25 +1039,7 @@ WormholeEntity*	whole;
 	if (found_target != NO_TARGET)
 		[shipAI message:@"TARGET_FOUND"];
 	else
-	{
-		if ([roles isEqual:@"tharglet"])
-		{
-			// now we're just a bunch of alien artefacts!
-			scan_class = CLASS_CARGO;
-			reportAImessages = NO;
-			[shipAI setStateMachine:@"dumbAI.plist"];
-			[shipAI setState:@"GLOBAL"];
-			primaryTarget = NO_TARGET;
-			[self setSpeed:0.0];
-			for (i = 0; i < ship_count; i++)
-			{
-				ShipEntity* other = (ShipEntity*)my_entities[i];
-				if (([other getPrimaryTarget] == self)&&([other hasHostileTarget]))
-					[[other getAI] message:@"TARGET_LOST"];
-			}
-		}
 		[shipAI message:@"NOTHING_FOUND"];
-	}
 	for (i = 0; i < ship_count; i++)
 		[my_entities[i] release];	//		released
 }
@@ -1090,14 +1079,33 @@ WormholeEntity*	whole;
 		[shipAI message:@"NOTHING_FOUND"];
 }
 
+- (void) becomeUncontrolledThargon
+{
+	int			ent_count =		universe->n_entities;
+	Entity**	uni_entities =	universe->sortedEntities;	// grab the public sorted list
+	int i;
+	for (i = 0; i < ent_count; i++) if (uni_entities[i]->isShip)
+	{
+		ShipEntity* other = (ShipEntity*)uni_entities[i];
+		if ([other getPrimaryTarget] == self)
+		{
+			[[other getAI] message:@"TARGET_LOST"];	// lose targetting
+			other->primaryTarget = NO_TARGET;
+		}
+	}
+	// now we're just a bunch of alien artefacts!
+	scan_class = CLASS_CARGO;
+	reportAImessages = NO;
+	[shipAI setStateMachine:@"dumbAI.plist"];
+	primaryTarget = NO_TARGET;
+	[self setSpeed: 0.0];
+}
+
 - (void) initialiseTurret
 {
-//	NSLog(@"DEBUG initialising ball turret %@ (%@)", self, basefile);
 	[self setBehaviour: BEHAVIOUR_TRACK_AS_TURRET];
 	weapon_recharge_rate = 0.5;	// test
-//	weapon_energy = 0.1;		// test
 	[self setStatus: STATUS_ACTIVE];
-	
 }
 
 - (void) checkDistanceTravelled

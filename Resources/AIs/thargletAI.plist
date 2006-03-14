@@ -11,6 +11,7 @@
     "CHECK_FOR_CONTROL" = {
         "THARGOID_DESTROYED" = ("setStateTo: CHECK_FOR_CONTROL"); 
 		"TARGET_FOUND" = ("setStateTo: LOOK_FOR_TARGETS"); 
+		"NOTHING_FOUND" = (becomeUncontrolledThargon); 
 		ENTER = ("setSpeedTo: 0.0", performTumble);
 		EXIT = ();
 		UPDATE = (scanForThargoid, "pauseAI: 1.0");

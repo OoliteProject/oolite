@@ -303,15 +303,39 @@ NSDictionary* instructions(int station_id, Vector coords, float speed, float ran
 	if (![shipsOnApproach objectForKey:shipID])
 		[shipAI message:@"DOCKING_REQUESTED"];	// note the request.
 	
-	if	((magnitude2(velocity) > 1.0)||((![self isRotatingStation])&&((fabs(flight_pitch) > 0.01)||(fabs(flight_roll) > 0.01))))		// no docking while moving
+	if	(magnitude2(velocity) > 1.0)		// no docking while moving
 	{
-//		NSLog(@"DEBUG %@ %d refusing docking to %@ because of motion", name, universal_id, [ship name]);
+//		NSLog(@"DEBUG %@ %d refusing docking to %@ because of forward motion", name, universal_id, [ship name]);
 //
 //		[shipAI message:@"DOCKING_REQUESTED"];	// note the request again!
-
 		return instructions( universal_id, ship->position, 0, 100, @"HOLD_POSITION", nil, NO);
 	}
 	
+	if	(fabs(flight_pitch) > 0.01)		// no docking while pitching
+	{
+//		NSLog(@"DEBUG %@ %d refusing docking to %@ because of pitching", name, universal_id, [ship name]);
+//
+//		[shipAI message:@"DOCKING_REQUESTED"];	// note the request again!
+		return instructions( universal_id, ship->position, 0, 100, @"HOLD_POSITION", nil, NO);
+	}
+	
+	// rolling is okay for some
+	if	(fabs(flight_pitch) > 0.01)		// rolling
+	{
+		Vector portPos = [self getPortPosition];
+		BOOL isOffCentre = (fabs(portPos.x) + fabs(portPos.y) > 0.0f);
+		BOOL isRotatingStation = NO;
+		if ([shipinfoDictionary objectForKey:@"rotating"])
+			isRotatingStation = [[shipinfoDictionary objectForKey:@"rotating"] boolValue];
+		if ((!isRotatingStation)&&(isOffCentre))
+		{
+//			NSLog(@"DEBUG %@ %d refusing docking to %@ because of rolling", name, universal_id, [ship name]);
+//
+//			[shipAI message:@"DOCKING_REQUESTED"];	// note the request again!
+			return instructions( universal_id, ship->position, 0, 100, @"HOLD_POSITION", nil, NO);
+		}
+	}
+		
 	// check if this is a new ship on approach
 	//
 	if (![shipsOnApproach objectForKey:shipID])
@@ -1698,8 +1722,11 @@ NSDictionary* instructions(int station_id, Vector coords, float speed, float ran
 - (BOOL) isRotatingStation
 {
 	NSString*	shipRoles = (NSString *)[shipinfoDictionary objectForKey:@"roles"];
-	BOOL		isRotatingStation = ([shipRoles rangeOfString:@"rotating-station"].location != NSNotFound);
-		
+//	BOOL		isRotatingStation = ([shipRoles rangeOfString:@"rotating-station"].location != NSNotFound);
+	BOOL		isRotatingStation = NO;
+	if ([shipinfoDictionary objectForKey:@"rotating"])
+		isRotatingStation = [[shipinfoDictionary objectForKey:@"rotating"] boolValue];
+	isRotatingStation |= ([shipRoles rangeOfString:@"rotating-station"].location != NSNotFound);	// legacy
 	return isRotatingStation;
 }
 

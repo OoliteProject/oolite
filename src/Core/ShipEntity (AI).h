@@ -66,6 +66,8 @@ Your fair use and other rights are in no way affected by the above.
 
 - (void) performIdle;
 
+- (void) performStop;
+
 - (void) performHold;
 
 - (void) setTargetToPrimaryAggressor;
@@ -143,6 +145,7 @@ Your fair use and other rights are in no way affected by the above.
 
 - (void) scanForThargoid;
 - (void) scanForNonThargoid;
+- (void) becomeUncontrolledThargon;
 
 - (void) initialiseTurret;
 

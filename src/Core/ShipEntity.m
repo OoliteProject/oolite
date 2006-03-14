@@ -1082,6 +1082,8 @@ static NSMutableDictionary* smallOctreeDict = nil;
 			scan_class = CLASS_BUOY;
 		if ([s_class isEqual:@"CLASS_NO_DRAW"])
 			scan_class = CLASS_NO_DRAW;
+		if ([s_class isEqual:@"CLASS_MISSILE"])
+			scan_class = CLASS_MISSILE;
 		if ([s_class isEqual:@"CLASS_NEUTRAL"])
 			scan_class = CLASS_NEUTRAL;
 		if ([s_class isEqual:@"CLASS_ROCK"])
@@ -1888,15 +1890,31 @@ BOOL ship_canCollide (ShipEntity* ship)
 				
 		switch (behaviour)
 		{
-			case BEHAVIOUR_IDLE :
+			case BEHAVIOUR_STOP_STILL :
 			case BEHAVIOUR_STATION_KEEPING :
+				// damp roll
+				if (flight_roll < 0)
+					flight_roll += (flight_roll < -damping) ? damping : -flight_roll;
+				if (flight_roll > 0)
+					flight_roll -= (flight_roll > damping) ? damping : flight_roll;
+				// damp pitch
+				if (flight_pitch < 0)
+					flight_pitch += (flight_pitch < -damping) ? damping : -flight_pitch;
+				if (flight_pitch > 0)
+					flight_pitch -= (flight_pitch > damping) ? damping : flight_pitch;
+				break;
+			case BEHAVIOUR_IDLE :
 				if ((!isStation)&&(scan_class != CLASS_BUOY))
 				{
-					// damp roll and pitch
+					// damp roll
 					if (flight_roll < 0)
 						flight_roll += (flight_roll < -damping) ? damping : -flight_roll;
 					if (flight_roll > 0)
 						flight_roll -= (flight_roll > damping) ? damping : flight_roll;
+				}
+				if (scan_class != CLASS_BUOY)
+				{
+					// damp pitch
 					if (flight_pitch < 0)
 						flight_pitch += (flight_pitch < -damping) ? damping : -flight_pitch;
 					if (flight_pitch > 0)
@@ -4089,8 +4107,6 @@ Vector randomPositionInBoundingBox(BoundingBox bb)
 
 - (void) addTarget:(Entity *) targetEntity
 {
-	//if ((targetentity)&&(targetEntity->isShip))
-	//	NSLog(@"DEBUG %@ now targetting %@", [self name], [(ShipEntity *)targetEntity name]);
 	if (targetEntity)
 		primaryTarget = [targetEntity universal_id];
 	if (sub_entities)
@@ -5450,7 +5466,7 @@ Vector randomPositionInBoundingBox(BoundingBox bb)
 
 - (BOOL) fireMissile
 {
-	ShipEntity *missile;
+	ShipEntity *missile = nil;
 	Vector  vel;
 	Vector  origin = position;
 	Vector  start, v_eject;
@@ -5473,15 +5489,19 @@ Vector randomPositionInBoundingBox(BoundingBox bb)
 		((target->isShip)&&(!has_military_scanner_filter)&&([(ShipEntity*)target isJammingScanning])))	// no missile lock!
 		return NO;
 		
-//	if ([roles isEqual:@"thargoid"])
-	if (scan_class == CLASS_THARGOID)
-		return [self fireTharglet];
+//	if (scan_class == CLASS_THARGOID)
+//		return [self fireTharglet];
 	
-	//vel.x *= throw_speed;	vel.y *= throw_speed;	vel.z *= throw_speed;
-	if (randf() < 0.90)	// choose a standard missile 90% of the time
-		missile = [universe getShipWithRole:@"EQ_MISSILE"];   // retained
-	else				// otherwise choose any with the role 'missile' - which may include alternative weapons
-		missile = [universe getShipWithRole:@"missile"];   // retained
+	// custom missiles
+	if ([shipinfoDictionary objectForKey:@"missile_role"])
+		missile = [universe getShipWithRole:(NSString*)[shipinfoDictionary objectForKey:@"missile_role"]];
+	if (!missile)	// no custom role
+	{
+		if (randf() < 0.90)	// choose a standard missile 90% of the time
+			missile = [universe getShipWithRole:@"EQ_MISSILE"];   // retained
+		else				// otherwise choose any with the role 'missile' - which may include alternative weapons
+			missile = [universe getShipWithRole:@"missile"];   // retained
+	}
 	
 	if (!missile)
 		return NO;
@@ -5514,21 +5534,17 @@ Vector randomPositionInBoundingBox(BoundingBox bb)
 	origin.y = position.y + v_right.y * start.x + v_up.y * start.y + v_forward.y * start.z;
 	origin.z = position.z + v_right.z * start.x + v_up.z * start.y + v_forward.z * start.z;
 	
-	[missile setPosition:origin];
-	[missile setQRotation:q1];
-	[missile setScanClass: CLASS_NO_DRAW];	// make it invisible
-	[missile addTarget:target];
-	[missile setStatus: STATUS_IN_FLIGHT];  // necessary to get it going!
-	[missile setVelocity: vel];
-	[missile setSpeed:150.0];
-	[missile setOwner:self];
-	[missile setDistanceTravelled:0.0];
-	//debug
-	//[missile setReportAImessages:YES];
+	[missile addTarget:		target];
+	[missile setOwner:		self];
+	[missile setGroup_id:	group_id];
+	[missile setPosition:	origin];
+	[missile setQRotation:	q1];
+	[missile setVelocity:	vel];
+	[missile setSpeed:		150.0];
+	[missile setDistanceTravelled:	0.0];
+	[missile setStatus:		STATUS_IN_FLIGHT];  // necessary to get it going!
 	//
-	[universe addEntity:missile];
-	[missile setScanClass: CLASS_MISSILE];	// make it visible
-	//NSLog(@"Missile collision radius is %.1f",missile->collision_radius);
+	[universe addEntity:	missile];
 	[missile release]; //release
 	
 	[(ShipEntity *)target setPrimaryAggressor:self];
@@ -5537,58 +5553,58 @@ Vector randomPositionInBoundingBox(BoundingBox bb)
 	return YES;
 }
 
-- (BOOL) fireTharglet
-{
-	ShipEntity *tharglet;
-	Vector  vel;
-	Vector  origin = position;
-	Vector  start;
-	start.x = 0.0;						// in the middle
-	start.y = boundingBox.min.y - 10.0;	// 10m below bounding box
-	start.z = 10.0;	// 10m ahead of bounding box
-	double  throw_speed = 500.0;
-	Quaternion q1 = q_rotation;
-	Entity  *target = [self getPrimaryTarget];
-	
-	if ((missiles <= 0)||(target == nil))
-		return NO;
-	
-	missiles--;
-	
-	if (isPlayer)
-		q1.w = -q1.w;   // player view is reversed remember!
-		
-	vel.x = (flight_speed + throw_speed) * v_forward.x;
-	vel.y = (flight_speed + throw_speed) * v_forward.y;
-	vel.z = (flight_speed + throw_speed) * v_forward.z;
-	
-	origin.x = position.x + v_right.x * start.x + v_up.x * start.y + v_forward.x * start.z;
-	origin.y = position.y + v_right.y * start.x + v_up.y * start.y + v_forward.y * start.z;
-	origin.z = position.z + v_right.z * start.x + v_up.z * start.y + v_forward.z * start.z;
-		
-	tharglet = [universe getShipWithRole:@"tharglet"];   // retain count = 1
-	if (tharglet)
-	{
-		[tharglet setPosition:origin];						// directly below
-		[tharglet setScanClass: CLASS_THARGOID];
-		[tharglet addTarget:target];
-		[tharglet setQRotation:q1];
-		[tharglet setStatus: STATUS_IN_FLIGHT];  // necessary to get it going!
-		[tharglet setVelocity: vel];
-		[tharglet setSpeed:350.0];
-		[tharglet setOwner:self];
-		//[tharglet setReportAImessages:YES]; // debug
-		[universe addEntity:tharglet];
-		//NSLog(@"tharglet collision radius is %.1f",tharglet->collision_radius);
-		
-		[tharglet setGroup_id:group_id];
-		
-		[tharglet release]; //release
-		
-		return YES;
-	}
-	return NO;
-}
+//- (BOOL) fireTharglet
+//{
+//	ShipEntity *tharglet;
+//	Vector  vel;
+//	Vector  origin = position;
+//	Vector  start;
+//	start.x = 0.0;						// in the middle
+//	start.y = boundingBox.min.y - 10.0;	// 10m below bounding box
+//	start.z = 10.0;	// 10m ahead of bounding box
+//	double  throw_speed = 500.0;
+//	Quaternion q1 = q_rotation;
+//	Entity  *target = [self getPrimaryTarget];
+//	
+//	if ((missiles <= 0)||(target == nil))
+//		return NO;
+//	
+//	missiles--;
+//	
+//	if (isPlayer)
+//		q1.w = -q1.w;   // player view is reversed remember!
+//		
+//	vel.x = (flight_speed + throw_speed) * v_forward.x;
+//	vel.y = (flight_speed + throw_speed) * v_forward.y;
+//	vel.z = (flight_speed + throw_speed) * v_forward.z;
+//	
+//	origin.x = position.x + v_right.x * start.x + v_up.x * start.y + v_forward.x * start.z;
+//	origin.y = position.y + v_right.y * start.x + v_up.y * start.y + v_forward.y * start.z;
+//	origin.z = position.z + v_right.z * start.x + v_up.z * start.y + v_forward.z * start.z;
+//		
+//	tharglet = [universe getShipWithRole:@"tharglet"];   // retain count = 1
+//	if (tharglet)
+//	{
+//		[tharglet setPosition:origin];						// directly below
+//		[tharglet setScanClass: CLASS_THARGOID];
+//		[tharglet addTarget:target];
+//		[tharglet setQRotation:q1];
+//		[tharglet setStatus: STATUS_IN_FLIGHT];  // necessary to get it going!
+//		[tharglet setVelocity: vel];
+//		[tharglet setSpeed:350.0];
+//		[tharglet setOwner:self];
+//		//[tharglet setReportAImessages:YES]; // debug
+//		[universe addEntity:tharglet];
+//		//NSLog(@"tharglet collision radius is %.1f",tharglet->collision_radius);
+//		
+//		[tharglet setGroup_id:group_id];
+//		
+//		[tharglet release]; //release
+//		
+//		return YES;
+//	}
+//	return NO;
+//}
 
 - (BOOL) fireECM
 {

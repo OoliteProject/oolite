@@ -46,6 +46,7 @@ Your fair use and other rights are in no way affected by the above.
 #define BEHAVIOUR_FLY_TO_TARGET	2
 #define BEHAVIOUR_HANDS_OFF		3
 #define BEHAVIOUR_TUMBLE		4
+#define BEHAVIOUR_STOP_STILL	5
 
 #define BEHAVIOUR_STATION_KEEPING		10
 
@@ -532,13 +533,12 @@ Vector randomPositionInBoundingBox(BoundingBox bb);
 - (BOOL) fireAftWeapon:(double) range;
 - (BOOL) fireTurretCannon:(double) range;
 - (void) setLaserColor:(NSColor *) color;
-//- (BOOL) fireLaserShot;
 - (BOOL) fireSubentityLaserShot: (double) range;
 - (BOOL) fireDirectLaserShot;
 - (BOOL) fireLaserShotInDirection: (int) direction;
 - (BOOL) firePlasmaShot:(double) offset :(double) speed :(NSColor *) color;
 - (BOOL) fireMissile;
-- (BOOL) fireTharglet;
+//- (BOOL) fireTharglet;
 - (BOOL) fireECM;
 - (BOOL) activateCloakingDevice;
 - (void) deactivateCloakingDevice;
