@@ -1582,42 +1582,14 @@ BOOL ship_canCollide (ShipEntity* ship)
 	if (!subent)
 		return;
 
-//	double old_cr = collision_radius;
-//	NSLog(@"DEBUG adding %@ at (%.2f %.2f %.2f) cr:%.2f to %@'s collision radius %.2f",
-//		subent, subent->position.x, subent->position.y, subent->position.z, [subent findCollisionRadius], self, collision_radius);
-
 	double distance = sqrt(magnitude2(subent->position)) + [subent findCollisionRadius];
 	if (distance > collision_radius)
 		collision_radius = distance;
-
-//	NSLog(@"DEBUG - Added the collision radius of %@ to %@ (was %.2fm now %.2fm)", subent, self, old_cr, collision_radius);
 }
 
 
 - (void) update:(double) delta_t
 {
-	double		damping = 0.5 * delta_t;
-	double		confidenceFactor;
-	double		targetCR;
-	int			missile_chance;
-	//
-	double		hurt_factor = 16 * pow(energy/max_energy, 4.0);
-	double		last_success_factor = success_factor;
-	//
-	BOOL		canBurn = has_fuel_injection && (fuel > 1);	// was &&(fuel > 0)
-	BOOL		isUsingAfterburner = canBurn && (flight_speed > max_flight_speed);
-	//
-	double		max_available_speed = (canBurn)? max_flight_speed * AFTERBURNER_FACTOR : max_flight_speed;
-	//
-	
-	#if __POWERPC__ || defined(NO_DIV_ZERO_EXCEPTION)
-		missile_chance = 1 + (ranrot_rand() % (int)( 32 * 0.1 / delta_t));
-	#else
-		int      rhs = 32 * 0.1 / delta_t;
-		if(rhs) missile_chance = 1 + (ranrot_rand() % rhs);
-		else missile_chance = 0;
-	#endif
-	
 	//
 	// deal with collisions
 	//
@@ -1859,16 +1831,10 @@ BOOL ship_canCollide (ShipEntity* ship)
     }
 	else
 	{
-		double  range = [self rangeToPrimaryTarget];
-		double  distance = [self rangeToDestination];
 		double  target_speed = max_flight_speed;
-		double	slow_down_range = weapon_range * COMBAT_WEAPON_RANGE_FACTOR * ((isUsingAfterburner)? 3.0 * AFTERBURNER_FACTOR : 1.0);
-		double	max_cos = 0.995;
 		
 		ShipEntity*	target = (ShipEntity*)[universe entityForUniversalID:primaryTarget];
-		
-		targetCR = (target)? target->collision_radius: 0;
-		
+				
 		if ((target == nil)||(target->scan_class == CLASS_NO_DRAW)||(!target->isShip))
 		{
 			 // It's no longer a parrot, it has ceased to be, it has joined the choir invisible...
@@ -1890,560 +1856,97 @@ BOOL ship_canCollide (ShipEntity* ship)
 				
 		switch (behaviour)
 		{
-			case BEHAVIOUR_STOP_STILL :
-			case BEHAVIOUR_STATION_KEEPING :
-				// damp roll
-				if (flight_roll < 0)
-					flight_roll += (flight_roll < -damping) ? damping : -flight_roll;
-				if (flight_roll > 0)
-					flight_roll -= (flight_roll > damping) ? damping : flight_roll;
-				// damp pitch
-				if (flight_pitch < 0)
-					flight_pitch += (flight_pitch < -damping) ? damping : -flight_pitch;
-				if (flight_pitch > 0)
-					flight_pitch -= (flight_pitch > damping) ? damping : flight_pitch;
-				break;
-			case BEHAVIOUR_IDLE :
-				if ((!isStation)&&(scan_class != CLASS_BUOY))
-				{
-					// damp roll
-					if (flight_roll < 0)
-						flight_roll += (flight_roll < -damping) ? damping : -flight_roll;
-					if (flight_roll > 0)
-						flight_roll -= (flight_roll > damping) ? damping : flight_roll;
-				}
-				if (scan_class != CLASS_BUOY)
-				{
-					// damp pitch
-					if (flight_pitch < 0)
-						flight_pitch += (flight_pitch < -damping) ? damping : -flight_pitch;
-					if (flight_pitch > 0)
-						flight_pitch -= (flight_pitch > damping) ? damping : flight_pitch;
-				}
 			case BEHAVIOUR_TUMBLE :
+				// do nothing!
 				break;
 
+			case BEHAVIOUR_STOP_STILL :
+			case BEHAVIOUR_STATION_KEEPING :
+				[self behaviour_stop_still: delta_t];
+				break;
+				
+			case BEHAVIOUR_IDLE :
+				[self behaviour_idle: delta_t];
+				break;
+				
 			case BEHAVIOUR_TRACTORED :
-				{
-					ShipEntity* hauler = (ShipEntity*)[self owner];
-					if ((hauler)&&(hauler->isShip))
-					{
-						GLfloat tf = TRACTOR_FORCE / mass;
-						desired_speed = 0.0;
-						desired_range = collision_radius;
-						destination = [hauler absoluteTractorPosition];
-						// adjust for difference in velocity
-						Vector dv = vector_between( [self getVelocity], [hauler getVelocity]);
-						velocity.x += delta_t * dv.x * 0.25 * tf;
-						velocity.y += delta_t * dv.y * 0.25 * tf;
-						velocity.z += delta_t * dv.z * 0.25 * tf;
-						// force is proportional to distance
-						// acceleration = force / mass
-						Vector dp = vector_between( position, destination);
-						velocity.x += delta_t * dp.x * tf;
-						velocity.y += delta_t * dp.y * tf;
-						velocity.z += delta_t * dp.z * tf;
-						thrust = 10.0;	// used to damp velocity
-						if (status == STATUS_BEING_SCOOPED)
-						{
-							if (hauler->isPlayer)
-								[(PlayerEntity*)hauler setScoopsActive];
-							if (distance > hauler->collision_radius + collision_radius + 250.f)	// 250m range for tractor beam
-							{
-								// escaped tractor beam
-								status = STATUS_IN_FLIGHT;
-								behaviour = BEHAVIOUR_IDLE;
-								frustration = 0.0;
-								[shipAI exitStateMachine];	// exit nullAI.plist
-							}
-							if (distance < desired_range)
-							{
-								[hauler scoopUp:self];
-							}
-						}
-					}
-				}
+				[self behaviour_tractored: delta_t];
 				break;
 			
 			case BEHAVIOUR_TRACK_TARGET :
-				[self trackPrimaryTarget:delta_t:NO];
-				if ((proximity_alert != NO_TARGET)&&(proximity_alert != primaryTarget))
-					[self avoidCollision];
+				[self behaviour_track_target: delta_t];
 				break;
 				
 			case BEHAVIOUR_INTERCEPT_TARGET :
 			case BEHAVIOUR_COLLECT_TARGET :
-				if (behaviour == BEHAVIOUR_INTERCEPT_TARGET)
-				{
-					desired_speed = max_flight_speed;
-					if (range < desired_range)
-						[shipAI reactToMessage:@"DESIRED_RANGE_ACHIEVED"];
-					desired_speed = max_flight_speed * [self trackPrimaryTarget:delta_t:NO];
-				}
-				else
-				{
-					target_speed = [target getVelocityAsSpeed];
-					double eta = range / (flight_speed - target_speed);
-					double last_distance = last_success_factor;
-					success_factor = distance;
-					//
-					double slowdownTime = 96.0 / thrust;	// more thrust implies better slowing
-					double minTurnSpeedFactor = 0.005 * max_flight_pitch * max_flight_roll;	// faster turning implies higher speeds
-					
-					if ((eta < slowdownTime)&&(flight_speed > max_flight_speed * minTurnSpeedFactor))
-						desired_speed = flight_speed * 0.75;   // cut speed by 50% to a minimum minTurnSpeedFactor of speed
-					else
-						desired_speed = max_flight_speed;
-					
-					if (desired_speed < target_speed)
-					{
-						desired_speed += target_speed;
-						if (target_speed > max_flight_speed)
-							[shipAI reactToMessage:@"TARGET_LOST"];
-					}
-					//
-//					[self trackPrimaryTarget:delta_t:NO];	// we used to do this instead of the following...
-					if (target)	// check introduced to stop crash at next line
-					{
-						destination = target->position;		/* HEISENBUG crash here */
-						desired_range = 0.5 * target->actual_radius;
-						[self trackDestination: delta_t : NO];
-					}
-					//
-					if (distance < last_distance)	// improvement
-					{
-						frustration -= delta_t;
-						if (frustration < 0.0)
-							frustration = 0.0;
-					}
-					else
-					{
-						frustration += delta_t;
-						if (frustration > 10.0)	// 10s of frustration
-						{
-							[shipAI reactToMessage:@"FRUSTRATED"];
-							frustration -= 5.0;	//repeat after another five seconds' frustration
-						}
-					}
-				}
-				if ((proximity_alert != NO_TARGET)&&(proximity_alert != primaryTarget))
-					[self avoidCollision];
+				[self behaviour_intercept_target: delta_t];
 				break;
 				
 			case BEHAVIOUR_ATTACK_TARGET :
-				[self activateCloakingDevice];
-				desired_speed = max_available_speed;
-				if (range < 0.035 * weapon_range)
-					behaviour = BEHAVIOUR_ATTACK_FLY_FROM_TARGET;
-				else
-					if (universal_id & 1)	// 50% of ships are smart S.M.R.T. smart!
-					{
-						if (randf() < 0.75)
-							behaviour = BEHAVIOUR_ATTACK_FLY_TO_TARGET_SIX;
-						else
-							behaviour = BEHAVIOUR_ATTACK_FLY_TO_TARGET_TWELVE;
-					}
-					else
-					{
-						behaviour = BEHAVIOUR_ATTACK_FLY_TO_TARGET;
-					}
-				frustration = 0.0;	// behaviour changed, so reset frustration
+				[self behaviour_attack_target: delta_t];
 				break;
 				
 			case BEHAVIOUR_ATTACK_FLY_TO_TARGET_SIX :
 			case BEHAVIOUR_ATTACK_FLY_TO_TARGET_TWELVE :
-				
-				// deal with collisions and lost targets
-				//
-				if (proximity_alert != NO_TARGET)
-					[self avoidCollision];
-				if (range > SCANNER_MAX_RANGE)
-				{
-					behaviour = BEHAVIOUR_IDLE;
-					frustration = 0.0;
-					[shipAI reactToMessage:@"TARGET_LOST"];
-				}
-				
-				// control speed
-				//
-				if (range < slow_down_range)
-				{
-					desired_speed = target_speed;
-					// avoid head-on collision
-					//
-					if ((range < 0.5 * distance)&&(behaviour == BEHAVIOUR_ATTACK_FLY_TO_TARGET_SIX))
-						behaviour = BEHAVIOUR_ATTACK_FLY_TO_TARGET_TWELVE;
-				}
-				else
-					desired_speed = max_available_speed; // use afterburner to approach
-				
-				
-				// if within 0.75km of the target's six or twelve then vector in attack
-				//
-				if (distance < 750.0)
-				{
-					behaviour = BEHAVIOUR_ATTACK_FLY_TO_TARGET;
-					frustration = 0.0;
-					desired_speed = target_speed;   // within the weapon's range don't use afterburner
-				}
-				
-				// target-six
-				if (behaviour == BEHAVIOUR_ATTACK_FLY_TO_TARGET_SIX)
-				{
-					// head for a point weapon-range * 0.5 to the six of the target
-					//
-					destination = [target distance_six:0.5 * weapon_range];
-				}
-				// target-twelve
-				if (behaviour == BEHAVIOUR_ATTACK_FLY_TO_TARGET_TWELVE)
-				{
-					// head for a point 1.25km above the target
-					//
-					destination = [target distance_twelve:1250];
-				}
-				
-				[self trackDestination:delta_t :NO];
-				
-				// use weaponry
-				//
-				if (missiles > missile_chance * hurt_factor)
-				{
-					//NSLog(@"]==> firing missile : missiles %d, missile_chance %d, hurt_factor %.3f", missiles, missile_chance, hurt_factor);
-					[self fireMissile];
-				}
-				[self activateCloakingDevice];
-				[self fireMainWeapon:range];
+				[self behaviour_fly_to_target_six: delta_t];
 				break;
 				
 			case BEHAVIOUR_ATTACK_MINING_TARGET :
-				if ((range < 650)||(proximity_alert != NO_TARGET))
-				{
-					if (proximity_alert == NO_TARGET)
-					{
-						desired_speed = range * max_flight_speed / (650.0 * 16.0);
-					}
-					else
-					{
-						[self avoidCollision];
-					}
-				}
-				else
-				{
-					if (range > SCANNER_MAX_RANGE)
-					{
-						behaviour = BEHAVIOUR_IDLE;
-						[shipAI reactToMessage:@"TARGET_LOST"];
-					}
-					desired_speed = max_flight_speed * 0.375;
-				}
-				[self trackPrimaryTarget:delta_t:NO];
-				[self fireMainWeapon:range];
+				[self behaviour_attack_mining_target: delta_t];
 				break;				
 				
 			case BEHAVIOUR_ATTACK_FLY_TO_TARGET :
-				if ((range < COMBAT_IN_RANGE_FACTOR * weapon_range)||(proximity_alert != NO_TARGET))
-				{
-					if (proximity_alert == NO_TARGET)
-					{
-						if (aft_weapon_type == WEAPON_NONE)
-						{
-							jink.x = (ranrot_rand() % 256) - 128.0;
-							jink.y = (ranrot_rand() % 256) - 128.0;
-							jink.z = 1000.0;
-							behaviour = BEHAVIOUR_ATTACK_FLY_FROM_TARGET;
-							frustration = 0.0;
-							desired_speed = max_available_speed;
-						}
-						else
-						{
-							//NSLog(@"DEBUG >>>>> %@ %d entering running defense mode", name, universal_id);
-							
-							jink = make_vector( 0.0f, 0.0f, 0.0f);
-							behaviour = BEHAVIOUR_RUNNING_DEFENSE;
-							frustration = 0.0;
-							desired_speed = max_flight_speed;
-						}
-					}
-					else
-					{
-						[self avoidCollision];
-					}
-				}
-				else
-				{
-					if (range > SCANNER_MAX_RANGE)
-					{
-						behaviour = BEHAVIOUR_IDLE;
-						frustration = 0.0;
-						[shipAI reactToMessage:@"TARGET_LOST"];
-					}
-				}
-				
-				// control speed
-				//
-				if (range <= slow_down_range)
-					desired_speed = target_speed;   // within the weapon's range don't use afterburner
-				else
-					desired_speed = max_available_speed; // use afterburner to approach
-				
-				last_success_factor = success_factor;
-				success_factor = [self trackPrimaryTarget:delta_t:NO];	// do the actual piloting
-				if ((success_factor > 0.999)||(success_factor > last_success_factor))
-				{
-					frustration -= delta_t;
-					if (frustration < 0.0)
-						frustration = 0.0;
-				}
-				else
-				{
-					frustration += delta_t;
-					if (frustration > 3.0)	// 3s of frustration
-					{
-						[shipAI reactToMessage:@"FRUSTRATED"];
-						// THIS IS HERE AS A TEST ONLY
-						// BREAK OFF
-						jink.x = (ranrot_rand() % 256) - 128.0;
-						jink.y = (ranrot_rand() % 256) - 128.0;
-						jink.z = 1000.0;
-						behaviour = BEHAVIOUR_ATTACK_FLY_FROM_TARGET;
-						frustration = 0.0;
-						desired_speed = max_flight_speed;
-					}
-				}
-				
-				if (missiles > missile_chance * hurt_factor)
-				{
-					//NSLog(@"]==> firing missile : missiles %d, missile_chance %d, hurt_factor %.3f", missiles, missile_chance, hurt_factor);
-					[self fireMissile];
-				}
-				[self activateCloakingDevice];
-				[self fireMainWeapon:range];
+				[self behaviour_attack_fly_to_target: delta_t];
 				break;
 				
 			case BEHAVIOUR_ATTACK_FLY_FROM_TARGET :
-				if (range > COMBAT_OUT_RANGE_FACTOR * weapon_range + 15.0 * jink.x)
-				{
-					jink.x = 0.0;
-					jink.y = 0.0;
-					jink.z = 0.0;
-					behaviour = BEHAVIOUR_ATTACK_TARGET;
-					frustration = 0.0;
-				}
-				[self trackPrimaryTarget:delta_t:YES];
-				if (missiles > missile_chance * hurt_factor)
-				{
-					//NSLog(@"]==> firing missile : missiles %d, missile_chance %d, hurt_factor %.3f", missiles, missile_chance, hurt_factor);
-					[self fireMissile];
-				}
-				[self activateCloakingDevice];
+				[self behaviour_attack_fly_from_target: delta_t];
 				break;
 				
 			case BEHAVIOUR_RUNNING_DEFENSE :
-				if (range > weapon_range)
-				{
-					jink.x = 0.0;
-					jink.y = 0.0;
-					jink.z = 0.0;
-					behaviour = BEHAVIOUR_ATTACK_FLY_TO_TARGET;
-					frustration = 0.0;
-				}
-				[self trackPrimaryTarget:delta_t:YES];
-				[self fireAftWeapon:range];
-				[self activateCloakingDevice];
+				[self behaviour_running_defense: delta_t];
 				break;
 				
 			case BEHAVIOUR_FLEE_TARGET :
-				if (range > desired_range)
-				{
-					[shipAI message:@"REACHED_SAFETY"];
-				}
-				else
-				{
-					desired_speed = max_available_speed;
-				}
-				[self trackPrimaryTarget:delta_t:YES];
-				if (([(ShipEntity *)[self getPrimaryTarget] getPrimaryTarget] == self)&&(missiles > missile_chance * hurt_factor))
-				{
-					//NSLog(@"]==> firing missile : missiles %d, missile_chance %d, hurt_factor %.3f", missiles, missile_chance, hurt_factor);
-					[self fireMissile];
-				}
-				[self activateCloakingDevice];
+				[self behaviour_flee_target: delta_t];
 				break;
 			
 			case BEHAVIOUR_FLY_RANGE_FROM_DESTINATION :
-				if (distance < desired_range)
-					behaviour = BEHAVIOUR_FLY_FROM_DESTINATION;
-				else
-					behaviour = BEHAVIOUR_FLY_TO_DESTINATION;
-				frustration = 0.0;
+				[self behaviour_fly_range_from_destination: delta_t];
 				break;
 				
 			case BEHAVIOUR_FACE_DESTINATION :
-				desired_speed = 0.0;
-//				NSLog(@"DEBUG >>>>> distance %.1f desired_range %.1f", distance, desired_range);
-				if (desired_range > 1.0)
-					max_cos = sqrt(1 - desired_range*desired_range/(distance * distance));
-				else
-					max_cos = 0.995;	// 0.995 - cos(5 degrees) is close enough
-				confidenceFactor = [self trackDestination:delta_t:NO];
-				if (confidenceFactor > max_cos)
-				{
-					// desired facing achieved
-					[shipAI message:@"FACING_DESTINATION"];
-					behaviour = BEHAVIOUR_IDLE;
-					frustration = 0.0;
-				}
-				if ((proximity_alert != NO_TARGET)&&(proximity_alert != primaryTarget))
-					[self avoidCollision];
+				[self behaviour_face_destination: delta_t];
 				break;
 			
 			case BEHAVIOUR_FORMATION_FORM_UP :
-				// get updated destination from owner
-				{
-					ShipEntity* leadShip = (ShipEntity *)[universe entityForUniversalID:owner];
-					double eta = (distance - desired_range) / flight_speed;
-					if ((eta < 5.0)&&(leadShip)&&(leadShip->isShip))
-						desired_speed = [leadShip flight_speed] * 1.25;
-					else
-						desired_speed = max_flight_speed;
-				}
+				[self behaviour_formation_form_up: delta_t];
+				break;
+				
 			case BEHAVIOUR_FLY_TO_DESTINATION :
-				if (distance < desired_range)// + collision_radius)
-				{
-					// desired range achieved
-					[shipAI message:@"DESIRED_RANGE_ACHIEVED"];
-					behaviour = BEHAVIOUR_IDLE;
-					frustration = 0.0;
-					desired_speed = 0.0;
-				}
-				else
-				{
-					double last_distance = last_success_factor;
-					double eta = distance / flight_speed;
-					
-					success_factor = distance;
-					
-					// do the actual piloting!!
-					[self trackDestination:delta_t:NO];
-					
-					double slowdownTime = (thrust > 0.0)? flight_speed / thrust : 4.0;	// 10% safety margin
-					double minTurnSpeedFactor = 0.05 * max_flight_pitch * max_flight_roll;	// faster turning implies higher speeds
-					
-					if ((eta < slowdownTime)&&(flight_speed > max_flight_speed * minTurnSpeedFactor))
-						desired_speed = flight_speed * 0.50;   // cut speed by 50% to a minimum minTurnSpeedFactor of speed
-					
-					if (distance < last_distance)	// improvement
-					{
-						frustration -= delta_t;
-						if (frustration < 0.0)
-							frustration = 0.0;
-					}
-					else
-					{						
-//						double old_frustration = frustration;
-						
-						frustration += delta_t;
-						
-//						if (floor(old_frustration * 5.0) < floor(frustration * 5.0))
-//							NSLog(@"DEBUG %@ has increasing frustration (%.4f)", self, frustration);
-//						
-						if ((frustration > slowdownTime * 10.0)||(frustration > 15.0))	// 10x slowdownTime or 15s of frustration
-						{
-							[shipAI reactToMessage:@"FRUSTRATED"];
-							frustration -= slowdownTime * 5.0;	//repeat after another five units of frustration
-						}
-					}
-				}
-				if ((proximity_alert != NO_TARGET)&&(proximity_alert != primaryTarget))
-					[self avoidCollision];
+				[self behaviour_fly_to_destination: delta_t];
 				break;
 			
-			case BEHAVIOUR_FORMATION_BREAK :
 			case BEHAVIOUR_FLY_FROM_DESTINATION :
-				if (distance > desired_range)
-				{
-					// desired range achieved
-					[shipAI message:@"DESIRED_RANGE_ACHIEVED"];
-					behaviour = BEHAVIOUR_IDLE;
-					frustration = 0.0;
-					desired_speed = 0.0;
-				}
-				else
-				{
-//					double eta = (desired_range - distance) / flight_speed;
-					desired_speed = max_flight_speed;
-					// don't cut speed on retreating...
-//					if ((eta < 1.0)&&(flight_speed > max_flight_speed*0.25))
-//						desired_speed = flight_speed * 0.5;   // cut speed to a minimum of 1/4 speed
-				}
-				[self trackDestination:delta_t:YES];
-				if ((proximity_alert != NO_TARGET)&&(proximity_alert != primaryTarget))
-					[self avoidCollision];
+			case BEHAVIOUR_FORMATION_BREAK :
+				[self behaviour_fly_from_destination: delta_t];
 				break;
 				
 			case BEHAVIOUR_AVOID_COLLISION :
-				if (distance > desired_range)
-				{
-					[self resumePostProximityAlert];
-				}
-				else
-				{
-					ShipEntity* prox_ship = [self proximity_alert];
-					if (prox_ship)
-					{
-						desired_range = prox_ship->collision_radius * PROXIMITY_AVOID_DISTANCE;
-						destination = prox_ship->position;
-					}
-					double dq = [self trackDestination:delta_t:YES];
-					if (dq >= 0)
-						dq = 0.5 * dq + 0.5;
-					else
-						dq = 0.0;
-					desired_speed = max_flight_speed * dq;
-				}
+				[self behaviour_avoid_collision: delta_t];
 				break;
 				
 			case BEHAVIOUR_TRACK_AS_TURRET :
-				{
-					double aim = [self ballTrackLeadingTarget:delta_t];
-					ShipEntity* turret_owner = (ShipEntity *)[self owner];
-					ShipEntity* turret_target = (ShipEntity *)[turret_owner getPrimaryTarget];
-					//
-					if ((turret_owner)&&(turret_target)&&[turret_owner hasHostileTarget])
-					{
-						Vector p1 = turret_target->position;
-						Vector p0 = turret_owner->position;
-						double cr = turret_owner->collision_radius;
-						p1.x -= p0.x;	p1.y -= p0.y;	p1.z -= p0.z;
-						if (aim > .95)
-						{
-							[self fireTurretCannon: sqrt( magnitude2( p1)) - cr];
-//							NSLog(@"DEBUG BANG! BANG! BANG!");
-						}
-					}
-				}
+				[self behaviour_track_as_turret: delta_t];
 				break;
 				
 			case BEHAVIOUR_EXPERIMENTAL :
-				{
-					double aim = [self ballTrackTarget:delta_t];
-					if (aim > .95)
-					{
-						NSLog(@"DEBUG BANG! BANG! BANG!");
-					}
-				}
+				[self behaviour_experimental: delta_t];
 				break;
 				
 		}
 		//
-		// in (almost) every case...
-		//
-		if (behaviour != BEHAVIOUR_TRACK_AS_TURRET)
-		{
-			[self applyRoll:delta_t*flight_roll andClimb:delta_t*flight_pitch];
-			[self applyThrust:delta_t];
-		}
-		//
+		// manage energy
 		//
 		if (energy < max_energy)
 		{
@@ -2468,17 +1971,11 @@ BOOL ship_canCollide (ShipEntity* ship)
 		}
 		//
 		//
-//		if (isStation && (sub_entities))
-//			NSLog(@"DEBUG %@ sub_entities %@", [self name], [sub_entities description]);
 		if (sub_entities)
 		{
 			int i;
 			for (i = 0; i < [sub_entities count]; i++)
-			{
-//				if (isStation && (sub_entities))
-//					NSLog(@"DEBUG %@ going to update sub_entity %@", [self name], [sub_entities objectAtIndex:i]);
 				[(Entity *)[sub_entities objectAtIndex:i] update:delta_t];
-			}
 		}
 		//
 		// update destination position for escorts
@@ -2502,6 +1999,640 @@ BOOL ship_canCollide (ShipEntity* ship)
 		}
     }
 }
+
+
+////////////////
+//            //
+// behaviours //
+//            //
+- (void) behaviour_stop_still:(double) delta_t
+{
+	double		damping = 0.5 * delta_t;
+	// damp roll
+	if (flight_roll < 0)
+		flight_roll += (flight_roll < -damping) ? damping : -flight_roll;
+	if (flight_roll > 0)
+		flight_roll -= (flight_roll > damping) ? damping : flight_roll;
+	// damp pitch
+	if (flight_pitch < 0)
+		flight_pitch += (flight_pitch < -damping) ? damping : -flight_pitch;
+	if (flight_pitch > 0)
+		flight_pitch -= (flight_pitch > damping) ? damping : flight_pitch;
+	[self applyRoll:delta_t*flight_roll andClimb:delta_t*flight_pitch];
+	[self applyThrust:delta_t];
+}
+//            //
+- (void) behaviour_idle:(double) delta_t
+{
+	double		damping = 0.5 * delta_t;
+	if ((!isStation)&&(scan_class != CLASS_BUOY))
+	{
+		// damp roll
+		if (flight_roll < 0)
+			flight_roll += (flight_roll < -damping) ? damping : -flight_roll;
+		if (flight_roll > 0)
+			flight_roll -= (flight_roll > damping) ? damping : flight_roll;
+	}
+	if (scan_class != CLASS_BUOY)
+	{
+		// damp pitch
+		if (flight_pitch < 0)
+			flight_pitch += (flight_pitch < -damping) ? damping : -flight_pitch;
+		if (flight_pitch > 0)
+			flight_pitch -= (flight_pitch > damping) ? damping : flight_pitch;
+	}
+	[self applyRoll:delta_t*flight_roll andClimb:delta_t*flight_pitch];
+	[self applyThrust:delta_t];
+}
+//            //
+- (void) behaviour_tractored:(double) delta_t
+{
+		double  distance = [self rangeToDestination];
+	ShipEntity* hauler = (ShipEntity*)[self owner];
+	if ((hauler)&&(hauler->isShip))
+	{
+		GLfloat tf = TRACTOR_FORCE / mass;
+		desired_speed = 0.0;
+		desired_range = collision_radius;
+		destination = [hauler absoluteTractorPosition];
+		// adjust for difference in velocity
+		Vector dv = vector_between( [self getVelocity], [hauler getVelocity]);
+		velocity.x += delta_t * dv.x * 0.25 * tf;
+		velocity.y += delta_t * dv.y * 0.25 * tf;
+		velocity.z += delta_t * dv.z * 0.25 * tf;
+		// force is proportional to distance
+		// acceleration = force / mass
+		Vector dp = vector_between( position, destination);
+		velocity.x += delta_t * dp.x * tf;
+		velocity.y += delta_t * dp.y * tf;
+		velocity.z += delta_t * dp.z * tf;
+		thrust = 10.0;	// used to damp velocity
+		if (status == STATUS_BEING_SCOOPED)
+		{
+			if (hauler->isPlayer)
+				[(PlayerEntity*)hauler setScoopsActive];
+			if (distance > hauler->collision_radius + collision_radius + 250.f)	// 250m range for tractor beam
+			{
+				// escaped tractor beam
+				status = STATUS_IN_FLIGHT;
+				behaviour = BEHAVIOUR_IDLE;
+				frustration = 0.0;
+				[shipAI exitStateMachine];	// exit nullAI.plist
+			}
+			if (distance < desired_range)
+			{
+				[hauler scoopUp:self];
+			}
+		}
+	}
+	[self applyRoll:delta_t*flight_roll andClimb:delta_t*flight_pitch];
+	[self applyThrust:delta_t];
+}
+//            //
+- (void) behaviour_track_target:(double) delta_t
+{
+	[self trackPrimaryTarget:delta_t:NO];
+	if ((proximity_alert != NO_TARGET)&&(proximity_alert != primaryTarget))
+		[self avoidCollision];
+	[self applyRoll:delta_t*flight_roll andClimb:delta_t*flight_pitch];
+	[self applyThrust:delta_t];
+}
+//            //
+- (void) behaviour_intercept_target:(double) delta_t
+{
+	double  range = [self rangeToPrimaryTarget];
+	if (behaviour == BEHAVIOUR_INTERCEPT_TARGET)
+	{
+		desired_speed = max_flight_speed;
+		if (range < desired_range)
+			[shipAI reactToMessage:@"DESIRED_RANGE_ACHIEVED"];
+		desired_speed = max_flight_speed * [self trackPrimaryTarget:delta_t:NO];
+	}
+	else
+	{
+		ShipEntity*	target = (ShipEntity*)[universe entityForUniversalID:primaryTarget];
+		double target_speed = [target getVelocityAsSpeed];
+		double eta = range / (flight_speed - target_speed);
+		double last_success_factor = success_factor;
+		double last_distance = last_success_factor;
+		double  distance = [self rangeToDestination];
+		success_factor = distance;
+		//
+		double slowdownTime = 96.0 / thrust;	// more thrust implies better slowing
+		double minTurnSpeedFactor = 0.005 * max_flight_pitch * max_flight_roll;	// faster turning implies higher speeds
+		
+		if ((eta < slowdownTime)&&(flight_speed > max_flight_speed * minTurnSpeedFactor))
+			desired_speed = flight_speed * 0.75;   // cut speed by 50% to a minimum minTurnSpeedFactor of speed
+		else
+			desired_speed = max_flight_speed;
+		
+		if (desired_speed < target_speed)
+		{
+			desired_speed += target_speed;
+			if (target_speed > max_flight_speed)
+				[shipAI reactToMessage:@"TARGET_LOST"];
+		}
+		//
+		if (target)	// check introduced to stop crash at next line
+		{
+			destination = target->position;		/* HEISENBUG crash here */
+			desired_range = 0.5 * target->actual_radius;
+			[self trackDestination: delta_t : NO];
+		}
+		//
+		if (distance < last_distance)	// improvement
+		{
+			frustration -= delta_t;
+			if (frustration < 0.0)
+				frustration = 0.0;
+		}
+		else
+		{
+			frustration += delta_t;
+			if (frustration > 10.0)	// 10s of frustration
+			{
+				[shipAI reactToMessage:@"FRUSTRATED"];
+				frustration -= 5.0;	//repeat after another five seconds' frustration
+			}
+		}
+	}
+	if ((proximity_alert != NO_TARGET)&&(proximity_alert != primaryTarget))
+		[self avoidCollision];
+	[self applyRoll:delta_t*flight_roll andClimb:delta_t*flight_pitch];
+	[self applyThrust:delta_t];
+}
+//            //
+- (void) behaviour_attack_target:(double) delta_t
+{
+	BOOL		canBurn = has_fuel_injection && (fuel > 1);	// was &&(fuel > 0)
+	double max_available_speed = (canBurn)? max_flight_speed * AFTERBURNER_FACTOR : max_flight_speed;
+	double  range = [self rangeToPrimaryTarget];
+	[self activateCloakingDevice];
+	desired_speed = max_available_speed;
+	if (range < 0.035 * weapon_range)
+		behaviour = BEHAVIOUR_ATTACK_FLY_FROM_TARGET;
+	else
+		if (universal_id & 1)	// 50% of ships are smart S.M.R.T. smart!
+		{
+			if (randf() < 0.75)
+				behaviour = BEHAVIOUR_ATTACK_FLY_TO_TARGET_SIX;
+			else
+				behaviour = BEHAVIOUR_ATTACK_FLY_TO_TARGET_TWELVE;
+		}
+		else
+		{
+			behaviour = BEHAVIOUR_ATTACK_FLY_TO_TARGET;
+		}
+	frustration = 0.0;	// behaviour changed, so reset frustration
+	[self applyRoll:delta_t*flight_roll andClimb:delta_t*flight_pitch];
+	[self applyThrust:delta_t];
+}
+//            //
+- (void) behaviour_fly_to_target_six:(double) delta_t
+{
+	BOOL canBurn = has_fuel_injection && (fuel > 1);	// was &&(fuel > 0)
+	double max_available_speed = (canBurn)? max_flight_speed * AFTERBURNER_FACTOR : max_flight_speed;
+	double  range = [self rangeToPrimaryTarget];
+	// deal with collisions and lost targets
+	//
+	if (proximity_alert != NO_TARGET)
+		[self avoidCollision];
+	if (range > SCANNER_MAX_RANGE)
+	{
+		behaviour = BEHAVIOUR_IDLE;
+		frustration = 0.0;
+		[shipAI reactToMessage:@"TARGET_LOST"];
+	}
+
+	// control speed
+	//
+	BOOL isUsingAfterburner = canBurn && (flight_speed > max_flight_speed);
+	double	slow_down_range = weapon_range * COMBAT_WEAPON_RANGE_FACTOR * ((isUsingAfterburner)? 3.0 * AFTERBURNER_FACTOR : 1.0);
+	ShipEntity*	target = (ShipEntity*)[universe entityForUniversalID:primaryTarget];
+	double target_speed = [target getVelocityAsSpeed];
+	double distance = [self rangeToDestination];
+	if (range < slow_down_range)
+	{
+		desired_speed = target_speed;
+		// avoid head-on collision
+		//
+		if ((range < 0.5 * distance)&&(behaviour == BEHAVIOUR_ATTACK_FLY_TO_TARGET_SIX))
+			behaviour = BEHAVIOUR_ATTACK_FLY_TO_TARGET_TWELVE;
+	}
+	else
+		desired_speed = max_available_speed; // use afterburner to approach
+
+
+	// if within 0.75km of the target's six or twelve then vector in attack
+	//
+	if (distance < 750.0)
+	{
+		behaviour = BEHAVIOUR_ATTACK_FLY_TO_TARGET;
+		frustration = 0.0;
+		desired_speed = target_speed;   // within the weapon's range don't use afterburner
+	}
+
+	// target-six
+	if (behaviour == BEHAVIOUR_ATTACK_FLY_TO_TARGET_SIX)
+	{
+		// head for a point weapon-range * 0.5 to the six of the target
+		//
+		destination = [target distance_six:0.5 * weapon_range];
+	}
+	// target-twelve
+	if (behaviour == BEHAVIOUR_ATTACK_FLY_TO_TARGET_TWELVE)
+	{
+		// head for a point 1.25km above the target
+		//
+		destination = [target distance_twelve:1250];
+	}
+
+	[self trackDestination:delta_t :NO];
+
+	// use weaponry
+	//
+	int missile_chance = 0;
+	int rhs = 3.2 / delta_t;
+	if (rhs)	missile_chance = 1 + (ranrot_rand() % rhs);
+	
+	double hurt_factor = 16 * pow(energy/max_energy, 4.0);
+	if (missiles > missile_chance * hurt_factor)
+	{
+		//NSLog(@"]==> firing missile : missiles %d, missile_chance %d, hurt_factor %.3f", missiles, missile_chance, hurt_factor);
+		[self fireMissile];
+	}
+	[self activateCloakingDevice];
+	[self fireMainWeapon:range];
+	[self applyRoll:delta_t*flight_roll andClimb:delta_t*flight_pitch];
+	[self applyThrust:delta_t];
+}
+//            //
+- (void) behaviour_attack_mining_target:(double) delta_t
+{
+	double  range = [self rangeToPrimaryTarget];
+	if ((range < 650)||(proximity_alert != NO_TARGET))
+	{
+		if (proximity_alert == NO_TARGET)
+		{
+			desired_speed = range * max_flight_speed / (650.0 * 16.0);
+		}
+		else
+		{
+			[self avoidCollision];
+		}
+	}
+	else
+	{
+		if (range > SCANNER_MAX_RANGE)
+		{
+			behaviour = BEHAVIOUR_IDLE;
+			[shipAI reactToMessage:@"TARGET_LOST"];
+		}
+		desired_speed = max_flight_speed * 0.375;
+	}
+	[self trackPrimaryTarget:delta_t:NO];
+	[self fireMainWeapon:range];
+	[self applyRoll:delta_t*flight_roll andClimb:delta_t*flight_pitch];
+	[self applyThrust:delta_t];
+}
+//            //
+- (void) behaviour_attack_fly_to_target:(double) delta_t
+{
+	BOOL canBurn = has_fuel_injection && (fuel > 1);	// was &&(fuel > 0)
+	double max_available_speed = (canBurn)? max_flight_speed * AFTERBURNER_FACTOR : max_flight_speed;
+	double  range = [self rangeToPrimaryTarget];
+	if ((range < COMBAT_IN_RANGE_FACTOR * weapon_range)||(proximity_alert != NO_TARGET))
+	{
+		if (proximity_alert == NO_TARGET)
+		{
+			if (aft_weapon_type == WEAPON_NONE)
+			{
+				jink.x = (ranrot_rand() % 256) - 128.0;
+				jink.y = (ranrot_rand() % 256) - 128.0;
+				jink.z = 1000.0;
+				behaviour = BEHAVIOUR_ATTACK_FLY_FROM_TARGET;
+				frustration = 0.0;
+				desired_speed = max_available_speed;
+			}
+			else
+			{
+				//NSLog(@"DEBUG >>>>> %@ %d entering running defense mode", name, universal_id);
+				
+				jink = make_vector( 0.0f, 0.0f, 0.0f);
+				behaviour = BEHAVIOUR_RUNNING_DEFENSE;
+				frustration = 0.0;
+				desired_speed = max_flight_speed;
+			}
+		}
+		else
+		{
+			[self avoidCollision];
+		}
+	}
+	else
+	{
+		if (range > SCANNER_MAX_RANGE)
+		{
+			behaviour = BEHAVIOUR_IDLE;
+			frustration = 0.0;
+			[shipAI reactToMessage:@"TARGET_LOST"];
+		}
+	}
+
+	// control speed
+	//
+	BOOL isUsingAfterburner = canBurn && (flight_speed > max_flight_speed);
+	double slow_down_range = weapon_range * COMBAT_WEAPON_RANGE_FACTOR * ((isUsingAfterburner)? 3.0 * AFTERBURNER_FACTOR : 1.0);
+	ShipEntity*	target = (ShipEntity*)[universe entityForUniversalID:primaryTarget];
+	double target_speed = [target getVelocityAsSpeed];
+	if (range <= slow_down_range)
+		desired_speed = target_speed;   // within the weapon's range don't use afterburner
+	else
+		desired_speed = max_available_speed; // use afterburner to approach
+
+	double last_success_factor = success_factor;
+	success_factor = [self trackPrimaryTarget:delta_t:NO];	// do the actual piloting
+	if ((success_factor > 0.999)||(success_factor > last_success_factor))
+	{
+		frustration -= delta_t;
+		if (frustration < 0.0)
+			frustration = 0.0;
+	}
+	else
+	{
+		frustration += delta_t;
+		if (frustration > 3.0)	// 3s of frustration
+		{
+			[shipAI reactToMessage:@"FRUSTRATED"];
+			// THIS IS HERE AS A TEST ONLY
+			// BREAK OFF
+			jink.x = (ranrot_rand() % 256) - 128.0;
+			jink.y = (ranrot_rand() % 256) - 128.0;
+			jink.z = 1000.0;
+			behaviour = BEHAVIOUR_ATTACK_FLY_FROM_TARGET;
+			frustration = 0.0;
+			desired_speed = max_flight_speed;
+		}
+	}
+
+	int missile_chance = 0;
+	int rhs = 3.2 / delta_t;
+	if (rhs)	missile_chance = 1 + (ranrot_rand() % rhs);
+	
+	double hurt_factor = 16 * pow(energy/max_energy, 4.0);
+	if (missiles > missile_chance * hurt_factor)
+	{
+		//NSLog(@"]==> firing missile : missiles %d, missile_chance %d, hurt_factor %.3f", missiles, missile_chance, hurt_factor);
+		[self fireMissile];
+	}
+	[self activateCloakingDevice];
+	[self fireMainWeapon:range];
+	[self applyRoll:delta_t*flight_roll andClimb:delta_t*flight_pitch];
+	[self applyThrust:delta_t];
+}
+//            //
+- (void) behaviour_attack_fly_from_target:(double) delta_t
+{
+	double  range = [self rangeToPrimaryTarget];
+	if (range > COMBAT_OUT_RANGE_FACTOR * weapon_range + 15.0 * jink.x)
+	{
+		jink.x = 0.0;
+		jink.y = 0.0;
+		jink.z = 0.0;
+		behaviour = BEHAVIOUR_ATTACK_TARGET;
+		frustration = 0.0;
+	}
+	[self trackPrimaryTarget:delta_t:YES];
+	
+	int missile_chance = 0;
+	int rhs = 3.2 / delta_t;
+	if (rhs)	missile_chance = 1 + (ranrot_rand() % rhs);
+	
+	double hurt_factor = 16 * pow(energy/max_energy, 4.0);
+	if (missiles > missile_chance * hurt_factor)
+	{
+		//NSLog(@"]==> firing missile : missiles %d, missile_chance %d, hurt_factor %.3f", missiles, missile_chance, hurt_factor);
+		[self fireMissile];
+	}
+	[self activateCloakingDevice];
+	[self applyRoll:delta_t*flight_roll andClimb:delta_t*flight_pitch];
+	[self applyThrust:delta_t];
+}
+//            //
+- (void) behaviour_running_defense:(double) delta_t
+{
+	double  range = [self rangeToPrimaryTarget];
+	if (range > weapon_range)
+	{
+		jink.x = 0.0;
+		jink.y = 0.0;
+		jink.z = 0.0;
+		behaviour = BEHAVIOUR_ATTACK_FLY_TO_TARGET;
+		frustration = 0.0;
+	}
+	[self trackPrimaryTarget:delta_t:YES];
+	[self fireAftWeapon:range];
+	[self activateCloakingDevice];
+	[self applyRoll:delta_t*flight_roll andClimb:delta_t*flight_pitch];
+	[self applyThrust:delta_t];
+}
+//            //
+- (void) behaviour_flee_target:(double) delta_t
+{
+	BOOL canBurn = has_fuel_injection && (fuel > 1);	// was &&(fuel > 0)
+	double max_available_speed = (canBurn)? max_flight_speed * AFTERBURNER_FACTOR : max_flight_speed;
+	double  range = [self rangeToPrimaryTarget];
+	if (range > desired_range)
+		[shipAI message:@"REACHED_SAFETY"];
+	else
+		desired_speed = max_available_speed;
+	[self trackPrimaryTarget:delta_t:YES];
+
+	int missile_chance = 0;
+	int rhs = 3.2 / delta_t;
+	if (rhs)	missile_chance = 1 + (ranrot_rand() % rhs);
+	
+	double hurt_factor = 16 * pow(energy/max_energy, 4.0);
+	if (([(ShipEntity *)[self getPrimaryTarget] getPrimaryTarget] == self)&&(missiles > missile_chance * hurt_factor))
+		[self fireMissile];
+	[self activateCloakingDevice];
+	[self applyRoll:delta_t*flight_roll andClimb:delta_t*flight_pitch];
+	[self applyThrust:delta_t];
+}
+//            //
+- (void) behaviour_fly_range_from_destination:(double) delta_t
+{
+	double distance = [self rangeToDestination];
+	if (distance < desired_range)
+		behaviour = BEHAVIOUR_FLY_FROM_DESTINATION;
+	else
+		behaviour = BEHAVIOUR_FLY_TO_DESTINATION;
+	frustration = 0.0;
+	[self applyRoll:delta_t*flight_roll andClimb:delta_t*flight_pitch];
+	[self applyThrust:delta_t];
+}
+//            //
+- (void) behaviour_face_destination:(double) delta_t
+{
+	double max_cos = 0.995;
+	double distance = [self rangeToDestination];
+	desired_speed = 0.0;
+	if (desired_range > 1.0)
+		max_cos = sqrt(1 - desired_range*desired_range/(distance * distance));
+	else
+		max_cos = 0.995;	// 0.995 - cos(5 degrees) is close enough
+	double confidenceFactor = [self trackDestination:delta_t:NO];
+	if (confidenceFactor > max_cos)
+	{
+		// desired facing achieved
+		[shipAI message:@"FACING_DESTINATION"];
+		behaviour = BEHAVIOUR_IDLE;
+		frustration = 0.0;
+	}
+	if ((proximity_alert != NO_TARGET)&&(proximity_alert != primaryTarget))
+		[self avoidCollision];
+	[self applyRoll:delta_t*flight_roll andClimb:delta_t*flight_pitch];
+	[self applyThrust:delta_t];
+}
+//            //
+- (void) behaviour_formation_form_up:(double) delta_t
+{
+	// get updated destination from owner
+	ShipEntity* leadShip = (ShipEntity *)[universe entityForUniversalID:owner];
+	double distance = [self rangeToDestination];
+	double eta = (distance - desired_range) / flight_speed;
+	if ((eta < 5.0)&&(leadShip)&&(leadShip->isShip))
+		desired_speed = [leadShip flight_speed] * 1.25;
+	else
+		desired_speed = max_flight_speed;
+	[self behaviour_fly_to_destination: delta_t];
+}
+//            //
+- (void) behaviour_fly_to_destination:(double) delta_t
+{
+	double distance = [self rangeToDestination];
+	if (distance < desired_range)// + collision_radius)
+	{
+		// desired range achieved
+		[shipAI message:@"DESIRED_RANGE_ACHIEVED"];
+		behaviour = BEHAVIOUR_IDLE;
+		frustration = 0.0;
+		desired_speed = 0.0;
+	}
+	else
+	{
+		double last_success_factor = success_factor;
+		double last_distance = last_success_factor;
+		double eta = distance / flight_speed;
+		
+		success_factor = distance;
+		
+		// do the actual piloting!!
+		[self trackDestination:delta_t:NO];
+		
+		double slowdownTime = (thrust > 0.0)? flight_speed / thrust : 4.0;	// 10% safety margin
+		double minTurnSpeedFactor = 0.05 * max_flight_pitch * max_flight_roll;	// faster turning implies higher speeds
+		
+		if ((eta < slowdownTime)&&(flight_speed > max_flight_speed * minTurnSpeedFactor))
+			desired_speed = flight_speed * 0.50;   // cut speed by 50% to a minimum minTurnSpeedFactor of speed
+		
+		if (distance < last_distance)	// improvement
+		{
+			frustration -= delta_t;
+			if (frustration < 0.0)
+				frustration = 0.0;
+		}
+		else
+		{						
+			frustration += delta_t;
+			if ((frustration > slowdownTime * 10.0)||(frustration > 15.0))	// 10x slowdownTime or 15s of frustration
+			{
+				[shipAI reactToMessage:@"FRUSTRATED"];
+				frustration -= slowdownTime * 5.0;	//repeat after another five units of frustration
+			}
+		}
+	}
+	if ((proximity_alert != NO_TARGET)&&(proximity_alert != primaryTarget))
+		[self avoidCollision];
+	[self applyRoll:delta_t*flight_roll andClimb:delta_t*flight_pitch];
+	[self applyThrust:delta_t];
+}
+//            //
+- (void) behaviour_fly_from_destination:(double) delta_t
+{
+	double distance = [self rangeToDestination];
+	if (distance > desired_range)
+	{
+		// desired range achieved
+		[shipAI message:@"DESIRED_RANGE_ACHIEVED"];
+		behaviour = BEHAVIOUR_IDLE;
+		frustration = 0.0;
+		desired_speed = 0.0;
+	}
+	else
+	{
+		desired_speed = max_flight_speed;
+	}
+	[self trackDestination:delta_t:YES];
+	if ((proximity_alert != NO_TARGET)&&(proximity_alert != primaryTarget))
+		[self avoidCollision];
+	[self applyRoll:delta_t*flight_roll andClimb:delta_t*flight_pitch];
+	[self applyThrust:delta_t];
+}
+//            //
+- (void) behaviour_avoid_collision:(double) delta_t
+{
+	double distance = [self rangeToDestination];
+	if (distance > desired_range)
+	{
+		[self resumePostProximityAlert];
+	}
+	else
+	{
+		ShipEntity* prox_ship = [self proximity_alert];
+		if (prox_ship)
+		{
+			desired_range = prox_ship->collision_radius * PROXIMITY_AVOID_DISTANCE;
+			destination = prox_ship->position;
+		}
+		double dq = [self trackDestination:delta_t:YES];
+		if (dq >= 0)
+			dq = 0.5 * dq + 0.5;
+		else
+			dq = 0.0;
+		desired_speed = max_flight_speed * dq;
+	}
+	[self applyRoll:delta_t*flight_roll andClimb:delta_t*flight_pitch];
+	[self applyThrust:delta_t];
+}
+//            //
+- (void) behaviour_track_as_turret:(double) delta_t
+{
+	double aim = [self ballTrackLeadingTarget:delta_t];
+	ShipEntity* turret_owner = (ShipEntity *)[self owner];
+	ShipEntity* turret_target = (ShipEntity *)[turret_owner getPrimaryTarget];
+	//
+	if ((turret_owner)&&(turret_target)&&[turret_owner hasHostileTarget])
+	{
+		Vector p1 = turret_target->position;
+		Vector p0 = turret_owner->position;
+		double cr = turret_owner->collision_radius;
+		p1.x -= p0.x;	p1.y -= p0.y;	p1.z -= p0.z;
+		if (aim > .95)
+			[self fireTurretCannon: sqrt( magnitude2( p1)) - cr];
+	}
+}
+//            //
+- (void) behaviour_experimental:(double) delta_t
+{
+	double aim = [self ballTrackTarget:delta_t];
+	if (aim > .95)
+	{
+		NSLog(@"DEBUG BANG! BANG! BANG!");
+	}
+}
+//            //
+////////////////
 
 // override Entity saveToLastFrame
 //

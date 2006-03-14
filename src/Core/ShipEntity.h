@@ -371,6 +371,53 @@ Your fair use and other rights are in no way affected by the above.
 
 - (void) setDefaultWeaponOffsets;
 
+////////////////
+//            //
+// behaviours //
+//            //
+- (void) behaviour_stop_still:(double) delta_t;
+//            //
+- (void) behaviour_idle:(double) delta_t;
+//            //
+- (void) behaviour_tractored:(double) delta_t;
+//            //
+- (void) behaviour_track_target:(double) delta_t;
+//            //
+- (void) behaviour_intercept_target:(double) delta_t;
+//            //
+- (void) behaviour_attack_target:(double) delta_t;
+//            //
+- (void) behaviour_fly_to_target_six:(double) delta_t;
+//            //
+- (void) behaviour_attack_mining_target:(double) delta_t;
+//            //
+- (void) behaviour_attack_fly_to_target:(double) delta_t;
+//            //
+- (void) behaviour_attack_fly_from_target:(double) delta_t;
+//            //
+- (void) behaviour_running_defense:(double) delta_t;
+//            //
+- (void) behaviour_flee_target:(double) delta_t;
+//            //
+- (void) behaviour_fly_range_from_destination:(double) delta_t;
+//            //
+- (void) behaviour_face_destination:(double) delta_t;
+//            //
+- (void) behaviour_formation_form_up:(double) delta_t;
+//            //
+- (void) behaviour_fly_to_destination:(double) delta_t;
+//            //
+- (void) behaviour_fly_from_destination:(double) delta_t;
+//            //
+- (void) behaviour_avoid_collision:(double) delta_t;
+//            //
+- (void) behaviour_track_as_turret:(double) delta_t;
+//            //
+- (void) behaviour_experimental:(double) delta_t;
+//            //
+////////////////
+
+
 - (void) resetTracking;
 
 - (GLfloat *) scannerDisplayColorForShip:(ShipEntity*)otherShip :(BOOL)isHostile :(BOOL)flash;
