@@ -5314,6 +5314,10 @@ GLfloat	starboard_matrix[] = {	0.0f, 0.0f, 1.0f, 0.0f,		0.0f, 1.0f, 0.0f, 0.0f,	
 		else
 			distance = (dx + dy + dy) / 2;
 
+		if ((distance == min_dist)&&(coords.y > systems[i].b))	// with coincident systems choose only if ABOVE
+		{
+			system = systems[i];
+		}
 		if (distance < min_dist)
 		{
 			min_dist = distance;

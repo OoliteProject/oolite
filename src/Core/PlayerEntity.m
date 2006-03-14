@@ -4494,9 +4494,10 @@ double scoopSoundPlayTime = 0.0;
 	double		distance = distanceBetweenPlanetPositions(target_system_seed.d,target_system_seed.b,galaxy_coordinates.x,galaxy_coordinates.y); 
 	int			i;
 	
-	target_system_seed =	[universe findSystemAtCoords:cursor_coordinates withGalaxySeed:galaxy_seed];
+	if ((target_system_seed.d != cursor_coordinates.x)||(target_system_seed.b != cursor_coordinates.y))
+		target_system_seed =	[universe findSystemAtCoords:cursor_coordinates withGalaxySeed:galaxy_seed];
 	targetSystemName =		[[universe getSystemName:target_system_seed] retain];  // retained
-	
+		
 	// get a list of systems marked as contract destinations
 	BOOL mark[256];
 	for (i = 0; i < 256; i++)
@@ -4731,7 +4732,8 @@ double scoopSoundPlayTime = 0.0;
 	NSString*   targetSystemName;
 	double		distance = distanceBetweenPlanetPositions(target_system_seed.d,target_system_seed.b,galaxy_coordinates.x,galaxy_coordinates.y); 
 	
-	target_system_seed =	[universe findSystemAtCoords:cursor_coordinates withGalaxySeed:galaxy_seed];
+	if ((target_system_seed.d != cursor_coordinates.x)||(target_system_seed.b != cursor_coordinates.y))
+		target_system_seed =	[universe findSystemAtCoords:cursor_coordinates withGalaxySeed:galaxy_seed];
 	targetSystemName =		[[universe getSystemName:target_system_seed] retain];  // retained
 	
 	//NSLog(@"found %@ at (%d, %d)",targetSystemName,(int)cursor_coordinates.x,(int)cursor_coordinates.y);
