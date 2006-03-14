@@ -5676,10 +5676,14 @@ Vector randomPositionInBoundingBox(BoundingBox bb)
 	[missile setStatus:		STATUS_IN_FLIGHT];  // necessary to get it going!
 	//
 	[universe addEntity:	missile];
+	//
 	[missile release]; //release
 	
-	[(ShipEntity *)target setPrimaryAggressor:self];
-	[[(ShipEntity *)target getAI] reactToMessage:@"INCOMING_MISSILE"];
+	if ([missile scanClass] == CLASS_MISSILE)
+	{
+		[(ShipEntity *)target setPrimaryAggressor:self];
+		[[(ShipEntity *)target getAI] reactToMessage:@"INCOMING_MISSILE"];
+	}
 	
 	return YES;
 }
