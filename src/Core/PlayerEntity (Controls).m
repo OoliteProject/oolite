@@ -2048,12 +2048,15 @@ static BOOL queryPressed;
 							}
 							else
 							{
-								[self playInterfaceBeep:kInterfaceBeep_Buy];
 								[universe removeDemoShips];
 								[self setGuiToStatusScreen];
+								[self playInterfaceBeep: kInterfaceBeep_Buy];
 							}
 						}
+						else
+						{
 							[self boop];
+						}
 					}
 					selectPressed = YES;
 				}
