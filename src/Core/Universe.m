@@ -3862,6 +3862,14 @@ GLfloat	starboard_matrix[] = {	0.0f, 0.0f, 1.0f, 0.0f,		0.0f, 1.0f, 0.0f, 0.0f,	
 		}
 		else
 			[entity setUniversal_id:NO_TARGET];
+		
+		// lighting considerations
+		//
+		entity->isSunlit = YES;
+		entity->shadingEntityID = NO_TARGET;
+		
+		// add it to the universe
+		//
 		[entity setUniverse:self];
 		[entities addObject:entity];
 		

@@ -58,6 +58,8 @@ Your fair use and other rights are in no way affected by the above.
 	
 @protected
 	
+	BOOL		isPlayerInRegion;
+	
 	Entity**	entity_array;	// entities within the region
 	int			n_entities;		// number of entities
 	int			max_entities;	// so storage can be expanded

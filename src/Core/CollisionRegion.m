@@ -65,6 +65,7 @@ Your fair use and other rights are in no way affected by the above.
 	radius = 0.0f;
 	border_radius = 0.0f;
 	isUniverse = YES;
+	isPlayerInRegion = NO;
 	
 	max_entities = COLLISION_MAX_ENTITIES;
 	n_entities = 0;
@@ -85,6 +86,7 @@ Your fair use and other rights are in no way affected by the above.
 	radius = rad;
 	border_radius = COLLISION_REGION_BORDER_RADIUS;
 	isUniverse = NO;
+	isPlayerInRegion = NO;
 	
 	max_entities = COLLISION_MAX_ENTITIES;
 	n_entities = 0;
@@ -255,6 +257,7 @@ NSArray* subregionsContainingPosition( Vector position, CollisionRegion* region)
 	int n_subs = [subregions count];
 	for (i = 0; i < n_subs; i++)
 		[(CollisionRegion*)[subregions objectAtIndex: i] clearEntityList];
+	isPlayerInRegion = NO;
 }
 
 - (void) addEntity:(Entity*) ent
@@ -272,6 +275,7 @@ NSArray* subregionsContainingPosition( Vector position, CollisionRegion* region)
 		entity_array = new_store;
 	}
 	
+	isPlayerInRegion |= (ent->isPlayer);
 	entity_array[n_entities++] = ent;
 }
 
@@ -315,6 +319,10 @@ NSArray* subregionsContainingPosition( Vector position, CollisionRegion* region)
 	//
 	if (n_entities < 2)
 		return;
+	
+	// in reduced detail mode only checkCloseCollision near the player
+	//
+	BOOL	isNotDetailed = ([universe reducedDetail] && (!isPlayerInRegion));
 	
 	//	clear collision variables
 	//
@@ -367,8 +375,8 @@ NSArray* subregionsContainingPosition( Vector position, CollisionRegion* region)
 				}
 				if (dist2 < min_dist2)
 				{
-					BOOL	coll1 = [e1 checkCloseCollisionWith:e2];
-					BOOL	coll2 = [e2 checkCloseCollisionWith:e1];
+					BOOL	coll1 = (isNotDetailed)? YES : [e1 checkCloseCollisionWith:e2];
+					BOOL	coll2 = (isNotDetailed)? YES : [e2 checkCloseCollisionWith:e1];
 					if ( coll1 && coll2 )
 					{
 						if (e1->collider)
@@ -462,6 +470,9 @@ BOOL testEntityOccludedByEntity(Entity* e1, Entity* e2, PlanetEntity* the_sun)
 	
 	if (!universe)
 		return;	// universe is required!
+	
+	if ([universe reducedDetail])
+		return;	// don't do this in reduced detail mode
 	
 	PlanetEntity* the_sun = [universe sun];
 	
