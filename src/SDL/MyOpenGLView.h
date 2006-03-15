@@ -39,7 +39,7 @@ Your fair use and other rights are in no way affected by the above.
 #import "OOOpenGL.h"
 
 #ifdef GNUSTEP
-#include <SDL/SDL.h>
+#include <SDL.h>
 #endif
 
 #define MAX_CLEAR_DEPTH		100000000.0
@@ -102,7 +102,7 @@ extern int debug;
 @interface MyOpenGLView : OpenGLViewSuperClass
 {
 	GameController		*gameController;
-#ifndef GNUSTEP	
+#ifndef GNUSTEP
 	OpenGLSprite		*splashSprite;
 #endif
 	BOOL				keys[NUM_KEYS];
@@ -111,31 +111,31 @@ extern int debug;
 	BOOL				opt, ctrl, command, shift;
 	BOOL				allowingStringInput;
 	BOOL				isAlphabetKeyDown;
-	
+
 	int					keycodetrans[255];
-	
+
 	BOOL				m_glContextInitialized;
     NSPoint				mouseDragStartPoint;
-	
+
 	NSTimeInterval		timeIntervalAtLastClick;
 	BOOL				doubleClick;
-	
+
 	NSMutableString		*typedString;
-	
+
 	NSPoint				virtualJoystickPosition;
-	
+
 	NSSize				viewSize;
 	GLfloat				display_z;
-	
+
 #ifdef GNUSTEP
     double				squareX,squareY;
 	NSRect				bounds;
-	
+
    // Full screen sizes
 	NSMutableArray		*screenSizes;
 	int					currentSize;
 	BOOL				fullScreen;
-	
+
 	// Windowed mode
 	NSSize currentWindowSize;
 	SDL_Surface* surface;
@@ -190,7 +190,7 @@ extern int debug;
 
  - (void) pollControls: (id)sender;
  - (void) handleStringInput: (SDL_KeyboardEvent *) kbd_event; // DJS
- - (JoystickHandler *)getStickHandler; // DJS                       
+ - (JoystickHandler *)getStickHandler; // DJS
 #endif
 
 - (void) setVirtualJoystick:(double) vmx :(double) vmy;

@@ -8,7 +8,7 @@
 // JoystickHandler handles joystick events from SDL, and translates them
 // into the appropriate action via a lookup table. The lookup table is
 // stored as a simple array rather than an ObjC dictionary since this
-// will be examined fairly often (once per frame during gameplay). 
+// will be examined fairly often (once per frame during gameplay).
 //
 // Conversion methods are provided to convert between the internal
 // representation and an NSDictionary (for loading/saving user defaults
@@ -93,7 +93,7 @@ enum {
 #define ENUMKEY(x) [NSString stringWithFormat: @"%d", x]
 
 #import <Foundation/Foundation.h>
-#import <SDL/SDL.h>
+#import <SDL.h>
 
 @interface JoystickHandler : NSObject
 {
@@ -128,10 +128,10 @@ enum {
 - (NSPoint) getRollPitchAxis;
 
 // Setting button and axis functions
-- (void) setFunctionForAxis: (int)axis 
-                   function: (int)function 
+- (void) setFunctionForAxis: (int)axis
+                   function: (int)function
                       stick: (int)stickNum;
-- (void) setFunctionForButton: (int)button 
+- (void) setFunctionForButton: (int)button
                      function: (int)function
                         stick: (int)stickNum;
 // convert a dictionary into the internal function map
@@ -160,10 +160,10 @@ enum {
 
 // Set a callback for the next moved axis/pressed button. hwflags
 // is in the form HW_AXIS | HW_BUTTON (or just one of).
-- (void)setCallback: (SEL)selector 
-             object: (id)obj 
+- (void)setCallback: (SEL)selector
+             object: (id)obj
            hardware: (char)hwflags;
-- (void)clearCallback;           
+- (void)clearCallback;
 
 // Methods generally only used by this class.
 - (void) setDefaultMapping;
