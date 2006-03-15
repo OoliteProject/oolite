@@ -1857,7 +1857,7 @@ BOOL ship_canCollide (ShipEntity* ship)
 		switch (behaviour)
 		{
 			case BEHAVIOUR_TUMBLE :
-				// do nothing!
+				[self behaviour_tumble: delta_t];
 				break;
 
 			case BEHAVIOUR_STOP_STILL :
@@ -2041,6 +2041,12 @@ BOOL ship_canCollide (ShipEntity* ship)
 		if (flight_pitch > 0)
 			flight_pitch -= (flight_pitch > damping) ? damping : flight_pitch;
 	}
+	[self applyRoll:delta_t*flight_roll andClimb:delta_t*flight_pitch];
+	[self applyThrust:delta_t];
+}
+//            //
+- (void) behaviour_tumble:(double) delta_t
+{
 	[self applyRoll:delta_t*flight_roll andClimb:delta_t*flight_pitch];
 	[self applyThrust:delta_t];
 }
