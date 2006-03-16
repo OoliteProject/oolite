@@ -202,7 +202,6 @@
 		25F3E7E80994FD4C002F25FD /* boa2_right.png in Resources */ = {isa = PBXBuildFile; fileRef = 25F3E79B0994FD4C002F25FD /* boa2_right.png */; };
 		25F3E7E90994FD4C002F25FD /* boa2_top.png in Resources */ = {isa = PBXBuildFile; fileRef = 25F3E79C0994FD4C002F25FD /* boa2_top.png */; };
 		25F3E7EA0994FD4C002F25FD /* bottom_metal.png in Resources */ = {isa = PBXBuildFile; fileRef = 25F3E79D0994FD4C002F25FD /* bottom_metal.png */; };
-		25F3E7EB0994FD4C002F25FD /* capsule_front.png in Resources */ = {isa = PBXBuildFile; fileRef = 25F3E79E0994FD4C002F25FD /* capsule_front.png */; };
 		25F3E7EC0994FD4C002F25FD /* cobra1_redux.png in Resources */ = {isa = PBXBuildFile; fileRef = 25F3E79F0994FD4C002F25FD /* cobra1_redux.png */; };
 		25F3E7ED0994FD4C002F25FD /* cobra1_redux1.png in Resources */ = {isa = PBXBuildFile; fileRef = 25F3E7A00994FD4C002F25FD /* cobra1_redux1.png */; };
 		25F3E7EE0994FD4C002F25FD /* cobra1_redux2.png in Resources */ = {isa = PBXBuildFile; fileRef = 25F3E7A10994FD4C002F25FD /* cobra1_redux2.png */; };
@@ -210,30 +209,22 @@
 		25F3E7F00994FD4C002F25FD /* cobra3_redux.png in Resources */ = {isa = PBXBuildFile; fileRef = 25F3E7A30994FD4C002F25FD /* cobra3_redux.png */; };
 		25F3E7F10994FD4C002F25FD /* cobra3_redux1.png in Resources */ = {isa = PBXBuildFile; fileRef = 25F3E7A40994FD4C002F25FD /* cobra3_redux1.png */; };
 		25F3E7F30994FD4C002F25FD /* constrictor_redux.png in Resources */ = {isa = PBXBuildFile; fileRef = 25F3E7A60994FD4C002F25FD /* constrictor_redux.png */; };
-		25F3E7F40994FD4C002F25FD /* crosshair.png in Resources */ = {isa = PBXBuildFile; fileRef = 25F3E7A70994FD4C002F25FD /* crosshair.png */; };
 		25F3E7F60994FD4C002F25FD /* dark_metal.png in Resources */ = {isa = PBXBuildFile; fileRef = 25F3E7A90994FD4C002F25FD /* dark_metal.png */; };
 		25F3E7F70994FD4C002F25FD /* ferdelance_redux.png in Resources */ = {isa = PBXBuildFile; fileRef = 25F3E7AA0994FD4C002F25FD /* ferdelance_redux.png */; };
 		25F3E7F80994FD4C002F25FD /* flare256.png in Resources */ = {isa = PBXBuildFile; fileRef = 25F3E7AB0994FD4C002F25FD /* flare256.png */; };
 		25F3E7F90994FD4C002F25FD /* front_metal.png in Resources */ = {isa = PBXBuildFile; fileRef = 25F3E7AC0994FD4C002F25FD /* front_metal.png */; };
 		25F3E7FA0994FD4C002F25FD /* galaxy256.png in Resources */ = {isa = PBXBuildFile; fileRef = 25F3E7AD0994FD4C002F25FD /* galaxy256.png */; };
 		25F3E7FB0994FD4C002F25FD /* gecko_redux.png in Resources */ = {isa = PBXBuildFile; fileRef = 25F3E7AE0994FD4C002F25FD /* gecko_redux.png */; };
-		25F3E7FC0994FD4C002F25FD /* hemisphere.png in Resources */ = {isa = PBXBuildFile; fileRef = 25F3E7AF0994FD4C002F25FD /* hemisphere.png */; };
 		25F3E7FD0994FD4C002F25FD /* krait_redux.png in Resources */ = {isa = PBXBuildFile; fileRef = 25F3E7B00994FD4C002F25FD /* krait_redux.png */; };
 		25F3E7FE0994FD4C002F25FD /* left_metal.png in Resources */ = {isa = PBXBuildFile; fileRef = 25F3E7B10994FD4C002F25FD /* left_metal.png */; };
 		25F3E7FF0994FD4C002F25FD /* mamba_redux.png in Resources */ = {isa = PBXBuildFile; fileRef = 25F3E7B20994FD4C002F25FD /* mamba_redux.png */; };
 		25F3E8000994FD4C002F25FD /* mamba_redux1.png in Resources */ = {isa = PBXBuildFile; fileRef = 25F3E7B30994FD4C002F25FD /* mamba_redux1.png */; };
 		25F3E8010994FD4C002F25FD /* metal.png in Resources */ = {isa = PBXBuildFile; fileRef = 25F3E7B40994FD4C002F25FD /* metal.png */; };
-		25F3E8020994FD4C002F25FD /* metalhighq.png in Resources */ = {isa = PBXBuildFile; fileRef = 25F3E7B50994FD4C002F25FD /* metalhighq.png */; };
 		25F3E8030994FD4C002F25FD /* missile.png in Resources */ = {isa = PBXBuildFile; fileRef = 25F3E7B60994FD4C002F25FD /* missile.png */; };
 		25F3E8040994FD4C002F25FD /* moray_redux.png in Resources */ = {isa = PBXBuildFile; fileRef = 25F3E7B70994FD4C002F25FD /* moray_redux.png */; };
 		25F3E8050994FD4C002F25FD /* moray_redux1.png in Resources */ = {isa = PBXBuildFile; fileRef = 25F3E7B80994FD4C002F25FD /* moray_redux1.png */; };
 		25F3E8060994FD4C002F25FD /* MorayMED_bottom.png in Resources */ = {isa = PBXBuildFile; fileRef = 25F3E7B90994FD4C002F25FD /* MorayMED_bottom.png */; };
 		25F3E8070994FD4C002F25FD /* MorayMED_top.png in Resources */ = {isa = PBXBuildFile; fileRef = 25F3E7BA0994FD4C002F25FD /* MorayMED_top.png */; };
-		25F3E8080994FD4C002F25FD /* oolite-document.png in Resources */ = {isa = PBXBuildFile; fileRef = 25F3E7BB0994FD4C002F25FD /* oolite-document.png */; };
-		25F3E8090994FD4C002F25FD /* oolite-expansion-document.png in Resources */ = {isa = PBXBuildFile; fileRef = 25F3E7BC0994FD4C002F25FD /* oolite-expansion-document.png */; };
-		25F3E80A0994FD4C002F25FD /* oolite-logo.png in Resources */ = {isa = PBXBuildFile; fileRef = 25F3E7BD0994FD4C002F25FD /* oolite-logo.png */; };
-		25F3E80B0994FD4C002F25FD /* oolite-logo1.png in Resources */ = {isa = PBXBuildFile; fileRef = 25F3E7BE0994FD4C002F25FD /* oolite-logo1.png */; };
-		25F3E80C0994FD4C002F25FD /* placard.png in Resources */ = {isa = PBXBuildFile; fileRef = 25F3E7BF0994FD4C002F25FD /* placard.png */; };
 		25F3E80D0994FD4C002F25FD /* pod2_redux.png in Resources */ = {isa = PBXBuildFile; fileRef = 25F3E7C00994FD4C002F25FD /* pod2_redux.png */; };
 		25F3E80E0994FD4C002F25FD /* python_redux.png in Resources */ = {isa = PBXBuildFile; fileRef = 25F3E7C10994FD4C002F25FD /* python_redux.png */; };
 		25F3E80F0994FD4C002F25FD /* python_redux1.png in Resources */ = {isa = PBXBuildFile; fileRef = 25F3E7C20994FD4C002F25FD /* python_redux1.png */; };
@@ -255,7 +246,6 @@
 		25F3E8220994FD4C002F25FD /* viperi_redux.png in Resources */ = {isa = PBXBuildFile; fileRef = 25F3E7D50994FD4C002F25FD /* viperi_redux.png */; };
 		25F3E8230994FD4C002F25FD /* worm_redux.png in Resources */ = {isa = PBXBuildFile; fileRef = 25F3E7D60994FD4C002F25FD /* worm_redux.png */; };
 		25F3E8240994FD4C002F25FD /* worm_redux1.png in Resources */ = {isa = PBXBuildFile; fileRef = 25F3E7D70994FD4C002F25FD /* worm_redux1.png */; };
-		25F3E8250994FD4C002F25FD /* worm_skin.png in Resources */ = {isa = PBXBuildFile; fileRef = 25F3E7D80994FD4C002F25FD /* worm_skin.png */; };
 		25F3E8640994FDBB002F25FD /* adder_redux.dat in Resources */ = {isa = PBXBuildFile; fileRef = 25F3E8280994FDBB002F25FD /* adder_redux.dat */; };
 		25F3E8650994FDBB002F25FD /* alloy.dat in Resources */ = {isa = PBXBuildFile; fileRef = 25F3E8290994FDBB002F25FD /* alloy.dat */; };
 		25F3E8660994FDBB002F25FD /* anaconda_redux.dat in Resources */ = {isa = PBXBuildFile; fileRef = 25F3E82A0994FDBB002F25FD /* anaconda_redux.dat */; };
@@ -264,7 +254,6 @@
 		25F3E8690994FDBB002F25FD /* asteroid.dat in Resources */ = {isa = PBXBuildFile; fileRef = 25F3E82D0994FDBB002F25FD /* asteroid.dat */; };
 		25F3E86A0994FDBB002F25FD /* asteroid1.dat in Resources */ = {isa = PBXBuildFile; fileRef = 25F3E82E0994FDBB002F25FD /* asteroid1.dat */; };
 		25F3E86B0994FDBB002F25FD /* barrel.dat in Resources */ = {isa = PBXBuildFile; fileRef = 25F3E82F0994FDBB002F25FD /* barrel.dat */; };
-		25F3E86C0994FDBB002F25FD /* benship.dat in Resources */ = {isa = PBXBuildFile; fileRef = 25F3E8300994FDBB002F25FD /* benship.dat */; };
 		25F3E86D0994FDBB002F25FD /* boa_redux.dat in Resources */ = {isa = PBXBuildFile; fileRef = 25F3E8310994FDBB002F25FD /* boa_redux.dat */; };
 		25F3E86E0994FDBB002F25FD /* boa2_redux.dat in Resources */ = {isa = PBXBuildFile; fileRef = 25F3E8320994FDBB002F25FD /* boa2_redux.dat */; };
 		25F3E86F0994FDBB002F25FD /* boulder.dat in Resources */ = {isa = PBXBuildFile; fileRef = 25F3E8330994FDBB002F25FD /* boulder.dat */; };
@@ -273,7 +262,6 @@
 		25F3E8720994FDBB002F25FD /* cobra1_redux.dat in Resources */ = {isa = PBXBuildFile; fileRef = 25F3E8360994FDBB002F25FD /* cobra1_redux.dat */; };
 		25F3E8730994FDBB002F25FD /* cobra1_redux1.dat in Resources */ = {isa = PBXBuildFile; fileRef = 25F3E8370994FDBB002F25FD /* cobra1_redux1.dat */; };
 		25F3E8740994FDBB002F25FD /* cobra1_redux2.dat in Resources */ = {isa = PBXBuildFile; fileRef = 25F3E8380994FDBB002F25FD /* cobra1_redux2.dat */; };
-		25F3E8750994FDBB002F25FD /* cobra2.dat in Resources */ = {isa = PBXBuildFile; fileRef = 25F3E8390994FDBB002F25FD /* cobra2.dat */; };
 		25F3E8760994FDBB002F25FD /* cobra3_redux.dat in Resources */ = {isa = PBXBuildFile; fileRef = 25F3E83A0994FDBB002F25FD /* cobra3_redux.dat */; };
 		25F3E8770994FDBB002F25FD /* cobra3_redux1.dat in Resources */ = {isa = PBXBuildFile; fileRef = 25F3E83B0994FDBB002F25FD /* cobra3_redux1.dat */; };
 		25F3E8780994FDBB002F25FD /* constrictor_redux.dat in Resources */ = {isa = PBXBuildFile; fileRef = 25F3E83C0994FDBB002F25FD /* constrictor_redux.dat */; };
@@ -294,7 +282,6 @@
 		25F3E8870994FDBB002F25FD /* new-dodo.dat in Resources */ = {isa = PBXBuildFile; fileRef = 25F3E84B0994FDBB002F25FD /* new-dodo.dat */; };
 		25F3E8880994FDBB002F25FD /* new-icos.dat in Resources */ = {isa = PBXBuildFile; fileRef = 25F3E84C0994FDBB002F25FD /* new-icos.dat */; };
 		25F3E8890994FDBB002F25FD /* new-rock.dat in Resources */ = {isa = PBXBuildFile; fileRef = 25F3E84D0994FDBB002F25FD /* new-rock.dat */; };
-		25F3E88A0994FDBB002F25FD /* placard.dat in Resources */ = {isa = PBXBuildFile; fileRef = 25F3E84E0994FDBB002F25FD /* placard.dat */; };
 		25F3E88B0994FDBB002F25FD /* python_redux.dat in Resources */ = {isa = PBXBuildFile; fileRef = 25F3E84F0994FDBB002F25FD /* python_redux.dat */; };
 		25F3E88C0994FDBB002F25FD /* python_redux1.dat in Resources */ = {isa = PBXBuildFile; fileRef = 25F3E8500994FDBB002F25FD /* python_redux1.dat */; };
 		25F3E88D0994FDBB002F25FD /* python_redux2.dat in Resources */ = {isa = PBXBuildFile; fileRef = 25F3E8510994FDBB002F25FD /* python_redux2.dat */; };
@@ -602,7 +589,6 @@
 		25F3E79B0994FD4C002F25FD /* boa2_right.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = boa2_right.png; path = Resources/Textures/boa2_right.png; sourceTree = "<group>"; };
 		25F3E79C0994FD4C002F25FD /* boa2_top.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = boa2_top.png; path = Resources/Textures/boa2_top.png; sourceTree = "<group>"; };
 		25F3E79D0994FD4C002F25FD /* bottom_metal.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = bottom_metal.png; path = Resources/Textures/bottom_metal.png; sourceTree = "<group>"; };
-		25F3E79E0994FD4C002F25FD /* capsule_front.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = capsule_front.png; path = Resources/Textures/capsule_front.png; sourceTree = "<group>"; };
 		25F3E79F0994FD4C002F25FD /* cobra1_redux.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = cobra1_redux.png; path = Resources/Textures/cobra1_redux.png; sourceTree = "<group>"; };
 		25F3E7A00994FD4C002F25FD /* cobra1_redux1.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = cobra1_redux1.png; path = Resources/Textures/cobra1_redux1.png; sourceTree = "<group>"; };
 		25F3E7A10994FD4C002F25FD /* cobra1_redux2.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = cobra1_redux2.png; path = Resources/Textures/cobra1_redux2.png; sourceTree = "<group>"; };
@@ -610,30 +596,22 @@
 		25F3E7A30994FD4C002F25FD /* cobra3_redux.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = cobra3_redux.png; path = Resources/Textures/cobra3_redux.png; sourceTree = "<group>"; };
 		25F3E7A40994FD4C002F25FD /* cobra3_redux1.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = cobra3_redux1.png; path = Resources/Textures/cobra3_redux1.png; sourceTree = "<group>"; };
 		25F3E7A60994FD4C002F25FD /* constrictor_redux.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = constrictor_redux.png; path = Resources/Textures/constrictor_redux.png; sourceTree = "<group>"; };
-		25F3E7A70994FD4C002F25FD /* crosshair.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = crosshair.png; path = Resources/Textures/crosshair.png; sourceTree = "<group>"; };
 		25F3E7A90994FD4C002F25FD /* dark_metal.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = dark_metal.png; path = Resources/Textures/dark_metal.png; sourceTree = "<group>"; };
 		25F3E7AA0994FD4C002F25FD /* ferdelance_redux.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = ferdelance_redux.png; path = Resources/Textures/ferdelance_redux.png; sourceTree = "<group>"; };
 		25F3E7AB0994FD4C002F25FD /* flare256.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = flare256.png; path = Resources/Textures/flare256.png; sourceTree = "<group>"; };
 		25F3E7AC0994FD4C002F25FD /* front_metal.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = front_metal.png; path = Resources/Textures/front_metal.png; sourceTree = "<group>"; };
 		25F3E7AD0994FD4C002F25FD /* galaxy256.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = galaxy256.png; path = Resources/Textures/galaxy256.png; sourceTree = "<group>"; };
 		25F3E7AE0994FD4C002F25FD /* gecko_redux.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = gecko_redux.png; path = Resources/Textures/gecko_redux.png; sourceTree = "<group>"; };
-		25F3E7AF0994FD4C002F25FD /* hemisphere.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = hemisphere.png; path = Resources/Textures/hemisphere.png; sourceTree = "<group>"; };
 		25F3E7B00994FD4C002F25FD /* krait_redux.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = krait_redux.png; path = Resources/Textures/krait_redux.png; sourceTree = "<group>"; };
 		25F3E7B10994FD4C002F25FD /* left_metal.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = left_metal.png; path = Resources/Textures/left_metal.png; sourceTree = "<group>"; };
 		25F3E7B20994FD4C002F25FD /* mamba_redux.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = mamba_redux.png; path = Resources/Textures/mamba_redux.png; sourceTree = "<group>"; };
 		25F3E7B30994FD4C002F25FD /* mamba_redux1.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = mamba_redux1.png; path = Resources/Textures/mamba_redux1.png; sourceTree = "<group>"; };
 		25F3E7B40994FD4C002F25FD /* metal.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = metal.png; path = Resources/Textures/metal.png; sourceTree = "<group>"; };
-		25F3E7B50994FD4C002F25FD /* metalhighq.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = metalhighq.png; path = Resources/Textures/metalhighq.png; sourceTree = "<group>"; };
 		25F3E7B60994FD4C002F25FD /* missile.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = missile.png; path = Resources/Textures/missile.png; sourceTree = "<group>"; };
 		25F3E7B70994FD4C002F25FD /* moray_redux.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = moray_redux.png; path = Resources/Textures/moray_redux.png; sourceTree = "<group>"; };
 		25F3E7B80994FD4C002F25FD /* moray_redux1.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = moray_redux1.png; path = Resources/Textures/moray_redux1.png; sourceTree = "<group>"; };
 		25F3E7B90994FD4C002F25FD /* MorayMED_bottom.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = MorayMED_bottom.png; path = Resources/Textures/MorayMED_bottom.png; sourceTree = "<group>"; };
 		25F3E7BA0994FD4C002F25FD /* MorayMED_top.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = MorayMED_top.png; path = Resources/Textures/MorayMED_top.png; sourceTree = "<group>"; };
-		25F3E7BB0994FD4C002F25FD /* oolite-document.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = "oolite-document.png"; path = "Resources/Textures/oolite-document.png"; sourceTree = "<group>"; };
-		25F3E7BC0994FD4C002F25FD /* oolite-expansion-document.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = "oolite-expansion-document.png"; path = "Resources/Textures/oolite-expansion-document.png"; sourceTree = "<group>"; };
-		25F3E7BD0994FD4C002F25FD /* oolite-logo.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = "oolite-logo.png"; path = "Resources/Textures/oolite-logo.png"; sourceTree = "<group>"; };
-		25F3E7BE0994FD4C002F25FD /* oolite-logo1.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = "oolite-logo1.png"; path = "Resources/Textures/oolite-logo1.png"; sourceTree = "<group>"; };
-		25F3E7BF0994FD4C002F25FD /* placard.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = placard.png; path = Resources/Textures/placard.png; sourceTree = "<group>"; };
 		25F3E7C00994FD4C002F25FD /* pod2_redux.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = pod2_redux.png; path = Resources/Textures/pod2_redux.png; sourceTree = "<group>"; };
 		25F3E7C10994FD4C002F25FD /* python_redux.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = python_redux.png; path = Resources/Textures/python_redux.png; sourceTree = "<group>"; };
 		25F3E7C20994FD4C002F25FD /* python_redux1.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = python_redux1.png; path = Resources/Textures/python_redux1.png; sourceTree = "<group>"; };
@@ -655,7 +633,6 @@
 		25F3E7D50994FD4C002F25FD /* viperi_redux.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = viperi_redux.png; path = Resources/Textures/viperi_redux.png; sourceTree = "<group>"; };
 		25F3E7D60994FD4C002F25FD /* worm_redux.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = worm_redux.png; path = Resources/Textures/worm_redux.png; sourceTree = "<group>"; };
 		25F3E7D70994FD4C002F25FD /* worm_redux1.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = worm_redux1.png; path = Resources/Textures/worm_redux1.png; sourceTree = "<group>"; };
-		25F3E7D80994FD4C002F25FD /* worm_skin.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = worm_skin.png; path = Resources/Textures/worm_skin.png; sourceTree = "<group>"; };
 		25F3E8280994FDBB002F25FD /* adder_redux.dat */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = text; name = adder_redux.dat; path = Resources/Models/adder_redux.dat; sourceTree = "<group>"; };
 		25F3E8290994FDBB002F25FD /* alloy.dat */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = text; name = alloy.dat; path = Resources/Models/alloy.dat; sourceTree = "<group>"; };
 		25F3E82A0994FDBB002F25FD /* anaconda_redux.dat */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = text; name = anaconda_redux.dat; path = Resources/Models/anaconda_redux.dat; sourceTree = "<group>"; };
@@ -664,7 +641,6 @@
 		25F3E82D0994FDBB002F25FD /* asteroid.dat */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = text; name = asteroid.dat; path = Resources/Models/asteroid.dat; sourceTree = "<group>"; };
 		25F3E82E0994FDBB002F25FD /* asteroid1.dat */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = text; name = asteroid1.dat; path = Resources/Models/asteroid1.dat; sourceTree = "<group>"; };
 		25F3E82F0994FDBB002F25FD /* barrel.dat */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = text; name = barrel.dat; path = Resources/Models/barrel.dat; sourceTree = "<group>"; };
-		25F3E8300994FDBB002F25FD /* benship.dat */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = text; name = benship.dat; path = Resources/Models/benship.dat; sourceTree = "<group>"; };
 		25F3E8310994FDBB002F25FD /* boa_redux.dat */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = text; name = boa_redux.dat; path = Resources/Models/boa_redux.dat; sourceTree = "<group>"; };
 		25F3E8320994FDBB002F25FD /* boa2_redux.dat */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = text; name = boa2_redux.dat; path = Resources/Models/boa2_redux.dat; sourceTree = "<group>"; };
 		25F3E8330994FDBB002F25FD /* boulder.dat */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = text; name = boulder.dat; path = Resources/Models/boulder.dat; sourceTree = "<group>"; };
@@ -673,7 +649,6 @@
 		25F3E8360994FDBB002F25FD /* cobra1_redux.dat */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = text; name = cobra1_redux.dat; path = Resources/Models/cobra1_redux.dat; sourceTree = "<group>"; };
 		25F3E8370994FDBB002F25FD /* cobra1_redux1.dat */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = text; name = cobra1_redux1.dat; path = Resources/Models/cobra1_redux1.dat; sourceTree = "<group>"; };
 		25F3E8380994FDBB002F25FD /* cobra1_redux2.dat */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = text; name = cobra1_redux2.dat; path = Resources/Models/cobra1_redux2.dat; sourceTree = "<group>"; };
-		25F3E8390994FDBB002F25FD /* cobra2.dat */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = text; name = cobra2.dat; path = Resources/Models/cobra2.dat; sourceTree = "<group>"; };
 		25F3E83A0994FDBB002F25FD /* cobra3_redux.dat */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = text; name = cobra3_redux.dat; path = Resources/Models/cobra3_redux.dat; sourceTree = "<group>"; };
 		25F3E83B0994FDBB002F25FD /* cobra3_redux1.dat */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = text; name = cobra3_redux1.dat; path = Resources/Models/cobra3_redux1.dat; sourceTree = "<group>"; };
 		25F3E83C0994FDBB002F25FD /* constrictor_redux.dat */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = text; name = constrictor_redux.dat; path = Resources/Models/constrictor_redux.dat; sourceTree = "<group>"; };
@@ -694,7 +669,6 @@
 		25F3E84B0994FDBB002F25FD /* new-dodo.dat */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = text; name = "new-dodo.dat"; path = "Resources/Models/new-dodo.dat"; sourceTree = "<group>"; };
 		25F3E84C0994FDBB002F25FD /* new-icos.dat */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = text; name = "new-icos.dat"; path = "Resources/Models/new-icos.dat"; sourceTree = "<group>"; };
 		25F3E84D0994FDBB002F25FD /* new-rock.dat */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = text; name = "new-rock.dat"; path = "Resources/Models/new-rock.dat"; sourceTree = "<group>"; };
-		25F3E84E0994FDBB002F25FD /* placard.dat */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = text; name = placard.dat; path = Resources/Models/placard.dat; sourceTree = "<group>"; };
 		25F3E84F0994FDBB002F25FD /* python_redux.dat */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = text; name = python_redux.dat; path = Resources/Models/python_redux.dat; sourceTree = "<group>"; };
 		25F3E8500994FDBB002F25FD /* python_redux1.dat */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = text; name = python_redux1.dat; path = Resources/Models/python_redux1.dat; sourceTree = "<group>"; };
 		25F3E8510994FDBB002F25FD /* python_redux2.dat */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = text; name = python_redux2.dat; path = Resources/Models/python_redux2.dat; sourceTree = "<group>"; };
@@ -766,7 +740,6 @@
 				25F3E82D0994FDBB002F25FD /* asteroid.dat */,
 				25F3E82E0994FDBB002F25FD /* asteroid1.dat */,
 				25F3E82F0994FDBB002F25FD /* barrel.dat */,
-				25F3E8300994FDBB002F25FD /* benship.dat */,
 				25F3E8310994FDBB002F25FD /* boa_redux.dat */,
 				25F3E8320994FDBB002F25FD /* boa2_redux.dat */,
 				25F3E8330994FDBB002F25FD /* boulder.dat */,
@@ -775,7 +748,6 @@
 				25F3E8360994FDBB002F25FD /* cobra1_redux.dat */,
 				25F3E8370994FDBB002F25FD /* cobra1_redux1.dat */,
 				25F3E8380994FDBB002F25FD /* cobra1_redux2.dat */,
-				25F3E8390994FDBB002F25FD /* cobra2.dat */,
 				25F3E83A0994FDBB002F25FD /* cobra3_redux.dat */,
 				25F3E83B0994FDBB002F25FD /* cobra3_redux1.dat */,
 				25F3E83C0994FDBB002F25FD /* constrictor_redux.dat */,
@@ -796,7 +768,6 @@
 				25F3E84B0994FDBB002F25FD /* new-dodo.dat */,
 				25F3E84C0994FDBB002F25FD /* new-icos.dat */,
 				25F3E84D0994FDBB002F25FD /* new-rock.dat */,
-				25F3E84E0994FDBB002F25FD /* placard.dat */,
 				25F3E84F0994FDBB002F25FD /* python_redux.dat */,
 				25F3E8500994FDBB002F25FD /* python_redux1.dat */,
 				25F3E8510994FDBB002F25FD /* python_redux2.dat */,
@@ -841,7 +812,6 @@
 				25F3E79B0994FD4C002F25FD /* boa2_right.png */,
 				25F3E79C0994FD4C002F25FD /* boa2_top.png */,
 				25F3E79D0994FD4C002F25FD /* bottom_metal.png */,
-				25F3E79E0994FD4C002F25FD /* capsule_front.png */,
 				25F3E79F0994FD4C002F25FD /* cobra1_redux.png */,
 				25F3E7A00994FD4C002F25FD /* cobra1_redux1.png */,
 				25F3E7A10994FD4C002F25FD /* cobra1_redux2.png */,
@@ -849,30 +819,22 @@
 				25F3E7A30994FD4C002F25FD /* cobra3_redux.png */,
 				25F3E7A40994FD4C002F25FD /* cobra3_redux1.png */,
 				25F3E7A60994FD4C002F25FD /* constrictor_redux.png */,
-				25F3E7A70994FD4C002F25FD /* crosshair.png */,
 				25F3E7A90994FD4C002F25FD /* dark_metal.png */,
 				25F3E7AA0994FD4C002F25FD /* ferdelance_redux.png */,
 				25F3E7AB0994FD4C002F25FD /* flare256.png */,
 				25F3E7AC0994FD4C002F25FD /* front_metal.png */,
 				25F3E7AD0994FD4C002F25FD /* galaxy256.png */,
 				25F3E7AE0994FD4C002F25FD /* gecko_redux.png */,
-				25F3E7AF0994FD4C002F25FD /* hemisphere.png */,
 				25F3E7B00994FD4C002F25FD /* krait_redux.png */,
 				25F3E7B10994FD4C002F25FD /* left_metal.png */,
 				25F3E7B20994FD4C002F25FD /* mamba_redux.png */,
 				25F3E7B30994FD4C002F25FD /* mamba_redux1.png */,
 				25F3E7B40994FD4C002F25FD /* metal.png */,
-				25F3E7B50994FD4C002F25FD /* metalhighq.png */,
 				25F3E7B60994FD4C002F25FD /* missile.png */,
 				25F3E7B70994FD4C002F25FD /* moray_redux.png */,
 				25F3E7B80994FD4C002F25FD /* moray_redux1.png */,
 				25F3E7B90994FD4C002F25FD /* MorayMED_bottom.png */,
 				25F3E7BA0994FD4C002F25FD /* MorayMED_top.png */,
-				25F3E7BB0994FD4C002F25FD /* oolite-document.png */,
-				25F3E7BC0994FD4C002F25FD /* oolite-expansion-document.png */,
-				25F3E7BD0994FD4C002F25FD /* oolite-logo.png */,
-				25F3E7BE0994FD4C002F25FD /* oolite-logo1.png */,
-				25F3E7BF0994FD4C002F25FD /* placard.png */,
 				25F3E7C00994FD4C002F25FD /* pod2_redux.png */,
 				25F3E7C10994FD4C002F25FD /* python_redux.png */,
 				25F3E7C20994FD4C002F25FD /* python_redux1.png */,
@@ -894,7 +856,6 @@
 				25F3E7D50994FD4C002F25FD /* viperi_redux.png */,
 				25F3E7D60994FD4C002F25FD /* worm_redux.png */,
 				25F3E7D70994FD4C002F25FD /* worm_redux1.png */,
-				25F3E7D80994FD4C002F25FD /* worm_skin.png */,
 			);
 			name = Textures;
 			sourceTree = "<group>";
@@ -1469,7 +1430,6 @@
 				25F3E7E80994FD4C002F25FD /* boa2_right.png in Resources */,
 				25F3E7E90994FD4C002F25FD /* boa2_top.png in Resources */,
 				25F3E7EA0994FD4C002F25FD /* bottom_metal.png in Resources */,
-				25F3E7EB0994FD4C002F25FD /* capsule_front.png in Resources */,
 				25F3E7EC0994FD4C002F25FD /* cobra1_redux.png in Resources */,
 				25F3E7ED0994FD4C002F25FD /* cobra1_redux1.png in Resources */,
 				25F3E7EE0994FD4C002F25FD /* cobra1_redux2.png in Resources */,
@@ -1477,30 +1437,22 @@
 				25F3E7F00994FD4C002F25FD /* cobra3_redux.png in Resources */,
 				25F3E7F10994FD4C002F25FD /* cobra3_redux1.png in Resources */,
 				25F3E7F30994FD4C002F25FD /* constrictor_redux.png in Resources */,
-				25F3E7F40994FD4C002F25FD /* crosshair.png in Resources */,
 				25F3E7F60994FD4C002F25FD /* dark_metal.png in Resources */,
 				25F3E7F70994FD4C002F25FD /* ferdelance_redux.png in Resources */,
 				25F3E7F80994FD4C002F25FD /* flare256.png in Resources */,
 				25F3E7F90994FD4C002F25FD /* front_metal.png in Resources */,
 				25F3E7FA0994FD4C002F25FD /* galaxy256.png in Resources */,
 				25F3E7FB0994FD4C002F25FD /* gecko_redux.png in Resources */,
-				25F3E7FC0994FD4C002F25FD /* hemisphere.png in Resources */,
 				25F3E7FD0994FD4C002F25FD /* krait_redux.png in Resources */,
 				25F3E7FE0994FD4C002F25FD /* left_metal.png in Resources */,
 				25F3E7FF0994FD4C002F25FD /* mamba_redux.png in Resources */,
 				25F3E8000994FD4C002F25FD /* mamba_redux1.png in Resources */,
 				25F3E8010994FD4C002F25FD /* metal.png in Resources */,
-				25F3E8020994FD4C002F25FD /* metalhighq.png in Resources */,
 				25F3E8030994FD4C002F25FD /* missile.png in Resources */,
 				25F3E8040994FD4C002F25FD /* moray_redux.png in Resources */,
 				25F3E8050994FD4C002F25FD /* moray_redux1.png in Resources */,
 				25F3E8060994FD4C002F25FD /* MorayMED_bottom.png in Resources */,
 				25F3E8070994FD4C002F25FD /* MorayMED_top.png in Resources */,
-				25F3E8080994FD4C002F25FD /* oolite-document.png in Resources */,
-				25F3E8090994FD4C002F25FD /* oolite-expansion-document.png in Resources */,
-				25F3E80A0994FD4C002F25FD /* oolite-logo.png in Resources */,
-				25F3E80B0994FD4C002F25FD /* oolite-logo1.png in Resources */,
-				25F3E80C0994FD4C002F25FD /* placard.png in Resources */,
 				25F3E80D0994FD4C002F25FD /* pod2_redux.png in Resources */,
 				25F3E80E0994FD4C002F25FD /* python_redux.png in Resources */,
 				25F3E80F0994FD4C002F25FD /* python_redux1.png in Resources */,
@@ -1522,7 +1474,6 @@
 				25F3E8220994FD4C002F25FD /* viperi_redux.png in Resources */,
 				25F3E8230994FD4C002F25FD /* worm_redux.png in Resources */,
 				25F3E8240994FD4C002F25FD /* worm_redux1.png in Resources */,
-				25F3E8250994FD4C002F25FD /* worm_skin.png in Resources */,
 				25F3E8640994FDBB002F25FD /* adder_redux.dat in Resources */,
 				25F3E8650994FDBB002F25FD /* alloy.dat in Resources */,
 				25F3E8660994FDBB002F25FD /* anaconda_redux.dat in Resources */,
@@ -1531,7 +1482,6 @@
 				25F3E8690994FDBB002F25FD /* asteroid.dat in Resources */,
 				25F3E86A0994FDBB002F25FD /* asteroid1.dat in Resources */,
 				25F3E86B0994FDBB002F25FD /* barrel.dat in Resources */,
-				25F3E86C0994FDBB002F25FD /* benship.dat in Resources */,
 				25F3E86D0994FDBB002F25FD /* boa_redux.dat in Resources */,
 				25F3E86E0994FDBB002F25FD /* boa2_redux.dat in Resources */,
 				25F3E86F0994FDBB002F25FD /* boulder.dat in Resources */,
@@ -1540,7 +1490,6 @@
 				25F3E8720994FDBB002F25FD /* cobra1_redux.dat in Resources */,
 				25F3E8730994FDBB002F25FD /* cobra1_redux1.dat in Resources */,
 				25F3E8740994FDBB002F25FD /* cobra1_redux2.dat in Resources */,
-				25F3E8750994FDBB002F25FD /* cobra2.dat in Resources */,
 				25F3E8760994FDBB002F25FD /* cobra3_redux.dat in Resources */,
 				25F3E8770994FDBB002F25FD /* cobra3_redux1.dat in Resources */,
 				25F3E8780994FDBB002F25FD /* constrictor_redux.dat in Resources */,
@@ -1561,7 +1510,6 @@
 				25F3E8870994FDBB002F25FD /* new-dodo.dat in Resources */,
 				25F3E8880994FDBB002F25FD /* new-icos.dat in Resources */,
 				25F3E8890994FDBB002F25FD /* new-rock.dat in Resources */,
-				25F3E88A0994FDBB002F25FD /* placard.dat in Resources */,
 				25F3E88B0994FDBB002F25FD /* python_redux.dat in Resources */,
 				25F3E88C0994FDBB002F25FD /* python_redux1.dat in Resources */,
 				25F3E88D0994FDBB002F25FD /* python_redux2.dat in Resources */,
