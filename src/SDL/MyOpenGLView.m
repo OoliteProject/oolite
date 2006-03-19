@@ -67,7 +67,7 @@ Your fair use and other rights are in no way affected by the above.
       [mode setValue: [NSNumber numberWithInt: 1024] forKey: (NSString *)kCGDisplayWidth];
       [mode setValue: [NSNumber numberWithInt: 768] forKey: (NSString *)kCGDisplayHeight];
       [mode setValue: [NSNumber numberWithInt: 0] forKey: (NSString *)kCGDisplayRefreshRate];
-#endif      
+#endif
    }
    else
    {
@@ -127,8 +127,8 @@ Your fair use and other rights are in no way affected by the above.
    else
    {
       videoModeFlags |= SDL_RESIZABLE;
-	   surface = SDL_SetVideoMode(currentWindowSize.width, 
-                                 currentWindowSize.height, 
+	   surface = SDL_SetVideoMode(currentWindowSize.width,
+                                 currentWindowSize.height,
                                  32, videoModeFlags);
    }
 
@@ -147,13 +147,13 @@ Your fair use and other rights are in no way affected by the above.
 	}
 
 	virtualJoystickPosition = NSMakePoint(0.0,0.0);
-	
+
 	typedString = [[NSMutableString alloc] initWithString:@""];
 	allowingStringInput = NO;
 	isAlphabetKeyDown = NO;
-		
+
 	timeIntervalAtLastClick = [NSDate timeIntervalSinceReferenceDate];
-	 
+
 	m_glContextInitialized = NO;
 
    return self;
@@ -247,7 +247,7 @@ Your fair use and other rights are in no way affected by the above.
 	fullScreen = fsm;
 
    // Save the settings for later.
-   [[NSUserDefaults standardUserDefaults] 
+   [[NSUserDefaults standardUserDefaults]
       setBool: fullScreen forKey:@"fullscreen"];
    [[NSUserDefaults standardUserDefaults] synchronize];
 }
@@ -266,7 +266,7 @@ Your fair use and other rights are in no way affected by the above.
    [self setFullScreenMode: fsm];
    currentSize=mode;
    if(fullScreen)
-      [self initialiseGLWithSize: [self modeAsSize: mode]]; 
+      [self initialiseGLWithSize: [self modeAsSize: mode]];
 }
 
 - (int) indexOfCurrentSize
@@ -348,9 +348,9 @@ Your fair use and other rights are in no way affected by the above.
 		display_z = 480.0 * viewSize.width/viewSize.height;
 	else
 		display_z = 640.0;
-		
+
 //	NSLog(@">>>>> display_z = %.1f", display_z);
-	
+
 	float	ratio = 0.5;
 	float   aspect = viewSize.height/viewSize.width;
 
@@ -381,27 +381,27 @@ Your fair use and other rights are in no way affected by the above.
 	glClearColor(0.0, 0.0, 0.0, 0.0);
     glClear(GL_COLOR_BUFFER_BIT);
     SDL_GL_SwapBuffers();
-	
+
 	glClearDepth(MAX_CLEAR_DEPTH);
 	glViewport( 0, 0, viewSize.width, viewSize.height);
-	
+
 	squareX = 0.0;
 	glMatrixMode(GL_PROJECTION);
 	glLoadIdentity();	// reset matrix
 	glFrustum( -ratio, ratio, -aspect*ratio, aspect*ratio, 1.0, MAX_CLEAR_DEPTH);	// set projection matrix
 
 	glMatrixMode( GL_MODELVIEW);
-	
+
 	glEnable( GL_DEPTH_TEST);		// depth buffer
 	glDepthFunc( GL_LESS);			// depth buffer
-	
+
 	glFrontFace( GL_CCW);			// face culling - front faces are AntiClockwise!
 	glCullFace( GL_BACK);			// face culling
 	glEnable( GL_CULL_FACE);		// face culling
-	
+
 	glEnable( GL_BLEND);								// alpha blending
 	glBlendFunc( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);	// alpha blending
-	
+
 	if ([gameController universe])
 	{
 		Entity* the_sun = [[gameController universe] sun];
@@ -419,22 +419,22 @@ Your fair use and other rights are in no way affected by the above.
 		glLightfv(GL_LIGHT1, GL_POSITION, sun_center_position);
 		glLightModelfv(GL_LIGHT_MODEL_AMBIENT, stars_ambient);
 		//
-		// light for demo ships display.. 
+		// light for demo ships display..
 		GLfloat	white[] = { 1.0, 1.0, 1.0, 1.0};	// white light
 		glLightfv(GL_LIGHT0, GL_AMBIENT, white);
 		glLightfv(GL_LIGHT0, GL_DIFFUSE, white);
 		glLightfv(GL_LIGHT0, GL_SPECULAR, white);
 	}
-	
+
 	glEnable(GL_LIGHT1);		// lighting
 	glEnable(GL_LIGHT0);		// lighting
 	glEnable(GL_LIGHTING);		// lighting
-	
+
 	// world's simplest OpenGL optimisations...
 	glHint(GL_TRANSFORM_HINT_APPLE, GL_FASTEST);
 	glDisable(GL_NORMALIZE);
 	glDisable(GL_RESCALE_NORMAL);
-		
+
 	m_glContextInitialized = YES;
 }
 
@@ -443,11 +443,11 @@ Your fair use and other rights are in no way affected by the above.
 	SDL_Surface* tmpSurface;
     int w = viewSize.width;
     int h = viewSize.height;
-	
+
 	if (w & 3)
 		w = w + 4 - (w & 3);
-	
-//    long nPixels = w * h + 1;	
+
+//    long nPixels = w * h + 1;
 
    // save in the oolite-saves directory.
    [[NSFileManager defaultManager] chdirToDefaultCommanderPath];
@@ -464,11 +464,11 @@ Your fair use and other rights are in no way affected by the above.
 	NSLog(@">>>>> Snapshot %d x %d file chosen = %@", w, h, pathToPic);
 
 	unsigned char *puntos = (unsigned char*)malloc(surface->w * surface->h * 3);
-//	SDL_Surface *screen;  
+//	SDL_Surface *screen;
 	glReadPixels(0,0,surface->w,surface->h,GL_RGB,GL_UNSIGNED_BYTE,puntos);
 
 	int pitch = surface->w * 3;
-	unsigned char *aux=  (unsigned char*)malloc( pitch );         
+	unsigned char *aux=  (unsigned char*)malloc( pitch );
 	short h2=surface->h/2;
 	unsigned char *p1=puntos;
 	unsigned char *p2=puntos+((surface->h-1)*pitch); //go to last line
@@ -481,8 +481,8 @@ Your fair use and other rights are in no way affected by the above.
 		p2-=pitch;
 	}
 	free(aux);
-	
-	tmpSurface=SDL_CreateRGBSurfaceFrom(puntos,surface->w,surface->h,24,surface->w*3,0xFF,0xFF00,0xFF0000,0x0);                
+
+	tmpSurface=SDL_CreateRGBSurfaceFrom(puntos,surface->w,surface->h,24,surface->w*3,0xFF,0xFF00,0xFF0000,0x0);
 	SDL_SaveBMP(tmpSurface, [pathToPic cString]);
 	SDL_FreeSurface(tmpSurface);
 	free(puntos);
@@ -505,7 +505,7 @@ Your fair use and other rights are in no way affected by the above.
 {
 	NSTimeInterval timeBetweenClicks = [NSDate timeIntervalSinceReferenceDate] - timeIntervalAtLastClick;
 	timeIntervalAtLastClick += timeBetweenClicks;
-	
+
 	if (!doubleClick)
 	{
 		doubleClick = (timeBetweenClicks < MOUSE_DOUBLE_CLICK_INTERVAL);	// One fifth of a second
@@ -513,7 +513,7 @@ Your fair use and other rights are in no way affected by the above.
 //		if (doubleClick)
 //			NSLog(@"DEBUG registering a double-click!");
 	}
-	
+
 	keys[gvMouseLeftButton] = NO;  // 'a' up
 }
 
@@ -528,7 +528,7 @@ Your fair use and other rights are in no way affected by the above.
 {
 	double mx = [theEvent locationInWindow].x - viewSize.width/2.0;
 	double my = [theEvent locationInWindow].y - viewSize.height/2.0;
-		
+
 	if (display_z > 640.0)
 	{
 		mx /= viewSize.width * MAIN_GUI_PIXEL_WIDTH / display_z;
@@ -539,7 +539,7 @@ Your fair use and other rights are in no way affected by the above.
 		mx /= MAIN_GUI_PIXEL_WIDTH * viewSize.width / 640.0;
 		my /= MAIN_GUI_PIXEL_HEIGHT * viewSize.width / 640.0;
 	}
-	
+
 	[self setVirtualJoystick:mx :-my];
 }
 
@@ -553,67 +553,67 @@ Your fair use and other rights are in no way affected by the above.
 		case NSUpArrowFunctionKey:
 			key = gvArrowKeyUp;
 			break;
-		
+
 		case NSDownArrowFunctionKey:
 			key = gvArrowKeyDown;
 			break;
-			
+
 		case NSLeftArrowFunctionKey:
 			key = gvArrowKeyLeft;
 			break;
-			
+
 		case NSRightArrowFunctionKey:
 			key = gvArrowKeyRight;
 			break;
-		
+
 		case NSF1FunctionKey:
 			key = gvFunctionKey1;
 			break;
-			
+
 		case NSF2FunctionKey:
 			key = gvFunctionKey2;
 			break;
-			
+
 		case NSF3FunctionKey:
 			key = gvFunctionKey3;
 			break;
-			
+
 		case NSF4FunctionKey:
 			key = gvFunctionKey4;
 			break;
-			
+
 		case NSF5FunctionKey:
 			key = gvFunctionKey5;
 			break;
-			
+
 		case NSF6FunctionKey:
 			key = gvFunctionKey6;
 			break;
-			
+
 		case NSF7FunctionKey:
 			key = gvFunctionKey7;
 			break;
-			
+
 		case NSF8FunctionKey:
 			key = gvFunctionKey8;
 			break;
-			
+
 		case NSF9FunctionKey:
 			key = gvFunctionKey9;
 			break;
-			
+
 		case NSF10FunctionKey:
 			key = gvFunctionKey10;
 			break;
-			
+
 		case NSF11FunctionKey:
 			key = gvFunctionKey11;
 			break;
-			
+
 		case NSHomeFunctionKey:
 			key = gvHomeKey;
 			break;
-			
+
 		default:
 			break;
 	}
@@ -697,7 +697,7 @@ Your fair use and other rights are in no way affected by the above.
 - (int) numKeys
 {
 	return NUM_KEYS;
-} 
+}
 
 - (void) pollControls: (id)sender
 {
@@ -762,7 +762,7 @@ Your fair use and other rights are in no way affected by the above.
                [self handleStringInput: kbd_event];
             }
 
-            //printf("Keydown scancode: %d\n", kbd_event->keysym.scancode);
+            //NSLog(@"Keydown keysym.sym: %d\n", kbd_event->keysym.sym);
             switch (kbd_event->keysym.sym) {
                case SDLK_1: if (shift) { keys[33] = YES; keys[gvNumberKey1] = NO; } else { keys[33] = NO; keys[gvNumberKey1] = YES; } break;
                case SDLK_2: keys[gvNumberKey2] = YES; break;
@@ -774,6 +774,8 @@ Your fair use and other rights are in no way affected by the above.
                case SDLK_8: if (shift) { keys[42] = YES; keys[gvNumberKey8] = NO; } else { keys[42] = NO; keys[gvNumberKey8] = YES; } break;
                case SDLK_9: keys[gvNumberKey9] = YES; break;
                case SDLK_0: keys[gvNumberKey0] = YES; break;
+               case SDLK_MINUS: if (shift) { keys[43] = NO; } else { keys[43] = YES; } break; // - key, don't know what Oolite# for underscore is
+               case SDLK_EQUALS: if (shift) { keys[45] = YES; } else { keys[45] = NO; } break; // + key, don't know what Oolite# for equals is
                case SDLK_a: if (shift) { keys[65] = YES; keys[97] = NO; } else { keys[65] = NO; keys[97] = YES; } break;
                case SDLK_b: if (shift) { keys[66] = YES; keys[98] = NO; } else { keys[66] = NO; keys[98] = YES; } break;
                case SDLK_c: if (shift) { keys[67] = YES; keys[99] = NO; } else { keys[67] = NO; keys[99] = YES; } break;
@@ -806,7 +808,7 @@ Your fair use and other rights are in no way affected by the above.
                case SDLK_SPACE: keys[32] = YES; break;
                case SDLK_RETURN: keys[13] = YES; break;
                case SDLK_TAB: keys[9] = YES; break;
-               case SDLK_KP8:                              
+               case SDLK_KP8:
                case SDLK_UP: keys[gvArrowKeyUp] = YES; break;
                case SDLK_KP2:
                case SDLK_DOWN: keys[gvArrowKeyDown] = YES; break;
@@ -814,6 +816,9 @@ Your fair use and other rights are in no way affected by the above.
                case SDLK_LEFT: keys[gvArrowKeyLeft] = YES; break;
                case SDLK_KP6:
                case SDLK_RIGHT: keys[gvArrowKeyRight] = YES; break;
+
+               case SDLK_KP_MINUS: keys[43] = YES; break; // numeric keypad - key
+               case SDLK_KP_PLUS: keys[45] = YES; break; // numeric keypad + key
 
                case SDLK_F1: keys[gvFunctionKey1] = YES; break;
                case SDLK_F2: keys[gvFunctionKey2] = YES; break;
@@ -894,6 +899,8 @@ Your fair use and other rights are in no way affected by the above.
                case SDLK_8: keys[42] = NO; keys[gvNumberKey8] = NO; break;
                case SDLK_9: keys[gvNumberKey9] = NO; break;
                case SDLK_0: keys[gvNumberKey0] = NO; break;
+               case SDLK_MINUS: keys[43] = NO; break; // - key, don't know what Oolite# for underscore is
+               case SDLK_EQUALS: keys[45] = NO; break; // + key, don't know what Oolite# for equals is
                case SDLK_a: keys[65] = NO; keys[97] = NO; break;
                case SDLK_b: keys[66] = NO; keys[98] = NO; break;
                case SDLK_c: keys[67] = NO; keys[99] = NO; break;
@@ -926,7 +933,7 @@ Your fair use and other rights are in no way affected by the above.
                case SDLK_SPACE: keys[32] = NO; break;
                case SDLK_RETURN: keys[13] = NO; break;
                case SDLK_TAB: keys[9] = NO; break;
-               case SDLK_KP8:                              
+               case SDLK_KP8:
                case SDLK_UP: keys[gvArrowKeyUp] = NO; break;
                case SDLK_KP2:
                case SDLK_DOWN: keys[gvArrowKeyDown] = NO; break;
@@ -934,6 +941,9 @@ Your fair use and other rights are in no way affected by the above.
                case SDLK_LEFT: keys[gvArrowKeyLeft] = NO; break;
                case SDLK_KP6:
                case SDLK_RIGHT: keys[gvArrowKeyRight] = NO; break;
+
+               case SDLK_KP_MINUS: keys[43] = NO; break; // numeric keypad - key
+               case SDLK_KP_PLUS: keys[45] = NO; break; // numeric keypad + key
 
                case SDLK_F1: keys[gvFunctionKey1] = NO; break;
                case SDLK_F2: keys[gvFunctionKey2] = NO; break;
@@ -961,7 +971,7 @@ Your fair use and other rights are in no way affected by the above.
                   break;
             }
             break;
-            
+
          case SDL_VIDEORESIZE:
          {
             SDL_ResizeEvent *rsevt=(SDL_ResizeEvent *)&event;
@@ -985,13 +995,13 @@ Your fair use and other rights are in no way affected by the above.
 - (void) handleStringInput: (SDL_KeyboardEvent *) kbd_event;
 {
    SDLKey key=kbd_event->keysym.sym;
-   
+
    // Del, Backspace
    if(key == SDLK_BACKSPACE || key == SDLK_DELETE)
    {
       if([typedString length] >= 1)
       {
-         [typedString deleteCharactersInRange: 
+         [typedString deleteCharactersInRange:
             NSMakeRange([typedString length]-1, 1)];
       }
       else
@@ -999,10 +1009,10 @@ Your fair use and other rights are in no way affected by the above.
          [self resetTypedString];
       }
    }
-  
+
    // Note: if we start using this handler for anything other
    // than savegames, a more flexible mechanism is needed
-   // for max. string length. 
+   // for max. string length.
    if([typedString length] < 40)
    {
       // keys a-z
@@ -1031,7 +1041,7 @@ Your fair use and other rights are in no way affected by the above.
    int i;
    SDL_Rect **modes;
    NSMutableDictionary *mode;
-   
+
    screenSizes=[[NSMutableArray alloc] init];
    [screenSizes retain];
 
@@ -1065,7 +1075,7 @@ Your fair use and other rights are in no way affected by the above.
       {
          // new resolution, save it
          mode=[[NSMutableDictionary alloc] init];
-         [mode setValue: [NSNumber numberWithInt: (int)modes[i]->w] 
+         [mode setValue: [NSNumber numberWithInt: (int)modes[i]->w]
                  forKey: (NSString *)kCGDisplayWidth];
          [mode setValue: [NSNumber numberWithInt: (int)modes[i]->h]
                  forKey: (NSString *)kCGDisplayHeight];
@@ -1076,7 +1086,7 @@ Your fair use and other rights are in no way affected by the above.
          lastw=modes[i]->w;
          lasth=modes[i]->h;
       }
-   } 
+   }
 }
 
 // Save and restore window sizes to/from defaults.
@@ -1099,7 +1109,7 @@ Your fair use and other rights are in no way affected by the above.
                             [defaults integerForKey: @"window_height"]);
    }
    else
-   {  
+   {
       windowSize=NSMakeSize(800, 600);
    }
    currentWindowSize=windowSize;
@@ -1120,21 +1130,21 @@ Your fair use and other rights are in no way affected by the above.
 		refresh = [userDefaults integerForKey:@"display_refresh"];
    if([userDefaults objectForKey:@"fullscreen"])
       fullScreen=[userDefaults boolForKey:@"fullscreen"];
-  
+
    if(width && height)
    {
       currentSize=[self findDisplayModeForWidth: width Height: height Refresh: refresh];
       return currentSize;
    }
    return currentSize;
-} 
+}
 
 - (int) findDisplayModeForWidth:(unsigned int) d_width Height:(unsigned int) d_height Refresh:(unsigned int) d_refresh
 {
    int i, modeCount;
    NSDictionary *mode;
    unsigned int modeWidth, modeHeight, modeRefresh;
-	
+
    modeCount = [screenSizes count];
 
 	for (i = 0; i < modeCount; i++)
@@ -1158,7 +1168,7 @@ Your fair use and other rights are in no way affected by the above.
 - (NSSize) currentScreenSize
 {
    NSDictionary *mode=[screenSizes objectAtIndex: currentSize];
-   
+
    if(mode)
    {
       return NSMakeSize([[mode objectForKey: (NSString *)kCGDisplayWidth] intValue],
