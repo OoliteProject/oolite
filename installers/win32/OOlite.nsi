@@ -12,8 +12,8 @@ SubCaption 1 " "
 SubCaption 2 " "
 SubCaption 3 " "
 SubCaption 4 " "
-Icon "Install.ico"
-UninstallIcon uninstall.ico
+Icon Oolite.ico
+UninstallIcon Oolite.ico
 InstallDirRegKey HKLM Software\Oolite "Install_Dir"
 InstallDir $PROGRAMFILES\Oolite
 DirText "Choose a directory to install Oolite"
@@ -40,13 +40,13 @@ WriteRegStr HKLM Software\Microsoft\Windows\CurrentVersion\Uninstall\Oolite Unin
 WriteUninstaller "$INSTDIR\UninstOolite.exe"
 
 CreateDirectory "$SMPROGRAMS\Oolite"
-CreateShortCut "$SMPROGRAMS\Oolite\Oolite.lnk" "$INSTDIR\RunOolite.bat" "" "$INSTDIR\Jupiter Europa.ico"
+CreateShortCut "$SMPROGRAMS\Oolite\Oolite.lnk" "$INSTDIR\RunOolite.bat" "" "$INSTDIR\Oolite.ico"
 CreateShortCut "$SMPROGRAMS\Oolite\Oolite ReadMe.lnk" "$INSTDIR\Oolite_Readme.txt"
 CreateShortCut "$SMPROGRAMS\Oolite\Oolite reference sheet.lnk" "$INSTDIR\OoliteRS.pdf"
 CreateShortCut "$SMPROGRAMS\Oolite\Oolite website.lnk" "http://Oolite.aegidian.org/"
 CreateShortCut "$SMPROGRAMS\Oolite\Oolite Uninstall.lnk" "$INSTDIR\UninstOolite.exe"
 
-File "Jupiter Europa.ico"
+File "Oolite.ico"
 File /r "C:\program files\Oolite\*.*"
 
 Call RegSetup
