@@ -1549,13 +1549,16 @@ static int shipsFound;
 		Entity* e1 = my_entities[i];
 		if (e1->isShip)
 		{
+			ShipEntity* se1 = (ShipEntity*)e1;
 			int e_class = e1->scan_class;
 			if ((e_class == CLASS_NEUTRAL)||(e_class == CLASS_POLICE)||(e_class == CLASS_MILITARY)||(e_class == CLASS_THARGOID))
 			{
-				[(ShipEntity*)e1 setFuel: 70];
-				[[(ShipEntity*)e1 getAI] setStateMachine:@"exitingTraderAI.plist"];
-				[[(ShipEntity*)e1 getAI] setState:@"EXIT_SYSTEM"];
-				[[(ShipEntity*)e1 getAI] reactToMessage:[NSString stringWithFormat:@"pauseAI: %d", 3 + (ranrot_rand() & 15)]];
+				AI*	se1AI = [se1 getAI];
+				[se1 setFuel: 70];
+				[se1AI setStateMachine:@"exitingTraderAI.plist"];
+				[se1AI setState:@"EXIT_SYSTEM"];
+				[se1AI reactToMessage:[NSString stringWithFormat:@"pauseAI: %d", 3 + (ranrot_rand() & 15)]];
+				[se1 setRoles:@"none"];	// prevents new ship from appearing at witchpoint when this one leaves!
 			}
 		}
 	}
