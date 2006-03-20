@@ -405,6 +405,11 @@ void setUpSinTable()
 	int radius_km =		[(NSNumber *)[planetinfo objectForKey:KEY_RADIUS] intValue];
 	int techlevel =		[(NSNumber *)[planetinfo objectForKey:KEY_TECHLEVEL] intValue];
 	//NSLog(@"Generating planet %@ with radius %dkm",[planetinfo objectForKey:KEY_NAME],radius_km);
+	if ([planetinfo objectForKey:@"texture"])
+	{
+		textureName = [[uni textureStore] getTextureNameFor:(NSString*)[planetinfo objectForKey:@"texture"]];
+		isTextured = (textureName != 0);
+	}
 	
 	shuttles_on_ground = 1 + floor(techlevel * 0.5);
 	last_launch_time = 0.0;
