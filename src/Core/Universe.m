@@ -2928,8 +2928,8 @@ Your fair use and other rights are in no way affected by the above.
 
 - (NSDictionary *) getDictionaryForShip:(NSString *) desc
 {
-	id result = [[[shipdata objectForKey:desc] copy] autorelease];
-	if (nil == result)
+	NSMutableDictionary* shipdict = [NSMutableDictionary dictionaryWithDictionary: (NSDictionary*)[shipdata objectForKey:desc]];
+	if (nil == shipdict)
 	{
 		NSLog(@"***** Universe couldn't find a dictionary for a ship with description '%@'",desc);
 		// throw an exception here...	 
@@ -2938,8 +2938,36 @@ Your fair use and other rights are in no way affected by the above.
 			reason:[NSString stringWithFormat:@"No ship called '%@' could be found in the Oolite folder.", desc]	 
 			userInfo:nil];	 
 		[myException raise];	 
-		return nil;	}
-	return result;
+		return nil;
+	}
+	// check if this is based upon a different ship
+	while ([shipdict objectForKey:@"like_ship"])
+	{
+		NSString*		other_shipdesc = (NSString *)[shipdict objectForKey:@"like_ship"];
+		NSDictionary*	other_shipdict = nil;
+		if (other_shipdesc)
+		{
+			NS_DURING	
+				other_shipdict = [self getDictionaryForShip:other_shipdesc];	// handle OOLITE_EXCEPTION_SHIP_NOT_FOUND
+			NS_HANDLER
+				if ([[localException name] isEqual: OOLITE_EXCEPTION_SHIP_NOT_FOUND])
+				{
+					NSLog(@"***** Oolite Exception : '%@' in [Universe getDictionaryForShip:] while basing a ship upon '%@' *****", [localException reason], other_shipdesc);
+					other_shipdict = nil;
+				}
+				else
+					[localException raise];
+			NS_ENDHANDLER
+		}
+		if (other_shipdict)
+		{
+			[shipdict removeObjectForKey:@"like_ship"];	// so it may inherit a new one from the like_ship
+			NSMutableDictionary* this_shipdict = [NSMutableDictionary dictionaryWithDictionary:other_shipdict]; // basics from that one
+			[this_shipdict addEntriesFromDictionary:shipdict];	// overrides from this one
+			shipdict = [NSMutableDictionary dictionaryWithDictionary:this_shipdict];	// synthesis'
+		}
+	}
+	return shipdict;
 }
 
 - (int) maxCargoForShip:(NSString *) desc
