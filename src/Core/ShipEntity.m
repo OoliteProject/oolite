@@ -232,9 +232,75 @@ Your fair use and other rights are in no way affected by the above.
 	[super dealloc];
 }
 
+NSString* describeBehaviour(int some_behaviour)
+{
+	switch (some_behaviour)
+	{
+		case BEHAVIOUR_IDLE:
+			return @"BEHAVIOUR_IDLE";
+		case BEHAVIOUR_TRACK_TARGET:
+			return @"BEHAVIOUR_TRACK_TARGET";
+		case BEHAVIOUR_FLY_TO_TARGET:
+			return @"BEHAVIOUR_FLY_TO_TARGET";
+		case BEHAVIOUR_HANDS_OFF:
+			return @"BEHAVIOUR_HANDS_OFF";
+		case BEHAVIOUR_TUMBLE:
+			return @"BEHAVIOUR_TUMBLE";
+		case BEHAVIOUR_STOP_STILL:
+			return @"BEHAVIOUR_STOP_STILL";
+		case BEHAVIOUR_STATION_KEEPING:
+			return @"BEHAVIOUR_STATION_KEEPING";
+		case BEHAVIOUR_ATTACK_TARGET:
+			return @"BEHAVIOUR_ATTACK_TARGET";
+		case BEHAVIOUR_ATTACK_FLY_TO_TARGET:
+			return @"BEHAVIOUR_ATTACK_FLY_TO_TARGET";
+		case BEHAVIOUR_ATTACK_FLY_FROM_TARGET:
+			return @"BEHAVIOUR_ATTACK_FLY_FROM_TARGET";
+		case BEHAVIOUR_RUNNING_DEFENSE:
+			return @"BEHAVIOUR_RUNNING_DEFENSE";
+		case BEHAVIOUR_FLEE_TARGET:
+			return @"BEHAVIOUR_FLEE_TARGET";
+		case BEHAVIOUR_ATTACK_FLY_TO_TARGET_SIX:
+			return @"BEHAVIOUR_ATTACK_FLY_TO_TARGET_SIX";
+		case BEHAVIOUR_ATTACK_MINING_TARGET:
+			return @"BEHAVIOUR_ATTACK_MINING_TARGET";
+		case BEHAVIOUR_ATTACK_FLY_TO_TARGET_TWELVE:
+			return @"BEHAVIOUR_ATTACK_FLY_TO_TARGET_TWELVE";
+		case BEHAVIOUR_AVOID_COLLISION:
+			return @"BEHAVIOUR_AVOID_COLLISION";
+		case BEHAVIOUR_TRACK_AS_TURRET:
+			return @"BEHAVIOUR_TRACK_AS_TURRET";
+		case BEHAVIOUR_FLY_RANGE_FROM_DESTINATION:
+			return @"BEHAVIOUR_FLY_RANGE_FROM_DESTINATION";
+		case BEHAVIOUR_FLY_TO_DESTINATION:
+			return @"BEHAVIOUR_FLY_TO_DESTINATION";
+		case BEHAVIOUR_FLY_FROM_DESTINATION:
+			return @"BEHAVIOUR_FLY_FROM_DESTINATION";
+		case BEHAVIOUR_FACE_DESTINATION:
+			return @"BEHAVIOUR_FACE_DESTINATION";
+		case BEHAVIOUR_COLLECT_TARGET:
+			return @"BEHAVIOUR_COLLECT_TARGET";
+		case BEHAVIOUR_INTERCEPT_TARGET:
+			return @"BEHAVIOUR_INTERCEPT_TARGET";
+		case BEHAVIOUR_MISSILE_FLY_TO_TARGET:
+			return @"BEHAVIOUR_MISSILE_FLY_TO_TARGET";
+		case BEHAVIOUR_FORMATION_FORM_UP:
+			return @"BEHAVIOUR_FORMATION_FORM_UP";
+		case BEHAVIOUR_FORMATION_BREAK:
+			return @"BEHAVIOUR_FORMATION_BREAK";
+		case BEHAVIOUR_ENERGY_BOMB_COUNTDOWN:
+			return @"BEHAVIOUR_ENERGY_BOMB_COUNTDOWN";
+		case BEHAVIOUR_TRACTORED:
+			return @"BEHAVIOUR_TRACTORED";
+		case BEHAVIOUR_EXPERIMENTAL:
+			return @"BEHAVIOUR_EXPERIMENTAL";
+	}
+	return @"** BEHAVIOUR UNKNOWN **";
+}
+
 - (NSString*) description
 {
-	NSString* result = [[NSString alloc] initWithFormat:@"<ShipEntity %@ %d (%@) %@>", name, universal_id, roles, (universe == nil)? @" (not in universe)":@""];
+	NSString* result = [[NSString alloc] initWithFormat:@"\n<ShipEntity %@ %d (%@) %@ %@ on target %d>", name, universal_id, roles, (universe == nil)? @" (not in universe)":@"", describeBehaviour(behaviour), primaryTarget];
 	return [result autorelease];
 }
 
@@ -2001,6 +2067,14 @@ BOOL ship_canCollide (ShipEntity* ship)
 }
 
 
+// override Entity version...
+//
+- (double) getVelocityAsSpeed
+{
+	return sqrt(velocity.x * velocity.x + velocity.y * velocity.y + velocity.z * velocity.z + flight_speed * flight_speed);
+}
+
+
 ////////////////
 //            //
 // behaviours //
@@ -2053,7 +2127,7 @@ BOOL ship_canCollide (ShipEntity* ship)
 //            //
 - (void) behaviour_tractored:(double) delta_t
 {
-		double  distance = [self rangeToDestination];
+	double  distance = [self rangeToDestination];
 	ShipEntity* hauler = (ShipEntity*)[self owner];
 	if ((hauler)&&(hauler->isShip))
 	{
@@ -2170,8 +2244,8 @@ BOOL ship_canCollide (ShipEntity* ship)
 //            //
 - (void) behaviour_attack_target:(double) delta_t
 {
-	BOOL		canBurn = has_fuel_injection && (fuel > 1);	// was &&(fuel > 0)
-	double max_available_speed = (canBurn)? max_flight_speed * AFTERBURNER_FACTOR : max_flight_speed;
+	BOOL	canBurn = has_fuel_injection && (fuel > 1);	// was &&(fuel > 0)
+	double	max_available_speed = (canBurn)? max_flight_speed * AFTERBURNER_FACTOR : max_flight_speed;
 	double  range = [self rangeToPrimaryTarget];
 	[self activateCloakingDevice];
 	desired_speed = max_available_speed;
@@ -2352,7 +2426,7 @@ BOOL ship_canCollide (ShipEntity* ship)
 	ShipEntity*	target = (ShipEntity*)[universe entityForUniversalID:primaryTarget];
 	double target_speed = [target getVelocityAsSpeed];
 	if (range <= slow_down_range)
-		desired_speed = target_speed;   // within the weapon's range don't use afterburner
+		desired_speed = target_speed;   // within the weapon's range match speed
 	else
 		desired_speed = max_available_speed; // use afterburner to approach
 
