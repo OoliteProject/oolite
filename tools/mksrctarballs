@@ -1,0 +1,64 @@
+#!/bin/sh
+VERSION=`grep SoftwareVersion autopackage/default.apspec|cut -d ' ' -f 2`
+DESTINATION=`pwd`/TarballPackages
+TREEROOT=`pwd`
+
+if [ "$VERSION" == "" ]
+then
+   echo "I can't find the apspec file. This script needs to be run from"
+   echo "the repository top level directory to find all it needs."
+   exit 255
+fi
+
+# clear out the cruft
+rm -rf $DESTINATION/oolite-$VERSION-src
+rm -f $DESTINATION/oolite-$VERSION-src.tar.gz
+rm -rf $DESTINATION/oolite-$VERSION-data
+rm -f $DESTINATION/oolite-$VERSION-data.tar.gz
+
+if ! mkdir -p $DESTINATION/oolite-$VERSION-src;
+then
+   echo "Couldn't create directory for the source files"
+   exit 255
+fi
+
+if ! mkdir -p $DESTINATION/oolite-$VERSION-data;
+then
+   echo "Couldn't create directory for the data files"
+   exit 255
+fi
+
+for i in autopackage Doc FreeDesktop installers Oolite-importer Oolite.xcodeproj OSX-SDL src tools GNUmakefile GNUmakefile.postamble README.txt
+do
+   if ! cp -r $i $DESTINATION/oolite-$VERSION-src;
+   then
+      echo "Failed to copy $i to $DESTINATION/oolite-$VERSION-src"
+      exit 255
+   fi
+done
+
+if ! cp -r Resources $DESTINATION/oolite-$VERSION-data;
+then
+   echo "Failed to copy Resources to $DESTINATION/oolite-$VERSION-data"
+   exit 255
+fi
+
+cd $DESTINATION
+if ! tar zcf oolite-$VERSION-src.tar.gz oolite-$VERSION-src --exclude .svn
+then
+   echo "Failed to create src tarball"
+   exit 255
+fi
+
+# so the data tarball has the same path as src
+rm -rf oolite-$VERSION-src
+mv oolite-$VERSION-data oolite-$VERSION-src
+if ! tar zcf oolite-$VERSION-data.tar.gz oolite-$VERSION-src --exclude .svn
+then
+   echo "Failed to create data tarball"
+   exit 255
+fi
+
+rm -rf oolite-$VERSION-src
+echo "Tarballs placed in $DESTINATION."
+
