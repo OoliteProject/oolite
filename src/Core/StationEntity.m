@@ -1388,11 +1388,13 @@ NSDictionary* instructions(int station_id, Vector coords, float speed, float ran
 	{
 //		NSLog(@"DEBUG Defense ship key found: %@", [shipinfoDictionary objectForKey:@"defense_ship"]);
 		defense_ship_key = (NSString*)[shipinfoDictionary objectForKey:@"defense_ship"];
+		defense_ship_ai = nil;
 	}
 	if ([shipinfoDictionary objectForKey:@"defense_ship_role"])
 	{
 //		NSLog(@"DEBUG Defense ship role key found: %@", [shipinfoDictionary objectForKey:@"defense_ship_role"]);
 		defense_ship_role_key = (NSString*)[shipinfoDictionary objectForKey:@"defense_ship_role"];
+		defense_ship_ai = nil;
 	}
 	
 //	NSLog(@"DEBUG Launching defense ship to intercept %@",[(ShipEntity *)[universe entityForUniversalID:defense_target] name]);
@@ -1415,7 +1417,9 @@ NSDictionary* instructions(int station_id, Vector coords, float speed, float ran
 	
 	police_launched++;
 	
+	[defense_ship setOwner: self];
 	[defense_ship setGroup_id:universal_id];	// who's your Daddy
+	
 	if (defense_ship_ai)
 		[[defense_ship getAI] setStateMachine:defense_ship_ai];
 	[defense_ship addTarget:[universe entityForUniversalID:defense_target]];
