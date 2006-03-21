@@ -79,6 +79,7 @@ Your fair use and other rights are in no way affected by the above.
 	[ai_stack removeAllObjects];	// releasing them all
 	if (ai_stack)			[ai_stack release];
     if (stateMachine)		[stateMachine release];
+	if (stateMachineName)	[stateMachineName release];
     if (currentState)		[currentState release];
 	[pendingMessages removeAllObjects];	// releasing them all
 	if (pendingMessages)	[pendingMessages release];
@@ -86,6 +87,11 @@ Your fair use and other rights are in no way affected by the above.
 	[aiLock unlock];
 	if (aiLock)				[aiLock release];
 	[super dealloc];
+}
+
+- (NSString*) description
+{
+	return [NSString stringWithFormat:@"<AI with stateMachine: '%@' in state: '%@'>", stateMachineName, currentState];
 }
 
 - (id) initWithStateMachine:(NSString *) smName andState:(NSString *) stateName
@@ -120,6 +126,7 @@ Your fair use and other rights are in no way affected by the above.
 	// use copies because the currently referenced objects might change
 	[pickledMachine setObject:[NSDictionary dictionaryWithDictionary: stateMachine] forKey:@"stateMachine"];
 	[pickledMachine setObject:[NSString stringWithString: currentState] forKey:@"currentState"];
+	[pickledMachine setObject:[NSString stringWithString: stateMachineName] forKey:@"stateMachineName"];
 	[pickledMachine setObject:[NSArray arrayWithArray: pendingMessages] forKey:@"pendingMessages"];
 	
 	if (!ai_stack)
@@ -155,6 +162,8 @@ Your fair use and other rights are in no way affected by the above.
 	stateMachine = [[NSDictionary dictionaryWithDictionary:(NSDictionary *)[pickledMachine objectForKey:@"stateMachine"]] retain];
 	if (currentState)   [currentState release];
 	currentState = [[NSString stringWithString:(NSString *)[pickledMachine objectForKey:@"currentState"]] retain];
+	if (stateMachineName)   [stateMachineName release];
+	stateMachineName = [[NSString stringWithString:(NSString *)[pickledMachine objectForKey:@"stateMachineName"]] retain];
 	if (pendingMessages)   [pendingMessages release];
 	pendingMessages = [[NSMutableArray arrayWithArray:(NSArray *)[pickledMachine objectForKey:@"pendingMessages"]] retain];  // restore a MUTABLE array
 	//NSLog(@"debug restorePreviousStateMachine");
@@ -202,6 +211,12 @@ Your fair use and other rights are in no way affected by the above.
 	//
 	if (owner_desc)			[owner_desc release];
 	owner_desc = [[NSString stringWithFormat:@"%@ %d", [owner name], [owner universal_id]] retain];
+	
+	// refresh stateMachineName
+	//
+	if (stateMachineName)
+		[stateMachineName release];
+	stateMachineName = [smName retain];
 }
 
 - (int) ai_stack_depth
@@ -388,12 +403,6 @@ Your fair use and other rights are in no way affected by the above.
 - (double) thinkTimeInterval
 {
 	return thinkTimeInterval;
-}
-
-- (NSString*) description
-{
-	NSString* result = [[NSString alloc] initWithFormat:@"<AI in state '%@'>", currentState ];
-	return [result autorelease];
 }
 
 - (void) clearStack

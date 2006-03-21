@@ -512,8 +512,7 @@ Your fair use and other rights are in no way affected by the above.
 	for (i = 0; i < n_entities; i++)
 	{
 		ShipEntity* se = (sortedEntities[i]->isShip)? (ShipEntity*)sortedEntities[i]: nil;
-		NSString* ai_status = [[se getAI] description];
-		NSLog(@"-> Ent:%d\t\t%@ mass %.2f %@", i, sortedEntities[i], [sortedEntities[i] mass], ai_status);
+		NSLog(@"-> Ent:%d\t\t%@ mass %.2f %@", i, sortedEntities[i], [sortedEntities[i] mass], [se getAI]);
 	}
 	if ([entities count] != n_entities)
 		NSLog(@"entities = %@", [entities description]);

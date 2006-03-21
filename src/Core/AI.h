@@ -51,6 +51,7 @@ extern int debug;
 	NSString		*owner_desc;				// describes the object this is the AI for
 
 	NSDictionary	*stateMachine;
+	NSString		*stateMachineName;
 	NSString		*currentState;
 	NSMutableArray  *pendingMessages;
 	
