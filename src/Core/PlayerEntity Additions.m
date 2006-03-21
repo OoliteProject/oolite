@@ -1052,7 +1052,7 @@ static int shipsFound;
 
 	if ([tokens count] != 2)
 	{
-		NSLog(@"***** CANNOT ADDSHIPS: '%@'",roles_number);
+		NSLog(@"***** CANNOT ADDSHIPS: '%@' - MUST BE '<role> <number>'",roles_number);
 		return;
 	}
 	
