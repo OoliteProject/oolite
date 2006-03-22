@@ -44,23 +44,24 @@ Your fair use and other rights are in no way affected by the above.
 #import "vector.h"
 
 #define PARTICLE_TEST				1
-#define PARTICLE_SHOT_EXPIRED		200
-#define PARTICLE_EXPLOSION			201
-#define PARTICLE_FLASH				230
-#define PARTICLE_FIREBALL			240
-#define PARTICLE_FRAGBURST			250
-#define PARTICLE_BURST2				270
 #define PARTICLE_SHOT_GREEN_PLASMA	100
 #define PARTICLE_SHOT_YELLOW_PLASMA	101
 #define PARTICLE_SPARK				102
 #define PARTICLE_SHOT_PLASMA		110
 #define PARTICLE_LASER_BEAM_RED		150
 #define PARTICLE_LASER_BEAM			160
+#define PARTICLE_SHOT_EXPIRED		200
+#define PARTICLE_EXPLOSION			201
+#define PARTICLE_FLASH				230
+#define PARTICLE_FIREBALL			240
+#define PARTICLE_FRAGBURST			250
+#define PARTICLE_BURST2				270
 #define PARTICLE_EXHAUST			300
 #define PARTICLE_EXHAUST2			301
 #define PARTICLE_ECM_MINE			400
 #define PARTICLE_ENERGY_MINE		500
 #define PARTICLE_FLASHER			600
+#define PARTICLE_BILLBOARD			700
 #define PARTICLE_HYPERRING			800
 #define PARTICLE_MARKER			666
 
@@ -113,6 +114,7 @@ Your fair use and other rights are in no way affected by the above.
 - (id) initBurst2Size:(GLfloat) burstSize FromPosition:(Vector) fragPos;
 - (id) initFlashSize:(GLfloat) burstSize FromPosition:(Vector) fragPos;
 - (id) initFlashSize:(GLfloat) flashSize FromPosition:(Vector) fragPos Color:(NSColor*) flashColor;
+- (id) initBillboard:(NSSize) billSize fromPosition:(Vector) pos withTexture:(NSString*) textureFile;
 
 - (void) updateExplosion:(double) delta_t;
 - (void) updateFlasher:(double) delta_t;

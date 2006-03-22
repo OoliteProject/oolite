@@ -5786,16 +5786,16 @@ GLfloat	starboard_matrix[] = {	0.0f, 0.0f, 1.0f, 0.0f,		0.0f, 1.0f, 0.0f, 0.0f,	
 		station_roles = (NSString*)[[self currentSystemData] objectForKey:@"market"];
 	}
 	
-	//NSLog(@"///// station roles detected as '%@'", station_roles);
+//	NSLog(@"///// station roles detected as '%@'", station_roles);
 	
 	if (![commoditylists objectForKey:station_roles])
 	{
-		//NSLog(@"///// using default economy");
+//		NSLog(@"///// using default economy");
 		station_roles = @"default";
 	}
 	else
 	{
-		//NSLog(@"///// found a special economy");
+//		NSLog(@"///// found a special economy");
 	}
 		
 	NSMutableArray *ourEconomy = [NSMutableArray arrayWithArray:(NSArray *)[commoditylists objectForKey:station_roles]];

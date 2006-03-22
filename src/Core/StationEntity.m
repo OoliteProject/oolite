@@ -759,7 +759,7 @@ NSDictionary* instructions(int station_id, Vector coords, float speed, float ran
 		for (i = 0; i < [subs count]; i++)
 		{
 			NSArray* details = [Entity scanTokensFromString:(NSString *)[subs objectAtIndex:i]];
-			if (([details count] == 8)&&([(NSString *)[details objectAtIndex:0] isEqual:@"dock"]))
+			if (([details count] == 8)&&([(NSString *)[details objectAtIndex:0] hasPrefix:@"dock"]))
 			{
 				port_position.x = [(NSString *)[details objectAtIndex:1] floatValue];
 				port_position.y = [(NSString *)[details objectAtIndex:2] floatValue];

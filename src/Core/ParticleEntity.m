@@ -718,6 +718,43 @@ static	Vector	circleVertex[65];		// holds vector coordinates for a unit circle
     return self;
 }
 
+// used for background billboards
+- (id) initBillboard:(NSSize) billSize fromPosition:(Vector) pos withTexture:(NSString*) textureFile
+{
+	//
+	self = [super init];
+    //
+	basefile = @"Particle";
+	texName = 0;
+	[self setTexture: textureFile];
+	//
+	size = billSize;
+	//
+    time_counter = 0.0;
+	duration = 0.0;	//infinite
+	position = pos;
+	//
+	[self setColor:[NSColor whiteColor]];
+	color_fv[3] = 1.0;
+	//
+	status = STATUS_EFFECT;
+	scan_class = CLASS_NO_DRAW;
+	//
+	particle_type = PARTICLE_BILLBOARD;
+	//
+	collision_radius = 0;
+	energy = 0;
+	owner = NO_TARGET;
+	//
+	isParticle = YES;
+	//
+	[self setVelocity: make_vector( 0.0f, 0.0f, 0.0f)];
+	
+//	NSLog(@"DEBUG *BILLBOARD* initialised at [ %.2f, %.2f, %.2f]", position.x, position.y, position.z);
+	
+    return self;
+}
+
 - (void) dealloc
 {
     if (textureNameString)	[textureNameString release];
@@ -789,6 +826,7 @@ static	Vector	circleVertex[65];		// holds vector coordinates for a unit circle
 		case PARTICLE_FRAGBURST :
 		case PARTICLE_BURST2 :
 		case PARTICLE_FLASH :
+		case PARTICLE_BILLBOARD :
 			return NO;
 			break;
 		default :
@@ -895,6 +933,7 @@ static	Vector	circleVertex[65];		// holds vector coordinates for a unit circle
 			case PARTICLE_FRAGBURST :
 			case PARTICLE_BURST2 :
 			case PARTICLE_FLASH :
+			case PARTICLE_BILLBOARD :
 				{
 					Entity* player = [universe entityZero];
 					if (!texName)
@@ -905,9 +944,6 @@ static	Vector	circleVertex[65];		// holds vector coordinates for a unit circle
 						int i = 0;
 						for (i = 0; i < 16; i++)				// copy the player's rotation
 							rotMatrix[i] = rmix[i];				// Really simple billboard routine
-//						q_rotation = player->q_rotation;		// Really simple billboard routine
-//						q_rotation.w = -q_rotation.w;
-//						quaternion_into_gl_matrix(q_rotation, rotMatrix);
 					}
 				}
 				break;
@@ -961,6 +997,9 @@ static	Vector	circleVertex[65];		// holds vector coordinates for a unit circle
 			
 			case PARTICLE_FLASH :
 				[self updateFlash:delta_t];
+				break;
+			
+			case PARTICLE_BILLBOARD :
 				break;
 			
 			case PARTICLE_SHOT_EXPIRED :
@@ -1544,9 +1583,7 @@ static	Vector	circleVertex[65];		// holds vector coordinates for a unit circle
     
 	// movies:
 	// draw data required xx, yy, color_fv[0], color_fv[1], color_fv[2]
-	
-//	glDisable(GL_LIGHTING);
-	
+		
 	glEnable(GL_TEXTURE_2D);
 	
 	glColor4f( color_fv[0], color_fv[1], color_fv[2], alpha);
@@ -1794,15 +1831,6 @@ static	Vector	circleVertex[65];		// holds vector coordinates for a unit circle
 	glPopMatrix();
 	glDisable(GL_TEXTURE_2D);
 }
-
-//- (void) drawFlash
-//{	
-//	
-////	NSLog(@"DEBUG *FLASH* being drawn at [ %.2f, %.2f, %.2f] size %.2f", position.x, position.y, position.z, size.width);
-//
-//	alpha = color_fv[3];
-//	[self drawParticle];
-//}
 
 void drawQuadForView(int viewdir, GLfloat x, GLfloat y, GLfloat z, GLfloat xx, GLfloat yy)
 {
