@@ -54,6 +54,8 @@ sub new
 sub connect
 {
    my ($self, $user, $passwd)=@_;
+   chomp $user;
+   chomp $passwd;
   
    $self->{ua}=new LWP::UserAgent;
    $self->{ua}->agent("Oolite-Updater/1.0");
@@ -75,7 +77,7 @@ sub connect
       return 1;
    }
    print("Login failed");
-   return 0;
+   exit(255);
 }
 
 sub deleteFiles
