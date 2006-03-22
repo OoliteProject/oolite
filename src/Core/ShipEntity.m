@@ -2135,17 +2135,26 @@ BOOL ship_canCollide (ShipEntity* ship)
 		desired_speed = 0.0;
 		desired_range = collision_radius;
 		destination = [hauler absoluteTractorPosition];
-		// adjust for difference in velocity
+		// adjust for difference in velocity (spring rule)
 		Vector dv = vector_between( [self getVelocity], [hauler getVelocity]);
 		velocity.x += delta_t * dv.x * 0.25 * tf;
 		velocity.y += delta_t * dv.y * 0.25 * tf;
 		velocity.z += delta_t * dv.z * 0.25 * tf;
-		// force is proportional to distance
 		// acceleration = force / mass
+		// force proportional to distance (spring rule)
 		Vector dp = vector_between( position, destination);
 		velocity.x += delta_t * dp.x * tf;
 		velocity.y += delta_t * dp.y * tf;
 		velocity.z += delta_t * dp.z * tf;
+		// force inversely proportional to distance
+		GLfloat d2 = magnitude2(dp);
+		if (d2 > 0.0)
+		{
+			velocity.x += delta_t * dp.x * tf / d2;
+			velocity.y += delta_t * dp.y * tf / d2;
+			velocity.z += delta_t * dp.z * tf / d2;
+		}
+		
 		thrust = 10.0;	// used to damp velocity
 		if (status == STATUS_BEING_SCOOPED)
 		{
