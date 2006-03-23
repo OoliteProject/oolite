@@ -1315,6 +1315,11 @@ static	Vector	circleVertex[65];		// holds vector coordinates for a unit circle
 	
 	if (flare_length < 0.1)   flare_length = 0.1;	
 	Vector currentPos = ship->position;
+	Vector vfwd = vector_forward_from_quaternion(shipQrotation);
+	GLfloat	spd = 0.5 * [ship flight_speed];
+	vfwd.x *= spd;
+	vfwd.y *= spd;
+	vfwd.z *= spd;
 	Vector master_i = vector_right_from_quaternion(shipQrotation);
 	Vector vi,vj,vk;
 	vi = master_i;
@@ -1325,14 +1330,26 @@ static	Vector	circleVertex[65];		// holds vector coordinates for a unit circle
 									currentPos.z + vi.z * position.x + vj.z * position.y + vk.z * position.z);
 	
 	GLfloat i01 = -0.03;// * flare_length;
-	GLfloat i04 = -0.12;// * flare_length;
+	GLfloat i03 = -0.12;// * flare_length;
 	GLfloat i06 = -0.25;// * flare_length;
 	GLfloat i08 = -0.32;// * flare_length;
 	GLfloat i10 = -0.40;// * flare_length;
+	GLfloat q01 = i01/i10;	// factor for trail
+	GLfloat q03 = i03/i10;
+	GLfloat q06 = i06/i10;
+	GLfloat q08 = i08/i10;
+	GLfloat r01 = 1.0 - q01;	// factor for jet
+	GLfloat r03 = 1.0 - q03;
+	GLfloat r06 = 1.0 - q06;
+	GLfloat r08 = 1.0 - q08;
 	Frame	f01 = [self frameAtTime: i01 fromFrame: zero];
-	Frame	f03 = [self frameAtTime: i04 fromFrame: zero];
+	Vector	b01 = make_vector( r01 * i01 * vfwd.x, r01 * i01 * vfwd.y, r01 * i01 * vfwd.z); 
+	Frame	f03 = [self frameAtTime: i03 fromFrame: zero];
+	Vector	b03 = make_vector( r03 * i03 * vfwd.x, r03 * i03 * vfwd.y, r03 * i03 * vfwd.z); 
 	Frame	f06 = [self frameAtTime: i06 fromFrame: zero];
+	Vector	b06 = make_vector( r06 * i06 * vfwd.x, r06 * i06 * vfwd.y, r06 * i06 * vfwd.z); 
 	Frame	f08 = [self frameAtTime: i08 fromFrame: zero];
+	Vector	b08 = make_vector( r08 * i08 * vfwd.x, r08 * i08 * vfwd.y, r08 * i08 * vfwd.z); 
 	Frame	f10 = [self frameAtTime: i10 fromFrame: zero];
 
 	int ci = 0;
@@ -1343,9 +1360,9 @@ static	Vector	circleVertex[65];		// holds vector coordinates for a unit circle
 	ex_emissive[3] = flare_factor;	// fade alpha towards rear of exhaust
 	ex_emissive[1] = green_factor;	// diminish green part towards rear of exhaust
 	ex_emissive[0] = red_factor;		// diminish red part towards rear of exhaust
-	verts[iv++] = f03.position.x;// + zero.k.x * flare_factor * 4.0;
-	verts[iv++] = f03.position.y;// + zero.k.y * flare_factor * 4.0;
-	verts[iv++] = f03.position.z;// + zero.k.z * flare_factor * 4.0;
+	verts[iv++] = f03.position.x + b03.x;// + zero.k.x * flare_factor * 4.0;
+	verts[iv++] = f03.position.y + b03.y;// + zero.k.y * flare_factor * 4.0;
+	verts[iv++] = f03.position.z + b03.z;// + zero.k.z * flare_factor * 4.0;
 	exhaustBaseColors[ci++] = ex_emissive[0];
 	exhaustBaseColors[ci++] = ex_emissive[1];
 	exhaustBaseColors[ci++] = ex_emissive[2];
@@ -1366,9 +1383,9 @@ static	Vector	circleVertex[65];		// holds vector coordinates for a unit circle
 	j1.x *= exhaustScale.y;	j1.y *= exhaustScale.y;	j1.z *= exhaustScale.y;
 	for (i = 0; i < 8; i++)
 	{
-		verts[iv++] =	f01.position.x + s1[i] * i1.x + c1[i] * j1.x;
-		verts[iv++] =	f01.position.y + s1[i] * i1.y + c1[i] * j1.y;
-		verts[iv++] =	f01.position.z + s1[i] * i1.z + c1[i] * j1.z;
+		verts[iv++] =	f01.position.x + b01.x + s1[i] * i1.x + c1[i] * j1.x;
+		verts[iv++] =	f01.position.y + b01.y + s1[i] * i1.y + c1[i] * j1.y;
+		verts[iv++] =	f01.position.z + b01.z + s1[i] * i1.z + c1[i] * j1.z;
 		exhaustBaseColors[ci++] = ex_emissive[0];
 		exhaustBaseColors[ci++] = ex_emissive[1];
 		exhaustBaseColors[ci++] = ex_emissive[2];
@@ -1386,9 +1403,9 @@ static	Vector	circleVertex[65];		// holds vector coordinates for a unit circle
 	for (i = 0; i < 8; i++)
 	{
 		r1 = randf();
-		verts[iv++] =	f03.position.x + s1[i] * i1.x + c1[i] * j1.x + r1 * k1.x;
-		verts[iv++] =	f03.position.y + s1[i] * i1.y + c1[i] * j1.y + r1 * k1.y;
-		verts[iv++] =	f03.position.z + s1[i] * i1.z + c1[i] * j1.z + r1 * k1.z;
+		verts[iv++] =	f03.position.x + b03.x + s1[i] * i1.x + c1[i] * j1.x + r1 * k1.x;
+		verts[iv++] =	f03.position.y + b03.y + s1[i] * i1.y + c1[i] * j1.y + r1 * k1.y;
+		verts[iv++] =	f03.position.z + b03.z + s1[i] * i1.z + c1[i] * j1.z + r1 * k1.z;
 		exhaustBaseColors[ci++] = ex_emissive[0];
 		exhaustBaseColors[ci++] = ex_emissive[1];
 		exhaustBaseColors[ci++] = ex_emissive[2];
@@ -1406,9 +1423,9 @@ static	Vector	circleVertex[65];		// holds vector coordinates for a unit circle
 	for (i = 0; i < 8; i++)
 	{
 		r1 = randf();
-		verts[iv++] =	f06.position.x + s1[i] * i1.x + c1[i] * j1.x + r1 * k1.x;
-		verts[iv++] =	f06.position.y + s1[i] * i1.y + c1[i] * j1.y + r1 * k1.y;
-		verts[iv++] =	f06.position.z + s1[i] * i1.z + c1[i] * j1.z + r1 * k1.z;
+		verts[iv++] =	f06.position.x + b06.x + s1[i] * i1.x + c1[i] * j1.x + r1 * k1.x;
+		verts[iv++] =	f06.position.y + b06.y + s1[i] * i1.y + c1[i] * j1.y + r1 * k1.y;
+		verts[iv++] =	f06.position.z + b06.z + s1[i] * i1.z + c1[i] * j1.z + r1 * k1.z;
 		exhaustBaseColors[ci++] = ex_emissive[0];
 		exhaustBaseColors[ci++] = ex_emissive[1];
 		exhaustBaseColors[ci++] = ex_emissive[2];
@@ -1426,9 +1443,9 @@ static	Vector	circleVertex[65];		// holds vector coordinates for a unit circle
 	for (i = 0; i < 8; i++)
 	{
 		r1 = randf();
-		verts[iv++] =	f08.position.x + s1[i] * i1.x + c1[i] * j1.x + r1 * k1.x;
-		verts[iv++] =	f08.position.y + s1[i] * i1.y + c1[i] * j1.y + r1 * k1.y;
-		verts[iv++] =	f08.position.z + s1[i] * i1.z + c1[i] * j1.z + r1 * k1.z;
+		verts[iv++] =	f08.position.x + b08.x + s1[i] * i1.x + c1[i] * j1.x + r1 * k1.x;
+		verts[iv++] =	f08.position.y + b08.y + s1[i] * i1.y + c1[i] * j1.y + r1 * k1.y;
+		verts[iv++] =	f08.position.z + b08.z + s1[i] * i1.z + c1[i] * j1.z + r1 * k1.z;
 		exhaustBaseColors[ci++] = ex_emissive[0];
 		exhaustBaseColors[ci++] = ex_emissive[1];
 		exhaustBaseColors[ci++] = ex_emissive[2];
