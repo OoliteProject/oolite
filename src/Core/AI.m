@@ -52,7 +52,7 @@ Your fair use and other rights are in no way affected by the above.
 	//
 	ai_stack = [[NSMutableArray alloc] init];	// retained
 	//
-	pendingMessages = [[NSMutableArray alloc] init];	// retained
+	pendingMessages = [[NSMutableDictionary alloc] init];	// retained
 	//
 	nextThinkTime = [[NSDate distantFuture] timeIntervalSinceNow];	// don't think for a while
 	//
@@ -127,7 +127,7 @@ Your fair use and other rights are in no way affected by the above.
 	[pickledMachine setObject:[NSDictionary dictionaryWithDictionary: stateMachine] forKey:@"stateMachine"];
 	[pickledMachine setObject:[NSString stringWithString: currentState] forKey:@"currentState"];
 	[pickledMachine setObject:[NSString stringWithString: stateMachineName] forKey:@"stateMachineName"];
-	[pickledMachine setObject:[NSArray arrayWithArray: pendingMessages] forKey:@"pendingMessages"];
+	[pickledMachine setObject:[NSDictionary dictionaryWithDictionary: pendingMessages] forKey:@"pendingMessages"];
 	
 	if (!ai_stack)
 		ai_stack = [[NSMutableArray alloc] initWithCapacity:8];
@@ -165,7 +165,7 @@ Your fair use and other rights are in no way affected by the above.
 	if (stateMachineName)   [stateMachineName release];
 	stateMachineName = [[NSString stringWithString:(NSString *)[pickledMachine objectForKey:@"stateMachineName"]] retain];
 	if (pendingMessages)   [pendingMessages release];
-	pendingMessages = [[NSMutableArray arrayWithArray:(NSArray *)[pickledMachine objectForKey:@"pendingMessages"]] retain];  // restore a MUTABLE array
+	pendingMessages = [[NSMutableDictionary dictionaryWithDictionary:(NSDictionary *)[pickledMachine objectForKey:@"pendingMessages"]] retain];  // restore a MUTABLE array
 	//NSLog(@"debug restorePreviousStateMachine");
 	[aiLock unlock];
 	
@@ -357,7 +357,7 @@ Your fair use and other rights are in no way affected by the above.
 	{
 		//NSLog(@"debug1");
 		if ([pendingMessages count] > 0)
-			ms_list = [NSArray arrayWithArray:pendingMessages];
+			ms_list = [pendingMessages allKeys];
 		//NSLog(@"debug2");
 		[pendingMessages removeAllObjects];
 		[pendingMessages release];
@@ -378,7 +378,18 @@ Your fair use and other rights are in no way affected by the above.
 		return;
 	//
 
-	[pendingMessages addObject:ms];
+	if ([pendingMessages count] > 32)
+	{
+		NSLog(@"***** ERROR: AI pending messages overflow for %@ pendingMessages:\n%@", owner, pendingMessages);
+		NSException *myException = [NSException
+			exceptionWithName:@"OoliteException"
+			reason:[NSString stringWithFormat:@"AI pendingMessages overflow for %@", owner]
+			userInfo:nil];
+		[myException raise];
+		return;
+	}
+
+	[pendingMessages setObject: ms forKey: ms];
 	//[self think];
 }
 

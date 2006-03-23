@@ -53,7 +53,7 @@ extern int debug;
 	NSDictionary	*stateMachine;
 	NSString		*stateMachineName;
 	NSString		*currentState;
-	NSMutableArray  *pendingMessages;
+	NSMutableDictionary  *pendingMessages;
 	
 	NSMutableArray  *ai_stack;
 	
