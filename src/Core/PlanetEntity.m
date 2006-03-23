@@ -292,6 +292,8 @@ void setUpSinTable()
 	//
 	planet_type =   PLANET_TYPE_ATMOSPHERE;
 	//
+	planet_seed =	ranrot_rand();	// random set-up for vertex colours
+	//
 	for (i = 0; i < 5; i++)
 		displayListNames[i] = 0;	// empty for now!
 	//
@@ -398,6 +400,8 @@ void setUpSinTable()
     //
 	isTextured = NO;
 	textureName = [[uni textureStore] getTextureNameFor:@"metal.png"];	//debug texture
+	//
+	planet_seed = p_seed.a * 13 + p_seed.c * 11 + p_seed.e * 7;	// pseudo-random set-up for vertex colours
 	//
 	seed_for_planet_description(p_seed);
 	//
@@ -571,6 +575,8 @@ void setUpSinTable()
 			p_seed.e = [[tokens objectAtIndex:4] intValue];
 			p_seed.f = [[tokens objectAtIndex:5] intValue];
 		}
+		planet_seed = p_seed.a * 13 + p_seed.c * 11 + p_seed.e * 7;	// pseudo-random set-up for vertex colours
+		//
 	}
 	//
 	seed_for_planet_description(p_seed);
@@ -732,6 +738,8 @@ void setUpSinTable()
 	//
 	Random_Seed	p_seed = [uni systemSeed];
     //
+	planet_seed = p_seed.a * 7 + p_seed.c * 11 + p_seed.e * 13;	// pseudo-random set-up for vertex colours
+	//
 	if ([dict objectForKey:@"texture"])
 	{
 		textureName = [[uni textureStore] getTextureNameFor:(NSString*)[dict objectForKey:@"texture"]];
