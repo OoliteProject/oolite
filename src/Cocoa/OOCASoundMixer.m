@@ -248,6 +248,8 @@ static OOCASoundMixer *sSingleton = nil;
 		[chan setDelegate:self];
 		OK = [chan playSound:inSound];
 		
+		[inSound setIsPlaying:OK];
+		
 		if (OK) [self retain];
 		else
 		{
@@ -264,6 +266,8 @@ static OOCASoundMixer *sSingleton = nil;
 - (void)channel:(OOCASoundChannel *)inChannel didFinishPlayingSound:(OOSound *)inSound
 {
 	uint32_t				ID;
+		
+	[inSound setIsPlaying:NO];
 	
 	if (![inChannel isOK])
 	{

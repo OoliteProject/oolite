@@ -125,9 +125,14 @@ NSLock						*gOOCASoundSyncLock = NULL;	// Used to ensure thread-safety of play 
 }
 
 
+- (void) setIsPlaying:(BOOL) yesno
+{
+	isPlaying = yesno;
+}
+
 - (BOOL) isPlaying
 {
-	return NO;
+	return isPlaying;
 }
 
 

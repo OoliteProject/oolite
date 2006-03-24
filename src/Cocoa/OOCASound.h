@@ -39,6 +39,9 @@ Your fair use and other rights are in no way affected by the above.
 
 
 @interface OOSound: NSObject
+{
+	BOOL isPlaying;
+}
 
 + (void) setUp;
 + (void) tearDown;
@@ -49,6 +52,7 @@ Your fair use and other rights are in no way affected by the above.
 
 - (id) initWithContentsOfFile:(NSString *)path;
 
+- (void) setIsPlaying:(BOOL) yesno;
 - (BOOL) isPlaying;
 - (BOOL) play;
 - (BOOL) stop;
