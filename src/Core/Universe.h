@@ -221,6 +221,7 @@ extern int debug;
 		
 		NSDictionary			*illegal_goods;		// holds the legal penalty for illicit commodities, loaded at initialisation
 		NSDictionary			*descriptions;		// holds descriptive text for lots of stuff, loaded at initialisation
+		NSDictionary			*customsounds;		// holds descriptive audio for lots of stuff, loaded at initialisation
 		NSDictionary			*planetinfo;		// holds overrides for individual planets, keyed by "g# p#" where g# is the galaxy number 0..7 and p# the planet number 0..255
 		NSDictionary			*missiontext;		// holds descriptive text for missions, loaded at initialisation
 		NSArray					*equipmentdata;		// holds data on available equipment, loaded at initialisation
@@ -383,6 +384,8 @@ extern int debug;
 
 - (void) setViewDirection:(int) vd;
 - (int) viewDir;
+
+- (BOOL) playCustomSound:(NSString*)key;
 
 - (void) clearPreviousMessage;
 - (void) setMessageGuiBackgroundColor:(NSColor *) some_color;

@@ -170,6 +170,8 @@ Your fair use and other rights are in no way affected by the above.
 	//
 	descriptions = [[ResourceManager dictionaryFromFilesNamed:@"descriptions.plist" inFolder:@"Config" andMerge:YES] retain];
 	//
+	customsounds = [[ResourceManager dictionaryFromFilesNamed:@"customsounds.plist" inFolder:@"Config" andMerge:YES] retain];
+	//
 	planetinfo = [[ResourceManager dictionaryFromFilesNamed:@"planetinfo.plist" inFolder:@"Config" andMerge:YES smart:YES] retain];
 	//
 	local_planetinfo_overrides = [[NSMutableDictionary alloc] initWithCapacity:8];
@@ -254,6 +256,7 @@ Your fair use and other rights are in no way affected by the above.
 	
     if (illegal_goods)			[illegal_goods release];
     if (descriptions)			[descriptions release];
+    if (customsounds)			[customsounds release];
     if (planetinfo)				[planetinfo release];
     if (missiontext)			[missiontext release];
 	if (equipmentdata)			[equipmentdata release];
@@ -419,6 +422,10 @@ Your fair use and other rights are in no way affected by the above.
 	if (descriptions)
 		[descriptions autorelease];
 	descriptions = [[ResourceManager dictionaryFromFilesNamed:@"descriptions.plist" inFolder:@"Config" andMerge:YES ] retain];
+	//
+	if (customsounds)
+		[customsounds autorelease];
+	customsounds = [[ResourceManager dictionaryFromFilesNamed:@"customsounds.plist" inFolder:@"Config" andMerge:YES ] retain];
 	//
 	if (planetinfo)
 		[planetinfo autorelease];
@@ -4783,6 +4790,21 @@ GLfloat	starboard_matrix[] = {	0.0f, 0.0f, 1.0f, 0.0f,		0.0f, 1.0f, 0.0f, 0.0f,	
 {
 	//NSLog(@"Universe viewDir : %d",viewDirection);
 	return viewDirection;
+}
+
+- (BOOL) playCustomSound:(NSString*)key
+{
+	if ([customsounds objectForKey:key])
+	{
+		OOSound* sound = [ResourceManager ooSoundNamed:(NSString*)[customsounds objectForKey:key] inFolder:@"Sounds"];
+		if (sound)
+		{
+			if (![sound isPlaying])
+				[sound play];
+			return YES;
+		}
+	}
+	return NO;
 }
 
 - (void) clearPreviousMessage

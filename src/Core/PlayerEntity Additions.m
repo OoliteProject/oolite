@@ -1506,7 +1506,8 @@ static int shipsFound;
 	fuel_leak_rate = [value doubleValue];
 	if (fuel_leak_rate > 0)
 	{
-		[self warnAboutHostiles];
+		if (![universe playCustomSound:@"[fuel-leak]"])
+			[self warnAboutHostiles];
 		[universe addMessage:@"Danger! Fuel leak!" forCount:6];
 		if (debug)
 			NSLog(@"DEBUG FUEL LEAK activated!");

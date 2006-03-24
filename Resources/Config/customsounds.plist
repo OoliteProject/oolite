@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple Computer//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<!-- list all possible custom sounds here -->
+	<!-- implemented: just the test sound -->
+	<key>[test]</key>
+	<string>buy.ogg</string>
+	<!-- unimplmented:
+	<key>[witch-blocked-by-@]</key>
+	<string>buy.ogg</string>
+	<key>[witch-no-fuel]</key>
+	<string>buy.ogg</string>
+	<key>[incoming-missile]</key>
+	<string>buy.ogg</string>
+	<key>[energy-low]</key>
+	<string>buy.ogg</string>
+	<key>[autopilot-denied]</key>
+	<string>buy.ogg</string>
+	<key>[aegis-planet]</key>
+	<string>buy.ogg</string>
+	<key>[aegis-station]</key>
+	<string>buy.ogg</string>
+	<key>[mine-launched]</key>
+	<string>buy.ogg</string>
+	<key>[missile-launched]</key>
+	<string>buy.ogg</string>
+	<key>[weapon-overheat]</key>
+	<string>buy.ogg</string>
+	<key>[game-over]</key>
+	<string>buy.ogg</string>
+	<key>[witchdrive-malfunction]</key>
+	<string>buy.ogg</string>
+	-->
+</dict>
+</plist>

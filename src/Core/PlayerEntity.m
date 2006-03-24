@@ -1672,7 +1672,8 @@ double scoopSoundPlayTime = 0.0;
 			{
 				[universe clearPreviousMessage];
 				[universe addMessage:[NSString stringWithFormat:[universe expandDescription:@"[witch-blocked-by-@]" forSystem:system_seed], [blocker name]] forCount: 4.5];
-				[witchAbortSound play];
+				if (![universe playCustomSound:@"[witch-blocked-by-@]"])
+					[witchAbortSound play];
 				status = STATUS_IN_FLIGHT;
 				go = NO;
 			}
@@ -1685,7 +1686,8 @@ double scoopSoundPlayTime = 0.0;
 			{
 				[universe clearPreviousMessage];
 				[universe addMessage:[universe expandDescription:@"[witch-no-fuel]" forSystem:system_seed] forCount: 4.5];
-				[witchAbortSound play];
+				if (![universe playCustomSound:@"[witch-no-fuel]"])
+					[witchAbortSound play];
 				status = STATUS_IN_FLIGHT;
 				go = NO;
 			}
@@ -2702,20 +2704,26 @@ double scoopSoundPlayTime = 0.0;
 	if ([ms isEqual:@"INCOMING_MISSILE"])
 	{
 #ifdef HAVE_SOUND     
-		[warningSound play];
+		if (![universe playCustomSound:@"[incoming-missile]"])
+			[warningSound play];
 #endif      
 		[universe addMessage:[universe expandDescription:@"[incoming-missile]" forSystem:system_seed] forCount:4.5];
 	}
 	
 	if ([ms isEqual:@"ENERGY_LOW"])
+	{
+		[universe playCustomSound:@"[energy-low]"];
 		[universe addMessage:[universe expandDescription:@"[energy-low]" forSystem:system_seed] forCount:6.0];
+	}
 	
-	if ([ms isEqual:@"ECM"]) [self playECMSound];
+	if ([ms isEqual:@"ECM"])
+		[self playECMSound];
 	
 	if ([ms isEqual:@"DOCKING_REFUSED"]&&(status == STATUS_AUTOPILOT_ENGAGED))
 	{
 #ifdef HAVE_SOUND     
-		[warningSound play];
+		if (![universe playCustomSound:@"[autopilot-denied]"])
+			[warningSound play];
 #endif      
 		[universe addMessage:[universe expandDescription:@"[autopilot-denied]" forSystem:system_seed] forCount:4.5];
 		autopilot_engaged = NO;
@@ -2733,11 +2741,19 @@ double scoopSoundPlayTime = 0.0;
 	if (compass_mode != COMPASS_MODE_BASIC)
 	{
 		if ([ms isEqual:@"AEGIS_CLOSE_TO_PLANET"]&&(compass_mode == COMPASS_MODE_PLANET))
+		{
+			[universe playCustomSound:@"[aegis-planet]"];
 			[self setCompass_mode:COMPASS_MODE_STATION];
+		}
 		if ([ms isEqual:@"AEGIS_IN_DOCKING_RANGE"]&&(compass_mode == COMPASS_MODE_PLANET))
+		{
+			[universe playCustomSound:@"[aegis-station]"];
 			[self setCompass_mode:COMPASS_MODE_STATION];
+		}
 		if ([ms isEqual:@"AEGIS_NONE"]&&(compass_mode == COMPASS_MODE_STATION))
+		{
 			[self setCompass_mode:COMPASS_MODE_PLANET];
+		}
 	}
 }
 
@@ -2771,7 +2787,10 @@ double scoopSoundPlayTime = 0.0;
 	{
 		BOOL launchedOK = [self launchMine:missile];
 		if (launchedOK)
+		{
+			[universe playCustomSound:@"[mine-launched]"];
 			[missile release];	//  release
+		}
 		missile_entity[active_missile] = nil;
 		[self select_next_missile];
 		missiles = [self calc_missiles];
@@ -2844,6 +2863,8 @@ double scoopSoundPlayTime = 0.0;
 	[(ShipEntity *)target setPrimaryAggressor:self];
 	[[(ShipEntity *)target getAI] reactToMessage:@"INCOMING_MISSILE"];
 	
+	[universe playCustomSound:@"[missile-launched]"];
+	
 	return YES;
 }
 
@@ -2906,6 +2927,7 @@ double scoopSoundPlayTime = 0.0;
 	
 	if (weapon_temp / PLAYER_MAX_WEAPON_TEMP >= 0.85)
 	{
+		[universe playCustomSound:@"[weapon-overheat]"];
 		[universe addMessage:[universe expandDescription:@"[weapon-overheat]" forSystem:system_seed] forCount:3.0];
 		return NO;
 	}
@@ -3547,7 +3569,8 @@ double scoopSoundPlayTime = 0.0;
 	[self becomeLargeExplosion:4.0];
 	[self moveForward:100.0];
 
-#ifdef HAVE_SOUND   
+#ifdef HAVE_SOUND
+	[universe playCustomSound:@"[game-over]"];
 	[destructionSound play];
 #endif   
 	flight_speed = 160.0;
@@ -3923,7 +3946,8 @@ double scoopSoundPlayTime = 0.0;
 		galaxy_coordinates.y += target_system_seed.b;
 		galaxy_coordinates.x /= 2;
 		galaxy_coordinates.y /= 2;
-		[self playECMSound];
+		if (![universe playCustomSound:@"[witchdrive-malfunction]"])
+			[self playECMSound];
 		[universe set_up_universe_from_misjump];
 	}
 }
