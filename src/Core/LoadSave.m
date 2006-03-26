@@ -495,7 +495,9 @@
 
 	if (player_name)
 		[player_name release];
-	player_name=[cdrName retain];
+
+   // use a copy of the passed value to ensure it never gets changed underneath us
+	player_name=[[NSString alloc] initWithString: cdrName];
 
 	if(![[self commanderDataDictionary] writeOOXMLToFile:savePath atomically:YES])
 	{
