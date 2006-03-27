@@ -28,11 +28,12 @@ deps              Dependencies for all plaforms:
    scripts        Scripts and script fragments for tarball/autopackage
 Doc               Documentation (including user guides)
 FreeDesktop       Files for GNOME/KDE desktop launchers
+installers        Files used to create various installers
 Oolite-importer   (OS X) The oolite importer
 Oolite.xcodeproj  The OS X Xcode project to build Oolite
 OSX-SDL           Project files for the SDL version of Oolite on OS X
                   (*very* seldom used, more of a curiosity)
-Resources         Files that live in the application bundle's 
+Resources         Files that live in the application bundle's
                   Contents/Resources directory (AI, config, textures etc).
 src               Objective-C and C sources, incuding header files:
    Core           Files that are compiled on all platforms
@@ -53,7 +54,7 @@ Then double click on the Xcode project in the Finder, and hit Build.
 On Linux, BSD and other Unix platforms, you will need to get GNUstep and
 SDL development libraries in addition to what is usually installed by
 default if you choose to install the development headers/libraries etc.
-when initially installing the OS. For most Linux distros, GNUstep and SDL 
+when initially installing the OS. For most Linux distros, GNUstep and SDL
 development libraries come prepackaged - just apt-get/yum install the
 relevant files. On others you may need to build them from source.
 In particular, you need the SDL_image and SDL_Mixer libraries; these
@@ -64,7 +65,8 @@ If you want to make the Linux autopackage, after getting the Autopackage
 development kit, just type 'makeinstaller', and a package file will be
 deposited in the top level.
 
-[Nic, please put some build instructions for Windows here!]
+For Windows, see the Oolite wiki:
+http://wiki.alioth.net/index.php/Running_Oolite-Windows
 
 4. Running
 ----------
