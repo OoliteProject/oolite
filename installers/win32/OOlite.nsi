@@ -86,8 +86,8 @@ FileWriteByte $0 "10"
 FileClose $0
 doneWriting:
 
+Exec "notepad.exe $INSTDIR/Oolite_Readme.txt"
 
-MessageBox MB_OK  "Oolite Package was installed successfully"
 SectionEnd
 
 Section "Uninstall"
