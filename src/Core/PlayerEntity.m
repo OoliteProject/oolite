@@ -3626,6 +3626,10 @@ double scoopSoundPlayTime = 0.0;
 	scanner_zoom_rate = 0.0;
 	[universe setDisplayText:NO];
 	[universe setDisplayCursor:NO];
+	
+	quaternion_set_identity(&q_rotation);	// reset orientation to dock
+	quaternion_into_gl_matrix(q_rotation, rotMatrix);
+	
 	[universe set_up_break_pattern:position quaternion:q_rotation];
 	[self playBreakPattern];
 	
@@ -3648,18 +3652,12 @@ double scoopSoundPlayTime = 0.0;
 		Vector launchPos = docked_station->position;
 		position = launchPos;
 		
-		q_rotation = docked_station->q_rotation;
-		q_rotation.w = -q_rotation.w;   // need this as a fix...
-		
-		// rotate 90 degrees
-		quaternion_rotate_about_z(&q_rotation, PI * 0.5);
-		
+		quaternion_set_identity(&q_rotation);	// reset orientation to dock
+		quaternion_into_gl_matrix(q_rotation, rotMatrix);
+	
 		v_forward = vector_forward_from_quaternion(q_rotation);
 		v_right = vector_right_from_quaternion(q_rotation);
 		v_up = vector_up_from_quaternion(q_rotation);
-
-		q_rotation.w = -q_rotation.w;   // need this as a fix...
-		quaternion_into_gl_matrix(q_rotation, rotMatrix);
 	}
 	
 	flight_roll = 0.0;
@@ -4178,7 +4176,8 @@ double scoopSoundPlayTime = 0.0;
 	if (docked_station)
 	{
 		position = docked_station->position;
-		[self setQRotation:docked_station->q_rotation];
+		quaternion_set_identity(&q_rotation);
+//		[self setQRotation:docked_station->q_rotation];
 		v_forward = vector_forward_from_quaternion(q_rotation);
 		v_right = vector_right_from_quaternion(q_rotation);
 		v_up = vector_up_from_quaternion(q_rotation);
