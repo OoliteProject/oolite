@@ -144,7 +144,7 @@
 		<array>
 			<string>[21] civil war</string>
 			<string>[26] [23] [24]s</string>
-			<string>a [26] disease</string>
+			<string>[26] disease</string>
 			<string>[21] earthquakes</string>
 			<string>[21] solar activity</string>
 		</array>
@@ -244,7 +244,7 @@
 			<string>[1] [0] for [9] and [9]</string>
 			<string>[7] by [8]</string>
 			<string>[1] [0] for [9] but [7] by [8]</string>
-			<string>a [15] [16]</string>
+			<string>a[15] [16]</string>
 		</array>
 		<array>
 			<string>[26]</string>
