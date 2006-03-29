@@ -1206,7 +1206,8 @@ NSDictionary* instructions(int station_id, Vector coords, float speed, float ran
 	Quaternion q1 = q_rotation;
 	q1 = quaternion_multiply(port_qrotation, q1);
 	Vector launchVector = vector_forward_from_quaternion(q1);
-//	quaternion_rotate_about_axis(&q1, launchVector, PI*0.5);  // to account for the slot being at 90 degrees to vertical
+	quaternion_rotate_about_axis(&q1, launchVector, PI*0.5);  // to account for the slot being at 90 degrees to vertical
+	[ship setQRotation:q1];
 	// launch position
 	launchPos.x += port_position.x * v_right.x + port_position.y * v_up.x + port_position.z * v_forward.x;
 	launchPos.y += port_position.x * v_right.y + port_position.y * v_up.y + port_position.z * v_forward.y;
@@ -1217,7 +1218,6 @@ NSDictionary* instructions(int station_id, Vector coords, float speed, float ran
 	[ship setSpeed:sqrt(magnitude2(launchVel))];
 	[ship setVelocity:launchVel];
 	// orientation
-	[ship setQRotation:q1];
 	[ship setRoll:flight_roll];
 	[ship setPitch:0.0];
 	[ship setStatus: STATUS_LAUNCHING];
