@@ -450,6 +450,7 @@ Your fair use and other rights are in no way affected by the above.
 //    long nPixels = w * h + 1;
 
    // save in the oolite-saves directory.
+   NSString* originalDirectory = [[NSFileManager defaultManager] currentDirectoryPath];
    [[NSFileManager defaultManager] chdirToDefaultCommanderPath];
 
 	int imageNo = 1;
@@ -486,6 +487,8 @@ Your fair use and other rights are in no way affected by the above.
 	SDL_SaveBMP(tmpSurface, [pathToPic cString]);
 	SDL_FreeSurface(tmpSurface);
 	free(puntos);
+
+	[[NSFileManager defaultManager] changeCurrentDirectoryPath:originalDirectory];
 }
 /*
  * These are commented out because they use AppKit classes, but left here to remind
