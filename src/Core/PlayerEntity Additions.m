@@ -1757,6 +1757,37 @@ static int shipsFound;
 	[universe setViewDirection:VIEW_DOCKED];
 }
 
+- (void) setBackgroundFromDescriptionsKey:(NSString*) d_key
+{
+	NSDictionary* items = (NSDictionary*)[[universe descriptions] objectForKey:d_key];
+	if (!items)
+		return;
+	int i;
+	NSArray* itemKeys = [items allKeys];
+	for (i = 0; i < [itemKeys count]; i++)
+	{
+		NSString* i_key = (NSString*)[itemKeys objectAtIndex: i];
+		NSArray* i_info = [ResourceManager scanTokensFromString: (NSString*)[items objectForKey: i_key]];
+		if (!i_info)
+			continue;
+		//
+		// Add ship models:
+		//
+		if ([i_key isEqual:@"ship"]||[i_key isEqual:@"model"]||[i_key isEqual:@"role"])
+		{
+			if ([i_info count] < 9)	// must be name_x_y_z_W_X_Y_Z_align
+				continue;
+			ShipEntity* ship = nil;
+			if ([i_key isEqual:@"ship"]||[i_key isEqual:@"model"])
+				ship = [universe getShip:(NSString*)[i_info objectAtIndex: 0]];
+			if ([i_key isEqual:@"role"])
+				ship = [universe getShipWithRole:(NSString*)[i_info objectAtIndex: 0]];
+			if (!ship)
+				continue;
+			NSLog(@"DEBUG we should add a DEMO ship %@ according to '%@'", ship, [items objectForKey: i_key]);
+		}
+	}
 
+}
 
 @end

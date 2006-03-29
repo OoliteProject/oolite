@@ -188,6 +188,7 @@ Your fair use and other rights are in no way affected by the above.
 /*-----------------------------------------------------*/
 
 - (void) setGuiToMissionScreen;
+- (void) setBackgroundFromDescriptionsKey:(NSString*) d_key;
 
 @end
 
