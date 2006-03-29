@@ -51,6 +51,42 @@ File /r "C:\program files\Oolite\*.*"
 
 Call RegSetup
 
+ClearErrors
+FileOpen $0 $INSTDIR\RunOolite.bat w
+IfErrors doneWriting
+
+FileWrite $0 "@echo off"
+FileWriteByte $0 "13"
+FileWriteByte $0 "10"
+
+FileWrite $0 "set GNUSTEP_PATH_HANDLING=windows"
+FileWriteByte $0 "13"
+FileWriteByte $0 "10"
+
+FileWrite $0 "set GNUSTEP_LOCAL_ROOT=$INSTDIR\oolite.app"
+FileWriteByte $0 "13"
+FileWriteByte $0 "10"
+
+FileWrite $0 "set GNUSTEP_NETWORK_ROOT=$INSTDIR\oolite.app"
+FileWriteByte $0 "13"
+FileWriteByte $0 "10"
+
+FileWrite $0 "set GNUSTEP_SYSTEM_ROOT=$INSTDIR\oolite.app"
+FileWriteByte $0 "13"
+FileWriteByte $0 "10"
+
+FileWrite $0 "set HOMEPATH=$INSTDIR\oolite.app"
+FileWriteByte $0 "13"
+FileWriteByte $0 "10"
+
+FileWrite $0 "oolite.app\oolite.exe"
+FileWriteByte $0 "13"
+FileWriteByte $0 "10"
+
+FileClose $0
+doneWriting:
+
+
 MessageBox MB_OK  "Oolite Package was installed successfully"
 SectionEnd
 
