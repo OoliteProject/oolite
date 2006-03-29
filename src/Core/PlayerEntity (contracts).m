@@ -757,6 +757,21 @@ Your fair use and other rights are in no way affected by the above.
 			rating ++;
 		}
 		
+		//
+		if (status == STATUS_DOCKED)
+		{
+			int n_commodities = [shipCommodityData count];
+			int i;
+			current_cargo = 0;  // for calculating remaining hold space
+			//
+			for (i = 0; i < n_commodities; i++)
+			{
+				if ([universe unitsForCommodity:i] == UNITS_TONS)
+					current_cargo += [[(NSArray *)[shipCommodityData objectAtIndex:i] objectAtIndex:MARKET_QUANTITY] intValue];
+			}
+		}
+		//
+
 		[gui clear];
 		[gui setTitle:[NSString stringWithFormat:@"Ship's Manifest",   player_name]];
 		//
