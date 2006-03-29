@@ -888,8 +888,8 @@ NSDictionary* instructions(int station_id, Vector coords, float speed, float ran
 		// check if the ship is too big for the port and fudge things accordingly
 		BoundingBox shipbb = [ship getBoundingBox];
 		float ff = 1.0;
-		while	((shipbb.max.y * ff > w1)||(shipbb.min.y * ff < -w1)
-				||(shipbb.max.x * ff > h1)||(shipbb.min.x * ff < -h1))
+		while	((shipbb.max.x * ff > w1)||(shipbb.min.x * ff < -w1)
+				||(shipbb.max.y * ff > h1)||(shipbb.min.y * ff < -h1))
 			ff /= 1.25;
 				
 		//NSLog(@"DEBUG Checking docking corridor...");
@@ -928,14 +928,14 @@ NSDictionary* instructions(int station_id, Vector coords, float speed, float ran
 		arbb.min.x *= ff;
 		arbb.min.y *= ff;
 		//
-//		if (other == [universe entityZero])
+//		if (other->isPlayer)
 //			NSLog(@"DEBUG Docking corridor placement (%3.2f,%3.2f,%3.2f) <[%3.1f,%3.1f,%3.1f]-[%3.1f,%3.1f,%3.1f] (/%1.3f)>",
 //				delta.x, delta.y, delta.z,
 //				arbb.max.x, arbb.max.y, arbb.max.z,
 //				arbb.min.x, arbb.min.y, arbb.min.z,
 //				1.0 / ff);
-		if  (	(arbb.min.x > -ww)&&	(arbb.max.x < ww)	// docking slit is 90 degrees to vertical
-			&&	(arbb.min.y > -hh)&&	(arbb.max.y < hh)	// docking slit is 90 degrees to vertical
+		if  (	(arbb.min.x > -ww)&&	(arbb.max.x < ww)
+			&&	(arbb.min.y > -hh)&&	(arbb.max.y < hh)
 			&&	(arbb.min.z > -dd))
 		{
 			if (arbb.max.z < 0)
@@ -1206,7 +1206,7 @@ NSDictionary* instructions(int station_id, Vector coords, float speed, float ran
 	Quaternion q1 = q_rotation;
 	q1 = quaternion_multiply(port_qrotation, q1);
 	Vector launchVector = vector_forward_from_quaternion(q1);
-	quaternion_rotate_about_axis(&q1, launchVector, PI*0.5);  // to account for the slot being at 90 degrees to vertical
+//	quaternion_rotate_about_axis(&q1, launchVector, PI*0.5);  // to account for the slot being at 90 degrees to vertical
 	// launch position
 	launchPos.x += port_position.x * v_right.x + port_position.y * v_up.x + port_position.z * v_forward.x;
 	launchPos.y += port_position.x * v_right.y + port_position.y * v_up.y + port_position.z * v_forward.y;
