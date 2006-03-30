@@ -4201,6 +4201,52 @@ Vector randomPositionInBoundingBox(BoundingBox bb)
 	return result;
 }
 
+- (Vector) positionOffsetForAlignment:(NSString*) align
+{
+	NSString* padAlign = [NSString stringWithFormat:@"%@---", align];
+	Vector result = make_vector( 0.0f, 0.0f, 0.0f);
+	switch ([padAlign characterAtIndex:0])
+	{
+		case (unichar)'c':
+		case (unichar)'C':
+			result.x = 0.5 * (boundingBox.min.x + boundingBox.max.x);
+			break;
+		case (unichar)'M':
+			result.x = boundingBox.max.x;
+			break;
+		case (unichar)'m':
+			result.x = boundingBox.min.x;
+			break;
+	}
+	switch ([padAlign characterAtIndex:1])
+	{
+		case (unichar)'c':
+		case (unichar)'C':
+			result.y = 0.5 * (boundingBox.min.y + boundingBox.max.y);
+			break;
+		case (unichar)'M':
+			result.y = boundingBox.max.y;
+			break;
+		case (unichar)'m':
+			result.y = boundingBox.min.y;
+			break;
+	}
+	switch ([padAlign characterAtIndex:2])
+	{
+		case (unichar)'c':
+		case (unichar)'C':
+			result.z = 0.5 * (boundingBox.min.z + boundingBox.max.z);
+			break;
+		case (unichar)'M':
+			result.z = boundingBox.max.z;
+			break;
+		case (unichar)'m':
+			result.z = boundingBox.min.z;
+			break;
+	}
+	return result;
+}
+
 - (void) becomeLargeExplosion:(double) factor
 {
 	Vector xposition = position;

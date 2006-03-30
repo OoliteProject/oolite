@@ -529,6 +529,8 @@ Your fair use and other rights are in no way affected by the above.
 - (void) becomeEnergyBlast;
 Vector randomPositionInBoundingBox(BoundingBox bb);
 
+- (Vector) positionOffsetForAlignment:(NSString*) align;
+
 - (void) collectBountyFor:(ShipEntity *)other;
 
 - (BOOL) checkBoundingBoxCollisionWith:(Entity *)other;
