@@ -137,7 +137,7 @@ static GLfloat convertHue(GLfloat n1, GLfloat n2, GLfloat hue)
 + (OOColor *)greenColor;	/* 0.0, 1.0, 0.0 RGB */
 {
 	OOColor* result = [[OOColor alloc] init];
-	[result setRGBA: 0.0 : 1.0 : 10.00 : 1.0];
+	[result setRGBA: 0.0 : 1.0 : 0.00 : 1.0];
 	return [result autorelease];
 }
 + (OOColor *)blueColor;		/* 0.0, 0.0, 1.0 RGB */
