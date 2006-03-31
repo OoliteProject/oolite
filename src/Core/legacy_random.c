@@ -154,7 +154,8 @@ void setRandomSeed (RNG_Seed a_seed)
 
 inline float randf (void)
 {
-	return 0.0009765625 * (ranrot_rand() & 1023);
+//	return 0.0009765625 * (ranrot_rand() & 1023);
+	return (ranrot_rand() & 0x00ffff) / (float)0x010000;
 }
 
 inline float bellf (int n)
