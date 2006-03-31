@@ -70,13 +70,13 @@ typedef struct
 	GLfloat color_array[4 * SKY_MAX_BLOBS * 4];
 } SkyBlobsData;
 
-@class Entity;
+@class Entity, OOColor;
 
 @interface SkyEntity : Entity
 {
 	int sky_type;
 
-	NSColor *sky_color;
+	OOColor *sky_color;
 	
 	GLuint  star_textureName;
 	GLuint  blob_textureName;
@@ -95,11 +95,11 @@ typedef struct
 	
 }
 
-- (id) initWithColors:(NSColor *) col1:(NSColor *) col2;
-- (id) initWithColors:(NSColor *) col1:(NSColor *) col2 andSystemInfo:(NSDictionary *) systeminfo;
+- (id) initWithColors:(OOColor *) col1:(OOColor *) col2;
+- (id) initWithColors:(OOColor *) col1:(OOColor *) col2 andSystemInfo:(NSDictionary *) systeminfo;
 - (id) initAsWitchspace;
-- (void) set_up_billboards:(NSColor *) col1:(NSColor *) col2;
+- (void) set_up_billboards:(OOColor *) col1:(OOColor *) col2;
 
-- (NSColor *) sky_color;
+- (OOColor *) sky_color;
 
 @end

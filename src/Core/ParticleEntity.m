@@ -43,6 +43,7 @@ Your fair use and other rights are in no way affected by the above.
 #import "Universe.h"
 #import "AI.h"
 #import "TextureStore.h"
+#import "OOColor.h"
 
 
 static	Vector	circleVertex[65];		// holds vector coordinates for a unit circle
@@ -67,7 +68,7 @@ static	Vector	circleVertex[65];		// holds vector coordinates for a unit circle
 	//
 	basefile = @"Particle";
 	textureNameString   = @"blur256.png";
-	[self setColor:[NSColor greenColor]];
+	[self setColor:[OOColor greenColor]];
 	//
 	texName = 0;
 	[self initialiseTexture: textureNameString];
@@ -141,7 +142,7 @@ static	Vector	circleVertex[65];		// holds vector coordinates for a unit circle
 	//
 	particle_type = PARTICLE_LASER_BEAM_RED;
 	//
-	[self setColor:[NSColor redColor]];
+	[self setColor:[OOColor redColor]];
 	//
 	duration = PARTICLE_LASER_DURATION;
 	//
@@ -195,7 +196,7 @@ static	Vector	circleVertex[65];		// holds vector coordinates for a unit circle
 	//
 	particle_type = PARTICLE_LASER_BEAM_RED;
 	//
-	[self setColor:[NSColor redColor]];
+	[self setColor:[OOColor redColor]];
 	//
 	duration = PARTICLE_LASER_DURATION;
 	//
@@ -264,7 +265,7 @@ static	Vector	circleVertex[65];		// holds vector coordinates for a unit circle
 	//
 	particle_type = PARTICLE_LASER_BEAM_RED;
 	//
-	[self setColor:[NSColor redColor]];
+	[self setColor:[OOColor redColor]];
 	//
 	duration = PARTICLE_LASER_DURATION;
 	//
@@ -372,7 +373,7 @@ static	Vector	circleVertex[65];		// holds vector coordinates for a unit circle
 	//
 	[self setVelocity: make_vector( 0.0f, 0.0f, 0.0f)];
 	//
-	[self setColor:[NSColor blueColor]];
+	[self setColor:[OOColor blueColor]];
 	//
 	alpha = 0.5;
 	collision_radius = 0;
@@ -449,7 +450,7 @@ static	Vector	circleVertex[65];		// holds vector coordinates for a unit circle
     time_counter = 0.0;
 	duration = 1.5;
 	position = fragPos;
-	[self setColor:[NSColor yellowColor]];
+	[self setColor:[OOColor yellowColor]];
 	//
 	for (i = 0 ; i < n_vertices; i++)
 	{
@@ -501,7 +502,7 @@ static	Vector	circleVertex[65];		// holds vector coordinates for a unit circle
     time_counter = 0.0;
 	duration = 1.5;
 	position = fragPos;
-	[self setColor:[NSColor colorWithCalibratedHue:0.12 + 0.08 * randf() saturation:1.0 brightness:1.0 alpha:1.0]]; // yellow/orage (0.12) through yellow (0.1667) to yellow/slightly green (0.20)
+	[self setColor:[OOColor colorWithCalibratedHue:0.12 + 0.08 * randf() saturation:1.0 brightness:1.0 alpha:1.0]]; // yellow/orage (0.12) through yellow (0.1667) to yellow/slightly green (0.20)
 	//
 	for (i = 0 ; i < n_fragments; i++)
 	{
@@ -571,7 +572,7 @@ static	Vector	circleVertex[65];		// holds vector coordinates for a unit circle
 	//
 	collision_radius = 0;
 	energy = 0;
-	[self setColor:[[NSColor yellowColor] blendedColorWithFraction:0.5 ofColor:[NSColor whiteColor]]];
+	[self setColor:[[OOColor yellowColor] blendedColorWithFraction:0.5 ofColor:[OOColor whiteColor]]];
 	owner = NO_TARGET;
 	//
 	isParticle = YES;
@@ -603,7 +604,7 @@ static	Vector	circleVertex[65];		// holds vector coordinates for a unit circle
 	duration = 1.0;
 	position = fragPos;
 	//
-	[self setColor:[[NSColor yellowColor] blendedColorWithFraction:0.5 ofColor:[NSColor whiteColor]]];
+	[self setColor:[[OOColor yellowColor] blendedColorWithFraction:0.5 ofColor:[OOColor whiteColor]]];
 	//
 	for (i = 0 ; i < n_fragments; i++)
 	{
@@ -657,7 +658,7 @@ static	Vector	circleVertex[65];		// holds vector coordinates for a unit circle
 	duration = 0.4;
 	position = fragPos;
 	//
-	[self setColor:[NSColor whiteColor]];
+	[self setColor:[OOColor whiteColor]];
 	color_fv[3] = 1.0;
 	//
 	status = STATUS_EFFECT;
@@ -679,7 +680,7 @@ static	Vector	circleVertex[65];		// holds vector coordinates for a unit circle
 }
 
 // used for laser flashes
-- (id) initFlashSize:(GLfloat) flashSize FromPosition:(Vector) fragPos Color:(NSColor*) flashColor
+- (id) initFlashSize:(GLfloat) flashSize FromPosition:(Vector) fragPos Color:(OOColor*) flashColor
 {
 	//
 	self = [super init];
@@ -734,7 +735,7 @@ static	Vector	circleVertex[65];		// holds vector coordinates for a unit circle
 	duration = 0.0;	//infinite
 	position = pos;
 	//
-	[self setColor:[NSColor whiteColor]];
+	[self setColor:[OOColor whiteColor]];
 	color_fv[3] = 1.0;
 	//
 	status = STATUS_EFFECT;
@@ -856,11 +857,12 @@ static	Vector	circleVertex[65];		// holds vector coordinates for a unit circle
 	}
 }
 
-- (void) setColor:(NSColor *) a_color
+- (void) setColor:(OOColor *) a_color
 {
 	if (!a_color)
 		return;
-	NSColor *rgbColor = [a_color colorUsingColorSpaceName:NSCalibratedRGBColorSpace];
+//	OOColor *rgbColor = [a_color colorUsingColorSpaceName:NSCalibratedRGBColorSpace];
+	OOColor *rgbColor = a_color;
 	
 	if (color)				[color release];
 	color = [rgbColor retain];
@@ -1141,7 +1143,7 @@ static	Vector	circleVertex[65];		// holds vector coordinates for a unit circle
 				velocity.x = 0.0;
 				velocity.y = 0.0;
 				velocity.z = 0.0;
-				[self setColor:[NSColor redColor]];
+				[self setColor:[OOColor redColor]];
 				[self setSize:NSMakeSize(64.0,64.0)];
 				duration = 2.0;
 				time_counter = 0.0;

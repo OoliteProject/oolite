@@ -78,7 +78,7 @@ Your fair use and other rights are in no way affected by the above.
     NSString*	textureNameString;
     GLuint		texName;
 	
-	NSColor*	color;
+	OOColor*	color;
 	GLfloat		color_fv[4];
 	
 	double		alpha;
@@ -113,7 +113,7 @@ Your fair use and other rights are in no way affected by the above.
 - (id) initBurst2FromPosition:(Vector) fragPos;
 - (id) initBurst2Size:(GLfloat) burstSize FromPosition:(Vector) fragPos;
 - (id) initFlashSize:(GLfloat) burstSize FromPosition:(Vector) fragPos;
-- (id) initFlashSize:(GLfloat) flashSize FromPosition:(Vector) fragPos Color:(NSColor*) flashColor;
+- (id) initFlashSize:(GLfloat) flashSize FromPosition:(Vector) fragPos Color:(OOColor*) flashColor;
 - (id) initBillboard:(NSSize) billSize fromPosition:(Vector) pos withTexture:(NSString*) textureFile;
 
 - (void) updateExplosion:(double) delta_t;
@@ -130,7 +130,7 @@ Your fair use and other rights are in no way affected by the above.
 - (void) updateFlash:(double) delta_t;
 
 - (void) setTexture:(NSString *) filename;
-- (void) setColor:(NSColor *) a_color;
+- (void) setColor:(OOColor *) a_color;
 
 - (void) setParticleType:(int) p_type;
 - (int) particleType;

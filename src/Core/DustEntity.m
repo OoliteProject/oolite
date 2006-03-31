@@ -72,7 +72,7 @@ Your fair use and other rights are in no way affected by the above.
 	}
 	//NSLog(@"DustEntity vertices set");
 	//
-	dust_color = [[NSColor colorWithCalibratedRed:0.5 green:1.0 blue:1.0 alpha:1.0] retain];
+	dust_color = [[OOColor colorWithCalibratedRed:0.5 green:1.0 blue:1.0 alpha:1.0] retain];
     //
     displayListName = 0;
     //
@@ -87,14 +87,14 @@ Your fair use and other rights are in no way affected by the above.
 	[super dealloc];
 }
 
-- (void) setDustColor:(NSColor *) color
+- (void) setDustColor:(OOColor *) color
 {
 	if (dust_color) [dust_color release];
 	dust_color = [color retain];
 	[dust_color getRed:&color_fv[0] green:&color_fv[1] blue:&color_fv[2] alpha:&color_fv[3]];
 }
 
-- (NSColor *) dust_color
+- (OOColor *) dust_color
 {
 	return dust_color;
 }

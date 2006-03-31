@@ -85,7 +85,7 @@ float char_widths[128] = {
 //	int ch;
 //    NSMutableDictionary *stringAttributes = [NSMutableDictionary dictionaryWithObjectsAndKeys:
 //        [NSFont fontWithName:@"Helvetica-Bold" size:28], NSFontAttributeName,
-//        [NSColor blackColor], NSForegroundColorAttributeName, NULL];
+//        [OOColor blackColor], NSForegroundColorAttributeName, NULL];
 //	for (ch = 32; ch < 127; ch++)
 //	{
 //		unichar	 uch = (unichar) ch;

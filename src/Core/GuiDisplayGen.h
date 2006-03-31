@@ -57,7 +57,7 @@ Your fair use and other rights are in no way affected by the above.
 #import "OpenGLSprite.h"
 #import "HeadUpDisplay.h"
 
-@class Universe, OOSound;
+@class Universe, OOSound, OOColor;
 
 extern int debug;
 
@@ -81,8 +81,8 @@ extern int debug;
 #else
 	NSImage			*backgroundImage;
 #endif
-	NSColor			*backgroundColor;
-	NSColor			*textColor;
+	OOColor			*backgroundColor;
+	OOColor			*textColor;
 	
 	OpenGLSprite	*backgroundSprite;
 	
@@ -122,15 +122,15 @@ extern int debug;
 - (GLfloat) alpha;
 - (void) setAlpha:(GLfloat) an_alpha;
 
-- (void) setBackgroundColor:(NSColor*) color;
+- (void) setBackgroundColor:(OOColor*) color;
 
-- (void) setTextColor:(NSColor*) color;
+- (void) setTextColor:(OOColor*) color;
 
 - (void) setCharacterSize:(NSSize) character_size;
 
 - (void) click;
 
-- (void) setColor:(NSColor *) color forRow:(int) row;
+- (void) setColor:(OOColor *) color forRow:(int) row;
 
 - (id) objectForRow:(int) row;
 - (NSString*) keyForRow:(int) row;
@@ -157,12 +157,12 @@ extern int debug;
 - (void) setText: (NSString *) str forRow:(int) row;
 - (void) setText: (NSString *) str forRow:(int) row align:(int) alignment;
 - (int) addLongText: (NSString *) str startingAtRow:(int) row align:(int) alignment;
-- (void) printLongText: (NSString *) str Align:(int) alignment Color:(NSColor*) text_color FadeTime:(float) text_fade Key:(NSString*) text_key AddToArray:(NSMutableArray*) text_array;
-- (void) printLineNoScroll: (NSString *) str Align:(int) alignment Color:(NSColor*) text_color FadeTime:(float) text_fade Key:(NSString*) text_key AddToArray:(NSMutableArray*) text_array;
+- (void) printLongText: (NSString *) str Align:(int) alignment Color:(OOColor*) text_color FadeTime:(float) text_fade Key:(NSString*) text_key AddToArray:(NSMutableArray*) text_array;
+- (void) printLineNoScroll: (NSString *) str Align:(int) alignment Color:(OOColor*) text_color FadeTime:(float) text_fade Key:(NSString*) text_key AddToArray:(NSMutableArray*) text_array;
 
 - (void) setArray: (NSArray *) arr forRow:(int) row;
 
-- (void) insertItemsFromArray:(NSArray*) items WithKeys:(NSArray*) item_keys IntoRow:(int) row Color:(NSColor*) text_color;
+- (void) insertItemsFromArray:(NSArray*) items WithKeys:(NSArray*) item_keys IntoRow:(int) row Color:(OOColor*) text_color;
 
 /////////////////////////////////////////////////////
 

@@ -42,6 +42,7 @@ Your fair use and other rights are in no way affected by the above.
 #import "PlayerEntity (contracts).h"
 #import "Universe.h"
 #import "AI.h"
+#import "OOColor.h"
 
 //@interface PlayerEntity (Contracts)
 //
@@ -483,7 +484,7 @@ Your fair use and other rights are in no way affected by the above.
 		[row_info addObject:@"Advance:"];
 		[row_info addObject:@"Fee:"];
 		//
-		[gui setColor:[NSColor greenColor] forRow:GUI_ROW_PASSENGERS_LABELS];
+		[gui setColor:[OOColor greenColor] forRow:GUI_ROW_PASSENGERS_LABELS];
 		[gui setArray:[NSArray arrayWithArray:row_info] forRow:GUI_ROW_PASSENGERS_LABELS];
 		//
 		for (i = 0; i < n_passengers; i++)
@@ -496,7 +497,7 @@ Your fair use and other rights are in no way affected by the above.
 			[row_info addObject:[NSString stringWithFormat:@" %@ ",[universe shortTimeDescription:dest_eta]]];
 			[row_info addObject:[NSString stringWithFormat:@" %@ ",[(NSNumber*)[passenger_info objectForKey:PASSENGER_KEY_PREMIUM] stringValue]]];
 			[row_info addObject:[NSString stringWithFormat:@" %@ ",[(NSNumber*)[passenger_info objectForKey:PASSENGER_KEY_FEE] stringValue]]];
-			[gui setColor:[NSColor yellowColor] forRow:GUI_ROW_PASSENGERS_START + i];
+			[gui setColor:[OOColor yellowColor] forRow:GUI_ROW_PASSENGERS_START + i];
 			[gui setArray:[NSArray arrayWithArray:row_info] forRow:GUI_ROW_PASSENGERS_START + i];
 			[gui setKey:GUI_KEY_OK forRow:GUI_ROW_PASSENGERS_START + i];
 		}
@@ -508,7 +509,7 @@ Your fair use and other rights are in no way affected by the above.
 		[row_info addObject:@"Premium:"];
 		[row_info addObject:@"Pays:"];
 		//
-		[gui setColor:[NSColor greenColor] forRow:GUI_ROW_CARGO_LABELS];
+		[gui setColor:[OOColor greenColor] forRow:GUI_ROW_CARGO_LABELS];
 		[gui setArray:[NSArray arrayWithArray:row_info] forRow:GUI_ROW_CARGO_LABELS];
 		//
 		for (i = 0; i < n_contracts; i++)
@@ -521,7 +522,7 @@ Your fair use and other rights are in no way affected by the above.
 			[row_info addObject:[NSString stringWithFormat:@" %@ ",[universe shortTimeDescription:dest_eta]]];
 			[row_info addObject:[NSString stringWithFormat:@" %@ ",[(NSNumber*)[contract_info objectForKey:CONTRACT_KEY_PREMIUM] stringValue]]];
 			[row_info addObject:[NSString stringWithFormat:@" %@ ",[(NSNumber*)[contract_info objectForKey:CONTRACT_KEY_FEE] stringValue]]];
-			[gui setColor:[NSColor yellowColor] forRow:GUI_ROW_CARGO_START + i];
+			[gui setColor:[OOColor yellowColor] forRow:GUI_ROW_CARGO_START + i];
 			[gui setArray:[NSArray arrayWithArray:row_info] forRow:GUI_ROW_CARGO_START + i];
 			[gui setKey:GUI_KEY_OK forRow:GUI_ROW_CARGO_START + i];
 		}
@@ -531,7 +532,7 @@ Your fair use and other rights are in no way affected by the above.
 		for (i = GUI_ROW_CARGO_START + n_contracts; i < GUI_ROW_MARKET_CASH; i++)
 		{
 			[gui setText:@"" forRow:i];
-			[gui setColor:[NSColor greenColor] forRow:i];
+			[gui setColor:[OOColor greenColor] forRow:i];
 		}
 		
 		if (n_passengers > 0)
@@ -777,8 +778,8 @@ Your fair use and other rights are in no way affected by the above.
 		//
 		[gui setText:[NSString stringWithFormat:@"Cargo %dt (%dt):", (status == STATUS_DOCKED)? current_cargo : [cargo count], max_cargo]	forRow:cargo_row - 1];
 		[gui setText:@"\tNone."				forRow:cargo_row];
-		[gui setColor:[NSColor yellowColor]	forRow:cargo_row - 1];
-		[gui setColor:[NSColor greenColor]	forRow:cargo_row];
+		[gui setColor:[OOColor yellowColor]	forRow:cargo_row - 1];
+		[gui setColor:[OOColor greenColor]	forRow:cargo_row];
 		//
 		if ([cargoManifest count] > 0)
 		{
@@ -794,7 +795,7 @@ Your fair use and other rights are in no way affected by the above.
 				else
 					[row_info addObject:@""];
 				[gui setArray:(NSArray *)row_info forRow:cargo_row + i];
-				[gui setColor:[NSColor greenColor] forRow:cargo_row + i];
+				[gui setColor:[OOColor greenColor] forRow:cargo_row + i];
 			}
 		}
 		
@@ -805,15 +806,15 @@ Your fair use and other rights are in no way affected by the above.
 		//
 		[gui setText:[NSString stringWithFormat:@"Passengers %d (%d):", [passengerManifest count], max_passengers]	forRow:passenger_row - 1];
 		[gui setText:@"\tNone."				forRow:passenger_row];
-		[gui setColor:[NSColor yellowColor]	forRow:passenger_row - 1];
-		[gui setColor:[NSColor greenColor]	forRow:passenger_row];
+		[gui setColor:[OOColor yellowColor]	forRow:passenger_row - 1];
+		[gui setColor:[OOColor greenColor]	forRow:passenger_row];
 		//
 		if ([passengerManifest count] > 0)
 		{
 			for (i = 0; i < [passengerManifest count]; i++)
 			{
 				[gui setText:(NSString*)[passengerManifest objectAtIndex:i] forRow:passenger_row + i];
-				[gui setColor:[NSColor greenColor] forRow:passenger_row + i];
+				[gui setColor:[OOColor greenColor] forRow:passenger_row + i];
 			}
 		}
 				
@@ -821,15 +822,15 @@ Your fair use and other rights are in no way affected by the above.
 		//
 		[gui setText:@"Contracts:"			forRow:contracts_row - 1];
 		[gui setText:@"\tNone."				forRow:contracts_row];
-		[gui setColor:[NSColor yellowColor]	forRow:contracts_row - 1];
-		[gui setColor:[NSColor greenColor]	forRow:contracts_row];
+		[gui setColor:[OOColor yellowColor]	forRow:contracts_row - 1];
+		[gui setColor:[OOColor greenColor]	forRow:contracts_row];
 		//
 		if ([contractManifest count] > 0)
 		{
 			for (i = 0; i < [contractManifest count]; i++)
 			{
 				[gui setText:(NSString*)[contractManifest objectAtIndex:i] forRow:contracts_row + i];
-				[gui setColor:[NSColor greenColor] forRow:contracts_row + i];
+				[gui setColor:[OOColor greenColor] forRow:contracts_row + i];
 			}
 		}
 		
@@ -838,14 +839,14 @@ Your fair use and other rights are in no way affected by the above.
 			missions_row = contracts_row + [contractManifest count] + 2;
 			//
 			[gui setText:@"Missions:"			forRow:missions_row - 1];
-			[gui setColor:[NSColor yellowColor]	forRow:missions_row - 1];
+			[gui setColor:[OOColor yellowColor]	forRow:missions_row - 1];
 			//
 			if ([missionsManifest count] > 0)
 			{
 				for (i = 0; i < [missionsManifest count]; i++)
 				{
 					[gui setText:(NSString*)[missionsManifest objectAtIndex:i] forRow:missions_row + i];
-					[gui setColor:[NSColor greenColor] forRow:missions_row + i];
+					[gui setColor:[OOColor greenColor] forRow:missions_row + i];
 				}
 			}
 		}
@@ -883,7 +884,7 @@ Your fair use and other rights are in no way affected by the above.
 		[gui setText:[NSString stringWithFormat:@"Cash:\t%.1f Cr.\t\tLoad %d of %d t.\tPassengers %d of %d berths.", 0.1*credits, current_cargo, max_cargo, [passengers count], max_passengers]  forRow: GUI_ROW_MARKET_CASH];
 		//
 		[gui setText:@"Press Space Commander" forRow:21 align:GUI_ALIGN_CENTER];
-		[gui setColor:[NSColor yellowColor] forRow:21];
+		[gui setColor:[OOColor yellowColor] forRow:21];
 		
 		[gui setShowTextCursor:NO];
 	}
@@ -993,12 +994,12 @@ static NSMutableDictionary* currentShipyard = nil;
 		//
 		if (n_ships > 0)
 		{
-			[gui setColor:[NSColor greenColor] forRow:GUI_ROW_SHIPYARD_LABELS];
+			[gui setColor:[OOColor greenColor] forRow:GUI_ROW_SHIPYARD_LABELS];
 			[gui setArray:[NSArray arrayWithObjects: @"Ship Type:", @"Price:", @"Cargo:", @"Speed:", nil] forRow:GUI_ROW_SHIPYARD_LABELS];
 			//
 			if (skip > 0)
 			{
-				[gui setColor:[NSColor greenColor] forRow:GUI_ROW_SHIPYARD_START];
+				[gui setColor:[OOColor greenColor] forRow:GUI_ROW_SHIPYARD_START];
 				[gui setArray:[NSArray arrayWithObjects:@" Back ", @" <-- ", nil] forRow:GUI_ROW_SHIPYARD_START];
 				[gui setKey:[NSString stringWithFormat:@"More:%d", previous] forRow:GUI_ROW_SHIPYARD_START];
 			}
@@ -1006,7 +1007,7 @@ static NSMutableDictionary* currentShipyard = nil;
 			{
 				NSDictionary* ship_info = (NSDictionary*)[shipyard objectAtIndex:i + skip];
 				int ship_price = [(NSNumber*)[ship_info objectForKey:SHIPYARD_KEY_PRICE] intValue];
-				[gui setColor:[NSColor yellowColor] forRow:start_row + i];
+				[gui setColor:[OOColor yellowColor] forRow:start_row + i];
 				[gui setArray:[NSArray arrayWithObjects:
 						[NSString stringWithFormat:@" %@ ",[(NSDictionary*)[ship_info objectForKey:SHIPYARD_KEY_SHIP] objectForKey:KEY_NAME]],
 						[NSString stringWithFormat:@" %d Cr. ",ship_price],
@@ -1016,7 +1017,7 @@ static NSMutableDictionary* currentShipyard = nil;
 			}
 			if (i < n_ships - skip)
 			{
-				[gui setColor:[NSColor greenColor] forRow:start_row + i];
+				[gui setColor:[OOColor greenColor] forRow:start_row + i];
 				[gui setArray:[NSArray arrayWithObjects:@" More ", @" --> ", nil] forRow:start_row + i];
 				[gui setKey:[NSString stringWithFormat:@"More:%d", n_rows + skip] forRow:start_row + i];
 				i++;
@@ -1028,7 +1029,7 @@ static NSMutableDictionary* currentShipyard = nil;
 		else
 		{
 			[gui setText:@"No ships available for purchase." forRow:GUI_ROW_NO_SHIPS align:GUI_ALIGN_CENTER];
-			[gui setColor:[NSColor greenColor] forRow:GUI_ROW_NO_SHIPS];
+			[gui setColor:[OOColor greenColor] forRow:GUI_ROW_NO_SHIPS];
 			//
 			[gui setNoSelectedRow];
 		}
@@ -1096,7 +1097,7 @@ static NSMutableDictionary* currentShipyard = nil;
 		for (i = GUI_ROW_SHIPYARD_INFO_START; i < GUI_ROW_MARKET_CASH - 1; i++)
 		{
 			[gui setText:@"" forRow:i];
-			[gui setColor:[NSColor greenColor] forRow:i];
+			[gui setColor:[OOColor greenColor] forRow:i];
 		}
 		[gui addLongText:sales_pitch startingAtRow:GUI_ROW_SHIPYARD_INFO_START align:GUI_ALIGN_LEFT];
 			

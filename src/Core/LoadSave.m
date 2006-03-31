@@ -21,6 +21,8 @@
 #import "PlayerEntity (Controls).h"
 #import "OOXMLExtensions.h"
 #import "OOSound.h"
+#import "OOColor.h"
+
 #ifdef WIN32
 #import "ResourceManager.h"
 #endif
@@ -70,7 +72,7 @@
 	[self lsCommanders:gui	directory:dir	pageNumber: currentPage	highlightName:nil];
 	
 	[gui setText:@"Commander name: " forRow: INPUTROW];
-	[gui setColor:[NSColor cyanColor] forRow:INPUTROW];
+	[gui setColor:[OOColor cyanColor] forRow:INPUTROW];
 	[gui setShowTextCursor: YES];
 	[gui setCurrentRow: INPUTROW];
 
@@ -199,7 +201,7 @@
    tabStop[1]=160;
    tabStop[2]=270;
    [gui setTabStops: tabStop];
-   [gui setColor: [NSColor greenColor] forRow: LABELROW];
+   [gui setColor: [OOColor greenColor] forRow: LABELROW];
    [gui setArray: [NSArray arrayWithObjects: @"Commander Name", @"Rating", nil]
          forRow:LABELROW];
 	
@@ -207,7 +209,7 @@
 	for (i = STARTROW - 1; i < ENDROW + 1; i++)
 	{
 		[gui setText:@"" forRow:i align:GUI_ALIGN_LEFT];
-		[gui setColor: [NSColor yellowColor] forRow: i];
+		[gui setColor: [OOColor yellowColor] forRow: i];
 		[gui setKey:GUI_KEY_SKIP forRow:i];
 	}
 
@@ -260,7 +262,7 @@
 					@"",
 					nil]
 				forRow:row];
-			[gui setColor: [NSColor orangeColor] forRow: row];
+			[gui setColor: [OOColor orangeColor] forRow: row];
 			[gui setKey:GUI_KEY_OK forRow:row];
 			row++;
 		}
@@ -271,7 +273,7 @@
 					@"",
 					nil]
 				forRow:row];
-			[gui setColor: [NSColor orangeColor] forRow: row];
+			[gui setColor: [OOColor orangeColor] forRow: row];
 			[gui setKey:GUI_KEY_OK forRow:row];
 			row++;
 		}
@@ -394,7 +396,7 @@
 	[gui setText:
 		[NSString stringWithFormat:@"Commander name: %@", commanderNameString]
 		forRow: INPUTROW];
-	[gui setColor:[NSColor cyanColor] forRow:INPUTROW];
+	[gui setColor:[OOColor cyanColor] forRow:INPUTROW];
 
 	// handle page <-- and page --> keys
 	if ([gameView isDown:gvArrowKeyLeft] && [[gui keyForRow:BACKROW] isEqual: GUI_KEY_OK])
@@ -592,7 +594,7 @@
 			NSLog(@"DEBUG EXCEPTION: No shipDict for %@", shipDesc);
 			shipName = @"ship not found.";
 			[gui setKey: GUI_KEY_SKIP forRow:[gui selectedRow]];
-			[gui setColor:[NSColor grayColor] forRow:[gui selectedRow]];
+			[gui setColor:[OOColor grayColor] forRow:[gui selectedRow]];
 			[gui setText:[NSString stringWithFormat:@"%@ (ship not found)", [gui selectedRowText]] forRow:[gui selectedRow]];
 			[boopSound play];
 		}

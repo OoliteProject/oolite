@@ -38,6 +38,7 @@ Your fair use and other rights are in no way affected by the above.
 */
 
 #import "OpenGLSprite.h"
+#import "OOColor.h"
 
 
 @implementation OpenGLSprite
@@ -405,7 +406,7 @@ enum
     surface = SDL_CreateRGBSurface(SDL_SWSURFACE, (int)textureRect.size.width, (int)textureRect.size.height, 32, rmask, gmask, bmask, amask);
 
     //[image lockFocus];
-    //[[NSColor clearColor] set];
+    //[[OOColor clearColor] set];
     //NSRectFill(textureRect);
     SDL_FillRect(surface, (SDL_Rect *)0x00, SDL_MapRGBA(surface->format, 0, 0, 0, SDL_ALPHA_TRANSPARENT));
 

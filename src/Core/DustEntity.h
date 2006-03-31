@@ -44,15 +44,15 @@ Your fair use and other rights are in no way affected by the above.
 #define DUST_SCALE			2000
 #define DUST_N_PARTICLES	600
 
-@class Entity;
+@class Entity, OOColor;
 
 @interface DustEntity : Entity
 {
-	NSColor *dust_color;
+	OOColor *dust_color;
 	GLfloat color_fv[4];
 }
 
-- (void) setDustColor:(NSColor *) color;
-- (NSColor *) dust_color;
+- (void) setDustColor:(OOColor *) color;
+- (OOColor *) dust_color;
 
 @end

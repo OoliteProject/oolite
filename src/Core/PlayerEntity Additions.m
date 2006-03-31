@@ -44,6 +44,7 @@ Your fair use and other rights are in no way affected by the above.
 #import "ResourceManager.h"
 #import "AI.h"
 #import "OOSound.h"
+#import "OOColor.h"
 
 #ifdef GNUSTEP
 #import "Comparison.h"
@@ -1415,7 +1416,7 @@ static int shipsFound;
 		choice_text = [self replaceVariablesInString: choice_text];
 		[gui setText:choice_text forRow:choices_row align: GUI_ALIGN_CENTER];
 		[gui setKey:choice_key forRow:choices_row];
-		[gui setColor:[NSColor yellowColor] forRow:choices_row];
+		[gui setColor:[OOColor yellowColor] forRow:choices_row];
 		choices_row++;
 	}
 	//
@@ -1719,7 +1720,7 @@ static int shipsFound;
 		[gui setTitle:@"Mission Information"];
 		//
 		[gui setText:@"Press Space Commander" forRow:21 align:GUI_ALIGN_CENTER];
-		[gui setColor:[NSColor yellowColor] forRow:21];
+		[gui setColor:[OOColor yellowColor] forRow:21];
 		[gui setKey:@"spacebar" forRow:21];
 		//
 		[gui setSelectableRange:NSMakeRange(0,0)];

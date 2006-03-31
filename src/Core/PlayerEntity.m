@@ -55,6 +55,7 @@ Your fair use and other rights are in no way affected by the above.
 #import "OOTrumble.h"
 #import "LoadSave.h"
 #import "OOSound.h"
+#import "OOColor.h"
 
 #ifndef GNUSTEP
 #import "Groolite.h"
@@ -1219,15 +1220,15 @@ static Quaternion quaternion_identity = { (GLfloat)1.0, (GLfloat)0.0, (GLfloat)0
 	{
 		NSString *laser_color_string = (NSString *)[dict objectForKey:@"laser_color"];
 		SEL color_selector = NSSelectorFromString(laser_color_string);
-		if ([NSColor respondsToSelector:color_selector])
+		if ([OOColor respondsToSelector:color_selector])
 		{
-			id  color_thing = [NSColor performSelector:color_selector];
-			if ([color_thing isKindOfClass:[NSColor class]])
-				[self setLaserColor:(NSColor *)color_thing];
+			id  color_thing = [OOColor performSelector:color_selector];
+			if ([color_thing isKindOfClass:[OOColor class]])
+				[self setLaserColor:(OOColor *)color_thing];
 		}
 	}   
 	else
-		[self setLaserColor:[NSColor redColor]];
+		[self setLaserColor:[OOColor redColor]];
 	//
 	if ([dict objectForKey:@"extra_equipment"])
 	{
@@ -1352,7 +1353,7 @@ static Quaternion quaternion_identity = { (GLfloat)1.0, (GLfloat)0.0, (GLfloat)0
 					if ([subdesc isEqual:@"*FLASHER*"])
 					{
 						subent = [[ParticleEntity alloc] init];	// retained
-						[(ParticleEntity*)subent setColor:[NSColor colorWithCalibratedHue: sub_q.w/360.0 saturation:1.0 brightness:1.0 alpha:1.0]];
+						[(ParticleEntity*)subent setColor:[OOColor colorWithCalibratedHue: sub_q.w/360.0 saturation:1.0 brightness:1.0 alpha:1.0]];
 						[(ParticleEntity*)subent setDuration: sub_q.x];
 						[(ParticleEntity*)subent setEnergy: 2.0 * sub_q.y];
 						[(ParticleEntity*)subent setSize:NSMakeSize( sub_q.z, sub_q.z)];
@@ -3011,7 +3012,7 @@ double scoopSoundPlayTime = 0.0;
 	switch (weapon_to_be_fired)
 	{
 		case WEAPON_PLASMA_CANNON :
-			[self firePlasmaShot:10.0:1000.0:[NSColor greenColor]];
+			[self firePlasmaShot:10.0:1000.0:[OOColor greenColor]];
 			return YES;
 			break;
 			
@@ -3717,7 +3718,7 @@ double scoopSoundPlayTime = 0.0;
 
 - (void) leaveDock:(StationEntity *)station
 {
-//	[universe setMessageGuiBackgroundColor:[NSColor clearColor]];	// clear the message gui background
+//	[universe setMessageGuiBackgroundColor:[OOColor clearColor]];	// clear the message gui background
 	
 	if (station == [universe station])
 		legal_status |= [universe legal_status_of_manifest:shipCommodityData];  // 'leaving with those guns were you sir?'
@@ -4478,7 +4479,7 @@ double scoopSoundPlayTime = 0.0;
 		int i = [gui addLongText:system_desc startingAtRow:15 align:GUI_ALIGN_LEFT];
 		missionTextRow = i;
 		for (i-- ; i > 14 ; i--)
-			[gui setColor:[NSColor greenColor] forRow:i];
+			[gui setColor:[OOColor greenColor] forRow:i];
 		//
 		
 		[gui setShowTextCursor:NO];
@@ -4556,7 +4557,7 @@ double scoopSoundPlayTime = 0.0;
 			[gui setText:[NSString stringWithFormat:@"Find planet: %@", [planetSearchString capitalizedString]]  forRow:16];
 		else
 			[gui setText:@"Find planet: "  forRow:16];
-		[gui setColor:[NSColor cyanColor] forRow:16];
+		[gui setColor:[OOColor cyanColor] forRow:16];
 		
 		[gui setShowTextCursor:YES];
 		[gui setCurrentRow:16];
@@ -4628,7 +4629,7 @@ double scoopSoundPlayTime = 0.0;
 	{
 		NSMutableDictionary *textAttributes = [NSMutableDictionary dictionaryWithObjectsAndKeys:
 			[NSFont systemFontOfSize:9.0], NSFontAttributeName,
-			[NSColor blueColor], NSForegroundColorAttributeName, NULL];
+			[OOColor blueColor], NSForegroundColorAttributeName, NULL];
 
 		NSSize  imageSize = NSMakeSize(1088,576);
 		NSSize  chartSize = NSMakeSize(1024,512);
@@ -4867,8 +4868,8 @@ double scoopSoundPlayTime = 0.0;
 		}
 		else
 		{
-			[gui setColor:[NSColor grayColor] forRow:GUI_ROW_OPTIONS_SAVE];
-			[gui setColor:[NSColor grayColor] forRow:GUI_ROW_OPTIONS_LOAD];
+			[gui setColor:[OOColor grayColor] forRow:GUI_ROW_OPTIONS_SAVE];
+			[gui setColor:[OOColor grayColor] forRow:GUI_ROW_OPTIONS_LOAD];
 		}
 		//
 		[gui setText:@" Begin New Game " forRow:GUI_ROW_OPTIONS_BEGIN_NEW align:GUI_ALIGN_CENTER];
@@ -4878,11 +4879,11 @@ double scoopSoundPlayTime = 0.0;
 		}
 		else
 		{
-			[gui setColor:[NSColor grayColor] forRow:GUI_ROW_OPTIONS_BEGIN_NEW];
+			[gui setColor:[OOColor grayColor] forRow:GUI_ROW_OPTIONS_BEGIN_NEW];
 		}
 		//
 		[gui setText:@"Game Options:" forRow:GUI_ROW_OPTIONS_OPTIONS align:GUI_ALIGN_CENTER];
-		[gui setColor:[NSColor grayColor] forRow:GUI_ROW_OPTIONS_OPTIONS];
+		[gui setColor:[OOColor grayColor] forRow:GUI_ROW_OPTIONS_OPTIONS];
 		//
 		[gui setText:displayModeString forRow:GUI_ROW_OPTIONS_DISPLAY align:GUI_ALIGN_CENTER];
 		[gui setKey:GUI_KEY_OK forRow:GUI_ROW_OPTIONS_DISPLAY];
@@ -4904,7 +4905,7 @@ double scoopSoundPlayTime = 0.0;
 		else
 		{
 			[gui setText:@" Sound Volume: External Control Only" forRow:GUI_ROW_OPTIONS_VOLUME align:GUI_ALIGN_CENTER];
-			[gui setColor:[NSColor grayColor] forRow:GUI_ROW_OPTIONS_VOLUME];
+			[gui setColor:[OOColor grayColor] forRow:GUI_ROW_OPTIONS_VOLUME];
 		}
 		
 #ifndef GNUSTEP
@@ -4971,7 +4972,7 @@ double scoopSoundPlayTime = 0.0;
 		}
 		else
 		{
-			[gui setColor:[NSColor grayColor] forRow:GUI_ROW_OPTIONS_STICKMAPPER];
+			[gui setColor:[OOColor grayColor] forRow:GUI_ROW_OPTIONS_STICKMAPPER];
 		}
 #endif
 		
@@ -5197,7 +5198,7 @@ static int last_outfitting_index;
 				if (previous < 0)	previous = 0;
 				if (itemForSelectFacing >= 0)
 					previous = -1;	// ie. last index!
-				[gui setColor:[NSColor greenColor] forRow:row];
+				[gui setColor:[OOColor greenColor] forRow:row];
 				[gui setArray:[NSArray arrayWithObjects:@" Back ", @" <-- ", nil] forRow:row];
 				[gui setKey:[NSString stringWithFormat:@"More:%d", previous] forRow:row];
 				row++;
@@ -5225,10 +5226,10 @@ static int last_outfitting_index;
 				{
 					desc = [NSString stringWithFormat:@" Repair:%@", desc];
 					price /= 2.0;
-					[gui setColor:[NSColor orangeColor] forRow:row];
+					[gui setColor:[OOColor orangeColor] forRow:row];
 				}
 				if ([eq_key isEqual:@"EQ_RENOVATION"])
-					[gui setColor:[NSColor orangeColor] forRow:row];
+					[gui setColor:[OOColor orangeColor] forRow:row];
 				
 				NSString*	priceString		= [NSString stringWithFormat:@" %.1f ",0.1*price];
 
@@ -5247,7 +5248,7 @@ static int last_outfitting_index;
 					if (facing_count == 4)
 						desc = STARBOARD_FACING_STRING;
 					facing_count++;
-					[gui setColor:[NSColor greenColor] forRow:row];
+					[gui setColor:[OOColor greenColor] forRow:row];
 				}
 				[gui setKey:[NSString stringWithFormat:@"%d",item] forRow:row];			// save the index of the item as the key for the row
 				[gui setArray:[NSArray arrayWithObjects:desc, priceString, nil] forRow:row];
@@ -5255,7 +5256,7 @@ static int last_outfitting_index;
 			}
 			if (i < [equipment_allowed count])
 			{
-				[gui setColor:[NSColor greenColor] forRow:row];
+				[gui setColor:[OOColor greenColor] forRow:row];
 				[gui setArray:[NSArray arrayWithObjects:@" More ", @" --> ", nil] forRow:row];
 				[gui setKey:[NSString stringWithFormat:@"More:%d", i] forRow:row];
 				row++;
@@ -5275,7 +5276,7 @@ static int last_outfitting_index;
 		else
 		{
 			[gui setText:@"No equipment available for purchase." forRow:GUI_ROW_NO_SHIPS align:GUI_ALIGN_CENTER];
-			[gui setColor:[NSColor greenColor] forRow:GUI_ROW_NO_SHIPS];
+			[gui setColor:[OOColor greenColor] forRow:GUI_ROW_NO_SHIPS];
 			//
 			[gui setSelectableRange:NSMakeRange(0,0)];
 			[gui setNoSelectedRow];
@@ -5304,7 +5305,7 @@ static int last_outfitting_index;
 	for (i = GUI_ROW_EQUIPMENT_DETAIL; i < GUI_MAX_ROWS; i++)
 	{
 		[gui setText:@"" forRow:i];
-		[gui setColor:[NSColor greenColor] forRow:i];
+		[gui setColor:[OOColor greenColor] forRow:i];
 	}
 	if (key)
 	{
@@ -5333,13 +5334,13 @@ static int last_outfitting_index;
 		[gui setTitle:@"Oolite"];
 		//
 		[gui setText:@"by Giles Williams (C) 2003-2005" forRow:17 align:GUI_ALIGN_CENTER];
-		[gui setColor:[NSColor whiteColor] forRow:17];
+		[gui setColor:[OOColor whiteColor] forRow:17];
 		//
 		[gui setText:@"Oolite Theme Music by No Sleep (C) 2004" forRow:19 align:GUI_ALIGN_CENTER];
-		[gui setColor:[NSColor grayColor] forRow:19];
+		[gui setColor:[OOColor grayColor] forRow:19];
 		//
 		[gui setText:@"Load Previous Commander (Y/N)?" forRow:21 align:GUI_ALIGN_CENTER];
-		[gui setColor:[NSColor yellowColor] forRow:21];
+		[gui setColor:[OOColor yellowColor] forRow:21];
 		
 		//
 		// check for error messages from Resource Manager
@@ -5348,7 +5349,7 @@ static int last_outfitting_index;
 		{
 			int ms_start = ms_line;
 			int i = ms_line = [gui addLongText:[ResourceManager errors] startingAtRow:ms_start align:GUI_ALIGN_LEFT];
-			for (i-- ; i >= ms_start ; i--) [gui setColor:[NSColor redColor] forRow:i];
+			for (i-- ; i >= ms_start ; i--) [gui setColor:[OOColor redColor] forRow:i];
 			ms_line++;
 		}
 		
@@ -5367,14 +5368,14 @@ static int last_outfitting_index;
 				int ms_start = ms_line;
 				NSString* message = (NSString*)[arguments objectAtIndex: i + 1];
 				int i = ms_line = [gui addLongText:message startingAtRow:ms_start align:GUI_ALIGN_CENTER];
-				for (i-- ; i >= ms_start; i--) [gui setColor:[NSColor magentaColor] forRow:i];
+				for (i-- ; i >= ms_start; i--) [gui setColor:[OOColor magentaColor] forRow:i];
 			}
 			if ([[arguments objectAtIndex:i] isEqual:@"-showversion"])
 			{
 				int ms_start = ms_line;
 				NSString *version = [NSString stringWithFormat:@"Version %@", [[[NSBundle mainBundle] infoDictionary] objectForKey:@"CFBundleVersion"]];
 				int i = ms_line = [gui addLongText:version startingAtRow:ms_start align:GUI_ALIGN_CENTER];
-				for (i-- ; i >= ms_start; i--) [gui setColor:[NSColor magentaColor] forRow:i];
+				for (i-- ; i >= ms_start; i--) [gui setColor:[OOColor magentaColor] forRow:i];
 			}
 		}
 		
@@ -5411,7 +5412,7 @@ static int last_outfitting_index;
 		[gui setTitle:@"Oolite"];
 		//
 		[gui setText:@"Press Space Commander" forRow:21 align:GUI_ALIGN_CENTER];
-		[gui setColor:[NSColor yellowColor] forRow:21];
+		[gui setColor:[OOColor yellowColor] forRow:21];
 		//
 		[gui setShowTextCursor:NO];
 	}
@@ -5783,7 +5784,7 @@ static int last_outfitting_index;
 		//
 		[gui setTabStops:tab_stops];
 		//
-		[gui setColor:[NSColor greenColor] forRow:GUI_ROW_MARKET_KEY];
+		[gui setColor:[OOColor greenColor] forRow:GUI_ROW_MARKET_KEY];
 		[gui setArray:[NSArray arrayWithObjects: @"Commodity:", @"Price:", @"For sale:", @"In hold:", nil] forRow:GUI_ROW_MARKET_KEY];
 		//
 		current_cargo = 0;  // for calculating remaining hold space

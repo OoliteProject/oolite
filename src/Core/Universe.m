@@ -49,6 +49,7 @@ Your fair use and other rights are in no way affected by the above.
 #import "GuiDisplayGen.h"
 #import "HeadUpDisplay.h"
 #import "OOSound.h"
+#import "OOColor.h"
 
 #import "Octree.h"
 #import "CollisionRegion.h"
@@ -148,10 +149,10 @@ Your fair use and other rights are in no way affected by the above.
 	//
 	comm_log_gui = [[GuiDisplayGen alloc] initWithPixelSize:NSMakeSize( 360, 120) Columns:1 Rows:10 RowHeight:12 RowStart:12 Title:nil];
 	[comm_log_gui setCurrentRow:9];
-	[comm_log_gui setBackgroundColor:[NSColor colorWithCalibratedRed:0.0 green:0.05 blue:0.45 alpha:0.5]];
-	[comm_log_gui setTextColor:[NSColor whiteColor]];
+	[comm_log_gui setBackgroundColor:[OOColor colorWithCalibratedRed:0.0 green:0.05 blue:0.45 alpha:0.5]];
+	[comm_log_gui setTextColor:[OOColor whiteColor]];
 	[comm_log_gui setAlpha:0.0];
-	[comm_log_gui printLongText:@"Communications Log" Align:GUI_ALIGN_CENTER Color:[NSColor yellowColor] FadeTime:0 Key:nil AddToArray:nil];
+	[comm_log_gui printLongText:@"Communications Log" Align:GUI_ALIGN_CENTER Color:[OOColor yellowColor] FadeTime:0 Key:nil AddToArray:nil];
 	//
 	displayFPS = NO;
 	//
@@ -392,10 +393,10 @@ Your fair use and other rights are in no way affected by the above.
 		[comm_log_gui autorelease];
 	comm_log_gui = [[GuiDisplayGen alloc] initWithPixelSize:NSMakeSize( 360, 120) Columns:1 Rows:10 RowHeight:12 RowStart:12 Title:nil];
 	[comm_log_gui setCurrentRow:9];
-	[comm_log_gui setBackgroundColor:[NSColor colorWithCalibratedRed:0.0 green:0.05 blue:0.45 alpha:0.5]];
-	[comm_log_gui setTextColor:[NSColor whiteColor]];
+	[comm_log_gui setBackgroundColor:[OOColor colorWithCalibratedRed:0.0 green:0.05 blue:0.45 alpha:0.5]];
+	[comm_log_gui setTextColor:[OOColor whiteColor]];
 	[comm_log_gui setAlpha:0.0];
-	[comm_log_gui printLongText:@"Communications Log" Align:GUI_ALIGN_CENTER Color:[NSColor yellowColor] FadeTime:0 Key:nil AddToArray:nil];
+	[comm_log_gui printLongText:@"Communications Log" Align:GUI_ALIGN_CENTER Color:[OOColor yellowColor] FadeTime:0 Key:nil AddToArray:nil];
 	//
 	time_delta = 0.0;
 	universal_time = 0.0;
@@ -616,7 +617,7 @@ Your fair use and other rights are in no way affected by the above.
 	[self setViewDirection:VIEW_FORWARD];
 	
 	[comm_log_gui printLongText:[NSString stringWithFormat:@"%@ %@", [self generateSystemName:system_seed], [player dial_clock_adjusted]]
-		Align:GUI_ALIGN_CENTER Color:[NSColor whiteColor] FadeTime:0 Key:nil AddToArray:[player comm_log]];
+		Align:GUI_ALIGN_CENTER Color:[OOColor whiteColor] FadeTime:0 Key:nil AddToArray:[player comm_log]];
 	//
     //
 	/* test stuff */
@@ -697,8 +698,8 @@ Your fair use and other rights are in no way affected by the above.
 	//
 	
 	/*- the sky backdrop -*/
-	NSColor *col1 = [NSColor colorWithCalibratedRed:0.0 green:1.0 blue:0.5 alpha:1.0];
-	NSColor *col2 = [NSColor colorWithCalibratedRed:0.0 green:1.0 blue:0.0 alpha:1.0];
+	OOColor *col1 = [OOColor colorWithCalibratedRed:0.0 green:1.0 blue:0.5 alpha:1.0];
+	OOColor *col2 = [OOColor colorWithCalibratedRed:0.0 green:1.0 blue:0.0 alpha:1.0];
 //	thing = [[SkyEntity alloc] initAsWitchspace];	// alloc retains!
 	thing = [[SkyEntity alloc] initWithColors:col1:col2 andSystemInfo: systeminfo];	// alloc retains!
 	[thing setScanClass: CLASS_NO_DRAW];
@@ -801,8 +802,8 @@ Your fair use and other rights are in no way affected by the above.
 	NSDictionary		*systeminfo = [self generateSystemData:system_seed];
 	int					techlevel = [(NSNumber *)[systeminfo objectForKey:KEY_TECHLEVEL] intValue];
 	NSString			*stationDesc;
-	NSColor				*bgcolor;
-	NSColor				*pale_bgcolor;
+	OOColor				*bgcolor;
+	OOColor				*pale_bgcolor;
 	
 	BOOL				sun_gone_nova = NO;
 	if ([systeminfo objectForKey:@"sun_gone_nova"])
@@ -826,14 +827,14 @@ Your fair use and other rights are in no way affected by the above.
 	float h2 = h1 + 1.0 / (1.0 + (ranrot_rand() % 5));
 	while (h2 > 1.0)
 		h2 -= 1.0;
-	NSColor *col1 = [NSColor colorWithCalibratedHue:h1 saturation:randf() brightness:0.5 + randf()/2.0 alpha:1.0];
-	NSColor *col2 = [NSColor colorWithCalibratedHue:h2 saturation:0.5 + randf()/2.0 brightness:0.5 + randf()/2.0 alpha:1.0];
+	OOColor *col1 = [OOColor colorWithCalibratedHue:h1 saturation:randf() brightness:0.5 + randf()/2.0 alpha:1.0];
+	OOColor *col2 = [OOColor colorWithCalibratedHue:h2 saturation:0.5 + randf()/2.0 brightness:0.5 + randf()/2.0 alpha:1.0];
 	
 	thing = [[SkyEntity alloc] initWithColors:col1:col2 andSystemInfo: systeminfo];	// alloc retains!
 	[thing setScanClass: CLASS_NO_DRAW];
 	[self addEntity:thing]; // [entities addObject:thing];
 	bgcolor = [(SkyEntity *)thing sky_color];
-	pale_bgcolor = [bgcolor blendedColorWithFraction:0.5 ofColor:[NSColor whiteColor]];
+	pale_bgcolor = [bgcolor blendedColorWithFraction:0.5 ofColor:[OOColor whiteColor]];
 	[thing release];
 	/*--*/
 	
@@ -2499,7 +2500,7 @@ Your fair use and other rights are in no way affected by the above.
 		demo_ship = ship;
 		
 		[gui setText:[ship name] forRow:19 align:GUI_ALIGN_CENTER];
-		[gui setColor:[NSColor whiteColor] forRow:19];
+		[gui setColor:[OOColor whiteColor] forRow:19];
 		
 		[ship release];
 	}
@@ -4813,7 +4814,7 @@ GLfloat	starboard_matrix[] = {	0.0f, 0.0f, 1.0f, 0.0f,		0.0f, 1.0f, 0.0f, 0.0f,	
 	currentMessage = nil;
 }
 
-- (void) setMessageGuiBackgroundColor:(NSColor *) some_color
+- (void) setMessageGuiBackgroundColor:(OOColor *) some_color
 {
 	[message_gui setBackgroundColor:some_color];
 }
@@ -4825,7 +4826,7 @@ GLfloat	starboard_matrix[] = {	0.0f, 0.0f, 1.0f, 0.0f,		0.0f, 1.0f, 0.0f, 0.0f,	
 		if (currentMessage)	[currentMessage release];
 		currentMessage = [text retain];
 		
-		[message_gui printLongText:text Align:GUI_ALIGN_CENTER Color:[NSColor yellowColor] FadeTime:(float)count Key:nil AddToArray:nil];
+		[message_gui printLongText:text Align:GUI_ALIGN_CENTER Color:[OOColor yellowColor] FadeTime:(float)count Key:nil AddToArray:nil];
     }
 }
 
@@ -4836,7 +4837,7 @@ GLfloat	starboard_matrix[] = {	0.0f, 0.0f, 1.0f, 0.0f,		0.0f, 1.0f, 0.0f, 0.0f,	
 		if (currentMessage)	[currentMessage release];
 		currentMessage = [text retain];
 		
-		[message_gui printLineNoScroll:text Align:GUI_ALIGN_CENTER Color:[NSColor yellowColor] FadeTime:(float)count Key:nil AddToArray:nil];
+		[message_gui printLineNoScroll:text Align:GUI_ALIGN_CENTER Color:[OOColor yellowColor] FadeTime:(float)count Key:nil AddToArray:nil];
     }
 }
 
@@ -4902,7 +4903,7 @@ GLfloat	starboard_matrix[] = {	0.0f, 0.0f, 1.0f, 0.0f,		0.0f, 1.0f, 0.0f, 0.0f,	
 		}
 	#endif	// !def GNUSTEP
 		
-		[message_gui printLongText:text Align:GUI_ALIGN_CENTER Color:[NSColor yellowColor] FadeTime:(float)count Key:nil AddToArray:nil];
+		[message_gui printLongText:text Align:GUI_ALIGN_CENTER Color:[OOColor yellowColor] FadeTime:(float)count Key:nil AddToArray:nil];
 		
 		if (currentMessage)	[currentMessage release];
 		currentMessage = [text retain];
@@ -4922,7 +4923,7 @@ GLfloat	starboard_matrix[] = {	0.0f, 0.0f, 1.0f, 0.0f,		0.0f, 1.0f, 0.0f, 0.0f,	
 			[self startSpeakingString:@"Incoming message."];
 		}
 		
-		[message_gui printLongText:text Align:GUI_ALIGN_CENTER Color:[NSColor greenColor] FadeTime:(float)count Key:nil AddToArray:nil];
+		[message_gui printLongText:text Align:GUI_ALIGN_CENTER Color:[OOColor greenColor] FadeTime:(float)count Key:nil AddToArray:nil];
 		
 		[comm_log_gui printLongText:text Align:GUI_ALIGN_LEFT Color:nil FadeTime:0.0 Key:nil AddToArray:[player comm_log]];
 		[comm_log_gui setAlpha:1.0];
@@ -7126,12 +7127,12 @@ NSComparisonResult comparePrice( id dict1, id dict2, void * context)
 	[gui clear];
 	[message_gui clear];
 	[comm_log_gui clear];
-	[comm_log_gui printLongText:@"Communications Log" Align:GUI_ALIGN_CENTER Color:[NSColor yellowColor] FadeTime:0 Key:nil AddToArray:nil];
+	[comm_log_gui printLongText:@"Communications Log" Align:GUI_ALIGN_CENTER Color:[OOColor yellowColor] FadeTime:0 Key:nil AddToArray:nil];
 }
 
 - (void) resetCommsLogColor
 {
-	[comm_log_gui setTextColor:[NSColor whiteColor]];
+	[comm_log_gui setTextColor:[OOColor whiteColor]];
 }
 
 - (void) setDisplayCursor:(BOOL) value

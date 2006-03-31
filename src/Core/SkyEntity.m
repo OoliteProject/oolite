@@ -46,6 +46,7 @@ Your fair use and other rights are in no way affected by the above.
 #import "Universe.h"
 #import "TextureStore.h"
 #import "MyOpenGLView.h"
+#import "OOColor.h"
 
 @implementation SkyEntity
 
@@ -73,8 +74,8 @@ Your fair use and other rights are in no way affected by the above.
 	float h2 = h1 + 1.0 / (1.0 + (ranrot_rand() % 5));
 	while (h2 > 1.0)
 		h2 -= 1.0;
-	NSColor *col1 = [NSColor colorWithCalibratedHue:h1 saturation:(ranrot_rand() % 1024)/1024.0 brightness:0.5 +(ranrot_rand() % 1024)/2048.0 alpha:1.0];
-	NSColor *col2 = [NSColor colorWithCalibratedHue:h2 saturation:0.5 +(ranrot_rand() % 1024)/2048.0 brightness:0.5 +(ranrot_rand() % 1024)/2048.0 alpha:1.0];
+	OOColor *col1 = [OOColor colorWithCalibratedHue:h1 saturation:(ranrot_rand() % 1024)/1024.0 brightness:0.5 +(ranrot_rand() % 1024)/2048.0 alpha:1.0];
+	OOColor *col2 = [OOColor colorWithCalibratedHue:h2 saturation:0.5 +(ranrot_rand() % 1024)/2048.0 brightness:0.5 +(ranrot_rand() % 1024)/2048.0 alpha:1.0];
 	//
 	sky_color = [[col2 blendedColorWithFraction:0.5 ofColor:col1] retain];
 	//
@@ -97,7 +98,7 @@ Your fair use and other rights are in no way affected by the above.
     return self;
 }
 
-- (id) initWithColors:(NSColor *) col1:(NSColor *) col2
+- (id) initWithColors:(OOColor *) col1:(OOColor *) col2
 {    
     self = [super init];
 	//
@@ -146,10 +147,10 @@ Your fair use and other rights are in no way affected by the above.
     return self;
 }
 
-- (id) initWithColors:(NSColor *) col1:(NSColor *) col2 andSystemInfo:(NSDictionary *) systeminfo
+- (id) initWithColors:(OOColor *) col1:(OOColor *) col2 andSystemInfo:(NSDictionary *) systeminfo
 {    
-	NSColor* color1 = col1;
-	NSColor* color2 = col2;
+	OOColor* color1 = col1;
+	OOColor* color2 = col2;
 	
 	self = [super init];
 	//
@@ -192,8 +193,8 @@ Your fair use and other rights are in no way affected by the above.
 			float r2 = [(NSString *)[tokens objectAtIndex:3] floatValue];
 			float g2 = [(NSString *)[tokens objectAtIndex:4] floatValue];
 			float b2 = [(NSString *)[tokens objectAtIndex:5] floatValue];
-		color1 = [NSColor colorWithCalibratedRed:r1 green:g1 blue:b1 alpha:1.0];
-		color2 = [NSColor colorWithCalibratedRed:r2 green:g2 blue:b2 alpha:1.0];
+		color1 = [OOColor colorWithCalibratedRed:r1 green:g1 blue:b1 alpha:1.0];
+		color2 = [OOColor colorWithCalibratedRed:r2 green:g2 blue:b2 alpha:1.0];
 		}
 	}
 	if ([systeminfo objectForKey:@"sky_blur_cluster_chance"])
@@ -285,8 +286,8 @@ Your fair use and other rights are in no way affected by the above.
     status = STATUS_EFFECT;
 	sky_type = SKY_BILLBOARDS;
     //
-	NSColor *col1 = [NSColor colorWithCalibratedRed:0.0 green:1.0 blue:0.5 alpha:1.0];
-	NSColor *col2 = [NSColor colorWithCalibratedRed:0.0 green:1.0 blue:0.0 alpha:1.0];
+	OOColor *col1 = [OOColor colorWithCalibratedRed:0.0 green:1.0 blue:0.5 alpha:1.0];
+	OOColor *col2 = [OOColor colorWithCalibratedRed:0.0 green:1.0 blue:0.0 alpha:1.0];
 	//
 	sky_color = [[col2 blendedColorWithFraction:0.5 ofColor:col1] retain];
 	//
@@ -314,7 +315,7 @@ Your fair use and other rights are in no way affected by the above.
     return self;
 }
 
-- (void) set_up_billboards:(NSColor *) col1:(NSColor *) col2
+- (void) set_up_billboards:(OOColor *) col1:(OOColor *) col2
 {
 	// stars
 	Vector  star_vector[n_stars];
@@ -332,7 +333,7 @@ Your fair use and other rights are in no way affected by the above.
 	//
 	for (i = 0; i < n_stars; i++)
 	{
-		NSColor *col3 = [col1 blendedColorWithFraction:(ranrot_rand() % 1024)/1024.0 ofColor:col2];
+		OOColor *col3 = [col1 blendedColorWithFraction:(ranrot_rand() % 1024)/1024.0 ofColor:col2];
 		star_color[i][0] = [col3 redComponent];
 		star_color[i][1] = [col3 greenComponent];
 		star_color[i][2] = [col3 blueComponent];
@@ -395,12 +396,12 @@ Your fair use and other rights are in no way affected by the above.
 	//
 	for (i = 0; i < n_blobs; i++)
 	{
-		NSColor *col3 = [col1 blendedColorWithFraction:(ranrot_rand() % 1024)/1024.0 ofColor:col2];
+		OOColor *col3 = [col1 blendedColorWithFraction:(ranrot_rand() % 1024)/1024.0 ofColor:col2];
 		float hu, sa, br, al;
 		[col3 getHue:&hu saturation:&sa brightness:&br alpha:&al];
 		sa = 0.5 * sa + 0.5;	// move saturation up a notch!
 		//br = 0.5 * br + 0.5;	// move brightness up a notch!
-		col3 = [NSColor colorWithCalibratedHue:hu saturation:sa brightness:br alpha:al];
+		col3 = [OOColor colorWithCalibratedHue:hu saturation:sa brightness:br alpha:al];
 		Quaternion q;
 		quaternion_set_random(&q);
 		while ((i < n_blobs)&&(randf() < blob_cluster_chance))
@@ -490,7 +491,7 @@ Your fair use and other rights are in no way affected by the above.
 	[super dealloc];
 }
 
-- (NSColor *) sky_color
+- (OOColor *) sky_color
 {
 	return sky_color;
 }

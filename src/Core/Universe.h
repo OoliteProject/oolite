@@ -388,7 +388,7 @@ extern int debug;
 - (BOOL) playCustomSound:(NSString*)key;
 
 - (void) clearPreviousMessage;
-- (void) setMessageGuiBackgroundColor:(NSColor *) some_color;
+- (void) setMessageGuiBackgroundColor:(OOColor *) some_color;
 - (void) displayMessage:(NSString *) text forCount:(int) count;
 - (void) displayCountdownMessage:(NSString *) text forCount:(int) count;
 - (void) addDelayedMessage:(NSString *) text forCount:(int) count afterDelay:(double) delay;

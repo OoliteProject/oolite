@@ -75,7 +75,7 @@ Your fair use and other rights are in no way affected by the above.
 	{
 		[rowText addObject:@"."];
 		[rowKey addObject:[NSString stringWithFormat:@"%d",i]];
-		[rowColor addObject:[NSColor yellowColor]];
+		[rowColor addObject:[OOColor yellowColor]];
 		rowPosition[i].x = 0.0;
 		rowPosition[i].y = size_in_pixels.height - (pixel_row_start + i * pixel_row_height);
 		rowAlignment[i] = GUI_ALIGN_LEFT;
@@ -95,7 +95,7 @@ Your fair use and other rights are in no way affected by the above.
 
 	backgroundImage = nil;
 	backgroundColor = nil;
-	textColor = [[NSColor yellowColor] retain];
+	textColor = [[OOColor yellowColor] retain];
 
 	return self;
 }
@@ -128,7 +128,7 @@ Your fair use and other rights are in no way affected by the above.
 	{
 		[rowText addObject:@""];
 		[rowKey addObject:@""];
-		[rowColor addObject:[NSColor greenColor]];
+		[rowColor addObject:[OOColor greenColor]];
 		rowPosition[i].x = 0.0;
 		rowPosition[i].y = size_in_pixels.height - (pixel_row_start + i * pixel_row_height);
 		rowAlignment[i] = GUI_ALIGN_LEFT;
@@ -143,7 +143,7 @@ Your fair use and other rights are in no way affected by the above.
 
 	backgroundImage = nil;
 	backgroundColor = nil;
-	textColor = [[NSColor yellowColor] retain];
+	textColor = [[OOColor yellowColor] retain];
 
 	return self;
 }
@@ -180,7 +180,7 @@ Your fair use and other rights are in no way affected by the above.
 	fade_alpha = an_alpha;
 }
 
-- (void) setBackgroundColor:(NSColor*) color
+- (void) setBackgroundColor:(OOColor*) color
 {
 	if (backgroundColor)	[backgroundColor release];
 	if (color == nil)
@@ -189,19 +189,21 @@ Your fair use and other rights are in no way affected by the above.
 		return;
 	}
 
-	backgroundColor = [[color colorUsingColorSpaceName:NSCalibratedRGBColorSpace] retain];
+//	backgroundColor = [[color colorUsingColorSpaceName:NSCalibratedRGBColorSpace] retain];
+	backgroundColor = [color retain];
 }
 
-- (void) setTextColor:(NSColor*) color
+- (void) setTextColor:(OOColor*) color
 {
 	if (textColor)	[textColor release];
 	if (color == nil)
 	{
-		textColor = [[NSColor yellowColor] retain];
+		textColor = [[OOColor yellowColor] retain];
 		return;
 	}
 
-	textColor = [[color colorUsingColorSpaceName:NSCalibratedRGBColorSpace] retain];
+//	textColor = [[color colorUsingColorSpaceName:NSCalibratedRGBColorSpace] retain];
+	textColor = [color retain];
 }
 
 - (void) setCharacterSize:(NSSize) character_size
@@ -218,7 +220,7 @@ Your fair use and other rights are in no way affected by the above.
 #endif   
 }
 
-- (void) setColor:(NSColor *) color forRow:(int) row
+- (void) setColor:(OOColor *) color forRow:(int) row
 {
 	if ((row >= rowRange.location)&&(row < rowRange.location + rowRange.length))
 		[rowColor replaceObjectAtIndex:row withObject:color];
@@ -417,7 +419,7 @@ Your fair use and other rights are in no way affected by the above.
 	}
 }
 
-- (void) printLongText: (NSString *) str Align:(int) alignment Color:(NSColor*) text_color FadeTime:(float) text_fade Key:(NSString*) text_key AddToArray:(NSMutableArray*) text_array
+- (void) printLongText: (NSString *) str Align:(int) alignment Color:(OOColor*) text_color FadeTime:(float) text_fade Key:(NSString*) text_key AddToArray:(NSMutableArray*) text_array
 {
 //	NSLog(@"GUI printing text '%@'", str);
 	
@@ -478,7 +480,7 @@ Your fair use and other rights are in no way affected by the above.
 	}
 }
 
-- (void) printLineNoScroll: (NSString *) str Align:(int) alignment Color:(NSColor*) text_color FadeTime:(float) text_fade Key:(NSString*) text_key AddToArray:(NSMutableArray*) text_array
+- (void) printLineNoScroll: (NSString *) str Align:(int) alignment Color:(OOColor*) text_color FadeTime:(float) text_fade Key:(NSString*) text_key AddToArray:(NSMutableArray*) text_array
 {
 	[self setText:str forRow:currentRow align:alignment];
 	if (text_color)
@@ -497,7 +499,7 @@ Your fair use and other rights are in no way affected by the above.
 		[rowText replaceObjectAtIndex:row withObject:arr];
 }
 
-- (void) insertItemsFromArray:(NSArray*) items WithKeys:(NSArray*) item_keys IntoRow:(int) row Color:(NSColor*) text_color
+- (void) insertItemsFromArray:(NSArray*) items WithKeys:(NSArray*) item_keys IntoRow:(int) row Color:(OOColor*) text_color
 {
 	if (!items)
 		return;
@@ -694,7 +696,8 @@ Your fair use and other rights are in no way affected by the above.
 	//
 	for (i = 0; i < n_rows; i++)
 	{
-		NSColor* row_color = [(NSColor *)[rowColor objectAtIndex:i] colorUsingColorSpaceName:NSCalibratedRGBColorSpace];
+//		OOColor* row_color = [(OOColor *)[rowColor objectAtIndex:i] colorUsingColorSpaceName:NSCalibratedRGBColorSpace];
+		OOColor* row_color = (OOColor *)[rowColor objectAtIndex:i];
 		GLfloat row_alpha = alpha;
 		if (rowFadeTime[i] > 0.0)
 		{

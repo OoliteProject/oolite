@@ -49,6 +49,7 @@ Your fair use and other rights are in no way affected by the above.
 #import "Geometry.h"
 #import "Octree.h"
 #import "ScannerExtension.h"
+#import "OOColor.h"
 
 
 @implementation ShipEntity
@@ -157,7 +158,7 @@ Your fair use and other rights are in no way affected by the above.
 	//
 	patrol_counter = 0;
 	//
-	laser_color = [[NSColor redColor] retain];
+	laser_color = [[OOColor redColor] retain];
 	//
 	scanner_range = 25600;
 	//
@@ -1046,7 +1047,7 @@ static NSMutableDictionary* smallOctreeDict = nil;
 					if ([subdesc isEqual:@"*FLASHER*"])
 					{
 						subent = [[ParticleEntity alloc] init];	// retained
-						[(ParticleEntity*)subent setColor:[NSColor colorWithCalibratedHue: sub_q.w/360.0 saturation:1.0 brightness:1.0 alpha:1.0]];
+						[(ParticleEntity*)subent setColor:[OOColor colorWithCalibratedHue: sub_q.w/360.0 saturation:1.0 brightness:1.0 alpha:1.0]];
 						[(ParticleEntity*)subent setDuration: sub_q.x];
 						[(ParticleEntity*)subent setEnergy: 2.0 * sub_q.y];
 						[(ParticleEntity*)subent setSize:NSMakeSize( sub_q.z, sub_q.z)];
@@ -1114,15 +1115,15 @@ static NSMutableDictionary* smallOctreeDict = nil;
 	{
 		NSString *laser_color_string = (NSString *)[shipdict objectForKey:@"laser_color"];
 		SEL color_selector = NSSelectorFromString(laser_color_string);
-		if ([NSColor respondsToSelector:color_selector])
+		if ([OOColor respondsToSelector:color_selector])
 		{
-			id  color_thing = [NSColor performSelector:color_selector];
-			if ([color_thing isKindOfClass:[NSColor class]])
-				[self setLaserColor:(NSColor *)color_thing];
+			id  color_thing = [OOColor performSelector:color_selector];
+			if ([color_thing isKindOfClass:[OOColor class]])
+				[self setLaserColor:(OOColor *)color_thing];
 		}
 	}   
 	else
-		[self setLaserColor:[NSColor redColor]];
+		[self setLaserColor:[OOColor redColor]];
 	//
 	// scan class
 	if ([shipdict objectForKey:@"scanClass"])
@@ -5233,8 +5234,8 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 	switch (forward_weapon_type)
 	{
 		case WEAPON_PLASMA_CANNON :
-			[self firePlasmaShot:weapon_offset_x:1500.0:[NSColor yellowColor]];
-			[self firePlasmaShot:weapon_offset_x:1500.0:[NSColor yellowColor]];
+			[self firePlasmaShot:weapon_offset_x:1500.0:[OOColor yellowColor]];
+			[self firePlasmaShot:weapon_offset_x:1500.0:[OOColor yellowColor]];
 			fired = YES;
 			break;
 			
@@ -5346,7 +5347,7 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 	}
 	double  start = collision_radius + 0.5;
 	double  speed = TURRET_SHOT_SPEED;
-	NSColor* color = laser_color;
+	OOColor* color = laser_color;
 	
 	origin.x += vel.x * start;
 	origin.y += vel.y * start;
@@ -5381,7 +5382,7 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 	return YES;
 }
 
-- (void) setLaserColor:(NSColor *) color
+- (void) setLaserColor:(OOColor *) color
 {
 	if (color)
 	{
@@ -5713,7 +5714,7 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 	[spark setSize:NSMakeSize( sz, sz)];
 	[spark setEnergy: 0.0];
 	[spark setParticleType: PARTICLE_SPARK];
-	[spark setColor:[NSColor colorWithCalibratedHue:0.08 + 0.17 * randf() saturation:1.0 brightness:1.0 alpha:1.0]];
+	[spark setColor:[OOColor colorWithCalibratedHue:0.08 + 0.17 * randf() saturation:1.0 brightness:1.0 alpha:1.0]];
 	[spark setOwner:self];
 	[universe addEntity:spark];
 	[spark release]; //release
@@ -5721,7 +5722,7 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 	next_spark_time = randf();
 }
 
-- (BOOL) firePlasmaShot:(double) offset :(double) speed :(NSColor *) color
+- (BOOL) firePlasmaShot:(double) offset :(double) speed :(OOColor *) color
 {
 	ParticleEntity *shot;
 	Vector  vel, rt;
@@ -7126,11 +7127,11 @@ inline BOOL pairOK(NSString* my_role, NSString* their_role)
 - (void) setCommsMessageColor
 {
 	float hue = 0.0625 * (universal_id & 15);
-	[[universe comm_log_gui] setTextColor:[NSColor colorWithCalibratedHue:hue saturation:0.375 brightness:1.0 alpha:1.0]];
+	[[universe comm_log_gui] setTextColor:[OOColor colorWithCalibratedHue:hue saturation:0.375 brightness:1.0 alpha:1.0]];
 	if (scan_class == CLASS_THARGOID)
-		[[universe comm_log_gui] setTextColor:[NSColor greenColor]];
+		[[universe comm_log_gui] setTextColor:[OOColor greenColor]];
 	if (scan_class == CLASS_POLICE)
-		[[universe comm_log_gui] setTextColor:[NSColor cyanColor]];
+		[[universe comm_log_gui] setTextColor:[OOColor cyanColor]];
 }
 
 - (void) receiveCommsMessage:(NSString *) message_text

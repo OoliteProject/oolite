@@ -115,7 +115,7 @@ GLfloat		rvalue[729];			// stores random values for adjusting colors in the coro
 	
 void setUpSinTable();
 
-- (id) initAsSunWithColor:(NSColor *) sun_color;
+- (id) initAsSunWithColor:(OOColor *) sun_color;
 - (id) initAsAtmosphereForPlanet:(PlanetEntity *) planet;
 - (id) initAsCoronaForPlanet:(PlanetEntity *) planet;
 - (id) initWithSeed:(Random_Seed) p_seed fromUniverse:(Universe *) uni;

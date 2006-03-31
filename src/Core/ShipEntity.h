@@ -160,7 +160,7 @@ Your fair use and other rights are in no way affected by the above.
 
 #define AIMS_AGGRESSOR_SWITCHED_TARGET	@"AGGRESSOR_SWITCHED_TARGET"
 
-@class StationEntity, ParticleEntity, PlanetEntity, WormholeEntity, AI, Octree;
+@class OOColor, StationEntity, ParticleEntity, PlanetEntity, WormholeEntity, AI, Octree;
 
 @interface ShipEntity : Entity {
 	
@@ -206,7 +206,7 @@ Your fair use and other rights are in no way affected by the above.
 		int found_hostiles;				// number of hostiles found
 		BOOL escortsAreSetUp;			// set to YES once escorts are initialised (a bit of a hack)
 		
-		NSColor *laser_color;
+		OOColor *laser_color;
 		
 		// per ship-type variables
 		//
@@ -584,11 +584,11 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 - (BOOL) fireMainWeapon:(double) range;
 - (BOOL) fireAftWeapon:(double) range;
 - (BOOL) fireTurretCannon:(double) range;
-- (void) setLaserColor:(NSColor *) color;
+- (void) setLaserColor:(OOColor *) color;
 - (BOOL) fireSubentityLaserShot: (double) range;
 - (BOOL) fireDirectLaserShot;
 - (BOOL) fireLaserShotInDirection: (int) direction;
-- (BOOL) firePlasmaShot:(double) offset :(double) speed :(NSColor *) color;
+- (BOOL) firePlasmaShot:(double) offset :(double) speed :(OOColor *) color;
 - (BOOL) fireMissile;
 //- (BOOL) fireTharglet;
 - (BOOL) fireECM;
