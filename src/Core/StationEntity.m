@@ -595,7 +595,7 @@ NSDictionary* instructions(int station_id, Vector coords, float speed, float ran
 - (Vector) portUpVector
 {
 	
-	Vector result = vector_right_from_quaternion( quaternion_multiply( port_qrotation, q_rotation));
+	Vector result = vector_up_from_quaternion( quaternion_multiply( port_qrotation, q_rotation));
 	
 //	result.x = - result.x;	result.y = - result.y;	result.z = - result.z;
 	
