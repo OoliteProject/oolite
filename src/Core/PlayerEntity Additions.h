@@ -189,6 +189,9 @@ Your fair use and other rights are in no way affected by the above.
 
 - (void) setGuiToMissionScreen;
 - (void) setBackgroundFromDescriptionsKey:(NSString*) d_key;
+- (void) addScene:(NSArray*) items atOffset:(Vector) off;
+- (BOOL) processSceneDictionary:(NSDictionary *) couplet atOffset:(Vector) off;
+- (BOOL) processSceneString:(NSString*) item atOffset:(Vector) off;
 
 @end
 

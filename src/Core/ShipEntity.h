@@ -530,6 +530,7 @@ Your fair use and other rights are in no way affected by the above.
 Vector randomPositionInBoundingBox(BoundingBox bb);
 
 - (Vector) positionOffsetForAlignment:(NSString*) align;
+Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q, NSString* align);
 
 - (void) collectBountyFor:(ShipEntity *)other;
 

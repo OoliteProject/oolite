@@ -69,6 +69,8 @@ Your fair use and other rights are in no way affected by the above.
 
 @implementation PlayerEntity
 
+static Quaternion quaternion_identity = { (GLfloat)1.0, (GLfloat)0.0, (GLfloat)0.0, (GLfloat)0.0};
+
 - (void) init_keys
 {
 	NSDictionary	*kdic = [ResourceManager dictionaryFromFilesNamed:@"keyconfig.plist" inFolder:@"Config" andMerge:YES];
@@ -3627,8 +3629,7 @@ double scoopSoundPlayTime = 0.0;
 	[universe setDisplayText:NO];
 	[universe setDisplayCursor:NO];
 	
-	quaternion_set_identity(&q_rotation);	// reset orientation to dock
-	quaternion_into_gl_matrix(q_rotation, rotMatrix);
+	[self setQRotation: quaternion_identity];	// reset orientation to dock
 	
 	[universe set_up_break_pattern:position quaternion:q_rotation];
 	[self playBreakPattern];
@@ -3652,8 +3653,7 @@ double scoopSoundPlayTime = 0.0;
 		Vector launchPos = docked_station->position;
 		position = launchPos;
 		
-		quaternion_set_identity(&q_rotation);	// reset orientation to dock
-		quaternion_into_gl_matrix(q_rotation, rotMatrix);
+		[self setQRotation: quaternion_identity];	// reset orientation to dock
 	
 		v_forward = vector_forward_from_quaternion(q_rotation);
 		v_right = vector_right_from_quaternion(q_rotation);
@@ -4176,13 +4176,10 @@ double scoopSoundPlayTime = 0.0;
 	if (docked_station)
 	{
 		position = docked_station->position;
-		quaternion_set_identity(&q_rotation);
-//		[self setQRotation:docked_station->q_rotation];
+		[self setQRotation: quaternion_identity];
 		v_forward = vector_forward_from_quaternion(q_rotation);
 		v_right = vector_right_from_quaternion(q_rotation);
 		v_up = vector_up_from_quaternion(q_rotation);
-	
-		q_rotation.w = -q_rotation.w;   // need this as a fix...
 	}
 	
 	flight_roll = 0.0;
@@ -4310,6 +4307,21 @@ double scoopSoundPlayTime = 0.0;
 	[universe setDisplayText: YES];
 	[universe setDisplayCursor: NO];
 	[universe setViewDirection: VIEW_DOCKED];
+
+
+	// DEBUG TEST ROUTINES
+		NSLog(@"DEBUG Player q_rotation = (%.2f %.2f %.2f %.2f)",
+			q_rotation.w, q_rotation.x, q_rotation.y, q_rotation.z);
+		[universe removeDemoShips];
+		[self debugOn];
+		[self setBackgroundFromDescriptionsKey:@"test-scene"];
+		[self setShowDemoShips: YES];
+		[self debugOff];
+		NSLog(@"DEBUG Player q_rotation = (%.2f %.2f %.2f %.2f)",
+			q_rotation.w, q_rotation.x, q_rotation.y, q_rotation.z);
+		NSLog(@"DEBUG status %d showDemoShips:%@", status, [self showDemoShips]? @"YES":@"NO");
+	// END TEST
+	
 }
 
 // DJS: moved from the above method because there are

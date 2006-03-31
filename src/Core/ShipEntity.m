@@ -1884,7 +1884,7 @@ BOOL ship_canCollide (ShipEntity* ship)
 	//
 	if (status == STATUS_DEMO)
     {
-        [self applyRoll:delta_t*flight_roll andClimb:delta_t*flight_pitch];
+		[self applyRoll: delta_t * flight_roll andClimb: delta_t * flight_pitch];
 		position.x += delta_t*velocity.x;
 		position.y += delta_t*velocity.y;
 		position.z += delta_t*velocity.z;
@@ -4242,6 +4242,56 @@ Vector randomPositionInBoundingBox(BoundingBox bb)
 			break;
 		case (unichar)'m':
 			result.z = boundingBox.min.z;
+			break;
+	}
+	return result;
+}
+
+Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q, NSString* align)
+{
+	NSString* padAlign = [NSString stringWithFormat:@"%@---", align];
+	Vector i = vector_right_from_quaternion(q);
+	Vector j = vector_up_from_quaternion(q);
+	Vector k = vector_forward_from_quaternion(q);
+	BoundingBox arbb = [ship findBoundingBoxRelativeToPosition: make_vector(0,0,0) InVectors: i : j : k];
+	Vector result = make_vector( 0.0f, 0.0f, 0.0f);
+	switch ([padAlign characterAtIndex:0])
+	{
+		case (unichar)'c':
+		case (unichar)'C':
+			result.x = 0.5 * (arbb.min.x + arbb.max.x);
+			break;
+		case (unichar)'M':
+			result.x = arbb.max.x;
+			break;
+		case (unichar)'m':
+			result.x = arbb.min.x;
+			break;
+	}
+	switch ([padAlign characterAtIndex:1])
+	{
+		case (unichar)'c':
+		case (unichar)'C':
+			result.y = 0.5 * (arbb.min.y + arbb.max.y);
+			break;
+		case (unichar)'M':
+			result.y = arbb.max.y;
+			break;
+		case (unichar)'m':
+			result.y = arbb.min.y;
+			break;
+	}
+	switch ([padAlign characterAtIndex:2])
+	{
+		case (unichar)'c':
+		case (unichar)'C':
+			result.z = 0.5 * (arbb.min.z + arbb.max.z);
+			break;
+		case (unichar)'M':
+			result.z = arbb.max.z;
+			break;
+		case (unichar)'m':
+			result.z = arbb.min.z;
 			break;
 	}
 	return result;

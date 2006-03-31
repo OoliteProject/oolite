@@ -1759,35 +1759,184 @@ static int shipsFound;
 
 - (void) setBackgroundFromDescriptionsKey:(NSString*) d_key
 {
-	NSDictionary* items = (NSDictionary*)[[universe descriptions] objectForKey:d_key];
+	NSArray* items = (NSArray*)[[universe descriptions] objectForKey:d_key];
+	//
+	if (!items)
+		return;
+	//
+	[self addScene: items atOffset: position];
+	//
+	[self setShowDemoShips: YES];
+}
+
+- (void) addScene:(NSArray*) items atOffset:(Vector) off
+{
 	if (!items)
 		return;
 	int i;
-	NSArray* itemKeys = [items allKeys];
-	for (i = 0; i < [itemKeys count]; i++)
+	for (i = 0; i < [items count]; i++)
 	{
-		NSString* i_key = (NSString*)[itemKeys objectAtIndex: i];
-		NSArray* i_info = [ResourceManager scanTokensFromString: (NSString*)[items objectForKey: i_key]];
-		if (!i_info)
-			continue;
-		//
-		// Add ship models:
-		//
-		if ([i_key isEqual:@"ship"]||[i_key isEqual:@"model"]||[i_key isEqual:@"role"])
+		NSObject* item = [items objectAtIndex:i];
+		if ([item isKindOfClass:[NSString class]])
+			[self processSceneString: (NSString*)item atOffset: off];
+		if ([item isKindOfClass:[NSArray class]])
+			[self addScene: (NSArray*)item atOffset: off];
+		if ([item isKindOfClass:[NSDictionary class]])
+			[self processSceneDictionary: (NSDictionary*) item atOffset: off];
+	}
+}
+
+- (BOOL) processSceneDictionary:(NSDictionary *) couplet atOffset:(Vector) off
+{
+	NSArray *conditions = (NSArray *)[couplet objectForKey:@"conditions"];
+	NSArray *actions = nil;
+	if ([couplet objectForKey:@"do"])
+		actions = [NSArray arrayWithObject: [couplet objectForKey:@"do"]];
+	NSArray *else_actions = nil;
+	if ([couplet objectForKey:@"else"])
+		else_actions = [NSArray arrayWithObject: [couplet objectForKey:@"else"]];
+	BOOL success = YES;
+	int i;
+	if (conditions == nil)
+	{
+		NSLog(@"SCENE ERROR no 'conditions' in %@ - returning YES and performing 'do' actions.", [couplet description]);
+	}
+	else
+	{
+		if (![conditions isKindOfClass:[NSArray class]])
 		{
-			if ([i_info count] < 9)	// must be name_x_y_z_W_X_Y_Z_align
-				continue;
-			ShipEntity* ship = nil;
-			if ([i_key isEqual:@"ship"]||[i_key isEqual:@"model"])
-				ship = [universe getShip:(NSString*)[i_info objectAtIndex: 0]];
-			if ([i_key isEqual:@"role"])
-				ship = [universe getShipWithRole:(NSString*)[i_info objectAtIndex: 0]];
-			if (!ship)
-				continue;
-			NSLog(@"DEBUG we should add a DEMO ship %@ according to '%@'", ship, [items objectForKey: i_key]);
+			NSLog(@"SCENE ERROR \"conditions = %@\" is not an array - returning NO.", [conditions description]);
+			NSBeep();
+			return NO;
 		}
 	}
+	
+	// check conditions..
+	for (i = 0; (i < [conditions count])&&(success); i++)
+		success &= [self scriptTestCondition:(NSString *)[conditions objectAtIndex:i]];
+		
+	// perform successful actions...
+	if ((success) && (actions) && [actions count])
+		[self addScene: actions atOffset: off];
+		
+	// perform unsuccessful actions
+	if ((!success) && (else_actions) && [else_actions count])
+		[self addScene: else_actions atOffset: off];
+		
+	return success;
+}
+	
+- (BOOL) processSceneString:(NSString*) item atOffset:(Vector) off
+{
+	if (!item)
+		return NO;
+	NSArray* i_info = [ResourceManager scanTokensFromString: item];
+	if (!i_info)
+		return NO;
+	NSString* i_key = (NSString*)[i_info objectAtIndex:0];
+	
+	NSLog(@"..... processing %@ (%@)", i_info, i_key);
+	
+	//
+	// recursively add further scenes:
+	//
+	if ([i_key isEqual:@"scene"])
+	{
+		if ([i_info count] != 5)	// must be scene_key_x_y_z
+			return NO;				//		   0.... 1.. 2 3 4
+		NSString* scene_key = (NSString*)[i_info objectAtIndex: 1];
+		Vector	scene_offset = [Entity vectorFromString:[[i_info subarrayWithRange:NSMakeRange( 2, 3)] componentsJoinedByString:@" "]];
+		scene_offset.x += off.x;	scene_offset.y += off.y;	scene_offset.z += off.z;
+		NSArray* scene_items = (NSArray*)[[universe descriptions] objectForKey:scene_key];
+		if (debug)
+			NSLog(@"::::: adding scene: '%@'", scene_key);
+		//
+		if (scene_items)
+		{
+			[self addScene: scene_items atOffset: scene_offset];
+			return YES;
+		}
+		else
+			return NO;
+	}
+	//
+	// Add ship models:
+	//
+	if ([i_key isEqual:@"ship"]||[i_key isEqual:@"model"]||[i_key isEqual:@"role"])
+	{
+		if ([i_info count] != 10)	// must be item_name_x_y_z_W_X_Y_Z_align
+			return NO;				//		   0... 1... 2 3 4 5 6 7 8 9....
+		ShipEntity* ship = nil;
+		if ([i_key isEqual:@"ship"]||[i_key isEqual:@"model"])
+			ship = [universe getShip:(NSString*)[i_info objectAtIndex: 1]];
+		if ([i_key isEqual:@"role"])
+			ship = [universe getShipWithRole:(NSString*)[i_info objectAtIndex: 1]];
+		if (!ship)
+			return NO;
 
+		Quaternion	model_q = [Entity quaternionFromString:[[i_info subarrayWithRange:NSMakeRange( 5, 4)] componentsJoinedByString:@" "]];
+		
+		Vector	model_p0 = [Entity vectorFromString:[[i_info subarrayWithRange:NSMakeRange( 2, 3)] componentsJoinedByString:@" "]];
+		Vector	model_offset = positionOffsetForShipInRotationToAlignment( ship, model_q, (NSString*)[i_info objectAtIndex:9]);
+		model_p0.x += off.x - model_offset.x;
+		model_p0.y += off.y - model_offset.y;
+		model_p0.z += off.z - model_offset.z;
+
+		if (debug)
+			NSLog(@"::::: adding model to scene:'%@'", ship);
+		[ship setQRotation: model_q];
+		[ship setPosition: model_p0];
+		[ship setStatus: STATUS_DEMO];
+		[ship setScanClass: CLASS_NO_DRAW];
+		[universe addEntity: ship];
+		[[ship getAI] setStateMachine: @"nullAI.plist"];
+		[ship setRoll: 0.0];
+		[ship setPitch: 0.0];
+		[ship setVelocity: make_vector( 0.0f, 0.0f, 0.0f)];
+		[ship setBehaviour: BEHAVIOUR_STOP_STILL];
+
+		[ship release];
+		return YES;
+	}
+	//
+	// Add player ship model:
+	//
+	if ([i_key isEqual:@"player"])
+	{
+		if ([i_info count] != 9)	// must be player_x_y_z_W_X_Y_Z_align
+			return NO;				//		   0..... 1 2 3 4 5 6 7 8....
+			
+		ShipEntity* doppelganger = [universe getShip: ship_desc];   // retain count = 1
+		if (!doppelganger)
+			return NO;
+			
+		Quaternion	model_q = [Entity quaternionFromString:[[i_info subarrayWithRange:NSMakeRange( 4, 4)] componentsJoinedByString:@" "]];
+		
+		Vector	model_p0 = [Entity vectorFromString:[[i_info subarrayWithRange:NSMakeRange( 1, 3)] componentsJoinedByString:@" "]];
+		Vector	model_offset = positionOffsetForShipInRotationToAlignment( doppelganger, model_q, (NSString*)[i_info objectAtIndex:8]);
+		model_p0.x += off.x - model_offset.x;
+		model_p0.y += off.y - model_offset.y;
+		model_p0.z += off.z - model_offset.z;
+
+		if (debug)
+			NSLog(@"::::: adding model to scene:'%@'", doppelganger);
+		[doppelganger setQRotation: model_q];
+		[doppelganger setPosition: model_p0];
+		[doppelganger setStatus: STATUS_DEMO];
+		[doppelganger setScanClass: CLASS_NO_DRAW];
+		[universe addEntity: doppelganger];
+		[[doppelganger getAI] setStateMachine: @"nullAI.plist"];
+		[doppelganger setRoll: 0.0];
+		[doppelganger setPitch: 0.0];
+		[doppelganger setVelocity: make_vector( 0.0f, 0.0f, 0.0f)];
+		[doppelganger setBehaviour: BEHAVIOUR_STOP_STILL];
+
+		[doppelganger release];
+		return YES;
+	}
+	//
+	// fall through..
+	return NO;
 }
 
 @end
