@@ -48,35 +48,43 @@ Your fair use and other rights are in no way affected by the above.
 	rgba[3] = a;
 }
 
-static GLfloat convertHue(GLfloat n1, GLfloat n2, GLfloat hue)
-{
-	while (hue > 360.0) hue -= 360.0;
-	while (hue < 0.0)	hue += 360.0;
-	if (hue < 60.0)
-		return n1 + (n2 - n1) * hue / 60.0;
-	else if (hue < 180.0)
-		return n2;
-	else if (hue < 240.0)
-		return n1 + (n2 - n1) * (240.0 - hue) / 60.0;
-	else
-		return n1;
-}
-
 - (void) setHSBA:(GLfloat)h:(GLfloat)s:(GLfloat)b:(GLfloat)a
 {
-	GLfloat m1, m2;
-	m2 = (b <= 0.5)? (b * (b + s)):(b + s- b * s);
-	m1 = 2.0 * b - m2;
 	if (s == 0.0)
 	{
-		rgba[0] = rgba[1] = rgba[2] = 0.0f;
+		rgba[0] = rgba[1] = rgba[2] = b;
 		rgba[3] = a;
 		return;
 	}
-	rgba[0] = convertHue( m1, m2, h + 120.0);
-	rgba[1] = convertHue( m1, m2, h);
-	rgba[2] = convertHue( m1, m2, h - 120.0);
+	GLfloat f, p, q, t;
+	int i;
+	while (h >= 360.0) h -= 360.0;
+	while (h < 0.0) h += 360.0;
+	h /= 60.0;
+	i = floor(h);
+	f = h - i;
+	p = b * (1.0 - s);
+	q = b * (1.0 - (s * f));
+	t = b * (1.0 - (s * (1.0 - f)));
+	switch (i)
+	{
+		case 0:
+			rgba[0] = b;	rgba[1] = t;	rgba[2] = p;	break;
+		case 1:
+			rgba[0] = q;	rgba[1] = b;	rgba[2] = p;	break;
+		case 2:
+			rgba[0] = p;	rgba[1] = b;	rgba[2] = t;	break;
+		case 3:
+			rgba[0] = p;	rgba[1] = q;	rgba[2] = b;	break;
+		case 4:
+			rgba[0] = t;	rgba[1] = p;	rgba[2] = b;	break;
+		case 5:
+			rgba[0] = b;	rgba[1] = p;	rgba[2] = q;	break;
+	}
+
 	rgba[3] = a;
+	
+	NSLog(@"DEBUG HSB: %.2f %.2f %.2f becomes RGB %.2f %.2f %.2f", h * 60.0, s, b, rgba[0], rgba[1], rgba[2]);
 }
 
 /* Create NSCalibratedRGBColorSpace colors.
