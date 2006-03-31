@@ -7,6 +7,8 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		083325DD09DDBCDE00F5B8E4 /* OOColor.h in Headers */ = {isa = PBXBuildFile; fileRef = 083325DB09DDBCDE00F5B8E4 /* OOColor.h */; };
+		083325DE09DDBCDE00F5B8E4 /* OOColor.m in Sources */ = {isa = PBXBuildFile; fileRef = 083325DC09DDBCDE00F5B8E4 /* OOColor.m */; };
 		0865427906B8447D000CA0AB /* MainMenu.nib in Resources */ = {isa = PBXBuildFile; fileRef = 29B97319FDCFA39411CA2CEA /* MainMenu.nib */; };
 		0865431C06B8447D000CA0AB /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1058C7A1FEA54F0111CA2CBB /* Cocoa.framework */; };
 		0865431D06B8447D000CA0AB /* OpenGL.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 06AFA01500A58FB77F000001 /* OpenGL.framework */; };
@@ -389,6 +391,8 @@
 
 /* Begin PBXFileReference section */
 		06AFA01500A58FB77F000001 /* OpenGL.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = OpenGL.framework; path = /System/Library/Frameworks/OpenGL.framework; sourceTree = "<absolute>"; };
+		083325DB09DDBCDE00F5B8E4 /* OOColor.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = OOColor.h; path = src/Core/OOColor.h; sourceTree = "<group>"; };
+		083325DC09DDBCDE00F5B8E4 /* OOColor.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = OOColor.m; path = src/Core/OOColor.m; sourceTree = "<group>"; };
 		0865432206B8447D000CA0AB /* Oolite.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Oolite.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		0878FD2F086EF845004CB752 /* Carbon.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Carbon.framework; path = /System/Library/Frameworks/Carbon.framework; sourceTree = "<absolute>"; };
 		08CB1FEC09D3F2AA001EA329 /* customsounds.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist; name = customsounds.plist; path = Resources/Config/customsounds.plist; sourceTree = "<group>"; };
@@ -1093,6 +1097,8 @@
 				2516112D099544390037C2E1 /* MutableDictionaryExtension.m */,
 				25161131099544390037C2E1 /* ScannerExtension.h */,
 				25161130099544390037C2E1 /* ScannerExtension.m */,
+				083325DB09DDBCDE00F5B8E4 /* OOColor.h */,
+				083325DC09DDBCDE00F5B8E4 /* OOColor.m */,
 				25161017099543850037C2E1 /* Audio */,
 			);
 			name = Classes;
@@ -1251,6 +1257,7 @@
 				2512833F09BA27C100F43D55 /* Octree.h in Headers */,
 				2512834209BA27EC00F43D55 /* Geometry.h in Headers */,
 				2512834609BA281500F43D55 /* CollisionRegion.h in Headers */,
+				083325DD09DDBCDE00F5B8E4 /* OOColor.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1626,6 +1633,7 @@
 				2512833E09BA27C100F43D55 /* Octree.m in Sources */,
 				2512834309BA27EC00F43D55 /* Geometry.m in Sources */,
 				2512834709BA281500F43D55 /* CollisionRegion.m in Sources */,
+				083325DE09DDBCDE00F5B8E4 /* OOColor.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
