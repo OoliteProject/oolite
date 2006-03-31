@@ -2541,6 +2541,15 @@ BOOL ship_canCollide (ShipEntity* ship)
 	int rhs = 3.2 / delta_t;
 	if (rhs)	missile_chance = 1 + (ranrot_rand() % rhs);
 	
+	if ((has_energy_bomb) && (range < 10000.0))
+	{
+		float	qbomb_chance = 0.01 * delta_t;
+		if (randf() < qbomb_chance)
+		{
+			[self launchEnergyBomb];
+		}
+	}
+	
 	double hurt_factor = 16 * pow(energy/max_energy, 4.0);
 	if (([(ShipEntity *)[self getPrimaryTarget] getPrimaryTarget] == self)&&(missiles > missile_chance * hurt_factor))
 		[self fireMissile];
@@ -5957,6 +5966,7 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 {
 	if (!has_energy_bomb)
 		return NO;
+	has_energy_bomb = NO;
 	[self setSpeed: max_flight_speed + 300];
 	ShipEntity*	bomb = [universe getShipWithRole:@"energy-bomb"];
 	if (!bomb)
