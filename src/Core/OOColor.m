@@ -84,7 +84,7 @@ static GLfloat convertHue(GLfloat n1, GLfloat n2, GLfloat hue)
 + (OOColor *)colorWithCalibratedHue:(float)hue saturation:(float)saturation brightness:(float)brightness alpha:(float)alpha
 {
 	OOColor* result = [[OOColor alloc] init];
-	[result setHSBA:hue:saturation:brightness:alpha];
+	[result setHSBA: 360.0 * hue : saturation : brightness : alpha];
 	return [result autorelease];
 }
 
