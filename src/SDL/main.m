@@ -22,9 +22,6 @@ int main(int argc, char *argv[])
 #ifdef GNUSTEP && !OOLITE_SDL_MAC
 	int i;
 
-	// This is still necessary for NSFont calls.
-	[NSApplication sharedApplication];
-
 	// Need this because we're not using the default run loop's autorelease
 	// pool.
 	NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];

@@ -3998,7 +3998,7 @@ double scoopSoundPlayTime = 0.0;
 		filename = [[(MyOpenGLView *)[universe gameView] gameController] playerFileToLoad];
 	if (!filename)
 	{
-		NSBeep();
+		// NSBeep(); // AppKit
 		NSLog(@"ERROR no filename returned by [[(MyOpenGLView *)[universe gameView] gameController] playerFileToLoad]");
 		NSException* myException = [NSException
 			exceptionWithName:@"GameNotSavedException"
@@ -4009,7 +4009,7 @@ double scoopSoundPlayTime = 0.0;
 	}
 	if (![[self commanderDataDictionary] writeOOXMLToFile:filename atomically:YES])
 	{
-		NSBeep();
+		// NSBeep(); //AppKit
 		NSLog(@"***** ERROR: Save to %@ failed!", filename);
 		NSException* myException = [NSException
 			exceptionWithName:@"OoliteException"
@@ -4036,6 +4036,8 @@ double scoopSoundPlayTime = 0.0;
 
 - (void) savePlayer
 {
+// Load/Save is done by an Oolite native function for gnustep.
+#ifndef GNUSTEP
 	NSSavePanel *sp;
 	int runResult;
 
@@ -4063,7 +4065,7 @@ double scoopSoundPlayTime = 0.0;
 		
 		if (![[self commanderDataDictionary] writeOOXMLToFile:[sp filename] atomically:YES])
 		{
-			NSBeep();
+			// NSBeep(); // AppKit
 			NSLog(@"***** ERROR: Save to %@ failed!", [sp filename]);
 			NSException* myException = [NSException
 				exceptionWithName:@"OoliteException"
@@ -4087,10 +4089,12 @@ double scoopSoundPlayTime = 0.0;
 		[[[Entity dataStore] preloadedDataFiles] writeToFile: cache_path atomically: YES];
 	}
 	[self setGuiToStatusScreen];
+#endif
 }
 
 - (void) loadPlayer
 {
+#ifndef GNUSTEP
     int result;
     NSArray *fileTypes = [NSArray arrayWithObject:@"oolite-save"];
     NSOpenPanel *oPanel = [NSOpenPanel openPanel];
@@ -4099,6 +4103,7 @@ double scoopSoundPlayTime = 0.0;
     result = [oPanel runModalForDirectory:nil file:nil types:fileTypes];
     if (result == NSOKButton)
 		[self loadPlayerFromFile:[oPanel filename]];
+#endif
 }
 
 - (void) loadPlayerFromFile:(NSString *)fileToOpen
@@ -4156,7 +4161,7 @@ double scoopSoundPlayTime = 0.0;
 	else
 	{
 		NSLog(@"***** FILE LOADING ERROR!! *****");
-		NSBeep();
+		// NSBeep(); AppKit
 		[[universe gameController] setPlayerFileToLoad:nil];
 		[universe game_over];
 		[universe clearPreviousMessage];
@@ -4580,6 +4585,7 @@ double scoopSoundPlayTime = 0.0;
 
 - (void) starChartDump
 {
+#ifndef GNUSTEP
 	NSString	*filepath = [[[NSBundle mainBundle] bundlePath] stringByDeletingLastPathComponent];
 	NSString	*pathToPic = [filepath stringByAppendingPathComponent:[NSString stringWithFormat:@"StarChart-Galaxy-%03d.tiff",galaxy_number]];
 	BOOL		dumpPic = (![[NSFileManager defaultManager] fileExistsAtPath:pathToPic]);
@@ -4760,6 +4766,7 @@ double scoopSoundPlayTime = 0.0;
 		[NSBezierPath setDefaultLineWidth:1.0];
 	}
 	/* ends */
+#endif
 }
 
 

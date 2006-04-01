@@ -227,7 +227,7 @@ NSMutableDictionary*	surface_cache;
 			else
 			{
 				NSString* version = (NSString *)[[[NSBundle mainBundle] infoDictionary] objectForKey:@"CFBundleVersion"];
-				NSBeep();
+				// NSBeep(); // AppKit
 				if (!failed_parsing)
 				{
 					NSString* old_errors = errors;
@@ -569,6 +569,7 @@ NSMutableDictionary*	surface_cache;
 	return result;
 }
 
+#ifndef GNUSTEP
 + (NSImage *) imageNamed:(NSString *)filename inFolder:(NSString *)foldername
 {
 	NSImage *result = nil;
@@ -608,6 +609,7 @@ NSMutableDictionary*	surface_cache;
 	//NSLog(@"---> ResourceManager found %d file(s) with name '%@' (in folder '%@')", r, filename, foldername);
 	return result;
 }
+#endif
 
 + (NSString *) stringFromFilesNamed:(NSString *)filename inFolder:(NSString *)foldername
 {

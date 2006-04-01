@@ -165,7 +165,7 @@
 - (void) displayFunctionList: (GuiDisplayGen *)gui
 {
    int i;
-   [gui setColor: [NSColor greenColor] forRow: HEADINGROW];
+   [gui setColor: [OOColor greenColor] forRow: HEADINGROW];
    [gui setArray: [NSArray arrayWithObjects:
       @"Function", @"Assigned to", @"Type", nil]
           forRow: HEADINGROW];

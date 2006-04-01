@@ -81,7 +81,9 @@ BOOL always_include_addons;
 + (OOSound *) ooSoundNamed:(NSString *)filename inFolder:(NSString *)foldername;
 + (OOMusic *) ooMusicNamed:(NSString *)filename inFolder:(NSString *)foldername;
 
+#ifndef GNUSTEP
 + (NSImage *) imageNamed:(NSString *)filename inFolder:(NSString *)foldername;
+#endif
 + (NSString *) stringFromFilesNamed:(NSString *)filename inFolder:(NSString *)foldername;
 #ifdef GNUSTEP
 + (SDLImage *) surfaceNamed:(NSString *)filename inFolder:(NSString *)foldername;

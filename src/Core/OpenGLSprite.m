@@ -59,7 +59,7 @@ Your fair use and other rights are in no way affected by the above.
 
 - (id) initWithText:(NSString *)str
 {
-    return [self initWithText:str ofColor:[NSColor yellowColor]];
+    return [self initWithText:str ofColor:[OOColor yellowColor]];
 }
 
 - (id) initWithText:(NSString *)str ofColor:(NSColor *) textColor
@@ -183,7 +183,7 @@ Your fair use and other rights are in no way affected by the above.
 #endif
 }
 
-
+#ifndef GNUSTEP
 - (void)makeTextureFromImage:(NSImage *)texImage cropRectangle:(NSRect)cropRect size:(NSSize)spriteSize
 {
     NSBitmapImageRep*	bitmapImageRep;
@@ -345,6 +345,8 @@ Your fair use and other rights are in no way affected by the above.
     }
     [bitmapImageRep release];
 }
+
+#endif
 
 #ifdef GNUSTEP
 /* SDL interprets each pixel as a 32-bit number, so our masks must depend

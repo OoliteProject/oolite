@@ -97,13 +97,13 @@ static NSString * mission_key;
 	if (conditions == nil)
 	{
 		NSLog(@"SCRIPT ERROR no 'conditions' in %@ - returning YES.", [couplet description]);
-		NSBeep();
+		// NSBeep(); // AppKit dependency
 		return success;
 	}
 	if (![conditions isKindOfClass:[NSArray class]])
 	{
 		NSLog(@"SCRIPT ERROR \"conditions = %@\" is not an array - returning YES.", [conditions description]);
-		NSBeep();
+		// NSBeep(); // AppKit dependency
 		return success;
 	}
 	for (i = 0; (i < [conditions count])&&(success); i++)
@@ -113,7 +113,7 @@ static NSString * mission_key;
 		if (![actions isKindOfClass:[NSArray class]])
 		{
 			NSLog(@"SCRIPT ERROR \"actions = %@\" is not an array.", [actions description]);
-			NSBeep();
+			// NSBeep(); AppKit dependency
 		}
 		else
 		{
@@ -132,7 +132,7 @@ static NSString * mission_key;
 		if (![else_actions isKindOfClass:[NSArray class]])
 		{
 			NSLog(@"SCRIPT ERROR \"else_actions = %@\" is not an array.", [else_actions description]);
-			NSBeep();
+			// NSBeep(); AppKit
 		}
 		else
 		{
@@ -1807,7 +1807,7 @@ static int shipsFound;
 		if (![conditions isKindOfClass:[NSArray class]])
 		{
 			NSLog(@"SCENE ERROR \"conditions = %@\" is not an array - returning NO.", [conditions description]);
-			NSBeep();
+			// NSBeep(); AppKit
 			return NO;
 		}
 	}

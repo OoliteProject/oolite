@@ -695,7 +695,7 @@ static  Universe	*data_store_universe;
 			else
 			{
 				NSLog(@"ERROR no basefile for entity %@");
-				NSBeep();
+			//	NSBeep();	// appkit dependency
 			}
 		}
 		glShadeModel(GL_SMOOTH);

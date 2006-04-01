@@ -503,7 +503,7 @@
 
 	if(![[self commanderDataDictionary] writeOOXMLToFile:savePath atomically:YES])
 	{
-		NSBeep();
+		//NSBeep();	// appkit dependency
 		NSLog(@"***** ERROR: Save to %@ failed!", savePath);
 		NSException *myException = [NSException
 			exceptionWithName:@"OoliteException"

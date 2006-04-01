@@ -4253,7 +4253,7 @@ GLfloat	starboard_matrix[] = {	0.0f, 0.0f, 1.0f, 0.0f,		0.0f, 1.0f, 0.0f, 0.0f,	
 	if (!e1)
 	{
 		NSLog(@"ERROR ***** No entity set in Universe getSafeVectorFromEntity:toDistance:fromPoint:");
-		NSBeep();
+		// NSBeep(); // AppKit
 		return make_vector( 0.0f, 0.0f, 0.0f);
 	}
 	Vector  f1;
@@ -7016,7 +7016,7 @@ NSComparisonResult comparePrice( id dict1, id dict2, void * context)
 	if (!ship)
 	{
 		NSLog(@"ERROR ***** No ship set in Universe getSunSkimStartPositionForShip:");
-		NSBeep();
+		// NSBeep(); // AppKit
 		return make_vector( 0.0f, 0.0f, 0.0f);
 	}
 	PlanetEntity* the_sun = [self sun];
@@ -7024,7 +7024,7 @@ NSComparisonResult comparePrice( id dict1, id dict2, void * context)
 	if (!the_sun)
 	{
 		NSLog(@"ERROR ***** No sun set in Universe getSunSkimStartPositionForShip:");
-		NSBeep();
+		// NSBeep(); // AppKit
 		return make_vector( 0.0f, 0.0f, 0.0f);
 	}
 	Vector v0 = the_sun->position;
@@ -7047,14 +7047,14 @@ NSComparisonResult comparePrice( id dict1, id dict2, void * context)
 	if (!ship)
 	{
 		NSLog(@"ERROR ***** No ship set in Universe getSunSkimEndPositionForShip:");
-		NSBeep();
+		// NSBeep(); // AppKit
 		return make_vector( 0.0f, 0.0f, 0.0f);
 	}
 	// get vector from sun position to ship
 	if (!the_sun)
 	{
 		NSLog(@"ERROR ***** No sun set in Universe getSunSkimEndPositionForShip:");
-		NSBeep();
+		// NSBeep(); // AppKit
 		return make_vector( 0.0f, 0.0f, 0.0f);
 	}
 	Vector v0 = the_sun->position;

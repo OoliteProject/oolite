@@ -5,15 +5,28 @@
 #
 ifeq ($(debug),yes)
 	EXTENSION=debug
+	SHAREDOBJ=shared_debug_obj
 else
 	EXTENSION=app
+	SHAREDOBJ=shared_obj
 endif
+
+ifeq ($(GNUSTEP_HOST_OS),mingw32)
+	BINARY=$(SHAREDOBJ)/$(OBJC_PROGRAM_NAME).exe
+else
+	BINARY=$(SHAREDOBJ)/$(OBJC_PROGRAM_NAME)
+endif
+
 CONTENTS = Contents
-CONTENTDIR=$(APP_NAME).$(EXTENSION)/$(CONTENTS)
-GNUSTEP_OW=$(APP_NAME).$(EXTENSION)/Resources/Info-gnustep.plist
+PROGDIR=$(OBJC_PROGRAM_NAME).$(EXTENSION)
+CONTENTDIR=$(OBJC_PROGRAM_NAME).$(EXTENSION)/$(CONTENTS)
+GNUSTEP_OW=$(OBJC_PROGRAM_NAME).$(EXTENSION)/Resources/Info-gnustep.plist
 
 after-all:: 
 	rm -rf $(CONTENTDIR)
+	$(MKDIRS) $(PROGDIR)
+	$(MKDIRS) $(PROGDIR)/Resources
 	$(MKDIRS) $(CONTENTDIR)
 	$(CP) -r Resources $(CONTENTDIR)/Resources
 	$(CP) src/Cocoa/Info-Oolite.plist $(GNUSTEP_OW)
+	$(CP) $(BINARY) $(PROGDIR)
