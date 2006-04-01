@@ -242,7 +242,7 @@ enum
 	
 	NSMutableArray*			comm_log;
 
-#ifdef WIN32
+#ifdef GNUSTEP
  	SDLImage				*missionBackgroundImage;
 #else
 	NSImage					*missionBackgroundImage;

@@ -66,7 +66,7 @@ extern int debug;
 - (id) initWithImage:(NSImage *)textureImage cropRectangle:(NSRect)cropRect size:(NSSize) spriteSize;
 #endif
 - (id) initWithText:(NSString *)str;
-- (id) initWithText:(NSString *)str ofColor:(NSColor *) textColor;
+- (id) initWithText:(NSString *)str ofColor:(OOColor *) textColor;
 - (void) dealloc;
 
 - (NSSize)  size;

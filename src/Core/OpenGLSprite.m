@@ -49,6 +49,7 @@ Your fair use and other rights are in no way affected by the above.
     return self;
 }
 
+#ifndef GNUSTEP
 - (id) initWithImage:(NSImage *)textureImage cropRectangle:(NSRect)cropRect size:(NSSize) spriteSize
 {
     self = [super init];
@@ -56,13 +57,14 @@ Your fair use and other rights are in no way affected by the above.
     return self;
 
 }
+#endif
 
 - (id) initWithText:(NSString *)str
 {
     return [self initWithText:str ofColor:[OOColor yellowColor]];
 }
 
-- (id) initWithText:(NSString *)str ofColor:(NSColor *) textColor
+- (id) initWithText:(NSString *)str ofColor:(OOColor *) textColor
 {
 #ifndef GNUSTEP
     NSImage	*image;

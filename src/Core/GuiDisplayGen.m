@@ -567,7 +567,7 @@ Your fair use and other rights are in no way affected by the above.
 }
 
 
-#ifdef WIN32
+#ifdef GNUSTEP
 - (void) setBackgroundImage:(SDLImage *) bg_image;
 #else
 - (void) setBackgroundImage:(NSImage *) bg_image;

@@ -76,7 +76,7 @@ extern int debug;
 	
 	OOSound			*guiclick;
 
-#ifdef WIN32
+#ifdef GNUSTEP
 	SDLImage		*backgroundImage;
 #else
 	NSImage			*backgroundImage;
@@ -168,7 +168,7 @@ extern int debug;
 
 - (void) scrollUp:(int) how_much;
 
-#ifdef WIN32
+#ifdef GNUSTEP
 - (void) setBackgroundImage:(SDLImage *) bg_image;
 #else
 - (void) setBackgroundImage:(NSImage *) bg_image;

@@ -175,7 +175,7 @@ GLuint ascii_texture_name;
 	if ([info objectForKey:IMAGE_KEY])
 	{
 		//NSLog(@"DEBUG adding Legend %@",[info objectForKey:IMAGE_KEY]);
-#ifdef WIN32
+#ifdef GNUSTEP
 		SDLImage		*legendImage = [ResourceManager surfaceNamed:(NSString *)[info objectForKey:IMAGE_KEY] inFolder:@"Images"];
 #else
 		NSImage			*legendImage = [ResourceManager imageNamed:(NSString *)[info objectForKey:IMAGE_KEY] inFolder:@"Images"];
