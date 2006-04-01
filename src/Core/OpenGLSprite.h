@@ -64,9 +64,9 @@ extern int debug;
 - (id) init;
 #ifndef GNUSTEP
 - (id) initWithImage:(NSImage *)textureImage cropRectangle:(NSRect)cropRect size:(NSSize) spriteSize;
-#endif
 - (id) initWithText:(NSString *)str;
-- (id) initWithText:(NSString *)str ofColor:(OOColor *) textColor;
+- (id) initWithText:(NSString *)str ofColor:(NSColor *) textColor;
+#endif
 - (void) dealloc;
 
 - (NSSize)  size;

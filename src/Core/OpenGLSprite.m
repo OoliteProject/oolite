@@ -57,16 +57,14 @@ Your fair use and other rights are in no way affected by the above.
     return self;
 
 }
-#endif
 
 - (id) initWithText:(NSString *)str
 {
-    return [self initWithText:str ofColor:[OOColor yellowColor]];
+    return [self initWithText:str ofColor:[NSColor yellowColor]];
 }
 
-- (id) initWithText:(NSString *)str ofColor:(OOColor *) textColor
+- (id) initWithText:(NSString *)str ofColor:(NSColor *) textColor
 {
-#ifndef GNUSTEP
     NSImage	*image;
     NSSize	strsize;
     NSMutableDictionary *stringAttributes = [NSMutableDictionary dictionaryWithObjectsAndKeys:
@@ -91,11 +89,8 @@ Your fair use and other rights are in no way affected by the above.
 	[image release];
 	
     return self;
-#else
-	[self release];
-	return nil;
-#endif
 }
+#endif
 
 - (void) dealloc
 {
