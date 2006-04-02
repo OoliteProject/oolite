@@ -4568,7 +4568,7 @@ GLfloat	starboard_matrix[] = {	0.0f, 0.0f, 1.0f, 0.0f,		0.0f, 1.0f, 0.0f, 0.0f,	
 		result = [hit_entity universal_id];
 		if ((hit_subentity)&&[hit_entity->sub_entities containsObject:hit_subentity])
 			hit_entity->subentity_taking_damage = hit_subentity;
-		if (range_ptr != nil)
+		if (range_ptr != (GLfloat *)nil)
 			range_ptr[0] = (GLfloat)nearest;
 	}
 	//

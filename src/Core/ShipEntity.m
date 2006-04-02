@@ -59,9 +59,9 @@ Your fair use and other rights are in no way affected by the above.
     self = [super init];
 	//
 	// scripting
-	launch_actions = [[NSMutableArray alloc] initWithCapacity:4];
-	script_actions = [[NSMutableArray alloc] initWithCapacity:4];
-	death_actions = [[NSMutableArray alloc] initWithCapacity:4];
+	launch_actions = [(NSMutableArray *)[NSMutableArray alloc] initWithCapacity:4];
+	script_actions = [(NSMutableArray *)[NSMutableArray alloc] initWithCapacity:4];
+	death_actions = [(NSMutableArray *)[NSMutableArray alloc] initWithCapacity:4];
 	//
 	// escorts
 	last_escort_target = NO_TARGET;
@@ -144,7 +144,7 @@ Your fair use and other rights are in no way affected by the above.
 	extra_cargo = 15;
 	likely_cargo = 0;
 	cargo_type = 0;
-	cargo = [[NSMutableArray alloc] initWithCapacity:max_cargo]; // alloc retains;
+	cargo = [(NSMutableArray *)[NSMutableArray alloc] initWithCapacity:max_cargo]; // alloc retains;
 	cargo_flag = CARGO_FLAG_NONE;
 	[self setCommodity:NSNotFound andAmount:0];
 	//
@@ -310,20 +310,20 @@ static NSMutableDictionary* smallOctreeDict = nil;
 {
 	[super setModel:modelName];
 	// TESTING
-	NSMutableDictionary* octreeCache = [[NSMutableDictionary alloc] initWithCapacity:30];
+	NSMutableDictionary* octreeCache = [(NSMutableDictionary *)[NSMutableDictionary alloc] initWithCapacity:30];
 	if ([Entity dataStore])
 	{
 		octreeCache = (NSMutableDictionary*)[[[Entity dataStore] preloadedDataFiles] objectForKey:@"**octrees**"];
 		if (!octreeCache)
 		{
 			NSLog(@"DEBUG creating octree cache......");
-			octreeCache = [[NSMutableDictionary alloc] initWithCapacity:30];
+			octreeCache = [(NSMutableDictionary *)[NSMutableDictionary alloc] initWithCapacity:30];
 			[[[Entity dataStore] preloadedDataFiles] setObject:octreeCache forKey:@"**octrees**"];
 		}
 	}
 
 	if (smallOctreeDict == nil)
-		smallOctreeDict = [[NSMutableDictionary alloc] initWithCapacity:30];
+		smallOctreeDict = [(NSMutableDictionary *)[NSMutableDictionary alloc] initWithCapacity:30];
 	if ([smallOctreeDict objectForKey: modelName])
 	{
 		octree = (Octree*)[smallOctreeDict objectForKey: modelName];
@@ -623,7 +623,7 @@ static NSMutableDictionary* smallOctreeDict = nil;
 	cargo_type = 0;
 	cargo_flag = CARGO_FLAG_NONE;
 	if (!cargo)
-		cargo = [[NSMutableArray alloc] initWithCapacity:max_cargo]; // alloc retains;
+		cargo = [(NSMutableArray *)[NSMutableArray alloc] initWithCapacity:max_cargo]; // alloc retains;
 	[cargo removeAllObjects];
 	[self setCommodity:NSNotFound andAmount:0];
 	//
@@ -752,7 +752,7 @@ static NSMutableDictionary* smallOctreeDict = nil;
 	if (collisionInfoForEntity)
 		[collisionInfoForEntity removeAllObjects];
 	else
-		collisionInfoForEntity = [[NSMutableDictionary alloc] initWithCapacity:12];
+		collisionInfoForEntity = [(NSMutableDictionary *)[NSMutableDictionary alloc] initWithCapacity:12];
 	
 	// check if this is based upon a different ship
 	while ([shipdict objectForKey:@"like_ship"])
@@ -974,7 +974,7 @@ static NSMutableDictionary* smallOctreeDict = nil;
 			cargo_type = CARGO_SCRIPTED_ITEM;
 		if (cargo)
 			[cargo autorelease];
-		cargo = [[NSMutableArray alloc] initWithCapacity:max_cargo]; // alloc retains;
+		cargo = [(NSMutableArray *)[NSMutableArray alloc] initWithCapacity:max_cargo]; // alloc retains;
 	}
 	//
 	// A HACK!! - must do this before the model is set
@@ -3114,7 +3114,7 @@ static GLfloat mascem_color2[4] =	{ 0.4, 0.1, 0.4, 1.0};	// purple
 			previousCondition = nil;
 		}
 		
-		previousCondition = [[NSMutableDictionary alloc] initWithCapacity:16];
+		previousCondition = [(NSMutableDictionary *)[NSMutableDictionary alloc] initWithCapacity:16];
 		
 		[previousCondition setObject:[NSNumber numberWithInt:behaviour] forKey:@"behaviour"];
 		[previousCondition setObject:[NSNumber numberWithInt:primaryTarget] forKey:@"primaryTarget"];

@@ -186,7 +186,7 @@ GLuint ascii_texture_name;
 			spriteSize.width = [(NSNumber *)[info objectForKey:WIDTH_KEY] intValue];
 		if ([info objectForKey:HEIGHT_KEY])
 			spriteSize.height = [(NSNumber *)[info objectForKey:HEIGHT_KEY] intValue];
-#ifdef WIN32
+#ifdef GNUSTEP
  		OpenGLSprite *legendSprite = [[OpenGLSprite alloc] initWithSurface:legendImage
  										cropRectangle:NSMakeRect(0, 0, imageSize.width, imageSize.height) size:spriteSize]; // retained
 #else

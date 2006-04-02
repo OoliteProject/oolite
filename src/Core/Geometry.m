@@ -243,23 +243,23 @@ static float volumecount;
 		}
 	}
 	//
-	Geometry* g_000 = [[Geometry alloc] initWithCapacity:n_triangles];
-	Geometry* g_001 = [[Geometry alloc] initWithCapacity:n_triangles];
-	Geometry* g_010 = [[Geometry alloc] initWithCapacity:n_triangles];
-	Geometry* g_011 = [[Geometry alloc] initWithCapacity:n_triangles];
-	Geometry* g_100 = [[Geometry alloc] initWithCapacity:n_triangles];
-	Geometry* g_101 = [[Geometry alloc] initWithCapacity:n_triangles];
-	Geometry* g_110 = [[Geometry alloc] initWithCapacity:n_triangles];
-	Geometry* g_111 = [[Geometry alloc] initWithCapacity:n_triangles];
+	Geometry* g_000 = [(Geometry *)[Geometry alloc] initWithCapacity:n_triangles];
+	Geometry* g_001 = [(Geometry *)[Geometry alloc] initWithCapacity:n_triangles];
+	Geometry* g_010 = [(Geometry *)[Geometry alloc] initWithCapacity:n_triangles];
+	Geometry* g_011 = [(Geometry *)[Geometry alloc] initWithCapacity:n_triangles];
+	Geometry* g_100 = [(Geometry *)[Geometry alloc] initWithCapacity:n_triangles];
+	Geometry* g_101 = [(Geometry *)[Geometry alloc] initWithCapacity:n_triangles];
+	Geometry* g_110 = [(Geometry *)[Geometry alloc] initWithCapacity:n_triangles];
+	Geometry* g_111 = [(Geometry *)[Geometry alloc] initWithCapacity:n_triangles];
 	//
-	Geometry* g_xx1 =	[[Geometry alloc] initWithCapacity:n_triangles];
-	Geometry* g_xx0 =	[[Geometry alloc] initWithCapacity:n_triangles];
+	Geometry* g_xx1 =	[(Geometry *)[Geometry alloc] initWithCapacity:n_triangles];
+	Geometry* g_xx0 =	[(Geometry *)[Geometry alloc] initWithCapacity:n_triangles];
 	//
 	[self z_axisSplitBetween:g_xx1 :g_xx0 : offset];
 	if ([g_xx0 testHasGeometry])
 	{
-		Geometry* g_x00 =	[[Geometry alloc] initWithCapacity:n_triangles];
-		Geometry* g_x10 =	[[Geometry alloc] initWithCapacity:n_triangles];
+		Geometry* g_x00 =	[(Geometry *)[Geometry alloc] initWithCapacity:n_triangles];
+		Geometry* g_x10 =	[(Geometry *)[Geometry alloc] initWithCapacity:n_triangles];
 		//
 		[g_xx0 y_axisSplitBetween: g_x10 : g_x00 : offset];
 		if ([g_x00 testHasGeometry])
@@ -279,8 +279,8 @@ static float volumecount;
 	}
 	if ([g_xx1 testHasGeometry])
 	{
-		Geometry* g_x01 =	[[Geometry alloc] initWithCapacity:n_triangles];
-		Geometry* g_x11 =	[[Geometry alloc] initWithCapacity:n_triangles];
+		Geometry* g_x01 =	[(Geometry *)[Geometry alloc] initWithCapacity:n_triangles];
+		Geometry* g_x11 =	[(Geometry *)[Geometry alloc] initWithCapacity:n_triangles];
 		//
 		[g_xx1 y_axisSplitBetween: g_x11 : g_x01 :offset];
 		if ([g_x01 testHasGeometry])

@@ -1496,7 +1496,7 @@ static int shipsFound;
 		missionBackgroundImage = nil;
 	else
  	{ 	
-#ifdef WIN32
+#ifdef GNUSTEP
  		missionBackgroundImage =  [[ResourceManager surfaceNamed:value inFolder:@"Images"] retain];
 #else
 		missionBackgroundImage =  [[ResourceManager imageNamed:value inFolder:@"Images"] retain];

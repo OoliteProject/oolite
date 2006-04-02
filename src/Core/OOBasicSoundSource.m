@@ -139,7 +139,7 @@ static NSMutableSet			*sUpdateSet = nil;
 		[_sound release];
 		_sound = nil;
 		[sUpdateSet removeObject:self];
-		_playCount = nil;
+		_playCount = 0;
 	}
 }
 

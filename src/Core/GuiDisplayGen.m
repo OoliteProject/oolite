@@ -580,7 +580,7 @@ Your fair use and other rights are in no way affected by the above.
 	if (bg_image)
 	{
 		backgroundImage = [bg_image retain];
-#ifdef WIN32
+#ifdef GNUSTEP
  		backgroundSprite = [[OpenGLSprite alloc]
  								initWithSurface:backgroundImage
  								cropRectangle:NSMakeRect( 0.0, 0.0, [backgroundImage size].width, [backgroundImage size].height)
