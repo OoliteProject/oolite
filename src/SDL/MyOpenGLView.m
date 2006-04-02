@@ -490,63 +490,7 @@ Your fair use and other rights are in no way affected by the above.
 
 	[[NSFileManager defaultManager] changeCurrentDirectoryPath:originalDirectory];
 }
-/*
- * These are commented out because they use AppKit classes, but left here to remind
- * me to replace them with SDL code in future.
- *
-- (void)mouseDown:(NSEvent *)theEvent
-{
-    if (doubleClick)
-	{
-		doubleClick = NO;
-		keys[gvMouseDoubleClick] = NO;
-	}
-	keys[gvMouseLeftButton] = YES; // 'a' down
-}
 
-- (void)mouseUp:(NSEvent *)theEvent
-{
-	NSTimeInterval timeBetweenClicks = [NSDate timeIntervalSinceReferenceDate] - timeIntervalAtLastClick;
-	timeIntervalAtLastClick += timeBetweenClicks;
-
-	if (!doubleClick)
-	{
-		doubleClick = (timeBetweenClicks < MOUSE_DOUBLE_CLICK_INTERVAL);	// One fifth of a second
-		keys[gvMouseDoubleClick] = doubleClick;
-//		if (doubleClick)
-//			NSLog(@"DEBUG registering a double-click!");
-	}
-
-	keys[gvMouseLeftButton] = NO;  // 'a' up
-}
-
-- (void)mouseDragged:(NSEvent *)theEvent
-{
-    squareX = [theEvent locationInWindow].x - mouseDragStartPoint.x;
-    squareY = [theEvent locationInWindow].y - mouseDragStartPoint.y;
-    [self setNeedsDisplay:YES];
-}
-
-- (void)mouseMoved:(NSEvent *)theEvent
-{
-	double mx = [theEvent locationInWindow].x - viewSize.width/2.0;
-	double my = [theEvent locationInWindow].y - viewSize.height/2.0;
-
-	if (display_z > 640.0)
-	{
-		mx /= viewSize.width * MAIN_GUI_PIXEL_WIDTH / display_z;
-		my /= viewSize.height;
-	}
-	else
-	{
-		mx /= MAIN_GUI_PIXEL_WIDTH * viewSize.width / 640.0;
-		my /= MAIN_GUI_PIXEL_HEIGHT * viewSize.width / 640.0;
-	}
-
-	[self setVirtualJoystick:mx :-my];
-}
-
-/////////////////////////////////////////////////////////////
 /*     Turn the Cocoa ArrowKeys into our arrow key constants. */
 - (int) translateKeyCode: (int) input
 {
@@ -778,7 +722,10 @@ Your fair use and other rights are in no way affected by the above.
                case SDLK_9: keys[gvNumberKey9] = YES; break;
                case SDLK_0: keys[gvNumberKey0] = YES; break;
                case SDLK_MINUS: if (shift) { keys[43] = NO; } else { keys[43] = YES; } break; // - key, don't know what Oolite# for underscore is
+               case SDLK_COMMA: if (shift) { keys[44] = NO; } else { keys[44] = YES; } break;
                case SDLK_EQUALS: if (shift) { keys[45] = YES; } else { keys[45] = NO; } break; // + key, don't know what Oolite# for equals is
+               case SDLK_PERIOD: if (shift) { keys[46] = NO; } else { keys[46] = YES; } break;
+               case SDLK_SLASH: if (shift) { keys[47] = NO; } else { keys[47] = YES; } break;
                case SDLK_a: if (shift) { keys[65] = YES; keys[97] = NO; } else { keys[65] = NO; keys[97] = YES; } break;
                case SDLK_b: if (shift) { keys[66] = YES; keys[98] = NO; } else { keys[66] = NO; keys[98] = YES; } break;
                case SDLK_c: if (shift) { keys[67] = YES; keys[99] = NO; } else { keys[67] = NO; keys[99] = YES; } break;
@@ -903,7 +850,10 @@ Your fair use and other rights are in no way affected by the above.
                case SDLK_9: keys[gvNumberKey9] = NO; break;
                case SDLK_0: keys[gvNumberKey0] = NO; break;
                case SDLK_MINUS: keys[43] = NO; break; // - key, don't know what Oolite# for underscore is
+               case SDLK_COMMA: keys[44] = NO; break;
                case SDLK_EQUALS: keys[45] = NO; break; // + key, don't know what Oolite# for equals is
+               case SDLK_PERIOD: keys[46] = NO; break;
+               case SDLK_SLASH: keys[47] = NO; break;
                case SDLK_a: keys[65] = NO; keys[97] = NO; break;
                case SDLK_b: keys[66] = NO; keys[98] = NO; break;
                case SDLK_c: keys[67] = NO; keys[99] = NO; break;
