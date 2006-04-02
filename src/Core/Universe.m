@@ -201,17 +201,12 @@ Your fair use and other rights are in no way affected by the above.
 	
 	[player setUpShipFromDictionary:[self getDictionaryForShip:[player ship_desc]]];	// ship desc is the standard cobra at this point
 
-//	[player setStatus:STATUS_DEMO];
 	[player setStatus:STATUS_START_GAME];
 	[player setShowDemoShips: YES];
 	
 	[self setGalaxy_seed: [player galaxy_seed]];
 	
 	system_seed = [self findSystemAtCoords:[player galaxy_coordinates] withGalaxySeed:galaxy_seed];
-	
-//	NSLog(@"Galaxy coords are (%f, %f)", [player galaxy_coordinates].x, [player galaxy_coordinates].y);
-	
-//	NSLog(@"Well whaddayaknow - we're at %@", [self getSystemName:system_seed]);
 	
 	
 	activeWormholes = [[NSMutableArray arrayWithCapacity:16] retain];
@@ -1118,8 +1113,22 @@ Your fair use and other rights are in no way affected by the above.
 	
 }
 
+
+GLfloat docked_light_ambient[]	= { (GLfloat) 0.05, (GLfloat) 0.05, (GLfloat) 0.05, (GLfloat) 1.0};	// dark gray (low ambient)
+GLfloat docked_light_diffuse[]	= { (GLfloat) 1.0, (GLfloat) 1.0, (GLfloat) 1.0, (GLfloat) 1.0};	// white
+GLfloat docked_light_specular[]	= { (GLfloat) 1.0, (GLfloat) 1.0, (GLfloat) 0.5, (GLfloat) 1.0};	// yellow-white
 - (void) setLighting
 {
+	/*
+	
+	GL_LIGHT1 is the sun and is active while a sun exists in space
+	where there is no sun (witch/interstellar space) this is placed at the origin
+	
+	GL_LIGHT0 is the light for inside the station and needs to have its position reset
+	relative to the player whenever demo ships or background scenes are to be shown
+	
+	*/
+	
 	NSDictionary*	systeminfo = [self generateSystemData:system_seed];
 	PlanetEntity*	the_sun = [self sun];
 	SkyEntity*		the_sky = nil;
@@ -1156,7 +1165,6 @@ Your fair use and other rights are in no way affected by the above.
 		glLightfv(GL_LIGHT1, GL_AMBIENT, sun_ambient);
 		glLightfv(GL_LIGHT1, GL_DIFFUSE, sun_diffuse);
 		glLightfv(GL_LIGHT1, GL_SPECULAR, sun_specular);
-		glLightModelfv(GL_LIGHT_MODEL_AMBIENT, stars_ambient);
 	}
 	//
 	glLightfv(GL_LIGHT1, GL_POSITION, sun_pos);
@@ -1173,15 +1181,16 @@ Your fair use and other rights are in no way affected by the above.
 		stars_ambient[1] = ambient_level * 0.0625 * (1.0 + g) * (1.0 + g);
 		stars_ambient[2] = ambient_level * 0.0625 * (1.0 + b) * (1.0 + b);
 		stars_ambient[3] = 1.0;
-		glLightModelfv(GL_LIGHT_MODEL_AMBIENT, stars_ambient);
 	}
 	//
 	// light for demo ships display..
-	GLfloat	white[] = { 1.0, 1.0, 1.0, 1.0};	// white light
-	glLightfv(GL_LIGHT0, GL_AMBIENT, white);
-	glLightfv(GL_LIGHT0, GL_DIFFUSE, white);
-	glLightfv(GL_LIGHT0, GL_SPECULAR, white);
-			
+	glLightfv(GL_LIGHT0, GL_AMBIENT, docked_light_ambient);
+	glLightfv(GL_LIGHT0, GL_DIFFUSE, docked_light_diffuse);
+	glLightfv(GL_LIGHT0, GL_SPECULAR, docked_light_specular);
+	
+	// glLightModel details...
+	//
+	glLightModelfv(GL_LIGHT_MODEL_AMBIENT, stars_ambient);
 }
 
 - (void) populateSpaceFromActiveWormholes
@@ -3301,6 +3310,43 @@ Your fair use and other rights are in no way affected by the above.
     return textureStore;
 }
 
+// track the position and status of the lights
+BOOL	sun_light_on = NO;
+BOOL	demo_light_on = NO;
+GLfloat	demo_light_position[] = { 0.0f, 0.0f, 0.0f};
+void	setSunLight(BOOL yesno)
+{
+	if (yesno != sun_light_on)
+	{
+		if (yesno)
+			glEnable(GL_LIGHT1);
+		else
+			glDisable(GL_LIGHT1);
+		sun_light_on = yesno;
+//		NSLog(@"DEBUG ::::: Sunlight switched %@", (yesno)? @"ON":@"off");
+	}
+}
+void	setDemoLight(BOOL yesno, Vector position)
+{
+	if (yesno != demo_light_on)
+	{
+		if ((demo_light_position[0] != position.x)||(demo_light_position[1] != position.y)||(demo_light_position[2] != position.z))
+		{
+			demo_light_position[0] = position.x;
+			demo_light_position[1] = position.y;
+			demo_light_position[2] = position.z;
+			glLightfv(GL_LIGHT0, GL_POSITION, demo_light_position);
+//			NSLog(@"DEBUG ::::: Demo light repositioned at ( %.2f, %.2f, %.2f)", position.x, position.y, position.z);
+		}
+		if (yesno)
+			glEnable(GL_LIGHT0);
+		else
+			glDisable(GL_LIGHT0);
+		demo_light_on = yesno;
+//		NSLog(@"DEBUG ::::: Demo light switched %@", (yesno)? @"ON":@"off");
+	}
+}
+
 // global rotation matrix definitions
 GLfloat	fwd_matrix[] = {		1.0f, 0.0f, 0.0f, 0.0f,		0.0f, 1.0f, 0.0f, 0.0f,		0.0f, 0.0f, 1.0f, 0.0f,		0.0f, 0.0f, 0.0f, 1.0f};
 GLfloat	aft_matrix[] = {		-1.0f, 0.0f, 0.0f, 0.0f,	0.0f, 1.0f, 0.0f, 0.0f,		0.0f, 0.0f, -1.0f, 0.0f,	0.0f, 0.0f, 0.0f, 1.0f};
@@ -3317,7 +3363,7 @@ GLfloat	starboard_matrix[] = {	0.0f, 0.0f, 1.0f, 0.0f,		0.0f, 1.0f, 0.0f, 0.0f,	
 			int i, v_status;
 			Vector	position, obj_position, view_dir;
 			BOOL playerDemo = NO;
-			GLfloat	white[] = { 1.0, 1.0, 1.0, 1.0};	// white light
+//			GLfloat	white[] = { 1.0, 1.0, 1.0, 1.0};	// white light
 			
 			//
 			// use a non-mutable copy so this can't be changed under us.
@@ -3364,7 +3410,7 @@ GLfloat	starboard_matrix[] = {	0.0f, 0.0f, 1.0f, 0.0f,		0.0f, 1.0f, 0.0f, 0.0f,	
 				viewthing = [entities objectAtIndex:n];
 			}
 			
-			if ((viewthing)&&(viewthing == sortedEntities[0]))
+			if ((viewthing)&&(viewthing->isPlayer))
 			{
 				position = [viewthing getViewpointPosition];
 				v_status = viewthing->status;
@@ -3435,8 +3481,7 @@ GLfloat	starboard_matrix[] = {	0.0f, 0.0f, 1.0f, 0.0f,		0.0f, 1.0f, 0.0f, 0.0f,	
 			if ((!displayGUI) || (playerDemo))
 			{
 				// set up the light for demo ships
-				GLfloat origin[] = { 500.0f, 2500.0f, -1000.0f};
-				glLightfv(GL_LIGHT0, GL_POSITION, origin);
+				Vector demo_light_origin = {  5000.0f, 25000.0f,  -10000.0f}; // right 5000 up 25000 back 10000
 				
 				////
 				//
@@ -3447,29 +3492,29 @@ GLfloat	starboard_matrix[] = {	0.0f, 0.0f, 1.0f, 0.0f,		0.0f, 1.0f, 0.0f, 0.0f,	
 				//
 				////
 				
-				// position the sun correctly
+				// position the sun and docked lights correctly
 				glLightfv(GL_LIGHT1, GL_POSITION, sun_center_position);	// this is necessary or the sun will move with the player
 				
 				if (playerDemo)
 				{
 					// light for demo ships display.. 
-					glLightfv(GL_LIGHT0, GL_AMBIENT, white);
-					glLightfv(GL_LIGHT0, GL_DIFFUSE, white);
-					glLightfv(GL_LIGHT0, GL_SPECULAR, white);
+					glLightfv(GL_LIGHT0, GL_AMBIENT, docked_light_ambient);
+					glLightfv(GL_LIGHT0, GL_DIFFUSE, docked_light_diffuse);
+					glLightfv(GL_LIGHT0, GL_SPECULAR, docked_light_specular);
 					//
-					glEnable(GL_LIGHT0);		// switch on the light for demo ships
-					glDisable(GL_LIGHT1);		// switch the sun off inside the space station
+					setDemoLight( YES, demo_light_origin);
+					setSunLight( NO);
+					glLightModelfv(GL_LIGHT_MODEL_AMBIENT, docked_light_ambient);
 				}
 				else
 				{
-					glDisable(GL_LIGHT0);		// switch off the demo-ship light
-					glEnable(GL_LIGHT1);		// lighting up the sun
+					setDemoLight( NO, demo_light_origin);
+					setSunLight( YES);
+					glLightModelfv(GL_LIGHT_MODEL_AMBIENT, stars_ambient);
 				}
 				
 				// turn on lighting
 				glEnable(GL_LIGHTING);
-				
-				BOOL sunlit = YES;
 				
 				int		furthest = draw_count - 1;
 				int		nearest = 0;
@@ -3529,20 +3574,17 @@ GLfloat	starboard_matrix[] = {	0.0f, 0.0f, 1.0f, 0.0f,		0.0f, 1.0f, 0.0f, 0.0f,	
 						}
 						
 						// lighting
-						if (drawthing->isSunlit != sunlit)
+						if (playerDemo)
 						{
-							if (drawthing->isSunlit)
-							{
-								glEnable(GL_LIGHT1);
-								sunlit = YES;	// track the state of GL_LIGHT1
-							}
-							else
-							{
-								glDisable(GL_LIGHT1);
-								sunlit = NO;	// track the state of GL_LIGHT1
-							}
+							setDemoLight( YES, demo_light_origin);
+							setSunLight( NO);
 						}
-						
+						else
+						{
+							setSunLight( drawthing->isSunlit);
+							setDemoLight( NO, demo_light_origin);
+						}
+	
 						// draw the thing
 						//
 						[drawthing drawEntity:NO:NO];
