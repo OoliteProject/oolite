@@ -1576,7 +1576,6 @@ static	Vector	circleVertex[65];		// holds vector coordinates for a unit circle
 		glPushMatrix();
 				// position and orientation is absolute
 		glTranslatef( abspos.x, abspos.y, abspos.z);
-//		glMultMatrixf(rotMatrix);
 		glMultMatrixf([[universe entityZero] drawRotationMatrix]);
 		
 		[self drawEntity:immediate :translucent];

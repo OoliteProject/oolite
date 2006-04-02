@@ -217,6 +217,8 @@ Your fair use and other rights are in no way affected by the above.
 	
 	[self set_up_space];
 	
+	if (cachedStation)
+		[player setPosition: cachedStation->position];
 
 	[player release];
 	//
@@ -2440,6 +2442,8 @@ GLfloat docked_light_specular[]	= { (GLfloat) 1.0, (GLfloat) 1.0, (GLfloat) 0.5,
 
 - (void) set_up_intro1
 {
+	PlayerEntity* player = (PlayerEntity*)[self entityZero];
+	Vector p0 = player->position;
 	ShipEntity		*ship;
 	Quaternion		q2;
 	q2.x = 0.0;   q2.y = 0.0;   q2.z = 0.0; q2.w = 1.0;
@@ -2447,9 +2451,8 @@ GLfloat docked_light_specular[]	= { (GLfloat) 1.0, (GLfloat) 1.0, (GLfloat) 0.5,
 	//
 	// in status demo : draw ships and display text
 	//
-//	[[self entityZero] setStatus:STATUS_DEMO];
-	[(PlayerEntity*)[self entityZero] setStatus: STATUS_START_GAME];
-	[(PlayerEntity*)[self entityZero] setShowDemoShips: YES];
+	[player setStatus: STATUS_START_GAME];
+	[player setShowDemoShips: YES];
 	displayGUI = YES;
 	//
 	/*- cobra -*/
@@ -2458,7 +2461,7 @@ GLfloat docked_light_specular[]	= { (GLfloat) 1.0, (GLfloat) 1.0, (GLfloat) 0.5,
 	{
 		[ship setStatus: STATUS_DEMO];
 		[ship setQRotation:q2];
-		[ship setPosition:0.0:0.0: 3.6 * ship->actual_radius];  // 250m ahead
+		[ship setPosition: p0.x : p0.y : p0.z + 3.6 * ship->actual_radius];  // 250m ahead
 		
 		//NSLog(@"demo ship %@ has collision radius %.1f 250.0/cr = %.1f", [ship name], ship->collision_radius, 250.0/ship->collision_radius);
 		
@@ -2481,6 +2484,8 @@ GLfloat docked_light_specular[]	= { (GLfloat) 1.0, (GLfloat) 1.0, (GLfloat) 0.5,
 
 - (void) set_up_intro2
 {
+	PlayerEntity* player = (PlayerEntity*)[self entityZero];
+	Vector p0 = player->position;
 	ShipEntity		*ship;
 	Quaternion		q2;
 	q2.x = 0.0;   q2.y = 0.0;   q2.z = 0.0; q2.w = 1.0;
@@ -2489,7 +2494,6 @@ GLfloat docked_light_specular[]	= { (GLfloat) 1.0, (GLfloat) 1.0, (GLfloat) 0.5,
 	// in status demo draw ships and display text
 	//
 	[self removeDemoShips];
-//	[[self entityZero] setStatus:STATUS_DEMO];
 	[(PlayerEntity*)[self entityZero] setStatus: STATUS_START_GAME];
 	[(PlayerEntity*)[self entityZero] setShowDemoShips: YES];
 	displayGUI = YES;
@@ -2500,7 +2504,7 @@ GLfloat docked_light_specular[]	= { (GLfloat) 1.0, (GLfloat) 1.0, (GLfloat) 0.5,
 	if (ship)
 	{
 		[ship setQRotation:q2];
-		[ship setPosition:0.0:0.0: 3.6 * ship->actual_radius];
+		[ship setPosition: p0.x : p0.y : p0.z + 3.6 * ship->actual_radius];
 		
 		//NSLog(@"demo ship %@ has collision radius %.1f 250.0/cr = %.1f", [ship name], ship->collision_radius, 250.0/ship->collision_radius);
 		
@@ -5047,10 +5051,13 @@ GLfloat	starboard_matrix[] = {	0.0f, 0.0f, 1.0f, 0.0f,		0.0f, 1.0f, 0.0f, 0.0f,	
 							demo_ship_index %= [demo_ships count];
 							if (demo_ship)
 							{
+								Vector p0 = player->position;
 								[demo_ship setUpShipFromDictionary:[self getDictionaryForShip:[demo_ships objectAtIndex:demo_ship_index]]];
 								[[demo_ship getAI] setStateMachine:@"nullAI.plist"];
 								[demo_ship setQRotation:q2];
-								[demo_ship setPosition:0.0 :0.0 :3.6 * demo_ship->actual_radius * 100.0];
+								[demo_ship setPosition: p0.x : p0.y : p0.z + 360.0 * demo_ship->actual_radius];
+								p0.z += 3.6 * demo_ship->actual_radius;
+								[demo_ship setDestination: p0];
 								vel.x = 0.0;	vel.y = 0.0;	vel.z = -3.6 * demo_ship->actual_radius * 100.0;
 								[demo_ship setVelocity:vel];
 								[demo_ship setScanClass: CLASS_NO_DRAW];

@@ -1075,10 +1075,7 @@ static NSMutableDictionary* smallOctreeDict = nil;
 							[(ShipEntity*)subent setPosition: sub_pos];
 							[(ShipEntity*)subent setQRotation: sub_q];
 							//
-							if ([[(ShipEntity*)subent roles] isEqual:@"docking-slit"])
-								[subent setStatus:STATUS_EFFECT];			// hack keeps docking slit visible when at reduced detail
-							else
-								[self addSolidSubentityToCollisionRadius:(ShipEntity*)subent];	// hack - ignore docking-slit for collision radius
+							[self addSolidSubentityToCollisionRadius:(ShipEntity*)subent];
 							//
 							subent->isSubentity = YES;
 						}
@@ -1886,14 +1883,11 @@ BOOL ship_canCollide (ShipEntity* ship)
 	if (status == STATUS_DEMO)
     {
 		[self applyRoll: delta_t * flight_roll andClimb: delta_t * flight_pitch];
-		position.x += delta_t*velocity.x;
-		position.y += delta_t*velocity.y;
-		position.z += delta_t*velocity.z;
-		if (position.z <= collision_radius * 3.6)
-		{
-			position.z = collision_radius * 3.6;
-			velocity.z = 0.0;
-		}
+		GLfloat range2 = 0.1 * distance2( position, destination) / (collision_radius * collision_radius);
+		if ((range2 > 1.0)||(velocity.z > 0.0))	range2 = 1.0;
+		position.x += range2 * delta_t * velocity.x;
+		position.y += range2 * delta_t * velocity.y;
+		position.z += range2 * delta_t * velocity.z;
 		return;
     }
 	else
