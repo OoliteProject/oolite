@@ -208,13 +208,9 @@ void setUpSinTable()
 	glLightfv(GL_LIGHT1, GL_DIFFUSE, sun_diffuse);
 	glLightfv(GL_LIGHT1, GL_SPECULAR, sun_specular);
 	
-//	NSLog(@"DEBUG sun color set to (%.4f, %.4f, %.4f) (%.4f, %.4f, %.4f)",
-//		sun_diffuse[0], sun_diffuse[1], sun_diffuse[2],
-//		sun_ambient[0], sun_ambient[1], sun_ambient[2]);
-	
 	//
 	// main disc less saturation more brightness
-	color = [OOColor colorWithCalibratedHue:hue saturation:sat * 0.5 brightness:(bri + 3.0)/4.0 alpha:alf];
+	color = [OOColor colorWithCalibratedHue: hue saturation: sat * 0.333 brightness: 1.0 alpha: alf];
 	amb_land[0] = [color redComponent];
 	amb_land[1] = [color greenComponent];
 	amb_land[2] = [color blueComponent];
@@ -1235,8 +1231,6 @@ void setUpSinTable()
 					}
 					else
 					{
-//						glDisableClientState(GL_COLOR_ARRAY);
-						//
 						glEnableClientState(GL_COLOR_ARRAY);		// test shading
 						glColorPointer( 4, GL_FLOAT, 0, vertexdata.color_array);
 						//
@@ -1268,8 +1262,6 @@ void setUpSinTable()
 					}
 					else
 					{
-//						glDisableClientState(GL_COLOR_ARRAY);
-						//
 						glEnableClientState(GL_COLOR_ARRAY);		// test shading
 						glColorPointer( 4, GL_FLOAT, 0, vertexdata.color_array);
 						//
@@ -1282,8 +1274,6 @@ void setUpSinTable()
 					//
 					glEnableClientState(GL_VERTEX_ARRAY);
 					glVertexPointer( 3, GL_FLOAT, 0, vertexdata.vertex_array);
-//					glEnableClientState(GL_COLOR_ARRAY);
-//					glColorPointer( 4, GL_FLOAT, 0, vertexdata.color_array);
 					glEnableClientState(GL_NORMAL_ARRAY);
 					glNormalPointer(GL_FLOAT, 0, vertexdata.normal_array);
 					//
@@ -1295,17 +1285,12 @@ void setUpSinTable()
 						//
 						glColor4fv(mat1);
 						glMaterialfv(GL_FRONT, GL_AMBIENT_AND_DIFFUSE, mat1);
-						//
-//						if (!isTextured)
-						{
-							glColorMaterial(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE);
-							glEnable(GL_COLOR_MATERIAL);
-						}
+						glColorMaterial(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE);
+						glEnable(GL_COLOR_MATERIAL);
 						//
 						[self drawModelWithVertexArraysAndSubdivision:subdivideLevel];
 						//
-//						if (!isTextured)
-							glDisable(GL_COLOR_MATERIAL);
+						glDisable(GL_COLOR_MATERIAL);
 						//
 						glEndList();
 					}
@@ -1335,21 +1320,13 @@ void setUpSinTable()
 		case PLANET_TYPE_SUN :
 			if (!translucent)
 			{
-				GLfloat amb_1[4]		= {1.0, 1.0,	1.0,	1.0 };
-				
 				int steps = 2 * (MAX_SUBDIVIDE - subdivideLevel);
 				
 				glDisable(GL_TEXTURE_2D);
 				glDisable(GL_LIGHTING);
-
-				glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE, amb_1);
-				glMaterialfv(GL_FRONT_AND_BACK, GL_EMISSION, amb_land);
 				glColor4fv( amb_land);
 
 				glBegin(GL_TRIANGLE_FAN);
-					glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE, amb_1);	// do this between glBegin/glEnd
-					glMaterialfv(GL_FRONT_AND_BACK, GL_EMISSION, amb_land);			// as well (for consistency)
-					glColor4fv( amb_land);
 					drawBallVertices( collision_radius, steps, sqrt_zero_distance);
 				glEnd();
 												
