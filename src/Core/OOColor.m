@@ -81,10 +81,7 @@ Your fair use and other rights are in no way affected by the above.
 		case 5:
 			rgba[0] = b;	rgba[1] = p;	rgba[2] = q;	break;
 	}
-
 	rgba[3] = a;
-	
-	NSLog(@"DEBUG HSB: %.2f %.2f %.2f becomes RGB %.2f %.2f %.2f", h * 60.0, s, b, rgba[0], rgba[1], rgba[2]);
 }
 
 /* Create NSCalibratedRGBColorSpace colors.
