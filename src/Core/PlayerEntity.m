@@ -4316,17 +4316,12 @@ double scoopSoundPlayTime = 0.0;
 	[universe setViewDirection: VIEW_DOCKED];
 
 
-	// DEBUG TEST ROUTINES
-		NSLog(@"DEBUG Player q_rotation = (%.2f %.2f %.2f %.2f)",
-			q_rotation.w, q_rotation.x, q_rotation.y, q_rotation.z);
+	// DEBUG SCENE TEST ROUTINES
 		[universe removeDemoShips];
 		[self debugOn];
 		[self setBackgroundFromDescriptionsKey:@"test-scene"];
-		[self setShowDemoShips: YES];
 		[self debugOff];
-		NSLog(@"DEBUG Player q_rotation = (%.2f %.2f %.2f %.2f)",
-			q_rotation.w, q_rotation.x, q_rotation.y, q_rotation.z);
-		NSLog(@"DEBUG status %d showDemoShips:%@", status, [self showDemoShips]? @"YES":@"NO");
+		[self setShowDemoShips: YES];
 	// END TEST
 	
 }

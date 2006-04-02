@@ -563,7 +563,6 @@ static int _compareModes(id arg1, id arg2, void *context)
 #ifdef GNUSTEP
   // TODO: what goes here?
 #else
-    //Scene *scene = [openGLView scene];
     CGLContextObj cglContext;
     CGDisplayErr err;
     long oldSwapInterval;
