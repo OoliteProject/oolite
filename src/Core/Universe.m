@@ -3506,13 +3506,17 @@ GLfloat	starboard_matrix[] = {	0.0f, 0.0f, 1.0f, 0.0f,		0.0f, 1.0f, 0.0f, 0.0f,	
 					glLightfv(GL_LIGHT0, GL_DIFFUSE, docked_light_diffuse);
 					glLightfv(GL_LIGHT0, GL_SPECULAR, docked_light_specular);
 					//
+					demo_light_on = NO;	// be contrary - force enabling of the light
 					setDemoLight( YES, demo_light_origin);
+					sun_light_on = YES;	// be contrary - force disabling of the light
 					setSunLight( NO);
 					glLightModelfv(GL_LIGHT_MODEL_AMBIENT, docked_light_ambient);
 				}
 				else
 				{
+					demo_light_on = YES;	// be contrary - force disabling of the light
 					setDemoLight( NO, demo_light_origin);
+					sun_light_on = NO;	// be contrary - force enabling of the light
 					setSunLight( YES);
 					glLightModelfv(GL_LIGHT_MODEL_AMBIENT, stars_ambient);
 				}
