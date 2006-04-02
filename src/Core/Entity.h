@@ -57,6 +57,7 @@ Your fair use and other rights are in no way affected by the above.
 #define STATUS_TEST					1
 #define STATUS_INACTIVE				0
 #define STATUS_DEAD					-1
+#define STATUS_START_GAME			-10
 #define STATUS_IN_FLIGHT			100
 #define STATUS_DOCKED				200
 #define STATUS_AUTOPILOT_ENGAGED	300

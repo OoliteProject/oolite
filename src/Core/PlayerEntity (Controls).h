@@ -49,6 +49,7 @@ Your fair use and other rights are in no way affected by the above.
 - (void) pollGuiArrowKeyControls:(double) delta_t;
 - (BOOL) handleGUIUpDownArrowKeys:(GuiDisplayGen *)gui 
                                  :(MyOpenGLView *)gameView;
+- (void) switchToMainView;
 - (void) pollViewControls;
 - (void) pollGuiScreenControls;
 - (void) pollGameOverControls:(double) delta_t;

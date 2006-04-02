@@ -1592,7 +1592,8 @@ double scoopSoundPlayTime = 0.0;
 		[trum updateTrumble:delta_t];
 	}
 
-	if ((status == STATUS_DEMO)&&(gui_screen != GUI_SCREEN_INTRO1)&&(gui_screen != GUI_SCREEN_INTRO2)&&(gui_screen != GUI_SCREEN_MISSION)&&(gui_screen != GUI_SCREEN_SHIPYARD))
+//	if ((status == STATUS_DEMO)&&(gui_screen != GUI_SCREEN_INTRO1)&&(gui_screen != GUI_SCREEN_INTRO2)&&(gui_screen != GUI_SCREEN_MISSION)&&(gui_screen != GUI_SCREEN_SHIPYARD))
+	if ((status == STATUS_START_GAME)&&(gui_screen != GUI_SCREEN_INTRO1)&&(gui_screen != GUI_SCREEN_INTRO2))
 		[self setGuiToIntro1Screen];	//set up demo mode
 	
 	if ((status == STATUS_AUTOPILOT_ENGAGED)||(status == STATUS_ESCAPE_SEQUENCE))
@@ -2222,7 +2223,7 @@ double scoopSoundPlayTime = 0.0;
 
 - (void) drawEntity:(BOOL) immediate :(BOOL) translucent
 {
-	if ((status == STATUS_DEAD)||(status == STATUS_DEMO)||(status == STATUS_DOCKED)||[universe breakPatternHide])
+	if ((status == STATUS_DEAD)||(status == STATUS_DEMO)||(status == STATUS_DOCKED)||(status == STATUS_START_GAME)||[universe breakPatternHide])
 		return;	// don't draw
 	
 	[super drawEntity: immediate : translucent];
@@ -2274,7 +2275,7 @@ double scoopSoundPlayTime = 0.0;
 
 - (BOOL) showDemoShips
 {
-	return showDemoShips || (status == STATUS_DEMO);
+	return showDemoShips;// || (status == STATUS_DEMO);
 }
 
 - (double) dial_roll

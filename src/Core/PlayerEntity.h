@@ -482,7 +482,6 @@ enum
 	int						target_memory[PLAYER_TARGET_MEMORY_SIZE];
 	int						target_memory_index;
 
-
 #ifdef GNUSTEP
   // Keeping track of joysticks
   int						numSticks;

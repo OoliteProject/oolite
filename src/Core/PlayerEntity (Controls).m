@@ -85,14 +85,8 @@ Your fair use and other rights are in no way affected by the above.
 				[self pollDockedControls:delta_t];
 				break;
 								
-			case	STATUS_DEMO :
-				if (gui_screen == GUI_SCREEN_SHIPYARD)
-				{
-					[self pollGuiScreenControls];
-					[self pollGuiArrowKeyControls:delta_t];
-				}
-				else
-					[self pollDemoControls:delta_t];
+			case	STATUS_START_GAME :
+				[self pollDemoControls:delta_t];
 				break;
 								
 			case	STATUS_ESCAPE_SEQUENCE :
@@ -107,36 +101,18 @@ Your fair use and other rights are in no way affected by the above.
 			if (docking_music_on) 
 			{
 				if (![dockingMusic isPlaying])
-				{
-//					NSLog(@"DEBUG playing docking music");
 					[dockingMusic play];
-				}
-//				if ([dockingMusic isPaused])
-//				{
-////					NSLog(@"DEBUG resuming docking music");
-//					[dockingMusic resume];
-//				}
 			}
 			else
 			{
 				if ([dockingMusic isPlaying])
-				{
 					[dockingMusic stop];
-				}
-//				if ([dockingMusic isPlaying] && ![dockingMusic isPaused])
-//				{
-////					NSLog(@"DEBUG pausing docking music");
-//					[dockingMusic pause];
-//				}
 			}
 		}
 		else
 		{
 			if ([dockingMusic isPlaying])
-			{
-//				NSLog(@"DEBUG stopping docking music");
 				[dockingMusic stop];
-			}
 		}
 		
 	}
@@ -2094,6 +2070,18 @@ static BOOL queryPressed;
 	}
 }
 
+- (void) switchToMainView
+{
+	gui_screen = GUI_SCREEN_MAIN;
+	if (showDemoShips)
+	{
+		[self setShowDemoShips: NO];
+		[universe removeDemoShips];
+	}
+	[(MyOpenGLView *)[universe gameView] allowStringInput:NO];
+	[universe setDisplayCursor:NO];
+}
+
 static BOOL zoom_pressed;
 
 - (void) pollViewControls
@@ -2108,41 +2096,25 @@ static BOOL zoom_pressed;
 	if (([gameView isDown:gvFunctionKey1])||([gameView isDown:gvNumberKey1]))
 	{
 		if ([universe displayGUI])
-		{
-			gui_screen = GUI_SCREEN_MAIN;
-			[gameView allowStringInput:NO];
-			[universe setDisplayCursor:NO];
-		}
+			[self switchToMainView];
 		[universe setViewDirection:VIEW_FORWARD];
 	}
 	if (([gameView isDown:gvFunctionKey2])||([gameView isDown:gvNumberKey2]))
 	{
 		if ([universe displayGUI])
-		{
-			gui_screen = GUI_SCREEN_MAIN;
-			[gameView allowStringInput:NO];
-			[universe setDisplayCursor:NO];
-		}
+			[self switchToMainView];
 		[universe setViewDirection:VIEW_AFT];
 	}
 	if (([gameView isDown:gvFunctionKey3])||([gameView isDown:gvNumberKey3]))
 	{
 		if ([universe displayGUI])
-		{
-			gui_screen = GUI_SCREEN_MAIN;
-			[gameView allowStringInput:NO];
-			[universe setDisplayCursor:NO];
-		}
+			[self switchToMainView];
 		[universe setViewDirection:VIEW_PORT];
 	}
 	if (([gameView isDown:gvFunctionKey4])||([gameView isDown:gvNumberKey4]))
 	{
 		if ([universe displayGUI])
-		{
-			gui_screen = GUI_SCREEN_MAIN;
-			[gameView allowStringInput:NO];
-			[universe setDisplayCursor:NO];
-		}
+			[self switchToMainView];
 		[universe setViewDirection:VIEW_STARBOARD];
 	}
 	//
@@ -2208,7 +2180,7 @@ static BOOL switching_equipship_screens;
       return;
 
 	MyOpenGLView  *gameView = (MyOpenGLView *)[universe gameView];
-	BOOL docked_okay = (status == STATUS_DOCKED) || ((status == STATUS_DEMO) && (gui_screen == GUI_SCREEN_SHIPYARD));
+	BOOL docked_okay = (status == STATUS_DOCKED);// || ((status == STATUS_DEMO) && (gui_screen == GUI_SCREEN_SHIPYARD));
 	//
 	//  text displays
 	//
@@ -2467,23 +2439,22 @@ static BOOL toggling_music;
 				[self setGuiToIntro2Screen];
 			}
 			
-			// test exception handling
-			if ([gameView isDown:48])	//  '0'
-			{
-				NSException* myException = [NSException
-					exceptionWithName:	@"OoliteException"
-					reason:				@"Testing: The Foo throggled the Bar!"
-					userInfo:			nil];
-				[myException raise];
-			}
+//			// test exception handling
+//			if ([gameView isDown:48])	//  '0'
+//			{
+//				NSException* myException = [NSException
+//					exceptionWithName:	@"OoliteException"
+//					reason:				@"Testing: The Foo throggled the Bar!"
+//					userInfo:			nil];
+//				[myException raise];
+//			}
 			
 			break;
 
 		case	GUI_SCREEN_INTRO2 :
 			if ([gameView isDown:32])	//  '<space>'
 			{
-				//docked_station = [universe station];
-				[self setStatus:STATUS_DOCKED];
+				[self setStatus: STATUS_DOCKED];
 				[universe removeDemoShips];
 				[gui setBackgroundImage:nil];
 				[self setGuiToStatusScreen];

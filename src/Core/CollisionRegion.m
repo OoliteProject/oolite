@@ -520,7 +520,7 @@ BOOL testEntityOccludedByEntity(Entity* e1, Entity* e2, PlanetEntity* the_sun)
 			e1->shadingEntityID = NO_TARGET;
 			//
 			// check demo mode here..
-			if ((e1->isPlayer)&&(e1->status == STATUS_DEMO))
+			if ((e1->isPlayer)&&([(PlayerEntity*)e1 showDemoShips]))
 				continue;	// don't check shading in demo mode
 			//
 			//	test planets

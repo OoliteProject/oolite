@@ -201,7 +201,10 @@ Your fair use and other rights are in no way affected by the above.
 	
 	[player setUpShipFromDictionary:[self getDictionaryForShip:[player ship_desc]]];	// ship desc is the standard cobra at this point
 
-	[player setStatus:STATUS_DEMO];
+//	[player setStatus:STATUS_DEMO];
+	[player setStatus:STATUS_START_GAME];
+	[player setShowDemoShips: YES];
+	
 	[self setGalaxy_seed: [player galaxy_seed]];
 	
 	system_seed = [self findSystemAtCoords:[player galaxy_coordinates] withGalaxySeed:galaxy_seed];
@@ -2435,14 +2438,16 @@ Your fair use and other rights are in no way affected by the above.
 	//
 	// in status demo : draw ships and display text
 	//
-	[[self entityZero] setStatus:STATUS_DEMO];
+//	[[self entityZero] setStatus:STATUS_DEMO];
+	[(PlayerEntity*)[self entityZero] setStatus: STATUS_START_GAME];
+	[(PlayerEntity*)[self entityZero] setShowDemoShips: YES];
 	displayGUI = YES;
 	//
 	/*- cobra -*/
 	ship = [self getShip:PLAYER_SHIP_DESC];   // retain count = 1   // shows the cobra-player ship
 	if (ship)
 	{
-		[ship setStatus:STATUS_DEMO];
+		[ship setStatus: STATUS_DEMO];
 		[ship setQRotation:q2];
 		[ship setPosition:0.0:0.0: 3.6 * ship->actual_radius];  // 250m ahead
 		
@@ -2475,7 +2480,9 @@ Your fair use and other rights are in no way affected by the above.
 	// in status demo draw ships and display text
 	//
 	[self removeDemoShips];
-	[[self entityZero] setStatus:STATUS_DEMO];
+//	[[self entityZero] setStatus:STATUS_DEMO];
+	[(PlayerEntity*)[self entityZero] setStatus: STATUS_START_GAME];
+	[(PlayerEntity*)[self entityZero] setShowDemoShips: YES];
 	displayGUI = YES;
 	//
 	/*- demo ships -*/
@@ -4950,6 +4957,7 @@ GLfloat	starboard_matrix[] = {	0.0f, 0.0f, 1.0f, 0.0f,		0.0f, 1.0f, 0.0f, 0.0f,	
 			PlayerEntity*	player = (PlayerEntity *)[self entityZero];
 			int				ent_count = n_entities;
 			Entity*			my_entities[ent_count];
+			BOOL			playerDemo = [player showDemoShips];
 			
 			sky_clear_color[0] = 0.0;
 			sky_clear_color[1] = 0.0;
@@ -4965,7 +4973,7 @@ GLfloat	starboard_matrix[] = {	0.0f, 0.0f, 1.0f, 0.0f,		0.0f, 1.0f, 0.0f, 0.0f,	
 			universal_time += delta_t;
 			//
 			update_stage = @"demo management";
-			if ((demo_stage)&&(player)&&(player->status == STATUS_DEMO)&&(universal_time > demo_stage_time)&&([player gui_screen] == GUI_SCREEN_INTRO2))
+			if ((demo_stage)&&(player)&&(playerDemo)&&(universal_time > demo_stage_time)&&([player gui_screen] == GUI_SCREEN_INTRO2))
 			{
 				if (ent_count > 1)
 				{

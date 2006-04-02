@@ -474,6 +474,8 @@ static NSString * mission_key;
 			return @"STATUS_AUTOPILOT_ENGAGED";
 		case STATUS_DEAD :
 			return @"STATUS_DEAD";
+		case STATUS_START_GAME :
+			return @"STATUS_START_GAME";
 		case STATUS_DEMO :
 			return @"STATUS_DEMO";
 		case STATUS_DOCKING :
@@ -1753,7 +1755,7 @@ static int shipsFound;
 #endif   
 
 	// the following are necessary...
-	status = STATUS_DEMO;
+//	status = STATUS_DEMO;
 	[universe setDisplayText:YES];
 	[universe setViewDirection:VIEW_DOCKED];
 }
