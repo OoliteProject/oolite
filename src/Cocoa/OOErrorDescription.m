@@ -37,8 +37,6 @@ Your fair use and other rights are in no way affected by the above.
 
 
 #define CASE(foo) case foo: return @#foo
-#define CASE2(foo, bar) case foo: return @ #foo"/"#bar
-#define CASE3(foo, bar, baz) case foo: return @ #foo"/"#bar"/"#baz
 
 
 #ifndef NDEBUG
@@ -72,8 +70,8 @@ NSString *AudioErrorNSString(ComponentResult inCode)
 			CASE(kAudioConverterErr_PropertyNotSupported);
 			CASE(kAudioConverterErr_InvalidInputSize);
 			CASE(kAudioConverterErr_InvalidOutputSize);
-			CASE2(kAudioConverterErr_UnspecifiedError, kAudioCodecUnspecifiedError);
-			CASE2(kAudioConverterErr_BadPropertySizeError, kAudioCodecBadPropertySizeError);
+			CASE(kAudioConverterErr_UnspecifiedError);
+			CASE(kAudioConverterErr_BadPropertySizeError);
 			CASE(kAudioConverterErr_RequiresPacketDescriptionsError);
 			CASE(kAudioConverterErr_InputSampleRateOutOfRange);
 			CASE(kAudioConverterErr_OutputSampleRateOutOfRange);
@@ -99,7 +97,7 @@ NSString *AudioErrorNSString(ComponentResult inCode)
 			CASE(kAudioUnitErr_Uninitialized);
 			CASE(kAudioUnitErr_InvalidScope);
 			CASE(kAudioUnitErr_PropertyNotWritable);
-			CASE3(kAudioUnitErr_CannotDoInCurrentContext, kAUGraphErr_CannotDoInCurrentContext, kAUGraphErr_CannotDoInCurrentContext);
+			CASE(kAudioUnitErr_CannotDoInCurrentContext);
 			CASE(kAudioUnitErr_InvalidPropertyValue);
 			CASE(kAudioUnitErr_PropertyNotInUse);
 			CASE(kAudioUnitErr_Initialized);
@@ -121,11 +119,22 @@ NSString *AudioErrorNSString(ComponentResult inCode)
 		if (noErr == inCode) return @"no error";
 	#endif
 	
-	int high = inCode >> 24;
-	if (high && ! (high & 0xFF))
+	return AudioErrorShortNSString(inCode);
+}
+
+
+NSString *AudioErrorShortNSString(OSStatus inCode)
+{
+	#define PRINTABLE(x) (!((x) < ' ') && !((x) == 0x7F))
+	
+	if (!(inCode & 0x80000000) &&
+		PRINTABLE(inCode >> 24) &&
+		PRINTABLE((inCode >> 16) & 0xFF) &&
+		PRINTABLE((inCode >> 8) & 0xFF) &&
+		PRINTABLE(inCode & 0xFF))
 	{
 		// Assume a four-char code
-		return [NSString stringWithFormat:@"\'%@\' (%i)", FourCharCodeToNSString(inCode), inCode];
+		return [NSString stringWithFormat:@"\'%@\'", FourCharCodeToNSString(inCode)];
 	}
 	else
 	{

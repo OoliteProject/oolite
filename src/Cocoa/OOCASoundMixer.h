@@ -39,7 +39,7 @@ Your fair use and other rights are in no way affected by the above.
 
 
 #define kMixerGeneralChannels		32
-#define SUPPORT_SOUND_INSPECTOR		0
+#define SUPPORT_SOUND_INSPECTOR		1
 
 
 @interface OOCASoundMixer: NSObject

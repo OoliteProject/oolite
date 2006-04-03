@@ -34,6 +34,7 @@ Your fair use and other rights are in no way affected by the above.
 #import "OOCASoundChannel.h"
 #import "OOCASoundInternal.h"
 #import <mach/mach.h>
+#import <pthread.h>
 
 
 static mach_port_t					sReapPort = MACH_PORT_NULL;
@@ -52,8 +53,7 @@ static SInt32						sDebugUnexpectedNullCount = 0;
 */
 static OOCASoundChannel				*sPlayThreadDeadList = NULL;
 static OOCASoundChannel				*sReapQueue = NULL;
-static NSLock						*sReapQueueMutex = NULL;
-
+static pthread_mutex_t				sReapQueueMutex = { 0 };
 
 enum
 {
@@ -81,8 +81,7 @@ enum
 enum
 {
 	// Port messages
-	kMsgRecycleChannel			= 1UL,
-	kMsgThreadUp,
+	kMsgThreadUp				= 1UL,
 	kMsgDie,
 	kMsgThreadDied,
 	kMsgWakeUp
@@ -148,8 +147,7 @@ static BOOL PortWait(mach_port_t inPort, PortMessage *outMessage);
 	
 	if (OK)
 	{
-		sReapQueueMutex = [[NSLock alloc] init];
-		if (nil == sReapQueueMutex) OK = NO;
+		if (0 != pthread_mutex_init(&sReapQueueMutex, NULL)) OK = NO;
 	}
 	
 	if (OK)
@@ -201,18 +199,9 @@ static BOOL PortWait(mach_port_t inPort, PortMessage *outMessage);
 	{
 		if (PortWait(sReapPort, &message))
 		{
-			if (kMsgRecycleChannel == message.tag)
+			if (kMsgWakeUp == message.tag)
 			{
-				chan = message.value;
-				[chan cleanUp];
-			}
-			else if (kMsgDie == message.tag)
-			{
-				break;
-			}
-			else if (kMsgWakeUp == message.tag)
-			{
-				[sReapQueueMutex lock];
+				assert (!pthread_mutex_lock(&sReapQueueMutex));
 				
 				while (sReapQueue)
 				{
@@ -221,7 +210,11 @@ static BOOL PortWait(mach_port_t inPort, PortMessage *outMessage);
 					[chan cleanUp];
 				}
 				
-				[sReapQueueMutex unlock];
+				pthread_mutex_unlock(&sReapQueueMutex);
+			}
+			else if (kMsgDie == message.tag)
+			{
+				break;
 			}
 		}
 	}
@@ -428,6 +421,24 @@ static BOOL PortWait(mach_port_t inPort, PortMessage *outMessage);
 }
 
 
+- (void)reap
+{
+	OSStatus						err;
+	
+	err = [[OOCASoundMixer mixer] disconnectChannel:self];
+	
+	if (noErr == err)
+	{
+		_state = kState_Ended;
+	}
+	else
+	{
+		_state = kState_Broken;
+		_error = err;
+	}
+}
+
+
 - (void)cleanUp
 {
 	OOSound							*sound;
@@ -491,7 +502,7 @@ static BOOL PortWait(mach_port_t inPort, PortMessage *outMessage);
 			break;
 		
 		case kState_Broken:
-			stateString = [NSString stringWithFormat:@"broken (%i)", _error];
+			stateString = [NSString stringWithFormat:@"broken (%@)", AudioErrorShortNSString(_error)];
 			break;
 		
 		default:
@@ -507,7 +518,7 @@ static BOOL PortWait(mach_port_t inPort, PortMessage *outMessage);
 
 - (OSStatus)renderWithFlags:(AudioUnitRenderActionFlags *)ioFlags frames:(UInt32)inNumFrames context:(OOCASoundRenderContext *)ioContext data:(AudioBufferList *)ioData
 {
-	OSStatus					err;
+	OSStatus					err = noErr;
 	PortMessage					message;
 	
 	if (__builtin_expect(_stopReq, 0)) err = endOfDataReached;
@@ -546,29 +557,16 @@ static BOOL PortWait(mach_port_t inPort, PortMessage *outMessage);
 	
 	if (endOfDataReached == err)
 	{
-		err = [[OOCASoundMixer mixer] disconnectChannel:self];
+		assert(kState_Playing == _state);
 		
-		if (noErr == err)
-		{
-			_state = kState_Ended;
-		}
-		else
-		{
-			_state = kState_Broken;
-			_error = err;
-		}
-		
+		[self reap];
+		err = noErr;
+	
 		_next = sPlayThreadDeadList;
 		sPlayThreadDeadList = self;
-		
-		/*message.tag = kMsgRecycleChannel;
-		message.value = self;
-		PortSend(sReapPort, message);*/
-		
-		
 	}
 	
-	if (nil != sPlayThreadDeadList && [sReapQueueMutex tryLock])
+	if (nil != sPlayThreadDeadList && !pthread_mutex_trylock(&sReapQueueMutex))
 	{
 		// Put sPlayThreadDeadList at front of sReapQueue
 		OOCASoundChannel	*curr;
@@ -580,7 +578,7 @@ static BOOL PortWait(mach_port_t inPort, PortMessage *outMessage);
 		sReapQueue = sPlayThreadDeadList;
 		sPlayThreadDeadList = nil;
 		
-		[sReapQueueMutex unlock];
+		pthread_mutex_unlock(&sReapQueueMutex);
 		
 		// Wake up reaper thread
 		message.tag = kMsgWakeUp;

@@ -38,3 +38,4 @@ NSString *OSStatusErrorNSString(OSStatus inCode);
 NSString *AudioErrorNSString(ComponentResult inCode);
 NSString *KernelResultNSString(kern_return_t inCode);
 NSString *FourCharCodeToNSString(FourCharCode inCode);
+NSString *AudioErrorShortNSString(OSStatus inCode);
