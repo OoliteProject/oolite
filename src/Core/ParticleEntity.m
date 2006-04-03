@@ -720,8 +720,10 @@ static	Vector	circleVertex[65];		// holds vector coordinates for a unit circle
 }
 
 // used for background billboards
-- (id) initBillboard:(NSSize) billSize fromPosition:(Vector) pos withTexture:(NSString*) textureFile
+- (id) initBillboard:(NSSize) billSize withTexture:(NSString*) textureFile
 {
+	GLfloat w0 = 0.5 * billSize.width;
+	GLfloat h0 = 0.5 * billSize.height;
 	//
 	self = [super init];
     //
@@ -729,11 +731,50 @@ static	Vector	circleVertex[65];		// holds vector coordinates for a unit circle
 	texName = 0;
 	[self setTexture: textureFile];
 	//
+	/*	we're going to make a model with four vertices and two triangles...
+		-------------------------------------------------------------------
+	*/
+	n_vertices = 4;
+	vertices[0] = make_vector( -w0, -h0, 640.0);// bottom left
+	vertices[1] = make_vector( -w0, h0, 640.0);	// top left
+	vertices[2] = make_vector( w0, h0, 640.0);	// top right
+	vertices[3] = make_vector( w0, -h0, 640.0);	// bottom right
+	n_faces = 2;
+	faces[0].normal = make_vector( 0.0, 0.0, -1.0);
+	faces[0].n_verts = 3;
+	strlcpy( (char*)faces[0].textureFileStr255, [textureFile UTF8String], 256);
+	faces[0].texName = texName;
+	faces[0].vertex[0] = 0;	faces[0].vertex[1] = 1;	faces[0].vertex[2] = 2;
+	faces[0].s[0] = 0.0;	faces[0].t[0] = 0.0;
+	faces[0].s[1] = 0.0;	faces[0].t[1] = 1.0;
+	faces[0].s[2] = 1.0;	faces[0].t[2] = 1.0;
+	faces[1].normal = make_vector( 0.0, 0.0, -1.0);
+	faces[1].n_verts = 3;
+	strlcpy( (char*)faces[1].textureFileStr255, [textureFile UTF8String], 256);
+	faces[1].texName = texName;
+	faces[1].vertex[0] = 0;	faces[1].vertex[1] = 2;	faces[1].vertex[2] = 3;
+	faces[1].s[0] = 0.0;	faces[1].t[0] = 0.0;
+	faces[1].s[1] = 1.0;	faces[1].t[1] = 1.0;
+	faces[1].s[2] = 1.0;	faces[1].t[2] = 0.0;
+	[self checkNormalsAndAdjustWinding];
+	collision_radius = [self findCollisionRadius];
+	actual_radius = collision_radius;
+	[self setUpVertexArrays];
+	usingVAR = [self OGL_InitVAR];
+	if (usingVAR)
+		[self OGL_AssignVARMemory:sizeof(EntityData) :(void *)&entityData :0];
+	displayListName = 0;
+//	//
+//	NSLog(@"billboard:\n%@", [self toString]);
+	/*
+		-------------------------------------------------------------------
+	*/
+	
+	//
 	size = billSize;
 	//
     time_counter = 0.0;
 	duration = 0.0;	//infinite
-	position = pos;
 	//
 	[self setColor:[OOColor whiteColor]];
 	color_fv[3] = 1.0;
@@ -750,9 +791,7 @@ static	Vector	circleVertex[65];		// holds vector coordinates for a unit circle
 	isParticle = YES;
 	//
 	[self setVelocity: make_vector( 0.0f, 0.0f, 0.0f)];
-	
-//	NSLog(@"DEBUG *BILLBOARD* initialised at [ %.2f, %.2f, %.2f]", position.x, position.y, position.z);
-	
+		
     return self;
 }
 
@@ -935,7 +974,6 @@ static	Vector	circleVertex[65];		// holds vector coordinates for a unit circle
 			case PARTICLE_FRAGBURST :
 			case PARTICLE_BURST2 :
 			case PARTICLE_FLASH :
-			case PARTICLE_BILLBOARD :
 				{
 					Entity* player = [universe entityZero];
 					if (!texName)
@@ -1522,6 +1560,11 @@ static	Vector	circleVertex[65];		// holds vector coordinates for a unit circle
 				[self drawParticle];
 				break;
 				
+			case PARTICLE_BILLBOARD :
+				debug_type = @"PARTICLE_BILLBOARD";				
+				[self drawBillboard];
+				break;
+				
 			default :
 				[self drawParticle];
 				break;
@@ -1848,6 +1891,12 @@ static	Vector	circleVertex[65];		// holds vector coordinates for a unit circle
 	
 	glPopMatrix();
 	glDisable(GL_TEXTURE_2D);
+}
+
+- (void) drawBillboard
+{
+	NSLog(@"drawing billboard: %@", self);
+	[super drawEntity: NO : NO];	// called with translucent==NO to fool it into being drawn
 }
 
 void drawQuadForView(int viewdir, GLfloat x, GLfloat y, GLfloat z, GLfloat xx, GLfloat yy)

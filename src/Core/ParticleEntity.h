@@ -114,7 +114,7 @@ Your fair use and other rights are in no way affected by the above.
 - (id) initBurst2Size:(GLfloat) burstSize FromPosition:(Vector) fragPos;
 - (id) initFlashSize:(GLfloat) burstSize FromPosition:(Vector) fragPos;
 - (id) initFlashSize:(GLfloat) flashSize FromPosition:(Vector) fragPos Color:(OOColor*) flashColor;
-- (id) initBillboard:(NSSize) billSize fromPosition:(Vector) pos withTexture:(NSString*) textureFile;
+- (id) initBillboard:(NSSize) billSize withTexture:(NSString*) textureFile;
 
 - (void) updateExplosion:(double) delta_t;
 - (void) updateFlasher:(double) delta_t;
@@ -148,6 +148,7 @@ Your fair use and other rights are in no way affected by the above.
 - (void) drawEnergyMine;
 - (void) drawFragburst;
 - (void) drawBurst2;
+- (void) drawBillboard;
 //- (void) drawFlash;
 
 void drawQuadForView(int viewdir, GLfloat x, GLfloat y, GLfloat z, GLfloat xx, GLfloat yy);
