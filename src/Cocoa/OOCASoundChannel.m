@@ -37,12 +37,18 @@ Your fair use and other rights are in no way affected by the above.
 #import <pthread.h>
 
 
+// Tracks a kind of error that isn’t happening any more.
+#define COUNT_NULLS					0
+
+
 static mach_port_t					sReapPort = MACH_PORT_NULL;
 static mach_port_t					sStatusPort = MACH_PORT_NULL;
 static BOOL							sReaperRunning = NO;
 static OOCASoundChannel_RenderIMP	SoundChannelRender = NULL;
 
+#if COUNT_NULLS
 static SInt32						sDebugUnexpectedNullCount = 0;
+#endif
 
 /*
 	When a channel finishes playing, it is put in the “play thread dead list.” At the end of each
@@ -60,6 +66,7 @@ enum
 	kState_Stopped,
 	kState_Playing,
 	kState_Ended,
+	kState_Reap,
 	
 	kState_Broken
 };
@@ -71,6 +78,8 @@ enum
 @interface OOCASoundChannel(Private)
 
 + (void)reaperThread:junk;
+
+- (void)reap;
 - (void)cleanUp;
 
 - (OSStatus)renderWithFlags:(AudioUnitRenderActionFlags *)ioFlags frames:(UInt32)inNumFrames context:(OOCASoundRenderContext *)ioContext data:(AudioBufferList *)ioData;
@@ -207,6 +216,7 @@ static BOOL PortWait(mach_port_t inPort, PortMessage *outMessage);
 				{
 					chan = sReapQueue;
 					sReapQueue = chan->_next;
+					if (kState_Reap == chan->_state) [chan reap];
 					[chan cleanUp];
 				}
 				
@@ -332,6 +342,8 @@ static BOOL PortWait(mach_port_t inPort, PortMessage *outMessage);
 	OSStatus					err = noErr;
 	AudioStreamBasicDescription	format;
 	OOSound						*temp;
+	
+	#if COUNT_NULLS
 	SInt32						unexpectedNulls;
 	
 	unexpectedNulls = sDebugUnexpectedNullCount;
@@ -347,6 +359,7 @@ static BOOL PortWait(mach_port_t inPort, PortMessage *outMessage);
 			NSLog(@"%i NULL Render() or nil _sound errors have occured.", (int)unexpectedNulls);
 		}
 	}
+	#endif
 	
 	if (nil != inSound)
 	{
@@ -535,23 +548,25 @@ static BOOL PortWait(mach_port_t inPort, PortMessage *outMessage);
 			err = endOfDataReached;
 			count = ioData->mNumberBuffers;
 			
-			// Logging in real-time thread _baaaaaad_.
-			if (NULL == Render)
-			{
-				OTAtomicAdd32(1, &sDebugUnexpectedNullCount);
-				//	NSLog(@"NULL Render()! Zeroing output (%u channels).", count);
-			}
-			else if (nil == _sound)
-			{
-				OTAtomicAdd32(1, &sDebugUnexpectedNullCount);
-				//	NSLog(@"nil _sound! Zeroing output (%u channels).", count);
-			}
-			
 			for (i = 0; i != count; ++count)
 			{
 				bzero(ioData->mBuffers[i].mData, ioData->mBuffers[i].mDataByteSize);
 			}
 			*ioFlags |= kAudioUnitRenderAction_OutputIsSilence;
+			
+			#if COUNT_NULLS
+				// Logging in real-time thread _baaaaaad_.
+				if (NULL == Render)
+				{
+					OTAtomicAdd32(1, &sDebugUnexpectedNullCount);
+					//	NSLog(@"NULL Render()! Zeroing output (%u channels).", count);
+				}
+				else if (nil == _sound)
+				{
+					OTAtomicAdd32(1, &sDebugUnexpectedNullCount);
+					//	NSLog(@"nil _sound! Zeroing output (%u channels).", count);
+				}
+			#endif
 		}
 	}
 	
@@ -559,7 +574,8 @@ static BOOL PortWait(mach_port_t inPort, PortMessage *outMessage);
 	{
 		assert(kState_Playing == _state);
 		
-		[self reap];
+		// [self reap];
+		_state = kState_Reap;
 		err = noErr;
 	
 		_next = sPlayThreadDeadList;
