@@ -949,6 +949,15 @@ static  BOOL	taking_snapshot;
 			[[gameView gameController] exitApp];
 		}
 	}
+	
+	//
+	// dread debugging keypress of fear
+	//
+	if ([gameView isDown: 64])   // '@'
+	{
+		NSLog(@"%@ status==%@ guiscreen==%@", self, [self status_string], [self gui_screen_string]);
+	}
+	
 	//
 	//  snapshot
 	//
@@ -1330,20 +1339,19 @@ static BOOL queryPressed;
 
 - (void) pollGuiArrowKeyControls:(double) delta_t
 {
-	MyOpenGLView	*gameView = (MyOpenGLView *)[universe gameView];
+	MyOpenGLView*	gameView = (MyOpenGLView *)[universe gameView];
 	BOOL			moving = NO;
 	double			cursor_speed = 10.0;
 	GuiDisplayGen*  gui = [universe gui];
-	NSString    *commanderFile;
-	
+	NSString*		commanderFile;
+
+	// deal with string inputs as necessary
 	if (gui_screen == GUI_SCREEN_LONG_RANGE_CHART)
 		[gameView setStringInput: gvStringInputAlpha];
-		
-   else if (gui_screen == GUI_SCREEN_SAVE)
+	else if (gui_screen == GUI_SCREEN_SAVE)
 		[gameView setStringInput: gvStringInputAll];   
-
-   else
-      [gameView allowStringInput: NO];
+	else
+		[gameView allowStringInput: NO];
 
 	switch (gui_screen)
 	{
@@ -1509,7 +1517,6 @@ static BOOL queryPressed;
 				int save_row =			GUI_ROW_OPTIONS_SAVE;
 				int load_row =			GUI_ROW_OPTIONS_LOAD;
 				int begin_new_row =	GUI_ROW_OPTIONS_BEGIN_NEW;
-//				int options_row =   GUI_ROW_OPTIONS_OPTIONS;
 				int strict_row =	GUI_ROW_OPTIONS_STRICT;
 				int detail_row =	GUI_ROW_OPTIONS_DETAIL;
 #ifdef GNUSTEP            
@@ -1630,10 +1637,10 @@ static BOOL queryPressed;
 					int modeRefresh = [[mode objectForKey: (NSString *)kCGDisplayRefreshRate] intValue];
 					[controller setDisplayWidth:modeWidth Height:modeHeight Refresh:modeRefresh];
 #ifdef GNUSTEP
-               // TODO: The gameView for the SDL game currently holds and
-               // sets the actual screen resolution (controller just stores
-               // it). This probably ought to change.
-               [gameView setScreenSize: displayModeIndex]; 
+					// TODO: The gameView for the SDL game currently holds and
+					// sets the actual screen resolution (controller just stores
+					// it). This probably ought to change.
+					[gameView setScreenSize: displayModeIndex]; 
 #endif
 					NSString *displayModeString = [self screenModeStringForWidth:modeWidth height:modeHeight refreshRate:modeRefresh];
 					
@@ -2379,8 +2386,8 @@ static BOOL toggling_music;
 		MyOpenGLView  *gameView = (MyOpenGLView *)[universe gameView];
 		if (([gameView isDown:gvFunctionKey1])||([gameView isDown:gvNumberKey1]))   // look for the f1 key
 		{
-         // ensure we've not left keyboard entry on
-         [gameView allowStringInput: NO];
+			// ensure we've not left keyboard entry on
+			[gameView allowStringInput: NO];
 
 			[universe set_up_universe_from_station]; // launch!
 			if (!docked_station)
@@ -2394,10 +2401,13 @@ static BOOL toggling_music;
 	//
 	//  text displays
 	//
-	[self pollGuiScreenControls];
+	// mission screens
+	if (gui_screen == GUI_SCREEN_MISSION)
+		[self pollDemoControls: delta_t];
+	else
+		[self pollGuiScreenControls];	// don't switch away from mission screens
 	//
 	[self pollGuiArrowKeyControls:delta_t];
-	//
 	//
 }
 
@@ -2479,6 +2489,7 @@ static BOOL toggling_music;
 		case	GUI_SCREEN_MISSION :
 			if ([[gui keyForRow:21] isEqual:@"spacebar"])
 			{
+//				NSLog(@"GUI_SCREEN_MISSION looking for spacebar");
 				if ([gameView isDown:32])	//  '<space>'
 				{
 					[self setStatus:STATUS_DOCKED];
@@ -2493,6 +2504,7 @@ static BOOL toggling_music;
 			}
 			else
 			{
+//				NSLog(@"GUI_SCREEN_MISSION looking for up/down/select");
 				if ([gameView isDown:gvArrowKeyDown])
 				{
 					if ((!upDownKeyPressed)||(script_time > timeLastKeyPress + KEY_REPEAT_INTERVAL))
