@@ -271,7 +271,8 @@ static NSTimeInterval	time_last_frame;
 						hyperspeed_engaged = !hyperspeed_locked;						
 						if (hyperspeed_locked)
 						{
-							[self boop];
+							if (![universe playCustomSound:@"[jump-mass-locked]"])
+								[self boop];
 							[universe addMessage:[universe expandDescription:@"[jump-mass-locked]" forSystem:system_seed] forCount:1.5];
 						}
 					}
@@ -373,7 +374,10 @@ static NSTimeInterval	time_last_frame;
 					if ([self selectNextTargetFromMemory])
 						[[universe gui] click];
 					else
-						[boopSound play];
+					{
+						if (![universe playCustomSound:@"[no-target-in-memory]"])
+							[self boop];
+					}
 				}
 				next_target_pressed = YES;
 			}
@@ -389,7 +393,10 @@ static NSTimeInterval	time_last_frame;
 					if ([self selectPreviousTargetFromMemory])
 						[[universe gui] click];
 					else
-						[boopSound play];
+					{
+						if (![universe playCustomSound:@"[no-target-in-memory]"])
+							[self boop];
+					}
 				}
 				previous_target_pressed = YES;
 			}
@@ -410,7 +417,8 @@ static NSTimeInterval	time_last_frame;
 					missile_status = MISSILE_STATUS_ARMED;
 					primaryTarget = NO_TARGET;
 					ident_engaged = YES;
-					[self beep];
+					if (![universe playCustomSound:@"[ident-on]"])
+						[self beep];
 					[universe addMessage:[universe expandDescription:@"[ident-on]" forSystem:system_seed] forCount:2.0];
 				}
 				ident_pressed = YES;
@@ -438,7 +446,8 @@ static NSTimeInterval	time_last_frame;
 							[missile_entity[active_missile] addTarget:[self getPrimaryTarget]];
 							[universe addMessage:[NSString stringWithFormat:[universe expandDescription:@"[missile-locked-onto-@]" forSystem:system_seed], [(ShipEntity *)[self getPrimaryTarget] identFromShip: self]] forCount:4.5];
 						}
-						[self beep];
+						if (![universe playCustomSound:@"[missile-locked-on]"])
+							[self beep];
 					}
 					else
 					{
@@ -449,7 +458,8 @@ static NSTimeInterval	time_last_frame;
 								[missile_entity[active_missile] removeTarget:nil];
 							[universe addMessage:[universe expandDescription:@"[missile-armed]" forSystem:system_seed] forCount:2.0];
 						}
-						[self beep];
+						if (![universe playCustomSound:@"[missile-armed]"])
+							[self beep];
 					}
 					if ([[missile_entity[active_missile] roles] hasSuffix:@"MINE"])
 					{
@@ -478,7 +488,8 @@ static NSTimeInterval	time_last_frame;
 						missile_status = MISSILE_STATUS_SAFE;
 						primaryTarget = NO_TARGET;
 						[self safe_all_missiles];
-						[self boop];
+						if (![universe playCustomSound:@"[missile-safe]"])
+							[self boop];
 						[universe addMessage:[universe expandDescription:@"[missile-safe]" forSystem:system_seed] forCount:2.0];
 					}
 					else
@@ -486,7 +497,8 @@ static NSTimeInterval	time_last_frame;
 						// targetting 'back on' here
 						primaryTarget = [missile_entity[active_missile] getPrimaryTargetID];
 						missile_status = (primaryTarget != NO_TARGET)? MISSILE_STATUS_TARGET_LOCKED : MISSILE_STATUS_SAFE;
-						[self boop];
+						if (![universe playCustomSound:@"[ident-off]"])
+							[self boop];
 						[universe addMessage:[universe expandDescription:@"[ident-off]" forSystem:system_seed] forCount:2.0];
 					}
 					ident_engaged = NO;
@@ -548,7 +560,10 @@ static NSTimeInterval	time_last_frame;
 #endif				
 			{
 				if ([self dumpCargo] != CARGO_NOT_CARGO)
-					[self beep];
+				{
+					if (![universe playCustomSound:@"[cargo-jettisoned]"])
+						[self beep];
+				}
 			}
 			//
 			//  shoot 'R'   // Rotate Cargo
@@ -580,7 +595,8 @@ static NSTimeInterval	time_last_frame;
 					velocity = make_vector( 0.0f, 0.0f, 0.0f);
 					status = STATUS_AUTOPILOT_ENGAGED;
 					[shipAI setState:@"GLOBAL"];	// restart the AI
-					[self beep];
+					if (![universe playCustomSound:@"[autopilot-on]"])
+						[self beep];
 					[universe addMessage:[universe expandDescription:@"[autopilot-on]" forSystem:system_seed] forCount:4.5];
 					//
 					if (ootunes_on)
@@ -599,7 +615,8 @@ static NSTimeInterval	time_last_frame;
 				}
 				else
 				{
-					[self boop];
+					if (![universe playCustomSound:@"[autopilot-out-of-range]"])
+						[self boop];
 					[universe addMessage:[universe expandDescription:@"[autopilot-out-of-range]" forSystem:system_seed] forCount:4.5];
 				}
 			}
@@ -619,7 +636,8 @@ static NSTimeInterval	time_last_frame;
 					velocity = make_vector( 0.0f, 0.0f, 0.0f);
 					status = STATUS_AUTOPILOT_ENGAGED;
 					[shipAI setState:@"GLOBAL"];	// restart the AI
-					[self beep];
+					if (![universe playCustomSound:@"[autopilot-on]"])
+						[self beep];
 					[universe addMessage:[universe expandDescription:@"[autopilot-on]" forSystem:system_seed] forCount:4.5];
 					//
 					if (ootunes_on)
@@ -725,7 +743,8 @@ static NSTimeInterval	time_last_frame;
 						jumpOK = NO;
 						galactic_witchjump = NO;
 						status = STATUS_IN_FLIGHT;
-						[self boop];
+						if (![universe playCustomSound:@"[hyperspace-countdown-aborted]"])
+							[self boop];
 						// say it!
 						[universe clearPreviousMessage];
 						[universe addMessage:[universe expandDescription:@"[witch-user-abort]" forSystem:system_seed] forCount:3.0];
@@ -736,7 +755,8 @@ static NSTimeInterval	time_last_frame;
 						galactic_witchjump = NO;
 						witchspaceCountdown = 15.0;
 						status = STATUS_WITCHSPACE_COUNTDOWN;
-						[self beep];
+						if (![universe playCustomSound:@"[hyperspace-countdown-begun]"])
+							[self beep];
 						// say it!
 						[universe clearPreviousMessage];
 						[universe addMessage:[NSString stringWithFormat:[universe expandDescription:@"[witch-to-@-in-f-seconds]" forSystem:system_seed], [universe getSystemName:target_system_seed], witchspaceCountdown] forCount:1.0];
@@ -765,7 +785,8 @@ static NSTimeInterval	time_last_frame;
 						jumpOK = NO;
 						galactic_witchjump = NO;
 						status = STATUS_IN_FLIGHT;
-						[self boop];
+						if (![universe playCustomSound:@"[hyperspace-countdown-aborted]"])
+							[self boop];
 						// say it!
 						[universe clearPreviousMessage];
 						[universe addMessage:[universe expandDescription:@"[witch-user-abort]" forSystem:system_seed] forCount:3.0];
@@ -776,7 +797,9 @@ static NSTimeInterval	time_last_frame;
 						galactic_witchjump = YES;
 						witchspaceCountdown = 15.0;
 						status = STATUS_WITCHSPACE_COUNTDOWN;
-						[self beep];
+						if (![universe playCustomSound:@"[galactic-hyperspace-countdown-begun]"])
+							if (![universe playCustomSound:@"[hyperspace-countdown-begun]"])
+								[self beep];
 						// say it!
 						[universe addMessage:[NSString stringWithFormat:[universe expandDescription:@"[witch-galactic-in-f-seconds]" forSystem:system_seed], witchspaceCountdown] forCount:1.0];
 					}
@@ -810,9 +833,15 @@ static NSTimeInterval	time_last_frame;
 					}
 					//   
 					if (cloaking_device_active)
-						[self beep];
+					{
+						if (![universe playCustomSound:@"[cloaking-device-on]"])
+							[self beep];
+					}
 					else
-						[self boop];
+					{
+						if (![universe playCustomSound:@"[cloaking-device-off]"])
+							[self boop];
+					}
 				}
 				cloak_pressed = YES;
 			}
@@ -2350,7 +2379,8 @@ static BOOL toggling_music;
 		autopilot_engaged = NO;
 		primaryTarget = NO_TARGET;
 		status = STATUS_IN_FLIGHT;
-		[self beep];
+		if (![universe playCustomSound:@"[autopilot-off]"])
+			[self beep];
 		[universe addMessage:[universe expandDescription:@"[autopilot-off]" forSystem:system_seed] forCount:4.5];
 		//
 		if (ootunes_on)

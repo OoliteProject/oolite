@@ -1756,7 +1756,8 @@ double scoopSoundPlayTime = 0.0;
 				if (!suppressTargetLost)
 				{
 					[universe addMessage:[universe expandDescription:@"[target-lost]" forSystem:system_seed] forCount:3.0];
-					[self boop];
+					if (![universe playCustomSound:@"[target-lost]"])
+						[self boop];
 				}
 				else
 				{
@@ -1783,7 +1784,8 @@ double scoopSoundPlayTime = 0.0;
 			if ((!target_ship)||(target_ship->zero_distance > SCANNER_MAX_RANGE2))
 			{
 				[universe addMessage:[universe expandDescription:@"[target-lost]" forSystem:system_seed] forCount:3.0];
-				[self boop];
+				if (![universe playCustomSound:@"[target-lost]"])
+					[self boop];
 				[missile_entity[i] removeTarget:nil];
 				if ((i == active_missile)&&(!ident_engaged))
 				{
@@ -1807,7 +1809,12 @@ double scoopSoundPlayTime = 0.0;
 				if ((missile_entity[active_missile])&&(!ident_engaged))
 					[missile_entity[active_missile] addTarget:first_target];
 				[universe addMessage:[NSString stringWithFormat:[universe expandDescription:@"[@-locked-onto-@]" forSystem:system_seed], (ident_engaged)? @"Ident system": @"Missile", [(ShipEntity *)first_target name]] forCount:4.5];
-				[self beep];
+				if (ident_engaged)
+					if (![universe playCustomSound:@"[ident-locked-on]"])
+						[self beep];
+				else
+					if (![universe playCustomSound:@"[missile-locked-on]"])
+						[self beep];
 			}
 		}
 	}
@@ -2031,9 +2038,10 @@ double scoopSoundPlayTime = 0.0;
 		// check for mass lock
 		hyperspeed_locked = [self massLocked];
 		
-			if (hyperspeed_locked)
+		if (hyperspeed_locked)
 		{
-			[self boop];
+			if (![universe playCustomSound:@"[jump-mass-locked]"])
+				[self boop];
 			[universe addMessage:[universe expandDescription:@"[jump-mass-locked]" forSystem:system_seed] forCount:4.5];
 			hyperspeed_engaged = NO;
 		}
@@ -2701,7 +2709,8 @@ double scoopSoundPlayTime = 0.0;
 {
 	if ([ms isEqual:@"HOLD_FULL"])
 	{
-		[self beep];
+		if (![universe playCustomSound:@"[hold-full]"])
+			[self beep];
 		[universe addMessage:[universe expandDescription:@"[hold-full]" forSystem:system_seed] forCount:4.5];
 	}
 	

@@ -15,7 +15,13 @@
 	<string>buy.ogg</string>
 	<key>[energy-low]</key>
 	<string>buy.ogg</string>
+	<key>[autopilot-on]</key>
+	<string>buy.ogg</string>
+	<key>[autopilot-off]</key>
+	<string>buy.ogg</string>
 	<key>[autopilot-denied]</key>
+	<string>buy.ogg</string>
+	<key>[autopilot-out-of-range]</key>
 	<string>buy.ogg</string>
 	<key>[aegis-planet]</key>
 	<string>buy.ogg</string>
@@ -23,13 +29,45 @@
 	<string>buy.ogg</string>
 	<key>[mine-launched]</key>
 	<string>buy.ogg</string>
+	<key>[missile-armed]</key>
+	<string>buy.ogg</string>
+	<key>[missile-locked-on]</key>
+	<string>buy.ogg</string>
 	<key>[missile-launched]</key>
+	<string>buy.ogg</string>
+	<key>[missile-safe]</key>
 	<string>buy.ogg</string>
 	<key>[weapon-overheat]</key>
 	<string>buy.ogg</string>
 	<key>[game-over]</key>
 	<string>buy.ogg</string>
 	<key>[witchdrive-malfunction]</key>
+	<string>buy.ogg</string>
+	<key>[ident-on]</key>
+	<string>buy.ogg</string>
+	<key>[ident-off]</key>
+	<string>buy.ogg</string>
+	<key>[ident-locked-on]</key>
+	<string>buy.ogg</string>
+	<key>[no-target-in-memory]</key>
+	<string>buy.ogg</string>
+	<key>[target-lost]</key>
+	<string>buy.ogg</string>
+	<key>[hold-full]</key>
+	<string>buy.ogg</string>
+	<key>[cargo-jettisoned]</key>
+	<string>buy.ogg</string>
+	<key>[hyperspace-countdown-begun]</key>
+	<string>buy.ogg</string>
+	<key>[galactic-hyperspace-countdown-begun]</key>
+	<string>buy.ogg</string>
+	<key>[hyperspace-countdown-aborted]</key>
+	<string>buy.ogg</string>
+	<key>[cloaking-device-on]</key>
+	<string>buy.ogg</string>
+	<key>[cloaking-device-off]</key>
+	<string>buy.ogg</string>
+	<key>[jump-mass-locked]</key>
 	<string>buy.ogg</string>
 	-->
 </dict>
