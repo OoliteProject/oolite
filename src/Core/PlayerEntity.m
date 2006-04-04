@@ -433,6 +433,8 @@ static Quaternion quaternion_identity = { (GLfloat)1.0, (GLfloat)0.0, (GLfloat)0
 	[result setObject:contracts forKey:@"contracts"];
 	[result setObject:contract_record forKey:@"contract_record"];
 	
+	[result setObject:missionDestinations forKey:@"missionDestinations"];
+
 	//shipyard
 	[result setObject:shipyard_record forKey:@"shipyard_record"];
 	
@@ -699,6 +701,20 @@ static Quaternion quaternion_identity = { (GLfloat)1.0, (GLfloat)0.0, (GLfloat)0
 		contract_record = [[NSMutableDictionary dictionaryWithCapacity:8] retain];
 	}
 	
+	// mission destinations
+	if ([dict objectForKey:@"missionDestinations"])
+	{
+		if (missionDestinations)
+			[missionDestinations release];
+		missionDestinations = [[NSMutableArray arrayWithArray:(NSArray *)[dict objectForKey:@"missionDestinations"]] retain];
+	}
+	else
+	{
+		if (missionDestinations)
+			[missionDestinations release];
+		missionDestinations = [[NSMutableArray arrayWithCapacity:8] retain];
+	}
+
 	// shipyard
 	if ([dict objectForKey:@"shipyard_record"])
 	{
@@ -910,8 +926,14 @@ static Quaternion quaternion_identity = { (GLfloat)1.0, (GLfloat)0.0, (GLfloat)0
 	[hud setScannerZoom:1.0];
 	scanner_zoom_rate = 0.0;
 	//
-	script = [[ResourceManager dictionaryFromFilesNamed:@"script.plist" inFolder:@"Config" andMerge:YES] retain];
+	//script = [[ResourceManager dictionaryFromFilesNamed:@"script.plist" inFolder:@"Config" andMerge:YES] retain];
+	script = [[ResourceManager loadScripts] retain];
 	mission_variables =[[NSMutableDictionary dictionaryWithCapacity:16] retain];
+	local_variables =[[NSMutableDictionary dictionaryWithCapacity:[script count]] retain];
+	NSArray *scriptKeys = [script allKeys];
+	for (i = 0; i < [scriptKeys count]; i++)
+		[local_variables setObject:[NSMutableDictionary dictionaryWithCapacity:16] forKey:[scriptKeys objectAtIndex:i]];
+
 	[self setScript_target:nil];
 	[self resetMissionChoice];
 	//
@@ -937,6 +959,10 @@ static Quaternion quaternion_identity = { (GLfloat)1.0, (GLfloat)0.0, (GLfloat)0
 	if (contract_record)
 		[contract_record release];
 	contract_record = [[NSMutableDictionary dictionaryWithCapacity:16] retain];
+	//
+	if (missionDestinations)
+		[missionDestinations release];
+	missionDestinations = [[NSMutableArray alloc] initWithCapacity:8];
 	//
 	if (shipyard_record)
 		[shipyard_record release];
@@ -1422,6 +1448,20 @@ static Quaternion quaternion_identity = { (GLfloat)1.0, (GLfloat)0.0, (GLfloat)0
 
     if (script)					[script release];
     if (mission_variables)		[mission_variables release];
+
+	if (local_variables)
+	{
+		int i;
+		NSArray *objs = [local_variables allValues];
+		for (i = 0; i < [objs count]; i++)
+		{
+			NSMutableDictionary *dict = (NSMutableDictionary *)[objs objectAtIndex:i];
+			[dict dealloc];
+		}
+		[local_variables removeAllObjects];
+		[local_variables dealloc];
+	}
+
 	if (lastTextKey)			[lastTextKey release];
 	
     if (extra_equipment)		[extra_equipment release];
@@ -1431,6 +1471,7 @@ static Quaternion quaternion_identity = { (GLfloat)1.0, (GLfloat)0.0, (GLfloat)0
 	if (passenger_record)		[passenger_record release];
 	if (contracts)				[contracts release];
 	if (contract_record)		[contract_record release];
+	if (missionDestinations)	[missionDestinations release];
 	if (shipyard_record)		[shipyard_record release];
 
     if (missionBackgroundImage) [missionBackgroundImage release];
@@ -3791,6 +3832,10 @@ double scoopSoundPlayTime = 0.0;
 	if (contracts)
 		[contracts removeAllObjects];
 	
+	// remove any mission destinations for the old galaxy
+	if (missionDestinations)
+		[missionDestinations removeAllObjects];
+
 	// expire passenger contracts for the old galaxy
 	if (passengers)
 	{
@@ -4528,6 +4573,8 @@ double scoopSoundPlayTime = 0.0;
 		mark[[(NSNumber*)[(NSDictionary*)[passengers objectAtIndex:i] objectForKey:PASSENGER_KEY_DESTINATION] intValue]] = YES;
 	for (i = 0; i < [contracts count]; i++)
 		mark[[(NSNumber*)[(NSDictionary*)[contracts objectAtIndex:i] objectForKey:CONTRACT_KEY_DESTINATION] intValue]] = YES;
+	for (i = 0; i < [missionDestinations count]; i++)
+		mark[[(NSNumber*)[missionDestinations objectAtIndex:i] intValue]] = YES;
 	for (i = 0; i < 256; i++)
 		[destinations addObject:[NSNumber numberWithBool:mark[i]]];
 
@@ -4552,6 +4599,8 @@ double scoopSoundPlayTime = 0.0;
 		mark[[(NSNumber*)[(NSDictionary*)[passengers objectAtIndex:i] objectForKey:PASSENGER_KEY_DESTINATION] intValue]] = YES;
 	for (i = 0; i < [contracts count]; i++)
 		mark[[(NSNumber*)[(NSDictionary*)[contracts objectAtIndex:i] objectForKey:CONTRACT_KEY_DESTINATION] intValue]] = YES;
+	for (i = 0; i < [missionDestinations count]; i++)
+		mark[[(NSNumber*)[missionDestinations objectAtIndex:i] intValue]] = YES;
 	
 	// GUI stuff
 	{

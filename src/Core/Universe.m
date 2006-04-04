@@ -5321,6 +5321,16 @@ GLfloat	starboard_matrix[] = {	0.0f, 0.0f, 1.0f, 0.0f,		0.0f, 1.0f, 0.0f, 0.0f,	
 	[local_overrides setObject:object forKey:key];
 }
 
+- (void) setSystemDataForGalaxy:(int) gnum planet:(int) pnum key:(NSString*) key value:(NSObject*) object
+{
+	NSString*	override_key = [NSString stringWithFormat:@"%d %d", gnum, pnum];
+
+	if ([local_planetinfo_overrides objectForKey:override_key] == nil)
+		[local_planetinfo_overrides setObject:[NSMutableDictionary dictionaryWithCapacity:8] forKey:override_key];
+
+	NSMutableDictionary*	local_overrides = (NSMutableDictionary*)[local_planetinfo_overrides objectForKey:override_key];
+	[local_overrides setObject:object forKey:key];
+}
 
 - (NSString *) getSystemName:(Random_Seed) s_seed
 {
@@ -6942,13 +6952,17 @@ NSComparisonResult comparePrice( id dict1, id dict2, void * context)
 	return [self expandDescription:@"[14] is [22]." forSystem:s_seed];
 }
 
-- (NSString *) expandDescription:(NSString *) desc forSystem:(Random_Seed)s_seed;
+- (NSString *) expandDescription:(NSString *) desc forSystem:(Random_Seed)s_seed
+{
+	return [self expandDescriptionWithLocals:desc forSystem:s_seed withLocalVariables:nil];
+}
+
+- (NSString *) expandDescriptionWithLocals:(NSString *) desc forSystem:(Random_Seed)s_seed withLocalVariables:(NSDictionary *)locals
 {
 	PlayerEntity*		player = (PlayerEntity*)[self entityZero];
 	NSMutableString*	partial = [NSMutableString stringWithString:desc];
 	NSMutableDictionary* all_descriptions = [NSMutableDictionary dictionaryWithDictionary:descriptions];
 	
-	////
 	// add in mission_variables if required
 	if ([desc rangeOfString:@"[mission_"].location != NSNotFound)
 	{
@@ -6958,10 +6972,16 @@ NSComparisonResult comparePrice( id dict1, id dict2, void * context)
 		while (key = [missVarsEnum nextObject])
 			[all_descriptions setObject:[mission_vars objectForKey:key] forKey:key];
 	}
-	//
-	////
 	
-	////
+	// also add the mission-local vars, if they have been passed in
+	if (locals != nil && [desc rangeOfString:@"[local_"].location != NSNotFound)
+	{
+		NSEnumerator* localVarsEnum = [locals keyEnumerator];
+		id key;
+		while (key = [localVarsEnum nextObject])
+			[all_descriptions setObject:[locals objectForKey:key] forKey:key];
+	}
+
 	// add in player info if required
 	if ([desc rangeOfString:@"[commander_"].location != NSNotFound)
 	{
@@ -6978,8 +6998,6 @@ NSComparisonResult comparePrice( id dict1, id dict2, void * context)
 		int legal_index = 0 + (legal_status <= 50) ? 1 : 2;
 		[all_descriptions setObject:[(NSArray *)[descriptions objectForKey:@"legal_status"] objectAtIndex:legal_index] forKey:@"commander_legal_status"];
 	}
-	//
-	////
 	
 	while ([partial rangeOfString:@"["].location != NSNotFound)
 	{
@@ -7006,6 +7024,14 @@ NSComparisonResult comparePrice( id dict1, id dict2, void * context)
 				part = [all_descriptions objectForKey:middle];
 			}
 		}
+		else if (([middle hasSuffix:@"_number"])||([middle hasSuffix:@"_bool"])||([middle hasSuffix:@"_string"]))
+		{
+			SEL value_selector = NSSelectorFromString(middle);
+			if ([player respondsToSelector:value_selector])
+			{
+				part = [NSString stringWithFormat:@"%@", [player performSelector:value_selector]];
+			}
+		}
 		else
 		{
 			// no value for that key so interpret it as a number...
@@ -7021,7 +7047,6 @@ NSComparisonResult comparePrice( id dict1, id dict2, void * context)
 			
 			part = (NSString *)[(NSArray *)[(NSArray *)[all_descriptions objectForKey:@"system_description"] objectAtIndex:sub] objectAtIndex:opt];
 		}
-		
 		partial = [NSMutableString stringWithFormat:@"%@%@%@",before,part,after];
 	}
 		

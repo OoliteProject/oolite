@@ -110,4 +110,5 @@ BOOL always_include_addons;
 + (NSString*) stringFromNSPoint: (NSPoint) point;
 + (NSPoint) NSPointFromString: (NSString*) point_string;
 
++ (NSDictionary *) loadScripts;
 @end

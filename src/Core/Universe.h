@@ -417,6 +417,7 @@ extern int debug;
 - (NSDictionary *) generateSystemData:(Random_Seed) system_seed;
 - (NSDictionary *) currentSystemData;
 - (void) setSystemDataKey:(NSString*) key value:(NSObject*) object;
+- (void) setSystemDataForGalaxy:(int) gnum planet:(int) pnum key:(NSString*) key value:(NSObject*) object;
 - (NSString *) getSystemName:(Random_Seed) s_seed;
 - (NSString *) getSystemInhabitants:(Random_Seed) s_seed;
 - (NSString *) generateSystemName:(Random_Seed) system_seed;
@@ -464,6 +465,7 @@ NSComparisonResult comparePrice( id dict1, id dict2, void * context);
 
 - (NSString *) generateSystemDescription:(Random_Seed) s_seed;
 - (NSString *) expandDescription:(NSString *) desc forSystem:(Random_Seed)s_seed;
+- (NSString *) expandDescriptionWithLocals:(NSString *) desc forSystem:(Random_Seed)s_seed withLocalVariables:(NSDictionary *)locals;
 - (NSString *) getRandomDigrams;
 
 - (Vector) getWitchspaceExitPosition;

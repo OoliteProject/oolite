@@ -165,6 +165,7 @@ static NSString * mission_key;
 	
 	*/
 	NSMutableArray*	tokens = [Entity scanTokensFromString:scriptAction];
+	NSMutableDictionary* locals = [local_variables objectForKey:mission_key];
 	NSString*   selectorString = nil;
 	NSString*	valueString = nil;
 	SEL			_selector;
@@ -184,6 +185,9 @@ static NSString * mission_key;
 	{
 		[tokens removeObjectAtIndex:0];
 		valueString = [[tokens componentsJoinedByString:@" "] stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceCharacterSet]];
+		valueString = [universe expandDescriptionWithLocals:valueString forSystem:[self system_seed] withLocalVariables:locals];
+		if (debug)
+ 			NSLog(@"DEBUG ::::: after expansion: \"%@ %@\"", selectorString, valueString);
 	}
 					
 	_selector = NSSelectorFromString(selectorString);
@@ -239,6 +243,7 @@ static NSString * mission_key;
 
 	*/
 	NSArray*	tokens = [Entity scanTokensFromString:scriptCondition];
+	NSMutableDictionary* locals = [local_variables objectForKey:mission_key];
 	NSString*   selectorString = nil;
 	NSString*	comparisonString = nil;
 	NSString*	valueString = nil;
@@ -259,6 +264,13 @@ static NSString * mission_key;
 		if (debug)
 			NSLog(@"DEBUG ..... checking mission_variable '%@'",selectorString);
 		mission_string_value = (NSString *)[mission_variables objectForKey:selectorString];
+		selectorString = @"mission_string";
+	}
+	else if ([selectorString hasPrefix:@"local_"])
+	{
+		if (debug)
+			NSLog(@"DEBUG ..... checking local variable '%@'",selectorString);
+		mission_string_value = (NSString *)[locals objectForKey:selectorString];
 		selectorString = @"mission_string";
 	}
 	
@@ -859,6 +871,27 @@ static int shipsFound;
 	
 }
 
+- (void) setSpecificPlanetInfo:(NSString *)key_valueString  // uses galaxy#=planet#=key=value
+{
+	NSArray*	tokens = [[key_valueString stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceCharacterSet]] componentsSeparatedByString:@"="];
+	NSString*   keyString = nil;
+	NSString*	valueString = nil;
+	int gnum, pnum;
+
+	if ([tokens count] != 4)
+	{
+		NSLog(@"***** CANNOT SETPLANETINFO: '%@'", key_valueString);
+		return;
+	}
+
+	gnum = [(NSString*)[tokens objectAtIndex:0] intValue];
+	pnum = [(NSString*)[tokens objectAtIndex:1] intValue];
+	keyString = [(NSString*)[tokens objectAtIndex:2] stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceCharacterSet]];
+	valueString = [(NSString*)[tokens objectAtIndex:3] stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceCharacterSet]];
+
+	[universe setSystemDataForGalaxy:gnum planet:pnum key:keyString value:valueString];
+}
+
 - (void) awardCargo:(NSString *)amount_typeString
 {
 //	NSArray*	tokens = [amount_typeString componentsSeparatedByString:@" "];
@@ -1210,8 +1243,10 @@ static int shipsFound;
 - (void) set:(NSString *)missionvariable_value
 {
 	NSMutableArray*	tokens = [Entity scanTokensFromString:missionvariable_value];
+	NSMutableDictionary* locals = [local_variables objectForKey:mission_key];
 	NSString*   missionVariableString = nil;
 	NSString*	valueString = nil;
+	BOOL hasMissionPrefix, hasLocalPrefix;
 
 	if ([tokens count] < 2)
 	{
@@ -1223,54 +1258,92 @@ static int shipsFound;
 	[tokens removeObjectAtIndex:0];
 	valueString = [tokens componentsJoinedByString:@" "];
 
-	if (([valueString hasSuffix:@"_number"])||([valueString hasSuffix:@"_bool"])||([valueString hasSuffix:@"_string"]))
-	{
-		SEL value_selector = NSSelectorFromString(valueString);
-		if ([self respondsToSelector:value_selector])
-		{
-			// substitute into valueString the result of the call
-			valueString = [NSString stringWithFormat:@"%@", [self performSelector:value_selector]];
-		}
-	}
+	hasMissionPrefix = [missionVariableString hasPrefix:@"mission_"];
+	hasLocalPrefix = [missionVariableString hasPrefix:@"local_"];
 	
-	if (![missionVariableString hasPrefix:@"mission_"])
+	if (hasMissionPrefix != YES && hasLocalPrefix != YES)
 	{
-		NSLog(@"***** MISSION VARIABLE '%@' DOES NOT BEGIN WITH 'mission_'", missionvariable_value);
+		NSLog(@"***** IDENTIFIER '%@' DOES NOT BEGIN WITH 'mission_' or 'local_'", missionVariableString);
 		return;
 	}
 	
-	[mission_variables setObject:valueString forKey:missionVariableString];
+	if (hasMissionPrefix)
+		[mission_variables setObject:valueString forKey:missionVariableString];
+	else
+		[locals setObject:valueString forKey:missionVariableString];
 }
 
 - (void) reset:(NSString *)missionvariable
 {
 	NSString*   missionVariableString = [missionvariable stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceCharacterSet]];
+	BOOL hasMissionPrefix, hasLocalPrefix;
 
-	if (![missionVariableString hasPrefix:@"mission_"])
-	{
-		NSLog(@"***** MISSION VARIABLE '%@' DOES NOT BEGIN WITH 'mission_'", missionVariableString);
-		return;
-	}
+	hasMissionPrefix = [missionVariableString hasPrefix:@"mission_"];
+	hasLocalPrefix = [missionVariableString hasPrefix:@"local_"];
 	
-	[mission_variables removeObjectForKey:missionVariableString];
+	if (hasMissionPrefix)
+	{
+		[mission_variables removeObjectForKey:missionVariableString];
+	}
+	else if (hasLocalPrefix)
+	{
+		NSMutableDictionary* locals = [local_variables objectForKey:mission_key];
+		[locals removeObjectForKey:missionVariableString];
+	}
+	else
+	{
+		NSLog(@"***** IDENTIFIER '%@' DOES NOT BEGIN WITH 'mission_' or 'local_'", missionVariableString);
+	}
 }
 
 - (void) increment:(NSString *)missionVariableString
 {
+	BOOL hasMissionPrefix, hasLocalPrefix;
 	int value = 0;
-	if ([mission_variables objectForKey:missionVariableString])
-		value = [(NSString *)[mission_variables objectForKey:missionVariableString] intValue];
-	value++;
-	[mission_variables setObject:[NSString stringWithFormat:@"%d", value] forKey:missionVariableString];
+
+	hasMissionPrefix = [missionVariableString hasPrefix:@"mission_"];
+	hasLocalPrefix = [missionVariableString hasPrefix:@"local_"];
+
+	if (hasMissionPrefix)
+	{
+		if ([mission_variables objectForKey:missionVariableString])
+			value = [(NSString *)[mission_variables objectForKey:missionVariableString] intValue];
+		value++;
+		[mission_variables setObject:[NSString stringWithFormat:@"%d", value] forKey:missionVariableString];
+	}
+	else if (hasLocalPrefix)
+	{
+		NSMutableDictionary* locals = [local_variables objectForKey:mission_key];
+		if ([locals objectForKey:missionVariableString])
+			value = [(NSString *)[locals objectForKey:missionVariableString] intValue];
+		value++;
+		[locals setObject:[NSString stringWithFormat:@"%d", value] forKey:missionVariableString];
+	}
 }
 
 - (void) decrement:(NSString *)missionVariableString
 {
+	BOOL hasMissionPrefix, hasLocalPrefix;
 	int value = 0;
-	if ([mission_variables objectForKey:missionVariableString])
-		value = [(NSString *)[mission_variables objectForKey:missionVariableString] intValue];
-	value--;
-	[mission_variables setObject:[NSString stringWithFormat:@"%d", value] forKey:missionVariableString];
+
+	hasMissionPrefix = [missionVariableString hasPrefix:@"mission_"];
+	hasLocalPrefix = [missionVariableString hasPrefix:@"local_"];
+
+	if (hasMissionPrefix)
+	{
+		if ([mission_variables objectForKey:missionVariableString])
+			value = [(NSString *)[mission_variables objectForKey:missionVariableString] intValue];
+		value--;
+		[mission_variables setObject:[NSString stringWithFormat:@"%d", value] forKey:missionVariableString];
+	}
+	else if (hasLocalPrefix)
+	{
+		NSMutableDictionary* locals = [local_variables objectForKey:mission_key];
+		if ([locals objectForKey:missionVariableString])
+			value = [(NSString *)[locals objectForKey:missionVariableString] intValue];
+		value--;
+		[locals setObject:[NSString stringWithFormat:@"%d", value] forKey:missionVariableString];
+	}
 }
 
 - (void) add:(NSString *)missionVariableString_value
@@ -1279,6 +1352,8 @@ static int shipsFound;
 	NSString*   valueString;
 	double	value;
 	NSMutableArray*	tokens = [Entity scanTokensFromString:missionVariableString_value];
+	NSMutableDictionary* locals = [local_variables objectForKey:mission_key];
+	BOOL hasMissionPrefix, hasLocalPrefix;
 
 	if ([tokens count] < 2)
 	{
@@ -1290,27 +1365,28 @@ static int shipsFound;
 	[tokens removeObjectAtIndex:0];
 	valueString = [tokens componentsJoinedByString:@" "];
 
-	if (![mission_variables objectForKey:missionVariableString])
+	hasMissionPrefix = [missionVariableString hasPrefix:@"mission_"];
+	hasLocalPrefix = [missionVariableString hasPrefix:@"local_"];
+	
+	if (hasMissionPrefix)
+	{
+		value = [[mission_variables objectForKey:missionVariableString] doubleValue];
+		value += [valueString doubleValue];
+	
+		[mission_variables setObject:[NSString stringWithFormat:@"%f", value] forKey:missionVariableString];
+	}
+	else if (hasLocalPrefix)
+	{
+		value = [[locals objectForKey:missionVariableString] doubleValue];
+		value += [valueString doubleValue];
+
+		[locals setObject:[NSString stringWithFormat:@"%f", value] forKey:missionVariableString];
+	}
+	else
 	{
 		NSLog(@"***** CANNOT ADD: '%@'",missionVariableString_value);
-		NSLog(@"***** NO MISSION VARIABLE: '%@'",missionVariableString);
-		return;
+		NSLog(@"***** IDENTIFIER '%@' DOES NOT BEGIN WITH 'mission_' or 'local_'",missionVariableString);
 	}
-	
-	if (([valueString hasSuffix:@"_number"])||([valueString hasSuffix:@"_bool"])||([valueString hasSuffix:@"_string"]))
-	{
-		SEL value_selector = NSSelectorFromString(valueString);
-		if ([self respondsToSelector:value_selector])
-		{
-			// substitute into valueString the result of the call
-			valueString = [NSString stringWithFormat:@"%@", [self performSelector:value_selector]];
-		}
-	}
-	
-	value = [[mission_variables objectForKey:missionVariableString] doubleValue];
-	value += [valueString doubleValue];
-	
-	[mission_variables setObject:[NSString stringWithFormat:@"%f", value] forKey:missionVariableString];
 }
 
 - (void) subtract:(NSString *)missionVariableString_value
@@ -1319,10 +1395,12 @@ static int shipsFound;
 	NSString*   valueString;
 	double	value;
 	NSMutableArray*	tokens = [Entity scanTokensFromString:missionVariableString_value];
+	NSMutableDictionary* locals = [local_variables objectForKey:mission_key];
+	BOOL hasMissionPrefix, hasLocalPrefix;
 
 	if ([tokens count] < 2)
 	{
-		NSLog(@"***** CANNOT ADD: '%@'",missionVariableString_value);
+		NSLog(@"***** CANNOT SUBTRACT: '%@'",missionVariableString_value);
 		return;
 	}
 
@@ -1330,27 +1408,28 @@ static int shipsFound;
 	[tokens removeObjectAtIndex:0];
 	valueString = [tokens componentsJoinedByString:@" "];
 
-	if (![mission_variables objectForKey:missionVariableString])
+	hasMissionPrefix = [missionVariableString hasPrefix:@"mission_"];
+	hasLocalPrefix = [missionVariableString hasPrefix:@"local_"];
+	
+	if (hasMissionPrefix)
 	{
-		NSLog(@"***** CANNOT ADD: '%@'",missionVariableString_value);
-		NSLog(@"***** NO MISSION VARIABLE: '%@'",missionVariableString);
-		return;
-	}
+		value = [[mission_variables objectForKey:missionVariableString] doubleValue];
+		value -= [valueString doubleValue];
 	
-	if (([valueString hasSuffix:@"_number"])||([valueString hasSuffix:@"_bool"])||([valueString hasSuffix:@"_string"]))
+		[mission_variables setObject:[NSString stringWithFormat:@"%f", value] forKey:missionVariableString];
+	}
+	else if (hasLocalPrefix)
 	{
-		SEL value_selector = NSSelectorFromString(valueString);
-		if ([self respondsToSelector:value_selector])
-		{
-			// substitute into valueString the result of the call
-			valueString = [NSString stringWithFormat:@"%@", [self performSelector:value_selector]];
-		}
+		value = [[locals objectForKey:missionVariableString] doubleValue];
+		value -= [valueString doubleValue];
+
+		[locals setObject:[NSString stringWithFormat:@"%f", value] forKey:missionVariableString];
 	}
-	
-	value = [[mission_variables objectForKey:missionVariableString] doubleValue];
-	value -= [valueString doubleValue];
-	
-	[mission_variables setObject:[NSString stringWithFormat:@"%f", value] forKey:missionVariableString];
+	else
+	{
+		NSLog(@"***** CANNOT SUBTRACT: '%@'",missionVariableString_value);
+		NSLog(@"***** IDENTIFIER '%@' DOES NOT BEGIN WITH 'mission_' or 'local_'",missionVariableString);
+	}
 }
 
 - (void) checkForShips: (NSString *)roleString
@@ -1435,6 +1514,68 @@ static int shipsFound;
 	if (missionChoice)
 		[missionChoice release];
 	missionChoice = nil;
+}
+
+- (void) addMissionDestination:(NSString *)destinations
+{
+	int i, j;
+	NSNumber *pnump;
+	int pnum, dest;
+	NSMutableArray*	tokens = [Entity scanTokensFromString:destinations];
+	BOOL addDestination;
+
+	for (j = 0; j < [tokens count]; j++)
+	{
+		dest = [(NSString *)[tokens objectAtIndex:j] intValue];
+		if (dest < 0 || dest > 255)
+			continue;
+
+		addDestination = YES;
+		for (i = 0; i < [missionDestinations count]; i++)
+		{
+			pnump = (NSNumber *)[missionDestinations objectAtIndex:i];
+			pnum = [pnump intValue];
+			if (pnum == dest)
+			{
+				addDestination = NO;
+				break;
+			}
+		}
+
+		if (addDestination == YES)
+			[missionDestinations addObject:[NSNumber numberWithUnsignedInt:dest]];
+	}
+}
+
+- (void) removeMissionDestination:(NSString *)destinations
+{
+	int i, j;
+	NSNumber *pnump;
+	int pnum, dest;
+	NSMutableArray*	tokens = [Entity scanTokensFromString:destinations];
+	BOOL removeDestination;
+
+	for (j = 0; j < [tokens count]; j++)
+	{
+		dest = [(NSString *)[tokens objectAtIndex:j] intValue];
+		if (dest < 0 || dest > 255)
+			continue;
+
+		removeDestination = NO;
+		for (i = 0; i < [missionDestinations count]; i++)
+		{
+			pnump = (NSNumber *)[missionDestinations objectAtIndex:i];
+			pnum = [pnump intValue];
+			if (pnum == dest)
+			{
+				removeDestination = YES;
+				break;
+			}
+		}
+
+		if (removeDestination == YES)
+			[missionDestinations removeObjectAtIndex:i];
+	}
 }
 
 - (void) showShipModel: (NSString *)shipKey
@@ -1676,7 +1817,7 @@ static int shipsFound;
 
 - (void) debugMessage:(NSString *)args
 {
-	NSLog(@"SCRIPT debugMessage: %@", [self replaceVariablesInString: args]);
+	NSLog(@"SCRIPT debugMessage: %@", args);
 }
 
 - (NSString*) replaceVariablesInString:(NSString*) args
@@ -1693,8 +1834,7 @@ static int shipsFound;
 		{
 			[tokens replaceObjectAtIndex:i withObject:[mission_variables objectForKey:valueString]];
 		}
-	
-		if (([valueString hasSuffix:@"_number"])||([valueString hasSuffix:@"_bool"])||([valueString hasSuffix:@"_string"]))
+		else if (([valueString hasSuffix:@"_number"])||([valueString hasSuffix:@"_bool"])||([valueString hasSuffix:@"_string"]))
 		{
 			SEL value_selector = NSSelectorFromString(valueString);
 			if ([self respondsToSelector:value_selector])

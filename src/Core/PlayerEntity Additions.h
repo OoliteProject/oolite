@@ -117,6 +117,7 @@ Your fair use and other rights are in no way affected by the above.
 - (void) removeEquipment:(NSString *)equipString;  //eg. EQ_NAVAL_ENERGY_UNIT
 
 - (void) setPlanetinfo:(NSString *)key_valueString;	// uses key=value format
+- (void) setSpecificPlanetInfo:(NSString *)key_valueString;	// uses galaxy#=planet#=key=value
 
 - (void) awardCargo:(NSString *)amount_typeString;
 - (void) removeAllCargo;
@@ -165,6 +166,9 @@ Your fair use and other rights are in no way affected by the above.
 - (void) setMissionChoices:(NSString *)choicesKey;	// choicesKey is a key for a dictionary of
 													// choices/choice phrases in missiontext.plist and also..
 - (void) resetMissionChoice;						// resets MissionChoice to nil
+
+- (void) addMissionDestination:(NSString *)destinations;	// mark a system on the star charts
+- (void) removeMissionDestination:(NSString *)destinations; // stop a system being marked on star charts
 
 - (void) showShipModel: (NSString *)shipKey;
 - (void) setMissionMusic: (NSString *)value;

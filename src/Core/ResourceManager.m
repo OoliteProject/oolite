@@ -44,6 +44,7 @@ Your fair use and other rights are in no way affected by the above.
 #import "MutableDictionaryExtension.h"
 #import "OOSound.h"
 
+extern NSDictionary* parseScripts(NSString* script);
 
 @implementation ResourceManager
 
@@ -1194,5 +1195,142 @@ NSMutableDictionary*	surface_cache;
 		return NSMakePoint( 0.0, 0.0);
 	return NSMakePoint( [[tokens objectAtIndex:0] floatValue], [[tokens objectAtIndex:1] floatValue]);
 }
+
++ (NSDictionary *) loadScripts
+{
+	NSMutableArray *results = [NSMutableArray arrayWithCapacity:16];
+	NSMutableArray *fpaths = [ResourceManager paths];
+	NSString *foldername = [NSString stringWithString:@"Config"];
+	NSString *filename = [NSString stringWithString:@"script.plist"];
+
+	int i;
+
+	NSString* dict_key = [NSString stringWithFormat:@"%@:%@", foldername, filename];
+	if (!dictionary_cache)
+		dictionary_cache = [[NSMutableDictionary alloc] initWithCapacity:32];
+	if ([dictionary_cache objectForKey:dict_key])
+	{
+		return [NSDictionary dictionaryWithDictionary:(NSDictionary *)[dictionary_cache objectForKey:dict_key]];	// return the cached dictionary
+	}
+
+	for (i = 0; i < [fpaths count]; i++)
+	{
+		NSString *xfilepath = [(NSString *)[fpaths objectAtIndex:i] stringByAppendingPathComponent:filename];
+		NSMutableString *filepath = [NSMutableString stringWithString:xfilepath];
+
+		[filepath replaceString:@".plist" withString:@".oos"];
+		//NSLog(@"looking for oos file: %@", filepath);
+		if ([[NSFileManager defaultManager] fileExistsAtPath:filepath])
+		{
+			// load and compile oos script
+			NSLog(@"trying to load and parse %@", filepath);
+			NSString *script = [NSString stringWithContentsOfFile:filepath];
+			NSDictionary *scriptDict = parseScripts(script);
+			if (scriptDict) {
+				//NSLog(@"parsed ok, adding to results");
+				[results addObject:scriptDict];
+			}
+		}
+		else
+		{
+			[filepath replaceString:@".oos" withString:@".plist"];
+			//NSLog(@"oos not found, looking for plist file: %@", filepath);
+			// All this code replicated from dictionaryFromFileNamed because that method
+			// will traverse all possible locations and any oos files that co-exist with
+			// plist files will probably get their entries overwritten.
+			//
+			// This can be simplified if we make a rule that it is a configuration error
+			// that isn't handled if there is a script.oos and script.plist file in
+			// the same place. But that probably isn't realistic.
+			if ([[NSFileManager defaultManager] fileExistsAtPath:filepath])
+			{
+				NSDictionary* found_dic = [NSDictionary dictionaryWithContentsOfFile:filepath];
+
+				// FIX FOR WINDOWS GNUSTEP NOT PARSING XML PLISTS
+				NS_DURING
+					if (!found_dic)	// try parsing it using our home-grown XML parser
+						found_dic = (NSDictionary*)[ResourceManager parseXMLPropertyList:[NSString stringWithContentsOfFile:filepath]];
+				NS_HANDLER
+					if ([[localException name] isEqual: OOLITE_EXCEPTION_XML_PARSING_FAILURE])	// note it happened here
+					{
+						NSLog(@"***** [ResourceManager dictionaryFromFilesNamed:::] encountered exception : %@ : %@ *****",[localException name], [localException reason]);
+					}
+					else
+						[localException raise];
+				NS_ENDHANDLER
+
+				if (found_dic)
+					[results addObject:found_dic];
+				else
+					NSLog(@"ERROR ***** could not parse %@ as a NSDictionary.", filepath);
+			}
+		}
+		if (foldername)
+		{
+			xfilepath = [[(NSString *)[fpaths objectAtIndex:i] stringByAppendingPathComponent:foldername] stringByAppendingPathComponent:filename];
+			filepath = [NSMutableString stringWithString:xfilepath];
+			[filepath replaceString:@".plist" withString:@".oos"];
+			//NSLog(@"looking for oos file: %@", filepath);
+			if ([[NSFileManager defaultManager] fileExistsAtPath:filepath])
+			{
+				// load and compile oos script
+				NSLog(@"trying to load and compile %@", filepath);
+				NSString *script = [NSString stringWithContentsOfFile:filepath];
+				NSDictionary *scriptDict = parseScripts(script);
+				if (scriptDict) {
+					//NSLog(@"parsed ok, adding to results");
+					[results addObject:scriptDict];
+				}
+			}
+			else
+			{
+				[filepath replaceString:@".oos" withString:@".plist"];
+				//NSLog(@"oos not found, looking for plist file: %@", filepath);
+				if ([[NSFileManager defaultManager] fileExistsAtPath:filepath])
+				{
+					NSDictionary* found_dic = [NSDictionary dictionaryWithContentsOfFile:filepath];
+
+					// FIX FOR WINDOWS GNUSTEP NOT PARSING XML PLISTS
+					NS_DURING
+						if (!found_dic)	// try parsing it using our home-grown XML parser
+							found_dic = (NSDictionary*)[ResourceManager parseXMLPropertyList:[NSString stringWithContentsOfFile:filepath]];
+					NS_HANDLER
+						if ([[localException name] isEqual: OOLITE_EXCEPTION_XML_PARSING_FAILURE])	// note it happened here
+						{
+							NSLog(@"***** [ResourceManager dictionaryFromFilesNamed:::] encountered exception : %@ : %@ *****",[localException name], [localException reason]);
+						}
+						else
+							[localException raise];
+					NS_ENDHANDLER
+
+
+					if (found_dic)
+						[results addObject:found_dic];
+					else
+						NSLog(@"ERROR ***** could not parse %@ as a NSDictionary.", filepath);
+				}
+			}
+		}
+	}
+	if ([results count] == 0)
+		return nil;
+
+	// got results we may want to cache
+	//
+	NSMutableDictionary *result = [NSMutableDictionary dictionaryWithCapacity:128];
+	for (i = 0; i < [results count]; i++)
+	{
+		[result addEntriesFromDictionary:(NSDictionary *)[results objectAtIndex:i]];
+	}
+	//
+	if (result) {
+		[dictionary_cache setObject:result forKey:dict_key];
+	}
+
+//	NSLog(@"DEBUG ResourceManager dictionary_cache keys:\n%@", [dictionary_cache allKeys]);
+
+	return [NSDictionary dictionaryWithDictionary:result];
+}
+
 
 @end

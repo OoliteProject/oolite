@@ -234,6 +234,7 @@ enum
 	
 	NSDictionary			*script;
 	NSMutableDictionary		*mission_variables;
+	NSMutableDictionary		*local_variables;
 	int						missionTextRow;
 	ShipEntity				*script_target;
 	NSString				*missionChoice;
@@ -262,6 +263,8 @@ enum
 	
 	NSMutableDictionary		*shipyard_record;
 	
+	NSMutableArray			*missionDestinations;
+
 	double					script_time;
 	double					script_time_check;
 	double					script_time_interval;
