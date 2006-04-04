@@ -570,19 +570,19 @@ static BOOL PortWait(mach_port_t inPort, PortMessage *outMessage);
 		}
 	}
 	
-	if (endOfDataReached == err)
+	if (__builtin_expect(endOfDataReached == err, 0))
 	{
-		assert(kState_Playing == _state);
-		
-		// [self reap];
-		_state = kState_Reap;
 		err = noErr;
-	
-		_next = sPlayThreadDeadList;
-		sPlayThreadDeadList = self;
+		if (__builtin_expect(kState_Playing == _state, 1))
+		{
+			_state = kState_Reap;
+			
+			_next = sPlayThreadDeadList;
+			sPlayThreadDeadList = self;
+		}
 	}
 	
-	if (nil != sPlayThreadDeadList && !pthread_mutex_trylock(&sReapQueueMutex))
+	if (__builtin_expect(nil != sPlayThreadDeadList && !pthread_mutex_trylock(&sReapQueueMutex), 0))
 	{
 		// Put sPlayThreadDeadList at front of sReapQueue
 		OOCASoundChannel	*curr;
