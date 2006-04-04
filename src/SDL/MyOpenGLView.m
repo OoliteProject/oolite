@@ -652,6 +652,7 @@ Your fair use and other rights are in no way affected by the above.
 	SDL_KeyboardEvent* kbd_event;
 	SDL_MouseButtonEvent* mbtn_event;
 	SDL_MouseMotionEvent *mmove_event;
+   int mxdelta, mydelta;
 //	Uint32 startTicks;
 //	Sint32 sleepTicks;
 
@@ -665,10 +666,14 @@ Your fair use and other rights are in no way affected by the above.
 
          case SDL_MOUSEBUTTONDOWN:
             mbtn_event = (SDL_MouseButtonEvent*)&event;
-            if (mbtn_event->button == SDL_BUTTON_LEFT)
+            switch(mbtn_event->button)
             {
-               //NSLog(@"LMB down");
-               keys[gvMouseLeftButton] = YES;
+               case SDL_BUTTON_LEFT:
+                  keys[gvMouseLeftButton] = YES;
+                  break;
+               case SDL_BUTTON_RIGHT:
+                  // Cocoa version does this in the GameController
+                  [self setVirtualJoystick:0.0 :0.0];
             }
             break;
 
@@ -682,25 +687,59 @@ Your fair use and other rights are in no way affected by the above.
             break;
 
          case SDL_MOUSEMOTION:
-            mmove_event = (SDL_MouseMotionEvent*)&event;
-
-            double mx = mmove_event->x - viewSize.width/2.0;
-            double my = mmove_event->y - viewSize.height/2.0;
-
-            if (display_z > 640.0)
+         {
+            // Delta mode is set when the game is in 'flight' mode.
+            // In this mode, the mouse movement delta is used rather
+            // than absolute position. This is because if the user
+            // clicks the right button to recentre the virtual joystick,
+            // if we are using absolute joystick positioning, as soon
+            // as the player touches the mouse again, the virtual joystick
+            // will snap back to the absolute position (which can be
+            // annoyingly fatal in battle).
+            if(mouseInDeltaMode)
             {
-               mx /= viewSize.width * MAIN_GUI_PIXEL_WIDTH / display_z;
-               my /= viewSize.height;
+               // possible TODO - make virtual stick sensitivity configurable
+               SDL_GetRelativeMouseState(&mxdelta, &mydelta);
+               double mxd=(double)mxdelta / MOUSE_VIRTSTICKSENSITIVITY;
+               double myd=(double)mydelta / MOUSE_VIRTSTICKSENSITIVITY;
+               virtualJoystickPosition.x += mxd;
+               virtualJoystickPosition.y += myd;
+
+               // if we excceed the limits, revert changes
+               if(fabs(virtualJoystickPosition.x) > MOUSEX_MAXIMUM)
+               {
+                  virtualJoystickPosition.x -= mxd;
+               }
+               if(fabs(virtualJoystickPosition.y) > MOUSEY_MAXIMUM)
+               {
+                  virtualJoystickPosition.y -= myd;
+               }
             }
             else
-            {
-               mx /= MAIN_GUI_PIXEL_WIDTH * viewSize.width / 640.0;
-               my /= MAIN_GUI_PIXEL_HEIGHT * viewSize.width / 640.0;
+            {  
+               // Windowed mode. Use the absolute position so the
+               // Oolite mouse pointer appears under the X Window System
+               // mouse pointer.
+               mmove_event = (SDL_MouseMotionEvent*)&event;
+
+               double mx = mmove_event->x - viewSize.width/2.0;
+               double my = mmove_event->y - viewSize.height/2.0;
+
+               if (display_z > 640.0)
+               {
+                  mx /= viewSize.width * MAIN_GUI_PIXEL_WIDTH / display_z;
+                  my /= viewSize.height;
+               }
+               else
+               {
+                  mx /= MAIN_GUI_PIXEL_WIDTH * viewSize.width / 640.0;
+                  my /= MAIN_GUI_PIXEL_HEIGHT * viewSize.width / 640.0;
+               }
+
+               [self setVirtualJoystick:mx :my];
             }
-
-            [self setVirtualJoystick:mx :my];
             break;
-
+         }
          case SDL_KEYDOWN:
             kbd_event = (SDL_KeyboardEvent*)&event;
 
@@ -1141,6 +1180,11 @@ Your fair use and other rights are in no way affected by the above.
 - (JoystickHandler *) getStickHandler
 {
    return stickHandler;
+}
+
+- (void) setMouseInDeltaMode: (BOOL) inDelta
+{
+   mouseInDeltaMode=inDelta;
 }
 
 @end

@@ -4817,22 +4817,37 @@ GLfloat	starboard_matrix[] = {	0.0f, 0.0f, 1.0f, 0.0f,		0.0f, 1.0f, 0.0f, 0.0f,	
 	switch (vd)
 	{
 		case VIEW_FORWARD :
+#ifdef GNUSTEP
+         [gameView setMouseInDeltaMode: YES];
+#endif
 			ms = @"Forward View";
 			displayGUI = NO;   // switch off any text displays
 			break;
 		case VIEW_AFT :
+#ifdef GNUSTEP
+         [gameView setMouseInDeltaMode: YES];
+#endif
 			ms = @"Aft View";
 			displayGUI = NO;   // switch off any text displays
 			break;
 		case VIEW_PORT :
+#ifdef GNUSTEP
+         [gameView setMouseInDeltaMode: YES];
+#endif
 			ms = @"Port View";
 			displayGUI = NO;   // switch off any text displays
 			break;
 		case VIEW_STARBOARD :
+#ifdef GNUSTEP
+         [gameView setMouseInDeltaMode: YES];
+#endif
 			ms = @"Starboard View";
 			displayGUI = NO;   // switch off any text displays
 			break;
 		default :
+#ifdef GNUSTEP
+         [gameView setMouseInDeltaMode: NO];
+#endif
 			break;
 	}
 	if (viewDirection != vd)

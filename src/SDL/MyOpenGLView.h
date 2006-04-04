@@ -48,6 +48,9 @@ Your fair use and other rights are in no way affected by the above.
 #define NUM_KEYS			320
 
 #define MOUSE_DOUBLE_CLICK_INTERVAL	0.40
+#define MOUSE_VIRTSTICKSENSITIVITY 930.0f
+#define MOUSEX_MAXIMUM 0.6
+#define MOUSEY_MAXIMUM 0.6
 
 @class Entity, GameController, OpenGLSprite;
 
@@ -102,9 +105,7 @@ extern int debug;
 @interface MyOpenGLView : OpenGLViewSuperClass
 {
 	GameController		*gameController;
-#ifndef GNUSTEP
 	OpenGLSprite		*splashSprite;
-#endif
 	BOOL				keys[NUM_KEYS];
 	BOOL				supressKeys;    // DJS
 
@@ -127,7 +128,6 @@ extern int debug;
 	NSSize				viewSize;
 	GLfloat				display_z;
 
-#ifdef GNUSTEP
     double				squareX,squareY;
 	NSRect				bounds;
 
@@ -140,7 +140,9 @@ extern int debug;
 	NSSize currentWindowSize;
 	SDL_Surface* surface;
 	JoystickHandler *stickHandler;
-#endif
+
+   // Mouse mode indicator (for mouse movement model)
+   BOOL  mouseInDeltaMode;
 }
 
 
@@ -163,10 +165,6 @@ extern int debug;
 
 - (void) snapShot;
 
-#ifndef GNUSTEP
-- (void)mouseDown:(NSEvent *)theEvent;
-- (void)mouseUp:(NSEvent *)theEvent;
-#else
 - (NSRect) bounds;
 - (void) display;
 + (NSMutableDictionary *) getNativeSize;
@@ -191,7 +189,6 @@ extern int debug;
  - (void) pollControls: (id)sender;
  - (void) handleStringInput: (SDL_KeyboardEvent *) kbd_event; // DJS
  - (JoystickHandler *)getStickHandler; // DJS
-#endif
 
 - (void) setVirtualJoystick:(double) vmx :(double) vmy;
 - (NSPoint) virtualJoystickPosition;
@@ -206,4 +203,6 @@ extern int debug;
  - (BOOL) isCommandDown;
  - (BOOL) isShiftDown;
  - (int) numKeys;
+
+ - (void) setMouseInDeltaMode: (BOOL) inDelta;
 @end
