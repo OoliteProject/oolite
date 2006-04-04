@@ -594,15 +594,10 @@ NSDictionary* instructions(int station_id, Vector coords, float speed, float ran
 
 - (Vector) portUpVector
 {
-	
-	Vector result = vector_up_from_quaternion( quaternion_multiply( port_qrotation, q_rotation));
-	
-//	result.x = - result.x;	result.y = - result.y;	result.z = - result.z;
-	
-//	NSLog(@"DEBUG %@ portUpVector = [%.3f, %.3f, %.3f] v_up = [%.3f, %.3f, %.3f]", self,
-//		result.x, result.y, result.z, v_up.x, v_up.y, v_up.z);
-	
-	return result;
+	if (port_dimensions.x > port_dimensions. y)
+		return vector_up_from_quaternion( quaternion_multiply( port_qrotation, q_rotation));
+	else
+		return vector_right_from_quaternion( quaternion_multiply( port_qrotation, q_rotation));
 }
 
 //////////////////////////////////////////////// from superclass
@@ -653,6 +648,8 @@ NSDictionary* instructions(int station_id, Vector coords, float speed, float ran
 	isShip = YES;
 	isStation = YES;
 	
+	port_model = nil;
+	
 	return self;
 }
 
@@ -689,6 +686,9 @@ NSDictionary* instructions(int station_id, Vector coords, float speed, float ran
 	//
 	isShip = YES;
 	isStation = YES;
+
+	port_model = nil;
+	
 }
 
 - (id) initWithDictionary:(NSDictionary *) dict
@@ -738,8 +738,60 @@ NSDictionary* instructions(int station_id, Vector coords, float speed, float ran
 	return self;
 }
 
+- (void) setDockingPortModel:(ShipEntity*) dock_model
+{
+	port_model = dock_model;
+	BoundingBox bb = [port_model getBoundingBox];
+	port_dimensions = make_vector( bb.max.x - bb.min.x, bb.max.y - bb.min.y, bb.max.z - bb.min.z);
+	port_position = [dock_model getPosition];
+	port_qrotation = [dock_model QRotation];
+	NSLog(@"set docking port for %@ to %@", self, dock_model);
+}
+
 - (void) setUpShipFromDictionary:(NSDictionary *) dict
 {
+	if ([dict objectForKey:@"port_radius"])   // this gets set for rock-hermits and other specials, otherwise it's 500m
+		port_radius = [(NSNumber *)[dict objectForKey:@"port_radius"] doubleValue];
+	else
+		port_radius = 500.0;
+	
+	// set up a the docking port
+	//
+	port_position = make_vector( 0, 0, port_radius);	// forward
+	quaternion_set_identity(&port_qrotation);
+	port_dimensions = make_vector( 69, 69, 250);		// base port size (square)
+	if ([dict objectForKey:@"subentities"])
+	{
+		int i;
+		NSArray *subs = (NSArray *)[dict objectForKey:@"subentities"];
+		for (i = 0; i < [subs count]; i++)
+		{
+			NSArray* details = [Entity scanTokensFromString:(NSString *)[subs objectAtIndex:i]];
+			if (([details count] == 8)&&([(NSString *)[details objectAtIndex:0] hasPrefix:@"dock"]))
+			{
+				port_position.x = [(NSString *)[details objectAtIndex:1] floatValue];
+				port_position.y = [(NSString *)[details objectAtIndex:2] floatValue];
+				port_position.z = [(NSString *)[details objectAtIndex:3] floatValue];
+				port_qrotation.w = [(NSString *)[details objectAtIndex:4] floatValue];
+				port_qrotation.x = [(NSString *)[details objectAtIndex:5] floatValue];
+				port_qrotation.y = [(NSString *)[details objectAtIndex:6] floatValue];
+				port_qrotation.z = [(NSString *)[details objectAtIndex:7] floatValue];
+			}
+			quaternion_normalise(&port_qrotation);
+		}
+	}
+
+	if ([dict objectForKey:@"port_dimensions"])   // this can be set for rock-hermits and other specials
+	{
+		NSArray* tokens = [(NSString*)[dict objectForKey:@"port_dimensions"] componentsSeparatedByString:@"x"];
+		if ([tokens count] == 3)
+		{
+			port_dimensions = make_vector(	[(NSString*)[tokens objectAtIndex:0] floatValue],
+											[(NSString*)[tokens objectAtIndex:1] floatValue],
+											[(NSString*)[tokens objectAtIndex:2] floatValue]);
+		}
+	}
+
 	[super setUpShipFromDictionary:dict];
 	
 	if ([dict objectForKey:@"port_radius"])   // this gets set for rock-hermits and other specials, otherwise it's 500m
@@ -768,7 +820,6 @@ NSDictionary* instructions(int station_id, Vector coords, float speed, float ran
 				port_qrotation.x = [(NSString *)[details objectAtIndex:5] floatValue];
 				port_qrotation.y = [(NSString *)[details objectAtIndex:6] floatValue];
 				port_qrotation.z = [(NSString *)[details objectAtIndex:7] floatValue];
-				port_dimensions = make_vector( 32, 96, 250);	// coriolis/icos/dodec port size (oblong)
 			}
 			quaternion_normalise(&port_qrotation);
 		}

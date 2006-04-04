@@ -75,6 +75,7 @@ Your fair use and other rights are in no way affected by the above.
 	Vector					port_position;
 	Quaternion				port_qrotation;
 	Vector  				port_dimensions;
+	ShipEntity*				port_model;
 	
 	BOOL					no_docking_while_launching;
 	
@@ -97,6 +98,8 @@ Your fair use and other rights are in no way affected by the above.
 	double					patrol_launch_interval;
 	
 }
+
+- (void) setDockingPortModel:(ShipEntity*) dock_model;
 
 - (NSMutableArray *) localMarket;
 - (void) setLocalMarket:(NSArray *) some_market;

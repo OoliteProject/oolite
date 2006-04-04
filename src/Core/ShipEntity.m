@@ -1064,6 +1064,9 @@ static NSMutableDictionary* smallOctreeDict = nil;
 						
 						subent = [universe getShip:subdesc];	// retained
 						
+						if ((self->isStation)&&([subdesc rangeOfString:@"dock"].location != NSNotFound))
+							[(StationEntity*)self setDockingPortModel:(ShipEntity*)subent];
+						
 						if (subent)
 						{
 	//					NSLog(@"DEBUG adding subentity %@ %@ to new %@ at %.3f,%.3f,%.3f", subent, [(ShipEntity*)subent name], name, sub_pos.x, sub_pos.y, sub_pos.z );
