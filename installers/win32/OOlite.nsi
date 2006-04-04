@@ -3,10 +3,10 @@ SetCompress auto
 SetCompressor LZMA
 SetCompressorDictSize 32
 SetDatablockOptimize on
-OutFile "OoliteInstall.exe"
+OutFile "OoliteInstall-$%VER%.exe"
 BrandingText "Oolite"
 Name "Oolite"
-Caption "Oolite"
+Caption "Oolite $%VER%"
 SubCaption 0 " "
 SubCaption 1 " "
 SubCaption 2 " "
@@ -47,7 +47,7 @@ CreateShortCut "$SMPROGRAMS\Oolite\Oolite website.lnk" "http://Oolite.aegidian.o
 CreateShortCut "$SMPROGRAMS\Oolite\Oolite Uninstall.lnk" "$INSTDIR\UninstOolite.exe"
 
 File "Oolite.ico"
-File /r "C:\program files\Oolite\*.*"
+File /r "$%DST%\*.*"
 
 Call RegSetup
 
