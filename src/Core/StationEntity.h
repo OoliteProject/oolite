@@ -99,7 +99,7 @@ Your fair use and other rights are in no way affected by the above.
 	
 }
 
-- (void) setDockingPortModel:(ShipEntity*) dock_model;
+- (void) setDockingPortModel:(ShipEntity*) dock_model :(Vector) dock_pos :(Quaternion) dock_q;
 
 - (NSMutableArray *) localMarket;
 - (void) setLocalMarket:(NSArray *) some_market;

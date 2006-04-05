@@ -594,10 +594,18 @@ NSDictionary* instructions(int station_id, Vector coords, float speed, float ran
 
 - (Vector) portUpVector
 {
+//	NSLog(@"DEBUG docking port for %@ is %@ dimensions ( %.2f, %.2f, %.2f)", self, port_model,
+//		port_dimensions.x, port_dimensions.y, port_dimensions.z);
 	if (port_dimensions.x > port_dimensions. y)
+	{
+//		NSLog(@"DEBUG returning UP !");
 		return vector_up_from_quaternion( quaternion_multiply( port_qrotation, q_rotation));
+	}
 	else
+	{
+//		NSLog(@"DEBUG returning RIGHT !");
 		return vector_right_from_quaternion( quaternion_multiply( port_qrotation, q_rotation));
+	}
 }
 
 //////////////////////////////////////////////// from superclass
@@ -738,28 +746,26 @@ NSDictionary* instructions(int station_id, Vector coords, float speed, float ran
 	return self;
 }
 
-- (void) setDockingPortModel:(ShipEntity*) dock_model
+- (void) setDockingPortModel:(ShipEntity*) dock_model :(Vector) dock_pos :(Quaternion) dock_q
 {
 	port_model = dock_model;
 	BoundingBox bb = [port_model getBoundingBox];
 	port_dimensions = make_vector( bb.max.x - bb.min.x, bb.max.y - bb.min.y, bb.max.z - bb.min.z);
-	port_position = [dock_model getPosition];
-	port_qrotation = [dock_model QRotation];
-	NSLog(@"set docking port for %@ to %@", self, dock_model);
+	port_position = dock_pos;
+	port_qrotation = dock_q;
+	NSLog(@"set docking port for %@ to %@ dimensions ( %.2f, %.2f, %.2f)", self, dock_model,
+		port_dimensions.x, port_dimensions.y, port_dimensions.z);
 }
 
 - (void) setUpShipFromDictionary:(NSDictionary *) dict
 {
-	if ([dict objectForKey:@"port_radius"])   // this gets set for rock-hermits and other specials, otherwise it's 500m
-		port_radius = [(NSNumber *)[dict objectForKey:@"port_radius"] doubleValue];
-	else
-		port_radius = 500.0;
 	
 	// set up a the docking port
 	//
 	port_position = make_vector( 0, 0, port_radius);	// forward
 	quaternion_set_identity(&port_qrotation);
 	port_dimensions = make_vector( 69, 69, 250);		// base port size (square)
+	//
 	if ([dict objectForKey:@"subentities"])
 	{
 		int i;
@@ -780,7 +786,7 @@ NSDictionary* instructions(int station_id, Vector coords, float speed, float ran
 			quaternion_normalise(&port_qrotation);
 		}
 	}
-
+	//
 	if ([dict objectForKey:@"port_dimensions"])   // this can be set for rock-hermits and other specials
 	{
 		NSArray* tokens = [(NSString*)[dict objectForKey:@"port_dimensions"] componentsSeparatedByString:@"x"];
@@ -791,50 +797,50 @@ NSDictionary* instructions(int station_id, Vector coords, float speed, float ran
 											[(NSString*)[tokens objectAtIndex:2] floatValue]);
 		}
 	}
-
+	//
+	if ([dict objectForKey:@"port_radius"])   // this gets set for rock-hermits and other specials, otherwise it's 500m
+		port_radius = [(NSNumber *)[dict objectForKey:@"port_radius"] doubleValue];
+	else
+		port_radius = 500.0;
+	
 	[super setUpShipFromDictionary:dict];
 	
-	if ([dict objectForKey:@"port_radius"])   // this gets set for rock-hermits and other specials, otherwise it's 500m
-		port_radius = [(NSNumber *)[dict objectForKey:@"port_radius"] doubleValue];
-	else
-		port_radius = 500.0;
-	
-	// set up a the docking port
-	//
-	port_position = make_vector( 0, 0, port_radius);	// forward
-	quaternion_set_identity(&port_qrotation);
-	port_dimensions = make_vector( 69, 69, 250);		// base port size (square)
-	if ([dict objectForKey:@"subentities"])
-	{
-		int i;
-		NSArray *subs = (NSArray *)[dict objectForKey:@"subentities"];
-		for (i = 0; i < [subs count]; i++)
-		{
-			NSArray* details = [Entity scanTokensFromString:(NSString *)[subs objectAtIndex:i]];
-			if (([details count] == 8)&&([(NSString *)[details objectAtIndex:0] hasPrefix:@"dock"]))
-			{
-				port_position.x = [(NSString *)[details objectAtIndex:1] floatValue];
-				port_position.y = [(NSString *)[details objectAtIndex:2] floatValue];
-				port_position.z = [(NSString *)[details objectAtIndex:3] floatValue];
-				port_qrotation.w = [(NSString *)[details objectAtIndex:4] floatValue];
-				port_qrotation.x = [(NSString *)[details objectAtIndex:5] floatValue];
-				port_qrotation.y = [(NSString *)[details objectAtIndex:6] floatValue];
-				port_qrotation.z = [(NSString *)[details objectAtIndex:7] floatValue];
-			}
-			quaternion_normalise(&port_qrotation);
-		}
-	}
+//	// set up a the docking port
+//	//
+//	port_position = make_vector( 0, 0, port_radius);	// forward
+//	quaternion_set_identity(&port_qrotation);
+//	port_dimensions = make_vector( 69, 69, 250);		// base port size (square)
+//	if ([dict objectForKey:@"subentities"])
+//	{
+//		int i;
+//		NSArray *subs = (NSArray *)[dict objectForKey:@"subentities"];
+//		for (i = 0; i < [subs count]; i++)
+//		{
+//			NSArray* details = [Entity scanTokensFromString:(NSString *)[subs objectAtIndex:i]];
+//			if (([details count] == 8)&&([(NSString *)[details objectAtIndex:0] hasPrefix:@"dock"]))
+//			{
+//				port_position.x = [(NSString *)[details objectAtIndex:1] floatValue];
+//				port_position.y = [(NSString *)[details objectAtIndex:2] floatValue];
+//				port_position.z = [(NSString *)[details objectAtIndex:3] floatValue];
+//				port_qrotation.w = [(NSString *)[details objectAtIndex:4] floatValue];
+//				port_qrotation.x = [(NSString *)[details objectAtIndex:5] floatValue];
+//				port_qrotation.y = [(NSString *)[details objectAtIndex:6] floatValue];
+//				port_qrotation.z = [(NSString *)[details objectAtIndex:7] floatValue];
+//			}
+//			quaternion_normalise(&port_qrotation);
+//		}
+//	}
 
-	if ([dict objectForKey:@"port_dimensions"])   // this can be set for rock-hermits and other specials
-	{
-		NSArray* tokens = [(NSString*)[dict objectForKey:@"port_dimensions"] componentsSeparatedByString:@"x"];
-		if ([tokens count] == 3)
-		{
-			port_dimensions = make_vector(	[(NSString*)[tokens objectAtIndex:0] floatValue],
-											[(NSString*)[tokens objectAtIndex:1] floatValue],
-											[(NSString*)[tokens objectAtIndex:2] floatValue]);
-		}
-	}
+//	if ([dict objectForKey:@"port_dimensions"])   // this can be set for rock-hermits and other specials
+//	{
+//		NSArray* tokens = [(NSString*)[dict objectForKey:@"port_dimensions"] componentsSeparatedByString:@"x"];
+//		if ([tokens count] == 3)
+//		{
+//			port_dimensions = make_vector(	[(NSString*)[tokens objectAtIndex:0] floatValue],
+//											[(NSString*)[tokens objectAtIndex:1] floatValue],
+//											[(NSString*)[tokens objectAtIndex:2] floatValue]);
+//		}
+//	}
 
 	if ([dict objectForKey:@"equivalent_tech_level"])
 		equivalent_tech_level = [(NSNumber *)[dict objectForKey:@"equivalent_tech_level"] intValue];

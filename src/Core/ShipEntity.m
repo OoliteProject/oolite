@@ -1065,7 +1065,7 @@ static NSMutableDictionary* smallOctreeDict = nil;
 						subent = [universe getShip:subdesc];	// retained
 						
 						if ((self->isStation)&&([subdesc rangeOfString:@"dock"].location != NSNotFound))
-							[(StationEntity*)self setDockingPortModel:(ShipEntity*)subent];
+							[(StationEntity*)self setDockingPortModel:(ShipEntity*)subent :sub_pos :sub_q];
 						
 						if (subent)
 						{

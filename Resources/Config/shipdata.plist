@@ -1738,7 +1738,7 @@
 		<true/>
 		<key>subentities</key>
 		<array>
-			<string>dock 0 0 500 1 0 0 1</string>
+			<string>dock 0 0 500 1 0 0 1</string><!-- rotated 90 degrees -->
 			<string>arc-detail 0 0 0 1 0 0 0</string>
 			<string>arc-detail 0 0 0 1 0 0 1</string>
 			<string>arc-detail 0 0 0 0 0 0 1</string>
