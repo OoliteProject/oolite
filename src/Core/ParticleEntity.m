@@ -1895,7 +1895,7 @@ static	Vector	circleVertex[65];		// holds vector coordinates for a unit circle
 
 - (void) drawBillboard
 {
-	NSLog(@"drawing billboard: %@", self);
+//	NSLog(@"drawing billboard: %@", self);
 	[super drawEntity: NO : NO];	// called with translucent==NO to fool it into being drawn
 }
 
