@@ -7,6 +7,9 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		0831C5C909E3396D0058029A /* StringTokeniser.m in Sources */ = {isa = PBXBuildFile; fileRef = 0831C5C609E3396D0058029A /* StringTokeniser.m */; };
+		0831C5CA09E3396D0058029A /* StringTokeniser.h in Headers */ = {isa = PBXBuildFile; fileRef = 0831C5C709E3396D0058029A /* StringTokeniser.h */; };
+		0831C5CB09E3396D0058029A /* ScriptCompiler.m in Sources */ = {isa = PBXBuildFile; fileRef = 0831C5C809E3396D0058029A /* ScriptCompiler.m */; };
 		083325DD09DDBCDE00F5B8E4 /* OOColor.h in Headers */ = {isa = PBXBuildFile; fileRef = 083325DB09DDBCDE00F5B8E4 /* OOColor.h */; };
 		083325DE09DDBCDE00F5B8E4 /* OOColor.m in Sources */ = {isa = PBXBuildFile; fileRef = 083325DC09DDBCDE00F5B8E4 /* OOColor.m */; };
 		0865427906B8447D000CA0AB /* MainMenu.nib in Resources */ = {isa = PBXBuildFile; fileRef = 29B97319FDCFA39411CA2CEA /* MainMenu.nib */; };
@@ -391,9 +394,12 @@
 
 /* Begin PBXFileReference section */
 		06AFA01500A58FB77F000001 /* OpenGL.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = OpenGL.framework; path = /System/Library/Frameworks/OpenGL.framework; sourceTree = "<absolute>"; };
+		0831C5C609E3396D0058029A /* StringTokeniser.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = StringTokeniser.m; path = src/Core/StringTokeniser.m; sourceTree = "<group>"; };
+		0831C5C709E3396D0058029A /* StringTokeniser.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = StringTokeniser.h; path = src/Core/StringTokeniser.h; sourceTree = "<group>"; };
+		0831C5C809E3396D0058029A /* ScriptCompiler.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = ScriptCompiler.m; path = src/Core/ScriptCompiler.m; sourceTree = "<group>"; };
 		083325DB09DDBCDE00F5B8E4 /* OOColor.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = OOColor.h; path = src/Core/OOColor.h; sourceTree = "<group>"; };
 		083325DC09DDBCDE00F5B8E4 /* OOColor.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = OOColor.m; path = src/Core/OOColor.m; sourceTree = "<group>"; };
-		0865432206B8447D000CA0AB /* OoliteDev.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = OoliteDev.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		0865432206B8447D000CA0AB /* Oolite.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Oolite.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		0878FD2F086EF845004CB752 /* Carbon.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Carbon.framework; path = /System/Library/Frameworks/Carbon.framework; sourceTree = "<absolute>"; };
 		08CB1FEC09D3F2AA001EA329 /* customsounds.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist; name = customsounds.plist; path = Resources/Config/customsounds.plist; sourceTree = "<group>"; };
 		1058C7A1FEA54F0111CA2CBB /* Cocoa.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Cocoa.framework; path = /System/Library/Frameworks/Cocoa.framework; sourceTree = "<absolute>"; };
@@ -923,6 +929,16 @@
 			name = Images;
 			sourceTree = "<group>";
 		};
+		0831C5CD09E339760058029A /* OOScript */ = {
+			isa = PBXGroup;
+			children = (
+				0831C5C609E3396D0058029A /* StringTokeniser.m */,
+				0831C5C709E3396D0058029A /* StringTokeniser.h */,
+				0831C5C809E3396D0058029A /* ScriptCompiler.m */,
+			);
+			name = OOScript;
+			sourceTree = "<group>";
+		};
 		0870F6230903F890002A598D /* Groolite */ = {
 			isa = PBXGroup;
 			children = (
@@ -998,7 +1014,7 @@
 		19C28FACFE9D520D11CA2CBB /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				0865432206B8447D000CA0AB /* OoliteDev.app */,
+				0865432206B8447D000CA0AB /* Oolite.app */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -1023,6 +1039,7 @@
 		25161012099543850037C2E1 /* Classes */ = {
 			isa = PBXGroup;
 			children = (
+				0831C5CD09E339760058029A /* OOScript */,
 				25F46750099695D5009483BF /* OoliteApp.h */,
 				25F46751099695D5009483BF /* OoliteApp.m */,
 				2576E7B209B4F418007410F7 /* MyOpenGLView.h */,
@@ -1258,6 +1275,7 @@
 				2512834209BA27EC00F43D55 /* Geometry.h in Headers */,
 				2512834609BA281500F43D55 /* CollisionRegion.h in Headers */,
 				083325DD09DDBCDE00F5B8E4 /* OOColor.h in Headers */,
+				0831C5CA09E3396D0058029A /* StringTokeniser.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1304,7 +1322,7 @@
 			name = Oolite;
 			productInstallPath = "$(HOME)/Applications";
 			productName = Oolite;
-			productReference = 0865432206B8447D000CA0AB /* OoliteDev.app */;
+			productReference = 0865432206B8447D000CA0AB /* Oolite.app */;
 			productType = "com.apple.product-type.application";
 		};
 /* End PBXNativeTarget section */
@@ -1634,6 +1652,8 @@
 				2512834309BA27EC00F43D55 /* Geometry.m in Sources */,
 				2512834709BA281500F43D55 /* CollisionRegion.m in Sources */,
 				083325DE09DDBCDE00F5B8E4 /* OOColor.m in Sources */,
+				0831C5C909E3396D0058029A /* StringTokeniser.m in Sources */,
+				0831C5CB09E3396D0058029A /* ScriptCompiler.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

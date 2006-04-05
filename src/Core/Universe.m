@@ -7006,6 +7006,8 @@ NSComparisonResult comparePrice( id dict1, id dict2, void * context)
 		int			p1 = [partial rangeOfString:@"["].location;
 		int			p2 = [partial rangeOfString:@"]"].location + 1;
 		
+		part = nil;	// stop compiler warning...
+		
 		before = [partial substringWithRange:NSMakeRange(0,p1)];
 		after = [partial substringWithRange:NSMakeRange(p2,[partial length] - p2)];
 		middle = [partial substringWithRange:NSMakeRange(p1 + 1 , p2 - p1 - 2)];

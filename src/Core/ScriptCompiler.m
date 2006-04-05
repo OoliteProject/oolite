@@ -27,6 +27,28 @@
 #import <Foundation/Foundation.h>
 #import "StringTokeniser.h"
 
+@interface NSMutableString (OOScript)
+
+- (void) replaceString:(NSString*)aString withString:(NSString*)otherString;
+- (void) trimSpaces;
+
+@end
+
+@implementation NSMutableString (OOScript)
+
+- (void) replaceString:(NSString*)aString withString:(NSString*)otherString
+{
+	[self replaceOccurrencesOfString:aString withString:otherString options:nil range:NSMakeRange(0,[self length])];
+}
+
+- (void) trimSpaces
+{
+	[self setString:[self stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceCharacterSet]]];
+}
+
+@end
+
+
 /*
  * Preprocess the source read from the oos file.
  *
@@ -45,10 +67,7 @@ NSString* preprocess(NSString* source) {
 	[processedSource setString:@""];
 
 	for (i = 0; i < [lines count]; i++) {
-		NSString* line = (NSString*)[lines objectAtIndex:i];
-		NSMutableString* mutableLine = [NSMutableString stringWithString:line];
-		[mutableLine trimSpaces];
-		line = [NSString stringWithString:mutableLine];
+		NSString* line = [(NSString*)[lines objectAtIndex:i] stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceCharacterSet]];
 		if ([line length] == 0)
 			continue;
 		if ([line hasPrefix:@"//"])
@@ -201,7 +220,7 @@ NSDictionary* parseScripts(NSString* script) {
 			continue;
 
 		if (st->tokenType == TT_EOS)
-			return;
+			return nil;
 
 		scriptName = [NSString stringWithString:st->tokenWord];
 		while (st->tokenType != TT_EOS) {

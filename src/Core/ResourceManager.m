@@ -1216,9 +1216,10 @@ NSMutableDictionary*	surface_cache;
 	for (i = 0; i < [fpaths count]; i++)
 	{
 		NSString *xfilepath = [(NSString *)[fpaths objectAtIndex:i] stringByAppendingPathComponent:filename];
-		NSMutableString *filepath = [NSMutableString stringWithString:xfilepath];
+		NSString *filepath = [NSMutableString stringWithString:xfilepath];
 
-		[filepath replaceString:@".plist" withString:@".oos"];
+		filepath = [[filepath stringByDeletingPathExtension] stringByAppendingPathExtension:@"oos"];
+		
 		//NSLog(@"looking for oos file: %@", filepath);
 		if ([[NSFileManager defaultManager] fileExistsAtPath:filepath])
 		{
@@ -1233,7 +1234,7 @@ NSMutableDictionary*	surface_cache;
 		}
 		else
 		{
-			[filepath replaceString:@".oos" withString:@".plist"];
+			filepath = [[filepath stringByDeletingPathExtension] stringByAppendingPathExtension:@"plist"];
 			//NSLog(@"oos not found, looking for plist file: %@", filepath);
 			// All this code replicated from dictionaryFromFileNamed because that method
 			// will traverse all possible locations and any oos files that co-exist with
@@ -1268,8 +1269,7 @@ NSMutableDictionary*	surface_cache;
 		if (foldername)
 		{
 			xfilepath = [[(NSString *)[fpaths objectAtIndex:i] stringByAppendingPathComponent:foldername] stringByAppendingPathComponent:filename];
-			filepath = [NSMutableString stringWithString:xfilepath];
-			[filepath replaceString:@".plist" withString:@".oos"];
+			filepath = [[xfilepath stringByDeletingPathExtension] stringByAppendingPathExtension:@"oos"];
 			//NSLog(@"looking for oos file: %@", filepath);
 			if ([[NSFileManager defaultManager] fileExistsAtPath:filepath])
 			{
@@ -1284,7 +1284,7 @@ NSMutableDictionary*	surface_cache;
 			}
 			else
 			{
-				[filepath replaceString:@".oos" withString:@".plist"];
+				filepath = [[filepath stringByDeletingPathExtension] stringByAppendingPathExtension:@"plist"];
 				//NSLog(@"oos not found, looking for plist file: %@", filepath);
 				if ([[NSFileManager defaultManager] fileExistsAtPath:filepath])
 				{
