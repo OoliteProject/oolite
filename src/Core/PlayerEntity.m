@@ -1517,6 +1517,7 @@ static Quaternion quaternion_identity = { (GLfloat)1.0, (GLfloat)0.0, (GLfloat)0
 	switch (status)
 	{
 		case STATUS_START_GAME :
+		case STATUS_DOCKING :
 		case STATUS_DOCKED :
 		case STATUS_DEAD :
 		case STATUS_ESCAPE_SEQUENCE :
