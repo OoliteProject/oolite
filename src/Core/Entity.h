@@ -293,6 +293,9 @@ extern int debug;
 - (Universe *) universe;
 - (void) setUniverse:(Universe *)univ;
 
+- (CollisionRegion*) collision_region;
+- (void) setCollisionRegion: (CollisionRegion*) region;
+
 - (void) setUniversal_id:(int)uid;
 - (int) universal_id;
 

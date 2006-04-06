@@ -50,6 +50,7 @@ Your fair use and other rights are in no way affected by the above.
 
 	BOOL	isUniverse;			// if YES location is origin and radius is 0.0f
 	
+	int		crid;				// identifier
 	Vector	location;			// center of the region
 	GLfloat	radius;				// inner radius of the region
 	GLfloat	border_radius;		// additiønal, border radius of the region (typically 32km or some value > the scanner range)

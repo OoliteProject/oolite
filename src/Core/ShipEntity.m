@@ -301,8 +301,9 @@ NSString* describeBehaviour(int some_behaviour)
 
 - (NSString*) description
 {
-	NSString* result = [[NSString alloc] initWithFormat:@"\n<ShipEntity %@ %d (%@) %@ %@ on target %d>", name, universal_id, roles, (universe == nil)? @" (not in universe)":@"", describeBehaviour(behaviour), primaryTarget];
-	return [result autorelease];
+	NSString* result = [NSString stringWithFormat:@"\n<ShipEntity %@ %d (%@) %@ %@ on target %d // %@>",
+		name, universal_id, roles, (universe == nil)? @" (not in universe)":@"", describeBehaviour(behaviour), primaryTarget, collision_region];
+	return result;
 }
 
 static NSMutableDictionary* smallOctreeDict = nil;
@@ -686,6 +687,7 @@ static NSMutableDictionary* smallOctreeDict = nil;
 	//
 	heat_insulation = 1.0;
 	//
+	[self setCollisionRegion:nil];
 }
 
 - (id) initWithDictionary:(NSDictionary *) dict
@@ -1290,6 +1292,9 @@ BOOL ship_canCollide (ShipEntity* ship)
 		return NO;
 	if ([collidingEntities containsObject:other])	// we know about this already!
 		return NO;
+		
+	if ((other->isShip)&&[self canScoop: (ShipEntity*)other])	// quick test - could this improve scooping for small ships? I think so!
+		return YES;
 	
 	if (trackCloseContacts)
 	{
@@ -6374,8 +6379,7 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 //	NSLog(@"DEBUG other scan class is CLASS_CARGO okay");
 	if ([other getCargoType] == CARGO_NOT_CARGO)	return NO;
 //	NSLog(@"DEBUG other cargo type is not CARGO_NOT_CARGO okay");
-//	if (([other getCargoType] != CARGO_SCRIPTED_ITEM) && ([other getCommodityAmount] < 1))
-//													return NO;
+
 	if (other->isStation)
 		return NO;
 
@@ -6383,10 +6387,8 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 	
 	GLfloat inc1 = (v_forward.x*loc.x)+(v_forward.y*loc.y)+(v_forward.z*loc.z);
 	if (inc1 < 0.0f)									return NO;
-//	NSLog(@"DEBUG incidence 1 okay");
 	GLfloat inc2 = (v_up.x*loc.x)+(v_up.y*loc.y)+(v_up.z*loc.z);
-	if ((inc2 > 0.0f)&&(scan_class == CLASS_PLAYER))	return NO;
-//	NSLog(@"DEBUG incidence 2 okey dokey --> SHOULD SCOOP");
+	if ((inc2 > 0.0f)&&(isPlayer))	return NO;	// player has to scoop ro underside, give more flexibility to NPCs
 	return YES;
 }
 

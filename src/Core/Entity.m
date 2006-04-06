@@ -294,6 +294,7 @@ static  Universe	*data_store_universe;
     if (basefile)	[basefile release];
 	if (collidingEntities)	[collidingEntities release];
 	if (trackLock) [trackLock release];
+	if (collision_region) [collision_region release];
 	[super dealloc];
 }
 
@@ -311,6 +312,17 @@ static  Universe	*data_store_universe;
 - (void) setUniverse:(Universe *)univ
 {
 	universe = univ;
+}
+
+- (CollisionRegion*) collision_region
+{
+	return collision_region;
+}
+
+- (void) setCollisionRegion: (CollisionRegion*) region
+{
+	if (collision_region) [collision_region release];
+	collision_region = [region retain];
 }
 
 - (void) setUniversal_id:(int)uid

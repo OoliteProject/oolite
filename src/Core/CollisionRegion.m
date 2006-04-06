@@ -47,15 +47,13 @@ Your fair use and other rights are in no way affected by the above.
 - (NSString*) description
 {
 	int n_subs = [subregions count];
-	NSMutableString* result = [[NSMutableString alloc] initWithFormat:@"<CollisionRegion containing %d subregions and %d entities:", n_subs, n_entities];
-	int i;
-	for (i = 0; i < n_subs; i++)
-		[result appendFormat:@" %@", [subregions objectAtIndex:i]];
-	[result appendString:@" >"];
-	return [result autorelease];
+	NSString* result = [NSString stringWithFormat:@"<CollisionRegion %d (%d subregions, %d ents) >", crid, n_subs, n_entities];
+	return result;
 }
 
 // basic alloc/ dealloc routines
+//
+static int crid_counter = 1;
 //
 - (id) initAsUniverse
 {
@@ -74,6 +72,8 @@ Your fair use and other rights are in no way affected by the above.
 	subregions = [[NSMutableArray alloc] initWithCapacity: 32];	// retained
 	
 	parentRegion = nil;
+	
+	crid = crid_counter++;
 	
 	return self;
 }
@@ -96,6 +96,8 @@ Your fair use and other rights are in no way affected by the above.
 	
 	if (otherRegion)
 		parentRegion = otherRegion;
+	
+	crid = crid_counter++;
 	
 	return self;
 }
@@ -300,6 +302,7 @@ NSArray* subregionsContainingPosition( Vector position, CollisionRegion* region)
 		return NO;
 	
 	[self addEntity: ent];
+	[ent setCollisionRegion: self];
 	return YES;
 }
 
