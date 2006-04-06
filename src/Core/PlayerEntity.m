@@ -1516,17 +1516,13 @@ static Quaternion quaternion_identity = { (GLfloat)1.0, (GLfloat)0.0, (GLfloat)0
 {
 	switch (status)
 	{
-		case STATUS_IN_FLIGHT :
-		case STATUS_AUTOPILOT_ENGAGED :
-		case STATUS_WITCHSPACE_COUNTDOWN :
-			return YES;
-			break;
-		
+		case STATUS_START_GAME :
+		case STATUS_DOCKED :
 		case STATUS_DEAD :
 		case STATUS_ESCAPE_SEQUENCE :
-		default :
 			return NO;
 	}
+	return YES;
 }
 
 - (NSComparisonResult) compareZeroDistance:(Entity *)otherEntity;
