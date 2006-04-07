@@ -866,7 +866,7 @@
 	<string>Press Space Commander</string>
 
 	<!-- Status screen -->
-	<key>status-commander</key>
+	<key>status-commander-@</key>
 	<string>Commander %@</string>
 	<key>status-present-system</key>
 	<string>Present System:</string>

@@ -4312,7 +4312,7 @@ double scoopSoundPlayTime = 0.0;
 		NSString*   alert_desc = (NSString *)[(NSArray *)[descriptions objectForKey:@"condition"] objectAtIndex:[self alert_condition]];
 		[gui clear];
 
-		text = [descriptions objectForKey:@"status-commander"];
+		text = [descriptions objectForKey:@"status-commander-@"];
 		[gui setTitle:[NSString stringWithFormat:text, player_name]];
 		//
 		[gui setText:shipName forRow:0 align:GUI_ALIGN_CENTER];
