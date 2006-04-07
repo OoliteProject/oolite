@@ -852,5 +852,36 @@
 		<string>i</string>
 		<string>y</string>
 	</array>
+
+	<!-- Intro1 screen -->
+	<key>game-copyright</key>
+	<string>by Giles Williams (C) 2003-2006</string>
+	<key>theme-music-credit</key>
+	<string>Oolite Theme Music by NoSleep (C) 2004</string>
+	<key>load-previous-commander</key>
+	<string>Load Previous Commander (Y/N)?</string>
+
+	<!-- Intro2 screen -->
+	<key>press-space-commander</key>
+	<string>Press Space Commander</string>
+
+	<!-- Status screen -->
+	<key>status-commander</key>
+	<string>Commander %@</string>
+	<key>status-present-system</key>
+	<string>Present System:</string>
+	<key>status-hyperspace-system</key>
+	<string>Hyperspace System:</string>
+	<key>status-condition</key>
+	<string>Condition:</string>
+	<key>status-fuel</key>
+	<string>Fuel:</string>
+	<key>status-cash</key>
+	<string>Cash:</string>
+	<key>status-legal-status</key>
+	<string>Legal Status:</string>
+	<key>status-rating</key>
+	<string>Rating:</string>
+
 </dict>
 </plist>
