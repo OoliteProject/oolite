@@ -44,6 +44,10 @@ Your fair use and other rights are in no way affected by the above.
 #import "OOSound.h"
 #import "OOFileManager.h" // to find savedir
 
+#ifdef WIN32
+#import "TextureStore.h"
+#endif
+
 #include <ctype.h>
 
 @implementation MyOpenGLView
@@ -435,6 +439,27 @@ Your fair use and other rights are in no way affected by the above.
 	glDisable(GL_NORMALIZE);
 	glDisable(GL_RESCALE_NORMAL);
 
+#ifdef WIN32
+	Universe *universe = [gameController universe];
+	if (universe)
+	{
+		[[universe textureStore] reloadTextures]; // clears the cached references
+		PlayerEntity *player = (PlayerEntity *)[universe entityZero];
+		if (player)
+		{
+			[[player hud] setPlayer:player]; // resets the reference to the asciitext texture
+		}
+
+		int i;
+		Entity **elist = universe->sortedEntities;
+		for (i = 0; i < universe->n_entities; i++)
+		{
+			Entity *e = elist[i];
+			[e reloadTextures];
+		}
+	}
+#endif
+
 	m_glContextInitialized = YES;
 }
 
@@ -716,7 +741,7 @@ Your fair use and other rights are in no way affected by the above.
                }
             }
             else
-            {  
+            {
                // Windowed mode. Use the absolute position so the
                // Oolite mouse pointer appears under the X Window System
                // mouse pointer.

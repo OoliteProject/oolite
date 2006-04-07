@@ -45,6 +45,8 @@ Your fair use and other rights are in no way affected by the above.
 #import "TextureStore.h"
 #import "ResourceManager.h"
 
+#import "CollisionRegion.h" // gets rid of a compilation warning
+
 #import "ScannerExtension.h"
 
 // global flag for VAR
@@ -61,7 +63,7 @@ static  Universe	*data_store_universe;
 	if (univ)
 		data_store_universe = univ;
 	//NSLog(@"--- Universe for Data Storage set to %@", univ);
-	
+
 	global_usingVAR = NO;
 	global_testForVAR = YES;
 }
@@ -232,7 +234,7 @@ static  Universe	*data_store_universe;
 
 
 - (id) init
-{    
+{
     self = [super init];
     //
     quaternion_set_identity(&q_rotation);
@@ -383,7 +385,7 @@ static  Universe	*data_store_universe;
 
 
 - (void) setModel:(NSString *) modelName
-{    
+{
 	// use our own pool to save big memory
 	NSAutoreleasePool* mypool = [[NSAutoreleasePool alloc] init];
 	// clear old data
@@ -537,15 +539,15 @@ static  Universe	*data_store_universe;
 
 
 - (void) applyRoll:(GLfloat) roll andClimb:(GLfloat) climb
-{	
+{
 	if ((roll == 0.0)&&(climb == 0.0)&&(!has_rotated))
 		return;
-	
+
 	if (roll)
 		quaternion_rotate_about_z( &q_rotation, -roll);
 	if (climb)
 		quaternion_rotate_about_x( &q_rotation, -climb);
-	
+
     quaternion_normalise(&q_rotation);
     quaternion_into_gl_matrix(q_rotation, rotMatrix);
 }
@@ -554,14 +556,14 @@ static  Universe	*data_store_universe;
 {
 	if ((roll == 0.0)&&(climb == 0.0)&&(yaw == 0.0)&&(!has_rotated))
 		return;
-	
+
 	if (roll)
 		quaternion_rotate_about_z( &q_rotation, -roll);
 	if (climb)
 		quaternion_rotate_about_x( &q_rotation, -climb);
 	if (yaw)
 		quaternion_rotate_about_y( &q_rotation, -yaw);
-	
+
     quaternion_normalise(&q_rotation);
     quaternion_into_gl_matrix(q_rotation, rotMatrix);
 }
@@ -634,7 +636,7 @@ static  Universe	*data_store_universe;
 		if (is_smooth_shaded)
 			glShadeModel(GL_SMOOTH);
 		else
-			glShadeModel(GL_FLAT);	
+			glShadeModel(GL_FLAT);
 
 		if (!translucent)
 		{
@@ -662,7 +664,7 @@ static  Universe	*data_store_universe;
 #else
 					if (usingVAR)
 						glBindVertexArrayAPPLE(gVertexArrayRangeObjects[0]);
-#endif            
+#endif
 
 					//
 					// gap removal (draws flat polys)
@@ -675,7 +677,7 @@ static  Universe	*data_store_universe;
 					glDepthMask(GL_FALSE); // don't write to depth buffer
 					glDrawArrays( GL_TRIANGLES, 0, entityData.n_triangles);	// draw in gray to mask the edges
 					glDepthMask(GL_TRUE);
-					
+
 					//
 					// now the textures ...
 					//
@@ -711,9 +713,9 @@ static  Universe	*data_store_universe;
 		}
 		glShadeModel(GL_SMOOTH);
 		checkGLErrors([NSString stringWithFormat:@"Entity after drawing %@", self]);
-	
+
 	NS_HANDLER
-	
+
 		NSLog(@"***** [Entity drawEntity::] encountered exception: %@ : %@ *****",[localException name], [localException reason]);
 		NSLog(@"***** Removing entity %@ from universe *****", self);
 		[universe removeEntity:self];
@@ -721,7 +723,7 @@ static  Universe	*data_store_universe;
 			[universe handleOoliteException:localException];	// handle these ourself
 		else
 			[localException raise];	// pass these on
-		
+
 	NS_ENDHANDLER
 }
 
@@ -756,9 +758,9 @@ static  Universe	*data_store_universe;
 		glPushMatrix();
 				// position and orientation is absolute
 		glTranslated( abspos.x, abspos.y, abspos.z);
-		
+
 		glMultMatrixf(rotMatrix);
-		
+
 		[self drawEntity:immediate :translucent];
 	}
 	else
@@ -767,12 +769,26 @@ static  Universe	*data_store_universe;
 
 		glTranslated( position.x, position.y, position.z);
 		glMultMatrixf(rotMatrix);
-		
+
 		[self drawEntity:immediate :translucent];
-			
+
 		glPopMatrix();
 	}
 }
+
+- (void) reloadTextures
+{
+#ifdef WIN32
+    int fi;
+
+    for (fi = 0; fi < n_faces; fi++)
+        faces[fi].texName = 0;
+
+	[self initialiseTextures];
+	[self generateDisplayList];
+#endif
+}
+
 
 - (void) initialiseTextures
 {
@@ -781,7 +797,7 @@ static  Universe	*data_store_universe;
     int fi,ti ;
     //
     for (fi = 0; fi < n_faces; fi++)
-    {        
+    {
         // texture
 		NSString* texture = [NSString stringWithUTF8String:(char*)faces[fi].textureFileStr255];
 //        if ((faces[fi].texName == 0)&&(faces[fi].textureFile))
@@ -796,7 +812,7 @@ static  Universe	*data_store_universe;
             }
         }
     }
-	
+
 	for (ti = 1; ti <= n_textures; ti++)
 	{
 		if (!texture_name[ti])
@@ -839,7 +855,7 @@ static  Universe	*data_store_universe;
 	}
 	else
 		zero_distance = -1;
-		
+
 	has_moved = ((position.x != last_position.x)||(position.y != last_position.y)||(position.z != last_position.z));
 	last_position = position;
 	has_rotated = ((q_rotation.w != last_q_rotation.w)||(q_rotation.x != last_q_rotation.x)||(q_rotation.y != last_q_rotation.y)||(q_rotation.z != last_q_rotation.z));
@@ -903,7 +919,7 @@ static  Universe	*data_store_universe;
 {
 	if (t_frame >= 0)
 		return NO;
-		
+
 	Frame	selectedFrame = [self frameAtTime:t_frame];
 	[self setPosition:selectedFrame.position];
 	[self setQRotation:selectedFrame.q_rotation];
@@ -1090,11 +1106,11 @@ static  Universe	*data_store_universe;
     BOOL			failFlag = NO;
     NSString		*failString = @"***** ";
     int	i, j;
-	
+
 	NSString*		data_key = [NSString stringWithFormat:@"%@>>data", filename];
-    
+
 	BOOL using_preloaded = NO;
-	
+
 	if (data_store_universe)
 	{
 		if ([[data_store_universe preloadedDataFiles] objectForKey:filename])
@@ -1110,7 +1126,7 @@ static  Universe	*data_store_universe;
 				[[data_store_universe preloadedDataFiles] setObject:data forKey:filename];
 		}
 	}
-	
+
 	if ([[data_store_universe preloadedDataFiles] objectForKey:data_key])
 	{
 //		NSLog(@"DEBUG setting model %@ from saved vertex data", filename);
@@ -1118,14 +1134,14 @@ static  Universe	*data_store_universe;
 	}
 	else
 	{
-		
+
 		// failsafe in case the stored data fails
 		if (data == nil)
 		{
 			data = [ResourceManager stringFromFilesNamed:filename inFolder:@"Models"];
 			using_preloaded = NO;
 		}
-		
+
 		if (data == nil)
 		{
 			NSLog(@"ERROR - could not find %@", filename);
@@ -1137,7 +1153,7 @@ static  Universe	*data_store_universe;
 				userInfo:nil];
 			[myException raise];
 		}
-		
+
 		// strip out comments and commas between values
 		//
 		lines = [NSMutableArray arrayWithArray:[data componentsSeparatedByString:@"\n"]];
@@ -1160,11 +1176,11 @@ static  Universe	*data_store_universe;
 			[lines replaceObjectAtIndex:i withObject:line];
 		}
 		data = [lines componentsJoinedByString:@"\n"];
-		
+
 		//NSLog(@"More data:\n%@",data);
-	   
+
 		scanner = [NSScanner scannerWithString:data];
-		
+
 		// get number of vertices
 		//
 		[scanner setScanLocation:0];	//reset
@@ -1184,7 +1200,7 @@ static  Universe	*data_store_universe;
 			failFlag = YES;
 			failString = [NSString stringWithFormat:@"%@Failed to read NVERTS\n",failString];
 		}
-		
+
 		if (n_vertices > MAX_VERTICES_PER_ENTITY)
 		{
 			NSLog(@"ERROR - model %@ has too many vertices (model has %d, maximum is %d)", filename, n_vertices, MAX_VERTICES_PER_ENTITY);
@@ -1196,7 +1212,7 @@ static  Universe	*data_store_universe;
 				userInfo:nil];
 			[myException raise];
 		}
-		
+
 		// get number of faces
 		//
 		//[scanner setScanLocation:0];	//reset
@@ -1216,7 +1232,7 @@ static  Universe	*data_store_universe;
 			failFlag = YES;
 			failString = [NSString stringWithFormat:@"%@Failed to read NFACES\n",failString];
 		}
-		
+
 		if (n_faces > MAX_FACES_PER_ENTITY)
 		{
 			NSLog(@"ERROR - model %@ has too many faces (model has %d, maximum is %d)", filename, n_faces, MAX_FACES_PER_ENTITY);
@@ -1228,7 +1244,7 @@ static  Universe	*data_store_universe;
 				userInfo:nil];
 			[myException raise];
 		}
-		
+
 		// get vertex data
 		//
 		//[scanner setScanLocation:0];	//reset
@@ -1261,7 +1277,7 @@ static  Universe	*data_store_universe;
 			failFlag = YES;
 			failString = [NSString stringWithFormat:@"%@Failed to find VERTEX data\n",failString];
 		}
-		
+
 		// get face data
 		//
 		if ([scanner scanString:@"FACES" intoString:(NSString **)nil])
@@ -1289,7 +1305,7 @@ static  Universe	*data_store_universe;
 					{
 						failString = [NSString stringWithFormat:@"%@Failed to read a color for face[%d] in FACES\n", failString, j];
 					}
-					
+
 					// normal
 					//
 					if (![scanner scanFloat:&nx])
@@ -1306,7 +1322,7 @@ static  Universe	*data_store_universe;
 					{
 						failString = [NSString stringWithFormat:@"%@Failed to read a normal for face[%d] in FACES\n", failString, j];
 					}
-					
+
 					// vertices
 					//
 					if ([scanner scanInt:&n_v])
@@ -1343,7 +1359,7 @@ static  Universe	*data_store_universe;
 			failFlag = YES;
 			failString = [NSString stringWithFormat:@"%@Failed to find FACES data\n",failString];
 		}
-				
+
 		// get textures data
 		//
 		if ([scanner scanString:@"TEXTURES" intoString:(NSString **)nil])
@@ -1370,7 +1386,7 @@ static  Universe	*data_store_universe;
 //						NSLog(@"DEBUG TEST strlcpy of '%@' result = '%s'", texfile, faces[j].textureFileStr255);
 					}
 					faces[j].texName = 0;
-					
+
 					// texture size
 					//
 				   if (!failFlag)
@@ -1382,7 +1398,7 @@ static  Universe	*data_store_universe;
 						if (failFlag)
 							failString = [NSString stringWithFormat:@"%@Failed to read texture size for max_x and max_y in face[%d] in TEXTURES\n", failString, j];
 					}
-					
+
 					// vertices
 					//
 					if (!failFlag)
@@ -1409,30 +1425,30 @@ static  Universe	*data_store_universe;
 			failFlag = YES;
 			failString = [NSString stringWithFormat:@"%@Failed to find TEXTURES data\n",failString];
 		}
-				
+
 		// check normals before creating new textures
 		//
 		[self checkNormalsAndAdjustWinding];
-		
+
 		if ((failFlag)&&([failString rangeOfString:@"TEXTURES"].location != NSNotFound))
 		{
 			//NSLog(@"Off to make new textures!");
 			[self fakeTexturesWithImageFile:@"metal.png" andMaxSize:NSMakeSize(256.0,256.0)];
-			
+
 			// dump out data for ships with faked textures
 			//if (isShip)
 			//	//NSLog(@"Faked Texture coordinates for this model :\n\n%@\n\n", [self toString]);
 		}
-		
+
 		if (failFlag)
 			NSLog([NSString stringWithFormat:@"%@ ..... from %@ %@", failString, filename, (using_preloaded)? @"(from preloaded data)" : @"(from file)"]);
-		
+
 		// check for smooth chading and recalculate normals
 		//
 		if (is_smooth_shaded)
 			[self calculateVertexNormals];
 		//
-		
+
 		// save the resulting data for possible reuse
 		//
 		if (![[data_store_universe preloadedDataFiles] objectForKey: data_key])
@@ -1440,12 +1456,12 @@ static  Universe	*data_store_universe;
 			[[data_store_universe preloadedDataFiles] setObject:[self modelData] forKey: data_key];
 		}
 	}
-		
+
 	// set the collision radius
 	//
 	collision_radius = [self findCollisionRadius];
 	actual_radius = collision_radius;
-	
+
 	// set up vertex arrays for drawing
 	//
 	[self setUpVertexArrays];
@@ -1487,11 +1503,11 @@ static  Universe	*data_store_universe;
             int v[faces[i].n_verts];
             GLfloat s[faces[i].n_verts];
             GLfloat t[faces[i].n_verts];
-            
+
             //
             //NSLog(@"Normal pointing the wrong way for winding on face %d", i);
             //
-            
+
             for (j = 0; j < faces[i].n_verts; j++)
             {
             	v[j] = faces[i].vertex[faces[i].n_verts - 1 - j];
@@ -1546,15 +1562,15 @@ static  Universe	*data_store_universe;
 	NSMutableDictionary*	texturesProcessed = [NSMutableDictionary dictionaryWithCapacity:MAX_TEXTURES_PER_ENTITY];
 
 	int face, fi, vi, texi;
-	
+
 	// base model, flat or smooth shaded, all triangles
 	int tri_index = 0;
 	int uv_index = 0;
 	int vertex_index = 0;
 	entityData.texName = 0;
-	
+
 	texi = 1; // index of first texture
-	
+
 	for (face = 0; face < n_faces; face++)
 	{
 //		NSString* tex_string = faces[face].textureFile;
@@ -1566,7 +1582,7 @@ static  Universe	*data_store_universe;
 //			texture_file[texi] = tex_string;
 			strlcpy( (char*)texture_file[texi], (char*)faces[face].textureFileStr255, 256);
 			texture_name[texi] = faces[face].texName;
-			
+
 			for (fi = 0; fi < n_faces; fi++)
 			{
 				Vector normal = make_vector( 0.0, 0.0, 1.0);
@@ -1591,10 +1607,10 @@ static  Universe	*data_store_universe;
 				}
 			}
 			triangle_range[texi].length = tri_index - triangle_range[texi].location;
-			
+
 //			NSLog(@"DEBUG processing %@ texture %@ texName %d triangles %d to %d",
 //				basefile, texture_file[texi], texture_name[texi], triangle_range[texi].location,  triangle_range[texi].location + triangle_range[texi].length);
-			
+
 			//finally...
 			[texturesProcessed setObject:tex_string forKey:tex_string];	// note this texture done
 			texi++;
@@ -1602,7 +1618,7 @@ static  Universe	*data_store_universe;
 	}
 	entityData.n_triangles = tri_index;	// total number of triangle vertices
 	triangle_range[0] = NSMakeRange( 0, tri_index);
-	
+
 	n_textures = texi - 1;
 }
 
@@ -1614,13 +1630,13 @@ static  Universe	*data_store_universe;
 {
     int i;
 	double d_squared, result, length_longest_axis, length_shortest_axis;
-	
+
 	result = 0.0;
 	if (n_vertices)
 		bounding_box_reset_to_vector(&boundingBox,vertices[0]);
 	else
 		bounding_box_reset(&boundingBox);
-	
+
     for (i = 0; i < n_vertices; i++)
     {
         d_squared = vertices[i].x*vertices[i].x + vertices[i].y*vertices[i].y + vertices[i].z*vertices[i].z;
@@ -1628,24 +1644,24 @@ static  Universe	*data_store_universe;
 			result = d_squared;
 		bounding_box_add_vector(&boundingBox,vertices[i]);
     }
-	
+
 	length_longest_axis = boundingBox.max.x - boundingBox.min.x;
 	if (boundingBox.max.y - boundingBox.min.y > length_longest_axis)
 		length_longest_axis = boundingBox.max.y - boundingBox.min.y;
 	if (boundingBox.max.z - boundingBox.min.z > length_longest_axis)
 		length_longest_axis = boundingBox.max.z - boundingBox.min.z;
-	
+
 	length_shortest_axis = boundingBox.max.x - boundingBox.min.x;
 	if (boundingBox.max.y - boundingBox.min.y < length_shortest_axis)
 		length_shortest_axis = boundingBox.max.y - boundingBox.min.y;
 	if (boundingBox.max.z - boundingBox.min.z < length_shortest_axis)
 		length_shortest_axis = boundingBox.max.z - boundingBox.min.z;
-	
+
 	d_squared = (length_longest_axis + length_shortest_axis) * (length_longest_axis + length_shortest_axis) * 0.25; // square of average length
 	no_draw_distance = d_squared * NO_DRAW_DISTANCE_FACTOR * NO_DRAW_DISTANCE_FACTOR;	// no longer based on the collision radius
-	
+
 	mass =	(boundingBox.max.x - boundingBox.min.x) * (boundingBox.max.y - boundingBox.min.y) * (boundingBox.max.z - boundingBox.min.z);
-	
+
 	return sqrt(result);
 }
 
@@ -1653,7 +1669,7 @@ static  Universe	*data_store_universe;
 - (BoundingBox) findBoundingBoxRelativeTo:(Entity *)other InVectors:(Vector) _i :(Vector) _j :(Vector) _k
 {
 	NSLog(@"DEBUG ** DEPRECATED [Entity findBoundingBoxRelativeTo:(Entity *)other InVectors:(Vector) _i :(Vector) _j :(Vector) _k] CALLED **");
-	
+
 	Vector pv, rv;
 	Vector  rpos = position;
 	Vector  opv = (other)? other->position : rpos;
@@ -1680,7 +1696,7 @@ static  Universe	*data_store_universe;
 - (BoundingBox) findBoundingBoxRelativeToPosition:(Vector)opv InVectors:(Vector) _i :(Vector) _j :(Vector) _k
 {
 	NSLog(@"DEBUG ** DEPRECATED [Entity findBoundingBoxRelativeToPosition:(Vector)opv InVectors:(Vector) _i :(Vector) _j :(Vector) _k] CALLED **");
-	
+
 	Vector pv, rv;
 	Vector  rpos = position;
 	rpos.x -= opv.x;	rpos.y -= opv.y;	rpos.z -= opv.z;
@@ -1700,7 +1716,7 @@ static  Universe	*data_store_universe;
 		rv.z = dot_product(_k,pv);
 		bounding_box_add_vector(&result,rv);
     }
-	
+
 	return result;
 }
 
@@ -1764,7 +1780,7 @@ static  Universe	*data_store_universe;
         }
     }
     result = [NSString stringWithFormat:@"%@\nEND\n", result];
-    
+
     return result;
 }
 
@@ -1779,7 +1795,7 @@ static  Universe	*data_store_universe;
     Face	fa[MAX_FACES_PER_ENTITY];
     int		faces_to_match;
     BOOL	face_matched[MAX_FACES_PER_ENTITY];
-    
+
     tolerance = 1.00;
     faces_to_match = n_faces;
     for (i = 0; i < n_faces; i++)
@@ -1789,7 +1805,7 @@ static  Universe	*data_store_universe;
 	while (faces_to_match > 0)
     {
         tolerance -= 0.05;
-        
+
         // Top (+y) first
         vec.x = 0.0;	vec.y = 1.0;	vec.z = 0.0;
         // build list of faces that face in that direction...
@@ -1843,7 +1859,7 @@ static  Universe	*data_store_universe;
                 //
             }
         }
-        
+
         // Bottom (-y)
         vec.x = 0.0;	vec.y = -1.0;	vec.z = 0.0;
         // build list of faces that face in that direction...
@@ -1886,7 +1902,7 @@ static  Universe	*data_store_universe;
                 fa[i].t[k] = (t - min_t) * maxSize.height / st_height;
             }
         }
-        
+
         // Right (+x)
         vec.x = 1.0;	vec.y = 0.0;	vec.z = 0.0;
         // build list of faces that face in that direction...
@@ -1929,7 +1945,7 @@ static  Universe	*data_store_universe;
                 fa[i].t[k] = (t - min_t) * maxSize.height / st_height;
             }
         }
-        
+
         // Left (-x)
         vec.x = -1.0;	vec.y = 0.0;	vec.z = 0.0;
         // build list of faces that face in that direction...
@@ -1972,7 +1988,7 @@ static  Universe	*data_store_universe;
                 fa[i].t[k] = (t - min_t) * maxSize.height / st_height;
             }
         }
-        
+
         // Front (+z)
         vec.x = 0.0;	vec.y = 0.0;	vec.z = 1.0;
         // build list of faces that face in that direction...
@@ -2015,7 +2031,7 @@ static  Universe	*data_store_universe;
                 fa[i].t[k] = (t - min_t) * maxSize.height / st_height;
             }
         }
-        
+
         // Back (-z)
         vec.x = 0.0;	vec.y = 0.0;	vec.z = -1.0;
         // build list of faces that face in that direction...
@@ -2060,7 +2076,7 @@ static  Universe	*data_store_universe;
         }
         //NSLog(@"%d / %d faces matched at tolerance: %f", n_faces - faces_to_match, n_faces, tolerance);
     }
-    
+
     for (i = 0; i < n_faces; i++)
     {
         NSString *result;
@@ -2079,7 +2095,7 @@ static  Universe	*data_store_universe;
         result = [NSString stringWithFormat:@"%s\t%d %d", faces[i].textureFileStr255, (int)maxSize.width, (int)maxSize.height];
         //NSLog(@"face[%d] : %@", i, result);
     }
-    
+
 }
 
 // COMMON OGL STUFF
@@ -2092,10 +2108,10 @@ static  Universe	*data_store_universe;
 	if (global_testForVAR)
 	{
 		global_testForVAR = NO;	// no need for further tests after this
-		
+
 		// see if we have supported hardware
 		s = (char *)glGetString(GL_EXTENSIONS);	// get extensions list
-				
+
 		if (strstr(s, "GL_APPLE_vertex_array_range") == 0)
 		{
 			global_usingVAR &= NO;
@@ -2108,30 +2124,30 @@ static  Universe	*data_store_universe;
 			global_usingVAR |= YES;
 		}
 	}
-	
+
 	if (!global_usingVAR)
 		return NO;
 #ifdef GNUSTEP
    // TODO: Find out what these APPLE functions do
-#else   
+#else
 	glGenVertexArraysAPPLE(NUM_VERTEX_ARRAY_RANGES, &gVertexArrayRangeObjects[0]);
-#endif   
+#endif
 
 	// INIT OUR DATA
 	//
-	// None of the VAR objects has been assigned to any data yet, 
+	// None of the VAR objects has been assigned to any data yet,
 	// so here we just initialize our info.  We'll assign the VAR objects
 	// to data later.
 	//
-			
-	for (i = 0; i < NUM_VERTEX_ARRAY_RANGES; i++)							
+
+	for (i = 0; i < NUM_VERTEX_ARRAY_RANGES; i++)
 	{
 		gVertexArrayRangeData[i].rangeSize		= 0;
 		gVertexArrayRangeData[i].dataBlockPtr	= nil;
 		gVertexArrayRangeData[i].forceUpdate	= true;
 		gVertexArrayRangeData[i].activated		= false;
 	}
-	
+
 	return YES;
 }
 
@@ -2158,24 +2174,24 @@ static  Universe	*data_store_universe;
 		// SEE IF THIS VAR IS USED
 
 		size = gVertexArrayRangeData[i].rangeSize;
-		if (size == 0)		
+		if (size == 0)
 			continue;
-			
+
 
 		// SEE IF VAR NEEDS UPDATING
-					
+
 		if (!gVertexArrayRangeData[i].forceUpdate)
 			continue;
 
 #ifdef GNUSTEP
       // TODO: find out what non-AAPL OpenGL stuff is equivalent
-#else      
+#else
 		// BIND THIS VAR OBJECT SO WE CAN DO STUFF TO IT
 
-		glBindVertexArrayAPPLE(gVertexArrayRangeObjects[i]);				
+		glBindVertexArrayAPPLE(gVertexArrayRangeObjects[i]);
 
 		// SEE IF THIS IS THE FIRST TIME IN
-								
+
 		if (!gVertexArrayRangeData[i].activated)
 		{
 			glVertexArrayRangeAPPLE(size, gVertexArrayRangeData[i].dataBlockPtr);
@@ -2183,21 +2199,21 @@ static  Universe	*data_store_universe;
 
 					// you MUST call this flush to get the data primed!
 
-			glFlushVertexArrayRangeAPPLE(size, gVertexArrayRangeData[i].dataBlockPtr);		
+			glFlushVertexArrayRangeAPPLE(size, gVertexArrayRangeData[i].dataBlockPtr);
 			glEnableClientState(GL_VERTEX_ARRAY_RANGE_APPLE);
 			gVertexArrayRangeData[i].activated = true;
 		}
-		
+
 		// ALREADY ACTIVE, SO JUST UPDATING
-				
+
 		else
 		{
 			glFlushVertexArrayRangeAPPLE(size, gVertexArrayRangeData[i].dataBlockPtr);
 		}
-#endif      
+#endif
 
-		gVertexArrayRangeData[i].forceUpdate = false;		
-	}		
+		gVertexArrayRangeData[i].forceUpdate = false;
+	}
 }
 
 // log a list of current states
@@ -2454,7 +2470,7 @@ void logGLState()
 			NSLog(@"OPENGL_DEBUG GL_LIGHT7 :ENABLED:");
 	}
 	/*-- LIGHTS --*/
-	
+
 	NSLog(@"OPENGL_DEBUG GL_CURRENT_COLOR ( %.2ff, %.2ff, %.2ff, %.2ff)",
 		current_color[0], current_color[1], current_color[2], current_color[3]);
 	//

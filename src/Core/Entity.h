@@ -109,19 +109,19 @@ struct face
 	GLfloat red;
 	GLfloat green;
 	GLfloat blue;
-        
+
 	Vector	normal;
-	
+
 	int	n_verts;
-	
+
 	GLint	vertex[MAX_VERTICES_PER_FACE];
-	
+
 	Str255		textureFileStr255;
 //	NSString	*textureFile;
 	GLuint	texName;
 	GLfloat	s[MAX_VERTICES_PER_FACE];
 	GLfloat	t[MAX_VERTICES_PER_FACE];
-		
+
 };
 
 typedef struct face Face;
@@ -134,9 +134,9 @@ typedef struct
 	Vector normal_array[3 * MAX_FACES_PER_ENTITY];
 
 	GLuint	texName;
-	
+
 	int		n_triangles;
-	
+
 }	EntityData;	// per texture
 
 typedef struct
@@ -207,7 +207,7 @@ extern int debug;
 		int			universal_id;				// used to reference the entity
 		//
 		CollisionRegion*	collision_region;		// initially nil - then maintained
-		
+
 	@protected
 	//
 	//////////////////////////////////////////////////////
@@ -254,7 +254,7 @@ extern int debug;
 	//
 	int			owner;
 	//
-	
+
 	// very new
 	int			n_textures;
 	EntityData	entityData;
@@ -262,13 +262,13 @@ extern int debug;
 //	NSString*	texture_file[MAX_TEXTURES_PER_ENTITY];
 	Str255		texture_file[MAX_TEXTURES_PER_ENTITY];
 	GLuint		texture_name[MAX_TEXTURES_PER_ENTITY];
-	
+
 	BOOL		throw_sparks;
-	
+
 	// COMMON OGL STUFF
-	
+
 	BOOL					usingVAR;
-	
+
 	GLuint					gVertexArrayRangeObjects[NUM_VERTEX_ARRAY_RANGES];	// OpenGL's VAR object references
 	VertexArrayRangeType	gVertexArrayRangeData[NUM_VERTEX_ARRAY_RANGES];		// our info about each VAR block
 
@@ -360,6 +360,7 @@ extern int debug;
 
 - (void) drawEntity:(BOOL) immediate :(BOOL) translucent;
 - (void) drawSubEntity:(BOOL) immediate :(BOOL) translucent;
+- (void) reloadTextures;
 - (void) initialiseTextures;
 - (void) regenerateDisplayList;
 - (void) generateDisplayList;
