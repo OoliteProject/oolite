@@ -16,16 +16,16 @@ or send a letter to Creative Commons, 559 Nathan Abbott Way, Stanford, Californi
 
 You are free:
 
-‚Ä¢	to copy, distribute, display, and perform the work
-‚Ä¢	to make derivative works
+•	to copy, distribute, display, and perform the work
+•	to make derivative works
 
 Under the following conditions:
 
-‚Ä¢	Attribution. You must give the original author credit.
+•	Attribution. You must give the original author credit.
 
-‚Ä¢	Noncommercial. You may not use this work for commercial purposes.
+•	Noncommercial. You may not use this work for commercial purposes.
 
-‚Ä¢	Share Alike. If you alter, transform, or build upon this work,
+•	Share Alike. If you alter, transform, or build upon this work,
 you may distribute the resulting work only under a license identical to this one.
 
 For any reuse or distribution, you must make clear to others the license terms of this work.
@@ -301,5 +301,33 @@ Your fair use and other rights are in no way affected by the above.
 {
 	return rgba[3];
 }
+
+
+#ifndef GNUSTEP
+
+- (NSColor *)asNSColor
+{
+	return [NSColor colorWithCalibratedRed:rgba[0] green:rgba[1] blue:rgba[2] alpha:rgba[3]];
+}
+
+
+- (void)set
+{
+	[[self asNSColor] set];
+}
+
+
+- (void)setFill
+{
+	[[self asNSColor] setFill];
+}
+
+
+- (void)setStroke
+{
+	[[self asNSColor] setStroke];
+}
+
+#endif
 
 @end
