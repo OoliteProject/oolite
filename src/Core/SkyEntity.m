@@ -51,7 +51,7 @@ Your fair use and other rights are in no way affected by the above.
 @implementation SkyEntity
 
 - (id) init
-{    
+{
     self = [super init];
     //
     quaternion_set_identity(&q_rotation);
@@ -83,7 +83,7 @@ Your fair use and other rights are in no way affected by the above.
 	//
 	[self set_up_billboards:col1 :col2];
 	//
-	
+
 	//
 	usingVAR = [self OGL_InitVAR];
 	//
@@ -99,7 +99,7 @@ Your fair use and other rights are in no way affected by the above.
 }
 
 - (id) initWithColors:(OOColor *) col1:(OOColor *) col2
-{    
+{
     self = [super init];
 	//
 	n_stars = SKY_N_STARS;
@@ -148,10 +148,10 @@ Your fair use and other rights are in no way affected by the above.
 }
 
 - (id) initWithColors:(OOColor *) col1:(OOColor *) col2 andSystemInfo:(NSDictionary *) systeminfo
-{    
+{
 	OOColor* color1 = col1;
 	OOColor* color2 = col2;
-	
+
 	self = [super init];
 	//
 	n_stars = SKY_N_STARS;
@@ -178,7 +178,7 @@ Your fair use and other rights are in no way affected by the above.
 	blob_scale = SKY_BLOB_SCALE;
 	blob_scale_prime = 0.005 / blob_scale;
 	//
-	
+
 	//// possible systeminfo overrides
 	//
 	if ([systeminfo objectForKey:@"sky_rgb_colors"])
@@ -242,13 +242,13 @@ Your fair use and other rights are in no way affected by the above.
 	}
 	//
 	////
-	
+
 	sky_color = [[color2 blendedColorWithFraction:0.5 ofColor:color1] retain];
 	//
 	// init stars
 	//
 	[self set_up_billboards:color1 :color2];
-	
+
 	//
 	usingVAR = [self OGL_InitVAR];
 	//
@@ -321,7 +321,7 @@ Your fair use and other rights are in no way affected by the above.
 	Vector  star_vector[n_stars];
 	GLfloat star_color[n_stars][4];
 	Vector  star_quad[4][n_stars];
-	
+
 	// blobs
 	Vector  blob_vector[n_blobs];
 	GLfloat blob_color[n_blobs][4];
@@ -358,7 +358,7 @@ Your fair use and other rights are in no way affected by the above.
 		star_quad[3][i].x = star_quad[0][i].x + p_size * vi.x;
 		star_quad[3][i].y = star_quad[0][i].y + p_size * vi.y;
 		star_quad[3][i].z = star_quad[0][i].z + p_size * vi.z;
-		
+
 		int j;
 		for (j = 0; j < 4; j++)
 		{
@@ -368,7 +368,7 @@ Your fair use and other rights are in no way affected by the above.
 		}
 
 		//**  SET UP VERTEX ARRAY DATA **//
-				
+
 		// set up texture and vertex arrays
 		starsData.texture_uv_array[ 4*i*2 + 0] = 0;	starsData.texture_uv_array[ 4*i*2 + 1] = 0;
 		starsData.vertex_array[ 4*i*3 + 0] = star_quad[0][i].x;	starsData.vertex_array[ 4*i*3 + 1] = star_quad[0][i].y;	starsData.vertex_array[ 4*i*3 + 2] = star_quad[0][i].z;
@@ -378,7 +378,7 @@ Your fair use and other rights are in no way affected by the above.
 		starsData.vertex_array[ 4*i*3 + 6] = star_quad[2][i].x;	starsData.vertex_array[ 4*i*3 + 7] = star_quad[2][i].y;	starsData.vertex_array[ 4*i*3 + 8] = star_quad[2][i].z;
 		starsData.texture_uv_array[ 4*i*2 + 6] = 0;	starsData.texture_uv_array[ 4*i*2 + 7] = 1;
 		starsData.vertex_array[ 4*i*3 + 9] = star_quad[3][i].x;	starsData.vertex_array[ 4*i*3 + 10] = star_quad[3][i].y;	starsData.vertex_array[ 4*i*3 + 11] = star_quad[3][i].z;
-		
+
 		// set up color array
 		for (j = 0; j < 4; j++)
 		{
@@ -421,14 +421,14 @@ Your fair use and other rights are in no way affected by the above.
 			double p_size = blob_scale * r1 * BILLBOARD_DEPTH / 500.0;
 			blob_color[i][3] *= 0.5 + (float)r1 / 32.0;	// make smaller blobs dimmer
 			blob_quad[0][i] = blob_vector[i];
-			
+
 			// rotate vi and vj a random amount
 			double r = randf() * PI * 2.0;
 			quaternion_rotate_about_axis(&q, vk, r);
 			vi = vector_right_from_quaternion(q);
 			vj = vector_up_from_quaternion(q);
 			//
-			
+
 			blob_quad[1][i].x = blob_quad[0][i].x + p_size * vj.x;
 			blob_quad[1][i].y = blob_quad[0][i].y + p_size * vj.y;
 			blob_quad[1][i].z = blob_quad[0][i].z + p_size * vj.z;
@@ -438,7 +438,7 @@ Your fair use and other rights are in no way affected by the above.
 			blob_quad[3][i].x = blob_quad[0][i].x + p_size * vi.x;
 			blob_quad[3][i].y = blob_quad[0][i].y + p_size * vi.y;
 			blob_quad[3][i].z = blob_quad[0][i].z + p_size * vi.z;
-			
+
 			int j;
 			for (j = 0; j < 4; j++)
 			{
@@ -446,9 +446,9 @@ Your fair use and other rights are in no way affected by the above.
 				blob_quad[j][i].y -= 0.5 * p_size * (vi.y + vj.y);
 				blob_quad[j][i].z -= 0.5 * p_size * (vi.z + vj.z);
 			}
-			
+
 			//**  SET UP VERTEX ARRAY DATA **//
-			
+
 			// set up texture and vertex arrays
 			blobsData.texture_uv_array[ 4*i*2 + 0] = 0;	blobsData.texture_uv_array[ 4*i*2 + 1] = 0;
 			blobsData.vertex_array[ 4*i*3 + 0] = blob_quad[0][i].x;	blobsData.vertex_array[ 4*i*3 + 1] = blob_quad[0][i].y;	blobsData.vertex_array[ 4*i*3 + 2] = blob_quad[0][i].z;
@@ -458,7 +458,7 @@ Your fair use and other rights are in no way affected by the above.
 			blobsData.vertex_array[ 4*i*3 + 6] = blob_quad[2][i].x;	blobsData.vertex_array[ 4*i*3 + 7] = blob_quad[2][i].y;	blobsData.vertex_array[ 4*i*3 + 8] = blob_quad[2][i].z;
 			blobsData.texture_uv_array[ 4*i*2 + 6] = 0;	blobsData.texture_uv_array[ 4*i*2 + 7] = 1;
 			blobsData.vertex_array[ 4*i*3 + 9] = blob_quad[3][i].x;	blobsData.vertex_array[ 4*i*3 + 10] = blob_quad[3][i].y;	blobsData.vertex_array[ 4*i*3 + 11] = blob_quad[3][i].z;
-			
+
 			// set up color array
 			for (j = 0; j < 4; j++)
 			{
@@ -469,7 +469,7 @@ Your fair use and other rights are in no way affected by the above.
 			}
 
 			p_size *= 500/BILLBOARD_DEPTH;	// back to normal scale
-			
+
 			// shuffle it around a bit in a random walk
 			q.x += p_size * blob_scale_prime * (randf() - 0.5);
 			q.y += p_size * blob_scale_prime * (randf() - 0.5);
@@ -511,7 +511,7 @@ Your fair use and other rights are in no way affected by the above.
 }
 
 - (void) drawEntity:(BOOL) immediate :(BOOL) translucent
-{    
+{
 	if ([universe breakPatternHide])   return; // DON'T DRAW
 
     //
@@ -524,7 +524,7 @@ Your fair use and other rights are in no way affected by the above.
 		glDisable(GL_CULL_FACE);	// face culling
 		//
 		glShadeModel(GL_SMOOTH);	// smoothing for color values...
-										
+
 		if (immediate)
 		{
 			switch (sky_type)
@@ -532,9 +532,9 @@ Your fair use and other rights are in no way affected by the above.
 				case SKY_POINTS :
 					NSLog(@"ERROR: SkyEntity SKY_POINTS deprecated");
 					break;
-					
+
 				case SKY_BILLBOARDS :
-					
+
 					if ((star_textureName == 0)&&(universe))
 						star_textureName = [[universe textureStore] getTextureNameFor:@"star64.png"];
 					if ((blob_textureName == 0)&&(universe))
@@ -546,43 +546,43 @@ Your fair use and other rights are in no way affected by the above.
 					// stars
 #ifdef GNUSTEP
                // TODO: find replacement for APPLE function
-#else               
+#else
 					if (usingVAR)
 						glBindVertexArrayAPPLE(gVertexArrayRangeObjects[0]);
-#endif               
-					
+#endif
+
 //					if (usingVAR)
 //						NSLog(@"DEBUG using accelerated memory technique to draw %@ (%@)", self, basefile);
-//					
+//
 					glBindTexture(GL_TEXTURE_2D, star_textureName);
-					
+
 					glEnableClientState(GL_VERTEX_ARRAY);
 					glVertexPointer( 3, GL_FLOAT, 0, starsData.vertex_array);
 					// 3 coords per vertex
 					// of type GL_FLOAT
 					// 0 stride (tightly packed)
 					// pointer to first vertex
-					
+
 					glEnableClientState(GL_TEXTURE_COORD_ARRAY);
 					glTexCoordPointer( 2, GL_INT, 0, starsData.texture_uv_array);
 					// 2 coords per vertex
 					// of type GL_INT
 					// 0 stride (tightly packed)
 					// pointer to first coordinate pair
-					
+
 					glEnableClientState(GL_COLOR_ARRAY);
 					glColorPointer( 4, GL_FLOAT, 0, starsData.color_array);
 					// 4 values per vertex color
 					// of type GL_FLOAT
 					// 0 stride (tightly packed)
 					// pointer to quadruplet
-					
+
 					glDisableClientState(GL_INDEX_ARRAY);
 					glDisableClientState(GL_NORMAL_ARRAY);
 					glDisableClientState(GL_EDGE_FLAG_ARRAY);
-					
+
 					glDrawArrays( GL_QUADS, 0, 4 * n_stars);
-					
+
 					//
 					// blobs
 					if (![universe reducedDetail])
@@ -593,33 +593,33 @@ Your fair use and other rights are in no way affected by the above.
 #else
 						if (usingVAR)
 							glBindVertexArrayAPPLE(gVertexArrayRangeObjects[1]);
-#endif                  
-						
+#endif
+
 						glEnableClientState(GL_VERTEX_ARRAY);
 						glVertexPointer( 3, GL_FLOAT, 0, blobsData.vertex_array);
 						// 3 coords per vertex
 						// of type GL_FLOAT
 						// 0 stride (tightly packed)
 						// pointer to first vertex
-						
+
 						glEnableClientState(GL_TEXTURE_COORD_ARRAY);
 						glTexCoordPointer( 2, GL_INT, 0, blobsData.texture_uv_array);
 						// 2 coords per vertex
 						// of type GL_INT
 						// 0 stride (tightly packed)
 						// pointer to first coordinate pair
-						
+
 						glEnableClientState(GL_COLOR_ARRAY);
 						glColorPointer( 4, GL_FLOAT, 0, blobsData.color_array);
 						// 4 values per vertex color
 						// of type GL_FLOAT
 						// 0 stride (tightly packed)
 						// pointer to quadruplet
-						
+
 						glDisableClientState(GL_INDEX_ARRAY);
 						glDisableClientState(GL_NORMAL_ARRAY);
 						glDisableClientState(GL_EDGE_FLAG_ARRAY);
-						
+
 						glDrawArrays( GL_QUADS, 0, 4 * n_blobs);
 
 					}
@@ -638,7 +638,7 @@ Your fair use and other rights are in no way affected by the above.
 				//
 			}
 		}
-		
+
 		// reapply lighting &c
 		glEnable(GL_CULL_FACE);			// face culling
 		glEnable(GL_LIGHTING);
@@ -648,8 +648,20 @@ Your fair use and other rights are in no way affected by the above.
 	checkGLErrors([NSString stringWithFormat:@"SkyEntity after drawing %@", self]);
 }
 
+#ifdef WIN32
+// No over-ride of Entity's version of the method is required for non-Win32 platforms.
+- (void) reloadTextures
+{
+	//NSLog(@"SkyEntity::reloadTextures called, calling super and resetTextureNames");
 
+	// Force the sky textures to be reloaded next time a frame is drawn.
+	star_textureName = 0;
+	blob_textureName = 0;
 
+	// Reset the entity display list.
+	[super reloadTextures];
+}
 
+#endif
 
 @end

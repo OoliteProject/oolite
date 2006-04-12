@@ -781,11 +781,14 @@ static  Universe	*data_store_universe;
 #ifdef WIN32
     int fi;
 
+	//NSLog(@"Entity::reloadTextures called on [%@]", [self description]);
+
+	// Force the entity to reload the textures for each face by clearing the face's texture name.
     for (fi = 0; fi < n_faces; fi++)
         faces[fi].texName = 0;
 
-	[self initialiseTextures];
-	[self generateDisplayList];
+	// Force the display list to be regenerated next time a frame is drawn.
+	[self regenerateDisplayList];
 #endif
 }
 
@@ -795,19 +798,16 @@ static  Universe	*data_store_universe;
     // roll out each face and texture in turn
     //
     int fi,ti ;
-    //
+
     for (fi = 0; fi < n_faces; fi++)
     {
-        // texture
 		NSString* texture = [NSString stringWithUTF8String:(char*)faces[fi].textureFileStr255];
-//        if ((faces[fi].texName == 0)&&(faces[fi].textureFile))
         if ((faces[fi].texName == 0)&&(texture))
         {
             // load texture into Universe texturestore
-//            NSLog(@"Off to load %@",faces[fi].textureFile);
+            //NSLog(@"Off to load %@", texture);
             if (universe)
             {
-//                faces[fi].texName = [[universe textureStore] getTextureNameFor:faces[fi].textureFile];
                 faces[fi].texName = [[universe textureStore] getTextureNameFor: texture];
             }
         }
@@ -817,7 +817,6 @@ static  Universe	*data_store_universe;
 	{
 		if (!texture_name[ti])
 		{
-//			texture_name[ti] = [[universe textureStore] getTextureNameFor: texture_file[ti]];
 			texture_name[ti] = [[universe textureStore] getTextureNameFor: [NSString stringWithUTF8String: (char*)texture_file[ti]]];
 //			NSLog(@"DEBUG (initialiseTextures) Processed textureFile : %@ to texName : %d", entityData[ti].textureFile, entityData[ti].texName);
 		}

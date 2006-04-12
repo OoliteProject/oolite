@@ -74,23 +74,23 @@ Your fair use and other rights are in no way affected by the above.
 #endif
 	NSSize				imageSize;
 	GLuint				texName;
-	
+
 	unsigned char		*texBytes;
 	BOOL				freeTexBytes;
-	
+
 	int					texture_h = 4;
 	int					texture_w = 4;
 	int					image_h, image_w;
 	int					n_planes, im_bytes, tex_bytes;
-	
+
 	int					im_bytesPerRow;
-	
-	int					texi = 0; 
-	
+
+	int					texi = 0;
+
 	if (![textureDictionary objectForKey:filename])
 	{
 		NSMutableDictionary*	texProps = [NSMutableDictionary dictionaryWithCapacity:3];  // autoreleased
-#ifndef GNUSTEP		   
+#ifndef GNUSTEP
 		texImage = [ResourceManager imageNamed:filename inFolder:@"Textures"];
 #else
 		texImage = [ResourceManager surfaceNamed:filename inFolder:@"Textures"];
@@ -105,12 +105,12 @@ Your fair use and other rights are in no way affected by the above.
 			[myException raise];
 			return 0;
 		}
-		
+
 #ifndef GNUSTEP
 		NSArray* reps = [texImage representations];
-		
+
 //		NSLog(@"DEBUG texture %@ representations:\n%@", filename, reps);
-		
+
 		int i;
 		for (i = 0; ((i < [reps count]) && !bitmapImageRep); i++)
 		{
@@ -128,17 +128,17 @@ Your fair use and other rights are in no way affected by the above.
 			[myException raise];
 			return 0;
 		}
-		
+
 //		imageSize = [texImage size];			// Gives size in points, which is bad.
 		imageSize = NSMakeSize( [bitmapImageRep pixelsWide], [bitmapImageRep pixelsHigh]);	// Gives size in pixels, which is good.
 		image_w = imageSize.width;
 		image_h = imageSize.height;
-		
+
 		while (texture_w < image_w)
 			texture_w *= 2;
 		while (texture_h < image_h)
 			texture_h *= 2;
-		
+
 		n_planes = [bitmapImageRep samplesPerPixel];
 		im_bytes = image_w * image_h * n_planes;
 		tex_bytes = texture_w * texture_h * n_planes;
@@ -149,12 +149,12 @@ Your fair use and other rights are in no way affected by the above.
 		imageSize = NSMakeSize([texImage surface]->w, [texImage surface]->h);
 		image_w = imageSize.width;
 		image_h = imageSize.height;
-		
+
 		while (texture_w < image_w)
 			texture_w *= 2;
 		while (texture_h < image_h)
 			texture_h *= 2;
-		
+
 		n_planes = [texImage surface]->format->BytesPerPixel;
 		im_bytesPerRow = [texImage surface]->pitch;
 		unsigned char* imageBuffer = [texImage surface]->pixels;
@@ -169,12 +169,12 @@ Your fair use and other rights are in no way affected by the above.
 //			NSLog(@"DEBUG filling image data for %@ (%d x %d) with special sauce!", filename, texture_w, texture_h);
 			fillSquareImageDataWithBlur(imageBuffer, texture_w, n_planes);
 		}
-		
+
 		if ((texture_w > image_w)||(texture_h > image_h))	// we need to scale the image to the texture dimensions
 		{
 			texBytes = malloc(tex_bytes);
 			freeTexBytes = YES;
-			
+
 			// do bilinear scaling
 			int x, y, n;
 			float texel_w = (float)image_w / (float)texture_w;
@@ -195,7 +195,7 @@ Your fair use and other rights are in no way affected by the above.
 					py0 = (y1 - y_lo) / texel_h;
 					py1 = 1.0 - py0;
 				}
-				
+
 				for ( x = 0; x < texture_w; x++)
 				{
 					float x_lo = texel_w * x;
@@ -203,7 +203,7 @@ Your fair use and other rights are in no way affected by the above.
 					int x0 = floor(x_lo);
 					int x1 = floor(x_hi);
 					float acc = 0;
-					
+
 					float px0 = 1.0;
 					float px1 = 0.0;
 					if (x1 > x0)
@@ -211,19 +211,19 @@ Your fair use and other rights are in no way affected by the above.
 						px0 = (x1 - x_lo) / texel_w;
 						px1 = 1.0 - px0;
 					}
-					
+
 					int	xy00 = y0 * im_bytesPerRow + n_planes * x0;
 					int	xy01 = y0 * im_bytesPerRow + n_planes * x1;
 					int	xy10 = y1 * im_bytesPerRow + n_planes * x0;
 					int	xy11 = y1 * im_bytesPerRow + n_planes * x1;
-					
+
 					for (n = 0; n < n_planes; n++)
 					{
 						acc = py0 * (px0 * imageBuffer[ xy00 + n] + px1 * imageBuffer[ xy10 + n])
 							+ py1 * (px0 * imageBuffer[ xy01 + n] + px1 * imageBuffer[ xy11 + n]);
 						texBytes[ texi++] = (char)acc;	// float -> char
 					}
-				}			
+				}
 			}
 		}
 		else
@@ -232,16 +232,16 @@ Your fair use and other rights are in no way affected by the above.
 			texBytes = imageBuffer;
 			freeTexBytes = NO;
 		}
-		
+
 		glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
 		glGenTextures(1, &texName);			// get a new unique texture name
 		glBindTexture(GL_TEXTURE_2D, texName);
-		
+
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);	// adjust this
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);	// adjust this
-		
+
 		switch (n_planes)	// fromt he number of planes work out how to treat the image as a texture
 		{
 			case 4:
@@ -263,14 +263,14 @@ Your fair use and other rights are in no way affected by the above.
 				[myException raise];
 				return 0;
 		}
-//		
+//
 //		if (n_planes == 4)
 //			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, texture_w, texture_h, 0, GL_RGBA, GL_UNSIGNED_BYTE, texBytes);
 //		else
 //			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, texture_w, texture_h, 0, GL_RGB, GL_UNSIGNED_BYTE, texBytes);
-		
+
 		if (freeTexBytes) free(texBytes);
-		
+
 		// add to dictionary
 		//
 		[texProps setObject:[NSNumber numberWithInt:texName] forKey:@"texName"];
@@ -299,6 +299,20 @@ Your fair use and other rights are in no way affected by the above.
 
 - (void) reloadTextures
 {
+#ifdef WIN32
+	int i;
+
+	// Free up the texture image data from video memory. I assume this is a reasonable thing
+	// to do for any platform, but just in case... stick it in a WIN32 only condition.
+	NSArray *keys = [textureDictionary allKeys];
+	for (i = 0; i < [keys count]; i++)
+	{
+		GLuint texName = (GLuint)[(NSNumber *)[[textureDictionary objectForKey:[keys objectAtIndex:i]] objectForKey:@"texName"] intValue];
+		NSLog(@"deleting texture #%d (%@)", texName, (NSString *)[keys objectAtIndex:i]);
+		glDeleteTextures(1, &texName);
+	}
+#endif
+
 	[textureDictionary removeAllObjects];
 	return;
 }
@@ -320,16 +334,16 @@ void fillSquareImageDataWithBlur(unsigned char * imageBuffer, int width, int npl
 			d = r;
 		float fi = 255.0 - 255.0 * d * r1;
 		unsigned char i = (unsigned char)fi;
-		
+
 		i_error += fi - i;	// accumulate the error between i and fi
-		
+
 		if ((i_error > 1.0)&&(i < 255))
 		{
 //			NSLog(@"DEBUG err correct");
 			i_error -= 1.0;
 			i++;
 		}
-		
+
 		int p;
 		for (p = 0; p < nplanes - 1; p++)
 		{

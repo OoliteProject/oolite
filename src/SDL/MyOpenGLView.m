@@ -443,13 +443,16 @@ Your fair use and other rights are in no way affected by the above.
 	Universe *universe = [gameController universe];
 	if (universe)
 	{
+		NSLog(@"WIN32: clearing texture store cache");
 		[[universe textureStore] reloadTextures]; // clears the cached references
 		PlayerEntity *player = (PlayerEntity *)[universe entityZero];
 		if (player)
 		{
+			NSLog(@"WIN32: resetting text texture");
 			[[player hud] setPlayer:player]; // resets the reference to the asciitext texture
 		}
 
+		NSLog(@"WIN32: resetting entity textures");
 		int i;
 		Entity **elist = universe->sortedEntities;
 		for (i = 0; i < universe->n_entities; i++)
