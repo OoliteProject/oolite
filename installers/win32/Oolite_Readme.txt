@@ -13,11 +13,11 @@ To run the game, choose the Oolite icon in the Oolite folder.
 Switching between full screen and windowed mode, or changing resolution
 -----------------------------------------------------------------------
 
-The Windows version of Oolite loses the OpenGL texture information when you
-switch between full-screen and windowed mode, or change resolution.
+This should work significantly better than in previous versions of Oolite
+for Windows.
 
-You must quit the game using Shift-Escape and restart to get use the
-new mode or resolution.
+There are still some problems with models and their textures, but for the
+most part all the textures get reinitialised and keep working.
 
 The file <installation dir>/oolite.app/GNUstep/Defaults/.GNUstepDefaults
 contains the current settings for fullscreen mode and display resolutions.

@@ -1,7 +1,7 @@
 # Assumed to be running in the root of a working copy (eg trunk, tags/1.64, etc)
 # so this script has to be run like: tools/mkwinsnapshotinst.sh
 
-#svn up
+svn up
 
 export SRC="/c/Program Files/Oolite"
 export DST=$GNUSTEP_LOCAL_ROOT/oolite/tmp
@@ -18,21 +18,9 @@ mkdir $DST
 mkdir $DST/oolite.app
 mkdir $DST/AddOns
 
-#echo "coping existing installation to setup folder"
-#cp "$SRC/"* $DST
-#cp -r "$SRC/oolite.app/"* $DST/oolite.app
-
-#echo "cleaning up unwanted files"
-#rm $DST/*.txt
-#rm $DST/*.exe
-#rm $DST/*.bat
-
-#rm $DST/oolite.app/GNUstep/Defaults/.GNUstepDefaults
-#rm -rf $DST/oolite.app/oolite-saves/*
-
 echo "making Oolite"
-#make clean
-#make
+make clean
+make
 
 echo "copying new build to setup folder"
 cp -r oolite.app/* $DST/oolite.app
