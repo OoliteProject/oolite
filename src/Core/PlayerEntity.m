@@ -4552,12 +4552,15 @@ double scoopSoundPlayTime = 0.0;
 	[universe setDisplayCursor: NO];
 	[universe setViewDirection: VIEW_DOCKED];
 	
-	// set gui background to show a copy of the planet
-	//
-	[universe removeDemoShips];
-	[self setBackgroundFromDescriptionsKey:@"gui-scene-show-planet"];
-	//
-	////
+	if (status == STATUS_DOCKED)
+	{
+		// set gui background to show a copy of the planet
+		//
+		[universe removeDemoShips];
+		[self setBackgroundFromDescriptionsKey:@"gui-scene-show-planet"];
+		//
+		////
+	}
 
 }
 
