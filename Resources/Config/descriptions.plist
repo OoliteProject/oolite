@@ -883,5 +883,9 @@
 	<key>status-rating</key>
 	<string>Rating:</string>
 
+	<!-- background scenes for GUI screens -->
+	<key>gui-scene-show-planet</key>
+	<string>target-planet	120 80 640</string>
+
 </dict>
 </plist>

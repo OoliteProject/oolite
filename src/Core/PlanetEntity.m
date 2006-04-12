@@ -274,7 +274,11 @@ void setUpSinTable()
     //
 	position = planet->position;
 	q_rotation = planet->q_rotation;
-    collision_radius = planet->collision_radius + ATMOSPHERE_DEPTH; //  atmosphere is 500m deep only
+	
+	if (planet->planet_type == PLANET_TYPE_GREEN)
+		collision_radius = planet->collision_radius + ATMOSPHERE_DEPTH; //  atmosphere is 500m deep only
+	if (planet->planet_type == PLANET_TYPE_MINIATURE)
+		collision_radius = planet->collision_radius + ATMOSPHERE_DEPTH * PLANET_MINIATURE_FACTOR; //  atmosphere is 500m deep only
 	//
 	shuttles_on_ground = 0;
 	last_launch_time = 0.0;
@@ -520,6 +524,85 @@ void setUpSinTable()
 	// set speed of rotation
 	rotational_velocity = 0.01 * randf();	// 0.0 .. 0.01 avr 0.005;
 
+	// do atmosphere
+	//
+	atmosphere = [[PlanetEntity alloc] initAsAtmosphereForPlanet:self];
+	[atmosphere setUniverse:universe];
+
+	//
+	usingVAR = [self OGL_InitVAR];
+	//
+	if (usingVAR)
+		[self OGL_AssignVARMemory:sizeof(VertexData) :(void *)&vertexdata :0];
+	//
+	//
+	isPlanet = YES;
+	//
+    return self;
+}
+
+- (id) initMiniatureFromPlanet:(PlanetEntity*) planet
+{    
+    int		i;
+	double  aleph =  1.0 / sqrt(2.0);
+	//
+	self = [super init];
+    //
+	isTextured = [planet isTextured];
+	textureName = [planet textureName];	//debug texture
+	//
+	planet_seed = [planet planet_seed];	// pseudo-random set-up for vertex colours
+	
+	shuttles_on_ground = 0;
+	last_launch_time = 8400.0;
+	shuttle_launch_interval = 8400.0;
+	
+	//NSLog(@"shuttles on ground:%d launch_interval:%.1f minutes", shuttles_on_ground, shuttle_launch_interval/60);
+	
+	collision_radius = [planet collisionRadius] * PLANET_MINIATURE_FACTOR; // teeny tiny
+	//
+	scan_class = CLASS_NO_DRAW;
+	status = STATUS_DEMO;
+	//
+	q_rotation.w =  aleph;		// represents a 90 degree rotation around x axis
+	q_rotation.x =  aleph;		// (I hope!)
+	q_rotation.y =  0.0;
+	q_rotation.z =  0.0;
+	//
+	planet_type = PLANET_TYPE_MINIATURE;  // generic planet type
+	//
+	for (i = 0; i < 5; i++)
+		displayListNames[i] = 0;	// empty for now!
+	//
+	[self setModel:(isTextured)? @"icostextured.dat" : @"icosahedron.dat"];
+	//
+	[self rescaleTo:1.0];
+	//
+	
+	//
+	for (i = 0; i < 4; i++)
+	{
+		amb_land[i] =		[planet amb_land][i];
+		amb_sea[i] =		[planet amb_sea][i];
+		amb_polar_land[i] =	[planet amb_polar_land][i];
+		amb_polar_sea[i] =	[planet amb_polar_sea][i];
+	}
+		
+	[self initialiseBaseVertexArray];
+	
+	int* planet_r_seed = [planet r_seed];
+	for (i = 0; i < n_vertices; i++)
+		r_seed[i] = planet_r_seed[i];  // land or sea
+	[self initialiseBaseTerrainArray: -1];	// use the vertices we just set up
+	
+	for (i =  0; i < next_free_vertex; i++)
+		[self paintVertex:i :planet_seed];
+	
+	[self scaleVertices];
+	
+	// set speed of rotation
+	rotational_velocity = 0.05;
+	
 	// do atmosphere
 	//
 	atmosphere = [[PlanetEntity alloc] initAsAtmosphereForPlanet:self];
@@ -930,6 +1013,8 @@ void setUpSinTable()
 	NSString* type_string;
 	switch (planet_type)
 	{
+		case PLANET_TYPE_MINIATURE :
+			type_string = @"PLANET_TYPE_MINIATURE";	break;
 		case PLANET_TYPE_SUN :
 			type_string = @"PLANET_TYPE_SUN";	break;
 		case PLANET_TYPE_GREEN :
@@ -941,7 +1026,7 @@ void setUpSinTable()
 		default :
 			type_string = @"UNKNOWN";
 	}
-	NSString* result = [[NSString alloc] initWithFormat:@"<PlanetEntity %@ diameter %.0fkm>", type_string, 0.001 * collision_radius];
+	NSString* result = [[NSString alloc] initWithFormat:@"<PlanetEntity %@ diameter %.3fkm>", type_string, 0.001 * collision_radius];
 	return [result autorelease];
 }
 
@@ -949,6 +1034,7 @@ void setUpSinTable()
 {
 	switch (planet_type)
 	{
+		case PLANET_TYPE_MINIATURE :
 		case PLANET_TYPE_ATMOSPHERE :
 		case PLANET_TYPE_CORONA :
 			return NO;
@@ -1007,25 +1093,26 @@ void setUpSinTable()
 				shuttles_on_ground--;
 				last_launch_time = ugt;
 			}
+		}
+		//
+		case PLANET_TYPE_MINIATURE :
+		// normal planetary rotation
+		quaternion_rotate_about_y( &q_rotation, rotational_velocity * delta_t);
+		quaternion_normalise(&q_rotation);
+		quaternion_into_gl_matrix(q_rotation, rotMatrix);
 
-			// normal planetary rotation
-			quaternion_rotate_about_y( &q_rotation, rotational_velocity * delta_t);
-			quaternion_normalise(&q_rotation);
-			quaternion_into_gl_matrix(q_rotation, rotMatrix);
+		if (atmosphere)
+		{
+			[atmosphere update:delta_t];
+			double alt = sqrt_zero_distance - collision_radius;
+			double atmo = 10.0 * (atmosphere->collision_radius - collision_radius);	// effect starts at 10x the height of the clouds
 
-			if (atmosphere)
+			if ((alt > 0)&&(alt <= atmo))
 			{
-				[atmosphere update:delta_t];
-				double alt = sqrt_zero_distance - collision_radius;
-				double atmo = 10.0 * (atmosphere->collision_radius - collision_radius);	// effect starts at 10x the height of the clouds
-
-				if ((alt > 0)&&(alt <= atmo))
-				{
-					double aleph = (atmo - alt) / atmo;
-					if (aleph < 0.0) aleph = 0.0;
-					if (aleph > 1.0) aleph = 1.0;
-					[universe setSky_clear_color:0.8 * aleph * aleph :0.8 * aleph * aleph :0.9 * aleph :aleph];	// test - blue
-				}
+				double aleph = (atmo - alt) / atmo;
+				if (aleph < 0.0) aleph = 0.0;
+				if (aleph > 1.0) aleph = 1.0;
+				[universe setSky_clear_color:0.8 * aleph * aleph :0.8 * aleph * aleph :0.9 * aleph :aleph];	// test - blue
 			}
 		}
 		break;
@@ -1179,7 +1266,9 @@ void setUpSinTable()
 		if (subdivideLevel > 4)
 			subdivideLevel = 4;
 	}
-
+	
+	if (planet_type == PLANET_TYPE_MINIATURE)
+		subdivideLevel = 3;
 
 	glFrontFace(GL_CW);			// face culling - front faces are AntiClockwise!
 
@@ -1198,6 +1287,7 @@ void setUpSinTable()
 		case PLANET_TYPE_ATMOSPHERE :
 			glMultMatrixf(rotMatrix);	// rotate the clouds!
 		case PLANET_TYPE_GREEN :
+		case PLANET_TYPE_MINIATURE :
 			if (!translucent)
 			{
 				GLfloat mat1[]		= { 1.0, 1.0, 1.0, 1.0 };	// opaque white
@@ -1517,6 +1607,23 @@ void drawActiveCorona (double inner_radius, double outer_radius, int step, doubl
 	glEnd();
 }
 
+- (int*) r_seed
+{
+	return r_seed;
+}
+- (int) planet_seed
+{
+	return planet_seed;
+}
+- (BOOL) isTextured
+{
+	return isTextured;
+}
+- (GLuint) textureName
+{
+	return textureName;
+}
+
 - (double) polar_color_factor
 {
 	return polar_color_factor;
@@ -1801,13 +1908,16 @@ int baseVertexIndexForEdge(int va, int vb, BOOL textured)
 {
 	int vi;
 	// set first 12 or 14 vertices
-	for (vi = 0; vi < n_vertices; vi++)
+	if (percent_land >= 0)
 	{
-		if (gen_rnd_number() < percent_land)
-			base_terrain_array[vi] = 0;  // land
-		else
-			base_terrain_array[vi] = 100;  // sea
+		for (vi = 0; vi < n_vertices; vi++)
+		{
+			if (gen_rnd_number() < 256 * percent_land / 100)
+				base_terrain_array[vi] = 0;  // land
+			else
+				base_terrain_array[vi] = 100;  // sea
 
+		}
 	}
 	//
 	// for the next levels of subdivision simply build up from the level below!...

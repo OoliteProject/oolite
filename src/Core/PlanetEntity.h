@@ -45,8 +45,10 @@ Your fair use and other rights are in no way affected by the above.
 #define PLANET_TYPE_SUN			200
 #define PLANET_TYPE_ATMOSPHERE  300
 #define PLANET_TYPE_CORONA		400
+#define PLANET_TYPE_MINIATURE	111
 
 #define ATMOSPHERE_DEPTH		500.0
+#define PLANET_MINIATURE_FACTOR	0.00185
 
 #define MAX_SUBDIVIDE			6
 #define MAX_TRI_INDICES			3*(20+80+320+1280+5120+20480)
@@ -119,6 +121,7 @@ void setUpSinTable();
 - (id) initAsAtmosphereForPlanet:(PlanetEntity *) planet;
 - (id) initAsCoronaForPlanet:(PlanetEntity *) planet;
 - (id) initWithSeed:(Random_Seed) p_seed fromUniverse:(Universe *) uni;
+- (id) initMiniatureFromPlanet:(PlanetEntity*) planet;
 
 - (id) initPlanetFromDictionary:(NSDictionary*) dict inUniverse:(Universe *) uni;
 - (id) initMoonFromDictionary:(NSDictionary*) dict inUniverse:(Universe *) uni;
@@ -127,6 +130,11 @@ void drawBall (double radius, int step, double z_distance);
 void drawBallVertices (double radius, int step, double z_distance);
 void drawCorona (double inner_radius, double outer_radius, int step, double z_distance, GLfloat* col4v1, GLfloat* col4v2);
 void drawActiveCorona (double inner_radius, double outer_radius, int step, double z_distance, GLfloat* col4v1, int rv);
+
+- (int*) r_seed;
+- (int) planet_seed;
+- (BOOL) isTextured;
+- (GLuint) textureName;
 
 - (double) polar_color_factor;
 - (GLfloat *) amb_land;

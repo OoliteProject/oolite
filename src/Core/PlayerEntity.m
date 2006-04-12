@@ -2391,7 +2391,7 @@ double scoopSoundPlayTime = 0.0;
 	PlanetEntity* nearest_planet = nil;
 	int i;
 	for (i = 0; ((i < ent_count)&&(!nearest_planet)); i++)
-		if (uni_entities[i]->isPlanet)
+		if ((uni_entities[i]->isPlanet) && (uni_entities[i]->status != STATUS_DEMO))
 			nearest_planet = [uni_entities[i] retain];		//	retained
 
 	if (!nearest_planet)
@@ -2402,14 +2402,6 @@ double scoopSoundPlayTime = 0.0;
 	double alt = sqrt(zd) - cr;
 
 	[nearest_planet release];
-
-//	PlanetEntity	*planet =   [universe planet];
-//	PlanetEntity	*sun =		[universe sun];
-//	double  planet_zd = (planet)? planet->zero_distance : PLAYER_SUPER_ALTITUDE2;
-//	double  sun_zd = (sun)? sun->zero_distance : PLAYER_SUPER_ALTITUDE2;
-//	double  planet_cr = (planet)? planet->collision_radius : 0;
-//	double  sun_cr = (sun)? sun->collision_radius : 0;
-//	double alt = (planet_zd < sun_zd) ? (sqrt(planet_zd) - planet_cr) : (sqrt(sun_zd) - sun_cr);
 
 	alt /= PLAYER_DIAL_MAX_ALTITUDE;
 
@@ -4559,6 +4551,14 @@ double scoopSoundPlayTime = 0.0;
 	[universe setDisplayText: YES];
 	[universe setDisplayCursor: NO];
 	[universe setViewDirection: VIEW_DOCKED];
+	
+	// set gui background to show a copy of the planet
+	//
+	[universe removeDemoShips];
+	[self setBackgroundFromDescriptionsKey:@"gui-scene-show-planet"];
+	//
+	////
+
 }
 
 - (NSArray *) markedDestinations
