@@ -882,6 +882,44 @@
 	<string>Legal Status:</string>
 	<key>status-rating</key>
 	<string>Rating:</string>
+	<key>status-equipment</key>
+	<string>Equipment:</string>
+	<key>equipment-fwd-weapon-@</key>
+	<string>Forward %@</string>
+	<key>equipment-aft-weapon-@</key>
+	<string>Aft %@</string>
+	<key>equipment-stb-weapon-@</key>
+	<string>Starboard %@</string>
+	<key>equipment-port-weapon-@</key>
+	<string>Port %@</string>
+	<key>equipment-single-pass-berth-@</key>
+	<string>1 Passenger Berth</string>
+	<key>equipment-multiple-pass-berth-@</key>
+	<string>%d Passenger Berths</string>
+
+	<!-- Market screen -->
+	<key>cargo-tons-symbol</key>
+	<string>t</string>
+	<key>cargo-grams-symbol</key>
+	<string>g</string>
+	<key>cargo-kilograms-symbol</key>
+	<string>kg</string>
+
+	<!-- System data screen -->
+	<key>sysdata-planet-name-@</key>
+	<string>Data on %@</string>
+	<key>sysdata-eco</key>
+	<string>Economy:</string>
+	<key>sysdata-govt</key>
+	<string>Government:</string>
+	<key>sysdata-tl</key>
+	<string>Tech Level:</string>
+	<key>sysdata-pop</key>
+	<string>Population:</string>
+	<key>sysdata-prod</key>
+	<string>Gross productivity:</string>
+	<key>sysdata-radius</key>
+	<string>Average radius:</string>
 
 	<!-- background scenes for GUI screens -->
 	<key>gui-scene-show-planet</key>
