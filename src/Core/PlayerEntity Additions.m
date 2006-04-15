@@ -1979,7 +1979,8 @@ static int shipsFound;
 		return NO;
 	NSString* i_key = [(NSString*)[i_info objectAtIndex:0] lowercaseString];
 	
-	NSLog(@"..... processing %@ (%@)", i_info, i_key);
+	if (debug)
+		NSLog(@"..... processing %@ (%@)", i_info, i_key);
 	
 	//
 	// recursively add further scenes:
