@@ -1268,8 +1268,8 @@ void setUpSinTable()
 	}
 	
 	if (planet_type == PLANET_TYPE_MINIATURE)
-		subdivideLevel = 3;
-
+		subdivideLevel = [universe reducedDetail]? 3 : 4 ;		// max detail or less
+	
 	glFrontFace(GL_CW);			// face culling - front faces are AntiClockwise!
 
 	/*
