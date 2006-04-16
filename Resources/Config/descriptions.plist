@@ -401,6 +401,10 @@
 	<array>
 		<string>Insufficient fuel for witchspace jump.</string>
 	</array>
+	<key>witch-too-far</key>
+	<array>
+		<string>Engines incapable of witchspace jump to that target.</string>
+	</array>
 	<key>witch-engine-malfunction</key>
 	<array>
 		<string>Witchspace engine malfunction!</string>
