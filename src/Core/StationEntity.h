@@ -139,6 +139,8 @@ NSDictionary* instructions(int station_id, Vector coords, float speed, float ran
 
 - (Vector) portUpVector;
 
+- (BOOL) shipIsInDockingCorridor:(ShipEntity*) ship;
+
 - (BOOL) dockingCorridorIsEmpty;
 
 - (void) clearDockingCorridor;

@@ -5920,59 +5920,6 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 	return YES;
 }
 
-//- (BOOL) fireTharglet
-//{
-//	ShipEntity *tharglet;
-//	Vector  vel;
-//	Vector  origin = position;
-//	Vector  start;
-//	start.x = 0.0;						// in the middle
-//	start.y = boundingBox.min.y - 10.0;	// 10m below bounding box
-//	start.z = 10.0;	// 10m ahead of bounding box
-//	double  throw_speed = 500.0;
-//	Quaternion q1 = q_rotation;
-//	Entity  *target = [self getPrimaryTarget];
-//
-//	if ((missiles <= 0)||(target == nil))
-//		return NO;
-//
-//	missiles--;
-//
-//	if (isPlayer)
-//		q1.w = -q1.w;   // player view is reversed remember!
-//
-//	vel.x = (flight_speed + throw_speed) * v_forward.x;
-//	vel.y = (flight_speed + throw_speed) * v_forward.y;
-//	vel.z = (flight_speed + throw_speed) * v_forward.z;
-//
-//	origin.x = position.x + v_right.x * start.x + v_up.x * start.y + v_forward.x * start.z;
-//	origin.y = position.y + v_right.y * start.x + v_up.y * start.y + v_forward.y * start.z;
-//	origin.z = position.z + v_right.z * start.x + v_up.z * start.y + v_forward.z * start.z;
-//
-//	tharglet = [universe getShipWithRole:@"tharglet"];   // retain count = 1
-//	if (tharglet)
-//	{
-//		[tharglet setPosition:origin];						// directly below
-//		[tharglet setScanClass: CLASS_THARGOID];
-//		[tharglet addTarget:target];
-//		[tharglet setQRotation:q1];
-//		[tharglet setStatus: STATUS_IN_FLIGHT];  // necessary to get it going!
-//		[tharglet setVelocity: vel];
-//		[tharglet setSpeed:350.0];
-//		[tharglet setOwner:self];
-//		//[tharglet setReportAImessages:YES]; // debug
-//		[universe addEntity:tharglet];
-//		//NSLog(@"tharglet collision radius is %.1f",tharglet->collision_radius);
-//
-//		[tharglet setGroup_id:group_id];
-//
-//		[tharglet release]; //release
-//
-//		return YES;
-//	}
-//	return NO;
-//}
-
 - (BOOL) fireECM
 {
 	if (!has_ecm)

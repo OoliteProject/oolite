@@ -378,12 +378,40 @@ NSArray* subregionsContainingPosition( Vector position, CollisionRegion* region)
 				}
 				if (dist2 < min_dist2)
 				{
-					BOOL	coll1 = (isNotDetailed)? YES : [e1 checkCloseCollisionWith:e2];
-					if (coll1)
+					BOOL collision = NO;
+					
+					if (e1->isStation)
 					{
-						BOOL	coll2 = (isNotDetailed)? YES : [e2 checkCloseCollisionWith:e1];
-						if (coll2)
-						{
+						StationEntity* se1 = (StationEntity*) e1;
+						if ([se1 shipIsInDockingCorridor: (ShipEntity*)e2])
+							collision = NO;
+						else
+							collision = [e1 checkCloseCollisionWith: e2];
+					}
+					else if (e2->isStation)
+					{
+						StationEntity* se2 = (StationEntity*) e2;
+						if ([se2 shipIsInDockingCorridor: (ShipEntity*)e1])
+							collision = NO;
+						else
+							collision = [e2 checkCloseCollisionWith: e1];
+					}
+					else
+						collision = [e1 checkCloseCollisionWith: e2];
+				
+//					if (e2->isStation)
+//						collision = [e2 checkCloseCollisionWith: e1];
+//					else
+//						collision = [e1 checkCloseCollisionWith: e2];
+					
+//					BOOL	coll1 = (isNotDetailed)? YES : [e1 checkCloseCollisionWith:e2];
+//					if (coll1)
+					if (collision)
+					{
+						// now we have no need to check the e2-e1 collision
+//						BOOL	coll2 = (isNotDetailed)? YES : [e2 checkCloseCollisionWith:e1];
+//						if (coll2)
+//						{
 							if (e1->collider)
 								[[e1 collisionArray] addObject:e1->collider];
 							else
@@ -395,7 +423,7 @@ NSArray* subregionsContainingPosition( Vector position, CollisionRegion* region)
 							else
 								[[e2 collisionArray] addObject:e1];
 							e2->has_collided = YES;
-						}
+//						}
 					}
 				}
 			}

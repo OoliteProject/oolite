@@ -910,133 +910,95 @@ NSDictionary* instructions(int station_id, Vector coords, float speed, float ran
     [super dealloc];
 }
 
-- (BOOL) checkCloseCollisionWith:(Entity *)other
+- (BOOL) shipIsInDockingCorridor:(ShipEntity*) ship
 {
-//	if (other->isPlayer)
-//		NSLog(@"DEBUG %@ Checking close collision with %@", self, other);
+//	if (ship->isPlayer)
+//		NSLog(@"DEBUG checking if player is in docking corridor...");
 
-	if (!other)
+	Quaternion q0 = quaternion_multiply(port_qrotation, q_rotation);
+	Vector vi = vector_right_from_quaternion(q0);
+	Vector vj = vector_up_from_quaternion(q0);
+	Vector vk = vector_forward_from_quaternion(q0);
+	
+	Vector port_pos = [self getPortPosition];
+	
+	BoundingBox shipbb = [ship getBoundingBox];
+	BoundingBox arbb = [ship findBoundingBoxRelativeToPosition: port_pos InVectors: vi : vj : vk];
+	
+	// port dimensions..
+	GLfloat ww = port_dimensions.x;
+	GLfloat hh = port_dimensions.y;
+	GLfloat dd = port_dimensions.z;
+
+	while (shipbb.max.x - shipbb.min.x > ww * 0.90)	ww *= 1.25;
+	while (shipbb.max.y - shipbb.min.y > hh * 0.90)	hh *= 1.25;
+	
+//	if (ship->isPlayer)
+//		NSLog(@"DEBUG normalised port dimensions are %.2fx%.2fx%.2f", ww, hh, dd);
+
+	ww *= 0.5;
+	hh *= 0.5;
+	
+//	if (ship->isPlayer)
+//		NSLog(@"DEBUG player bounding box is at ( %.2f, %.2f, %.2f)-( %.2f, %.2f, %.2f)",
+//			arbb.min.x, arbb.min.y, arbb.min.z, arbb.max.x, arbb.max.y, arbb.max.z);
+
+	if (arbb.max.z < -dd)
 		return NO;
-	//
-	//  check if other is within docking corridor
-	//
-	//NSLog(@"Checking Station CloseContact...");
-	//
-	if ([universe strict]&&(self != [universe station])&&(other->isPlayer))
+
+	if ((arbb.max.x < ww)&&(arbb.min.x > -ww)&&(arbb.max.y < hh)&&(arbb.min.y > -hh))
 	{
-		// in a strict universe the player can only dock with the main station
-		return [super checkCloseCollisionWith:other];
+//		if (ship->isPlayer)
+//			NSLog(@"DEBUG player bounding box is within the port lane");
+			
+		// in lane
+		if (0.90 * arbb.max.z + 0.10 * arbb.min.z < 0.0)	// we're 90% in docking position!
+			[ship enterDock:self];
+		//
+		return YES;
+		//
 	}
+	
+//	if (ship->isPlayer)
+//		NSLog(@"DEBUG Outside the corridor!");
+	
+	// if close enough (within 50%) correct and add damage
 	//
-	if (other->isShip)
+	if  ((arbb.min.x > -1.5 * ww)&&(arbb.max.x < 1.5 * ww)&&(arbb.min.y > -1.5 * hh)&&(arbb.max.y < 1.5 * hh))
 	{
-		Vector rel_pos, delta, prt_pos;
-		
-		if (other->status == STATUS_LAUNCHING)
-			return NO;
-		
-		// port dimensions..
-		double ww = port_dimensions.x;
-		double hh = port_dimensions.y;
-		double dd = port_dimensions.z;
-		// reduced dimensions for fudging..
-		double w1 = ww * 0.75;
-		double h1 = hh * 0.75;
-		ShipEntity* ship =  (ShipEntity *) other;
-		double radius =		ship->collision_radius;
-		
-		// check if the ship is too big for the port and fudge things accordingly
-		BoundingBox shipbb = [ship getBoundingBox];
-		float ff = 1.0;
-		while	((shipbb.max.x * ff > w1)||(shipbb.min.x * ff < -w1)
-				||(shipbb.max.y * ff > h1)||(shipbb.min.y * ff < -h1))
-			ff /= 1.25;
-				
-		Quaternion q0 = quaternion_multiply(port_qrotation, q_rotation);
-		Vector vi = vector_right_from_quaternion(q0);
-		Vector vj = vector_up_from_quaternion(q0);
-		Vector vk = vector_forward_from_quaternion(q0);
-		
-		prt_pos = [self getPortPosition];
-		rel_pos = vector_between( prt_pos, ship->position);
-		
-		delta.x = dot_product(rel_pos, vi);
-		delta.y = dot_product(rel_pos, vj);
-		delta.z = dot_product(rel_pos, vk);
-		BOOL in_lane = YES;
-		
-		if ((delta.x > boundingBox.max.x + radius)||(delta.x < boundingBox.min.x - radius))
-			in_lane = NO;
-		if ((delta.y > boundingBox.max.y + radius)||(delta.y < boundingBox.min.y - radius))
-			in_lane = NO;
-		if ((delta.z > boundingBox.max.z + radius)||(delta.z < boundingBox.min.z - radius))
-			in_lane = NO;
-			
-//		if (other->isPlayer)
-//			NSLog(@"DEBUG Checking docking lane... %@", (in_lane)? @"OKAY" : @"OOPSIE!");
-			
-		if (!in_lane)
-			return [super checkCloseCollisionWith:other];
-		//
-		// within bounding box at this point
-		//
-		// get bounding box relative to the port in this station's orientation
-		BoundingBox arbb = [other findBoundingBoxRelativeToPosition:prt_pos InVectors: vi: vj: vk];
-		//
-		// apply fudge factor
-		arbb.max.x *= ff;
-		arbb.max.y *= ff;
-		arbb.min.x *= ff;
-		arbb.min.y *= ff;
-		//
-//		if (other->isPlayer)
-//			NSLog(@"DEBUG Docking corridor placement (%3.2f,%3.2f,%3.2f) <[%3.1f,%3.1f,%3.1f]-[%3.1f,%3.1f,%3.1f] (/%1.3f)>",
-//				delta.x, delta.y, delta.z,
-//				arbb.max.x, arbb.max.y, arbb.max.z,
-//				arbb.min.x, arbb.min.y, arbb.min.z,
-//				1.0 / ff);
-		if  (	(arbb.min.x > -ww)&&	(arbb.max.x < ww)
-			&&	(arbb.min.y > -hh)&&	(arbb.max.y < hh)
-			&&	(arbb.min.z > -dd))
+		if (arbb.min.z < 0.0)	// got our nose inside
 		{
-//			if (other->isPlayer)
-//				NSLog(@"DEBUG Inside the corridor!");
-			if (arbb.max.z < 0)
-				[ship enterDock:self];
-			return NO;
-		}
-		else
-		{
-//			if (other->isPlayer)
-//				NSLog(@"DEBUG Outside the corridor!");
-			if  (	(arbb.min.x > -1.5 * ww)&&	(arbb.max.x < 1.5 * ww)
-				&&	(arbb.min.y > -1.5 * hh)&&	(arbb.max.y < 1.5 * hh)
-				&&	(arbb.min.z > -dd)&&		(arbb.min.z < 0))	// inside the station
-			{
-				// damage the ship according to velocity but don't collide
-				[ship takeScrapeDamage: 5 * [universe getTimeDelta]*[ship flight_speed] from:self];
+			GLfloat correction_factor = -arbb.min.z / (arbb.max.z - arbb.min.z);	// proportion of ship inside
+		
+			// damage the ship according to velocity but don't collide
+			[ship takeScrapeDamage: 5 * [universe getTimeDelta]*[ship flight_speed] from:self];
+			
+			Vector delta;
+			delta.x = 0.5 * (arbb.max.x + arbb.min.x) * correction_factor;
+			delta.y = 0.5 * (arbb.max.y + arbb.min.y) * correction_factor;
+			
+			if ((arbb.max.x < ww)&&(arbb.min.x > -ww))	// x is okay - no need to correct
+				delta.x = 0;
+			if ((arbb.max.y > hh)&&(arbb.min.x > -hh))	// y is okay - no need to correct
+				delta.y = 0;
 				
-				// adjust the ship back to the center of the port
-				if ((arbb.max.x < 32)&&(arbb.min.x > - 32))
-					delta.x = 0;
-				if ((arbb.max.y > 96)&&(arbb.min.x > - 96))
-					delta.y = 0;
-				Vector pos = ship->position;
-				pos.x -= delta.y * v_up.x + delta.x * v_right.x;
-				pos.y -= delta.y * v_up.y + delta.x * v_right.y;
-				pos.z -= delta.y * v_up.z + delta.x * v_right.z;
-				[ship setPosition:pos];
-				
-				// if far enough in - dock
-				if (arbb.max.z < 0)
-					[ship enterDock:self];
-				return NO;
-			}
+			// adjust the ship back to the center of the port
+			Vector pos = ship->position;
+			pos.x -= delta.y * vj.x + delta.x * vi.x;
+			pos.y -= delta.y * vj.y + delta.x * vi.y;
+			pos.z -= delta.y * vj.z + delta.x * vi.z;
+			[ship setPosition:pos];
 		}
-		// perform bounding box versus bounding box check
-		return [super checkCloseCollisionWith:other];
-	}
-	return YES;
+		
+		// if far enough in - dock
+		if (0.90 * arbb.max.z + 0.10 * arbb.min.z < 0.0)
+			[ship enterDock:self];
+		
+		return YES;	// okay NOW we're in the docking corridor!
+	}	
+	//
+	//
+	return NO;
 }
 
 - (BOOL) dockingCorridorIsEmpty
