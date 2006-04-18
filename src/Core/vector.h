@@ -186,6 +186,7 @@ void	quaternion_normalise(struct quaternion *quat);
 
 Vector		calculateNormalForTriangle(struct triangle_4v * tri);
 Triangle	make_triangle(Vector v0, Vector v1, Vector v2);
+Vector		resolveVectorInIJK(Vector v0, Triangle ijk);
 
 Vector lineIntersectionWithFace(Vector p1, Vector p2, long mask, GLfloat rd);
 int lineCubeIntersection(Vector v0, Vector v1, GLfloat rd);

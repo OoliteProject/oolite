@@ -18,16 +18,16 @@ or send a letter to Creative Commons, 559 Nathan Abbott Way, Stanford, Californi
 
 You are free:
 
-¥	to copy, distribute, display, and perform the work
-¥	to make derivative works
+â€¢	to copy, distribute, display, and perform the work
+â€¢	to make derivative works
 
 Under the following conditions:
 
-¥	Attribution. You must give the original author credit.
+â€¢	Attribution. You must give the original author credit.
 
-¥	Noncommercial. You may not use this work for commercial purposes.
+â€¢	Noncommercial. You may not use this work for commercial purposes.
 
-¥	Share Alike. If you alter, transform, or build upon this work,
+â€¢	Share Alike. If you alter, transform, or build upon this work,
 you may distribute the resulting work only under a license identical to this one.
 
 For any reuse or distribution, you must make clear to others the license terms of this work.
@@ -705,6 +705,18 @@ Triangle	make_triangle(Vector v0, Vector v1, Vector v2)
 	result.v[1] = v1;
 	result.v[2] = v2;
 	calculateNormalForTriangle(&result);
+	return result;
+}
+
+//
+//	resolve vector in arbitrary ijk vectors
+//
+Vector		resolveVectorInIJK(Vector v0, Triangle ijk)
+{
+	Vector result;
+	result.x = dot_product( v0, ijk.v[0]);
+	result.y = dot_product( v0, ijk.v[1]);
+	result.z = dot_product( v0, ijk.v[2]);
 	return result;
 }
 
