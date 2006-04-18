@@ -912,6 +912,9 @@ NSDictionary* instructions(int station_id, Vector coords, float speed, float ran
 
 - (BOOL) checkCloseCollisionWith:(Entity *)other
 {
+//	if (other->isPlayer)
+//		NSLog(@"DEBUG %@ Checking close collision with %@", self, other);
+
 	if (!other)
 		return NO;
 	//
@@ -949,15 +952,17 @@ NSDictionary* instructions(int station_id, Vector coords, float speed, float ran
 				||(shipbb.max.y * ff > h1)||(shipbb.min.y * ff < -h1))
 			ff /= 1.25;
 				
-		//NSLog(@"DEBUG Checking docking corridor...");
+		Quaternion q0 = quaternion_multiply(port_qrotation, q_rotation);
+		Vector vi = vector_right_from_quaternion(q0);
+		Vector vj = vector_up_from_quaternion(q0);
+		Vector vk = vector_forward_from_quaternion(q0);
+		
 		prt_pos = [self getPortPosition];
-		rel_pos = ship->position;
-		rel_pos.x -= prt_pos.x;
-		rel_pos.y -= prt_pos.y;
-		rel_pos.z -= prt_pos.z;
-		delta.x = dot_product(rel_pos, v_right);
-		delta.y = dot_product(rel_pos, v_up);
-		delta.z = dot_product(rel_pos, v_forward);
+		rel_pos = vector_between( prt_pos, ship->position);
+		
+		delta.x = dot_product(rel_pos, vi);
+		delta.y = dot_product(rel_pos, vj);
+		delta.z = dot_product(rel_pos, vk);
 		BOOL in_lane = YES;
 		
 		if ((delta.x > boundingBox.max.x + radius)||(delta.x < boundingBox.min.x - radius))
@@ -967,16 +972,15 @@ NSDictionary* instructions(int station_id, Vector coords, float speed, float ran
 		if ((delta.z > boundingBox.max.z + radius)||(delta.z < boundingBox.min.z - radius))
 			in_lane = NO;
 			
+//		if (other->isPlayer)
+//			NSLog(@"DEBUG Checking docking lane... %@", (in_lane)? @"OKAY" : @"OOPSIE!");
+			
 		if (!in_lane)
 			return [super checkCloseCollisionWith:other];
 		//
 		// within bounding box at this point
 		//
 		// get bounding box relative to the port in this station's orientation
-		Quaternion q0 = quaternion_multiply(port_qrotation, q_rotation);
-		Vector vi = vector_right_from_quaternion(q0);
-		Vector vj = vector_up_from_quaternion(q0);
-		Vector vk = vector_forward_from_quaternion(q0);
 		BoundingBox arbb = [other findBoundingBoxRelativeToPosition:prt_pos InVectors: vi: vj: vk];
 		//
 		// apply fudge factor
@@ -995,13 +999,16 @@ NSDictionary* instructions(int station_id, Vector coords, float speed, float ran
 			&&	(arbb.min.y > -hh)&&	(arbb.max.y < hh)
 			&&	(arbb.min.z > -dd))
 		{
+//			if (other->isPlayer)
+//				NSLog(@"DEBUG Inside the corridor!");
 			if (arbb.max.z < 0)
 				[ship enterDock:self];
 			return NO;
 		}
 		else
 		{
-//			NSLog(@"DEBUG Outside the lane!");
+//			if (other->isPlayer)
+//				NSLog(@"DEBUG Outside the corridor!");
 			if  (	(arbb.min.x > -1.5 * ww)&&	(arbb.max.x < 1.5 * ww)
 				&&	(arbb.min.y > -1.5 * hh)&&	(arbb.max.y < 1.5 * hh)
 				&&	(arbb.min.z > -dd)&&		(arbb.min.z < 0))	// inside the station
@@ -1019,13 +1026,6 @@ NSDictionary* instructions(int station_id, Vector coords, float speed, float ran
 				pos.y -= delta.y * v_up.y + delta.x * v_right.y;
 				pos.z -= delta.y * v_up.z + delta.x * v_right.z;
 				[ship setPosition:pos];
-				
-//				// give it some roll
-//				if ((flight_roll > 0.0)&&([ship flight_roll] < flight_roll))
-//				{
-//					double roll_adjust = 5 * [universe getTimeDelta] * (flight_roll - [ship flight_roll]);
-//					[ship setRoll:[ship flight_roll] + roll_adjust];
-//				}
 				
 				// if far enough in - dock
 				if (arbb.max.z < 0)
@@ -1783,7 +1783,6 @@ NSDictionary* instructions(int station_id, Vector coords, float speed, float ran
 - (BOOL) isRotatingStation
 {
 	NSString*	shipRoles = (NSString *)[shipinfoDictionary objectForKey:@"roles"];
-//	BOOL		isRotatingStation = ([shipRoles rangeOfString:@"rotating-station"].location != NSNotFound);
 	BOOL		isRotatingStation = NO;
 	if ([shipinfoDictionary objectForKey:@"rotating"])
 		isRotatingStation = [[shipinfoDictionary objectForKey:@"rotating"] boolValue];
@@ -1793,8 +1792,8 @@ NSDictionary* instructions(int station_id, Vector coords, float speed, float ran
 
 - (NSString*) description
 {
-	NSString* result = [[NSString alloc] initWithFormat:@"<StationEntity %@ %d (%@)%@%@>",
-		name, universal_id, roles, (universe == nil)? @" (not in universe)":@"", ([self isRotatingStation])? @" (rotating)":@""];
+	NSString* result = [[NSString alloc] initWithFormat:@"<StationEntity %@ %d (%@)%@%@ // %@>",
+		name, universal_id, roles, (universe == nil)? @" (not in universe)":@"", ([self isRotatingStation])? @" (rotating)":@"", collision_region];
 	return [result autorelease];
 }
 

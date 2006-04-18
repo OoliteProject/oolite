@@ -1288,6 +1288,9 @@ BOOL ship_canCollide (ShipEntity* ship)
 
 - (BOOL) checkCloseCollisionWith:(Entity *)other
 {
+//	if (isPlayer||(other->isPlayer))
+//		NSLog(@"DEBUG %@ Checking close collision with %@", self, other);
+
 	if (!other)
 		return NO;
 	if ([collidingEntities containsObject:other])	// we know about this already!
@@ -1322,6 +1325,28 @@ BOOL ship_canCollide (ShipEntity* ship)
 	{
 		// check bounding spheres versus bounding spheres
 		ShipEntity* other_ship = (ShipEntity*)other;
+		
+		// octree check
+//		debug_octree = ((isPlayer)||(other->isPlayer));
+		Octree* other_octree = other_ship->octree;
+		Triangle own_ijk;
+		own_ijk.v[0] = v_right;
+		own_ijk.v[1] = v_up;
+		own_ijk.v[2] = v_forward;
+		Vector other_position = resolveVectorInIJK( vector_between(position, other_ship->position), own_ijk);
+		Triangle other_ijk;
+		other_ijk.v[0] = resolveVectorInIJK( other_ship->v_right, own_ijk);
+		other_ijk.v[1] = resolveVectorInIJK( other_ship->v_up, own_ijk);
+		other_ijk.v[2] = resolveVectorInIJK( other_ship->v_forward, own_ijk);
+		
+		if ([octree isHitByOctree: other_octree withOrigin: other_position andIJK: other_ijk])
+			return YES;
+//		else
+//			return NO;
+//		debug_octree = NO;
+
+		// check our solid subentities against the other ship's
+		//
 		int i,j;
 		NSArray* other_subs = other_ship->sub_entities;
 		int n_subs1 = [sub_entities count];
@@ -1332,13 +1357,17 @@ BOOL ship_canCollide (ShipEntity* ship)
 		Vector sphere_positions2[ 1 + n_subs2 ];
 		double sphere_rad1[ 1 + n_subs1 ];
 		double sphere_rad2[ 1 + n_subs2 ];
+		Triangle sphere_ijk1[ 1 + n_subs1 ];
+		Triangle sphere_ijk2[ 1 + n_subs2 ];
 		int n_spheres1 = 1;
 		int n_spheres2 = 1;
 		sphere_positions1[0] = position;
 		sphere_rad1[0] = actual_radius;
+		sphere_ijk1[0] = own_ijk;
 		entity1[0] = self;
 		sphere_positions2[0] = other->position;
 		sphere_rad2[0] = other->actual_radius;
+		sphere_ijk2[0] = make_triangle( other_ship->v_right, other_ship->v_up, other_ship->v_forward);
 		entity2[0] = other_ship;
 		for (i = 0; i < n_subs1; i++)
 		{
@@ -1348,6 +1377,7 @@ BOOL ship_canCollide (ShipEntity* ship)
 				entity1[n_spheres1] = (ShipEntity*)se;
 				sphere_positions1[n_spheres1] = [(ShipEntity*)se absolutePositionForSubentity];
 				sphere_rad1[n_spheres1] = se->actual_radius;
+				sphere_ijk1[n_spheres1] = [(ShipEntity*)se absoluteIJKForSubentity];
 				n_spheres1++;
 			}
 		}
@@ -1359,6 +1389,7 @@ BOOL ship_canCollide (ShipEntity* ship)
 				entity2[n_spheres2] = (ShipEntity*)se;
 				sphere_positions2[n_spheres2] = [(ShipEntity*)se absolutePositionForSubentity];
 				sphere_rad2[n_spheres2] = se->actual_radius;
+				sphere_ijk2[n_spheres2] = [(ShipEntity*)se absoluteIJKForSubentity];
 				n_spheres2++;
 			}
 		}
@@ -1373,16 +1404,32 @@ BOOL ship_canCollide (ShipEntity* ship)
 //					NSLog(@"DEBUG performing further checks for collision between %@ and %@", entity1[i], entity2[j]);
 
 					BOOL collision = YES;
-					if (i == 0)
-					{
-						if (j == 0)
-							collision = [self checkBoundingBoxCollisionWith: other];
-					}
+										
+					if ((i == 0)&&(j == 0))
+						collision = NO;	// already established
 					else
 					{
-						if (j == 0)
-							collision = [entity1[i] subentityCheckBoundingBoxCollisionWith: other];
+						Octree* oct1 = entity1[i]->octree;
+						Octree* oct2 = entity2[j]->octree;
+						Vector rp = resolveVectorInIJK( vector_between( sphere_positions1[i], sphere_positions2[j]), sphere_ijk1[i]);
+						Triangle other_ijk;
+						other_ijk.v[0] = resolveVectorInIJK( sphere_ijk2[j].v[0], sphere_ijk1[i]);
+						other_ijk.v[1] = resolveVectorInIJK( sphere_ijk2[j].v[1], sphere_ijk1[i]);
+						other_ijk.v[2] = resolveVectorInIJK( sphere_ijk2[j].v[2], sphere_ijk1[i]);
+						if ([oct1 isHitByOctree: oct2 withOrigin: rp andIJK: other_ijk])
+							collision = YES;
 					}
+					
+//					if (i == 0)
+//					{
+//						if (j == 0)
+//							collision = [self checkBoundingBoxCollisionWith: other];
+//					}
+//					else
+//					{
+//						if (j == 0)
+//							collision = [entity1[i] subentityCheckBoundingBoxCollisionWith: other];
+//					}
 					if (collision)
 					{
 						collider = entity2[j];
@@ -6173,11 +6220,13 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 {
 	Vector  loc, opos, pos;
 	double  inc1, dam1, dam2;
-
-//	NSLog(@"DEBUG %@ %d colliding with other %@ %d", name, universal_id, [other name], [other universal_id]);
+	
 	if (!other)
 		return NO;
 
+//	if ((self->isPlayer)||(other->isPlayer))
+//		NSLog(@"DEBUG %@ %d colliding with other %@ %d", name, universal_id, [other name], [other universal_id]);
+	
 	ShipEntity* otherParent = (ShipEntity*)[other owner];
 	BOOL otherIsSubentity = ((otherParent)&&(otherParent != other)&&([otherParent->sub_entities containsObject:other]));
 

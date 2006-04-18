@@ -379,20 +379,23 @@ NSArray* subregionsContainingPosition( Vector position, CollisionRegion* region)
 				if (dist2 < min_dist2)
 				{
 					BOOL	coll1 = (isNotDetailed)? YES : [e1 checkCloseCollisionWith:e2];
-					BOOL	coll2 = (isNotDetailed)? YES : [e2 checkCloseCollisionWith:e1];
-					if ( coll1 && coll2 )
+					if (coll1)
 					{
-						if (e1->collider)
-							[[e1 collisionArray] addObject:e1->collider];
-						else
-							[[e1 collisionArray] addObject:e2];
-						e1->has_collided = YES;
-						//
-						if (e2->collider)
-							[[e2 collisionArray] addObject:e2->collider];
-						else
-							[[e2 collisionArray] addObject:e1];
-						e2->has_collided = YES;
+						BOOL	coll2 = (isNotDetailed)? YES : [e2 checkCloseCollisionWith:e1];
+						if (coll2)
+						{
+							if (e1->collider)
+								[[e1 collisionArray] addObject:e1->collider];
+							else
+								[[e1 collisionArray] addObject:e2];
+							e1->has_collided = YES;
+							//
+							if (e2->collider)
+								[[e2 collisionArray] addObject:e2->collider];
+							else
+								[[e2 collisionArray] addObject:e1];
+							e2->has_collided = YES;
+						}
 					}
 				}
 			}

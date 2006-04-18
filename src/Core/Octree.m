@@ -667,30 +667,60 @@ BOOL	isHitBySphere(int* octbuffer, char* collbuffer, int level, GLfloat rad, Vec
 BOOL	isHitByOctree(	int* octbuffer, char* collbuffer, int level, GLfloat rad,
 						int* other_octree, int other_level, Vector v0, GLfloat other_rad, Triangle other_ijk, Vector off)
 {
+	if (debug_octree)
+	{
+		NSLog(@"DEBUG TESTING octant index: [%d] offset by ( %.2f, %.2f, %.2f)", 
+			level, off.x, off.y, off.z);
+	}
+
 	// displace the cube by the offset
 	Vector u0 = make_vector( v0.x + off.x, v0.y + off.y, v0.z + off.z);
 
 	if (debug_octree)
 	{
-		NSLog(@"DEBUG octant: [%d] radius: %.2f vs. Octree: ( %.2f, %.2f, %.2f) r %.2f", 
+		NSLog(@"DEBUG octant index: [%d] radius: %.2f vs. Octree at: ( %.2f, %.2f, %.2f) r %.2f", 
 			level, rad, u0.x, u0.y, u0.z, other_rad);
 	}
 
-	if ((octbuffer[level] == 0)||(other_octree[other_level] == 0))
+	if (octbuffer[level] == 0)
 	{
 		if (debug_octree)
-			NSLog(@"DEBUG Octree hit an empty octant.");
+			NSLog(@"DEBUG Octant index: [%d] is empty.", level);
 		return NO;
 	}
 	
-	// 'crude and simple' - test sphere against cube...
-	if ((u0.x + other_rad < -rad)||(u0.x - other_rad > rad)||
-		(u0.y + other_rad < -rad)||(u0.y - other_rad > rad)||
-		(u0.z + other_rad < -rad)||(u0.z - other_rad > rad))
+	if (other_octree[other_level] == 0)
 	{
 		if (debug_octree)
-			NSLog(@"----> Octree misses octant: [%d].", level);
+			NSLog(@"DEBUG Other octree from index: [%d] is empty.", other_level);
 		return NO;
+	}
+	
+	if (other_rad < rad) // test THIS cube against THAT sphere
+	{
+		// 'crude and simple' - test sphere against cube...
+		if ((u0.x + other_rad < -rad)||(u0.x - other_rad > rad)||
+			(u0.y + other_rad < -rad)||(u0.y - other_rad > rad)||
+			(u0.z + other_rad < -rad)||(u0.z - other_rad > rad))
+		{
+			if (debug_octree)
+				NSLog(@"----> Octant: [%d]. does not intersect inner sphere of the octree", level);
+			return NO;
+		}
+	}
+	else	// thest THIS sphere against THAT cube
+	{
+		GLfloat di = dot_product( other_ijk.v[0], u0);
+		GLfloat dj = dot_product( other_ijk.v[1], u0);
+		GLfloat dk = dot_product( other_ijk.v[2], u0);
+		if ((di + rad < -other_rad)||(di - rad > other_rad)||
+			(dj + rad < -other_rad)||(dj - rad > other_rad)||
+			(dk + rad < -other_rad)||(dk - rad > other_rad))
+		{
+			if (debug_octree)
+				NSLog(@"----> Octant: [%d]'s inner sphere does not intersect the octree", level);
+			return NO;
+		}
 	}
 	
 	// from here on, this Octree and the other Octree are considered to be intersecting
@@ -699,6 +729,8 @@ BOOL	isHitByOctree(	int* octbuffer, char* collbuffer, int level, GLfloat rad,
 		// we are SOLID - is the other octree?
 		if (other_octree[other_level] == -1)
 		{
+			collbuffer[level] = 1;	// red
+			//
 			if (debug_octree)
 				NSLog(@"DEBUG Octrees collide!");
 			return YES;
@@ -712,7 +744,7 @@ BOOL	isHitByOctree(	int* octbuffer, char* collbuffer, int level, GLfloat rad,
 		if (debug_octree)
 			NSLog(@"----> testing other octants...");
 		//
-		int		other_nextlevel = other_octree[level];
+		int		other_nextlevel = other_octree[other_level];
 		GLfloat	other_rd2 = 0.5 * other_rad;
 		Vector	voff, octantPosition;
 		Vector	i = other_ijk.v[0];
@@ -764,7 +796,7 @@ BOOL	isHitByOctree(	int* octbuffer, char* collbuffer, int level, GLfloat rad,
 
 - (BOOL) isHitByOctree:(Octree*) other withOrigin: (Vector) v0 andIJK: (Triangle) ijk
 {
-	return isHitByOctree( octree, octree_collision, 0, radius,
+	return hasCollision = isHitByOctree( octree, octree_collision, 0, radius,
 								[other octree], 0, v0, [other radius], ijk, make_vector( 0.0f, 0.0f, 0.0f));
 }
 
