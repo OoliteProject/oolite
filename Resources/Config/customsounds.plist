@@ -69,6 +69,8 @@
 	<string>buy.ogg</string>
 	<key>[jump-mass-locked]</key>
 	<string>buy.ogg</string>
+	<key>[wormhole-created]</key>
+	<string>buy.ogg</string>
 	-->
 </dict>
 </plist>
