@@ -1116,6 +1116,11 @@ Your fair use and other rights are in no way affected by the above.
 }
 
 
+// track the position and status of the lights
+BOOL	sun_light_on = NO;
+BOOL	demo_light_on = NO;
+GLfloat	demo_light_position[] = DEMO_LIGHT_POSITION;
+//
 GLfloat docked_light_ambient[]	= { (GLfloat) 0.05, (GLfloat) 0.05, (GLfloat) 0.05, (GLfloat) 1.0};	// dark gray (low ambient)
 GLfloat docked_light_diffuse[]	= { (GLfloat) 1.0, (GLfloat) 1.0, (GLfloat) 1.0, (GLfloat) 1.0};	// white
 GLfloat docked_light_specular[]	= { (GLfloat) 1.0, (GLfloat) 1.0, (GLfloat) 0.5, (GLfloat) 1.0};	// yellow-white
@@ -1193,6 +1198,11 @@ GLfloat docked_light_specular[]	= { (GLfloat) 1.0, (GLfloat) 1.0, (GLfloat) 0.5,
 	// glLightModel details...
 	//
 	glLightModelfv(GL_LIGHT_MODEL_AMBIENT, stars_ambient);
+	
+	glDisable(GL_LIGHT0);
+	demo_light_on = NO;
+	glDisable(GL_LIGHT1);
+	sun_light_on = NO;
 }
 
 - (void) populateSpaceFromActiveWormholes
@@ -3315,9 +3325,9 @@ GLfloat docked_light_specular[]	= { (GLfloat) 1.0, (GLfloat) 1.0, (GLfloat) 0.5,
 }
 
 // track the position and status of the lights
-BOOL	sun_light_on = NO;
-BOOL	demo_light_on = NO;
-GLfloat	demo_light_position[] = { 0.0f, 0.0f, 0.0f};
+//BOOL	sun_light_on = NO;
+//BOOL	demo_light_on = NO;
+//GLfloat	demo_light_position[] = { 0.0f, 0.0f, 0.0f};
 void	setSunLight(BOOL yesno)
 {
 	if (yesno != sun_light_on)
@@ -3485,7 +3495,7 @@ GLfloat	starboard_matrix[] = {	0.0f, 0.0f, 1.0f, 0.0f,		0.0f, 1.0f, 0.0f, 0.0f,	
 			if ((!displayGUI) || (playerDemo))
 			{
 				// set up the light for demo ships
-				Vector demo_light_origin = {  5000.0f, 25000.0f,  -10000.0f}; // right 5000 up 25000 back 10000
+				Vector demo_light_origin = DEMO_LIGHT_POSITION;
 				
 				////
 				//
@@ -3610,7 +3620,7 @@ GLfloat	starboard_matrix[] = {	0.0f, 0.0f, 1.0f, 0.0f,		0.0f, 1.0f, 0.0f, 0.0f,	
 				//		DRAW ALL THE TRANSLUCENT entsInDrawOrder
 				//
 				glDepthMask(GL_FALSE);				// don't write to depth buffer
-				glDisable(GL_LIGHTING);	// ++TEST++
+				glDisable(GL_LIGHTING);
 				for (i = furthest; i >= nearest; i--)
 				{
 					int d_status;
@@ -3671,7 +3681,7 @@ GLfloat	starboard_matrix[] = {	0.0f, 0.0f, 1.0f, 0.0f,		0.0f, 1.0f, 0.0f, 0.0f,	
 			
 			glPopMatrix(); //restore saved flat viewpoint
 
-			glDisable(GL_LIGHTING);				// disable lighting ++TEST++
+			glDisable(GL_LIGHTING);				// disable lighting
 			glDisable(GL_DEPTH_TEST);			// disable depth test
 			glDisable(GL_CULL_FACE);			// face culling
 			glDepthMask(GL_FALSE);				// don't write to depth buffer

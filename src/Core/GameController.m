@@ -799,7 +799,6 @@ static int _compareModes(id arg1, id arg2, void *context)
 		[self startAnimationTimer];
 
 		// Mark our view as needing drawing.  (The animation has advanced while we were in FullScreen mode, so its current contents are stale.)
-//		[gameView initialiseGLWithSize:NSMakeSize(640,480)];
 		[gameView setNeedsDisplay:YES];
 		
 		if (pauseTarget)

@@ -49,6 +49,8 @@ Your fair use and other rights are in no way affected by the above.
 
 #define MOUSE_DOUBLE_CLICK_INTERVAL	0.40
 
+#define DEMO_LIGHT_POSITION	{5000.0f,25000.0f,-10000.0f}
+
 @class Entity, GameController, OpenGLSprite;
 
 #ifdef GNUSTEP

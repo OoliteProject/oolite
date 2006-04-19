@@ -15,16 +15,16 @@ or send a letter to Creative Commons, 559 Nathan Abbott Way, Stanford, Californi
 
 You are free:
 
-¥	to copy, distribute, display, and perform the work
-¥	to make derivative works
+â€¢	to copy, distribute, display, and perform the work
+â€¢	to make derivative works
 
 Under the following conditions:
 
-¥	Attribution. You must give the original author credit.
+â€¢	Attribution. You must give the original author credit.
 
-¥	Noncommercial. You may not use this work for commercial purposes.
+â€¢	Noncommercial. You may not use this work for commercial purposes.
 
-¥	Share Alike. If you alter, transform, or build upon this work,
+â€¢	Share Alike. If you alter, transform, or build upon this work,
 you may distribute the resulting work only under a license identical to this one.
 
 For any reuse or distribution, you must make clear to others the license terms of this work.
@@ -246,15 +246,16 @@ Your fair use and other rights are in no way affected by the above.
 	
 	if ([gameController universe])
 	{
-		Entity* the_sun = [[gameController universe] sun];
+		Universe* uni = [gameController universe];
+		Entity* the_sun = [uni sun];
 		Vector sun_pos = (the_sun)? the_sun->position : make_vector( 0.0f, 0.0f, 0.0f);
 		sun_center_position[0] = sun_pos.x;
 		sun_center_position[1] = sun_pos.y;
 		sun_center_position[2] = sun_pos.z;
-		[[gameController universe] setLighting];
+		[uni setLighting];
 	}
 	else
-	{
+	{	
 		glLightfv(GL_LIGHT1, GL_AMBIENT, sun_ambient);
 		glLightfv(GL_LIGHT1, GL_SPECULAR, sun_specular);
 		glLightfv(GL_LIGHT1, GL_DIFFUSE, sun_diffuse);
@@ -266,11 +267,12 @@ Your fair use and other rights are in no way affected by the above.
 		glLightfv(GL_LIGHT0, GL_AMBIENT, white);
 		glLightfv(GL_LIGHT0, GL_DIFFUSE, white);
 		glLightfv(GL_LIGHT0, GL_SPECULAR, white);
+		
+		glEnable(GL_LIGHT1);		// lighting
+		glEnable(GL_LIGHT0);		// lighting
 	}
-	
-	glEnable(GL_LIGHT1);		// lighting
-	glEnable(GL_LIGHT0);		// lighting
 	glEnable(GL_LIGHTING);		// lighting
+	
 	
 	// world's simplest OpenGL optimisations...
 	glHint(GL_TRANSFORM_HINT_APPLE, GL_FASTEST);
