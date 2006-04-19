@@ -753,8 +753,19 @@ NSDictionary* instructions(int station_id, Vector coords, float speed, float ran
 	port_dimensions = make_vector( bb.max.x - bb.min.x, bb.max.y - bb.min.y, bb.max.z - bb.min.z);
 	port_position = dock_pos;
 	port_qrotation = dock_q;
-	NSLog(@"set docking port for %@ to %@ dimensions ( %.2f, %.2f, %.2f)", self, dock_model,
-		port_dimensions.x, port_dimensions.y, port_dimensions.z);
+	
+//	NSLog(@"set docking port for %@ to %@ dimensions ( %.2f, %.2f, %.2f)", self, dock_model,
+//		port_dimensions.x, port_dimensions.y, port_dimensions.z);
+	
+	Vector port_k = vector_forward_from_quaternion( dock_q);
+	if (bb.max.z > 0.0)
+	{
+//		NSLog(@"DEBUG port z goes from %.2f to %.2f ... adjusting port_position accordingly", bb.min.z, bb.max.z);
+		port_position.x += bb.max.z * port_k.x;
+		port_position.y += bb.max.z * port_k.y;
+		port_position.z += bb.max.z * port_k.z;
+	}
+	
 }
 
 - (void) setUpShipFromDictionary:(NSDictionary *) dict
@@ -933,15 +944,15 @@ NSDictionary* instructions(int station_id, Vector coords, float speed, float ran
 	while (shipbb.max.x - shipbb.min.x > ww * 0.90)	ww *= 1.25;
 	while (shipbb.max.y - shipbb.min.y > hh * 0.90)	hh *= 1.25;
 	
-//	if (ship->isPlayer)
-//		NSLog(@"DEBUG normalised port dimensions are %.2fx%.2fx%.2f", ww, hh, dd);
+	if (ship->isPlayer)
+		NSLog(@"DEBUG normalised port dimensions are %.2fx%.2fx%.2f", ww, hh, dd);
 
 	ww *= 0.5;
 	hh *= 0.5;
 	
-//	if (ship->isPlayer)
-//		NSLog(@"DEBUG player bounding box is at ( %.2f, %.2f, %.2f)-( %.2f, %.2f, %.2f)",
-//			arbb.min.x, arbb.min.y, arbb.min.z, arbb.max.x, arbb.max.y, arbb.max.z);
+	if (ship->isPlayer)
+		NSLog(@"DEBUG player bounding box is at ( %.2f, %.2f, %.2f)-( %.2f, %.2f, %.2f)",
+			arbb.min.x, arbb.min.y, arbb.min.z, arbb.max.x, arbb.max.y, arbb.max.z);
 
 	if (arbb.max.z < -dd)
 		return NO;
