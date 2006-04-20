@@ -38,6 +38,7 @@ Your fair use and other rights are in no way affected by the above.
 */
 
 #import "OOOpenGL.h"
+#import "OOGLDefs.h"
 #import "Universe.h"
 #import "entities.h"
 #import "MyOpenGLView.h"

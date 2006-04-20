@@ -100,8 +100,6 @@ enum StringInput
 	gvStringInputAll = 2
 };
 
-#define DEMO_LIGHT_POSITION    {5000.0f,25000.0f,-10000.0f}
-
 extern int debug;
 
 @interface MyOpenGLView : OpenGLViewSuperClass
