@@ -408,12 +408,13 @@ Your fair use and other rights are in no way affected by the above.
 
 	if ([gameController universe])
 	{
-		Entity* the_sun = [[gameController universe] sun];
+      Universe *uni=[gameController universe];
+		Entity* the_sun = [uni sun];
 		Vector sun_pos = (the_sun)? the_sun->position : make_vector(0.0f,0.0f,0.0f);
 		sun_center_position[0] = sun_pos.x;
 		sun_center_position[1] = sun_pos.y;
 		sun_center_position[2] = sun_pos.z;
-		[[gameController universe] setLighting];
+		[uni setLighting];
 	}
 	else
 	{
@@ -428,11 +429,11 @@ Your fair use and other rights are in no way affected by the above.
 		glLightfv(GL_LIGHT0, GL_AMBIENT, white);
 		glLightfv(GL_LIGHT0, GL_DIFFUSE, white);
 		glLightfv(GL_LIGHT0, GL_SPECULAR, white);
-	}
 
-	glEnable(GL_LIGHT1);		// lighting
-	glEnable(GL_LIGHT0);		// lighting
-	glEnable(GL_LIGHTING);		// lighting
+   	glEnable(GL_LIGHT1);		// lighting
+	   glEnable(GL_LIGHT0);		// lighting
+   }
+   glEnable(GL_LIGHTING);		// lighting
 
 	// world's simplest OpenGL optimisations...
 	glHint(GL_TRANSFORM_HINT_APPLE, GL_FASTEST);
