@@ -64,6 +64,16 @@
 			<string>Feline</string>
 			<string>Insect</string>
 		</array>
+		<array>
+			<string>Rodents</string>
+			<string>Frogs</string>
+			<string>Lizards</string>
+			<string>Lobsters</string>
+			<string>Birds</string>
+			<string>Humanoids</string>
+			<string>Felines</string>
+			<string>Insects</string>
+		</array>
 	</array>
 	<key>legal_status</key>
 	<array>

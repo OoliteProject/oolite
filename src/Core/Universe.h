@@ -422,7 +422,7 @@ extern int debug;
 - (NSString *) getSystemInhabitants:(Random_Seed) s_seed;
 - (NSString *) generateSystemName:(Random_Seed) system_seed;
 - (NSString *) generatePhoneticSystemName:(Random_Seed) s_seed;
-- (NSString *) generateSystemInhabitants:(Random_Seed) s_seed;
+- (NSString *) generateSystemInhabitants:(Random_Seed) s_seed plural:(BOOL)plural;
 - (Random_Seed) findSystemAtCoords:(NSPoint) coords withGalaxySeed:(Random_Seed) gal_seed;
 
 + (NSString*) systemSeedString:(Random_Seed) s;

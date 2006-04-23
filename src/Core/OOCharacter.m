@@ -94,8 +94,7 @@ Your fair use and other rights are in no way affected by the above.
 
 	// determine the character's species
 	int species = genSeed.f & 0x03;	// 0-1 native to home system, 2 human colonial, 3 other
-	NSString* speciesString = (species == 3)? [universe generateSystemInhabitants: genSeed]:[universe generateSystemInhabitants: originSystemSeed];
-	speciesString = (species == 2)? @"Human Colonial" : [speciesString substringToIndex: [speciesString length] - 1];
+	NSString* speciesString = (species == 3)? [universe generateSystemInhabitants: genSeed plural:NO]:[universe generateSystemInhabitants: originSystemSeed plural:NO];
 	speciesString = [[speciesString lowercaseString] stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceCharacterSet]];
 	
 	// determine the character's name

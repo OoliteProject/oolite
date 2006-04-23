@@ -5287,7 +5287,7 @@ GLfloat	starboard_matrix[] = {	0.0f, 0.0f, 1.0f, 0.0f,		0.0f, 1.0f, 0.0f, 0.0f,	
 	int radius = (((s_seed.f & 15) + 11) * 256) + s_seed.d;
 	
 	NSString *name = [self generateSystemName:s_seed];
-	NSString *inhabitants = [self generateSystemInhabitants:s_seed];
+	NSString *inhabitants = [self generateSystemInhabitants:s_seed plural:YES];
 	NSString *description = [self generateSystemDescription:s_seed];
 	
 	NSString *override_key = [self keyForPlanetOverridesForSystemSeed:s_seed inGalaxySeed:galaxy_seed];
@@ -5413,12 +5413,22 @@ GLfloat	starboard_matrix[] = {	0.0f, 0.0f, 1.0f, 0.0f,		0.0f, 1.0f, 0.0f, 0.0f,	
 	return [NSString stringWithFormat:@"[[inpt PHON]]%@[[inpt TEXT]]", name];
 }
 
-- (NSString *) generateSystemInhabitants:(Random_Seed) s_seed
+- (NSString *) generateSystemInhabitants:(Random_Seed) s_seed plural:(BOOL) plural
 {
 	NSMutableString* inhabitants= [NSMutableString stringWithCapacity:256];
 
 	if (s_seed.e < 127)
-		[inhabitants appendString:@"Human Colonial"];
+	{
+		if (plural)
+		{
+			// TODO: use plist
+			[inhabitants appendString:@"Human Colonials"];
+		}
+		else
+		{
+			[inhabitants appendString:@"Human Colonial"];
+		}
+	}
 	else
 	{
 		int inhab = (s_seed.f / 4) & 7;
@@ -5441,10 +5451,9 @@ GLfloat	starboard_matrix[] = {	0.0f, 0.0f, 1.0f, 0.0f,		0.0f, 1.0f, 0.0f, 0.0f,	
 
 		inhab = (inhab + (s_seed.f & 3)) & 7;
 		[inhabitants appendString:@" "];
-		[inhabitants appendString:(NSString *)[(NSArray *)[(NSArray *)[descriptions objectForKey:KEY_INHABITANTS] objectAtIndex:3] objectAtIndex:inhab]];
+		[inhabitants appendString:(NSString *)[(NSArray *)[(NSArray *)[descriptions objectForKey:KEY_INHABITANTS] objectAtIndex:plural ? 4 : 3] objectAtIndex:inhab]];
 	}
-	[inhabitants appendString:@"s"];
-	//	
+	
 	return inhabitants;
 }
 
@@ -5968,8 +5977,7 @@ double estimatedTimeForJourney(double distance, int hops)
 	// to give a time somewhen in the 97 days before and after the current_time
 	
 	int start = [self findSystemNumberAtCoords:NSMakePoint(s_seed.d, s_seed.b) withGalaxySeed:galaxy_seed];
-	NSString* native_species = [self generateSystemInhabitants:s_seed];
-	native_species = [native_species substringToIndex:[native_species length] - 1];
+	NSString* native_species = [self generateSystemInhabitants:s_seed plural:NO];
 	
 	// adjust basic seed by market random factor
 	Random_Seed passenger_seed = s_seed;
@@ -6016,8 +6024,7 @@ double estimatedTimeForJourney(double distance, int hops)
 				passenger_species_string = @"Human Colonial";
 			if (passenger_species == 3)
 			{
-				passenger_species_string = [self generateSystemInhabitants:passenger_seed];
-				passenger_species_string = [passenger_species_string substringToIndex:[passenger_species_string length] - 1];
+				passenger_species_string = [self generateSystemInhabitants:passenger_seed plural:NO];
 			}
 			passenger_species_string = [[passenger_species_string lowercaseString] stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceCharacterSet]];
 			
