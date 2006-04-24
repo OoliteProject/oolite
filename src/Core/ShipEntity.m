@@ -301,6 +301,9 @@ NSString* describeBehaviour(int some_behaviour)
 
 - (NSString*) description
 {
+	if (!debug)
+		return [NSString stringWithFormat:@"<ShipEntity %@ %d >", name, universal_id];
+	
 	NSString* result = [NSString stringWithFormat:@"\n<ShipEntity %@ %d (%@) %@ %@ on target %d // %@>",
 		name, universal_id, roles, (universe == nil)? @" (not in universe)":@"", describeBehaviour(behaviour), primaryTarget, collision_region];
 	return result;
