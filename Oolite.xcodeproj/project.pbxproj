@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		08125F0909F9083F00AB9BF9 /* OOGLDefs.h in Headers */ = {isa = PBXBuildFile; fileRef = 08125F0809F9083F00AB9BF9 /* OOGLDefs.h */; };
 		0831C5C909E3396D0058029A /* StringTokeniser.m in Sources */ = {isa = PBXBuildFile; fileRef = 0831C5C609E3396D0058029A /* StringTokeniser.m */; };
 		0831C5CA09E3396D0058029A /* StringTokeniser.h in Headers */ = {isa = PBXBuildFile; fileRef = 0831C5C709E3396D0058029A /* StringTokeniser.h */; };
 		0831C5CB09E3396D0058029A /* ScriptCompiler.m in Sources */ = {isa = PBXBuildFile; fileRef = 0831C5C809E3396D0058029A /* ScriptCompiler.m */; };
@@ -394,6 +395,7 @@
 
 /* Begin PBXFileReference section */
 		06AFA01500A58FB77F000001 /* OpenGL.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = OpenGL.framework; path = /System/Library/Frameworks/OpenGL.framework; sourceTree = "<absolute>"; };
+		08125F0809F9083F00AB9BF9 /* OOGLDefs.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = OOGLDefs.h; path = src/Core/OOGLDefs.h; sourceTree = "<group>"; };
 		0831C5C609E3396D0058029A /* StringTokeniser.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = StringTokeniser.m; path = src/Core/StringTokeniser.m; sourceTree = "<group>"; };
 		0831C5C709E3396D0058029A /* StringTokeniser.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = StringTokeniser.h; path = src/Core/StringTokeniser.h; sourceTree = "<group>"; };
 		0831C5C809E3396D0058029A /* ScriptCompiler.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = ScriptCompiler.m; path = src/Core/ScriptCompiler.m; sourceTree = "<group>"; };
@@ -1160,6 +1162,7 @@
 				25F3E6340994F05C002F25FD /* vector.h */,
 				25F3E6360994F066002F25FD /* vector.c */,
 				25F3E6380994F07A002F25FD /* entities.h */,
+				08125F0809F9083F00AB9BF9 /* OOGLDefs.h */,
 				25F3E63A0994F08A002F25FD /* OOOpenGL.h */,
 				25160E2E0995362F0037C2E1 /* OOCocoa.h */,
 				29B97315FDCFA39411CA2CEA /* Other Sources */,
@@ -1276,6 +1279,7 @@
 				2512834609BA281500F43D55 /* CollisionRegion.h in Headers */,
 				083325DD09DDBCDE00F5B8E4 /* OOColor.h in Headers */,
 				0831C5CA09E3396D0058029A /* StringTokeniser.h in Headers */,
+				08125F0909F9083F00AB9BF9 /* OOGLDefs.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
