@@ -2684,17 +2684,6 @@ GLfloat docked_light_specular[]	= { (GLfloat) 1.0, (GLfloat) 1.0, (GLfloat) 0.5,
 		lastBeacon = [beaconShip universal_id];
 		if (![self firstBeacon])
 			firstBeacon = lastBeacon;
-		
-//		NSLog(@"DEBUG Universe Beacon Sequence:");
-//		{
-//			int bid = firstBeacon;
-//			while (bid != NO_TARGET)
-//			{
-//				ShipEntity* beacon = (ShipEntity*)[self entityForUniversalID:bid];
-////				NSLog(@"DEBUG >>>>> Beacon: %@", beacon);
-//				bid = [beacon nextBeaconID];
-//			}
-//		}
 	}
 	else
 	{
@@ -3900,6 +3889,9 @@ GLfloat	starboard_matrix[] = {	0.0f, 0.0f, 1.0f, 0.0f,		0.0f, 1.0f, 0.0f, 0.0f,	
 {
 	if (entity)
 	{
+		if (debug)
+			NSLog(@"DEBUG ++(%@)", entity);
+		
 		int index = n_entities;
 		
 		// don't add things twice!
@@ -3979,24 +3971,67 @@ GLfloat	starboard_matrix[] = {	0.0f, 0.0f, 1.0f, 0.0f,		0.0f, 1.0f, 0.0f, 0.0f,	
 //		NSLog(@"DEBUG ++(%@)", entity);
 		
 		// maintain sorted list (and for the scanner relative position)
-		Vector player_pos = [self entityZero]->position;
 		Vector entity_pos = entity->position;
-		Vector delta = make_vector( entity_pos.x - player_pos.x, entity_pos.y - player_pos.y, entity_pos.z - player_pos.z);
+		Vector delta = vector_between( entity_pos, [self entityZero]->position);
 		double z_distance = magnitude2( delta);
 		entity->zero_distance = z_distance;
 		entity->relative_position = delta;
 		index = n_entities;
 		sortedEntities[index] = entity;
-		entity->z_index = index;
+		entity->zero_index = index;
 		while ((index > 0)&&(z_distance < sortedEntities[index - 1]->zero_distance))	// bubble into place
 		{
 			sortedEntities[index] = sortedEntities[index - 1];
-			sortedEntities[index]->z_index = index;
+			sortedEntities[index]->zero_index = index;
 			index--;
 			sortedEntities[index] = entity;
-			entity->z_index = index;
+			entity->zero_index = index;
 		}
+		
+		int i;
+		// bubble into place for z
+		i = n_entities;
+		z_sortedEntities[i] = entity;
+		entity->z_index = i;
+		while ((i > 0)&&(entity_pos.z < z_sortedEntities[i - 1]->position.z))
+		{
+			z_sortedEntities[i] = z_sortedEntities[i - 1];
+			z_sortedEntities[i]->z_index = i;
+			i--;
+			z_sortedEntities[i] = entity;
+			entity->z_index = i;
+		}
+		
+		// bubble into place for y
+		i = n_entities;
+		y_sortedEntities[i] = entity;
+		entity->y_index = i;
+		while ((i > 0)&&(entity_pos.y < y_sortedEntities[i - 1]->position.y))
+		{
+			y_sortedEntities[i] = y_sortedEntities[i - 1];
+			y_sortedEntities[i]->y_index = i;
+			i--;
+			y_sortedEntities[i] = entity;
+			entity->y_index = i;
+		}
+		
+		// bubble into place for x
+		i = n_entities;
+		x_sortedEntities[i] = entity;
+		entity->x_index = i;
+		while ((i > 0)&&(entity_pos.x < x_sortedEntities[i - 1]->position.x))
+		{
+			x_sortedEntities[i] = x_sortedEntities[i - 1];
+			x_sortedEntities[i]->x_index = i;
+			i--;
+			x_sortedEntities[i] = entity;
+			entity->x_index = i;
+		}
+		
+		
+		// increase n_entities...
 		n_entities++;
+
 //		for (index = 0; index < n_entities; index++)
 //			NSLog(@"+++++ %d %.0f %@", sortedEntities[index]->z_index, sortedEntities[index]->zero_distance, sortedEntities[index]);
 		//
@@ -4012,7 +4047,8 @@ GLfloat	starboard_matrix[] = {	0.0f, 0.0f, 1.0f, 0.0f,		0.0f, 1.0f, 0.0f, 0.0f,	
 {
 	if (entity)
 	{
-//		NSLog(@"DEBUG --(%@) from %d", entity, entity->z_index);
+		if (debug)
+			NSLog(@"DEBUG --(%@) from %d", entity, entity->zero_index);
 
 		// moved forward ^^
 		// remove from the reference dictionary
@@ -4021,21 +4057,23 @@ GLfloat	starboard_matrix[] = {	0.0f, 0.0f, 1.0f, 0.0f,		0.0f, 1.0f, 0.0f, 0.0f,	
 		[entity setUniversal_id:NO_TARGET];
 		[entity setUniverse:nil];
 		
-		// maintain sorted list
-		int index = entity->z_index;
+		// maintain sorted lists
+		int index = entity->zero_index;
+		int n_ents = n_entities;
+		int ne = n_entities;
 		int n = 1;
 		if (index >= 0)
 		{
 			if (sortedEntities[index] != entity)
 			{
-				NSLog(@"DEBUG Universe removeEntity:%@ ENTITY IS NOT IN THE RIGHT PLACE IN THE SORTED LIST -- FIXING...", entity);
+				NSLog(@"DEBUG Universe removeEntity:%@ ENTITY IS NOT IN THE RIGHT PLACE IN THE ZERO_DISTANCE SORTED LIST -- FIXING...", entity);
 				int i;
 				index = -1;
 				for (i = 0; (i < n_entities)&&(index == -1); i++)
 					if (sortedEntities[i] == entity)
 						index = i;
 				if (index == -1)
-					 NSLog(@"DEBUG Universe removeEntity:%@ ENTITY IS NOT IN THE SORTED LIST -- CONTINUING...", entity);
+					 NSLog(@"DEBUG Universe removeEntity:%@ ENTITY IS NOT IN THE ZERO_DISTANCE SORTED LIST -- CONTINUING...", entity);
 			}
  			if (index != -1)
 			{
@@ -4045,21 +4083,121 @@ GLfloat	starboard_matrix[] = {	0.0f, 0.0f, 1.0f, 0.0f,		0.0f, 1.0f, 0.0f, 0.0f,	
 						n++;	// ie there's a duplicate entry for this entity
 					sortedEntities[index] = sortedEntities[index + n];	// copy entity[index + n] -> entity[index] (preserves sort order)
 					if (sortedEntities[index])
-						sortedEntities[index]->z_index = index;				// give it its correct position
+						sortedEntities[index]->zero_index = index;				// give it its correct position
 					index++;
 				}
 				if (n > 1)
-					 NSLog(@"DEBUG Universe removeEntity: REMOVED %d EXTRA COPIES OF %@ FROM THE SORTED LIST", n - 1, entity);
+					 NSLog(@"DEBUG Universe removeEntity: REMOVED %d EXTRA COPIES OF %@ FROM THE ZERO_DISTANCE SORTED LIST", n - 1, entity);
 				while (n--)
 				{
 					n_entities--;
 					sortedEntities[n_entities] = nil;
 				}
 			}
+			entity->zero_index = -1;	// it's GONE!
+		}
+		// preserve x_sorted list
+		index = entity->x_index;
+		ne = n_ents;
+		n = 1;
+		if (index >= 0)
+		{
+			if (x_sortedEntities[index] != entity)
+			{
+				NSLog(@"DEBUG Universe removeEntity:%@ ENTITY IS NOT IN THE RIGHT PLACE IN THE X SORTED LIST -- FIXING...", entity);
+				int i;
+				index = -1;
+				for (i = 0; (i < ne)&&(index == -1); i++)
+					if (x_sortedEntities[i] == entity)
+						index = i;
+				if (index == -1)
+					 NSLog(@"DEBUG Universe removeEntity:%@ ENTITY IS NOT IN THE X SORTED LIST -- CONTINUING...", entity);
+			}
+ 			if (index != -1)
+			{
+				while (index < n_entities)
+				{
+					while ((index + n < ne)&&(x_sortedEntities[index + n] == entity)) n++;	// ie there's a duplicate entry for this entity
+					x_sortedEntities[index] = x_sortedEntities[index + n];	// copy entity[index + n] -> entity[index] (preserves sort order)
+					if (x_sortedEntities[index])
+						x_sortedEntities[index]->x_index = index;				// give it its correct position
+					index++;
+				}
+				if (n > 1)
+					 NSLog(@"DEBUG Universe removeEntity: REMOVED %d EXTRA COPIES OF %@ FROM THE X SORTED LIST", n - 1, entity);
+				while (n--) x_sortedEntities[--ne] = nil;
+			}
+			entity->x_index = -1;	// it's GONE!
+		}
+		// preserve y_sorted list
+		index = entity->y_index;
+		ne = n_ents;
+		n = 1;
+		if (index >= 0)
+		{
+			if (y_sortedEntities[index] != entity)
+			{
+				NSLog(@"DEBUG Universe removeEntity:%@ ENTITY IS NOT IN THE RIGHT PLACE IN THE Y SORTED LIST -- FIXING...", entity);
+				int i;
+				index = -1;
+				for (i = 0; (i < ne)&&(index == -1); i++)
+					if (y_sortedEntities[i] == entity)
+						index = i;
+				if (index == -1)
+					 NSLog(@"DEBUG Universe removeEntity:%@ ENTITY IS NOT IN THE Y SORTED LIST -- CONTINUING...", entity);
+			}
+ 			if (index != -1)
+			{
+				while (index < ne)
+				{
+					while ((index + n < ne)&&(y_sortedEntities[index + n] == entity)) n++;	// ie there's a duplicate entry for this entity
+					y_sortedEntities[index] = y_sortedEntities[index + n];	// copy entity[index + n] -> entity[index] (preserves sort order)
+					if (y_sortedEntities[index])
+						y_sortedEntities[index]->y_index = index;				// give it its correct position
+					index++;
+				}
+				if (n > 1)
+					 NSLog(@"DEBUG Universe removeEntity: REMOVED %d EXTRA COPIES OF %@ FROM THE Y SORTED LIST", n - 1, entity);
+				while (n--) y_sortedEntities[--ne] = nil;
+			}
+			entity->y_index = -1;	// it's GONE!
+		}
+		// preserve z_sorted list
+		index = entity->z_index;
+		ne = n_ents;
+		n = 1;
+		if (index >= 0)
+		{
+			if (z_sortedEntities[index] != entity)
+			{
+				NSLog(@"DEBUG Universe removeEntity:%@ ENTITY IS NOT IN THE RIGHT PLACE IN THE Z SORTED LIST -- FIXING...", entity);
+				int i;
+				index = -1;
+				for (i = 0; (i < ne)&&(index == -1); i++)
+					if (z_sortedEntities[i] == entity)
+						index = i;
+				if (index == -1)
+					 NSLog(@"DEBUG Universe removeEntity:%@ ENTITY IS NOT IN THE Z SORTED LIST -- CONTINUING...", entity);
+			}
+ 			if (index != -1)
+			{
+				while (index < ne)
+				{
+					while ((index + n < ne)&&(z_sortedEntities[index + n] == entity)) n++;	// ie there's a duplicate entry for this entity
+					z_sortedEntities[index] = z_sortedEntities[index + n];	// copy entity[index + n] -> entity[index] (preserves sort order)
+					if (z_sortedEntities[index])
+						z_sortedEntities[index]->z_index = index;				// give it its correct position
+					index++;
+				}
+				if (n > 1)
+					 NSLog(@"DEBUG Universe removeEntity: REMOVED %d EXTRA COPIES OF %@ FROM THE Z SORTED LIST", n - 1, entity);
+				while (n--) z_sortedEntities[--ne] = nil;
+			}
 			entity->z_index = -1;	// it's GONE!
 		}
+
 //		for (index = 0; index < n_entities; index++)
-//			NSLog(@"----- %d %.0f %@", sortedEntities[index]->z_index, sortedEntities[index]->zero_distance, sortedEntities[index]);
+//			NSLog(@"----- %d %.0f %@", sortedEntities[index]->zero_index, sortedEntities[index]->zero_distance, sortedEntities[index]);
 		//
 		
 		// remove from the definitive list
@@ -4115,7 +4253,7 @@ GLfloat	starboard_matrix[] = {	0.0f, 0.0f, 1.0f, 0.0f,		0.0f, 1.0f, 0.0f, 0.0f,	
 		[entity setUniversal_id:NO_TARGET];
 		[entity setUniverse:nil];
 		// maintain sorted list
-		int index = entity->z_index;
+		int index = entity->zero_index;
 		int n = 1;
 		if (index >= 0)
 		{
@@ -4138,7 +4276,7 @@ GLfloat	starboard_matrix[] = {	0.0f, 0.0f, 1.0f, 0.0f,		0.0f, 1.0f, 0.0f, 0.0f,	
 						n++;	// ie there's a duplicate entry for this entity
 					sortedEntities[index] = sortedEntities[index + n];	// copy entity[index + n] -> entity[index] (preserves sort order)
 					if (sortedEntities[index])
-						sortedEntities[index]->z_index = index;				// give it its correct position
+						sortedEntities[index]->zero_index = index;				// give it its correct position
 					index++;
 				}
 				if (n > 1)
@@ -4149,7 +4287,7 @@ GLfloat	starboard_matrix[] = {	0.0f, 0.0f, 1.0f, 0.0f,		0.0f, 1.0f, 0.0f, 0.0f,	
 					sortedEntities[n_entities] = nil;
 				}
 			}
-			entity->z_index = -1;	// it's GONE!
+			entity->zero_index = -1;	// it's GONE!
 		}
 		// remove from the definitive list
 		if ([entities containsObject:entity])
@@ -5110,17 +5248,56 @@ GLfloat	starboard_matrix[] = {	0.0f, 0.0f, 1.0f, 0.0f,		0.0f, 1.0f, 0.0f, 0.0f,	
 				
 				[thing update:delta_t];
 				
-				// maintain sorted list
-				int index = thing->z_index;
+				// maintain sorted lists
+				//
+				Vector p0 = thing->position;
 				double z_distance = thing->zero_distance;
+				//
+				// zero_index first..
+				int index = thing->zero_index;
 				while ((index > 0)&&(z_distance < sortedEntities[index - 1]->zero_distance))
 				{
-					sortedEntities[index] = sortedEntities[index - 1];	// bubble up the list
+					sortedEntities[index] = sortedEntities[index - 1];	// bubble up the list, usually by just one position
 					sortedEntities[index - 1 ] = thing;
-					thing->z_index = index - 1;
-					sortedEntities[index]->z_index = index;
+					thing->zero_index = index - 1;
+					sortedEntities[index]->zero_index = index;
 					index--;
 				}
+				//
+				// x_index..
+				index = thing->x_index;
+				while ((index > 0)&&(p0.x < x_sortedEntities[index - 1]->position.x))
+				{
+					x_sortedEntities[index] = x_sortedEntities[index - 1];	// bubble up the list, usually by just one position
+					x_sortedEntities[index - 1 ] = thing;
+					thing->x_index = index - 1;
+					x_sortedEntities[index]->x_index = index;
+					index--;
+				}
+				//
+				// y_index..
+				index = thing->y_index;
+				while ((index > 0)&&(p0.y < y_sortedEntities[index - 1]->position.y))
+				{
+					y_sortedEntities[index] = y_sortedEntities[index - 1];	// bubble up the list, usually by just one position
+					y_sortedEntities[index - 1 ] = thing;
+					thing->y_index = index - 1;
+					y_sortedEntities[index]->y_index = index;
+					index--;
+				}
+				//
+				// z_index..
+				index = thing->z_index;
+				while ((index > 0)&&(p0.z < z_sortedEntities[index - 1]->position.z))
+				{
+					z_sortedEntities[index] = z_sortedEntities[index - 1];	// bubble up the list, usually by just one position
+					z_sortedEntities[index - 1 ] = thing;
+					thing->z_index = index - 1;
+					z_sortedEntities[index]->z_index = index;
+					index--;
+				}
+				//
+				// done maintaining sorted lists
 								
 				if (thing->isShip)
 				{
@@ -5895,7 +6072,6 @@ GLfloat	starboard_matrix[] = {	0.0f, 0.0f, 1.0f, 0.0f,		0.0f, 1.0f, 0.0f, 0.0f,	
 - (BOOL) generateEconomicDataWithEconomy:(int) economy andRandomFactor:(int) random_factor
 {
 	StationEntity *some_station = [self station];
-	//NSLog(@">>>>> generateEconomicDataWithEconomy:andRandomFactor for System");
 	NSString *station_roles = [some_station roles];
 	if (![commoditylists objectForKey:station_roles])
 		station_roles = @"default";

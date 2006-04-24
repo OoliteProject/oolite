@@ -189,7 +189,8 @@ extern int debug;
 		Quaternion	q_rotation;
 		int			status;
 		//
-		int			z_index;
+		int			zero_index;
+		int			x_index, y_index, z_index;
 		//
 		// experimental lighting:
 		BOOL		isSunlit;

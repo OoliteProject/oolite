@@ -143,6 +143,11 @@ extern int debug;
 		Entity*					sortedEntities[UNIVERSE_MAX_ENTITIES];
 		int						n_entities;
 		int						cursor_row;
+		
+		// collision optimisation sorted lists
+		Entity*					z_sortedEntities[UNIVERSE_MAX_ENTITIES];
+		Entity*					y_sortedEntities[UNIVERSE_MAX_ENTITIES];
+		Entity*					x_sortedEntities[UNIVERSE_MAX_ENTITIES];
 		//
 		////
 		
