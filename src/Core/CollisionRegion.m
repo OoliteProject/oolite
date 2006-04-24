@@ -323,9 +323,9 @@ NSArray* subregionsContainingPosition( Vector position, CollisionRegion* region)
 	if (n_entities < 2)
 		return;
 	
-	// in reduced detail mode only checkCloseCollision near the player
-	//
-	BOOL	isNotDetailed = ([universe reducedDetail] && (!isPlayerInRegion));
+//	// in reduced detail mode only checkCloseCollision near the player
+//	//
+//	BOOL	isNotDetailed = ([universe reducedDetail] && (!isPlayerInRegion));
 	
 	//	clear collision variables
 	//
