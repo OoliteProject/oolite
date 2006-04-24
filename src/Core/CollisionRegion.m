@@ -167,7 +167,6 @@ BOOL positionIsWithinRegion( Vector position, CollisionRegion* region)
 		(position.z < loc.z - r1)||(position.z > loc.z + r1))
 		return NO;
 	
-//	return (magnitude2(vector_between( position, loc)) < r1 * r1);
 	return YES;
 }
 
@@ -206,7 +205,6 @@ BOOL positionIsWithinBorders( Vector position, CollisionRegion* region)
 		(position.z < loc.z - r1)||(position.z > loc.z + r1))
 		return NO;
 	
-//	return (magnitude2(vector_between( position, loc)) < r1 * r1);
 	return YES;
 }
 
@@ -219,7 +217,6 @@ BOOL positionIsOnBorders( Vector position, CollisionRegion* region)
 		return NO;
 	
 	Vector loc = region->location;
-//	GLfloat r1 = region->radius;
 	GLfloat r2 = region->radius + region->border_radius;
 	
 	 if ((position.x < loc.x - r2)||(position.x > loc.x + r2)||
@@ -227,9 +224,6 @@ BOOL positionIsOnBorders( Vector position, CollisionRegion* region)
 		(position.z < loc.z - r2)||(position.z > loc.z + r2))
 		return NO;
 
-//	GLfloat d2 = magnitude2(vector_between( position, loc));
-//	
-//	return ((d2 > r1 * r1)&&(d2 < r2 * r2));
 	return (!positionIsWithinRegion( position, region));
 }
 
@@ -316,6 +310,7 @@ NSArray* subregionsContainingPosition( Vector position, CollisionRegion* region)
 	Vector p1, p2;
 	double dist2, r1, r2, r0, min_dist2;
 	int i,j;
+	Entity*	entities_to_test[n_entities];
 	//
 	
 	// reject trivial cases
@@ -323,15 +318,23 @@ NSArray* subregionsContainingPosition( Vector position, CollisionRegion* region)
 	if (n_entities < 2)
 		return;
 	
-//	// in reduced detail mode only checkCloseCollision near the player
-//	//
-//	BOOL	isNotDetailed = ([universe reducedDetail] && (!isPlayerInRegion));
-	
-	//	clear collision variables
-	//
+	// only check unfiltered entities
+	int n_entities_to_test = 0;
 	for (i = 0; i < n_entities; i++)
 	{
 		e1 = entity_array[i];
+		if (!e1->collisionTestFilter)
+			entities_to_test[n_entities_to_test++] = e1;
+	}
+	if (n_entities_to_test < 2)
+		return;
+
+	
+	//	clear collision variables
+	//
+	for (i = 0; i < n_entities_to_test; i++)
+	{
+		e1 = entities_to_test[i];
 		if (e1->has_collided)
 			[[e1 collisionArray] removeAllObjects];
 		e1->has_collided = NO;
@@ -349,14 +352,14 @@ NSArray* subregionsContainingPosition( Vector position, CollisionRegion* region)
 	
 	// test each entity in this region against the others
 	//
-	for (i = 0; i < n_entities; i++)
+	for (i = 0; i < n_entities_to_test; i++)
 	{
-		e1 = entity_array[i];
+		e1 = entities_to_test[i];
 		p1 = e1->position;
 		r1 = e1->collision_radius;
-		for (j = i + 1; j < n_entities; j++)
+		for (j = i + 1; j < n_entities_to_test; j++)
 		{
-			e2 = entity_array[j];
+			e2 = entities_to_test[j];
 			p2 = e2->position;
 			r2 = e2->collision_radius;
 			r0 = r1 + r2;
@@ -399,31 +402,20 @@ NSArray* subregionsContainingPosition( Vector position, CollisionRegion* region)
 					else
 						collision = [e1 checkCloseCollisionWith: e2];
 				
-//					if (e2->isStation)
-//						collision = [e2 checkCloseCollisionWith: e1];
-//					else
-//						collision = [e1 checkCloseCollisionWith: e2];
-					
-//					BOOL	coll1 = (isNotDetailed)? YES : [e1 checkCloseCollisionWith:e2];
-//					if (coll1)
 					if (collision)
 					{
 						// now we have no need to check the e2-e1 collision
-//						BOOL	coll2 = (isNotDetailed)? YES : [e2 checkCloseCollisionWith:e1];
-//						if (coll2)
-//						{
-							if (e1->collider)
-								[[e1 collisionArray] addObject:e1->collider];
-							else
-								[[e1 collisionArray] addObject:e2];
-							e1->has_collided = YES;
-							//
-							if (e2->collider)
-								[[e2 collisionArray] addObject:e2->collider];
-							else
-								[[e2 collisionArray] addObject:e1];
-							e2->has_collided = YES;
-//						}
+						if (e1->collider)
+							[[e1 collisionArray] addObject:e1->collider];
+						else
+							[[e1 collisionArray] addObject:e2];
+						e1->has_collided = YES;
+						//
+						if (e2->collider)
+							[[e2 collisionArray] addObject:e2->collider];
+						else
+							[[e2 collisionArray] addObject:e1];
+						e2->has_collided = YES;
 					}
 				}
 			}

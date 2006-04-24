@@ -183,14 +183,15 @@ extern int debug;
 		int			scan_class;
 		double		zero_distance;
 		double		no_draw_distance;  //  10 km initially
-		double		collision_radius;
-		double		actual_radius;
+		GLfloat		collision_radius;
+		GLfloat		actual_radius;
 		Vector		position;
 		Quaternion	q_rotation;
 		int			status;
 		//
 		int			zero_index;
 		int			x_index, y_index, z_index;
+		BOOL		collisionTestFilter;
 		//
 		// experimental lighting:
 		BOOL		isSunlit;
@@ -260,7 +261,6 @@ extern int debug;
 	int			n_textures;
 	EntityData	entityData;
 	NSRange		triangle_range[MAX_TEXTURES_PER_ENTITY];
-//	NSString*	texture_file[MAX_TEXTURES_PER_ENTITY];
 	Str255		texture_file[MAX_TEXTURES_PER_ENTITY];
 	GLuint		texture_name[MAX_TEXTURES_PER_ENTITY];
 

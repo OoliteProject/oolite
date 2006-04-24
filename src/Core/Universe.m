@@ -5250,8 +5250,10 @@ GLfloat	starboard_matrix[] = {	0.0f, 0.0f, 1.0f, 0.0f,		0.0f, 1.0f, 0.0f, 0.0f,	
 				
 				// maintain sorted lists
 				//
+				thing->collisionTestFilter = NO;	// don't filter this out - yet
 				Vector p0 = thing->position;
 				double z_distance = thing->zero_distance;
+				GLfloat	space_before, space_after;
 				//
 				// zero_index first..
 				int index = thing->zero_index;
@@ -5274,6 +5276,10 @@ GLfloat	starboard_matrix[] = {	0.0f, 0.0f, 1.0f, 0.0f,		0.0f, 1.0f, 0.0f, 0.0f,	
 					x_sortedEntities[index]->x_index = index;
 					index--;
 				}
+				index = thing->x_index;
+				space_before = (index > 0)? (thing->position.x - thing->collision_radius - (x_sortedEntities[index - 1]->position.x + x_sortedEntities[index - 1]->collision_radius)): 1.0f;
+				space_after = (index < n_entities - 1)? (x_sortedEntities[index + 1]->position.x - x_sortedEntities[index + 1]->collision_radius - (thing->position.x + thing->collision_radius)): 1.0f;
+//				thing->collisionTestFilter |= ((space_before > 0.0f)&&(space_after > 0.0f));
 				//
 				// y_index..
 				index = thing->y_index;
@@ -5285,6 +5291,10 @@ GLfloat	starboard_matrix[] = {	0.0f, 0.0f, 1.0f, 0.0f,		0.0f, 1.0f, 0.0f, 0.0f,	
 					y_sortedEntities[index]->y_index = index;
 					index--;
 				}
+				index = thing->y_index;
+				space_before = (index > 0)? (thing->position.y - thing->collision_radius - (y_sortedEntities[index - 1]->position.y + y_sortedEntities[index - 1]->collision_radius)): 1.0f;
+				space_after = (index < n_entities - 1)? (y_sortedEntities[index + 1]->position.y - y_sortedEntities[index + 1]->collision_radius - (thing->position.y + thing->collision_radius)): 1.0f;
+//				thing->collisionTestFilter |= ((space_before > 0.0f)&&(space_after > 0.0f));
 				//
 				// z_index..
 				index = thing->z_index;
@@ -5296,6 +5306,10 @@ GLfloat	starboard_matrix[] = {	0.0f, 0.0f, 1.0f, 0.0f,		0.0f, 1.0f, 0.0f, 0.0f,	
 					z_sortedEntities[index]->z_index = index;
 					index--;
 				}
+				index = thing->z_index;
+				space_before = (index > 0)? (thing->position.z - thing->collision_radius - (z_sortedEntities[index - 1]->position.z + z_sortedEntities[index - 1]->collision_radius)): 1.0f;
+				space_after = (index < n_entities - 1)? (z_sortedEntities[index + 1]->position.z - z_sortedEntities[index + 1]->collision_radius - (thing->position.z + thing->collision_radius)): 1.0f;
+//				thing->collisionTestFilter |= ((space_before > 0.0f)&&(space_after > 0.0f));
 				//
 				// done maintaining sorted lists
 								
@@ -5313,6 +5327,7 @@ GLfloat	starboard_matrix[] = {	0.0f, 0.0f, 1.0f, 0.0f,		0.0f, 1.0f, 0.0f, 0.0f,	
 					}
 				}
 			}
+			
 			//
 			// detect collisions and light ships that can see the sun
 			//

@@ -944,13 +944,13 @@ NSDictionary* instructions(int station_id, Vector coords, float speed, float ran
 	while (shipbb.max.x - shipbb.min.x > ww * 0.90)	ww *= 1.25;
 	while (shipbb.max.y - shipbb.min.y > hh * 0.90)	hh *= 1.25;
 	
-	if (ship->isPlayer)
+	if ((ship->isPlayer)&&(debug))
 		NSLog(@"DEBUG normalised port dimensions are %.2fx%.2fx%.2f", ww, hh, dd);
 
 	ww *= 0.5;
 	hh *= 0.5;
 	
-	if (ship->isPlayer)
+	if ((ship->isPlayer)&&(debug))
 		NSLog(@"DEBUG player bounding box is at ( %.2f, %.2f, %.2f)-( %.2f, %.2f, %.2f)",
 			arbb.min.x, arbb.min.y, arbb.min.z, arbb.max.x, arbb.max.y, arbb.max.z);
 
