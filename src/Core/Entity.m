@@ -287,6 +287,11 @@ static  Universe	*data_store_universe;
 	//
 	collision_region = nil;
 	//
+	collisionTestFilter = NO;
+	x_next = x_previous = nil;
+	y_next = y_previous = nil;
+	z_next = z_previous = nil;
+	//
     return self;
 }
 
@@ -298,6 +303,96 @@ static  Universe	*data_store_universe;
 	if (trackLock) [trackLock release];
 	if (collision_region) [collision_region release];
 	[super dealloc];
+}
+
+- (void) removeFromLinkedLists
+{
+	if (x_previous)		x_previous->x_next = x_next;
+	if (x_next)			x_next->x_previous = x_previous;
+	//
+	if (y_previous)		y_previous->y_next = y_next;
+	if (y_next)			y_next->y_previous = y_previous;
+	//
+	if (z_previous)		z_previous->z_next = z_next;
+	if (z_next)			z_next->z_previous = z_previous;
+	//
+	x_previous = x_next = nil;
+	y_previous = y_next = nil;
+	z_previous = z_next = nil;
+}
+
+- (void) updateLinkedLists
+{
+	// update position in linked list for position.x
+	// take self out of list..
+	if (x_previous)		x_previous->x_next = x_next;
+	if (x_next)			x_next->x_previous = x_previous;
+	// sink DOWN the list
+	while ((x_previous)&&(x_previous->position.x - x_previous->collision_radius > position.x - collision_radius))
+	{
+		x_next = x_previous;
+		x_previous = x_previous->x_previous;
+	}
+	// bubble UP the list
+	while ((x_next)&&(x_next->position.x - x_next->collision_radius < position.x - collision_radius))
+	{
+		x_previous = x_next;
+		x_next = x_next->x_next;
+	}
+	if (x_next)		// insert self into the list before x_next..
+		x_next->x_previous = self;
+	if (x_previous)	// insert self into the list after x_previous..
+		x_previous->x_next = self;
+	if ((x_previous == nil)&&(universe))
+			universe->x_list_start = self;
+	
+	// update position in linked list for position.y
+	// take self out of list..
+	if (y_previous)		y_previous->y_next = y_next;
+	if (y_next)			y_next->y_previous = y_previous;
+	// sink DOWN the list
+	while ((y_previous)&&(y_previous->position.y - y_previous->collision_radius > position.y - collision_radius))
+	{
+		y_next = y_previous;
+		y_previous = y_previous->y_previous;
+	}
+	// bubble UP the list
+	while ((y_next)&&(y_next->position.y - y_next->collision_radius < position.y - collision_radius))
+	{
+		y_previous = y_next;
+		y_next = y_next->y_next;
+	}
+	if (y_next)		// insert self into the list before y_next..
+		y_next->y_previous = self;
+	if (y_previous)	// insert self into the list after y_previous..
+		y_previous->y_next = self;
+	if ((y_previous == nil)&&(universe))
+			universe->y_list_start = self;
+	
+	// update position in linked list for position.z
+	// take self out of list..
+	if (z_previous)		z_previous->z_next = z_next;
+	if (z_next)			z_next->z_previous = z_previous;
+	// sink DOWN the list
+	while ((z_previous)&&(z_previous->position.z - z_previous->collision_radius > position.z - collision_radius))
+	{
+		z_next = z_previous;
+		z_previous = z_previous->z_previous;
+	}
+	// bubble UP the list
+	while ((z_next)&&(z_next->position.z - z_next->collision_radius < position.z - collision_radius))
+	{
+		z_previous = z_next;
+		z_next = z_next->z_next;
+	}
+	if (z_next)		// insert self into the list before z_next..
+		z_next->z_previous = self;
+	if (z_previous)	// insert self into the list after z_previous..
+		z_previous->z_next = self;
+	if ((z_previous == nil)&&(universe))
+			universe->z_list_start = self;
+	
+	// done
 }
 
 - (void) warnAboutHostiles

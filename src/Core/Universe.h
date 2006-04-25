@@ -144,12 +144,13 @@ extern int debug;
 		int						n_entities;
 		int						cursor_row;
 		
-		// collision optimisation sorted lists
-		Entity*					z_sortedEntities[UNIVERSE_MAX_ENTITIES];
-		Entity*					y_sortedEntities[UNIVERSE_MAX_ENTITIES];
-		Entity*					x_sortedEntities[UNIVERSE_MAX_ENTITIES];
-		//
-		////
+//		// collision optimisation sorted lists
+//		Entity*					z_sortedEntities[UNIVERSE_MAX_ENTITIES];
+//		Entity*					y_sortedEntities[UNIVERSE_MAX_ENTITIES];
+//		Entity*					x_sortedEntities[UNIVERSE_MAX_ENTITIES];
+		Entity					*x_list_start, *y_list_start, *z_list_start;
+//		//
+//		////
 		
 		// colors
 		//
@@ -403,6 +404,8 @@ extern int debug;
 - (void) showCommsLog:(double) how_long;
 
 - (void) update:(double) delta_t;
+
+- (void) filterSortedLists;
 
 ///////////////////////////////////////
 

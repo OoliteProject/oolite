@@ -1766,7 +1766,7 @@ NSDictionary* instructions(int station_id, Vector coords, float speed, float ran
 - (NSString*) description
 {
 	if (!debug)
-		return [NSString stringWithFormat:@"<StationEntity %@ %d >", name, universal_id];
+		return [NSString stringWithFormat:@"<StationEntity %@ %d>", name, universal_id];
 	
 	NSString* result = [[NSString alloc] initWithFormat:@"<StationEntity %@ %d (%@)%@%@ // %@>",
 		name, universal_id, roles, (universe == nil)? @" (not in universe)":@"", ([self isRotatingStation])? @" (rotating)":@"", collision_region];

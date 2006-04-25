@@ -190,8 +190,13 @@ extern int debug;
 		int			status;
 		//
 		int			zero_index;
-		int			x_index, y_index, z_index;
+//		int			x_index, y_index, z_index;
 		BOOL		collisionTestFilter;
+		// replace x_index etc. with linked lists..
+		Entity	*x_previous, *x_next;
+		Entity	*y_previous, *y_next;
+		Entity	*z_previous, *z_next;
+		
 		//
 		// experimental lighting:
 		BOOL		isSunlit;
@@ -288,6 +293,9 @@ extern int debug;
 
 - (id) init;
 - (void) dealloc;
+
+- (void) removeFromLinkedLists;
+- (void) updateLinkedLists;
 
 - (void) warnAboutHostiles;
 
