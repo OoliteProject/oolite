@@ -42,7 +42,6 @@ Your fair use and other rights are in no way affected by the above.
 
 #import "HeadUpDisplay.h"
 #import "ResourceManager.h"
-//#import "OpenGLSprite.h"
 #import "PlayerEntity.h"
 #import "PlanetEntity.h"
 #import "Universe.h"

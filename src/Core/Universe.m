@@ -4965,7 +4965,10 @@ GLfloat	starboard_matrix[] = {	0.0f, 0.0f, 1.0f, 0.0f,		0.0f, 1.0f, 0.0f, 0.0f,	
 
 - (NSString*) collisionDescription
 {
-	return [universeRegion debugOut];
+	if (universeRegion)
+		return	[NSString stringWithFormat:@"c%d", universeRegion->checks_this_tick];
+	else
+		return	@"-";
 }
 
 - (void) dumpCollisions

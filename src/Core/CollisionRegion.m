@@ -355,6 +355,8 @@ NSArray* subregionsContainingPosition( Vector position, CollisionRegion* region)
 		[(CollisionRegion*)[subregions objectAtIndex: i] findCollisionsInUniverse: universe];
 	//
 	
+	checks_this_tick = 0;
+	
 	// test each entity in this region against the entities in its collision chain
 	//
 	for (i = 0; i < n_entities_to_test; i++)
@@ -374,6 +376,8 @@ NSArray* subregionsContainingPosition( Vector position, CollisionRegion* region)
 				NSLog(@"DEBUG Testing collision between %@ and %@", e1, e2);
 				debug = YES;
 			}
+			
+			checks_this_tick++;
 			
 			p2 = e2->position;
 			r2 = e2->collision_radius;
