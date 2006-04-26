@@ -5557,6 +5557,7 @@ GLfloat	starboard_matrix[] = {	0.0f, 0.0f, 1.0f, 0.0f,		0.0f, 1.0f, 0.0f, 0.0f,	
 						next_start = next->position.z - next->collision_radius;
 				}
 				// now either (next == nil) or (next_start >= finish)-which would imply a gap!
+				e0->collision_chain = nil;	// end the collision chain
 			}
 			else
 			{

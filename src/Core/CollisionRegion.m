@@ -365,7 +365,7 @@ NSArray* subregionsContainingPosition( Vector position, CollisionRegion* region)
 		
 		// check against the first in the collision chain
 		e2 = e1->collision_chain;
-		while (e2)
+		while (e2 != nil)
 		{
 
 			if (debug)
