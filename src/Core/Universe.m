@@ -514,9 +514,10 @@ Your fair use and other rights are in no way affected by the above.
 
 - (void) obj_dump
 {
+	int show_count = (debug)? 10 : n_entities;
 	NSLog(@"DEBUG ENTITY DUMP: [entities count] = %d,\tn_entities = %d", [entities count], n_entities);
 	int i;
-	for (i = 0; i < n_entities; i++)
+	for (i = 0; i < show_count; i++)
 	{
 		ShipEntity* se = (sortedEntities[i]->isShip)? (ShipEntity*)sortedEntities[i]: nil;
 		NSLog(@"-> Ent:%d\t\t%@ mass %.2f %@", i, sortedEntities[i], [sortedEntities[i] mass], [se getAI]);
@@ -524,33 +525,36 @@ Your fair use and other rights are in no way affected by the above.
 	if ([entities count] != n_entities)
 		NSLog(@"entities = %@", [entities description]);
 	//
-	NSLog(@"\n----->X list...");
+	NSLog(@"\n----->X list... to %d", show_count);
 	int n = 0;
 	Entity* e0 = x_list_start;
 	while (e0)
 	{
 		n++;
-		NSLog(@"%d.) %@ at x-cr = %.2f", n, e0, e0->position.x - e0->collision_radius);
+		if (n <= show_count)
+			NSLog(@"%d.) %@ at x-cr = %.2f", n, e0, e0->position.x - e0->collision_radius);
 		e0 = e0->x_next;
 	}
 	//
-	NSLog(@"\n----->Y list...");
+	NSLog(@"\n----->Y list... to %d", show_count);
 	n = 0;
 	e0 = y_list_start;
 	while (e0)
 	{
 		n++;
-		NSLog(@"%d.) %@ at y-cr = %.2f", n, e0, e0->position.y - e0->collision_radius);
+		if (n <= show_count)
+			NSLog(@"%d.) %@ at y-cr = %.2f", n, e0, e0->position.y - e0->collision_radius);
 		e0 = e0->y_next;
 	}
 	//
-	NSLog(@"\n----->Z list...");
+	NSLog(@"\n----->Z list... to %d", show_count);
 	n = 0;
 	e0 = z_list_start;
 	while (e0)
 	{
 		n++;
-		NSLog(@"%d.) %@ at z-cr = %.2f", n, e0, e0->position.z - e0->collision_radius);
+		if (n <= show_count)
+			NSLog(@"%d.) %@ at z-cr = %.2f", n, e0, e0->position.z - e0->collision_radius);
 		e0 = e0->z_next;
 	}
 }
@@ -901,7 +905,7 @@ Your fair use and other rights are in no way affected by the above.
 	Vector region_pos = a_planet->position;
 	while (region_pos.z > -planet_radius)
 	{
-		[universeRegion addSubregionAtPosition: region_pos withRadius: region_radius];	// collision regions from planet to witchpoint
+//		[universeRegion addSubregionAtPosition: region_pos withRadius: region_radius];	// collision regions from planet to witchpoint
 		region_pos.z -= region_spacing;
 	}
 	
@@ -1784,11 +1788,11 @@ GLfloat docked_light_specular[]	= { (GLfloat) 1.0, (GLfloat) 1.0, (GLfloat) 0.5,
 		}
 	}
 	
-	// hint to the collision detection system
-	if (cluster_size > 3)
-	{
-		[universeRegion addSubregionAtPosition: spawnPos withRadius: SCANNER_MAX_RANGE * 1.5f ];	// 50% fudge on size
-	}
+//	// hint to the collision detection system
+//	if (cluster_size > 3)
+//	{
+//		[universeRegion addSubregionAtPosition: spawnPos withRadius: SCANNER_MAX_RANGE * 1.5f ];	// 50% fudge on size
+//	}
 	
 	return rocks;
 }
@@ -4950,8 +4954,7 @@ GLfloat	starboard_matrix[] = {	0.0f, 0.0f, 1.0f, 0.0f,		0.0f, 1.0f, 0.0f, 0.0f,	
 	[universeRegion clearEntityList];
 	//
 	for (i = 0; i < n_entities; i++)
-		if ([sortedEntities[i] canCollide])						// on Jens' suggestion only check collidables
-			[universeRegion checkEntity: sortedEntities[i]];	//	sorts out which region it's in
+		[universeRegion checkEntity: sortedEntities[i]];	//	sorts out which region it's in
 	//
 	[universeRegion findCollisionsInUniverse: self];
 	//
@@ -5280,10 +5283,16 @@ GLfloat	starboard_matrix[] = {	0.0f, 0.0f, 1.0f, 0.0f,		0.0f, 1.0f, 0.0f, 0.0f,	
 				// now the linked lists
 				[thing updateLinkedLists];
 				//
-				thing->collisionTestFilter = NO;
+				// filter from collision detection?
+				thing->collisionTestFilter = ![thing canCollide];
+				//
+				// reset list of colliding objects
+				thing->collision_chain = nil;
 				//
 				// done maintaining sorted lists
-								
+				
+				// update deterministic AI
+				//
 				if (thing->isShip)
 				{
 					AI* theShipsAI = [(ShipEntity *)thing getAI];
@@ -5297,6 +5306,8 @@ GLfloat	starboard_matrix[] = {	0.0f, 0.0f, 1.0f, 0.0f,		0.0f, 1.0f, 0.0f, 0.0f,	
 						}
 					}
 				}
+				//
+				////
 			}
 			
 			//
@@ -5373,7 +5384,7 @@ GLfloat	starboard_matrix[] = {	0.0f, 0.0f, 1.0f, 0.0f,		0.0f, 1.0f, 0.0f, 0.0f,	
 	}
 	// done! list filtered
 	
-	// then with the y_list
+	// then with the y_list, z_list singletons now create more gaps..
 	e0 = y_list_start;
 	while (e0)
 	{
@@ -5381,8 +5392,11 @@ GLfloat	starboard_matrix[] = {	0.0f, 0.0f, 1.0f, 0.0f,		0.0f, 1.0f, 0.0f, 0.0f,	
 		start = e0->position.y - e0->collision_radius;
 		finish = start + 2.0f * e0->collision_radius;
 		next = e0->y_next;
+		while ((next)&&(next->collisionTestFilter))	// next has been eliminated from the list of possible colliders - so skip it
+			next = next->y_next;
 		if (next)
 		{
+
 			next_start = next->position.y - next->collision_radius;
 			if (next_start < finish)
 			{
@@ -5395,6 +5409,8 @@ GLfloat	starboard_matrix[] = {	0.0f, 0.0f, 1.0f, 0.0f,		0.0f, 1.0f, 0.0f, 0.0f,	
 						finish = next_finish;
 					e0 = next;
 					next = e0->y_next;
+					while ((next)&&(next->collisionTestFilter))	// next has been eliminated - so skip it
+						next = next->y_next;
 					if (next)
 						next_start = next->position.y - next->collision_radius;
 				}
@@ -5423,6 +5439,8 @@ GLfloat	starboard_matrix[] = {	0.0f, 0.0f, 1.0f, 0.0f,		0.0f, 1.0f, 0.0f, 0.0f,	
 		start = e0->position.x - e0->collision_radius;
 		finish = start + 2.0f * e0->collision_radius;
 		next = e0->x_next;
+		while ((next)&&(next->collisionTestFilter))	// next has been eliminated from the list of possible colliders - so skip it
+			next = next->x_next;
 		if (next)
 		{
 			next_start = next->position.x - next->collision_radius;
@@ -5437,6 +5455,8 @@ GLfloat	starboard_matrix[] = {	0.0f, 0.0f, 1.0f, 0.0f,		0.0f, 1.0f, 0.0f, 0.0f,	
 						finish = next_finish;
 					e0 = next;
 					next = e0->x_next;
+					while ((next)&&(next->collisionTestFilter))	// next has been eliminated - so skip it
+						next = next->x_next;
 					if (next)
 						next_start = next->position.x - next->collision_radius;
 				}
@@ -5457,6 +5477,101 @@ GLfloat	starboard_matrix[] = {	0.0f, 0.0f, 1.0f, 0.0f,		0.0f, 1.0f, 0.0f, 0.0f,	
 	}
 	// done! list filtered
 	
+	// repeat the y_list - so gaps from the x_list influence singletons
+	e0 = y_list_start;
+	while (e0)
+	{
+		// here we are either at the start of the list or just past a gap
+		start = e0->position.y - e0->collision_radius;
+		finish = start + 2.0f * e0->collision_radius;
+		next = e0->y_next;
+		while ((next)&&(next->collisionTestFilter))	// next has been eliminated from the list of possible colliders - so skip it
+			next = next->y_next;
+		if (next)
+		{
+
+			next_start = next->position.y - next->collision_radius;
+			if (next_start < finish)
+			{
+				// e0 and next overlap
+				while ((next)&&(next_start < finish))
+				{
+					// skip forward to the next gap or the end of the list
+					next_finish = next_start + 2.0f * next->collision_radius;
+					if (next_finish > finish)
+						finish = next_finish;
+					e0 = next;
+					next = e0->y_next;
+					while ((next)&&(next->collisionTestFilter))	// next has been eliminated - so skip it
+						next = next->y_next;
+					if (next)
+						next_start = next->position.y - next->collision_radius;
+				}
+				// now either (next == nil) or (next_start >= finish)-which would imply a gap!
+			}
+			else
+			{
+				// e0 is a singleton
+				e0->collisionTestFilter = YES;
+			}
+		}
+		else // (next == nil)
+		{
+			// at the end of the list so e0 is a singleton
+			e0->collisionTestFilter = YES;
+		}
+		e0 = next;
+	}
+	// done! list filtered
+	
+	// finally, repeat the z_list - this time building collision chains...
+	e0 = z_list_start;
+	while (e0)
+	{
+		// here we are either at the start of the list or just past a gap
+		start = e0->position.z - e0->collision_radius;
+		finish = start + 2.0f * e0->collision_radius;
+		next = e0->z_next;
+		while ((next)&&(next->collisionTestFilter))	// next has been eliminated from the list of possible colliders - so skip it
+			next = next->z_next;
+		if (next)
+		{
+
+			next_start = next->position.z - next->collision_radius;
+			if (next_start < finish)
+			{
+				// e0 and next overlap
+				while ((next)&&(next_start < finish))
+				{
+					// chain e0 to next in collision
+					e0->collision_chain = next;
+					// skip forward to the next gap or the end of the list
+					next_finish = next_start + 2.0f * next->collision_radius;
+					if (next_finish > finish)
+						finish = next_finish;
+					e0 = next;
+					next = e0->z_next;
+					while ((next)&&(next->collisionTestFilter))	// next has been eliminated - so skip it
+						next = next->z_next;
+					if (next)
+						next_start = next->position.z - next->collision_radius;
+				}
+				// now either (next == nil) or (next_start >= finish)-which would imply a gap!
+			}
+			else
+			{
+				// e0 is a singleton
+				e0->collisionTestFilter = YES;
+			}
+		}
+		else // (next == nil)
+		{
+			// at the end of the list so e0 is a singleton
+			e0->collisionTestFilter = YES;
+		}
+		e0 = next;
+	}
+	// done! list filtered
 }
 
 - (void) setGalaxy_seed:(Random_Seed) gal_seed

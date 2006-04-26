@@ -299,13 +299,62 @@ NSString* describeBehaviour(int some_behaviour)
 	return @"** BEHAVIOUR UNKNOWN **";
 }
 
+NSString* describeStatus(int some_status)
+{
+	switch(some_status)
+	{
+		case STATUS_AUTOPILOT_ENGAGED :
+			return @"STATUS_AUTOPILOT_ENGAGED";
+		case STATUS_DEAD :
+			return @"STATUS_DEAD";
+		case STATUS_START_GAME :
+			return @"STATUS_START_GAME";
+		case STATUS_DEMO :
+			return @"STATUS_DEMO";
+		case STATUS_DOCKING :
+			return @"STATUS_DOCKING";
+		case STATUS_DOCKED :
+			return @"STATUS_DOCKED";
+		case STATUS_EFFECT :
+			return @"STATUS_EFFECT";
+		case STATUS_ENTERING_WITCHSPACE :
+			return @"STATUS_ENTERING_WITCHSPACE";
+		case STATUS_ESCAPE_SEQUENCE :
+			return @"STATUS_ESCAPE_SEQUENCE";
+		case STATUS_EXITING_WITCHSPACE :
+			return @"STATUS_EXITING_WITCHSPACE";
+		case STATUS_EXPERIMENTAL :
+			return @"STATUS_EXPERIMENTAL";
+		case STATUS_IN_FLIGHT :
+			return @"STATUS_IN_FLIGHT";
+		case STATUS_IN_HOLD :
+			return @"STATUS_IN_HOLD";
+		case STATUS_INACTIVE :
+			return @"STATUS_INACTIVE";
+		case STATUS_LAUNCHING :
+			return @"STATUS_LAUNCHING";
+		case STATUS_TEST :
+			return @"STATUS_TEST";
+		case STATUS_WITCHSPACE_COUNTDOWN :
+			return @"STATUS_WITCHSPACE_COUNTDOWN";
+	}
+	return @"** STATUS UNKNOWN **";
+}
+
 - (NSString*) description
 {
 	if (!debug)
 		return [NSString stringWithFormat:@"<ShipEntity %@ %d>", name, universal_id];
 	
-	NSString* result = [NSString stringWithFormat:@"\n<ShipEntity %@ %d (%@) %@ %@ on target %d // %@>",
-		name, universal_id, roles, (universe == nil)? @" (not in universe)":@"", describeBehaviour(behaviour), primaryTarget, collision_region];
+	NSMutableString* result = [NSMutableString stringWithFormat:@"\n<ShipEntity %@ %d>", name, universal_id];
+	[result appendFormat:@"\n isPlayer: %@", (isPlayer)? @"YES":@"NO"];
+	[result appendFormat:@"\n isShip: %@", (isShip)? @"YES":@"NO"];
+	[result appendFormat:@"\n isStation: %@", (isStation)? @"YES":@"NO"];
+	[result appendFormat:@"\n isSubentity: %@", (isSubentity)? @"YES":@"NO"];
+	[result appendFormat:@"\n canCollide: %@", ([self canCollide])? @"YES":@"NO"];
+	[result appendFormat:@"\n behaviour: %d %@", behaviour, describeBehaviour(behaviour)];
+	[result appendFormat:@"\n status: %d %@", status, describeStatus(status)];
+	[result appendFormat:@"\n collisionRegion: %@", collision_region];
 	return result;
 }
 
@@ -4197,10 +4246,10 @@ static GLfloat mascem_color2[4] =	{ 0.4, 0.1, 0.4, 1.0};	// purple
 			[plate setVelocity:v];
 			quaternion_set_random(&q);
 			[plate setQRotation:q];
-			[plate setStatus:STATUS_TEST];
 			[plate setScanClass: CLASS_CARGO];
 			[plate setCommodity:9 andAmount:1];
 			[universe addEntity:plate];
+			[plate setStatus:STATUS_IN_FLIGHT];
 			[[plate getAI] setState:@"GLOBAL"];
 			[plate release];
 		}
@@ -4430,11 +4479,11 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 			rpos.x += (ranrot_rand() % 7) - 3;
 			rpos.y += (ranrot_rand() % 7) - 3;
 			rpos.z += (ranrot_rand() % 7) - 3;
-			[container setStatus:STATUS_TEST];
 			[container setPosition:rpos];
 			[container setScanClass: CLASS_CARGO];
 			[universe addEntity:container];
 			[[container getAI] setState:@"GLOBAL"];
+			[container setStatus:STATUS_IN_FLIGHT];
 			[container release];
 			if (n_cargo > 0)
 				n_cargo--;  // count down extra cargo

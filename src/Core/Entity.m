@@ -292,6 +292,8 @@ static  Universe	*data_store_universe;
 	y_next = y_previous = nil;
 	z_next = z_previous = nil;
 	//
+	collision_chain = nil;
+	//
     return self;
 }
 
@@ -1789,7 +1791,7 @@ static  Universe	*data_store_universe;
 
 - (BoundingBox) findBoundingBoxRelativeToPosition:(Vector)opv InVectors:(Vector) _i :(Vector) _j :(Vector) _k
 {
-	NSLog(@"DEBUG ** DEPRECATED [Entity findBoundingBoxRelativeToPosition:(Vector)opv InVectors:(Vector) _i :(Vector) _j :(Vector) _k] CALLED **");
+//	NSLog(@"DEBUG ** DEPRECATED [Entity findBoundingBoxRelativeToPosition:(Vector)opv InVectors:(Vector) _i :(Vector) _j :(Vector) _k] CALLED **");
 
 	Vector pv, rv;
 	Vector  rpos = position;

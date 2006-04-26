@@ -1015,7 +1015,7 @@ static Quaternion quaternion_identity = { (GLfloat)1.0, (GLfloat)0.0, (GLfloat)0
     //
     displayListName =   0;
     //
-    status =			STATUS_TEST;
+    status =			STATUS_ACTIVE;
 	//
 	shield_booster =			1;
 	shield_enhancer =			0;

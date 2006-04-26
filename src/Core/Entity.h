@@ -190,12 +190,13 @@ extern int debug;
 		int			status;
 		//
 		int			zero_index;
-//		int			x_index, y_index, z_index;
 		BOOL		collisionTestFilter;
 		// replace x_index etc. with linked lists..
 		Entity	*x_previous, *x_next;
 		Entity	*y_previous, *y_next;
 		Entity	*z_previous, *z_next;
+		//
+		Entity	*collision_chain;
 		
 		//
 		// experimental lighting:

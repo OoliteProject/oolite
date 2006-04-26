@@ -76,7 +76,7 @@ Your fair use and other rights are in no way affected by the above.
     //
     displayListName = 0;
     //
-    status = STATUS_TEST;
+    status = STATUS_ACTIVE;
     //
     return self;
 }

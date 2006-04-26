@@ -886,7 +886,10 @@ static NSTimeInterval	time_last_frame;
 		if ([gameView isDown:48])// look for the '0' key
 		{
 			if (!cloak_pressed)
+			{
 				[universe obj_dump];	// dump objects
+				debug = !debug;
+			}
 			cloak_pressed = YES;
 		}
 		else

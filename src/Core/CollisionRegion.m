@@ -309,7 +309,7 @@ NSArray* subregionsContainingPosition( Vector position, CollisionRegion* region)
 	Entity *e1,*e2;
 	Vector p1, p2;
 	double dist2, r1, r2, r0, min_dist2;
-	int i,j;
+	int i;
 	Entity*	entities_to_test[n_entities];
 	//
 	
@@ -323,9 +323,14 @@ NSArray* subregionsContainingPosition( Vector position, CollisionRegion* region)
 	for (i = 0; i < n_entities; i++)
 	{
 		e1 = entity_array[i];
-		if (!e1->collisionTestFilter)
+		if (!(e1->collisionTestFilter))
 			entities_to_test[n_entities_to_test++] = e1;
 	}
+	
+	if (debug)
+		NSLog(@"\nDEBUG in collision region %@ testing %d out of %d entities", self, n_entities_to_test, n_entities);
+	
+	
 	if (n_entities_to_test < 2)
 		return;
 
@@ -350,26 +355,30 @@ NSArray* subregionsContainingPosition( Vector position, CollisionRegion* region)
 		[(CollisionRegion*)[subregions objectAtIndex: i] findCollisionsInUniverse: universe];
 	//
 	
-	// test each entity in this region against the others
+	// test each entity in this region against the entities in its collision chain
 	//
 	for (i = 0; i < n_entities_to_test; i++)
 	{
 		e1 = entities_to_test[i];
 		p1 = e1->position;
 		r1 = e1->collision_radius;
-		for (j = i + 1; j < n_entities_to_test; j++)
+		
+		// check against the first in the collision chain
+		e2 = e1->collision_chain;
+		while (e2)
 		{
-			e2 = entities_to_test[j];
+
+			if (debug)
+			{
+				debug = NO;
+				NSLog(@"DEBUG Testing collision between %@ and %@", e1, e2);
+				debug = YES;
+			}
+			
 			p2 = e2->position;
 			r2 = e2->collision_radius;
 			r0 = r1 + r2;
 			p2.x -= p1.x;   p2.y -= p1.y;   p2.z -= p1.z;
-			if ((p2.x > r0)||(p2.x < -r0))	// test for simple x distance
-				continue;	// next j
-			if ((p2.y > r0)||(p2.y < -r0))	// test for simple y distance
-				continue;	// next j
-			if ((p2.z > r0)||(p2.z < -r0))	// test for simple z distance
-				continue;	// next j
 			dist2 = p2.x*p2.x + p2.y*p2.y + p2.z*p2.z;
 			min_dist2 = r0 * r0;
 			if (dist2 < PROXIMITY_WARN_DISTANCE2 * min_dist2)
@@ -419,6 +428,8 @@ NSArray* subregionsContainingPosition( Vector position, CollisionRegion* region)
 					}
 				}
 			}
+			// check the next in the collision chain
+			e2 = e2->collision_chain;
 		}
 	}
 }
