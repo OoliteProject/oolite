@@ -691,7 +691,7 @@ static NSTimeInterval	time_last_frame;
 								if (fine_chance < legal_status)
 									[self markForFines];
 							}
-							ship_clock_adjust = 300.0;			// 5 minutes penalty to enter dock
+							ship_clock_adjust = 1200.0;			// 20 minutes penalty to enter dock
 							ident_engaged = NO;
 							[self safe_all_missiles];
 							[universe setViewDirection:VIEW_FORWARD];
@@ -2219,7 +2219,7 @@ static BOOL switching_equipship_screens;
       return;
 
 	MyOpenGLView  *gameView = (MyOpenGLView *)[universe gameView];
-	BOOL docked_okay = (status == STATUS_DOCKED);// || ((status == STATUS_DEMO) && (gui_screen == GUI_SCREEN_SHIPYARD));
+	BOOL docked_okay = (status == STATUS_DOCKED);// || ((status == STATUS_COCKPIT_DISPLAY) && (gui_screen == GUI_SCREEN_SHIPYARD));
 	//
 	//  text displays
 	//

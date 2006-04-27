@@ -309,8 +309,8 @@ NSString* describeStatus(int some_status)
 			return @"STATUS_DEAD";
 		case STATUS_START_GAME :
 			return @"STATUS_START_GAME";
-		case STATUS_DEMO :
-			return @"STATUS_DEMO";
+		case STATUS_COCKPIT_DISPLAY :
+			return @"STATUS_COCKPIT_DISPLAY";
 		case STATUS_DOCKING :
 			return @"STATUS_DOCKING";
 		case STATUS_DOCKED :
@@ -1326,7 +1326,7 @@ BOOL ship_canCollide (ShipEntity* ship)
 {
 	int		s_status =		ship->status;
 	int		s_scan_class =	ship->scan_class;
-	if ((s_status == STATUS_DEMO)||(s_status == STATUS_DEAD)||(s_status == STATUS_BEING_SCOOPED))
+	if ((s_status == STATUS_COCKPIT_DISPLAY)||(s_status == STATUS_DEAD)||(s_status == STATUS_BEING_SCOOPED))
 		return NO;
 	if ((s_scan_class == CLASS_MISSILE) && (ship->shot_time < 0.25)) // not yet fused
 		return NO;
@@ -1691,17 +1691,16 @@ BOOL ship_canCollide (ShipEntity* ship)
 - (Vector) absolutePositionForSubentity
 {
 	Vector		abspos = position;
+	Entity*		last = nil;
 	Entity*		father = [self owner];
-	while (father)
+	while ((father)&&(father != last))
 	{
 		GLfloat* r_mat = [father drawRotationMatrix];
 		mult_vector_gl_matrix(&abspos, r_mat);
 		Vector pos = father->position;
 		abspos.x += pos.x;	abspos.y += pos.y;	abspos.z += pos.z;
-		if (father != [father owner])
-			father = [father owner];
-		else
-			father = nil;
+		last = father;
+		father = [father owner];
 	}
 	return abspos;
 }
@@ -1712,17 +1711,16 @@ BOOL ship_canCollide (ShipEntity* ship)
 	Vector		off = offset;
 	mult_vector_gl_matrix(&off, rotMatrix);
 	Vector		abspos = make_vector( position.x + off.x, position.y + off.y, position.z + off.z);
+	Entity*		last = nil;
 	Entity*		father = [self owner];
-	while (father)
+	while ((father)&&(father != last))
 	{
 		GLfloat* r_mat = [father drawRotationMatrix];
 		mult_vector_gl_matrix(&abspos, r_mat);
 		Vector pos = father->position;
 		abspos.x += pos.x;	abspos.y += pos.y;	abspos.z += pos.z;
-		if (father != [father owner])
-			father = [father owner];
-		else
-			father = nil;
+		last = father;
+		father = [father owner];
 	}
 	return abspos;
 }
@@ -1733,17 +1731,16 @@ BOOL ship_canCollide (ShipEntity* ship)
 	result.v[0] = make_vector( 1.0, 0.0, 0.0);
 	result.v[1] = make_vector( 0.0, 1.0, 0.0);
 	result.v[2] = make_vector( 0.0, 0.0, 1.0);
+	Entity*		last = nil;
 	Entity*		father = self;
-	while (father)
+	while ((father)&&(father != last))
 	{
 		GLfloat* r_mat = [father drawRotationMatrix];
 		mult_vector_gl_matrix(&result.v[0], r_mat);
 		mult_vector_gl_matrix(&result.v[1], r_mat);
 		mult_vector_gl_matrix(&result.v[2], r_mat);
-		if (father != [father owner])
-			father = [father owner];
-		else
-			father = nil;
+		last = father;
+		father = [father owner];
 	}
 	return result;
 }
@@ -1987,7 +1984,7 @@ BOOL ship_canCollide (ShipEntity* ship)
 		}
 	}
 	//
-	if (status == STATUS_DEMO)
+	if (status == STATUS_COCKPIT_DISPLAY)
     {
 		[self applyRoll: delta_t * flight_roll andClimb: delta_t * flight_pitch];
 		GLfloat range2 = 0.1 * distance2( position, destination) / (collision_radius * collision_radius);
@@ -1995,7 +1992,7 @@ BOOL ship_canCollide (ShipEntity* ship)
 		position.x += range2 * delta_t * velocity.x;
 		position.y += range2 * delta_t * velocity.y;
 		position.z += range2 * delta_t * velocity.z;
-		return;
+//		return;	// here's our problem!
     }
 	else
 	{
@@ -2125,26 +2122,26 @@ BOOL ship_canCollide (ShipEntity* ship)
 				[shipAI message:@"ENERGY_FULL"];
 			}
 		}
-		//
-		// subentity rotation
-		//
-		if ((subentity_rotational_velocity.x)||(subentity_rotational_velocity.y)||(subentity_rotational_velocity.z)||(subentity_rotational_velocity.w != 1.0))
-		{
-			Quaternion qf = subentity_rotational_velocity;
-			qf.w *= (1.0 - delta_t);
-			qf.x *= delta_t;
-			qf.y *= delta_t;
-			qf.z *= delta_t;
-			q_rotation = quaternion_multiply( qf, q_rotation);
-		}
-		//
-		//
-		if (sub_entities)
-		{
-			int i;
-			for (i = 0; i < [sub_entities count]; i++)
-				[(Entity *)[sub_entities objectAtIndex:i] update:delta_t];
-		}
+//		//
+//		// subentity rotation
+//		//
+//		if ((subentity_rotational_velocity.x)||(subentity_rotational_velocity.y)||(subentity_rotational_velocity.z)||(subentity_rotational_velocity.w != 1.0))
+//		{
+//			Quaternion qf = subentity_rotational_velocity;
+//			qf.w *= (1.0 - delta_t);
+//			qf.x *= delta_t;
+//			qf.y *= delta_t;
+//			qf.z *= delta_t;
+//			q_rotation = quaternion_multiply( qf, q_rotation);
+//		}
+//		//
+//		//
+//		if (sub_entities)
+//		{
+//			int i;
+//			for (i = 0; i < [sub_entities count]; i++)
+//				[(Entity *)[sub_entities objectAtIndex:i] update:delta_t];
+//		}
 		//
 		// update destination position for escorts
 		if (n_escorts > 0)
@@ -2166,6 +2163,30 @@ BOOL ship_canCollide (ShipEntity* ship)
 			}
 		}
     }
+
+	//
+	// subentity rotation
+	//
+	if ((subentity_rotational_velocity.x)||(subentity_rotational_velocity.y)||(subentity_rotational_velocity.z)||(subentity_rotational_velocity.w != 1.0))
+	{
+		Quaternion qf = subentity_rotational_velocity;
+		qf.w *= (1.0 - delta_t);
+		qf.x *= delta_t;
+		qf.y *= delta_t;
+		qf.z *= delta_t;
+		q_rotation = quaternion_multiply( qf, q_rotation);
+	}
+
+	//
+	// update subentities
+	//
+	if (sub_entities)
+	{
+		int i;
+		for (i = 0; i < [sub_entities count]; i++)
+			[(Entity *)[sub_entities objectAtIndex:i] update:delta_t];
+	}
+
 }
 
 
@@ -2936,7 +2957,7 @@ BOOL ship_canCollide (ShipEntity* ship)
 
 //	// test octree drawing
 //	if (translucent && (octree))
-//		if (status == STATUS_DEMO)
+//		if (status == STATUS_COCKPIT_DISPLAY)
 //			[octree drawOctree];
 
 	//
@@ -2979,13 +3000,15 @@ BOOL ship_canCollide (ShipEntity* ship)
 	if (status == STATUS_ACTIVE)
 	{
 		Vector abspos = position;  // STATUS_ACTIVE means it is in control of it's own orientation
+		Entity*		last = nil;
 		Entity*		father = my_owner;
 		GLfloat*	r_mat = [father drawRotationMatrix];
-		while (father)
+		while ((father)&&(father != last))
 		{
 			mult_vector_gl_matrix(&abspos, r_mat);
 			Vector pos = father->position;
 			abspos.x += pos.x;	abspos.y += pos.y;	abspos.z += pos.z;
+			last = father;
 			father = [father owner];
 			r_mat = [father drawRotationMatrix];
 		}
@@ -4614,15 +4637,16 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 	//
 	//
 	//NSLog(@"DEBUG ball_tracking (before rotation) my_aim (%.2f,%.2f,%.2f) my_ref (%.2f,%.2f,%.2f)", my_aim.x, my_aim.y, my_aim.z,  my_ref.x, my_ref.y, my_ref.z);
+	Entity*		last = nil;
 	Entity*		father = [self owner];
 	GLfloat*	r_mat = [father drawRotationMatrix];
-	while (father)
+	while ((father)&&(father != last))
 	{
 		mult_vector_gl_matrix(&my_position, r_mat);
 		mult_vector_gl_matrix(&my_ref, r_mat);
 		Vector pos = father->position;
 		my_position.x += pos.x;	my_position.y += pos.y;	my_position.z += pos.z;
-
+		last = father;
 		father = [father owner];
 		r_mat = [father drawRotationMatrix];
 	}
@@ -4721,15 +4745,16 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 	//
 	//
 	//NSLog(@"DEBUG ball_tracking (before rotation) my_aim (%.2f,%.2f,%.2f) my_ref (%.2f,%.2f,%.2f)", my_aim.x, my_aim.y, my_aim.z,  my_ref.x, my_ref.y, my_ref.z);
+	Entity*		last = nil;
 	Entity*		father = [self owner];
 	GLfloat*	r_mat = [father drawRotationMatrix];
-	while (father)
+	while ((father)&&(father != last))
 	{
 		mult_vector_gl_matrix(&my_position, r_mat);
 		mult_vector_gl_matrix(&my_ref, r_mat);
 		Vector pos = father->position;
 		my_position.x += pos.x;	my_position.y += pos.y;	my_position.z += pos.z;
-
+		last = father;
 		father = [father owner];
 		r_mat = [father drawRotationMatrix];
 	}
@@ -5422,15 +5447,16 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 
 	ParticleEntity *shot;
 	Vector  origin = position;
+	Entity*		last = nil;
 	Entity*		father = [self owner];
 	GLfloat*	r_mat = [father drawRotationMatrix];
 	Vector		vel = vector_forward_from_quaternion(q_rotation);
-//	Vector		vel_father = [father getVelocity];
-	while (father)
+	while ((father)&&(father != last))
 	{
 		mult_vector_gl_matrix(&origin, r_mat);
 		Vector pos = father->position;
 		origin.x += pos.x;	origin.y += pos.y;	origin.z += pos.z;
+		last = father;
 		father = [father owner];
 		r_mat = [father drawRotationMatrix];
 	}
@@ -5446,10 +5472,6 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 	vel.y *= speed;
 	vel.z *= speed;
 
-//	vel.x += vel_father.x;
-//	vel.y += vel_father.y;
-//	vel.z += vel_father.z;
-//
 	shot = [[ParticleEntity alloc] init];	// alloc retains!
 	[shot setPosition:origin]; // directly ahead
 	[shot setScanClass: CLASS_NO_DRAW];
@@ -5463,7 +5485,6 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 	[universe addEntity:shot];
 
 	[shot setOwner:[self owner]];	// has to be done AFTER adding shot to the universe
-//	NSLog(@"DEBUG Plasma cannon shot owner is %@", [shot owner]);
 
 	[shot release]; //release
 

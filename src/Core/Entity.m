@@ -265,7 +265,7 @@ static  Universe	*data_store_universe;
     //
     displayListName = 0;
     //
-    status = STATUS_DEMO;
+    status = STATUS_COCKPIT_DISPLAY;
     //
     basefile = @"No Model";
 	//
@@ -307,8 +307,39 @@ static  Universe	*data_store_universe;
 	[super dealloc];
 }
 
+- (void) addToLinkedLists
+{
+	if (debug)
+		NSLog(@"DEBUG adding entity %@ to linked lists", self);
+	//
+	// insert at the start
+	if (universe)
+	{
+		x_previous = nil; x_next = universe->x_list_start; universe->x_list_start = self;
+		y_previous = nil; y_next = universe->y_list_start; universe->y_list_start = self;
+		z_previous = nil; z_next = universe->z_list_start; universe->z_list_start = self;
+	}
+	
+	// bubble to the correct position
+	[self updateLinkedLists];
+}
+
 - (void) removeFromLinkedLists
 {
+	if (debug)
+		NSLog(@"DEBUG removing entity %@ from linked lists", self);
+
+	// bubble to the correct position
+	[self updateLinkedLists];
+
+	// make sure the starting point is correct
+	if (universe)
+	{
+		if (x_previous == nil)	universe->x_list_start = x_next;
+		if (y_previous == nil)	universe->y_list_start = y_next;
+		if (z_previous == nil)	universe->z_list_start = z_next;
+	}
+	//
 	if (x_previous)		x_previous->x_next = x_next;
 	if (x_next)			x_next->x_previous = x_previous;
 	//
@@ -325,10 +356,57 @@ static  Universe	*data_store_universe;
 
 - (void) updateLinkedLists
 {
+	if (debug)
+	{
+		// DEBUG check for loops
+		int n = 5 + universe->n_entities;
+		if (n > 5)
+		{
+			Entity* check = x_next;
+			while ((--n)&&(check))	check = check->x_next;
+			if (n <= 0)
+				NSLog(@"ERROR *** broken x_next %@ list ***", x_next);
+			n = 5 + universe->n_entities;
+			check = x_previous;
+			while ((--n)&&(check))	check = check->x_previous;
+			if (n <= 0)
+				NSLog(@"ERROR *** broken x_previous %@ list ***", x_previous);
+			n = 5 + universe->n_entities;
+			check = y_next;
+			while ((--n)&&(check))	check = check->y_next;
+			if (n <= 0)
+				NSLog(@"ERROR *** broken y_next %@ list ***", y_next);
+			n = 5 + universe->n_entities;
+			check = y_previous;
+			while ((--n)&&(check))	check = check->y_previous;
+			if (n <= 0)
+				NSLog(@"ERROR *** broken y_previous %@ list ***", y_previous);
+			n = 5 + universe->n_entities;
+			check = z_next;
+			while ((--n)&&(check))	check = check->z_next;
+			if (n <= 0)
+				NSLog(@"ERROR *** broken z_next %@ list ***", z_next);
+			n = 5 + universe->n_entities;
+			check = z_previous;
+			while ((--n)&&(check))	check = check->z_previous;
+			if (n <= 0)
+				NSLog(@"ERROR *** broken z_previous %@ list ***", z_previous);
+		}
+	}
+	
 	// update position in linked list for position.x
 	// take self out of list..
 	if (x_previous)		x_previous->x_next = x_next;
 	if (x_next)			x_next->x_previous = x_previous;
+	
+	// make sure the starting point is correct
+	if (universe)
+	{
+		if (x_previous == nil)	universe->x_list_start = x_next;
+		if (y_previous == nil)	universe->y_list_start = y_next;
+		if (z_previous == nil)	universe->z_list_start = z_next;
+	}
+	
 	// sink DOWN the list
 	while ((x_previous)&&(x_previous->position.x - x_previous->collision_radius > position.x - collision_radius))
 	{
@@ -841,13 +919,15 @@ static  Universe	*data_store_universe;
 	if (status == STATUS_ACTIVE)
 	{
 		Vector abspos = position;  // STATUS_ACTIVE means it is in control of it's own orientation
+		Entity*		last = nil;
 		Entity*		father = my_owner;
 		GLfloat*	r_mat = [father drawRotationMatrix];
-		while (father)
+		while ((father)&&(father != last))
 		{
 			mult_vector_gl_matrix(&abspos, r_mat);
 			Vector pos = father->position;
 			abspos.x += pos.x;	abspos.y += pos.y;	abspos.z += pos.z;
+			last = father;
 			father = [father owner];
 			r_mat = [father drawRotationMatrix];
 		}
@@ -945,9 +1025,12 @@ static  Universe	*data_store_universe;
 	Entity* player = [universe entityZero];
 	if (player)
 	{
-		Vector p0 = player->position;
-		relative_position = make_vector( position.x - p0.x, position.y - p0.y, position.z - p0.z);
-		zero_distance = magnitude2(relative_position);
+		if (status != STATUS_COCKPIT_DISPLAY)
+			relative_position = vector_between( player->position, position);
+		else
+			relative_position = position;
+		//
+		zero_distance = magnitude2( relative_position);
 	}
 	else
 		zero_distance = -1;

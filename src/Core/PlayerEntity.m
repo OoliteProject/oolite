@@ -1630,7 +1630,7 @@ double scoopSoundPlayTime = 0.0;
 		[trum updateTrumble:delta_t];
 	}
 
-//	if ((status == STATUS_DEMO)&&(gui_screen != GUI_SCREEN_INTRO1)&&(gui_screen != GUI_SCREEN_INTRO2)&&(gui_screen != GUI_SCREEN_MISSION)&&(gui_screen != GUI_SCREEN_SHIPYARD))
+//	if ((status == STATUS_COCKPIT_DISPLAY)&&(gui_screen != GUI_SCREEN_INTRO1)&&(gui_screen != GUI_SCREEN_INTRO2)&&(gui_screen != GUI_SCREEN_MISSION)&&(gui_screen != GUI_SCREEN_SHIPYARD))
 	if ((status == STATUS_START_GAME)&&(gui_screen != GUI_SCREEN_INTRO1)&&(gui_screen != GUI_SCREEN_INTRO2))
 		[self setGuiToIntro1Screen];	//set up demo mode
 
@@ -1912,7 +1912,7 @@ double scoopSoundPlayTime = 0.0;
 	//
 	switch ([universe viewDir])
 	{
-		case VIEW_DOCKED:
+		case VIEW_GUI_DISPLAY:
 		case VIEW_NONE:
 		case VIEW_BREAK_PATTERN:
 		case VIEW_FORWARD:
@@ -2281,7 +2281,7 @@ double scoopSoundPlayTime = 0.0;
 
 - (void) drawEntity:(BOOL) immediate :(BOOL) translucent
 {
-	if ((status == STATUS_DEAD)||(status == STATUS_DEMO)||(status == STATUS_DOCKED)||(status == STATUS_START_GAME)||[universe breakPatternHide])
+	if ((status == STATUS_DEAD)||(status == STATUS_COCKPIT_DISPLAY)||(status == STATUS_DOCKED)||(status == STATUS_START_GAME)||[universe breakPatternHide])
 		return;	// don't draw
 
 	[super drawEntity: immediate : translucent];
@@ -2333,7 +2333,7 @@ double scoopSoundPlayTime = 0.0;
 
 - (BOOL) showDemoShips
 {
-	return showDemoShips;// || (status == STATUS_DEMO);
+	return showDemoShips;// || (status == STATUS_COCKPIT_DISPLAY);
 }
 
 - (double) dial_roll
@@ -2403,7 +2403,7 @@ double scoopSoundPlayTime = 0.0;
 	PlanetEntity* nearest_planet = nil;
 	int i;
 	for (i = 0; ((i < ent_count)&&(!nearest_planet)); i++)
-		if ((uni_entities[i]->isPlanet) && (uni_entities[i]->status != STATUS_DEMO))
+		if ((uni_entities[i]->isPlanet) && (uni_entities[i]->status != STATUS_COCKPIT_DISPLAY))
 			nearest_planet = [uni_entities[i] retain];		//	retained
 
 	if (!nearest_planet)
@@ -3042,7 +3042,7 @@ double scoopSoundPlayTime = 0.0;
 
 	switch ([universe viewDir])
 	{
-		case VIEW_DOCKED:
+		case VIEW_GUI_DISPLAY:
 		case VIEW_NONE:
 		case VIEW_BREAK_PATTERN:
 		case VIEW_FORWARD:
@@ -3697,7 +3697,7 @@ double scoopSoundPlayTime = 0.0;
 - (void) docked
 {
 	status = STATUS_DOCKED;
-	[universe setViewDirection:VIEW_DOCKED];
+	[universe setViewDirection:VIEW_GUI_DISPLAY];
 
 	[self loseTargetStatus];
 
@@ -4232,7 +4232,7 @@ double scoopSoundPlayTime = 0.0;
 	[universe set_up_space];
 
 	status = STATUS_DOCKED;
-	[universe setViewDirection:VIEW_DOCKED];
+	[universe setViewDirection:VIEW_GUI_DISPLAY];
 
 	docked_station = [universe station];
 	if (docked_station)
@@ -4371,7 +4371,7 @@ double scoopSoundPlayTime = 0.0;
 	[self setShowDemoShips: NO];
 	[universe setDisplayText: YES];
 	[universe setDisplayCursor: NO];
-	[universe setViewDirection: VIEW_DOCKED];
+	[universe setViewDirection: VIEW_GUI_DISPLAY];
 
 
 	// DEBUG SCENE TEST ROUTINES
@@ -4573,17 +4573,10 @@ double scoopSoundPlayTime = 0.0;
 	[self setShowDemoShips: NO];
 	[universe setDisplayText: YES];
 	[universe setDisplayCursor: NO];
-	[universe setViewDirection: VIEW_DOCKED];
+	[universe setViewDirection: VIEW_GUI_DISPLAY];
 
-	if (status == STATUS_DOCKED)
-	{
-		// set gui background to show a copy of the planet
-		//
-		[universe removeDemoShips];
-		[self setBackgroundFromDescriptionsKey:@"gui-scene-show-planet"];
-		//
-		////
-	}
+	[universe removeDemoShips];
+	[self setBackgroundFromDescriptionsKey:@"gui-scene-show-planet"];
 
 }
 
@@ -4660,7 +4653,7 @@ double scoopSoundPlayTime = 0.0;
 	[self setShowDemoShips: NO];
 	[universe setDisplayText: YES];
 	[universe setDisplayCursor: YES];
-	[universe setViewDirection: VIEW_DOCKED];
+	[universe setViewDirection: VIEW_GUI_DISPLAY];
 }
 
 - (void) starChartDump
@@ -4888,7 +4881,7 @@ double scoopSoundPlayTime = 0.0;
 	[self setShowDemoShips: NO];
 	[universe setDisplayText: YES];
 	[universe setDisplayCursor: YES];
-	[universe setViewDirection: VIEW_DOCKED];
+	[universe setViewDirection: VIEW_GUI_DISPLAY];
 }
 
 - (void) setGuiToLoadSaveScreen
@@ -5092,7 +5085,7 @@ double scoopSoundPlayTime = 0.0;
 	[self setShowDemoShips: NO];
 	[universe setDisplayText: YES];
 	[universe setDisplayCursor: YES];
-	[universe setViewDirection: VIEW_DOCKED];
+	[universe setViewDirection: VIEW_GUI_DISPLAY];
 }
 
 static int last_outfitting_index;
@@ -5132,13 +5125,10 @@ static int last_outfitting_index;
 	//
 	// find options that agree with this ship
 	BOOL		option_okay[[equipdata count]];
-	NSMutableArray*	options = [NSMutableArray arrayWithArray:(NSArray*)[(NSDictionary*)[[universe shipyard] objectForKey:ship_desc] objectForKey:KEY_OPTIONAL_EQUIPMENT]];
-//	[options addObject:@"EQ_FUEL"];
-//	[options addObject:@"EQ_PASSENGER_BERTH"];
-//	[options addObject:@"EQ_PASSENGER_BERTH_REMOVAL"];
-//	[options addObject:@"EQ_ADVANCED_COMPASS"];	// available to all ships
-//	[options addObject:@"EQ_GAL_DRIVE"];	// available to all ships
-//	[options addObject:@"EQ_MISSILE_REMOVAL"];	// available to all ships
+	NSMutableArray*	options = [NSMutableArray arrayWithArray:(NSArray*)[[[universe shipyard] objectForKey:ship_desc] objectForKey:KEY_OPTIONAL_EQUIPMENT]];
+	// add standard items too!
+	[options addObjectsFromArray:(NSArray*)[[[[universe shipyard] objectForKey:ship_desc] objectForKey:KEY_STANDARD_EQUIPMENT] objectForKey:KEY_EQUIPMENT_EXTRAS]];
+	//
 	int i,j;
 	for (i = 0; i < [equipdata count]; i++)
 	{
@@ -5168,7 +5158,7 @@ static int last_outfitting_index;
 		// if you have a dmaged system you can get it repaired at a tech level one less than that required to buy it
 		if ([self has_extra_equipment:eq_key_damaged])
 			min_techlevel--;
-
+		
 		// reduce the minimum techlevel occasionally as a bonus..
 		//
 		if ((![universe strict])&&(techlevel < min_techlevel)&&(techlevel > min_techlevel - 3))
@@ -5184,7 +5174,7 @@ static int last_outfitting_index;
 			}
 		}
 
-		// check initial availability against options
+		// check initial availability against options AND standard extras
 		for (j = 0; j < [options count]; j++)
 		{
 			if ([eq_key isEqual:[options objectAtIndex:j]])
@@ -5381,7 +5371,7 @@ static int last_outfitting_index;
 	[self setShowDemoShips: NO];
 	[universe setDisplayText: YES];
 	[universe setDisplayCursor: YES];
-	[universe setViewDirection: VIEW_DOCKED];
+	[universe setViewDirection: VIEW_GUI_DISPLAY];
 }
 
 - (void) showInformationForSelectedUpgrade
@@ -5481,7 +5471,7 @@ static int last_outfitting_index;
 	[self setShowDemoShips: YES];
 	[universe setDisplayText: YES];
 	[universe setDisplayCursor: NO];
-	[universe setViewDirection: VIEW_DOCKED];
+	[universe setViewDirection: VIEW_GUI_DISPLAY];
 }
 
 - (void) setGuiToIntro2Screen
@@ -5506,7 +5496,7 @@ static int last_outfitting_index;
 	[self setShowDemoShips: YES];
 	[universe setDisplayText: YES];
 	[universe setDisplayCursor: NO];
-	[universe setViewDirection: VIEW_DOCKED];
+	[universe setViewDirection: VIEW_GUI_DISPLAY];
 }
 
 - (void) buySelectedItem
@@ -5917,7 +5907,7 @@ static int last_outfitting_index;
 	[self setShowDemoShips: NO];
 	[universe setDisplayText: YES];
 	[universe setDisplayCursor: (status == STATUS_DOCKED)];
-	[universe setViewDirection: VIEW_DOCKED];
+	[universe setViewDirection: VIEW_GUI_DISPLAY];
 }
 
 - (int) gui_screen

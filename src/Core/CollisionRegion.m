@@ -373,7 +373,8 @@ NSArray* subregionsContainingPosition( Vector position, CollisionRegion* region)
 			if (debug)
 			{
 				debug = NO;
-				NSLog(@"DEBUG Testing collision between %@ and %@", e1, e2);
+				NSLog(@"DEBUG Testing collision between %@ (%@) and %@ (%@)",
+					e1, (e1->collisionTestFilter)?@"YES":@"NO", e2, (e2->collisionTestFilter)?@"YES":@"NO");
 				debug = YES;
 			}
 			
@@ -549,7 +550,7 @@ BOOL testEntityOccludedByEntity(Entity* e1, Entity* e2, PlanetEntity* the_sun)
 	{
 		e1 = entity_array[i];
 		BOOL occluder_moved = NO;
-		if (e1->status == STATUS_DEMO)
+		if (e1->status == STATUS_COCKPIT_DISPLAY)
 		{
 			e1->isSunlit = YES;
 			e1->shadingEntityID = NO_TARGET;

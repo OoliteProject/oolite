@@ -582,7 +582,7 @@ Your fair use and other rights are in no way affected by the above.
 	[self setShowDemoShips: NO];
 	[universe setDisplayText: YES];
 	[universe setDisplayCursor: YES];
-	[universe setViewDirection: VIEW_DOCKED];
+	[universe setViewDirection: VIEW_GUI_DISPLAY];
 }
 
 
@@ -865,7 +865,7 @@ Your fair use and other rights are in no way affected by the above.
 	[self setShowDemoShips: NO];
 	[universe setDisplayText: YES];
 	[universe setDisplayCursor: NO];
-	[universe setViewDirection: VIEW_DOCKED];
+	[universe setViewDirection: VIEW_GUI_DISPLAY];
 }
 
 - (void) setGuiToDeliveryReportScreenWithText:(NSString*) report
@@ -902,7 +902,7 @@ Your fair use and other rights are in no way affected by the above.
 	[self setShowDemoShips: NO];
 	[universe setDisplayText: YES];
 	[universe setDisplayCursor: NO];
-	[universe setViewDirection: VIEW_DOCKED];
+	[universe setViewDirection: VIEW_GUI_DISPLAY];
 }
 
 // ---------------------------------------------------------------------- //
@@ -1048,7 +1048,7 @@ static NSMutableDictionary* currentShipyard = nil;
 	[self setShowDemoShips: (n_ships > 0)];
 	[universe setDisplayText: YES];
 	[universe setDisplayCursor: YES];
-	[universe setViewDirection: VIEW_DOCKED];
+	[universe setViewDirection: VIEW_GUI_DISPLAY];
 }
 
 - (void) showShipyardInfoForSelection
@@ -1120,54 +1120,26 @@ static NSMutableDictionary* currentShipyard = nil;
 	if (!docked_station)
 		return;
 	
-    quaternion_into_gl_matrix(q_rotation, rotMatrix);
-
-	Quaternion		q2 = q_rotation;
-	q2.w = -q2.w;
-	Vector			pos = position;
-	quaternion_rotate_about_axis(&q2,vector_right_from_quaternion(q2), 0.5 * PI);
+	Quaternion		q2 = { (GLfloat)0.707, (GLfloat)0.707, (GLfloat)0.0, (GLfloat)0.0};
 	
 	ship = [[ShipEntity alloc] init];	//retained
-	
-//	NSLog(@"DEBUG :>:>:> universe = %@", universe);
-	
+		
 	[ship setUniverse:universe];
 	[ship setUpShipFromDictionary:shipDict];
 	
-	double cr = ship->collision_radius;
+	GLfloat cr = ship->collision_radius;
 	if (debug)
 		NSLog(@"::::: showShipModel:'%@'.", [ship name]);
 	[ship setQRotation: q2];
-	// forward - right - up ...
-	double	d1 = 6.4;
-	double	dr = 1.2;
-	double	du = 0.8;
-	//
-	pos.x += d1 * cr * v_forward.x;
-	pos.y += d1 * cr * v_forward.y;
-	pos.z += d1 * cr * v_forward.z;
-	//	
-	pos.x += dr * cr * v_right.x;
-	pos.y += dr * cr * v_right.y;
-	pos.z += dr * cr * v_right.z;
-	//	
-	pos.x += du * cr * v_up.x;
-	pos.y += du * cr * v_up.y;
-	pos.z += du * cr * v_up.z;
-		
-	[ship setStatus: STATUS_DEMO];
-	[ship setPosition: pos];
+	
+	[ship setPosition: 1.2 * cr : 0.8 * cr : 6.4 * cr];
+	[ship setStatus: STATUS_COCKPIT_DISPLAY];
 	[ship setScanClass: CLASS_NO_DRAW];
 	[ship setRoll: PI/10.0];
 	[ship setPitch: PI/25.0];
 	[universe addEntity: ship];
 	[[ship getAI] setStateMachine: @"nullAI.plist"];
 	
-//	[universe setDisplayText:YES];	// tryout for lighting
-//	ship->isSunlit = NO;	// DEBUG TEST
-//
-//	NSLog(@"DEBUG demo ship %@ %@", ship, (ship->isSunlit)? @"is SUNLIT.":@"is not sunlit.");
-
 	[ship release];
 	//
 }

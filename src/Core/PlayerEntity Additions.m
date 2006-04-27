@@ -489,8 +489,8 @@ static NSString * mission_key;
 			return @"STATUS_DEAD";
 		case STATUS_START_GAME :
 			return @"STATUS_START_GAME";
-		case STATUS_DEMO :
-			return @"STATUS_DEMO";
+		case STATUS_COCKPIT_DISPLAY :
+			return @"STATUS_COCKPIT_DISPLAY";
 		case STATUS_DOCKING :
 			return @"STATUS_DOCKING";
 		case STATUS_DOCKED :
@@ -1586,13 +1586,8 @@ static int shipsFound;
 		return;
 	
 	[universe removeDemoShips];	// get rid of any pre-existing models on display
-	
-    quaternion_into_gl_matrix(q_rotation, rotMatrix);
 
-	Quaternion		q2 = q_rotation;
-	q2.w = -q2.w;
-	Vector			pos = position;
-	quaternion_rotate_about_axis(&q2,vector_right_from_quaternion(q2), 0.5 * PI);
+	Quaternion		q2 = { (GLfloat)0.707, (GLfloat)0.707, (GLfloat)0.0, (GLfloat)0.0};
 	
 	ship = [universe getShipWithRole: shipKey];   // retain count = 1
 	if (ship)
@@ -1601,12 +1596,8 @@ static int shipsFound;
 		if (debug)
 			NSLog(@"::::: showShipModel:'%@' (%@) (%@)", shipKey, ship, [ship name]);
 		[ship setQRotation: q2];
-		pos.x += 3.6 * cr * v_forward.x;
-		pos.y += 3.6 * cr * v_forward.y;
-		pos.z += 3.6 * cr * v_forward.z;
-			
-		[ship setStatus: STATUS_DEMO];
-		[ship setPosition: pos];
+		[ship setStatus: STATUS_COCKPIT_DISPLAY];
+		[ship setPosition: 0.0f: 0.0f: 3.6f * cr];
 		[ship setScanClass: CLASS_NO_DRAW];
 		[ship setRoll: PI/5.0];
 		[ship setPitch: PI/10.0];
@@ -1896,9 +1887,9 @@ static int shipsFound;
 #endif   
 
 	// the following are necessary...
-//	status = STATUS_DEMO;
+//	status = STATUS_COCKPIT_DISPLAY;
 	[universe setDisplayText:YES];
-	[universe setViewDirection:VIEW_DOCKED];
+	[universe setViewDirection:VIEW_GUI_DISPLAY];
 }
 
 - (void) setBackgroundFromDescriptionsKey:(NSString*) d_key
@@ -1908,7 +1899,7 @@ static int shipsFound;
 	if (!items)
 		return;
 	//
-	[self addScene: items atOffset: position];
+	[self addScene: items atOffset: make_vector( 0.0f, 0.0f, 0.0f)];
 	//
 	[self setShowDemoShips: YES];
 }
@@ -2031,7 +2022,7 @@ static int shipsFound;
 			NSLog(@"::::: adding model to scene:'%@'", ship);
 		[ship setQRotation: model_q];
 		[ship setPosition: model_p0];
-		[ship setStatus: STATUS_DEMO];
+		[ship setStatus: STATUS_COCKPIT_DISPLAY];
 		[ship setScanClass: CLASS_NO_DRAW];
 		[universe addEntity: ship];
 		[[ship getAI] setStateMachine: @"nullAI.plist"];
@@ -2067,7 +2058,7 @@ static int shipsFound;
 			NSLog(@"::::: adding model to scene:'%@'", doppelganger);
 		[doppelganger setQRotation: model_q];
 		[doppelganger setPosition: model_p0];
-		[doppelganger setStatus: STATUS_DEMO];
+		[doppelganger setStatus: STATUS_COCKPIT_DISPLAY];
 		[doppelganger setScanClass: CLASS_NO_DRAW];
 		[universe addEntity: doppelganger];
 		[[doppelganger getAI] setStateMachine: @"nullAI.plist"];
@@ -2161,7 +2152,7 @@ static int shipsFound;
 			NSLog(@"::::: adding billboard to scene:'%@'\n%@", billboard, [billboard toString]);
 		[billboard setQRotation: model_q];
 		[billboard setPosition: model_p0];
-		[billboard setStatus: STATUS_DEMO];
+		[billboard setStatus: STATUS_COCKPIT_DISPLAY];
 		[billboard setScanClass: CLASS_NO_DRAW];
 		[universe addEntity: billboard];
 		[billboard setVelocity: make_vector( 0.0f, 0.0f, 0.0f)];

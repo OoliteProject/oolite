@@ -1566,6 +1566,7 @@ static	Vector	circleVertex[65];		// holds vector coordinates for a unit circle
 				break;
 
 			default :
+//				NSLog(@"drawParticle immediate:%@ translucent:%@", immediate? @"YES":@"NO", translucent? @"YES":@"NO");
 				[self drawParticle];
 				break;
 		}
@@ -1598,32 +1599,77 @@ static	Vector	circleVertex[65];		// holds vector coordinates for a unit circle
 	if ((particle_type == PARTICLE_FLASHER)&&(status != STATUS_INACTIVE))
 	{
 		gl_matrix	temp_matrix;
-		glGetFloatv(GL_MODELVIEW_MATRIX, temp_matrix);
 
-		Vector abspos = position;  // in control of it's own orientation
+		if (!texName)
+			[self initialiseTexture: textureNameString];
+
+		Vector		abspos = position;  // in control of it's own orientation
+		int			view_dir = [universe viewDir];
+		Entity*		last = nil;
 		Entity*		father = my_owner;
 		GLfloat*	r_mat = [father drawRotationMatrix];
-		while (father)
+		while ((father)&&(father != last))
 		{
 			mult_vector_gl_matrix(&abspos, r_mat);
 			Vector pos = father->position;
 			abspos.x += pos.x;	abspos.y += pos.y;	abspos.z += pos.z;
-			if ([father owner] != father)
-				father = [father owner];
-			else
-				father = nil;
+			last = father;
+			father = [father owner];
 			r_mat = [father drawRotationMatrix];
 		}
 
-		glPopMatrix();  // restore zero!
-		glPushMatrix();
-				// position and orientation is absolute
-		glTranslatef( abspos.x, abspos.y, abspos.z);
-		glMultMatrixf([[universe entityZero] drawRotationMatrix]);
+		if (view_dir == VIEW_GUI_DISPLAY)
+		{
+			if (translucent)
+			{
+				glGetFloatv(GL_MODELVIEW_MATRIX, temp_matrix);
+				glPopMatrix();	glPushMatrix();  // restore zero!
+				glTranslatef( abspos.x, abspos.y, abspos.z); // move to absolute position
+				GLfloat	xx = 0.5 * size.width;
+				GLfloat	yy = 0.5 * size.height;
 
-		[self drawEntity:immediate :translucent];
+				if (alpha < 0.0)	alpha = 0.0;	// clamp the alpha value
+				if (alpha > 1.0)	alpha = 1.0;	// clamp the alpha value
+				
+				color_fv[3] = alpha;
+				glEnable(GL_TEXTURE_2D);
+				glColor4fv( color_fv);
+				glTexEnvfv(GL_TEXTURE_ENV, GL_TEXTURE_ENV_COLOR, color_fv);
+				glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_BLEND);
+				glBindTexture(GL_TEXTURE_2D, texName);
+				
+				glBegin(GL_QUADS);
+					glTexCoord2f(0.0, 1.0);
+					glVertex3f(-xx, -yy, -xx);
 
-		glLoadMatrixf( temp_matrix);
+					glTexCoord2f(1.0, 1.0);
+					glVertex3f(xx, -yy, -xx);
+
+					glTexCoord2f(1.0, 0.0);
+					glVertex3f(xx, yy, -xx);
+
+					glTexCoord2f(0.0, 0.0);
+					glVertex3f(-xx, yy, -xx);
+					
+					
+				glEnd();
+
+				glLoadMatrixf( temp_matrix);
+			}
+		}
+		else
+		{
+			glGetFloatv(GL_MODELVIEW_MATRIX, temp_matrix);
+			glPopMatrix();  // restore zero!
+			glPushMatrix();
+					// position and orientation is absolute
+			glTranslatef( abspos.x, abspos.y, abspos.z);
+			glMultMatrixf([[universe entityZero] drawRotationMatrix]);
+
+			[self drawEntity:immediate :translucent];
+
+			glLoadMatrixf( temp_matrix);
+		}
 	}
 }
 
@@ -1647,13 +1693,14 @@ static	Vector	circleVertex[65];		// holds vector coordinates for a unit circle
 
 	glEnable(GL_TEXTURE_2D);
 
-	glColor4f( color_fv[0], color_fv[1], color_fv[2], alpha);
+	glColor4fv( color_fv);
 
 	glTexEnvfv(GL_TEXTURE_ENV, GL_TEXTURE_ENV_COLOR, color_fv);
 
 	glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_BLEND);
 
 	glBindTexture(GL_TEXTURE_2D, texName);
+
 	glBegin(GL_QUADS);
 
 	viewdir = [universe viewDir];
@@ -1716,7 +1763,6 @@ static	Vector	circleVertex[65];		// holds vector coordinates for a unit circle
 			glVertex3f(-xx, yy, -xx);
 			break;
 	}
-
 	glEnd();
 }
 

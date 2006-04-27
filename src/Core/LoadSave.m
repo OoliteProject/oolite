@@ -49,7 +49,7 @@
 	[self setShowDemoShips: YES];
 	[universe setDisplayText: YES];
 	[universe setDisplayCursor: YES];
-	[universe setViewDirection: VIEW_DOCKED];
+	[universe setViewDirection: VIEW_GUI_DISPLAY];
 }
 
 - (void) setGuiToSaveCommanderScreen: (NSString *)cdrName
@@ -82,7 +82,7 @@
 	[self setShowDemoShips: YES];
 	[universe setDisplayText: YES];
 	[universe setDisplayCursor: YES];
-	[universe setViewDirection: VIEW_DOCKED];
+	[universe setViewDirection: VIEW_GUI_DISPLAY];
 }
 
 - (void) setGuiToOverwriteScreen: (NSString *)cdrName
@@ -113,7 +113,7 @@
 	[universe setDisplayText: YES];
 	[universe setDisplayCursor: NO];
 	[gameView setStringInput: gvStringInputNo];
-	[universe setViewDirection: VIEW_DOCKED];
+	[universe setViewDirection: VIEW_GUI_DISPLAY];
 }
 
 - (void) lsCommanders: (GuiDisplayGen *)gui

@@ -562,7 +562,7 @@ void setUpSinTable()
 	collision_radius = [planet collisionRadius] * PLANET_MINIATURE_FACTOR; // teeny tiny
 	//
 	scan_class = CLASS_NO_DRAW;
-	status = STATUS_DEMO;
+	status = STATUS_COCKPIT_DISPLAY;
 	//
 	q_rotation.w =  aleph;		// represents a 90 degree rotation around x axis
 	q_rotation.x =  aleph;		// (I hope!)
@@ -577,8 +577,6 @@ void setUpSinTable()
 	[self setModel:(isTextured)? @"icostextured.dat" : @"icosahedron.dat"];
 	//
 	[self rescaleTo:1.0];
-	//
-	
 	//
 	for (i = 0; i < 4; i++)
 	{
@@ -1049,7 +1047,9 @@ void setUpSinTable()
 
 - (BOOL) checkCloseCollisionWith:(Entity *)other
 {
-	//NSLog(@"PLANET Collision!");
+	if (debug)
+		NSLog(@"PLANET Collision!");
+	
 	if (!other)
 		return NO;
 	if (other->isShip)

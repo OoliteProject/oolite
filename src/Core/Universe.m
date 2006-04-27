@@ -221,7 +221,7 @@ Your fair use and other rights are in no way affected by the above.
 
 	[player release];
 	//
-	[self setViewDirection:VIEW_DOCKED];
+	[self setViewDirection:VIEW_GUI_DISPLAY];
 	//
 	
 	//NSLog(@"UNIVERSE INIT station %d, planet %d, sun %d",station,planet,sun);
@@ -492,7 +492,7 @@ Your fair use and other rights are in no way affected by the above.
 	[player setUpShipFromDictionary:[self getDictionaryForShip:[player ship_desc]]];	// ship_desc is the standard Cobra at this point
 	//
 	[player setStatus:STATUS_DOCKED];
-	[self setViewDirection:VIEW_DOCKED];
+	[self setViewDirection:VIEW_GUI_DISPLAY];
 	[player setPosition:0 :0 :0];
 	[player setQRotation:q0];
 	[player setGuiToIntro2Screen];
@@ -2486,7 +2486,6 @@ GLfloat docked_light_specular[]	= { (GLfloat) 1.0, (GLfloat) 1.0, (GLfloat) 0.5,
 - (void) set_up_intro1
 {
 	PlayerEntity* player = (PlayerEntity*)[self entityZero];
-	Vector p0 = player->position;
 	ShipEntity		*ship;
 	Quaternion		q2;
 	q2.x = 0.0;   q2.y = 0.0;   q2.z = 0.0; q2.w = 1.0;
@@ -2502,9 +2501,10 @@ GLfloat docked_light_specular[]	= { (GLfloat) 1.0, (GLfloat) 1.0, (GLfloat) 0.5,
 	ship = [self getShip:PLAYER_SHIP_DESC];   // retain count = 1   // shows the cobra-player ship
 	if (ship)
 	{
-		[ship setStatus: STATUS_DEMO];
+		[ship setStatus: STATUS_COCKPIT_DISPLAY];
 		[ship setQRotation:q2];
-		[ship setPosition: p0.x : p0.y : p0.z + 3.6 * ship->actual_radius];  // 250m ahead
+//		[ship setPosition: p0.x : p0.y : p0.z + 3.6 * ship->actual_radius];  // 250m ahead
+		[ship setPosition: 0.0f : 0.0f :3.6f * ship->actual_radius];	// some way ahead
 		
 		//NSLog(@"demo ship %@ has collision radius %.1f 250.0/cr = %.1f", [ship name], ship->collision_radius, 250.0/ship->collision_radius);
 		
@@ -2519,7 +2519,7 @@ GLfloat docked_light_specular[]	= { (GLfloat) 1.0, (GLfloat) 1.0, (GLfloat) 0.5,
 		[ship release];
 	}
 	//
-	[self setViewDirection:VIEW_DOCKED];
+	[self setViewDirection:VIEW_GUI_DISPLAY];
 	displayGUI = YES;
 	//
 	//
@@ -2527,8 +2527,6 @@ GLfloat docked_light_specular[]	= { (GLfloat) 1.0, (GLfloat) 1.0, (GLfloat) 0.5,
 
 - (void) set_up_intro2
 {
-	PlayerEntity* player = (PlayerEntity*)[self entityZero];
-	Vector p0 = player->position;
 	ShipEntity		*ship;
 	Quaternion		q2;
 	q2.x = 0.0;   q2.y = 0.0;   q2.z = 0.0; q2.w = 1.0;
@@ -2547,7 +2545,7 @@ GLfloat docked_light_specular[]	= { (GLfloat) 1.0, (GLfloat) 1.0, (GLfloat) 0.5,
 	if (ship)
 	{
 		[ship setQRotation:q2];
-		[ship setPosition: p0.x : p0.y : p0.z + 3.6 * ship->actual_radius];
+		[ship setPosition: 0.0f : 0.0f : 3.6f * ship->actual_radius];
 		
 		//NSLog(@"demo ship %@ has collision radius %.1f 250.0/cr = %.1f", [ship name], ship->collision_radius, 250.0/ship->collision_radius);
 		
@@ -2558,7 +2556,7 @@ GLfloat docked_light_specular[]	= { (GLfloat) 1.0, (GLfloat) 1.0, (GLfloat) 0.5,
 		[self addEntity:ship];
 		
 		// set status here because addEntity may affect status
-		[ship setStatus:STATUS_DEMO];
+		[ship setStatus:STATUS_COCKPIT_DISPLAY];
 		
 		demo_ship = ship;
 		
@@ -2568,7 +2566,7 @@ GLfloat docked_light_specular[]	= { (GLfloat) 1.0, (GLfloat) 1.0, (GLfloat) 0.5,
 		[ship release];
 	}
 	//
-	[self setViewDirection:VIEW_DOCKED];
+	[self setViewDirection:VIEW_GUI_DISPLAY];
 	displayGUI = YES;
 	//
 	demo_stage = DEMO_SHOW_THING;
@@ -3383,6 +3381,7 @@ void	setDemoLight(BOOL yesno, Vector position)
 	}
 }
 
+
 // global rotation matrix definitions
 GLfloat	fwd_matrix[] = {		1.0f, 0.0f, 0.0f, 0.0f,		0.0f, 1.0f, 0.0f, 0.0f,		0.0f, 0.0f, 1.0f, 0.0f,		0.0f, 0.0f, 0.0f, 1.0f};
 GLfloat	aft_matrix[] = {		-1.0f, 0.0f, 0.0f, 0.0f,	0.0f, 1.0f, 0.0f, 0.0f,		0.0f, 0.0f, -1.0f, 0.0f,	0.0f, 0.0f, 0.0f, 1.0f};
@@ -3398,8 +3397,7 @@ GLfloat	starboard_matrix[] = {	0.0f, 0.0f, 1.0f, 0.0f,		0.0f, 1.0f, 0.0f, 0.0f,	
 			
 			int i, v_status;
 			Vector	position, obj_position, view_dir;
-			BOOL playerDemo = NO;
-//			GLfloat	white[] = { 1.0, 1.0, 1.0, 1.0};	// white light
+			BOOL inGUIMode = NO;
 			
 			//
 			// use a non-mutable copy so this can't be changed under us.
@@ -3450,7 +3448,7 @@ GLfloat	starboard_matrix[] = {	0.0f, 0.0f, 1.0f, 0.0f,		0.0f, 1.0f, 0.0f, 0.0f,	
 			{
 				position = [viewthing getViewpointPosition];
 				v_status = viewthing->status;
-				playerDemo = [(PlayerEntity*)viewthing showDemoShips];
+				inGUIMode = [(PlayerEntity*)viewthing showDemoShips];
 			}
 			else
 			{
@@ -3505,8 +3503,6 @@ GLfloat	starboard_matrix[] = {	0.0f, 0.0f, 1.0f, 0.0f,		0.0f, 1.0f, 0.0f, 0.0f,	
 					view_dir.x = -1.0;   view_dir.y = 0.0;   view_dir.z = 0.0;
 					break;
 				
-				case VIEW_DOCKED :
-				case VIEW_BREAK_PATTERN :
 				default :
 					view_dir.x = 0.0;   view_dir.y = 0.0;   view_dir.z = -1.0;
 					break;
@@ -3514,24 +3510,27 @@ GLfloat	starboard_matrix[] = {	0.0f, 0.0f, 1.0f, 0.0f,		0.0f, 1.0f, 0.0f, 0.0f,	
 
 			gluLookAt(0.0, 0.0, 0.0,	view_dir.x, view_dir.y, view_dir.z,	0.0, 1.0, 0.0);
 
-			if ((!displayGUI) || (playerDemo))
+			if ((!displayGUI) || (inGUIMode))
 			{
 				// set up the light for demo ships
 				Vector demo_light_origin = DEMO_LIGHT_POSITION;
 				
 				////
 				//
-				// rotate the view
-				glMultMatrixf([viewthing rotationMatrix]);
-				// translate the view
-				glTranslatef( -position.x, -position.y, -position.z);
+				if (!inGUIMode)
+				{
+					// rotate the view
+					glMultMatrixf([viewthing rotationMatrix]);
+					// translate the view
+					glTranslatef( -position.x, -position.y, -position.z);
+				}
 				//
 				////
 				
 				// position the sun and docked lights correctly
 				glLightfv(GL_LIGHT1, GL_POSITION, sun_center_position);	// this is necessary or the sun will move with the player
-				
-				if (playerDemo)
+				//
+				if (inGUIMode)
 				{
 					// light for demo ships display.. 
 					glLightfv(GL_LIGHT0, GL_AMBIENT, docked_light_ambient);
@@ -3552,7 +3551,7 @@ GLfloat	starboard_matrix[] = {	0.0f, 0.0f, 1.0f, 0.0f,		0.0f, 1.0f, 0.0f, 0.0f,	
 					setSunLight( YES);
 					glLightModelfv(GL_LIGHT_MODEL_AMBIENT, stars_ambient);
 				}
-				
+				//
 				// turn on lighting
 				glEnable(GL_LIGHTING);
 				
@@ -3571,7 +3570,7 @@ GLfloat	starboard_matrix[] = {	0.0f, 0.0f, 1.0f, 0.0f,		0.0f, 1.0f, 0.0f, 0.0f,	
 					GLfloat flat_ambdiff[4]	= {1.0, 1.0, 1.0, 1.0};   // for alpha
 					GLfloat mat_no[4]		= {0.0, 0.0, 0.0, 1.0};   // nothing
 					
-					if (((d_status == STATUS_DEMO)&&(playerDemo)) || ((d_status != STATUS_DEMO)&&(!playerDemo)))
+					if (((d_status == STATUS_COCKPIT_DISPLAY)&&(inGUIMode)) || ((d_status != STATUS_COCKPIT_DISPLAY)&&(!inGUIMode)))
 					{
 						// reset material properties
 						glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE, flat_ambdiff);
@@ -3614,7 +3613,7 @@ GLfloat	starboard_matrix[] = {	0.0f, 0.0f, 1.0f, 0.0f,		0.0f, 1.0f, 0.0f, 0.0f,	
 						}
 						
 						// lighting
-						if (playerDemo)
+						if (inGUIMode)
 						{
 							setDemoLight( YES, demo_light_origin);
 							setSunLight( NO);
@@ -3643,13 +3642,14 @@ GLfloat	starboard_matrix[] = {	0.0f, 0.0f, 1.0f, 0.0f,		0.0f, 1.0f, 0.0f, 0.0f,	
 				//
 				glDepthMask(GL_FALSE);				// don't write to depth buffer
 				glDisable(GL_LIGHTING);
+				
 				for (i = furthest; i >= nearest; i--)
 				{
 					int d_status;
 					drawthing = my_entities[i];
 					d_status = drawthing->status;
 					
-					if (((d_status == STATUS_DEMO)&&(playerDemo)) || ((d_status != STATUS_DEMO)&&(!playerDemo)))
+					if (((d_status == STATUS_COCKPIT_DISPLAY)&&(inGUIMode)) || ((d_status != STATUS_COCKPIT_DISPLAY)&&(!inGUIMode)))
 					{
 						// experimental - atmospheric fog
 						BOOL fogging = (air_resist_factor > 0.01);
@@ -4019,35 +4019,35 @@ GLfloat	starboard_matrix[] = {	0.0f, 0.0f, 1.0f, 0.0f,		0.0f, 1.0f, 0.0f, 0.0f,	
 			sortedEntities[index] = entity;
 			entity->zero_index = index;
 		}
-		
-		// position this entity in the linked lists of x, y, z position
-		if (n_entities > 0)
-		{
-			Entity* e0 = [self entityZero]; // use the player as a reference - we'll insert the new entity before it
-			Entity* x_previous = e0->x_previous;
-			Entity* y_previous = e0->y_previous;
-			Entity* z_previous = e0->z_previous;
-			if (x_previous)	x_previous->x_next = entity;
-			e0->x_previous = entity;
-			entity->x_previous = x_previous;	entity->x_next = e0;
-			if (y_previous)	y_previous->y_next = entity;
-			e0->y_previous = entity;
-			entity->y_previous = y_previous;	entity->y_next = e0;
-			if (z_previous)	z_previous->z_next = entity;
-			e0->z_previous = entity;
-			entity->z_previous = z_previous;	entity->z_next = e0;
-			// okay it's inserted - now bubble it to its correct position
-			[entity updateLinkedLists];
-		}
-		else
-		{
-			x_list_start = y_list_start = z_list_start = entity;
-		}
-		
-		
+
+//		// position this entity in the linked lists of x, y, z position
+//		if (n_entities > 0)
+//		{
+//			Entity* e0 = [self entityZero]; // use the player as a reference - we'll insert the new entity before it
+//			Entity* x_previous = e0->x_previous;
+//			Entity* y_previous = e0->y_previous;
+//			Entity* z_previous = e0->z_previous;
+//			if (x_previous)	x_previous->x_next = entity;
+//			e0->x_previous = entity;
+//			entity->x_previous = x_previous;	entity->x_next = e0;
+//			if (y_previous)	y_previous->y_next = entity;
+//			e0->y_previous = entity;
+//			entity->y_previous = y_previous;	entity->y_next = e0;
+//			if (z_previous)	z_previous->z_next = entity;
+//			e0->z_previous = entity;
+//			entity->z_previous = z_previous;	entity->z_next = e0;
+//			// okay it's inserted - now bubble it to its correct position
+//			[entity updateLinkedLists];
+//		}
+//		else
+//		{
+//			x_list_start = y_list_start = z_list_start = entity;
+//		}
 		
 		// increase n_entities...
 		n_entities++;
+
+		[entity addToLinkedLists];	// position and universe have been set - so we can do this
 
 //		for (index = 0; index < n_entities; index++)
 //			NSLog(@"+++++ %d %.0f %@", sortedEntities[index]->z_index, sortedEntities[index]->zero_distance, sortedEntities[index]);
@@ -4067,6 +4067,8 @@ GLfloat	starboard_matrix[] = {	0.0f, 0.0f, 1.0f, 0.0f,		0.0f, 1.0f, 0.0f, 0.0f,	
 		if (debug)
 			NSLog(@"DEBUG --(%@) from %d", entity, entity->zero_index);
 
+		[entity removeFromLinkedLists];
+		
 		// moved forward ^^
 		// remove from the reference dictionary
 		int old_id = [entity universal_id];
@@ -4113,7 +4115,6 @@ GLfloat	starboard_matrix[] = {	0.0f, 0.0f, 1.0f, 0.0f,		0.0f, 1.0f, 0.0f, 0.0f,	
 			}
 			entity->zero_index = -1;	// it's GONE!
 		}
-		[entity removeFromLinkedLists];
 //		// preserve x_sorted list
 //		index = entity->x_index;
 //		ne = n_ents;
@@ -4266,6 +4267,8 @@ GLfloat	starboard_matrix[] = {	0.0f, 0.0f, 1.0f, 0.0f,		0.0f, 1.0f, 0.0f, 0.0f,	
 {
 	if (entity)
 	{
+		[entity removeFromLinkedLists];	// AHA!
+		
 		int old_id = [entity universal_id];
 		entity_for_uid[old_id] = nil;
 		[entity setUniversal_id:NO_TARGET];
@@ -4400,7 +4403,7 @@ GLfloat	starboard_matrix[] = {	0.0f, 0.0f, 1.0f, 0.0f,		0.0f, 1.0f, 0.0f, 0.0f,	
 		for (i = 1; i < ent_count; i++)
 		{
 			Entity* ent = my_entities[i];
-			if (ent->status == STATUS_DEMO)
+			if (ent->status == STATUS_COCKPIT_DISPLAY)
 				[self removeEntity:ent];
 		}
 	}
@@ -5191,7 +5194,7 @@ GLfloat	starboard_matrix[] = {	0.0f, 0.0f, 1.0f, 0.0f,		0.0f, 1.0f, 0.0f, 0.0f,	
 			PlayerEntity*	player = (PlayerEntity *)[self entityZero];
 			int				ent_count = n_entities;
 			Entity*			my_entities[ent_count];
-			BOOL			playerDemo = [player showDemoShips];
+			BOOL			inGUIMode = [player showDemoShips];
 			
 			sky_clear_color[0] = 0.0;
 			sky_clear_color[1] = 0.0;
@@ -5207,7 +5210,7 @@ GLfloat	starboard_matrix[] = {	0.0f, 0.0f, 1.0f, 0.0f,		0.0f, 1.0f, 0.0f, 0.0f,	
 			universal_time += delta_t;
 			//
 			update_stage = @"demo management";
-			if ((demo_stage)&&(player)&&(playerDemo)&&(universal_time > demo_stage_time)&&([player gui_screen] == GUI_SCREEN_INTRO2))
+			if ((demo_stage)&&(player)&&(inGUIMode	)&&(universal_time > demo_stage_time)&&([player gui_screen] == GUI_SCREEN_INTRO2))
 			{
 				if (ent_count > 1)
 				{
@@ -5239,13 +5242,11 @@ GLfloat	starboard_matrix[] = {	0.0f, 0.0f, 1.0f, 0.0f,		0.0f, 1.0f, 0.0f, 0.0f,	
 							demo_ship_index %= [demo_ships count];
 							if (demo_ship)
 							{
-								Vector p0 = player->position;
 								[demo_ship setUpShipFromDictionary:[self getDictionaryForShip:[demo_ships objectAtIndex:demo_ship_index]]];
 								[[demo_ship getAI] setStateMachine:@"nullAI.plist"];
 								[demo_ship setQRotation:q2];
-								[demo_ship setPosition: p0.x : p0.y : p0.z + 360.0 * demo_ship->actual_radius];
-								p0.z += 3.6 * demo_ship->actual_radius;
-								[demo_ship setDestination: p0];
+								[demo_ship setPosition: 0.0f : 0.0f : 360.0f * demo_ship->actual_radius];
+								[demo_ship setDestination: make_vector( 0.0f, 0.0f, 3.6f * demo_ship->actual_radius)];
 								vel.x = 0.0;	vel.y = 0.0;	vel.z = -3.6 * demo_ship->actual_radius * 100.0;
 								[demo_ship setVelocity:vel];
 								[demo_ship setScanClass: CLASS_NO_DRAW];
@@ -5285,12 +5286,6 @@ GLfloat	starboard_matrix[] = {	0.0f, 0.0f, 1.0f, 0.0f,		0.0f, 1.0f, 0.0f, 0.0f,	
 				//
 				// now the linked lists
 				[thing updateLinkedLists];
-				//
-				// filter from collision detection?
-				thing->collisionTestFilter = ![thing canCollide];
-				//
-				// reset list of colliding objects
-				thing->collision_chain = nil;
 				//
 				// done maintaining sorted lists
 				
@@ -5345,6 +5340,16 @@ GLfloat	starboard_matrix[] = {	0.0f, 0.0f, 1.0f, 0.0f,		0.0f, 1.0f, 0.0f, 0.0f,	
 	Entity	*e0, *next;
 	GLfloat start, finish, next_start, next_finish;
 	
+	// using the z_list - set or clear collisionTestFilter and clear collision_chain
+	e0 = z_list_start;
+	while (e0)
+	{
+		e0->collisionTestFilter = (![e0 canCollide]);
+		e0->collision_chain = nil;
+		e0 = e0->z_next;
+	}
+	// done.
+	
 	// start with the z_list
 	e0 = z_list_start;
 	while (e0)
@@ -5353,6 +5358,8 @@ GLfloat	starboard_matrix[] = {	0.0f, 0.0f, 1.0f, 0.0f,		0.0f, 1.0f, 0.0f, 0.0f,	
 		start = e0->position.z - e0->collision_radius;
 		finish = start + 2.0f * e0->collision_radius;
 		next = e0->z_next;
+		while ((next)&&(next->collisionTestFilter))	// next has been eliminated from the list of possible colliders - so skip it
+			next = next->z_next;
 		if (next)
 		{
 			next_start = next->position.z - next->collision_radius;
@@ -5367,6 +5374,8 @@ GLfloat	starboard_matrix[] = {	0.0f, 0.0f, 1.0f, 0.0f,		0.0f, 1.0f, 0.0f, 0.0f,	
 						finish = next_finish;
 					e0 = next;
 					next = e0->z_next;
+					while ((next)&&(next->collisionTestFilter))	// next has been eliminated - so skip it
+						next = next->z_next;
 					if (next)
 						next_start = next->position.z - next->collision_radius;
 				}

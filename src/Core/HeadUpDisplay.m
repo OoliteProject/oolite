@@ -855,7 +855,7 @@ static BOOL hostiles;
 
 - (void) drawAegis:(NSDictionary *) info
 {	
-	if (([[player universe] viewDir] == VIEW_DOCKED)||([[player universe] sun] == nil)||([player checkForAegis] != AEGIS_IN_DOCKING_RANGE))
+	if (([[player universe] viewDir] == VIEW_GUI_DISPLAY)||([[player universe] sun] == nil)||([player checkForAegis] != AEGIS_IN_DOCKING_RANGE))
 		return;	// don't draw
 	
 	NSSize siz = NSMakeSize( AEGIS_WIDTH, AEGIS_HEIGHT);
@@ -1440,7 +1440,7 @@ static BOOL hostiles;
 		Vector position = player->position;
 		gl_matrix_into_matrix([player rotationMatrix], rotMatrix);
 		//
-		if ([[player universe] viewDir] != VIEW_DOCKED)
+		if ([[player universe] viewDir] != VIEW_GUI_DISPLAY)
 		{
 			GLfloat siz1 = CROSSHAIR_SIZE * (1.0 - ONE_EIGHTH);
 			GLfloat siz0 = CROSSHAIR_SIZE * ONE_EIGHTH;
@@ -1955,8 +1955,6 @@ void hudDrawReticleOnTarget(Entity* target, PlayerEntity* player1, GLfloat z1)
 			quaternion_rotate_about_axis(&back_q,vector_up_from_quaternion(back_q),-PI/2.0);
 			break;
 		
-		case VIEW_DOCKED :
-		case VIEW_BREAK_PATTERN :
 		default :
 			view_dir.x = 0.0;   view_dir.y = 0.0;   view_dir.z = -1.0;
 			break;
@@ -2248,7 +2246,7 @@ void drawScannerGrid( double x, double y, double z, NSSize siz, int v_dir, GLflo
 		switch (v_dir)
 		{
 			case VIEW_BREAK_PATTERN :
-			case VIEW_DOCKED :
+			case VIEW_GUI_DISPLAY :
 			case VIEW_FORWARD :
 			case VIEW_NONE :
 				glVertex3f( x, y, z); glVertex3f(x - w2, y + hh, z);

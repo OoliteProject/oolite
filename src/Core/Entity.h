@@ -53,7 +53,7 @@ Your fair use and other rights are in no way affected by the above.
 #define STATUS_EXPERIMENTAL			99
 #define STATUS_EFFECT				10
 #define STATUS_ACTIVE				5
-#define STATUS_DEMO					2
+#define STATUS_COCKPIT_DISPLAY					2
 #define STATUS_TEST					1
 #define STATUS_INACTIVE				0
 #define STATUS_DEAD					-1
@@ -295,6 +295,7 @@ extern int debug;
 - (id) init;
 - (void) dealloc;
 
+- (void) addToLinkedLists;
 - (void) removeFromLinkedLists;
 - (void) updateLinkedLists;
 

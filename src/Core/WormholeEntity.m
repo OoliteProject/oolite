@@ -86,6 +86,9 @@ Your fair use and other rights are in no way affected by the above.
 
 - (BOOL) suckInShip:(ShipEntity *) ship
 {
+	if (equal_seeds( destination, [universe systemSeed]))
+		return NO;	// far end of the wormhole!
+	
 	if (ship)
 	{
 		[shipsInTransit addObject:	[NSDictionary dictionaryWithObjectsAndKeys:
@@ -185,6 +188,8 @@ Your fair use and other rights are in no way affected by the above.
 
 - (BOOL) canCollide
 {
+	if (equal_seeds( destination, [universe systemSeed]))
+		return NO;	// far end of the wormhole!
 	return (witch_mass > 0.0);
 }
 
