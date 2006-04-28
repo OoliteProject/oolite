@@ -1721,15 +1721,19 @@ double scoopSoundPlayTime = 0.0;
 			}
 			
 			// check max distance permitted
-			double jump_distance = distanceBetweenPlanetPositions(target_system_seed.d,target_system_seed.b,galaxy_coordinates.x,galaxy_coordinates.y);
-			if (jump_distance > 7.0)
+			double jump_distance = 0.0;
+			if (!galactic_witchjump)
 			{
-				[universe clearPreviousMessage];
-				[universe addMessage:[universe expandDescription:@"[witch-too-far]" forSystem:system_seed] forCount: 4.5];
-				if (![universe playCustomSound:@"[witch-too-far]"])
-					[witchAbortSound play];
-				status = STATUS_IN_FLIGHT;
-				go = NO;
+				jump_distance = distanceBetweenPlanetPositions(target_system_seed.d,target_system_seed.b,galaxy_coordinates.x,galaxy_coordinates.y);
+				if (jump_distance > 7.0)
+				{
+					[universe clearPreviousMessage];
+					[universe addMessage:[universe expandDescription:@"[witch-too-far]" forSystem:system_seed] forCount: 4.5];
+					if (![universe playCustomSound:@"[witch-too-far]"])
+						[witchAbortSound play];
+					status = STATUS_IN_FLIGHT;
+					go = NO;
+				}
 			}
 			
 			// check fuel level
