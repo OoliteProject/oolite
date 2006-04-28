@@ -68,6 +68,8 @@ typedef struct
 		GLfloat		sun_diffuse[4];
 		GLfloat		sun_specular[4];
 		
+		int			lastSubdivideLevel;
+		
 	@protected
 		int planet_type;
 		int r_seed[MAX_VERTICES_PER_ENTITY];
@@ -92,6 +94,7 @@ typedef struct
 		GLfloat		amb_polar_sea[4];
 		
 		PlanetEntity*   atmosphere;				// secondary sphere used to show atmospheric details
+		PlanetEntity*   root_planet;			// link back to owning planet
 		
 		int			shuttles_on_ground;			// starting number of shuttles
 		double		last_launch_time;			// space launches out by about 15 minutes

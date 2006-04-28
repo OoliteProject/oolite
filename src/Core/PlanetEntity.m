@@ -65,11 +65,6 @@ static GLuint vertex_index_array[3*(20+80+320+1280+5120+20480)];
 
 static GLfloat	texture_uv_array[10400 * 2];
 
-//BOOL	saved_texture_uv_array = NO;
-//BOOL	saved_texture_vertices = NO;
-//static GLuint	textured_vertices[3*(20+80+320+1280+5120+20480)];
-//BOOL	saved_plain_vertices = NO;
-//static GLuint	plain_vertices[3*(20+80+320+1280+5120+20480)];
 
 @implementation PlanetEntity
 
@@ -153,6 +148,8 @@ void setUpSinTable()
 	amb_polar_sea[3] = 1.0;
 	//
 	isPlanet = YES;
+	//
+	root_planet = self;
 	//
     return self;
 }
@@ -253,6 +250,8 @@ void setUpSinTable()
 	//
 	isPlanet = YES;
 	//
+	root_planet = self;
+	//
     return self;
 }
 
@@ -271,6 +270,8 @@ void setUpSinTable()
     	NSLog(@"ERROR Planetentity initAsAtmosphereForPlanet:NULL");
     	return self;
     }
+	//
+	[self setOwner: planet];
     //
 	position = planet->position;
 	q_rotation = planet->q_rotation;
@@ -350,6 +351,8 @@ void setUpSinTable()
 	//
 	isPlanet = YES;
 	//
+	root_planet = planet;
+	//
     return self;
 }
 
@@ -387,6 +390,8 @@ void setUpSinTable()
 	[self setOwner:planet];
 	//
 	isPlanet = YES;
+	//
+	root_planet = planet;
 	//
     return self;
 }
@@ -538,6 +543,8 @@ void setUpSinTable()
 	//
 	isPlanet = YES;
 	//
+	root_planet = self;
+	//
     return self;
 }
 
@@ -614,6 +621,8 @@ void setUpSinTable()
 	//
 	//
 	isPlanet = YES;
+	//
+	root_planet = self;
 	//
     return self;
 }
@@ -803,6 +812,8 @@ void setUpSinTable()
 	//
 	isPlanet = YES;
 	//
+	root_planet = self;
+	//
     return self;
 }
 
@@ -988,6 +999,8 @@ void setUpSinTable()
 		[self OGL_AssignVARMemory:sizeof(VertexData) :(void *)&vertexdata :0];
 	//
 	isPlanet = YES;
+	//
+	root_planet = self;
 	//
     return self;
 }
@@ -1269,6 +1282,8 @@ void setUpSinTable()
 	
 	if (planet_type == PLANET_TYPE_MINIATURE)
 		subdivideLevel = [universe reducedDetail]? 3 : 4 ;		// max detail or less
+		
+	lastSubdivideLevel = subdivideLevel;	// record
 	
 	glFrontFace(GL_CW);			// face culling - front faces are AntiClockwise!
 
@@ -1285,6 +1300,8 @@ void setUpSinTable()
 	switch (planet_type)
 	{
 		case PLANET_TYPE_ATMOSPHERE :
+			if (root_planet)
+				subdivideLevel = root_planet->lastSubdivideLevel;	// copy it from the planet (stops jerky LOD and such)
 			glMultMatrixf(rotMatrix);	// rotate the clouds!
 		case PLANET_TYPE_GREEN :
 		case PLANET_TYPE_MINIATURE :
