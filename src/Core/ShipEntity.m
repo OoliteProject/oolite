@@ -2425,7 +2425,7 @@ BOOL ship_canCollide (ShipEntity* ship)
 	double distance = [self rangeToDestination];
 	if (range < slow_down_range)
 	{
-		desired_speed = target_speed;
+		desired_speed = MIN(target_speed, 0.25 * max_flight_speed);
 		// avoid head-on collision
 		//
 		if ((range < 0.5 * distance)&&(behaviour == BEHAVIOUR_ATTACK_FLY_TO_TARGET_SIX))
@@ -2441,7 +2441,7 @@ BOOL ship_canCollide (ShipEntity* ship)
 	{
 		behaviour = BEHAVIOUR_ATTACK_FLY_TO_TARGET;
 		frustration = 0.0;
-		desired_speed = target_speed;   // within the weapon's range don't use afterburner
+		desired_speed = MIN(target_speed, 0.25 * max_flight_speed);   // within the weapon's range don't use afterburner
 	}
 
 	// target-six
@@ -2558,7 +2558,7 @@ BOOL ship_canCollide (ShipEntity* ship)
 	ShipEntity*	target = (ShipEntity*)[universe entityForUniversalID:primaryTarget];
 	double target_speed = [target getVelocityAsSpeed];
 	if (range <= slow_down_range)
-		desired_speed = target_speed;   // within the weapon's range match speed
+		desired_speed = MIN(target_speed, 0.25 * max_flight_speed);   // within the weapon's range match speed
 	else
 		desired_speed = max_available_speed; // use afterburner to approach
 
