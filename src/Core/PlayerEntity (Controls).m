@@ -656,7 +656,8 @@ static NSTimeInterval	time_last_frame;
 				}
 				else
 				{
-					[self boop];
+					if (![universe playCustomSound:@"[autopilot-cannot-dock-with-target]"])
+						[self boop];
 					[universe addMessage:[universe expandDescription:@"Target is not capable of autopilot-docking" forSystem:system_seed] forCount:4.5];
 				}
 			}
@@ -701,7 +702,8 @@ static NSTimeInterval	time_last_frame;
 				}
 				else
 				{
-					[self boop];
+					if (![universe playCustomSound:@"[autopilot-out-of-range]"])
+						[self boop];
 					[universe addMessage:[universe expandDescription:@"[autopilot-out-of-range]" forSystem:system_seed] forCount:4.5];
 				}
 			}
@@ -723,7 +725,8 @@ static NSTimeInterval	time_last_frame;
 					
 					if ((dx == 0)&&(dy == 0))
 					{
-						[self boop];
+						if (![universe playCustomSound:@"[witch-no-target]"])
+							[self boop];
 						[universe clearPreviousMessage];
 						[universe addMessage:[universe expandDescription:@"[witch-no-target]" forSystem:system_seed] forCount:3.0];
 						jumpOK = NO;
@@ -731,7 +734,8 @@ static NSTimeInterval	time_last_frame;
 					
 					if (10.0 * distance > fuel)
 					{
-						[self boop];
+						if (![universe playCustomSound:@"[witch-no-fuel]"])
+							[self boop];
 						[universe clearPreviousMessage];
 						[universe addMessage:[universe expandDescription:@"[witch-no-fuel]" forSystem:system_seed] forCount:3.0];
 						jumpOK = NO;

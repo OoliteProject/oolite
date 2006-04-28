@@ -387,6 +387,10 @@
 	<array>
 		<string>Could not contact station for docking instructions.</string>
 	</array>
+	<key>autopilot-cannot-dock-with-target</key>
+	<array>
+		<string>Target is not capable of autopilot-docking.</string>
+	</array>
 	<key>autopilot-denied</key>
 	<array>
 		<string>Station refuses to issue docking instructions.</string>

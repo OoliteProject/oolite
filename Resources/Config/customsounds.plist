@@ -11,6 +11,8 @@
 	<string>buy.ogg</string>
 	<key>[witch-no-fuel]</key>
 	<string>buy.ogg</string>
+	<key>[witch-no-target]</key>
+	<string>buy.ogg</string>
 	<key>[incoming-missile]</key>
 	<string>buy.ogg</string>
 	<key>[energy-low]</key>
@@ -18,6 +20,8 @@
 	<key>[autopilot-on]</key>
 	<string>buy.ogg</string>
 	<key>[autopilot-off]</key>
+	<string>buy.ogg</string>
+	<key>[autopilot-cannot-dock-with-target]</key>
 	<string>buy.ogg</string>
 	<key>[autopilot-denied]</key>
 	<string>buy.ogg</string>
