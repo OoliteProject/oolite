@@ -62,7 +62,7 @@ static NSString * mission_key;
 	
 	[self setScript_target:self];
 	
-	if (debug)
+	if (debug & DEBUG_SCRIPT)
 		NSLog(@"----- checkScript");
 
 	for (i = 0; i < [[script allKeys] count]; i++)
@@ -170,7 +170,7 @@ static NSString * mission_key;
 	NSString*	valueString = nil;
 	SEL			_selector;
 
-	if (debug)
+	if (debug & DEBUG_SCRIPT)
 		NSLog(@"DEBUG ::::: scriptAction: \"%@\"", scriptAction);
 
 	if ([tokens count] < 1)
@@ -186,7 +186,7 @@ static NSString * mission_key;
 		[tokens removeObjectAtIndex:0];
 		valueString = [[tokens componentsJoinedByString:@" "] stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceCharacterSet]];
 		valueString = [universe expandDescriptionWithLocals:valueString forSystem:[self system_seed] withLocalVariables:locals];
-		if (debug)
+		if (debug & DEBUG_SCRIPT)
  			NSLog(@"DEBUG ::::: after expansion: \"%@ %@\"", selectorString, valueString);
 	}
 					
@@ -250,7 +250,7 @@ static NSString * mission_key;
 	SEL			_selector;
 	int			comparator = COMPARISON_NO;
 		
-	if (debug)
+	if (debug & DEBUG_SCRIPT)
 		NSLog(@"DEBUG ::::: scriptTestCondition: \"%@\"", scriptCondition);
 	
 	if ([tokens count] < 1)
@@ -261,14 +261,14 @@ static NSString * mission_key;
 	selectorString = (NSString *)[tokens objectAtIndex:0];
 	if ([selectorString hasPrefix:@"mission_"])
 	{
-		if (debug)
+		if (debug & DEBUG_SCRIPT)
 			NSLog(@"DEBUG ..... checking mission_variable '%@'",selectorString);
 		mission_string_value = (NSString *)[mission_variables objectForKey:selectorString];
 		selectorString = @"mission_string";
 	}
 	else if ([selectorString hasPrefix:@"local_"])
 	{
-		if (debug)
+		if (debug & DEBUG_SCRIPT)
 			NSLog(@"DEBUG ..... checking local variable '%@'",selectorString);
 		mission_string_value = (NSString *)[locals objectForKey:selectorString];
 		selectorString = @"mission_string";
@@ -322,7 +322,7 @@ static NSString * mission_key;
 	if ([selectorString hasSuffix:@"_string"])
 	{
 		NSString *result = [self performSelector:_selector];
-		if (debug)
+		if (debug & DEBUG_SCRIPT)
 			NSLog(@"DEBUG ..... comparing \"%@\" (%@) to \"%@\" (%@)", result, [result class], valueString, [valueString class]);
 		switch (comparator)
 		{
@@ -340,14 +340,14 @@ static NSString * mission_key;
 				{
 					int i;
 					NSArray *valueStrings = [valueString componentsSeparatedByString:@","];
-					if (debug)
+					if (debug & DEBUG_SCRIPT)
 						NSLog(@"performing a ONEOF comparison: is %@ ONEOF %@ ?", result, valueStrings);
 					NSString* r1 = [result stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceCharacterSet]];
 					for (i = 0; i < [valueStrings count]; i++)
 					{
 						if ([r1 isEqual:[(NSString*)[valueStrings objectAtIndex:i] stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceCharacterSet]]])
 						{
-							if (debug)
+							if (debug & DEBUG_SCRIPT)
 								NSLog(@"found a match in ONEOF!");
 							return YES;
 						}
@@ -364,7 +364,7 @@ static NSString * mission_key;
 		if (comparator == COMPARISON_ONEOF)
 		{
 			NSArray *valueStrings = [valueString componentsSeparatedByString:@","];
-			if (debug)
+			if (debug & DEBUG_SCRIPT)
 				NSLog(@"performing a ONEOF comparison with %d elements: is %@ ONEOF %@", [valueStrings count], result, valueStrings);
 			int i;
 			for (i = 0; i < [valueStrings count]; i++)
@@ -372,12 +372,12 @@ static NSString * mission_key;
 				NSNumber *value = [NSNumber numberWithDouble:[[valueStrings objectAtIndex: i] doubleValue]];
 				if ([result isEqual:value])
 				{
-					if (debug)
+					if (debug & DEBUG_SCRIPT)
 						NSLog(@"found a match in ONEOF!");
 					return YES;
 				}
 			}
-			if (debug)
+			if (debug & DEBUG_SCRIPT)
 				NSLog(@"No match in ONEOF");
 			return NO;
 		}
@@ -385,7 +385,7 @@ static NSString * mission_key;
 		{
 			NSNumber *value = [NSNumber numberWithDouble:[valueString doubleValue]];
 			
-			if (debug)
+			if (debug & DEBUG_SCRIPT)
 				NSLog(@"DEBUG ..... comparing \"%@\" (%@) to \"%@\" (%@)", result, [result class], value, [value class]);
 			
 			switch (comparator)
@@ -925,7 +925,7 @@ static int shipsFound;
 	NSArray* commodityArray = (NSArray *)[[universe commoditydata] objectAtIndex:type];
 	NSString* cargoString = [(NSArray*)commodityArray objectAtIndex:MARKET_NAME];
 	
-	if (debug)
+	if (debug & DEBUG_SCRIPT)
 		NSLog(@"DEBUG ..... Going to award cargo %d x '%@'", amount, cargoString);
 		
 	int unit = [(NSNumber *)[commodityArray objectAtIndex:MARKET_UNITS] intValue];
@@ -1005,7 +1005,7 @@ static int shipsFound;
 	if ((!script_target)||(!script_target->isPlayer))
 		return;
 
-	if (debug)
+	if (debug & DEBUG_SCRIPT)
 		NSLog(@"DEBUG ..... Going to removeAllCargo");
 		
 	NSMutableArray* manifest = [NSMutableArray arrayWithArray:shipCommodityData];
@@ -1035,7 +1035,7 @@ static int shipsFound;
 	[self removeAllCargo];
 	specialCargo = [[universe expandDescription:descriptionString forSystem:system_seed] retain];
 	//
-	if (debug)
+	if (debug & DEBUG_SCRIPT)
 		NSLog(@"DEBUG ..... Going to useSpecialCargo:'%@'", specialCargo);
 }
 
@@ -1098,7 +1098,7 @@ static int shipsFound;
 	
 	int number = [numberString intValue];
 	
-	if (debug)
+	if (debug & DEBUG_SCRIPT)
 		NSLog(@"DEBUG ..... Going to add %d ships with role '%@'", number, roleString);
 
 	while (number--)
@@ -1125,7 +1125,7 @@ static int shipsFound;
 	int number = [numberString intValue];
 	double posn = [positionString doubleValue];
 	
-	if (debug)
+	if (debug & DEBUG_SCRIPT)
 		NSLog(@"DEBUG Going to add %d ships with role '%@' at a point %.3f along route1", number, roleString, posn);
 
 	while (number--)
@@ -1160,7 +1160,7 @@ static int shipsFound;
 	
 	int number = [numberString intValue];
 	
-	if (debug)
+	if (debug & DEBUG_SCRIPT)
 		NSLog(@"DEBUG Going to add %d ship(s) with role '%@' at point (%.3f, %.3f, %.3f) using system %@", number, roleString, posn.x, posn.y, posn.z, systemString);
 
 	if (![universe addShips: number withRole:roleString nearPosition: posn withCoordinateSystem: systemString])
@@ -1195,7 +1195,7 @@ static int shipsFound;
 	
 	int number = [numberString intValue];
 	
-	if (debug)
+	if (debug & DEBUG_SCRIPT)
 		NSLog(@"DEBUG Going to add %d ship(s) with role '%@' precisely at point (%.3f, %.3f, %.3f) using system %@", number, roleString, posn.x, posn.y, posn.z, systemString);
 
 	if (![universe addShips: number withRole:roleString atPosition: posn withCoordinateSystem: systemString])
@@ -1221,7 +1221,7 @@ static int shipsFound;
 	GLfloat r = [[tokens objectAtIndex:6] floatValue];	
 	Vector posn = make_vector( x, y, z);
 	
-	if (debug)
+	if (debug & DEBUG_SCRIPT)
 		NSLog(@"DEBUG Going to add %d ship(s) with role '%@' within %.2f radius about point (%.3f, %.3f, %.3f) using system %@", number, roleString, r, x, y, z, systemString);
 
 	if (![universe addShips:number withRole: roleString nearPosition: posn withCoordinateSystem: systemString withinRadius: r])
@@ -1231,7 +1231,7 @@ static int shipsFound;
 - (void) spawnShip:(NSString *)ship_key
 {
 	BOOL spawnedOkay = [universe spawnShip:ship_key];
-	if (debug)
+	if (debug & DEBUG_SCRIPT)
 	{
 		if (spawnedOkay)
 			NSLog(@"DEBUG Spawned ship with shipdata key '%@'.", ship_key);
@@ -1593,7 +1593,7 @@ static int shipsFound;
 	if (ship)
 	{
 		double cr = ship->collision_radius;
-		if (debug)
+		if (debug & DEBUG_SCRIPT)
 			NSLog(@"::::: showShipModel:'%@' (%@) (%@)", shipKey, ship, [ship name]);
 		[ship setQRotation: q2];
 		[ship setStatus: STATUS_COCKPIT_DISPLAY];
@@ -1645,7 +1645,7 @@ static int shipsFound;
 		if (![universe playCustomSound:@"[fuel-leak]"])
 			[self warnAboutHostiles];
 		[universe addMessage:@"Danger! Fuel leak!" forCount:6];
-		if (debug)
+		if (debug & DEBUG_SCRIPT)
 			NSLog(@"DEBUG FUEL LEAK activated!");
 	}
 }
@@ -1654,7 +1654,7 @@ static int shipsFound;
 {
 	double time_until_nova = [time_value doubleValue];
 	[[universe sun] setGoingNova:YES inTime: time_until_nova];
-	if (debug)
+	if (debug & DEBUG_SCRIPT)
 		NSLog(@"DEBUG NOVA activated! time until Nova : %.1f s", time_until_nova);
 }
 
@@ -1705,7 +1705,7 @@ static int shipsFound;
 
 - (void) addPlanet: (NSString *)planetKey
 {
-	if (debug)
+	if (debug & DEBUG_SCRIPT)
 		NSLog(@"DEBUG addPlanet: %@", planetKey);
 	
 	if (!universe)
@@ -1718,7 +1718,7 @@ static int shipsFound;
 	}
 	
 	/*- add planet -*/
-	if (debug)
+	if (debug & DEBUG_SCRIPT)
 		NSLog(@"DEBUG initPlanetFromDictionary: %@", dict);
 	//
 	PlanetEntity*	planet = [[PlanetEntity alloc] initPlanetFromDictionary:dict inUniverse:universe];	// alloc retains!
@@ -1735,7 +1735,7 @@ static int shipsFound;
 	}
 	//
 	Vector posn = [Entity vectorFromString:(NSString *)[dict objectForKey:@"position"]];
-	if (debug)
+	if (debug & DEBUG_SCRIPT)
 	{
 		NSLog(@"DEBUG planet position (%.2f %.2f %.2f) derived from %@",
 			posn.x, posn.y, posn.z, [dict objectForKey:@"position"]);
@@ -1751,7 +1751,7 @@ static int shipsFound;
 
 - (void) addMoon: (NSString *)moonKey
 {
-	if (debug)
+	if (debug & DEBUG_SCRIPT)
 		NSLog(@"DEBUG addMoon: %@", moonKey);
 	
 	if (!universe)
@@ -1763,7 +1763,7 @@ static int shipsFound;
 		return;
 	}
 	
-	if (debug)
+	if (debug & DEBUG_SCRIPT)
 		NSLog(@"DEBUG initMoonFromDictionary: %@", dict);
 	//
 	PlanetEntity*	planet = [[PlanetEntity alloc] initMoonFromDictionary:dict inUniverse:universe];	// alloc retains!
@@ -1780,7 +1780,7 @@ static int shipsFound;
 	}
 	//
 	Vector posn = [Entity vectorFromString:(NSString *)[dict objectForKey:@"position"]];
-	if (debug)
+	if (debug & DEBUG_SCRIPT)
 	{
 		NSLog(@"DEBUG moon position (%.2f %.2f %.2f) derived from %@",
 			posn.x, posn.y, posn.z, [dict objectForKey:@"position"]);
@@ -1797,13 +1797,13 @@ static int shipsFound;
 - (void) debugOn
 {
 	NSLog(@"SCRIPT debug messages ON");
-	debug = YES;
+	debug |= DEBUG_SCRIPT;
 }
 
 - (void) debugOff
 {
 	NSLog(@"SCRIPT debug messages OFF");
-	debug = NO;
+	debug &= (DEBUG_ALL - DEBUG_SCRIPT);
 }
 
 - (void) debugMessage:(NSString *)args
@@ -1970,7 +1970,7 @@ static int shipsFound;
 		return NO;
 	NSString* i_key = [(NSString*)[i_info objectAtIndex:0] lowercaseString];
 	
-	if (debug)
+	if (debug & DEBUG_SCRIPT)
 		NSLog(@"..... processing %@ (%@)", i_info, i_key);
 	
 	//
@@ -1984,7 +1984,7 @@ static int shipsFound;
 		Vector	scene_offset = [Entity vectorFromString:[[i_info subarrayWithRange:NSMakeRange( 2, 3)] componentsJoinedByString:@" "]];
 		scene_offset.x += off.x;	scene_offset.y += off.y;	scene_offset.z += off.z;
 		NSArray* scene_items = (NSArray*)[[universe descriptions] objectForKey:scene_key];
-		if (debug)
+		if (debug & DEBUG_SCRIPT)
 			NSLog(@"::::: adding scene: '%@'", scene_key);
 		//
 		if (scene_items)
@@ -2018,7 +2018,7 @@ static int shipsFound;
 		model_p0.y += off.y - model_offset.y;
 		model_p0.z += off.z - model_offset.z;
 
-		if (debug)
+		if (debug & DEBUG_SCRIPT)
 			NSLog(@"::::: adding model to scene:'%@'", ship);
 		[ship setQRotation: model_q];
 		[ship setPosition: model_p0];
@@ -2054,7 +2054,7 @@ static int shipsFound;
 		model_p0.y += off.y - model_offset.y;
 		model_p0.z += off.z - model_offset.z;
 
-		if (debug)
+		if (debug & DEBUG_SCRIPT)
 			NSLog(@"::::: adding model to scene:'%@'", doppelganger);
 		[doppelganger setQRotation: model_q];
 		[doppelganger setPosition: model_p0];
@@ -2088,7 +2088,7 @@ static int shipsFound;
 		model_p0.y += off.y;
 		model_p0.z += off.z;
 
-		if (debug)
+		if (debug & DEBUG_SCRIPT)
 			NSLog(@"::::: adding local-planet to scene:'%@'", doppelganger);
 		[doppelganger setQRotation: model_q];
 		[doppelganger setPosition: model_p0];
@@ -2117,7 +2117,7 @@ static int shipsFound;
 		model_p0.y += off.y;
 		model_p0.z += off.z;
 
-		if (debug)
+		if (debug & DEBUG_SCRIPT)
 			NSLog(@"::::: adding target-planet to scene:'%@'", doppelganger);
 		[doppelganger setQRotation: model_q];
 		[doppelganger setPosition: model_p0];
@@ -2148,7 +2148,7 @@ static int shipsFound;
 		ParticleEntity* billboard = [[ParticleEntity alloc] initBillboard:billSize withTexture:texturefile];
 		if (!billboard)
 			return NO;
-		if (debug)
+		if (debug & DEBUG_SCRIPT)
 			NSLog(@"::::: adding billboard to scene:'%@'\n%@", billboard, [billboard toString]);
 		[billboard setQRotation: model_q];
 		[billboard setPosition: model_p0];
@@ -2157,7 +2157,7 @@ static int shipsFound;
 		[universe addEntity: billboard];
 		[billboard setVelocity: make_vector( 0.0f, 0.0f, 0.0f)];
 
-		if (debug)
+		if (debug & DEBUG_SCRIPT)
 			NSLog(@"::::: adding billboard to scene:'%@'\n%@", billboard, [billboard toString]);
 		[billboard release];
 		return YES;

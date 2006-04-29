@@ -1060,7 +1060,7 @@ void setUpSinTable()
 
 - (BOOL) checkCloseCollisionWith:(Entity *)other
 {
-	if (debug)
+	if (debug & DEBUG_COLLISIONS)
 		NSLog(@"PLANET Collision!");
 	
 	if (!other)

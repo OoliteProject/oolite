@@ -1128,7 +1128,7 @@ static NSMutableDictionary* currentShipyard = nil;
 	[ship setUpShipFromDictionary:shipDict];
 	
 	GLfloat cr = ship->collision_radius;
-	if (debug)
+	if (debug & DEBUG_SCRIPT)
 		NSLog(@"::::: showShipModel:'%@'.", [ship name]);
 	[ship setQRotation: q2];
 	

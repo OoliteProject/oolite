@@ -892,7 +892,8 @@ static NSTimeInterval	time_last_frame;
 			if (!cloak_pressed)
 			{
 				[universe obj_dump];	// dump objects
-				debug = !debug;
+//				debug = debug^-1;
+				debug = (debug)? 0 : DEBUG_LINKED_LISTS;
 			}
 			cloak_pressed = YES;
 		}

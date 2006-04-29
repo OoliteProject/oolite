@@ -1,7 +1,7 @@
 //#import <Foundation/Foundation.h>
 #import <AppKit/AppKit.h>
 
-BOOL debug = NO;
+int debug = 0;
 
 int main(int argc, const char *argv[])
 {

@@ -37,6 +37,12 @@ Your fair use and other rights are in no way affected by the above.
 
 */
 
+#define DEBUG_ALL			0xffffffff
+#define DEBUG_LINKED_LISTS	0x00000001
+#define DEBUG_ENTITIES		0x00000002
+#define DEBUG_COLLISIONS	0x00000004
+#define DEBUG_SCRIPT		0x00000008
+
 #define MAX_VERTICES_PER_ENTITY	320
 #define MAX_FACES_PER_ENTITY	512
 #define MAX_TEXTURES_PER_ENTITY	8

@@ -19,7 +19,6 @@
     #define MIN(A,B)	({ __typeof__(A) __a = (A); __typeof__(B) __b = (B); __a < __b ? __a : __b; })
 #endif
 
-
 #define IBOutlet /**/
 #define IBAction void
 

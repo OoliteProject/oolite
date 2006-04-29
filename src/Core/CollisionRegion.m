@@ -327,7 +327,7 @@ NSArray* subregionsContainingPosition( Vector position, CollisionRegion* region)
 			entities_to_test[n_entities_to_test++] = e1;
 	}
 	
-	if (debug)
+	if (debug & DEBUG_COLLISIONS)
 		NSLog(@"\nDEBUG in collision region %@ testing %d out of %d entities", self, n_entities_to_test, n_entities);
 	
 	
@@ -370,7 +370,7 @@ NSArray* subregionsContainingPosition( Vector position, CollisionRegion* region)
 		while (e2 != nil)
 		{
 
-			if (debug)
+			if (debug & DEBUG_COLLISIONS)
 			{
 				debug = NO;
 				NSLog(@"DEBUG Testing collision between %@ (%@) and %@ (%@)",

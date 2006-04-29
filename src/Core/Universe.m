@@ -3921,7 +3921,7 @@ GLfloat	starboard_matrix[] = {	0.0f, 0.0f, 1.0f, 0.0f,		0.0f, 1.0f, 0.0f, 0.0f,	
 {
 	if (entity)
 	{
-		if (debug)
+		if (debug & DEBUG_ENTITIES)
 			NSLog(@"DEBUG ++(%@)", entity);
 		
 		int index = n_entities;
@@ -4064,7 +4064,7 @@ GLfloat	starboard_matrix[] = {	0.0f, 0.0f, 1.0f, 0.0f,		0.0f, 1.0f, 0.0f, 0.0f,	
 {
 	if (entity)
 	{
-		if (debug)
+		if (debug & DEBUG_ENTITIES)
 			NSLog(@"DEBUG --(%@) from %d", entity, entity->zero_index);
 
 		[entity removeFromLinkedLists];

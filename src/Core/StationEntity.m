@@ -944,13 +944,13 @@ NSDictionary* instructions(int station_id, Vector coords, float speed, float ran
 	while (shipbb.max.x - shipbb.min.x > ww * 0.90)	ww *= 1.25;
 	while (shipbb.max.y - shipbb.min.y > hh * 0.90)	hh *= 1.25;
 	
-	if ((ship->isPlayer)&&(debug))
+	if ((ship->isPlayer)&&(debug & DEBUG_COLLISIONS))
 		NSLog(@"DEBUG normalised port dimensions are %.2fx%.2fx%.2f", ww, hh, dd);
 
 	ww *= 0.5;
 	hh *= 0.5;
 	
-	if ((ship->isPlayer)&&(debug))
+	if ((ship->isPlayer)&&(debug & DEBUG_COLLISIONS))
 		NSLog(@"DEBUG player bounding box is at ( %.2f, %.2f, %.2f)-( %.2f, %.2f, %.2f)",
 			arbb.min.x, arbb.min.y, arbb.min.z, arbb.max.x, arbb.max.y, arbb.max.z);
 
@@ -1765,12 +1765,14 @@ NSDictionary* instructions(int station_id, Vector coords, float speed, float ran
 
 - (NSString*) description
 {
-	if (!debug)
+	if (debug & DEBUG_ENTITIES)
+	{
+		NSString* result = [[NSString alloc] initWithFormat:@"<StationEntity %@ %d (%@)%@%@ // %@>",
+			name, universal_id, roles, (universe == nil)? @" (not in universe)":@"", ([self isRotatingStation])? @" (rotating)":@"", collision_region];
+		return [result autorelease];
+	}
+	else
 		return [NSString stringWithFormat:@"<StationEntity %@ %d>", name, universal_id];
-	
-	NSString* result = [[NSString alloc] initWithFormat:@"<StationEntity %@ %d (%@)%@%@ // %@>",
-		name, universal_id, roles, (universe == nil)? @" (not in universe)":@"", ([self isRotatingStation])? @" (rotating)":@"", collision_region];
-	return [result autorelease];
 }
 
 @end

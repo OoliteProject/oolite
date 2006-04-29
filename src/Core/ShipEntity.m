@@ -343,19 +343,21 @@ NSString* describeStatus(int some_status)
 
 - (NSString*) description
 {
-	if (!debug)
+	if (debug & DEBUG_ENTITIES)
+	{
+		NSMutableString* result = [NSMutableString stringWithFormat:@"\n<ShipEntity %@ %d>", name, universal_id];
+		[result appendFormat:@"\n isPlayer: %@", (isPlayer)? @"YES":@"NO"];
+		[result appendFormat:@"\n isShip: %@", (isShip)? @"YES":@"NO"];
+		[result appendFormat:@"\n isStation: %@", (isStation)? @"YES":@"NO"];
+		[result appendFormat:@"\n isSubentity: %@", (isSubentity)? @"YES":@"NO"];
+		[result appendFormat:@"\n canCollide: %@", ([self canCollide])? @"YES":@"NO"];
+		[result appendFormat:@"\n behaviour: %d %@", behaviour, describeBehaviour(behaviour)];
+		[result appendFormat:@"\n status: %d %@", status, describeStatus(status)];
+		[result appendFormat:@"\n collisionRegion: %@", collision_region];
+		return result;
+	}
+	else
 		return [NSString stringWithFormat:@"<ShipEntity %@ %d>", name, universal_id];
-	
-	NSMutableString* result = [NSMutableString stringWithFormat:@"\n<ShipEntity %@ %d>", name, universal_id];
-	[result appendFormat:@"\n isPlayer: %@", (isPlayer)? @"YES":@"NO"];
-	[result appendFormat:@"\n isShip: %@", (isShip)? @"YES":@"NO"];
-	[result appendFormat:@"\n isStation: %@", (isStation)? @"YES":@"NO"];
-	[result appendFormat:@"\n isSubentity: %@", (isSubentity)? @"YES":@"NO"];
-	[result appendFormat:@"\n canCollide: %@", ([self canCollide])? @"YES":@"NO"];
-	[result appendFormat:@"\n behaviour: %d %@", behaviour, describeBehaviour(behaviour)];
-	[result appendFormat:@"\n status: %d %@", status, describeStatus(status)];
-	[result appendFormat:@"\n collisionRegion: %@", collision_region];
-	return result;
 }
 
 static NSMutableDictionary* smallOctreeDict = nil;
@@ -7297,7 +7299,7 @@ inline BOOL pairOK(NSString* my_role, NSString* their_role)
 
 	int number = [numberString intValue];
 
-	if (debug)
+	if (debug & DEBUG_SCRIPT)
 		NSLog(@"DEBUG ..... Going to spawn %d x '%@' near %@ %d", number, roleString, name, universal_id);
 
 	while (number--)

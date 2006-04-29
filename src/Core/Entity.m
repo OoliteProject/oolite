@@ -309,7 +309,7 @@ static  Universe	*data_store_universe;
 
 - (void) addToLinkedLists
 {
-	if (debug)
+	if (debug & DEBUG_LINKED_LISTS)
 		NSLog(@"DEBUG adding entity %@ to linked lists", self);
 	//
 	// insert at the start
@@ -326,7 +326,7 @@ static  Universe	*data_store_universe;
 
 - (void) removeFromLinkedLists
 {
-	if (debug)
+	if (debug & DEBUG_LINKED_LISTS)
 		NSLog(@"DEBUG removing entity %@ from linked lists", self);
 
 	// bubble to the correct position
@@ -356,7 +356,7 @@ static  Universe	*data_store_universe;
 
 - (void) updateLinkedLists
 {
-	if (debug)
+	if (debug & DEBUG_LINKED_LISTS)
 	{
 		// DEBUG check for loops
 		int n = 5 + universe->n_entities;
