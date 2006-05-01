@@ -829,6 +829,8 @@ static	Vector	circleVertex[65];		// holds vector coordinates for a unit circle
 			type_string = @"PARTICLE_EXHAUST";	break;
 		case PARTICLE_HYPERRING :
 			type_string = @"PARTICLE_HYPERRING";	break;
+		case PARTICLE_FLASH :
+			type_string = @"PARTICLE_FLASH";	break;
 		case PARTICLE_FLASHER :
 			type_string = @"PARTICLE_FLASHER";	break;
 		case PARTICLE_MARKER :

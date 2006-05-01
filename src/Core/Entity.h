@@ -303,6 +303,7 @@ extern int debug;
 
 - (void) addToLinkedLists;
 - (void) removeFromLinkedLists;
+- (BOOL) checkLinkedLists;
 - (void) updateLinkedLists;
 
 - (void) warnAboutHostiles;

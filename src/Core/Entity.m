@@ -349,64 +349,86 @@ static  Universe	*data_store_universe;
 	if (z_previous)		z_previous->z_next = z_next;
 	if (z_next)			z_next->z_previous = z_previous;
 	//
-	x_previous = x_next = nil;
-	y_previous = y_next = nil;
-	z_previous = z_next = nil;
+	x_previous = nil;	x_next = nil;
+	y_previous = nil;	y_next = nil;
+	z_previous  = nil;	z_next = nil;
+}
+
+- (BOOL) checkLinkedLists
+{
+	// DEBUG check for loops
+	if (universe->n_entities > 0)
+	{
+		int n;
+		Entity* check;
+		//
+		n = universe->n_entities;
+		check = x_next;
+		while ((n--)&&(check))	check = check->x_next;
+		if (check)
+		{
+			NSLog(@"ERROR *** broken x_next %@ list ***", x_next);
+			return NO;
+		}
+		//
+		n = universe->n_entities;
+		check = x_previous;
+		while ((n--)&&(check))	check = check->x_previous;
+		if (check)
+		{
+			NSLog(@"ERROR *** broken x_previous %@ list ***", x_previous);
+			return NO;
+		}
+		//
+		n = universe->n_entities;
+		check = y_next;
+		while ((n--)&&(check))	check = check->y_next;
+		if (check)
+		{
+			NSLog(@"ERROR *** broken y_next %@ list ***", y_next);
+			return NO;
+		}
+		//
+		n = universe->n_entities;
+		check = y_previous;
+		while ((n--)&&(check))	check = check->y_previous;
+		if (check)
+		{
+			NSLog(@"ERROR *** broken y_previous %@ list ***", y_previous);
+			return NO;
+		}
+		//
+		n = universe->n_entities;
+		check = z_next;
+		while ((n--)&&(check))	check = check->z_next;
+		if (check)
+		{
+			NSLog(@"ERROR *** broken z_next %@ list ***", z_next);
+			return NO;
+		}
+		//
+		n = universe->n_entities;
+		check = z_previous;
+		while ((n--)&&(check))	check = check->z_previous;
+		if (check)
+		{
+			NSLog(@"ERROR *** broken z_previous %@ list ***", z_previous);
+			return NO;
+		}
+	}
+	return YES;
 }
 
 - (void) updateLinkedLists
 {
-	if (debug & DEBUG_LINKED_LISTS)
-	{
-		// DEBUG check for loops
-		int n = 5 + universe->n_entities;
-		if (n > 5)
-		{
-			Entity* check = x_next;
-			while ((--n)&&(check))	check = check->x_next;
-			if (n <= 0)
-				NSLog(@"ERROR *** broken x_next %@ list ***", x_next);
-			n = 5 + universe->n_entities;
-			check = x_previous;
-			while ((--n)&&(check))	check = check->x_previous;
-			if (n <= 0)
-				NSLog(@"ERROR *** broken x_previous %@ list ***", x_previous);
-			n = 5 + universe->n_entities;
-			check = y_next;
-			while ((--n)&&(check))	check = check->y_next;
-			if (n <= 0)
-				NSLog(@"ERROR *** broken y_next %@ list ***", y_next);
-			n = 5 + universe->n_entities;
-			check = y_previous;
-			while ((--n)&&(check))	check = check->y_previous;
-			if (n <= 0)
-				NSLog(@"ERROR *** broken y_previous %@ list ***", y_previous);
-			n = 5 + universe->n_entities;
-			check = z_next;
-			while ((--n)&&(check))	check = check->z_next;
-			if (n <= 0)
-				NSLog(@"ERROR *** broken z_next %@ list ***", z_next);
-			n = 5 + universe->n_entities;
-			check = z_previous;
-			while ((--n)&&(check))	check = check->z_previous;
-			if (n <= 0)
-				NSLog(@"ERROR *** broken z_previous %@ list ***", z_previous);
-		}
-	}
+//	if (debug & DEBUG_LINKED_LISTS)
+		if (![self checkLinkedLists])
+			exit(-1);
 	
 	// update position in linked list for position.x
 	// take self out of list..
 	if (x_previous)		x_previous->x_next = x_next;
 	if (x_next)			x_next->x_previous = x_previous;
-	
-	// make sure the starting point is correct
-	if (universe)
-	{
-		if (x_previous == nil)	universe->x_list_start = x_next;
-		if (y_previous == nil)	universe->y_list_start = y_next;
-		if (z_previous == nil)	universe->z_list_start = z_next;
-	}
-	
 	// sink DOWN the list
 	while ((x_previous)&&(x_previous->position.x - x_previous->collision_radius > position.x - collision_radius))
 	{
@@ -423,7 +445,7 @@ static  Universe	*data_store_universe;
 		x_next->x_previous = self;
 	if (x_previous)	// insert self into the list after x_previous..
 		x_previous->x_next = self;
-	if ((x_previous == nil)&&(universe))
+	if ((x_previous == nil)&&(universe))	// if we're the first then tell the universe!
 			universe->x_list_start = self;
 	
 	// update position in linked list for position.y
@@ -446,7 +468,7 @@ static  Universe	*data_store_universe;
 		y_next->y_previous = self;
 	if (y_previous)	// insert self into the list after y_previous..
 		y_previous->y_next = self;
-	if ((y_previous == nil)&&(universe))
+	if ((y_previous == nil)&&(universe))	// if we're the first then tell the universe!
 			universe->y_list_start = self;
 	
 	// update position in linked list for position.z
@@ -469,7 +491,7 @@ static  Universe	*data_store_universe;
 		z_next->z_previous = self;
 	if (z_previous)	// insert self into the list after z_previous..
 		z_previous->z_next = self;
-	if ((z_previous == nil)&&(universe))
+	if ((z_previous == nil)&&(universe))	// if we're the first then tell the universe!
 			universe->z_list_start = self;
 	
 	// done

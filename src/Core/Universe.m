@@ -4020,33 +4020,11 @@ GLfloat	starboard_matrix[] = {	0.0f, 0.0f, 1.0f, 0.0f,		0.0f, 1.0f, 0.0f, 0.0f,	
 			entity->zero_index = index;
 		}
 
-//		// position this entity in the linked lists of x, y, z position
-//		if (n_entities > 0)
-//		{
-//			Entity* e0 = [self entityZero]; // use the player as a reference - we'll insert the new entity before it
-//			Entity* x_previous = e0->x_previous;
-//			Entity* y_previous = e0->y_previous;
-//			Entity* z_previous = e0->z_previous;
-//			if (x_previous)	x_previous->x_next = entity;
-//			e0->x_previous = entity;
-//			entity->x_previous = x_previous;	entity->x_next = e0;
-//			if (y_previous)	y_previous->y_next = entity;
-//			e0->y_previous = entity;
-//			entity->y_previous = y_previous;	entity->y_next = e0;
-//			if (z_previous)	z_previous->z_next = entity;
-//			e0->z_previous = entity;
-//			entity->z_previous = z_previous;	entity->z_next = e0;
-//			// okay it's inserted - now bubble it to its correct position
-//			[entity updateLinkedLists];
-//		}
-//		else
-//		{
-//			x_list_start = y_list_start = z_list_start = entity;
-//		}
 		
 		// increase n_entities...
 		n_entities++;
 
+		// add entity to linked lists
 		[entity addToLinkedLists];	// position and universe have been set - so we can do this
 
 //		for (index = 0; index < n_entities; index++)
@@ -4067,6 +4045,7 @@ GLfloat	starboard_matrix[] = {	0.0f, 0.0f, 1.0f, 0.0f,		0.0f, 1.0f, 0.0f, 0.0f,	
 		if (debug & DEBUG_ENTITIES)
 			NSLog(@"DEBUG --(%@) from %d", entity, entity->zero_index);
 
+		// remove reference to entity in linked lists
 		[entity removeFromLinkedLists];
 		
 		// moved forward ^^
@@ -4078,8 +4057,7 @@ GLfloat	starboard_matrix[] = {	0.0f, 0.0f, 1.0f, 0.0f,		0.0f, 1.0f, 0.0f, 0.0f,	
 		
 		// maintain sorted lists
 		int index = entity->zero_index;
-//		int n_ents = n_entities;
-//		int ne = n_entities;
+
 		int n = 1;
 		if (index >= 0)
 		{
@@ -4115,109 +4093,6 @@ GLfloat	starboard_matrix[] = {	0.0f, 0.0f, 1.0f, 0.0f,		0.0f, 1.0f, 0.0f, 0.0f,	
 			}
 			entity->zero_index = -1;	// it's GONE!
 		}
-//		// preserve x_sorted list
-//		index = entity->x_index;
-//		ne = n_ents;
-//		n = 1;
-//		if (index >= 0)
-//		{
-//			if (x_sortedEntities[index] != entity)
-//			{
-//				NSLog(@"DEBUG Universe removeEntity:%@ ENTITY IS NOT IN THE RIGHT PLACE IN THE X SORTED LIST -- FIXING...", entity);
-//				int i;
-//				index = -1;
-//				for (i = 0; (i < ne)&&(index == -1); i++)
-//					if (x_sortedEntities[i] == entity)
-//						index = i;
-//				if (index == -1)
-//					 NSLog(@"DEBUG Universe removeEntity:%@ ENTITY IS NOT IN THE X SORTED LIST -- CONTINUING...", entity);
-//			}
-// 			if (index != -1)
-//			{
-//				while (index < n_entities)
-//				{
-//					while ((index + n < ne)&&(x_sortedEntities[index + n] == entity)) n++;	// ie there's a duplicate entry for this entity
-//					x_sortedEntities[index] = x_sortedEntities[index + n];	// copy entity[index + n] -> entity[index] (preserves sort order)
-//					if (x_sortedEntities[index])
-//						x_sortedEntities[index]->x_index = index;				// give it its correct position
-//					index++;
-//				}
-//				if (n > 1)
-//					 NSLog(@"DEBUG Universe removeEntity: REMOVED %d EXTRA COPIES OF %@ FROM THE X SORTED LIST", n - 1, entity);
-//				while (n--) x_sortedEntities[--ne] = nil;
-//			}
-//			entity->x_index = -1;	// it's GONE!
-//		}
-//		// preserve y_sorted list
-//		index = entity->y_index;
-//		ne = n_ents;
-//		n = 1;
-//		if (index >= 0)
-//		{
-//			if (y_sortedEntities[index] != entity)
-//			{
-//				NSLog(@"DEBUG Universe removeEntity:%@ ENTITY IS NOT IN THE RIGHT PLACE IN THE Y SORTED LIST -- FIXING...", entity);
-//				int i;
-//				index = -1;
-//				for (i = 0; (i < ne)&&(index == -1); i++)
-//					if (y_sortedEntities[i] == entity)
-//						index = i;
-//				if (index == -1)
-//					 NSLog(@"DEBUG Universe removeEntity:%@ ENTITY IS NOT IN THE Y SORTED LIST -- CONTINUING...", entity);
-//			}
-// 			if (index != -1)
-//			{
-//				while (index < ne)
-//				{
-//					while ((index + n < ne)&&(y_sortedEntities[index + n] == entity)) n++;	// ie there's a duplicate entry for this entity
-//					y_sortedEntities[index] = y_sortedEntities[index + n];	// copy entity[index + n] -> entity[index] (preserves sort order)
-//					if (y_sortedEntities[index])
-//						y_sortedEntities[index]->y_index = index;				// give it its correct position
-//					index++;
-//				}
-//				if (n > 1)
-//					 NSLog(@"DEBUG Universe removeEntity: REMOVED %d EXTRA COPIES OF %@ FROM THE Y SORTED LIST", n - 1, entity);
-//				while (n--) y_sortedEntities[--ne] = nil;
-//			}
-//			entity->y_index = -1;	// it's GONE!
-//		}
-//		// preserve z_sorted list
-//		index = entity->z_index;
-//		ne = n_ents;
-//		n = 1;
-//		if (index >= 0)
-//		{
-//			if (z_sortedEntities[index] != entity)
-//			{
-//				NSLog(@"DEBUG Universe removeEntity:%@ ENTITY IS NOT IN THE RIGHT PLACE IN THE Z SORTED LIST -- FIXING...", entity);
-//				int i;
-//				index = -1;
-//				for (i = 0; (i < ne)&&(index == -1); i++)
-//					if (z_sortedEntities[i] == entity)
-//						index = i;
-//				if (index == -1)
-//					 NSLog(@"DEBUG Universe removeEntity:%@ ENTITY IS NOT IN THE Z SORTED LIST -- CONTINUING...", entity);
-//			}
-// 			if (index != -1)
-//			{
-//				while (index < ne)
-//				{
-//					while ((index + n < ne)&&(z_sortedEntities[index + n] == entity)) n++;	// ie there's a duplicate entry for this entity
-//					z_sortedEntities[index] = z_sortedEntities[index + n];	// copy entity[index + n] -> entity[index] (preserves sort order)
-//					if (z_sortedEntities[index])
-//						z_sortedEntities[index]->z_index = index;				// give it its correct position
-//					index++;
-//				}
-//				if (n > 1)
-//					 NSLog(@"DEBUG Universe removeEntity: REMOVED %d EXTRA COPIES OF %@ FROM THE Z SORTED LIST", n - 1, entity);
-//				while (n--) z_sortedEntities[--ne] = nil;
-//			}
-//			entity->z_index = -1;	// it's GONE!
-//		}
-
-//		for (index = 0; index < n_entities; index++)
-//			NSLog(@"----- %d %.0f %@", sortedEntities[index]->zero_index, sortedEntities[index]->zero_distance, sortedEntities[index]);
-		//
 		
 		// remove from the definitive list
 		if ([entities containsObject:entity])
