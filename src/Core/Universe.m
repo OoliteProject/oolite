@@ -196,6 +196,11 @@ Your fair use and other rights are in no way affected by the above.
 	//
 	player = [[PlayerEntity alloc] init];	// alloc retains!
 	[self addEntity:player];
+	
+	player->x_next = nil;	player->x_previous = nil;	x_list_start = player;
+	player->y_next = nil;	player->y_previous = nil;	y_list_start = player;
+	player->z_next = nil;	player->z_previous = nil;	z_list_start = player;
+	
 	[player set_up];
 	
 	[player setUpShipFromDictionary:[self getDictionaryForShip:[player ship_desc]]];	// ship desc is the standard cobra at this point
@@ -4243,6 +4248,11 @@ GLfloat	starboard_matrix[] = {	0.0f, 0.0f, 1.0f, 0.0f,		0.0f, 1.0f, 0.0f, 0.0f,	
 	while ([entities count] > 1)
 	{
 		Entity* ent = [entities objectAtIndex:1];
+	
+		// reset linked lists
+		ent->x_next = nil;	ent->x_previous = nil;
+		ent->y_next = nil;	ent->y_previous = nil;
+		ent->z_next = nil;	ent->z_previous = nil;
 		if (ent->isStation)  // clear out queues
 			[(StationEntity *)ent clear];
 		[self removeEntity:ent];
@@ -4253,6 +4263,7 @@ GLfloat	starboard_matrix[] = {	0.0f, 0.0f, 1.0f, 0.0f,		0.0f, 1.0f, 0.0f, 0.0f,	
 	// maintain sorted list
 	n_entities = 1;
 	
+	// restart linked lists
 	x_list_start = p0;	p0->x_previous = nil;	p0->x_next = nil;
 	y_list_start = p0;	p0->y_previous = nil;	p0->y_next = nil;
 	z_list_start = p0;	p0->z_previous = nil;	p0->z_next = nil;

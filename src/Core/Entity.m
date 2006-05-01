@@ -335,9 +335,9 @@ static  Universe	*data_store_universe;
 	// make sure the starting point is correct
 	if (universe)
 	{
-		if (x_previous == nil)	universe->x_list_start = x_next;
-		if (y_previous == nil)	universe->y_list_start = y_next;
-		if (z_previous == nil)	universe->z_list_start = z_next;
+		if ((x_previous == nil)&&(x_next))	universe->x_list_start = x_next;
+		if ((y_previous == nil)&&(y_next))	universe->y_list_start = y_next;
+		if ((z_previous == nil)&&(z_next))	universe->z_list_start = z_next;
 	}
 	//
 	if (x_previous)		x_previous->x_next = x_next;
@@ -423,8 +423,10 @@ static  Universe	*data_store_universe;
 {
 	if (debug & DEBUG_LINKED_LISTS)
 		if (![self checkLinkedLists])
+		{
+		
 			exit(-1);
-	
+		}
 	// update position in linked list for position.x
 	// take self out of list..
 	if (x_previous)		x_previous->x_next = x_next;
