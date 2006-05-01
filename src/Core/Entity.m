@@ -421,7 +421,7 @@ static  Universe	*data_store_universe;
 
 - (void) updateLinkedLists
 {
-//	if (debug & DEBUG_LINKED_LISTS)
+	if (debug & DEBUG_LINKED_LISTS)
 		if (![self checkLinkedLists])
 			exit(-1);
 	

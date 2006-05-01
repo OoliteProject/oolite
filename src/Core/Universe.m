@@ -4230,7 +4230,8 @@ GLfloat	starboard_matrix[] = {	0.0f, 0.0f, 1.0f, 0.0f,		0.0f, 1.0f, 0.0f, 0.0f,	
 	BOOL updating = no_update;
 	no_update = YES;			// no drawing while we do this!
 	
-	if (!(((Entity*)[entities objectAtIndex:0])->isPlayer))
+	Entity* p0 = (Entity*)[entities objectAtIndex:0];
+	if (!(p0->isPlayer))
 	{
 		NSLog(@"***** First entity is not the player in Universe.removeAllEntitiesExceptPlayer - exiting.");
 		exit(1);
@@ -4242,19 +4243,19 @@ GLfloat	starboard_matrix[] = {	0.0f, 0.0f, 1.0f, 0.0f,		0.0f, 1.0f, 0.0f, 0.0f,	
 	while ([entities count] > 1)
 	{
 		Entity* ent = [entities objectAtIndex:1];
-		if (!(ent->isPlayer))
-		{
-			if (ent->isStation)  // clear out queues
-				[(StationEntity *)ent clear];
-			
-			[self removeEntity:ent];
-		}
+		if (ent->isStation)  // clear out queues
+			[(StationEntity *)ent clear];
+		[self removeEntity:ent];
 	}
 	
 	[activeWormholes addObjectsFromArray:savedWormholes];	// will be cleared out by populateFromActiveWormholes
 	
 	// maintain sorted list
 	n_entities = 1;
+	
+	x_list_start = p0;	p0->x_previous = nil;	p0->x_next = nil;
+	y_list_start = p0;	p0->y_previous = nil;	p0->y_next = nil;
+	z_list_start = p0;	p0->z_previous = nil;	p0->z_next = nil;
 	
 	cachedSun = nil;
 	cachedPlanet = nil;
