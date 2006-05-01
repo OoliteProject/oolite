@@ -5171,8 +5171,8 @@ GLfloat	starboard_matrix[] = {	0.0f, 0.0f, 1.0f, 0.0f,		0.0f, 1.0f, 0.0f, 0.0f,	
 					index--;
 				}
 				//
-				// now the linked lists
-				[thing updateLinkedLists];
+//				// now the linked lists
+//				[thing updateLinkedLists];
 				//
 				// done maintaining sorted lists
 				
@@ -5194,6 +5194,10 @@ GLfloat	starboard_matrix[] = {	0.0f, 0.0f, 1.0f, 0.0f,		0.0f, 1.0f, 0.0f, 0.0f,	
 				//
 				////
 			}
+			
+			update_stage = @"updating linked lists";
+			for (i = 0; i < ent_count; i++)
+				[my_entities[i] updateLinkedLists];
 			
 			//
 			// detect collisions and light ships that can see the sun

@@ -315,13 +315,49 @@ static  Universe	*data_store_universe;
 	// insert at the start
 	if (universe)
 	{
-		x_previous = nil; x_next = universe->x_list_start; universe->x_list_start = self;
-		y_previous = nil; y_next = universe->y_list_start; universe->y_list_start = self;
-		z_previous = nil; z_next = universe->z_list_start; universe->z_list_start = self;
+		x_previous = nil; x_next = universe->x_list_start;
+		// move UP the list
+		while ((x_next)&&(x_next->position.x - x_next->collision_radius < position.x - collision_radius))
+		{
+			x_previous = x_next;
+			x_next = x_next->x_next;
+		}	
+		if (x_next)		x_next->x_previous = self;
+		if (x_previous) x_previous->x_next = self;
+		else			universe->x_list_start = self;
+		
+		y_previous = nil; y_next = universe->y_list_start;
+		// move UP the list
+		while ((y_next)&&(y_next->position.y - y_next->collision_radius < position.y - collision_radius))
+		{
+			y_previous = y_next;
+			y_next = y_next->y_next;
+		}	
+		if (y_next)		y_next->y_previous = self;
+		if (y_previous) y_previous->y_next = self;
+		else			universe->y_list_start = self;
+
+		z_previous = nil; z_next = universe->z_list_start;
+		// move UP the list
+		while ((z_next)&&(z_next->position.z - z_next->collision_radius < position.z - collision_radius))
+		{
+			z_previous = z_next;
+			z_next = z_next->z_next;
+		}	
+		if (z_next)		z_next->z_previous = self;
+		if (z_previous) z_previous->z_next = self;
+		else			universe->z_list_start = self;
+		
 	}
 	
-	// bubble to the correct position
-	[self updateLinkedLists];
+	if (debug & DEBUG_LINKED_LISTS)
+		if (![self checkLinkedLists])
+		{
+			[universe obj_dump];
+		
+			exit(-1);
+		}
+
 }
 
 - (void) removeFromLinkedLists
@@ -329,15 +365,18 @@ static  Universe	*data_store_universe;
 	if (debug & DEBUG_LINKED_LISTS)
 		NSLog(@"DEBUG removing entity %@ from linked lists", self);
 
-	// bubble to the correct position
-	[self updateLinkedLists];
+	if ((x_next == nil)&&(x_previous == nil))	// removed already!
+		return;
 
-	// make sure the starting point is correct
+	// make sure the starting point is still correct
 	if (universe)
 	{
-		if ((x_previous == nil)&&(x_next))	universe->x_list_start = x_next;
-		if ((y_previous == nil)&&(y_next))	universe->y_list_start = y_next;
-		if ((z_previous == nil)&&(z_next))	universe->z_list_start = z_next;
+		if ((universe->x_list_start == self)&&(x_next))
+				universe->x_list_start = x_next;
+		if ((universe->y_list_start == self)&&(y_next))
+				universe->y_list_start = y_next;
+		if ((universe->z_list_start == self)&&(z_next))
+				universe->z_list_start = z_next;
 	}
 	//
 	if (x_previous)		x_previous->x_next = x_next;
@@ -351,7 +390,15 @@ static  Universe	*data_store_universe;
 	//
 	x_previous = nil;	x_next = nil;
 	y_previous = nil;	y_next = nil;
-	z_previous  = nil;	z_next = nil;
+	z_previous = nil;	z_next = nil;
+
+	if (debug & DEBUG_LINKED_LISTS)
+		if (![self checkLinkedLists])
+		{
+			[universe obj_dump];
+		
+			exit(-1);
+		}
 }
 
 - (BOOL) checkLinkedLists
@@ -360,59 +407,73 @@ static  Universe	*data_store_universe;
 	if (universe->n_entities > 0)
 	{
 		int n;
-		Entity* check;
+		Entity	*check, *last;
+		//
+		last = nil;
 		//
 		n = universe->n_entities;
-		check = x_next;
-		while ((n--)&&(check))	check = check->x_next;
-		if (check)
+		check = universe->x_list_start;
+		while ((n--)&&(check))
 		{
-			NSLog(@"ERROR *** broken x_next %@ list ***", x_next);
+			last = check;
+			check = check->x_next;
+		}
+		if ((check)||(n > 0))
+		{
+			NSLog(@"ERROR *** broken x_next %@ list (%d) ***", universe->x_list_start, n);
 			return NO;
 		}
 		//
 		n = universe->n_entities;
-		check = x_previous;
+		check = last;
 		while ((n--)&&(check))	check = check->x_previous;
-		if (check)
+		if ((check)||(n > 0))
 		{
-			NSLog(@"ERROR *** broken x_previous %@ list ***", x_previous);
+			NSLog(@"ERROR *** broken x_previous %@ list (%d) ***", universe->x_list_start, n);
 			return NO;
 		}
 		//
 		n = universe->n_entities;
-		check = y_next;
-		while ((n--)&&(check))	check = check->y_next;
-		if (check)
+		check = universe->y_list_start;
+		while ((n--)&&(check))
 		{
-			NSLog(@"ERROR *** broken y_next %@ list ***", y_next);
+			last = check;
+			check = check->y_next;
+		}
+		if ((check)||(n > 0))
+		{
+			NSLog(@"ERROR *** broken y_next %@ list (%d) ***", universe->y_list_start, n);
 			return NO;
 		}
 		//
 		n = universe->n_entities;
-		check = y_previous;
+		check = last;
 		while ((n--)&&(check))	check = check->y_previous;
-		if (check)
+		if ((check)||(n > 0))
 		{
-			NSLog(@"ERROR *** broken y_previous %@ list ***", y_previous);
+			NSLog(@"ERROR *** broken y_previous %@ list (%d) ***", universe->y_list_start, n);
 			return NO;
 		}
 		//
 		n = universe->n_entities;
-		check = z_next;
-		while ((n--)&&(check))	check = check->z_next;
-		if (check)
+		check = universe->z_list_start;
+		while ((n--)&&(check))
 		{
-			NSLog(@"ERROR *** broken z_next %@ list ***", z_next);
+			last = check;
+			check = check->z_next;
+		}
+		if ((check)||(n > 0))
+		{
+			NSLog(@"ERROR *** broken z_next %@ list (%d) ***", universe->z_list_start, n);
 			return NO;
 		}
 		//
 		n = universe->n_entities;
-		check = z_previous;
+		check = last;
 		while ((n--)&&(check))	check = check->z_previous;
-		if (check)
+		if ((check)||(n > 0))
 		{
-			NSLog(@"ERROR *** broken z_previous %@ list ***", z_previous);
+			NSLog(@"ERROR *** broken z_previous %@ list (%d) ***", universe->y_list_start, n);
 			return NO;
 		}
 	}
@@ -421,12 +482,19 @@ static  Universe	*data_store_universe;
 
 - (void) updateLinkedLists
 {
+	if (!universe)
+		return;	// not in the universe - don't do this!
+	if ((x_next == nil)&&(x_previous == nil))
+		return;	// not in the lists - don't do this!
+
 	if (debug & DEBUG_LINKED_LISTS)
 		if (![self checkLinkedLists])
 		{
+			[universe obj_dump];
 		
 			exit(-1);
 		}
+
 	// update position in linked list for position.x
 	// take self out of list..
 	if (x_previous)		x_previous->x_next = x_next;
@@ -497,6 +565,13 @@ static  Universe	*data_store_universe;
 			universe->z_list_start = self;
 	
 	// done
+	if (debug & DEBUG_LINKED_LISTS)
+		if (![self checkLinkedLists])
+		{
+			[universe obj_dump];
+		
+			exit(-1);
+		}
 }
 
 - (void) warnAboutHostiles
