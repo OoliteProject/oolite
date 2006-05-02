@@ -4237,6 +4237,7 @@ static GLfloat mascem_color2[4] =	{ 0.4, 0.1, 0.4, 1.0};	// purple
 					v.y = 0.1 *((ranrot_rand() % r_speed) - r_speed / 2);
 					v.z = 0.1 *((ranrot_rand() % r_speed) - r_speed / 2);
 					[rock setBounty: 0];
+					[rock setCommodity:[universe commodityForName:@"Minerals"] andAmount: 1];
 					[rock setVelocity:v];
 					quaternion_set_random(&q);
 					[rock setQRotation:q];
@@ -6446,6 +6447,7 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 //	NSLog(@"DEBUG scoop okay");
 	if ([cargo count] >= max_cargo)					return NO;
 //	NSLog(@"DEBUG cargo space okay");
+	if (scan_class == CLASS_CARGO)					return NO;	// we have no power so we can't scoop
 	if (other->scan_class != CLASS_CARGO)			return NO;
 //	NSLog(@"DEBUG other scan class is CLASS_CARGO okay");
 	if ([other getCargoType] == CARGO_NOT_CARGO)	return NO;
