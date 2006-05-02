@@ -43,6 +43,7 @@ Your fair use and other rights are in no way affected by the above.
 #endif
 
 #define MAX_CLEAR_DEPTH		100000000.0
+#define MAX_CLEAR_DEPTH2	10000000000000000.0
 // 100 000 km.
 
 #define NUM_KEYS			320

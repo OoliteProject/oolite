@@ -1296,6 +1296,11 @@ void setUpSinTable()
 	distances.
 
 	*/
+	
+	BOOL ignoreDepthBuffer = (planet_type == PLANET_TYPE_ATMOSPHERE);
+	
+	if (zero_distance > collision_radius * collision_radius * 25) // is 'far away'
+		ignoreDepthBuffer |= YES;
 
 	switch (planet_type)
 	{
@@ -1318,6 +1323,10 @@ void setUpSinTable()
 				}
 
 				glShadeModel(GL_SMOOTH);
+				
+				// far enough away to draw flat ?
+				if (ignoreDepthBuffer)
+					glDisable(GL_DEPTH_TEST);
 
 				glColor4fv(mat1);
 				glMaterialfv(GL_FRONT, GL_AMBIENT_AND_DIFFUSE, mat1);
@@ -1406,6 +1415,7 @@ void setUpSinTable()
 
 				glMaterialfv(GL_FRONT, GL_AMBIENT_AND_DIFFUSE, mat1);
 
+
 				if (atmosphere)
 				{
 					glDisable(GL_DEPTH_TEST);
@@ -1420,6 +1430,8 @@ void setUpSinTable()
 
 					glEnable(GL_DEPTH_TEST);
 				}
+				else if (ignoreDepthBuffer)
+					glEnable(GL_DEPTH_TEST);
 
 			}
 			break;
@@ -1428,6 +1440,10 @@ void setUpSinTable()
 			if (!translucent)
 			{
 				int steps = 2 * (MAX_SUBDIVIDE - subdivideLevel);
+
+				// far enough away to draw flat ?
+				if (ignoreDepthBuffer)
+					glDisable(GL_DEPTH_TEST);
 
 				glDisable(GL_TEXTURE_2D);
 				glDisable(GL_LIGHTING);
@@ -1458,6 +1474,11 @@ void setUpSinTable()
 					glEnable(GL_DEPTH_TEST);
 				}
 				glEnable(GL_LIGHTING);
+
+				// far enough away to draw flat ?
+				if (ignoreDepthBuffer)
+					glEnable(GL_DEPTH_TEST);
+
 			}
 			break;
 
