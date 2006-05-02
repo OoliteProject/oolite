@@ -672,7 +672,7 @@ BOOL	isHitByOctree(	int* octbuffer, char* collbuffer, int level, GLfloat rad,
 		NSLog(@"DEBUG TESTING octant index: [%d] offset by ( %.2f, %.2f, %.2f)", 
 			level, off.x, off.y, off.z);
 	}
-
+	
 	// displace the cube by the offset
 	Vector u0 = make_vector( v0.x + off.x, v0.y + off.y, v0.z + off.z);
 
@@ -686,6 +686,13 @@ BOOL	isHitByOctree(	int* octbuffer, char* collbuffer, int level, GLfloat rad,
 	{
 		if (debug_octree)
 			NSLog(@"DEBUG Octant index: [%d] is empty.", level);
+		return NO;
+	}
+	
+	if (!other_octree)
+	{
+		if (debug_octree)
+			NSLog(@"DEBUG other_octree is null");
 		return NO;
 	}
 	
