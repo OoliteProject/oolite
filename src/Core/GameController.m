@@ -66,7 +66,8 @@ Your fair use and other rights are in no way affected by the above.
 	game_is_paused = NO;
 	
 	//
-	
+	debug = 0;
+//	debug = DEBUG_COLLISIONS;
     //
     return self;
 }

@@ -2962,6 +2962,9 @@ BOOL ship_canCollide (ShipEntity* ship)
 //		if (status == STATUS_COCKPIT_DISPLAY)
 //			[octree drawOctree];
 
+	if (debug && DEBUG_COLLISIONS)
+		[octree drawOctreeCollisions];
+
 	//
 	checkGLErrors([NSString stringWithFormat:@"ShipEntity after drawing Entity (main) %@", self]);
 	//

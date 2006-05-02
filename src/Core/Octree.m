@@ -708,7 +708,7 @@ BOOL	isHitByOctree(	int* octbuffer, char* collbuffer, int level, GLfloat rad,
 			return NO;
 		}
 	}
-	else	// thest THIS sphere against THAT cube
+	else	// test THIS sphere against THAT cube
 	{
 		GLfloat di = dot_product( other_ijk.v[0], u0);
 		GLfloat dj = dot_product( other_ijk.v[1], u0);
