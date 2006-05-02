@@ -2383,9 +2383,9 @@ double scoopSoundPlayTime = 0.0;
 {
 	if (fuel <= 0.0)
 		return 0.0;
-	if (fuel > PLAYER_MAX_FUEL)
+	if (fuel > (float)PLAYER_MAX_FUEL)
 		return 1.0;
-	return fuel / PLAYER_MAX_FUEL;
+	return (double)fuel / (double)PLAYER_MAX_FUEL;
 }
 - (double) dial_hyper_range
 {
