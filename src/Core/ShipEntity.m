@@ -3631,8 +3631,8 @@ static GLfloat mascem_color2[4] =	{ 0.4, 0.1, 0.4, 1.0};	// purple
 	fuel = amount;
 	if (fuel < 0)
 		fuel = 0;
-	if (fuel > 70)
-		fuel = 70;
+	if (fuel > PLAYER_MAX_FUEL)
+		fuel = PLAYER_MAX_FUEL;
 }
 
 - (void) setRoll:(double) amount

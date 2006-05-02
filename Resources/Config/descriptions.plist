@@ -938,6 +938,24 @@
 	<string>Gross productivity:</string>
 	<key>sysdata-radius</key>
 	<string>Average radius:</string>
+	
+	<!-- delivery reports -->
+	<key>arrival-report-title</key>
+	<string>%H Arrival Report</string>
+	
+	<key>passenger-delivered-okay-@-d-@</key>
+	<string>%@ thanks you, and pays you %d Cr for delivering them to %@.</string>
+	<key>passenger-delivered-late-@-d-@</key>
+	<string>%@ pays you %d Cr for eventually delivering them to %@.</string>
+	<key>passenger-failed-@</key>
+	<string>%@ leaves your ship, annoyed that you have wasted so much of their time.</string>
+
+	<key>cargo-delivered-okay-@-f</key>
+	<string>Droids unload the %@ and you are paid %.1f Cr.</string>
+	<key>cargo-delivered-late-@</key>
+	<string>You fail to deliver the %@ on time, and no-one wants to pay for it.</string>
+	<key>cargo-failed-@</key>
+	<string>You fail to deliver the %@ on time, and no-one will want to pay for it.</string>
 
 	<!-- background scenes for GUI screens -->
 	<key>gui-scene-show-planet</key>

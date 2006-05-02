@@ -44,17 +44,6 @@ Your fair use and other rights are in no way affected by the above.
 #import "AI.h"
 #import "OOColor.h"
 
-//@interface PlayerEntity (Contracts)
-//
-//- (NSDictionary*) reputation;
-//
-//- (int) passengerReputation;
-//- (void) increasePassengerReputation;
-//- (void) decreasePassengerReputation;
-//
-//@end
-
-//--------------------------------------------------------------------------------//
 
 @implementation PlayerEntity (Contracts)
 
@@ -64,6 +53,9 @@ Your fair use and other rights are in no way affected by the above.
 	
 	if (docked_station != [universe station])	// only drop off passengers or fulfil contracts at main station
 		return nil;
+	
+	// check escape pods...
+	// TODO
 	
 	// check passenger contracts
 	int i;
@@ -90,8 +82,9 @@ Your fair use and other rights are in no way affected by the above.
 				}
 				credits += 10 * fee;
 				if (!result)
-					result = @"";
-				result = [NSString stringWithFormat:@"%@\n%@ thanks you, and pays you %d Cr for delivering them to %@.", result, passenger_name, fee, passenger_dest_name];
+					result = [NSString stringWithFormat:[universe expandDescription:@"[passenger-delivered-okay-@-d-@]" forSystem:system_seed], passenger_name, fee, passenger_dest_name];
+				else
+					result = [NSString stringWithFormat:[universe expandDescription:@"%@\n[passenger-delivered-okay-@-d-@]" forSystem:system_seed], result, passenger_name, fee, passenger_dest_name];
 				[passengers removeObjectAtIndex:i--];
 				[self increasePassengerReputation];
 			}
@@ -103,8 +96,9 @@ Your fair use and other rights are in no way affected by the above.
 					fee /= 2;
 				credits += 10 * fee;
 				if (!result)
-					result = @"";
-				result = [NSString stringWithFormat:@"%@\n%@ pays you %d Cr for eventually delivering them to %@.", result, passenger_name, fee, passenger_dest_name];
+					result = [NSString stringWithFormat:[universe expandDescription:@"[passenger-delivered-late-@-d-@]" forSystem:system_seed], passenger_name, fee, passenger_dest_name];
+				else
+					result = [NSString stringWithFormat:[universe expandDescription:@"%@\n[passenger-delivered-late-@-d-@]" forSystem:system_seed], result, passenger_name, fee, passenger_dest_name];
 				[passengers removeObjectAtIndex:i--];
 			}
 		}
@@ -114,8 +108,9 @@ Your fair use and other rights are in no way affected by the above.
 			{
 				// we've run out of time!
 				if (!result)
-					result = @"";
-				result = [NSString stringWithFormat:@"%@\n%@ leaves your ship, annoyed that you have wasted so much of their time.", result, passenger_name];
+					result = [NSString stringWithFormat:[universe expandDescription:@"[passenger-failed-@]" forSystem:system_seed], passenger_name];
+				else
+					result = [NSString stringWithFormat:[universe expandDescription:@"%@\n[passenger-failed-@]" forSystem:system_seed], result, passenger_name];
 				[passengers removeObjectAtIndex:i--];
 				[self decreasePassengerReputation];
 			}
@@ -160,8 +155,9 @@ Your fair use and other rights are in no way affected by the above.
 					// pay the premium and fee
 					credits += fee + premium;
 					if (!result)
-						result = @"";
-					result = [NSString stringWithFormat:@"%@\nDroids unload the %@ and you are paid %.1f Cr.", result, contract_cargo_desc, (float)(fee + premium) / 10.0];
+						result = [NSString stringWithFormat:[universe expandDescription:@"[cargo-delivered-okay-@-f]" forSystem:system_seed], contract_cargo_desc, (float)(fee + premium) / 10.0];
+					else
+						result = [NSString stringWithFormat:[universe expandDescription:@"%@\n[cargo-delivered-okay-@-f]" forSystem:system_seed], result, contract_cargo_desc, (float)(fee + premium) / 10.0];
 					[contracts removeObjectAtIndex:i--];
 					// repute++
 					[self increaseContractReputation];
@@ -171,8 +167,9 @@ Your fair use and other rights are in no way affected by the above.
 			{
 				// but we're late!
 				if (!result)
-					result = @"";
-				result = [NSString stringWithFormat:@"%@\nYou fail to deliver the %@ on time, and no-one wants to pay for it.", result, contract_cargo_desc];
+					result = [NSString stringWithFormat:[universe expandDescription:@"[cargo-delivered-late-@]" forSystem:system_seed], contract_cargo_desc];
+				else
+					result = [NSString stringWithFormat:[universe expandDescription:@"%@\n[cargo-delivered-late-@]" forSystem:system_seed], result, contract_cargo_desc];
 				[contracts removeObjectAtIndex:i--];
 				// repute--
 				[self decreaseContractReputation];
@@ -184,8 +181,9 @@ Your fair use and other rights are in no way affected by the above.
 			{
 				// we've run out of time!
 				if (!result)
-					result = @"";
-				result = [NSString stringWithFormat:@"%@\nYou fail to deliver the %@ on time, and no-one will want to pay for it.", result, contract_cargo_desc];
+					result = [NSString stringWithFormat:[universe expandDescription:@"[cargo-failed-@]" forSystem:system_seed], contract_cargo_desc];
+				else
+					result = [NSString stringWithFormat:[universe expandDescription:@"%@\n[cargo-failed-@]" forSystem:system_seed], result, contract_cargo_desc];
 				[contracts removeObjectAtIndex:i--];
 				// repute--
 				[self decreaseContractReputation];
@@ -877,9 +875,20 @@ Your fair use and other rights are in no way affected by the above.
 	// GUI stuff
 	{
 		[gui clear];
-		[gui setTitle:@"Delivery Report"];
+		[gui setTitle:[universe expandDescription:@"[arrival-report-title]" forSystem:system_seed]];
 		//
-		[gui addLongText:report startingAtRow:text_row align:GUI_ALIGN_LEFT];
+
+		// report might be a multi-line message
+		//
+		if ([report rangeOfString:@"\n"].location != NSNotFound)
+		{
+			NSArray	*sections = [report componentsSeparatedByString:@"\n"];
+			int	i;
+			for (i = 0; i < [sections count]; i++)
+				text_row = [gui addLongText:(NSString *)[sections objectAtIndex:i] startingAtRow:text_row align:GUI_ALIGN_LEFT];
+		}
+		else
+			text_row = [gui addLongText:report startingAtRow:text_row align:GUI_ALIGN_LEFT];
 
 		[gui setText:[NSString stringWithFormat:@"Cash:\t%.1f Cr.\t\tLoad %d of %d t.\tPassengers %d of %d berths.", 0.1*credits, current_cargo, max_cargo, [passengers count], max_passengers]  forRow: GUI_ROW_MARKET_CASH];
 		//
@@ -1210,7 +1219,7 @@ static NSMutableDictionary* currentShipyard = nil;
 	ship_desc = [(NSString *)[ship_info objectForKey:SHIPYARD_KEY_SHIPDATA_KEY] retain];
 		
 	// get a full tank for free
-	fuel = 70;
+	fuel = PLAYER_MAX_FUEL;
 	
 	// this ship has a clean record
 	legal_status = 0;

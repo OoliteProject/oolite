@@ -2942,7 +2942,7 @@ GLfloat docked_light_specular[]	= { (GLfloat) 1.0, (GLfloat) 1.0, (GLfloat) 0.5,
 	// check a trader has fuel
 	if ((![ship fuel])&&([[ship roles] rangeOfString:@"trader"].location != NSNotFound))
 	{
-		[ship setFuel: 70];
+		[ship setFuel: PLAYER_MAX_FUEL];
 	}
 	
 	return ship;

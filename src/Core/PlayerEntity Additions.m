@@ -814,7 +814,7 @@ static int shipsFound;
 
 	if ([eq_type isEqual:@"EQ_FUEL"])
 	{
-		fuel = 70;
+		fuel = PLAYER_MAX_FUEL;
 		return;
 	}
 	
@@ -1047,8 +1047,8 @@ static int shipsFound;
 - (void) awardFuel:(NSString *)valueString	// add to fuel up to 7.0 LY
 {
 	fuel += 10 * [valueString floatValue];
-	if (fuel > 70)
-		fuel = 70;
+	if (fuel > PLAYER_MAX_FUEL)
+		fuel = PLAYER_MAX_FUEL;
 	if (fuel < 0)
 		fuel = 0;
 }
@@ -1691,7 +1691,7 @@ static int shipsFound;
 			if ((e_class == CLASS_NEUTRAL)||(e_class == CLASS_POLICE)||(e_class == CLASS_MILITARY)||(e_class == CLASS_THARGOID))
 			{
 				AI*	se1AI = [se1 getAI];
-				[se1 setFuel: 70];
+				[se1 setFuel: PLAYER_MAX_FUEL];
 				[se1AI setStateMachine:@"exitingTraderAI.plist"];
 				[se1AI setState:@"EXIT_SYSTEM"];
 				[se1AI reactToMessage:[NSString stringWithFormat:@"pauseAI: %d", 3 + (ranrot_rand() & 15)]];

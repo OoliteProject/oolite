@@ -130,7 +130,7 @@ enum
 #define PLAYER_MAX_FORWARD_SHIELD		(128.0 * (shield_booster + shield_enhancer))
 #define PLAYER_MAX_AFT_SHIELD			(128.0 * (shield_booster + shield_enhancer))
 #define PLAYER_MAX_WEAPON_TEMP			256.0
-#define PLAYER_MAX_FUEL					70.0
+#define PLAYER_MAX_FUEL					70
 #define PLAYER_MAX_MISSILES				4
 #define PLAYER_STARTING_MISSILES		3
 #define PLAYER_DIAL_MAX_ALTITUDE		40000.0

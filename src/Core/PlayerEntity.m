@@ -2028,7 +2028,7 @@ double scoopSoundPlayTime = 0.0;
 			external_temp *= 100;
 
 		// do Revised sun-skimming check here...
-		if ((has_scoop)&&(alt1 > 0.75)&&(fuel < 70))
+		if ((has_scoop)&&(alt1 > 0.75)&&(fuel < PLAYER_MAX_FUEL))
 		{
 			fuel_accumulator += delta_t * flight_speed * 0.010;
 			scoopsActive = YES;
@@ -2037,7 +2037,7 @@ double scoopSoundPlayTime = 0.0;
 				fuel ++;
 				fuel_accumulator -= 1.0;
 			}
-			if (fuel > 70)	fuel = 70;
+			if (fuel > PLAYER_MAX_FUEL)	fuel = PLAYER_MAX_FUEL;
 			[universe displayCountdownMessage:[universe expandDescription:@"[fuel-scoop-active]" forSystem:system_seed] forCount:1.0];
 		}
 	}
@@ -2381,6 +2381,10 @@ double scoopSoundPlayTime = 0.0;
 
 - (double) dial_fuel
 {
+	if (fuel <= 0.0)
+		return 0.0;
+	if (fuel > PLAYER_MAX_FUEL)
+		return 1.0;
 	return fuel / PLAYER_MAX_FUEL;
 }
 - (double) dial_hyper_range
@@ -5190,7 +5194,7 @@ static int last_outfitting_index;
 		}
 		//
 		// check usual requirements
-		if (([eq_key isEqual:@"EQ_FUEL"])&&(fuel >= 70))	// check if fuel space free
+		if (([eq_key isEqual:@"EQ_FUEL"])&&(fuel >= PLAYER_MAX_FUEL))	// check if fuel space free
 			option_okay[i] &= NO;
 		if (([eq_key hasSuffix:@"MISSILE"]||[eq_key hasSuffix:@"MINE"]))	// check if pylon is free
 			option_okay[i] &= (missiles < max_missiles);
@@ -5291,7 +5295,7 @@ static int last_outfitting_index;
 				int			price_per_unit  = [(NSNumber *)[(NSArray *)[equipdata objectAtIndex:item] objectAtIndex:EQUIPMENT_PRICE_INDEX] intValue];
 				NSString*   desc			= [NSString stringWithFormat:@" %@ ",[(NSArray *)[equipdata objectAtIndex:item] objectAtIndex:EQUIPMENT_SHORT_DESC_INDEX]];
 				NSString*   eq_key			= (NSString *)[(NSArray *)[equipdata objectAtIndex:item] objectAtIndex:EQUIPMENT_KEY_INDEX];
-				double		price			= ([eq_key isEqual:@"EQ_FUEL"]) ? ((70 - fuel) * price_per_unit) : (price_per_unit) ;
+				double		price			= ([eq_key isEqual:@"EQ_FUEL"]) ? ((PLAYER_MAX_FUEL - fuel) * price_per_unit) : (price_per_unit) ;
 				NSString*	eq_key_damaged	= [NSString stringWithFormat:@"%@_DAMAGED", eq_key];
 
 				if ([eq_key isEqual:@"EQ_RENOVATION"])
@@ -5562,7 +5566,7 @@ static int last_outfitting_index;
 	int			price_per_unit  = [(NSNumber *)[(NSArray *)[equipdata objectAtIndex:index] objectAtIndex:EQUIPMENT_PRICE_INDEX] intValue];
 	NSString*   eq_key			= (NSString *)[(NSArray *)[equipdata objectAtIndex:index] objectAtIndex:EQUIPMENT_KEY_INDEX];
 	NSString*	eq_key_damaged	= [NSString stringWithFormat:@"%@_DAMAGED", eq_key];
-	double		price			= ([eq_key isEqual:@"EQ_FUEL"]) ? ((70 - fuel) * price_per_unit) : (price_per_unit) ;
+	double		price			= ([eq_key isEqual:@"EQ_FUEL"]) ? ((PLAYER_MAX_FUEL - fuel) * price_per_unit) : (price_per_unit) ;
 	double		price_factor	= 1.0;
 	int			cargo_space = max_cargo - current_cargo;
 
@@ -5672,7 +5676,7 @@ static int last_outfitting_index;
 
 	if ([eq_key isEqual:@"EQ_FUEL"])
 	{
-		fuel = 70;
+		fuel = PLAYER_MAX_FUEL;
 		credits -= price;
 		[self setGuiToEquipShipScreen:-1:-1];
 		return YES;

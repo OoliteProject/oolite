@@ -1857,8 +1857,8 @@ WormholeEntity*	whole;
 {
 	int	extra_fuel = [fuel_number intValue];
 	fuel += 10 * extra_fuel;
-	if (fuel > 70)
-		fuel = 70;
+	if (fuel > PLAYER_MAX_FUEL)
+		fuel = PLAYER_MAX_FUEL;
 }
 
 - (void) enterTargetWormhole
