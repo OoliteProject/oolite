@@ -3427,12 +3427,12 @@ static GLfloat mascem_color2[4] =	{ 0.4, 0.1, 0.4, 1.0};	// purple
 	return death_actions;
 }
 
-- (double) weapon_range
+- (GLfloat) weapon_range
 {
 	return weapon_range;
 }
 
-- (void) setWeaponRange: (double) value
+- (void) setWeaponRange: (GLfloat) value
 {
 	weapon_range = value;
 }
@@ -3479,12 +3479,12 @@ static GLfloat mascem_color2[4] =	{ 0.4, 0.1, 0.4, 1.0};	// purple
 	}
 }
 
-- (double) scanner_range
+- (GLfloat) scanner_range
 {
 	return scanner_range;
 }
 
-- (void) setScannerRange: (double) value
+- (void) setScannerRange: (GLfloat) value
 {
 	scanner_range = value;
 }
@@ -3779,27 +3779,27 @@ static GLfloat mascem_color2[4] =	{ 0.4, 0.1, 0.4, 1.0};	// purple
 		flight_pitch = -max_flight_pitch;
 }
 
-- (double) flight_roll
+- (GLfloat) flight_roll
 {
 	return flight_roll;
 }
 
-- (double) flight_pitch
+- (GLfloat) flight_pitch
 {
 	return flight_pitch;
 }
 
-- (double) flight_speed
+- (GLfloat) flight_speed
 {
 	return flight_speed;
 }
 
-- (double) max_flight_speed
+- (GLfloat) max_flight_speed
 {
 	return max_flight_speed;
 }
 
-- (double) speed_factor
+- (GLfloat) speed_factor
 {
 	if (max_flight_speed <= 0.0)
 		return 0.0;
@@ -5268,15 +5268,9 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 	return d_forward;
 }
 
-- (double) rangeToDestination
+- (GLfloat) rangeToDestination
 {
-	double dist;
-	Vector delta = destination;
-	delta.x -= position.x;
-	delta.y -= position.y;
-	delta.z -= position.z;
-	dist = sqrt(delta.x*delta.x + delta.y*delta.y + delta.z*delta.z);
-	return dist;
+	return sqrtf(distance2( position, destination));
 }
 
 - (double) rangeToPrimaryTarget

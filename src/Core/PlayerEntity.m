@@ -2340,67 +2340,67 @@ double scoopSoundPlayTime = 0.0;
 	return showDemoShips;// || (status == STATUS_COCKPIT_DISPLAY);
 }
 
-- (double) dial_roll
+- (GLfloat) dial_roll
 {
 	return flight_roll / max_flight_roll;
 }
-- (double) dial_pitch
+- (GLfloat) dial_pitch
 {
 	return flight_pitch / max_flight_pitch;
 }
-- (double) dial_speed
+- (GLfloat) dial_speed
 {
 	if (flight_speed < max_flight_speed)
-		return flight_speed/max_flight_speed;
+		return flight_speed / max_flight_speed;
 	else
-		return 1.0;
+		return 1.0f;
 }
-- (double) dial_hyper_speed
+- (GLfloat) dial_hyper_speed
 {
-	return flight_speed/max_flight_speed;
+	return flight_speed / max_flight_speed;
 }
 
-- (double) dial_forward_shield
+- (GLfloat) dial_forward_shield
 {
-	return forward_shield / PLAYER_MAX_FORWARD_SHIELD;
+	return forward_shield / (GLfloat)PLAYER_MAX_FORWARD_SHIELD;
 }
-- (double) dial_aft_shield
+- (GLfloat) dial_aft_shield
 {
-	return aft_shield / PLAYER_MAX_AFT_SHIELD;
+	return aft_shield / (GLfloat)PLAYER_MAX_AFT_SHIELD;
 }
 
-- (double) dial_energy
+- (GLfloat) dial_energy
 {
 	return energy / max_energy;
 }
 
-- (double) dial_max_energy
+- (GLfloat) dial_max_energy
 {
 	return max_energy;
 }
 
-- (double) dial_fuel
+- (GLfloat) dial_fuel
 {
-	if (fuel <= 0.0)
-		return 0.0;
-	if (fuel > (float)PLAYER_MAX_FUEL)
-		return 1.0;
-	return (double)fuel / (double)PLAYER_MAX_FUEL;
+	if (fuel <= 0.0f)
+		return 0.0f;
+	if (fuel > (GLfloat)PLAYER_MAX_FUEL)
+		return 1.0f;
+	return (GLfloat)fuel / (GLfloat)PLAYER_MAX_FUEL;
 }
-- (double) dial_hyper_range
+- (GLfloat) dial_hyper_range
 {
-	double distance = distanceBetweenPlanetPositions(target_system_seed.d,target_system_seed.b,galaxy_coordinates.x,galaxy_coordinates.y);
-	return 10.0 * distance / PLAYER_MAX_FUEL;
+	GLfloat distance = distanceBetweenPlanetPositions(target_system_seed.d,target_system_seed.b,galaxy_coordinates.x,galaxy_coordinates.y);
+	return 10.0f * distance / (GLfloat)PLAYER_MAX_FUEL;
 }
-- (double) dial_ship_temperature
+- (GLfloat) dial_ship_temperature
 {
-	return ship_temperature / SHIP_MAX_CABIN_TEMP;
+	return (GLfloat)ship_temperature / (GLfloat)SHIP_MAX_CABIN_TEMP;
 }
-- (double) dial_weapon_temp
+- (GLfloat) dial_weapon_temp
 {
-	return weapon_temp / PLAYER_MAX_WEAPON_TEMP;
+	return (GLfloat)weapon_temp / (GLfloat)PLAYER_MAX_WEAPON_TEMP;
 }
-- (double) dial_altitude
+- (GLfloat) dial_altitude
 {
 	// find nearest planet type entity...
 	if (!universe)
@@ -2418,12 +2418,12 @@ double scoopSoundPlayTime = 0.0;
 		return 1.0;
 
 	double  zd = nearest_planet->zero_distance;
-	double  cr = nearest_planet->collision_radius;
-	double alt = sqrt(zd) - cr;
+	GLfloat  cr = nearest_planet->collision_radius;
+	GLfloat alt = sqrt(zd) - cr;
 
 	[nearest_planet release];
 
-	alt /= PLAYER_DIAL_MAX_ALTITUDE;
+	alt /= (GLfloat)PLAYER_DIAL_MAX_ALTITUDE;
 
 	if (alt > 1.0)
 		alt = 1.0;

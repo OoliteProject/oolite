@@ -210,11 +210,11 @@ Your fair use and other rights are in no way affected by the above.
 		
 		// per ship-type variables
 		//
-		double  max_flight_speed;		// top speed			(160.0 for player)  (200.0 for fast raider)
-		double  max_flight_roll;		// maximum roll rate	(2.0 for player)	(3.0 for fast raider)	
-		double  max_flight_pitch;		// maximum pitch rate   (1.0 for player)	(1.5 for fast raider) also radians/sec for (* turrets *)
+		GLfloat  max_flight_speed;		// top speed			(160.0 for player)  (200.0 for fast raider)
+		GLfloat  max_flight_roll;		// maximum roll rate	(2.0 for player)	(3.0 for fast raider)	
+		GLfloat  max_flight_pitch;		// maximum pitch rate   (1.0 for player)	(1.5 for fast raider) also radians/sec for (* turrets *)
 		
-		double  thrust;					// acceleration
+		GLfloat  thrust;					// acceleration
 		
 		BOOL	has_ecm;				// anti-missile system
 		BOOL	has_scoop;				// fuel/cargo scoops
@@ -230,7 +230,7 @@ Your fair use and other rights are in no way affected by the above.
 
 		BOOL	has_fuel_injection;		// afterburners
 		int     fuel;					// witch-space fuel
-		double	fuel_accumulator;
+		GLfloat	fuel_accumulator;
 		
 		int		likely_cargo;			// likely amount of cargo (for merchantmen, this is what is spilled as loot)
 		int		max_cargo;				// capacity of cargo hold
@@ -239,15 +239,15 @@ Your fair use and other rights are in no way affected by the above.
 		int		cargo_type;				// if this is scooped, this is indicates contents
 		int		cargo_flag;				// indicates contents for merchantmen
 		
-		double  energy_recharge_rate;   // recharge rate for energy banks
+		GLfloat  energy_recharge_rate;   // recharge rate for energy banks
 		
 		int		forward_weapon_type;	// type of forward weapon (allows lasers, plasma cannon, others)
 		int		aft_weapon_type;	// type of forward weapon (allows lasers, plasma cannon, others)
-		double  weapon_energy;			// energy used/delivered by weapon
-		double  weapon_range;			// range of the weapon (in meters)
-		double  weapon_offset_x;		// if weapon is in twin configuration this is the distance from the centerline to the weapon
+		GLfloat  weapon_energy;			// energy used/delivered by weapon
+		GLfloat  weapon_range;			// range of the weapon (in meters)
+		GLfloat  weapon_offset_x;		// if weapon is in twin configuration this is the distance from the centerline to the weapon
 		
-		double	scanner_range;			// typically 25600
+		GLfloat	scanner_range;			// typically 25600
 		
 		int		missiles;				// number of on-board missiles
 		
@@ -268,12 +268,12 @@ Your fair use and other rights are in no way affected by the above.
 		int			found_target;		// from scans
 		int			target_laser_hit;   // u-id for the entity hit by the last laser shot
 		int			owner_id;			// u-id for the controlling owner of this entity (* turrets *)
-		double		desired_range;		// range to which to journey/scan
-		double		desired_speed;		// speed at which to travel
+		GLfloat		desired_range;		// range to which to journey/scan
+		GLfloat		desired_speed;		// speed at which to travel
 		double		launch_time;		// time at which launched
 		
 		int		behaviour;						// ship's behavioural state
-		double	frustration, success_factor;	// degree of dissatisfaction with the current behavioural state, factor used to test this
+		GLfloat	frustration, success_factor;	// degree of dissatisfaction with the current behavioural state, factor used to test this
 		
 		int		patrol_counter;				// keeps track of where the ship is along a patrol route
 		
@@ -294,11 +294,11 @@ Your fair use and other rights are in no way affected by the above.
 		
 		// navigation
 		//		
-		double flight_speed;				// current speed
-		double flight_roll;					// current roll rate
-		double flight_pitch;				// current pitch rate
+		GLfloat flight_speed;				// current speed
+		GLfloat flight_roll;					// current roll rate
+		GLfloat flight_pitch;				// current pitch rate
 		
-		double pitch_tolerance;
+		GLfloat pitch_tolerance;
 		
 		BOOL	pitching_over;				// set to YES if executing a sharp loop
 
@@ -342,8 +342,8 @@ Your fair use and other rights are in no way affected by the above.
 		Vector	tractor_position;
 
 		// from player entity moved here now we're doing more complex heat stuff
-		double					ship_temperature;
-		double					heat_insulation;
+		GLfloat					ship_temperature;
+		GLfloat					heat_insulation;
 
 		// DEBUGGING
 		int debug_condition;
@@ -457,12 +457,12 @@ Your fair use and other rights are in no way affected by the above.
 - (NSMutableArray *) launch_actions;
 - (NSMutableArray *) death_actions;
 
-- (double) weapon_range;
-- (void) setWeaponRange: (double) value;
+- (GLfloat) weapon_range;
+- (void) setWeaponRange: (GLfloat) value;
 - (void) set_weapon_data_from_type: (int) weapon_type;
 
-- (double) scanner_range;
-- (void) setScannerRange: (double) value;
+- (GLfloat) scanner_range;
+- (void) setScannerRange: (GLfloat) value;
 
 - (Vector) reference;
 - (void) setReference:(Vector) v;
@@ -514,11 +514,11 @@ Your fair use and other rights are in no way affected by the above.
 - (void) increase_flight_pitch:(double) delta;
 - (void) decrease_flight_pitch:(double) delta;
 
-- (double) flight_roll;
-- (double) flight_pitch;
-- (double) flight_speed;
-- (double) max_flight_speed;
-- (double) speed_factor;
+- (GLfloat) flight_roll;
+- (GLfloat) flight_pitch;
+- (GLfloat) flight_speed;
+- (GLfloat) max_flight_speed;
+- (GLfloat) speed_factor;
 
 - (int) damage;
 - (void) dealEnergyDamageWithinDesiredRange;
@@ -568,7 +568,7 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 - (double) ballTrackTarget:(double) delta_t;
 - (double) ballTrackLeadingTarget:(double) delta_t;
 
-- (double) rangeToDestination;
+- (GLfloat) rangeToDestination;
 - (double) trackDestination:(double) delta_t :(BOOL) retreat;
 
 - (Vector) destination;

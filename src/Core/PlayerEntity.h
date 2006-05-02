@@ -303,13 +303,12 @@ enum
 	
 	BOOL					docking_music_on;
 	
-	double					roll_delta, pitch_delta;
+	GLfloat					roll_delta, pitch_delta;
 	
-	double					forward_shield, aft_shield;
-	double					weapon_temp;
-	double					forward_weapon_temp, aft_weapon_temp, port_weapon_temp, starboard_weapon_temp;
-	double					weapon_energy_per_shot, weapon_heat_increment_per_shot, weapon_reload_time;
-//	double					ship_temperature;
+	GLfloat					forward_shield, aft_shield;
+	GLfloat					weapon_temp;
+	GLfloat					forward_weapon_temp, aft_weapon_temp, port_weapon_temp, starboard_weapon_temp;
+	GLfloat					weapon_energy_per_shot, weapon_heat_increment_per_shot, weapon_reload_time;
 	
 	int						chosen_weapon_facing;   // for purchasing weapons
 	
@@ -402,7 +401,7 @@ enum
 	
 	int						compass_mode;
 	
-	double					fuel_leak_rate;
+	GLfloat					fuel_leak_rate;
 	
 	// keys!
 	int						key_roll_left;
@@ -473,7 +472,7 @@ enum
 	OOTrumble				*trumble[PLAYER_MAX_TRUMBLES];
 	
 	// smart zoom
-	double					scanner_zoom_rate;
+	GLfloat					scanner_zoom_rate;
 	
 	// smart target lst reports
 	BOOL					suppressTargetLost;
@@ -533,23 +532,23 @@ enum
 - (void) setShowDemoShips:(BOOL) value;
 - (BOOL) showDemoShips;
 
-- (double) dial_roll;
-- (double) dial_pitch;
-- (double) dial_speed;
-- (double) dial_hyper_speed;
+- (GLfloat) dial_roll;
+- (GLfloat) dial_pitch;
+- (GLfloat) dial_speed;
+- (GLfloat) dial_hyper_speed;
 
-- (double) dial_forward_shield;
-- (double) dial_aft_shield;
+- (GLfloat) dial_forward_shield;
+- (GLfloat) dial_aft_shield;
 
-- (double) dial_energy;
-- (double) dial_max_energy;
+- (GLfloat) dial_energy;
+- (GLfloat) dial_max_energy;
 
-- (double) dial_fuel;
-- (double) dial_hyper_range;
+- (GLfloat) dial_fuel;
+- (GLfloat) dial_hyper_range;
 
-- (double) dial_ship_temperature;
-- (double) dial_weapon_temp;
-- (double) dial_altitude;
+- (GLfloat) dial_ship_temperature;
+- (GLfloat) dial_weapon_temp;
+- (GLfloat) dial_altitude;
 
 - (int) dial_missiles;
 - (int) calc_missiles;

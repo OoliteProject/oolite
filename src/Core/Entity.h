@@ -232,7 +232,7 @@ extern int debug;
 	Vector	last_position;
 	Quaternion last_q_rotation;
 	//
-	double  distance_travelled; // set to zero initially
+	GLfloat  distance_travelled; // set to zero initially
 	//
     Matrix	rotation;
     gl_matrix	rotMatrix;
@@ -247,8 +247,8 @@ extern int debug;
 	double	track_time;
 	NSLock	*trackLock;
 	//
-	double  energy;
-	double  max_energy;
+	GLfloat  energy;
+	GLfloat  max_energy;
 	//
 	NSMutableArray  *collidingEntities;
     //
