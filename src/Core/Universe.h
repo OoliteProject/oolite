@@ -128,6 +128,7 @@ Your fair use and other rights are in no way affected by the above.
 
 #define	UNIVERSE_MAX_ENTITIES		2048
 
+#define OOLITE_EXCEPTION_LOOPING		@"OoliteLoopingException"
 #define OOLITE_EXCEPTION_SHIP_NOT_FOUND	@"OoliteShipNotFoundException"
 #define OOLITE_EXCEPTION_FATAL			@"OoliteFatalException"
 

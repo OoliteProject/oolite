@@ -7287,49 +7287,75 @@ NSComparisonResult comparePrice( id dict1, id dict2, void * context)
 
 - (NSString *) expandDescription:(NSString *) desc forSystem:(Random_Seed)s_seed
 {
-	return [self expandDescriptionWithLocals:desc forSystem:s_seed withLocalVariables:nil];
+//	return [self expandDescriptionWithLocals:desc forSystem:s_seed withLocalVariables:nil];
+	//
+	// to enable variables to return strings that can be expanded (eg. @"[commanderName_string]")
+	// we're going to loop until every expansion has been done!
+	// but to check this does not infinitely recurse
+	// we'll stop after 32 loops.
+	//
+	int stack_check = 32;
+	NSString	*old_desc = [NSString stringWithString: desc];
+	NSString	*result = desc;
+	do {
+		old_desc = result;
+		result = [self expandDescriptionWithLocals:result forSystem:s_seed withLocalVariables:nil];
+	} while ((--stack_check)&&(![result isEqual:old_desc]));
+	
+	if (!stack_check)
+	{
+		NSLog(@"***** ERROR: script stack overflow for expandDescription: \"%@\"", desc);
+		NSException *myException = [NSException
+			exceptionWithName: OOLITE_EXCEPTION_LOOPING
+			reason:[NSString stringWithFormat:@"script stack overflow for expandDescription: \"%@\"", desc]
+			userInfo:nil];
+		[myException raise];
+	}
+	
+	return result;
 }
 
 - (NSString *) expandDescriptionWithLocals:(NSString *) desc forSystem:(Random_Seed)s_seed withLocalVariables:(NSDictionary *)locals
 {
-	PlayerEntity*		player = (PlayerEntity*)[self entityZero];
-	NSMutableString*	partial = [NSMutableString stringWithString:desc];
-	NSMutableDictionary* all_descriptions = [NSMutableDictionary dictionaryWithDictionary:descriptions];
+	PlayerEntity		*player = (PlayerEntity*)[self entityZero];
+	NSMutableString		*partial = [NSMutableString stringWithString:desc];
+	NSMutableDictionary	*all_descriptions = [NSMutableDictionary dictionaryWithDictionary:descriptions];
+//
+// --  GILES move mission variable expansion to new routine --
+//
+//	// add in mission_variables if required
+//	if ([desc rangeOfString:@"[mission_"].location != NSNotFound)
+//	{
+//		NSDictionary* mission_vars = [player mission_variables];
+//		NSEnumerator* missVarsEnum = [mission_vars keyEnumerator];
+//		id key;
+//		while (key = [missVarsEnum nextObject])
+//			[all_descriptions setObject:[mission_vars objectForKey:key] forKey:key];
+//	}
+//	
+//	// also add the mission-local vars, if they have been passed in
+//	if (locals != nil && [desc rangeOfString:@"[local_"].location != NSNotFound)
+//	{
+//		NSEnumerator* localVarsEnum = [locals keyEnumerator];
+//		id key;
+//		while (key = [localVarsEnum nextObject])
+//			[all_descriptions setObject:[locals objectForKey:key] forKey:key];
+//	}
 	
-	// add in mission_variables if required
-	if ([desc rangeOfString:@"[mission_"].location != NSNotFound)
-	{
-		NSDictionary* mission_vars = [player mission_variables];
-		NSEnumerator* missVarsEnum = [mission_vars keyEnumerator];
-		id key;
-		while (key = [missVarsEnum nextObject])
-			[all_descriptions setObject:[mission_vars objectForKey:key] forKey:key];
-	}
-	
-	// also add the mission-local vars, if they have been passed in
-	if (locals != nil && [desc rangeOfString:@"[local_"].location != NSNotFound)
-	{
-		NSEnumerator* localVarsEnum = [locals keyEnumerator];
-		id key;
-		while (key = [localVarsEnum nextObject])
-			[all_descriptions setObject:[locals objectForKey:key] forKey:key];
-	}
-
 	// add in player info if required
+	//
+	// -- this is now duplicated with new commanderXXX_string and commanderYYY_number methods in PlayerEntity Additions -- GILES
+	//
 	if ([desc rangeOfString:@"[commander_"].location != NSNotFound)
 	{
-		NSDictionary*		playerinfo = [player commanderDataDictionary];
 		// commander's name
-		[all_descriptions setObject:[playerinfo objectForKey:@"player_name"] forKey:@"commander_name"];
+		[all_descriptions setObject:[player commanderName_string] forKey:@"commander_name"];
 		// one or two word description of ship
-		[all_descriptions setObject:[player name] forKey:@"commander_shipname"];
+		[all_descriptions setObject:[player commanderName_string] forKey:@"commander_shipname"];
 		// ranking from Hamless to ELITE
-		int rating = [player getRatingFromKills: [[playerinfo objectForKey:@"ship_kills"] intValue]];
-		[all_descriptions setObject:[(NSArray *)[descriptions objectForKey:@"rating"] objectAtIndex:rating] forKey:@"commander_rank"];
+		[all_descriptions setObject:[player commanderRank_string] forKey:@"commander_rank"];
 		// legal status
-		int legal_status = [[playerinfo objectForKey:@"legal_status"] intValue];
-		int legal_index = 0 + (legal_status <= 50) ? 1 : 2;
-		[all_descriptions setObject:[(NSArray *)[descriptions objectForKey:@"legal_status"] objectAtIndex:legal_index] forKey:@"commander_legal_status"];
+		[all_descriptions setObject:[player commanderLegalStatus_string] forKey:@"commander_legal_status"];
 	}
 	
 	while ([partial rangeOfString:@"["].location != NSNotFound)
@@ -7359,28 +7385,38 @@ NSComparisonResult comparePrice( id dict1, id dict2, void * context)
 				part = [all_descriptions objectForKey:middle];
 			}
 		}
-		else if (([middle hasSuffix:@"_number"])||([middle hasSuffix:@"_bool"])||([middle hasSuffix:@"_string"]))
+//		else if (([middle hasSuffix:@"_number"])||([middle hasSuffix:@"_bool"])||([middle hasSuffix:@"_string"]))
+//		{
+//			SEL value_selector = NSSelectorFromString(middle);
+//			if ([player respondsToSelector:value_selector])
+//			{
+//				part = [NSString stringWithFormat:@"%@", [player performSelector:value_selector]];
+//			}
+//		}
+		else if ([[middle stringByTrimmingCharactersInSet:[NSCharacterSet characterSetWithCharactersInString:@"0123456789"]] isEqual:@""])
 		{
-			SEL value_selector = NSSelectorFromString(middle);
-			if ([player respondsToSelector:value_selector])
+			// if all characters are all from the set "0123456789" interpret it as a number in system_description array
+			if (![middle isEqual:@""])
 			{
-				part = [NSString stringWithFormat:@"%@", [player performSelector:value_selector]];
+				sub = [middle intValue];
+				
+				//NSLog(@"Expanding:\t%@",partial);
+				rnd = gen_rnd_number();
+				opt = 0;
+				if (rnd >= 0x33) opt++;
+				if (rnd >= 0x66) opt++;
+				if (rnd >= 0x99) opt++;
+				if (rnd >= 0xCC) opt++;
+				
+				part = (NSString *)[(NSArray *)[(NSArray *)[all_descriptions objectForKey:@"system_description"] objectAtIndex:sub] objectAtIndex:opt];
 			}
+			else
+				part = @"";
 		}
 		else
 		{
-			// no value for that key so interpret it as a number...
-			sub = [middle intValue];
-			
-			//NSLog(@"Expanding:\t%@",partial);
-			rnd = gen_rnd_number();
-			opt = 0;
-			if (rnd >= 0x33) opt++;
-			if (rnd >= 0x66) opt++;
-			if (rnd >= 0x99) opt++;
-			if (rnd >= 0xCC) opt++;
-			
-			part = (NSString *)[(NSArray *)[(NSArray *)[all_descriptions objectForKey:@"system_description"] objectAtIndex:sub] objectAtIndex:opt];
+			// do replacement of mission and local variables here instead
+			part = [player replaceVariablesInString:middle];
 		}
 		partial = [NSMutableString stringWithFormat:@"%@%@%@",before,part,after];
 	}

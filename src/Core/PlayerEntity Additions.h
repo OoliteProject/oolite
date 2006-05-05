@@ -98,6 +98,12 @@ Your fair use and other rights are in no way affected by the above.
 - (NSNumber *) systemPopulation_number;
 - (NSNumber *) systemProductivity_number;
 
+- (NSString *) commanderName_string;
+- (NSString *) commanderRank_string;
+- (NSString *) commanderShip_string;
+- (NSString *) commanderLegalStatus_string;
+- (NSNumber *) commanderLegalStatus_number;
+
 /*-----------------------------------------------------*/
 
 - (NSArray*) missionsList;

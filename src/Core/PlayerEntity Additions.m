@@ -727,8 +727,32 @@ static int shipsFound;
 	return (NSNumber *)[systeminfo objectForKey:KEY_PRODUCTIVITY];
 }
 
+- (NSString *) commanderName_string
+{
+	return [NSString stringWithString: player_name];
+}
 
+- (NSString *) commanderRank_string
+{
+	int rating = [self getRatingFromKills: ship_kills];
+	return [NSString stringWithString:(NSString*)[(NSArray*)[[universe descriptions] objectForKey:@"rating"] objectAtIndex:rating]];
+}
 
+- (NSString *) commanderShip_string
+{
+	return [NSString stringWithString:[self name]];
+}
+
+- (NSString *) commanderLegalStatus_string
+{
+	int legal_index = 0 + (legal_status <= 50) ? 1 : 2;
+	return [NSString stringWithString:(NSString*)[(NSArray *)[[universe descriptions] objectForKey:@"legal_status"] objectAtIndex:legal_index]];
+}
+
+- (NSNumber *) commanderLegalStatus_number
+{
+	return [NSNumber numberWithInt: legal_status];
+}
 
 /*-----------------------------------------------------*/
 
@@ -1813,7 +1837,9 @@ static int shipsFound;
 
 - (NSString*) replaceVariablesInString:(NSString*) args
 {
-	NSString*   valueString;
+	NSMutableDictionary* locals = [local_variables objectForKey:mission_key];
+	NSMutableString*	resultString = [NSMutableString stringWithString: args];
+	NSString*			valueString;
 	int i;
 	NSMutableArray*	tokens = [Entity scanTokensFromString:args];
 
@@ -1823,18 +1849,26 @@ static int shipsFound;
 
 		if ([mission_variables objectForKey:valueString])
 		{
-			[tokens replaceObjectAtIndex:i withObject:[mission_variables objectForKey:valueString]];
+			[resultString replaceOccurrencesOfString:valueString withString:[mission_variables objectForKey:valueString] options:NSLiteralSearch range:NSMakeRange(0, [resultString length])];
+//			[tokens replaceObjectAtIndex:i withObject:[mission_variables objectForKey:valueString]];
+		}
+		else if ([locals objectForKey:valueString])
+		{
+			[resultString replaceOccurrencesOfString:valueString withString:[locals objectForKey:valueString] options:NSLiteralSearch range:NSMakeRange(0, [resultString length])];
+//			[tokens replaceObjectAtIndex:i withObject:[locals objectForKey:valueString]];
 		}
 		else if (([valueString hasSuffix:@"_number"])||([valueString hasSuffix:@"_bool"])||([valueString hasSuffix:@"_string"]))
 		{
 			SEL value_selector = NSSelectorFromString(valueString);
 			if ([self respondsToSelector:value_selector])
 			{
-				[tokens replaceObjectAtIndex:i withObject:[NSString stringWithFormat:@"%@", [self performSelector:value_selector]]];
+				[resultString replaceOccurrencesOfString:valueString withString:[NSString stringWithFormat:@"%@", [self performSelector:value_selector]] options:NSLiteralSearch range:NSMakeRange(0, [resultString length])];
+//				[tokens replaceObjectAtIndex:i withObject:[NSString stringWithFormat:@"%@", [self performSelector:value_selector]]];
 			}
 		}
 	}
-	return [tokens componentsJoinedByString:@" "];
+//	return [tokens componentsJoinedByString:@" "];
+	return [NSString stringWithString: resultString];
 }
 
 
