@@ -2907,13 +2907,20 @@ BOOL ship_canCollide (ShipEntity* ship)
 //
 - (void) resetTracking
 {
-	Quaternion qrot = q_rotation;
+	Quaternion	qrot = q_rotation;
 	if (isPlayer)	qrot.w = -qrot.w;	// correct player's q_rotation
+	Vector		vi = vector_right_from_quaternion(qrot);
+	Vector		vj = vector_up_from_quaternion(qrot);
+	Vector		vk = vector_forward_from_quaternion(qrot);
 	Frame resetFrame;
 	resetFrame.position = position;
 	resetFrame.q_rotation = qrot;
-	resetFrame.k = v_forward;
-	Vector vel = make_vector( v_forward.x * flight_speed, v_forward.y * flight_speed, v_forward.z * flight_speed);
+	resetFrame.k = vk;
+	Vector vel = make_vector( vk.x * flight_speed, vk.y * flight_speed, vk.z * flight_speed);
+	
+	if (isPlayer)
+		NSLog(@"DEBUG resetting tracking for %@", self);
+	
 	[self resetFramesFromFrame:resetFrame withVelocity:vel];
 	if (sub_entities)
 	{
@@ -2925,10 +2932,14 @@ BOOL ship_canCollide (ShipEntity* ship)
 			Vector	sepos = se->position;
 			if ((se->isParticle)&&([(ParticleEntity*)se particleType] == PARTICLE_EXHAUST))
 			{
+			
+				if (isPlayer)
+					NSLog(@"DEBUG resetting tracking for subentity %@ of %@", se, self);
+			
 				resetFrame.position = make_vector(
-					position.x + v_right.x * sepos.x + v_up.x * sepos.y + v_forward.x * sepos.z,
-					position.y + v_right.y * sepos.x + v_up.y * sepos.y + v_forward.y * sepos.z,
-					position.z + v_right.z * sepos.x + v_up.z * sepos.y + v_forward.z * sepos.z);
+					position.x + vi.x * sepos.x + vj.x * sepos.y + vk.x * sepos.z,
+					position.y + vi.y * sepos.x + vj.y * sepos.y + vk.y * sepos.z,
+					position.z + vi.z * sepos.x + vj.z * sepos.y + vk.z * sepos.z);
 				[se resetFramesFromFrame:resetFrame withVelocity:vel];
 			}
 		}

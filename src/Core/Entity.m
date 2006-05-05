@@ -1174,23 +1174,24 @@ static  Universe	*data_store_universe;
 //
 - (void) resetFramesFromFrame:(Frame) resetFrame withVelocity:(Vector) vel1
 {
-	Vector v1 = make_vector( 0.1 * vel1.x, 0.1 * vel1.y, 0.1 * vel1.z);
-	double t_now = [universe getTime];
-	Frame setFrame = resetFrame;
-	setFrame.timeframe = t_now;
-	track_time = t_now;
+	if (isPlayer)
+		NSLog(@"DEBUG ** resetting track for %@ **", self);
+
+	Vector		v1 = make_vector( 0.1 * vel1.x, 0.1 * vel1.y, 0.1 * vel1.z);
+	double		t_now = [universe getTime];
+	Vector		pos = resetFrame.position;
+	Vector		vk = resetFrame.k;
+	Quaternion	qr = resetFrame.q_rotation;
 	int i;
-	int index = (track_index - 1) & 0xff;
 	for (i = 0; i < 256; i++)
 	{
-		track[index] = setFrame;
-		setFrame.position.x -= v1.x;
-		setFrame.position.y -= v1.y;
-		setFrame.position.z -= v1.z;
-		setFrame.timeframe -= 0.1;
-		index --;
-		index &= 0xff;
+		track[255-i].position = make_vector(pos.x - i * v1.x, pos.y - i * v1.y, pos.z - i * v1.z);
+		track[255-i].timeframe = t_now - 0.1 * i;
+		track[255-i].q_rotation = qr;
+		track[255-i].k = vk;
 	}
+	track_time = t_now;
+	track_index = 0;
 }
 
 - (BOOL) resetToTime:(double) t_frame	// timeframe is relative to now ie. -0.5 = half a second ago.
@@ -1250,7 +1251,7 @@ static  Universe	*data_store_universe;
 	// interpolate between t0 and t1
 	double period = track[0].timeframe - track[1].timeframe;
 	double f0 = (track[t0].timeframe - moment_in_time)/period;
-	double f1 = 1 - f0;
+	double f1 = 1.0 - f0;
 	Vector posn;
 	posn.x =	f0 * track[t0].position.x + f1 * track[t1].position.x;
 	posn.y =	f0 * track[t0].position.y + f1 * track[t1].position.y;
