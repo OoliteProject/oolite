@@ -958,8 +958,10 @@
 	<string>You fail to deliver the %@ on time, and no-one will want to pay for it.</string>
 
 	<!-- background scenes for GUI screens -->
-	<key>gui-scene-show-planet</key>
-	<string>target-planet	120 80 640</string>
+	<key>gui-scene-show-planet</key> 
+	<array> 
+	   <string>target-planet   120 80 640</string> 
+	</array>
 
 </dict>
 </plist>
