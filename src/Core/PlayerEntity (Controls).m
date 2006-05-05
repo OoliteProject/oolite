@@ -2310,7 +2310,8 @@ static BOOL switching_equipship_screens;
 		{
 			if (!switching_market_screens)
 			{
-				if ((gui_screen == GUI_SCREEN_MARKET)&&(docked_station == [universe station])&&(![universe strict]))
+//				if ((gui_screen == GUI_SCREEN_MARKET)&&(docked_station == [universe station])&&(![universe strict]))
+				if ((gui_screen == GUI_SCREEN_MARKET) && [docked_station hasShipyard])
 				{
 					[gameView clearKeys];
 					[self setGuiToContractsScreen];

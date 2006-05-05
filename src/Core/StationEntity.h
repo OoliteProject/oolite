@@ -191,4 +191,6 @@ NSDictionary* instructions(int station_id, Vector coords, float speed, float ran
 
 - (BOOL) isRotatingStation;
 
+- (BOOL) hasShipyard;
+
 @end

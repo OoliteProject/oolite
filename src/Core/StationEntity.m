@@ -1764,6 +1764,36 @@ NSDictionary* instructions(int station_id, Vector coords, float speed, float ran
 	return isRotatingStation;
 }
 
+
+- (BOOL) hasShipyard
+{
+	if ([universe strict])
+		return NO;
+	if ([universe station] == self)
+		return YES;
+	if ([shipinfoDictionary objectForKey:@"hasShipyard"])
+	{
+		PlayerEntity	*player = (PlayerEntity*)[universe entityZero];
+		NSObject		*determinant = [shipinfoDictionary objectForKey:@"hasShipyard"];
+		if ([determinant isKindOfClass:[NSArray class]])
+		{
+			NSArray *conditions = (NSArray *)determinant;
+			BOOL success = YES;
+			int i;
+			for (i = 0; (i < [conditions count])&&(success); i++)
+				success &= [player scriptTestCondition:(NSString *)[conditions objectAtIndex:i]];
+			return success;
+		}
+		if ([determinant isKindOfClass:[NSNumber class]])
+		{
+			float chance = [(NSNumber*)determinant floatValue];;
+			return (randf() < chance);
+		}
+	}
+	return NO;
+}
+
+
 - (NSString*) description
 {
 	if (debug & DEBUG_ENTITIES)
