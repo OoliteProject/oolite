@@ -2285,7 +2285,7 @@ static BOOL switching_equipship_screens;
 			{
 				if (!docked_station)
 					docked_station = [universe station];
-				if ((gui_screen == GUI_SCREEN_EQUIP_SHIP)&&(docked_station == [universe station])&&(![universe strict]))
+				if ((gui_screen == GUI_SCREEN_EQUIP_SHIP)&&[docked_station hasShipyard])
 				{
 					[gameView clearKeys];
 					[self setGuiToShipyardScreen:0];
@@ -2310,8 +2310,7 @@ static BOOL switching_equipship_screens;
 		{
 			if (!switching_market_screens)
 			{
-//				if ((gui_screen == GUI_SCREEN_MARKET)&&(docked_station == [universe station])&&(![universe strict]))
-				if ((gui_screen == GUI_SCREEN_MARKET) && [docked_station hasShipyard])
+				if ((gui_screen == GUI_SCREEN_MARKET)&&(docked_station == [universe station])&&(![universe strict]))
 				{
 					[gameView clearKeys];
 					[self setGuiToContractsScreen];
