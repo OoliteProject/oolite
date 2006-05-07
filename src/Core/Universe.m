@@ -1374,6 +1374,13 @@ GLfloat docked_light_specular[]	= { (GLfloat) 1.0, (GLfloat) 1.0, (GLfloat) 0.5,
 		trader_ship = [self getShipWithRole:@"trader"];   // retain count = 1
 		if (trader_ship)
 		{
+			[trader_ship setCrew:[NSArray arrayWithObject:
+				[OOCharacter characterWithRole:@"trader"
+				andOriginalSystem: systems[ranrot_rand() & 255]
+				inUniverse: self]]];
+			
+			NSLog(@">>>>> %@", [trader_ship crew]);
+			
 			if (trader_ship->scan_class == CLASS_NOT_SET)
 				[trader_ship setScanClass: CLASS_NEUTRAL];
 			[trader_ship setPosition:launch_pos];
@@ -7351,7 +7358,7 @@ NSComparisonResult comparePrice( id dict1, id dict2, void * context)
 		// commander's name
 		[all_descriptions setObject:[player commanderName_string] forKey:@"commander_name"];
 		// one or two word description of ship
-		[all_descriptions setObject:[player commanderName_string] forKey:@"commander_shipname"];
+		[all_descriptions setObject:[player commanderShip_string] forKey:@"commander_shipname"];
 		// ranking from Hamless to ELITE
 		[all_descriptions setObject:[player commanderRank_string] forKey:@"commander_rank"];
 		// legal status
