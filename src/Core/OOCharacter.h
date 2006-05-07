@@ -58,6 +58,8 @@ Your fair use and other rights are in no way affected by the above.
 - (id) initWithGenSeed:(Random_Seed) g_seed andOriginalSystemSeed:(Random_Seed) s_seed inUniverse:(Universe*) uni;
 - (id) initWithRole:(NSString*) role andOriginalSystemSeed:(Random_Seed) s_seed  inUniverse:(Universe*) uni;
 
++ (OOCharacter*) characterWithRole:(NSString*) c_role andOriginalSystem:(Random_Seed) o_seed inUniverse:(Universe*) uni;
+
 - (void) basicSetUp;
 
 - (NSString*)	name;

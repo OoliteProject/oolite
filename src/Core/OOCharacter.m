@@ -78,6 +78,11 @@ Your fair use and other rights are in no way affected by the above.
 	return self;
 }
 
++ (OOCharacter*) characterWithRole:(NSString*) c_role andOriginalSystem:(Random_Seed) o_seed inUniverse:(Universe*) uni
+{
+	return [[[OOCharacter alloc] initWithRole: c_role andOriginalSystemSeed: o_seed inUniverse: uni] autorelease];
+}
+
 - (void) basicSetUp
 {	
 	// save random seeds for restoration later
@@ -167,7 +172,8 @@ Your fair use and other rights are in no way affected by the above.
 	// do character set-up
 	//
 	originSystemSeed = s_seed;
-	make_pseudo_random_seed( &genSeed);
+	genSeed = s_seed;
+//	make_pseudo_random_seed( &genSeed);
 	universe = uni;
 	//
 	[self basicSetUp];

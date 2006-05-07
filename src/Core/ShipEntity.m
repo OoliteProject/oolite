@@ -6097,8 +6097,7 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 		if (crew)	// transfer crew
 		{
 			[pod setCrew: crew];
-			[crew autorelease];
-			crew = nil;
+			[self setCrew: nil];
 		}
 		[[pod getAI] setStateMachine:@"homeAI.plist"];
 		[self dumpItem:pod];
