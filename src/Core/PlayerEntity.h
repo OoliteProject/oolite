@@ -623,6 +623,7 @@ enum
 - (void) setGuiToLoadSaveScreen;
 - (void) setGuiToEquipShipScreen:(int) skip :(int) itemForSelectFacing;
 - (void) showInformationForSelectedUpgrade;
+- (void) calculateCurrentCargo;
 - (void) setGuiToMarketScreen;
 
 - (void) setGuiToIntro1Screen;

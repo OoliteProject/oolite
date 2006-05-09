@@ -248,6 +248,8 @@ static Quaternion quaternion_identity = { (GLfloat)1.0, (GLfloat)0.0, (GLfloat)0
 		[universe recycleOrDiscard:(Entity *)[cargoArray objectAtIndex:i]];
 	}
 	[cargo removeAllObjects];   // empty the hold
+	
+	[self calculateCurrentCargo];	// work out the correct value for current_cargo
 }
 
 - (void) loadCargoPods
@@ -5807,6 +5809,31 @@ static int last_outfitting_index;
 	}
 
 	return NO;
+}
+
+- (void) calculateCurrentCargo
+{
+	int i;
+	int n_commodities = [shipCommodityData count];
+	int in_hold[n_commodities];
+
+	// following works whether docked or not
+	//
+	for (i = 0; i < n_commodities; i++)
+		in_hold[i] = [(NSNumber *)[(NSArray *)[shipCommodityData objectAtIndex:i] objectAtIndex:MARKET_QUANTITY] intValue];
+	for (i = 0; i < [cargo count]; i++)
+	{
+		ShipEntity *container = (ShipEntity *)[cargo objectAtIndex:i];
+		in_hold[[container getCommodityType]] += [container getCommodityAmount];
+	}
+
+	current_cargo = 0;  // for calculating remaining hold space
+	//
+	for (i = 0; i < n_commodities; i++)
+	{
+		if ([(NSNumber *)[(NSArray *)[shipCommodityData objectAtIndex:i] objectAtIndex:MARKET_UNITS] intValue] == UNITS_TONS)
+			current_cargo += in_hold[i];
+	}
 }
 
 - (void) setGuiToMarketScreen
