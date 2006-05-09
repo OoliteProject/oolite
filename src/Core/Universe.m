@@ -1375,11 +1375,9 @@ GLfloat docked_light_specular[]	= { (GLfloat) 1.0, (GLfloat) 1.0, (GLfloat) 0.5,
 		if (trader_ship)
 		{
 			[trader_ship setCrew:[NSArray arrayWithObject:
-				[OOCharacter characterWithRole:@"trader"
+				[OOCharacter randomCharacterWithRole:@"trader"
 				andOriginalSystem: systems[ranrot_rand() & 255]
 				inUniverse: self]]];
-			
-			NSLog(@">>>>> %@", [trader_ship crew]);
 			
 			if (trader_ship->scan_class == CLASS_NOT_SET)
 				[trader_ship setScanClass: CLASS_NEUTRAL];
@@ -1431,6 +1429,12 @@ GLfloat docked_light_specular[]	= { (GLfloat) 1.0, (GLfloat) 1.0, (GLfloat) 0.5,
 		pirate_ship = [self getShipWithRole:@"pirate"];   // retain count = 1
 		if (pirate_ship)
 		{
+			[pirate_ship setCrew:[NSArray arrayWithObject:
+				[OOCharacter randomCharacterWithRole:@"pirate"
+				andOriginalSystem: (randf() > 0.25)? systems[ranrot_rand() & 255]:system_seed
+				inUniverse: self]]];
+//			NSLog(@">>>>> %@", [pirate_ship crew]);
+
 			if (pirate_ship->scan_class == CLASS_NOT_SET)
 				[pirate_ship setScanClass: CLASS_NEUTRAL];
 			[pirate_ship setPosition:launch_pos];
@@ -1476,6 +1480,11 @@ GLfloat docked_light_specular[]	= { (GLfloat) 1.0, (GLfloat) 1.0, (GLfloat) 0.5,
 				hunter_ship = [self getShipWithRole:@"police"];   // retain count = 1
 			if (hunter_ship)
 			{
+				[hunter_ship setCrew:[NSArray arrayWithObject:
+					[OOCharacter randomCharacterWithRole:@"police"
+					andOriginalSystem: (randf() > 0.05)? systems[ranrot_rand() & 255]:system_seed
+					inUniverse: self]]];
+				
 				[hunter_ship setRoles:@"police"];
 				if (hunter_ship->scan_class == CLASS_NOT_SET)
 					[hunter_ship setScanClass: CLASS_POLICE];
@@ -1491,6 +1500,11 @@ GLfloat docked_light_specular[]	= { (GLfloat) 1.0, (GLfloat) 1.0, (GLfloat) 0.5,
 			hunter_ship = [self getShipWithRole:@"hunter"];   // retain count = 1
 			if ((hunter_ship)&&(hunter_ship->scan_class == CLASS_NOT_SET))
 				[hunter_ship setScanClass: CLASS_NEUTRAL];
+			[hunter_ship setCrew:[NSArray arrayWithObject:
+				[OOCharacter randomCharacterWithRole:@"hunter"
+				andOriginalSystem: (randf() > 0.75)? systems[ranrot_rand() & 255]:system_seed
+				inUniverse: self]]];
+				
 		}
 		if (hunter_ship)
 		{
@@ -1588,6 +1602,11 @@ GLfloat docked_light_specular[]	= { (GLfloat) 1.0, (GLfloat) 1.0, (GLfloat) 0.5,
 		trader_ship = [self getShipWithRole:@"sunskim-trader"];   // retain count = 1
 		if (trader_ship)
 		{
+			[trader_ship setCrew:[NSArray arrayWithObject:
+				[OOCharacter randomCharacterWithRole:@"trader"
+				andOriginalSystem: (randf() > 0.85)? systems[ranrot_rand() & 255]:system_seed
+				inUniverse: self]]];
+				
 			[trader_ship setRoles:@"trader"];	// set this to allow escorts to pair with the ship
 			if ((trader_ship)&&(trader_ship->scan_class == CLASS_NOT_SET))
 				[trader_ship setScanClass: CLASS_NEUTRAL];
@@ -1641,6 +1660,12 @@ GLfloat docked_light_specular[]	= { (GLfloat) 1.0, (GLfloat) 1.0, (GLfloat) 0.5,
 		pirate_ship = [self getShipWithRole:@"pirate"];   // retain count = 1
 		if (pirate_ship)
 		{
+			[pirate_ship setCrew:[NSArray arrayWithObject:
+				[OOCharacter randomCharacterWithRole:@"pirate"
+				andOriginalSystem: (randf() > 0.25)? systems[ranrot_rand() & 255]:system_seed
+				inUniverse: self]]];
+//			NSLog(@">>>>> %@", [pirate_ship crew]);
+
 			if (pirate_ship->scan_class == CLASS_NOT_SET)
 				[pirate_ship setScanClass: CLASS_NEUTRAL];
 			[pirate_ship setPosition: launch_pos];
@@ -1686,6 +1711,11 @@ GLfloat docked_light_specular[]	= { (GLfloat) 1.0, (GLfloat) 1.0, (GLfloat) 0.5,
 				hunter_ship = [self getShipWithRole:@"police"];   // retain count = 1
 			if (hunter_ship)
 			{
+				[hunter_ship setCrew:[NSArray arrayWithObject:
+					[OOCharacter randomCharacterWithRole:@"police"
+					andOriginalSystem: (randf() > 0.05)? systems[ranrot_rand() & 255]:system_seed
+					inUniverse: self]]];
+				
 				[hunter_ship setRoles:@"police"];
 				if (hunter_ship->scan_class == CLASS_NOT_SET)
 					[hunter_ship setScanClass: CLASS_POLICE];
@@ -1701,6 +1731,11 @@ GLfloat docked_light_specular[]	= { (GLfloat) 1.0, (GLfloat) 1.0, (GLfloat) 0.5,
 			hunter_ship = [self getShipWithRole:@"hunter"];   // retain count = 1
 			if ((hunter_ship)&&(hunter_ship->scan_class == CLASS_NOT_SET))
 				[hunter_ship setScanClass: CLASS_NEUTRAL];
+			[hunter_ship setCrew:[NSArray arrayWithObject:
+				[OOCharacter randomCharacterWithRole:@"hunter"
+				andOriginalSystem: (randf() > 0.75)? systems[ranrot_rand() & 255]:system_seed
+				inUniverse: self]]];
+				
 		}
 		
 		if (hunter_ship)
@@ -1830,6 +1865,11 @@ GLfloat docked_light_specular[]	= { (GLfloat) 1.0, (GLfloat) 1.0, (GLfloat) 0.5,
 	ship = [self getShipWithRole:desc];   // retain count = 1
 	if (ship)
 	{
+		[ship setCrew:[NSArray arrayWithObject:
+			[OOCharacter randomCharacterWithRole: desc
+			andOriginalSystem: systems[ranrot_rand() & 255]
+			inUniverse: self]]];
+				
 		if ((ship->scan_class == CLASS_NO_DRAW)||(ship->scan_class == CLASS_NOT_SET))
 			[ship setScanClass: CLASS_NEUTRAL];
 		[ship setPosition:launch_pos];
@@ -2102,6 +2142,11 @@ GLfloat docked_light_specular[]	= { (GLfloat) 1.0, (GLfloat) 1.0, (GLfloat) 0.5,
 	ship = [self getShipWithRole:desc];   // retain count = 1
 	if (ship)
 	{
+		[ship setCrew:[NSArray arrayWithObject:
+			[OOCharacter randomCharacterWithRole: desc
+			andOriginalSystem: systems[ranrot_rand() & 255]
+			inUniverse: self]]];
+				
 		if ((ship->scan_class == CLASS_NO_DRAW)||(ship->scan_class == CLASS_NOT_SET))
 			[ship setScanClass: CLASS_NEUTRAL];
 		[ship setPosition:launch_pos];
@@ -2133,6 +2178,11 @@ GLfloat docked_light_specular[]	= { (GLfloat) 1.0, (GLfloat) 1.0, (GLfloat) 0.5,
 		ship = [self getShipWithRole:desc];   // retain count = 1
 		if (!ship)
 			return NO;
+		[ship setCrew:[NSArray arrayWithObject:
+			[OOCharacter randomCharacterWithRole: desc
+			andOriginalSystem: systems[ranrot_rand() & 255]
+			inUniverse: self]]];
+				
 		//
 		GLfloat safe_distance2 = 2.0 * ship->collision_radius * ship->collision_radius * PROXIMITY_WARN_DISTANCE2;
 		//
@@ -2289,6 +2339,11 @@ GLfloat docked_light_specular[]	= { (GLfloat) 1.0, (GLfloat) 1.0, (GLfloat) 0.5,
 	ship = [self getShipWithRole:desc];   // retain count = 1
 	if (ship)
 	{
+		[ship setCrew:[NSArray arrayWithObject:
+			[OOCharacter randomCharacterWithRole: desc
+			andOriginalSystem: systems[ranrot_rand() & 255]
+			inUniverse: self]]];
+				
 		if ((ship->scan_class == CLASS_NO_DRAW)||(ship->scan_class == CLASS_NOT_SET))
 			[ship setScanClass: CLASS_NEUTRAL];
 		[ship setPosition: pos];
@@ -2406,6 +2461,11 @@ GLfloat docked_light_specular[]	= { (GLfloat) 1.0, (GLfloat) 1.0, (GLfloat) 0.5,
 			[ship setCargoFlag: CARGO_FLAG_PIRATE];
 			[ship setBounty: (ranrot_rand() & 7) + (ranrot_rand() & 7) + ((randf() < 0.05)? 63 : 23)];	// they already have a price on their heads
 		}
+		[ship setCrew:[NSArray arrayWithObject:
+			[OOCharacter randomCharacterWithRole: desc
+			andOriginalSystem: systems[ranrot_rand() & 255]
+			inUniverse: self]]];
+				
 		[ship setUniverse:self];
 		[ship leaveWitchspace];				// gets added to the universe here!
 		[[ship getAI] setState:@"GLOBAL"];	// must happen after adding to the universe!
@@ -2429,6 +2489,11 @@ GLfloat docked_light_specular[]	= { (GLfloat) 1.0, (GLfloat) 1.0, (GLfloat) 0.5,
 	ship = [self getShipWithRole:desc];   // retain count = 1
 	if (ship)
 	{
+		[ship setCrew:[NSArray arrayWithObject:
+			[OOCharacter randomCharacterWithRole: desc
+			andOriginalSystem: systems[ranrot_rand() & 255]
+			inUniverse: self]]];
+				
 		if (ship->scan_class <= CLASS_NO_DRAW)
 			[ship setScanClass: CLASS_NEUTRAL];
 		[ship setPosition:spawn_pos];

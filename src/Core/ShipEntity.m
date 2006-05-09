@@ -533,6 +533,11 @@ static NSMutableDictionary* smallOctreeDict = nil;
 		if (!escorter)
 			break;
 
+		[escorter setCrew:[NSArray arrayWithObject:
+			[OOCharacter randomCharacterWithRole: @"hunter"
+			andOriginalSystem: [universe systemSeed]
+			inUniverse: universe]]];
+				
 		// spread them around a little randomly
 		double dd = escorter->collision_radius;
 		ex_pos.x += dd * 6.0 * (randf() - 0.5);
@@ -2530,8 +2535,7 @@ BOOL ship_canCollide (ShipEntity* ship)
 			}
 			else
 			{
-				//NSLog(@"DEBUG >>>>> %@ %d entering running defense mode", name, universal_id);
-
+				// entering running defense mode
 				jink = make_vector( 0.0f, 0.0f, 0.0f);
 				behaviour = BEHAVIOUR_RUNNING_DEFENSE;
 				frustration = 0.0;
@@ -6096,6 +6100,13 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 		[pod setCommodity:[universe commodityForName:@"Slaves"] andAmount:1];
 		if (crew)	// transfer crew
 		{
+			// make sure crew inherit any legal_status
+			int i;
+			for (i = 0; i < [crew count]; i++)
+			{
+				OOCharacter *ch = (OOCharacter*)[crew objectAtIndex:i];
+				[ch setLegalStatus: [self legal_status] | [ch legalStatus]];
+			}
 			[pod setCrew: crew];
 			[self setCrew: nil];
 		}
@@ -6554,7 +6565,31 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 		if (isPlayer)
 		{
 			[universe clearPreviousMessage];
-			[universe addMessage:[universe describeCommodity:co_type amount:co_amount] forCount:4.5];
+			if ([other crew])
+			{
+				int i;
+				for (i = 0; i < [[other crew] count]; i++)
+				{
+					OOCharacter* rescuee = (OOCharacter*)[[other crew] objectAtIndex:i];
+					if ([rescuee legalStatus])
+					{
+						[universe addMessage: [NSString stringWithFormat:[universe expandDescription:@"[scoop-captured-@]" forSystem:[universe systemSeed]], [rescuee name]] forCount: 4.5];
+					}
+					else if ([rescuee insuranceCredits])
+					{
+						[universe addMessage: [NSString stringWithFormat:[universe expandDescription:@"[scoop-rescued-@]" forSystem:[universe systemSeed]], [rescuee name]] forCount: 4.5];
+					}
+					else
+					{
+						[universe addMessage: [universe expandDescription:@"[scoop-got-slave]" forSystem:[universe systemSeed]] forCount: 4.5];
+					}
+					[universe playCustomSound:@"[escape-pod-scooped]"];
+				}
+			}
+			else
+			{
+				[universe addMessage:[universe describeCommodity:co_type amount:co_amount] forCount:4.5];
+			}
 		}
 		[cargo addObject:other];
 		[other setStatus:STATUS_IN_HOLD];					// prevents entity from being recycled!

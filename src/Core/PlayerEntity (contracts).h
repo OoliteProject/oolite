@@ -78,6 +78,7 @@ Your fair use and other rights are in no way affected by the above.
 
 @interface PlayerEntity (Contracts)
 
+- (NSString*) processEscapePods; // removes pods from cargo bay and treats categories of characters carried
 - (NSString *) checkPassengerContracts;	// returns messages from any passengers whose status have changed
 
 - (NSDictionary*) reputation;

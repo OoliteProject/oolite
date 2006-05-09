@@ -47,7 +47,7 @@ Your fair use and other rights are in no way affected by the above.
 
 - (NSString*) description
 {
-	NSString* result = [[NSString alloc] initWithFormat:@"<OOCharacter : %@. %@. %@. (%d) (%d)>",
+	NSString* result = [[NSString alloc] initWithFormat:@"<OOCharacter : %@, %@. %@. (%d) (%d)>",
 		[self name], [self shortDescription], [self longDescription], [self legalStatus], [self insuranceCredits]];
 	return [result autorelease];
 }
@@ -78,9 +78,62 @@ Your fair use and other rights are in no way affected by the above.
 	return self;
 }
 
+- (id) initWithRole:(NSString*) role andOriginalSystemSeed:(Random_Seed) s_seed inUniverse:(Universe*) uni
+{
+	self = [super init];
+	
+	// do character set-up
+	//
+	originSystemSeed = s_seed;
+	make_pseudo_random_seed( &genSeed);
+	universe = uni;
+	//
+	[self basicSetUp];
+	
+	[self castInRole: role];
+	
+	return self;
+}
+
 + (OOCharacter*) characterWithRole:(NSString*) c_role andOriginalSystem:(Random_Seed) o_seed inUniverse:(Universe*) uni
 {
 	return [[[OOCharacter alloc] initWithRole: c_role andOriginalSystemSeed: o_seed inUniverse: uni] autorelease];
+}
+
++ (OOCharacter*) randomCharacterWithRole:(NSString*) c_role andOriginalSystem:(Random_Seed) o_seed inUniverse:(Universe*) uni
+{
+	Random_Seed r_seed;
+	r_seed.a = (ranrot_rand() & 0xff);
+	r_seed.b = (ranrot_rand() & 0xff);
+	r_seed.c = (ranrot_rand() & 0xff);
+	r_seed.d = (ranrot_rand() & 0xff);
+	r_seed.e = (ranrot_rand() & 0xff);
+	r_seed.f = (ranrot_rand() & 0xff);
+	
+	OOCharacter	*castmember = [[[OOCharacter alloc] initWithGenSeed: r_seed andOriginalSystemSeed: o_seed inUniverse: uni] autorelease];
+	
+	if ([castmember castInRole: c_role])
+		return castmember;
+	else
+	{
+		NSLog(@"DEBUG ***** couldn't cast character in role '%@'", c_role);
+		return castmember;
+	}
+}
+
+- (NSString*) planetOfOrigin
+{
+	// determine the planet of origin
+	NSDictionary* originInfo = [universe generateSystemData: originSystemSeed];
+	return [originInfo objectForKey: KEY_NAME];
+}
+
+- (NSString*) species
+{
+	// determine the character's species
+	int species = genSeed.f & 0x03;	// 0-1 native to home system, 2 human colonial, 3 other
+	NSString* speciesString = (species == 3)? [universe generateSystemInhabitants: genSeed plural:NO]:[universe generateSystemInhabitants: originSystemSeed plural:NO];
+	return [[speciesString lowercaseString] stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceCharacterSet]];
 }
 
 - (void) basicSetUp
@@ -89,7 +142,6 @@ Your fair use and other rights are in no way affected by the above.
 	RNG_Seed saved_seed = currentRandomSeed();
 	// set RNG to character seed
 	seed_for_planet_description( genSeed);
-	
 
 	// determine the planet of origin
 	NSDictionary* originInfo = [universe generateSystemData: originSystemSeed];
@@ -98,9 +150,7 @@ Your fair use and other rights are in no way affected by the above.
 	int criminal_tendency = government ^ 0x07;
 
 	// determine the character's species
-	int species = genSeed.f & 0x03;	// 0-1 native to home system, 2 human colonial, 3 other
-	NSString* speciesString = (species == 3)? [universe generateSystemInhabitants: genSeed plural:NO]:[universe generateSystemInhabitants: originSystemSeed plural:NO];
-	speciesString = [[speciesString lowercaseString] stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceCharacterSet]];
+	NSString* speciesString = [self species];
 	
 	// determine the character's name
 	seed_RNG_only_for_planet_description( genSeed);
@@ -112,7 +162,8 @@ Your fair use and other rights are in no way affected by the above.
 	
 	[self setName: genName];
 	
-	[self setShortDescription: [NSString stringWithFormat:@"A %@ from %@", speciesString, planetName]];
+	[self setShortDescription: [NSString stringWithFormat:[universe expandDescription:@"[character-a-@-from-@]" forSystem: genSeed], speciesString, planetName]];
+	[self setLongDescription: [self shortDescription]];
 	
 	// determine legal_status for a completely random character
 	NSString *legalDesc;
@@ -122,7 +173,7 @@ Your fair use and other rights are in no way affected by the above.
 		legal_index++;
 	if (legal_index == 3)	// criminal
 		[self setLegalStatus: criminal_tendency + criminal_tendency * (gen_rnd_number() & 0x03) + (gen_rnd_number() & gen_rnd_number() & 0x7f)];
-	legal_index=0;
+	legal_index = 0;
 	if (legalStatus)	legal_index = (legalStatus <= 50) ? 1 : 2;
 	switch (legal_index)
 	{
@@ -158,43 +209,37 @@ Your fair use and other rights are in no way affected by the above.
 		}
 	}
 	
-	// do long description here
-	//
-	
 	// restore random seed
 	setRandomSeed( saved_seed);
 }
 
-- (id) initWithRole:(NSString*) role andOriginalSystemSeed:(Random_Seed) s_seed inUniverse:(Universe*) uni
+- (BOOL) castInRole:(NSString*) role
 {
-	self = [super init];
-	
-	// do character set-up
-	//
-	originSystemSeed = s_seed;
-	genSeed = s_seed;
-//	make_pseudo_random_seed( &genSeed);
-	universe = uni;
-	//
-	[self basicSetUp];
-	
 	BOOL specialSetUpDone = NO;
 	
 	NSString *legalDesc;
 	if ([[role lowercaseString] isEqual:@"pirate"])
 	{
 		// determine legal_status for a completely random character
-		[self setLegalStatus: 0x08 | (gen_rnd_number() & gen_rnd_number() & 0x7f)];
+		int sins = 0x08 | (genSeed.a & genSeed.b);
+		[self setLegalStatus: sins & 0x7f];
 		int legal_index = (legalStatus <= 50) ? 1 : 2;
 		switch (legal_index)
 		{
 			case 1:
-				legalDesc = @"an offender";
+				legalDesc = @"offender";
 				break;
 			case 2:
-				legalDesc = @"a fugitive";
+				legalDesc = @"fugitive";
 				break;
 		}
+		[self setLongDescription:
+			[universe expandDescription:
+				[NSString stringWithFormat:@"%@ is a [21] %@ from %@", [self name], legalDesc, [self planetOfOrigin]]
+				forSystem: genSeed]];
+		
+//		NSLog(@">>>>> %@", self);
+		
 		specialSetUpDone = YES;
 	}
 	
@@ -231,6 +276,22 @@ Your fair use and other rights are in no way affected by the above.
 		specialSetUpDone = YES;
 	}
 	
+	if ([[role lowercaseString] isEqual:@"police"])
+	{
+		legalDesc = @"clean";
+		[self setLegalStatus: 0];	// clean
+		[self setInsuranceCredits: 125];
+		specialSetUpDone = YES;
+	}
+	
+	if ([[role lowercaseString] isEqual:@"miner"])
+	{
+		legalDesc = @"clean";
+		[self setLegalStatus: 0];	// clean
+		[self setInsuranceCredits: 25];
+		specialSetUpDone = YES;
+	}
+	
 	if ([[role lowercaseString] isEqual:@"passenger"])
 	{
 		legalDesc = @"clean";
@@ -264,7 +325,7 @@ Your fair use and other rights are in no way affected by the above.
 	// do long description here
 	//
 	
-	return self;
+	return specialSetUpDone;
 }
 
 - (NSString*)	name

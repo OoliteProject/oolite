@@ -539,6 +539,18 @@
 	<array>
 		<string>%@ scooped.</string>
 	</array>
+	<key>scoop-captured-@</key>
+	<array>
+		<string>You captured %@.</string>
+	</array>
+	<key>scoop-rescued-@</key>
+	<array>
+		<string>You rescued %@.</string>
+	</array>
+	<key>scoop-got-slave</key>
+	<array>
+		<string>You captured a slave.</string>
+	</array>
 	<key>fuel-scoop-active</key>
 	<array>
 		<string>Fuel scoop active.</string>
@@ -963,5 +975,17 @@
 	   <string>target-planet   120 80 640</string> 
 	</array>
 
+	<!-- character descriptions -->
+	<!-- basic short desc - 'A $species from $homeworld' -->
+	<key>character-a-@-from-@</key>
+	<string>a %@ from %@</string>
+	
+	<!-- rewards and bounties from escapepods -->
+	<key>rescue-reward-for-@@-f-credits</key>
+	<string>For rescuing %@, %@, their insurance pays %.1f credits.</string>
+	<key>capture-reward-for-@@-f-credits</key>
+	<string>For capturing %@, %@, you're paid a bounty of %.1f credits.</string>
+	
+	
 </dict>
 </plist>

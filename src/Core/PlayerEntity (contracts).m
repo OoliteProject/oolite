@@ -43,9 +43,65 @@ Your fair use and other rights are in no way affected by the above.
 #import "Universe.h"
 #import "AI.h"
 #import "OOColor.h"
+#import "OOCharacter.h"
 
 
 @implementation PlayerEntity (Contracts)
+
+- (NSString*) processEscapePods // removes pods from cargo bay and treats categories of characters carried
+{
+	int i;
+	NSMutableString* result = [NSMutableString string];
+	NSMutableArray* rescuees = [NSMutableArray array];
+	int government = [(NSNumber *)[[universe currentSystemData] objectForKey:KEY_GOVERNMENT] intValue];
+	//
+	// step through the cargo removing crew from any escape pods
+	//
+	for (i = 0; i < [cargo count]; i++)
+	{
+		ShipEntity* thing = (ShipEntity *)[cargo objectAtIndex:i];
+		
+		// is it an escape pod? - check for crew
+		if ([thing crew])
+		{
+			[rescuees addObjectsFromArray:[thing crew]];
+			[thing setCrew:(NSArray*) nil];
+			[universe recycleOrDiscard: thing];	// reuse before ...
+			[cargo removeObject: thing];		// removing from cargo
+			i--;
+		}
+	}
+	
+	//
+	// step through the rescuees awarding insurance or bounty or adding to slaves
+	//
+	for (i = 0; i < [rescuees count]; i++)
+	{
+		OOCharacter* rescuee = (OOCharacter*)[rescuees objectAtIndex: i];
+		if ([rescuee insuranceCredits])
+		{
+			// claim insurance reward
+			[result appendFormat:[universe expandDescription:@"[rescue-reward-for-@@-f-credits]" forSystem:system_seed], [rescuee name], [rescuee shortDescription], [rescuee insuranceCredits]];
+			credits += 10 * [rescuee insuranceCredits];
+		}
+		else if ([rescuee legalStatus])
+		{
+			// claim bounty for capture
+			int reward = (5 + government) * [rescuee legalStatus];
+			[result appendFormat:[universe expandDescription:@"[capture-reward-for-@@-f-credits]" forSystem:system_seed], [rescuee name], [rescuee shortDescription], 0.1 * reward];
+			credits += reward;
+		}
+		else
+		{
+			// sell as slave - increase no. of slaves in manifest
+			[self awardCargo:@"1 Slaves"];
+		}
+		if (i < [rescuees count] - 1)
+			[result appendString:@"\n"];
+	}
+	
+	return result;
+}
 
 - (NSString *) checkPassengerContracts	// returns messages from any passengers whose status have changed
 {

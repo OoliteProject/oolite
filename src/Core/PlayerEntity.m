@@ -1864,11 +1864,15 @@ double scoopSoundPlayTime = 0.0;
 					[missile_entity[active_missile] addTarget:first_target];
 				[universe addMessage:[NSString stringWithFormat:[universe expandDescription:@"[@-locked-onto-@]" forSystem:system_seed], (ident_engaged)? @"Ident system": @"Missile", [(ShipEntity *)first_target name]] forCount:4.5];
 				if (ident_engaged)
+				{
 					if (![universe playCustomSound:@"[ident-locked-on]"])
 						[self beep];
+				}
 				else
+				{
 					if (![universe playCustomSound:@"[missile-locked-on]"])
 						[self beep];
+				}
 			}
 		}
 	}
@@ -3704,6 +3708,8 @@ double scoopSoundPlayTime = 0.0;
 
 - (void) docked
 {
+	NSMutableString	*deliveryReport = [NSMutableString string];
+	
 	status = STATUS_DOCKED;
 	[universe setViewDirection:VIEW_GUI_DISPLAY];
 
@@ -3743,6 +3749,11 @@ double scoopSoundPlayTime = 0.0;
 	if (![docked_station localMarket])
 		[docked_station initialiseLocalMarketWithSeed:system_seed andRandomFactor:market_rnd];
 
+	NSString*	escapepodReport = [self processEscapePods];
+	
+	if ([escapepodReport length])
+		[deliveryReport appendString: escapepodReport];
+	
 	[self unloadCargoPods];
 
 	[universe setDisplayText:YES];
@@ -3767,8 +3778,12 @@ double scoopSoundPlayTime = 0.0;
 			[self getFined];
 
 		// check contracts
-		NSString* deliveryReport = [self checkPassengerContracts];
-		if (deliveryReport)
+		NSString* passengerReport = [self checkPassengerContracts];
+		
+		if (passengerReport)
+			[deliveryReport appendFormat:@"\n\n%@", passengerReport];
+		
+		if ([deliveryReport length])
 			[self setGuiToDeliveryReportScreenWithText:deliveryReport];
 		else
 			[self setGuiToStatusScreen];

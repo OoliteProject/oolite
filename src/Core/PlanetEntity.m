@@ -47,6 +47,7 @@ Your fair use and other rights are in no way affected by the above.
 #import "MyOpenGLView.h"
 #import "ShipEntity (AI).h"
 #import "OOColor.h"
+#import "OOCharacter.h"
 
 #define LIM500  500.0*500.0 * NO_DRAW_DISTANCE_FACTOR*NO_DRAW_DISTANCE_FACTOR
 #define LIM4K   4000.0*4000.0 * NO_DRAW_DISTANCE_FACTOR*NO_DRAW_DISTANCE_FACTOR
@@ -1759,6 +1760,11 @@ void drawActiveCorona (double inner_radius, double outer_radius, int step, doubl
 	shuttle_ship = [universe getShipWithRole:@"shuttle"];   // retain count = 1
 	if (shuttle_ship)
 	{
+		[shuttle_ship setCrew:[NSArray arrayWithObject:
+			[OOCharacter randomCharacterWithRole: @"trader"
+			andOriginalSystem: [universe systemSeed]
+			inUniverse: universe]]];
+				
 		[shuttle_ship setPosition:launch_pos];
 		[shuttle_ship setQRotation:q1];
 

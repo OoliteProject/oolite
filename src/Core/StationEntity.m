@@ -41,6 +41,7 @@ Your fair use and other rights are in no way affected by the above.
 #import "entities.h"
 
 #import "AI.h"
+#import "OOCharacter.h"
 
 
 @implementation StationEntity
@@ -1376,6 +1377,11 @@ NSDictionary* instructions(int station_id, Vector coords, float speed, float ran
 			police_ship = [universe getShipWithRole:@"police"];   // retain count = 1
 		if (police_ship)
 		{
+			[police_ship setCrew:[NSArray arrayWithObject:
+				[OOCharacter randomCharacterWithRole: @"police"
+				andOriginalSystem: [universe systemSeed]
+				inUniverse: universe]]];
+				
 			[police_ship setRoles:@"police"];
 			[police_ship addTarget:[universe entityForUniversalID:police_target]];
 			[police_ship setScanClass: CLASS_POLICE];
@@ -1448,6 +1454,11 @@ NSDictionary* instructions(int station_id, Vector coords, float speed, float ran
 	
 	police_launched++;
 	
+	[defense_ship setCrew:[NSArray arrayWithObject:
+		[OOCharacter randomCharacterWithRole: @"hunter"
+		andOriginalSystem: [universe systemSeed]
+		inUniverse: universe]]];
+				
 	[defense_ship setOwner: self];
 	[defense_ship setGroup_id:universal_id];	// who's your Daddy
 	
@@ -1490,6 +1501,11 @@ NSDictionary* instructions(int station_id, Vector coords, float speed, float ran
 	scavenger_ship = [universe getShipWithRole:@"scavenger"];   // retain count = 1
 	if (scavenger_ship)
 	{
+		[scavenger_ship setCrew:[NSArray arrayWithObject:
+			[OOCharacter randomCharacterWithRole: @"hunter"
+			andOriginalSystem: [universe systemSeed]
+			inUniverse: universe]]];
+				
 		[scavenger_ship setScanClass: CLASS_NEUTRAL];
 		[scavenger_ship setGroup_id:universal_id];	// who's your Daddy
 		[[scavenger_ship getAI] setStateMachine:@"scavengerAI.plist"];
@@ -1517,6 +1533,11 @@ NSDictionary* instructions(int station_id, Vector coords, float speed, float ran
 	miner_ship = [universe getShipWithRole:@"miner"];   // retain count = 1
 	if (miner_ship)
 	{
+		[miner_ship setCrew:[NSArray arrayWithObject:
+			[OOCharacter randomCharacterWithRole: @"miner"
+			andOriginalSystem: [universe systemSeed]
+			inUniverse: universe]]];
+				
 		scavengers_launched++;
 		[miner_ship setScanClass: CLASS_NEUTRAL];
 		[miner_ship setGroup_id:universal_id];	// who's your Daddy
@@ -1551,6 +1572,11 @@ NSDictionary* instructions(int station_id, Vector coords, float speed, float ran
 	
 	if (pirate_ship)
 	{
+		[pirate_ship setCrew:[NSArray arrayWithObject:
+			[OOCharacter randomCharacterWithRole: @"pirate"
+			andOriginalSystem: [universe systemSeed]
+			inUniverse: universe]]];
+				
 		// set the owner of the ship to the station so that it can check back for docking later
 		[pirate_ship setOwner:self];
 		[pirate_ship setGroup_id:universal_id];	// who's your Daddy
@@ -1576,6 +1602,11 @@ NSDictionary* instructions(int station_id, Vector coords, float speed, float ran
 	
 	if (shuttle_ship)
 	{
+		[shuttle_ship setCrew:[NSArray arrayWithObject:
+			[OOCharacter randomCharacterWithRole: @"trader"
+			andOriginalSystem: [universe systemSeed]
+			inUniverse: universe]]];
+				
 		[shuttle_ship setScanClass: CLASS_NEUTRAL];
 		[shuttle_ship setCargoFlag:CARGO_FLAG_FULL_SCARCE];
 		[[shuttle_ship getAI] setStateMachine:@"fallingShuttleAI.plist"];
@@ -1609,6 +1640,11 @@ NSDictionary* instructions(int station_id, Vector coords, float speed, float ran
 	
 	if (trader_ship)
 	{
+		[trader_ship setCrew:[NSArray arrayWithObject:
+			[OOCharacter randomCharacterWithRole: @"trader"
+			andOriginalSystem: [universe systemSeed]
+			inUniverse: universe]]];
+				
 		[trader_ship setRoles:@"trader"];
 		[trader_ship setScanClass: CLASS_NEUTRAL];
 		[trader_ship setCargoFlag:CARGO_FLAG_FULL_PLENTIFUL];
@@ -1644,6 +1680,11 @@ NSDictionary* instructions(int station_id, Vector coords, float speed, float ran
 	
 	if (escort_ship)
 	{
+		[escort_ship setCrew:[NSArray arrayWithObject:
+			[OOCharacter randomCharacterWithRole: @"hunter"
+			andOriginalSystem: [universe systemSeed]
+			inUniverse: universe]]];
+				
 		[escort_ship setScanClass: CLASS_NEUTRAL];
 		[escort_ship setCargoFlag: CARGO_FLAG_FULL_PLENTIFUL];
 		[[escort_ship getAI] setStateMachine:@"escortAI.plist"];
@@ -1673,6 +1714,11 @@ NSDictionary* instructions(int station_id, Vector coords, float speed, float ran
 			patrol_ship = [universe getShipWithRole:@"police"];   // retain count = 1
 		if (patrol_ship)
 		{
+			[patrol_ship setCrew:[NSArray arrayWithObject:
+				[OOCharacter randomCharacterWithRole: @"police"
+				andOriginalSystem: [universe systemSeed]
+				inUniverse: universe]]];
+				
 			[patrol_ship switchLightsOff];
 			[patrol_ship setScanClass: CLASS_POLICE];
 			[patrol_ship setRoles:@"police"];

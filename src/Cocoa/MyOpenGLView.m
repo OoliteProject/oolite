@@ -214,8 +214,6 @@ Your fair use and other rights are in no way affected by the above.
 		display_z = 480.0 * viewSize.width/viewSize.height;
 	else
 		display_z = 640.0;
-		
-//	NSLog(@">>>>> display_z = %.1f", display_z);
 	
 	float	ratio = 0.5;
 	float   aspect = viewSize.height/viewSize.width;

@@ -31,6 +31,8 @@
 	<string>buy.ogg</string>
 	<key>[aegis-station]</key>
 	<string>buy.ogg</string>
+	<key>[mine-armed]</key>
+	<string>buy.ogg</string>
 	<key>[mine-launched]</key>
 	<string>buy.ogg</string>
 	<key>[missile-armed]</key>
@@ -74,6 +76,8 @@
 	<key>[jump-mass-locked]</key>
 	<string>buy.ogg</string>
 	<key>[wormhole-created]</key>
+	<string>buy.ogg</string>
+	<key>[escape-pod-scooped]</key>
 	<string>buy.ogg</string>
 	-->
 </dict>
