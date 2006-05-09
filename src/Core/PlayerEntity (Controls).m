@@ -133,6 +133,9 @@ static BOOL ident_pressed;
 static BOOL safety_pressed;
 static BOOL cloak_pressed;
 static BOOL rotateCargo_pressed;
+static BOOL autopilot_key_pressed;
+static BOOL fast_autopilot_key_pressed;
+static BOOL target_autopilot_key_pressed;
 static int				saved_view_direction;
 static double			saved_script_time;
 static NSTimeInterval	time_last_frame;
@@ -445,9 +448,9 @@ static NSTimeInterval	time_last_frame;
 							missile_status = MISSILE_STATUS_TARGET_LOCKED;
 							[missile_entity[active_missile] addTarget:[self getPrimaryTarget]];
 							[universe addMessage:[NSString stringWithFormat:[universe expandDescription:@"[missile-locked-onto-@]" forSystem:system_seed], [(ShipEntity *)[self getPrimaryTarget] identFromShip: self]] forCount:4.5];
+							if (![universe playCustomSound:@"[missile-locked-on]"])
+								[self beep];
 						}
-						if (![universe playCustomSound:@"[missile-locked-on]"])
-							[self beep];
 					}
 					else
 					{
@@ -457,13 +460,15 @@ static NSTimeInterval	time_last_frame;
 							if (missile_entity[active_missile])
 								[missile_entity[active_missile] removeTarget:nil];
 							[universe addMessage:[universe expandDescription:@"[missile-armed]" forSystem:system_seed] forCount:2.0];
+							if (![universe playCustomSound:@"[missile-armed]"])
+								[self beep];
 						}
-						if (![universe playCustomSound:@"[missile-armed]"])
-							[self beep];
 					}
 					if ([[missile_entity[active_missile] roles] hasSuffix:@"MINE"])
 					{
 						[universe addMessage:[universe expandDescription:@"[mine-armed]" forSystem:system_seed] forCount:4.5];
+						if (![universe playCustomSound:@"[mine-armed]"])
+							[self beep];
 					}
 					ident_engaged = NO;
 				}
@@ -580,133 +585,151 @@ static NSTimeInterval	time_last_frame;
 			// autopilot 'c'
 			//
 #ifdef GNUSTEP			
-			if (([gameView isDown:key_autopilot] || joyButtonState[BUTTON_DOCKCPU])&&(has_docking_computer)&&(![self isBeeping]))   // look for the 'c' key
+			if ([gameView isDown:key_autopilot] || joyButtonState[BUTTON_DOCKCPU])   // look for the 'c' key
 #else
-			if ([gameView isDown:key_autopilot] &&(has_docking_computer)&&(![self isBeeping]))   // look for the 'c' key
+			if ([gameView isDown:key_autopilot])   // look for the 'c' key
 #endif				
 			{
-				if ([self checkForAegis] == AEGIS_IN_DOCKING_RANGE)
+				if (has_docking_computer && (!autopilot_key_pressed))   // look for the 'c' key
 				{
-					primaryTarget = NO_TARGET;
-					targetStation = NO_TARGET;
-					autopilot_engaged = YES;
-					ident_engaged = NO;
-					[self safe_all_missiles];
-					velocity = make_vector( 0.0f, 0.0f, 0.0f);
-					status = STATUS_AUTOPILOT_ENGAGED;
-					[shipAI setState:@"GLOBAL"];	// restart the AI
-					if (![universe playCustomSound:@"[autopilot-on]"])
-						[self beep];
-					[universe addMessage:[universe expandDescription:@"[autopilot-on]" forSystem:system_seed] forCount:4.5];
-					//
-					if (ootunes_on)
+					if ([self checkForAegis] == AEGIS_IN_DOCKING_RANGE)
 					{
-						// ootunes - play docking music
-						[[universe gameController] playiTunesPlaylist:@"Oolite-Docking"];
-						docking_music_on = NO;
+						primaryTarget = NO_TARGET;
+						targetStation = NO_TARGET;
+						autopilot_engaged = YES;
+						ident_engaged = NO;
+						[self safe_all_missiles];
+						velocity = make_vector( 0.0f, 0.0f, 0.0f);
+						status = STATUS_AUTOPILOT_ENGAGED;
+						[shipAI setState:@"GLOBAL"];	// restart the AI
+						if (![universe playCustomSound:@"[autopilot-on]"])
+							[self beep];
+						[universe addMessage:[universe expandDescription:@"[autopilot-on]" forSystem:system_seed] forCount:4.5];
+						//
+						if (ootunes_on)
+						{
+							// ootunes - play docking music
+							[[universe gameController] playiTunesPlaylist:@"Oolite-Docking"];
+							docking_music_on = NO;
+						}
+						//
+						if (afterburner_engaged)
+						{
+							afterburner_engaged = NO;
+							if (afterburnerSoundLooping)
+								[self stopAfterburnerSound];
+						}
 					}
-					//
-					if (afterburner_engaged)
+					else
 					{
-						afterburner_engaged = NO;
-						if (afterburnerSoundLooping)
-							[self stopAfterburnerSound];
+						if (![universe playCustomSound:@"[autopilot-out-of-range]"])
+							[self boop];
+						[universe addMessage:[universe expandDescription:@"[autopilot-out-of-range]" forSystem:system_seed] forCount:4.5];
 					}
 				}
-				else
-				{
-					if (![universe playCustomSound:@"[autopilot-out-of-range]"])
-						[self boop];
-					[universe addMessage:[universe expandDescription:@"[autopilot-out-of-range]" forSystem:system_seed] forCount:4.5];
-				}
+				autopilot_key_pressed = YES;
 			}
+			else
+				autopilot_key_pressed = NO;
 			//
 			// autopilot 'C' - dock with target
 			//
-			if (([gameView isDown:key_autopilot_target])&&(has_docking_computer)&&(![self isBeeping]))   // look for the 'c' key
+			if ([gameView isDown:key_autopilot_target])   // look for the 'C' key
 			{
-				Entity* primeTarget = [self getPrimaryTarget];
-				if ((primeTarget)&&(primeTarget->isStation)&&[primeTarget isKindOfClass:[StationEntity class]])
+				if (has_docking_computer && (!target_autopilot_key_pressed))
 				{
-					targetStation = primaryTarget;
-					primaryTarget = NO_TARGET;
-					autopilot_engaged = YES;
-					ident_engaged = NO;
-					[self safe_all_missiles];
-					velocity = make_vector( 0.0f, 0.0f, 0.0f);
-					status = STATUS_AUTOPILOT_ENGAGED;
-					[shipAI setState:@"GLOBAL"];	// restart the AI
-					if (![universe playCustomSound:@"[autopilot-on]"])
-						[self beep];
-					[universe addMessage:[universe expandDescription:@"[autopilot-on]" forSystem:system_seed] forCount:4.5];
-					//
-					if (ootunes_on)
+					Entity* primeTarget = [self getPrimaryTarget];
+					if ((primeTarget)&&(primeTarget->isStation)&&[primeTarget isKindOfClass:[StationEntity class]])
 					{
-						// ootunes - play docking music
-						[[universe gameController] playiTunesPlaylist:@"Oolite-Docking"];
-						docking_music_on = NO;	
+						targetStation = primaryTarget;
+						primaryTarget = NO_TARGET;
+						autopilot_engaged = YES;
+						ident_engaged = NO;
+						[self safe_all_missiles];
+						velocity = make_vector( 0.0f, 0.0f, 0.0f);
+						status = STATUS_AUTOPILOT_ENGAGED;
+						[shipAI setState:@"GLOBAL"];	// restart the AI
+						if (![universe playCustomSound:@"[autopilot-on]"])
+							[self beep];
+						[universe addMessage:[universe expandDescription:@"[autopilot-on]" forSystem:system_seed] forCount:4.5];
+						//
+						if (ootunes_on)
+						{
+							// ootunes - play docking music
+							[[universe gameController] playiTunesPlaylist:@"Oolite-Docking"];
+							docking_music_on = NO;	
+						}
+						//
+						if (afterburner_engaged)
+						{
+							afterburner_engaged = NO;
+							if (afterburnerSoundLooping)
+								[self stopAfterburnerSound];
+						}
 					}
-					//
-					if (afterburner_engaged)
+					else
 					{
-						afterburner_engaged = NO;
-						if (afterburnerSoundLooping)
-							[self stopAfterburnerSound];
+						if (![universe playCustomSound:@"[autopilot-cannot-dock-with-target]"])
+							[self boop];
+						[universe addMessage:[universe expandDescription:@"Target is not capable of autopilot-docking" forSystem:system_seed] forCount:4.5];
 					}
 				}
-				else
-				{
-					if (![universe playCustomSound:@"[autopilot-cannot-dock-with-target]"])
-						[self boop];
-					[universe addMessage:[universe expandDescription:@"Target is not capable of autopilot-docking" forSystem:system_seed] forCount:4.5];
-				}
+				target_autopilot_key_pressed = YES;
 			}
+			else
+				target_autopilot_key_pressed = NO;
 			//
 			// autopilot 'D'
 			//
 #ifdef GNUSTEP				
-			if (([gameView isDown:key_autodock] || joyButtonState[BUTTON_DOCKCPUFAST])&&(has_docking_computer)&&(![self isBeeping]))   // look for the 'D' key
+			if ([gameView isDown:key_autodock] || joyButtonState[BUTTON_DOCKCPUFAST])   // look for the 'D' key
 #else
-			if ([gameView isDown:key_autodock] &&(has_docking_computer)&&(![self isBeeping]))   // look for the 'D' key
+			if ([gameView isDown:key_autodock])   // look for the 'D' key
 #endif				
 			{
-				if ([self checkForAegis] == AEGIS_IN_DOCKING_RANGE)
+				if (has_docking_computer && (!fast_autopilot_key_pressed))   // look for the 'D' key
 				{
-					StationEntity *the_station = [universe station];
-					if (the_station)
+					if ([self checkForAegis] == AEGIS_IN_DOCKING_RANGE)
 					{
-						if (legal_status > 50)
+						StationEntity *the_station = [universe station];
+						if (the_station)
 						{
-							status = STATUS_AUTOPILOT_ENGAGED;
-							[self interpretAIMessage:@"DOCKING_REFUSED"];
-						}
-						else
-						{
-							if (legal_status > 0)
+							if (legal_status > 50)
 							{
-								// there's a slight chance you'll be fined for your past offences when autodocking
-								//
-								int fine_chance = ranrot_rand() & 0x03ff;	//	0..1023
-								int government = 1 + [(NSNumber *)[[universe currentSystemData] objectForKey:KEY_GOVERNMENT] intValue];	// 1..8
-								fine_chance /= government;
-								if (fine_chance < legal_status)
-									[self markForFines];
+								status = STATUS_AUTOPILOT_ENGAGED;
+								[self interpretAIMessage:@"DOCKING_REFUSED"];
 							}
-							ship_clock_adjust = 1200.0;			// 20 minutes penalty to enter dock
-							ident_engaged = NO;
-							[self safe_all_missiles];
-							[universe setViewDirection:VIEW_FORWARD];
-							[self enterDock:the_station];
+							else
+							{
+								if (legal_status > 0)
+								{
+									// there's a slight chance you'll be fined for your past offences when autodocking
+									//
+									int fine_chance = ranrot_rand() & 0x03ff;	//	0..1023
+									int government = 1 + [(NSNumber *)[[universe currentSystemData] objectForKey:KEY_GOVERNMENT] intValue];	// 1..8
+									fine_chance /= government;
+									if (fine_chance < legal_status)
+										[self markForFines];
+								}
+								ship_clock_adjust = 1200.0;			// 20 minutes penalty to enter dock
+								ident_engaged = NO;
+								[self safe_all_missiles];
+								[universe setViewDirection:VIEW_FORWARD];
+								[self enterDock:the_station];
+							}
 						}
 					}
+					else
+					{
+						if (![universe playCustomSound:@"[autopilot-out-of-range]"])
+							[self boop];
+						[universe addMessage:[universe expandDescription:@"[autopilot-out-of-range]" forSystem:system_seed] forCount:4.5];
+					}
 				}
-				else
-				{
-					if (![universe playCustomSound:@"[autopilot-out-of-range]"])
-						[self boop];
-					[universe addMessage:[universe expandDescription:@"[autopilot-out-of-range]" forSystem:system_seed] forCount:4.5];
-				}
+				fast_autopilot_key_pressed = YES;
 			}
+			else
+				fast_autopilot_key_pressed = NO;
 			//
 			// hyperspace 'h'
 			//
@@ -2379,25 +2402,31 @@ static BOOL toggling_music;
 		[self pollGuiArrowKeyControls:delta_t];
 	//
 	//
-	if (([gameView isDown:key_autopilot])&&(has_docking_computer)&&(![self isBeeping]))   // look for the 'c' key
+	if ([gameView isDown:key_autopilot])   // look for the 'c' key
 	{
-		[self abortDocking];			// let the station know that you are no longer on approach
-		behaviour = BEHAVIOUR_IDLE;
-		frustration = 0.0;
-		autopilot_engaged = NO;
-		primaryTarget = NO_TARGET;
-		status = STATUS_IN_FLIGHT;
-		if (![universe playCustomSound:@"[autopilot-off]"])
-			[self beep];
-		[universe addMessage:[universe expandDescription:@"[autopilot-off]" forSystem:system_seed] forCount:4.5];
-		//
-		if (ootunes_on)
+		if (has_docking_computer && (!autopilot_key_pressed))   // look for the 'c' key
 		{
-			// ootunes - play inflight music
-			[[universe gameController] playiTunesPlaylist:@"Oolite-Inflight"];
-			docking_music_on = NO;
+			[self abortDocking];			// let the station know that you are no longer on approach
+			behaviour = BEHAVIOUR_IDLE;
+			frustration = 0.0;
+			autopilot_engaged = NO;
+			primaryTarget = NO_TARGET;
+			status = STATUS_IN_FLIGHT;
+			if (![universe playCustomSound:@"[autopilot-off]"])
+				[self beep];
+			[universe addMessage:[universe expandDescription:@"[autopilot-off]" forSystem:system_seed] forCount:4.5];
+			//
+			if (ootunes_on)
+			{
+				// ootunes - play inflight music
+				[[universe gameController] playiTunesPlaylist:@"Oolite-Inflight"];
+				docking_music_on = NO;
+			}
 		}
+		autopilot_key_pressed = YES;
 	}
+	else
+		autopilot_key_pressed = NO;
 	//
 	if (([gameView isDown:key_docking_music])&&(!ootunes_on))   // look for the 's' key
 	{
