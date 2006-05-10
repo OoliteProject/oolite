@@ -1321,8 +1321,8 @@ static NSMutableDictionary* smallOctreeDict = nil;
 				[self setCrew:[NSArray arrayWithObject:pilot]];
 			else
 			{
-				NSMutableArray* nucrew = [NSMutableArray arrayWithArray:crew];
-				[nucrew addObject: pilot];
+				NSMutableArray* nucrew = [NSMutableArray arrayWithObject:pilot];
+				[nucrew addObjectsFromArray:crew];
 				[self setCrew: nucrew];
 			}
 		}
