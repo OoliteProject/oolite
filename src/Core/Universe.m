@@ -516,6 +516,7 @@ Your fair use and other rights are in no way affected by the above.
 	no_update = NO;
 	
 	[local_planetinfo_overrides removeAllObjects];
+
 }
 
 

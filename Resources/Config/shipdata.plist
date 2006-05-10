@@ -1615,6 +1615,10 @@
 	</dict>
 	<key>constrictor</key>
 	<dict>
+		<key>pilot</key>
+		<string>constrictor-mission-thief</string><!-- key to entry in characters.plist -->
+		<key>has_escape_pod</key>
+		<true/><!-- was <false/> -->
 		<key>aft_eject_position</key>
 		<string>0.0 5.5 -19.0</string>
 		<key>ai_type</key>
@@ -1639,12 +1643,8 @@
 		<integer>70</integer>
 		<key>has_ecm</key>
 		<true/>
-		<key>has_escape_pod</key>
-		<false/>
 		<key>has_fuel_injection</key>
 		<true/>
-		<key>has_scoop</key>
-		<false/>
 		<key>launch_actions</key>
 		<array/>
 		<key>likely_cargo</key>

@@ -2,6 +2,7 @@
 <!DOCTYPE plist PUBLIC "-//Apple Computer//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
+	<!-- constrictor hunt -->
 	<key>constrictor_hunt_0_150</key>
 	<string>"The constrictor was last seen at Reesdice, Commander."</string>
 	<key>constrictor_hunt_0_28</key>
@@ -30,6 +31,9 @@
 	<string>It went missing from our ship yard on Xeer five months ago and is believed to have jumped to this galaxy. Your mission should you decide to accept it, is to seek and destroy this ship. You are cautioned that only Military Lasers will get through the new shields and that the Constrictor is fitted with an E.C.M. System.\n\nGood Luck, Commander.\n\n---MESSAGE ENDS.</string>
 	<key>constrictor_hunt_debrief</key>
 	<string>---INCOMING MESSAGE\n\nCongratulations Commander!\n\nThere will always be a place for you in Her Imperial Majesty's Space Navy.\n\nAnd maybe sooner than you think...\n\n---MESSAGE ENDS.</string>
+	<key>conhunt-thief-captured</key>
+	<string>You captured the thief who stole the constrictor! Her Imperial Navy awards you a bonus of 1000 credits!\n</string>
+	<!-- thargoid plans -->
 	<key>thargoid_plans_debrief</key>
 	<string>---INCOMING MESSAGE\n\nYou have served us well and we shall remember.\n\nWe did not expect the Thargoids to find out about you.\n\nFor the moment please accept this Navy Extra Energy Unit as payment.\n\n---MESSAGE ENDS.</string>
 	<key>thargoid_plans_intro_brief</key>

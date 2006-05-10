@@ -424,14 +424,14 @@ Your fair use and other rights are in no way affected by the above.
 {
 	if ([dict objectForKey:@"origin"])
 	{
-		if (([[dict objectForKey:@"origin"] intValue] > 0) || [[[dict objectForKey:@"origin"] stringValue] isEqual:@"0"])
+		if (([[dict objectForKey:@"origin"] intValue] > 0) || [[dict objectForKey:@"origin"] isEqual:@"0"])
 			[self setOriginSystemSeed:[universe systemSeedForSystemNumber:[[dict objectForKey:@"origin"] intValue]]];
 		else
-			[self setOriginSystemSeed:[universe systemSeedForSystemName:[[dict objectForKey:@"origin"] stringValue]]];
+			[self setOriginSystemSeed:[universe systemSeedForSystemName:[dict objectForKey:@"origin"]]];
 	}	
 	if ([dict objectForKey:@"random_seed"])
 	{
-		Random_Seed g_seed = [Entity seedFromString:[[dict objectForKey:@"random_seed"] stringValue]];
+		Random_Seed g_seed = [Entity seedFromString:[dict objectForKey:@"random_seed"]];
 		[self setGenSeed: g_seed];
 		[self basicSetUp];
 	}
