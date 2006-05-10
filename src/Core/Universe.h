@@ -146,9 +146,6 @@ extern int debug;
 		int						cursor_row;
 		
 //		// collision optimisation sorted lists
-//		Entity*					z_sortedEntities[UNIVERSE_MAX_ENTITIES];
-//		Entity*					y_sortedEntities[UNIVERSE_MAX_ENTITIES];
-//		Entity*					x_sortedEntities[UNIVERSE_MAX_ENTITIES];
 		Entity					*x_list_start, *y_list_start, *z_list_start;
 //		//
 //		////
@@ -229,6 +226,7 @@ extern int debug;
 		NSDictionary			*illegal_goods;		// holds the legal penalty for illicit commodities, loaded at initialisation
 		NSDictionary			*descriptions;		// holds descriptive text for lots of stuff, loaded at initialisation
 		NSDictionary			*customsounds;		// holds descriptive audio for lots of stuff, loaded at initialisation
+		NSDictionary			*characters;		// holds descriptons of characters
 		NSDictionary			*planetinfo;		// holds overrides for individual planets, keyed by "g# p#" where g# is the galaxy number 0..7 and p# the planet number 0..255
 		NSDictionary			*missiontext;		// holds descriptive text for missions, loaded at initialisation
 		NSArray					*equipmentdata;		// holds data on available equipment, loaded at initialisation
@@ -420,6 +418,7 @@ extern int debug;
 
 - (NSDictionary *) shipyard;
 - (NSDictionary *) descriptions;
+- (NSDictionary *) characters;
 - (NSDictionary *) missiontext;
 
 - (NSString *) keyForPlanetOverridesForSystemSeed:(Random_Seed) s_seed inGalaxySeed:(Random_Seed) g_seed;

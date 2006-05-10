@@ -170,6 +170,8 @@ Your fair use and other rights are in no way affected by the above.
 	//
 	descriptions = [[ResourceManager dictionaryFromFilesNamed:@"descriptions.plist" inFolder:@"Config" andMerge:YES] retain];
 	//
+	characters = [[ResourceManager dictionaryFromFilesNamed:@"characters.plist" inFolder:@"Config" andMerge:YES] retain];
+	//
 	customsounds = [[ResourceManager dictionaryFromFilesNamed:@"customsounds.plist" inFolder:@"Config" andMerge:YES] retain];
 	//
 	planetinfo = [[ResourceManager dictionaryFromFilesNamed:@"planetinfo.plist" inFolder:@"Config" andMerge:YES smart:YES] retain];
@@ -261,6 +263,7 @@ Your fair use and other rights are in no way affected by the above.
 	
     if (illegal_goods)			[illegal_goods release];
     if (descriptions)			[descriptions release];
+    if (characters)				[characters release];
     if (customsounds)			[customsounds release];
     if (planetinfo)				[planetinfo release];
     if (missiontext)			[missiontext release];
@@ -427,6 +430,10 @@ Your fair use and other rights are in no way affected by the above.
 	if (descriptions)
 		[descriptions autorelease];
 	descriptions = [[ResourceManager dictionaryFromFilesNamed:@"descriptions.plist" inFolder:@"Config" andMerge:YES ] retain];
+	//
+	if (characters)
+		[characters autorelease];
+	characters = [[ResourceManager dictionaryFromFilesNamed:@"characters.plist" inFolder:@"Config" andMerge:YES ] retain];
 	//
 	if (customsounds)
 		[customsounds autorelease];
@@ -5635,6 +5642,11 @@ GLfloat	starboard_matrix[] = {	0.0f, 0.0f, 1.0f, 0.0f,		0.0f, 1.0f, 0.0f, 0.0f,	
 - (NSDictionary *) descriptions
 {
 	return descriptions;
+}
+
+- (NSDictionary *) characters
+{
+	return characters;
 }
 
 - (NSDictionary *) missiontext

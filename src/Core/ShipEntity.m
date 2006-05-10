@@ -1313,8 +1313,7 @@ static NSMutableDictionary* smallOctreeDict = nil;
 	// crew and passengers
 	if ([shipdict objectForKey:@"pilot"])	// returns a key in characters.plist
 	{
-		NSDictionary* cdict = nil;
-//		NSDictionary* cdict = [[universe characters] objectForKey:[shipdict objectForKey:@"pilot"]];
+		NSDictionary* cdict = [[universe characters] objectForKey:[shipdict objectForKey:@"pilot"]];
 		if ((cdict)&&(universe))
 		{
 			OOCharacter* pilot = [OOCharacter characterWithDictionary:cdict inUniverse:universe];
