@@ -20,16 +20,16 @@ or send a letter to Creative Commons, 559 Nathan Abbott Way, Stanford, Californi
 
 You are free:
 
-¥	to copy, distribute, display, and perform the work
-¥	to make derivative works
+â€¢	to copy, distribute, display, and perform the work
+â€¢	to make derivative works
 
 Under the following conditions:
 
-¥	Attribution. You must give the original author credit.
+â€¢	Attribution. You must give the original author credit.
 
-¥	Noncommercial. You may not use this work for commercial purposes.
+â€¢	Noncommercial. You may not use this work for commercial purposes.
 
-¥	Share Alike. If you alter, transform, or build upon this work,
+â€¢	Share Alike. If you alter, transform, or build upon this work,
 you may distribute the resulting work only under a license identical to this one.
 
 For any reuse or distribution, you must make clear to others the license terms of this work.
@@ -110,15 +110,9 @@ void	mult_vector (struct vector *vec, struct vector *mat);
 //
 void mult_vector_gl_matrix (struct vector *vec, GLfloat *glmat);
 
-inline GLfloat magnitude2 (Vector vec);
-inline GLfloat distance2 (Vector v1, Vector v2);
-inline GLfloat dot_product (Vector first, Vector second);
 Vector cross_product (Vector first, Vector second);
 Vector normal_to_surface (Vector v1, Vector v2, Vector v3);
 
-inline Vector vector_between (Vector a, Vector b);
-
-inline struct vector make_vector (GLfloat vx, GLfloat vy, GLfloat vz);
 struct vector unit_vector (struct vector *vec);
 void	set_matrix_identity (struct vector *mat);
 
@@ -190,6 +184,61 @@ Vector		resolveVectorInIJK(Vector v0, Triangle ijk);
 
 Vector lineIntersectionWithFace(Vector p1, Vector p2, long mask, GLfloat rd);
 int lineCubeIntersection(Vector v0, Vector v1, GLfloat rd);
+
+
+#ifndef GCC_ATTR
+	#ifdef __GNUC__
+		#define GCC_ATTR(x)	__attribute__(x)
+	#else
+		#define GCC_ATTR(x)
+	#endif
+#endif
+
+
+// returns the square of the magnitude of the vector
+//
+static inline GLfloat magnitude2 (Vector vec) GCC_ATTR((always_inline, pure));
+static inline GLfloat magnitude2 (Vector vec)
+{
+	return vec.x * vec.x + vec.y * vec.y + vec.z * vec.z;
+}
+
+// returns the square of the distance between two points
+//
+static inline GLfloat distance2 (Vector v1, Vector v2) GCC_ATTR((always_inline, pure));
+static inline GLfloat distance2 (Vector v1, Vector v2)
+{
+	return (v1.x - v2.x) * (v1.x - v2.x) + (v1.y - v2.y) * (v1.y - v2.y) + (v1.z - v2.z) * (v1.z - v2.z);
+}
+
+// Calculate the dot product of two vectors sharing a common point.
+// Returns the cosine of the angle between the two vectors.
+//
+static inline GLfloat dot_product (Vector first, Vector second) GCC_ATTR((always_inline, pure));
+static inline GLfloat dot_product (Vector first, Vector second)
+{
+	return (first.x * second.x) + (first.y * second.y) + (first.z * second.z);	
+}
+
+// make a vector
+//
+static inline struct vector make_vector (GLfloat vx, GLfloat vy, GLfloat vz) GCC_ATTR((always_inline, pure));
+static inline struct vector make_vector (GLfloat vx, GLfloat vy, GLfloat vz)
+{
+	Vector result;
+	result.x = vx;
+	result.y = vy;
+	result.z = vz;
+	return result;
+}
+
+// vector from a to b
+//
+static inline Vector vector_between (Vector a, Vector b) GCC_ATTR((always_inline, pure));
+static inline Vector vector_between (Vector a, Vector b)
+{
+	return make_vector( b.x - a.x, b.y - a.y, b.z - a.z);
+}
 
 #endif
 

@@ -146,28 +146,6 @@ void mult_vector_gl_matrix (struct vector *vec, GLfloat *glmat)
 	vec->z = z/w;
 }
 
-// returns the square of the magnitude of the vector
-//
-inline GLfloat magnitude2 (Vector vec)
-{
-	return vec.x * vec.x + vec.y * vec.y + vec.z * vec.z;
-}
-
-// returns the square of the distance between two points
-//
-inline GLfloat distance2 (Vector v1, Vector v2)
-{
-	return (v1.x - v2.x) * (v1.x - v2.x) + (v1.y - v2.y) * (v1.y - v2.y) + (v1.z - v2.z) * (v1.z - v2.z);
-}
-
-// Calculate the dot product of two vectors sharing a common point.
-// Returns the cosine of the angle between the two vectors.
-//
-inline GLfloat dot_product (Vector first, Vector second)
-{
-	return (first.x * second.x) + (first.y * second.y) + (first.z * second.z);	
-}
-
 //	NOTE IMPORTANT
 //	this cross product routine returns the UNIT vector cross product
 //
@@ -201,55 +179,9 @@ Vector normal_to_surface (Vector v1, Vector v2, Vector v3)
 	return cross_product(d0,d1);	
 }
 
-// vector from a to b
-//
-inline Vector vector_between (Vector a, Vector b)
-{
-	return make_vector( b.x - a.x, b.y - a.y, b.z - a.z);
-}
-
-// make a vector
-//
-inline struct vector make_vector (GLfloat vx, GLfloat vy, GLfloat vz)
-{
-	Vector result;
-	result.x = vx;
-	result.y = vy;
-	result.z = vz;
-	return result;
-}
-	
 
 // Convert a vector into a vector of unit (1) length.
 //
-//Vector unit_vector (struct vector *vec)
-//{
-//	GLfloat lx,ly,lz;
-//	float len,isqrt,temp1,temp2;
-//	Vector res;
-//
-//	lx = vec->x;
-//	ly = vec->y;
-//	lz = vec->z;
-//
-//	len = lx * lx + ly * ly + lz * lz;
-//	
-//	// Fast estimate
-//	isqrt = __frsqrte (len);
-//	
-//	// Newton-Rhapson
-//	temp1 = len - 0.5f;
-//	temp2 = isqrt * isqrt;
-//	temp1 *= isqrt;
-//	isqrt *= (float)(3.0/2.0);
-//	len = isqrt + temp1 * temp2;
-//
-//	res.x = lx * len;
-//	res.y = ly * len;
-//	res.z = lz * len;
-//
-//	return res;
-//}
 Vector unit_vector (struct vector *vec)
 {
 	GLfloat lx,ly,lz;
