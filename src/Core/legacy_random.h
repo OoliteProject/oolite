@@ -90,6 +90,9 @@ int gen_rnd_number (void);
 
 void make_pseudo_random_seed (struct rand_seed_6uc *seed_ptr);
 
+Random_Seed nil_seed();
+int is_nil_seed(Random_Seed a_seed);
+
 void rotate_seed (struct rand_seed_6uc *seed_ptr);
 int rotate_byte_left (int x);
 

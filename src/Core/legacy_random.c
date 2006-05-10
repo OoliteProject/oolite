@@ -203,6 +203,20 @@ void make_pseudo_random_seed (struct rand_seed_6uc *seed_ptr)
 	seed_ptr->f = gen_rnd_number();
 }
 
+Random_Seed nil_seed()
+{
+	Random_Seed result = { (unsigned char)0,  (unsigned char)0,  (unsigned char)0,  (unsigned char)0,  (unsigned char)0,  (unsigned char)0};
+	return result;
+}
+
+int is_nil_seed(Random_Seed a_seed)
+{
+	if (a_seed.a | a_seed.b | a_seed.c | a_seed.d | a_seed.e | a_seed.f)
+		return -1;
+	else
+		return 0;
+}
+
 void rotate_seed (struct rand_seed_6uc *seed_ptr)
 {
     unsigned int x;
