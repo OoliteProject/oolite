@@ -1760,10 +1760,11 @@ void drawActiveCorona (double inner_radius, double outer_radius, int step, doubl
 	shuttle_ship = [universe getShipWithRole:@"shuttle"];   // retain count = 1
 	if (shuttle_ship)
 	{
-		[shuttle_ship setCrew:[NSArray arrayWithObject:
-			[OOCharacter randomCharacterWithRole: @"trader"
-			andOriginalSystem: [universe systemSeed]
-			inUniverse: universe]]];
+		if (![shuttle_ship crew])
+			[shuttle_ship setCrew:[NSArray arrayWithObject:
+				[OOCharacter randomCharacterWithRole: @"trader"
+				andOriginalSystem: [universe systemSeed]
+				inUniverse: universe]]];
 				
 		[shuttle_ship setPosition:launch_pos];
 		[shuttle_ship setQRotation:q1];

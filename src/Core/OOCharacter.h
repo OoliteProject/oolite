@@ -61,6 +61,7 @@ Your fair use and other rights are in no way affected by the above.
 
 + (OOCharacter*) characterWithRole:(NSString*) c_role andOriginalSystem:(Random_Seed) o_seed inUniverse:(Universe*) uni;
 + (OOCharacter*) randomCharacterWithRole:(NSString*) c_role andOriginalSystem:(Random_Seed) o_seed inUniverse:(Universe*) uni;
++ (OOCharacter*) characterWithDictionary:(NSDictionary*) c_dict inUniverse:(Universe*) uni;
 
 - (NSString*) planetOfOrigin;
 - (NSString*) species;
@@ -77,6 +78,7 @@ Your fair use and other rights are in no way affected by the above.
 - (int)			insuranceCredits;
 - (NSArray*)	script;
 
+- (void) setUniverse: (Universe*) uni;
 - (void) setName: (NSString*) value;
 - (void) setShortDescription: (NSString*) value;
 - (void) setLongDescription: (NSString*) value;

@@ -533,10 +533,11 @@ static NSMutableDictionary* smallOctreeDict = nil;
 		if (!escorter)
 			break;
 
-		[escorter setCrew:[NSArray arrayWithObject:
-			[OOCharacter randomCharacterWithRole: @"hunter"
-			andOriginalSystem: [universe systemSeed]
-			inUniverse: universe]]];
+		if (![escorter crew])
+			[escorter setCrew:[NSArray arrayWithObject:
+				[OOCharacter randomCharacterWithRole: @"hunter"
+				andOriginalSystem: [universe systemSeed]
+				inUniverse: universe]]];
 				
 		// spread them around a little randomly
 		double dd = escorter->collision_radius;
@@ -1308,6 +1309,25 @@ static NSMutableDictionary* smallOctreeDict = nil;
 	heat_insulation = 1.0;
 	if ([shipdict objectForKey:@"heat_insulation"])
 		heat_insulation = [[shipdict objectForKey:@"heat_insulation"] doubleValue];
+		
+	// crew and passengers
+	if ([shipdict objectForKey:@"pilot"])	// returns a key in characters.plist
+	{
+		NSDictionary* cdict = nil;
+//		NSDictionary* cdict = [[universe characters] objectForKey:[shipdict objectForKey:@"pilot"]];
+		if ((cdict)&&(universe))
+		{
+			OOCharacter* pilot = [OOCharacter characterWithDictionary:cdict inUniverse:universe];
+			if (!crew)
+				[self setCrew:[NSArray arrayWithObject:pilot]];
+			else
+			{
+				NSMutableArray* nucrew = [NSMutableArray arrayWithArray:crew];
+				[nucrew addObject: pilot];
+				[self setCrew: nucrew];
+			}
+		}
+	}
 }
 
 
