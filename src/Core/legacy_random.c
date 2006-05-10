@@ -212,9 +212,9 @@ Random_Seed nil_seed()
 int is_nil_seed(Random_Seed a_seed)
 {
 	if (a_seed.a | a_seed.b | a_seed.c | a_seed.d | a_seed.e | a_seed.f)
-		return -1;
-	else
 		return 0;
+	else
+		return -1;
 }
 
 void rotate_seed (struct rand_seed_6uc *seed_ptr)
