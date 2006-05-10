@@ -53,6 +53,7 @@ Your fair use and other rights are in no way affected by the above.
 	int			legalStatus;
 	int			insuranceCredits;
 	Universe*	universe;
+	NSArray*	script_actions;
 }
 
 - (id) initWithGenSeed:(Random_Seed) g_seed andOriginalSystemSeed:(Random_Seed) s_seed inUniverse:(Universe*) uni;
@@ -74,6 +75,7 @@ Your fair use and other rights are in no way affected by the above.
 - (Random_Seed)	genSeed;
 - (int)			legalStatus;
 - (int)			insuranceCredits;
+- (NSArray*)	script;
 
 - (void) setName: (NSString*) value;
 - (void) setShortDescription: (NSString*) value;
@@ -82,5 +84,8 @@ Your fair use and other rights are in no way affected by the above.
 - (void) setGenSeed: (Random_Seed) value;
 - (void) setLegalStatus: (int) value;
 - (void) setInsuranceCredits: (int) value;
+- (void) setScript: (NSArray*) some_actions;
+
+- (void) setCharacterFromDictionary:(NSDictionary*) dict;
 
 @end

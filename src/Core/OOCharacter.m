@@ -47,7 +47,7 @@ Your fair use and other rights are in no way affected by the above.
 
 - (NSString*) description
 {
-	NSString* result = [[NSString alloc] initWithFormat:@"<OOCharacter : %@, %@. %@. (%d) (%d)>",
+	NSString* result = [[NSString alloc] initWithFormat:@"<OOCharacter : %@, %@. %@. Bounty %d.  Insurance %d.>",
 		[self name], [self shortDescription], [self longDescription], [self legalStatus], [self insuranceCredits]];
 	return [result autorelease];
 }
@@ -60,6 +60,8 @@ Your fair use and other rights are in no way affected by the above.
 		[shortDescription release];
 	if (longDescription)
 		[longDescription release];
+	if (script_actions)
+		[script_actions release];
 	[super dealloc];
 }
 
@@ -356,6 +358,10 @@ Your fair use and other rights are in no way affected by the above.
 {
 	return insuranceCredits;
 }
+- (NSArray*)	script
+{
+	return script_actions;
+}
 
 - (void) setName: (NSString*) value
 {
@@ -391,6 +397,46 @@ Your fair use and other rights are in no way affected by the above.
 {
 	insuranceCredits = value;
 }
+- (void) setScript: (NSArray*) some_actions
+{
+	if (script_actions)
+		[script_actions autorelease];
+	if (some_actions)
+		script_actions = [some_actions retain];
+	else
+		script_actions = nil;
+}
 
+- (void) setCharacterFromDictionary:(NSDictionary*) dict
+{
+	if ([dict objectForKey:@"origin"])
+	{
+		if (([[dict objectForKey:@"origin"] intValue] > 0) || [[[dict objectForKey:@"origin"] stringValue] isEqual:@"0"])
+			[self setOriginSystemSeed:[universe systemSeedForSystemNumber:[[dict objectForKey:@"origin"] intValue]]];
+		else
+			[self setOriginSystemSeed:[universe systemSeedForSystemName:[[dict objectForKey:@"origin"] stringValue]]];
+	}	
+	if ([dict objectForKey:@"random_seed"])
+	{
+		Random_Seed g_seed = [Entity seedFromString:[[dict objectForKey:@"random_seed"] stringValue]];
+		[self setGenSeed: g_seed];
+		[self basicSetUp];
+	}
+	if ([dict objectForKey:@"name"])
+		[self setName:[dict objectForKey:@"name"]];
+	if ([dict objectForKey:@"short_description"])
+		[self setShortDescription:[dict objectForKey:@"short_description"]];
+	if ([dict objectForKey:@"long_description"])
+		[self setLongDescription:[dict objectForKey:@"long_description"]];
+	if ([dict objectForKey:@"legal_status"])
+		[self setLegalStatus:[[dict objectForKey:@"legal_status"] intValue]];
+	if ([dict objectForKey:@"bounty"])
+		[self setLegalStatus:[[dict objectForKey:@"bounty"] intValue]];
+	if ([dict objectForKey:@"insurance"])
+		[self setInsuranceCredits:[[dict objectForKey:@"insurance"] intValue]];
+	if ([dict objectForKey:@"script_actions"])
+		[self setScript:[dict objectForKey:@"script_actions"]];
+		
+}
 
 @end

@@ -5600,6 +5600,20 @@ GLfloat	starboard_matrix[] = {	0.0f, 0.0f, 1.0f, 0.0f,		0.0f, 1.0f, 0.0f, 0.0f,	
 	return systems[n & 0xff];
 }
 
+- (Random_Seed) systemSeedForSystemName:(NSString*) sysname
+{
+	int i;
+	NSString *pname = [[sysname lowercaseString] capitalizedString];
+	for (i = 0; i < 256; i++)
+	{
+		if ([pname isEqual:[self getSystemName: systems[i]]])
+			return systems[i];
+	}
+	if (debug & DEBUG_SCRIPT)
+		NSLog(@"SCRIPT ERROR could not find a system with the name '%@' in this galaxy", sysname);
+	return nil_seed();
+}
+
 - (NSDictionary *) shipyard
 {
 	return shipyard;

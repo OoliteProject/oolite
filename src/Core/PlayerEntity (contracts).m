@@ -81,7 +81,11 @@ Your fair use and other rights are in no way affected by the above.
 	for (i = 0; i < [rescuees count]; i++)
 	{
 		OOCharacter* rescuee = (OOCharacter*)[rescuees objectAtIndex: i];
-		if ([rescuee insuranceCredits])
+		if ([rescuee script])
+		{
+			[self scriptActions: [rescuee script] forTarget: self];
+		}
+		else if ([rescuee insuranceCredits])
 		{
 			// claim insurance reward
 			[result appendFormat:[universe expandDescription:@"[rescue-reward-for-@@-f-credits]\n" forSystem:system_seed],

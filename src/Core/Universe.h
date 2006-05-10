@@ -416,6 +416,7 @@ extern int debug;
 
 - (Random_Seed) systemSeed;
 - (Random_Seed) systemSeedForSystemNumber:(int) n;
+- (Random_Seed) systemSeedForSystemName:(NSString*) sysname;
 
 - (NSDictionary *) shipyard;
 - (NSDictionary *) descriptions;

@@ -171,6 +171,7 @@ static  Universe	*data_store_universe;
 	if (failed)
 	{
 		NSLog(@"***** ERROR cannot make Random_Seed from '%@' because '%@'", abcdefString, error);
+		result = nil_seed();
 	}
 	return result;
 }
