@@ -1928,9 +1928,9 @@ void hudDrawReticleOnTarget(Entity* target, PlayerEntity* player1, GLfloat z1)
 	if (rsize < rdist * ONE_SIXTYFOURTH)
 		rsize = rdist * ONE_SIXTYFOURTH;
 	
-	double rs0 = rsize;
+	GLfloat rs0 = rsize;
 	//double rs3 = rsize * 0.75;
-	double rs2 = rsize * 0.50;
+	GLfloat rs2 = rsize * 0.50;
 	//double rs1 = rsize * 0.25;
 	
 	glPushMatrix();
@@ -2005,8 +2005,8 @@ double drawCharacterQuad(int chr, double x, double y, double z, NSSize siz)
 {
 	if ((chr < 0) || (chr > 127))
 		return 0;
-	double texture_x = ONE_SIXTEENTH * (chr & 0x0f);
-	double texture_y = ONE_EIGHTH * (chr >> 4);		// divide by 16 fast
+	GLfloat texture_x = ONE_SIXTEENTH * (chr & 0x0f);
+	GLfloat texture_y = ONE_EIGHTH * (chr >> 4);		// divide by 16 fast
 	
 	glTexCoord2f( texture_x, texture_y + ONE_EIGHTH);
 	glVertex3f( x, y, z);

@@ -50,6 +50,9 @@ Your fair use and other rights are in no way affected by the above.
 
 - (NSString*) processEscapePods // removes pods from cargo bay and treats categories of characters carried
 {
+	if ([universe strict])
+		return [NSString string];	// return a blank string
+	
 	int i;
 	NSMutableString* result = [NSMutableString string];
 	NSMutableArray* rescuees = [NSMutableArray array];
@@ -81,14 +84,16 @@ Your fair use and other rights are in no way affected by the above.
 		if ([rescuee insuranceCredits])
 		{
 			// claim insurance reward
-			[result appendFormat:[universe expandDescription:@"[rescue-reward-for-@@-f-credits]" forSystem:system_seed], [rescuee name], [rescuee shortDescription], (float)[rescuee insuranceCredits]];
+			[result appendFormat:[universe expandDescription:@"[rescue-reward-for-@@-f-credits]\n" forSystem:system_seed],
+				[rescuee name], [rescuee shortDescription], (float)[rescuee insuranceCredits]];
 			credits += 10 * [rescuee insuranceCredits];
 		}
 		else if ([rescuee legalStatus])
 		{
 			// claim bounty for capture
 			float reward = (5.0 + government) * [rescuee legalStatus];
-			[result appendFormat:[universe expandDescription:@"[capture-reward-for-@@-f-credits]" forSystem:system_seed], [rescuee name], [rescuee shortDescription], 0.1 * reward];
+			[result appendFormat:[universe expandDescription:@"[capture-reward-for-@@-f-credits]\n" forSystem:system_seed],
+				[rescuee name], [rescuee shortDescription], 0.1f * reward];
 			credits += reward;
 		}
 		else
@@ -99,6 +104,8 @@ Your fair use and other rights are in no way affected by the above.
 		if (i < [rescuees count] - 1)
 			[result appendString:@"\n"];
 	}
+	
+	[self calculateCurrentCargo];
 	
 	return result;
 }
