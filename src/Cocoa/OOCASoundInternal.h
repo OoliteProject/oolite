@@ -53,6 +53,9 @@ Your fair use and other rights are in no way affected by the above.
 
 - (BOOL)getAudioStreamBasicDescription:(AudioStreamBasicDescription *)outFormat;
 
+- (void)incrementPlayingCount;
+- (void)decrementPlayingCount;
+
 @end
 
 

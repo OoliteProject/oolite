@@ -125,14 +125,28 @@ NSLock						*gOOCASoundSyncLock = NULL;	// Used to ensure thread-safety of play 
 }
 
 
-- (void) setIsPlaying:(BOOL) yesno
+- (void)incrementPlayingCount
 {
-	isPlaying = yesno;
+	++_playingCount;
 }
+
+
+- (void)decrementPlayingCount
+{
+	assert(0 != _playingCount);
+	--_playingCount;
+}
+
 
 - (BOOL) isPlaying
 {
-	return isPlaying;
+	return 0 != _playingCount;
+}
+
+
+- (uint32_t)playingCount
+{
+	return _playingCount;
 }
 
 

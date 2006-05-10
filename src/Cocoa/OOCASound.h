@@ -40,7 +40,7 @@ Your fair use and other rights are in no way affected by the above.
 
 @interface OOSound: NSObject
 {
-	BOOL isPlaying;
+	uint32_t			_playingCount;
 }
 
 + (void) setUp;
@@ -52,8 +52,8 @@ Your fair use and other rights are in no way affected by the above.
 
 - (id) initWithContentsOfFile:(NSString *)path;
 
-- (void) setIsPlaying:(BOOL) yesno;
 - (BOOL) isPlaying;
+- (uint32_t)playingCount;
 - (BOOL) play;
 - (BOOL) stop;
 

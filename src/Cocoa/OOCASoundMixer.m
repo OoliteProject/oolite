@@ -248,9 +248,11 @@ static OOCASoundMixer *sSingleton = nil;
 		[chan setDelegate:self];
 		OK = [chan playSound:inSound];
 		
-		[inSound setIsPlaying:OK];
-		
-		if (OK) [self retain];
+		if (OK)
+		{
+			[inSound incrementPlayingCount];
+			[self retain];
+		}
 		else
 		{
 			[self pushChannel:chan];
@@ -267,7 +269,7 @@ static OOCASoundMixer *sSingleton = nil;
 {
 	uint32_t				ID;
 		
-	[inSound setIsPlaying:NO];
+	[inSound decrementPlayingCount];
 	
 	if (![inChannel isOK])
 	{
