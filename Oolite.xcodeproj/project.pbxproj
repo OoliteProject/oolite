@@ -126,7 +126,7 @@
 		25F3E6F20994F466002F25FD /* Groolite.h in Headers */ = {isa = PBXBuildFile; fileRef = 25F3E6F00994F466002F25FD /* Groolite.h */; };
 		25F3E6F30994F466002F25FD /* Groolite.m in Sources */ = {isa = PBXBuildFile; fileRef = 25F3E6F10994F466002F25FD /* Groolite.m */; };
 		25F3E7020994FA92002F25FD /* commodities.plist in Resources */ = {isa = PBXBuildFile; fileRef = 25F3E6F40994FA92002F25FD /* commodities.plist */; };
-		25F3E7030994FA92002F25FD /* crewroles.plist in Resources */ = {isa = PBXBuildFile; fileRef = 25F3E6F50994FA92002F25FD /* crewroles.plist */; };
+		25F3E7030994FA92002F25FD /* characters.plist in Resources */ = {isa = PBXBuildFile; fileRef = 25F3E6F50994FA92002F25FD /* characters.plist */; };
 		25F3E7040994FA92002F25FD /* demoships.plist in Resources */ = {isa = PBXBuildFile; fileRef = 25F3E6F60994FA92002F25FD /* demoships.plist */; };
 		25F3E7050994FA92002F25FD /* descriptions.plist in Resources */ = {isa = PBXBuildFile; fileRef = 25F3E6F70994FA92002F25FD /* descriptions.plist */; };
 		25F3E7060994FA92002F25FD /* equipment.plist in Resources */ = {isa = PBXBuildFile; fileRef = 25F3E6F80994FA92002F25FD /* equipment.plist */; };
@@ -518,7 +518,7 @@
 		25F3E6F00994F466002F25FD /* Groolite.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Groolite.h; path = src/Cocoa/Groolite.h; sourceTree = "<group>"; };
 		25F3E6F10994F466002F25FD /* Groolite.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = Groolite.m; path = src/Cocoa/Groolite.m; sourceTree = "<group>"; };
 		25F3E6F40994FA92002F25FD /* commodities.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xml; name = commodities.plist; path = Resources/Config/commodities.plist; sourceTree = "<group>"; };
-		25F3E6F50994FA92002F25FD /* crewroles.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xml; name = crewroles.plist; path = Resources/Config/crewroles.plist; sourceTree = "<group>"; };
+		25F3E6F50994FA92002F25FD /* characters.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xml; name = characters.plist; path = Resources/Config/characters.plist; sourceTree = "<group>"; };
 		25F3E6F60994FA92002F25FD /* demoships.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xml; name = demoships.plist; path = Resources/Config/demoships.plist; sourceTree = "<group>"; };
 		25F3E6F70994FA92002F25FD /* descriptions.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xml; name = descriptions.plist; path = Resources/Config/descriptions.plist; sourceTree = "<group>"; };
 		25F3E6F80994FA92002F25FD /* equipment.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xml; name = equipment.plist; path = Resources/Config/equipment.plist; sourceTree = "<group>"; };
@@ -906,7 +906,7 @@
 			children = (
 				08CB1FEC09D3F2AA001EA329 /* customsounds.plist */,
 				25F3E6F40994FA92002F25FD /* commodities.plist */,
-				25F3E6F50994FA92002F25FD /* crewroles.plist */,
+				25F3E6F50994FA92002F25FD /* characters.plist */,
 				25F3E6F60994FA92002F25FD /* demoships.plist */,
 				25F3E6F70994FA92002F25FD /* descriptions.plist */,
 				25F3E6F80994FA92002F25FD /* equipment.plist */,
@@ -1378,7 +1378,7 @@
 			files = (
 				0865427906B8447D000CA0AB /* MainMenu.nib in Resources */,
 				25F3E7020994FA92002F25FD /* commodities.plist in Resources */,
-				25F3E7030994FA92002F25FD /* crewroles.plist in Resources */,
+				25F3E7030994FA92002F25FD /* characters.plist in Resources */,
 				25F3E7040994FA92002F25FD /* demoships.plist in Resources */,
 				25F3E7050994FA92002F25FD /* descriptions.plist in Resources */,
 				25F3E7060994FA92002F25FD /* equipment.plist in Resources */,
