@@ -4571,6 +4571,34 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 
 -----------------------------------------*/
 
+- (void) checkScanner
+{
+	n_scanned_ships = 0;
+	Entity* scan = z_scan_previous;
+	while ((scan)&&(scan->position.z > position.z - scanner_range)&&(n_scanned_ships < MAX_SCAN_NUMBER))
+	{
+		if (scan->isShip)
+		{
+			distance2_scanned_ships[n_scanned_ships] = distance2( position, scan->position);
+			if (distance2_scanned_ships[n_scanned_ships] < SCANNER_MAX_RANGE2)
+				scanned_ships[n_scanned_ships++] = (ShipEntity*)scan;
+		}
+		scan = scan->z_scan_previous;
+	}
+	scan = z_scan_next;
+	while ((scan)&&(scan->position.z < position.z + scanner_range)&&(n_scanned_ships < MAX_SCAN_NUMBER))
+	{
+		if (scan->isShip)
+		{
+			distance2_scanned_ships[n_scanned_ships] = distance2( position, scan->position);
+			if (distance2_scanned_ships[n_scanned_ships] < SCANNER_MAX_RANGE2)
+				scanned_ships[n_scanned_ships++] = (ShipEntity*)scan;
+		}
+		scan = scan->z_scan_next;
+	}
+//	NSLog(@"DEBUG %@ checking scanner - %d ships found.", self, n_scanned_ships);
+}
+
 - (void) setFound_target:(Entity *) targetEntity
 {
 	if (targetEntity)

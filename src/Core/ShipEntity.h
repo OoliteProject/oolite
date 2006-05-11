@@ -160,6 +160,9 @@ Your fair use and other rights are in no way affected by the above.
 
 #define AIMS_AGGRESSOR_SWITCHED_TARGET	@"AGGRESSOR_SWITCHED_TARGET"
 
+// number of vessels considered when scanning around
+#define MAX_SCAN_NUMBER					16
+
 @class OOColor, StationEntity, ParticleEntity, PlanetEntity, WormholeEntity, AI, Octree;
 
 @interface ShipEntity : Entity {
@@ -344,6 +347,11 @@ Your fair use and other rights are in no way affected by the above.
 		// from player entity moved here now we're doing more complex heat stuff
 		GLfloat					ship_temperature;
 		GLfloat					heat_insulation;
+		
+		// for advanced scanning etc.
+		ShipEntity*				scanned_ships[MAX_SCAN_NUMBER];
+		GLfloat					distance2_scanned_ships[MAX_SCAN_NUMBER];
+		int						n_scanned_ships;
 
 		// DEBUGGING
 		int debug_condition;
@@ -552,6 +560,8 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 	AI piloting methods
 
 -----------------------------------------*/
+
+- (void) checkScanner;
 
 - (void) setFound_target:(Entity *) targetEntity;
 - (void) setPrimaryAggressor:(Entity *) targetEntity;

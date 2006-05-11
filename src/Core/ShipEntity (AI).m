@@ -154,26 +154,19 @@ static	Vector	zero_vector = { 0.0f, 0.0f, 0.0f};
 - (void) scanForNearestMerchantmen
 {
 	//-- Locates the nearest merchantman in range --//
-	if (!universe)
-		return;
-	int			ent_count =		universe->n_entities;
-	Entity**	uni_entities =	universe->sortedEntities;	// grab the public sorted list
-	Entity*		my_entities[ent_count];
-	int i;
-	int ship_count = 0;
-	for (i = 0; i < ent_count; i++)
-		if (uni_entities[i]->isShip)
-			my_entities[ship_count++] = [uni_entities[i] retain];		//	retained
+	//--     new version using scanned_ships[]    --//
+	[self checkScanner];
 	//
-	double found_d2 = scanner_range * scanner_range;
+	GLfloat found_d2 = scanner_range * scanner_range;
 	found_target = NO_TARGET;
-	for (i = 0; i < ship_count ; i++)
+	int i;
+	for (i = 0; i < n_scanned_ships ; i++)
 	{
-		ShipEntity* ship = (ShipEntity *)my_entities[i];
-		if ((ship != self)&&(([[ship roles] isEqual:@"trader"])||(ship->isPlayer))&&(ship->status != STATUS_DEAD)&&(ship->status != STATUS_DOCKED))
+		ShipEntity* ship = scanned_ships[i];
+		if ((([[ship roles] isEqual:@"trader"])||(ship->isPlayer))&&(ship->status != STATUS_DEAD)&&(ship->status != STATUS_DOCKED))
 		{
-			double d2 = distance2( position, ship->position);
-			if (([roles isEqual:@"pirate"])&&(d2*d2 < desired_range)&&(ship->isPlayer)&&(PIRATES_PREFER_PLAYER))
+			GLfloat d2 = distance2_scanned_ships[i];
+			if (([roles isEqual:@"pirate"])&&(d2 < desired_range * desired_range)&&(ship->isPlayer)&&(PIRATES_PREFER_PLAYER))
 				d2 = 0.0;
 			if (d2 < found_d2)
 			{
@@ -182,8 +175,6 @@ static	Vector	zero_vector = { 0.0f, 0.0f, 0.0f};
 			}
 		}
 	}
-	for (i = 0; i < ship_count; i++)
-		[my_entities[i] release];		//released
 	if (found_target != NO_TARGET)
 		[shipAI message:@"TARGET_FOUND"];
 	else
@@ -193,33 +184,18 @@ static	Vector	zero_vector = { 0.0f, 0.0f, 0.0f};
 - (void) scanForRandomMerchantmen
 {
 	//-- Locates one of the merchantman in range --//
-	if (!universe)
-		return;
-	int			ent_count =		universe->n_entities;
-	Entity**	uni_entities =	universe->sortedEntities;	// grab the public sorted list
-	Entity*		my_entities[ent_count];
-	int i;
-	int ship_count = 0;
-	for (i = 0; i < ent_count; i++)
-		if (uni_entities[i]->isShip)
-			my_entities[ship_count++] = [uni_entities[i] retain];		//	retained
+	[self checkScanner];
 	//
-	int ids_found[ship_count];
+	int ids_found[n_scanned_ships];
 	int n_found = 0;
-	double found_d2 = scanner_range * scanner_range;
 	found_target = NO_TARGET;
-	for (i = 0; i < ship_count ; i++)
+	int i;
+	for (i = 0; i < n_scanned_ships ; i++)
 	{
-		ShipEntity* ship = (ShipEntity *)my_entities[i];
-		if ((ship != self)&&(([[ship roles] isEqual:@"trader"])||(ship->isPlayer))&&(ship->status != STATUS_DEAD)&&(ship->status != STATUS_DOCKED))
-		{
-			double d2 = distance2( position, ship->position);
-			if (d2 < found_d2)
-				ids_found[n_found++] = [ship universal_id];
-		}
+		ShipEntity* ship = scanned_ships[i];
+		if ((([[ship roles] isEqual:@"trader"])||(ship->isPlayer))&&(ship->status != STATUS_DEAD)&&(ship->status != STATUS_DOCKED))
+			ids_found[n_found++] = ship->universal_id;
 	}
-	for (i = 0; i < ship_count; i++)
-		[my_entities[i] release];		//released
 	if (n_found == 0)
 	{
 		[shipAI message:@"NOTHING_FOUND"];
@@ -250,38 +226,30 @@ static	Vector	zero_vector = { 0.0f, 0.0f, 0.0f};
 		[shipAI message:@"NOTHING_FOUND"];		//can't collect loot if you're a station
 		return;
 	}
-	if (!universe)
-		return;
+
 	BOOL isPolice = (scan_class == CLASS_POLICE);
-	int			ent_count =		universe->n_entities;
-	Entity**	uni_entities =	universe->sortedEntities;	// grab the public sorted list
-	Entity*		my_entities[ent_count];
-	int i;
-	int ship_count = 0;
-	for (i = 0; i < ent_count; i++)
-		if (uni_entities[i]->isShip)
-			my_entities[ship_count++] = [uni_entities[i] retain];		//	retained
+	//
+	[self checkScanner];
 	//
 	double found_d2 = scanner_range * scanner_range;
 	found_target = NO_TARGET;
-	for (i = 0; i < ship_count; i++)
+	int i;
+	for (i = 0; i < n_scanned_ships; i++)
 	{
-		ShipEntity* other = (ShipEntity *)my_entities[i];
+		ShipEntity* other = (ShipEntity *)scanned_ships[i];
 		if ((other->scan_class == CLASS_CARGO)&&([other getCargoType] != CARGO_NOT_CARGO))
 		{
 			if ((!isPolice) || ([other getCommodityType] == 3)) // police only rescue lifepods and slaves
 			{
-				double d2 = distance2( position, other->position);
+				GLfloat d2 = distance2_scanned_ships[i];
 				if (d2 < found_d2)
 				{
 					found_d2 = d2;
-					found_target = [other universal_id];
+					found_target = other->universal_id;
 				}
 			}
 		}
 	}
-	for (i = 0; i < ship_count; i++)
-		[my_entities[i] release];		//released
 	if (found_target != NO_TARGET)
 		[shipAI message:@"TARGET_FOUND"];
 	else
@@ -291,42 +259,28 @@ static	Vector	zero_vector = { 0.0f, 0.0f, 0.0f};
 - (void) scanForRandomLoot
 {
 	/*-- Locates the all debris in range and chooses a piece at random from the first sixteen found --*/
-	if (!universe)
-		return;
-	int			ent_count =		universe->n_entities;
-	Entity**	uni_entities =	universe->sortedEntities;	// grab the public sorted list
-	Entity*		my_entities[ent_count];
-	int i;
-	int ship_count = 0;
-	for (i = 0; i < ent_count; i++)
-		if (uni_entities[i]->isShip)
-			my_entities[ship_count++] = [uni_entities[i] retain];		//	retained
-	//
-	int thing_uids_found[16];
-	int things_found;
-	double found_d2 = scanner_range * scanner_range;
-	found_target = NO_TARGET;
 	if ((!isStation)&&(!has_scoop))
 	{
 		[shipAI message:@"NOTHING_FOUND"];		//can't collect loot if you have no scoop!
 		return;
 	}
-	things_found = 0;
-	for (i = 0; (i < ship_count)&&(things_found < 16) ; i++)
+	//
+	[self checkScanner];
+	//
+	int thing_uids_found[16];
+	int things_found = 0;
+	found_target = NO_TARGET;
+	int i;
+	for (i = 0; (i < n_scanned_ships)&&(things_found < 16) ; i++)
 	{
-		ShipEntity* other = (ShipEntity *)my_entities[i];
+		ShipEntity* other = scanned_ships[i];
 		if ((other->scan_class == CLASS_CARGO)&&([other getCargoType] != CARGO_NOT_CARGO))
 		{
-			double d2 = distance2( position, other->position);
-			if (d2 < found_d2)
-			{
-				found_target = [other universal_id];
-				thing_uids_found[things_found++] = found_target;
-			}
+			found_target = [other universal_id];
+			thing_uids_found[things_found++] = found_target;
 		}
 	}
-	for (i = 0; i < ship_count; i++)
-		[my_entities[i] release];		//released
+	//
 	if (found_target != NO_TARGET)
 	{
 		found_target = thing_uids_found[ranrot_rand() % things_found];
@@ -377,29 +331,28 @@ static	Vector	zero_vector = { 0.0f, 0.0f, 0.0f};
 		coordinates.z += v_forward.z * max_flight_speed * 10.0;
 		return;
 	}
-	int			ent_count =		universe->n_entities;
-	Entity**	uni_entities =	universe->sortedEntities;	// grab the public sorted list
-	Entity*		my_entities[ent_count];
-	int i;
-	int station_count = 0;
-	for (i = 0; i < ent_count; i++)
-		if (uni_entities[i]->isStation)
-			my_entities[station_count++] = [uni_entities[i] retain];		//	retained
+	//
+	// find the nearest station...
+	//
+	[self checkScanner];
 	//
 	StationEntity* station =  nil;
 	double nearest2 = SCANNER_MAX_RANGE2 * 1000000.0; // 1000x scanner range (25600 km), squared.
-	for (i = 0; i < station_count; i++)
+	int i;
+	for (i = 0; i < n_scanned_ships; i++)
 	{
-		StationEntity* thing = (StationEntity *)my_entities[i];
-		double range2 = distance2 (position, thing->position);
-		if (range2 < nearest2)
+		if (scanned_ships[i]->isStation)
 		{
-			station = thing;
-			nearest2 = range2;
+			StationEntity* thing = (StationEntity *)scanned_ships[i];
+			GLfloat range2 = distance2_scanned_ships[i];
+			if (range2 < nearest2)
+			{
+				station = thing;
+				nearest2 = range2;
+			}
 		}
 	}
-	for (i = 0; i < station_count; i++)
-		[my_entities[i] release];	//		released
+
 	if (station)
 	{
 		coordinates = station->position;
@@ -415,7 +368,6 @@ static	Vector	zero_vector = { 0.0f, 0.0f, 0.0f};
 		coordinates.y += v_forward.y * max_flight_speed * 10.0;
 		coordinates.z += v_forward.z * max_flight_speed * 10.0;
 	}
-	//[shipAI message:@"OKAY"];
 }
 
 - (void) setDestinationFromCoordinates
@@ -425,7 +377,7 @@ static	Vector	zero_vector = { 0.0f, 0.0f, 0.0f};
 
 - (void) performDocking
 {
-	//NSLog(@"ShipEntity.performDocking NOT IMPLEMENTED!");
+	NSLog(@"ShipEntity.performDocking NOT IMPLEMENTED!");
 }
 
 - (void) performFaceDestination
@@ -445,21 +397,14 @@ static	Vector	zero_vector = { 0.0f, 0.0f, 0.0f};
 
 - (void) fightOrFleeMissile
 {
-	if (!universe)
-		return;
-	int			ent_count =		universe->n_entities;
-	Entity**	uni_entities =	universe->sortedEntities;	// grab the public sorted list
-	Entity*		my_entities[ent_count];
-	int i;
-	int ship_count = 0;
-	for (i = 0; i < ent_count; i++)
-		if (uni_entities[i]->isShip)
-			my_entities[ship_count++] = [uni_entities[i] retain];		//	retained
+	// find an incoming missile...
 	//
 	ShipEntity* missile =  nil;
-	for (i = 0; (i < ship_count)&&(missile == nil); i++)
+	[self checkScanner];
+	int i;
+	for (i = 0; (i < n_scanned_ships)&&(missile == nil); i++)
 	{
-		ShipEntity* thing = (ShipEntity *)my_entities[i];
+		ShipEntity* thing = scanned_ships[i];
 		if (thing->scan_class == CLASS_MISSILE)
 		{
 			if ([thing getPrimaryTarget] == self)
@@ -470,24 +415,20 @@ static	Vector	zero_vector = { 0.0f, 0.0f, 0.0f};
 				for (j = 0; j < n_escorts; j++)
 				{
 					if ([thing getPrimaryTargetID] == escort_ids[j])
-						missile = (ShipEntity *)thing;
+						missile = thing;
 				}
 			}
 		}
 	}
-	for (i = 0; i < ship_count; i++)
-		[my_entities[i] release];	//		released
 	
-	//NSLog(@"---> %@ %d targetting the Missile %d", name, universal_id, [missile universal_id]);
-	if (missile)
-	{
-		[self addTarget:missile];
-	}
+	if (!missile)
+		return;
 	
-	if ((missile)&&(has_ecm))
+	[self addTarget:missile];
+	
+	if (has_ecm)
 	{
 		// use the ECM and battle on
-		//NSLog(@"---> and firing ecm!");
 		ShipEntity* hunter = (ShipEntity*)[missile owner];
 		
 		[self setPrimaryAggressor:hunter];	// lets get them now for that!
@@ -515,16 +456,14 @@ static	Vector	zero_vector = { 0.0f, 0.0f, 0.0f};
 		return;
 	}
 	
-	if (missile)
-	{
-		//NSLog(@"---> and running away!");
-		jink.x = 0.0;
-		jink.y = 0.0;
-		jink.z = 1000.0;
-		desired_range = 10000;
-		[self performFlee];
-		[shipAI message:@"FLEEING"];
-	}
+	// RUN AWAY !!
+	//
+	jink.x = 0.0;
+	jink.y = 0.0;
+	jink.z = 1000.0;
+	desired_range = 10000;
+	[self performFlee];
+	[shipAI message:@"FLEEING"];
 }
 
 // new
@@ -695,26 +634,18 @@ static	Vector	zero_vector = { 0.0f, 0.0f, 0.0f};
 	//
 	found_target = NO_TARGET;
 
-	if (!universe)
-		return;
-	int			ent_count =		universe->n_entities;
-	Entity**	uni_entities =	universe->sortedEntities;	// grab the public sorted list
-	Entity*		my_entities[ent_count];
-	int i;
-	int ship_count = 0;
-	for (i = 0; i < ent_count; i++)
-		if (uni_entities[i]->isShip)
-			my_entities[ship_count++] = [uni_entities[i] retain];		//	retained
+	// find the worst offender on the scanner
 	//
-	float	worst_legal_factor;
-	double found_d2 = scanner_range * scanner_range;
-	worst_legal_factor = 0;
-	for (i = 0; i < ship_count ; i++)
+	[self checkScanner];
+	int i;
+	float	worst_legal_factor = 0;
+	GLfloat found_d2 = scanner_range * scanner_range;
+	for (i = 0; i < n_scanned_ships ; i++)
 	{
-		ShipEntity* ship = (ShipEntity *)my_entities[i];
+		ShipEntity* ship = scanned_ships[i];
 		if ((ship->scan_class != CLASS_CARGO)&&(ship->status != STATUS_DEAD)&&(ship->status != STATUS_DOCKED))
 		{
-			double	d2 = distance2( position, ship->position);
+			GLfloat	d2 = distance2_scanned_ships[i];
 			float	legal_factor = [ship legal_status] * gov_factor;
 			int random_factor = ranrot_rand() & 255;   // 25% chance of spotting a fugitive in 15s
 			if ((d2 < found_d2)&&(random_factor < legal_factor)&&(legal_factor > worst_legal_factor))
@@ -724,8 +655,6 @@ static	Vector	zero_vector = { 0.0f, 0.0f, 0.0f};
 			}
 		}
 	}
-	for (i = 0; i < ship_count; i++)
-		[my_entities[i] release];	//		released
 		
 //	NSLog(@"DEBUG %@'s scanForOffenders found %@ with legal_factor %.1f", self, [universe entityForUniversalID:found_target], worst_legal_factor);
 		
@@ -789,9 +718,7 @@ WormholeEntity*	whole;
 	NSString* systemSeedKey = [(NSDictionary*)[dests objectAtIndex:i] objectForKey:@"system_seed"];
 	Random_Seed targetSystem = [Entity seedFromString:systemSeedKey];
 	fuel -= 10 * [[(NSDictionary*)[dests objectAtIndex:i] objectForKey:@"distance"] doubleValue];
-	
-//	NSLog(@"DEBUG %@ leaving this system for  %@", self, [universe getSystemName:targetSystem]);
-	
+		
 	// create wormhole
 	whole = [[[WormholeEntity alloc] initWormholeTo: targetSystem fromShip: self] autorelease];
 	[universe addEntity: whole];
@@ -884,29 +811,19 @@ WormholeEntity*	whole;
 	very_random_seed.f = rand() & 255;
 	seed_RNG_only_for_planet_description(very_random_seed);
 
-//	NSLog(@"%@ %d sends unexpanded message '%@'", name, universal_id, valueString);
 	NSString* expandedMessage = [universe expandDescription:valueString forSystem:[universe systemSeed]];
 
-//	NSLog(@"%@ %d sends message '%@'", name, universal_id, expandedMessage);
 	[self broadcastMessage:expandedMessage];
 }
 
 - (void) broadcastDistressMessage
 {
 	/*-- Locates all the stations, bounty hunters and police ships in range and tells them that you are under attack --*/
-	if (!universe)
-		return;
-	int			ent_count =		universe->n_entities;
-	Entity**	uni_entities =	universe->sortedEntities;	// grab the public sorted list
-	Entity*		my_entities[ent_count];
-	int i;
-	int ship_count = 0;
-	for (i = 0; i < ent_count; i++)
-		if (uni_entities[i]->isShip)
-			my_entities[ship_count++] = [uni_entities[i] retain];		//	retained
+
+	[self checkScanner];
 	//
-	double d2;
-	double found_d2 = SCANNER_MAX_RANGE2;
+	GLfloat d2;
+	GLfloat found_d2 = SCANNER_MAX_RANGE2;
 	NSString* distress_message;
 	found_target = NO_TARGET;
 	BOOL	is_buoy = (scan_class == CLASS_BUOY);
@@ -919,10 +836,11 @@ WormholeEntity*	whole;
 	else
 		distress_message = @"[distress-call]";
 	
-	for (i = 0; i < ship_count; i++)
+	int i;
+	for (i = 0; i < n_scanned_ships; i++)
 	{
-		ShipEntity*	ship = (ShipEntity *)my_entities[i];
-		d2 = distance2( position, ship->position);
+		ShipEntity*	ship = scanned_ships[i];
+		d2 = distance2_scanned_ships[i];
 		if (d2 < found_d2)
 		{
 			// tell it! //
@@ -948,8 +866,6 @@ WormholeEntity*	whole;
 				[ship acceptDistressMessageFrom:self];
 		}
 	}
-	for (i = 0; i < ship_count; i++)
-		[my_entities[i] release];	//		released
 }
 
 - (void) acceptDistressMessageFrom:(ShipEntity *)other
@@ -969,7 +885,6 @@ WormholeEntity*	whole;
 			
 		default :
 			//NSLog(@"%@ %d responding to distress message from %@ %d", name, universal_id, [other name], [other universal_id]);
-//			if ([roles isEqual:@"police"]||[roles isEqual:@"interceptor"]||[roles isEqual:@"wingman"])
 			if ((scan_class == CLASS_POLICE)||[roles isEqual:@"police"]||[roles isEqual:@"interceptor"]||[roles isEqual:@"wingman"])
 				[(ShipEntity *)[universe entityForUniversalID:found_target] markAsOffender:8];  // you have been warned!!
 			[shipAI reactToMessage:@"ACCEPT_DISTRESS_CALL"];
@@ -1006,25 +921,17 @@ WormholeEntity*	whole;
 - (void) scanForThargoid
 {
 	/*-- Locates all the thargoid warships in range and chooses the nearest --*/
-	if (!universe)
-		return;
-	int			ent_count =		universe->n_entities;
-	Entity**	uni_entities =	universe->sortedEntities;	// grab the public sorted list
-	Entity*		my_entities[ent_count];
+	[self checkScanner];
 	int i;
-	int ship_count = 0;
-	for (i = 0; i < ent_count; i++)
-		if (uni_entities[i]->isShip)
-			my_entities[ship_count++] = [uni_entities[i] retain];		//	retained
 	//
-	double found_d2 = scanner_range * scanner_range;
+	GLfloat found_d2 = scanner_range * scanner_range;
 	found_target = NO_TARGET;
-	for (i = 0; i < ship_count; i++)
+	for (i = 0; i < n_scanned_ships; i++)
 	{
-		ShipEntity *ship = (ShipEntity *)my_entities[i];
+		ShipEntity *ship = scanned_ships[i];
 		if ([[ship roles] isEqual:@"thargoid"])
 		{
-			double d2 = distance2( position, ship->position);
+			GLfloat d2 = distance2_scanned_ships[i];
 			if (d2< found_d2)
 			{
 				found_target = [ship universal_id];
@@ -1036,30 +943,20 @@ WormholeEntity*	whole;
 		[shipAI message:@"TARGET_FOUND"];
 	else
 		[shipAI message:@"NOTHING_FOUND"];
-	for (i = 0; i < ship_count; i++)
-		[my_entities[i] release];	//		released
 }
 
 - (void) scanForNonThargoid
 {
 	/*-- Locates all the non thargoid ships in range and chooses the nearest --*/
 	found_target = NO_TARGET;
-	if (!universe)
-		return;
-	int			ent_count =		universe->n_entities;
-	Entity**	uni_entities =	universe->sortedEntities;	// grab the public sorted list
-	Entity*		my_entities[ent_count];
+	
+	[self checkScanner];
 	int i;
-	int ship_count = 0;
-	for (i = 0; i < ent_count; i++)
-		if (uni_entities[i]->isShip)
-			my_entities[ship_count++] = [uni_entities[i] retain];		//	retained
-	//
-	double found_d2 = scanner_range * scanner_range;
-	for (i = 0; i < ship_count ; i++)
+	GLfloat	found_d2 = scanner_range * scanner_range;
+	for (i = 0; i < n_scanned_ships ; i++)
 	{
-		ShipEntity* thing = (ShipEntity *)my_entities[i];
-		double d2 = distance2( position, thing->position);
+		ShipEntity* thing = scanned_ships[i];
+		GLfloat d2 = distance2_scanned_ships[i];
 		if ((thing->scan_class != CLASS_CARGO)&&(thing->status != STATUS_DOCKED)&&(![[thing roles] hasPrefix:@"tharg"])&&(d2 < found_d2))
 		{
 			found_target = [thing universal_id];
@@ -1067,8 +964,6 @@ WormholeEntity*	whole;
 			found_d2 = d2;
 		}
 	}
-	for (i = 0; i < ship_count; i++)
-		[my_entities[i] release];	//		released
 	if (found_target != NO_TARGET)
 		[shipAI message:@"TARGET_FOUND"];
 	else
@@ -1115,22 +1010,14 @@ WormholeEntity*	whole;
 	/*-- Locates all the ships in range targetting the receiver and chooses the nearest --*/
 	found_target = NO_TARGET;
 	found_hostiles = 0;
-	if (!universe)
-		return;
-	int			ent_count =		universe->n_entities;
-	Entity**	uni_entities =	universe->sortedEntities;	// grab the public sorted list
-	Entity*		my_entities[ent_count];
+
+	[self checkScanner];
 	int i;
-	int ship_count = 0;
-	for (i = 0; i < ent_count; i++)
-		if (uni_entities[i]->isShip)
-			my_entities[ship_count++] = [uni_entities[i] retain];		//	retained
-	//
-	double found_d2 = scanner_range * scanner_range;
-	for (i = 0; i < ship_count ; i++)
+	GLfloat found_d2 = scanner_range * scanner_range;
+	for (i = 0; i < n_scanned_ships ; i++)
 	{
-		ShipEntity* thing = (ShipEntity *)my_entities[i];
-		double d2 = distance2( position, thing->position);
+		ShipEntity* thing = scanned_ships[i];
+		GLfloat d2 = distance2_scanned_ships[i];
 		if (((thing->scan_class == CLASS_THARGOID)||(([thing getPrimaryTarget] == self)&&([thing hasHostileTarget])))&&(d2 < found_d2))
 		{
 			found_target = [thing universal_id];
@@ -1138,8 +1025,6 @@ WormholeEntity*	whole;
 			found_hostiles++;
 		}
 	}
-	for (i = 0; i < ship_count ; i++)
-		[my_entities[i] release];	//		released
 		
 	if (found_target != NO_TARGET)
 	{
@@ -1319,33 +1204,22 @@ WormholeEntity*	whole;
 {
 	//-- Locates the nearest suitable formation leader in range --//
 	found_target = NO_TARGET;
-	if (!universe)
-		return;
-	int			ent_count =		universe->n_entities;
-	Entity**	uni_entities =	universe->sortedEntities;	// grab the public sorted list
-	Entity*		my_entities[ent_count];
+	[self checkScanner];
 	int i;
-	int ship_count = 0;
-	for (i = 0; i < ent_count; i++)
-		if (uni_entities[i]->isShip)
-			my_entities[ship_count++] = [uni_entities[i] retain];		//	retained
-	//
-	double found_d2 = scanner_range * scanner_range;
-	for (i = 0; i < ship_count ; i++)
+	GLfloat	found_d2 = scanner_range * scanner_range;
+	for (i = 0; i < n_scanned_ships; i++)
 	{
-		ShipEntity* ship = (ShipEntity *)my_entities[i];
+		ShipEntity* ship = scanned_ships[i];
 		if ((ship != self)&&(!ship->isPlayer)&&([ship scanClass] == scan_class))	// look for alike
 		{
-			double d2 = distance2( position, ship->position);
+			GLfloat d2 = distance2_scanned_ships[i];
 			if ((d2 < found_d2)&&(pairOK( [ship roles], roles)))
 			{
 				found_d2 = d2;
-				found_target = [ship universal_id];
+				found_target = ship->universal_id;
 			}
 		}
 	}
-	for (i = 0; i < ship_count ; i++)
-		[my_entities[i] release];	//		released
 	if (found_target != NO_TARGET)
 		[shipAI message:@"TARGET_FOUND"];
 	else
@@ -1375,8 +1249,6 @@ WormholeEntity*	whole;
 	Vector r_pos = make_vector( position.x - coordinates.x, position.y - coordinates.y, position.z - coordinates.z);
 	if ((magnitude2(r_pos) < 1000000)||(patrol_counter == 0))
 	{
-//		NSLog(@"DEBUG patrol ship %@ %d has reached patrol check point... %d", name, universal_id, patrol_counter);
-//
 		Entity* the_sun = [universe sun];
 		Entity* the_station = [universe station];
 		if ((!the_sun)||(!the_station))
@@ -1428,8 +1300,6 @@ WormholeEntity*	whole;
 			}
 		}
 	}
-//	else
-//		NSLog(@"DEBUG MWARP-MARP!!");
 	[shipAI message:@"APPROACH_COORDINATES"];
 }
 
@@ -1533,59 +1403,49 @@ WormholeEntity*	whole;
 			return;
 		}
 		NSString* finalValue = [universe expandDescription:valueString forSystem:[universe systemSeed]];	// expand values
-//		NSLog(@"DEBUG GOING TO [%@ markAsOffender:%d] bounty: %d", ship, [finalValue intValue], [ship legal_status]);
 		[ship markAsOffender:[finalValue intValue]];
-//		NSLog(@"DEBUG %@ BOUNTY NOW %d", ship, [ship legal_status]);
 	}
 }
 
 - (void) scanForRocks
 {
-	/*-- Locates the all boulders and asteroids in range and selects one of up to 16 --*/
-	found_target = NO_TARGET;
-	if (!universe)
-		return;
-	int			ent_count =		universe->n_entities;
-	Entity**	uni_entities =	universe->sortedEntities;	// grab the public sorted list
-	Entity*		my_entities[ent_count];
-	int i;
-	int ship_count = 0;
-	for (i = 0; i < ent_count; i++)
-		if (uni_entities[i]->isShip)
-			my_entities[ship_count++] = [uni_entities[i] retain];		//	retained
+	/*-- Locates the all boulders and asteroids in range and selects nearest --*/
+
+	// find boulders then asteroids within range
 	//
-	double found_d2 = scanner_range * scanner_range;
-	for (i = 0; i < ship_count; i++)
+	found_target = NO_TARGET;
+	[self checkScanner];
+	int i;
+	GLfloat found_d2 = scanner_range * scanner_range;
+	for (i = 0; i < n_scanned_ships; i++)
 	{
-		ShipEntity* thing = (ShipEntity *)my_entities[i];
+		ShipEntity* thing = scanned_ships[i];
 		if ([[thing roles] rangeOfString:@"boulder"].location != NSNotFound)
 		{
-			double d2 = distance2( position, thing->position);
+			GLfloat d2 = distance2_scanned_ships[i];
 			if (d2 < found_d2)
 			{
-				found_target = [thing universal_id];
+				found_target = thing->universal_id;
 				found_d2 = d2;
 			}
 		}
 	}
 	if (found_target == NO_TARGET)
 	{
-		for (i = 0; i < ship_count; i++)
+		for (i = 0; i < n_scanned_ships; i++)
 		{
-			ShipEntity* thing = (ShipEntity *)my_entities[i];
+			ShipEntity* thing = scanned_ships[i];
 			if ([[thing roles] rangeOfString:@"asteroid"].location != NSNotFound)
 			{
-				double d2 = distance2( position, thing->position);
+				GLfloat d2 = distance2_scanned_ships[i];
 				if (d2 < found_d2)
 				{
-					found_target = [thing universal_id];
+					found_target = thing->universal_id;
 					found_d2 = d2;
 				}
 			}
 		}
 	}
-	for (i = 0; i < ship_count ; i++)
-		[my_entities[i] release];	//		released
 
 	if (found_target != NO_TARGET)
 		[shipAI message:@"TARGET_FOUND"];
@@ -1633,36 +1493,25 @@ WormholeEntity*	whole;
 	/*-- Locates all the ships in range targetting the mother ship and chooses the nearest/biggest --*/
 	found_target = NO_TARGET;
 	found_hostiles = 0;
-	if (!universe)
-		return;
-	int			ent_count =		universe->n_entities;
-	Entity**	uni_entities =	universe->sortedEntities;	// grab the public sorted list
-	Entity*		my_entities[ent_count];
+	[self checkScanner];
 	int i;
-	int ship_count = 0;
-	for (i = 0; i < ent_count; i++)
-		if (uni_entities[i]->isShip)
-			my_entities[ship_count++] = [uni_entities[i] retain];		//	retained
-	//
-	double found_d2 = scanner_range * scanner_range;
-	double max_e = 0;
-	for (i = 0; i < ship_count ; i++)
+	GLfloat found_d2 = scanner_range * scanner_range;
+	GLfloat max_e = 0;
+	for (i = 0; i < n_scanned_ships ; i++)
 	{
-		ShipEntity* thing = (ShipEntity *)my_entities[i];
-		double d2 = distance2( position, thing->position);
-		double e1 = [thing getEnergy];
+		ShipEntity* thing = scanned_ships[i];
+		GLfloat d2 = distance2_scanned_ships[i];
+		GLfloat e1 = [thing getEnergy];
 		if (((thing->scan_class == CLASS_THARGOID)||(([thing getPrimaryTarget] == mother)&&([thing hasHostileTarget])))&&(d2 < found_d2))
 		{
 			if (e1 > max_e)
 			{
-				found_target = [thing universal_id];
+				found_target = thing->universal_id;
 				max_e = e1;
 			}
 			found_hostiles++;
 		}
 	}
-	for (i = 0; i < ship_count ; i++)
-		[my_entities[i] release];	//		released
 		
 	if (found_target != NO_TARGET)
 		[shipAI message:@"TARGET_FOUND"];
@@ -1689,30 +1538,20 @@ WormholeEntity*	whole;
 {
 	/*-- Locates all the ships in range and chooses the nearest --*/
 	found_target = NO_TARGET;
-	if (!universe)
-		return;
-	int			ent_count =		universe->n_entities;
-	Entity**	uni_entities =	universe->sortedEntities;	// grab the public sorted list
-	Entity*		my_entities[ent_count];
+	[self checkScanner];
 	int i;
-	int ship_count = 0;
-	for (i = 0; i < ent_count; i++)
-		if (uni_entities[i]->isShip)
-			my_entities[ship_count++] = [uni_entities[i] retain];		//	retained
-	//
-	double found_d2 = scanner_range * scanner_range;
-	for (i = 0; i < ship_count ; i++)
+	GLfloat found_d2 = scanner_range * scanner_range;
+	for (i = 0; i < n_scanned_ships ; i++)
 	{
-		ShipEntity* thing = (ShipEntity *)my_entities[i];
-		double d2 = distance2( position, thing->position);
+		ShipEntity* thing = scanned_ships[i];
+		GLfloat d2 = distance2_scanned_ships[i];
 		if ((thing->scan_class != CLASS_CARGO)&&(thing->status != STATUS_DOCKED)&&([[thing roles] isEqual:scanRole])&&(d2 < found_d2))
 		{
-			found_target = [thing universal_id];
+			found_target = thing->universal_id;
 			found_d2 = d2;
 		}
 	}
-	for (i = 0; i < ship_count; i++)
-		[my_entities[i] release];	//		released
+
 	if (found_target != NO_TARGET)
 		[shipAI message:@"TARGET_FOUND"];
 	else
@@ -1721,7 +1560,6 @@ WormholeEntity*	whole;
 
 - (void) setCoordinates:(NSString *)system_x_y_z
 {
-//	NSMutableArray*	tokens = [NSMutableArray arrayWithArray:[system_x_y_z componentsSeparatedByString:@" "]];
 	NSArray*	tokens = [Entity scanTokensFromString:system_x_y_z];
 	NSString*	systemString = nil;
 	NSString*	xString = nil;
@@ -1802,7 +1640,6 @@ WormholeEntity*	whole;
 	if (station)
 	{
 		NSDictionary*	instructions = [[station dockingInstructionsForShip:self] retain];	// NOTE: retained!
-//		if (isPlayer)	NSLog(@"DEBUG docking instructions for %@ :\n%@", self, instructions);
 		coordinates = [Entity vectorFromString:(NSString *)[instructions objectForKey:@"destination"]];
 		destination = coordinates;
 		desired_speed = [(NSNumber *)[instructions objectForKey:@"speed"] floatValue];
@@ -1835,7 +1672,6 @@ WormholeEntity*	whole;
 {
 	if (dockingInstructions)
 	{
-//		if (isPlayer)	NSLog(@"DEBUG recalling docking instructions for %@ :\n%@", self, dockingInstructions);
 		coordinates = [Entity vectorFromString:(NSString *)[dockingInstructions objectForKey:@"destination"]];
 		destination = coordinates;
 		desired_speed = [(NSNumber *)[dockingInstructions objectForKey:@"speed"] floatValue];

@@ -201,6 +201,7 @@ extern int debug;
 		Entity	*x_previous, *x_next;
 		Entity	*y_previous, *y_next;
 		Entity	*z_previous, *z_next;
+		Entity	*z_scan_previous, *z_scan_next;
 		//
 		Entity	*collision_chain;
 		

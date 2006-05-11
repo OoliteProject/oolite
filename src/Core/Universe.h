@@ -146,7 +146,7 @@ extern int debug;
 		int						cursor_row;
 		
 //		// collision optimisation sorted lists
-		Entity					*x_list_start, *y_list_start, *z_list_start;
+		Entity					*x_list_start, *y_list_start, *z_list_start, *z_scan_start;
 //		//
 //		////
 		

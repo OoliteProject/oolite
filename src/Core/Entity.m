@@ -292,6 +292,7 @@ static  Universe	*data_store_universe;
 	x_next = x_previous = nil;
 	y_next = y_previous = nil;
 	z_next = z_previous = nil;
+	z_scan_next = z_scan_previous = nil;
 	//
 	collision_chain = nil;
 	//
@@ -349,6 +350,17 @@ static  Universe	*data_store_universe;
 		if (z_previous) z_previous->z_next = self;
 		else			universe->z_list_start = self;
 		
+		z_scan_previous = nil; z_scan_next = universe->z_scan_start;
+		// move UP the list
+		while ((z_scan_next)&&(z_scan_next->position.z < position.z))
+		{
+			z_scan_previous = z_scan_next;
+			z_scan_next = z_scan_next->z_scan_next;
+		}	
+		if (z_scan_next)		z_scan_next->z_scan_previous = self;
+		if (z_scan_previous)	z_scan_previous->z_scan_next = self;
+		else			universe->z_scan_start = self;
+		
 	}
 	
 	if (debug & DEBUG_LINKED_LISTS)
@@ -378,6 +390,8 @@ static  Universe	*data_store_universe;
 				universe->y_list_start = y_next;
 		if ((universe->z_list_start == self)&&(z_next))
 				universe->z_list_start = z_next;
+		if ((universe->z_scan_start == self)&&(z_scan_next))
+				universe->z_scan_start = z_scan_next;
 	}
 	//
 	if (x_previous)		x_previous->x_next = x_next;
@@ -389,9 +403,13 @@ static  Universe	*data_store_universe;
 	if (z_previous)		z_previous->z_next = z_next;
 	if (z_next)			z_next->z_previous = z_previous;
 	//
+	if (z_scan_previous)		z_scan_previous->z_scan_next = z_scan_next;
+	if (z_scan_next)			z_scan_next->z_scan_previous = z_scan_previous;
+	//
 	x_previous = nil;	x_next = nil;
 	y_previous = nil;	y_next = nil;
 	z_previous = nil;	z_next = nil;
+	z_scan_previous = nil;	z_scan_next = nil;
 
 	if (debug & DEBUG_LINKED_LISTS)
 		if (![self checkLinkedLists])
@@ -564,6 +582,29 @@ static  Universe	*data_store_universe;
 		z_previous->z_next = self;
 	if ((z_previous == nil)&&(universe))	// if we're the first then tell the universe!
 			universe->z_list_start = self;
+	
+	// update position in linked list for scanning by position.z
+	// take self out of list..
+	if (z_scan_previous)		z_scan_previous->z_scan_next = z_scan_next;
+	if (z_scan_next)			z_scan_next->z_scan_previous = z_scan_previous;
+	// sink DOWN the list
+	while ((z_scan_previous)&&(z_scan_previous->position.z > position.z))
+	{
+		z_scan_next = z_scan_previous;
+		z_scan_previous = z_scan_previous->z_scan_previous;
+	}
+	// bubble UP the list
+	while ((z_scan_next)&&(z_scan_next->position.z < position.z))
+	{
+		z_scan_previous = z_scan_next;
+		z_scan_next = z_scan_next->z_scan_next;
+	}
+	if (z_scan_next)		// insert self into the list before z_scan_next..
+		z_scan_next->z_scan_previous = self;
+	if (z_scan_previous)	// insert self into the list after z_scan_previous..
+		z_scan_previous->z_scan_next = self;
+	if ((z_scan_previous == nil)&&(universe))	// if we're the first then tell the universe!
+			universe->z_scan_start = self;
 	
 	// done
 	if (debug & DEBUG_LINKED_LISTS)
