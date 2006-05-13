@@ -147,16 +147,16 @@ Your fair use and other rights are in no way affected by the above.
 	set:missionvariable_value
 	add:missionvariable_value
 	subtract:missionvariable_value
-	
+
 	the value may be a string constant or one of the above calls
 	ending in _bool, _number, or _string
-	
+
 	egs.
 		set: mission_my_mission_status MISSION_START
 		set: mission_my_mission_value 12.345
 		set: mission_my_mission_clock clock_number
 		add: mission_my_mission_clock 86400
-		subtract: mission_my_mission_clock d100_number 
+		subtract: mission_my_mission_clock d100_number
 */
 
 - (void) increment:(NSString *)missionVariableString;
@@ -194,6 +194,8 @@ Your fair use and other rights are in no way affected by the above.
 - (void) debugMessage:(NSString *)args;
 
 - (NSString*) replaceVariablesInString:(NSString*) args;
+
+- (void) playSound:(NSString *) soundName;
 
 /*-----------------------------------------------------*/
 
