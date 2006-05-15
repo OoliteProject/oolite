@@ -1291,6 +1291,9 @@ static int shipsFound;
 		return;
 	}
 
+	if (debug & DEBUG_SCRIPT)
+		NSLog(@"SCRIPT %@ is set to %@", missionVariableString, valueString);
+	
 	if (hasMissionPrefix)
 		[mission_variables setObject:valueString forKey:missionVariableString];
 	else
@@ -1850,12 +1853,10 @@ static int shipsFound;
 		if ([mission_variables objectForKey:valueString])
 		{
 			[resultString replaceOccurrencesOfString:valueString withString:[mission_variables objectForKey:valueString] options:NSLiteralSearch range:NSMakeRange(0, [resultString length])];
-//			[tokens replaceObjectAtIndex:i withObject:[mission_variables objectForKey:valueString]];
 		}
 		else if ([locals objectForKey:valueString])
 		{
 			[resultString replaceOccurrencesOfString:valueString withString:[locals objectForKey:valueString] options:NSLiteralSearch range:NSMakeRange(0, [resultString length])];
-//			[tokens replaceObjectAtIndex:i withObject:[locals objectForKey:valueString]];
 		}
 		else if (([valueString hasSuffix:@"_number"])||([valueString hasSuffix:@"_bool"])||([valueString hasSuffix:@"_string"]))
 		{
@@ -1863,11 +1864,18 @@ static int shipsFound;
 			if ([self respondsToSelector:value_selector])
 			{
 				[resultString replaceOccurrencesOfString:valueString withString:[NSString stringWithFormat:@"%@", [self performSelector:value_selector]] options:NSLiteralSearch range:NSMakeRange(0, [resultString length])];
-//				[tokens replaceObjectAtIndex:i withObject:[NSString stringWithFormat:@"%@", [self performSelector:value_selector]]];
 			}
 		}
+		else if ([valueString hasPrefix:@"["]&&[valueString hasSuffix:@"]"])
+		{
+			NSString* replaceString = [universe expandDescription:valueString forSystem:system_seed];
+			[resultString replaceOccurrencesOfString:valueString withString:replaceString options:NSLiteralSearch range:NSMakeRange(0, [resultString length])];
+		}
 	}
-//	return [tokens componentsJoinedByString:@" "];
+
+	if (debug & DEBUG_SCRIPT)
+		NSLog(@"EXPANSION: \"%@\" becomes \"%@\"", args, resultString);
+
 	return [NSString stringWithString: resultString];
 }
 
