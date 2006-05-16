@@ -246,7 +246,10 @@ NSString *KernelResultNSString(kern_return_t inCode)
 
 NSString *FourCharCodeToNSString(FourCharCode inCode)
 {
-	return [[[NSString alloc] initWithBytes:&inCode length:4 encoding:NSMacOSRomanStringEncoding] autorelease];
+	NSString			*result;
+	
+	result = (NSString *)UTCreateStringForOSType(inCode);
+	return [result autorelease];
 }
 
 
