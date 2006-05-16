@@ -4573,8 +4573,10 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 
 - (void) checkScanner
 {
+	Entity* scan;
 	n_scanned_ships = 0;
-	Entity* scan = z_scan_previous;
+	//
+	scan = z_previous;	while ((scan)&&(scan->isShip == NO))	scan = scan->z_previous;	// skip non-ships
 	while ((scan)&&(scan->position.z > position.z - scanner_range)&&(n_scanned_ships < MAX_SCAN_NUMBER))
 	{
 		if (scan->isShip)
@@ -4583,9 +4585,10 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 			if (distance2_scanned_ships[n_scanned_ships] < SCANNER_MAX_RANGE2)
 				scanned_ships[n_scanned_ships++] = (ShipEntity*)scan;
 		}
-		scan = scan->z_scan_previous;
+		scan = scan->z_previous;	while ((scan)&&(scan->isShip == NO))	scan = scan->z_previous;
 	}
-	scan = z_scan_next;
+	//
+	scan = z_next;	while ((scan)&&(scan->isShip == NO))	scan = scan->z_next;	// skip non-ships
 	while ((scan)&&(scan->position.z < position.z + scanner_range)&&(n_scanned_ships < MAX_SCAN_NUMBER))
 	{
 		if (scan->isShip)
@@ -4594,7 +4597,7 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 			if (distance2_scanned_ships[n_scanned_ships] < SCANNER_MAX_RANGE2)
 				scanned_ships[n_scanned_ships++] = (ShipEntity*)scan;
 		}
-		scan = scan->z_scan_next;
+		scan = scan->z_next;	while ((scan)&&(scan->isShip == NO))	scan = scan->z_next;	// skip non-ships
 	}
 //	NSLog(@"DEBUG %@ checking scanner - %d ships found.", self, n_scanned_ships);
 }

@@ -72,7 +72,7 @@ Your fair use and other rights are in no way affected by the above.
 	
 	n_entities = 0;
 	
-	x_list_start = y_list_start = z_list_start = z_scan_start = nil;
+	x_list_start = y_list_start = z_list_start = nil;
 	
 	firstBeacon = NO_TARGET;
 	lastBeacon = NO_TARGET;
@@ -202,7 +202,6 @@ Your fair use and other rights are in no way affected by the above.
 	player->x_next = nil;	player->x_previous = nil;	x_list_start = player;
 	player->y_next = nil;	player->y_previous = nil;	y_list_start = player;
 	player->z_next = nil;	player->z_previous = nil;	z_list_start = player;
-	player->z_scan_next = nil;	player->z_scan_previous = nil;	z_scan_start = player;
 	
 	[player set_up];
 	
@@ -571,16 +570,6 @@ Your fair use and other rights are in no way affected by the above.
 //			NSLog(@"%d.) %@ at z-cr = %.2f", n, e0, e0->position.z - e0->collision_radius);
 //		e0 = e0->z_next;
 //	}
-	NSLog(@"\n----->Z list... to %d", show_count);
-	int n = 0;
-	Entity* e0 = z_scan_start;
-	while (e0)
-	{
-		n++;
-		if (n <= show_count)
-			NSLog(@"%d.) %@ at z = %.2f", n, e0, e0->position.z);
-		e0 = e0->z_scan_next;
-	}
 }
 
 - (void) sleepytime: (id) thing
@@ -4371,7 +4360,6 @@ GLfloat	starboard_matrix[] = {	0.0f, 0.0f, 1.0f, 0.0f,		0.0f, 1.0f, 0.0f, 0.0f,	
 	x_list_start = p0;	p0->x_previous = nil;	p0->x_next = nil;
 	y_list_start = p0;	p0->y_previous = nil;	p0->y_next = nil;
 	z_list_start = p0;	p0->z_previous = nil;	p0->z_next = nil;
-	z_scan_start = p0;	p0->z_scan_previous = nil;	p0->z_scan_next = nil;
 	
 	cachedSun = nil;
 	cachedPlanet = nil;
@@ -5040,6 +5028,31 @@ GLfloat	starboard_matrix[] = {	0.0f, 0.0f, 1.0f, 0.0f,		0.0f, 1.0f, 0.0f, 0.0f,	
 				[sound play];
 			return YES;
 		}
+	}
+	return NO;
+}
+
+- (BOOL) stopCustomSound:(NSString*)key
+{
+	if ([customsounds objectForKey:key])
+	{
+		OOSound* sound = [ResourceManager ooSoundNamed:(NSString*)[customsounds objectForKey:key] inFolder:@"Sounds"];
+		if (sound)
+		{
+			NSLog(@"DEBUG TRYING to stop custom sound %@ : %@", key, sound);
+			return [sound stop];
+		}
+	}
+	return NO;
+}
+
+- (BOOL) isPlayingCustomSound:(NSString*)key
+{
+	if ([customsounds objectForKey:key])
+	{
+		OOSound* sound = [ResourceManager ooSoundNamed:(NSString*)[customsounds objectForKey:key] inFolder:@"Sounds"];
+		if (sound)
+			return [sound isPlaying];
 	}
 	return NO;
 }

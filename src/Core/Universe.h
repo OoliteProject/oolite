@@ -146,7 +146,7 @@ extern int debug;
 		int						cursor_row;
 		
 //		// collision optimisation sorted lists
-		Entity					*x_list_start, *y_list_start, *z_list_start, *z_scan_start;
+		Entity					*x_list_start, *y_list_start, *z_list_start;
 //		//
 //		////
 		
@@ -391,6 +391,8 @@ extern int debug;
 - (int) viewDir;
 
 - (BOOL) playCustomSound:(NSString*)key;
+- (BOOL) stopCustomSound:(NSString*)key;
+- (BOOL) isPlayingCustomSound:(NSString*)key;
 
 - (void) clearPreviousMessage;
 - (void) setMessageGuiBackgroundColor:(OOColor *) some_color;

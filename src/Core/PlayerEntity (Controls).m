@@ -767,6 +767,10 @@ static NSTimeInterval	time_last_frame;
 					if (status == STATUS_WITCHSPACE_COUNTDOWN)
 					{
 						// abort!
+						if (galactic_witchjump)
+							[universe stopCustomSound:@"[galactic-hyperspace-countdown-begun]"];
+						else
+							[universe stopCustomSound:@"[hyperspace-countdown-begun]"];
 						jumpOK = NO;
 						galactic_witchjump = NO;
 						status = STATUS_IN_FLIGHT;
@@ -809,6 +813,10 @@ static NSTimeInterval	time_last_frame;
 					if (status == STATUS_WITCHSPACE_COUNTDOWN)
 					{
 						// abort!
+						if (galactic_witchjump)
+							[universe stopCustomSound:@"[galactic-hyperspace-countdown-begun]"];
+						else
+							[universe stopCustomSound:@"[hyperspace-countdown-begun]"];
 						jumpOK = NO;
 						galactic_witchjump = NO;
 						status = STATUS_IN_FLIGHT;
