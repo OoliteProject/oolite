@@ -325,34 +325,6 @@
 		25F4676509969672009483BF /* MyOpenGLView.m in Sources */ = {isa = PBXBuildFile; fileRef = 25F4676309969672009483BF /* MyOpenGLView.m */; };
 /* End PBXBuildFile section */
 
-/* Begin PBXBuildStyle section */
-		4A9504CCFFE6A4B311CA0CBA /* Development */ = {
-			isa = PBXBuildStyle;
-			buildSettings = {
-				COPY_PHASE_STRIP = YES;
-				GCC_DEBUGGING_SYMBOLS = full;
-				GCC_DYNAMIC_NO_PIC = NO;
-				GCC_ENABLE_FIX_AND_CONTINUE = YES;
-				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
-				GCC_OPTIMIZATION_LEVEL = 0;
-				ZERO_LINK = NO;
-			};
-			name = Development;
-		};
-		4A9504CDFFE6A4B311CA0CBA /* Deployment */ = {
-			isa = PBXBuildStyle;
-			buildSettings = {
-				COPY_PHASE_STRIP = NO;
-				DEAD_CODE_STRIPPING = YES;
-				GCC_DEBUGGING_SYMBOLS = full;
-				GCC_ENABLE_FIX_AND_CONTINUE = NO;
-				GCC_OPTIMIZATION_LEVEL = s;
-				ZERO_LINK = NO;
-			};
-			name = Deployment;
-		};
-/* End PBXBuildStyle section */
-
 /* Begin PBXContainerItemProxy section */
 		1A5BF2760916D47300BF238F /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
@@ -403,7 +375,7 @@
 		0831C5C809E3396D0058029A /* ScriptCompiler.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = ScriptCompiler.m; path = src/Core/ScriptCompiler.m; sourceTree = "<group>"; };
 		083325DB09DDBCDE00F5B8E4 /* OOColor.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = OOColor.h; path = src/Core/OOColor.h; sourceTree = "<group>"; };
 		083325DC09DDBCDE00F5B8E4 /* OOColor.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = OOColor.m; path = src/Core/OOColor.m; sourceTree = "<group>"; };
-		0865432206B8447D000CA0AB /* Oolite.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Oolite.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		0865432206B8447D000CA0AB /* OoliteDev.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = OoliteDev.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		0878FD2F086EF845004CB752 /* Carbon.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Carbon.framework; path = /System/Library/Frameworks/Carbon.framework; sourceTree = "<absolute>"; };
 		08CB1FEC09D3F2AA001EA329 /* customsounds.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist; name = customsounds.plist; path = Resources/Config/customsounds.plist; sourceTree = "<group>"; };
 		1058C7A1FEA54F0111CA2CBB /* Cocoa.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Cocoa.framework; path = /System/Library/Frameworks/Cocoa.framework; sourceTree = "<absolute>"; };
@@ -1019,7 +991,7 @@
 		19C28FACFE9D520D11CA2CBB /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				0865432206B8447D000CA0AB /* Oolite.app */,
+				0865432206B8447D000CA0AB /* OoliteDev.app */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -1304,32 +1276,13 @@
 			);
 			buildRules = (
 			);
-			buildSettings = {
-				COPY_PHASE_STRIP = YES;
-				FRAMEWORK_SEARCH_PATHS = "";
-				GCC_OPTIMIZATION_LEVEL = "";
-				HEADER_SEARCH_PATHS = "";
-				INFOPLIST_FILE = "Info-Oolite.plist";
-				INSTALL_PATH = "$(HOME)/Applications";
-				LIBRARY_SEARCH_PATHS = "${SRCROOT}";
-				MACOSX_DEPLOYMENT_TARGET = 10.3;
-				OTHER_LDFLAGS = "";
-				PRODUCT_NAME = Oolite;
-				SECTORDER_FLAGS = "";
-				WARNING_CFLAGS = (
-					"-Wmost",
-					"-Wno-four-char-constants",
-					"-Wno-unknown-pragmas",
-				);
-				WRAPPER_EXTENSION = app;
-			};
 			dependencies = (
 				1A5BF3080916D8F700BF238F /* PBXTargetDependency */,
 			);
 			name = Oolite;
 			productInstallPath = "$(HOME)/Applications";
 			productName = Oolite;
-			productReference = 0865432206B8447D000CA0AB /* Oolite.app */;
+			productReference = 0865432206B8447D000CA0AB /* OoliteDev.app */;
 			productType = "com.apple.product-type.application";
 		};
 /* End PBXNativeTarget section */
@@ -1338,14 +1291,6 @@
 		29B97313FDCFA39411CA2CEA /* Project object */ = {
 			isa = PBXProject;
 			buildConfigurationList = 08B31CB008FE63D70038D42F /* Build configuration list for PBXProject "Oolite" */;
-			buildSettings = {
-				MACOSX_DEPLOYMENT_TARGET = 10.3;
-				SDKROOT = /Developer/SDKs/MacOSX10.3.0.sdk;
-			};
-			buildStyles = (
-				4A9504CCFFE6A4B311CA0CBA /* Development */,
-				4A9504CDFFE6A4B311CA0CBA /* Deployment */,
-			);
 			hasScannedForEncodings = 1;
 			mainGroup = 29B97314FDCFA39411CA2CEA /* Oolite_GUSTO */;
 			projectDirPath = "";
@@ -1692,10 +1637,12 @@
 				GCC_FAST_OBJC_DISPATCH = YES;
 				GCC_OPTIMIZATION_LEVEL = s;
 				GCC_REUSE_STRINGS = YES;
-				HEADER_SEARCH_PATHS = "\"$(SRCROOT)/deps/Cocoa-deps/Ogg Vorbis\"";
+				HEADER_SEARCH_PATHS = "$(HEADER_SEARCH_PATHS_QUOTED_1)";
+				HEADER_SEARCH_PATHS_QUOTED_1 = "\"$(SRCROOT)/deps/Cocoa-deps/Ogg Vorbis\"";
 				INFOPLIST_FILE = "src/Cocoa/Info-OoliteUB.plist";
 				INSTALL_PATH = "$(HOME)/Applications";
-				LIBRARY_SEARCH_PATHS = "\"$(SRCROOT)/deps/Cocoa-deps/Ogg\\ Vorbis\"";
+				LIBRARY_SEARCH_PATHS = "$(LIBRARY_SEARCH_PATHS_QUOTED_1)";
+				LIBRARY_SEARCH_PATHS_QUOTED_1 = "\"$(SRCROOT)/deps/Cocoa-deps/Ogg\\ Vorbis\"";
 				MACOSX_DEPLOYMENT_TARGET = 10.4;
 				OTHER_LDFLAGS = "";
 				PREBINDING = NO;
@@ -1715,8 +1662,10 @@
 		088BB9010974564500399D1A /* Universal */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				HEADER_SEARCH_PATHS = "\"deps/Cocoa-deps/Ogg Vorbis\"";
-				LIBRARY_SEARCH_PATHS = "\"deps/Cocoa-deps/Ogg Vorbis\"";
+				HEADER_SEARCH_PATHS = "$(HEADER_SEARCH_PATHS_QUOTED_1)";
+				HEADER_SEARCH_PATHS_QUOTED_1 = "\"deps/Cocoa-deps/Ogg Vorbis\"";
+				LIBRARY_SEARCH_PATHS = "$(LIBRARY_SEARCH_PATHS_QUOTED_1)";
+				LIBRARY_SEARCH_PATHS_QUOTED_1 = "\"deps/Cocoa-deps/Ogg Vorbis\"";
 				MACOSX_DEPLOYMENT_TARGET = 10.3;
 				OTHER_CFLAGS = "-DLOADSAVEGUI";
 				SDKROOT = /Developer/SDKs/MacOSX10.3.9.sdk;
@@ -1734,10 +1683,12 @@
 				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
 				GCC_OPTIMIZATION_LEVEL = 0;
 				GCC_REUSE_STRINGS = YES;
-				HEADER_SEARCH_PATHS = "\"$(SRCROOT)/deps/Cocoa-deps/Ogg Vorbis\"";
+				HEADER_SEARCH_PATHS = "$(HEADER_SEARCH_PATHS_QUOTED_1)";
+				HEADER_SEARCH_PATHS_QUOTED_1 = "\"$(SRCROOT)/deps/Cocoa-deps/Ogg Vorbis\"";
 				INFOPLIST_FILE = "src/Cocoa/Info-OoliteDev.plist";
 				INSTALL_PATH = "$(HOME)/Applications";
-				LIBRARY_SEARCH_PATHS = "\"$(SRCROOT)/deps/Cocoa-deps/Ogg\\ Vorbis\"";
+				LIBRARY_SEARCH_PATHS = "$(LIBRARY_SEARCH_PATHS_QUOTED_1)";
+				LIBRARY_SEARCH_PATHS_QUOTED_1 = "\"$(SRCROOT)/deps/Cocoa-deps/Ogg\\ Vorbis\"";
 				MACOSX_DEPLOYMENT_TARGET = 10.3;
 				OTHER_CFLAGS = "-DLOADSAVEGUIXX";
 				OTHER_LDFLAGS = "";
@@ -1764,10 +1715,12 @@
 				GCC_ENABLE_OBJC_EXCEPTIONS = YES;
 				GCC_OPTIMIZATION_LEVEL = s;
 				GCC_REUSE_STRINGS = YES;
-				HEADER_SEARCH_PATHS = "\"$(SRCROOT)/deps/Cocoa-deps/Ogg Vorbis\"";
+				HEADER_SEARCH_PATHS = "$(HEADER_SEARCH_PATHS_QUOTED_1)";
+				HEADER_SEARCH_PATHS_QUOTED_1 = "\"$(SRCROOT)/deps/Cocoa-deps/Ogg Vorbis\"";
 				INFOPLIST_FILE = "src/Cocoa/Info-Oolite.plist";
 				INSTALL_PATH = "$(HOME)/Applications";
-				LIBRARY_SEARCH_PATHS = "\"$(SRCROOT)/deps/Cocoa-deps/Ogg\\ Vorbis\"";
+				LIBRARY_SEARCH_PATHS = "$(LIBRARY_SEARCH_PATHS_QUOTED_1)";
+				LIBRARY_SEARCH_PATHS_QUOTED_1 = "\"$(SRCROOT)/deps/Cocoa-deps/Ogg\\ Vorbis\"";
 				MACOSX_DEPLOYMENT_TARGET = 10.3;
 				OTHER_LDFLAGS = "";
 				PRODUCT_NAME = Oolite;
@@ -1785,8 +1738,10 @@
 		08B31CB108FE63D70038D42F /* Development */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				HEADER_SEARCH_PATHS = "\"$(SRCROOT)/Cocoa-deps/Ogg Vorbis\"";
-				LIBRARY_SEARCH_PATHS = "\"$(SRCROOT)/Cocoa-deps/Ogg Vorbis\"";
+				HEADER_SEARCH_PATHS = "$(HEADER_SEARCH_PATHS_QUOTED_1)";
+				HEADER_SEARCH_PATHS_QUOTED_1 = "\"$(SRCROOT)/Cocoa-deps/Ogg Vorbis\"";
+				LIBRARY_SEARCH_PATHS = "$(LIBRARY_SEARCH_PATHS_QUOTED_1)";
+				LIBRARY_SEARCH_PATHS_QUOTED_1 = "\"$(SRCROOT)/Cocoa-deps/Ogg Vorbis\"";
 				MACOSX_DEPLOYMENT_TARGET = 10.3;
 				OTHER_CFLAGS = "-DLOADSAVEGUI";
 				SDKROOT = /Developer/SDKs/MacOSX10.3.9.sdk;
@@ -1796,8 +1751,10 @@
 		08B31CB208FE63D70038D42F /* Deployment */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				HEADER_SEARCH_PATHS = "\"$(SRCROOT)/Cocoa-deps/Ogg Vorbis\"";
-				LIBRARY_SEARCH_PATHS = "\"$(SRCROOT)/Cocoa-deps/Ogg Vorbis\"";
+				HEADER_SEARCH_PATHS = "$(HEADER_SEARCH_PATHS_QUOTED_1)";
+				HEADER_SEARCH_PATHS_QUOTED_1 = "\"$(SRCROOT)/Cocoa-deps/Ogg Vorbis\"";
+				LIBRARY_SEARCH_PATHS = "$(LIBRARY_SEARCH_PATHS_QUOTED_1)";
+				LIBRARY_SEARCH_PATHS_QUOTED_1 = "\"$(SRCROOT)/Cocoa-deps/Ogg Vorbis\"";
 				MACOSX_DEPLOYMENT_TARGET = 10.3;
 				OTHER_CFLAGS = "-DLOADSAVEGUI";
 				SDKROOT = /Developer/SDKs/MacOSX10.3.9.sdk;
