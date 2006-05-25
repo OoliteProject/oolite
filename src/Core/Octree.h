@@ -44,7 +44,7 @@ Your fair use and other rights are in no way affected by the above.
 #define	OCTREE_MIN_RADIUS	1.0
 // 5 or 6 will be the final working resolution
 
-BOOL	debug_octree;
+extern int debug;
 
 @interface Octree : NSObject
 {
@@ -53,13 +53,13 @@ BOOL	debug_octree;
 	int*		octree;
 	BOOL		hasCollision;
 	
-	char*		octree_collision;
+	unsigned char*		octree_collision;
 }
 
 - (GLfloat)	radius;
 - (int)		leafs;
 - (int*)	octree;
-- (char*)	octree_collision;
+- (unsigned char*)	octree_collision;
 - (BOOL)	hasCollision;
 
 - (id) initWithRepresentationOfOctree:(GLfloat) octRadius :(NSObject*) octreeArray :(int) leafsize;
@@ -73,14 +73,14 @@ int copyRepresentationIntoOctree(NSObject* theRep, int* theBuffer, int atLocatio
 - (void) drawOctreeCollisions;
 - (void) drawOctreeCollisionFromLocation:(int) loc :(GLfloat) scale :(Vector) offset;
 
-BOOL	isHitByLine(int* octbuffer, char* collbuffer, int level, GLfloat rad, Vector v0, Vector v1, Vector off, int face_hit);
+BOOL	isHitByLine(int* octbuffer, unsigned char* collbuffer, int level, GLfloat rad, Vector v0, Vector v1, Vector off, int face_hit);
 - (GLfloat) isHitByLine: (Vector) v0: (Vector) v1;
 
-BOOL	isHitBySphere(int* octbuffer, char* collbuffer, int level, GLfloat rad, Vector v0, GLfloat sphere_rad, Vector off);
+BOOL	isHitBySphere(int* octbuffer, unsigned char* collbuffer, int level, GLfloat rad, Vector v0, GLfloat sphere_rad, Vector off);
 - (BOOL) isHitBySphereOrigin: (Vector) v0: (GLfloat) sphere_radius;
 
-BOOL	isHitByOctree(	int* octbuffer, char* collbuffer, int level, GLfloat rad,
-						int* other_octree, int other_level, Vector v0, GLfloat other_rad, Triangle other_ijk, Vector off);
+BOOL	isHitByOctree(	int* octbuffer, unsigned char* collbuffer, int level, GLfloat rad,
+						Octree* other, int* other_octree, int other_level, Vector v0, GLfloat other_rad, Triangle other_ijk, Vector off);
 - (BOOL) isHitByOctree:(Octree*) other withOrigin: (Vector) v0 andIJK: (Triangle) ijk;
 
 - (NSDictionary*) dict;

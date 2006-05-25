@@ -38,6 +38,7 @@ Your fair use and other rights are in no way affected by the above.
 
 #import "Octree.h"
 #import "vector.h"
+#import "Entity.h"
 #import "OOOpenGL.h"
 
 @implementation Octree
@@ -77,7 +78,7 @@ Your fair use and other rights are in no way affected by the above.
 	return octree;
 }
 
-- (char*)	octree_collision
+- (unsigned char*)	octree_collision
 {
 	return octree_collision;
 }
@@ -252,12 +253,17 @@ int copyRepresentationIntoOctree(NSObject* theRep, int* theBuffer, int atLocatio
 {
 	if (octree[loc] == 0)
 		return;
-	if ((octree[loc] != 0)&&(octree_collision[loc] != (char)0))	// full - draw
+	if ((octree[loc] != 0)&&(octree_collision[loc] != (unsigned char)0))	// full - draw
 	{
-		GLfloat red = (GLfloat)(octree_collision[loc] & 0x01);
-		GLfloat green = 0.5 * (GLfloat)(octree_collision[loc] & 0x02);
-		GLfloat blue = 0.25 * (GLfloat)(octree_collision[loc] & 0x04);
-		glColor4f( red, green, blue, 0.5);	// 50% translucent
+//		GLfloat red = (GLfloat)(octree_collision[loc] & 0x01);
+//		GLfloat green = 0.5 * (GLfloat)(octree_collision[loc] & 0x02);
+//		GLfloat blue = 0.25 * (GLfloat)(octree_collision[loc] & 0x04);
+//		glColor4f( red, green, blue, 0.5);	// 50% translucent
+		GLfloat red = (GLfloat)(octree_collision[loc])/255.0;
+		glColor4f( 1.0, 0.0, 0.0, red);	// 50% translucent
+		
+		octree_collision[loc]--;
+		
 		// draw a cube
 		glDisable(GL_CULL_FACE);			// face culling
 		
@@ -317,13 +323,13 @@ int copyRepresentationIntoOctree(NSObject* theRep, int* theBuffer, int atLocatio
 
 BOOL hasCollided = NO;
 GLfloat hit_dist = 0.0;
-BOOL	isHitByLine(int* octbuffer, char* collbuffer, int level, GLfloat rad, Vector v0, Vector v1, Vector off, int face_hit)
+BOOL	isHitByLine(int* octbuffer, unsigned char* collbuffer, int level, GLfloat rad, Vector v0, Vector v1, Vector off, int face_hit)
 {
 	// displace the line by the offset
 	Vector u0 = make_vector( v0.x + off.x, v0.y + off.y, v0.z + off.z);
 	Vector u1 = make_vector( v1.x + off.x, v1.y + off.y, v1.z + off.z);
 	
-	if (debug_octree)
+	if (debug & DEBUG_OCTREE_TEXT)
 	{
 		NSLog(@"DEBUG octant: [%d] radius: %.2f vs. line: ( %.2f, %.2f, %.2f) - ( %.2f, %.2f, %.2f)", 
 		level, rad, u0.x, u0.y, u0.z, u1.x, u1.y, u1.z);
@@ -331,14 +337,14 @@ BOOL	isHitByLine(int* octbuffer, char* collbuffer, int level, GLfloat rad, Vecto
 
 	if (octbuffer[level] == 0)
 	{
-		if (debug_octree)
+		if (debug & DEBUG_OCTREE_TEXT)
 			NSLog(@"DEBUG Hit an empty octant: [%d]", level);
 		return NO;
 	}
 	
 	if (octbuffer[level] == -1)
 	{
-		if (debug_octree)
+		if (debug & DEBUG_OCTREE_TEXT)
 			NSLog(@"DEBUG Hit a solid octant: [%d]", level);
 		collbuffer[level] = 2;	// green
 		hit_dist = sqrt( u0.x * u0.x + u0.y * u0.y + u0.z * u0.z);
@@ -351,7 +357,7 @@ BOOL	isHitByLine(int* octbuffer, char* collbuffer, int level, GLfloat rad, Vecto
 
 	if (faces == 0)
 	{
-		if (debug_octree)
+		if (debug & DEBUG_OCTREE_TEXT)
 			NSLog(@"----> Line misses octant: [%d].", level);
 		return NO;
 	}
@@ -377,13 +383,13 @@ BOOL	isHitByLine(int* octbuffer, char* collbuffer, int level, GLfloat rad, Vecto
 		if (CUBE_FACE_BOTTOM & faces)
 			octantIntersected = ((vi.x < 0.0)? 0: 4) + ((vi.z < 0.0)? 0: 1);
 
-		if (debug_octree)
+		if (debug & DEBUG_OCTREE_TEXT)
 			NSLog(@"----> found intersection with face 0x%2x of cube of radius %.2f at ( %.2f, %.2f, %.2f) octant:%d",
 				faces, rad, vi.x, vi.y, vi.z, octantIntersected);
 	}
 	else
 	{	
-		if (debug_octree)
+		if (debug & DEBUG_OCTREE_TEXT)
 			NSLog(@"----> inside cube of radius %.2f octant:%d", rad, octantIntersected);
 		faces = 0;	// inside the cube!
 	}
@@ -392,7 +398,7 @@ BOOL	isHitByLine(int* octbuffer, char* collbuffer, int level, GLfloat rad, Vecto
 	
 	collbuffer[level] = 1;	// red
 	
-	if (debug_octree)
+	if (debug & DEBUG_OCTREE_TEXT)
 		NSLog(@"----> testing octants...");
 	
 	int nextlevel = octbuffer[level];
@@ -408,7 +414,7 @@ BOOL	isHitByLine(int* octbuffer, char* collbuffer, int level, GLfloat rad, Vecto
 
 	Vector moveLine = off;
 
-	if (debug_octree)
+	if (debug & DEBUG_OCTREE_TEXT)
 		NSLog(@"----> testing first octant hit [+%d]", oct0);
 	if (octbuffer[nextlevel + oct0])
 	{
@@ -418,7 +424,7 @@ BOOL	isHitByLine(int* octbuffer, char* collbuffer, int level, GLfloat rad, Vecto
 		
 	// test the three adjacent octants
 
-	if (debug_octree)
+	if (debug & DEBUG_OCTREE_TEXT)
 		NSLog(@"----> testing next three octants [+%d] [+%d] [+%d]", oct1, oct2, oct3);
 	
 	if (octbuffer[nextlevel + oct1])
@@ -441,7 +447,7 @@ BOOL	isHitByLine(int* octbuffer, char* collbuffer, int level, GLfloat rad, Vecto
 	
 	oct0 ^= 0x07;	oct1 ^= 0x07;	oct2 ^= 0x07;	oct3 ^= 0x07;
 	
-	if (debug_octree)
+	if (debug & DEBUG_OCTREE_TEXT)
 		NSLog(@"----> testing back three octants [+%d] [+%d] [+%d]", oct1, oct2, oct3);
 	
 	if (octbuffer[nextlevel + oct1])
@@ -461,7 +467,7 @@ BOOL	isHitByLine(int* octbuffer, char* collbuffer, int level, GLfloat rad, Vecto
 	}
 	
 	// and check the last octant
-	if (debug_octree)
+	if (debug & DEBUG_OCTREE_TEXT)
 		NSLog(@"----> testing final octant [+%d]", oct0);
 	
 	if (octbuffer[nextlevel + oct0])
@@ -481,26 +487,26 @@ BOOL	isHitByLine(int* octbuffer, char* collbuffer, int level, GLfloat rad, Vecto
 	//
 	if (isHitByLine(octree, octree_collision, 0, radius, v0, v1, make_vector( 0.0f, 0.0f, 0.0f), 0))
 	{
-		if (debug_octree)
+		if (debug & DEBUG_OCTREE_TEXT)
 			NSLog(@"DEBUG Hit at distance %.2f\n\n", hit_dist);
 		hasCollision = hasCollided;
 		return hit_dist;
 	}
 	else
 	{
-		if (debug_octree)
+		if (debug & DEBUG_OCTREE_TEXT)
 			NSLog(@"DEBUG Missed!\n\n", hit_dist);
 		hasCollision = hasCollided;
 		return 0.0;
 	}
 }
 
-BOOL	isHitBySphere(int* octbuffer, char* collbuffer, int level, GLfloat rad, Vector v0, GLfloat sphere_rad, Vector off)
+BOOL	isHitBySphere(int* octbuffer, unsigned char* collbuffer, int level, GLfloat rad, Vector v0, GLfloat sphere_rad, Vector off)
 {
 	// displace the sphere by the offset
 	Vector u0 = make_vector( v0.x + off.x, v0.y + off.y, v0.z + off.z);
 	
-	if (debug_octree)
+	if (debug & DEBUG_OCTREE_TEXT)
 	{
 		NSLog(@"DEBUG octant: [%d] radius: %.2f vs. Sphere: ( %.2f, %.2f, %.2f) r %.2f", 
 		level, rad, u0.x, u0.y, u0.z, sphere_rad);
@@ -508,7 +514,7 @@ BOOL	isHitBySphere(int* octbuffer, char* collbuffer, int level, GLfloat rad, Vec
 
 	if (octbuffer[level] == 0)
 	{
-		if (debug_octree)
+		if (debug & DEBUG_OCTREE_TEXT)
 			NSLog(@"DEBUG Hit an empty octant: [%d]", level);
 		return NO;
 	}
@@ -517,14 +523,14 @@ BOOL	isHitBySphere(int* octbuffer, char* collbuffer, int level, GLfloat rad, Vec
 		(u0.y + sphere_rad < -rad)||(u0.y - sphere_rad > rad)||
 		(u0.z + sphere_rad < -rad)||(u0.z - sphere_rad > rad))
 	{
-		if (debug_octree)
+		if (debug & DEBUG_OCTREE_TEXT)
 			NSLog(@"----> Sphere misses octant: [%d].", level);
 		return NO;
 	}
 	
 	if (octbuffer[level] == -1)
 	{
-		if (debug_octree)
+		if (debug & DEBUG_OCTREE_TEXT)
 			NSLog(@"DEBUG Hit a solid octant: [%d]", level);
 		collbuffer[level] = 2;	// green
 		hit_dist = sqrt( u0.x * u0.x + u0.y * u0.y + u0.z * u0.z);
@@ -537,7 +543,7 @@ BOOL	isHitBySphere(int* octbuffer, char* collbuffer, int level, GLfloat rad, Vec
 
 	if (faces == 0)
 	{
-		if (debug_octree)
+		if (debug & DEBUG_OCTREE_TEXT)
 			NSLog(@"----> Sphere misses octant: [%d].", level);
 		return NO;
 	}
@@ -563,13 +569,13 @@ BOOL	isHitBySphere(int* octbuffer, char* collbuffer, int level, GLfloat rad, Vec
 		if (CUBE_FACE_BOTTOM & faces)
 			octantIntersected = ((vi.x < 0.0)? 0: 4) + ((vi.z < 0.0)? 0: 1);
 
-		if (debug_octree)
+		if (debug & DEBUG_OCTREE_TEXT)
 			NSLog(@"----> found intersection with face 0x%2x of cube of radius %.2f at ( %.2f, %.2f, %.2f) octant:%d",
 				faces, rad, vi.x, vi.y, vi.z, octantIntersected);
 	}
 	else
 	{	
-		if (debug_octree)
+		if (debug & DEBUG_OCTREE_TEXT)
 			NSLog(@"----> inside cube of radius %.2f octant:%d", rad, octantIntersected);
 		faces = 0;	// inside the cube!
 	}
@@ -578,7 +584,7 @@ BOOL	isHitBySphere(int* octbuffer, char* collbuffer, int level, GLfloat rad, Vec
 	
 	collbuffer[level] = 1;	// red
 	
-	if (debug_octree)
+	if (debug & DEBUG_OCTREE_TEXT)
 		NSLog(@"----> testing octants...");
 	
 	int nextlevel = octbuffer[level];
@@ -594,7 +600,7 @@ BOOL	isHitBySphere(int* octbuffer, char* collbuffer, int level, GLfloat rad, Vec
 
 	Vector moveLine = off;
 
-	if (debug_octree)
+	if (debug & DEBUG_OCTREE_TEXT)
 		NSLog(@"----> testing first octant hit [+%d]", oct0);
 	if (octbuffer[nextlevel + oct0])
 	{
@@ -604,7 +610,7 @@ BOOL	isHitBySphere(int* octbuffer, char* collbuffer, int level, GLfloat rad, Vec
 		
 	// test the three adjacent octants
 
-	if (debug_octree)
+	if (debug & DEBUG_OCTREE_TEXT)
 		NSLog(@"----> testing next three octants [+%d] [+%d] [+%d]", oct1, oct2, oct3);
 	
 	if (octbuffer[nextlevel + oct1])
@@ -627,7 +633,7 @@ BOOL	isHitBySphere(int* octbuffer, char* collbuffer, int level, GLfloat rad, Vec
 	
 	oct0 ^= 0x07;	oct1 ^= 0x07;	oct2 ^= 0x07;	oct3 ^= 0x07;
 	
-	if (debug_octree)
+	if (debug & DEBUG_OCTREE_TEXT)
 		NSLog(@"----> testing back three octants [+%d] [+%d] [+%d]", oct1, oct2, oct3);
 	
 	if (octbuffer[nextlevel + oct1])
@@ -647,7 +653,7 @@ BOOL	isHitBySphere(int* octbuffer, char* collbuffer, int level, GLfloat rad, Vec
 	}
 	
 	// and check the last octant
-	if (debug_octree)
+	if (debug & DEBUG_OCTREE_TEXT)
 		NSLog(@"----> testing final octant [+%d]", oct0);
 	
 	if (octbuffer[nextlevel + oct0])
@@ -664,10 +670,10 @@ BOOL	isHitBySphere(int* octbuffer, char* collbuffer, int level, GLfloat rad, Vec
 	return isHitBySphere(octree, octree_collision, 0, radius, v0, sphere_radius, make_vector( 0.0f, 0.0f, 0.0f));
 }
 
-BOOL	isHitByOctree(	int* octbuffer, char* collbuffer, int level, GLfloat rad,
-						int* other_octree, int other_level, Vector v0, GLfloat other_rad, Triangle other_ijk, Vector off)
+BOOL	isHitByOctree(	int* octbuffer, unsigned char* collbuffer, int level, GLfloat rad,
+						Octree* other, int* other_octree, int other_level, Vector v0, GLfloat other_rad, Triangle other_ijk, Vector off)
 {
-	if (debug_octree)
+	if (debug & DEBUG_OCTREE_TEXT)
 	{
 		NSLog(@"DEBUG TESTING octant index: [%d] offset by ( %.2f, %.2f, %.2f)", 
 			level, off.x, off.y, off.z);
@@ -676,7 +682,7 @@ BOOL	isHitByOctree(	int* octbuffer, char* collbuffer, int level, GLfloat rad,
 	// displace the cube by the offset
 	Vector u0 = make_vector( v0.x + off.x, v0.y + off.y, v0.z + off.z);
 
-	if (debug_octree)
+	if (debug & DEBUG_OCTREE_TEXT)
 	{
 		NSLog(@"DEBUG octant index: [%d] radius: %.2f vs. Octree at: ( %.2f, %.2f, %.2f) r %.2f", 
 			level, rad, u0.x, u0.y, u0.z, other_rad);
@@ -684,21 +690,21 @@ BOOL	isHitByOctree(	int* octbuffer, char* collbuffer, int level, GLfloat rad,
 
 	if (octbuffer[level] == 0)
 	{
-		if (debug_octree)
+		if (debug & DEBUG_OCTREE_TEXT)
 			NSLog(@"DEBUG Octant index: [%d] is empty.", level);
 		return NO;
 	}
 	
 	if (!other_octree)
 	{
-		if (debug_octree)
+		if (debug & DEBUG_OCTREE_TEXT)
 			NSLog(@"DEBUG other_octree is null");
 		return NO;
 	}
 	
 	if (other_octree[other_level] == 0)
 	{
-		if (debug_octree)
+		if (debug & DEBUG_OCTREE_TEXT)
 			NSLog(@"DEBUG Other octree from index: [%d] is empty.", other_level);
 		return NO;
 	}
@@ -710,7 +716,7 @@ BOOL	isHitByOctree(	int* octbuffer, char* collbuffer, int level, GLfloat rad,
 			(u0.y + other_rad < -rad)||(u0.y - other_rad > rad)||
 			(u0.z + other_rad < -rad)||(u0.z - other_rad > rad))
 		{
-			if (debug_octree)
+			if (debug & DEBUG_OCTREE_TEXT)
 				NSLog(@"----> Octant: [%d]. does not intersect inner sphere of the octree", level);
 			return NO;
 		}
@@ -724,7 +730,7 @@ BOOL	isHitByOctree(	int* octbuffer, char* collbuffer, int level, GLfloat rad,
 			(dj + rad < -other_rad)||(dj - rad > other_rad)||
 			(dk + rad < -other_rad)||(dk - rad > other_rad))
 		{
-			if (debug_octree)
+			if (debug & DEBUG_OCTREE_TEXT)
 				NSLog(@"----> Octant: [%d]'s inner sphere does not intersect the octree", level);
 			return NO;
 		}
@@ -736,9 +742,10 @@ BOOL	isHitByOctree(	int* octbuffer, char* collbuffer, int level, GLfloat rad,
 		// we are SOLID - is the other octree?
 		if (other_octree[other_level] == -1)
 		{
-			collbuffer[level] = 1;	// red
+			[other octree_collision][other_level] = (unsigned char)255;	// mark
+			collbuffer[level] = (unsigned char)255;						// mark
 			//
-			if (debug_octree)
+			if (debug & DEBUG_OCTREE)
 				NSLog(@"DEBUG Octrees collide!");
 			return YES;
 		}
@@ -748,7 +755,7 @@ BOOL	isHitByOctree(	int* octbuffer, char* collbuffer, int level, GLfloat rad,
 		// if any of them collides with this octant (use level and rad unchanged)
 		// then we have a solid collision
 		//
-		if (debug_octree)
+		if (debug & DEBUG_OCTREE_TEXT)
 			NSLog(@"----> testing other octants...");
 		//
 		int		other_nextlevel = other_octree[other_level];
@@ -767,7 +774,7 @@ BOOL	isHitByOctree(	int* octbuffer, char* collbuffer, int level, GLfloat rad,
 				octantPosition.y = u0.y - i.y * voff.x - j.y * voff.y - k.y * voff.z;
 				octantPosition.z = u0.z - i.z * voff.x - j.z * voff.y - k.z * voff.z;	// voff is negated here because we're moving the origin, not the cube
 				if (isHitByOctree(	octbuffer, collbuffer, level, rad,
-									other_octree, other_nextlevel + oct, octantPosition, other_rd2, other_ijk, make_vector( 0.0f, 0.0f, 0.0f))) return YES;	// test octant
+									other, other_octree, other_nextlevel + oct, octantPosition, other_rd2, other_ijk, make_vector( 0.0f, 0.0f, 0.0f))) return YES;	// test octant
 			}
 		}
 		//
@@ -779,7 +786,7 @@ BOOL	isHitByOctree(	int* octbuffer, char* collbuffer, int level, GLfloat rad,
 	// the other octree, if any of them collide
 	// we have a solid collision
 	//
-	if (debug_octree)
+	if (debug & DEBUG_OCTREE_TEXT)
 		NSLog(@"----> testing octants...");
 	//
 	int		nextlevel = octbuffer[level];
@@ -793,7 +800,7 @@ BOOL	isHitByOctree(	int* octbuffer, char* collbuffer, int level, GLfloat rad,
 			octantOffset = make_vector(rd2 - ((oct >> 2) & 1) * rad, rd2 - ((oct >> 1) & 1) * rad, rd2 - (oct & 1) * rad);
 			// in the previous tests we put octantOffset into the ijk vectors, here we can use it unchanged
 			if (isHitByOctree(	octbuffer, collbuffer, nextlevel + oct, rd2,
-								other_octree, other_level, u0, other_rad, other_ijk, octantOffset)) return YES;	// test octant
+								other, other_octree, other_level, u0, other_rad, other_ijk, octantOffset)) return YES;	// test octant
 		}
 	}
 	// otherwise
@@ -803,8 +810,10 @@ BOOL	isHitByOctree(	int* octbuffer, char* collbuffer, int level, GLfloat rad,
 
 - (BOOL) isHitByOctree:(Octree*) other withOrigin: (Vector) v0 andIJK: (Triangle) ijk
 {
+	glDisable(GL_LIGHTING);
+	glDisable(GL_TEXTURE_2D);
 	return hasCollision = isHitByOctree( octree, octree_collision, 0, radius,
-								[other octree], 0, v0, [other radius], ijk, make_vector( 0.0f, 0.0f, 0.0f));
+								other, [other octree], 0, v0, [other radius], ijk, make_vector( 0.0f, 0.0f, 0.0f));
 }
 
 

@@ -42,6 +42,8 @@ Your fair use and other rights are in no way affected by the above.
 #define DEBUG_ENTITIES		0x00000002
 #define DEBUG_COLLISIONS	0x00000004
 #define DEBUG_SCRIPT		0x00000008
+#define DEBUG_OCTREE		0x00000010
+#define DEBUG_OCTREE_TEXT	0x00000020
 
 #define MAX_VERTICES_PER_ENTITY	320
 #define MAX_FACES_PER_ENTITY	512

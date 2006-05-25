@@ -354,6 +354,7 @@ Your fair use and other rights are in no way affected by the above.
 		int						n_scanned_ships;
 
 		// DEBUGGING
+		int debug_flag;
 		int debug_condition;
 }
 

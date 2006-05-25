@@ -923,13 +923,20 @@ static NSTimeInterval	time_last_frame;
 			if (!cloak_pressed)
 			{
 				[universe obj_dump];	// dump objects
-//				debug = debug^-1;
-				debug = (debug)? 0 : DEBUG_LINKED_LISTS;
+				debug = 0;
 			}
 			cloak_pressed = YES;
 		}
 		else
 			cloak_pressed = NO;
+		
+		// look for debugging keys
+		if ([gameView isDown:'c'])// look for the 'c' key
+		{
+			debug |= DEBUG_OCTREE;
+			[universe addMessage:@"Octree debug ON" forCount:3];
+		}
+
 	}
 	//
 	// Pause game 'p'

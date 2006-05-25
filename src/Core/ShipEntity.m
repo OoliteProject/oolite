@@ -199,6 +199,8 @@ Your fair use and other rights are in no way affected by the above.
 	//
 	heat_insulation = 1.0;
 	//
+	debug_flag = 0;
+	//
 	return self;
 }
 
@@ -746,6 +748,8 @@ static NSMutableDictionary* smallOctreeDict = nil;
 	ship_temperature = 60.0;
 	//
 	heat_insulation = 1.0;
+	//
+	debug_flag = 0;
 	//
 	[self setCollisionRegion:nil];
 }
@@ -1327,6 +1331,12 @@ static NSMutableDictionary* smallOctreeDict = nil;
 			}
 		}
 	}
+	
+	// debugging flags
+	debug_flag = 0;
+	if ([shipdict objectForKey:@"debug_flag"])
+		debug_flag = [[shipdict objectForKey:@"debug_flag"] intValue];
+		
 }
 
 
@@ -1405,7 +1415,6 @@ BOOL ship_canCollide (ShipEntity* ship)
 		ShipEntity* other_ship = (ShipEntity*)other;
 		
 		// octree check
-//		debug_octree = ((isPlayer)||(other->isPlayer));
 		Octree* other_octree = other_ship->octree;
 		Triangle own_ijk;
 		own_ijk.v[0] = v_right;
@@ -1419,9 +1428,6 @@ BOOL ship_canCollide (ShipEntity* ship)
 		
 		if ([octree isHitByOctree: other_octree withOrigin: other_position andIJK: other_ijk])
 			return YES;
-//		else
-//			return NO;
-//		debug_octree = NO;
 
 		// check our solid subentities against the other ship's
 		//
@@ -2989,16 +2995,17 @@ BOOL ship_canCollide (ShipEntity* ship)
 	if (cloaking_device_active && (randf() > 0.10))			return;	// DON'T DRAW
 
 	if (!translucent)
+	{
 		[super drawEntity:immediate:translucent];
-
-//	// test octree drawing
-//	if (translucent && (octree))
-//		if (status == STATUS_COCKPIT_DISPLAY)
-//			[octree drawOctree];
-
-	if (debug && DEBUG_COLLISIONS)
-		[octree drawOctreeCollisions];
-
+	}
+	else
+	{
+		if ((status == STATUS_COCKPIT_DISPLAY)&&((debug | debug_flag) & (DEBUG_COLLISIONS | DEBUG_OCTREE)))
+			[octree drawOctree];
+	
+		if ((debug | debug_flag) & (DEBUG_COLLISIONS | DEBUG_OCTREE))
+			[octree drawOctreeCollisions];
+	}
 	//
 	checkGLErrors([NSString stringWithFormat:@"ShipEntity after drawing Entity (main) %@", self]);
 	//
