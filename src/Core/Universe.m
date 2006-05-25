@@ -109,11 +109,12 @@ Your fair use and other rights are in no way affected by the above.
 		entity_for_uid[i] = nil;
 	//
 	// try finding a cache..
-	NSString*	cache_path = [[[[NSHomeDirectory()
-								stringByAppendingPathComponent:@"Library"]
-								stringByAppendingPathComponent:@"Application Support"]
-								stringByAppendingPathComponent:@"Oolite"]
-								stringByAppendingPathComponent:@"cache"];
+//	NSString*	cache_path = [[[[NSHomeDirectory()
+//								stringByAppendingPathComponent:@"Library"]
+//								stringByAppendingPathComponent:@"Application Support"]
+//								stringByAppendingPathComponent:@"Oolite"]
+//								stringByAppendingPathComponent:@"cache"];
+	NSString*	cache_path = OOLITE_CACHE;
 	if ([[NSFileManager defaultManager] fileExistsAtPath: cache_path])
 	{
 		NSLog(@"DEBUG ** found cache - loading data ...**");
