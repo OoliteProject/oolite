@@ -4654,9 +4654,6 @@ GLfloat	starboard_matrix[] = {	0.0f, 0.0f, 1.0f, 0.0f,		0.0f, 1.0f, 0.0f, 0.0f,	
 				&&(v_off.x < ar)&&(v_off.x > -ar)&&(v_off.y < ar)&&(v_off.y > -ar)		// AND not off to one side or another
 				&&(v_off.x*v_off.x + v_off.y*v_off.y < ar*ar))							// AND not off to both sides
 			{
-				debug_octree = NO;
-//				if (debug_laser)
-//					debug_octree = YES;
 				GLfloat hit = [(ShipEntity*)e2 doesHitLine:p0:p1];	// octree detection
 				
 				if (hit > 0.0)
@@ -4675,8 +4672,6 @@ GLfloat	starboard_matrix[] = {	0.0f, 0.0f, 1.0f, 0.0f,		0.0f, 1.0f, 0.0f, 0.0f,	
 				n_subs = [subs count];
 			if ((hit_entity != e2)&&(n_subs))	// didn't hit main body but there are subs to chcek
 			{
-//				if (debug_laser)
-//					NSLog(@"DEBUG LASER checking subentities of %@", e2);
 				// check subentity bounding spheres
 				int si;
 				for (si = 0; (hit_entity != e2)&&(si < n_subs); si++)
@@ -4694,10 +4689,7 @@ GLfloat	starboard_matrix[] = {	0.0f, 0.0f, 1.0f, 0.0f,		0.0f, 1.0f, 0.0f, 0.0f,	
 							&&(v_off.x*v_off.x + v_off.y*v_off.y < sr*sr))							// AND not off to both sides
 						{
 							Triangle ijk = [se3 absoluteIJKForSubentity];
-//							if (debug_laser)
-//								debug_octree = YES;
 							GLfloat hit = [se3 doesHitLine:p0:p1 withPosition:sepos andIJK:ijk.v[0]:ijk.v[1]:ijk.v[2]];	// octree detection
-							debug_octree = NO;
 							if (hit > 0.0)
 							{
 								hit_subentity = se3;
@@ -4721,9 +4713,6 @@ GLfloat	starboard_matrix[] = {	0.0f, 0.0f, 1.0f, 0.0f,		0.0f, 1.0f, 0.0f, 0.0f,	
 		if (range_ptr != (GLfloat *)nil)
 			range_ptr[0] = (GLfloat)nearest;
 	}
-	//
-//	if (debug_laser)
-//		NSLog(@"DEBUG LASER hit %@ %d",[hit_entity name],result);
 	//
 	for (i = 0; i < ship_count; i++)
 		[my_entities[i] release]; //	released
