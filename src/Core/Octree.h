@@ -46,6 +46,15 @@ Your fair use and other rights are in no way affected by the above.
 
 extern int debug;
 
+struct octree_struct
+{
+	GLfloat				radius;
+	int*				octree;	
+	unsigned char*		octree_collision;
+};
+
+typedef struct octree_struct Octree_details;
+
 @interface Octree : NSObject
 {
 	GLfloat		radius;
@@ -59,8 +68,10 @@ extern int debug;
 - (GLfloat)	radius;
 - (int)		leafs;
 - (int*)	octree;
-- (unsigned char*)	octree_collision;
 - (BOOL)	hasCollision;
+- (unsigned char*)	octree_collision;
+
+- (Octree_details)	octreeDetails;
 
 - (id) initWithRepresentationOfOctree:(GLfloat) octRadius :(NSObject*) octreeArray :(int) leafsize;
 - (id) initWithDictionary:(NSDictionary*) dict;
@@ -79,8 +90,8 @@ BOOL	isHitByLine(int* octbuffer, unsigned char* collbuffer, int level, GLfloat r
 BOOL	isHitBySphere(int* octbuffer, unsigned char* collbuffer, int level, GLfloat rad, Vector v0, GLfloat sphere_rad, Vector off);
 - (BOOL) isHitBySphereOrigin: (Vector) v0: (GLfloat) sphere_radius;
 
-BOOL	isHitByOctree(	int* octbuffer, unsigned char* collbuffer, int level, GLfloat rad,
-						Octree* other, int* other_octree, int other_level, Vector v0, GLfloat other_rad, Triangle other_ijk, Vector off);
+BOOL	isHitByOctree(	Octree_details axialDetails,
+						Octree_details otherDetails, Vector delta, Triangle other_ijk);
 - (BOOL) isHitByOctree:(Octree*) other withOrigin: (Vector) v0 andIJK: (Triangle) ijk;
 
 - (NSDictionary*) dict;
