@@ -134,7 +134,7 @@ Your fair use and other rights are in no way affected by the above.
 
 int copyRepresentationIntoOctree(NSObject* theRep, int* theBuffer, int atLocation, int nextFreeLocation)
 {
-	if ([theRep isKindOfClass:[NSNumber class]])
+	if ([theRep isKindOfClass:[NSNumber class]])	// ie. a terminating leaf
 	{
 		if ([(NSNumber*)theRep intValue] != 0)
 		{
@@ -147,7 +147,7 @@ int copyRepresentationIntoOctree(NSObject* theRep, int* theBuffer, int atLocatio
 			return nextFreeLocation;
 		}
 	}
-	if ([theRep isKindOfClass:[NSArray class]])
+	if ([theRep isKindOfClass:[NSArray class]])		// ie. a subtree
 	{
 		NSArray* theArray = (NSArray*)theRep;
 		int i;
@@ -157,7 +157,8 @@ int copyRepresentationIntoOctree(NSObject* theRep, int* theBuffer, int atLocatio
 			NSObject* rep = [theArray objectAtIndex:i];
 			theNextSpace = copyRepresentationIntoOctree( rep, theBuffer, nextFreeLocation + i, theNextSpace);
 		}
-		theBuffer[atLocation] = nextFreeLocation;
+//		theBuffer[atLocation] = nextFreeLocation;				// previous absolute reference
+		theBuffer[atLocation] = nextFreeLocation - atLocation;	// now a relative reference
 		return theNextSpace;
 	}
 	NSLog(@"**** some error creating octree *****");
@@ -224,21 +225,21 @@ int copyRepresentationIntoOctree(NSObject* theRep, int* theBuffer, int atLocatio
 	{
 		GLfloat sc = 0.5 * scale;
 		glColor4f( 0.4, 0.4, 0.4, 0.5);	// gray translucent
-		[self drawOctreeFromLocation:octree[loc] + 0 :sc :make_vector( offset.x - sc, offset.y - sc, offset.z - sc)];
+		[self drawOctreeFromLocation:	loc + octree[loc] + 0 :sc :make_vector( offset.x - sc, offset.y - sc, offset.z - sc)];
 		glColor4f( 0.0, 0.0, 1.0, 0.5);	// green translucent
-		[self drawOctreeFromLocation:octree[loc] + 1 :sc :make_vector( offset.x - sc, offset.y - sc, offset.z + sc)];
+		[self drawOctreeFromLocation:	loc + octree[loc] + 1 :sc :make_vector( offset.x - sc, offset.y - sc, offset.z + sc)];
 		glColor4f( 0.0, 1.0, 0.0, 0.5);	// green translucent
-		[self drawOctreeFromLocation:octree[loc] + 2 :sc :make_vector( offset.x - sc, offset.y + sc, offset.z - sc)];
+		[self drawOctreeFromLocation:	loc + octree[loc] + 2 :sc :make_vector( offset.x - sc, offset.y + sc, offset.z - sc)];
 		glColor4f( 0.0, 1.0, 1.0, 0.5);	// green translucent
-		[self drawOctreeFromLocation:octree[loc] + 3 :sc :make_vector( offset.x - sc, offset.y + sc, offset.z + sc)];
+		[self drawOctreeFromLocation:	loc + octree[loc] + 3 :sc :make_vector( offset.x - sc, offset.y + sc, offset.z + sc)];
 		glColor4f( 1.0, 0.0, 0.0, 0.5);	// green translucent
-		[self drawOctreeFromLocation:octree[loc] + 4 :sc :make_vector( offset.x + sc, offset.y - sc, offset.z - sc)];
+		[self drawOctreeFromLocation:	loc + octree[loc] + 4 :sc :make_vector( offset.x + sc, offset.y - sc, offset.z - sc)];
 		glColor4f( 1.0, 0.0, 1.0, 0.5);	// green translucent
-		[self drawOctreeFromLocation:octree[loc] + 5 :sc :make_vector( offset.x + sc, offset.y - sc, offset.z + sc)];
+		[self drawOctreeFromLocation:	loc + octree[loc] + 5 :sc :make_vector( offset.x + sc, offset.y - sc, offset.z + sc)];
 		glColor4f( 1.0, 1.0, 0.0, 0.5);	// green translucent
-		[self drawOctreeFromLocation:octree[loc] + 6 :sc :make_vector( offset.x + sc, offset.y + sc, offset.z - sc)];
+		[self drawOctreeFromLocation:	loc + octree[loc] + 6 :sc :make_vector( offset.x + sc, offset.y + sc, offset.z - sc)];
 		glColor4f( 1.0, 1.0, 1.0, 0.5);	// green translucent
-		[self drawOctreeFromLocation:octree[loc] + 7 :sc :make_vector( offset.x + sc, offset.y + sc, offset.z + sc)];
+		[self drawOctreeFromLocation:	loc + octree[loc] + 7 :sc :make_vector( offset.x + sc, offset.y + sc, offset.z + sc)];
 	}
 }
 
@@ -255,10 +256,6 @@ int copyRepresentationIntoOctree(NSObject* theRep, int* theBuffer, int atLocatio
 		return;
 	if ((octree[loc] != 0)&&(octree_collision[loc] != (unsigned char)0))	// full - draw
 	{
-//		GLfloat red = (GLfloat)(octree_collision[loc] & 0x01);
-//		GLfloat green = 0.5 * (GLfloat)(octree_collision[loc] & 0x02);
-//		GLfloat blue = 0.25 * (GLfloat)(octree_collision[loc] & 0x04);
-//		glColor4f( red, green, blue, 0.5);	// 50% translucent
 		GLfloat red = (GLfloat)(octree_collision[loc])/255.0;
 		glColor4f( 1.0, 0.0, 0.0, red);	// 50% translucent
 		
@@ -310,14 +307,14 @@ int copyRepresentationIntoOctree(NSObject* theRep, int* theBuffer, int atLocatio
 	if (octree[loc] > 0)
 	{
 		GLfloat sc = 0.5 * scale;
-		[self drawOctreeCollisionFromLocation:octree[loc] + 0 :sc :make_vector( offset.x - sc, offset.y - sc, offset.z - sc)];
-		[self drawOctreeCollisionFromLocation:octree[loc] + 1 :sc :make_vector( offset.x - sc, offset.y - sc, offset.z + sc)];
-		[self drawOctreeCollisionFromLocation:octree[loc] + 2 :sc :make_vector( offset.x - sc, offset.y + sc, offset.z - sc)];
-		[self drawOctreeCollisionFromLocation:octree[loc] + 3 :sc :make_vector( offset.x - sc, offset.y + sc, offset.z + sc)];
-		[self drawOctreeCollisionFromLocation:octree[loc] + 4 :sc :make_vector( offset.x + sc, offset.y - sc, offset.z - sc)];
-		[self drawOctreeCollisionFromLocation:octree[loc] + 5 :sc :make_vector( offset.x + sc, offset.y - sc, offset.z + sc)];
-		[self drawOctreeCollisionFromLocation:octree[loc] + 6 :sc :make_vector( offset.x + sc, offset.y + sc, offset.z - sc)];
-		[self drawOctreeCollisionFromLocation:octree[loc] + 7 :sc :make_vector( offset.x + sc, offset.y + sc, offset.z + sc)];
+		[self drawOctreeCollisionFromLocation:	loc + octree[loc] + 0 :sc :make_vector( offset.x - sc, offset.y - sc, offset.z - sc)];
+		[self drawOctreeCollisionFromLocation:	loc + octree[loc] + 1 :sc :make_vector( offset.x - sc, offset.y - sc, offset.z + sc)];
+		[self drawOctreeCollisionFromLocation:	loc + octree[loc] + 2 :sc :make_vector( offset.x - sc, offset.y + sc, offset.z - sc)];
+		[self drawOctreeCollisionFromLocation:	loc + octree[loc] + 3 :sc :make_vector( offset.x - sc, offset.y + sc, offset.z + sc)];
+		[self drawOctreeCollisionFromLocation:	loc + octree[loc] + 4 :sc :make_vector( offset.x + sc, offset.y - sc, offset.z - sc)];
+		[self drawOctreeCollisionFromLocation:	loc + octree[loc] + 5 :sc :make_vector( offset.x + sc, offset.y - sc, offset.z + sc)];
+		[self drawOctreeCollisionFromLocation:	loc + octree[loc] + 6 :sc :make_vector( offset.x + sc, offset.y + sc, offset.z - sc)];
+		[self drawOctreeCollisionFromLocation:	loc + octree[loc] + 7 :sc :make_vector( offset.x + sc, offset.y + sc, offset.z + sc)];
 	}
 }
 
@@ -401,7 +398,8 @@ BOOL	isHitByLine(int* octbuffer, unsigned char* collbuffer, int level, GLfloat r
 	if (debug & DEBUG_OCTREE_TEXT)
 		NSLog(@"----> testing octants...");
 	
-	int nextlevel = octbuffer[level];
+//	int nextlevel = octbuffer[level];			// previous absolute reference
+	int nextlevel = level + octbuffer[level];	// now a relative reference
 		
 	GLfloat rd2 = 0.5 * rad;
 	
@@ -587,7 +585,8 @@ BOOL	isHitBySphere(int* octbuffer, unsigned char* collbuffer, int level, GLfloat
 	if (debug & DEBUG_OCTREE_TEXT)
 		NSLog(@"----> testing octants...");
 	
-	int nextlevel = octbuffer[level];
+//	int nextlevel = octbuffer[level];			// previous absolute reference
+	int nextlevel = level + octbuffer[level];	// now a relative reference
 		
 	GLfloat rd2 = 0.5 * rad;
 	
@@ -669,6 +668,7 @@ BOOL	isHitBySphere(int* octbuffer, unsigned char* collbuffer, int level, GLfloat
 {
 	return isHitBySphere(octree, octree_collision, 0, radius, v0, sphere_radius, make_vector( 0.0f, 0.0f, 0.0f));
 }
+
 
 BOOL	isHitByOctree(	int* octbuffer, unsigned char* collbuffer, int level, GLfloat rad,
 						Octree* other, int* other_octree, int other_level, Vector v0, GLfloat other_rad, Triangle other_ijk, Vector off)
@@ -758,7 +758,8 @@ BOOL	isHitByOctree(	int* octbuffer, unsigned char* collbuffer, int level, GLfloa
 		if (debug & DEBUG_OCTREE_TEXT)
 			NSLog(@"----> testing other octants...");
 		//
-		int		other_nextlevel = other_octree[other_level];
+//		int		other_nextlevel = other_octree[other_level];				// previous absolute reference
+		int		other_nextlevel = other_level + other_octree[other_level];	// now a relative reference
 		GLfloat	other_rd2 = 0.5 * other_rad;
 		Vector	voff, octantPosition;
 		Vector	i = other_ijk.v[0];
@@ -789,7 +790,8 @@ BOOL	isHitByOctree(	int* octbuffer, unsigned char* collbuffer, int level, GLfloa
 	if (debug & DEBUG_OCTREE_TEXT)
 		NSLog(@"----> testing octants...");
 	//
-	int		nextlevel = octbuffer[level];
+//	int		nextlevel = octbuffer[level];			// previous absolute reference
+	int		nextlevel = level + octbuffer[level];	// now a relative reference
 	GLfloat	rd2 = 0.5 * rad;
 	Vector	octantOffset;
 	int		oct;
