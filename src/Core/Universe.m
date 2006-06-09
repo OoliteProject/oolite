@@ -114,17 +114,28 @@ Your fair use and other rights are in no way affected by the above.
 //								stringByAppendingPathComponent:@"Application Support"]
 //								stringByAppendingPathComponent:@"Oolite"]
 //								stringByAppendingPathComponent:@"cache"];
+	NSObject*	oolite_version = [[[NSBundle mainBundle] infoDictionary] objectForKey:@"CFBundleVersion"];
 	NSString*	cache_path = OOLITE_CACHE;
 	if ([[NSFileManager defaultManager] fileExistsAtPath: cache_path])
 	{
 		NSLog(@"DEBUG ** found cache - loading data ...**");
 		preloadedDataFiles = [[NSMutableDictionary dictionaryWithContentsOfFile:cache_path] retain];
+		// check cache version number
+		// if it doesn't match our version number then don't use the cache, overwrite it later
+		NSObject* cache_version = [preloadedDataFiles objectForKey:@"CFBundleVersion"];
+		if (![oolite_version isEqual:cache_version])
+		{
+			NSLog(@"DEBUG ** CACHE VERSION DOES NOT MATCH OOLITE VERSION - discarding cache ...**");
+			[preloadedDataFiles release];
+			preloadedDataFiles = [[NSMutableDictionary dictionaryWithCapacity:16] retain];
+		}
 	}
 	else
 	{
 		NSLog(@"DEBUG ** no cache exists - yet **");
 		preloadedDataFiles = [[NSMutableDictionary dictionaryWithCapacity:16] retain];
 	}
+	[preloadedDataFiles setObject:oolite_version forKey:@"CFBundleVersion"];	// set the correct version for this cache
 	
 	//
 	entityRecyclePool =			[[NSMutableDictionary dictionaryWithCapacity:MAX_NUMBER_OF_ENTITIES] retain];
