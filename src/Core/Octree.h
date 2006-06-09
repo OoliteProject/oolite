@@ -69,6 +69,7 @@ typedef struct octree_struct Octree_details;
 - (int)		leafs;
 - (int*)	octree;
 - (BOOL)	hasCollision;
+- (void)	setHasCollision:(BOOL) value;
 - (unsigned char*)	octree_collision;
 
 - (Octree_details)	octreeDetails;
@@ -78,6 +79,8 @@ typedef struct octree_struct Octree_details;
 
 int copyRepresentationIntoOctree(NSObject* theRep, int* theBuffer, int atLocation, int nextFreeLocation);
 
+Vector offsetForOctant(int oct, GLfloat r);
+
 - (void) drawOctree;
 - (void) drawOctreeFromLocation:(int) loc :(GLfloat) scale :(Vector) offset;
 
@@ -86,9 +89,6 @@ int copyRepresentationIntoOctree(NSObject* theRep, int* theBuffer, int atLocatio
 
 BOOL	isHitByLine(int* octbuffer, unsigned char* collbuffer, int level, GLfloat rad, Vector v0, Vector v1, Vector off, int face_hit);
 - (GLfloat) isHitByLine: (Vector) v0: (Vector) v1;
-
-BOOL	isHitBySphere(int* octbuffer, unsigned char* collbuffer, int level, GLfloat rad, Vector v0, GLfloat sphere_rad, Vector off);
-- (BOOL) isHitBySphereOrigin: (Vector) v0: (GLfloat) sphere_radius;
 
 BOOL	isHitByOctree(	Octree_details axialDetails,
 						Octree_details otherDetails, Vector delta, Triangle other_ijk);
