@@ -185,6 +185,7 @@ Your fair use and other rights are in no way affected by the above.
 	}
 	
 	// check cargo contracts
+	//
 	for (i = 0; i < [contracts count]; i++)
 	{
 		NSDictionary* contract_info = (NSDictionary *)[contracts objectAtIndex:i];
@@ -228,6 +229,42 @@ Your fair use and other rights are in no way affected by the above.
 					[contracts removeObjectAtIndex:i--];
 					// repute++
 					[self increaseContractReputation];
+				}
+				else
+				{
+					// see if the amount of goods delivered is acceptable
+					//
+					float percent_delivered = 100.0 * (float)quantity_on_hand/(float)contract_amount;
+					float acceptable_ratio = 100.0 - 10.0 * system_seed.a / 256.0; // down to 90%
+					//
+					if (percent_delivered >= acceptable_ratio)
+					{
+						//
+						// remove the goods...
+						quantity_on_hand = 0;
+						[commodityInfo replaceObjectAtIndex:MARKET_QUANTITY withObject:[NSNumber numberWithInt:0]];
+						[manifest replaceObjectAtIndex:contract_cargo_type withObject:commodityInfo];
+						if (shipCommodityData)
+							[shipCommodityData release];
+						shipCommodityData = [[NSArray arrayWithArray:manifest] retain];
+						// pay the premium and fee
+						int shortfall = 100 - percent_delivered;
+						int payment = percent_delivered * (fee + premium) / 100.0;
+						credits += payment;
+						if (!result)
+							result = [NSString stringWithFormat:[universe expandDescription:@"[cargo-delivered-short-@-f-d]" forSystem:system_seed], contract_cargo_desc, (float)payment / 10.0, shortfall];
+						else
+							result = [NSString stringWithFormat:[universe expandDescription:@"%@\n[cargo-delivered-short-@-f-d]" forSystem:system_seed], contract_cargo_desc, (float)payment / 10.0, shortfall];
+						[contracts removeObjectAtIndex:i--];
+						// repute unchanged
+					}
+					else
+					{
+						if (!result)
+							result = [NSString stringWithFormat:[universe expandDescription:@"[cargo-refused-short-%@]" forSystem:system_seed], contract_cargo_desc];
+						else
+							result = [NSString stringWithFormat:[universe expandDescription:@"%@\n[cargo-refused-short-%@]" forSystem:system_seed], contract_cargo_desc];
+					}
 				}
 			}
 			else
