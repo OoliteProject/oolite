@@ -111,6 +111,7 @@ static	Vector	circleVertex[65];		// holds vector coordinates for a unit circle
 	GLfloat distance;
 	switch (view)
 	{
+		default:
 		case VIEW_FORWARD :
 			distance = [ship getBoundingBox].max.z;
 			position.x += distance * v_forward.x;	position.y += distance * v_forward.y;	position.z += distance * v_forward.z;
@@ -234,6 +235,7 @@ static	Vector	circleVertex[65];		// holds vector coordinates for a unit circle
 	GLfloat distance;
 	switch (view)
 	{
+		default:
 		case VIEW_FORWARD :
 			distance = [subent getBoundingBox].max.z;
 			position.x += distance * v_forward.x;	position.y += distance * v_forward.y;	position.z += distance * v_forward.z;
@@ -1798,14 +1800,14 @@ static	Vector	circleVertex[65];		// holds vector coordinates for a unit circle
 	glEnable(GL_CULL_FACE);			// face culling
 }
 
+GLuint tfan1[10] = {	0,	1,	2,	3,	4,	5,	6,	7,	8,	1};		// initial fan 0..9
+GLuint qstrip1[18] = {	1,	9,	2,	10,	3,	11,	4,	12,	5,	13,	6,	14,	7,	15,	8,	16,	1,	9};		// first quadstrip 10..27
+GLuint qstrip2[18] = {	9,	17,	10,	18,	11,	19,	12,	20,	13,	21,	14,	22,	15,	23,	16,	24,	9,	17};	// second quadstrip 28..45
+GLuint qstrip3[18] = {	17,	25,	18,	26,	19,	27,	20,	28,	21,	29,	22,	30,	23,	31,	24,	32,	17,	25};	// third quadstrip 46..63
+GLuint tfan2[10] = {	33,	25,	26,	27,	28,	29,	30,	31,	32,	25};	// final fan 64..73
+
 - (void) drawExhaust2
 {
-	GLuint tfan1[10] = {	0,	1,	2,	3,	4,	5,	6,	7,	8,	1};		// initial fan 0..9
-	GLuint qstrip1[18] = {	1,	9,	2,	10,	3,	11,	4,	12,	5,	13,	6,	14,	7,	15,	8,	16,	1,	9};		// first quadstrip 10..27
-	GLuint qstrip2[18] = {	9,	17,	10,	18,	11,	19,	12,	20,	13,	21,	14,	22,	15,	23,	16,	24,	9,	17};	// second quadstrip 28..45
-	GLuint qstrip3[18] = {	17,	25,	18,	26,	19,	27,	20,	28,	21,	29,	22,	30,	23,	31,	24,	32,	17,	25};	// third quadstrip 46..63
-	GLuint tfan2[10] = {	33,	25,	26,	27,	28,	29,	30,	31,	32,	25};	// final fan 64..73
-
 	ShipEntity  *ship =(ShipEntity *)[universe entityForUniversalID:owner];
 
 	if (!ship)
