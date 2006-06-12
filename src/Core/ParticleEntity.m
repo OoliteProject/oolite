@@ -1767,6 +1767,23 @@ static	Vector	circleVertex[65];		// holds vector coordinates for a unit circle
 			glVertex3f(xx, yy, -xx);
 			break;
 
+		case	VIEW_CUSTOM :
+			{
+				PlayerEntity* player = (PlayerEntity*)[universe entityZero];
+				Vector vi = [player customViewRightVector];		vi.x *= xx;	vi.y *= xx;	vi.z *= xx;
+				Vector vj = [player customViewUpVector];		vj.x *= yy;	vj.y *= yy;	vj.z *= yy;
+				Vector vk = [player customViewForwardVector];	vk.x *= xx;	vk.y *= xx;	vk.z *= xx;
+				glTexCoord2f(0.0, 1.0);
+				glVertex3f( -vi.x -vj.x -vk.x, -vi.y -vj.y -vk.y, -vi.z -vj.z -vk.z);
+				glTexCoord2f(1.0, 1.0);
+				glVertex3f( +vi.x -vj.x -vk.x, +vi.y -vj.y -vk.y, +vi.z -vj.z -vk.z);
+				glTexCoord2f(1.0, 0.0);
+				glVertex3f( +vi.x +vj.x -vk.x, +vi.y +vj.y -vk.y, +vi.z +vj.z -vk.z);
+				glTexCoord2f(0.0, 0.0);
+				glVertex3f( -vi.x +vj.x -vk.x, -vi.y +vj.y -vk.y, -vi.z +vj.z -vk.z);
+			}
+			break;
+		
 		default :
 			glTexCoord2f(0.0, 1.0);
 			glVertex3f(-xx, -yy, -xx);
@@ -1991,12 +2008,12 @@ void drawQuadForView(Universe* universe, GLfloat x, GLfloat y, GLfloat z, GLfloa
 		case	VIEW_CUSTOM :
 		{
 			PlayerEntity* player = (PlayerEntity*)[universe entityZero];
-			Vector vi = [player customViewRightVector];
-			Vector vj = [player customViewUpVector];
-			glTexCoord2f(0.0, 1.0);	glVertex3f(x + xx * vi.x - yy *vj.x, y + xx * vi.y - yy *vj.y, z + xx * vi.z - yy * vj.z);
-			glTexCoord2f(1.0, 1.0);	glVertex3f(x - xx * vi.x - yy *vj.x, y - xx * vi.y - yy *vj.y, z - xx * vi.z - yy * vj.z);
-			glTexCoord2f(1.0, 0.0);	glVertex3f(x - xx * vi.x + yy *vj.x, y - xx * vi.y + yy *vj.y, z - xx * vi.z + yy * vj.z);
-			glTexCoord2f(0.0, 0.0);	glVertex3f(x + xx * vi.x + yy *vj.x, y + xx * vi.y + yy *vj.y, z + xx * vi.z + yy * vj.z);
+			Vector vi = [player customViewRightVector];		vi.x *= xx;	vi.y *= xx;	vi.z *= xx;
+			Vector vj = [player customViewUpVector];		vj.x *= yy;	vj.y *= yy;	vj.z *= yy;
+			glTexCoord2f(0.0, 1.0);	glVertex3f(x + vi.x - vj.x, y + vi.y - vj.y, z + vi.z - vj.z);
+			glTexCoord2f(1.0, 1.0);	glVertex3f(x - vi.x - vj.x, y - vi.y - vj.y, z - vi.z - vj.z);
+			glTexCoord2f(1.0, 0.0);	glVertex3f(x - vi.x + vj.x, y - vi.y + vj.y, z - vi.z + vj.z);
+			glTexCoord2f(0.0, 0.0);	glVertex3f(x + vi.x + vj.x, y + vi.y + vj.y, z + vi.z + vj.z);
 			break;
 		}
 		default :
