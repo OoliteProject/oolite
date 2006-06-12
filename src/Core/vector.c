@@ -353,27 +353,29 @@ GLfloat	quaternion_dot_product(Quaternion q1, Quaternion q2)
 //
 void	quaternion_into_gl_matrix(Quaternion quat, GLfloat *glmat)
 {
-    GLfloat	w, wz, wy, wx;
-    GLfloat	x, xz, xy, xx;
-    GLfloat	y, yz, yy;
-    GLfloat	z, zz;
+	GLfloat	w, wz, wy, wx;
+	GLfloat	x, xz, xy, xx;
+	GLfloat	y, yz, yy;
+	GLfloat	z, zz;
     
-    w = quat.w;
-    z = quat.z;
-    y = quat.y;
-    x = quat.x;
+	Quaternion q = quat;
+	quaternion_normalise(&q);
+	
+	w = q.w;
+	z = q.z;
+	y = q.y;
+	x = q.x;
     
-    xx = 2.0 * x; yy = 2.0 * y; zz = 2.0 * z;
-    wx = w * xx; wy = w * yy; wz = w * zz;
-    xx = x * xx; xy = x * yy; xz = x * zz;
-    yy = y * yy; yz = y * zz;
-    zz = z * zz;
+	xx = 2.0 * x; yy = 2.0 * y; zz = 2.0 * z;
+	wx = w * xx; wy = w * yy; wz = w * zz;
+	xx = x * xx; xy = x * yy; xz = x * zz;
+	yy = y * yy; yz = y * zz;
+	zz = z * zz;
 
-    glmat[0]	= 1.0 - yy- zz;	glmat[4]	= xy + wz;			glmat[8]	= xz - wy;			glmat[12] = 0.0;
-    glmat[1]	= xy - wz;		glmat[5]	= 1.0 - xx - zz;	glmat[9]	= yz + wx;			glmat[13] = 0.0;
-    glmat[2]	= xz + wy;		glmat[6]	= yz - wx;			glmat[10]	= 1.0 - xx - yy;	glmat[14] = 0.0;
-    glmat[3]	= 0.0;			glmat[7]	= 0.0;				glmat[11]	= 0.0;				glmat[15] = 1.0;
-
+	glmat[0]	= 1.0 - yy- zz;	glmat[4]	= xy + wz;			glmat[8]	= xz - wy;			glmat[12] = 0.0;
+	glmat[1]	= xy - wz;		glmat[5]	= 1.0 - xx - zz;	glmat[9]	= yz + wx;			glmat[13] = 0.0;
+	glmat[2]	= xz + wy;		glmat[6]	= yz - wx;			glmat[10]	= 1.0 - xx - yy;	glmat[14] = 0.0;
+	glmat[3]	= 0.0;			glmat[7]	= 0.0;				glmat[11]	= 0.0;				glmat[15] = 1.0;
 }
 // produce a right vector from a quaternion
 //
