@@ -1711,6 +1711,20 @@ static	Vector	circleVertex[65];		// holds vector coordinates for a unit circle
 
 	switch (viewdir)
 	{
+		case VIEW_FORWARD :
+			glTexCoord2f(0.0, 1.0);
+			glVertex3f(-xx, -yy, -xx);
+
+			glTexCoord2f(1.0, 1.0);
+			glVertex3f(xx, -yy, -xx);
+
+			glTexCoord2f(1.0, 0.0);
+			glVertex3f(xx, yy, -xx);
+
+			glTexCoord2f(0.0, 0.0);
+			glVertex3f(-xx, yy, -xx);
+			break;
+			
 		case	VIEW_AFT :
 			glTexCoord2f(0.0, 1.0);
 			glVertex3f(xx, -yy, xx);
@@ -1901,8 +1915,6 @@ GLuint tfan2[10] = {	33,	25,	26,	27,	28,	29,	30,	31,	32,	25};	// final fan 64..7
 {
     int i;
 
-	int viewdir = universe->viewDirection;
-
 	glEnable(GL_TEXTURE_2D);
 	glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
 	glBindTexture(GL_TEXTURE_2D, texName);
@@ -1912,7 +1924,7 @@ GLuint tfan2[10] = {	33,	25,	26,	27,	28,	29,	30,	31,	32,	25};	// final fan 64..7
 	for (i = 0; i < n_vertices; i++)
 	{
 		glColor4f( faces[i].red, faces[i].green, faces[i].blue, faces[i].normal.z);
-		drawQuadForView( viewdir, vertices[i].x, vertices[i].y, vertices[i].z, faces[i].normal.x, faces[i].normal.x);
+		drawQuadForView( universe, vertices[i].x, vertices[i].y, vertices[i].z, faces[i].normal.x, faces[i].normal.x);
 	}
 	glEnd();
 
@@ -1924,8 +1936,6 @@ GLuint tfan2[10] = {	33,	25,	26,	27,	28,	29,	30,	31,	32,	25};	// final fan 64..7
 {
     int i;
 
-	int viewdir = universe->viewDirection;
-
 	glEnable(GL_TEXTURE_2D);
 	glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
 	glBindTexture(GL_TEXTURE_2D, texName);
@@ -1935,7 +1945,7 @@ GLuint tfan2[10] = {	33,	25,	26,	27,	28,	29,	30,	31,	32,	25};	// final fan 64..7
 	for (i = 0; i < n_vertices; i++)
 	{
 		glColor4f( faces[i].red, faces[i].green, faces[i].blue, faces[i].normal.z);
-		drawQuadForView( viewdir, vertices[i].x, vertices[i].y, vertices[i].z, size.width, size.width);
+		drawQuadForView( universe, vertices[i].x, vertices[i].y, vertices[i].z, size.width, size.width);
 	}
 	glEnd();
 
@@ -1949,10 +1959,17 @@ GLuint tfan2[10] = {	33,	25,	26,	27,	28,	29,	30,	31,	32,	25};	// final fan 64..7
 	[super drawEntity: NO : NO];	// called with translucent==NO to fool it into being drawn
 }
 
-void drawQuadForView(int viewdir, GLfloat x, GLfloat y, GLfloat z, GLfloat xx, GLfloat yy)
+void drawQuadForView(Universe* universe, GLfloat x, GLfloat y, GLfloat z, GLfloat xx, GLfloat yy)
 {
+	int viewdir = universe->viewDirection;
+
 	switch (viewdir)
 	{
+		case VIEW_FORWARD :
+			glTexCoord2f(0.0, 1.0);	glVertex3f(x-xx, y-yy, z);
+			glTexCoord2f(1.0, 1.0);	glVertex3f(x+xx, y-yy, z);
+			glTexCoord2f(1.0, 0.0);	glVertex3f(x+xx, y+yy, z);
+			glTexCoord2f(0.0, 0.0);	glVertex3f(x-xx, y+yy, z);
 		case	VIEW_AFT :
 			glTexCoord2f(0.0, 1.0);	glVertex3f(x+xx, y-yy, z);
 			glTexCoord2f(1.0, 1.0);	glVertex3f(x-xx, y-yy, z);
@@ -1971,6 +1988,17 @@ void drawQuadForView(int viewdir, GLfloat x, GLfloat y, GLfloat z, GLfloat xx, G
 			glTexCoord2f(1.0, 0.0);	glVertex3f(x, y+yy, z+xx);
 			glTexCoord2f(0.0, 0.0);	glVertex3f(x, y+yy, z-xx);
 			break;
+		case	VIEW_CUSTOM :
+		{
+			PlayerEntity* player = (PlayerEntity*)[universe entityZero];
+			Vector vi = [player customViewRightVector];
+			Vector vj = [player customViewUpVector];
+			glTexCoord2f(0.0, 1.0);	glVertex3f(x + xx * vi.x - yy *vj.x, y + xx * vi.y - yy *vj.y, z + xx * vi.z - yy * vj.z);
+			glTexCoord2f(1.0, 1.0);	glVertex3f(x - xx * vi.x - yy *vj.x, y - xx * vi.y - yy *vj.y, z - xx * vi.z - yy * vj.z);
+			glTexCoord2f(1.0, 0.0);	glVertex3f(x - xx * vi.x + yy *vj.x, y - xx * vi.y + yy *vj.y, z - xx * vi.z + yy * vj.z);
+			glTexCoord2f(0.0, 0.0);	glVertex3f(x + xx * vi.x + yy *vj.x, y + xx * vi.y + yy *vj.y, z + xx * vi.z + yy * vj.z);
+			break;
+		}
 		default :
 			glTexCoord2f(0.0, 1.0);	glVertex3f(x-xx, y-yy, z);
 			glTexCoord2f(1.0, 1.0);	glVertex3f(x+xx, y-yy, z);

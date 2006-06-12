@@ -129,6 +129,8 @@ static Quaternion quaternion_identity = { (GLfloat)1.0, (GLfloat)0.0, (GLfloat)0
 	key_next_target = 45;			// '+'
 	key_previous_target = 43;		// '-'
 	//
+	key_custom_view = 118;			// 'v'
+	//
 	// now check the keyconfig dictionary...
 	if ([kdic objectForKey:@"key_roll_left"])		key_roll_left = [(NSNumber *)[kdic objectForKey:@"key_roll_left"] intValue];
 	if ([kdic objectForKey:@"key_roll_right"])		key_roll_right = [(NSNumber *)[kdic objectForKey:@"key_roll_right"] intValue];
@@ -193,6 +195,9 @@ static Quaternion quaternion_identity = { (GLfloat)1.0, (GLfloat)0.0, (GLfloat)0
 	//
 	if ([kdic objectForKey:@"key_map_info"])
 		key_map_info = [(NSNumber *)[kdic objectForKey:@"key_map_info"] intValue];
+	//
+	if ([kdic objectForKey:@"key_custom_view"])
+		key_map_info = [(NSNumber *)[kdic objectForKey:@"key_custom_view"] intValue];
 	//
 	// other keys are SET and cannot be varied
 
@@ -991,6 +996,10 @@ static Quaternion quaternion_identity = { (GLfloat)1.0, (GLfloat)0.0, (GLfloat)0
 	speech_on = NO;
 	ootunes_on = NO;
 	//
+	if (custom_views)
+		[custom_views release];
+	custom_views = nil;
+	//
 	mouse_control_on = NO;
 	//
 	docking_music_on = YES;	// check user defaults for whether we like docking music or not...
@@ -1139,6 +1148,9 @@ static Quaternion quaternion_identity = { (GLfloat)1.0, (GLfloat)0.0, (GLfloat)0
 	aftViewOffset = make_vector( 0.0f, 0.0f, 0.0f);
 	portViewOffset = make_vector( 0.0f, 0.0f, 0.0f);
 	starboardViewOffset = make_vector( 0.0f, 0.0f, 0.0f);
+	customViewOffset = make_vector( 0.0f, 0.0f, 0.0f);
+	
+	currentWeaponFacing = VIEW_FORWARD;
 
 	if (save_path)
 		[save_path autorelease];
@@ -1310,6 +1322,16 @@ static Quaternion quaternion_identity = { (GLfloat)1.0, (GLfloat)0.0, (GLfloat)0
 	if ([dict objectForKey:@"view_position_starboard"])
 		starboardViewOffset = [Entity vectorFromString: (NSString *)[dict objectForKey:@"view_position_starboard"]];
 
+	if ([dict objectForKey:@"custom_views"])
+	{
+		NSObject*	obj = [dict objectForKey:@"custom_views"];
+		if ([obj isKindOfClass:[NSArray class]])
+		{
+			if (custom_views)
+				[custom_views release];
+			custom_views = [[NSMutableArray arrayWithArray:(NSArray*)obj] retain];
+		}
+	}
 //	NSLog(@"DEBUG in PlayerEntity setUpShipFromDictionary");
 
 	// set weapon offsets
@@ -1485,6 +1507,8 @@ static Quaternion quaternion_identity = { (GLfloat)1.0, (GLfloat)0.0, (GLfloat)0
 
 	if (save_path)				[save_path release];
 
+	if (custom_views)			[custom_views release];
+
 	[self destroySound];
 
 	int i;
@@ -1499,7 +1523,7 @@ static Quaternion quaternion_identity = { (GLfloat)1.0, (GLfloat)0.0, (GLfloat)0
 		if (trumble[i])
 			[trumble[i] release];
 	}
-
+	
     [super dealloc];
 }
 
@@ -1920,7 +1944,8 @@ double scoopSoundPlayTime = 0.0;
 	}
 	// copy new temp to main temp
 	//
-	switch ([universe viewDir])
+//	switch ([universe viewDir])
+	switch (currentWeaponFacing)
 	{
 		case VIEW_GUI_DISPLAY:
 		case VIEW_NONE:
@@ -2241,7 +2266,7 @@ double scoopSoundPlayTime = 0.0;
 	if ([universe breakPatternHide])
 		return viewpoint;	// center view for break pattern
 
-	Vector offset = make_vector ( 0, 0, 0);
+	Vector offset = make_vector( 0.0f, 0.0f, 0.0f);
 	switch ([universe viewDir])
 	{
 		case VIEW_FORWARD:
@@ -2252,6 +2277,8 @@ double scoopSoundPlayTime = 0.0;
 			offset = portViewOffset;	break;
 		case VIEW_STARBOARD:
 			offset = starboardViewOffset;	break;
+		case VIEW_CUSTOM:
+			offset = customViewOffset;	break;
 	}
 	if (offset.x)
 	{
@@ -2284,6 +2311,10 @@ double scoopSoundPlayTime = 0.0;
 			return portViewOffset;
 		case VIEW_STARBOARD:
 			return starboardViewOffset;
+		/* GILES custom viewpoints */
+		case VIEW_CUSTOM:
+			return customViewOffset;
+		/* -- */
 	}
 
 	return make_vector( 0.0f, 0.0f, 0.0f);
@@ -2992,7 +3023,8 @@ double scoopSoundPlayTime = 0.0;
 
 - (BOOL) fireMainWeapon
 {
-	int weapon_to_be_fired = [self weaponForView:[universe viewDir]];
+//	int weapon_to_be_fired = [self weaponForView:[universe viewDir]];
+	int weapon_to_be_fired = [self weaponForView: currentWeaponFacing];
 
 	if (weapon_temp / PLAYER_MAX_WEAPON_TEMP >= 0.85)
 	{
@@ -3054,7 +3086,8 @@ double scoopSoundPlayTime = 0.0;
 
 	energy -= weapon_energy_per_shot;
 
-	switch ([universe viewDir])
+//	switch ([universe viewDir])
+	switch (currentWeaponFacing)
 	{
 		case VIEW_GUI_DISPLAY:
 		case VIEW_NONE:
@@ -3099,21 +3132,21 @@ double scoopSoundPlayTime = 0.0;
 
 - (int) weaponForView:(int) view
 {
+	if (view == VIEW_CUSTOM)
+		view = currentWeaponFacing;
+	
 	switch (view)
 	{
 		case VIEW_PORT :
 			return port_weapon;
-			break;
 		case VIEW_STARBOARD :
 			return starboard_weapon;
-			break;
 		case VIEW_AFT :
 			return aft_weapon;
-			break;
 		case VIEW_FORWARD :
-		default :
 			return forward_weapon;
-			break;
+		default :
+			return WEAPON_NONE;
 	}
 }
 
@@ -6282,20 +6315,23 @@ OOSound* burnersound;
 	aftViewOffset = make_vector( 0.0, 0.0, boundingBox.min.z + halfLength);
 	portViewOffset = make_vector( boundingBox.min.x + halfWidth, 0.0, 0.0);
 	starboardViewOffset = make_vector( boundingBox.max.x - halfWidth, 0.0, 0.0);
+	customViewOffset = make_vector( 0.0, 0.0, 0.0);
 }
 
-- (Vector) viewOffset
+- (Vector) weaponViewOffset
 {
-	switch ([universe viewDir])
+	switch (currentWeaponFacing)
 	{
 		case VIEW_FORWARD:
 			return forwardViewOffset;
 		case VIEW_AFT:
-			return aftViewOffset;	break;
+			return aftViewOffset;
 		case VIEW_PORT:
-			return portViewOffset;	break;
+			return portViewOffset;
 		case VIEW_STARBOARD:
-			return starboardViewOffset;	break;
+			return starboardViewOffset;
+		case VIEW_CUSTOM:
+			return customViewOffset;
 	}
 	return make_vector ( 0, 0, 0);
 }
@@ -6642,6 +6678,87 @@ OOSound* burnersound;
 			target_memory[target_memory_index] = NO_TARGET;	// tidy_up
 	}
 	return NO;
+}
+
+- (Quaternion)	customViewQuaternion
+{
+	return customViewQuaternion;
+}
+
+- (GLfloat*)	customViewMatrix
+{
+	return customViewMatrix;
+}
+
+- (Vector)		customViewOffset
+{
+	return customViewOffset;
+}
+
+- (Vector)		customViewForwardVector
+{
+	return customViewForwardVector;
+}
+
+- (Vector)		customViewUpVector
+{
+	return customViewUpVector;
+}
+
+- (Vector)		customViewRightVector
+{
+	return customViewRightVector;
+}
+
+- (NSString*)	customViewDescription
+{
+	return customViewDescription;
+}
+
+- (void)		setCustomViewDataFromDictionary:(NSDictionary*) viewDict
+{
+	NSLog(@"DEBUG setting custom view data from %@", viewDict);
+	
+	Quaternion view_q;
+	quaternion_set_identity(&view_q);
+	quaternion_into_gl_matrix( view_q, customViewMatrix);
+	customViewOffset = make_vector( 0.0, 0.0, 0.0);
+	if (!viewDict)
+		return;
+	if ([viewDict objectForKey:@"view_orientation"])
+		view_q = [Entity quaternionFromString:(NSString *)[viewDict objectForKey:@"view_orientation"]];
+		
+	customViewQuaternion = view_q;
+	
+	customViewRightVector = vector_right_from_quaternion(view_q);
+	customViewUpVector = vector_up_from_quaternion(view_q);
+	customViewForwardVector = vector_forward_from_quaternion(view_q);
+	
+	Quaternion q1 = view_q;	q1.w = -q1.w;
+	
+//	customViewQuaternion = q1;
+	
+	quaternion_into_gl_matrix( q1, customViewMatrix);
+	
+	if ([viewDict objectForKey:@"view_position"])
+		customViewOffset = [Entity vectorFromString:(NSString *)[viewDict objectForKey:@"view_position"]];
+
+	if ([viewDict objectForKey:@"view_description"])
+		customViewDescription = (NSString *)[viewDict objectForKey:@"view_description"];
+	
+	if ([viewDict objectForKey:@"weapon_facing"])
+	{
+		NSString* facing = [(NSString *)[viewDict objectForKey:@"view_description"] lowercaseString];
+		if ([facing isEqual:@"forward"])
+			currentWeaponFacing = VIEW_FORWARD;
+		if ([facing isEqual:@"aft"])
+			currentWeaponFacing = VIEW_AFT;
+		if ([facing isEqual:@"port"])
+			currentWeaponFacing = VIEW_PORT;
+		if ([facing isEqual:@"forward"])
+			currentWeaponFacing = VIEW_STARBOARD;
+	}
+	
 }
 
 

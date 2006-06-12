@@ -48,8 +48,9 @@ Your fair use and other rights are in no way affected by the above.
 #define VIEW_AFT				1
 #define VIEW_PORT				2
 #define VIEW_STARBOARD			3
+#define VIEW_CUSTOM				7
 #define VIEW_NONE				-1
-#define VIEW_GUI_DISPLAY				100
+#define VIEW_GUI_DISPLAY		100
 #define VIEW_BREAK_PATTERN		200
 
 #define UNITS_TONS			0

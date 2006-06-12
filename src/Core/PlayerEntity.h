@@ -457,6 +457,8 @@ enum
 	int						key_next_target;
 	int						key_previous_target;
 	
+	int						key_custom_view;
+	
 	// save-file
 	NSString				*save_path;
 	
@@ -483,6 +485,19 @@ enum
 	// target memory
 	int						target_memory[PLAYER_TARGET_MEMORY_SIZE];
 	int						target_memory_index;
+	
+	/* GILES custom viewpoints */
+	
+	// custom view points
+	NSMutableArray*			custom_views;
+	Quaternion				customViewQuaternion;
+	GLfloat					customViewMatrix[16];
+	Vector					customViewOffset, customViewForwardVector, customViewUpVector, customViewRightVector;
+	NSString*				customViewDescription;
+	
+	int						currentWeaponFacing;	// decoupled from view direction
+	
+	/* -- */
 
 #ifdef GNUSTEP
   // Keeping track of joysticks
@@ -654,7 +669,7 @@ enum
 - (void) getFined;
 
 - (void) setDefaultViewOffsets;
-- (Vector) viewOffset;
+- (Vector) weaponViewOffset;
 
 - (void) setUpTrumbles;
 - (void) addTrumble:(OOTrumble*) papaTrumble;
@@ -676,6 +691,20 @@ enum
 - (void) clearTargetMemory;
 - (BOOL) selectNextTargetFromMemory;
 - (BOOL) selectPreviousTargetFromMemory;
+
+/* GILES custom viewpoints */
+
+// custom view points
+- (Quaternion)	customViewQuaternion;
+- (GLfloat*)	customViewMatrix;
+- (Vector)		customViewOffset;
+- (Vector)		customViewForwardVector;
+- (Vector)		customViewUpVector;
+- (Vector)		customViewRightVector;
+- (NSString*)	customViewDescription;
+- (void)		setCustomViewDataFromDictionary:(NSDictionary*) viewDict;
+
+/* -- */
 
 
 @end

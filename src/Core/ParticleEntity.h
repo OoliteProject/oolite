@@ -151,6 +151,6 @@ Your fair use and other rights are in no way affected by the above.
 - (void) drawBillboard;
 //- (void) drawFlash;
 
-void drawQuadForView(int viewdir, GLfloat x, GLfloat y, GLfloat z, GLfloat xx, GLfloat yy);
+void drawQuadForView(Universe* universe, GLfloat x, GLfloat y, GLfloat z, GLfloat xx, GLfloat yy);
 
 @end

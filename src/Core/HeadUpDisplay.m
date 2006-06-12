@@ -1461,6 +1461,9 @@ static BOOL hostiles;
 				case VIEW_STARBOARD :
 					rpn.x = -rpn.z;
 					break;
+				case VIEW_CUSTOM :
+					mult_vector_gl_matrix(&rpn, [player customViewMatrix]);
+					break;
 			}
 			rpn.z = 0;	// flatten vector
 			if (rpn.x||rpn.y)
@@ -1868,7 +1871,6 @@ void hudDrawStatusIconAt(int x, int y, int z, NSSize siz)
 
 void hudDrawReticleOnTarget(Entity* target, PlayerEntity* player1, GLfloat z1)
 {
-	//GLfloat z1 = [(MyOpenGLView *)[[player1 universe] gameView] display_z];
 	ShipEntity* target_ship = (ShipEntity *)target;
 	NSString* legal_desc = nil;
 	if ((!target)||(!player1))
@@ -1907,7 +1909,6 @@ void hudDrawReticleOnTarget(Entity* target, PlayerEntity* player1, GLfloat z1)
 		case CLASS_TARGET :
 		break;
 	}
-
 	
 	if ([player1 gui_screen] != GUI_SCREEN_MAIN)	// don't draw on text screens
 		return;
@@ -1918,11 +1919,11 @@ void hudDrawReticleOnTarget(Entity* target, PlayerEntity* player1, GLfloat z1)
 	gl_matrix	back_mat;
     Quaternion  back_q = player1->q_rotation;
 	back_q.w = -back_q.w;   // invert
+	Vector v1 = vector_up_from_quaternion(back_q);
 	Vector p0 = [player1 getViewpointPosition];
 	Vector p1 = target->position;
 	p1.x -= p0.x;	p1.y -= p0.y;	p1.z -= p0.z;
 	double rdist = sqrt(magnitude2(p1));
-//	double rsize = target->actual_radius;
 	double rsize = target->collision_radius;
 	
 	if (rsize < rdist * ONE_SIXTYFOURTH)
@@ -1936,30 +1937,33 @@ void hudDrawReticleOnTarget(Entity* target, PlayerEntity* player1, GLfloat z1)
 	glPushMatrix();
 	//
 	// deal with view directions
-	Vector view_dir;
+	Vector view_dir, view_up;
+	view_up.x = 0.0;	view_up.y = 1.0;	view_up.z = 0.0;
 	switch ([[player1 universe] viewDir])
 	{
+		default:
 		case VIEW_FORWARD :
-			view_dir.x = 0.0;   view_dir.y = 0.0;   view_dir.z = -1.0;
+			view_dir.x = 0.0;   view_dir.y = 0.0;   view_dir.z = 1.0;
 			break;
 		case VIEW_AFT :
-			view_dir.x = 0.0;   view_dir.y = 0.0;   view_dir.z = 1.0;
-			quaternion_rotate_about_axis(&back_q,vector_up_from_quaternion(back_q),PI);
+			view_dir.x = 0.0;   view_dir.y = 0.0;   view_dir.z = -1.0;
+			quaternion_rotate_about_axis( &back_q, v1, PI);
 			break;
 		case VIEW_PORT :
-			view_dir.x = 1.0;   view_dir.y = 0.0;   view_dir.z = 0.0;
-			quaternion_rotate_about_axis(&back_q,vector_up_from_quaternion(back_q),PI/2.0);
+			view_dir.x = -1.0;   view_dir.y = 0.0;   view_dir.z = 0.0;
+			quaternion_rotate_about_axis( &back_q, v1, 0.5 * PI);
 			break;
 		case VIEW_STARBOARD :
-			view_dir.x = -1.0;   view_dir.y = 0.0;   view_dir.z = 0.0;
-			quaternion_rotate_about_axis(&back_q,vector_up_from_quaternion(back_q),-PI/2.0);
+			view_dir.x = 1.0;   view_dir.y = 0.0;   view_dir.z = 0.0;
+			quaternion_rotate_about_axis( &back_q, v1, -0.5 * PI);
 			break;
-		
-		default :
-			view_dir.x = 0.0;   view_dir.y = 0.0;   view_dir.z = -1.0;
+		case VIEW_CUSTOM :
+			view_dir = [player1 customViewForwardVector];
+			view_up = [player1 customViewUpVector];
+			back_q = quaternion_multiply( [player1 customViewQuaternion], back_q);
 			break;
 	}
-    gluLookAt(0.0, 0.0, 0.0,	view_dir.x, view_dir.y, view_dir.z,	0.0, 1.0, 0.0);
+	gluLookAt(view_dir.x, view_dir.y, view_dir.z, 0.0, 0.0, 0.0, view_up.x, view_up.y, view_up.z);
 	//
 	quaternion_into_gl_matrix(back_q, back_mat);
 	//

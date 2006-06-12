@@ -3497,6 +3497,8 @@ GLfloat	fwd_matrix[] = {		1.0f, 0.0f, 0.0f, 0.0f,		0.0f, 1.0f, 0.0f, 0.0f,		0.0f
 GLfloat	aft_matrix[] = {		-1.0f, 0.0f, 0.0f, 0.0f,	0.0f, 1.0f, 0.0f, 0.0f,		0.0f, 0.0f, -1.0f, 0.0f,	0.0f, 0.0f, 0.0f, 1.0f};
 GLfloat	port_matrix[] = {		0.0f, 0.0f, -1.0f, 0.0f,	0.0f, 1.0f, 0.0f, 0.0f,		1.0f, 0.0f, 0.0f, 0.0f,		0.0f, 0.0f, 0.0f, 1.0f};
 GLfloat	starboard_matrix[] = {	0.0f, 0.0f, 1.0f, 0.0f,		0.0f, 1.0f, 0.0f, 0.0f,		-1.0f, 0.0f, 0.0f, 0.0f,	0.0f, 0.0f, 0.0f, 1.0f};
+GLfloat* custom_matrix;
+
 - (void) drawFromEntity:(int) n
 {
 	if (!no_update)
@@ -3506,7 +3508,7 @@ GLfloat	starboard_matrix[] = {	0.0f, 0.0f, 1.0f, 0.0f,		0.0f, 1.0f, 0.0f, 0.0f,	
 			no_update = YES;	// block other attempts to draw
 			
 			int i, v_status;
-			Vector	position, obj_position, view_dir;
+			Vector	position, obj_position, view_dir, view_up;
 			BOOL inGUIMode = NO;
 			
 			//
@@ -3536,17 +3538,6 @@ GLfloat	starboard_matrix[] = {	0.0f, 0.0f, 1.0f, 0.0f,		0.0f, 1.0f, 0.0f, 0.0f,	
 			Entity	*viewthing = nil;
 			Entity	*drawthing = nil;
 			
-			GLfloat* view_matrix = fwd_matrix;
-			switch (viewDirection)
-			{
-				case VIEW_AFT:
-					view_matrix = aft_matrix; break;
-				case VIEW_PORT:
-					view_matrix = port_matrix; break;
-				case VIEW_STARBOARD:
-					view_matrix = starboard_matrix; break;
-			}
-			
 			position.x = 0.0;	position.y = 0.0;	position.z = 0.0;
 
 			if (n < n_entities)
@@ -3556,9 +3547,9 @@ GLfloat	starboard_matrix[] = {	0.0f, 0.0f, 1.0f, 0.0f,		0.0f, 1.0f, 0.0f, 0.0f,	
 			
 			if ((viewthing)&&(viewthing->isPlayer))
 			{
-				position = [viewthing getViewpointPosition];
-				v_status = viewthing->status;
 				inGUIMode = [(PlayerEntity*)viewthing showDemoShips];
+				custom_matrix = [(PlayerEntity*)viewthing customViewMatrix];
+				/* -- */
 			}
 			else
 			{
@@ -3572,6 +3563,26 @@ GLfloat	starboard_matrix[] = {	0.0f, 0.0f, 1.0f, 0.0f,		0.0f, 1.0f, 0.0f, 0.0f,	
 				return; // don't draw if there's not a viewing entity!
 			}
 						
+			position = [viewthing getViewpointPosition];
+			v_status = viewthing->status;
+			
+			GLfloat* view_matrix = fwd_matrix;
+			switch (viewDirection)
+			{
+				case VIEW_FORWARD:
+					view_matrix = fwd_matrix; break;
+				case VIEW_AFT:
+					view_matrix = aft_matrix; break;
+				case VIEW_PORT:
+					view_matrix = port_matrix; break;
+				case VIEW_STARBOARD:
+					view_matrix = starboard_matrix; break;
+				/* GILES custom view points */
+				case VIEW_CUSTOM:
+					view_matrix = custom_matrix;
+				/* -- */
+			}
+			
 			//NSLog(@"Drawing from [%f,%f,%f]", position.x, position.y, position.z);
 			//
 			checkGLErrors(@"Universe before doing anything");
@@ -3598,27 +3609,29 @@ GLfloat	starboard_matrix[] = {	0.0f, 0.0f, 1.0f, 0.0f,		0.0f, 1.0f, 0.0f, 0.0f,	
 			glGetFloatv(GL_MODELVIEW_MATRIX, saved_flat_matrix);
 			glPushMatrix(); // save this flat viewpoint
 
+			view_up.x = 0.0;	view_up.y = 1.0;	view_up.z = 0.0;
 			switch (viewDirection)
 			{
+				default:
 				case VIEW_FORWARD :
-					view_dir.x = 0.0;   view_dir.y = 0.0;   view_dir.z = -1.0;
-					break;
-				case VIEW_AFT :
 					view_dir.x = 0.0;   view_dir.y = 0.0;   view_dir.z = 1.0;
 					break;
-				case VIEW_PORT :
-					view_dir.x = 1.0;   view_dir.y = 0.0;   view_dir.z = 0.0;
+				case VIEW_AFT :
+					view_dir.x = 0.0;   view_dir.y = 0.0;   view_dir.z = -1.0;
 					break;
-				case VIEW_STARBOARD :
+				case VIEW_PORT :
 					view_dir.x = -1.0;   view_dir.y = 0.0;   view_dir.z = 0.0;
 					break;
-				
-				default :
-					view_dir.x = 0.0;   view_dir.y = 0.0;   view_dir.z = -1.0;
+				case VIEW_STARBOARD :
+					view_dir.x = 1.0;   view_dir.y = 0.0;   view_dir.z = 0.0;
+					break;
+				case VIEW_CUSTOM :
+					view_dir = [(PlayerEntity*)viewthing customViewForwardVector];
+					view_up = [(PlayerEntity*)viewthing customViewUpVector];
 					break;
 			}
 
-			gluLookAt(0.0, 0.0, 0.0,	view_dir.x, view_dir.y, view_dir.z,	0.0, 1.0, 0.0);
+			gluLookAt(view_dir.x, view_dir.y, view_dir.z, 0.0, 0.0, 0.0, view_up.x, view_up.y, view_up.z);
 
 			if ((!displayGUI) || (inGUIMode))
 			{
@@ -3707,6 +3720,7 @@ GLfloat	starboard_matrix[] = {	0.0f, 0.0f, 1.0f, 0.0f,		0.0f, 1.0f, 0.0f, 0.0f,	
 							glMultMatrixf( view_matrix);
 							//translate the object  from the viewpoint
 							glTranslatef( -viewOffset.x, -viewOffset.y, -viewOffset.z);
+							
 						}
 
 						// atmospheric fog
@@ -3867,7 +3881,10 @@ GLfloat	starboard_matrix[] = {	0.0f, 0.0f, 1.0f, 0.0f,		0.0f, 1.0f, 0.0f, 0.0f,	
 - (void) drawCrosshairs
 {
     PlayerEntity*   playerShip = (PlayerEntity *)[self entityZero];
-	int				weapon     = [playerShip weaponForView:viewDirection];
+
+	if (viewDirection == VIEW_CUSTOM)	return;	// don't try to draw cross hairs in a custom view
+
+	int	weapon	= [playerShip weaponForView:viewDirection];
 	if ((playerShip)&&((playerShip->status == STATUS_IN_FLIGHT)||(playerShip->status == STATUS_WITCHSPACE_COUNTDOWN)))
 	{	
 		GLfloat k0 = CROSSHAIR_SIZE;
@@ -4756,7 +4773,7 @@ GLfloat	starboard_matrix[] = {	0.0f, 0.0f, 1.0f, 0.0f,		0.0f, 1.0f, 0.0f, 0.0f,	
 	Vector u1 = vector_up_from_quaternion(q1);
 	Vector f1 = vector_forward_from_quaternion(q1);
 	Vector r1 = vector_right_from_quaternion(q1);
-	Vector offset = [player viewOffset];
+	Vector offset = [player weaponViewOffset];
 	p1.x += offset.x * r1.x + offset.y * u1.x + offset.z * f1.x;
 	p1.y += offset.x * r1.y + offset.y * u1.y + offset.z * f1.y;
 	p1.z += offset.x * r1.z + offset.y * u1.z + offset.z * f1.z;
@@ -4964,7 +4981,7 @@ GLfloat	starboard_matrix[] = {	0.0f, 0.0f, 1.0f, 0.0f,		0.0f, 1.0f, 0.0f, 0.0f,	
 {
 	NSString	*ms = nil;
 	
-	if ((viewDirection == vd)&&(!displayGUI))
+	if ((viewDirection == vd)&&(vd != VIEW_CUSTOM)&&(!displayGUI))
 		return;
 	
 	switch (vd)
@@ -4997,13 +5014,24 @@ GLfloat	starboard_matrix[] = {	0.0f, 0.0f, 1.0f, 0.0f,		0.0f, 1.0f, 0.0f, 0.0f,	
 			ms = @"Starboard View";
 			displayGUI = NO;   // switch off any text displays
 			break;
+		/* GILES custom views */
+		
+		case VIEW_CUSTOM :
+#ifdef GNUSTEP
+         [gameView setMouseInDeltaMode: YES];
+#endif
+			ms = [(PlayerEntity*)[self entityZero] customViewDescription];
+			displayGUI = NO;   // switch off any text displays
+			break;
+			
+		/* -- */
 		default :
 #ifdef GNUSTEP
          [gameView setMouseInDeltaMode: NO];
 #endif
 			break;
 	}
-	if (viewDirection != vd)
+	if ((viewDirection != vd)|(viewDirection = VIEW_CUSTOM))
 	{
 		viewDirection = vd;
 		if (ms)

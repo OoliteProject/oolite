@@ -2165,6 +2165,9 @@ static BOOL queryPressed;
 }
 
 static BOOL zoom_pressed;
+	/* GILES custom viewpoints */
+static BOOL customView_pressed;
+	/* -- */
 
 - (void) pollViewControls
 {
@@ -2180,25 +2183,55 @@ static BOOL zoom_pressed;
 		if ([universe displayGUI])
 			[self switchToMainView];
 		[universe setViewDirection:VIEW_FORWARD];
+		currentWeaponFacing = VIEW_FORWARD;
 	}
 	if (([gameView isDown:gvFunctionKey2])||([gameView isDown:gvNumberKey2]))
 	{
 		if ([universe displayGUI])
 			[self switchToMainView];
 		[universe setViewDirection:VIEW_AFT];
+		currentWeaponFacing = VIEW_AFT;
 	}
 	if (([gameView isDown:gvFunctionKey3])||([gameView isDown:gvNumberKey3]))
 	{
 		if ([universe displayGUI])
 			[self switchToMainView];
 		[universe setViewDirection:VIEW_PORT];
+		currentWeaponFacing = VIEW_PORT;
 	}
 	if (([gameView isDown:gvFunctionKey4])||([gameView isDown:gvNumberKey4]))
 	{
 		if ([universe displayGUI])
 			[self switchToMainView];
 		[universe setViewDirection:VIEW_STARBOARD];
+		currentWeaponFacing = VIEW_STARBOARD;
 	}
+	
+	/* GILES custom viewpoints */
+	
+	if ([gameView isDown:key_custom_view])
+	{
+		if ((!customView_pressed)&&(custom_views))
+		{
+			if ([universe viewDir] == VIEW_CUSTOM)	// already in custom view mode
+			{
+				// rotate the custom views
+				[custom_views addObject:[custom_views objectAtIndex:0]];
+				[custom_views removeObjectAtIndex:0];
+			}
+			
+			[self setCustomViewDataFromDictionary:(NSDictionary*)[custom_views objectAtIndex:0]];
+			
+			if ([universe displayGUI])
+				[self switchToMainView];
+			[universe setViewDirection:VIEW_CUSTOM];
+		}
+		customView_pressed = YES;
+	}
+	else
+		customView_pressed = NO;
+	
+	/* -- */
 	//
 	// Zoom scanner 'z'
 	//
