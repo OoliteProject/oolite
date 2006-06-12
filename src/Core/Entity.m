@@ -127,10 +127,13 @@ static  Universe	*data_store_universe;
 		failed = YES;
 		error = @"Found less than four float values.";
 	}
+	
 	result.w = wxyz[0];
 	result.x = wxyz[1];
 	result.y = wxyz[2];
 	result.z = wxyz[3];
+	quaternion_normalise(&result);
+	
 	if (failed)
 	{
 		NSLog(@"***** ERROR cannot make quaternion from '%@' because '%@'", wxyzString, error);
