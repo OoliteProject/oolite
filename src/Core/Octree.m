@@ -589,6 +589,7 @@ BOOL	isHitByOctree(	Octree_details axialDetails,
 	}
 	
 	// from here on, this Octree and the other Octree are considered to be intersecting
+	Octree_details	nextDetails;	// for subdivision (may not be required)
 	unsigned char*	axialCollisionBuffer = axialDetails.octree_collision;
 	unsigned char*	otherCollisionBuffer = otherDetails.octree_collision;
 	if (axialBuffer[0] == -1)
@@ -605,9 +606,8 @@ BOOL	isHitByOctree(	Octree_details axialDetails,
 			return YES;
 		}
 		// the other octree must be decomposed
-		// and each of its octants tested against us
-		// (this is the hard bit that uses the ijk vectors to offset u0)
-		// if any of them collides with this octant (use level and rad unchanged)
+		// and each of its octants tested against the axial octree
+		// if any of them collides with this octant
 		// then we have a solid collision
 		//
 		if (debug & DEBUG_OCTREE_TEXT)
@@ -616,7 +616,6 @@ BOOL	isHitByOctree(	Octree_details axialDetails,
 		// work out the nearest octant to the axial octree
 		int	nearest_oct = ((otherPosition.x > 0.0)? 0:4)|((otherPosition.y > 0.0)? 0:2)|((otherPosition.z > 0.0)? 0:1);
 		//
-		Octree_details	nextDetails;
 		int				nextLevel			= otherBuffer[0];
 		int*			nextBuffer			= &otherBuffer[nextLevel];
 		unsigned char*	nextCollisionBuffer	= &otherCollisionBuffer[nextLevel];
@@ -654,7 +653,6 @@ BOOL	isHitByOctree(	Octree_details axialDetails,
 	// work out the nearest octant to the other octree
 	int	nearest_oct = ((otherPosition.x > 0.0)? 4:0)|((otherPosition.y > 0.0)? 2:0)|((otherPosition.z > 0.0)? 1:0);
 	//
-	Octree_details	nextDetails;
 	int		nextLevel = axialBuffer[0];
 	int*	nextBuffer = &axialBuffer[nextLevel];
 	unsigned char* nextCollisionBuffer = &axialCollisionBuffer[nextLevel];
