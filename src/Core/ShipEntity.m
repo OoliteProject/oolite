@@ -3005,6 +3005,14 @@ BOOL ship_canCollide (ShipEntity* ship)
 	
 		if ((debug | debug_flag) & (DEBUG_COLLISIONS | DEBUG_OCTREE))
 			[octree drawOctreeCollisions];
+	
+		if ((isSubentity)&&[self owner])
+		{
+			if (([self owner]->status == STATUS_COCKPIT_DISPLAY)&&((debug | debug_flag) & (DEBUG_COLLISIONS | DEBUG_OCTREE)))
+				[octree drawOctree];
+			if ((debug | debug_flag) & (DEBUG_COLLISIONS | DEBUG_OCTREE))
+				[octree drawOctreeCollisions];
+		}
 	}
 	//
 	checkGLErrors([NSString stringWithFormat:@"ShipEntity after drawing Entity (main) %@", self]);
@@ -3066,20 +3074,20 @@ BOOL ship_canCollide (ShipEntity* ship)
 		glMultMatrixf(rotMatrix);
 
 		[self drawEntity:immediate :translucent];
-
+		
 //		NSLog(@"drawn active entity : %@", basefile);
 
 	}
 	else
 	{
-			glPushMatrix();
+		glPushMatrix();
 
-			glTranslated( position.x, position.y, position.z);
-			glMultMatrixf(rotMatrix);
+		glTranslated( position.x, position.y, position.z);
+		glMultMatrixf(rotMatrix);
 
-			[self drawEntity:immediate :translucent];
+		[self drawEntity:immediate :translucent];
 
-			glPopMatrix();
+		glPopMatrix();
 	}
 }
 
