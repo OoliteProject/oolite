@@ -771,20 +771,15 @@ NSDictionary* instructions(int station_id, Vector coords, float speed, float ran
 	port_position = dock_pos;
 	port_qrotation = dock_q;
 
-	Vector vi = vector_right_from_quaternion(dock_q);
-	Vector vj = vector_up_from_quaternion(dock_q);
-	Vector vk = vector_forward_from_quaternion(dock_q);
-	BoundingBox arbb = [port_model findBoundingBoxRelativeToPosition: dock_pos InVectors: vi : vj : vk];
-	port_dimensions = make_vector( arbb.max.x - arbb.min.x, arbb.max.y - arbb.min.y, arbb.max.z - arbb.min.z);
+	BoundingBox bb = [port_model getBoundingBox];
+	port_dimensions = make_vector( bb.max.x - bb.min.x, bb.max.y - bb.min.y, bb.max.z - bb.min.z);
 
-//	NSLog(@"DEBUG set docking port for %@ to %@ dimensions ( %.2f, %.2f, %.2f) from model dimensions ( %.2f, %.2f, %.2f)", self, dock_model,
-//		port_dimensions.x, port_dimensions.y, port_dimensions.z, model_dimensions.x, model_dimensions.y, model_dimensions.z);
-	
-	if (arbb.max.z > 0.0)
+	if (bb.max.z > 0.0)
 	{
-		port_position.x += arbb.max.z * vk.x;
-		port_position.y += arbb.max.z * vk.y;
-		port_position.z += arbb.max.z * vk.z;
+		Vector vk = vector_forward_from_quaternion(dock_q);
+		port_position.x += bb.max.z * vk.x;
+		port_position.y += bb.max.z * vk.y;
+		port_position.z += bb.max.z * vk.z;
 	}
 	
 }
