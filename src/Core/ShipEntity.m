@@ -5246,7 +5246,8 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 
 		if ((station_for_docking)&&(station_for_docking->isStation))
 		{
-			Vector up_vec = [station_for_docking portUpVector];
+//			Vector up_vec = [station_for_docking portUpVector];
+			Vector up_vec = [station_for_docking portUpVectorForShipsBoundingBox: boundingBox];
 			double cosTheta = dot_product(up_vec, v_up);	// == cos of angle between up vectors
 			double sinTheta = dot_product(up_vec, v_right);
 

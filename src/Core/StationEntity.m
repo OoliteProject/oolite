@@ -597,7 +597,7 @@ NSDictionary* instructions(int station_id, Vector coords, float speed, float ran
 {
 //	NSLog(@"DEBUG docking port for %@ is %@ dimensions ( %.2f, %.2f, %.2f)", self, port_model,
 //		port_dimensions.x, port_dimensions.y, port_dimensions.z);
-	if (port_dimensions.x > port_dimensions. y)
+	if (port_dimensions.x > port_dimensions.y)
 	{
 //		NSLog(@"DEBUG returning UP !");
 		return vector_up_from_quaternion( quaternion_multiply( port_qrotation, q_rotation));
@@ -608,6 +608,23 @@ NSDictionary* instructions(int station_id, Vector coords, float speed, float ran
 		return vector_right_from_quaternion( quaternion_multiply( port_qrotation, q_rotation));
 	}
 }
+
+- (Vector) portUpVectorForShipsBoundingBox:(BoundingBox) bb
+{
+	BOOL twist = ((port_dimensions.x < port_dimensions.y) ^ (bb.max.x - bb.min.x < bb.max.y - bb.min.y));
+
+//	NSLog(@"DEBUG docking: port_twist:%@ ship_twist:%@ twist:%@", (port_dimensions.x < port_dimensions.y)?@"YES":@"NO", (bb.max.x - bb.min.x < bb.max.y - bb.min.y)?@"YES":@"NO", twist?@"YES":@"NO");
+
+	if (!twist)
+	{
+		return vector_up_from_quaternion( quaternion_multiply( port_qrotation, q_rotation));
+	}
+	else
+	{
+		return vector_right_from_quaternion( quaternion_multiply( port_qrotation, q_rotation));
+	}
+}
+
 
 //////////////////////////////////////////////// from superclass
 
@@ -750,21 +767,24 @@ NSDictionary* instructions(int station_id, Vector coords, float speed, float ran
 - (void) setDockingPortModel:(ShipEntity*) dock_model :(Vector) dock_pos :(Quaternion) dock_q
 {
 	port_model = dock_model;
-	BoundingBox bb = [port_model getBoundingBox];
-	port_dimensions = make_vector( bb.max.x - bb.min.x, bb.max.y - bb.min.y, bb.max.z - bb.min.z);
+		
 	port_position = dock_pos;
 	port_qrotation = dock_q;
+
+	Vector vi = vector_right_from_quaternion(dock_q);
+	Vector vj = vector_up_from_quaternion(dock_q);
+	Vector vk = vector_forward_from_quaternion(dock_q);
+	BoundingBox arbb = [port_model findBoundingBoxRelativeToPosition: dock_pos InVectors: vi : vj : vk];
+	port_dimensions = make_vector( arbb.max.x - arbb.min.x, arbb.max.y - arbb.min.y, arbb.max.z - arbb.min.z);
+
+//	NSLog(@"DEBUG set docking port for %@ to %@ dimensions ( %.2f, %.2f, %.2f) from model dimensions ( %.2f, %.2f, %.2f)", self, dock_model,
+//		port_dimensions.x, port_dimensions.y, port_dimensions.z, model_dimensions.x, model_dimensions.y, model_dimensions.z);
 	
-//	NSLog(@"set docking port for %@ to %@ dimensions ( %.2f, %.2f, %.2f)", self, dock_model,
-//		port_dimensions.x, port_dimensions.y, port_dimensions.z);
-	
-	Vector port_k = vector_forward_from_quaternion( dock_q);
-	if (bb.max.z > 0.0)
+	if (arbb.max.z > 0.0)
 	{
-//		NSLog(@"DEBUG port z goes from %.2f to %.2f ... adjusting port_position accordingly", bb.min.z, bb.max.z);
-		port_position.x += bb.max.z * port_k.x;
-		port_position.y += bb.max.z * port_k.y;
-		port_position.z += bb.max.z * port_k.z;
+		port_position.x += arbb.max.z * vk.x;
+		port_position.y += arbb.max.z * vk.y;
+		port_position.z += arbb.max.z * vk.z;
 	}
 	
 }
@@ -817,43 +837,6 @@ NSDictionary* instructions(int station_id, Vector coords, float speed, float ran
 	
 	[super setUpShipFromDictionary:dict];
 	
-//	// set up a the docking port
-//	//
-//	port_position = make_vector( 0, 0, port_radius);	// forward
-//	quaternion_set_identity(&port_qrotation);
-//	port_dimensions = make_vector( 69, 69, 250);		// base port size (square)
-//	if ([dict objectForKey:@"subentities"])
-//	{
-//		int i;
-//		NSArray *subs = (NSArray *)[dict objectForKey:@"subentities"];
-//		for (i = 0; i < [subs count]; i++)
-//		{
-//			NSArray* details = [Entity scanTokensFromString:(NSString *)[subs objectAtIndex:i]];
-//			if (([details count] == 8)&&([(NSString *)[details objectAtIndex:0] hasPrefix:@"dock"]))
-//			{
-//				port_position.x = [(NSString *)[details objectAtIndex:1] floatValue];
-//				port_position.y = [(NSString *)[details objectAtIndex:2] floatValue];
-//				port_position.z = [(NSString *)[details objectAtIndex:3] floatValue];
-//				port_qrotation.w = [(NSString *)[details objectAtIndex:4] floatValue];
-//				port_qrotation.x = [(NSString *)[details objectAtIndex:5] floatValue];
-//				port_qrotation.y = [(NSString *)[details objectAtIndex:6] floatValue];
-//				port_qrotation.z = [(NSString *)[details objectAtIndex:7] floatValue];
-//			}
-//			quaternion_normalise(&port_qrotation);
-//		}
-//	}
-
-//	if ([dict objectForKey:@"port_dimensions"])   // this can be set for rock-hermits and other specials
-//	{
-//		NSArray* tokens = [(NSString*)[dict objectForKey:@"port_dimensions"] componentsSeparatedByString:@"x"];
-//		if ([tokens count] == 3)
-//		{
-//			port_dimensions = make_vector(	[(NSString*)[tokens objectAtIndex:0] floatValue],
-//											[(NSString*)[tokens objectAtIndex:1] floatValue],
-//											[(NSString*)[tokens objectAtIndex:2] floatValue]);
-//		}
-//	}
-
 	if ([dict objectForKey:@"equivalent_tech_level"])
 		equivalent_tech_level = [(NSNumber *)[dict objectForKey:@"equivalent_tech_level"] intValue];
 	else
@@ -1237,7 +1220,9 @@ NSDictionary* instructions(int station_id, Vector coords, float speed, float ran
 	Quaternion q1 = q_rotation;
 	q1 = quaternion_multiply(port_qrotation, q1);
 	Vector launchVector = vector_forward_from_quaternion(q1);
-	quaternion_rotate_about_axis(&q1, launchVector, PI*0.5);  // to account for the slot being at 90 degrees to vertical
+	BoundingBox bb = [ship getBoundingBox];
+	if ((port_dimensions.x < port_dimensions.y) ^ (bb.max.x - bb.min.x < bb.max.y - bb.min.y))
+		quaternion_rotate_about_axis(&q1, launchVector, PI*0.5);  // to account for the slot being at 90 degrees to vertical
 	[ship setQRotation:q1];
 	// launch position
 	launchPos.x += port_position.x * v_right.x + port_position.y * v_up.x + port_position.z * v_forward.x;

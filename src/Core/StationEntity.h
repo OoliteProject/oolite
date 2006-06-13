@@ -138,6 +138,7 @@ NSDictionary* instructions(int station_id, Vector coords, float speed, float ran
 - (void) addShipToShipsOnApproach:(ShipEntity *) ship;
 
 - (Vector) portUpVector;
+- (Vector) portUpVectorForShipsBoundingBox:(BoundingBox) bb;
 
 - (BOOL) shipIsInDockingCorridor:(ShipEntity*) ship;
 
