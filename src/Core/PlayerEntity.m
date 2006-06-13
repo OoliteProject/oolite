@@ -6717,7 +6717,7 @@ OOSound* burnersound;
 
 - (void)		setCustomViewDataFromDictionary:(NSDictionary*) viewDict
 {
-	NSLog(@"DEBUG setting custom view data from %@", viewDict);
+//	NSLog(@"DEBUG setting custom view data from %@", viewDict);
 	
 	Quaternion view_q;
 	quaternion_set_identity(&view_q);
@@ -6735,9 +6735,7 @@ OOSound* burnersound;
 	customViewForwardVector = vector_forward_from_quaternion(view_q);
 	
 	Quaternion q1 = view_q;	q1.w = -q1.w;
-	
-//	customViewQuaternion = q1;
-	
+		
 	quaternion_into_gl_matrix( q1, customViewMatrix);
 	
 	if ([viewDict objectForKey:@"view_position"])
