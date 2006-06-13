@@ -556,6 +556,9 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 
 - (void) addSolidSubentityToCollisionRadius:(ShipEntity*) subent;
 
+ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other);
+
+
 /*-----------------------------------------
 
 	AI piloting methods

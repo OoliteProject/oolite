@@ -1374,11 +1374,109 @@ BOOL ship_canCollide (ShipEntity* ship)
 	return ship_canCollide(self);
 }
 
+ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
+{
+	// octree check
+	Octree* prime_octree = prime->octree;
+	Octree* other_octree = other->octree;
+
+	Vector prime_position = prime->position;
+
+	Triangle prime_ijk;
+	prime_ijk.v[0] = prime->v_right;
+	prime_ijk.v[1] = prime->v_up;
+	prime_ijk.v[2] = prime->v_forward;
+	
+	if (prime->isSubentity)
+	{
+		prime_position = [prime absolutePositionForSubentity];
+		prime_ijk = [prime absoluteIJKForSubentity];
+	}
+	
+	Vector other_position = other->position;
+	
+	Triangle other_ijk;
+	other_ijk.v[0] = other->v_right;
+	other_ijk.v[1] = other->v_up;
+	other_ijk.v[2] = other->v_forward;
+	
+	if (other->isSubentity)
+	{
+		other_position = [other absolutePositionForSubentity];
+		other_ijk = [other absoluteIJKForSubentity];
+	}
+
+	Vector		relative_position_of_other = resolveVectorInIJK( vector_between(prime_position, other_position), prime_ijk);
+	Triangle	relative_ijk_of_other;
+	relative_ijk_of_other.v[0] = resolveVectorInIJK( other_ijk.v[0], prime_ijk);
+	relative_ijk_of_other.v[1] = resolveVectorInIJK( other_ijk.v[1], prime_ijk);
+	relative_ijk_of_other.v[2] = resolveVectorInIJK( other_ijk.v[2], prime_ijk);
+	
+	// check hull octree against other hull octree
+	//
+	if ([prime_octree isHitByOctree: other_octree withOrigin: relative_position_of_other andIJK: relative_ijk_of_other])
+		return other;
+		
+	// check prime subentities against the other's hull
+	//
+	NSArray* prime_subs = prime->sub_entities;
+	if (prime_subs)
+	{
+		int i;
+		int n_subs = [prime_subs count];
+		for (i = 0; i < n_subs; i++)
+		{
+			Entity* se = (Entity*)[prime_subs objectAtIndex:i];
+			if ((se->isShip) && [se canCollide] && doOctreesCollide( (ShipEntity*)se, other))
+				return other;
+		}
+	}
+
+	// check prime hull against the other's subentities
+	//
+	NSArray* other_subs = other->sub_entities;
+	if (other_subs)
+	{
+		int i;
+		int n_subs = [other_subs count];
+		for (i = 0; i < n_subs; i++)
+		{
+			Entity* se = (Entity*)[other_subs objectAtIndex:i];
+			if ((se->isShip) && [se canCollide] && doOctreesCollide( prime, (ShipEntity*)se))
+				return (ShipEntity*)se;
+		}
+	}
+
+	// check prime subenties against the other's subentities
+	//
+	if ((prime_subs)&&(other_subs))
+	{
+		int i;
+		int n_osubs = [other_subs count];
+		for (i = 0; i < n_osubs; i++)
+		{
+			Entity* oe = (Entity*)[other_subs objectAtIndex:i];
+			if ((oe->isShip) && [oe canCollide])
+			{
+				int j;
+				int n_psubs = [prime_subs count];
+				for (j = 0; j <  n_psubs; j++)
+				{
+					Entity* pe = (Entity*)[prime_subs objectAtIndex:j];
+					if ((pe->isShip) && [pe canCollide] && doOctreesCollide( (ShipEntity*)pe, (ShipEntity*)oe))
+						return (ShipEntity*)oe;
+				}
+			}
+		}
+	}
+
+	// fall through => no collision
+	//
+	return (ShipEntity*)nil;
+}
+
 - (BOOL) checkCloseCollisionWith:(Entity *)other
 {
-//	if (isPlayer||(other->isPlayer))
-//		NSLog(@"DEBUG %@ Checking close collision with %@", self, other);
-
 	if (!other)
 		return NO;
 	if ([collidingEntities containsObject:other])	// we know about this already!
@@ -1411,119 +1509,14 @@ BOOL ship_canCollide (ShipEntity* ship)
 
 	if (other->isShip)
 	{
-		// check bounding spheres versus bounding spheres
-		ShipEntity* other_ship = (ShipEntity*)other;
-		
-		// octree check
-		Octree* other_octree = other_ship->octree;
-		Triangle own_ijk;
-		own_ijk.v[0] = v_right;
-		own_ijk.v[1] = v_up;
-		own_ijk.v[2] = v_forward;
-		Vector other_position = resolveVectorInIJK( vector_between(position, other_ship->position), own_ijk);
-		Triangle other_ijk;
-		other_ijk.v[0] = resolveVectorInIJK( other_ship->v_right, own_ijk);
-		other_ijk.v[1] = resolveVectorInIJK( other_ship->v_up, own_ijk);
-		other_ijk.v[2] = resolveVectorInIJK( other_ship->v_forward, own_ijk);
-		
-		if ([octree isHitByOctree: other_octree withOrigin: other_position andIJK: other_ijk])
-			return YES;
-
-		// check our solid subentities against the other ship's
+		// check hull octree versus other hull octree
 		//
-		int i,j;
-		NSArray* other_subs = other_ship->sub_entities;
-		int n_subs1 = [sub_entities count];
-		int n_subs2 = [other_subs count];
-		ShipEntity* entity1[ 1 + n_subs1 ];
-		ShipEntity* entity2[ 1 + n_subs2 ];
-		Vector sphere_positions1[ 1 + n_subs1 ];
-		Vector sphere_positions2[ 1 + n_subs2 ];
-		double sphere_rad1[ 1 + n_subs1 ];
-		double sphere_rad2[ 1 + n_subs2 ];
-		Triangle sphere_ijk1[ 1 + n_subs1 ];
-		Triangle sphere_ijk2[ 1 + n_subs2 ];
-		int n_spheres1 = 1;
-		int n_spheres2 = 1;
-		sphere_positions1[0] = position;
-		sphere_rad1[0] = actual_radius;
-		sphere_ijk1[0] = own_ijk;
-		entity1[0] = self;
-		sphere_positions2[0] = other->position;
-		sphere_rad2[0] = other->actual_radius;
-		sphere_ijk2[0] = make_triangle( other_ship->v_right, other_ship->v_up, other_ship->v_forward);
-		entity2[0] = other_ship;
-		for (i = 0; i < n_subs1; i++)
-		{
-			Entity* se = [sub_entities objectAtIndex:i];
-			if ((se)&&[se canCollide]&&(se->isShip))
-			{
-				entity1[n_spheres1] = (ShipEntity*)se;
-				sphere_positions1[n_spheres1] = [(ShipEntity*)se absolutePositionForSubentity];
-				sphere_rad1[n_spheres1] = se->actual_radius;
-				sphere_ijk1[n_spheres1] = [(ShipEntity*)se absoluteIJKForSubentity];
-				n_spheres1++;
-			}
-		}
-		for (i = 0; i < n_subs2; i++)
-		{
-			Entity* se = [other_subs objectAtIndex:i];
-			if ((se)&&[se canCollide]&&(se->isShip))
-			{
-				entity2[n_spheres2] = (ShipEntity*)se;
-				sphere_positions2[n_spheres2] = [(ShipEntity*)se absolutePositionForSubentity];
-				sphere_rad2[n_spheres2] = se->actual_radius;
-				sphere_ijk2[n_spheres2] = [(ShipEntity*)se absoluteIJKForSubentity];
-				n_spheres2++;
-			}
-		}
-		for (i = 0; i < n_spheres1; i++)
-		{
-			for (j = 0; j < n_spheres2; j++)
-			{
-				double d1 = sphere_rad1[i] + sphere_rad2[j];
-				double d2 = distance2( sphere_positions1[i], sphere_positions2[j]);
-				if (d2 < d1 * d1)
-				{
-//					NSLog(@"DEBUG performing further checks for collision between %@ and %@", entity1[i], entity2[j]);
-
-					BOOL collision = YES;
-										
-					if ((i == 0)&&(j == 0))
-						collision = NO;	// already established
-					else
-					{
-						Octree* oct1 = entity1[i]->octree;
-						Octree* oct2 = entity2[j]->octree;
-						Vector rp = resolveVectorInIJK( vector_between( sphere_positions1[i], sphere_positions2[j]), sphere_ijk1[i]);
-						Triangle other_ijk;
-						other_ijk.v[0] = resolveVectorInIJK( sphere_ijk2[j].v[0], sphere_ijk1[i]);
-						other_ijk.v[1] = resolveVectorInIJK( sphere_ijk2[j].v[1], sphere_ijk1[i]);
-						other_ijk.v[2] = resolveVectorInIJK( sphere_ijk2[j].v[2], sphere_ijk1[i]);
-						if ([oct1 isHitByOctree: oct2 withOrigin: rp andIJK: other_ijk])
-							collision = YES;
-					}
-					
-//					if (i == 0)
-//					{
-//						if (j == 0)
-//							collision = [self checkBoundingBoxCollisionWith: other];
-//					}
-//					else
-//					{
-//						if (j == 0)
-//							collision = [entity1[i] subentityCheckBoundingBoxCollisionWith: other];
-//					}
-					if (collision)
-					{
-						collider = entity2[j];
-						return YES;
-					}
-				}
-			}
-		}
-		return NO;
+		collider = doOctreesCollide( self, (ShipEntity*)other);
+		return (collider != nil);
 	}
+	
+	// default at this stage is to say YES they've collided!
+	//
 	collider = other;
 	return YES;
 }
@@ -2154,26 +2147,7 @@ BOOL ship_canCollide (ShipEntity* ship)
 				[shipAI message:@"ENERGY_FULL"];
 			}
 		}
-//		//
-//		// subentity rotation
-//		//
-//		if ((subentity_rotational_velocity.x)||(subentity_rotational_velocity.y)||(subentity_rotational_velocity.z)||(subentity_rotational_velocity.w != 1.0))
-//		{
-//			Quaternion qf = subentity_rotational_velocity;
-//			qf.w *= (1.0 - delta_t);
-//			qf.x *= delta_t;
-//			qf.y *= delta_t;
-//			qf.z *= delta_t;
-//			q_rotation = quaternion_multiply( qf, q_rotation);
-//		}
-//		//
-//		//
-//		if (sub_entities)
-//		{
-//			int i;
-//			for (i = 0; i < [sub_entities count]; i++)
-//				[(Entity *)[sub_entities objectAtIndex:i] update:delta_t];
-//		}
+
 		//
 		// update destination position for escorts
 		if (n_escorts > 0)
@@ -2218,7 +2192,7 @@ BOOL ship_canCollide (ShipEntity* ship)
 		for (i = 0; i < [sub_entities count]; i++)
 			[(Entity *)[sub_entities objectAtIndex:i] update:delta_t];
 	}
-
+	
 }
 
 
