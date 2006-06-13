@@ -2211,7 +2211,7 @@ static BOOL customView_pressed;
 	
 	if ([gameView isDown:key_custom_view])
 	{
-		if ((!customView_pressed)&&(custom_views))
+		if ((!customView_pressed)&&(custom_views)&&(![universe displayCursor]))
 		{
 			if ([universe viewDir] == VIEW_CUSTOM)	// already in custom view mode
 			{
