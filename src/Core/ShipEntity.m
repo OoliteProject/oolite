@@ -3923,6 +3923,13 @@ static GLfloat mascem_color2[4] =	{ 0.4, 0.1, 0.4, 1.0};	// purple
 	energy -= amount;
 	being_mined = NO;
 	//
+	if ((other)&&(other->isShip))
+	{
+		ShipEntity* hunter = (ShipEntity *)other;
+		if (hunter->cloaking_device_active)	// check for cloak
+			other = nil;	// lose it!
+	}
+	//
 	// if the other entity is a ship note it as an aggressor
 	if ((other)&&(other->isShip))
 	{
