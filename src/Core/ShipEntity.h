@@ -185,6 +185,10 @@ Your fair use and other rights are in no way affected by the above.
 		//
 		Octree*	octree;	// this is not retained by the ShipEntity but kept in a global dict.
 
+		// expose cloaking device status
+		//
+		BOOL	cloaking_device_active;	// cloaking_device
+		
 	@protected
 
 		// per collision directions
@@ -225,7 +229,7 @@ Your fair use and other rights are in no way affected by the above.
 		BOOL	has_energy_bomb;		// energy_bomb
 
 		BOOL	has_cloaking_device;	// cloaking_device
-		BOOL	cloaking_device_active;	// cloaking_device
+//		BOOL	cloaking_device_active;	// cloaking_device
 
 		BOOL	has_military_jammer;	// military_jammer
 		BOOL	military_jammer_active;	// military_jammer

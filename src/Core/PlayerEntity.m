@@ -1828,10 +1828,10 @@ double scoopSoundPlayTime = 0.0;
 	{
 		if (missile_status == MISSILE_STATUS_TARGET_LOCKED)
 		{
-			Entity*	e = [universe entityForUniversalID:primaryTarget];
+			ShipEntity*	e = (ShipEntity*)[universe entityForUniversalID:primaryTarget];
 			if ((e == nil)||(e->zero_distance > SCANNER_MAX_RANGE2)||
-				(e->scan_class == CLASS_NO_DRAW)||						// checking scanClass checks for cloaked ships
-				((e->isShip)&&(!has_military_scanner_filter)&&([(ShipEntity*)e isJammingScanning])))	// checks for activated jammer
+				((e->isShip)&&(e->cloaking_device_active))||	// checks for cloaked ships
+				((e->isShip)&&(!has_military_scanner_filter)&&([e isJammingScanning])))	// checks for activated jammer
 			{
 				if (!suppressTargetLost)
 				{

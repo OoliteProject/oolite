@@ -1210,7 +1210,7 @@ WormholeEntity*	whole;
 	for (i = 0; i < n_scanned_ships; i++)
 	{
 		ShipEntity* ship = scanned_ships[i];
-		if ((ship != self)&&(!ship->isPlayer)&&([ship scanClass] == scan_class))	// look for alike
+		if ((ship != self)&&(!ship->isPlayer)&&(ship->scan_class == scan_class))	// look for alike
 		{
 			GLfloat d2 = distance2_scanned_ships[i];
 			if ((d2 < found_d2)&&(pairOK( [ship roles], roles)))

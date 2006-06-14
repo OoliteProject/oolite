@@ -2025,7 +2025,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 
 		ShipEntity*	target = (ShipEntity*)[universe entityForUniversalID:primaryTarget];
 
-		if ((target == nil)||(target->scan_class == CLASS_NO_DRAW)||(!target->isShip))
+		if ((target == nil)||(target->scan_class == CLASS_NO_DRAW)||(!target->isShip)||(target->cloaking_device_active))
 		{
 			 // It's no longer a parrot, it has ceased to be, it has joined the choir invisible...
 			if (primaryTarget != NO_TARGET)
@@ -5976,12 +5976,17 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 	Quaternion q1 = q_rotation;
 	Entity  *target = [self getPrimaryTarget];
 
-	if	((missiles <= 0)||(target == nil)||(target->scan_class == CLASS_NO_DRAW)||
-		((target->isShip)&&(!has_military_scanner_filter)&&([(ShipEntity*)target isJammingScanning])))	// no missile lock!
+	if	((missiles <= 0)||(target == nil)||(target->scan_class == CLASS_NO_DRAW))	// no missile lock!
 		return NO;
 
-//	if (scan_class == CLASS_THARGOID)
-//		return [self fireTharglet];
+	if (target->isShip)
+	{
+		ShipEntity* target_ship = (ShipEntity*)target;
+		if (target_ship->cloaking_device_active)
+			return NO;
+		if ((!has_military_scanner_filter)&&[target_ship isJammingScanning])
+			return NO;
+	}
 
 	// custom missiles
 	if ([shipinfoDictionary objectForKey:@"missile_role"])

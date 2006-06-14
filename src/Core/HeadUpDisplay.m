@@ -381,6 +381,11 @@ static BOOL hostiles;
 			
 			int drawClass = drawthing->scan_class;
 			if (drawClass == CLASS_PLAYER)	drawClass = CLASS_NO_DRAW;
+			if (drawthing->isShip)
+			{
+				ShipEntity* ship = (ShipEntity*)drawthing;
+				if (ship->cloaking_device_active)	drawClass = CLASS_NO_DRAW;
+			}
 			
 			// consider large bodies for mass_lock
 			if (drawthing->isPlanet)
@@ -1875,6 +1880,10 @@ void hudDrawReticleOnTarget(Entity* target, PlayerEntity* player1, GLfloat z1)
 	NSString* legal_desc = nil;
 	if ((!target)||(!player1))
 		return;
+
+	if (target_ship->cloaking_device_active)
+		return;
+	
 	switch (target_ship->scan_class)
 	{
 		case CLASS_NEUTRAL :
