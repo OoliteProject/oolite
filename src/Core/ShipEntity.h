@@ -364,6 +364,7 @@ Your fair use and other rights are in no way affected by the above.
 
 // octree collision hunting
 - (GLfloat) doesHitLine:(Vector) v0: (Vector) v1;
+- (GLfloat) doesHitLine:(Vector) v0: (Vector) v1 :(ShipEntity**) hitEntity;
 - (GLfloat) doesHitLine:(Vector) v0: (Vector) v1 withPosition:(Vector) o andIJK:(Vector) i :(Vector) j :(Vector) k;	// for subentities
 
 - (Vector)	absoluteTractorPosition;

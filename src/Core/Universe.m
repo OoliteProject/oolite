@@ -4683,59 +4683,28 @@ GLfloat* custom_matrix;
 				&&(v_off.x < ar)&&(v_off.x > -ar)&&(v_off.y < ar)&&(v_off.y > -ar)		// AND not off to one side or another
 				&&(v_off.x*v_off.x + v_off.y*v_off.y < ar*ar))							// AND not off to both sides
 			{
-				GLfloat hit = [(ShipEntity*)e2 doesHitLine:p0:p1];	// octree detection
+				ShipEntity* entHit = (ShipEntity*)nil;
+				GLfloat hit = [(ShipEntity*)e2 doesHitLine:p0:p1:&entHit];	// octree detection
 				
-				if (hit > 0.0)
+				if ((hit > 0.0)&&(hit < nearest))
 				{
-					hit_subentity = nil;
+					if (entHit->isSubentity)
+						hit_subentity = entHit;
 					hit_entity = e2;
 					nearest = hit;
 					p1 = make_vector( p0.x + nearest *f1.x, p0.y + nearest *f1.y, p0.z + nearest *f1.z);
 				}
 			}
 
-			// find any subentities for testing
-			int n_subs = 0;
-			NSArray* subs = e2->sub_entities;
-			if (subs)
-				n_subs = [subs count];
-			if ((hit_entity != e2)&&(n_subs))	// didn't hit main body but there are subs to chcek
-			{
-				// check subentity bounding spheres
-				int si;
-				for (si = 0; (hit_entity != e2)&&(si < n_subs); si++)
-				{
-					Entity* e3 = (Entity*)[subs objectAtIndex:si];
-					if ([e3 canCollide]&&(e3->isShip))
-					{
-						ShipEntity* se3 = (ShipEntity*)e3;
-						GLfloat sr = e3->actual_radius;
-						Vector sepos = [se3 absolutePositionForSubentity];
-						Vector rpos = make_vector( sepos.x - p0.x, sepos.y - p0.y, sepos.z - p0.z);
-						Vector v_off = make_vector( dot_product( rpos, r1), dot_product( rpos, u1), dot_product( rpos, f1));
-						if ((v_off.z > 0.0)&&(v_off.z < nearest + sr)								// ahead AND within range
-							&&(v_off.x < sr)&&(v_off.x > -sr)&&(v_off.y < sr)&&(v_off.y > -sr)		// AND not off to one side or another
-							&&(v_off.x*v_off.x + v_off.y*v_off.y < sr*sr))							// AND not off to both sides
-						{
-							Triangle ijk = [se3 absoluteIJKForSubentity];
-							GLfloat hit = [se3 doesHitLine:p0:p1 withPosition:sepos andIJK:ijk.v[0]:ijk.v[1]:ijk.v[2]];	// octree detection
-							if (hit > 0.0)
-							{
-								hit_subentity = se3;
-								hit_entity = e2;
-								nearest = hit;
-								p1 = make_vector( p0.x + nearest *f1.x, p0.y + nearest *f1.y, p0.z + nearest *f1.z);
-							}
-						}
-					}
-				}
-			}
 		}
 	}
 
 	//
 	if (hit_entity)
 	{
+//		if (e1->isPlayer)
+//			NSLog(@"DEBUG HIT %@ %d at %.2fm", hit_entity, [hit_entity universal_id], nearest);
+	
 		result = [hit_entity universal_id];
 		if ((hit_subentity)&&[hit_entity->sub_entities containsObject:hit_subentity])
 			hit_entity->subentity_taking_damage = hit_subentity;

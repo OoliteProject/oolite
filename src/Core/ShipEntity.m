@@ -410,6 +410,48 @@ static NSMutableDictionary* smallOctreeDict = nil;
 	return [octree isHitByLine:w0 :w1];
 }
 
+- (GLfloat) doesHitLine:(Vector) v0: (Vector) v1 :(ShipEntity**) hitEntity;
+{
+	if (hitEntity)
+		hitEntity[0] = (ShipEntity*)nil;
+	Vector u0 = vector_between(position, v0);	// relative to origin of model / octree
+	Vector u1 = vector_between(position, v1);
+	Vector w0 = make_vector( dot_product( u0, v_right), dot_product( u0, v_up), dot_product( u0, v_forward));	// in ijk vectors
+	Vector w1 = make_vector( dot_product( u1, v_right), dot_product( u1, v_up), dot_product( u1, v_forward));
+	GLfloat hit_distance = [octree isHitByLine:w0 :w1];
+	if (hit_distance)
+	{
+		if (hitEntity)
+			hitEntity[0] = self;
+	}
+	if (sub_entities)
+	{
+		int n_subs = [sub_entities count];
+		int i;
+		for (i = 0; i < n_subs; i++)
+		{
+			ShipEntity* se = [sub_entities objectAtIndex:i];
+			if (se->isShip)
+			{
+				Vector p0 = [se absolutePositionForSubentity];
+				Triangle ijk = [se absoluteIJKForSubentity];
+				u0 = vector_between( p0, v0);
+				u1 = vector_between( p0, v1);
+				w0 = resolveVectorInIJK( u0, ijk);
+				w1 = resolveVectorInIJK( u1, ijk);
+				GLfloat hitSub = [se->octree isHitByLine:w0 :w1];
+				if ((hitSub)&&((!hit_distance)||(hit_distance > hitSub)))
+				{	
+					hit_distance = hitSub;
+					if (hitEntity)
+						hitEntity[0] = se;
+				}
+			}
+		}
+	}
+	return hit_distance;
+}
+
 - (GLfloat) doesHitLine:(Vector) v0: (Vector) v1 withPosition:(Vector) o andIJK:(Vector) i :(Vector) j :(Vector) k;
 {
 	Vector u0 = vector_between( o, v0);	// relative to origin of model / octree
@@ -5591,47 +5633,32 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 	shot = [[ParticleEntity alloc] initLaserFromSubentity:self view:direction];	// alloc retains!
 	[shot setColor:laser_color];
 	[shot setScanClass: CLASS_NO_DRAW];
-	if (target_laser_hit != NO_TARGET)
+	ShipEntity *victim = (ShipEntity*)[universe entityForUniversalID:target_laser_hit];
+	if ((victim)&&(victim->isShip))
 	{
-		Entity *victim = [universe entityForUniversalID:target_laser_hit];
-		if (victim)
+		ShipEntity* subent = victim->subentity_taking_damage;
+		if ((subent) && (subent->isShip) && [victim->sub_entities containsObject:subent])
 		{
-			Vector p0 = shot->position;
-			Vector p1 = victim->position;
-			if (victim->isShip)
+			if (victim->isFrangible)
 			{
-				ShipEntity* ship_hit = ((ShipEntity*)victim);
-				ShipEntity* subent = ship_hit->subentity_taking_damage;
-				if ((subent) && [ship_hit->sub_entities containsObject:subent])
-				{
-					if (ship_hit->isFrangible)
-					{
-						p1 = [subent absolutePositionForSubentity];
-						victim = subent;
-						// do 1% bleed-through damage...
-						[ship_hit takeEnergyDamage: 0.01 * weapon_energy from:subent becauseOf:self];
-					}
-				}
+				// do 1% bleed-through damage...
+				[victim takeEnergyDamage: 0.01 * weapon_energy from:subent becauseOf: parent];
+				victim = subent;
 			}
-			//
-			double dist2 = distance2( p0, p1);
-			if ((victim->isShip)&&(dist2 < weapon_range*weapon_range))
-			{
-				[(ShipEntity *)victim takeEnergyDamage:weapon_energy from:self becauseOf:parent];	// a very palpable hit
-//				[shot setCollisionRadius:sqrt(dist2)];	// so it's drawn to the right size
+		}
 
-				// calculate where to draw flash
-//				double cr = shot->collision_radius - victim->collision_radius;
-				double cr = hit_at_range;
-				[shot setCollisionRadius: cr];
-				Vector vd = vector_forward_from_quaternion(shot->q_rotation);
-				Vector p0 = shot->position;
-				p0.x += vd.x * cr;	p0.y += vd.y * cr;	p0.z += vd.z * cr;
-				ParticleEntity* laserFlash = [[ParticleEntity alloc] initFlashSize:1.0 FromPosition: p0 Color:laser_color];
-				[laserFlash setVelocity:[victim getVelocity]];
-				[universe addEntity:laserFlash];
-				[laserFlash release];
-			}
+		if (hit_at_range < weapon_range)
+		{
+			[victim takeEnergyDamage:weapon_energy from:self becauseOf: parent];	// a very palpable hit
+
+			[shot setCollisionRadius: hit_at_range];
+			Vector flash_pos = shot->position;
+			Vector vd = vector_forward_from_quaternion(shot->q_rotation);
+			flash_pos.x += vd.x * hit_at_range;	flash_pos.y += vd.y * hit_at_range;	flash_pos.z += vd.z * hit_at_range;
+			ParticleEntity* laserFlash = [[ParticleEntity alloc] initFlashSize:1.0 FromPosition: flash_pos Color:laser_color];
+			[laserFlash setVelocity:[victim getVelocity]];
+			[universe addEntity:laserFlash];
+			[laserFlash release];
 		}
 	}
 	[universe addEntity:shot];
@@ -5681,50 +5708,32 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 	[shot setPosition: position];
 	[shot setQRotation: q_laser];
 	[shot setVelocity: vel];
-	if (target_laser_hit != NO_TARGET)
+	ShipEntity *victim = (ShipEntity*)[universe entityForUniversalID:target_laser_hit];
+	if ((victim)&&(victim->isShip))
 	{
-		Entity *victim = [universe entityForUniversalID:target_laser_hit];
-
-		if ((victim) && (victim->isShip))
+		ShipEntity* subent = victim->subentity_taking_damage;
+		if ((subent) && (subent->isShip) && [victim->sub_entities containsObject:subent])
 		{
-			ShipEntity* parent = (ShipEntity*)[victim owner];
-			if ((parent) && (parent != victim) && [parent->sub_entities containsObject:victim])
+			if (victim->isFrangible)
 			{
-				if (parent->isFrangible)
-				{
-//					NSLog(@"DEBUG Direct Laser hit on subentity %@ of frangible entity %@", victim, parent);
-				}
-				else
-				{
-//					NSLog(@"DEBUG Direct Laser hit on subentity %@ of NON-frangible entity %@", victim, parent);
-					victim = parent;
-				}
+				// do 1% bleed-through damage...
+				[victim takeEnergyDamage: 0.01 * weapon_energy from:subent becauseOf:self];
+				victim = subent;
 			}
 		}
 
-		if (victim)
+		if (hit_at_range * hit_at_range < range_limit2)
 		{
-			Vector p0 = shot->position;
-			Vector p1 = victim->position;
-			p1.x -= p0.x;	p1.y -= p0.y;	p1.z -= p0.z;
-			double dist2 = magnitude2(p1);
-			if ((victim->isShip)&&(dist2 < range_limit2))
-			{
-				[(ShipEntity *)victim takeEnergyDamage:weapon_energy from:self becauseOf:self];	// a very palpable hit
-//				[shot setCollisionRadius:sqrt(dist2)];
+			[victim takeEnergyDamage:weapon_energy from:self becauseOf:self];	// a very palpable hit
 
-				// calculate where to draw flash
-//				double cr = shot->collision_radius - victim->collision_radius;
-				double cr = hit_at_range;
-				[shot setCollisionRadius: cr];
-				Vector vd = vector_forward_from_quaternion(shot->q_rotation);
-				Vector p0 = shot->position;
-				p0.x += vd.x * cr;	p0.y += vd.y * cr;	p0.z += vd.z * cr;
-				ParticleEntity* laserFlash = [[ParticleEntity alloc] initFlashSize:1.0 FromPosition: p0 Color:laser_color];
-				[laserFlash setVelocity:[victim getVelocity]];
-				[universe addEntity:laserFlash];
-				[laserFlash release];
-			}
+			[shot setCollisionRadius: hit_at_range];
+			Vector flash_pos = shot->position;
+			Vector vd = vector_forward_from_quaternion(shot->q_rotation);
+			flash_pos.x += vd.x * hit_at_range;	flash_pos.y += vd.y * hit_at_range;	flash_pos.z += vd.z * hit_at_range;
+			ParticleEntity* laserFlash = [[ParticleEntity alloc] initFlashSize:1.0 FromPosition: flash_pos Color:laser_color];
+			[laserFlash setVelocity:[victim getVelocity]];
+			[universe addEntity:laserFlash];
+			[laserFlash release];
 		}
 	}
 	[universe addEntity:shot];
@@ -5778,61 +5787,32 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 	[shot setColor:laser_color];
 	[shot setScanClass: CLASS_NO_DRAW];
 	[shot setVelocity: vel];
-	if (target_laser_hit != NO_TARGET)
+	ShipEntity *victim = (ShipEntity*)[universe entityForUniversalID:target_laser_hit];
+	if ((victim)&&(victim->isShip))
 	{
-		Entity *victim = [universe entityForUniversalID:target_laser_hit];
-
-		if ((victim) && (victim->isShip))
+		ShipEntity* subent = victim->subentity_taking_damage;
+		if ((subent) && (subent->isShip) && [victim->sub_entities containsObject:subent])
 		{
-			ShipEntity* parent = (ShipEntity*)[victim owner];
-			if ((parent) && (parent != victim) && [parent->sub_entities containsObject:victim])
+			if (victim->isFrangible)
 			{
-				if (!(parent->isFrangible))
-					victim = parent;
+				// do 1% bleed-through damage...
+				[victim takeEnergyDamage: 0.01 * weapon_energy from:subent becauseOf:self];
+				victim = subent;
 			}
 		}
 
-		if (victim)
+		if (hit_at_range * hit_at_range < range_limit2)
 		{
-			Vector p0 = shot->position;
-			Vector p1 = victim->position;
-			p1.x -= p0.x;	p1.y -= p0.y;	p1.z -= p0.z;
+			[victim takeEnergyDamage:weapon_energy from:self becauseOf:self];	// a very palpable hit
 
-			if (victim->isShip)
-			{
-				ShipEntity* ship_hit = ((ShipEntity*)victim);
-				ShipEntity* subent = ship_hit->subentity_taking_damage;
-				if ((subent) && [ship_hit->sub_entities containsObject:subent])
-				{
-					if (ship_hit->isFrangible)
-					{
-						p1 = [subent absolutePositionForSubentity];
-						victim = subent;
-						// do 1% bleed-through damage...
-						[ship_hit takeEnergyDamage: 0.01 * weapon_energy from:subent becauseOf:self];
-					}
-				}
-			}
-
-			double dist2 = magnitude2(p1);
-			if ((victim->isShip)&&(dist2 < range_limit2))
-			{
-				[(ShipEntity *)victim takeEnergyDamage:weapon_energy from:self becauseOf:self];	// a very palpable hit
-
-				GLfloat cr = hit_at_range;
-
-//				if (isPlayer)
-//					NSLog(@"DEBUG distance double check = %.2f", cr);
-
-				[shot setCollisionRadius: cr];
-				Vector vd = vector_forward_from_quaternion(shot->q_rotation);
-				Vector p0 = shot->position;
-				p0.x += vd.x * cr;	p0.y += vd.y * cr;	p0.z += vd.z * cr;
-				ParticleEntity* laserFlash = [[ParticleEntity alloc] initFlashSize:1.0 FromPosition: p0 Color:laser_color];
-				[laserFlash setVelocity:[victim getVelocity]];
-				[universe addEntity:laserFlash];
-				[laserFlash release];
-			}
+			[shot setCollisionRadius: hit_at_range];
+			Vector flash_pos = shot->position;
+			Vector vd = vector_forward_from_quaternion(shot->q_rotation);
+			flash_pos.x += vd.x * hit_at_range;	flash_pos.y += vd.y * hit_at_range;	flash_pos.z += vd.z * hit_at_range;
+			ParticleEntity* laserFlash = [[ParticleEntity alloc] initFlashSize:1.0 FromPosition: flash_pos Color:laser_color];
+			[laserFlash setVelocity:[victim getVelocity]];
+			[universe addEntity:laserFlash];
+			[laserFlash release];
 		}
 	}
 	[universe addEntity:shot];

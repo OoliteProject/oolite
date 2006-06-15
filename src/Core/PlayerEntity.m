@@ -3023,7 +3023,6 @@ double scoopSoundPlayTime = 0.0;
 
 - (BOOL) fireMainWeapon
 {
-//	int weapon_to_be_fired = [self weaponForView:[universe viewDir]];
 	int weapon_to_be_fired = [self weaponForView: currentWeaponFacing];
 
 	if (weapon_temp / PLAYER_MAX_WEAPON_TEMP >= 0.85)
@@ -3086,7 +3085,6 @@ double scoopSoundPlayTime = 0.0;
 
 	energy -= weapon_energy_per_shot;
 
-//	switch ([universe viewDir])
 	switch (currentWeaponFacing)
 	{
 		case VIEW_GUI_DISPLAY:
@@ -3119,7 +3117,7 @@ double scoopSoundPlayTime = 0.0;
 		case WEAPON_BEAM_LASER :
 		case WEAPON_MINING_LASER :
 		case WEAPON_MILITARY_LASER :
-			[self fireLaserShotInDirection:[universe viewDir]];
+			[self fireLaserShotInDirection: currentWeaponFacing];
 			return YES;
 			break;
 		case WEAPON_THARGOID_LASER :
