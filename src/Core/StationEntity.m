@@ -902,9 +902,9 @@ NSDictionary* instructions(int station_id, Vector coords, float speed, float ran
 
 - (BOOL) shipIsInDockingCorridor:(ShipEntity*) ship
 {
-//	if (ship->isPlayer)
-//		NSLog(@"DEBUG checking if player is in docking corridor...");
-
+	if ((!ship)||(!ship->isShip))
+		return NO;
+	
 	Quaternion q0 = quaternion_multiply(port_qrotation, q_rotation);
 	Vector vi = vector_right_from_quaternion(q0);
 	Vector vj = vector_up_from_quaternion(q0);
@@ -938,9 +938,6 @@ NSDictionary* instructions(int station_id, Vector coords, float speed, float ran
 
 	if ((arbb.max.x < ww)&&(arbb.min.x > -ww)&&(arbb.max.y < hh)&&(arbb.min.y > -hh))
 	{
-//		if (ship->isPlayer)
-//			NSLog(@"DEBUG player bounding box is within the port lane");
-			
 		// in lane
 		if (0.90 * arbb.max.z + 0.10 * arbb.min.z < 0.0)	// we're 90% in docking position!
 			[ship enterDock:self];
@@ -948,9 +945,6 @@ NSDictionary* instructions(int station_id, Vector coords, float speed, float ran
 		return YES;
 		//
 	}
-	
-//	if (ship->isPlayer)
-//		NSLog(@"DEBUG Outside the corridor!");
 	
 	// if close enough (within 50%) correct and add damage
 	//
@@ -1207,6 +1201,9 @@ NSDictionary* instructions(int station_id, Vector coords, float speed, float ran
 
 - (void) launchShip:(ShipEntity *) ship
 {
+	if ((!ship)||(!ship->isShip))
+		return;
+	
 	Vector launchPos = position;
 	Vector launchVel = velocity;
 	double launchSpeed = 0.5 * [ship max_flight_speed];

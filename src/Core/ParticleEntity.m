@@ -217,7 +217,7 @@ static	Vector	circleVertex[65];		// holds vector coordinates for a unit circle
 	if ((!subent)||(!subent->isShip))
 		return self;
 	Entity* parent = [subent owner];
-	if (!parent)
+	if ((!parent)||(!parent->isShip))
 		return self;
     //
 	status = STATUS_EFFECT;
@@ -1324,7 +1324,7 @@ static	Vector	circleVertex[65];		// holds vector coordinates for a unit circle
 	GLfloat c1[8] = { 1.0, 0.707, 0.0, -0.707, -1.0, -0.707, 0.0, 0.707};
 	ShipEntity  *ship =(ShipEntity *)[universe entityForUniversalID:owner];
 
-	if (!ship)
+	if ((!ship)||(!ship->isShip))
 		return;
 
 	Quaternion shipQrotation = ship->q_rotation;
