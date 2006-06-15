@@ -924,11 +924,26 @@ static NSTimeInterval	time_last_frame;
 			{
 				[universe obj_dump];	// dump objects
 				debug = 0;
+				[universe addMessage:@"Entity List dumped. Debugging OFF" forCount:3];
 			}
 			cloak_pressed = YES;
 		}
 		else
 			cloak_pressed = NO;
+		
+		// look for debugging keys
+		if ([gameView isDown:'d'])// look for the '1' key
+		{
+			debug = -1;
+			[universe addMessage:@"Full debug ON" forCount:3];
+		}
+		
+		// look for debugging keys
+		if ([gameView isDown:'b'])// look for the '1' key
+		{
+			debug = DEBUG_COLLISIONS;
+			[universe addMessage:@"Collision debug ON" forCount:3];
+		}
 		
 		// look for debugging keys
 		if ([gameView isDown:'c'])// look for the 'c' key
