@@ -4548,7 +4548,7 @@ double scoopSoundPlayTime = 0.0;
 	NSString*		targetSystemName;
 	NSDictionary*   descriptions = [universe descriptions];
 
-	target_system_seed =	[universe findSystemAtCoords:cursor_coordinates withGalaxySeed:galaxy_seed];
+//	target_system_seed =	[universe findSystemAtCoords:cursor_coordinates withGalaxySeed:galaxy_seed];
 
 	targetSystemData =		[[universe generateSystemData:target_system_seed] retain];  // retained
 	targetSystemName =		[[universe getSystemName:target_system_seed] retain];  // retained

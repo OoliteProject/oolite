@@ -746,7 +746,7 @@ static NSTimeInterval	time_last_frame;
 					double		distance = distanceBetweenPlanetPositions(target_system_seed.d,target_system_seed.b,galaxy_coordinates.x,galaxy_coordinates.y); 
 					BOOL		jumpOK = YES;
 					
-					if ((dx == 0)&&(dy == 0))
+					if ((dx == 0) && (dy == 0) && equal_seeds(target_system_seed, system_seed))
 					{
 						if (![universe playCustomSound:@"[witch-no-target]"])
 							[self boop];
@@ -755,7 +755,7 @@ static NSTimeInterval	time_last_frame;
 						jumpOK = NO;
 					}
 					
-					if (10.0 * distance > fuel)
+					if ((10.0 * distance > fuel)||(fuel == 0))
 					{
 						if (![universe playCustomSound:@"[witch-no-fuel]"])
 							[self boop];
