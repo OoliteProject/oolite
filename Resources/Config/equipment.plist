@@ -143,6 +143,10 @@
 		<string>Cloaking Device</string>
 		<string>EQ_CLOAKING_DEVICE</string>
 		<string>Experimental Naval cloaking device.</string>
+		<dict>
+			<key>portable_between_ships</key>
+			<true/>
+		</dict>
 	</array>
 <!-- next items are new items, don't place new items before this mark -->
 	<array><!-- Passenger Compartment, like missiles this can be bought multiple times -->

@@ -1364,7 +1364,40 @@ static NSMutableDictionary* currentShipyard = nil;
 	max_passengers = 0;
 	
 	// reset and refill extra_equipment then set flags from it
+	//
+	// keep track of portable equipment..
+	//
+	NSMutableArray* portable_equipment = [NSMutableArray array];
+	for (i = 0; i < [extra_equipment count]; i++)
+	{
+		NSArray* equipment = [universe equipmentdata];
+		NSString* eq_desc = (NSString*)[[extra_equipment allKeys] objectAtIndex:i];
+		NSDictionary* eq_dict = nil;
+		int j;
+		for (j = 0; (j < [equipment count])&&(!eq_dict); j++)
+		{
+			NSArray* eq_info = (NSArray*)[equipment objectAtIndex:j];
+			if (([eq_desc isEqual:[eq_info objectAtIndex:EQUIPMENT_KEY_INDEX]])&&([eq_info count] > EQUIPMENT_EXTRA_INFO_INDEX))
+				eq_dict = [eq_info objectAtIndex:EQUIPMENT_EXTRA_INFO_INDEX];
+		}
+		if ((eq_dict)&&([eq_dict objectForKey:@"portable_between_ships"]))
+			[portable_equipment addObject:eq_desc];
+	}
+	//
+	// remove ALL
+	//
 	[extra_equipment removeAllObjects];
+	//
+	// restore  portable equipment
+	//
+	for (i = 0; i < [portable_equipment count]; i++)
+	{
+		NSString* eq_desc = (NSString*)[portable_equipment objectAtIndex:i];
+		[self add_extra_equipment: eq_desc];
+	}
+	//
+	// final check
+	//
 	[self set_flags_from_extra_equipment];
 	
 	// refill from ship_info
