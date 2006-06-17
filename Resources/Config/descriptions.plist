@@ -965,7 +965,7 @@
 	<key>cargo-delivered-okay-@-f</key>
 	<string>Droids unload the %@ and you are paid %.1f Cr.</string>
 	<key>cargo-delivered-short-@-f-d</key>
-	<string>Droids unload the %@, but you are only paid %.1f Cr. as there is a %d\% shortfall.</string>
+	<string>Droids unload the %@, but you are only paid %.1f Cr. as there is a %d percent shortfall.</string>
 	<key>cargo-refused-short-%@</key>
 	<string>You don't have enough inventory to deliver the %@.</string>
 	<key>cargo-delivered-late-@</key>
