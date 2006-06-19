@@ -401,6 +401,8 @@ extern int debug;
 - (void) checkNormalsAndAdjustWinding;
 - (void) calculateVertexNormals;
 
+- (Vector) normalForVertex:(int) v_index withSharedRedValue:(GLfloat) red_value;
+
 - (void) setUpVertexArrays;
 
 - (double) findCollisionRadius;

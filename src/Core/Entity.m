@@ -1840,11 +1840,63 @@ static  Universe	*data_store_universe;
 	}
 }
 
+- (Vector) normalForVertex:(int) v_index withSharedRedValue:(GLfloat) red_value
+{
+	int j;
+	Vector normal_sum = make_vector( 0.0f, 0.0f, 0.0f);
+	for (j = 0; j < n_faces; j++)
+	{
+		if (faces[j].red == red_value)
+		{
+			if ((faces[j].vertex[0] == v_index)||(faces[j].vertex[1] == v_index)||(faces[j].vertex[2] == v_index))
+			{
+				float	a2 = distance2( vertices[faces[j].vertex[0]], vertices[faces[j].vertex[1]]);
+				float	b2 = distance2( vertices[faces[j].vertex[1]], vertices[faces[j].vertex[2]]);
+				float	c2 = distance2( vertices[faces[j].vertex[2]], vertices[faces[j].vertex[0]]);
+				float	t = sqrt( 2.0 * (a2 * b2 + b2 * c2 + c2 * a2) - 0.25 * (a2 * a2 + b2 * b2 +c2 * c2));
+				normal_sum.x += t * faces[j].normal.x;	normal_sum.y += t * faces[j].normal.y;	normal_sum.z += t * faces[j].normal.z;
+			}
+		}
+	}
+	if (normal_sum.x||normal_sum.y||normal_sum.z)
+		normal_sum = unit_vector(&normal_sum);
+	else
+		normal_sum.z = 1.0;
+	return normal_sum;
+}
+
 - (void) setUpVertexArrays
 {
 	NSMutableDictionary*	texturesProcessed = [NSMutableDictionary dictionaryWithCapacity:MAX_TEXTURES_PER_ENTITY];
 
 	int face, fi, vi, texi;
+
+	// if is_smooth_shaded find any vertices that are between faces of two different colour (by red value)
+	// and mark them as being on an edge and therefore NOT smooth shaded
+	BOOL is_edge_vertex[n_vertices];
+	GLfloat red_value[n_vertices];
+	for (vi = 0; vi < n_vertices; vi++)
+	{
+		is_edge_vertex[vi] = NO;
+		red_value[vi] = -1;
+	}
+	if (is_smooth_shaded)
+	{
+		for (fi = 0; fi < n_faces; fi++)
+		{
+			GLfloat rv = faces[fi].red;
+			int i;
+			for (i = 0; i < 3; i++)
+			{
+				vi = faces[fi].vertex[i];
+				if (red_value[vi] < 0.0)	// unassigned
+					red_value[vi] = rv;
+				else if (red_value[vi] != rv)	// a different colour
+					is_edge_vertex[vi] = YES;
+			}
+		}
+	}
+
 
 	// base model, flat or smooth shaded, all triangles
 	int tri_index = 0;
@@ -1856,13 +1908,11 @@ static  Universe	*data_store_universe;
 
 	for (face = 0; face < n_faces; face++)
 	{
-//		NSString* tex_string = faces[face].textureFile;
 		NSString* tex_string = [NSString stringWithUTF8String: (char*)faces[face].textureFileStr255];
 		if (![texturesProcessed objectForKey:tex_string])
 		{
 			// do this texture
 			triangle_range[texi].location = tri_index;
-//			texture_file[texi] = tex_string;
 			strlcpy( (char*)texture_file[texi], (char*)faces[face].textureFileStr255, 256);
 			texture_name[texi] = faces[face].texName;
 
@@ -1872,15 +1922,20 @@ static  Universe	*data_store_universe;
 				int v;
 				if (!is_smooth_shaded)
 					normal = faces[fi].normal;
-//				if ([faces[fi].textureFile isEqual:tex_string])
-//				if ([[NSString stringWithUTF8String: faces[fi].textureFileStr255] isEqual:tex_string])
 				if (strcmp( (char*)faces[fi].textureFileStr255, (char*)faces[face].textureFileStr255) == 0)
 				{
 					for (vi = 0; vi < 3; vi++)
 					{
 						v = faces[fi].vertex[vi];
 						if (is_smooth_shaded)
-							normal = vertex_normal[v];
+						{
+							if (is_edge_vertex[v])
+								normal = [self normalForVertex: v withSharedRedValue: faces[fi].red];
+							else
+								normal = vertex_normal[v];
+						}
+						else
+							normal = faces[fi].normal;
 						entityData.index_array[tri_index++] = vertex_index;
 						entityData.normal_array[vertex_index] = normal;
 						entityData.vertex_array[vertex_index++] = vertices[v];
