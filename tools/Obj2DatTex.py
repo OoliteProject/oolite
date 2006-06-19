@@ -110,9 +110,16 @@ for inputfilename in inputfilenames:
 	#print uv, len(uv), n_verts
 	#print "\n"
 	# find faces next
+	# use red colour to show smoothing groups
+	smoothing_group = 127
 	for line in lines:
 		tokens = string.split(line)
 		if (tokens != []):
+			if (tokens[0] == 's'):
+				# we just step through the groups not bothering to check the group number
+				smoothing_group = smoothing_group + 1
+				if (smoothing_group > 255):
+					smoothing_group = 0
 			if (tokens[0] == 'usemtl'):
 				textureName = tokens[1]
 				if (materials.has_key(textureName)):
@@ -149,7 +156,7 @@ for inputfilename in inputfilenames:
 					# negate the normal to allow correct texturing...
 						norm = ( -xp[0]/det, -xp[1]/det, -xp[2]/det)
 						face.append((v1,v2,v3))
-						faces_lines_out.append('127,127,127,\t%.5f,%.5f,%.5f,\t3,\t%d,%d,%d\n' % (norm[0],norm[1],norm[2],v1,v2,v3))
+						faces_lines_out.append('%d,127,127,\t%.5f,%.5f,%.5f,\t3,\t%d,%d,%d\n' % (smoothing_group,norm[0],norm[1],norm[2],v1,v2,v3))
 						if (interpretTexture):
 							textureForFace.append(textureName)
 							uvsForTexture[textureName][v1] = uv[vt1]
