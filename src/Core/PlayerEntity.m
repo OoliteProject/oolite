@@ -3713,6 +3713,9 @@ double scoopSoundPlayTime = 0.0;
 
 - (void) enterDock:(StationEntity *)station
 {
+	if (status == STATUS_DEAD)
+		return;
+	
 	status = STATUS_DOCKING;
 
 	afterburner_engaged = NO;
