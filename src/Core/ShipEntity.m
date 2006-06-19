@@ -6122,9 +6122,18 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 
 - (int) launchEscapeCapsule
 {
-	ShipEntity *pod;
+	ShipEntity *pod = (ShipEntity*)nil;
+	
+	// check for custom escape pod
+	//
+	if ([shipinfoDictionary objectForKey:@"escape_pod_model"])
+		pod = [universe getShipWithRole: (NSString*)[shipinfoDictionary objectForKey:@"escape_pod_model"]];
+	//
+	// if not found - use standard escape pod
+	//
+	if (!pod)
+		pod = [universe getShipWithRole:@"escape-capsule"];   // retain count = 1
 
-	pod = [universe getShipWithRole:@"escape-capsule"];   // retain count = 1
 	if (pod)
 	{
 		[pod setOwner:self];
