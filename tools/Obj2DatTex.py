@@ -63,14 +63,15 @@ for inputfilename in inputfilenames:
 				newMaterial = 0
 				for mline in mlines:
 					tokens1 = string.split(mline)
-					if (tokens1[0] == 'newmtl'):
-						newMaterialName = tokens1[1]
-						newMaterial = 1
-					if (tokens1[0] == 'map_Kd'):
-						if (newMaterial):
-							materials[newMaterialName] = tokens1[1]
-							print "Material %s -> %s" % (newMaterialName, tokens1[1])
-						newMaterial = 0
+					if (tokens1 != []):
+						if (tokens1[0] == 'newmtl'):
+							newMaterialName = tokens1[1]
+							newMaterial = 1
+						if (tokens1[0] == 'map_Kd'):
+							if (newMaterial):
+								materials[newMaterialName] = tokens1[1]
+								print "Material %s -> %s" % (newMaterialName, tokens1[1])
+							newMaterial = 0
 	#print "materials :"
 	#print materials
 	# find geometry vertices first
