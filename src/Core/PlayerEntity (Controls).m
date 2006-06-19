@@ -1367,6 +1367,7 @@ static int searchStringLength;
 static double timeLastKeyPress;
 static BOOL upDownKeyPressed;
 static BOOL leftRightKeyPressed;
+static BOOL enterSelectKeyPressed;
 static BOOL volumeControlPressed;
 static int oldSelection;
 static BOOL selectPressed;
@@ -2661,21 +2662,24 @@ static BOOL toggling_music;
 				//
 				if ([gameView isDown:13])	//  '<enter/return>'
 				{
-					if (missionChoice)
-						[missionChoice release];
-					missionChoice = [[NSString stringWithString:[gui selectedRowKey]] retain];
-					//
-					[self setStatus:STATUS_DOCKED];
-					[universe removeDemoShips];
-					[gui setBackgroundImage:nil];
-					[self setGuiToStatusScreen];
-					if (missionMusic)
+					if (!enterSelectKeyPressed)
 					{
-						[missionMusic stop];
+						if (missionChoice)
+							[missionChoice release];
+						missionChoice = [[NSString stringWithString:[gui selectedRowKey]] retain];
+						//
+						[universe removeDemoShips];
+						[gui setBackgroundImage:nil];
+						[self setGuiToStatusScreen];
+						if (missionMusic)
+							[missionMusic stop];
+						//
+						[self checkScript];
 					}
-					//
-					[self checkScript];
+					enterSelectKeyPressed = YES;
 				}
+				else
+					enterSelectKeyPressed = NO;
 			}
 			break;
 	}

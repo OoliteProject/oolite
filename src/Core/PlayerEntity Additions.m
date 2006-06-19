@@ -1926,14 +1926,11 @@ static int shipsFound;
 #else
 	if ((missionMusic)&&(!ootunes_on))
 	{
-//		GoToBeginningOfMovie ([missionMusic QTMovie]);
-//		StartMovie ([missionMusic QTMovie]);
 		[missionMusic play];
 	}
 #endif
 
 	// the following are necessary...
-//	status = STATUS_COCKPIT_DISPLAY;
 	[universe setDisplayText:YES];
 	[universe setViewDirection:VIEW_GUI_DISPLAY];
 }

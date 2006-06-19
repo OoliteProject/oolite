@@ -386,6 +386,7 @@
                 "missionChoice_string equal YES"
             ); 
             do = (
+            	resetMissionChoice,
                 setGuiToStatusScreen, 
                 "setMissionImage: none", 
                 "set: mission_trumbles TRUMBLE_BOUGHT", 
@@ -400,17 +401,17 @@
                 "missionChoice_string equal NO"
             ); 
             do = (
+            	resetMissionChoice,
             	setGuiToStatusScreen,
                 "setMissionImage: none", 
-            	"set: mission_trumbles NOT_NOW",
-            	resetMissionChoice
+            	"set: mission_trumbles NOT_NOW"
             ); 
         }, 
         {
             conditions = (
                 "status_string equal STATUS_EXITING_WITCHSPACE", 
                 "mission_trumbles equal NOT_NOW", 
-                "d100_number lessthan 5"
+                "d100_number lessthan 2"
             ); 
             do = ("set: mission_trumbles BUY_ME", resetMissionChoice); 
         }
