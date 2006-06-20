@@ -305,6 +305,7 @@ extern int debug;
 
 - (void) addToLinkedLists;
 - (void) removeFromLinkedLists;
+BOOL maintainLinkedLists(Universe* uni);
 - (BOOL) checkLinkedLists;
 - (void) updateLinkedLists;
 

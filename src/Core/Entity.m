@@ -357,6 +357,7 @@ static  Universe	*data_store_universe;
 	if (debug & DEBUG_LINKED_LISTS)
 		if (![self checkLinkedLists])
 		{
+			NSLog(@"DEBUG LINKED LISTS - problem encountered while adding %@ to linked lists", self);
 			[universe obj_dump];
 		
 			exit(-1);
@@ -399,6 +400,7 @@ static  Universe	*data_store_universe;
 	if (debug & DEBUG_LINKED_LISTS)
 		if (![self checkLinkedLists])
 		{
+			NSLog(@"DEBUG LINKED LISTS - problem encountered while removing %@ from linked lists", self);
 			[universe obj_dump];
 		
 			exit(-1);
@@ -477,7 +479,7 @@ static  Universe	*data_store_universe;
 		while ((n--)&&(check))	check = check->z_previous;
 		if ((check)||(n > 0))
 		{
-			NSLog(@"ERROR *** broken z_previous %@ list (%d) ***", universe->y_list_start, n);
+			NSLog(@"ERROR *** broken z_previous %@ list (%d) ***", universe->z_list_start, n);
 			return NO;
 		}
 	}
@@ -494,6 +496,7 @@ static  Universe	*data_store_universe;
 	if (debug & DEBUG_LINKED_LISTS)
 		if (![self checkLinkedLists])
 		{
+			NSLog(@"DEBUG LINKED LISTS problem encountered before updating linked lists for %@", self);
 			[universe obj_dump];
 		
 			exit(-1);
@@ -572,6 +575,7 @@ static  Universe	*data_store_universe;
 	if (debug & DEBUG_LINKED_LISTS)
 		if (![self checkLinkedLists])
 		{
+			NSLog(@"DEBUG LINKED LISTS problem encountered after updating linked lists for %@", self);
 			[universe obj_dump];
 		
 			exit(-1);

@@ -364,6 +364,8 @@ extern int debug;
 - (Entity *) entityZero;
 
 - (Entity *) entityForUniversalID:(int)u_id;
+
+BOOL maintainLinkedLists(Universe* uni);
 - (BOOL) addEntity:(Entity *) entity;
 - (BOOL) removeEntity:(Entity *) entity;
 - (BOOL) removeWithoutRecyclingEntity:(Entity *) entity;

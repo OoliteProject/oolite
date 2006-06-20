@@ -4044,6 +4044,148 @@ GLfloat* custom_matrix;
 	return ent;
 }
 
+BOOL maintainLinkedLists(Universe* uni)
+{
+	BOOL result;
+	
+	if (!uni)
+		return NO;
+	
+	result = YES;
+	
+	// DEBUG check for loops and short lists
+	if (uni->n_entities > 0)
+	{
+		int n;
+		Entity	*check, *last;
+		//
+		last = nil;
+		//
+		n = uni->n_entities;
+		check = uni->x_list_start;
+		while ((n--)&&(check))
+		{
+			last = check;
+			check = check->x_next;
+		}
+		if ((check)||(n > 0))
+		{
+			NSLog(@"ERROR *** broken x_next %@ list (%d) ***", uni->x_list_start, n);
+			result = NO;
+		}
+		//
+		n = uni->n_entities;
+		check = last;
+		while ((n--)&&(check))	check = check->x_previous;
+		if ((check)||(n > 0))
+		{
+			NSLog(@"ERROR *** broken x_previous %@ list (%d) ***", uni->x_list_start, n);
+			if (result)
+			{
+				NSLog(@"REBUILDING x_previous list from x_next list");
+				check = uni->x_list_start;
+				check->x_previous = nil;
+				while (check->x_next)
+				{
+					last = check;
+					check = check->x_next;
+					check->x_previous = last;
+				}
+			}
+		}
+		//
+		n = uni->n_entities;
+		check = uni->y_list_start;
+		while ((n--)&&(check))
+		{
+			last = check;
+			check = check->y_next;
+		}
+		if ((check)||(n > 0))
+		{
+			NSLog(@"ERROR *** broken y_next %@ list (%d) ***", uni->y_list_start, n);
+			result = NO;
+		}
+		//
+		n = uni->n_entities;
+		check = last;
+		while ((n--)&&(check))	check = check->y_previous;
+		if ((check)||(n > 0))
+		{
+			NSLog(@"ERROR *** broken y_previous %@ list (%d) ***", uni->y_list_start, n);
+			if (result)
+			{
+				NSLog(@"REBUILDING y_previous list from y_next list");
+				check = uni->y_list_start;
+				check->y_previous = nil;
+				while (check->y_next)
+				{
+					last = check;
+					check = check->y_next;
+					check->y_previous = last;
+				}
+			}
+		}
+		//
+		n = uni->n_entities;
+		check = uni->z_list_start;
+		while ((n--)&&(check))
+		{
+			last = check;
+			check = check->z_next;
+		}
+		if ((check)||(n > 0))
+		{
+			NSLog(@"ERROR *** broken z_next %@ list (%d) ***", uni->z_list_start, n);
+			result = NO;
+		}
+		//
+		n = uni->n_entities;
+		check = last;
+		while ((n--)&&(check))	check = check->z_previous;
+		if ((check)||(n > 0))
+		{
+			NSLog(@"ERROR *** broken z_previous %@ list (%d) ***", uni->z_list_start, n);
+			if (result)
+			{
+				NSLog(@"REBUILDING z_previous list from z_next list");
+				check = uni->z_list_start;
+				check->z_previous = nil;
+				while (check->z_next)
+				{
+					last = check;
+					check = check->z_next;
+					check->z_previous = last;
+				}
+			}
+		}
+	}
+	//
+	if (!result)
+	{
+		NSLog(@"REBUILDING all linked lists from scratch");
+		NSArray* allEntities = uni->entities;
+		uni->x_list_start = nil;
+		uni->y_list_start = nil;
+		uni->z_list_start = nil;
+		int n_ents = [allEntities count];
+		int i;
+		for (i = 0; i < n_ents; i++)
+		{
+			Entity* ent = (Entity*)[allEntities objectAtIndex:i];
+			ent->x_next = nil;
+			ent->x_previous = nil;
+			ent->y_next = nil;
+			ent->y_previous = nil;
+			ent->z_next = nil;
+			ent->z_previous = nil;
+			[ent addToLinkedLists];
+		}
+	}
+	//
+	return result;
+}
+
 - (BOOL) addEntity:(Entity *) entity
 {
 	if (entity)
@@ -4173,6 +4315,8 @@ GLfloat* custom_matrix;
 			NSLog(@"DEBUG --(%@) from %d", entity, entity->zero_index);
 
 		// remove reference to entity in linked lists
+		if ([entity canCollide])	// filter only collidables disappearing
+			maintainLinkedLists(self);
 		[entity removeFromLinkedLists];
 		
 		// moved forward ^^
@@ -4269,6 +4413,8 @@ GLfloat* custom_matrix;
 {
 	if (entity)
 	{
+		if ([entity canCollide])	// filter only collidables disappearing
+			maintainLinkedLists(self);
 		[entity removeFromLinkedLists];	// AHA!
 		
 		int old_id = [entity universal_id];
@@ -4370,11 +4516,6 @@ GLfloat* custom_matrix;
 	while ([entities count] > 1)
 	{
 		Entity* ent = [entities objectAtIndex:1];
-	
-		// reset linked lists
-		ent->x_next = nil;	ent->x_previous = nil;
-		ent->y_next = nil;	ent->y_previous = nil;
-		ent->z_next = nil;	ent->z_previous = nil;
 		if (ent->isStation)  // clear out queues
 			[(StationEntity *)ent clear];
 		[self removeEntity:ent];
@@ -4384,11 +4525,6 @@ GLfloat* custom_matrix;
 	
 	// maintain sorted list
 	n_entities = 1;
-	
-	// restart linked lists
-	x_list_start = p0;	p0->x_previous = nil;	p0->x_next = nil;
-	y_list_start = p0;	p0->y_previous = nil;	p0->y_next = nil;
-	z_list_start = p0;	p0->z_previous = nil;	p0->z_next = nil;
 	
 	cachedSun = nil;
 	cachedPlanet = nil;
