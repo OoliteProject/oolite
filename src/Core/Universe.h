@@ -262,6 +262,9 @@ extern int debug;
 		NSMutableArray*			characterPool;
 		
 		CollisionRegion*		universeRegion;
+		
+		// check and maintain linked lists occasionally
+		BOOL					doLinkedListMaintenanceThisUpdate;
 
 }
 

@@ -4295,6 +4295,8 @@ BOOL maintainLinkedLists(Universe* uni)
 
 		// add entity to linked lists
 		[entity addToLinkedLists];	// position and universe have been set - so we can do this
+		if ([entity canCollide])	// filter only collidables disappearing
+			doLinkedListMaintenanceThisUpdate = YES;
 
 //		for (index = 0; index < n_entities; index++)
 //			NSLog(@"+++++ %d %.0f %@", sortedEntities[index]->z_index, sortedEntities[index]->zero_distance, sortedEntities[index]);
@@ -4316,7 +4318,8 @@ BOOL maintainLinkedLists(Universe* uni)
 
 		// remove reference to entity in linked lists
 		if ([entity canCollide])	// filter only collidables disappearing
-			maintainLinkedLists(self);
+			doLinkedListMaintenanceThisUpdate = YES;
+//			maintainLinkedLists(self);
 		[entity removeFromLinkedLists];
 		
 		// moved forward ^^
@@ -5457,6 +5460,14 @@ BOOL maintainLinkedLists(Universe* uni)
 			update_stage = @"collision and shadow detection";
 			[self filterSortedLists];
 			[self findCollisionsAndShadows];
+			//
+			// do any required check and maintenance of linked lists
+			//
+			if (doLinkedListMaintenanceThisUpdate)
+			{
+				maintainLinkedLists( self);
+				doLinkedListMaintenanceThisUpdate = NO;
+			}
 			//
 			// dispose of the non-mutable copy and everything it references neatly
 			//
