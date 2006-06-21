@@ -280,6 +280,22 @@ Your fair use and other rights are in no way affected by the above.
 	return NO;
 }
 
+- (BOOL) setFirstSelectableRow
+{
+	int row = selectableRange.location;
+	while ((row >= selectableRange.location) && (row < selectableRange.location+selectableRange.length))
+	{
+		if (![[rowKey objectAtIndex:row] isEqual:GUI_KEY_SKIP])
+		{
+			selectedRow = row;
+			return YES;
+		}
+		row++;
+	}
+	selectedRow = -1;
+	return NO;
+}
+
 - (void) setNoSelectedRow
 {
 	selectedRow = -1;

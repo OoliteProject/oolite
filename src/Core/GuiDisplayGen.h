@@ -137,6 +137,7 @@ extern int debug;
 - (int) selectedRow;
 - (BOOL) setSelectedRow:(int) row;
 - (BOOL) setNextRow:(int) direction;
+- (BOOL) setFirstSelectableRow;
 - (void) setNoSelectedRow;
 - (NSString *) selectedRowText;
 - (NSString *) selectedRowKey;
