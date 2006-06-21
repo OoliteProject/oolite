@@ -589,6 +589,8 @@ Your fair use and other rights are in no way affected by the above.
 		[gui setColor:[OOColor greenColor] forRow:GUI_ROW_PASSENGERS_LABELS];
 		[gui setArray:[NSArray arrayWithArray:row_info] forRow:GUI_ROW_PASSENGERS_LABELS];
 		//
+		BOOL can_take_passengers = (max_passengers > [passengers count]);
+		//
 		for (i = 0; i < n_passengers; i++)
 		{
 			NSDictionary* passenger_info = (NSDictionary*)[passenger_market objectAtIndex:i];
@@ -601,7 +603,13 @@ Your fair use and other rights are in no way affected by the above.
 			[row_info addObject:[NSString stringWithFormat:@" %@ ",[(NSNumber*)[passenger_info objectForKey:PASSENGER_KEY_FEE] stringValue]]];
 			[gui setColor:[OOColor yellowColor] forRow:GUI_ROW_PASSENGERS_START + i];
 			[gui setArray:[NSArray arrayWithArray:row_info] forRow:GUI_ROW_PASSENGERS_START + i];
-			[gui setKey:GUI_KEY_OK forRow:GUI_ROW_PASSENGERS_START + i];
+			if (can_take_passengers)
+				[gui setKey:GUI_KEY_OK forRow:GUI_ROW_PASSENGERS_START + i];
+			else
+			{
+				[gui setKey:GUI_KEY_SKIP forRow:GUI_ROW_PASSENGERS_START + i];
+				[gui setColor:[OOColor grayColor] forRow:GUI_ROW_PASSENGERS_START + i];
+			}
 		}
 		//
 		[row_info removeAllObjects];
@@ -617,6 +625,12 @@ Your fair use and other rights are in no way affected by the above.
 		for (i = 0; i < n_contracts; i++)
 		{
 			NSDictionary* contract_info = (NSDictionary*)[contract_market objectAtIndex:i];
+			int cargo_space_required = [(NSNumber *)[contract_info objectForKey:CONTRACT_KEY_CARGO_AMOUNT] intValue];
+			int cargo_units = [universe unitsForCommodity:[(NSNumber *)[contract_info objectForKey:CONTRACT_KEY_CARGO_TYPE] intValue]];
+			if (cargo_units == UNITS_KILOGRAMS)	cargo_space_required /= 1000;
+			if (cargo_units == UNITS_GRAMS)		cargo_space_required /= 1000000;
+			float premium = [(NSNumber *)[contract_info objectForKey:CONTRACT_KEY_PREMIUM] floatValue];
+			BOOL not_possible = ((cargo_space_required > max_cargo - current_cargo)||(premium * 10 > credits));
 			int dest_eta = [(NSNumber*)[contract_info objectForKey:CONTRACT_KEY_ARRIVAL_TIME] doubleValue] - ship_clock;
 			[row_info removeAllObjects];
 			[row_info addObject:[NSString stringWithFormat:@" %@ ",[contract_info objectForKey:CONTRACT_KEY_CARGO_DESCRIPTION]]];
@@ -626,7 +640,13 @@ Your fair use and other rights are in no way affected by the above.
 			[row_info addObject:[NSString stringWithFormat:@" %@ ",[(NSNumber*)[contract_info objectForKey:CONTRACT_KEY_FEE] stringValue]]];
 			[gui setColor:[OOColor yellowColor] forRow:GUI_ROW_CARGO_START + i];
 			[gui setArray:[NSArray arrayWithArray:row_info] forRow:GUI_ROW_CARGO_START + i];
-			[gui setKey:GUI_KEY_OK forRow:GUI_ROW_CARGO_START + i];
+			if (not_possible)
+			{
+				[gui setKey:GUI_KEY_SKIP forRow:GUI_ROW_CARGO_START + i];
+				[gui setColor:[OOColor grayColor] forRow:GUI_ROW_CARGO_START + i];
+			}
+			else
+				[gui setKey:GUI_KEY_OK forRow:GUI_ROW_CARGO_START + i];
 		}
 		//
 		[gui setText:[NSString stringWithFormat:@"Cash:\t%.1f Cr.\t\tLoad %d of %d t.\tPassengers %d of %d berths.", 0.1*credits, current_cargo, max_cargo, [passengers count], max_passengers]  forRow: GUI_ROW_MARKET_CASH];
@@ -637,33 +657,9 @@ Your fair use and other rights are in no way affected by the above.
 			[gui setColor:[OOColor greenColor] forRow:i];
 		}
 		
-		if (n_passengers > 0)
-		{
-			if (n_contracts > 0)
-			{
-				[gui setSelectableRange:NSMakeRange(GUI_ROW_PASSENGERS_START, GUI_ROW_CARGO_START + n_contracts)];
-			}
-			else
-			{
-				[gui setSelectableRange:NSMakeRange(GUI_ROW_PASSENGERS_START, GUI_ROW_PASSENGERS_START + n_passengers)];
-			}
-			if (([gui selectedRow] < GUI_ROW_PASSENGERS_START)||([gui selectedRow] >= GUI_ROW_CARGO_START + n_contracts))
-				[gui setSelectedRow:GUI_ROW_PASSENGERS_START];
-		}
-		else
-		{
-			if (n_contracts > 0)
-			{
-				[gui setSelectableRange:NSMakeRange(GUI_ROW_CARGO_START, GUI_ROW_CARGO_START + n_contracts)];
-				if (([gui selectedRow] < GUI_ROW_CARGO_START)||([gui selectedRow] >= GUI_ROW_CARGO_START + n_contracts))
-					[gui setSelectedRow:GUI_ROW_CARGO_START];
-			}
-			else
-			{
-				// nothing to select
-				[gui setNoSelectedRow];
-			}
-		}
+		[gui setSelectableRange:NSMakeRange(GUI_ROW_PASSENGERS_START, GUI_ROW_CARGO_START + n_contracts)];
+		if ([[gui selectedRowKey] isEqual:GUI_KEY_SKIP])
+			[gui setFirstSelectableRow];
 		//
 		if (([gui selectedRow] >= GUI_ROW_PASSENGERS_START)&&([gui selectedRow] < GUI_ROW_PASSENGERS_START + n_passengers))
 		{
