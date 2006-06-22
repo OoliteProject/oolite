@@ -2034,6 +2034,12 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 					[shipAI message:@"ENERGY_FULL"];
 				}
 			}
+			if (sub_entities)
+			{
+				int i;
+				for (i = 0; i < [sub_entities count]; i++)
+					[(Entity *)[sub_entities objectAtIndex:i] update:delta_t];
+			}
 			return;
 		}
 	}
@@ -6122,6 +6128,13 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 
 - (int) launchEscapeCapsule
 {
+	// check number of pods aboard
+	//
+	int n_pods = [[shipinfoDictionary objectForKey:@"has_escape_pod"] intValue];
+	if (n_pods < 1)
+		n_pods = 1;
+	
+	int result = NO_TARGET;
 	ShipEntity *pod = (ShipEntity*)nil;
 	
 	// check for custom escape pod
@@ -6155,9 +6168,28 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 		[self dumpItem:pod];
 		[[pod getAI] setState:@"GLOBAL"];
 		[pod release]; //release
-		return [pod universal_id];
+		result = [pod universal_id];
 	}
-	return NO_TARGET;
+	// launch other pods (passengers)
+	int i;
+	for (i = 1; i < n_pods; i++)
+	{
+		pod = [universe getShipWithRole:@"escape-capsule"];
+		if (pod)
+		{
+			Random_Seed orig = [universe systemSeedForSystemNumber:gen_rnd_number()];
+			[pod setOwner:self];
+			[pod setScanClass: CLASS_CARGO];
+			[pod setCommodity:[universe commodityForName:@"Slaves"] andAmount:1];
+			[pod setCrew:[NSArray arrayWithObject:[OOCharacter characterWithRole:@"passenger" andOriginalSystem:orig inUniverse:universe]]];
+			[[pod getAI] setStateMachine:@"homeAI.plist"];
+			[self dumpItem:pod];
+			[[pod getAI] setState:@"GLOBAL"];
+			[pod release]; //release
+		}
+	}
+	
+	return result;
 }
 
 - (int) dumpCargo
