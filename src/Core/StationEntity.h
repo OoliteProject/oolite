@@ -186,6 +186,8 @@ NSDictionary* instructions(int station_id, Vector coords, float speed, float ran
 
 - (BOOL) launchPatrol;
 
+- (void) launchShipWithRole:(NSString*) role;
+
 - (void) acceptPatrolReportFrom:(ShipEntity*) patrol_ship;
 
 - (void) acceptDockingClearanceRequestFrom:(ShipEntity *)other;

@@ -946,6 +946,9 @@ NSDictionary* instructions(int station_id, Vector coords, float speed, float ran
 		//
 	}
 	
+	if (ship->status == STATUS_LAUNCHING)
+		return YES;
+	
 	// if close enough (within 50%) correct and add damage
 	//
 	if  ((arbb.min.x > -1.5 * ww)&&(arbb.max.x < 1.5 * ww)&&(arbb.min.y > -1.5 * hh)&&(arbb.max.y < 1.5 * hh))
@@ -1718,6 +1721,23 @@ NSDictionary* instructions(int station_id, Vector coords, float speed, float ran
 		}
 	}
 	return NO;
+}
+
+- (void) launchShipWithRole:(NSString*) role
+{
+	ShipEntity  *ship = [universe getShipWithRole: role];   // retain count = 1
+	if (ship)
+	{
+		if (![ship crew])
+			[ship setCrew:[NSArray arrayWithObject:
+				[OOCharacter randomCharacterWithRole: role
+				andOriginalSystem: [universe systemSeed]
+				inUniverse: universe]]];
+		[ship setRoles: role];
+		[ship setGroup_id: universal_id];	// who's your Daddy
+		[self addShipToLaunchQueue:ship];
+		[ship release];
+	}
 }
 
 - (void) becomeExplosion
