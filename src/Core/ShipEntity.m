@@ -6181,7 +6181,7 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 			[pod setOwner:self];
 			[pod setScanClass: CLASS_CARGO];
 			[pod setCommodity:[universe commodityForName:@"Slaves"] andAmount:1];
-			[pod setCrew:[NSArray arrayWithObject:[OOCharacter characterWithRole:@"passenger" andOriginalSystem:orig inUniverse:universe]]];
+			[pod setCrew:[NSArray arrayWithObject:[OOCharacter randomCharacterWithRole:@"passenger" andOriginalSystem:orig inUniverse:universe]]];
 			[[pod getAI] setStateMachine:@"homeAI.plist"];
 			[self dumpItem:pod];
 			[[pod getAI] setState:@"GLOBAL"];

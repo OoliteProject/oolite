@@ -118,7 +118,7 @@ Your fair use and other rights are in no way affected by the above.
 		return castmember;
 	else
 	{
-		NSLog(@"DEBUG ***** couldn't cast character in role '%@'", c_role);
+//		NSLog(@"DEBUG ***** couldn't cast character in role '%@'", c_role);
 		return castmember;
 	}
 }
