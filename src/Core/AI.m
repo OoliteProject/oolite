@@ -325,6 +325,8 @@ Your fair use and other rights are in no way affected by the above.
 	{
 		if ([my_selector isEqual:@"setStateTo:"])
 			[self setState:dataString];
+		else if ([my_selector isEqual:@"debugMessage:"])
+			NSLog(@"AI-DEBUG MESSAGE from %@ : %@", owner_desc, dataString);
 		else
 			NSLog(@"***** %@ does not respond to %@", owner_desc, my_selector);
 	}

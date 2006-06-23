@@ -1,25 +1,14 @@
 {
-    "GO_TO_WAYPOINT" = {
-		ENTER = ("setDesiredRangeTo: 50.0", checkCourseToDestination);
-		"COURSE_OK" = ("setSpeedFactorTo: 1.0", performFlyToRangeFromDestination);
-		"WAYPOINT_SET" = ("setDesiredRangeTo: 50.0", checkCourseToDestination);
-		"DESIRED_RANGE_ACHIEVED" = ("setStateTo: GLOBAL");
-        ATTACKED = (setTargetToPrimaryAggressor, broadcastDistressMessage, "setStateTo: FLEE");
-		"APPROACHING_SURFACE" = (landOnPlanet);
-        "INCOMING_MISSILE" = (fightOrFleeMissile, "setStateTo: FLEE"); 
-		EXIT = ();
-		UPDATE = ();
-	}; 
     "FLY_HOME" = {
 		ENTER = (setCourseToPlanet, checkCourseToDestination);
 		"COURSE_OK" = ("setSpeedFactorTo: 1.0", performFlyToRangeFromDestination);
-		"WAYPOINT_SET" = ("setStateTo: GO_TO_WAYPOINT");
+		"WAYPOINT_SET" = ("setAITo: gotoWaypointAI.plist");
 		"APPROACHING_SURFACE" = (landOnPlanet);
 		"DESIRED_RANGE_ACHIEVED" = (landOnPlanet);
-		EXIT = ();
         ATTACKED = (setTargetToPrimaryAggressor, broadcastDistressMessage, "setStateTo: FLEE"); 
         "INCOMING_MISSILE" = (fightOrFleeMissile, "setStateTo: FLEE"); 
-		UPDATE = ("setDesiredRangeTo: 50.0", checkCourseToDestination, "pauseAI: 10.0");
+		UPDATE = (setCourseToPlanet, "setDesiredRangeTo: 50.0", checkCourseToDestination, "pauseAI: 10.0");
+		EXIT = ();
 	}; 
     GLOBAL = {ENTER = ("setSpeedFactorTo: 0.25", "setStateTo: FLY_HOME"); EXIT = (); UPDATE = (); }; 
 }

@@ -21,23 +21,13 @@
     "HEAD_FOR_PLANET" = {
 		ENTER = (setCourseToPlanet, "setDesiredRangeTo: 80000.0", checkCourseToDestination);
 		"COURSE_OK" = ("setSpeedFactorTo: 1.0", performFlyToRangeFromDestination);
-		"WAYPOINT_SET" = ("setStateTo: GO_TO_WAYPOINT1");
+		"WAYPOINT_SET" = ("setAITo: gotoWaypointAI.plist");
 		"DESIRED_RANGE_ACHIEVED" = ("setStateTo: LOOK_FOR_TARGETS");
         ATTACKED = (setTargetToPrimaryAggressor, "setStateTo: ATTACK_SHIP"); 
         "INCOMING_MISSILE" = (fightOrFleeMissile, setTargetToPrimaryAggressor, "setStateTo: ATTACK_SHIP"); 
         "TARGET_FOUND" = (setTargetToFoundTarget, "setStateTo: ATTACK_SHIP"); 
 		EXIT = ();
-		UPDATE = (scanForNonThargoid, "pauseAI: 10.0");
-	}; 
-    "GO_TO_WAYPOINT1" = {
-		ENTER = ("setDesiredRangeTo: 50.0", checkCourseToDestination);
-		"COURSE_OK" = ("setSpeedFactorTo: 1.0", performFlyToRangeFromDestination);
-		"WAYPOINT_SET" = ("setDesiredRangeTo: 50.0", checkCourseToDestination);
-		"DESIRED_RANGE_ACHIEVED" = ("setStateTo: HEAD_FOR_PLANET");
-        ATTACKED = (setTargetToPrimaryAggressor, "setStateTo: ATTACK_SHIP"); 
-        "INCOMING_MISSILE" = (fightOrFleeMissile, setTargetToPrimaryAggressor, "setStateTo: ATTACK_SHIP"); 
-		EXIT = ();
-		UPDATE = (scanForNonThargoid, "pauseAI: 10.0");
+		UPDATE = (setCourseToPlanet, "setDesiredRangeTo: 80000.0", checkCourseToDestination, scanForNonThargoid, "pauseAI: 10.0");
 	}; 
     GLOBAL = {ENTER = ("setStateTo: LOOK_FOR_TARGETS"); EXIT = (); UPDATE = (); }; 
 }
