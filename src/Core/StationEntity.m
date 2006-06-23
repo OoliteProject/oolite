@@ -38,6 +38,7 @@ Your fair use and other rights are in no way affected by the above.
 */
 
 #import "StationEntity.h"
+#import "ShipEntity (AI).h"
 #import "entities.h"
 
 #import "AI.h"
@@ -333,6 +334,7 @@ NSDictionary* instructions(int station_id, Vector coords, float speed, float ran
 		if (![shipsOnHold objectForKey:shipID])
 			[self sendExpandedMessage: @"[station-acknowledges-hold-position]" toShip: ship];
 		[shipsOnHold setObject: shipID forKey: shipID];
+		[self performStop];
 		return instructions( universal_id, ship->position, 0, 100, @"HOLD_POSITION", nil, NO);
 	}
 	
@@ -341,6 +343,7 @@ NSDictionary* instructions(int station_id, Vector coords, float speed, float ran
 		if (![shipsOnHold objectForKey:shipID])
 			[self sendExpandedMessage: @"[station-acknowledges-hold-position]" toShip: ship];
 		[shipsOnHold setObject: shipID forKey: shipID];
+		[self performStop];
 		return instructions( universal_id, ship->position, 0, 100, @"HOLD_POSITION", nil, NO);
 	}
 	
@@ -358,6 +361,7 @@ NSDictionary* instructions(int station_id, Vector coords, float speed, float ran
 			if (![shipsOnHold objectForKey:shipID])
 				[self sendExpandedMessage: @"[station-acknowledges-hold-position]" toShip: ship];
 			[shipsOnHold setObject: shipID forKey: shipID];
+			[self performStop];
 			return instructions( universal_id, ship->position, 0, 100, @"HOLD_POSITION", nil, NO);
 		}
 	}
@@ -605,6 +609,10 @@ NSDictionary* instructions(int station_id, Vector coords, float speed, float ran
 	NSString*   shipID = [NSString stringWithFormat:@"%d",ship_id];
 	if ([universe entityForUniversalID:[ship universal_id]])
 		[[(ShipEntity *)[universe entityForUniversalID:[ship universal_id]] getAI] message:@"DOCKING_ABORTED"];
+	
+	if ([shipsOnHold objectForKey:shipID])
+		[shipsOnHold removeObjectForKey:shipID];
+	
 	if ([shipsOnApproach objectForKey:shipID])
 	{
 		[shipsOnApproach removeObjectForKey:shipID];
@@ -617,10 +625,6 @@ NSDictionary* instructions(int station_id, Vector coords, float speed, float ran
 		if ((id_lock[i] == ship_id)||([universe entityForUniversalID:id_lock[i]] == nil))
 			id_lock[i] = NO_TARGET;
 			
-//	NSLog(@"DEBUG ::::: %@ %d Aborted docking", [ship name], ship_id);
-//	NSLog(@"DEBUG ::::: %d :: %d :: %d :: %d :: %d :: %d :: %d :: %d :: %d :: %d <<",
-//		id_lock[10],id_lock[9],id_lock[8],id_lock[7],id_lock[6],id_lock[5],id_lock[4],id_lock[3],id_lock[2],id_lock[1]);
-				
 }
 
 - (Vector) portUpVector

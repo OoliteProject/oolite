@@ -1,0 +1,13 @@
+{
+    "GO_TO_WAYPOINT" = {
+		ENTER = ("setDesiredRangeTo: 50.0", checkCourseToDestination);
+		"WAYPOINT_SET" = ("setDesiredRangeTo: 50.0", checkCourseToDestination);
+		"COURSE_OK" = ("setSpeedFactorTo: 0.5", performFlyToRangeFromDestination);
+		"DESIRED_RANGE_ACHIEVED" = (exitAI);
+        ATTACKED = (exitAI); 
+        "INCOMING_MISSILE" = (exitAI); 
+		EXIT = ();
+		UPDATE = ();
+	}; 
+    GLOBAL = {ENTER = ("setStateTo: GO_TO_WAYPOINT"); EXIT = (); UPDATE = (); }; 
+}
