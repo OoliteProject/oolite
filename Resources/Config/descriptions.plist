@@ -705,6 +705,15 @@
 		<string>Traffic is heavy, please continue to hold until we can clear an approach for you.</string>
 		<string>You are being queued for docking. Thank you for your patience.</string>
 	</array>
+	<key>station-acknowledges-hold-position</key>
+	<array>
+		<string>Please be patient - we are preparing to accommodate your vessel.</string>
+		<string>Docking sequence will recommence shortly. Thank you for waiting.</string>
+		<string>We are preparing an approach for you. Please wait.</string>
+		<string>Preparing approach for docking. Thank you for your patience.</string>
+		<string>Your docking request is acknowledged. Please hold for clearance.</string>
+		<string>We are manoeuvring in preparation for your approach. Please hold.</string>
+	</array>
 	<key>station-docking-refused-to-fugitive</key>
 	<array>
 		<string>%H Station does NOT welcome fugitives!</string>

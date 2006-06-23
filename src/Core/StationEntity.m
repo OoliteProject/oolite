@@ -209,7 +209,7 @@ Your fair use and other rights are in no way affected by the above.
 	NSArray*	ships = [shipsOnApproach allKeys];
 	for (i = 0; i < [ships count]; i++)
 	{
-		int sid = [(NSString *)[ships objectAtIndex:i] intValue];
+		int sid = [[ships objectAtIndex:i] intValue];
 		if ((sid == NO_TARGET)||(![universe entityForUniversalID:sid]))
 		{
 			[shipsOnApproach removeObjectForKey:[ships objectAtIndex:i]];
@@ -221,6 +221,15 @@ Your fair use and other rights are in no way affected by the above.
 	{
 		last_launch_time = [universe getTime];
 		approach_spacing = 0.0;
+	}
+	ships = [shipsOnHold allKeys];
+	for (i = 0; i < [ships count]; i++)
+	{
+		int sid = [[ships objectAtIndex:i] intValue];
+		if ((sid == NO_TARGET)||(![universe entityForUniversalID:sid]))
+		{
+			[shipsOnHold removeObjectForKey:[ships objectAtIndex:i]];
+		}
 	}
 }
 
@@ -234,6 +243,14 @@ Your fair use and other rights are in no way affected by the above.
 		if ([universe entityForUniversalID:sid])
 			[[(ShipEntity *)[universe entityForUniversalID:sid] getAI] message:@"DOCKING_ABORTED"];
 		[shipsOnApproach removeObjectForKey:[ships objectAtIndex:i]];
+	}
+	ships = [shipsOnHold allKeys];
+	for (i = 0; i < [ships count]; i++)
+	{
+		int sid = [(NSString *)[ships objectAtIndex:i] intValue];
+		if ([universe entityForUniversalID:sid])
+			[[(ShipEntity *)[universe entityForUniversalID:sid] getAI] message:@"DOCKING_ABORTED"];
+		[shipsOnHold removeObjectForKey:[ships objectAtIndex:i]];
 	}
 	[shipAI message:@"DOCKING_COMPLETE"];
 	last_launch_time = [universe getTime];
@@ -251,6 +268,14 @@ Your fair use and other rights are in no way affected by the above.
 		if ([universe entityForUniversalID:sid])
 			[(ShipEntity *)[universe entityForUniversalID:sid] enterDock:self];
 		[shipsOnApproach removeObjectForKey:[ships objectAtIndex:i]];
+	}
+	ships = [shipsOnHold allKeys];
+	for (i = 0; i < [ships count]; i++)
+	{
+		int sid = [(NSString *)[ships objectAtIndex:i] intValue];
+		if ([universe entityForUniversalID:sid])
+			[(ShipEntity *)[universe entityForUniversalID:sid] enterDock:self];
+		[shipsOnHold removeObjectForKey:[ships objectAtIndex:i]];
 	}
 	[shipAI message:@"DOCKING_COMPLETE"];
 }
@@ -290,9 +315,9 @@ NSDictionary* instructions(int station_id, Vector coords, float speed, float ran
 	if (!ship)
 		return nil;
 	
-	if ((ship->isPlayer)&&([ship legal_status] > 50))
+	if ((ship->isPlayer)&&([ship legal_status] > 50))	// note: non-player fugitives dock as normal
 	{
-		// refuse docking to the fugitive
+		// refuse docking to the fugitive player
 		return instructions( universal_id, ship->position, 0, 100, @"DOCKING_REFUSED", @"[station-docking-refused-to-fugitive]", NO);
 	}
 	
@@ -301,22 +326,21 @@ NSDictionary* instructions(int station_id, Vector coords, float speed, float ran
 		return instructions( universal_id, ship->position, 0, 100, @"TRY_AGAIN_LATER", nil, NO);
 	}
 	
-	if (![shipsOnApproach objectForKey:shipID])
-		[shipAI message:@"DOCKING_REQUESTED"];	// note the request.
+	[shipAI reactToMessage:@"DOCKING_REQUESTED"];	// react to the request	
 	
-	if	(magnitude2(velocity) > 1.0)		// no docking while moving
+	if	(magnitude2([self getVelocity]) > 1.0)		// no docking while moving
 	{
-//		NSLog(@"DEBUG %@ %d refusing docking to %@ because of forward motion", name, universal_id, [ship name]);
-//
-//		[shipAI message:@"DOCKING_REQUESTED"];	// note the request again!
+		if (![shipsOnHold objectForKey:shipID])
+			[self sendExpandedMessage: @"[station-acknowledges-hold-position]" toShip: ship];
+		[shipsOnHold setObject: shipID forKey: shipID];
 		return instructions( universal_id, ship->position, 0, 100, @"HOLD_POSITION", nil, NO);
 	}
 	
 	if	(fabs(flight_pitch) > 0.01)		// no docking while pitching
 	{
-//		NSLog(@"DEBUG %@ %d refusing docking to %@ because of pitching", name, universal_id, [ship name]);
-//
-//		[shipAI message:@"DOCKING_REQUESTED"];	// note the request again!
+		if (![shipsOnHold objectForKey:shipID])
+			[self sendExpandedMessage: @"[station-acknowledges-hold-position]" toShip: ship];
+		[shipsOnHold setObject: shipID forKey: shipID];
 		return instructions( universal_id, ship->position, 0, 100, @"HOLD_POSITION", nil, NO);
 	}
 	
@@ -324,19 +348,25 @@ NSDictionary* instructions(int station_id, Vector coords, float speed, float ran
 	if	(fabs(flight_pitch) > 0.01)		// rolling
 	{
 		Vector portPos = [self getPortPosition];
-		BOOL isOffCentre = (fabs(portPos.x) + fabs(portPos.y) > 0.0f);
+		Vector portDir = vector_forward_from_quaternion(port_qrotation);		
+		BOOL isOffCentre = (fabs(portPos.x) + fabs(portPos.y) > 0.0f)|(fabs(portDir.x) + fabs(portDir.y) > 0.0f);
 		BOOL isRotatingStation = NO;
 		if ([shipinfoDictionary objectForKey:@"rotating"])
 			isRotatingStation = [[shipinfoDictionary objectForKey:@"rotating"] boolValue];
 		if ((!isRotatingStation)&&(isOffCentre))
 		{
-//			NSLog(@"DEBUG %@ %d refusing docking to %@ because of rolling", name, universal_id, [ship name]);
-//
-//			[shipAI message:@"DOCKING_REQUESTED"];	// note the request again!
+			if (![shipsOnHold objectForKey:shipID])
+				[self sendExpandedMessage: @"[station-acknowledges-hold-position]" toShip: ship];
+			[shipsOnHold setObject: shipID forKey: shipID];
 			return instructions( universal_id, ship->position, 0, 100, @"HOLD_POSITION", nil, NO);
 		}
 	}
-		
+	
+	// we made it thorugh holding!
+	//
+	if ([shipsOnHold objectForKey:shipID])
+		[shipsOnHold removeObjectForKey:shipID];
+	
 	// check if this is a new ship on approach
 	//
 	if (![shipsOnApproach objectForKey:shipID])
@@ -633,6 +663,7 @@ NSDictionary* instructions(int station_id, Vector coords, float speed, float ran
 	self = [super init];
 	
 	shipsOnApproach = [[NSMutableDictionary alloc] initWithCapacity:5]; // alloc retains
+	shipsOnHold = [[NSMutableDictionary alloc] initWithCapacity:5]; // alloc retains
 	launchQueue = [[NSMutableArray alloc] initWithCapacity:16]; // retained
 		
 	int i;
@@ -698,6 +729,9 @@ NSDictionary* instructions(int station_id, Vector coords, float speed, float ran
 	if (shipsOnApproach) [shipsOnApproach autorelease];
 	shipsOnApproach = [[NSMutableDictionary alloc] initWithCapacity:5]; // alloc retains
 	
+	if (shipsOnHold) [shipsOnHold autorelease];
+	shipsOnHold = [[NSMutableDictionary alloc] initWithCapacity:5]; // alloc retains
+	
 	if (launchQueue) [launchQueue autorelease];
 	launchQueue = [[NSMutableArray alloc] initWithCapacity:16]; // retained
 
@@ -737,6 +771,7 @@ NSDictionary* instructions(int station_id, Vector coords, float speed, float ran
 	
 	
 	shipsOnApproach = [[NSMutableDictionary alloc] initWithCapacity:16]; // alloc retains
+	shipsOnHold = [[NSMutableDictionary alloc] initWithCapacity:16]; // alloc retains
 	launchQueue = [[NSMutableArray alloc] initWithCapacity:16]; // retained
 	alert_level = 0;
 	police_launched = 0;
@@ -861,6 +896,7 @@ NSDictionary* instructions(int station_id, Vector coords, float speed, float ran
 	scavengers_launched = 0;
 	approach_spacing = 0.0;
 	[shipsOnApproach removeAllObjects];
+	[shipsOnHold removeAllObjects];
 	[launchQueue removeAllObjects];
 	last_launch_time = 0.0;
 	
@@ -890,6 +926,7 @@ NSDictionary* instructions(int station_id, Vector coords, float speed, float ran
 - (void) dealloc
 {
 	if (shipsOnApproach)	[shipsOnApproach release];
+	if (shipsOnHold)		[shipsOnHold release];
 	if (launchQueue)		[launchQueue release];
 	
 	if (localMarket)		[localMarket release];
@@ -1177,6 +1214,8 @@ NSDictionary* instructions(int station_id, Vector coords, float speed, float ran
 		[launchQueue removeAllObjects];
 	if (shipsOnApproach)
 		[shipsOnApproach removeAllObjects];
+	if (shipsOnHold)
+		[shipsOnHold removeAllObjects];
 }
 
 - (void) addShipToLaunchQueue:(ShipEntity *) ship

@@ -1601,7 +1601,10 @@ WormholeEntity*	whole;
 
 - (void) requestDockingCoordinates
 {
-	/*- requests coordinates from the nearest station it can find (which may be a rock hermit) -*/
+	/*- requests coordinates from the target station
+	if the target station can't be found
+	then use the nearest it can find (which may be a rock hermit) -*/
+	
 	StationEntity* station =  nil;
 	Entity* targStation = [universe entityForUniversalID:targetStation];
 	if ((targStation)&&(targStation->isStation))

@@ -54,6 +54,7 @@ Your fair use and other rights are in no way affected by the above.
 @interface StationEntity : ShipEntity {
 	
 	NSMutableDictionary		*shipsOnApproach;
+	NSMutableDictionary		*shipsOnHold;
 	NSMutableArray			*launchQueue;
 	double					last_launch_time;
 	double					approach_spacing;

@@ -651,6 +651,7 @@ inline BOOL pairOK(NSString* my_role, NSString* their_role);
 - (void) dockEscorts;
 
 - (void) setTargetToStation;
+- (void) setTargetToSystemStation;
 
 - (PlanetEntity *) findNearestLargeBody;
 

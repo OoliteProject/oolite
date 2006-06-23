@@ -34,11 +34,11 @@
 		UPDATE = (scanForHostiles, "pauseAI: 10.0");
 	}; 
     "GO_TO_STATION" = {
-		ENTER = (setTargetToStation, "setDesiredRangeTo: 5000.0", setDestinationToTarget, checkCourseToDestination);
+		ENTER = (setTargetToSystemStation, "setDesiredRangeTo: 5000.0", setDestinationToTarget, checkCourseToDestination);
 		"COURSE_OK" = ("setSpeedFactorTo: 0.5", performFlyToRangeFromDestination);
 		"WAYPOINT_SET" = ("setStateTo: GO_TO_WAYPOINT");
-		"DESIRED_RANGE_ACHIEVED" = (dockEscorts, "setAITo: dockingAI.plist");
-		"AEGIS_IN_DOCKING_RANGE" = (dockEscorts, "setAITo: dockingAI.plist");
+		"DESIRED_RANGE_ACHIEVED" = (dockEscorts, setTargetToSystemStation, "setAITo: dockingAI.plist");
+		"AEGIS_IN_DOCKING_RANGE" = (dockEscorts, setTargetToSystemStation, "setAITo: dockingAI.plist");
 		EXIT = ();
         ATTACKED = (fightOrFleeHostiles); 
         "INCOMING_MISSILE" = (setTargetToPrimaryAggressor, broadcastDistressMessage, fightOrFleeMissile, fightOrFleeHostiles, "setStateTo: FLEE"); 

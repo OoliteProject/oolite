@@ -2797,15 +2797,14 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	{
 		double last_success_factor = success_factor;
 		double last_distance = last_success_factor;
-		double eta = distance / flight_speed;
-
 		success_factor = distance;
 
 		// do the actual piloting!!
-		[self trackDestination:delta_t:NO];
-
-		double slowdownTime = (thrust > 0.0)? flight_speed / thrust : 4.0;	// 10% safety margin
-		double minTurnSpeedFactor = 0.05 * max_flight_pitch * max_flight_roll;	// faster turning implies higher speeds
+		[self trackDestination:delta_t: NO];
+		
+		GLfloat eta = (distance - desired_range) / flight_speed;
+		GLfloat slowdownTime = (thrust > 0.0)? flight_speed / thrust : 4.0;	// no safety margin
+		GLfloat minTurnSpeedFactor = 0.05 * max_flight_pitch * max_flight_roll;	// faster turning implies higher speeds
 
 		if ((eta < slowdownTime)&&(flight_speed > max_flight_speed * minTurnSpeedFactor))
 			desired_speed = flight_speed * 0.50;   // cut speed by 50% to a minimum minTurnSpeedFactor of speed
@@ -7084,6 +7083,31 @@ inline BOOL pairOK(NSString* my_role, NSString* their_role)
 		primaryTarget = [station universal_id];
 		targetStation = primaryTarget;
 	}
+}
+
+- (void) setTargetToSystemStation
+{
+	StationEntity* system_station = [universe station];
+	
+	if (!system_station)
+	{
+		[shipAI message:@"NOTHING_FOUND"];
+		primaryTarget = NO_TARGET;
+		targetStation = NO_TARGET;
+		return;
+	}
+	
+	if (!system_station->isStation)
+	{
+		[shipAI message:@"NOTHING_FOUND"];
+		primaryTarget = NO_TARGET;
+		targetStation = NO_TARGET;
+		return;
+	}
+	
+	primaryTarget = [system_station universal_id];
+	targetStation = primaryTarget;
+	return;
 }
 
 - (PlanetEntity *) findNearestLargeBody
