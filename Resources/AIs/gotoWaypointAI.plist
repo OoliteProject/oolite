@@ -1,13 +1,22 @@
 {
     "GO_TO_WAYPOINT" = {
-		ENTER = ("setDesiredRangeTo: 50.0", checkCourseToDestination);
-		"WAYPOINT_SET" = ("setDesiredRangeTo: 50.0", checkCourseToDestination);
-		"COURSE_OK" = ("setSpeedFactorTo: 0.5", performFlyToRangeFromDestination);
+		ENTER = ();
+		"WAYPOINT_SET" = ("setStateTo: NEW_WAYPOINT");
+		"DESIRED_RANGE_ACHIEVED" = (exitAI);
+        ATTACKED = (exitAI); 
+        "INCOMING_MISSILE" = (exitAI); 
+		EXIT = ();
+		UPDATE = ("setSpeedFactorTo: 0.75", performFlyToRangeFromDestination, checkCourseToDestination);
+	}; 
+    "NEW_WAYPOINT" = {
+		ENTER = ("setSpeedFactorTo: 0.0", "setDesiredRangeTo: 50.0", checkCourseToDestination);
+		"WAYPOINT_SET" = ("setStateTo: NEW_WAYPOINT");
+		"COURSE_OK" = ("setStateTo: GO_TO_WAYPOINT");
 		"DESIRED_RANGE_ACHIEVED" = (exitAI);
         ATTACKED = (exitAI); 
         "INCOMING_MISSILE" = (exitAI); 
 		EXIT = ();
 		UPDATE = ();
 	}; 
-    GLOBAL = {ENTER = ("setStateTo: GO_TO_WAYPOINT"); EXIT = (); UPDATE = (); }; 
+    GLOBAL = {ENTER = ("setStateTo: NEW_WAYPOINT"); EXIT = (); UPDATE = (); }; 
 }

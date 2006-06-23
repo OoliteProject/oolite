@@ -18,6 +18,8 @@
 		0865431C06B8447D000CA0AB /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1058C7A1FEA54F0111CA2CBB /* Cocoa.framework */; };
 		0865431D06B8447D000CA0AB /* OpenGL.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 06AFA01500A58FB77F000001 /* OpenGL.framework */; };
 		0878FD30086EF845004CB752 /* Carbon.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0878FD2F086EF845004CB752 /* Carbon.framework */; };
+		088496E00A4C1D1B00F32928 /* gotoWaypointAI.plist in Resources */ = {isa = PBXBuildFile; fileRef = 088496DE0A4C1D1B00F32928 /* gotoWaypointAI.plist */; };
+		088496E10A4C1D1B00F32928 /* receiveDockingAI.plist in Resources */ = {isa = PBXBuildFile; fileRef = 088496DF0A4C1D1B00F32928 /* receiveDockingAI.plist */; };
 		08CB1FED09D3F2AA001EA329 /* customsounds.plist in Resources */ = {isa = PBXBuildFile; fileRef = 08CB1FEC09D3F2AA001EA329 /* customsounds.plist */; };
 		1A472917096B5454000E78D8 /* CoreAudio.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1A472916096B5454000E78D8 /* CoreAudio.framework */; };
 		1A472921096B5468000E78D8 /* AudioToolbox.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1A47291F096B5468000E78D8 /* AudioToolbox.framework */; };
@@ -377,6 +379,8 @@
 		083325DC09DDBCDE00F5B8E4 /* OOColor.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = OOColor.m; path = src/Core/OOColor.m; sourceTree = "<group>"; };
 		0865432206B8447D000CA0AB /* Oolite.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Oolite.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		0878FD2F086EF845004CB752 /* Carbon.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Carbon.framework; path = /System/Library/Frameworks/Carbon.framework; sourceTree = "<absolute>"; };
+		088496DE0A4C1D1B00F32928 /* gotoWaypointAI.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist; name = gotoWaypointAI.plist; path = Resources/AIs/gotoWaypointAI.plist; sourceTree = "<group>"; };
+		088496DF0A4C1D1B00F32928 /* receiveDockingAI.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist; name = receiveDockingAI.plist; path = Resources/AIs/receiveDockingAI.plist; sourceTree = "<group>"; };
 		08CB1FEC09D3F2AA001EA329 /* customsounds.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist; name = customsounds.plist; path = Resources/Config/customsounds.plist; sourceTree = "<group>"; };
 		1058C7A1FEA54F0111CA2CBB /* Cocoa.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Cocoa.framework; path = /System/Library/Frameworks/Cocoa.framework; sourceTree = "<absolute>"; };
 		1A472916096B5454000E78D8 /* CoreAudio.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreAudio.framework; path = /System/Library/Frameworks/CoreAudio.framework; sourceTree = "<absolute>"; };
@@ -928,6 +932,8 @@
 		08BF4615063D0E75004E052D /* AIs */ = {
 			isa = PBXGroup;
 			children = (
+				088496DE0A4C1D1B00F32928 /* gotoWaypointAI.plist */,
+				088496DF0A4C1D1B00F32928 /* receiveDockingAI.plist */,
 				25F3E7110994FC2F002F25FD /* buoyAI.plist */,
 				25F3E7120994FC2F002F25FD /* collectLootAI.plist */,
 				25F3E7130994FC2F002F25FD /* dockingAI.plist */,
@@ -1517,6 +1523,8 @@
 				25F3E8C4099500F1002F25FD /* SoundInspector.nib in Resources */,
 				08CB1FED09D3F2AA001EA329 /* customsounds.plist in Resources */,
 				082AFDDF0A02159800E671D4 /* dock-flat.dat in Resources */,
+				088496E00A4C1D1B00F32928 /* gotoWaypointAI.plist in Resources */,
+				088496E10A4C1D1B00F32928 /* receiveDockingAI.plist in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
