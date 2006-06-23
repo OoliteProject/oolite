@@ -2802,8 +2802,8 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 		// do the actual piloting!!
 		[self trackDestination:delta_t: NO];
 		
-		GLfloat eta = (distance - desired_range) / flight_speed;
-		GLfloat slowdownTime = (thrust > 0.0)? flight_speed / thrust : 4.0;	// no safety margin
+		GLfloat eta = (distance - desired_range) / (0.51 * flight_speed);	// 2% safety margin assuming an average of half current speed
+		GLfloat slowdownTime = (thrust > 0.0)? flight_speed / thrust : 4.0;
 		GLfloat minTurnSpeedFactor = 0.05 * max_flight_pitch * max_flight_roll;	// faster turning implies higher speeds
 
 		if ((eta < slowdownTime)&&(flight_speed > max_flight_speed * minTurnSpeedFactor))
