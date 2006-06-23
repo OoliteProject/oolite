@@ -1779,6 +1779,8 @@ double scoopSoundPlayTime = 0.0;
 			if (go)
 			{
 				[self safe_all_missiles];
+				[universe setViewDirection:VIEW_FORWARD];
+				currentWeaponFacing = VIEW_FORWARD;
 				if (galactic_witchjump)
 					[self enterGalacticWitchspace];
 				else
