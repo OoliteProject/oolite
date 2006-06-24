@@ -3788,12 +3788,16 @@ double scoopSoundPlayTime = 0.0;
 		[docked_station initialiseLocalMarketWithSeed:system_seed andRandomFactor:market_rnd];
 
 	NSString*	escapepodReport = [self processEscapePods];
-	
 	if ([escapepodReport length])
 		[deliveryReport appendString: escapepodReport];
 	
-	[self unloadCargoPods];
+	[self unloadCargoPods];	// fill up the on-ship commodities before...
 
+	// check contracts
+	NSString* passengerReport = [self checkPassengerContracts];
+	if (passengerReport)
+		[deliveryReport appendFormat:@"\n\n%@", passengerReport];
+		
 	[universe setDisplayText:YES];
 
 	if (ootunes_on)
@@ -3806,7 +3810,8 @@ double scoopSoundPlayTime = 0.0;
 	}
 
 	// time to check the script!
-	[self checkScript];
+	if ((!being_fined)&&([deliveryReport length] < 1))
+		[self checkScript];
 
 	// if we've not switched to the mission screen then proceed normally..
 	if (gui_screen != GUI_SCREEN_MISSION)
@@ -3815,18 +3820,12 @@ double scoopSoundPlayTime = 0.0;
 		if (being_fined)
 			[self getFined];
 
-		// check contracts
-		NSString* passengerReport = [self checkPassengerContracts];
-		
-		if (passengerReport)
-			[deliveryReport appendFormat:@"\n\n%@", passengerReport];
-		
 		if ([deliveryReport length])
 			[self setGuiToDeliveryReportScreenWithText:deliveryReport];
 		else
 			[self setGuiToStatusScreen];
 	}
-
+	
 }
 
 - (void) leaveDock:(StationEntity *)station
