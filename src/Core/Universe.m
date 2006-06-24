@@ -3237,6 +3237,13 @@ GLfloat docked_light_specular[]	= { (GLfloat) 1.0, (GLfloat) 1.0, (GLfloat) 0.5,
 			co_type--;
 			
 			co_amount = [self getRandomAmountOfCommodity:co_type];
+			
+			ShipEntity* special_container = [self getShipWithRole: [self nameForCommodity:co_type]];
+			if (special_container)
+			{
+				[container release];
+				container = special_container;
+			}
 		}
 		
 		//NSLog(@"... loading with plentiful %@",[self describeCommodity:co_type amount:co_amount]);
@@ -3293,6 +3300,13 @@ GLfloat docked_light_specular[]	= { (GLfloat) 1.0, (GLfloat) 1.0, (GLfloat) 0.5,
 			co_type--;
 			
 			co_amount = [self getRandomAmountOfCommodity:co_type];
+			
+			ShipEntity* special_container = [self getShipWithRole: [self nameForCommodity:co_type]];
+			if (special_container)
+			{
+				[container release];
+				container = special_container;
+			}
 		}
 		
 		//NSLog(@"... loading with scarce %@",[self describeCommodity:co_type amount:co_amount]);
@@ -3323,7 +3337,9 @@ GLfloat docked_light_specular[]	= { (GLfloat) 1.0, (GLfloat) 1.0, (GLfloat) 0.5,
 	int how_much = how_many;
 	while (how_much > 0)
 	{
-		ShipEntity* container = [self getShipWithRole:@"cargopod"];
+		ShipEntity* container = [self getShipWithRole: commodity_name];	// try the commodity name first
+		if (!container)
+			container = [self getShipWithRole:@"cargopod"];
 		int amount = 1;
 		if (commodity_units != 0)
 			amount += ranrot_rand() & (15 * commodity_units);
