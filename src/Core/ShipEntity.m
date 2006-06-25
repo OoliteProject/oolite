@@ -160,7 +160,7 @@ Your fair use and other rights are in no way affected by the above.
 	//
 	laser_color = [[OOColor redColor] retain];
 	//
-	scanner_range = 25600;
+	scanner_range = 25600.0;
 	//
 	shipinfoDictionary = nil;
 	//
@@ -2337,7 +2337,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 		{
 			if (hauler->isPlayer)
 				[(PlayerEntity*)hauler setScoopsActive];
-			if (distance > hauler->collision_radius + collision_radius + 250.f)	// 250m range for tractor beam
+			if (distance > hauler->collision_radius + collision_radius + 250.0f)	// 250m range for tractor beam
 			{
 				// escaped tractor beam
 				status = STATUS_IN_FLIGHT;
