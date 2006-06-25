@@ -3378,7 +3378,7 @@
 		<key>scanClass</key>
 		<string>CLASS_THARGOID</string>
 		<key>scanner_range</key>
-		<real>30000</real>
+		<real>50000</real>
 		<key>thrust</key>
 		<real>40</real>
 		<key>weapon_position_aft</key>
