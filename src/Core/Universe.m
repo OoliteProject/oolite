@@ -2656,6 +2656,7 @@ GLfloat docked_light_specular[]	= { (GLfloat) 1.0, (GLfloat) 1.0, (GLfloat) 0.5,
 	{
 		[ship setQRotation:q2];
 		[ship setPosition: 0.0f : 0.0f : 3.6f * ship->actual_radius];
+		[ship setDestination: ship->position];	// ideal position
 		
 		//NSLog(@"demo ship %@ has collision radius %.1f 250.0/cr = %.1f", [ship name], ship->collision_radius, 250.0/ship->collision_radius);
 		
@@ -5381,7 +5382,10 @@ BOOL maintainLinkedLists(Universe* uni)
 						case DEMO_FLY_IN :
 							vel.x = 0.0;	vel.y = 0.0;	vel.z = 0.0;
 							if (demo_ship)
+							{
 								[demo_ship setVelocity:vel];
+								[demo_ship setPosition:[demo_ship destination]];	// ideal position
+							}
 							demo_stage = DEMO_SHOW_THING;
 							demo_stage_time = universal_time + 6.0;
 							break;
@@ -5404,8 +5408,8 @@ BOOL maintainLinkedLists(Universe* uni)
 								[[demo_ship getAI] setStateMachine:@"nullAI.plist"];
 								[demo_ship setQRotation:q2];
 								[demo_ship setPosition: 0.0f : 0.0f : 360.0f * demo_ship->actual_radius];
-								[demo_ship setDestination: make_vector( 0.0f, 0.0f, 3.6f * demo_ship->actual_radius)];
-								vel.x = 0.0;	vel.y = 0.0;	vel.z = -3.6 * demo_ship->actual_radius * 100.0;
+								[demo_ship setDestination: make_vector( 0.0f, 0.0f, 3.6f * demo_ship->actual_radius)];	// ideal position
+								vel.x = 0.0;	vel.y = 0.0;	vel.z = -360.0f * demo_ship->actual_radius;
 								[demo_ship setVelocity:vel];
 								[demo_ship setScanClass: CLASS_NO_DRAW];
 								[demo_ship setRoll:PI/5.0];
