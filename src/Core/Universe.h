@@ -472,7 +472,7 @@ double estimatedTimeForJourney(double distance, int hops);
 - (NSString *) shortTimeDescription:(double) interval;
 - (NSArray *) contractsForSystem:(Random_Seed) s_seed atTime:(double) current_time;
 
-- (NSArray *) shipsForSaleForSystem:(Random_Seed) s_seed atTime:(double) current_time;
+- (NSArray *) shipsForSaleForSystem:(Random_Seed) s_seed withTL:(int) specialTL atTime:(double) current_time;
 NSComparisonResult compareName( id dict1, id dict2, void * context);
 NSComparisonResult comparePrice( id dict1, id dict2, void * context);
 - (int) tradeInValueForCommanderDictionary:(NSDictionary*) cmdr_dict;

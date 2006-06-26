@@ -1024,8 +1024,17 @@ static NSMutableDictionary* currentShipyard = nil;
 	
 	// set up initial market if there is none
 	StationEntity* the_station = [universe station];
+
+	int station_tl = NSNotFound;
+	
+	if (docked_station)
+	{
+		if ([docked_station equivalent_tech_level] != NSNotFound)
+			station_tl = [docked_station equivalent_tech_level];
+	}
+
 	if (![the_station localShipyard])
-		[the_station setLocalShipyard:[universe shipsForSaleForSystem:system_seed atTime:ship_clock]];
+		[the_station setLocalShipyard:[universe shipsForSaleForSystem:system_seed withTL:station_tl atTime:ship_clock]];
 		
 	NSMutableArray* shipyard = [the_station localShipyard];
 		

@@ -7003,7 +7003,7 @@ double estimatedTimeForJourney(double distance, int hops)
 	return [NSArray arrayWithArray:resultArray];
 }
 
-- (NSArray *) shipsForSaleForSystem:(Random_Seed) s_seed atTime:(double) current_time
+- (NSArray *) shipsForSaleForSystem:(Random_Seed) s_seed withTL:(int) specialTL atTime:(double) current_time
 {
 	int random_factor = current_time;
 	random_factor = (random_factor >> 24) &0xff;
@@ -7061,6 +7061,9 @@ double estimatedTimeForJourney(double distance, int hops)
 		
 		NSDictionary* systemInfo = [self generateSystemData:system_seed];
 		int techlevel = [(NSNumber*)[systemInfo objectForKey:KEY_TECHLEVEL] intValue];
+		
+		if (specialTL != NSNotFound)
+			techlevel = specialTL;
 		
 		int ship_index = (ship_seed.d * 0x100 + ship_seed.e) % [keysForShips count];
 		
