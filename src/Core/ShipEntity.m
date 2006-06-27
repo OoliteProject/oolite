@@ -6663,7 +6663,8 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 				[universe addMessage:[universe describeCommodity:co_type amount:co_amount] forCount:4.5];
 			}
 		}
-		[cargo addObject:other];
+		[cargo insertObject: other atIndex: 0];	// places most recently scooped object at eject position
+//		[cargo addObject:other];
 		[other setStatus:STATUS_IN_HOLD];					// prevents entity from being recycled!
 		[shipAI message:@"CARGO_SCOOPED"];
 		if ([cargo count] == max_cargo)
