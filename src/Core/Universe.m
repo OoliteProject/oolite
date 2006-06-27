@@ -2949,6 +2949,8 @@ GLfloat docked_light_specular[]	= { (GLfloat) 1.0, (GLfloat) 1.0, (GLfloat) 0.5,
 	int i, j, found;
 	ShipEntity		*ship = nil;
 	
+	NSString* search = [[Entity scanTokensFromString:desc] componentsJoinedByString:@"_"];
+	
 	NSAutoreleasePool* mypool = [[NSAutoreleasePool alloc] init];	// let's make sure we tidy up each time this is called
 	
 	NSMutableArray  *foundShips = [NSMutableArray arrayWithCapacity:16];
@@ -2957,7 +2959,7 @@ GLfloat docked_light_specular[]	= { (GLfloat) 1.0, (GLfloat) 1.0, (GLfloat) 0.5,
 	float foundf = 0.0;
 	float selectedf = randf();
 	
-//	NSLog(@"DEBUG [Universe getShipWithRole:] looking for %@ ...", desc);
+//	NSLog(@"DEBUG [Universe getShipWithRole:] looking for %@ ...", search);
 	
 	found = 0;
 	for (i = 0; i < [shipKeys count]; i++)
@@ -2972,7 +2974,7 @@ GLfloat docked_light_specular[]	= { (GLfloat) 1.0, (GLfloat) 1.0, (GLfloat) 0.5,
 				shipRoles = [NSArray array];	// empty array - ship does not meet conditions listed
 		}
 		
-//		NSLog(@"... checking if %@ contains a %@", [shipRoles description], desc);
+//		NSLog(@"... checking if %@ contains a %@", [shipRoles searchription], search);
 		
 		for (j = 0; j < [shipRoles count]; j++)
 		{
@@ -2983,7 +2985,7 @@ GLfloat docked_light_specular[]	= { (GLfloat) 1.0, (GLfloat) 1.0, (GLfloat) 0.5,
 			GLfloat chance = 1.0;
 			if (putative_roles)
 			{
-				if ([putative_roles hasPrefix:desc] && ([putative_roles rangeOfString:@"("].location != NSNotFound))
+				if ([putative_roles hasPrefix:search] && ([putative_roles rangeOfString:@"("].location != NSNotFound))
 				{
 //					NSLog(@"DEBUG chance to be derived from '%@'", putative_roles);
 					
@@ -2998,9 +3000,9 @@ GLfloat docked_light_specular[]	= { (GLfloat) 1.0, (GLfloat) 1.0, (GLfloat) 0.5,
 					
 				}
 		
-//				NSLog(@"... ... putative_roles = '%@' desc = '%@' isEqual = %@", putative_roles, desc, ([putative_roles isEqual:desc])? @":YES:" : @":NO:");
+//				NSLog(@"... ... putative_roles = '%@' search = '%@' isEqual = %@", putative_roles, search, ([putative_roles isEqual:search])? @":YES:" : @":NO:");
 		
-				if ([putative_roles isEqual:desc] && (chance > 0.0))
+				if ([putative_roles isEqual:search] && (chance > 0.0))
 				{
 					[foundShips addObject:	[shipKeys objectAtIndex:i]];
 					[foundChance addObject:	[NSNumber numberWithFloat:chance]];
@@ -3016,7 +3018,7 @@ GLfloat docked_light_specular[]	= { (GLfloat) 1.0, (GLfloat) 1.0, (GLfloat) 0.5,
 	if (found > 1)
 	{
 		
-//		NSLog(@"... candidates are: %d (%.3f) %@", found, foundf, [foundShips description]);
+//		NSLog(@"... candidates are: %d (%.3f) %@", found, foundf, [foundShips searchription]);
 		
 //		NSLog(@"... selection is: %.3f", selectedf * foundf);
 		
@@ -3036,11 +3038,11 @@ GLfloat docked_light_specular[]	= { (GLfloat) 1.0, (GLfloat) 1.0, (GLfloat) 0.5,
 	if (found)
 	{	
 		ship = [self getShip:(NSString *)[foundShips objectAtIndex:i]];	// may return nil if not found!
-		[ship setRoles:desc];											// set its roles to this one particular chosen role
+		[ship setRoles:search];											// set its roles to this one particular chosen role
 	}
 	else
 	{
-		NSLog(@"DEBUG [Universe getShipWithRole: %@] couldn't find a ship!", desc);
+		NSLog(@"DEBUG [Universe getShipWithRole: %@] couldn't find a ship!", search);
 	}
 	
 	[mypool release];	// tidy everything up
