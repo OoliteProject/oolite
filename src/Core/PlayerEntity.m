@@ -197,7 +197,7 @@ static Quaternion quaternion_identity = { (GLfloat)1.0, (GLfloat)0.0, (GLfloat)0
 		key_map_info = [(NSNumber *)[kdic objectForKey:@"key_map_info"] intValue];
 	//
 	if ([kdic objectForKey:@"key_custom_view"])
-		key_map_info = [(NSNumber *)[kdic objectForKey:@"key_custom_view"] intValue];
+		key_custom_view = [(NSNumber *)[kdic objectForKey:@"key_custom_view"] intValue];
 	//
 	// other keys are SET and cannot be varied
 
