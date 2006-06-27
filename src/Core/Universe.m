@@ -3040,7 +3040,7 @@ GLfloat docked_light_specular[]	= { (GLfloat) 1.0, (GLfloat) 1.0, (GLfloat) 0.5,
 		ship = [self getShip:(NSString *)[foundShips objectAtIndex:i]];	// may return nil if not found!
 		[ship setRoles:search];											// set its roles to this one particular chosen role
 	}
-	else
+	else if (debug)
 	{
 		NSLog(@"DEBUG [Universe getShipWithRole: %@] couldn't find a ship!", search);
 	}
