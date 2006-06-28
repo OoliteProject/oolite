@@ -532,6 +532,8 @@
 		<string>CLASS_ROCK</string>
 		<key>smooth</key>
 		<true/>
+		<key>unpiloted</key>
+		<true/>
 		<key>thrust</key>
 		<real>0.0</real>
 		<key>weapon_energy</key>
@@ -541,52 +543,10 @@
 	</dict>
 	<key>asteroid-alternative</key>
 	<dict>
-		<key>ai_type</key>
-		<string>dumbAI.plist</string>
-		<key>bounty</key>
-		<integer>10</integer>
-		<key>cargo_type</key>
-		<string>CARGO_NOT_CARGO</string>
-		<key>energy_recharge_rate</key>
-		<real>0.0</real>
-		<key>forward_weapon_type</key>
-		<string>WEAPON_NONE</string>
-		<key>has_ecm</key>
-		<false/>
-		<key>has_escape_pod</key>
-		<false/>
-		<key>has_scoop</key>
-		<false/>
-		<key>likely_cargo</key>
-		<integer>0</integer>
-		<key>max_cargo</key>
-		<integer>0</integer>
-		<key>max_energy</key>
-		<real>100</real>
-		<key>max_flight_pitch</key>
-		<real>0.10000000000000001</real>
-		<key>max_flight_roll</key>
-		<real>0.10000000000000001</real>
-		<key>max_flight_speed</key>
-		<real>0.0</real>
-		<key>missiles</key>
-		<integer>0</integer>
+		<key>like_ship</key>
+		<string>asteroid</string>
 		<key>model</key>
 		<string>asteroid1.dat</string>
-		<key>name</key>
-		<string>Asteroid</string>
-		<key>roles</key>
-		<string>asteroid</string>
-		<key>scanClass</key>
-		<string>CLASS_ROCK</string>
-		<key>smooth</key>
-		<true/>
-		<key>thrust</key>
-		<real>0.0</real>
-		<key>weapon_energy</key>
-		<real>0.0</real>
-		<key>weapon_offset_x</key>
-		<real>0.0</real>
 	</dict>
 	<key>barrel</key>
 	<dict>
@@ -622,6 +582,8 @@
 		<string>cargopod 1t-cargopod</string>
 		<key>thrust</key>
 		<real>0.0</real>
+		<key>unpiloted</key>
+		<true/>
 		<key>weapon_energy</key>
 		<real>0.0</real>
 		<key>weapon_offset_x</key>
@@ -933,6 +895,8 @@
 		<true/>
 		<key>thrust</key>
 		<real>0.0</real>
+		<key>unpiloted</key>
+		<true/>
 		<key>weapon_energy</key>
 		<real>0.0</real>
 		<key>weapon_offset_x</key>
@@ -940,52 +904,10 @@
 	</dict>
 	<key>boulder-alternative</key>
 	<dict>
-		<key>ai_type</key>
-		<string>dumbAI.plist</string>
-		<key>bounty</key>
-		<integer>5</integer>
-		<key>cargo_type</key>
-		<string>CARGO_NOT_CARGO</string>
-		<key>energy_recharge_rate</key>
-		<real>0.0</real>
-		<key>forward_weapon_type</key>
-		<string>WEAPON_NONE</string>
-		<key>has_ecm</key>
-		<false/>
-		<key>has_escape_pod</key>
-		<false/>
-		<key>has_scoop</key>
-		<false/>
-		<key>likely_cargo</key>
-		<integer>0</integer>
-		<key>max_cargo</key>
-		<integer>0</integer>
-		<key>max_energy</key>
-		<real>25</real>
-		<key>max_flight_pitch</key>
-		<real>0.5</real>
-		<key>max_flight_roll</key>
-		<real>0.5</real>
-		<key>max_flight_speed</key>
-		<real>5</real>
-		<key>missiles</key>
-		<integer>0</integer>
+		<key>like_ship</key>
+		<string>boulder</string>
 		<key>model</key>
 		<string>boulder1.dat</string>
-		<key>name</key>
-		<string>Boulder</string>
-		<key>roles</key>
-		<string>boulder</string>
-		<key>scanClass</key>
-		<string>CLASS_ROCK</string>
-		<key>smooth</key>
-		<true/>
-		<key>thrust</key>
-		<real>0.0</real>
-		<key>weapon_energy</key>
-		<real>0.0</real>
-		<key>weapon_offset_x</key>
-		<real>0.0</real>
 	</dict>
 	<key>buoy</key>
 	<dict>
@@ -1023,6 +945,8 @@
 		<string>buoy</string>
 		<key>thrust</key>
 		<real>100</real>
+		<key>unpiloted</key>
+		<true/>
 		<key>weapon_energy</key>
 		<real>0.0</real>
 		<key>weapon_offset_x</key>
@@ -1071,6 +995,8 @@
 		</array>
 		<key>thrust</key>
 		<real>100</real>
+		<key>unpiloted</key>
+		<true/>
 		<key>weapon_energy</key>
 		<real>0.0</real>
 		<key>weapon_offset_x</key>
@@ -1136,6 +1062,8 @@
 		</array>
 		<key>thrust</key>
 		<real>0.0</real>
+		<key>unpiloted</key>
+		<true/>
 	</dict>
 	<key>cobra3-alternate</key>
 	<dict>
@@ -2449,6 +2377,8 @@
 		<string>CLASS_MISSILE</string>
 		<key>thrust</key>
 		<real>250</real>
+		<key>unpiloted</key>
+		<true/>
 		<key>weapon_energy</key>
 		<real>4500</real>
 	</dict>
@@ -3278,6 +3208,8 @@
 		<true/>
 		<key>thrust</key>
 		<real>0.0</real>
+		<key>unpiloted</key>
+		<true/>
 		<key>weapon_energy</key>
 		<real>0.0</real>
 		<key>weapon_offset_x</key>
@@ -3285,50 +3217,10 @@
 	</dict>
 	<key>splinter-alternative</key>
 	<dict>
-		<key>ai_type</key>
-		<string>dumbAI.plist</string>
-		<key>bounty</key>
-		<integer>1</integer>
-		<key>cargo_type</key>
-		<string>CARGO_MINERALS</string>
-		<key>energy_recharge_rate</key>
-		<real>0.0</real>
-		<key>forward_weapon_type</key>
-		<string>WEAPON_NONE</string>
-		<key>has_ecm</key>
-		<false/>
-		<key>has_escape_pod</key>
-		<false/>
-		<key>has_scoop</key>
-		<false/>
-		<key>likely_cargo</key>
-		<integer>0</integer>
-		<key>max_cargo</key>
-		<integer>0</integer>
-		<key>max_energy</key>
-		<real>5</real>
-		<key>max_flight_pitch</key>
-		<real>1</real>
-		<key>max_flight_roll</key>
-		<real>1</real>
-		<key>max_flight_speed</key>
-		<real>10</real>
-		<key>missiles</key>
-		<integer>0</integer>
+		<key>like_ship</key>
+		<string>splinter</string>
 		<key>model</key>
 		<string>splinter1.dat</string>
-		<key>name</key>
-		<string>Splinter</string>
-		<key>roles</key>
-		<string>splinter</string>
-		<key>smooth</key>
-		<true/>
-		<key>thrust</key>
-		<real>0.0</real>
-		<key>weapon_energy</key>
-		<real>0.0</real>
-		<key>weapon_offset_x</key>
-		<real>0.0</real>
 	</dict>
 	<key>strut</key>
 	<dict>
@@ -3340,6 +3232,8 @@
 		<string>Strut 10-10-30</string>
 		<key>roles</key>
 		<string>strut</string>
+		<key>unpiloted</key>
+		<true/>
 	</dict>
 	<key>tharglet</key>
 	<dict>
@@ -3981,6 +3875,8 @@
 		<string>CLASS_MISSILE</string>
 		<key>thrust</key>
 		<real>250</real>
+		<key>unpiloted</key>
+		<true/>
 		<key>weapon_energy</key>
 		<real>4500</real>
 	</dict>
