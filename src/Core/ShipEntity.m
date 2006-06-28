@@ -1373,13 +1373,12 @@ static NSMutableDictionary* smallOctreeDict = nil;
 			}
 		}
 	}
-	
+	//
 	// unpiloted (like missiles asteroids etc.)
 	if ([shipdict objectForKey:@"unpiloted"])
 	{
-		GLfloat chance =  [[shipdict objectForKey:@"unpiloted"] floatValue];
-		if (randf() < chance)
-			[self setCrew:[NSArray array]];	// empty array
+		if (randf() < [[shipdict objectForKey:@"unpiloted"] floatValue])
+			[self setCrew: nil];	// empty
 	}
 	
 	// debugging flags
@@ -7261,6 +7260,8 @@ inline BOOL pairOK(NSString* my_role, NSString* their_role)
 {
 	if (!other_ship)
 		return;
+	if (!crew)
+		return;	// nobody to send the signal
 	if ((lastRadioMessage) && (message_time > 0.0) && [message_text isEqual:lastRadioMessage])
 		return;	// don't send the same message too often
 	[lastRadioMessage autorelease];
@@ -7378,7 +7379,7 @@ inline BOOL pairOK(NSString* my_role, NSString* their_role)
 		Entity* switcher = [universe entityForUniversalID:switcher_id];
 		int rescuer_id = [(NSString*)[tokens objectAtIndex:2] intValue];
 		Entity* rescuer = [universe entityForUniversalID:rescuer_id];
-		if ((switcher_id == primaryAggressor)&&(switcher_id == primaryTarget)&&(switcher)&&(rescuer)&&(rescuer->isShip)&&(thanked_ship_id != rescuer_id)&&(scan_class != CLASS_THARGOID)&&(crew != nil)&&([crew count] > 0))
+		if ((switcher_id == primaryAggressor)&&(switcher_id == primaryTarget)&&(switcher)&&(rescuer)&&(rescuer->isShip)&&(thanked_ship_id != rescuer_id)&&(scan_class != CLASS_THARGOID))
 		{
 			if (scan_class == CLASS_POLICE)
 				[self sendExpandedMessage:@"[police-thanks-for-assist]" toShip:(ShipEntity*)rescuer];
