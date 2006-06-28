@@ -497,6 +497,9 @@ enum
 	
 	int						currentWeaponFacing;	// decoupled from view direction
 	
+	// docking reports
+	NSMutableString*		dockingReport;
+	
 	/* -- */
 
 #ifdef GNUSTEP

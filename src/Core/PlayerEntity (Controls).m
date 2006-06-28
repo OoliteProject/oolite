@@ -1372,6 +1372,7 @@ static BOOL volumeControlPressed;
 static int oldSelection;
 static BOOL selectPressed;
 static BOOL queryPressed;
+static BOOL spacePressed;
 
 // DJS + aegidian : Moved from the big switch/case block in pollGuiArrowKeyControls
 - (BOOL) handleGUIUpDownArrowKeys
@@ -2066,9 +2067,15 @@ static BOOL queryPressed;
 		case	GUI_SCREEN_REPORT :
 			if ([gameView isDown:32])	// spacebar
 			{
-				[gui click];
-				[self setGuiToStatusScreen];
+				if (!spacePressed)
+				{
+					[gui click];
+					[self setGuiToStatusScreen];
+				}
+				spacePressed = YES;
 			}
+			else
+				spacePressed = NO;
 			break;
 				
 		case	GUI_SCREEN_SHIPYARD :
@@ -2440,9 +2447,15 @@ static BOOL switching_equipship_screens;
 	MyOpenGLView  *gameView = (MyOpenGLView *)[universe gameView];
 	if ([gameView isDown:32])   // look for the spacebar
 	{
-		[universe displayMessage:@"" forCount:1.0];
-		shot_time = 31.0;	// force restart
+		if (!spacePressed)
+		{
+			[universe displayMessage:@"" forCount:1.0];
+			shot_time = 31.0;	// force restart
+		}
+		spacePressed = YES;
 	}
+	else
+		spacePressed = NO;
 }
 
 static BOOL toggling_music;
@@ -2623,15 +2636,19 @@ static BOOL toggling_music;
 //				NSLog(@"GUI_SCREEN_MISSION looking for spacebar");
 				if ([gameView isDown:32])	//  '<space>'
 				{
-					[self setStatus:STATUS_DOCKED];
-					[universe removeDemoShips];
-					[gui setBackgroundImage:nil];
-					[self setGuiToStatusScreen];
-					if (missionMusic)
+					if (!spacePressed)
 					{
-						[missionMusic stop];
+						[self setStatus:STATUS_DOCKED];
+						[universe removeDemoShips];
+						[gui setBackgroundImage:nil];
+						[self setGuiToStatusScreen];
+						if (missionMusic)
+							[missionMusic stop];
 					}
+					spacePressed = YES;
 				}
+				else
+					spacePressed = NO;
 			}
 			else
 			{

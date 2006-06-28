@@ -908,6 +908,8 @@ static Quaternion quaternion_identity = { (GLfloat)1.0, (GLfloat)0.0, (GLfloat)0
 	//
 	target_memory_index = 0;
 	//
+	dockingReport = [[NSMutableString string] retain];
+	//
     return self;
 }
 
@@ -1161,6 +1163,8 @@ static Quaternion quaternion_identity = { (GLfloat)1.0, (GLfloat)0.0, (GLfloat)0
 	suppressTargetLost = NO;
 
 	scoopsActive = NO;
+	
+	[dockingReport setString:@""];
 }
 
 - (void) setUpShipFromDictionary:(NSDictionary *) dict
@@ -1508,6 +1512,8 @@ static Quaternion quaternion_identity = { (GLfloat)1.0, (GLfloat)0.0, (GLfloat)0
 	if (save_path)				[save_path release];
 
 	if (custom_views)			[custom_views release];
+	
+	if (dockingReport)			[dockingReport release];
 
 	[self destroySound];
 
@@ -3746,7 +3752,7 @@ double scoopSoundPlayTime = 0.0;
 
 - (void) docked
 {
-	NSMutableString	*deliveryReport = [NSMutableString string];
+//	NSMutableString	*dockingReport = [NSMutableString string];
 	
 	status = STATUS_DOCKED;
 	[universe setViewDirection:VIEW_GUI_DISPLAY];
@@ -3789,14 +3795,14 @@ double scoopSoundPlayTime = 0.0;
 
 	NSString*	escapepodReport = [self processEscapePods];
 	if ([escapepodReport length])
-		[deliveryReport appendString: escapepodReport];
+		[dockingReport appendString: escapepodReport];
 	
 	[self unloadCargoPods];	// fill up the on-ship commodities before...
 
 	// check contracts
 	NSString* passengerReport = [self checkPassengerContracts];
 	if (passengerReport)
-		[deliveryReport appendFormat:@"\n\n%@", passengerReport];
+		[dockingReport appendFormat:@"\n\n%@", passengerReport];
 		
 	[universe setDisplayText:YES];
 
@@ -3810,7 +3816,7 @@ double scoopSoundPlayTime = 0.0;
 	}
 
 	// time to check the script!
-	if ((!being_fined)&&([deliveryReport length] < 1))
+	if (!being_fined)
 		[self checkScript];
 
 	// if we've not switched to the mission screen then proceed normally..
@@ -3820,10 +3826,7 @@ double scoopSoundPlayTime = 0.0;
 		if (being_fined)
 			[self getFined];
 
-		if ([deliveryReport length])
-			[self setGuiToDeliveryReportScreenWithText:deliveryReport];
-		else
-			[self setGuiToStatusScreen];
+		[self setGuiToStatusScreen];
 	}
 	
 }
@@ -4331,6 +4334,13 @@ double scoopSoundPlayTime = 0.0;
 
 - (void) setGuiToStatusScreen
 {
+	// intercept any docking messages
+	if ([dockingReport length] > 0)
+	{
+		[self setGuiToDockingReportScreen];	// go here instead!
+		return;
+	}
+
 	NSDictionary*   descriptions = [universe descriptions];
 	NSString*		systemName;
 	NSString*		targetSystemName;

@@ -1014,6 +1014,66 @@ Your fair use and other rights are in no way affected by the above.
 	[universe setViewDirection: VIEW_GUI_DISPLAY];
 }
 
+- (void) setGuiToDockingReportScreen
+{
+	GuiDisplayGen* gui = [universe gui];
+	
+	int text_row = 1;
+	
+	[dockingReport setString:[dockingReport stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceAndNewlineCharacterSet]]];
+	
+	// GUI stuff
+	{
+		[gui clear];
+		[gui setTitle:[universe expandDescription:@"[arrival-report-title]" forSystem:system_seed]];
+		//
+
+		// dockingReport might be a multi-line message
+		//
+		while (([dockingReport length] > 0)&&(text_row < 18))
+		{
+			if ([dockingReport rangeOfString:@"\n"].location != NSNotFound)
+			{
+				while (([dockingReport rangeOfString:@"\n"].location != NSNotFound)&&(text_row < 18))
+				{
+					int line_break = [dockingReport rangeOfString:@"\n"].location;
+					NSString* line = [dockingReport substringToIndex:line_break];
+					[dockingReport deleteCharactersInRange: NSMakeRange( 0, line_break + 1)];
+					text_row = [gui addLongText:line startingAtRow:text_row align:GUI_ALIGN_LEFT];
+				}
+				[dockingReport setString:[dockingReport stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceAndNewlineCharacterSet]]];
+			}
+			else
+			{
+				text_row = [gui addLongText:[NSString stringWithString:dockingReport] startingAtRow:text_row align:GUI_ALIGN_LEFT];
+				[dockingReport setString:@""];
+			}
+		}
+
+		[gui setText:[NSString stringWithFormat:@"Cash:\t%.1f Cr.\t\tLoad %d of %d t.\tPassengers %d of %d berths.", 0.1*credits, current_cargo, max_cargo, [passengers count], max_passengers]  forRow: GUI_ROW_MARKET_CASH];
+		//
+		[gui setText:@"Press Space Commander" forRow:21 align:GUI_ALIGN_CENTER];
+		[gui setColor:[OOColor yellowColor] forRow:21];
+		
+		[gui setShowTextCursor:NO];
+	}
+	/* ends */
+	
+
+	if (lastTextKey)
+	{
+		[lastTextKey release];
+		lastTextKey = nil;
+	}
+	
+	gui_screen = GUI_SCREEN_REPORT;
+
+	[self setShowDemoShips: NO];
+	[universe setDisplayText: YES];
+	[universe setDisplayCursor: NO];
+	[universe setViewDirection: VIEW_GUI_DISPLAY];
+}
+
 // ---------------------------------------------------------------------- //
 
 static NSMutableDictionary* currentShipyard = nil;
