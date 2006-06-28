@@ -1373,7 +1373,9 @@ static	Vector	circleVertex[65];		// holds vector coordinates for a unit circle
 									currentPos.y + vi.y * position.x + vj.y * position.y + vk.y * position.z,
 									currentPos.z + vi.z * position.x + vj.z * position.y + vk.z * position.z);
 
-	GLfloat i01 = -0.03;// * flare_length;
+//	GLfloat i01 = -0.03;// * flare_length;
+//	GLfloat i01 = -0.03 * (1.0 - flare_length);// * flare_length;
+	GLfloat i01 = -0.03 * hyper_fade;// * flare_length;
 	GLfloat i03 = -0.12;// * flare_length;
 	GLfloat i06 = -0.25;// * flare_length;
 	GLfloat i08 = -0.32;// * flare_length;
