@@ -436,7 +436,7 @@ Your fair use and other rights are in no way affected by the above.
 		[self basicSetUp];
 	}
 	if ([dict objectForKey:@"role"])
-		[self castInRole:[dict objectForKey:@"name"]];
+		[self castInRole:[dict objectForKey:@"role"]];
 	if ([dict objectForKey:@"name"])
 		[self setName:[dict objectForKey:@"name"]];
 	if ([dict objectForKey:@"short_description"])
