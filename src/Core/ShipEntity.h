@@ -356,6 +356,11 @@ Your fair use and other rights are in no way affected by the above.
 		ShipEntity*				scanned_ships[MAX_SCAN_NUMBER];
 		GLfloat					distance2_scanned_ships[MAX_SCAN_NUMBER];
 		int						n_scanned_ships;
+		
+		// advanced navigation
+		Vector					navpoints[32];
+		int						next_navpoint_index;
+		int						number_of_navpoints;
 
 		// DEBUGGING
 		int debug_flag;
@@ -428,6 +433,8 @@ Your fair use and other rights are in no way affected by the above.
 - (void) behaviour_avoid_collision:(double) delta_t;
 //            //
 - (void) behaviour_track_as_turret:(double) delta_t;
+//            //
+- (void) behaviour_fly_thru_navpoints:(double) delta_t;
 //            //
 - (void) behaviour_experimental:(double) delta_t;
 //            //

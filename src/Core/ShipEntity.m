@@ -2818,7 +2818,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 
 		if (distance < last_distance)	// improvement
 		{
-			frustration -= delta_t;
+			frustration -= 0.25 * delta_t;
 			if (frustration < 0.0)
 				frustration = 0.0;
 		}
@@ -2901,6 +2901,64 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 		if (aim > .95)
 			[self fireTurretCannon: sqrt( magnitude2( p1)) - cr];
 	}
+}
+//            //
+- (void) behaviour_fly_thru_navpoints:(double) delta_t
+{
+	int navpoint_plus_index = (next_navpoint_index + 1) % number_of_navpoints;
+	Vector d1 = navpoints[ next_navpoint_index];		// head for this one
+	Vector d2 = navpoints[ navpoint_plus_index];	// but be facing this one
+	
+	Vector rel = vector_between(d1, position);
+	Vector ref = vector_between(d2, d1);
+	ref = unit_vector(&ref);
+	
+	GLfloat	r1 = dot_product( rel, ref);
+	
+	GLfloat distance = sqrtf(magnitude2(rel));
+	
+	if (distance < desired_range)
+	{
+		// desired range achieved
+		[shipAI reactToMessage:@"NAVPOINT_REACHED"];
+		if (navpoint_plus_index == 0)
+			[shipAI reactToMessage:@"ENDPOINT_REACHED"];
+		next_navpoint_index = navpoint_plus_index;	// loop as required
+	}
+	else
+	{
+		double last_success_factor = success_factor;
+		double last_distance = last_success_factor;
+		success_factor = distance;
+
+		// set destination spline point from r1 and ref
+		destination = make_vector( d1.x + r1 * ref.x, d1.y + r1 * ref.y, d1.z + r1 * ref.z);
+
+		// do the actual piloting!!
+		[self trackDestination:delta_t: NO];
+		
+		// keep speed as is
+
+		if (distance < last_distance)	// improvement
+		{
+			frustration -= delta_t;
+			if (frustration < 0.0)
+				frustration = 0.0;
+		}
+		else
+		{
+			frustration += delta_t;
+			if (frustration > 15.0)	// 15s of frustration
+			{
+				[shipAI reactToMessage:@"FRUSTRATED"];
+				frustration -= 15.0;	//repeat after another 15s of frustration
+			}
+		}
+	}
+//	if ((proximity_alert != NO_TARGET)&&(proximity_alert != primaryTarget))
+//		[self avoidCollision];
+	[self applyRoll:delta_t*flight_roll andClimb:delta_t*flight_pitch];
+	[self applyThrust:delta_t];
 }
 //            //
 - (void) behaviour_experimental:(double) delta_t
