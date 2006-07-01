@@ -491,6 +491,8 @@ NSComparisonResult comparePrice( id dict1, id dict2, void * context);
 - (Vector) getSunSkimStartPositionForShip:(ShipEntity*) ship;
 - (Vector) getSunSkimEndPositionForShip:(ShipEntity*) ship;
 
+- (NSArray*) listBeaconsWithCode:(NSString*) code;
+
 - (void) allShipAIsReactToMessage:(NSString*) message;
 
 ///////////////////////////////////////

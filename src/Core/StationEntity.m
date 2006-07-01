@@ -925,6 +925,7 @@ NSDictionary* instructions(int station_id, Vector coords, float speed, float ran
 		docked_traders = 0;   // 1..3;
 	}
 	
+	[self setCrew:[NSArray arrayWithObject:[OOCharacter characterWithRole:@"police" andOriginalSystem:[universe systemSeed] inUniverse:universe]]];
 }
 
 - (void) dealloc

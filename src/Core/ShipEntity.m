@@ -297,6 +297,8 @@ NSString* describeBehaviour(int some_behaviour)
 			return @"BEHAVIOUR_TRACTORED";
 		case BEHAVIOUR_EXPERIMENTAL:
 			return @"BEHAVIOUR_EXPERIMENTAL";
+		case BEHAVIOUR_FLY_THRU_NAVPOINTS:
+			return @"BEHAVIOUR_FLY_THRU_NAVPOINTS";
 	}
 	return @"** BEHAVIOUR UNKNOWN **";
 }
@@ -506,6 +508,11 @@ static NSMutableDictionary* smallOctreeDict = nil;
 	result.y += v_right.y * tractor_position.x + v_up.y * tractor_position.y + v_forward.y * tractor_position.z;
 	result.z += v_right.z * tractor_position.x + v_up.z * tractor_position.y + v_forward.z * tractor_position.z;
 	return result;
+}
+
+- (NSString*)	beaconCode
+{
+	return (NSString*)[shipinfoDictionary objectForKey:@"beacon"];
 }
 
 - (BOOL)	isBeacon
@@ -1388,6 +1395,11 @@ static NSMutableDictionary* smallOctreeDict = nil;
 		
 }
 
+- (NSDictionary*)	 shipInfoDictionary
+{
+	return shipinfoDictionary;
+}
+
 
 - (void) setDefaultWeaponOffsets
 {
@@ -1905,7 +1917,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	//
 	if (reportAImessages && (debug_condition != behaviour))
 	{
-		NSLog(@"DEBUG %@ behaviour is now %d", self, behaviour);
+		NSLog(@"DEBUG %@ behaviour is now %@", self, describeBehaviour(behaviour));
 		debug_condition = behaviour;
 	}
 
@@ -2187,6 +2199,10 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 
 			case BEHAVIOUR_EXPERIMENTAL :
 				[self behaviour_experimental: delta_t];
+				break;
+
+			case BEHAVIOUR_FLY_THRU_NAVPOINTS :
+				[self behaviour_fly_thru_navpoints: delta_t];
 				break;
 
 		}
@@ -2909,39 +2925,68 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	Vector d1 = navpoints[ next_navpoint_index];		// head for this one
 	Vector d2 = navpoints[ navpoint_plus_index];	// but be facing this one
 	
-	Vector rel = vector_between(d1, position);
-	Vector ref = vector_between(d2, d1);
+	Vector rel = vector_between(d1, position);	// vector from d1 to position 
+	Vector ref = vector_between(d2, d1);		// vector from d2 to d1
 	ref = unit_vector(&ref);
 	
-	GLfloat	r1 = dot_product( rel, ref);
+	Vector xp = make_vector( ref.y * rel.z - ref.z * rel.y, ref.z * rel.x - ref.x * rel.z, ref.x * rel.y - ref.y * rel.x);	
 	
-	GLfloat distance = sqrtf(magnitude2(rel));
+	GLfloat v0 = 0.0;
 	
-	if (distance < desired_range)
+	GLfloat	r0 = dot_product( rel, ref);	// proportion of rel in direction ref
+	
+	// if r0 is negative then we're the wrong side of things
+	
+	GLfloat	r1 = sqrtf(magnitude2( xp));	// distance of position from line
+	
+//	NSLog(@"DEBUG \t\tr0 = %.2f\t\tr1 = %.2f\t\tv0 = %.2f", r0, r1, v0);
+//	
+	BOOL in_cone = (r0 > 0.5 * r1);
+	
+	if (!in_cone)	// are we in the approach cone ?
+		r1 = 25.0 * flight_speed;	// aim a few km out!
+	else
+		r1 *= 2.0;
+	
+	GLfloat dist2 = magnitude2(rel);
+	
+	if (dist2 < desired_range * desired_range)
 	{
 		// desired range achieved
 		[shipAI reactToMessage:@"NAVPOINT_REACHED"];
 		if (navpoint_plus_index == 0)
+		{
 			[shipAI reactToMessage:@"ENDPOINT_REACHED"];
+			behaviour = BEHAVIOUR_IDLE;
+		}
 		next_navpoint_index = navpoint_plus_index;	// loop as required
 	}
 	else
 	{
 		double last_success_factor = success_factor;
-		double last_distance = last_success_factor;
-		success_factor = distance;
+		double last_dist2 = last_success_factor;
+		success_factor = dist2;
 
 		// set destination spline point from r1 and ref
 		destination = make_vector( d1.x + r1 * ref.x, d1.y + r1 * ref.y, d1.z + r1 * ref.z);
 
 		// do the actual piloting!!
-		[self trackDestination:delta_t: NO];
+		//
+		// aim to within 1m
+		GLfloat temp = desired_range;
+		if (in_cone)
+			desired_range = 1.0;
+		else
+			desired_range = 100.0;
+		v0 = [self trackDestination:delta_t: NO];
+		desired_range = temp;
 		
-		// keep speed as is
+		NSLog(@"DEBUG \t\t v0 = %.2f", v0 * v0);
+	
 
-		if (distance < last_distance)	// improvement
+		if (dist2 < last_dist2)	// improvement
 		{
-			frustration -= delta_t;
+			frustration -= 0.25 * delta_t;
 			if (frustration < 0.0)
 				frustration = 0.0;
 		}
@@ -2955,10 +3000,11 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 			}
 		}
 	}
-//	if ((proximity_alert != NO_TARGET)&&(proximity_alert != primaryTarget))
-//		[self avoidCollision];
 	[self applyRoll:delta_t*flight_roll andClimb:delta_t*flight_pitch];
+	GLfloat temp = desired_speed;
+	desired_speed *= v0 * v0;
 	[self applyThrust:delta_t];
+	desired_speed = temp;
 }
 //            //
 - (void) behaviour_experimental:(double) delta_t
@@ -4673,6 +4719,11 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 		bounty += [other getBounty];
 }
 
+- (NSComparisonResult) compareBeaconCodeWith:(ShipEntity*) other
+{
+	return [[self beaconCode] compare:[other beaconCode] options: NSCaseInsensitiveSearch];
+}
+
 /*-----------------------------------------
 
 	AI piloting methods
@@ -5046,7 +5097,6 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 
 	double	max_cos = sqrt(1 - targetRadius*targetRadius/range2);
 
-	double  damping = 0.5 * delta_t;
 	double  rate2 = 4.0 * delta_t;
 	double  rate1 = 2.0 * delta_t;
 
@@ -5132,6 +5182,12 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 
 	// end rule-of-thumb manoeuvres
 
+	// apply 'quick-stop' to roll and pitch adjustments
+	if (((stick_roll > 0.0)&&(flight_roll < 0.0))||((stick_roll < 0.0)&&(flight_roll > 0.0)))
+		rate1 *= 4.0;	// much faster correction
+	if (((stick_pitch > 0.0)&&(flight_pitch < 0.0))||((stick_pitch < 0.0)&&(flight_pitch > 0.0)))
+		rate2 *= 4.0;	// much faster correction
+
 	// apply stick movement limits
 	if (flight_roll < stick_roll - rate1)
 		stick_roll = flight_roll + rate1;
@@ -5141,17 +5197,6 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 		stick_pitch = flight_pitch + rate2;
 	if (flight_pitch > stick_pitch + rate2)
 		stick_pitch = flight_pitch - rate2;
-
-	// apply damping
-	double damproll = (flight_speed > 2.0)? damping : 2.0 * damping;	// double damping if we're going very slowly
-	if (flight_roll < 0)
-		flight_roll += (flight_roll < -damproll)? damproll : -flight_roll;
-	if (flight_roll > 0)
-		flight_roll -= (flight_roll > damproll)? damproll : flight_roll;
-	if (flight_pitch < 0)
-		flight_pitch += (flight_pitch < -damping) ? damping : -flight_pitch;
-	if (flight_pitch > 0)
-		flight_pitch -= (flight_pitch > damping) ? damping : flight_pitch;
 
 	// apply stick to attitude control
 	flight_roll = stick_roll;
@@ -5270,7 +5315,6 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 
 	BOOL	we_are_docking = (nil != dockingInstructions);
 
-	double  damping = 0.5 * delta_t;
 	double  rate2 = 4.0 * delta_t;
 	double  rate1 = 2.0 * delta_t;
 
@@ -5402,6 +5446,12 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 
 	// end rule-of-thumb manoeuvres
 
+	// apply 'quick-stop' to roll and pitch adjustments
+	if (((stick_roll > 0.0)&&(flight_roll < 0.0))||((stick_roll < 0.0)&&(flight_roll > 0.0)))
+		rate1 *= 4.0;	// much faster correction
+	if (((stick_pitch > 0.0)&&(flight_pitch < 0.0))||((stick_pitch < 0.0)&&(flight_pitch > 0.0)))
+		rate2 *= 4.0;	// much faster correction
+
 	// apply stick movement limits
 	if (flight_roll < stick_roll - rate1)
 		stick_roll = flight_roll + rate1;
@@ -5411,21 +5461,7 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 		stick_pitch = flight_pitch + rate2;
 	if (flight_pitch > stick_pitch + rate2)
 		stick_pitch = flight_pitch - rate2;
-
-	// apply damping
-	if ((!docking_match_rotation)||(!we_are_docking))
-	{
-		double damproll = (flight_speed > 2.0)? damping : 2.0 * damping;	// double damping if we're going very slowly
-		if (flight_roll < 0)
-			flight_roll += (flight_roll < -damproll)? damproll : -flight_roll;
-		if (flight_roll > 0)
-			flight_roll -= (flight_roll > damproll)? damproll : flight_roll;
-	}
-	if (flight_pitch < 0)
-		flight_pitch += (flight_pitch < -damping) ? damping : -flight_pitch;
-	if (flight_pitch > 0)
-		flight_pitch -= (flight_pitch > damping) ? damping : flight_pitch;
-
+	
 	// apply stick to attitude control
 	flight_roll = stick_roll;
 	flight_pitch = stick_pitch;

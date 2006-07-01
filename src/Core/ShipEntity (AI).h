@@ -213,4 +213,10 @@ Your fair use and other rights are in no way affected by the above.
 
 - (void) scriptActionOnTarget:(NSString*) action;
 
+// racing code.
+- (void) targetFirstBeaconWithCode:(NSString*) code;
+- (void) targetNextBeaconWithCode:(NSString*) code;
+- (void) setRacepointsFromTarget;
+- (void) performFlyRacepoints;
+
 @end

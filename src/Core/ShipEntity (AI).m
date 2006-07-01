@@ -1748,5 +1748,80 @@ WormholeEntity*	whole;
 	}
 }
 
+// racing code TODO
+- (void) targetFirstBeaconWithCode:(NSString*) code
+{
+	NSArray* all_beacons = [universe listBeaconsWithCode: code];
+	if ([all_beacons count])
+	{
+		primaryTarget = [(ShipEntity*)[all_beacons objectAtIndex:0] universal_id];
+		[shipAI message:@"TARGET_FOUND"];
+	}
+	else
+		[shipAI message:@"NOTHING_FOUND"];
+}
+
+- (void) targetNextBeaconWithCode:(NSString*) code
+{
+	NSArray* all_beacons = [universe listBeaconsWithCode: code];
+	ShipEntity* current_beacon = (ShipEntity*)[universe entityForUniversalID:primaryTarget];
+	
+	if ((!current_beacon)||(![current_beacon isBeacon]))
+	{
+		[shipAI message:@"NO_CURRENT_BEACON"];
+		[shipAI message:@"NOTHING_FOUND"];
+		return;
+	}
+	
+	// find the current beacon in the list..
+	int i = [all_beacons indexOfObject: current_beacon];
+	
+	if (i == NSNotFound)
+	{
+		[shipAI message:@"NOTHING_FOUND"];
+		return;
+	}
+	
+	i++;	// next index
+	
+	if (i < [all_beacons count])
+	{
+		// locate current target in list
+		primaryTarget = [(ShipEntity*)[all_beacons objectAtIndex:i] universal_id];
+		[shipAI message:@"TARGET_FOUND"];
+	}
+	else
+	{
+		[shipAI message:@"LAST_BEACON"];
+		[shipAI message:@"NOTHING_FOUND"];
+	}
+}
+
+- (void) setRacepointsFromTarget
+{
+	// two point - one at z - cr one at z + cr
+	ShipEntity* ship = (ShipEntity*)[universe entityForUniversalID:primaryTarget];
+	if (!ship)
+	{
+		[shipAI message:@"NOTHING_FOUND"];
+		return;
+	}
+	Vector k = ship->v_forward;
+	GLfloat c = ship->collision_radius;
+	Vector o = ship->position;
+	navpoints[0] = make_vector( o.x - c * k.x, o.y - c * k.y, o.z - c * k.z);
+	navpoints[1] = make_vector( o.x + c * k.x, o.y + c * k.y, o.z + c * k.z);
+	navpoints[2] = make_vector( o.x + 2.0 * c * k.x, o.y + 2.0 * c * k.y, o.z + 2.0 * c * k.z);
+	number_of_navpoints = 2;
+	next_navpoint_index = 0;
+	[shipAI message:@"RACEPOINTS_SET"];
+}
+
+- (void) performFlyRacepoints
+{
+	next_navpoint_index = 0;
+	desired_range = actual_radius;
+	behaviour = BEHAVIOUR_FLY_THRU_NAVPOINTS;
+}
 
 @end

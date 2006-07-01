@@ -7868,6 +7868,21 @@ NSComparisonResult comparePrice( id dict1, id dict2, void * context)
 	return v1;
 }
 
+- (NSArray*) listBeaconsWithCode:(NSString*) code
+{
+	NSMutableArray* result = [NSMutableArray array];
+	ShipEntity* beacon = [self firstBeacon];
+	while (beacon)
+	{
+		NSString* beacon_code = [beacon beaconCode];
+		NSLog(@"beacon: %@ %@", beacon, beacon_code);
+		if ([beacon_code rangeOfString:code options: NSCaseInsensitiveSearch].location != NSNotFound)
+			[result addObject:beacon];
+		beacon = (ShipEntity*)[self entityForUniversalID:[beacon nextBeaconID]];
+	}
+	return [result sortedArrayUsingSelector:@selector(compareBeaconCodeWith:)];
+}
+
 - (void) allShipAIsReactToMessage:(NSString*) message
 {
 	

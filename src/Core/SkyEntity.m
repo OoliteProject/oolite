@@ -523,7 +523,7 @@ Your fair use and other rights are in no way affected by the above.
 		glDepthMask(GL_FALSE);		// don't write to depth buffer
 		glDisable(GL_CULL_FACE);	// face culling
 		//
-		glShadeModel(GL_SMOOTH);	// smoothing for color values...
+//		glShadeModel(GL_SMOOTH);	// smoothing for color values...
 
 		if (immediate)
 		{

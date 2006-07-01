@@ -72,6 +72,8 @@ Your fair use and other rights are in no way affected by the above.
 #define BEHAVIOUR_FLY_FROM_DESTINATION			202
 #define BEHAVIOUR_FACE_DESTINATION				203
 
+#define BEHAVIOUR_FLY_THRU_NAVPOINTS			210
+
 #define BEHAVIOUR_COLLECT_TARGET			300
 #define BEHAVIOUR_INTERCEPT_TARGET			350
 
@@ -375,6 +377,7 @@ Your fair use and other rights are in no way affected by the above.
 - (Vector)	absoluteTractorPosition;
 
 	// beacons
+- (NSString*)	beaconCode;
 - (BOOL)	isBeacon;
 - (char)	beaconChar;
 - (void)	setBeaconChar:(char) bchar;
@@ -387,6 +390,7 @@ Your fair use and other rights are in no way affected by the above.
 
 - (id) initWithDictionary:(NSDictionary *) dict;
 - (void) setUpShipFromDictionary:(NSDictionary *) dict;
+- (NSDictionary*)	 shipInfoDictionary;
 
 - (void) setDefaultWeaponOffsets;
 
@@ -569,6 +573,8 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 - (void) addSolidSubentityToCollisionRadius:(ShipEntity*) subent;
 
 ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other);
+
+- (NSComparisonResult) compareBeaconCodeWith:(ShipEntity*) other;
 
 
 /*-----------------------------------------

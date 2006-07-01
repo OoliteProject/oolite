@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		080B3D5D0A5696D7004BE918 /* fttAI.plist in Resources */ = {isa = PBXBuildFile; fileRef = 080B3D5C0A5696D7004BE918 /* fttAI.plist */; };
 		08125F0909F9083F00AB9BF9 /* OOGLDefs.h in Headers */ = {isa = PBXBuildFile; fileRef = 08125F0809F9083F00AB9BF9 /* OOGLDefs.h */; };
 		082AFDDF0A02159800E671D4 /* dock-flat.dat in Resources */ = {isa = PBXBuildFile; fileRef = 082AFDDE0A02159800E671D4 /* dock-flat.dat */; };
 		0831C5C909E3396D0058029A /* StringTokeniser.m in Sources */ = {isa = PBXBuildFile; fileRef = 0831C5C609E3396D0058029A /* StringTokeniser.m */; };
@@ -370,6 +371,7 @@
 
 /* Begin PBXFileReference section */
 		06AFA01500A58FB77F000001 /* OpenGL.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = OpenGL.framework; path = /System/Library/Frameworks/OpenGL.framework; sourceTree = "<absolute>"; };
+		080B3D5C0A5696D7004BE918 /* fttAI.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist; name = fttAI.plist; path = Resources/AIs/fttAI.plist; sourceTree = "<group>"; };
 		08125F0809F9083F00AB9BF9 /* OOGLDefs.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = OOGLDefs.h; path = src/Core/OOGLDefs.h; sourceTree = "<group>"; };
 		082AFDDE0A02159800E671D4 /* dock-flat.dat */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = "dock-flat.dat"; path = "Resources/Models/dock-flat.dat"; sourceTree = "<group>"; };
 		0831C5C609E3396D0058029A /* StringTokeniser.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = StringTokeniser.m; path = src/Core/StringTokeniser.m; sourceTree = "<group>"; };
@@ -937,6 +939,7 @@
 				25F3E7110994FC2F002F25FD /* buoyAI.plist */,
 				25F3E7120994FC2F002F25FD /* collectLootAI.plist */,
 				25F3E7130994FC2F002F25FD /* dockingAI.plist */,
+				080B3D5C0A5696D7004BE918 /* fttAI.plist */,
 				25F3E7140994FC2F002F25FD /* dumbAI.plist */,
 				25F3E7150994FC2F002F25FD /* enteringPirateAI.plist */,
 				25F3E7160994FC2F002F25FD /* enteringTraderAI.plist */,
@@ -1525,6 +1528,7 @@
 				082AFDDF0A02159800E671D4 /* dock-flat.dat in Resources */,
 				088496E00A4C1D1B00F32928 /* gotoWaypointAI.plist in Resources */,
 				088496E10A4C1D1B00F32928 /* receiveDockingAI.plist in Resources */,
+				080B3D5D0A5696D7004BE918 /* fttAI.plist in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
