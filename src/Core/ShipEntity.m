@@ -2939,8 +2939,6 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	
 	GLfloat	r1 = sqrtf(magnitude2( xp));	// distance of position from line
 	
-//	NSLog(@"DEBUG \t\tr0 = %.2f\t\tr1 = %.2f\t\tv0 = %.2f", r0, r1, v0);
-//	
 	BOOL in_cone = (r0 > 0.5 * r1);
 	
 	if (!in_cone)	// are we in the approach cone ?
@@ -2981,9 +2979,6 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 		v0 = [self trackDestination:delta_t: NO];
 		desired_range = temp;
 		
-		NSLog(@"DEBUG \t\t v0 = %.2f", v0 * v0);
-	
-
 		if (dist2 < last_dist2)	// improvement
 		{
 			frustration -= 0.25 * delta_t;
