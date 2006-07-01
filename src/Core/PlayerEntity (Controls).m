@@ -40,6 +40,7 @@ Your fair use and other rights are in no way affected by the above.
 #import "PlayerEntity.h"
 #import "PlayerEntity (Controls).h"
 #import "PlayerEntity (Sound).h"
+#import "ShipEntity (AI).h"
 
 #import "Universe.h"
 #import "GameController.h"
@@ -932,14 +933,27 @@ static NSTimeInterval	time_last_frame;
 			cloak_pressed = NO;
 		
 		// look for debugging keys
-		if ([gameView isDown:'d'])// look for the '1' key
+		if ([gameView isDown:'f'])// look for the 'f' key
+		{
+			[universe addMessage:@"Flight Training Test Engaged" forCount:3];
+			NSLog(@"Flight Training (tr) beacons:\n%@", [universe listBeaconsWithCode:@"tr"]);
+			[self awardEquipment:@"EQ_DOCK_COMP"];
+			[self targetFirstBeaconWithCode:@"tr"];
+			[self setRacepointsFromTarget];
+			[self performFlyRacepoints];
+			[self setAITo:@"fttAI.plist"];
+			[self setReportAImessages: YES];
+		}
+		
+		// look for debugging keys
+		if ([gameView isDown:'d'])// look for the 'd' key
 		{
 			debug = -1;
 			[universe addMessage:@"Full debug ON" forCount:3];
 		}
 		
 		// look for debugging keys
-		if ([gameView isDown:'b'])// look for the '1' key
+		if ([gameView isDown:'b'])// look for the 'b' key
 		{
 			debug = DEBUG_COLLISIONS;
 			[universe addMessage:@"Collision debug ON" forCount:3];
