@@ -78,6 +78,8 @@ extern int debug;
 
 - (void) setStateMachine:(NSString *) smName;
 
+- (NSString*) name;
+
 - (int) ai_stack_depth;
 
 - (void) setState:(NSString *) stateName;

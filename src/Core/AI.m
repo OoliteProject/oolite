@@ -60,6 +60,8 @@ Your fair use and other rights are in no way affected by the above.
 	//
 	stateMachine = nil;	// no initial brain
 	//
+	stateMachineName = [[NSString stringWithString:@"None allocated"] retain];	// no initial brain
+	//
 	[aiLock unlock];	// okay now we're ready...
 	//
 	return self;
@@ -215,8 +217,15 @@ Your fair use and other rights are in no way affected by the above.
 	// refresh stateMachineName
 	//
 	if (stateMachineName)
+	{
 		[stateMachineName release];
-	stateMachineName = [smName retain];
+		stateMachineName = [[NSString stringWithString:smName] retain];
+	}
+}
+
+- (NSString*) name
+{
+	return stateMachineName;
 }
 
 - (int) ai_stack_depth
