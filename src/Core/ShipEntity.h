@@ -583,6 +583,9 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other);
 
 -----------------------------------------*/
 
+BOOL	class_masslocks(int some_class);
+- (BOOL) checkTorusJumpClear;
+
 - (void) checkScanner;
 
 - (void) setFound_target:(Entity *) targetEntity;
@@ -599,6 +602,8 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other);
 
 - (double) ballTrackTarget:(double) delta_t;
 - (double) ballTrackLeadingTarget:(double) delta_t;
+
+- (GLfloat) rollToMatchUp:(Vector) up_vec rotating:(GLfloat) match_roll;
 
 - (GLfloat) rangeToDestination;
 - (double) trackDestination:(double) delta_t :(BOOL) retreat;
@@ -677,6 +682,7 @@ inline BOOL pairOK(NSString* my_role, NSString* their_role);
 - (NSArray *) shipsInGroup:(int) ship_group_id;
 
 - (void) sendExpandedMessage:(NSString *) message_text toShip:(ShipEntity*) other_ship;
+- (void) broadcastAIMessage:(NSString *) ai_message;
 - (void) broadcastMessage:(NSString *) message_text;
 - (void) setCommsMessageColor;
 - (void) receiveCommsMessage:(NSString *) message_text;

@@ -2995,6 +2995,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 			}
 		}
 	}
+	
 	[self applyRoll:delta_t*flight_roll andClimb:delta_t*flight_pitch];
 	GLfloat temp = desired_speed;
 	desired_speed *= v0 * v0;
@@ -4725,6 +4726,51 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 
 -----------------------------------------*/
 
+BOOL	class_masslocks(int some_class)
+{
+	switch (some_class)
+	{
+		case CLASS_BUOY :
+		case CLASS_ROCK :
+		case CLASS_CARGO :
+		case CLASS_MINE :
+		case CLASS_NO_DRAW :
+			return NO;
+			break;
+		case CLASS_THARGOID :
+		case CLASS_MISSILE :
+		case CLASS_STATION :
+		case CLASS_POLICE :
+		case CLASS_MILITARY :
+		case CLASS_WORMHOLE :
+		default :
+			return YES;
+			break;
+	}
+	return YES;
+}
+
+- (BOOL) checkTorusJumpClear
+{
+	Entity* scan;
+	//
+	scan = z_previous;	while ((scan)&&(!class_masslocks( scan->scan_class)))	scan = scan->z_previous;	// skip non-mass-locking
+	while ((scan)&&(scan->position.z > position.z - scanner_range))
+	{
+		if (class_masslocks( scan->scan_class) && (distance2( position, scan->position) < SCANNER_MAX_RANGE2))
+			return NO;
+		scan = scan->z_previous;	while ((scan)&&(!class_masslocks( scan->scan_class)))	scan = scan->z_previous;
+	}
+	scan = z_next;	while ((scan)&&(!class_masslocks( scan->scan_class)))	scan = scan->z_next;	// skip non-mass-locking
+	while ((scan)&&(scan->position.z < position.z + scanner_range))
+	{
+		if (class_masslocks( scan->scan_class) && (distance2( position, scan->position) < SCANNER_MAX_RANGE2))
+			return NO;
+		scan = scan->z_previous;	while ((scan)&&(!class_masslocks( scan->scan_class)))	scan = scan->z_previous;
+	}
+	return YES;
+}
+
 - (void) checkScanner
 {
 	Entity* scan;
@@ -5404,38 +5450,35 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 
 		if ((station_for_docking)&&(station_for_docking->isStation))
 		{
-//			Vector up_vec = [station_for_docking portUpVector];
-			Vector up_vec = [station_for_docking portUpVectorForShipsBoundingBox: boundingBox];
-			double cosTheta = dot_product(up_vec, v_up);	// == cos of angle between up vectors
-			double sinTheta = dot_product(up_vec, v_right);
-
-			double station_roll = [station_for_docking flight_roll];
-
-			if (!isPlayer)
-			{
-				station_roll = -station_roll;	// make necessary corrections for a different viewpoint
-				sinTheta = -sinTheta;
-			}
-
-			if (cosTheta < 0)
-			{
-				cosTheta = -cosTheta;
-				sinTheta = -sinTheta;
-			}
-
-			if (sinTheta > 0.0)
-			{
-				// increase roll rate
-				stick_roll = cosTheta * cosTheta * station_roll + sinTheta * sinTheta * max_flight_roll;
-			}
-			else
-			{
-				// decrease roll rate
-				stick_roll = cosTheta * cosTheta * station_roll - sinTheta * sinTheta * max_flight_roll;
-			}
-
-	//		NSLog(@"DEBUG %@ docking with %@ -- matching rotation .. docking cosTheta %.3f sinTheta %.3f station_roll %.3f stick_roll %.3f",
-	//			self, [self getPrimaryTarget], cosTheta, sinTheta, station_roll, stick_roll);
+			stick_roll = [self rollToMatchUp:[station_for_docking portUpVectorForShipsBoundingBox: boundingBox] rotating:[station_for_docking flight_roll]];
+//			Vector up_vec = [station_for_docking portUpVectorForShipsBoundingBox: boundingBox];
+//			double cosTheta = dot_product(up_vec, v_up);	// == cos of angle between up vectors
+//			double sinTheta = dot_product(up_vec, v_right);
+//
+//			double station_roll = [station_for_docking flight_roll];
+//
+//			if (!isPlayer)
+//			{
+//				station_roll = -station_roll;	// make necessary corrections for a different viewpoint
+//				sinTheta = -sinTheta;
+//			}
+//
+//			if (cosTheta < 0)
+//			{
+//				cosTheta = -cosTheta;
+//				sinTheta = -sinTheta;
+//			}
+//
+//			if (sinTheta > 0.0)
+//			{
+//				// increase roll rate
+//				stick_roll = cosTheta * cosTheta * station_roll + sinTheta * sinTheta * max_flight_roll;
+//			}
+//			else
+//			{
+//				// decrease roll rate
+//				stick_roll = cosTheta * cosTheta * station_roll - sinTheta * sinTheta * max_flight_roll;
+//			}
 		}
 	}
 
@@ -5471,6 +5514,35 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 		return 1.0;
 
 	return d_forward;
+}
+
+- (GLfloat) rollToMatchUp:(Vector) up_vec rotating:(GLfloat) match_roll;
+{
+	GLfloat cosTheta = dot_product(up_vec, v_up);	// == cos of angle between up vectors
+	GLfloat sinTheta = dot_product(up_vec, v_right);
+
+	if (!isPlayer)
+	{
+		match_roll = -match_roll;	// make necessary corrections for a different viewpoint
+		sinTheta = -sinTheta;
+	}
+
+	if (cosTheta < 0.0f)
+	{
+		cosTheta = -cosTheta;
+		sinTheta = -sinTheta;
+	}
+
+	if (sinTheta > 0.0f)
+	{
+		// increase roll rate
+		return cosTheta * cosTheta * match_roll + sinTheta * sinTheta * max_flight_roll;
+	}
+	else
+	{
+		// decrease roll rate
+		return cosTheta * cosTheta * match_roll - sinTheta * sinTheta * max_flight_roll;
+	}
 }
 
 - (GLfloat) rangeToDestination
@@ -7386,39 +7458,43 @@ inline BOOL pairOK(NSString* my_role, NSString* their_role)
 	[universe resetCommsLogColor];
 }
 
-- (void) broadcastMessage:(NSString *) message_text
+- (void) broadcastAIMessage:(NSString *) ai_message
 {
-	/*-- Locates all the stations, bounty hunters and police ships in range and tells them your message --*/
-	NSString* expandedMessage = [NSString stringWithFormat:@"%@:\n %@", name, [universe expandDescription:message_text forSystem:[universe systemSeed]]];
 
 	if (!universe)
 		return;
-	int			ent_count =		universe->n_entities;
-	Entity**	uni_entities =	universe->sortedEntities;	// grab the public sorted list
-	Entity*		my_entities[ent_count];
+
+	NSString* expandedMessage = [universe expandDescription:ai_message forSystem:[universe systemSeed]];
+
+	[self checkScanner];
 	int i;
-	int ship_count = 0;
-	for (i = 0; i < ent_count; i++)
-		if (uni_entities[i]->isShip)
-			my_entities[ship_count++] = [uni_entities[i] retain];		//	retained
-	//
-	double d2;
-	double found_d2 = scanner_range * scanner_range;
-	found_target = NO_TARGET;
-	[self setCommsMessageColor];
-	for (i = 0; i < ship_count ; i++)
+	for (i = 0; i < n_scanned_ships ; i++)
 	{
-		ShipEntity* ship = (ShipEntity *)my_entities[i];
-		d2 = distance2( position, ship->position);
-		if (d2 < found_d2)
-		{
-			[ship receiveCommsMessage: expandedMessage];
-			if (ship->isPlayer)
-				message_time = 6.0;
-		}
+		ShipEntity* ship = scanned_ships[i];
+		[[ship getAI] message: expandedMessage];
 	}
-	for (i = 0; i < ship_count; i++)
-		[my_entities[i] release];		//	released
+}
+
+- (void) broadcastMessage:(NSString *) message_text
+{
+	if (!universe)
+		return;
+		
+	NSString* expandedMessage = [NSString stringWithFormat:@"%@:\n %@", name, [universe expandDescription:message_text forSystem:[universe systemSeed]]];
+
+	if (!crew)
+		return;	// nobody to send the signal
+
+	[self setCommsMessageColor];
+	[self checkScanner];
+	int i;
+	for (i = 0; i < n_scanned_ships ; i++)
+	{
+		ShipEntity* ship = scanned_ships[i];
+		[ship receiveCommsMessage: expandedMessage];
+		if (ship->isPlayer)
+			message_time = 6.0;
+	}
 	[universe resetCommsLogColor];
 }
 
