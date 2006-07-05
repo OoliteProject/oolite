@@ -19,7 +19,8 @@
     }; 
     "PASS_THRU_RING" = {
         ENTER = (
-			"setSpeedFactorTo: 0.60",
+//			"setSpeedFactorTo: 0.60",
+			"setSpeedTo: 225",
 			setRacepointsFromTarget,
 			performFlyRacepoints
 		);
