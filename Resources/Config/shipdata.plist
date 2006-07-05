@@ -125,6 +125,89 @@
 		<string>-15.0 0.0 -14.5</string>
 		<key>weapon_position_starboard</key>
 		<string>15.0 0.0 -14.5</string>
+		<key>custom_views</key>
+		<array>
+			<dict>
+				<key>view_description</key>
+				<string>External View 1</string>
+				<key>view_position</key>
+				<string>0.0 20.0 -100.0</string>
+				<key>view_orientation</key>
+				<string>1.0 0.0 0.0 0.0</string>
+				<key>weapon_facing</key>
+				<string>FORWARD</string>
+			</dict>
+			<dict>
+				<key>view_description</key>
+				<string>External View 2</string>
+				<key>view_position</key>
+				<string>70.71 20.0 -70.71</string>
+				<key>view_orientation</key>
+				<string>0.9239 0.0 0.3827 0.0</string>
+				<key>weapon_facing</key>
+				<string>FORWARD</string>
+			</dict>
+			<dict>
+				<key>view_description</key>
+				<string>External View 3</string>
+				<key>view_position</key>
+				<string>100.0 20.0 0.0</string>
+				<key>view_orientation</key>
+				<string>0.7071 0.0 0.7071 0.0</string>
+				<key>weapon_facing</key>
+				<string>FORWARD</string>
+			</dict>
+			<dict>
+				<key>view_description</key>
+				<string>External View 3</string>
+				<key>view_position</key>
+				<string>70.71 20.0 70.71</string>
+				<key>view_orientation</key>
+				<string>0.3827 0.0 0.9239 0.0</string>
+				<key>weapon_facing</key>
+				<string>FORWARD</string>
+			</dict>
+			<dict>
+				<key>view_description</key>
+				<string>External View 4</string>
+				<key>view_position</key>
+				<string>0.0 20.0 100.0</string>
+				<key>view_orientation</key>
+				<string>0.0 0.0 1.0 0.0</string>
+				<key>weapon_facing</key>
+				<string>FORWARD</string>
+			</dict>
+			<dict>
+				<key>view_description</key>
+				<string>External View 5</string>
+				<key>view_position</key>
+				<string>-70.71 20.0 70.71</string>
+				<key>view_orientation</key>
+				<string>0.3827 0.0 -0.9239 0.0</string>
+				<key>weapon_facing</key>
+				<string>FORWARD</string>
+			</dict>
+			<dict>
+				<key>view_description</key>
+				<string>External View 6</string>
+				<key>view_position</key>
+				<string>-100.0 20.0 0.0</string>
+				<key>view_orientation</key>
+				<string>0.7071 0.0 -0.7071 0.0</string>
+				<key>weapon_facing</key>
+				<string>FORWARD</string>
+			</dict>
+			<dict>
+				<key>view_description</key>
+				<string>External View 7</string>
+				<key>view_position</key>
+				<string>-70.71 20.0 -70.71</string>
+				<key>view_orientation</key>
+				<string>0.9239 0.0 -0.3827 0.0</string>
+				<key>weapon_facing</key>
+				<string>FORWARD</string>
+			</dict>
+		</array>
 	</dict>
 	<key>alloy</key>
 	<dict>
@@ -284,6 +367,89 @@
 		<string>-37.5 -4.0 -40.0</string>
 		<key>weapon_position_starboard</key>
 		<string>37.5 -4.0 -40.0</string>
+		<key>custom_views</key>
+		<array>
+			<dict>
+				<key>view_description</key>
+				<string>External View 1</string>
+				<key>view_position</key>
+				<string>0.0 20.0 -100.0</string>
+				<key>view_orientation</key>
+				<string>1.0 0.0 0.0 0.0</string>
+				<key>weapon_facing</key>
+				<string>FORWARD</string>
+			</dict>
+			<dict>
+				<key>view_description</key>
+				<string>External View 2</string>
+				<key>view_position</key>
+				<string>70.71 20.0 -70.71</string>
+				<key>view_orientation</key>
+				<string>0.9239 0.0 0.3827 0.0</string>
+				<key>weapon_facing</key>
+				<string>FORWARD</string>
+			</dict>
+			<dict>
+				<key>view_description</key>
+				<string>External View 3</string>
+				<key>view_position</key>
+				<string>100.0 20.0 0.0</string>
+				<key>view_orientation</key>
+				<string>0.7071 0.0 0.7071 0.0</string>
+				<key>weapon_facing</key>
+				<string>FORWARD</string>
+			</dict>
+			<dict>
+				<key>view_description</key>
+				<string>External View 3</string>
+				<key>view_position</key>
+				<string>70.71 20.0 70.71</string>
+				<key>view_orientation</key>
+				<string>0.3827 0.0 0.9239 0.0</string>
+				<key>weapon_facing</key>
+				<string>FORWARD</string>
+			</dict>
+			<dict>
+				<key>view_description</key>
+				<string>External View 4</string>
+				<key>view_position</key>
+				<string>0.0 20.0 100.0</string>
+				<key>view_orientation</key>
+				<string>0.0 0.0 1.0 0.0</string>
+				<key>weapon_facing</key>
+				<string>FORWARD</string>
+			</dict>
+			<dict>
+				<key>view_description</key>
+				<string>External View 5</string>
+				<key>view_position</key>
+				<string>-70.71 20.0 70.71</string>
+				<key>view_orientation</key>
+				<string>0.3827 0.0 -0.9239 0.0</string>
+				<key>weapon_facing</key>
+				<string>FORWARD</string>
+			</dict>
+			<dict>
+				<key>view_description</key>
+				<string>External View 6</string>
+				<key>view_position</key>
+				<string>-100.0 20.0 0.0</string>
+				<key>view_orientation</key>
+				<string>0.7071 0.0 -0.7071 0.0</string>
+				<key>weapon_facing</key>
+				<string>FORWARD</string>
+			</dict>
+			<dict>
+				<key>view_description</key>
+				<string>External View 7</string>
+				<key>view_position</key>
+				<string>-70.71 20.0 -70.71</string>
+				<key>view_orientation</key>
+				<string>0.9239 0.0 -0.3827 0.0</string>
+				<key>weapon_facing</key>
+				<string>FORWARD</string>
+			</dict>
+		</array>
 	</dict>
 	<key>arc-detail</key>
 	<dict>
@@ -489,6 +655,89 @@
 		<string>-32.5 0.0 -7.0</string>
 		<key>weapon_position_starboard</key>
 		<string>32.5 0.0 -7.0</string>
+		<key>custom_views</key>
+		<array>
+			<dict>
+				<key>view_description</key>
+				<string>External View 1</string>
+				<key>view_position</key>
+				<string>0.0 20.0 -100.0</string>
+				<key>view_orientation</key>
+				<string>1.0 0.0 0.0 0.0</string>
+				<key>weapon_facing</key>
+				<string>FORWARD</string>
+			</dict>
+			<dict>
+				<key>view_description</key>
+				<string>External View 2</string>
+				<key>view_position</key>
+				<string>70.71 20.0 -70.71</string>
+				<key>view_orientation</key>
+				<string>0.9239 0.0 0.3827 0.0</string>
+				<key>weapon_facing</key>
+				<string>FORWARD</string>
+			</dict>
+			<dict>
+				<key>view_description</key>
+				<string>External View 3</string>
+				<key>view_position</key>
+				<string>100.0 20.0 0.0</string>
+				<key>view_orientation</key>
+				<string>0.7071 0.0 0.7071 0.0</string>
+				<key>weapon_facing</key>
+				<string>FORWARD</string>
+			</dict>
+			<dict>
+				<key>view_description</key>
+				<string>External View 3</string>
+				<key>view_position</key>
+				<string>70.71 20.0 70.71</string>
+				<key>view_orientation</key>
+				<string>0.3827 0.0 0.9239 0.0</string>
+				<key>weapon_facing</key>
+				<string>FORWARD</string>
+			</dict>
+			<dict>
+				<key>view_description</key>
+				<string>External View 4</string>
+				<key>view_position</key>
+				<string>0.0 20.0 100.0</string>
+				<key>view_orientation</key>
+				<string>0.0 0.0 1.0 0.0</string>
+				<key>weapon_facing</key>
+				<string>FORWARD</string>
+			</dict>
+			<dict>
+				<key>view_description</key>
+				<string>External View 5</string>
+				<key>view_position</key>
+				<string>-70.71 20.0 70.71</string>
+				<key>view_orientation</key>
+				<string>0.3827 0.0 -0.9239 0.0</string>
+				<key>weapon_facing</key>
+				<string>FORWARD</string>
+			</dict>
+			<dict>
+				<key>view_description</key>
+				<string>External View 6</string>
+				<key>view_position</key>
+				<string>-100.0 20.0 0.0</string>
+				<key>view_orientation</key>
+				<string>0.7071 0.0 -0.7071 0.0</string>
+				<key>weapon_facing</key>
+				<string>FORWARD</string>
+			</dict>
+			<dict>
+				<key>view_description</key>
+				<string>External View 7</string>
+				<key>view_position</key>
+				<string>-70.71 20.0 -70.71</string>
+				<key>view_orientation</key>
+				<string>0.9239 0.0 -0.3827 0.0</string>
+				<key>weapon_facing</key>
+				<string>FORWARD</string>
+			</dict>
+		</array>
 	</dict>
 	<key>asteroid</key>
 	<dict>
@@ -795,6 +1044,89 @@
 		<string>-16.25 1.75 0.0</string>
 		<key>weapon_position_starboard</key>
 		<string>16.25 1.75 0.0</string>
+		<key>custom_views</key>
+		<array>
+			<dict>
+				<key>view_description</key>
+				<string>External View 1</string>
+				<key>view_position</key>
+				<string>0.0 20.0 -100.0</string>
+				<key>view_orientation</key>
+				<string>1.0 0.0 0.0 0.0</string>
+				<key>weapon_facing</key>
+				<string>FORWARD</string>
+			</dict>
+			<dict>
+				<key>view_description</key>
+				<string>External View 2</string>
+				<key>view_position</key>
+				<string>70.71 20.0 -70.71</string>
+				<key>view_orientation</key>
+				<string>0.9239 0.0 0.3827 0.0</string>
+				<key>weapon_facing</key>
+				<string>FORWARD</string>
+			</dict>
+			<dict>
+				<key>view_description</key>
+				<string>External View 3</string>
+				<key>view_position</key>
+				<string>100.0 20.0 0.0</string>
+				<key>view_orientation</key>
+				<string>0.7071 0.0 0.7071 0.0</string>
+				<key>weapon_facing</key>
+				<string>FORWARD</string>
+			</dict>
+			<dict>
+				<key>view_description</key>
+				<string>External View 3</string>
+				<key>view_position</key>
+				<string>70.71 20.0 70.71</string>
+				<key>view_orientation</key>
+				<string>0.3827 0.0 0.9239 0.0</string>
+				<key>weapon_facing</key>
+				<string>FORWARD</string>
+			</dict>
+			<dict>
+				<key>view_description</key>
+				<string>External View 4</string>
+				<key>view_position</key>
+				<string>0.0 20.0 100.0</string>
+				<key>view_orientation</key>
+				<string>0.0 0.0 1.0 0.0</string>
+				<key>weapon_facing</key>
+				<string>FORWARD</string>
+			</dict>
+			<dict>
+				<key>view_description</key>
+				<string>External View 5</string>
+				<key>view_position</key>
+				<string>-70.71 20.0 70.71</string>
+				<key>view_orientation</key>
+				<string>0.3827 0.0 -0.9239 0.0</string>
+				<key>weapon_facing</key>
+				<string>FORWARD</string>
+			</dict>
+			<dict>
+				<key>view_description</key>
+				<string>External View 6</string>
+				<key>view_position</key>
+				<string>-100.0 20.0 0.0</string>
+				<key>view_orientation</key>
+				<string>0.7071 0.0 -0.7071 0.0</string>
+				<key>weapon_facing</key>
+				<string>FORWARD</string>
+			</dict>
+			<dict>
+				<key>view_description</key>
+				<string>External View 7</string>
+				<key>view_position</key>
+				<string>-70.71 20.0 -70.71</string>
+				<key>view_orientation</key>
+				<string>0.9239 0.0 -0.3827 0.0</string>
+				<key>weapon_facing</key>
+				<string>FORWARD</string>
+			</dict>
+		</array>
 	</dict>
 	<key>boa-player</key>
 	<dict>
@@ -850,6 +1182,89 @@
 		<string>-16.25 8.0 11.0</string>
 		<key>weapon_position_starboard</key>
 		<string>16.25 8.0 11.0</string>
+		<key>custom_views</key>
+		<array>
+			<dict>
+				<key>view_description</key>
+				<string>External View 1</string>
+				<key>view_position</key>
+				<string>0.0 20.0 -100.0</string>
+				<key>view_orientation</key>
+				<string>1.0 0.0 0.0 0.0</string>
+				<key>weapon_facing</key>
+				<string>FORWARD</string>
+			</dict>
+			<dict>
+				<key>view_description</key>
+				<string>External View 2</string>
+				<key>view_position</key>
+				<string>70.71 20.0 -70.71</string>
+				<key>view_orientation</key>
+				<string>0.9239 0.0 0.3827 0.0</string>
+				<key>weapon_facing</key>
+				<string>FORWARD</string>
+			</dict>
+			<dict>
+				<key>view_description</key>
+				<string>External View 3</string>
+				<key>view_position</key>
+				<string>100.0 20.0 0.0</string>
+				<key>view_orientation</key>
+				<string>0.7071 0.0 0.7071 0.0</string>
+				<key>weapon_facing</key>
+				<string>FORWARD</string>
+			</dict>
+			<dict>
+				<key>view_description</key>
+				<string>External View 3</string>
+				<key>view_position</key>
+				<string>70.71 20.0 70.71</string>
+				<key>view_orientation</key>
+				<string>0.3827 0.0 0.9239 0.0</string>
+				<key>weapon_facing</key>
+				<string>FORWARD</string>
+			</dict>
+			<dict>
+				<key>view_description</key>
+				<string>External View 4</string>
+				<key>view_position</key>
+				<string>0.0 20.0 100.0</string>
+				<key>view_orientation</key>
+				<string>0.0 0.0 1.0 0.0</string>
+				<key>weapon_facing</key>
+				<string>FORWARD</string>
+			</dict>
+			<dict>
+				<key>view_description</key>
+				<string>External View 5</string>
+				<key>view_position</key>
+				<string>-70.71 20.0 70.71</string>
+				<key>view_orientation</key>
+				<string>0.3827 0.0 -0.9239 0.0</string>
+				<key>weapon_facing</key>
+				<string>FORWARD</string>
+			</dict>
+			<dict>
+				<key>view_description</key>
+				<string>External View 6</string>
+				<key>view_position</key>
+				<string>-100.0 20.0 0.0</string>
+				<key>view_orientation</key>
+				<string>0.7071 0.0 -0.7071 0.0</string>
+				<key>weapon_facing</key>
+				<string>FORWARD</string>
+			</dict>
+			<dict>
+				<key>view_description</key>
+				<string>External View 7</string>
+				<key>view_position</key>
+				<string>-70.71 20.0 -70.71</string>
+				<key>view_orientation</key>
+				<string>0.9239 0.0 -0.3827 0.0</string>
+				<key>weapon_facing</key>
+				<string>FORWARD</string>
+			</dict>
+		</array>
 	</dict>
 	<key>boulder</key>
 	<dict>
@@ -1248,6 +1663,89 @@
 		<string>-40.0 2.17 -4.33</string>
 		<key>weapon_position_starboard</key>
 		<string>40.0 2.17 -4.33</string>
+		<key>custom_views</key>
+		<array>
+			<dict>
+				<key>view_description</key>
+				<string>External View 1</string>
+				<key>view_position</key>
+				<string>0.0 20.0 -100.0</string>
+				<key>view_orientation</key>
+				<string>1.0 0.0 0.0 0.0</string>
+				<key>weapon_facing</key>
+				<string>FORWARD</string>
+			</dict>
+			<dict>
+				<key>view_description</key>
+				<string>External View 2</string>
+				<key>view_position</key>
+				<string>70.71 20.0 -70.71</string>
+				<key>view_orientation</key>
+				<string>0.9239 0.0 0.3827 0.0</string>
+				<key>weapon_facing</key>
+				<string>FORWARD</string>
+			</dict>
+			<dict>
+				<key>view_description</key>
+				<string>External View 3</string>
+				<key>view_position</key>
+				<string>100.0 20.0 0.0</string>
+				<key>view_orientation</key>
+				<string>0.7071 0.0 0.7071 0.0</string>
+				<key>weapon_facing</key>
+				<string>FORWARD</string>
+			</dict>
+			<dict>
+				<key>view_description</key>
+				<string>External View 3</string>
+				<key>view_position</key>
+				<string>70.71 20.0 70.71</string>
+				<key>view_orientation</key>
+				<string>0.3827 0.0 0.9239 0.0</string>
+				<key>weapon_facing</key>
+				<string>FORWARD</string>
+			</dict>
+			<dict>
+				<key>view_description</key>
+				<string>External View 4</string>
+				<key>view_position</key>
+				<string>0.0 20.0 100.0</string>
+				<key>view_orientation</key>
+				<string>0.0 0.0 1.0 0.0</string>
+				<key>weapon_facing</key>
+				<string>FORWARD</string>
+			</dict>
+			<dict>
+				<key>view_description</key>
+				<string>External View 5</string>
+				<key>view_position</key>
+				<string>-70.71 20.0 70.71</string>
+				<key>view_orientation</key>
+				<string>0.3827 0.0 -0.9239 0.0</string>
+				<key>weapon_facing</key>
+				<string>FORWARD</string>
+			</dict>
+			<dict>
+				<key>view_description</key>
+				<string>External View 6</string>
+				<key>view_position</key>
+				<string>-100.0 20.0 0.0</string>
+				<key>view_orientation</key>
+				<string>0.7071 0.0 -0.7071 0.0</string>
+				<key>weapon_facing</key>
+				<string>FORWARD</string>
+			</dict>
+			<dict>
+				<key>view_description</key>
+				<string>External View 7</string>
+				<key>view_position</key>
+				<string>-70.71 20.0 -70.71</string>
+				<key>view_orientation</key>
+				<string>0.9239 0.0 -0.3827 0.0</string>
+				<key>weapon_facing</key>
+				<string>FORWARD</string>
+			</dict>
+		</array>
 	</dict>
 	<key>cobra3-trader</key>
 	<dict>
@@ -1540,6 +2038,89 @@
 		<string>-35.0 -1.0 0.5</string>
 		<key>weapon_position_starboard</key>
 		<string>35.0 -1.0 0.5</string>
+		<key>custom_views</key>
+		<array>
+			<dict>
+				<key>view_description</key>
+				<string>External View 1</string>
+				<key>view_position</key>
+				<string>0.0 20.0 -100.0</string>
+				<key>view_orientation</key>
+				<string>1.0 0.0 0.0 0.0</string>
+				<key>weapon_facing</key>
+				<string>FORWARD</string>
+			</dict>
+			<dict>
+				<key>view_description</key>
+				<string>External View 2</string>
+				<key>view_position</key>
+				<string>70.71 20.0 -70.71</string>
+				<key>view_orientation</key>
+				<string>0.9239 0.0 0.3827 0.0</string>
+				<key>weapon_facing</key>
+				<string>FORWARD</string>
+			</dict>
+			<dict>
+				<key>view_description</key>
+				<string>External View 3</string>
+				<key>view_position</key>
+				<string>100.0 20.0 0.0</string>
+				<key>view_orientation</key>
+				<string>0.7071 0.0 0.7071 0.0</string>
+				<key>weapon_facing</key>
+				<string>FORWARD</string>
+			</dict>
+			<dict>
+				<key>view_description</key>
+				<string>External View 3</string>
+				<key>view_position</key>
+				<string>70.71 20.0 70.71</string>
+				<key>view_orientation</key>
+				<string>0.3827 0.0 0.9239 0.0</string>
+				<key>weapon_facing</key>
+				<string>FORWARD</string>
+			</dict>
+			<dict>
+				<key>view_description</key>
+				<string>External View 4</string>
+				<key>view_position</key>
+				<string>0.0 20.0 100.0</string>
+				<key>view_orientation</key>
+				<string>0.0 0.0 1.0 0.0</string>
+				<key>weapon_facing</key>
+				<string>FORWARD</string>
+			</dict>
+			<dict>
+				<key>view_description</key>
+				<string>External View 5</string>
+				<key>view_position</key>
+				<string>-70.71 20.0 70.71</string>
+				<key>view_orientation</key>
+				<string>0.3827 0.0 -0.9239 0.0</string>
+				<key>weapon_facing</key>
+				<string>FORWARD</string>
+			</dict>
+			<dict>
+				<key>view_description</key>
+				<string>External View 6</string>
+				<key>view_position</key>
+				<string>-100.0 20.0 0.0</string>
+				<key>view_orientation</key>
+				<string>0.7071 0.0 -0.7071 0.0</string>
+				<key>weapon_facing</key>
+				<string>FORWARD</string>
+			</dict>
+			<dict>
+				<key>view_description</key>
+				<string>External View 7</string>
+				<key>view_position</key>
+				<string>-70.71 20.0 -70.71</string>
+				<key>view_orientation</key>
+				<string>0.9239 0.0 -0.3827 0.0</string>
+				<key>weapon_facing</key>
+				<string>FORWARD</string>
+			</dict>
+		</array>
 	</dict>
 	<key>constrictor</key>
 	<dict>
@@ -1978,6 +2559,89 @@
 		<string>-16.875 -4.0 3.5</string>
 		<key>weapon_position_starboard</key>
 		<string>16.875 -4.0 3.5</string>
+		<key>custom_views</key>
+		<array>
+			<dict>
+				<key>view_description</key>
+				<string>External View 1</string>
+				<key>view_position</key>
+				<string>0.0 20.0 -100.0</string>
+				<key>view_orientation</key>
+				<string>1.0 0.0 0.0 0.0</string>
+				<key>weapon_facing</key>
+				<string>FORWARD</string>
+			</dict>
+			<dict>
+				<key>view_description</key>
+				<string>External View 2</string>
+				<key>view_position</key>
+				<string>70.71 20.0 -70.71</string>
+				<key>view_orientation</key>
+				<string>0.9239 0.0 0.3827 0.0</string>
+				<key>weapon_facing</key>
+				<string>FORWARD</string>
+			</dict>
+			<dict>
+				<key>view_description</key>
+				<string>External View 3</string>
+				<key>view_position</key>
+				<string>100.0 20.0 0.0</string>
+				<key>view_orientation</key>
+				<string>0.7071 0.0 0.7071 0.0</string>
+				<key>weapon_facing</key>
+				<string>FORWARD</string>
+			</dict>
+			<dict>
+				<key>view_description</key>
+				<string>External View 3</string>
+				<key>view_position</key>
+				<string>70.71 20.0 70.71</string>
+				<key>view_orientation</key>
+				<string>0.3827 0.0 0.9239 0.0</string>
+				<key>weapon_facing</key>
+				<string>FORWARD</string>
+			</dict>
+			<dict>
+				<key>view_description</key>
+				<string>External View 4</string>
+				<key>view_position</key>
+				<string>0.0 20.0 100.0</string>
+				<key>view_orientation</key>
+				<string>0.0 0.0 1.0 0.0</string>
+				<key>weapon_facing</key>
+				<string>FORWARD</string>
+			</dict>
+			<dict>
+				<key>view_description</key>
+				<string>External View 5</string>
+				<key>view_position</key>
+				<string>-70.71 20.0 70.71</string>
+				<key>view_orientation</key>
+				<string>0.3827 0.0 -0.9239 0.0</string>
+				<key>weapon_facing</key>
+				<string>FORWARD</string>
+			</dict>
+			<dict>
+				<key>view_description</key>
+				<string>External View 6</string>
+				<key>view_position</key>
+				<string>-100.0 20.0 0.0</string>
+				<key>view_orientation</key>
+				<string>0.7071 0.0 -0.7071 0.0</string>
+				<key>weapon_facing</key>
+				<string>FORWARD</string>
+			</dict>
+			<dict>
+				<key>view_description</key>
+				<string>External View 7</string>
+				<key>view_position</key>
+				<string>-70.71 20.0 -70.71</string>
+				<key>view_orientation</key>
+				<string>0.9239 0.0 -0.3827 0.0</string>
+				<key>weapon_facing</key>
+				<string>FORWARD</string>
+			</dict>
+		</array>
 	</dict>
 	<key>gecko</key>
 	<dict>
@@ -2495,6 +3159,89 @@
 		<string>-30.0 -2.0 6.25</string>
 		<key>weapon_position_starboard</key>
 		<string>30.0 -2.0 6.25</string>
+		<key>custom_views</key>
+		<array>
+			<dict>
+				<key>view_description</key>
+				<string>External View 1</string>
+				<key>view_position</key>
+				<string>0.0 20.0 -100.0</string>
+				<key>view_orientation</key>
+				<string>1.0 0.0 0.0 0.0</string>
+				<key>weapon_facing</key>
+				<string>FORWARD</string>
+			</dict>
+			<dict>
+				<key>view_description</key>
+				<string>External View 2</string>
+				<key>view_position</key>
+				<string>70.71 20.0 -70.71</string>
+				<key>view_orientation</key>
+				<string>0.9239 0.0 0.3827 0.0</string>
+				<key>weapon_facing</key>
+				<string>FORWARD</string>
+			</dict>
+			<dict>
+				<key>view_description</key>
+				<string>External View 3</string>
+				<key>view_position</key>
+				<string>100.0 20.0 0.0</string>
+				<key>view_orientation</key>
+				<string>0.7071 0.0 0.7071 0.0</string>
+				<key>weapon_facing</key>
+				<string>FORWARD</string>
+			</dict>
+			<dict>
+				<key>view_description</key>
+				<string>External View 3</string>
+				<key>view_position</key>
+				<string>70.71 20.0 70.71</string>
+				<key>view_orientation</key>
+				<string>0.3827 0.0 0.9239 0.0</string>
+				<key>weapon_facing</key>
+				<string>FORWARD</string>
+			</dict>
+			<dict>
+				<key>view_description</key>
+				<string>External View 4</string>
+				<key>view_position</key>
+				<string>0.0 20.0 100.0</string>
+				<key>view_orientation</key>
+				<string>0.0 0.0 1.0 0.0</string>
+				<key>weapon_facing</key>
+				<string>FORWARD</string>
+			</dict>
+			<dict>
+				<key>view_description</key>
+				<string>External View 5</string>
+				<key>view_position</key>
+				<string>-70.71 20.0 70.71</string>
+				<key>view_orientation</key>
+				<string>0.3827 0.0 -0.9239 0.0</string>
+				<key>weapon_facing</key>
+				<string>FORWARD</string>
+			</dict>
+			<dict>
+				<key>view_description</key>
+				<string>External View 6</string>
+				<key>view_position</key>
+				<string>-100.0 20.0 0.0</string>
+				<key>view_orientation</key>
+				<string>0.7071 0.0 -0.7071 0.0</string>
+				<key>weapon_facing</key>
+				<string>FORWARD</string>
+			</dict>
+			<dict>
+				<key>view_description</key>
+				<string>External View 7</string>
+				<key>view_position</key>
+				<string>-70.71 20.0 -70.71</string>
+				<key>view_orientation</key>
+				<string>0.9239 0.0 -0.3827 0.0</string>
+				<key>weapon_facing</key>
+				<string>FORWARD</string>
+			</dict>
+		</array>
 	</dict>
 	<key>morayMED</key>
 	<dict>
@@ -2607,6 +3354,89 @@
 		<string>-30.0 -2.0 6.25</string>
 		<key>weapon_position_starboard</key>
 		<string>30.0 -2.0 6.25</string>
+		<key>custom_views</key>
+		<array>
+			<dict>
+				<key>view_description</key>
+				<string>External View 1</string>
+				<key>view_position</key>
+				<string>0.0 20.0 -100.0</string>
+				<key>view_orientation</key>
+				<string>1.0 0.0 0.0 0.0</string>
+				<key>weapon_facing</key>
+				<string>FORWARD</string>
+			</dict>
+			<dict>
+				<key>view_description</key>
+				<string>External View 2</string>
+				<key>view_position</key>
+				<string>70.71 20.0 -70.71</string>
+				<key>view_orientation</key>
+				<string>0.9239 0.0 0.3827 0.0</string>
+				<key>weapon_facing</key>
+				<string>FORWARD</string>
+			</dict>
+			<dict>
+				<key>view_description</key>
+				<string>External View 3</string>
+				<key>view_position</key>
+				<string>100.0 20.0 0.0</string>
+				<key>view_orientation</key>
+				<string>0.7071 0.0 0.7071 0.0</string>
+				<key>weapon_facing</key>
+				<string>FORWARD</string>
+			</dict>
+			<dict>
+				<key>view_description</key>
+				<string>External View 3</string>
+				<key>view_position</key>
+				<string>70.71 20.0 70.71</string>
+				<key>view_orientation</key>
+				<string>0.3827 0.0 0.9239 0.0</string>
+				<key>weapon_facing</key>
+				<string>FORWARD</string>
+			</dict>
+			<dict>
+				<key>view_description</key>
+				<string>External View 4</string>
+				<key>view_position</key>
+				<string>0.0 20.0 100.0</string>
+				<key>view_orientation</key>
+				<string>0.0 0.0 1.0 0.0</string>
+				<key>weapon_facing</key>
+				<string>FORWARD</string>
+			</dict>
+			<dict>
+				<key>view_description</key>
+				<string>External View 5</string>
+				<key>view_position</key>
+				<string>-70.71 20.0 70.71</string>
+				<key>view_orientation</key>
+				<string>0.3827 0.0 -0.9239 0.0</string>
+				<key>weapon_facing</key>
+				<string>FORWARD</string>
+			</dict>
+			<dict>
+				<key>view_description</key>
+				<string>External View 6</string>
+				<key>view_position</key>
+				<string>-100.0 20.0 0.0</string>
+				<key>view_orientation</key>
+				<string>0.7071 0.0 -0.7071 0.0</string>
+				<key>weapon_facing</key>
+				<string>FORWARD</string>
+			</dict>
+			<dict>
+				<key>view_description</key>
+				<string>External View 7</string>
+				<key>view_position</key>
+				<string>-70.71 20.0 -70.71</string>
+				<key>view_orientation</key>
+				<string>0.9239 0.0 -0.3827 0.0</string>
+				<key>weapon_facing</key>
+				<string>FORWARD</string>
+			</dict>
+		</array>
 	</dict>
 	<key>python</key>
 	<dict>
@@ -2788,6 +3618,89 @@
 		<string>-26.67 0.0 4.33</string>
 		<key>weapon_position_starboard</key>
 		<string>26.67 0.0 4.33</string>
+		<key>custom_views</key>
+		<array>
+			<dict>
+				<key>view_description</key>
+				<string>External View 1</string>
+				<key>view_position</key>
+				<string>0.0 20.0 -100.0</string>
+				<key>view_orientation</key>
+				<string>1.0 0.0 0.0 0.0</string>
+				<key>weapon_facing</key>
+				<string>FORWARD</string>
+			</dict>
+			<dict>
+				<key>view_description</key>
+				<string>External View 2</string>
+				<key>view_position</key>
+				<string>70.71 20.0 -70.71</string>
+				<key>view_orientation</key>
+				<string>0.9239 0.0 0.3827 0.0</string>
+				<key>weapon_facing</key>
+				<string>FORWARD</string>
+			</dict>
+			<dict>
+				<key>view_description</key>
+				<string>External View 3</string>
+				<key>view_position</key>
+				<string>100.0 20.0 0.0</string>
+				<key>view_orientation</key>
+				<string>0.7071 0.0 0.7071 0.0</string>
+				<key>weapon_facing</key>
+				<string>FORWARD</string>
+			</dict>
+			<dict>
+				<key>view_description</key>
+				<string>External View 3</string>
+				<key>view_position</key>
+				<string>70.71 20.0 70.71</string>
+				<key>view_orientation</key>
+				<string>0.3827 0.0 0.9239 0.0</string>
+				<key>weapon_facing</key>
+				<string>FORWARD</string>
+			</dict>
+			<dict>
+				<key>view_description</key>
+				<string>External View 4</string>
+				<key>view_position</key>
+				<string>0.0 20.0 100.0</string>
+				<key>view_orientation</key>
+				<string>0.0 0.0 1.0 0.0</string>
+				<key>weapon_facing</key>
+				<string>FORWARD</string>
+			</dict>
+			<dict>
+				<key>view_description</key>
+				<string>External View 5</string>
+				<key>view_position</key>
+				<string>-70.71 20.0 70.71</string>
+				<key>view_orientation</key>
+				<string>0.3827 0.0 -0.9239 0.0</string>
+				<key>weapon_facing</key>
+				<string>FORWARD</string>
+			</dict>
+			<dict>
+				<key>view_description</key>
+				<string>External View 6</string>
+				<key>view_position</key>
+				<string>-100.0 20.0 0.0</string>
+				<key>view_orientation</key>
+				<string>0.7071 0.0 -0.7071 0.0</string>
+				<key>weapon_facing</key>
+				<string>FORWARD</string>
+			</dict>
+			<dict>
+				<key>view_description</key>
+				<string>External View 7</string>
+				<key>view_position</key>
+				<string>-70.71 20.0 -70.71</string>
+				<key>view_orientation</key>
+				<string>0.9239 0.0 -0.3827 0.0</string>
+				<key>weapon_facing</key>
+				<string>FORWARD</string>
+			</dict>
+		</array>
 	</dict>
 	<key>python-trader</key>
 	<dict>
