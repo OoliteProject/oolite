@@ -218,6 +218,8 @@ enum
 
 #define PLAYER_INTERNAL_DAMAGE_FACTOR	31
 
+#define PLAYER_DOCKING_AI_NAME			@"dockingAI.plist"
+
 @interface PlayerEntity : ShipEntity
 {
 @public

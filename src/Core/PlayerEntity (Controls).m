@@ -593,7 +593,21 @@ static NSTimeInterval	time_last_frame;
 			{
 				if (has_docking_computer && (!autopilot_key_pressed))   // look for the 'c' key
 				{
-					if ([self checkForAegis] == AEGIS_IN_DOCKING_RANGE)
+					BOOL isUsingDockingAI = [[shipAI name] isEqual: PLAYER_DOCKING_AI_NAME];
+					BOOL isOkayToUseAutopilot = YES;
+					//
+					if (isUsingDockingAI)
+					{
+						if ([self checkForAegis] != AEGIS_IN_DOCKING_RANGE)
+						{
+							isOkayToUseAutopilot = NO;
+							if (![universe playCustomSound:@"[autopilot-out-of-range]"])
+								[self boop];
+							[universe addMessage:[universe expandDescription:@"[autopilot-out-of-range]" forSystem:system_seed] forCount:4.5];
+						}
+					}
+					//
+					if (isOkayToUseAutopilot)
 					{
 						primaryTarget = NO_TARGET;
 						targetStation = NO_TARGET;
@@ -602,7 +616,7 @@ static NSTimeInterval	time_last_frame;
 						[self safe_all_missiles];
 						velocity = make_vector( 0.0f, 0.0f, 0.0f);
 						status = STATUS_AUTOPILOT_ENGAGED;
-						[shipAI setState:@"GLOBAL"];	// restart the AI
+						[shipAI setState:@"GLOBAL"];	// reboot the AI
 						if (![universe playCustomSound:@"[autopilot-on]"])
 							[self beep];
 						[universe addMessage:[universe expandDescription:@"[autopilot-on]" forSystem:system_seed] forCount:4.5];
@@ -621,12 +635,7 @@ static NSTimeInterval	time_last_frame;
 								[self stopAfterburnerSound];
 						}
 					}
-					else
-					{
-						if (![universe playCustomSound:@"[autopilot-out-of-range]"])
-							[self boop];
-						[universe addMessage:[universe expandDescription:@"[autopilot-out-of-range]" forSystem:system_seed] forCount:4.5];
-					}
+					//
 				}
 				autopilot_key_pressed = YES;
 			}
