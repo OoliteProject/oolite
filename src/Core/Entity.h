@@ -398,6 +398,8 @@ BOOL maintainLinkedLists(Universe* uni);
 - (NSDictionary*) modelData;
 - (void) setModelFromModelData:(NSDictionary*) dict;
 
++ (void) setInputModelScale: (GLfloat) value;
+
 - (void) loadData:(NSString *) filename;
 - (void) checkNormalsAndAdjustWinding;
 - (void) calculateVertexNormals;

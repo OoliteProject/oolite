@@ -1385,6 +1385,12 @@ static  Universe	*data_store_universe;
 	}
 }
 
+GLfloat input_model_scale = 1.0f;
++ (void) setInputModelScale: (GLfloat) value
+{
+	input_model_scale = value;
+}
+
 - (void) loadData:(NSString *) filename
 {
     NSScanner		*scanner;
@@ -1550,7 +1556,7 @@ static  Universe	*data_store_universe;
 						failFlag = YES;
 					if (!failFlag)
 					{
-						vertices[j].x = x;	vertices[j].y = y;	vertices[j].z = z;
+						vertices[j].x = input_model_scale * x;	vertices[j].y = input_model_scale * y;	vertices[j].z = input_model_scale * z;
 					}
 					else
 					{
@@ -1762,7 +1768,10 @@ static  Universe	*data_store_universe;
 		[self OGL_AssignVARMemory:sizeof(EntityData) :(void *)&entityData :0];
 	}
 	//
-
+	
+	// reset the scale
+	//
+	[Entity setInputModelScale: 1.0];
 }
 
 - (void) checkNormalsAndAdjustWinding
