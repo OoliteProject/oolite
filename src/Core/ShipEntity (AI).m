@@ -614,10 +614,15 @@ static	Vector	zero_vector = { 0.0f, 0.0f, 0.0f};
 
 - (void) checkCourseToDestination
 {
-	if ([universe isVectorClearFromEntity:self toDistance:desired_range fromPoint:destination])
+	Entity* hazard = [universe hazardOnRouteFromEntity: self toDistance: desired_range fromPoint: destination];
+	
+	if (!hazard)
 		[shipAI message:@"COURSE_OK"];
 	else
 	{
+		if ((hazard->isShip)&&(weapon_energy * 24.0 > [hazard getEnergy]))
+			[shipAI reactToMessage:@"HAZARD_CAN_BE_DESTROYED"];
+		
 		destination = [universe getSafeVectorFromEntity:self toDistance:desired_range fromPoint:destination];
 		[shipAI message:@"WAYPOINT_SET"];
 	}
@@ -1814,6 +1819,7 @@ WormholeEntity*	whole;
 	navpoints[2] = make_vector( o.x + 2.0 * c * k.x, o.y + 2.0 * c * k.y, o.z + 2.0 * c * k.z);
 	number_of_navpoints = 2;
 	next_navpoint_index = 0;
+	destination = navpoints[0];
 	[shipAI message:@"RACEPOINTS_SET"];
 }
 

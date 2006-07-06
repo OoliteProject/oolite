@@ -4585,11 +4585,6 @@ BOOL maintainLinkedLists(Universe* uni)
 		return NO;
 
 	Vector  f1;
-	int i;
-	int ent_count = n_entities;
-	Entity* my_entities[ent_count];
-	for (i = 0; i < ent_count; i++)
-		my_entities[i] = [sortedEntities[i] retain]; //	retained
 	Vector p1 = e1->position;
 	Vector v1 = p2;
 	v1.x -= p1.x;   v1.y -= p1.y;   v1.z -= p1.z;   // vector from entity to p2
@@ -4598,6 +4593,12 @@ BOOL maintainLinkedLists(Universe* uni)
 	
 	if (nearest < 0.0)
 		return YES;			// within range already!
+	
+	int i;
+	int ent_count = n_entities;
+	Entity* my_entities[ent_count];
+	for (i = 0; i < ent_count; i++)
+		my_entities[i] = [sortedEntities[i] retain]; //	retained
 	
 	if (v1.x || v1.y || v1.z)
 		f1 = unit_vector(&v1);   // unit vector in direction of p2 from p1
@@ -4636,6 +4637,63 @@ BOOL maintainLinkedLists(Universe* uni)
 	for (i = 0; i < ent_count; i++)
 		[my_entities[i] release]; //	released
 	return YES;
+}
+
+- (Entity*) hazardOnRouteFromEntity:(Entity *) e1 toDistance:(double)dist fromPoint:(Vector) p2
+{
+	if (!e1)
+		return nil;
+
+	Vector f1;
+	Vector p1 = e1->position;
+	Vector v1 = p2;
+	v1.x -= p1.x;   v1.y -= p1.y;   v1.z -= p1.z;   // vector from entity to p2
+	
+	double  nearest = sqrt(v1.x*v1.x + v1.y*v1.y + v1.z*v1.z) - dist;  // length of vector
+	
+	if (nearest < 0.0)
+		return nil;			// within range already!
+	
+	Entity* result = nil;
+	int i;
+	int ent_count = n_entities;
+	Entity* my_entities[ent_count];
+	for (i = 0; i < ent_count; i++)
+		my_entities[i] = [sortedEntities[i] retain]; //	retained
+
+	if (v1.x || v1.y || v1.z)
+		f1 = unit_vector(&v1);   // unit vector in direction of p2 from p1
+	else
+		f1 = make_vector( 0, 0, 1);
+	
+	for (i = 0; (i < ent_count) && (!result) ; i++)
+	{
+		Entity *e2 = my_entities[i];
+		if ((e2 != e1)&&([e2 canCollide]))
+		{
+			Vector epos = e2->position;
+			epos.x -= p1.x;	epos.y -= p1.y;	epos.z -= p1.z; // epos now holds vector from p1 to this entities position
+			
+			double d_forward = dot_product(epos,f1);	// distance along f1 which is nearest to e2's position
+			
+			if ((d_forward > 0)&&(d_forward < nearest))
+			{
+				double cr = 1.10 * (e2->collision_radius + e1->collision_radius); //  10% safety margin
+				Vector p0 = e1->position;
+				p0.x += d_forward * f1.x;	p0.y += d_forward * f1.y;	p0.z += d_forward * f1.z;
+				// p0 holds nearest point on current course to center of incident object
+				Vector epos = e2->position;
+				p0.x -= epos.x;	p0.y -= epos.y;	p0.z -= epos.z;
+				// compare with center of incident object
+				double  dist2 = p0.x * p0.x + p0.y * p0.y + p0.z * p0.z;
+				if (dist2 < cr*cr)
+					result = e2;
+			}
+		}
+	}
+	for (i = 0; i < ent_count; i++)
+		[my_entities[i] release]; //	released
+	return result;
 }
 
 
