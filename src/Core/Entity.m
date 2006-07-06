@@ -1556,7 +1556,7 @@ GLfloat input_model_scale = 1.0f;
 						failFlag = YES;
 					if (!failFlag)
 					{
-						vertices[j].x = input_model_scale * x;	vertices[j].y = input_model_scale * y;	vertices[j].z = input_model_scale * z;
+						vertices[j].x = x;	vertices[j].y = y;	vertices[j].z = z;
 					}
 					else
 					{
@@ -1719,6 +1719,8 @@ GLfloat input_model_scale = 1.0f;
 			failString = [NSString stringWithFormat:@"%@Failed to find TEXTURES data\n",failString];
 		}
 
+		
+
 		// check normals before creating new textures
 		//
 		[self checkNormalsAndAdjustWinding];
@@ -1749,6 +1751,22 @@ GLfloat input_model_scale = 1.0f;
 			[[data_store_universe preloadedDataFiles] setObject:[self modelData] forKey: data_key];
 		}
 	}
+	
+	// scale if necessary
+	//
+	if (input_model_scale != 1.0f)
+	{
+		int i;
+		for (i = 0; i < n_vertices; i++)
+		{
+			vertices[i].x *= input_model_scale;
+			vertices[i].y *= input_model_scale;
+			vertices[i].z *= input_model_scale;
+		}
+		// reset the scale
+		//
+		[Entity setInputModelScale: 1.0];
+	}
 
 	// set the collision radius
 	//
@@ -1759,8 +1777,6 @@ GLfloat input_model_scale = 1.0f;
 	//
 	[self setUpVertexArrays];
 	//
-
-	//
 	usingVAR = [self OGL_InitVAR];
 	//
 	if (usingVAR)
@@ -1768,10 +1784,6 @@ GLfloat input_model_scale = 1.0f;
 		[self OGL_AssignVARMemory:sizeof(EntityData) :(void *)&entityData :0];
 	}
 	//
-	
-	// reset the scale
-	//
-	[Entity setInputModelScale: 1.0];
 }
 
 - (void) checkNormalsAndAdjustWinding
