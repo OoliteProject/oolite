@@ -1385,12 +1385,6 @@ static  Universe	*data_store_universe;
 	}
 }
 
-GLfloat input_model_scale = 1.0f;
-+ (void) setInputModelScale: (GLfloat) value
-{
-	input_model_scale = value;
-}
-
 - (void) loadData:(NSString *) filename
 {
     NSScanner		*scanner;
@@ -1752,22 +1746,6 @@ GLfloat input_model_scale = 1.0f;
 		}
 	}
 	
-	// scale if necessary
-	//
-	if (input_model_scale != 1.0f)
-	{
-		int i;
-		for (i = 0; i < n_vertices; i++)
-		{
-			vertices[i].x *= input_model_scale;
-			vertices[i].y *= input_model_scale;
-			vertices[i].z *= input_model_scale;
-		}
-		// reset the scale
-		//
-		[Entity setInputModelScale: 1.0];
-	}
-
 	// set the collision radius
 	//
 	collision_radius = [self findCollisionRadius];
