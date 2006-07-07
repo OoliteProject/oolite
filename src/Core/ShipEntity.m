@@ -4354,7 +4354,7 @@ static GLfloat mascem_color2[4] =	{ 0.4, 0.1, 0.4, 1.0};	// purple
 	{
 		// quick test of hyperring
 		ParticleEntity *ring = [[ParticleEntity alloc] initHyperringFromShip:self]; // retained
-		Vector ring_vel = [ring getVelocity];
+		Vector ring_vel = [self getVelocity];
 		ring_vel.x *= 0.25;	ring_vel.y *= 0.25;	ring_vel.z *= 0.25;	// quarter velocity
 		[ring setVelocity:ring_vel];
 		[universe addEntity:ring];
@@ -4561,16 +4561,21 @@ static GLfloat mascem_color2[4] =	{ 0.4, 0.1, 0.4, 1.0};	// purple
 				GLfloat scale_factor = powf(expected_mass / wreck_mass, 0.33333333f);	// cube root of volume ratio
 				[wreck rescaleBy: scale_factor];
 				
-				Vector rpos = resolveVectorInIJK( randomPositionInBoundingBox( boundingBox), make_triangle( v_right, v_up, v_forward));
+				Vector r1 = randomFullNodeFrom([octree octreeDetails], make_vector( 0.0, 0.0, 0.0));
+				Vector rpos = make_vector ( v_right.x * r1.x + v_up.x * r1.y + v_forward.x * r1.z,
+											v_right.y * r1.x + v_up.y * r1.y + v_forward.y * r1.z,
+											v_right.z * r1.x + v_up.z * r1.y + v_forward.z * r1.z);
 				rpos.x += xposition.x;
 				rpos.y += xposition.y;
 				rpos.z += xposition.z;
 				[wreck setPosition:rpos];
+				
+				[wreck setVelocity:[self getVelocity]];
 
 				quaternion_set_random(&q);
 				[wreck setQRotation:q];
 
-				[wreck setVelocity:make_vector(0.0, 0.0, 0.0)];
+//				[wreck setVelocity:make_vector(0.0, 0.0, 0.0)];
 				
 				[wreck setTemperature: 1000.0];		// take 1000e heat damage per second
 				[wreck setHeatInsulation: 1.0e7];	// very large! so it won't cool down
@@ -4582,6 +4587,7 @@ static GLfloat mascem_color2[4] =	{ 0.4, 0.1, 0.4, 1.0};	// purple
 				[wreck release];
 			}
 		}
+		n_alloys = ranrot_rand() % n_alloys;
 	}
 	/*--*/
 
