@@ -2420,7 +2420,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	{
 		GLfloat tf = TRACTOR_FORCE / mass;
 		desired_speed = 0.0;
-		desired_range = collision_radius;
+		desired_range = collision_radius * 2.0;
 		destination = [hauler absoluteTractorPosition];
 		// adjust for difference in velocity (spring rule)
 		Vector dv = vector_between( [self getVelocity], [hauler getVelocity]);
@@ -2430,11 +2430,11 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 		// acceleration = force / mass
 		// force proportional to distance (spring rule)
 		Vector dp = vector_between( position, destination);
-		velocity.x += delta_t * dp.x * tf;
-		velocity.y += delta_t * dp.y * tf;
-		velocity.z += delta_t * dp.z * tf;
+		velocity.x += delta_t * dp.x * tf * 0.5;
+		velocity.y += delta_t * dp.y * tf * 0.5;
+		velocity.z += delta_t * dp.z * tf * 0.5;
 		// force inversely proportional to distance
-		GLfloat d2 = magnitude2(dp);
+		GLfloat d2 = 2.0 * magnitude2(dp);
 		if (d2 > 0.0)
 		{
 			velocity.x += delta_t * dp.x * tf / d2;
@@ -2442,7 +2442,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 			velocity.z += delta_t * dp.z * tf / d2;
 		}
 
-		thrust = 10.0;	// used to damp velocity
+		thrust = 20.0;	// used to damp velocity
 		if (status == STATUS_BEING_SCOOPED)
 		{
 			if (hauler->isPlayer)
