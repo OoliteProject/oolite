@@ -3162,7 +3162,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	resetFrame.k = vk;
 	Vector vel = make_vector( vk.x * flight_speed, vk.y * flight_speed, vk.z * flight_speed);
 	
-	if (isPlayer)
+	if ((isPlayer)&&(debug))
 		NSLog(@"DEBUG resetting tracking for %@", self);
 	
 	[self resetFramesFromFrame:resetFrame withVelocity:vel];
@@ -3177,7 +3177,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 			if ((se->isParticle)&&([(ParticleEntity*)se particleType] == PARTICLE_EXHAUST))
 			{
 			
-				if (isPlayer)
+				if ((isPlayer)&&(debug))
 					NSLog(@"DEBUG resetting tracking for subentity %@ of %@", se, self);
 			
 				resetFrame.position = make_vector(
