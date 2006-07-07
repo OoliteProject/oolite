@@ -760,4 +760,39 @@ GLfloat volumeOfOctree(Octree_details octree_details)
 	return sumVolume;
 }
 
+Vector randomFullNodeFrom( Octree_details details, Vector offset)
+{
+	int*	octBuffer = details.octree;
+	GLfloat octRadius = details.radius;
+	
+	if (octBuffer[0] == 0)
+		return offset;
+	
+	if (octBuffer[0] == -1)
+		return offset;
+	
+	// we are not empty or solid
+	// we sum the volume of each of our octants
+	Octree_details	nextDetails;	// for subdivision (may not be required)
+	int		nextLevel = octBuffer[0];
+	int*	nextBuffer = &octBuffer[nextLevel];
+	nextDetails.radius = 0.5 * octRadius;
+	int		i, oct;
+	oct = ranrot_rand() & 7;
+	for (i = 0; i < 8; i++)
+	{
+		int octant = oct ^ i;
+		if (nextBuffer[octant])	// don't test empty octants
+		{
+			nextDetails.octree = &nextBuffer[octant];
+			Vector voff = offsetForOctant( octant, octRadius);
+			voff.x += offset.x;
+			voff.y += offset.y;
+			voff.z += offset.z;
+			return randomFullNodeFrom( nextDetails, voff);
+		}
+	}
+	return offset;
+}
+
 @end

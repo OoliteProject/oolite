@@ -102,4 +102,6 @@ BOOL	isHitByOctree(	Octree_details axialDetails,
 - (GLfloat) volume;
 GLfloat volumeOfOctree(Octree_details octree_details);
 
+Vector randomFullNodeFrom( Octree_details details, Vector offset);
+
 @end
