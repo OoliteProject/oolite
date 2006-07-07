@@ -77,6 +77,8 @@ typedef struct octree_struct Octree_details;
 - (id) initWithRepresentationOfOctree:(GLfloat) octRadius :(NSObject*) octreeArray :(int) leafsize;
 - (id) initWithDictionary:(NSDictionary*) dict;
 
+- (Octree*) octreeScaledBy:(GLfloat) factor;
+
 int copyRepresentationIntoOctree(NSObject* theRep, int* theBuffer, int atLocation, int nextFreeLocation);
 
 Vector offsetForOctant(int oct, GLfloat r);
@@ -93,7 +95,11 @@ BOOL	isHitByLine(int* octbuffer, unsigned char* collbuffer, int level, GLfloat r
 BOOL	isHitByOctree(	Octree_details axialDetails,
 						Octree_details otherDetails, Vector delta, Triangle other_ijk);
 - (BOOL) isHitByOctree:(Octree*) other withOrigin: (Vector) v0 andIJK: (Triangle) ijk;
+- (BOOL) isHitByOctree:(Octree*) other withOrigin: (Vector) v0 andIJK: (Triangle) ijk andScales: (GLfloat) s1: (GLfloat) s2;
 
 - (NSDictionary*) dict;
+
+- (GLfloat) volume;
+GLfloat volumeOfOctree(Octree_details octree_details);
 
 @end

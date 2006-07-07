@@ -146,6 +146,15 @@ Your fair use and other rights are in no way affected by the above.
 	return self;
 }
 
+- (Octree*) octreeScaledBy:(GLfloat) factor
+{
+	GLfloat temp = radius;
+	radius *= factor;
+	Octree* result = [[Octree alloc] initWithDictionary:[self dict]];
+	radius = temp;
+	return [result autorelease];
+}
+
 int copyRepresentationIntoOctree(NSObject* theRep, int* theBuffer, int atLocation, int nextFreeLocation)
 {
 	if ([theRep isKindOfClass:[NSNumber class]])	// ie. a terminating leaf
@@ -689,6 +698,22 @@ BOOL	isHitByOctree(	Octree_details axialDetails,
 	return hit; 
 }
 
+- (BOOL) isHitByOctree:(Octree*) other withOrigin: (Vector) v0 andIJK: (Triangle) ijk andScales: (GLfloat) s1: (GLfloat) s2
+{
+	Octree_details details1 = [self octreeDetails];
+	Octree_details details2 = [other octreeDetails];
+	
+	details1.radius *= s1;
+	details2.radius *= s2;
+	
+	BOOL hit = isHitByOctree( details1, details2, v0, ijk);
+	//
+	hasCollision = hasCollision | hit;
+	[other setHasCollision: [other hasCollision] | hit];
+	//
+	return hit; 
+}
+
 
 
 - (NSDictionary*)	dict;
@@ -698,6 +723,41 @@ BOOL	isHitByOctree(	Octree_details axialDetails,
 		[NSNumber numberWithInt:leafs],		@"leafs",
 		[NSData dataWithBytes:(const void *)octree length: leafs * sizeof(int)], @"octree",
 		nil];
+}
+
+- (GLfloat) volume
+{
+	return volumeOfOctree([self octreeDetails]);
+}
+
+GLfloat volumeOfOctree(Octree_details octree_details)
+{
+	int*	octBuffer = octree_details.octree;
+	GLfloat octRadius = octree_details.radius;
+	
+	if (octBuffer[0] == 0)
+		return 0.0f;
+	
+	if (octBuffer[0] == -1)
+		return octRadius * octRadius * octRadius;
+	
+	// we are not empty or solid
+	// we sum the volume of each of our octants
+	GLfloat sumVolume = 0.0f;
+	Octree_details	nextDetails;	// for subdivision (may not be required)
+	int		nextLevel = octBuffer[0];
+	int*	nextBuffer = &octBuffer[nextLevel];
+	nextDetails.radius = 0.5 * octRadius;
+	int		i;
+	for (i = 0; i < 8; i++)
+	{
+		if (nextBuffer[i])	// don't test empty octants
+		{
+			nextDetails.octree = &nextBuffer[i];
+			sumVolume += volumeOfOctree(nextDetails);
+		}
+	}
+	return sumVolume;
 }
 
 @end
