@@ -4793,5 +4793,65 @@
 		<key>weapon_energy</key>
 		<real>4500</real>
 	</dict>
+	<!-- wreckage -->
+	<key>wreckage-component</key>
+	<dict>
+		<key>ai_type</key>
+		<string>nullAI.plist</string>
+		<key>bounty</key>
+		<integer>0</integer>
+		<key>cargo_type</key>
+		<string>CARGO_NOT_CARGO</string>
+		<key>energy_recharge_rate</key>
+		<real>0</real>
+		<key>forward_weapon_type</key>
+		<string>WEAPON_NONE</string>
+		<key>max_energy</key>
+		<real>2000</real>
+		<key>max_flight_pitch</key>
+		<real>2.0</real>
+		<key>max_flight_roll</key>
+		<real>2.0</real>
+		<key>max_flight_speed</key>
+		<real>500</real>
+		<key>model</key>
+		<string>wreck1.dat</string>
+		<key>name</key>
+		<string>Wreckage</string>
+		<key>roles</key>
+		<string>wreckage</string>
+		<key>scanClass</key>
+		<string>CLASS_CARGO</string>
+		<key>thrust</key>
+		<real>0.0</real>
+	</dict>
+	<key>more-wreckage2</key>
+	<dict>
+		<key>like_ship</key>
+		<string>wreckage-component</string>
+		<key>model</key>
+		<string>wreck2.dat</string>
+	</dict>
+	<key>more-wreckage3</key>
+	<dict>
+		<key>like_ship</key>
+		<string>wreckage-component</string>
+		<key>model</key>
+		<string>wreck3.dat</string>
+	</dict>
+	<key>more-wreckage4</key>
+	<dict>
+		<key>like_ship</key>
+		<string>wreckage-component</string>
+		<key>model</key>
+		<string>wreck4.dat</string>
+	</dict>
+	<key>more-wreckage5</key>
+	<dict>
+		<key>like_ship</key>
+		<string>wreckage-component</string>
+		<key>model</key>
+		<string>wreck5.dat</string>
+	</dict>
 </dict>
 </plist>

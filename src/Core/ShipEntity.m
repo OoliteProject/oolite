@@ -201,6 +201,8 @@ Your fair use and other rights are in no way affected by the above.
 	//
 	debug_flag = 0;
 	//
+	octree = nil;
+	//
 	return self;
 }
 
@@ -231,6 +233,8 @@ Your fair use and other rights are in no way affected by the above.
 	if (crew)				[crew release];
 
 	if (lastRadioMessage)	[lastRadioMessage autorelease];
+
+	if (octree)				[octree autorelease];
 
 	[super dealloc];
 }
@@ -364,6 +368,15 @@ NSString* describeStatus(int some_status)
 		return [NSString stringWithFormat:@"<ShipEntity %@ %d>", name, universal_id];
 }
 
+- (void) setOctree:(Octree*) oct
+{
+	if (octree)
+		[octree release];
+	octree = oct;
+	if (octree)
+		[octree retain];
+}
+
 static NSMutableDictionary* smallOctreeDict = nil;
 - (void) setModel:(NSString*) modelName
 {
@@ -385,21 +398,24 @@ static NSMutableDictionary* smallOctreeDict = nil;
 		smallOctreeDict = [(NSMutableDictionary *)[NSMutableDictionary alloc] initWithCapacity:30];
 	if ([smallOctreeDict objectForKey: modelName])
 	{
-		octree = (Octree*)[smallOctreeDict objectForKey: modelName];
+//		octree = (Octree*)[smallOctreeDict objectForKey: modelName];
+		[self setOctree:(Octree*)[smallOctreeDict objectForKey: modelName]];
 		return;
 	}
 	//
 	if ([octreeCache objectForKey: modelName])
 	{
-		octree = [[[Octree alloc] initWithDictionary:(NSDictionary*)[octreeCache objectForKey: modelName]] autorelease];
+//		octree = [[[Octree alloc] initWithDictionary:(NSDictionary*)[octreeCache objectForKey: modelName]] autorelease];
+		[self setOctree:[[[Octree alloc] initWithDictionary:(NSDictionary*)[octreeCache objectForKey: modelName]] autorelease]];
 		[smallOctreeDict setObject: octree forKey: modelName];	//retained
 	}
 	else
 	{
-//		NSLog(@"DEBUG deriving octree for %@ ... model mass is %.2f", modelName, [self mass]);
-		octree = [[self getGeometry] findOctreeToDepth: OCTREE_MAX_DEPTH];	// depth 5 or 6 seems optimum
+//		octree = [[self getGeometry] findOctreeToDepth: OCTREE_MAX_DEPTH];	// depth 5 or 6 seems optimum
+		[self setOctree:[[self getGeometry] findOctreeToDepth: OCTREE_MAX_DEPTH]];	// depth 5 or 6 seems optimum
 		[smallOctreeDict setObject: octree forKey: modelName];	//retained
 		[octreeCache setObject: [octree dict] forKey: modelName];
+//		NSLog(@"DEBUG derived octree for %@ ... model mass is %.2ft octree volume is %.2ft", modelName, 0.001 * [self mass], 20.0 * 0.001 * [octree volume]);
 	}
 }
 
@@ -801,7 +817,73 @@ static NSMutableDictionary* smallOctreeDict = nil;
 	debug_flag = 0;
 	//
 	[self setCollisionRegion:nil];
+	//
+	[self setOctree: nil];
 }
+
+
+- (void) rescaleBy:(GLfloat) factor
+{
+	// rescale vertices and rebuild vertex arrays
+	//
+	int i;
+	for (i = 0; i < n_vertices; i++)
+	{
+		vertices[i].x *= factor;
+		vertices[i].y *= factor;
+		vertices[i].z *= factor;
+	}
+	[self setUpVertexArrays];
+	usingVAR = [self OGL_InitVAR];
+	if (usingVAR)
+		[self OGL_AssignVARMemory:sizeof(EntityData) :(void *)&entityData :0];
+	
+	// rescale the collision radii & bounding box
+	//
+	collision_radius *= factor;
+	actual_radius *= factor;
+	boundingBox.min.x *= factor;
+	boundingBox.min.y *= factor;
+	boundingBox.min.z *= factor;
+	boundingBox.max.x *= factor;
+	boundingBox.max.y *= factor;
+	boundingBox.max.z *= factor;
+
+	// rescale octree
+	//
+	[self setOctree:[octree octreeScaledBy: factor]];
+	
+	// rescale positions of subentities
+	//
+	int n_subs = [sub_entities count];
+	for (i = 0; i < n_subs; i++)
+	{
+		Entity* se = (Entity*)[sub_entities objectAtIndex:i];
+		se->position.x *= factor;
+		se->position.y *= factor;
+		se->position.z *= factor;
+		
+		// rescale ship subentities
+		if (se->isShip)
+			[(ShipEntity*)se rescaleBy: factor];
+		
+		// rescale particle subentities
+		if (se->isParticle)
+		{
+			ParticleEntity* pe = (ParticleEntity*)se;
+			NSSize sz = [pe size];
+			sz.width *= factor;
+			sz.height *= factor;
+			[pe setSize: sz];
+		}
+	}
+	
+	// rescale mass
+	//
+	mass *= factor * factor * factor;
+	
+}
+
 
 - (id) initWithDictionary:(NSDictionary *) dict
 {
@@ -1101,6 +1183,9 @@ static NSMutableDictionary* smallOctreeDict = nil;
 	// must do this next one before checking subentities
 	if ([shipdict objectForKey:@"model"])
 		[self setModel:(NSString *)[shipdict objectForKey:@"model"]];
+	//
+	if (octree)
+		mass = 20.0 * [octree volume];
 	//
 	if ([shipdict objectForKey:KEY_NAME])
 	{
@@ -1440,7 +1525,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	// octree check
 	Octree* prime_octree = prime->octree;
 	Octree* other_octree = other->octree;
-
+	
 	Vector prime_position = prime->position;
 
 	Triangle prime_ijk;
@@ -1839,6 +1924,8 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	double distance = sqrt(magnitude2(subent->position)) + [subent findCollisionRadius];
 	if (distance > collision_radius)
 		collision_radius = distance;
+	
+	mass += 20.0 * [subent->octree volume];
 }
 
 
@@ -3983,6 +4070,17 @@ static GLfloat mascem_color2[4] =	{ 0.4, 0.1, 0.4, 1.0};	// purple
 	return flight_speed / max_flight_speed;
 }
 
+- (void) setTemperature:(GLfloat) value
+{
+	ship_temperature = value;
+}
+
+- (void) setHeatInsulation:(GLfloat) value
+{
+	heat_insulation = value;
+}
+
+
 - (int) damage
 {
 	return (int)(100 - (100 * energy / max_energy));
@@ -4228,7 +4326,8 @@ static GLfloat mascem_color2[4] =	{ 0.4, 0.1, 0.4, 1.0};	// purple
 	Vector v;
 	Quaternion q;
 	int speed_low = 200;
-	int n_alloys = floor((boundingBox.max.z - boundingBox.min.z) / 50.0);
+//	int n_alloys = floor((boundingBox.max.z - boundingBox.min.z) / 50.0);
+	int n_alloys = floor(sqrtf( mass / 25000.0));
 
 	if (status == STATUS_DEAD)
 	{
@@ -4288,7 +4387,7 @@ static GLfloat mascem_color2[4] =	{ 0.4, 0.1, 0.4, 1.0};	// purple
 		cargo_chance = 100;  //  chance of any given piece of cargo surviving decompression
 		cargo_flag = CARGO_FLAG_CANISTERS;
 	}
-
+	
 	int cargo_to_go = max_cargo * cargo_chance / 100;
 	while (cargo_to_go > 15)
 		cargo_to_go = ranrot_rand() % cargo_to_go;
@@ -4439,6 +4538,52 @@ static GLfloat mascem_color2[4] =	{ 0.4, 0.1, 0.4, 1.0};	// purple
 		[universe removeEntity:self];
 		return; // don't do anything more
 	}
+
+	/*--*/
+	//
+	// I'm using this to test details for ejecting burning pieces of wreckage that in-turn explode into the alloys
+	// n_pieces_of_wreckage == n_alloys
+	//
+	// a piece of wreckage should be approximately 1/8 of the mass of it's parent ship
+	//
+	// currently most pieces of wreckage are about 20x20x30 or 12000 mass units
+	//
+	if (n_alloys)
+	{
+		int n_wreckage = (n_alloys < 3)? n_alloys : 3;
+		for (i = 0; i < n_wreckage; i++)
+		{
+			ShipEntity* wreck = [universe getShipWithRole:@"wreckage"];   // retain count = 1
+			if (wreck)
+			{
+				GLfloat expected_mass = 0.1f * mass * (0.75 + 0.5 * randf());
+				GLfloat wreck_mass = [wreck mass];
+				GLfloat scale_factor = powf(expected_mass / wreck_mass, 0.33333333f);	// cube root of volume ratio
+				[wreck rescaleBy: scale_factor];
+				
+				Vector rpos = resolveVectorInIJK( randomPositionInBoundingBox( boundingBox), make_triangle( v_right, v_up, v_forward));
+				rpos.x += xposition.x;
+				rpos.y += xposition.y;
+				rpos.z += xposition.z;
+				[wreck setPosition:rpos];
+
+				quaternion_set_random(&q);
+				[wreck setQRotation:q];
+
+				[wreck setVelocity:make_vector(0.0, 0.0, 0.0)];
+				
+				[wreck setTemperature: 1000.0];		// take 1000e heat damage per second
+				[wreck setHeatInsulation: 1.0e7];	// very large! so it won't cool down
+				[wreck setEnergy: 750.0 * randf() + 250.0 * i + 100.0];	// burn for 0.25s -> 1.25s
+				
+				[wreck setStatus:STATUS_IN_FLIGHT];
+				[universe addEntity: wreck];
+				[wreck performTumble];
+				[wreck release];
+			}
+		}
+	}
+	/*--*/
 
 	//NSLog(@"Throwing %d pieces of alloy", n_alloys);
 	for (i = 0; i < n_alloys; i++)

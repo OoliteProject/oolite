@@ -22,6 +22,12 @@
 		088496E00A4C1D1B00F32928 /* gotoWaypointAI.plist in Resources */ = {isa = PBXBuildFile; fileRef = 088496DE0A4C1D1B00F32928 /* gotoWaypointAI.plist */; };
 		088496E10A4C1D1B00F32928 /* receiveDockingAI.plist in Resources */ = {isa = PBXBuildFile; fileRef = 088496DF0A4C1D1B00F32928 /* receiveDockingAI.plist */; };
 		08CB1FED09D3F2AA001EA329 /* customsounds.plist in Resources */ = {isa = PBXBuildFile; fileRef = 08CB1FEC09D3F2AA001EA329 /* customsounds.plist */; };
+		08DF8C070A5E74B300BCD981 /* wreck3.dat in Resources */ = {isa = PBXBuildFile; fileRef = 08DF8C020A5E74B200BCD981 /* wreck3.dat */; };
+		08DF8C080A5E74B300BCD981 /* wreck1.dat in Resources */ = {isa = PBXBuildFile; fileRef = 08DF8C030A5E74B200BCD981 /* wreck1.dat */; };
+		08DF8C090A5E74B300BCD981 /* wreck4.dat in Resources */ = {isa = PBXBuildFile; fileRef = 08DF8C040A5E74B200BCD981 /* wreck4.dat */; };
+		08DF8C0A0A5E74B300BCD981 /* wreck5.dat in Resources */ = {isa = PBXBuildFile; fileRef = 08DF8C050A5E74B200BCD981 /* wreck5.dat */; };
+		08DF8C0B0A5E74B300BCD981 /* wreck2.dat in Resources */ = {isa = PBXBuildFile; fileRef = 08DF8C060A5E74B200BCD981 /* wreck2.dat */; };
+		08DF8C2D0A5E74DC00BCD981 /* wreck.png in Resources */ = {isa = PBXBuildFile; fileRef = 08DF8C2C0A5E74DC00BCD981 /* wreck.png */; };
 		1A472917096B5454000E78D8 /* CoreAudio.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1A472916096B5454000E78D8 /* CoreAudio.framework */; };
 		1A472921096B5468000E78D8 /* AudioToolbox.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1A47291F096B5468000E78D8 /* AudioToolbox.framework */; };
 		1A472922096B5468000E78D8 /* AudioUnit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1A472920096B5468000E78D8 /* AudioUnit.framework */; };
@@ -384,6 +390,12 @@
 		088496DE0A4C1D1B00F32928 /* gotoWaypointAI.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist; name = gotoWaypointAI.plist; path = Resources/AIs/gotoWaypointAI.plist; sourceTree = "<group>"; };
 		088496DF0A4C1D1B00F32928 /* receiveDockingAI.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist; name = receiveDockingAI.plist; path = Resources/AIs/receiveDockingAI.plist; sourceTree = "<group>"; };
 		08CB1FEC09D3F2AA001EA329 /* customsounds.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist; name = customsounds.plist; path = Resources/Config/customsounds.plist; sourceTree = "<group>"; };
+		08DF8C020A5E74B200BCD981 /* wreck3.dat */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = wreck3.dat; path = Resources/Models/wreck3.dat; sourceTree = "<group>"; };
+		08DF8C030A5E74B200BCD981 /* wreck1.dat */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = wreck1.dat; path = Resources/Models/wreck1.dat; sourceTree = "<group>"; };
+		08DF8C040A5E74B200BCD981 /* wreck4.dat */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = wreck4.dat; path = Resources/Models/wreck4.dat; sourceTree = "<group>"; };
+		08DF8C050A5E74B200BCD981 /* wreck5.dat */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = wreck5.dat; path = Resources/Models/wreck5.dat; sourceTree = "<group>"; };
+		08DF8C060A5E74B200BCD981 /* wreck2.dat */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = wreck2.dat; path = Resources/Models/wreck2.dat; sourceTree = "<group>"; };
+		08DF8C2C0A5E74DC00BCD981 /* wreck.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = wreck.png; path = Resources/Textures/wreck.png; sourceTree = "<group>"; };
 		1058C7A1FEA54F0111CA2CBB /* Cocoa.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Cocoa.framework; path = /System/Library/Frameworks/Cocoa.framework; sourceTree = "<absolute>"; };
 		1A472916096B5454000E78D8 /* CoreAudio.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreAudio.framework; path = /System/Library/Frameworks/CoreAudio.framework; sourceTree = "<absolute>"; };
 		1A47291F096B5468000E78D8 /* AudioToolbox.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AudioToolbox.framework; path = /System/Library/Frameworks/AudioToolbox.framework; sourceTree = "<absolute>"; };
@@ -781,6 +793,11 @@
 				25F3E8610994FDBB002F25FD /* viperi_redux.dat */,
 				25F3E8620994FDBB002F25FD /* worm_redux.dat */,
 				25F3E8630994FDBB002F25FD /* worm_redux1.dat */,
+				08DF8C030A5E74B200BCD981 /* wreck1.dat */,
+				08DF8C060A5E74B200BCD981 /* wreck2.dat */,
+				08DF8C020A5E74B200BCD981 /* wreck3.dat */,
+				08DF8C040A5E74B200BCD981 /* wreck4.dat */,
+				08DF8C050A5E74B200BCD981 /* wreck5.dat */,
 			);
 			name = Models;
 			sourceTree = "<group>";
@@ -848,6 +865,7 @@
 				25F3E7D50994FD4C002F25FD /* viperi_redux.png */,
 				25F3E7D60994FD4C002F25FD /* worm_redux.png */,
 				25F3E7D70994FD4C002F25FD /* worm_redux1.png */,
+				08DF8C2C0A5E74DC00BCD981 /* wreck.png */,
 			);
 			name = Textures;
 			sourceTree = "<group>";
@@ -1529,6 +1547,12 @@
 				088496E00A4C1D1B00F32928 /* gotoWaypointAI.plist in Resources */,
 				088496E10A4C1D1B00F32928 /* receiveDockingAI.plist in Resources */,
 				080B3D5D0A5696D7004BE918 /* fttAI.plist in Resources */,
+				08DF8C070A5E74B300BCD981 /* wreck3.dat in Resources */,
+				08DF8C080A5E74B300BCD981 /* wreck1.dat in Resources */,
+				08DF8C090A5E74B300BCD981 /* wreck4.dat in Resources */,
+				08DF8C0A0A5E74B300BCD981 /* wreck5.dat in Resources */,
+				08DF8C0B0A5E74B300BCD981 /* wreck2.dat in Resources */,
+				08DF8C2D0A5E74DC00BCD981 /* wreck.png in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

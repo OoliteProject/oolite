@@ -388,9 +388,13 @@ Your fair use and other rights are in no way affected by the above.
 
 - (void) reinit;
 
+- (void) rescaleBy:(GLfloat) factor;
+
 - (id) initWithDictionary:(NSDictionary *) dict;
 - (void) setUpShipFromDictionary:(NSDictionary *) dict;
 - (NSDictionary*)	 shipInfoDictionary;
+
+- (void) setOctree:(Octree*) oct;
 
 - (void) setDefaultWeaponOffsets;
 
@@ -544,6 +548,9 @@ Your fair use and other rights are in no way affected by the above.
 - (GLfloat) flight_speed;
 - (GLfloat) max_flight_speed;
 - (GLfloat) speed_factor;
+
+- (void) setTemperature:(GLfloat) value;
+- (void) setHeatInsulation:(GLfloat) value;
 
 - (int) damage;
 - (void) dealEnergyDamageWithinDesiredRange;
