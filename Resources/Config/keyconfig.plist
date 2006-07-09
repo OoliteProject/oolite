@@ -71,6 +71,6 @@
 	<key>key_previous_target</key>
 	<integer>43</integer>
 	<key>key_custom_view</key>
-	<integer>118</integer>
+	<string>v</string>
 </dict>
 </plist>

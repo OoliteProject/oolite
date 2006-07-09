@@ -74,7 +74,27 @@ static Quaternion quaternion_identity = { (GLfloat)1.0, (GLfloat)0.0, (GLfloat)0
 
 - (void) init_keys
 {
-	NSDictionary	*kdic = [ResourceManager dictionaryFromFilesNamed:@"keyconfig.plist" inFolder:@"Config" andMerge:YES];
+	NSMutableDictionary	*kdic = [NSMutableDictionary dictionaryWithDictionary:[ResourceManager dictionaryFromFilesNamed:@"keyconfig.plist" inFolder:@"Config" andMerge:YES]];
+	//
+	// pre-process kdic - replace any strings with an integer representing the ASCII value of the first character
+	//
+	int i;
+	NSArray* keys = [kdic allKeys];
+	for (i = 0; i < [keys count]; i++)
+	{
+		id key = [keys objectAtIndex:i];
+		id value = [kdic objectForKey: key];
+		if ([value isKindOfClass:[NSString class]])
+		{
+			char keychar = 0;
+			NSString* keystring = (NSString*)value;
+			if ([keystring length])
+				keychar = [keystring characterAtIndex: 0] & 0x00ff; // uses lower byte of unichar
+			[kdic setObject:[NSNumber numberWithInt:(int)keychar] forKey:key];
+		}
+	}
+	//
+	// set default keys...
 	//
 	key_roll_left = gvArrowKeyLeft;
 	key_roll_right = gvArrowKeyRight;
