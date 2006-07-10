@@ -84,7 +84,13 @@ static Quaternion quaternion_identity = { (GLfloat)1.0, (GLfloat)0.0, (GLfloat)0
 	{
 		id key = [keys objectAtIndex:i];
 		id value = [kdic objectForKey: key];
-		if ([value isKindOfClass:[NSString class]] && ([value intValue] == 0) && (![value isEqual:@"0"]))
+		int i_value = [value intValue];
+		//
+		//	for '0' '1' '2' '3' '4' '5' '6' '7' '8' '9' - we want to interpret those as strings - not numbers
+		//	alphabetical characters and symbols will return an intValue of 0
+		//	acceptable i_values are 11 .. 255
+		//
+		if ([value isKindOfClass:[NSString class]] && (i_value < 10))
 		{
 			char keychar = 0;
 			NSString* keystring = (NSString*)value;
