@@ -1143,7 +1143,8 @@ static	Vector	circleVertex[65];		// holds vector coordinates for a unit circle
 	velocity.z = expansion_speed;
 
 	collision_radius += delta_t * expansion_speed;		// expand
-	energy = 10000 - 9000 * tf;	// 10000 -> 1000
+//	energy = 10000 - 9000 * tf;	// 10000 -> 1000
+	energy = delta_t * (100000 - 90000 * tf);	// adjusted to take into account delta_t
 
 	alpha = 0.5 * ((0.025 / tf) + 1.0 - stf);
 	if (alpha > 1.0)	alpha = 1.0;
