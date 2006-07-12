@@ -4551,6 +4551,14 @@ static GLfloat mascem_color2[4] =	{ 0.4, 0.1, 0.4, 1.0};	// purple
 	if (n_alloys)
 	{
 		int n_wreckage = (n_alloys < 3)? n_alloys : 3;
+		
+		// quick - check if universe is nearing limit for entities - if it is don't make wreckage
+		//
+		if ((!universe)||(universe->n_entities > 0.75 * UNIVERSE_MAX_ENTITIES))
+			n_wreckage = 0;
+		//
+		////
+		
 		for (i = 0; i < n_wreckage; i++)
 		{
 			ShipEntity* wreck = [universe getShipWithRole:@"wreckage"];   // retain count = 1
