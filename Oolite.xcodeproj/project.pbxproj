@@ -1657,57 +1657,6 @@
 /* End PBXTargetDependency section */
 
 /* Begin XCBuildConfiguration section */
-		088BB9000974564500399D1A /* Universal */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				ARCHS = (
-					ppc,
-					i386,
-				);
-				COPY_PHASE_STRIP = NO;
-				DEAD_CODE_STRIPPING = YES;
-				FRAMEWORK_SEARCH_PATHS = "\"$(SRCROOT)/deps/Cocoa-deps/\"";
-				GCC_DEBUGGING_SYMBOLS = full;
-				GCC_ENABLE_FIX_AND_CONTINUE = NO;
-				GCC_ENABLE_OBJC_EXCEPTIONS = YES;
-				GCC_FAST_OBJC_DISPATCH = YES;
-				GCC_OPTIMIZATION_LEVEL = s;
-				GCC_REUSE_STRINGS = YES;
-				HEADER_SEARCH_PATHS = "$(HEADER_SEARCH_PATHS_QUOTED_1)";
-				HEADER_SEARCH_PATHS_QUOTED_1 = "\"$(SRCROOT)/deps/Cocoa-deps/Ogg Vorbis\"";
-				INFOPLIST_FILE = "src/Cocoa/Info-OoliteUB.plist";
-				INSTALL_PATH = "$(HOME)/Applications";
-				LIBRARY_SEARCH_PATHS = "$(LIBRARY_SEARCH_PATHS_QUOTED_1)";
-				LIBRARY_SEARCH_PATHS_QUOTED_1 = "\"$(SRCROOT)/deps/Cocoa-deps/Ogg\\ Vorbis\"";
-				MACOSX_DEPLOYMENT_TARGET = 10.4;
-				OTHER_LDFLAGS = "";
-				PREBINDING = NO;
-				PRODUCT_NAME = OoliteUB;
-				SDKROOT = /Developer/SDKs/MacOSX10.4u.sdk;
-				SECTORDER_FLAGS = "";
-				WARNING_CFLAGS = (
-					"-Wmost",
-					"-Wno-four-char-constants",
-					"-Wno-unknown-pragmas",
-				);
-				WRAPPER_EXTENSION = app;
-				ZERO_LINK = NO;
-			};
-			name = Universal;
-		};
-		088BB9010974564500399D1A /* Universal */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				HEADER_SEARCH_PATHS = "$(HEADER_SEARCH_PATHS_QUOTED_1)";
-				HEADER_SEARCH_PATHS_QUOTED_1 = "\"deps/Cocoa-deps/Ogg Vorbis\"";
-				LIBRARY_SEARCH_PATHS = "$(LIBRARY_SEARCH_PATHS_QUOTED_1)";
-				LIBRARY_SEARCH_PATHS_QUOTED_1 = "\"deps/Cocoa-deps/Ogg Vorbis\"";
-				MACOSX_DEPLOYMENT_TARGET = 10.3;
-				OTHER_CFLAGS = "-DLOADSAVEGUI";
-				SDKROOT = /Developer/SDKs/MacOSX10.3.9.sdk;
-			};
-			name = Universal;
-		};
 		08B31CAD08FE63D70038D42F /* Development */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -1779,21 +1728,29 @@
 				LIBRARY_SEARCH_PATHS = "$(LIBRARY_SEARCH_PATHS_QUOTED_1)";
 				LIBRARY_SEARCH_PATHS_QUOTED_1 = "\"$(SRCROOT)/Cocoa-deps/Ogg Vorbis\"";
 				MACOSX_DEPLOYMENT_TARGET = 10.3;
+				MACOSX_DEPLOYMENT_TARGET_i386 = 10.4;
+				MACOSX_DEPLOYMENT_TARGET_ppc = 10.3;
 				OTHER_CFLAGS = "-DLOADSAVEGUI";
-				SDKROOT = /Developer/SDKs/MacOSX10.3.9.sdk;
+				SDKROOT = /Developer/SDKs/MacOSX10.4u.sdk;
 			};
 			name = Development;
 		};
 		08B31CB208FE63D70038D42F /* Deployment */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				ARCHS = (
+					ppc,
+					i386,
+				);
 				HEADER_SEARCH_PATHS = "$(HEADER_SEARCH_PATHS_QUOTED_1)";
 				HEADER_SEARCH_PATHS_QUOTED_1 = "\"$(SRCROOT)/Cocoa-deps/Ogg Vorbis\"";
 				LIBRARY_SEARCH_PATHS = "$(LIBRARY_SEARCH_PATHS_QUOTED_1)";
 				LIBRARY_SEARCH_PATHS_QUOTED_1 = "\"$(SRCROOT)/Cocoa-deps/Ogg Vorbis\"";
 				MACOSX_DEPLOYMENT_TARGET = 10.3;
+				MACOSX_DEPLOYMENT_TARGET_i386 = 10.4;
+				MACOSX_DEPLOYMENT_TARGET_ppc = 10.3;
 				OTHER_CFLAGS = "-DLOADSAVEGUI";
-				SDKROOT = /Developer/SDKs/MacOSX10.3.9.sdk;
+				SDKROOT = /Developer/SDKs/MacOSX10.4u.sdk;
 			};
 			name = Deployment;
 		};
@@ -1805,7 +1762,6 @@
 			buildConfigurations = (
 				08B31CAD08FE63D70038D42F /* Development */,
 				08B31CAE08FE63D70038D42F /* Deployment */,
-				088BB9000974564500399D1A /* Universal */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Deployment;
@@ -1815,7 +1771,6 @@
 			buildConfigurations = (
 				08B31CB108FE63D70038D42F /* Development */,
 				08B31CB208FE63D70038D42F /* Deployment */,
-				088BB9010974564500399D1A /* Universal */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Deployment;
