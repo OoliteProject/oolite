@@ -2413,18 +2413,28 @@ double scoopSoundPlayTime = 0.0;
 
 - (GLfloat) dial_roll
 {
-	return flight_roll / max_flight_roll;
+	GLfloat result = flight_roll / max_flight_roll;
+	if ((result < 1.0f)&&(result > -1.0f))
+		return result;
+	if (result > 0.0f)
+		return 1.0f;
+	return -1.0f;
 }
 - (GLfloat) dial_pitch
 {
-	return flight_pitch / max_flight_pitch;
+	GLfloat result = flight_pitch / max_flight_pitch;
+	if ((result < 1.0f)&&(result > -1.0f))
+		return result;
+	if (result > 0.0f)
+		return 1.0f;
+	return -1.0f;
 }
 - (GLfloat) dial_speed
 {
-	if (flight_speed < max_flight_speed)
-		return flight_speed / max_flight_speed;
-	else
-		return 1.0f;
+	GLfloat result = flight_speed / max_flight_speed;
+	if (result < 1.0f)
+		return result;
+	return 1.0f;
 }
 - (GLfloat) dial_hyper_speed
 {
@@ -2433,16 +2443,25 @@ double scoopSoundPlayTime = 0.0;
 
 - (GLfloat) dial_forward_shield
 {
-	return forward_shield / (GLfloat)PLAYER_MAX_FORWARD_SHIELD;
+	GLfloat result = forward_shield / (GLfloat)PLAYER_MAX_FORWARD_SHIELD;
+	if (result < 1.0f)
+		return result;
+	return 1.0f;
 }
 - (GLfloat) dial_aft_shield
 {
-	return aft_shield / (GLfloat)PLAYER_MAX_AFT_SHIELD;
+	GLfloat result = aft_shield / (GLfloat)PLAYER_MAX_AFT_SHIELD;
+	if (result < 1.0f)
+		return result;
+	return 1.0f;
 }
 
 - (GLfloat) dial_energy
 {
-	return energy / max_energy;
+	GLfloat result = energy / max_energy;
+	if (result < 1.0f)
+		return result;
+	return 1.0f;
 }
 
 - (GLfloat) dial_max_energy
@@ -2465,11 +2484,17 @@ double scoopSoundPlayTime = 0.0;
 }
 - (GLfloat) dial_ship_temperature
 {
-	return (GLfloat)ship_temperature / (GLfloat)SHIP_MAX_CABIN_TEMP;
+	GLfloat result = (GLfloat)ship_temperature / (GLfloat)SHIP_MAX_CABIN_TEMP;
+	if (result < 1.0)
+		return result;
+	return 1.0;
 }
 - (GLfloat) dial_weapon_temp
 {
-	return (GLfloat)weapon_temp / (GLfloat)PLAYER_MAX_WEAPON_TEMP;
+	GLfloat result = (GLfloat)weapon_temp / (GLfloat)PLAYER_MAX_WEAPON_TEMP;
+	if (result < 1.0)
+		return result;
+	return 1.0;
 }
 - (GLfloat) dial_altitude
 {

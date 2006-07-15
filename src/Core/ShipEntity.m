@@ -4208,7 +4208,7 @@ static GLfloat mascem_color2[4] =	{ 0.4, 0.1, 0.4, 1.0};	// purple
 			if ([roles isEqual:@"escort"]||[roles isEqual:@"trader"])
 			{
 				ShipEntity *group_leader = (ShipEntity *)[universe entityForUniversalID:group_id];
-				if (group_leader)
+				if ((group_leader)&&(group_leader->isShip))
 				{
 					//NSLog(@"DEBUG %@ %d informs group leader %@ %d of attack by %@ %d", name, universal_id, [group_leader name], [group_leader universal_id], [hunter name], [hunter universal_id]);
 
@@ -4217,6 +4217,8 @@ static GLfloat mascem_color2[4] =	{ 0.4, 0.1, 0.4, 1.0};	// purple
 					[group_leader setPrimaryAggressor:hunter];
 					[[group_leader getAI] reactToMessage:@"ATTACKED"];
 				}
+				else
+					group_id = NO_TARGET;
 			}
 			if ([roles isEqual:@"pirate"])
 			{
@@ -7553,26 +7555,21 @@ inline BOOL pairOK(NSString* my_role, NSString* their_role)
 - (NSArray *) shipsInGroup:(int) ship_group_id
 {
 	//-- Locates all the ships with this particular group id --//
-	NSMutableArray* result = [NSMutableArray arrayWithCapacity:20];	// is autoreleased
+	NSMutableArray* result = [NSMutableArray array];	// is autoreleased
 	if (!universe)
 		return (NSArray *)result;
 	int			ent_count =		universe->n_entities;
 	Entity**	uni_entities =	universe->sortedEntities;	// grab the public sorted list
-	Entity*		my_entities[ent_count];
 	int i;
-	int ship_count = 0;
 	for (i = 0; i < ent_count; i++)
-		if (uni_entities[i]->isShip)
-			my_entities[ship_count++] = [uni_entities[i] retain];		//	retained
-	//
-	for (i = 0; i < ship_count ; i++)
 	{
-		ShipEntity* ship = (ShipEntity *)my_entities[i];
-		if ([ship group_id] == ship_group_id)
-			[result addObject: ship];
+		if (uni_entities[i]->isShip)
+		{
+			ShipEntity* ship = (ShipEntity*)uni_entities[i];
+			if ([ship group_id] == ship_group_id)
+				[result addObject: ship];
+		}
 	}
-	for (i = 0; i < ship_count; i++)
-		[my_entities[i] release];		//	released
 	return (NSArray *)result;
 }
 

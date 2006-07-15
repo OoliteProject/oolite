@@ -1191,15 +1191,19 @@ WormholeEntity*	whole;
 		return;
 	}
 	
-	NSArray	*fellow_ships = [self shipsInGroup:group_id];
+	NSArray* fellow_ships = [self shipsInGroup:group_id];
 	//debug
 	//NSLog(@"DEBUG %d %@ ships of group %d attacking target %d", [fellow_ships count], roles, group_id, found_target);
+	ShipEntity* target_ship = (ShipEntity*) [universe entityForUniversalID:primaryTarget];
+	
+	if ((!target_ship)||(target_ship->isShip != YES))
+		return;
 	
 	int i;
 	for (i = 0; i < [fellow_ships count]; i++)
 	{
 		ShipEntity *other_ship = (ShipEntity *)[fellow_ships objectAtIndex:i];
-		[other_ship setFound_target:[universe entityForUniversalID:primaryTarget]];
+		[other_ship setFound_target: target_ship];
 		[[other_ship getAI] reactToMessage:@"GROUP_ATTACK_TARGET"];
 	}
 	return;
