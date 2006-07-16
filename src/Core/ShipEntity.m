@@ -7155,7 +7155,7 @@ int w_space_seed = 1234567;
 	[shipAI message:@"EXITED_WITCHSPACE"];
 	[universe addEntity:self];
 
-	NSLog(@"DEBUG Ship: %@ exiting witchspace at %.2f %.2f %.2f", self, position.x, position.y, position.z);
+//	NSLog(@"DEBUG Ship: %@ exiting witchspace at %.2f %.2f %.2f", self, position.x, position.y, position.z);
 
 	// witchspace exit effects here
 	ParticleEntity *ring1 = [[ParticleEntity alloc] initHyperringFromShip:self]; // retained
