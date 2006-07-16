@@ -7126,18 +7126,24 @@ BOOL	class_masslocks(int some_class)
 	[universe removeEntity:self];
 }
 
+int w_space_seed = 1234567;
 - (void) leaveWitchspace
 {
 	Vector		pos = [universe getWitchspaceExitPosition];
 	Quaternion  q_rtn = [universe getWitchspaceExitRotation];
+	
+	// try to ensure healthy random numbers
+	//
+	ranrot_srand(w_space_seed);
+	w_space_seed = ranrot_rand();
+	
 	position = pos;
-	double		d1 = SCANNER_MAX_RANGE*((ranrot_rand() % 256)/256.0 - 0.5);
+	double		d1 = SCANNER_MAX_RANGE * (randf() - randf());
 	if (abs(d1) < 500.0)	// no closer than 500m
 		d1 += ((d1 > 0.0)? 500.0: -500.0);
 	Quaternion	q1 = q_rtn;
 	quaternion_set_random(&q1);
 	Vector		v1 = vector_forward_from_quaternion(q1);
-
 	position.x += v1.x * d1; // randomise exit position
 	position.y += v1.y * d1;
 	position.z += v1.z * d1;
@@ -7149,7 +7155,7 @@ BOOL	class_masslocks(int some_class)
 	[shipAI message:@"EXITED_WITCHSPACE"];
 	[universe addEntity:self];
 
-	//NSLog(@"DEBUG Ship: %@ %d exiting witchspace now!", name, universal_id);
+	NSLog(@"DEBUG Ship: %@ exiting witchspace at %.2f %.2f %.2f", self, position.x, position.y, position.z);
 
 	// witchspace exit effects here
 	ParticleEntity *ring1 = [[ParticleEntity alloc] initHyperringFromShip:self]; // retained
