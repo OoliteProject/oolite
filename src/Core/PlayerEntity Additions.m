@@ -587,9 +587,12 @@ static int shipsFound;
 	return [NSNumber numberWithInt:legal_status];
 }
 
-
+int d100_seed = -1;	// ensure proper random function
 - (NSNumber *) d100_number
 {
+	if (d100_seed == -1)	d100_seed = floor(1301 * ship_clock);	// stop predictable sequences
+	ranrot_srand(d100_seed);
+	d100_seed = ranrot_rand();
 	int d100 = ranrot_rand() % 100;
 	return [NSNumber numberWithInt:d100];
 }
@@ -598,8 +601,7 @@ static int shipsFound;
 {
 	// set the system seed for random number generation
 	seed_RNG_only_for_planet_description(system_seed);
-//	seed_for_planet_description(system_seed);
-	int d100 = (gen_rnd_number()+gen_rnd_number()) % 100;
+	int d100 = (gen_rnd_number() * 256 + gen_rnd_number()) % 100;
 	return [NSNumber numberWithInt:d100];
 }
 
