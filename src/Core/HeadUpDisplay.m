@@ -321,8 +321,6 @@ static BOOL hostiles;
 	double z_factor = siz.height / siz.width;	// approx 1/4
 	double y_factor = 1.0 - sqrt(z_factor);	// approx 1/2
 	
-//	NSLog(@"DEBUG z_factor %.2f y_factor %.2f", z_factor, y_factor);
-
 	int i;
     int scanner_cx = x;
 	int scanner_cy = y;
@@ -332,6 +330,8 @@ static BOOL hostiles;
 
 	double max_scanner_range2 = SCANNER_SCALE*SCANNER_SCALE*10000.0;
 	double max_zoomed_range2 = SCANNER_SCALE*SCANNER_SCALE*10000.0/(scanner_zoom*scanner_zoom);
+	
+	GLfloat	max_zoomed_range = sqrtf(max_zoomed_range2);
 	
 	BOOL	isHostile = NO;
 	BOOL	foundHostiles = NO;
@@ -358,9 +358,7 @@ static BOOL hostiles;
 
 	position = player->position;
 	gl_matrix_into_matrix([player rotationMatrix], rotMatrix);
-	
-//	NSLog(@"drawing grid size %.1f x %.1f", siz.width, siz.height);
-	
+		
 	glColor4fv( scanner_color);
 	drawScannerGrid( x, y, z1, siz, [[player universe] viewDir], line_width, scanner_zoom);
 	
@@ -428,8 +426,14 @@ static BOOL hostiles;
 				
 				[player setAlert_flag:ALERT_FLAG_MASS_LOCK :mass_locked];
 				
+				if (isnan(drawthing->zero_distance))
+					continue;
+				
 				// exit if it's too far away
-				if ((isnan(drawthing->zero_distance))||(drawthing->zero_distance > max_scanner_range2))
+				GLfloat	act_dist = sqrtf(drawthing->zero_distance);
+				GLfloat	lim_dist = act_dist - drawthing->collision_radius;
+				
+				if (lim_dist > max_zoomed_range)
 					continue;
 				
 				// has it sent a recent message
@@ -444,11 +448,14 @@ static BOOL hostiles;
 				ms_blip -= floor(ms_blip);
 				
 				relativePosition = drawthing->relative_position;
+				
+				if (act_dist > max_zoomed_range)
+					scale_vector(&relativePosition, max_zoomed_range / act_dist);
 
 				// rotate the view
 				mult_vector(&relativePosition, rotMatrix);
 				// scale the view
-				relativePosition.x *= upscale;	relativePosition.y *= upscale;	relativePosition.z *= upscale;
+				scale_vector(&relativePosition, upscale);
 				
 				x1 = relativePosition.x;
 				y1 = z_factor * relativePosition.z;
@@ -490,9 +497,6 @@ static BOOL hostiles;
 							foundHostiles = YES;
 						break;
 				}
-				// exit if it's off-scanner
-				if (drawthing->zero_distance > max_zoomed_range2)
-					continue;
 
 				if (ms_blip > 0.0)
 				{
@@ -2002,7 +2006,7 @@ void hudDrawReticleOnTarget(Entity* target, PlayerEntity* player1, GLfloat z1)
 	glEnd();
 	
 	// add text for reticle here
-	float range = sqrt(target->zero_distance)/1000;
+	float range = (sqrtf(target->zero_distance) - target->collision_radius) * 0.001f;
 	NSSize textsize = NSMakeSize( rdist * ONE_SIXTYFOURTH, rdist * ONE_SIXTYFOURTH);
 	float line_height = rdist * ONE_SIXTYFOURTH;
 	NSString*	info1 = [target_ship identFromShip: player1];

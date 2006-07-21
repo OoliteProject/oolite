@@ -106,6 +106,11 @@ void	mult_matrix (struct vector *first, struct vector *second);
 void	mult_vector (struct vector *vec, struct vector *mat);
 
 //
+// Multiply vector by scalar
+//
+void	scale_vector (struct vector *vec, GLfloat factor);
+
+//
 // Multiply vector by gl_matrix.
 //
 void mult_vector_gl_matrix (struct vector *vec, GLfloat *glmat);
