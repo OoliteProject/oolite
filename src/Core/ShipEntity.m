@@ -43,9 +43,12 @@ Your fair use and other rights are in no way affected by the above.
 
 #import "vector.h"
 #import "Universe.h"
+#import "TextureStore.h"
 
-#import "AI.h"
 #import "OOCharacter.h"
+#import "OOBrain.h"
+#import "AI.h"
+
 #import "Geometry.h"
 #import "Octree.h"
 #import "ScannerExtension.h"
@@ -107,7 +110,6 @@ Your fair use and other rights are in no way affected by the above.
 	aft_weapon_type = WEAPON_NONE;
 	weapon_energy = 8.0;
 	weapon_recharge_rate = 6.0;
-	weapon_offset_x = 10.0;
 	shot_time = 0.0;
 	//
 	launch_time = 0.0;
@@ -419,6 +421,18 @@ static NSMutableDictionary* smallOctreeDict = nil;
 	}
 }
 
+// ship's brains!
+- (OOBrain*)	brain
+{
+	return brain;
+}
+
+- (void)		setBrain:(OOBrain*) aBrain
+{
+	brain = aBrain;
+}
+
+
 - (GLfloat) doesHitLine:(Vector) v0: (Vector) v1;
 {
 	Vector u0 = vector_between(position, v0);	// relative to origin of model / octree
@@ -710,7 +724,6 @@ static NSMutableDictionary* smallOctreeDict = nil;
 	aft_weapon_type = WEAPON_NONE;
 	weapon_energy = 0.0;
 	weapon_recharge_rate = 6.0;
-	weapon_offset_x = 0.0;
 	shot_time = 0.0;
 	//
 	launch_time = 0.0;
@@ -1014,9 +1027,6 @@ static NSMutableDictionary* smallOctreeDict = nil;
 	if ([shipdict objectForKey:@"energy_recharge_rate"])
 		energy_recharge_rate = [(NSNumber *)[shipdict objectForKey:@"energy_recharge_rate"] doubleValue];
 	energy = max_energy;
-	//
-	if ([shipdict objectForKey:@"weapon_offset_x"])
-		weapon_offset_x = [(NSNumber *)[shipdict objectForKey:@"weapon_offset_x"] doubleValue];
 	//
 	if ([shipdict objectForKey:@"aft_weapon_type"])
 	{
@@ -3201,6 +3211,38 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	return viewpoint;
 }
 
+- (void) initialiseTextures
+{
+    [super initialiseTextures];
+				
+	if ([shipinfoDictionary objectForKey:@"shaders"])
+	{
+		// initialise textures in shaders
+		
+		NSLog(@"TESTING: initialising textures for shaders for %@", self);
+		
+		NSDictionary* shaders = (NSDictionary*)[shipinfoDictionary objectForKey:@"shaders"];
+		NSArray* shader_keys = [shaders allKeys];
+		int i, ti;
+		for (i = 0; i < [shader_keys count]; i++)
+		{
+			NSString* shader_key = [shader_keys objectAtIndex:i];	// == the name of the texture to be replaced
+			NSDictionary* shader = (NSDictionary*)[shaders objectForKey:shader_key];
+			NSArray* shader_textures = (NSArray*)[shader objectForKey:@"textures"];
+		
+			NSLog(@"TESTING: initialising shader for %@ : %@", shader_key, shader);
+		
+			for (ti = 0; ti < [shader_textures count]; ti ++)
+			{
+				[[universe textureStore] getTextureNameFor: (NSString*)[shader_textures objectAtIndex:ti]];
+		
+				NSLog(@"TESTING: initialised texture: %@", [shader_textures objectAtIndex:ti]);
+		
+			}
+		}
+	}
+}
+
 - (void) drawEntity:(BOOL) immediate :(BOOL) translucent
 {
 	if (zero_distance > no_draw_distance)	return;	// TOO FAR AWAY
@@ -3210,9 +3252,115 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	if (cloaking_device_active && (randf() > 0.10))			return;	// DON'T DRAW
 
 	if (!translucent)
+//	{
+//		[super drawEntity:immediate:translucent];
+
 	{
-		[super drawEntity:immediate:translucent];
+		// draw the thing - code take from Entity drawEntity::
+		//
+		int ti;
+		GLfloat mat_ambient[] = { 1.0, 1.0, 1.0, 1.0 };
+		GLfloat mat_no[] =		{ 0.0, 0.0, 0.0, 1.0 };
+
+		NS_DURING
+
+			if (is_smooth_shaded)
+				glShadeModel(GL_SMOOTH);
+			else
+				glShadeModel(GL_FLAT);
+
+			if (!translucent)
+			{
+				if (basefile)
+				{
+					// calls moved here because they are unsupported in display lists
+					//
+					glDisableClientState(GL_COLOR_ARRAY);
+					glDisableClientState(GL_INDEX_ARRAY);
+					glDisableClientState(GL_EDGE_FLAG_ARRAY);
+					//
+					glEnableClientState(GL_VERTEX_ARRAY);
+					glEnableClientState(GL_NORMAL_ARRAY);
+					glEnableClientState(GL_TEXTURE_COORD_ARRAY);
+
+					glVertexPointer( 3, GL_FLOAT, 0, entityData.vertex_array);
+					glNormalPointer( GL_FLOAT, 0, entityData.normal_array);
+					glTexCoordPointer( 2, GL_FLOAT, 0, entityData.texture_uv_array);
+
+					if (immediate)
+					{
+
+	#ifdef GNUSTEP
+						// TODO: Find out what these APPLE functions can be replaced with
+	#else
+						if (usingVAR)
+							glBindVertexArrayAPPLE(gVertexArrayRangeObjects[0]);
+	#endif
+
+						//
+						// gap removal (draws flat polys)
+						//
+						glDisable(GL_TEXTURE_2D);
+						GLfloat amb_diff0[] = { 0.5, 0.5, 0.5, 1.0};
+						glMaterialfv( GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE, amb_diff0);
+						glMaterialfv( GL_FRONT_AND_BACK, GL_EMISSION, mat_no);
+						glColor4f( 0.25, 0.25, 0.25, 1.0);	// gray
+						glDepthMask(GL_FALSE); // don't write to depth buffer
+						glDrawArrays( GL_TRIANGLES, 0, entityData.n_triangles);	// draw in gray to mask the edges
+						glDepthMask(GL_TRUE);
+
+						//
+						// now the textures ...
+						//
+						glEnable(GL_TEXTURE_2D);
+						glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
+						glMaterialfv( GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE, mat_ambient);
+						glMaterialfv( GL_FRONT_AND_BACK, GL_EMISSION, mat_no);
+
+						for (ti = 1; ti <= n_textures; ti++)
+						{
+							glBindTexture(GL_TEXTURE_2D, texture_name[ti]);
+							glDrawArrays( GL_TRIANGLES, triangle_range[ti].location, triangle_range[ti].length);
+						}
+					}
+					else
+					{
+						if (displayListName != 0)
+						{
+							glCallList(displayListName);
+						}
+						else
+						{
+							[self initialiseTextures];
+							[self generateDisplayList];
+						}
+					}
+				}
+				else
+				{
+					NSLog(@"ERROR no basefile for entity %@");
+				//	NSBeep();	// appkit dependency
+				}
+			}
+			glShadeModel(GL_SMOOTH);
+			checkGLErrors([NSString stringWithFormat:@"Entity after drawing %@", self]);
+
+		NS_HANDLER
+
+			NSLog(@"***** [Entity drawEntity::] encountered exception: %@ : %@ *****",[localException name], [localException reason]);
+			NSLog(@"***** Removing entity %@ from universe *****", self);
+			[universe removeEntity:self];
+			if ([[localException name] hasPrefix:@"Oolite"])
+				[universe handleOoliteException:localException];	// handle these ourself
+			else
+				[localException raise];	// pass these on
+
+		NS_ENDHANDLER
 	}
+
+
+
+//	}
 	else
 	{
 		if ((status == STATUS_COCKPIT_DISPLAY)&&((debug | debug_flag) & (DEBUG_COLLISIONS | DEBUG_OCTREE)))
@@ -4376,9 +4524,15 @@ static GLfloat mascem_color2[4] =	{ 0.4, 0.1, 0.4, 1.0};	// purple
 	[universe addEntity:fragment];
 	[fragment release];
 
+	BOOL add_more_explosion = YES;
+	if (universe)
+	{
+		add_more_explosion &= (universe->n_entities < 0.95 * UNIVERSE_MAX_ENTITIES);	// 
+		add_more_explosion &= ([universe getTimeDelta] < 0.125);						// FPS > 8
+	}
 	// quick - check if universe is nearing limit for entities - if it is don't add to it!
 	//
-	if ((universe)||(universe->n_entities < 0.95 * UNIVERSE_MAX_ENTITIES))
+	if (add_more_explosion)
 	{
 		// we need to throw out cargo at this point.
 		NSArray *jetsam = nil;  // this will contain the stuff to get thrown out
@@ -4544,7 +4698,8 @@ static GLfloat mascem_color2[4] =	{ 0.4, 0.1, 0.4, 1.0};	// purple
 			
 			// quick - check if universe is nearing limit for entities - if it is don't make wreckage
 			//
-			if ((!universe)||(universe->n_entities > 0.40 * UNIVERSE_MAX_ENTITIES))
+			add_more_explosion &= (universe->n_entities < 0.50 * UNIVERSE_MAX_ENTITIES);
+			if (!add_more_explosion)
 				n_wreckage = 0;
 			//
 			////
@@ -4948,8 +5103,21 @@ BOOL	class_masslocks(int some_class)
 		}
 		scan = scan->z_next;	while ((scan)&&(scan->isShip == NO))	scan = scan->z_next;	// skip non-ships
 	}
-//	NSLog(@"DEBUG %@ checking scanner - %d ships found.", self, n_scanned_ships);
+	//
+	scanned_ships[n_scanned_ships] = nil;	// terminate array
 }
+
+- (ShipEntity**) scannedShips
+{
+	scanned_ships[n_scanned_ships] = nil;	// terminate array
+	return scanned_ships;
+}
+
+- (int) numberOfScannedShips
+{
+	return n_scanned_ships;
+}
+
 
 - (void) setFound_target:(Entity *) targetEntity
 {
@@ -5774,8 +5942,7 @@ BOOL	class_masslocks(int some_class)
 	switch (forward_weapon_type)
 	{
 		case WEAPON_PLASMA_CANNON :
-			[self firePlasmaShot:weapon_offset_x:1500.0:[OOColor yellowColor]];
-			[self firePlasmaShot:weapon_offset_x:1500.0:[OOColor yellowColor]];
+			[self firePlasmaShot: 0.0: 1500.0: [OOColor yellowColor]];
 			fired = YES;
 			break;
 

@@ -40,6 +40,7 @@ Your fair use and other rights are in no way affected by the above.
 #import "AI.h"
 #import "entities.h"
 #import "ResourceManager.h"
+#import "OOInstinct.h"
 
 
 @implementation AI
@@ -61,6 +62,8 @@ Your fair use and other rights are in no way affected by the above.
 	stateMachine = nil;	// no initial brain
 	//
 	stateMachineName = [[NSString stringWithString:@"None allocated"] retain];	// no initial brain
+	//
+	rulingInstinct = nil;
 	//
 	[aiLock unlock];	// okay now we're ready...
 	//
@@ -109,6 +112,11 @@ Your fair use and other rights are in no way affected by the above.
 		currentState = [stateName retain];
 	//
     return self;
+}
+
+- (void) setRulingInstinct:(OOInstinct*) instinct
+{
+	rulingInstinct = instinct;
 }
 
 - (void) setOwner:(ShipEntity *)ship
@@ -279,6 +287,11 @@ Your fair use and other rights are in no way affected by the above.
 	//
 	[aiLock unlock];
 
+	if (rulingInstinct)
+	{
+		[rulingInstinct freezeShipVars];	// preserve the pre-thinking state
+	}
+
 	if ((actions)&&([actions count] > 0))
 	{
 		//
@@ -291,12 +304,15 @@ Your fair use and other rights are in no way affected by the above.
 		if (currentState)
 		{
 			SEL _interpretAIMessageSel = @selector(interpretAIMessage:);
-			//if ((owner)&&([owner reportAImessages])&&(![message isEqual:@"UPDATE"]))
-			//   NSLog(@"AI for %@ has no response to '%@' in state '%@'", owner_desc, message, currentState);
-			//if ([owner respondsToSelector:NSSelectorFromString(@"interpretAIMessage:")])
 			if ([owner respondsToSelector:_interpretAIMessageSel])
 				[owner performSelector:_interpretAIMessageSel withObject:message];
 		}
+	}
+
+	if (rulingInstinct)
+	{
+		[rulingInstinct getShipVars];		// record the post-thinking state
+		[rulingInstinct unfreezeShipVars];	// restore the pre-thinking state (AI is now abstract thought = instincts motivate)
 	}
 }
 

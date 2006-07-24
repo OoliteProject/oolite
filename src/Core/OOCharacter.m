@@ -42,6 +42,8 @@ Your fair use and other rights are in no way affected by the above.
 
 #import "Universe.h"
 
+#import "OOBrain.h"
+
 
 @implementation OOCharacter
 
@@ -62,6 +64,8 @@ Your fair use and other rights are in no way affected by the above.
 		[longDescription release];
 	if (script_actions)
 		[script_actions release];
+	if (brain)
+		[brain release];
 	[super dealloc];
 }
 
@@ -371,6 +375,10 @@ Your fair use and other rights are in no way affected by the above.
 {
 	return script_actions;
 }
+- (OOBrain*)	brain
+{
+	return brain;
+}
 
 - (void) setUniverse: (Universe*) uni
 {
@@ -419,6 +427,18 @@ Your fair use and other rights are in no way affected by the above.
 	else
 		script_actions = nil;
 }
+- (void) setBrain: (OOBrain*) aBrain
+{
+	if (brain)
+		[brain release];
+	brain = aBrain;
+	if (brain)
+	{
+		[brain retain];
+		[brain setOwner:self];
+	}
+}
+
 
 - (void) setCharacterFromDictionary:(NSDictionary*) dict
 {

@@ -787,8 +787,6 @@
 		<real>0.0</real>
 		<key>weapon_energy</key>
 		<real>0.0</real>
-		<key>weapon_offset_x</key>
-		<real>0.0</real>
 	</dict>
 	<key>asteroid-alternative</key>
 	<dict>
@@ -834,8 +832,6 @@
 		<key>unpiloted</key>
 		<true/>
 		<key>weapon_energy</key>
-		<real>0.0</real>
-		<key>weapon_offset_x</key>
 		<real>0.0</real>
 	</dict>
 	<key>boa</key>
@@ -1314,8 +1310,6 @@
 		<true/>
 		<key>weapon_energy</key>
 		<real>0.0</real>
-		<key>weapon_offset_x</key>
-		<real>0.0</real>
 	</dict>
 	<key>boulder-alternative</key>
 	<dict>
@@ -1364,8 +1358,6 @@
 		<true/>
 		<key>weapon_energy</key>
 		<real>0.0</real>
-		<key>weapon_offset_x</key>
-		<real>0.0</real>
 	</dict>
 	<key>buoy-witchpoint</key>
 	<dict>
@@ -1413,8 +1405,6 @@
 		<key>unpiloted</key>
 		<true/>
 		<key>weapon_energy</key>
-		<real>0.0</real>
-		<key>weapon_offset_x</key>
 		<real>0.0</real>
 	</dict>
 	<key>cloaking-device</key>
@@ -1533,8 +1523,6 @@
 		<real>32</real>
 		<key>weapon_energy</key>
 		<real>15</real>
-		<key>weapon_offset_x</key>
-		<real>10</real>
 		<key>weapon_position_aft</key>
 		<string>0.0 0.0 -32.5</string>
 		<key>weapon_position_forward</key>
@@ -2271,8 +2259,6 @@
 		<real>100</real>
 		<key>weapon_energy</key>
 		<real>0.0</real>
-		<key>weapon_offset_x</key>
-		<real>0.0</real>
 	</dict>
 	<key>dock</key>
 	<dict>
@@ -2363,8 +2349,6 @@
 		<key>thrust</key>
 		<real>100</real>
 		<key>weapon_energy</key>
-		<real>0.0</real>
-		<key>weapon_offset_x</key>
 		<real>0.0</real>
 	</dict>
 	<key>escape-capsule</key>
@@ -2797,8 +2781,6 @@
 		<key>thrust</key>
 		<real>100</real>
 		<key>weapon_energy</key>
-		<real>0.0</real>
-		<key>weapon_offset_x</key>
 		<real>0.0</real>
 	</dict>
 	<key>krait</key>
@@ -3855,8 +3837,6 @@
 		<real>100</real>
 		<key>weapon_energy</key>
 		<real>0.0</real>
-		<key>weapon_offset_x</key>
-		<real>0.0</real>
 	</dict>
 	<key>scarred-alloy</key>
 	<dict>
@@ -4124,8 +4104,6 @@
 		<key>unpiloted</key>
 		<true/>
 		<key>weapon_energy</key>
-		<real>0.0</real>
-		<key>weapon_offset_x</key>
 		<real>0.0</real>
 	</dict>
 	<key>splinter-alternative</key>

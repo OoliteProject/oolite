@@ -165,7 +165,7 @@ Your fair use and other rights are in no way affected by the above.
 // number of vessels considered when scanning around
 #define MAX_SCAN_NUMBER					16
 
-@class OOColor, StationEntity, ParticleEntity, PlanetEntity, WormholeEntity, AI, Octree;
+@class OOBrain, OOColor, StationEntity, ParticleEntity, PlanetEntity, WormholeEntity, AI, Octree;
 
 @interface ShipEntity : Entity {
 	
@@ -191,6 +191,14 @@ Your fair use and other rights are in no way affected by the above.
 		//
 		BOOL	cloaking_device_active;	// cloaking_device
 		
+		//	variables which are controlled by instincts/AI
+		//
+		Vector		destination;		// for flying to/from a set point
+		int			primaryTarget;		// for combat or rendezvous
+		GLfloat		desired_range;		// range to which to journey/scan
+		GLfloat		desired_speed;		// speed at which to travel
+		int			behaviour;			// ship's behavioural state
+
 	@protected
 
 		// per collision directions
@@ -231,7 +239,6 @@ Your fair use and other rights are in no way affected by the above.
 		BOOL	has_energy_bomb;		// energy_bomb
 
 		BOOL	has_cloaking_device;	// cloaking_device
-//		BOOL	cloaking_device_active;	// cloaking_device
 
 		BOOL	has_military_jammer;	// military_jammer
 		BOOL	military_jammer_active;	// military_jammer
@@ -251,16 +258,16 @@ Your fair use and other rights are in no way affected by the above.
 		GLfloat  energy_recharge_rate;   // recharge rate for energy banks
 		
 		int		forward_weapon_type;	// type of forward weapon (allows lasers, plasma cannon, others)
-		int		aft_weapon_type;	// type of forward weapon (allows lasers, plasma cannon, others)
+		int		aft_weapon_type;		// type of aft weapon (allows lasers, plasma cannon, others)
 		GLfloat  weapon_energy;			// energy used/delivered by weapon
 		GLfloat  weapon_range;			// range of the weapon (in meters)
-		GLfloat  weapon_offset_x;		// if weapon is in twin configuration this is the distance from the centerline to the weapon
 		
 		GLfloat	scanner_range;			// typically 25600
 		
 		int		missiles;				// number of on-board missiles
 		
-		AI*		shipAI;					// ship's AI system
+		OOBrain*	brain;				// brain controlling ship, could be a character brain or the autopilot
+		AI*			shipAI;				// ship's AI system
 		
 		NSString*   name;				// descriptive name
 		NSString*   roles;				// names fo roles a ship can take, eg. trader, hunter, police, pirate, scavenger &c.
@@ -268,20 +275,16 @@ Your fair use and other rights are in no way affected by the above.
 		// AI stuff
 		//
 		Vector		jink;				// x and y set factors for offsetting a pursuing ship's position
-		Vector		destination;		// for flying to/from a set point
 		Vector		coordinates;		// for flying to/from a set point
 		Vector		reference;			// a direction vector of magnitude 1 (* turrets *)
-		int			primaryTarget;		// for combat or rendezvous
 		int			primaryAggressor;   // recorded after an attack
 		int			targetStation;		// for docking
 		int			found_target;		// from scans
 		int			target_laser_hit;   // u-id for the entity hit by the last laser shot
 		int			owner_id;			// u-id for the controlling owner of this entity (* turrets *)
-		GLfloat		desired_range;		// range to which to journey/scan
-		GLfloat		desired_speed;		// speed at which to travel
 		double		launch_time;		// time at which launched
 		
-		int		behaviour;						// ship's behavioural state
+		
 		GLfloat	frustration, success_factor;	// degree of dissatisfaction with the current behavioural state, factor used to test this
 		
 		int		patrol_counter;				// keeps track of where the ship is along a patrol route
@@ -355,8 +358,8 @@ Your fair use and other rights are in no way affected by the above.
 		GLfloat					heat_insulation;
 		
 		// for advanced scanning etc.
-		ShipEntity*				scanned_ships[MAX_SCAN_NUMBER];
-		GLfloat					distance2_scanned_ships[MAX_SCAN_NUMBER];
+		ShipEntity*				scanned_ships[MAX_SCAN_NUMBER + 1];
+		GLfloat					distance2_scanned_ships[MAX_SCAN_NUMBER + 1];
 		int						n_scanned_ships;
 		
 		// advanced navigation
@@ -368,6 +371,10 @@ Your fair use and other rights are in no way affected by the above.
 		int debug_flag;
 		int debug_condition;
 }
+
+// ship brains
+- (OOBrain*)	brain;
+- (void)		setBrain:(OOBrain*) aBrain;
 
 // octree collision hunting
 - (GLfloat) doesHitLine:(Vector) v0: (Vector) v1;
@@ -594,6 +601,8 @@ BOOL	class_masslocks(int some_class);
 - (BOOL) checkTorusJumpClear;
 
 - (void) checkScanner;
+- (ShipEntity**) scannedShips;
+- (int) numberOfScannedShips;
 
 - (void) setFound_target:(Entity *) targetEntity;
 - (void) setPrimaryAggressor:(Entity *) targetEntity;
@@ -634,7 +643,6 @@ BOOL	class_masslocks(int some_class);
 - (BOOL) fireLaserShotInDirection: (int) direction;
 - (BOOL) firePlasmaShot:(double) offset :(double) speed :(OOColor *) color;
 - (BOOL) fireMissile;
-//- (BOOL) fireTharglet;
 - (BOOL) fireECM;
 - (BOOL) activateCloakingDevice;
 - (void) deactivateCloakingDevice;

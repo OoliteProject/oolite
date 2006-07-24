@@ -41,7 +41,7 @@ Your fair use and other rights are in no way affected by the above.
 
 #import "legacy_random.h"
 
-@class Universe;
+@class OOBrain, Universe;
 
 @interface OOCharacter : NSObject
 {
@@ -52,6 +52,9 @@ Your fair use and other rights are in no way affected by the above.
 	Random_Seed	genSeed;
 	int			legalStatus;
 	int			insuranceCredits;
+	
+	OOBrain*	brain;				// brain of character
+	
 	Universe*	universe;
 	NSArray*	script_actions;
 }
@@ -77,6 +80,7 @@ Your fair use and other rights are in no way affected by the above.
 - (int)			legalStatus;
 - (int)			insuranceCredits;
 - (NSArray*)	script;
+- (OOBrain*)	brain;
 
 - (void) setUniverse: (Universe*) uni;
 - (void) setName: (NSString*) value;
@@ -87,6 +91,8 @@ Your fair use and other rights are in no way affected by the above.
 - (void) setLegalStatus: (int) value;
 - (void) setInsuranceCredits: (int) value;
 - (void) setScript: (NSArray*) some_actions;
+
+- (void) setBrain: (OOBrain*) aBrain;
 
 - (void) setCharacterFromDictionary:(NSDictionary*) dict;
 

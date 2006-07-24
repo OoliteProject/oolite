@@ -45,6 +45,8 @@ Your fair use and other rights are in no way affected by the above.
 
 extern int debug;
 
+@class OOInstinct;
+
 @interface AI : NSObject {
 
 	ShipEntity		*owner;						// the object this is the AI for
@@ -59,6 +61,8 @@ extern int debug;
 	
 	NSLock			*aiLock;
 	
+	OOInstinct*		rulingInstinct;
+	
 	double			nextThinkTime;
 	double			thinkTimeInterval;
 	
@@ -67,6 +71,8 @@ extern int debug;
 - (id) prepare;
 
 - (id) initWithStateMachine:(NSString *) smName andState:(NSString *) stateName;
+
+- (void) setRulingInstinct:(OOInstinct*) instinct;
 
 - (void) setOwner:(ShipEntity *)ship;
 

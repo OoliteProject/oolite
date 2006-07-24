@@ -328,7 +328,6 @@ static BOOL hostiles;
 
 	int scanner_scale = SCANNER_MAX_RANGE * 2.5 / siz.width;
 
-	double max_scanner_range2 = SCANNER_SCALE*SCANNER_SCALE*10000.0;
 	double max_zoomed_range2 = SCANNER_SCALE*SCANNER_SCALE*10000.0/(scanner_zoom*scanner_zoom);
 	
 	GLfloat	max_zoomed_range = sqrtf(max_zoomed_range2);
@@ -1542,7 +1541,6 @@ static BOOL hostiles;
 
 	glColor4f( 0.0, 1.0, 0.0, 1.0);
 	drawString( [player dial_fpsinfo], x, y, z1, siz);
-//	drawString( [player dial_objinfo], x, y - siz.height, z1, siz);
 	drawString( collDebugInfo, x, y - siz.height, z1, siz);
 	
 	drawString( positionInfo, x, y - 1.8 * siz.height, z1, siz08);

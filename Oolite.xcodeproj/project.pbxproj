@@ -9,12 +9,16 @@
 /* Begin PBXBuildFile section */
 		080B3D5D0A5696D7004BE918 /* fttAI.plist in Resources */ = {isa = PBXBuildFile; fileRef = 080B3D5C0A5696D7004BE918 /* fttAI.plist */; };
 		08125F0909F9083F00AB9BF9 /* OOGLDefs.h in Headers */ = {isa = PBXBuildFile; fileRef = 08125F0809F9083F00AB9BF9 /* OOGLDefs.h */; };
+		081329B50A6D534900A5C2CE /* OOInstinct.h in Headers */ = {isa = PBXBuildFile; fileRef = 081329B30A6D534900A5C2CE /* OOInstinct.h */; };
+		081329B60A6D534900A5C2CE /* OOInstinct.m in Sources */ = {isa = PBXBuildFile; fileRef = 081329B40A6D534900A5C2CE /* OOInstinct.m */; };
 		082AFDDF0A02159800E671D4 /* dock-flat.dat in Resources */ = {isa = PBXBuildFile; fileRef = 082AFDDE0A02159800E671D4 /* dock-flat.dat */; };
 		0831C5C909E3396D0058029A /* StringTokeniser.m in Sources */ = {isa = PBXBuildFile; fileRef = 0831C5C609E3396D0058029A /* StringTokeniser.m */; };
 		0831C5CA09E3396D0058029A /* StringTokeniser.h in Headers */ = {isa = PBXBuildFile; fileRef = 0831C5C709E3396D0058029A /* StringTokeniser.h */; };
 		0831C5CB09E3396D0058029A /* ScriptCompiler.m in Sources */ = {isa = PBXBuildFile; fileRef = 0831C5C809E3396D0058029A /* ScriptCompiler.m */; };
 		083325DD09DDBCDE00F5B8E4 /* OOColor.h in Headers */ = {isa = PBXBuildFile; fileRef = 083325DB09DDBCDE00F5B8E4 /* OOColor.h */; };
 		083325DE09DDBCDE00F5B8E4 /* OOColor.m in Sources */ = {isa = PBXBuildFile; fileRef = 083325DC09DDBCDE00F5B8E4 /* OOColor.m */; };
+		083DB4D50A70E51E00B419B2 /* OOBrain.h in Headers */ = {isa = PBXBuildFile; fileRef = 083DB4D30A70E51E00B419B2 /* OOBrain.h */; };
+		083DB4D60A70E51E00B419B2 /* OOBrain.m in Sources */ = {isa = PBXBuildFile; fileRef = 083DB4D40A70E51E00B419B2 /* OOBrain.m */; };
 		0865427906B8447D000CA0AB /* MainMenu.nib in Resources */ = {isa = PBXBuildFile; fileRef = 29B97319FDCFA39411CA2CEA /* MainMenu.nib */; };
 		0865431C06B8447D000CA0AB /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1058C7A1FEA54F0111CA2CBB /* Cocoa.framework */; };
 		0865431D06B8447D000CA0AB /* OpenGL.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 06AFA01500A58FB77F000001 /* OpenGL.framework */; };
@@ -379,12 +383,16 @@
 		06AFA01500A58FB77F000001 /* OpenGL.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = OpenGL.framework; path = /System/Library/Frameworks/OpenGL.framework; sourceTree = "<absolute>"; };
 		080B3D5C0A5696D7004BE918 /* fttAI.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist; name = fttAI.plist; path = Resources/AIs/fttAI.plist; sourceTree = "<group>"; };
 		08125F0809F9083F00AB9BF9 /* OOGLDefs.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = OOGLDefs.h; path = src/Core/OOGLDefs.h; sourceTree = "<group>"; };
+		081329B30A6D534900A5C2CE /* OOInstinct.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = OOInstinct.h; path = src/Core/OOInstinct.h; sourceTree = "<group>"; };
+		081329B40A6D534900A5C2CE /* OOInstinct.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = OOInstinct.m; path = src/Core/OOInstinct.m; sourceTree = "<group>"; };
 		082AFDDE0A02159800E671D4 /* dock-flat.dat */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = "dock-flat.dat"; path = "Resources/Models/dock-flat.dat"; sourceTree = "<group>"; };
 		0831C5C609E3396D0058029A /* StringTokeniser.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = StringTokeniser.m; path = src/Core/StringTokeniser.m; sourceTree = "<group>"; };
 		0831C5C709E3396D0058029A /* StringTokeniser.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = StringTokeniser.h; path = src/Core/StringTokeniser.h; sourceTree = "<group>"; };
 		0831C5C809E3396D0058029A /* ScriptCompiler.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = ScriptCompiler.m; path = src/Core/ScriptCompiler.m; sourceTree = "<group>"; };
 		083325DB09DDBCDE00F5B8E4 /* OOColor.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = OOColor.h; path = src/Core/OOColor.h; sourceTree = "<group>"; };
 		083325DC09DDBCDE00F5B8E4 /* OOColor.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = OOColor.m; path = src/Core/OOColor.m; sourceTree = "<group>"; };
+		083DB4D30A70E51E00B419B2 /* OOBrain.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = OOBrain.h; path = src/Core/OOBrain.h; sourceTree = "<group>"; };
+		083DB4D40A70E51E00B419B2 /* OOBrain.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = OOBrain.m; path = src/Core/OOBrain.m; sourceTree = "<group>"; };
 		0865432206B8447D000CA0AB /* Oolite.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Oolite.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		0878FD2F086EF845004CB752 /* Carbon.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Carbon.framework; path = /System/Library/Frameworks/Carbon.framework; sourceTree = "<absolute>"; };
 		088496DE0A4C1D1B00F32928 /* gotoWaypointAI.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist; name = gotoWaypointAI.plist; path = Resources/AIs/gotoWaypointAI.plist; sourceTree = "<group>"; };
@@ -1044,6 +1052,10 @@
 			isa = PBXGroup;
 			children = (
 				0831C5CD09E339760058029A /* OOScript */,
+				083DB4D30A70E51E00B419B2 /* OOBrain.h */,
+				083DB4D40A70E51E00B419B2 /* OOBrain.m */,
+				081329B30A6D534900A5C2CE /* OOInstinct.h */,
+				081329B40A6D534900A5C2CE /* OOInstinct.m */,
 				25F46750099695D5009483BF /* OoliteApp.h */,
 				25F46751099695D5009483BF /* OoliteApp.m */,
 				2576E7B209B4F418007410F7 /* MyOpenGLView.h */,
@@ -1282,6 +1294,8 @@
 				083325DD09DDBCDE00F5B8E4 /* OOColor.h in Headers */,
 				0831C5CA09E3396D0058029A /* StringTokeniser.h in Headers */,
 				08125F0909F9083F00AB9BF9 /* OOGLDefs.h in Headers */,
+				081329B50A6D534900A5C2CE /* OOInstinct.h in Headers */,
+				083DB4D50A70E51E00B419B2 /* OOBrain.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1643,6 +1657,8 @@
 				083325DE09DDBCDE00F5B8E4 /* OOColor.m in Sources */,
 				0831C5C909E3396D0058029A /* StringTokeniser.m in Sources */,
 				0831C5CB09E3396D0058029A /* ScriptCompiler.m in Sources */,
+				081329B60A6D534900A5C2CE /* OOInstinct.m in Sources */,
+				083DB4D60A70E51E00B419B2 /* OOBrain.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
