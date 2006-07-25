@@ -53,6 +53,12 @@
 				instincts[n_instincts++] = instinct0;	// retained
 			}
 		}
+		
+		time_until_action = randf() * 0.5;
+		action_interval = 0.125;
+	
+		time_until_observation = randf() * 0.5;
+		observe_interval = 0.25;
 	
 	return self;
 }

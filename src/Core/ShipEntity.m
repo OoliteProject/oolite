@@ -205,6 +205,8 @@ Your fair use and other rights are in no way affected by the above.
 	//
 	octree = nil;
 	//
+	brain = nil;
+	//
 	return self;
 }
 
@@ -832,6 +834,8 @@ static NSMutableDictionary* smallOctreeDict = nil;
 	[self setCollisionRegion:nil];
 	//
 	[self setOctree: nil];
+	//
+	[self setBrain: nil];
 }
 
 
@@ -2005,6 +2009,10 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 				[closeContactsInfo removeObjectForKey: other_key];
 		}
 	}
+	
+	// think!
+	if (brain)
+		[brain update:delta_t];
 
 	// super update
 	//
@@ -2455,9 +2463,18 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 		thrust = 20.0;	// used to damp velocity
 		if (status == STATUS_BEING_SCOOPED)
 		{
+			BOOL lost_contact = (distance > hauler->collision_radius + collision_radius + 250.0f);	// 250m range for tractor beam
 			if (hauler->isPlayer)
-				[(PlayerEntity*)hauler setScoopsActive];
-			if (distance > hauler->collision_radius + collision_radius + 250.0f)	// 250m range for tractor beam
+			{
+				switch ([(PlayerEntity*)hauler dial_fuelscoops_status])
+				{
+					case SCOOP_STATUS_NOT_INSTALLED :
+					case SCOOP_STATUS_FULL_HOLD :
+						lost_contact = YES;	// don't draw
+						break;
+				}
+			}
+			if (lost_contact)	// 250m range for tractor beam
 			{
 				// escaped tractor beam
 				status = STATUS_IN_FLIGHT;
@@ -2465,6 +2482,11 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 				frustration = 0.0;
 				[shipAI exitStateMachine];	// exit nullAI.plist
 			}
+			else if (hauler->isPlayer)
+			{
+				[(PlayerEntity*)hauler setScoopsActive];
+			}
+			
 			if (distance < desired_range)
 			{
 				[hauler scoopUp:self];
@@ -7148,7 +7170,6 @@ BOOL	class_masslocks(int some_class)
 			}
 		}
 		[cargo insertObject: other atIndex: 0];	// places most recently scooped object at eject position
-//		[cargo addObject:other];
 		[other setStatus:STATUS_IN_HOLD];					// prevents entity from being recycled!
 		[shipAI message:@"CARGO_SCOOPED"];
 		if ([cargo count] == max_cargo)

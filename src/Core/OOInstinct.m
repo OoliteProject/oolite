@@ -72,6 +72,10 @@ NSString*	stringForInstinct(int value)
 	// todo by type
 	switch (type)
 	{
+		case INSTINCT_NULL:
+			[self instinct_null];
+		break;
+		
 		case INSTINCT_FOLLOW_AI:
 			[self instinct_follow_ai];
 		break;
@@ -91,6 +95,86 @@ NSString*	stringForInstinct(int value)
 }
 
 // main instincts
+//				INSTINCT_NULL				0
+- (void) instinct_null
+{
+	priority_out = 0.0f;	// TODO 
+}
+
+// basic behavioural instincts
+//
+//				INSTINCT_AVOID_HAZARDS		101
+- (void) instinct_avoid_hazards:(Entity**) entities
+{
+	GLfloat max_so_far = 0.0;
+	Entity* avoid_target = nil;
+	int entity_index = 0;
+	Vector u = [ship getVelocity];
+	GLfloat cr = ship->collision_radius;
+	//
+		
+	NSLog(@"\nTESTING instinct_avoid hazards %@", self);
+		
+	while (entities[entity_index])
+	{
+		Entity* ent = entities[entity_index++];
+		
+		Vector	rp = vector_between( ship->position, ent->position);
+		GLfloat	sz = ent->collision_radius + cr;
+		GLfloat	d = sqrtf(magnitude2( rp)) - sz;
+		if (d < 0.01)
+			d = 0.01;	// 1 cm is suitably small
+		Vector	rv = vector_between( u, [ent getVelocity]);
+		GLfloat	approach_v = dot_product( rv, unit_vector(&rp));
+		
+		GLfloat assessment = sz * approach_v / d;		// == size x approach velocity / distance
+		
+		NSLog(@"TESTING instinct_avoid hazards %@ assessment of %@ : %.2f", ship, ent, assessment);
+		
+		if (assessment > max_so_far)
+		{
+			avoid_target = ent;
+			max_so_far = assessment;
+		}
+	}
+	//
+	if (!avoid_target)
+	{
+		priority_out = 0.0f;
+		target_id = NO_TARGET;
+		behaviour = BEHAVIOUR_FLEE_TARGET;
+	}
+	else
+	{
+		priority_out = max_so_far;
+	}
+	priority_out = 0.0f;	// TODO 
+}
+//
+//				INSTINCT_FLOCK_ALIKE		102
+- (void) instinct_flock_alike:(Entity**) entities
+{
+	priority_out = 0.0f;	// TODO 
+}
+//
+//				INSTINCT_FIGHT_OR_FLIGHT	103
+- (void) instinct_fight_or_flight:(Entity**) entities
+{
+	priority_out = 0.0f;	// TODO 
+}
+//
+//				INSTINCT_ATTACK_PREY		105
+- (void) instinct_attack_prey:(Entity**) entities
+{
+	priority_out = 0.0f;	// TODO 
+}
+//				INSTINCT_AVOID_PREDATORS	106
+- (void) instinct_avoid_predators:(Entity**) entities
+{
+	priority_out = 0.0f;	// TODO 
+}
+//
+//				INSTINCT_FOLLOW_AI			201
 - (void) instinct_follow_ai
 {
 	double ut = [[ship universe] getTime];
@@ -101,6 +185,8 @@ NSString*	stringForInstinct(int value)
 	}
 	priority_out = 1.0f;	// constant - only adjusted by priority_in 
 }
+//
+////
 
 
 - (void) freezeShipVars

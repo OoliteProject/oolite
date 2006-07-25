@@ -78,7 +78,29 @@ NSString*	stringForInstinct(int value);
 - (GLfloat)	priority;			// returns priority_out without calculation
 
 // main instincts
+//
+//				INSTINCT_NULL				0
+- (void) instinct_null;
+//
+//				INSTINCT_AVOID_HAZARDS		101
+- (void) instinct_avoid_hazards:(Entity**) entities;
+//
+//				INSTINCT_FLOCK_ALIKE		102
+- (void) instinct_flock_alike:(Entity**) entities;
+//
+//				INSTINCT_FIGHT_OR_FLIGHT	103
+- (void) instinct_fight_or_flight:(Entity**) entities;
+//
+//				INSTINCT_ATTACK_PREY		105
+- (void) instinct_attack_prey:(Entity**) entities;
+//
+//				INSTINCT_AVOID_PREDATORS	106
+- (void) instinct_avoid_predators:(Entity**) entities;
+//
+//				INSTINCT_FOLLOW_AI			201
 - (void) instinct_follow_ai;
+//
+////
 
 
 - (void) freezeShipVars;
