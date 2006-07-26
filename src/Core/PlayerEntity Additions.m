@@ -2174,39 +2174,38 @@ int d100_seed = -1;	// ensure proper random function
 	//
 	// Add billboard model:
 	//
-//	if ([i_key isEqual:@"billboard"])
-//	{
-//		if ([i_info count] != 6)	// must be billboard_imagefile_x_y_w_h
-//			return NO;				//		   0........ 1........ 2 3 4 5
-//
-//		NSString* texturefile = (NSString*)[i_info objectAtIndex:1];
-//		NSSize billSize = NSMakeSize( [[i_info objectAtIndex:4] floatValue], [[i_info objectAtIndex:5] floatValue]);
-//		Vector	model_p0 = [Entity vectorFromString:[[i_info subarrayWithRange:NSMakeRange( 2, 3)] componentsJoinedByString:@" "]];
-//		model_p0.x += off.x;
-//		model_p0.y += off.y;
-//		model_p0.z =  off.z;
-//		Quaternion	model_q;	quaternion_set_identity(&model_q);
-//
-//		if (![[universe textureStore] getTextureNameFor:texturefile])
-//			return NO;
-//
-//		ParticleEntity* billboard = [[ParticleEntity alloc] initBillboard:billSize withTexture:texturefile];
-//		if (!billboard)
-//			return NO;
-//		if (debug & DEBUG_SCRIPT)
-//			NSLog(@"::::: adding billboard to scene:'%@'\n%@", billboard, [billboard toString]);
-//		[billboard setQRotation: model_q];
-//		[billboard setPosition: model_p0];
-//		[billboard setStatus: STATUS_COCKPIT_DISPLAY];
-//		[billboard setScanClass: CLASS_NO_DRAW];
-//		[universe addEntity: billboard];
-//		[billboard setVelocity: make_vector( 0.0f, 0.0f, 0.0f)];
-//
-//		if (debug & DEBUG_SCRIPT)
-//			NSLog(@"::::: adding billboard to scene:'%@'\n%@", billboard, [billboard toString]);
-//		[billboard release];
-//		return YES;
-//	}
+	if ([i_key isEqual:@"billboard"])
+	{
+		if ([i_info count] != 6)	// must be billboard_imagefile_x_y_w_h
+			return NO;				//		   0........ 1........ 2 3 4 5
+
+		NSString* texturefile = (NSString*)[i_info objectAtIndex:1];
+		NSSize billSize = NSMakeSize( [[i_info objectAtIndex:4] floatValue], [[i_info objectAtIndex:5] floatValue]);
+		Vector	model_p0;
+		model_p0.x = [[i_info objectAtIndex:2] floatValue] + off.x;
+		model_p0.y = [[i_info objectAtIndex:3] floatValue] + off.y;
+		model_p0.z = off.z;
+		if (![[universe textureStore] getTextureNameFor:texturefile])
+			return NO;
+
+		ParticleEntity* billboard = [[ParticleEntity alloc] initBillboard:billSize withTexture:texturefile];
+		if (!billboard)
+			return NO;
+			
+		billboard->position.x += model_p0.x;
+		billboard->position.y += model_p0.y;
+		billboard->position.z += model_p0.z;
+			
+		[billboard setStatus: STATUS_COCKPIT_DISPLAY];
+		
+		if (debug & DEBUG_SCRIPT)
+			NSLog(@"::::: adding billboard:'%@' to scene.", billboard);
+
+		[universe addEntity: billboard];
+
+		[billboard release];
+		return YES;
+	}
 	//
 	// fall through..
 	return NO;
