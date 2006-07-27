@@ -4000,38 +4000,11 @@ GLfloat* custom_matrix;
 
 	if (displayGUI)
 	{
-		[gui drawGUI:0.0 :0.0 :z1 :1.0 forUniverse:self];
+		if (displayCursor)
+			cursor_row = [gui drawGUI:0.0 :0.0 :z1 :1.0 forUniverse:self drawCursor:YES];
+		else
+			[gui drawGUI:0.0 :0.0 :z1 :1.0 forUniverse:self];
 	}
-	
-	if (displayCursor)
-	{
-		double cursor_x = MAIN_GUI_PIXEL_WIDTH * [(MyOpenGLView *)gameView virtualJoystickPosition].x;
-		if (cursor_x < -MAIN_GUI_PIXEL_WIDTH * 0.5)  cursor_x = -MAIN_GUI_PIXEL_WIDTH * 0.5;
-		if (cursor_x > MAIN_GUI_PIXEL_WIDTH * 0.5)   cursor_x = MAIN_GUI_PIXEL_WIDTH * 0.5;
-		double cursor_y = -MAIN_GUI_PIXEL_HEIGHT * [(MyOpenGLView *)gameView virtualJoystickPosition].y;
-		if (cursor_y < -MAIN_GUI_PIXEL_HEIGHT * 0.5)  cursor_y = -MAIN_GUI_PIXEL_HEIGHT * 0.5;
-		if (cursor_y > MAIN_GUI_PIXEL_HEIGHT * 0.5)   cursor_y = MAIN_GUI_PIXEL_HEIGHT * 0.5;
-		
-		cursor_row = 1 + floor((0.5 * MAIN_GUI_PIXEL_HEIGHT - MAIN_GUI_PIXEL_ROW_START - cursor_y) / MAIN_GUI_ROW_HEIGHT);
-		
-//		NSLog(@"DEBUG text cursor position [ row %d ] %@", cursor_row, [gui objectForRow: cursor_row]);
-		
-		// replace cursorSprite
-		GLfloat h1 = 3.0f;
-		GLfloat h3 = 9.0f;
-		glColor4f( 0.2f, 0.2f, 1.0f, 0.5f);
-		glLineWidth( 2.0f);
-		glBegin(GL_LINES);
-			glVertex3f( cursor_x - h1, cursor_y, z1);	glVertex3f( cursor_x - h3, cursor_y, z1);
-			glVertex3f( cursor_x + h1, cursor_y, z1);	glVertex3f( cursor_x + h3, cursor_y, z1);
-			glVertex3f( cursor_x, cursor_y - h1, z1);	glVertex3f( cursor_x, cursor_y - h3, z1);
-			glVertex3f( cursor_x, cursor_y + h1, z1);	glVertex3f( cursor_x, cursor_y + h3, z1);
-		glEnd();
-		glLineWidth( 1.0f);
-		
-		[(MyOpenGLView *)gameView setVirtualJoystick:cursor_x/MAIN_GUI_PIXEL_WIDTH :-cursor_y/MAIN_GUI_PIXEL_HEIGHT];
-	}
-	
 }
 
 - (Entity *) entityZero

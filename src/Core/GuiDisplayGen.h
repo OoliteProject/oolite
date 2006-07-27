@@ -175,6 +175,7 @@ extern int debug;
 - (void) setBackgroundImage:(NSImage *) bg_image;
 #endif
 
+- (int) drawGUI:(GLfloat) x :(GLfloat) y :(GLfloat) z :(GLfloat) alpha forUniverse:(Universe*) universe drawCursor:(BOOL) drawCursor;
 - (void) drawGUI:(GLfloat) x :(GLfloat) y :(GLfloat) z :(GLfloat) alpha forUniverse:(Universe*) universe;
 
 - (void) drawGLDisplay:(GLfloat) x :(GLfloat) y :(GLfloat) z :(GLfloat) alpha forUniverse:(Universe*) universe;

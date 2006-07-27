@@ -616,6 +616,76 @@ Your fair use and other rights are in no way affected by the above.
 	}
 }
 
+- (int) drawGUI:(GLfloat) x :(GLfloat) y :(GLfloat) z :(GLfloat) alpha forUniverse:(Universe*) universe drawCursor:(BOOL) drawCursor
+{
+	GLfloat z1 = [[universe gameView] display_z];
+	if (alpha > 0.05)
+	{
+
+		PlayerEntity* player = (PlayerEntity*)[universe entityZero];
+
+		[self drawGLDisplay:x - 0.5 * size_in_pixels.width :y - 0.5 * size_in_pixels.height :z :alpha forUniverse:universe];
+
+		glEnable(GL_LINE_SMOOTH);
+
+		if (self == [universe gui])
+		{
+			if ([player gui_screen] == GUI_SCREEN_SHORT_RANGE_CHART)
+				[self drawStarChart:x - 0.5 * size_in_pixels.width :y - 0.5 * size_in_pixels.height :z :alpha forUniverse:universe];
+			if ([player gui_screen] == GUI_SCREEN_LONG_RANGE_CHART)
+			{
+				[self drawGalaxyChart:x - 0.5 * size_in_pixels.width :y - 0.5 * size_in_pixels.height :z :alpha forUniverse:universe];
+			}
+		}
+		
+		if (fade_sign)
+		{
+			fade_alpha += fade_sign * [universe getTimeDelta];
+			if (fade_alpha < 0.0)	// done fading out
+			{
+				fade_alpha = 0.0;
+				fade_sign = 0.0;
+			}
+			if (fade_alpha > 1.0)	// done fading in
+			{
+				fade_alpha = 1.0;
+				fade_sign = 0.0;
+			}
+		}
+	}
+	
+	int cursor_row = 0;
+
+	if (drawCursor)
+	{
+		NSPoint vjpos = [[universe gameView] virtualJoystickPosition];
+		double cursor_x = size_in_pixels.width * vjpos.x;
+		if (cursor_x < -size_in_pixels.width * 0.5)  cursor_x = -size_in_pixels.width * 0.5;
+		if (cursor_x > size_in_pixels.width * 0.5)   cursor_x = size_in_pixels.width * 0.5;
+		double cursor_y = -size_in_pixels.height * vjpos.y;
+		if (cursor_y < -size_in_pixels.height * 0.5)  cursor_y = -size_in_pixels.height * 0.5;
+		if (cursor_y > size_in_pixels.height * 0.5)   cursor_y = size_in_pixels.height * 0.5;
+		
+		cursor_row = 1 + floor((0.5 * size_in_pixels.height - pixel_row_start - cursor_y) / pixel_row_height);
+		
+		GLfloat h1 = 3.0f;
+		GLfloat h3 = 9.0f;
+		glColor4f( 0.2f, 0.2f, 1.0f, 0.5f);
+		glLineWidth( 2.0f);
+		glBegin(GL_LINES);
+			glVertex3f( cursor_x - h1, cursor_y, z1);	glVertex3f( cursor_x - h3, cursor_y, z1);
+			glVertex3f( cursor_x + h1, cursor_y, z1);	glVertex3f( cursor_x + h3, cursor_y, z1);
+			glVertex3f( cursor_x, cursor_y - h1, z1);	glVertex3f( cursor_x, cursor_y - h3, z1);
+			glVertex3f( cursor_x, cursor_y + h1, z1);	glVertex3f( cursor_x, cursor_y + h3, z1);
+		glEnd();
+		glLineWidth( 1.0f);
+		
+		[[universe gameView] setVirtualJoystick:cursor_x/size_in_pixels.width :-cursor_y/size_in_pixels.height];
+	}
+	
+	return cursor_row;
+}
+
 - (void) drawGUI:(GLfloat) x :(GLfloat) y :(GLfloat) z :(GLfloat) alpha forUniverse:(Universe*) universe
 {
 	if (alpha < 0.05)
