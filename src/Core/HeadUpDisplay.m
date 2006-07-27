@@ -159,6 +159,13 @@ GLuint ascii_texture_name;
 	ascii_texture_name = [[[player_entity universe] textureStore] getTextureNameFor:@"asciitext.png"];	// intitalise text texture
 }
 
+- (void) resizeGuis
+{
+	// check for entries in hu plist for comm_log_gui and message_gui
+	// resize and reposition them accordingly
+}
+
+
 - (double) scanner_zoom
 {
 	return scanner_zoom;

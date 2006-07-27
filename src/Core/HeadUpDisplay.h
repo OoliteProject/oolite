@@ -211,6 +211,8 @@ extern int debug;
 
 - (void) setPlayer:(PlayerEntity *) player_entity;
 
+- (void) resizeGuis;
+
 - (double) scanner_zoom;
 - (void) setScannerZoom:(double) value;
 

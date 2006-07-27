@@ -502,6 +502,7 @@ NSComparisonResult comparePrice( id dict1, id dict2, void * context);
 
 - (GuiDisplayGen *) gui;
 - (GuiDisplayGen *) comm_log_gui;
+- (GuiDisplayGen *) message_gui;
 
 - (void) resetCommsLogColor;
 

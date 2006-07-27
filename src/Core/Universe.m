@@ -109,11 +109,6 @@ Your fair use and other rights are in no way affected by the above.
 		entity_for_uid[i] = nil;
 	//
 	// try finding a cache..
-//	NSString*	cache_path = [[[[NSHomeDirectory()
-//								stringByAppendingPathComponent:@"Library"]
-//								stringByAppendingPathComponent:@"Application Support"]
-//								stringByAppendingPathComponent:@"Oolite"]
-//								stringByAppendingPathComponent:@"cache"];
 	NSObject*	oolite_version = [[[NSBundle mainBundle] infoDictionary] objectForKey:@"CFBundleVersion"];
 	NSString*	cache_path = OOLITE_CACHE;
 	if ([[NSFileManager defaultManager] fileExistsAtPath: cache_path])
@@ -156,6 +151,7 @@ Your fair use and other rights are in no way affected by the above.
 	message_gui = [[GuiDisplayGen alloc] initWithPixelSize:NSMakeSize( 480, 160) Columns:1 Rows:8 RowHeight:20 RowStart:20 Title:nil];
 	[message_gui setCurrentRow:7];
 	[message_gui setCharacterSize:NSMakeSize(16,20)];	// slightly narrower characters
+	[message_gui setDrawPosition: make_vector( 0.0, -40.0, 640.0)];
 	
 	//
 	comm_log_gui = [[GuiDisplayGen alloc] initWithPixelSize:NSMakeSize( 360, 120) Columns:1 Rows:10 RowHeight:12 RowStart:12 Title:nil];
@@ -164,6 +160,7 @@ Your fair use and other rights are in no way affected by the above.
 	[comm_log_gui setTextColor:[OOColor whiteColor]];
 	[comm_log_gui setAlpha:0.0];
 	[comm_log_gui printLongText:@"Communications Log" Align:GUI_ALIGN_CENTER Color:[OOColor yellowColor] FadeTime:0 Key:nil AddToArray:nil];
+	[comm_log_gui setDrawPosition: make_vector( 0.0, 180.0, 640.0)];
 	//
 	displayFPS = NO;
 	//
@@ -406,7 +403,7 @@ Your fair use and other rights are in no way affected by the above.
 	message_gui = [[GuiDisplayGen alloc] initWithPixelSize:NSMakeSize( 480, 160) Columns:1 Rows:8 RowHeight:20 RowStart:20 Title:nil];
 	[message_gui setCurrentRow:7];
 	[message_gui setCharacterSize:NSMakeSize(16,20)];	// slightly narrower characters
-	
+	[message_gui setDrawPosition: make_vector( 0.0, -40.0, 640.0)];
 	//
 	if (comm_log_gui)
 		[comm_log_gui autorelease];
@@ -416,6 +413,7 @@ Your fair use and other rights are in no way affected by the above.
 	[comm_log_gui setTextColor:[OOColor whiteColor]];
 	[comm_log_gui setAlpha:0.0];
 	[comm_log_gui printLongText:@"Communications Log" Align:GUI_ALIGN_CENTER Color:[OOColor yellowColor] FadeTime:0 Key:nil AddToArray:nil];
+	[comm_log_gui setDrawPosition: make_vector( 0.0, 180.0, 640.0)];
 	//
 	time_delta = 0.0;
 	universal_time = 0.0;
@@ -3984,26 +3982,20 @@ GLfloat* custom_matrix;
 
 - (void) drawMessage
 {
-	GLfloat z1 = [(MyOpenGLView *)gameView display_z];
-	
 	glDisable(GL_TEXTURE_2D);	// for background sheets
 	
 	if (message_gui)
-	{
-		[message_gui drawGUI:0.0 :-40.0 :z1 :1.0 forUniverse:self];
-	}
+		[message_gui drawGUI:1.0 forUniverse:self drawCursor:NO];
 
 	if (comm_log_gui)
-	{
-		[comm_log_gui drawGUI:0.0 :180.0 :z1 :[comm_log_gui alpha] forUniverse:self];
-	}
+		[comm_log_gui drawGUI:[comm_log_gui alpha] forUniverse:self drawCursor:NO];
 
 	if (displayGUI)
 	{
 		if (displayCursor)
-			cursor_row = [gui drawGUI:0.0 :0.0 :z1 :1.0 forUniverse:self drawCursor:YES];
+			cursor_row = [gui drawGUI:1.0 forUniverse:self drawCursor:YES];
 		else
-			[gui drawGUI:0.0 :0.0 :z1 :1.0 forUniverse:self];
+			[gui drawGUI:1.0 forUniverse:self drawCursor:NO];
 	}
 }
 
@@ -7945,6 +7937,11 @@ NSComparisonResult comparePrice( id dict1, id dict2, void * context)
 - (GuiDisplayGen *) comm_log_gui
 {
 	return comm_log_gui;
+}
+
+- (GuiDisplayGen *) message_gui
+{
+	return message_gui;
 }
 
 - (void) clearGUIs

@@ -92,6 +92,8 @@ extern int debug;
 	NSMutableArray  *rowKey;
 	NSMutableArray  *rowColor;
 	
+	Vector			drawPosition;
+	
 	NSPoint			rowPosition[GUI_MAX_ROWS];
 	int				rowAlignment[GUI_MAX_ROWS];
 	float			rowFadeTime[GUI_MAX_ROWS];
@@ -114,8 +116,12 @@ extern int debug;
 
 - (id) init;
 - (id) initWithPixelSize:(NSSize) gui_size Columns:(int) gui_cols Rows:(int) gui_rows RowHeight:(int) gui_row_height RowStart:(int) gui_row_start Title:(NSString*) gui_title;
+- (void) resizeWithPixelSize:(NSSize) gui_size Columns:(int) gui_cols Rows:(int) gui_rows RowHeight:(int) gui_row_height RowStart:(int) gui_row_start Title:(NSString*) gui_title;
 
 - (void) dealloc;
+
+- (void) setDrawPosition:(Vector) vector;
+- (Vector) drawPosition;
 
 - (void) fadeOutFromTime:(double) now_time OverDuration:(double) duration;
 
@@ -175,6 +181,7 @@ extern int debug;
 - (void) setBackgroundImage:(NSImage *) bg_image;
 #endif
 
+- (int) drawGUI:(GLfloat) alpha forUniverse:(Universe*) universe drawCursor:(BOOL) drawCursor;
 - (int) drawGUI:(GLfloat) x :(GLfloat) y :(GLfloat) z :(GLfloat) alpha forUniverse:(Universe*) universe drawCursor:(BOOL) drawCursor;
 - (void) drawGUI:(GLfloat) x :(GLfloat) y :(GLfloat) z :(GLfloat) alpha forUniverse:(Universe*) universe;
 

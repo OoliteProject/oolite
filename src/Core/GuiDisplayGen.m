@@ -96,6 +96,8 @@ Your fair use and other rights are in no way affected by the above.
 	backgroundImage = nil;
 	backgroundColor = nil;
 	textColor = [[OOColor yellowColor] retain];
+	
+	drawPosition = make_vector( 0.0, 0.0, 640.0);
 
 	return self;
 }
@@ -148,6 +150,22 @@ Your fair use and other rights are in no way affected by the above.
 	return self;
 }
 
+- (void) resizeWithPixelSize:(NSSize) gui_size Columns:(int) gui_cols Rows:(int) gui_rows RowHeight:(int) gui_row_height RowStart:(int) gui_row_start Title:(NSString*) gui_title
+{
+	[self clear];
+	//
+	size_in_pixels  = gui_size;
+	n_columns		= gui_cols;
+	n_rows			= gui_rows;
+	pixel_row_center = size_in_pixels.width / 2;
+	pixel_row_height = gui_row_height;
+	pixel_row_start	= gui_row_start;		// first position down the page...
+	pixel_text_size = NSMakeSize( pixel_row_height, pixel_row_height);
+	pixel_title_size = NSMakeSize( pixel_row_height * 1.75, pixel_row_height * 1.5);
+	//
+	[self setTitle: gui_title];
+}
+
 - (void) dealloc
 {
 	if (backgroundImage)	[backgroundImage release];
@@ -159,6 +177,16 @@ Your fair use and other rights are in no way affected by the above.
 	if (rowKey)			[rowKey release];
 	if (rowColor)		[rowColor release];
 	[super dealloc];
+}
+
+- (void) setDrawPosition:(Vector) vector
+{
+	drawPosition = vector;
+}
+
+- (Vector) drawPosition
+{
+	return drawPosition;
 }
 
 - (void) fadeOutFromTime:(double) now_time OverDuration:(double) duration
@@ -189,7 +217,6 @@ Your fair use and other rights are in no way affected by the above.
 		return;
 	}
 
-//	backgroundColor = [[color colorUsingColorSpaceName:NSCalibratedRGBColorSpace] retain];
 	backgroundColor = [color retain];
 }
 
@@ -357,7 +384,7 @@ Your fair use and other rights are in no way affected by the above.
 - (void) clear
 {
 	int i;
-	[self setTitle:@""];
+	[self setTitle: nil];
 	for (i = 0; i < n_rows; i++)
 	{
 		[self setText:@"" forRow:i align:GUI_ALIGN_LEFT];
@@ -374,12 +401,17 @@ Your fair use and other rights are in no way affected by the above.
 - (void) setTitle: (NSString *) str
 {
 	if (title)  [title release];
-	title = [str retain];
 	
 	if (str)
+	{
+		title = [str retain];
 		has_title = ![str isEqual:@""];
+	}
 	else
-		title = NO;
+	{
+		title = nil;
+		has_title = NO;
+	}
 }
 
 - (void) setKey: (NSString *) str forRow:(int) row
@@ -614,6 +646,76 @@ Your fair use and other rights are in no way affected by the above.
 		backgroundImage = nil;
 		backgroundSprite = nil;
 	}
+}
+
+- (int) drawGUI:(GLfloat) alpha forUniverse:(Universe*) universe drawCursor:(BOOL) drawCursor
+{
+	if (alpha > 0.05)
+	{
+
+		PlayerEntity* player = (PlayerEntity*)[universe entityZero];
+
+		[self drawGLDisplay: drawPosition.x - 0.5 * size_in_pixels.width :drawPosition.y - 0.5 * size_in_pixels.height :drawPosition.z :alpha forUniverse:universe];
+
+		glEnable(GL_LINE_SMOOTH);
+
+		if (self == [universe gui])
+		{
+			if ([player gui_screen] == GUI_SCREEN_SHORT_RANGE_CHART)
+				[self drawStarChart:drawPosition.x - 0.5 * size_in_pixels.width :drawPosition.y - 0.5 * size_in_pixels.height :drawPosition.z :alpha forUniverse:universe];
+			if ([player gui_screen] == GUI_SCREEN_LONG_RANGE_CHART)
+			{
+				[self drawGalaxyChart:drawPosition.x - 0.5 * size_in_pixels.width :drawPosition.y - 0.5 * size_in_pixels.height :drawPosition.z :alpha forUniverse:universe];
+			}
+		}
+		
+		if (fade_sign)
+		{
+			fade_alpha += fade_sign * [universe getTimeDelta];
+			if (fade_alpha < 0.0)	// done fading out
+			{
+				fade_alpha = 0.0;
+				fade_sign = 0.0;
+			}
+			if (fade_alpha > 1.0)	// done fading in
+			{
+				fade_alpha = 1.0;
+				fade_sign = 0.0;
+			}
+		}
+	}
+	
+	int cursor_row = 0;
+
+	if (drawCursor)
+	{
+		NSPoint vjpos = [[universe gameView] virtualJoystickPosition];
+		double cursor_x = size_in_pixels.width * vjpos.x;
+		if (cursor_x < -size_in_pixels.width * 0.5)  cursor_x = -size_in_pixels.width * 0.5;
+		if (cursor_x > size_in_pixels.width * 0.5)   cursor_x = size_in_pixels.width * 0.5;
+		double cursor_y = -size_in_pixels.height * vjpos.y;
+		if (cursor_y < -size_in_pixels.height * 0.5)  cursor_y = -size_in_pixels.height * 0.5;
+		if (cursor_y > size_in_pixels.height * 0.5)   cursor_y = size_in_pixels.height * 0.5;
+		
+		[[universe gameView] setVirtualJoystick:cursor_x/size_in_pixels.width :-cursor_y/size_in_pixels.height];
+		cursor_row = 1 + floor((0.5 * size_in_pixels.height - pixel_row_start - cursor_y) / pixel_row_height);
+		
+		GLfloat h1 = 3.0f;
+		GLfloat h3 = 9.0f;
+		glColor4f( 0.2f, 0.2f, 1.0f, 0.5f);
+		glLineWidth( 2.0f);
+		cursor_x += drawPosition.x;
+		cursor_y += drawPosition.y;
+		glBegin(GL_LINES);
+			glVertex3f( cursor_x - h1, cursor_y, drawPosition.z);	glVertex3f( cursor_x - h3, cursor_y, drawPosition.z);
+			glVertex3f( cursor_x + h1, cursor_y, drawPosition.z);	glVertex3f( cursor_x + h3, cursor_y, drawPosition.z);
+			glVertex3f( cursor_x, cursor_y - h1, drawPosition.z);	glVertex3f( cursor_x, cursor_y - h3, drawPosition.z);
+			glVertex3f( cursor_x, cursor_y + h1, drawPosition.z);	glVertex3f( cursor_x, cursor_y + h3, drawPosition.z);
+		glEnd();
+		glLineWidth( 1.0f);
+	}
+	
+	return cursor_row;
 }
 
 - (int) drawGUI:(GLfloat) x :(GLfloat) y :(GLfloat) z :(GLfloat) alpha forUniverse:(Universe*) universe drawCursor:(BOOL) drawCursor
