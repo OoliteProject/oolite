@@ -2358,6 +2358,12 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 		qf.z *= delta_t;
 		q_rotation = quaternion_multiply( qf, q_rotation);
 	}
+	
+	//
+	//	reset totalBoundingBox
+	//
+	totalBoundingBox = boundingBox;
+	
 
 	//
 	// update subentities
@@ -2366,7 +2372,17 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	{
 		int i;
 		for (i = 0; i < [sub_entities count]; i++)
-			[(Entity *)[sub_entities objectAtIndex:i] update:delta_t];
+//			[(Entity *)[sub_entities objectAtIndex:i] update:delta_t];
+		{
+			ShipEntity* se = (ShipEntity *)[sub_entities objectAtIndex:i];
+			[se update:delta_t];
+			if (se->isShip)
+			{
+				BoundingBox sebb = [se findSubentityBoundingBox];
+				bounding_box_add_vector(&totalBoundingBox, sebb.max);
+				bounding_box_add_vector(&totalBoundingBox, sebb.min);
+			}
+		}
 	}
 	
 }

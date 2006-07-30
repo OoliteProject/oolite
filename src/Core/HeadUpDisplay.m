@@ -47,6 +47,7 @@ Your fair use and other rights are in no way affected by the above.
 #import "Universe.h"
 #import "TextureStore.h"
 #import "OOTrumble.h"
+#import "OOColor.h"
 
 static const char *toAscii(unsigned inCodePoint);
 
@@ -80,33 +81,7 @@ float char_widths[128] = {
 	line_width = 1.0;
 	
 	setUpSinTable();
-	
-//	int ch;
-//    NSMutableDictionary *stringAttributes = [NSMutableDictionary dictionaryWithObjectsAndKeys:
-//        [NSFont fontWithName:@"Helvetica-Bold" size:28], NSFontAttributeName,
-//        [OOColor blackColor], NSForegroundColorAttributeName, NULL];
-//	for (ch = 32; ch < 127; ch++)
-//	{
-//		unichar	 uch = (unichar) ch;
-//		NSString* chr = [NSString stringWithCharacters:&uch length:1];
-//		NSSize strsize = [chr sizeWithAttributes:stringAttributes];
-//		if ((ch < 48)||(ch > 57))	// exclude the digits which should be fixed width
-//			char_widths[ch] = strsize.width * .225;
-//	}
-//	
-//	// output the character sizes for hardcoding
-//	//
-//	printf("hard code this:\n\nfloat char_widths[128] = {");
-//	for (ch = 0; ch < 128; ch++)
-//	{
-//		if (!(ch & 15))
-//			printf("\n");
-//		printf("\t%.3f", char_widths[ch]);
-//		if (ch < 127)
-//			printf(",");
-//	}
-//	printf("\n\n");
-		
+			
 	// init arrays
 	dialArray = [[NSMutableArray alloc] initWithCapacity:16];   // alloc retains
 	legendArray = [[NSMutableArray alloc] initWithCapacity:16]; // alloc retains
@@ -159,10 +134,78 @@ GLuint ascii_texture_name;
 	ascii_texture_name = [[[player_entity universe] textureStore] getTextureNameFor:@"asciitext.png"];	// intitalise text texture
 }
 
-- (void) resizeGuis
+- (void) resizeGuis:(NSDictionary*) info
 {
-	// check for entries in hu plist for comm_log_gui and message_gui
+	// check for entries in hud plist for comm_log_gui and message_gui
 	// resize and reposition them accordingly
+	
+	if (!player)
+		return;
+	Universe* universe = [player universe];
+	if (!universe)
+		return;
+	
+	GuiDisplayGen* message_gui = [universe message_gui];
+	if ((message_gui)&&([info objectForKey:@"message_gui"]))
+	{
+		NSDictionary* gui_info = (NSDictionary*)[info objectForKey:@"message_gui"];
+		Vector pos = [message_gui drawPosition];
+		if ([gui_info objectForKey:X_KEY])
+			pos.x = [[gui_info objectForKey:X_KEY] floatValue];
+		if ([gui_info objectForKey:Y_KEY])
+			pos.y = [[gui_info objectForKey:Y_KEY] floatValue];
+		[message_gui setDrawPosition:pos];
+		NSSize		siz =	[message_gui	size];
+		int			rht =	[message_gui	rowHeight];
+		NSString*	title =	[message_gui	title];
+		if ([gui_info objectForKey:WIDTH_KEY])
+			siz.width = [[gui_info objectForKey:WIDTH_KEY] floatValue];
+		if ([gui_info objectForKey:HEIGHT_KEY])
+			siz.height = [[gui_info objectForKey:HEIGHT_KEY] floatValue];
+		if ([gui_info objectForKey:ROW_HEIGHT_KEY])
+			rht = [[gui_info objectForKey:ROW_HEIGHT_KEY] intValue];
+		if ([gui_info objectForKey:TITLE_KEY])
+			title = [NSString stringWithFormat:@"%@", [gui_info objectForKey:TITLE_KEY]];
+		[message_gui resizeTo: siz characterHeight: rht Title: title];
+		if ([gui_info objectForKey:ALPHA_KEY])
+			[message_gui setAlpha: [[gui_info objectForKey:ALPHA_KEY] floatValue]];
+		else
+			[message_gui setAlpha: 1.0];
+		if ([gui_info objectForKey:BACKGROUND_RGBA_KEY])
+			[message_gui setBackgroundColor:[OOColor colorFromString:(NSString *)[gui_info objectForKey:BACKGROUND_RGBA_KEY]]];
+	}
+	
+	GuiDisplayGen* comm_log_gui = [universe comm_log_gui];
+	if ((comm_log_gui)&&([info objectForKey:@"comm_log_gui"]))
+	{
+		NSDictionary* gui_info = (NSDictionary*)[info objectForKey:@"comm_log_gui"];
+		Vector pos = [comm_log_gui drawPosition];
+		if ([gui_info objectForKey:X_KEY])
+			pos.x = [[gui_info objectForKey:X_KEY] floatValue];
+		if ([gui_info objectForKey:Y_KEY])
+			pos.y = [[gui_info objectForKey:Y_KEY] floatValue];
+		[comm_log_gui setDrawPosition:pos];
+		NSSize		siz =	[comm_log_gui	size];
+		int			rht =	[comm_log_gui	rowHeight];
+		NSString*	title =	[comm_log_gui	title];
+		if ([gui_info objectForKey:WIDTH_KEY])
+			siz.width = [[gui_info objectForKey:WIDTH_KEY] floatValue];
+		if ([gui_info objectForKey:HEIGHT_KEY])
+			siz.height = [[gui_info objectForKey:HEIGHT_KEY] floatValue];
+		if ([gui_info objectForKey:ROW_HEIGHT_KEY])
+			rht = [[gui_info objectForKey:ROW_HEIGHT_KEY] intValue];
+		if ([gui_info objectForKey:TITLE_KEY])
+			title = [NSString stringWithFormat:@"%@", [gui_info objectForKey:TITLE_KEY]];
+		[comm_log_gui resizeTo: siz characterHeight: rht Title: title];
+		if ([gui_info objectForKey:ALPHA_KEY])
+			[comm_log_gui setAlpha: [[gui_info objectForKey:ALPHA_KEY] floatValue]];
+		else
+			[comm_log_gui setAlpha: 1.0];
+		if ([gui_info objectForKey:BACKGROUND_RGBA_KEY])
+			[comm_log_gui setBackgroundColor:[OOColor colorFromString:(NSString *)[gui_info objectForKey:BACKGROUND_RGBA_KEY]]];
+	}
+	
+	
 }
 
 
@@ -454,6 +497,7 @@ static BOOL hostiles;
 				ms_blip -= floor(ms_blip);
 				
 				relativePosition = drawthing->relative_position;
+				Vector rp = relativePosition;
 				
 				if (act_dist > max_zoomed_range)
 					scale_vector(&relativePosition, max_zoomed_range / act_dist);
@@ -484,6 +528,7 @@ static BOOL hostiles;
 				
 				// position the scanner
 				x1 += scanner_cx;   y1 += scanner_cy;   y2 += scanner_cy;
+				
 				switch (drawClass)
 				{
 					case CLASS_THARGOID :
@@ -503,6 +548,44 @@ static BOOL hostiles;
 							foundHostiles = YES;
 						break;
 				}
+
+				if (drawthing->isShip)
+				{
+					ShipEntity* ship = (ShipEntity*)drawthing;
+					if (ship->collision_radius * upscale > 4.5)
+					{
+						Vector bounds[6];
+//						BoundingBox bb = [ship getBoundingBox];
+						BoundingBox bb = ship->totalBoundingBox;
+						bounds[0] = ship->v_forward;	scale_vector( &bounds[0], bb.max.z);
+						bounds[1] = ship->v_forward;	scale_vector( &bounds[1], bb.min.z);
+						bounds[2] = ship->v_right;		scale_vector( &bounds[2], bb.max.x);
+						bounds[3] = ship->v_right;		scale_vector( &bounds[3], bb.min.x);
+						bounds[4] = ship->v_up;			scale_vector( &bounds[4], bb.max.y);
+						bounds[5] = ship->v_up;			scale_vector( &bounds[5], bb.min.y);
+						// rotate the view
+						int i;
+						for (i = 0; i < 6; i++)
+						{
+							bounds[i].x += rp.x;	bounds[i].y += rp.y;	bounds[i].z += rp.z;
+							mult_vector(&bounds[i], rotMatrix);
+							scale_vector(&bounds[i], upscale);
+							bounds[i] = make_vector( bounds[i].x + scanner_cx, bounds[i].z * z_factor + bounds[i].y * y_factor + scanner_cy, z1 );
+						}
+						// draw the diamond
+						//
+						glBegin(GL_QUADS);
+						glColor4f(col[0], col[1], col[2], 0.33333 * col[3]);
+							glVertex3f( bounds[0].x, bounds[0].y, bounds[0].z);	glVertex3f( bounds[4].x, bounds[4].y, bounds[4].z);
+							glVertex3f( bounds[1].x, bounds[1].y, bounds[1].z);	glVertex3f( bounds[5].x, bounds[5].y, bounds[5].z);
+							glVertex3f( bounds[2].x, bounds[2].y, bounds[2].z);	glVertex3f( bounds[4].x, bounds[4].y, bounds[4].z);
+							glVertex3f( bounds[3].x, bounds[3].y, bounds[3].z);	glVertex3f( bounds[5].x, bounds[5].y, bounds[5].z);
+							glVertex3f( bounds[2].x, bounds[2].y, bounds[2].z);	glVertex3f( bounds[0].x, bounds[0].y, bounds[0].z);
+							glVertex3f( bounds[3].x, bounds[3].y, bounds[3].z);	glVertex3f( bounds[1].x, bounds[1].y, bounds[1].z);
+						glEnd();
+					}
+				}
+
 
 				if (ms_blip > 0.0)
 				{

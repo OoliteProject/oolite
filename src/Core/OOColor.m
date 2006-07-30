@@ -102,6 +102,19 @@ Your fair use and other rights are in no way affected by the above.
 
 /* Some convenience methods to create colors in the calibrated color spaces...
 */
++ (OOColor *)colorFromString:(NSString*) colorFloatString;
+{
+	float set_rgba[4] = { 0.0, 0.0, 0.0, 1.0};
+	OOColor* result = [[OOColor alloc] init];
+	NSScanner* scanner = [NSScanner scannerWithString:colorFloatString];
+	float value;
+	int i = 0;
+	while ((i < 4)&&[scanner scanFloat:&value])
+		set_rgba[i++] = value;
+	[result setRGBA: set_rgba[0] : set_rgba[1] : set_rgba[2] : set_rgba[3]];
+		
+	return [result autorelease];
+}
 + (OOColor *)blackColor;	/* 0.0 white */
 {
 	OOColor* result = [[OOColor alloc] init];

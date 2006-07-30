@@ -178,6 +178,13 @@ Your fair use and other rights are in no way affected by the above.
 #define RGB_COLOR_KEY			@"rgb_color"
 #define N_BARS_KEY				@"n_bars"
 
+#define ROWS_KEY				@"rows"
+#define COLUMNS_KEY				@"columns"
+#define ROW_HEIGHT_KEY			@"row_height"
+#define ROW_START_KEY			@"row_start"
+#define TITLE_KEY				@"title"
+#define BACKGROUND_RGBA_KEY		@"background_rgba"
+
 #define Z1						[(MyOpenGLView *)[[player universe] gameView] display_z]
 
 #define ONE_EIGHTH				0.125
@@ -211,7 +218,7 @@ extern int debug;
 
 - (void) setPlayer:(PlayerEntity *) player_entity;
 
-- (void) resizeGuis;
+- (void) resizeGuis:(NSDictionary*) info;
 
 - (double) scanner_zoom;
 - (void) setScannerZoom:(double) value;

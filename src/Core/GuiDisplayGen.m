@@ -160,10 +160,82 @@ Your fair use and other rights are in no way affected by the above.
 	pixel_row_center = size_in_pixels.width / 2;
 	pixel_row_height = gui_row_height;
 	pixel_row_start	= gui_row_start;		// first position down the page...
+
 	pixel_text_size = NSMakeSize( pixel_row_height, pixel_row_height);
 	pixel_title_size = NSMakeSize( pixel_row_height * 1.75, pixel_row_height * 1.5);
+
+	rowRange = NSMakeRange(0,n_rows);
+	[self clear];
 	//
 	[self setTitle: gui_title];
+}
+
+- (void) resizeTo:(NSSize) gui_size characterHeight:(int) csize Title:(NSString*) gui_title
+{
+	[self clear];
+	//
+	size_in_pixels  = gui_size;
+	n_columns		= gui_size.width / csize;
+	n_rows			= (int)gui_size.height / csize;
+
+	[self setTitle: gui_title];
+	
+	pixel_row_center = gui_size.width / 2;
+	pixel_row_height = csize;
+	currentRow = n_rows - 1;		// first position down the page...
+
+	if (has_title)
+		pixel_row_start = 2.75 * csize + 0.5 * (gui_size.height - n_rows * csize);
+	else
+		pixel_row_start = csize + 0.5 * (gui_size.height - n_rows * csize);
+
+	[rowText removeAllObjects];
+	[rowKey removeAllObjects];
+	[rowColor removeAllObjects];
+
+	int i;
+	for (i = 0; i < n_rows; i++)
+	{
+		[rowText addObject:@""];
+		[rowKey addObject:@""];
+		[rowColor addObject:[OOColor greenColor]];
+		rowPosition[i].x = 0.0;
+		rowPosition[i].y = size_in_pixels.height - (pixel_row_start + i * pixel_row_height);
+		rowAlignment[i] = GUI_ALIGN_LEFT;
+	}
+
+	pixel_text_size = NSMakeSize( csize, csize);
+	pixel_title_size = NSMakeSize( csize * 1.75, csize * 1.5);
+	
+	NSLog(@"gui %@ reset to rows:%d columns:%d start:%d", self, n_rows, n_columns, pixel_row_start);
+
+	rowRange = NSMakeRange(0,n_rows);
+	[self clear];
+}
+
+- (NSSize)	size
+{
+	return size_in_pixels;
+}
+- (int)	columns
+{
+	return n_columns;
+}
+- (int)	rows
+{
+	return n_rows;
+}
+- (int)	rowHeight
+{
+	return pixel_row_height;
+}
+- (int)	rowStart
+{
+	return pixel_row_start;
+}
+- (NSString*)	title
+{
+	return title;
 }
 
 - (void) dealloc
@@ -229,7 +301,6 @@ Your fair use and other rights are in no way affected by the above.
 		return;
 	}
 
-//	textColor = [[color colorUsingColorSpaceName:NSCalibratedRGBColorSpace] retain];
 	textColor = [color retain];
 }
 
@@ -650,22 +721,22 @@ Your fair use and other rights are in no way affected by the above.
 
 - (int) drawGUI:(GLfloat) alpha forUniverse:(Universe*) universe drawCursor:(BOOL) drawCursor
 {
+	GLfloat z1 = [[universe gameView] display_z];
 	if (alpha > 0.05)
 	{
-
 		PlayerEntity* player = (PlayerEntity*)[universe entityZero];
 
-		[self drawGLDisplay: drawPosition.x - 0.5 * size_in_pixels.width :drawPosition.y - 0.5 * size_in_pixels.height :drawPosition.z :alpha forUniverse:universe];
+		[self drawGLDisplay: drawPosition.x - 0.5 * size_in_pixels.width :drawPosition.y - 0.5 * size_in_pixels.height :z1 :alpha forUniverse:universe];
 
 		glEnable(GL_LINE_SMOOTH);
 
 		if (self == [universe gui])
 		{
 			if ([player gui_screen] == GUI_SCREEN_SHORT_RANGE_CHART)
-				[self drawStarChart:drawPosition.x - 0.5 * size_in_pixels.width :drawPosition.y - 0.5 * size_in_pixels.height :drawPosition.z :alpha forUniverse:universe];
+				[self drawStarChart:drawPosition.x - 0.5 * size_in_pixels.width :drawPosition.y - 0.5 * size_in_pixels.height :z1 :alpha forUniverse:universe];
 			if ([player gui_screen] == GUI_SCREEN_LONG_RANGE_CHART)
 			{
-				[self drawGalaxyChart:drawPosition.x - 0.5 * size_in_pixels.width :drawPosition.y - 0.5 * size_in_pixels.height :drawPosition.z :alpha forUniverse:universe];
+				[self drawGalaxyChart:drawPosition.x - 0.5 * size_in_pixels.width :drawPosition.y - 0.5 * size_in_pixels.height :z1 :alpha forUniverse:universe];
 			}
 		}
 		
@@ -707,10 +778,10 @@ Your fair use and other rights are in no way affected by the above.
 		cursor_x += drawPosition.x;
 		cursor_y += drawPosition.y;
 		glBegin(GL_LINES);
-			glVertex3f( cursor_x - h1, cursor_y, drawPosition.z);	glVertex3f( cursor_x - h3, cursor_y, drawPosition.z);
-			glVertex3f( cursor_x + h1, cursor_y, drawPosition.z);	glVertex3f( cursor_x + h3, cursor_y, drawPosition.z);
-			glVertex3f( cursor_x, cursor_y - h1, drawPosition.z);	glVertex3f( cursor_x, cursor_y - h3, drawPosition.z);
-			glVertex3f( cursor_x, cursor_y + h1, drawPosition.z);	glVertex3f( cursor_x, cursor_y + h3, drawPosition.z);
+			glVertex3f( cursor_x - h1, cursor_y, z1);	glVertex3f( cursor_x - h3, cursor_y, z1);
+			glVertex3f( cursor_x + h1, cursor_y, z1);	glVertex3f( cursor_x + h3, cursor_y, z1);
+			glVertex3f( cursor_x, cursor_y - h1, z1);	glVertex3f( cursor_x, cursor_y - h3, z1);
+			glVertex3f( cursor_x, cursor_y + h1, z1);	glVertex3f( cursor_x, cursor_y + h3, z1);
 		glEnd();
 		glLineWidth( 1.0f);
 	}
@@ -884,7 +955,6 @@ Your fair use and other rights are in no way affected by the above.
 	//
 	for (i = 0; i < n_rows; i++)
 	{
-//		OOColor* row_color = [(OOColor *)[rowColor objectAtIndex:i] colorUsingColorSpaceName:NSCalibratedRGBColorSpace];
 		OOColor* row_color = (OOColor *)[rowColor objectAtIndex:i];
 		GLfloat row_alpha = alpha;
 		if (rowFadeTime[i] > 0.0)

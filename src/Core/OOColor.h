@@ -52,6 +52,8 @@ Your fair use and other rights are in no way affected by the above.
 
 /* Some convenience methods to create colors in the calibrated color spaces...
 */
++ (OOColor *)colorFromString:(NSString*) colorFloatString;
+
 + (OOColor *)blackColor;	/* 0.0 white */
 + (OOColor *)darkGrayColor;	/* 0.333 white */
 + (OOColor *)lightGrayColor;	/* 0.667 white */

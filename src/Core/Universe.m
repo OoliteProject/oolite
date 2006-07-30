@@ -3985,7 +3985,7 @@ GLfloat* custom_matrix;
 	glDisable(GL_TEXTURE_2D);	// for background sheets
 	
 	if (message_gui)
-		[message_gui drawGUI:1.0 forUniverse:self drawCursor:NO];
+		[message_gui drawGUI:[message_gui alpha] forUniverse:self drawCursor:NO];
 
 	if (comm_log_gui)
 		[comm_log_gui drawGUI:[comm_log_gui alpha] forUniverse:self drawCursor:NO];

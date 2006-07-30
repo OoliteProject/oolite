@@ -198,6 +198,8 @@ Your fair use and other rights are in no way affected by the above.
 		GLfloat		desired_range;		// range to which to journey/scan
 		GLfloat		desired_speed;		// speed at which to travel
 		int			behaviour;			// ship's behavioural state
+		
+		BoundingBox				totalBoundingBox;	// records ship configuration
 
 	@protected
 
