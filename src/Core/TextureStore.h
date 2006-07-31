@@ -47,6 +47,8 @@ Your fair use and other rights are in no way affected by the above.
 
 extern int debug;
 
+@class OOColor;
+
 @interface TextureStore : NSObject
 {
     NSMutableDictionary	*textureDictionary;
@@ -60,6 +62,16 @@ extern int debug;
 
 - (void) reloadTextures;
 
+- (GLuint) getPlanetTextureNameFor:(NSDictionary*)planetinfo;
+
 void fillSquareImageDataWithBlur(unsigned char * imageBuffer, int width, int nplanes);
+
+void addNoise(float * buffer, int p, int n, float scale);
+void fillSquareImageDataWithSmoothNoise(unsigned char * imageBuffer, int width, int nplanes);
+void fillSquareImageWithPlanetTex(unsigned char * imageBuffer, int width, int nplanes, float impress, float bias,
+	OOColor* c0, float r0s, float r0i,
+	OOColor* c1, float r1s, float r1i,
+	OOColor* c2, float r2s, float r2i,
+	OOColor* c3);
 
 @end

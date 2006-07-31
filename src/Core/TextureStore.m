@@ -44,7 +44,9 @@ Your fair use and other rights are in no way affected by the above.
 #import "legacy_random.h"
 
 #import "TextureStore.h"
+#import "OOColor.h"
 
+#define PI	3.1415926536
 
 @implementation TextureStore
 
@@ -168,6 +170,16 @@ Your fair use and other rights are in no way affected by the above.
 		{
 //			NSLog(@"DEBUG filling image data for %@ (%d x %d) with special sauce!", filename, texture_w, texture_h);
 			fillSquareImageDataWithBlur(imageBuffer, texture_w, n_planes);
+		}
+
+		if (([filename hasPrefix:@"noisegen"])&&(texture_w == image_w)&&(texture_h == image_h))
+		{
+			NSLog(@"DEBUG filling image data for %@ (%d x %d) with special sauce!", filename, texture_w, texture_h);
+			fillSquareImageWithPlanetTex( imageBuffer, texture_w, n_planes, 1.0, 0.0,
+				[OOColor blueColor], 0.55, 0.01,
+				[OOColor whiteColor], 0.00, 0.005,
+				[OOColor greenColor], 0.08, 0.08,
+				[OOColor yellowColor]);
 		}
 
 		if ((texture_w > image_w)||(texture_h > image_h))	// we need to scale the image to the texture dimensions
@@ -317,6 +329,64 @@ Your fair use and other rights are in no way affected by the above.
 	return;
 }
 
+- (GLuint) getPlanetTextureNameFor:(NSDictionary*)planetinfo
+{
+	NSSize				imageSize;
+	GLuint				texName;
+
+	unsigned char		*texBytes;
+
+	int					texture_h = 4;
+	int					texture_w = 4;
+	int					image_h, image_w;
+	int					n_planes, im_bytes, tex_bytes;
+
+	int					im_bytesPerRow;
+
+	imageSize = NSMakeSize( 512, 512);	// Gives size in pixels, which is good.
+	image_w = imageSize.width;
+	image_h = imageSize.height;
+	texture_w = imageSize.width;
+	texture_h = imageSize.height;
+	n_planes = 4;
+	im_bytes = image_w * image_h * n_planes;
+	tex_bytes = texture_w * texture_h * n_planes;
+	im_bytesPerRow = 512 * 4;
+
+	unsigned char* imageBuffer = malloc( tex_bytes);
+
+	float land_fraction = [[planetinfo objectForKey:@"land_fraction"] floatValue];
+	float sea_bias = land_fraction - 1.0;
+	
+	NSLog(@"genning texture for land_fraction %.5f", land_fraction);
+	
+	OOColor* land_color = (OOColor*)[planetinfo objectForKey:@"land_color"];
+	OOColor* sea_color = (OOColor*)[planetinfo objectForKey:@"sea_color"];
+	OOColor* polar_land_color = (OOColor*)[planetinfo objectForKey:@"polar_land_color"];
+	OOColor* polar_sea_color = (OOColor*)[planetinfo objectForKey:@"polar_sea_color"];
+
+	fillSquareImageWithPlanetTex( imageBuffer, texture_w, n_planes, 1.0, sea_bias,
+		sea_color, 0.22, 0.05,
+		polar_sea_color, 0.23, 0.05,
+		land_color, 0.22, 0.05,
+		polar_land_color);
+
+	texBytes = imageBuffer;
+
+	glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+	glGenTextures(1, &texName);			// get a new unique texture name
+	glBindTexture(GL_TEXTURE_2D, texName);
+
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);	// adjust this
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);	// adjust this
+
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, texture_w, texture_h, 0, GL_RGBA, GL_UNSIGNED_BYTE, texBytes);
+
+	return texName;
+}
+
 void fillSquareImageDataWithBlur(unsigned char * imageBuffer, int width, int nplanes)
 {
 	int x, y;
@@ -356,6 +426,148 @@ void fillSquareImageDataWithBlur(unsigned char * imageBuffer, int width, int npl
 		imageBuffer[ p + nplanes * (y1 * width + x2) ] = i;
 		imageBuffer[ p + nplanes * (y2 * width + x1) ] = i;
 		imageBuffer[ p + nplanes * (y2 * width + x2) ] = i;
+	}
+}
+
+float ranNoiseBuffer[ 128 * 128];
+void fillRanNoiseBuffer()
+{
+	int i;
+	for (i = 0; i < 16384; i++)
+		ranNoiseBuffer[i] = randf();
+}
+
+float lerp_r( float v0, float r0s, float r0i, float v1, float r1s, float r1i, float v2, float r2s, float r2i, float v3, float q)
+{
+	if (q < r0s)
+		return v0;
+	q -= r0s;
+	if (q < r0i)
+		return v0 * (r0i - q)/r0i + v1 * q / r0i;
+	q -= r0i;
+	//
+	if (q < r1s)
+		return v1;
+	q -= r1s;
+	if (q < r1i)
+		return v1 * (r1i - q)/r1i + v2 * q / r1i;
+	q -= r1i;
+	//
+	if (q < r2s)
+		return v2;
+	q -= r2s;
+	if (q < r2i)
+		return v2 * (r2i - q)/r2i + v3 * q / r2i;
+	q -= r2i;
+	//
+	return v3;	// values of q over r0+r1+r2+r3
+}
+
+float my_lerp( float v0, float v1, float q)
+{
+	float q1 = 0.5 * (1.0 + cosf((q + 1.0) * PI));
+	return v0 * (1.0 - q1) + v1 * q1;
+}
+
+void addNoise(float * buffer, int p, int n, float scale)
+{
+	int x, y;
+	
+	float r = (float)p / (float)n;
+	for (y = 0; y < p; y++) for (x = 0; x < p; x++)
+	{
+		int ix = floor( (float)x / r);
+		int jx = (ix + 1) % n;
+		int iy = floor( (float)y / r);
+		int jy = (iy + 1) % n;
+		float qx = x / r - ix;
+		float qy = y / r - iy;
+		ix &= 127;
+		iy &= 127;
+		jx &= 127;
+		jy &= 127;
+		float rix = my_lerp( ranNoiseBuffer[iy * 128 + ix], ranNoiseBuffer[iy * 128 + jx], qx);
+		float rjx = my_lerp( ranNoiseBuffer[jy * 128 + ix], ranNoiseBuffer[jy * 128 + jx], qx);
+		float rfinal = scale * my_lerp( rix, rjx, qy);
+
+		buffer[ y * p + x ] += rfinal;
+	}
+}
+
+void fillSquareImageDataWithSmoothNoise(unsigned char * imageBuffer, int width, int nplanes)
+{
+	float accbuffer[width * width];
+	int x, y;
+	for (y = 0; y < width; y++) for (x = 0; x < width; x++) accbuffer[ y * width + x] = 0.0f;
+
+	fillRanNoiseBuffer();
+	int octave = 4;
+	float scale = 0.5;
+	while (octave < width)
+	{
+		addNoise( accbuffer, width, octave, scale);
+		octave *= 2;
+		scale *= 0.5;
+	}
+	
+	for (y = 0; y < width; y++) for (x = 0; x < width; x++)
+	{
+		int p;
+		float q = accbuffer[ y * width + x];
+		q = 2.0f * ( q - 0.5f);
+		if (q < 0.0f)
+			q = 0.0f;
+		for (p = 0; p < nplanes - 1; p++)
+			imageBuffer[ p + nplanes * (y * width + x) ] = 255 * q;
+		imageBuffer[ p + nplanes * (y * width + x) ] = 255;
+	}
+}
+
+void fillSquareImageWithPlanetTex(unsigned char * imageBuffer, int width, int nplanes, float impress, float bias,
+	OOColor* c0, float r0s, float r0i,
+	OOColor* c1, float r1s, float r1i,
+	OOColor* c2, float r2s, float r2i,
+	OOColor* c3)
+{
+	float accbuffer[width * width];
+	int x, y;
+	for (y = 0; y < width; y++) for (x = 0; x < width; x++) accbuffer[ y * width + x] = 0.0f;
+
+	fillRanNoiseBuffer();
+	int octave = 4;
+	float scale = 0.5;
+	while (octave < width)
+	{
+		addNoise( accbuffer, width, octave, scale);
+		octave *= 2;
+		scale *= 0.5;
+	}
+	
+	for (y = 0; y < width; y++) for (x = 0; x < width; x++)
+	{
+		float q =  impress * accbuffer[ y * width + x] + bias;
+		if (q > 1.0)	q = 1.0;
+		if (q < 0.0)	q = 0.0;
+		
+		float red = lerp_r( [c0 redComponent], r0s, r0i, [c1 redComponent], r1s, r1i, [c2 redComponent], r2s, r2i, [c3 redComponent], q);
+		float green = lerp_r( [c0 greenComponent], r0s, r0i, [c1 greenComponent], r1s, r1i, [c2 greenComponent], r2s, r2i, [c3 greenComponent], q);
+		float blue = lerp_r( [c0 blueComponent], r0s, r0i, [c1 blueComponent], r1s, r1i, [c2 blueComponent], r2s, r2i, [c3 blueComponent], q);
+		
+		if (nplanes == 1)
+			imageBuffer[ y * width + x ] = 255 * q;
+		if (nplanes == 3)
+		{
+			imageBuffer[ 0 + 3 * (y * width + x) ] = 255 * red;
+			imageBuffer[ 1 + 3 * (y * width + x) ] = 255 * green;
+			imageBuffer[ 2 + 3 * (y * width + x) ] = 255 * blue;
+		}
+		if (nplanes == 4)
+		{
+			imageBuffer[ 0 + 4 * (y * width + x) ] = 255 * red;
+			imageBuffer[ 1 + 4 * (y * width + x) ] = 255 * green;
+			imageBuffer[ 2 + 4 * (y * width + x) ] = 255 * blue;
+			imageBuffer[ 3 + 4 * (y * width + x) ] = 255;
+		}
 	}
 }
 
