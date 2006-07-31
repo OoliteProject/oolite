@@ -534,7 +534,7 @@ void fillSquareImageWithPlanetTex(unsigned char * imageBuffer, int width, int np
 	for (y = 0; y < width; y++) for (x = 0; x < width; x++) accbuffer[ y * width + x] = 0.0f;
 
 	fillRanNoiseBuffer();
-	int octave = 4;
+	int octave = 8;
 	float scale = 0.5;
 	while (octave < width)
 	{
@@ -545,7 +545,15 @@ void fillSquareImageWithPlanetTex(unsigned char * imageBuffer, int width, int np
 	
 	for (y = 0; y < width; y++) for (x = 0; x < width; x++)
 	{
-		float q =  impress * accbuffer[ y * width + x] + bias;
+		float q = accbuffer[ y * width + x];
+	
+		float polar = (2.0f * y - width) / (float) width;
+		
+		q *= 1.0 - polar * polar;
+	
+		q *= impress;
+		q += bias;
+	
 		if (q > 1.0)	q = 1.0;
 		if (q < 0.0)	q = 0.0;
 		
