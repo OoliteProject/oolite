@@ -5587,7 +5587,7 @@ static int last_outfitting_index;
 
 	if (themeMusic)
 	{
-		[themeMusic play];
+		[themeMusic playLooped];
 	}
 
 
