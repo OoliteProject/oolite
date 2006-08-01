@@ -4,7 +4,7 @@
 //	
 /*
 
-Copyright © 2005, Jens Ayton
+Copyright © 2005-2006 Jens Ayton
 All rights reserved.
 
 This work is licensed under the Creative Commons Attribution-ShareAlike License.
@@ -19,9 +19,8 @@ You are free:
 Under the following conditions:
 
 •	Attribution. You must give the original author credit.
-
 •	Share Alike. If you alter, transform, or build upon this work,
-you may distribute the resulting work only under a license identical to this one.
+	you may distribute the resulting work only under a license identical to this one.
 
 For any reuse or distribution, you must make clear to others the license terms of this work.
 
@@ -31,6 +30,11 @@ Your fair use and other rights are in no way affected by the above.
 
 */
 
+/*	OOSound is a class cluster. A single OOSound object exists, which represents a sound that has
+	been alloced but not inited. The designated initialiser returns a concrete subclass, either
+	OOCABufferedSound or OOCAStreamingSound, depending on the size of the sound data.
+*/
+
 #import "OOCASoundInternal.h"
 #import <CoreAudio/CoreAudio.h>
 #import <AudioToolbox/AudioToolbox.h>
@@ -38,13 +42,73 @@ Your fair use and other rights are in no way affected by the above.
 #define KEY_VOLUME_CONTROL @"volume_control"
 
 
+enum
+{
+	kMaxDecodeSize			= 1 << 19		// 512 kB
+};
+
+
 static float				sNominalVolume = 1.0f;
 BOOL						gOOSoundSetUp = NO;
 BOOL						gOOSoundBroken = NO;
 NSLock						*gOOCASoundSyncLock = NULL;	// Used to ensure thread-safety of play and stop, specifically because stop may be called from the CoreAudio thread.
 
+static OOSound				*sSingletonOOSound = NULL;
+
 
 @implementation OOSound
+
+#pragma mark NSObject
+
++ (id)allocWithZone:(NSZone *)inZone
+{
+	if (self != [OOSound class]) return [super allocWithZone:inZone];
+	
+	if (nil == sSingletonOOSound)
+	{
+		sSingletonOOSound = [super allocWithZone:inZone];
+	}
+	
+	return sSingletonOOSound;
+}
+
+
+- (id)init
+{
+	if ([self isMemberOfClass:[OOSound class]])
+	{
+		[self release];
+		return nil;
+	}
+	else
+	{
+		return [super init];
+	}
+}
+
+
+- (void)dealloc
+{
+	if (self == sSingletonOOSound) sSingletonOOSound = nil;
+	
+	[super dealloc];
+}
+
+
+- (NSString *)description
+{
+	if ([self isMemberOfClass:[OOSound class]])
+	{
+		return [NSString stringWithFormat:@"<%@ %p>(singleton placeholder)", [self className], self];
+	}
+	else
+	{
+		return [NSString stringWithFormat:@"<%@ %p>{\"%@\"}", [self className], self, [self name]];
+	}
+}
+
+
+#pragma mark OOSound
 
 + (void) setUp
 {
@@ -84,6 +148,8 @@ NSLock						*gOOCASoundSyncLock = NULL;	// Used to ensure thread-safety of play 
 	[OOCASoundChannel tearDown];
 	gOOSoundSetUp = NO;
 	gOOSoundBroken = NO;
+	
+	[sSingletonOOSound release];
 }
 
 
@@ -111,10 +177,44 @@ NSLock						*gOOCASoundSyncLock = NULL;	// Used to ensure thread-safety of play 
 }
 
 
+/*	Designated initialiser for OOSound.
+	Note: OOSound is a class cluster. This will always return a subclass of OOSound.
+*/
 - (id) initWithContentsOfFile:(NSString *)inPath
 {
+	OOCASoundDecoder		*decoder;
+	
+	if (!gOOSoundSetUp) [OOSound setUp];
+	
+	decoder = [[OOCASoundDecoder alloc] initWithPath:inPath];
+	if (nil == decoder) return nil;
+	
+	if ([decoder sizeAsBuffer] <= kMaxDecodeSize)
+	{
+		self = [[OOCABufferedSound alloc] initWithDecoder:decoder];
+	}
+	else
+	{
+		self = [[OOCAStreamingSound alloc] initWithDecoder:decoder];
+	}
+	
+	if (nil != self)
+	{
+		NSLog(@"Loaded sound %@", self);
+	}
+	else
+	{
+		NSLog(@"Failed to load sound \"%@\"", inPath);
+	}
+	
+	return self;
+}
+
+
+- (id)initWithDecoder:(OOCASoundDecoder *)inDecoder
+{
 	[self release];
-	return [[OOCABufferedSound alloc] initWithContentsOfFile:inPath];
+	return nil;
 }
 
 
@@ -164,7 +264,7 @@ NSLock						*gOOCASoundSyncLock = NULL;	// Used to ensure thread-safety of play 
 
 - (BOOL)stop
 {
-	return NO;
+	return YES;
 }
 
 
@@ -180,7 +280,7 @@ NSLock						*gOOCASoundSyncLock = NULL;	// Used to ensure thread-safety of play 
 }
 
 
-- (BOOL)prepareToPlayWithContext:(OOCASoundRenderContext *)outContext
+- (BOOL)prepareToPlayWithContext:(OOCASoundRenderContext *)outContext looped:(BOOL)inLoop
 {
 	return YES;
 }
@@ -201,12 +301,6 @@ NSLock						*gOOCASoundSyncLock = NULL;	// Used to ensure thread-safety of play 
 - (BOOL)doStop
 {
 	return YES;
-}
-
-
-- (NSString *)description
-{
-	return [NSString stringWithFormat:@"<%@ %p>{\"%@\"}", [self className], self, [self name]];
 }
 
 

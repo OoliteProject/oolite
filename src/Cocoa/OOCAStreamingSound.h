@@ -1,5 +1,5 @@
 //	
-//	OOCABufferedSound.h
+//	OOCAStreamingSound.h
 //	CoreAudio sound implementation for Oolite
 //	
 /*
@@ -19,8 +19,9 @@ You are free:
 Under the following conditions:
 
 •	Attribution. You must give the original author credit.
+
 •	Share Alike. If you alter, transform, or build upon this work,
-	you may distribute the resulting work only under a license identical to this one.
+you may distribute the resulting work only under a license identical to this one.
 
 For any reuse or distribution, you must make clear to others the license terms of this work.
 
@@ -31,21 +32,17 @@ Your fair use and other rights are in no way affected by the above.
 */
 
 #import <Cocoa/Cocoa.h>
-#import "OOCASound.h"
+#import "OOSound.h"
 
 @class OOCASoundDecoder;
+@class VirtualRingBuffer;
 
 
-@interface OOCABufferedSound: OOSound
+@interface OOCAStreamingSound: OOSound
 {
-	float				*_bufferL,
-						*_bufferR;
-	size_t				_size;
-	Float64				_sampleRate;
-	NSString			*_name;
-	BOOL				_stereo;
+	OOCASoundDecoder		*_decoder;
 }
 
-- (id)initWithDecoder:(OOCASoundDecoder *)inDecoder;
+- (id) initWithDecoder:(OOCASoundDecoder *)inDecoder;
 
 @end

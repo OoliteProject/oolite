@@ -4,7 +4,7 @@
 //	
 /*
 
-Copyright © 2005, Jens Ayton
+Copyright © 2005-2006 Jens Ayton
 All rights reserved.
 
 This work is licensed under the Creative Commons Attribution-ShareAlike License.
@@ -19,9 +19,8 @@ You are free:
 Under the following conditions:
 
 •	Attribution. You must give the original author credit.
-
 •	Share Alike. If you alter, transform, or build upon this work,
-you may distribute the resulting work only under a license identical to this one.
+	you may distribute the resulting work only under a license identical to this one.
 
 For any reuse or distribution, you must make clear to others the license terms of this work.
 
@@ -38,14 +37,14 @@ Your fair use and other rights are in no way affected by the above.
 
 enum
 {
-	kMaxDecodeSize			= 1 << 20		// 2^20 frames = four megs of data
+	kMaxDecodeSize			= 1 << 20		// 2^20 frames = 4 MB
 };
 
 
 static void MixDown(float *inChan1, float *inChan2, float *outMix, size_t inCount);
 
 
-@interface OOSoundCAVorbisCodec: OOCASoundDecoder
+@interface OOCASoundVorbisCodec: OOCASoundDecoder
 {
 	OggVorbis_File			_vf;
 	NSString				*_name;
@@ -76,7 +75,7 @@ static void MixDown(float *inChan1, float *inChan2, float *outMix, size_t inCoun
 	
 	if ([[inPath pathExtension] isEqual:@"ogg"])
 	{
-		self = [[OOSoundCAVorbisCodec alloc] initWithPath:inPath];
+		self = [[OOCASoundVorbisCodec alloc] initWithPath:inPath];
 	}
 	
 	return self;
@@ -87,13 +86,13 @@ static void MixDown(float *inChan1, float *inChan2, float *outMix, size_t inCoun
 {
 	if ([[inPath pathExtension] isEqual:@"ogg"])
 	{
-		return [[[OOSoundCAVorbisCodec alloc] initWithPath:inPath] autorelease];
+		return [[[OOCASoundVorbisCodec alloc] initWithPath:inPath] autorelease];
 	}
 	return nil;
 }
 
 
-- (size_t)readStereoToBufferL:(float *)ioBufferL bufferR:(float *)ioBufferR maxFrames:(size_t)inMax
+- (size_t)streamStereoToBufferL:(float *)ioBufferL bufferR:(float *)ioBufferR maxFrames:(size_t)inMax
 {
 	return 0;
 }
@@ -104,6 +103,28 @@ static void MixDown(float *inChan1, float *inChan2, float *outMix, size_t inCoun
 	if (NULL != outBuffer) *outBuffer = NULL;
 	if (NULL != outSize) *outSize = 0;
 	
+	return NO;
+}
+
+
+- (BOOL)readStereoCreatingLeftBuffer:(float **)outLeftBuffer rightBuffer:(float **)outRightBuffer withFrameCount:(size_t *)outSize
+{
+	if (NULL != outLeftBuffer) *outLeftBuffer = NULL;
+	if (NULL != outRightBuffer) *outRightBuffer = NULL;
+	if (NULL != outSize) *outSize = 0;
+	
+	return NO;
+}
+
+
+- (size_t)sizeAsBuffer
+{
+	return 0;
+}
+
+
+- (BOOL)isStereo
+{
 	return NO;
 }
 
@@ -126,6 +147,12 @@ static void MixDown(float *inChan1, float *inChan2, float *outMix, size_t inCoun
 }
 
 
+- (BOOL)scanToOffset:(uint64_t)inOffset
+{
+	return NO;
+}
+
+
 - (NSString *)name
 {
 	return @"";
@@ -134,7 +161,7 @@ static void MixDown(float *inChan1, float *inChan2, float *outMix, size_t inCoun
 @end
 
 
-@implementation OOSoundCAVorbisCodec
+@implementation OOCASoundVorbisCodec
 
 - (id)initWithPath:(NSString *)inPath
 {
@@ -216,49 +243,9 @@ static void MixDown(float *inChan1, float *inChan2, float *outMix, size_t inCoun
 }
 
 
-- (size_t)readStereoToBufferL:(float *)ioBufferL bufferR:(float *)ioBufferR maxFrames:(size_t)inMax
-{
-	float					**src;
-	unsigned				chanCount;
-	unsigned				framesRead, size;
-	size_t					remaining;
-	unsigned				rightChan;
-	
-	// Note: for our purposes, a frame is a set of one sample for each channel.
-	if (NULL == ioBufferL || NULL == ioBufferR || 0 == inMax) return 0;
-	if (_atEnd) return inMax;
-	
-	remaining = inMax;
-	do
-	{
-		chanCount = ov_info(&_vf, -1)->channels;
-		framesRead = ov_read_float(&_vf, &src, remaining, NULL);
-		if (framesRead <= 0)
-		{
-			if (OV_HOLE == framesRead) continue;
-			//else:
-			_atEnd = YES;
-			break;
-		}
-		
-		size = sizeof (float) * framesRead;
-		
-		rightChan = (1 == chanCount) ? 0 : 1;
-		bcopy(src[0], ioBufferL, size);
-		bcopy(src[rightChan], ioBufferR, size);
-		
-		remaining -= framesRead;
-		ioBufferL += framesRead;
-		ioBufferR += framesRead;
-	} while (0 != remaining);
-	
-	return inMax - remaining;
-}
-
-
 - (BOOL)readMonoCreatingBuffer:(float **)outBuffer withFrameCount:(size_t *)outSize
 {
-	float					*buffer, *dst, **src;
+	float					*buffer = NULL, *dst, **src;
 	size_t					sizeInFrames, remaining;
 	unsigned				chanCount;
 	unsigned				framesRead;
@@ -272,11 +259,7 @@ static void MixDown(float *inChan1, float *inChan2, float *outMix, size_t inCoun
 	if (OK)
 	{
 		totalSizeInFrames = ov_pcm_total(&_vf, -1);
-		if (kMaxDecodeSize < totalSizeInFrames)
-		{
-			NSLog(@"Refusing to load %@ because its uncompressed size is over %u bytes.", [self name], kMaxDecodeSize * sizeof (float));
-			OK = NO;
-		}
+		assert (kMaxDecodeSize < SIZE_T_MAX);	// Should have been checked by caller
 		sizeInFrames = totalSizeInFrames;
 	}
 	
@@ -317,7 +300,145 @@ static void MixDown(float *inChan1, float *inChan2, float *outMix, size_t inCoun
 		*outBuffer = buffer;
 		*outSize = sizeInFrames;
 	}
+	else
+	{
+		if (buffer) free(buffer);
+	}
 	return OK;
+}
+
+
+- (BOOL)readStereoCreatingLeftBuffer:(float **)outLeftBuffer rightBuffer:(float **)outRightBuffer withFrameCount:(size_t *)outSize;
+{
+	float					*bufferL = NULL, *bufferR = NULL, *dstL, *dstR, **src;
+	size_t					sizeInFrames, remaining;
+	unsigned				chanCount;
+	unsigned				framesRead;
+	ogg_int64_t				totalSizeInFrames;
+	BOOL					OK = YES;
+	
+	if (NULL != outLeftBuffer) *outLeftBuffer = NULL;
+	if (NULL != outRightBuffer) *outRightBuffer = NULL;
+	if (NULL != outSize) *outSize = 0;
+	if (NULL == outLeftBuffer || NULL == outRightBuffer || NULL == outSize) OK = NO;
+	
+	if (OK)
+	{
+		totalSizeInFrames = ov_pcm_total(&_vf, -1);
+		assert (kMaxDecodeSize < SIZE_T_MAX);	// Should have been checked by caller
+		sizeInFrames = totalSizeInFrames;
+	}
+	
+	if (OK)
+	{
+		bufferL = malloc(sizeof (float) * sizeInFrames);
+		if (!bufferL) OK = NO;
+	}
+	
+	if (OK)
+	{
+		bufferR = malloc(sizeof (float) * sizeInFrames);
+		if (!bufferR) OK = NO;
+	}
+	
+	if (OK && sizeInFrames)
+	{
+		remaining = sizeInFrames;
+		dstL = bufferL;
+		dstR = bufferR;
+		
+		do
+		{
+			chanCount = ov_info(&_vf, -1)->channels;
+			framesRead = ov_read_float(&_vf, &src, remaining, NULL);
+			if (framesRead <= 0)
+			{
+				if (OV_HOLE == framesRead) continue;
+				//else:
+				break;
+			}
+			
+			bcopy(src[0], dstL, sizeof (float) * framesRead);
+			if (1 == chanCount) bcopy(src[0], dstR, sizeof (float) * framesRead);
+			else bcopy(src[1], dstR, sizeof (float) * framesRead);
+			
+			remaining -= framesRead;
+			dstL += framesRead;
+			dstR += framesRead;
+		} while (0 != remaining);
+		
+		sizeInFrames -= remaining;	// In case we stopped at an error
+	}
+	
+	if (OK)
+	{
+		*outLeftBuffer = bufferL;
+		*outRightBuffer = bufferR;
+		*outSize = sizeInFrames;
+	}
+	else
+	{
+		if (bufferL) free(bufferL);
+		if (bufferR) free(bufferR);
+	}
+	return OK;
+}
+
+
+- (size_t)streamStereoToBufferL:(float *)ioBufferL bufferR:(float *)ioBufferR maxFrames:(size_t)inMax
+{
+	float					**src;
+	unsigned				chanCount;
+	unsigned				framesRead, size;
+	size_t					remaining;
+	unsigned				rightChan;
+	
+	// Note: for our purposes, a frame is a set of one sample for each channel.
+	if (NULL == ioBufferL || NULL == ioBufferR || 0 == inMax) return 0;
+	if (_atEnd) return inMax;
+	
+	remaining = inMax;
+	do
+	{
+		chanCount = ov_info(&_vf, -1)->channels;
+		framesRead = ov_read_float(&_vf, &src, remaining, NULL);
+		if (framesRead <= 0)
+		{
+			if (OV_HOLE == framesRead) continue;
+			//else:
+			_atEnd = YES;
+			break;
+		}
+		
+		size = sizeof (float) * framesRead;
+		
+		rightChan = (1 == chanCount) ? 0 : 1;
+		bcopy(src[0], ioBufferL, size);
+		bcopy(src[rightChan], ioBufferR, size);
+		
+		remaining -= framesRead;
+		ioBufferL += framesRead;
+		ioBufferR += framesRead;
+	} while (0 != remaining);
+	
+	return inMax - remaining;
+}
+
+
+- (size_t)sizeAsBuffer
+{
+	ogg_int64_t				size;
+	
+	size = ov_pcm_total(&_vf, -1);
+	size /= sizeof(float);	// Frames of mono float are 4 bytes each
+	if (SIZE_T_MAX < size) size = SIZE_T_MAX;
+	return size;
+}
+
+
+- (BOOL)isStereo
+{
+	return 1 < ov_info(&_vf, -1)->channels;
 }
 
 
@@ -342,6 +463,17 @@ static void MixDown(float *inChan1, float *inChan2, float *outMix, size_t inCoun
 - (void)rewindToBeginning
 {
 	if (!ov_pcm_seek(&_vf, 0)) _atEnd = NO;
+}
+
+
+- (BOOL)scanToOffset:(uint64_t)inOffset
+{
+	if (!ov_pcm_seek(&_vf, inOffset))
+	{
+		_atEnd = NO;
+		return YES;
+	}
+	else return NO;
 }
 
 

@@ -4,7 +4,7 @@
 //	
 /*
 
-Copyright © 2005, Jens Ayton
+Copyright © 2005 Jens Ayton
 All rights reserved.
 
 This work is licensed under the Creative Commons Attribution-ShareAlike License.
@@ -19,9 +19,8 @@ You are free:
 Under the following conditions:
 
 •	Attribution. You must give the original author credit.
-
 •	Share Alike. If you alter, transform, or build upon this work,
-you may distribute the resulting work only under a license identical to this one.
+	you may distribute the resulting work only under a license identical to this one.
 
 For any reuse or distribution, you must make clear to others the license terms of this work.
 
@@ -157,7 +156,7 @@ static OOSoundSource			*sFreeList = nil;
 		_playCount = inCount;
 		_playing = YES;
 		[_channel setDelegate:self];
-		[_channel playSound:inSound];
+		[_channel playSound:inSound looped:_loop];
 		[self retain];
 	}
 	[gOOCASoundSyncLock unlock];
@@ -209,11 +208,11 @@ static OOSoundSource			*sFreeList = nil;
 	assert(_channel == inChannel);
 	
 	[gOOCASoundSyncLock lock];
-	if (_loop && _playing) ++_playCount;
+//	if (_loop && _playing) ++_playCount;	// Moved responsibility for looping into sounds
 	
 	if (--_playCount)
 	{
-		[_channel playSound:inSound];
+		[_channel playSound:inSound looped:_loop];
 	}
 	else
 	{

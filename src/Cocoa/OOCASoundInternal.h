@@ -4,7 +4,7 @@
 //	
 /*
 
-Copyright © 2005, Jens Ayton
+Copyright © 2005-2006 Jens Ayton
 All rights reserved.
 
 This work is licensed under the Creative Commons Attribution-ShareAlike License.
@@ -19,9 +19,8 @@ You are free:
 Under the following conditions:
 
 •	Attribution. You must give the original author credit.
-
 •	Share Alike. If you alter, transform, or build upon this work,
-you may distribute the resulting work only under a license identical to this one.
+	you may distribute the resulting work only under a license identical to this one.
 
 For any reuse or distribution, you must make clear to others the license terms of this work.
 
@@ -32,11 +31,10 @@ Your fair use and other rights are in no way affected by the above.
 */
 
 #import "OOCASound.h"
-#import "OOCAMusic.h"
-#import "OOCASoundDecoder.h"
 #import "OOCASoundMixer.h"
 #import "OOCASoundChannel.h"
 #import "OOCABufferedSound.h"
+#import "OOCAStreamingSound.h"
 #import <CoreAudio/CoreAudio.h>
 #import <AudioToolbox/AudioToolbox.h>
 #import "OOErrorDescription.h"
@@ -48,7 +46,7 @@ Your fair use and other rights are in no way affected by the above.
 - (OSStatus)renderWithFlags:(AudioUnitRenderActionFlags *)ioFlags frames:(UInt32)inNumFrames context:(OOCASoundRenderContext *)ioContext data:(AudioBufferList *)ioData;
 
 // Called by -play and -stop only if in appropriate state
-- (BOOL)prepareToPlayWithContext:(OOCASoundRenderContext *)outContext;
+- (BOOL)prepareToPlayWithContext:(OOCASoundRenderContext *)outContext looped:(BOOL)inLoop;
 - (void)finishStoppingWithContext:(OOCASoundRenderContext)inContext;
 
 - (BOOL)getAudioStreamBasicDescription:(AudioStreamBasicDescription *)outFormat;

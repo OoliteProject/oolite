@@ -4,7 +4,7 @@
 //	
 /*
 
-Copyright © 2005, Jens Ayton
+Copyright © 2005-2006 Jens Ayton
 All rights reserved.
 
 This work is licensed under the Creative Commons Attribution-ShareAlike License.
@@ -19,7 +19,6 @@ You are free:
 Under the following conditions:
 
 •	Attribution. You must give the original author credit.
-
 •	Share Alike. If you alter, transform, or build upon this work,
 you may distribute the resulting work only under a license identical to this one.
 
@@ -32,62 +31,37 @@ Your fair use and other rights are in no way affected by the above.
 */
 
 #import "OOCASoundInternal.h"
+#import "OOCASoundDecoder.h"
+
+
+@interface OOCABufferedSound (Private)
+
+- (BOOL)bufferSound:(NSString *)inPath;
+
+@end
 
 
 @implementation OOCABufferedSound
 
-
-- (id)initWithContentsOfFile:(NSString *)inPath
-{
-	BOOL					OK = YES;
-	
-	if (!gOOSoundSetUp) [OOSound setUp];
-	if (gOOSoundBroken) OK = NO;
-	
-	if (OK)
-	{
-		self = [super init];
-		if (nil != self)
-		{
-			if (![self bufferSound:inPath]) OK = NO;
-		}
-	}
-	
-	if (!OK)
-	{
-		[self release];
-		self = nil;
-	}
-	return self;
-}
-
-
-- (BOOL)bufferSound:(NSString *)inPath
-{
-	OOCASoundDecoder		*decoder;
-	BOOL					OK = YES;
-	
-	decoder = [[OOCASoundDecoder alloc] initWithPath:inPath];
-	if (nil == decoder) OK = NO;
-	else
-	{
-		_name = [[decoder name] retain];
-		_sampleRate = [decoder sampleRate];
-		OK = [decoder readMonoCreatingBuffer:&_buffer withFrameCount:&_size];
-	}
-	
-	[decoder release];
-	return OK;
-}
-
+#pragma mark NSObject
 
 - (void)dealloc
 {
-	if (_buffer) free(_buffer);
+	if (_bufferL) free(_bufferL);
+	if (_stereo) _bufferR = NULL;
+	else if (_bufferR) free(_bufferR);
 	
 	[super dealloc];
 }
 
+
+- (NSString *)description
+{
+	return [NSString stringWithFormat:@"<%@ %p>{\"%@\", %s, %g Hz}", [self className], self, [self name], _stereo ? "stereo" : "mono", _sampleRate];
+}
+
+
+#pragma mark OOSound
 
 - (NSString *)name
 {
@@ -98,11 +72,6 @@ Your fair use and other rights are in no way affected by the above.
 - (void)play
 {
 	[[OOCASoundMixer mixer] playSound:self];
-	/*
-	OOSoundSource *source = [[OOSoundSource alloc] init];
-	[source playSound:self];
-	[source release];
-	*/
 }
 
 
@@ -124,13 +93,22 @@ Your fair use and other rights are in no way affected by the above.
 }
 
 
+// Context is (offset << 1) | loop. Offset is initially 0.
+- (BOOL)prepareToPlayWithContext:(OOCASoundRenderContext *)outContext looped:(BOOL)inLoop
+{
+	*outContext = inLoop ? 1 : 0;
+	return YES;
+}
+
+
 - (OSStatus)renderWithFlags:(AudioUnitRenderActionFlags *)ioFlags frames:(UInt32)inNumFrames context:(OOCASoundRenderContext *)ioContext data:(AudioBufferList *)ioData
 {
 	size_t					toCopy, remaining, underflow, offset;
-	unsigned				i, count;
+	BOOL					loop;
 	
-	offset = *ioContext;
-	count = ioData->mNumberBuffers;
+	loop = (*ioContext) & 1;
+	offset = (*ioContext) >> 1;
+	assert (ioData->mNumberBuffers == 2);
 	
 	if (offset < _size)
 	{
@@ -146,14 +124,23 @@ Your fair use and other rights are in no way affected by the above.
 			underflow = 0;
 		}
 		
-		*ioContext += toCopy;
+		bcopy(_bufferL + offset, ioData->mBuffers[0].mData, toCopy * sizeof (float));
+		bcopy(_bufferR + offset, ioData->mBuffers[1].mData, toCopy * sizeof (float));
 		
-		toCopy *= sizeof (float);
-		
-		for (i = 0; i != count; ++i)
+		if (underflow && loop)
 		{
-			bcopy(_buffer + offset, ioData->mBuffers[i].mData, toCopy);
+			offset = toCopy;
+			toCopy = inNumFrames - toCopy;
+			if (_size < toCopy) toCopy = _size;
+			
+			bcopy(_bufferL, ((float *)ioData->mBuffers[0].mData) + offset, toCopy * sizeof (float));
+			bcopy(_bufferR, ((float *)ioData->mBuffers[1].mData) + offset, toCopy * sizeof (float));
+			
+			underflow -= toCopy;
+			offset = 0;
 		}
+		
+		*ioContext = ((offset + toCopy) << 1) | loop;
 	}
 	else
 	{
@@ -164,14 +151,51 @@ Your fair use and other rights are in no way affected by the above.
 	
 	if (underflow)
 	{
-		underflow *= sizeof (float);
-		for (i = 0; i != count; ++i)
-		{
-			bzero(ioData->mBuffers[i].mData + toCopy, underflow);
-		}
+		bzero(ioData->mBuffers[0].mData + toCopy, underflow * sizeof (float));
+		bzero(ioData->mBuffers[1].mData + toCopy, underflow * sizeof (float));
 	}
 	
 	return underflow ? endOfDataReached : noErr;
+}
+
+
+#pragma mark OOCABufferedSound
+
+- (id)initWithDecoder:(OOCASoundDecoder *)inDecoder
+{
+	BOOL					OK = YES;
+	
+	assert(gOOSoundSetUp);
+	if (gOOSoundBroken || nil == inDecoder) OK = NO;
+	
+	if (OK)
+	{
+		self = [super init];
+		if (nil == self) OK = NO;
+	}
+	
+	if (OK)
+	{
+		_name = [[inDecoder name] copy];
+		_sampleRate = [inDecoder sampleRate];
+		if ([inDecoder isStereo])
+		{
+			OK = [inDecoder readStereoCreatingLeftBuffer:&_bufferL rightBuffer:&_bufferR withFrameCount:&_size];
+			_stereo = YES;
+		}
+		else
+		{
+			OK = [inDecoder readMonoCreatingBuffer:&_bufferL withFrameCount:&_size];
+			_bufferR = _bufferL;
+		}
+	}
+	
+	if (!OK)
+	{
+		[self release];
+		self = nil;
+	}
+	return self;
 }
 
 @end

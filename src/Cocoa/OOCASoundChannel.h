@@ -4,7 +4,7 @@
 //	
 /*
 
-Copyright © 2005, Jens Ayton
+Copyright © 2005-2006 Jens Ayton
 All rights reserved.
 
 This work is licensed under the Creative Commons Attribution-ShareAlike License.
@@ -19,9 +19,8 @@ You are free:
 Under the following conditions:
 
 •	Attribution. You must give the original author credit.
-
 •	Share Alike. If you alter, transform, or build upon this work,
-you may distribute the resulting work only under a license identical to this one.
+	you may distribute the resulting work only under a license identical to this one.
 
 For any reuse or distribution, you must make clear to others the license terms of this work.
 
@@ -73,7 +72,7 @@ typedef  OSStatus (*OOCASoundChannel_RenderIMP)(id inSelf, SEL inSelector, Audio
 - (OOCASoundChannel *)next;
 - (void)setNext:(OOCASoundChannel *)inNext;
 
-- (BOOL)playSound:(OOSound *)inSound;
+- (BOOL)playSound:(OOSound *)inSound looped:(BOOL)inLoop;
 - (void)stop;
 
 - (OOSound *)sound;

@@ -4,7 +4,7 @@
 //	
 /*
 
-Copyright © 2005, Jens Ayton
+Copyright © 2005-2006 Jens Ayton
 All rights reserved.
 
 This work is licensed under the Creative Commons Attribution-ShareAlike License.
@@ -19,9 +19,8 @@ You are free:
 Under the following conditions:
 
 •	Attribution. You must give the original author credit.
-
 •	Share Alike. If you alter, transform, or build upon this work,
-you may distribute the resulting work only under a license identical to this one.
+	you may distribute the resulting work only under a license identical to this one.
 
 For any reuse or distribution, you must make clear to others the license terms of this work.
 
@@ -336,7 +335,7 @@ static BOOL PortWait(mach_port_t inPort, PortMessage *outMessage);
 }
 
 
-- (BOOL)playSound:(OOSound *)inSound
+- (BOOL)playSound:(OOSound *)inSound looped:(BOOL)inLooped
 {
 	BOOL						OK = YES;
 	OSStatus					err = noErr;
@@ -386,7 +385,7 @@ static BOOL PortWait(mach_port_t inPort, PortMessage *outMessage);
 		OK = (NULL != Render);
 		
 		if (OK) OK = [inSound getAudioStreamBasicDescription:&format];
-		if (OK) OK = [inSound prepareToPlayWithContext:&_context];
+		if (OK) OK = [inSound prepareToPlayWithContext:&_context looped:inLooped];
 		
 		if (!OK)
 		{
@@ -410,11 +409,12 @@ static BOOL PortWait(mach_port_t inPort, PortMessage *outMessage);
 		{
 			[_sound retain];
 			_state = kState_Playing;
+			NSLog(@"Playing sound %@", _sound);
 		}
 		else
 		{
 			_sound = nil;
-		//	if (!err) NSLog(@"OOCASoundChannel: Failed to play %@", inSound);
+			if (!err) NSLog(@"OOCASoundChannel: Failed to play %@", inSound);
 		}
 		[gOOCASoundSyncLock unlock];
 	}

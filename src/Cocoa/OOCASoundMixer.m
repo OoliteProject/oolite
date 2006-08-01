@@ -4,7 +4,7 @@
 //	
 /*
 
-Copyright © 2005, Jens Ayton
+Copyright © 2005 Jens Ayton
 All rights reserved.
 
 This work is licensed under the Creative Commons Attribution-ShareAlike License.
@@ -19,9 +19,8 @@ You are free:
 Under the following conditions:
 
 •	Attribution. You must give the original author credit.
-
 •	Share Alike. If you alter, transform, or build upon this work,
-you may distribute the resulting work only under a license identical to this one.
+	you may distribute the resulting work only under a license identical to this one.
 
 For any reuse or distribution, you must make clear to others the license terms of this work.
 
@@ -130,8 +129,6 @@ static OOCASoundMixer *sSingleton = nil;
 				if (noErr != AUGraphInitialize(_graph)) OK = NO;
 			}
 			
-			if (OK) _musicSource = [[OOSoundSource alloc] init];
-			
 			if (!OK)
 			{
 				[self reallyRelease];
@@ -201,36 +198,8 @@ static OOCASoundMixer *sSingleton = nil;
 	{
 		[_channels[idx] release];
 	}
-	[_musicSource release];
 	
 	[super dealloc];
-}
-
-
-- (void)playMusic:(OOMusic *)inMusic
-{
-	if (_music != inMusic)
-	{
-		_music = [inMusic retain];
-		[_musicSource playSound:inMusic];
-	}
-}
-
-
-- (void)stopMusic:(OOMusic *)inMusic
-{
-	if (_music == inMusic)
-	{
-		[_musicSource stop];
-		[_music autorelease];
-		_music = nil;
-	}
-}
-
-
-- (OOMusic *)currentMusic
-{
-	return _music;
 }
 
 
@@ -246,7 +215,7 @@ static OOCASoundMixer *sSingleton = nil;
 	if (nil != chan)
 	{
 		[chan setDelegate:self];
-		OK = [chan playSound:inSound];
+		OK = [chan playSound:inSound looped:NO];
 		
 		if (OK)
 		{

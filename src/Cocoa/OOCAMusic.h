@@ -4,7 +4,7 @@
 //	
 /*
 
-Copyright © 2005, Jens Ayton
+Copyright © 2005-2006 Jens Ayton
 All rights reserved.
 
 This work is licensed under the Creative Commons Attribution-ShareAlike License.
@@ -34,20 +34,13 @@ Your fair use and other rights are in no way affected by the above.
 #import <Cocoa/Cocoa.h>
 #import "OOSound.h"
 
-@class OOCASoundDecoder;
-@class VirtualRingBuffer;
-
 
 @interface OOMusic: OOSound
 {
-	OOCASoundDecoder		*_decoder;
-	VirtualRingBuffer		*_bufferL, *_bufferR;
-	BOOL					_loop, _atEnd;
+	OOSound				*sound;
 }
 
-- (id) initWithContentsOfFile:(NSString *)path;
-
-- (void) setLoop:(BOOL)inLoop;
-- (BOOL) loop;
+- (BOOL)playLooped;
+- (BOOL)stop;
 
 @end
