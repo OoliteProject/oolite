@@ -597,9 +597,11 @@ Your fair use and other rights are in no way affected by the above.
 - (void) set_up_universe_from_station
 {
 	//NSLog(@"UNIVERSE set_up_universe_from_station station %d, planet %d, sun %d",station,planet,sun);
-	if (station == NO_TARGET)
+//	if (station == NO_TARGET)
+	if (![self sun])
 	{
 		// we're in witchspace or this is the first launch...
+		NSLog(@"TESTING: setting up system (from 1st launch or witchspace) with no sun.");
 		
 		// save the player
 		PlayerEntity*	player = (PlayerEntity*)[self entityZero];
@@ -608,8 +610,11 @@ Your fair use and other rights are in no way affected by the above.
 		// jump to the nearest system
 		Random_Seed s_seed = [self findSystemAtCoords:[player galaxy_coordinates] withGalaxySeed:[player galaxy_seed]];
 		[player setSystem_seed:s_seed];
+		
+		// I think we need to do this too!
+		[self setSystemTo: s_seed];
 			
-		// remove everything else
+		// remove everything except the player and the docked station
 		if (docked_station)
 		{
 			int index = 0;
@@ -1039,61 +1044,6 @@ Your fair use and other rights are in no way affected by the above.
 	[self populateSpaceFromActiveWormholes];
 	
 	[self populateSpaceFromHyperPoint:[self getWitchspaceExitPosition] toPlanetPosition: a_planet->position andSunPosition: a_sun->position];
-
-	
-//	// log positions and info against debugging 
-//	NSLog(@"DEBUG ** System :\t%@", [self generateSystemName:system_seed]);
-//	NSLog(@"DEBUG ** Planet position\t( %.0f, %.0f, %.0f)",
-//		a_planet->position.x, a_planet->position.y, a_planet->position.z);
-//	NSLog(@"DEBUG ** Sun position\t( %.0f, %.0f, %.0f)",
-//		a_sun->position.x, a_sun->position.y, a_sun->position.z);
-//	NSLog(@"DEBUG ** Station position\t( %.0f, %.0f, %.0f)",
-//		a_station->position.x, a_station->position.y, a_station->position.z);
-//	NSLog(@"DEBUG **\n\n");
-//	NSLog(@"DEBUG ** Sun q_sun\t( %.3f, %.3f, %.3f, %.3f)",
-//		q_sun.w, q_sun.x, q_sun.y, q_sun.z);
-//	NSLog(@"DEBUG ** Station q_station\t( %.3f, %.3f, %.3f, %.3f)",
-//		q_station.w, q_station.x, q_station.y, q_station.z);
-//	NSLog(@"DEBUG **\n\n");
-
-
-//	// debug name gen
-//	int i;
-//	Random_Seed p_seed = system_seed;
-//	for (i = 0; i < 200; i++)
-//	{
-//		rotate_seed(&p_seed);
-//		NSLog([NSString stringWithFormat:@"Human Name: %@ %@", [self expandDescription:@"%R" forSystem:p_seed], [self expandDescription:@"[nom]" forSystem:p_seed]]);
-//	}
-	
-//	// debug character gen
-//	int i;
-//	Random_Seed p_seed = system_seed;
-//	for (i = 0; i < 20; i++)
-//	{
-//		rotate_seed( &p_seed);
-//		rotate_seed( &p_seed);
-//		rotate_seed( &p_seed);
-//		rotate_seed( &p_seed);
-//		NSLog(@"%d.) %@", i + 1, [[[OOCharacter alloc] initWithGenSeed: p_seed andOriginalSystemSeed: system_seed inUniverse: self] autorelease]);
-//	}
-//	for (i = 0; i < 20; i++)
-//	{
-//		rotate_seed( &p_seed);
-//		rotate_seed( &p_seed);
-//		rotate_seed( &p_seed);
-//		rotate_seed( &p_seed);
-//		NSLog(@"%d.) %@", i + 1, [[[OOCharacter alloc] initWithRole:@"pirate" andOriginalSystemSeed: p_seed inUniverse: self] autorelease]);
-//	}
-//	for (i = 0; i < 20; i++)
-//	{
-//		rotate_seed( &p_seed);
-//		rotate_seed( &p_seed);
-//		rotate_seed( &p_seed);
-//		rotate_seed( &p_seed);
-//		NSLog(@"%d.) %@", i + 1, [[[OOCharacter alloc] initWithRole:@"trader" andOriginalSystemSeed: p_seed inUniverse: self] autorelease]);
-//	}
-	
 	
 	/*- nav beacon -*/
 	nav_buoy = [self getShipWithRole:@"buoy"];	// retain count = 1
@@ -1129,7 +1079,6 @@ Your fair use and other rights are in no way affected by the above.
 		Vector v0 = make_vector(0,0,34567.89);
 		Vector planetPos = a_planet->position;
 		double min_safe_dist2 = 5000000.0 * 5000000.0;
-//		NSLog(@"DEBUG checking sun-distance = %.1f", sqrt(magnitude2(a_sun->position)));
 		while (magnitude2(a_sun->position) < min_safe_dist2)	// back off the planetary bodies
 		{
 			v0.z *= 2.0;
@@ -1139,7 +1088,6 @@ Your fair use and other rights are in no way affected by the above.
 			sunPos = a_sun->position;
 			[a_station setPosition: stationPos.x + v0.x: stationPos.y + v0.y: stationPos.z + v0.z];
 			stationPos = a_station->position;
-//			NSLog(@"DEBUG backing off sun-distance = %.1f", sqrt(magnitude2(a_sun->position)));
 		}
 		sun_center_position[0] = sunPos.x;
 		sun_center_position[1] = sunPos.y;

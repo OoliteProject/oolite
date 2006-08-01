@@ -3886,8 +3886,6 @@ double scoopSoundPlayTime = 0.0;
 
 - (void) leaveDock:(StationEntity *)station
 {
-//	[universe setMessageGuiBackgroundColor:[OOColor clearColor]];	// clear the message gui background
-
 	if (station == [universe station])
 		legal_status |= [universe legal_status_of_manifest:shipCommodityData];  // 'leaving with those guns were you sir?'
 	[self loadCargoPods];
