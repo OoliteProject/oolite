@@ -676,7 +676,20 @@ static  Universe	*data_store_universe;
 	//
 	[self regenerateDisplayList];
     //
-    [self loadData:basefile];
+		
+	NS_DURING
+		[self loadData:basefile];
+	NS_HANDLER
+		if ([[localException name] isEqual: OOLITE_EXCEPTION_DATA_NOT_FOUND])
+		{
+			NSLog(@"***** Oolite Data Not Found Exception : '%@' in [Entity setModel:] *****", [localException reason]);
+		}
+		[localException retain];
+		[mypool release];
+		[localException autorelease];
+		[localException raise];
+	NS_ENDHANDLER
+
     //
     [self checkNormalsAndAdjustWinding];
     //
@@ -1402,7 +1415,7 @@ static  Universe	*data_store_universe;
 	{
 		if ([[data_store_universe preloadedDataFiles] objectForKey:filename])
 		{
-//			NSLog(@"Reusing data for %@ from [data_store_universe preloadedDataFiles]", filename);
+			//	Reusing data from [data_store_universe preloadedDataFiles]
 			data = (NSString *)[[data_store_universe preloadedDataFiles] objectForKey:filename];
 			using_preloaded = YES;
 		}
@@ -1416,7 +1429,7 @@ static  Universe	*data_store_universe;
 
 	if ([[data_store_universe preloadedDataFiles] objectForKey:data_key])
 	{
-//		NSLog(@"DEBUG setting model %@ from saved vertex data", filename);
+		//	setting model data from saved vertex data
 		[self setModelFromModelData:(NSDictionary *)[[data_store_universe preloadedDataFiles] objectForKey:data_key]];
 	}
 	else
@@ -1435,8 +1448,8 @@ static  Universe	*data_store_universe;
 			failFlag = YES;
 			// ERROR model file not found
 			NSException* myException = [NSException
-				exceptionWithName:@"OoliteException"
-				reason:[NSString stringWithFormat:@"No model called '%@' could be found in %@.", filename, [ResourceManager paths]]
+				exceptionWithName: OOLITE_EXCEPTION_DATA_NOT_FOUND
+				reason:[NSString stringWithFormat:@"No data for model called '%@' could be found in %@.", filename, [ResourceManager paths]]
 				userInfo:nil];
 			[myException raise];
 		}

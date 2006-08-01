@@ -384,7 +384,15 @@ NSString* describeStatus(int some_status)
 static NSMutableDictionary* smallOctreeDict = nil;
 - (void) setModel:(NSString*) modelName
 {
-	[super setModel:modelName];
+	NS_DURING
+		[super setModel:modelName];
+	NS_HANDLER
+		if ([[localException name] isEqual: OOLITE_EXCEPTION_DATA_NOT_FOUND])
+		{
+			NSLog(@"***** Oolite Data Not Found Exception : '%@' in [ShipEntity setModel:] *****", [localException reason]);
+		}
+		[localException raise];
+	NS_ENDHANDLER
 	// TESTING
 	NSMutableDictionary* octreeCache = [(NSMutableDictionary *)[NSMutableDictionary alloc] initWithCapacity:30];
 	if ([Entity dataStore])

@@ -3083,13 +3083,23 @@ GLfloat docked_light_specular[]	= { (GLfloat) 1.0, (GLfloat) 1.0, (GLfloat) 0.5,
 		isStation = [[shipDict objectForKey:@"isCarrier"] boolValue];
 
 	if (isStation)
-		ship = (StationEntity *)[self recycledOrNew:@"StationEntity"];
+		ship = (StationEntity *)[self recycledOrNew:@"StationEntity"];	// is returned retained
 	else
-		ship = (ShipEntity *)[self recycledOrNew:@"ShipEntity"];
+		ship = (ShipEntity *)[self recycledOrNew:@"ShipEntity"];	// is returned retained
 	[ship setUniverse:self];
-	[ship setUpShipFromDictionary:shipDict];
 
-//	NSLog(@"DEBUG getShip:%@ (roles '%@') returns %@", desc, shipRoles, ship);
+	NS_DURING	
+		[ship setUpShipFromDictionary:shipDict];
+	NS_HANDLER
+		if ([[localException name] isEqual: OOLITE_EXCEPTION_DATA_NOT_FOUND]||[[localException name] isEqual: OOLITE_EXCEPTION_SHIP_NOT_FOUND])
+		{
+			NSLog(@"***** Oolite Exception : '%@' in [Universe getShip: %@ ] *****", [localException reason], desc);
+			[self recycleOrDiscard: ship];
+			ship = nil;
+		}
+		else
+			[localException raise];
+	NS_ENDHANDLER
 
 	return ship;   // retain count = 1
 }
@@ -5429,7 +5439,27 @@ BOOL maintainLinkedLists(Universe* uni)
 							demo_ship_index %= [demo_ships count];
 							if (demo_ship)
 							{
-								[demo_ship setUpShipFromDictionary:[self getDictionaryForShip:[demo_ships objectAtIndex:demo_ship_index]]];
+								BOOL okay = YES;
+								do
+								{
+									NS_DURING
+										okay = YES;
+										[demo_ship setUpShipFromDictionary:[self getDictionaryForShip:[demo_ships objectAtIndex:demo_ship_index]]];
+									NS_HANDLER
+										if ([[localException name] isEqual: OOLITE_EXCEPTION_DATA_NOT_FOUND])
+										{
+											// we want to skip on to another ship
+											demo_ship_index++;
+											demo_ship_index %= [demo_ships count];
+											NSLog(@"***** Oolite Data Not Found Exception : '%@' in DEMO_FLY_OUT stage of [Universe update:] *****", [localException reason]);
+											okay = NO;
+										}
+										else
+											[localException raise];
+									NS_ENDHANDLER
+									
+								}	while (!okay);
+								
 								[[demo_ship getAI] setStateMachine:@"nullAI.plist"];
 								[demo_ship setQRotation:q2];
 								[demo_ship setPosition: 0.0f : 0.0f : 360.0f * demo_ship->actual_radius];

@@ -68,6 +68,7 @@ void fillSquareImageDataWithBlur(unsigned char * imageBuffer, int width, int npl
 
 void addNoise(float * buffer, int p, int n, float scale);
 void fillSquareImageDataWithSmoothNoise(unsigned char * imageBuffer, int width, int nplanes);
+void fillSquareImageDataWithCloudTexture(unsigned char * imageBuffer, int width, int nplanes, OOColor* cloudcolor, float impress, float bias);
 void fillSquareImageWithPlanetTex(unsigned char * imageBuffer, int width, int nplanes, float impress, float bias,
 	OOColor* c0, float r0s, float r0i,
 	OOColor* c1, float r1s, float r1i,

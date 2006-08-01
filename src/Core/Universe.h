@@ -131,6 +131,7 @@ Your fair use and other rights are in no way affected by the above.
 
 #define OOLITE_EXCEPTION_LOOPING		@"OoliteLoopingException"
 #define OOLITE_EXCEPTION_SHIP_NOT_FOUND	@"OoliteShipNotFoundException"
+#define OOLITE_EXCEPTION_DATA_NOT_FOUND	@"OoliteDataNotFoundException"
 #define OOLITE_EXCEPTION_FATAL			@"OoliteFatalException"
 
 @class TextureStore, OpenGLSprite, GameController, ShipEntity, CollisionRegion;

@@ -175,11 +175,12 @@ Your fair use and other rights are in no way affected by the above.
 		if (([filename hasPrefix:@"noisegen"])&&(texture_w == image_w)&&(texture_h == image_h))
 		{
 			NSLog(@"DEBUG filling image data for %@ (%d x %d) with special sauce!", filename, texture_w, texture_h);
-			fillSquareImageWithPlanetTex( imageBuffer, texture_w, n_planes, 1.0, 0.0,
-				[OOColor blueColor], 0.55, 0.01,
-				[OOColor whiteColor], 0.00, 0.005,
-				[OOColor greenColor], 0.08, 0.08,
-				[OOColor yellowColor]);
+//			fillSquareImageWithPlanetTex( imageBuffer, texture_w, n_planes, 1.0, 0.0,
+//				[OOColor blueColor], 0.55, 0.01,
+//				[OOColor whiteColor], 0.00, 0.005,
+//				[OOColor greenColor], 0.08, 0.08,
+//				[OOColor yellowColor]);
+			fillSquareImageDataWithCloudTexture(imageBuffer, texture_w, n_planes, [OOColor magentaColor], 1.5, -0.75);
 		}
 
 		if ((texture_w > image_w)||(texture_h > image_h))	// we need to scale the image to the texture dimensions
@@ -520,6 +521,53 @@ void fillSquareImageDataWithSmoothNoise(unsigned char * imageBuffer, int width, 
 		for (p = 0; p < nplanes - 1; p++)
 			imageBuffer[ p + nplanes * (y * width + x) ] = 255 * q;
 		imageBuffer[ p + nplanes * (y * width + x) ] = 255;
+	}
+}
+
+void fillSquareImageDataWithCloudTexture(unsigned char * imageBuffer, int width, int nplanes, OOColor* cloudcolor, float impress, float bias)
+{
+	float accbuffer[width * width];
+	int x, y;
+	for (y = 0; y < width; y++) for (x = 0; x < width; x++) accbuffer[ y * width + x] = 0.0f;
+
+	GLfloat rgba[4];
+	rgba[0] = [cloudcolor redComponent];
+	rgba[1] = [cloudcolor greenComponent];
+	rgba[2] = [cloudcolor blueComponent];
+	rgba[3] = [cloudcolor alphaComponent];
+
+	fillRanNoiseBuffer();
+	int octave = 8;
+	float scale = 0.5;
+	while (octave < width)
+	{
+		addNoise( accbuffer, width, octave, scale);
+		octave *= 2;
+		scale *= 0.5;
+	}
+	
+	for (y = 0; y < width; y++) for (x = 0; x < width; x++)
+	{
+		float q = accbuffer[ y * width + x];
+		q = impress *  q + bias;
+		if (q < 0.0f)	q = 0.0f;
+		if (q > 1.0f)	q = 1.0f;
+		
+		if (nplanes == 1)
+			imageBuffer[ y * width + x ] = 255 * q;
+		if (nplanes == 3)
+		{
+			imageBuffer[ 0 + 3 * (y * width + x) ] = 255 * rgba[0] * q;
+			imageBuffer[ 1 + 3 * (y * width + x) ] = 255 * rgba[1] * q;
+			imageBuffer[ 2 + 3 * (y * width + x) ] = 255 * rgba[2] * q;
+		}
+		if (nplanes == 4)
+		{
+			imageBuffer[ 0 + 4 * (y * width + x) ] = 255 * rgba[0];
+			imageBuffer[ 1 + 4 * (y * width + x) ] = 255 * rgba[1];
+			imageBuffer[ 2 + 4 * (y * width + x) ] = 255 * rgba[2];
+			imageBuffer[ 3 + 4 * (y * width + x) ] = 255 * rgba[3] * q;
+		}
 	}
 }
 
