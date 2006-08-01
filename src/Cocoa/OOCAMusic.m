@@ -84,7 +84,8 @@ static OOSoundSource	*sMusicSource = nil;
 		}
 		[sMusicSource stop];
 		[sMusicSource setLoop:inLoop];
-		[sMusicSource playSound:sound];
+		[sMusicSource setSound:sound];
+		[sMusicSource play];
 		
 		sPlayingMusic = self;
 	}

@@ -33,55 +33,160 @@ Your fair use and other rights are in no way affected by the above.
 #import "OOCASoundInternal.h"
 
 
-enum
-{
-	kFreeListMax				= 16
-};
-
-
-static uint32_t					sFreeListCount = 0;
-static OOSoundSource			*sFreeList = nil;
-
-
 @implementation OOSoundSource
 
-+ (id)alloc
-{
-	OOSoundSource				*result = nil;
-	
-	[gOOCASoundSyncLock lock];
-	if (nil != sFreeList)
-	{
-		result = sFreeList;
-		sFreeList = (OOSoundSource *)result->_channel;
-		result->_channel = nil;
-	}
-	[gOOCASoundSyncLock unlock];
-	
-	if (nil == result)
-	{
-		result = [super alloc];
-	}
-	
-	return result;
-}
-
+#pragma mark NSObject
 
 - (void)dealloc
 {
-	if (nil != _channel) [self stop];
+	if (nil != channel) [self stop];
+	[sound release];
 	
-	if (sFreeListCount < kFreeListMax)
-	{
-		// It’s OK to do locking after test since the count doesn’t need to be precise.
-		[gOOCASoundSyncLock lock];
-		_channel = (OOCASoundChannel *)sFreeList;
-		sFreeList = self;
-		_loop = NO;
-		[gOOCASoundSyncLock unlock];
-		return;
-	}
 	[super dealloc];
+}
+
+
+- (NSString *)description
+{
+	if ([self isPlaying])
+	{
+		return [NSString stringWithFormat:@"<%@ %p>{sound=%@, loop=%s, repeatCount=%u, playing on channel %@}", [self className], self, sound, [self loop] ? "YES" : "NO", [self repeatCount], channel];
+	}
+	else
+	{
+		return [NSString stringWithFormat:@"<%@ %p>{sound=%@, loop=%s, repeatCount=%u, not playing}", [self className], self, sound, [self loop] ? "YES" : "NO", [self repeatCount]];
+	}
+}
+
+
+#pragma mark OOSoundSource
+
++ (id)sourceWithSound:(OOSound *)inSound
+{
+	return [[[self alloc] initWithSound:inSound] autorelease];
+}
+
+
+- (id)initWithSound:(OOSound *)inSound
+{
+	self = [self init];
+	if (!self) return nil;
+	
+	[self setSound:inSound];
+	
+	return self;
+}
+
+
+- (OOSound *)sound
+{
+	return sound;
+}
+
+
+- (void)setSound:(OOSound *)inSound
+{
+	if (sound != inSound)
+	{
+		[sound autorelease];
+		sound = [inSound retain];
+	}
+}
+
+
+- (BOOL)loop
+{
+	return loop;
+}
+
+
+- (void)setLoop:(BOOL)inLoop
+{
+	loop = 0 != inLoop;
+}
+
+
+- (uint8_t)repeatCount
+{
+	return repeatCount ? repeatCount : 1;
+}
+
+
+- (void)setRepeatCount:(uint8_t)inCount
+{
+	repeatCount = inCount;
+}
+
+
+- (BOOL)isPlaying
+{
+	return (nil != channel);
+}
+
+
+- (void)play
+{
+	if (nil == sound) return;
+	
+	[gOOCASoundSyncLock lock];
+	
+	if (channel) [self stop];
+	
+	channel = [[OOCASoundMixer mixer] popChannel];
+	if (nil != channel)
+	{
+		remainingCount = [self repeatCount];
+		[channel setDelegate:self];
+		[channel playSound:sound looped:loop];
+		[self retain];
+	}
+	[gOOCASoundSyncLock unlock];
+}
+
+
+- (void)playOrRepeat
+{
+	if (nil == channel) [self play];
+	else ++remainingCount;
+}
+
+
+- (void)stop
+{
+	[gOOCASoundSyncLock lock];
+	if (nil != channel)
+	{
+		[channel setDelegate:[self class]];
+		[channel stop];
+		channel = nil;
+		[self release];
+	}
+	
+	[gOOCASoundSyncLock unlock];
+}
+
+
+- (void)playSound:(OOSound *)inSound
+{
+	if (channel) [self stop];
+	[self setSound:inSound];
+	[self play];
+}
+
+
+- (void)playSound:(OOSound *)inSound repeatCount:(uint8_t)inCount
+{
+	if (channel) [self stop];
+	[self setSound:inSound];
+	[self setRepeatCount:inCount];
+	[self play];
+}
+
+
+- (void)playOrRepeatSound:(OOSound *)inSound
+{
+	if (sound != inSound) [self playSound:inSound];
+	else [self playOrRepeat];
 }
 
 
@@ -127,99 +232,23 @@ static OOSoundSource			*sFreeList = nil;
 }
 
 
-- (void)setLoop:(BOOL)inLoop
-{
-	_loop = inLoop;
-}
-
-
-- (void)playSound:(OOSound *)inSound
-{
-	[self playSound:inSound repeatCount:1];
-}
-
-
-- (void)playSound:(OOSound *)inSound repeatCount:(uint8_t)inCount
-{
-	if (nil == inSound || 0 == inCount) return;
-	
-	[gOOCASoundSyncLock lock];
-	
-	if (nil != _channel)
-	{
-		[self stop];
-	}
-	
-	_channel = [[OOCASoundMixer mixer] popChannel];
-	if (nil != _channel)
-	{
-		_playCount = inCount;
-		_playing = YES;
-		[_channel setDelegate:self];
-		[_channel playSound:inSound looped:_loop];
-		[self retain];
-	}
-	[gOOCASoundSyncLock unlock];
-}
-
-
-- (void)playOrRepeatSound:(OOSound *)inSound
-{
-	if (nil == inSound) return;
-	
-	[gOOCASoundSyncLock lock];
-	if ([_channel sound] == inSound)
-	{
-		++_playCount;
-	}
-	else
-	{
-		[self playSound:inSound repeatCount:1];
-	}
-	[gOOCASoundSyncLock unlock];
-}
-
-
-- (void)stop
-{
-	[gOOCASoundSyncLock lock];
-	if (nil != _channel)
-	{
-		[_channel setDelegate:[self class]];
-		[_channel stop];
-		_channel = nil;
-		[self release];
-		_playCount = 0;
-	}
-	
-	_playing = NO;
-	[gOOCASoundSyncLock unlock];
-}
-
-
-- (BOOL)isPlaying
-{
-	return _playing;
-}
-
+#pragma mark (OOCASoundChannelDelegate)
 
 - (void)channel:(OOCASoundChannel *)inChannel didFinishPlayingSound:(OOSound *)inSound
 {
-	assert(_channel == inChannel);
+	assert(channel == inChannel);
 	
 	[gOOCASoundSyncLock lock];
-//	if (_loop && _playing) ++_playCount;	// Moved responsibility for looping into sounds
 	
-	if (--_playCount)
+	if (--remainingCount)
 	{
-		[_channel playSound:inSound looped:_loop];
+		[channel playSound:sound looped:NO];
 	}
 	else
 	{
-		[_channel setDelegate:nil];
-		[[OOCASoundMixer mixer] pushChannel:_channel];
-		_channel = nil;
-		_playing = NO;
+		[channel setDelegate:nil];
+		[[OOCASoundMixer mixer] pushChannel:channel];
+		channel = nil;
 		[self release];
 	}
 	[gOOCASoundSyncLock unlock];
@@ -228,8 +257,8 @@ static OOSoundSource			*sFreeList = nil;
 
 + (void)channel:(OOCASoundChannel *)inChannel didFinishPlayingSound:(OOSound *)inSound
 {
+	// This delegate is used for a stopped source
 	[[OOCASoundMixer mixer] pushChannel:inChannel];
 }
-
 
 @end

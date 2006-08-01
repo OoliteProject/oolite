@@ -39,10 +39,34 @@ Your fair use and other rights are in no way affected by the above.
 
 @interface OOSoundSource: NSObject
 {
-	OOCASoundChannel			*_channel;
-	BOOL						_playing, _loop;
-	uint8_t						_playCount;
+	OOSound						*sound;
+	OOCASoundChannel			*channel;
+	BOOL						loop;
+	uint8_t						repeatCount,
+								remainingCount;
 }
+
++ (id)sourceWithSound:(OOSound *)inSound;
+- (id)initWithSound:(OOSound *)inSound;
+- (id)init;
+
+// These options should be set before playing. Effect of setting them while playing is undefined.
+- (OOSound *)sound;
+- (void)setSound:(OOSound *)inSound;
+- (BOOL)loop;
+- (void)setLoop:(BOOL)inLoop;
+- (uint8_t)repeatCount;
+- (void)setRepeatCount:(uint8_t)inCount;
+
+- (BOOL)isPlaying;
+- (void)play;
+- (void)playOrRepeat;
+- (void)stop;
+
+// Conveniences:
+- (void)playSound:(OOSound *)inSound;
+- (void)playSound:(OOSound *)inSound repeatCount:(uint8_t)inCount;
+- (void)playOrRepeatSound:(OOSound *)inSound;
 
 // Positional audio attributes are ignored in this implementation
 - (void)setPositional:(BOOL)inPositional;
@@ -52,15 +76,5 @@ Your fair use and other rights are in no way affected by the above.
 - (void)setConeAngle:(float)inAngle;
 - (void)setGainInsideCone:(float)inInside outsideCone:(float)inOutside;
 - (void)positionRelativeTo:(OOSoundReferencePoint *)inPoint;
-
-- (void)setLoop:(BOOL)inLoop;
-
-- (void)playSound:(OOSound *)inSound;
-// repeatCount lets a sound be played a fixed number of times. If looping is on, it will play the specified number of times after looping is switched off.
-- (void)playSound:(OOSound *)inSound repeatCount:(uint8_t)inCount;
-// -playOrRepeatSound will increment the repeat count if the sound is already playing.
-- (void)playOrRepeatSound:(OOSound *)inSound;
-- (void)stop;
-- (BOOL)isPlaying;
 
 @end
