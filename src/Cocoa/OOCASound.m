@@ -36,6 +36,7 @@ Your fair use and other rights are in no way affected by the above.
 */
 
 #import "OOCASoundInternal.h"
+#import "OOCASoundDecoder.h"
 #import <CoreAudio/CoreAudio.h>
 #import <AudioToolbox/AudioToolbox.h>
 
