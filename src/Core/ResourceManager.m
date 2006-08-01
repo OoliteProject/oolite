@@ -486,170 +486,96 @@ NSMutableDictionary*	surface_cache;
 }
 
 
-+ (OOMusic *) ooMusicNamed:(NSString *)filename inFolder:(NSString *)foldername
++ (id) retrieveFileNamed:(NSString *)inFileName inFolder:(NSString *)inFolderName cache:(NSMutableDictionary **)ioCache key:(NSString *)inKey class:(Class)inClass;
 {
-	OOMusic *result = nil;
-	NSMutableArray *fpaths = [ResourceManager paths];
-	int i, r;
-	r = 0;
-	if (!filename)
-		return nil;
-
-	NSString* music_key = [NSString stringWithFormat:@"OOMusic:%@:%@", foldername, filename];
-	if (!sound_cache)
-		sound_cache = [[NSMutableDictionary alloc] initWithCapacity:32];
-	if ([sound_cache objectForKey:music_key])
-		return (OOMusic *)[sound_cache objectForKey:music_key];	// return the cached sound
+	OOMusic			*result = nil;
+	NSString		*foundPath = nil;
+	NSMutableArray	*fpaths;
+	int				i;
+	
+	if (!inFileName) return nil;
+	
+	if (ioCache)
+	{
+		if (!inKey) inKey = [NSString stringWithFormat:@"%@:%@", inFolderName, inFileName];
+		if (!*ioCache) *ioCache = [[NSMutableDictionary alloc] initWithCapacity:32];
+		else
+		{
+			// return the cached object, if any
+			result = [*ioCache objectForKey:inKey];
+			if (result) return result;
+		}
+	}
+	
+	fpaths = [ResourceManager paths];
 	
 	for (i = 0; i < [fpaths count]; i++)
 	{
-		NSString *filepath = [(NSString *)[fpaths objectAtIndex:i] stringByAppendingPathComponent:filename];
+		NSString *filepath = [(NSString *)[fpaths objectAtIndex:i] stringByAppendingPathComponent:inFileName];
 		if ([[NSFileManager defaultManager] fileExistsAtPath:filepath])
 		{
-			result = [[[OOMusic alloc] initWithContentsOfFile:filepath] autorelease];
-			r++;
+			foundPath = filepath;
 		}
-		if (foldername)
+		if (inFolderName)
 		{
-			filepath = [[(NSString *)[fpaths objectAtIndex:i] stringByAppendingPathComponent:foldername] stringByAppendingPathComponent:filename];
-			//NSLog(@".... checking filepath '%@' for Music", filepath);
+			filepath = [[(NSString *)[fpaths objectAtIndex:i] stringByAppendingPathComponent:inFolderName] stringByAppendingPathComponent:inFileName];
 			if ([[NSFileManager defaultManager] fileExistsAtPath:filepath])
 			{
-				result = [[[OOMusic alloc] initWithContentsOfFile:filepath] autorelease];
-				r++;
+				foundPath = filepath;
 			}
 		}
 	}
 	
-	if (result)
-		[sound_cache setObject:result forKey:music_key];
+	if (foundPath) result = [[[inClass alloc] initWithContentsOfFile:foundPath] autorelease];
+	if (result && ioCache)
+	{
+		[(*ioCache) setObject:result forKey:inKey];
+	}
 	
-//	NSLog(@"---> ResourceManager found OOMusic %d file(s) with name '%@' (in folder '%@')", r, filename, foldername);
 	return result;
 }
+
+
++ (OOMusic *) ooMusicNamed:(NSString *)filename inFolder:(NSString *)foldername
+{
+	return [self retrieveFileNamed:filename
+				 inFolder:foldername
+				 cache:&sound_cache
+				 key:[NSString stringWithFormat:@"OOMusic:%@:%@", foldername, filename]
+				 class:[OOMusic class]];
+}
+
 
 + (OOSound *) ooSoundNamed:(NSString *)filename inFolder:(NSString *)foldername
 {
-	OOSound *result = nil;
-	NSMutableArray *fpaths = [ResourceManager paths];
-	int i, r;
-	r = 0;
-	if (!filename)
-		return nil;
-
-	NSString* sound_key = [NSString stringWithFormat:@"OOSound:%@:%@", foldername, filename];
-	if (!sound_cache)
-		sound_cache = [[NSMutableDictionary alloc] initWithCapacity:32];
-	if ([sound_cache objectForKey:sound_key])
-		return (OOSound *)[sound_cache objectForKey:sound_key];	// return the cached sound
-	
-	for (i = 0; i < [fpaths count]; i++)
-	{
-		NSString *filepath = [(NSString *)[fpaths objectAtIndex:i] stringByAppendingPathComponent:filename];
-		if ([[NSFileManager defaultManager] fileExistsAtPath:filepath])
-		{
-			result = [[[OOSound alloc] initWithContentsOfFile:filepath] autorelease];
-			r++;
-		}
-		if (foldername)
-		{
-			filepath = [[(NSString *)[fpaths objectAtIndex:i] stringByAppendingPathComponent:foldername] stringByAppendingPathComponent:filename];
-			//NSLog(@".... checking filepath '%@' for Sounds", filepath);
-			if ([[NSFileManager defaultManager] fileExistsAtPath:filepath])
-			{
-				result = [[[OOSound alloc] initWithContentsOfFile:filepath] autorelease];
-				r++;
-			}
-		}
-	}
-	
-	if (result)
-		[sound_cache setObject:result forKey:sound_key];
-	
-//	NSLog(@"---> ResourceManager found OOSound %d file(s) with name '%@' (in folder '%@')", r, filename, foldername);
-	return result;
+	return [self retrieveFileNamed:filename
+				 inFolder:foldername
+				 cache:&sound_cache
+				 key:[NSString stringWithFormat:@"OOSound:%@:%@", foldername, filename]
+				 class:[OOSound class]];
 }
+
 
 #ifndef GNUSTEP
+
 + (NSImage *) imageNamed:(NSString *)filename inFolder:(NSString *)foldername
 {
-	NSImage *result = nil;
-	NSMutableArray *fpaths = [ResourceManager paths];
-	int i, r;
-	r = 0;
-	if (!filename)
-		return nil;
-
-	NSString* image_key = [NSString stringWithFormat:@"%@:%@", foldername, filename];
-	if (!image_cache)
-		image_cache = [[NSMutableDictionary alloc] initWithCapacity:32];
-	if ([image_cache objectForKey:image_key])
-		return (NSImage *)[image_cache objectForKey:image_key];	// return the cached image
-	
-	for (i = 0; i < [fpaths count]; i++)
-	{
-		NSString *filepath = [(NSString *)[fpaths objectAtIndex:i] stringByAppendingPathComponent:filename];
-		if ([[NSFileManager defaultManager] fileExistsAtPath:filepath])
-		{
-			result = [[[NSImage alloc] initWithContentsOfFile:filepath] autorelease];
-			r++;
-		}
-		if (foldername)
-		{
-			filepath = [[(NSString *)[fpaths objectAtIndex:i] stringByAppendingPathComponent:foldername] stringByAppendingPathComponent:filename];
-			if ([[NSFileManager defaultManager] fileExistsAtPath:filepath])
-			{
-				result = [[[NSImage alloc] initWithContentsOfFile:filepath] autorelease];
-				r++;
-			}
-		}
-	}
-	
-	if (result)
-		[image_cache setObject:result forKey:image_key];
-	//NSLog(@"---> ResourceManager found %d file(s) with name '%@' (in folder '%@')", r, filename, foldername);
-	return result;
+	return [self retrieveFileNamed:filename
+				 inFolder:foldername
+				 cache:&image_cache
+				 key:nil
+				 class:[NSImage class]];
 }
+
 #endif
 
 + (NSString *) stringFromFilesNamed:(NSString *)filename inFolder:(NSString *)foldername
 {
-	NSString *result = nil;
-	NSMutableArray *fpaths = [ResourceManager paths];
-	int i, r;
-	r = 0;
-	if (!filename)
-		return nil;
-
-	NSString* string_key = [NSString stringWithFormat:@"%@:%@", foldername, filename];
-	if (!string_cache)
-		string_cache = [[NSMutableDictionary alloc] initWithCapacity:32];
-	if ([string_cache objectForKey:string_key])
-		return (NSString *)[string_cache objectForKey:string_key];	// return the cached string
-	
-	for (i = 0; i < [fpaths count]; i++)
-	{
-		NSString *filepath = [(NSString *)[fpaths objectAtIndex:i] stringByAppendingPathComponent:filename];
-		if ([[NSFileManager defaultManager] fileExistsAtPath:filepath])
-		{
-			result = [NSString stringWithContentsOfFile:filepath];
-			r++;
-		}
-		if (foldername)
-		{
-			filepath = [[(NSString *)[fpaths objectAtIndex:i] stringByAppendingPathComponent:foldername] stringByAppendingPathComponent:filename];
-			if ([[NSFileManager defaultManager] fileExistsAtPath:filepath])
-			{
-				result = [NSString stringWithContentsOfFile:filepath];
-				r++;
-			}
-		}
-	}
-	
-	if (result)
-		[string_cache setObject:result forKey:string_key];
-	//NSLog(@"---> ResourceManager found %d file(s) with name '%@' (in folder '%@')", r, filename, foldername);
-	return result;
+	return [self retrieveFileNamed:filename
+				 inFolder:foldername
+				 cache:&string_cache
+				 key:nil
+				 class:[NSString class]];
 }
 
 #ifdef GNUSTEP
