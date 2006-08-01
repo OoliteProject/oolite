@@ -939,7 +939,11 @@ Your fair use and other rights are in no way affected by the above.
 	seed_for_planet_description(system_seed);
 	
 	/*- space sun -*/
-	double		sun_distance = (20.0 + (ranrot_rand() % 5) - (ranrot_rand() % 5) ) * planet_radius;
+	double		sunDistanceModifier = 20.0;
+	if ([systeminfo objectForKey:@"sun_distance_modifier"])
+		sunDistanceModifier = [[systeminfo objectForKey:@"sun_distance_modifier"] doubleValue];
+
+	double		sun_distance = (sunDistanceModifier + (ranrot_rand() % 5) - (ranrot_rand() % 5) ) * planet_radius;
 	double		sun_radius = (2.5 + randf() - randf() ) * planet_radius;
 	Quaternion  q_sun;
 	Vector		sunPos = make_vector( 0.0f, 0.0f, 0.0f);
