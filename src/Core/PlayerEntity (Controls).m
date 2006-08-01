@@ -2562,7 +2562,6 @@ static BOOL toggling_music;
 			//NSLog(@"Leaving dock (%@)...%@",docked_station,[docked_station name]);
 			[self leaveDock:docked_station];
 			[universe setDisplayCursor:NO];
-			[self playBreakPattern];
 		}    
 	}
 	//
