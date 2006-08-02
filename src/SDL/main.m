@@ -19,7 +19,7 @@ int debug = NO;
 
 int main(int argc, char *argv[])
 {
-#ifdef GNUSTEP && !OOLITE_SDL_MAC
+#ifdef GNUSTEP
 	int i;
 
 	// Need this because we're not using the default run loop's autorelease
@@ -50,19 +50,20 @@ int main(int argc, char *argv[])
 	// Call applicationDidFinishLaunching because NSApp is not running in
 	// GNUstep port.
 	[controller applicationDidFinishLaunching: nil];
-#else
-	return NSApplicationMain(argc, (const char *)argv);
 #endif
 
 	// never reached
 	return 0;
 }
 
-/*
- * This is called from a couple of places, and having it here saves one more
- * AppKit dependency.
- */
-//void NSBeep()
-//{
-//}
 
+#if OOLITE_SDL_MAC
+
+@implementation NSWindow (SDLBugWorkaround)
+
+- (void)release
+{}
+
+@end
+
+#endif

@@ -29,6 +29,7 @@
 // Start playing this instance of OOMusic, stopping any other instance
 // currently playing.
 - (BOOL) play;
+- (BOOL) playLooped;
 
 // Stop the music if this instance is currently playing.
 - (void) stop;

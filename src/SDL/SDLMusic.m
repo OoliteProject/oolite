@@ -150,6 +150,19 @@ void musicFinished()
 }
 
 /*
+ * Play the music represented by this OOMusic instance, looping until stopped.
+ * This will replace any music currently playing.
+ *
+ * If this instance is already playing, there is no effect.
+ *
+ * Returns YES for success, or NO if there was a problem playing the music.
+ */
+- (BOOL) playLooped
+{
+	return [self play];
+}
+
+/*
  * Stop playing this piece of music.
  *
  * Returns YES if this music was being played, or NO if this music was not
