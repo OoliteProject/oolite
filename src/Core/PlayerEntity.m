@@ -504,6 +504,11 @@ static Quaternion quaternion_identity = { (GLfloat)1.0, (GLfloat)0.0, (GLfloat)0
 
 	// trumble information
 	[result setObject:[self trumbleValue] forKey:@"trumbles"];
+	
+	// texture experiments
+	if ([universe doProcedurallyTexturedPlanets])
+		[result setObject:[NSNumber numberWithBool:YES] forKey:@"procedural_planet_textures"];
+
 
 	// create checksum
 	clear_checksum();
@@ -552,6 +557,11 @@ static Quaternion quaternion_identity = { (GLfloat)1.0, (GLfloat)0.0, (GLfloat)0
 			NSLog(@"DEBUG loading a UNRESTRICTED player dictionary ..2");
 		}
 	}
+	
+	// texture experiments
+	if ([dict objectForKey:@"procedural_planet_textures"])
+		[universe setDoProcedurallyTexturedPlanets: [[dict objectForKey:@"procedural_planet_textures"] boolValue]];
+	
 	//base ship description
 	if ([dict objectForKey:@"ship_desc"])
 	{
