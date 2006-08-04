@@ -219,6 +219,21 @@ Your fair use and other rights are in no way affected by the above.
 	return [result autorelease];
 }
 
+// find a point on the sea->land scale
++ (OOColor *) planetTextureColor:(float) q:(OOColor *) seaColor:(OOColor *) paleSeaColor:(OOColor *) landColor:(OOColor *) paleLandColor
+{
+	if (q <= 0.0)
+		return seaColor;
+	if (q < 0.01)
+		return [paleSeaColor blendedColorWithFraction: q * 100.0 ofColor: landColor];
+	if (q > 0.9)
+		return [paleLandColor blendedColorWithFraction: (q - 0.9) * 10.0 ofColor: [OOColor whiteColor]];	// snow capped peaks
+	if (q > 1.0)
+		return [OOColor whiteColor];
+	return [landColor blendedColorWithFraction: q ofColor: paleLandColor];
+}
+
+
 /* Get the red, green, or blue components of NSCalibratedRGB or NSDeviceRGB colors.
 */
 - (GLfloat)redComponent

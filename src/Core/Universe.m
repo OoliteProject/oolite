@@ -245,6 +245,8 @@ Your fair use and other rights are in no way affected by the above.
 	demo_ship = nil;
 	
 	universeRegion = [[CollisionRegion alloc] initAsUniverse];	// retained
+	
+	doProcedurallyTexturedPlanets = NO;
 		
     return self;
 }
@@ -304,6 +306,16 @@ Your fair use and other rights are in no way affected by the above.
 	}
 	
     [super dealloc];
+}
+
+- (BOOL) doProcedurallyTexturedPlanets
+{
+	return doProcedurallyTexturedPlanets;
+}
+
+- (void) setDoProcedurallyTexturedPlanets:(BOOL) value
+{
+	doProcedurallyTexturedPlanets = value;
 }
 
 - (BOOL) strict
@@ -600,9 +612,7 @@ Your fair use and other rights are in no way affected by the above.
 //	if (station == NO_TARGET)
 	if (![self sun])
 	{
-		// we're in witchspace or this is the first launch...
-		NSLog(@"TESTING: setting up system (from 1st launch or witchspace) with no sun.");
-		
+		// we're in witchspace or this is the first launch...		
 		// save the player
 		PlayerEntity*	player = (PlayerEntity*)[self entityZero];
 		// save the docked craft

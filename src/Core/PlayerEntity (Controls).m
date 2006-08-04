@@ -975,6 +975,13 @@ static NSTimeInterval	time_last_frame;
 			[universe addMessage:@"Octree debug ON" forCount:3];
 		}
 
+		// look for debugging keys
+		if ([gameView isDown:'t'])// look for the 't' key
+		{
+			[universe setDoProcedurallyTexturedPlanets: YES];
+			[universe addMessage:@"Procedural Textures On" forCount:3];
+		}
+
 	}
 	//
 	// Pause game 'p'

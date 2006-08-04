@@ -266,11 +266,17 @@ extern int debug;
 		
 		// check and maintain linked lists occasionally
 		BOOL					doLinkedListMaintenanceThisUpdate;
+		
+		// experimental proc-genned textures
+		BOOL					doProcedurallyTexturedPlanets;
 
 }
 
 - (id) init;
 - (void) dealloc;
+
+- (BOOL) doProcedurallyTexturedPlanets;
+- (void) setDoProcedurallyTexturedPlanets:(BOOL) value;
 
 - (BOOL) strict;
 - (void) setStrict:(BOOL) value;

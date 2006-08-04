@@ -82,7 +82,8 @@ typedef struct
 		
 		BOOL		isTextured;
 		GLuint		textureName;
-	
+		unsigned char*	textureData;
+		
 		int			planet_seed;
 		double		polar_color_factor;
 		
@@ -121,10 +122,10 @@ GLfloat		rvalue[729];			// stores random values for adjusting colors in the coro
 void setUpSinTable();
 
 - (id) initAsSunWithColor:(OOColor *) sun_color;
-- (id) initAsAtmosphereForPlanet:(PlanetEntity *) planet;
+- (id) initAsAtmosphereForPlanet:(PlanetEntity *) planet inUniverse:(Universe*) uni;
 - (id) initAsCoronaForPlanet:(PlanetEntity *) planet;
 - (id) initWithSeed:(Random_Seed) p_seed fromUniverse:(Universe *) uni;
-- (id) initMiniatureFromPlanet:(PlanetEntity*) planet;
+- (id) initMiniatureFromPlanet:(PlanetEntity*) planet inUniverse:(Universe*) uni;
 
 - (id) initPlanetFromDictionary:(NSDictionary*) dict inUniverse:(Universe *) uni;
 - (id) initMoonFromDictionary:(NSDictionary*) dict inUniverse:(Universe *) uni;

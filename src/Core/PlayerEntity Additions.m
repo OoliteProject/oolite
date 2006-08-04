@@ -2123,7 +2123,7 @@ int d100_seed = -1;	// ensure proper random function
 		if ([i_info count] != 4)	// must be local-planet_x_y_z
 			return NO;				//		   0........... 1 2 3
 
-		PlanetEntity* doppelganger = [[PlanetEntity alloc] initMiniatureFromPlanet:[universe planet]];   // retain count = 1
+		PlanetEntity* doppelganger = [[PlanetEntity alloc] initMiniatureFromPlanet:[universe planet] inUniverse: universe];   // retain count = 1
 		if (!doppelganger)
 			return NO;
 
@@ -2152,7 +2152,7 @@ int d100_seed = -1;	// ensure proper random function
 
 		PlanetEntity* targetplanet = [[[PlanetEntity alloc] initWithSeed:target_system_seed fromUniverse:universe] autorelease];
 
-		PlanetEntity* doppelganger = [[PlanetEntity alloc] initMiniatureFromPlanet:targetplanet];   // retain count = 1
+		PlanetEntity* doppelganger = [[PlanetEntity alloc] initMiniatureFromPlanet:targetplanet inUniverse:universe];   // retain count = 1
 		if (!doppelganger)
 			return NO;
 

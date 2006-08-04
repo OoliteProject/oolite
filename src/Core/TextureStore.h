@@ -62,7 +62,10 @@ extern int debug;
 
 - (void) reloadTextures;
 
-- (GLuint) getPlanetTextureNameFor:(NSDictionary*)planetinfo;
+- (GLuint) getPlanetTextureNameFor:(NSDictionary*)planetinfo intoData:(unsigned char **)textureData;
+- (GLuint) getCloudTextureNameFor:(OOColor*) color: (GLfloat) impress: (GLfloat) bias intoData:(unsigned char **)textureData;
+
+void fillRanNoiseBuffer();
 
 void fillSquareImageDataWithBlur(unsigned char * imageBuffer, int width, int nplanes);
 
@@ -70,9 +73,9 @@ void addNoise(float * buffer, int p, int n, float scale);
 void fillSquareImageDataWithSmoothNoise(unsigned char * imageBuffer, int width, int nplanes);
 void fillSquareImageDataWithCloudTexture(unsigned char * imageBuffer, int width, int nplanes, OOColor* cloudcolor, float impress, float bias);
 void fillSquareImageWithPlanetTex(unsigned char * imageBuffer, int width, int nplanes, float impress, float bias,
-	OOColor* c0, float r0s, float r0i,
-	OOColor* c1, float r1s, float r1i,
-	OOColor* c2, float r2s, float r2i,
-	OOColor* c3);
+	OOColor* seaColor,
+	OOColor* paleSeaColor,
+	OOColor* landColor,
+	OOColor* paleLandColor);
 
 @end

@@ -152,6 +152,8 @@ void setUpSinTable()
 	//
 	root_planet = self;
 	//
+	textureData = (unsigned char *)nil;
+	//
     return self;
 }
 
@@ -253,18 +255,60 @@ void setUpSinTable()
 	//
 	root_planet = self;
 	//
+	textureData = (unsigned char *)nil;
+	//
     return self;
 }
 
-- (id) initAsAtmosphereForPlanet:(PlanetEntity *) planet
+- (id) initAsAtmosphereForPlanet:(PlanetEntity *) planet inUniverse:(Universe*) uni
 {
     int		i;
 	int		percent_land;
 	double  aleph =  1.0 / sqrt(2.0);
 	//
+	BOOL	procGen = [uni doProcedurallyTexturedPlanets];
+	//
 	self = [super init];
+	//
+	percent_land = 3 + (gen_rnd_number() & 31)+(gen_rnd_number() & 31);
+	//NSLog(@"Atmosphere is %d percent clear.",percent_land);
+	//
+	polar_color_factor = 1.0;
+	//
+	amb_land[0] = gen_rnd_number() / 256.0;
+	amb_land[1] = gen_rnd_number() / 256.0;
+	amb_land[2] = gen_rnd_number() / 256.0;
+	amb_land[3] = 0.05;  // bluesky .. zero clouds
+	amb_sea[0] = 0.5 + gen_rnd_number() / 512.0;
+	amb_sea[1] = 0.5 + gen_rnd_number() / 512.0;
+	amb_sea[2] = 0.5 + gen_rnd_number() / 512.0;
+	amb_sea[3] = 0.50;  // 50% opaque clouds
+	amb_polar_land[0] = gen_rnd_number() / 256.0;
+	amb_polar_land[1] = gen_rnd_number() / 256.0;
+	amb_polar_land[2] = gen_rnd_number() / 256.0;
+	amb_polar_land[3] = 0.34;	// 25% gray clouds
+	amb_polar_sea[0] = 0.9 + gen_rnd_number() / 2560.0;
+	amb_polar_sea[1] = 0.9 + gen_rnd_number() / 2560.0;
+	amb_polar_sea[2] = 0.9 + gen_rnd_number() / 2560.0;
+	amb_polar_sea[3] = 0.75;	// 75% clouds
+
+	atmosphere = nil;
+	
+	OOColor* cloudColor = [OOColor colorWithCalibratedRed: amb_sea[0] green: amb_sea[1] blue: amb_sea[2] alpha: 1.0];
+	float cloud_bias = -0.01 * (float)percent_land;
+	float cloud_impress = 1.0 - cloud_bias;
+	
     //
-	isTextured = NO;
+	if (procGen)
+	{
+		textureName = [[uni textureStore] getCloudTextureNameFor:cloudColor :cloud_impress :cloud_bias intoData: &textureData];
+		isTextured = (textureName != 0);
+	}
+	else
+	{
+		textureName = 0;
+		isTextured = NO;
+	}
 	//
     if (!planet)
     {
@@ -300,33 +344,9 @@ void setUpSinTable()
 	for (i = 0; i < 5; i++)
 		displayListNames[i] = 0;	// empty for now!
 	//
-	[self setModel:@"icosahedron.dat"];
+	[self setModel:(isTextured)? @"icostextured.dat" : @"icosahedron.dat"];
 	//
 	[self rescaleTo:1.0];
-	//
-	percent_land = 3 + (gen_rnd_number() & 31)+(gen_rnd_number() & 31);
-	//NSLog(@"Atmosphere is %d percent clear.",percent_land);
-	//
-	polar_color_factor = 1.0;
-	//
-	amb_land[0] = gen_rnd_number() / 256.0;
-	amb_land[1] = gen_rnd_number() / 256.0;
-	amb_land[2] = gen_rnd_number() / 256.0;
-	amb_land[3] = 0.05;  // bluesky .. zero clouds
-	amb_sea[0] = 0.9 + gen_rnd_number() / 2560.0;
-	amb_sea[1] = 0.9 + gen_rnd_number() / 2560.0;
-	amb_sea[2] = 0.9 + gen_rnd_number() / 2560.0;
-	amb_sea[3] = 0.50;  // 50% opaque clouds
-	amb_polar_land[0] = gen_rnd_number() / 256.0;
-	amb_polar_land[1] = gen_rnd_number() / 256.0;
-	amb_polar_land[2] = gen_rnd_number() / 256.0;
-	amb_polar_land[3] = 0.34;	// 25% gray clouds
-	amb_polar_sea[0] = 0.9 + gen_rnd_number() / 2560.0;
-	amb_polar_sea[1] = 0.9 + gen_rnd_number() / 2560.0;
-	amb_polar_sea[2] = 0.9 + gen_rnd_number() / 2560.0;
-	amb_polar_sea[3] = 0.75;	// 75% clouds
-
-	atmosphere = nil;
 
 //	NSLog(@"DEBUG atmosphere testing [PlanetEntity initialiseBaseVertexArray]");
 	[self initialiseBaseVertexArray];
@@ -403,6 +423,8 @@ void setUpSinTable()
 	int		percent_land;
 	double  aleph =  1.0 / sqrt(2.0);
 	//
+	BOOL procGen = [uni doProcedurallyTexturedPlanets];
+	//
 	self = [super init];
     //
 	isTextured = NO;
@@ -412,7 +434,7 @@ void setUpSinTable()
 	//
 	seed_for_planet_description(p_seed);
 	//
-	NSDictionary*   planetinfo = [uni generateSystemData:p_seed];
+	NSMutableDictionary*   planetinfo = [NSMutableDictionary dictionaryWithDictionary:[uni generateSystemData:p_seed]];
 	int radius_km =		[(NSNumber *)[planetinfo objectForKey:KEY_RADIUS] intValue];
 	int techlevel =		[(NSNumber *)[planetinfo objectForKey:KEY_TECHLEVEL] intValue];
 	//NSLog(@"Generating planet %@ with radius %dkm",[planetinfo objectForKey:KEY_NAME],radius_km);
@@ -445,12 +467,12 @@ void setUpSinTable()
 	for (i = 0; i < 5; i++)
 		displayListNames[i] = 0;	// empty for now!
 	//
-	[self setModel:(isTextured)? @"icostextured.dat" : @"icosahedron.dat"];
+	[self setModel:(procGen)? @"icostextured.dat" : @"icosahedron.dat"];
 	//
 	[self rescaleTo:1.0];
 	//
 
-	percent_land = (gen_rnd_number() % 48);
+	percent_land = 24 + (gen_rnd_number() % 48);
 
 	//// possibly get percent_land from planetinfo.plist entry
 	//
@@ -470,6 +492,7 @@ void setUpSinTable()
 		else
 			r_seed[i] = 100;  // sea
 	}
+	[planetinfo setObject:[NSNumber numberWithFloat:0.01 * percent_land] forKey:@"land_fraction"];
 	//
 	polar_color_factor = 1.0;
 	//
@@ -496,22 +519,43 @@ void setUpSinTable()
 	land_polar_hsb.x = land_hsb.x;  land_polar_hsb.y = (land_hsb.y / 5.0);  land_polar_hsb.z = 1.0 - (land_hsb.z / 10.0);
 	sea_polar_hsb.x = sea_hsb.x;  sea_polar_hsb.y = (sea_hsb.y / 5.0);  sea_polar_hsb.z = 1.0 - (sea_hsb.z / 10.0);
 
-	amb_land[0] = [[OOColor colorWithCalibratedHue:land_hsb.x saturation:land_hsb.y brightness:land_hsb.z alpha:1.0] redComponent];
-	amb_land[1] = [[OOColor colorWithCalibratedHue:land_hsb.x saturation:land_hsb.y brightness:land_hsb.z alpha:1.0] blueComponent];
-	amb_land[2] = [[OOColor colorWithCalibratedHue:land_hsb.x saturation:land_hsb.y brightness:land_hsb.z alpha:1.0] greenComponent];
+	OOColor* amb_land_color = [OOColor colorWithCalibratedHue:land_hsb.x saturation:land_hsb.y brightness:land_hsb.z alpha:1.0];
+	OOColor* amb_sea_color = [OOColor colorWithCalibratedHue:sea_hsb.x saturation:sea_hsb.y brightness:sea_hsb.z alpha:1.0];
+	OOColor* amb_polar_land_color = [OOColor colorWithCalibratedHue:land_polar_hsb.x saturation:land_polar_hsb.y brightness:land_polar_hsb.z alpha:1.0];
+	OOColor* amb_polar_sea_color = [OOColor colorWithCalibratedHue:sea_polar_hsb.x saturation:sea_polar_hsb.y brightness:sea_polar_hsb.z alpha:1.0];
+
+	amb_land[0] = [amb_land_color redComponent];
+	amb_land[1] = [amb_land_color blueComponent];
+	amb_land[2] = [amb_land_color greenComponent];
 	amb_land[3] = 1.0;
-	amb_sea[0] = [[OOColor colorWithCalibratedHue:sea_hsb.x saturation:sea_hsb.y brightness:sea_hsb.z alpha:1.0] redComponent];
-	amb_sea[1] = [[OOColor colorWithCalibratedHue:sea_hsb.x saturation:sea_hsb.y brightness:sea_hsb.z alpha:1.0] blueComponent];
-	amb_sea[2] = [[OOColor colorWithCalibratedHue:sea_hsb.x saturation:sea_hsb.y brightness:sea_hsb.z alpha:1.0] greenComponent];
+	amb_sea[0] = [amb_sea_color redComponent];
+	amb_sea[1] = [amb_sea_color blueComponent];
+	amb_sea[2] = [amb_sea_color greenComponent];
 	amb_sea[3] = 1.0;
-	amb_polar_land[0] = [[OOColor colorWithCalibratedHue:land_polar_hsb.x saturation:land_polar_hsb.y brightness:land_polar_hsb.z alpha:1.0] redComponent];
-	amb_polar_land[1] = [[OOColor colorWithCalibratedHue:land_polar_hsb.x saturation:land_polar_hsb.y brightness:land_polar_hsb.z alpha:1.0] blueComponent];
-	amb_polar_land[2] = [[OOColor colorWithCalibratedHue:land_polar_hsb.x saturation:land_polar_hsb.y brightness:land_polar_hsb.z alpha:1.0] greenComponent];
+	amb_polar_land[0] = [amb_polar_land_color redComponent];
+	amb_polar_land[1] = [amb_polar_land_color blueComponent];
+	amb_polar_land[2] = [amb_polar_land_color greenComponent];
 	amb_polar_land[3] = 1.0;
-	amb_polar_sea[0] = [[OOColor colorWithCalibratedHue:sea_polar_hsb.x saturation:sea_polar_hsb.y brightness:sea_polar_hsb.z alpha:1.0] redComponent];
-	amb_polar_sea[1] = [[OOColor colorWithCalibratedHue:sea_polar_hsb.x saturation:sea_polar_hsb.y brightness:sea_polar_hsb.z alpha:1.0] blueComponent];
-	amb_polar_sea[2] = [[OOColor colorWithCalibratedHue:sea_polar_hsb.x saturation:sea_polar_hsb.y brightness:sea_polar_hsb.z alpha:1.0] greenComponent];
+	amb_polar_sea[0] = [amb_polar_sea_color redComponent];
+	amb_polar_sea[1] = [amb_polar_sea_color blueComponent];
+	amb_polar_sea[2] = [amb_polar_sea_color greenComponent];
 	amb_polar_sea[3] = 1.0;
+
+	[planetinfo setObject:amb_land_color forKey:@"land_color"];
+	[planetinfo setObject:amb_sea_color forKey:@"sea_color"];
+	[planetinfo setObject:amb_polar_land_color forKey:@"polar_land_color"];
+	[planetinfo setObject:amb_polar_sea_color forKey:@"polar_sea_color"];
+	
+	if (procGen)
+	{
+		textureName = [[uni textureStore] getPlanetTextureNameFor: planetinfo intoData: &textureData];
+		isTextured = (textureName != 0);
+	}
+	else
+	{
+		textureName = 0;
+		isTextured = NO;
+	}
 
 //	NSLog(@"DEBUG testing [PlanetEntity initialiseBaseVertexArray]");
 	[self initialiseBaseVertexArray];
@@ -532,7 +576,8 @@ void setUpSinTable()
 
 	// do atmosphere
 	//
-	atmosphere = [[PlanetEntity alloc] initAsAtmosphereForPlanet:self];
+	[self setUniverse:uni];
+	atmosphere = [[PlanetEntity alloc] initAsAtmosphereForPlanet:self inUniverse:uni];
 	[atmosphere setUniverse:universe];
 
 	//
@@ -549,7 +594,7 @@ void setUpSinTable()
     return self;
 }
 
-- (id) initMiniatureFromPlanet:(PlanetEntity*) planet
+- (id) initMiniatureFromPlanet:(PlanetEntity*) planet inUniverse:(Universe*) uni
 {    
     int		i;
 	double  aleph =  1.0 / sqrt(2.0);
@@ -611,7 +656,7 @@ void setUpSinTable()
 	
 	// do atmosphere
 	//
-	atmosphere = [[PlanetEntity alloc] initAsAtmosphereForPlanet:self];
+	atmosphere = [[PlanetEntity alloc] initAsAtmosphereForPlanet:self inUniverse:uni];
 	[atmosphere setUniverse:universe];
 
 	//
@@ -634,6 +679,8 @@ void setUpSinTable()
 	int		percent_land;
 	double  aleph =  1.0 / sqrt(2.0);
 	//
+	BOOL procGen = [uni doProcedurallyTexturedPlanets];
+	//
 	self = [super init];
 	//
 	Random_Seed	p_seed = [uni systemSeed];
@@ -645,8 +692,16 @@ void setUpSinTable()
 	}
 	else
 	{
-		isTextured = NO;
-		textureName = [[uni textureStore] getTextureNameFor:@"metal.png"];	//debug texture
+		if (procGen)
+		{
+			textureName = [[uni textureStore] getPlanetTextureNameFor: dict intoData: &textureData];
+			isTextured = (textureName != 0);
+		}
+		else
+		{
+			textureName = 0;
+			isTextured = NO;
+		}
 	}
     //
 	if ([dict objectForKey:@"seed"])
@@ -799,7 +854,7 @@ void setUpSinTable()
 
 	// do atmosphere
 	//
-	atmosphere = [[PlanetEntity alloc] initAsAtmosphereForPlanet:self];
+	atmosphere = [[PlanetEntity alloc] initAsAtmosphereForPlanet:self inUniverse:uni];
 	[atmosphere setUniverse:universe];
 
 	// set energy
@@ -1017,6 +1072,8 @@ void setUpSinTable()
 {
     if (atmosphere)
 		[atmosphere release];
+	if (textureData)
+		free((void *) textureData);
 	[super dealloc];
 }
 
@@ -1320,6 +1377,7 @@ void setUpSinTable()
 				else
 				{
 					glEnable(GL_TEXTURE_2D);
+					glTexEnvfv(GL_TEXTURE_ENV, GL_TEXTURE_ENV_COLOR, mat1);
 					glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);	//wrap around horizontally
 				}
 
@@ -2053,6 +2111,8 @@ int baseVertexIndexForEdge(int va, int vb, BOOL textured)
 	for (i = 0; i < 4; i++)
 	{
 		paint_color[i] = (r * paint_sea[i])*0.01 + ((100 - r) * paint_land[i])*0.01;
+		if ((planet_type == PLANET_TYPE_ATMOSPHERE) && isTextured)
+			paint_color[i] = 1.0;
 
 		// finally initialise the color array entry
 		vertexdata.color_array[vi*4 + i] = paint_color[i];

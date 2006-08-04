@@ -175,12 +175,11 @@ Your fair use and other rights are in no way affected by the above.
 		if (([filename hasPrefix:@"noisegen"])&&(texture_w == image_w)&&(texture_h == image_h))
 		{
 			NSLog(@"DEBUG filling image data for %@ (%d x %d) with special sauce!", filename, texture_w, texture_h);
-//			fillSquareImageWithPlanetTex( imageBuffer, texture_w, n_planes, 1.0, 0.0,
-//				[OOColor blueColor], 0.55, 0.01,
-//				[OOColor whiteColor], 0.00, 0.005,
-//				[OOColor greenColor], 0.08, 0.08,
-//				[OOColor yellowColor]);
-			fillSquareImageDataWithCloudTexture(imageBuffer, texture_w, n_planes, [OOColor magentaColor], 1.5, -0.75);
+			fillSquareImageWithPlanetTex( imageBuffer, texture_w, n_planes, 1.0, -0.5,
+				[OOColor blueColor],
+				[OOColor cyanColor],
+				[OOColor greenColor],
+				[OOColor yellowColor]);
 		}
 
 		if ((texture_w > image_w)||(texture_h > image_h))	// we need to scale the image to the texture dimensions
@@ -276,11 +275,6 @@ Your fair use and other rights are in no way affected by the above.
 				[myException raise];
 				return 0;
 		}
-//
-//		if (n_planes == 4)
-//			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, texture_w, texture_h, 0, GL_RGBA, GL_UNSIGNED_BYTE, texBytes);
-//		else
-//			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, texture_w, texture_h, 0, GL_RGB, GL_UNSIGNED_BYTE, texBytes);
 
 		if (freeTexBytes) free(texBytes);
 
@@ -330,31 +324,22 @@ Your fair use and other rights are in no way affected by the above.
 	return;
 }
 
-- (GLuint) getPlanetTextureNameFor:(NSDictionary*)planetinfo
+- (GLuint) getPlanetTextureNameFor:(NSDictionary*)planetinfo intoData:(unsigned char **)textureData
 {
-	NSSize				imageSize;
 	GLuint				texName;
+
+	int					texsize = 512;
 
 	unsigned char		*texBytes;
 
-	int					texture_h = 4;
-	int					texture_w = 4;
-	int					image_h, image_w;
-	int					n_planes, im_bytes, tex_bytes;
+	int					texture_h = texsize;
+	int					texture_w = texsize;
 
-	int					im_bytesPerRow;
-
-	imageSize = NSMakeSize( 512, 512);	// Gives size in pixels, which is good.
-	image_w = imageSize.width;
-	image_h = imageSize.height;
-	texture_w = imageSize.width;
-	texture_h = imageSize.height;
-	n_planes = 4;
-	im_bytes = image_w * image_h * n_planes;
-	tex_bytes = texture_w * texture_h * n_planes;
-	im_bytesPerRow = 512 * 4;
+	int					tex_bytes = texture_w * texture_h * 4;
 
 	unsigned char* imageBuffer = malloc( tex_bytes);
+	if (textureData)
+		(*textureData) = imageBuffer;
 
 	float land_fraction = [[planetinfo objectForKey:@"land_fraction"] floatValue];
 	float sea_bias = land_fraction - 1.0;
@@ -366,10 +351,11 @@ Your fair use and other rights are in no way affected by the above.
 	OOColor* polar_land_color = (OOColor*)[planetinfo objectForKey:@"polar_land_color"];
 	OOColor* polar_sea_color = (OOColor*)[planetinfo objectForKey:@"polar_sea_color"];
 
-	fillSquareImageWithPlanetTex( imageBuffer, texture_w, n_planes, 1.0, sea_bias,
-		sea_color, 0.22, 0.05,
-		polar_sea_color, 0.23, 0.05,
-		land_color, 0.22, 0.05,
+	fillRanNoiseBuffer();
+	fillSquareImageWithPlanetTex( imageBuffer, texture_w, 4, 1.0, sea_bias,
+		sea_color,
+		polar_sea_color,
+		land_color,
 		polar_land_color);
 
 	texBytes = imageBuffer;
@@ -380,8 +366,43 @@ Your fair use and other rights are in no way affected by the above.
 
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);	// adjust this
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);	// adjust this
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);	// adjust this
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);	// adjust this
+
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, texture_w, texture_h, 0, GL_RGBA, GL_UNSIGNED_BYTE, texBytes);
+
+	return texName;
+}
+
+- (GLuint) getCloudTextureNameFor:(OOColor*) color: (GLfloat) impress: (GLfloat) bias intoData:(unsigned char **)textureData
+{
+	GLuint				texName;
+
+	unsigned char		*texBytes;
+
+	int					texture_h = 512;
+	int					texture_w = 512;
+	int					tex_bytes;
+
+	tex_bytes = texture_w * texture_h * 4;
+
+	unsigned char* imageBuffer = malloc( tex_bytes);
+	if (textureData)
+		(*textureData) = imageBuffer;
+
+	fillRanNoiseBuffer();
+	fillSquareImageDataWithCloudTexture( imageBuffer, texture_w, 4, color, impress, bias);
+
+	texBytes = imageBuffer;
+
+	glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+	glGenTextures(1, &texName);			// get a new unique texture name
+	glBindTexture(GL_TEXTURE_2D, texName);
+
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);	// adjust this
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);	// adjust this
 
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, texture_w, texture_h, 0, GL_RGBA, GL_UNSIGNED_BYTE, texBytes);
 
@@ -501,7 +522,6 @@ void fillSquareImageDataWithSmoothNoise(unsigned char * imageBuffer, int width, 
 	int x, y;
 	for (y = 0; y < width; y++) for (x = 0; x < width; x++) accbuffer[ y * width + x] = 0.0f;
 
-	fillRanNoiseBuffer();
 	int octave = 4;
 	float scale = 0.5;
 	while (octave < width)
@@ -524,6 +544,31 @@ void fillSquareImageDataWithSmoothNoise(unsigned char * imageBuffer, int width, 
 	}
 }
 
+float q_factor(float* accbuffer, int x, int y, int width, BOOL polar_y_smooth, float polar_y_value, BOOL polar_x_smooth, float polar_x_value, float impress, float bias)
+{
+	float q = accbuffer[ y * width + x];	// 0.0 -> 1.0
+
+	q *= impress;	// impress
+	q += bias;		// + bias
+
+	float polar_y = (2.0f * y - width) / (float) width;
+	float polar_x = (2.0f * x - width) / (float) width;
+	
+	polar_x *= polar_x;
+	polar_y *= polar_y;
+	
+	if (polar_x_smooth)
+		q = q * (1.0 - polar_x) + polar_x * polar_x_value;
+	if (polar_y_smooth)
+		q = q * (1.0 - polar_y) + polar_y * polar_y_value;
+
+	if (q > 1.0)	q = 1.0;
+	if (q < 0.0)	q = 0.0;
+	
+	return q;
+}
+
+
 void fillSquareImageDataWithCloudTexture(unsigned char * imageBuffer, int width, int nplanes, OOColor* cloudcolor, float impress, float bias)
 {
 	float accbuffer[width * width];
@@ -536,7 +581,6 @@ void fillSquareImageDataWithCloudTexture(unsigned char * imageBuffer, int width,
 	rgba[2] = [cloudcolor blueComponent];
 	rgba[3] = [cloudcolor alphaComponent];
 
-	fillRanNoiseBuffer();
 	int octave = 8;
 	float scale = 0.5;
 	while (octave < width)
@@ -546,13 +590,12 @@ void fillSquareImageDataWithCloudTexture(unsigned char * imageBuffer, int width,
 		scale *= 0.5;
 	}
 	
+	float pole_value = (impress * accbuffer[0] - bias < 0.0)? 0.0: 1.0;
+	
 	for (y = 0; y < width; y++) for (x = 0; x < width; x++)
 	{
-		float q = accbuffer[ y * width + x];
-		q = impress *  q + bias;
-		if (q < 0.0f)	q = 0.0f;
-		if (q > 1.0f)	q = 1.0f;
-		
+		float q = q_factor( accbuffer, x, y, width, YES, pole_value, NO, 0.0, impress, bias);
+				
 		if (nplanes == 1)
 			imageBuffer[ y * width + x ] = 255 * q;
 		if (nplanes == 3)
@@ -572,16 +615,15 @@ void fillSquareImageDataWithCloudTexture(unsigned char * imageBuffer, int width,
 }
 
 void fillSquareImageWithPlanetTex(unsigned char * imageBuffer, int width, int nplanes, float impress, float bias,
-	OOColor* c0, float r0s, float r0i,
-	OOColor* c1, float r1s, float r1i,
-	OOColor* c2, float r2s, float r2i,
-	OOColor* c3)
+	OOColor* seaColor,
+	OOColor* paleSeaColor,
+	OOColor* landColor,
+	OOColor* paleLandColor)
 {
 	float accbuffer[width * width];
 	int x, y;
 	for (y = 0; y < width; y++) for (x = 0; x < width; x++) accbuffer[ y * width + x] = 0.0f;
 
-	fillRanNoiseBuffer();
 	int octave = 8;
 	float scale = 0.5;
 	while (octave < width)
@@ -591,23 +633,38 @@ void fillSquareImageWithPlanetTex(unsigned char * imageBuffer, int width, int np
 		scale *= 0.5;
 	}
 	
+	float largest_diff_q = 0.0;
+	float largest_q = 0.0;
+	
+	float pole_value = (bias < -0.5)? 0.0 : 1.0;
+	
 	for (y = 0; y < width; y++) for (x = 0; x < width; x++)
 	{
-		float q = accbuffer[ y * width + x];
+		float q = q_factor( accbuffer, x, y, width, YES, pole_value, NO, 0.0, impress, bias);
+		float q1 = q_factor( accbuffer, (x - 1) % width, (y - 1) % width, width, YES, pole_value, NO, 0.0, impress, bias);
 	
-		float polar = (2.0f * y - width) / (float) width;
+		if (q > largest_q)
+			largest_q = q;
+	
+		float diff_q = q - q1;
+		if (diff_q > largest_diff_q)
+			largest_diff_q = diff_q;
 		
-		q *= 1.0 - polar * polar;
-	
-		q *= impress;
-		q += bias;
-	
-		if (q > 1.0)	q = 1.0;
-		if (q < 0.0)	q = 0.0;
+		OOColor* color = [OOColor planetTextureColor:q :seaColor :paleSeaColor :landColor :paleLandColor];
 		
-		float red = lerp_r( [c0 redComponent], r0s, r0i, [c1 redComponent], r1s, r1i, [c2 redComponent], r2s, r2i, [c3 redComponent], q);
-		float green = lerp_r( [c0 greenComponent], r0s, r0i, [c1 greenComponent], r1s, r1i, [c2 greenComponent], r2s, r2i, [c3 greenComponent], q);
-		float blue = lerp_r( [c0 blueComponent], r0s, r0i, [c1 blueComponent], r1s, r1i, [c2 blueComponent], r2s, r2i, [c3 blueComponent], q);
+		float red = [color redComponent];
+		float green = [color greenComponent];
+		float blue = [color blueComponent];
+		
+		if (diff_q < 0.000)	// going downhill, so cast a shadow...
+		{
+			float fraction = 1.0 - (diff_q / -0.04);
+			if (fraction < 0.0)	fraction = 0.0;
+			if (fraction > 1.0)	fraction = 1.0;
+			red *= fraction;
+			green *= fraction;
+			blue *= fraction;
+		}
 		
 		if (nplanes == 1)
 			imageBuffer[ y * width + x ] = 255 * q;
@@ -625,6 +682,8 @@ void fillSquareImageWithPlanetTex(unsigned char * imageBuffer, int width, int np
 			imageBuffer[ 3 + 4 * (y * width + x) ] = 255;
 		}
 	}
+	
+	NSLog(@"\n\nTESTING: reporting largest q as %f\n\n", largest_q);
 }
 
 @end
