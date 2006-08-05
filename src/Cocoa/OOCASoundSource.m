@@ -37,18 +37,18 @@ Your fair use and other rights are in no way affected by the above.
 
 #pragma mark NSObject
 
+- (id)init
+{
+	return [super init];
+}
+
+
 - (void)dealloc
 {
 	if (nil != channel) [self stop];
 	[sound release];
 	
 	[super dealloc];
-}
-
-
-- (id)init
-{
-	return [super init];
 }
 
 
@@ -152,7 +152,7 @@ Your fair use and other rights are in no way affected by the above.
 
 - (void)playOrRepeat
 {
-	if (nil == channel) [self play];
+	if (![self isPlaying]) [self play];
 	else ++remainingCount;
 }
 
@@ -174,7 +174,7 @@ Your fair use and other rights are in no way affected by the above.
 
 - (void)playSound:(OOSound *)inSound
 {
-	if (channel) [self stop];
+	[self stop];
 	[self setSound:inSound];
 	[self play];
 }
@@ -182,7 +182,7 @@ Your fair use and other rights are in no way affected by the above.
 
 - (void)playSound:(OOSound *)inSound repeatCount:(uint8_t)inCount
 {
-	if (channel) [self stop];
+	[self stop];
 	[self setSound:inSound];
 	[self setRepeatCount:inCount];
 	[self play];

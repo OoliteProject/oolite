@@ -201,7 +201,7 @@ static OOSound				*sSingletonOOSound = NULL;
 	
 	if (nil != self)
 	{
-		NSLog(@"Loaded sound %@", self);
+	//	NSLog(@"Loaded sound %@", self);
 	}
 	else
 	{

@@ -409,7 +409,7 @@ static BOOL PortWait(mach_port_t inPort, PortMessage *outMessage);
 		{
 			[_sound retain];
 			_state = kState_Playing;
-			NSLog(@"Playing sound %@", _sound);
+		//	NSLog(@"Playing sound %@", _sound);
 		}
 		else
 		{
