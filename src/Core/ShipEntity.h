@@ -625,6 +625,7 @@ BOOL	class_masslocks(int some_class);
 
 - (GLfloat) rangeToDestination;
 - (double) trackDestination:(double) delta_t :(BOOL) retreat;
+//- (double) trackPosition:(Vector) track_pos :(double) delta_t :(BOOL) retreat;
 
 - (Vector) destination;
 - (Vector) one_km_six;

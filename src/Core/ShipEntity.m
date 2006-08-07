@@ -3277,14 +3277,17 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 			NSArray* shader_textures = (NSArray*)[shader objectForKey:@"textures"];
 		
 			NSLog(@"TESTING: initialising shader for %@ : %@", shader_key, shader);
-		
 			for (ti = 0; ti < [shader_textures count]; ti ++)
 			{
 				[[universe textureStore] getTextureNameFor: (NSString*)[shader_textures objectAtIndex:ti]];
-		
 				NSLog(@"TESTING: initialised texture: %@", [shader_textures objectAtIndex:ti]);
-		
 			}
+			
+			GLuint shader_program = [[universe textureStore] shaderProgramFromDictionary: shader];
+			if (shader_program)
+				NSLog(@"TESTING: successfully compiled shader program is %d", shader_program);
+			else
+				NSLog(@"TESTING: failed to initialise shader program!");
 		}
 	}
 }

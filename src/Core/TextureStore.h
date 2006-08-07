@@ -52,6 +52,7 @@ extern int debug;
 @interface TextureStore : NSObject
 {
     NSMutableDictionary	*textureDictionary;
+    NSMutableDictionary	*shaderDictionary;
 }
 
 - (id) init;
@@ -60,7 +61,11 @@ extern int debug;
 - (GLuint) getTextureNameFor:(NSString *)filename;
 - (NSSize) getSizeOfTexture:(NSString *)filename;
 
+- (GLuint) shaderProgramFromDictionary:(NSDictionary *) shaderDict;
+
 - (void) reloadTextures;
+
+// routines to create textures...
 
 - (GLuint) getPlanetTextureNameFor:(NSDictionary*)planetinfo intoData:(unsigned char **)textureData;
 - (GLuint) getCloudTextureNameFor:(OOColor*) color: (GLfloat) impress: (GLfloat) bias intoData:(unsigned char **)textureData;

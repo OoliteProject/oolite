@@ -304,6 +304,86 @@ Your fair use and other rights are in no way affected by the above.
 	return size;
 }
 
+- (GLuint) shaderProgramFromDictionary:(NSDictionary *) shaderDict
+{
+	if ([shaderDictionary objectForKey:shaderDict])
+		return (GLuint)[[shaderDictionary objectForKey:shaderDict] intValue];
+
+	if (!shaderDict)
+	{
+		NSLog(@"ERROR: null dictionary passed to [TextureStore prepareShaderFDromDictionary:]");
+		return 0;	// failed!
+	}
+	
+	// allocate a shader object
+	GLuint shader_object = glCreateShader(GL_FRAGMENT_SHADER);	// we're only using fragment shaders for now
+	if (!shader_object)
+	{
+		NSLog(@"GLSL ERROR: could not create a fragment shader with glCreateShader()");
+		return 0;	// failed!
+	}
+	
+	// associate the shader source code with the shader
+	if ([shaderDict objectForKey:@"glsl"])
+	{
+		NSString* glslSourceString = (NSString*)[shaderDict objectForKey:@"glsl"];
+		NSArray* lines = [glslSourceString componentsSeparatedByString:@"\n"];
+		const GLchar* c_string_lines[[lines count]];
+		int i;
+		for (i = 0; i < [lines count]; i++)
+			c_string_lines[i] = [(NSString*)[lines objectAtIndex:i] UTF8String];
+		glShaderSource( shader_object, [lines count], c_string_lines, NULL);
+	}
+	else
+	{
+		NSLog(@"ERROR: no shader code value for key \"glsl\" in dictionary passed to [TextureStore prepareShaderFDromDictionary:]");
+		return 0;	// failed!
+	}
+	
+	// compile the shader!
+	glCompileShader( shader_object);
+	GLint result;
+	glGetShaderiv( shader_object, GL_COMPILE_STATUS, &result);
+	if (result != GL_TRUE)
+	{
+		char log[1024];
+		GLsizei log_length;
+		glGetShaderInfoLog( shader_object, 1024, &log_length, log);
+		NSLog(@"GLSL ERROR: shader code would not compile:\n%s\n\n%@\n\n", log, [shaderDict objectForKey:@"glsl"]);
+		return 0;	// failed!
+	}
+	
+	// create a shader program
+	GLuint shader_program = glCreateProgram();
+	if (!shader_program)
+	{
+		NSLog(@"GLSL ERROR: could not create a shader program with glCreateProgram()");
+		return 0;	// failed!
+	}
+	
+	// attach the shader object
+	glAttachShader( shader_program, shader_object);
+	
+	// link the program
+	glLinkProgram( shader_program);
+	glGetProgramiv( shader_program, GL_LINK_STATUS, &result);
+	if (result != GL_TRUE)
+	{
+		char log[1024];
+		GLsizei log_length;
+		glGetProgramInfoLog( shader_program, 1024, &log_length, log);
+		NSLog(@"GLSL ERROR: shader program would not link:\n%s\n\n%@\n\n", log, [shaderDict objectForKey:@"glsl"]);
+		return 0;	// failed!
+	}
+
+	// store the resulting program for reuse
+	if (!shaderDictionary)
+		shaderDictionary = [[NSMutableDictionary dictionary] retain];
+	[shaderDictionary setObject:[NSNumber numberWithUnsignedInt: shader_program] forKey: shaderDict];	
+		
+	return shader_program;
+}
+
 - (void) reloadTextures
 {
 #ifdef WIN32
