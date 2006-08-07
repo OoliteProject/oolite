@@ -1763,11 +1763,23 @@ int d100_seed = -1;	// ensure proper random function
 		return;
 	}
 	//
-	Vector posn = [Entity vectorFromString:(NSString *)[dict objectForKey:@"position"]];
-	if (debug & DEBUG_SCRIPT)
+	Vector posn = [universe coordinatesFromCoordinateSystemString:(NSString *)[dict objectForKey:@"position"]];
+	if (posn.x || posn.y || posn.z)
 	{
-		NSLog(@"DEBUG planet position (%.2f %.2f %.2f) derived from %@",
-			posn.x, posn.y, posn.z, [dict objectForKey:@"position"]);
+		if (debug & DEBUG_SCRIPT)
+		{
+			NSLog(@"DEBUG planet position (%.2f %.2f %.2f) derived from %@",
+				posn.x, posn.y, posn.z, [dict objectForKey:@"position"]);
+		}
+	}
+	else
+	{
+		posn = [Entity vectorFromString:(NSString *)[dict objectForKey:@"position"]];
+		if (debug & DEBUG_SCRIPT)
+		{
+			NSLog(@"DEBUG planet position (%.2f %.2f %.2f) derived from %@",
+				posn.x, posn.y, posn.z, [dict objectForKey:@"position"]);
+		}
 	}
 	//
 	[planet setPosition: posn];
@@ -1808,11 +1820,23 @@ int d100_seed = -1;	// ensure proper random function
 		return;
 	}
 	//
-	Vector posn = [Entity vectorFromString:(NSString *)[dict objectForKey:@"position"]];
-	if (debug & DEBUG_SCRIPT)
+	Vector posn = [universe coordinatesFromCoordinateSystemString:(NSString *)[dict objectForKey:@"position"]];
+	if (posn.x || posn.y || posn.z)
 	{
-		NSLog(@"DEBUG moon position (%.2f %.2f %.2f) derived from %@",
-			posn.x, posn.y, posn.z, [dict objectForKey:@"position"]);
+		if (debug & DEBUG_SCRIPT)
+		{
+			NSLog(@"DEBUG moon position (%.2f %.2f %.2f) derived from %@",
+				posn.x, posn.y, posn.z, [dict objectForKey:@"position"]);
+		}
+	}
+	else
+	{
+		posn = [Entity vectorFromString:(NSString *)[dict objectForKey:@"position"]];
+		if (debug & DEBUG_SCRIPT)
+		{
+			NSLog(@"DEBUG moon position (%.2f %.2f %.2f) derived from %@",
+				posn.x, posn.y, posn.z, [dict objectForKey:@"position"]);
+		}
 	}
 	//
 	[planet setPosition: posn];

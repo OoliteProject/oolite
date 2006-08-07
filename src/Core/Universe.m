@@ -1918,7 +1918,8 @@ GLfloat docked_light_specular[]	= { (GLfloat) 1.0, (GLfloat) 1.0, (GLfloat) 0.5,
 	if ((!the_planet)||(!the_sun))
 	{
 //		NSLog(@"NO ERROR - Universe coordinatesForPosition:withCoordinateSystem: in system with no sun or planet returned as an absolute position");
-		*my_scalar = 1.0;
+		if (my_scalar)
+			*my_scalar = 1.0;
 		return pos;
 	}
 	Vector  w_pos = [self getWitchspaceExitPosition];
@@ -1999,7 +2000,8 @@ GLfloat docked_light_specular[]	= { (GLfloat) 1.0, (GLfloat) 1.0, (GLfloat) 0.5,
 		default:
 			return make_vector( 0.0f, 0.0f, 0.0f);
 	}
-	*my_scalar = scalar;
+	if (my_scalar)
+		*my_scalar = scalar;
 	
 	// result = p0 + ijk
 	Vector result = p0;	// origin
@@ -2108,6 +2110,19 @@ GLfloat docked_light_specular[]	= { (GLfloat) 1.0, (GLfloat) 1.0, (GLfloat) 0.5,
 	//
 	return [NSString stringWithFormat:@"%@ %.2f %.2f %.2f", system, result.x, result.y, result.z];
 }
+
+- (Vector) coordinatesFromCoordinateSystemString:(NSString *) system_x_y_z
+{
+	NSArray* tokens = [Entity scanTokensFromString: system_x_y_z];
+	if ([tokens count] != 4)
+	{
+		NSLog(@"ERROR: Could not construct system coordinates from \"%@\" - too few pieces of data", system_x_y_z);
+		return make_vector(0,0,0);
+	}
+	GLfloat dummy;
+	return [self coordinatesForPosition:make_vector([[tokens objectAtIndex:1] floatValue], [[tokens objectAtIndex:2] floatValue], [[tokens objectAtIndex:3] floatValue]) withCoordinateSystem:(NSString *)[tokens objectAtIndex:0] returningScalar:&dummy];
+}
+
 
 - (BOOL) addShipWithRole:(NSString *) desc nearPosition:(Vector) pos withCoordinateSystem:(NSString *) system
 {

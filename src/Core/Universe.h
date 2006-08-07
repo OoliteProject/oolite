@@ -301,6 +301,7 @@ extern int debug;
 - (void) addShipWithRole:(NSString *) desc nearRouteOneAt:(double) route_fraction;
 - (Vector) coordinatesForPosition:(Vector) pos withCoordinateSystem:(NSString *) system returningScalar:(GLfloat*) my_scalar;
 - (NSString *) expressPosition:(Vector) pos inCoordinateSystem:(NSString *) system;
+- (Vector) coordinatesFromCoordinateSystemString:(NSString *) system_x_y_z;
 - (BOOL) addShipWithRole:(NSString *) desc nearPosition:(Vector) pos withCoordinateSystem:(NSString *) system;
 - (BOOL) addShips:(int) howMany withRole:(NSString *) desc atPosition:(Vector) pos withCoordinateSystem:(NSString *) system;
 - (BOOL) addShips:(int) howMany withRole:(NSString *) desc nearPosition:(Vector) pos withCoordinateSystem:(NSString *) system;
