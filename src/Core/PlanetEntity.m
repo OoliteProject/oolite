@@ -572,7 +572,7 @@ void setUpSinTable()
 	[self scaleVertices];
 
 	// set speed of rotation
-	rotational_velocity = 0.01 * randf();	// 0.0 .. 0.01 avr 0.005;
+	rotational_velocity = 0.005 * randf();	// 0.0 .. 0.005 avr 0.0025;
 
 	// do atmosphere
 	//
