@@ -3387,9 +3387,9 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 							NSString* textureKey = [[universe textureStore] getNameOfTextureWithGLuint: texture_name[ti]];
 							if ((shader_info) && [shader_info objectForKey: textureKey])
 							{
-								NSLog(@"TESTING: will be using shader %@ for %@",
-									[shader_info objectForKey:textureKey],
-									textureKey);
+//								NSLog(@"TESTING: will be using shader %@ for %@",
+//									[shader_info objectForKey:textureKey],
+//									textureKey);
 									
 								NSDictionary* shader = (NSDictionary*)[shader_info objectForKey:textureKey];
 								
@@ -3408,8 +3408,8 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 									// associating texN with each texture
 									GLuint textureN = [[texture_units objectAtIndex:i] intValue];
 									
-									NSLog(@"TESTING: setting up texture unit %d with stored texture name %d",
-										i, textureN);
+//									NSLog(@"TESTING: setting up texture unit %d with stored texture name %d",
+//										i, textureN);
 									
 									glActiveTexture( GL_TEXTURE0 + i);
 									glBindTexture( GL_TEXTURE_2D, textureN);
@@ -3423,7 +3423,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 									}
 									else
 									{
-										NSLog(@"TESTING: found location of %s in shader_program %d as %d", cname, shader_program, locator);
+//										NSLog(@"TESTING: found location of %s in shader_program %d as %d", cname, shader_program, locator);
 										glUniform1i( locator, i);	// associate texture unit number i with tex%d
 									}
 									
@@ -3434,14 +3434,14 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 								GLint time_location = glGetUniformLocation( shader_program, "time");
 								if (time_location != -1)
 								{
-									NSLog(@"TESTING: found location of 'time' in shader_program %d as %d", shader_program, time_location);
+//									NSLog(@"TESTING: found location of 'time' in shader_program %d as %d", shader_program, time_location);
 									glUniform1f( time_location, utime);
 								}
 								//
 								GLint engine_level_location = glGetUniformLocation( shader_program, "engine_level");
 								if (engine_level_location != -1)
 								{
-									NSLog(@"TESTING: found location of 'engine_level' in shader_program %d as %d", shader_program, engine_level_location);
+//									NSLog(@"TESTING: found location of 'engine_level' in shader_program %d as %d", shader_program, engine_level_location);
 									glUniform1f( engine_level_location, engine_level);
 								}
 								//
