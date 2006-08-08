@@ -372,6 +372,9 @@ Your fair use and other rights are in no way affected by the above.
 		// DEBUGGING
 		int debug_flag;
 		int debug_condition;
+		
+		// shaders
+		NSMutableDictionary* shader_info;
 }
 
 // ship brains

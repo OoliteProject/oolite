@@ -1096,17 +1096,15 @@ static  Universe	*data_store_universe;
     //
     int fi,ti ;
 
+	if (!universe)
+		return;
+
     for (fi = 0; fi < n_faces; fi++)
     {
 		NSString* texture = [NSString stringWithUTF8String:(char*)faces[fi].textureFileStr255];
         if ((faces[fi].texName == 0)&&(texture))
         {
-            // load texture into Universe texturestore
-            //NSLog(@"Off to load %@", texture);
-            if (universe)
-            {
-                faces[fi].texName = [[universe textureStore] getTextureNameFor: texture];
-            }
+			 faces[fi].texName = [[universe textureStore] getTextureNameFor: texture];
         }
     }
 
@@ -1128,16 +1126,16 @@ static  Universe	*data_store_universe;
 
 - (void) generateDisplayList
 {
-    displayListName = glGenLists(1);
-    if (displayListName != 0)
-    {
-        glNewList(displayListName, GL_COMPILE);
-        [self drawEntity:YES:NO];	//	immediate YES	translucent NO
-        glEndList();
+	displayListName = glGenLists(1);
+	if (displayListName != 0)
+	{
+		glNewList(displayListName, GL_COMPILE);
+		[self drawEntity:YES:NO];	//	immediate YES	translucent NO
+		glEndList();
 		//
 		checkGLErrors([NSString stringWithFormat:@"Entity after generateDisplayList for %@", self]);
 		//
-    }
+	}
 }
 
 - (void) update:(double) delta_t

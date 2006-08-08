@@ -59,6 +59,7 @@ extern int debug;
 - (void) dealloc;
 
 - (GLuint) getTextureNameFor:(NSString *)filename;
+- (NSString*) getNameOfTextureWithGLuint:(GLuint) value;
 - (NSSize) getSizeOfTexture:(NSString *)filename;
 
 - (GLuint) shaderProgramFromDictionary:(NSDictionary *) shaderDict;

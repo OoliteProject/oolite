@@ -239,6 +239,8 @@ Your fair use and other rights are in no way affected by the above.
 	if (lastRadioMessage)	[lastRadioMessage autorelease];
 
 	if (octree)				[octree autorelease];
+	
+	if (shader_info)		[shader_info release];
 
 	[super dealloc];
 }
@@ -844,6 +846,8 @@ static NSMutableDictionary* smallOctreeDict = nil;
 	[self setOctree: nil];
 	//
 	[self setBrain: nil];
+	//
+	[shader_info removeAllObjects];
 }
 
 
@@ -3260,12 +3264,15 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 - (void) initialiseTextures
 {
     [super initialiseTextures];
-				
+	
 	if ([shipinfoDictionary objectForKey:@"shaders"])
 	{
 		// initialise textures in shaders
 		
-		NSLog(@"TESTING: initialising textures for shaders for %@", self);
+		if (!shader_info)
+			shader_info = [[NSMutableDictionary dictionary] retain];
+					
+		NSLog(@"TESTING: initialising shaders for %@", self);
 		
 		NSDictionary* shaders = (NSDictionary*)[shipinfoDictionary objectForKey:@"shaders"];
 		NSArray* shader_keys = [shaders allKeys];
@@ -3275,11 +3282,13 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 			NSString* shader_key = [shader_keys objectAtIndex:i];	// == the name of the texture to be replaced
 			NSDictionary* shader = (NSDictionary*)[shaders objectForKey:shader_key];
 			NSArray* shader_textures = (NSArray*)[shader objectForKey:@"textures"];
-		
+			NSMutableArray* textureNames = [NSMutableArray array];
+			
 			NSLog(@"TESTING: initialising shader for %@ : %@", shader_key, shader);
 			for (ti = 0; ti < [shader_textures count]; ti ++)
 			{
-				[[universe textureStore] getTextureNameFor: (NSString*)[shader_textures objectAtIndex:ti]];
+				GLuint tn = [[universe textureStore] getTextureNameFor: (NSString*)[shader_textures objectAtIndex:ti]];
+				[textureNames addObject:[NSNumber numberWithUnsignedInt:tn]];
 				NSLog(@"TESTING: initialised texture: %@", [shader_textures objectAtIndex:ti]);
 			}
 			
@@ -3288,7 +3297,12 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 				NSLog(@"TESTING: successfully compiled shader program is %d", shader_program);
 			else
 				NSLog(@"TESTING: failed to initialise shader program!");
+			[shader_info setObject:[NSDictionary dictionaryWithObjectsAndKeys:
+				textureNames, @"textureNames", [NSNumber numberWithUnsignedInt:shader_program], @"shader_program", nil]
+				forKey: shader_key];
 		}
+		
+		NSLog(@"TESTING: shader_info = %@", shader_info);
 	}
 }
 
@@ -3301,9 +3315,6 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	if (cloaking_device_active && (randf() > 0.10))			return;	// DON'T DRAW
 
 	if (!translucent)
-//	{
-//		[super drawEntity:immediate:translucent];
-
 	{
 		// draw the thing - code take from Entity drawEntity::
 		//
@@ -3336,16 +3347,21 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 					glNormalPointer( GL_FLOAT, 0, entityData.normal_array);
 					glTexCoordPointer( 2, GL_FLOAT, 0, entityData.texture_uv_array);
 
+
+					GLfloat utime = (GLfloat)[universe getTime];
+					GLfloat engine_level = flight_speed / max_flight_speed;
+					
+
 					if (immediate)
 					{
-
-	#ifdef GNUSTEP
-						// TODO: Find out what these APPLE functions can be replaced with
-	#else
-						if (usingVAR)
-							glBindVertexArrayAPPLE(gVertexArrayRangeObjects[0]);
-	#endif
-
+//
+//	#ifdef GNUSTEP
+//						// TODO: Find out what these APPLE functions can be replaced with
+//	#else
+////						if (usingVAR)
+////							glBindVertexArrayAPPLE(gVertexArrayRangeObjects[0]);
+//	#endif
+//
 						//
 						// gap removal (draws flat polys)
 						//
@@ -3368,19 +3384,99 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 
 						for (ti = 1; ti <= n_textures; ti++)
 						{
-							glBindTexture(GL_TEXTURE_2D, texture_name[ti]);
+							NSString* textureKey = [[universe textureStore] getNameOfTextureWithGLuint: texture_name[ti]];
+							if ((shader_info) && [shader_info objectForKey: textureKey])
+							{
+								NSLog(@"TESTING: will be using shader %@ for %@",
+									[shader_info objectForKey:textureKey],
+									textureKey);
+									
+								NSDictionary* shader = (NSDictionary*)[shader_info objectForKey:textureKey];
+								
+								GLuint shader_program = [[shader objectForKey:@"shader_program"] intValue];
+								//
+								// set up texture units
+								//
+								glUseProgram( shader_program);
+								//
+								NSArray* texture_units = (NSArray*)[shader objectForKey:@"textureNames"];
+								int n_tu = [texture_units count];
+								int i;
+								for (i = 0; i < n_tu; i++)
+								{
+									// set up each texture unit in turn
+									// associating texN with each texture
+									GLuint textureN = [[texture_units objectAtIndex:i] intValue];
+									
+									NSLog(@"TESTING: setting up texture unit %d with stored texture name %d",
+										i, textureN);
+									
+									glActiveTexture( GL_TEXTURE0 + i);
+									glBindTexture( GL_TEXTURE_2D, textureN);
+									
+									NSString* texdname = [NSString stringWithFormat:@"tex%d", i];
+									const char* cname = [texdname UTF8String];
+									GLint locator = glGetUniformLocation( shader_program, cname);
+									if (locator == -1)
+									{
+										NSLog(@"GLSL ERROR couldn't find location of %@ in shader_program %d", texdname, shader_program);
+									}
+									else
+									{
+										NSLog(@"TESTING: found location of %s in shader_program %d as %d", cname, shader_program, locator);
+										glUniform1i( locator, i);	// associate texture unit number i with tex%d
+									}
+									
+								}
+								//
+								// other variables 'time' 'engine_level'
+								//
+								GLint time_location = glGetUniformLocation( shader_program, "time");
+								if (time_location != -1)
+								{
+									NSLog(@"TESTING: found location of 'time' in shader_program %d as %d", shader_program, time_location);
+									glUniform1f( time_location, utime);
+								}
+								//
+								GLint engine_level_location = glGetUniformLocation( shader_program, "engine_level");
+								if (engine_level_location != -1)
+								{
+									NSLog(@"TESTING: found location of 'engine_level' in shader_program %d as %d", shader_program, engine_level_location);
+									glUniform1f( engine_level_location, engine_level);
+								}
+								//
+							}
+							else
+								glBindTexture(GL_TEXTURE_2D, texture_name[ti]);
 							glDrawArrays( GL_TRIANGLES, triangle_range[ti].location, triangle_range[ti].length);
+							
+							// switch off shader
+							if ((shader_info) && [shader_info objectForKey: textureKey])
+							{
+								glUseProgram(0);
+								glActiveTexture( GL_TEXTURE0);
+							}
+
 						}
 					}
 					else
 					{
 						if (displayListName != 0)
 						{
-							glCallList(displayListName);
+//							glCallList(displayListName);
+							[self drawEntity: YES : translucent];
 						}
 						else
 						{
 							[self initialiseTextures];
+
+#ifdef GNUSTEP
+							// TODO: Find out what these APPLE functions can be replaced with
+#else
+							if (usingVAR)
+								glBindVertexArrayAPPLE(gVertexArrayRangeObjects[0]);
+#endif
+
 							[self generateDisplayList];
 						}
 					}
@@ -3406,10 +3502,6 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 
 		NS_ENDHANDLER
 	}
-
-
-
-//	}
 	else
 	{
 		if ((status == STATUS_COCKPIT_DISPLAY)&&((debug | debug_flag) & (DEBUG_COLLISIONS | DEBUG_OCTREE)))

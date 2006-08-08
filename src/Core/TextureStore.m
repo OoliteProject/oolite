@@ -285,12 +285,18 @@ Your fair use and other rights are in no way affected by the above.
 		[texProps setObject:[NSNumber numberWithInt:texture_h] forKey:@"height"];
 
 		[textureDictionary setObject:texProps forKey:filename];
+		[textureDictionary setObject:filename forKey:[NSNumber numberWithInt:texName]];
 	}
 	else
 	{
 		texName = (GLuint)[(NSNumber *)[[textureDictionary objectForKey:filename] objectForKey:@"texName"] intValue];
 	}
 	return texName;
+}
+
+- (NSString*) getNameOfTextureWithGLuint:(GLuint) value
+{
+	return (NSString*)[textureDictionary objectForKey:[NSNumber numberWithInt:value]];
 }
 
 - (NSSize) getSizeOfTexture:(NSString *)filename
