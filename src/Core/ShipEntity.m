@@ -847,7 +847,11 @@ static NSMutableDictionary* smallOctreeDict = nil;
 	//
 	[self setBrain: nil];
 	//
-	[shader_info removeAllObjects];
+	if (shader_info)
+	{
+		[shader_info release];
+		shader_info = nil;
+	}
 }
 
 
@@ -3350,6 +3354,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 
 					GLfloat utime = (GLfloat)[universe getTime];
 					GLfloat engine_level = flight_speed / max_flight_speed;
+					GLfloat laser_heat_level = (isPlayer)? [(PlayerEntity*)self dial_weapon_temp]: (weapon_recharge_rate - shot_time) / weapon_recharge_rate;
 					
 
 					if (immediate)
@@ -3443,6 +3448,13 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 								{
 //									NSLog(@"TESTING: found location of 'engine_level' in shader_program %d as %d", shader_program, engine_level_location);
 									glUniform1f( engine_level_location, engine_level);
+								}
+								//
+								GLint laser_heat_level_location = glGetUniformLocation( shader_program, "laser_heat_level");
+								if (laser_heat_level_location != -1)
+								{
+//									NSLog(@"TESTING: found location of 'engine_level' in shader_program %d as %d", shader_program, laser_heat_level_location);
+									glUniform1f( laser_heat_level_location, laser_heat_level);
 								}
 								//
 							}
