@@ -59,6 +59,8 @@ extern int debug;
 - (void) dealloc;
 
 - (GLuint) getTextureNameFor:(NSString *)filename;
+- (GLuint) getImageNameFor:(NSString *)filename;
+- (GLuint) getTextureNameFor:(NSString *)filename inFolder:(NSString*) foldername;
 - (NSString*) getNameOfTextureWithGLuint:(GLuint) value;
 - (NSSize) getSizeOfTexture:(NSString *)filename;
 
