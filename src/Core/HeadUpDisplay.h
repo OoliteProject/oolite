@@ -216,6 +216,8 @@ extern int debug;
 	
 }
 
+- (id) initWithDictionary:(NSDictionary *) hudinfo;
+
 - (void) setPlayer:(PlayerEntity *) player_entity;
 
 - (void) resizeGuis:(NSDictionary*) info;

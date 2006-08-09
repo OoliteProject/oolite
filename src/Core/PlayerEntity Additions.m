@@ -2209,7 +2209,7 @@ int d100_seed = -1;	// ensure proper random function
 		model_p0.x = [[i_info objectAtIndex:2] floatValue] + off.x;
 		model_p0.y = [[i_info objectAtIndex:3] floatValue] + off.y;
 		model_p0.z = off.z;
-		if (![[universe textureStore] getTextureNameFor:texturefile])
+		if (![TextureStore getTextureNameFor:texturefile])
 			return NO;
 
 		ParticleEntity* billboard = [[ParticleEntity alloc] initBillboard:billSize withTexture:texturefile];

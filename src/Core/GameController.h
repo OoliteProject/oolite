@@ -104,7 +104,7 @@ extern int debug;
 
 	/*  end of GDC */
 
-	TextureStore			*oldTextureStore;
+//	TextureStore			*oldTextureStore;
 
 	SEL						pauseSelector;
 	NSObject				*pauseTarget;

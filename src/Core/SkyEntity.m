@@ -536,9 +536,9 @@ Your fair use and other rights are in no way affected by the above.
 				case SKY_BILLBOARDS :
 
 					if ((star_textureName == 0)&&(universe))
-						star_textureName = [[universe textureStore] getTextureNameFor:@"star64.png"];
+						star_textureName = [TextureStore getTextureNameFor:@"star64.png"];
 					if ((blob_textureName == 0)&&(universe))
-						blob_textureName = [[universe textureStore] getTextureNameFor:@"galaxy256.png"];
+						blob_textureName = [TextureStore getTextureNameFor:@"galaxy256.png"];
 					//
 					glEnable(GL_TEXTURE_2D);
 					glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);

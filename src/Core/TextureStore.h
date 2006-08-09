@@ -51,27 +51,22 @@ extern int debug;
 
 @interface TextureStore : NSObject
 {
-    NSMutableDictionary	*textureDictionary;
-    NSMutableDictionary	*shaderDictionary;
 }
 
-- (id) init;
-- (void) dealloc;
++ (GLuint) getTextureNameFor:(NSString *)filename;
++ (GLuint) getImageNameFor:(NSString *)filename;
++ (GLuint) getTextureNameFor:(NSString *)filename inFolder:(NSString*) foldername;
++ (NSString*) getNameOfTextureWithGLuint:(GLuint) value;
++ (NSSize) getSizeOfTexture:(NSString *)filename;
 
-- (GLuint) getTextureNameFor:(NSString *)filename;
-- (GLuint) getImageNameFor:(NSString *)filename;
-- (GLuint) getTextureNameFor:(NSString *)filename inFolder:(NSString*) foldername;
-- (NSString*) getNameOfTextureWithGLuint:(GLuint) value;
-- (NSSize) getSizeOfTexture:(NSString *)filename;
++ (GLuint) shaderProgramFromDictionary:(NSDictionary *) shaderDict;
 
-- (GLuint) shaderProgramFromDictionary:(NSDictionary *) shaderDict;
-
-- (void) reloadTextures;
++ (void) reloadTextures;
 
 // routines to create textures...
 
-- (GLuint) getPlanetTextureNameFor:(NSDictionary*)planetinfo intoData:(unsigned char **)textureData;
-- (GLuint) getCloudTextureNameFor:(OOColor*) color: (GLfloat) impress: (GLfloat) bias intoData:(unsigned char **)textureData;
++ (GLuint) getPlanetTextureNameFor:(NSDictionary*)planetinfo intoData:(unsigned char **)textureData;
++ (GLuint) getCloudTextureNameFor:(OOColor*) color: (GLfloat) impress: (GLfloat) bias intoData:(unsigned char **)textureData;
 
 void fillRanNoiseBuffer();
 

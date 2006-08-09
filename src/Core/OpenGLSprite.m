@@ -17,16 +17,16 @@ or send a letter to Creative Commons, 559 Nathan Abbott Way, Stanford, Californi
 
 You are free:
 
-¥	to copy, distribute, display, and perform the work
-¥	to make derivative works
+â€¢	to copy, distribute, display, and perform the work
+â€¢	to make derivative works
 
 Under the following conditions:
 
-¥	Attribution. You must give the original author credit.
+â€¢	Attribution. You must give the original author credit.
 
-¥	Noncommercial. You may not use this work for commercial purposes.
+â€¢	Noncommercial. You may not use this work for commercial purposes.
 
-¥	Share Alike. If you alter, transform, or build upon this work,
+â€¢	Share Alike. If you alter, transform, or build upon this work,
 you may distribute the resulting work only under a license identical to this one.
 
 For any reuse or distribution, you must make clear to others the license terms of this work.
@@ -46,6 +46,19 @@ Your fair use and other rights are in no way affected by the above.
 - (id) init
 {
     self = [super init];
+    return self;
+}
+
+- (id) initWithTextureName:(GLuint) textureName andSize:(NSSize) spriteSize
+{
+    self = [super init];
+	
+	textureData = nil;
+	texName = textureName;
+	size = spriteSize;
+	
+	textureCropRect = NSMakeRect( 0.0, 0.0, 1.0, 1.0);
+	
     return self;
 }
 

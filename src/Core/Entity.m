@@ -1104,7 +1104,7 @@ static  Universe	*data_store_universe;
 		NSString* texture = [NSString stringWithUTF8String:(char*)faces[fi].textureFileStr255];
         if ((faces[fi].texName == 0)&&(texture))
         {
-			 faces[fi].texName = [[universe textureStore] getTextureNameFor: texture];
+			 faces[fi].texName = [TextureStore getTextureNameFor: texture];
         }
     }
 
@@ -1112,7 +1112,7 @@ static  Universe	*data_store_universe;
 	{
 		if (!texture_name[ti])
 		{
-			texture_name[ti] = [[universe textureStore] getTextureNameFor: [NSString stringWithUTF8String: (char*)texture_file[ti]]];
+			texture_name[ti] = [TextureStore getTextureNameFor: [NSString stringWithUTF8String: (char*)texture_file[ti]]];
 //			NSLog(@"DEBUG (initialiseTextures) Processed textureFile : %@ to texName : %d", entityData[ti].textureFile, entityData[ti].texName);
 		}
 	}
@@ -2117,10 +2117,10 @@ static  Universe	*data_store_universe;
         result = [NSString stringWithFormat:@"%@\nTEXTURES\n", result];
         for (j = 0; j < n_faces; j++)
         {
-//            NSSize	texSize = [[universe textureStore] getSizeOfTexture:faces[j].textureFile];
+//            NSSize	texSize = [TextureStore getSizeOfTexture:faces[j].textureFile];
 //            result = [NSString stringWithFormat:@"%@%@\t%d %d", result, faces[j].textureFile, (int)texSize.width, (int)texSize.height];
 			NSString* texture = [NSString stringWithUTF8String: (char*)faces[j].textureFileStr255];
-            NSSize	texSize = [[universe textureStore] getSizeOfTexture: texture];
+            NSSize	texSize = [TextureStore getSizeOfTexture: texture];
             result = [NSString stringWithFormat:@"%@%@\t%d %d", result, texture, (int)texSize.width, (int)texSize.height];
             for (i = 0; i < faces[j].n_verts; i++)
             {

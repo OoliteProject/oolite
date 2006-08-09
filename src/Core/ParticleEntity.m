@@ -909,7 +909,7 @@ static	Vector	circleVertex[65];		// holds vector coordinates for a unit circle
 {
     if (universe)
 	{
-         texName = [[universe textureStore] getTextureNameFor:name];
+         texName = [TextureStore getTextureNameFor:name];
 	}
 }
 

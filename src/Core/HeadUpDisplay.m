@@ -77,7 +77,7 @@ float char_widths[128] = {
 	BOOL areTrumblesToBeDrawn = NO;
 	
 	self = [super init];
-	
+		
 	line_width = 1.0;
 	
 	setUpSinTable();
@@ -131,7 +131,7 @@ GLuint ascii_texture_name;
 - (void) setPlayer:(PlayerEntity *) player_entity
 {
 	player = player_entity;
-	ascii_texture_name = [[[player_entity universe] textureStore] getTextureNameFor:@"asciitext.png"];	// intitalise text texture
+	ascii_texture_name = [TextureStore getTextureNameFor:@"asciitext.png"];	// intitalise text texture
 }
 
 - (void) resizeGuis:(NSDictionary*) info

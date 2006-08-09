@@ -45,7 +45,7 @@ Your fair use and other rights are in no way affected by the above.
 #import "GameController.h"
 #import "ResourceManager.h"
 #import "TextureStore.h"
-#import "OpenGLSprite.h"
+//#import "OpenGLSprite.h"
 #import "AI.h"
 #import "GuiDisplayGen.h"
 #import "HeadUpDisplay.h"
@@ -143,7 +143,7 @@ Your fair use and other rights are in no way affected by the above.
 	sun_center_position[2] = 0.0;
 	sun_center_position[3] = 1.0;
     //
-	textureStore = [[TextureStore alloc] init];	// alloc retains
+//	textureStore = [[TextureStore alloc] init];	// alloc retains
 	//
     gui = [[GuiDisplayGen alloc] init]; // alloc retains
     displayGUI = NO;
@@ -259,7 +259,7 @@ Your fair use and other rights are in no way affected by the above.
     if (message_gui)			[message_gui release];
     if (comm_log_gui)			[comm_log_gui release];
 	
-    if (textureStore)			[textureStore release];
+//    if (textureStore)			[textureStore release];
     if (preloadedDataFiles)		[preloadedDataFiles release];
 	
     if (entityRecyclePool)		[entityRecyclePool release];
@@ -401,9 +401,9 @@ Your fair use and other rights are in no way affected by the above.
 	sun_center_position[2] = 0.0;
 	sun_center_position[3] = 1.0;
     //
-	if (textureStore)
-		[textureStore autorelease];
-	textureStore = [[TextureStore alloc] init];	// alloc retains
+//	if (textureStore)
+//		[textureStore autorelease];
+//	textureStore = [[TextureStore alloc] init];	// alloc retains
 	//
 	if (gui)
 		[gui autorelease];
@@ -3453,10 +3453,10 @@ GLfloat docked_light_specular[]	= { (GLfloat) 1.0, (GLfloat) 1.0, (GLfloat) 0.5,
 }
 
 
-- (TextureStore *) textureStore
-{
-    return textureStore;
-}
+//- (TextureStore *) textureStore
+//{
+//    return textureStore;
+//}
 
 // track the position and status of the lights
 //BOOL	sun_light_on = NO;

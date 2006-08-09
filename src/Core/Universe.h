@@ -134,7 +134,7 @@ Your fair use and other rights are in no way affected by the above.
 #define OOLITE_EXCEPTION_DATA_NOT_FOUND	@"OoliteDataNotFoundException"
 #define OOLITE_EXCEPTION_FATAL			@"OoliteFatalException"
 
-@class TextureStore, OpenGLSprite, GameController, ShipEntity, CollisionRegion;
+@class TextureStore, GameController, ShipEntity, CollisionRegion;
 
 extern int debug;
 
@@ -164,7 +164,7 @@ extern int debug;
 		
 		@protected
 		MyOpenGLView			*gameView;
-		TextureStore			*textureStore;
+//		TextureStore			*textureStore;
 		
 		#ifndef GNUSTEP
 		NSSpeechSynthesizer*	speechSynthesizer;		// use this from OS X 10.3 onwards
@@ -198,7 +198,7 @@ extern int debug;
 		GuiDisplayGen*			message_gui;
 		GuiDisplayGen*			comm_log_gui;
 		
-		OpenGLSprite			*textDisplaySprite;
+//		OpenGLSprite			*textDisplaySprite;
 		BOOL					displayGUI;
 		BOOL					displayCursor;
 		
@@ -366,7 +366,7 @@ extern int debug;
 - (MyOpenGLView *) gameView;
 - (GameController *) gameController;
 
-- (TextureStore *) textureStore;
+//- (TextureStore *) textureStore;
 
 - (void) drawFromEntity:(int) n;
 - (void) drawCrosshairs;

@@ -204,7 +204,7 @@ Your fair use and other rights are in no way affected by the above.
 	animationTime = 0.0;
 	animationDuration = 1.5 + randf() * 3.0;	// time until next animation
 	//
-	textureName = [[[player universe] textureStore] getTextureNameFor:@"trumblekit.png"];
+	textureName = [TextureStore getTextureNameFor:@"trumblekit.png"];
 	//
 	if (!prootSound)
 		prootSound = [[ResourceManager ooSoundNamed:@"trumble.ogg" inFolder:@"Sounds"] retain];

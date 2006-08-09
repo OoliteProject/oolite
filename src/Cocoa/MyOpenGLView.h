@@ -50,7 +50,7 @@ Your fair use and other rights are in no way affected by the above.
 
 #define MOUSE_DOUBLE_CLICK_INTERVAL	0.40
 
-@class Entity, GameController, OpenGLSprite;
+@class Entity, GameController;
 
 #ifdef GNUSTEP
 @class JoystickHandler;
@@ -103,9 +103,9 @@ extern int debug;
 @interface MyOpenGLView : OpenGLViewSuperClass
 {
 	GameController		*gameController;
-#ifndef GNUSTEP	
-	OpenGLSprite		*splashSprite;
-#endif
+//#ifndef GNUSTEP	
+//	OpenGLSprite		*splashSprite;
+//#endif
 	BOOL				keys[NUM_KEYS];
 	BOOL				supressKeys;    // DJS
 

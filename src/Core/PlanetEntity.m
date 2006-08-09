@@ -301,7 +301,7 @@ void setUpSinTable()
     //
 	if (procGen)
 	{
-		textureName = [[uni textureStore] getCloudTextureNameFor:cloudColor :cloud_impress :cloud_bias intoData: &textureData];
+		textureName = [TextureStore getCloudTextureNameFor:cloudColor :cloud_impress :cloud_bias intoData: &textureData];
 		isTextured = (textureName != 0);
 	}
 	else
@@ -428,7 +428,7 @@ void setUpSinTable()
 	self = [super init];
     //
 	isTextured = NO;
-	textureName = [[uni textureStore] getTextureNameFor:@"metal.png"];	//debug texture
+	textureName = [TextureStore getTextureNameFor:@"metal.png"];	//debug texture
 	//
 	planet_seed = p_seed.a * 13 + p_seed.c * 11 + p_seed.e * 7;	// pseudo-random set-up for vertex colours
 	//
@@ -440,7 +440,7 @@ void setUpSinTable()
 	//NSLog(@"Generating planet %@ with radius %dkm",[planetinfo objectForKey:KEY_NAME],radius_km);
 	if ([planetinfo objectForKey:@"texture"])
 	{
-		textureName = [[uni textureStore] getTextureNameFor:(NSString*)[planetinfo objectForKey:@"texture"]];
+		textureName = [TextureStore getTextureNameFor:(NSString*)[planetinfo objectForKey:@"texture"]];
 		isTextured = (textureName != 0);
 	}
 
@@ -548,7 +548,7 @@ void setUpSinTable()
 	
 	if (procGen)
 	{
-		textureName = [[uni textureStore] getPlanetTextureNameFor: planetinfo intoData: &textureData];
+		textureName = [TextureStore getPlanetTextureNameFor: planetinfo intoData: &textureData];
 		isTextured = (textureName != 0);
 	}
 	else
@@ -687,14 +687,14 @@ void setUpSinTable()
     //
 	if ([dict objectForKey:@"texture"])
 	{
-		textureName = [[uni textureStore] getTextureNameFor:(NSString*)[dict objectForKey:@"texture"]];
+		textureName = [TextureStore getTextureNameFor:(NSString*)[dict objectForKey:@"texture"]];
 		isTextured = (textureName != 0);
 	}
 	else
 	{
 		if (procGen)
 		{
-			textureName = [[uni textureStore] getPlanetTextureNameFor: dict intoData: &textureData];
+			textureName = [TextureStore getPlanetTextureNameFor: dict intoData: &textureData];
 			isTextured = (textureName != 0);
 		}
 		else
@@ -887,13 +887,13 @@ void setUpSinTable()
 	//
 	if ([dict objectForKey:@"texture"])
 	{
-		textureName = [[uni textureStore] getTextureNameFor:(NSString*)[dict objectForKey:@"texture"]];
+		textureName = [TextureStore getTextureNameFor:(NSString*)[dict objectForKey:@"texture"]];
 		isTextured = (textureName != 0);
 	}
 	else
 	{
 		isTextured = NO;
-		textureName = [[uni textureStore] getTextureNameFor:@"metal.png"];	//debug texture
+		textureName = [TextureStore getTextureNameFor:@"metal.png"];	//debug texture
 	}
     //
 	if ([dict objectForKey:@"seed"])

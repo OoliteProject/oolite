@@ -3313,12 +3313,12 @@ BOOL testForShaderSupport = YES;
 			NSLog(@"TESTING: initialising shader for %@ : %@", shader_key, shader);
 			for (ti = 0; ti < [shader_textures count]; ti ++)
 			{
-				GLuint tn = [[universe textureStore] getTextureNameFor: (NSString*)[shader_textures objectAtIndex:ti]];
+				GLuint tn = [TextureStore getTextureNameFor: (NSString*)[shader_textures objectAtIndex:ti]];
 				[textureNames addObject:[NSNumber numberWithUnsignedInt:tn]];
 				NSLog(@"TESTING: initialised texture: %@", [shader_textures objectAtIndex:ti]);
 			}
 			
-			GLuint shader_program = [[universe textureStore] shaderProgramFromDictionary: shader];
+			GLuint shader_program = [TextureStore shaderProgramFromDictionary: shader];
 			if (shader_program)
 				NSLog(@"TESTING: successfully compiled shader program is %d", shader_program);
 			else
@@ -3417,7 +3417,7 @@ BOOL testForShaderSupport = YES;
 
 						for (ti = 1; ti <= n_textures; ti++)
 						{
-							NSString* textureKey = [[universe textureStore] getNameOfTextureWithGLuint: texture_name[ti]];
+							NSString* textureKey = [TextureStore getNameOfTextureWithGLuint: texture_name[ti]];
 							if ((shader_info) && [shader_info objectForKey: textureKey])
 							{
 //								NSLog(@"TESTING: will be using shader %@ for %@",

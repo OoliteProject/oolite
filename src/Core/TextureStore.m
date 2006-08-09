@@ -50,37 +50,24 @@ Your fair use and other rights are in no way affected by the above.
 
 @implementation TextureStore
 
-- (id) init
+NSMutableDictionary	*textureUniversalDictionary = nil;
+NSMutableDictionary	*shaderUniversalDictionary = nil;
+
++ (GLuint) getTextureNameFor:(NSString *)filename
 {
-	self = [super init];
-	//
-	textureDictionary = [[NSMutableDictionary dictionaryWithCapacity:5] retain];
-	//
-	return self;
+	if ([textureUniversalDictionary objectForKey:filename])
+		return (GLuint)[(NSNumber *)[[textureUniversalDictionary objectForKey:filename] objectForKey:@"texName"] intValue];
+	return [TextureStore getTextureNameFor: filename inFolder: @"Textures"];
 }
 
-- (void) dealloc
++ (GLuint) getImageNameFor:(NSString *)filename
 {
-	if (textureDictionary) [textureDictionary release];
-	//
-	[super dealloc];
+	if ([textureUniversalDictionary objectForKey:filename])
+		return (GLuint)[(NSNumber *)[[textureUniversalDictionary objectForKey:filename] objectForKey:@"texName"] intValue];
+	return [TextureStore getTextureNameFor: filename inFolder: @"Images"];
 }
 
-- (GLuint) getTextureNameFor:(NSString *)filename
-{
-	if ([textureDictionary objectForKey:filename])
-		return (GLuint)[(NSNumber *)[[textureDictionary objectForKey:filename] objectForKey:@"texName"] intValue];
-	return [self getTextureNameFor: filename inFolder: @"Textures"];
-}
-
-- (GLuint) getImageNameFor:(NSString *)filename
-{
-	if ([textureDictionary objectForKey:filename])
-		return (GLuint)[(NSNumber *)[[textureDictionary objectForKey:filename] objectForKey:@"texName"] intValue];
-	return [self getTextureNameFor: filename inFolder: @"Images"];
-}
-
-- (GLuint) getTextureNameFor:(NSString *)filename inFolder:(NSString*) foldername
++ (GLuint) getTextureNameFor:(NSString *)filename inFolder:(NSString*) foldername
 {
 #ifndef GNUSTEP
 	NSBitmapImageRep	*bitmapImageRep = nil;
@@ -296,32 +283,35 @@ Your fair use and other rights are in no way affected by the above.
 	[texProps setObject:[NSNumber numberWithInt:texture_w] forKey:@"width"];
 	[texProps setObject:[NSNumber numberWithInt:texture_h] forKey:@"height"];
 
-	[textureDictionary setObject:texProps forKey:filename];
-	[textureDictionary setObject:filename forKey:[NSNumber numberWithInt:texName]];
+	if (!textureUniversalDictionary)
+		textureUniversalDictionary = [[NSMutableDictionary dictionary] retain];
+
+	[textureUniversalDictionary setObject:texProps forKey:filename];
+	[textureUniversalDictionary setObject:filename forKey:[NSNumber numberWithInt:texName]];
 
 	return texName;
 }
 
-- (NSString*) getNameOfTextureWithGLuint:(GLuint) value
++ (NSString*) getNameOfTextureWithGLuint:(GLuint) value
 {
-	return (NSString*)[textureDictionary objectForKey:[NSNumber numberWithInt:value]];
+	return (NSString*)[textureUniversalDictionary objectForKey:[NSNumber numberWithInt:value]];
 }
 
-- (NSSize) getSizeOfTexture:(NSString *)filename
++ (NSSize) getSizeOfTexture:(NSString *)filename
 {
 	NSSize size = NSMakeSize(0.0, 0.0);	// zero size
-	if ([textureDictionary objectForKey:filename])
+	if ([textureUniversalDictionary objectForKey:filename])
 	{
-		size.width = [(NSNumber *)[[textureDictionary objectForKey:filename] objectForKey:@"width"] intValue];
-		size.height = [(NSNumber *)[[textureDictionary objectForKey:filename] objectForKey:@"height"] intValue];
+		size.width = [[[textureUniversalDictionary objectForKey:filename] objectForKey:@"width"] intValue];
+		size.height = [[[textureUniversalDictionary objectForKey:filename] objectForKey:@"height"] intValue];
 	}
 	return size;
 }
 
-- (GLuint) shaderProgramFromDictionary:(NSDictionary *) shaderDict
++ (GLuint) shaderProgramFromDictionary:(NSDictionary *) shaderDict
 {
-	if ([shaderDictionary objectForKey:shaderDict])
-		return (GLuint)[[shaderDictionary objectForKey:shaderDict] intValue];
+	if ([shaderUniversalDictionary objectForKey:shaderDict])
+		return (GLuint)[[shaderUniversalDictionary objectForKey:shaderDict] intValue];
 
 	if (!shaderDict)
 	{
@@ -391,14 +381,14 @@ Your fair use and other rights are in no way affected by the above.
 	}
 
 	// store the resulting program for reuse
-	if (!shaderDictionary)
-		shaderDictionary = [[NSMutableDictionary dictionary] retain];
-	[shaderDictionary setObject:[NSNumber numberWithUnsignedInt: shader_program] forKey: shaderDict];	
+	if (!shaderUniversalDictionary)
+		shaderUniversalDictionary = [[NSMutableDictionary dictionary] retain];
+	[shaderUniversalDictionary setObject:[NSNumber numberWithUnsignedInt: shader_program] forKey: shaderDict];	
 		
 	return shader_program;
 }
 
-- (void) reloadTextures
++ (void) reloadTextures
 {
 #ifdef WIN32
 	int i;
@@ -408,17 +398,17 @@ Your fair use and other rights are in no way affected by the above.
 	NSArray *keys = [textureDictionary allKeys];
 	for (i = 0; i < [keys count]; i++)
 	{
-		GLuint texName = (GLuint)[(NSNumber *)[[textureDictionary objectForKey:[keys objectAtIndex:i]] objectForKey:@"texName"] intValue];
+		GLuint texName = (GLuint)[(NSNumber *)[[textureUniversalDictionary objectForKey:[keys objectAtIndex:i]] objectForKey:@"texName"] intValue];
 		NSLog(@"deleting texture #%d (%@)", texName, (NSString *)[keys objectAtIndex:i]);
 		glDeleteTextures(1, &texName);
 	}
 #endif
 
-	[textureDictionary removeAllObjects];
+	[textureUniversalDictionary removeAllObjects];
 	return;
 }
 
-- (GLuint) getPlanetTextureNameFor:(NSDictionary*)planetinfo intoData:(unsigned char **)textureData
++ (GLuint) getPlanetTextureNameFor:(NSDictionary*)planetinfo intoData:(unsigned char **)textureData
 {
 	GLuint				texName;
 
@@ -468,7 +458,7 @@ Your fair use and other rights are in no way affected by the above.
 	return texName;
 }
 
-- (GLuint) getCloudTextureNameFor:(OOColor*) color: (GLfloat) impress: (GLfloat) bias intoData:(unsigned char **)textureData
++ (GLuint) getCloudTextureNameFor:(OOColor*) color: (GLfloat) impress: (GLfloat) bias intoData:(unsigned char **)textureData
 {
 	GLuint				texName;
 
@@ -551,32 +541,6 @@ void fillRanNoiseBuffer()
 	int i;
 	for (i = 0; i < 16384; i++)
 		ranNoiseBuffer[i] = randf();
-}
-
-float lerp_r( float v0, float r0s, float r0i, float v1, float r1s, float r1i, float v2, float r2s, float r2i, float v3, float q)
-{
-	if (q < r0s)
-		return v0;
-	q -= r0s;
-	if (q < r0i)
-		return v0 * (r0i - q)/r0i + v1 * q / r0i;
-	q -= r0i;
-	//
-	if (q < r1s)
-		return v1;
-	q -= r1s;
-	if (q < r1i)
-		return v1 * (r1i - q)/r1i + v2 * q / r1i;
-	q -= r1i;
-	//
-	if (q < r2s)
-		return v2;
-	q -= r2s;
-	if (q < r2i)
-		return v2 * (r2i - q)/r2i + v3 * q / r2i;
-	q -= r2i;
-	//
-	return v3;	// values of q over r0+r1+r2+r3
 }
 
 float my_lerp( float v0, float v1, float q)

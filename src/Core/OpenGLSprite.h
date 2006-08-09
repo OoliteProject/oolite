@@ -62,6 +62,7 @@ extern int debug;
 
 
 - (id) init;
+- (id) initWithTextureName:(GLuint) textureName andSize:(NSSize) spriteSize;
 #ifndef GNUSTEP
 - (id) initWithImage:(NSImage *)textureImage cropRectangle:(NSRect)cropRect size:(NSSize) spriteSize;
 - (id) initWithText:(NSString *)str;
