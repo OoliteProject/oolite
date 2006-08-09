@@ -81,6 +81,7 @@ extern int debug;
 #else
 	NSImage			*backgroundImage;
 #endif
+
 	OOColor			*backgroundColor;
 	OOColor			*textColor;
 	

@@ -103,9 +103,7 @@ extern int debug;
 @interface MyOpenGLView : OpenGLViewSuperClass
 {
 	GameController		*gameController;
-//#ifndef GNUSTEP	
-//	OpenGLSprite		*splashSprite;
-//#endif
+
 	BOOL				keys[NUM_KEYS];
 	BOOL				supressKeys;    // DJS
 

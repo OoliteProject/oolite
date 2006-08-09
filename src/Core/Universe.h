@@ -164,7 +164,6 @@ extern int debug;
 		
 		@protected
 		MyOpenGLView			*gameView;
-//		TextureStore			*textureStore;
 		
 		#ifndef GNUSTEP
 		NSSpeechSynthesizer*	speechSynthesizer;		// use this from OS X 10.3 onwards
@@ -198,7 +197,6 @@ extern int debug;
 		GuiDisplayGen*			message_gui;
 		GuiDisplayGen*			comm_log_gui;
 		
-//		OpenGLSprite			*textDisplaySprite;
 		BOOL					displayGUI;
 		BOOL					displayCursor;
 		
@@ -365,8 +363,6 @@ extern int debug;
 - (void) setGameView:(MyOpenGLView *)view;
 - (MyOpenGLView *) gameView;
 - (GameController *) gameController;
-
-//- (TextureStore *) textureStore;
 
 - (void) drawFromEntity:(int) n;
 - (void) drawCrosshairs;

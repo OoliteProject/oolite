@@ -42,7 +42,6 @@ Your fair use and other rights are in no way affected by the above.
 #import "TextureStore.h"
 #import "Entity.h"
 #import "PlanetEntity.h"
-//#import "OpenGLSprite.h"
 #import "ResourceManager.h"
 
 @interface MyOpenGLView(Internal)
