@@ -223,25 +223,22 @@ GLuint ascii_texture_name;
 {
 	if ([info objectForKey:IMAGE_KEY])
 	{
-		//NSLog(@"DEBUG adding Legend %@",[info objectForKey:IMAGE_KEY]);
-#ifdef GNUSTEP
-		SDLImage		*legendImage = [ResourceManager surfaceNamed:(NSString *)[info objectForKey:IMAGE_KEY] inFolder:@"Images"];
-#else
-		NSImage			*legendImage = [ResourceManager imageNamed:(NSString *)[info objectForKey:IMAGE_KEY] inFolder:@"Images"];
-#endif
-		NSSize			imageSize = [legendImage size];
+		GLuint			image_texture_name = [TextureStore getImageNameFor:[info objectForKey:IMAGE_KEY]];
+		if (!image_texture_name)
+		{
+			NSLog(@"ERROR: HeadUpDisplay couldn't get an image texture name for %@", [info objectForKey:IMAGE_KEY]);
+			return;
+		}
+		
+		NSSize			imageSize = [TextureStore getSizeOfTexture:[info objectForKey:IMAGE_KEY]];
 		NSSize			spriteSize = imageSize;
 		if ([info objectForKey:WIDTH_KEY])
 			spriteSize.width = [(NSNumber *)[info objectForKey:WIDTH_KEY] intValue];
 		if ([info objectForKey:HEIGHT_KEY])
 			spriteSize.height = [(NSNumber *)[info objectForKey:HEIGHT_KEY] intValue];
-#ifdef GNUSTEP
- 		OpenGLSprite *legendSprite = [[OpenGLSprite alloc] initWithSurface:legendImage
- 										cropRectangle:NSMakeRect(0, 0, imageSize.width, imageSize.height) size:spriteSize]; // retained
-#else
-		OpenGLSprite *legendSprite = [[OpenGLSprite alloc] initWithImage:legendImage
-										cropRectangle:NSMakeRect(0, 0, imageSize.width, imageSize.height) size:spriteSize]; // retained
-#endif
+			
+ 		OpenGLSprite *legendSprite = [[OpenGLSprite alloc] initWithTextureName: image_texture_name andSize: spriteSize];
+
 		NSMutableDictionary *legendDict = [NSMutableDictionary dictionaryWithDictionary:info];
 		[legendDict setObject:legendSprite forKey:SPRITE_KEY];
 		[legendArray addObject:legendDict];																	
