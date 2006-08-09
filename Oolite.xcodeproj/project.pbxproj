@@ -1724,6 +1724,7 @@
 				LIBRARY_SEARCH_PATHS_QUOTED_1 = "\"$(SRCROOT)/deps/Cocoa-deps/Ogg\\ Vorbis\"";
 				MACOSX_DEPLOYMENT_TARGET = 10.3;
 				OTHER_LDFLAGS = "-lSystem";
+				PREBINDING = NO;
 				PRODUCT_NAME = Oolite;
 				SECTORDER_FLAGS = "";
 				WARNING_CFLAGS = (
