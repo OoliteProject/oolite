@@ -3265,11 +3265,33 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	return viewpoint;
 }
 
+BOOL shaders_supported = YES;
+BOOL testForShaderSupport = YES;
 - (void) initialiseTextures
 {
     [super initialiseTextures];
 	
-	if ([shipinfoDictionary objectForKey:@"shaders"])
+	if (testForShaderSupport)
+	{
+		NSString* version_info = [NSString stringWithCString: (const char *)glGetString(GL_VERSION)];
+		NSScanner* vscan = [NSScanner scannerWithString:version_info];
+		int major = 0;
+		int minor = 0;
+		NSString* temp;
+		if ([vscan scanUpToCharactersFromSet:[NSCharacterSet characterSetWithCharactersInString:@". "] intoString:&temp])
+			major = [temp intValue];
+		[vscan scanCharactersFromSet:[NSCharacterSet characterSetWithCharactersInString:@". "] intoString:(NSString**)nil];
+		if ([vscan scanUpToCharactersFromSet:[NSCharacterSet characterSetWithCharactersInString:@". "] intoString:&temp])
+			minor = [temp intValue];
+		if ((major < 2)&&(minor < 5))
+			shaders_supported = NO;
+			
+		NSLog(@"OPENGL VERSION %d.%d ('%@') %@", major, minor, version_info, (shaders_supported)? @"Supports GLSL shaders.":@"Does not support GLSL shaders");
+		
+		testForShaderSupport = NO;
+	}
+
+	if ([shipinfoDictionary objectForKey:@"shaders"] && shaders_supported)
 	{
 		// initialise textures in shaders
 		
@@ -3307,6 +3329,12 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 		}
 		
 		NSLog(@"TESTING: shader_info = %@", shader_info);
+	}
+	else
+	{
+		if (shader_info)
+			[shader_info release];
+		shader_info = nil;
 	}
 }
 
