@@ -59,7 +59,8 @@ extern int debug;
 + (NSString*) getNameOfTextureWithGLuint:(GLuint) value;
 + (NSSize) getSizeOfTexture:(NSString *)filename;
 
-+ (GLuint) shaderProgramFromDictionary:(NSDictionary *) shaderDict;
+//+ (GLuint) shaderProgramFromDictionary:(NSDictionary *) shaderDict;
++ (GLhandleARB) shaderProgramFromDictionary:(NSDictionary *) shaderDict;
 
 + (void) reloadTextures;
 

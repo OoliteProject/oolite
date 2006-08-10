@@ -3267,29 +3267,91 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 
 BOOL shaders_supported = YES;
 BOOL testForShaderSupport = YES;
+void testForShaders()
+{
+	testForShaderSupport = NO;
+	NSString* version_info = [NSString stringWithCString: (const char *)glGetString(GL_VERSION)];
+	NSScanner* vscan = [NSScanner scannerWithString:version_info];
+	int major = 0;
+	int minor = 0;
+	NSString* temp;
+	if ([vscan scanUpToCharactersFromSet:[NSCharacterSet characterSetWithCharactersInString:@". "] intoString:&temp])
+		major = [temp intValue];
+	[vscan scanCharactersFromSet:[NSCharacterSet characterSetWithCharactersInString:@". "] intoString:(NSString**)nil];
+	if ([vscan scanUpToCharactersFromSet:[NSCharacterSet characterSetWithCharactersInString:@". "] intoString:&temp])
+		minor = [temp intValue];
+
+	NSLog(@"\n\nOPENGL VERSION %d.%d ('%@')", major, minor, version_info);
+
+	if ((major < 2)&&(minor < 5))
+	{
+		shaders_supported = NO;
+		NSLog(@"INFORMATION: Oolite does not use shaders for OpenGL drivers before OpenGL 1.5");
+		return;
+	}
+	
+	// check for the necessary extensions
+	NSString* extension_info = [NSString stringWithCString: (const char *)glGetString(GL_EXTENSIONS)];
+
+	NSLog(@"\n\nOPENGL EXTENSIONS:\n%@", extension_info);
+	
+	shaders_supported &= ([extension_info rangeOfString:@"GL_ARB_multitexture"].location != NSNotFound);
+	if (!shaders_supported)
+	{
+		NSLog(@"INFORMATION: shaders require the GL_ARB_multitexture OpenGL extension, which is not present.");
+		return;
+	}
+	
+	shaders_supported &= ([extension_info rangeOfString:@"GL_ARB_shader_objects"].location != NSNotFound);
+	if (!shaders_supported)
+	{
+		NSLog(@"INFORMATION: shaders require the GL_ARB_multitexture OpenGL extension, which is not present.");
+		return;
+	}
+		
+	shaders_supported &= ([extension_info rangeOfString:@"GL_ARB_shading_language_100"].location != NSNotFound);
+	if (!shaders_supported)
+	{
+		NSLog(@"INFORMATION: shaders require the GL_ARB_shading_language_100 OpenGL extension, which is not present.");
+		return;
+	}
+	
+	shaders_supported &= ([extension_info rangeOfString:@"GL_ARB_fragment_program"].location != NSNotFound);
+	if (!shaders_supported)
+	{
+		NSLog(@"INFORMATION: shaders require the GL_ARB_fragment_program OpenGL extension, which is not present.");
+		return;
+	}
+	
+	shaders_supported &= ([extension_info rangeOfString:@"GL_ARB_fragment_shader"].location != NSNotFound);
+	if (!shaders_supported)
+	{
+		NSLog(@"INFORMATION: shaders require the GL_ARB_fragment_shader OpenGL extension, which is not present.");
+		return;
+	}
+	
+	shaders_supported &= ([extension_info rangeOfString:@"GL_ARB_vertex_program"].location != NSNotFound);
+	if (!shaders_supported)
+	{
+		NSLog(@"INFORMATION: shaders require the GL_ARB_vertex_program OpenGL extension, which is not present.");
+		return;
+	}
+	
+	shaders_supported &= ([extension_info rangeOfString:@"GL_ARB_vertex_shader"].location != NSNotFound);
+	if (!shaders_supported)
+	{
+		NSLog(@"INFORMATION: shaders require the GL_ARB_vertex_shader OpenGL extension, which is not present.");
+		return;
+	}
+
+}
+
 - (void) initialiseTextures
 {
     [super initialiseTextures];
 	
 	if (testForShaderSupport)
-	{
-		NSString* version_info = [NSString stringWithCString: (const char *)glGetString(GL_VERSION)];
-		NSScanner* vscan = [NSScanner scannerWithString:version_info];
-		int major = 0;
-		int minor = 0;
-		NSString* temp;
-		if ([vscan scanUpToCharactersFromSet:[NSCharacterSet characterSetWithCharactersInString:@". "] intoString:&temp])
-			major = [temp intValue];
-		[vscan scanCharactersFromSet:[NSCharacterSet characterSetWithCharactersInString:@". "] intoString:(NSString**)nil];
-		if ([vscan scanUpToCharactersFromSet:[NSCharacterSet characterSetWithCharactersInString:@". "] intoString:&temp])
-			minor = [temp intValue];
-		if ((major < 2)&&(minor < 5))
-			shaders_supported = NO;
-			
-		NSLog(@"OPENGL VERSION %d.%d ('%@') %@", major, minor, version_info, (shaders_supported)? @"Supports GLSL shaders.":@"Does not support GLSL shaders");
-		
-		testForShaderSupport = NO;
-	}
+		testForShaders();
 
 	if ([shipinfoDictionary objectForKey:@"shaders"] && shaders_supported)
 	{
@@ -3318,13 +3380,14 @@ BOOL testForShaderSupport = YES;
 				NSLog(@"TESTING: initialised texture: %@", [shader_textures objectAtIndex:ti]);
 			}
 			
-			GLuint shader_program = [TextureStore shaderProgramFromDictionary: shader];
+//			GLuint shader_program = [TextureStore shaderProgramFromDictionary: shader];
+			GLhandleARB shader_program = [TextureStore shaderProgramFromDictionary: shader];
 			if (shader_program)
 				NSLog(@"TESTING: successfully compiled shader program is %d", shader_program);
 			else
 				NSLog(@"TESTING: failed to initialise shader program!");
 			[shader_info setObject:[NSDictionary dictionaryWithObjectsAndKeys:
-				textureNames, @"textureNames", [NSNumber numberWithUnsignedInt:shader_program], @"shader_program", nil]
+				textureNames, @"textureNames", [NSNumber numberWithUnsignedInt: (unsigned int) shader_program], @"shader_program", nil]
 				forKey: shader_key];
 		}
 		
@@ -3340,6 +3403,14 @@ BOOL testForShaderSupport = YES;
 
 - (void) drawEntity:(BOOL) immediate :(BOOL) translucent
 {
+	if (testForShaderSupport)
+		testForShaders();
+	if (!shaders_supported)
+	{
+		[super drawEntity:immediate:translucent];
+		return;
+	}
+	
 	if (zero_distance > no_draw_distance)	return;	// TOO FAR AWAY
 
 	if ([universe breakPatternHide])	return;	// DON'T DRAW

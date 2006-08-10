@@ -308,10 +308,11 @@ NSMutableDictionary	*shaderUniversalDictionary = nil;
 	return size;
 }
 
-+ (GLuint) shaderProgramFromDictionary:(NSDictionary *) shaderDict
+//+ (GLuint) shaderProgramFromDictionary:(NSDictionary *) shaderDict
++ (GLhandleARB) shaderProgramFromDictionary:(NSDictionary *) shaderDict
 {
 	if ([shaderUniversalDictionary objectForKey:shaderDict])
-		return (GLuint)[[shaderUniversalDictionary objectForKey:shaderDict] intValue];
+		return (GLhandleARB)[(NSNumber*)[shaderUniversalDictionary objectForKey:shaderDict] unsignedIntValue];
 
 	if (!shaderDict)
 	{
@@ -320,7 +321,8 @@ NSMutableDictionary	*shaderUniversalDictionary = nil;
 	}
 	
 	// allocate a shader object
-	GLuint shader_object = glCreateShader(GL_FRAGMENT_SHADER);	// we're only using fragment shaders for now
+	GLhandleARB shader_object = glCreateShaderObjectARB(GL_FRAGMENT_SHADER_ARB);	// we're only using fragment shaders for now
+//	GLuint shader_object = glCreateShader(GL_FRAGMENT_SHADER);	// we're only using fragment shaders for now
 	if (!shader_object)
 	{
 		NSLog(@"GLSL ERROR: could not create a fragment shader with glCreateShader()");
@@ -331,12 +333,15 @@ NSMutableDictionary	*shaderUniversalDictionary = nil;
 	if ([shaderDict objectForKey:@"glsl"])
 	{
 		NSString* glslSourceString = (NSString*)[shaderDict objectForKey:@"glsl"];
-		NSArray* lines = [glslSourceString componentsSeparatedByString:@"\n"];
-		const GLchar* c_string_lines[[lines count]];
-		int i;
-		for (i = 0; i < [lines count]; i++)
-			c_string_lines[i] = [(NSString*)[lines objectAtIndex:i] UTF8String];
-		glShaderSource( shader_object, [lines count], c_string_lines, NULL);
+//		NSArray* lines = [glslSourceString componentsSeparatedByString:@"\n"];
+//		const GLchar* c_string_lines[[lines count]];
+//		int i;
+//		for (i = 0; i < [lines count]; i++)
+//			c_string_lines[i] = [(NSString*)[lines objectAtIndex:i] UTF8String];
+		const GLcharARB *fragment_string;
+		fragment_string = [glslSourceString cString];
+		glShaderSourceARB( shader_object, 1, &fragment_string, NULL);
+//		glShaderSource( shader_object, [lines count], c_string_lines, NULL);
 	}
 	else
 	{
@@ -345,45 +350,55 @@ NSMutableDictionary	*shaderUniversalDictionary = nil;
 	}
 	
 	// compile the shader!
-	glCompileShader( shader_object);
+//	glCompileShader( shader_object);
+	glCompileShaderARB( shader_object);
 	GLint result;
-	glGetShaderiv( shader_object, GL_COMPILE_STATUS, &result);
+//	glGetShaderiv( shader_object, GL_COMPILE_STATUS, &result);
+	glGetObjectParameterivARB( shader_object, GL_OBJECT_COMPILE_STATUS_ARB, &result);
 	if (result != GL_TRUE)
 	{
-		char log[1024];
-		GLsizei log_length;
-		glGetShaderInfoLog( shader_object, 1024, &log_length, log);
-		NSLog(@"GLSL ERROR: shader code would not compile:\n%s\n\n%@\n\n", log, [shaderDict objectForKey:@"glsl"]);
+//		char log[1024];
+//		GLsizei log_length;
+//		glGetShaderInfoLog( shader_object, 1024, &log_length, log);
+//		NSLog(@"GLSL ERROR: shader code would not compile:\n%s\n\n%@\n\n", log, [shaderDict objectForKey:@"glsl"]);
+		NSLog(@"GLSL ERROR: shader code would not compile:\n%@\n", [shaderDict objectForKey:@"glsl"]);
 		return 0;	// failed!
 	}
 	
 	// create a shader program
-	GLuint shader_program = glCreateProgram();
+//	GLuint shader_program = glCreateProgram();
+	GLhandleARB shader_program = glCreateProgramObjectARB();
 	if (!shader_program)
 	{
-		NSLog(@"GLSL ERROR: could not create a shader program with glCreateProgram()");
+//		NSLog(@"GLSL ERROR: could not create a shader program with glCreateProgram()");
+		NSLog(@"GLSL ERROR: could not create a shader program with glCreateProgramObjectARB()");
 		return 0;	// failed!
 	}
 	
 	// attach the shader object
-	glAttachShader( shader_program, shader_object);
+//	glAttachShader( shader_program, shader_object);
+	glAttachObjectARB( shader_program, shader_object);
+	glDeleteObjectARB( shader_object); /* Release */
 	
 	// link the program
-	glLinkProgram( shader_program);
-	glGetProgramiv( shader_program, GL_LINK_STATUS, &result);
+//	glLinkProgram( shader_program);
+//	glGetProgramiv( shader_program, GL_LINK_STATUS, &result);
+	glLinkProgramARB( shader_program);
+	glGetObjectParameterivARB( shader_program, GL_OBJECT_LINK_STATUS_ARB, &result);
 	if (result != GL_TRUE)
 	{
-		char log[1024];
-		GLsizei log_length;
-		glGetProgramInfoLog( shader_program, 1024, &log_length, log);
-		NSLog(@"GLSL ERROR: shader program would not link:\n%s\n\n%@\n\n", log, [shaderDict objectForKey:@"glsl"]);
+//		char log[1024];
+//		GLsizei log_length;
+//		glGetProgramInfoLog( shader_program, 1024, &log_length, log);
+//		NSLog(@"GLSL ERROR: shader program would not link:\n%s\n\n%@\n\n", log, [shaderDict objectForKey:@"glsl"]);
+		NSLog(@"GLSL ERROR: shader program would not link.");
 		return 0;	// failed!
 	}
 
 	// store the resulting program for reuse
 	if (!shaderUniversalDictionary)
 		shaderUniversalDictionary = [[NSMutableDictionary dictionary] retain];
-	[shaderUniversalDictionary setObject:[NSNumber numberWithUnsignedInt: shader_program] forKey: shaderDict];	
+	[shaderUniversalDictionary setObject: [NSNumber numberWithUnsignedInt: (unsigned int) shader_program] forKey: shaderDict];	
 		
 	return shader_program;
 }
