@@ -8207,10 +8207,10 @@ inline BOOL pairOK(NSString* my_role, NSString* their_role)
 	// since we want to place the space station at least 10km away
 	// the formula we'll use is K x m / d2 < 1.0
 	// (m = mass, d2 = distance squared)
-	// coriolis station is mass 1,000,000,000
+	// coriolis station is mass 455,223,200
 	// 10km is 10,000m,
 	// 10km squared is 100,000,000
-	// therefore K is 0.10
+	// therefore K is 0.22 (approx)
 
 	int result = NO_TARGET;
 
@@ -8229,9 +8229,9 @@ inline BOOL pairOK(NSString* my_role, NSString* their_role)
 	for (i = 0; (i < ship_count)&&(result == NO_TARGET) ; i++)
 	{
 		ShipEntity* ship = my_entities[i];
-		Vector delta = ship->position;
-		delta.x -= position.x;	delta.y -= position.y;	delta.z -= position.z;
-		if ((delta.x < 10000.0)&&(delta.y < 10000.0)&&(delta.z < 10000.0)&&( k * [ship mass] / magnitude2(delta) > 1.0))
+		Vector delta = vector_between( position, ship->position);
+		GLfloat d2 = magnitude2(delta);
+		if ((k * [ship mass] > d2)&&(d2 < SCANNER_MAX_RANGE2))	// if you go off scanner from a blocker - it ceases to block
 			result = [ship universal_id];
 	}
 	for (i = 0; i < ship_count; i++)
