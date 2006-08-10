@@ -148,6 +148,7 @@ Your fair use and other rights are in no way affected by the above.
 	[message_gui setCurrentRow:7];
 	[message_gui setCharacterSize:NSMakeSize(16,20)];	// slightly narrower characters
 	[message_gui setDrawPosition: make_vector( 0.0, -40.0, 640.0)];
+	[message_gui setAlpha:1.0];
 	
 	//
 	comm_log_gui = [[GuiDisplayGen alloc] initWithPixelSize:NSMakeSize( 360, 120) Columns:1 Rows:10 RowHeight:12 RowStart:12 Title:nil];
@@ -407,6 +408,7 @@ Your fair use and other rights are in no way affected by the above.
 	[message_gui setCurrentRow:7];
 	[message_gui setCharacterSize:NSMakeSize(16,20)];	// slightly narrower characters
 	[message_gui setDrawPosition: make_vector( 0.0, -40.0, 640.0)];
+	[message_gui setAlpha:1.0];
 	//
 	if (comm_log_gui)
 		[comm_log_gui autorelease];
