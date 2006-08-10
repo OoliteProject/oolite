@@ -210,21 +210,27 @@ static	Vector	zero_vector = { 0.0f, 0.0f, 0.0f};
 - (void) scanForLoot
 {
 	/*-- Locates the nearest debris in range --*/
-	if (!has_scoop)
+	if (!isStation)
 	{
-		[shipAI message:@"NOTHING_FOUND"];		//can't collect loot if you have no scoop!
-		return;
+		if (!has_scoop)
+		{
+			[shipAI message:@"NOTHING_FOUND"];		//can't collect loot if you have no scoop!
+			return;
+		}
+		if ([cargo count] >= max_cargo)
+		{
+			[shipAI message:@"HOLD_FULL"];		//can't collect loot if holds are full!
+			[shipAI message:@"NOTHING_FOUND"];		//can't collect loot if holds are full!
+			return;
+		}
 	}
-	if ([cargo count] >= max_cargo)
+	else
 	{
-		[shipAI message:@"HOLD_FULL"];		//can't collect loot if holds are full!
-		[shipAI message:@"NOTHING_FOUND"];		//can't collect loot if holds are full!
-		return;
-	}
-	if (isStation)
-	{
-		[shipAI message:@"NOTHING_FOUND"];		//can't collect loot if you're a station
-		return;
+		if (magnitude2([self getVelocity]))
+		{
+			[shipAI message:@"NOTHING_FOUND"];		//can't collect loot if you're a moving station
+			return;
+		}
 	}
 
 	BOOL isPolice = (scan_class == CLASS_POLICE);

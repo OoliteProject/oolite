@@ -2465,34 +2465,42 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 - (void) behaviour_tractored:(double) delta_t
 {
 	double  distance = [self rangeToDestination];
+	desired_range = collision_radius * 2.0;
 	ShipEntity* hauler = (ShipEntity*)[self owner];
 	if ((hauler)&&(hauler->isShip))
 	{
+		if (distance < desired_range)
+		{
+			behaviour = BEHAVIOUR_TUMBLE;
+			status = STATUS_IN_FLIGHT;
+			[hauler scoopUp:self];
+			return;
+		}
 		GLfloat tf = TRACTOR_FORCE / mass;
-		desired_speed = 0.0;
-		desired_range = collision_radius * 2.0;
 		destination = [hauler absoluteTractorPosition];
 		// adjust for difference in velocity (spring rule)
 		Vector dv = vector_between( [self getVelocity], [hauler getVelocity]);
-		velocity.x += delta_t * dv.x * 0.25 * tf;
-		velocity.y += delta_t * dv.y * 0.25 * tf;
-		velocity.z += delta_t * dv.z * 0.25 * tf;
+		GLfloat moment = delta_t * 0.25 * tf;
+		velocity.x += moment * dv.x;
+		velocity.y += moment * dv.y;
+		velocity.z += moment * dv.z;
 		// acceleration = force / mass
 		// force proportional to distance (spring rule)
 		Vector dp = vector_between( position, destination);
-		velocity.x += delta_t * dp.x * tf * 0.5;
-		velocity.y += delta_t * dp.y * tf * 0.5;
-		velocity.z += delta_t * dp.z * tf * 0.5;
+		moment = delta_t * 0.5 * tf;
+		velocity.x += moment * dp.x;
+		velocity.y += moment * dp.y;
+		velocity.z += moment * dp.z;
 		// force inversely proportional to distance
-		GLfloat d2 = 2.0 * magnitude2(dp);
+		GLfloat d2 = magnitude2(dp);
+		moment = (d2 > 0.0)? delta_t * 5.0 * tf / d2 : 0.0;
 		if (d2 > 0.0)
 		{
-			velocity.x += delta_t * dp.x * tf / d2;
-			velocity.y += delta_t * dp.y * tf / d2;
-			velocity.z += delta_t * dp.z * tf / d2;
+			velocity.x += moment * dp.x;
+			velocity.y += moment * dp.y;
+			velocity.z += moment * dp.z;
 		}
-
-		thrust = 20.0;	// used to damp velocity
+		//
 		if (status == STATUS_BEING_SCOOPED)
 		{
 			BOOL lost_contact = (distance > hauler->collision_radius + collision_radius + 250.0f);	// 250m range for tractor beam
@@ -2506,6 +2514,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 						break;
 				}
 			}
+			//
 			if (lost_contact)	// 250m range for tractor beam
 			{
 				// escaped tractor beam
@@ -2518,15 +2527,13 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 			{
 				[(PlayerEntity*)hauler setScoopsActive];
 			}
-			
-			if (distance < desired_range)
-			{
-				[hauler scoopUp:self];
-			}
 		}
 	}
 	[self applyRoll:delta_t*flight_roll andClimb:delta_t*flight_pitch];
+	desired_speed = 0.0;
+	thrust = 25.0;	// used to damp velocity (must be less than hauler thrust)
 	[self applyThrust:delta_t];
+	thrust = 0.0;	// must reset thrust now
 }
 //            //
 - (void) behaviour_track_target:(double) delta_t
@@ -3816,7 +3823,8 @@ static GLfloat mascem_color2[4] =	{ 0.4, 0.1, 0.4, 1.0};	// purple
 
 - (void) applyThrust:(double) delta_t
 {
-	double max_available_speed = (has_fuel_injection && (fuel > 1))? max_flight_speed * AFTERBURNER_FACTOR : max_flight_speed;
+	GLfloat dt_thrust = thrust * delta_t;
+	GLfloat max_available_speed = (has_fuel_injection && (fuel > 1))? max_flight_speed * AFTERBURNER_FACTOR : max_flight_speed;
 
 	position.x += delta_t*velocity.x;
 	position.y += delta_t*velocity.y;
@@ -3825,20 +3833,17 @@ static GLfloat mascem_color2[4] =	{ 0.4, 0.1, 0.4, 1.0};	// purple
 	//
 	if (thrust)
 	{
-		GLfloat velmag = sqrt(magnitude2(velocity));
+		GLfloat velmag = sqrtf(magnitude2(velocity));
 		if (velmag)
 		{
-			GLfloat velmag2 = velmag - delta_t * thrust;
-			if (velmag2 < 0.0)
-				velmag2 = 0.0;
-			velocity.x *= velmag2 / velmag;
-			velocity.y *= velmag2 / velmag;
-			velocity.z *= velmag2 / velmag;
+			GLfloat vscale = (velmag - dt_thrust) / velmag;
+			if (vscale < 0.0)
+				vscale = 0.0;
+			scale_vector(&velocity, vscale);
 		}
 	}
 
-	if (behaviour == BEHAVIOUR_TUMBLE)  return; //testing
-
+	if (behaviour == BEHAVIOUR_TUMBLE)  return;
 
 	// check for speed
 	if (desired_speed > max_available_speed)
@@ -3846,15 +3851,15 @@ static GLfloat mascem_color2[4] =	{ 0.4, 0.1, 0.4, 1.0};	// purple
 
 	if (flight_speed > desired_speed)
 	{
-		[self decrease_flight_speed:delta_t*thrust];
+		[self decrease_flight_speed: dt_thrust];
 		if (flight_speed < desired_speed)   flight_speed = desired_speed;
 	}
 	if (flight_speed < desired_speed)
 	{
-		[self increase_flight_speed:delta_t*thrust];
+		[self increase_flight_speed: dt_thrust];
 		if (flight_speed > desired_speed)   flight_speed = desired_speed;
 	}
-	[self moveForward:delta_t*flight_speed];
+	[self moveForward: delta_t*flight_speed];
 
 	// burn fuel at the appropriate rate
 	if ((flight_speed > max_flight_speed) && has_fuel_injection && (fuel > 0))
@@ -7405,7 +7410,8 @@ BOOL	class_masslocks(int some_class)
 			}
 		}
 		[cargo insertObject: other atIndex: 0];	// places most recently scooped object at eject position
-		[other setStatus:STATUS_IN_HOLD];					// prevents entity from being recycled!
+		[other setStatus:STATUS_IN_HOLD];		// prevents entity from being recycled!
+		[other setBehaviour:BEHAVIOUR_TUMBLE];
 		[shipAI message:@"CARGO_SCOOPED"];
 		if ([cargo count] == max_cargo)
 			[shipAI message:@"HOLD_FULL"];
