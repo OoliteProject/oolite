@@ -3458,14 +3458,6 @@ void testForShaders()
 
 					if (immediate)
 					{
-//
-//	#ifdef GNUSTEP
-//						// TODO: Find out what these APPLE functions can be replaced with
-//	#else
-////						if (usingVAR)
-////							glBindVertexArrayAPPLE(gVertexArrayRangeObjects[0]);
-//	#endif
-//
 						//
 						// gap removal (draws flat polys)
 						//
@@ -3497,11 +3489,13 @@ void testForShaders()
 									
 								NSDictionary* shader = (NSDictionary*)[shader_info objectForKey:textureKey];
 								
-								GLuint shader_program = [[shader objectForKey:@"shader_program"] intValue];
+//								GLuint shader_program = [[shader objectForKey:@"shader_program"] intValue];
+								GLhandleARB shader_program = (GLhandleARB)[(NSNumber*)[shader objectForKey:@"shader_program"] unsignedIntValue];
 								//
 								// set up texture units
 								//
-								glUseProgram( shader_program);
+//								glUseProgram( shader_program);
+								glUseProgramObjectARB( shader_program);
 								//
 								NSArray* texture_units = (NSArray*)[shader objectForKey:@"textureNames"];
 								int n_tu = [texture_units count];
@@ -3515,12 +3509,14 @@ void testForShaders()
 //									NSLog(@"TESTING: setting up texture unit %d with stored texture name %d",
 //										i, textureN);
 									
-									glActiveTexture( GL_TEXTURE0 + i);
+//									glActiveTexture( GL_TEXTURE0 + i);
+									glActiveTextureARB( GL_TEXTURE0_ARB + i);
 									glBindTexture( GL_TEXTURE_2D, textureN);
 									
 									NSString* texdname = [NSString stringWithFormat:@"tex%d", i];
 									const char* cname = [texdname UTF8String];
-									GLint locator = glGetUniformLocation( shader_program, cname);
+//									GLint locator = glGetUniformLocation( shader_program, cname);
+									GLint locator = glGetUniformLocationARB( shader_program, cname);
 									if (locator == -1)
 									{
 										NSLog(@"GLSL ERROR couldn't find location of %@ in shader_program %d", texdname, shader_program);
@@ -3529,31 +3525,38 @@ void testForShaders()
 									{
 //										NSLog(@"TESTING: found location of %s in shader_program %d as %d", cname, shader_program, locator);
 										glUniform1i( locator, i);	// associate texture unit number i with tex%d
+										glUniform1iARB( locator, i);	// associate texture unit number i with tex%d
 									}
 									
 								}
 								//
 								// other variables 'time' 'engine_level'
 								//
-								GLint time_location = glGetUniformLocation( shader_program, "time");
+//								GLint time_location = glGetUniformLocation( shader_program, "time");
+								GLint time_location = glGetUniformLocationARB( shader_program, "time");
 								if (time_location != -1)
 								{
 //									NSLog(@"TESTING: found location of 'time' in shader_program %d as %d", shader_program, time_location);
-									glUniform1f( time_location, utime);
+//									glUniform1f( time_location, utime);
+									glUniform1fARB( time_location, utime);
 								}
 								//
-								GLint engine_level_location = glGetUniformLocation( shader_program, "engine_level");
+//								GLint engine_level_location = glGetUniformLocation( shader_program, "engine_level");
+								GLint engine_level_location = glGetUniformLocationARB( shader_program, "engine_level");
 								if (engine_level_location != -1)
 								{
 //									NSLog(@"TESTING: found location of 'engine_level' in shader_program %d as %d", shader_program, engine_level_location);
-									glUniform1f( engine_level_location, engine_level);
+//									glUniform1f( engine_level_location, engine_level);
+									glUniform1fARB( engine_level_location, engine_level);
 								}
 								//
-								GLint laser_heat_level_location = glGetUniformLocation( shader_program, "laser_heat_level");
+//								GLint laser_heat_level_location = glGetUniformLocation( shader_program, "laser_heat_level");
+								GLint laser_heat_level_location = glGetUniformLocationARB( shader_program, "laser_heat_level");
 								if (laser_heat_level_location != -1)
 								{
 //									NSLog(@"TESTING: found location of 'engine_level' in shader_program %d as %d", shader_program, laser_heat_level_location);
-									glUniform1f( laser_heat_level_location, laser_heat_level);
+//									glUniform1f( laser_heat_level_location, laser_heat_level);
+									glUniform1fARB( laser_heat_level_location, laser_heat_level);
 								}
 								//
 							}
@@ -3564,8 +3567,10 @@ void testForShaders()
 							// switch off shader
 							if ((shader_info) && [shader_info objectForKey: textureKey])
 							{
-								glUseProgram(0);
-								glActiveTexture( GL_TEXTURE0);
+//								glUseProgram(0);
+//								glActiveTexture( GL_TEXTURE0);
+								glUseProgramObjectARB(0);
+								glActiveTextureARB( GL_TEXTURE0_ARB);
 							}
 
 						}
