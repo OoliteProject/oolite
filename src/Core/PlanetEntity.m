@@ -573,7 +573,10 @@ void setUpSinTable()
 
 	// set speed of rotation
 	rotational_velocity = 0.005 * randf();	// 0.0 .. 0.005 avr 0.0025;
-
+	if ([planetinfo objectForKey:@"rotation_speed"])
+		rotational_velocity = [[planetinfo objectForKey:@"rotation_speed"] floatValue];
+	if ([planetinfo objectForKey:@"rotation_speed_factor"])
+		rotational_velocity *= [[planetinfo objectForKey:@"rotation_speed_factor"] floatValue];
 	// do atmosphere
 	//
 	[self setUniverse:uni];
