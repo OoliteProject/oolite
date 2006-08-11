@@ -1290,12 +1290,11 @@ static Quaternion quaternion_identity = { (GLfloat)1.0, (GLfloat)0.0, (GLfloat)0
 		name = [[NSString stringWithString:(NSString *)[dict objectForKey:KEY_NAME]] retain];
 	}
 	//
-	if ([dict objectForKey:@"roles"])
-	{
-		if (roles)
-			[roles release];
-		roles = [[NSString stringWithString:(NSString *)[dict objectForKey:@"roles"]] retain];
-	}
+//	if ([dict objectForKey:@"roles"])
+//	{
+//		[self setRoles:(NSString *)[dict objectForKey:@"roles"]];
+//	}
+	[self setRoles:@"player"];	// overrides previous
 	//
 	if ([dict objectForKey:@"laser_color"])
 	{
