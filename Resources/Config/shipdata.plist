@@ -2397,9 +2397,9 @@
 		<string>escape-capsule</string>
 		<key>subentities</key>
 		<array>
-			<string>*FLASHER* 0.04.42 -1.54 0.0 2</string>
-			<string>*FLASHER* 3.83 -2.21 -1.54 0.0 2</string>
-			<string>*FLASHER* -3.83 -2.21 -1.54 0.0 2</string>
+			<string>*FLASHER* 0.0 4.42 -1.54	0.0 2 0.0 2.0</string>
+			<string>*FLASHER* 3.83 -2.21 -1.54	0.0 2 0.0 2.0</string>
+			<string>*FLASHER* -3.83 -2.21 -1.54	0.0 2 0.0 2.0</string>
 		</array>
 		<key>thrust</key>
 		<real>5</real>
