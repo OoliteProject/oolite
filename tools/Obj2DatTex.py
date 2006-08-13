@@ -1,5 +1,10 @@
 #!/usr/bin/python
 
+# EXTENSIONS  : "obj" "OBJ"					# Accepted file extentions
+# OSTYPES     : "****"						# Accepted file types
+# ROLE        : Editor						# Role (Editor, Viewer, None)
+# SERVICEMENU : Obj2DatTex/Convert to .dat	# Name of Service menu item
+
 """
 This script takes a Wavefront .obj file
 and exports a .dat file containing the same trimesh.
@@ -113,14 +118,17 @@ for inputfilename in inputfilenames:
 	# find faces next
 	# use red colour to show smoothing groups
 	smoothing_group = 127
+	group_token = 0;
 	for line in lines:
 		tokens = string.split(line)
 		if (tokens != []):
 			if (tokens[0] == 's'):
-				# we just step through the groups not bothering to check the group number
-				smoothing_group = smoothing_group + 1
-				if (smoothing_group > 255):
-					smoothing_group = 0
+				# we check the group number if it's zero this is a non-smoothed group
+				group_token = int(tokens[1])
+				if (group_token > 0):
+					smoothing_group = smoothing_group + 1
+					if (smoothing_group > 255):
+						smoothing_group = 0
 			if (tokens[0] == 'usemtl'):
 				textureName = tokens[1]
 				if (materials.has_key(textureName)):
@@ -153,11 +161,18 @@ for inputfilename in inputfilenames:
 					det = math.sqrt(xp[0]*xp[0] + xp[1]*xp[1] + xp[2]*xp[2])
 					if (det > 0):
 						n_faces = n_faces + 1
-					#	norm = (xp[0]/det, xp[1]/det, xp[2]/det)
-					# negate the normal to allow correct texturing...
+						#	norm = (xp[0]/det, xp[1]/det, xp[2]/det)
+						# negate the normal to allow correct texturing...
 						norm = ( -xp[0]/det, -xp[1]/det, -xp[2]/det)
 						face.append((v1,v2,v3))
 						faces_lines_out.append('%d,127,127,\t%.5f,%.5f,%.5f,\t3,\t%d,%d,%d\n' % (smoothing_group,norm[0],norm[1],norm[2],v1,v2,v3))
+						#
+						# check if we're in a non-smoothed group - if so keep incrementing the 'red' smoothing_group value...
+						#
+						if (group_token == 0):
+							smoothing_group = smoothing_group + 1
+							if (smoothing_group > 255):
+								smoothing_group = 0
 						if (interpretTexture):
 							textureForFace.append(textureName)
 							uvsForTexture[textureName][v1] = uv[vt1]
