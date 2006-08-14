@@ -3459,7 +3459,7 @@ void testForShaders()
 
 
 					GLfloat utime = (GLfloat)[universe getTime];
-					GLfloat engine_level = flight_speed / max_flight_speed;
+					GLfloat engine_level = (max_flight_speed > 0.0f)? flight_speed / max_flight_speed : 0.0f;
 					GLfloat laser_heat_level = (isPlayer)? [(PlayerEntity*)self dial_weapon_temp]: (weapon_recharge_rate - shot_time) / weapon_recharge_rate;
 					
 
