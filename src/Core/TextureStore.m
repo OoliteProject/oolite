@@ -320,70 +320,124 @@ NSMutableDictionary	*shaderUniversalDictionary = nil;
 		return 0;	// failed!
 	}
 	
-	// allocate a shader object
-	GLhandleARB shader_object = glCreateShaderObjectARB(GL_FRAGMENT_SHADER_ARB);	// we're only using fragment shaders for now
-//	GLuint shader_object = glCreateShader(GL_FRAGMENT_SHADER);	// we're only using fragment shaders for now
-	if (!shader_object)
-	{
-		NSLog(@"GLSL ERROR: could not create a fragment shader with glCreateShader()");
-		return 0;	// failed!
-	}
-	
-	// associate the shader source code with the shader
+	GLhandleARB fragment_shader_object = nil;
+	GLhandleARB vertex_shader_object = nil;
+
+	// check if we need to make a fragment shader
 	if ([shaderDict objectForKey:@"glsl"])
 	{
+		GLhandleARB shader_object = glCreateShaderObjectARB(GL_FRAGMENT_SHADER_ARB);	// a fragment shader
+		if (!shader_object)
+		{
+			NSLog(@"GLSL ERROR: could not create a fragment shader with glCreateShaderObjectARB()");
+			return 0;	// failed!
+		}
+	
 		NSString* glslSourceString = (NSString*)[shaderDict objectForKey:@"glsl"];
-//		NSArray* lines = [glslSourceString componentsSeparatedByString:@"\n"];
-//		const GLchar* c_string_lines[[lines count]];
-//		int i;
-//		for (i = 0; i < [lines count]; i++)
-//			c_string_lines[i] = [(NSString*)[lines objectAtIndex:i] UTF8String];
 		const GLcharARB *fragment_string;
 		fragment_string = [glslSourceString cString];
 		glShaderSourceARB( shader_object, 1, &fragment_string, NULL);
-//		glShaderSource( shader_object, [lines count], c_string_lines, NULL);
+	
+		// compile the shader!
+		glCompileShaderARB( shader_object);
+		GLint result;
+		glGetObjectParameterivARB( shader_object, GL_OBJECT_COMPILE_STATUS_ARB, &result);
+		if (result != GL_TRUE)
+		{
+//			char log[1024];
+//			GLsizei log_length;
+//			glGetShaderInfoLog( shader_object, 1024, &log_length, log);
+//			NSLog(@"GLSL ERROR: shader code would not compile:\n%s\n\n%@\n\n", log, [shaderDict objectForKey:@"glsl"]);
+			NSLog(@"GLSL ERROR: shader code would not compile:\n%@\n", [shaderDict objectForKey:@"glsl"]);
+			return 0;	// failed!
+		}
+		
+		fragment_shader_object = shader_object;
+	
 	}
-	else
+	else if ([shaderDict objectForKey:@"glsl-fragment"])
 	{
-		NSLog(@"ERROR: no shader code value for key \"glsl\" in dictionary passed to [TextureStore prepareShaderFDromDictionary:]");
-		return 0;	// failed!
+		GLhandleARB shader_object = glCreateShaderObjectARB(GL_FRAGMENT_SHADER_ARB);	// a fragment shader
+		if (!shader_object)
+		{
+			NSLog(@"GLSL ERROR: could not create a fragment shader with glCreateShaderObjectARB()");
+			return 0;	// failed!
+		}
+	
+		NSString* glslSourceString = (NSString*)[shaderDict objectForKey:@"glsl-fragment"];
+		const GLcharARB *fragment_string;
+		fragment_string = [glslSourceString cString];
+		glShaderSourceARB( shader_object, 1, &fragment_string, NULL);
+
+		// compile the shader!
+		glCompileShaderARB( shader_object);
+		GLint result;
+		glGetObjectParameterivARB( shader_object, GL_OBJECT_COMPILE_STATUS_ARB, &result);
+		if (result != GL_TRUE)
+		{
+			NSLog(@"GLSL ERROR: shader code would not compile:\n%@\n", [shaderDict objectForKey:@"glsl-fragment"]);
+			return 0;	// failed!
+		}
+	
+		fragment_shader_object = shader_object;
 	}
 	
-	// compile the shader!
-//	glCompileShader( shader_object);
-	glCompileShaderARB( shader_object);
-	GLint result;
-//	glGetShaderiv( shader_object, GL_COMPILE_STATUS, &result);
-	glGetObjectParameterivARB( shader_object, GL_OBJECT_COMPILE_STATUS_ARB, &result);
-	if (result != GL_TRUE)
+	// check if we need to make a vertex shader
+	if ([shaderDict objectForKey:@"glsl-vertex"])
 	{
-//		char log[1024];
-//		GLsizei log_length;
-//		glGetShaderInfoLog( shader_object, 1024, &log_length, log);
-//		NSLog(@"GLSL ERROR: shader code would not compile:\n%s\n\n%@\n\n", log, [shaderDict objectForKey:@"glsl"]);
-		NSLog(@"GLSL ERROR: shader code would not compile:\n%@\n", [shaderDict objectForKey:@"glsl"]);
-		return 0;	// failed!
+		GLhandleARB shader_object = glCreateShaderObjectARB(GL_VERTEX_SHADER_ARB);	// a vertex shader
+		if (!shader_object)
+		{
+			NSLog(@"GLSL ERROR: could not create a vertex shader with glCreateShaderObjectARB()");
+			return 0;	// failed!
+		}
+	
+		NSString* glslSourceString = (NSString*)[shaderDict objectForKey:@"glsl-vertex"];
+		const GLcharARB *vertex_string;
+		vertex_string = [glslSourceString cString];
+		glShaderSourceARB( shader_object, 1, &vertex_string, NULL);
+
+		// compile the shader!
+		glCompileShaderARB( shader_object);
+		GLint result;
+		glGetObjectParameterivARB( shader_object, GL_OBJECT_COMPILE_STATUS_ARB, &result);
+		if (result != GL_TRUE)
+		{
+			NSLog(@"GLSL ERROR: shader code would not compile:\n%@\n", [shaderDict objectForKey:@"glsl"]);
+			return 0;	// failed!
+		}
+		vertex_shader_object = shader_object;
 	}
 	
+	if ((!fragment_shader_object)&&(!vertex_shader_object))
+	{
+		NSLog(@"GLSL ERROR: could not create any shaders from %@", shaderDict);
+		return 0;	// failed!
+	}
+
 	// create a shader program
-//	GLuint shader_program = glCreateProgram();
 	GLhandleARB shader_program = glCreateProgramObjectARB();
 	if (!shader_program)
 	{
-//		NSLog(@"GLSL ERROR: could not create a shader program with glCreateProgram()");
 		NSLog(@"GLSL ERROR: could not create a shader program with glCreateProgramObjectARB()");
 		return 0;	// failed!
 	}
 	
-	// attach the shader object
-//	glAttachShader( shader_program, shader_object);
-	glAttachObjectARB( shader_program, shader_object);
-	glDeleteObjectARB( shader_object); /* Release */
+	// attach the shader objects
+	if (vertex_shader_object)
+	{
+		glAttachObjectARB( shader_program, vertex_shader_object);
+		glDeleteObjectARB( vertex_shader_object); /* Release */
+	}
+	if (fragment_shader_object)
+	{
+		glAttachObjectARB( shader_program, fragment_shader_object);
+		glDeleteObjectARB( fragment_shader_object); /* Release */
+	}
 	
 	// link the program
-//	glLinkProgram( shader_program);
-//	glGetProgramiv( shader_program, GL_LINK_STATUS, &result);
 	glLinkProgramARB( shader_program);
+	GLint result;
 	glGetObjectParameterivARB( shader_program, GL_OBJECT_LINK_STATUS_ARB, &result);
 	if (result != GL_TRUE)
 	{
