@@ -403,7 +403,7 @@ NSMutableDictionary	*shaderUniversalDictionary = nil;
 		glGetObjectParameterivARB( shader_object, GL_OBJECT_COMPILE_STATUS_ARB, &result);
 		if (result != GL_TRUE)
 		{
-			NSLog(@"GLSL ERROR: shader code would not compile:\n%@\n", [shaderDict objectForKey:@"glsl"]);
+			NSLog(@"GLSL ERROR: shader code would not compile:\n%@\n", [shaderDict objectForKey:@"glsl-vertex"]);
 			return 0;	// failed!
 		}
 		vertex_shader_object = shader_object;
