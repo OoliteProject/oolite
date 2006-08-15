@@ -5057,7 +5057,7 @@ static GLfloat mascem_color2[4] =	{ 0.4, 0.1, 0.4, 1.0};	// purple
 	[self dealMomentumWithinDesiredRange: 0.125 * mass];
 
 	//
-	if (!isPlayer)
+	if (self != [universe entityZero])	// was if !isPlayer - but I think this may cause ghosts
 		[universe removeEntity:self];
 }
 
