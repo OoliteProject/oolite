@@ -238,7 +238,7 @@
         }
     ); 
     nova = (
-        {
+		{
             conditions = ("status_string equal STATUS_IN_FLIGHT", "sunGoneNova_bool equal YES"); 
             do = (sendAllShipsAway); 
         }, 
@@ -247,7 +247,7 @@
             do = (sendAllShipsAway); 
         },
         {
-            conditions = ("galaxy_number equal 3", "mission_novacount undefined"); 
+            conditions = ("galaxy_number equal 3", "mission_novacount undefined", "mission_nova undefined"); 
             do = ("set: mission_novacount 0"); 
         }, 
         {
@@ -282,7 +282,7 @@
                 "missionChoice_string undefined"
             ); 
             do = (
-                "setMissionImage: solar.png", 
+				"setMissionImage: solar.png", 
                 setGuiToMissionScreen, 
                 "addMissionText: nova_1", 
                 "setMissionChoices: nova_yesno"
@@ -300,7 +300,8 @@
                 launchFromStation, 
                 blowUpStation, 
                 "set: mission_nova NOVA_ESCAPE_HERO", 
-                "setSunNovaIn: 30"
+                "setSunNovaIn: 30",
+				"reset: mission_nova_count"
             ); 
         }, 
         {
@@ -311,9 +312,11 @@
             ); 
             do = (
                 launchFromStation, 
+                blowUpStation, 
                 "set: mission_nova NOVA_ESCAPE_COWARD", 
                 "commsMessage: Coward! You chose not to help the refugees!", 
-                "setSunNovaIn: 3"
+                "setSunNovaIn: 3",
+				"reset: mission_nova_count"
             ); 
         }, 
         {
@@ -359,7 +362,8 @@
             conditions = (
                 "dockedAtMainStation_bool equal YES", 
                 "mission_trumbles undefined", 
-                "credits_number greaterthan 6553.5"
+                "mission_novacount undefined",
+				"credits_number greaterthan 6553.5"
             ); 
             do = ("set: mission_trumbles BUY_ME"); 
         }, 
