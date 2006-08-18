@@ -166,6 +166,7 @@ void setUpSinTable()
 	self = [super init];
     //
 	isTextured = NO;
+	isShadered = NO;
 	//
     collision_radius = 100000.0; //  100km across
 	//
@@ -309,6 +310,8 @@ void setUpSinTable()
 		textureName = 0;
 		isTextured = NO;
 	}
+	isShadered = NO;
+	shader_program = nil;
 	//
     if (!planet)
     {
@@ -382,6 +385,7 @@ void setUpSinTable()
 	self = [super init];
     //
 	isTextured = NO;
+	isShadered = NO;
 	//
 	if (!planet)
     {
@@ -548,13 +552,26 @@ void setUpSinTable()
 	
 	if (procGen)
 	{
+		fillRanNoiseBuffer();
 		textureName = [TextureStore getPlanetTextureNameFor: planetinfo intoData: &textureData];
 		isTextured = (textureName != 0);
+		isShadered = NO;
+		if (uni)
+		{
+			NSDictionary* shader_info = [[uni descriptions] objectForKey:@"planet-surface-shader"];
+			NSLog(@"TESTING: creating planet shader from:\n%@", shader_info);
+			shader_program = [TextureStore shaderProgramFromDictionary:shader_info];
+			isShadered = (shader_program != nil);
+			normalMapTextureName = [TextureStore getPlanetNormalMapNameFor: planetinfo intoData: &normalMapTextureData];
+			NSLog(@"TESTING: planet-surface-shader: %d normalMapTextureName: %d", (int)shader_program, (int)normalMapTextureName);
+		}
 	}
 	else
 	{
-		textureName = 0;
 		isTextured = NO;
+		textureName = 0;
+		isShadered = NO;
+		shader_program = nil;
 	}
 
 //	NSLog(@"DEBUG testing [PlanetEntity initialiseBaseVertexArray]");
@@ -1400,16 +1417,9 @@ void setUpSinTable()
 					glDisableClientState(GL_INDEX_ARRAY);
 					glDisableClientState(GL_EDGE_FLAG_ARRAY);
 					//
-					if (!isTextured)
+					if (isTextured)
 					{
-						glDisableClientState(GL_TEXTURE_COORD_ARRAY);
-						//
 						glEnableClientState(GL_COLOR_ARRAY);
-						glColorPointer( 4, GL_FLOAT, 0, vertexdata.color_array);
-					}
-					else
-					{
-						glEnableClientState(GL_COLOR_ARRAY);		// test shading
 						glColorPointer( 4, GL_FLOAT, 0, vertexdata.color_array);
 						//
 						glEnableClientState(GL_TEXTURE_COORD_ARRAY);
@@ -1417,6 +1427,13 @@ void setUpSinTable()
 						glBindTexture(GL_TEXTURE_2D, textureName);
 						glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
 						glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);	//wrap around horizontally
+					}
+					else
+					{
+						glDisableClientState(GL_TEXTURE_COORD_ARRAY);
+						//
+						glEnableClientState(GL_COLOR_ARRAY);
+						glColorPointer( 4, GL_FLOAT, 0, vertexdata.color_array);
 					}
 					//
 					glEnableClientState(GL_VERTEX_ARRAY);
@@ -1431,14 +1448,8 @@ void setUpSinTable()
 				{
 					glDisableClientState(GL_INDEX_ARRAY);
 					glDisableClientState(GL_EDGE_FLAG_ARRAY);
-					if (!isTextured)
-					{
-						glDisableClientState(GL_TEXTURE_COORD_ARRAY);
-						//
-						glEnableClientState(GL_COLOR_ARRAY);
-						glColorPointer( 4, GL_FLOAT, 0, vertexdata.color_array);
-					}
-					else
+					//
+					if (isTextured)
 					{
 						glEnableClientState(GL_COLOR_ARRAY);		// test shading
 						glColorPointer( 4, GL_FLOAT, 0, vertexdata.color_array);
@@ -1448,6 +1459,13 @@ void setUpSinTable()
 						glBindTexture(GL_TEXTURE_2D, textureName);
 						glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
 						glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);	//wrap around horizontally
+					}
+					else
+					{
+						glDisableClientState(GL_TEXTURE_COORD_ARRAY);
+						//
+						glEnableClientState(GL_COLOR_ARRAY);
+						glColorPointer( 4, GL_FLOAT, 0, vertexdata.color_array);
 					}
 					//
 					glEnableClientState(GL_VERTEX_ARRAY);
@@ -1472,6 +1490,7 @@ void setUpSinTable()
 						//
 						glEndList();
 					}
+					//
 				}
 				glFrontFace(GL_CW);
 

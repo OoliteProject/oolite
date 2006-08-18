@@ -83,6 +83,11 @@ typedef struct
 		BOOL		isTextured;
 		GLuint		textureName;
 		unsigned char*	textureData;
+
+		BOOL			isShadered;
+		GLhandleARB		shader_program;
+		GLuint			normalMapTextureName;
+		unsigned char*	normalMapTextureData;
 		
 		int			planet_seed;
 		double		polar_color_factor;

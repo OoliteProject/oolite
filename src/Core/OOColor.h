@@ -75,6 +75,7 @@ Your fair use and other rights are in no way affected by the above.
 - (OOColor *)blendedColorWithFraction:(float)fraction ofColor:(OOColor *)color;
 
 + (OOColor *) planetTextureColor:(float) q:(OOColor *) seaColor:(OOColor *) paleSeaColor:(OOColor *) landColor:(OOColor *) paleLandColor;
++ (OOColor *) planetTextureColor:(float) q:(float) impress:(float) bias :(OOColor *) seaColor:(OOColor *) paleSeaColor:(OOColor *) landColor:(OOColor *) paleLandColor;
 
 /* Get the red, green, or blue components of NSCalibratedRGB or NSDeviceRGB colors.
 */
