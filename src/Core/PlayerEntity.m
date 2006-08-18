@@ -4202,7 +4202,8 @@ double scoopSoundPlayTime = 0.0;
 		// try saving the cache now...
 		NSString*	cache_path = OOLITE_CACHE;
 		NSLog(@"DEBUG ** saving cache ...**");
-		[[[Entity dataStore] preloadedDataFiles] writeToFile: cache_path atomically: YES];
+		if (![[[Entity dataStore] preloadedDataFiles] writeToFile: cache_path atomically: YES])
+			NSLog(@"ERROR ***** Could not write cache to path: %@ *****", cache_path);
 		//
 		[universe clearPreviousMessage];	// allow this to be given time and again
 		[universe addMessage:[universe expandDescription:@"[game-saved]" forSystem:system_seed] forCount:2];
