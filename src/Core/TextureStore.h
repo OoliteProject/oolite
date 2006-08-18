@@ -53,6 +53,8 @@ extern int debug;
 {
 }
 
++ (GLuint) maxTextureDimension;
+
 + (GLuint) getTextureNameFor:(NSString *)filename;
 + (GLuint) getImageNameFor:(NSString *)filename;
 + (GLuint) getTextureNameFor:(NSString *)filename inFolder:(NSString*) foldername;
@@ -67,6 +69,7 @@ extern int debug;
 // routines to create textures...
 
 + (GLuint) getPlanetTextureNameFor:(NSDictionary*)planetinfo intoData:(unsigned char **)textureData;
++ (GLuint) getPlanetNormalMapNameFor:(NSDictionary*)planetinfo intoData:(unsigned char **)textureData;
 + (GLuint) getCloudTextureNameFor:(OOColor*) color: (GLfloat) impress: (GLfloat) bias intoData:(unsigned char **)textureData;
 
 void fillRanNoiseBuffer();
@@ -81,5 +84,6 @@ void fillSquareImageWithPlanetTex(unsigned char * imageBuffer, int width, int np
 	OOColor* paleSeaColor,
 	OOColor* landColor,
 	OOColor* paleLandColor);
+void fillSquareImageWithPlanetNMap(unsigned char * imageBuffer, int width, int nplanes, float impress, float bias, float factor);
 
 @end

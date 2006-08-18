@@ -45,6 +45,7 @@ Your fair use and other rights are in no way affected by the above.
 
 #import "TextureStore.h"
 #import "OOColor.h"
+#import "vector.h"
 
 #define PI	3.1415926536
 
@@ -52,6 +53,21 @@ Your fair use and other rights are in no way affected by the above.
 
 NSMutableDictionary	*textureUniversalDictionary = nil;
 NSMutableDictionary	*shaderUniversalDictionary = nil;
+
+BOOL	done_maxsize_test = NO;
+GLuint	max_texture_dimension = 512;	// conservative start
++ (GLuint) maxTextureDimension
+{
+	if (done_maxsize_test)
+		return max_texture_dimension;
+	GLint result;
+	glGetIntegerv( GL_MAX_TEXTURE_SIZE, &result);
+	max_texture_dimension = result;
+	done_maxsize_test = YES;
+	NSLog(@"TESTING: GL_MAX_TEXTURE_SIZE =  %d", max_texture_dimension);
+	return max_texture_dimension;
+}
+
 
 + (GLuint) getTextureNameFor:(NSString *)filename
 {
@@ -80,6 +96,8 @@ NSMutableDictionary	*shaderUniversalDictionary = nil;
 
 	unsigned char		*texBytes;
 	BOOL				freeTexBytes;
+
+	int					max_d = [TextureStore maxTextureDimension];
 
 	int					texture_h = 4;
 	int					texture_w = 4;
@@ -174,6 +192,8 @@ NSMutableDictionary	*shaderUniversalDictionary = nil;
 	if (([filename hasPrefix:@"noisegen"])&&(texture_w == image_w)&&(texture_h == image_h))
 	{
 		NSLog(@"DEBUG filling image data for %@ (%d x %d) with special sauce!", filename, texture_w, texture_h);
+		ranrot_srand( 12345);
+		fillRanNoiseBuffer();
 		fillSquareImageWithPlanetTex( imageBuffer, texture_w, n_planes, 1.0, -0.5,
 			[OOColor blueColor],
 			[OOColor cyanColor],
@@ -181,7 +201,15 @@ NSMutableDictionary	*shaderUniversalDictionary = nil;
 			[OOColor yellowColor]);
 	}
 
-	if ((texture_w > image_w)||(texture_h > image_h))	// we need to scale the image to the texture dimensions
+	if (([filename hasPrefix:@"normalgen"])&&(texture_w == image_w)&&(texture_h == image_h))
+	{
+		NSLog(@"DEBUG filling image data for %@ (%d x %d) with extra-special sauce!", filename, texture_w, texture_h);
+		ranrot_srand( 12345);
+		fillRanNoiseBuffer();
+		fillSquareImageWithPlanetNMap( imageBuffer, texture_w, n_planes, 1.0, -0.5, 64.0);
+	}
+
+	if ((texture_w > image_w)||(texture_h > image_h))	// we need to scale the image up to the texture dimensions
 	{
 		texBytes = malloc(tex_bytes);
 		freeTexBytes = YES;
@@ -253,7 +281,7 @@ NSMutableDictionary	*shaderUniversalDictionary = nil;
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);	// adjust this
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);	// adjust this
 
-	switch (n_planes)	// fromt he number of planes work out how to treat the image as a texture
+	switch (n_planes)	// from the number of planes work out how to treat the image as a texture
 	{
 		case 4:
 			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, texture_w, texture_h, 0, GL_RGBA, GL_UNSIGNED_BYTE, texBytes);
@@ -344,11 +372,10 @@ NSMutableDictionary	*shaderUniversalDictionary = nil;
 		glGetObjectParameterivARB( shader_object, GL_OBJECT_COMPILE_STATUS_ARB, &result);
 		if (result != GL_TRUE)
 		{
-//			char log[1024];
-//			GLsizei log_length;
-//			glGetShaderInfoLog( shader_object, 1024, &log_length, log);
-//			NSLog(@"GLSL ERROR: shader code would not compile:\n%s\n\n%@\n\n", log, [shaderDict objectForKey:@"glsl"]);
-			NSLog(@"GLSL ERROR: shader code would not compile:\n%@\n", [shaderDict objectForKey:@"glsl"]);
+			char log[1024];
+			GLsizei log_length;
+			glGetInfoLogARB( shader_object, 1024, &log_length, log);
+			NSLog(@"GLSL ERROR: shader code would not compile:\n%s\n\n%@\n\n", log, [shaderDict objectForKey:@"glsl"]);
 			return 0;	// failed!
 		}
 		
@@ -375,7 +402,10 @@ NSMutableDictionary	*shaderUniversalDictionary = nil;
 		glGetObjectParameterivARB( shader_object, GL_OBJECT_COMPILE_STATUS_ARB, &result);
 		if (result != GL_TRUE)
 		{
-			NSLog(@"GLSL ERROR: shader code would not compile:\n%@\n", [shaderDict objectForKey:@"glsl-fragment"]);
+			char log[1024];
+			GLsizei log_length;
+			glGetInfoLogARB( shader_object, 1024, &log_length, log);
+			NSLog(@"GLSL ERROR: shader code would not compile:\n%s\n\n%@\n\n", log, [shaderDict objectForKey:@"glsl-fragment"]);
 			return 0;	// failed!
 		}
 	
@@ -403,7 +433,10 @@ NSMutableDictionary	*shaderUniversalDictionary = nil;
 		glGetObjectParameterivARB( shader_object, GL_OBJECT_COMPILE_STATUS_ARB, &result);
 		if (result != GL_TRUE)
 		{
-			NSLog(@"GLSL ERROR: shader code would not compile:\n%@\n", [shaderDict objectForKey:@"glsl-vertex"]);
+			char log[1024];
+			GLsizei log_length;
+			glGetInfoLogARB( shader_object, 1024, &log_length, log);
+			NSLog(@"GLSL ERROR: shader code would not compile:\n%s\n\n%@\n\n", log, [shaderDict objectForKey:@"glsl-vertex"]);
 			return 0;	// failed!
 		}
 		vertex_shader_object = shader_object;
@@ -441,11 +474,10 @@ NSMutableDictionary	*shaderUniversalDictionary = nil;
 	glGetObjectParameterivARB( shader_program, GL_OBJECT_LINK_STATUS_ARB, &result);
 	if (result != GL_TRUE)
 	{
-//		char log[1024];
-//		GLsizei log_length;
-//		glGetProgramInfoLog( shader_program, 1024, &log_length, log);
-//		NSLog(@"GLSL ERROR: shader program would not link:\n%s\n\n%@\n\n", log, [shaderDict objectForKey:@"glsl"]);
-		NSLog(@"GLSL ERROR: shader program would not link.");
+		char log[1024];
+		GLsizei log_length;
+		glGetInfoLogARB( shader_object, 1024, &log_length, log);
+		NSLog(@"GLSL ERROR: shader program would not link:\n%s\n\n%@\n\n", log, shaderDict);
 		return 0;	// failed!
 	}
 
@@ -504,12 +536,53 @@ NSMutableDictionary	*shaderUniversalDictionary = nil;
 	OOColor* polar_land_color = (OOColor*)[planetinfo objectForKey:@"polar_land_color"];
 	OOColor* polar_sea_color = (OOColor*)[planetinfo objectForKey:@"polar_sea_color"];
 
-	fillRanNoiseBuffer();
+//	fillRanNoiseBuffer();
 	fillSquareImageWithPlanetTex( imageBuffer, texture_w, 4, 1.0, sea_bias,
 		sea_color,
 		polar_sea_color,
 		land_color,
 		polar_land_color);
+
+	texBytes = imageBuffer;
+
+	glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+	glGenTextures(1, &texName);			// get a new unique texture name
+	glBindTexture(GL_TEXTURE_2D, texName);
+
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);	// adjust this
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);	// adjust this
+
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, texture_w, texture_h, 0, GL_RGBA, GL_UNSIGNED_BYTE, texBytes);
+
+	return texName;
+}
+
++ (GLuint) getPlanetNormalMapNameFor:(NSDictionary*)planetinfo intoData:(unsigned char **)textureData
+{
+	GLuint				texName;
+
+	int					texsize = 512;
+
+	unsigned char		*texBytes;
+
+	int					texture_h = texsize;
+	int					texture_w = texsize;
+
+	int					tex_bytes = texture_w * texture_h * 4;
+
+	unsigned char* imageBuffer = malloc( tex_bytes);
+	if (textureData)
+		(*textureData) = imageBuffer;
+
+	float land_fraction = [[planetinfo objectForKey:@"land_fraction"] floatValue];
+	float sea_bias = land_fraction - 1.0;
+	
+	NSLog(@"genning normal map for land_fraction %.5f", land_fraction);
+	
+//	fillRanNoiseBuffer();
+	fillSquareImageWithPlanetNMap( imageBuffer, texture_w, 4, 1.0, sea_bias, 64.0);
 
 	texBytes = imageBuffer;
 
@@ -543,7 +616,7 @@ NSMutableDictionary	*shaderUniversalDictionary = nil;
 	if (textureData)
 		(*textureData) = imageBuffer;
 
-	fillRanNoiseBuffer();
+//	fillRanNoiseBuffer();
 	fillSquareImageDataWithCloudTexture( imageBuffer, texture_w, 4, color, impress, bias);
 
 	texBytes = imageBuffer;
@@ -673,6 +746,11 @@ void fillSquareImageDataWithSmoothNoise(unsigned char * imageBuffer, int width, 
 
 float q_factor(float* accbuffer, int x, int y, int width, BOOL polar_y_smooth, float polar_y_value, BOOL polar_x_smooth, float polar_x_value, float impress, float bias)
 {
+	while ( x < 0 ) x+= width;
+	while ( y < 0 ) y+= width;
+	while ( x >= width ) x-= width;
+	while ( y >= width ) y-= width;
+
 	float q = accbuffer[ y * width + x];	// 0.0 -> 1.0
 
 	q *= impress;	// impress
@@ -700,7 +778,8 @@ void fillSquareImageDataWithCloudTexture(unsigned char * imageBuffer, int width,
 {
 	float accbuffer[width * width];
 	int x, y;
-	for (y = 0; y < width; y++) for (x = 0; x < width; x++) accbuffer[ y * width + x] = 0.0f;
+	y = width * width;
+	for (x = 0; x < y; x++) accbuffer[x] = 0.0f;
 
 	GLfloat rgba[4];
 	rgba[0] = [cloudcolor redComponent];
@@ -749,7 +828,8 @@ void fillSquareImageWithPlanetTex(unsigned char * imageBuffer, int width, int np
 {
 	float accbuffer[width * width];
 	int x, y;
-	for (y = 0; y < width; y++) for (x = 0; x < width; x++) accbuffer[ y * width + x] = 0.0f;
+	y = width * width;
+	for (x = 0; x < y; x++) accbuffer[x] = 0.0f;
 
 	int octave = 8;
 	float scale = 0.5;
@@ -760,38 +840,39 @@ void fillSquareImageWithPlanetTex(unsigned char * imageBuffer, int width, int np
 		scale *= 0.5;
 	}
 	
-	float largest_diff_q = 0.0;
-	float largest_q = 0.0;
+//	float largest_diff_q = 0.0;
+//	float largest_q = 0.0;
 	
-	float pole_value = (bias < -0.5)? 0.0 : 1.0;
+//	float pole_value = (bias < -0.5)? 0.0 : 1.0;
+	float pole_value = (impress + bias > 0.5)? 0.5 * (impress + bias) : 0.0;
 	
 	for (y = 0; y < width; y++) for (x = 0; x < width; x++)
 	{
 		float q = q_factor( accbuffer, x, y, width, YES, pole_value, NO, 0.0, impress, bias);
-		float q1 = q_factor( accbuffer, (x - 1) % width, (y - 1) % width, width, YES, pole_value, NO, 0.0, impress, bias);
-	
-		if (q > largest_q)
-			largest_q = q;
-	
-		float diff_q = q - q1;
-		if (diff_q > largest_diff_q)
-			largest_diff_q = diff_q;
+//		float q1 = q_factor( accbuffer, (x - 1) % width, (y - 1) % width, width, YES, pole_value, NO, 0.0, impress, bias);
+//	
+//		if (q > largest_q)
+//			largest_q = q;
+//	
+//		float diff_q = q - q1;
+//		if (diff_q > largest_diff_q)
+//			largest_diff_q = diff_q;
 		
-		OOColor* color = [OOColor planetTextureColor:q :seaColor :paleSeaColor :landColor :paleLandColor];
+		OOColor* color = [OOColor planetTextureColor:q:impress:bias :seaColor :paleSeaColor :landColor :paleLandColor];
 		
 		float red = [color redComponent];
 		float green = [color greenComponent];
 		float blue = [color blueComponent];
 		
-		if (diff_q < 0.000)	// going downhill, so cast a shadow...
-		{
-			float fraction = 1.0 - (diff_q / -0.04);
-			if (fraction < 0.0)	fraction = 0.0;
-			if (fraction > 1.0)	fraction = 1.0;
-			red *= fraction;
-			green *= fraction;
-			blue *= fraction;
-		}
+//		if (diff_q < 0.000)	// going downhill, so cast a shadow...
+//		{
+//			float fraction = 1.0 - (diff_q / -0.04);
+//			if (fraction < 0.0)	fraction = 0.0;
+//			if (fraction > 1.0)	fraction = 1.0;
+//			red *= fraction;
+//			green *= fraction;
+//			blue *= fraction;
+//		}
 		
 		if (nplanes == 1)
 			imageBuffer[ y * width + x ] = 255 * q;
@@ -809,8 +890,52 @@ void fillSquareImageWithPlanetTex(unsigned char * imageBuffer, int width, int np
 			imageBuffer[ 3 + 4 * (y * width + x) ] = 255;
 		}
 	}
+}
+
+void fillSquareImageWithPlanetNMap(unsigned char * imageBuffer, int width, int nplanes, float impress, float bias, float factor)
+{
+	if (nplanes != 4)
+	{
+		NSLog(@"ERROR: fillSquareImageWithPlanetNMap() can only create textures with 4 planes.");
+		return;
+	}
 	
-	NSLog(@"\n\nTESTING: reporting largest q as %f\n\n", largest_q);
+	float accbuffer[width * width];
+	int x, y;
+	y = width * width;
+	for (x = 0; x < y; x++) accbuffer[x] = 0.0f;
+
+	int octave = 8;
+	float scale = 0.5;
+	while (octave < width)
+	{
+		addNoise( accbuffer, width, octave, scale);
+		octave *= 2;
+		scale *= 0.5;
+	}
+	
+	float pole_value = (impress + bias > 0.5)? 0.5 * (impress + bias) : 0.0;
+	
+	for (y = 0; y < width; y++) for (x = 0; x < width; x++)
+	{
+		float yN = q_factor( accbuffer, x, y - 1, width, YES, pole_value, NO, 0.0, impress, bias);
+		float yS = q_factor( accbuffer, x, y + 1, width, YES, pole_value, NO, 0.0, impress, bias);
+		float yW = q_factor( accbuffer, x - 1, y, width, YES, pole_value, NO, 0.0, impress, bias);
+		float yE = q_factor( accbuffer, x + 1, y, width, YES, pole_value, NO, 0.0, impress, bias);
+
+		Vector norm = make_vector( factor * (yW - yE), factor * (yS - yN), 2.0);
+		
+		norm = unit_vector(&norm);
+		
+		norm.x = 0.5 * (norm.x + 1.0);
+		norm.y = 0.5 * (norm.y + 1.0);
+		norm.z = 0.5 * (norm.z + 1.0);
+		
+		imageBuffer[ 0 + 4 * (y * width + x) ] = 255 * norm.x;
+		imageBuffer[ 1 + 4 * (y * width + x) ] = 255 * norm.y;
+		imageBuffer[ 2 + 4 * (y * width + x) ] = 255 * norm.z;
+		imageBuffer[ 3 + 4 * (y * width + x) ] = 255;// * q;				// alpha is heightmap
+	}
 }
 
 @end
