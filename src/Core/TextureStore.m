@@ -476,7 +476,7 @@ GLuint	max_texture_dimension = 512;	// conservative start
 	{
 		char log[1024];
 		GLsizei log_length;
-		glGetInfoLogARB( shader_object, 1024, &log_length, log);
+		glGetInfoLogARB( shader_program, 1024, &log_length, log);
 		NSLog(@"GLSL ERROR: shader program would not link:\n%s\n\n%@\n\n", log, shaderDict);
 		return 0;	// failed!
 	}
