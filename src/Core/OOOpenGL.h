@@ -16,9 +16,9 @@
 #define NO_SDL_GLEXT
 
 // the standard SDL_opengl.h
-#include "SDL_opengl.h"
+#include <SDL_opengl.h>
 
 // include an up-to-date version of glext.h
-#include "glext.h"
+#include <GL/glext.h>
 
 #endif
