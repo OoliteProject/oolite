@@ -272,6 +272,50 @@ GLuint	max_texture_dimension = 512;	// conservative start
 		freeTexBytes = NO;
 	}
 
+	if ((texture_w > max_d)||(texture_h > max_d))	// we need to scale the texture down to the maximum texture dimensions
+	{
+	
+		NSLog(@"INFORMATION: texture '%@' is %d x %d - too large for this version of OpenGL, it will be scaled down.",
+			filename, image_w, image_h);
+		
+		int tex_w = (texture_w > max_d)? max_d : texture_w;
+		int tex_h = (texture_h > max_d)? max_d : texture_h;
+		//
+		unsigned char *texBytes2 = malloc( tex_w * tex_h * n_planes);
+		//
+		int x, y, n, ix, iy;
+		//
+		int sx = texture_w / tex_w;	// samples per x
+		int sy = texture_h / tex_h;	// samples per x
+		//
+		float ds = 1.0 / (sx * sy);
+		//
+		texi = 0;
+		//
+		// do sample based scaling
+		for ( y = 0; y < tex_h; y++)
+		{
+			for ( x = 0; x < tex_w; x++)
+			{
+				for (n = 0; n < n_planes; n++)
+				{
+					float acc = 0;
+					for (iy = 0; iy < sy; iy++)	for (ix = 0; ix < sx; ix++)
+						acc += ds * texBytes[ ((y * sy + iy) * texture_w + (x * sx + ix)) * n_planes + n ];
+					//
+					texBytes2[ texi++] = (char)acc;
+				}
+			}
+		}
+		//
+		if (freeTexBytes)
+			free((void*)texBytes);
+		texBytes = texBytes2;
+		texture_w = tex_w;
+		texture_h = tex_h;
+		//
+	}
+
 	glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
 	glGenTextures(1, &texName);			// get a new unique texture name
 	glBindTexture(GL_TEXTURE_2D, texName);
@@ -582,7 +626,7 @@ GLuint	max_texture_dimension = 512;	// conservative start
 	NSLog(@"genning normal map for land_fraction %.5f", land_fraction);
 	
 //	fillRanNoiseBuffer();
-	fillSquareImageWithPlanetNMap( imageBuffer, texture_w, 4, 1.0, sea_bias, 64.0);
+	fillSquareImageWithPlanetNMap( imageBuffer, texture_w, 4, 1.0, sea_bias, 24.0);
 
 	texBytes = imageBuffer;
 
