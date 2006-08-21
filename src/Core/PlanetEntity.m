@@ -432,7 +432,9 @@ void setUpSinTable()
 	self = [super init];
     //
 	isTextured = NO;
-	textureName = [TextureStore getTextureNameFor:@"metal.png"];	//debug texture
+	textureName = 0;
+	textureData = nil;
+	normalMapTextureData = nil;
 	//
 	planet_seed = p_seed.a * 13 + p_seed.c * 11 + p_seed.e * 7;	// pseudo-random set-up for vertex colours
 	//
@@ -559,17 +561,18 @@ void setUpSinTable()
 		if (uni)
 		{
 			NSDictionary* shader_info = [[uni descriptions] objectForKey:@"planet-surface-shader"];
-			NSLog(@"TESTING: creating planet shader from:\n%@", shader_info);
-			shader_program = [TextureStore shaderProgramFromDictionary:shader_info];
-			isShadered = (shader_program != nil);
-			normalMapTextureName = [TextureStore getPlanetNormalMapNameFor: planetinfo intoData: &normalMapTextureData];
-			NSLog(@"TESTING: planet-surface-shader: %d normalMapTextureName: %d", (int)shader_program, (int)normalMapTextureName);
+			if (shader_info)
+			{
+				NSLog(@"TESTING: creating planet shader from:\n%@", shader_info);
+				shader_program = [TextureStore shaderProgramFromDictionary:shader_info];
+				isShadered = (shader_program != nil);
+				normalMapTextureName = [TextureStore getPlanetNormalMapNameFor: planetinfo intoData: &normalMapTextureData];
+				NSLog(@"TESTING: planet-surface-shader: %d normalMapTextureName: %d", (int)shader_program, (int)normalMapTextureName);
+			}
 		}
 	}
 	else
 	{
-		isTextured = NO;
-		textureName = 0;
 		isShadered = NO;
 		shader_program = nil;
 	}
@@ -1094,6 +1097,8 @@ void setUpSinTable()
 		[atmosphere release];
 	if (textureData)
 		free((void *) textureData);
+	if (normalMapTextureData)
+		free((void *) normalMapTextureData);
 	[super dealloc];
 }
 
@@ -1449,23 +1454,57 @@ void setUpSinTable()
 					glDisableClientState(GL_INDEX_ARRAY);
 					glDisableClientState(GL_EDGE_FLAG_ARRAY);
 					//
-					if (isTextured)
+					if (isShadered)
 					{
-						glEnableClientState(GL_COLOR_ARRAY);		// test shading
+						GLint locator;
+						glUseProgramObjectARB( shader_program);	// shader ON!
+						glEnableClientState(GL_COLOR_ARRAY);
 						glColorPointer( 4, GL_FLOAT, 0, vertexdata.color_array);
 						//
 						glEnableClientState(GL_TEXTURE_COORD_ARRAY);
 						glTexCoordPointer( 2, GL_FLOAT, 0, vertexdata.uv_array);
+						
+						glActiveTextureARB( GL_TEXTURE1_ARB);
+						glBindTexture(GL_TEXTURE_2D, normalMapTextureName);
+						glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
+						glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);	//wrap around horizontally
+						locator = glGetUniformLocationARB( shader_program, "tex1");
+						if (locator == -1)
+							NSLog(@"GLSL ERROR couldn't find location of tex0 in shader_program %d", shader_program);
+						else
+							glUniform1iARB( locator, 1);	// associate texture unit number i with texture 0
+						
+						glActiveTextureARB( GL_TEXTURE0_ARB);
 						glBindTexture(GL_TEXTURE_2D, textureName);
 						glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
 						glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);	//wrap around horizontally
+						locator = glGetUniformLocationARB( shader_program, "tex0");
+						if (locator == -1)
+							NSLog(@"GLSL ERROR couldn't find location of tex0 in shader_program %d", shader_program);
+						else
+							glUniform1iARB( locator, 0);	// associate texture unit number i with texture 0
+												
 					}
 					else
 					{
-						glDisableClientState(GL_TEXTURE_COORD_ARRAY);
-						//
-						glEnableClientState(GL_COLOR_ARRAY);
-						glColorPointer( 4, GL_FLOAT, 0, vertexdata.color_array);
+						if (isTextured)
+						{
+							glEnableClientState(GL_COLOR_ARRAY);		// test shading
+							glColorPointer( 4, GL_FLOAT, 0, vertexdata.color_array);
+							//
+							glEnableClientState(GL_TEXTURE_COORD_ARRAY);
+							glTexCoordPointer( 2, GL_FLOAT, 0, vertexdata.uv_array);
+							glBindTexture(GL_TEXTURE_2D, textureName);
+							glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
+							glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);	//wrap around horizontally
+						}
+						else
+						{
+							glDisableClientState(GL_TEXTURE_COORD_ARRAY);
+							//
+							glEnableClientState(GL_COLOR_ARRAY);
+							glColorPointer( 4, GL_FLOAT, 0, vertexdata.color_array);
+						}
 					}
 					//
 					glEnableClientState(GL_VERTEX_ARRAY);
@@ -1473,12 +1512,8 @@ void setUpSinTable()
 					glEnableClientState(GL_NORMAL_ARRAY);
 					glNormalPointer(GL_FLOAT, 0, vertexdata.normal_array);
 					//
-					displayListNames[subdivideLevel] = glGenLists(1);
-					if (displayListNames[subdivideLevel] != 0)	// sanity check
+					if (isShadered)
 					{
-						//NSLog(@"Generating planet data for subdivide %d",subdivideLevel);
-						glNewList(displayListNames[subdivideLevel], GL_COMPILE);
-						//
 						glColor4fv(mat1);
 						glMaterialfv(GL_FRONT, GL_AMBIENT_AND_DIFFUSE, mat1);
 						glColorMaterial(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE);
@@ -1487,8 +1522,27 @@ void setUpSinTable()
 						[self drawModelWithVertexArraysAndSubdivision:subdivideLevel];
 						//
 						glDisable(GL_COLOR_MATERIAL);
-						//
-						glEndList();
+						glUseProgramObjectARB( nil);	// shader OFF
+					}
+					else
+					{
+						displayListNames[subdivideLevel] = glGenLists(1);
+						if (displayListNames[subdivideLevel] != 0)	// sanity check
+						{
+							//NSLog(@"Generating planet data for subdivide %d",subdivideLevel);
+							glNewList(displayListNames[subdivideLevel], GL_COMPILE);
+							//
+							glColor4fv(mat1);
+							glMaterialfv(GL_FRONT, GL_AMBIENT_AND_DIFFUSE, mat1);
+							glColorMaterial(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE);
+							glEnable(GL_COLOR_MATERIAL);
+							//
+							[self drawModelWithVertexArraysAndSubdivision:subdivideLevel];
+							//
+							glDisable(GL_COLOR_MATERIAL);
+							//
+							glEndList();
+						}
 					}
 					//
 				}

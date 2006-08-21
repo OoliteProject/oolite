@@ -580,7 +580,6 @@ GLuint	max_texture_dimension = 512;	// conservative start
 	OOColor* polar_land_color = (OOColor*)[planetinfo objectForKey:@"polar_land_color"];
 	OOColor* polar_sea_color = (OOColor*)[planetinfo objectForKey:@"polar_sea_color"];
 
-//	fillRanNoiseBuffer();
 	fillSquareImageWithPlanetTex( imageBuffer, texture_w, 4, 1.0, sea_bias,
 		sea_color,
 		polar_sea_color,
@@ -884,23 +883,22 @@ void fillSquareImageWithPlanetTex(unsigned char * imageBuffer, int width, int np
 		scale *= 0.5;
 	}
 	
-//	float largest_diff_q = 0.0;
-//	float largest_q = 0.0;
-	
-//	float pole_value = (bias < -0.5)? 0.0 : 1.0;
 	float pole_value = (impress + bias > 0.5)? 0.5 * (impress + bias) : 0.0;
 	
 	for (y = 0; y < width; y++) for (x = 0; x < width; x++)
 	{
 		float q = q_factor( accbuffer, x, y, width, YES, pole_value, NO, 0.0, impress, bias);
-//		float q1 = q_factor( accbuffer, (x - 1) % width, (y - 1) % width, width, YES, pole_value, NO, 0.0, impress, bias);
-//	
-//		if (q > largest_q)
-//			largest_q = q;
-//	
-//		float diff_q = q - q1;
-//		if (diff_q > largest_diff_q)
-//			largest_diff_q = diff_q;
+
+		float yN = q_factor( accbuffer, x, y - 1, width, YES, pole_value, NO, 0.0, impress, bias);
+		float yS = q_factor( accbuffer, x, y + 1, width, YES, pole_value, NO, 0.0, impress, bias);
+		float yW = q_factor( accbuffer, x - 1, y, width, YES, pole_value, NO, 0.0, impress, bias);
+		float yE = q_factor( accbuffer, x + 1, y, width, YES, pole_value, NO, 0.0, impress, bias);
+
+		Vector norm = make_vector( 24.0 * (yW - yE), 24.0 * (yS - yN), 2.0);
+		
+		norm = unit_vector(&norm);
+		
+		GLfloat shade = powf( norm.z, 3.2);
 		
 		OOColor* color = [OOColor planetTextureColor:q:impress:bias :seaColor :paleSeaColor :landColor :paleLandColor];
 		
@@ -908,15 +906,9 @@ void fillSquareImageWithPlanetTex(unsigned char * imageBuffer, int width, int np
 		float green = [color greenComponent];
 		float blue = [color blueComponent];
 		
-//		if (diff_q < 0.000)	// going downhill, so cast a shadow...
-//		{
-//			float fraction = 1.0 - (diff_q / -0.04);
-//			if (fraction < 0.0)	fraction = 0.0;
-//			if (fraction > 1.0)	fraction = 1.0;
-//			red *= fraction;
-//			green *= fraction;
-//			blue *= fraction;
-//		}
+		red *= shade;
+		green *= shade;
+		blue *= shade;
 		
 		if (nplanes == 1)
 			imageBuffer[ y * width + x ] = 255 * q;
