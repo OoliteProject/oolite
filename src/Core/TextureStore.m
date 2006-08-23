@@ -540,7 +540,7 @@ GLuint	max_texture_dimension = 512;	// conservative start
 
 	// Free up the texture image data from video memory. I assume this is a reasonable thing
 	// to do for any platform, but just in case... stick it in a WIN32 only condition.
-	NSArray *keys = [textureDictionary allKeys];
+	NSArray *keys = [textureUniversalDictionary allKeys];
 	for (i = 0; i < [keys count]; i++)
 	{
 		GLuint texName = (GLuint)[(NSNumber *)[[textureUniversalDictionary objectForKey:[keys objectAtIndex:i]] objectForKey:@"texName"] intValue];
