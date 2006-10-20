@@ -445,7 +445,7 @@ Your fair use and other rights are in no way affected by the above.
 	if (universe)
 	{
 		NSLog(@"WIN32: clearing texture store cache");
-		[[universe textureStore] reloadTextures]; // clears the cached references
+		[TextureStore reloadTextures]; // clears the cached references
 		PlayerEntity *player = (PlayerEntity *)[universe entityZero];
 		if (player)
 		{
