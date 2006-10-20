@@ -311,8 +311,9 @@ void setUpSinTable()
 		isTextured = NO;
 	}
 	isShadered = NO;
+#ifndef NO_SHADERS
 	shader_program = nil;
-	//
+#endif
     if (!planet)
     {
     	NSLog(@"ERROR Planetentity initAsAtmosphereForPlanet:NULL");
@@ -558,6 +559,8 @@ void setUpSinTable()
 		textureName = [TextureStore getPlanetTextureNameFor: planetinfo intoData: &textureData];
 		isTextured = (textureName != 0);
 		isShadered = NO;
+#ifndef NO_SHADERS
+
 		if (uni)
 		{
 			NSDictionary* shader_info = [[uni descriptions] objectForKey:@"planet-surface-shader"];
@@ -570,11 +573,14 @@ void setUpSinTable()
 				NSLog(@"TESTING: planet-surface-shader: %d normalMapTextureName: %d", (int)shader_program, (int)normalMapTextureName);
 			}
 		}
+#endif
 	}
 	else
 	{
 		isShadered = NO;
+#ifndef NO_SHADERS
 		shader_program = nil;
+#endif
 	}
 
 //	NSLog(@"DEBUG testing [PlanetEntity initialiseBaseVertexArray]");
@@ -1453,9 +1459,10 @@ void setUpSinTable()
 				{
 					glDisableClientState(GL_INDEX_ARRAY);
 					glDisableClientState(GL_EDGE_FLAG_ARRAY);
-					//
+
 					if (isShadered)
 					{
+#ifndef NO_SHADERS
 						GLint locator;
 						glUseProgramObjectARB( shader_program);	// shader ON!
 						glEnableClientState(GL_COLOR_ARRAY);
@@ -1483,7 +1490,7 @@ void setUpSinTable()
 							NSLog(@"GLSL ERROR couldn't find location of tex0 in shader_program %d", shader_program);
 						else
 							glUniform1iARB( locator, 0);	// associate texture unit number i with texture 0
-												
+#endif
 					}
 					else
 					{
@@ -1514,6 +1521,7 @@ void setUpSinTable()
 					//
 					if (isShadered)
 					{
+#ifndef NO_SHADERS
 						glColor4fv(mat1);
 						glMaterialfv(GL_FRONT, GL_AMBIENT_AND_DIFFUSE, mat1);
 						glColorMaterial(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE);
@@ -1523,6 +1531,7 @@ void setUpSinTable()
 						//
 						glDisable(GL_COLOR_MATERIAL);
 						glUseProgramObjectARB( nil);	// shader OFF
+#endif
 					}
 					else
 					{

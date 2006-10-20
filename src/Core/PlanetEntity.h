@@ -85,7 +85,11 @@ typedef struct
 		unsigned char*	textureData;
 
 		BOOL			isShadered;
+
+#ifndef NO_SHADERS
 		GLhandleARB		shader_program;
+#endif
+
 		GLuint			normalMapTextureName;
 		unsigned char*	normalMapTextureData;
 		

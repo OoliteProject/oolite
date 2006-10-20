@@ -380,6 +380,7 @@ GLuint	max_texture_dimension = 512;	// conservative start
 	return size;
 }
 
+#ifndef NO_SHADERS
 //+ (GLuint) shaderProgramFromDictionary:(NSDictionary *) shaderDict
 + (GLhandleARB) shaderProgramFromDictionary:(NSDictionary *) shaderDict
 {
@@ -532,6 +533,7 @@ GLuint	max_texture_dimension = 512;	// conservative start
 		
 	return shader_program;
 }
+#endif
 
 + (void) reloadTextures
 {

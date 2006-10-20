@@ -3272,10 +3272,17 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	return viewpoint;
 }
 
+#ifndef NO_SHADERS
 BOOL shaders_supported = YES;
 BOOL testForShaderSupport = YES;
+#else
+BOOL shaders_supported = NO;
+BOOL testForShaderSupport = NO;
+#endif
+
 void testForShaders()
 {
+#ifndef NO_SHADERS
 	testForShaderSupport = NO;
 	NSString* version_info = [NSString stringWithCString: (const char *)glGetString(GL_VERSION)];
 	NSScanner* vscan = [NSScanner scannerWithString:version_info];
@@ -3350,7 +3357,7 @@ void testForShaders()
 		NSLog(@"INFORMATION: shaders require the GL_ARB_vertex_shader OpenGL extension, which is not present.");
 		return;
 	}
-
+#endif
 }
 
 - (void) initialiseTextures
@@ -3359,9 +3366,9 @@ void testForShaders()
 	
 	if (testForShaderSupport)
 		testForShaders();
-
 	if ([shipinfoDictionary objectForKey:@"shaders"] && shaders_supported)
 	{
+#ifndef NO_SHADERS
 		// initialise textures in shaders
 		
 		if (!shader_info)
@@ -3399,6 +3406,7 @@ void testForShaders()
 		}
 		
 		NSLog(@"TESTING: shader_info = %@", shader_info);
+#endif
 	}
 	else
 	{
@@ -3489,6 +3497,7 @@ void testForShaders()
 							for (ti = 1; ti <= n_textures; ti++)
 							{
 								NSString* textureKey = [TextureStore getNameOfTextureWithGLuint: texture_name[ti]];
+#ifndef NO_SHADERS
 								if ((shader_info) && [shader_info objectForKey: textureKey])
 								{
 									NSDictionary* shader = (NSDictionary*)[shader_info objectForKey:textureKey];
@@ -3536,16 +3545,19 @@ void testForShaders()
 									//
 								}
 								else
+#endif
 									glBindTexture(GL_TEXTURE_2D, texture_name[ti]);
+
 								glDrawArrays( GL_TRIANGLES, triangle_range[ti].location, triangle_range[ti].length);
-								
+
+#ifndef NO_SHADERS
 								// switch off shader
 								if ((shader_info) && [shader_info objectForKey: textureKey])
 								{
 									glUseProgramObjectARB(0);
 									glActiveTextureARB( GL_TEXTURE0_ARB);
 								}
-
+#endif
 							}
 						}
 						else

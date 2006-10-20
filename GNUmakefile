@@ -7,9 +7,9 @@ GNUSTEP_INSTALLATION_DIR = $(GNUSTEP_USER_ROOT)
 ifeq ($(GNUSTEP_HOST_OS),mingw32)
 	ADDITIONAL_INCLUDE_DIRS =
 	ADDITIONAL_OBJC_LIBS = -lglu32 -lopengl32 -lmingw32 -lSDLmain -lSDL -lSDL_mixer -lSDL_image -lgnustep-base
-	ADDITIONAL_CFLAGS = -DLINUX -DWIN32 -DNEED_STRLCPY `sdl-config --cflags`
+	ADDITIONAL_CFLAGS = -DNO_SHADERS -DLINUX -DWIN32 -DNEED_STRLCPY `sdl-config --cflags`
 # note the vpath stuff above isn't working for me, so adding src/SDL and src/Core explicitly
-	ADDITIONAL_OBJCFLAGS = -DLOADSAVEGUI -DLINUX -DWIN32 -DHAVE_SOUND -Isrc/SDL -Isrc/Core -Wno-import `sdl-config --cflags`
+	ADDITIONAL_OBJCFLAGS = -DNO_SHADERS -DLOADSAVEGUI -DLINUX -DWIN32 -DHAVE_SOUND -Isrc/SDL -Isrc/Core -Wno-import `sdl-config --cflags`
 	oolite_LIB_DIRS += -L$(GNUSTEP_LOCAL_ROOT)/lib
 else
 	ADDITIONAL_INCLUDE_DIRS = -Isrc/SDL -Isrc/Core -Isrc/BSDCompat
