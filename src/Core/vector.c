@@ -190,6 +190,16 @@ Vector normal_to_surface (Vector v1, Vector v2, Vector v3)
 }
 
 
+float FastInvSqrt(float x)
+{
+	float xhalf = 0.5f * x;
+	int i = *(int*)&x;
+	i = 0x5f3759df - (i>>1);
+	x = *(float*)&i;
+	x = x * (1.5f - xhalf * x * x);
+	return x;
+}
+
 // Convert a vector into a vector of unit (1) length.
 //
 Vector unit_vector (struct vector *vec)
@@ -203,7 +213,7 @@ Vector unit_vector (struct vector *vec)
 	lz = vec->z;
 
 	if (lx || ly || lz)
-		det = 1.0 / sqrt (lx * lx + ly * ly + lz * lz);
+		det = FastInvSqrt(lx * lx + ly * ly + lz * lz);
 	else
 	{
 		det = 1.0;
