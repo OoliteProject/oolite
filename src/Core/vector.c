@@ -169,7 +169,7 @@ Vector cross_product (Vector first, Vector second)
 	mag2 = result.x * result.x + result.y * result.y + result.z * result.z;
 	if (mag2 > 0.0)
 	{
-		det = 1.0 / sqrt(mag2);
+		det = FastInvSqrt(mag2);
 		result.x *= det;	result.y *= det;	result.z *= det;
 		return result;
 	}
@@ -631,7 +631,7 @@ void	quaternion_normalise(struct quaternion *quat)
     GLfloat	x = quat->x;
     GLfloat	y = quat->y;
     GLfloat	z = quat->z;
-    GLfloat	lv = 1.0 / sqrt(w*w + x*x + y*y + z*z);
+    GLfloat	lv = FastInvSqrt(w*w + x*x + y*y + z*z);
     
     quat->w = lv * w;
     quat->x = lv * x;
