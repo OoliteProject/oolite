@@ -96,4 +96,6 @@ Your fair use and other rights are in no way affected by the above.
 */
 - (float)alphaComponent;
 
+- (GLfloat *) RGBA;
+
 @end

@@ -5348,6 +5348,22 @@ static int last_outfitting_index;
 		if ([eq_extra_info_dict objectForKey:@"requires_not_clean"])
 			option_okay[i] &= ([self legal_status] != 0);
 
+		if ([eq_extra_info_dict objectForKey:@"conditions"])
+		{
+			[self scriptAction:@"debugOn" onEntity:self];
+			id conds = [eq_extra_info_dict objectForKey:@"conditions"];
+			if ([conds isKindOfClass:[NSString class]])
+				option_okay[i] &= [self scriptTestCondition:(NSString *) conds];
+			else if ([conds isKindOfClass:[NSArray class]])
+			{
+				NSArray* conditions = (NSArray*)conds;
+				int i;
+				for (i = 0; i < [conditions count]; i++)
+					option_okay[i] &= [self scriptTestCondition:(NSString *)[conditions objectAtIndex:i]];
+			}
+			[self scriptAction:@"debugOff" onEntity:self];
+		}
+
 		if ([eq_key isEqual:@"EQ_RENOVATION"])
 		{
 //			NSLog(@"DEBUG : ship trade in factor is %d%", ship_trade_in_factor);

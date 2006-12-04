@@ -353,6 +353,11 @@ Your fair use and other rights are in no way affected by the above.
 	return rgba[3];
 }
 
+- (GLfloat *) RGBA;
+{
+	return rgba;
+}
+
 
 #ifndef GNUSTEP
 
