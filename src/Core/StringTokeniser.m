@@ -6,14 +6,12 @@
 - (id)initWithString:(NSString*)string {
 	const char* strPtr;
 	self = [super init];
-
 	stringToParse = [NSString stringWithString:string];
 	strPtr = [stringToParse cString];
-	cString = (char*)calloc(strlen(strPtr + 1), sizeof(char));
+	cString = (char*)calloc(strlen(strPtr)+1, sizeof(char));
 	strcpy(cString, strPtr);
 	nextCharIdx = 0;
 	lineNo = 1;
-
 	return self;
 }
 
