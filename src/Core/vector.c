@@ -169,7 +169,11 @@ Vector cross_product (Vector first, Vector second)
 	mag2 = result.x * result.x + result.y * result.y + result.z * result.z;
 	if (mag2 > 0.0)
 	{
+#ifndef WIN32
 		det = FastInvSqrt(mag2);
+#else
+		det = 1.0 / sqrt (mag2);
+#endif
 		result.x *= det;	result.y *= det;	result.z *= det;
 		return result;
 	}
@@ -213,7 +217,11 @@ Vector unit_vector (struct vector *vec)
 	lz = vec->z;
 
 	if (lx || ly || lz)
+#ifndef WIN32
 		det = FastInvSqrt(lx * lx + ly * ly + lz * lz);
+#else
+		det = 1.0 / sqrt (lx * lx + ly * ly + lz * lz);
+#endif
 	else
 	{
 		det = 1.0;
@@ -631,8 +639,11 @@ void	quaternion_normalise(struct quaternion *quat)
     GLfloat	x = quat->x;
     GLfloat	y = quat->y;
     GLfloat	z = quat->z;
+#ifndef WIN32
     GLfloat	lv = FastInvSqrt(w*w + x*x + y*y + z*z);
-    
+#else
+    GLfloat	lv = 1.0 / sqrt(w*w + x*x + y*y + z*z);
+#endif
     quat->w = lv * w;
     quat->x = lv * x;
     quat->y = lv * y;
