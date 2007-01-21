@@ -295,7 +295,7 @@ enum
 	
 	BOOL					showDemoShips;
 	
-	BOOL					rolling, pitching;
+	BOOL					rolling, pitching, yawing;
 	BOOL					using_mining_laser;
 	
 	BOOL					mouse_control_on;
@@ -305,7 +305,7 @@ enum
 	
 	BOOL					docking_music_on;
 	
-	GLfloat					roll_delta, pitch_delta;
+	GLfloat					roll_delta, pitch_delta, yaw_delta;
 	
 	GLfloat					forward_shield, aft_shield;
 	GLfloat					weapon_temp;
@@ -408,6 +408,8 @@ enum
 	// keys!
 	int						key_roll_left;
 	int						key_roll_right;
+	int						key_yaw_left;
+	int						key_yaw_right;
 	int						key_pitch_forward;
 	int						key_pitch_back;
 	int						key_increase_speed;
@@ -696,6 +698,8 @@ enum
 - (void) clearTargetMemory;
 - (BOOL) selectNextTargetFromMemory;
 - (BOOL) selectPreviousTargetFromMemory;
+
+- (void) applyYaw:(GLfloat) yaw;
 
 /* GILES custom viewpoints */
 

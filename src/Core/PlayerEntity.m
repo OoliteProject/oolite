@@ -104,6 +104,8 @@ static Quaternion quaternion_identity = { (GLfloat)1.0, (GLfloat)0.0, (GLfloat)0
 	//
 	key_roll_left = gvArrowKeyLeft;
 	key_roll_right = gvArrowKeyRight;
+	key_yaw_left = 310; // keypad 1
+	key_yaw_right = 311; // keypad 3
 	key_pitch_forward = gvArrowKeyUp;
 	key_pitch_back = gvArrowKeyDown;
 	key_increase_speed = 119;		// 'w'
@@ -160,6 +162,8 @@ static Quaternion quaternion_identity = { (GLfloat)1.0, (GLfloat)0.0, (GLfloat)0
 	// now check the keyconfig dictionary...
 	if ([kdic objectForKey:@"key_roll_left"])		key_roll_left = [(NSNumber *)[kdic objectForKey:@"key_roll_left"] intValue];
 	if ([kdic objectForKey:@"key_roll_right"])		key_roll_right = [(NSNumber *)[kdic objectForKey:@"key_roll_right"] intValue];
+	if ([kdic objectForKey:@"key_yaw_left"])		key_yaw_left = [(NSNumber *)[kdic objectForKey:@"key_yaw_left"] intValue];
+	if ([kdic objectForKey:@"key_yaw_right"])		key_yaw_right = [(NSNumber *)[kdic objectForKey:@"key_yaw_right"] intValue];
 	if ([kdic objectForKey:@"key_pitch_forward"])   key_pitch_forward = [(NSNumber *)[kdic objectForKey:@"key_pitch_forward"] intValue];
 	if ([kdic objectForKey:@"key_pitch_back"])		key_pitch_back = [(NSNumber *)[kdic objectForKey:@"key_pitch_back"] intValue];
 	if ([kdic objectForKey:@"key_increase_speed"])  key_increase_speed = [(NSNumber *)[kdic objectForKey:@"key_increase_speed"] intValue];
@@ -1056,12 +1060,14 @@ static Quaternion quaternion_identity = { (GLfloat)1.0, (GLfloat)0.0, (GLfloat)0
 	max_flight_speed =  160.0;
 	max_flight_roll =   2.0;
 	max_flight_pitch =  1.0;
+	max_flight_yaw =  1.0;
 	//
 	// control factors
 	//
 	thrust =			32.0;
 	roll_delta =		2.0 * max_flight_roll;
 	pitch_delta =		2.0 * max_flight_pitch;
+	yaw_delta =			2.0 * max_flight_yaw;
     //
     displayListName =   0;
     //
@@ -1220,11 +1226,14 @@ static Quaternion quaternion_identity = { (GLfloat)1.0, (GLfloat)0.0, (GLfloat)0
 		max_flight_roll = [(NSNumber *)[dict objectForKey:@"max_flight_roll"] doubleValue];
 	if ([dict objectForKey:@"max_flight_pitch"])
 		max_flight_pitch = [(NSNumber *)[dict objectForKey:@"max_flight_pitch"] doubleValue];
+	if ([dict objectForKey:@"max_flight_yaw"])
+		max_flight_yaw = [(NSNumber *)[dict objectForKey:@"max_flight_yaw"] doubleValue];
 	//
 	// set control factors..
 	//
 	roll_delta =		2.0 * max_flight_roll;
 	pitch_delta =		2.0 * max_flight_pitch;
+	yaw_delta =			2.0 * max_flight_yaw;
     //
 
 	//
@@ -1740,10 +1749,10 @@ double scoopSoundPlayTime = 0.0;
 				}
 			}
 		}
-		//
-		////
 
 		[self applyRoll:delta_t*flight_roll andClimb:delta_t*flight_pitch];
+		if (flight_yaw != 0.0)
+			[self applyYaw:delta_t*flight_yaw];
 		[self moveForward:delta_t*flight_speed];
 	}
 
@@ -2257,13 +2266,42 @@ double scoopSoundPlayTime = 0.0;
 
 - (void) applyRoll:(GLfloat) roll1 andClimb:(GLfloat) climb1
 {
-	if ((roll1 == 0.0)&&(climb1 == 0.0)&&(!has_rotated))
+	if (roll1 == 0.0 && climb1 == 0.0 && has_rotated == NO)
 		return;
 
 	if (roll1)
 		quaternion_rotate_about_z( &q_rotation, -roll1);
 	if (climb1)
 		quaternion_rotate_about_x( &q_rotation, -climb1);
+
+    quaternion_normalise(&q_rotation);	// probably not strictly necessary but good to do to keep q_rotation sane
+    quaternion_into_gl_matrix(q_rotation, rotMatrix);
+
+	v_right.x = rotMatrix[0];
+	v_right.y = rotMatrix[4];
+	v_right.z = rotMatrix[8];
+
+	v_up.x = rotMatrix[1];
+	v_up.y = rotMatrix[5];
+	v_up.z = rotMatrix[9];
+
+	v_forward.x = rotMatrix[2];
+	v_forward.y = rotMatrix[6];
+	v_forward.z = rotMatrix[10];
+
+	q_rotation.w = -q_rotation.w;
+	quaternion_into_gl_matrix(q_rotation, playerRotMatrix);	// this is the rotation similar to ordinary ships
+	q_rotation.w = -q_rotation.w;
+}
+
+/*
+ * This method should not be necessary, but when I replaced the above with applyRoll:andClimb:andYaw, the
+ * ship went crazy. Perhaps applyRoll:andClimb is called from one of the subclasses and that was messing
+ * things up.
+ */
+- (void) applyYaw:(GLfloat) yaw
+{
+	quaternion_rotate_about_y( &q_rotation, -yaw);
 
     quaternion_normalise(&q_rotation);	// probably not strictly necessary but good to do to keep q_rotation sane
     quaternion_into_gl_matrix(q_rotation, rotMatrix);
@@ -4149,6 +4187,7 @@ double scoopSoundPlayTime = 0.0;
 	q_rotation = q_rtn;
 	flight_roll = 0.0;
 	flight_pitch = 0.0;
+	flight_yaw = 0.0;
 	flight_speed = max_flight_speed * 0.25;
 	status = STATUS_EXITING_WITCHSPACE;
 	gui_screen = GUI_SCREEN_MAIN;
@@ -4370,6 +4409,7 @@ double scoopSoundPlayTime = 0.0;
 
 	flight_roll = 0.0;
 	flight_pitch = 0.0;
+	flight_yaw = 0.0;
 	flight_speed = 0.0;
 
 	if (![docked_station localMarket])

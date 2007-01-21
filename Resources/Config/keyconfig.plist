@@ -6,6 +6,10 @@
 	<integer>253</integer>
 	<key>key_roll_right</key>
 	<integer>252</integer>
+	<key>key_yaw_left</key>
+	<integer>310</integer>
+	<key>key_yaw_right</key>
+	<integer>311</integer>
 	<key>key_pitch_forward</key>
 	<integer>255</integer>
 	<key>key_pitch_back</key>
@@ -71,6 +75,6 @@
 	<key>key_previous_target</key>
 	<integer>43</integer>
 	<key>key_custom_view</key>
-	<string>v</string>
+	<string>118</string>
 </dict>
 </plist>

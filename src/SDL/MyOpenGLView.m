@@ -838,6 +838,9 @@ Your fair use and other rights are in no way affected by the above.
                case SDLK_KP_MINUS: keys[43] = YES; break; // numeric keypad - key
                case SDLK_KP_PLUS: keys[45] = YES; break; // numeric keypad + key
 
+               case SDLK_KP1: keys[310] = YES; break;
+               case SDLK_KP3: keys[311] = YES; break;
+
                case SDLK_F1: keys[gvFunctionKey1] = YES; break;
                case SDLK_F2: keys[gvFunctionKey2] = YES; break;
                case SDLK_F3: keys[gvFunctionKey3] = YES; break;
@@ -965,6 +968,9 @@ Your fair use and other rights are in no way affected by the above.
 
                case SDLK_KP_MINUS: keys[43] = NO; break; // numeric keypad - key
                case SDLK_KP_PLUS: keys[45] = NO; break; // numeric keypad + key
+
+               case SDLK_KP1: keys[310] = NO; break;
+               case SDLK_KP3: keys[311] = NO; break;
 
                case SDLK_F1: keys[gvFunctionKey1] = NO; break;
                case SDLK_F2: keys[gvFunctionKey2] = NO; break;

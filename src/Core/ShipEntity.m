@@ -93,10 +93,12 @@ Your fair use and other rights are in no way affected by the above.
 	max_flight_speed = 200.0;
 	max_flight_roll = 3.0;
 	max_flight_pitch = 1.5;
+	max_flight_yaw = 1.0;
 	//
 	flight_speed = 0.0;
 	flight_roll = 0.0;
 	flight_pitch = 0.0;
+	flight_yaw = 0.0;
 	//
 	thrust = 0.0;
 	//
@@ -719,10 +721,12 @@ static NSMutableDictionary* smallOctreeDict = nil;
 	max_flight_speed = 0.0;
 	max_flight_roll = 0.0;
 	max_flight_pitch = 0.0;
+	max_flight_yaw = 0.0;
 	//
 	flight_speed = 0.0;
 	flight_roll = 0.0;
 	flight_pitch = 0.0;
+	flight_yaw = 0.0;
 	//
 	thrust = 0.0;
 	//
@@ -1031,6 +1035,8 @@ static NSMutableDictionary* smallOctreeDict = nil;
 		max_flight_roll = [(NSNumber *)[shipdict objectForKey:@"max_flight_roll"] doubleValue];
 	if ([shipdict objectForKey:@"max_flight_pitch"])
 		max_flight_pitch = [(NSNumber *)[shipdict objectForKey:@"max_flight_pitch"] doubleValue];
+	if ([shipdict objectForKey:@"max_flight_yaw"])
+		max_flight_yaw = [(NSNumber *)[shipdict objectForKey:@"max_flight_yaw"] doubleValue];
 	//
 	if ([shipdict objectForKey:@"thrust"])
 		thrust = [(NSNumber *)[shipdict objectForKey:@"thrust"] doubleValue];
@@ -4430,6 +4436,22 @@ static GLfloat mascem_color2[4] =	{ 0.4, 0.1, 0.4, 1.0};	// purple
 		flight_pitch = -max_flight_pitch;
 }
 
+- (void) increase_flight_yaw:(double) delta
+{
+	if (flight_yaw < max_flight_yaw)
+		flight_yaw += delta;
+	if (flight_yaw > max_flight_yaw)
+		flight_yaw = max_flight_yaw;
+}
+
+- (void) decrease_flight_yaw:(double) delta
+{
+	if (flight_yaw > -max_flight_yaw)
+		flight_yaw -= delta;
+	if (flight_yaw < -max_flight_yaw)
+		flight_yaw = -max_flight_yaw;
+}
+
 - (GLfloat) flight_roll
 {
 	return flight_roll;
@@ -4438,6 +4460,11 @@ static GLfloat mascem_color2[4] =	{ 0.4, 0.1, 0.4, 1.0};	// purple
 - (GLfloat) flight_pitch
 {
 	return flight_pitch;
+}
+
+- (GLfloat) flight_yaw
+{
+	return flight_yaw;
 }
 
 - (GLfloat) flight_speed

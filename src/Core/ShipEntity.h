@@ -168,21 +168,21 @@ Your fair use and other rights are in no way affected by the above.
 @class OOBrain, OOColor, StationEntity, ParticleEntity, PlanetEntity, WormholeEntity, AI, Octree;
 
 @interface ShipEntity : Entity {
-	
+
 	@public
 		//
 		NSArray*	sub_entities;
 		ShipEntity*	subentity_taking_damage;	//	frangible => subentities can be damaged individually
 		BOOL		isFrangible;				//	frangible => subentities can be damaged individually
-		
+
 		// derived variables
 		//
 		double  shot_time;			// time elapsed since last shot was fired
-		
+
 		// navigation
 		//
 		Vector v_forward, v_up, v_right;	// unit vectors derived from the direction faced
-		
+
 		// collision management
 		//
 		Octree*	octree;	// this is not retained by the ShipEntity but kept in a global dict.
@@ -190,7 +190,7 @@ Your fair use and other rights are in no way affected by the above.
 		// expose cloaking device status
 		//
 		BOOL	cloaking_device_active;	// cloaking_device
-		
+
 		//	variables which are controlled by instincts/AI
 		//
 		Vector		destination;		// for flying to/from a set point
@@ -198,43 +198,44 @@ Your fair use and other rights are in no way affected by the above.
 		GLfloat		desired_range;		// range to which to journey/scan
 		GLfloat		desired_speed;		// speed at which to travel
 		int			behaviour;			// ship's behavioural state
-		
+
 		BoundingBox				totalBoundingBox;	// records ship configuration
 
 	@protected
 
 		// per collision directions
 		NSMutableDictionary* collisionInfoForEntity;
-		
+
 		//set-up
 		NSDictionary*	shipinfoDictionary;
-		
+
 		//scripting
 		NSMutableArray *launch_actions;
 		NSMutableArray *script_actions;
 		NSMutableArray *death_actions;
-		
+
 		//docking instructions
 		NSDictionary* dockingInstructions;
 		BOOL docking_match_rotation;
-		
+
 		int escort_ids[MAX_ESCORTS];	// replaces the mutable array
 		int n_escorts;					// initially, number of escorts to set up, later number of escorts available
 		int group_id;					// id of group leader
 		int last_escort_target;			// last target an escort was deployed after
 		int found_hostiles;				// number of hostiles found
 		BOOL escortsAreSetUp;			// set to YES once escorts are initialised (a bit of a hack)
-		
+
 		OOColor *laser_color;
-		
+
 		// per ship-type variables
 		//
 		GLfloat  max_flight_speed;		// top speed			(160.0 for player)  (200.0 for fast raider)
-		GLfloat  max_flight_roll;		// maximum roll rate	(2.0 for player)	(3.0 for fast raider)	
+		GLfloat  max_flight_roll;		// maximum roll rate	(2.0 for player)	(3.0 for fast raider)
 		GLfloat  max_flight_pitch;		// maximum pitch rate   (1.0 for player)	(1.5 for fast raider) also radians/sec for (* turrets *)
-		
+		GLfloat  max_flight_yaw;
+
 		GLfloat  thrust;					// acceleration
-		
+
 		BOOL	has_ecm;				// anti-missile system
 		BOOL	has_scoop;				// fuel/cargo scoops
 		BOOL	has_escape_pod;			// escape pod
@@ -249,31 +250,31 @@ Your fair use and other rights are in no way affected by the above.
 		BOOL	has_fuel_injection;		// afterburners
 		int     fuel;					// witch-space fuel
 		GLfloat	fuel_accumulator;
-		
+
 		int		likely_cargo;			// likely amount of cargo (for merchantmen, this is what is spilled as loot)
 		int		max_cargo;				// capacity of cargo hold
 		int		extra_cargo;			// capacity of cargo hold extension (if any)
 		int		bounty;					// bounty (if any)
 		int		cargo_type;				// if this is scooped, this is indicates contents
 		int		cargo_flag;				// indicates contents for merchantmen
-		
+
 		GLfloat  energy_recharge_rate;   // recharge rate for energy banks
-		
+
 		int		forward_weapon_type;	// type of forward weapon (allows lasers, plasma cannon, others)
 		int		aft_weapon_type;		// type of aft weapon (allows lasers, plasma cannon, others)
 		GLfloat  weapon_energy;			// energy used/delivered by weapon
 		GLfloat  weapon_range;			// range of the weapon (in meters)
-		
+
 		GLfloat	scanner_range;			// typically 25600
-		
+
 		int		missiles;				// number of on-board missiles
-		
+
 		OOBrain*	brain;				// brain controlling ship, could be a character brain or the autopilot
 		AI*			shipAI;				// ship's AI system
-		
+
 		NSString*   name;				// descriptive name
 		NSString*   roles;				// names fo roles a ship can take, eg. trader, hunter, police, pirate, scavenger &c.
-		
+
 		// AI stuff
 		//
 		Vector		jink;				// x and y set factors for offsetting a pursuing ship's position
@@ -285,85 +286,86 @@ Your fair use and other rights are in no way affected by the above.
 		int			target_laser_hit;   // u-id for the entity hit by the last laser shot
 		int			owner_id;			// u-id for the controlling owner of this entity (* turrets *)
 		double		launch_time;		// time at which launched
-		
-		
+
+
 		GLfloat	frustration, success_factor;	// degree of dissatisfaction with the current behavioural state, factor used to test this
-		
+
 		int		patrol_counter;				// keeps track of where the ship is along a patrol route
-		
+
 		int		proximity_alert;			// id of a ShipEntity within 2x collision_radius
 		NSMutableDictionary*	previousCondition;	// restored after collision avoidance
-		
+
 		// derived variables
 		//
 		double  weapon_recharge_rate;		// time between shots
 		int		shot_counter;				// number of shots fired
 		double  cargo_dump_time;			// time cargo was last dumped
-		
+
 		NSMutableArray* cargo;				// cargo containers go in here
-		
+
 		int commodity_type;					// type of commodity in a container
 		int commodity_amount;				// 1 if unit is TONNES (0), possibly more if precious metals KILOGRAMS (1)
-											// or gem stones GRAMS (2) 
-		
+											// or gem stones GRAMS (2)
+
 		// navigation
-		//		
+		//
 		GLfloat flight_speed;				// current speed
 		GLfloat flight_roll;					// current roll rate
 		GLfloat flight_pitch;				// current pitch rate
-		
+		GLfloat flight_yaw;					// current yaw rate
+
 		GLfloat pitch_tolerance;
-		
+
 		BOOL	pitching_over;				// set to YES if executing a sharp loop
 
 		BOOL	within_station_aegis;		// set to YES when within the station's protective zone
 		int		aegis_status;				// set to YES when within the station's protective zone
-		
+
 		BOOL	reportAImessages;			// normally NO, suppressing AI message reporting
-		
+
 		BOOL	being_mined;				// normally NO, set to Yes when fired on by mining laser
-		
+
 		BOOL	being_fined;
-		
+
 		double	message_time;				// counts down the seconds a radio message is active for
-		
+
 		double	next_spark_time;			// time of next spark when throwing sparks
-		
+
 		int		thanked_ship_id;			// last ship thanked
-		
+
 		Vector	collision_vector;			// direction of colliding thing.
-		
+
 		// beacons
 		char	beaconChar;					// character displayed for this beacon
 		int		nextBeaconID;				// next beacon in sequence
-		
+
 		//position of gun ports
 		Vector forwardWeaponOffset, aftWeaponOffset, portWeaponOffset, starboardWeaponOffset;
-		
+
 		// crew (typically one OOCharacter - the pilot)
 		NSArray*	crew;
-		
+
 		// close contact / collision tracking
 		BOOL					trackCloseContacts;
 		NSMutableDictionary*	closeContactsInfo;
-		
+
 		// check for landing on planet
 		BOOL					isNearPlanetSurface;
-		
+
 		NSString*				lastRadioMessage;
-		
+
 		// scooping...
 		Vector	tractor_position;
 
 		// from player entity moved here now we're doing more complex heat stuff
 		GLfloat					ship_temperature;
 		GLfloat					heat_insulation;
-		
+
 		// for advanced scanning etc.
 		ShipEntity*				scanned_ships[MAX_SCAN_NUMBER + 1];
 		GLfloat					distance2_scanned_ships[MAX_SCAN_NUMBER + 1];
 		int						n_scanned_ships;
-		
+
 		// advanced navigation
 		Vector					navpoints[32];
 		int						next_navpoint_index;
@@ -372,7 +374,7 @@ Your fair use and other rights are in no way affected by the above.
 		// DEBUGGING
 		int debug_flag;
 		int debug_condition;
-		
+
 		// shaders
 		NSMutableDictionary* shader_info;
 }
@@ -554,9 +556,12 @@ Your fair use and other rights are in no way affected by the above.
 - (void) decrease_flight_roll:(double) delta;
 - (void) increase_flight_pitch:(double) delta;
 - (void) decrease_flight_pitch:(double) delta;
+- (void) increase_flight_yaw:(double) delta;
+- (void) decrease_flight_yaw:(double) delta;
 
 - (GLfloat) flight_roll;
 - (GLfloat) flight_pitch;
+- (GLfloat) flight_yaw;
 - (GLfloat) flight_speed;
 - (GLfloat) max_flight_speed;
 - (GLfloat) speed_factor;
