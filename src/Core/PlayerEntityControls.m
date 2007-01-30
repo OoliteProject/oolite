@@ -38,9 +38,9 @@ Your fair use and other rights are in no way affected by the above.
 */
 
 #import "PlayerEntity.h"
-#import "PlayerEntity (Controls).h"
-#import "PlayerEntity (Sound).h"
-#import "ShipEntity (AI).h"
+#import "PlayerEntityControls.h"
+#import "PlayerEntitySound.h"
+#import "ShipEntityAI.h"
 
 #import "Universe.h"
 #import "GameController.h"

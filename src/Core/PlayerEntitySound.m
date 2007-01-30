@@ -6,7 +6,7 @@
 //  Copyright 2005 __MyCompanyName__. All rights reserved.
 //
 
-#import "PlayerEntity (Sound).h"
+#import "PlayerEntitySound.h"
 #import "OOSound.h"
 #import "OOSoundSource.h"
 #import "ResourceManager.h"

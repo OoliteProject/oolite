@@ -18,7 +18,7 @@
 #import "LoadSave.h"
 #import "OOFileManager.h"
 #import "GameController.h"
-#import "PlayerEntity (Controls).h"
+#import "PlayerEntityControls.h"
 #import "OOXMLExtensions.h"
 #import "OOSound.h"
 #import "OOColor.h"

@@ -45,7 +45,7 @@ Your fair use and other rights are in no way affected by the above.
 #import "Universe.h"
 #import "TextureStore.h"
 #import "MyOpenGLView.h"
-#import "ShipEntity (AI).h"
+#import "ShipEntityAI.h"
 #import "OOColor.h"
 #import "OOCharacter.h"
 

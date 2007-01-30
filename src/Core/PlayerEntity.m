@@ -38,10 +38,10 @@ Your fair use and other rights are in no way affected by the above.
 */
 
 #import "PlayerEntity.h"
-#import "PlayerEntity Additions.h"
-#import "PlayerEntity (contracts).h"
-#import "PlayerEntity (Controls).h"
-#import "PlayerEntity (Sound).h"
+#import "PlayerEntityAdditions.h"
+#import "PlayerEntityContracts.h"
+#import "PlayerEntityControls.h"
+#import "PlayerEntitySound.h"
 #import "entities.h"
 
 #import "OOXMLExtensions.h"
@@ -3062,7 +3062,7 @@ double scoopSoundPlayTime = 0.0;
 	[missile setOwner:self];
 	[missile setDistanceTravelled:0.0];
 	//debug
-	//[missile setReportAImessages:YES];
+	[missile setReportAImessages:YES];
 	//
 	[universe addEntity:missile];
 	//NSLog(@"Missile collision radius is %.1f",missile->collision_radius);
@@ -5306,6 +5306,7 @@ static int last_outfitting_index;
 		NSString*	eq_key = (NSString*)[(NSArray*)[equipdata objectAtIndex:i] objectAtIndex:EQUIPMENT_KEY_INDEX];
 		NSString*	eq_key_damaged	= [NSString stringWithFormat:@"%@_DAMAGED", eq_key];
 		int			min_techlevel   = [(NSNumber *)[(NSArray *)[equipdata objectAtIndex:i] objectAtIndex:EQUIPMENT_TECH_LEVEL_INDEX] intValue];
+
 		NSMutableDictionary*	eq_extra_info_dict = [NSMutableDictionary dictionary];
 		if ([(NSArray *)[equipdata objectAtIndex:i] count] > 5)
 			[eq_extra_info_dict addEntriesFromDictionary:(NSDictionary *)[(NSArray *)[equipdata objectAtIndex:i] objectAtIndex:EQUIPMENT_EXTRA_INFO_INDEX]];
@@ -5847,8 +5848,10 @@ static int last_outfitting_index;
 		return YES;
 	}
 
-	if (([eq_key hasSuffix:@"MISSILE"]||[eq_key hasSuffix:@"MINE"])&&(missiles >= max_missiles))
+	if (([eq_key hasSuffix:@"MISSILE"]||[eq_key hasSuffix:@"MINE"])&&(missiles >= max_missiles)) {
+		NSLog(@"rejecting missile because already full");
 		return NO;
+	}
 
 	if (([eq_key isEqual:@"EQ_PASSENGER_BERTH"])&&(cargo_space < 5))
 		return NO;
@@ -5900,6 +5903,11 @@ static int last_outfitting_index;
 	if ([eq_key hasSuffix:@"MISSILE"]||[eq_key hasSuffix:@"MINE"])
 	{
 		ShipEntity* weapon = [[universe getShipWithRole:eq_key] autorelease];
+		if (weapon)
+			NSLog(@"got ship for role %@", eq_key);
+		else
+			NSLog(@"could not find ship for role %@", eq_key);
+
 		BOOL mounted_okay = [self mountMissile:weapon];
 		if (mounted_okay)
 		{

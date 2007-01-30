@@ -377,6 +377,8 @@ Your fair use and other rights are in no way affected by the above.
 
 		// shaders
 		NSMutableDictionary* shader_info;
+		
+		BOOL					is_hulk; // This is used to distinguish abandoned ships from cargo
 }
 
 // ship brains
@@ -723,6 +725,11 @@ inline BOOL pairOK(NSString* my_role, NSString* their_role);
 - (int) checkShipsInVicinityForWitchJumpExit;
 
 - (void) setTrackCloseContacts:(BOOL) value;
+
+- (BOOL) isHulk;
+- (void) claimAsSalvage;
+- (void) sendCoordinatesToPilot;
+- (void) pilotArrived;
 
 /****************************************************************
 

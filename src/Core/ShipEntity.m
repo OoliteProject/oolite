@@ -38,7 +38,7 @@ Your fair use and other rights are in no way affected by the above.
 */
 
 #import "ShipEntity.h"
-#import "ShipEntity (AI).h"
+#import "ShipEntityAI.h"
 #import "entities.h"
 
 #import "vector.h"
@@ -209,6 +209,8 @@ Your fair use and other rights are in no way affected by the above.
 	//
 	brain = nil;
 	//
+	is_hulk = NO;
+
 	return self;
 }
 
@@ -957,6 +959,8 @@ static NSMutableDictionary* smallOctreeDict = nil;
 	//
 	crew = nil;
 	//
+	is_hulk = NO;
+
 	[self setUpShipFromDictionary:dict];
 	//
 	reportAImessages = NO;
@@ -1250,6 +1254,9 @@ static NSMutableDictionary* smallOctreeDict = nil;
 			[exhaust release];
 		}
 	}
+
+	if ([shipdict objectForKey:@"is_hulk"])
+		is_hulk = [(NSString *)[shipdict objectForKey:@"is_hulk"] boolValue];
 	//
 	if ([shipdict objectForKey:@"subentities"])
 	{
@@ -4714,8 +4721,14 @@ static GLfloat mascem_color2[4] =	{ 0.4, 0.1, 0.4, 1.0};	// purple
 			thrust = thrust * 0.5;
 			desired_speed = 0.0;
 			max_flight_speed = 0.0;
+			is_hulk = YES;
 		}
 	}
+}
+
+- (BOOL) isHulk
+{
+	return is_hulk;
 }
 
 - (void) becomeExplosion
@@ -8263,6 +8276,89 @@ inline BOOL pairOK(NSString* my_role, NSString* their_role)
 			[closeContactsInfo release];
 		closeContactsInfo = nil;
 	}
+}
+
+- (void) claimAsSalvage
+{
+	// Create a bouy and beacon where the hulk is.
+	// Get the main GalCop station to launch a pilot boat to deliver a pilot to the hulk.
+	NSLog(@"claimAsSalvage called on %@ %@", [self name], [self roles]);
+/*
+	// Won't work in interstellar space because there is no GalCop station
+	if ([[self planet_number] intValue] < 0)
+	{
+		NSLog(@"claimAsSalvage failed because in intersteller space");
+		return;
+	}
+*/
+	// Not an abandoned hulk, so don't allow the salvage
+	if (is_hulk != YES)
+	{
+		NSLog(@"claimAsSalvage failed because not a hulk");
+		return;
+	}
+
+	// Set target to main station, and return now if it can't be found
+	[self setTargetToSystemStation];
+	if (primaryTarget == NO_TARGET)
+	{
+		NSLog(@"claimAsSalvage failed because did not find a station");
+		return;
+	}
+
+	// Get the station to launch a pilot boat to bring a pilot out to the hulk (use a viper for now)
+	StationEntity *station = (StationEntity *)[universe entityForUniversalID:primaryTarget];
+	NSLog(@"claimAsSalvage asking station to launch a pilot boat");
+	[station launchShipWithRole:@"pilot"];
+	[self setReportAImessages:YES];
+	NSLog(@"claimAsSalvage setting own state machine to capturedShipAI.plist");
+	[self setStateMachine:@"capturedShipAI.plist"];
+}
+
+- (void) sendCoordinatesToPilot
+{
+	Entity* scan, *pilot;
+	n_scanned_ships = 0;
+	scan = z_previous;
+	NSLog(@"searching for pilot boat");
+	while (scan &&(scan->isShip == NO))
+		scan = scan->z_previous;	// skip non-ships
+
+	pilot = nil;
+	while (scan)
+	{
+		if (scan->isShip)
+		{
+			NSString *rolesString = [scan roles];
+			NSArray *roles = [Entity scanTokensFromString:rolesString];
+			if ([roles containsObject:@"pilot"] == YES)
+			{
+				if ([scan getPrimaryTargetID] == NO_TARGET)
+				{
+					NSLog(@"found pilot boat with no target, will use this one");
+					pilot = scan;
+					break;
+				}
+			}
+		}
+		scan = scan->z_previous;
+		while (scan && (scan->isShip == NO))
+			scan = scan->z_previous;
+	}
+
+	if (pilot != nil)
+	{
+		NSLog(@"becoming pilot target and setting AI");
+		[pilot setReportAImessages:YES];
+		[pilot addTarget:self];
+		[pilot setStateMachine:@"pilotAI.plist"];
+		[[self getAI] reactToMessage:@"FOUND_PILOT"];
+	}
+}
+
+- (void) pilotArrived
+{
+	[[self getAI] reactToMessage:@"PILOT_ARRIVED"];
 }
 
 #ifdef WIN32

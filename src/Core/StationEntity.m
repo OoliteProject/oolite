@@ -38,7 +38,7 @@ Your fair use and other rights are in no way affected by the above.
 */
 
 #import "StationEntity.h"
-#import "ShipEntity (AI).h"
+#import "ShipEntityAI.h"
 #import "entities.h"
 
 #import "AI.h"

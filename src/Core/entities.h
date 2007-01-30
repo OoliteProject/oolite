@@ -41,8 +41,8 @@ Your fair use and other rights are in no way affected by the above.
 #import "ShipEntity.h"
 #import "StationEntity.h"
 #import "PlayerEntity.h"
-#import "PlayerEntity Additions.h"
-#import "PlayerEntity (contracts).h"
+#import "PlayerEntityAdditions.h"
+#import "PlayerEntityContracts.h"
 //
 #import "PlanetEntity.h"
 //
