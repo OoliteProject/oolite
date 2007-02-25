@@ -38,6 +38,16 @@
 		1A5BF2EA0916D50900BF238F /* Oolite.mdimporter in Copy MDImporter */ = {isa = PBXBuildFile; fileRef = 1A5BF2D50916D50100BF238F /* Oolite.mdimporter */; };
 		1A81F7090A7BAC4D006580AD /* OOCAMusic.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A81F7070A7BAC4D006580AD /* OOCAMusic.m */; };
 		1A81F70A0A7BAC4D006580AD /* OOCAMusic.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A81F7080A7BAC4D006580AD /* OOCAMusic.h */; };
+		1AD9AFA60B91E24100FB704E /* ShipEntityAI.m in Sources */ = {isa = PBXBuildFile; fileRef = 1AD9AFA40B91E24100FB704E /* ShipEntityAI.m */; };
+		1AD9AFA70B91E24100FB704E /* ShipEntityAI.h in Headers */ = {isa = PBXBuildFile; fileRef = 1AD9AFA50B91E24100FB704E /* ShipEntityAI.h */; };
+		1AD9AFB10B91E24C00FB704E /* PlayerEntityContracts.h in Headers */ = {isa = PBXBuildFile; fileRef = 1AD9AFA90B91E24C00FB704E /* PlayerEntityContracts.h */; };
+		1AD9AFB20B91E24C00FB704E /* PlayerEntitySound.m in Sources */ = {isa = PBXBuildFile; fileRef = 1AD9AFAA0B91E24C00FB704E /* PlayerEntitySound.m */; };
+		1AD9AFB30B91E24C00FB704E /* PlayerEntitySound.h in Headers */ = {isa = PBXBuildFile; fileRef = 1AD9AFAB0B91E24C00FB704E /* PlayerEntitySound.h */; };
+		1AD9AFB40B91E24C00FB704E /* PlayerEntityControls.m in Sources */ = {isa = PBXBuildFile; fileRef = 1AD9AFAC0B91E24C00FB704E /* PlayerEntityControls.m */; };
+		1AD9AFB50B91E24C00FB704E /* PlayerEntityControls.h in Headers */ = {isa = PBXBuildFile; fileRef = 1AD9AFAD0B91E24C00FB704E /* PlayerEntityControls.h */; };
+		1AD9AFB60B91E24C00FB704E /* PlayerEntityContracts.m in Sources */ = {isa = PBXBuildFile; fileRef = 1AD9AFAE0B91E24C00FB704E /* PlayerEntityContracts.m */; };
+		1AD9AFB70B91E24C00FB704E /* PlayerEntityAdditions.m in Sources */ = {isa = PBXBuildFile; fileRef = 1AD9AFAF0B91E24C00FB704E /* PlayerEntityAdditions.m */; };
+		1AD9AFB80B91E24C00FB704E /* PlayerEntityAdditions.h in Headers */ = {isa = PBXBuildFile; fileRef = 1AD9AFB00B91E24C00FB704E /* PlayerEntityAdditions.h */; };
 		2512833E09BA27C100F43D55 /* Octree.m in Sources */ = {isa = PBXBuildFile; fileRef = 2512833C09BA27C100F43D55 /* Octree.m */; };
 		2512833F09BA27C100F43D55 /* Octree.h in Headers */ = {isa = PBXBuildFile; fileRef = 2512833D09BA27C100F43D55 /* Octree.h */; };
 		2512834209BA27EC00F43D55 /* Geometry.h in Headers */ = {isa = PBXBuildFile; fileRef = 2512834009BA27EC00F43D55 /* Geometry.h */; };
@@ -70,8 +80,6 @@
 		25161149099544390037C2E1 /* WormholeEntity.m in Sources */ = {isa = PBXBuildFile; fileRef = 251610F7099544380037C2E1 /* WormholeEntity.m */; };
 		2516114A099544390037C2E1 /* WormholeEntity.h in Headers */ = {isa = PBXBuildFile; fileRef = 251610F8099544380037C2E1 /* WormholeEntity.h */; };
 		2516114C099544390037C2E1 /* PlayerEntity.h in Headers */ = {isa = PBXBuildFile; fileRef = 251610FA099544380037C2E1 /* PlayerEntity.h */; };
-		2516114D099544390037C2E1 /* PlayerEntity Additions.m in Sources */ = {isa = PBXBuildFile; fileRef = 251610FB099544380037C2E1 /* PlayerEntity Additions.m */; };
-		2516114E099544390037C2E1 /* PlayerEntity (contracts).h in Headers */ = {isa = PBXBuildFile; fileRef = 251610FC099544380037C2E1 /* PlayerEntity (contracts).h */; };
 		2516114F099544390037C2E1 /* PlanetEntity.m in Sources */ = {isa = PBXBuildFile; fileRef = 251610FD099544380037C2E1 /* PlanetEntity.m */; };
 		25161150099544390037C2E1 /* PlanetEntity.h in Headers */ = {isa = PBXBuildFile; fileRef = 251610FE099544380037C2E1 /* PlanetEntity.h */; };
 		25161151099544390037C2E1 /* OpenGLSprite.m in Sources */ = {isa = PBXBuildFile; fileRef = 251610FF099544380037C2E1 /* OpenGLSprite.m */; };
@@ -91,8 +99,6 @@
 		25161160099544390037C2E1 /* SkyEntity.h in Headers */ = {isa = PBXBuildFile; fileRef = 2516110E099544390037C2E1 /* SkyEntity.h */; };
 		25161162099544390037C2E1 /* OOTrumble.h in Headers */ = {isa = PBXBuildFile; fileRef = 25161110099544390037C2E1 /* OOTrumble.h */; };
 		25161163099544390037C2E1 /* OOSoundSource.h in Headers */ = {isa = PBXBuildFile; fileRef = 25161111099544390037C2E1 /* OOSoundSource.h */; };
-		25161164099544390037C2E1 /* ShipEntity (AI).m in Sources */ = {isa = PBXBuildFile; fileRef = 25161112099544390037C2E1 /* ShipEntity (AI).m */; };
-		25161165099544390037C2E1 /* ShipEntity (AI).h in Headers */ = {isa = PBXBuildFile; fileRef = 25161113099544390037C2E1 /* ShipEntity (AI).h */; };
 		25161166099544390037C2E1 /* DustEntity.m in Sources */ = {isa = PBXBuildFile; fileRef = 25161114099544390037C2E1 /* DustEntity.m */; };
 		25161168099544390037C2E1 /* OOSound.h in Headers */ = {isa = PBXBuildFile; fileRef = 25161116099544390037C2E1 /* OOSound.h */; };
 		2516116B099544390037C2E1 /* OOFileManager.m in Sources */ = {isa = PBXBuildFile; fileRef = 25161119099544390037C2E1 /* OOFileManager.m */; };
@@ -112,8 +118,6 @@
 		25161181099544390037C2E1 /* RingEntity.h in Headers */ = {isa = PBXBuildFile; fileRef = 2516112F099544390037C2E1 /* RingEntity.h */; };
 		25161182099544390037C2E1 /* ScannerExtension.m in Sources */ = {isa = PBXBuildFile; fileRef = 25161130099544390037C2E1 /* ScannerExtension.m */; };
 		25161183099544390037C2E1 /* ScannerExtension.h in Headers */ = {isa = PBXBuildFile; fileRef = 25161131099544390037C2E1 /* ScannerExtension.h */; };
-		25161184099544390037C2E1 /* PlayerEntity (Controls).m in Sources */ = {isa = PBXBuildFile; fileRef = 25161132099544390037C2E1 /* PlayerEntity (Controls).m */; };
-		25161185099544390037C2E1 /* PlayerEntity (Controls).h in Headers */ = {isa = PBXBuildFile; fileRef = 25161133099544390037C2E1 /* PlayerEntity (Controls).h */; };
 		25161186099544390037C2E1 /* TextureStore.h in Headers */ = {isa = PBXBuildFile; fileRef = 25161134099544390037C2E1 /* TextureStore.h */; };
 		25161187099544390037C2E1 /* StationEntity.m in Sources */ = {isa = PBXBuildFile; fileRef = 25161135099544390037C2E1 /* StationEntity.m */; };
 		25161188099544390037C2E1 /* StationEntity.h in Headers */ = {isa = PBXBuildFile; fileRef = 25161136099544390037C2E1 /* StationEntity.h */; };
@@ -121,10 +125,6 @@
 		2516118C099544390037C2E1 /* ResourceManager.h in Headers */ = {isa = PBXBuildFile; fileRef = 2516113A099544390037C2E1 /* ResourceManager.h */; };
 		2516118D099544390037C2E1 /* ShipEntity.m in Sources */ = {isa = PBXBuildFile; fileRef = 2516113B099544390037C2E1 /* ShipEntity.m */; };
 		2516118E099544390037C2E1 /* ShipEntity.h in Headers */ = {isa = PBXBuildFile; fileRef = 2516113C099544390037C2E1 /* ShipEntity.h */; };
-		25161191099544390037C2E1 /* PlayerEntity (Sound).m in Sources */ = {isa = PBXBuildFile; fileRef = 2516113F099544390037C2E1 /* PlayerEntity (Sound).m */; };
-		25161192099544390037C2E1 /* PlayerEntity (Sound).h in Headers */ = {isa = PBXBuildFile; fileRef = 25161140099544390037C2E1 /* PlayerEntity (Sound).h */; };
-		25161193099544390037C2E1 /* PlayerEntity (contracts).m in Sources */ = {isa = PBXBuildFile; fileRef = 25161141099544390037C2E1 /* PlayerEntity (contracts).m */; };
-		25161194099544390037C2E1 /* PlayerEntity Additions.h in Headers */ = {isa = PBXBuildFile; fileRef = 25161142099544390037C2E1 /* PlayerEntity Additions.h */; };
 		25161195099544390037C2E1 /* Universe.m in Sources */ = {isa = PBXBuildFile; fileRef = 25161143099544390037C2E1 /* Universe.m */; };
 		25161196099544390037C2E1 /* Universe.h in Headers */ = {isa = PBXBuildFile; fileRef = 25161144099544390037C2E1 /* Universe.h */; };
 		25161197099544390037C2E1 /* TextureStore.m in Sources */ = {isa = PBXBuildFile; fileRef = 25161145099544390037C2E1 /* TextureStore.m */; };
@@ -393,7 +393,7 @@
 		083325DC09DDBCDE00F5B8E4 /* OOColor.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = OOColor.m; path = src/Core/OOColor.m; sourceTree = "<group>"; };
 		083DB4D30A70E51E00B419B2 /* OOBrain.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = OOBrain.h; path = src/Core/OOBrain.h; sourceTree = "<group>"; };
 		083DB4D40A70E51E00B419B2 /* OOBrain.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = OOBrain.m; path = src/Core/OOBrain.m; sourceTree = "<group>"; };
-		0865432206B8447D000CA0AB /* Oolite.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Oolite.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		0865432206B8447D000CA0AB /* Oolite.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = Oolite.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		0878FD2F086EF845004CB752 /* Carbon.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Carbon.framework; path = /System/Library/Frameworks/Carbon.framework; sourceTree = "<absolute>"; };
 		088496DE0A4C1D1B00F32928 /* gotoWaypointAI.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist; name = gotoWaypointAI.plist; path = Resources/AIs/gotoWaypointAI.plist; sourceTree = "<group>"; };
 		088496DF0A4C1D1B00F32928 /* receiveDockingAI.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist; name = receiveDockingAI.plist; path = Resources/AIs/receiveDockingAI.plist; sourceTree = "<group>"; };
@@ -412,6 +412,16 @@
 		1A5BF2D50916D50100BF238F /* Oolite.mdimporter */ = {isa = PBXFileReference; explicitFileType = wrapper; name = Oolite.mdimporter; path = "Oolite-importer/build/Universal/Oolite.mdimporter"; sourceTree = "<group>"; };
 		1A81F7070A7BAC4D006580AD /* OOCAMusic.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = OOCAMusic.m; path = src/Cocoa/OOCAMusic.m; sourceTree = "<group>"; };
 		1A81F7080A7BAC4D006580AD /* OOCAMusic.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = OOCAMusic.h; path = src/Cocoa/OOCAMusic.h; sourceTree = "<group>"; };
+		1AD9AFA40B91E24100FB704E /* ShipEntityAI.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = ShipEntityAI.m; path = src/Core/ShipEntityAI.m; sourceTree = "<group>"; };
+		1AD9AFA50B91E24100FB704E /* ShipEntityAI.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = ShipEntityAI.h; path = src/Core/ShipEntityAI.h; sourceTree = "<group>"; };
+		1AD9AFA90B91E24C00FB704E /* PlayerEntityContracts.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = PlayerEntityContracts.h; path = src/Core/PlayerEntityContracts.h; sourceTree = "<group>"; };
+		1AD9AFAA0B91E24C00FB704E /* PlayerEntitySound.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = PlayerEntitySound.m; path = src/Core/PlayerEntitySound.m; sourceTree = "<group>"; };
+		1AD9AFAB0B91E24C00FB704E /* PlayerEntitySound.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = PlayerEntitySound.h; path = src/Core/PlayerEntitySound.h; sourceTree = "<group>"; };
+		1AD9AFAC0B91E24C00FB704E /* PlayerEntityControls.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = PlayerEntityControls.m; path = src/Core/PlayerEntityControls.m; sourceTree = "<group>"; };
+		1AD9AFAD0B91E24C00FB704E /* PlayerEntityControls.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = PlayerEntityControls.h; path = src/Core/PlayerEntityControls.h; sourceTree = "<group>"; };
+		1AD9AFAE0B91E24C00FB704E /* PlayerEntityContracts.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = PlayerEntityContracts.m; path = src/Core/PlayerEntityContracts.m; sourceTree = "<group>"; };
+		1AD9AFAF0B91E24C00FB704E /* PlayerEntityAdditions.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = PlayerEntityAdditions.m; path = src/Core/PlayerEntityAdditions.m; sourceTree = "<group>"; };
+		1AD9AFB00B91E24C00FB704E /* PlayerEntityAdditions.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = PlayerEntityAdditions.h; path = src/Core/PlayerEntityAdditions.h; sourceTree = "<group>"; };
 		2512833C09BA27C100F43D55 /* Octree.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = Octree.m; path = src/Core/Octree.m; sourceTree = "<group>"; };
 		2512833D09BA27C100F43D55 /* Octree.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Octree.h; path = src/Core/Octree.h; sourceTree = "<group>"; };
 		2512834009BA27EC00F43D55 /* Geometry.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Geometry.h; path = src/Core/Geometry.h; sourceTree = "<group>"; };
@@ -446,8 +456,6 @@
 		251610F7099544380037C2E1 /* WormholeEntity.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = WormholeEntity.m; path = src/Core/WormholeEntity.m; sourceTree = "<group>"; };
 		251610F8099544380037C2E1 /* WormholeEntity.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = WormholeEntity.h; path = src/Core/WormholeEntity.h; sourceTree = "<group>"; };
 		251610FA099544380037C2E1 /* PlayerEntity.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = PlayerEntity.h; path = src/Core/PlayerEntity.h; sourceTree = "<group>"; };
-		251610FB099544380037C2E1 /* PlayerEntity Additions.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = "PlayerEntity Additions.m"; path = "src/Core/PlayerEntity Additions.m"; sourceTree = "<group>"; };
-		251610FC099544380037C2E1 /* PlayerEntity (contracts).h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = "PlayerEntity (contracts).h"; path = "src/Core/PlayerEntity (contracts).h"; sourceTree = "<group>"; };
 		251610FD099544380037C2E1 /* PlanetEntity.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = PlanetEntity.m; path = src/Core/PlanetEntity.m; sourceTree = "<group>"; };
 		251610FE099544380037C2E1 /* PlanetEntity.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = PlanetEntity.h; path = src/Core/PlanetEntity.h; sourceTree = "<group>"; };
 		251610FF099544380037C2E1 /* OpenGLSprite.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = OpenGLSprite.m; path = src/Core/OpenGLSprite.m; sourceTree = "<group>"; };
@@ -467,8 +475,6 @@
 		2516110E099544390037C2E1 /* SkyEntity.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = SkyEntity.h; path = src/Core/SkyEntity.h; sourceTree = "<group>"; };
 		25161110099544390037C2E1 /* OOTrumble.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = OOTrumble.h; path = src/Core/OOTrumble.h; sourceTree = "<group>"; };
 		25161111099544390037C2E1 /* OOSoundSource.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = OOSoundSource.h; path = src/Core/OOSoundSource.h; sourceTree = "<group>"; };
-		25161112099544390037C2E1 /* ShipEntity (AI).m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = "ShipEntity (AI).m"; path = "src/Core/ShipEntity (AI).m"; sourceTree = "<group>"; };
-		25161113099544390037C2E1 /* ShipEntity (AI).h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = "ShipEntity (AI).h"; path = "src/Core/ShipEntity (AI).h"; sourceTree = "<group>"; };
 		25161114099544390037C2E1 /* DustEntity.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = DustEntity.m; path = src/Core/DustEntity.m; sourceTree = "<group>"; };
 		25161116099544390037C2E1 /* OOSound.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = OOSound.h; path = src/Core/OOSound.h; sourceTree = "<group>"; };
 		25161119099544390037C2E1 /* OOFileManager.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = OOFileManager.m; path = src/Core/OOFileManager.m; sourceTree = "<group>"; };
@@ -488,8 +494,6 @@
 		2516112F099544390037C2E1 /* RingEntity.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = RingEntity.h; path = src/Core/RingEntity.h; sourceTree = "<group>"; };
 		25161130099544390037C2E1 /* ScannerExtension.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = ScannerExtension.m; path = src/Core/ScannerExtension.m; sourceTree = "<group>"; };
 		25161131099544390037C2E1 /* ScannerExtension.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = ScannerExtension.h; path = src/Core/ScannerExtension.h; sourceTree = "<group>"; };
-		25161132099544390037C2E1 /* PlayerEntity (Controls).m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = "PlayerEntity (Controls).m"; path = "src/Core/PlayerEntity (Controls).m"; sourceTree = "<group>"; };
-		25161133099544390037C2E1 /* PlayerEntity (Controls).h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = "PlayerEntity (Controls).h"; path = "src/Core/PlayerEntity (Controls).h"; sourceTree = "<group>"; };
 		25161134099544390037C2E1 /* TextureStore.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = TextureStore.h; path = src/Core/TextureStore.h; sourceTree = "<group>"; };
 		25161135099544390037C2E1 /* StationEntity.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = StationEntity.m; path = src/Core/StationEntity.m; sourceTree = "<group>"; };
 		25161136099544390037C2E1 /* StationEntity.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = StationEntity.h; path = src/Core/StationEntity.h; sourceTree = "<group>"; };
@@ -497,10 +501,6 @@
 		2516113A099544390037C2E1 /* ResourceManager.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = ResourceManager.h; path = src/Core/ResourceManager.h; sourceTree = "<group>"; };
 		2516113B099544390037C2E1 /* ShipEntity.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = ShipEntity.m; path = src/Core/ShipEntity.m; sourceTree = "<group>"; };
 		2516113C099544390037C2E1 /* ShipEntity.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = ShipEntity.h; path = src/Core/ShipEntity.h; sourceTree = "<group>"; };
-		2516113F099544390037C2E1 /* PlayerEntity (Sound).m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = "PlayerEntity (Sound).m"; path = "src/Core/PlayerEntity (Sound).m"; sourceTree = "<group>"; };
-		25161140099544390037C2E1 /* PlayerEntity (Sound).h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = "PlayerEntity (Sound).h"; path = "src/Core/PlayerEntity (Sound).h"; sourceTree = "<group>"; };
-		25161141099544390037C2E1 /* PlayerEntity (contracts).m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = "PlayerEntity (contracts).m"; path = "src/Core/PlayerEntity (contracts).m"; sourceTree = "<group>"; };
-		25161142099544390037C2E1 /* PlayerEntity Additions.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = "PlayerEntity Additions.h"; path = "src/Core/PlayerEntity Additions.h"; sourceTree = "<group>"; };
 		25161143099544390037C2E1 /* Universe.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = Universe.m; path = src/Core/Universe.m; sourceTree = "<group>"; };
 		25161144099544390037C2E1 /* Universe.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Universe.h; path = src/Core/Universe.h; sourceTree = "<group>"; };
 		25161145099544390037C2E1 /* TextureStore.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = TextureStore.m; path = src/Core/TextureStore.m; sourceTree = "<group>"; };
@@ -1089,20 +1089,20 @@
 				251610F7099544380037C2E1 /* WormholeEntity.m */,
 				2516113C099544390037C2E1 /* ShipEntity.h */,
 				2516113B099544390037C2E1 /* ShipEntity.m */,
-				25161113099544390037C2E1 /* ShipEntity (AI).h */,
-				25161112099544390037C2E1 /* ShipEntity (AI).m */,
+				1AD9AFA50B91E24100FB704E /* ShipEntityAI.h */,
+				1AD9AFA40B91E24100FB704E /* ShipEntityAI.m */,
 				25161136099544390037C2E1 /* StationEntity.h */,
 				25161135099544390037C2E1 /* StationEntity.m */,
 				251610FA099544380037C2E1 /* PlayerEntity.h */,
 				251610F5099544380037C2E1 /* PlayerEntity.m */,
-				25161142099544390037C2E1 /* PlayerEntity Additions.h */,
-				251610FB099544380037C2E1 /* PlayerEntity Additions.m */,
-				251610FC099544380037C2E1 /* PlayerEntity (contracts).h */,
-				25161141099544390037C2E1 /* PlayerEntity (contracts).m */,
-				25161133099544390037C2E1 /* PlayerEntity (Controls).h */,
-				25161132099544390037C2E1 /* PlayerEntity (Controls).m */,
-				25161140099544390037C2E1 /* PlayerEntity (Sound).h */,
-				2516113F099544390037C2E1 /* PlayerEntity (Sound).m */,
+				1AD9AFB00B91E24C00FB704E /* PlayerEntityAdditions.h */,
+				1AD9AFAF0B91E24C00FB704E /* PlayerEntityAdditions.m */,
+				1AD9AFAE0B91E24C00FB704E /* PlayerEntityContracts.m */,
+				1AD9AFA90B91E24C00FB704E /* PlayerEntityContracts.h */,
+				1AD9AFAD0B91E24C00FB704E /* PlayerEntityControls.h */,
+				1AD9AFAC0B91E24C00FB704E /* PlayerEntityControls.m */,
+				1AD9AFAB0B91E24C00FB704E /* PlayerEntitySound.h */,
+				1AD9AFAA0B91E24C00FB704E /* PlayerEntitySound.m */,
 				25161106099544390037C2E1 /* AI.h */,
 				25161101099544380037C2E1 /* AI.m */,
 				2516112C099544390037C2E1 /* HeadUpDisplay.h */,
@@ -1256,7 +1256,6 @@
 				251610F3099544190037C2E1 /* VirtualRingBuffer.h in Headers */,
 				2516114A099544390037C2E1 /* WormholeEntity.h in Headers */,
 				2516114C099544390037C2E1 /* PlayerEntity.h in Headers */,
-				2516114E099544390037C2E1 /* PlayerEntity (contracts).h in Headers */,
 				25161150099544390037C2E1 /* PlanetEntity.h in Headers */,
 				25161152099544390037C2E1 /* OpenGLSprite.h in Headers */,
 				25161156099544390037C2E1 /* Entity.h in Headers */,
@@ -1268,7 +1267,6 @@
 				25161160099544390037C2E1 /* SkyEntity.h in Headers */,
 				25161162099544390037C2E1 /* OOTrumble.h in Headers */,
 				25161163099544390037C2E1 /* OOSoundSource.h in Headers */,
-				25161165099544390037C2E1 /* ShipEntity (AI).h in Headers */,
 				25161168099544390037C2E1 /* OOSound.h in Headers */,
 				2516116C099544390037C2E1 /* OOFileManager.h in Headers */,
 				2516116E099544390037C2E1 /* OOCharacter.h in Headers */,
@@ -1278,13 +1276,10 @@
 				2516117E099544390037C2E1 /* HeadUpDisplay.h in Headers */,
 				25161181099544390037C2E1 /* RingEntity.h in Headers */,
 				25161183099544390037C2E1 /* ScannerExtension.h in Headers */,
-				25161185099544390037C2E1 /* PlayerEntity (Controls).h in Headers */,
 				25161186099544390037C2E1 /* TextureStore.h in Headers */,
 				25161188099544390037C2E1 /* StationEntity.h in Headers */,
 				2516118C099544390037C2E1 /* ResourceManager.h in Headers */,
 				2516118E099544390037C2E1 /* ShipEntity.h in Headers */,
-				25161192099544390037C2E1 /* PlayerEntity (Sound).h in Headers */,
-				25161194099544390037C2E1 /* PlayerEntity Additions.h in Headers */,
 				25161196099544390037C2E1 /* Universe.h in Headers */,
 				25F46752099695D5009483BF /* OoliteApp.h in Headers */,
 				2576E7B309B4F418007410F7 /* MyOpenGLView.h in Headers */,
@@ -1297,6 +1292,11 @@
 				081329B50A6D534900A5C2CE /* OOInstinct.h in Headers */,
 				083DB4D50A70E51E00B419B2 /* OOBrain.h in Headers */,
 				1A81F70A0A7BAC4D006580AD /* OOCAMusic.h in Headers */,
+				1AD9AFA70B91E24100FB704E /* ShipEntityAI.h in Headers */,
+				1AD9AFB10B91E24C00FB704E /* PlayerEntityContracts.h in Headers */,
+				1AD9AFB30B91E24C00FB704E /* PlayerEntitySound.h in Headers */,
+				1AD9AFB50B91E24C00FB704E /* PlayerEntityControls.h in Headers */,
+				1AD9AFB80B91E24C00FB704E /* PlayerEntityAdditions.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1620,7 +1620,6 @@
 				251610F2099544190037C2E1 /* VirtualRingBuffer.m in Sources */,
 				25161147099544390037C2E1 /* PlayerEntity.m in Sources */,
 				25161149099544390037C2E1 /* WormholeEntity.m in Sources */,
-				2516114D099544390037C2E1 /* PlayerEntity Additions.m in Sources */,
 				2516114F099544390037C2E1 /* PlanetEntity.m in Sources */,
 				25161151099544390037C2E1 /* OpenGLSprite.m in Sources */,
 				25161153099544390037C2E1 /* AI.m in Sources */,
@@ -1629,7 +1628,6 @@
 				2516115B099544390037C2E1 /* ParticleEntity.m in Sources */,
 				2516115E099544390037C2E1 /* GameController.m in Sources */,
 				2516115F099544390037C2E1 /* SkyEntity.m in Sources */,
-				25161164099544390037C2E1 /* ShipEntity (AI).m in Sources */,
 				25161166099544390037C2E1 /* DustEntity.m in Sources */,
 				2516116B099544390037C2E1 /* OOFileManager.m in Sources */,
 				2516116D099544390037C2E1 /* OOCharacter.m in Sources */,
@@ -1640,12 +1638,9 @@
 				2516117F099544390037C2E1 /* MutableDictionaryExtension.m in Sources */,
 				25161180099544390037C2E1 /* RingEntity.m in Sources */,
 				25161182099544390037C2E1 /* ScannerExtension.m in Sources */,
-				25161184099544390037C2E1 /* PlayerEntity (Controls).m in Sources */,
 				25161187099544390037C2E1 /* StationEntity.m in Sources */,
 				2516118B099544390037C2E1 /* ResourceManager.m in Sources */,
 				2516118D099544390037C2E1 /* ShipEntity.m in Sources */,
-				25161191099544390037C2E1 /* PlayerEntity (Sound).m in Sources */,
-				25161193099544390037C2E1 /* PlayerEntity (contracts).m in Sources */,
 				25161195099544390037C2E1 /* Universe.m in Sources */,
 				25161197099544390037C2E1 /* TextureStore.m in Sources */,
 				25F46753099695D5009483BF /* OoliteApp.m in Sources */,
@@ -1659,6 +1654,11 @@
 				081329B60A6D534900A5C2CE /* OOInstinct.m in Sources */,
 				083DB4D60A70E51E00B419B2 /* OOBrain.m in Sources */,
 				1A81F7090A7BAC4D006580AD /* OOCAMusic.m in Sources */,
+				1AD9AFA60B91E24100FB704E /* ShipEntityAI.m in Sources */,
+				1AD9AFB20B91E24C00FB704E /* PlayerEntitySound.m in Sources */,
+				1AD9AFB40B91E24C00FB704E /* PlayerEntityControls.m in Sources */,
+				1AD9AFB60B91E24C00FB704E /* PlayerEntityContracts.m in Sources */,
+				1AD9AFB70B91E24C00FB704E /* PlayerEntityAdditions.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
