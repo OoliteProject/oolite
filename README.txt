@@ -16,7 +16,8 @@ Opsys should be exactly as reported by 'uname' with no flags (case
 sensitive!). The cpuarch should be the cpu architecture reported by
 'uname -p' (except i686, i586 etc should be translated to x86).
 This allows build scripts to automatically package up the right
-dependency tree in tarball installers.
+dependency tree in tarball installers. Cocoa-deps is an exception,
+because a different build system is used under Mac OS X.
 
 2. Contents
 -----------
@@ -29,7 +30,7 @@ deps              Dependencies for all plaforms:
 Doc               Documentation (including user guides)
 FreeDesktop       Files for GNOME/KDE desktop launchers
 installers        Files used to create various installers
-Oolite-importer   (OS X) The oolite importer
+Oolite-importer   (OS X) The oolite Spotlight metadata importer
 Oolite.xcodeproj  The OS X Xcode project to build Oolite
 OSX-SDL           Project files for the SDL version of Oolite on OS X
                   (*very* seldom used, more of a curiosity)
