@@ -1,6 +1,6 @@
 /*
 
-MutableDictionaryExtension.m
+NSMutableDictionaryOOExtensions.m
 Created by Giles Williams on 2005-05-01.
 
 For Oolite
@@ -24,7 +24,7 @@ MA 02110-1301, USA.
 */
 
 #import <Foundation/Foundation.h>
-#import "MutableDictionaryExtension.h"
+#import "NSMutableDictionaryOOExtensions.h"
 
 @implementation NSMutableDictionary (OOExtensions)
 
