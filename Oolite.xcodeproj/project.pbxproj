@@ -40,6 +40,8 @@
 		1A81F70A0A7BAC4D006580AD /* OOCAMusic.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A81F7080A7BAC4D006580AD /* OOCAMusic.h */; };
 		1A8A37040B95CADD007D20B8 /* PlayerEntityLoadSave.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A8A37020B95CADD007D20B8 /* PlayerEntityLoadSave.m */; };
 		1A8A37050B95CADD007D20B8 /* PlayerEntityLoadSave.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A8A37030B95CADD007D20B8 /* PlayerEntityLoadSave.h */; };
+		1A8A37560B960337007D20B8 /* NSMutableDictionaryOOExtensions.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A8A37540B960337007D20B8 /* NSMutableDictionaryOOExtensions.m */; };
+		1A8A37570B960337007D20B8 /* NSMutableDictionaryOOExtensions.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A8A37550B960337007D20B8 /* NSMutableDictionaryOOExtensions.h */; };
 		1AD9AFA60B91E24100FB704E /* ShipEntityAI.m in Sources */ = {isa = PBXBuildFile; fileRef = 1AD9AFA40B91E24100FB704E /* ShipEntityAI.m */; };
 		1AD9AFA70B91E24100FB704E /* ShipEntityAI.h in Headers */ = {isa = PBXBuildFile; fileRef = 1AD9AFA50B91E24100FB704E /* ShipEntityAI.h */; };
 		1AD9AFB10B91E24C00FB704E /* PlayerEntityContracts.h in Headers */ = {isa = PBXBuildFile; fileRef = 1AD9AFA90B91E24C00FB704E /* PlayerEntityContracts.h */; };
@@ -108,12 +110,10 @@
 		2516116D099544390037C2E1 /* OOCharacter.m in Sources */ = {isa = PBXBuildFile; fileRef = 2516111B099544390037C2E1 /* OOCharacter.m */; };
 		2516116E099544390037C2E1 /* OOCharacter.h in Headers */ = {isa = PBXBuildFile; fileRef = 2516111C099544390037C2E1 /* OOCharacter.h */; };
 		2516116F099544390037C2E1 /* Entity.m in Sources */ = {isa = PBXBuildFile; fileRef = 2516111D099544390037C2E1 /* Entity.m */; };
-		25161174099544390037C2E1 /* MutableDictionaryExtension.h in Headers */ = {isa = PBXBuildFile; fileRef = 25161122099544390037C2E1 /* MutableDictionaryExtension.h */; };
 		25161178099544390037C2E1 /* GuiDisplayGen.m in Sources */ = {isa = PBXBuildFile; fileRef = 25161126099544390037C2E1 /* GuiDisplayGen.m */; };
 		25161179099544390037C2E1 /* GuiDisplayGen.h in Headers */ = {isa = PBXBuildFile; fileRef = 25161127099544390037C2E1 /* GuiDisplayGen.h */; };
 		2516117D099544390037C2E1 /* HeadUpDisplay.m in Sources */ = {isa = PBXBuildFile; fileRef = 2516112B099544390037C2E1 /* HeadUpDisplay.m */; };
 		2516117E099544390037C2E1 /* HeadUpDisplay.h in Headers */ = {isa = PBXBuildFile; fileRef = 2516112C099544390037C2E1 /* HeadUpDisplay.h */; };
-		2516117F099544390037C2E1 /* MutableDictionaryExtension.m in Sources */ = {isa = PBXBuildFile; fileRef = 2516112D099544390037C2E1 /* MutableDictionaryExtension.m */; };
 		25161180099544390037C2E1 /* RingEntity.m in Sources */ = {isa = PBXBuildFile; fileRef = 2516112E099544390037C2E1 /* RingEntity.m */; };
 		25161181099544390037C2E1 /* RingEntity.h in Headers */ = {isa = PBXBuildFile; fileRef = 2516112F099544390037C2E1 /* RingEntity.h */; };
 		25161182099544390037C2E1 /* ScannerExtension.m in Sources */ = {isa = PBXBuildFile; fileRef = 25161130099544390037C2E1 /* ScannerExtension.m */; };
@@ -414,6 +414,8 @@
 		1A81F7080A7BAC4D006580AD /* OOCAMusic.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = OOCAMusic.h; path = src/Cocoa/OOCAMusic.h; sourceTree = "<group>"; };
 		1A8A37020B95CADD007D20B8 /* PlayerEntityLoadSave.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = PlayerEntityLoadSave.m; path = src/Core/PlayerEntityLoadSave.m; sourceTree = "<group>"; };
 		1A8A37030B95CADD007D20B8 /* PlayerEntityLoadSave.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = PlayerEntityLoadSave.h; path = src/Core/PlayerEntityLoadSave.h; sourceTree = "<group>"; };
+		1A8A37540B960337007D20B8 /* NSMutableDictionaryOOExtensions.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = NSMutableDictionaryOOExtensions.m; path = src/Core/NSMutableDictionaryOOExtensions.m; sourceTree = "<group>"; };
+		1A8A37550B960337007D20B8 /* NSMutableDictionaryOOExtensions.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = NSMutableDictionaryOOExtensions.h; path = src/Core/NSMutableDictionaryOOExtensions.h; sourceTree = "<group>"; };
 		1AD9AFA40B91E24100FB704E /* ShipEntityAI.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = ShipEntityAI.m; path = src/Core/ShipEntityAI.m; sourceTree = "<group>"; };
 		1AD9AFA50B91E24100FB704E /* ShipEntityAI.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = ShipEntityAI.h; path = src/Core/ShipEntityAI.h; sourceTree = "<group>"; };
 		1AD9AFA90B91E24C00FB704E /* PlayerEntityContracts.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = PlayerEntityContracts.h; path = src/Core/PlayerEntityContracts.h; sourceTree = "<group>"; };
@@ -484,12 +486,10 @@
 		2516111B099544390037C2E1 /* OOCharacter.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = OOCharacter.m; path = src/Core/OOCharacter.m; sourceTree = "<group>"; };
 		2516111C099544390037C2E1 /* OOCharacter.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = OOCharacter.h; path = src/Core/OOCharacter.h; sourceTree = "<group>"; };
 		2516111D099544390037C2E1 /* Entity.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = Entity.m; path = src/Core/Entity.m; sourceTree = "<group>"; };
-		25161122099544390037C2E1 /* MutableDictionaryExtension.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = MutableDictionaryExtension.h; path = src/Core/MutableDictionaryExtension.h; sourceTree = "<group>"; };
 		25161126099544390037C2E1 /* GuiDisplayGen.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = GuiDisplayGen.m; path = src/Core/GuiDisplayGen.m; sourceTree = "<group>"; };
 		25161127099544390037C2E1 /* GuiDisplayGen.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = GuiDisplayGen.h; path = src/Core/GuiDisplayGen.h; sourceTree = "<group>"; };
 		2516112B099544390037C2E1 /* HeadUpDisplay.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = HeadUpDisplay.m; path = src/Core/HeadUpDisplay.m; sourceTree = "<group>"; };
 		2516112C099544390037C2E1 /* HeadUpDisplay.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = HeadUpDisplay.h; path = src/Core/HeadUpDisplay.h; sourceTree = "<group>"; };
-		2516112D099544390037C2E1 /* MutableDictionaryExtension.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = MutableDictionaryExtension.m; path = src/Core/MutableDictionaryExtension.m; sourceTree = "<group>"; };
 		2516112E099544390037C2E1 /* RingEntity.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = RingEntity.m; path = src/Core/RingEntity.m; sourceTree = "<group>"; };
 		2516112F099544390037C2E1 /* RingEntity.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = RingEntity.h; path = src/Core/RingEntity.h; sourceTree = "<group>"; };
 		25161130099544390037C2E1 /* ScannerExtension.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = ScannerExtension.m; path = src/Core/ScannerExtension.m; sourceTree = "<group>"; };
@@ -1123,8 +1123,8 @@
 				251610FF099544380037C2E1 /* OpenGLSprite.m */,
 				25161102099544380037C2E1 /* OOXMLExtensions.m */,
 				25161107099544390037C2E1 /* OOXMLExtensions.h */,
-				25161122099544390037C2E1 /* MutableDictionaryExtension.h */,
-				2516112D099544390037C2E1 /* MutableDictionaryExtension.m */,
+				1A8A37540B960337007D20B8 /* NSMutableDictionaryOOExtensions.m */,
+				1A8A37550B960337007D20B8 /* NSMutableDictionaryOOExtensions.h */,
 				25161131099544390037C2E1 /* ScannerExtension.h */,
 				25161130099544390037C2E1 /* ScannerExtension.m */,
 				083325DB09DDBCDE00F5B8E4 /* OOColor.h */,
@@ -1270,7 +1270,6 @@
 				25161168099544390037C2E1 /* OOSound.h in Headers */,
 				2516116C099544390037C2E1 /* OOFileManager.h in Headers */,
 				2516116E099544390037C2E1 /* OOCharacter.h in Headers */,
-				25161174099544390037C2E1 /* MutableDictionaryExtension.h in Headers */,
 				25161179099544390037C2E1 /* GuiDisplayGen.h in Headers */,
 				2516117E099544390037C2E1 /* HeadUpDisplay.h in Headers */,
 				25161181099544390037C2E1 /* RingEntity.h in Headers */,
@@ -1297,6 +1296,7 @@
 				1AD9AFB50B91E24C00FB704E /* PlayerEntityControls.h in Headers */,
 				1AD9AFB80B91E24C00FB704E /* PlayerEntityAdditions.h in Headers */,
 				1A8A37050B95CADD007D20B8 /* PlayerEntityLoadSave.h in Headers */,
+				1A8A37570B960337007D20B8 /* NSMutableDictionaryOOExtensions.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1634,7 +1634,6 @@
 				2516116F099544390037C2E1 /* Entity.m in Sources */,
 				25161178099544390037C2E1 /* GuiDisplayGen.m in Sources */,
 				2516117D099544390037C2E1 /* HeadUpDisplay.m in Sources */,
-				2516117F099544390037C2E1 /* MutableDictionaryExtension.m in Sources */,
 				25161180099544390037C2E1 /* RingEntity.m in Sources */,
 				25161182099544390037C2E1 /* ScannerExtension.m in Sources */,
 				25161187099544390037C2E1 /* StationEntity.m in Sources */,
@@ -1659,6 +1658,7 @@
 				1AD9AFB60B91E24C00FB704E /* PlayerEntityContracts.m in Sources */,
 				1AD9AFB70B91E24C00FB704E /* PlayerEntityAdditions.m in Sources */,
 				1A8A37040B95CADD007D20B8 /* PlayerEntityLoadSave.m in Sources */,
+				1A8A37560B960337007D20B8 /* NSMutableDictionaryOOExtensions.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
