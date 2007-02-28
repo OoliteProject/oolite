@@ -46,6 +46,9 @@
 		1A8A394F0B96229C007D20B8 /* NSFileManagerOOExtensions.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A8A394D0B96229C007D20B8 /* NSFileManagerOOExtensions.h */; };
 		1A8A39E30B962823007D20B8 /* PlayerEntityScripting.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A8A39E10B962823007D20B8 /* PlayerEntityScripting.m */; };
 		1A8A39E40B962823007D20B8 /* PlayerEntityScripting.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A8A39E20B962823007D20B8 /* PlayerEntityScripting.h */; };
+		1A8A39FF0B96295D007D20B8 /* ShipEntity.m in Sources */ = {isa = PBXBuildFile; fileRef = 2516113B099544390037C2E1 /* ShipEntity.m */; };
+		1A8A3A380B962AEF007D20B8 /* NSScannerOOExtensions.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A8A3A360B962AEF007D20B8 /* NSScannerOOExtensions.h */; };
+		1A8A3A390B962AEF007D20B8 /* NSScannerOOExtensions.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A8A3A370B962AEF007D20B8 /* NSScannerOOExtensions.m */; };
 		1AD9AFA60B91E24100FB704E /* ShipEntityAI.m in Sources */ = {isa = PBXBuildFile; fileRef = 1AD9AFA40B91E24100FB704E /* ShipEntityAI.m */; };
 		1AD9AFA70B91E24100FB704E /* ShipEntityAI.h in Headers */ = {isa = PBXBuildFile; fileRef = 1AD9AFA50B91E24100FB704E /* ShipEntityAI.h */; };
 		1AD9AFB10B91E24C00FB704E /* PlayerEntityContracts.h in Headers */ = {isa = PBXBuildFile; fileRef = 1AD9AFA90B91E24C00FB704E /* PlayerEntityContracts.h */; };
@@ -115,8 +118,6 @@
 		2516117E099544390037C2E1 /* HeadUpDisplay.h in Headers */ = {isa = PBXBuildFile; fileRef = 2516112C099544390037C2E1 /* HeadUpDisplay.h */; };
 		25161180099544390037C2E1 /* RingEntity.m in Sources */ = {isa = PBXBuildFile; fileRef = 2516112E099544390037C2E1 /* RingEntity.m */; };
 		25161181099544390037C2E1 /* RingEntity.h in Headers */ = {isa = PBXBuildFile; fileRef = 2516112F099544390037C2E1 /* RingEntity.h */; };
-		25161182099544390037C2E1 /* ScannerExtension.m in Sources */ = {isa = PBXBuildFile; fileRef = 25161130099544390037C2E1 /* ScannerExtension.m */; };
-		25161183099544390037C2E1 /* ScannerExtension.h in Headers */ = {isa = PBXBuildFile; fileRef = 25161131099544390037C2E1 /* ScannerExtension.h */; };
 		25161186099544390037C2E1 /* TextureStore.h in Headers */ = {isa = PBXBuildFile; fileRef = 25161134099544390037C2E1 /* TextureStore.h */; };
 		25161187099544390037C2E1 /* StationEntity.m in Sources */ = {isa = PBXBuildFile; fileRef = 25161135099544390037C2E1 /* StationEntity.m */; };
 		25161188099544390037C2E1 /* StationEntity.h in Headers */ = {isa = PBXBuildFile; fileRef = 25161136099544390037C2E1 /* StationEntity.h */; };
@@ -418,6 +419,8 @@
 		1A8A394D0B96229C007D20B8 /* NSFileManagerOOExtensions.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = NSFileManagerOOExtensions.h; path = src/Core/NSFileManagerOOExtensions.h; sourceTree = "<group>"; };
 		1A8A39E10B962823007D20B8 /* PlayerEntityScripting.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = PlayerEntityScripting.m; path = src/Core/PlayerEntityScripting.m; sourceTree = "<group>"; };
 		1A8A39E20B962823007D20B8 /* PlayerEntityScripting.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = PlayerEntityScripting.h; path = src/Core/PlayerEntityScripting.h; sourceTree = "<group>"; };
+		1A8A3A360B962AEF007D20B8 /* NSScannerOOExtensions.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = NSScannerOOExtensions.h; path = src/Core/NSScannerOOExtensions.h; sourceTree = "<group>"; };
+		1A8A3A370B962AEF007D20B8 /* NSScannerOOExtensions.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = NSScannerOOExtensions.m; path = src/Core/NSScannerOOExtensions.m; sourceTree = "<group>"; };
 		1AD9AFA40B91E24100FB704E /* ShipEntityAI.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = ShipEntityAI.m; path = src/Core/ShipEntityAI.m; sourceTree = "<group>"; };
 		1AD9AFA50B91E24100FB704E /* ShipEntityAI.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = ShipEntityAI.h; path = src/Core/ShipEntityAI.h; sourceTree = "<group>"; };
 		1AD9AFA90B91E24C00FB704E /* PlayerEntityContracts.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = PlayerEntityContracts.h; path = src/Core/PlayerEntityContracts.h; sourceTree = "<group>"; };
@@ -487,8 +490,6 @@
 		2516112C099544390037C2E1 /* HeadUpDisplay.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = HeadUpDisplay.h; path = src/Core/HeadUpDisplay.h; sourceTree = "<group>"; };
 		2516112E099544390037C2E1 /* RingEntity.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = RingEntity.m; path = src/Core/RingEntity.m; sourceTree = "<group>"; };
 		2516112F099544390037C2E1 /* RingEntity.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = RingEntity.h; path = src/Core/RingEntity.h; sourceTree = "<group>"; };
-		25161130099544390037C2E1 /* ScannerExtension.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = ScannerExtension.m; path = src/Core/ScannerExtension.m; sourceTree = "<group>"; };
-		25161131099544390037C2E1 /* ScannerExtension.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = ScannerExtension.h; path = src/Core/ScannerExtension.h; sourceTree = "<group>"; };
 		25161134099544390037C2E1 /* TextureStore.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = TextureStore.h; path = src/Core/TextureStore.h; sourceTree = "<group>"; };
 		25161135099544390037C2E1 /* StationEntity.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = StationEntity.m; path = src/Core/StationEntity.m; sourceTree = "<group>"; };
 		25161136099544390037C2E1 /* StationEntity.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = StationEntity.h; path = src/Core/StationEntity.h; sourceTree = "<group>"; };
@@ -1113,14 +1114,14 @@
 				2512834509BA281500F43D55 /* CollisionRegion.m */,
 				25161100099544380037C2E1 /* OpenGLSprite.h */,
 				251610FF099544380037C2E1 /* OpenGLSprite.m */,
-				25161102099544380037C2E1 /* OOXMLExtensions.m */,
 				25161107099544390037C2E1 /* OOXMLExtensions.h */,
-				1A8A37540B960337007D20B8 /* NSMutableDictionaryOOExtensions.m */,
+				25161102099544380037C2E1 /* OOXMLExtensions.m */,
 				1A8A37550B960337007D20B8 /* NSMutableDictionaryOOExtensions.h */,
-				1A8A394C0B96229C007D20B8 /* NSFileManagerOOExtensions.m */,
+				1A8A37540B960337007D20B8 /* NSMutableDictionaryOOExtensions.m */,
 				1A8A394D0B96229C007D20B8 /* NSFileManagerOOExtensions.h */,
-				25161131099544390037C2E1 /* ScannerExtension.h */,
-				25161130099544390037C2E1 /* ScannerExtension.m */,
+				1A8A394C0B96229C007D20B8 /* NSFileManagerOOExtensions.m */,
+				1A8A3A360B962AEF007D20B8 /* NSScannerOOExtensions.h */,
+				1A8A3A370B962AEF007D20B8 /* NSScannerOOExtensions.m */,
 				083325DB09DDBCDE00F5B8E4 /* OOColor.h */,
 				083325DC09DDBCDE00F5B8E4 /* OOColor.m */,
 				25161017099543850037C2E1 /* Audio */,
@@ -1263,7 +1264,6 @@
 				25161179099544390037C2E1 /* GuiDisplayGen.h in Headers */,
 				2516117E099544390037C2E1 /* HeadUpDisplay.h in Headers */,
 				25161181099544390037C2E1 /* RingEntity.h in Headers */,
-				25161183099544390037C2E1 /* ScannerExtension.h in Headers */,
 				25161186099544390037C2E1 /* TextureStore.h in Headers */,
 				25161188099544390037C2E1 /* StationEntity.h in Headers */,
 				2516118C099544390037C2E1 /* ResourceManager.h in Headers */,
@@ -1288,6 +1288,7 @@
 				1A8A37570B960337007D20B8 /* NSMutableDictionaryOOExtensions.h in Headers */,
 				1A8A394F0B96229C007D20B8 /* NSFileManagerOOExtensions.h in Headers */,
 				1A8A39E40B962823007D20B8 /* PlayerEntityScripting.h in Headers */,
+				1A8A3A380B962AEF007D20B8 /* NSScannerOOExtensions.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1625,7 +1626,6 @@
 				25161178099544390037C2E1 /* GuiDisplayGen.m in Sources */,
 				2516117D099544390037C2E1 /* HeadUpDisplay.m in Sources */,
 				25161180099544390037C2E1 /* RingEntity.m in Sources */,
-				25161182099544390037C2E1 /* ScannerExtension.m in Sources */,
 				25161187099544390037C2E1 /* StationEntity.m in Sources */,
 				2516118B099544390037C2E1 /* ResourceManager.m in Sources */,
 				25161195099544390037C2E1 /* Universe.m in Sources */,
@@ -1649,6 +1649,8 @@
 				1A8A37560B960337007D20B8 /* NSMutableDictionaryOOExtensions.m in Sources */,
 				1A8A394E0B96229C007D20B8 /* NSFileManagerOOExtensions.m in Sources */,
 				1A8A39E30B962823007D20B8 /* PlayerEntityScripting.m in Sources */,
+				1A8A39FF0B96295D007D20B8 /* ShipEntity.m in Sources */,
+				1A8A3A390B962AEF007D20B8 /* NSScannerOOExtensions.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
