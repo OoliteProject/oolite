@@ -47,7 +47,7 @@ Your fair use and other rights are in no way affected by the above.
 #import "AI.h"
 #import "MyOpenGLView.h"
 #import "OOSound.h"
-#import "LoadSave.h"
+#import "PlayerEntityLoadSave.h"
 
 // TODO: ifdef HAVE_STICK might be better.
 #ifdef GNUSTEP

@@ -23,7 +23,7 @@ MA 02110-1301, USA.
 
 */
 
-#import "LoadSave.h"
+#import "PlayerEntityLoadSave.h"
 #import "OOFileManager.h"
 #import "GameController.h"
 #import "PlayerEntityControls.h"

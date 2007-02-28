@@ -53,7 +53,7 @@ Your fair use and other rights are in no way affected by the above.
 #import "AI.h"
 #import "MyOpenGLView.h"
 #import "OOTrumble.h"
-#import "LoadSave.h"
+#import "PlayerEntityLoadSave.h"
 #import "OOSound.h"
 #import "OOColor.h"
 
