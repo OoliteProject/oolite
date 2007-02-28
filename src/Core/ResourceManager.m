@@ -41,7 +41,7 @@ Your fair use and other rights are in no way affected by the above.
 
 #import "ResourceManager.h"
 #import "ScannerExtension.h"
-#import "MutableDictionaryExtension.h"
+#import "NSMutableDictionaryOOExtensions.h"
 #import "OOSound.h"
 
 extern NSDictionary* parseScripts(NSString* script);
