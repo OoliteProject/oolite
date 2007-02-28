@@ -23,7 +23,6 @@ MA 02110-1301, USA.
 */
 
 #import "PlayerEntity.h"
-#import "PlayerEntityScripting.h"
 #import "GuiDisplayGen.h"
 #import "Universe.h"
 #import "ResourceManager.h"
