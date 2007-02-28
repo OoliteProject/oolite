@@ -38,6 +38,8 @@
 		1A5BF2EA0916D50900BF238F /* Oolite.mdimporter in Copy MDImporter */ = {isa = PBXBuildFile; fileRef = 1A5BF2D50916D50100BF238F /* Oolite.mdimporter */; };
 		1A81F7090A7BAC4D006580AD /* OOCAMusic.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A81F7070A7BAC4D006580AD /* OOCAMusic.m */; };
 		1A81F70A0A7BAC4D006580AD /* OOCAMusic.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A81F7080A7BAC4D006580AD /* OOCAMusic.h */; };
+		1A8A37040B95CADD007D20B8 /* PlayerEntityLoadSave.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A8A37020B95CADD007D20B8 /* PlayerEntityLoadSave.m */; };
+		1A8A37050B95CADD007D20B8 /* PlayerEntityLoadSave.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A8A37030B95CADD007D20B8 /* PlayerEntityLoadSave.h */; };
 		1AD9AFA60B91E24100FB704E /* ShipEntityAI.m in Sources */ = {isa = PBXBuildFile; fileRef = 1AD9AFA40B91E24100FB704E /* ShipEntityAI.m */; };
 		1AD9AFA70B91E24100FB704E /* ShipEntityAI.h in Headers */ = {isa = PBXBuildFile; fileRef = 1AD9AFA50B91E24100FB704E /* ShipEntityAI.h */; };
 		1AD9AFB10B91E24C00FB704E /* PlayerEntityContracts.h in Headers */ = {isa = PBXBuildFile; fileRef = 1AD9AFA90B91E24C00FB704E /* PlayerEntityContracts.h */; };
@@ -107,8 +109,6 @@
 		2516116E099544390037C2E1 /* OOCharacter.h in Headers */ = {isa = PBXBuildFile; fileRef = 2516111C099544390037C2E1 /* OOCharacter.h */; };
 		2516116F099544390037C2E1 /* Entity.m in Sources */ = {isa = PBXBuildFile; fileRef = 2516111D099544390037C2E1 /* Entity.m */; };
 		25161174099544390037C2E1 /* MutableDictionaryExtension.h in Headers */ = {isa = PBXBuildFile; fileRef = 25161122099544390037C2E1 /* MutableDictionaryExtension.h */; };
-		25161175099544390037C2E1 /* LoadSave.m in Sources */ = {isa = PBXBuildFile; fileRef = 25161123099544390037C2E1 /* LoadSave.m */; };
-		25161176099544390037C2E1 /* LoadSave.h in Headers */ = {isa = PBXBuildFile; fileRef = 25161124099544390037C2E1 /* LoadSave.h */; };
 		25161178099544390037C2E1 /* GuiDisplayGen.m in Sources */ = {isa = PBXBuildFile; fileRef = 25161126099544390037C2E1 /* GuiDisplayGen.m */; };
 		25161179099544390037C2E1 /* GuiDisplayGen.h in Headers */ = {isa = PBXBuildFile; fileRef = 25161127099544390037C2E1 /* GuiDisplayGen.h */; };
 		2516117D099544390037C2E1 /* HeadUpDisplay.m in Sources */ = {isa = PBXBuildFile; fileRef = 2516112B099544390037C2E1 /* HeadUpDisplay.m */; };
@@ -393,7 +393,7 @@
 		083325DC09DDBCDE00F5B8E4 /* OOColor.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = OOColor.m; path = src/Core/OOColor.m; sourceTree = "<group>"; };
 		083DB4D30A70E51E00B419B2 /* OOBrain.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = OOBrain.h; path = src/Core/OOBrain.h; sourceTree = "<group>"; };
 		083DB4D40A70E51E00B419B2 /* OOBrain.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = OOBrain.m; path = src/Core/OOBrain.m; sourceTree = "<group>"; };
-		0865432206B8447D000CA0AB /* Oolite.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = Oolite.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		0865432206B8447D000CA0AB /* OoliteDev.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = OoliteDev.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		0878FD2F086EF845004CB752 /* Carbon.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Carbon.framework; path = /System/Library/Frameworks/Carbon.framework; sourceTree = "<absolute>"; };
 		088496DE0A4C1D1B00F32928 /* gotoWaypointAI.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist; name = gotoWaypointAI.plist; path = Resources/AIs/gotoWaypointAI.plist; sourceTree = "<group>"; };
 		088496DF0A4C1D1B00F32928 /* receiveDockingAI.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist; name = receiveDockingAI.plist; path = Resources/AIs/receiveDockingAI.plist; sourceTree = "<group>"; };
@@ -412,6 +412,8 @@
 		1A5BF2D50916D50100BF238F /* Oolite.mdimporter */ = {isa = PBXFileReference; explicitFileType = wrapper; name = Oolite.mdimporter; path = "Oolite-importer/build/Universal/Oolite.mdimporter"; sourceTree = "<group>"; };
 		1A81F7070A7BAC4D006580AD /* OOCAMusic.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = OOCAMusic.m; path = src/Cocoa/OOCAMusic.m; sourceTree = "<group>"; };
 		1A81F7080A7BAC4D006580AD /* OOCAMusic.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = OOCAMusic.h; path = src/Cocoa/OOCAMusic.h; sourceTree = "<group>"; };
+		1A8A37020B95CADD007D20B8 /* PlayerEntityLoadSave.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = PlayerEntityLoadSave.m; path = src/Core/PlayerEntityLoadSave.m; sourceTree = "<group>"; };
+		1A8A37030B95CADD007D20B8 /* PlayerEntityLoadSave.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = PlayerEntityLoadSave.h; path = src/Core/PlayerEntityLoadSave.h; sourceTree = "<group>"; };
 		1AD9AFA40B91E24100FB704E /* ShipEntityAI.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = ShipEntityAI.m; path = src/Core/ShipEntityAI.m; sourceTree = "<group>"; };
 		1AD9AFA50B91E24100FB704E /* ShipEntityAI.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = ShipEntityAI.h; path = src/Core/ShipEntityAI.h; sourceTree = "<group>"; };
 		1AD9AFA90B91E24C00FB704E /* PlayerEntityContracts.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = PlayerEntityContracts.h; path = src/Core/PlayerEntityContracts.h; sourceTree = "<group>"; };
@@ -483,8 +485,6 @@
 		2516111C099544390037C2E1 /* OOCharacter.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = OOCharacter.h; path = src/Core/OOCharacter.h; sourceTree = "<group>"; };
 		2516111D099544390037C2E1 /* Entity.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = Entity.m; path = src/Core/Entity.m; sourceTree = "<group>"; };
 		25161122099544390037C2E1 /* MutableDictionaryExtension.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = MutableDictionaryExtension.h; path = src/Core/MutableDictionaryExtension.h; sourceTree = "<group>"; };
-		25161123099544390037C2E1 /* LoadSave.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = LoadSave.m; path = src/Core/LoadSave.m; sourceTree = "<group>"; };
-		25161124099544390037C2E1 /* LoadSave.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = LoadSave.h; path = src/Core/LoadSave.h; sourceTree = "<group>"; };
 		25161126099544390037C2E1 /* GuiDisplayGen.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = GuiDisplayGen.m; path = src/Core/GuiDisplayGen.m; sourceTree = "<group>"; };
 		25161127099544390037C2E1 /* GuiDisplayGen.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = GuiDisplayGen.h; path = src/Core/GuiDisplayGen.h; sourceTree = "<group>"; };
 		2516112B099544390037C2E1 /* HeadUpDisplay.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = HeadUpDisplay.m; path = src/Core/HeadUpDisplay.m; sourceTree = "<group>"; };
@@ -1026,7 +1026,7 @@
 		19C28FACFE9D520D11CA2CBB /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				0865432206B8447D000CA0AB /* Oolite.app */,
+				0865432206B8447D000CA0AB /* OoliteDev.app */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -1066,8 +1066,6 @@
 				25161145099544390037C2E1 /* TextureStore.m */,
 				25161139099544390037C2E1 /* ResourceManager.m */,
 				2516113A099544390037C2E1 /* ResourceManager.h */,
-				25161124099544390037C2E1 /* LoadSave.h */,
-				25161123099544390037C2E1 /* LoadSave.m */,
 				2516111A099544390037C2E1 /* OOFileManager.h */,
 				25161119099544390037C2E1 /* OOFileManager.m */,
 				25161111099544390037C2E1 /* OOSoundSource.h */,
@@ -1103,6 +1101,8 @@
 				1AD9AFAC0B91E24C00FB704E /* PlayerEntityControls.m */,
 				1AD9AFAB0B91E24C00FB704E /* PlayerEntitySound.h */,
 				1AD9AFAA0B91E24C00FB704E /* PlayerEntitySound.m */,
+				1A8A37020B95CADD007D20B8 /* PlayerEntityLoadSave.m */,
+				1A8A37030B95CADD007D20B8 /* PlayerEntityLoadSave.h */,
 				25161106099544390037C2E1 /* AI.h */,
 				25161101099544380037C2E1 /* AI.m */,
 				2516112C099544390037C2E1 /* HeadUpDisplay.h */,
@@ -1271,7 +1271,6 @@
 				2516116C099544390037C2E1 /* OOFileManager.h in Headers */,
 				2516116E099544390037C2E1 /* OOCharacter.h in Headers */,
 				25161174099544390037C2E1 /* MutableDictionaryExtension.h in Headers */,
-				25161176099544390037C2E1 /* LoadSave.h in Headers */,
 				25161179099544390037C2E1 /* GuiDisplayGen.h in Headers */,
 				2516117E099544390037C2E1 /* HeadUpDisplay.h in Headers */,
 				25161181099544390037C2E1 /* RingEntity.h in Headers */,
@@ -1297,6 +1296,7 @@
 				1AD9AFB30B91E24C00FB704E /* PlayerEntitySound.h in Headers */,
 				1AD9AFB50B91E24C00FB704E /* PlayerEntityControls.h in Headers */,
 				1AD9AFB80B91E24C00FB704E /* PlayerEntityAdditions.h in Headers */,
+				1A8A37050B95CADD007D20B8 /* PlayerEntityLoadSave.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1324,7 +1324,7 @@
 			name = Oolite;
 			productInstallPath = "$(HOME)/Applications";
 			productName = Oolite;
-			productReference = 0865432206B8447D000CA0AB /* Oolite.app */;
+			productReference = 0865432206B8447D000CA0AB /* OoliteDev.app */;
 			productType = "com.apple.product-type.application";
 		};
 /* End PBXNativeTarget section */
@@ -1632,7 +1632,6 @@
 				2516116B099544390037C2E1 /* OOFileManager.m in Sources */,
 				2516116D099544390037C2E1 /* OOCharacter.m in Sources */,
 				2516116F099544390037C2E1 /* Entity.m in Sources */,
-				25161175099544390037C2E1 /* LoadSave.m in Sources */,
 				25161178099544390037C2E1 /* GuiDisplayGen.m in Sources */,
 				2516117D099544390037C2E1 /* HeadUpDisplay.m in Sources */,
 				2516117F099544390037C2E1 /* MutableDictionaryExtension.m in Sources */,
@@ -1659,6 +1658,7 @@
 				1AD9AFB40B91E24C00FB704E /* PlayerEntityControls.m in Sources */,
 				1AD9AFB60B91E24C00FB704E /* PlayerEntityContracts.m in Sources */,
 				1AD9AFB70B91E24C00FB704E /* PlayerEntityAdditions.m in Sources */,
+				1A8A37040B95CADD007D20B8 /* PlayerEntityLoadSave.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
