@@ -1,7 +1,6 @@
 /*
 
 OOXMLExtensions.h
-Created by Giles Williams on 2005-10-26.
 
 Extensions to Foundation property list classes to export property lists in
 XML format, which both Cocoa and GNUstep can read. This is done because
@@ -10,8 +9,8 @@ that Cocoa can't understand. The XML format is understood by both
 implementations, although GNUstep complains about not being able to find the
 DTD:
 
-For Oolite
-Copyright (C) 2005  Giles C Williams
+Oolite
+Copyright (C) 2004-2007 Giles C Williams and contributors
 
 This program is free software; you can redistribute it and/or
 modify it under the terms of the GNU General Public License

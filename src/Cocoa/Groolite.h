@@ -9,8 +9,8 @@ more about Growl, see <http://growl.info>.
 To do: reimplement using delegate pattern, remove dependency on Growl
 framework headers (the framework is not needed at run time).
 
-For Oolite
-Copyright (C) 2005  Jens Ayton and Giles C Williams
+Oolite
+Copyright (C) 2004-2007 Giles C Williams and contributors
 
 This program is free software; you can redistribute it and/or
 modify it under the terms of the GNU General Public License

@@ -1,13 +1,12 @@
 /*
 
 legacy_random.h
-Created by Giles Williams on 2004-04-03.
 
 Pseudo-random number generator designed to produce identical results to that
 used in BBC Elite (for dynamic world generation), and related functions.
 
-For Oolite
-Copyright (C) 2004  Giles C Williams
+Oolite
+Copyright (C) 2004-2007 Giles C Williams and contributors
 
 This program is free software; you can redistribute it and/or
 modify it under the terms of the GNU General Public License

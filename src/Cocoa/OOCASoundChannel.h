@@ -8,7 +8,7 @@ This class is an implementation detail. Do not use it directly; use an
 OOSoundSource to play an OOSound.
 
 OOCASound - Core Audio sound implementation for Oolite.
-Copyright (C) 2005-2006  Jens Ayton
+Copyright (C) 2005-2006 Jens Ayton
 
 This program is free software; you can redistribute it and/or
 modify it under the terms of the GNU General Public License

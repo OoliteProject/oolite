@@ -1,10 +1,9 @@
 /*
 
 PlayerEntityLoadSave.m
-Created by Dylan Smith on 2005-06-21.
 
-For Oolite
-Copyright (C) 2005  Giles C Williams and Dylan Smith
+Oolite
+Copyright (C) 2004-2007 Giles C Williams and contributors
 
 This program is free software; you can redistribute it and/or
 modify it under the terms of the GNU General Public License

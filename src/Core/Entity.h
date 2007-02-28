@@ -1,10 +1,9 @@
 /*
 
 Entity.h
-Created by Giles Williams on 2004-04-03.
 
-For Oolite
-Copyright (C) 2004  Giles C Williams
+Oolite
+Copyright (C) 2004-2007 Giles C Williams and contributors
 
 Base class for entities, i.e. drawable world objects.
 

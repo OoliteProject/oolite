@@ -3,7 +3,7 @@
 StringTokeniser.m
 
 Script Compiler for Oolite
-Copyright (C) 2006  David Taylor
+Copyright (C) 2006 David Taylor
 
 This program is free software; you can redistribute it and/or
 modify it under the terms of the GNU General Public License

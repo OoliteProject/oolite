@@ -1,13 +1,12 @@
 /*
 
 legacy_random.c
-Created by Giles Williams on 2004-04-03.
 
 Class handling interface elements, primarily text, that are not part of the 3D
 game world, together with GuiDisplayGen.
 
-For Oolite
-Copyright (C) 2004  Giles C Williams
+Oolite
+Copyright (C) 2004-2007 Giles C Williams and contributors
 
 This program is free software; you can redistribute it and/or
 modify it under the terms of the GNU General Public License

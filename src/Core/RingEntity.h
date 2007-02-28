@@ -4,8 +4,8 @@ RingEntity.h
 
 Entity implementing tunnel effect for hyperspace and stations.
 
-For Oolite
-Copyright (C) 2004  Giles C Williams
+Oolite
+Copyright (C) 2004-2007 Giles C Williams and contributors
 
 This program is free software; you can redistribute it and/or
 modify it under the terms of the GNU General Public License

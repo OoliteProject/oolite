@@ -1,13 +1,12 @@
 /*
 
 Geometry.h
-Created by Giles Williams on 2006-01-30.
 
 Class for reasoning about triangle meshes, in particular for the creation of
 octtrees for collision-detection purposes.
 
-For Oolite
-Copyright (C) 2006  Giles C Williams
+Oolite
+Copyright (C) 2004-2007 Giles C Williams and contributors
 
 This program is free software; you can redistribute it and/or
 modify it under the terms of the GNU General Public License

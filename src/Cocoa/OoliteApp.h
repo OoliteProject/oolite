@@ -1,7 +1,6 @@
 /*
 
 OoliteApp.h
-Created by Giles Williams on 2005-05-01.
 
 This is a subclass of NSApplication for Oolite.
 
@@ -10,8 +9,8 @@ and NSKeyUp) before MyOpenGLView gets to see them, it does this by sending
 those events to MyOpenGLView regardless of any other processing NSApplication
 will do with them.
 
-For Oolite
-Copyright (C) 2005  Giles C Williams
+Oolite
+Copyright (C) 2004-2007 Giles C Williams and contributors
 
 This program is free software; you can redistribute it and/or
 modify it under the terms of the GNU General Public License

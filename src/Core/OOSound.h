@@ -1,7 +1,6 @@
 /*
 
 OOSound.h
-Created by Dylan Smith on 2005-04-22.
 
 Dispatch header to select the appropriate implementation of OOSound.
 
@@ -22,8 +21,8 @@ There are four public sound classes:
 		   no practical purpose.
 
 
-For Oolite
-Copyright (C) 2005-2007  Dylan Smith and Jens Ayton
+Oolite
+Copyright (C) 2004-2007 Giles C Williams and contributors
 
 This program is free software; you can redistribute it and/or
 modify it under the terms of the GNU General Public License

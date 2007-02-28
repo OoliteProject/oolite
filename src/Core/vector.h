@@ -1,10 +1,9 @@
 /*
 
 vector.h
-Created by Giles Williams on 2004-04-03.
 
-For Oolite
-Copyright (C) 2004  Giles C Williams
+Oolite
+Copyright (C) 2004-2007 Giles C Williams and contributors
 
 Provides utility routines for Vectors, Quaternions, rotation matrices, and
 conversion to OpenGL transformation matrices.

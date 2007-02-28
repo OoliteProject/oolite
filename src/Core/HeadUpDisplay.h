@@ -1,12 +1,11 @@
 /*
 
 HeadUpDisplay.h
-Created by Giles Williams on 2004-07-30.
 
 Class handling the player ship’s heads-up display, and 2D drawing functions.
 
-For Oolite
-Copyright (C) 2004  Giles C Williams
+Oolite
+Copyright (C) 2004-2007 Giles C Williams and contributors
 
 This program is free software; you can redistribute it and/or
 modify it under the terms of the GNU General Public License

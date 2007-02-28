@@ -9,7 +9,7 @@ has a number of attributes related to positional audio (which is currently
 unimplemented).
 
 OOCASound - Core Audio sound implementation for Oolite.
-Copyright (C) 2005-2006  Jens Ayton
+Copyright (C) 2005-2006 Jens Ayton
 
 This program is free software; you can redistribute it and/or
 modify it under the terms of the GNU General Public License

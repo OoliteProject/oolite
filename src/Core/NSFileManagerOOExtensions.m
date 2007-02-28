@@ -1,14 +1,13 @@
 /*
 
 NSFileManagerOOExtensions.m
-Created by Dylan Smith on 2005-07-02.
 
 This extends NSFileManager and adds some methods to insulate the
 main oolite code from the gory details of creating/chdiring to the
 commander save directory.
 
-For Oolite
-Copyright (C) 2005  Giles Williams
+Oolite
+Copyright (C) 2004-2007 Giles C Williams and contributors
 
 This program is free software; you can redistribute it and/or
 modify it under the terms of the GNU General Public License
