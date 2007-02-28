@@ -1,19 +1,27 @@
-/* */
-//
-// LoadSave.m
-//
-// Created for the Oolite-Linux project (but is portable)
-//
-// Dylan Smith, 2005-06-21
-//
-// LoadSave has been separated out into a separate category because
-// PlayerEntity.m has gotten far too big and is in danger of becoming
-// the whole general mish mash.
-//
-// oolite: (c) 2004 Giles C Williams.
-// This work is licensed under the Creative Commons Attribution NonCommercial
-// ShareAlike license.
-//
+/*
+
+PlayerEntityLoadSave.m
+Created by Dylan Smith on 2005-06-21.
+
+For Oolite
+Copyright (C) 2005  Giles C Williams and Dylan Smith
+
+This program is free software; you can redistribute it and/or
+modify it under the terms of the GNU General Public License
+as published by the Free Software Foundation; either version 2
+of the License, or (at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program; if not, write to the Free Software
+Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
+MA 02110-1301, USA.
+
+*/
 
 #import "LoadSave.h"
 #import "OOFileManager.h"
