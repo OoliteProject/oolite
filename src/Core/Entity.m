@@ -34,7 +34,7 @@ MA 02110-1301, USA.
 
 #import "CollisionRegion.h" // gets rid of a compilation warning
 
-#import "ScannerExtension.h"
+#import "NSScannerOOExtensions.h"
 
 // global flag for VAR
 BOOL global_usingVAR;

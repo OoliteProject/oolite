@@ -24,7 +24,7 @@ MA 02110-1301, USA.
 
 #import <Foundation/Foundation.h>
 
-#import "ScannerExtension.h"
+#import "NSScannerOOExtensions.h"
 
 @implementation NSScanner (OOExtensions)
 
