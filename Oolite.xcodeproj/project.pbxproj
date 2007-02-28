@@ -102,7 +102,6 @@
 		2516115F099544390037C2E1 /* SkyEntity.m in Sources */ = {isa = PBXBuildFile; fileRef = 2516110D099544390037C2E1 /* SkyEntity.m */; };
 		25161160099544390037C2E1 /* SkyEntity.h in Headers */ = {isa = PBXBuildFile; fileRef = 2516110E099544390037C2E1 /* SkyEntity.h */; };
 		25161162099544390037C2E1 /* OOTrumble.h in Headers */ = {isa = PBXBuildFile; fileRef = 25161110099544390037C2E1 /* OOTrumble.h */; };
-		25161163099544390037C2E1 /* OOSoundSource.h in Headers */ = {isa = PBXBuildFile; fileRef = 25161111099544390037C2E1 /* OOSoundSource.h */; };
 		25161166099544390037C2E1 /* DustEntity.m in Sources */ = {isa = PBXBuildFile; fileRef = 25161114099544390037C2E1 /* DustEntity.m */; };
 		25161168099544390037C2E1 /* OOSound.h in Headers */ = {isa = PBXBuildFile; fileRef = 25161116099544390037C2E1 /* OOSound.h */; };
 		2516116B099544390037C2E1 /* OOFileManager.m in Sources */ = {isa = PBXBuildFile; fileRef = 25161119099544390037C2E1 /* OOFileManager.m */; };
@@ -433,8 +432,6 @@
 		2512834409BA281500F43D55 /* CollisionRegion.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = CollisionRegion.h; path = src/Core/CollisionRegion.h; sourceTree = "<group>"; };
 		2512834509BA281500F43D55 /* CollisionRegion.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = CollisionRegion.m; path = src/Core/CollisionRegion.m; sourceTree = "<group>"; };
 		25160E2E0995362F0037C2E1 /* OOCocoa.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = OOCocoa.h; path = src/Core/OOCocoa.h; sourceTree = "<group>"; };
-		25160E67099539D50037C2E1 /* libOgg.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libOgg.a; path = "Cocoa-deps/Ogg Vorbis/libOgg.a"; sourceTree = "<group>"; };
-		25160E68099539D50037C2E1 /* libVorbisAll.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libVorbisAll.a; path = "Cocoa-deps/Ogg Vorbis/libVorbisAll.a"; sourceTree = "<group>"; };
 		251610CA099544090037C2E1 /* OOCABufferedSound.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = OOCABufferedSound.h; path = src/Cocoa/OOCABufferedSound.h; sourceTree = "<group>"; };
 		251610CB099544090037C2E1 /* OOCASoundMixer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = OOCASoundMixer.h; path = src/Cocoa/OOCASoundMixer.h; sourceTree = "<group>"; };
 		251610CC099544090037C2E1 /* OOCASoundSource.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = OOCASoundSource.h; path = src/Cocoa/OOCASoundSource.h; sourceTree = "<group>"; };
@@ -478,7 +475,6 @@
 		2516110D099544390037C2E1 /* SkyEntity.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = SkyEntity.m; path = src/Core/SkyEntity.m; sourceTree = "<group>"; };
 		2516110E099544390037C2E1 /* SkyEntity.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = SkyEntity.h; path = src/Core/SkyEntity.h; sourceTree = "<group>"; };
 		25161110099544390037C2E1 /* OOTrumble.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = OOTrumble.h; path = src/Core/OOTrumble.h; sourceTree = "<group>"; };
-		25161111099544390037C2E1 /* OOSoundSource.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = OOSoundSource.h; path = src/Core/OOSoundSource.h; sourceTree = "<group>"; };
 		25161114099544390037C2E1 /* DustEntity.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = DustEntity.m; path = src/Core/DustEntity.m; sourceTree = "<group>"; };
 		25161116099544390037C2E1 /* OOSound.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = OOSound.h; path = src/Core/OOSound.h; sourceTree = "<group>"; };
 		25161119099544390037C2E1 /* OOFileManager.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = OOFileManager.m; path = src/Core/OOFileManager.m; sourceTree = "<group>"; };
@@ -1001,8 +997,8 @@
 		1058C7A0FEA54F0111CA2CBB /* Linked Frameworks */ = {
 			isa = PBXGroup;
 			children = (
-				25160E67099539D50037C2E1 /* libOgg.a */,
-				25160E68099539D50037C2E1 /* libVorbisAll.a */,
+				25F3E8E9099502BB002F25FD /* libOgg.a */,
+				25F3E8EA099502BB002F25FD /* libVorbisAll.a */,
 				0878FD2F086EF845004CB752 /* Carbon.framework */,
 				1058C7A1FEA54F0111CA2CBB /* Cocoa.framework */,
 				06AFA01500A58FB77F000001 /* OpenGL.framework */,
@@ -1068,7 +1064,6 @@
 				2516113A099544390037C2E1 /* ResourceManager.h */,
 				2516111A099544390037C2E1 /* OOFileManager.h */,
 				25161119099544390037C2E1 /* OOFileManager.m */,
-				25161111099544390037C2E1 /* OOSoundSource.h */,
 				25161144099544390037C2E1 /* Universe.h */,
 				25161143099544390037C2E1 /* Universe.m */,
 				25161104099544390037C2E1 /* Entity.h */,
@@ -1168,8 +1163,6 @@
 		29B97314FDCFA39411CA2CEA /* Oolite_GUSTO */ = {
 			isa = PBXGroup;
 			children = (
-				25F3E8E9099502BB002F25FD /* libOgg.a */,
-				25F3E8EA099502BB002F25FD /* libVorbisAll.a */,
 				0870F6230903F890002A598D /* Groolite */,
 				25F3E6300994F033002F25FD /* legacy_random.h */,
 				25F3E6320994F04C002F25FD /* legacy_random.c */,
@@ -1266,7 +1259,6 @@
 				2516115D099544390037C2E1 /* GameController.h in Headers */,
 				25161160099544390037C2E1 /* SkyEntity.h in Headers */,
 				25161162099544390037C2E1 /* OOTrumble.h in Headers */,
-				25161163099544390037C2E1 /* OOSoundSource.h in Headers */,
 				25161168099544390037C2E1 /* OOSound.h in Headers */,
 				2516116C099544390037C2E1 /* OOFileManager.h in Headers */,
 				2516116E099544390037C2E1 /* OOCharacter.h in Headers */,
@@ -1748,7 +1740,7 @@
 				MACOSX_DEPLOYMENT_TARGET_i386 = 10.4;
 				MACOSX_DEPLOYMENT_TARGET_ppc = 10.3;
 				OTHER_CFLAGS = "-DLOADSAVEGUI";
-				SDKROOT = /Developer/SDKs/MacOSX10.4u.sdk;
+				SDKROOT = /Developer/SDKs/MacOSX10.3.9.sdk;
 			};
 			name = Development;
 		};
@@ -1767,7 +1759,7 @@
 				MACOSX_DEPLOYMENT_TARGET_i386 = 10.4;
 				MACOSX_DEPLOYMENT_TARGET_ppc = 10.3;
 				OTHER_CFLAGS = "-DLOADSAVEGUI";
-				SDKROOT = /Developer/SDKs/MacOSX10.4u.sdk;
+				SDKROOT = /Developer/SDKs/MacOSX10.3.9.sdk;
 			};
 			name = Deployment;
 		};

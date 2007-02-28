@@ -1,4 +1,29 @@
-// Import OpenStep main headers and define some Macisms and other compatibility stuff.
+/*
+
+OOCocoa.h
+
+Import OpenStep main headers and define some Macisms and other compatibility
+stuff.
+
+For Oolite
+Copyright (C) 2004  Giles C Williams
+
+This program is free software; you can redistribute it and/or
+modify it under the terms of the GNU General Public License
+as published by the Free Software Foundation; either version 2
+of the License, or (at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program; if not, write to the Free Software
+Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
+MA 02110-1301, USA.
+
+*/
 
 #if defined(GNUSTEP) && !defined(OOLITE_SDL_MAC)
 #include <stdint.h>
@@ -113,11 +138,19 @@ enum {
 
 #else
 
-#define OOLITE_CACHE  [[[[NSHomeDirectory() \
-						stringByAppendingPathComponent:@"Library"] \
+#if MAC_OS_X_VERSION_10_4 <= MAC_OS_X_VERSION_MAX_ALLOWED
+#define OOLITE_CACHE  [[[NSSearchPathForDirectoriesInDomains(NSApplicationSupportDirectory, NSUserDomainMask, YES) \
+						objectAtIndex:0] \
+						stringByAppendingPathComponent:@"Oolite"] \
+						stringByAppendingPathComponent:@"cache"];
+#else
+#define OOLITE_CACHE  [[[[NSSearchPathForDirectoriesInDomains(NSLibraryDirectory, NSUserDomainMask, YES) \
+						objectAtIndex:0] \
 						stringByAppendingPathComponent:@"Application Support"] \
 						stringByAppendingPathComponent:@"Oolite"] \
 						stringByAppendingPathComponent:@"cache"];
+#endif
+
 #endif
 
 #import <math.h>

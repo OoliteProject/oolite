@@ -1,16 +1,55 @@
-// OOSound.h: Selects the appropriate sound class source file
-// depending on the operating system defined.
-//
-// Add new OS imports here. The -DOS_NAME flag in the GNUmakefile
-// will select which one gets compiled.
-//
-// Dylan Smith, 2005-04-22
+/*
+
+OOSound.h
+Created by Dylan Smith on 2005-04-22.
+
+Dispatch header to select the appropriate implementation of OOSound.
+
+Add new OS imports here. The -DOS_NAME flag in the GNUmakefile
+will select which one gets compiled.
+
+
+== Overview of Oolite sound architecture ==
+There are four public sound classes:
+* OOSound: represents a sound, i.e. some data that can be played.
+* OOMusic: subclass of OOSound with support for looping, and the special
+           constraint that only one OOMusic may play at a time.
+* OOSoundSource: a thing that can play a sound. Each sound played is
+           conceptually played through a sound source, although this can be
+		   implicit using OOSound's -play method.
+* OOSoundReferencePoint: a point in space relative to which a sound source is
+           positioned. Since positional sound is not implemented, this serves
+		   no practical purpose.
+
+
+For Oolite
+Copyright (C) 2005-2007  Dylan Smith and Jens Ayton
+
+This program is free software; you can redistribute it and/or
+modify it under the terms of the GNU General Public License
+as published by the Free Software Foundation; either version 2
+of the License, or (at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program; if not, write to the Free Software
+Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
+MA 02110-1301, USA.
+
+*/
 
 #if defined(LINUX) || defined(OOLITE_SDL_MAC)
-#import "SDLSound.h"
-#import "SDLMusic.h"
+	#import "SDLSound.h"
+	#import "SDLMusic.h"
+	#import "OOBasicSoundSource.h"
+	#import "OOBasicSoundReferencePoint.h"
 #else
-#import "OOCASound.h"
-#import "OOCAMusic.h"
+	#import "OOCASound.h"
+	#import "OOCAMusic.h"
+	#import "OOCASoundSource.h"
+	#import "OOCASoundReferencePoint.h"
 #endif
-

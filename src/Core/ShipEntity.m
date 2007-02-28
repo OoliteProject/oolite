@@ -1256,7 +1256,7 @@ static NSMutableDictionary* smallOctreeDict = nil;
 	}
 
 	if ([shipdict objectForKey:@"is_hulk"])
-		is_hulk = [(NSString *)[shipdict objectForKey:@"is_hulk"] boolValue];
+		is_hulk = [[shipdict objectForKey:@"is_hulk"] boolValue];
 	//
 	if ([shipdict objectForKey:@"subentities"])
 	{
@@ -8317,7 +8317,9 @@ inline BOOL pairOK(NSString* my_role, NSString* their_role)
 
 - (void) sendCoordinatesToPilot
 {
-	Entity* scan, *pilot;
+	Entity		*scan;
+	ShipEntity	*scanShip, *pilot;
+	
 	n_scanned_ships = 0;
 	scan = z_previous;
 	NSLog(@"searching for pilot boat");
@@ -8329,14 +8331,15 @@ inline BOOL pairOK(NSString* my_role, NSString* their_role)
 	{
 		if (scan->isShip)
 		{
-			NSString *rolesString = [scan roles];
-			NSArray *roles = [Entity scanTokensFromString:rolesString];
-			if ([roles containsObject:@"pilot"] == YES)
+			scanShip = (ShipEntity *)scan;
+			NSArray *scanRoles = [Entity scanTokensFromString:[scanShip roles]];
+			
+			if ([scanRoles containsObject:@"pilot"] == YES)
 			{
-				if ([scan getPrimaryTargetID] == NO_TARGET)
+				if ([scanShip getPrimaryTargetID] == NO_TARGET)
 				{
 					NSLog(@"found pilot boat with no target, will use this one");
-					pilot = scan;
+					pilot = scanShip;
 					break;
 				}
 			}
