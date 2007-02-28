@@ -122,7 +122,6 @@
 		25161188099544390037C2E1 /* StationEntity.h in Headers */ = {isa = PBXBuildFile; fileRef = 25161136099544390037C2E1 /* StationEntity.h */; };
 		2516118B099544390037C2E1 /* ResourceManager.m in Sources */ = {isa = PBXBuildFile; fileRef = 25161139099544390037C2E1 /* ResourceManager.m */; };
 		2516118C099544390037C2E1 /* ResourceManager.h in Headers */ = {isa = PBXBuildFile; fileRef = 2516113A099544390037C2E1 /* ResourceManager.h */; };
-		2516118D099544390037C2E1 /* ShipEntity.m in Sources */ = {isa = PBXBuildFile; fileRef = 2516113B099544390037C2E1 /* ShipEntity.m */; };
 		2516118E099544390037C2E1 /* ShipEntity.h in Headers */ = {isa = PBXBuildFile; fileRef = 2516113C099544390037C2E1 /* ShipEntity.h */; };
 		25161195099544390037C2E1 /* Universe.m in Sources */ = {isa = PBXBuildFile; fileRef = 25161143099544390037C2E1 /* Universe.m */; };
 		25161196099544390037C2E1 /* Universe.h in Headers */ = {isa = PBXBuildFile; fileRef = 25161144099544390037C2E1 /* Universe.h */; };
@@ -1629,7 +1628,6 @@
 				25161182099544390037C2E1 /* ScannerExtension.m in Sources */,
 				25161187099544390037C2E1 /* StationEntity.m in Sources */,
 				2516118B099544390037C2E1 /* ResourceManager.m in Sources */,
-				2516118D099544390037C2E1 /* ShipEntity.m in Sources */,
 				25161195099544390037C2E1 /* Universe.m in Sources */,
 				25161197099544390037C2E1 /* TextureStore.m in Sources */,
 				25F46753099695D5009483BF /* OoliteApp.m in Sources */,

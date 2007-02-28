@@ -38,7 +38,7 @@ Your fair use and other rights are in no way affected by the above.
 */
 
 #import "PlayerEntity.h"
-#import "PlayerEntityAdditions.h"
+#import "PlayerEntityScripting.h"
 
 #define PASSENGER_KEY_NAME				@"name"
 #define PASSENGER_KEY_DESTINATION_NAME	@"destination_name"

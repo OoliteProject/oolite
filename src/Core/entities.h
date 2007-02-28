@@ -29,7 +29,7 @@ MA 02110-1301, USA.
 #import "ShipEntity.h"
 #import "StationEntity.h"
 #import "PlayerEntity.h"
-#import "PlayerEntityAdditions.h"
+#import "PlayerEntityScripting.h"
 #import "PlayerEntityContracts.h"
 //
 #import "PlanetEntity.h"
