@@ -44,6 +44,8 @@
 		1A8A37570B960337007D20B8 /* NSMutableDictionaryOOExtensions.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A8A37550B960337007D20B8 /* NSMutableDictionaryOOExtensions.h */; };
 		1A8A394E0B96229C007D20B8 /* NSFileManagerOOExtensions.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A8A394C0B96229C007D20B8 /* NSFileManagerOOExtensions.m */; };
 		1A8A394F0B96229C007D20B8 /* NSFileManagerOOExtensions.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A8A394D0B96229C007D20B8 /* NSFileManagerOOExtensions.h */; };
+		1A8A39E30B962823007D20B8 /* PlayerEntityScripting.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A8A39E10B962823007D20B8 /* PlayerEntityScripting.m */; };
+		1A8A39E40B962823007D20B8 /* PlayerEntityScripting.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A8A39E20B962823007D20B8 /* PlayerEntityScripting.h */; };
 		1AD9AFA60B91E24100FB704E /* ShipEntityAI.m in Sources */ = {isa = PBXBuildFile; fileRef = 1AD9AFA40B91E24100FB704E /* ShipEntityAI.m */; };
 		1AD9AFA70B91E24100FB704E /* ShipEntityAI.h in Headers */ = {isa = PBXBuildFile; fileRef = 1AD9AFA50B91E24100FB704E /* ShipEntityAI.h */; };
 		1AD9AFB10B91E24C00FB704E /* PlayerEntityContracts.h in Headers */ = {isa = PBXBuildFile; fileRef = 1AD9AFA90B91E24C00FB704E /* PlayerEntityContracts.h */; };
@@ -52,8 +54,6 @@
 		1AD9AFB40B91E24C00FB704E /* PlayerEntityControls.m in Sources */ = {isa = PBXBuildFile; fileRef = 1AD9AFAC0B91E24C00FB704E /* PlayerEntityControls.m */; };
 		1AD9AFB50B91E24C00FB704E /* PlayerEntityControls.h in Headers */ = {isa = PBXBuildFile; fileRef = 1AD9AFAD0B91E24C00FB704E /* PlayerEntityControls.h */; };
 		1AD9AFB60B91E24C00FB704E /* PlayerEntityContracts.m in Sources */ = {isa = PBXBuildFile; fileRef = 1AD9AFAE0B91E24C00FB704E /* PlayerEntityContracts.m */; };
-		1AD9AFB70B91E24C00FB704E /* PlayerEntityAdditions.m in Sources */ = {isa = PBXBuildFile; fileRef = 1AD9AFAF0B91E24C00FB704E /* PlayerEntityAdditions.m */; };
-		1AD9AFB80B91E24C00FB704E /* PlayerEntityAdditions.h in Headers */ = {isa = PBXBuildFile; fileRef = 1AD9AFB00B91E24C00FB704E /* PlayerEntityAdditions.h */; };
 		2512833E09BA27C100F43D55 /* Octree.m in Sources */ = {isa = PBXBuildFile; fileRef = 2512833C09BA27C100F43D55 /* Octree.m */; };
 		2512833F09BA27C100F43D55 /* Octree.h in Headers */ = {isa = PBXBuildFile; fileRef = 2512833D09BA27C100F43D55 /* Octree.h */; };
 		2512834209BA27EC00F43D55 /* Geometry.h in Headers */ = {isa = PBXBuildFile; fileRef = 2512834009BA27EC00F43D55 /* Geometry.h */; };
@@ -416,6 +416,8 @@
 		1A8A37550B960337007D20B8 /* NSMutableDictionaryOOExtensions.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = NSMutableDictionaryOOExtensions.h; path = src/Core/NSMutableDictionaryOOExtensions.h; sourceTree = "<group>"; };
 		1A8A394C0B96229C007D20B8 /* NSFileManagerOOExtensions.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = NSFileManagerOOExtensions.m; path = src/Core/NSFileManagerOOExtensions.m; sourceTree = "<group>"; };
 		1A8A394D0B96229C007D20B8 /* NSFileManagerOOExtensions.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = NSFileManagerOOExtensions.h; path = src/Core/NSFileManagerOOExtensions.h; sourceTree = "<group>"; };
+		1A8A39E10B962823007D20B8 /* PlayerEntityScripting.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = PlayerEntityScripting.m; path = src/Core/PlayerEntityScripting.m; sourceTree = "<group>"; };
+		1A8A39E20B962823007D20B8 /* PlayerEntityScripting.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = PlayerEntityScripting.h; path = src/Core/PlayerEntityScripting.h; sourceTree = "<group>"; };
 		1AD9AFA40B91E24100FB704E /* ShipEntityAI.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = ShipEntityAI.m; path = src/Core/ShipEntityAI.m; sourceTree = "<group>"; };
 		1AD9AFA50B91E24100FB704E /* ShipEntityAI.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = ShipEntityAI.h; path = src/Core/ShipEntityAI.h; sourceTree = "<group>"; };
 		1AD9AFA90B91E24C00FB704E /* PlayerEntityContracts.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = PlayerEntityContracts.h; path = src/Core/PlayerEntityContracts.h; sourceTree = "<group>"; };
@@ -424,8 +426,6 @@
 		1AD9AFAC0B91E24C00FB704E /* PlayerEntityControls.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = PlayerEntityControls.m; path = src/Core/PlayerEntityControls.m; sourceTree = "<group>"; };
 		1AD9AFAD0B91E24C00FB704E /* PlayerEntityControls.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = PlayerEntityControls.h; path = src/Core/PlayerEntityControls.h; sourceTree = "<group>"; };
 		1AD9AFAE0B91E24C00FB704E /* PlayerEntityContracts.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = PlayerEntityContracts.m; path = src/Core/PlayerEntityContracts.m; sourceTree = "<group>"; };
-		1AD9AFAF0B91E24C00FB704E /* PlayerEntityAdditions.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = PlayerEntityAdditions.m; path = src/Core/PlayerEntityAdditions.m; sourceTree = "<group>"; };
-		1AD9AFB00B91E24C00FB704E /* PlayerEntityAdditions.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = PlayerEntityAdditions.h; path = src/Core/PlayerEntityAdditions.h; sourceTree = "<group>"; };
 		2512833C09BA27C100F43D55 /* Octree.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = Octree.m; path = src/Core/Octree.m; sourceTree = "<group>"; };
 		2512833D09BA27C100F43D55 /* Octree.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Octree.h; path = src/Core/Octree.h; sourceTree = "<group>"; };
 		2512834009BA27EC00F43D55 /* Geometry.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Geometry.h; path = src/Core/Geometry.h; sourceTree = "<group>"; };
@@ -1085,10 +1085,10 @@
 				25161135099544390037C2E1 /* StationEntity.m */,
 				251610FA099544380037C2E1 /* PlayerEntity.h */,
 				251610F5099544380037C2E1 /* PlayerEntity.m */,
-				1AD9AFB00B91E24C00FB704E /* PlayerEntityAdditions.h */,
-				1AD9AFAF0B91E24C00FB704E /* PlayerEntityAdditions.m */,
 				1AD9AFAE0B91E24C00FB704E /* PlayerEntityContracts.m */,
 				1AD9AFA90B91E24C00FB704E /* PlayerEntityContracts.h */,
+				1A8A39E10B962823007D20B8 /* PlayerEntityScripting.m */,
+				1A8A39E20B962823007D20B8 /* PlayerEntityScripting.h */,
 				1AD9AFAD0B91E24C00FB704E /* PlayerEntityControls.h */,
 				1AD9AFAC0B91E24C00FB704E /* PlayerEntityControls.m */,
 				1AD9AFAB0B91E24C00FB704E /* PlayerEntitySound.h */,
@@ -1284,10 +1284,10 @@
 				1AD9AFB10B91E24C00FB704E /* PlayerEntityContracts.h in Headers */,
 				1AD9AFB30B91E24C00FB704E /* PlayerEntitySound.h in Headers */,
 				1AD9AFB50B91E24C00FB704E /* PlayerEntityControls.h in Headers */,
-				1AD9AFB80B91E24C00FB704E /* PlayerEntityAdditions.h in Headers */,
 				1A8A37050B95CADD007D20B8 /* PlayerEntityLoadSave.h in Headers */,
 				1A8A37570B960337007D20B8 /* NSMutableDictionaryOOExtensions.h in Headers */,
 				1A8A394F0B96229C007D20B8 /* NSFileManagerOOExtensions.h in Headers */,
+				1A8A39E40B962823007D20B8 /* PlayerEntityScripting.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1645,10 +1645,10 @@
 				1AD9AFB20B91E24C00FB704E /* PlayerEntitySound.m in Sources */,
 				1AD9AFB40B91E24C00FB704E /* PlayerEntityControls.m in Sources */,
 				1AD9AFB60B91E24C00FB704E /* PlayerEntityContracts.m in Sources */,
-				1AD9AFB70B91E24C00FB704E /* PlayerEntityAdditions.m in Sources */,
 				1A8A37040B95CADD007D20B8 /* PlayerEntityLoadSave.m in Sources */,
 				1A8A37560B960337007D20B8 /* NSMutableDictionaryOOExtensions.m in Sources */,
 				1A8A394E0B96229C007D20B8 /* NSFileManagerOOExtensions.m in Sources */,
+				1A8A39E30B962823007D20B8 /* PlayerEntityScripting.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
