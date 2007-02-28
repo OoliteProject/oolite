@@ -42,6 +42,8 @@
 		1A8A37050B95CADD007D20B8 /* PlayerEntityLoadSave.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A8A37030B95CADD007D20B8 /* PlayerEntityLoadSave.h */; };
 		1A8A37560B960337007D20B8 /* NSMutableDictionaryOOExtensions.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A8A37540B960337007D20B8 /* NSMutableDictionaryOOExtensions.m */; };
 		1A8A37570B960337007D20B8 /* NSMutableDictionaryOOExtensions.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A8A37550B960337007D20B8 /* NSMutableDictionaryOOExtensions.h */; };
+		1A8A394E0B96229C007D20B8 /* NSFileManagerOOExtensions.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A8A394C0B96229C007D20B8 /* NSFileManagerOOExtensions.m */; };
+		1A8A394F0B96229C007D20B8 /* NSFileManagerOOExtensions.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A8A394D0B96229C007D20B8 /* NSFileManagerOOExtensions.h */; };
 		1AD9AFA60B91E24100FB704E /* ShipEntityAI.m in Sources */ = {isa = PBXBuildFile; fileRef = 1AD9AFA40B91E24100FB704E /* ShipEntityAI.m */; };
 		1AD9AFA70B91E24100FB704E /* ShipEntityAI.h in Headers */ = {isa = PBXBuildFile; fileRef = 1AD9AFA50B91E24100FB704E /* ShipEntityAI.h */; };
 		1AD9AFB10B91E24C00FB704E /* PlayerEntityContracts.h in Headers */ = {isa = PBXBuildFile; fileRef = 1AD9AFA90B91E24C00FB704E /* PlayerEntityContracts.h */; };
@@ -104,8 +106,6 @@
 		25161162099544390037C2E1 /* OOTrumble.h in Headers */ = {isa = PBXBuildFile; fileRef = 25161110099544390037C2E1 /* OOTrumble.h */; };
 		25161166099544390037C2E1 /* DustEntity.m in Sources */ = {isa = PBXBuildFile; fileRef = 25161114099544390037C2E1 /* DustEntity.m */; };
 		25161168099544390037C2E1 /* OOSound.h in Headers */ = {isa = PBXBuildFile; fileRef = 25161116099544390037C2E1 /* OOSound.h */; };
-		2516116B099544390037C2E1 /* OOFileManager.m in Sources */ = {isa = PBXBuildFile; fileRef = 25161119099544390037C2E1 /* OOFileManager.m */; };
-		2516116C099544390037C2E1 /* OOFileManager.h in Headers */ = {isa = PBXBuildFile; fileRef = 2516111A099544390037C2E1 /* OOFileManager.h */; };
 		2516116D099544390037C2E1 /* OOCharacter.m in Sources */ = {isa = PBXBuildFile; fileRef = 2516111B099544390037C2E1 /* OOCharacter.m */; };
 		2516116E099544390037C2E1 /* OOCharacter.h in Headers */ = {isa = PBXBuildFile; fileRef = 2516111C099544390037C2E1 /* OOCharacter.h */; };
 		2516116F099544390037C2E1 /* Entity.m in Sources */ = {isa = PBXBuildFile; fileRef = 2516111D099544390037C2E1 /* Entity.m */; };
@@ -415,6 +415,8 @@
 		1A8A37030B95CADD007D20B8 /* PlayerEntityLoadSave.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = PlayerEntityLoadSave.h; path = src/Core/PlayerEntityLoadSave.h; sourceTree = "<group>"; };
 		1A8A37540B960337007D20B8 /* NSMutableDictionaryOOExtensions.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = NSMutableDictionaryOOExtensions.m; path = src/Core/NSMutableDictionaryOOExtensions.m; sourceTree = "<group>"; };
 		1A8A37550B960337007D20B8 /* NSMutableDictionaryOOExtensions.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = NSMutableDictionaryOOExtensions.h; path = src/Core/NSMutableDictionaryOOExtensions.h; sourceTree = "<group>"; };
+		1A8A394C0B96229C007D20B8 /* NSFileManagerOOExtensions.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = NSFileManagerOOExtensions.m; path = src/Core/NSFileManagerOOExtensions.m; sourceTree = "<group>"; };
+		1A8A394D0B96229C007D20B8 /* NSFileManagerOOExtensions.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = NSFileManagerOOExtensions.h; path = src/Core/NSFileManagerOOExtensions.h; sourceTree = "<group>"; };
 		1AD9AFA40B91E24100FB704E /* ShipEntityAI.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = ShipEntityAI.m; path = src/Core/ShipEntityAI.m; sourceTree = "<group>"; };
 		1AD9AFA50B91E24100FB704E /* ShipEntityAI.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = ShipEntityAI.h; path = src/Core/ShipEntityAI.h; sourceTree = "<group>"; };
 		1AD9AFA90B91E24C00FB704E /* PlayerEntityContracts.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = PlayerEntityContracts.h; path = src/Core/PlayerEntityContracts.h; sourceTree = "<group>"; };
@@ -477,8 +479,6 @@
 		25161110099544390037C2E1 /* OOTrumble.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = OOTrumble.h; path = src/Core/OOTrumble.h; sourceTree = "<group>"; };
 		25161114099544390037C2E1 /* DustEntity.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = DustEntity.m; path = src/Core/DustEntity.m; sourceTree = "<group>"; };
 		25161116099544390037C2E1 /* OOSound.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = OOSound.h; path = src/Core/OOSound.h; sourceTree = "<group>"; };
-		25161119099544390037C2E1 /* OOFileManager.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = OOFileManager.m; path = src/Core/OOFileManager.m; sourceTree = "<group>"; };
-		2516111A099544390037C2E1 /* OOFileManager.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = OOFileManager.h; path = src/Core/OOFileManager.h; sourceTree = "<group>"; };
 		2516111B099544390037C2E1 /* OOCharacter.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = OOCharacter.m; path = src/Core/OOCharacter.m; sourceTree = "<group>"; };
 		2516111C099544390037C2E1 /* OOCharacter.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = OOCharacter.h; path = src/Core/OOCharacter.h; sourceTree = "<group>"; };
 		2516111D099544390037C2E1 /* Entity.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = Entity.m; path = src/Core/Entity.m; sourceTree = "<group>"; };
@@ -1062,8 +1062,6 @@
 				25161145099544390037C2E1 /* TextureStore.m */,
 				25161139099544390037C2E1 /* ResourceManager.m */,
 				2516113A099544390037C2E1 /* ResourceManager.h */,
-				2516111A099544390037C2E1 /* OOFileManager.h */,
-				25161119099544390037C2E1 /* OOFileManager.m */,
 				25161144099544390037C2E1 /* Universe.h */,
 				25161143099544390037C2E1 /* Universe.m */,
 				25161104099544390037C2E1 /* Entity.h */,
@@ -1120,6 +1118,8 @@
 				25161107099544390037C2E1 /* OOXMLExtensions.h */,
 				1A8A37540B960337007D20B8 /* NSMutableDictionaryOOExtensions.m */,
 				1A8A37550B960337007D20B8 /* NSMutableDictionaryOOExtensions.h */,
+				1A8A394C0B96229C007D20B8 /* NSFileManagerOOExtensions.m */,
+				1A8A394D0B96229C007D20B8 /* NSFileManagerOOExtensions.h */,
 				25161131099544390037C2E1 /* ScannerExtension.h */,
 				25161130099544390037C2E1 /* ScannerExtension.m */,
 				083325DB09DDBCDE00F5B8E4 /* OOColor.h */,
@@ -1260,7 +1260,6 @@
 				25161160099544390037C2E1 /* SkyEntity.h in Headers */,
 				25161162099544390037C2E1 /* OOTrumble.h in Headers */,
 				25161168099544390037C2E1 /* OOSound.h in Headers */,
-				2516116C099544390037C2E1 /* OOFileManager.h in Headers */,
 				2516116E099544390037C2E1 /* OOCharacter.h in Headers */,
 				25161179099544390037C2E1 /* GuiDisplayGen.h in Headers */,
 				2516117E099544390037C2E1 /* HeadUpDisplay.h in Headers */,
@@ -1289,6 +1288,7 @@
 				1AD9AFB80B91E24C00FB704E /* PlayerEntityAdditions.h in Headers */,
 				1A8A37050B95CADD007D20B8 /* PlayerEntityLoadSave.h in Headers */,
 				1A8A37570B960337007D20B8 /* NSMutableDictionaryOOExtensions.h in Headers */,
+				1A8A394F0B96229C007D20B8 /* NSFileManagerOOExtensions.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1621,7 +1621,6 @@
 				2516115E099544390037C2E1 /* GameController.m in Sources */,
 				2516115F099544390037C2E1 /* SkyEntity.m in Sources */,
 				25161166099544390037C2E1 /* DustEntity.m in Sources */,
-				2516116B099544390037C2E1 /* OOFileManager.m in Sources */,
 				2516116D099544390037C2E1 /* OOCharacter.m in Sources */,
 				2516116F099544390037C2E1 /* Entity.m in Sources */,
 				25161178099544390037C2E1 /* GuiDisplayGen.m in Sources */,
@@ -1651,6 +1650,7 @@
 				1AD9AFB70B91E24C00FB704E /* PlayerEntityAdditions.m in Sources */,
 				1A8A37040B95CADD007D20B8 /* PlayerEntityLoadSave.m in Sources */,
 				1A8A37560B960337007D20B8 /* NSMutableDictionaryOOExtensions.m in Sources */,
+				1A8A394E0B96229C007D20B8 /* NSFileManagerOOExtensions.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
