@@ -23,7 +23,7 @@ MA 02110-1301, USA.
 */
 
 #import "SDLSound.h"
-#import "OOSoundSource.h"
+#import "OOBasicSoundSource.h"
 
 
 static int mixChan=0;

@@ -29,7 +29,7 @@ MA 02110-1301, USA.
 #import "JoystickHandler.h" // TODO: Not here!
 #import "SDL_syswm.h"
 #import "OOSound.h"
-#import "OOFileManager.h" // to find savedir
+#import "NSFileManagerOOExtensions.h" // to find savedir
 
 #ifdef WIN32
 #import "TextureStore.h"
