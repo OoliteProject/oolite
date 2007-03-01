@@ -1,39 +1,26 @@
-//
-//  PlayerEntity (Controls).h
 /*
- *
- *  Oolite
- *
- *  Created by Jens Ayton on Fri Dec 02 2005.
- *  Copyright (c) 2004 for aegidian.org. All rights reserved.
- *
 
-Copyright (c) 2004-2005, Giles C Williams and contributors.
-All rights reserved.
+PlayerEntityControls.h
 
-This work is licensed under the Creative Commons Attribution-NonCommercial-ShareAlike License.
-To view a copy of this license, visit http://creativecommons.org/licenses/by-nc-sa/2.0/
-or send a letter to Creative Commons, 559 Nathan Abbott Way, Stanford, California 94305, USA.
+Input management methods.
 
-You are free:
+Oolite
+Copyright (C) 2004-2007 Giles C Williams and contributors
 
-•	to copy, distribute, display, and perform the work
-•	to make derivative works
+This program is free software; you can redistribute it and/or
+modify it under the terms of the GNU General Public License
+as published by the Free Software Foundation; either version 2
+of the License, or (at your option) any later version.
 
-Under the following conditions:
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
 
-•	Attribution. You must give the original author credit.
-
-•	Noncommercial. You may not use this work for commercial purposes.
-
-•	Share Alike. If you alter, transform, or build upon this work,
-you may distribute the resulting work only under a license identical to this one.
-
-For any reuse or distribution, you must make clear to others the license terms of this work.
-
-Any of these conditions can be waived if you get permission from the copyright holder.
-
-Your fair use and other rights are in no way affected by the above.
+You should have received a copy of the GNU General Public License
+along with this program; if not, write to the Free Software
+Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
+MA 02110-1301, USA.
 
 */
 

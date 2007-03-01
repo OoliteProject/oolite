@@ -46,7 +46,7 @@ MA 02110-1301, USA.
 #import "Groolite.h"
 #else
 #import "JoystickHandler.h"
-#import "PlayerEntity_StickMapper.h"
+#import "PlayerEntityStickMapper.h"
 #endif
 
 // 10m/s forward drift
