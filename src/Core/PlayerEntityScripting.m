@@ -1834,13 +1834,13 @@ int d100_seed = -1;	// ensure proper random function
 
 - (void) debugOn
 {
-	OOLog(kOOLogClassScripDebugOnOff, @"SCRIPT debug messages ON");
+	OOLog(kOOLogClassScriptDebugOnOff, @"SCRIPT debug messages ON");
 	debug |= DEBUG_SCRIPT;
 }
 
 - (void) debugOff
 {
-	OOLog(kOOLogClassScripDebugOnOff, @"SCRIPT debug messages OFF");
+	OOLog(kOOLogClassScriptDebugOnOff, @"SCRIPT debug messages OFF");
 	debug &= ~DEBUG_SCRIPT;
 }
 

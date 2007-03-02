@@ -77,8 +77,8 @@ void OOLogWithFunctionFileAndLineAndArguments(NSString *inMessageClass, const ch
 
 /* Predefined message classes. */
 extern NSString * const kOOLogClassScripting;			// @"scripting"
-extern NSString * const kOOLogClassScripDebug;			// @"scripting.debug"
-extern NSString * const kOOLogClassScripDebugOnOff;		// @"scripting.debug.onoff"
+extern NSString * const kOOLogClassScriptDebug;			// @"scripting.debug"
+extern NSString * const kOOLogClassScriptDebugOnOff;	// @"scripting.debug.onoff"
 extern NSString * const kOOLogClassRendering;			// @"rendering"
 extern NSString * const kOOLogClassOpenGL;				// @"rendering.opengl"
 extern NSString * const kOOLogClassOpenGLError;			// @"rendering.opengl.errors"

@@ -217,8 +217,8 @@ void OOLogWithFunctionFileAndLineAndArguments(NSString *inMessageClass, const ch
 
 
 NSString * const kOOLogClassScripting					= @"scripting";
-NSString * const kOOLogClassScripDebug					= @"scripting.debug";
-NSString * const kOOLogClassScripDebugOnOff				= @"scripting.debug.onoff";
+NSString * const kOOLogClassScriptDebug					= @"scripting.debug";
+NSString * const kOOLogClassScriptDebugOnOff			= @"scripting.debug.onoff";
 NSString * const kOOLogClassRendering					= @"rendering";
 NSString * const kOOLogClassOpenGL						= @"rendering.opengl";
 NSString * const kOOLogClassOpenGLError					= @"rendering.opengl.errors";
