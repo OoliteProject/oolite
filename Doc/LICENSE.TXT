@@ -1,33 +1,87 @@
-Copyright (c) 2004, Giles C Williams
-All rights reserved.
+Copyright © 2004-2007 Giles C Williams and contributors.
 
-This work is licensed under the Creative Commons 
-Attribution-NonCommercial-ShareAlike License.
-To view a copy of this license, visit 
-http://creativecommons.org/licenses/by-nc-sa/2.0/
-or send a letter to Creative Commons, 559 Nathan Abbott Way, Stanford, 
-California 94305, USA.
+This work is licensed under the GNU General Public License version 2.
 
-You are free:
+    This program is free software; you can redistribute it and/or
+    modify it under the terms of the GNU General Public License
+    as published by the Free Software Foundation; either version 2
+    of the License, or (at your option) any later version.
+    
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+    
+    You should have received a copy of the GNU General Public License
+    along with this program; if not, write to the Free Software
+    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
+    MA 02110-1301, USA.
 
-•	to copy, distribute, display, and perform the work
-•	to make derivative works
 
-Under the following conditions:
 
-•	Attribution. You must give the original author credit.
 
-•	Noncommercial. You may not use this work for commercial purposes.
+Additionally, all artwork – 3D models, images and sounds – included in
+the work, as well as configuration files, are also licensed under the
+Creative Commons Attribution-NonCommercial-ShareAlike License version
+3.0. This means that these files may be distributed under either license
+at your discretion.
+To view a copy of Attribution-NonCommercial-ShareAlike license, visit
+http://creativecommons.org/licenses/by-nc-sa/3.0/ or send a letter to
+Creative Commons, 559 Nathan Abbott Way, Stanford, California 94305,
+USA.
 
-•	Share Alike. If you alter, transform, or build upon this work,
-you may distribute the resulting work only under a license identical 
-to this one.
+    You are free:
+      • to Share — to copy, distribute and transmit the work
+      • to Remix — to adapt the work
+    
+    Under the following conditions:
+      • Attribution. You must attribute the work in the manner
+        specified by the author or licensor (but not in any way that
+    	suggests that they endorse you or your use of the work).
+      • Noncommercial. You may not use this work for commercial purposes.
+      • Share Alike. If you alter, transform, or build upon this work,
+        you may distribute the resulting work only under the same or
+    	similar license to this one.
 
-For any reuse or distribution, you must make clear to others the 
-license terms of this work.
+    For any reuse or distribution, you must make clear to others the
+    license terms of this work. Any of the above conditions can be waived
+    if you get permission from the copyright holder. Apart from the remix
+    rights granted under this license, nothing in this license impairs or
+    restricts the author’s moral rights.
+    Your fair dealing and other rights are in no way affected by the above.
+    This is a human-readable summary of the Legal Code (the full license).
 
-Any of these conditions can be waived if you get permission from the 
-copyright holder.
 
-Your fair use and other rights are in no way affected by the above.
 
+
+The source code distribution and the Mac OS X version of Oolite contain
+parts subject to the following license:
+
+   VirtualRingBuffer
+   Copyright © 2002, Kurt Revis. All rights reserved.
+   
+   Redistribution and use in source and binary forms, with or without
+   modification, are permitted provided that the following conditions are
+   met:
+   
+     • Redistributions of source code must retain the above copyright
+       notice, this list of conditions and the following disclaimer.
+     • Redistributions in binary form must reproduce the above copyright
+       notice, this list of conditions and the following disclaimer in
+       the documentation and/or other materials provided with the
+       distribution.
+     • Neither the name of Snoize nor the names of its contributors may
+       be used to endorse or promote products derived from this software
+       without specific prior written permission.
+
+    THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+    “AS IS” AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+    LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+    A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+    OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+    SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+    LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+    DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+    THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+    (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+    OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.

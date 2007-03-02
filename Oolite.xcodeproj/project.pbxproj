@@ -421,6 +421,12 @@
 		1A8A39E20B962823007D20B8 /* PlayerEntityScripting.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PlayerEntityScripting.h; sourceTree = "<group>"; };
 		1A8A3A360B962AEF007D20B8 /* NSScannerOOExtensions.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = NSScannerOOExtensions.h; sourceTree = "<group>"; };
 		1A8A3A370B962AEF007D20B8 /* NSScannerOOExtensions.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = NSScannerOOExtensions.m; sourceTree = "<group>"; };
+		1AC0E9460B974DC200C46994 /* GPL.TXT */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = GPL.TXT; sourceTree = "<group>"; };
+		1AC0E9470B974DC200C46994 /* FAQ.TXT */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = FAQ.TXT; sourceTree = "<group>"; };
+		1AC0E9480B974DC200C46994 /* ReadMe.rtfd */ = {isa = PBXFileReference; lastKnownFileType = wrapper.rtfd; path = ReadMe.rtfd; sourceTree = "<group>"; };
+		1AC0E9490B974DC200C46994 /* LICENSE.TXT */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = LICENSE.TXT; sourceTree = "<group>"; };
+		1AC0E94A0B974DC200C46994 /* PORTING.TXT */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = PORTING.TXT; sourceTree = "<group>"; };
+		1AC0E94B0B974DC200C46994 /* README_LINUX.TXT */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = README_LINUX.TXT; sourceTree = "<group>"; };
 		1AD9AFA40B91E24100FB704E /* ShipEntityAI.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ShipEntityAI.m; sourceTree = "<group>"; };
 		1AD9AFA50B91E24100FB704E /* ShipEntityAI.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ShipEntityAI.h; sourceTree = "<group>"; };
 		1AD9AFA90B91E24C00FB704E /* PlayerEntityContracts.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PlayerEntityContracts.h; sourceTree = "<group>"; };
@@ -1199,6 +1205,20 @@
 			name = Geometry;
 			sourceTree = "<group>";
 		};
+		1AC0E9380B974D8700C46994 /* Documentation */ = {
+			isa = PBXGroup;
+			children = (
+				1AC0E9480B974DC200C46994 /* ReadMe.rtfd */,
+				1AC0E9490B974DC200C46994 /* LICENSE.TXT */,
+				1AC0E9460B974DC200C46994 /* GPL.TXT */,
+				1AC0E9470B974DC200C46994 /* FAQ.TXT */,
+				1AC0E94A0B974DC200C46994 /* PORTING.TXT */,
+				1AC0E94B0B974DC200C46994 /* README_LINUX.TXT */,
+			);
+			name = Documentation;
+			path = Doc;
+			sourceTree = "<group>";
+		};
 		25161017099543850037C2E1 /* Audio */ = {
 			isa = PBXGroup;
 			children = (
@@ -1235,6 +1255,7 @@
 			isa = PBXGroup;
 			children = (
 				1A8A3BE90B963F02007D20B8 /* Source */,
+				1AC0E9380B974D8700C46994 /* Documentation */,
 				1A5BF2710916D45B00BF238F /* MDImporter */,
 				29B97317FDCFA39411CA2CEA /* Resources */,
 				29B97323FDCFA39411CA2CEA /* Frameworks */,
