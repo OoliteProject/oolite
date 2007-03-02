@@ -39,6 +39,7 @@ MA 02110-1301, USA.
 
 static NSMutableDictionary	*sExplicitSettings = nil;
 static NSMutableDictionary	*sDerivedSettingsCache = nil;
+static NSMutableDictionary	*sFileNamesCache = nil;
 static unsigned				sIndentLevel = 0;
 static BOOL					sShowFunction = NO;
 static BOOL					sShowFileAndLine = NO;
@@ -60,6 +61,7 @@ static BOOL					sOverrideValue = NO;
 static void LoadExplicitSettings(void);
 static void LoadExplicitSettingsFromDictionary(NSDictionary *inDict);
 static id LogWillDisplayMessagesInClassObj(NSString *inMessageClass);
+static NSString *AbbreviatedFileName(const char *inName);
 
 
 BOOL OOLogWillDisplayMessagesInClass(NSString *inMessageClass)
@@ -148,18 +150,18 @@ void OOLogWithFunctionFileAndLineAndArguments(NSString *inMessageClass, const ch
 	{
 		if (sShowFileAndLine)
 		{
-			formattedMessage = [NSString stringWithFormat:@"%@ (%@:%@): %@", inFunction, inFile, inLine, formattedMessage];
+			formattedMessage = [NSString stringWithFormat:@"%s (%@:%u): %@", inFunction, AbbreviatedFileName(inFile), inLine, formattedMessage];
 		}
 		else
 		{
-			formattedMessage = [NSString stringWithFormat:@"%@: %@", inFunction, formattedMessage];
+			formattedMessage = [NSString stringWithFormat:@"%s: %@", inFunction, formattedMessage];
 		}
 	}
 	else
 	{
 		if (sShowFileAndLine)
 		{
-			formattedMessage = [NSString stringWithFormat:@"%@:%@: %@", inFile, inLine, formattedMessage];
+			formattedMessage = [NSString stringWithFormat:@"%@:%u: %@", AbbreviatedFileName(inFile), inLine, formattedMessage];
 		}
 	}
 	
@@ -267,6 +269,11 @@ static void LoadExplicitSettings(void)
 	}
 	
 	// Load display settings
+	value = [prefs objectForKey:@"logging-show-app-name"];
+	if (value != nil && [value respondsToSelector:@selector(boolValue)])
+	{
+		sShowApplication = [value boolValue];
+	}
 	value = [prefs objectForKey:@"logging-show-function"];
 	if (value != nil && [value respondsToSelector:@selector(boolValue)])
 	{
@@ -281,11 +288,6 @@ static void LoadExplicitSettings(void)
 	if (value != nil && [value respondsToSelector:@selector(boolValue)])
 	{
 		sShowClass = [value boolValue];
-	}
-	value = [prefs objectForKey:@"logging-show-app-name"];
-	if (value != nil && [value respondsToSelector:@selector(boolValue)])
-	{
-		sShowApplication = [value boolValue];
 	}
 }
 
@@ -363,3 +365,24 @@ static id LogWillDisplayMessagesInClassObj(NSString *inMessageClass)
 	return value;
 }
 
+
+static NSString *AbbreviatedFileName(const char *inName)
+{
+	NSValue				*key = nil;
+	NSString			*name = nil;
+	
+	key = [NSValue valueWithPointer:inName];
+	name = [sFileNamesCache objectForKey:key];
+	if (name == nil)
+	{
+		/*
+			NOTE: this may not work in GNUstep. Suggested alternative:
+			use [[[NSString stringWithCString:inName] componentsSeparatedByString:@"/"] lastObject];
+		*/
+		name = [[NSString stringWithUTF8String:inName] lastPathComponent];
+		if (sFileNamesCache == nil) sFileNamesCache = [[NSMutableDictionary alloc] init];
+		[sFileNamesCache setObject:name forKey:key];
+	}
+	
+	return name;
+}
