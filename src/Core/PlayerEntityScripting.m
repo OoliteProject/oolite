@@ -30,6 +30,7 @@ MA 02110-1301, USA.
 #import "AI.h"
 #import "OOSound.h"
 #import "OOColor.h"
+#import "OOLogging.h"
 
 #ifdef GNUSTEP
 #import "Comparison.h"
@@ -1833,14 +1834,14 @@ int d100_seed = -1;	// ensure proper random function
 
 - (void) debugOn
 {
-	NSLog(@"SCRIPT debug messages ON");
+	OOLog(kOOLogClassScripDebugOnOff, @"SCRIPT debug messages ON");
 	debug |= DEBUG_SCRIPT;
 }
 
 - (void) debugOff
 {
-	NSLog(@"SCRIPT debug messages OFF");
-	debug &= (DEBUG_ALL - DEBUG_SCRIPT);
+	OOLog(kOOLogClassScripDebugOnOff, @"SCRIPT debug messages OFF");
+	debug &= ~DEBUG_SCRIPT;
 }
 
 - (void) debugMessage:(NSString *)args

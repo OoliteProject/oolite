@@ -32,6 +32,9 @@
 		08DF8C0A0A5E74B300BCD981 /* wreck5.dat in Resources */ = {isa = PBXBuildFile; fileRef = 08DF8C050A5E74B200BCD981 /* wreck5.dat */; };
 		08DF8C0B0A5E74B300BCD981 /* wreck2.dat in Resources */ = {isa = PBXBuildFile; fileRef = 08DF8C060A5E74B200BCD981 /* wreck2.dat */; };
 		08DF8C2D0A5E74DC00BCD981 /* wreck.png in Resources */ = {isa = PBXBuildFile; fileRef = 08DF8C2C0A5E74DC00BCD981 /* wreck.png */; };
+		1A38B4AC0B988532001ED4A0 /* OOLogging.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A38B4AA0B988532001ED4A0 /* OOLogging.h */; };
+		1A38B4AD0B988532001ED4A0 /* OOLogging.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A38B4AB0B988532001ED4A0 /* OOLogging.m */; };
+		1A38B5E60B989FD7001ED4A0 /* logcontrol.plist in Resources */ = {isa = PBXBuildFile; fileRef = 1A38B5E50B989FD7001ED4A0 /* logcontrol.plist */; };
 		1A472917096B5454000E78D8 /* CoreAudio.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1A472916096B5454000E78D8 /* CoreAudio.framework */; };
 		1A472921096B5468000E78D8 /* AudioToolbox.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1A47291F096B5468000E78D8 /* AudioToolbox.framework */; };
 		1A472922096B5468000E78D8 /* AudioUnit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1A472920096B5468000E78D8 /* AudioUnit.framework */; };
@@ -404,6 +407,9 @@
 		08DF8C060A5E74B200BCD981 /* wreck2.dat */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = wreck2.dat; path = Resources/Models/wreck2.dat; sourceTree = "<group>"; };
 		08DF8C2C0A5E74DC00BCD981 /* wreck.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = wreck.png; path = Resources/Textures/wreck.png; sourceTree = "<group>"; };
 		1058C7A1FEA54F0111CA2CBB /* Cocoa.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Cocoa.framework; path = /System/Library/Frameworks/Cocoa.framework; sourceTree = "<absolute>"; };
+		1A38B4AA0B988532001ED4A0 /* OOLogging.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOLogging.h; sourceTree = "<group>"; };
+		1A38B4AB0B988532001ED4A0 /* OOLogging.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOLogging.m; sourceTree = "<group>"; };
+		1A38B5E50B989FD7001ED4A0 /* logcontrol.plist */ = {isa = PBXFileReference; fileEncoding = 4; languageSpecificationIdentifier = plist; lastKnownFileType = text.xml; name = logcontrol.plist; path = Resources/Config/logcontrol.plist; sourceTree = "<group>"; };
 		1A472916096B5454000E78D8 /* CoreAudio.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreAudio.framework; path = /System/Library/Frameworks/CoreAudio.framework; sourceTree = "<absolute>"; };
 		1A47291F096B5468000E78D8 /* AudioToolbox.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AudioToolbox.framework; path = /System/Library/Frameworks/AudioToolbox.framework; sourceTree = "<absolute>"; };
 		1A472920096B5468000E78D8 /* AudioUnit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AudioUnit.framework; path = /System/Library/Frameworks/AudioUnit.framework; sourceTree = "<absolute>"; };
@@ -910,6 +916,7 @@
 		08255CEB0683B34400C96136 /* Config */ = {
 			isa = PBXGroup;
 			children = (
+				1A38B5E50B989FD7001ED4A0 /* logcontrol.plist */,
 				08CB1FEC09D3F2AA001EA329 /* customsounds.plist */,
 				25F3E6F40994FA92002F25FD /* commodities.plist */,
 				25F3E6F50994FA92002F25FD /* characters.plist */,
@@ -1106,6 +1113,8 @@
 				08125F0809F9083F00AB9BF9 /* OOGLDefs.h */,
 				25F3E63A0994F08A002F25FD /* OOOpenGL.h */,
 				25160E2E0995362F0037C2E1 /* OOCocoa.h */,
+				1A38B4AA0B988532001ED4A0 /* OOLogging.h */,
+				1A38B4AB0B988532001ED4A0 /* OOLogging.m */,
 			);
 			name = Utilities;
 			sourceTree = "<group>";
@@ -1363,6 +1372,7 @@
 				1A8A394F0B96229C007D20B8 /* NSFileManagerOOExtensions.h in Headers */,
 				1A8A39E40B962823007D20B8 /* PlayerEntityScripting.h in Headers */,
 				1A8A3A380B962AEF007D20B8 /* NSScannerOOExtensions.h in Headers */,
+				1A38B4AC0B988532001ED4A0 /* OOLogging.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1634,6 +1644,7 @@
 				08DF8C0A0A5E74B300BCD981 /* wreck5.dat in Resources */,
 				08DF8C0B0A5E74B300BCD981 /* wreck2.dat in Resources */,
 				08DF8C2D0A5E74DC00BCD981 /* wreck.png in Resources */,
+				1A38B5E60B989FD7001ED4A0 /* logcontrol.plist in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1725,6 +1736,7 @@
 				1A8A39E30B962823007D20B8 /* PlayerEntityScripting.m in Sources */,
 				1A8A39FF0B96295D007D20B8 /* ShipEntity.m in Sources */,
 				1A8A3A390B962AEF007D20B8 /* NSScannerOOExtensions.m in Sources */,
+				1A38B4AD0B988532001ED4A0 /* OOLogging.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

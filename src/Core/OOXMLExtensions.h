@@ -7,7 +7,7 @@ XML format, which both Cocoa and GNUstep can read. This is done because
 GNUstep defaults to writing a version of OpenStep text-based property lists
 that Cocoa can't understand. The XML format is understood by both
 implementations, although GNUstep complains about not being able to find the
-DTD:
+DTD.
 
 Oolite
 Copyright (C) 2004-2007 Giles C Williams and contributors
@@ -26,11 +26,6 @@ You should have received a copy of the GNU General Public License
 along with this program; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
 MA 02110-1301, USA.
-
-*/
-
-/*
-
 
 */
 

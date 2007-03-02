@@ -1,0 +1,22 @@
+_default = yes;								// Fallback value for otherwise undefined classes
+// _override = yes;							// Use to force display of all messages
+
+scripting = inherit;
+scripting.debug = inherit;
+scripting.debug.onoff = inherit;
+
+rendering = inherit;
+rendering.opengl = inherit;
+rendering.opengl.errors = yes;				// Test for and display OpenGL errors
+rendering.opengl.version = no;				// Display renderer version information at startup
+rendering.opengl.extensions = no;			// List OpenGL extensions at startup
+rendering.opengl.shaders = inherit;			// Shader-related messages
+rendering.opengl.shaders.support = yes;		// Messages about factors influencing availability of OpenGL shaders
+
+searchpaths = inherit;
+searchpaths.dumpall = no;
+
+// Mac-specific
+growl = inherit;
+growl.error = inherit;
+growl.debug = no;
