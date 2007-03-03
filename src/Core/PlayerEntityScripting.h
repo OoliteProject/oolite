@@ -60,6 +60,8 @@ MA 02110-1301, USA.
 - (NSNumber *) legalStatus_number;
 - (NSNumber *) d100_number;
 - (NSNumber *) pseudoFixedD100_number;
+- (NSNumber *) d256_number;
+- (NSNumber *) pseudoFixedD256_number;
 
 - (NSNumber *) clock_number;			// returns the game time in seconds
 - (NSNumber *) clock_secs_number;		// returns the game time in seconds

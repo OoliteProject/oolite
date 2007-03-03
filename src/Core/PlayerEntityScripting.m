@@ -572,12 +572,12 @@ static int shipsFound;
 	return [NSNumber numberWithInt:legal_status];
 }
 
-int d100_seed = -1;	// ensure proper random function
+static int scriptRandomSeed = -1;	// ensure proper random function
 - (NSNumber *) d100_number
 {
-	if (d100_seed == -1)	d100_seed = floor(1301 * ship_clock);	// stop predictable sequences
-	ranrot_srand(d100_seed);
-	d100_seed = ranrot_rand();
+	if (scriptRandomSeed == -1)	scriptRandomSeed = floor(1301 * ship_clock);	// stop predictable sequences
+	ranrot_srand(scriptRandomSeed);
+	scriptRandomSeed = ranrot_rand();
 	int d100 = ranrot_rand() % 100;
 	return [NSNumber numberWithInt:d100];
 }
@@ -588,6 +588,23 @@ int d100_seed = -1;	// ensure proper random function
 	seed_RNG_only_for_planet_description(system_seed);
 	int d100 = (gen_rnd_number() * 256 + gen_rnd_number()) % 100;
 	return [NSNumber numberWithInt:d100];
+}
+
+- (NSNumber *) d256_number
+{
+	if (scriptRandomSeed == -1)	scriptRandomSeed = floor(1301 * ship_clock);	// stop predictable sequences
+	ranrot_srand(scriptRandomSeed);
+	scriptRandomSeed = ranrot_rand();
+	int d256 = ranrot_rand() % 256;
+	return [NSNumber numberWithInt:d256];
+}
+
+- (NSNumber *) pseudoFixedD256_number
+{
+	// set the system seed for random number generation
+	seed_RNG_only_for_planet_description(system_seed);
+	int d256 = gen_rnd_number();
+	return [NSNumber numberWithInt:d256];
 }
 
 - (NSNumber *) clock_number				// returns the game time in seconds
