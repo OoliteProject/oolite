@@ -29,6 +29,7 @@ MA 02110-1301, USA.
 #import <Foundation/NSString.h>
 
 #import "GameController.h"
+#import "OOLogging.h"
 
 GameController* controller;
 #endif
@@ -49,6 +50,7 @@ int main(int argc, char *argv[])
 	// Need this because we're not using the default run loop's autorelease
 	// pool.
 	NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
+	OOLoggingInit();
 
 	// dajt: allocate and set the NSApplication delegate manually because not
 	// using NIB to do this

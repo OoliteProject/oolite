@@ -42,6 +42,11 @@ MA 02110-1301, USA.
 #import "OOLogging.h"
 
 
+extern NSString * const kOOLogScriptSpawnOK;
+extern NSString * const kOOLogScriptSpawnFailed;
+static NSString * const kOOLogEntityBehaviourChanged	= @"entity.behaviour.changed";
+
+
 @implementation ShipEntity
 
 - (id) init
@@ -2038,7 +2043,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	//
 	if (reportAImessages && (debug_condition != behaviour))
 	{
-		NSLog(@"DEBUG %@ behaviour is now %@", self, describeBehaviour(behaviour));
+		OOLog(kOOLogEntityBehaviourChanged, @"%@ behaviour is now %@", self, describeBehaviour(behaviour));
 		debug_condition = behaviour;
 	}
 
@@ -8190,7 +8195,7 @@ inline BOOL pairOK(NSString* my_role, NSString* their_role)
 
 	if ([tokens count] != 2)
 	{
-		NSLog(@"***** CANNOT SPAWN: '%@'",roles_number);
+		OOLog(kOOLogScriptSpawnFailed, @"***** Could not spawn: '%@' (must be two tokens, role and number)",roles_number);
 		return;
 	}
 
@@ -8200,7 +8205,7 @@ inline BOOL pairOK(NSString* my_role, NSString* their_role)
 	int number = [numberString intValue];
 
 	if (debug & DEBUG_SCRIPT)
-		NSLog(@"DEBUG ..... Going to spawn %d x '%@' near %@ %d", number, roleString, name, universal_id);
+		OOLog(kOOLogScriptSpawnOK, @"Spawning %d x '%@' near %@ %d", number, roleString, name, universal_id);
 
 	while (number--)
 		[universe spawnShipWithRole:roleString near:self];

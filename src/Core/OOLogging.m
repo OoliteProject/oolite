@@ -40,11 +40,18 @@ MA 02110-1301, USA.
 // Internal logging control flags - like message classes, but less cool.
 #define OOLOG_SETTING_SET			0
 #define OOLOG_SETTING_RETRIEVE		0
+#define OOLOG_METACLASS_LOOP		1
+#define OOLOG_UNDEFINED_METACLASS	1
+#define OOLOG_BAD_SETTING			1
+#define OOLOG_BAD_DEFAULT_SETTING	1
 
 
+static BOOL					sInited = NO;
+static NSLock				*sLock = nil;
 static NSMutableDictionary	*sExplicitSettings = nil;
 static NSMutableDictionary	*sDerivedSettingsCache = nil;
 static NSMutableDictionary	*sFileNamesCache = nil;
+static NSNumber				*sCacheTrue = nil, *sCacheFalse = nil;	// These are the only values that may appear in sDerivedSettingsCache.
 static unsigned				sIndentLevel = 0;
 static BOOL					sShowFunction = NO;
 static BOOL					sShowFileAndLine = NO;
@@ -55,14 +62,6 @@ static BOOL					sOverrideInEffect = NO;
 static BOOL					sOverrideValue = NO;
 
 
-// Function to do actual printing
-#ifdef __COREFOUNDATION_CFSTRING__
-	#define OOLOG_PRIMITIVE_LOG(foo)	CFShow(foo)
-#else
-	#define OOLOG_PRIMITIVE_LOG(foo)	NSLog(@"%@", foo)
-#endif
-
-
 // To avoid recursion/self-dependencies, OOLog gets its own logging function.
 #define OOLogInternal(cond, format, ...) do { if ((cond)) { OOLogInternal_(OOLOG_FUNCTION_NAME, format, ## __VA_ARGS__); }} while (0)
 static void OOLogInternal_(const char *inFunction, NSString *inFormat, ...);
@@ -70,16 +69,60 @@ static void OOLogInternal_(const char *inFunction, NSString *inFormat, ...);
 
 static void LoadExplicitSettings(void);
 static void LoadExplicitSettingsFromDictionary(NSDictionary *inDict);
-static id LogWillDisplayMessagesInClassObj(NSString *inMessageClass);
 static NSString *AbbreviatedFileName(const char *inName);
+static NSNumber *ResolveDisplaySetting(NSString *inMessageClass);
+static NSNumber *ResolveMetaClassReference(NSString *inMetaClass, NSMutableSet *ioSeenMetaClasses);
+
+
+// Function to do actual printing
+static inline void PrimitiveLog(NSString *inString)
+{
+	#ifdef __COREFOUNDATION_CFSTRING__
+		CFShow((CFStringRef)inString);
+	#else
+		NSLog(@"%@", inString);
+	#endif
+}
+
+
+static inline NSNumber *CacheValue(BOOL inValue)
+{
+	return inValue ? sCacheTrue : sCacheFalse;
+}
+
+
+static inline BOOL Inited(void)
+{
+	if (__builtin_expect(sInited, YES)) return YES;
+	PrimitiveLog(@"ERROR: OOLoggingInit() has not been called.");
+	return NO;
+}
 
 
 BOOL OOLogWillDisplayMessagesInClass(NSString *inMessageClass)
 {
-	BOOL result = [LogWillDisplayMessagesInClassObj(inMessageClass) boolValue];
-	OOLogInternal(OOLOG_SETTING_RETRIEVE, @"%@ is %s", inMessageClass, result ? "on" : "off");
+	id				value = nil;
 	
-	return result;
+	if (!Inited()) return NO;
+	
+	[sLock lock];
+	
+	// Look for cached value
+	value = [sDerivedSettingsCache objectForKey:inMessageClass];
+	if (__builtin_expect(value == nil, 0))
+	{
+		// No cached value.
+		value = ResolveDisplaySetting(inMessageClass);
+		
+		if (value != nil)
+		{
+			[sDerivedSettingsCache setObject:value forKey:inMessageClass];
+		}
+	}
+	[sLock unlock];
+	
+	OOLogInternal(OOLOG_SETTING_RETRIEVE, @"%@ is %s", inMessageClass, (value == sCacheTrue) ? "on" : "off");
+	return value == sCacheTrue;
 }
 
 
@@ -87,8 +130,9 @@ void OOLogSetDisplayMessagesInClass(NSString *inClass, BOOL inFlag)
 {
 	id				value = nil;
 	
-	if (sExplicitSettings == nil) LoadExplicitSettings();
+	if (!Inited()) return;
 	
+	[sLock lock];
 	value = [sExplicitSettings objectForKey:inClass];
 	if (value == nil || [value boolValue] != inFlag)
 	{
@@ -105,6 +149,7 @@ void OOLogSetDisplayMessagesInClass(NSString *inClass, BOOL inFlag)
 	{
 		OOLogInternal(OOLOG_SETTING_SET, @"Keeping %@ %s", inClass, inFlag ? "ON" : "OFF");
 	}
+	[sLock unlock];
 }
 
 
@@ -123,13 +168,18 @@ NSString *OOLogGetParentMessageClass(NSString *inClass)
 
 void OOLogIndent(void)
 {
+	// These could be handled with atomic updates, but aren’t called much, so let’s not introduce porting complexity.
+	[sLock lock];
 	++sIndentLevel;
+	[sLock unlock];
 }
 
 
 void OOLogOutdent(void)
 {
+	[sLock lock];
 	if (sIndentLevel != 0) --sIndentLevel;
+	[sLock unlock];
 }
 
 
@@ -226,8 +276,24 @@ void OOLogWithFunctionFileAndLineAndArguments(NSString *inMessageClass, const ch
 		formattedMessage = [NSString stringWithFormat:@"%s%@", indentString, formattedMessage];
 	}
 	
-	OOLOG_PRIMITIVE_LOG(formattedMessage);
+	PrimitiveLog(formattedMessage);
 	
+	[pool release];
+}
+
+
+void OOLoggingInit(void)
+{
+	NSAutoreleasePool		*pool = nil;
+	
+	if (sInited) return;
+	
+	pool = [[NSAutoreleasePool alloc] init];
+	sLock = [[NSLock alloc] init];
+	if (sLock == nil) abort();
+	
+	LoadExplicitSettings();
+	sInited = YES;
 	[pool release];
 }
 
@@ -261,7 +327,7 @@ static void OOLogInternal_(const char *inFunction, NSString *inFormat, ...)
 	formattedMessage = [NSString stringWithFormat:@"OOLogging internal - %s: %@", inFunction, formattedMessage];
 	if (sShowApplication) formattedMessage = [APPNAME stringByAppendingString:formattedMessage];
 	
-	OOLOG_PRIMITIVE_LOG(formattedMessage);
+	PrimitiveLog(formattedMessage);
 	
 	[pool release];
 }
@@ -274,7 +340,12 @@ static void LoadExplicitSettings(void)
 	NSUserDefaults		*prefs = nil;
 	id					value = nil;
 	
+	if (sExplicitSettings != nil) return;
+	
 	sExplicitSettings = [[NSMutableDictionary alloc] init];
+	
+	sCacheTrue = [[NSNumber numberWithBool:YES] retain];
+	sCacheFalse = [[NSNumber numberWithBool:NO] retain];
 	
 	// Load defaults from logcontrol.plist
 	configPath = [[NSBundle mainBundle] pathForResource:@"logcontrol" ofType:@"plist"];
@@ -293,14 +364,27 @@ static void LoadExplicitSettings(void)
 	value = [sExplicitSettings objectForKey:@"_default"];
 	if (value != nil && [value respondsToSelector:@selector(boolValue)])
 	{
-		sDefaultDisplay = [value boolValue];
+		if (value == sCacheTrue) sDefaultDisplay = YES;
+		else if (value == sCacheFalse) sDefaultDisplay = NO;
+		else OOLogInternal(OOLOG_BAD_DEFAULT_SETTING, @"_default may not be set to a metaclass, ignoring.");
+		
 		[sExplicitSettings removeObjectForKey:@"_default"];
 	}
 	value = [sExplicitSettings objectForKey:@"_override"];
 	if (value != nil && [value respondsToSelector:@selector(boolValue)])
 	{
-		sOverrideInEffect = YES;
-		sOverrideValue = [value boolValue];
+		if (value == sCacheTrue)
+		{
+			sOverrideInEffect = YES;
+			sOverrideValue = YES;
+		}
+		else if (value == sCacheFalse)
+		{
+			sOverrideInEffect = YES;
+			sOverrideValue = NO;
+		}
+		else OOLogInternal(OOLOG_BAD_DEFAULT_SETTING, @"_override may not be set to a metaclass, ignoring.");
+		
 		[sExplicitSettings removeObjectForKey:@"_override"];
 	}
 	
@@ -335,72 +419,58 @@ static void LoadExplicitSettingsFromDictionary(NSDictionary *inDict)
 	NSEnumerator		*keyEnum = nil;
 	id					key = nil;
 	id					value = nil;
-	BOOL				boolValue, gotBoolValue;
 	
 	for (keyEnum = [inDict keyEnumerator]; (key = [keyEnum nextObject]); )
 	{
 		value = [inDict objectForKey:key];
-		gotBoolValue = NO;
 		
-		// This is complicated a tad by the desire to support "inherited" - which just causes the key to be ignored and inheritance behaviour to take effect.
+		/*	Supported values:
+			"yes", "true" or "on" -> sCacheTrue
+			"no", "false" or "off" -> sCacheFalse
+			"inherit" or "inherited" -> nil
+			NSNumber -> sCacheTrue or sCacheFalse
+			"$metaclass" -> "$metaclass"
+		*/
 		if ([value isKindOfClass:[NSString class]])
 		{
 			if (NSOrderedSame == [value caseInsensitiveCompare:@"yes"] ||
 				NSOrderedSame == [value caseInsensitiveCompare:@"true"] ||
 				NSOrderedSame == [value caseInsensitiveCompare:@"on"])
 			{
-				boolValue = YES;
-				gotBoolValue = YES;
+				value = sCacheTrue;
 			}
 			else if (NSOrderedSame == [value caseInsensitiveCompare:@"no"] ||
 				NSOrderedSame == [value caseInsensitiveCompare:@"false"] ||
 				NSOrderedSame == [value caseInsensitiveCompare:@"off"])
 			{
-				boolValue = NO;
-				gotBoolValue = YES;
+				value = sCacheFalse;
+			}
+			else if (NSOrderedSame == [value caseInsensitiveCompare:@"inherit"] ||
+				NSOrderedSame == [value caseInsensitiveCompare:@"inherited"])
+			{
+				value = nil;
+			}
+			else if (![value hasPrefix:@"$"])
+			{
+				OOLogInternal(OOLOG_BAD_SETTING, @"Bad setting value \"%@\" (expected yes, no, inherit or $metaclass).", value);
+				value = nil;
 			}
 		}
 		else if ([value respondsToSelector:@selector(boolValue)])
 		{
-			boolValue = [value boolValue];
-			gotBoolValue = YES;
+			value = CacheValue([value boolValue]);
+		}
+		else
+		{
+			OOLogInternal(OOLOG_BAD_SETTING, @"Bad setting value \"%@\" (expected yes, no, inherit or $metaclass).", value);
+			value = nil;
 		}
 		
-		if (gotBoolValue)
+		if (value != nil)
 		{
-			[sExplicitSettings setObject:[NSNumber numberWithBool:boolValue] forKey:key];
+			[sExplicitSettings setObject:value forKey:key];
 		}
 	}
-}
-
-
-static id LogWillDisplayMessagesInClassObj(NSString *inMessageClass)
-{
-	id					directValue = nil;
-	id					value = nil;
-	
-	if (inMessageClass == nil) return [NSNumber numberWithBool:sDefaultDisplay];
-	if (sOverrideInEffect) return [NSNumber numberWithBool:sOverrideValue];
-	if (sExplicitSettings == nil) LoadExplicitSettings();
-	
-	// Use cached value if possible
-	directValue = [sDerivedSettingsCache objectForKey:inMessageClass];
-	
-	// If no cached value, look for explicit value
-	if (directValue == nil) directValue = [sExplicitSettings objectForKey:inMessageClass];
-	value = directValue;
-	
-	// If no cached or explicit value, use inherited value
-	if (value == nil) value = LogWillDisplayMessagesInClassObj(OOLogGetParentMessageClass(inMessageClass));
-	
-	// Maintain cache
-	if (directValue == nil && value != nil)
-	{
-		if (sDerivedSettingsCache == nil) sDerivedSettingsCache = [[NSMutableDictionary alloc] init];
-		[sDerivedSettingsCache setObject:value forKey:inMessageClass];
-	}
-	
-	return value;
 }
 
 
@@ -409,6 +479,7 @@ static NSString *AbbreviatedFileName(const char *inName)
 	NSValue				*key = nil;
 	NSString			*name = nil;
 	
+	[sLock lock];
 	key = [NSValue valueWithPointer:inName];
 	name = [sFileNamesCache objectForKey:key];
 	if (name == nil)
@@ -417,6 +488,55 @@ static NSString *AbbreviatedFileName(const char *inName)
 		if (sFileNamesCache == nil) sFileNamesCache = [[NSMutableDictionary alloc] init];
 		[sFileNamesCache setObject:name forKey:key];
 	}
+	[sLock unlock];
 	
 	return name;
+}
+
+
+static NSNumber *ResolveDisplaySetting(NSString *inMessageClass)
+{
+	id					value = nil;
+	NSMutableSet		*seenMetaClasses = nil;
+	
+	if (inMessageClass == nil) return CacheValue(sDefaultDisplay);
+	
+	value = [sExplicitSettings objectForKey:inMessageClass];
+	
+	// Simple case: explicit setting for this value
+	if (value == sCacheTrue || value == sCacheFalse) return value;
+	
+	// Simplish case: nil == use inherited value
+	if (value == nil) return ResolveDisplaySetting(OOLogGetParentMessageClass(inMessageClass));
+	
+	// Less simple case: should be a metaclass.
+	seenMetaClasses = [NSMutableSet set];
+	return ResolveMetaClassReference(value, seenMetaClasses);
+}
+
+
+static NSNumber *ResolveMetaClassReference(NSString *inMetaClass, NSMutableSet *ioSeenMetaClasses)
+{
+	id					value = nil;
+	
+	// All values should have been checked at load time, but what the hey.
+	if (![inMetaClass hasPrefix:@"$"])
+	{
+		OOLogInternal(OOLOG_BAD_SETTING, @"Bad setting value \"%@\" (expected yes, no, inherit or $metaclass). Falling back to _default.", inMetaClass);
+		return CacheValue(sDefaultDisplay);
+	}
+	
+	[ioSeenMetaClasses addObject:inMetaClass];
+	
+	value = [sExplicitSettings objectForKey:inMetaClass];
+	
+	if (value == sCacheTrue || value == sCacheFalse) return value;
+	if (value == nil)
+	{
+		OOLogInternal(OOLOG_UNDEFINED_METACLASS, @"Reference to undefined metaclass %@, falling back to _default.", inMetaClass);
+		return CacheValue(sDefaultDisplay);
+	}
+	
+	// If we get here, it should be a metaclass reference.
+	return ResolveMetaClassReference(value, ioSeenMetaClasses);
 }

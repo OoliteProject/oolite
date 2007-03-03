@@ -74,6 +74,9 @@ void OOLogWithFunctionFileAndLine(NSString *inMessageClass, const char *inFuncti
 void OOLogWithFunctionFileAndLineAndArguments(NSString *inMessageClass, const char *inFunction, const char *inFile, unsigned long inLine, NSString *inFormat, va_list inArguments);
 
 
+void OOLoggingInit(void);
+
+
 
 // *** Predefined message classes.
 /*	These are general coding error types. Generally a subclass should be used

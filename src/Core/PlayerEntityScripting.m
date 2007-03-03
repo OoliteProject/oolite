@@ -36,14 +36,14 @@ MA 02110-1301, USA.
 #import "Comparison.h"
 #endif
 
-static NSString * const kOOLogScriptDebug				= @"scripting.debug";
+static NSString * const kOOLogScriptDebugMessage		= @"scripting.debug.message";
 static NSString * const kOOLogScriptDebugOnOff			= @"scripting.debug.onoff";
 static NSString * const kOOLogScriptAction				= @"scripting.scriptaction.scriptaction";
 static NSString * const kOOLogScriptNoAction			= @"scripting.scriptaction.noaction";
 static NSString * const kOOLogScriptActionExpanded		= @"scripting.scriptaction.expanded";
 static NSString * const kOOLogScriptActionBadSelector	= @"scripting.scriptaction.badselector";
-static NSString * const kOOLogScriptSpawnOK				= @"scripting.spawn.spawned";
-static NSString * const kOOLogScriptSpawnFailed			= @"scripting.spawn.failed";
+NSString * const kOOLogScriptSpawnOK					= @"scripting.spawn.spawned";
+NSString * const kOOLogScriptSpawnFailed				= @"scripting.spawn.failed";
 
 
 @implementation PlayerEntity (Scripting)
@@ -1873,7 +1873,7 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 
 - (void) debugMessage:(NSString *)args
 {
-	OOLog(kOOLogScriptDebug, @"SCRIPT debugMessage: %@", args);
+	OOLog(kOOLogScriptDebugMessage, @"SCRIPT debugMessage: %@", args);
 }
 
 - (NSString*) replaceVariablesInString:(NSString*) args
