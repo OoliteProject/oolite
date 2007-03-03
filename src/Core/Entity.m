@@ -36,6 +36,19 @@ MA 02110-1301, USA.
 
 #import "NSScannerOOExtensions.h"
 
+
+static NSString * const kOOLogEntityAddToList				= @"entity.linkedlist.add";
+static NSString * const kOOLogEntityAddToListError			= @"entity.linkedlist.add.error";
+static NSString * const kOOLogEntityRemoveFromList			= @"entity.linkedlist.remove";
+static NSString * const kOOLogEntityRemoveFromListError		= @"entity.linkedlist.remove.error";
+static NSString * const kOOLogEntityVerificationError		= @"entity.linkedlist.verify.error";
+static NSString * const kOOLogEntityUpdateError				= @"entity.linkedlist.update.error";
+static NSString * const kOOLogStringVectorConversion		= @"strings.conversion.vector";
+static NSString * const kOOLogStringQuaternionConversion	= @"strings.conversion.quaternion";
+static NSString * const kOOLogStringVecAndQuatConversion	= @"strings.conversion.vectorandquaternion";
+static NSString * const kOOLogStringRandomSeedConversion	= @"strings.conversion.randomseed";
+
+
 // global flag for VAR
 BOOL global_usingVAR;
 BOOL global_testForVAR;
@@ -1180,8 +1193,7 @@ static  Universe	*data_store_universe;
 //
 - (void) resetFramesFromFrame:(Frame) resetFrame withVelocity:(Vector) vel1
 {
-	if (isPlayer)
-		NSLog(@"DEBUG ** resetting track for %@ **", self);
+	// if (isPlayer)  NSLog(@"DEBUG ** resetting track for %@ **", self);
 
 	Vector		v1 = make_vector( 0.1 * vel1.x, 0.1 * vel1.y, 0.1 * vel1.z);
 	double		t_now = [universe getTime];
@@ -2454,12 +2466,12 @@ static  Universe	*data_store_universe;
 		if (strstr(s, "GL_APPLE_vertex_array_range") == 0)
 		{
 			global_usingVAR &= NO;
-			NSLog(@"Vertex Array Range optimisation - not supported");
+			OOLog(kOOLogOpenGLExtensionsVAR, @"Vertex Array Range optimisation - not supported");
 			return NO;
 		}
 		else
 		{
-			NSLog(@"Vertex Array Range optimisation - supported");
+			OOLog(kOOLogOpenGLExtensionsVAR, @"Vertex Array Range optimisation - supported");
 			global_usingVAR |= YES;
 		}
 	}

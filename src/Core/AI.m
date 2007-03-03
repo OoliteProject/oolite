@@ -29,6 +29,14 @@ MA 02110-1301, USA.
 #import "OOLogging.h"
 
 
+static NSString * const kOOLogAIReceiveMessage			= @"ai.message.receive";
+static NSString * const kOOLogAITakeAction				= @"ai.takeaction.takeaction";
+static NSString * const kOOLogAINoAction				= @"ai.takeaction.noaction";
+static NSString * const kOOLogAITakeActionOrphaned		= @"ai.takeaction.orphaned";
+static NSString * const kOOLogAIDebugMessage			= @"ai.takeaction.debugmessage";
+static NSString * const kOOLogAIBadSelector				= @"ai.takeaction.badselector";
+
+
 @implementation AI
 
 - (id) prepare

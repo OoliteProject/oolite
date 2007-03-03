@@ -53,7 +53,7 @@ GLuint	max_texture_dimension = 512;	// conservative start
 	glGetIntegerv( GL_MAX_TEXTURE_SIZE, &result);
 	max_texture_dimension = result;
 	done_maxsize_test = YES;
-	NSLog(@"TESTING: GL_MAX_TEXTURE_SIZE =  %d", max_texture_dimension);
+	// NSLog(@"TESTING: GL_MAX_TEXTURE_SIZE =  %d", max_texture_dimension);
 	return max_texture_dimension;
 }
 

@@ -45,6 +45,12 @@ MA 02110-1301, USA.
 #define MAX_NUMBER_OF_SOLAR_SYSTEM_ENTITIES 20
 
 
+static NSString * const kOOLogDataCacheFound			= @"datacache.found";
+static NSString * const kOOLogDataCacheNotFound			= @"datacache.notfound";
+static NSString * const kOOLogDataCacheRebuild			= @"datacache.rebuild";
+static NSString * const kOOLogUniversePopulate			= @"universe.populate";
+
+
 @implementation Universe
 
 - (id) init
@@ -1244,7 +1250,7 @@ GLfloat docked_light_specular[]	= { (GLfloat) 1.0, (GLfloat) 1.0, (GLfloat) 0.5,
 	
 	ranrot_srand([[NSDate date] timeIntervalSince1970]);   // reset randomiser with current time
 	
-	NSLog(@"Populating a system with economy %d, and government %d", economy, government);
+	OOLog(kOOLogUniversePopulate, @"Populating a system with economy %d, and government %d", economy, government);
 
 	// traders
 	int trading_parties = (9 - economy);			// 2 .. 9
@@ -1254,11 +1260,11 @@ GLfloat docked_light_specular[]	= { (GLfloat) 1.0, (GLfloat) 1.0, (GLfloat) 0.5,
 	while (trading_parties > 15)
 		trading_parties = 1 + (ranrot_rand() % trading_parties);   // reduce
 	
-	NSLog(@"... adding %d trading vessels", trading_parties);
+	OOLog(kOOLogUniversePopulate, @"... adding %d trading vessels", trading_parties);
 	
 	int skim_trading_parties = (ranrot_rand() & 3) + trading_parties * (ranrot_rand() & 31) / 120;	// about 12%
 	
-	NSLog(@"... adding %d sun skimming vessels", skim_trading_parties);
+	OOLog(kOOLogUniversePopulate, @"... adding %d sun skimming vessels", skim_trading_parties);
 	
 	// pirates
 	int anarchy = (8 - government);
@@ -1268,11 +1274,11 @@ GLfloat docked_light_specular[]	= { (GLfloat) 1.0, (GLfloat) 1.0, (GLfloat) 0.5,
 	while (raiding_parties > 25)
 		raiding_parties = 12 + (ranrot_rand() % raiding_parties);   // reduce
 	
-	NSLog(@"... adding %d pirate vessels", raiding_parties);
+	OOLog(kOOLogUniversePopulate, @"... adding %d pirate vessels", raiding_parties);
 
 	int skim_raiding_parties = ((randf() < 0.14 * economy)? 1:0) + raiding_parties * (ranrot_rand() & 31) / 120;	// about 12%
 	
-	NSLog(@"... adding %d sun skim pirates", skim_raiding_parties);
+	OOLog(kOOLogUniversePopulate, @"... adding %d sun skim pirates", skim_raiding_parties);
 	
 	// bounty-hunters and the law
 	int hunting_parties = (1 + government) * trading_parties / 8;
@@ -1286,17 +1292,17 @@ GLfloat docked_light_specular[]	= { (GLfloat) 1.0, (GLfloat) 1.0, (GLfloat) 0.5,
 	if (hunting_parties < 1)
 		hunting_parties = 1;
 	
-	NSLog(@"... adding %d law/bounty-hunter vessels", hunting_parties);
+	OOLog(kOOLogUniversePopulate, @"... adding %d law/bounty-hunter vessels", hunting_parties);
 
 	int skim_hunting_parties = ((randf() < 0.14 * government)? 1:0) + hunting_parties * (ranrot_rand() & 31) / 160;	// about 10%
 	
-	NSLog(@"... adding %d sun skim law/bounty hunter vessels", skim_hunting_parties);
+	OOLog(kOOLogUniversePopulate, @"... adding %d sun skim law/bounty hunter vessels", skim_hunting_parties);
 	
 	int thargoid_parties = 0;
 	while ((ranrot_rand() % 100) < thargoidChance)
 		thargoid_parties++;
 
-	NSLog(@"... adding %d Thargoid warships", thargoid_parties);
+	OOLog(kOOLogUniversePopulate, @"... adding %d Thargoid warships", thargoid_parties);
 	
 	int rock_clusters = ranrot_rand() % 3;
 	if (trading_parties + raiding_parties + hunting_parties < 10)
@@ -1304,11 +1310,11 @@ GLfloat docked_light_specular[]	= { (GLfloat) 1.0, (GLfloat) 1.0, (GLfloat) 0.5,
 
 	rock_clusters *= 2;
 
-	NSLog(@"... adding %d asteroid clusters", rock_clusters);
+	OOLog(kOOLogUniversePopulate, @"... adding %d asteroid clusters", rock_clusters);
 
 	int total_clicks = trading_parties + raiding_parties + hunting_parties + thargoid_parties + rock_clusters + skim_hunting_parties + skim_raiding_parties + skim_trading_parties;
 	
-	NSLog(@"... for a total of %d ships", total_clicks);
+	OOLog(kOOLogUniversePopulate, @"... for a total of %d ships", total_clicks);
 	
 	Vector  v_route1 = p1_pos;
 	v_route1.x -= h1_pos.x;	v_route1.y -= h1_pos.y;	v_route1.z -= h1_pos.z;

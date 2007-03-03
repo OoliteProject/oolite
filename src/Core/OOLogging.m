@@ -237,34 +237,12 @@ NSString * const kOOLogParameterError				= @"general.parametererror";
 NSString * const kOOLogException					= @"exception";
 NSString * const kOOLogFileNotFound					= @"files.notfound";
 NSString * const kOOLogFileNotLoaded				= @"files.notloaded";
-NSString * const kOOLogScriptDebug					= @"scripting.debug";
-NSString * const kOOLogScriptDebugOnOff				= @"scripting.debug.onoff";
 NSString * const kOOLogOpenGLError					= @"rendering.opengl.error";
 NSString * const kOOLogOpenGLVersion				= @"rendering.opengl.version";
 NSString * const kOOLogOpenGLShaderSupport			= @"rendering.opengl.shaders.support";
 NSString * const kOOLogOpenGLExtensions				= @"rendering.opengl.extensions";
+NSString * const kOOLogOpenGLExtensionsVAR			= @"rendering.opengl.extensions.var";
 NSString * const kOOLogOpenGLStateDump				= @"rendering.opengl.statedump";
-NSString * const kOOLogDumpSearchPaths				= @"searchpaths.dumpall";
-NSString * const kOOLogStringValueConversion		= @"strings.conversion";
-NSString * const kOOLogStringVectorConversion		= @"strings.conversion.vector";
-NSString * const kOOLogStringQuaternionConversion	= @"strings.conversion.quaternion";
-NSString * const kOOLogStringVecAndQuatConversion	= @"strings.conversion.vectorandquaternion";
-NSString * const kOOLogStringRandomSeedConversion	= @"strings.conversion.randomseed";
-NSString * const kOOLogEntityAddToList				= @"entity.linkedlist.add";
-NSString * const kOOLogEntityAddToListError			= @"entity.linkedlist.add.error";
-NSString * const kOOLogEntityRemoveFromList			= @"entity.linkedlist.remove";
-NSString * const kOOLogEntityRemoveFromListError	= @"entity.linkedlist.remove.error";
-NSString * const kOOLogEntityVerificationError		= @"entity.linkedlist.verify.error";
-NSString * const kOOLogEntityUpdateError			= @"entity.linkedlist.update.error";
-NSString * const kOOLogAIReceiveMessage				= @"ai.message.receive";
-NSString * const kOOLogAITakeAction					= @"ai.takeaction.takeaction";
-NSString * const kOOLogAINoAction					= @"ai.takeaction.noaction";
-NSString * const kOOLogAITakeActionOrphaned			= @"ai.takeaction.orphaned";
-NSString * const kOOLogAIDebugMessage				= @"ai.takeaction.debugmessage";
-NSString * const kOOLogAIBadSelector				= @"ai.takeaction.badselector";
-NSString * const kOOLogDataCacheFound				= @"datacache.found";
-NSString * const kOOLogDataCacheNotFound			= @"datacache.notfound";
-NSString * const kOOLogDataCacheRebuild				= @"datacache.rebuild";
 
 
 static void OOLogInternal_(const char *inFunction, NSString *inFormat, ...)

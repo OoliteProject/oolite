@@ -34,6 +34,14 @@ files.notloaded = inherit;					// A file should have been loaded at some earlier
 scripting = inherit;
 scripting.debug = inherit;
 scripting.debug.onoff = inherit;
+scripting.scriptaction = inherit;
+scripting.scriptaction.scriptaction = inherit;
+scripting.scriptaction.noaction = inherit;
+scripting.scriptaction.expanded = inherit;
+scripting.scriptaction.badselector = inherit;
+scripting.spawn = inherit;
+scripting.spawn.spawned = inherit;
+scripting.spawn.failed = inherit;
 
 rendering = inherit;
 rendering.opengl = inherit;
@@ -77,6 +85,9 @@ datacache = inherit;
 datacache.found = inherit;
 datacache.notfound = inherit;
 datacache.rebuild = inherit;
+
+universe = inherit;
+universe.populate = inherit;				// “Populating a system with…” message when generating a star system
 
 // Mac-specific
 growl = inherit;

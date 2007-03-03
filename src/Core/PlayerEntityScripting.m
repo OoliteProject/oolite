@@ -36,6 +36,16 @@ MA 02110-1301, USA.
 #import "Comparison.h"
 #endif
 
+static NSString * const kOOLogScriptDebug				= @"scripting.debug";
+static NSString * const kOOLogScriptDebugOnOff			= @"scripting.debug.onoff";
+static NSString * const kOOLogScriptAction				= @"scripting.scriptaction.scriptaction";
+static NSString * const kOOLogScriptNoAction			= @"scripting.scriptaction.noaction";
+static NSString * const kOOLogScriptActionExpanded		= @"scripting.scriptaction.expanded";
+static NSString * const kOOLogScriptActionBadSelector	= @"scripting.scriptaction.badselector";
+static NSString * const kOOLogScriptSpawnOK				= @"scripting.spawn.spawned";
+static NSString * const kOOLogScriptSpawnFailed			= @"scripting.spawn.failed";
+
+
 @implementation PlayerEntity (Scripting)
 
 static NSString * mission_string_value;
@@ -156,11 +166,11 @@ static NSString * mission_key;
 	SEL			_selector;
 
 	if (debug & DEBUG_SCRIPT)
-		NSLog(@"DEBUG ::::: scriptAction: \"%@\"", scriptAction);
+		OOLog(kOOLogScriptAction, @"scriptAction: \"%@\"", scriptAction);
 
 	if ([tokens count] < 1)
 	{
-		NSLog(@"***** No scriptAction '%@'",scriptAction);
+		OOLog(kOOLogScriptNoAction, @"***** No scriptAction '%@'",scriptAction);
 		return;
 	}
 
@@ -172,7 +182,7 @@ static NSString * mission_key;
 		valueString = [[tokens componentsJoinedByString:@" "] stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceCharacterSet]];
 		valueString = [universe expandDescriptionWithLocals:valueString forSystem:[self system_seed] withLocalVariables:locals];
 		if (debug & DEBUG_SCRIPT)
- 			NSLog(@"DEBUG ::::: after expansion: \"%@ %@\"", selectorString, valueString);
+ 			OOLog(kOOLogScriptActionExpanded, @"scriptAction after expansion: \"%@ %@\"", selectorString, valueString);
 	}
 
 	_selector = NSSelectorFromString(selectorString);
@@ -188,7 +198,7 @@ static NSString * mission_key;
 
 	if (![self respondsToSelector:_selector])
 	{
-		NSLog(@"***** PlayerEntity DOES NOT RESPOND TO scriptAction: \"%@\"", scriptAction);
+		OOLog(kOOLogScriptActionBadSelector, @"***** PlayerEntity DOES NOT RESPOND TO scriptAction: \"%@\"", scriptAction);
 		return;
 	}
 
@@ -1262,9 +1272,9 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 	if (debug & DEBUG_SCRIPT)
 	{
 		if (spawnedOkay)
-			NSLog(@"DEBUG Spawned ship with shipdata key '%@'.", ship_key);
+			OOLog(kOOLogScriptSpawnOK, @"DEBUG Spawned ship with shipdata key '%@'.", ship_key);
 		else
-			NSLog(@"***** Could not spawn ship with shipdata key '%@'.", ship_key);
+			NSLog(kOOLogScriptSpawnFailed, @"***** Could not spawn ship with shipdata key '%@'.", ship_key);
 	}
 }
 
@@ -1863,7 +1873,7 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 
 - (void) debugMessage:(NSString *)args
 {
-	NSLog(@"SCRIPT debugMessage: %@", args);
+	OOLog(kOOLogScriptDebug, @"SCRIPT debugMessage: %@", args);
 }
 
 - (NSString*) replaceVariablesInString:(NSString*) args
