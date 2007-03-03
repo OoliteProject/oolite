@@ -30,8 +30,8 @@ MA 02110-1301, USA.
 #import "PlayerEntity.h"
 #import "OOLogging.h"
 
-static NSString * const kOOLogClassGrooliteError	= @"growl.error";
-static NSString * const kOOLogClassGrooliteDebug	= @"growl.debug";
+static NSString * const kOOLogGrooliteError	= @"growl.error";
+static NSString * const kOOLogGrooliteDebug	= @"growl.debug";
 
 // #define GROOLITE_DEBUG
 
@@ -157,7 +157,7 @@ static NSString * const kOOLogClassGrooliteDebug	= @"growl.debug";
 			connection = [theConnection retain];
 		}
 	NS_HANDLER
-		OOLog(kOOLogClassGrooliteError, @"DEBUG GROOLITE exception : %@ : %@", [localException name], [localException reason]);
+		OOLog(kOOLogGrooliteError, @"DEBUG GROOLITE exception : %@ : %@", [localException name], [localException reason]);
 	NS_ENDHANDLER
 }
 
@@ -178,7 +178,7 @@ static NSString * const kOOLogClassGrooliteDebug	= @"growl.debug";
 			nc = [NSNotificationCenter defaultCenter];
 			[nc removeObserver:self];
 		NS_HANDLER
-			OOLog(kOOLogClassGrooliteError, @"DEBUG GROOLITE exception : %@ : %@", [localException name], [localException reason]);
+			OOLog(kOOLogGrooliteError, @"DEBUG GROOLITE exception : %@ : %@", [localException name], [localException reason]);
 		NS_ENDHANDLER
 	}
 }
@@ -197,7 +197,7 @@ static NSString * const kOOLogClassGrooliteDebug	= @"growl.debug";
 			nc = [NSNotificationCenter defaultCenter];
 			[nc removeObserver:self];
 		NS_HANDLER
-			OOLog(kOOLogClassGrooliteError, @"DEBUG GROOLITE exception : %@ : %@", [localException name], [localException reason]);
+			OOLog(kOOLogGrooliteError, @"DEBUG GROOLITE exception : %@ : %@", [localException name], [localException reason]);
 		NS_ENDHANDLER
 	}
 }
@@ -235,8 +235,8 @@ static NSString * const kOOLogClassGrooliteDebug	= @"growl.debug";
 	message = [inDict objectForKey:GROWL_NOTIFICATION_DESCRIPTION];
 	appname = [inDict objectForKey:GROWL_APP_NAME];
 	
-	OOLog(kOOLogClassGrooliteDebug, @"Received Growl notification:  inDict\n%@\n\n", inDict);
-	OOLog(kOOLogClassGrooliteDebug, @"Groolite: priority = %d appname = \"%@\" title = \"%@\", message = \"%@\"", priority, appname, title, message);
+	OOLog(kOOLogGrooliteDebug, @"Received Growl notification:  inDict\n%@\n\n", inDict);
+	OOLog(kOOLogGrooliteDebug, @"Groolite: priority = %d appname = \"%@\" title = \"%@\", message = \"%@\"", priority, appname, title, message);
 	
 	if (nil == title || [@"" isEqual:title])
 	{

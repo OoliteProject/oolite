@@ -26,6 +26,7 @@ MA 02110-1301, USA.
 #import "entities.h"
 #import "ResourceManager.h"
 #import "OOInstinct.h"
+#import "OOLogging.h"
 
 
 @implementation AI
@@ -266,7 +267,7 @@ MA 02110-1301, USA.
 	messagesForState = [NSDictionary dictionaryWithDictionary:[stateMachine objectForKey:currentState]];
 	//
 	if ((currentState)&&(![message isEqual:@"UPDATE"])&&((owner)&&([owner reportAImessages])))
-		NSLog(@"AI for %@ in state '%@' receives message '%@'", owner_desc, currentState, message);
+		OOLog(kOOLogAIReceiveMessage, @"AI for %@ in state '%@' receives message '%@'", owner_desc, currentState, message);
 	//
 	actions = [NSArray arrayWithArray:[messagesForState objectForKey:message]];
 	//
@@ -308,11 +309,11 @@ MA 02110-1301, USA.
 	NSString*   my_selector;
 	SEL			_selector;
 	
-	if ((owner)&&([owner reportAImessages]))   NSLog(@"%@ to take action %@", owner_desc, action);
+	if ((owner)&&([owner reportAImessages]))  OOLog(kOOLogAITakeAction, @"%@ to take action %@", owner_desc, action);
 	
 	if ([tokens count] < 1)
 	{
-		if ([owner reportAImessages])   NSLog(@"No action '%@'",action);
+		if ([owner reportAImessages])  OOLog(kOOLogAINoAction, @"No action '%@'",action);
 		return;
 	}
 	
@@ -327,7 +328,7 @@ MA 02110-1301, USA.
 	
 	if (!owner)
 	{
-		NSLog(@"***** AI %@, trying to perform %@, is orphaned (no owner)", self, my_selector);
+		OOLog(kOOLogAITakeActionOrphaned, @"***** AI %@, trying to perform %@, is orphaned (no owner)", self, my_selector);
 		return;
 	}
 	
@@ -336,9 +337,9 @@ MA 02110-1301, USA.
 		if ([my_selector isEqual:@"setStateTo:"])
 			[self setState:dataString];
 		else if ([my_selector isEqual:@"debugMessage:"])
-			NSLog(@"AI-DEBUG MESSAGE from %@ : %@", owner_desc, dataString);
+			OOLog(kOOLogAIDebugMessage, @"AI-DEBUG MESSAGE from %@ : %@", owner_desc, dataString);
 		else
-			NSLog(@"***** %@ does not respond to %@", owner_desc, my_selector);
+			OOLog(kOOLogAIBadSelector, @"***** %@ does not respond to %@", owner_desc, my_selector);
 	}
 	else
 	{

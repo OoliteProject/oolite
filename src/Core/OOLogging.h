@@ -75,15 +75,50 @@ void OOLogWithFunctionFileAndLineAndArguments(NSString *inMessageClass, const ch
 
 
 
-/* Predefined message classes. */
-extern NSString * const kOOLogClassScripting;			// @"scripting"
-extern NSString * const kOOLogClassScriptDebug;			// @"scripting.debug"
-extern NSString * const kOOLogClassScriptDebugOnOff;	// @"scripting.debug.onoff"
-extern NSString * const kOOLogClassRendering;			// @"rendering"
-extern NSString * const kOOLogClassOpenGL;				// @"rendering.opengl"
-extern NSString * const kOOLogClassOpenGLError;			// @"rendering.opengl.errors"
-extern NSString * const kOOLogClassOpenGLVersion;		// @"rendering.opengl.version"
-extern NSString * const kOOLogClassOpenGLShaderSupport;	// @"rendering.opengl.shaders.support"
-extern NSString * const kOOLogClassOpenGLExtensions;	// @"rendering.opengl.extensions"
-extern NSString * const kOOLogClassSearchPaths;			// @"searchpaths"
-extern NSString * const kOOLogClassDumpSearchPaths;		// @"searchpaths.dumpall"
+// *** Predefined message classes.
+/*	These are general coding error types. Generally a subclass should be used
+	for each instance -- for instance, -[Entity warnAboutHostiles] uses
+	@"general.subclassresponsibility.Entity-warnAboutHostiles".
+*/
+extern NSString * const kOOLogSubclassResponsibility;		// @"general.subclassresponsibility"
+extern NSString * const kOOLogParameterError;				// @"general.parametererror"
+
+extern NSString * const kOOLogException;					// @"exception"
+
+extern NSString * const kOOLogFileNotFound;					// @"files.notfound"
+extern NSString * const kOOLogFileNotLoaded;				// @"files.notloaded"
+
+extern NSString * const kOOLogScriptDebug;					// @"scripting.debug"
+extern NSString * const kOOLogScriptDebugOnOff;				// @"scripting.debug.onoff"
+
+extern NSString * const kOOLogOpenGLError;					// @"rendering.opengl.error"
+extern NSString * const kOOLogOpenGLVersion;				// @"rendering.opengl.version"
+extern NSString * const kOOLogOpenGLShaderSupport;			// @"rendering.opengl.shaders.support"
+extern NSString * const kOOLogOpenGLExtensions;				// @"rendering.opengl.extensions"
+extern NSString * const kOOLogOpenGLStateDump;				// @"rendering.opengl.statedump"
+
+extern NSString * const kOOLogDumpSearchPaths;				// @"searchpaths.dumpall"
+
+extern NSString * const kOOLogStringValueConversion;		// @"strings.conversion"
+extern NSString * const kOOLogStringVectorConversion;		// @"strings.conversion.vector"
+extern NSString * const kOOLogStringQuaternionConversion;	// @"strings.conversion.quaternion"
+extern NSString * const kOOLogStringVecAndQuatConversion;	// @"strings.conversion.vectorandquaternion"
+extern NSString * const kOOLogStringRandomSeedConversion;	// @"strings.conversion.randomseed"
+
+extern NSString * const kOOLogEntityAddToList;				// @"entity.linkedlist.add"
+extern NSString * const kOOLogEntityAddToListError;			// @"entity.linkedlist.add.error"
+extern NSString * const kOOLogEntityRemoveFromList;			// @"entity.linkedlist.remove"
+extern NSString * const kOOLogEntityRemoveFromListError;	// @"entity.linkedlist.remove.error"
+extern NSString * const kOOLogEntityVerificationError;		// @"entity.linkedlist.verify.error"
+extern NSString * const kOOLogEntityUpdateError;			// @"entity.linkedlist.update.error"
+
+extern NSString * const kOOLogAIReceiveMessage;				// @"ai.message.receive"
+extern NSString * const kOOLogAITakeAction;					// @"ai.takeaction.takeaction"
+extern NSString * const kOOLogAINoAction;					// @"ai.takeaction.noaction"
+extern NSString * const kOOLogAITakeActionOrphaned;			// @"ai.takeaction.orphaned"
+extern NSString * const kOOLogAIDebugMessage;				// @"ai.takeaction.debugmessage"
+extern NSString * const kOOLogAIBadSelector;				// @"ai.takeaction.badselector"
+
+extern NSString * const kOOLogDataCacheFound;				// @"datacache.found"
+extern NSString * const kOOLogDataCacheNotFound;			// @"datacache.notfound"
+extern NSString * const kOOLogDataCacheRebuild;				// @"datacache.rebuild"

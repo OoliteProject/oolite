@@ -1851,13 +1851,13 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 
 - (void) debugOn
 {
-	OOLog(kOOLogClassScriptDebugOnOff, @"SCRIPT debug messages ON");
+	OOLog(kOOLogScriptDebugOnOff, @"SCRIPT debug messages ON");
 	debug |= DEBUG_SCRIPT;
 }
 
 - (void) debugOff
 {
-	OOLog(kOOLogClassScriptDebugOnOff, @"SCRIPT debug messages OFF");
+	OOLog(kOOLogScriptDebugOnOff, @"SCRIPT debug messages OFF");
 	debug &= ~DEBUG_SCRIPT;
 }
 

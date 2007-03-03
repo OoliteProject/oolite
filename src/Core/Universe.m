@@ -34,6 +34,7 @@ MA 02110-1301, USA.
 #import "HeadUpDisplay.h"
 #import "OOSound.h"
 #import "OOColor.h"
+#import "OOLogging.h"
 
 #import "Octree.h"
 #import "CollisionRegion.h"
@@ -96,21 +97,21 @@ MA 02110-1301, USA.
 	NSString*	cache_path = OOLITE_CACHE;
 	if ([[NSFileManager defaultManager] fileExistsAtPath: cache_path])
 	{
-		NSLog(@"DEBUG ** found cache - loading data ...**");
+		OOLog(kOOLogDataCacheFound, @"Found data cache - loading data.");
 		preloadedDataFiles = [[NSMutableDictionary dictionaryWithContentsOfFile:cache_path] retain];
 		// check cache version number
 		// if it doesn't match our version number then don't use the cache, overwrite it later
 		NSObject* cache_version = [preloadedDataFiles objectForKey:@"CFBundleVersion"];
 		if (![oolite_version isEqual:cache_version])
 		{
-			NSLog(@"DEBUG ** CACHE VERSION DOES NOT MATCH OOLITE VERSION - discarding cache ...**");
+			OOLog(kOOLogDataCacheRebuild, @"Found data cache, but its version does not match Oolite's version. Discarding and rebuilding.");
 			[preloadedDataFiles release];
 			preloadedDataFiles = [[NSMutableDictionary dictionaryWithCapacity:16] retain];
 		}
 	}
 	else
 	{
-		NSLog(@"DEBUG ** no cache exists - yet **");
+		OOLog(kOOLogDataCacheNotFound, @"No data cache found, building.");
 		preloadedDataFiles = [[NSMutableDictionary dictionaryWithCapacity:16] retain];
 	}
 	[preloadedDataFiles setObject:oolite_version forKey:@"CFBundleVersion"];	// set the correct version for this cache
@@ -360,12 +361,12 @@ MA 02110-1301, USA.
 								stringByAppendingPathComponent:@"cache"];
 	if ([[NSFileManager defaultManager] fileExistsAtPath: cache_path])
 	{
-		NSLog(@"DEBUG ** found cache - loading data ...**");
+		OOLog(kOOLogDataCacheFound, @"Found data cache - loading data.");
 		preloadedDataFiles = [[NSMutableDictionary dictionaryWithContentsOfFile:cache_path] retain];
 	}
 	else
 	{
-		NSLog(@"DEBUG ** no cache exists - yet **");
+		OOLog(kOOLogDataCacheNotFound, @"No data cache found, building.");
 		preloadedDataFiles = [[NSMutableDictionary dictionaryWithCapacity:16] retain];
 	}
 

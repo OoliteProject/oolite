@@ -3295,7 +3295,7 @@ void testForShaders()
 	if ([vscan scanUpToCharactersFromSet:[NSCharacterSet characterSetWithCharactersInString:@". "] intoString:&temp])
 		minor = [temp intValue];
 
-	OOLog(kOOLogClassOpenGLVersion, @"\n\nOPENGL VERSION %d.%d ('%@')", major, minor, version_info);
+	OOLog(kOOLogOpenGLVersion, @"\n\nOPENGL VERSION %d.%d ('%@')", major, minor, version_info);
 
 	if ((major < 2)&&(minor < 5))
 	{
@@ -3307,54 +3307,54 @@ void testForShaders()
 	// check for the necessary extensions
 	NSString* extension_info = [NSString stringWithCString: (const char *)glGetString(GL_EXTENSIONS)];
 
-	OOLog(kOOLogClassOpenGLExtensions, @"\n\nOPENGL EXTENSIONS:\n%@", extension_info);
+	OOLog(kOOLogOpenGLExtensions, @"\n\nOPENGL EXTENSIONS:\n%@", extension_info);
 	
 	shaders_supported &= ([extension_info rangeOfString:@"GL_ARB_multitexture"].location != NSNotFound);
 	if (!shaders_supported)
 	{
-		OOLog(kOOLogClassOpenGLShaderSupport, @"INFORMATION: shaders require the GL_ARB_multitexture OpenGL extension, which is not present.");
+		OOLog(kOOLogOpenGLShaderSupport, @"INFORMATION: shaders require the GL_ARB_multitexture OpenGL extension, which is not present.");
 		return;
 	}
 	
 	shaders_supported &= ([extension_info rangeOfString:@"GL_ARB_shader_objects"].location != NSNotFound);
 	if (!shaders_supported)
 	{
-		OOLog(kOOLogClassOpenGLShaderSupport, @"INFORMATION: shaders require the GL_ARB_multitexture OpenGL extension, which is not present.");
+		OOLog(kOOLogOpenGLShaderSupport, @"INFORMATION: shaders require the GL_ARB_multitexture OpenGL extension, which is not present.");
 		return;
 	}
 		
 	shaders_supported &= ([extension_info rangeOfString:@"GL_ARB_shading_language_100"].location != NSNotFound);
 	if (!shaders_supported)
 	{
-		OOLog(kOOLogClassOpenGLShaderSupport, @"INFORMATION: shaders require the GL_ARB_shading_language_100 OpenGL extension, which is not present.");
+		OOLog(kOOLogOpenGLShaderSupport, @"INFORMATION: shaders require the GL_ARB_shading_language_100 OpenGL extension, which is not present.");
 		return;
 	}
 	
 	shaders_supported &= ([extension_info rangeOfString:@"GL_ARB_fragment_program"].location != NSNotFound);
 	if (!shaders_supported)
 	{
-		OOLog(kOOLogClassOpenGLShaderSupport, @"INFORMATION: shaders require the GL_ARB_fragment_program OpenGL extension, which is not present.");
+		OOLog(kOOLogOpenGLShaderSupport, @"INFORMATION: shaders require the GL_ARB_fragment_program OpenGL extension, which is not present.");
 		return;
 	}
 	
 	shaders_supported &= ([extension_info rangeOfString:@"GL_ARB_fragment_shader"].location != NSNotFound);
 	if (!shaders_supported)
 	{
-		OOLog(kOOLogClassOpenGLShaderSupport, @"INFORMATION: shaders require the GL_ARB_fragment_shader OpenGL extension, which is not present.");
+		OOLog(kOOLogOpenGLShaderSupport, @"INFORMATION: shaders require the GL_ARB_fragment_shader OpenGL extension, which is not present.");
 		return;
 	}
 	
 	shaders_supported &= ([extension_info rangeOfString:@"GL_ARB_vertex_program"].location != NSNotFound);
 	if (!shaders_supported)
 	{
-		OOLog(kOOLogClassOpenGLShaderSupport, @"INFORMATION: shaders require the GL_ARB_vertex_program OpenGL extension, which is not present.");
+		OOLog(kOOLogOpenGLShaderSupport, @"INFORMATION: shaders require the GL_ARB_vertex_program OpenGL extension, which is not present.");
 		return;
 	}
 	
 	shaders_supported &= ([extension_info rangeOfString:@"GL_ARB_vertex_shader"].location != NSNotFound);
 	if (!shaders_supported)
 	{
-		OOLog(kOOLogClassOpenGLShaderSupport, @"INFORMATION: shaders require the GL_ARB_vertex_shader OpenGL extension, which is not present.");
+		OOLog(kOOLogOpenGLShaderSupport, @"INFORMATION: shaders require the GL_ARB_vertex_shader OpenGL extension, which is not present.");
 		return;
 	}
 #endif

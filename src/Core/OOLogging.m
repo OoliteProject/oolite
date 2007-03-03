@@ -37,13 +37,18 @@ MA 02110-1301, USA.
 #define APPNAME @"Oolite"
 
 
+// Internal logging control flags - like message classes, but less cool.
+#define OOLOG_SETTING_SET			0
+#define OOLOG_SETTING_RETRIEVE		0
+
+
 static NSMutableDictionary	*sExplicitSettings = nil;
 static NSMutableDictionary	*sDerivedSettingsCache = nil;
 static NSMutableDictionary	*sFileNamesCache = nil;
 static unsigned				sIndentLevel = 0;
 static BOOL					sShowFunction = NO;
 static BOOL					sShowFileAndLine = NO;
-static BOOL					sShowClass = NO;
+static BOOL					sShowClass = YES;
 static BOOL					sDefaultDisplay = YES;
 static BOOL					sShowApplication = SHOW_APPLICATION;
 static BOOL					sOverrideInEffect = NO;
@@ -58,6 +63,11 @@ static BOOL					sOverrideValue = NO;
 #endif
 
 
+// To avoid recursion/self-dependencies, OOLog gets its own logging function.
+#define OOLogInternal(cond, format, ...) do { if ((cond)) { OOLogInternal_(OOLOG_FUNCTION_NAME, format, ## __VA_ARGS__); }} while (0)
+static void OOLogInternal_(const char *inFunction, NSString *inFormat, ...);
+
+
 static void LoadExplicitSettings(void);
 static void LoadExplicitSettingsFromDictionary(NSDictionary *inDict);
 static id LogWillDisplayMessagesInClassObj(NSString *inMessageClass);
@@ -66,7 +76,10 @@ static NSString *AbbreviatedFileName(const char *inName);
 
 BOOL OOLogWillDisplayMessagesInClass(NSString *inMessageClass)
 {
-	return [LogWillDisplayMessagesInClassObj(inMessageClass) boolValue];
+	BOOL result = [LogWillDisplayMessagesInClassObj(inMessageClass) boolValue];
+	OOLogInternal(OOLOG_SETTING_RETRIEVE, @"%@ is %s", inMessageClass, result ? "on" : "off");
+	
+	return result;
 }
 
 
@@ -79,6 +92,8 @@ void OOLogSetDisplayMessagesInClass(NSString *inClass, BOOL inFlag)
 	value = [sExplicitSettings objectForKey:inClass];
 	if (value == nil || [value boolValue] != inFlag)
 	{
+		OOLogInternal(OOLOG_SETTING_SET, @"Setting %@ to %s", inClass, inFlag ? "ON" : "OFF");
+		
 		value = [NSNumber numberWithBool:inFlag];
 		[sExplicitSettings setObject:value forKey:inClass];
 		
@@ -86,17 +101,16 @@ void OOLogSetDisplayMessagesInClass(NSString *inClass, BOOL inFlag)
 		[sDerivedSettingsCache release];
 		sDerivedSettingsCache = nil;
 	}
+	else
+	{
+		OOLogInternal(OOLOG_SETTING_SET, @"Keeping %@ %s", inClass, inFlag ? "ON" : "OFF");
+	}
 }
 
 
 NSString *OOLogGetParentMessageClass(NSString *inClass)
 {
 	NSRange			range;
-	/*
-		NOTE: this may not work in GNUstep. Suggested alternatives:
-		(1) search from beginning incrementally until no more .s found
-		(2) use [[inClass componentsSeparatedByString:@"."] lastObject];
-	*/
 	
 	if (inClass == nil) return nil;
 	
@@ -218,17 +232,61 @@ void OOLogWithFunctionFileAndLineAndArguments(NSString *inMessageClass, const ch
 }
 
 
-NSString * const kOOLogClassScripting					= @"scripting";
-NSString * const kOOLogClassScriptDebug					= @"scripting.debug";
-NSString * const kOOLogClassScriptDebugOnOff			= @"scripting.debug.onoff";
-NSString * const kOOLogClassRendering					= @"rendering";
-NSString * const kOOLogClassOpenGL						= @"rendering.opengl";
-NSString * const kOOLogClassOpenGLError					= @"rendering.opengl.errors";
-NSString * const kOOLogClassOpenGLVersion				= @"rendering.opengl.version";
-NSString * const kOOLogClassOpenGLShaderSupport			= @"rendering.opengl.shaders.support";
-NSString * const kOOLogClassOpenGLExtensions			= @"rendering.opengl.extensions";
-NSString * const kOOLogClassSearchPaths					= @"searchpaths";
-NSString * const kOOLogClassDumpSearchPaths				= @"searchpaths.dumpall";
+NSString * const kOOLogSubclassResponsibility		= @"general.subclassresponsibility";
+NSString * const kOOLogParameterError				= @"general.parametererror";
+NSString * const kOOLogException					= @"exception";
+NSString * const kOOLogFileNotFound					= @"files.notfound";
+NSString * const kOOLogFileNotLoaded				= @"files.notloaded";
+NSString * const kOOLogScriptDebug					= @"scripting.debug";
+NSString * const kOOLogScriptDebugOnOff				= @"scripting.debug.onoff";
+NSString * const kOOLogOpenGLError					= @"rendering.opengl.error";
+NSString * const kOOLogOpenGLVersion				= @"rendering.opengl.version";
+NSString * const kOOLogOpenGLShaderSupport			= @"rendering.opengl.shaders.support";
+NSString * const kOOLogOpenGLExtensions				= @"rendering.opengl.extensions";
+NSString * const kOOLogOpenGLStateDump				= @"rendering.opengl.statedump";
+NSString * const kOOLogDumpSearchPaths				= @"searchpaths.dumpall";
+NSString * const kOOLogStringValueConversion		= @"strings.conversion";
+NSString * const kOOLogStringVectorConversion		= @"strings.conversion.vector";
+NSString * const kOOLogStringQuaternionConversion	= @"strings.conversion.quaternion";
+NSString * const kOOLogStringVecAndQuatConversion	= @"strings.conversion.vectorandquaternion";
+NSString * const kOOLogStringRandomSeedConversion	= @"strings.conversion.randomseed";
+NSString * const kOOLogEntityAddToList				= @"entity.linkedlist.add";
+NSString * const kOOLogEntityAddToListError			= @"entity.linkedlist.add.error";
+NSString * const kOOLogEntityRemoveFromList			= @"entity.linkedlist.remove";
+NSString * const kOOLogEntityRemoveFromListError	= @"entity.linkedlist.remove.error";
+NSString * const kOOLogEntityVerificationError		= @"entity.linkedlist.verify.error";
+NSString * const kOOLogEntityUpdateError			= @"entity.linkedlist.update.error";
+NSString * const kOOLogAIReceiveMessage				= @"ai.message.receive";
+NSString * const kOOLogAITakeAction					= @"ai.takeaction.takeaction";
+NSString * const kOOLogAINoAction					= @"ai.takeaction.noaction";
+NSString * const kOOLogAITakeActionOrphaned			= @"ai.takeaction.orphaned";
+NSString * const kOOLogAIDebugMessage				= @"ai.takeaction.debugmessage";
+NSString * const kOOLogAIBadSelector				= @"ai.takeaction.badselector";
+NSString * const kOOLogDataCacheFound				= @"datacache.found";
+NSString * const kOOLogDataCacheNotFound			= @"datacache.notfound";
+NSString * const kOOLogDataCacheRebuild				= @"datacache.rebuild";
+
+
+static void OOLogInternal_(const char *inFunction, NSString *inFormat, ...)
+{
+	va_list				args;
+	NSString			*formattedMessage = nil;
+	NSAutoreleasePool	*pool = nil;
+	
+	pool = [[NSAutoreleasePool alloc] init];
+	
+	
+	va_start(args, inFormat);
+	formattedMessage = [[[NSString alloc] initWithFormat:inFormat arguments:args] autorelease];
+	va_end(args);
+	
+	formattedMessage = [NSString stringWithFormat:@"OOLogging internal - %s: %@", inFunction, formattedMessage];
+	if (sShowApplication) formattedMessage = [APPNAME stringByAppendingString:formattedMessage];
+	
+	OOLOG_PRIMITIVE_LOG(formattedMessage);
+	
+	[pool release];
+}
 
 
 static void LoadExplicitSettings(void)
@@ -289,6 +347,8 @@ static void LoadExplicitSettings(void)
 	{
 		sShowClass = [value boolValue];
 	}
+	
+	OOLogInternal(OOLOG_SETTING_SET, @"Settings: %@", sExplicitSettings);
 }
 
 
@@ -375,10 +435,6 @@ static NSString *AbbreviatedFileName(const char *inName)
 	name = [sFileNamesCache objectForKey:key];
 	if (name == nil)
 	{
-		/*
-			NOTE: this may not work in GNUstep. Suggested alternative:
-			use [[[NSString stringWithCString:inName] componentsSeparatedByString:@"/"] lastObject];
-		*/
 		name = [[NSString stringWithUTF8String:inName] lastPathComponent];
 		if (sFileNamesCache == nil) sFileNamesCache = [[NSMutableDictionary alloc] init];
 		[sFileNamesCache setObject:name forKey:key];

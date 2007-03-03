@@ -26,6 +26,7 @@ MA 02110-1301, USA.
 #import "NSScannerOOExtensions.h"
 #import "NSMutableDictionaryOOExtensions.h"
 #import "OOSound.h"
+#import "OOLogging.h"
 
 extern NSDictionary* parseScripts(NSString* script);
 
@@ -237,7 +238,7 @@ NSMutableDictionary*	surface_cache;
 	if (!saved_paths)
 		saved_paths =[file_paths retain];
 	//
-	NSLog(@"---> searching paths:\n%@", [file_paths description]);
+	OOLog(kOOLogDumpSearchPaths, @"---> searching paths:\n%@", [file_paths description]);
 	//
 	return file_paths;
 }

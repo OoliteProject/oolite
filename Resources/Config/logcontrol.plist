@@ -1,5 +1,35 @@
+/*	This file controls the visibility of various error messages and groups of
+	error messages, or “message classes”. It can be selectively overridden
+	using a dictionary called “logging-enable” in Oolite’s preferences which
+	allows you to reduce the flow of log messages to a more managable
+	quantity.
+	
+	Log output can be modified using the following preference keys:
+		logging-show-app-name
+		logging-show-class
+		logging-show-function
+		logging-show-file-and-line
+	
+	“logging-show-app-name” defaults to 1 under Mac OS X (where log output
+	goes to a shared console) and 0 under GNUstep (where log output goes to an
+	application-specific log file). “logging-show-class” defaults to 1. The
+	others default to 0. 
+*/
+
+
 _default = yes;								// Fallback value for otherwise undefined classes
 // _override = yes;							// Use to force display of all messages
+
+// These are common types of programming problems
+general = inherit;
+general.subclassresponsibility = inherit;
+general.parametererror = inherit;
+
+exception = yes;
+
+files = inherit;
+files.notfound = yes;						// Failure to load a file.
+files.notloaded = inherit;					// A file should have been loaded at some earlier point, but wasn’t.
 
 scripting = inherit;
 scripting.debug = inherit;
@@ -7,14 +37,46 @@ scripting.debug.onoff = inherit;
 
 rendering = inherit;
 rendering.opengl = inherit;
-rendering.opengl.errors = yes;				// Test for and display OpenGL errors
+rendering.opengl.error = inherit;			// Test for and display OpenGL errors
 rendering.opengl.version = no;				// Display renderer version information at startup
 rendering.opengl.extensions = no;			// List OpenGL extensions at startup
 rendering.opengl.shaders = inherit;			// Shader-related messages
 rendering.opengl.shaders.support = yes;		// Messages about factors influencing availability of OpenGL shaders
+rendering.opengl.statedump = inherit;		// Dump of OpenGL state (debug tool, currently unused)
 
 searchpaths = inherit;
 searchpaths.dumpall = no;
+
+strings = inherit;
+strings.conversion = inherit;				// Conversion of text to values (vectors, quaternions etc)
+strings.conversion.vector = inherit;
+strings.conversion.quaternion = inherit;
+strings.conversion.vectorandquaternion = inherit;
+strings.conversion.randomseed = inherit;
+
+entity = inherit;
+entity.linkedlist = inherit;				// Management/verification of the lists used to track the relative position of entities.
+entity.linkedlist.add = inherit;
+entity.linkedlist.add.error = inherit;
+entity.linkedlist.remove = inherit;
+entity.linkedlist.remove.error = inherit;
+entity.linkedlist.verify.error = inherit;
+entity.linkedlist.update.error = inherit;
+
+ai = inherit;
+ai.message = inherit;
+ai.message.receive = inherit;
+ai.takeaction = inherit;
+ai.takeaction.takeaction = inherit;
+ai.takeaction.noaction = inherit;
+ai.takeaction.orphaned = inherit;
+ai.takeaction.debugmessage = inherit;
+ai.takeaction.badselector = inherit;
+
+datacache = inherit;
+datacache.found = inherit;
+datacache.notfound = inherit;
+datacache.rebuild = inherit;
 
 // Mac-specific
 growl = inherit;
