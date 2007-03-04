@@ -46,6 +46,8 @@ static NSString * const kOOLogStringVectorConversion		= @"strings.conversion.vec
 static NSString * const kOOLogStringQuaternionConversion	= @"strings.conversion.quaternion";
 static NSString * const kOOLogStringVecAndQuatConversion	= @"strings.conversion.vectorAndQuaternion";
 static NSString * const kOOLogStringRandomSeedConversion	= @"strings.conversion.randomSeed";
+static NSString * const kOOLogOpenGLExtensionsVAR			= @"rendering.opengl.extensions.var";
+static NSString * const kOOLogOpenGLStateDump				= @"rendering.opengl.stateDump";
 
 
 // global flag for VAR
@@ -584,7 +586,7 @@ static  Universe	*data_store_universe;
 - (void) warnAboutHostiles
 {
 	// do nothing for now, this can be expanded in sub classes
-	OOLog(@"general.subclassresponsibility.Entity-warnAboutHostiles", @"***** Entity does nothing in warnAboutHostiles");
+	OOLog(@"general.error.subclassResponsibility.Entity-warnAboutHostiles", @"***** Entity does nothing in warnAboutHostiles");
 }
 
 - (Universe *) universe

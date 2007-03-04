@@ -28,6 +28,18 @@ MA 02110-1301, USA.
 #import <pthread.h>
 
 
+static NSString * const kOOLogSoundNULLError			= @"sound.render.undexpectedNull";
+static NSString * const kOOLogSoundPlaySuccess			= @"sound.play.success";
+static NSString * const kOOLogSoundBadReuse				= @"sound.play.failed.badReuse";
+static NSString * const kOOLogSoundSetupFailed			= @"sound.play.failed.setupFailed";
+static NSString * const kOOLogSoundPlayAUError			= @"sound.play.failed.auError";
+static NSString * const kOOLogSoundPlayUnknownError		= @"sound.play.failed";
+static NSString * const kOOLogSoundCleanUpSuccess		= @"sound.channel.cleanup.success";
+static NSString * const kOOLogSoundCleanUpBroken		= @"sound.channel.cleanup.failed.broken";
+static NSString * const kOOLogSoundCleanUpBadState		= @"sound.channel.cleanup.failed.badState";
+static NSString * const kOOLogSoundMachPortError		= @"sound.channel.machPortError";
+
+
 // Tracks a kind of error that isn’t happening any more.
 #define COUNT_NULLS					0
 
@@ -162,7 +174,7 @@ static BOOL PortWait(mach_port_t inPort, PortMessage *outMessage);
 	
 	if (!OK)
 	{
-		NSLog(@"Failed to set up sound (channel release queue allocation failed). No sound will be played.");
+		OOLog(kOOLogSoundInitError, @"Failed to set up sound (channel queue allocation failed). No sound will be played.");
 	}
 	return OK;
 }
@@ -271,7 +283,7 @@ static BOOL PortWait(mach_port_t inPort, PortMessage *outMessage);
 		
 		if (err)
 		{
-			NSLog(@"AudioUnit setup error %@.", AudioErrorNSString(err));
+			OOLog(kOOLogSoundInitError, @"AudioUnit setup error %@ preparing channel ID %u.", AudioErrorNSString(err), inID);
 			
 			[self release];
 			self = nil;
@@ -343,11 +355,11 @@ static BOOL PortWait(mach_port_t inPort, PortMessage *outMessage);
 		OTAtomicAdd32(-unexpectedNulls, &sDebugUnexpectedNullCount);
 		if (1 == unexpectedNulls)
 		{
-			NSLog(@"A NULL Render() or nil _sound error has occured.");
+			OOLog(kOOLogSoundNULLError, @"A NULL Render() or nil _sound error has occured.");
 		}
 		else
 		{
-			NSLog(@"%i NULL Render() or nil _sound errors have occured.", (int)unexpectedNulls);
+			OOLog(kOOLogSoundNULLError, @"%i NULL Render() or nil _sound errors have occured.", (int)unexpectedNulls);
 		}
 	}
 	#endif
@@ -357,7 +369,7 @@ static BOOL PortWait(mach_port_t inPort, PortMessage *outMessage);
 		[gOOCASoundSyncLock lock];
 		if (kState_Stopped != _state)
 		{
-			NSLog(@"Channel %@ reused while playing.", self);
+			OOLog(kOOLogSoundBadReuse, @"Channel %@ reused while playing.", self);
 			
 			[[OOCASoundMixer mixer] disconnectChannel:self];
 			if (_sound)
@@ -381,7 +393,7 @@ static BOOL PortWait(mach_port_t inPort, PortMessage *outMessage);
 		
 		if (!OK)
 		{
-			NSLog(@"OOCASoundChannel: Failed to play sound %@ - set-up issues.", inSound);
+			OOLog(kOOLogSoundSetupFailed, @"Failed to play sound %@ - set-up failed.", inSound);
 		}
 		
 		if (OK)
@@ -391,7 +403,7 @@ static BOOL PortWait(mach_port_t inPort, PortMessage *outMessage);
 			err = AudioUnitSetProperty(_au, kAudioUnitProperty_StreamFormat,
 						kAudioUnitScope_Input, 0, &format, sizeof format);
 			
-			if (err) NSLog(@"OOCASoundChannel: Failed to play %@ (error %@)", inSound, AudioErrorNSString(err));
+			if (err) OOLog(kOOLogSoundPlayAUError, @"Failed to play %@ (error %@)", inSound, AudioErrorNSString(err));
 			OK = !err;
 		}
 		
@@ -401,12 +413,12 @@ static BOOL PortWait(mach_port_t inPort, PortMessage *outMessage);
 		{
 			[_sound retain];
 			_state = kState_Playing;
-		//	NSLog(@"Playing sound %@", _sound);
+			OOLog(kOOLogSoundPlaySuccess, @"Playing sound %@", _sound);
 		}
 		else
 		{
 			_sound = nil;
-			if (!err) NSLog(@"OOCASoundChannel: Failed to play %@", inSound);
+			if (!err) OOLog(kOOLogSoundPlayUnknownError, @"Failed to play %@", inSound);
 		}
 		[gOOCASoundSyncLock unlock];
 	}
@@ -452,7 +464,7 @@ static BOOL PortWait(mach_port_t inPort, PortMessage *outMessage);
 	
 	if (kState_Broken == _state)
 	{
-		NSLog(@"Channel %@ broke with error %@.", self, AudioErrorNSString(_error));
+		OOLog(kOOLogSoundCleanUpBroken, @"Sound channel %@ broke with error %@.", self, AudioErrorNSString(_error));
 	}
 	
 	if (kState_Ended == _state || kState_Broken == _state)
@@ -471,10 +483,12 @@ static BOOL PortWait(mach_port_t inPort, PortMessage *outMessage);
 			[_delegate channel:self didFinishPlayingSound:sound];
 		}
 		[sound release];
+		
+		OOLog(kOOLogSoundCleanUpSuccess, @"Sound channel id %u cleaned up successfully.", _id);
 	}
 	else
 	{
-		NSLog(@"Channel %@ cleaned up in invalid state %u.", self, _state);
+		OOLog(kOOLogSoundCleanUpBadState, @"Sound channel %@ cleaned up in invalid state %u.", self, _state);
 	}
 	
 	[gOOCASoundSyncLock unlock];
@@ -551,12 +565,10 @@ static BOOL PortWait(mach_port_t inPort, PortMessage *outMessage);
 				if (NULL == Render)
 				{
 					OTAtomicAdd32(1, &sDebugUnexpectedNullCount);
-					//	NSLog(@"NULL Render()! Zeroing output (%u channels).", count);
 				}
 				else if (nil == _sound)
 				{
 					OTAtomicAdd32(1, &sDebugUnexpectedNullCount);
-					//	NSLog(@"nil _sound! Zeroing output (%u channels).", count);
 				}
 			#endif
 		}
@@ -621,7 +633,7 @@ static mach_port_t CreatePort(void)
 	
 	if (KERN_SUCCESS != err)
 	{
-		NSLog(@"Mach port creation failure: %@", KernelResultNSString(err));
+		OOLog(kOOLogSoundInitError, @"Mach port creation failure: %@", KernelResultNSString(err));
 		result = MACH_PORT_NULL;
 	}
 	
@@ -648,11 +660,11 @@ static void PortSend(mach_port_t inPort, PortMessage inMessage)
 	result = mach_msg(&message.header, MACH_SEND_MSG | MACH_SEND_TIMEOUT, sizeof message, 0, MACH_PORT_NULL, 0, MACH_PORT_NULL);
 	if (MACH_MSG_SUCCESS != result)
 	{
-		NSLog(@"Mach port transient send failure: %@", KernelResultNSString(result));
+		OOLog(kOOLogSoundMachPortError, @"Mach port transient send failure: %@", KernelResultNSString(result));
 		result = mach_msg(&message.header, MACH_SEND_MSG, sizeof message, 0, MACH_PORT_NULL, 0, MACH_PORT_NULL);
 		if (MACH_MSG_SUCCESS != result)
 		{
-			NSLog(@"Mach port send failure: %@", KernelResultNSString(result));
+			OOLog(kOOLogSoundMachPortError, @"Mach port send failure: %@", KernelResultNSString(result));
 		}
 	}
 }
@@ -676,7 +688,7 @@ static BOOL PortWait(mach_port_t inPort, PortMessage *outMessage)
 	}
 	else
 	{
-		if (MACH_RCV_TIMED_OUT != result) NSLog(@"Mach port receive failure: %@", KernelResultNSString(result));
+		if (MACH_RCV_TIMED_OUT != result) OOLog(kOOLogSoundMachPortError, @"Mach port receive failure: %@", KernelResultNSString(result));
 	}
 	
 	return MACH_MSG_SUCCESS == result;

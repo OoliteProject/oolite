@@ -31,8 +31,12 @@ $entityState = yes;
 
 // These are common types of programming problems
 general = inherit;
-general.subclassResponsibility = $error;
-general.parameterError = $error;
+general.error = $error;
+general.error.subclassResponsibility = inherit;
+general.error.parameterError = inherit;
+general.error.deprecatedMethod = inherit;
+
+unclassified = inherit;
 
 exception = yes;
 
@@ -111,3 +115,25 @@ universe.populate = $troubleShootingDump;			// “Populating a system with…”
 growl = inherit;
 growl.error = $error;
 growl.debug = no;
+
+// Currently Mac-specific
+$soundError = $error;
+$soundDebug = no;
+sound = inherit;
+sound.initialization = inherit;
+sound.initialization.error = $soundError;
+sound.load.success = $soundDebug;
+sound.load.failed = $soundError;
+sound.render.undexpectedNull = $soundError;
+sound.play.success = $soundDebug;
+sound.play.failed = $soundError;
+sound.play.failed.badReuse = inherit;
+sound.play.failed.setupFailed = inherit;
+sound.play.failed.auError = inherit;
+sound.channel = inherit;
+sound.channel.cleanup = inherit;
+sound.channel.cleanup.success = $soundDebug;
+sound.channel.cleanup.failed = $soundError;
+sound.channel.cleanup.failed.broken = inherit;
+sound.channel.cleanup.failed.badState = inherit;
+sound.channel.machPortError = $soundError;

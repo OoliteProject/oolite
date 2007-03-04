@@ -1250,7 +1250,8 @@ GLfloat docked_light_specular[]	= { (GLfloat) 1.0, (GLfloat) 1.0, (GLfloat) 0.5,
 	ranrot_srand([[NSDate date] timeIntervalSince1970]);   // reset randomiser with current time
 	
 	OOLog(kOOLogUniversePopulate, @"Populating a system with economy %d, and government %d", economy, government);
-
+	OOLogIndent();
+	
 	// traders
 	int trading_parties = (9 - economy);			// 2 .. 9
 	if (government == 0) trading_parties *= 1.25;	// 25% more trade where there are no laws!
@@ -1314,6 +1315,7 @@ GLfloat docked_light_specular[]	= { (GLfloat) 1.0, (GLfloat) 1.0, (GLfloat) 0.5,
 	int total_clicks = trading_parties + raiding_parties + hunting_parties + thargoid_parties + rock_clusters + skim_hunting_parties + skim_raiding_parties + skim_trading_parties;
 	
 	OOLog(kOOLogUniversePopulate, @"... for a total of %d ships", total_clicks);
+	OOLogOutdent();
 	
 	Vector  v_route1 = p1_pos;
 	v_route1.x -= h1_pos.x;	v_route1.y -= h1_pos.y;	v_route1.z -= h1_pos.z;

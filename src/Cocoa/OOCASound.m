@@ -37,6 +37,12 @@ MA 02110-1301, USA.
 #define KEY_VOLUME_CONTROL @"volume_control"
 
 
+NSString * const kOOLogDeprecatedMethodOOCASound	= @"general.error.deprecatedMethod.oocasound";
+NSString * const kOOLogSoundInitError				= @"sound.initialization.error";
+static NSString * const kOOLogSoundLoadingSuccess	= @"sound.load.success";
+static NSString * const kOOLogSoundLoadingError		= @"sound.load.error";
+
+
 enum
 {
 	kMaxDecodeSize			= 1 << 19		// 512 kB
@@ -112,7 +118,7 @@ static OOSound				*sSingletonOOSound = NULL;
 		gOOCASoundSyncLock = [[NSRecursiveLock alloc] init];
 		if (nil == gOOCASoundSyncLock)
 		{
-			NSLog(@"Failed to set up sound (lock allocation failed). No sound will be played.");
+			OOLog(kOOLogSoundInitError, @"Failed to set up sound (lock allocation failed). No sound will be played.");
 			gOOSoundBroken = YES;
 		}
 		if (!gOOSoundBroken)
@@ -195,11 +201,11 @@ static OOSound				*sSingletonOOSound = NULL;
 	
 	if (nil != self)
 	{
-	//	NSLog(@"Loaded sound %@", self);
+		OOLog(kOOLogSoundLoadingSuccess, @"Loaded sound %@", self);
 	}
 	else
 	{
-		NSLog(@"Failed to load sound \"%@\"", inPath);
+		OOLog(kOOLogSoundLoadingError, @"Failed to load sound \"%@\"", inPath);
 	}
 	
 	return self;
@@ -215,7 +221,7 @@ static OOSound				*sSingletonOOSound = NULL;
 
 - (OSStatus)renderWithFlags:(AudioUnitRenderActionFlags *)ioFlags frames:(UInt32)inNumFrames context:(OOCASoundRenderContext *)ioContext data:(AudioBufferList *)ioData
 {
-	NSLog(@"%s shouldn't be called - subclass responsibility.", __PRETTY_FUNCTION__);
+	OOLog(@"general.error.subclassResponsibility.OOCASound-renderWithFlags", @"%s shouldn't be called - subclass responsibility.", __PRETTY_FUNCTION__);
 	return unimpErr;
 }
 

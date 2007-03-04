@@ -113,14 +113,14 @@ enum
 
 - (BOOL)pause
 {
-	NSLog(@"%s called but ignored - please report.", __FUNCTION__);
+	OOLog(kOOLogDeprecatedMethodOOCASound, @"%s called but ignored - please report.", __FUNCTION__);
 	return NO;
 }
 
 
 - (BOOL)resume
 {
-	NSLog(@"%s called but ignored - please report.", __FUNCTION__);
+	OOLog(kOOLogDeprecatedMethodOOCASound, @"%s called but ignored - please report.", __FUNCTION__);
 	return NO;
 }
 

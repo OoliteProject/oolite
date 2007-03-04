@@ -34,6 +34,7 @@ MA 02110-1301, USA.
 #import <AudioToolbox/AudioToolbox.h>
 #import "OOErrorDescription.h"
 #import "OOCASoundSource.h"
+#import "OOLogging.h"
 
 
 @interface OOSound (Internal)
@@ -62,3 +63,8 @@ MA 02110-1301, USA.
 
 extern BOOL		gOOSoundSetUp, gOOSoundBroken;
 extern NSLock	*gOOCASoundSyncLock;
+
+extern NSString * const kOOLogDeprecatedMethodOOCASound;
+extern NSString * const kOOLogSoundInitError;
+
+#define kOOLogUnconvertedNSLog @"unclassified.sound"

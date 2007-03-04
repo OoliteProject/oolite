@@ -42,7 +42,9 @@ MA 02110-1301, USA.
 
 extern NSString * const kOOLogScriptSpawnOK;
 extern NSString * const kOOLogScriptSpawnFailed;
-static NSString * const kOOLogEntityBehaviourChanged = @"entity.behaviour.changed";
+static NSString * const kOOLogEntityBehaviourChanged	= @"entity.behaviour.changed";
+static NSString * const kOOLogOpenGLVersion				= @"rendering.opengl.version";
+static NSString * const kOOLogOpenGLShaderSupport		= @"rendering.opengl.shaders.support";
 
 
 @implementation ShipEntity

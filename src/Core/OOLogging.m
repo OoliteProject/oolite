@@ -308,11 +308,8 @@ NSString * const kOOLogException					= @"exception";
 NSString * const kOOLogFileNotFound					= @"files.notFound";
 NSString * const kOOLogFileNotLoaded				= @"files.notLoaded";
 NSString * const kOOLogOpenGLError					= @"rendering.opengl.error";
-NSString * const kOOLogOpenGLVersion				= @"rendering.opengl.version";
-NSString * const kOOLogOpenGLShaderSupport			= @"rendering.opengl.shaders.support";
 NSString * const kOOLogOpenGLExtensions				= @"rendering.opengl.extensions";
-NSString * const kOOLogOpenGLExtensionsVAR			= @"rendering.opengl.extensions.var";
-NSString * const kOOLogOpenGLStateDump				= @"rendering.opengl.stateDump";
+NSString * const kOOLogUnconvertedNSLog				= @"unclassified";
 
 
 static void OOLogInternal_(const char *inFunction, NSString *inFormat, ...)

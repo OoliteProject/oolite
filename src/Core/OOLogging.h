@@ -77,22 +77,26 @@ void OOLogWithFunctionFileAndLineAndArguments(NSString *inMessageClass, const ch
 void OOLoggingInit(void);
 
 
+// Hijack NSLog. Buahahahaha.
+#define NSLog(format, ...)		OOLog(kOOLogUnconvertedNSLog, format, ## __VA_ARGS__)
+#define NSLogv(NSLogv, args)	OOLogWithArgmuents(kOOLogUnconvertedNSLog, format, args)
+
 
 // *** Predefined message classes.
 /*	These are general coding error types. Generally a subclass should be used
 	for each instance -- for instance, -[Entity warnAboutHostiles] uses
-	@"general.subclassresponsibility.Entity-warnAboutHostiles".
+	@"general.error.subclassResponsibility.Entity-warnAboutHostiles".
 */
-extern NSString * const kOOLogSubclassResponsibility;		// @"general.subclassresponsibility"
-extern NSString * const kOOLogParameterError;				// @"general.parametererror"
+extern NSString * const kOOLogSubclassResponsibility;		// @"general.error.subclassResponsibility"
+extern NSString * const kOOLogParameterError;				// @"general.error.parameterError"
+extern NSString * const kOOLogDeprecatedMethod;				// @"general.error.deprecatedMethod"
 extern NSString * const kOOLogException;					// @"exception"
 
 extern NSString * const kOOLogFileNotFound;					// @"files.notfound"
 extern NSString * const kOOLogFileNotLoaded;				// @"files.notloaded"
 
 extern NSString * const kOOLogOpenGLError;					// @"rendering.opengl.error"
-extern NSString * const kOOLogOpenGLVersion;				// @"rendering.opengl.version"
-extern NSString * const kOOLogOpenGLShaderSupport;			// @"rendering.opengl.shaders.support"
 extern NSString * const kOOLogOpenGLExtensions;				// @"rendering.opengl.extensions"
-extern NSString * const kOOLogOpenGLExtensionsVAR;			// @"rendering.opengl.extensions.var"
-extern NSString * const kOOLogOpenGLStateDump;				// @"rendering.opengl.statedump"
+
+// Don't use. However, #defining it as @"unclassified.module" can be used as a stepping stone to OOLog support.
+extern NSString * const kOOLogUnconvertedNSLog;				// @"unclassified"
