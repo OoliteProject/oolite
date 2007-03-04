@@ -29,6 +29,13 @@ MA 02110-1301, USA.
 #import "OOCASoundInternal.h"
 #import "OOCASoundChannel.h"
 
+
+static NSString * const kOOLogSoundInspetorNotLoaded			= @"sound.mixer.inspector.loadFailed";
+static NSString * const kOOLogSoundMixerOutOfChannels			= @"sound.mixer.outOfChannels";
+static NSString * const kOOLogSoundMixerReplacingBrokenChannel	= @"sound.mixer.replacingBrokenChannel";
+static NSString * const kOOLogSoundMixerFailedToConnectChannel	= @"sound.mixer.failedToConnectChannel";
+
+
 @interface OOCASoundMixer(Private)
 
 - (void)reallyRelease;
@@ -134,7 +141,7 @@ static OOCASoundMixer *sSingleton = nil;
 			#if SUPPORT_SOUND_INSPECTOR
 			if (![NSBundle loadNibNamed:@"SoundInspector" owner:self])
 			{
-				NSLog(@"Failed to load sound inspector panel.");
+				OOLog(kOOLogSoundInspetorNotLoaded, @"Failed to load sound inspector panel.");
 			}
 			#endif
 		}
@@ -225,7 +232,7 @@ static OOCASoundMixer *sSingleton = nil;
 	}
 	else
 	{
-		NSLog(@"Out of sound channels! Pretend you're hearing %@", [inSound name]);
+		OOLog(kOOLogSoundMixerOutOfChannels, @"Out of sound channels! Pretend you're hearing %@", [inSound name]);
 	}
 }
 
@@ -238,7 +245,7 @@ static OOCASoundMixer *sSingleton = nil;
 	
 	if (![inChannel isOK])
 	{
-		NSLog(@"Replacing broken channel %@.", inChannel);
+		OOLog(kOOLogSoundMixerReplacingBrokenChannel, @"Sound mixer: replacing broken channel %@.", inChannel);
 		ID = [inChannel ID];
 		[inChannel release];
 		inChannel = [[OOCASoundChannel alloc] initWithID:ID auGraph:_graph];
@@ -354,7 +361,7 @@ static OOCASoundMixer *sSingleton = nil;
 	err = AUGraphConnectNodeInput(_graph, node, 0, _mixerNode, [inChannel ID]);
 	if (!err) err = AUGraphUpdate(_graph, NULL);
 	
-	if (err) NSLog(@"OOCASoundMixer: failed to connect channel %@, error = %@.", inChannel, AudioErrorNSString(err));
+	if (err) OOLog(kOOLogSoundMixerFailedToConnectChannel, @"Sound mixer: failed to connect channel %@, error = %@.", inChannel, AudioErrorNSString(err));
 	
 	return !err;
 }

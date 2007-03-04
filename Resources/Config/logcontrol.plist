@@ -21,119 +21,138 @@
 */
 
 
-_default = yes;										// Fallback value for otherwise undefined classes. Must be yes or no.
-// _override = yes;									// Use to force display of all messages (or suppress all messages). Must be yes or no.
+/*** Special message classes ***/
+_default							= yes;					// Fallback value for otherwise undefined classes. Must be yes or no.
+// _override						= yes;					// Use to force display of all messages (or suppress all messages). Must be yes or no.
 
-$scriptError = yes;
-$error = yes;
-$troubleShootingDump = yes;
-$entityState = yes;
 
-// These are common types of programming problems
-general = inherit;
-general.error = $error;
+/*** Metaclasses ***/
+$scriptError						= yes;
+$error								= yes;
+$troubleShootingDump				= yes;
+$entityState						= yes;
+
+
+/*** Common programming problems ***/
+general								= inherit;
+general.error						= $error;
 general.error.subclassResponsibility = inherit;
-general.error.parameterError = inherit;
-general.error.deprecatedMethod = inherit;
-
-unclassified = inherit;
+general.error.parameterError		= inherit;
+general.error.deprecatedMethod		= inherit;
 
 exception = yes;
 
-files = inherit;
-files.notFound = $error;							// Failure to load a file.
-files.notLoaded = $error;							// A file should have been loaded at some earlier point, but wasn’t.
+files								= inherit;
+files.notFound						= $error;				// Failure to load a file.
+files.notLoaded						= $error;				// A file should have been loaded at some earlier point, but wasn’t.
 
-// Module-specific stuff follows
-ai = $entityState;
-ai.message = inherit;
-ai.message.receive = inherit;
-ai.takeAction = inherit;
-ai.takeAction.takeAction = $entityState;
-ai.takeAction.noAction = $entityState;
-ai.takeAction.orphaned = $error;
-ai.takeAction.debugMessage = inherit;
-ai.takeAction.badSelector = $scriptError;
 
-dataCache = inherit;
-dataCache.found = inherit;
-dataCache.notFound = inherit;
-dataCache.rebuild = inherit;
+/*** Old-style logging calls ***/
+unclassified = inherit;
 
-$linkedListError = $error;
+
+/*** Module-specific message classes ***/
+ai									= $entityState;
+ai.message							= inherit;
+ai.message.receive					= inherit;
+ai.takeAction						= inherit;
+ai.takeAction.takeAction			= $entityState;
+ai.takeAction.noAction				= $entityState;
+ai.takeAction.orphaned				= $error;
+ai.takeAction.debugMessage			= inherit;
+ai.takeAction.badSelector			= $scriptError;
+
+dataCache							= inherit;
+dataCache.found						= inherit;
+dataCache.notFound					= inherit;
+dataCache.rebuild					= inherit;
+
+$linkedListError					= $error;
 entity = inherit;
-entity.linkedList = inherit;						// Management/verification of the lists used to track the relative position of entities.
-entity.linkedList.add = inherit;
-entity.linkedList.add.error = $linkedListError;
-entity.linkedList.remove = inherit;
-entity.linkedList.remove.error = $linkedListError;
-entity.linkedList.verify.error = $linkedListError;
-entity.linkedList.update.error = $linkedListError;
-entity.behaviour = inherited;
-entity.behaviour.changed = $entityState;
+entity.linkedList					= inherit;				// Management/verification of the lists used to track the relative position of entities.
+entity.linkedList.add				= inherit;
+entity.linkedList.add.error			= $linkedListError;
+entity.linkedList.remove			= inherit;
+entity.linkedList.remove.error		= $linkedListError;
+entity.linkedList.verify.error		= $linkedListError;
+entity.linkedList.update.error		= $linkedListError;
+entity.behaviour					= inherited;
+entity.behaviour.changed			= $entityState;
 
-input = inherit;
-input.keyMapping = inherit;
-input.keyMapping.codeOutOfRange = inherit;
+input								= inherit;
+input.keyMapping					= inherit;
+input.keyMapping.codeOutOfRange		= inherit;
 
-rendering = inherit;
-rendering.opengl = inherit;
-rendering.opengl.error = $error;							// Test for and display OpenGL errors
-rendering.opengl.version = $troubleShootingDump;			// Display renderer version information at startup
-rendering.opengl.extensions = $troubleShootingDump;			// List OpenGL extensions at startup
-rendering.opengl.shaders = inherit;							// Shader-related messages
-rendering.opengl.shaders.support = $troubleShootingDump;	// Messages about factors influencing availability of OpenGL shaders
-rendering.opengl.stateDump = $troubleShootingDump;			// Dump of OpenGL state (debug tool, currently unused)
+rendering							= inherit;
+rendering.opengl					= inherit;
+rendering.opengl.error				= $error;				// Test for and display OpenGL errors
+rendering.opengl.version			= $troubleShootingDump;	// Display renderer version information at startup
+rendering.opengl.extensions			= $troubleShootingDump;	// List OpenGL extensions at startup
+rendering.opengl.shaders			= inherit;				// Shader-related messages
+rendering.opengl.shaders.support	= $troubleShootingDump;	// Messages about factors influencing availability of OpenGL shaders
+rendering.opengl.stateDump			= $troubleShootingDump;	// Dump of OpenGL state (debug tool, currently unused)
 
-scripting = $entityState;
-scripting.debug = inherit;
-scripting.debug.message = yes;						// debugMessage: script action
-scripting.debug.onOff = inherit;					// debugOn/debugOff script actions
-scripting.scriptAction = $entityState;
-scripting.scriptAction.scriptAction = inherit;
-scripting.scriptAction.noAction = inherit;
-scripting.scriptAction.expanded = inherit;
-scripting.scriptAction.badSelector = $scriptError;
-scripting.spawn = inherit;
-scripting.spawn.spawned = inherit;
-scripting.spawn.failed = $scriptError;
+scripting							= $entityState;
+scripting.debug						= inherit;
+scripting.debug.message				= yes;					// debugMessage: script action
+scripting.debug.onOff				= inherit;				// debugOn/debugOff script actions
+scripting.scriptAction				= $entityState;
+scripting.scriptAction.scriptAction	= inherit;
+scripting.scriptAction.noAction		= inherit;
+scripting.scriptAction.expanded		= inherit;
+scripting.scriptAction.badSelector	= $scriptError;
+scripting.spawn						= inherit;
+scripting.spawn.spawned				= inherit;
+scripting.spawn.failed				= $scriptError;
 
-searchpaths = inherit;
-searchpaths.dumpAll = $troubleShootingDump;
+searchpaths							= inherit;
+searchpaths.dumpAll					= $troubleShootingDump;
 
-strings = inherit;
-strings.conversion = $scriptError;					// Conversion of text to values (vectors, quaternions etc)
-strings.conversion.vector = inherit;
-strings.conversion.quaternion = inherit;
+strings								= inherit;
+strings.conversion					= $scriptError;			// Conversion of text to values (vectors, quaternions etc)
+strings.conversion.vector			= inherit;
+strings.conversion.quaternion		= inherit;
 strings.conversion.vectorAndQuaternion = inherit;
-strings.conversion.randomSeed = inherit;
+strings.conversion.randomSeed		= inherit;
 
-universe = inherit;
-universe.populate = $troubleShootingDump;			// “Populating a system with…” message when generating a star system
+universe							= inherit;
+universe.populate					= $troubleShootingDump;	// “Populating a system with…” message when generating a star system
 
-// Mac-specific
-growl = inherit;
-growl.error = $error;
-growl.debug = no;
 
-// Currently Mac-specific
-$soundError = $error;
-$soundDebug = no;
-sound = inherit;
-sound.initialization = inherit;
-sound.initialization.error = $soundError;
-sound.load.success = $soundDebug;
-sound.load.failed = $soundError;
-sound.render.undexpectedNull = $soundError;
-sound.play.success = $soundDebug;
-sound.play.failed = $soundError;
-sound.play.failed.badReuse = inherit;
-sound.play.failed.setupFailed = inherit;
-sound.play.failed.auError = inherit;
-sound.channel = inherit;
-sound.channel.cleanup = inherit;
-sound.channel.cleanup.success = $soundDebug;
-sound.channel.cleanup.failed = $soundError;
-sound.channel.cleanup.failed.broken = inherit;
+/*** Mac OS X/Cocoa-specific ***/
+growl								= inherit;
+growl.error							= $error;
+growl.debug							= no;
+
+$soundError							= $error;
+$soundDebug							= no;
+$soundDebugVerbose					= $soundDebug;
+sound								= inherit;
+sound.channel						= inherit;
+sound.channel.cleanup				= inherit;
+sound.channel.cleanup.success		= $soundDebugVerbose;
+sound.channel.cleanup.failed		= $soundError;
+sound.channel.cleanup.failed.broken	= inherit;
 sound.channel.cleanup.failed.badState = inherit;
-sound.channel.machPortError = $soundError;
+sound.channel.machPortError			= $soundError;
+sound.initialization				= inherit;
+sound.initialization.error			= $soundError;
+sound.load.success					= $soundDebug;
+sound.load.failed					= $soundError;
+sound.mixer							= inherit;
+sound.mixer.outOfChannels			= $soundError;
+sound.mixer.inspector				= inherit;
+sound.mixer.inspector.loadFailed	= $soundError;
+sound.mixer.replacingBrokenChannel	= $soundDebug;
+sound.mixer.failedToConnectChannel	= $soundError;
+sound.play.success					= $soundDebugVerbose;
+sound.play.failed					= $soundError;
+sound.play.failed.badReuse			= inherit;
+sound.play.failed.setupFailed		= inherit;
+sound.play.failed.auError			= inherit;
+sound.render.undexpectedNull		= $soundError;
+sound.streaming						= inherit;
+sound.streaming.refill				= $soundDebugVerbose;
+sound.streaming.loop				= $soundDebug;
+sound.streaming.underflow			= $soundError;
+sound.virtualringbuffer				= $soundError;

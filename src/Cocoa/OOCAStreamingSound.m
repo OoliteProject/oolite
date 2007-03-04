@@ -28,8 +28,14 @@ MA 02110-1301, USA.
 #import "OOCASoundDecoder.h"
 #import "VirtualRingBuffer.h"
 
+
+static NSString * const kOOLogSoundStreamingRefill		= @"sound.streaming.refill";
+static NSString * const kOOLogSoundStreamingLoop		= @"sound.streaming.loop";
+static NSString * const kOOLogSoundStreamingUnderflow	= @"sound.streaming.underflow";
+
+
 static BOOL					sFeederThreadActive = NO;
-static NSMachPort			*sFeederPort = NULL;
+static MPQueueID			sFeederQueue = kInvalidID;
 
 
 typedef struct
@@ -38,7 +44,8 @@ typedef struct
 	VirtualRingBuffer		*bufferL,
 							*bufferR;
 	BOOL					atEnd,
-							loop;
+							loop,
+							empty;
 } *OOCAStreamingSoundRenderContext;
 
 
@@ -60,9 +67,9 @@ enum
 
 enum
 {
-	kStreamBufferCount				= 100000,						// Number of frames in buffer
+	kStreamBufferCount				= 400000,						// Number of frames in buffer
 	kStreamBufferRefillThreshold	= kStreamBufferCount / 3,		// When to request refill
-	kMinRebufferFrames				= kStreamBufferCount / 25,
+	kMinRebufferFrames				= kStreamBufferCount / 10,		// When to ignore fill request (may get multiple requests before filler thread is scheduled)
 	kStreamBufferSize				= kStreamBufferCount * sizeof (float)
 };
 
@@ -137,6 +144,7 @@ enum
 		{
 			*outContext = (OOCASoundRenderContext)context;
 			context->loop = inLoop;
+			context->empty = YES;
 		}
 	}
 	
@@ -148,6 +156,11 @@ enum
 		{
 			OK = NO;
 		}
+	}
+	
+	if (OK && sFeederQueue == kInvalidID)
+	{
+		OK = (noErr == MPCreateQueue(&sFeederQueue)) && (sFeederQueue != kInvalidID);
 	}
 	
 	if (OK && !sFeederThreadActive) [NSThread detachNewThreadSelector:@selector(feederThread:) toTarget:[OOCAStreamingSound class] withObject:nil];
@@ -173,43 +186,26 @@ enum
 
 + (void)feederThread:ignored
 {
-	NSRunLoop			*runLoop;
-	
-	sFeederPort = [[NSMachPort alloc] init];
-	if (nil == sFeederPort) return;
-	
-	sFeederThreadActive = YES;
-	
-	[sFeederPort setDelegate:[self class]];
-	runLoop = [NSRunLoop currentRunLoop];
-	[runLoop addPort:sFeederPort forMode:NSDefaultRunLoopMode];
-	[[NSRunLoop currentRunLoop] run];
-}
-
-
-+ (void)handlePortMessage:(NSPortMessage *)inMessage
-{
-	NSArray							*components;
-	NSData							*data;
+	uintptr_t						msgID;
+	void							*param1, *param2;
 	OOCAStreamingSound				*sound;
 	OOCAStreamingSoundRenderContext	context = 0;
 	
-	switch ([inMessage msgid])
+	assert(sFeederQueue != kInvalidID);
+	
+	sFeederThreadActive = YES;
+	
+	for (;;)
 	{
-		case kMsgFillBuffers:
-			components = [inMessage components];
-			data = [components objectAtIndex:0];
-			if ([data length] == sizeof sound)
-			{
-				sound = *(OOCAStreamingSound **)[data bytes];
-				data = [components objectAtIndex:1];
-				if ([data length] == sizeof context)
-				{
-					context = *(OOCAStreamingSoundRenderContext *)[data bytes];
-				}
+		if (noErr != MPWaitOnQueue(sFeederQueue, (void **)&msgID, &param1, &param2, kDurationForever))  continue;
+		
+		switch (msgID)
+		{
+			case kMsgFillBuffers:
+				sound = param1;
+				context = param2;
 				[sound fillBuffersWithContext:context];
-				[sound release];
-			}
+		}
 	}
 }
 
@@ -235,6 +231,13 @@ enum
 		}
 		else
 		{
+			if (kStreamBufferCount < frames)
+			{
+				if (!inContext->empty) OOLog(kOOLogSoundStreamingUnderflow, @"Buffer underflow for sound %@.", self);
+				inContext->empty = NO;
+			}
+			
+			OOLog(kOOLogSoundStreamingRefill, @"Buffering %u frames for sound %@.", frames, self);
 			frames = [_decoder streamStereoToBufferL:(float *)ptrL bufferR:(float *)ptrR maxFrames:frames];
 			inContext->readOffset += frames;
 			[inContext->bufferL didWriteLength:frames * sizeof (float)];
@@ -242,6 +245,9 @@ enum
 			
 			if ([_decoder atEnd])
 			{
+				OOLogIndent();
+				OOLog(kOOLogSoundStreamingLoop, @"Resetting streaming sound %@ for looping.", self);
+				OOLogOutdent();
 				if (inContext->loop) inContext->readOffset = 0;
 				else inContext->atEnd = YES;
 			}
@@ -307,19 +313,9 @@ enum
 	}
 	
 	remaining -= availL;
-	if (!context->atEnd && remaining < kStreamBufferRefillThreshold * sizeof (float) && nil != sFeederPort)
+	if (!context->atEnd && remaining < kStreamBufferRefillThreshold * sizeof (float) && sFeederQueue != kInvalidID)
 	{
-		// Queue self for refilling
-		// Supposedly this is more efficient than, say, MPQueues. Huh?
-		NSAutoreleasePool		*pool;
-		NSPortMessage			*msg;
-		
-		pool = [[NSAutoreleasePool alloc] init];
-		[self retain];
-		msg = [[NSPortMessage alloc] initWithSendPort:sFeederPort receivePort:nil components:[NSArray arrayWithObjects:[NSData dataWithBytes:&self length: sizeof self], [NSData dataWithBytes:&context length: sizeof context], nil]];
-		[msg setMsgid:kMsgFillBuffers];
-		[msg sendBeforeDate:[NSDate date]];
-		[pool release];
+		MPNotifyQueue(sFeederQueue, (void *)kMsgFillBuffers, self, context);
 	}
 	
 	return context->atEnd ? endOfDataReached : noErr;

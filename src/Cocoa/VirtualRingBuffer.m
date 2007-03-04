@@ -16,9 +16,13 @@
 
 
 #import "VirtualRingBuffer.h"
+#import "OOLogging.h"
 
 #include <mach/mach.h>
 #include <mach/mach_error.h>
+
+
+#define kOOLogUnconvertedNSLog @"sound.virtualringbuffer"
 
 
 @implementation VirtualRingBuffer

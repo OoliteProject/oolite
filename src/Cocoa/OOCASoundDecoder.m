@@ -25,6 +25,7 @@ MA 02110-1301, USA.
 #import "OOCASoundDecoder.h"
 #import <stdio.h>
 #import <vorbis/vorbisfile.h>
+#import "OOLogging.h"
 
 
 enum
@@ -53,7 +54,7 @@ static void MixDown(float *inChan1, float *inChan2, float *outMix, size_t inCoun
 #ifndef NDEBUG
 - (id)init
 {
-	NSLog(@"Invalid call of %s.", __PRETTY_FUNCTION__);
+	OOLog(kOOLogDeprecatedMethod, @"Invalid call of %s; designated initializer is -initWithPath:", __PRETTY_FUNCTION__);
 	[self release];
 	return nil;
 }
