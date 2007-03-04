@@ -39,12 +39,10 @@ MA 02110-1301, USA.
 #import "NSScannerOOExtensions.h"
 #import "OOColor.h"
 
-#import "OOLogging.h"
-
 
 extern NSString * const kOOLogScriptSpawnOK;
 extern NSString * const kOOLogScriptSpawnFailed;
-static NSString * const kOOLogEntityBehaviourChanged	= @"entity.behaviour.changed";
+static NSString * const kOOLogEntityBehaviourChanged = @"entity.behaviour.changed";
 
 
 @implementation ShipEntity
@@ -3300,7 +3298,7 @@ void testForShaders()
 	if ([vscan scanUpToCharactersFromSet:[NSCharacterSet characterSetWithCharactersInString:@". "] intoString:&temp])
 		minor = [temp intValue];
 
-	OOLog(kOOLogOpenGLVersion, @"\n\nOPENGL VERSION %d.%d ('%@')", major, minor, version_info);
+	OOLog(kOOLogOpenGLVersion, @"OpenGL renderer version: %d.%d ('%@')", major, minor, version_info);
 
 	if ((major < 2)&&(minor < 5))
 	{
@@ -3312,7 +3310,7 @@ void testForShaders()
 	// check for the necessary extensions
 	NSString* extension_info = [NSString stringWithCString: (const char *)glGetString(GL_EXTENSIONS)];
 
-	OOLog(kOOLogOpenGLExtensions, @"\n\nOPENGL EXTENSIONS:\n%@", extension_info);
+	OOLog(kOOLogOpenGLExtensions, @"OPENGL EXTENSIONS:\n%@", extension_info);
 	
 	shaders_supported &= ([extension_info rangeOfString:@"GL_ARB_multitexture"].location != NSNotFound);
 	if (!shaders_supported)

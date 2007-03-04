@@ -30,23 +30,22 @@ MA 02110-1301, USA.
 #import "GameController.h"
 #import "TextureStore.h"
 #import "ResourceManager.h"
-#import "OOLogging.h"
 
 #import "CollisionRegion.h" // gets rid of a compilation warning
 
 #import "NSScannerOOExtensions.h"
 
 
-static NSString * const kOOLogEntityAddToList				= @"entity.linkedlist.add";
-static NSString * const kOOLogEntityAddToListError			= @"entity.linkedlist.add.error";
-static NSString * const kOOLogEntityRemoveFromList			= @"entity.linkedlist.remove";
-static NSString * const kOOLogEntityRemoveFromListError		= @"entity.linkedlist.remove.error";
-static NSString * const kOOLogEntityVerificationError		= @"entity.linkedlist.verify.error";
-static NSString * const kOOLogEntityUpdateError				= @"entity.linkedlist.update.error";
+static NSString * const kOOLogEntityAddToList				= @"entity.linkedList.add";
+static NSString * const kOOLogEntityAddToListError			= @"entity.linkedList.add.error";
+static NSString * const kOOLogEntityRemoveFromList			= @"entity.linkedList.remove";
+static NSString * const kOOLogEntityRemoveFromListError		= @"entity.linkedList.remove.error";
+static NSString * const kOOLogEntityVerificationError		= @"entity.linkedList.verify.error";
+static NSString * const kOOLogEntityUpdateError				= @"entity.linkedList.update.error";
 static NSString * const kOOLogStringVectorConversion		= @"strings.conversion.vector";
 static NSString * const kOOLogStringQuaternionConversion	= @"strings.conversion.quaternion";
-static NSString * const kOOLogStringVecAndQuatConversion	= @"strings.conversion.vectorandquaternion";
-static NSString * const kOOLogStringRandomSeedConversion	= @"strings.conversion.randomseed";
+static NSString * const kOOLogStringVecAndQuatConversion	= @"strings.conversion.vectorAndQuaternion";
+static NSString * const kOOLogStringRandomSeedConversion	= @"strings.conversion.randomSeed";
 
 
 // global flag for VAR

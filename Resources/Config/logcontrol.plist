@@ -21,86 +21,91 @@
 */
 
 
-_default = yes;								// Fallback value for otherwise undefined classes. Must be yes or no.
-// _override = yes;							// Use to force display of all messages (or suppress all messages). Must be yes or no.
+_default = yes;										// Fallback value for otherwise undefined classes. Must be yes or no.
+// _override = yes;									// Use to force display of all messages (or suppress all messages). Must be yes or no.
 
-$script_error = yes;
+$scriptError = yes;
 $error = yes;
-$trouble_shooting_dump = yes;
-$entity_state = yes;
+$troubleShootingDump = yes;
+$entityState = yes;
 
 // These are common types of programming problems
 general = inherit;
-general.subclassresponsibility = $error;
-general.parametererror = $error;
+general.subclassResponsibility = $error;
+general.parameterError = $error;
 
 exception = yes;
 
 files = inherit;
-files.notfound = $error;					// Failure to load a file.
-files.notloaded = $error;					// A file should have been loaded at some earlier point, but wasn’t.
+files.notFound = $error;							// Failure to load a file.
+files.notLoaded = $error;							// A file should have been loaded at some earlier point, but wasn’t.
 
-scripting = inherit;
-scripting.debug = inherit;
-scripting.debug.message = inherit;
-scripting.debug.onoff = inherit;
-scripting.scriptaction = $entity_state;
-scripting.scriptaction.scriptaction = inherit;
-scripting.scriptaction.noaction = inherit;
-scripting.scriptaction.expanded = inherit;
-scripting.scriptaction.badselector = $script_error;
-scripting.spawn = inherit;
-scripting.spawn.spawned = inherit;
-scripting.spawn.failed = $script_error;
+// Module-specific stuff follows
+ai = $entityState;
+ai.message = inherit;
+ai.message.receive = inherit;
+ai.takeAction = inherit;
+ai.takeAction.takeAction = $entityState;
+ai.takeAction.noAction = $entityState;
+ai.takeAction.orphaned = $error;
+ai.takeAction.debugMessage = inherit;
+ai.takeAction.badSelector = $scriptError;
+
+dataCache = inherit;
+dataCache.found = inherit;
+dataCache.notFound = inherit;
+dataCache.rebuild = inherit;
+
+$linkedListError = $error;
+entity = inherit;
+entity.linkedList = inherit;						// Management/verification of the lists used to track the relative position of entities.
+entity.linkedList.add = inherit;
+entity.linkedList.add.error = $linkedListError;
+entity.linkedList.remove = inherit;
+entity.linkedList.remove.error = $linkedListError;
+entity.linkedList.verify.error = $linkedListError;
+entity.linkedList.update.error = $linkedListError;
+entity.behaviour = inherited;
+entity.behaviour.changed = $entityState;
+
+input = inherit;
+input.keyMapping = inherit;
+input.keyMapping.codeOutOfRange = inherit;
 
 rendering = inherit;
 rendering.opengl = inherit;
 rendering.opengl.error = $error;							// Test for and display OpenGL errors
-rendering.opengl.version = $trouble_shooting_dump;			// Display renderer version information at startup
-rendering.opengl.extensions = $trouble_shooting_dump;		// List OpenGL extensions at startup
+rendering.opengl.version = $troubleShootingDump;			// Display renderer version information at startup
+rendering.opengl.extensions = $troubleShootingDump;			// List OpenGL extensions at startup
 rendering.opengl.shaders = inherit;							// Shader-related messages
-rendering.opengl.shaders.support = $trouble_shooting_dump;	// Messages about factors influencing availability of OpenGL shaders
-rendering.opengl.statedump = $trouble_shooting_dump;		// Dump of OpenGL state (debug tool, currently unused)
+rendering.opengl.shaders.support = $troubleShootingDump;	// Messages about factors influencing availability of OpenGL shaders
+rendering.opengl.stateDump = $troubleShootingDump;			// Dump of OpenGL state (debug tool, currently unused)
+
+scripting = $entityState;
+scripting.debug = inherit;
+scripting.debug.message = yes;						// debugMessage: script action
+scripting.debug.onOff = inherit;					// debugOn/debugOff script actions
+scripting.scriptAction = $entityState;
+scripting.scriptAction.scriptAction = inherit;
+scripting.scriptAction.noAction = inherit;
+scripting.scriptAction.expanded = inherit;
+scripting.scriptAction.badSelector = $scriptError;
+scripting.spawn = inherit;
+scripting.spawn.spawned = inherit;
+scripting.spawn.failed = $scriptError;
 
 searchpaths = inherit;
-searchpaths.dumpall = $trouble_shooting_dump;
+searchpaths.dumpAll = $troubleShootingDump;
 
 strings = inherit;
-strings.conversion = $script_error;			// Conversion of text to values (vectors, quaternions etc)
+strings.conversion = $scriptError;					// Conversion of text to values (vectors, quaternions etc)
 strings.conversion.vector = inherit;
 strings.conversion.quaternion = inherit;
-strings.conversion.vectorandquaternion = inherit;
-strings.conversion.randomseed = inherit;
-
-$linked_list_error = $error;
-entity = inherit;
-entity.linkedlist = inherit;				// Management/verification of the lists used to track the relative position of entities.
-entity.linkedlist.add = inherit;
-entity.linkedlist.add.error = $linked_list_error;
-entity.linkedlist.remove = inherit;
-entity.linkedlist.remove.error = $linked_list_error;
-entity.linkedlist.verify.error = $linked_list_error;
-entity.linkedlist.update.error = $linked_list_error;
-entity.behaviour = inherited;
-entity.behaviour.changed = $entity_state;
-
-ai = inherit;
-ai.message = inherit;
-ai.message.receive = inherit;
-ai.takeaction = inherit;
-ai.takeaction.takeaction = $entity_state;
-ai.takeaction.noaction = $entity_state;
-ai.takeaction.orphaned = $error;
-ai.takeaction.debugmessage = inherit;
-ai.takeaction.badselector = $script_error;
-
-datacache = inherit;
-datacache.found = inherit;
-datacache.notfound = inherit;
-datacache.rebuild = inherit;
+strings.conversion.vectorAndQuaternion = inherit;
+strings.conversion.randomSeed = inherit;
 
 universe = inherit;
-universe.populate = $trouble_shooting_dump;	// “Populating a system with…” message when generating a star system
+universe.populate = $troubleShootingDump;			// “Populating a system with…” message when generating a star system
 
 // Mac-specific
 growl = inherit;

@@ -51,7 +51,6 @@ static NSLock				*sLock = nil;
 static NSMutableDictionary	*sExplicitSettings = nil;
 static NSMutableDictionary	*sDerivedSettingsCache = nil;
 static NSMutableDictionary	*sFileNamesCache = nil;
-static NSNumber				*sCacheTrue = nil, *sCacheFalse = nil;	// These are the only values that may appear in sDerivedSettingsCache.
 static unsigned				sIndentLevel = 0;
 static BOOL					sShowFunction = NO;
 static BOOL					sShowFileAndLine = NO;
@@ -61,6 +60,11 @@ static BOOL					sShowApplication = SHOW_APPLICATION;
 static BOOL					sOverrideInEffect = NO;
 static BOOL					sOverrideValue = NO;
 
+// These specific values are used for true, false and inherit in the cache and explicitSettings dictionaries so we can use pointer comparison.
+static NSNumber * const		kTrueToken = @"on";
+static NSNumber * const		kFalseToken = @"off";
+static NSString * const		kInheritToken = @"inherit";
+
 
 // To avoid recursion/self-dependencies, OOLog gets its own logging function.
 #define OOLogInternal(cond, format, ...) do { if ((cond)) { OOLogInternal_(OOLOG_FUNCTION_NAME, format, ## __VA_ARGS__); }} while (0)
@@ -68,7 +72,7 @@ static void OOLogInternal_(const char *inFunction, NSString *inFormat, ...);
 
 
 static void LoadExplicitSettings(void);
-static void LoadExplicitSettingsFromDictionary(NSDictionary *inDict);
+static void LoadExplicitSettingsFromDictionary(NSDictionary *inDict, BOOL inExplicitInherit);
 static NSString *AbbreviatedFileName(const char *inName);
 static NSNumber *ResolveDisplaySetting(NSString *inMessageClass);
 static NSNumber *ResolveMetaClassReference(NSString *inMetaClass, NSMutableSet *ioSeenMetaClasses);
@@ -87,7 +91,7 @@ static inline void PrimitiveLog(NSString *inString)
 
 static inline NSNumber *CacheValue(BOOL inValue)
 {
-	return inValue ? sCacheTrue : sCacheFalse;
+	return inValue ? kTrueToken : kFalseToken;
 }
 
 
@@ -121,8 +125,8 @@ BOOL OOLogWillDisplayMessagesInClass(NSString *inMessageClass)
 	}
 	[sLock unlock];
 	
-	OOLogInternal(OOLOG_SETTING_RETRIEVE, @"%@ is %s", inMessageClass, (value == sCacheTrue) ? "on" : "off");
-	return value == sCacheTrue;
+	OOLogInternal(OOLOG_SETTING_RETRIEVE, @"%@ is %s", inMessageClass, (value == kTrueToken) ? "on" : "off");
+	return value == kTrueToken;
 }
 
 
@@ -298,17 +302,17 @@ void OOLoggingInit(void)
 }
 
 
-NSString * const kOOLogSubclassResponsibility		= @"general.subclassresponsibility";
-NSString * const kOOLogParameterError				= @"general.parametererror";
+NSString * const kOOLogSubclassResponsibility		= @"general.subclassResponsibility";
+NSString * const kOOLogParameterError				= @"general.parameterError";
 NSString * const kOOLogException					= @"exception";
-NSString * const kOOLogFileNotFound					= @"files.notfound";
-NSString * const kOOLogFileNotLoaded				= @"files.notloaded";
+NSString * const kOOLogFileNotFound					= @"files.notFound";
+NSString * const kOOLogFileNotLoaded				= @"files.notLoaded";
 NSString * const kOOLogOpenGLError					= @"rendering.opengl.error";
 NSString * const kOOLogOpenGLVersion				= @"rendering.opengl.version";
 NSString * const kOOLogOpenGLShaderSupport			= @"rendering.opengl.shaders.support";
 NSString * const kOOLogOpenGLExtensions				= @"rendering.opengl.extensions";
 NSString * const kOOLogOpenGLExtensionsVAR			= @"rendering.opengl.extensions.var";
-NSString * const kOOLogOpenGLStateDump				= @"rendering.opengl.statedump";
+NSString * const kOOLogOpenGLStateDump				= @"rendering.opengl.stateDump";
 
 
 static void OOLogInternal_(const char *inFunction, NSString *inFormat, ...)
@@ -344,28 +348,25 @@ static void LoadExplicitSettings(void)
 	
 	sExplicitSettings = [[NSMutableDictionary alloc] init];
 	
-	sCacheTrue = [[NSNumber numberWithBool:YES] retain];
-	sCacheFalse = [[NSNumber numberWithBool:NO] retain];
-	
 	// Load defaults from logcontrol.plist
 	configPath = [[NSBundle mainBundle] pathForResource:@"logcontrol" ofType:@"plist"];
 	dict = [NSDictionary dictionaryWithContentsOfFile:configPath];
-	LoadExplicitSettingsFromDictionary(dict);
+	LoadExplicitSettingsFromDictionary(dict, NO);
 	
 	// Get overrides from preferences
 	prefs = [NSUserDefaults standardUserDefaults];
 	dict = [prefs objectForKey:@"logging-enable"];
 	if ([dict isKindOfClass:[NSDictionary class]])
 	{
-		LoadExplicitSettingsFromDictionary(dict);
+		LoadExplicitSettingsFromDictionary(dict, YES);
 	}
 	
 	// Get _default and _override value
 	value = [sExplicitSettings objectForKey:@"_default"];
 	if (value != nil && [value respondsToSelector:@selector(boolValue)])
 	{
-		if (value == sCacheTrue) sDefaultDisplay = YES;
-		else if (value == sCacheFalse) sDefaultDisplay = NO;
+		if (value == kTrueToken) sDefaultDisplay = YES;
+		else if (value == kFalseToken) sDefaultDisplay = NO;
 		else OOLogInternal(OOLOG_BAD_DEFAULT_SETTING, @"_default may not be set to a metaclass, ignoring.");
 		
 		[sExplicitSettings removeObjectForKey:@"_default"];
@@ -373,12 +374,12 @@ static void LoadExplicitSettings(void)
 	value = [sExplicitSettings objectForKey:@"_override"];
 	if (value != nil && [value respondsToSelector:@selector(boolValue)])
 	{
-		if (value == sCacheTrue)
+		if (value == kTrueToken)
 		{
 			sOverrideInEffect = YES;
 			sOverrideValue = YES;
 		}
-		else if (value == sCacheFalse)
+		else if (value == kFalseToken)
 		{
 			sOverrideInEffect = YES;
 			sOverrideValue = NO;
@@ -414,7 +415,7 @@ static void LoadExplicitSettings(void)
 }
 
 
-static void LoadExplicitSettingsFromDictionary(NSDictionary *inDict)
+static void LoadExplicitSettingsFromDictionary(NSDictionary *inDict, BOOL inExplicitInherit)
 {
 	NSEnumerator		*keyEnum = nil;
 	id					key = nil;
@@ -425,10 +426,10 @@ static void LoadExplicitSettingsFromDictionary(NSDictionary *inDict)
 		value = [inDict objectForKey:key];
 		
 		/*	Supported values:
-			"yes", "true" or "on" -> sCacheTrue
-			"no", "false" or "off" -> sCacheFalse
+			"yes", "true" or "on" -> kTrueToken
+			"no", "false" or "off" -> kFalseToken
 			"inherit" or "inherited" -> nil
-			NSNumber -> sCacheTrue or sCacheFalse
+			NSNumber -> kTrueToken or kFalseToken
 			"$metaclass" -> "$metaclass"
 		*/
 		if ([value isKindOfClass:[NSString class]])
@@ -437,18 +438,18 @@ static void LoadExplicitSettingsFromDictionary(NSDictionary *inDict)
 				NSOrderedSame == [value caseInsensitiveCompare:@"true"] ||
 				NSOrderedSame == [value caseInsensitiveCompare:@"on"])
 			{
-				value = sCacheTrue;
+				value = kTrueToken;
 			}
 			else if (NSOrderedSame == [value caseInsensitiveCompare:@"no"] ||
 				NSOrderedSame == [value caseInsensitiveCompare:@"false"] ||
 				NSOrderedSame == [value caseInsensitiveCompare:@"off"])
 			{
-				value = sCacheFalse;
+				value = kFalseToken;
 			}
 			else if (NSOrderedSame == [value caseInsensitiveCompare:@"inherit"] ||
 				NSOrderedSame == [value caseInsensitiveCompare:@"inherited"])
 			{
-				value = nil;
+				value = inExplicitInherit ? kInheritToken : nil;
 			}
 			else if (![value hasPrefix:@"$"])
 			{
@@ -504,10 +505,10 @@ static NSNumber *ResolveDisplaySetting(NSString *inMessageClass)
 	value = [sExplicitSettings objectForKey:inMessageClass];
 	
 	// Simple case: explicit setting for this value
-	if (value == sCacheTrue || value == sCacheFalse) return value;
+	if (value == kTrueToken || value == kFalseToken) return value;
 	
-	// Simplish case: nil == use inherited value
-	if (value == nil) return ResolveDisplaySetting(OOLogGetParentMessageClass(inMessageClass));
+	// Simplish case: use inherited value
+	if (value == nil || value == kInheritToken) return ResolveDisplaySetting(OOLogGetParentMessageClass(inMessageClass));
 	
 	// Less simple case: should be a metaclass.
 	seenMetaClasses = [NSMutableSet set];
@@ -530,7 +531,7 @@ static NSNumber *ResolveMetaClassReference(NSString *inMetaClass, NSMutableSet *
 	
 	value = [sExplicitSettings objectForKey:inMetaClass];
 	
-	if (value == sCacheTrue || value == sCacheFalse) return value;
+	if (value == kTrueToken || value == kFalseToken) return value;
 	if (value == nil)
 	{
 		OOLogInternal(OOLOG_UNDEFINED_METACLASS, @"Reference to undefined metaclass %@, falling back to _default.", inMetaClass);

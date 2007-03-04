@@ -26,15 +26,14 @@ MA 02110-1301, USA.
 #import "entities.h"
 #import "ResourceManager.h"
 #import "OOInstinct.h"
-#import "OOLogging.h"
 
 
 static NSString * const kOOLogAIReceiveMessage			= @"ai.message.receive";
-static NSString * const kOOLogAITakeAction				= @"ai.takeaction.takeaction";
-static NSString * const kOOLogAINoAction				= @"ai.takeaction.noaction";
-static NSString * const kOOLogAITakeActionOrphaned		= @"ai.takeaction.orphaned";
-static NSString * const kOOLogAIDebugMessage			= @"ai.takeaction.debugmessage";
-static NSString * const kOOLogAIBadSelector				= @"ai.takeaction.badselector";
+static NSString * const kOOLogAITakeAction				= @"ai.takeAction.takeAction";
+static NSString * const kOOLogAINoAction				= @"ai.takeAction.noAction";
+static NSString * const kOOLogAITakeActionOrphaned		= @"ai.takeAction.orphaned";
+static NSString * const kOOLogAIDebugMessage			= @"ai.takeAction.debugNessage";
+static NSString * const kOOLogAIBadSelector				= @"ai.takeAction.badSelector";
 
 
 @implementation AI

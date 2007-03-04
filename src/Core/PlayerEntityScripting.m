@@ -30,18 +30,17 @@ MA 02110-1301, USA.
 #import "AI.h"
 #import "OOSound.h"
 #import "OOColor.h"
-#import "OOLogging.h"
 
 #ifdef GNUSTEP
 #import "Comparison.h"
 #endif
 
 static NSString * const kOOLogScriptDebugMessage		= @"scripting.debug.message";
-static NSString * const kOOLogScriptDebugOnOff			= @"scripting.debug.onoff";
-static NSString * const kOOLogScriptAction				= @"scripting.scriptaction.scriptaction";
-static NSString * const kOOLogScriptNoAction			= @"scripting.scriptaction.noaction";
-static NSString * const kOOLogScriptActionExpanded		= @"scripting.scriptaction.expanded";
-static NSString * const kOOLogScriptActionBadSelector	= @"scripting.scriptaction.badselector";
+static NSString * const kOOLogScriptDebugOnOff			= @"scripting.debug.onOff";
+static NSString * const kOOLogScriptAction				= @"scripting.scriptAction.scriptAction";
+static NSString * const kOOLogScriptNoAction			= @"scripting.scriptAction.noAction";
+static NSString * const kOOLogScriptActionExpanded		= @"scripting.scriptAction.expanded";
+static NSString * const kOOLogScriptActionBadSelector	= @"scripting.scriptAction.badSelector";
 NSString * const kOOLogScriptSpawnOK					= @"scripting.spawn.spawned";
 NSString * const kOOLogScriptSpawnFailed				= @"scripting.spawn.failed";
 

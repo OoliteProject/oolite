@@ -29,7 +29,11 @@ MA 02110-1301, USA.
 #import "TextureStore.h"
 #import "Entity.h"
 #import "PlanetEntity.h"
-#import "ResourceManager.h"
+#import "ResourceManager.h"'
+
+
+static NSString * kOOLogKeyCodeOutOfRange = @"input.keyMapping.codeOutOfRange";
+
 
 @interface MyOpenGLView(Internal)
 
@@ -362,7 +366,7 @@ MA 02110-1301, USA.
 	else
 	{
 		if (key > [self numKeys])
-			NSLog(@"***** translated key: %d out of range\n", key);
+			OOLog(kOOLogKeyCodeOutOfRange, @"Translated key: %d out of range\n", key);
 	}
 }
 
@@ -429,7 +433,7 @@ MA 02110-1301, USA.
 	else
 	{
 		if (key > [self numKeys])
-			NSLog(@"***** translated key: %d out of range\n", key);
+			OOLog(kOOLogKeyCodeOutOfRange, @"Translated key: %d out of range\n", key);
 	}
 } 
 

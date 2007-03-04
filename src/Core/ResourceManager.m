@@ -26,10 +26,9 @@ MA 02110-1301, USA.
 #import "NSScannerOOExtensions.h"
 #import "NSMutableDictionaryOOExtensions.h"
 #import "OOSound.h"
-#import "OOLogging.h"
 
 
-static NSString * const kOOLogDumpSearchPaths			= @"searchpaths.dumpall";
+static NSString * const kOOLogDumpSearchPaths = @"searchpaths.dumpAll";
 
 
 extern NSDictionary* parseScripts(NSString* script);

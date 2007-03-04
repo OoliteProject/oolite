@@ -34,7 +34,6 @@ MA 02110-1301, USA.
 #import "HeadUpDisplay.h"
 #import "OOSound.h"
 #import "OOColor.h"
-#import "OOLogging.h"
 
 #import "Octree.h"
 #import "CollisionRegion.h"
@@ -45,9 +44,9 @@ MA 02110-1301, USA.
 #define MAX_NUMBER_OF_SOLAR_SYSTEM_ENTITIES 20
 
 
-static NSString * const kOOLogDataCacheFound			= @"datacache.found";
-static NSString * const kOOLogDataCacheNotFound			= @"datacache.notfound";
-static NSString * const kOOLogDataCacheRebuild			= @"datacache.rebuild";
+static NSString * const kOOLogDataCacheFound			= @"dataCache.found";
+static NSString * const kOOLogDataCacheNotFound			= @"dataCache.notFound";
+static NSString * const kOOLogDataCacheRebuild			= @"dataCache.rebuild";
 static NSString * const kOOLogUniversePopulate			= @"universe.populate";
 
 
