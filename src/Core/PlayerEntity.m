@@ -53,6 +53,10 @@ MA 02110-1301, USA.
 #define	OG_ELITE_FORWARD_DRIFT			10.0f
 
 
+static NSString * const kOOLogDataCacheWrite		= @"dataCache.write";
+static NSString * const kOOLogDataCacheWriteFailed	= @"dataCache.write.failed";
+
+
 @implementation PlayerEntity
 
 static Quaternion quaternion_identity = { (GLfloat)1.0, (GLfloat)0.0, (GLfloat)0.0, (GLfloat)0.0};
@@ -4225,9 +4229,9 @@ double scoopSoundPlayTime = 0.0;
 	{
 		// try saving the cache now...
 		NSString*	cache_path = OOLITE_CACHE;
-		NSLog(@"DEBUG ** saving cache ...**");
+		OOLog(kOOLogDataCacheWrite, @"Writing cache");
 		if (![[[Entity dataStore] preloadedDataFiles] writeToFile: cache_path atomically: YES])
-			NSLog(@"ERROR ***** Could not write cache to path: %@ *****", cache_path);
+			OOLog(kOOLogDataCacheWriteFailed, @"***** Could not write cache to path: %@", cache_path);
 		//
 		[universe clearPreviousMessage];	// allow this to be given time and again
 		[universe addMessage:[universe expandDescription:@"[game-saved]" forSystem:system_seed] forCount:2];
@@ -4289,7 +4293,7 @@ double scoopSoundPlayTime = 0.0;
 		}
 		// try saving the cache ...
 		NSString*	cache_path = OOLITE_CACHE;
-		NSLog(@"DEBUG ** saving cache ...**");
+		OOLog(kOOLogDataCacheWrite, @"Writing cache");
 		[[[Entity dataStore] preloadedDataFiles] writeToFile: cache_path atomically: YES];
 	}
 	[self setGuiToStatusScreen];

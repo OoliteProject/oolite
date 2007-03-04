@@ -38,7 +38,6 @@
 		1A472917096B5454000E78D8 /* CoreAudio.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1A472916096B5454000E78D8 /* CoreAudio.framework */; };
 		1A472921096B5468000E78D8 /* AudioToolbox.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1A47291F096B5468000E78D8 /* AudioToolbox.framework */; };
 		1A472922096B5468000E78D8 /* AudioUnit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1A472920096B5468000E78D8 /* AudioUnit.framework */; };
-		1A5BF2EA0916D50900BF238F /* Oolite.mdimporter in Copy MDImporter */ = {isa = PBXBuildFile; fileRef = 1A5BF2D50916D50100BF238F /* Oolite.mdimporter */; };
 		1A81F7090A7BAC4D006580AD /* OOCAMusic.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A81F7070A7BAC4D006580AD /* OOCAMusic.m */; };
 		1A81F70A0A7BAC4D006580AD /* OOCAMusic.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A81F7080A7BAC4D006580AD /* OOCAMusic.h */; };
 		1A8A37040B95CADD007D20B8 /* PlayerEntityLoadSave.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A8A37020B95CADD007D20B8 /* PlayerEntityLoadSave.m */; };
@@ -52,6 +51,7 @@
 		1A8A39FF0B96295D007D20B8 /* ShipEntity.m in Sources */ = {isa = PBXBuildFile; fileRef = 2516113B099544390037C2E1 /* ShipEntity.m */; };
 		1A8A3A380B962AEF007D20B8 /* NSScannerOOExtensions.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A8A3A360B962AEF007D20B8 /* NSScannerOOExtensions.h */; };
 		1A8A3A390B962AEF007D20B8 /* NSScannerOOExtensions.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A8A3A370B962AEF007D20B8 /* NSScannerOOExtensions.m */; };
+		1A8A3D1B0B9B03A500AB7625 /* Oolite.mdimporter in Copy MDImporter */ = {isa = PBXBuildFile; fileRef = 1A5BF2770916D47300BF238F /* Oolite.mdimporter */; };
 		1AD9AFA60B91E24100FB704E /* ShipEntityAI.m in Sources */ = {isa = PBXBuildFile; fileRef = 1AD9AFA40B91E24100FB704E /* ShipEntityAI.m */; };
 		1AD9AFA70B91E24100FB704E /* ShipEntityAI.h in Headers */ = {isa = PBXBuildFile; fileRef = 1AD9AFA50B91E24100FB704E /* ShipEntityAI.h */; };
 		1AD9AFB10B91E24C00FB704E /* PlayerEntityContracts.h in Headers */ = {isa = PBXBuildFile; fileRef = 1AD9AFA90B91E24C00FB704E /* PlayerEntityContracts.h */; };
@@ -360,14 +360,14 @@
 /* Begin PBXCopyFilesBuildPhase section */
 		1A5BF29C0916D49800BF238F /* Copy MDImporter */ = {
 			isa = PBXCopyFilesBuildPhase;
-			buildActionMask = 8;
+			buildActionMask = 12;
 			dstPath = Contents/Library/Spotlight;
 			dstSubfolderSpec = 1;
 			files = (
-				1A5BF2EA0916D50900BF238F /* Oolite.mdimporter in Copy MDImporter */,
+				1A8A3D1B0B9B03A500AB7625 /* Oolite.mdimporter in Copy MDImporter */,
 			);
 			name = "Copy MDImporter";
-			runOnlyForDeploymentPostprocessing = 1;
+			runOnlyForDeploymentPostprocessing = 0;
 		};
 		1ADE323409756C7400961AE2 /* Copy Frameworks */ = {
 			isa = PBXCopyFilesBuildPhase;
@@ -388,14 +388,14 @@
 		081329B30A6D534900A5C2CE /* OOInstinct.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOInstinct.h; sourceTree = "<group>"; };
 		081329B40A6D534900A5C2CE /* OOInstinct.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOInstinct.m; sourceTree = "<group>"; };
 		082AFDDE0A02159800E671D4 /* dock-flat.dat */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = "dock-flat.dat"; path = "Resources/Models/dock-flat.dat"; sourceTree = "<group>"; };
-		0831C5C609E3396D0058029A /* StringTokeniser.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = StringTokeniser.m; path = src/Core/StringTokeniser.m; sourceTree = "<group>"; };
-		0831C5C709E3396D0058029A /* StringTokeniser.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = StringTokeniser.h; path = src/Core/StringTokeniser.h; sourceTree = "<group>"; };
-		0831C5C809E3396D0058029A /* ScriptCompiler.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = ScriptCompiler.m; path = src/Core/ScriptCompiler.m; sourceTree = "<group>"; };
+		0831C5C609E3396D0058029A /* StringTokeniser.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = StringTokeniser.m; sourceTree = "<group>"; };
+		0831C5C709E3396D0058029A /* StringTokeniser.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = StringTokeniser.h; sourceTree = "<group>"; };
+		0831C5C809E3396D0058029A /* ScriptCompiler.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ScriptCompiler.m; sourceTree = "<group>"; };
 		083325DB09DDBCDE00F5B8E4 /* OOColor.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOColor.h; sourceTree = "<group>"; };
 		083325DC09DDBCDE00F5B8E4 /* OOColor.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOColor.m; sourceTree = "<group>"; };
 		083DB4D30A70E51E00B419B2 /* OOBrain.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOBrain.h; sourceTree = "<group>"; };
 		083DB4D40A70E51E00B419B2 /* OOBrain.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOBrain.m; sourceTree = "<group>"; };
-		0865432206B8447D000CA0AB /* OoliteDev.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = OoliteDev.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		0865432206B8447D000CA0AB /* Oolite.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Oolite.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		0878FD2F086EF845004CB752 /* Carbon.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Carbon.framework; path = /System/Library/Frameworks/Carbon.framework; sourceTree = "<absolute>"; };
 		088496DE0A4C1D1B00F32928 /* gotoWaypointAI.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist; name = gotoWaypointAI.plist; path = Resources/AIs/gotoWaypointAI.plist; sourceTree = "<group>"; };
 		088496DF0A4C1D1B00F32928 /* receiveDockingAI.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist; name = receiveDockingAI.plist; path = Resources/AIs/receiveDockingAI.plist; sourceTree = "<group>"; };
@@ -414,9 +414,8 @@
 		1A47291F096B5468000E78D8 /* AudioToolbox.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AudioToolbox.framework; path = /System/Library/Frameworks/AudioToolbox.framework; sourceTree = "<absolute>"; };
 		1A472920096B5468000E78D8 /* AudioUnit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AudioUnit.framework; path = /System/Library/Frameworks/AudioUnit.framework; sourceTree = "<absolute>"; };
 		1A5BF2720916D47300BF238F /* Oolite-importer.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = "Oolite-importer.xcodeproj"; path = "Oolite-importer/Oolite-importer.xcodeproj"; sourceTree = "<group>"; };
-		1A5BF2D50916D50100BF238F /* Oolite.mdimporter */ = {isa = PBXFileReference; explicitFileType = wrapper; name = Oolite.mdimporter; path = "Oolite-importer/build/Universal/Oolite.mdimporter"; sourceTree = "<group>"; };
-		1A81F7070A7BAC4D006580AD /* OOCAMusic.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = OOCAMusic.m; path = src/Cocoa/OOCAMusic.m; sourceTree = "<group>"; };
-		1A81F7080A7BAC4D006580AD /* OOCAMusic.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = OOCAMusic.h; path = src/Cocoa/OOCAMusic.h; sourceTree = "<group>"; };
+		1A81F7070A7BAC4D006580AD /* OOCAMusic.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOCAMusic.m; sourceTree = "<group>"; };
+		1A81F7080A7BAC4D006580AD /* OOCAMusic.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOCAMusic.h; sourceTree = "<group>"; };
 		1A8A37020B95CADD007D20B8 /* PlayerEntityLoadSave.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = PlayerEntityLoadSave.m; sourceTree = "<group>"; };
 		1A8A37030B95CADD007D20B8 /* PlayerEntityLoadSave.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PlayerEntityLoadSave.h; sourceTree = "<group>"; };
 		1A8A37540B960337007D20B8 /* NSMutableDictionaryOOExtensions.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = NSMutableDictionaryOOExtensions.m; sourceTree = "<group>"; };
@@ -448,27 +447,27 @@
 		2512834409BA281500F43D55 /* CollisionRegion.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CollisionRegion.h; sourceTree = "<group>"; };
 		2512834509BA281500F43D55 /* CollisionRegion.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = CollisionRegion.m; sourceTree = "<group>"; };
 		25160E2E0995362F0037C2E1 /* OOCocoa.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOCocoa.h; sourceTree = "<group>"; };
-		251610CA099544090037C2E1 /* OOCABufferedSound.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = OOCABufferedSound.h; path = src/Cocoa/OOCABufferedSound.h; sourceTree = "<group>"; };
-		251610CB099544090037C2E1 /* OOCASoundMixer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = OOCASoundMixer.h; path = src/Cocoa/OOCASoundMixer.h; sourceTree = "<group>"; };
-		251610CC099544090037C2E1 /* OOCASoundSource.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = OOCASoundSource.h; path = src/Cocoa/OOCASoundSource.h; sourceTree = "<group>"; };
-		251610CD099544090037C2E1 /* OOCASoundChannel.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = OOCASoundChannel.h; path = src/Cocoa/OOCASoundChannel.h; sourceTree = "<group>"; };
-		251610CE099544090037C2E1 /* OOCASoundSource.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = OOCASoundSource.m; path = src/Cocoa/OOCASoundSource.m; sourceTree = "<group>"; };
-		251610CF099544090037C2E1 /* OOCASoundReferencePoint.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = OOCASoundReferencePoint.m; path = src/Cocoa/OOCASoundReferencePoint.m; sourceTree = "<group>"; };
-		251610D0099544090037C2E1 /* OOCASound.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = OOCASound.h; path = src/Cocoa/OOCASound.h; sourceTree = "<group>"; };
-		251610D1099544090037C2E1 /* OOCASoundMixer.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = OOCASoundMixer.m; path = src/Cocoa/OOCASoundMixer.m; sourceTree = "<group>"; };
-		251610D2099544090037C2E1 /* OOCABufferedSound.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = OOCABufferedSound.m; path = src/Cocoa/OOCABufferedSound.m; sourceTree = "<group>"; };
-		251610D3099544090037C2E1 /* OOCAStreamingSound.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = OOCAStreamingSound.m; path = src/Cocoa/OOCAStreamingSound.m; sourceTree = "<group>"; };
-		251610D4099544090037C2E1 /* OOCASoundDecoder.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = OOCASoundDecoder.h; path = src/Cocoa/OOCASoundDecoder.h; sourceTree = "<group>"; };
-		251610D5099544090037C2E1 /* OOCASound.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = OOCASound.m; path = src/Cocoa/OOCASound.m; sourceTree = "<group>"; };
-		251610D6099544090037C2E1 /* OOCASoundChannel.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = OOCASoundChannel.m; path = src/Cocoa/OOCASoundChannel.m; sourceTree = "<group>"; };
-		251610D7099544090037C2E1 /* OOCAStreamingSound.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = OOCAStreamingSound.h; path = src/Cocoa/OOCAStreamingSound.h; sourceTree = "<group>"; };
-		251610D8099544090037C2E1 /* OOErrorDescription.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = OOErrorDescription.h; path = src/Cocoa/OOErrorDescription.h; sourceTree = "<group>"; };
-		251610D9099544090037C2E1 /* OOCASoundReferencePoint.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = OOCASoundReferencePoint.h; path = src/Cocoa/OOCASoundReferencePoint.h; sourceTree = "<group>"; };
-		251610DA099544090037C2E1 /* OOCASoundInternal.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = OOCASoundInternal.h; path = src/Cocoa/OOCASoundInternal.h; sourceTree = "<group>"; };
-		251610DB099544090037C2E1 /* OOCASoundDecoder.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = OOCASoundDecoder.m; path = src/Cocoa/OOCASoundDecoder.m; sourceTree = "<group>"; };
-		251610DC099544090037C2E1 /* OOErrorDescription.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = OOErrorDescription.m; path = src/Cocoa/OOErrorDescription.m; sourceTree = "<group>"; };
-		251610F0099544190037C2E1 /* VirtualRingBuffer.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = VirtualRingBuffer.m; path = src/Cocoa/VirtualRingBuffer.m; sourceTree = "<group>"; };
-		251610F1099544190037C2E1 /* VirtualRingBuffer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = VirtualRingBuffer.h; path = src/Cocoa/VirtualRingBuffer.h; sourceTree = "<group>"; };
+		251610CA099544090037C2E1 /* OOCABufferedSound.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOCABufferedSound.h; sourceTree = "<group>"; };
+		251610CB099544090037C2E1 /* OOCASoundMixer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOCASoundMixer.h; sourceTree = "<group>"; };
+		251610CC099544090037C2E1 /* OOCASoundSource.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOCASoundSource.h; sourceTree = "<group>"; };
+		251610CD099544090037C2E1 /* OOCASoundChannel.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOCASoundChannel.h; sourceTree = "<group>"; };
+		251610CE099544090037C2E1 /* OOCASoundSource.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOCASoundSource.m; sourceTree = "<group>"; };
+		251610CF099544090037C2E1 /* OOCASoundReferencePoint.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOCASoundReferencePoint.m; sourceTree = "<group>"; };
+		251610D0099544090037C2E1 /* OOCASound.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOCASound.h; sourceTree = "<group>"; };
+		251610D1099544090037C2E1 /* OOCASoundMixer.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOCASoundMixer.m; sourceTree = "<group>"; };
+		251610D2099544090037C2E1 /* OOCABufferedSound.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOCABufferedSound.m; sourceTree = "<group>"; };
+		251610D3099544090037C2E1 /* OOCAStreamingSound.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOCAStreamingSound.m; sourceTree = "<group>"; };
+		251610D4099544090037C2E1 /* OOCASoundDecoder.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOCASoundDecoder.h; sourceTree = "<group>"; };
+		251610D5099544090037C2E1 /* OOCASound.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOCASound.m; sourceTree = "<group>"; };
+		251610D6099544090037C2E1 /* OOCASoundChannel.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOCASoundChannel.m; sourceTree = "<group>"; };
+		251610D7099544090037C2E1 /* OOCAStreamingSound.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOCAStreamingSound.h; sourceTree = "<group>"; };
+		251610D8099544090037C2E1 /* OOErrorDescription.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOErrorDescription.h; sourceTree = "<group>"; };
+		251610D9099544090037C2E1 /* OOCASoundReferencePoint.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOCASoundReferencePoint.h; sourceTree = "<group>"; };
+		251610DA099544090037C2E1 /* OOCASoundInternal.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOCASoundInternal.h; sourceTree = "<group>"; };
+		251610DB099544090037C2E1 /* OOCASoundDecoder.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOCASoundDecoder.m; sourceTree = "<group>"; };
+		251610DC099544090037C2E1 /* OOErrorDescription.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOErrorDescription.m; sourceTree = "<group>"; };
+		251610F0099544190037C2E1 /* VirtualRingBuffer.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = VirtualRingBuffer.m; sourceTree = "<group>"; };
+		251610F1099544190037C2E1 /* VirtualRingBuffer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = VirtualRingBuffer.h; sourceTree = "<group>"; };
 		251610F5099544380037C2E1 /* PlayerEntity.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = PlayerEntity.m; sourceTree = "<group>"; };
 		251610F7099544380037C2E1 /* WormholeEntity.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = WormholeEntity.m; sourceTree = "<group>"; };
 		251610F8099544380037C2E1 /* WormholeEntity.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = WormholeEntity.h; sourceTree = "<group>"; };
@@ -492,7 +491,7 @@
 		2516110E099544390037C2E1 /* SkyEntity.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SkyEntity.h; sourceTree = "<group>"; };
 		25161110099544390037C2E1 /* OOTrumble.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOTrumble.h; sourceTree = "<group>"; };
 		25161114099544390037C2E1 /* DustEntity.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = DustEntity.m; sourceTree = "<group>"; };
-		25161116099544390037C2E1 /* OOSound.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = OOSound.h; path = src/Core/OOSound.h; sourceTree = "<group>"; };
+		25161116099544390037C2E1 /* OOSound.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOSound.h; sourceTree = "<group>"; };
 		2516111B099544390037C2E1 /* OOCharacter.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOCharacter.m; sourceTree = "<group>"; };
 		2516111C099544390037C2E1 /* OOCharacter.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOCharacter.h; sourceTree = "<group>"; };
 		2516111D099544390037C2E1 /* Entity.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = Entity.m; sourceTree = "<group>"; };
@@ -521,8 +520,8 @@
 		25F3E6380994F07A002F25FD /* entities.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = entities.h; sourceTree = "<group>"; };
 		25F3E63A0994F08A002F25FD /* OOOpenGL.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOOpenGL.h; sourceTree = "<group>"; };
 		25F3E6BC0994F30A002F25FD /* main.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = main.m; sourceTree = "<group>"; };
-		25F3E6F00994F466002F25FD /* Groolite.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Groolite.h; path = src/Cocoa/Groolite.h; sourceTree = "<group>"; };
-		25F3E6F10994F466002F25FD /* Groolite.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = Groolite.m; path = src/Cocoa/Groolite.m; sourceTree = "<group>"; };
+		25F3E6F00994F466002F25FD /* Groolite.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Groolite.h; sourceTree = "<group>"; };
+		25F3E6F10994F466002F25FD /* Groolite.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = Groolite.m; sourceTree = "<group>"; };
 		25F3E6F40994FA92002F25FD /* commodities.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xml; name = commodities.plist; path = Resources/Config/commodities.plist; sourceTree = "<group>"; };
 		25F3E6F50994FA92002F25FD /* characters.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xml; name = characters.plist; path = Resources/Config/characters.plist; sourceTree = "<group>"; };
 		25F3E6F60994FA92002F25FD /* demoships.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xml; name = demoships.plist; path = Resources/Config/demoships.plist; sourceTree = "<group>"; };
@@ -947,27 +946,6 @@
 			name = Images;
 			sourceTree = "<group>";
 		};
-		0831C5CD09E339760058029A /* OOScript */ = {
-			isa = PBXGroup;
-			children = (
-				0831C5C609E3396D0058029A /* StringTokeniser.m */,
-				0831C5C709E3396D0058029A /* StringTokeniser.h */,
-				0831C5C809E3396D0058029A /* ScriptCompiler.m */,
-			);
-			name = OOScript;
-			path = ../..;
-			sourceTree = "<group>";
-		};
-		0870F6230903F890002A598D /* Groolite */ = {
-			isa = PBXGroup;
-			children = (
-				25F3E6F00994F466002F25FD /* Groolite.h */,
-				25F3E6F10994F466002F25FD /* Groolite.m */,
-			);
-			name = Groolite;
-			path = ../..;
-			sourceTree = "<group>";
-		};
 		08BF4615063D0E75004E052D /* AIs */ = {
 			isa = PBXGroup;
 			children = (
@@ -1037,7 +1015,7 @@
 		19C28FACFE9D520D11CA2CBB /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				0865432206B8447D000CA0AB /* OoliteDev.app */,
+				0865432206B8447D000CA0AB /* Oolite.app */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -1046,7 +1024,6 @@
 			isa = PBXGroup;
 			children = (
 				1A5BF2720916D47300BF238F /* Oolite-importer.xcodeproj */,
-				1A5BF2D50916D50100BF238F /* Oolite.mdimporter */,
 			);
 			name = MDImporter;
 			sourceTree = "<group>";
@@ -1067,13 +1044,14 @@
 				1A8A3C1E0B9640B4007D20B8 /* Geometry */,
 				1A8A3C180B964030007D20B8 /* Resource Management */,
 				1A8A3C1B0B96407A007D20B8 /* User Interface */,
-				0831C5CD09E339760058029A /* OOScript */,
+				1A8A3DAB0B9B061800AB7625 /* OOScript */,
 				1A8A3BFB0B963F91007D20B8 /* Utilities */,
 				1A8A3BF20B963F3C007D20B8 /* Mac-specific */,
 				25161144099544390037C2E1 /* Universe.h */,
 				25161143099544390037C2E1 /* Universe.m */,
 				25161110099544390037C2E1 /* OOTrumble.h */,
 				25161108099544390037C2E1 /* OOTrumble.m */,
+				25161116099544390037C2E1 /* OOSound.h */,
 			);
 			name = Source;
 			path = src/Core;
@@ -1087,8 +1065,8 @@
 				25F46751099695D5009483BF /* OoliteApp.m */,
 				2576E7B209B4F418007410F7 /* MyOpenGLView.h */,
 				25F4676309969672009483BF /* MyOpenGLView.m */,
-				0870F6230903F890002A598D /* Groolite */,
-				25161017099543850037C2E1 /* Audio */,
+				1A8A3D8F0B9B058500AB7625 /* Audio */,
+				1A8A3D9E0B9B05C400AB7625 /* Groolite */,
 			);
 			name = "Mac-specific";
 			path = ../Cocoa;
@@ -1214,24 +1192,9 @@
 			name = Geometry;
 			sourceTree = "<group>";
 		};
-		1AC0E9380B974D8700C46994 /* Documentation */ = {
+		1A8A3D8F0B9B058500AB7625 /* Audio */ = {
 			isa = PBXGroup;
 			children = (
-				1AC0E9480B974DC200C46994 /* ReadMe.rtfd */,
-				1AC0E9490B974DC200C46994 /* LICENSE.TXT */,
-				1AC0E9460B974DC200C46994 /* GPL.TXT */,
-				1AC0E9470B974DC200C46994 /* FAQ.TXT */,
-				1AC0E94A0B974DC200C46994 /* PORTING.TXT */,
-				1AC0E94B0B974DC200C46994 /* README_LINUX.TXT */,
-			);
-			name = Documentation;
-			path = Doc;
-			sourceTree = "<group>";
-		};
-		25161017099543850037C2E1 /* Audio */ = {
-			isa = PBXGroup;
-			children = (
-				25161116099544390037C2E1 /* OOSound.h */,
 				251610D0099544090037C2E1 /* OOCASound.h */,
 				251610DA099544090037C2E1 /* OOCASoundInternal.h */,
 				251610D5099544090037C2E1 /* OOCASound.m */,
@@ -1257,7 +1220,39 @@
 				251610F0099544190037C2E1 /* VirtualRingBuffer.m */,
 			);
 			name = Audio;
-			path = ../..;
+			sourceTree = "<group>";
+		};
+		1A8A3D9E0B9B05C400AB7625 /* Groolite */ = {
+			isa = PBXGroup;
+			children = (
+				25F3E6F00994F466002F25FD /* Groolite.h */,
+				25F3E6F10994F466002F25FD /* Groolite.m */,
+			);
+			name = Groolite;
+			sourceTree = "<group>";
+		};
+		1A8A3DAB0B9B061800AB7625 /* OOScript */ = {
+			isa = PBXGroup;
+			children = (
+				0831C5C609E3396D0058029A /* StringTokeniser.m */,
+				0831C5C709E3396D0058029A /* StringTokeniser.h */,
+				0831C5C809E3396D0058029A /* ScriptCompiler.m */,
+			);
+			name = OOScript;
+			sourceTree = "<group>";
+		};
+		1AC0E9380B974D8700C46994 /* Documentation */ = {
+			isa = PBXGroup;
+			children = (
+				1AC0E9480B974DC200C46994 /* ReadMe.rtfd */,
+				1AC0E9490B974DC200C46994 /* LICENSE.TXT */,
+				1AC0E9460B974DC200C46994 /* GPL.TXT */,
+				1AC0E9470B974DC200C46994 /* FAQ.TXT */,
+				1AC0E94A0B974DC200C46994 /* PORTING.TXT */,
+				1AC0E94B0B974DC200C46994 /* README_LINUX.TXT */,
+			);
+			name = Documentation;
+			path = Doc;
 			sourceTree = "<group>";
 		};
 		29B97314FDCFA39411CA2CEA /* Oolite_GUSTO */ = {
@@ -1400,7 +1395,7 @@
 			name = Oolite;
 			productInstallPath = "$(HOME)/Applications";
 			productName = Oolite;
-			productReference = 0865432206B8447D000CA0AB /* OoliteDev.app */;
+			productReference = 0865432206B8447D000CA0AB /* Oolite.app */;
 			productType = "com.apple.product-type.application";
 		};
 /* End PBXNativeTarget section */
@@ -1772,6 +1767,7 @@
 				OTHER_CFLAGS = "-DLOADSAVEGUIXX";
 				OTHER_LDFLAGS = "";
 				PRODUCT_NAME = OoliteDev;
+				SDKROOT_i386 = /Developer/SDKs/MacOSX10.4u.sdk;
 				SECTORDER_FLAGS = "";
 				WARNING_CFLAGS = (
 					"-Wmost",
@@ -1804,6 +1800,7 @@
 				OTHER_LDFLAGS = "-lSystem";
 				PREBINDING = NO;
 				PRODUCT_NAME = Oolite;
+				SDKROOT_i386 = /Developer/SDKs/MacOSX10.4u.sdk;
 				SECTORDER_FLAGS = "";
 				WARNING_CFLAGS = (
 					"-Wmost",

@@ -66,6 +66,8 @@ dataCache							= inherit;
 dataCache.found						= inherit;
 dataCache.notFound					= inherit;
 dataCache.rebuild					= inherit;
+dataCache.write						= inherit;
+dataCache.write.failed				= $error;
 
 $linkedListError					= $error;
 entity = inherit;
