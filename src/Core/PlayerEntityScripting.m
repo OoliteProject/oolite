@@ -35,14 +35,49 @@ MA 02110-1301, USA.
 #import "Comparison.h"
 #endif
 
-static NSString * const kOOLogScriptDebugMessage		= @"scripting.debug.message";
-static NSString * const kOOLogScriptDebugOnOff			= @"scripting.debug.onOff";
-static NSString * const kOOLogScriptAction				= @"scripting.scriptAction.scriptAction";
-static NSString * const kOOLogScriptNoAction			= @"scripting.scriptAction.noAction";
-static NSString * const kOOLogScriptActionExpanded		= @"scripting.scriptAction.expanded";
-static NSString * const kOOLogScriptActionBadSelector	= @"scripting.scriptAction.badSelector";
-NSString * const kOOLogScriptSpawnOK					= @"scripting.spawn.spawned";
-NSString * const kOOLogScriptSpawnFailed				= @"scripting.spawn.failed";
+static NSString * const kOOLogScriptAddShipsFailed			= @"script.addShips.failed";
+static NSString * const kOOLogScriptMissionDescNoText		= @"script.missionDescription.noMissionText";
+static NSString * const kOOLogScriptMissionDescNoKey		= @"script.missionDescription.noMissionKey";
+
+static NSString * const kOOLogDebug							= @"script.debug";
+static NSString * const kOOLogDebugOnMetaClass				= @"$scriptDebugOn";
+static NSString * const kOOLogDebugMessage					= @"script.debug.message";
+static NSString * const kOOLogDebugOnOff					= @"script.debug.onOff";
+static NSString * const kOOLogDebugTestConditionCheckingVariable = @"script.debug.testCondition.checkingVariable";
+static NSString * const kOOLogDebugTestConditionValues		= @"script.debug.testCondition.testValues";
+static NSString * const kOOLogDebugTestConditionOnOf		= @"script.debug.testCondition.oneOf";
+static NSString * const kOOLogDebugAddPlanet				= @"script.debug.addPlanet";
+static NSString * const kOOLogDebugReplaceVaraiblesInString	= @"script.debug.replaceVariablesInString";
+static NSString * const kOOLogDebugProcessSceneStringAddScene = @"script.debug.processSceneString.addScene";
+static NSString * const kOOLogDebugProcessSceneStringAddModel = @"script.debug.processSceneString.addModel";
+static NSString * const kOOLogDebugProcessSceneStringAddLocalPlanet = @"script.debug.processSceneString.addLocalPlanet";
+static NSString * const kOOLogDebugProcessSceneStringAddTargetPlanet = @"script.debug.processSceneString.addTargetPlanet";
+static NSString * const kOOLogDebugProcessSceneStringAddBillboard = @"script.debug.processSceneString.addBillboard";
+static NSString * const kOOLogDebugSetSunNovaIn				= @"script.debug.setSunNovaIn";
+
+static NSString * const kOOLogNoteCheckScript				= @"script.debug.note.checkScript";
+static NSString * const kOOLogNoteScriptAction				= @"script.debug.note.scriptAction";
+static NSString * const kOOLogNoteTestCondition				= @"script.debug.note.testCondition";
+static NSString * const kOOLogNoteAwardCargo				= @"script.debug.note.awardCargo";
+static NSString * const kOOLogNoteRemoveAllCargo			= @"script.debug.note.removeAllCargo";
+static NSString * const kOOLogNoteUseSpecialCargo			= @"script.debug.note.useSpecialCargo";
+	   NSString * const kOOLogNoteAddShips					= @"script.debug.note.addShips";
+static NSString * const kOOLogNoteSet						= @"script.debug.note.set";
+static NSString * const kOOLogNoteShowShipModel				= @"script.debug.note.showShipModel";
+static NSString * const kOOLogNoteFuelLeak					= @"script.debug.note.setFuelLeak";
+static NSString * const kOOLogNoteAddPlanet					= @"script.debug.note.addPlanet";
+static NSString * const kOOLogNoteProcessSceneString		= @"script.debug.note.processSceneString";
+
+static NSString * const kOOLogSyntaxBadConditional			= @"script.debug.syntax.badConditional";
+static NSString * const kOOLogSyntaxNoAction				= @"script.debug.syntax.action.noneSpecified";
+static NSString * const kOOLogSyntaxBadAction				= @"script.debug.syntax.action.badSelector";
+static NSString * const kOOLogSyntaxNoScriptCondition		= @"script.debug.syntax.scriptCondition.noneSpecified";
+static NSString * const kOOLogSyntaxSetPlanetInfo			= @"script.debug.syntax.setPlanetInfo";
+static NSString * const kOOLogSyntaxAwardCargo				= @"script.debug.syntax.awardCargo";
+static NSString * const kOOLogSyntaxMessageShipAIs			= @"script.debug.syntax.messageShipAIs";
+	   NSString * const kOOLogSyntaxAddShips				= @"script.debug.syntax.addShips";
+static NSString * const kOOLogSyntaxSet						= @"script.debug.syntax.set";
+static NSString * const kOOLogSyntaxReset					= @"script.debug.syntax.reset";
 
 
 @implementation PlayerEntity (Scripting)
@@ -55,10 +90,10 @@ static NSString * mission_key;
 	int i;
 
 	[self setScript_target:self];
-
-	if (debug & DEBUG_SCRIPT)
-		NSLog(@"----- checkScript");
-
+	
+	OOLog(kOOLogNoteCheckScript, @"----- checkScript");
+	OOLogIndentIf(kOOLogNoteCheckScript);
+	
 	for (i = 0; i < [[script allKeys] count]; i++)
 	{
 		NSString *missionTitle = (NSString *)[[script allKeys] objectAtIndex:i];
@@ -66,6 +101,8 @@ static NSString * mission_key;
 		mission_key = missionTitle;
 		[self scriptActions: mission forTarget: self];
 	}
+	
+	OOLogOutdentIf(kOOLogNoteCheckScript);
 }
 
 - (void) scriptActions:(NSArray*) some_actions forTarget:(ShipEntity*) a_target
@@ -91,14 +128,12 @@ static NSString * mission_key;
 	int i;
 	if (conditions == nil)
 	{
-		NSLog(@"SCRIPT ERROR no 'conditions' in %@ - returning YES.", [couplet description]);
-		// NSBeep(); // AppKit dependency
+		OOLog(kOOLogSyntaxBadConditional, @"SCRIPT ERROR no 'conditions' in %@ - returning YES.", [couplet description]);
 		return success;
 	}
 	if (![conditions isKindOfClass:[NSArray class]])
 	{
-		NSLog(@"SCRIPT ERROR \"conditions = %@\" is not an array - returning YES.", [conditions description]);
-		// NSBeep(); // AppKit dependency
+		OOLog(kOOLogSyntaxBadConditional, @"SCRIPT ERROR \"conditions = %@\" is not an array - returning YES.", [conditions description]);
 		return success;
 	}
 	for (i = 0; (i < [conditions count])&&(success); i++)
@@ -107,8 +142,7 @@ static NSString * mission_key;
 	{
 		if (![actions isKindOfClass:[NSArray class]])
 		{
-			NSLog(@"SCRIPT ERROR \"actions = %@\" is not an array.", [actions description]);
-			// NSBeep(); AppKit dependency
+			OOLog(kOOLogSyntaxBadConditional, @"SCRIPT ERROR \"actions = %@\" is not an array.", [actions description]);
 		}
 		else
 		{
@@ -126,8 +160,7 @@ static NSString * mission_key;
 	{
 		if (![else_actions isKindOfClass:[NSArray class]])
 		{
-			NSLog(@"SCRIPT ERROR \"else_actions = %@\" is not an array.", [else_actions description]);
-			// NSBeep(); AppKit
+			OOLog(kOOLogSyntaxBadConditional, @"SCRIPT ERROR \"else_actions = %@\" is not an array.", [else_actions description]);
 		}
 		else
 		{
@@ -164,12 +197,11 @@ static NSString * mission_key;
 	NSString*	valueString = nil;
 	SEL			_selector;
 
-	if (debug & DEBUG_SCRIPT)
-		OOLog(kOOLogScriptAction, @"scriptAction: \"%@\"", scriptAction);
+	OOLog(kOOLogNoteScriptAction, @"scriptAction: \"%@\"", scriptAction);
 
 	if ([tokens count] < 1)
 	{
-		OOLog(kOOLogScriptNoAction, @"***** No scriptAction '%@'",scriptAction);
+		OOLog(kOOLogSyntaxNoAction, @"***** No scriptAction '%@'",scriptAction);
 		return;
 	}
 
@@ -180,8 +212,7 @@ static NSString * mission_key;
 		[tokens removeObjectAtIndex:0];
 		valueString = [[tokens componentsJoinedByString:@" "] stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceCharacterSet]];
 		valueString = [universe expandDescriptionWithLocals:valueString forSystem:[self system_seed] withLocalVariables:locals];
-		if (debug & DEBUG_SCRIPT)
- 			OOLog(kOOLogScriptActionExpanded, @"scriptAction after expansion: \"%@ %@\"", selectorString, valueString);
+		OOLog(kOOLogNoteScriptAction, @"scriptAction after expansion: \"%@ %@\"", selectorString, valueString);
 	}
 
 	_selector = NSSelectorFromString(selectorString);
@@ -197,7 +228,7 @@ static NSString * mission_key;
 
 	if (![self respondsToSelector:_selector])
 	{
-		OOLog(kOOLogScriptActionBadSelector, @"***** PlayerEntity DOES NOT RESPOND TO scriptAction: \"%@\"", scriptAction);
+		OOLog(kOOLogSyntaxBadAction, @"***** PlayerEntity DOES NOT RESPOND TO scriptAction: \"%@\"", scriptAction);
 		return;
 	}
 
@@ -244,26 +275,23 @@ static NSString * mission_key;
 	SEL			_selector;
 	int			comparator = COMPARISON_NO;
 
-	if (debug & DEBUG_SCRIPT)
-		NSLog(@"DEBUG ::::: scriptTestCondition: \"%@\"", scriptCondition);
+	OOLog(kOOLogNoteTestCondition, @"scriptTestCondition: \"%@\"", scriptCondition);
 
 	if ([tokens count] < 1)
 	{
-		NSLog(@"***** No scriptCondition '%@'",scriptCondition);
+		OOLog(kOOLogSyntaxNoScriptCondition, @"***** No scriptCondition '%@'",scriptCondition);
 		return NO;
 	}
 	selectorString = (NSString *)[tokens objectAtIndex:0];
 	if ([selectorString hasPrefix:@"mission_"])
 	{
-		if (debug & DEBUG_SCRIPT)
-			NSLog(@"DEBUG ..... checking mission_variable '%@'",selectorString);
+		OOLog(kOOLogDebugTestConditionCheckingVariable, @"DEBUG ..... checking mission_variable '%@'",selectorString);
 		mission_string_value = (NSString *)[mission_variables objectForKey:selectorString];
 		selectorString = @"mission_string";
 	}
 	else if ([selectorString hasPrefix:@"local_"])
 	{
-		if (debug & DEBUG_SCRIPT)
-			NSLog(@"DEBUG ..... checking local variable '%@'",selectorString);
+		OOLog(kOOLogDebugTestConditionCheckingVariable, @"DEBUG ..... checking local variable '%@'",selectorString);
 		mission_string_value = (NSString *)[locals objectForKey:selectorString];
 		selectorString = @"mission_string";
 	}
@@ -316,8 +344,7 @@ static NSString * mission_key;
 	if ([selectorString hasSuffix:@"_string"])
 	{
 		NSString *result = [self performSelector:_selector];
-		if (debug & DEBUG_SCRIPT)
-			NSLog(@"DEBUG ..... comparing \"%@\" (%@) to \"%@\" (%@)", result, [result class], valueString, [valueString class]);
+		OOLog(kOOLogDebugTestConditionValues, @"..... comparing \"%@\" (%@) to \"%@\" (%@)", result, [result class], valueString, [valueString class]);
 		switch (comparator)
 		{
 			case COMPARISON_UNDEFINED :
@@ -334,15 +361,13 @@ static NSString * mission_key;
 				{
 					int i;
 					NSArray *valueStrings = [valueString componentsSeparatedByString:@","];
-					if (debug & DEBUG_SCRIPT)
-						NSLog(@"performing a ONEOF comparison: is %@ ONEOF %@ ?", result, valueStrings);
+					OOLog(kOOLogDebugTestConditionOnOf, @"performing a ONEOF comparison: is %@ ONEOF %@ ?", result, valueStrings);
 					NSString* r1 = [result stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceCharacterSet]];
 					for (i = 0; i < [valueStrings count]; i++)
 					{
 						if ([r1 isEqual:[(NSString*)[valueStrings objectAtIndex:i] stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceCharacterSet]]])
 						{
-							if (debug & DEBUG_SCRIPT)
-								NSLog(@"found a match in ONEOF!");
+							OOLog(kOOLogDebugTestConditionOnOf, @"found a match in ONEOF!");
 							return YES;
 						}
 					}
@@ -358,29 +383,25 @@ static NSString * mission_key;
 		if (comparator == COMPARISON_ONEOF)
 		{
 			NSArray *valueStrings = [valueString componentsSeparatedByString:@","];
-			if (debug & DEBUG_SCRIPT)
-				NSLog(@"performing a ONEOF comparison with %d elements: is %@ ONEOF %@", [valueStrings count], result, valueStrings);
+			OOLog(kOOLogDebugTestConditionOnOf, @"performing a ONEOF comparison with %d elements: is %@ ONEOF %@", [valueStrings count], result, valueStrings);
 			int i;
 			for (i = 0; i < [valueStrings count]; i++)
 			{
 				NSNumber *value = [NSNumber numberWithDouble:[[valueStrings objectAtIndex: i] doubleValue]];
 				if ([result isEqual:value])
 				{
-					if (debug & DEBUG_SCRIPT)
-						NSLog(@"found a match in ONEOF!");
+					OOLog(kOOLogDebugTestConditionOnOf, @"found a match in ONEOF!");
 					return YES;
 				}
 			}
-			if (debug & DEBUG_SCRIPT)
-				NSLog(@"No match in ONEOF");
+			OOLog(kOOLogDebugTestConditionOnOf, @"No match in ONEOF");
 			return NO;
 		}
 		else
 		{
 			NSNumber *value = [NSNumber numberWithDouble:[valueString doubleValue]];
 
-			if (debug & DEBUG_SCRIPT)
-				NSLog(@"DEBUG ..... comparing \"%@\" (%@) to \"%@\" (%@)", result, [result class], value, [value class]);
+			OOLog(kOOLogDebugTestConditionValues, @"..... comparing \"%@\" (%@) to \"%@\" (%@)", result, [result class], value, [value class]);
 
 			switch (comparator)
 			{
@@ -443,12 +464,12 @@ static NSString * mission_key;
 	NSString		*text = (NSString *)[[universe missiontext] objectForKey:textKey];
 	if (!text)
 	{
-		NSLog(@"SCRIPT ERROR ***** no missiontext set for key '%@' [universe missiontext] is:\n%@ ", textKey, [universe missiontext]);
+		OOLog(kOOLogScriptMissionDescNoText, @"SCRIPT ERROR ***** no missiontext set for key '%@' [universe missiontext] is:\n%@ ", textKey, [universe missiontext]);
 		return;
 	}
 	if (!mission_key)
 	{
-		NSLog(@"SCRIPT ERROR ***** mission_key not set");
+		OOLog(kOOLogScriptMissionDescNoKey, @"SCRIPT ERROR ***** mission_key not set");
 		return;
 	}
 	text = [universe expandDescription:text forSystem:system_seed];
@@ -461,7 +482,7 @@ static NSString * mission_key;
 {
 	if (!mission_key)
 	{
-		NSLog(@"SCRIPT ERROR ***** mission_key not set");
+		OOLog(kOOLogScriptMissionDescNoText, @"SCRIPT ERROR ***** mission_key not set");
 		return;
 	}
 	if (![mission_variables objectForKey:mission_key])
@@ -897,7 +918,7 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 
 	if ([tokens count] != 2)
 	{
-		NSLog(@"***** CANNOT SETPLANETINFO: '%@'", key_valueString);
+		OOLog(kOOLogSyntaxSetPlanetInfo, @"***** CANNOT setPlanetinfo: '%@' (bad parameter count)", key_valueString);
 		return;
 	}
 
@@ -917,7 +938,7 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 
 	if ([tokens count] != 4)
 	{
-		NSLog(@"***** CANNOT SETPLANETINFO: '%@'", key_valueString);
+		OOLog(kOOLogSyntaxSetPlanetInfo, @"***** CANNOT setSpecificPlanetInfo: '%@' (bad parameter count)", key_valueString);
 		return;
 	}
 
@@ -942,7 +963,7 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 
 	if ([tokens count] != 2)
 	{
-		NSLog(@"***** CANNOT AWARDCARGO: '%@'",amount_typeString);
+		OOLog(kOOLogSyntaxAwardCargo, @"***** CANNOT awardCargo: '%@' (bad parameter count)",amount_typeString);
 		return;
 	}
 
@@ -955,15 +976,14 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 		type = [typeString intValue];
 	if ((type < 0)||(type >= [[universe commoditydata] count]))
 	{
-		NSLog(@"***** CANNOT AWARDCARGO: '%@'",amount_typeString);
+		OOLog(kOOLogSyntaxAwardCargo, @"***** CANNOT awardCargo: '%@' (unknown type)",amount_typeString);
 		return;
 	}
 
 	NSArray* commodityArray = (NSArray *)[[universe commoditydata] objectAtIndex:type];
 	NSString* cargoString = [(NSArray*)commodityArray objectAtIndex:MARKET_NAME];
 
-	if (debug & DEBUG_SCRIPT)
-		NSLog(@"DEBUG ..... Going to award cargo %d x '%@'", amount, cargoString);
+	OOLog(kOOLogNoteAwardCargo, @"Going to award cargo %d x '%@'", amount, cargoString);
 
 	int unit = [(NSNumber *)[commodityArray objectAtIndex:MARKET_UNITS] intValue];
 
@@ -1042,8 +1062,7 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 	if ((!script_target)||(!script_target->isPlayer))
 		return;
 
-	if (debug & DEBUG_SCRIPT)
-		NSLog(@"DEBUG ..... Going to removeAllCargo");
+	OOLog(kOOLogNoteRemoveAllCargo, @"Going to removeAllCargo");
 
 	NSMutableArray* manifest = [NSMutableArray arrayWithArray:shipCommodityData];
 	for (type = 0; type < [manifest count]; type++)
@@ -1072,8 +1091,7 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 	[self removeAllCargo];
 	specialCargo = [[universe expandDescription:descriptionString forSystem:system_seed] retain];
 	//
-	if (debug & DEBUG_SCRIPT)
-		NSLog(@"DEBUG ..... Going to useSpecialCargo:'%@'", specialCargo);
+	OOLog(kOOLogNoteUseSpecialCargo, @"Going to useSpecialCargo:'%@'", specialCargo);
 }
 
 - (void) testForEquipment:(NSString *)equipString	//eg. EQ_NAVAL_ENERGY_UNIT
@@ -1098,7 +1116,7 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 
 	if ([tokens count] < 2)
 	{
-		NSLog(@"***** CANNOT MESSAGESHIPSAIS: '%@'",roles_message);
+		OOLog(kOOLogSyntaxMessageShipAIs, @"***** CANNOT messageShipAIs: '%@' (bad parameter count)",roles_message);
 		return;
 	}
 
@@ -1126,7 +1144,7 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 
 	if ([tokens count] != 2)
 	{
-		NSLog(@"***** CANNOT ADDSHIPS: '%@' - MUST BE '<role> <number>'",roles_number);
+		OOLog(kOOLogSyntaxAddShips, @"***** CANNOT addShips: '%@' - MUST BE '<role> <number>'",roles_number);
 		return;
 	}
 
@@ -1135,8 +1153,7 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 
 	int number = [numberString intValue];
 
-	if (debug & DEBUG_SCRIPT)
-		NSLog(@"DEBUG ..... Going to add %d ships with role '%@'", number, roleString);
+	OOLog(kOOLogNoteAddShips, @"DEBUG ..... Going to add %d ships with role '%@'", number, roleString);
 
 	while (number--)
 		[universe witchspaceShipWithRole:roleString];
@@ -1151,7 +1168,7 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 
 	if ([tokens count] != 3)
 	{
-		NSLog(@"***** CANNOT ADDSYSTEMSHIPS: '%@'",roles_number_position);
+		OOLog(kOOLogSyntaxAddShips, @"***** CANNOT addSystemShips: '%@' (bad parameter count)",roles_number_position);
 		return;
 	}
 
@@ -1162,8 +1179,7 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 	int number = [numberString intValue];
 	double posn = [positionString doubleValue];
 
-	if (debug & DEBUG_SCRIPT)
-		NSLog(@"DEBUG Going to add %d ships with role '%@' at a point %.3f along route1", number, roleString, posn);
+	OOLog(kOOLogNoteAddShips, @"DEBUG Going to add %d ships with role '%@' at a point %.3f along route1", number, roleString, posn);
 
 	while (number--)
 		[universe addShipWithRole:roleString nearRouteOneAt:posn];
@@ -1182,7 +1198,7 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 
 	if ([tokens count] != 6)
 	{
-		NSLog(@"***** CANNOT ADDSYSTEMSHIPSAT: '%@'",roles_number_system_x_y_z);
+		OOLog(kOOLogSyntaxAddShips, @"***** CANNOT addShipsAt: '%@' (bad parameter count)", roles_number_system_x_y_z);
 		return;
 	}
 
@@ -1197,11 +1213,12 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 
 	int number = [numberString intValue];
 
-	if (debug & DEBUG_SCRIPT)
-		NSLog(@"DEBUG Going to add %d ship(s) with role '%@' at point (%.3f, %.3f, %.3f) using system %@", number, roleString, posn.x, posn.y, posn.z, systemString);
+	OOLog(kOOLogNoteAddShips, @"DEBUG Going to add %d ship(s) with role '%@' at point (%.3f, %.3f, %.3f) using system %@", number, roleString, posn.x, posn.y, posn.z, systemString);
 
 	if (![universe addShips: number withRole:roleString nearPosition: posn withCoordinateSystem: systemString])
-		NSLog(@"***** CANNOT addShipsAt: '%@' (should be addShipsAt: role number coordinate_system x y z)",roles_number_system_x_y_z);
+	{
+		OOLog(kOOLogScriptAddShipsFailed, @"***** CANNOT addShipsAt: '%@' (should be addShipsAt: role number coordinate_system x y z)",roles_number_system_x_y_z);
+	}
 }
 
 - (void) addShipsAtPrecisely:(NSString *)roles_number_system_x_y_z
@@ -1217,7 +1234,7 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 
 	if ([tokens count] != 6)
 	{
-		NSLog(@"***** CANNOT ADDSYSTEMSHIPSAT: '%@'",roles_number_system_x_y_z);
+		OOLog(kOOLogSyntaxAddShips, @"***** CANNOT addShipsAtPrecisely: '%@' (bad parameter count)",roles_number_system_x_y_z);
 		return;
 	}
 
@@ -1232,11 +1249,12 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 
 	int number = [numberString intValue];
 
-	if (debug & DEBUG_SCRIPT)
-		NSLog(@"DEBUG Going to add %d ship(s) with role '%@' precisely at point (%.3f, %.3f, %.3f) using system %@", number, roleString, posn.x, posn.y, posn.z, systemString);
+	OOLog(kOOLogNoteAddShips, @"DEBUG Going to add %d ship(s) with role '%@' precisely at point (%.3f, %.3f, %.3f) using system %@", number, roleString, posn.x, posn.y, posn.z, systemString);
 
 	if (![universe addShips: number withRole:roleString atPosition: posn withCoordinateSystem: systemString])
-		NSLog(@"***** CANNOT addShipsAtPrecisely: '%@' (should be addShipsAt: role number coordinate_system x y z)",roles_number_system_x_y_z);
+	{
+		OOLog(kOOLogScriptAddShipsFailed, @"***** CANNOT addShipsAtPrecisely: '%@' (should be addShipsAt: role number coordinate_system x y z)",roles_number_system_x_y_z);
+	}
 }
 
 - (void) addShipsWithinRadius:(NSString *)roles_number_system_x_y_z_r
@@ -1245,7 +1263,7 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 
 	if ([tokens count] != 7)
 	{
-		NSLog(@"***** CANNOT 'addShipsWithinRadius: %@' (should be 'addShipsWithinRadius: role number coordinate_system x y z r')",roles_number_system_x_y_z_r);
+		OOLog(kOOLogSyntaxAddShips, @"***** CANNOT 'addShipsWithinRadius: %@' (should be 'addShipsWithinRadius: role number coordinate_system x y z r')",roles_number_system_x_y_z_r);
 		return;
 	}
 
@@ -1258,22 +1276,23 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 	GLfloat r = [[tokens objectAtIndex:6] floatValue];
 	Vector posn = make_vector( x, y, z);
 
-	if (debug & DEBUG_SCRIPT)
-		NSLog(@"DEBUG Going to add %d ship(s) with role '%@' within %.2f radius about point (%.3f, %.3f, %.3f) using system %@", number, roleString, r, x, y, z, systemString);
+	OOLog(kOOLogNoteAddShips, @"DEBUG Going to add %d ship(s) with role '%@' within %.2f radius about point (%.3f, %.3f, %.3f) using system %@", number, roleString, r, x, y, z, systemString);
 
 	if (![universe addShips:number withRole: roleString nearPosition: posn withCoordinateSystem: systemString withinRadius: r])
-		NSLog(@"***** CANNOT 'addShipsWithinRadius: %@' (should be 'addShipsWithinRadius: role number coordinate_system x y z r')",roles_number_system_x_y_z_r);
+	{
+		OOLog(kOOLogScriptAddShipsFailed, @"***** CANNOT 'addShipsWithinRadius: %@' (should be 'addShipsWithinRadius: role number coordinate_system x y z r')",roles_number_system_x_y_z_r);
+	}
 }
 
 - (void) spawnShip:(NSString *)ship_key
 {
-	BOOL spawnedOkay = [universe spawnShip:ship_key];
-	if (debug & DEBUG_SCRIPT)
+	if ([universe spawnShip:ship_key])
 	{
-		if (spawnedOkay)
-			OOLog(kOOLogScriptSpawnOK, @"DEBUG Spawned ship with shipdata key '%@'.", ship_key);
-		else
-			NSLog(kOOLogScriptSpawnFailed, @"***** Could not spawn ship with shipdata key '%@'.", ship_key);
+		OOLog(kOOLogNoteAddShips, @"DEBUG Spawned ship with shipdata key '%@'.", ship_key);
+	}
+	else
+	{
+		OOLog(kOOLogScriptAddShipsFailed, @"***** Could not spawn ship with shipdata key '%@'.", ship_key);
 	}
 }
 
@@ -1287,7 +1306,7 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 
 	if ([tokens count] < 2)
 	{
-		NSLog(@"***** CANNOT SET: '%@'", missionvariable_value);
+		OOLog(kOOLogSyntaxSet, @"***** CANNOT SET: '%@'", missionvariable_value);
 		return;
 	}
 
@@ -1300,12 +1319,11 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 
 	if (hasMissionPrefix != YES && hasLocalPrefix != YES)
 	{
-		NSLog(@"***** IDENTIFIER '%@' DOES NOT BEGIN WITH 'mission_' or 'local_'", missionVariableString);
+		OOLog(kOOLogSyntaxSet, @"***** IDENTIFIER '%@' DOES NOT BEGIN WITH 'mission_' or 'local_'", missionVariableString);
 		return;
 	}
 
-	if (debug & DEBUG_SCRIPT)
-		NSLog(@"SCRIPT %@ is set to %@", missionVariableString, valueString);
+	OOLog(kOOLogNoteSet, @"SCRIPT %@ is set to %@", missionVariableString, valueString);
 	
 	if (hasMissionPrefix)
 		[mission_variables setObject:valueString forKey:missionVariableString];
@@ -1332,7 +1350,7 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 	}
 	else
 	{
-		NSLog(@"***** IDENTIFIER '%@' DOES NOT BEGIN WITH 'mission_' or 'local_'", missionVariableString);
+		OOLog(kOOLogSyntaxReset, @"***** IDENTIFIER '%@' DOES NOT BEGIN WITH 'mission_' or 'local_'", missionVariableString);
 	}
 }
 
@@ -1633,8 +1651,7 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 	if (ship)
 	{
 		double cr = ship->collision_radius;
-		if (debug & DEBUG_SCRIPT)
-			NSLog(@"::::: showShipModel:'%@' (%@) (%@)", shipKey, ship, [ship name]);
+		OOLog(kOOLogNoteShowShipModel, @"::::: showShipModel:'%@' (%@) (%@)", shipKey, ship, [ship name]);
 		[ship setQRotation: q2];
 		[ship setStatus: STATUS_COCKPIT_DISPLAY];
 		[ship setPosition: 0.0f: 0.0f: 3.6f * cr];
@@ -1685,8 +1702,7 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 		if (![universe playCustomSound:@"[fuel-leak]"])
 			[self warnAboutHostiles];
 		[universe addMessage:@"Danger! Fuel leak!" forCount:6];
-		if (debug & DEBUG_SCRIPT)
-			NSLog(@"DEBUG FUEL LEAK activated!");
+		OOLog(kOOLogNoteFuelLeak, @"FUEL LEAK activated!");
 	}
 }
 
@@ -1694,8 +1710,7 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 {
 	double time_until_nova = [time_value doubleValue];
 	[[universe sun] setGoingNova:YES inTime: time_until_nova];
-	if (debug & DEBUG_SCRIPT)
-		NSLog(@"DEBUG NOVA activated! time until Nova : %.1f s", time_until_nova);
+	OOLog(kOOLogDebugSetSunNovaIn, @"NOVA activated! time until Nova : %.1f s", time_until_nova);
 }
 
 - (void) launchFromStation
@@ -1745,8 +1760,7 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 
 - (void) addPlanet: (NSString *)planetKey
 {
-	if (debug & DEBUG_SCRIPT)
-		NSLog(@"DEBUG addPlanet: %@", planetKey);
+	OOLog(kOOLogNoteAddPlanet, @"addPlanet: %@", planetKey);
 
 	if (!universe)
 		return;
@@ -1758,8 +1772,7 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 	}
 
 	/*- add planet -*/
-	if (debug & DEBUG_SCRIPT)
-		NSLog(@"DEBUG initPlanetFromDictionary: %@", dict);
+	OOLog(kOOLogDebugAddPlanet, @"DEBUG initPlanetFromDictionary: %@", dict);
 	//
 	PlanetEntity*	planet = [[PlanetEntity alloc] initPlanetFromDictionary:dict inUniverse:universe];	// alloc retains!
 	[planet setStatus:STATUS_ACTIVE];
@@ -1777,20 +1790,12 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 	Vector posn = [universe coordinatesFromCoordinateSystemString:(NSString *)[dict objectForKey:@"position"]];
 	if (posn.x || posn.y || posn.z)
 	{
-		if (debug & DEBUG_SCRIPT)
-		{
-			NSLog(@"DEBUG planet position (%.2f %.2f %.2f) derived from %@",
-				posn.x, posn.y, posn.z, [dict objectForKey:@"position"]);
-		}
+		OOLog(kOOLogDebugAddPlanet, @"planet position (%.2f %.2f %.2f) derived from %@", posn.x, posn.y, posn.z, [dict objectForKey:@"position"]);
 	}
 	else
 	{
 		posn = [Entity vectorFromString:(NSString *)[dict objectForKey:@"position"]];
-		if (debug & DEBUG_SCRIPT)
-		{
-			NSLog(@"DEBUG planet position (%.2f %.2f %.2f) derived from %@",
-				posn.x, posn.y, posn.z, [dict objectForKey:@"position"]);
-		}
+		OOLog(kOOLogDebugAddPlanet, @"DEBUG planet position (%.2f %.2f %.2f) derived from %@", posn.x, posn.y, posn.z, [dict objectForKey:@"position"]);
 	}
 	//
 	[planet setPosition: posn];
@@ -1803,8 +1808,7 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 
 - (void) addMoon: (NSString *)moonKey
 {
-	if (debug & DEBUG_SCRIPT)
-		NSLog(@"DEBUG addMoon: %@", moonKey);
+	OOLog(kOOLogNoteAddPlanet, @"DEBUG addMoon: %@", moonKey);
 
 	if (!universe)
 		return;
@@ -1815,8 +1819,7 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 		return;
 	}
 
-	if (debug & DEBUG_SCRIPT)
-		NSLog(@"DEBUG initMoonFromDictionary: %@", dict);
+	OOLog(kOOLogDebugAddPlanet, @"DEBUG initMoonFromDictionary: %@", dict);
 	//
 	PlanetEntity*	planet = [[PlanetEntity alloc] initMoonFromDictionary:dict inUniverse:universe];	// alloc retains!
 	[planet setStatus:STATUS_ACTIVE];
@@ -1826,7 +1829,7 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 
 	if (![dict objectForKey:@"position"])
 	{
-		NSLog(@"ERROR - you must specify a position for scripted moon '%@' before it can be created", moonKey);
+		OOLog(kOOLogDebugAddPlanet, @"ERROR - you must specify a position for scripted moon '%@' before it can be created", moonKey);
 		[planet release];
 		return;
 	}
@@ -1834,20 +1837,12 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 	Vector posn = [universe coordinatesFromCoordinateSystemString:(NSString *)[dict objectForKey:@"position"]];
 	if (posn.x || posn.y || posn.z)
 	{
-		if (debug & DEBUG_SCRIPT)
-		{
-			NSLog(@"DEBUG moon position (%.2f %.2f %.2f) derived from %@",
-				posn.x, posn.y, posn.z, [dict objectForKey:@"position"]);
-		}
+		OOLog(kOOLogDebugAddPlanet, @"DEBUG moon position (%.2f %.2f %.2f) derived from %@", posn.x, posn.y, posn.z, [dict objectForKey:@"position"]);
 	}
 	else
 	{
 		posn = [Entity vectorFromString:(NSString *)[dict objectForKey:@"position"]];
-		if (debug & DEBUG_SCRIPT)
-		{
-			NSLog(@"DEBUG moon position (%.2f %.2f %.2f) derived from %@",
-				posn.x, posn.y, posn.z, [dict objectForKey:@"position"]);
-		}
+		OOLog(kOOLogDebugAddPlanet, @"DEBUG moon position (%.2f %.2f %.2f) derived from %@", posn.x, posn.y, posn.z, [dict objectForKey:@"position"]);
 	}
 	//
 	[planet setPosition: posn];
@@ -1860,19 +1855,19 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 
 - (void) debugOn
 {
-	OOLog(kOOLogScriptDebugOnOff, @"SCRIPT debug messages ON");
-	debug |= DEBUG_SCRIPT;
+	OOLogSetDisplayMessagesInClass(kOOLogDebugOnMetaClass, YES);
+	OOLog(kOOLogDebugOnOff, @"SCRIPT debug messages ON");
 }
 
 - (void) debugOff
 {
-	OOLog(kOOLogScriptDebugOnOff, @"SCRIPT debug messages OFF");
-	debug &= ~DEBUG_SCRIPT;
+	OOLog(kOOLogDebugOnOff, @"SCRIPT debug messages OFF");
+	OOLogSetDisplayMessagesInClass(kOOLogDebugOnMetaClass, NO);
 }
 
 - (void) debugMessage:(NSString *)args
 {
-	OOLog(kOOLogScriptDebugMessage, @"SCRIPT debugMessage: %@", args);
+	OOLog(kOOLogDebugMessage, @"SCRIPT debugMessage: %@", args);
 }
 
 - (NSString*) replaceVariablesInString:(NSString*) args
@@ -1910,8 +1905,7 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 		}
 	}
 
-	if (debug & DEBUG_SCRIPT)
-		NSLog(@"EXPANSION: \"%@\" becomes \"%@\"", args, resultString);
+	OOLog(kOOLogDebugReplaceVaraiblesInString, @"EXPANSION: \"%@\" becomes \"%@\"", args, resultString);
 
 	return [NSString stringWithString: resultString];
 }
@@ -2050,8 +2044,7 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 		return NO;
 	NSString* i_key = [(NSString*)[i_info objectAtIndex:0] lowercaseString];
 
-	if (debug & DEBUG_SCRIPT)
-		NSLog(@"..... processing %@ (%@)", i_info, i_key);
+	OOLog(kOOLogNoteProcessSceneString, @"..... processing %@ (%@)", i_info, i_key);
 
 	//
 	// recursively add further scenes:
@@ -2064,8 +2057,7 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 		Vector	scene_offset = [Entity vectorFromString:[[i_info subarrayWithRange:NSMakeRange( 2, 3)] componentsJoinedByString:@" "]];
 		scene_offset.x += off.x;	scene_offset.y += off.y;	scene_offset.z += off.z;
 		NSArray* scene_items = (NSArray*)[[universe descriptions] objectForKey:scene_key];
-		if (debug & DEBUG_SCRIPT)
-			NSLog(@"::::: adding scene: '%@'", scene_key);
+		OOLog(kOOLogDebugProcessSceneStringAddScene, @"::::: adding scene: '%@'", scene_key);
 		//
 		if (scene_items)
 		{
@@ -2098,8 +2090,7 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 		model_p0.y += off.y - model_offset.y;
 		model_p0.z += off.z - model_offset.z;
 
-		if (debug & DEBUG_SCRIPT)
-			NSLog(@"::::: adding model to scene:'%@'", ship);
+		OOLog(kOOLogDebugProcessSceneStringAddModel, @"::::: adding model to scene:'%@'", ship);
 		[ship setQRotation: model_q];
 		[ship setPosition: model_p0];
 		[ship setStatus: STATUS_COCKPIT_DISPLAY];
@@ -2134,8 +2125,7 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 		model_p0.y += off.y - model_offset.y;
 		model_p0.z += off.z - model_offset.z;
 
-		if (debug & DEBUG_SCRIPT)
-			NSLog(@"::::: adding model to scene:'%@'", doppelganger);
+		OOLog(kOOLogDebugProcessSceneStringAddModel, @"::::: adding model to scene:'%@'", doppelganger);
 		[doppelganger setQRotation: model_q];
 		[doppelganger setPosition: model_p0];
 		[doppelganger setStatus: STATUS_COCKPIT_DISPLAY];
@@ -2168,8 +2158,7 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 		model_p0.y += off.y;
 		model_p0.z += off.z;
 
-		if (debug & DEBUG_SCRIPT)
-			NSLog(@"::::: adding local-planet to scene:'%@'", doppelganger);
+		OOLog(kOOLogDebugProcessSceneStringAddLocalPlanet, @"::::: adding local-planet to scene:'%@'", doppelganger);
 		[doppelganger setQRotation: model_q];
 		[doppelganger setPosition: model_p0];
 		[universe addEntity: doppelganger];
@@ -2197,8 +2186,7 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 		model_p0.y += off.y;
 		model_p0.z += off.z;
 
-		if (debug & DEBUG_SCRIPT)
-			NSLog(@"::::: adding target-planet to scene:'%@'", doppelganger);
+		OOLog(kOOLogDebugProcessSceneStringAddTargetPlanet, @"::::: adding target-planet to scene:'%@'", doppelganger);
 		[doppelganger setQRotation: model_q];
 		[doppelganger setPosition: model_p0];
 		[universe addEntity: doppelganger];
@@ -2233,8 +2221,7 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 			
 		[billboard setStatus: STATUS_COCKPIT_DISPLAY];
 		
-		if (debug & DEBUG_SCRIPT)
-			NSLog(@"::::: adding billboard:'%@' to scene.", billboard);
+		OOLog(kOOLogDebugProcessSceneStringAddBillboard, @"::::: adding billboard:'%@' to scene.", billboard);
 
 		[universe addEntity: billboard];
 

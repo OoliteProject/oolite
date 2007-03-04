@@ -31,6 +31,9 @@ MA 02110-1301, USA.
 #import "OOCharacter.h"
 
 
+static NSString * const kOOLogNoteShowShipyardModel = @"script.debug.note.showShipyardModel";
+
+
 @implementation PlayerEntity (Contracts)
 
 - (NSString*) processEscapePods // removes pods from cargo bay and treats categories of characters carried
@@ -1291,8 +1294,7 @@ static NSMutableDictionary* currentShipyard = nil;
 	[ship setUpShipFromDictionary:shipDict];
 	
 	GLfloat cr = ship->collision_radius;
-	if (debug & DEBUG_SCRIPT)
-		NSLog(@"::::: showShipModel:'%@'.", [ship name]);
+	OOLog(kOOLogNoteShowShipyardModel, @"::::: showShipyardModel:'%@'.", [ship name]);
 	[ship setQRotation: q2];
 	
 	[ship setPosition: 1.2 * cr : 0.8 * cr : 6.4 * cr];

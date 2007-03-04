@@ -70,6 +70,9 @@ NSString *OOLogGetParentMessageClass(NSString *inClass);
 void OOLogIndent(void);
 void OOLogOutdent(void);
 
+void OOLogIndentIf(NSString *inMessageClass);
+void OOLogOutdentIf(NSString *inMessageClass);
+
 void OOLogWithFunctionFileAndLine(NSString *inMessageClass, const char *inFunction, const char *inFile, unsigned long inLine, NSString *inFormat, ...);
 void OOLogWithFunctionFileAndLineAndArguments(NSString *inMessageClass, const char *inFunction, const char *inFile, unsigned long inLine, NSString *inFormat, va_list inArguments);
 

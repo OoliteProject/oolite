@@ -40,8 +40,8 @@ MA 02110-1301, USA.
 #import "OOColor.h"
 
 
-extern NSString * const kOOLogScriptSpawnOK;
-extern NSString * const kOOLogScriptSpawnFailed;
+extern NSString * const kOOLogNoteAddShips;
+extern NSString * const kOOLogSyntaxAddShips;
 static NSString * const kOOLogEntityBehaviourChanged	= @"entity.behaviour.changed";
 static NSString * const kOOLogOpenGLVersion				= @"rendering.opengl.version";
 static NSString * const kOOLogOpenGLShaderSupport		= @"rendering.opengl.shaders.support";
@@ -8195,7 +8195,7 @@ inline BOOL pairOK(NSString* my_role, NSString* their_role)
 
 	if ([tokens count] != 2)
 	{
-		OOLog(kOOLogScriptSpawnFailed, @"***** Could not spawn: '%@' (must be two tokens, role and number)",roles_number);
+		OOLog(kOOLogSyntaxAddShips, @"***** Could not spawn: '%@' (must be two tokens, role and number)",roles_number);
 		return;
 	}
 
@@ -8204,8 +8204,7 @@ inline BOOL pairOK(NSString* my_role, NSString* their_role)
 
 	int number = [numberString intValue];
 
-	if (debug & DEBUG_SCRIPT)
-		OOLog(kOOLogScriptSpawnOK, @"Spawning %d x '%@' near %@ %d", number, roleString, name, universal_id);
+	OOLog(kOOLogNoteAddShips, @"Spawning %d x '%@' near %@ %d", number, roleString, name, universal_id);
 
 	while (number--)
 		[universe spawnShipWithRole:roleString near:self];

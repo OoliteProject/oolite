@@ -245,10 +245,11 @@ enum
 			
 			if ([_decoder atEnd])
 			{
-				OOLogIndent();
-				OOLog(kOOLogSoundStreamingLoop, @"Resetting streaming sound %@ for looping.", self);
-				OOLogOutdent();
-				if (inContext->loop) inContext->readOffset = 0;
+				if (inContext->loop)
+				{
+					OOLog(kOOLogSoundStreamingLoop, @"Resetting streaming sound %@ for looping.", self);
+					inContext->readOffset = 0;
+				}
 				else inContext->atEnd = YES;
 			}
 		}

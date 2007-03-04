@@ -44,10 +44,11 @@ MA 02110-1301, USA.
 #define MAX_NUMBER_OF_SOLAR_SYSTEM_ENTITIES 20
 
 
-static NSString * const kOOLogDataCacheFound			= @"dataCache.found";
-static NSString * const kOOLogDataCacheNotFound			= @"dataCache.notFound";
-static NSString * const kOOLogDataCacheRebuild			= @"dataCache.rebuild";
-static NSString * const kOOLogUniversePopulate			= @"universe.populate";
+static NSString * const kOOLogDataCacheFound		= @"dataCache.found";
+static NSString * const kOOLogDataCacheNotFound		= @"dataCache.notFound";
+static NSString * const kOOLogDataCacheRebuild		= @"dataCache.rebuild";
+static NSString * const kOOLogUniversePopulate		= @"universe.populate";
+static NSString * const kOOLogScriptNoSystemForName	= @"script.debug.note.systemSeedForSystemName";
 
 
 @implementation Universe
@@ -1250,7 +1251,7 @@ GLfloat docked_light_specular[]	= { (GLfloat) 1.0, (GLfloat) 1.0, (GLfloat) 0.5,
 	ranrot_srand([[NSDate date] timeIntervalSince1970]);   // reset randomiser with current time
 	
 	OOLog(kOOLogUniversePopulate, @"Populating a system with economy %d, and government %d", economy, government);
-	OOLogIndent();
+	OOLogIndentIf(kOOLogUniversePopulate);
 	
 	// traders
 	int trading_parties = (9 - economy);			// 2 .. 9
@@ -1315,7 +1316,7 @@ GLfloat docked_light_specular[]	= { (GLfloat) 1.0, (GLfloat) 1.0, (GLfloat) 0.5,
 	int total_clicks = trading_parties + raiding_parties + hunting_parties + thargoid_parties + rock_clusters + skim_hunting_parties + skim_raiding_parties + skim_trading_parties;
 	
 	OOLog(kOOLogUniversePopulate, @"... for a total of %d ships", total_clicks);
-	OOLogOutdent();
+	OOLogOutdentIf(kOOLogUniversePopulate);
 	
 	Vector  v_route1 = p1_pos;
 	v_route1.x -= h1_pos.x;	v_route1.y -= h1_pos.y;	v_route1.z -= h1_pos.z;
@@ -5829,8 +5830,7 @@ BOOL maintainLinkedLists(Universe* uni)
 		if ([pname isEqual:[self getSystemName: systems[i]]])
 			return systems[i];
 	}
-	if (debug & DEBUG_SCRIPT)
-		NSLog(@"SCRIPT ERROR could not find a system with the name '%@' in this galaxy", sysname);
+	OOLog(kOOLogScriptNoSystemForName, @"SCRIPT ERROR could not find a system with the name '%@' in this galaxy", sysname);
 	return nil_seed();
 }
 

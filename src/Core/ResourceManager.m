@@ -28,7 +28,7 @@ MA 02110-1301, USA.
 #import "OOSound.h"
 
 
-static NSString * const kOOLogDumpSearchPaths = @"searchpaths.dumpAll";
+static NSString * const kOOLogDumpSearchPaths = @"searchPaths.dumpAll";
 
 
 extern NSDictionary* parseScripts(NSString* script);

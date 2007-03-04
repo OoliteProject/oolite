@@ -74,8 +74,8 @@ static void OOLogInternal_(const char *inFunction, NSString *inFormat, ...);
 static void LoadExplicitSettings(void);
 static void LoadExplicitSettingsFromDictionary(NSDictionary *inDict, BOOL inExplicitInherit);
 static NSString *AbbreviatedFileName(const char *inName);
-static NSNumber *ResolveDisplaySetting(NSString *inMessageClass);
-static NSNumber *ResolveMetaClassReference(NSString *inMetaClass, NSMutableSet *ioSeenMetaClasses);
+static id ResolveDisplaySetting(NSString *inMessageClass);
+static id ResolveMetaClassReference(NSString *inMetaClass, NSMutableSet *ioSeenMetaClasses);
 
 
 // Function to do actual printing
@@ -89,6 +89,7 @@ static inline void PrimitiveLog(NSString *inString)
 }
 
 
+static inline NSNumber *CacheValue(BOOL inValue) __attribute__((pure));
 static inline NSNumber *CacheValue(BOOL inValue)
 {
 	return inValue ? kTrueToken : kFalseToken;
@@ -138,12 +139,11 @@ void OOLogSetDisplayMessagesInClass(NSString *inClass, BOOL inFlag)
 	
 	[sLock lock];
 	value = [sExplicitSettings objectForKey:inClass];
-	if (value == nil || [value boolValue] != inFlag)
+	if (value == nil || value != CacheValue(inFlag))
 	{
 		OOLogInternal(OOLOG_SETTING_SET, @"Setting %@ to %s", inClass, inFlag ? "ON" : "OFF");
 		
-		value = [NSNumber numberWithBool:inFlag];
-		[sExplicitSettings setObject:value forKey:inClass];
+		[sExplicitSettings setObject:CacheValue(inFlag) forKey:inClass];
 		
 		// Clear cache and let it be rebuilt as needed. Cost of rebuilding cache is not sufficient to warrant complexity of a partial clear.
 		[sDerivedSettingsCache release];
@@ -184,6 +184,18 @@ void OOLogOutdent(void)
 	[sLock lock];
 	if (sIndentLevel != 0) --sIndentLevel;
 	[sLock unlock];
+}
+
+
+void OOLogIndentIf(NSString *inMessageClass)
+{
+	if (OOLogWillDisplayMessagesInClass(inMessageClass)) OOLogIndent();
+}
+
+
+void OOLogOutdentIf(NSString *inMessageClass)
+{
+	if (OOLogWillDisplayMessagesInClass(inMessageClass)) OOLogOutdent();
 }
 
 
@@ -493,7 +505,7 @@ static NSString *AbbreviatedFileName(const char *inName)
 }
 
 
-static NSNumber *ResolveDisplaySetting(NSString *inMessageClass)
+static id ResolveDisplaySetting(NSString *inMessageClass)
 {
 	id					value = nil;
 	NSMutableSet		*seenMetaClasses = nil;
@@ -514,12 +526,12 @@ static NSNumber *ResolveDisplaySetting(NSString *inMessageClass)
 }
 
 
-static NSNumber *ResolveMetaClassReference(NSString *inMetaClass, NSMutableSet *ioSeenMetaClasses)
+static id ResolveMetaClassReference(NSString *inMetaClass, NSMutableSet *ioSeenMetaClasses)
 {
 	id					value = nil;
 	
 	// All values should have been checked at load time, but what the hey.
-	if (![inMetaClass hasPrefix:@"$"])
+	if (![inMetaClass isKindOfClass:[NSString class]] || ![inMetaClass hasPrefix:@"$"])
 	{
 		OOLogInternal(OOLOG_BAD_SETTING, @"Bad setting value \"%@\" (expected yes, no, inherit or $metaclass). Falling back to _default.", inMetaClass);
 		return CacheValue(sDefaultDisplay);

@@ -28,7 +28,7 @@ MA 02110-1301, USA.
 #define DEBUG_LINKED_LISTS	0x00000001
 #define DEBUG_ENTITIES		0x00000002
 #define DEBUG_COLLISIONS	0x00000004
-#define DEBUG_SCRIPT		0x00000008
+// #define DEBUG_SCRIPT		0x00000008	// Obsolete, use log message classes descending from script.debug instead
 #define DEBUG_OCTREE		0x00000010
 #define DEBUG_OCTREE_TEXT	0x00000020
 
