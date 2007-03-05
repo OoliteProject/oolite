@@ -1494,12 +1494,19 @@ static BOOL spacePressed;
 			if ([gameView isDown:key_map_dump])   //  '!' key
 			{
 				if (!pling_pressed)
-					[self starChartDump];
-				pling_pressed = YES;
+				{
+				//	[self starChartDump];
+					if ([self has_extra_equipment:@"EQ_ADVANCED_NAVIGATIONAL_ARRAY"])  [gui setShowAdvancedNavArray:YES];
+					pling_pressed = YES;
+				}
 			}
 			else
 			{
-				pling_pressed = NO;
+				if (pling_pressed)
+				{
+					[gui setShowAdvancedNavArray:NO];
+					pling_pressed = NO;
+				}
 			}
 			if ([[gameView typedString] length])
 			{

@@ -226,6 +226,13 @@
 		</dict>
 	</array>
 	<array>
+		<integer>7</integer>
+		<integer>22500</integer>
+		<string>Advanced Navigational Array</string>
+		<string>EQ_ADVANCED_NAVIGATIONAL_ARRAY</string>
+		<string>Navigation Computer software upgrade, improving the functionality of the Galactic Chart and enabling efficient route planning.</string>
+	</array>
+	<array>
 		<integer>8</integer>
 		<integer>12500</integer>
 		<string>Target System Memory Expansion</string>

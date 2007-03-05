@@ -66,6 +66,7 @@ dataCache.notFound						= inherit;
 dataCache.rebuild						= inherit;
 dataCache.write							= inherit;
 dataCache.write.failed					= $error;
+dataCache.rebuild.octree				= no;
 
 
 $linkedListError						= $error;
@@ -146,6 +147,10 @@ strings.conversion.vector				= inherit;
 strings.conversion.quaternion			= inherit;
 strings.conversion.vectorAndQuaternion	= inherit;
 strings.conversion.randomSeed			= inherit;
+strings.conversion.coordinates			= inherit;
+
+
+texture.planet.generate					= inherit;
 
 
 universe.populate						= $troubleShootingDump;	// “Populating a system with…” message when generating a star system

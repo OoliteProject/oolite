@@ -300,7 +300,12 @@ MA 02110-1301, USA.
 	if ([guiclick isPlaying])
 		[guiclick stop];
 	[guiclick play];
-#endif   
+#endif
+}
+
+- (void)setShowAdvancedNavArray:(BOOL)inFlag
+{
+	showAdvancedNavArray = inFlag;
 }
 
 - (void) setColor:(OOColor *) color forRow:(int) row
@@ -704,7 +709,7 @@ MA 02110-1301, USA.
 	}
 }
 
-- (int) drawGUI:(GLfloat) alpha forUniverse:(Universe*) universe drawCursor:(BOOL) drawCursor
+- (int) drawGUI:(GLfloat) alpha forUniverse:(Universe*)universe drawCursor:(BOOL) drawCursor
 {
 	GLfloat z1 = [[universe gameView] display_z];
 	if (alpha > 0.05)
@@ -774,7 +779,7 @@ MA 02110-1301, USA.
 	return cursor_row;
 }
 
-- (int) drawGUI:(GLfloat) x :(GLfloat) y :(GLfloat) z :(GLfloat) alpha forUniverse:(Universe*) universe drawCursor:(BOOL) drawCursor
+- (int) drawGUI:(GLfloat)x :(GLfloat)y :(GLfloat)z :(GLfloat) alpha forUniverse:(Universe*)universe drawCursor:(BOOL) drawCursor
 {
 	GLfloat z1 = [[universe gameView] display_z];
 	if (alpha > 0.05)
@@ -844,7 +849,7 @@ MA 02110-1301, USA.
 	return cursor_row;
 }
 
-- (void) drawGUI:(GLfloat) x :(GLfloat) y :(GLfloat) z :(GLfloat) alpha forUniverse:(Universe*) universe
+- (void) drawGUI:(GLfloat)x :(GLfloat)y :(GLfloat)z :(GLfloat) alpha forUniverse:(Universe*)universe
 {
 	if (alpha < 0.05)
 		return;			// too dim to see!
@@ -882,7 +887,7 @@ MA 02110-1301, USA.
 }
 
 
-- (void) drawGLDisplay:(GLfloat) x :(GLfloat) y :(GLfloat) z :(GLfloat) alpha forUniverse:(Universe*) universe
+- (void) drawGLDisplay:(GLfloat)x :(GLfloat)y :(GLfloat)z :(GLfloat) alpha forUniverse:(Universe*)universe
 {
 	NSSize  strsize;
 	int i;
@@ -1038,7 +1043,7 @@ MA 02110-1301, USA.
 	}
 }
 
-- (void) drawStarChart:(GLfloat) x:(GLfloat) y:(GLfloat) z:(GLfloat) alpha forUniverse:(Universe*) universe
+- (void) drawStarChart:(GLfloat)x :(GLfloat)y :(GLfloat)z :(GLfloat) alpha forUniverse:(Universe*)universe
 {
 	PlayerEntity* player = (PlayerEntity*)[universe entityZero];
 
@@ -1132,10 +1137,14 @@ MA 02110-1301, USA.
 			int eco = [[sys_info objectForKey:KEY_ECONOMY] intValue];
 			int gov = [[sys_info objectForKey:KEY_GOVERNMENT] intValue];
 			NSString*   p_name = (NSString*)[sys_info objectForKey:KEY_NAME];
-			if (!player->show_info_flag)
+			if (![player showInfoFlag])
+			{
 				drawString( p_name, x + star.x, y + star.y, z, NSMakeSize(pixel_row_height,pixel_row_height));
+			}
 			else
+			{
 				drawPlanetInfo( gov, eco, tec, x + star.x + 2.0, y + star.y + 2.0, z, NSMakeSize(pixel_row_height,pixel_row_height));
+			}
 		}
 	}
 	
@@ -1169,7 +1178,7 @@ MA 02110-1301, USA.
 	glEnd();
 }
 
-- (void) drawGalaxyChart:(GLfloat) x:(GLfloat) y:(GLfloat) z:(GLfloat) alpha forUniverse:(Universe*) universe
+- (void) drawGalaxyChart:(GLfloat)x :(GLfloat)y :(GLfloat)z :(GLfloat) alpha forUniverse:(Universe*)universe
 {
 	PlayerEntity* player = (PlayerEntity*)[universe entityZero];
 
@@ -1191,7 +1200,12 @@ MA 02110-1301, USA.
 	double		hoffset = 0.0;
 	double		voffset = size_in_pixels.height - pixel_title_size.height - 5;
 	int			i;
-
+	
+	if (showAdvancedNavArray && ![universe strict] && [player has_extra_equipment:@"EQ_ADVANCED_NAVIGATIONAL_ARRAY"])
+	{
+		[self drawAdvancedNavArrayAtX:x y:y z:z alpha:alpha forUniverse:universe];
+	}
+	
 	// draw fuel range circle
 	//
 	glColor4f( 0.0, 1.0, 0.0, alpha);	//	green
@@ -1300,6 +1314,79 @@ MA 02110-1301, USA.
 		glVertex3f( x + 0,					y + voffset + 260.0*vscale - 2,		z);
 	glEnd();
 
+}
+
+
+// Advanced Navigation Array -- galactic chart route mapping - contributed by Nikos Barkas (another_commander).
+- (void) drawAdvancedNavArrayAtX:(float)x y:(float)y z:(float)z alpha:(float)alpha forUniverse:(Universe*)universe;
+{
+	PlayerEntity	*player = (PlayerEntity*)[universe entityZero];
+	NSPoint			galaxy_coordinates = [player galaxy_coordinates];
+	NSPoint			cursor_coordinates = [player cursor_coordinates];
+	Random_Seed		galaxy_seed = [player galaxy_seed];
+	Random_Seed		g_seed, g_seed2;
+	int				i, j;
+	double			hscale = size_in_pixels.width / 256.0;
+	double			vscale = -1.0 * size_in_pixels.height / 512.0;
+	double			hoffset = 0.0;
+	double			voffset = size_in_pixels.height - pixel_title_size.height - 5;
+	NSPoint			star, star2;
+	
+	glColor4f( 0.25, 0.25, 0.25, alpha);
+	
+	glBegin( GL_LINES );
+	for (i = 0; i < 256; i++) for (j = i + 1; j < 256; j++)
+	{
+		g_seed = [universe systemSeedForSystemNumber:i];
+		g_seed2 = [universe systemSeedForSystemNumber:j];
+		
+		star.x = g_seed.d * hscale + hoffset;
+		star.y = g_seed.b * vscale + voffset;
+		star2.x = g_seed2.d * hscale + hoffset;
+		star2.y = g_seed2.b * vscale + voffset;
+		double d = distanceBetweenPlanetPositions(g_seed.d, g_seed.b, g_seed2.d, g_seed2.b);
+		
+		if (d <= (PLAYER_MAX_FUEL / 10.0))	// another_commander - Default to 7.0 LY.
+		{
+			glVertex3f( x+star.x, y+star.y, z );
+			glVertex3f( x+star2.x, y+star2.y, z );
+		}
+	}
+	glEnd();
+	
+	// Draw route from player position to currently selected destination.
+	int planetNumber = [universe findSystemNumberAtCoords:galaxy_coordinates withGalaxySeed:galaxy_seed];
+	int destNumber = [universe findSystemNumberAtCoords:cursor_coordinates withGalaxySeed:galaxy_seed];
+	NSDictionary* routeInfo = [universe routeFromSystem:planetNumber ToSystem:destNumber];
+	
+	if ((destNumber != planetNumber) && routeInfo)
+	{
+		int route_hops = [(NSArray *)[routeInfo objectForKey:@"route"] count] -1;
+		
+		glColor4f (1.0, 1.0, 0.0, alpha);	// Yellow for plotting routes.
+		for (i = 0; i < route_hops; i++)
+		{
+			int loc = [(NSNumber *)[[routeInfo objectForKey:@"route"] objectAtIndex:i] intValue];
+			int loc2 = [(NSNumber *)[[routeInfo objectForKey:@"route"] objectAtIndex:(i+1)] intValue];
+			
+			g_seed = [universe systemSeedForSystemNumber:loc];
+			g_seed2 = [universe systemSeedForSystemNumber:(loc2)];        
+			star.x = g_seed.d * hscale + hoffset;
+			star.y = g_seed.b * vscale + voffset;
+			star2.x = g_seed2.d * hscale + hoffset;
+			star2.y = g_seed2.b * vscale + voffset; 
+			
+			glBegin (GL_LINES);
+			glVertex3f (x+star.x, y+star.y, z);
+			glVertex3f (x+star2.x, y+star2.y, z);
+			glEnd();
+			
+			// Label the route.
+			drawString([universe systemNameIndex:loc] , x + star.x + 2.0, y + star.y - 6.0, z, NSMakeSize(8,8));
+		}
+		// Label the destination, which was not included in the above loop.
+		drawString([universe systemNameIndex:destNumber] , x + star2.x + 2.0, y + star2.y - 6.0, z, NSMakeSize(8,8));	
+	}
 }
 
 @end

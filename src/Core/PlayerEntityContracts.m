@@ -1391,8 +1391,7 @@ static NSMutableDictionary* currentShipyard = nil;
 	// get basic max_cargo
 	max_cargo = [universe maxCargoForShip:ship_desc];
 	
-	// reset BOOLS (has_ecm, has_scoop, has_energy_unit, has_docking_computer, has_galactic_hyperdrive, has_energy_bomb, has_escape_pod, has_fuel_injection)
-	// and int (energy_unit)
+	// reset BOOLS (has_ecm, has_scoop, has_energy_unit, has_docking_computer, has_galactic_hyperdrive, has_energy_bomb, has_escape_pod, has_fuel_injection) and int (energy_unit)
 	has_docking_computer = NO;
 	has_ecm = NO;
 	has_energy_bomb = NO;

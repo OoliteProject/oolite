@@ -32,6 +32,10 @@ MA 02110-1301, USA.
 #import "OOColor.h"
 #import "vector.h"
 
+
+static NSString * const kOOLogPlanetTextureGen = @"texture.planet.generate";
+
+
 #ifdef M_PI
 	#define PI M_PI	// C99, apparently
 #else
@@ -564,7 +568,7 @@ GLuint	max_texture_dimension = 512;	// conservative start
 	float land_fraction = [[planetinfo objectForKey:@"land_fraction"] floatValue];
 	float sea_bias = land_fraction - 1.0;
 	
-	NSLog(@"genning texture for land_fraction %.5f", land_fraction);
+	OOLog(kOOLogPlanetTextureGen, @"genning texture for land_fraction %.5f", land_fraction);
 	
 	OOColor* land_color = (OOColor*)[planetinfo objectForKey:@"land_color"];
 	OOColor* sea_color = (OOColor*)[planetinfo objectForKey:@"sea_color"];

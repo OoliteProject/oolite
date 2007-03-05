@@ -59,6 +59,8 @@ extern int debug;
 	int				pixel_row_start;
 	NSSize			pixel_text_size;
 	
+	BOOL			showAdvancedNavArray;
+	
 	BOOL			has_title;
 	NSSize			pixel_title_size;
 	
@@ -134,6 +136,8 @@ extern int debug;
 
 - (void) click;
 
+- (void)setShowAdvancedNavArray:(BOOL)inFlag;
+
 - (void) setColor:(OOColor *) color forRow:(int) row;
 
 - (id) objectForRow:(int) row;
@@ -179,13 +183,15 @@ extern int debug;
 - (void) setBackgroundImage:(NSImage *) bg_image;
 #endif
 
-- (int) drawGUI:(GLfloat) alpha forUniverse:(Universe*) universe drawCursor:(BOOL) drawCursor;
-- (int) drawGUI:(GLfloat) x :(GLfloat) y :(GLfloat) z :(GLfloat) alpha forUniverse:(Universe*) universe drawCursor:(BOOL) drawCursor;
-- (void) drawGUI:(GLfloat) x :(GLfloat) y :(GLfloat) z :(GLfloat) alpha forUniverse:(Universe*) universe;
+- (int) drawGUI:(GLfloat) alpha forUniverse:(Universe*)universe drawCursor:(BOOL) drawCursor;
+- (int) drawGUI:(GLfloat)x :(GLfloat)y :(GLfloat)z :(GLfloat) alpha forUniverse:(Universe*)universe drawCursor:(BOOL) drawCursor;
+- (void) drawGUI:(GLfloat)x :(GLfloat)y :(GLfloat)z :(GLfloat) alpha forUniverse:(Universe*)universe;
 
-- (void) drawGLDisplay:(GLfloat) x :(GLfloat) y :(GLfloat) z :(GLfloat) alpha forUniverse:(Universe*) universe;
+- (void) drawGLDisplay:(GLfloat)x :(GLfloat)y :(GLfloat)z :(GLfloat) alpha forUniverse:(Universe*)universe;
 
-- (void) drawStarChart:(GLfloat) x:(GLfloat) y:(GLfloat) z:(GLfloat) alpha forUniverse:(Universe*) universe;
-- (void) drawGalaxyChart:(GLfloat) x:(GLfloat) y:(GLfloat) z:(GLfloat) alpha forUniverse:(Universe*) universe;
+- (void) drawStarChart:(GLfloat)x :(GLfloat)y :(GLfloat)z :(GLfloat) alpha forUniverse:(Universe*)universe;
+- (void) drawGalaxyChart:(GLfloat)x :(GLfloat)y :(GLfloat)z :(GLfloat) alpha forUniverse:(Universe*)universe;
+
+- (void) drawAdvancedNavArrayAtX:(float)x y:(float)y z:(float)z alpha:(float)alpha forUniverse:(Universe*)universe;
 
 @end

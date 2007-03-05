@@ -44,11 +44,12 @@ MA 02110-1301, USA.
 #define MAX_NUMBER_OF_SOLAR_SYSTEM_ENTITIES 20
 
 
-static NSString * const kOOLogDataCacheFound		= @"dataCache.found";
-static NSString * const kOOLogDataCacheNotFound		= @"dataCache.notFound";
-static NSString * const kOOLogDataCacheRebuild		= @"dataCache.rebuild";
-static NSString * const kOOLogUniversePopulate		= @"universe.populate";
-static NSString * const kOOLogScriptNoSystemForName	= @"script.debug.note.systemSeedForSystemName";
+static NSString * const kOOLogDataCacheFound				= @"dataCache.found";
+static NSString * const kOOLogDataCacheNotFound				= @"dataCache.notFound";
+static NSString * const kOOLogDataCacheRebuild				= @"dataCache.rebuild";
+static NSString * const kOOLogUniversePopulate				= @"universe.populate";
+static NSString * const kOOLogScriptNoSystemForName			= @"script.debug.note.systemSeedForSystemName";
+static NSString * const kOOLogStringCoordinateConversion	= @"strings.conversion.coordinates";
 
 
 @implementation Universe
@@ -2103,7 +2104,7 @@ GLfloat docked_light_specular[]	= { (GLfloat) 1.0, (GLfloat) 1.0, (GLfloat) 0.5,
 	NSArray* tokens = [Entity scanTokensFromString: system_x_y_z];
 	if ([tokens count] != 4)
 	{
-		NSLog(@"ERROR: Could not construct system coordinates from \"%@\" - too few pieces of data", system_x_y_z);
+		OOLog(kOOLogStringCoordinateConversion, @"ERROR: Could not construct system coordinates from \"%@\" - too few pieces of data", system_x_y_z);
 		return make_vector(0,0,0);
 	}
 	GLfloat dummy;

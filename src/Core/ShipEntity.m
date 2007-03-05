@@ -45,6 +45,7 @@ extern NSString * const kOOLogSyntaxAddShips;
 static NSString * const kOOLogEntityBehaviourChanged	= @"entity.behaviour.changed";
 static NSString * const kOOLogOpenGLVersion				= @"rendering.opengl.version";
 static NSString * const kOOLogOpenGLShaderSupport		= @"rendering.opengl.shaders.support";
+static NSString * const kOOLogCreateOctTreeCache		= @"dataCache.rebuild.octree";
 
 
 @implementation ShipEntity
@@ -398,7 +399,7 @@ static NSMutableDictionary* smallOctreeDict = nil;
 		octreeCache = (NSMutableDictionary*)[[[Entity dataStore] preloadedDataFiles] objectForKey:@"**octrees**"];
 		if (!octreeCache)
 		{
-			NSLog(@"DEBUG creating octree cache......");
+			OOLog(kOOLogCreateOctTreeCache, @"Creating octree cache......");
 			octreeCache = [(NSMutableDictionary *)[NSMutableDictionary alloc] initWithCapacity:30];
 			[[[Entity dataStore] preloadedDataFiles] setObject:octreeCache forKey:@"**octrees**"];
 		}

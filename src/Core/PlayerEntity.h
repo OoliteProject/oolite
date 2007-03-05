@@ -216,12 +216,8 @@ enum
 	Random_Seed				system_seed;
 	Random_Seed				target_system_seed;
 	
-	BOOL					show_info_flag;
-	
 @protected
-	NSDictionary			*altShipinfoDictionary;
-	NSString				*altShipDesc;
-
+	
 	NSString				*ship_desc;
 	int						ship_trade_in_factor;
 	
@@ -237,11 +233,11 @@ enum
 	NSMutableArray*			comm_log;
 
 #ifdef GNUSTEP
- 	SDLImage				*missionBackgroundImage;
+ SDLImage					*missionBackgroundImage;
 #else
 	NSImage					*missionBackgroundImage;
 #endif
-	
+        
 	NSMutableDictionary		*extra_equipment;
 	BOOL					found_equipment;
 	
@@ -278,23 +274,11 @@ enum
 	NSMutableArray			*cdrDetailArray;
 	int						currentPage;
 	BOOL					pollControls;
-    // ...end save screen   
-	
+// ...end save screen   
+
 	StationEntity			*docked_station;
 	
 	HeadUpDisplay			*hud;
-	
-	BOOL					showDemoShips;
-	
-	BOOL					rolling, pitching, yawing;
-	BOOL					using_mining_laser;
-	
-	BOOL					mouse_control_on;
-	
-	BOOL					speech_on;
-	BOOL					ootunes_on;
-	
-	BOOL					docking_music_on;
 	
 	GLfloat					roll_delta, pitch_delta, yaw_delta;
 	
@@ -305,24 +289,6 @@ enum
 	
 	int						chosen_weapon_facing;   // for purchasing weapons
 	
-	BOOL					game_over;
-	BOOL					docked;
-	BOOL					finished;
-	BOOL					bomb_detonated;
-	BOOL					autopilot_engaged;
-	
-	BOOL					afterburner_engaged;
-	BOOL					afterburnerSoundLooping;
-	
-	BOOL					hyperspeed_engaged;
-	BOOL					travelling_at_hyperspeed;
-	BOOL					hyperspeed_locked;
-	
-	BOOL					ident_engaged;
-	
-	BOOL					galactic_witchjump;
-	
-	BOOL					ecm_in_operation;
 	double					ecm_start_time;
 	
 	OOMusic					*themeMusic;
@@ -378,24 +344,20 @@ enum
 	
 	NSMutableArray			*shipCommodityData;
 	
-	BOOL					has_energy_unit;
 	int						energy_unit;
 	int						shield_booster, shield_enhancer;
-	BOOL					has_docking_computer;
-	BOOL					has_galactic_hyperdrive;
 	
 	int						max_missiles;		// int				- no. of missile pylons
 	ShipEntity*				missile_entity[SHIPENTITY_MAX_MISSILES];	// holds the actual missile entities or equivalents
-	
+
 	int						legal_status;
 	int						market_rnd;
 	int						ship_kills;
-	BOOL					saved;
 	
 	int						compass_mode;
 	
 	GLfloat					fuel_leak_rate;
-	
+        
 	// keys!
 	int						key_roll_left;
 	int						key_roll_right;
@@ -453,37 +415,31 @@ enum
 	int						key_previous_target;
 	
 	int						key_custom_view;
-	
-	// save-file
+        
+        // save-file
 	NSString				*save_path;
-	
-	// position of viewports
+        
+        // position of viewports
 	Vector					forwardViewOffset, aftViewOffset, portViewOffset, starboardViewOffset;
-	
-	// DEBUG
+        
+        // DEBUG
 	ParticleEntity			*drawDebugParticle;
 	int						debugShipID;
-	
-	// trumbles
+        
+        // trumbles
 	int						n_trumbles;
 	OOTrumble				*trumble[PLAYER_MAX_TRUMBLES];
-	
-	// smart zoom
+        
+        // smart zoom
 	GLfloat					scanner_zoom_rate;
-	
-	// smart target lst reports
-	BOOL					suppressTargetLost;
-	
-	// smart fuelscoops
-	BOOL					scoopsActive;
-	
-	// target memory
+        
+        // target memory
 	int						target_memory[PLAYER_TARGET_MEMORY_SIZE];
 	int						target_memory_index;
-	
-	/* GILES custom viewpoints */
-	
-	// custom view points
+        
+        /* GILES custom viewpoints */
+        
+        // custom view points
 	NSMutableArray*			custom_views;
 	Quaternion				customViewQuaternion;
 	GLfloat					customViewMatrix[16];
@@ -492,10 +448,49 @@ enum
 	
 	int						currentWeaponFacing;	// decoupled from view direction
 	
-	// docking reports
+        // docking reports
 	NSMutableString*		dockingReport;
 	
-	/* -- */
+	// Woo, flags.
+	unsigned				has_energy_unit: 1,
+							has_docking_computer: 1,
+							has_galactic_hyperdrive: 1,
+							saved: 1,
+							suppressTargetLost: 1,		// smart target lst reports
+							scoopsActive: 1,			// smart fuelscoops
+	
+							game_over: 1,
+							docked: 1,
+							finished: 1,
+							bomb_detonated: 1,
+							autopilot_engaged: 1,
+	
+							afterburner_engaged: 1,
+							afterburnerSoundLooping: 1,
+	
+							hyperspeed_engaged: 1,
+							travelling_at_hyperspeed: 1,
+							hyperspeed_locked: 1,
+	
+							ident_engaged: 1,
+	
+							galactic_witchjump: 1,
+	
+							ecm_in_operation: 1,
+	
+							show_info_flag: 1,
+	
+							showDemoShips: 1,
+	
+							rolling, pitching: 1,
+							using_mining_laser: 1,
+	
+							mouse_control_on: 1,
+	
+							speech_on: 1,
+							ootunes_on: 1,
+	
+							docking_music_on: 1;
 
 #ifdef GNUSTEP
   // Keeping track of joysticks
@@ -706,5 +701,6 @@ enum
 
 /* -- */
 
+- (BOOL)showInfoFlag;
 
 @end
