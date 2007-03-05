@@ -93,7 +93,20 @@ typedef struct quaternion Quaternion;
 void	mult_matrix (struct vector *first, struct vector *second);
 void	mult_vector (struct vector *vec, struct vector *mat);
 
-float FastInvSqrt(float x);
+
+static inline float FastInvSqrt(float x)
+{
+#ifndef WIN32
+	float xhalf = 0.5f * x;
+	int i = *(int*)&x;
+	i = 0x5f3759df - (i>>1);
+	x = *(float*)&i;
+	x = x * (1.5f - xhalf * x * x);
+	return x;
+#else
+	return sqrtf(x);
+#endif
+}
 
 //
 // Multiply vector by scalar
