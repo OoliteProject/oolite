@@ -1330,7 +1330,7 @@ MA 02110-1301, USA.
 	double			vscale = -1.0 * size_in_pixels.height / 512.0;
 	double			hoffset = 0.0;
 	double			voffset = size_in_pixels.height - pixel_title_size.height - 5;
-	NSPoint			star, star2;
+	NSPoint			star, star2 = NSZeroPoint;
 	
 	glColor4f( 0.25, 0.25, 0.25, alpha);
 	
