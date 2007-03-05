@@ -1,6 +1,6 @@
 /* Localized versions of Info.plist keys */
 
 CFBundleName = "Oolite";
-CFBundleShortVersionString = "Oolite version 1.66";
-CFBundleGetInfoString = "Oolite version 1.66, Copyright 2003-2006 Giles Williams.";
-NSHumanReadableCopyright = "Copyright 2003-2006 Giles Williams.";
+CFBundleShortVersionString = "Oolite version 1.67";
+CFBundleGetInfoString = "Oolite version 1.67, © 2003-2007 Giles Williams and contributors.";
+NSHumanReadableCopyright = "Copyright 2003-2007 Giles Williams and contributors.";
