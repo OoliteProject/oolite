@@ -25,9 +25,12 @@
 		1A2314160B9C64F500EF0852 /* Textures in Resources */ = {isa = PBXBuildFile; fileRef = 1A23135F0B9C64F400EF0852 /* Textures */; };
 		1A2314170B9C64F500EF0852 /* Config in Resources */ = {isa = PBXBuildFile; fileRef = 1A2313A20B9C64F400EF0852 /* Config */; };
 		1A2314180B9C64F500EF0852 /* Models in Resources */ = {isa = PBXBuildFile; fileRef = 1A2313B40B9C64F400EF0852 /* Models */; };
-		1A2314190B9C64F500EF0852 /* Images in Resources */ = {isa = PBXBuildFile; fileRef = 1A2313F50B9C64F500EF0852 /* Images */; };
 		1A23141A0B9C64F500EF0852 /* Music in Resources */ = {isa = PBXBuildFile; fileRef = 1A2313FB0B9C64F500EF0852 /* Music */; };
 		1A23141B0B9C64F500EF0852 /* Sounds in Resources */ = {isa = PBXBuildFile; fileRef = 1A2313FF0B9C64F500EF0852 /* Sounds */; };
+		1A2315520B9C778400EF0852 /* solar.png in Copy Images */ = {isa = PBXBuildFile; fileRef = 1A23154E0B9C778400EF0852 /* solar.png */; };
+		1A2315530B9C778400EF0852 /* splash.png in Resources */ = {isa = PBXBuildFile; fileRef = 1A23154F0B9C778400EF0852 /* splash.png */; };
+		1A2315540B9C778400EF0852 /* splashback.png in Resources */ = {isa = PBXBuildFile; fileRef = 1A2315500B9C778400EF0852 /* splashback.png */; };
+		1A2315550B9C778400EF0852 /* trumblebox.png in Copy Images */ = {isa = PBXBuildFile; fileRef = 1A2315510B9C778400EF0852 /* trumblebox.png */; };
 		1A38B4AC0B988532001ED4A0 /* OOLogging.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A38B4AA0B988532001ED4A0 /* OOLogging.h */; };
 		1A38B4AD0B988532001ED4A0 /* OOLogging.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A38B4AB0B988532001ED4A0 /* OOLogging.m */; };
 		1A472917096B5454000E78D8 /* CoreAudio.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1A472916096B5454000E78D8 /* CoreAudio.framework */; };
@@ -165,6 +168,18 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXCopyFilesBuildPhase section */
+		1A23153A0B9C773B00EF0852 /* Copy Images */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = Images;
+			dstSubfolderSpec = 7;
+			files = (
+				1A2315520B9C778400EF0852 /* solar.png in Copy Images */,
+				1A2315550B9C778400EF0852 /* trumblebox.png in Copy Images */,
+			);
+			name = "Copy Images";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		1A5BF29C0916D49800BF238F /* Copy MDImporter */ = {
 			isa = PBXCopyFilesBuildPhase;
 			buildActionMask = 12;
@@ -197,9 +212,12 @@
 		1A23135F0B9C64F400EF0852 /* Textures */ = {isa = PBXFileReference; lastKnownFileType = folder; path = Textures; sourceTree = "<group>"; };
 		1A2313A20B9C64F400EF0852 /* Config */ = {isa = PBXFileReference; lastKnownFileType = folder; path = Config; sourceTree = "<group>"; };
 		1A2313B40B9C64F400EF0852 /* Models */ = {isa = PBXFileReference; lastKnownFileType = folder; path = Models; sourceTree = "<group>"; };
-		1A2313F50B9C64F500EF0852 /* Images */ = {isa = PBXFileReference; lastKnownFileType = folder; path = Images; sourceTree = "<group>"; };
 		1A2313FB0B9C64F500EF0852 /* Music */ = {isa = PBXFileReference; lastKnownFileType = folder; path = Music; sourceTree = "<group>"; };
 		1A2313FF0B9C64F500EF0852 /* Sounds */ = {isa = PBXFileReference; lastKnownFileType = folder; path = Sounds; sourceTree = "<group>"; };
+		1A23154E0B9C778400EF0852 /* solar.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = solar.png; sourceTree = "<group>"; };
+		1A23154F0B9C778400EF0852 /* splash.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = splash.png; sourceTree = "<group>"; };
+		1A2315500B9C778400EF0852 /* splashback.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = splashback.png; sourceTree = "<group>"; };
+		1A2315510B9C778400EF0852 /* trumblebox.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = trumblebox.png; sourceTree = "<group>"; };
 		1A38B4AA0B988532001ED4A0 /* OOLogging.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOLogging.h; sourceTree = "<group>"; };
 		1A38B4AB0B988532001ED4A0 /* OOLogging.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOLogging.m; sourceTree = "<group>"; };
 		1A472916096B5454000E78D8 /* CoreAudio.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreAudio.framework; path = /System/Library/Frameworks/CoreAudio.framework; sourceTree = "<absolute>"; };
@@ -393,11 +411,11 @@
 				25F3E8A40994FE65002F25FD /* oolite-document.icns */,
 				25F3E8A50994FE65002F25FD /* oolite-expansion-document.icns */,
 				25F3E8A60994FE65002F25FD /* oolite-icon.icns */,
+				1A23154D0B9C778400EF0852 /* Images */,
 				1A23133B0B9C64F400EF0852 /* AIs */,
 				1A23135F0B9C64F400EF0852 /* Textures */,
 				1A2313A20B9C64F400EF0852 /* Config */,
 				1A2313B40B9C64F400EF0852 /* Models */,
-				1A2313F50B9C64F500EF0852 /* Images */,
 				1A2313FB0B9C64F500EF0852 /* Music */,
 				1A2313FF0B9C64F500EF0852 /* Sounds */,
 				29B97319FDCFA39411CA2CEA /* MainMenu.nib */,
@@ -405,6 +423,17 @@
 				25F3E8C3099500F1002F25FD /* SoundInspector.nib */,
 			);
 			path = Resources;
+			sourceTree = "<group>";
+		};
+		1A23154D0B9C778400EF0852 /* Images */ = {
+			isa = PBXGroup;
+			children = (
+				1A23154E0B9C778400EF0852 /* solar.png */,
+				1A23154F0B9C778400EF0852 /* splash.png */,
+				1A2315500B9C778400EF0852 /* splashback.png */,
+				1A2315510B9C778400EF0852 /* trumblebox.png */,
+			);
+			path = Images;
 			sourceTree = "<group>";
 		};
 		1A5BF2710916D45B00BF238F /* MDImporter */ = {
@@ -746,6 +775,7 @@
 				0865430306B8447D000CA0AB /* Sources */,
 				0865431B06B8447D000CA0AB /* Frameworks */,
 				1A5BF29C0916D49800BF238F /* Copy MDImporter */,
+				1A23153A0B9C773B00EF0852 /* Copy Images */,
 			);
 			buildRules = (
 			);
@@ -794,6 +824,8 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				1A2315530B9C778400EF0852 /* splash.png in Resources */,
+				1A2315540B9C778400EF0852 /* splashback.png in Resources */,
 				0865427906B8447D000CA0AB /* MainMenu.nib in Resources */,
 				25F3E8A70994FE65002F25FD /* oolite-document.icns in Resources */,
 				25F3E8A80994FE65002F25FD /* oolite-expansion-document.icns in Resources */,
@@ -804,7 +836,6 @@
 				1A2314160B9C64F500EF0852 /* Textures in Resources */,
 				1A2314170B9C64F500EF0852 /* Config in Resources */,
 				1A2314180B9C64F500EF0852 /* Models in Resources */,
-				1A2314190B9C64F500EF0852 /* Images in Resources */,
 				1A23141A0B9C64F500EF0852 /* Music in Resources */,
 				1A23141B0B9C64F500EF0852 /* Sounds in Resources */,
 			);
