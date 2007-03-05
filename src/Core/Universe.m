@@ -50,6 +50,8 @@ static NSString * const kOOLogDataCacheRebuild				= @"dataCache.rebuild";
 static NSString * const kOOLogUniversePopulate				= @"universe.populate";
 static NSString * const kOOLogScriptNoSystemForName			= @"script.debug.note.systemSeedForSystemName";
 static NSString * const kOOLogStringCoordinateConversion	= @"strings.conversion.coordinates";
+extern NSString * const kOOLogEntityVerificationError;
+static NSString * const kOOLogEntityVerificationRebuild		= @"entity.linkedList.verify.rebuild";
 
 
 @implementation Universe
@@ -4020,7 +4022,7 @@ BOOL maintainLinkedLists(Universe* uni)
 		}
 		if ((check)||(n > 0))
 		{
-			NSLog(@"ERROR *** broken x_next %@ list (%d) ***", uni->x_list_start, n);
+			OOLog(kOOLogEntityVerificationError, @"Broken x_next %@ list (%d) ***", uni->x_list_start, n);
 			result = NO;
 		}
 		//
@@ -4029,10 +4031,10 @@ BOOL maintainLinkedLists(Universe* uni)
 		while ((n--)&&(check))	check = check->x_previous;
 		if ((check)||(n > 0))
 		{
-			NSLog(@"ERROR *** broken x_previous %@ list (%d) ***", uni->x_list_start, n);
+			OOLog(kOOLogEntityVerificationError, @"Broken x_previous %@ list (%d) ***", uni->x_list_start, n);
 			if (result)
 			{
-				NSLog(@"REBUILDING x_previous list from x_next list");
+				OOLog(kOOLogEntityVerificationRebuild, @"REBUILDING x_previous list from x_next list");
 				check = uni->x_list_start;
 				check->x_previous = nil;
 				while (check->x_next)
@@ -4053,7 +4055,7 @@ BOOL maintainLinkedLists(Universe* uni)
 		}
 		if ((check)||(n > 0))
 		{
-			NSLog(@"ERROR *** broken y_next %@ list (%d) ***", uni->y_list_start, n);
+			OOLog(kOOLogEntityVerificationError, @"Broken *** broken y_next %@ list (%d) ***", uni->y_list_start, n);
 			result = NO;
 		}
 		//
@@ -4062,10 +4064,10 @@ BOOL maintainLinkedLists(Universe* uni)
 		while ((n--)&&(check))	check = check->y_previous;
 		if ((check)||(n > 0))
 		{
-			NSLog(@"ERROR *** broken y_previous %@ list (%d) ***", uni->y_list_start, n);
+			OOLog(kOOLogEntityVerificationError, @"Broken y_previous %@ list (%d) ***", uni->y_list_start, n);
 			if (result)
 			{
-				NSLog(@"REBUILDING y_previous list from y_next list");
+				OOLog(kOOLogEntityVerificationRebuild, @"REBUILDING y_previous list from y_next list");
 				check = uni->y_list_start;
 				check->y_previous = nil;
 				while (check->y_next)
@@ -4086,7 +4088,7 @@ BOOL maintainLinkedLists(Universe* uni)
 		}
 		if ((check)||(n > 0))
 		{
-			NSLog(@"ERROR *** broken z_next %@ list (%d) ***", uni->z_list_start, n);
+			OOLog(kOOLogEntityVerificationError, @"Broken z_next %@ list (%d) ***", uni->z_list_start, n);
 			result = NO;
 		}
 		//
@@ -4095,10 +4097,10 @@ BOOL maintainLinkedLists(Universe* uni)
 		while ((n--)&&(check))	check = check->z_previous;
 		if ((check)||(n > 0))
 		{
-			NSLog(@"ERROR *** broken z_previous %@ list (%d) ***", uni->z_list_start, n);
+			OOLog(kOOLogEntityVerificationError, @"Broken z_previous %@ list (%d) ***", uni->z_list_start, n);
 			if (result)
 			{
-				NSLog(@"REBUILDING z_previous list from z_next list");
+				OOLog(kOOLogEntityVerificationRebuild, @"REBUILDING z_previous list from z_next list");
 				check = uni->z_list_start;
 				check->z_previous = nil;
 				while (check->z_next)

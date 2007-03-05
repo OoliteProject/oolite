@@ -76,6 +76,7 @@ entity.linkedList.add.error				= $linkedListError;
 entity.linkedList.remove				= inherit;
 entity.linkedList.remove.error			= $linkedListError;
 entity.linkedList.verify.error			= $linkedListError;
+entity.linkedList.verify.rebuild		= inherit;
 entity.linkedList.update.error			= $linkedListError;
 entity.behaviour.changed				= $entityState;
 

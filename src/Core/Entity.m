@@ -40,7 +40,7 @@ static NSString * const kOOLogEntityAddToList				= @"entity.linkedList.add";
 static NSString * const kOOLogEntityAddToListError			= @"entity.linkedList.add.error";
 static NSString * const kOOLogEntityRemoveFromList			= @"entity.linkedList.remove";
 static NSString * const kOOLogEntityRemoveFromListError		= @"entity.linkedList.remove.error";
-static NSString * const kOOLogEntityVerificationError		= @"entity.linkedList.verify.error";
+	   NSString * const kOOLogEntityVerificationError		= @"entity.linkedList.verify.error";
 static NSString * const kOOLogEntityUpdateError				= @"entity.linkedList.update.error";
 static NSString * const kOOLogStringVectorConversion		= @"strings.conversion.vector";
 static NSString * const kOOLogStringQuaternionConversion	= @"strings.conversion.quaternion";
@@ -427,7 +427,7 @@ static  Universe	*data_store_universe;
 		}
 		if ((check)||(n > 0))
 		{
-			OOLog(kOOLogEntityVerificationError, @"ERROR *** broken x_next %@ list (%d) ***", universe->x_list_start, n);
+			OOLog(kOOLogEntityVerificationError, @"Broken x_next %@ list (%d) ***", universe->x_list_start, n);
 			return NO;
 		}
 		//
@@ -436,7 +436,7 @@ static  Universe	*data_store_universe;
 		while ((n--)&&(check))	check = check->x_previous;
 		if ((check)||(n > 0))
 		{
-			OOLog(kOOLogEntityVerificationError, @"ERROR *** broken x_previous %@ list (%d) ***", universe->x_list_start, n);
+			OOLog(kOOLogEntityVerificationError, @"Broken x_previous %@ list (%d) ***", universe->x_list_start, n);
 			return NO;
 		}
 		//
@@ -449,7 +449,7 @@ static  Universe	*data_store_universe;
 		}
 		if ((check)||(n > 0))
 		{
-			OOLog(kOOLogEntityVerificationError, @"ERROR *** broken y_next %@ list (%d) ***", universe->y_list_start, n);
+			OOLog(kOOLogEntityVerificationError, @"Broken y_next %@ list (%d) ***", universe->y_list_start, n);
 			return NO;
 		}
 		//
@@ -458,7 +458,7 @@ static  Universe	*data_store_universe;
 		while ((n--)&&(check))	check = check->y_previous;
 		if ((check)||(n > 0))
 		{
-			OOLog(kOOLogEntityVerificationError, @"ERROR *** broken y_previous %@ list (%d) ***", universe->y_list_start, n);
+			OOLog(kOOLogEntityVerificationError, @"Broken y_previous %@ list (%d) ***", universe->y_list_start, n);
 			return NO;
 		}
 		//
@@ -471,7 +471,7 @@ static  Universe	*data_store_universe;
 		}
 		if ((check)||(n > 0))
 		{
-			OOLog(kOOLogEntityVerificationError, @"ERROR *** broken z_next %@ list (%d) ***", universe->z_list_start, n);
+			OOLog(kOOLogEntityVerificationError, @"Broken z_next %@ list (%d) ***", universe->z_list_start, n);
 			return NO;
 		}
 		//
@@ -480,7 +480,7 @@ static  Universe	*data_store_universe;
 		while ((n--)&&(check))	check = check->z_previous;
 		if ((check)||(n > 0))
 		{
-			OOLog(kOOLogEntityVerificationError, @"ERROR *** broken z_previous %@ list (%d) ***", universe->z_list_start, n);
+			OOLog(kOOLogEntityVerificationError, @"Broken z_previous %@ list (%d) ***", universe->z_list_start, n);
 			return NO;
 		}
 	}

@@ -32,6 +32,8 @@
 		08DF8C0A0A5E74B300BCD981 /* wreck5.dat in Resources */ = {isa = PBXBuildFile; fileRef = 08DF8C050A5E74B200BCD981 /* wreck5.dat */; };
 		08DF8C0B0A5E74B300BCD981 /* wreck2.dat in Resources */ = {isa = PBXBuildFile; fileRef = 08DF8C060A5E74B200BCD981 /* wreck2.dat */; };
 		08DF8C2D0A5E74DC00BCD981 /* wreck.png in Resources */ = {isa = PBXBuildFile; fileRef = 08DF8C2C0A5E74DC00BCD981 /* wreck.png */; };
+		1A2312BC0B9C53DA00EF0852 /* OOCacheManager.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A2312BA0B9C53DA00EF0852 /* OOCacheManager.h */; };
+		1A2312BD0B9C53DA00EF0852 /* OOCacheManager.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A2312BB0B9C53DA00EF0852 /* OOCacheManager.m */; };
 		1A38B4AC0B988532001ED4A0 /* OOLogging.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A38B4AA0B988532001ED4A0 /* OOLogging.h */; };
 		1A38B4AD0B988532001ED4A0 /* OOLogging.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A38B4AB0B988532001ED4A0 /* OOLogging.m */; };
 		1A38B5E60B989FD7001ED4A0 /* logcontrol.plist in Resources */ = {isa = PBXBuildFile; fileRef = 1A38B5E50B989FD7001ED4A0 /* logcontrol.plist */; };
@@ -395,7 +397,7 @@
 		083325DC09DDBCDE00F5B8E4 /* OOColor.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOColor.m; sourceTree = "<group>"; };
 		083DB4D30A70E51E00B419B2 /* OOBrain.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOBrain.h; sourceTree = "<group>"; };
 		083DB4D40A70E51E00B419B2 /* OOBrain.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOBrain.m; sourceTree = "<group>"; };
-		0865432206B8447D000CA0AB /* OoliteDev.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = OoliteDev.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		0865432206B8447D000CA0AB /* Oolite.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Oolite.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		0878FD2F086EF845004CB752 /* Carbon.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Carbon.framework; path = /System/Library/Frameworks/Carbon.framework; sourceTree = "<absolute>"; };
 		088496DE0A4C1D1B00F32928 /* gotoWaypointAI.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist; name = gotoWaypointAI.plist; path = Resources/AIs/gotoWaypointAI.plist; sourceTree = "<group>"; };
 		088496DF0A4C1D1B00F32928 /* receiveDockingAI.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist; name = receiveDockingAI.plist; path = Resources/AIs/receiveDockingAI.plist; sourceTree = "<group>"; };
@@ -407,6 +409,8 @@
 		08DF8C060A5E74B200BCD981 /* wreck2.dat */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = wreck2.dat; path = Resources/Models/wreck2.dat; sourceTree = "<group>"; };
 		08DF8C2C0A5E74DC00BCD981 /* wreck.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = wreck.png; path = Resources/Textures/wreck.png; sourceTree = "<group>"; };
 		1058C7A1FEA54F0111CA2CBB /* Cocoa.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Cocoa.framework; path = /System/Library/Frameworks/Cocoa.framework; sourceTree = "<absolute>"; };
+		1A2312BA0B9C53DA00EF0852 /* OOCacheManager.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOCacheManager.h; sourceTree = "<group>"; };
+		1A2312BB0B9C53DA00EF0852 /* OOCacheManager.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOCacheManager.m; sourceTree = "<group>"; };
 		1A38B4AA0B988532001ED4A0 /* OOLogging.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOLogging.h; sourceTree = "<group>"; };
 		1A38B4AB0B988532001ED4A0 /* OOLogging.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOLogging.m; sourceTree = "<group>"; };
 		1A38B5E50B989FD7001ED4A0 /* logcontrol.plist */ = {isa = PBXFileReference; fileEncoding = 4; languageSpecificationIdentifier = plist; lastKnownFileType = text.xml; name = logcontrol.plist; path = Resources/Config/logcontrol.plist; sourceTree = "<group>"; };
@@ -1015,7 +1019,7 @@
 		19C28FACFE9D520D11CA2CBB /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				0865432206B8447D000CA0AB /* OoliteDev.app */,
+				0865432206B8447D000CA0AB /* Oolite.app */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -1154,10 +1158,12 @@
 		1A8A3C180B964030007D20B8 /* Resource Management */ = {
 			isa = PBXGroup;
 			children = (
-				25161139099544390037C2E1 /* ResourceManager.m */,
 				2516113A099544390037C2E1 /* ResourceManager.h */,
+				25161139099544390037C2E1 /* ResourceManager.m */,
 				25161134099544390037C2E1 /* TextureStore.h */,
 				25161145099544390037C2E1 /* TextureStore.m */,
+				1A2312BA0B9C53DA00EF0852 /* OOCacheManager.h */,
+				1A2312BB0B9C53DA00EF0852 /* OOCacheManager.m */,
 			);
 			name = "Resource Management";
 			sourceTree = "<group>";
@@ -1368,6 +1374,7 @@
 				1A8A39E40B962823007D20B8 /* PlayerEntityScripting.h in Headers */,
 				1A8A3A380B962AEF007D20B8 /* NSScannerOOExtensions.h in Headers */,
 				1A38B4AC0B988532001ED4A0 /* OOLogging.h in Headers */,
+				1A2312BC0B9C53DA00EF0852 /* OOCacheManager.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1395,7 +1402,7 @@
 			name = Oolite;
 			productInstallPath = "$(HOME)/Applications";
 			productName = Oolite;
-			productReference = 0865432206B8447D000CA0AB /* OoliteDev.app */;
+			productReference = 0865432206B8447D000CA0AB /* Oolite.app */;
 			productType = "com.apple.product-type.application";
 		};
 /* End PBXNativeTarget section */
@@ -1732,6 +1739,7 @@
 				1A8A39FF0B96295D007D20B8 /* ShipEntity.m in Sources */,
 				1A8A3A390B962AEF007D20B8 /* NSScannerOOExtensions.m in Sources */,
 				1A38B4AD0B988532001ED4A0 /* OOLogging.m in Sources */,
+				1A2312BD0B9C53DA00EF0852 /* OOCacheManager.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
