@@ -221,6 +221,7 @@
 		1A2319B70B9D031D00EF0852 /* trumblesqueal.ogg in Copy Sounds */ = {isa = PBXBuildFile; fileRef = 1A2319A30B9D031D00EF0852 /* trumblesqueal.ogg */; };
 		1A2319B80B9D031D00EF0852 /* warning.ogg in Copy Sounds */ = {isa = PBXBuildFile; fileRef = 1A2319A40B9D031D00EF0852 /* warning.ogg */; };
 		1A2319B90B9D031D00EF0852 /* witchabort.ogg in Copy Sounds */ = {isa = PBXBuildFile; fileRef = 1A2319A50B9D031D00EF0852 /* witchabort.ogg */; };
+		1A231A180B9D8B1B00EF0852 /* OOCacheManager.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A231A160B9D8B1B00EF0852 /* OOCacheManager.h */; };
 		1A38B4AC0B988532001ED4A0 /* OOLogging.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A38B4AA0B988532001ED4A0 /* OOLogging.h */; };
 		1A38B4AD0B988532001ED4A0 /* OOLogging.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A38B4AB0B988532001ED4A0 /* OOLogging.m */; };
 		1A472917096B5454000E78D8 /* CoreAudio.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1A472916096B5454000E78D8 /* CoreAudio.framework */; };
@@ -854,6 +855,8 @@
 		1A2319A30B9D031D00EF0852 /* trumblesqueal.ogg */ = {isa = PBXFileReference; lastKnownFileType = file; path = trumblesqueal.ogg; sourceTree = "<group>"; };
 		1A2319A40B9D031D00EF0852 /* warning.ogg */ = {isa = PBXFileReference; lastKnownFileType = file; path = warning.ogg; sourceTree = "<group>"; };
 		1A2319A50B9D031D00EF0852 /* witchabort.ogg */ = {isa = PBXFileReference; lastKnownFileType = file; path = witchabort.ogg; sourceTree = "<group>"; };
+		1A231A160B9D8B1B00EF0852 /* OOCacheManager.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOCacheManager.h; sourceTree = "<group>"; };
+		1A231A170B9D8B1B00EF0852 /* OOCacheManager.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOCacheManager.m; sourceTree = "<group>"; };
 		1A38B4AA0B988532001ED4A0 /* OOLogging.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOLogging.h; sourceTree = "<group>"; };
 		1A38B4AB0B988532001ED4A0 /* OOLogging.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOLogging.m; sourceTree = "<group>"; };
 		1A472916096B5454000E78D8 /* CoreAudio.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreAudio.framework; path = /System/Library/Frameworks/CoreAudio.framework; sourceTree = "<absolute>"; };
@@ -1444,6 +1447,8 @@
 		1A8A3C180B964030007D20B8 /* Resource Management */ = {
 			isa = PBXGroup;
 			children = (
+				1A231A160B9D8B1B00EF0852 /* OOCacheManager.h */,
+				1A231A170B9D8B1B00EF0852 /* OOCacheManager.m */,
 				2516113A099544390037C2E1 /* ResourceManager.h */,
 				25161139099544390037C2E1 /* ResourceManager.m */,
 				25161134099544390037C2E1 /* TextureStore.h */,
@@ -1634,6 +1639,7 @@
 				1A8A39E40B962823007D20B8 /* PlayerEntityScripting.h in Headers */,
 				1A8A3A380B962AEF007D20B8 /* NSScannerOOExtensions.h in Headers */,
 				1A38B4AC0B988532001ED4A0 /* OOLogging.h in Headers */,
+				1A231A180B9D8B1B00EF0852 /* OOCacheManager.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

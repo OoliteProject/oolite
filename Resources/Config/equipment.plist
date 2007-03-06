@@ -231,6 +231,10 @@
 		<string>Advanced Navigational Array</string>
 		<string>EQ_ADVANCED_NAVIGATIONAL_ARRAY</string>
 		<string>Navigation Computer software upgrade, improving the functionality of the Galactic Chart and enabling efficient route planning.</string>
+		<dict>
+			<key>available_to_all</key>
+			<true/>
+		</dict>
 	</array>
 	<array>
 		<integer>8</integer>

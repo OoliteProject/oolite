@@ -366,7 +366,7 @@ static NSString * kOOLogKeyCodeOutOfRange = @"input.keyMapping.codeOutOfRange";
 	else
 	{
 		if (key > [self numKeys])
-			OOLog(kOOLogKeyCodeOutOfRange, @"Translated key: %d out of range\n", key);
+			OOLog(kOOLogKeyCodeOutOfRange, @"Translated key: %d out of range", key);
 	}
 }
 
@@ -433,7 +433,7 @@ static NSString * kOOLogKeyCodeOutOfRange = @"input.keyMapping.codeOutOfRange";
 	else
 	{
 		if (key > [self numKeys])
-			OOLog(kOOLogKeyCodeOutOfRange, @"Translated key: %d out of range\n", key);
+			OOLog(kOOLogKeyCodeOutOfRange, @"Translated key: %d out of range", key);
 	}
 } 
 
