@@ -1266,30 +1266,33 @@ static  BOOL	taking_snapshot;
 		}
 	}
 	
-	yawing = NO;
-	if ([gameView isDown:key_yaw_left])
+	if (![universe strict])
 	{
-		if (flight_yaw < 0.0)  flight_yaw = 0.0;
-		[self increase_flight_yaw:delta_t*yaw_delta];
-		yawing = YES;
-	}
-	else if ([gameView isDown:key_yaw_right])
-	{
-		if (flight_yaw > 0.0)  flight_yaw = 0.0;
-		[self decrease_flight_yaw:delta_t*yaw_delta];
-		yawing = YES;
-	}
-	if (!yawing)
-	{
-		if (flight_yaw > 0.0)
+		yawing = NO;
+		if ([gameView isDown:key_yaw_left])
 		{
-			if (flight_yaw > yaw_dampner)	[self decrease_flight_yaw:yaw_dampner];
-			else	flight_yaw = 0.0;
+			if (flight_yaw < 0.0)  flight_yaw = 0.0;
+			[self increase_flight_yaw:delta_t*yaw_delta];
+			yawing = YES;
 		}
-		if (flight_yaw < 0.0)
+		else if ([gameView isDown:key_yaw_right])
 		{
-			if (flight_yaw < -yaw_dampner)   [self increase_flight_yaw:yaw_dampner];
-			else	flight_yaw = 0.0;
+			if (flight_yaw > 0.0)  flight_yaw = 0.0;
+			[self decrease_flight_yaw:delta_t*yaw_delta];
+			yawing = YES;
+		}
+		if (!yawing)
+		{
+			if (flight_yaw > 0.0)
+			{
+				if (flight_yaw > yaw_dampner)	[self decrease_flight_yaw:yaw_dampner];
+				else	flight_yaw = 0.0;
+			}
+			if (flight_yaw < 0.0)
+			{
+				if (flight_yaw < -yaw_dampner)   [self increase_flight_yaw:yaw_dampner];
+				else	flight_yaw = 0.0;
+			}
 		}
 	}
 }
@@ -1304,6 +1307,7 @@ static  BOOL	taking_snapshot;
 	virtualStick.y *= sensitivity;
 	double roll_dampner = ROLL_DAMPING_FACTOR * delta_t;
 	double pitch_dampner = PITCH_DAMPING_FACTOR * delta_t;
+	double yaw_dampner = PITCH_DAMPING_FACTOR * delta_t;
 
 	rolling = NO;
 	if (!mouse_control_on)
@@ -1396,6 +1400,36 @@ static  BOOL	taking_snapshot;
 		{
 			if (flight_pitch < -pitch_dampner)	[self increase_flight_pitch:pitch_dampner];
 			else	flight_pitch = 0.0;
+		}
+	}
+	
+	if (![universe strict])
+	{
+		yawing = NO;
+		if ([gameView isDown:key_yaw_left])
+		{
+			if (flight_yaw < 0.0)  flight_yaw = 0.0;
+			[self increase_flight_yaw:delta_t*yaw_delta];
+			yawing = YES;
+		}
+		else if ([gameView isDown:key_yaw_right])
+		{
+			if (flight_yaw > 0.0)  flight_yaw = 0.0;
+			[self decrease_flight_yaw:delta_t*yaw_delta];
+			yawing = YES;
+		}
+		if (!yawing)
+		{
+			if (flight_yaw > 0.0)
+			{
+				if (flight_yaw > yaw_dampner)	[self decrease_flight_yaw:yaw_dampner];
+				else	flight_yaw = 0.0;
+			}
+			if (flight_yaw < 0.0)
+			{
+				if (flight_yaw < -yaw_dampner)   [self increase_flight_yaw:yaw_dampner];
+				else	flight_yaw = 0.0;
+			}
 		}
 	}
 }

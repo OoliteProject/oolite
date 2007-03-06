@@ -482,7 +482,7 @@ enum
 	
 							showDemoShips: 1,
 	
-							rolling, pitching: 1,
+							rolling, pitching, yawing: 1,
 							using_mining_laser: 1,
 	
 							mouse_control_on: 1,

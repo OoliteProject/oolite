@@ -32,7 +32,9 @@ MA 02110-1301, USA.
 #import "ResourceManager.h"'
 
 
-static NSString * kOOLogKeyCodeOutOfRange = @"input.keyMapping.codeOutOfRange";
+static NSString * kOOLogKeyCodeOutOfRange	= @"input.keyMapping.codeOutOfRange";
+static NSString * kOOLogKeyUp				= @"input.keyMapping.keyPress.keyUp";
+static NSString * kOOLogKeyDown				= @"input.keyMapping.keyPress.keyDown";
 
 
 @interface MyOpenGLView(Internal)
@@ -350,13 +352,15 @@ static NSString * kOOLogKeyCodeOutOfRange = @"input.keyMapping.codeOutOfRange";
 
 - (void) keyUp:(NSEvent *)theEvent
 {
-	int key = [[theEvent charactersIgnoringModifiers] characterAtIndex:0];
-	int keycode = [theEvent keyCode] & 255;
-	supressKeys=NO;
+	NSString	*stringValue = [theEvent charactersIgnoringModifiers];
+	int			key = [stringValue characterAtIndex:0];
+	int			keycode = [theEvent keyCode] & 255;
 	
-//	NSLog(@"DEBUG keyUp [theEvent charactersIgnoringModifiers] = %@ keyCode = %d",[theEvent charactersIgnoringModifiers],[theEvent keyCode]);
+	supressKeys = NO;
 	
 	key = keycodetrans[keycode];	// retrieve the character we got for pressing the hardware at key location 'keycode'
+	
+	OOLog(kOOLogKeyUp, @"Key up: stringValue = \"%@\", keyCode = %d, key = %u", stringValue, keycode, key);
 	
 	isAlphabetKeyDown = NO;
 	if ((key >= 0)&&(key < [self numKeys])&&(keys[key]))
@@ -370,20 +374,21 @@ static NSString * kOOLogKeyCodeOutOfRange = @"input.keyMapping.codeOutOfRange";
 	}
 }
 
+
 - (void) keyDown:(NSEvent *)theEvent
 {
-	int key = [[theEvent charactersIgnoringModifiers] characterAtIndex:0];
-	int keycode = [theEvent keyCode] & 255;
+	NSString	*stringValue = [theEvent charactersIgnoringModifiers];
+	int			key = [stringValue characterAtIndex:0];
+	int			keycode = [theEvent keyCode] & 255;
 	
-//	NSLog(@"DEBUG keyDown [theEvent charactersIgnoringModifiers] = %@ keyCode = %d",[theEvent charactersIgnoringModifiers],[theEvent keyCode]);
+	key = [self translateKeyCode:key];
 	
-	key = [self translateKeyCode: key];
+	OOLog(kOOLogKeyDown, @"Key down: stringValue = \"%@\", keyCode = %d, key = %u", stringValue, keycode, key);
 	
 	keycodetrans[keycode] = key;	// record the chracter we got for pressing the hardware at key location 'keycode'
 	
 	if ((key >= 0)&&(key < [self numKeys])&&(!keys[key]))
 	{
-		//NSLog( @"key : %d", key );
 		keys[key] = YES;
 		
 		if (allowingStringInput)

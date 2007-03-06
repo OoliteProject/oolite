@@ -7,9 +7,9 @@
 	<key>key_roll_right</key>
 	<integer>252</integer>
 	<key>key_yaw_left</key>
-	<integer>310</integer>
+	<integer>44</integer>
 	<key>key_yaw_right</key>
-	<integer>311</integer>
+	<integer>46</integer>
 	<key>key_pitch_forward</key>
 	<integer>255</integer>
 	<key>key_pitch_back</key>

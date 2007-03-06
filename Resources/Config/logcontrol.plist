@@ -82,6 +82,9 @@ entity.behaviour.changed				= $entityState;
 
 
 input.keyMapping.codeOutOfRange			= inherit;
+input.keyMapping.keyPress				= no;
+input.keyMapping.keyPress.keyDown		= inherit;
+input.keyMapping.keyPress.keyUp			= inherit;
 
 
 rendering.opengl.error					= $error;				// Test for and display OpenGL errors
