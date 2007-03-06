@@ -894,7 +894,7 @@
 
 	<!-- Intro1 screen -->
 	<key>game-copyright</key>
-	<string>by Giles Williams (C) 2003-2006</string>
+	<string>by Giles Williams and contributors (C) 2003-2006</string>
 	<key>theme-music-credit</key>
 	<string>Oolite Theme Music by NoSleep (C) 2004</string>
 	<key>load-previous-commander</key>

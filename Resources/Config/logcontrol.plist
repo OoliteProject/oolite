@@ -64,12 +64,30 @@ ai.takeAction.badSelector				= $scriptError;
 dataCache.found							= inherit;
 dataCache.notFound						= inherit;
 dataCache.rebuild						= inherit;
-dataCache.write							= inherit;
+dataCache.write.success					= inherit;
 dataCache.write.failed					= $error;
 dataCache.rebuild.octree				= no;
 
+$dataCacheError = $error;
+$dataCacheDebug = no;
+dataCache.found							= inherit;
+dataCache.notFound						= $dataCacheError;
+dataCache.rebuild						= inherit;
+dataCache.write.success					= inherit;
+dataCache.write.buildPath.failed		= $dataCacheError;
+dataCache.write.failed					= $dataCacheError;
+dataCache.write.serialize.failed		= $dataCacheError;
+dataCache.retrieve.success				= $dataCacheDebug;
+dataCache.retrieve.failed				= $dataCacheDebug;
+dataCache.set.success					= $dataCacheDebug;
+dataCache.set.failed					= $dataCacheError;
+dataCache.remove.success				= $dataCacheDebug;
+dataCache.clear.success					= $dataCacheDebug;
+dataCache.removedOld					= inherit;
+
 
 $linkedListError						= $error;
+entity.behaviour.changed				= $entityState;
 entity.linkedList						= inherit;				// Management/verification of the lists used to track the relative position of entities.
 entity.linkedList.add					= inherit;
 entity.linkedList.add.error				= $linkedListError;
@@ -78,13 +96,18 @@ entity.linkedList.remove.error			= $linkedListError;
 entity.linkedList.verify.error			= $linkedListError;
 entity.linkedList.verify.rebuild		= inherit;
 entity.linkedList.update.error			= $linkedListError;
-entity.behaviour.changed				= $entityState;
 
 
 input.keyMapping.codeOutOfRange			= inherit;
 input.keyMapping.keyPress				= no;
 input.keyMapping.keyPress.keyDown		= inherit;
 input.keyMapping.keyPress.keyUp			= inherit;
+
+
+mesh.load.error							= $error;
+mesh.load.error.fileNotFound			= inherit;
+mesh.load.error.tooManyVertices			= inherit;
+mesh.load.error.tooManyFaces			= inherit;
 
 
 rendering.opengl.error					= $error;				// Test for and display OpenGL errors

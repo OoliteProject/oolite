@@ -34,6 +34,7 @@ MA 02110-1301, USA.
 #import "HeadUpDisplay.h"
 #import "OOSound.h"
 #import "OOColor.h"
+#import "OOCacheManager.h"
 
 #import "Octree.h"
 #import "CollisionRegion.h"
@@ -78,11 +79,6 @@ static NSString * const kOOLogEntityVerificationRebuild		= @"entity.linkedList.v
 //	NSLog(@"DEBUG Universe initialising ResourceManager...");
 	[ResourceManager pathsUsingAddOns:YES];
 	
-	// set up the universal entity data store
-	if (![Entity dataStore])
-		[Entity setDataStore:self];
-	//
-	
 	reducedDetail = NO;
 	
 	#ifndef GNUSTEP
@@ -101,30 +97,9 @@ static NSString * const kOOLogEntityVerificationRebuild		= @"entity.linkedList.v
 	next_universal_id = 100;	// start arbitrarily above zero
 	for (i = 0; i < MAX_ENTITY_UID; i++)
 		entity_for_uid[i] = nil;
-	//
-	// try finding a cache..
-	NSObject*	oolite_version = [[[NSBundle mainBundle] infoDictionary] objectForKey:@"CFBundleVersion"];
-	NSString*	cache_path = OOLITE_CACHE;
-	if ([[NSFileManager defaultManager] fileExistsAtPath: cache_path])
-	{
-		OOLog(kOOLogDataCacheFound, @"Found data cache - loading data.");
-		preloadedDataFiles = [[NSMutableDictionary dictionaryWithContentsOfFile:cache_path] retain];
-		// check cache version number
-		// if it doesn't match our version number then don't use the cache, overwrite it later
-		NSObject* cache_version = [preloadedDataFiles objectForKey:@"CFBundleVersion"];
-		if (![oolite_version isEqual:cache_version])
-		{
-			OOLog(kOOLogDataCacheRebuild, @"Found data cache, but its version does not match Oolite's version. Discarding and rebuilding.");
-			[preloadedDataFiles release];
-			preloadedDataFiles = [[NSMutableDictionary dictionaryWithCapacity:16] retain];
-		}
-	}
-	else
-	{
-		OOLog(kOOLogDataCacheNotFound, @"No data cache found, building.");
-		preloadedDataFiles = [[NSMutableDictionary dictionaryWithCapacity:16] retain];
-	}
-	[preloadedDataFiles setObject:oolite_version forKey:@"CFBundleVersion"];	// set the correct version for this cache
+	
+	// Preload cache
+	[OOCacheManager sharedCache];
 	
 	//
 	entityRecyclePool =			[[NSMutableDictionary dictionaryWithCapacity:MAX_NUMBER_OF_ENTITIES] retain];
@@ -252,8 +227,6 @@ static NSString * const kOOLogEntityVerificationRebuild		= @"entity.linkedList.v
     if (message_gui)			[message_gui release];
     if (comm_log_gui)			[comm_log_gui release];
 	
-    if (preloadedDataFiles)		[preloadedDataFiles release];
-	
     if (entityRecyclePool)		[entityRecyclePool release];
     if (recycleLock)			[recycleLock release];
 	
@@ -297,6 +270,8 @@ static NSString * const kOOLogEntityVerificationRebuild		= @"entity.linkedList.v
 		if (system_names[i])	[system_names[i] release];
 	}
 	
+	[[OOCacheManager sharedCache] flush];
+	
     [super dealloc];
 }
 
@@ -338,11 +313,6 @@ static NSString * const kOOLogEntityVerificationRebuild		= @"entity.linkedList.v
 	
 	[ResourceManager pathsUsingAddOns:!strict];
 	
-	// set up the universal entity data store
-	if (![Entity dataStore])
-		[Entity setDataStore:self];
-	//
-	
 #ifndef GNUSTEP
 	//// speech stuff
 	//
@@ -361,24 +331,8 @@ static NSString * const kOOLogEntityVerificationRebuild		= @"entity.linkedList.v
 	for (i = 0; i < MAX_ENTITY_UID; i++)
 		entity_for_uid[i] = nil;
 	//
-	if (preloadedDataFiles)
-		[preloadedDataFiles autorelease];
-	// try finding a cache..
-	NSString*	cache_path = [[[[NSHomeDirectory()
-								stringByAppendingPathComponent:@"Library"]
-								stringByAppendingPathComponent:@"Application Support"]
-								stringByAppendingPathComponent:@"Oolite"]
-								stringByAppendingPathComponent:@"cache"];
-	if ([[NSFileManager defaultManager] fileExistsAtPath: cache_path])
-	{
-		OOLog(kOOLogDataCacheFound, @"Found data cache - loading data.");
-		preloadedDataFiles = [[NSMutableDictionary dictionaryWithContentsOfFile:cache_path] retain];
-	}
-	else
-	{
-		OOLog(kOOLogDataCacheNotFound, @"No data cache found, building.");
-		preloadedDataFiles = [[NSMutableDictionary dictionaryWithCapacity:16] retain];
-	}
+	// TODO: originally cache was reloaded here. Is this pointful?
+	OOLog(@"dataCache.notconverting", @"Universe reinit called, should we be reloading cache?");
 
 	//
 	if (entityRecyclePool)
@@ -2905,11 +2859,6 @@ GLfloat docked_light_specular[]	= { (GLfloat) 1.0, (GLfloat) 1.0, (GLfloat) 0.5,
 //		NSLog(@"Generating a new %@",classname);
 	}
 	return entity;
-}
-
-- (NSMutableDictionary *) preloadedDataFiles
-{
-	return preloadedDataFiles;
 }
 
 - (ShipEntity *) getShipWithRole:(NSString *) desc

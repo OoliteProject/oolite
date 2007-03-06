@@ -386,7 +386,7 @@ NSString* describeStatus(int some_status)
 		[octree retain];
 }
 
-static NSMutableDictionary* smallOctreeDict = nil;
+
 - (void) setModel:(NSString*) modelName
 {
 	NS_DURING
@@ -398,42 +398,16 @@ static NSMutableDictionary* smallOctreeDict = nil;
 		}
 		[localException raise];
 	NS_ENDHANDLER
-	// TESTING
-	NSMutableDictionary* octreeCache = [(NSMutableDictionary *)[NSMutableDictionary alloc] initWithCapacity:30];
-	if ([Entity dataStore])
+	
+	Octree *newOctree;
+	newOctree = [OOCacheManager octreeForModel:modelName];
+	if (newOctree == nil)
 	{
-		octreeCache = (NSMutableDictionary*)[[[Entity dataStore] preloadedDataFiles] objectForKey:@"**octrees**"];
-		if (!octreeCache)
-		{
-			OOLog(kOOLogCreateOctTreeCache, @"Creating octree cache......");
-			octreeCache = [(NSMutableDictionary *)[NSMutableDictionary alloc] initWithCapacity:30];
-			[[[Entity dataStore] preloadedDataFiles] setObject:octreeCache forKey:@"**octrees**"];
-		}
+		newOctree = [[self getGeometry] findOctreeToDepth: OCTREE_MAX_DEPTH];
+		[OOCacheManager setOctree:newOctree forModel:modelName];
 	}
-
-	if (smallOctreeDict == nil)
-		smallOctreeDict = [(NSMutableDictionary *)[NSMutableDictionary alloc] initWithCapacity:30];
-	if ([smallOctreeDict objectForKey: modelName])
-	{
-//		octree = (Octree*)[smallOctreeDict objectForKey: modelName];
-		[self setOctree:(Octree*)[smallOctreeDict objectForKey: modelName]];
-		return;
-	}
-	//
-	if ([octreeCache objectForKey: modelName])
-	{
-//		octree = [[[Octree alloc] initWithDictionary:(NSDictionary*)[octreeCache objectForKey: modelName]] autorelease];
-		[self setOctree:[[[Octree alloc] initWithDictionary:(NSDictionary*)[octreeCache objectForKey: modelName]] autorelease]];
-		[smallOctreeDict setObject: octree forKey: modelName];	//retained
-	}
-	else
-	{
-//		octree = [[self getGeometry] findOctreeToDepth: OCTREE_MAX_DEPTH];	// depth 5 or 6 seems optimum
-		[self setOctree:[[self getGeometry] findOctreeToDepth: OCTREE_MAX_DEPTH]];	// depth 5 or 6 seems optimum
-		[smallOctreeDict setObject: octree forKey: modelName];	//retained
-		[octreeCache setObject: [octree dict] forKey: modelName];
-//		NSLog(@"DEBUG derived octree for %@ ... model mass is %.2ft octree volume is %.2ft", modelName, 0.001 * [self mass], 20.0 * 0.001 * [octree volume]);
-	}
+	
+	[self setOctree:newOctree];
 }
 
 // ship's brains!
@@ -8382,5 +8356,33 @@ inline BOOL pairOK(NSString* my_role, NSString* their_role)
 }
 
 #endif
+
+@end
+
+
+static NSString * const kOOCacheOctrees = @"octrees";
+
+@implementation OOCacheManager (Octree)
+
++ (Octree *)octreeForModel:(NSString *)inKey
+{
+	NSDictionary		*dict = nil;
+	Octree				*result = nil;
+	
+	dict = [[self sharedCache] objectForKey:inKey inCache:kOOCacheOctrees];
+	if (dict != nil)
+	{
+		result = [[Octree alloc] initWithDictionary:dict];
+		[result autorelease];
+	}
+	
+	return result;
+}
+
+
++ (void)setOctree:(Octree *)inOctree forModel:(NSString *)inKey
+{
+	[[self sharedCache] setObject:[inOctree dict] forKey:inKey inCache:kOOCacheOctrees];
+}
 
 @end

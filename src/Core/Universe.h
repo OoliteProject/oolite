@@ -166,8 +166,6 @@ extern int debug;
 		NSLock					*recycleLock;
 		NSMutableDictionary		*entityRecyclePool;
 
-		NSMutableDictionary		*preloadedDataFiles;
-
 		NSMutableArray			*entities;
 				
 		int						station;
@@ -321,8 +319,6 @@ extern int debug;
 
 - (id) recycleOrDiscard:(Entity *) entity;
 - (Entity *) recycledOrNew:(NSString *) classname;
-
-- (NSMutableDictionary *) preloadedDataFiles;
 
 - (ShipEntity *) getShipWithRole:(NSString *) desc;
 - (ShipEntity *) getShip:(NSString *) desc;

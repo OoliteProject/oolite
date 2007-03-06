@@ -249,6 +249,7 @@
 		1AD9AFB40B91E24C00FB704E /* PlayerEntityControls.m in Sources */ = {isa = PBXBuildFile; fileRef = 1AD9AFAC0B91E24C00FB704E /* PlayerEntityControls.m */; };
 		1AD9AFB50B91E24C00FB704E /* PlayerEntityControls.h in Headers */ = {isa = PBXBuildFile; fileRef = 1AD9AFAD0B91E24C00FB704E /* PlayerEntityControls.h */; };
 		1AD9AFB60B91E24C00FB704E /* PlayerEntityContracts.m in Sources */ = {isa = PBXBuildFile; fileRef = 1AD9AFAE0B91E24C00FB704E /* PlayerEntityContracts.m */; };
+		1ADF5CEC0B9DF59A00FDB2A3 /* OOCacheManager.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A231A170B9D8B1B00EF0852 /* OOCacheManager.m */; };
 		2512833E09BA27C100F43D55 /* Octree.m in Sources */ = {isa = PBXBuildFile; fileRef = 2512833C09BA27C100F43D55 /* Octree.m */; };
 		2512833F09BA27C100F43D55 /* Octree.h in Headers */ = {isa = PBXBuildFile; fileRef = 2512833D09BA27C100F43D55 /* Octree.h */; };
 		2512834209BA27EC00F43D55 /* Geometry.h in Headers */ = {isa = PBXBuildFile; fileRef = 2512834009BA27EC00F43D55 /* Geometry.h */; };
@@ -1447,12 +1448,12 @@
 		1A8A3C180B964030007D20B8 /* Resource Management */ = {
 			isa = PBXGroup;
 			children = (
-				1A231A160B9D8B1B00EF0852 /* OOCacheManager.h */,
-				1A231A170B9D8B1B00EF0852 /* OOCacheManager.m */,
 				2516113A099544390037C2E1 /* ResourceManager.h */,
 				25161139099544390037C2E1 /* ResourceManager.m */,
 				25161134099544390037C2E1 /* TextureStore.h */,
 				25161145099544390037C2E1 /* TextureStore.m */,
+				1A231A160B9D8B1B00EF0852 /* OOCacheManager.h */,
+				1A231A170B9D8B1B00EF0852 /* OOCacheManager.m */,
 			);
 			name = "Resource Management";
 			sourceTree = "<group>";
@@ -1784,6 +1785,7 @@
 				1A8A39FF0B96295D007D20B8 /* ShipEntity.m in Sources */,
 				1A8A3A390B962AEF007D20B8 /* NSScannerOOExtensions.m in Sources */,
 				1A38B4AD0B988532001ED4A0 /* OOLogging.m in Sources */,
+				1ADF5CEC0B9DF59A00FDB2A3 /* OOCacheManager.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

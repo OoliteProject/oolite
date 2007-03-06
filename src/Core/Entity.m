@@ -48,31 +48,16 @@ static NSString * const kOOLogStringVecAndQuatConversion	= @"strings.conversion.
 static NSString * const kOOLogStringRandomSeedConversion	= @"strings.conversion.randomSeed";
 static NSString * const kOOLogOpenGLExtensionsVAR			= @"rendering.opengl.extensions.var";
 static NSString * const kOOLogOpenGLStateDump				= @"rendering.opengl.stateDump";
+static NSString * const kOOLogEntityDataNotFound			= @"entity.loadMesh.error.fileNotFound";
+static NSString * const kOOLogEntityTooManyVertices			= @"entity.loadMesh.error.tooManyVertices";
+static NSString * const kOOLogEntityTooManyFaces			= @"entity.loadMesh.error.tooManyFaces";
 
 
 // global flag for VAR
 BOOL global_usingVAR;
 BOOL global_testForVAR;
 
-static  Universe	*data_store_universe;
-
 @implementation Entity
-
-// class methods, they set the underlying data_storage universe
-+ (void) setDataStore:(Universe *)univ
-{
-	if (univ)
-		data_store_universe = univ;
-	//NSLog(@"--- Universe for Data Storage set to %@", univ);
-
-	global_usingVAR = NO;
-	global_testForVAR = YES;
-}
-
-+ (Universe *) dataStore
-{
-	return data_store_universe;
-}
 
 + (Vector) vectorFromString:(NSString*) xyzString
 {
@@ -1361,7 +1346,7 @@ static  Universe	*data_store_universe;
 	return [NSDictionary dictionaryWithDictionary:mdict];
 }
 
-- (void) setModelFromModelData:(NSDictionary*) dict
+- (BOOL) setModelFromModelData:(NSDictionary*) dict
 {
 	n_vertices = [[dict objectForKey:@"n_vertices"] intValue];
 	n_faces = [[dict objectForKey:@"n_faces"] intValue];
@@ -1383,68 +1368,40 @@ static  Universe	*data_store_universe;
 		{
 			faces[i] = fbytes[i];
 		}
+		return YES;
 	}
 	else
 	{
-		NSLog(@"ERROR setModelFromData: FAILED");
-		// should throw an oolite-fatal-exception here
-		NSException* myException = [NSException
-			exceptionWithName: OOLITE_EXCEPTION_FATAL
-			reason:[NSString stringWithFormat:@"Failed during [Entity setModelFromModelData: %@]", dict]
-			userInfo:nil];
-		[myException raise];
+		return NO;
 	}
 }
 
 - (void) loadData:(NSString *) filename
 {
-    NSScanner		*scanner;
-    NSString		*data = nil;
-    NSMutableArray	*lines;
-    BOOL			failFlag = NO;
-    NSString		*failString = @"***** ";
-    int	i, j;
-
-	NSString*		data_key = [NSString stringWithFormat:@"%@>>data", filename];
+    NSScanner			*scanner;
+	NSDictionary		*cacheData = nil;
+    NSString			*data = nil;
+    NSMutableArray		*lines;
+    BOOL				failFlag = NO;
+    NSString			*failString = @"***** ";
+    int					i, j;
 
 	BOOL using_preloaded = NO;
-
-	if (data_store_universe)
+	
+	// TODO: rejigger this to look for the file and check modification date.
+	cacheData = [OOCacheManager meshDataForName:filename];
+	if (cacheData != nil)
 	{
-		if ([[data_store_universe preloadedDataFiles] objectForKey:filename])
-		{
-			//	Reusing data from [data_store_universe preloadedDataFiles]
-			data = (NSString *)[[data_store_universe preloadedDataFiles] objectForKey:filename];
-			using_preloaded = YES;
-		}
-		else
-		{
-			data = [ResourceManager stringFromFilesNamed:filename inFolder:@"Models"];
-			if (data != nil)
-				[[data_store_universe preloadedDataFiles] setObject:data forKey:filename];
-		}
+		if ([self setModelFromModelData:cacheData]) using_preloaded = YES;
 	}
-
-	if ([[data_store_universe preloadedDataFiles] objectForKey:data_key])
+	
+	if (!using_preloaded)
 	{
-		//	setting model data from saved vertex data
-		[self setModelFromModelData:(NSDictionary *)[[data_store_universe preloadedDataFiles] objectForKey:data_key]];
-	}
-	else
-	{
-
-		// failsafe in case the stored data fails
+		data = [ResourceManager stringFromFilesNamed:filename inFolder:@"Models"];
 		if (data == nil)
 		{
-			data = [ResourceManager stringFromFilesNamed:filename inFolder:@"Models"];
-			using_preloaded = NO;
-		}
-
-		if (data == nil)
-		{
-			NSLog(@"ERROR - could not find %@", filename);
-			failFlag = YES;
-			// ERROR model file not found
+			// Model not found
+			OOLog(kOOLogEntityDataNotFound, @"ERROR - could not find %@", filename);
 			NSException* myException = [NSException
 				exceptionWithName: OOLITE_EXCEPTION_DATA_NOT_FOUND
 				reason:[NSString stringWithFormat:@"No data for model called '%@' could be found in %@.", filename, [ResourceManager paths]]
@@ -1501,7 +1458,7 @@ static  Universe	*data_store_universe;
 
 		if (n_vertices > MAX_VERTICES_PER_ENTITY)
 		{
-			NSLog(@"ERROR - model %@ has too many vertices (model has %d, maximum is %d)", filename, n_vertices, MAX_VERTICES_PER_ENTITY);
+			OOLog(kOOLogEntityTooManyVertices, @"ERROR - model %@ has too many vertices (model has %d, maximum is %d)", filename, n_vertices, MAX_VERTICES_PER_ENTITY);
 			failFlag = YES;
 			// ERROR model file not found
 			NSException* myException = [NSException
@@ -1533,7 +1490,7 @@ static  Universe	*data_store_universe;
 
 		if (n_faces > MAX_FACES_PER_ENTITY)
 		{
-			NSLog(@"ERROR - model %@ has too many faces (model has %d, maximum is %d)", filename, n_faces, MAX_FACES_PER_ENTITY);
+			OOLog(kOOLogEntityTooManyFaces, @"ERROR - model %@ has too many faces (model has %d, maximum is %d)", filename, n_faces, MAX_FACES_PER_ENTITY);
 			failFlag = YES;
 			// ERROR model file not found
 			NSException* myException = [NSException
@@ -1750,11 +1707,7 @@ static  Universe	*data_store_universe;
 		//
 
 		// save the resulting data for possible reuse
-		//
-		if (![[data_store_universe preloadedDataFiles] objectForKey: data_key])
-		{
-			[[data_store_universe preloadedDataFiles] setObject:[self modelData] forKey: data_key];
-		}
+		[OOCacheManager setMeshData:[self modelData] forName:filename];
 	}
 	
 	// set the collision radius
@@ -2907,6 +2860,24 @@ void my_glDisable(GLenum gl_state)
 			break;
 	}
 	glDisable(gl_state);
+}
+
+@end
+
+
+static NSString * const kOOCacheMeshes = @"meshes";
+
+@implementation OOCacheManager (Models)
+
++ (NSDictionary *)meshDataForName:(NSString *)inShipName
+{
+	return [[self sharedCache] objectForKey:inShipName inCache:kOOCacheMeshes];
+}
+
+
++ (void)setMeshData:(NSDictionary *)inData forName:(NSString *)inShipName
+{
+	[[self sharedCache] setObject:inData forKey:inShipName inCache:kOOCacheMeshes];
 }
 
 @end

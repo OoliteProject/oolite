@@ -41,6 +41,7 @@ MA 02110-1301, USA.
 #import "PlayerEntityLoadSave.h"
 #import "OOSound.h"
 #import "OOColor.h"
+#import "OOCacheManager.h"
 
 #ifndef GNUSTEP
 #import "Groolite.h"
@@ -51,10 +52,6 @@ MA 02110-1301, USA.
 
 // 10m/s forward drift
 #define	OG_ELITE_FORWARD_DRIFT			10.0f
-
-
-static NSString * const kOOLogDataCacheWrite		= @"dataCache.write";
-static NSString * const kOOLogDataCacheWriteFailed	= @"dataCache.write.failed";
 
 
 @implementation PlayerEntity
@@ -3920,6 +3917,7 @@ double scoopSoundPlayTime = 0.0;
 		[self setGuiToStatusScreen];
 	}
 	
+	[[OOCacheManager sharedCache] flush];
 }
 
 - (void) leaveDock:(StationEntity *)station
@@ -4229,11 +4227,6 @@ double scoopSoundPlayTime = 0.0;
 	}
 	else
 	{
-		// try saving the cache now...
-		NSString*	cache_path = OOLITE_CACHE;
-		OOLog(kOOLogDataCacheWrite, @"Writing cache");
-		if (![[[Entity dataStore] preloadedDataFiles] writeToFile: cache_path atomically: YES])
-			OOLog(kOOLogDataCacheWriteFailed, @"***** Could not write cache to path: %@", cache_path);
 		//
 		[universe clearPreviousMessage];	// allow this to be given time and again
 		[universe addMessage:[universe expandDescription:@"[game-saved]" forSystem:system_seed] forCount:2];
@@ -4241,6 +4234,7 @@ double scoopSoundPlayTime = 0.0;
 			[save_path autorelease];
 		save_path = [filename retain];
 	}
+	
 	[self setGuiToStatusScreen];
 }
 
@@ -4293,10 +4287,6 @@ double scoopSoundPlayTime = 0.0;
 			[[universe gameController] setPlayerFileToLoad:save_path];
 			[[universe gameController] setPlayerFileDirectory:save_path];
 		}
-		// try saving the cache ...
-		NSString*	cache_path = OOLITE_CACHE;
-		OOLog(kOOLogDataCacheWrite, @"Writing cache");
-		[[[Entity dataStore] preloadedDataFiles] writeToFile: cache_path atomically: YES];
 	}
 	[self setGuiToStatusScreen];
 #endif
@@ -5582,6 +5572,8 @@ static int last_outfitting_index;
 {
 	NSString *text;
 	GuiDisplayGen* gui = [universe gui];
+	
+	[[OOCacheManager sharedCache] flush];	// At first startup, a lot of stuff is cached
 
 	// GUI stuff
 	int ms_line = 2;

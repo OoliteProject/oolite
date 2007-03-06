@@ -728,3 +728,11 @@ straight c stuff
 BOOL ship_canCollide (ShipEntity* ship);
 
 @end
+
+
+@interface OOCacheManager (Octree)
+
++ (Octree *)octreeForModel:(NSString *)inKey;
++ (void)setOctree:(Octree *)inOctree forModel:(NSString *)inKey;
+
+@end

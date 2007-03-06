@@ -93,8 +93,9 @@ MA 02110-1301, USA.
 #define MODEL_FILE @"CORIOLIS.DAT"
 
 #import "OOCocoa.h"
-#include "vector.h"
-#include "legacy_random.h"
+#import "vector.h"
+#import "legacy_random.h"
+#import "OOCacheManager.h"
 
 @class Universe, Geometry, CollisionRegion;
 
@@ -276,9 +277,6 @@ extern int debug;
 
 }
 
-+ (void) setDataStore:(Universe *)univ; // class methods, they set the underlying data_storage universe
-+ (Universe *) dataStore;
-
 + (Vector) vectorFromString:(NSString*) xyzString;
 + (Quaternion) quaternionFromString:(NSString*) wxyzString;
 + (Random_Seed) seedFromString:(NSString*) abcdefString;
@@ -383,7 +381,7 @@ BOOL maintainLinkedLists(Universe* uni);
 - (Frame) frameAtTime:(double) t_frame fromFrame:(Frame) frame_zero;	// t_frame is relative to now ie. -0.5 = half a second ago.
 
 - (NSDictionary*) modelData;
-- (void) setModelFromModelData:(NSDictionary*) dict;
+- (BOOL) setModelFromModelData:(NSDictionary*) dict;
 
 - (void) loadData:(NSString *) filename;
 - (void) checkNormalsAndAdjustWinding;
@@ -432,5 +430,13 @@ BOOL mygl_texture_2d;
 //
 void my_glEnable(GLenum gl_state);
 void my_glDisable(GLenum gl_state);
+
+@end
+
+
+@interface OOCacheManager (Models)
+
++ (NSDictionary *)meshDataForName:(NSString *)inShipName;
++ (void)setMeshData:(NSDictionary *)inData forName:(NSString *)inShipName;
 
 @end

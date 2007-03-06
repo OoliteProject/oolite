@@ -130,27 +130,6 @@ enum {
   NSModeSwitchFunctionKey = 0xF747
 };
 
-/* Define the application support cache dir */
-#define OOLITE_CACHE  [[[NSHomeDirectory() \
-                  stringByAppendingPathComponent:@"GNUstep"] \
-						stringByAppendingPathComponent:@"Library"] \
-						stringByAppendingPathComponent:@"Oolite-cache"];
-
-#else
-
-#if MAC_OS_X_VERSION_10_4 <= MAC_OS_X_VERSION_MAX_ALLOWED
-#define OOLITE_CACHE  [[[NSSearchPathForDirectoriesInDomains(NSApplicationSupportDirectory, NSUserDomainMask, YES) \
-						objectAtIndex:0] \
-						stringByAppendingPathComponent:@"Oolite"] \
-						stringByAppendingPathComponent:@"cache"];
-#else
-#define OOLITE_CACHE  [[[[NSSearchPathForDirectoriesInDomains(NSLibraryDirectory, NSUserDomainMask, YES) \
-						objectAtIndex:0] \
-						stringByAppendingPathComponent:@"Application Support"] \
-						stringByAppendingPathComponent:@"Oolite"] \
-						stringByAppendingPathComponent:@"cache"];
-#endif
-
 #endif
 
 #import <math.h>
