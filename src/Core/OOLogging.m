@@ -37,7 +37,8 @@ MA 02110-1301, USA.
 #define APPNAME @"Oolite"
 
 
-// Internal logging control flags - like message classes, but less cool.
+// Control flags for OOLogInternal() - like message classes, but less cool.
+#define OOLOG_NOT_INITED			1
 #define OOLOG_SETTING_SET			0
 #define OOLOG_SETTING_RETRIEVE		0
 #define OOLOG_METACLASS_LOOP		1
@@ -46,6 +47,7 @@ MA 02110-1301, USA.
 #define OOLOG_BAD_DEFAULT_SETTING	1
 
 
+// We could probably use less state variables.
 static BOOL					sInited = NO;
 static NSLock				*sLock = nil;
 static NSMutableDictionary	*sExplicitSettings = nil;
@@ -71,6 +73,7 @@ static NSString * const		kInheritToken = @"inherit";
 static void OOLogInternal_(const char *inFunction, NSString *inFormat, ...);
 
 
+// Functions used internally
 static void LoadExplicitSettings(void);
 static void LoadExplicitSettingsFromDictionary(NSDictionary *inDict, BOOL inExplicitInherit);
 static NSString *AbbreviatedFileName(const char *inName);
@@ -78,18 +81,25 @@ static id ResolveDisplaySetting(NSString *inMessageClass);
 static id ResolveMetaClassReference(NSString *inMetaClass, NSMutableSet *ioSeenMetaClasses);
 
 
-// Function to do actual printing
+/*	void PrimitiveLog(NSString *)
+	This is the bottleneck output function used by both the OOLog() family and
+	OOLogInternal(). Under GNUstep, it uses NSLog(), which I believe logs to a
+	file. Under Mac OS X, it writes to, because NSLog() adds its own prefix
+	before writing to stout.
+	To do: add option to log to file under OS X.
+*/
 static inline void PrimitiveLog(NSString *inString)
 {
-	#ifdef __COREFOUNDATION_CFSTRING__
-		CFShow((CFStringRef)inString);
-	#else
+	#ifdef GNUSTEP
 		#undef NSLog
 		NSLog(@"%@", inString);
+	#else
+		puts([inString UTF8String]);
 	#endif
 }
 
 
+// Given a boolean, return the appropriate value for the cache dictionary.
 static inline NSNumber *CacheValue(BOOL inValue) __attribute__((pure));
 static inline NSNumber *CacheValue(BOOL inValue)
 {
@@ -97,10 +107,13 @@ static inline NSNumber *CacheValue(BOOL inValue)
 }
 
 
+/*	Inited()
+	Test wether OOLoggingInit() has been called.
+*/
 static inline BOOL Inited(void)
 {
 	if (__builtin_expect(sInited, YES)) return YES;
-	PrimitiveLog(@"ERROR: OOLoggingInit() has not been called.");
+	OOLogInternal(OOLOG_NOT_INITED, @"ERROR: OOLoggingInit() has not been called.");
 	return NO;
 }
 
@@ -326,6 +339,10 @@ NSString * const kOOLogOpenGLExtensions				= @"rendering.opengl.extensions";
 NSString * const kOOLogUnconvertedNSLog				= @"unclassified";
 
 
+/*	OOLogInternal_()
+	Implementation of OOLogInternal(), private logging function used by
+	OOLogging so it doesn’t depend on itself (and risk recursiveness).
+*/
 static void OOLogInternal_(const char *inFunction, NSString *inFormat, ...)
 {
 	va_list				args;
@@ -333,7 +350,6 @@ static void OOLogInternal_(const char *inFunction, NSString *inFormat, ...)
 	NSAutoreleasePool	*pool = nil;
 	
 	pool = [[NSAutoreleasePool alloc] init];
-	
 	
 	va_start(args, inFormat);
 	formattedMessage = [[[NSString alloc] initWithFormat:inFormat arguments:args] autorelease];
@@ -348,6 +364,9 @@ static void OOLogInternal_(const char *inFunction, NSString *inFormat, ...)
 }
 
 
+/*	LoadExplicitSettings()
+	Read settings from logcontrol.plist, merge in settings from preferences.
+*/
 static void LoadExplicitSettings(void)
 {
 	NSString			*configPath = nil;
@@ -433,6 +452,9 @@ static void LoadExplicitSettings(void)
 }
 
 
+/*	LoadExplicitSettingsFromDictionary()
+	Helper for LoadExplicitSettings().
+*/
 static void LoadExplicitSettingsFromDictionary(NSDictionary *inDict, BOOL inExplicitInherit)
 {
 	NSEnumerator		*keyEnum = nil;
@@ -493,6 +515,10 @@ static void LoadExplicitSettingsFromDictionary(NSDictionary *inDict, BOOL inExpl
 }
 
 
+/*	AbbreviatedFileName()
+	Map full file paths provided by __FILE__ to more mananagable file names,
+	with caching.
+*/
 static NSString *AbbreviatedFileName(const char *inName)
 {
 	NSValue				*key = nil;
@@ -513,6 +539,9 @@ static NSString *AbbreviatedFileName(const char *inName)
 }
 
 
+/*	Look up setting for a message class in explicit settings, resolving
+	inheritance and metaclasses.
+*/
 static id ResolveDisplaySetting(NSString *inMessageClass)
 {
 	id					value = nil;
@@ -534,6 +563,9 @@ static id ResolveDisplaySetting(NSString *inMessageClass)
 }
 
 
+/*	Resolve a metaclass reference, recursively if necessary. The
+	ioSeenMetaClasses dictionary is used to avoid loops.
+*/
 static id ResolveMetaClassReference(NSString *inMetaClass, NSMutableSet *ioSeenMetaClasses)
 {
 	id					value = nil;
