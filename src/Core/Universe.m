@@ -48,6 +48,7 @@ static NSString * const kOOLogDataCacheFound				= @"dataCache.found";
 static NSString * const kOOLogDataCacheNotFound				= @"dataCache.notFound";
 static NSString * const kOOLogDataCacheRebuild				= @"dataCache.rebuild";
 static NSString * const kOOLogUniversePopulate				= @"universe.populate";
+static NSString * const kOOLogUniversePopulateWitchspace	= @"universe.populate.witchspace";
 static NSString * const kOOLogScriptNoSystemForName			= @"script.debug.note.systemSeedForSystemName";
 static NSString * const kOOLogStringCoordinateConversion	= @"strings.conversion.coordinates";
 extern NSString * const kOOLogEntityVerificationError;
@@ -787,7 +788,8 @@ static NSString * const kOOLogEntityVerificationRebuild		= @"entity.linkedList.v
 	
 	[self setLighting];
 		
-	NSLog(@"Populating witchspace ...");
+	OOLog(kOOLogUniversePopulateWitchspace, @"Populating witchspace ...");
+	OOLogIndentIf(kOOLogUniversePopulateWitchspace);
 	
 	//
 	// actual thargoids and tharglets next...
@@ -801,7 +803,7 @@ static NSString * const kOOLogEntityVerificationRebuild		= @"entity.linkedList.v
 	Vector		tharg_start_pos = [self getWitchspaceExitPosition];
 	ranrot_srand([[NSDate date] timeIntervalSince1970]);   // reset randomiser with current time
 
-	NSLog(@"... adding %d Thargoid warships", n_thargs);
+	OOLog(kOOLogUniversePopulateWitchspace, @"... adding %d Thargoid warships", n_thargs);
 	
 	for (i = 0; i < n_thargs; i++)
 	{
@@ -842,6 +844,7 @@ static NSString * const kOOLogEntityVerificationRebuild		= @"entity.linkedList.v
 		[player scriptActions:script_actions forTarget: nil];
 	}
 	
+	OOLogOutdentIf(kOOLogUniversePopulateWitchspace);
 }
 
 - (void) set_up_space
@@ -4115,7 +4118,7 @@ BOOL maintainLinkedLists(Universe* uni)
 	//
 	if (!result)
 	{
-		NSLog(@"REBUILDING all linked lists from scratch");
+		OOLog(kOOLogEntityVerificationRebuild, @"Rebuilding all linked lists from scratch");
 		NSArray* allEntities = uni->entities;
 		uni->x_list_start = nil;
 		uni->y_list_start = nil;

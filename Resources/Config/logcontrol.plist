@@ -87,8 +87,14 @@ input.keyMapping.codeOutOfRange			= inherit;
 rendering.opengl.error					= $error;				// Test for and display OpenGL errors
 rendering.opengl.version				= $troubleShootingDump;	// Display renderer version information at startup
 rendering.opengl.extensions				= $troubleShootingDump;	// List OpenGL extensions at startup
-rendering.opengl.shaders				= inherit;				// Shader-related messages
-rendering.opengl.shaders.support		= $troubleShootingDump;	// Messages about factors influencing availability of OpenGL shaders
+rendering.opengl.shader.support			= $troubleShootingDump;	// Messages about factors influencing availability of OpenGL shaders
+rendering.opengl.shader.init			= inherit;
+rendering.opengl.shader.init.dump		= $troubleShootingDump;
+rendering.opengl.shader.init.dump.shader = inherit;
+rendering.opengl.shader.init.dump.texture = inherit;
+rendering.opengl.shader.init.dump.shaderInfo = inherit;
+rendering.opengl.shader.init.success	= inherit;
+rendering.opengl.shader.init.failed		= $scriptError;
 rendering.opengl.stateDump				= $troubleShootingDump;	// Dump of OpenGL state (debug tool, currently unused)
 
 
@@ -155,6 +161,7 @@ texture.planet.generate					= inherit;
 
 
 universe.populate						= $troubleShootingDump;	// “Populating a system with…” message when generating a star system
+universe.populate.witchspace			= inherit;
 
 
 /*** Mac OS X/Cocoa-specific ***/

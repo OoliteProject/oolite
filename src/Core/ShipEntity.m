@@ -44,8 +44,14 @@ extern NSString * const kOOLogNoteAddShips;
 extern NSString * const kOOLogSyntaxAddShips;
 static NSString * const kOOLogEntityBehaviourChanged	= @"entity.behaviour.changed";
 static NSString * const kOOLogOpenGLVersion				= @"rendering.opengl.version";
-static NSString * const kOOLogOpenGLShaderSupport		= @"rendering.opengl.shaders.support";
+static NSString * const kOOLogOpenGLShaderSupport		= @"rendering.opengl.shader.support";
 static NSString * const kOOLogCreateOctTreeCache		= @"dataCache.rebuild.octree";
+static NSString * const kOOLogShaderInit				= @"rendering.opengl.shader.init";
+static NSString * const kOOLogShaderInitDumpShader		= @"rendering.opengl.shader.init.dump.shader";
+static NSString * const kOOLogShaderInitDumpTexture		= @"rendering.opengl.shader.init.dump.texture";
+static NSString * const kOOLogShaderInitDumpShaderInfo	= @"rendering.opengl.shader.init.dump.shaderInfo";
+static NSString * const kOOLogShaderInitSuccess			= @"rendering.opengl.shader.init.success";
+static NSString * const kOOLogShaderInitFailed			= @"rendering.opengl.shader.init.failed";
 
 
 @implementation ShipEntity
@@ -3380,7 +3386,8 @@ void testForShaders()
 		if (!shader_info)
 			shader_info = [[NSMutableDictionary dictionary] retain];
 					
-		NSLog(@"TESTING: initialising shaders for %@", self);
+		OOLog(kOOLogShaderInit, @"Initialising shaders for %@", self);
+		OOLogIndentIf(kOOLogShaderInit);
 		
 		NSDictionary* shaders = (NSDictionary*)[shipinfoDictionary objectForKey:@"shaders"];
 		NSArray* shader_keys = [shaders allKeys];
@@ -3392,26 +3399,27 @@ void testForShaders()
 			NSArray* shader_textures = (NSArray*)[shader objectForKey:@"textures"];
 			NSMutableArray* textureNames = [NSMutableArray array];
 			
-			NSLog(@"TESTING: initialising shader for %@ : %@", shader_key, shader);
+			OOLog(kOOLogShaderInitDumpShader, @"Shader: initialising shader for %@ : %@", shader_key, shader);
 			for (ti = 0; ti < [shader_textures count]; ti ++)
 			{
 				GLuint tn = [TextureStore getTextureNameFor: (NSString*)[shader_textures objectAtIndex:ti]];
 				[textureNames addObject:[NSNumber numberWithUnsignedInt:tn]];
-				NSLog(@"TESTING: initialised texture: %@", [shader_textures objectAtIndex:ti]);
+				OOLog(kOOLogShaderInitDumpTexture, @"Shader: initialised texture: %@", [shader_textures objectAtIndex:ti]);
 			}
 			
 //			GLuint shader_program = [TextureStore shaderProgramFromDictionary: shader];
 			GLhandleARB shader_program = [TextureStore shaderProgramFromDictionary: shader];
 			if (shader_program)
-				NSLog(@"TESTING: successfully compiled shader program is %d", shader_program);
+				OOLog(kOOLogShaderInitSuccess, @"Successfully compiled shader program is %d", shader_program);
 			else
-				NSLog(@"TESTING: failed to initialise shader program!");
+				OOLog(kOOLogShaderInitFailed, @"***** Failed to initialise shader program!");
 			[shader_info setObject:[NSDictionary dictionaryWithObjectsAndKeys:
 				textureNames, @"textureNames", [NSNumber numberWithUnsignedInt: (unsigned int) shader_program], @"shader_program", nil]
 				forKey: shader_key];
 		}
 		
-		NSLog(@"TESTING: shader_info = %@", shader_info);
+		OOLog(kOOLogShaderInitDumpShaderInfo, @"TESTING: shader_info = %@", shader_info);
+		OOLogOutdentIf(kOOLogShaderInit);
 #endif
 	}
 	else

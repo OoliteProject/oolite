@@ -21,16 +21,206 @@
 		0865431C06B8447D000CA0AB /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1058C7A1FEA54F0111CA2CBB /* Cocoa.framework */; };
 		0865431D06B8447D000CA0AB /* OpenGL.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 06AFA01500A58FB77F000001 /* OpenGL.framework */; };
 		0878FD30086EF845004CB752 /* Carbon.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0878FD2F086EF845004CB752 /* Carbon.framework */; };
-		1A2314150B9C64F500EF0852 /* AIs in Resources */ = {isa = PBXBuildFile; fileRef = 1A23133B0B9C64F400EF0852 /* AIs */; };
-		1A2314160B9C64F500EF0852 /* Textures in Resources */ = {isa = PBXBuildFile; fileRef = 1A23135F0B9C64F400EF0852 /* Textures */; };
-		1A2314170B9C64F500EF0852 /* Config in Resources */ = {isa = PBXBuildFile; fileRef = 1A2313A20B9C64F400EF0852 /* Config */; };
-		1A2314180B9C64F500EF0852 /* Models in Resources */ = {isa = PBXBuildFile; fileRef = 1A2313B40B9C64F400EF0852 /* Models */; };
-		1A23141A0B9C64F500EF0852 /* Music in Resources */ = {isa = PBXBuildFile; fileRef = 1A2313FB0B9C64F500EF0852 /* Music */; };
-		1A23141B0B9C64F500EF0852 /* Sounds in Resources */ = {isa = PBXBuildFile; fileRef = 1A2313FF0B9C64F500EF0852 /* Sounds */; };
 		1A2315520B9C778400EF0852 /* solar.png in Copy Images */ = {isa = PBXBuildFile; fileRef = 1A23154E0B9C778400EF0852 /* solar.png */; };
 		1A2315530B9C778400EF0852 /* splash.png in Resources */ = {isa = PBXBuildFile; fileRef = 1A23154F0B9C778400EF0852 /* splash.png */; };
 		1A2315540B9C778400EF0852 /* splashback.png in Resources */ = {isa = PBXBuildFile; fileRef = 1A2315500B9C778400EF0852 /* splashback.png */; };
 		1A2315550B9C778400EF0852 /* trumblebox.png in Copy Images */ = {isa = PBXBuildFile; fileRef = 1A2315510B9C778400EF0852 /* trumblebox.png */; };
+		1A2316EE0B9CFAD700EF0852 /* characters.plist in Copy Config */ = {isa = PBXBuildFile; fileRef = 1A2316DE0B9CFAD700EF0852 /* characters.plist */; };
+		1A2316EF0B9CFAD700EF0852 /* commodities.plist in Copy Config */ = {isa = PBXBuildFile; fileRef = 1A2316DF0B9CFAD700EF0852 /* commodities.plist */; };
+		1A2316F00B9CFAD700EF0852 /* customsounds.plist in Copy Config */ = {isa = PBXBuildFile; fileRef = 1A2316E00B9CFAD700EF0852 /* customsounds.plist */; };
+		1A2316F10B9CFAD700EF0852 /* demoships.plist in Copy Config */ = {isa = PBXBuildFile; fileRef = 1A2316E10B9CFAD700EF0852 /* demoships.plist */; };
+		1A2316F20B9CFAD700EF0852 /* descriptions.plist in Copy Config */ = {isa = PBXBuildFile; fileRef = 1A2316E20B9CFAD700EF0852 /* descriptions.plist */; };
+		1A2316F30B9CFAD700EF0852 /* equipment.plist in Copy Config */ = {isa = PBXBuildFile; fileRef = 1A2316E30B9CFAD700EF0852 /* equipment.plist */; };
+		1A2316F40B9CFAD700EF0852 /* hud-small.plist in Copy Config */ = {isa = PBXBuildFile; fileRef = 1A2316E40B9CFAD700EF0852 /* hud-small.plist */; };
+		1A2316F50B9CFAD700EF0852 /* hud.plist in Copy Config */ = {isa = PBXBuildFile; fileRef = 1A2316E50B9CFAD700EF0852 /* hud.plist */; };
+		1A2316F60B9CFAD700EF0852 /* illegal_goods.plist in Copy Config */ = {isa = PBXBuildFile; fileRef = 1A2316E60B9CFAD700EF0852 /* illegal_goods.plist */; };
+		1A2316F70B9CFAD700EF0852 /* keyconfig.plist in Copy Config */ = {isa = PBXBuildFile; fileRef = 1A2316E70B9CFAD700EF0852 /* keyconfig.plist */; };
+		1A2316F80B9CFAD700EF0852 /* logcontrol.plist in Copy Config */ = {isa = PBXBuildFile; fileRef = 1A2316E80B9CFAD700EF0852 /* logcontrol.plist */; };
+		1A2316F90B9CFAD700EF0852 /* missiontext.plist in Copy Config */ = {isa = PBXBuildFile; fileRef = 1A2316E90B9CFAD700EF0852 /* missiontext.plist */; };
+		1A2316FA0B9CFAD700EF0852 /* script.plist in Copy Config */ = {isa = PBXBuildFile; fileRef = 1A2316EA0B9CFAD700EF0852 /* script.plist */; };
+		1A2316FB0B9CFAD700EF0852 /* shipdata.plist in Copy Config */ = {isa = PBXBuildFile; fileRef = 1A2316EB0B9CFAD700EF0852 /* shipdata.plist */; };
+		1A2316FC0B9CFAD800EF0852 /* shipyard.plist in Copy Config */ = {isa = PBXBuildFile; fileRef = 1A2316EC0B9CFAD700EF0852 /* shipyard.plist */; };
+		1A2316FD0B9CFAD800EF0852 /* speech_pronunciation_guide.plist in Copy Config */ = {isa = PBXBuildFile; fileRef = 1A2316ED0B9CFAD700EF0852 /* speech_pronunciation_guide.plist */; };
+		1A2317B30B9D022500EF0852 /* buoyAI.plist in Copy AIs */ = {isa = PBXBuildFile; fileRef = 1A2317910B9D022400EF0852 /* buoyAI.plist */; };
+		1A2317B40B9D022500EF0852 /* collectLootAI.plist in Copy AIs */ = {isa = PBXBuildFile; fileRef = 1A2317920B9D022500EF0852 /* collectLootAI.plist */; };
+		1A2317B50B9D022500EF0852 /* dockingAI.plist in Copy AIs */ = {isa = PBXBuildFile; fileRef = 1A2317930B9D022500EF0852 /* dockingAI.plist */; };
+		1A2317B60B9D022500EF0852 /* dumbAI.plist in Copy AIs */ = {isa = PBXBuildFile; fileRef = 1A2317940B9D022500EF0852 /* dumbAI.plist */; };
+		1A2317B70B9D022500EF0852 /* enteringPirateAI.plist in Copy AIs */ = {isa = PBXBuildFile; fileRef = 1A2317950B9D022500EF0852 /* enteringPirateAI.plist */; };
+		1A2317B80B9D022500EF0852 /* enteringTraderAI.plist in Copy AIs */ = {isa = PBXBuildFile; fileRef = 1A2317960B9D022500EF0852 /* enteringTraderAI.plist */; };
+		1A2317B90B9D022500EF0852 /* escortAI.plist in Copy AIs */ = {isa = PBXBuildFile; fileRef = 1A2317970B9D022500EF0852 /* escortAI.plist */; };
+		1A2317BA0B9D022500EF0852 /* exitingTraderAI.plist in Copy AIs */ = {isa = PBXBuildFile; fileRef = 1A2317980B9D022500EF0852 /* exitingTraderAI.plist */; };
+		1A2317BB0B9D022500EF0852 /* fallingShuttleAI.plist in Copy AIs */ = {isa = PBXBuildFile; fileRef = 1A2317990B9D022500EF0852 /* fallingShuttleAI.plist */; };
+		1A2317BC0B9D022500EF0852 /* fttAI.plist in Copy AIs */ = {isa = PBXBuildFile; fileRef = 1A23179A0B9D022500EF0852 /* fttAI.plist */; };
+		1A2317BD0B9D022500EF0852 /* gotoWaypointAI.plist in Copy AIs */ = {isa = PBXBuildFile; fileRef = 1A23179B0B9D022500EF0852 /* gotoWaypointAI.plist */; };
+		1A2317BE0B9D022500EF0852 /* hardMissileAI.plist in Copy AIs */ = {isa = PBXBuildFile; fileRef = 1A23179C0B9D022500EF0852 /* hardMissileAI.plist */; };
+		1A2317BF0B9D022500EF0852 /* homeAI.plist in Copy AIs */ = {isa = PBXBuildFile; fileRef = 1A23179D0B9D022500EF0852 /* homeAI.plist */; };
+		1A2317C00B9D022500EF0852 /* interceptAI.plist in Copy AIs */ = {isa = PBXBuildFile; fileRef = 1A23179E0B9D022500EF0852 /* interceptAI.plist */; };
+		1A2317C10B9D022500EF0852 /* minerAI.plist in Copy AIs */ = {isa = PBXBuildFile; fileRef = 1A23179F0B9D022500EF0852 /* minerAI.plist */; };
+		1A2317C20B9D022500EF0852 /* missileAI.plist in Copy AIs */ = {isa = PBXBuildFile; fileRef = 1A2317A00B9D022500EF0852 /* missileAI.plist */; };
+		1A2317C30B9D022500EF0852 /* nullAI.plist in Copy AIs */ = {isa = PBXBuildFile; fileRef = 1A2317A10B9D022500EF0852 /* nullAI.plist */; };
+		1A2317C40B9D022500EF0852 /* pirateAI.plist in Copy AIs */ = {isa = PBXBuildFile; fileRef = 1A2317A20B9D022500EF0852 /* pirateAI.plist */; };
+		1A2317C50B9D022500EF0852 /* planetPatrolAI.plist in Copy AIs */ = {isa = PBXBuildFile; fileRef = 1A2317A30B9D022500EF0852 /* planetPatrolAI.plist */; };
+		1A2317C60B9D022500EF0852 /* policeInterceptAI.plist in Copy AIs */ = {isa = PBXBuildFile; fileRef = 1A2317A40B9D022500EF0852 /* policeInterceptAI.plist */; };
+		1A2317C70B9D022500EF0852 /* receiveDockingAI.plist in Copy AIs */ = {isa = PBXBuildFile; fileRef = 1A2317A50B9D022500EF0852 /* receiveDockingAI.plist */; };
+		1A2317C80B9D022500EF0852 /* risingShuttleAI.plist in Copy AIs */ = {isa = PBXBuildFile; fileRef = 1A2317A60B9D022500EF0852 /* risingShuttleAI.plist */; };
+		1A2317C90B9D022500EF0852 /* rockHermitAI.plist in Copy AIs */ = {isa = PBXBuildFile; fileRef = 1A2317A70B9D022500EF0852 /* rockHermitAI.plist */; };
+		1A2317CA0B9D022500EF0852 /* route1patrolAI.plist in Copy AIs */ = {isa = PBXBuildFile; fileRef = 1A2317A80B9D022500EF0852 /* route1patrolAI.plist */; };
+		1A2317CB0B9D022500EF0852 /* route1traderAI.plist in Copy AIs */ = {isa = PBXBuildFile; fileRef = 1A2317A90B9D022500EF0852 /* route1traderAI.plist */; };
+		1A2317CC0B9D022500EF0852 /* route2patrolAI.plist in Copy AIs */ = {isa = PBXBuildFile; fileRef = 1A2317AA0B9D022500EF0852 /* route2patrolAI.plist */; };
+		1A2317CD0B9D022500EF0852 /* route2sunskimAI.plist in Copy AIs */ = {isa = PBXBuildFile; fileRef = 1A2317AB0B9D022500EF0852 /* route2sunskimAI.plist */; };
+		1A2317CE0B9D022500EF0852 /* scavengerAI.plist in Copy AIs */ = {isa = PBXBuildFile; fileRef = 1A2317AC0B9D022500EF0852 /* scavengerAI.plist */; };
+		1A2317CF0B9D022500EF0852 /* shuttleAI.plist in Copy AIs */ = {isa = PBXBuildFile; fileRef = 1A2317AD0B9D022500EF0852 /* shuttleAI.plist */; };
+		1A2317D00B9D022500EF0852 /* stationAI.plist in Copy AIs */ = {isa = PBXBuildFile; fileRef = 1A2317AE0B9D022500EF0852 /* stationAI.plist */; };
+		1A2317D10B9D022500EF0852 /* sunSkimExitAI.plist in Copy AIs */ = {isa = PBXBuildFile; fileRef = 1A2317AF0B9D022500EF0852 /* sunSkimExitAI.plist */; };
+		1A2317D20B9D022500EF0852 /* thargletAI.plist in Copy AIs */ = {isa = PBXBuildFile; fileRef = 1A2317B00B9D022500EF0852 /* thargletAI.plist */; };
+		1A2317D30B9D022500EF0852 /* thargoidAI.plist in Copy AIs */ = {isa = PBXBuildFile; fileRef = 1A2317B10B9D022500EF0852 /* thargoidAI.plist */; };
+		1A2317D40B9D022500EF0852 /* timebombAI.plist in Copy AIs */ = {isa = PBXBuildFile; fileRef = 1A2317B20B9D022500EF0852 /* timebombAI.plist */; };
+		1A23185F0B9D026D00EF0852 /* adder_redux.png in Copy Textures */ = {isa = PBXBuildFile; fileRef = 1A23181E0B9D026D00EF0852 /* adder_redux.png */; };
+		1A2318600B9D026D00EF0852 /* anaconda_redux.png in Copy Textures */ = {isa = PBXBuildFile; fileRef = 1A23181F0B9D026D00EF0852 /* anaconda_redux.png */; };
+		1A2318610B9D026D00EF0852 /* arcdetail.png in Copy Textures */ = {isa = PBXBuildFile; fileRef = 1A2318200B9D026D00EF0852 /* arcdetail.png */; };
+		1A2318620B9D026D00EF0852 /* asciitext.png in Copy Textures */ = {isa = PBXBuildFile; fileRef = 1A2318210B9D026D00EF0852 /* asciitext.png */; };
+		1A2318630B9D026D00EF0852 /* asp_redux.png in Copy Textures */ = {isa = PBXBuildFile; fileRef = 1A2318220B9D026D00EF0852 /* asp_redux.png */; };
+		1A2318640B9D026D00EF0852 /* asteroid.png in Copy Textures */ = {isa = PBXBuildFile; fileRef = 1A2318230B9D026D00EF0852 /* asteroid.png */; };
+		1A2318650B9D026D00EF0852 /* back_metal.png in Copy Textures */ = {isa = PBXBuildFile; fileRef = 1A2318240B9D026D00EF0852 /* back_metal.png */; };
+		1A2318660B9D026D00EF0852 /* barrel_metal.png in Copy Textures */ = {isa = PBXBuildFile; fileRef = 1A2318250B9D026D00EF0852 /* barrel_metal.png */; };
+		1A2318670B9D026D00EF0852 /* blur256.png in Copy Textures */ = {isa = PBXBuildFile; fileRef = 1A2318260B9D026D00EF0852 /* blur256.png */; };
+		1A2318680B9D026D00EF0852 /* boa2_left.png in Copy Textures */ = {isa = PBXBuildFile; fileRef = 1A2318270B9D026D00EF0852 /* boa2_left.png */; };
+		1A2318690B9D026D00EF0852 /* boa2_rear.png in Copy Textures */ = {isa = PBXBuildFile; fileRef = 1A2318280B9D026D00EF0852 /* boa2_rear.png */; };
+		1A23186A0B9D026D00EF0852 /* boa2_redux.png in Copy Textures */ = {isa = PBXBuildFile; fileRef = 1A2318290B9D026D00EF0852 /* boa2_redux.png */; };
+		1A23186B0B9D026D00EF0852 /* boa2_right.png in Copy Textures */ = {isa = PBXBuildFile; fileRef = 1A23182A0B9D026D00EF0852 /* boa2_right.png */; };
+		1A23186C0B9D026D00EF0852 /* boa2_top.png in Copy Textures */ = {isa = PBXBuildFile; fileRef = 1A23182B0B9D026D00EF0852 /* boa2_top.png */; };
+		1A23186D0B9D026D00EF0852 /* boa_redux.png in Copy Textures */ = {isa = PBXBuildFile; fileRef = 1A23182C0B9D026D00EF0852 /* boa_redux.png */; };
+		1A23186E0B9D026D00EF0852 /* bottom_metal.png in Copy Textures */ = {isa = PBXBuildFile; fileRef = 1A23182D0B9D026D00EF0852 /* bottom_metal.png */; };
+		1A23186F0B9D026D00EF0852 /* cobra1_redux.png in Copy Textures */ = {isa = PBXBuildFile; fileRef = 1A23182E0B9D026D00EF0852 /* cobra1_redux.png */; };
+		1A2318700B9D026D00EF0852 /* cobra1_redux1.png in Copy Textures */ = {isa = PBXBuildFile; fileRef = 1A23182F0B9D026D00EF0852 /* cobra1_redux1.png */; };
+		1A2318710B9D026D00EF0852 /* cobra1_redux2.png in Copy Textures */ = {isa = PBXBuildFile; fileRef = 1A2318300B9D026D00EF0852 /* cobra1_redux2.png */; };
+		1A2318720B9D026D00EF0852 /* cobra1miner_top.png in Copy Textures */ = {isa = PBXBuildFile; fileRef = 1A2318310B9D026D00EF0852 /* cobra1miner_top.png */; };
+		1A2318730B9D026D00EF0852 /* cobra3_redux.png in Copy Textures */ = {isa = PBXBuildFile; fileRef = 1A2318320B9D026D00EF0852 /* cobra3_redux.png */; };
+		1A2318740B9D026D00EF0852 /* cobra3_redux1.png in Copy Textures */ = {isa = PBXBuildFile; fileRef = 1A2318330B9D026D00EF0852 /* cobra3_redux1.png */; };
+		1A2318750B9D026D00EF0852 /* constrictor_redux.png in Copy Textures */ = {isa = PBXBuildFile; fileRef = 1A2318340B9D026D00EF0852 /* constrictor_redux.png */; };
+		1A2318760B9D026D00EF0852 /* dark_metal.png in Copy Textures */ = {isa = PBXBuildFile; fileRef = 1A2318350B9D026D00EF0852 /* dark_metal.png */; };
+		1A2318770B9D026D00EF0852 /* ferdelance_redux.png in Copy Textures */ = {isa = PBXBuildFile; fileRef = 1A2318360B9D026D00EF0852 /* ferdelance_redux.png */; };
+		1A2318780B9D026D00EF0852 /* flare256.png in Copy Textures */ = {isa = PBXBuildFile; fileRef = 1A2318370B9D026D00EF0852 /* flare256.png */; };
+		1A2318790B9D026D00EF0852 /* front_metal.png in Copy Textures */ = {isa = PBXBuildFile; fileRef = 1A2318380B9D026D00EF0852 /* front_metal.png */; };
+		1A23187A0B9D026D00EF0852 /* galaxy256.png in Copy Textures */ = {isa = PBXBuildFile; fileRef = 1A2318390B9D026D00EF0852 /* galaxy256.png */; };
+		1A23187B0B9D026D00EF0852 /* gecko_redux.png in Copy Textures */ = {isa = PBXBuildFile; fileRef = 1A23183A0B9D026D00EF0852 /* gecko_redux.png */; };
+		1A23187C0B9D026D00EF0852 /* krait_redux.png in Copy Textures */ = {isa = PBXBuildFile; fileRef = 1A23183B0B9D026D00EF0852 /* krait_redux.png */; };
+		1A23187D0B9D026D00EF0852 /* left_metal.png in Copy Textures */ = {isa = PBXBuildFile; fileRef = 1A23183C0B9D026D00EF0852 /* left_metal.png */; };
+		1A23187E0B9D026D00EF0852 /* mamba_redux.png in Copy Textures */ = {isa = PBXBuildFile; fileRef = 1A23183D0B9D026D00EF0852 /* mamba_redux.png */; };
+		1A23187F0B9D026D00EF0852 /* mamba_redux1.png in Copy Textures */ = {isa = PBXBuildFile; fileRef = 1A23183E0B9D026D00EF0852 /* mamba_redux1.png */; };
+		1A2318800B9D026D00EF0852 /* metal.png in Copy Textures */ = {isa = PBXBuildFile; fileRef = 1A23183F0B9D026D00EF0852 /* metal.png */; };
+		1A2318810B9D026D00EF0852 /* missile.png in Copy Textures */ = {isa = PBXBuildFile; fileRef = 1A2318400B9D026D00EF0852 /* missile.png */; };
+		1A2318820B9D026D00EF0852 /* moray_redux.png in Copy Textures */ = {isa = PBXBuildFile; fileRef = 1A2318410B9D026D00EF0852 /* moray_redux.png */; };
+		1A2318830B9D026D00EF0852 /* moray_redux1.png in Copy Textures */ = {isa = PBXBuildFile; fileRef = 1A2318420B9D026D00EF0852 /* moray_redux1.png */; };
+		1A2318840B9D026D00EF0852 /* MorayMED_bottom.png in Copy Textures */ = {isa = PBXBuildFile; fileRef = 1A2318430B9D026D00EF0852 /* MorayMED_bottom.png */; };
+		1A2318850B9D026D00EF0852 /* MorayMED_top.png in Copy Textures */ = {isa = PBXBuildFile; fileRef = 1A2318440B9D026D00EF0852 /* MorayMED_top.png */; };
+		1A23188A0B9D026D00EF0852 /* pod2_redux.png in Copy Textures */ = {isa = PBXBuildFile; fileRef = 1A2318490B9D026D00EF0852 /* pod2_redux.png */; };
+		1A23188B0B9D026D00EF0852 /* python_redux.png in Copy Textures */ = {isa = PBXBuildFile; fileRef = 1A23184A0B9D026D00EF0852 /* python_redux.png */; };
+		1A23188C0B9D026D00EF0852 /* python_redux1.png in Copy Textures */ = {isa = PBXBuildFile; fileRef = 1A23184B0B9D026D00EF0852 /* python_redux1.png */; };
+		1A23188D0B9D026D00EF0852 /* python_redux2.png in Copy Textures */ = {isa = PBXBuildFile; fileRef = 1A23184C0B9D026D00EF0852 /* python_redux2.png */; };
+		1A23188E0B9D026D00EF0852 /* qbomb.png in Copy Textures */ = {isa = PBXBuildFile; fileRef = 1A23184D0B9D026D00EF0852 /* qbomb.png */; };
+		1A23188F0B9D026D00EF0852 /* right_metal.png in Copy Textures */ = {isa = PBXBuildFile; fileRef = 1A23184E0B9D026D00EF0852 /* right_metal.png */; };
+		1A2318900B9D026D00EF0852 /* scarred_metal.png in Copy Textures */ = {isa = PBXBuildFile; fileRef = 1A23184F0B9D026D00EF0852 /* scarred_metal.png */; };
+		1A2318910B9D026D00EF0852 /* shuttle_redux.png in Copy Textures */ = {isa = PBXBuildFile; fileRef = 1A2318500B9D026D00EF0852 /* shuttle_redux.png */; };
+		1A2318920B9D026D00EF0852 /* sidewinder_redux.png in Copy Textures */ = {isa = PBXBuildFile; fileRef = 1A2318510B9D026D00EF0852 /* sidewinder_redux.png */; };
+		1A2318930B9D026D00EF0852 /* star64.png in Copy Textures */ = {isa = PBXBuildFile; fileRef = 1A2318520B9D026D00EF0852 /* star64.png */; };
+		1A2318940B9D026D00EF0852 /* target_metal.png in Copy Textures */ = {isa = PBXBuildFile; fileRef = 1A2318530B9D026D00EF0852 /* target_metal.png */; };
+		1A2318950B9D026D00EF0852 /* thargoid_redux.png in Copy Textures */ = {isa = PBXBuildFile; fileRef = 1A2318540B9D026D00EF0852 /* thargoid_redux.png */; };
+		1A2318960B9D026D00EF0852 /* thargon_redux.png in Copy Textures */ = {isa = PBXBuildFile; fileRef = 1A2318550B9D026D00EF0852 /* thargon_redux.png */; };
+		1A2318970B9D026D00EF0852 /* top_metal.png in Copy Textures */ = {isa = PBXBuildFile; fileRef = 1A2318560B9D026D00EF0852 /* top_metal.png */; };
+		1A2318980B9D026D00EF0852 /* transporter_redux.png in Copy Textures */ = {isa = PBXBuildFile; fileRef = 1A2318570B9D026D00EF0852 /* transporter_redux.png */; };
+		1A2318990B9D026D00EF0852 /* transporter_redux1.png in Copy Textures */ = {isa = PBXBuildFile; fileRef = 1A2318580B9D026D00EF0852 /* transporter_redux1.png */; };
+		1A23189A0B9D026D00EF0852 /* trumblekit.png in Copy Textures */ = {isa = PBXBuildFile; fileRef = 1A2318590B9D026D00EF0852 /* trumblekit.png */; };
+		1A23189B0B9D026D00EF0852 /* viper_redux.png in Copy Textures */ = {isa = PBXBuildFile; fileRef = 1A23185A0B9D026D00EF0852 /* viper_redux.png */; };
+		1A23189C0B9D026D00EF0852 /* viperi_redux.png in Copy Textures */ = {isa = PBXBuildFile; fileRef = 1A23185B0B9D026D00EF0852 /* viperi_redux.png */; };
+		1A23189D0B9D026D00EF0852 /* worm_redux.png in Copy Textures */ = {isa = PBXBuildFile; fileRef = 1A23185C0B9D026D00EF0852 /* worm_redux.png */; };
+		1A23189E0B9D026D00EF0852 /* worm_redux1.png in Copy Textures */ = {isa = PBXBuildFile; fileRef = 1A23185D0B9D026D00EF0852 /* worm_redux1.png */; };
+		1A23189F0B9D026D00EF0852 /* wreck.png in Copy Textures */ = {isa = PBXBuildFile; fileRef = 1A23185E0B9D026D00EF0852 /* wreck.png */; };
+		1A2318E50B9D02AA00EF0852 /* adder_redux.dat in Copy Models */ = {isa = PBXBuildFile; fileRef = 1A2318A60B9D02A900EF0852 /* adder_redux.dat */; };
+		1A2318E60B9D02AA00EF0852 /* alloy.dat in Copy Models */ = {isa = PBXBuildFile; fileRef = 1A2318A70B9D02A900EF0852 /* alloy.dat */; };
+		1A2318E70B9D02AA00EF0852 /* anaconda_redux.dat in Copy Models */ = {isa = PBXBuildFile; fileRef = 1A2318A80B9D02A900EF0852 /* anaconda_redux.dat */; };
+		1A2318E80B9D02AA00EF0852 /* arcdetail.dat in Copy Models */ = {isa = PBXBuildFile; fileRef = 1A2318A90B9D02A900EF0852 /* arcdetail.dat */; };
+		1A2318E90B9D02AA00EF0852 /* asp_redux.dat in Copy Models */ = {isa = PBXBuildFile; fileRef = 1A2318AA0B9D02A900EF0852 /* asp_redux.dat */; };
+		1A2318EA0B9D02AA00EF0852 /* asteroid.dat in Copy Models */ = {isa = PBXBuildFile; fileRef = 1A2318AB0B9D02A900EF0852 /* asteroid.dat */; };
+		1A2318EB0B9D02AA00EF0852 /* asteroid1.dat in Copy Models */ = {isa = PBXBuildFile; fileRef = 1A2318AC0B9D02A900EF0852 /* asteroid1.dat */; };
+		1A2318EC0B9D02AA00EF0852 /* barrel.dat in Copy Models */ = {isa = PBXBuildFile; fileRef = 1A2318AD0B9D02A900EF0852 /* barrel.dat */; };
+		1A2318ED0B9D02AA00EF0852 /* boa2_redux.dat in Copy Models */ = {isa = PBXBuildFile; fileRef = 1A2318AE0B9D02A900EF0852 /* boa2_redux.dat */; };
+		1A2318EE0B9D02AA00EF0852 /* boa_redux.dat in Copy Models */ = {isa = PBXBuildFile; fileRef = 1A2318AF0B9D02A900EF0852 /* boa_redux.dat */; };
+		1A2318EF0B9D02AA00EF0852 /* boulder.dat in Copy Models */ = {isa = PBXBuildFile; fileRef = 1A2318B00B9D02A900EF0852 /* boulder.dat */; };
+		1A2318F00B9D02AA00EF0852 /* boulder1.dat in Copy Models */ = {isa = PBXBuildFile; fileRef = 1A2318B10B9D02A900EF0852 /* boulder1.dat */; };
+		1A2318F10B9D02AA00EF0852 /* buoy.dat in Copy Models */ = {isa = PBXBuildFile; fileRef = 1A2318B20B9D02A900EF0852 /* buoy.dat */; };
+		1A2318F20B9D02AA00EF0852 /* cobra1_redux.dat in Copy Models */ = {isa = PBXBuildFile; fileRef = 1A2318B30B9D02A900EF0852 /* cobra1_redux.dat */; };
+		1A2318F30B9D02AA00EF0852 /* cobra1_redux1.dat in Copy Models */ = {isa = PBXBuildFile; fileRef = 1A2318B40B9D02A900EF0852 /* cobra1_redux1.dat */; };
+		1A2318F40B9D02AA00EF0852 /* cobra1_redux2.dat in Copy Models */ = {isa = PBXBuildFile; fileRef = 1A2318B50B9D02A900EF0852 /* cobra1_redux2.dat */; };
+		1A2318F50B9D02AA00EF0852 /* cobra3_redux.dat in Copy Models */ = {isa = PBXBuildFile; fileRef = 1A2318B60B9D02A900EF0852 /* cobra3_redux.dat */; };
+		1A2318F60B9D02AA00EF0852 /* cobra3_redux1.dat in Copy Models */ = {isa = PBXBuildFile; fileRef = 1A2318B70B9D02A900EF0852 /* cobra3_redux1.dat */; };
+		1A2318F70B9D02AA00EF0852 /* constrictor_redux.dat in Copy Models */ = {isa = PBXBuildFile; fileRef = 1A2318B80B9D02A900EF0852 /* constrictor_redux.dat */; };
+		1A2318F80B9D02AA00EF0852 /* dock-flat.dat in Copy Models */ = {isa = PBXBuildFile; fileRef = 1A2318B90B9D02A900EF0852 /* dock-flat.dat */; };
+		1A2318F90B9D02AA00EF0852 /* dock.dat in Copy Models */ = {isa = PBXBuildFile; fileRef = 1A2318BA0B9D02A900EF0852 /* dock.dat */; };
+		1A2318FA0B9D02AA00EF0852 /* escpod_redux.dat in Copy Models */ = {isa = PBXBuildFile; fileRef = 1A2318BB0B9D02A900EF0852 /* escpod_redux.dat */; };
+		1A2318FB0B9D02AA00EF0852 /* exhaust.dat in Copy Models */ = {isa = PBXBuildFile; fileRef = 1A2318BC0B9D02A900EF0852 /* exhaust.dat */; };
+		1A2318FC0B9D02AA00EF0852 /* ferdelance_redux.dat in Copy Models */ = {isa = PBXBuildFile; fileRef = 1A2318BD0B9D02A900EF0852 /* ferdelance_redux.dat */; };
+		1A2318FD0B9D02AA00EF0852 /* gecko_redux.dat in Copy Models */ = {isa = PBXBuildFile; fileRef = 1A2318BE0B9D02A900EF0852 /* gecko_redux.dat */; };
+		1A2318FE0B9D02AA00EF0852 /* icosahedron.dat in Copy Models */ = {isa = PBXBuildFile; fileRef = 1A2318BF0B9D02A900EF0852 /* icosahedron.dat */; };
+		1A2318FF0B9D02AA00EF0852 /* icostextured.dat in Copy Models */ = {isa = PBXBuildFile; fileRef = 1A2318C00B9D02A900EF0852 /* icostextured.dat */; };
+		1A2319000B9D02AA00EF0852 /* krait_redux.dat in Copy Models */ = {isa = PBXBuildFile; fileRef = 1A2318C10B9D02A900EF0852 /* krait_redux.dat */; };
+		1A2319010B9D02AA00EF0852 /* mamba_redux.dat in Copy Models */ = {isa = PBXBuildFile; fileRef = 1A2318C20B9D02A900EF0852 /* mamba_redux.dat */; };
+		1A2319020B9D02AA00EF0852 /* mamba_redux1.dat in Copy Models */ = {isa = PBXBuildFile; fileRef = 1A2318C30B9D02A900EF0852 /* mamba_redux1.dat */; };
+		1A2319030B9D02AA00EF0852 /* missile.dat in Copy Models */ = {isa = PBXBuildFile; fileRef = 1A2318C40B9D02A900EF0852 /* missile.dat */; };
+		1A2319040B9D02AA00EF0852 /* moray_redux.dat in Copy Models */ = {isa = PBXBuildFile; fileRef = 1A2318C50B9D02A900EF0852 /* moray_redux.dat */; };
+		1A2319050B9D02AA00EF0852 /* moray_redux1.dat in Copy Models */ = {isa = PBXBuildFile; fileRef = 1A2318C60B9D02A900EF0852 /* moray_redux1.dat */; };
+		1A2319060B9D02AA00EF0852 /* new-dodo.dat in Copy Models */ = {isa = PBXBuildFile; fileRef = 1A2318C70B9D02A900EF0852 /* new-dodo.dat */; };
+		1A2319070B9D02AA00EF0852 /* new-icos.dat in Copy Models */ = {isa = PBXBuildFile; fileRef = 1A2318C80B9D02A900EF0852 /* new-icos.dat */; };
+		1A2319080B9D02AA00EF0852 /* new-rock.dat in Copy Models */ = {isa = PBXBuildFile; fileRef = 1A2318C90B9D02A900EF0852 /* new-rock.dat */; };
+		1A2319090B9D02AA00EF0852 /* new_coriolis.dat in Copy Models */ = {isa = PBXBuildFile; fileRef = 1A2318CA0B9D02A900EF0852 /* new_coriolis.dat */; };
+		1A23190A0B9D02AA00EF0852 /* python_redux.dat in Copy Models */ = {isa = PBXBuildFile; fileRef = 1A2318CB0B9D02A900EF0852 /* python_redux.dat */; };
+		1A23190B0B9D02AA00EF0852 /* python_redux1.dat in Copy Models */ = {isa = PBXBuildFile; fileRef = 1A2318CC0B9D02A900EF0852 /* python_redux1.dat */; };
+		1A23190C0B9D02AA00EF0852 /* python_redux2.dat in Copy Models */ = {isa = PBXBuildFile; fileRef = 1A2318CD0B9D02AA00EF0852 /* python_redux2.dat */; };
+		1A23190D0B9D02AA00EF0852 /* qbomb.dat in Copy Models */ = {isa = PBXBuildFile; fileRef = 1A2318CE0B9D02AA00EF0852 /* qbomb.dat */; };
+		1A23190E0B9D02AA00EF0852 /* ring.dat in Copy Models */ = {isa = PBXBuildFile; fileRef = 1A2318CF0B9D02AA00EF0852 /* ring.dat */; };
+		1A23190F0B9D02AA00EF0852 /* rock-box.dat in Copy Models */ = {isa = PBXBuildFile; fileRef = 1A2318D00B9D02AA00EF0852 /* rock-box.dat */; };
+		1A2319100B9D02AA00EF0852 /* rock-dock.dat in Copy Models */ = {isa = PBXBuildFile; fileRef = 1A2318D10B9D02AA00EF0852 /* rock-dock.dat */; };
+		1A2319110B9D02AA00EF0852 /* scarred_alloy.dat in Copy Models */ = {isa = PBXBuildFile; fileRef = 1A2318D20B9D02AA00EF0852 /* scarred_alloy.dat */; };
+		1A2319120B9D02AA00EF0852 /* shuttle_redux.dat in Copy Models */ = {isa = PBXBuildFile; fileRef = 1A2318D30B9D02AA00EF0852 /* shuttle_redux.dat */; };
+		1A2319130B9D02AA00EF0852 /* sidewinder_redux.dat in Copy Models */ = {isa = PBXBuildFile; fileRef = 1A2318D40B9D02AA00EF0852 /* sidewinder_redux.dat */; };
+		1A2319140B9D02AA00EF0852 /* splinter.dat in Copy Models */ = {isa = PBXBuildFile; fileRef = 1A2318D50B9D02AA00EF0852 /* splinter.dat */; };
+		1A2319150B9D02AA00EF0852 /* splinter1.dat in Copy Models */ = {isa = PBXBuildFile; fileRef = 1A2318D60B9D02AA00EF0852 /* splinter1.dat */; };
+		1A2319160B9D02AA00EF0852 /* strut.dat in Copy Models */ = {isa = PBXBuildFile; fileRef = 1A2318D70B9D02AA00EF0852 /* strut.dat */; };
+		1A2319170B9D02AA00EF0852 /* thargoid_redux.dat in Copy Models */ = {isa = PBXBuildFile; fileRef = 1A2318D80B9D02AA00EF0852 /* thargoid_redux.dat */; };
+		1A2319180B9D02AA00EF0852 /* thargon_redux.dat in Copy Models */ = {isa = PBXBuildFile; fileRef = 1A2318D90B9D02AA00EF0852 /* thargon_redux.dat */; };
+		1A2319190B9D02AA00EF0852 /* transporter_redux.dat in Copy Models */ = {isa = PBXBuildFile; fileRef = 1A2318DA0B9D02AA00EF0852 /* transporter_redux.dat */; };
+		1A23191A0B9D02AA00EF0852 /* transporter_redux1.dat in Copy Models */ = {isa = PBXBuildFile; fileRef = 1A2318DB0B9D02AA00EF0852 /* transporter_redux1.dat */; };
+		1A23191B0B9D02AA00EF0852 /* viper_redux.dat in Copy Models */ = {isa = PBXBuildFile; fileRef = 1A2318DC0B9D02AA00EF0852 /* viper_redux.dat */; };
+		1A23191C0B9D02AA00EF0852 /* viperi_redux.dat in Copy Models */ = {isa = PBXBuildFile; fileRef = 1A2318DD0B9D02AA00EF0852 /* viperi_redux.dat */; };
+		1A23191D0B9D02AA00EF0852 /* worm_redux.dat in Copy Models */ = {isa = PBXBuildFile; fileRef = 1A2318DE0B9D02AA00EF0852 /* worm_redux.dat */; };
+		1A23191E0B9D02AA00EF0852 /* worm_redux1.dat in Copy Models */ = {isa = PBXBuildFile; fileRef = 1A2318DF0B9D02AA00EF0852 /* worm_redux1.dat */; };
+		1A23191F0B9D02AA00EF0852 /* wreck1.dat in Copy Models */ = {isa = PBXBuildFile; fileRef = 1A2318E00B9D02AA00EF0852 /* wreck1.dat */; };
+		1A2319200B9D02AA00EF0852 /* wreck2.dat in Copy Models */ = {isa = PBXBuildFile; fileRef = 1A2318E10B9D02AA00EF0852 /* wreck2.dat */; };
+		1A2319210B9D02AA00EF0852 /* wreck3.dat in Copy Models */ = {isa = PBXBuildFile; fileRef = 1A2318E20B9D02AA00EF0852 /* wreck3.dat */; };
+		1A2319220B9D02AA00EF0852 /* wreck4.dat in Copy Models */ = {isa = PBXBuildFile; fileRef = 1A2318E30B9D02AA00EF0852 /* wreck4.dat */; };
+		1A2319230B9D02AA00EF0852 /* wreck5.dat in Copy Models */ = {isa = PBXBuildFile; fileRef = 1A2318E40B9D02AA00EF0852 /* wreck5.dat */; };
+		1A2319760B9D02F900EF0852 /* BlueDanube.ogg in Copy Music */ = {isa = PBXBuildFile; fileRef = 1A2319740B9D02F900EF0852 /* BlueDanube.ogg */; };
+		1A2319770B9D02F900EF0852 /* OoliteTheme.ogg in Copy Music */ = {isa = PBXBuildFile; fileRef = 1A2319750B9D02F900EF0852 /* OoliteTheme.ogg */; };
+		1A2319A60B9D031D00EF0852 /* afterburner1.ogg in Copy Sounds */ = {isa = PBXBuildFile; fileRef = 1A2319920B9D031D00EF0852 /* afterburner1.ogg */; };
+		1A2319A70B9D031D00EF0852 /* afterburner2.ogg in Copy Sounds */ = {isa = PBXBuildFile; fileRef = 1A2319930B9D031D00EF0852 /* afterburner2.ogg */; };
+		1A2319A80B9D031D00EF0852 /* beep.ogg in Copy Sounds */ = {isa = PBXBuildFile; fileRef = 1A2319940B9D031D00EF0852 /* beep.ogg */; };
+		1A2319A90B9D031D00EF0852 /* bigbang.ogg in Copy Sounds */ = {isa = PBXBuildFile; fileRef = 1A2319950B9D031D00EF0852 /* bigbang.ogg */; };
+		1A2319AA0B9D031D00EF0852 /* boop.ogg in Copy Sounds */ = {isa = PBXBuildFile; fileRef = 1A2319960B9D031D00EF0852 /* boop.ogg */; };
+		1A2319AB0B9D031D00EF0852 /* breakpattern.ogg in Copy Sounds */ = {isa = PBXBuildFile; fileRef = 1A2319970B9D031D00EF0852 /* breakpattern.ogg */; };
+		1A2319AC0B9D031D00EF0852 /* buy.ogg in Copy Sounds */ = {isa = PBXBuildFile; fileRef = 1A2319980B9D031D00EF0852 /* buy.ogg */; };
+		1A2319AD0B9D031D00EF0852 /* ecm.ogg in Copy Sounds */ = {isa = PBXBuildFile; fileRef = 1A2319990B9D031D00EF0852 /* ecm.ogg */; };
+		1A2319AE0B9D031D00EF0852 /* guiclick.ogg in Copy Sounds */ = {isa = PBXBuildFile; fileRef = 1A23199A0B9D031D00EF0852 /* guiclick.ogg */; };
+		1A2319AF0B9D031D00EF0852 /* hit.ogg in Copy Sounds */ = {isa = PBXBuildFile; fileRef = 1A23199B0B9D031D00EF0852 /* hit.ogg */; };
+		1A2319B00B9D031D00EF0852 /* hullbang.ogg in Copy Sounds */ = {isa = PBXBuildFile; fileRef = 1A23199C0B9D031D00EF0852 /* hullbang.ogg */; };
+		1A2319B10B9D031D00EF0852 /* laser.ogg in Copy Sounds */ = {isa = PBXBuildFile; fileRef = 1A23199D0B9D031D00EF0852 /* laser.ogg */; };
+		1A2319B20B9D031D00EF0852 /* laserhits.ogg in Copy Sounds */ = {isa = PBXBuildFile; fileRef = 1A23199E0B9D031D00EF0852 /* laserhits.ogg */; };
+		1A2319B30B9D031D00EF0852 /* missile.ogg in Copy Sounds */ = {isa = PBXBuildFile; fileRef = 1A23199F0B9D031D00EF0852 /* missile.ogg */; };
+		1A2319B40B9D031D00EF0852 /* scoop.ogg in Copy Sounds */ = {isa = PBXBuildFile; fileRef = 1A2319A00B9D031D00EF0852 /* scoop.ogg */; };
+		1A2319B50B9D031D00EF0852 /* sell.ogg in Copy Sounds */ = {isa = PBXBuildFile; fileRef = 1A2319A10B9D031D00EF0852 /* sell.ogg */; };
+		1A2319B60B9D031D00EF0852 /* trumble.ogg in Copy Sounds */ = {isa = PBXBuildFile; fileRef = 1A2319A20B9D031D00EF0852 /* trumble.ogg */; };
+		1A2319B70B9D031D00EF0852 /* trumblesqueal.ogg in Copy Sounds */ = {isa = PBXBuildFile; fileRef = 1A2319A30B9D031D00EF0852 /* trumblesqueal.ogg */; };
+		1A2319B80B9D031D00EF0852 /* warning.ogg in Copy Sounds */ = {isa = PBXBuildFile; fileRef = 1A2319A40B9D031D00EF0852 /* warning.ogg */; };
+		1A2319B90B9D031D00EF0852 /* witchabort.ogg in Copy Sounds */ = {isa = PBXBuildFile; fileRef = 1A2319A50B9D031D00EF0852 /* witchabort.ogg */; };
 		1A38B4AC0B988532001ED4A0 /* OOLogging.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A38B4AA0B988532001ED4A0 /* OOLogging.h */; };
 		1A38B4AD0B988532001ED4A0 /* OOLogging.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A38B4AB0B988532001ED4A0 /* OOLogging.m */; };
 		1A472917096B5454000E78D8 /* CoreAudio.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1A472916096B5454000E78D8 /* CoreAudio.framework */; };
@@ -180,6 +370,262 @@
 			name = "Copy Images";
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		1A2316C80B9CFAB800EF0852 /* Copy Config */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = Config;
+			dstSubfolderSpec = 7;
+			files = (
+				1A2316EE0B9CFAD700EF0852 /* characters.plist in Copy Config */,
+				1A2316EF0B9CFAD700EF0852 /* commodities.plist in Copy Config */,
+				1A2316F00B9CFAD700EF0852 /* customsounds.plist in Copy Config */,
+				1A2316F10B9CFAD700EF0852 /* demoships.plist in Copy Config */,
+				1A2316F20B9CFAD700EF0852 /* descriptions.plist in Copy Config */,
+				1A2316F30B9CFAD700EF0852 /* equipment.plist in Copy Config */,
+				1A2316F40B9CFAD700EF0852 /* hud-small.plist in Copy Config */,
+				1A2316F50B9CFAD700EF0852 /* hud.plist in Copy Config */,
+				1A2316F60B9CFAD700EF0852 /* illegal_goods.plist in Copy Config */,
+				1A2316F70B9CFAD700EF0852 /* keyconfig.plist in Copy Config */,
+				1A2316F80B9CFAD700EF0852 /* logcontrol.plist in Copy Config */,
+				1A2316F90B9CFAD700EF0852 /* missiontext.plist in Copy Config */,
+				1A2316FA0B9CFAD700EF0852 /* script.plist in Copy Config */,
+				1A2316FB0B9CFAD700EF0852 /* shipdata.plist in Copy Config */,
+				1A2316FC0B9CFAD800EF0852 /* shipyard.plist in Copy Config */,
+				1A2316FD0B9CFAD800EF0852 /* speech_pronunciation_guide.plist in Copy Config */,
+			);
+			name = "Copy Config";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		1A2317D50B9D023400EF0852 /* Copy AIs */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = AIs;
+			dstSubfolderSpec = 7;
+			files = (
+				1A2317B30B9D022500EF0852 /* buoyAI.plist in Copy AIs */,
+				1A2317B40B9D022500EF0852 /* collectLootAI.plist in Copy AIs */,
+				1A2317B50B9D022500EF0852 /* dockingAI.plist in Copy AIs */,
+				1A2317B60B9D022500EF0852 /* dumbAI.plist in Copy AIs */,
+				1A2317B70B9D022500EF0852 /* enteringPirateAI.plist in Copy AIs */,
+				1A2317B80B9D022500EF0852 /* enteringTraderAI.plist in Copy AIs */,
+				1A2317B90B9D022500EF0852 /* escortAI.plist in Copy AIs */,
+				1A2317BA0B9D022500EF0852 /* exitingTraderAI.plist in Copy AIs */,
+				1A2317BB0B9D022500EF0852 /* fallingShuttleAI.plist in Copy AIs */,
+				1A2317BC0B9D022500EF0852 /* fttAI.plist in Copy AIs */,
+				1A2317BD0B9D022500EF0852 /* gotoWaypointAI.plist in Copy AIs */,
+				1A2317BE0B9D022500EF0852 /* hardMissileAI.plist in Copy AIs */,
+				1A2317BF0B9D022500EF0852 /* homeAI.plist in Copy AIs */,
+				1A2317C00B9D022500EF0852 /* interceptAI.plist in Copy AIs */,
+				1A2317C10B9D022500EF0852 /* minerAI.plist in Copy AIs */,
+				1A2317C20B9D022500EF0852 /* missileAI.plist in Copy AIs */,
+				1A2317C30B9D022500EF0852 /* nullAI.plist in Copy AIs */,
+				1A2317C40B9D022500EF0852 /* pirateAI.plist in Copy AIs */,
+				1A2317C50B9D022500EF0852 /* planetPatrolAI.plist in Copy AIs */,
+				1A2317C60B9D022500EF0852 /* policeInterceptAI.plist in Copy AIs */,
+				1A2317C70B9D022500EF0852 /* receiveDockingAI.plist in Copy AIs */,
+				1A2317C80B9D022500EF0852 /* risingShuttleAI.plist in Copy AIs */,
+				1A2317C90B9D022500EF0852 /* rockHermitAI.plist in Copy AIs */,
+				1A2317CA0B9D022500EF0852 /* route1patrolAI.plist in Copy AIs */,
+				1A2317CB0B9D022500EF0852 /* route1traderAI.plist in Copy AIs */,
+				1A2317CC0B9D022500EF0852 /* route2patrolAI.plist in Copy AIs */,
+				1A2317CD0B9D022500EF0852 /* route2sunskimAI.plist in Copy AIs */,
+				1A2317CE0B9D022500EF0852 /* scavengerAI.plist in Copy AIs */,
+				1A2317CF0B9D022500EF0852 /* shuttleAI.plist in Copy AIs */,
+				1A2317D00B9D022500EF0852 /* stationAI.plist in Copy AIs */,
+				1A2317D10B9D022500EF0852 /* sunSkimExitAI.plist in Copy AIs */,
+				1A2317D20B9D022500EF0852 /* thargletAI.plist in Copy AIs */,
+				1A2317D30B9D022500EF0852 /* thargoidAI.plist in Copy AIs */,
+				1A2317D40B9D022500EF0852 /* timebombAI.plist in Copy AIs */,
+			);
+			name = "Copy AIs";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		1A2318A00B9D027400EF0852 /* Copy Textures */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = Textures;
+			dstSubfolderSpec = 7;
+			files = (
+				1A23185F0B9D026D00EF0852 /* adder_redux.png in Copy Textures */,
+				1A2318600B9D026D00EF0852 /* anaconda_redux.png in Copy Textures */,
+				1A2318610B9D026D00EF0852 /* arcdetail.png in Copy Textures */,
+				1A2318620B9D026D00EF0852 /* asciitext.png in Copy Textures */,
+				1A2318630B9D026D00EF0852 /* asp_redux.png in Copy Textures */,
+				1A2318640B9D026D00EF0852 /* asteroid.png in Copy Textures */,
+				1A2318650B9D026D00EF0852 /* back_metal.png in Copy Textures */,
+				1A2318660B9D026D00EF0852 /* barrel_metal.png in Copy Textures */,
+				1A2318670B9D026D00EF0852 /* blur256.png in Copy Textures */,
+				1A2318680B9D026D00EF0852 /* boa2_left.png in Copy Textures */,
+				1A2318690B9D026D00EF0852 /* boa2_rear.png in Copy Textures */,
+				1A23186A0B9D026D00EF0852 /* boa2_redux.png in Copy Textures */,
+				1A23186B0B9D026D00EF0852 /* boa2_right.png in Copy Textures */,
+				1A23186C0B9D026D00EF0852 /* boa2_top.png in Copy Textures */,
+				1A23186D0B9D026D00EF0852 /* boa_redux.png in Copy Textures */,
+				1A23186E0B9D026D00EF0852 /* bottom_metal.png in Copy Textures */,
+				1A23186F0B9D026D00EF0852 /* cobra1_redux.png in Copy Textures */,
+				1A2318700B9D026D00EF0852 /* cobra1_redux1.png in Copy Textures */,
+				1A2318710B9D026D00EF0852 /* cobra1_redux2.png in Copy Textures */,
+				1A2318720B9D026D00EF0852 /* cobra1miner_top.png in Copy Textures */,
+				1A2318730B9D026D00EF0852 /* cobra3_redux.png in Copy Textures */,
+				1A2318740B9D026D00EF0852 /* cobra3_redux1.png in Copy Textures */,
+				1A2318750B9D026D00EF0852 /* constrictor_redux.png in Copy Textures */,
+				1A2318760B9D026D00EF0852 /* dark_metal.png in Copy Textures */,
+				1A2318770B9D026D00EF0852 /* ferdelance_redux.png in Copy Textures */,
+				1A2318780B9D026D00EF0852 /* flare256.png in Copy Textures */,
+				1A2318790B9D026D00EF0852 /* front_metal.png in Copy Textures */,
+				1A23187A0B9D026D00EF0852 /* galaxy256.png in Copy Textures */,
+				1A23187B0B9D026D00EF0852 /* gecko_redux.png in Copy Textures */,
+				1A23187C0B9D026D00EF0852 /* krait_redux.png in Copy Textures */,
+				1A23187D0B9D026D00EF0852 /* left_metal.png in Copy Textures */,
+				1A23187E0B9D026D00EF0852 /* mamba_redux.png in Copy Textures */,
+				1A23187F0B9D026D00EF0852 /* mamba_redux1.png in Copy Textures */,
+				1A2318800B9D026D00EF0852 /* metal.png in Copy Textures */,
+				1A2318810B9D026D00EF0852 /* missile.png in Copy Textures */,
+				1A2318820B9D026D00EF0852 /* moray_redux.png in Copy Textures */,
+				1A2318830B9D026D00EF0852 /* moray_redux1.png in Copy Textures */,
+				1A2318840B9D026D00EF0852 /* MorayMED_bottom.png in Copy Textures */,
+				1A2318850B9D026D00EF0852 /* MorayMED_top.png in Copy Textures */,
+				1A23188A0B9D026D00EF0852 /* pod2_redux.png in Copy Textures */,
+				1A23188B0B9D026D00EF0852 /* python_redux.png in Copy Textures */,
+				1A23188C0B9D026D00EF0852 /* python_redux1.png in Copy Textures */,
+				1A23188D0B9D026D00EF0852 /* python_redux2.png in Copy Textures */,
+				1A23188E0B9D026D00EF0852 /* qbomb.png in Copy Textures */,
+				1A23188F0B9D026D00EF0852 /* right_metal.png in Copy Textures */,
+				1A2318900B9D026D00EF0852 /* scarred_metal.png in Copy Textures */,
+				1A2318910B9D026D00EF0852 /* shuttle_redux.png in Copy Textures */,
+				1A2318920B9D026D00EF0852 /* sidewinder_redux.png in Copy Textures */,
+				1A2318930B9D026D00EF0852 /* star64.png in Copy Textures */,
+				1A2318940B9D026D00EF0852 /* target_metal.png in Copy Textures */,
+				1A2318950B9D026D00EF0852 /* thargoid_redux.png in Copy Textures */,
+				1A2318960B9D026D00EF0852 /* thargon_redux.png in Copy Textures */,
+				1A2318970B9D026D00EF0852 /* top_metal.png in Copy Textures */,
+				1A2318980B9D026D00EF0852 /* transporter_redux.png in Copy Textures */,
+				1A2318990B9D026D00EF0852 /* transporter_redux1.png in Copy Textures */,
+				1A23189A0B9D026D00EF0852 /* trumblekit.png in Copy Textures */,
+				1A23189B0B9D026D00EF0852 /* viper_redux.png in Copy Textures */,
+				1A23189C0B9D026D00EF0852 /* viperi_redux.png in Copy Textures */,
+				1A23189D0B9D026D00EF0852 /* worm_redux.png in Copy Textures */,
+				1A23189E0B9D026D00EF0852 /* worm_redux1.png in Copy Textures */,
+				1A23189F0B9D026D00EF0852 /* wreck.png in Copy Textures */,
+			);
+			name = "Copy Textures";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		1A2319640B9D02B900EF0852 /* Copy Models */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = Models;
+			dstSubfolderSpec = 7;
+			files = (
+				1A2318E50B9D02AA00EF0852 /* adder_redux.dat in Copy Models */,
+				1A2318E60B9D02AA00EF0852 /* alloy.dat in Copy Models */,
+				1A2318E70B9D02AA00EF0852 /* anaconda_redux.dat in Copy Models */,
+				1A2318E80B9D02AA00EF0852 /* arcdetail.dat in Copy Models */,
+				1A2318E90B9D02AA00EF0852 /* asp_redux.dat in Copy Models */,
+				1A2318EA0B9D02AA00EF0852 /* asteroid.dat in Copy Models */,
+				1A2318EB0B9D02AA00EF0852 /* asteroid1.dat in Copy Models */,
+				1A2318EC0B9D02AA00EF0852 /* barrel.dat in Copy Models */,
+				1A2318ED0B9D02AA00EF0852 /* boa2_redux.dat in Copy Models */,
+				1A2318EE0B9D02AA00EF0852 /* boa_redux.dat in Copy Models */,
+				1A2318EF0B9D02AA00EF0852 /* boulder.dat in Copy Models */,
+				1A2318F00B9D02AA00EF0852 /* boulder1.dat in Copy Models */,
+				1A2318F10B9D02AA00EF0852 /* buoy.dat in Copy Models */,
+				1A2318F20B9D02AA00EF0852 /* cobra1_redux.dat in Copy Models */,
+				1A2318F30B9D02AA00EF0852 /* cobra1_redux1.dat in Copy Models */,
+				1A2318F40B9D02AA00EF0852 /* cobra1_redux2.dat in Copy Models */,
+				1A2318F50B9D02AA00EF0852 /* cobra3_redux.dat in Copy Models */,
+				1A2318F60B9D02AA00EF0852 /* cobra3_redux1.dat in Copy Models */,
+				1A2318F70B9D02AA00EF0852 /* constrictor_redux.dat in Copy Models */,
+				1A2318F80B9D02AA00EF0852 /* dock-flat.dat in Copy Models */,
+				1A2318F90B9D02AA00EF0852 /* dock.dat in Copy Models */,
+				1A2318FA0B9D02AA00EF0852 /* escpod_redux.dat in Copy Models */,
+				1A2318FB0B9D02AA00EF0852 /* exhaust.dat in Copy Models */,
+				1A2318FC0B9D02AA00EF0852 /* ferdelance_redux.dat in Copy Models */,
+				1A2318FD0B9D02AA00EF0852 /* gecko_redux.dat in Copy Models */,
+				1A2318FE0B9D02AA00EF0852 /* icosahedron.dat in Copy Models */,
+				1A2318FF0B9D02AA00EF0852 /* icostextured.dat in Copy Models */,
+				1A2319000B9D02AA00EF0852 /* krait_redux.dat in Copy Models */,
+				1A2319010B9D02AA00EF0852 /* mamba_redux.dat in Copy Models */,
+				1A2319020B9D02AA00EF0852 /* mamba_redux1.dat in Copy Models */,
+				1A2319030B9D02AA00EF0852 /* missile.dat in Copy Models */,
+				1A2319040B9D02AA00EF0852 /* moray_redux.dat in Copy Models */,
+				1A2319050B9D02AA00EF0852 /* moray_redux1.dat in Copy Models */,
+				1A2319060B9D02AA00EF0852 /* new-dodo.dat in Copy Models */,
+				1A2319070B9D02AA00EF0852 /* new-icos.dat in Copy Models */,
+				1A2319080B9D02AA00EF0852 /* new-rock.dat in Copy Models */,
+				1A2319090B9D02AA00EF0852 /* new_coriolis.dat in Copy Models */,
+				1A23190A0B9D02AA00EF0852 /* python_redux.dat in Copy Models */,
+				1A23190B0B9D02AA00EF0852 /* python_redux1.dat in Copy Models */,
+				1A23190C0B9D02AA00EF0852 /* python_redux2.dat in Copy Models */,
+				1A23190D0B9D02AA00EF0852 /* qbomb.dat in Copy Models */,
+				1A23190E0B9D02AA00EF0852 /* ring.dat in Copy Models */,
+				1A23190F0B9D02AA00EF0852 /* rock-box.dat in Copy Models */,
+				1A2319100B9D02AA00EF0852 /* rock-dock.dat in Copy Models */,
+				1A2319110B9D02AA00EF0852 /* scarred_alloy.dat in Copy Models */,
+				1A2319120B9D02AA00EF0852 /* shuttle_redux.dat in Copy Models */,
+				1A2319130B9D02AA00EF0852 /* sidewinder_redux.dat in Copy Models */,
+				1A2319140B9D02AA00EF0852 /* splinter.dat in Copy Models */,
+				1A2319150B9D02AA00EF0852 /* splinter1.dat in Copy Models */,
+				1A2319160B9D02AA00EF0852 /* strut.dat in Copy Models */,
+				1A2319170B9D02AA00EF0852 /* thargoid_redux.dat in Copy Models */,
+				1A2319180B9D02AA00EF0852 /* thargon_redux.dat in Copy Models */,
+				1A2319190B9D02AA00EF0852 /* transporter_redux.dat in Copy Models */,
+				1A23191A0B9D02AA00EF0852 /* transporter_redux1.dat in Copy Models */,
+				1A23191B0B9D02AA00EF0852 /* viper_redux.dat in Copy Models */,
+				1A23191C0B9D02AA00EF0852 /* viperi_redux.dat in Copy Models */,
+				1A23191D0B9D02AA00EF0852 /* worm_redux.dat in Copy Models */,
+				1A23191E0B9D02AA00EF0852 /* worm_redux1.dat in Copy Models */,
+				1A23191F0B9D02AA00EF0852 /* wreck1.dat in Copy Models */,
+				1A2319200B9D02AA00EF0852 /* wreck2.dat in Copy Models */,
+				1A2319210B9D02AA00EF0852 /* wreck3.dat in Copy Models */,
+				1A2319220B9D02AA00EF0852 /* wreck4.dat in Copy Models */,
+				1A2319230B9D02AA00EF0852 /* wreck5.dat in Copy Models */,
+			);
+			name = "Copy Models";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		1A2319780B9D030400EF0852 /* Copy Music */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = Music;
+			dstSubfolderSpec = 7;
+			files = (
+				1A2319760B9D02F900EF0852 /* BlueDanube.ogg in Copy Music */,
+				1A2319770B9D02F900EF0852 /* OoliteTheme.ogg in Copy Music */,
+			);
+			name = "Copy Music";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		1A2319BA0B9D032700EF0852 /* Copy Sounds */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = Sounds;
+			dstSubfolderSpec = 7;
+			files = (
+				1A2319A60B9D031D00EF0852 /* afterburner1.ogg in Copy Sounds */,
+				1A2319A70B9D031D00EF0852 /* afterburner2.ogg in Copy Sounds */,
+				1A2319A80B9D031D00EF0852 /* beep.ogg in Copy Sounds */,
+				1A2319A90B9D031D00EF0852 /* bigbang.ogg in Copy Sounds */,
+				1A2319AA0B9D031D00EF0852 /* boop.ogg in Copy Sounds */,
+				1A2319AB0B9D031D00EF0852 /* breakpattern.ogg in Copy Sounds */,
+				1A2319AC0B9D031D00EF0852 /* buy.ogg in Copy Sounds */,
+				1A2319AD0B9D031D00EF0852 /* ecm.ogg in Copy Sounds */,
+				1A2319AE0B9D031D00EF0852 /* guiclick.ogg in Copy Sounds */,
+				1A2319AF0B9D031D00EF0852 /* hit.ogg in Copy Sounds */,
+				1A2319B00B9D031D00EF0852 /* hullbang.ogg in Copy Sounds */,
+				1A2319B10B9D031D00EF0852 /* laser.ogg in Copy Sounds */,
+				1A2319B20B9D031D00EF0852 /* laserhits.ogg in Copy Sounds */,
+				1A2319B30B9D031D00EF0852 /* missile.ogg in Copy Sounds */,
+				1A2319B40B9D031D00EF0852 /* scoop.ogg in Copy Sounds */,
+				1A2319B50B9D031D00EF0852 /* sell.ogg in Copy Sounds */,
+				1A2319B60B9D031D00EF0852 /* trumble.ogg in Copy Sounds */,
+				1A2319B70B9D031D00EF0852 /* trumblesqueal.ogg in Copy Sounds */,
+				1A2319B80B9D031D00EF0852 /* warning.ogg in Copy Sounds */,
+				1A2319B90B9D031D00EF0852 /* witchabort.ogg in Copy Sounds */,
+			);
+			name = "Copy Sounds";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		1A5BF29C0916D49800BF238F /* Copy MDImporter */ = {
 			isa = PBXCopyFilesBuildPhase;
 			buildActionMask = 12;
@@ -205,19 +651,209 @@
 		083325DC09DDBCDE00F5B8E4 /* OOColor.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOColor.m; sourceTree = "<group>"; };
 		083DB4D30A70E51E00B419B2 /* OOBrain.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOBrain.h; sourceTree = "<group>"; };
 		083DB4D40A70E51E00B419B2 /* OOBrain.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOBrain.m; sourceTree = "<group>"; };
-		0865432206B8447D000CA0AB /* Oolite.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Oolite.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		0865432206B8447D000CA0AB /* OoliteDev.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = OoliteDev.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		0878FD2F086EF845004CB752 /* Carbon.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Carbon.framework; path = /System/Library/Frameworks/Carbon.framework; sourceTree = "<absolute>"; };
 		1058C7A1FEA54F0111CA2CBB /* Cocoa.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Cocoa.framework; path = /System/Library/Frameworks/Cocoa.framework; sourceTree = "<absolute>"; };
-		1A23133B0B9C64F400EF0852 /* AIs */ = {isa = PBXFileReference; lastKnownFileType = folder; path = AIs; sourceTree = "<group>"; };
-		1A23135F0B9C64F400EF0852 /* Textures */ = {isa = PBXFileReference; lastKnownFileType = folder; path = Textures; sourceTree = "<group>"; };
-		1A2313A20B9C64F400EF0852 /* Config */ = {isa = PBXFileReference; lastKnownFileType = folder; path = Config; sourceTree = "<group>"; };
-		1A2313B40B9C64F400EF0852 /* Models */ = {isa = PBXFileReference; lastKnownFileType = folder; path = Models; sourceTree = "<group>"; };
-		1A2313FB0B9C64F500EF0852 /* Music */ = {isa = PBXFileReference; lastKnownFileType = folder; path = Music; sourceTree = "<group>"; };
-		1A2313FF0B9C64F500EF0852 /* Sounds */ = {isa = PBXFileReference; lastKnownFileType = folder; path = Sounds; sourceTree = "<group>"; };
 		1A23154E0B9C778400EF0852 /* solar.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = solar.png; sourceTree = "<group>"; };
 		1A23154F0B9C778400EF0852 /* splash.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = splash.png; sourceTree = "<group>"; };
 		1A2315500B9C778400EF0852 /* splashback.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = splashback.png; sourceTree = "<group>"; };
 		1A2315510B9C778400EF0852 /* trumblebox.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = trumblebox.png; sourceTree = "<group>"; };
+		1A2316DE0B9CFAD700EF0852 /* characters.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xml; path = characters.plist; sourceTree = "<group>"; };
+		1A2316DF0B9CFAD700EF0852 /* commodities.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xml; path = commodities.plist; sourceTree = "<group>"; };
+		1A2316E00B9CFAD700EF0852 /* customsounds.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xml; path = customsounds.plist; sourceTree = "<group>"; };
+		1A2316E10B9CFAD700EF0852 /* demoships.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xml; path = demoships.plist; sourceTree = "<group>"; };
+		1A2316E20B9CFAD700EF0852 /* descriptions.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xml; path = descriptions.plist; sourceTree = "<group>"; };
+		1A2316E30B9CFAD700EF0852 /* equipment.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xml; path = equipment.plist; sourceTree = "<group>"; };
+		1A2316E40B9CFAD700EF0852 /* hud-small.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xml; path = "hud-small.plist"; sourceTree = "<group>"; };
+		1A2316E50B9CFAD700EF0852 /* hud.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xml; path = hud.plist; sourceTree = "<group>"; };
+		1A2316E60B9CFAD700EF0852 /* illegal_goods.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xml; path = illegal_goods.plist; sourceTree = "<group>"; };
+		1A2316E70B9CFAD700EF0852 /* keyconfig.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xml; path = keyconfig.plist; sourceTree = "<group>"; };
+		1A2316E80B9CFAD700EF0852 /* logcontrol.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist; path = logcontrol.plist; sourceTree = "<group>"; };
+		1A2316E90B9CFAD700EF0852 /* missiontext.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xml; path = missiontext.plist; sourceTree = "<group>"; };
+		1A2316EA0B9CFAD700EF0852 /* script.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist; path = script.plist; sourceTree = "<group>"; };
+		1A2316EB0B9CFAD700EF0852 /* shipdata.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xml; path = shipdata.plist; sourceTree = "<group>"; };
+		1A2316EC0B9CFAD700EF0852 /* shipyard.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xml; path = shipyard.plist; sourceTree = "<group>"; };
+		1A2316ED0B9CFAD700EF0852 /* speech_pronunciation_guide.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xml; path = speech_pronunciation_guide.plist; sourceTree = "<group>"; };
+		1A2317910B9D022400EF0852 /* buoyAI.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist; path = buoyAI.plist; sourceTree = "<group>"; };
+		1A2317920B9D022500EF0852 /* collectLootAI.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist; path = collectLootAI.plist; sourceTree = "<group>"; };
+		1A2317930B9D022500EF0852 /* dockingAI.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist; path = dockingAI.plist; sourceTree = "<group>"; };
+		1A2317940B9D022500EF0852 /* dumbAI.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist; path = dumbAI.plist; sourceTree = "<group>"; };
+		1A2317950B9D022500EF0852 /* enteringPirateAI.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist; path = enteringPirateAI.plist; sourceTree = "<group>"; };
+		1A2317960B9D022500EF0852 /* enteringTraderAI.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist; path = enteringTraderAI.plist; sourceTree = "<group>"; };
+		1A2317970B9D022500EF0852 /* escortAI.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist; path = escortAI.plist; sourceTree = "<group>"; };
+		1A2317980B9D022500EF0852 /* exitingTraderAI.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist; path = exitingTraderAI.plist; sourceTree = "<group>"; };
+		1A2317990B9D022500EF0852 /* fallingShuttleAI.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist; path = fallingShuttleAI.plist; sourceTree = "<group>"; };
+		1A23179A0B9D022500EF0852 /* fttAI.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist; path = fttAI.plist; sourceTree = "<group>"; };
+		1A23179B0B9D022500EF0852 /* gotoWaypointAI.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist; path = gotoWaypointAI.plist; sourceTree = "<group>"; };
+		1A23179C0B9D022500EF0852 /* hardMissileAI.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist; path = hardMissileAI.plist; sourceTree = "<group>"; };
+		1A23179D0B9D022500EF0852 /* homeAI.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist; path = homeAI.plist; sourceTree = "<group>"; };
+		1A23179E0B9D022500EF0852 /* interceptAI.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist; path = interceptAI.plist; sourceTree = "<group>"; };
+		1A23179F0B9D022500EF0852 /* minerAI.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist; path = minerAI.plist; sourceTree = "<group>"; };
+		1A2317A00B9D022500EF0852 /* missileAI.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist; path = missileAI.plist; sourceTree = "<group>"; };
+		1A2317A10B9D022500EF0852 /* nullAI.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist; path = nullAI.plist; sourceTree = "<group>"; };
+		1A2317A20B9D022500EF0852 /* pirateAI.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist; path = pirateAI.plist; sourceTree = "<group>"; };
+		1A2317A30B9D022500EF0852 /* planetPatrolAI.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist; path = planetPatrolAI.plist; sourceTree = "<group>"; };
+		1A2317A40B9D022500EF0852 /* policeInterceptAI.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist; path = policeInterceptAI.plist; sourceTree = "<group>"; };
+		1A2317A50B9D022500EF0852 /* receiveDockingAI.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist; path = receiveDockingAI.plist; sourceTree = "<group>"; };
+		1A2317A60B9D022500EF0852 /* risingShuttleAI.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist; path = risingShuttleAI.plist; sourceTree = "<group>"; };
+		1A2317A70B9D022500EF0852 /* rockHermitAI.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist; path = rockHermitAI.plist; sourceTree = "<group>"; };
+		1A2317A80B9D022500EF0852 /* route1patrolAI.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist; path = route1patrolAI.plist; sourceTree = "<group>"; };
+		1A2317A90B9D022500EF0852 /* route1traderAI.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist; path = route1traderAI.plist; sourceTree = "<group>"; };
+		1A2317AA0B9D022500EF0852 /* route2patrolAI.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist; path = route2patrolAI.plist; sourceTree = "<group>"; };
+		1A2317AB0B9D022500EF0852 /* route2sunskimAI.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist; path = route2sunskimAI.plist; sourceTree = "<group>"; };
+		1A2317AC0B9D022500EF0852 /* scavengerAI.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist; path = scavengerAI.plist; sourceTree = "<group>"; };
+		1A2317AD0B9D022500EF0852 /* shuttleAI.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist; path = shuttleAI.plist; sourceTree = "<group>"; };
+		1A2317AE0B9D022500EF0852 /* stationAI.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist; path = stationAI.plist; sourceTree = "<group>"; };
+		1A2317AF0B9D022500EF0852 /* sunSkimExitAI.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist; path = sunSkimExitAI.plist; sourceTree = "<group>"; };
+		1A2317B00B9D022500EF0852 /* thargletAI.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist; path = thargletAI.plist; sourceTree = "<group>"; };
+		1A2317B10B9D022500EF0852 /* thargoidAI.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist; path = thargoidAI.plist; sourceTree = "<group>"; };
+		1A2317B20B9D022500EF0852 /* timebombAI.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist; path = timebombAI.plist; sourceTree = "<group>"; };
+		1A23181E0B9D026D00EF0852 /* adder_redux.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = adder_redux.png; sourceTree = "<group>"; };
+		1A23181F0B9D026D00EF0852 /* anaconda_redux.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = anaconda_redux.png; sourceTree = "<group>"; };
+		1A2318200B9D026D00EF0852 /* arcdetail.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = arcdetail.png; sourceTree = "<group>"; };
+		1A2318210B9D026D00EF0852 /* asciitext.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = asciitext.png; sourceTree = "<group>"; };
+		1A2318220B9D026D00EF0852 /* asp_redux.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = asp_redux.png; sourceTree = "<group>"; };
+		1A2318230B9D026D00EF0852 /* asteroid.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = asteroid.png; sourceTree = "<group>"; };
+		1A2318240B9D026D00EF0852 /* back_metal.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = back_metal.png; sourceTree = "<group>"; };
+		1A2318250B9D026D00EF0852 /* barrel_metal.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = barrel_metal.png; sourceTree = "<group>"; };
+		1A2318260B9D026D00EF0852 /* blur256.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = blur256.png; sourceTree = "<group>"; };
+		1A2318270B9D026D00EF0852 /* boa2_left.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = boa2_left.png; sourceTree = "<group>"; };
+		1A2318280B9D026D00EF0852 /* boa2_rear.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = boa2_rear.png; sourceTree = "<group>"; };
+		1A2318290B9D026D00EF0852 /* boa2_redux.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = boa2_redux.png; sourceTree = "<group>"; };
+		1A23182A0B9D026D00EF0852 /* boa2_right.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = boa2_right.png; sourceTree = "<group>"; };
+		1A23182B0B9D026D00EF0852 /* boa2_top.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = boa2_top.png; sourceTree = "<group>"; };
+		1A23182C0B9D026D00EF0852 /* boa_redux.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = boa_redux.png; sourceTree = "<group>"; };
+		1A23182D0B9D026D00EF0852 /* bottom_metal.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = bottom_metal.png; sourceTree = "<group>"; };
+		1A23182E0B9D026D00EF0852 /* cobra1_redux.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = cobra1_redux.png; sourceTree = "<group>"; };
+		1A23182F0B9D026D00EF0852 /* cobra1_redux1.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = cobra1_redux1.png; sourceTree = "<group>"; };
+		1A2318300B9D026D00EF0852 /* cobra1_redux2.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = cobra1_redux2.png; sourceTree = "<group>"; };
+		1A2318310B9D026D00EF0852 /* cobra1miner_top.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = cobra1miner_top.png; sourceTree = "<group>"; };
+		1A2318320B9D026D00EF0852 /* cobra3_redux.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = cobra3_redux.png; sourceTree = "<group>"; };
+		1A2318330B9D026D00EF0852 /* cobra3_redux1.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = cobra3_redux1.png; sourceTree = "<group>"; };
+		1A2318340B9D026D00EF0852 /* constrictor_redux.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = constrictor_redux.png; sourceTree = "<group>"; };
+		1A2318350B9D026D00EF0852 /* dark_metal.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = dark_metal.png; sourceTree = "<group>"; };
+		1A2318360B9D026D00EF0852 /* ferdelance_redux.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = ferdelance_redux.png; sourceTree = "<group>"; };
+		1A2318370B9D026D00EF0852 /* flare256.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = flare256.png; sourceTree = "<group>"; };
+		1A2318380B9D026D00EF0852 /* front_metal.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = front_metal.png; sourceTree = "<group>"; };
+		1A2318390B9D026D00EF0852 /* galaxy256.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = galaxy256.png; sourceTree = "<group>"; };
+		1A23183A0B9D026D00EF0852 /* gecko_redux.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = gecko_redux.png; sourceTree = "<group>"; };
+		1A23183B0B9D026D00EF0852 /* krait_redux.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = krait_redux.png; sourceTree = "<group>"; };
+		1A23183C0B9D026D00EF0852 /* left_metal.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = left_metal.png; sourceTree = "<group>"; };
+		1A23183D0B9D026D00EF0852 /* mamba_redux.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = mamba_redux.png; sourceTree = "<group>"; };
+		1A23183E0B9D026D00EF0852 /* mamba_redux1.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = mamba_redux1.png; sourceTree = "<group>"; };
+		1A23183F0B9D026D00EF0852 /* metal.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = metal.png; sourceTree = "<group>"; };
+		1A2318400B9D026D00EF0852 /* missile.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = missile.png; sourceTree = "<group>"; };
+		1A2318410B9D026D00EF0852 /* moray_redux.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = moray_redux.png; sourceTree = "<group>"; };
+		1A2318420B9D026D00EF0852 /* moray_redux1.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = moray_redux1.png; sourceTree = "<group>"; };
+		1A2318430B9D026D00EF0852 /* MorayMED_bottom.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = MorayMED_bottom.png; sourceTree = "<group>"; };
+		1A2318440B9D026D00EF0852 /* MorayMED_top.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = MorayMED_top.png; sourceTree = "<group>"; };
+		1A2318490B9D026D00EF0852 /* pod2_redux.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = pod2_redux.png; sourceTree = "<group>"; };
+		1A23184A0B9D026D00EF0852 /* python_redux.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = python_redux.png; sourceTree = "<group>"; };
+		1A23184B0B9D026D00EF0852 /* python_redux1.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = python_redux1.png; sourceTree = "<group>"; };
+		1A23184C0B9D026D00EF0852 /* python_redux2.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = python_redux2.png; sourceTree = "<group>"; };
+		1A23184D0B9D026D00EF0852 /* qbomb.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = qbomb.png; sourceTree = "<group>"; };
+		1A23184E0B9D026D00EF0852 /* right_metal.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = right_metal.png; sourceTree = "<group>"; };
+		1A23184F0B9D026D00EF0852 /* scarred_metal.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = scarred_metal.png; sourceTree = "<group>"; };
+		1A2318500B9D026D00EF0852 /* shuttle_redux.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = shuttle_redux.png; sourceTree = "<group>"; };
+		1A2318510B9D026D00EF0852 /* sidewinder_redux.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = sidewinder_redux.png; sourceTree = "<group>"; };
+		1A2318520B9D026D00EF0852 /* star64.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = star64.png; sourceTree = "<group>"; };
+		1A2318530B9D026D00EF0852 /* target_metal.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = target_metal.png; sourceTree = "<group>"; };
+		1A2318540B9D026D00EF0852 /* thargoid_redux.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = thargoid_redux.png; sourceTree = "<group>"; };
+		1A2318550B9D026D00EF0852 /* thargon_redux.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = thargon_redux.png; sourceTree = "<group>"; };
+		1A2318560B9D026D00EF0852 /* top_metal.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = top_metal.png; sourceTree = "<group>"; };
+		1A2318570B9D026D00EF0852 /* transporter_redux.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = transporter_redux.png; sourceTree = "<group>"; };
+		1A2318580B9D026D00EF0852 /* transporter_redux1.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = transporter_redux1.png; sourceTree = "<group>"; };
+		1A2318590B9D026D00EF0852 /* trumblekit.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = trumblekit.png; sourceTree = "<group>"; };
+		1A23185A0B9D026D00EF0852 /* viper_redux.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = viper_redux.png; sourceTree = "<group>"; };
+		1A23185B0B9D026D00EF0852 /* viperi_redux.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = viperi_redux.png; sourceTree = "<group>"; };
+		1A23185C0B9D026D00EF0852 /* worm_redux.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = worm_redux.png; sourceTree = "<group>"; };
+		1A23185D0B9D026D00EF0852 /* worm_redux1.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = worm_redux1.png; sourceTree = "<group>"; };
+		1A23185E0B9D026D00EF0852 /* wreck.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = wreck.png; sourceTree = "<group>"; };
+		1A2318A60B9D02A900EF0852 /* adder_redux.dat */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = adder_redux.dat; sourceTree = "<group>"; };
+		1A2318A70B9D02A900EF0852 /* alloy.dat */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = alloy.dat; sourceTree = "<group>"; };
+		1A2318A80B9D02A900EF0852 /* anaconda_redux.dat */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = anaconda_redux.dat; sourceTree = "<group>"; };
+		1A2318A90B9D02A900EF0852 /* arcdetail.dat */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = arcdetail.dat; sourceTree = "<group>"; };
+		1A2318AA0B9D02A900EF0852 /* asp_redux.dat */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = asp_redux.dat; sourceTree = "<group>"; };
+		1A2318AB0B9D02A900EF0852 /* asteroid.dat */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = asteroid.dat; sourceTree = "<group>"; };
+		1A2318AC0B9D02A900EF0852 /* asteroid1.dat */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = asteroid1.dat; sourceTree = "<group>"; };
+		1A2318AD0B9D02A900EF0852 /* barrel.dat */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = barrel.dat; sourceTree = "<group>"; };
+		1A2318AE0B9D02A900EF0852 /* boa2_redux.dat */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = boa2_redux.dat; sourceTree = "<group>"; };
+		1A2318AF0B9D02A900EF0852 /* boa_redux.dat */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = boa_redux.dat; sourceTree = "<group>"; };
+		1A2318B00B9D02A900EF0852 /* boulder.dat */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = boulder.dat; sourceTree = "<group>"; };
+		1A2318B10B9D02A900EF0852 /* boulder1.dat */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = boulder1.dat; sourceTree = "<group>"; };
+		1A2318B20B9D02A900EF0852 /* buoy.dat */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = buoy.dat; sourceTree = "<group>"; };
+		1A2318B30B9D02A900EF0852 /* cobra1_redux.dat */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = cobra1_redux.dat; sourceTree = "<group>"; };
+		1A2318B40B9D02A900EF0852 /* cobra1_redux1.dat */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = cobra1_redux1.dat; sourceTree = "<group>"; };
+		1A2318B50B9D02A900EF0852 /* cobra1_redux2.dat */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = cobra1_redux2.dat; sourceTree = "<group>"; };
+		1A2318B60B9D02A900EF0852 /* cobra3_redux.dat */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = cobra3_redux.dat; sourceTree = "<group>"; };
+		1A2318B70B9D02A900EF0852 /* cobra3_redux1.dat */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = cobra3_redux1.dat; sourceTree = "<group>"; };
+		1A2318B80B9D02A900EF0852 /* constrictor_redux.dat */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = constrictor_redux.dat; sourceTree = "<group>"; };
+		1A2318B90B9D02A900EF0852 /* dock-flat.dat */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = "dock-flat.dat"; sourceTree = "<group>"; };
+		1A2318BA0B9D02A900EF0852 /* dock.dat */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = dock.dat; sourceTree = "<group>"; };
+		1A2318BB0B9D02A900EF0852 /* escpod_redux.dat */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = escpod_redux.dat; sourceTree = "<group>"; };
+		1A2318BC0B9D02A900EF0852 /* exhaust.dat */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = exhaust.dat; sourceTree = "<group>"; };
+		1A2318BD0B9D02A900EF0852 /* ferdelance_redux.dat */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = ferdelance_redux.dat; sourceTree = "<group>"; };
+		1A2318BE0B9D02A900EF0852 /* gecko_redux.dat */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = gecko_redux.dat; sourceTree = "<group>"; };
+		1A2318BF0B9D02A900EF0852 /* icosahedron.dat */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = icosahedron.dat; sourceTree = "<group>"; };
+		1A2318C00B9D02A900EF0852 /* icostextured.dat */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = icostextured.dat; sourceTree = "<group>"; };
+		1A2318C10B9D02A900EF0852 /* krait_redux.dat */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = krait_redux.dat; sourceTree = "<group>"; };
+		1A2318C20B9D02A900EF0852 /* mamba_redux.dat */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = mamba_redux.dat; sourceTree = "<group>"; };
+		1A2318C30B9D02A900EF0852 /* mamba_redux1.dat */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = mamba_redux1.dat; sourceTree = "<group>"; };
+		1A2318C40B9D02A900EF0852 /* missile.dat */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = missile.dat; sourceTree = "<group>"; };
+		1A2318C50B9D02A900EF0852 /* moray_redux.dat */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = moray_redux.dat; sourceTree = "<group>"; };
+		1A2318C60B9D02A900EF0852 /* moray_redux1.dat */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = moray_redux1.dat; sourceTree = "<group>"; };
+		1A2318C70B9D02A900EF0852 /* new-dodo.dat */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = "new-dodo.dat"; sourceTree = "<group>"; };
+		1A2318C80B9D02A900EF0852 /* new-icos.dat */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = "new-icos.dat"; sourceTree = "<group>"; };
+		1A2318C90B9D02A900EF0852 /* new-rock.dat */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = "new-rock.dat"; sourceTree = "<group>"; };
+		1A2318CA0B9D02A900EF0852 /* new_coriolis.dat */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = new_coriolis.dat; sourceTree = "<group>"; };
+		1A2318CB0B9D02A900EF0852 /* python_redux.dat */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = python_redux.dat; sourceTree = "<group>"; };
+		1A2318CC0B9D02A900EF0852 /* python_redux1.dat */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = python_redux1.dat; sourceTree = "<group>"; };
+		1A2318CD0B9D02AA00EF0852 /* python_redux2.dat */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = python_redux2.dat; sourceTree = "<group>"; };
+		1A2318CE0B9D02AA00EF0852 /* qbomb.dat */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = qbomb.dat; sourceTree = "<group>"; };
+		1A2318CF0B9D02AA00EF0852 /* ring.dat */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = ring.dat; sourceTree = "<group>"; };
+		1A2318D00B9D02AA00EF0852 /* rock-box.dat */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = "rock-box.dat"; sourceTree = "<group>"; };
+		1A2318D10B9D02AA00EF0852 /* rock-dock.dat */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = "rock-dock.dat"; sourceTree = "<group>"; };
+		1A2318D20B9D02AA00EF0852 /* scarred_alloy.dat */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = scarred_alloy.dat; sourceTree = "<group>"; };
+		1A2318D30B9D02AA00EF0852 /* shuttle_redux.dat */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = shuttle_redux.dat; sourceTree = "<group>"; };
+		1A2318D40B9D02AA00EF0852 /* sidewinder_redux.dat */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = sidewinder_redux.dat; sourceTree = "<group>"; };
+		1A2318D50B9D02AA00EF0852 /* splinter.dat */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = splinter.dat; sourceTree = "<group>"; };
+		1A2318D60B9D02AA00EF0852 /* splinter1.dat */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = splinter1.dat; sourceTree = "<group>"; };
+		1A2318D70B9D02AA00EF0852 /* strut.dat */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = strut.dat; sourceTree = "<group>"; };
+		1A2318D80B9D02AA00EF0852 /* thargoid_redux.dat */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = thargoid_redux.dat; sourceTree = "<group>"; };
+		1A2318D90B9D02AA00EF0852 /* thargon_redux.dat */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = thargon_redux.dat; sourceTree = "<group>"; };
+		1A2318DA0B9D02AA00EF0852 /* transporter_redux.dat */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = transporter_redux.dat; sourceTree = "<group>"; };
+		1A2318DB0B9D02AA00EF0852 /* transporter_redux1.dat */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = transporter_redux1.dat; sourceTree = "<group>"; };
+		1A2318DC0B9D02AA00EF0852 /* viper_redux.dat */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = viper_redux.dat; sourceTree = "<group>"; };
+		1A2318DD0B9D02AA00EF0852 /* viperi_redux.dat */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = viperi_redux.dat; sourceTree = "<group>"; };
+		1A2318DE0B9D02AA00EF0852 /* worm_redux.dat */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = worm_redux.dat; sourceTree = "<group>"; };
+		1A2318DF0B9D02AA00EF0852 /* worm_redux1.dat */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = worm_redux1.dat; sourceTree = "<group>"; };
+		1A2318E00B9D02AA00EF0852 /* wreck1.dat */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = wreck1.dat; sourceTree = "<group>"; };
+		1A2318E10B9D02AA00EF0852 /* wreck2.dat */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = wreck2.dat; sourceTree = "<group>"; };
+		1A2318E20B9D02AA00EF0852 /* wreck3.dat */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = wreck3.dat; sourceTree = "<group>"; };
+		1A2318E30B9D02AA00EF0852 /* wreck4.dat */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = wreck4.dat; sourceTree = "<group>"; };
+		1A2318E40B9D02AA00EF0852 /* wreck5.dat */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = wreck5.dat; sourceTree = "<group>"; };
+		1A2319740B9D02F900EF0852 /* BlueDanube.ogg */ = {isa = PBXFileReference; lastKnownFileType = file; path = BlueDanube.ogg; sourceTree = "<group>"; };
+		1A2319750B9D02F900EF0852 /* OoliteTheme.ogg */ = {isa = PBXFileReference; lastKnownFileType = file; path = OoliteTheme.ogg; sourceTree = "<group>"; };
+		1A2319920B9D031D00EF0852 /* afterburner1.ogg */ = {isa = PBXFileReference; lastKnownFileType = file; path = afterburner1.ogg; sourceTree = "<group>"; };
+		1A2319930B9D031D00EF0852 /* afterburner2.ogg */ = {isa = PBXFileReference; lastKnownFileType = file; path = afterburner2.ogg; sourceTree = "<group>"; };
+		1A2319940B9D031D00EF0852 /* beep.ogg */ = {isa = PBXFileReference; lastKnownFileType = file; path = beep.ogg; sourceTree = "<group>"; };
+		1A2319950B9D031D00EF0852 /* bigbang.ogg */ = {isa = PBXFileReference; lastKnownFileType = file; path = bigbang.ogg; sourceTree = "<group>"; };
+		1A2319960B9D031D00EF0852 /* boop.ogg */ = {isa = PBXFileReference; lastKnownFileType = file; path = boop.ogg; sourceTree = "<group>"; };
+		1A2319970B9D031D00EF0852 /* breakpattern.ogg */ = {isa = PBXFileReference; lastKnownFileType = file; path = breakpattern.ogg; sourceTree = "<group>"; };
+		1A2319980B9D031D00EF0852 /* buy.ogg */ = {isa = PBXFileReference; lastKnownFileType = file; path = buy.ogg; sourceTree = "<group>"; };
+		1A2319990B9D031D00EF0852 /* ecm.ogg */ = {isa = PBXFileReference; lastKnownFileType = file; path = ecm.ogg; sourceTree = "<group>"; };
+		1A23199A0B9D031D00EF0852 /* guiclick.ogg */ = {isa = PBXFileReference; lastKnownFileType = file; path = guiclick.ogg; sourceTree = "<group>"; };
+		1A23199B0B9D031D00EF0852 /* hit.ogg */ = {isa = PBXFileReference; lastKnownFileType = file; path = hit.ogg; sourceTree = "<group>"; };
+		1A23199C0B9D031D00EF0852 /* hullbang.ogg */ = {isa = PBXFileReference; lastKnownFileType = file; path = hullbang.ogg; sourceTree = "<group>"; };
+		1A23199D0B9D031D00EF0852 /* laser.ogg */ = {isa = PBXFileReference; lastKnownFileType = file; path = laser.ogg; sourceTree = "<group>"; };
+		1A23199E0B9D031D00EF0852 /* laserhits.ogg */ = {isa = PBXFileReference; lastKnownFileType = file; path = laserhits.ogg; sourceTree = "<group>"; };
+		1A23199F0B9D031D00EF0852 /* missile.ogg */ = {isa = PBXFileReference; lastKnownFileType = file; path = missile.ogg; sourceTree = "<group>"; };
+		1A2319A00B9D031D00EF0852 /* scoop.ogg */ = {isa = PBXFileReference; lastKnownFileType = file; path = scoop.ogg; sourceTree = "<group>"; };
+		1A2319A10B9D031D00EF0852 /* sell.ogg */ = {isa = PBXFileReference; lastKnownFileType = file; path = sell.ogg; sourceTree = "<group>"; };
+		1A2319A20B9D031D00EF0852 /* trumble.ogg */ = {isa = PBXFileReference; lastKnownFileType = file; path = trumble.ogg; sourceTree = "<group>"; };
+		1A2319A30B9D031D00EF0852 /* trumblesqueal.ogg */ = {isa = PBXFileReference; lastKnownFileType = file; path = trumblesqueal.ogg; sourceTree = "<group>"; };
+		1A2319A40B9D031D00EF0852 /* warning.ogg */ = {isa = PBXFileReference; lastKnownFileType = file; path = warning.ogg; sourceTree = "<group>"; };
+		1A2319A50B9D031D00EF0852 /* witchabort.ogg */ = {isa = PBXFileReference; lastKnownFileType = file; path = witchabort.ogg; sourceTree = "<group>"; };
 		1A38B4AA0B988532001ED4A0 /* OOLogging.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOLogging.h; sourceTree = "<group>"; };
 		1A38B4AB0B988532001ED4A0 /* OOLogging.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOLogging.m; sourceTree = "<group>"; };
 		1A472916096B5454000E78D8 /* CoreAudio.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreAudio.framework; path = /System/Library/Frameworks/CoreAudio.framework; sourceTree = "<absolute>"; };
@@ -397,7 +1033,7 @@
 		19C28FACFE9D520D11CA2CBB /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				0865432206B8447D000CA0AB /* Oolite.app */,
+				0865432206B8447D000CA0AB /* OoliteDev.app */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -411,13 +1047,13 @@
 				25F3E8A40994FE65002F25FD /* oolite-document.icns */,
 				25F3E8A50994FE65002F25FD /* oolite-expansion-document.icns */,
 				25F3E8A60994FE65002F25FD /* oolite-icon.icns */,
+				1A2317900B9D022400EF0852 /* AIs */,
+				1A2316DD0B9CFAD700EF0852 /* Config */,
 				1A23154D0B9C778400EF0852 /* Images */,
-				1A23133B0B9C64F400EF0852 /* AIs */,
-				1A23135F0B9C64F400EF0852 /* Textures */,
-				1A2313A20B9C64F400EF0852 /* Config */,
-				1A2313B40B9C64F400EF0852 /* Models */,
-				1A2313FB0B9C64F500EF0852 /* Music */,
-				1A2313FF0B9C64F500EF0852 /* Sounds */,
+				1A2318A50B9D02A900EF0852 /* Models */,
+				1A2319730B9D02F900EF0852 /* Music */,
+				1A2319910B9D031D00EF0852 /* Sounds */,
+				1A23181D0B9D026D00EF0852 /* Textures */,
 				29B97319FDCFA39411CA2CEA /* MainMenu.nib */,
 				25F3E8B30994FE9B002F25FD /* InfoPlist.strings */,
 				25F3E8C3099500F1002F25FD /* SoundInspector.nib */,
@@ -434,6 +1070,244 @@
 				1A2315510B9C778400EF0852 /* trumblebox.png */,
 			);
 			path = Images;
+			sourceTree = "<group>";
+		};
+		1A2316DD0B9CFAD700EF0852 /* Config */ = {
+			isa = PBXGroup;
+			children = (
+				1A2316DE0B9CFAD700EF0852 /* characters.plist */,
+				1A2316DF0B9CFAD700EF0852 /* commodities.plist */,
+				1A2316E00B9CFAD700EF0852 /* customsounds.plist */,
+				1A2316E10B9CFAD700EF0852 /* demoships.plist */,
+				1A2316E20B9CFAD700EF0852 /* descriptions.plist */,
+				1A2316E30B9CFAD700EF0852 /* equipment.plist */,
+				1A2316E40B9CFAD700EF0852 /* hud-small.plist */,
+				1A2316E50B9CFAD700EF0852 /* hud.plist */,
+				1A2316E60B9CFAD700EF0852 /* illegal_goods.plist */,
+				1A2316E70B9CFAD700EF0852 /* keyconfig.plist */,
+				1A2316E80B9CFAD700EF0852 /* logcontrol.plist */,
+				1A2316E90B9CFAD700EF0852 /* missiontext.plist */,
+				1A2316EA0B9CFAD700EF0852 /* script.plist */,
+				1A2316EB0B9CFAD700EF0852 /* shipdata.plist */,
+				1A2316EC0B9CFAD700EF0852 /* shipyard.plist */,
+				1A2316ED0B9CFAD700EF0852 /* speech_pronunciation_guide.plist */,
+			);
+			path = Config;
+			sourceTree = "<group>";
+		};
+		1A2317900B9D022400EF0852 /* AIs */ = {
+			isa = PBXGroup;
+			children = (
+				1A2317910B9D022400EF0852 /* buoyAI.plist */,
+				1A2317920B9D022500EF0852 /* collectLootAI.plist */,
+				1A2317930B9D022500EF0852 /* dockingAI.plist */,
+				1A2317940B9D022500EF0852 /* dumbAI.plist */,
+				1A2317950B9D022500EF0852 /* enteringPirateAI.plist */,
+				1A2317960B9D022500EF0852 /* enteringTraderAI.plist */,
+				1A2317970B9D022500EF0852 /* escortAI.plist */,
+				1A2317980B9D022500EF0852 /* exitingTraderAI.plist */,
+				1A2317990B9D022500EF0852 /* fallingShuttleAI.plist */,
+				1A23179A0B9D022500EF0852 /* fttAI.plist */,
+				1A23179B0B9D022500EF0852 /* gotoWaypointAI.plist */,
+				1A23179C0B9D022500EF0852 /* hardMissileAI.plist */,
+				1A23179D0B9D022500EF0852 /* homeAI.plist */,
+				1A23179E0B9D022500EF0852 /* interceptAI.plist */,
+				1A23179F0B9D022500EF0852 /* minerAI.plist */,
+				1A2317A00B9D022500EF0852 /* missileAI.plist */,
+				1A2317A10B9D022500EF0852 /* nullAI.plist */,
+				1A2317A20B9D022500EF0852 /* pirateAI.plist */,
+				1A2317A30B9D022500EF0852 /* planetPatrolAI.plist */,
+				1A2317A40B9D022500EF0852 /* policeInterceptAI.plist */,
+				1A2317A50B9D022500EF0852 /* receiveDockingAI.plist */,
+				1A2317A60B9D022500EF0852 /* risingShuttleAI.plist */,
+				1A2317A70B9D022500EF0852 /* rockHermitAI.plist */,
+				1A2317A80B9D022500EF0852 /* route1patrolAI.plist */,
+				1A2317A90B9D022500EF0852 /* route1traderAI.plist */,
+				1A2317AA0B9D022500EF0852 /* route2patrolAI.plist */,
+				1A2317AB0B9D022500EF0852 /* route2sunskimAI.plist */,
+				1A2317AC0B9D022500EF0852 /* scavengerAI.plist */,
+				1A2317AD0B9D022500EF0852 /* shuttleAI.plist */,
+				1A2317AE0B9D022500EF0852 /* stationAI.plist */,
+				1A2317AF0B9D022500EF0852 /* sunSkimExitAI.plist */,
+				1A2317B00B9D022500EF0852 /* thargletAI.plist */,
+				1A2317B10B9D022500EF0852 /* thargoidAI.plist */,
+				1A2317B20B9D022500EF0852 /* timebombAI.plist */,
+			);
+			path = AIs;
+			sourceTree = "<group>";
+		};
+		1A23181D0B9D026D00EF0852 /* Textures */ = {
+			isa = PBXGroup;
+			children = (
+				1A23181E0B9D026D00EF0852 /* adder_redux.png */,
+				1A23181F0B9D026D00EF0852 /* anaconda_redux.png */,
+				1A2318200B9D026D00EF0852 /* arcdetail.png */,
+				1A2318210B9D026D00EF0852 /* asciitext.png */,
+				1A2318220B9D026D00EF0852 /* asp_redux.png */,
+				1A2318230B9D026D00EF0852 /* asteroid.png */,
+				1A2318240B9D026D00EF0852 /* back_metal.png */,
+				1A2318250B9D026D00EF0852 /* barrel_metal.png */,
+				1A2318260B9D026D00EF0852 /* blur256.png */,
+				1A2318270B9D026D00EF0852 /* boa2_left.png */,
+				1A2318280B9D026D00EF0852 /* boa2_rear.png */,
+				1A2318290B9D026D00EF0852 /* boa2_redux.png */,
+				1A23182A0B9D026D00EF0852 /* boa2_right.png */,
+				1A23182B0B9D026D00EF0852 /* boa2_top.png */,
+				1A23182C0B9D026D00EF0852 /* boa_redux.png */,
+				1A23182D0B9D026D00EF0852 /* bottom_metal.png */,
+				1A23182E0B9D026D00EF0852 /* cobra1_redux.png */,
+				1A23182F0B9D026D00EF0852 /* cobra1_redux1.png */,
+				1A2318300B9D026D00EF0852 /* cobra1_redux2.png */,
+				1A2318310B9D026D00EF0852 /* cobra1miner_top.png */,
+				1A2318320B9D026D00EF0852 /* cobra3_redux.png */,
+				1A2318330B9D026D00EF0852 /* cobra3_redux1.png */,
+				1A2318340B9D026D00EF0852 /* constrictor_redux.png */,
+				1A2318350B9D026D00EF0852 /* dark_metal.png */,
+				1A2318360B9D026D00EF0852 /* ferdelance_redux.png */,
+				1A2318370B9D026D00EF0852 /* flare256.png */,
+				1A2318380B9D026D00EF0852 /* front_metal.png */,
+				1A2318390B9D026D00EF0852 /* galaxy256.png */,
+				1A23183A0B9D026D00EF0852 /* gecko_redux.png */,
+				1A23183B0B9D026D00EF0852 /* krait_redux.png */,
+				1A23183C0B9D026D00EF0852 /* left_metal.png */,
+				1A23183D0B9D026D00EF0852 /* mamba_redux.png */,
+				1A23183E0B9D026D00EF0852 /* mamba_redux1.png */,
+				1A23183F0B9D026D00EF0852 /* metal.png */,
+				1A2318400B9D026D00EF0852 /* missile.png */,
+				1A2318410B9D026D00EF0852 /* moray_redux.png */,
+				1A2318420B9D026D00EF0852 /* moray_redux1.png */,
+				1A2318430B9D026D00EF0852 /* MorayMED_bottom.png */,
+				1A2318440B9D026D00EF0852 /* MorayMED_top.png */,
+				1A2318490B9D026D00EF0852 /* pod2_redux.png */,
+				1A23184A0B9D026D00EF0852 /* python_redux.png */,
+				1A23184B0B9D026D00EF0852 /* python_redux1.png */,
+				1A23184C0B9D026D00EF0852 /* python_redux2.png */,
+				1A23184D0B9D026D00EF0852 /* qbomb.png */,
+				1A23184E0B9D026D00EF0852 /* right_metal.png */,
+				1A23184F0B9D026D00EF0852 /* scarred_metal.png */,
+				1A2318500B9D026D00EF0852 /* shuttle_redux.png */,
+				1A2318510B9D026D00EF0852 /* sidewinder_redux.png */,
+				1A2318520B9D026D00EF0852 /* star64.png */,
+				1A2318530B9D026D00EF0852 /* target_metal.png */,
+				1A2318540B9D026D00EF0852 /* thargoid_redux.png */,
+				1A2318550B9D026D00EF0852 /* thargon_redux.png */,
+				1A2318560B9D026D00EF0852 /* top_metal.png */,
+				1A2318570B9D026D00EF0852 /* transporter_redux.png */,
+				1A2318580B9D026D00EF0852 /* transporter_redux1.png */,
+				1A2318590B9D026D00EF0852 /* trumblekit.png */,
+				1A23185A0B9D026D00EF0852 /* viper_redux.png */,
+				1A23185B0B9D026D00EF0852 /* viperi_redux.png */,
+				1A23185C0B9D026D00EF0852 /* worm_redux.png */,
+				1A23185D0B9D026D00EF0852 /* worm_redux1.png */,
+				1A23185E0B9D026D00EF0852 /* wreck.png */,
+			);
+			path = Textures;
+			sourceTree = "<group>";
+		};
+		1A2318A50B9D02A900EF0852 /* Models */ = {
+			isa = PBXGroup;
+			children = (
+				1A2318A60B9D02A900EF0852 /* adder_redux.dat */,
+				1A2318A70B9D02A900EF0852 /* alloy.dat */,
+				1A2318A80B9D02A900EF0852 /* anaconda_redux.dat */,
+				1A2318A90B9D02A900EF0852 /* arcdetail.dat */,
+				1A2318AA0B9D02A900EF0852 /* asp_redux.dat */,
+				1A2318AB0B9D02A900EF0852 /* asteroid.dat */,
+				1A2318AC0B9D02A900EF0852 /* asteroid1.dat */,
+				1A2318AD0B9D02A900EF0852 /* barrel.dat */,
+				1A2318AE0B9D02A900EF0852 /* boa2_redux.dat */,
+				1A2318AF0B9D02A900EF0852 /* boa_redux.dat */,
+				1A2318B00B9D02A900EF0852 /* boulder.dat */,
+				1A2318B10B9D02A900EF0852 /* boulder1.dat */,
+				1A2318B20B9D02A900EF0852 /* buoy.dat */,
+				1A2318B30B9D02A900EF0852 /* cobra1_redux.dat */,
+				1A2318B40B9D02A900EF0852 /* cobra1_redux1.dat */,
+				1A2318B50B9D02A900EF0852 /* cobra1_redux2.dat */,
+				1A2318B60B9D02A900EF0852 /* cobra3_redux.dat */,
+				1A2318B70B9D02A900EF0852 /* cobra3_redux1.dat */,
+				1A2318B80B9D02A900EF0852 /* constrictor_redux.dat */,
+				1A2318B90B9D02A900EF0852 /* dock-flat.dat */,
+				1A2318BA0B9D02A900EF0852 /* dock.dat */,
+				1A2318BB0B9D02A900EF0852 /* escpod_redux.dat */,
+				1A2318BC0B9D02A900EF0852 /* exhaust.dat */,
+				1A2318BD0B9D02A900EF0852 /* ferdelance_redux.dat */,
+				1A2318BE0B9D02A900EF0852 /* gecko_redux.dat */,
+				1A2318BF0B9D02A900EF0852 /* icosahedron.dat */,
+				1A2318C00B9D02A900EF0852 /* icostextured.dat */,
+				1A2318C10B9D02A900EF0852 /* krait_redux.dat */,
+				1A2318C20B9D02A900EF0852 /* mamba_redux.dat */,
+				1A2318C30B9D02A900EF0852 /* mamba_redux1.dat */,
+				1A2318C40B9D02A900EF0852 /* missile.dat */,
+				1A2318C50B9D02A900EF0852 /* moray_redux.dat */,
+				1A2318C60B9D02A900EF0852 /* moray_redux1.dat */,
+				1A2318C70B9D02A900EF0852 /* new-dodo.dat */,
+				1A2318C80B9D02A900EF0852 /* new-icos.dat */,
+				1A2318C90B9D02A900EF0852 /* new-rock.dat */,
+				1A2318CA0B9D02A900EF0852 /* new_coriolis.dat */,
+				1A2318CB0B9D02A900EF0852 /* python_redux.dat */,
+				1A2318CC0B9D02A900EF0852 /* python_redux1.dat */,
+				1A2318CD0B9D02AA00EF0852 /* python_redux2.dat */,
+				1A2318CE0B9D02AA00EF0852 /* qbomb.dat */,
+				1A2318CF0B9D02AA00EF0852 /* ring.dat */,
+				1A2318D00B9D02AA00EF0852 /* rock-box.dat */,
+				1A2318D10B9D02AA00EF0852 /* rock-dock.dat */,
+				1A2318D20B9D02AA00EF0852 /* scarred_alloy.dat */,
+				1A2318D30B9D02AA00EF0852 /* shuttle_redux.dat */,
+				1A2318D40B9D02AA00EF0852 /* sidewinder_redux.dat */,
+				1A2318D50B9D02AA00EF0852 /* splinter.dat */,
+				1A2318D60B9D02AA00EF0852 /* splinter1.dat */,
+				1A2318D70B9D02AA00EF0852 /* strut.dat */,
+				1A2318D80B9D02AA00EF0852 /* thargoid_redux.dat */,
+				1A2318D90B9D02AA00EF0852 /* thargon_redux.dat */,
+				1A2318DA0B9D02AA00EF0852 /* transporter_redux.dat */,
+				1A2318DB0B9D02AA00EF0852 /* transporter_redux1.dat */,
+				1A2318DC0B9D02AA00EF0852 /* viper_redux.dat */,
+				1A2318DD0B9D02AA00EF0852 /* viperi_redux.dat */,
+				1A2318DE0B9D02AA00EF0852 /* worm_redux.dat */,
+				1A2318DF0B9D02AA00EF0852 /* worm_redux1.dat */,
+				1A2318E00B9D02AA00EF0852 /* wreck1.dat */,
+				1A2318E10B9D02AA00EF0852 /* wreck2.dat */,
+				1A2318E20B9D02AA00EF0852 /* wreck3.dat */,
+				1A2318E30B9D02AA00EF0852 /* wreck4.dat */,
+				1A2318E40B9D02AA00EF0852 /* wreck5.dat */,
+			);
+			path = Models;
+			sourceTree = "<group>";
+		};
+		1A2319730B9D02F900EF0852 /* Music */ = {
+			isa = PBXGroup;
+			children = (
+				1A2319740B9D02F900EF0852 /* BlueDanube.ogg */,
+				1A2319750B9D02F900EF0852 /* OoliteTheme.ogg */,
+			);
+			path = Music;
+			sourceTree = "<group>";
+		};
+		1A2319910B9D031D00EF0852 /* Sounds */ = {
+			isa = PBXGroup;
+			children = (
+				1A2319920B9D031D00EF0852 /* afterburner1.ogg */,
+				1A2319930B9D031D00EF0852 /* afterburner2.ogg */,
+				1A2319940B9D031D00EF0852 /* beep.ogg */,
+				1A2319950B9D031D00EF0852 /* bigbang.ogg */,
+				1A2319960B9D031D00EF0852 /* boop.ogg */,
+				1A2319970B9D031D00EF0852 /* breakpattern.ogg */,
+				1A2319980B9D031D00EF0852 /* buy.ogg */,
+				1A2319990B9D031D00EF0852 /* ecm.ogg */,
+				1A23199A0B9D031D00EF0852 /* guiclick.ogg */,
+				1A23199B0B9D031D00EF0852 /* hit.ogg */,
+				1A23199C0B9D031D00EF0852 /* hullbang.ogg */,
+				1A23199D0B9D031D00EF0852 /* laser.ogg */,
+				1A23199E0B9D031D00EF0852 /* laserhits.ogg */,
+				1A23199F0B9D031D00EF0852 /* missile.ogg */,
+				1A2319A00B9D031D00EF0852 /* scoop.ogg */,
+				1A2319A10B9D031D00EF0852 /* sell.ogg */,
+				1A2319A20B9D031D00EF0852 /* trumble.ogg */,
+				1A2319A30B9D031D00EF0852 /* trumblesqueal.ogg */,
+				1A2319A40B9D031D00EF0852 /* warning.ogg */,
+				1A2319A50B9D031D00EF0852 /* witchabort.ogg */,
+			);
+			path = Sounds;
 			sourceTree = "<group>";
 		};
 		1A5BF2710916D45B00BF238F /* MDImporter */ = {
@@ -776,6 +1650,12 @@
 				0865431B06B8447D000CA0AB /* Frameworks */,
 				1A5BF29C0916D49800BF238F /* Copy MDImporter */,
 				1A23153A0B9C773B00EF0852 /* Copy Images */,
+				1A2316C80B9CFAB800EF0852 /* Copy Config */,
+				1A2317D50B9D023400EF0852 /* Copy AIs */,
+				1A2318A00B9D027400EF0852 /* Copy Textures */,
+				1A2319640B9D02B900EF0852 /* Copy Models */,
+				1A2319780B9D030400EF0852 /* Copy Music */,
+				1A2319BA0B9D032700EF0852 /* Copy Sounds */,
 			);
 			buildRules = (
 			);
@@ -785,7 +1665,7 @@
 			name = Oolite;
 			productInstallPath = "$(HOME)/Applications";
 			productName = Oolite;
-			productReference = 0865432206B8447D000CA0AB /* Oolite.app */;
+			productReference = 0865432206B8447D000CA0AB /* OoliteDev.app */;
 			productType = "com.apple.product-type.application";
 		};
 /* End PBXNativeTarget section */
@@ -832,12 +1712,6 @@
 				25F3E8A90994FE65002F25FD /* oolite-icon.icns in Resources */,
 				25F3E8B40994FE9B002F25FD /* InfoPlist.strings in Resources */,
 				25F3E8C4099500F1002F25FD /* SoundInspector.nib in Resources */,
-				1A2314150B9C64F500EF0852 /* AIs in Resources */,
-				1A2314160B9C64F500EF0852 /* Textures in Resources */,
-				1A2314170B9C64F500EF0852 /* Config in Resources */,
-				1A2314180B9C64F500EF0852 /* Models in Resources */,
-				1A23141A0B9C64F500EF0852 /* Music in Resources */,
-				1A23141B0B9C64F500EF0852 /* Sounds in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

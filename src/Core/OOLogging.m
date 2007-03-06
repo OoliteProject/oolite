@@ -359,7 +359,7 @@ static void LoadExplicitSettings(void)
 	sExplicitSettings = [[NSMutableDictionary alloc] init];
 	
 	// Load defaults from logcontrol.plist
-	configPath = [[NSBundle mainBundle] pathForResource:@"logcontrol" ofType:@"plist"];
+	configPath = [[NSBundle mainBundle] pathForResource:@"logcontrol" ofType:@"plist" inDirectory:@"Config"];
 	dict = [NSDictionary dictionaryWithContentsOfFile:configPath];
 	LoadExplicitSettingsFromDictionary(dict, NO);
 	
