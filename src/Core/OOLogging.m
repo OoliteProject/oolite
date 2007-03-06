@@ -84,6 +84,7 @@ static inline void PrimitiveLog(NSString *inString)
 	#ifdef __COREFOUNDATION_CFSTRING__
 		CFShow((CFStringRef)inString);
 	#else
+		#undef NSLog
 		NSLog(@"%@", inString);
 	#endif
 }
@@ -359,7 +360,14 @@ static void LoadExplicitSettings(void)
 	sExplicitSettings = [[NSMutableDictionary alloc] init];
 	
 	// Load defaults from logcontrol.plist
-	configPath = [[NSBundle mainBundle] pathForResource:@"logcontrol" ofType:@"plist" inDirectory:@"Config"];
+	#if 0
+		configPath = [[NSBundle mainBundle] pathForResource:@"logcontrol" ofType:@"plist" inDirectory:@"Config"];
+	#else
+		// Attempt to fix a Gnustep-specific bug
+		configPath = [[NSBundle mainBundle] resourcePath];
+		configPath = [configPath stringByAppendingPathComponent:@"Config"];
+		configPath = [configPath stringByAppendingPathComponent:@"logcontrol.plist"];
+	#endif
 	dict = [NSDictionary dictionaryWithContentsOfFile:configPath];
 	LoadExplicitSettingsFromDictionary(dict, NO);
 	
