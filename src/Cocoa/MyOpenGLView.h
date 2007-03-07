@@ -38,9 +38,9 @@ MA 02110-1301, USA.
 #define MOUSE_DOUBLE_CLICK_INTERVAL	0.40
 
 @class Entity, GameController;
+@class JoystickHandler;
 
 #ifdef GNUSTEP
-@class JoystickHandler;
 #define OpenGLViewSuperClass	NSObject
 #else
 #define OpenGLViewSuperClass	NSOpenGLView
@@ -125,8 +125,8 @@ extern int debug;
 	// Windowed mode
 	NSSize currentWindowSize;
 	SDL_Surface* surface;
-	JoystickHandler *stickHandler;
 #endif
+	JoystickHandler *stickHandler;
 }
 
 
@@ -175,9 +175,9 @@ extern int debug;
 - (NSSize) currentScreenSize;
 
  - (void) pollControls: (id)sender;
- - (void) handleStringInput: (SDL_KeyboardEvent *) kbd_event; // DJS
- - (JoystickHandler *)getStickHandler; // DJS                       
+ - (void) handleStringInput: (SDL_KeyboardEvent *) kbd_event; // DJS                
 #endif
+ - (JoystickHandler *)getStickHandler; // DJS       
 
 - (void) setVirtualJoystick:(double) vmx :(double) vmy;
 - (NSPoint) virtualJoystickPosition;

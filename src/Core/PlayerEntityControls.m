@@ -28,17 +28,16 @@ MA 02110-1301, USA.
 #import "ShipEntityAI.h"
 
 #import "Universe.h"
-#import "GameController.h"
+#import "GameController.h"0
 #import "AI.h"
 #import "MyOpenGLView.h"
 #import "OOSound.h"
 #import "PlayerEntityLoadSave.h"
 
-// TODO: ifdef HAVE_STICK might be better.
-#ifdef GNUSTEP
 #import "JoystickHandler.h"
 #import "PlayerEntityStickMapper.h"
-#else
+
+#ifndef GNUSTEP
 #import "Groolite.h"
 #endif
 
@@ -1122,10 +1121,10 @@ static  BOOL	taking_snapshot;
 	}
 }
 
-#ifdef GNUSTEP
+
 - (void) pollFlightArrowKeyControls:(double) delta_t
 {
-	MyOpenGLView	*gameView = (MyOpenGLView *)[universe gameView];
+	MyOpenGLView	*gameView = [universe gameView];
 	NSPoint			virtualStick;
 
    // TODO: Rework who owns the stick.
@@ -1296,144 +1295,7 @@ static  BOOL	taking_snapshot;
 		}
 	}
 }
-#else		// ifdef GNUSTEP else
-- (void) pollFlightArrowKeyControls:(double) delta_t
-{
-	MyOpenGLView	*gameView = (MyOpenGLView *)[universe gameView];
-	NSPoint			virtualStick =[gameView virtualJoystickPosition];
-	double sensitivity = 2.0;
-	double keyboard_sensitivity = 1.0;
-	virtualStick.x *= sensitivity;
-	virtualStick.y *= sensitivity;
-	double roll_dampner = ROLL_DAMPING_FACTOR * delta_t;
-	double pitch_dampner = PITCH_DAMPING_FACTOR * delta_t;
-	double yaw_dampner = PITCH_DAMPING_FACTOR * delta_t;
 
-	rolling = NO;
-	if (!mouse_control_on)
-	{
-		if ([gameView isDown:key_roll_left])
-		{
-			if (flight_roll > 0.0)  flight_roll = 0.0;
-			[self decrease_flight_roll:delta_t*roll_delta*keyboard_sensitivity];
-			rolling = YES;
-		}
-		if ([gameView isDown:key_roll_right])
-		{
-			if (flight_roll < 0.0)  flight_roll = 0.0;
-			[self increase_flight_roll:delta_t*roll_delta*keyboard_sensitivity];
-			rolling = YES;
-		}
-	}
-	else
-	{
-		double stick_roll = max_flight_roll * virtualStick.x;
-		if (flight_roll < stick_roll)
-		{
-			[self increase_flight_roll:delta_t*roll_delta];
-			if (flight_roll > stick_roll)
-				flight_roll = stick_roll;
-		}
-		if (flight_roll > stick_roll)
-		{
-			[self decrease_flight_roll:delta_t*roll_delta];
-			if (flight_roll < stick_roll)
-				flight_roll = stick_roll;
-		}
-		rolling = (abs(virtualStick.x) > .10);
-	}
-	if (!rolling)
-	{
-		if (flight_roll > 0.0)
-		{
-			if (flight_roll > roll_dampner)	[self decrease_flight_roll:roll_dampner];
-			else	flight_roll = 0.0;
-		}
-		if (flight_roll < 0.0)
-		{
-			if (flight_roll < -roll_dampner)   [self increase_flight_roll:roll_dampner];
-			else	flight_roll = 0.0;
-		}
-	}
-
-	pitching = NO;
-	if (!mouse_control_on)
-	{
-		if ([gameView isDown:key_pitch_back])
-		{
-			if (flight_pitch < 0.0)  flight_pitch = 0.0;
-			[self increase_flight_pitch:delta_t*pitch_delta*keyboard_sensitivity];
-			pitching = YES;
-		}
-		if ([gameView isDown:key_pitch_forward])
-		{
-			if (flight_pitch > 0.0)  flight_pitch = 0.0;
-			[self decrease_flight_pitch:delta_t*pitch_delta*keyboard_sensitivity];
-			pitching = YES;
-		}
-	}
-	else
-	{
-		double stick_pitch = max_flight_pitch * virtualStick.y;
-		if (flight_pitch < stick_pitch)
-		{
-			[self increase_flight_pitch:delta_t*roll_delta];
-			if (flight_pitch > stick_pitch)
-				flight_pitch = stick_pitch;
-		}
-		if (flight_pitch > stick_pitch)
-		{
-			[self decrease_flight_pitch:delta_t*roll_delta];
-			if (flight_pitch < stick_pitch)
-				flight_pitch = stick_pitch;
-		}
-		pitching = (abs(virtualStick.x) > .10);
-	}
-	if (!pitching)
-	{
-		if (flight_pitch > 0.0)
-		{
-			if (flight_pitch > pitch_dampner)	[self decrease_flight_pitch:pitch_dampner];
-			else	flight_pitch = 0.0;
-		}
-		if (flight_pitch < 0.0)
-		{
-			if (flight_pitch < -pitch_dampner)	[self increase_flight_pitch:pitch_dampner];
-			else	flight_pitch = 0.0;
-		}
-	}
-	
-	if (![universe strict])
-	{
-		yawing = NO;
-		if ([gameView isDown:key_yaw_left])
-		{
-			if (flight_yaw < 0.0)  flight_yaw = 0.0;
-			[self increase_flight_yaw:delta_t*yaw_delta];
-			yawing = YES;
-		}
-		else if ([gameView isDown:key_yaw_right])
-		{
-			if (flight_yaw > 0.0)  flight_yaw = 0.0;
-			[self decrease_flight_yaw:delta_t*yaw_delta];
-			yawing = YES;
-		}
-		if (!yawing)
-		{
-			if (flight_yaw > 0.0)
-			{
-				if (flight_yaw > yaw_dampner)	[self decrease_flight_yaw:yaw_dampner];
-				else	flight_yaw = 0.0;
-			}
-			if (flight_yaw < 0.0)
-			{
-				if (flight_yaw < -yaw_dampner)   [self increase_flight_yaw:yaw_dampner];
-				else	flight_yaw = 0.0;
-			}
-		}
-	}
-}
-#endif
 
 static BOOL pling_pressed;
 static BOOL cursor_moving;

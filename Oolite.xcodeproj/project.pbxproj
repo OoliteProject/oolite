@@ -250,6 +250,7 @@
 		1AD9AFB50B91E24C00FB704E /* PlayerEntityControls.h in Headers */ = {isa = PBXBuildFile; fileRef = 1AD9AFAD0B91E24C00FB704E /* PlayerEntityControls.h */; };
 		1AD9AFB60B91E24C00FB704E /* PlayerEntityContracts.m in Sources */ = {isa = PBXBuildFile; fileRef = 1AD9AFAE0B91E24C00FB704E /* PlayerEntityContracts.m */; };
 		1ADF5CEC0B9DF59A00FDB2A3 /* OOCacheManager.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A231A170B9D8B1B00EF0852 /* OOCacheManager.m */; };
+		1ADF5F130B9E374B00FDB2A3 /* JoystickHandler.h in Headers */ = {isa = PBXBuildFile; fileRef = 1ADF5F110B9E374B00FDB2A3 /* JoystickHandler.h */; };
 		2512833E09BA27C100F43D55 /* Octree.m in Sources */ = {isa = PBXBuildFile; fileRef = 2512833C09BA27C100F43D55 /* Octree.m */; };
 		2512833F09BA27C100F43D55 /* Octree.h in Headers */ = {isa = PBXBuildFile; fileRef = 2512833D09BA27C100F43D55 /* Octree.h */; };
 		2512834209BA27EC00F43D55 /* Geometry.h in Headers */ = {isa = PBXBuildFile; fileRef = 2512834009BA27EC00F43D55 /* Geometry.h */; };
@@ -890,6 +891,7 @@
 		1AD9AFAC0B91E24C00FB704E /* PlayerEntityControls.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = PlayerEntityControls.m; sourceTree = "<group>"; };
 		1AD9AFAD0B91E24C00FB704E /* PlayerEntityControls.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PlayerEntityControls.h; sourceTree = "<group>"; };
 		1AD9AFAE0B91E24C00FB704E /* PlayerEntityContracts.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = PlayerEntityContracts.m; sourceTree = "<group>"; };
+		1ADF5F110B9E374B00FDB2A3 /* JoystickHandler.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = JoystickHandler.h; sourceTree = "<group>"; };
 		2512833C09BA27C100F43D55 /* Octree.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = Octree.m; sourceTree = "<group>"; };
 		2512833D09BA27C100F43D55 /* Octree.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Octree.h; sourceTree = "<group>"; };
 		2512834009BA27EC00F43D55 /* Geometry.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Geometry.h; sourceTree = "<group>"; };
@@ -1361,6 +1363,7 @@
 				25F4676309969672009483BF /* MyOpenGLView.m */,
 				1A8A3D8F0B9B058500AB7625 /* Audio */,
 				1A8A3D9E0B9B05C400AB7625 /* Groolite */,
+				1ADF5F110B9E374B00FDB2A3 /* JoystickHandler.h */,
 			);
 			name = "Mac-specific";
 			path = ../Cocoa;
@@ -1641,6 +1644,7 @@
 				1A8A3A380B962AEF007D20B8 /* NSScannerOOExtensions.h in Headers */,
 				1A38B4AC0B988532001ED4A0 /* OOLogging.h in Headers */,
 				1A231A180B9D8B1B00EF0852 /* OOCacheManager.h in Headers */,
+				1ADF5F130B9E374B00FDB2A3 /* JoystickHandler.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

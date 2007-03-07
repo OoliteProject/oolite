@@ -576,6 +576,13 @@ static NSString * kOOLogKeyDown				= @"input.keyMapping.keyPress.keyDown";
 	return key;
 }
 
+
+- (JoystickHandler *)getStickHandler
+{
+	return nil;
+}
+
+
 - (void) setVirtualJoystick:(double) vmx :(double) vmy
 {
 	virtualJoystickPosition.x = vmx;

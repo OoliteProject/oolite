@@ -35,10 +35,7 @@ MA 02110-1301, USA.
 
 @class GuiDisplayGen, OOTrumble, MyOpenGLView, HeadUpDisplay, ShipEntity;
 @class OOSound, OOMusic, OOSoundSource, OOSoundReferencePoint;
-
-#ifdef GNUSTEP
 @class JoystickHandler;
-#endif
 
 #define SCRIPT_TIMER_INTERVAL			10.0
 
@@ -491,18 +488,17 @@ enum
 							ootunes_on: 1,
 	
 							docking_music_on: 1;
-
-#ifdef GNUSTEP
-  // Keeping track of joysticks
-  int						numSticks;
-  JoystickHandler			*stickHandler;
-  BOOL						keyboardRollPitchOverride;
+	
+	// Note: joystick stuff does nothing under OS X.
+	// Keeping track of joysticks
+	int						numSticks;
+	JoystickHandler			*stickHandler;
+	BOOL					keyboardRollPitchOverride;
   
-  // For PlayerEntity (StickMapper)
-  int						selFunctionIdx;
-  BOOL						waitingForStickCallback;
-  NSArray					*stickFunctions; 
-#endif
+	// For PlayerEntity (StickMapper)
+	int						selFunctionIdx;
+	BOOL					waitingForStickCallback;
+	NSArray					*stickFunctions; 
 }
 
 - (void) init_keys;
