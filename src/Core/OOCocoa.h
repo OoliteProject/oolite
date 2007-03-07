@@ -27,6 +27,8 @@ MA 02110-1301, USA.
 
 #if defined(GNUSTEP) && !defined(OOLITE_SDL_MAC)
 #include <stdint.h>
+#include <limits.h> // to get UINT_MAX
+
 #define Boolean unsigned char
 #define Byte unsigned char
 #define true 1
