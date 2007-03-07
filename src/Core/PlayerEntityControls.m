@@ -1126,60 +1126,61 @@ static  BOOL	taking_snapshot;
 {
 	MyOpenGLView	*gameView = [universe gameView];
 	NSPoint			virtualStick;
-
-   // TODO: Rework who owns the stick.
-   if(!stickHandler)
-   {
-      stickHandler=[gameView getStickHandler];
-   }
-   numSticks=[stickHandler getNumSticks];
-
-   // DJS: Handle inputs on the joy roll/pitch axis.
-   // Mouse control on takes precidence over joysticks.
-   // We have to assume the player has a reason for switching mouse
-   // control on if they have a joystick - let them do it.
-   if(mouse_control_on)
-   {
-      virtualStick=[gameView virtualJoystickPosition];
-	   double sensitivity = 2.0;
-	   virtualStick.x *= sensitivity;
-	   virtualStick.y *= sensitivity;
-   }
-   else if(numSticks)
-   {
-      virtualStick=[stickHandler getRollPitchAxis];
-      if(virtualStick.x == STICK_AXISUNASSIGNED ||
-         virtualStick.y == STICK_AXISUNASSIGNED)
-      {
-         // Not assigned - set to zero.
-         virtualStick.x=0;
-         virtualStick.y=0;
-      }
-      else if(virtualStick.x != 0 ||
-              virtualStick.y != 0)
-      {
-         // cancel keyboard override, stick has been waggled
-         keyboardRollPitchOverride=NO;
-      }
-   }
-
+#define			kDeadZone 0.03
+	
+	// TODO: Rework who owns the stick.
+	if(!stickHandler)
+	{
+		stickHandler=[gameView getStickHandler];
+	}
+	numSticks=[stickHandler getNumSticks];
+	
+	// DJS: Handle inputs on the joy roll/pitch axis.
+	// Mouse control on takes precidence over joysticks.
+	// We have to assume the player has a reason for switching mouse
+	// control on if they have a joystick - let them do it.
+	if(mouse_control_on)
+	{
+		virtualStick=[gameView virtualJoystickPosition];
+		double sensitivity = 2.0;
+		virtualStick.x *= sensitivity;
+		virtualStick.y *= sensitivity;
+	}
+	else if(numSticks)
+	{
+		virtualStick=[stickHandler getRollPitchAxis];
+		if(virtualStick.x == STICK_AXISUNASSIGNED ||
+		   virtualStick.y == STICK_AXISUNASSIGNED)
+		{
+			// Not assigned - set to zero.
+			virtualStick.x=0;
+			virtualStick.y=0;
+		}
+		else if(virtualStick.x != 0 ||
+				virtualStick.y != 0)
+		{
+			// cancel keyboard override, stick has been waggled
+			keyboardRollPitchOverride=NO;
+		}
+	}
+	
 	double roll_dampner = ROLL_DAMPING_FACTOR * delta_t;
 	double pitch_dampner = PITCH_DAMPING_FACTOR * delta_t;
 	double yaw_dampner = PITCH_DAMPING_FACTOR * delta_t;
-
+	
 	rolling = NO;
 	if (!mouse_control_on )
 	{
 		if ([gameView isDown:key_roll_left])
 		{
-         keyboardRollPitchOverride=YES;
+			keyboardRollPitchOverride=YES;
 			if (flight_roll > 0.0)  flight_roll = 0.0;
 			[self decrease_flight_roll:delta_t*roll_delta];
 			rolling = YES;
 		}
 		if ([gameView isDown:key_roll_right])
 		{
-         keyboardRollPitchOverride=YES;
+			keyboardRollPitchOverride=YES;
 			if (flight_roll < 0.0)  flight_roll = 0.0;
 			[self increase_flight_roll:delta_t*roll_delta];
 			rolling = YES;
@@ -1200,7 +1201,7 @@ static  BOOL	taking_snapshot;
 			if (flight_roll < stick_roll)
 				flight_roll = stick_roll;
 		}
-		rolling = (abs(virtualStick.x) > .10);
+		rolling = (abs(virtualStick.x) > kDeadZone);
 	}
 	if (!rolling)
 	{
@@ -1215,26 +1216,26 @@ static  BOOL	taking_snapshot;
 			else	flight_roll = 0.0;
 		}
 	}
-
+	
 	pitching = NO;
 	if (!mouse_control_on)
 	{
 		if ([gameView isDown:key_pitch_back])
 		{
-         keyboardRollPitchOverride=YES;
+			keyboardRollPitchOverride=YES;
 			if (flight_pitch < 0.0)  flight_pitch = 0.0;
 			[self increase_flight_pitch:delta_t*pitch_delta];
 			pitching = YES;
 		}
 		if ([gameView isDown:key_pitch_forward])
 		{
-         keyboardRollPitchOverride=YES;
+			keyboardRollPitchOverride=YES;
 			if (flight_pitch > 0.0)  flight_pitch = 0.0;
 			[self decrease_flight_pitch:delta_t*pitch_delta];
 			pitching = YES;
 		}
 	}
-   if((mouse_control_on || numSticks) && !keyboardRollPitchOverride)
+	if((mouse_control_on || numSticks) && !keyboardRollPitchOverride)
 	{
 		double stick_pitch = max_flight_pitch * virtualStick.y;
 		if (flight_pitch < stick_pitch)
@@ -1249,7 +1250,7 @@ static  BOOL	taking_snapshot;
 			if (flight_pitch < stick_pitch)
 				flight_pitch = stick_pitch;
 		}
-		pitching = (abs(virtualStick.x) > .10);
+		pitching = (abs(virtualStick.x) > kDeadZone);
 	}
 	if (!pitching)
 	{

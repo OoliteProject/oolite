@@ -96,7 +96,11 @@ void	mult_vector (struct vector *vec, struct vector *mat);
 
 static inline float FastInvSqrt(float x)
 {
-#ifndef WIN32
+/*	This appears to have been responsible for a lack of laser accuracy, as
+	well as not working at all under Windows. Disabled for now.
+*/
+// #ifndef WIN32
+#if 0
 	float xhalf = 0.5f * x;
 	int i = *(int*)&x;
 	i = 0x5f3759df - (i>>1);
