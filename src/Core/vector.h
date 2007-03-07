@@ -104,7 +104,7 @@ static inline float FastInvSqrt(float x)
 	x = x * (1.5f - xhalf * x * x);
 	return x;
 #else
-	return sqrtf(x);
+	return 1.0f/sqrtf(x);
 #endif
 }
 
