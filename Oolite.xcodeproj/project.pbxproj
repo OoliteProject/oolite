@@ -222,6 +222,8 @@
 		1A2319B80B9D031D00EF0852 /* warning.ogg in Copy Sounds */ = {isa = PBXBuildFile; fileRef = 1A2319A40B9D031D00EF0852 /* warning.ogg */; };
 		1A2319B90B9D031D00EF0852 /* witchabort.ogg in Copy Sounds */ = {isa = PBXBuildFile; fileRef = 1A2319A50B9D031D00EF0852 /* witchabort.ogg */; };
 		1A231A180B9D8B1B00EF0852 /* OOCacheManager.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A231A160B9D8B1B00EF0852 /* OOCacheManager.h */; };
+		1A29967E0B9F064C002D2149 /* OOCache.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A29967C0B9F064C002D2149 /* OOCache.h */; };
+		1A29967F0B9F064C002D2149 /* OOCache.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A29967D0B9F064C002D2149 /* OOCache.m */; };
 		1A38B4AC0B988532001ED4A0 /* OOLogging.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A38B4AA0B988532001ED4A0 /* OOLogging.h */; };
 		1A38B4AD0B988532001ED4A0 /* OOLogging.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A38B4AB0B988532001ED4A0 /* OOLogging.m */; };
 		1A472917096B5454000E78D8 /* CoreAudio.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1A472916096B5454000E78D8 /* CoreAudio.framework */; };
@@ -859,6 +861,8 @@
 		1A2319A50B9D031D00EF0852 /* witchabort.ogg */ = {isa = PBXFileReference; lastKnownFileType = file; path = witchabort.ogg; sourceTree = "<group>"; };
 		1A231A160B9D8B1B00EF0852 /* OOCacheManager.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOCacheManager.h; sourceTree = "<group>"; };
 		1A231A170B9D8B1B00EF0852 /* OOCacheManager.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOCacheManager.m; sourceTree = "<group>"; };
+		1A29967C0B9F064C002D2149 /* OOCache.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOCache.h; sourceTree = "<group>"; };
+		1A29967D0B9F064C002D2149 /* OOCache.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOCache.m; sourceTree = "<group>"; };
 		1A38B4AA0B988532001ED4A0 /* OOLogging.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOLogging.h; sourceTree = "<group>"; };
 		1A38B4AB0B988532001ED4A0 /* OOLogging.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOLogging.m; sourceTree = "<group>"; };
 		1A472916096B5454000E78D8 /* CoreAudio.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreAudio.framework; path = /System/Library/Frameworks/CoreAudio.framework; sourceTree = "<absolute>"; };
@@ -1457,6 +1461,8 @@
 				25161145099544390037C2E1 /* TextureStore.m */,
 				1A231A160B9D8B1B00EF0852 /* OOCacheManager.h */,
 				1A231A170B9D8B1B00EF0852 /* OOCacheManager.m */,
+				1A29967C0B9F064C002D2149 /* OOCache.h */,
+				1A29967D0B9F064C002D2149 /* OOCache.m */,
 			);
 			name = "Resource Management";
 			sourceTree = "<group>";
@@ -1645,6 +1651,7 @@
 				1A38B4AC0B988532001ED4A0 /* OOLogging.h in Headers */,
 				1A231A180B9D8B1B00EF0852 /* OOCacheManager.h in Headers */,
 				1ADF5F130B9E374B00FDB2A3 /* JoystickHandler.h in Headers */,
+				1A29967E0B9F064C002D2149 /* OOCache.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1790,6 +1797,7 @@
 				1A8A3A390B962AEF007D20B8 /* NSScannerOOExtensions.m in Sources */,
 				1A38B4AD0B988532001ED4A0 /* OOLogging.m in Sources */,
 				1ADF5CEC0B9DF59A00FDB2A3 /* OOCacheManager.m in Sources */,
+				1A29967F0B9F064C002D2149 /* OOCache.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

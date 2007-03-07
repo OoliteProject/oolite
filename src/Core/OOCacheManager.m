@@ -23,6 +23,7 @@ MA 02110-1301, USA.
 */
 
 #import "OOCacheManager.h"
+#import "OOCache.h"
 
 
 static NSString * const kOOLogDataCacheFound				= @"dataCache.found";
@@ -62,7 +63,11 @@ static OOCacheManager *sSingleton = nil;
 - (void)load;
 - (void)write;
 - (void)clear;
+- (BOOL)dirty;
+- (void)markClean;
+
 - (void)buildCachesFromDictionary:(NSDictionary *)inDict;
+- (NSDictionary *)dictionaryOfCaches;
 
 @end
 
@@ -100,7 +105,7 @@ static OOCacheManager *sSingleton = nil;
 
 - (NSString *)description
 {
-	return [NSString stringWithFormat:@"<%@ %p>{dirty=%s}", [self class], self, dirty ? "yes" : "no"];
+	return [NSString stringWithFormat:@"<%@ %p>{dirty=%s}", [self class], self, [self dirty] ? "yes" : "no"];
 }
 
 
@@ -173,7 +178,6 @@ static OOCacheManager *sSingleton = nil;
 	}
 	
 	[cache setObject:onObject forKey:inKey];
-	dirty = YES;
 	OOLog(kOOLogDataCacheSetSuccess, @"Updated entry %@ in cache %@.", inKey, inCacheKey);
 }
 
@@ -213,7 +217,6 @@ static OOCacheManager *sSingleton = nil;
 	if (nil != [caches objectForKey:inCacheKey])
 	{
 		[caches removeObjectForKey:inCacheKey];
-		dirty = YES;
 		OOLog(kOOLogDataCacheClearSuccess, @"Cleared cache %@.", inCacheKey);
 	}
 	else
@@ -223,9 +226,31 @@ static OOCacheManager *sSingleton = nil;
 }
 
 
+- (void)setPruneThreshold:(unsigned)inThreshold forCache:(NSString *)inCacheKey
+{
+	OOCache				*cache = nil;
+	
+	cache = [caches objectForKey:inCacheKey];
+	if (cache != nil)
+	{
+		[cache setPruneThreshold:MIN(inThreshold, kOOCacheMinimumPruneThreshold)];
+	}
+}
+
+
+- (unsigned)pruneThresholdForCache:(NSString *)inCacheKey
+{
+	OOCache				*cache = nil;
+	
+	cache = [caches objectForKey:inCacheKey];
+	if (cache != nil)  return [cache pruneThreshold];
+	else  return kOOCacheDefaultPruneThreshold;
+}
+
+
 - (void)flush
 {
-	if (dirty) [self write];
+	if ([self dirty]) [self write];
 }
 
 @end
@@ -290,8 +315,6 @@ static OOCacheManager *sSingleton = nil;
 	
 	// If loading failed, or there was a version or endianness conflict
 	if (caches == nil) caches = [[NSMutableDictionary alloc] init];
-	
-	dirty = NO;
 }
 
 
@@ -301,23 +324,25 @@ static OOCacheManager *sSingleton = nil;
 	NSString				*ooliteVersion = nil;
 	NSNumber				*endianTag = nil;
 	NSNumber				*formatVersion = nil;
+	NSDictionary			*pListRep = nil;
 	
 	if (caches == nil) return;
 	
 	ooliteVersion = [[[NSBundle mainBundle] infoDictionary] objectForKey:kCacheKeyVersion];
 	endianTag = [NSNumber numberWithUnsignedInt:kEndianTagValue];
 	formatVersion = [NSNumber numberWithUnsignedInt:kFormatVersionValue];
-	if (ooliteVersion == nil || endianTag == nil) return;
+	pListRep = [self dictionaryOfCaches];
+	if (ooliteVersion == nil || endianTag == nil || formatVersion == nil || pListRep == nil)  return;
 	
 	newCache = [NSMutableDictionary dictionaryWithCapacity:4];
 	[newCache setObject:ooliteVersion forKey:kCacheKeyVersion];
 	[newCache setObject:formatVersion forKey:kCacheKeyFormatVersion];
 	[newCache setObject:endianTag forKey:kCacheKeyEndianTag];
-	[newCache setObject:caches forKey:kCacheKeyCaches];
+	[newCache setObject:pListRep forKey:kCacheKeyCaches];
 	
 	if ([self writeDict:newCache])
 	{
-		dirty = NO;
+		[self markClean];
 		OOLog(kOOLogDataCacheWriteSuccess, @"Wrote data cache.");
 	}
 	else
@@ -331,32 +356,74 @@ static OOCacheManager *sSingleton = nil;
 {
 	[caches release];
 	caches = nil;
+}
+
+
+- (BOOL)dirty
+{
+	NSEnumerator				*cacheEnum = nil;
+	OOCache						*cache = nil;
 	
-	dirty = NO;
+	for (cacheEnum = [caches objectEnumerator]; (cache = [cacheEnum nextObject]); )
+	{
+		if ([cache dirty]) return YES;
+	}
+	return NO;
+}
+
+
+- (void)markClean
+{
+	NSEnumerator				*cacheEnum = nil;
+	OOCache						*cache = nil;
+	
+	for (cacheEnum = [caches objectEnumerator]; (cache = [cacheEnum nextObject]); )
+	{
+		[cache markClean];
+	}
 }
 
 
 - (void)buildCachesFromDictionary:(NSDictionary *)inDict
 {
-	NSMutableDictionary			*newCaches = nil;
 	NSEnumerator				*keyEnum = nil;
 	id							key = nil;
 	id							value = nil;
+	OOCache						*cache = nil;
 	
 	if (inDict == nil ) return;
 	
-	newCaches = [NSMutableDictionary dictionaryWithCapacity:[inDict count]];
+	[caches release];
+	caches = [[NSMutableDictionary alloc] initWithCapacity:[inDict count]];
+	
 	for (keyEnum = [inDict keyEnumerator]; (key = [keyEnum nextObject]); )
 	{
 		value = [inDict objectForKey:key];
-		if ([value isKindOfClass:[NSDictionary class]])
+		cache = [[OOCache alloc] initWithPList:value];
+		if (cache != nil)
 		{
-			[newCaches setObject:[NSMutableDictionary dictionaryWithDictionary:value] forKey:key];
+			[caches setObject:cache forKey:key];
+			[cache release];
 		}
 	}
+}
+
+
+- (NSDictionary *)dictionaryOfCaches
+{
+	NSMutableDictionary			*dict = nil;
+	NSEnumerator				*keyEnum = nil;
+	id							key = nil;
+	OOCache						*cache = nil;
 	
-	[caches release];
-	caches = [newCaches retain];
+	dict = [NSMutableDictionary dictionaryWithCapacity:[caches count]];
+	for (keyEnum = [caches keyEnumerator]; (key = [keyEnum nextObject]); )
+	{
+		cache = [caches objectForKey:key];
+		[dict setObject:[cache pListRepresentation] forKey:key];
+	}
+	
+	return dict;
 }
 
 @end

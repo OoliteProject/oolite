@@ -32,20 +32,33 @@ MA 02110-1301, USA.
 #import "OOCocoa.h"
 
 
+enum
+{
+	kOOCacheMinimumPruneThreshold			= 25,
+	kOOCacheDefaultPruneThreshold			= 160
+};
+
+
 @interface OOCacheManager: NSObject
 {
 @private
 	NSMutableDictionary		*caches;
-	BOOL					dirty;
 }
 
 + (id)sharedCache;
 
-// Primitive cache interface.
 - (id)objectForKey:(NSString *)inKey inCache:(NSString *)inCacheKey;
 - (void)setObject:(id)inElement forKey:(NSString *)inKey inCache:(NSString *)inCacheKey;
 - (void)removeObjectForKey:(NSString *)inKey inCache:(NSString *)inCacheKey;
 - (void)clearCache:(NSString *)inCacheKey;
+
+/*	Prune thresholds:
+	when the number of objects in a cache reaches the prune threshold, old
+	objects are removed until the object count is no more than 80% of the
+	prune threshold.
+*/
+- (void)setPruneThreshold:(unsigned)inThreshold forCache:(NSString *)inCacheKey;
+- (unsigned)pruneThresholdForCache:(NSString *)inCacheKey;
 
 - (void)flush;
 
