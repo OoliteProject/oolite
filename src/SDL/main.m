@@ -60,7 +60,7 @@ int main(int argc, char *argv[])
 	// is no longer required.
 	[pool release];
 
-	for (i = 0; i < argc; i++)
+	for (i = 1; i < argc; i++)
 	{
 		if (strcmp("-fullscreen", argv[i]) == 0)
 			[controller setFullScreenMode: YES];
