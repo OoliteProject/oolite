@@ -168,10 +168,10 @@ static OOCacheManager *sSingleton = nil;
 	cache = [caches objectForKey:inCacheKey];
 	if (cache == nil)
 	{
-		cache = [NSMutableDictionary dictionary];
+		cache = [[OOCache alloc] init];
 		if (cache == nil)
 		{
-			OOLog(kOOLogDataCacheSetFailed, @"Failed to create cache dictionary for cache %@.", inCacheKey);
+			OOLog(kOOLogDataCacheSetFailed, @"Failed to create cache for key %@.", inCacheKey);
 			return;
 		}
 		[caches setObject:cache forKey:inCacheKey];
