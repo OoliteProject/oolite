@@ -45,7 +45,6 @@ extern NSString * const kOOLogSyntaxAddShips;
 static NSString * const kOOLogEntityBehaviourChanged	= @"entity.behaviour.changed";
 static NSString * const kOOLogOpenGLVersion				= @"rendering.opengl.version";
 static NSString * const kOOLogOpenGLShaderSupport		= @"rendering.opengl.shader.support";
-static NSString * const kOOLogCreateOctTreeCache		= @"dataCache.rebuild.octree";
 static NSString * const kOOLogShaderInit				= @"rendering.opengl.shader.init";
 static NSString * const kOOLogShaderInitDumpShader		= @"rendering.opengl.shader.init.dump.shader";
 static NSString * const kOOLogShaderInitDumpTexture		= @"rendering.opengl.shader.init.dump.texture";

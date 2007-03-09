@@ -312,7 +312,7 @@ static NSArray *CacheArrayOfNodesByAge(OOCacheImpl *cache);
 	
 	// Order of operations is to ensure rounding down.
 	desiredCount = (pruneThreshold * 4) / 5;
-	if (CacheGetCount(cache) < desiredCount) return;
+	if (pruneThreshold == kOOCacheNoPrune || CacheGetCount(cache) < desiredCount) return;
 	
 	OOLog(kOOLogCachePrune, @"Pruning cache");
 	OOLogIndentIf(kOOLogCachePrune);

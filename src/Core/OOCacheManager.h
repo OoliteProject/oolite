@@ -34,8 +34,9 @@ MA 02110-1301, USA.
 
 enum
 {
-	kOOCacheMinimumPruneThreshold			= 25,
-	kOOCacheDefaultPruneThreshold			= 125
+	kOOCacheMinimumPruneThreshold			= 25U,
+	kOOCacheDefaultPruneThreshold			= 125U,
+	kOOCacheNoPrune							= -1U
 };
 
 
@@ -51,6 +52,7 @@ enum
 - (void)setObject:(id)inElement forKey:(NSString *)inKey inCache:(NSString *)inCacheKey;
 - (void)removeObjectForKey:(NSString *)inKey inCache:(NSString *)inCacheKey;
 - (void)clearCache:(NSString *)inCacheKey;
+- (void)clearAllCaches;
 
 /*	Prune thresholds:
 	when the number of objects in a cache reaches the prune threshold, old

@@ -26,9 +26,16 @@ MA 02110-1301, USA.
 #import "NSScannerOOExtensions.h"
 #import "NSMutableDictionaryOOExtensions.h"
 #import "OOSound.h"
+#import "OOCacheManager.h"
 
 
-static NSString * const kOOLogDumpSearchPaths = @"searchPaths.dumpAll";
+static NSString * const kOOLogDumpSearchPaths			= @"searchPaths.dumpAll";
+static NSString * const kOOLogCacheUpToDate				= @"dataCache.upToDate";
+static NSString * const kOOLogCacheStalePaths			= @"dataCache.rebuild.pathsChanged";
+static NSString * const kOOLogCacheStaleDates			= @"dataCache.rebuild.datesChanged";
+static NSString * const kOOCacheSearchPathModDates		= @"search path modification dates";
+static NSString * const kOOCacheKeySearchPaths			= @"search paths";
+static NSString * const kOOCacheKeyModificationDates	= @"modification dates";
 
 
 extern NSDictionary* parseScripts(NSString* script);
@@ -91,6 +98,60 @@ NSMutableDictionary*	surface_cache;
 	return [ResourceManager pathsUsingAddOns:always_include_addons];
 }
 
+
++ (void)checkCacheUpToDateForPaths:(NSArray *)searchPaths
+{
+	/*	Check if caches are up to date.
+		The strategy is to use a two-entry cache. One entry is an array
+		containing the search paths, the other an array of modification dates
+		(in the same order). If either fails to match the correct settings,
+		we delete both.
+	*/
+	OOCacheManager		*cacheMgr = [OOCacheManager sharedCache];
+	NSFileManager		*fmgr = [NSFileManager defaultManager];
+	BOOL				upToDate = YES;
+	
+	if (![[cacheMgr objectForKey:kOOCacheKeySearchPaths inCache:kOOCacheSearchPathModDates] isEqual:searchPaths])
+	{
+		// OXPs added/removed
+		OOLog(kOOLogCacheStalePaths, @"Cache is stale (search paths have changed). Rebuilding from scratch.");
+		upToDate = NO;
+	}
+	
+	// Build modification date list. (We need this regardless of whether the search paths matched.)
+	NSMutableArray		*modDates = nil;
+	NSEnumerator		*pathEnum = nil;
+	NSString			*path = nil;
+	id					modDate = nil;
+	
+	modDates = [NSMutableArray arrayWithCapacity:[searchPaths count]];
+	for (pathEnum = [searchPaths objectEnumerator]; (path = [pathEnum nextObject]); )
+	{
+		modDate = [[fmgr fileAttributesAtPath:path traverseLink:YES] objectForKey:NSFileModificationDate];
+		if (modDate != nil)
+		{
+			// Converts to double because I'm not sure the cache can deal with dates under GNUstep.
+			modDate = [NSNumber numberWithDouble:[modDate timeIntervalSince1970]];
+			[modDates addObject:modDate];
+		}
+	}
+		
+	if (upToDate && ![[cacheMgr objectForKey:kOOCacheKeyModificationDates inCache:kOOCacheSearchPathModDates] isEqual:modDates])
+	{
+		OOLog(kOOLogCacheStaleDates, @"Cache is stale (modification dates have changed). Rebuilding from scratch.");
+		upToDate = NO;
+	}
+	
+	if (!upToDate)
+	{
+		[cacheMgr clearAllCaches];
+		[cacheMgr setObject:searchPaths forKey:kOOCacheKeySearchPaths inCache:kOOCacheSearchPathModDates];
+		[cacheMgr setObject:modDates forKey:kOOCacheKeyModificationDates inCache:kOOCacheSearchPathModDates];
+	}
+	else OOLog(kOOLogCacheUpToDate, @"Data cache is up to date.");
+}
+
+
 + (NSMutableArray *) pathsUsingAddOns:(BOOL) include_addons
 {
 	// check if we need to clear the caches
@@ -124,6 +185,8 @@ NSMutableDictionary*	surface_cache;
 		[errors release];
 		errors = nil;
 	}
+	
+	NSFileManager *fmgr = [NSFileManager defaultManager];
 	
 #ifdef WIN32
 	NSString	*app_path = @"oolite.app/Contents/Resources";
@@ -163,7 +226,7 @@ NSMutableDictionary*	surface_cache;
 		for (i = 0; i < [extra_paths count]; i++)
 		{
 			NSString*		addon_path = (NSString*)[extra_paths objectAtIndex: i];
-			NSArray*		possibleExpansions = [[NSFileManager defaultManager] directoryContentsAtPath: addon_path];
+			NSArray*		possibleExpansions = [fmgr directoryContentsAtPath: addon_path];
 			int j;
 			for (j = 0; j < [possibleExpansions count]; j++)
 			{
@@ -172,7 +235,7 @@ NSMutableDictionary*	surface_cache;
 				{
 					BOOL dir_test = NO;
 					NSString*	possibleExpansionPath = [addon_path stringByAppendingPathComponent:item];
-					[[NSFileManager defaultManager] fileExistsAtPath:possibleExpansionPath isDirectory:&dir_test];
+					[fmgr fileExistsAtPath:possibleExpansionPath isDirectory:&dir_test];
 					if (dir_test)
 						[possibleExpansionPaths addObject:possibleExpansionPath];
 				}
@@ -189,7 +252,7 @@ NSMutableDictionary*	surface_cache;
 			BOOL require_test = YES;
 			BOOL failed_parsing = NO;
 			// check for compatibility
-			if ([[NSFileManager defaultManager] fileExistsAtPath:requiresPath])
+			if ([fmgr fileExistsAtPath:requiresPath])
 			{
 				NSDictionary* requires_dic = [NSDictionary dictionaryWithContentsOfFile:requiresPath];
 				
@@ -240,9 +303,11 @@ NSMutableDictionary*	surface_cache;
 	//
 	if (!saved_paths)
 		saved_paths =[file_paths retain];
-	//
-	OOLog(kOOLogDumpSearchPaths, @"---> searching paths:\n%@", [file_paths description]);
-	//
+	
+	OOLog(kOOLogDumpSearchPaths, @"---> searching paths:\n%@", file_paths);
+	
+	[self checkCacheUpToDateForPaths:file_paths];
+	
 	return file_paths;
 }
 

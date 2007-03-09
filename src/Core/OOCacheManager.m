@@ -226,6 +226,13 @@ static OOCacheManager *sSingleton = nil;
 }
 
 
+- (void)clearAllCaches
+{
+	[caches release];
+	caches = [[NSMutableDictionary alloc] init];
+}
+
+
 - (void)setPruneThreshold:(unsigned)inThreshold forCache:(NSString *)inCacheKey
 {
 	OOCache				*cache = nil;
