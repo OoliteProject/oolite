@@ -5,8 +5,6 @@ By Jens Ayton
 
 OOCache is an implementation detail of OOCacheManager. Don't use it directly.
 
-This is a simple implementation which doesn't support pruning.
-
 Oolite
 Copyright (C) 2004-2007 Giles C Williams and contributors
 
@@ -33,20 +31,20 @@ MA 02110-1301, USA.
 @interface OOCache: NSObject
 {
 @private
-	NSMutableDictionary		*cache;
+	struct OOCacheImpl		*cache;
 	unsigned				pruneThreshold;
 	BOOL					dirty;
 }
 
 - (id)init;
-- (id)initWithPList:(id)inPList;
+- (id)initWithPList:(id)pList;
 - (id)pListRepresentation;
 
-- (id)objectForKey:(NSString *)inKey;
-- (void)setObject:(id)inValue forKey:(NSString *)inKey;
-- (void)removeObjectForKey:(NSString *)inKey;
+- (id)objectForKey:(NSString *)key;
+- (void)setObject:(id)value forKey:(NSString *)key;
+- (void)removeObjectForKey:(NSString *)key;
 
-- (void)setPruneThreshold:(unsigned)inThreshold;
+- (void)setPruneThreshold:(unsigned)threshold;
 - (unsigned)pruneThreshold;
 
 - (BOOL)dirty;

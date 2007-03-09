@@ -51,7 +51,7 @@ static NSString * const kCacheKeyCaches						= @"caches";
 enum
 {
 	kEndianTagValue			= 0x12345678UL,
-	kFormatVersionValue		= 1
+	kFormatVersionValue		= 2
 };
 
 
@@ -415,12 +415,14 @@ static OOCacheManager *sSingleton = nil;
 	NSEnumerator				*keyEnum = nil;
 	id							key = nil;
 	OOCache						*cache = nil;
+	id							pList = nil;
 	
 	dict = [NSMutableDictionary dictionaryWithCapacity:[caches count]];
 	for (keyEnum = [caches keyEnumerator]; (key = [keyEnum nextObject]); )
 	{
 		cache = [caches objectForKey:key];
-		[dict setObject:[cache pListRepresentation] forKey:key];
+		pList = [cache pListRepresentation];
+		if (pList != nil) [dict setObject:pList forKey:key];
 	}
 	
 	return dict;

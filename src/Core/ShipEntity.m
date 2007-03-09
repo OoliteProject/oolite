@@ -379,11 +379,8 @@ NSString* describeStatus(int some_status)
 
 - (void) setOctree:(Octree*) oct
 {
-	if (octree)
-		[octree release];
-	octree = oct;
-	if (octree)
-		[octree retain];
+	[octree release];
+	octree = [oct retain];
 }
 
 
