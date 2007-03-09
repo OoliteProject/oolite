@@ -250,7 +250,11 @@ static OOCacheManager *sSingleton = nil;
 
 - (void)flush
 {
-	if ([self dirty]) [self write];
+	if ([self dirty])
+	{
+		[self write];
+		[self markClean];
+	}
 }
 
 @end

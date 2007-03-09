@@ -23,14 +23,94 @@ MA 02110-1301, USA.
 
 */
 
+/*	IMPLEMENTATION NOTES
+	A cache needs to be able to implement three types of operation
+	efficiently:
+	  * Retrieving: looking up an element by key.
+	  * Inserting: setting the element associated with a key.
+	  * Deleting: removing a single element.
+	  * Pruning: removing one or more least-recently used elements.
+	
+	An NSMutableDictionary performs the first three operations efficiently but
+	has no support for pruning - specifically no support for finding the
+	least-recently-accessed element. Using standard Foundation containers, i
+	would be necessary to use several dictionaries and arrays, which would be
+	quite inefficient since small NSArrays aren’t very good at head insertion
+	or deletion. Alternatively, a standard dictionary whose value objects
+	maintain an age-sorted list could be used.
+	
+	I chose instead to implement a custom scheme from scratch. It uses two
+	parallel data structures: a doubly-linked list sorted by age, and a splay
+	tree to implement insertion/deletion. The implementation is largely
+	procedural C. Deserialization, pruning and modification tracking is done
+	in the ObjC class; everything else is done in C functions.
+	
+	A SPLAY TREE is a type of semi-balanced binary search tree with certain
+	useful properties:
+	  * Simplicity. All look-up and restructuring operations are based on a
+	    single operation, splaying, which brings the node with the desired key
+		(or the node whose key is "left" of the desired key, if there is no
+		exact match) to the root, while maintaining the binary search tree
+		invariant. Splaying itself is sufficient for look-up; insertion and
+		deletion work by splaying and then manipulating at the root.
+	  * Self-optimization. Because each look-up brings the sought element to
+	    the root, often-used elements tend to stay near the top. (Oolite often
+		performs sequences of identical look-ups, for instance when creating
+		an asteroid field, or the racing ring set-up which uses lots of
+		identical ring segments; during combat, missiles, canisters and hull
+		plates will be commonly used.) Also, this means that for a retrieve-
+		attempt/insert sequence, the retrieve attempt will optimize the tree
+		for the insertion.
+	  * Efficiency. In addition to the self-optimization, splay trees have a
+		small code size and no storage overhead for flags.
+		The amortized worst-case cost of splaying (cost averaged over a
+		worst-case sequence of operations) is O(log n); a single worst-case
+		splay is O(n), but that worst-case also improves the balance of the
+		tree, so you can't have two worst cases in a row. Insertion and
+		deletion are also O(log n), consisting of a splay plus an O(1)
+		operation.
+	References for splay trees:
+	  * http://www.cs.cmu.edu/~sleator/papers/self-adjusting.pdf
+	    Original research paper.
+	  *	http://www.ibr.cs.tu-bs.de/courses/ss98/audii/applets/BST/SplayTree-Example.html
+		Java applet demonstrating splaying.
+	  * http://www.link.cs.cmu.edu/link/ftp-site/splaying/top-down-splay.c
+		Sample implementation by one of the inventors. The TreeSplay(),
+		TreeInsert() and CacheRemove() functions are based on this.
+	
+	The AGE LIST is a doubly-linked list, ordered from oldest to youngest.
+	Whenever an element is retrieved or inserted, it is promoted to the
+	youngest end of the age list. Pruning proceeds from the oldest end of the
+	age list.
+	
+	PRUNING is batched, handling 20% of the cache at once. This is primarily
+	because deletion somewhat pessimizes the tree (see "Self-optimization"
+	below). It also provides a bit of code coherency. To reduce pruning
+	batches while in flight, pruning is also performed before serialization
+	(which in turn is done, if the cache has changed, whenever the user
+	docks). This has the effect that the number of items in the cache on disk
+	never exceeds 80% of the prune threshold. This is probably not actually
+	poinful, since pruning should be a very small portion of the per-frame run
+	time in any case. Premature optimization and all that jazz.
+	Pruning performs at most 0.2n deletions, and is thus O(n log n).
+	
+	If the macro OOCACHE_PERFORM_INTEGRITY_CHECKS is set to a non-zero value,
+	the integrity of the tree and the age list will be checked before and
+	after each high-level operation. This is an inherently O(n) operation.
+*/
+
+
 #import "OOCache.h"
 #import "OOCacheManager.h"
 
 
-#define PERFORM_INTEGRITY_CHECKS			1
+#ifndef OOCACHE_PERFORM_INTEGRITY_CHECKS
+#define OOCACHE_PERFORM_INTEGRITY_CHECKS	0
+#endif
 
 
-static NSString * const kOOLogCacheIntegrityCheck = @"dataCache.integrityCheck";
+static NSString * const kOOLogCacheIntegrityCheck	= @"dataCache.integrityCheck";
+static NSString * const kOOLogCachePrune			= @"dataCache.prune";
 
 
 typedef struct OOCacheImpl OOCacheImpl;
@@ -38,6 +118,7 @@ typedef struct OOCacheNode OOCacheNode;
 
 
 enum { kCountUnknown = -1UL };
+
 
 static NSString * const kSerializedEntryKeyKey		= @"key";
 static NSString * const kSerializedEntryKeyValue	= @"value";
@@ -53,9 +134,9 @@ static id CacheRetrieve(OOCacheImpl *cache, NSString *key);
 static unsigned CacheGetCount(OOCacheImpl *cache);
 static NSArray *CacheArrayOfNodesByAge(OOCacheImpl *cache);
 
-static void CacheCheckIntegrity(OOCacheImpl *cache, NSString *context);
-
-#if PERFORM_INTEGRITY_CHECKS
+#if OOCACHE_PERFORM_INTEGRITY_CHECKS
+	static void CacheCheckIntegrity(OOCacheImpl *cache, NSString *context);
+	
 	#define CHECK_INTEGRITY(context)	CacheCheckIntegrity(cache, (context))
 #else
 	#define CHECK_INTEGRITY(context)	do {} while (0)
@@ -233,8 +314,13 @@ static void CacheCheckIntegrity(OOCacheImpl *cache, NSString *context);
 	desiredCount = (pruneThreshold * 4) / 5;
 	if (CacheGetCount(cache) < desiredCount) return;
 	
+	OOLog(kOOLogCachePrune, @"Pruning cache");
+	OOLogIndentIf(kOOLogCachePrune);
+	
 	pruneCount = pruneThreshold - desiredCount;
 	while (pruneCount--) CacheRemoveOldest(cache);
+	
+	OOLogOutdentIf(kOOLogCachePrune);
 }
 
 @end
@@ -272,14 +358,24 @@ static void CacheNodeFree(OOCacheImpl *cache, OOCacheNode *node);
 static id CacheNodeGetValue(OOCacheNode *node);
 static void CacheNodeSetValue(OOCacheNode *node, id value);
 
+#if OOCACHE_PERFORM_INTEGRITY_CHECKS
+static NSString *CacheNodeGetDescription(OOCacheNode *node);
+#endif
+
 static OOCacheNode *TreeSplay(OOCacheNode **root, NSString *key);
 static OOCacheNode *TreeInsert(OOCacheImpl *cache, NSString *key, id value);
 static unsigned TreeCountNodes(OOCacheNode *node);
+
+#if OOCACHE_PERFORM_INTEGRITY_CHECKS
 static OOCacheNode *TreeCheckIntegrity(OOCacheImpl *cache, OOCacheNode *node, OOCacheNode *expectedParent, NSString *context);
+#endif
 
 static void AgeListMakeYoungest(OOCacheImpl *cache, OOCacheNode *node);
 static void AgeListRemove(OOCacheImpl *cache, OOCacheNode *node);
+
+#if OOCACHE_PERFORM_INTEGRITY_CHECKS
 static void AgeListCheckIntegrity(OOCacheImpl *cache, NSString *context);
+#endif
 
 
 /***** CacheImpl functions *****/
@@ -349,7 +445,7 @@ static BOOL CacheRemoveOldest(OOCacheImpl *cache)
 	// This could be more efficient, but does it need to be?
 	if (cache == NULL || cache->oldest == NULL) return NO;
 	
-	OOLog(@"dataCache.prune", @"Pruning cache: removing %@", cache->oldest->key);
+	OOLog(kOOLogCachePrune, @"Pruning cache: removing %@", cache->oldest->key);
 	return CacheRemove(cache, cache->oldest->key);
 }
 
@@ -397,6 +493,7 @@ static unsigned CacheGetCount(OOCacheImpl *cache)
 	return cache->count;
 }
 
+#if OOCACHE_PERFORM_INTEGRITY_CHECKS
 
 static void CacheCheckIntegrity(OOCacheImpl *cache, NSString *context)
 {
@@ -414,6 +511,8 @@ static void CacheCheckIntegrity(OOCacheImpl *cache, NSString *context)
 	
 	AgeListCheckIntegrity(cache, context);
 }
+
+#endif	// OOCACHE_PERFORM_INTEGRITY_CHECKS
 
 
 /***** CacheNode functions *****/
@@ -472,6 +571,7 @@ static void CacheNodeSetValue(OOCacheNode *node, id value)
 }
 
 
+#if OOCACHE_PERFORM_INTEGRITY_CHECKS
 // CacheNodeGetDescription(): get a description of a cache node for debugging purposes.
 static NSString *CacheNodeGetDescription(OOCacheNode *node)
 {
@@ -479,6 +579,7 @@ static NSString *CacheNodeGetDescription(OOCacheNode *node)
 	
 	return [NSString stringWithFormat:@"%p[\"%@\"]", node, node->key];
 }
+#endif	// OOCACHE_PERFORM_INTEGRITY_CHECKS
 
 
 /***** Tree functions *****/
@@ -623,7 +724,8 @@ static unsigned TreeCountNodes(OOCacheNode *node)
 }
 
 
-// TreeCheckIntegrity(): verify the links and contents of a (sub-)tree. If successful, returns the root of the subtree (which could theoretically be changed), otherwise returns NULL. Does not verify age list.
+#if OOCACHE_PERFORM_INTEGRITY_CHECKS
+// TreeCheckIntegrity(): verify the links and contents of a (sub-)tree. If successful, returns the root of the subtree (which could theoretically be changed), otherwise returns NULL.
 static OOCacheNode *TreeCheckIntegrity(OOCacheImpl *cache, OOCacheNode *node, OOCacheNode *expectedParent, NSString *context)
 {
 	NSComparisonResult		order;
@@ -681,6 +783,7 @@ static OOCacheNode *TreeCheckIntegrity(OOCacheImpl *cache, OOCacheNode *node, OO
 		return NULL;
 	}
 }
+#endif	// OOCACHE_PERFORM_INTEGRITY_CHECKS
 
 
 /***** Age list functions *****/
@@ -719,6 +822,8 @@ static void AgeListRemove(OOCacheImpl *cache, OOCacheNode *node)
 	if (older != NULL) older->younger = younger;
 }
 
+
+#if OOCACHE_PERFORM_INTEGRITY_CHECKS
 
 static void AgeListCheckIntegrity(OOCacheImpl *cache, NSString *context)
 {
@@ -761,3 +866,5 @@ static void AgeListCheckIntegrity(OOCacheImpl *cache, NSString *context)
 		cache->oldest = node;
 	}
 }
+
+#endif	// OOCACHE_PERFORM_INTEGRITY_CHECKS

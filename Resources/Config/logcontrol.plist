@@ -68,12 +68,14 @@ dataCache.write.success					= inherit;
 dataCache.write.failed					= $error;
 dataCache.rebuild.octree				= no;
 
+$dataCacheStatus = yes;
 $dataCacheError = $error;
 $dataCacheDebug = no;
-dataCache.found							= inherit;
+dataCache.found							= $dataCacheStatus;
 dataCache.notFound						= $dataCacheError;
-dataCache.rebuild						= inherit;
-dataCache.write.success					= inherit;
+dataCache.rebuild						= $dataCacheStatus;
+dataCache.removedOld					= $dataCacheStatus;
+dataCache.write.success					= $dataCacheStatus;
 dataCache.write.buildPath.failed		= $dataCacheError;
 dataCache.write.failed					= $dataCacheError;
 dataCache.write.serialize.failed		= $dataCacheError;
@@ -83,7 +85,7 @@ dataCache.set.success					= $dataCacheDebug;
 dataCache.set.failed					= $dataCacheError;
 dataCache.remove.success				= $dataCacheDebug;
 dataCache.clear.success					= $dataCacheDebug;
-dataCache.removedOld					= inherit;
+dataCache.prune							= $dataCacheDebug;
 
 
 $linkedListError						= $error;
