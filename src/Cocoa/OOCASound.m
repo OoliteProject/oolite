@@ -34,7 +34,8 @@ MA 02110-1301, USA.
 #import <CoreAudio/CoreAudio.h>
 #import <AudioToolbox/AudioToolbox.h>
 
-#define KEY_VOLUME_CONTROL @"volume_control"
+#define KEY_VOLUME_CONTROL			@"volume_control"
+#define KEY_FORCE_STREAMING_SOUND	@"force_streaming_sound"
 
 
 NSString * const kOOLogDeprecatedMethodOOCASound	= @"general.error.deprecatedMethod.oocasound";
@@ -45,7 +46,7 @@ static NSString * const kOOLogSoundLoadingError		= @"sound.load.error";
 
 enum
 {
-	kMaxDecodeSize			= 1 << 19		// 512 kB
+	kMaxDecodeSize			= 1 << 20		// 1 MB
 };
 
 
@@ -55,6 +56,7 @@ BOOL						gOOSoundBroken = NO;
 NSLock						*gOOCASoundSyncLock = NULL;	// Used to ensure thread-safety of play and stop, specifically because stop may be called from the CoreAudio thread.
 
 static OOSound				*sSingletonOOSound = NULL;
+static BOOL					sForceStreamingSound;
 
 
 @implementation OOSound
@@ -113,6 +115,8 @@ static OOSound				*sSingletonOOSound = NULL;
 
 + (void) setUp
 {
+	NSUserDefaults				*prefs = nil;
+	
 	if (!gOOSoundSetUp)
 	{
 		gOOCASoundSyncLock = [[NSRecursiveLock alloc] init];
@@ -127,13 +131,15 @@ static OOSound				*sSingletonOOSound = NULL;
 			gOOSoundBroken = YES;
 		}
 		
-		gOOSoundSetUp = YES;
+		gOOSoundSetUp = YES;	// Must be before [OOCASoundMixer mixer] below.
 		
-		if ([[NSUserDefaults standardUserDefaults] objectForKey:KEY_VOLUME_CONTROL])
-			sNominalVolume = [[NSUserDefaults standardUserDefaults] floatForKey:KEY_VOLUME_CONTROL];
-		else
-			sNominalVolume = 0.75;	// default setting at 75% system volume
+		prefs = [NSUserDefaults standardUserDefaults];
+		
+		if ([prefs objectForKey:KEY_VOLUME_CONTROL])  sNominalVolume = [prefs floatForKey:KEY_VOLUME_CONTROL];
+		else  sNominalVolume = 0.75;	// default setting at 75% system volume
 		[[OOCASoundMixer mixer] setMasterVolume:sNominalVolume];
+		
+		if ([prefs objectForKey:KEY_FORCE_STREAMING_SOUND])  sForceStreamingSound = [prefs boolForKey:KEY_FORCE_STREAMING_SOUND];
 	}
 }
 
@@ -190,7 +196,7 @@ static OOSound				*sSingletonOOSound = NULL;
 	decoder = [[OOCASoundDecoder alloc] initWithPath:inPath];
 	if (nil == decoder) return nil;
 	
-	if ([decoder sizeAsBuffer] <= kMaxDecodeSize)
+	if (!sForceStreamingSound && [decoder sizeAsBuffer] <= kMaxDecodeSize)
 	{
 		self = [[OOCABufferedSound alloc] initWithDecoder:decoder];
 	}

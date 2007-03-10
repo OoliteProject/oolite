@@ -201,6 +201,7 @@ static BOOL PortWait(mach_port_t inPort, PortMessage *outMessage);
 {
 	PortMessage					message = { kMsgThreadUp, NULL };
 	OOCASoundChannel			*chan;
+	NSAutoreleasePool			*pool = nil;
 	
 	sReaperRunning = YES;
 	PortSend(sStatusPort, message);
@@ -211,6 +212,8 @@ static BOOL PortWait(mach_port_t inPort, PortMessage *outMessage);
 	{
 		if (PortWait(sReapPort, &message))
 		{
+			pool = [[NSAutoreleasePool alloc] init];
+			
 			if (kMsgWakeUp == message.tag)
 			{
 				assert (!pthread_mutex_lock(&sReapQueueMutex));
@@ -227,8 +230,11 @@ static BOOL PortWait(mach_port_t inPort, PortMessage *outMessage);
 			}
 			else if (kMsgDie == message.tag)
 			{
+				[pool release];
 				break;
 			}
+			
+			[pool release];
 		}
 	}
 	

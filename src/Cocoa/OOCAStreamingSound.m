@@ -38,14 +38,27 @@ static BOOL					sFeederThreadActive = NO;
 static MPQueueID			sFeederQueue = kInvalidID;
 
 
+// For IMP caching of VirtualRingBuffer methods
+typedef UInt32 (*VRB_lengthAvailableToReadReturningPointerIMP)(id inSelf, SEL inSel, void ** outReturnedReadPointer);
+typedef void (*VRB_didReadLengthIMP)(id inSelf, SEL inSel, UInt32 inLength);
+
+#define kSEL_VRB_lengthAvailableToReadReturningPointer	@selector(lengthAvailableToReadReturningPointer:)
+#define kSEL_VRB_didReadLength							@selector(didReadLength:)
+
+static VRB_lengthAvailableToReadReturningPointerIMP		VRB_lengthAvailableToReadReturningPointer = NULL;
+static VRB_didReadLengthIMP								VRB_didReadLength = NULL;
+
+
 typedef struct
 {
 	uint64_t				readOffset;
 	VirtualRingBuffer		*bufferL,
 							*bufferR;
+	SInt32					pendingCount;
 	BOOL					atEnd,
 							loop,
-							empty;
+							empty,
+							stopped;
 } *OOCAStreamingSoundRenderContext;
 
 
@@ -54,6 +67,7 @@ typedef struct
 + (void)feederThread:ignored;
 - (BOOL)setUpAudioUnit;
 - (void)fillBuffersWithContext:(OOCAStreamingSoundRenderContext)inContext;
+- (void)releaseContext:(OOCAStreamingSoundRenderContext)inContext;
 
 @end
 
@@ -82,6 +96,14 @@ enum
 	
 	assert(gOOSoundSetUp);
 	if (gOOSoundBroken || nil == inDecoder) OK = NO;
+	
+	if (OK && VRB_lengthAvailableToReadReturningPointer == NULL)
+	{
+		VRB_lengthAvailableToReadReturningPointer = (VRB_lengthAvailableToReadReturningPointerIMP)[VirtualRingBuffer instanceMethodForSelector:@selector(lengthAvailableToReadReturningPointer:)];
+		VRB_didReadLength = (VRB_didReadLengthIMP)[VirtualRingBuffer instanceMethodForSelector:@selector(didReadLength:)];
+		
+		if (VRB_lengthAvailableToReadReturningPointer == NULL || VRB_didReadLength == NULL) OK = NO;
+	}
 	
 	if (OK)
 	{
@@ -165,6 +187,8 @@ enum
 	
 	if (OK && !sFeederThreadActive) [NSThread detachNewThreadSelector:@selector(feederThread:) toTarget:[OOCAStreamingSound class] withObject:nil];
 	
+	[self retain];	// Will be released by fillBuffers... when stopped is true and pendingCount is 0.
+	++context->pendingCount;
 	[self fillBuffersWithContext:context];
 	
 	return OK;
@@ -177,10 +201,18 @@ enum
 	
 	context = (OOCAStreamingSoundRenderContext) inContext;
 	
-	[context->bufferL release];
-	[context->bufferR release];
-	
-	free(context);
+	[gOOCASoundSyncLock lock];
+	context->stopped = YES;
+	if (0 == context->pendingCount)
+	{
+		OOLog(@"sound.streaming.releaseContext.immediate", @"Streaming sound %@ stopped with 0 pendingCount, releasing context.", self);
+		[self releaseContext:context];
+	}
+	else
+	{
+		OOLog(@"sound.streaming.releaseContext.deferring", @"Streaming sound %@ stopped with %i pendingCount, deferring release.", self, context->pendingCount);
+	}
+	[gOOCASoundSyncLock unlock];
 }
 
 
@@ -190,6 +222,7 @@ enum
 	void							*param1, *param2;
 	OOCAStreamingSound				*sound;
 	OOCAStreamingSoundRenderContext	context = 0;
+	NSAutoreleasePool				*pool = nil;
 	
 	assert(sFeederQueue != kInvalidID);
 	
@@ -199,6 +232,8 @@ enum
 	{
 		if (noErr != MPWaitOnQueue(sFeederQueue, (void **)&msgID, &param1, &param2, kDurationForever))  continue;
 		
+		pool = [[NSAutoreleasePool alloc] init];
+		
 		switch (msgID)
 		{
 			case kMsgFillBuffers:
@@ -206,6 +241,8 @@ enum
 				context = param2;
 				[sound fillBuffersWithContext:context];
 		}
+		
+		[pool release];
 	}
 }
 
@@ -254,7 +291,23 @@ enum
 			}
 		}
 	}
+	
+	if (OTAtomicAdd32(-1, &inContext->pendingCount) == 0 && inContext->stopped)
+	{
+		OOLog(@"sound.streaming.releaseContext.deferred", @"Stopped streaming sound %@ reached 0 pendingCount, releasing context.", self);
+		[self releaseContext:inContext];
+	}
+	
 	[gOOCASoundSyncLock unlock];
+}
+
+
+- (void)releaseContext:(OOCAStreamingSoundRenderContext)inContext
+{
+	[inContext->bufferL release];
+	[inContext->bufferR release];
+	free(inContext);
+	[self autorelease];
 }
 
 
@@ -278,7 +331,7 @@ enum
 
 - (OSStatus)renderWithFlags:(AudioUnitRenderActionFlags *)ioFlags frames:(UInt32)inNumFrames context:(OOCASoundRenderContext *)ioContext data:(AudioBufferList *)ioData
 {
-	size_t							availL, availR, remaining, underflow;
+	size_t							available, availL, availR, remaining, underflow;
 	size_t							numBytes;
 	void							*ptrL, *ptrR;
 	OOCAStreamingSoundRenderContext	context;
@@ -287,39 +340,40 @@ enum
 	
 	assert(2 == ioData->mNumberBuffers);
 	
-	availL = [context->bufferL lengthAvailableToReadReturningPointer:&ptrL];
-	availR = [context->bufferR lengthAvailableToReadReturningPointer:&ptrR];
+	availL = VRB_lengthAvailableToReadReturningPointer(context->bufferL, kSEL_VRB_lengthAvailableToReadReturningPointer, &ptrL);
+	availR = VRB_lengthAvailableToReadReturningPointer(context->bufferR, kSEL_VRB_lengthAvailableToReadReturningPointer, &ptrR);
 	
 	numBytes = inNumFrames * sizeof (float);
 	
-	if (availR < availL) availL = availR;
-	remaining = availL;
-	if (numBytes < availL) availL = numBytes;
+	available = MIN(availL, availR);
+	remaining = available;
+	if (numBytes < available) available = numBytes;
 	
-	bcopy(ptrL, ioData->mBuffers[0].mData, availL);
-	bcopy(ptrR, ioData->mBuffers[1].mData, availL);
+	bcopy(ptrL, ioData->mBuffers[0].mData, available);
+	bcopy(ptrR, ioData->mBuffers[1].mData, available);
 	
-	[context->bufferL didReadLength:availL];
-	[context->bufferR didReadLength:availL];
+	VRB_didReadLength(context->bufferL, kSEL_VRB_didReadLength, available);
+	VRB_didReadLength(context->bufferR, kSEL_VRB_didReadLength, available);
 	
-	if (availL < numBytes)
+	if (available < numBytes)
 	{
 		// Buffer underflow! Fill with silence.
-		underflow = numBytes - availL;
+		underflow = numBytes - available;
 		
-		if (0 == availL) *ioFlags |= kAudioUnitRenderAction_OutputIsSilence;
+		if (0 == available) *ioFlags |= kAudioUnitRenderAction_OutputIsSilence;
 		
-		bzero(ioData->mBuffers[0].mData + availL, underflow);
-		bzero(ioData->mBuffers[0].mData + availL, underflow);
+		bzero(ioData->mBuffers[0].mData + available, underflow);
+		bzero(ioData->mBuffers[0].mData + available, underflow);
 	}
 	
-	remaining -= availL;
+	remaining -= available;
 	if (!context->atEnd && remaining < kStreamBufferRefillThreshold * sizeof (float) && sFeederQueue != kInvalidID)
 	{
+		OTAtomicAdd32(1, &context->pendingCount);
 		MPNotifyQueue(sFeederQueue, (void *)kMsgFillBuffers, self, context);
 	}
 	
-	return context->atEnd ? endOfDataReached : noErr;
+	return (context->atEnd && remaining == 0) ? endOfDataReached : noErr;
 }
 
 

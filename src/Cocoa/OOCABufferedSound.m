@@ -49,7 +49,7 @@ MA 02110-1301, USA.
 
 - (NSString *)description
 {
-	return [NSString stringWithFormat:@"<%@ %p>{\"%@\", %s, %g Hz}", [self className], self, [self name], _stereo ? "stereo" : "mono", _sampleRate];
+	return [NSString stringWithFormat:@"<%@ %p>{\"%@\", %s, %g Hz, %u bytes}", [self className], self, [self name], _stereo ? "stereo" : "mono", _sampleRate, _size * sizeof (float) * (_stereo ? 2 : 1)];
 }
 
 

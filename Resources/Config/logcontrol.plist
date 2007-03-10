@@ -225,3 +225,4 @@ sound.streaming.refill					= $soundDebugVerbose;
 sound.streaming.loop					= $soundDebug;
 sound.streaming.underflow				= $soundError;
 sound.virtualringbuffer					= $soundError;
+sound.streaming.releaseContext			= $soundDebug;

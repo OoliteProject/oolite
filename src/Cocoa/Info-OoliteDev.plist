@@ -28,7 +28,7 @@
 			<key>CFBundleTypeName</key>
 			<string>Oolite Expansion Pack</string>
 			<key>CFBundleTypeRole</key>
-			<string>Viewer</string>
+			<string>None</string>
 			<key>LSTypeIsPackage</key>
 			<true/>
 		</dict>

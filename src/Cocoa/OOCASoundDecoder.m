@@ -423,7 +423,7 @@ static void MixDown(float *inChan1, float *inChan2, float *outMix, size_t inCoun
 	ogg_int64_t				size;
 	
 	size = ov_pcm_total(&_vf, -1);
-	size /= sizeof(float);	// Frames of mono float are 4 bytes each
+	size *= sizeof(float) * ([self isStereo] ? 2 : 1);
 	if (SIZE_T_MAX < size) size = SIZE_T_MAX;
 	return size;
 }
