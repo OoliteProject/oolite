@@ -54,6 +54,7 @@ static NSString * const kOOLogScriptNoSystemForName			= @"script.debug.note.syst
 static NSString * const kOOLogStringCoordinateConversion	= @"strings.conversion.coordinates";
 extern NSString * const kOOLogEntityVerificationError;
 static NSString * const kOOLogEntityVerificationRebuild		= @"entity.linkedList.verify.rebuild";
+static NSString * const kOOLogFoundBeacon					= @"beacon.list";
 
 
 @implementation Universe
@@ -7837,7 +7838,7 @@ NSComparisonResult comparePrice( id dict1, id dict2, void * context)
 	while (beacon)
 	{
 		NSString* beacon_code = [beacon beaconCode];
-		NSLog(@"beacon: %@ %@", beacon, beacon_code);
+		OOLog(kOOLogFoundBeacon, @"Beacon: %@ has code %@", beacon, beacon_code);
 		if ([beacon_code rangeOfString:code options: NSCaseInsensitiveSearch].location != NSNotFound)
 			[result addObject:beacon];
 		beacon = (ShipEntity*)[self entityForUniversalID:[beacon nextBeaconID]];

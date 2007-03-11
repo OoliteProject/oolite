@@ -54,6 +54,10 @@ MA 02110-1301, USA.
 #define	OG_ELITE_FORWARD_DRIFT			10.0f
 
 
+static NSString * const kOOLogBuyMountedOK			= @"equip.buy.mounted";
+static NSString * const kOOLogBuyMountedFailed		= @"equip.buy.mounted.failed";
+
+
 @implementation PlayerEntity
 
 static Quaternion quaternion_identity = { (GLfloat)1.0, (GLfloat)0.0, (GLfloat)0.0, (GLfloat)0.0};
@@ -5886,10 +5890,8 @@ static int last_outfitting_index;
 	if ([eq_key hasSuffix:@"MISSILE"]||[eq_key hasSuffix:@"MINE"])
 	{
 		ShipEntity* weapon = [[universe getShipWithRole:eq_key] autorelease];
-		if (weapon)
-			NSLog(@"got ship for role %@", eq_key);
-		else
-			NSLog(@"could not find ship for role %@", eq_key);
+		if (weapon)  OOLog(kOOLogBuyMountedOK, @"Got ship for mounted weapon role %@", eq_key);
+		else  OOLog(kOOLogBuyMountedFailed, @"Could not find ship for mounted weapon role %@", eq_key);
 
 		BOOL mounted_okay = [self mountMissile:weapon];
 		if (mounted_okay)

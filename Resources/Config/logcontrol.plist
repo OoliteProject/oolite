@@ -59,6 +59,11 @@ ai.takeAction.noAction					= $entityState;
 ai.takeAction.orphaned					= $error;
 ai.takeAction.debugMessage				= inherit;
 ai.takeAction.badSelector				= $scriptError;
+ai.pop									= $entityState;
+
+
+beacon.list								= $scriptDebugOn;
+beacon.list.flightTraining				= inherit;
 
 
 dataCache.found							= inherit;
@@ -101,6 +106,10 @@ entity.linkedList.remove.error			= $linkedListError;
 entity.linkedList.verify.error			= $linkedListError;
 entity.linkedList.verify.rebuild		= inherit;
 entity.linkedList.update.error			= $linkedListError;
+
+
+equip.buy.mounted						= no;
+equip.buy.mounted.failed				= $scriptError;
 
 
 input.keyMapping.codeOutOfRange			= inherit;

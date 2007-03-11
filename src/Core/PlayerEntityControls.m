@@ -41,6 +41,10 @@ MA 02110-1301, USA.
 #import "Groolite.h"
 #endif
 
+
+static NSString * const kOOLogFlightTrainingBeacons		= @"beacon.list.flightTraining";
+
+
 @implementation PlayerEntity (Controls)
 
 - (void) pollControls:(double) delta_t
@@ -929,7 +933,7 @@ static NSTimeInterval	time_last_frame;
 		if ([gameView isDown:'f'])// look for the 'f' key
 		{
 			[universe addMessage:@"Flight Training Test Engaged" forCount:3];
-			NSLog(@"Flight Training (tr) beacons:\n%@", [universe listBeaconsWithCode:@"tr"]);
+			OOLog(kOOLogFlightTrainingBeacons, @"Flight Training (tr) beacons:\n%@", [universe listBeaconsWithCode:@"tr"]);
 			[self awardEquipment:@"EQ_DOCK_COMP"];
 			[self targetFirstBeaconWithCode:@"tr"];
 			[self setRacepointsFromTarget];
@@ -965,7 +969,6 @@ static NSTimeInterval	time_last_frame;
 			[universe setDoProcedurallyTexturedPlanets: YES];
 			[universe addMessage:@"Procedural Textures On" forCount:3];
 		}
-
 	}
 	//
 	// Pause game 'p'
@@ -1103,11 +1106,9 @@ static  BOOL	taking_snapshot;
 				if (mouse_control_on)
 				{
 					[universe addMessage:[universe expandDescription:@"[mouse-on]" forSystem:system_seed] forCount:3.0];
-#ifdef GNUSTEP
 					// ensure the keyboard pitch override (intended to lock out the joystick if the
 					// player runs to the keyboard) is reset
 					keyboardRollPitchOverride = NO;
-#endif
 				}
 				else
 					[universe addMessage:[universe expandDescription:@"[mouse-off]" forSystem:system_seed] forCount:3.0];

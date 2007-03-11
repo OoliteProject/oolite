@@ -34,6 +34,7 @@ static NSString * const kOOLogAINoAction				= @"ai.takeAction.noAction";
 static NSString * const kOOLogAITakeActionOrphaned		= @"ai.takeAction.orphaned";
 static NSString * const kOOLogAIDebugMessage			= @"ai.takeAction.debugNessage";
 static NSString * const kOOLogAIBadSelector				= @"ai.takeAction.badSelector";
+static NSString * const kOOLogAIPop						= @"ai.pop";
 
 
 @implementation AI
@@ -179,7 +180,7 @@ static NSString * const kOOLogAIBadSelector				= @"ai.takeAction.badSelector";
 {
 	if ([ai_stack count] > 0)
 	{
-		if ((owner)&&([owner reportAImessages]))   NSLog(@"Popping previous state machine for %@",self);
+		if ((owner)&&([owner reportAImessages]))  OOLog(kOOLogAIPop, @"Popping previous state machine for %@",self);
 		[self restorePreviousStateMachine];
 		[self reactToMessage:@"RESTARTED"];
 	}
