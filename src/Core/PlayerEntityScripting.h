@@ -35,6 +35,10 @@ MA 02110-1301, USA.
 // -dajt: black ops
 #define COMPARISON_UNDEFINED	010
 
+
+@class OXPScript;
+
+
 @interface PlayerEntity (Scripting)
 
 - (void) checkScript;
@@ -100,6 +104,8 @@ MA 02110-1301, USA.
 
 - (void) setMissionDescription:(NSString *)textKey;
 - (void) clearMissionDescription;
+- (void) setMissionDescription:(NSString *)textKey forMission:(NSString *)key;
+- (void) clearMissionDescriptionForMission:(NSString *)key;
 
 - (void) commsMessage:(NSString *)valueString;
 
@@ -171,6 +177,7 @@ MA 02110-1301, USA.
 - (void) setMissionImage: (NSString *)value;
 
 - (void) setFuelLeak: (NSString *)value;
+- (NSNumber *)fuel_leak_rate_number;
 - (void) setSunNovaIn: (NSString *)time_value;
 - (void) launchFromStation;
 - (void) blowUpStation;
@@ -186,6 +193,9 @@ MA 02110-1301, USA.
 - (NSString*) replaceVariablesInString:(NSString*) args;
 
 - (void) playSound:(NSString *) soundName;
+
+- (BOOL) mapKey:(NSString *) keycode toOXP:(OXPScript *)oxp;
+- (void) targetNearestHostile;
 
 /*-----------------------------------------------------*/
 

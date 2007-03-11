@@ -35,6 +35,7 @@ MA 02110-1301, USA.
 #import "OOSound.h"
 #import "OOColor.h"
 #import "OOCacheManager.h"
+#import "ScriptEngine.h"
 
 #import "Octree.h"
 #import "CollisionRegion.h"
@@ -84,13 +85,13 @@ static NSString * const kOOLogFoundBeacon					= @"beacon.list";
 	
 	#ifndef GNUSTEP
 	//// speech stuff
-	//
+	
 	speechSynthesizer = [[NSSpeechSynthesizer alloc] init];
-	//
+	
 	//Jester Speech Begin
 	speechArray = [[ResourceManager arrayFromFilesNamed:@"speech_pronunciation_guide.plist" inFolder:@"Config" andMerge:YES] retain];
 	//Jester Speech End
-	//
+	
 	////
 	#endif
 	
@@ -102,12 +103,12 @@ static NSString * const kOOLogFoundBeacon					= @"beacon.list";
 	// Preload cache
 	[OOCacheManager sharedCache];
 	
-	//
+	
 	entityRecyclePool =			[[NSMutableDictionary dictionaryWithCapacity:MAX_NUMBER_OF_ENTITIES] retain];
 	recycleLock =				[[NSLock alloc] init];
-	//
+	
     entities =				[[NSMutableArray arrayWithCapacity:MAX_NUMBER_OF_ENTITIES] retain];
-	//
+	
 	sun_center_position[0] = 4000000.0;
 	sun_center_position[1] = 0.0;
 	sun_center_position[2] = 0.0;
@@ -115,14 +116,14 @@ static NSString * const kOOLogFoundBeacon					= @"beacon.list";
     //
     gui = [[GuiDisplayGen alloc] init]; // alloc retains
     displayGUI = NO;
-	//
+	
 	message_gui = [[GuiDisplayGen alloc] initWithPixelSize:NSMakeSize( 480, 160) Columns:1 Rows:8 RowHeight:20 RowStart:20 Title:nil];
 	[message_gui setCurrentRow:7];
 	[message_gui setCharacterSize:NSMakeSize(16,20)];	// slightly narrower characters
 	[message_gui setDrawPosition: make_vector( 0.0, -40.0, 640.0)];
 	[message_gui setAlpha:1.0];
 	
-	//
+	
 	comm_log_gui = [[GuiDisplayGen alloc] initWithPixelSize:NSMakeSize( 360, 120) Columns:1 Rows:10 RowHeight:12 RowStart:12 Title:nil];
 	[comm_log_gui setCurrentRow:9];
 	[comm_log_gui setBackgroundColor:[OOColor colorWithCalibratedRed:0.0 green:0.05 blue:0.45 alpha:0.5]];
@@ -130,50 +131,53 @@ static NSString * const kOOLogFoundBeacon					= @"beacon.list";
 	[comm_log_gui setAlpha:0.0];
 	[comm_log_gui printLongText:@"Communications Log" Align:GUI_ALIGN_CENTER Color:[OOColor yellowColor] FadeTime:0 Key:nil AddToArray:nil];
 	[comm_log_gui setDrawPosition: make_vector( 0.0, 180.0, 640.0)];
-	//
+	
 	displayFPS = NO;
-	//
+	
 	time_delta = 0.0;
 	universal_time = 0.0;
 	ai_think_time = AI_THINK_INTERVAL;				// one eighth of a second
-	//
+	
 	shipdata = [[ResourceManager dictionaryFromFilesNamed:@"shipdata.plist" inFolder:@"Config" andMerge:YES] retain];
-	//
+	
 	shipyard = [[ResourceManager dictionaryFromFilesNamed:@"shipyard.plist" inFolder:@"Config" andMerge:YES] retain];
-	//
+	
 	commoditylists = [(NSDictionary *)[ResourceManager dictionaryFromFilesNamed:@"commodities.plist" inFolder:@"Config" andMerge:YES] retain];
 	commoditydata = [[NSArray arrayWithArray:(NSArray *)[commoditylists objectForKey:@"default"]] retain];
-	//
+	
 	illegal_goods = [[ResourceManager dictionaryFromFilesNamed:@"illegal_goods.plist" inFolder:@"Config" andMerge:YES] retain];
-	//
+	
 	descriptions = [[ResourceManager dictionaryFromFilesNamed:@"descriptions.plist" inFolder:@"Config" andMerge:YES] retain];
-	//
+	
 	characters = [[ResourceManager dictionaryFromFilesNamed:@"characters.plist" inFolder:@"Config" andMerge:YES] retain];
-	//
+	
 	customsounds = [[ResourceManager dictionaryFromFilesNamed:@"customsounds.plist" inFolder:@"Config" andMerge:YES] retain];
-	//
+	
 	planetinfo = [[ResourceManager dictionaryFromFilesNamed:@"planetinfo.plist" inFolder:@"Config" andMerge:YES smart:YES] retain];
-	//
+	
 	local_planetinfo_overrides = [[NSMutableDictionary alloc] initWithCapacity:8];
-	//
+	
 	missiontext = [[ResourceManager dictionaryFromFilesNamed:@"missiontext.plist" inFolder:@"Config" andMerge:YES] retain];
-	//
+	
 	equipmentdata = [[ResourceManager arrayFromFilesNamed:@"equipment.plist" inFolder:@"Config" andMerge:YES] retain];
-	//
+	
 	demo_ships = [[ResourceManager arrayFromFilesNamed:@"demoships.plist" inFolder:@"Config" andMerge:YES] retain];
 	demo_ship_index = 0;
-	//
+	
 	breakPatternCounter = 0;
-	//
+	
 	cachedSun = nil;
 	cachedPlanet = nil;
 	cachedStation = nil;
 	cachedEntityZero = nil;
-	//
+	
 	station = NO_TARGET;
 	planet = NO_TARGET;
 	sun = NO_TARGET;
-	//
+	
+	// NOTE! scriptEngine MUST be initialised before the PlayerEntity
+	scriptEngine = [[[ScriptEngine alloc] initWithUniverse: self] retain];
+	
 	player = [[PlayerEntity alloc] init];	// alloc retains!
 	[self addEntity:player];
 	
@@ -182,6 +186,7 @@ static NSString * const kOOLogFoundBeacon					= @"beacon.list";
 	player->z_next = nil;	player->z_previous = nil;	z_list_start = player;
 	
 	[player set_up];
+	[player sendMessageToScripts:@"Initialise"];
 	
 	[player setUpShipFromDictionary:[self getDictionaryForShip:[player ship_desc]]];	// ship desc is the standard cobra at this point
 
@@ -205,9 +210,9 @@ static NSString * const kOOLogFoundBeacon					= @"beacon.list";
 		[player setPosition: cachedStation->position];
 
 	[player release];
-	//
+	
 	[self setViewDirection:VIEW_GUI_DISPLAY];
-	//
+	
 	
 	//NSLog(@"UNIVERSE INIT station %d, planet %d, sun %d",station,planet,sun);
 	
@@ -222,54 +227,45 @@ static NSString * const kOOLogFoundBeacon					= @"beacon.list";
 
 - (void) dealloc
 {
-    if (currentMessage)			[currentMessage release];
+    [currentMessage release];
     
-	if (gui)					[gui release];
-    if (message_gui)			[message_gui release];
-    if (comm_log_gui)			[comm_log_gui release];
+	[gui release];
+    [message_gui release];
+	[comm_log_gui release];
 	
-    if (entityRecyclePool)		[entityRecyclePool release];
-    if (recycleLock)			[recycleLock release];
+	[entityRecyclePool release];
+	[recycleLock release];
 	
-    if (entities)				[entities release];
-    if (shipdata)				[shipdata release];
-    if (shipyard)				[shipyard release];
+	[entities release];
+	[shipdata release];
+	[shipyard release];
 	
-    if (commoditylists)			[commoditylists release];
-    if (commoditydata)			[commoditydata release];
+	[commoditylists release];
+	[commoditydata release];
 	
-    if (illegal_goods)			[illegal_goods release];
-    if (descriptions)			[descriptions release];
-    if (characters)				[characters release];
-    if (customsounds)			[customsounds release];
-    if (planetinfo)				[planetinfo release];
-    if (missiontext)			[missiontext release];
-	if (equipmentdata)			[equipmentdata release];
-    if (demo_ships)				[demo_ships release];
-    if (gameView)				[gameView release];
-
+	[illegal_goods release];
+	[descriptions release];
+	[characters release];
+	[customsounds release];
+	[planetinfo release];
+	[missiontext release];
+	[equipmentdata release];
+	[demo_ships release];
+	[gameView release];
+	
 	#ifndef GNUSTEP
-	if (speechArray)			[speechArray release];
-	if (speechSynthesizer)		[speechSynthesizer release];
+	[speechArray release];
+	[speechSynthesizer release];
 	#endif
-	
-	if (local_planetinfo_overrides)
-								[local_planetinfo_overrides release];
-	
-	if (activeWormholes)		[activeWormholes release];
-								
-	if (characterPool)			[characterPool release];
-	
-	if (universeRegion)			[universeRegion release];
-	
-//	// reset/dealloc the universal planet edge thingy
-//	[PlanetEntity resetBaseVertexArray];
+
+	[local_planetinfo_overrides release];
+	[activeWormholes release];				
+	[characterPool release];
+	[universeRegion release];
+	[scriptEngine release];
 	
 	int i;
-	for (i = 0; i < 256; i++)
-	{
-		if (system_names[i])	[system_names[i] release];
-	}
+	for (i = 0; i < 256; i++)  [system_names[i] release];
 	
 	[[OOCacheManager sharedCache] flush];
 	
@@ -297,7 +293,7 @@ static NSString * const kOOLogFoundBeacon					= @"beacon.list";
 		return;
 	strict = value;
 	// do other necessary stuff
-	//
+	
 	[self reinit];
 }
 
@@ -316,43 +312,43 @@ static NSString * const kOOLogFoundBeacon					= @"beacon.list";
 	
 #ifndef GNUSTEP
 	//// speech stuff
-	//
+	
 	if (speechArray)
 		[speechArray autorelease];
 	speechArray = [[ResourceManager arrayFromFilesNamed:@"speech_pronunciation_guide.plist" inFolder:@"Config" andMerge:YES] retain];
-	//
+	
 	////
 #endif
 	
-	//
+	
 	firstBeacon = NO_TARGET;
 	lastBeacon = NO_TARGET;
 	
 	next_universal_id = 100;	// start arbitrarily above zero
 	for (i = 0; i < MAX_ENTITY_UID; i++)
 		entity_for_uid[i] = nil;
-	//
+	
 	// TODO: originally cache was reloaded here. Is this pointful?
 	OOLog(@"dataCache.notconverting", @"Universe reinit called, should we be reloading cache?");
 
-	//
+	
 	if (entityRecyclePool)
 		[entityRecyclePool autorelease];
 	entityRecyclePool =			[[NSMutableDictionary dictionaryWithCapacity:MAX_NUMBER_OF_ENTITIES] retain];
 	if (recycleLock)
 		[recycleLock autorelease];
 	recycleLock =				[[NSLock alloc] init];
-	//
+	
 	sun_center_position[0] = 4000000.0;
 	sun_center_position[1] = 0.0;
 	sun_center_position[2] = 0.0;
 	sun_center_position[3] = 1.0;
-	//
+	
 	if (gui)
 		[gui autorelease];
 	gui = [[GuiDisplayGen alloc] init]; // alloc retains
 	
-	//
+	
 	if (message_gui)
 		[message_gui autorelease];
 	message_gui = [[GuiDisplayGen alloc] initWithPixelSize:NSMakeSize( 480, 160) Columns:1 Rows:8 RowHeight:20 RowStart:20 Title:nil];
@@ -360,7 +356,7 @@ static NSString * const kOOLogFoundBeacon					= @"beacon.list";
 	[message_gui setCharacterSize:NSMakeSize(16,20)];	// slightly narrower characters
 	[message_gui setDrawPosition: make_vector( 0.0, -40.0, 640.0)];
 	[message_gui setAlpha:1.0];
-	//
+	
 	if (comm_log_gui)
 		[comm_log_gui autorelease];
 	comm_log_gui = [[GuiDisplayGen alloc] initWithPixelSize:NSMakeSize( 360, 120) Columns:1 Rows:10 RowHeight:12 RowStart:12 Title:nil];
@@ -370,49 +366,49 @@ static NSString * const kOOLogFoundBeacon					= @"beacon.list";
 	[comm_log_gui setAlpha:0.0];
 	[comm_log_gui printLongText:@"Communications Log" Align:GUI_ALIGN_CENTER Color:[OOColor yellowColor] FadeTime:0 Key:nil AddToArray:nil];
 	[comm_log_gui setDrawPosition: make_vector( 0.0, 180.0, 640.0)];
-	//
+	
 	time_delta = 0.0;
 	universal_time = 0.0;
 	ai_think_time = AI_THINK_INTERVAL;				// one eighth of a second
-	//
+	
 	if (shipdata)
 		[shipdata autorelease];
 	shipdata = [[ResourceManager dictionaryFromFilesNamed:@"shipdata.plist" inFolder:@"Config" andMerge:YES] retain];
 	if (shipyard)
 		[shipyard autorelease];
 	shipyard = [[ResourceManager dictionaryFromFilesNamed:@"shipyard.plist" inFolder:@"Config" andMerge:YES] retain];
-	//
+	
 	if (commoditylists)
 		[commoditylists autorelease];
 	commoditylists = [(NSDictionary *)[ResourceManager dictionaryFromFilesNamed:@"commodities.plist" inFolder:@"Config" andMerge:YES] retain];
 	if (commoditydata)
 		[commoditydata autorelease];
 	commoditydata = [[NSArray arrayWithArray:(NSArray *)[commoditylists objectForKey:@"default"]] retain];
-	//
+	
 	if (illegal_goods)
 		[illegal_goods autorelease];
 	illegal_goods = [[ResourceManager dictionaryFromFilesNamed:@"illegal_goods.plist" inFolder:@"Config" andMerge:YES] retain];
-	//
+	
 	if (descriptions)
 		[descriptions autorelease];
 	descriptions = [[ResourceManager dictionaryFromFilesNamed:@"descriptions.plist" inFolder:@"Config" andMerge:YES ] retain];
-	//
+	
 	if (characters)
 		[characters autorelease];
 	characters = [[ResourceManager dictionaryFromFilesNamed:@"characters.plist" inFolder:@"Config" andMerge:YES ] retain];
-	//
+	
 	if (customsounds)
 		[customsounds autorelease];
 	customsounds = [[ResourceManager dictionaryFromFilesNamed:@"customsounds.plist" inFolder:@"Config" andMerge:YES ] retain];
-	//
+	
 	if (planetinfo)
 		[planetinfo autorelease];
 	planetinfo = [[ResourceManager dictionaryFromFilesNamed:@"planetinfo.plist" inFolder:@"Config" andMerge:YES smart:YES] retain];
-	//
+	
 	if (missiontext)
 		[missiontext autorelease];
 	missiontext = [[ResourceManager dictionaryFromFilesNamed:@"missiontext.plist" inFolder:@"Config" andMerge:YES] retain];
-	//
+	
 	if (equipmentdata)
 		[equipmentdata autorelease];
 	equipmentdata = [[ResourceManager arrayFromFilesNamed:@"equipment.plist" inFolder:@"Config" andMerge:YES] retain];
@@ -423,23 +419,23 @@ static NSString * const kOOLogFoundBeacon					= @"beacon.list";
 		equipmentdata = [strict_equipment retain];
 	}
 //	NSLog(@"DEBUG equipmentdata = %@", [equipmentdata description]);
-	//
+	
 	if (demo_ships)
 		[demo_ships autorelease];
 	demo_ships = [[ResourceManager arrayFromFilesNamed:@"demoships.plist" inFolder:@"Config" andMerge:YES] retain];
 	demo_ship_index = 0;
-	//
+	
 	breakPatternCounter = 0;
-	//
+	
 	cachedSun = nil;
 	cachedPlanet = nil;
 	cachedStation = nil;
 	cachedEntityZero = nil;
-	//
+	
 	station = NO_TARGET;
 	planet = NO_TARGET;
 	sun = NO_TARGET;
-	//
+	
 	if (player == nil)
 		player = [[PlayerEntity alloc] init];
 	[self addEntity:player];
@@ -464,18 +460,18 @@ static NSString * const kOOLogFoundBeacon					= @"beacon.list";
 
 	demo_ship = nil;
 	
-	//
+	
 	[player set_up];
-	//
+	
 	[player setUpShipFromDictionary:[self getDictionaryForShip:[player ship_desc]]];	// ship_desc is the standard Cobra at this point
-	//
+	
 	[player setStatus:STATUS_DOCKED];
 	[self setViewDirection:VIEW_GUI_DISPLAY];
 	[player setPosition:0 :0 :0];
 	[player setQRotation:q0];
 	[player setGuiToIntro2Screen];
 	[gui setText:(strict)? @"Strict Play Enabled":@"Unrestricted Play Enabled" forRow:1 align:GUI_ALIGN_CENTER];
-	//
+	
 	
 	[player release];
 	
@@ -503,7 +499,7 @@ static NSString * const kOOLogFoundBeacon					= @"beacon.list";
 	}
 	if ([entities count] != n_entities)
 		NSLog(@"entities = %@", [entities description]);
-	//
+	
 //	NSLog(@"\n----->X list... to %d", show_count);
 //	int n = 0;
 //	Entity* e0 = x_list_start;
@@ -514,7 +510,7 @@ static NSString * const kOOLogFoundBeacon					= @"beacon.list";
 //			NSLog(@"%d.) %@ at x-cr = %.2f", n, e0, e0->position.x - e0->collision_radius);
 //		e0 = e0->x_next;
 //	}
-//	//
+//	
 //	NSLog(@"\n----->Y list... to %d", show_count);
 //	n = 0;
 //	e0 = y_list_start;
@@ -525,7 +521,7 @@ static NSString * const kOOLogFoundBeacon					= @"beacon.list";
 //			NSLog(@"%d.) %@ at y-cr = %.2f", n, e0, e0->position.y - e0->collision_radius);
 //		e0 = e0->y_next;
 //	}
-//	//
+//	
 //	NSLog(@"\n----->Z list... to %d", show_count);
 //	n = 0;
 //	e0 = z_list_start;
@@ -613,16 +609,16 @@ static NSString * const kOOLogFoundBeacon					= @"beacon.list";
 	{
 		/*- the player ship -*/
 		player = [[PlayerEntity alloc] init];	// alloc retains!
-		//
+		
 		[self addEntity:player];
-		//
+		
 		/*--*/
 	}
 	else
 	{
 		player = [(PlayerEntity *)[self entityZero] retain];	// retained here
 	}
-	//
+	
 
 	[self set_up_space];
 	
@@ -633,7 +629,7 @@ static NSString * const kOOLogFoundBeacon					= @"beacon.list";
 	
 	[comm_log_gui printLongText:[NSString stringWithFormat:@"%@ %@", [self generateSystemName:system_seed], [player dial_clock_adjusted]]
 		Align:GUI_ALIGN_CENTER Color:[OOColor whiteColor] FadeTime:0 Key:nil AddToArray:[player comm_log]];
-	//
+	
     //
 	/* test stuff */
 	displayGUI = NO;
@@ -651,16 +647,16 @@ static NSString * const kOOLogFoundBeacon					= @"beacon.list";
 	{
 		/*- the player ship -*/
 		player = [[PlayerEntity alloc] init];	// alloc retains!
-		//
+		
 		[self addEntity:player];
-		//
+		
 		/*--*/
 	}
 	else
 	{
 		player = [(PlayerEntity *)[self entityZero] retain];	// retained here
 	}
-	//
+	
 
 	[self set_up_witchspace];
 	
@@ -668,7 +664,7 @@ static NSString * const kOOLogFoundBeacon					= @"beacon.list";
 	[player release];											// released here
 	
 	[self setViewDirection:VIEW_FORWARD];
-	//
+	
     //
 	/* test stuff */
 	displayGUI = NO;
@@ -708,9 +704,9 @@ static NSString * const kOOLogFoundBeacon					= @"beacon.list";
 	
 	[universeRegion clearSubregions];
 
-	//
+	
 	// fixed entities (part of the graphics system really) come first...
-	//
+	
 	
 	/*- the sky backdrop -*/
 	OOColor *col1 = [OOColor colorWithCalibratedRed:0.0 green:1.0 blue:0.5 alpha:1.0];
@@ -746,9 +742,9 @@ static NSString * const kOOLogFoundBeacon					= @"beacon.list";
 	OOLog(kOOLogUniversePopulateWitchspace, @"Populating witchspace ...");
 	OOLogIndentIf(kOOLogUniversePopulateWitchspace);
 	
-	//
+	
 	// actual thargoids and tharglets next...
-	//
+	
 	int n_thargs = 2 + (ranrot_rand() & 3);
 	if (n_thargs < 1)
 		n_thargs = 2;   // just to be sure
@@ -789,9 +785,9 @@ static NSString * const kOOLogFoundBeacon					= @"beacon.list";
 	}
 	
 	// NEW
-	//
+	
 	// systeminfo might have a 'script_actions' resource we want to activate now...
-	//
+	
 	if ([systeminfo objectForKey:KEY_SCRIPT_ACTIONS])
 	{
 		NSArray* script_actions = (NSArray *)[systeminfo objectForKey:KEY_SCRIPT_ACTIONS];
@@ -805,7 +801,7 @@ static NSString * const kOOLogFoundBeacon					= @"beacon.list";
 - (void) set_up_space
 {
 	// new system is hyper-centric : witchspace exit point is origin
-	//
+	
     Entity				*thing;
     ShipEntity			*nav_buoy;
     StationEntity		*a_station;
@@ -830,9 +826,9 @@ static NSString * const kOOLogFoundBeacon					= @"beacon.list";
 	
 //	NSLog(@"DEBUG systeminfo =\n%@", [systeminfo description]);
 	
-	//
+	
 	// fixed entities (part of the graphics system really) come first...
-	//
+	
 	[self setSky_clear_color:0.0 :0.0 :0.0 :0.0];
 	
 	// set the system seed for random number generation
@@ -865,9 +861,9 @@ static NSString * const kOOLogFoundBeacon					= @"beacon.list";
 	[thing release];
 	/*--*/
 	
-	//
+	
 	// actual entities next...
-	//
+	
 	
 	// set the system seed for random number generation
 	seed_for_planet_description(system_seed);
@@ -972,7 +968,7 @@ static NSString * const kOOLogFoundBeacon					= @"beacon.list";
 	}
 	
 	//// possibly systeminfo has an override for the station
-	//
+	
 	if ([systeminfo objectForKey:@"station"])
 		stationDesc = (NSString *)[systeminfo objectForKey:@"station"];
 	
@@ -1066,9 +1062,9 @@ static NSString * const kOOLogFoundBeacon					= @"beacon.list";
 	[a_planet release];
 	
 	// NEW
-	//
+	
 	// systeminfo might have a 'script_actions' resource we want to activate now...
-	//
+	
 	if ([systeminfo objectForKey:KEY_SCRIPT_ACTIONS])
 	{
 		PlayerEntity* player = (PlayerEntity*)[self entityZero];
@@ -1137,9 +1133,9 @@ GLfloat docked_light_specular[]	= { (GLfloat) 1.0, (GLfloat) 1.0, (GLfloat) 0.5,
 		glLightfv(GL_LIGHT1, GL_DIFFUSE, sun_diffuse);
 		glLightfv(GL_LIGHT1, GL_SPECULAR, sun_specular);
 	}
-	//
+	
 	glLightfv(GL_LIGHT1, GL_POSITION, sun_pos);
-	//
+	
 	if (the_sky)
 	{
 		// ambient lighting!
@@ -1153,14 +1149,14 @@ GLfloat docked_light_specular[]	= { (GLfloat) 1.0, (GLfloat) 1.0, (GLfloat) 0.5,
 		stars_ambient[2] = ambient_level * 0.0625 * (1.0 + b) * (1.0 + b);
 		stars_ambient[3] = 1.0;
 	}
-	//
+	
 	// light for demo ships display..
 	glLightfv(GL_LIGHT0, GL_AMBIENT, docked_light_ambient);
 	glLightfv(GL_LIGHT0, GL_DIFFUSE, docked_light_diffuse);
 	glLightfv(GL_LIGHT0, GL_SPECULAR, docked_light_specular);
 	
 	// glLightModel details...
-	//
+	
 	glLightModelfv(GL_LIGHT_MODEL_AMBIENT, stars_ambient);
 	
 	glDisable(GL_LIGHT0);
@@ -1172,7 +1168,7 @@ GLfloat docked_light_specular[]	= { (GLfloat) 1.0, (GLfloat) 1.0, (GLfloat) 0.5,
 - (void) populateSpaceFromActiveWormholes
 {
 //	NSLog(@"DEBUG populating from activeWormholes:\n%@", activeWormholes);
-	//
+	
 	while ([activeWormholes count])
 	{
 		WormholeEntity* whole = (WormholeEntity*)[activeWormholes objectAtIndex:0];
@@ -1500,9 +1496,9 @@ GLfloat docked_light_specular[]	= { (GLfloat) 1.0, (GLfloat) 1.0, (GLfloat) 0.5,
 								includingRockHermit: (((ranrot_rand() & 31) <= cluster_size)&&(r < total_clicks * 2 / 3)&&(!sun_gone_nova))];
 	}
 		
-	//
+	
 	//	Now do route2 planet -> sun
-	//
+	
 	
 	Vector  v_route2 = s1_pos;
 	v_route2.x -= p1_pos.x;	v_route2.y -= p1_pos.y;	v_route2.z -= p1_pos.z;
@@ -1744,10 +1740,10 @@ GLfloat docked_light_specular[]	= { (GLfloat) 1.0, (GLfloat) 1.0, (GLfloat) 0.5,
 	}
 	// rock-hermit : chance is related to the number of asteroids
 	// hermits are placed near to other asteroids for obvious reasons
-	//
+	
 	// hermits should not be placed too near the planet-end of route2,
 	// or ships will dock there rather than at the main station !
-	//
+	
 	if (spawnHermit)
 	{
 		//debug
@@ -1783,7 +1779,7 @@ GLfloat docked_light_specular[]	= { (GLfloat) 1.0, (GLfloat) 1.0, (GLfloat) 0.5,
 - (void) addShipWithRole:(NSString *) desc nearRouteOneAt:(double) route_fraction
 {
 	// adds a ship within scanner range of a point on route 1
-	//
+	
 	Entity* the_station = [self station];
 	if (!the_station)
 		return;
@@ -1792,11 +1788,11 @@ GLfloat docked_light_specular[]	= { (GLfloat) 1.0, (GLfloat) 1.0, (GLfloat) 0.5,
 	launch_pos.x -= h1_pos.x;		launch_pos.y -= h1_pos.y;		launch_pos.z -= h1_pos.z;
 	launch_pos.x *= route_fraction; launch_pos.y *= route_fraction; launch_pos.z *= route_fraction;
 	launch_pos.x += h1_pos.x;		launch_pos.y += h1_pos.y;		launch_pos.z += h1_pos.z;
-	//
+	
 	launch_pos.x += SCANNER_MAX_RANGE*(randf() - randf());
 	launch_pos.y += SCANNER_MAX_RANGE*(randf() - randf());
 	launch_pos.z += SCANNER_MAX_RANGE*(randf() - randf());
-	//
+	
 	ShipEntity  *ship;
 	ship = [self getShipWithRole:desc];   // retain count = 1
 	if (ship)
@@ -1820,7 +1816,7 @@ GLfloat docked_light_specular[]	= { (GLfloat) 1.0, (GLfloat) 1.0, (GLfloat) 0.5,
 		
 		[ship release];
 	}
-	//
+	
 }
 
 - (Vector) coordinatesForPosition:(Vector) pos withCoordinateSystem:(NSString *) system returningScalar:(GLfloat*) my_scalar
@@ -1857,7 +1853,7 @@ GLfloat docked_light_specular[]	= { (GLfloat) 1.0, (GLfloat) 1.0, (GLfloat) 0.5,
 		in witchspace (== no sun) coordinates are absolute irrespective of the system used
 		
 	*/
-	//
+	
 	NSString* l_sys = [system lowercaseString];
 	if ([l_sys length] != 3)
 		return make_vector( 0.0f, 0.0f, 0.0f);
@@ -1873,7 +1869,7 @@ GLfloat docked_light_specular[]	= { (GLfloat) 1.0, (GLfloat) 1.0, (GLfloat) 0.5,
 	Vector  w_pos = [self getWitchspaceExitPosition];
 	Vector  p_pos = the_planet->position;
 	Vector  s_pos = the_sun->position;
-	//
+	
 	const char* c_sys = [l_sys lossyCString];
 	Vector p0 = make_vector(1,0,0);
 	Vector p1 = make_vector(0,1,0);
@@ -1956,13 +1952,13 @@ GLfloat docked_light_specular[]	= { (GLfloat) 1.0, (GLfloat) 1.0, (GLfloat) 0.5,
 	result.x += scalar * (pos.x * i.x + pos.y * j.x + pos.z * k.x);
 	result.y += scalar * (pos.x * i.y + pos.y * j.y + pos.z * k.y);
 	result.z += scalar * (pos.x * i.z + pos.y * j.z + pos.z * k.z);
-	//
+	
 	return result;
 }
 
 - (NSString *) expressPosition:(Vector) pos inCoordinateSystem:(NSString *) system
 {
-	//
+	
 	NSString* l_sys = [system lowercaseString];
 	if ([l_sys length] != 3)
 		return nil;
@@ -1976,7 +1972,7 @@ GLfloat docked_light_specular[]	= { (GLfloat) 1.0, (GLfloat) 1.0, (GLfloat) 0.5,
 	Vector  w_pos = [self getWitchspaceExitPosition];
 	Vector  p_pos = the_planet->position;
 	Vector  s_pos = the_sun->position;
-	//
+	
 	const char* c_sys = [l_sys lossyCString];
 	Vector p0 = make_vector(1,0,0);
 	Vector p1 = make_vector(0,1,0);
@@ -2055,7 +2051,7 @@ GLfloat docked_light_specular[]	= { (GLfloat) 1.0, (GLfloat) 1.0, (GLfloat) 0.5,
 	Vector result = make_vector(	scalar * (r_pos.x * i.x + r_pos.y * i.y + r_pos.z * i.z),
 									scalar * (r_pos.x * j.x + r_pos.y * j.y + r_pos.z * j.z),
 									scalar * (r_pos.x * k.x + r_pos.y * k.y + r_pos.z * k.z) ); // scalar * dot_products
-	//
+	
 	return [NSString stringWithFormat:@"%@ %.2f %.2f %.2f", system, result.x, result.y, result.z];
 }
 
@@ -2089,7 +2085,7 @@ GLfloat docked_light_specular[]	= { (GLfloat) 1.0, (GLfloat) 1.0, (GLfloat) 0.5,
 	
 //	NSLog(@"DEBUG POSITION SET (%.1f, %.1f, %.1f)", launch_pos.x, launch_pos.y, launch_pos.z);
 	
-	//
+	
 	ShipEntity  *ship;
 	ship = [self getShipWithRole:desc];   // retain count = 1
 	if (ship)
@@ -2109,7 +2105,7 @@ GLfloat docked_light_specular[]	= { (GLfloat) 1.0, (GLfloat) 1.0, (GLfloat) 0.5,
 		[ship release];
 		return YES;
 	}
-	//
+	
 	return NO;
 }
 
@@ -2136,13 +2132,13 @@ GLfloat docked_light_specular[]	= { (GLfloat) 1.0, (GLfloat) 1.0, (GLfloat) 0.5,
 				[OOCharacter randomCharacterWithRole: desc
 				andOriginalSystem: systems[ranrot_rand() & 255]
 				inUniverse: self]]];
-		//
+		
 		GLfloat safe_distance2 = 2.0 * ship->collision_radius * ship->collision_radius * PROXIMITY_WARN_DISTANCE2;
-		//
+		
 		BOOL safe;
-		//
+		
 		int limit_count = 8;
-		//
+		
 		v_from_center = make_vector( 0.0f, 0.0f, 0.0f);
 		do
 		{
@@ -2180,23 +2176,23 @@ GLfloat docked_light_specular[]	= { (GLfloat) 1.0, (GLfloat) 1.0, (GLfloat) 0.5,
 			
 			
 		} while (!safe);
-		//
+		
 		if ((ship->scan_class == CLASS_NO_DRAW)||(ship->scan_class == CLASS_NOT_SET))
 			[ship setScanClass: CLASS_NEUTRAL];
 		[ship setPosition:ship_pos];
-		//
+		
 		Quaternion qr;
 		quaternion_set_random(&qr);
 		[ship setQRotation:qr];
-		//
+		
 		[self addEntity:ship];
 		[[ship getAI] setState:@"GLOBAL"];	// must happen after adding to the universe!
 		[ship setStatus:STATUS_IN_FLIGHT];	// or ships that were 'demo' ships become invisible!
 		[ship release];
-		//
+		
 //		NSLog(@"DEBUG - AddShips %d/%d : ship added successfully %.1fm from the requested position",
 //			i, howMany, distance_from_center);
-		//
+		
 		ship_positions[i] = ship_pos;
 		i++;
 		if (i > scale_up_after)
@@ -2287,7 +2283,7 @@ GLfloat docked_light_specular[]	= { (GLfloat) 1.0, (GLfloat) 1.0, (GLfloat) 0.5,
 	pos.y += 0.5 * (randf() + randf()) * (bbox.max.y - bbox.min.y);
 	pos.z += 0.5 * (randf() + randf()) * (bbox.max.z - bbox.min.z);
 	
-	//
+	
 	ShipEntity  *ship;
 	ship = [self getShipWithRole:desc];   // retain count = 1
 	if (ship)
@@ -2305,7 +2301,7 @@ GLfloat docked_light_specular[]	= { (GLfloat) 1.0, (GLfloat) 1.0, (GLfloat) 0.5,
 		[[ship getAI] setState:@"GLOBAL"];	// must happen after adding to the universe!
 		[ship setStatus:STATUS_IN_FLIGHT];	// or ships that were 'demo' ships become invisible!
 		[ship release];
-		//
+		
 		return YES;	// success at last!
 	}
 	return NO;
@@ -2490,30 +2486,30 @@ GLfloat docked_light_specular[]	= { (GLfloat) 1.0, (GLfloat) 1.0, (GLfloat) 0.5,
 {
 	PlayerEntity*   player = (PlayerEntity *)[[self entityZero] retain];
 
-	//
+	
 	[self removeAllEntitiesExceptPlayer:NO];	// don't want to restore afterwards
-	//
+	
 	[player set_up];						//reset the player
 	[player setUpShipFromDictionary:[self getDictionaryForShip:[player ship_desc]]];	// ship_desc is the standard Cobra at this point
-	//
+	
 	[[(MyOpenGLView *)gameView gameController] loadPlayerIfRequired];
-	//
+	
 	[self setGalaxy_seed: [player galaxy_seed]];
 	system_seed = [self findSystemAtCoords:[player galaxy_coordinates] withGalaxySeed:galaxy_seed];
 	
-	//
+	
 	if (![self station])
 		[self set_up_space];
-	//
+	
 	if (![[self station] localMarket])
 		[[self station] initialiseLocalMarketWithSeed:system_seed andRandomFactor:[player random_factor]];
-	//
+	
 	[player setStatus:STATUS_DOCKED];
 	[player setGuiToStatusScreen];
 	displayGUI = YES;
-	//
+	
 	[player release];    
-	//
+	
 }
 
 - (void) set_up_intro1
@@ -2523,13 +2519,13 @@ GLfloat docked_light_specular[]	= { (GLfloat) 1.0, (GLfloat) 1.0, (GLfloat) 0.5,
 	Quaternion		q2;
 	q2.x = 0.0;   q2.y = 0.0;   q2.z = 0.0; q2.w = 1.0;
 	quaternion_rotate_about_y(&q2,PI);
-	//
+	
 	// in status demo : draw ships and display text
-	//
+	
 	[player setStatus: STATUS_START_GAME];
 	[player setShowDemoShips: YES];
 	displayGUI = YES;
-	//
+	
 	/*- cobra -*/
 	ship = [self getShip:PLAYER_SHIP_DESC];   // retain count = 1   // shows the cobra-player ship
 	if (ship)
@@ -2551,11 +2547,11 @@ GLfloat docked_light_specular[]	= { (GLfloat) 1.0, (GLfloat) 1.0, (GLfloat) 0.5,
 		
 		[ship release];
 	}
-	//
+	
 	[self setViewDirection:VIEW_GUI_DISPLAY];
 	displayGUI = YES;
-	//
-	//
+	
+	
 }
 
 - (void) set_up_intro2
@@ -2564,14 +2560,14 @@ GLfloat docked_light_specular[]	= { (GLfloat) 1.0, (GLfloat) 1.0, (GLfloat) 0.5,
 	Quaternion		q2;
 	q2.x = 0.0;   q2.y = 0.0;   q2.z = 0.0; q2.w = 1.0;
 	quaternion_rotate_about_y(&q2,PI);
-	//
+	
 	// in status demo draw ships and display text
-	//
+	
 	[self removeDemoShips];
 	[(PlayerEntity*)[self entityZero] setStatus: STATUS_START_GAME];
 	[(PlayerEntity*)[self entityZero] setShowDemoShips: YES];
 	displayGUI = YES;
-	//
+	
 	/*- demo ships -*/
 	demo_ship_index = 0;
 	ship = [self getShip:[demo_ships objectAtIndex:0]];   // retain count = 1
@@ -2599,13 +2595,13 @@ GLfloat docked_light_specular[]	= { (GLfloat) 1.0, (GLfloat) 1.0, (GLfloat) 0.5,
 		
 		[ship release];
 	}
-	//
+	
 	[self setViewDirection:VIEW_GUI_DISPLAY];
 	displayGUI = YES;
-	//
+	
 	demo_stage = DEMO_SHOW_THING;
 	demo_stage_time = universal_time + 3.0;
-	//
+	
 }
 
 - (void) selectIntro2Previous
@@ -2790,7 +2786,7 @@ GLfloat docked_light_specular[]	= { (GLfloat) 1.0, (GLfloat) 1.0, (GLfloat) 0.5,
 		return nil;
 	
 	// we're only interested in three types of entity currently
-	//
+	
 	if (entity->isRing)
 		classname = @"RingEntity";
 	if (entity->isShip)
@@ -3449,9 +3445,9 @@ GLfloat* custom_matrix;
 			Vector	position, obj_position, view_dir, view_up;
 			BOOL inGUIMode = NO;
 			
-			//
+			
 			// use a non-mutable copy so this can't be changed under us.
-			//
+			
 			int			ent_count =	n_entities;
 			Entity*		my_entities[ent_count];
 			int			draw_count = 0;
@@ -3522,9 +3518,9 @@ GLfloat* custom_matrix;
 			}
 			
 			//NSLog(@"Drawing from [%f,%f,%f]", position.x, position.y, position.z);
-			//
+			
 			checkGLErrors(@"Universe before doing anything");
-			//
+			
 			glEnable(GL_LIGHTING);
 			glEnable(GL_DEPTH_TEST);
 			glEnable(GL_CULL_FACE);			// face culling
@@ -3577,7 +3573,7 @@ GLfloat* custom_matrix;
 				Vector demo_light_origin = DEMO_LIGHT_POSITION;
 				
 				////
-				//
+				
 				if (!inGUIMode)
 				{
 					// rotate the view
@@ -3585,19 +3581,19 @@ GLfloat* custom_matrix;
 					// translate the view
 					glTranslatef( -position.x, -position.y, -position.z);
 				}
-				//
+				
 				////
 				
 				// position the sun and docked lights correctly
 				glLightfv(GL_LIGHT1, GL_POSITION, sun_center_position);	// this is necessary or the sun will move with the player
-				//
+				
 				if (inGUIMode)
 				{
 					// light for demo ships display.. 
 					glLightfv(GL_LIGHT0, GL_AMBIENT, docked_light_ambient);
 					glLightfv(GL_LIGHT0, GL_DIFFUSE, docked_light_diffuse);
 					glLightfv(GL_LIGHT0, GL_SPECULAR, docked_light_specular);
-					//
+					
 					demo_light_on = NO;	// be contrary - force enabling of the light
 					setDemoLight( YES, demo_light_origin);
 					sun_light_on = YES;	// be contrary - force disabling of the light
@@ -3612,16 +3608,16 @@ GLfloat* custom_matrix;
 					setSunLight( YES);
 					glLightModelfv(GL_LIGHT_MODEL_AMBIENT, stars_ambient);
 				}
-				//
+				
 				// turn on lighting
 				glEnable(GL_LIGHTING);
 				
 				int		furthest = draw_count - 1;
 				int		nearest = 0;
 								
-				//
+				
 				//		DRAW ALL THE OPAQUE ENTITIES
-				//
+				
 				for (i = furthest; i >= nearest; i--)
 				{
 					int d_status;
@@ -3687,7 +3683,7 @@ GLfloat* custom_matrix;
 						}
 	
 						// draw the thing
-						//
+						
 						[drawthing drawEntity:NO:NO];
 						
 						// atmospheric fog
@@ -3699,9 +3695,9 @@ GLfloat* custom_matrix;
 					}
 				}
 				
-				//
+				
 				//		DRAW ALL THE TRANSLUCENT entsInDrawOrder
-				//
+				
 				glDepthMask(GL_FALSE);				// don't write to depth buffer
 				glDisable(GL_LIGHTING);
 				
@@ -3791,10 +3787,10 @@ GLfloat* custom_matrix;
 			}
 			
 			glFlush();	// don't wait around for drawing to complete
-			//
+			
 			// clear errors - and announce them
 			checkGLErrors(@"Universe after all entity drawing is done.");
-			//
+			
 			for (i = 0; i < draw_count; i++)
 				[my_entities[i] release];		//	released
 			
@@ -3963,9 +3959,9 @@ BOOL maintainLinkedLists(Universe* uni)
 	{
 		int n;
 		Entity	*check, *last;
-		//
+		
 		last = nil;
-		//
+		
 		n = uni->n_entities;
 		check = uni->x_list_start;
 		while ((n--)&&(check))
@@ -3978,7 +3974,7 @@ BOOL maintainLinkedLists(Universe* uni)
 			OOLog(kOOLogEntityVerificationError, @"Broken x_next %@ list (%d) ***", uni->x_list_start, n);
 			result = NO;
 		}
-		//
+		
 		n = uni->n_entities;
 		check = last;
 		while ((n--)&&(check))	check = check->x_previous;
@@ -3998,7 +3994,7 @@ BOOL maintainLinkedLists(Universe* uni)
 				}
 			}
 		}
-		//
+		
 		n = uni->n_entities;
 		check = uni->y_list_start;
 		while ((n--)&&(check))
@@ -4011,7 +4007,7 @@ BOOL maintainLinkedLists(Universe* uni)
 			OOLog(kOOLogEntityVerificationError, @"Broken *** broken y_next %@ list (%d) ***", uni->y_list_start, n);
 			result = NO;
 		}
-		//
+		
 		n = uni->n_entities;
 		check = last;
 		while ((n--)&&(check))	check = check->y_previous;
@@ -4031,7 +4027,7 @@ BOOL maintainLinkedLists(Universe* uni)
 				}
 			}
 		}
-		//
+		
 		n = uni->n_entities;
 		check = uni->z_list_start;
 		while ((n--)&&(check))
@@ -4044,7 +4040,7 @@ BOOL maintainLinkedLists(Universe* uni)
 			OOLog(kOOLogEntityVerificationError, @"Broken z_next %@ list (%d) ***", uni->z_list_start, n);
 			result = NO;
 		}
-		//
+		
 		n = uni->n_entities;
 		check = last;
 		while ((n--)&&(check))	check = check->z_previous;
@@ -4065,7 +4061,7 @@ BOOL maintainLinkedLists(Universe* uni)
 			}
 		}
 	}
-	//
+	
 	if (!result)
 	{
 		OOLog(kOOLogEntityVerificationRebuild, @"Rebuilding all linked lists from scratch");
@@ -4087,7 +4083,7 @@ BOOL maintainLinkedLists(Universe* uni)
 			[ent addToLinkedLists];
 		}
 	}
-	//
+	
 	return result;
 }
 
@@ -4116,7 +4112,7 @@ BOOL maintainLinkedLists(Universe* uni)
 			[myException raise];
 			return NO;
 		}
-		//
+		
 		if (!(entity->isParticle))
 		{
 			while (entity_for_uid[next_universal_id] != nil)	// skip allocated numbers
@@ -4165,12 +4161,12 @@ BOOL maintainLinkedLists(Universe* uni)
 			[entity setUniversal_id:NO_TARGET];
 		
 		// lighting considerations
-		//
+		
 		entity->isSunlit = YES;
 		entity->shadingEntityID = NO_TARGET;
 		
 		// add it to the universe
-		//
+		
 		[entity setUniverse:self];
 		[entities addObject:entity];
 		
@@ -4205,7 +4201,7 @@ BOOL maintainLinkedLists(Universe* uni)
 
 //		for (index = 0; index < n_entities; index++)
 //			NSLog(@"+++++ %d %.0f %@", sortedEntities[index]->z_index, sortedEntities[index]->zero_distance, sortedEntities[index]);
-		//
+		
 		if (entity->isWormhole)
 			[activeWormholes addObject:entity];
 		
@@ -4292,9 +4288,9 @@ BOOL maintainLinkedLists(Universe* uni)
 						ShipEntity* beacon = (ShipEntity*)[self entityForUniversalID:bid];
 						while ((beacon != nil)&&([beacon nextBeaconID] != old_id))
 							beacon = (ShipEntity*)[self entityForUniversalID:[beacon nextBeaconID]];
-						//
+						
 						[beacon setNextBeacon:(ShipEntity*)[self entityForUniversalID:[se nextBeaconID]]];
-						//
+						
 						while ([beacon nextBeaconID] != NO_TARGET)
 							beacon = (ShipEntity*)[self entityForUniversalID:[beacon nextBeaconID]];
 						lastBeacon = [beacon universal_id];
@@ -4303,10 +4299,10 @@ BOOL maintainLinkedLists(Universe* uni)
 				[se setBeaconChar:0];
 			}
 			
-			//
+			
 			if (entity->isWormhole)
 				[activeWormholes removeObject:entity];
-			//
+			
 			[entities removeObject:[self recycleOrDiscard:entity]];
 			
 			//NSLog(@"--(%@)\n%@", entity, [entities description]);
@@ -4384,9 +4380,9 @@ BOOL maintainLinkedLists(Universe* uni)
 						ShipEntity* beacon = (ShipEntity*)[self entityForUniversalID:bid];
 						while ((beacon != nil)&&([beacon nextBeaconID] != old_id))
 							beacon = (ShipEntity*)[self entityForUniversalID:[beacon nextBeaconID]];
-						//
+						
 						[beacon setNextBeacon:(ShipEntity*)[self entityForUniversalID:[se nextBeaconID]]];
-						//
+						
 						while ([beacon nextBeaconID] != NO_TARGET)
 							beacon = (ShipEntity*)[self entityForUniversalID:[beacon nextBeaconID]];
 						lastBeacon = [beacon universal_id];
@@ -4394,12 +4390,12 @@ BOOL maintainLinkedLists(Universe* uni)
 				}
 				[se setBeaconChar:0];
 			}
-			//
+			
 			if (entity->isWormhole)
 				[activeWormholes removeObject:entity];
-			//
+			
 			[entities removeObject:entity];
-			//
+			
 			return YES;
 		}
 	}
@@ -4585,9 +4581,9 @@ BOOL maintainLinkedLists(Universe* uni)
 
 - (Vector) getSafeVectorFromEntity:(Entity *) e1 toDistance:(double)dist fromPoint:(Vector) p2
 {
-	//
+	
 	// heuristic three
-	//
+	
 	if (!e1)
 	{
 		NSLog(@"ERROR ***** No entity set in Universe getSafeVectorFromEntity:toDistance:fromPoint:");
@@ -4680,7 +4676,7 @@ BOOL maintainLinkedLists(Universe* uni)
 						current_distance = cr * 5.0;
 										
 					// choose a point that's three parts backward and one part outward
-					//
+					
 					result.x += 0.25 * (outward.x * current_distance) + 0.75 * (backward.x * current_distance);		// push 'out' by this amount
 					result.y += 0.25 * (outward.y * current_distance) + 0.75 * (backward.y * current_distance);
 					result.z += 0.25 * (outward.z * current_distance) + 0.75 * (backward.z * current_distance);
@@ -4764,7 +4760,7 @@ BOOL maintainLinkedLists(Universe* uni)
 	f1 = vector_forward_from_quaternion(q1);
 	r1 = vector_right_from_quaternion(q1);
 	Vector p1 = make_vector( p0.x + nearest *f1.x, p0.y + nearest *f1.y, p0.z + nearest *f1.z);	//endpoint
-	//
+	
 	for (i = 0; i < ship_count; i++)
 	{
 		ShipEntity *e2 = my_entities[i];
@@ -4801,7 +4797,7 @@ BOOL maintainLinkedLists(Universe* uni)
 		}
 	}
 
-	//
+	
 	if (hit_entity)
 	{
 //		if (e1->isPlayer)
@@ -4813,10 +4809,10 @@ BOOL maintainLinkedLists(Universe* uni)
 		if (range_ptr != (GLfloat *)nil)
 			range_ptr[0] = (GLfloat)nearest;
 	}
-	//
+	
 	for (i = 0; i < ship_count; i++)
 		[my_entities[i] release]; //	released
-	//
+	
 	return result;
 }
 
@@ -4890,13 +4886,13 @@ BOOL maintainLinkedLists(Universe* uni)
 	// check for MASC'M
 	if ((hit_entity) && [hit_entity isJammingScanning] && (![player hasMilitaryScannerFilter]))
 		hit_entity = nil;
-	//
+	
 	if (hit_entity)
 		result = [hit_entity universal_id];
-	//
+	
 	for (i = 0; i < ship_count; i++)
 		[my_entities[i] release]; //	released
-	//
+	
 	return result;
 }
 
@@ -5018,21 +5014,21 @@ BOOL maintainLinkedLists(Universe* uni)
 
 - (void) findCollisionsAndShadows
 {
-	//
+	
 	// According to Shark, this is where Oolite spent most time!
-	//
+	
 	int i;
-	//
+	
 	[universeRegion clearEntityList];
-	//
+	
 	for (i = 0; i < n_entities; i++)
 		[universeRegion checkEntity: sortedEntities[i]];	//	sorts out which region it's in
-	//
+	
 	[universeRegion findCollisionsInUniverse: self];
-	//
+	
 	// do check for entities that can't see the sun!
 	[universeRegion findShadowedEntitiesIn: self];
-	//
+	
 }
 
 - (NSString*) collisionDescription
@@ -5307,13 +5303,13 @@ BOOL maintainLinkedLists(Universe* uni)
 			sky_clear_color[3] = 0.0;
 			
 			// use a retained copy so this can't be changed under us.
-			//
+			
 			for (i = 0; i < ent_count; i++)
 				my_entities[i] = [sortedEntities[i] retain];	// explicitly retain each one
-			//
+			
 			time_delta = delta_t;
 			universal_time += delta_t;
-			//
+			
 			update_stage = @"demo management";
 			if ((demo_stage)&&(player)&&(inGUIMode	)&&(universal_time > demo_stage_time)&&([player gui_screen] == GUI_SCREEN_INTRO2))
 			{
@@ -5389,7 +5385,7 @@ BOOL maintainLinkedLists(Universe* uni)
 				}
 			}
 						
-			//
+			
 			update_stage = @"update:entity";
 			for (i = 0; i < ent_count; i++)
 			{
@@ -5398,9 +5394,9 @@ BOOL maintainLinkedLists(Universe* uni)
 				[thing update:delta_t];
 				
 				// maintain sorted lists
-				//
+				
 				double z_distance = thing->zero_distance;
-				//
+				
 				// zero_index first..
 				int index = thing->zero_index;
 				while ((index > 0)&&(z_distance < sortedEntities[index - 1]->zero_distance))
@@ -5411,14 +5407,14 @@ BOOL maintainLinkedLists(Universe* uni)
 					sortedEntities[index]->zero_index = index;
 					index--;
 				}
-				//
+				
 //				// now the linked lists
 //				[thing updateLinkedLists];
-				//
+				
 				// done maintaining sorted lists
 				
 				// update deterministic AI
-				//
+				
 				if (thing->isShip)
 				{
 					AI* theShipsAI = [(ShipEntity *)thing getAI];
@@ -5432,7 +5428,7 @@ BOOL maintainLinkedLists(Universe* uni)
 						}
 					}
 				}
-				//
+				
 				////
 			}
 			
@@ -5440,23 +5436,23 @@ BOOL maintainLinkedLists(Universe* uni)
 			for (i = 0; i < ent_count; i++)
 				[my_entities[i] updateLinkedLists];
 			
-			//
+			
 			// detect collisions and light ships that can see the sun
-			//
+			
 			update_stage = @"collision and shadow detection";
 			[self filterSortedLists];
 			[self findCollisionsAndShadows];
-			//
+			
 			// do any required check and maintenance of linked lists
-			//
+			
 			if (doLinkedListMaintenanceThisUpdate)
 			{
 				maintainLinkedLists( self);
 				doLinkedListMaintenanceThisUpdate = NO;
 			}
-			//
+			
 			// dispose of the non-mutable copy and everything it references neatly
-			//
+			
 			update_stage = @"clean up";
 			for (i = 0; i < ent_count; i++)
 				[my_entities[i] release];	// explicitly release each one
@@ -6272,64 +6268,64 @@ BOOL maintainLinkedLists(Universe* uni)
 	
 //	NSLog(@"DEBUG determining route from %d (%d,%d) to %d (%d, %d)", start, systems[start].d, systems[start].b, goal, systems[goal].d, systems[goal].b);
 	
-	//
+	
 	// use A* algorithm to determine shortest route
-	//
+	
 	// for this we need the neighbouring (<= 7LY distant) systems
 	// listed for each system[]
-	//
+	
 	NSMutableArray* neighbour_systems = [NSMutableArray arrayWithCapacity:256];
 	int i;
 	for (i = 0; i < 256; i++)
 		[neighbour_systems addObject:[self neighboursToSystem:i]];	// each is retained as it goes in
-	//
+	
 	// each node must store these values:
 	// g(X) cost_from_start == distance from node to parent_node + g(parent node)
 	// h(X) cost_to_goal (heuristic estimate) == distance from node to goal
 	// f(X) total_cost_estimate == g(X) + h(X)
 	// parent_node
-	//
+	
 	// each node will be stored as a NSDictionary
-	//
+	
 	// two lists of nodes are required:
 	// open_nodes (yet to be explored) = a priority list where the next node always has the lowest f(X)
 	// closed_nodes (explored)
-	//
+	
 	// the open list will be stored as an NSMutableArray of indices to node_open with additions to the priority queue
 	// being inserted into the correct position, a list of pointers also tracks each node
-	//
+	
 	NSMutableArray* open_nodes = [NSMutableArray arrayWithCapacity:256];
 	NSDictionary* node_open[256];
-	//
+	
 	// the closed list is a simple array of flags
-	//
+	
 	BOOL node_closed[256];
-	//
+	
 	// initialise the lists:
 	for (i = 0; i < 256; i++)
 	{
 		node_closed[i] = NO;
 		node_open[i] = nil;
 	}
-	//
+	
 	// initialise the start node
 	int location = start;
 	double cost_from_start = 0.0;
 	double cost_to_goal = distanceBetweenPlanetPositions(systems[start].d, systems[start].b, systems[goal].d, systems[goal].b);
 	double total_cost_estimate = cost_from_start + cost_to_goal;
 	NSDictionary* parent_node = nil;
-	//
+	
 	NSDictionary* startNode = [NSDictionary dictionaryWithObjectsAndKeys:
 		[NSNumber numberWithInt:location],					@"location",
 		[NSNumber numberWithDouble:cost_from_start],		@"cost_from_start",
 		[NSNumber numberWithDouble:cost_to_goal],			@"cost_to_goal",
 		[NSNumber numberWithDouble:total_cost_estimate],	@"total_cost_estimate",
 		NULL];
-	//
+	
 	// push start node on open
 	[open_nodes addObject:[NSNumber numberWithInt:start]];
 	node_open[start] = startNode;
-	//
+	
 	// process the list until success or failure
 	while ([open_nodes count] > 0)
 	{
@@ -6379,7 +6375,7 @@ BOOL maintainLinkedLists(Universe* uni)
 				double newCostFromStart = cost_from_start + distanceBetweenPlanetPositions(systems[newLocation].d, systems[newLocation].b, systems[location].d, systems[location].b);
 				double newCostToGoal = distanceBetweenPlanetPositions(systems[newLocation].d, systems[newLocation].b, systems[goal].d, systems[goal].b);
 				double newTotalCostEstimate = newCostFromStart + newCostToGoal;
-				//
+				
 				// ignore this node if it exists and there's no improvement
 				BOOL ignore_node = node_closed[newLocation];
 				if (node_open[newLocation])
@@ -6415,15 +6411,15 @@ BOOL maintainLinkedLists(Universe* uni)
 					}
 					if (p < 256)	// not found a place, add it on the end
 						[open_nodes addObject:[NSNumber numberWithInt:newLocation]];
-					//
+					
 				}
 			}
 		}
 		node_closed[location] = YES;
 	}
-	//
+	
 	// if we get here, we've failed to find a route
-	//
+	
 	return nil;
 }
 
@@ -7118,7 +7114,7 @@ double estimatedTimeForJourney(double distance, int hops)
 					int eq_techlevel = [(NSNumber*)[equipment_info objectAtIndex:EQUIPMENT_TECH_LEVEL_INDEX] intValue];
 					NSString* eq_short_desc = (NSString*)[equipment_info objectAtIndex:EQUIPMENT_SHORT_DESC_INDEX];
 					NSString* eq_long_desc = (NSString*)[equipment_info objectAtIndex:EQUIPMENT_LONG_DESC_INDEX];
-					//
+					
 					if (eq_techlevel > techlevel)
 					{
 						// cap maximum tech level
@@ -7134,7 +7130,7 @@ double estimatedTimeForJourney(double distance, int hops)
 							eq_price = 0;	// bar this upgrade
 						}
 					}
-					//
+					
 					if (eq_price > 0)
 					{
 						if (![equipment hasPrefix:@"EQ_WEAPON"])
@@ -7301,7 +7297,7 @@ NSComparisonResult comparePrice( id dict1, id dict2, void * context)
 	int result = 0;
 	
 	// get basic information about the commander's craft
-	//
+	
 	NSString* cmdr_ship_desc = (NSString*)[cmdr_dict objectForKey:@"ship_desc"];
 	int cmdr_fwd_weapon = [(NSNumber*)[cmdr_dict objectForKey:@"forward_weapon"] intValue];
 	int cmdr_fwd_weapon_value = 0;
@@ -7368,7 +7364,7 @@ NSComparisonResult comparePrice( id dict1, id dict2, void * context)
 		extra_equipment_value += [self getPriceForWeaponSystemWithKey:(NSString*)[cmdr_extra_equipment objectAtIndex:j]] / 10;
 	
 	// final reckoning
-	//
+	
 //	NSLog(@"DEBUG base_price for %@ %d weapons_bonus %d equipment_bonus %d", cmdr_ship_desc, base_price,
 //		cmdr_missiles_value + cmdr_other_weapons_value + cmdr_fwd_weapon_value - base_weapon_value - base_missiles_value,
 //		extra_equipment_value);
@@ -7558,12 +7554,12 @@ NSComparisonResult comparePrice( id dict1, id dict2, void * context)
 - (NSString *) expandDescription:(NSString *) desc forSystem:(Random_Seed)s_seed
 {
 //	return [self expandDescriptionWithLocals:desc forSystem:s_seed withLocalVariables:nil];
-	//
+	
 	// to enable variables to return strings that can be expanded (eg. @"[commanderName_string]")
 	// we're going to loop until every expansion has been done!
 	// but to check this does not infinitely recurse
 	// we'll stop after 32 loops.
-	//
+	
 	int stack_check = 32;
 	NSString	*old_desc = [NSString stringWithString: desc];
 	NSString	*result = desc;
@@ -7613,9 +7609,9 @@ NSComparisonResult comparePrice( id dict1, id dict2, void * context)
 //	}
 	
 	// add in player info if required
-	//
+	
 	// -- this is now duplicated with new commanderXXX_string and commanderYYY_number methods in PlayerEntity Additions -- GILES
-	//
+	
 	if ([desc rangeOfString:@"[commander_"].location != NSNotFound)
 	{
 		// commander's name
@@ -7729,11 +7725,11 @@ NSComparisonResult comparePrice( id dict1, id dict2, void * context)
 	result.x = 0.0;
 	result.y = 0.0;
 	result.z = 0.0;
-	//
+	
 	result.x += SCANNER_MAX_RANGE*(gen_rnd_number()/256.0 - 0.5);   // offset by a set amount, up to 12.8 km
 	result.y += SCANNER_MAX_RANGE*(gen_rnd_number()/256.0 - 0.5);
 	result.z += SCANNER_MAX_RANGE*(gen_rnd_number()/256.0 - 0.5);
-	//
+	
 	return result;
 }
 
@@ -7743,13 +7739,13 @@ NSComparisonResult comparePrice( id dict1, id dict2, void * context)
 	Quaternion q_result;
 	seed_RNG_only_for_planet_description(system_seed);
 
-	//
+	
 	q_result.x = (gen_rnd_number() - 128)/1024.0;
 	q_result.y = (gen_rnd_number() - 128)/1024.0;
 	q_result.z = (gen_rnd_number() - 128)/1024.0;
 	q_result.w = 1.0;
 	quaternion_normalise(&q_result);
-	//
+	
 	return q_result;
 }
 
@@ -7978,6 +7974,11 @@ NSComparisonResult comparePrice( id dict1, id dict2, void * context)
 	}
 }
 
+
+- (ScriptEngine *) scriptEngine
+{
+	return scriptEngine;
+}
 
 
 // speech routines

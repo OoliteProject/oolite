@@ -229,6 +229,7 @@ enum
 	
 	NSMutableArray*			comm_log;
 
+	NSMutableDictionary		*oxpKeys;
 #ifdef GNUSTEP
  SDLImage					*missionBackgroundImage;
 #else
@@ -583,6 +584,7 @@ enum
 - (void) tidyMissilePylons;
 
 - (void) clearAlert_flags;
+- (int) alert_flags;
 - (void) setAlert_flag:(int) flag :(BOOL) value;
 - (int) alert_condition;
 
@@ -682,6 +684,8 @@ enum
 - (BOOL) selectPreviousTargetFromMemory;
 
 - (void) applyYaw:(GLfloat) yaw;
+- (void) setCredits: (int)newCredits;
+- (void) setKills: (int)newKills;
 
 /* GILES custom viewpoints */
 
@@ -696,6 +700,8 @@ enum
 - (void)		setCustomViewDataFromDictionary:(NSDictionary*) viewDict;
 
 /* -- */
+
+- (void) sendMessageToScripts:(NSString *)message;
 
 - (BOOL)showInfoFlag;
 

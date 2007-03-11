@@ -42,6 +42,7 @@ MA 02110-1301, USA.
 #import "OOSound.h"
 #import "OOColor.h"
 #import "OOCacheManager.h"
+#import "OXPScript.h"
 
 #ifndef GNUSTEP
 #import "Groolite.h"
@@ -2846,6 +2847,11 @@ double scoopSoundPlayTime = 0.0;
 	alert_flags = 0;
 }
 
+- (int) alert_flags
+{
+	return alert_flags;
+}
+
 - (void) setAlert_flag:(int) flag :(BOOL) value
 {
 	if (value)
@@ -2885,7 +2891,10 @@ double scoopSoundPlayTime = 0.0;
 		[warningSound play];
 #endif
 	}
-
+	
+	if (alert_condition != old_alert_condition)
+		[self sendMessageToScripts:@"AlertConditionChanged"];
+	
 	return alert_condition;
 }
 
@@ -6802,6 +6811,18 @@ OOSound* burnersound;
 	return NO;
 }
 
+// Start of JavaScript object model helpers
+- (void) setCredits: (int)newCredits
+{
+	credits = 10 * newCredits;
+}
+
+- (void) setKills: (int)newKills
+{
+	ship_kills = newKills;
+}
+// End of JavaScript object model helpers
+
 - (Quaternion)	customViewQuaternion
 {
 	return customViewQuaternion;
@@ -6885,6 +6906,25 @@ OOSound* burnersound;
 - (BOOL)showInfoFlag
 {
 	return show_info_flag;
+}
+
+
+- (void) sendMessageToScripts:(NSString *)message
+{
+	int i;
+	if (oxpKeys == nil)
+		oxpKeys = [[NSMutableDictionary alloc] init];
+
+	for (i = 0; i < [[script allKeys] count]; i++)
+	{
+		NSString *missionTitle = (NSString *)[[script allKeys] objectAtIndex:i];
+		id obj = [script objectForKey:missionTitle];
+		if ([obj isKindOfClass:[OXPScript class]])
+		{
+			OXPScript *jscript = (OXPScript *)obj;
+			[jscript doEvent:message];
+		}
+	}
 }
 
 @end

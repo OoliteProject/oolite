@@ -121,7 +121,7 @@ MA 02110-1301, USA.
 #define OOLITE_EXCEPTION_DATA_NOT_FOUND	@"OoliteDataNotFoundException"
 #define OOLITE_EXCEPTION_FATAL			@"OoliteFatalException"
 
-@class TextureStore, GameController, ShipEntity, CollisionRegion;
+@class TextureStore, GameController, ShipEntity, CollisionRegion, ScriptEngine;
 
 extern int debug;
 
@@ -252,7 +252,8 @@ extern int debug;
 		
 		// experimental proc-genned textures
 		BOOL					doProcedurallyTexturedPlanets;
-
+		
+		ScriptEngine			*scriptEngine;
 }
 
 - (id) init;
@@ -506,6 +507,8 @@ NSComparisonResult comparePrice( id dict1, id dict2, void * context);
 - (BOOL) reducedDetail;
 
 - (void) handleOoliteException:(NSException*) ooliteException;
+
+- (ScriptEngine *) scriptEngine;
 
 // speech routines
 //
