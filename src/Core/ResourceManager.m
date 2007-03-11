@@ -110,19 +110,21 @@ NSMutableDictionary*	surface_cache;
 	OOCacheManager		*cacheMgr = [OOCacheManager sharedCache];
 	NSFileManager		*fmgr = [NSFileManager defaultManager];
 	BOOL				upToDate = YES;
-	
-	if (![[cacheMgr objectForKey:kOOCacheKeySearchPaths inCache:kOOCacheSearchPathModDates] isEqual:searchPaths])
-	{
-		// OXPs added/removed
-		OOLog(kOOLogCacheStalePaths, @"Cache is stale (search paths have changed). Rebuilding from scratch.");
-		upToDate = NO;
-	}
-	
-	// Build modification date list. (We need this regardless of whether the search paths matched.)
+	id					oldPaths = nil;
 	NSMutableArray		*modDates = nil;
 	NSEnumerator		*pathEnum = nil;
 	NSString			*path = nil;
 	id					modDate = nil;
+	
+	oldPaths = [cacheMgr objectForKey:kOOCacheKeySearchPaths inCache:kOOCacheSearchPathModDates];
+	if (![oldPaths isEqual:searchPaths])
+	{
+		// OXPs added/removed
+		if (oldPaths != nil) OOLog(kOOLogCacheStalePaths, @"Cache is stale (search paths have changed). Rebuilding from scratch.");
+		upToDate = NO;
+	}
+	
+	// Build modification date list. (We need this regardless of whether the search paths matched.)
 	
 	modDates = [NSMutableArray arrayWithCapacity:[searchPaths count]];
 	for (pathEnum = [searchPaths objectEnumerator]; (path = [pathEnum nextObject]); )
