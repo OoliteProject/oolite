@@ -68,3 +68,18 @@ extern NSString * const kOOLogDeprecatedMethodOOCASound;
 extern NSString * const kOOLogSoundInitError;
 
 #define kOOLogUnconvertedNSLog @"unclassified.sound"
+
+
+#if MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_4
+#import </usr/include/libkern/OSAtomic.h>
+
+static inline void OOSoundAtomicAdd(int32_t delta, int32_t *value)
+{
+	OSAtomicAdd32(delta, value);
+}
+#else
+static inline void OOSoundAtomicAdd(int32_t delta, int32_t *value)
+{
+	OTAtomicAdd32(delta, (SInt32 *)value);
+}
+#endif

@@ -1125,7 +1125,7 @@ static  BOOL	taking_snapshot;
 - (void) pollFlightArrowKeyControls:(double) delta_t
 {
 	MyOpenGLView	*gameView = [universe gameView];
-	NSPoint			virtualStick;
+	NSPoint			virtualStick = NSZeroPoint;
 #define			kDeadZone 0.03
 	
 	// TODO: Rework who owns the stick.

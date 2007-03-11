@@ -54,7 +54,7 @@ typedef struct
 	uint64_t				readOffset;
 	VirtualRingBuffer		*bufferL,
 							*bufferR;
-	SInt32					pendingCount;
+	int32_t					pendingCount;
 	BOOL					atEnd,
 							loop,
 							empty,
@@ -292,7 +292,8 @@ enum
 		}
 	}
 	
-	if (OTAtomicAdd32(-1, &inContext->pendingCount) == 0 && inContext->stopped)
+	OOSoundAtomicAdd(-1, &inContext->pendingCount);
+	if (inContext->pendingCount == 0 && inContext->stopped)
 	{
 		OOLog(@"sound.streaming.releaseContext.deferred", @"Stopped streaming sound %@ reached 0 pendingCount, releasing context.", self);
 		[self releaseContext:inContext];
@@ -369,7 +370,7 @@ enum
 	remaining -= available;
 	if (!context->atEnd && remaining < kStreamBufferRefillThreshold * sizeof (float) && sFeederQueue != kInvalidID)
 	{
-		OTAtomicAdd32(1, &context->pendingCount);
+		OOSoundAtomicAdd(1, &context->pendingCount);
 		MPNotifyQueue(sFeederQueue, (void *)kMsgFillBuffers, self, context);
 	}
 	
