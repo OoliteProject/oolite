@@ -1,16 +1,16 @@
 include $(GNUSTEP_MAKEFILES)/common.make
 CP = cp
-vpath %.m src/SDL:src/Core
+vpath %.m src/SDL:src/Core:src/Core/JavaScript
 vpath %.h src/SDL:src/Core
 vpath %.c src/SDL:src/Core:src/BSDCompat
 GNUSTEP_INSTALLATION_DIR = $(GNUSTEP_USER_ROOT)
 ifeq ($(GNUSTEP_HOST_OS),mingw32)
-	ADDITIONAL_INCLUDE_DIRS =
+	ADDITIONAL_INCLUDE_DIRS = -Ideps/Windows-x86-deps/include
 	ADDITIONAL_OBJC_LIBS = -lglu32 -lopengl32 -lmingw32 -lSDLmain -lSDL -lSDL_mixer -lSDL_image -lgnustep-base -ljs32
 	ADDITIONAL_CFLAGS = -DNO_SHADERS -DLINUX -DWIN32 -DNEED_STRLCPY `sdl-config --cflags`
 # note the vpath stuff above isn't working for me, so adding src/SDL and src/Core explicitly
 	ADDITIONAL_OBJCFLAGS = -DNO_SHADERS -DLOADSAVEGUI -DLINUX -DWIN32 -DXP_WIN -DHAVE_SOUND -Wno-import `sdl-config --cflags` -Isrc/SDL -Isrc/Core -Isrc/Core/JavaScript
-	oolite_LIB_DIRS += -L$(GNUSTEP_LOCAL_ROOT)/lib
+	oolite_LIB_DIRS += -L$(GNUSTEP_LOCAL_ROOT)/lib -Ldeps/Windows-x86-deps/lib
 else
 	ADDITIONAL_INCLUDE_DIRS = -Isrc/SDL -Isrc/Core -Isrc/BSDCompat
 	ADDITIONAL_OBJC_LIBS = -lGLU -lGL -lSDL -lpthread -lSDL_mixer -lSDL_image -lgnustep-base
