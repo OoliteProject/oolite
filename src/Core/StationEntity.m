@@ -25,6 +25,7 @@ MA 02110-1301, USA.
 #import "StationEntity.h"
 #import "ShipEntityAI.h"
 #import "entities.h"
+#import "OOCollectionExtractors.h"
 
 #import "AI.h"
 #import "OOCharacter.h"
@@ -60,7 +61,7 @@ MA 02110-1301, USA.
 
 - (double) port_radius
 {
-	return port_radius;
+	return magnitude(port_position);
 }
 
 - (Vector) getPortPosition
@@ -669,7 +670,6 @@ NSDictionary* instructions(int station_id, Vector coords, float speed, float ran
 	// local specials
 	equivalent_tech_level = NSNotFound;
 	equipment_price_factor = 1.0;
-	port_radius = 500.0;
 	approach_spacing = 0.0;
 	
 	max_scavengers = 3;
@@ -742,8 +742,6 @@ NSDictionary* instructions(int station_id, Vector coords, float speed, float ran
 
 - (id) initWithDictionary:(NSDictionary *) dict
 {
-	port_radius = 500.0;	// may be overwritten by [super initWithDictionary:dict]
-	
 	self = [super initWithDictionary:dict];
 	
 	//NSLog(@"DEBUG setting up station '%@' from dict:%@",name,[dict description]);
@@ -810,76 +808,56 @@ NSDictionary* instructions(int station_id, Vector coords, float speed, float ran
 
 - (void) setUpShipFromDictionary:(NSDictionary *) dict
 {
+	// ** Set up a the docking port
+	// Look for subentity specifying position
+	int			i;
+	NSArray		*subs = (NSArray *)[dict objectForKey:@"subentities"];
+	NSArray		*dockSubEntity = nil;
+	for (i = 0; i < [subs count]; i++)
+	{
+		NSArray* details = [Entity scanTokensFromString:[subs objectAtIndex:i]];
+		if (([details count] == 8) && ([[details objectAtIndex:0] hasPrefix:@"dock"]))  dockSubEntity = details;
+	}
 	
-	// set up a the docking port
-	//
-	port_position = make_vector( 0, 0, port_radius);	// forward
-	quaternion_set_identity(&port_qrotation);
-	port_dimensions = make_vector( 69, 69, 250);		// base port size (square)
-	//
-	if ([dict objectForKey:@"subentities"])
+	if (dockSubEntity != nil)
 	{
-		int i;
-		NSArray *subs = (NSArray *)[dict objectForKey:@"subentities"];
-		for (i = 0; i < [subs count]; i++)
-		{
-			NSArray* details = [Entity scanTokensFromString:(NSString *)[subs objectAtIndex:i]];
-			if (([details count] == 8)&&([(NSString *)[details objectAtIndex:0] hasPrefix:@"dock"]))
-			{
-				port_position.x = [(NSString *)[details objectAtIndex:1] floatValue];
-				port_position.y = [(NSString *)[details objectAtIndex:2] floatValue];
-				port_position.z = [(NSString *)[details objectAtIndex:3] floatValue];
-				port_qrotation.w = [(NSString *)[details objectAtIndex:4] floatValue];
-				port_qrotation.x = [(NSString *)[details objectAtIndex:5] floatValue];
-				port_qrotation.y = [(NSString *)[details objectAtIndex:6] floatValue];
-				port_qrotation.z = [(NSString *)[details objectAtIndex:7] floatValue];
-			}
-			quaternion_normalise(&port_qrotation);
-		}
+		port_position.x = [(NSString *)[dockSubEntity objectAtIndex:1] floatValue];
+		port_position.y = [(NSString *)[dockSubEntity objectAtIndex:2] floatValue];
+		port_position.z = [(NSString *)[dockSubEntity objectAtIndex:3] floatValue];
+		port_qrotation.w = [(NSString *)[dockSubEntity objectAtIndex:4] floatValue];
+		port_qrotation.x = [(NSString *)[dockSubEntity objectAtIndex:5] floatValue];
+		port_qrotation.y = [(NSString *)[dockSubEntity objectAtIndex:6] floatValue];
+		port_qrotation.z = [(NSString *)[dockSubEntity objectAtIndex:7] floatValue];
+		quaternion_normalise(&port_qrotation);
 	}
-	//
-	if ([dict objectForKey:@"port_dimensions"])   // this can be set for rock-hermits and other specials
-	{
-		NSArray* tokens = [(NSString*)[dict objectForKey:@"port_dimensions"] componentsSeparatedByString:@"x"];
-		if ([tokens count] == 3)
-		{
-			port_dimensions = make_vector(	[(NSString*)[tokens objectAtIndex:0] floatValue],
-											[(NSString*)[tokens objectAtIndex:1] floatValue],
-											[(NSString*)[tokens objectAtIndex:2] floatValue]);
-		}
-	}
-	//
-	if ([dict objectForKey:@"port_radius"])   // this gets set for rock-hermits and other specials, otherwise it's 500m
-		port_radius = [(NSNumber *)[dict objectForKey:@"port_radius"] doubleValue];
 	else
-		port_radius = 500.0;
+	{
+		// No dock* subentity found, use defaults.
+		double port_radius = [dict doubleForKey:@"port_radius" defaultValue:500.0];
+		port_position = make_vector( 0, 0, port_radius);
+		quaternion_set_identity(&port_qrotation);
+	}
+	
+	// port_dimensions can be set for rock-hermits and other specials
+	NSArray* tokens = [(NSString*)[dict objectForKey:@"port_dimensions"] componentsSeparatedByString:@"x"];
+	if ([tokens count] == 3)
+	{
+		port_dimensions = make_vector(	[(NSString*)[tokens objectAtIndex:0] floatValue],
+										[(NSString*)[tokens objectAtIndex:1] floatValue],
+										[(NSString*)[tokens objectAtIndex:2] floatValue]);
+	}
+	else
+	{
+		port_dimensions = make_vector( 69, 69, 250);		// base port size (square)
+	}
 	
 	[super setUpShipFromDictionary:dict];
 	
-	if ([dict objectForKey:@"equivalent_tech_level"])
-		equivalent_tech_level = [(NSNumber *)[dict objectForKey:@"equivalent_tech_level"] intValue];
-	else
-		equivalent_tech_level = NSNotFound;
-	
-	if ([dict objectForKey:@"max_scavengers"])
-		max_scavengers = [(NSNumber *)[dict objectForKey:@"max_scavengers"] intValue];
-	else
-		max_scavengers = 3;
-	
-	if ([dict objectForKey:@"max_defense_ships"])
-		max_defense_ships = [(NSNumber *)[dict objectForKey:@"max_defense_ships"] intValue];
-	else
-		max_defense_ships = 3;
-	
-	if ([dict objectForKey:@"max_police"])
-		max_police = [(NSNumber *)[dict objectForKey:@"max_police"] intValue];
-	else
-		max_police = STATION_MAX_POLICE;
-	
-	if ([dict objectForKey:@"equipment_price_factor"])
-		equipment_price_factor = [(NSNumber *)[dict objectForKey:@"equipment_price_factor"] doubleValue];
-	else
-		equipment_price_factor = 1.0;
+	equivalent_tech_level = [dict intForKey:@"equivalent_tech_level" defaultValue:NSNotFound];
+	max_scavengers = [dict intForKey:@"max_scavengers" defaultValue:3];
+	max_defense_ships = [dict intForKey:@"max_defense_ships" defaultValue:3];
+	max_police = [dict intForKey:@"max_police" defaultValue:STATION_MAX_POLICE];
+	equipment_price_factor = [dict doubleForKey:@"equipment_price_factor" defaultValue:1.0];
 		
 	police_launched = 0;
 	scavengers_launched = 0;
@@ -889,9 +867,7 @@ NSDictionary* instructions(int station_id, Vector coords, float speed, float ran
 	[launchQueue removeAllObjects];
 	last_launch_time = 0.0;
 	
-	int i;
-	for (i = 0; i < MAX_DOCKING_STAGES; i++)
-		id_lock[i] = NO_TARGET;
+	for (i = 0; i < MAX_DOCKING_STAGES; i++)  id_lock[i] = NO_TARGET;
 
 	if ([self isRotatingStation])
 	{
@@ -915,14 +891,14 @@ NSDictionary* instructions(int station_id, Vector coords, float speed, float ran
 
 - (void) dealloc
 {
-	if (shipsOnApproach)	[shipsOnApproach release];
-	if (shipsOnHold)		[shipsOnHold release];
-	if (launchQueue)		[launchQueue release];
+	[shipsOnApproach release];
+	[shipsOnHold release];
+	[launchQueue release];
 	
-	if (localMarket)		[localMarket release];
-	if (localPassengers)	[localPassengers release];
-	if (localContracts)		[localContracts release];
-	if (localShipyard)		[localShipyard release];
+	[localMarket release];
+	[localPassengers release];
+	[localContracts release];
+	[localShipyard release];
 	
     [super dealloc];
 }

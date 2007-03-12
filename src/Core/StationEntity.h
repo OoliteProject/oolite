@@ -59,7 +59,6 @@ MA 02110-1301, USA.
 	int						equivalent_tech_level;
 	double					equipment_price_factor;
 
-	double					port_radius;
 	Vector					port_position;
 	Quaternion				port_qrotation;
 	Vector  				port_dimensions;
