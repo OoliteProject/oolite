@@ -94,13 +94,20 @@ void	mult_matrix (struct vector *first, struct vector *second);
 void	mult_vector (struct vector *vec, struct vector *mat);
 
 
+#ifdef WIN32
+	#define FASTINVSQRT_ENABLED	0	// Doesn't work on Windows (why?)
+#else
+	#define FASTINVSQRT_ENABLED	0	// Disabled due to precision problems.
+#endif
+
 static inline float FastInvSqrt(float x)
 {
 /*	This appears to have been responsible for a lack of laser accuracy, as
 	well as not working at all under Windows. Disabled for now.
+	Could probably be made faster on PPC using frsqrte[s], but would need to
+	ensure precision.
 */
-// #ifndef WIN32
-#if 0
+#if FASTINVSQRT_ENABLED
 	float xhalf = 0.5f * x;
 	int i = *(int*)&x;
 	i = 0x5f3759df - (i>>1);
@@ -208,19 +215,60 @@ int lineCubeIntersection(Vector v0, Vector v1, GLfloat rd);
 
 
 // returns the square of the magnitude of the vector
-//
-static inline GLfloat magnitude2 (Vector vec) GCC_ATTR((always_inline, pure));
-static inline GLfloat magnitude2 (Vector vec)
+static inline GLfloat magnitude2(Vector vec) GCC_ATTR((always_inline, pure));
+static inline GLfloat magnitude2(Vector vec)
 {
 	return vec.x * vec.x + vec.y * vec.y + vec.z * vec.z;
 }
 
+
+// returns the magnitude of the vector
+static inline GLfloat magnitude(Vector vec) GCC_ATTR((always_inline, pure));
+static inline GLfloat magnitude(Vector vec)
+{
+	return sqrtf(magnitude2(vec));
+}
+
+
+// returns the approximate magnitude of the vector
+static inline GLfloat fastMagnitude(Vector vec) GCC_ATTR((always_inline, pure));
+static inline GLfloat fastMagnitude(Vector vec)
+{
+#if FASTINVSQRT_ENABLED
+	float sqMag = magnitude2(vec);
+	return FastInvSqrt(sqMag) * sqMag;
+#else
+	return magnitude(vec);
+#endif
+}
+
+
 // returns the square of the distance between two points
-//
-static inline GLfloat distance2 (Vector v1, Vector v2) GCC_ATTR((always_inline, pure));
-static inline GLfloat distance2 (Vector v1, Vector v2)
+static inline GLfloat distance2(Vector v1, Vector v2) GCC_ATTR((always_inline, pure));
+static inline GLfloat distance2(Vector v1, Vector v2)
 {
 	return (v1.x - v2.x) * (v1.x - v2.x) + (v1.y - v2.y) * (v1.y - v2.y) + (v1.z - v2.z) * (v1.z - v2.z);
+}
+
+
+// returns the distance between two points
+static inline GLfloat distance(Vector v1, Vector v2) GCC_ATTR((always_inline, pure));
+static inline GLfloat distance(Vector v1, Vector v2)
+{
+	return sqrtf(distance2(v1, v2));
+}
+
+
+// returns the approximate between two points
+static inline GLfloat fastDistance(Vector v1, Vector v2) GCC_ATTR((always_inline, pure));
+static inline GLfloat fastDistance(Vector v1, Vector v2)
+{
+#if FASTINVSQRT_ENABLED
+	float sqDst = distance2(v1, v2);
+	return FastInvSqrt(sqDst) * sqDst;
+#else
+	return distance(v1, v2);
+#endif
 }
 
 // Calculate the dot product of two vectors sharing a common point.
