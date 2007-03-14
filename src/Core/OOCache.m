@@ -83,6 +83,7 @@ MA 02110-1301, USA.
 	youngest end of the age list. Pruning proceeds from the oldest end of the
 	age list.
 	
+	#if OOCACHE_AUTO_PRUNE
 	PRUNING is batched, handling 20% of the cache at once. This is primarily
 	because deletion somewhat pessimizes the tree (see "Self-optimization"
 	below). It also provides a bit of code coherency. To reduce pruning
@@ -93,6 +94,10 @@ MA 02110-1301, USA.
 	poinful, since pruning should be a very small portion of the per-frame run
 	time in any case. Premature optimization and all that jazz.
 	Pruning performs at most 0.2n deletions, and is thus O(n log n).
+	#else
+	PRUNING has been modified: it now prunes down to the prune "threshold" on
+	write, and doesn't prune at all at other times. This needs testing.
+	#endif
 	
 	If the macro OOCACHE_PERFORM_INTEGRITY_CHECKS is set to a non-zero value,
 	the integrity of the tree and the age list will be checked before and
@@ -106,6 +111,10 @@ MA 02110-1301, USA.
 
 #ifndef OOCACHE_PERFORM_INTEGRITY_CHECKS
 #define OOCACHE_PERFORM_INTEGRITY_CHECKS	0
+#endif
+
+#ifndef OOCACHE_AUTO_PRUNE
+#define OOCACHE_AUTO_PRUNE					0
 #endif
 
 
@@ -236,7 +245,9 @@ static NSArray *CacheArrayOfNodesByAge(OOCacheImpl *cache);
 	if (CacheInsert(cache, key, inObject))
 	{
 		dirty = YES;
-		if (pruneThreshold < CacheGetCount(cache)) [self prune];
+		#if OOCACHE_AUTO_PRUNE
+			if (pruneThreshold < CacheGetCount(cache)) [self prune];
+		#endif
 	}
 	
 	CHECK_INTEGRITY(@"setObject:forKey: after");
@@ -311,13 +322,18 @@ static NSArray *CacheArrayOfNodesByAge(OOCacheImpl *cache);
 	unsigned				desiredCount;
 	
 	// Order of operations is to ensure rounding down.
-	desiredCount = (pruneThreshold * 4) / 5;
+	#if OOCACHE_AUTO_PRUNE
+		desiredCount = (pruneThreshold * 4) / 5;
+	#else
+		desiredCount = pruneThreshold;
+	#endif
 	if (pruneThreshold == kOOCacheNoPrune || CacheGetCount(cache) < desiredCount) return;
 	
-	OOLog(kOOLogCachePrune, @"Pruning cache");
+	pruneCount = pruneThreshold - desiredCount;
+	
+	OOLog(kOOLogCachePrune, @"Pruning cache - removing %u entries", pruneCount);
 	OOLogIndentIf(kOOLogCachePrune);
 	
-	pruneCount = pruneThreshold - desiredCount;
 	while (pruneCount--) CacheRemoveOldest(cache);
 	
 	OOLogOutdentIf(kOOLogCachePrune);
