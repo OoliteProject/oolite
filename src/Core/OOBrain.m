@@ -24,31 +24,38 @@ MA 02110-1301, USA.
 
 #import "OOBrain.h"
 
-#import "entities.h"
 #import "Universe.h"
 #import "OOInstinct.h"
 
+#import "ShipEntity.h"
+
 @implementation OOBrain
 
-- (void)	setOwner:(id) anOwner
+- (void)setOwner:(id)anOwner
 {
 	owner = anOwner;
 }
-- (void)	setShip:(ShipEntity*) aShip
+
+
+- (void)setShip:(ShipEntity *)aShip
 {
 	ship = aShip;
 }
 
-- (id)			owner
+
+- (id)owner
 {
 	return owner;
 }
-- (ShipEntity*)	ship
+
+
+- (ShipEntity *)ship
 {
 	return ship;
 }
 
-- (id)	initBrainWithInstincts:(NSDictionary*) instinctDictionary forOwner:(id) anOwner andShip:(ShipEntity*) aShip
+
+- (id)initBrainWithInstincts:(NSDictionary*) instinctDictionary forOwner:(id) anOwner andShip:(ShipEntity*) aShip
 {
 	self = [super init];
 	
@@ -80,7 +87,7 @@ MA 02110-1301, USA.
 }
 
 
-- (void)	update:(double) delta_t
+- (void)update:(double)delta_t
 {
 	time_until_observation -= delta_t;
 	if (time_until_observation < 0.0)
@@ -99,7 +106,8 @@ MA 02110-1301, USA.
 	[self actOnInstincts];
 }
 
-- (void)	observe	// look around, note ships, wormholes, planets
+
+- (void)observe	// look around, note ships, wormholes, planets
 {
 	n_nearby_entities = 0;
 	nearby_entities[0] = nil;	// zero list
@@ -152,7 +160,8 @@ MA 02110-1301, USA.
 	nearby_entities[n_nearby_entities] = nil;
 }
 
-- (void)	evaluateInstincts	// calculate priority for each instinct
+
+- (void)evaluateInstincts	// calculate priority for each instinct
 {
 	int i = 0;
 	nearby_entities[n_nearby_entities] = nil;
@@ -172,7 +181,8 @@ MA 02110-1301, USA.
 	}
 }
 
-- (void)	actOnInstincts	// set ship behaviour from most urgent instinct
+
+- (void)actOnInstincts	// set ship behaviour from most urgent instinct
 {
 	if (most_urgent_instinct)
 	{

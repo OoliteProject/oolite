@@ -28,7 +28,7 @@ MA 02110-1301, USA.
 #import "Entity.h"
 
 #import "Universe.h"
-#import "vector.h"
+#import "OOMaths.h"
 
 #define PARTICLE_TEST				1
 #define PARTICLE_SHOT_GREEN_PLASMA	100

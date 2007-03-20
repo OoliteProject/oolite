@@ -1,8 +1,8 @@
 /*
 
-RingEntity.h
+OOTriangle.m
 
-Entity implementing tunnel effect for hyperspace and stations.
+Mathematical framework for Oolite.
 
 Oolite
 Copyright (C) 2004-2007 Giles C Williams and contributors
@@ -24,19 +24,24 @@ MA 02110-1301, USA.
 
 */
 
-#import "Entity.h"
+
+#import "OOMaths.h"
 
 
-#define RING_SPEED		200.0
-
-
-@interface RingEntity : Entity {
-
-	double lifetime;
-
+Vector calculateNormalForTriangle(Triangle *tri)
+{
+	Vector v01 = vector_between(tri->v[0], tri->v[1]);
+	Vector v12 = vector_between(tri->v[1], tri->v[2]);
+	tri->v[3] = cross_product( v01, v12);
+	return tri->v[3];
 }
 
-- (void) setLifetime:(double) amount;
 
-
-@end
+Vector resolveVectorInIJK(Vector v0, Triangle ijk)
+{
+	Vector result;
+	result.x = dot_product(v0, ijk.v[0]);
+	result.y = dot_product(v0, ijk.v[1]);
+	result.z = dot_product(v0, ijk.v[2]);
+	return result;
+}

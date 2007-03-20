@@ -29,16 +29,21 @@ MA 02110-1301, USA.
 #include "vector.h"
 #include "legacy_random.h"
 
-#define PI	3.1415926535897932384626433832795
 
-//static Vector	zero_vector = { 0.0f, 0.0f, 0.0f };
-
-static Matrix start_matrix =
-{
-	{1.0, 0.0, 0.0},
-	{0.0, 1.0, 0.0},
-	{0.0, 0.0, 1.0}
-};
+const Quaternion		kIdentityQuaternion = { 1.0f, 0.0f, 0.0f, 0.0f };
+const Vector			kZeroVector = { 0.0f, 0.0f, 0.0f };
+const Matrix			kIdentityMatrix =
+						{
+							{ 1.0f, 0.0f, 0.0f },
+							{ 0.0f, 1.0f, 0.0f },
+							{ 0.0f, 0.0f, 1.0f }
+						};
+const Matrix			kZeroMatrix =
+						{
+							{ 0.0f, 0.0f, 0.0f },
+							{ 0.0f, 0.0f, 0.0f },
+							{ 0.0f, 0.0f, 0.0f }
+						};
 
 //
 // Multiply first matrix by second matrix.
@@ -95,15 +100,6 @@ void mult_vector (struct vector *vec, struct vector *mat)
 	vec->z = z;
 }
 
-//
-// Multiply vector by scalar
-//
-void	scale_vector (struct vector *vec, GLfloat factor)
-{
-	vec->x *= factor;
-	vec->y *= factor;
-	vec->z *= factor;
-}
 
 //
 // Multiply vector by gl_matrix.
@@ -202,16 +198,6 @@ Vector unit_vector (struct vector *vec)
 	return res;
 }
 
-// set the unit matrix
-//
-void set_matrix_identity (struct vector *mat)
-{
-	int i;
-
-	for (i = 0; i < 3; i++)
-            mat[i] = start_matrix[i];
-}
-
 // produce a GL_matrix from a rotation matrix
 //
 void	matrix_into_gl_matrix(struct vector *mat, GLfloat *glmat)
@@ -306,15 +292,7 @@ Quaternion	quaternion_multiply(Quaternion q1, Quaternion q2)
     result.z = q1.w * q2.z + q1.z * q2.w + q1.x * q2.y - q1.y * q2.x;
     return result;
 }
-// set identity
-//
-void	quaternion_set_identity(struct quaternion *quat)
-{
-    quat->w = 1.0;
-    quat->x = 0.0;
-    quat->y = 0.0;
-    quat->z = 0.0;
-}
+
 // set random
 //
 void	quaternion_set_random(struct quaternion *quat)
@@ -460,8 +438,7 @@ Vector	vector_forward_from_quaternion(Quaternion quat)
 //
 Quaternion	quaternion_rotation_between(Vector v0, Vector v1)	// vectors both normalised
 {
-	Quaternion q;
-	quaternion_set_identity(&q);
+	Quaternion q = kIdentityQuaternion;
 	GLfloat s = (GLfloat)sqrt((1.0 + v0.x * v1.x + v0.y * v1.y + v0.z * v1.z) * 2.0);
 	if (s)
 	{
@@ -481,8 +458,7 @@ Quaternion	quaternion_rotation_between(Vector v0, Vector v1)	// vectors both nor
 //
 Quaternion	quaternion_limited_rotation_between(Vector v0, Vector v1, float maxArc)	// vectors both normalised
 {
-	Quaternion q;
-	quaternion_set_identity(&q);
+	Quaternion q = kIdentityQuaternion;
 	GLfloat min_s = 2.0 * cos( 0.5 * maxArc);
 	GLfloat s = (GLfloat)sqrt((1.0 + v0.x * v1.x + v0.y * v1.y + v0.z * v1.z) * 2.0);
 	if (s)

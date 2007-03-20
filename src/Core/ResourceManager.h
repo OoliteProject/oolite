@@ -75,26 +75,5 @@ BOOL always_include_addons;
 + (SDLImage *) surfaceNamed:(NSString *)filename inFolder:(NSString *)foldername;
 #endif
 
-+ (NSMutableArray *) scanTokensFromString:(NSString*) values;
-+ (NSString *) decodeString:(NSString*) encodedString;
-+ (OOXMLElement) parseOOXMLElement:(NSScanner*) scanner upTo:(NSString*)closingTag;
-+ (NSObject*) parseXMLPropertyList:(NSString*)xmlString;
-+ (NSObject*) objectFromXMLElement:(NSArray*) xmlElement;
-+ (NSNumber*) trueFromXMLContent:(NSObject*) xmlContent;
-+ (NSNumber*) falseFromXMLContent:(NSObject*) xmlContent;
-+ (NSNumber*) realFromXMLContent:(NSObject*) xmlContent;
-+ (NSNumber*) integerFromXMLContent:(NSObject*) xmlContent;
-+ (NSString*) stringFromXMLContent:(NSObject*) xmlContent;
-+ (NSDate*) dateFromXMLContent:(NSObject*) xmlContent;
-+ (NSData*) dataFromXMLContent:(NSObject*) xmlContent;
-+ (NSArray*) arrayFromXMLContent:(NSObject*) xmlContent;
-+ (NSDictionary*) dictionaryFromXMLContent:(NSObject*) xmlContent;
-
-+ (NSString*) stringFromGLFloats: (GLfloat*) float_array : (int) n_floats;
-+ (void) GLFloatsFromString: (NSString*) float_string: (GLfloat*) float_array;
-
-+ (NSString*) stringFromNSPoint: (NSPoint) point;
-+ (NSPoint) NSPointFromString: (NSString*) point_string;
-
 + (NSDictionary *) loadScripts;
 @end

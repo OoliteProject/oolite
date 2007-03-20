@@ -93,7 +93,7 @@ MA 02110-1301, USA.
 #define MODEL_FILE @"CORIOLIS.DAT"
 
 #import "OOCocoa.h"
-#import "vector.h"
+#import "OOMaths.h"
 #import "legacy_random.h"
 #import "OOCacheManager.h"
 
@@ -276,14 +276,6 @@ extern int debug;
 	VertexArrayRangeType	gVertexArrayRangeData[NUM_VERTEX_ARRAY_RANGES];		// our info about each VAR block
 
 }
-
-+ (Vector) vectorFromString:(NSString*) xyzString;
-+ (Quaternion) quaternionFromString:(NSString*) wxyzString;
-+ (Random_Seed) seedFromString:(NSString*) abcdefString;
-
-+ (BOOL) scanVector:(Vector *) vector_ptr andQuaternion:(Quaternion *) quaternion_ptr fromString:(NSString*) xyzwxyzString;
-
-+ (NSMutableArray *) scanTokensFromString:(NSString*) values;
 
 - (id) init;
 - (void) dealloc;

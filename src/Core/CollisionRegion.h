@@ -26,7 +26,7 @@ MA 02110-1301, USA.
 */
 
 #import "OOCocoa.h"
-#import "vector.h"
+#import "OOMaths.h"
 
 #define	COLLISION_REGION_BORDER_RADIUS	32000.0f
 #define	COLLISION_MAX_ENTITIES			128

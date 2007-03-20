@@ -30,7 +30,7 @@ MA 02110-1301, USA.
 
 #import "TextureStore.h"
 #import "OOColor.h"
-#import "vector.h"
+#import "OOMaths.h"
 
 
 static NSString * const kOOLogPlanetTextureGen = @"texture.planet.generate";

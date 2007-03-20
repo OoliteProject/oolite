@@ -26,13 +26,11 @@ MA 02110-1301, USA.
 
 #import <Foundation/Foundation.h>
 
-#import "entities.h"
-
 #define AI_THINK_INTERVAL					0.125
 
 extern int debug;
 
-@class OOInstinct;
+@class OOInstinct, ShipEntity;
 
 @interface AI : NSObject {
 

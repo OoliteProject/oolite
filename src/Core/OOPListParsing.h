@@ -1,8 +1,10 @@
 /*
 
-RingEntity.h
+OOPListParsing.h
 
-Entity implementing tunnel effect for hyperspace and stations.
+Property list parser. Tries to use native Foundation property list parsing,
+then falls back on Oolite ad-hoc parser for backwards-compatibility (Oolite's
+XML plist parser is more lenient than Foundation on OS X).
 
 Oolite
 Copyright (C) 2004-2007 Giles C Williams and contributors
@@ -24,19 +26,15 @@ MA 02110-1301, USA.
 
 */
 
-#import "Entity.h"
+#import <Foundation/Foundation.h>
 
 
-#define RING_SPEED		200.0
+id OOPropertyListFromData(NSData *inData);
+id OOPropertyListFromFile(NSString *inPath);
 
+// Wrappers which ensure that the plist contains the right type of object.
+NSDictionary *OODictionaryFromData(NSData *inData);
+NSDictionary *OODictionaryFromFile(NSString *inPath);
 
-@interface RingEntity : Entity {
-
-	double lifetime;
-
-}
-
-- (void) setLifetime:(double) amount;
-
-
-@end
+NSArray *OOArrayFromData(NSData *inData);
+NSArray *OOArrayFromFile(NSString *inPath);

@@ -27,11 +27,12 @@ MA 02110-1301, USA.
 #import "Entity.h"
 #import "SkyEntity.h"
 
-#import "vector.h"
+#import "OOMaths.h"
 #import "Universe.h"
 #import "TextureStore.h"
 #import "MyOpenGLView.h"
 #import "OOColor.h"
+#import "OOStringParsing.h"
 
 @implementation SkyEntity
 
@@ -39,18 +40,7 @@ MA 02110-1301, USA.
 {
     self = [super init];
     //
-    quaternion_set_identity(&q_rotation);
-    quaternion_into_gl_matrix(q_rotation, rotMatrix);
-    //
-    position.x = 0.0;
-    position.y = 0.0;
-    position.z = 0.0;
-    //
-    n_vertices = 0;
-    n_faces = 0;
 	delta = 0.0;
-    //
-    displayListName = 0;
     //
     status = STATUS_EFFECT;
 	sky_type = SKY_BILLBOARDS;
@@ -89,19 +79,8 @@ MA 02110-1301, USA.
 	//
 	n_stars = SKY_N_STARS;
 	n_blobs = SKY_N_BLOBS;
-    //
-    quaternion_set_identity(&q_rotation);
-    quaternion_into_gl_matrix(q_rotation, rotMatrix);
-    //
-    position.x = 0.0;
-    position.y = 0.0;
-    position.z = 0.0;
-    //
-    n_vertices = 0;
-    n_faces = 0;
+	
 	delta = 0.0;
-    //
-    displayListName = 0;
     //
     status = STATUS_EFFECT;
 	sky_type = SKY_BILLBOARDS;
@@ -141,19 +120,8 @@ MA 02110-1301, USA.
 	//
 	n_stars = SKY_N_STARS;
 	n_blobs = SKY_N_BLOBS;
-    //
-    quaternion_set_identity(&q_rotation);
-    quaternion_into_gl_matrix(q_rotation, rotMatrix);
-    //
-    position.x = 0.0;
-    position.y = 0.0;
-    position.z = 0.0;
-    //
-    n_vertices = 0;
-    n_faces = 0;
+	
 	delta = 0.0;
-    //
-    displayListName = 0;
     //
     status = STATUS_EFFECT;
 	sky_type = SKY_BILLBOARDS;
@@ -169,7 +137,7 @@ MA 02110-1301, USA.
 	if ([systeminfo objectForKey:@"sky_rgb_colors"])
 	{
 		NSString*   value = (NSString *)[systeminfo objectForKey:@"sky_rgb_colors"];
-		NSArray*	tokens = [Entity scanTokensFromString:value];
+		NSArray*	tokens = ScanTokensFromString(value);
 		if ([tokens count] == 6)
 		{
 			float r1 = [(NSString *)[tokens objectAtIndex:0] floatValue];
@@ -254,19 +222,8 @@ MA 02110-1301, USA.
     //
 	n_stars = SKY_N_STARS;
 	n_blobs = SKY_N_BLOBS;
-	//
-    quaternion_set_identity(&q_rotation);
-    quaternion_into_gl_matrix(q_rotation, rotMatrix);
-    //
-    position.x = 0.0;
-    position.y = 0.0;
-    position.z = 0.0;
-    //
-    n_vertices = 0;
-    n_faces = 0;
+	
 	delta = 0.0;
-    //
-    displayListName = 0;
     //
     status = STATUS_EFFECT;
 	sky_type = SKY_BILLBOARDS;

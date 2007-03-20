@@ -23,7 +23,6 @@ MA 02110-1301, USA.
 */
 
 #import "RingEntity.h"
-#import "entities.h"
 
 #import "Universe.h"
 

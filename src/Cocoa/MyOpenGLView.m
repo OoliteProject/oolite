@@ -29,7 +29,8 @@ MA 02110-1301, USA.
 #import "TextureStore.h"
 #import "Entity.h"
 #import "PlanetEntity.h"
-#import "ResourceManager.h"'
+#import "ResourceManager.h"
+#import "GuiDisplayGen.h"
 
 
 static NSString * kOOLogKeyCodeOutOfRange	= @"input.keyMapping.codeOutOfRange";

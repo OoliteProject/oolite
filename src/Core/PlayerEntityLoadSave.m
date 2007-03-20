@@ -23,12 +23,16 @@ MA 02110-1301, USA.
 */
 
 #import "PlayerEntityLoadSave.h"
+#import "PlayerEntityContracts.h"
+#import "PlayerEntityControls.h"
+
 #import "NSFileManagerOOExtensions.h"
 #import "GameController.h"
 #import "PlayerEntityControls.h"
 #import "OOXMLExtensions.h"
 #import "OOSound.h"
 #import "OOColor.h"
+#import "OOStringParsing.h"
 
 #ifdef WIN32
 #import "ResourceManager.h"

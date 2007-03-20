@@ -502,6 +502,8 @@ enum
 	NSArray					*stickFunctions; 
 }
 
++ (id)sharedPlayer;
+
 - (void) init_keys;
 - (void) warnAboutHostiles;
 

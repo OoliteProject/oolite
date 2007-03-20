@@ -1,0 +1,58 @@
+/*
+
+OOStringParsing.h
+
+Various functions for interpreting values from strings.
+
+Oolite
+Copyright (C) 2004-2007 Giles C Williams and contributors
+
+This program is free software; you can redistribute it and/or
+modify it under the terms of the GNU General Public License
+as published by the Free Software Foundation; either version 2
+of the License, or (at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program; if not, write to the Free Software
+Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
+MA 02110-1301, USA.
+
+*/
+
+#import <Foundation/Foundation.h>
+#import "OOMaths.h"
+#import "legacy_random.h"
+
+@class Entity;
+
+
+NSMutableArray *ScanTokensFromString(NSString *values);
+
+// Note: these functions will leave their out values untouched if they fail (and return NO). They will not log an error if passed a NULL string (but will return NO). This means they can be used to, say, read dictionary entries which might not exist. They also ignore any extra components in the string.
+BOOL ScanVectorFromString(NSString *xyzString, Vector *outVector);
+BOOL ScanQuaternionFromString(NSString *wxyzString, Quaternion *outQuaternion);
+BOOL ScanVectorAndQuaternionFromString(NSString *xyzwxyzString, Vector *outVector, Quaternion *outQuaternion);
+
+Vector VectorFromString(NSString *xyzString, Vector defaultValue);
+Quaternion QuaternionFromString(NSString *wxyzString, Quaternion defaultValue);
+
+NSString *StringFromPoint(NSPoint point);
+NSPoint PointFromString(NSString *xyString);
+
+Random_Seed RandomSeedFromString(NSString *abcdefString);
+
+
+NSString *ExpandDescriptionForSeed(NSString *text, Random_Seed seed);
+NSString *ExpandDescriptionForCurrentSystem(NSString *text);
+
+NSString *ExpandDescriptionsWithLocalsForSystemSeed(NSString *text, Random_Seed seed, NSDictionary *locals);
+NSString *ExpandDescriptionsWithLocalsForCurrentSystem(NSString *text, NSDictionary *locals);
+
+// target and localVariables are optional; target will default to the player.
+NSString *ReplaceVariables(NSString *string, Entity *target, NSDictionary *localVariables);
+

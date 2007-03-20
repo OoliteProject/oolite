@@ -27,7 +27,7 @@ MA 02110-1301, USA.
 #import "GameController.h"
 #import "GuiDisplayGen.h"
 #import "Universe.h"
-#import "PlayerEntity.h"
+#import "PlayerEntityScripting.h"
 
 static NSString * const kOOLogGrooliteError	= @"growl.error";
 static NSString * const kOOLogGrooliteDebug	= @"growl.debug";

@@ -24,9 +24,8 @@ MA 02110-1301, USA.
 
 */
 
-#import <Foundation/Foundation.h>
-
-#include "entities.h"
+#import "ShipEntity.h"
+#import "legacy_random.h"
 
 #define STATION_ALERT_LEVEL_GREEN		0
 #define STATION_ALERT_LEVEL_YELLOW		1

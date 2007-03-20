@@ -24,7 +24,7 @@ MA 02110-1301, USA.
 
 */
 
-#import <Foundation/Foundation.h>
+#import "PlayerEntity.h"
 
 #define COMPARISON_NO			000
 #define COMPARISON_EQUAL		001
@@ -48,6 +48,9 @@ MA 02110-1301, USA.
 - (BOOL) scriptTestCondition:(NSString *) scriptCondition;
 
 - (NSDictionary*) mission_variables;
+
+- (NSString *)missionVariableForKey:(NSString *)key;
+- (void)setMissionVariable:(NSString *)value forKey:(NSString *)key;
 
 /*-----------------------------------------------------*/
 

@@ -25,7 +25,7 @@ MA 02110-1301, USA.
 */
 
 #include "OOCocoa.h"
-#include "vector.h"
+#include "OOMaths.h"
 #include "legacy_random.h"
 
 #define		INSTINCT_NULL				0

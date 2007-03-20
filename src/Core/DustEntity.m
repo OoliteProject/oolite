@@ -23,11 +23,13 @@ MA 02110-1301, USA.
 */
 
 #import "DustEntity.h"
-#import "entities.h"
 
-#import "vector.h"
+#import "OOMaths.h"
 #import "Universe.h"
 #import "MyOpenGLView.h"
+
+#import "PlayerEntity.h"
+
 
 @implementation DustEntity
 
@@ -38,13 +40,6 @@ MA 02110-1301, USA.
     ranrot_srand([[NSDate date] timeIntervalSince1970]);	// seed randomiser by time
     
     self = [super init];
-    //
-    quaternion_set_identity(&q_rotation);
-    quaternion_into_gl_matrix(q_rotation, rotMatrix);
-    //
-    position.x = 0.0;
-    position.y = 0.0;
-    position.z = 0.0;
     //
     n_vertices = DUST_N_PARTICLES;
     n_faces = 0;

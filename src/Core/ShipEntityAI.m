@@ -23,12 +23,18 @@ MA 02110-1301, USA.
 */
 
 #import "ShipEntityAI.h"
-#import "entities.h"
-#import "vector.h"
+#import "OOMaths.h"
 #import "Universe.h"
 #import "AI.h"
 
-static	Vector	zero_vector = { 0.0f, 0.0f, 0.0f};
+#import "StationEntity.h"
+#import "PlanetEntity.h"
+#import "WormholeEntity.h"
+#import "PlayerEntity.h"
+#import "PlayerEntityScripting.h"
+
+#import "OOStringParsing.h"
+
 
 @implementation ShipEntity (AI)
 
@@ -709,7 +715,7 @@ WormholeEntity*	whole;
 		i = ranrot_rand() % n_dests;
 	
 	NSString* systemSeedKey = [(NSDictionary*)[dests objectAtIndex:i] objectForKey:@"system_seed"];
-	Random_Seed targetSystem = [Entity seedFromString:systemSeedKey];
+	Random_Seed targetSystem = RandomSeedFromString(systemSeedKey);
 	fuel -= 10 * [[(NSDictionary*)[dests objectAtIndex:i] objectForKey:@"distance"] doubleValue];
 		
 	// create wormhole
@@ -804,7 +810,7 @@ WormholeEntity*	whole;
 	very_random_seed.f = rand() & 255;
 	seed_RNG_only_for_planet_description(very_random_seed);
 
-	NSString* expandedMessage = [universe expandDescription:valueString forSystem:[universe systemSeed]];
+	NSString* expandedMessage = ExpandDescriptionForCurrentSystem(valueString);
 
 	[self broadcastMessage:expandedMessage];
 }
@@ -841,12 +847,12 @@ WormholeEntity*	whole;
 			{
 				if ((primaryAggressor == [ship universal_id])&&(energy < 0.375 * max_energy)&&(!is_buoy))
 				{
-					[self sendExpandedMessage:[universe expandDescription:@"[beg-for-mercy]" forSystem:[universe systemSeed]] toShip:ship];
+					[self sendExpandedMessage:ExpandDescriptionForCurrentSystem(@"[beg-for-mercy]") toShip:ship];
 					[self ejectCargo];
 					[self performFlee];
 				}
 				else
-					[self sendExpandedMessage:[universe expandDescription:distress_message forSystem:[universe systemSeed]] toShip:ship];
+					[self sendExpandedMessage:ExpandDescriptionForCurrentSystem(distress_message) toShip:ship];
 				// reset the thanked_ship_id
 				//
 				thanked_ship_id = NO_TARGET;
@@ -1399,7 +1405,7 @@ WormholeEntity*	whole;
 			[shipAI reactToMessage:@"TARGET_LOST"];
 			return;
 		}
-		NSString* finalValue = [universe expandDescription:valueString forSystem:[universe systemSeed]];	// expand values
+		NSString* finalValue = ExpandDescriptionForCurrentSystem(valueString);	// expand values
 		[ship markAsOffender:[finalValue intValue]];
 	}
 }
@@ -1461,7 +1467,7 @@ WormholeEntity*	whole;
 	Entity* the_target = [self getPrimaryTarget];
 	double bo_distance = 8000; //	8km back off
 	Vector v0 = position;
-	Vector d0 = (the_target)? the_target->position : zero_vector;
+	Vector d0 = (the_target)? the_target->position : kZeroVector;
 	v0.x += (randf() - 0.5)*collision_radius;	v0.y += (randf() - 0.5)*collision_radius;	v0.z += (randf() - 0.5)*collision_radius;
 	v0.x -= d0.x;	v0.y -= d0.y;	v0.z -= d0.z;
 	if (v0.x||v0.y||v0.z)
@@ -1557,7 +1563,7 @@ WormholeEntity*	whole;
 
 - (void) setCoordinates:(NSString *)system_x_y_z
 {
-	NSArray*	tokens = [Entity scanTokensFromString:system_x_y_z];
+	NSArray*	tokens = ScanTokensFromString(system_x_y_z);
 	NSString*	systemString = nil;
 	NSString*	xString = nil;
 	NSString*	yString = nil;
@@ -1640,7 +1646,8 @@ WormholeEntity*	whole;
 	if (station)
 	{
 		NSDictionary*	instructions = [[station dockingInstructionsForShip:self] retain];	// NOTE: retained!
-		coordinates = [Entity vectorFromString:(NSString *)[instructions objectForKey:@"destination"]];
+		
+		ScanVectorFromString([instructions objectForKey:@"destination"], &coordinates);
 		destination = coordinates;
 		desired_speed = [(NSNumber *)[instructions objectForKey:@"speed"] floatValue];
 		if (desired_speed > max_flight_speed)
@@ -1672,7 +1679,7 @@ WormholeEntity*	whole;
 {
 	if (dockingInstructions)
 	{
-		coordinates = [Entity vectorFromString:(NSString *)[dockingInstructions objectForKey:@"destination"]];
+		ScanVectorFromString([dockingInstructions objectForKey:@"destination"], &coordinates);
 		destination = coordinates;
 		desired_speed = [(NSNumber *)[dockingInstructions objectForKey:@"speed"] floatValue];
 		if (desired_speed > max_flight_speed)

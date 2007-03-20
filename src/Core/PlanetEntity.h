@@ -25,9 +25,9 @@ MA 02110-1301, USA.
 
 */
 
-#import <Foundation/Foundation.h>
-
-#import "entities.h"
+#import "Entity.h"
+#import "legacy_random.h"
+#import "OOColor.h"
 
 #define PLANET_TYPE_GREEN		100
 #define PLANET_TYPE_SUN			200
@@ -40,6 +40,10 @@ MA 02110-1301, USA.
 
 #define MAX_SUBDIVIDE			6
 #define MAX_TRI_INDICES			3*(20+80+320+1280+5120+20480)
+
+
+@class ShipEntity;
+
 
 typedef struct
 {

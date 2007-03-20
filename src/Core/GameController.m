@@ -29,6 +29,7 @@ MA 02110-1301, USA.
 #import "TextureStore.h"
 #import "OOSound.h"
 #import "OOOpenGL.h"
+#import "PlayerEntity.h"
 
 @implementation GameController
 
@@ -446,8 +447,7 @@ static int _compareModes(id arg1, id arg2, void *context)
 {
 	if (playerFileToLoad)
 	{
-		PlayerEntity	*player = (PlayerEntity *)[universe entityZero];
-		//NSLog(@":::> Opening %@ now", playerFileToLoad);
+		PlayerEntity	*player = [universe entityZero];
 		[player loadPlayerFromFile:playerFileToLoad];
 		[player setStatus:STATUS_DOCKED];
 		[player setGuiToStatusScreen];

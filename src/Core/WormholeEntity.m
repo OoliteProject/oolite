@@ -23,7 +23,10 @@ MA 02110-1301, USA.
 */
 
 #import "WormholeEntity.h"
-#import "entities.h"
+
+#import "ParticleEntity.h"
+#import "ShipEntity.h"
+#import "PlanetEntity.h"
 
 #import "Universe.h"
 #import "AI.h"

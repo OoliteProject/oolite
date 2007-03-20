@@ -1,8 +1,10 @@
 /*
 
-RingEntity.h
+OOVoxel.h
 
-Entity implementing tunnel effect for hyperspace and stations.
+Mathematical framework for Oolite.
+
+Primitive functions used for octree intersection tests.
 
 Oolite
 Copyright (C) 2004-2007 Giles C Williams and contributors
@@ -24,19 +26,22 @@ MA 02110-1301, USA.
 
 */
 
-#import "Entity.h"
+
+#ifndef INCLUDED_OOMATHS_h
+	#error Do not include OOVoxel.h directly; include OOMaths.h.
+#else
 
 
-#define RING_SPEED		200.0
+#define CUBE_FACE_RIGHT		0x01
+#define CUBE_FACE_LEFT		0x02
+#define CUBE_FACE_TOP		0x04
+#define CUBE_FACE_BOTTOM	0x08
+#define CUBE_FACE_FRONT		0x10
+#define CUBE_FACE_BACK		0x20
 
 
-@interface RingEntity : Entity {
-
-	double lifetime;
-
-}
-
-- (void) setLifetime:(double) amount;
+Vector lineIntersectionWithFace(Vector p1, Vector p2, long mask, GLfloat rd) CONST_FUNC;
+int lineCubeIntersection(Vector v0, Vector v1, GLfloat rd) CONST_FUNC;
 
 
-@end
+#endif

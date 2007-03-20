@@ -23,7 +23,6 @@ MA 02110-1301, USA.
 */
 
 #import "PlanetEntity.h"
-#import "entities.h"
 #import "OOOpenGL.h"
 
 #import "AI.h"
@@ -33,11 +32,15 @@ MA 02110-1301, USA.
 #import "ShipEntityAI.h"
 #import "OOColor.h"
 #import "OOCharacter.h"
+#import "OOStringParsing.h"
+#import "PlayerEntity.h"
+
 
 #define LIM500  500.0*500.0 * NO_DRAW_DISTANCE_FACTOR*NO_DRAW_DISTANCE_FACTOR
 #define LIM4K   4000.0*4000.0 * NO_DRAW_DISTANCE_FACTOR*NO_DRAW_DISTANCE_FACTOR
 #define LIM8K   8000.0*8000.0 * NO_DRAW_DISTANCE_FACTOR*NO_DRAW_DISTANCE_FACTOR
 #define LIM16K  16000.0*16000.0 * NO_DRAW_DISTANCE_FACTOR*NO_DRAW_DISTANCE_FACTOR
+
 
 // straight c
 static Vector base_vertex_array[10400];
@@ -71,7 +74,6 @@ void setUpSinTable()
 {
 	int		i;
 	int		percent_land;
-	double  aleph =  1.0 / sqrt(2.0);
 	//
 	self = [super init];
 	//
@@ -83,8 +85,8 @@ void setUpSinTable()
 	//
 	scan_class = CLASS_NO_DRAW;
 	//
-	q_rotation.w =  aleph;		// represents a 90 degree rotation around x axis
-	q_rotation.x =  aleph;		// (I hope!)
+	q_rotation.w =  M_SQRT1_2;		// represents a 90 degree rotation around x axis
+	q_rotation.x =  M_SQRT1_2;		// (I hope!)
 	q_rotation.y =  0.0;
 	q_rotation.z =  0.0;
 	//
@@ -105,13 +107,11 @@ void setUpSinTable()
 	//
 	ranrot_srand(planet_seed);
 	percent_land = (ranrot_rand() % 50);
-	//NSLog(@"Planet surface is %d percent land.",percent_land);
+	
 	for (i = 0; i < n_vertices; i++)
 	{
-		if (ranrot_rand() % 100 < percent_land)
-			r_seed[i] = 0;  // land
-		else
-			r_seed[i] = 1;  // sea
+		if (ranrot_rand() % 100 < percent_land)  r_seed[i] = 0;  // land
+		else  r_seed[i] = 1;  // sea
 	}
 	//
 	polar_color_factor = 1.0;
@@ -380,7 +380,6 @@ void setUpSinTable()
     }
     //
 	position = planet->position;
-	quaternion_set_identity(&q_rotation);
     collision_radius = planet->collision_radius + ATMOSPHERE_DEPTH * 2; //  atmosphere is 5000m deep only
 	//
 	shuttles_on_ground = 0;
@@ -498,16 +497,10 @@ void setUpSinTable()
 	}
 
 	//// possibly get land_hsb and sea_hsb from planetinfo.plist entry
-	//
-	if ([planetinfo objectForKey:@"land_hsb_color"])
-		land_hsb = [Entity vectorFromString:(NSString *)[planetinfo objectForKey:@"land_hsb_color"]];
-	if ([planetinfo objectForKey:@"sea_hsb_color"])
-		sea_hsb = [Entity vectorFromString:(NSString *)[planetinfo objectForKey:@"sea_hsb_color"]];
-	//
-	////
+	ScanVectorFromString([planetinfo objectForKey:@"land_hsb_color"], &land_hsb);
+	ScanVectorFromString([planetinfo objectForKey:@"sea_hsb_color"], &sea_hsb);
 
 	// polar areas are brighter but have less color (closer to white)
-	//
 	land_polar_hsb.x = land_hsb.x;  land_polar_hsb.y = (land_hsb.y / 5.0);  land_polar_hsb.z = 1.0 - (land_hsb.z / 10.0);
 	sea_polar_hsb.x = sea_hsb.x;  sea_polar_hsb.y = (sea_hsb.y / 5.0);  sea_polar_hsb.z = 1.0 - (sea_hsb.z / 10.0);
 
@@ -720,7 +713,7 @@ void setUpSinTable()
     //
 	if ([dict objectForKey:@"seed"])
 	{
-		NSArray* tokens = [Entity scanTokensFromString:(NSString*)[dict objectForKey:@"seed"]];
+		NSArray* tokens = ScanTokensFromString([dict objectForKey:@"seed"]);
 		if ([tokens count] != 6)
 			NSLog(@"ERROR planet seed '%@' requires 6 values", [dict objectForKey:@"seed"]);
 		else
@@ -813,20 +806,10 @@ void setUpSinTable()
 	}
 
 	//// possibly get land_hsb and sea_hsb from planetinfo.plist entry
-	//
-	if ([dict objectForKey:@"land_hsb_color"])
-	{
-		land_hsb = [Entity vectorFromString:(NSString *)[dict objectForKey:@"land_hsb_color"]];
-	}
-	if ([dict objectForKey:@"sea_hsb_color"])
-	{
-		sea_hsb = [Entity vectorFromString:(NSString *)[dict objectForKey:@"sea_hsb_color"]];
-	}
-	//
-	////
+	ScanVectorFromString([dict objectForKey:@"land_hsb_color"], &land_hsb);
+	ScanVectorFromString([dict objectForKey:@"sea_hsb_color"], &sea_hsb);
 
 	// polar areas are brighter but have less color (closer to white)
-	//
 	land_polar_hsb.x = land_hsb.x;  land_polar_hsb.y = (land_hsb.y / 5.0);  land_polar_hsb.z = 1.0 - (land_hsb.z / 10.0);
 	sea_polar_hsb.x = sea_hsb.x;  sea_polar_hsb.y = (sea_hsb.y / 5.0);  sea_polar_hsb.z = 1.0 - (sea_hsb.z / 10.0);
 
@@ -912,7 +895,7 @@ void setUpSinTable()
     //
 	if ([dict objectForKey:@"seed"])
 	{
-		NSArray* tokens = [Entity scanTokensFromString:(NSString*)[dict objectForKey:@"seed"]];
+		NSArray* tokens = ScanTokensFromString([dict objectForKey:@"seed"]);
 		if ([tokens count] != 6)
 			NSLog(@"ERROR planet seed '%@' requires 6 values", [dict objectForKey:@"seed"]);
 		else
@@ -1003,20 +986,10 @@ void setUpSinTable()
 	}
 
 	//// possibly get land_hsb and sea_hsb from planetinfo.plist entry
-	//
-	if ([dict objectForKey:@"land_hsb_color"])
-	{
-		land_hsb = [Entity vectorFromString:(NSString *)[dict objectForKey:@"land_hsb_color"]];
-	}
-	if ([dict objectForKey:@"sea_hsb_color"])
-	{
-		sea_hsb = [Entity vectorFromString:(NSString *)[dict objectForKey:@"sea_hsb_color"]];
-	}
-	//
-	////
+	ScanVectorFromString([dict objectForKey:@"land_hsb_color"], &land_hsb);
+	ScanVectorFromString([dict objectForKey:@"sea_hsb_color"], &sea_hsb);
 
 	// polar areas are brighter but have less color (closer to white)
-	//
 	land_polar_hsb.x = land_hsb.x;  land_polar_hsb.y = (land_hsb.y / 5.0);  land_polar_hsb.z = 1.0 - (land_hsb.z / 10.0);
 	sea_polar_hsb.x = sea_hsb.x;  sea_polar_hsb.y = (sea_hsb.y / 5.0);  sea_polar_hsb.z = 1.0 - (sea_hsb.z / 10.0);
 

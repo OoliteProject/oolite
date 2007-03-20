@@ -22,7 +22,7 @@ MA 02110-1301, USA.
 
 */
 
-#import "PlayerEntity.h"
+#import "PlayerEntityScripting.h"
 #import "GuiDisplayGen.h"
 #import "Universe.h"
 #import "ResourceManager.h"
@@ -32,6 +32,10 @@ MA 02110-1301, USA.
 #import "OXPScript.h"
 #import "OOSound.h"
 #import "OOColor.h"
+#import "OOStringParsing.h"
+
+#import "PlanetEntity.h"
+#import "ParticleEntity.h"
 
 #ifdef GNUSTEP
 #import "Comparison.h"
@@ -202,7 +206,7 @@ static NSString * mission_key;
 	is used to set a mission variable to the given string_expression
 
 	*/
-	NSMutableArray*	tokens = [Entity scanTokensFromString:scriptAction];
+	NSMutableArray*	tokens = ScanTokensFromString(scriptAction);
 	NSMutableDictionary* locals = [local_variables objectForKey:mission_key];
 	NSString*   selectorString = nil;
 	NSString*	valueString = nil;
@@ -278,7 +282,7 @@ static NSString * mission_key;
 	comma separated numeric constants (eg "planet_number oneof 1,5,9,12,14,234").
 
 	*/
-	NSArray*	tokens = [Entity scanTokensFromString:scriptCondition];
+	NSArray*	tokens = ScanTokensFromString(scriptCondition);
 	NSMutableDictionary* locals = [local_variables objectForKey:mission_key];
 	NSString*   selectorString = nil;
 	NSString*	comparisonString = nil;
@@ -453,6 +457,24 @@ static NSString * mission_key;
 - (NSDictionary*) mission_variables
 {
 	return mission_variables;
+}
+
+
+- (NSString *)missionVariableForKey:(NSString *)key
+{
+	NSString *result = nil;
+	if (key != nil) result = [mission_variables objectForKey:key];
+	return result;
+}
+
+
+- (void)setMissionVariable:(NSString *)value forKey:(NSString *)key
+{
+	if (key != nil)
+	{
+		if (value != nil) [mission_variables setObject:value forKey:key];
+		else [mission_variables removeObjectForKey:key];
+	}
 }
 
 /*-----------------------------------------------------*/
@@ -984,7 +1006,7 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 	if ((!script_target)||(!script_target->isPlayer))
 		return;
 
-	NSArray*	tokens = [Entity scanTokensFromString:amount_typeString];
+	NSArray*	tokens = ScanTokensFromString(amount_typeString);
 	NSString*   amountString = nil;
 	NSString*	typeString = nil;
 
@@ -1137,7 +1159,7 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 
 - (void) messageShipAIs:(NSString *)roles_message
 {
-	NSMutableArray*	tokens = [Entity scanTokensFromString:roles_message];
+	NSMutableArray*	tokens = ScanTokensFromString(roles_message);
 	NSString*   roleString = nil;
 	NSString*	messageString = nil;
 
@@ -1165,7 +1187,7 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 
 - (void) addShips:(NSString *)roles_number
 {
-	NSMutableArray*	tokens = [Entity scanTokensFromString:roles_number];
+	NSMutableArray*	tokens = ScanTokensFromString(roles_number);
 	NSString*   roleString = nil;
 	NSString*	numberString = nil;
 
@@ -1188,7 +1210,7 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 
 - (void) addSystemShips:(NSString *)roles_number_position
 {
-	NSMutableArray*	tokens = [Entity scanTokensFromString:roles_number_position];
+	NSMutableArray*	tokens = ScanTokensFromString(roles_number_position);
 	NSString*   roleString = nil;
 	NSString*	numberString = nil;
 	NSString*	positionString = nil;
@@ -1214,7 +1236,7 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 
 - (void) addShipsAt:(NSString *)roles_number_system_x_y_z
 {
-	NSMutableArray*	tokens = [Entity scanTokensFromString:roles_number_system_x_y_z];
+	NSMutableArray*	tokens = ScanTokensFromString(roles_number_system_x_y_z);
 
 	NSString*   roleString = nil;
 	NSString*	numberString = nil;
@@ -1250,7 +1272,7 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 
 - (void) addShipsAtPrecisely:(NSString *)roles_number_system_x_y_z
 {
-	NSMutableArray*	tokens = [Entity scanTokensFromString:roles_number_system_x_y_z];
+	NSMutableArray*	tokens = ScanTokensFromString(roles_number_system_x_y_z);
 
 	NSString*   roleString = nil;
 	NSString*	numberString = nil;
@@ -1286,7 +1308,7 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 
 - (void) addShipsWithinRadius:(NSString *)roles_number_system_x_y_z_r
 {
-	NSMutableArray*	tokens = [Entity scanTokensFromString:roles_number_system_x_y_z_r];
+	NSMutableArray*	tokens = ScanTokensFromString(roles_number_system_x_y_z_r);
 
 	if ([tokens count] != 7)
 	{
@@ -1325,7 +1347,7 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 
 - (void) set:(NSString *)missionvariable_value
 {
-	NSMutableArray*	tokens = [Entity scanTokensFromString:missionvariable_value];
+	NSMutableArray*	tokens = ScanTokensFromString(missionvariable_value);
 	NSMutableDictionary* locals = [local_variables objectForKey:mission_key];
 	NSString*   missionVariableString = nil;
 	NSString*	valueString = nil;
@@ -1436,7 +1458,7 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 	NSString*   missionVariableString = nil;
 	NSString*   valueString;
 	double	value;
-	NSMutableArray*	tokens = [Entity scanTokensFromString:missionVariableString_value];
+	NSMutableArray*	tokens = ScanTokensFromString(missionVariableString_value);
 	NSMutableDictionary* locals = [local_variables objectForKey:mission_key];
 	BOOL hasMissionPrefix, hasLocalPrefix;
 
@@ -1479,7 +1501,7 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 	NSString*   missionVariableString = nil;
 	NSString*   valueString;
 	double	value;
-	NSMutableArray*	tokens = [Entity scanTokensFromString:missionVariableString_value];
+	NSMutableArray*	tokens = ScanTokensFromString(missionVariableString_value);
 	NSMutableDictionary* locals = [local_variables objectForKey:mission_key];
 	BOOL hasMissionPrefix, hasLocalPrefix;
 
@@ -1606,7 +1628,7 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 	int i, j;
 	NSNumber *pnump;
 	int pnum, dest;
-	NSMutableArray*	tokens = [Entity scanTokensFromString:destinations];
+	NSMutableArray*	tokens = ScanTokensFromString(destinations);
 	BOOL addDestination;
 
 	for (j = 0; j < [tokens count]; j++)
@@ -1637,7 +1659,7 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 	int i, j;
 	NSNumber *pnump;
 	int pnum, dest;
-	NSMutableArray*	tokens = [Entity scanTokensFromString:destinations];
+	NSMutableArray*	tokens = ScanTokensFromString(destinations);
 	BOOL removeDestination;
 
 	for (j = 0; j < [tokens count]; j++)
@@ -1790,6 +1812,7 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 		[my_entities[i] release];		//	released
 }
 
+
 - (void) addPlanet: (NSString *)planetKey
 {
 	OOLog(kOOLogNoteAddPlanet, @"addPlanet: %@", planetKey);
@@ -1805,38 +1828,37 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 
 	/*- add planet -*/
 	OOLog(kOOLogDebugAddPlanet, @"DEBUG initPlanetFromDictionary: %@", dict);
-	//
-	PlanetEntity*	planet = [[PlanetEntity alloc] initPlanetFromDictionary:dict inUniverse:universe];	// alloc retains!
+	PlanetEntity*	planet = [[[PlanetEntity alloc] initPlanetFromDictionary:dict inUniverse:universe] autorelease];
 	[planet setStatus:STATUS_ACTIVE];
-
-	if ([dict objectForKey:@"orientation"])
-		[planet setQRotation: [Entity quaternionFromString:(NSString *)[dict objectForKey:@"orientation"]]];
+	
+	Quaternion orientation;
+	if (ScanQuaternionFromString([dict objectForKey:@"orientation"], &orientation))
+	{
+		[planet setQRotation:orientation];
+	}
 
 	if (![dict objectForKey:@"position"])
 	{
 		NSLog(@"ERROR - you must specify a position for scripted planet '%@' before it can be created", planetKey);
-		[planet release];
 		return;
 	}
-	//
-	Vector posn = [universe coordinatesFromCoordinateSystemString:(NSString *)[dict objectForKey:@"position"]];
+	
+	NSString *positionString = [dict objectForKey:@"position"];
+	Vector posn = [universe coordinatesFromCoordinateSystemString:positionString];
 	if (posn.x || posn.y || posn.z)
 	{
-		OOLog(kOOLogDebugAddPlanet, @"planet position (%.2f %.2f %.2f) derived from %@", posn.x, posn.y, posn.z, [dict objectForKey:@"position"]);
+		OOLog(kOOLogDebugAddPlanet, @"planet position (%.2f %.2f %.2f) derived from %@", posn.x, posn.y, posn.z, positionString);
 	}
 	else
 	{
-		posn = [Entity vectorFromString:(NSString *)[dict objectForKey:@"position"]];
-		OOLog(kOOLogDebugAddPlanet, @"DEBUG planet position (%.2f %.2f %.2f) derived from %@", posn.x, posn.y, posn.z, [dict objectForKey:@"position"]);
+		ScanVectorFromString(positionString, &posn);
+		OOLog(kOOLogDebugAddPlanet, @"planet position (%.2f %.2f %.2f) derived from %@", posn.x, posn.y, posn.z, positionString);
 	}
-	//
 	[planet setPosition: posn];
-	//
+	
 	[universe addEntity:planet];
-	//
-	[planet release];
-	//
 }
+
 
 - (void) addMoon: (NSString *)moonKey
 {
@@ -1852,38 +1874,37 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 	}
 
 	OOLog(kOOLogDebugAddPlanet, @"DEBUG initMoonFromDictionary: %@", dict);
-	//
-	PlanetEntity*	planet = [[PlanetEntity alloc] initMoonFromDictionary:dict inUniverse:universe];	// alloc retains!
+	PlanetEntity*	planet = [[[PlanetEntity alloc] initMoonFromDictionary:dict inUniverse:universe] autorelease];
 	[planet setStatus:STATUS_ACTIVE];
-
-	if ([dict objectForKey:@"orientation"])
-		[planet setQRotation: [Entity quaternionFromString:(NSString *)[dict objectForKey:@"orientation"]]];
+	
+	Quaternion orientation;
+	if (ScanQuaternionFromString([dict objectForKey:@"orientation"], &orientation))
+	{
+		[planet setQRotation:orientation];
+	}
 
 	if (![dict objectForKey:@"position"])
 	{
-		OOLog(kOOLogDebugAddPlanet, @"ERROR - you must specify a position for scripted moon '%@' before it can be created", moonKey);
-		[planet release];
+		NSLog(@"ERROR - you must specify a position for scripted moon '%@' before it can be created", moonKey);
 		return;
 	}
-	//
-	Vector posn = [universe coordinatesFromCoordinateSystemString:(NSString *)[dict objectForKey:@"position"]];
+	
+	NSString *positionString = [dict objectForKey:@"position"];
+	Vector posn = [universe coordinatesFromCoordinateSystemString:positionString];
 	if (posn.x || posn.y || posn.z)
 	{
-		OOLog(kOOLogDebugAddPlanet, @"DEBUG moon position (%.2f %.2f %.2f) derived from %@", posn.x, posn.y, posn.z, [dict objectForKey:@"position"]);
+		OOLog(kOOLogDebugAddPlanet, @"moon position (%.2f %.2f %.2f) derived from %@", posn.x, posn.y, posn.z, positionString);
 	}
 	else
 	{
-		posn = [Entity vectorFromString:(NSString *)[dict objectForKey:@"position"]];
-		OOLog(kOOLogDebugAddPlanet, @"DEBUG moon position (%.2f %.2f %.2f) derived from %@", posn.x, posn.y, posn.z, [dict objectForKey:@"position"]);
+		ScanVectorFromString(positionString, &posn);
+		OOLog(kOOLogDebugAddPlanet, @"moon position (%.2f %.2f %.2f) derived from %@", posn.x, posn.y, posn.z, positionString);
 	}
-	//
 	[planet setPosition: posn];
-	//
+	
 	[universe addEntity:planet];
-	//
-	[planet release];
-	//
 }
+
 
 - (void) debugOn
 {
@@ -1908,7 +1929,7 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 	NSMutableString*	resultString = [NSMutableString stringWithString: args];
 	NSString*			valueString;
 	int i;
-	NSMutableArray*	tokens = [Entity scanTokensFromString:args];
+	NSMutableArray*	tokens = ScanTokensFromString(args);
 
 	for (i = 0; i < [tokens  count]; i++)
 	{
@@ -2067,11 +2088,15 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 	return success;
 }
 
+
 - (BOOL) processSceneString:(NSString*) item atOffset:(Vector) off
 {
+	Vector	model_p0;
+	Quaternion	model_q;
+	
 	if (!item)
 		return NO;
-	NSArray* i_info = [ResourceManager scanTokensFromString: item];
+	NSArray* i_info = ScanTokensFromString(item);
 	if (!i_info)
 		return NO;
 	NSString* i_key = [(NSString*)[i_info objectAtIndex:0] lowercaseString];
@@ -2086,7 +2111,8 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 		if ([i_info count] != 5)	// must be scene_key_x_y_z
 			return NO;				//		   0.... 1.. 2 3 4
 		NSString* scene_key = (NSString*)[i_info objectAtIndex: 1];
-		Vector	scene_offset = [Entity vectorFromString:[[i_info subarrayWithRange:NSMakeRange( 2, 3)] componentsJoinedByString:@" "]];
+		Vector	scene_offset = {0};
+		ScanVectorFromString([[i_info subarrayWithRange:NSMakeRange(2, 3)] componentsJoinedByString:@" "], &scene_offset);
 		scene_offset.x += off.x;	scene_offset.y += off.y;	scene_offset.z += off.z;
 		NSArray* scene_items = (NSArray*)[[universe descriptions] objectForKey:scene_key];
 		OOLog(kOOLogDebugProcessSceneStringAddScene, @"::::: adding scene: '%@'", scene_key);
@@ -2114,10 +2140,9 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 		if (!ship)
 			return NO;
 
-		Quaternion	model_q = [Entity quaternionFromString:[[i_info subarrayWithRange:NSMakeRange( 5, 4)] componentsJoinedByString:@" "]];
-
-		Vector	model_p0 = [Entity vectorFromString:[[i_info subarrayWithRange:NSMakeRange( 2, 3)] componentsJoinedByString:@" "]];
-		Vector	model_offset = positionOffsetForShipInRotationToAlignment( ship, model_q, (NSString*)[i_info objectAtIndex:9]);
+		ScanVectorAndQuaternionFromString([[i_info subarrayWithRange:NSMakeRange(2, 7)] componentsJoinedByString:@" "], &model_p0, &model_q);
+		
+		Vector	model_offset = positionOffsetForShipInRotationToAlignment(ship, model_q, (NSString*)[i_info objectAtIndex:9]);
 		model_p0.x += off.x - model_offset.x;
 		model_p0.y += off.y - model_offset.y;
 		model_p0.z += off.z - model_offset.z;
@@ -2148,10 +2173,9 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 		ShipEntity* doppelganger = [universe getShip: ship_desc];   // retain count = 1
 		if (!doppelganger)
 			return NO;
-
-		Quaternion	model_q = [Entity quaternionFromString:[[i_info subarrayWithRange:NSMakeRange( 4, 4)] componentsJoinedByString:@" "]];
-
-		Vector	model_p0 = [Entity vectorFromString:[[i_info subarrayWithRange:NSMakeRange( 1, 3)] componentsJoinedByString:@" "]];
+		
+		ScanVectorAndQuaternionFromString([[i_info subarrayWithRange:NSMakeRange( 1, 7)] componentsJoinedByString:@" "], &model_p0, &model_q);
+		
 		Vector	model_offset = positionOffsetForShipInRotationToAlignment( doppelganger, model_q, (NSString*)[i_info objectAtIndex:8]);
 		model_p0.x += off.x - model_offset.x;
 		model_p0.y += off.y - model_offset.y;
@@ -2183,8 +2207,8 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 		PlanetEntity* doppelganger = [[PlanetEntity alloc] initMiniatureFromPlanet:[universe planet] inUniverse: universe];   // retain count = 1
 		if (!doppelganger)
 			return NO;
-
-		Vector	model_p0 = [Entity vectorFromString:[[i_info subarrayWithRange:NSMakeRange( 1, 3)] componentsJoinedByString:@" "]];
+		
+		ScanVectorFromString([[i_info subarrayWithRange:NSMakeRange(1, 3)] componentsJoinedByString:@" "], &model_p0);
 		Quaternion model_q = { 0.707, 0.707, 0.0, 0.0 };
 		model_p0.x += off.x;
 		model_p0.y += off.y;
@@ -2212,7 +2236,7 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 		if (!doppelganger)
 			return NO;
 
-		Vector	model_p0 = [Entity vectorFromString:[[i_info subarrayWithRange:NSMakeRange( 1, 3)] componentsJoinedByString:@" "]];
+		ScanVectorFromString([[i_info subarrayWithRange:NSMakeRange(1, 3)] componentsJoinedByString:@" "], &model_p0);
 		Quaternion model_q = { 0.707, 0.707, 0.0, 0.0 };
 		model_p0.x += off.x;
 		model_p0.y += off.y;
@@ -2235,7 +2259,7 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 			return NO;				//		   0........ 1........ 2 3 4 5
 
 		NSString* texturefile = (NSString*)[i_info objectAtIndex:1];
-		NSSize billSize = NSMakeSize( [[i_info objectAtIndex:4] floatValue], [[i_info objectAtIndex:5] floatValue]);
+		NSSize billSize = NSMakeSize([[i_info objectAtIndex:4] floatValue], [[i_info objectAtIndex:5] floatValue]);
 		Vector	model_p0;
 		model_p0.x = [[i_info objectAtIndex:2] floatValue] + off.x;
 		model_p0.y = [[i_info objectAtIndex:3] floatValue] + off.y;
@@ -2264,6 +2288,7 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 	// fall through..
 	return NO;
 }
+
 
 - (BOOL) mapKey:(NSString *) keycode toOXP:(OXPScript *)oxp
 {

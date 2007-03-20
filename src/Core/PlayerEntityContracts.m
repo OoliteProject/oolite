@@ -29,6 +29,9 @@ MA 02110-1301, USA.
 #import "AI.h"
 #import "OOColor.h"
 #import "OOCharacter.h"
+#import "StationEntity.h"
+#import "GuiDisplayGen.h"
+#import "OOStringParsing.h"
 
 
 static NSString * const kOOLogNoteShowShipyardModel = @"script.debug.note.showShipyardModel";

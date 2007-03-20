@@ -23,12 +23,16 @@ MA 02110-1301, USA.
 */
 
 #import "ParticleEntity.h"
-#import "entities.h"
 
 #import "Universe.h"
 #import "AI.h"
 #import "TextureStore.h"
 #import "OOColor.h"
+#import "OOStringParsing.h"
+
+#import "ShipEntity.h"
+#import "PlayerEntity.h"
+#import "PlanetEntity.h"
 
 
 static	Vector	circleVertex[65];		// holds vector coordinates for a unit circle
@@ -38,13 +42,6 @@ static	Vector	circleVertex[65];		// holds vector coordinates for a unit circle
 - (id) init
 {
     self = [super init];
-    //
-    quaternion_set_identity(&q_rotation);
-    quaternion_into_gl_matrix(q_rotation, rotMatrix);
-    //
-    position.x = 0.0;
-    position.y = 0.0;
-    position.z = 0.0;
 	//
 	status = STATUS_EFFECT;
 	time_counter = 0.0;
@@ -291,7 +288,7 @@ static	Vector	circleVertex[65];		// holds vector coordinates for a unit circle
 
 - (id) initExhaustFromShip:(ShipEntity *) ship details:(NSString *) details
 {
-	NSArray *values = [Entity scanTokensFromString:details];
+	NSArray *values = ScanTokensFromString(details);
 	if ([values count] != 6)
 		return nil;
 	Vector offset, scale;
@@ -307,7 +304,6 @@ static	Vector	circleVertex[65];		// holds vector coordinates for a unit circle
 	status = STATUS_EFFECT;
 
 	exhaustScale = scale;
-//	NSLog(@"Adding an exhaust to %@ >>%@<< scale: ( %3.1f, %3.1f, %3.1f)", ship, details, exhaustScale.x, exhaustScale.y, exhaustScale.z);
 
 	position.x = offset.x;  // position is relative to owner
 	position.y = offset.y;
@@ -335,8 +331,6 @@ static	Vector	circleVertex[65];		// holds vector coordinates for a unit circle
 	//
 	status = STATUS_EFFECT;
 	scan_class = CLASS_NO_DRAW;
-	//
-	//NSLog(@"```firing ECM at ( %3.1f, %3.1f, %3.1f)", position.x, position.y, position.z);
 	//
 	particle_type = PARTICLE_ECM_MINE;
 	//
@@ -367,8 +361,6 @@ static	Vector	circleVertex[65];		// holds vector coordinates for a unit circle
 	//
 	status = STATUS_EFFECT;
 	scan_class = CLASS_MINE;
-	//
-//	NSLog(@"```firing Energy Bomb at ( %3.1f, %3.1f, %3.1f)", position.x, position.y, position.z);
 	//
 	particle_type = PARTICLE_ENERGY_MINE;
 	//

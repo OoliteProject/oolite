@@ -28,6 +28,7 @@ MA 02110-1301, USA.
 #import "TextureStore.h"
 #import "ResourceManager.h"
 #import "OOSound.h"
+#import "OOStringParsing.h"
 
 
 @implementation OOTrumble
@@ -945,14 +946,14 @@ MA 02110-1301, USA.
 {
 	return [NSDictionary dictionaryWithObjectsAndKeys:
 		[NSString stringWithCharacters:digram length:2],	@"digram",
-		[NSNumber numberWithFloat:hunger],				@"hunger",
-		[NSNumber numberWithFloat:discomfort],			@"discomfort",
-		[NSNumber numberWithFloat:size],				@"size",
-		[NSNumber numberWithFloat:growth_rate],			@"growth_rate",
-		[NSNumber numberWithFloat:rotation],			@"rotation",
-		[NSNumber numberWithFloat:rotational_velocity],	@"rotational_velocity",
-		[ResourceManager stringFromNSPoint: position],			@"position",
-		[ResourceManager stringFromNSPoint: movement],			@"movement",
+		[NSNumber numberWithFloat:hunger],					@"hunger",
+		[NSNumber numberWithFloat:discomfort],				@"discomfort",
+		[NSNumber numberWithFloat:size],					@"size",
+		[NSNumber numberWithFloat:growth_rate],				@"growth_rate",
+		[NSNumber numberWithFloat:rotation],				@"rotation",
+		[NSNumber numberWithFloat:rotational_velocity],		@"rotational_velocity",
+		StringFromPoint(position),							@"position",
+		StringFromPoint(movement),							@"movement",
 		nil];
 }
 
@@ -966,8 +967,8 @@ MA 02110-1301, USA.
 	growth_rate =	[[dict objectForKey: @"growth_rate"]	floatValue];
 	rotation =		[[dict objectForKey: @"rotation"]		floatValue];
 	rotational_velocity =	[[dict objectForKey: @"rotational_velocity"]	floatValue];
-	position =	[ResourceManager NSPointFromString:(NSString *)[dict objectForKey: @"position"]];
-	movement =	[ResourceManager NSPointFromString:(NSString *)[dict objectForKey: @"movement"]];
+	position =	PointFromString([dict objectForKey: @"position"]);
+	movement =	PointFromString([dict objectForKey: @"movement"]);
 }
 
 @end

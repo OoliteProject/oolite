@@ -27,7 +27,7 @@ MA 02110-1301, USA.
 
 #import "OOCocoa.h"
 
-#import "vector.h"
+#import "OOMaths.h"
 
 @class ShipEntity, Octree;
 

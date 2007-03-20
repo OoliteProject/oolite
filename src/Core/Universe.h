@@ -24,10 +24,11 @@ MA 02110-1301, USA.
 
 */
 
-#import <Foundation/Foundation.h>
+#import "OOCocoa.h"
 #import "OOOpenGL.h"
-#import "entities.h"
-#import "GuiDisplayGen.h"
+#import "legacy_random.h"
+#import "OOMaths.h"
+#import "OOColor.h"
 
 #define CROSSHAIR_SIZE			32.0
 
@@ -121,7 +122,9 @@ MA 02110-1301, USA.
 #define OOLITE_EXCEPTION_DATA_NOT_FOUND	@"OoliteDataNotFoundException"
 #define OOLITE_EXCEPTION_FATAL			@"OoliteFatalException"
 
-@class TextureStore, GameController, ShipEntity, CollisionRegion, ScriptEngine;
+@class TextureStore, GameController, CollisionRegion, MyOpenGLView, GuiDisplayGen;
+@class Entity, ShipEntity, StationEntity, PlanetEntity, PlayerEntity;
+@class ScriptEngine;
 
 extern int debug;
 
@@ -256,6 +259,8 @@ extern int debug;
 		ScriptEngine			*scriptEngine;
 }
 
++ (id)sharedUniverse;
+
 - (id) init;
 - (void) dealloc;
 
@@ -352,9 +357,8 @@ extern int debug;
 - (void) drawCrosshairs;
 - (void) drawMessage;
 
-- (Entity *) entityZero;
-
-- (Entity *) entityForUniversalID:(int)u_id;
+- (id)entityZero;
+- (id)entityForUniversalID:(int)u_id;
 
 BOOL maintainLinkedLists(Universe* uni);
 - (BOOL) addEntity:(Entity *) entity;

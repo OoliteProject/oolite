@@ -23,9 +23,10 @@ MA 02110-1301, USA.
 */
 
 #import "Octree.h"
-#import "vector.h"
+#import "OOMaths.h"
 #import "Entity.h"
 #import "OOOpenGL.h"
+#import "legacy_random.h"
 
 @implementation Octree
 

@@ -30,6 +30,8 @@ MA 02110-1301, USA.
 #import "SDL_syswm.h"
 #import "OOSound.h"
 #import "NSFileManagerOOExtensions.h" // to find savedir
+#import "PlayerEntity.h"
+#import "GUIDisplayGen.h"
 
 #ifdef WIN32
 #import "TextureStore.h"

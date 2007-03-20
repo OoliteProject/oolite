@@ -26,7 +26,7 @@ MA 02110-1301, USA.
 
 #import "OOCocoa.h"
 #import "OOOpenGL.h"
-#import "vector.h"
+#import "OOMaths.h"
 
 #define	OCTREE_MAX_DEPTH	5
 #define	OCTREE_MIN_RADIUS	1.0

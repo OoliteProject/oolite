@@ -25,7 +25,6 @@ MA 02110-1301, USA.
 #import "OOOpenGL.h"
 #import "OOGLDefs.h"
 #import "Universe.h"
-#import "entities.h"
 #import "MyOpenGLView.h"
 #import "GameController.h"
 #import "ResourceManager.h"
@@ -41,6 +40,17 @@ MA 02110-1301, USA.
 #import "CollisionRegion.h"
 
 #import "OOCharacter.h"
+
+#import "PlayerEntity.h"
+#import "PlayerEntityContracts.h"
+#import "StationEntity.h"
+#import "SkyEntity.h"
+#import "DustEntity.h"
+#import "PlanetEntity.h"
+#import "WormholeEntity.h"
+#import "RingEntity.h"
+#import "ParticleEntity.h"
+#import "OOStringParsing.h"
 
 #define MAX_NUMBER_OF_ENTITIES				200
 #define MAX_NUMBER_OF_SOLAR_SYSTEM_ENTITIES 20
@@ -58,14 +68,29 @@ static NSString * const kOOLogEntityVerificationRebuild		= @"entity.linkedList.v
 static NSString * const kOOLogFoundBeacon					= @"beacon.list";
 
 
+static Universe *sSharedUniverse = nil;
+
+
 @implementation Universe
+
++ (id)sharedUniverse
+{
+	return sSharedUniverse;
+}
+
 
 - (id) init
 {	
     PlayerEntity	*player;
 	int i;
 	
+	if (sSharedUniverse != nil)
+	{
+		[NSException raise:NSInternalInconsistencyException format:@"%s: expected only one Universe to exist at a time.", __FUNCTION__];
+	}
+	
 	self = [super init];
+	sSharedUniverse = self;
 	
 	n_entities = 0;
 	
@@ -227,6 +252,8 @@ static NSString * const kOOLogFoundBeacon					= @"beacon.list";
 
 - (void) dealloc
 {
+	sSharedUniverse = nil;
+	
     [currentMessage release];
     
 	[gui release];
@@ -299,9 +326,8 @@ static NSString * const kOOLogFoundBeacon					= @"beacon.list";
 
 - (void) reinit
 {	
-    PlayerEntity* player = [(PlayerEntity*)[self entityZero] retain];
-	Quaternion q0;
-	quaternion_set_identity(&q0);
+    PlayerEntity* player = [[self entityZero] retain];
+	Quaternion q0 = kIdentityQuaternion;
 	int i;
 	
 	no_update = YES;
@@ -371,46 +397,34 @@ static NSString * const kOOLogFoundBeacon					= @"beacon.list";
 	universal_time = 0.0;
 	ai_think_time = AI_THINK_INTERVAL;				// one eighth of a second
 	
-	if (shipdata)
-		[shipdata autorelease];
+	[shipdata autorelease];
 	shipdata = [[ResourceManager dictionaryFromFilesNamed:@"shipdata.plist" inFolder:@"Config" andMerge:YES] retain];
-	if (shipyard)
-		[shipyard autorelease];
+	
+	[shipyard autorelease];
 	shipyard = [[ResourceManager dictionaryFromFilesNamed:@"shipyard.plist" inFolder:@"Config" andMerge:YES] retain];
 	
-	if (commoditylists)
-		[commoditylists autorelease];
+	[commoditylists autorelease];
 	commoditylists = [(NSDictionary *)[ResourceManager dictionaryFromFilesNamed:@"commodities.plist" inFolder:@"Config" andMerge:YES] retain];
-	if (commoditydata)
-		[commoditydata autorelease];
+	
+	[commoditydata autorelease];
 	commoditydata = [[NSArray arrayWithArray:(NSArray *)[commoditylists objectForKey:@"default"]] retain];
 	
-	if (illegal_goods)
-		[illegal_goods autorelease];
+	[illegal_goods autorelease];
 	illegal_goods = [[ResourceManager dictionaryFromFilesNamed:@"illegal_goods.plist" inFolder:@"Config" andMerge:YES] retain];
 	
-	if (descriptions)
-		[descriptions autorelease];
+	[descriptions autorelease];
 	descriptions = [[ResourceManager dictionaryFromFilesNamed:@"descriptions.plist" inFolder:@"Config" andMerge:YES ] retain];
 	
-	if (characters)
-		[characters autorelease];
+	[characters autorelease];
 	characters = [[ResourceManager dictionaryFromFilesNamed:@"characters.plist" inFolder:@"Config" andMerge:YES ] retain];
 	
-	if (customsounds)
-		[customsounds autorelease];
+	[customsounds autorelease];
 	customsounds = [[ResourceManager dictionaryFromFilesNamed:@"customsounds.plist" inFolder:@"Config" andMerge:YES ] retain];
 	
-	if (planetinfo)
-		[planetinfo autorelease];
+	[planetinfo autorelease];
 	planetinfo = [[ResourceManager dictionaryFromFilesNamed:@"planetinfo.plist" inFolder:@"Config" andMerge:YES smart:YES] retain];
 	
-	if (missiontext)
-		[missiontext autorelease];
-	missiontext = [[ResourceManager dictionaryFromFilesNamed:@"missiontext.plist" inFolder:@"Config" andMerge:YES] retain];
-	
-	if (equipmentdata)
-		[equipmentdata autorelease];
+	[equipmentdata autorelease];
 	equipmentdata = [[ResourceManager arrayFromFilesNamed:@"equipment.plist" inFolder:@"Config" andMerge:YES] retain];
 	if (strict && ([equipmentdata count] > NUMBER_OF_STRICT_EQUIPMENT_ITEMS))
 	{
@@ -418,10 +432,8 @@ static NSString * const kOOLogFoundBeacon					= @"beacon.list";
 		[equipmentdata autorelease];
 		equipmentdata = [strict_equipment retain];
 	}
-//	NSLog(@"DEBUG equipmentdata = %@", [equipmentdata description]);
 	
-	if (demo_ships)
-		[demo_ships autorelease];
+	[demo_ships autorelease];
 	demo_ships = [[ResourceManager arrayFromFilesNamed:@"demoships.plist" inFolder:@"Config" andMerge:YES] retain];
 	demo_ship_index = 0;
 	
@@ -499,46 +511,12 @@ static NSString * const kOOLogFoundBeacon					= @"beacon.list";
 	}
 	if ([entities count] != n_entities)
 		NSLog(@"entities = %@", [entities description]);
-	
-//	NSLog(@"\n----->X list... to %d", show_count);
-//	int n = 0;
-//	Entity* e0 = x_list_start;
-//	while (e0)
-//	{
-//		n++;
-//		if (n <= show_count)
-//			NSLog(@"%d.) %@ at x-cr = %.2f", n, e0, e0->position.x - e0->collision_radius);
-//		e0 = e0->x_next;
-//	}
-//	
-//	NSLog(@"\n----->Y list... to %d", show_count);
-//	n = 0;
-//	e0 = y_list_start;
-//	while (e0)
-//	{
-//		n++;
-//		if (n <= show_count)
-//			NSLog(@"%d.) %@ at y-cr = %.2f", n, e0, e0->position.y - e0->collision_radius);
-//		e0 = e0->y_next;
-//	}
-//	
-//	NSLog(@"\n----->Z list... to %d", show_count);
-//	n = 0;
-//	e0 = z_list_start;
-//	while (e0)
-//	{
-//		n++;
-//		if (n <= show_count)
-//			NSLog(@"%d.) %@ at z-cr = %.2f", n, e0, e0->position.z - e0->collision_radius);
-//		e0 = e0->z_next;
-//	}
 }
 
 - (void) sleepytime: (id) thing
 {
 	// deal with the machine going to sleep
-	//NSLog(@"DEBUG -- got a SLEEP notification.");
-	PlayerEntity *player = (PlayerEntity *)[self entityZero];
+	PlayerEntity *player = [self entityZero];
 	if ((player)&&(player->status == STATUS_IN_FLIGHT))
 	{
 		[self displayMessage:@" Paused (press 'p') " forCount:1.0];
@@ -548,13 +526,11 @@ static NSString * const kOOLogFoundBeacon					= @"beacon.list";
 
 - (void) set_up_universe_from_station
 {
-	//NSLog(@"UNIVERSE set_up_universe_from_station station %d, planet %d, sun %d",station,planet,sun);
-//	if (station == NO_TARGET)
 	if (![self sun])
 	{
 		// we're in witchspace or this is the first launch...		
 		// save the player
-		PlayerEntity*	player = (PlayerEntity*)[self entityZero];
+		PlayerEntity*	player = [self entityZero];
 		// save the docked craft
 		Entity*			docked_station = [player docked_station];
 		// jump to the nearest system
@@ -616,7 +592,7 @@ static NSString * const kOOLogFoundBeacon					= @"beacon.list";
 	}
 	else
 	{
-		player = [(PlayerEntity *)[self entityZero] retain];	// retained here
+		player = [[self entityZero] retain];	// retained here
 	}
 	
 
@@ -654,7 +630,7 @@ static NSString * const kOOLogFoundBeacon					= @"beacon.list";
 	}
 	else
 	{
-		player = [(PlayerEntity *)[self entityZero] retain];	// retained here
+		player = [[self entityZero] retain];	// retained here
 	}
 	
 
@@ -676,7 +652,7 @@ static NSString * const kOOLogFoundBeacon					= @"beacon.list";
 	// new system is hyper-centric : witchspace exit point is origin
 
     Entity				*thing;
-	PlayerEntity*		player = (PlayerEntity*)[self entityZero];
+	PlayerEntity*		player = [self entityZero];
 	Quaternion			randomQ;
 	
 	NSMutableDictionary*	systeminfo = [NSMutableDictionary dictionaryWithCapacity:4];
@@ -1067,8 +1043,8 @@ static NSString * const kOOLogFoundBeacon					= @"beacon.list";
 	
 	if ([systeminfo objectForKey:KEY_SCRIPT_ACTIONS])
 	{
-		PlayerEntity* player = (PlayerEntity*)[self entityZero];
-		NSArray* script_actions = (NSArray *)[systeminfo objectForKey:KEY_SCRIPT_ACTIONS];
+		PlayerEntity* player = [self entityZero];
+		NSArray* script_actions = [systeminfo objectForKey:KEY_SCRIPT_ACTIONS];
 		
 		[player scriptActions: script_actions forTarget: nil];
 	}
@@ -2057,7 +2033,7 @@ GLfloat docked_light_specular[]	= { (GLfloat) 1.0, (GLfloat) 1.0, (GLfloat) 0.5,
 
 - (Vector) coordinatesFromCoordinateSystemString:(NSString *) system_x_y_z
 {
-	NSArray* tokens = [Entity scanTokensFromString: system_x_y_z];
+	NSArray* tokens = ScanTokensFromString(system_x_y_z);
 	if ([tokens count] != 4)
 	{
 		OOLog(kOOLogStringCoordinateConversion, @"ERROR: Could not construct system coordinates from \"%@\" - too few pieces of data", system_x_y_z);
@@ -2159,7 +2135,7 @@ GLfloat docked_light_specular[]	= { (GLfloat) 1.0, (GLfloat) 1.0, (GLfloat) 0.5,
 			int j = i - 1;
 			while (safe && ( j >= current_shell))
 			{
-				safe = (safe && (distance2( ship_pos, ship_positions[j]) > safe_distance2));
+				safe = (safe && (distance2(ship_pos, ship_positions[j]) > safe_distance2));
 				j--;
 			}
 			if (!safe)
@@ -2333,13 +2309,13 @@ GLfloat docked_light_specular[]	= { (GLfloat) 1.0, (GLfloat) 1.0, (GLfloat) 0.5,
 		return NO;
 	
 	// set any spawning characteristics
-	NSDictionary* spawndict = (NSDictionary*)[shipdict objectForKey:@"spawn"];
+	NSDictionary* spawndict = [shipdict objectForKey:@"spawn"];
 	// position
 	if ([spawndict objectForKey:@"position"])
 	{
 		Vector pos = make_vector( 0.0f, 0.0f, 0.0f);
-		NSString* positionString = (NSString*)[spawndict objectForKey:@"position"];
-		NSArray* positiontokens = [ResourceManager scanTokensFromString:positionString];
+		NSString* positionString = [spawndict objectForKey:@"position"];
+		NSArray* positiontokens = ScanTokensFromString(positionString);
 		if ([positiontokens count] == 4)
 		{
 			GLfloat scalar;
@@ -2356,8 +2332,8 @@ GLfloat docked_light_specular[]	= { (GLfloat) 1.0, (GLfloat) 1.0, (GLfloat) 0.5,
 		Vector pos, rpos;
 		Vector spos = [ship getPosition];
 		Quaternion q1;
-		NSString* positionString = (NSString*)[spawndict objectForKey:@"facing_position"];
-		NSArray* positiontokens = [ResourceManager scanTokensFromString:positionString];
+		NSString* positionString = [spawndict objectForKey:@"facing_position"];
+		NSArray* positiontokens = ScanTokensFromString(positionString);
 		if ([positiontokens count] == 4)
 		{
 			GLfloat scalar;
@@ -2484,7 +2460,7 @@ GLfloat docked_light_specular[]	= { (GLfloat) 1.0, (GLfloat) 1.0, (GLfloat) 0.5,
 
 - (void) game_over
 {
-	PlayerEntity*   player = (PlayerEntity *)[[self entityZero] retain];
+	PlayerEntity*   player = [[self entityZero] retain];
 
 	
 	[self removeAllEntitiesExceptPlayer:NO];	// don't want to restore afterwards
@@ -2514,7 +2490,7 @@ GLfloat docked_light_specular[]	= { (GLfloat) 1.0, (GLfloat) 1.0, (GLfloat) 0.5,
 
 - (void) set_up_intro1
 {
-	PlayerEntity* player = (PlayerEntity*)[self entityZero];
+	PlayerEntity* player = [self entityZero];
 	ShipEntity		*ship;
 	Quaternion		q2;
 	q2.x = 0.0;   q2.y = 0.0;   q2.z = 0.0; q2.w = 1.0;
@@ -2564,8 +2540,8 @@ GLfloat docked_light_specular[]	= { (GLfloat) 1.0, (GLfloat) 1.0, (GLfloat) 0.5,
 	// in status demo draw ships and display text
 	
 	[self removeDemoShips];
-	[(PlayerEntity*)[self entityZero] setStatus: STATUS_START_GAME];
-	[(PlayerEntity*)[self entityZero] setShowDemoShips: YES];
+	[[self entityZero] setStatus: STATUS_START_GAME];
+	[[self entityZero] setShowDemoShips: YES];
 	displayGUI = YES;
 	
 	/*- demo ships -*/
@@ -2863,7 +2839,7 @@ GLfloat docked_light_specular[]	= { (GLfloat) 1.0, (GLfloat) 1.0, (GLfloat) 0.5,
 	int i, j, found;
 	ShipEntity		*ship = nil;
 	
-	NSString* search = [[Entity scanTokensFromString:desc] componentsJoinedByString:@"_"];
+	NSString* search = [ScanTokensFromString(desc) componentsJoinedByString:@"_"];
 	
 	NSAutoreleasePool* mypool = [[NSAutoreleasePool alloc] init];	// let's make sure we tidy up each time this is called
 	
@@ -2873,48 +2849,36 @@ GLfloat docked_light_specular[]	= { (GLfloat) 1.0, (GLfloat) 1.0, (GLfloat) 0.5,
 	float foundf = 0.0;
 	float selectedf = randf();
 	
-//	NSLog(@"DEBUG [Universe getShipWithRole:] looking for %@ ...", search);
-	
 	found = 0;
 	for (i = 0; i < [shipKeys count]; i++)
 	{
-		NSDictionary*	shipDict = (NSDictionary *)[shipdata objectForKey:[shipKeys objectAtIndex:i]];
-		NSArray*		shipRoles = [Entity scanTokensFromString:(NSString *)[shipDict objectForKey:@"roles"]];
+		NSDictionary*	shipDict = [shipdata objectForKey:[shipKeys objectAtIndex:i]];
+		NSArray*		shipRoles = ScanTokensFromString([shipDict objectForKey:@"roles"]);
 		
 		if ([shipDict objectForKey:@"conditions"])
 		{
-			PlayerEntity* player = (PlayerEntity*)[self entityZero];
+			PlayerEntity* player = [self entityZero];
 			if ((player) && (player->isPlayer) && (![player checkCouplet: shipDict onEntity: player]))
 				shipRoles = [NSArray array];	// empty array - ship does not meet conditions listed
 		}
 		
-//		NSLog(@"... checking if %@ contains a %@", [shipRoles searchription], search);
-		
 		for (j = 0; j < [shipRoles count]; j++)
 		{
-			NSString* putative_roles = (NSString*)[shipRoles objectAtIndex:j];
-		
-//			NSLog(@"... %d putative_roles = %@", j, putative_roles);
-		
+			NSString* putative_roles = [shipRoles objectAtIndex:j];
+			
 			GLfloat chance = 1.0;
 			if (putative_roles)
 			{
 				if ([putative_roles hasPrefix:search] && ([putative_roles rangeOfString:@"("].location != NSNotFound))
 				{
-//					NSLog(@"DEBUG chance to be derived from '%@'", putative_roles);
-					
 					NSScanner* scanner = [NSScanner scannerWithString:putative_roles];	// scanner
 					NSString* scanrole;
 					[scanner scanUpToString:@"(" intoString:&scanrole];					// look for '('
 					[scanner scanString:@"(" intoString:(NSString**)nil];				// skip over it
 					if (![scanner scanFloat:&chance])	chance = 1.0;					// try to scan a float
 					putative_roles = [NSString stringWithString:scanrole];				// ignore from '(' onwards (lazy)
-
-//					NSLog(@"DEBUG chance derived from '%@' is %.3f", putative_roles, chance);
 					
 				}
-		
-//				NSLog(@"... ... putative_roles = '%@' search = '%@' isEqual = %@", putative_roles, search, ([putative_roles isEqual:search])? @":YES:" : @":NO:");
 		
 				if ([putative_roles isEqual:search] && (chance > 0.0))
 				{
@@ -3916,16 +3880,14 @@ GLfloat* custom_matrix;
 	}
 }
 
-- (Entity *) entityZero
+- (id)entityZero
 {
-	if (cachedEntityZero)
-		return cachedEntityZero;
-	else
-		return cachedEntityZero = [entities objectAtIndex:0];
+	if (cachedEntityZero == nil )  cachedEntityZero = [entities objectAtIndex:0];
+	return cachedEntityZero;
 }
 
 
-- (Entity *) entityForUniversalID:(int)u_id
+- (id)entityForUniversalID:(int)u_id
 {
 	if (u_id == 100)
 		return [self entityZero];	// the player
@@ -4145,14 +4107,12 @@ BOOL maintainLinkedLists(Universe* uni)
 						[se setRoll: stationRoll];
 						[(StationEntity*)se setPlanet:[self planet]];
 						[se setStatus:STATUS_ACTIVE];
-//						NSLog(@"DEBUG setting %@ roll to %.2f", se, stationRoll);
 					}
 					else
 					{
 						[se setRoll: 0.0];
 						[(StationEntity*)se setPlanet:[self planet]];
 						[se setStatus:STATUS_ACTIVE];
-//						NSLog(@"DEBUG setting %@ roll to %.2f", se, 0.0);
 					}
 				}
 			}
@@ -4161,21 +4121,17 @@ BOOL maintainLinkedLists(Universe* uni)
 			[entity setUniversal_id:NO_TARGET];
 		
 		// lighting considerations
-		
 		entity->isSunlit = YES;
 		entity->shadingEntityID = NO_TARGET;
 		
 		// add it to the universe
-		
 		[entity setUniverse:self];
 		[entities addObject:entity];
 		
-//		NSLog(@"DEBUG ++(%@)", entity);
-		
 		// maintain sorted list (and for the scanner relative position)
 		Vector entity_pos = entity->position;
-		Vector delta = vector_between( entity_pos, [self entityZero]->position);
-		double z_distance = magnitude2( delta);
+		Vector delta = vector_between(entity_pos, ((PlayerEntity *)[self entityZero])->position);
+		double z_distance = magnitude2(delta);
 		entity->zero_distance = z_distance;
 		entity->relative_position = delta;
 		index = n_entities;
@@ -4198,9 +4154,6 @@ BOOL maintainLinkedLists(Universe* uni)
 		[entity addToLinkedLists];	// position and universe have been set - so we can do this
 		if ([entity canCollide])	// filter only collidables disappearing
 			doLinkedListMaintenanceThisUpdate = YES;
-
-//		for (index = 0; index < n_entities; index++)
-//			NSLog(@"+++++ %d %.0f %@", sortedEntities[index]->z_index, sortedEntities[index]->zero_distance, sortedEntities[index]);
 		
 		if (entity->isWormhole)
 			[activeWormholes addObject:entity];
@@ -5087,7 +5040,7 @@ BOOL maintainLinkedLists(Universe* uni)
 #ifdef GNUSTEP
          [gameView setMouseInDeltaMode: YES];
 #endif
-			ms = [(PlayerEntity*)[self entityZero] customViewDescription];
+			ms = [[self entityZero] customViewDescription];
 			displayGUI = NO;   // switch off any text displays
 			break;
 			
@@ -6543,7 +6496,7 @@ double estimatedTimeForJourney(double distance, int hops)
 
 - (NSArray *) passengersForSystem:(Random_Seed) s_seed atTime:(double) current_time
 {
-	PlayerEntity* player = (PlayerEntity*)[self entityZero];
+	PlayerEntity* player = [self entityZero];
 	
 	int player_repute = [player passengerReputation];
 	
@@ -6756,7 +6709,7 @@ double estimatedTimeForJourney(double distance, int hops)
 
 - (NSArray *) contractsForSystem:(Random_Seed) s_seed atTime:(double) current_time
 {
-	PlayerEntity* player = (PlayerEntity*)[self entityZero];
+	PlayerEntity* player = [self entityZero];
 	
 	int player_repute = [player contractReputation];
 	
@@ -7013,7 +6966,7 @@ double estimatedTimeForJourney(double distance, int hops)
 			NSDictionary* dict = (NSDictionary*)[shipyard objectForKey: key];
 			if ([dict objectForKey:@"conditions"])
 			{
-				PlayerEntity* player = (PlayerEntity*)[self entityZero];
+				PlayerEntity* player = [self entityZero];
 				if ((player) && (player->isPlayer) && (![player checkCouplet: dict onEntity: player]))
 					[keysForShips removeObjectAtIndex: si--];
 			}
@@ -7583,7 +7536,7 @@ NSComparisonResult comparePrice( id dict1, id dict2, void * context)
 
 - (NSString *) expandDescriptionWithLocals:(NSString *) desc forSystem:(Random_Seed)s_seed withLocalVariables:(NSDictionary *)locals
 {
-	PlayerEntity		*player = (PlayerEntity*)[self entityZero];
+	PlayerEntity		*player = [self entityZero];
 	NSMutableString		*partial = [NSMutableString stringWithString:desc];
 	NSMutableDictionary	*all_descriptions = [NSMutableDictionary dictionaryWithDictionary:descriptions];
 //
@@ -7959,7 +7912,7 @@ NSComparisonResult comparePrice( id dict1, id dict2, void * context)
 		{
 			exception = [ooliteException retain];
 			
-			PlayerEntity* player = (PlayerEntity*)[self entityZero];
+			PlayerEntity* player = [self entityZero];
 			[player setStatus:STATUS_HANDLING_ERROR];
 			
 			NSLog(@"***** Handling Fatal : %@ : %@ *****",[exception name], [exception reason]);

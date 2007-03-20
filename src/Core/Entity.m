@@ -24,14 +24,14 @@ MA 02110-1301, USA.
 
 #import "Entity.h"
 
-#import "vector.h"
+#import "OOMaths.h"
 #import "Geometry.h"
 #import "Universe.h"
 #import "GameController.h"
 #import "TextureStore.h"
 #import "ResourceManager.h"
 
-#import "CollisionRegion.h" // gets rid of a compilation warning
+#import "CollisionRegion.h"
 
 #import "NSScannerOOExtensions.h"
 
@@ -42,10 +42,6 @@ static NSString * const kOOLogEntityRemoveFromList			= @"entity.linkedList.remov
 static NSString * const kOOLogEntityRemoveFromListError		= @"entity.linkedList.remove.error";
 	   NSString * const kOOLogEntityVerificationError		= @"entity.linkedList.verify.error";
 static NSString * const kOOLogEntityUpdateError				= @"entity.linkedList.update.error";
-static NSString * const kOOLogStringVectorConversion		= @"strings.conversion.vector";
-static NSString * const kOOLogStringQuaternionConversion	= @"strings.conversion.quaternion";
-static NSString * const kOOLogStringVecAndQuatConversion	= @"strings.conversion.vectorAndQuaternion";
-static NSString * const kOOLogStringRandomSeedConversion	= @"strings.conversion.randomSeed";
 static NSString * const kOOLogOpenGLExtensionsVAR			= @"rendering.opengl.extensions.var";
 static NSString * const kOOLogOpenGLStateDump				= @"rendering.opengl.stateDump";
 static NSString * const kOOLogEntityDataNotFound			= @"entity.loadMesh.error.fileNotFound";
@@ -59,175 +55,11 @@ BOOL global_testForVAR;
 
 @implementation Entity
 
-+ (Vector) vectorFromString:(NSString*) xyzString
-{
-	GLfloat xyz[] = {0.0, 0.0, 0.0};
-	int i = 0;
-	BOOL failed = NO;
-	NSString* error = @"No error";
-	NSScanner*	scanner = [NSScanner scannerWithString:xyzString];
-	while ((![scanner isAtEnd])&&(i < 3)&&(!failed))
-	{
-		float value;
-		if ([scanner scanFloat:&value])
-			xyz[i++] = value;
-		else
-		{
-			failed = YES;
-			error = @"Could not scan a float value.";
-		}
-	}
-	if (i < 3)
-	{
-		failed = YES;
-		error = @"Found less than three float values.";
-	}
-	if (failed)
-	{
-		OOLog(kOOLogStringVectorConversion, @"***** ERROR cannot make vector from '%@' because '%@'", xyzString, error);
-	}
-	return make_vector( xyz[0], xyz[1], xyz[2]);
-}
-
-+ (Quaternion) quaternionFromString:(NSString*) wxyzString
-{
-	Quaternion result;
-	GLfloat wxyz[] = {1.0, 0.0, 0.0, 0.0};
-	int i = 0;
-	BOOL failed = NO;
-	NSString* error = @"No error";
-	NSScanner* scanner = [NSScanner scannerWithString:wxyzString];
-	while ((![scanner isAtEnd])&&(i < 4)&&(!failed))
-	{
-		float value;
-		if ([scanner scanFloat:&value])
-			wxyz[i++] = value;
-		else
-		{
-			failed = YES;
-			error = @"Could not scan a float value.";
-		}
-	}
-	if (i < 4)
-	{
-		failed = YES;
-		error = @"Found less than four float values.";
-	}
-	
-	result.w = wxyz[0];
-	result.x = wxyz[1];
-	result.y = wxyz[2];
-	result.z = wxyz[3];
-	quaternion_normalise(&result);
-	
-	if (failed)
-	{
-		OOLog(kOOLogStringQuaternionConversion, @"***** ERROR cannot make quaternion from '%@' because '%@'", wxyzString, error);
-	}
-	return result;
-}
-
-+ (Random_Seed) seedFromString:(NSString*) abcdefString
-{
-	Random_Seed result;
-	int abcdef[] = { 0, 0, 0, 0, 0, 0};
-	int i = 0;
-	BOOL failed = NO;
-	NSString* error = @"No error";
-	NSScanner* scanner = [NSScanner scannerWithString: abcdefString];
-	while ((![scanner isAtEnd])&&(i < 6)&&(!failed))
-	{
-		int value;
-		if ([scanner scanInt:&value])
-			abcdef[i++] = value;
-		else
-		{
-			failed = YES;
-			error = @"Could not scan a int value.";
-		}
-	}
-	if (i < 6)
-	{
-		failed = YES;
-		error = @"Found less than six int values.";
-	}
-	result.a = abcdef[0];
-	result.b = abcdef[1];
-	result.c = abcdef[2];
-	result.d = abcdef[3];
-	result.e = abcdef[4];
-	result.f = abcdef[5];
-	if (failed)
-	{
-		OOLog(kOOLogStringRandomSeedConversion, @"***** ERROR cannot make Random_Seed from '%@' because '%@'", abcdefString, error);
-		result = nil_seed();
-	}
-	return result;
-}
-
-+ (BOOL) scanVector:(Vector *) vector_ptr andQuaternion:(Quaternion *) quaternion_ptr fromString:(NSString*) xyzwxyzString
-{
-	GLfloat xyzwxyz[] = { 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0};
-	int i = 0;
-	BOOL failed = NO;
-	NSString* error = @"No error";
-	NSScanner* scanner = [NSScanner scannerWithString:xyzwxyzString];
-	while ((![scanner isAtEnd])&&(i < 7)&&(!failed))
-	{
-		float value;
-		if ([scanner scanFloat:&value])
-			xyzwxyz[i++] = value;
-		else
-		{
-			failed = YES;
-			error = @"Could not scan a float value.";
-		}
-	}
-	if (i < 7)
-	{
-		failed = YES;
-		error = @"Found less than seven float values.";
-	}
-	if (failed)
-	{
-		OOLog(kOOLogStringVecAndQuatConversion, @"***** ERROR cannot make vector and quaternion from '%@' because '%@'", xyzwxyzString, error);
-		return NO;
-	}
-	vector_ptr->x = xyzwxyz[0];
-	vector_ptr->y = xyzwxyz[1];
-	vector_ptr->z = xyzwxyz[2];
-	quaternion_ptr->w = xyzwxyz[3];
-	quaternion_ptr->x = xyzwxyz[4];
-	quaternion_ptr->y = xyzwxyz[5];
-	quaternion_ptr->z = xyzwxyz[6];
-	return YES;
-}
-
-+ (NSMutableArray *) scanTokensFromString:(NSString*) values
-{
-	NSMutableArray* result = [NSMutableArray arrayWithCapacity:8];
-	if (!values)
-	{
-		return result;	// nothing scanned
-	}
-	NSScanner* scanner = [NSScanner scannerWithString:values];
-	NSCharacterSet* space_set = [NSCharacterSet whitespaceAndNewlineCharacterSet];
-	NSString* token;
-	while (![scanner isAtEnd])
-	{
-		[scanner ooliteScanCharactersFromSet:space_set intoString:(NSString * *)nil];
-		if ([scanner ooliteScanUpToCharactersFromSet:space_set intoString:&token])
-			[result addObject:[NSString stringWithString:token]];
-	}
-	return result;
-}
-
-
 - (id) init
 {
     self = [super init];
     //
-    quaternion_set_identity(&q_rotation);
+	q_rotation = kIdentityQuaternion;
     quaternion_into_gl_matrix(q_rotation, rotMatrix);
     //
 	position = make_vector( 0.0f, 0.0f, 0.0f);

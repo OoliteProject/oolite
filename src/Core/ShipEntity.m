@@ -24,11 +24,12 @@ MA 02110-1301, USA.
 
 #import "ShipEntity.h"
 #import "ShipEntityAI.h"
-#import "entities.h"
 
-#import "vector.h"
+#import "OOMaths.h"
 #import "Universe.h"
 #import "TextureStore.h"
+#import "OOStringParsing.h"
+#import "OOCollectionExtractors.h"
 
 #import "OOCharacter.h"
 #import "OOBrain.h"
@@ -38,6 +39,14 @@ MA 02110-1301, USA.
 #import "Octree.h"
 #import "NSScannerOOExtensions.h"
 #import "OOColor.h"
+
+#import "ParticleEntity.h"
+#import "StationEntity.h"
+#import "PlanetEntity.h"
+#import "PlayerEntity.h"
+#import "PlayerEntityScripting.h"
+#import "WormholeEntity.h"
+#import "GuiDisplayGen.h"
 
 
 extern NSString * const kOOLogNoteAddShips;
@@ -69,11 +78,8 @@ static NSString * const kOOLogShaderInitFailed			= @"rendering.opengl.shader.ini
 	n_escorts = 0;
     escortsAreSetUp = YES;
 	//
-    quaternion_set_identity(&q_rotation);
-    quaternion_into_gl_matrix(q_rotation, rotMatrix);
-	//
 	velocity = make_vector( 0.0f, 0.0f, 0.0f);
-	quaternion_set_identity(&subentity_rotational_velocity);
+	subentity_rotational_velocity = kIdentityQuaternion;
 	//
 	v_forward   = vector_forward_from_quaternion(q_rotation);
 	v_up		= vector_up_from_quaternion(q_rotation);
@@ -212,40 +218,40 @@ static NSString * const kOOLogShaderInitFailed			= @"rendering.opengl.shader.ini
 	return self;
 }
 
+
 - (void) dealloc
 {
 	[self setTrackCloseContacts:NO];	// deallocs tracking dictionary
 
-	if (shipinfoDictionary)	[shipinfoDictionary release];
-	if (shipAI)				[shipAI release];
-	if (cargo)				[cargo release];
-	if (name)				[name release];
-	if (roles)				[roles release];
-	if (sub_entities)		[sub_entities release];
-	if (laser_color)		[laser_color release];
+	[shipinfoDictionary release];
+	[shipAI release];
+	[cargo release];
+	[name release];
+	[roles release];
+	[sub_entities release];
+	[laser_color release];
 	//scripting
-	if (launch_actions)		[launch_actions release];
-	if (script_actions)		[script_actions release];
-	if (death_actions)		[death_actions release];
+	[launch_actions release];
+	[script_actions release];
+	[death_actions release];
 
-	if (previousCondition)	[previousCondition release];
+	[previousCondition release];
 
-	if (collisionInfoForEntity)
-							[collisionInfoForEntity release];
+	[collisionInfoForEntity release];
 
-	if (dockingInstructions)
-							[dockingInstructions release];
+	[dockingInstructions release];
 
-	if (crew)				[crew release];
+	[crew release];
 
-	if (lastRadioMessage)	[lastRadioMessage autorelease];
+	[lastRadioMessage autorelease];
 
-	if (octree)				[octree autorelease];
+	[octree autorelease];
 	
-	if (shader_info)		[shader_info release];
+	[shader_info release];
 
 	[super dealloc];
 }
+
 
 NSString* describeBehaviour(int some_behaviour)
 {
@@ -660,7 +666,7 @@ NSString* describeStatus(int some_status)
 	//
 	isSubentity = NO;
 	//
-    quaternion_set_identity(&q_rotation);
+    q_rotation = kIdentityQuaternion;
     quaternion_into_gl_matrix(q_rotation, rotMatrix);
 	//
 	v_forward   = vector_forward_from_quaternion(q_rotation);
@@ -685,7 +691,7 @@ NSString* describeStatus(int some_status)
 	//
 	position = make_vector( 0.0f, 0.0f, 0.0f);
 	velocity = make_vector( 0.0f, 0.0f, 0.0f);
-	quaternion_set_identity(&subentity_rotational_velocity);
+	subentity_rotational_velocity = kIdentityQuaternion;
 	//
 	zero_distance = SCANNER_MAX_RANGE2 * 2.0;   // beyond scanner range to avoid the momentary blip
 	//
@@ -896,15 +902,11 @@ NSString* describeStatus(int some_status)
 - (id) initWithDictionary:(NSDictionary *) dict
 {
 	self = [super init];
-    //
-    quaternion_set_identity(&q_rotation);
-    quaternion_into_gl_matrix(q_rotation, rotMatrix);
 	//
 	v_forward   = vector_forward_from_quaternion(q_rotation);
 	v_up		= vector_up_from_quaternion(q_rotation);
 	v_right		= vector_right_from_quaternion(q_rotation);
     //
-	position = make_vector( 0.0f, 0.0f, 0.0f);
 	velocity = make_vector( 0.0f, 0.0f, 0.0f);
 	//
 	flight_speed = 0.0;
@@ -1002,25 +1004,19 @@ NSString* describeStatus(int some_status)
 	//
 	// set things from dictionary from here out
 	//
-	if ([shipdict objectForKey:@"max_flight_speed"])
-		max_flight_speed = [(NSNumber *)[shipdict objectForKey:@"max_flight_speed"] doubleValue];
-	if ([shipdict objectForKey:@"max_flight_roll"])
-		max_flight_roll = [(NSNumber *)[shipdict objectForKey:@"max_flight_roll"] doubleValue];
-	if ([shipdict objectForKey:@"max_flight_pitch"])
-		max_flight_pitch = [(NSNumber *)[shipdict objectForKey:@"max_flight_pitch"] doubleValue];
-	if ([shipdict objectForKey:@"max_flight_yaw"])
-		max_flight_yaw = [(NSNumber *)[shipdict objectForKey:@"max_flight_yaw"] doubleValue];
-	//
-	if ([shipdict objectForKey:@"thrust"])
-		thrust = [(NSNumber *)[shipdict objectForKey:@"thrust"] doubleValue];
-	//
-	if ([shipdict objectForKey:@"accuracy"])
+	max_flight_speed = [shipdict doubleForKey:@"max_flight_speed" defaultValue:max_flight_speed];
+	max_flight_roll = [shipdict doubleForKey:@"max_flight_roll" defaultValue:max_flight_roll];
+	max_flight_pitch = [shipdict doubleForKey:@"max_flight_pitch" defaultValue:max_flight_pitch];
+	max_flight_yaw = [shipdict doubleForKey:@"max_flight_yaw" defaultValue:max_flight_pitch];	// Note by default yaw == pitch
+	
+	thrust = [shipdict doubleForKey:@"thrust" defaultValue:thrust];
+	int accuracy = [shipdict doubleForKey:@"accuracy" defaultValue:-100];	// Out-of-range default
+	if (accuracy >= -5 && accuracy <= 10)
 	{
-		int accuracy = [(NSNumber *)[shipdict objectForKey:@"accuracy"] intValue];
-		if ((accuracy >= -5)&&(accuracy <= 10))
-			pitch_tolerance = 0.01 * (85 + accuracy);
+		//  Do we need a yaw tolerance?
+		pitch_tolerance = 0.01 * (85 + accuracy);
 	}
-	//
+	
 	if ([shipdict objectForKey:@"max_energy"])
 		max_energy = [(NSNumber *)[shipdict objectForKey:@"max_energy"] doubleValue];
 	if ([shipdict objectForKey:@"energy_recharge_rate"])
@@ -1231,17 +1227,14 @@ NSString* describeStatus(int some_status)
 	{
 		if (universe)
 		{
-			//NSLog(@"DEBUG adding subentity...");
 			int i;
 			NSArray *subs = (NSArray *)[shipdict objectForKey:@"subentities"];
 			for (i = 0; i < [subs count]; i++)
 			{
-	//			NSArray* details = [(NSString *)[subs objectAtIndex:i] componentsSeparatedByString:@" "];
-				NSArray* details = [Entity scanTokensFromString:(NSString *)[subs objectAtIndex:i]];
+				NSArray* details = ScanTokensFromString([subs objectAtIndex:i]);
 
 				if ([details count] == 8)
 				{
-					//NSLog(@"DEBUG adding subentity...");
 					Vector sub_pos, ref;
 					Quaternion sub_q;
 					Entity* subent;
@@ -1253,8 +1246,6 @@ NSString* describeStatus(int some_status)
 					sub_q.x = [(NSString *)[details objectAtIndex:5] floatValue];
 					sub_q.y = [(NSString *)[details objectAtIndex:6] floatValue];
 					sub_q.z = [(NSString *)[details objectAtIndex:7] floatValue];
-
-	//				NSLog(@"DEBUG adding subentity... %@ %f %f %f - %f %f %f %f", subdesc, sub_pos.x, sub_pos.y, sub_pos.z, sub_q.w, sub_q.x, sub_q.y, sub_q.z);
 
 					if ([subdesc isEqual:@"*FLASHER*"])
 					{
@@ -1272,8 +1263,6 @@ NSString* describeStatus(int some_status)
 					{
 						quaternion_normalise(&sub_q);
 
-	//					NSLog(@"DEBUG universe = %@", universe);
-
 						subent = [universe getShip:subdesc];	// retained
 
 						if ((self->isStation)&&([subdesc rangeOfString:@"dock"].location != NSNotFound))
@@ -1281,7 +1270,6 @@ NSString* describeStatus(int some_status)
 
 						if (subent)
 						{
-	//					NSLog(@"DEBUG adding subentity %@ %@ to new %@ at %.3f,%.3f,%.3f", subent, [(ShipEntity*)subent name], name, sub_pos.x, sub_pos.y, sub_pos.z );
 							[(ShipEntity*)subent setStatus:STATUS_INACTIVE];
 							//
 							ref = vector_forward_from_quaternion(sub_q);	// VECTOR FORWARD
@@ -1296,26 +1284,21 @@ NSString* describeStatus(int some_status)
 						}
 						//
 					}
-					//NSLog(@"DEBUG reference (%.1f,%.1f,%.1f)", ref.x, ref.y, ref.z);
 					if (sub_entities == nil)
 						sub_entities = [[NSArray arrayWithObject:subent] retain];
 					else
 					{
 						NSMutableArray *temp = [NSMutableArray arrayWithArray:sub_entities];
-	//					if (subent != nil)
-							[temp addObject:subent];
+						[temp addObject:subent];
 						[sub_entities release];
 						sub_entities = [[NSArray arrayWithArray:temp] retain];
 					}
 
 					[subent setOwner: self];
 
-	//				NSLog(@"DEBUG added subentity %@ to position %.3f,%.3f,%.3f", subent, subent->position.x, subent->position.y, subent->position.z );
-
 					[subent release];
 				}
 			}
-	//		NSLog(@"DEBUG %@ subentities : %@", name, sub_entities);
 		}
 	}
 	//
@@ -1415,15 +1398,8 @@ NSString* describeStatus(int some_status)
 	}
 
 	// rotating subentities
-	//
-	if ([shipdict objectForKey:@"rotational_velocity"])
-	{
-		subentity_rotational_velocity = [Entity quaternionFromString: (NSString*)[shipdict objectForKey:@"rotational_velocity"]];
-	}
-	else
-	{
-		quaternion_set_identity(&subentity_rotational_velocity);
-	}
+	subentity_rotational_velocity = kIdentityQuaternion;
+	ScanQuaternionFromString([shipdict objectForKey:@"rotational_velocity"], &subentity_rotational_velocity);
 
 	// contact tracking entities
 	//
@@ -1441,24 +1417,19 @@ NSString* describeStatus(int some_status)
 	// set weapon offsets
 	[self setDefaultWeaponOffsets];
 	//
-	if ([shipdict objectForKey:@"weapon_position_forward"])
-		forwardWeaponOffset = [Entity vectorFromString: (NSString *)[shipdict objectForKey:@"weapon_position_forward"]];
-	if ([shipdict objectForKey:@"weapon_position_aft"])
-		aftWeaponOffset = [Entity vectorFromString: (NSString *)[shipdict objectForKey:@"weapon_position_aft"]];
-	if ([shipdict objectForKey:@"weapon_position_port"])
-		portWeaponOffset = [Entity vectorFromString: (NSString *)[shipdict objectForKey:@"weapon_position_port"]];
-	if ([shipdict objectForKey:@"weapon_position_starboard"])
-		starboardWeaponOffset = [Entity vectorFromString: (NSString *)[shipdict objectForKey:@"weapon_position_starboard"]];
+	ScanVectorFromString([shipdict objectForKey:@"weapon_position_forward"], &forwardWeaponOffset);
+	ScanVectorFromString([shipdict objectForKey:@"weapon_position_aft"], &aftWeaponOffset);
+	ScanVectorFromString([shipdict objectForKey:@"weapon_position_port"], &portWeaponOffset);
+	ScanVectorFromString([shipdict objectForKey:@"weapon_position_starboard"], &starboardWeaponOffset);
 
 	// fuel scoop destination position (where cargo gets sucked into)
-	tractor_position = make_vector( 0.0f, 0.0f, 0.0f);
-	if ([shipdict objectForKey:@"scoop_position"])
-		tractor_position = [Entity vectorFromString: (NSString *)[shipdict objectForKey:@"scoop_position"]];
+	if (!ScanVectorFromString([shipdict objectForKey:@"scoop_position"], &tractor_position))
+	{
+		tractor_position = make_vector( 0.0f, 0.0f, 0.0f);
+	}
 
 	// ship skin insulation factor (1.0 is normal)
-	heat_insulation = 1.0;
-	if ([shipdict objectForKey:@"heat_insulation"])
-		heat_insulation = [[shipdict objectForKey:@"heat_insulation"] doubleValue];
+	heat_insulation = [shipdict doubleForKey:@"heat_insulation"	defaultValue:1.0];
 		
 	// crew and passengers
 	if ([shipdict objectForKey:@"pilot"])	// returns a key in characters.plist
@@ -1486,9 +1457,7 @@ NSString* describeStatus(int some_status)
 	}
 	
 	// debugging flags
-	debug_flag = 0;
-	if ([shipdict objectForKey:@"debug_flag"])
-		debug_flag = [[shipdict objectForKey:@"debug_flag"] intValue];
+	debug_flag = [shipdict intForKey:@"heat_insulation"	defaultValue:0];
 		
 }
 
@@ -1983,7 +1952,8 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 					// calculate position with respect to our own position and orientation
 					Vector	dpos = vector_between( position, other->position);
 					Vector  pos1 = make_vector( dot_product(dpos, v_right), dot_product(dpos, v_up), dot_product(dpos, v_forward));
-					Vector	pos0 = [Entity vectorFromString:(NSString *)[closeContactsInfo objectForKey: other_key]];
+					Vector	pos0 = {0, 0, 0};
+					ScanVectorFromString([closeContactsInfo objectForKey: other_key], &pos0);
 					// send AI messages about the contact
 					int	temp_id = primaryTarget;
 					primaryTarget = other->universal_id;
@@ -3837,18 +3807,12 @@ static GLfloat mascem_color2[4] =	{ 0.4, 0.1, 0.4, 1.0};	// purple
 
 - (void) applyRoll:(GLfloat) roll1 andClimb:(GLfloat) climb1
 {
-	Quaternion q1;
+	Quaternion q1 = kIdentityQuaternion;
 
-	if ((!roll1)&&(!climb1)&&(!has_rotated))
-		return;
+	if (!roll1 && !climb1 && !has_rotated)  return;
 
-	quaternion_set_identity(&q1);
-
-	if (roll1)
-		quaternion_rotate_about_z( &q1, -roll1);
-
-	if (climb1)
-		quaternion_rotate_about_x( &q1, -climb1);
+	if (roll1)  quaternion_rotate_about_z( &q1, -roll1);
+	if (climb1)  quaternion_rotate_about_x( &q1, -climb1);
 
 	q_rotation = quaternion_multiply( q1, q_rotation);
 	quaternion_normalise(&q_rotation);	// probably not strictly necessary but good to do to keep q_rotation sane
@@ -6694,10 +6658,7 @@ BOOL	class_masslocks(int some_class)
 	start.y = boundingBox.min.y - 4.0;	// 4m below bounding box
 	start.z = boundingBox.max.z + 1.0;	// 1m ahead of bounding box
 	// custom launching position
-	if ([shipinfoDictionary objectForKey:@"missile_launch_position"])
-	{
-		start = [Entity vectorFromString:(NSString *)[shipinfoDictionary objectForKey:@"missile_launch_position"]];
-	}
+	ScanVectorFromString([shipinfoDictionary objectForKey:@"missile_launch_position"], &start);
 
 	double  throw_speed = 250.0;
 	Quaternion q1 = q_rotation;
@@ -6969,12 +6930,9 @@ BOOL	class_masslocks(int some_class)
 	start.z = boundingBox.min.z - jcr;	// 1m behind of bounding box
 
 	// custom launching position
-	if ([shipinfoDictionary objectForKey:@"aft_eject_position"])
-	{
-		start = [Entity vectorFromString:(NSString *)[shipinfoDictionary objectForKey:@"aft_eject_position"]];
-	}
+	ScanVectorFromString([shipinfoDictionary objectForKey:@"aft_eject_position"], &start);
 
-	v_eject = unit_vector( &start);
+	v_eject = unit_vector(&start);
 
 	// check if start is within bounding box...
 	while (	(start.x > boundingBox.min.x - jcr)&&(start.x < boundingBox.max.x + jcr)&&
@@ -7349,11 +7307,9 @@ BOOL	class_masslocks(int some_class)
 					[player scriptActions: actions forTarget: other];
 
 				}
-//				NSLog(@"DEBUG Scooped scripted item %@ %@ %d", other, [other name], [other universal_id]);
 				if (isPlayer)
 				{
-					Random_Seed s_seed;
-					NSString* scoopedMS = [NSString stringWithFormat:[universe expandDescription:@"[@-scooped]" forSystem:s_seed], [other name]];
+					NSString* scoopedMS = [NSString stringWithFormat:ExpandDescriptionForCurrentSystem(@"[@-scooped]"), [other name]];
 					[universe clearPreviousMessage];
 					[universe addMessage:scoopedMS forCount:4];
 				}
@@ -7380,15 +7336,15 @@ BOOL	class_masslocks(int some_class)
 					OOCharacter* rescuee = (OOCharacter*)[[other crew] objectAtIndex:i];
 					if ([rescuee legalStatus])
 					{
-						[universe addMessage: [NSString stringWithFormat:[universe expandDescription:@"[scoop-captured-@]" forSystem:[universe systemSeed]], [rescuee name]] forCount: 4.5];
+						[universe addMessage: [NSString stringWithFormat:ExpandDescriptionForCurrentSystem(@"[scoop-captured-@]"), [rescuee name]] forCount: 4.5];
 					}
 					else if ([rescuee insuranceCredits])
 					{
-						[universe addMessage: [NSString stringWithFormat:[universe expandDescription:@"[scoop-rescued-@]" forSystem:[universe systemSeed]], [rescuee name]] forCount: 4.5];
+						[universe addMessage: [NSString stringWithFormat:ExpandDescriptionForCurrentSystem(@"[scoop-rescued-@]"), [rescuee name]] forCount: 4.5];
 					}
 					else
 					{
-						[universe addMessage: [universe expandDescription:@"[scoop-got-slave]" forSystem:[universe systemSeed]] forCount: 4.5];
+						[universe addMessage: ExpandDescriptionForCurrentSystem(@"[scoop-got-slave]") forCount: 4.5];
 					}
 					[universe playCustomSound:@"[escape-pod-scooped]"];
 				}
@@ -8028,11 +7984,7 @@ inline BOOL pairOK(NSString* my_role, NSString* their_role)
 
 - (void) broadcastAIMessage:(NSString *) ai_message
 {
-
-	if (!universe)
-		return;
-
-	NSString* expandedMessage = [universe expandDescription:ai_message forSystem:[universe systemSeed]];
+	NSString* expandedMessage = ExpandDescriptionForCurrentSystem(ai_message);
 
 	[self checkScanner];
 	int i;
@@ -8045,10 +7997,7 @@ inline BOOL pairOK(NSString* my_role, NSString* their_role)
 
 - (void) broadcastMessage:(NSString *) message_text
 {
-	if (!universe)
-		return;
-		
-	NSString* expandedMessage = [NSString stringWithFormat:@"%@:\n %@", name, [universe expandDescription:message_text forSystem:[universe systemSeed]]];
+	NSString* expandedMessage = [NSString stringWithFormat:@"%@:\n %@", name, ExpandDescriptionForCurrentSystem(message_text)];
 
 	if (!crew)
 		return;	// nobody to send the signal
@@ -8107,7 +8056,7 @@ inline BOOL pairOK(NSString* my_role, NSString* their_role)
 	{
 		// if I'm under attack send a thank-you message to the rescuer
 		//
-		NSArray* tokens = [Entity scanTokensFromString:ms];
+		NSArray* tokens = ScanTokensFromString(ms);
 		int switcher_id = [(NSString*)[tokens objectAtIndex:1] intValue];
 		Entity* switcher = [universe entityForUniversalID:switcher_id];
 		int rescuer_id = [(NSString*)[tokens objectAtIndex:2] intValue];
@@ -8168,7 +8117,7 @@ inline BOOL pairOK(NSString* my_role, NSString* their_role)
 
 - (void) spawn:(NSString *)roles_number
 {
-	NSArray*	tokens = [Entity scanTokensFromString:roles_number];
+	NSArray*	tokens = ScanTokensFromString(roles_number);
 	NSString*   roleString = nil;
 	NSString*	numberString = nil;
 
@@ -8302,7 +8251,7 @@ inline BOOL pairOK(NSString* my_role, NSString* their_role)
 		if (scan->isShip)
 		{
 			scanShip = (ShipEntity *)scan;
-			NSArray *scanRoles = [Entity scanTokensFromString:[scanShip roles]];
+			NSArray *scanRoles = ScanTokensFromString([scanShip roles]);
 			
 			if ([scanRoles containsObject:@"pilot"] == YES)
 			{

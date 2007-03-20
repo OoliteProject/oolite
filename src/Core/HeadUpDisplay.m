@@ -26,10 +26,12 @@ MA 02110-1301, USA.
 #import "ResourceManager.h"
 #import "PlayerEntity.h"
 #import "PlanetEntity.h"
+#import "StationEntity.h"
 #import "Universe.h"
 #import "TextureStore.h"
 #import "OOTrumble.h"
 #import "OOColor.h"
+#import "GuiDisplayGen.h"
 
 static const char *toAscii(unsigned inCodePoint);
 

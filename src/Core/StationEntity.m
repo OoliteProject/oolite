@@ -24,8 +24,12 @@ MA 02110-1301, USA.
 
 #import "StationEntity.h"
 #import "ShipEntityAI.h"
-#import "entities.h"
 #import "OOCollectionExtractors.h"
+#import "OOStringParsing.h"
+
+#import "Universe.h"
+#import "PlayerEntityScripting.h"
+#import "HeadUpDisplay.h"
 
 #import "AI.h"
 #import "OOCharacter.h"
@@ -815,7 +819,7 @@ NSDictionary* instructions(int station_id, Vector coords, float speed, float ran
 	NSArray		*dockSubEntity = nil;
 	for (i = 0; i < [subs count]; i++)
 	{
-		NSArray* details = [Entity scanTokensFromString:[subs objectAtIndex:i]];
+		NSArray* details = ScanTokensFromString([subs objectAtIndex:i]);
 		if (([details count] == 8) && ([[details objectAtIndex:0] hasPrefix:@"dock"]))  dockSubEntity = details;
 	}
 	
@@ -835,7 +839,7 @@ NSDictionary* instructions(int station_id, Vector coords, float speed, float ran
 		// No dock* subentity found, use defaults.
 		double port_radius = [dict doubleForKey:@"port_radius" defaultValue:500.0];
 		port_position = make_vector( 0, 0, port_radius);
-		quaternion_set_identity(&port_qrotation);
+		port_qrotation = kIdentityQuaternion;
 	}
 	
 	// port_dimensions can be set for rock-hermits and other specials
@@ -1804,7 +1808,7 @@ NSDictionary* instructions(int station_id, Vector coords, float speed, float ran
 
 - (NSString *) roles
 {
-	NSArray* all_roles = [Entity scanTokensFromString:[shipinfoDictionary objectForKey:@"roles"]];
+	NSArray* all_roles = ScanTokensFromString([shipinfoDictionary objectForKey:@"roles"]);
 	if ([all_roles count])
 		return (NSString *)[all_roles objectAtIndex:0];
 	else

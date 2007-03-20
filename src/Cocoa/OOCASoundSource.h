@@ -29,7 +29,7 @@ MA 02110-1301, USA.
 */
 
 #import <Foundation/Foundation.h>
-#import "vector.h"
+#import "OOMaths.h"
 #import "OOCASoundReferencePoint.h"
 
 @class OOSound, OOCASoundChannel;

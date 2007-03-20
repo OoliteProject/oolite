@@ -23,9 +23,11 @@ MA 02110-1301, USA.
 */
 
 #import "AI.h"
-#import "entities.h"
 #import "ResourceManager.h"
 #import "OOInstinct.h"
+#import "OOStringParsing.h"
+
+#import "ShipEntity.h"
 
 
 static NSString * const kOOLogAIReceiveMessage			= @"ai.message.receive";
@@ -312,7 +314,7 @@ static NSString * const kOOLogAIPop						= @"ai.pop";
 
 - (void) takeAction:(NSString *) action
 {
-	NSArray*	tokens = [Entity scanTokensFromString:action];
+	NSArray*	tokens = ScanTokensFromString(action);
 	NSString*	dataString = nil;
 	NSString*   my_selector;
 	SEL			_selector;

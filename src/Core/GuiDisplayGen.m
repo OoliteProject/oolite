@@ -24,9 +24,11 @@ MA 02110-1301, USA.
 
 #import "GuiDisplayGen.h"
 #import "Universe.h"
+#import "PlayerEntity.h"
 #import "OpenGLSprite.h"
 #import "ResourceManager.h"
 #import "OOSound.h"
+#import "OOStringParsing.h"
 
 
 @implementation GuiDisplayGen
@@ -509,9 +511,9 @@ MA 02110-1301, USA.
 	}
 	else
 	{
-		NSMutableArray*	words = [Entity scanTokensFromString:str];
-		NSMutableString* string1 = [NSMutableString stringWithCapacity:256];
-		NSMutableString* string2 = [NSMutableString stringWithCapacity:256];
+		NSMutableArray	*words = ScanTokensFromString(str);
+		NSMutableString	*string1 = [NSMutableString stringWithCapacity:256];
+		NSMutableString	*string2 = [NSMutableString stringWithCapacity:256];
 		strsize.width = 0.0;
 		while ((strsize.width < size_in_pixels.width)&&([words count] > 0))
 		{
@@ -563,9 +565,9 @@ MA 02110-1301, USA.
 	}
 	else
 	{
-		NSMutableArray*	words = [Entity scanTokensFromString:str];
-		NSMutableString* string1 = [NSMutableString stringWithCapacity:256];
-		NSMutableString* string2 = [NSMutableString stringWithCapacity:256];
+		NSMutableArray	*words = ScanTokensFromString(str);
+		NSMutableString	*string1 = [NSMutableString stringWithCapacity:256];
+		NSMutableString	*string2 = [NSMutableString stringWithCapacity:256];
 		strsize.width = 0.0;
 		while ((strsize.width < size_in_pixels.width)&&([words count] > 0))
 		{

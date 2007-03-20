@@ -25,8 +25,8 @@ MA 02110-1301, USA.
 #import "OOCharacter.h"
 
 #import "Universe.h"
-
 #import "OOBrain.h"
+#import "OOStringParsing.h"
 
 
 @implementation OOCharacter
@@ -435,26 +435,19 @@ MA 02110-1301, USA.
 	}	
 	if ([dict objectForKey:@"random_seed"])
 	{
-		Random_Seed g_seed = [Entity seedFromString:[dict objectForKey:@"random_seed"]];
+		Random_Seed g_seed = RandomSeedFromString([dict objectForKey:@"random_seed"]);
 		[self setGenSeed: g_seed];
 		[self basicSetUp];
 	}
-	if ([dict objectForKey:@"role"])
-		[self castInRole:[dict objectForKey:@"role"]];
-	if ([dict objectForKey:@"name"])
-		[self setName:[dict objectForKey:@"name"]];
-	if ([dict objectForKey:@"short_description"])
-		[self setShortDescription:[dict objectForKey:@"short_description"]];
-	if ([dict objectForKey:@"long_description"])
-		[self setLongDescription:[dict objectForKey:@"long_description"]];
-	if ([dict objectForKey:@"legal_status"])
-		[self setLegalStatus:[[dict objectForKey:@"legal_status"] intValue]];
-	if ([dict objectForKey:@"bounty"])
-		[self setLegalStatus:[[dict objectForKey:@"bounty"] intValue]];
-	if ([dict objectForKey:@"insurance"])
-		[self setInsuranceCredits:[[dict objectForKey:@"insurance"] intValue]];
-	if ([dict objectForKey:@"script_actions"])
-		[self setScript:[dict objectForKey:@"script_actions"]];
+	
+	if ([dict objectForKey:@"role"])  [self castInRole:[dict objectForKey:@"role"]];
+	if ([dict objectForKey:@"name"])  [self setName:[dict objectForKey:@"name"]];
+	if ([dict objectForKey:@"short_description"])  [self setShortDescription:[dict objectForKey:@"short_description"]];
+	if ([dict objectForKey:@"long_description"])  [self setLongDescription:[dict objectForKey:@"long_description"]];
+	if ([dict objectForKey:@"legal_status"])  [self setLegalStatus:[[dict objectForKey:@"legal_status"] intValue]];
+	if ([dict objectForKey:@"bounty"])  [self setLegalStatus:[[dict objectForKey:@"bounty"] intValue]];
+	if ([dict objectForKey:@"insurance"])  [self setInsuranceCredits:[[dict objectForKey:@"insurance"] intValue]];
+	if ([dict objectForKey:@"script_actions"])  [self setScript:[dict objectForKey:@"script_actions"]];
 		
 }
 

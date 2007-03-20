@@ -2,7 +2,7 @@
 
 entities.h
 
-Because including all of these in a number of places looks messy.
+DEPRECATED
 
 Oolite
 Copyright (C) 2004-2007 Giles C Williams and contributors
@@ -24,6 +24,9 @@ MA 02110-1301, USA.
 
 */
 
+#error entities.h included.
+
+#if 0
 //
 #import "Entity.h"
 #import "ShipEntity.h"
@@ -39,3 +42,4 @@ MA 02110-1301, USA.
 #import "SkyEntity.h"
 #import "ParticleEntity.h"
 #import "WormholeEntity.h"
+#endif
