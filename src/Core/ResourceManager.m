@@ -29,6 +29,7 @@ MA 02110-1301, USA.
 #import "OOCacheManager.h"
 #import "Universe.h"
 #import "OOStringParsing.h"
+#import "OOPListParsing.h"
 
 
 static NSString * const kOOLogDumpSearchPaths			= @"searchPaths.dumpAll";
@@ -255,15 +256,17 @@ NSMutableDictionary*	surface_cache;
 			NSString* requiresPath = [possibleExpansionPath stringByAppendingPathComponent:@"requires.plist"];
 			BOOL require_test = YES;
 			BOOL failed_parsing = NO;
+			
 			// check for compatibility
-			if ([fmgr fileExistsAtPath:requiresPath])
+			NSDictionary* requires_dic = OODictionaryFromFile(requiresPath);
+			if (requires_dic != nil)
 			{
-				NSDictionary* requires_dic = [NSDictionary dictionaryWithContentsOfFile:requiresPath];
-					
 				require_test = [ResourceManager areRequirementsFulfilled:requires_dic];
 			}
 			if (require_test)
+			{
 				[file_paths addObject:possibleExpansionPath];
+			}
 			else
 			{
 				NSString* version = (NSString *)[[[NSBundle mainBundle] infoDictionary] objectForKey:@"CFBundleVersion"];
@@ -350,33 +353,20 @@ NSMutableDictionary*	surface_cache;
 		dictionary_cache = [[NSMutableDictionary alloc] initWithCapacity:32];
 	if ([dictionary_cache objectForKey:dict_key])
 	{
-		return [NSDictionary dictionaryWithDictionary:(NSDictionary *)[dictionary_cache objectForKey:dict_key]];	// return the cached dictionary
+		return [[[dictionary_cache objectForKey:dict_key] copy] autorelease];	// return the cached dictionary
 	}
 	
 	for (i = 0; i < [fpaths count]; i++)
 	{
 		NSString *filepath = [(NSString *)[fpaths objectAtIndex:i] stringByAppendingPathComponent:filename];
-		if ([[NSFileManager defaultManager] fileExistsAtPath:filepath])
-		{
-			NSDictionary* found_dic = [NSDictionary dictionaryWithContentsOfFile:filepath];
-
-			if (found_dic)
-				[results addObject:found_dic];
-			else
-				NSLog(@"ERROR ***** could not parse %@ as a NSDictionary.", filepath);
-		}
+		
+		NSDictionary* found_dic = OODictionaryFromFile(filepath);
+		if (found_dic)  [results addObject:found_dic];
 		if (foldername)
 		{
 			filepath = [[(NSString *)[fpaths objectAtIndex:i] stringByAppendingPathComponent:foldername] stringByAppendingPathComponent:filename];
-			if ([[NSFileManager defaultManager] fileExistsAtPath:filepath])
-			{
-				NSDictionary* found_dic = [NSDictionary dictionaryWithContentsOfFile:filepath];
-				
-				if (found_dic)
-					[results addObject:found_dic];
-				else
-					NSLog(@"ERROR ***** could not parse %@ as a NSDictionary.", filepath);
-			}
+			NSDictionary* found_dic = OODictionaryFromFile(filepath);
+			if (found_dic)  [results addObject:found_dic];
 		}
 	}
 	if ([results count] == 0)
@@ -425,30 +415,16 @@ NSMutableDictionary*	surface_cache;
 	for (i = 0; i < [fpaths count]; i++)
 	{
 		NSString *filepath = [(NSString *)[fpaths objectAtIndex:i] stringByAppendingPathComponent:filename];
-		if ([[NSFileManager defaultManager] fileExistsAtPath:filepath])
-		{
-			NSArray* found_array = [NSArray arrayWithContentsOfFile:filepath];
-
-			if (found_array)
-				[results addObject:found_array];
-			else
-				NSLog(@"ERROR ***** could not parse %@ as a NSArray.", filepath);
-		}
-//			[results addObject:[NSArray arrayWithContentsOfFile:filepath]];
+		
+		NSArray* found_array = OOArrayFromFile(filepath);
+		if (found_array)  [results addObject:found_array];
+		
 		if (foldername)
 		{
 			filepath = [[(NSString *)[fpaths objectAtIndex:i] stringByAppendingPathComponent:foldername] stringByAppendingPathComponent:filename];
 			
-			if ([[NSFileManager defaultManager] fileExistsAtPath:filepath])
-			{
-				NSArray* found_array = [NSArray arrayWithContentsOfFile:filepath];
-					
-				if (found_array)
-					[results addObject:found_array];
-				else
-					NSLog(@"ERROR ***** could not parse %@ as a NSArray.", filepath);
-			}
-//				[results addObject:[NSArray arrayWithContentsOfFile:filepath]];
+			NSArray* found_array = OOArrayFromFile(filepath);
+			if (found_array)  [results addObject:found_array];
 		}
 	}
 	if ([results count] == 0)
@@ -668,15 +644,8 @@ NSMutableDictionary*	surface_cache;
 			// This can be simplified if we make a rule that it is a configuration error
 			// that isn't handled if there is a script.oos and script.plist file in
 			// the same place. But that probably isn't realistic.
-			if ([[NSFileManager defaultManager] fileExistsAtPath:filepath])
-			{
-				NSDictionary* found_dic = [NSDictionary dictionaryWithContentsOfFile:filepath];
-
-				if (found_dic)
-					[results addObject:found_dic];
-				else
-					NSLog(@"ERROR ***** could not parse %@ as a NSDictionary.", filepath);
-			}
+			NSDictionary* found_dic = OODictionaryFromFile(filepath);
+			if (found_dic)  [results addObject:found_dic];
 		}
 		if (foldername)
 		{
@@ -697,16 +666,8 @@ NSMutableDictionary*	surface_cache;
 			else
 			{
 				filepath = [[filepath stringByDeletingPathExtension] stringByAppendingPathExtension:@"plist"];
-				//NSLog(@"oos not found, looking for plist file: %@", filepath);
-				if ([[NSFileManager defaultManager] fileExistsAtPath:filepath])
-				{
-					NSDictionary* found_dic = [NSDictionary dictionaryWithContentsOfFile:filepath];
-
-					if (found_dic)
-						[results addObject:found_dic];
-					else
-						NSLog(@"ERROR ***** could not parse %@ as a NSDictionary.", filepath);
-				}
+				NSDictionary* found_dic = OODictionaryFromFile(filepath);
+				if (found_dic)  [results addObject:found_dic];
 			}
 		}
 	}

@@ -28,8 +28,10 @@ MA 02110-1301, USA.
 #import "OOStringParsing.h"
 
 #import "Universe.h"
-#import "PlayerEntityScripting.h"
 #import "HeadUpDisplay.h"
+
+#import "PlayerEntityScripting.h"
+#import "PlanetEntity.h"
 
 #import "AI.h"
 #import "OOCharacter.h"

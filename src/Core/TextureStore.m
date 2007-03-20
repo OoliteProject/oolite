@@ -65,14 +65,14 @@ GLuint	max_texture_dimension = 512;	// conservative start
 + (GLuint) getTextureNameFor:(NSString *)filename
 {
 	if ([textureUniversalDictionary objectForKey:filename])
-		return (GLuint)[(NSNumber *)[[textureUniversalDictionary objectForKey:filename] objectForKey:@"texName"] intValue];
+		return [[(NSDictionary *)[textureUniversalDictionary objectForKey:filename] objectForKey:@"texName"] intValue];
 	return [TextureStore getTextureNameFor: filename inFolder: @"Textures"];
 }
 
 + (GLuint) getImageNameFor:(NSString *)filename
 {
 	if ([textureUniversalDictionary objectForKey:filename])
-		return (GLuint)[(NSNumber *)[[textureUniversalDictionary objectForKey:filename] objectForKey:@"texName"] intValue];
+		return [[(NSDictionary *)[textureUniversalDictionary objectForKey:filename] objectForKey:@"texName"] intValue];
 	return [TextureStore getTextureNameFor: filename inFolder: @"Images"];
 }
 
@@ -367,8 +367,8 @@ GLuint	max_texture_dimension = 512;	// conservative start
 	NSSize size = NSMakeSize(0.0, 0.0);	// zero size
 	if ([textureUniversalDictionary objectForKey:filename])
 	{
-		size.width = [[[textureUniversalDictionary objectForKey:filename] objectForKey:@"width"] intValue];
-		size.height = [[[textureUniversalDictionary objectForKey:filename] objectForKey:@"height"] intValue];
+		size.width = [[(NSDictionary *)[textureUniversalDictionary objectForKey:filename] objectForKey:@"width"] intValue];
+		size.height = [[(NSDictionary *)[textureUniversalDictionary objectForKey:filename] objectForKey:@"height"] intValue];
 	}
 	return size;
 }
@@ -538,7 +538,7 @@ GLuint	max_texture_dimension = 512;	// conservative start
 	NSArray *keys = [textureUniversalDictionary allKeys];
 	for (i = 0; i < [keys count]; i++)
 	{
-		GLuint texName = (GLuint)[(NSNumber *)[[textureUniversalDictionary objectForKey:[keys objectAtIndex:i]] objectForKey:@"texName"] intValue];
+		GLuint texName = [[(NSDictionary *)[textureUniversalDictionary objectForKey:[keys objectAtIndex:i]] objectForKey:@"texName"] intValue];
 		NSLog(@"deleting texture #%d (%@)", texName, (NSString *)[keys objectAtIndex:i]);
 		glDeleteTextures(1, &texName);
 	}

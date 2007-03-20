@@ -24,6 +24,7 @@ MA 02110-1301, USA.
 
 #import "OOCacheManager.h"
 #import "OOCache.h"
+#import "OOPListParsing.h"
 
 
 static NSString * const kOOLogDataCacheFound				= @"dataCache.found";
@@ -460,9 +461,10 @@ static OOCacheManager *sSingleton = nil;
 }
 
 
+// Should probably be using NSPropertyListGNUstepBinaryFormat.
 - (NSDictionary *)loadDict
 {
-	return [NSDictionary dictionaryWithContentsOfFile:[self cachePath]];
+	return OODictionaryFromFile([self cachePath]);
 }
 
 

@@ -33,6 +33,7 @@ MA 02110-1301, USA.
 #import "OOSound.h"
 #import "OOColor.h"
 #import "OOStringParsing.h"
+#import "OOPListParsing.h"
 
 #ifdef WIN32
 #import "ResourceManager.h"
@@ -159,12 +160,7 @@ MA 02110-1301, USA.
 		BOOL	pathIsDirectory = NO;
 		if ([cdrFileManager fileExistsAtPath:path isDirectory:&pathIsDirectory] && (!pathIsDirectory))
 		{
-			NSDictionary*	cdr = [NSDictionary dictionaryWithContentsOfFile: path]; 
-			#ifdef WIN32
-			// untested... I don't have a Windows box to test this with.
-			if(!cdr)
-				cdr=(NSDictionary *)[ResourceManager parseXMLPropertyList:	[NSString stringWithContentsOfFile:path]];
-			#endif
+			NSDictionary *cdr = OODictionaryFromFile(path);
 			if(cdr)
 			{
 				// okay use the same dictionary but add a 'saved_game_path' attribute
@@ -395,8 +391,8 @@ MA 02110-1301, USA.
 		{
 			[self showCommanderShip: idx];
 		}
-		if ([[cdrDetailArray objectAtIndex:idx] objectForKey:@"isSavedGame"])	// don't show things that aren't saved games
-			commanderNameString = [[cdrDetailArray objectAtIndex:idx] objectForKey:@"player_name"];
+		if ([(NSDictionary *)[cdrDetailArray objectAtIndex:idx] objectForKey:@"isSavedGame"])	// don't show things that aren't saved games
+			commanderNameString = [(NSDictionary *)[cdrDetailArray objectAtIndex:idx] objectForKey:@"player_name"];
 		else
 			commanderNameString = [gameView typedString];
 	}
@@ -669,7 +665,7 @@ MA 02110-1301, USA.
    int i;
    for (i=0; i < [cdrDetailArray count]; i++)
    {
-      NSString *currentName=[[cdrDetailArray objectAtIndex: i] objectForKey:@"player_name"];
+      NSString *currentName=[(NSDictionary *)[cdrDetailArray objectAtIndex: i] objectForKey:@"player_name"];
       if([cdrName compare: currentName] == NSOrderedSame)
       {
          return i;

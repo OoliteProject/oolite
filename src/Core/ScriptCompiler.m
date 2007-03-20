@@ -36,7 +36,7 @@ MA 02110-1301, USA.
 
 - (void) replaceString:(NSString*)aString withString:(NSString*)otherString
 {
-	[self replaceOccurrencesOfString:aString withString:otherString options:nil range:NSMakeRange(0,[self length])];
+	[self replaceOccurrencesOfString:aString withString:otherString options:0 range:NSMakeRange(0,[self length])];
 }
 
 - (void) trimSpaces

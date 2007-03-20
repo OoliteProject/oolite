@@ -27,6 +27,7 @@ MA 02110-1301, USA.
 
 
 #import "OOLogging.h"
+#import "OOPListParsing.h"
 
 
 #ifdef GNUSTEP	// We really need better target macros.
@@ -63,8 +64,8 @@ static BOOL					sOverrideInEffect = NO;
 static BOOL					sOverrideValue = NO;
 
 // These specific values are used for true, false and inherit in the cache and explicitSettings dictionaries so we can use pointer comparison.
-static NSNumber * const		kTrueToken = @"on";
-static NSNumber * const		kFalseToken = @"off";
+static NSString * const		kTrueToken = @"on";
+static NSString * const		kFalseToken = @"off";
 static NSString * const		kInheritToken = @"inherit";
 
 
@@ -100,8 +101,8 @@ static inline void PrimitiveLog(NSString *inString)
 
 
 // Given a boolean, return the appropriate value for the cache dictionary.
-static inline NSNumber *CacheValue(BOOL inValue) __attribute__((pure));
-static inline NSNumber *CacheValue(BOOL inValue)
+static inline id CacheValue(BOOL inValue) __attribute__((pure));
+static inline id CacheValue(BOOL inValue)
 {
 	return inValue ? kTrueToken : kFalseToken;
 }
@@ -387,7 +388,7 @@ static void LoadExplicitSettings(void)
 		configPath = [configPath stringByAppendingPathComponent:@"Config"];
 		configPath = [configPath stringByAppendingPathComponent:@"logcontrol.plist"];
 	#endif
-	dict = [NSDictionary dictionaryWithContentsOfFile:configPath];
+	dict = OODictionaryFromFile(configPath);
 	LoadExplicitSettingsFromDictionary(dict, NO);
 	
 	// Get overrides from preferences

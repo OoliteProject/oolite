@@ -468,7 +468,7 @@ static BOOL CacheRemoveOldest(OOCacheImpl *cache)
 
 static id CacheRetrieve(OOCacheImpl *cache, NSString *key)
 {
-	OOCacheNode			*node = nil;
+	OOCacheNode			*node = NULL;
 	id					result = nil;
 	
 	if (cache == NULL || key == NULL) return nil;
@@ -538,7 +538,7 @@ static OOCacheNode *CacheNodeAllocate(id key, id value)
 {
 	OOCacheNode			*result = NULL;
 	
-	if (key == nil || value == nil) return nil;
+	if (key == nil || value == nil) return NULL;
 	
 	result = calloc(sizeof *result, 1);
 	if (result != NULL)

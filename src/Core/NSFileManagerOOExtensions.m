@@ -28,9 +28,8 @@ MA 02110-1301, USA.
 
 #include <stdlib.h>
 #import "NSFileManagerOOExtensions.h"
-#ifdef WIN32
 #import "ResourceManager.h"
-#endif
+#import "OOPListParsing.h"
 
 @implementation NSFileManager (OOExtensions)
 
@@ -55,11 +54,7 @@ MA 02110-1301, USA.
 			}
 			
 			// check can parse the file okay
-			NSDictionary* cdr = [NSDictionary dictionaryWithContentsOfFile: path]; 
-			#ifdef WIN32
-			if (!cdr)
-				cdr = (NSDictionary *)[ResourceManager parseXMLPropertyList: [NSString stringWithContentsOfFile: path]];
-			#endif
+			NSDictionary* cdr = OODictionaryFromFile(path); 
 			if(!cdr)
 			{
 				NSLog(@">>>> %@ could not be parsed as a saved game", path);
@@ -103,11 +98,7 @@ MA 02110-1301, USA.
 				}
 				
 				// check to see if we can parse the file okay
-				NSDictionary* cdr = [NSDictionary dictionaryWithContentsOfFile: path]; 
-				#ifdef WIN32
-				if (!cdr)
-					cdr = (NSDictionary *)[ResourceManager parseXMLPropertyList: [NSString stringWithContentsOfFile: path]];
-				#endif
+				NSDictionary* cdr = OODictionaryFromFile(path); 
 				if(!cdr)
 				{
 					NSLog(@">>>> %@ could not be parsed as a saved game", path);

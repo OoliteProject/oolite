@@ -24,6 +24,106 @@ MA 02110-1301, USA.
 
 
 #import "OOPListParsing.h"
+#import "OOLogging.h"
+
+
+static NSString * const kOOLogPListFoundationParseError		= @"plist.parse.foundation.failed";
+static NSString * const kOOLogPListWrongType				= @"plist.wrongType";
+
+
+static id ValueIfClass(id value, Class class);
+
+
+id OOPropertyListFromData(NSData *data, NSString *whereFrom)
+{
+	id			result = nil;
+	NSString	*error = nil;
+	
+	
+	if (data != nil)
+	{
+		result = [NSPropertyListSerialization propertyListFromData:data mutabilityOption:NSPropertyListImmutable format:NULL errorDescription:&error];
+		if (result == nil)	// Foundation parser failed
+		{
+			// Ensure we can say something sensible...
+			if (error == nil) error = @"<no error message>";
+			if (whereFrom == nil) whereFrom = @"<data in memory>";
+			
+			// Complain
+			OOLog(kOOLogPListFoundationParseError, @"Failed to parse %@ as a property list using Foundation. Retrying using home-grown parser. WARNING: the home-grown parser is deprecated and will be removed in a future version of Oolite.\n%@", whereFrom, error);
+			OOLogIndentIf(kOOLogPListFoundationParseError);
+			
+			// TODO: use homebrew parser here
+			
+			OOLogOutdentIf(kOOLogPListFoundationParseError);
+		}
+	}
+	
+	return result;
+}
+
+
+id OOPropertyListFromFile(NSString *path)
+{
+	id			result = nil;
+	NSData		*data = nil;
+	
+	if (path != nil)
+	{
+		// Load file, if it exists...
+		data = [[NSData alloc] initWithContentsOfMappedFile:path];
+		if (data != nil)
+		{
+			// ...and parse it
+			result = OOPropertyListFromData(data, path);
+			[data release];
+		}
+		// Non-existent file is not an error.
+	}
+	
+	return result;
+}
+
+
+// Wrappers which ensure that the plist contains the right type of object.
+NSDictionary *OODictionaryFromData(NSData *data, NSString *whereFrom)
+{
+	id result = OOPropertyListFromData(data, whereFrom);
+	return ValueIfClass(result, [NSDictionary class]);
+}
+
+
+NSDictionary *OODictionaryFromFile(NSString *path)
+{
+	id result = OOPropertyListFromFile(path);
+	return ValueIfClass(result, [NSDictionary class]);
+}
+
+
+NSArray *OOArrayFromData(NSData *data, NSString *whereFrom)
+{
+	id result = OOPropertyListFromData(data, whereFrom);
+	return ValueIfClass(result, [NSArray class]);
+}
+
+
+NSArray *OOArrayFromFile(NSString *path)
+{
+	id result = OOPropertyListFromFile(path);
+	return ValueIfClass(result, [NSArray class]);
+}
+
+
+// Ensure that object is of desired class.
+static id ValueIfClass(id value, Class class)
+{
+	if (value != nil && ![value isKindOfClass:class])
+	{
+		OOLog(kOOLogPListWrongType, @"Property list is wrong type - expected %@, got %@.", class, [value class]);
+		value = nil;
+	}
+	return value;
+}
 
 
 #if 0

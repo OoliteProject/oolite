@@ -32,6 +32,7 @@ MA 02110-1301, USA.
 #import "NSFileManagerOOExtensions.h" // to find savedir
 #import "PlayerEntity.h"
 #import "GUIDisplayGen.h"
+#import "PlanetEntity.h"
 
 #ifdef WIN32
 #import "TextureStore.h"

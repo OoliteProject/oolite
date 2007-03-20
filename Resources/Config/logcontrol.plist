@@ -124,6 +124,10 @@ mesh.load.error.tooManyVertices			= inherit;
 mesh.load.error.tooManyFaces			= inherit;
 
 
+plist.parse.foundation.failed			= $error;
+plist.wrongType							= $error;
+
+
 rendering.opengl.error					= $error;				// Test for and display OpenGL errors
 rendering.opengl.version				= $troubleShootingDump;	// Display renderer version information at startup
 rendering.opengl.extensions				= $troubleShootingDump;	// List OpenGL extensions at startup

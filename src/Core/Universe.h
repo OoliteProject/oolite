@@ -466,8 +466,6 @@ double estimatedTimeForJourney(double distance, int hops);
 - (NSArray *) contractsForSystem:(Random_Seed) s_seed atTime:(double) current_time;
 
 - (NSArray *) shipsForSaleForSystem:(Random_Seed) s_seed withTL:(int) specialTL atTime:(double) current_time;
-NSComparisonResult compareName( id dict1, id dict2, void * context);
-NSComparisonResult comparePrice( id dict1, id dict2, void * context);
 - (int) tradeInValueForCommanderDictionary:(NSDictionary*) cmdr_dict;
 - (int) weaponForEquipmentKey:(NSString*) weapon_string;
 - (NSString*) equipmentKeyForWeapon:(int) weapon;
@@ -525,3 +523,7 @@ NSComparisonResult comparePrice( id dict1, id dict2, void * context);
 ////
 
 @end
+
+
+NSComparisonResult compareName(NSDictionary *dict1, NSDictionary *dict2, void * context);
+NSComparisonResult comparePrice(NSDictionary *dict1, NSDictionary *dict2, void * context);

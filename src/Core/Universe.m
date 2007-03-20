@@ -7220,7 +7220,7 @@ double estimatedTimeForJourney(double distance, int hops)
 	i = 1;
 	while (i < [resultArray count])
 	{
-		if (compareName( [resultArray objectAtIndex:i - 1], [resultArray objectAtIndex:i], nil) == NSOrderedSame )
+		if (compareName([resultArray objectAtIndex:i - 1], [resultArray objectAtIndex:i], nil) == NSOrderedSame )
 			[resultArray removeObjectAtIndex: i];
 		else
 			i++;
@@ -7231,18 +7231,26 @@ double estimatedTimeForJourney(double distance, int hops)
 	return [NSArray arrayWithArray:resultArray];
 }
 
-NSComparisonResult compareName( id dict1, id dict2, void * context)
-{	
-	NSComparisonResult result = [(NSString*)[(NSDictionary*)[dict1 objectForKey:SHIPYARD_KEY_SHIP] objectForKey:KEY_NAME] compare:(NSString*)[(NSDictionary*)[dict2 objectForKey:SHIPYARD_KEY_SHIP] objectForKey:KEY_NAME]];
+NSComparisonResult compareName(NSDictionary *dict1, NSDictionary *dict2, void * context)
+{
+	NSDictionary	*ship1 = [dict1 objectForKey:SHIPYARD_KEY_SHIP];
+	NSDictionary	*ship2 = [dict2 objectForKey:SHIPYARD_KEY_SHIP];
+	NSString		*name1 = [ship1 objectForKey:KEY_NAME];
+	NSString		*name2 = [ship2 objectForKey:KEY_NAME];
+	
+	NSComparisonResult result = [name1 compare:name2];
 	if (result != NSOrderedSame)
 		return result;
 	else
 		return comparePrice(dict1, dict2, context);
 }
 
-NSComparisonResult comparePrice( id dict1, id dict2, void * context)
+NSComparisonResult comparePrice(NSDictionary *dict1, NSDictionary *dict2, void * context)
 {
-	return [(NSNumber*)[(NSDictionary*)dict1 objectForKey:SHIPYARD_KEY_PRICE] compare:(NSNumber*)[(NSDictionary*)dict2 objectForKey:SHIPYARD_KEY_PRICE]];
+	NSNumber		*price1 = [dict1 objectForKey:SHIPYARD_KEY_PRICE];
+	NSNumber		*price2 = [dict2 objectForKey:SHIPYARD_KEY_PRICE];
+	
+	return [price1 compare:price2];
 }
 
 - (int) tradeInValueForCommanderDictionary:(NSDictionary*) cmdr_dict

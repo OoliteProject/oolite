@@ -48,6 +48,7 @@ MA 02110-1301, USA.
 #import "OOCacheManager.h"
 #import "OXPScript.h"
 #import "OOStringParsing.h"
+#import "OOPListParsing.h"
 
 #ifndef GNUSTEP
 #import "Groolite.h"
@@ -4292,8 +4293,8 @@ double scoopSoundPlayTime = 0.0;
 	NSString*	fail_reason = nil;
 	if (fileToOpen)
 	{
-		fileDic = [NSDictionary dictionaryWithContentsOfFile:fileToOpen];
-
+		fileDic = OODictionaryFromFile(fileToOpen);
+		
 		if (fileDic)
 		{
 			[self set_up];
@@ -5240,9 +5241,9 @@ static int last_outfitting_index;
 	
 	// find options that agree with this ship
 	BOOL		option_okay[[equipdata count]];
-	NSMutableArray*	options = [NSMutableArray arrayWithArray:(NSArray*)[[[universe shipyard] objectForKey:ship_desc] objectForKey:KEY_OPTIONAL_EQUIPMENT]];
+	NSMutableArray*	options = [NSMutableArray arrayWithArray:[(NSDictionary *)[[universe shipyard] objectForKey:ship_desc] objectForKey:KEY_OPTIONAL_EQUIPMENT]];
 	// add standard items too!
-	[options addObjectsFromArray:(NSArray*)[[[[universe shipyard] objectForKey:ship_desc] objectForKey:KEY_STANDARD_EQUIPMENT] objectForKey:KEY_EQUIPMENT_EXTRAS]];
+	[options addObjectsFromArray:[(NSDictionary *)[(NSDictionary *)[[universe shipyard] objectForKey:ship_desc] objectForKey:KEY_STANDARD_EQUIPMENT] objectForKey:KEY_EQUIPMENT_EXTRAS]];
 	
 	int i,j;
 	for (i = 0; i < [equipdata count]; i++)

@@ -23,6 +23,7 @@ MA 02110-1301, USA.
 */
 
 #import "OOCollectionExtractors.h"
+#import <limits.h>
 
 
 @implementation NSArray (OOExtractor)

@@ -71,7 +71,7 @@ BOOL ScanVectorFromString(NSString *xyzString, Vector *outVector)
 	NSScanner				*scanner = nil;
 	
 	if (xyzString == nil) return NO;
-	else if (outVector == nil) error = @"nil result pointer";
+	else if (outVector == NULL) error = @"nil result pointer";
 	
 	if (!error) scanner = [NSScanner scannerWithString:xyzString];
 	while (![scanner isAtEnd] && i < 3 && !error)
@@ -102,7 +102,7 @@ BOOL ScanQuaternionFromString(NSString *wxyzString, Quaternion *outQuaternion)
 	NSScanner				*scanner = nil;
 	
 	if (wxyzString == nil) return NO;
-	else if (outQuaternion == nil) error = @"nil result pointer";
+	else if (outQuaternion == NULL) error = @"nil result pointer";
 	
 	if (!error) scanner = [NSScanner scannerWithString:wxyzString];
 	while (![scanner isAtEnd] && i < 4 && !error)
@@ -136,7 +136,7 @@ BOOL ScanVectorAndQuaternionFromString(NSString *xyzwxyzString, Vector *outVecto
 	NSScanner				*scanner = nil;
 	
 	if (xyzwxyzString == nil) return NO;
-	else if (outVector == nil || outQuaternion == nil) error = @"nil result pointer";
+	else if (outVector == NULL || outQuaternion == NULL) error = @"nil result pointer";
 	
 	if (!error) scanner = [NSScanner scannerWithString:xyzwxyzString];
 	while (![scanner isAtEnd] && i < 7 && !error)

@@ -418,8 +418,8 @@ void setUpSinTable()
     //
 	isTextured = NO;
 	textureName = 0;
-	textureData = nil;
-	normalMapTextureData = nil;
+	textureData = NULL;
+	normalMapTextureData = NULL;
 	//
 	planet_seed = p_seed.a * 13 + p_seed.c * 11 + p_seed.e * 7;	// pseudo-random set-up for vertex colours
 	//

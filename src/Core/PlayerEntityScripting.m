@@ -36,6 +36,7 @@ MA 02110-1301, USA.
 
 #import "PlanetEntity.h"
 #import "ParticleEntity.h"
+#import "StationEntity.h"
 
 #ifdef GNUSTEP
 #import "Comparison.h"
