@@ -26,7 +26,7 @@ MA 02110-1301, USA.
 */
 
 #import <Foundation/Foundation.h>
-#import "vector.h"
+#import "OOMaths.h"
 #import "OOBasicSoundReferencePoint.h"
 
 @class OOSound;
