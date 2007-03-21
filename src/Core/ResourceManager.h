@@ -32,16 +32,9 @@ MA 02110-1301, USA.
 #endif
 
 
-#define OOLITE_EXCEPTION_XML_PARSING_FAILURE	@"OOXMLException"
 #define OOLITE_EXCEPTION_FATAL					@"OoliteFatalException"
 
 @class OOSound, OOMusic;
-
-typedef struct
-{
-	NSString*		tag;		// name of the tag
-	NSObject*		content;	// content of tag
-} OOXMLElement;
 
 extern int debug;
 

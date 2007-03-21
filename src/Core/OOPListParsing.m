@@ -25,13 +25,43 @@ MA 02110-1301, USA.
 
 #import "OOPListParsing.h"
 #import "OOLogging.h"
+#import "OOStringParsing.h"
 
 
 static NSString * const kOOLogPListFoundationParseError		= @"plist.parse.foundation.failed";
 static NSString * const kOOLogPListWrongType				= @"plist.wrongType";
+static NSString * const kOOLogPListHomebrewBadEncoding		= @"plist.homebrew.badEncoding";
+static NSString * const kOOLogPListHomebrewException		= @"plist.homebrew.exception";
+static NSString * const kOOLogPListHomebrewParseError		= @"plist.homebrew.parseError";
+static NSString * const kOOLogPListHomebrewParseWarning		= @"plist.homebrew.parseWarning";
+static NSString * const kOOLogPListHomebrewTokenizeTrace	= @"plist.homebrew.tokenize.trace";
+static NSString * const kOOLogPListHomebrewInterpretTrace	= @"plist.homebrew.interpret.trace";
+static NSString * const kOOLogPListHomebrewSuccess			= @"plist.homebrew.success";
+
+
+#define OOLITE_EXCEPTION_XML_PARSING_FAILURE	@"OOXMLException"
+
+
+typedef struct
+{
+	NSString		*tag;		// name of the tag
+	id				content;	// content of tag
+} OOXMLElement;
 
 
 static id ValueIfClass(id value, Class class);
+static id ParseXMLPropertyList(NSData *data, NSString *whereFrom);
+
+static NSArray *TokensFromXML(NSData *data, NSString *whereFrom);
+static id InterpretXMLTokens(NSArray *tokens, NSString *whereFrom);
+static OOXMLElement ParseXMLElement(NSScanner *scanner, NSString *closingTag, NSString *whereFrom);
+static NSString *ResolveXMLEntities(NSString *string);
+static id ObjectFromXMLElement(NSArray *tokens, BOOL expectKey, NSString *whereFrom);
+static NSData *DataFromXMLString(NSString *string, NSString *whereFrom);
+static NSArray *ArrayFromXMLString(NSArray *tokens, NSString *whereFrom);
+static NSDictionary *DictionaryFromXMLString(NSArray *tokens, NSString *whereFrom);
+
+static NSString *ShortDescription(id object);
 
 
 id OOPropertyListFromData(NSData *data, NSString *whereFrom)
@@ -50,10 +80,10 @@ id OOPropertyListFromData(NSData *data, NSString *whereFrom)
 			if (whereFrom == nil) whereFrom = @"<data in memory>";
 			
 			// Complain
-			OOLog(kOOLogPListFoundationParseError, @"Failed to parse %@ as a property list using Foundation. Retrying using home-grown parser. WARNING: the home-grown parser is deprecated and will be removed in a future version of Oolite.\n%@", whereFrom, error);
+			OOLog(kOOLogPListFoundationParseError, @"Failed to parse %@ as a property list using Foundation. Retrying using homebrew parser. WARNING: the homebrew parser is deprecated and will be removed in a future version of Oolite.\n%@", whereFrom, error);
 			OOLogIndentIf(kOOLogPListFoundationParseError);
 			
-			// TODO: use homebrew parser here
+			result = ParseXMLPropertyList(data, whereFrom);
 			
 			OOLogOutdentIf(kOOLogPListFoundationParseError);
 		}
@@ -126,500 +156,456 @@ static id ValueIfClass(id value, Class class)
 }
 
 
-#if 0
-// Old XML parsing code (was part of ResourceManager)
-
-
-+ (NSMutableArray *) scanTokensFromString:(NSString*) values
+static id ParseXMLPropertyList(NSData *data, NSString *whereFrom)
 {
-	NSMutableArray* result = [NSMutableArray arrayWithCapacity:8];
-	NSScanner* scanner = [NSScanner scannerWithString:values];
-	NSCharacterSet* space_set = [NSCharacterSet whitespaceAndNewlineCharacterSet];
-	NSString* token;
-	while (![scanner isAtEnd])
-	{
-		[scanner ooliteScanCharactersFromSet:space_set intoString:(NSString * *)nil];
-		if ([scanner ooliteScanUpToCharactersFromSet:space_set intoString:&token])
-			[result addObject:[NSString stringWithString:token]];
-	}
-	return result;
-}
-
-
-+ (NSString *) decodeString:(NSString*) encodedString
-{
-	if ([encodedString rangeOfString:@"&"].location == NSNotFound)
-		return encodedString;
-	//
-	NSMutableString* result = [NSMutableString stringWithString:encodedString];
-	//
-	[result replaceOccurrencesOfString:@"&amp;"		withString:@"&"		options:NSCaseInsensitiveSearch range:NSMakeRange(0, [result length])];
-	[result replaceOccurrencesOfString:@"&lt;"		withString:@"<"		options:NSCaseInsensitiveSearch range:NSMakeRange(0, [result length])];
-	[result replaceOccurrencesOfString:@"&gt;"		withString:@">"		options:NSCaseInsensitiveSearch range:NSMakeRange(0, [result length])];
-	[result replaceOccurrencesOfString:@"&apos;"	withString:@"'"		options:NSCaseInsensitiveSearch range:NSMakeRange(0, [result length])];
-	[result replaceOccurrencesOfString:@"&quot;"	withString:@"\""	options:NSCaseInsensitiveSearch range:NSMakeRange(0, [result length])];
-	//
-	return result;
-}
-
-+ (OOXMLElement) parseOOXMLElement:(NSScanner*) scanner upTo:(NSString*)closingTag
-{
-	OOXMLElement	result, element;
-	element.tag = nil;
-	element.content = nil;
-	result.tag = nil;
-	result.content = nil;
-	NSMutableArray* elements = [NSMutableArray arrayWithCapacity:4];	// arbitrarily choose 4
-	BOOL done = NO;
-	while ((!done)&&(![scanner isAtEnd]))
-	{
-		NSString* preamble;
-		BOOL foundPreamble = [scanner scanUpToString:@"<" intoString:&preamble];
-		BOOL foundOpenBracket = [scanner scanString:@"<" intoString:(NSString * *)nil];
-		if (!foundOpenBracket)
+	id						result = nil;
+	NSArray					*tokens = nil;
+	NSAutoreleasePool		*pool = nil;
+	
+	pool = [[NSAutoreleasePool alloc] init];
+	OOLogPushIndent();
+	NS_DURING
+		OOLog(kOOLogPListHomebrewTokenizeTrace, @">>>>> Tokenizing property list.");
+		OOLogIndentIf(kOOLogPListHomebrewTokenizeTrace);
+		tokens = TokensFromXML(data, whereFrom);
+		OOLogOutdentIf(kOOLogPListHomebrewTokenizeTrace);
+		
+		if (tokens != nil)
 		{
-//			NSLog(@"XML >>>>> no '<' found.");
-			//
-			// no openbracket found
+			OOLog(kOOLogPListHomebrewInterpretTrace, @"Property list tokenization successful, interpreting.");
+			OOLogIndentIf(kOOLogPListHomebrewInterpretTrace);
+			result = InterpretXMLTokens(tokens, whereFrom);
+			OOLogOutdentIf(kOOLogPListHomebrewInterpretTrace);
+			if (result != nil) OOLog(kOOLogPListHomebrewSuccess, @"Successfully interpreted property list... for now.");
+		}
+	NS_HANDLER
+		// OOLITE_EXCEPTION_XML_PARSING_FAILURE indicates an error we've already logged.
+		if (![[localException name] isEqual:OOLITE_EXCEPTION_XML_PARSING_FAILURE])
+		{
+			OOLog(kOOLogException, @"Encountered exception while parsing property list %@ (parsing failed). Exception: %@: %@", whereFrom, [localException name], [localException reason]);
+		}
+	NS_ENDHANDLER
+	OOLogPopIndent();
+	[result retain];
+	[pool release];
+	return [result autorelease];
+	
+}
+
+
+static NSArray *TokensFromXML(NSData *data, NSString *whereFrom)
+{
+	NSString				*xmlString = nil;
+	NSScanner				*scanner = nil;
+	OOXMLElement			xml = { nil, nil };
+	
+	// Assume UTF-8, UTF-16 or system encoding... not robust.
+	xmlString = [[NSString alloc] initWithData:data encoding:NSUTF8StringEncoding];
+	if (xmlString == nil) xmlString = [[NSString alloc] initWithData:data encoding:NSUnicodeStringEncoding];
+	if (xmlString == nil) xmlString = [[NSString alloc] initWithData:data];
+	if (xmlString == nil)
+	{
+		OOLog(kOOLogPListHomebrewBadEncoding, @"Could not interpret property list %@ as UTF-8 text.", whereFrom);
+	}
+	else
+	{
+		scanner = [NSScanner scannerWithString:xmlString];
+		
+		OOLogPushIndent();
+		NS_DURING
+			xml = ParseXMLElement(scanner, @"ROOT", whereFrom);
+		NS_HANDLER
+			// OOLITE_EXCEPTION_XML_PARSING_FAILURE indicates an error we've already logged.
+			if (![[localException name] isEqual:OOLITE_EXCEPTION_XML_PARSING_FAILURE])
+			{
+				OOLog(kOOLogException, @"Encountered exception while parsing property list %@ (parsing failed). Exception: %@: %@", whereFrom, [localException name], [localException reason]);
+			}
+		NS_ENDHANDLER
+		OOLogPopIndent();
+	}
+	
+	if ([xml.content isKindOfClass:[NSArray class]])  return xml.content;
+	else if ([xml.content isKindOfClass:[NSString class]])
+	{
+		OOLog(kOOLogPListHomebrewParseError, @"Property list isn't in XML format, homebrew parser can't help you.");
+	}
+	else
+	{
+		OOLog(kOOLogPListHomebrewParseError, @"***** Property list parser error: expected root element tokenization to be NSArray, but got %@.", [xml.content class]);
+	}
+	return nil;
+}
+
+
+static id InterpretXMLTokens(NSArray *tokens, NSString *whereFrom)
+{
+	NSEnumerator			*elementEnum = nil;
+	id						element = nil;
+	NSString				*tag = nil;
+	id						content = nil;
+	NSArray					*plist = nil;
+	
+	for (elementEnum = [tokens objectEnumerator]; (element = [elementEnum nextObject]); )
+	{
+		// Elements are OOXMLElements converted to two-member arrays.
+		tag = [element objectAtIndex:0];
+		content = [element objectAtIndex:1];
+		
+		OOLog(kOOLogPListHomebrewInterpretTrace, @"Got element: <%@>", tag);
+		
+		if ([tag isEqual:@"plist"])
+		{
+			if ([content isKindOfClass:[NSArray class]])
+			{
+				plist = [content objectAtIndex:0];
+				if ([plist isKindOfClass:[NSArray class]])
+				{
+					return ObjectFromXMLElement(plist, NO, whereFrom);
+				}
+			}
+			
+			OOLog(kOOLogPListHomebrewParseError, @"***** Property list parser error: invalid structure for tokenization of <plist> element.");
+		}
+		
+		if (![tag hasPrefix:@"!"] && ![tag hasPrefix:@"?"])
+		{
+			// Bad root-level element - not <plist> or directive
+			OOLog(kOOLogPListHomebrewParseWarning, @"----- Bad property list: root level element <%@> is not <plist> or directive.", tag);
+		}
+	}
+	
+	// If we got here, there was no <plist>
+	OOLog(kOOLogPListHomebrewParseError, @"***** Property list parser error: could not find a <plist> element.");
+	return nil;
+}
+
+
+static OOXMLElement ParseXMLElement(NSScanner *scanner, NSString *closingTag, NSString *whereFrom)
+{
+	OOXMLElement		result = {0}, element = {0};
+	NSMutableArray		*elements = nil;
+	NSString			*preamble = nil;
+	NSString			*tag = nil;
+	int					openBracketLocation;
+	NSArray				*tagbits = nil;
+	BOOL				done = NO;
+	BOOL				foundPreamble, foundBracket, foundTag;
+	
+	elements = [NSMutableArray array];
+	
+	while (!done && ![scanner isAtEnd])
+	{
+		foundPreamble = [scanner scanUpToString:@"<" intoString:&preamble];
+		foundBracket = [scanner scanString:@"<" intoString:NULL];
+		if (!foundBracket)
+		{
+			// No < found
+			// These cases appear to be ignored, since tag is nil.
 			if (foundPreamble)
 			{
-//				NSLog(@"XML >>>>> Returning preamble=\"%@\"", preamble);
-				// return the text we got instead
+				// Is this useful? -- ahruman
 				element.tag = nil;
-				element.content = [ResourceManager decodeString:preamble];
+				element.content = ResolveXMLEntities(preamble);
+				OOLog(kOOLogPListHomebrewTokenizeTrace, @"Found preamble but no <, using \"%@\"", ShortDescription(element.content));
 			}
 			else
 			{
-//				NSLog(@"XML >>>>> Returning \"\"");
-				// no preamble, return an empty string
+				// Nothing found.
 				element.tag = nil;
 				element.content = @"";
+				OOLog(kOOLogPListHomebrewTokenizeTrace, @"Found nothing, using empty string");
 			}
 		}
 		else
 		{
-//			NSLog(@"XML >>>>> '<' found.");
-			//
-			NSString* tag;
-			// look for closing '>'
-			int openBracketLocation = [scanner scanLocation];
-			BOOL foundTag = [scanner scanUpToString:@">" intoString:&tag];
-			BOOL foundCloseBracket = [scanner scanString:@">" intoString:(NSString * *)nil];
-			if (!foundCloseBracket)
+			// < found
+			// Look for closing >
+			openBracketLocation = [scanner scanLocation];
+			foundTag = [scanner scanUpToString:@">" intoString:&tag];
+			foundBracket = [scanner scanString:@">" intoString:NULL];
+			if (!foundBracket)
 			{
-				// ERROR no closing bracket for tag
-				NSException* myException = [NSException
-					exceptionWithName: OOLITE_EXCEPTION_XML_PARSING_FAILURE
-					reason: [NSString stringWithFormat:@"Tag without closing bracket: \"%@\"", tag]
-					userInfo: nil];
-				[myException raise];
-				result.tag = nil;
-				result.content = nil;
-				return result;
+				OOLog(kOOLogPListHomebrewParseError, @"***** Property list error: found tag with no closing bracket (\"<%@\").", tag);
+				[NSException raise:OOLITE_EXCEPTION_XML_PARSING_FAILURE format:@"Unclosed tag <%@", tag];
 			}
-			if (!foundTag)
+			if (!foundTag || [tag length] == 0)
 			{
-				// ERROR empty tag
-				NSException* myException = [NSException
-					exceptionWithName: OOLITE_EXCEPTION_XML_PARSING_FAILURE
-					reason: [NSString stringWithFormat:@"Empty tag \"<>\" encountered.", tag]
-					userInfo: nil];
-				[myException raise];
-				result.tag = nil;
-				result.content = nil;
-				return result;
+				OOLog(kOOLogPListHomebrewParseError, @"***** Property list error: found empty tag (\"<>\").");
+				[NSException raise:OOLITE_EXCEPTION_XML_PARSING_FAILURE format:@"Empty tag"];
 			}
-			//
-//			NSLog(@"XML >>>>> '>' found. tag = <%@>", tag);
-			//
-			// okay we have a < tag >
-			//
-			if ([tag hasPrefix:@"!"]||[tag hasPrefix:@"?"]||[tag hasSuffix:@"/"])
+			
+			// If we get here, we’ve got a tag.
+			OOLog(kOOLogPListHomebrewTokenizeTrace, @"Found tag <%@>", tag);
+			if ([tag hasPrefix:@"!"] || [tag hasPrefix:@"?"] || [tag hasSuffix:@"/"])
 			{
+				// Directive, self-closing tag or comment
 				if ([tag hasPrefix:@"!--"])
 				{
-					// it's a comment
+					// Comment. This comment handling is techincally invalid because it doesn't fail if the comment contains "--". XML Is such fun.
 					[scanner setScanLocation:openBracketLocation + 3];
-					NSString* comment;
-//					BOOL foundComment = [scanner scanUpToString:@"-->" intoString:&comment];
-					[scanner scanUpToString:@"-->" intoString:&comment];
-					BOOL foundEndComment = [scanner scanString:@"-->" intoString:(NSString * *)nil];
-					if (!foundEndComment)
+					[scanner scanUpToString:@"-->" intoString:NULL];
+					foundBracket = [scanner scanString:@"-->" intoString:NULL];
+					if (!foundBracket)
 					{
-						// ERROR comment without closing -->
-						NSException* myException = [NSException
-							exceptionWithName: OOLITE_EXCEPTION_XML_PARSING_FAILURE
-							reason: [NSString stringWithFormat:@"No closing --> for comment", tag]
-							userInfo: nil];
-						[myException raise];
-						result.tag = nil;
-						result.content = nil;
-						return result;
+						OOLog(kOOLogPListHomebrewParseError, @"***** Property list error: found unterminated comment (no -->).");
+						[NSException raise:OOLITE_EXCEPTION_XML_PARSING_FAILURE format:@"Unterminated comment"];
 					}
 					else
 					{
-						// got a well formed comment so...
-//						if (foundComment)
-//							NSLog(@"XML >>>>> Comment \"%@\"", comment);
 						element.tag = nil;
-						element.content = nil;	// ignore the comment
+						element.content = nil;
 					}
 				}
 				else
 				{
-					// it's a singleton
-					NSArray* tagbits = ScanTokensFromString(tag);
-					// lowercase first 'word' of the tag - with entities decoded
-					tag = [ResourceManager decodeString:[(NSString*)[tagbits objectAtIndex:0] lowercaseString]];
+					// Directive or self-closing tag
+					tagbits = ScanTokensFromString(tag);
+					tag = ResolveXMLEntities([[tagbits objectAtIndex:0] lowercaseString]);	// Whut? How can there be entities in a tag name? Also, tags are case-sensetive. -- ahruman
 					element.tag = tag;
 					element.content = tagbits;
 				}
 			}
 			else
 			{
+				// Opening or closing tag
 				if ([tag hasPrefix:@"/"])
 				{
-					// it's a closing tag
-					if ([tag hasSuffix:closingTag])
+					// Closing tag
+					if ([tag hasSuffix:closingTag])		// Not general - will match </foo-bar> when looking for </bar> - but good enough for plists. -- ahruman
 					{
+						// End of bit we're looking for
 						element.tag = nil;
-						if (foundPreamble)
-							element.content = [ResourceManager decodeString:preamble];
-						else
-							element.content = @"";
+						if (foundPreamble)  element.content = ResolveXMLEntities(preamble);
+						else  element.content = nil;
 						done = YES;
 					}
 					else
 					{
-						// ERROR closing tag without opening tag
-						NSException* myException = [NSException
-							exceptionWithName: OOLITE_EXCEPTION_XML_PARSING_FAILURE
-							reason: [NSString stringWithFormat:@"Closing tag \"<%@>\" without opening tag.", tag]
-							userInfo: nil];
-						[myException raise];
-						result.tag = nil;
-						result.content = nil;
-						return result;
+						OOLog(kOOLogPListHomebrewParseError, @"***** Property list error: closing tag <%@> with no opening tag (expected </%@>).", tag, closingTag);
+						[NSException raise:OOLITE_EXCEPTION_XML_PARSING_FAILURE format:@"Wrong closing tag <%@>, should be <%@>", tag, closingTag];
 					}
 				}
 				else
 				{
-					// at this point we have an opening tag for some content
-					// so we'll recursively parse the rest of the text
-					NSArray* tagbits = ScanTokensFromString(tag);
-					if (![tagbits count])
+					// It's an opening tag; recurse
+					tagbits = ScanTokensFromString(tag);
+					if ([tagbits count] == 0)
 					{
-						// ERROR empty opening tag
-						NSException* myException = [NSException
-							exceptionWithName: OOLITE_EXCEPTION_XML_PARSING_FAILURE
-							reason: [NSString stringWithFormat:@"Empty tag encountered.", tag]
-							userInfo: nil];
-						[myException raise];
-						result.tag = nil;
-						result.content = nil;
-						return result;
+						OOLog(kOOLogPListHomebrewParseError, @"***** Property list error: empty opening tag (<>).");
+						[NSException raise:OOLITE_EXCEPTION_XML_PARSING_FAILURE format:@"Empty opening tag"];
 					}
-					// lowercase first 'word' of the tag - with entities decoded
-					tag = [ResourceManager decodeString:[(NSString*)[tagbits objectAtIndex:0] lowercaseString]];
-					//
-					OOXMLElement inner_element = [ResourceManager parseOOXMLElement:scanner upTo:tag];
-					element.tag = inner_element.tag;
-//					if ([inner_element.content isKindOfClass:[NSArray class]])
-//					{
-//						NSArray* inner_element_array = (NSArray*)inner_element.content;
-//						if ([inner_element_array count] == 1)
-//							inner_element.content = [inner_element_array objectAtIndex:0];
-//					}
-					element.content = inner_element.content;
+					tag = ResolveXMLEntities([[tagbits objectAtIndex:0] lowercaseString]);	// Se before re "whut?". -- ahruman
+					
+					OOLog(kOOLogPListHomebrewTokenizeTrace, @"Recursively parsing children of tag %@", tag);
+					OOLogIndentIf(kOOLogPListHomebrewTokenizeTrace);
+					element = ParseXMLElement(scanner, tag, whereFrom);
+					OOLogOutdentIf(kOOLogPListHomebrewTokenizeTrace);
 				}
 			}
 		}
-		// we reach here with element set so we need to add it in to the elements array
-		if ((element.tag)&&(element.content))
+		
+		if (element.tag != nil && element.content != nil)
 		{
-			[elements addObject:[NSArray arrayWithObjects: element.tag, element.content, nil]];
+			[elements addObject:[NSArray arrayWithObjects:element.tag, element.content, nil]];
 		}
 	}
 	
-	// all done!
 	result.tag = closingTag;
-	if ([elements count])
-		result.content = elements;
-	else
-		result.content = element.content;
-		
-//	NSLog(@"DEBUG XML found '%@' = '%@'", result.tag, result.content);
+	if ([elements count] != 0)  result.content = elements;
+	else  result.content = element.content;
 	
 	return result;
 }
 
-+ (id) parseXMLPropertyList:(NSString*)xmlString
+
+static NSString *ResolveXMLEntities(NSString *string)
 {
-	NSScanner* scanner = [NSScanner scannerWithString:xmlString];
-	OOXMLElement xml = { nil, nil };
-	NS_DURING
-		xml = [ResourceManager parseOOXMLElement:scanner upTo:@"ROOT"];
-	NS_HANDLER
-		if ([[localException name] isEqual: OOLITE_EXCEPTION_XML_PARSING_FAILURE])	// note it happened here 
-		{
-			NSLog(@"***** [ResourceManager parseXMLPropertyList:] encountered exception : %@ : %@ *****",[localException name], [localException reason]);
-		}
-		[localException raise];
-	NS_ENDHANDLER
-	if (!xml.content)
-		return nil;
-	if (![xml.content isKindOfClass:[NSArray class]])
-		return nil;
-	NSArray* elements = (NSArray*)xml.content;
-	int n_elements = [elements count];
-	int i;
-	for (i = 0; i < n_elements; i++)
-	{
-		NSArray* element = (NSArray*)[elements objectAtIndex:i];
-		NSString* tag = (NSString*)[element objectAtIndex:0];
-		NSObject* content = [element objectAtIndex:1];
-//		NSLog(@"DEBUG XML found '%@' = %@", tag, content);
-		if ([tag isEqual:@"plist"])
-		{
-			if ([content isKindOfClass:[NSArray class]])
-			{
-				NSArray* plist = (NSArray*)[(NSArray*)content objectAtIndex:0];
-//				NSString* plistTag = (NSString*)[plist objectAtIndex:0];
-//				NSLog(@"DEBUG XML found plist containing '%@'", plistTag);
-				return [ResourceManager objectFromXMLElement:plist];
-			}
-		}
-	}
-	// with a well formed plist we should not reach here!
-	return nil;
+	if ([string rangeOfString:@"&"].location == NSNotFound)  return string;
+	
+	NSMutableString* result = [[string mutableCopy] autorelease];
+	
+	// These shouldn't really be case-insensetive, but we're going for bugwards-compatibility here.
+	[result replaceOccurrencesOfString:@"&amp;"  withString:@"&"  options:NSCaseInsensitiveSearch range:NSMakeRange(0, [result length])];
+	[result replaceOccurrencesOfString:@"&lt;"   withString:@"<"  options:NSCaseInsensitiveSearch range:NSMakeRange(0, [result length])];
+	[result replaceOccurrencesOfString:@"&gt;"   withString:@">"  options:NSCaseInsensitiveSearch range:NSMakeRange(0, [result length])];
+	[result replaceOccurrencesOfString:@"&apos;" withString:@"\'" options:NSCaseInsensitiveSearch range:NSMakeRange(0, [result length])];
+	[result replaceOccurrencesOfString:@"&quot;" withString:@"\"" options:NSCaseInsensitiveSearch range:NSMakeRange(0, [result length])];
+	
+	return result;
 }
 
-+ (id) objectFromXMLElement:(NSArray*) xmlElement
+
+static id ObjectFromXMLElement(NSArray *tokens, BOOL expectKey, NSString *whereFrom)
 {
-//	NSLog(@"XML DEBUG trying to get an NSObject out of %@", xmlElement);
-	//
-	if ([xmlElement count] != 2)
+	NSString				*tag = nil;
+	id						content = nil;
+	id						result = nil;
+	
+	if ([tokens count] != 2)
 	{
-		// bad xml element
-		NSException* myException = [NSException
-			exceptionWithName: OOLITE_EXCEPTION_XML_PARSING_FAILURE
-			reason: [NSString stringWithFormat:@"Bad XMLElement %@ passed to objectFromXMLElement:", xmlElement]
-			userInfo: nil];
-		[myException raise];
-		return nil;
+		OOLog(kOOLogPListHomebrewParseError, @"***** Property list parser error: invalid token structure.");
+		[NSException raise:OOLITE_EXCEPTION_XML_PARSING_FAILURE format:@"Invalid token structure"];
 	}
-	NSString* tag = (NSString*)[xmlElement objectAtIndex:0];
-	NSObject* content = [xmlElement objectAtIndex:1];
-	//
-	if ([tag isEqual:@"true/"])
-		return [ResourceManager trueFromXMLContent:content];
-	if ([tag isEqual:@"false/"])
-		return [ResourceManager falseFromXMLContent:content];
-	//
-	if ([tag isEqual:@"real"])
-		return [ResourceManager realFromXMLContent:content];
-	//
-	if ([tag isEqual:@"integer"])
-		return [ResourceManager integerFromXMLContent:content];
-	//
-	if ([tag isEqual:@"string"])
-		return [ResourceManager stringFromXMLContent:content];
-	if ([tag isEqual:@"string/"])
-		return @"";
-	//
-	if ([tag isEqual:@"date"])
-		return [ResourceManager dateFromXMLContent:content];
-	//
-	if ([tag isEqual:@"data"])
-		return [ResourceManager dataFromXMLContent:content];
-	//
-	if ([tag isEqual:@"array"])
-		return [ResourceManager arrayFromXMLContent:content];
-	if ([tag isEqual:@"array/"])
-		return [NSArray arrayWithObjects:nil];
-	//
-	if ([tag isEqual:@"dict"])
-		return [ResourceManager dictionaryFromXMLContent:content];
-	if ([tag isEqual:@"dict/"])
-		return [NSDictionary dictionaryWithObjectsAndKeys:nil];
-	//
+	
+	tag = [tokens objectAtIndex:0];
+	content = [tokens objectAtIndex:1];
+	
+	if ([content isKindOfClass:[NSString class]])  OOLog(kOOLogPListHomebrewInterpretTrace, @"Interpreting <%@>: %@", tag, ShortDescription(content));
+	else  OOLog(kOOLogPListHomebrewInterpretTrace, @"Interpreting <%@>", tag);
+	OOLogIndentIf(kOOLogPListHomebrewInterpretTrace);
+	
+	
 	if ([tag isEqual:@"key"])
-		return [ResourceManager stringFromXMLContent:content];
-	//
-	return nil;
-}
-
-+ (NSNumber*) trueFromXMLContent:(NSObject*) xmlContent
-{
-	return [NSNumber numberWithBool:YES];
-}
-
-+ (NSNumber*) falseFromXMLContent:(NSObject*) xmlContent
-{
-	return [NSNumber numberWithBool:NO];
-}
-
-+ (NSNumber*) realFromXMLContent:(NSObject*) xmlContent
-{
-	if ([xmlContent isKindOfClass:[NSString class]])
 	{
-		return [NSNumber numberWithDouble:[(NSString*)xmlContent doubleValue]];
+		result = [NSString stringWithString:content];
+		if (!expectKey) OOLog(kOOLogPListHomebrewParseWarning, @"----- Bad property list: <key> element (%@) found when expecting a value, treating as <string>.", result);
 	}
-	return nil;
-}
-
-+ (NSNumber*) integerFromXMLContent:(NSObject*) xmlContent
-{
-	if ([xmlContent isKindOfClass:[NSString class]])
+	else
 	{
-		return [NSNumber numberWithInt:[(NSString*)xmlContent intValue]];
-	}
-	return nil;
-}
-
-+ (NSString*) stringFromXMLContent:(NSObject*) xmlContent
-{
-	if ([xmlContent isKindOfClass:[NSString class]])
-	{
-		return (NSString*)xmlContent;
-	}
-	return nil;
-}
-
-+ (NSDate*) dateFromXMLContent:(NSObject*) xmlContent
-{
-	if ([xmlContent isKindOfClass:[NSString class]])
-	{
-		return [NSDate dateWithString:(NSString*)xmlContent];
-	}
-	return nil;
-}
-
-+ (NSData*) dataFromXMLContent:(NSObject*) xmlContent
-{
-	// we don't use this for Oolite
-	if ([xmlContent isKindOfClass:[NSString class]])
-	{
-		// we're going to decode the string from base64
-		NSString* base64String = @"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=";
-		NSMutableData* resultingData = [NSMutableData dataWithLength:0];
-		NSString* dataString = (NSString *)xmlContent;
-		char bytes3[3];
-		int n_64Chars;
-		int tripletValue;
-		int n_chars = [dataString length];
-		int i = 0;
-		while (i < n_chars)
+		if ([tag isEqual:@"true/"])			result = [NSNumber numberWithBool:YES];
+		else if ([tag isEqual:@"false/"])	result = [NSNumber numberWithBool:NO];
+		else if ([tag isEqual:@"real"])		result = [NSNumber numberWithDouble:[content doubleValue]];
+		else if ([tag isEqual:@"integer"])	result = [NSNumber numberWithDouble:[content intValue]];
+		else if ([tag isEqual:@"string"])	result = [NSString stringWithString:content];
+		else if ([tag isEqual:@"string/"])	result = @"";
+		else if ([tag isEqual:@"date"])		result = [NSDate dateWithString:content];
+		else if ([tag isEqual:@"data"])		result = DataFromXMLString(content, whereFrom);
+		else if ([tag isEqual:@"array"])	result = ArrayFromXMLString(content, whereFrom);
+		else if ([tag isEqual:@"array/"])	result = [NSArray array];
+		else if ([tag isEqual:@"dict"])		result = DictionaryFromXMLString(content, whereFrom);
+		else if ([tag isEqual:@"dict/"])	result = [NSDictionary dictionary];
+		
+		if (result != nil)
 		{
-			n_64Chars = 0;
-			tripletValue = 0;
-			while ((n_64Chars < 4)&(i < n_chars))
-			{
-				int b64 = [base64String rangeOfString:[dataString substringWithRange:NSMakeRange(i,1)]].location;
-				if (b64 != NSNotFound)
-				{
-					tripletValue *= 64;
-					tripletValue += (b64 & 63);
-					n_64Chars++;
-				}
-				i++;
-			}
-			while (n_64Chars < 4)	//shouldn't need to pad, but we do just in case
+			if (expectKey) OOLog(kOOLogPListHomebrewParseWarning, @"----- Bad property list: expected <key>, got <%@>. Allowing for backwards compatibility, but the property list will not function as intended.", tag);
+		}
+		else
+		{
+			OOLog(kOOLogPListHomebrewParseWarning, @"----- Bad property list: unknown value class element <%@>, ignoring.", tag);
+		}
+	}
+	
+	OOLogOutdentIf(kOOLogPListHomebrewInterpretTrace);
+	return result;
+}
+
+
+static NSData *DataFromXMLString(NSString *string, NSString *whereFrom)
+{
+	if (![string isKindOfClass:[NSString class]])
+	{
+		OOLog(kOOLogPListHomebrewParseError, @"***** Property list error: expected string inside <data>, found %@.", string);
+		[NSException raise:OOLITE_EXCEPTION_XML_PARSING_FAILURE format:@"Bad type"];
+	}
+	
+	// String should be base64 data.
+	// we're going to decode the string from base64
+	NSString* base64String = @"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=";
+	NSMutableData* resultingData = [NSMutableData data];
+	char bytes3[3];
+	int n_64Chars;
+	int tripletValue;
+	int n_chars = [string length];
+	int i = 0;
+	while (i < n_chars)
+	{
+		n_64Chars = 0;
+		tripletValue = 0;
+		while ((n_64Chars < 4)&(i < n_chars))
+		{
+			int b64 = [base64String rangeOfString:[string substringWithRange:NSMakeRange(i,1)]].location;
+			if (b64 != NSNotFound)
 			{
 				tripletValue *= 64;
+				tripletValue += (b64 & 63);
 				n_64Chars++;
 			}
-			bytes3[0] = (tripletValue & 0xff0000) >> 16; 
-			bytes3[1] = (tripletValue & 0xff00) >> 8; 
-			bytes3[2] = (tripletValue & 0xff);
-			[resultingData appendBytes:(const void *)bytes3 length:3];
+			i++;
 		}
-		return [NSData dataWithData:resultingData];
-	}
-	return nil;
-}
-
-+ (NSArray*) arrayFromXMLContent:(NSObject*) xmlContent
-{
-	if ([xmlContent isKindOfClass:[NSArray class]])
-	{
-		NSArray* xmlElementArray = (NSArray*)xmlContent;
-		int n_objects = [xmlElementArray count];
-		NSMutableArray* result = [NSMutableArray arrayWithCapacity:n_objects];
-		int i;
-		for (i = 0; i < n_objects; i++)
+		while (n_64Chars < 4)	//shouldn't need to pad, but we do just in case
 		{
-			NSArray* xmlElement = [xmlElementArray objectAtIndex:i];
-			NSObject* object = [ResourceManager objectFromXMLElement:xmlElement];
-			if (object)
-				[result addObject:object];
-			else
-				return nil;
+			tripletValue *= 64;
+			n_64Chars++;
 		}
-		return [NSArray arrayWithArray:result];
+		bytes3[0] = (tripletValue & 0xff0000) >> 16; 
+		bytes3[1] = (tripletValue & 0xff00) >> 8; 
+		bytes3[2] = (tripletValue & 0xff);
+		[resultingData appendBytes:(const void *)bytes3 length:3];
 	}
-	return nil;
+	return [NSData dataWithData:resultingData];
 }
 
-+ (NSDictionary*) dictionaryFromXMLContent:(NSObject*) xmlContent
+
+static NSArray *ArrayFromXMLString(NSArray *tokens, NSString *whereFrom)
 {
-	if ([xmlContent isKindOfClass:[NSArray class]])
+	NSMutableArray			*result = nil;
+	NSEnumerator			*elementEnum = nil;
+	id						element = nil;
+	
+	if (![tokens isKindOfClass:[NSArray class]])
 	{
-		NSArray* xmlElementArray = (NSArray*)xmlContent;
-		int n_objects = [xmlElementArray count];
-		if (n_objects & 1)
-			return nil;	// must be an even number of objects in the array
-		NSMutableDictionary* result = [NSMutableDictionary dictionaryWithCapacity: n_objects / 2];
-		int i;
-		for (i = 0; i < n_objects; i += 2)
-		{
-			NSArray* keyXmlElement = [xmlElementArray objectAtIndex:i];
-			NSObject* key = [ResourceManager objectFromXMLElement:keyXmlElement];
-			NSArray* objectXmlElement = [xmlElementArray objectAtIndex:i + 1];
-			NSObject* object = [ResourceManager objectFromXMLElement:objectXmlElement];
-			if (key && object)
-			{
-				[result setObject:object forKey:key];
-			}
-			else
-				return nil;
-		}
-		return [NSDictionary dictionaryWithDictionary:result];
+		OOLog(kOOLogPListHomebrewParseError, @"***** Property list error: expected elements inside <array>, found %@.", tokens);
+		[NSException raise:OOLITE_EXCEPTION_XML_PARSING_FAILURE format:@"Bad type"];
 	}
-	return nil;
-}
-
-+ (NSString*) stringFromGLFloats: (GLfloat*) float_array : (int) n_floats
-{
-	NSMutableString* result = [NSMutableString stringWithCapacity:256];
-	int i;
-	for ( i = 0; i < n_floats ; i++)
-		[result appendFormat:@"%f ", float_array[i]];
+	
+	result = [NSMutableArray arrayWithCapacity:[tokens count]];
+	for (elementEnum = [tokens objectEnumerator]; (element = [elementEnum nextObject]); )
+	{
+		element = ObjectFromXMLElement(element, NO, whereFrom);
+		if (element != nil) [result addObject:element];
+	}
+	
 	return result;
 }
 
-+ (void) GLFloatsFromString: (NSString*) float_string: (GLfloat*) float_array
+
+static NSDictionary *DictionaryFromXMLString(NSArray *tokens, NSString *whereFrom)
 {
-	NSArray* tokens = ScanTokensFromString(float_string);
-	int i;
-	int n_tokens = [tokens count];
-	for (i = 0; i < n_tokens; i++)
-		float_array[i] = [[tokens objectAtIndex:i] floatValue];
+	NSMutableDictionary		*result = nil;
+	NSEnumerator			*elementEnum = nil;
+	id						keyElement = nil;
+	id						valueElement = nil;
+	id						key = nil;
+	id						value = nil;
+	
+	if (![tokens isKindOfClass:[NSArray class]])
+	{
+		OOLog(kOOLogPListHomebrewParseError, @"***** Property list error: expected elements inside <dict>, found %@.", tokens);
+		[NSException raise:OOLITE_EXCEPTION_XML_PARSING_FAILURE format:@"Bad type"];
+	}
+	
+	result = [NSMutableDictionary dictionaryWithCapacity:[tokens count]];
+	for (elementEnum = [tokens objectEnumerator]; (keyElement = [elementEnum nextObject]); )
+	{
+		valueElement = [elementEnum nextObject];
+		if (valueElement == nil)
+		{
+			OOLog(kOOLogPListHomebrewParseWarning, @"----- Bad property list: odd number of elements in <dict>, ignoring trailing <%@>.", [keyElement objectAtIndex:0]);
+		}
+		
+		key = ObjectFromXMLElement(keyElement, YES, whereFrom);
+		value = ObjectFromXMLElement(valueElement, NO, whereFrom);
+		
+		if (key != nil && value != nil)
+		{
+			[result setObject:value forKey:key];
+		}
+	}
+	
+	return result;
 }
 
-+ (NSString*) stringFromNSPoint: (NSPoint) point
+
+static NSString *ShortDescription(id object)
 {
-	return [NSString stringWithFormat:@"%f %f", point.x, point.y];
+	NSString			*desc = nil;
+	
+	if (object == nil) return @"(null)";
+	
+	desc = [object description];
+	if (100 < [desc length])
+	{
+		desc = [[desc substringToIndex:80] stringByAppendingString:@"..."];
+	}
+	return desc;
 }
-
-+ (NSPoint) NSPointFromString: (NSString*) point_string
-{
-	NSArray* tokens = ScanTokensFromString(point_string);
-	int n_tokens = [tokens count];
-	if (n_tokens != 2)
-		return NSMakePoint( 0.0, 0.0);
-	return NSMakePoint( [[tokens objectAtIndex:0] floatValue], [[tokens objectAtIndex:1] floatValue]);
-}
-
-
-#endif

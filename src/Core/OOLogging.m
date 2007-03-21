@@ -28,6 +28,7 @@ MA 02110-1301, USA.
 
 #import "OOLogging.h"
 #import "OOPListParsing.h"
+#import "OOFunctionAttributes.h"
 
 
 #ifdef GNUSTEP	// We really need better target macros.
@@ -46,27 +47,38 @@ MA 02110-1301, USA.
 #define OOLOG_UNDEFINED_METACLASS	1
 #define OOLOG_BAD_SETTING			1
 #define OOLOG_BAD_DEFAULT_SETTING	1
+#define OOLOG_BAD_POP_INDENT		1
+
+
+// Used to track OOLogPushIndent()/OOLogPopIndent() state.
+typedef struct OOLogIndentStackElement OOLogIndentStackElement;
+struct OOLogIndentStackElement
+{
+	OOLogIndentStackElement		*link;
+	unsigned					indent;
+};
 
 
 // We could probably use less state variables.
-static BOOL					sInited = NO;
-static NSLock				*sLock = nil;
-static NSMutableDictionary	*sExplicitSettings = nil;
-static NSMutableDictionary	*sDerivedSettingsCache = nil;
-static NSMutableDictionary	*sFileNamesCache = nil;
-static unsigned				sIndentLevel = 0;
-static BOOL					sShowFunction = NO;
-static BOOL					sShowFileAndLine = NO;
-static BOOL					sShowClass = YES;
-static BOOL					sDefaultDisplay = YES;
-static BOOL					sShowApplication = SHOW_APPLICATION;
-static BOOL					sOverrideInEffect = NO;
-static BOOL					sOverrideValue = NO;
+static BOOL						sInited = NO;
+static NSLock					*sLock = nil;
+static NSMutableDictionary		*sExplicitSettings = nil;
+static NSMutableDictionary		*sDerivedSettingsCache = nil;
+static NSMutableDictionary		*sFileNamesCache = nil;
+static unsigned					sIndentLevel = 0;
+static OOLogIndentStackElement	*sIndentStack = NULL;
+static BOOL						sShowFunction = NO;
+static BOOL						sShowFileAndLine = NO;
+static BOOL						sShowClass = YES;
+static BOOL						sDefaultDisplay = YES;
+static BOOL						sShowApplication = SHOW_APPLICATION;
+static BOOL						sOverrideInEffect = NO;
+static BOOL						sOverrideValue = NO;
 
 // These specific values are used for true, false and inherit in the cache and explicitSettings dictionaries so we can use pointer comparison.
-static NSString * const		kTrueToken = @"on";
-static NSString * const		kFalseToken = @"off";
-static NSString * const		kInheritToken = @"inherit";
+static NSString * const			kTrueToken = @"on";
+static NSString * const			kFalseToken = @"off";
+static NSString * const			kInheritToken = @"inherit";
 
 
 // To avoid recursion/self-dependencies, OOLog gets its own logging function.
@@ -113,7 +125,7 @@ static inline id CacheValue(BOOL inValue)
 */
 static inline BOOL Inited(void)
 {
-	if (__builtin_expect(sInited, YES)) return YES;
+	if (EXPECT(sInited)) return YES;
 	OOLogInternal(OOLOG_NOT_INITED, @"ERROR: OOLoggingInit() has not been called.");
 	return NO;
 }
@@ -211,6 +223,37 @@ void OOLogIndentIf(NSString *inMessageClass)
 void OOLogOutdentIf(NSString *inMessageClass)
 {
 	if (OOLogWillDisplayMessagesInClass(inMessageClass)) OOLogOutdent();
+}
+
+
+void OOLogPushIndent(void)
+{
+	OOLogIndentStackElement	*elem = NULL;
+	
+	elem = malloc(sizeof *elem);
+	if (elem != NULL)
+	{
+		elem->indent = sIndentLevel;
+		elem->link = sIndentStack;
+		sIndentStack = elem;
+	}
+}
+
+
+void OOLogPopIndent(void)
+{
+	OOLogIndentStackElement	*elem = NULL;
+	
+	if (EXPECT_NOT(sIndentStack == NULL))
+	{
+		OOLogInternal(OOLOG_BAD_POP_INDENT, @"OOLogPopIndent(): state stack underflow.");
+		return;
+	}
+	
+	elem = sIndentStack;
+	sIndentStack = elem->link;
+	sIndentLevel = elem->indent;
+	free(elem);
 }
 
 

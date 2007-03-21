@@ -73,6 +73,10 @@ void OOLogOutdent(void);
 void OOLogIndentIf(NSString *inMessageClass);
 void OOLogOutdentIf(NSString *inMessageClass);
 
+// Remember/restore indent levels, for cases where an exception may occur while indented.
+void OOLogPushIndent(void);
+void OOLogPopIndent(void);
+
 void OOLogWithFunctionFileAndLine(NSString *inMessageClass, const char *inFunction, const char *inFile, unsigned long inLine, NSString *inFormat, ...);
 void OOLogWithFunctionFileAndLineAndArguments(NSString *inMessageClass, const char *inFunction, const char *inFile, unsigned long inLine, NSString *inFormat, va_list inArguments);
 

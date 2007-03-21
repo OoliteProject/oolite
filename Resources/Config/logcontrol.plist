@@ -124,8 +124,16 @@ mesh.load.error.tooManyVertices			= inherit;
 mesh.load.error.tooManyFaces			= inherit;
 
 
-plist.parse.foundation.failed			= $error;
-plist.wrongType							= $error;
+$plistError = $error;
+plist.parse.foundation.failed			= $plistError;
+plist.wrongType							= $plistError;
+plist.homebrew.badEncoding				= $plistError;
+plist.homebrew.exception				= $plistError;
+plist.homebrew.parseError				= $plistError;
+plist.homebrew.parseWarning				= $plistError;
+plist.homebrew.tokenize.trace			= no;					// Log details of first stage of homebrew parsing. Extremely verbose!
+plist.homebrew.interpret.trace			= no;					// Log details of second stage of homebrew parsing. Also extremely verbose!
+plist.homebrew.success					= yes;
 
 
 rendering.opengl.error					= $error;				// Test for and display OpenGL errors
