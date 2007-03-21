@@ -97,6 +97,7 @@ void OOLoggingInit(void);
 extern NSString * const kOOLogSubclassResponsibility;		// @"general.error.subclassResponsibility"
 extern NSString * const kOOLogParameterError;				// @"general.error.parameterError"
 extern NSString * const kOOLogDeprecatedMethod;				// @"general.error.deprecatedMethod"
+extern NSString * const kOOLogAllocationFailure;			// @"general.error.allocationFailure"
 extern NSString * const kOOLogException;					// @"exception"
 
 extern NSString * const kOOLogFileNotFound;					// @"files.notfound"

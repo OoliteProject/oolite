@@ -38,6 +38,7 @@ extern "C" {
 
 #include "OOFunctionAttributes.h"
 #include <math.h>
+#include <stdint.h>
 #include "OOOpenGL.h"
 
 
@@ -91,40 +92,7 @@ extern "C" {
 #endif
 
 
-#ifdef WIN32
-	#define FASTINVSQRT_ENABLED	0	// Doesn't work on Windows (why?)
-#else
-	#define FASTINVSQRT_ENABLED	0	// Disabled due to precision problems.
-#endif
-
-OOINLINE float invsqrtf(float x) INLINE_CONST_FUNC;
-OOINLINE float fast_invsqrtf(float x) INLINE_CONST_FUNC;
-
-OOINLINE float invsqrtf(float x)
-{
-	return 1.0f/sqrtf(x);
-}
-
-OOINLINE float fast_invsqrtf(float x)
-{
-/*	This appears to have been responsible for a lack of laser accuracy, as
-	well as not working at all under Windows. Disabled for now.
-	Could probably be made faster on PPC using frsqrte[s], but would need to
-	ensure precision.
-*/
-#if FASTINVSQRT_ENABLED
-	float xhalf = 0.5f * x;
-	int i = *(int*)&x;
-	i = 0x5f3759df - (i>>1);
-	x = *(float*)&i;
-	x = x * (1.5f - xhalf * x * x);
-	return x;
-#else
-	return invsqrtf(x);
-#endif
-}
-
-
+#include "OOFastArithmetic.h"
 #include "OOVector.h"
 #include "OOMatrix.h"
 #include "OOQuaternion.h"

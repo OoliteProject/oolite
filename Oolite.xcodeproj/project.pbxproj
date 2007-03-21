@@ -226,6 +226,7 @@
 		1A29967F0B9F064C002D2149 /* OOCache.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A29967D0B9F064C002D2149 /* OOCache.m */; };
 		1A38B4AC0B988532001ED4A0 /* OOLogging.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A38B4AA0B988532001ED4A0 /* OOLogging.h */; };
 		1A38B4AD0B988532001ED4A0 /* OOLogging.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A38B4AB0B988532001ED4A0 /* OOLogging.m */; };
+		1A451D8D0BB1BD2A004CD72F /* OOMaths.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A9404920BAF4582005F6CF3 /* OOMaths.h */; };
 		1A472917096B5454000E78D8 /* CoreAudio.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1A472916096B5454000E78D8 /* CoreAudio.framework */; };
 		1A472921096B5468000E78D8 /* AudioToolbox.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1A47291F096B5468000E78D8 /* AudioToolbox.framework */; };
 		1A472922096B5468000E78D8 /* AudioUnit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1A472920096B5468000E78D8 /* AudioUnit.framework */; };
@@ -251,16 +252,20 @@
 		1A9404660BAF42BF005F6CF3 /* OOPListParsing.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A9404640BAF42BE005F6CF3 /* OOPListParsing.h */; };
 		1A9404670BAF42BF005F6CF3 /* OOPListParsing.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A9404650BAF42BF005F6CF3 /* OOPListParsing.m */; };
 		1A9404A30BAF462D005F6CF3 /* OOVector.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A9404A10BAF462D005F6CF3 /* OOVector.h */; };
-		1A9404A40BAF462D005F6CF3 /* OOVector.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A9404A20BAF462D005F6CF3 /* OOVector.m */; };
+		1A9404A40BAF462D005F6CF3 /* OOVector.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A9404A20BAF462D005F6CF3 /* OOVector.m */; settings = {COMPILER_FLAGS = "-O3 -falign-loops=32 -falign-loops-max-skip=31 -falign-functions=32"; }; };
 		1A9405380BAF4FA6005F6CF3 /* OOMatrix.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A9405360BAF4FA6005F6CF3 /* OOMatrix.h */; };
-		1A9405390BAF4FA6005F6CF3 /* OOMatrix.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A9405370BAF4FA6005F6CF3 /* OOMatrix.m */; };
+		1A9405390BAF4FA6005F6CF3 /* OOMatrix.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A9405370BAF4FA6005F6CF3 /* OOMatrix.m */; settings = {COMPILER_FLAGS = "-O3 -falign-loops=32 -falign-loops-max-skip=31 -falign-functions=32"; }; };
 		1A94057F0BAF52AD005F6CF3 /* OOQuaternion.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A94057D0BAF52AD005F6CF3 /* OOQuaternion.h */; };
-		1A9405800BAF52AD005F6CF3 /* OOQuaternion.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A94057E0BAF52AD005F6CF3 /* OOQuaternion.m */; };
+		1A9405800BAF52AD005F6CF3 /* OOQuaternion.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A94057E0BAF52AD005F6CF3 /* OOQuaternion.m */; settings = {COMPILER_FLAGS = "-O3 -falign-loops=32 -falign-loops-max-skip=31 -falign-functions=32"; }; };
 		1A94062B0BAF6170005F6CF3 /* OOBoundingBox.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A9406290BAF6170005F6CF3 /* OOBoundingBox.h */; };
 		1A9406840BAF66D6005F6CF3 /* OOVoxel.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A9406820BAF66D6005F6CF3 /* OOVoxel.h */; };
-		1A9406850BAF66D6005F6CF3 /* OOVoxel.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A9406830BAF66D6005F6CF3 /* OOVoxel.m */; };
+		1A9406850BAF66D6005F6CF3 /* OOVoxel.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A9406830BAF66D6005F6CF3 /* OOVoxel.m */; settings = {COMPILER_FLAGS = "-O3 -falign-loops=32 -falign-loops-max-skip=31 -falign-functions=32"; }; };
 		1A9406B40BAF67BF005F6CF3 /* OOTriangle.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A9406B20BAF67BF005F6CF3 /* OOTriangle.h */; };
-		1A9406B50BAF67BF005F6CF3 /* OOTriangle.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A9406B30BAF67BF005F6CF3 /* OOTriangle.m */; };
+		1A9406B50BAF67BF005F6CF3 /* OOTriangle.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A9406B30BAF67BF005F6CF3 /* OOTriangle.m */; settings = {COMPILER_FLAGS = "-O3 -falign-loops=32 -falign-loops-max-skip=31 -falign-functions=32"; }; };
+		1AB01ABE0BB15AED00F1B949 /* OOTextureScaling.h in Headers */ = {isa = PBXBuildFile; fileRef = 1AB01ABC0BB15AED00F1B949 /* OOTextureScaling.h */; };
+		1AB01B5F0BB1639600F1B949 /* OOTextureScaling.m in Sources */ = {isa = PBXBuildFile; fileRef = 1AB01ABD0BB15AED00F1B949 /* OOTextureScaling.m */; settings = {COMPILER_FLAGS = "-O3 -falign-loops=32 -fstrict-aliasing -falign-loops-max-skip=31"; }; };
+		1AB01BBB0BB16A8A00F1B949 /* OOFastArithmetic.h in Headers */ = {isa = PBXBuildFile; fileRef = 1AB01BB90BB16A8A00F1B949 /* OOFastArithmetic.h */; };
+		1AB01BBC0BB16A8A00F1B949 /* OOFastArithmetic.m in Sources */ = {isa = PBXBuildFile; fileRef = 1AB01BBA0BB16A8A00F1B949 /* OOFastArithmetic.m */; settings = {COMPILER_FLAGS = "-O3 -falign-loops=32 -falign-loops-max-skip=31 -falign-functions=32"; }; };
 		1AD9AFA60B91E24100FB704E /* ShipEntityAI.m in Sources */ = {isa = PBXBuildFile; fileRef = 1AD9AFA40B91E24100FB704E /* ShipEntityAI.m */; };
 		1AD9AFA70B91E24100FB704E /* ShipEntityAI.h in Headers */ = {isa = PBXBuildFile; fileRef = 1AD9AFA50B91E24100FB704E /* ShipEntityAI.h */; };
 		1AD9AFB10B91E24C00FB704E /* PlayerEntityContracts.h in Headers */ = {isa = PBXBuildFile; fileRef = 1AD9AFA90B91E24C00FB704E /* PlayerEntityContracts.h */; };
@@ -324,12 +329,12 @@
 		1AEAACDF0BA45895000705D0 /* JSUniverse.h in Headers */ = {isa = PBXBuildFile; fileRef = 1AEAACDA0BA45895000705D0 /* JSUniverse.h */; };
 		1AEAACE00BA45895000705D0 /* OXPScript.m in Sources */ = {isa = PBXBuildFile; fileRef = 1AEAACDB0BA45895000705D0 /* OXPScript.m */; };
 		1AEAACE10BA45895000705D0 /* ScriptEngine.h in Headers */ = {isa = PBXBuildFile; fileRef = 1AEAACDC0BA45895000705D0 /* ScriptEngine.h */; };
-		2512833E09BA27C100F43D55 /* Octree.m in Sources */ = {isa = PBXBuildFile; fileRef = 2512833C09BA27C100F43D55 /* Octree.m */; };
+		2512833E09BA27C100F43D55 /* Octree.m in Sources */ = {isa = PBXBuildFile; fileRef = 2512833C09BA27C100F43D55 /* Octree.m */; settings = {COMPILER_FLAGS = "-O3 -falign-loops=32 -falign-loops-max-skip=31 -falign-functions=32"; }; };
 		2512833F09BA27C100F43D55 /* Octree.h in Headers */ = {isa = PBXBuildFile; fileRef = 2512833D09BA27C100F43D55 /* Octree.h */; };
 		2512834209BA27EC00F43D55 /* Geometry.h in Headers */ = {isa = PBXBuildFile; fileRef = 2512834009BA27EC00F43D55 /* Geometry.h */; };
-		2512834309BA27EC00F43D55 /* Geometry.m in Sources */ = {isa = PBXBuildFile; fileRef = 2512834109BA27EC00F43D55 /* Geometry.m */; };
+		2512834309BA27EC00F43D55 /* Geometry.m in Sources */ = {isa = PBXBuildFile; fileRef = 2512834109BA27EC00F43D55 /* Geometry.m */; settings = {COMPILER_FLAGS = "-O3 -falign-loops=32 -falign-loops-max-skip=31 -falign-functions=32"; }; };
 		2512834609BA281500F43D55 /* CollisionRegion.h in Headers */ = {isa = PBXBuildFile; fileRef = 2512834409BA281500F43D55 /* CollisionRegion.h */; };
-		2512834709BA281500F43D55 /* CollisionRegion.m in Sources */ = {isa = PBXBuildFile; fileRef = 2512834509BA281500F43D55 /* CollisionRegion.m */; };
+		2512834709BA281500F43D55 /* CollisionRegion.m in Sources */ = {isa = PBXBuildFile; fileRef = 2512834509BA281500F43D55 /* CollisionRegion.m */; settings = {COMPILER_FLAGS = "-O3 -falign-loops=32 -falign-loops-max-skip=31 -falign-functions=32"; }; };
 		25160E2F0995362F0037C2E1 /* OOCocoa.h in Headers */ = {isa = PBXBuildFile; fileRef = 25160E2E0995362F0037C2E1 /* OOCocoa.h */; };
 		251610DD099544090037C2E1 /* OOCABufferedSound.h in Headers */ = {isa = PBXBuildFile; fileRef = 251610CA099544090037C2E1 /* OOCABufferedSound.h */; };
 		251610DE099544090037C2E1 /* OOCASoundMixer.h in Headers */ = {isa = PBXBuildFile; fileRef = 251610CB099544090037C2E1 /* OOCASoundMixer.h */; };
@@ -725,7 +730,7 @@
 		083325DC09DDBCDE00F5B8E4 /* OOColor.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOColor.m; sourceTree = "<group>"; };
 		083DB4D30A70E51E00B419B2 /* OOBrain.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOBrain.h; sourceTree = "<group>"; };
 		083DB4D40A70E51E00B419B2 /* OOBrain.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOBrain.m; sourceTree = "<group>"; };
-		0865432206B8447D000CA0AB /* OoliteDev.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = OoliteDev.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		0865432206B8447D000CA0AB /* Oolite.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Oolite.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		0878FD2F086EF845004CB752 /* Carbon.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Carbon.framework; path = /System/Library/Frameworks/Carbon.framework; sourceTree = "<absolute>"; };
 		1058C7A1FEA54F0111CA2CBB /* Cocoa.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Cocoa.framework; path = /System/Library/Frameworks/Cocoa.framework; sourceTree = "<absolute>"; };
 		1A23154E0B9C778400EF0852 /* solar.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = solar.png; sourceTree = "<group>"; };
@@ -970,6 +975,10 @@
 		1A9406B20BAF67BF005F6CF3 /* OOTriangle.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOTriangle.h; sourceTree = "<group>"; };
 		1A9406B30BAF67BF005F6CF3 /* OOTriangle.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOTriangle.m; sourceTree = "<group>"; };
 		1A9407BF0BAF7032005F6CF3 /* GNUmakefile */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = GNUmakefile; sourceTree = "<group>"; };
+		1AB01ABC0BB15AED00F1B949 /* OOTextureScaling.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOTextureScaling.h; sourceTree = "<group>"; };
+		1AB01ABD0BB15AED00F1B949 /* OOTextureScaling.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOTextureScaling.m; sourceTree = "<group>"; };
+		1AB01BB90BB16A8A00F1B949 /* OOFastArithmetic.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOFastArithmetic.h; sourceTree = "<group>"; };
+		1AB01BBA0BB16A8A00F1B949 /* OOFastArithmetic.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOFastArithmetic.m; sourceTree = "<group>"; };
 		1AC0E9460B974DC200C46994 /* GPL.TXT */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = GPL.TXT; sourceTree = "<group>"; };
 		1AC0E9470B974DC200C46994 /* FAQ.TXT */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = FAQ.TXT; sourceTree = "<group>"; };
 		1AC0E9480B974DC200C46994 /* ReadMe.rtfd */ = {isa = PBXFileReference; lastKnownFileType = wrapper.rtfd; path = ReadMe.rtfd; sourceTree = "<group>"; };
@@ -1113,7 +1122,6 @@
 		25CD0C4D09B4F5A70060106D /* Growl.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Growl.framework; path = "deps/Cocoa-deps/Growl.framework"; sourceTree = "<group>"; };
 		25F3E6300994F033002F25FD /* legacy_random.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = legacy_random.h; sourceTree = "<group>"; };
 		25F3E6320994F04C002F25FD /* legacy_random.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = legacy_random.c; sourceTree = "<group>"; };
-		25F3E6340994F05C002F25FD /* vector.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = vector.h; sourceTree = "<group>"; };
 		25F3E6380994F07A002F25FD /* entities.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = entities.h; sourceTree = "<group>"; };
 		25F3E63A0994F08A002F25FD /* OOOpenGL.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOOpenGL.h; sourceTree = "<group>"; };
 		25F3E6BC0994F30A002F25FD /* main.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = main.m; sourceTree = "<group>"; };
@@ -1186,7 +1194,7 @@
 		19C28FACFE9D520D11CA2CBB /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				0865432206B8447D000CA0AB /* OoliteDev.app */,
+				0865432206B8447D000CA0AB /* Oolite.app */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -1616,6 +1624,8 @@
 				1A231A170B9D8B1B00EF0852 /* OOCacheManager.m */,
 				1A29967C0B9F064C002D2149 /* OOCache.h */,
 				1A29967D0B9F064C002D2149 /* OOCache.m */,
+				1AB01ABC0BB15AED00F1B949 /* OOTextureScaling.h */,
+				1AB01ABD0BB15AED00F1B949 /* OOTextureScaling.m */,
 			);
 			name = "Resource Management";
 			sourceTree = "<group>";
@@ -1636,7 +1646,6 @@
 		1A8A3C1E0B9640B4007D20B8 /* Mathematics */ = {
 			isa = PBXGroup;
 			children = (
-				25F3E6340994F05C002F25FD /* vector.h */,
 				2512834009BA27EC00F43D55 /* Geometry.h */,
 				2512834109BA27EC00F43D55 /* Geometry.m */,
 				2512833D09BA27C100F43D55 /* Octree.h */,
@@ -1655,6 +1664,8 @@
 				1A9406830BAF66D6005F6CF3 /* OOVoxel.m */,
 				1A9406B20BAF67BF005F6CF3 /* OOTriangle.h */,
 				1A9406B30BAF67BF005F6CF3 /* OOTriangle.m */,
+				1AB01BB90BB16A8A00F1B949 /* OOFastArithmetic.h */,
+				1AB01BBA0BB16A8A00F1B949 /* OOFastArithmetic.m */,
 			);
 			name = Mathematics;
 			sourceTree = "<group>";
@@ -1942,6 +1953,9 @@
 				1A94062B0BAF6170005F6CF3 /* OOBoundingBox.h in Headers */,
 				1A9406840BAF66D6005F6CF3 /* OOVoxel.h in Headers */,
 				1A9406B40BAF67BF005F6CF3 /* OOTriangle.h in Headers */,
+				1AB01ABE0BB15AED00F1B949 /* OOTextureScaling.h in Headers */,
+				1AB01BBB0BB16A8A00F1B949 /* OOFastArithmetic.h in Headers */,
+				1A451D8D0BB1BD2A004CD72F /* OOMaths.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1973,7 +1987,7 @@
 			name = Oolite;
 			productInstallPath = "$(HOME)/Applications";
 			productName = Oolite;
-			productReference = 0865432206B8447D000CA0AB /* OoliteDev.app */;
+			productReference = 0865432206B8447D000CA0AB /* Oolite.app */;
 			productType = "com.apple.product-type.application";
 		};
 /* End PBXNativeTarget section */
@@ -2097,6 +2111,8 @@
 				1A9405800BAF52AD005F6CF3 /* OOQuaternion.m in Sources */,
 				1A9406850BAF66D6005F6CF3 /* OOVoxel.m in Sources */,
 				1A9406B50BAF67BF005F6CF3 /* OOTriangle.m in Sources */,
+				1AB01B5F0BB1639600F1B949 /* OOTextureScaling.m in Sources */,
+				1AB01BBC0BB16A8A00F1B949 /* OOFastArithmetic.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

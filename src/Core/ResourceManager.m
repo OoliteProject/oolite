@@ -450,7 +450,7 @@ NSMutableDictionary*	surface_cache;
 }
 
 
-+ (id) retrieveFileNamed:(NSString *)inFileName inFolder:(NSString *)inFolderName cache:(NSMutableDictionary **)ioCache key:(NSString *)inKey class:(Class)inClass;
++ (id) retrieveFileNamed:(NSString *)inFileName inFolder:(NSString *)inFolderName cache:(NSMutableDictionary **)ioCache key:(NSString *)inKey class:(Class)inClass
 {
 	OOMusic			*result = nil;
 	NSString		*foundPath = nil;

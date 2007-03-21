@@ -29,6 +29,7 @@ MA 02110-1301, USA.
 #import "Universe.h"
 #import "PlayerEntity.h"
 #import "PlayerEntityScripting.h"
+#import "OOFunctionAttributes.h"
 
 
 static NSString * const kOOLogStringVectorConversion			= @"strings.conversion.vector";
@@ -44,22 +45,25 @@ NSMutableArray *ScanTokensFromString(NSString *values)
 	NSMutableArray			*result = nil;
 	NSScanner				*scanner = nil;
 	NSString				*token = nil;
-	NSCharacterSet			*space_set = nil;
+	static NSCharacterSet	*space_set = nil;
 	
-	if (values == nil)  return [NSArray array];
+	// Note: Shark suggests we're getting a lot of early exits, but testing showed a pretty steady 2% early exit rate.
+	if (EXPECT_NOT(values == nil))  return [NSArray array];
 	
-	result = [NSMutableArray arrayWithCapacity:8];
+	if (EXPECT_NOT(space_set == nil)) space_set = [[NSCharacterSet whitespaceAndNewlineCharacterSet] retain];
 	
-	space_set = [NSCharacterSet whitespaceAndNewlineCharacterSet];
+	result = [NSMutableArray array];
 	scanner = [NSScanner scannerWithString:values];
+	
 	while (![scanner isAtEnd])
 	{
 		[scanner ooliteScanCharactersFromSet:space_set intoString:NULL];
 		if ([scanner ooliteScanUpToCharactersFromSet:space_set intoString:&token])
 		{
-			[result addObject:[NSString stringWithString:token]];
+			[result addObject:token];
 		}
 	}
+	
 	return result;
 }
 

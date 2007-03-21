@@ -45,7 +45,7 @@ Vector cross_product(Vector first, Vector second)
 	mag2 = result.x * result.x + result.y * result.y + result.z * result.z;
 	if (mag2 > 0.0)
 	{
-		det = invsqrtf(mag2);
+		det = OOInvSqrtf(mag2);
 		result.x *= det;	result.y *= det;	result.z *= det;
 		return result;
 	}
@@ -67,7 +67,7 @@ Vector fast_cross_product(Vector first, Vector second)
 	mag2 = result.x * result.x + result.y * result.y + result.z * result.z;
 	if (mag2 > 0.0)
 	{
-		det = fast_invsqrtf(mag2);
+		det = OOFastInvSqrtf(mag2);
 		result.x *= det;	result.y *= det;	result.z *= det;
 		return result;
 	}

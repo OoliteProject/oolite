@@ -2612,7 +2612,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	double distance = [self rangeToDestination];
 	if (range < slow_down_range)
 	{
-		desired_speed = MAX(target_speed, 0.25 * max_flight_speed);
+		desired_speed = OOMax_d(target_speed, 0.25 * max_flight_speed);
 		// avoid head-on collision
 		//
 		if ((range < 0.5 * distance)&&(behaviour == BEHAVIOUR_ATTACK_FLY_TO_TARGET_SIX))
@@ -2628,7 +2628,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	{
 		behaviour = BEHAVIOUR_ATTACK_FLY_TO_TARGET;
 		frustration = 0.0;
-		desired_speed = MAX(target_speed, 0.25 * max_flight_speed);   // within the weapon's range don't use afterburner
+		desired_speed = OOMax_d(target_speed, 0.25 * max_flight_speed);   // within the weapon's range don't use afterburner
 	}
 
 	// target-six
@@ -2744,7 +2744,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	ShipEntity*	target = (ShipEntity*)[universe entityForUniversalID:primaryTarget];
 	double target_speed = [target getVelocityAsSpeed];
 	if (range <= slow_down_range)
-		desired_speed = MAX(target_speed, 0.25 * max_flight_speed);   // within the weapon's range match speed
+		desired_speed = OOMax_d(target_speed, 0.25 * max_flight_speed);   // within the weapon's range match speed
 	else
 		desired_speed = max_available_speed; // use afterburner to approach
 

@@ -59,23 +59,23 @@ OOINLINE GLfloat bounding_box_max_radius(BoundingBox bb) CONST_FUNC;
 
 OOINLINE void bounding_box_add_vector(BoundingBox *box, Vector vec)
 {
-	box->min.x = MIN(box->min.x, vec.x);
-	box->max.x = MAX(box->max.x, vec.x);
-	box->min.y = MIN(box->min.y, vec.y);
-	box->max.y = MAX(box->max.y, vec.y);
-	box->min.z = MIN(box->min.z, vec.z);
-	box->max.z = MAX(box->max.z, vec.z);
+	box->min.x = OOMin_f(box->min.x, vec.x);
+	box->max.x = OOMax_f(box->max.x, vec.x);
+	box->min.y = OOMin_f(box->min.y, vec.y);
+	box->max.y = OOMax_f(box->max.y, vec.y);
+	box->min.z = OOMin_f(box->min.z, vec.z);
+	box->max.z = OOMax_f(box->max.z, vec.z);
 }
 
 
 void bounding_box_add_xyz(BoundingBox *box, GLfloat x, GLfloat y, GLfloat z)
 {
-	box->min.x = MIN(box->min.x, x);
-	box->max.x = MAX(box->max.x, x);
-	box->min.y = MIN(box->min.y, y);
-	box->max.y = MAX(box->max.y, y);
-	box->min.z = MIN(box->min.z, z);
-	box->max.z = MAX(box->max.z, z);
+	box->min.x = OOMin_f(box->min.x, x);
+	box->max.x = OOMax_f(box->max.x, x);
+	box->min.y = OOMin_f(box->min.y, y);
+	box->max.y = OOMax_f(box->max.y, y);
+	box->min.z = OOMin_f(box->min.z, z);
+	box->max.z = OOMax_f(box->max.z, z);
 }
 
 
@@ -94,10 +94,10 @@ OOINLINE void bounding_box_reset_to_vector(BoundingBox *box, Vector vec)
 
 OOINLINE GLfloat bounding_box_max_radius(BoundingBox bb)
 {
-	GLfloat x = MAX(bb.max.x, -bb.min.x);
-	GLfloat y = MAX(bb.max.y, -bb.min.y);
-	GLfloat z = MAX(bb.max.z, -bb.min.z);
-	return MAX(MAX(x, y), z);
+	GLfloat x = OOMax_f(bb.max.x, -bb.min.x);
+	GLfloat y = OOMax_f(bb.max.y, -bb.min.y);
+	GLfloat z = OOMax_f(bb.max.z, -bb.min.z);
+	return OOMax_f(OOMax_f(x, y), z);
 }
 
 #endif

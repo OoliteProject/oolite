@@ -375,6 +375,7 @@ void OOLoggingInit(void)
 NSString * const kOOLogSubclassResponsibility		= @"general.error.subclassResponsibility";
 NSString * const kOOLogParameterError				= @"general.error.parameterError";
 NSString * const kOOLogDeprecatedMethod				= @"general.error.deprecatedMethod";
+NSString * const kOOLogAllocationFailure			= @"general.error.allocationFailure";
 NSString * const kOOLogException					= @"exception";
 NSString * const kOOLogFileNotFound					= @"files.notFound";
 NSString * const kOOLogFileNotLoaded				= @"files.notLoaded";

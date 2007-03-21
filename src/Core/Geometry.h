@@ -40,7 +40,7 @@ MA 02110-1301, USA.
 	BOOL		isConvex;				// set at initialisation to NO
 }
 
-- (id) initWithCapacity:(int) amount;
+- (id) initWithCapacity:(unsigned)amount;
 
 - (BOOL) isConvex;
 - (void) setConvex:(BOOL) value;
@@ -53,7 +53,7 @@ MA 02110-1301, USA.
 - (GLfloat) findMaxDimensionFromOrigin;
 
 - (Octree*) findOctreeToDepth: (int) depth;
-- (NSObject*) octreeWithinRadius:(GLfloat) octreeRadius toDepth: (int) depth;
+- (id) octreeWithinRadius:(GLfloat) octreeRadius toDepth: (int) depth;
 
 - (void) translate:(Vector) offset;
 - (void) scale:(GLfloat) scalar;

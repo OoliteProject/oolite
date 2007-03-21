@@ -157,7 +157,7 @@ OOINLINE GLfloat fast_magnitude(Vector vec)
 {
 	#if FASTINVSQRT_ENABLED
 		float mag2 = magnitude2(vec);
-		return mag2 * fast_invsqrtf(mag2);	// x = sqrt(x) * sqrt(x); x * 1/sqrt(x) = (sqrt(x) * sqrt(x))/sqrt(x) = sqrt(x).
+		return mag2 * OOFastInvSqrtf(mag2);	/* x = sqrt(x) * sqrt(x); x * 1/sqrt(x) = (sqrt(x) * sqrt(x))/sqrt(x) = sqrt(x). */
 	#else
 		return magnitude(vec);
 	#endif
@@ -172,7 +172,7 @@ OOINLINE Vector vector_normal(Vector vec)
 		ReportNormalizeZeroVector();
 		return kZeroVector;
 	}
-	return vector_multiply_scalar(vec, invsqrtf(mag2));
+	return vector_multiply_scalar(vec, OOInvSqrtf(mag2));
 }
 
 
@@ -184,7 +184,7 @@ OOINLINE Vector fast_vector_normal(Vector vec)
 		ReportNormalizeZeroVector();
 		return kZeroVector;
 	}
-	return vector_multiply_scalar(vec, fast_invsqrtf(mag2));
+	return vector_multiply_scalar(vec, OOFastInvSqrtf(mag2));
 }
 
 

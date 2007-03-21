@@ -117,7 +117,7 @@ OOINLINE void quaternion_normalize(Quaternion *quat)
     GLfloat	y = quat->y;
     GLfloat	z = quat->z;
 	
-    GLfloat	lv = invsqrtf(w*w + x*x + y*y + z*z);
+    GLfloat	lv = OOInvSqrtf(w*w + x*x + y*y + z*z);
 	
     quat->w = lv * w;
     quat->x = lv * x;
@@ -133,7 +133,7 @@ OOINLINE void fast_quaternion_normalize(Quaternion *quat)
     GLfloat	y = quat->y;
     GLfloat	z = quat->z;
 	
-    GLfloat	lv = fast_invsqrtf(w*w + x*x + y*y + z*z);
+    GLfloat	lv = OOFastInvSqrtf(w*w + x*x + y*y + z*z);
 	
     quat->w = lv * w;
     quat->x = lv * x;

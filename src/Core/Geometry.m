@@ -27,6 +27,7 @@ MA 02110-1301, USA.
 #import "OOMaths.h"
 #import "Octree.h"
 #import "ShipEntity.h"
+#import "OOLogging.h"
 
 
 @implementation Geometry
@@ -37,14 +38,16 @@ MA 02110-1301, USA.
 	return [result autorelease];
 }
 
-- (id) initWithCapacity:(int) amount
+- (id)initWithCapacity:(unsigned)amount
 {
 	if (amount < 1)
 		return nil;
 	self = [super init];
 	
+//	OOLog(@"geometry.init", @"Geometry inited with capacity %i", amount);
+	
 	max_triangles = amount;
-	triangles = (Triangle*) malloc( max_triangles * sizeof(Triangle));	// allocate the required space
+	triangles = malloc( max_triangles * sizeof(Triangle));	// allocate the required space
 	n_triangles = 0;
 	isConvex = NO;
 	
@@ -53,7 +56,7 @@ MA 02110-1301, USA.
 
 - (void) dealloc
 {
-	free((void *)triangles);	// free up the allocated space
+	free(triangles);	// free up the allocated space
 	[super dealloc];
 }
 
@@ -67,6 +70,8 @@ MA 02110-1301, USA.
 	isConvex = value;
 }
 
+
+// SLOW_CODE This is a relatively costly method. A lot of growing is done despite the 1 + capacity * 2 growth rate.
 - (void) addTriangle:(Triangle) tri
 {
 	// check for degenerate triangles
@@ -79,24 +84,35 @@ MA 02110-1301, USA.
 	// clear!
 	//
 	// check for no-more-room
-	if (n_triangles == max_triangles)
+	if (EXPECT_NOT(n_triangles == max_triangles))
 	{
 		// create more space by doubling the capacity of this geometry...
-		int i;
-		max_triangles = 1 + max_triangles * 2;
-		Triangle* old_triangles = triangles;
-		Triangle* new_triangles = (Triangle *) malloc( max_triangles * sizeof(Triangle));
-		
-		if (!new_triangles)	// couldn't allocate space
-		{
-			NSLog(@" --- ran out of memory to allocate more geometry!");
-			exit(-1);
-		}
-		
-		for (i = 0; i < n_triangles; i++)
-			new_triangles[i] = old_triangles[i];	// copy old->new
-		triangles = new_triangles;
-		free((void *) old_triangles);	// free up previous memory
+		#if 0
+			int i;
+			max_triangles = 1 + max_triangles * 2;
+			Triangle* old_triangles = triangles;
+			Triangle* new_triangles = (Triangle *) malloc( max_triangles * sizeof(Triangle));
+			
+			if (!new_triangles)	// couldn't allocate space
+			{
+				NSLog(@" --- ran out of memory to allocate more geometry!");
+				exit(-1);
+			}
+			
+			for (i = 0; i < n_triangles; i++)
+				new_triangles[i] = old_triangles[i];	// copy old->new
+			triangles = new_triangles;
+			free((void *) old_triangles);	// free up previous memory
+		#else
+		//	OOLog(@"geometry.grow", @"Expanding geometry %p from %u to %u triangles.", self, max_triangles, 1 + max_triangles * 2);
+			max_triangles = 1 + max_triangles * 2;
+			triangles = realloc(triangles, max_triangles * sizeof(Triangle));
+			if (EXPECT_NOT(triangles == NULL))
+			{
+				OOLog(kOOLogAllocationFailure, @"!!!!! Ran out of memory to allocate more geometry!");
+				exit(-1);
+			}
+		#endif
 	}
 	triangles[n_triangles++] = tri;
 }
@@ -197,7 +213,7 @@ static float volumecount;
 	return [octreeRepresentation autorelease];
 }
 
-- (NSObject*) octreeWithinRadius:(GLfloat) octreeRadius toDepth: (int) depth;
+- (id) octreeWithinRadius:(GLfloat) octreeRadius toDepth: (int) depth;
 {
 	//
 	GLfloat offset = 0.5 * octreeRadius;
@@ -229,6 +245,7 @@ static float volumecount;
 		}
 	}
 	//
+	// SLOW_CODE -- all these allocations and deallocations are quite costly. Would a bucket allocator work? --ahruman
 	Geometry* g_000 = [(Geometry *)[Geometry alloc] initWithCapacity:n_triangles];
 	Geometry* g_001 = [(Geometry *)[Geometry alloc] initWithCapacity:n_triangles];
 	Geometry* g_010 = [(Geometry *)[Geometry alloc] initWithCapacity:n_triangles];

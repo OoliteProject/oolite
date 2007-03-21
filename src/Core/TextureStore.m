@@ -31,6 +31,7 @@ MA 02110-1301, USA.
 #import "TextureStore.h"
 #import "OOColor.h"
 #import "OOMaths.h"
+#import "OOTextureScaling.h"
 
 
 static NSString * const kOOLogPlanetTextureGen = @"texture.planet.generate";
@@ -161,11 +162,9 @@ GLuint	max_texture_dimension = 512;	// conservative start
 	imageSize = NSMakeSize([texImage surface]->w, [texImage surface]->h);
 	image_w = imageSize.width;
 	image_h = imageSize.height;
-
-	while (texture_w < image_w)
-		texture_w *= 2;
-	while (texture_h < image_h)
-		texture_h *= 2;
+	
+	texture_w = OORoundUpToPowerOf2(image_w);
+	texture_h = OORoundUpToPowerOf2(image_h);
 
 	n_planes = [texImage surface]->format->BytesPerPixel;
 	im_bytesPerRow = [texImage surface]->pitch;
@@ -187,7 +186,7 @@ GLuint	max_texture_dimension = 512;	// conservative start
 		NSLog(@"DEBUG filling image data for %@ (%d x %d) with special sauce!", filename, texture_w, texture_h);
 		ranrot_srand( 12345);
 		fillRanNoiseBuffer();
-		fillSquareImageWithPlanetTex( imageBuffer, texture_w, n_planes, 1.0, -0.5,
+		fillSquareImageWithPlanetTex( imageBuffer, texture_w, n_planes, 1.0f, -0.5f,
 			[OOColor blueColor],
 			[OOColor cyanColor],
 			[OOColor greenColor],
@@ -199,64 +198,13 @@ GLuint	max_texture_dimension = 512;	// conservative start
 		NSLog(@"DEBUG filling image data for %@ (%d x %d) with extra-special sauce!", filename, texture_w, texture_h);
 		ranrot_srand( 12345);
 		fillRanNoiseBuffer();
-		fillSquareImageWithPlanetNMap( imageBuffer, texture_w, n_planes, 1.0, -0.5, 64.0);
+		fillSquareImageWithPlanetNMap( imageBuffer, texture_w, n_planes, 1.0f, -0.5f, 64.0f);
 	}
 
 	if ((texture_w > image_w)||(texture_h > image_h))	// we need to scale the image up to the texture dimensions
 	{
-		texBytes = malloc(tex_bytes);
+		texBytes = ScaleUpPixMap(imageBuffer, image_w, image_h, im_bytesPerRow, n_planes, texture_w, texture_h);
 		freeTexBytes = YES;
-
-		// do bilinear scaling
-		int x, y, n;
-		float texel_w = (float)image_w / (float)texture_w;
-		float texel_h = (float)image_h / (float)texture_h;
-//			NSLog(@"scaling image %@ : %@\n scale (%d  x %d) to (%d x %d) texels: (%.3f x %.3f)", filename, texImage, image_w, image_h, texture_w, texture_h, texel_w, texel_h);
-
-		for ( y = 0; y < texture_h; y++)
-		{
-			float y_lo = texel_h * y;
-			float y_hi = y_lo + texel_h - 0.001;
-			int y0 = floor(y_lo);
-			int y1 = floor(y_hi);
-
-			float py0 = 1.0;
-			float py1 = 0.0;
-			if (y1 > y0)
-			{
-				py0 = (y1 - y_lo) / texel_h;
-				py1 = 1.0 - py0;
-			}
-
-			for ( x = 0; x < texture_w; x++)
-			{
-				float x_lo = texel_w * x;
-				float x_hi = x_lo + texel_w - 0.001;
-				int x0 = floor(x_lo);
-				int x1 = floor(x_hi);
-				float acc = 0;
-
-				float px0 = 1.0;
-				float px1 = 0.0;
-				if (x1 > x0)
-				{
-					px0 = (x1 - x_lo) / texel_w;
-					px1 = 1.0 - px0;
-				}
-
-				int	xy00 = y0 * im_bytesPerRow + n_planes * x0;
-				int	xy01 = y0 * im_bytesPerRow + n_planes * x1;
-				int	xy10 = y1 * im_bytesPerRow + n_planes * x0;
-				int	xy11 = y1 * im_bytesPerRow + n_planes * x1;
-
-				for (n = 0; n < n_planes; n++)
-				{
-					acc = py0 * (px0 * imageBuffer[ xy00 + n] + px1 * imageBuffer[ xy10 + n])
-						+ py1 * (px0 * imageBuffer[ xy01 + n] + px1 * imageBuffer[ xy11 + n]);
-					texBytes[ texi++] = (char)acc;	// float -> char
-				}
-			}
-		}
 	}
 	else
 	{
@@ -267,7 +215,6 @@ GLuint	max_texture_dimension = 512;	// conservative start
 
 	if ((texture_w > max_d)||(texture_h > max_d))	// we need to scale the texture down to the maximum texture dimensions
 	{
-	
 		NSLog(@"INFORMATION: texture '%@' is %d x %d - too large for this version of OpenGL, it will be scaled down.",
 			filename, image_w, image_h);
 		
@@ -281,7 +228,7 @@ GLuint	max_texture_dimension = 512;	// conservative start
 		int sx = texture_w / tex_w;	// samples per x
 		int sy = texture_h / tex_h;	// samples per x
 		//
-		float ds = 1.0 / (sx * sy);
+		float ds = 1.0f / (sx * sy);
 		//
 		texi = 0;
 		//
@@ -353,7 +300,7 @@ GLuint	max_texture_dimension = 512;	// conservative start
 
 	[textureUniversalDictionary setObject:texProps forKey:filename];
 	[textureUniversalDictionary setObject:filename forKey:[NSNumber numberWithInt:texName]];
-
+	
 	return texName;
 }
 
