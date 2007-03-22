@@ -927,7 +927,7 @@ static BOOL GetShaderSource(NSString *shaderType, NSDictionary *shaderDict, NSSt
 		if (result == nil && ![[[shaderName pathExtension] lowercaseString] isEqual:shaderType])
 		{
 			// Futureproofing -- in future, we may wish to support automatic selection between supported shader languages.
-			result = [ResourceManager stringFromFilesNamed:[shaderName stringByAppendingPathExtension:@"fragment"]
+			result = [ResourceManager stringFromFilesNamed:[shaderName stringByAppendingPathExtension:shaderType]
 												  inFolder:@"Shaders"];
 		}
 		if (result == nil)
