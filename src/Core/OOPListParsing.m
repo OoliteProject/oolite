@@ -49,6 +49,7 @@ typedef struct
 } OOXMLElement;
 
 
+static NSData *CopyDataFromFile(NSString *path);
 static id ValueIfClass(id value, Class class);
 static id ParseXMLPropertyList(NSData *data, NSString *whereFrom);
 
@@ -101,7 +102,7 @@ id OOPropertyListFromFile(NSString *path)
 	if (path != nil)
 	{
 		// Load file, if it exists...
-		data = [[NSData alloc] initWithContentsOfMappedFile:path];
+		data = CopyDataFromFile(path);
 		if (data != nil)
 		{
 			// ...and parse it
@@ -112,6 +113,31 @@ id OOPropertyListFromFile(NSString *path)
 	}
 	
 	return result;
+}
+
+
+/*	Load data from file. Returns a retained pointer.
+	-initWithContentsOfMappedFile fails quietly under OS X if there's no file,
+	but GNUstep complains.
+*/
+static NSData *CopyDataFromFile(NSString *path)
+{
+	NSFileManager	*fmgr = [NSFileManager defaultManager];
+	BOOL			dir;
+	
+	if ([fmgr fileExistsAtPath:path isDirectory:&dir])
+	{
+		if (!dir)
+		{
+			return [[NSData alloc] initWithContentsOfMappedFile:path];
+		}
+		else
+		{
+			OOLog(kOOLogFileNotFound, @"Expected property list but found directory at %@", path);
+		}
+	}
+	
+	return nil;
 }
 
 
