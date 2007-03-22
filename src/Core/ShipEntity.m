@@ -61,6 +61,25 @@ static NSString * const kOOLogShaderInitDumpShaderInfo	= @"rendering.opengl.shad
 static NSString * const kOOLogShaderInitSuccess			= @"rendering.opengl.shader.init.success";
 static NSString * const kOOLogShaderInitFailed			= @"rendering.opengl.shader.init.failed";
 
+#ifdef GNUSTEP
+void loadOpenGLFunctions()
+{
+	glGetObjectParameterivARB = (PFNGLGETOBJECTPARAMETERIVARBPROC)wglGetProcAddress("glGetObjectParameterivARB");
+	glCreateShaderObjectARB = (PFNGLCREATESHADEROBJECTARBPROC)wglGetProcAddress("glCreateShaderObjectARB");
+	glGetInfoLogARB = (PFNGLGETINFOLOGARBPROC)wglGetProcAddress("glGetInfoLogARB");
+	glCreateProgramObjectARB = (PFNGLCREATEPROGRAMOBJECTARBPROC)wglGetProcAddress("glCreateProgramObjectARB");
+	glAttachObjectARB = (PFNGLATTACHOBJECTARBPROC)wglGetProcAddress("glAttachObjectARB");
+	glDeleteObjectARB = (PFNGLDELETEOBJECTARBPROC)wglGetProcAddress("glDeleteObjectARB");
+	glLinkProgramARB = (PFNGLLINKPROGRAMARBPROC)wglGetProcAddress("glLinkProgramARB");
+	glCompileShaderARB = (PFNGLCOMPILESHADERARBPROC)wglGetProcAddress("glCompileShaderARB");
+	glShaderSourceARB = (PFNGLSHADERSOURCEARBPROC)wglGetProcAddress("glShaderSourceARB");
+	glUseProgramObjectARB = (PFNGLUSEPROGRAMOBJECTARBPROC)wglGetProcAddress("glUseProgramObjectARB");
+	glActiveTextureARB = (PFNGLACTIVETEXTUREARBPROC)wglGetProcAddress("glActiveTextureARB");
+	glGetUniformLocationARB = (PFNGLGETUNIFORMLOCATIONARBPROC)wglGetProcAddress("glGetUniformLocationARB");
+	glUniform1iARB = (PFNGLUNIFORM1IARBPROC)wglGetProcAddress("glUniform1iARB");
+	glUniform1fARB = (PFNGLUNIFORM1FARBPROC)wglGetProcAddress("glUniform1fARB");
+}
+#endif
 
 @implementation ShipEntity
 
@@ -3309,6 +3328,13 @@ void testForShaders()
 		OOLog(kOOLogOpenGLShaderSupport, @"INFORMATION: shaders require the GL_ARB_vertex_shader OpenGL extension, which is not present.");
 		return;
 	}
+
+#ifdef GNUSTEP
+	// I am assuming none of the extensions will be used before this call because they have only just been checked for.
+	// Note this this won't be called unless everything required is available because all the checks about return immediately
+	// if a required extension is not found.
+	loadOpenGLFunctions();
+#endif
 #endif
 }
 

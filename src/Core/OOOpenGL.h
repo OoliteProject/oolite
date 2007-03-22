@@ -45,4 +45,20 @@ MA 02110-1301, USA.
 // include an up-to-date version of glext.h
 #include <GL/glext.h>
 
+// Define the function pointers for the OpenGL extensions used in the game - this is not required on the Mac, but is on at least Windows.
+PFNGLUSEPROGRAMOBJECTARBPROC glUseProgramObjectARB;
+PFNGLACTIVETEXTUREARBPROC glActiveTextureARB;
+PFNGLGETUNIFORMLOCATIONARBPROC glGetUniformLocationARB;
+PFNGLUNIFORM1IARBPROC glUniform1iARB;
+PFNGLUNIFORM1FARBPROC glUniform1fARB;
+PFNGLGETOBJECTPARAMETERIVARBPROC glGetObjectParameterivARB;
+PFNGLCREATESHADEROBJECTARBPROC glCreateShaderObjectARB;
+PFNGLGETINFOLOGARBPROC glGetInfoLogARB;
+PFNGLCREATEPROGRAMOBJECTARBPROC glCreateProgramObjectARB;
+PFNGLATTACHOBJECTARBPROC glAttachObjectARB;
+PFNGLDELETEOBJECTARBPROC glDeleteObjectARB;
+PFNGLLINKPROGRAMARBPROC glLinkProgramARB;
+PFNGLCOMPILESHADERARBPROC glCompileShaderARB;
+PFNGLSHADERSOURCEARBPROC glShaderSourceARB;
+
 #endif
