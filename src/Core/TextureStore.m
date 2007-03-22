@@ -34,14 +34,13 @@ MA 02110-1301, USA.
 #import "OOTextureScaling.h"
 
 
-static NSString * const kOOLogPlanetTextureGen = @"texture.planet.generate";
+static NSString * const kOOLogPlanetTextureGen			= @"texture.planet.generate";
+static NSString * const kOOLogShaderInitSuccess			= @"rendering.opengl.shader.init.success";
+static NSString * const kOOLogShaderInitFailed			= @"rendering.opengl.shader.init.failed";
 
 
-#ifdef M_PI
-	#define PI M_PI	// C99, apparently
-#else
-	#define PI	3.1415926536
-#endif
+static BOOL GetShaderSource(NSString *shaderType, NSDictionary *shaderDict, NSString **outResult);
+
 
 @implementation TextureStore
 
@@ -333,145 +332,138 @@ GLuint	max_texture_dimension = 512;	// conservative start
 		return 0;	// failed!
 	}
 	
-	GLhandleARB fragment_shader_object = nil;
-	GLhandleARB vertex_shader_object = nil;
-
+	GLhandleARB	fragment_shader_object = NULL;
+	GLhandleARB	vertex_shader_object = NULL;
+	GLhandleARB	shader_program = NULL;
+	
+	NSString	*fragmentSource = nil;
+	NSString	*vertexSource = nil;
+	
+	BOOL		OK = YES;
+	
+	if (!GetShaderSource(@"fragment", shaderDict, &fragmentSource)) return NULL;
+	if (fragmentSource == nil) [shaderDict objectForKey:@"glsl"];
+	
+	if (!GetShaderSource(@"vertex", shaderDict, &vertexSource)) return NULL;
+	
+	if (fragmentSource == nil && vertexSource == nil)
+	{
+		OOLog(kOOLogShaderInitFailed, @"Shader dictionary specifies neither vertex shader nor fragment shader:\n", shaderDict);
+		return NULL;
+	}
+	
 	// check if we need to make a fragment shader
-	if ([shaderDict objectForKey:@"glsl"])
+	if (fragmentSource != nil)
 	{
 		GLhandleARB shader_object = glCreateShaderObjectARB(GL_FRAGMENT_SHADER_ARB);	// a fragment shader
 		if (!shader_object)
 		{
-			NSLog(@"GLSL ERROR: could not create a fragment shader with glCreateShaderObjectARB()");
-			return 0;	// failed!
-		}
-	
-		NSString* glslSourceString = (NSString*)[shaderDict objectForKey:@"glsl"];
-		const GLcharARB *fragment_string;
-		fragment_string = [glslSourceString cString];
-		glShaderSourceARB( shader_object, 1, &fragment_string, NULL);
-	
-		// compile the shader!
-		glCompileShaderARB( shader_object);
-		GLint result;
-		glGetObjectParameterivARB( shader_object, GL_OBJECT_COMPILE_STATUS_ARB, &result);
-		if (result != GL_TRUE)
-		{
-			char log[1024];
-			GLsizei log_length;
-			glGetInfoLogARB( shader_object, 1024, &log_length, log);
-			NSLog(@"GLSL ERROR: shader code would not compile:\n%s\n\n%@\n\n", log, [shaderDict objectForKey:@"glsl"]);
-			return 0;	// failed!
+			NSLog(kOOLogShaderInitFailed, @"GLSL ERROR: could not create a fragment shader with glCreateShaderObjectARB()");
+			OK = NO;
 		}
 		
-		fragment_shader_object = shader_object;
-	
-	}
-	else if ([shaderDict objectForKey:@"glsl-fragment"])
-	{
-		GLhandleARB shader_object = glCreateShaderObjectARB(GL_FRAGMENT_SHADER_ARB);	// a fragment shader
-		if (!shader_object)
+		if (OK)
 		{
-			NSLog(@"GLSL ERROR: could not create a fragment shader with glCreateShaderObjectARB()");
-			return 0;	// failed!
+			const GLcharARB *fragment_string;
+			fragment_string = [fragmentSource cString];
+			glShaderSourceARB(shader_object, 1, &fragment_string, NULL);
+		
+			// compile the shader!
+			glCompileShaderARB(shader_object);
+			GLint result;
+			glGetObjectParameterivARB(shader_object, GL_OBJECT_COMPILE_STATUS_ARB, &result);
+			if (result != GL_TRUE)
+			{
+				char log[1024];
+				GLsizei log_length;
+				glGetInfoLogARB( shader_object, 1024, &log_length, log);
+				NSLog(kOOLogShaderInitFailed, @"GLSL ERROR: shader code would not compile:\n%s\n\n%@\n\n", log, fragmentSource);
+				OK = NO;
+			}
+			fragment_shader_object = shader_object;
 		}
-	
-		NSString* glslSourceString = (NSString*)[shaderDict objectForKey:@"glsl-fragment"];
-		const GLcharARB *fragment_string;
-		fragment_string = [glslSourceString cString];
-		glShaderSourceARB( shader_object, 1, &fragment_string, NULL);
-
-		// compile the shader!
-		glCompileShaderARB( shader_object);
-		GLint result;
-		glGetObjectParameterivARB( shader_object, GL_OBJECT_COMPILE_STATUS_ARB, &result);
-		if (result != GL_TRUE)
-		{
-			char log[1024];
-			GLsizei log_length;
-			glGetInfoLogARB( shader_object, 1024, &log_length, log);
-			NSLog(@"GLSL ERROR: shader code would not compile:\n%s\n\n%@\n\n", log, [shaderDict objectForKey:@"glsl-fragment"]);
-			return 0;	// failed!
-		}
-	
-		fragment_shader_object = shader_object;
 	}
 	
 	// check if we need to make a vertex shader
-	if ([shaderDict objectForKey:@"glsl-vertex"])
+	if (vertexSource)
 	{
 		GLhandleARB shader_object = glCreateShaderObjectARB(GL_VERTEX_SHADER_ARB);	// a vertex shader
 		if (!shader_object)
 		{
-			NSLog(@"GLSL ERROR: could not create a vertex shader with glCreateShaderObjectARB()");
-			return 0;	// failed!
+			NSLog(kOOLogShaderInitFailed, @"GLSL ERROR: could not create a fragment shader with glCreateShaderObjectARB()");
+			OK = NO;
 		}
-	
-		NSString* glslSourceString = (NSString*)[shaderDict objectForKey:@"glsl-vertex"];
-		const GLcharARB *vertex_string;
-		vertex_string = [glslSourceString cString];
-		glShaderSourceARB( shader_object, 1, &vertex_string, NULL);
+		
+		if (OK)
+		{
+			const GLcharARB *vertex_string;
+			vertex_string = [vertexSource cString];
+			glShaderSourceARB(shader_object, 1, &vertex_string, NULL);
 
-		// compile the shader!
-		glCompileShaderARB( shader_object);
+			// compile the shader!
+			glCompileShaderARB(shader_object);
+			GLint result;
+			glGetObjectParameterivARB(shader_object, GL_OBJECT_COMPILE_STATUS_ARB, &result);
+			if (result != GL_TRUE)
+			{
+				char log[1024];
+				GLsizei log_length;
+				glGetInfoLogARB( shader_object, 1024, &log_length, log);
+				OOLog(kOOLogShaderInitFailed, @"GLSL ERROR: shader code would not compile:\n%s\n\n%@\n\n", log, vertexSource);
+				OK = NO;
+			}
+			vertex_shader_object = shader_object;
+		}
+	}
+	
+	if (OK && !fragment_shader_object && !vertex_shader_object)
+	{
+		OOLog(kOOLogShaderInitFailed, @"GLSL ERROR: could not create any shaders from %@", shaderDict);
+		OK = NO;
+	}
+
+	// create a shader program
+	if (OK)
+	{
+		shader_program = glCreateProgramObjectARB();
+		if (!shader_program)
+		{
+			OOLog(kOOLogShaderInitFailed, @"GLSL ERROR: could not create a shader program with glCreateProgramObjectARB()");
+			OK = NO;
+		}
+	}
+	
+	if (OK)
+	{
+		// attach the shader objects
+		if (vertex_shader_object)  glAttachObjectARB(shader_program, vertex_shader_object);
+		if (fragment_shader_object)  glAttachObjectARB(shader_program, fragment_shader_object);
+		
+		// link the program
+		glLinkProgramARB(shader_program);
 		GLint result;
-		glGetObjectParameterivARB( shader_object, GL_OBJECT_COMPILE_STATUS_ARB, &result);
+		glGetObjectParameterivARB(shader_program, GL_OBJECT_LINK_STATUS_ARB, &result);
 		if (result != GL_TRUE)
 		{
 			char log[1024];
 			GLsizei log_length;
-			glGetInfoLogARB( shader_object, 1024, &log_length, log);
-			NSLog(@"GLSL ERROR: shader code would not compile:\n%s\n\n%@\n\n", log, [shaderDict objectForKey:@"glsl-vertex"]);
-			return 0;	// failed!
+			glGetInfoLogARB(shader_program, 1024, &log_length, log);
+			OOLog(kOOLogShaderInitFailed, @"GLSL ERROR: shader program would not link:\n%s\n\n%@\n\n", log, shaderDict);
+			OK = NO;
 		}
-		vertex_shader_object = shader_object;
+	}
+	if (vertex_shader_object != NULL) glDeleteObjectARB(vertex_shader_object);
+	if (fragment_shader_object != NULL) glDeleteObjectARB(fragment_shader_object);
+	if (!OK && shader_program != NULL) glDeleteObjectARB(shader_program);
+	
+	if (OK)
+	{
+		// store the resulting program for reuse
+		if (!shaderUniversalDictionary)  shaderUniversalDictionary = [[NSMutableDictionary dictionary] retain];
+		[shaderUniversalDictionary setObject: [NSNumber numberWithUnsignedInt: (unsigned int) shader_program] forKey: shaderDict];	
 	}
 	
-	if ((!fragment_shader_object)&&(!vertex_shader_object))
-	{
-		NSLog(@"GLSL ERROR: could not create any shaders from %@", shaderDict);
-		return 0;	// failed!
-	}
-
-	// create a shader program
-	GLhandleARB shader_program = glCreateProgramObjectARB();
-	if (!shader_program)
-	{
-		NSLog(@"GLSL ERROR: could not create a shader program with glCreateProgramObjectARB()");
-		return 0;	// failed!
-	}
-	
-	// attach the shader objects
-	if (vertex_shader_object)
-	{
-		glAttachObjectARB( shader_program, vertex_shader_object);
-		glDeleteObjectARB( vertex_shader_object); /* Release */
-	}
-	if (fragment_shader_object)
-	{
-		glAttachObjectARB( shader_program, fragment_shader_object);
-		glDeleteObjectARB( fragment_shader_object); /* Release */
-	}
-	
-	// link the program
-	glLinkProgramARB( shader_program);
-	GLint result;
-	glGetObjectParameterivARB( shader_program, GL_OBJECT_LINK_STATUS_ARB, &result);
-	if (result != GL_TRUE)
-	{
-		char log[1024];
-		GLsizei log_length;
-		glGetInfoLogARB( shader_program, 1024, &log_length, log);
-		NSLog(@"GLSL ERROR: shader program would not link:\n%s\n\n%@\n\n", log, shaderDict);
-		return 0;	// failed!
-	}
-
-	// store the resulting program for reuse
-	if (!shaderUniversalDictionary)
-		shaderUniversalDictionary = [[NSMutableDictionary dictionary] retain];
-	[shaderUniversalDictionary setObject: [NSNumber numberWithUnsignedInt: (unsigned int) shader_program] forKey: shaderDict];	
-		
-	return shader_program;
+	return OK ? shader_program : NULL;
 }
 #endif
 
@@ -672,7 +664,7 @@ void fillRanNoiseBuffer()
 
 float my_lerp( float v0, float v1, float q)
 {
-	float q1 = 0.5 * (1.0 + cosf((q + 1.0) * PI));
+	float q1 = 0.5 * (1.0 + cosf((q + 1.0) * M_PI));
 	return v0 * (1.0 - q1) + v1 * q1;
 }
 
@@ -917,3 +909,38 @@ void fillSquareImageWithPlanetNMap(unsigned char * imageBuffer, int width, int n
 }
 
 @end
+
+
+/*	Attempt to load fragment or vertex shader source.
+	Returns YES if source was loaded or no shader was specified, and NO if an
+	external shader was specified but could not be found.
+*/
+static BOOL GetShaderSource(NSString *shaderType, NSDictionary *shaderDict, NSString **outResult)
+{
+	NSString	*result = nil;
+	NSString	*shaderName = nil;
+	
+	shaderName = [shaderDict objectForKey:[shaderType stringByAppendingString:@"_shader"]];
+	if (shaderName != nil)
+	{
+		result = [ResourceManager stringFromFilesNamed:shaderName inFolder:@"Shaders"];
+		if (result == nil && ![[[shaderName pathExtension] lowercaseString] isEqual:shaderType])
+		{
+			// Futureproofing -- in future, we may wish to support automatic selection between supported shader languages.
+			result = [ResourceManager stringFromFilesNamed:[shaderName stringByAppendingPathExtension:@"fragment"]
+												  inFolder:@"Shaders"];
+		}
+		if (result == nil)
+		{
+			OOLog(kOOLogFileNotFound, @"GLSL ERROR: failed to find fragment program %@.", shaderName);
+			return NO;
+		}
+	}
+	else
+	{
+		result = [shaderDict objectForKey:[@"glsl-" stringByAppendingString:shaderType]];
+	}
+	
+	if (outResult != NULL) *outResult = result;
+	return YES;
+}

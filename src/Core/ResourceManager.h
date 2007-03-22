@@ -62,11 +62,11 @@ BOOL always_include_addons;
 
 #ifndef GNUSTEP
 + (NSImage *) imageNamed:(NSString *)filename inFolder:(NSString *)foldername;
-#endif
-+ (NSString *) stringFromFilesNamed:(NSString *)filename inFolder:(NSString *)foldername;
-#ifdef GNUSTEP
+#else
 + (SDLImage *) surfaceNamed:(NSString *)filename inFolder:(NSString *)foldername;
 #endif
+
++ (NSString *) stringFromFilesNamed:(NSString *)filename inFolder:(NSString *)foldername;
 
 + (NSDictionary *) loadScripts;
 @end

@@ -122,22 +122,26 @@ id OOPropertyListFromFile(NSString *path)
 */
 static NSData *CopyDataFromFile(NSString *path)
 {
-	NSFileManager	*fmgr = [NSFileManager defaultManager];
-	BOOL			dir;
-	
-	if ([fmgr fileExistsAtPath:path isDirectory:&dir])
-	{
-		if (!dir)
+	#ifdef GNUSTEP
+		NSFileManager	*fmgr = [NSFileManager defaultManager];
+		BOOL			dir;
+		
+		if ([fmgr fileExistsAtPath:path isDirectory:&dir])
 		{
-			return [[NSData alloc] initWithContentsOfMappedFile:path];
+			if (!dir)
+			{
+				return [[NSData alloc] initWithContentsOfMappedFile:path];
+			}
+			else
+			{
+				OOLog(kOOLogFileNotFound, @"Expected property list but found directory at %@", path);
+			}
 		}
-		else
-		{
-			OOLog(kOOLogFileNotFound, @"Expected property list but found directory at %@", path);
-		}
-	}
-	
-	return nil;
+		
+		return nil;
+	#else
+		return [[NSData alloc] initWithContentsOfMappedFile:path];
+	#endif
 }
 
 

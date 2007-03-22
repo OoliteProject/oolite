@@ -58,8 +58,7 @@ static NSString * const kOOLogShaderInit				= @"rendering.opengl.shader.init";
 static NSString * const kOOLogShaderInitDumpShader		= @"rendering.opengl.shader.init.dump.shader";
 static NSString * const kOOLogShaderInitDumpTexture		= @"rendering.opengl.shader.init.dump.texture";
 static NSString * const kOOLogShaderInitDumpShaderInfo	= @"rendering.opengl.shader.init.dump.shaderInfo";
-static NSString * const kOOLogShaderInitSuccess			= @"rendering.opengl.shader.init.success";
-static NSString * const kOOLogShaderInitFailed			= @"rendering.opengl.shader.init.failed";
+static NSString * const	kOOLogShaderTextureNameMissing	= @"rendering.opengl.shader.texNameMissing";
 
 #ifdef GNUSTEP
 void loadOpenGLFunctions()
@@ -697,12 +696,9 @@ NSString* describeStatus(int some_status)
 	//
 	group_id = NO_TARGET;
     //
-	if (launch_actions)
-		[launch_actions removeAllObjects];
-	if (script_actions)
-		[script_actions removeAllObjects];
-	if (death_actions)
-		[death_actions removeAllObjects];
+	[launch_actions removeAllObjects];
+	[script_actions removeAllObjects];
+	[death_actions removeAllObjects];
 	//
 	last_escort_target = NO_TARGET;
  	n_escorts = 0;
@@ -764,8 +760,7 @@ NSString* describeStatus(int some_status)
 	behaviour = BEHAVIOUR_IDLE;
 	frustration = 0.0;
 	//
-	if (shipAI)
-		[shipAI autorelease];
+	[shipAI autorelease];
 	shipAI = [[AI alloc] init]; // alloc retains
 	[shipAI setOwner:self];
 	[shipAI setState:@"GLOBAL"];
@@ -784,16 +779,15 @@ NSString* describeStatus(int some_status)
 	//
 	reportAImessages = NO;
 	//
-	if (previousCondition) [previousCondition autorelease];
+	[previousCondition autorelease];
 	previousCondition = nil;
 	//
-	if (sub_entities) [sub_entities autorelease];
+	[sub_entities autorelease];
 	sub_entities = nil;
 	//
 	scanner_range = 25600.0;
 	//
-	if (shipinfoDictionary)
-		[shipinfoDictionary autorelease];
+	[shipinfoDictionary autorelease];
 	shipinfoDictionary = nil;
 	//
 	being_fined = NO;
@@ -817,20 +811,17 @@ NSString* describeStatus(int some_status)
 	isFrangible = YES;
 	subentity_taking_damage = nil;
 	//
-	if (dockingInstructions)
-		[dockingInstructions autorelease];
+	[dockingInstructions autorelease];
 	dockingInstructions = nil;
 	//
-	if (crew)
-		[crew autorelease];
+	[crew autorelease];
 	crew = nil;
 	//
 	[self setTrackCloseContacts:NO];
 	//
 	isNearPlanetSurface = NO;
 	//
-	if (lastRadioMessage)
-		[lastRadioMessage autorelease];
+	[lastRadioMessage autorelease];
 	lastRadioMessage = nil;
 	//
 	tractor_position = make_vector( 0.0f, 0.0f, 0.0f);
@@ -847,11 +838,8 @@ NSString* describeStatus(int some_status)
 	//
 	[self setBrain: nil];
 	//
-	if (shader_info)
-	{
-		[shader_info release];
-		shader_info = nil;
-	}
+	[shader_info release];
+	shader_info = nil;
 }
 
 
@@ -3376,12 +3364,13 @@ void testForShaders()
 //			GLuint shader_program = [TextureStore shaderProgramFromDictionary: shader];
 			GLhandleARB shader_program = [TextureStore shaderProgramFromDictionary: shader];
 			if (shader_program)
-				OOLog(kOOLogShaderInitSuccess, @"Successfully compiled shader program is %d", shader_program);
-			else
-				OOLog(kOOLogShaderInitFailed, @"***** Failed to initialise shader program!");
-			[shader_info setObject:[NSDictionary dictionaryWithObjectsAndKeys:
-				textureNames, @"textureNames", [NSNumber numberWithUnsignedInt: (unsigned int) shader_program], @"shader_program", nil]
-				forKey: shader_key];
+			{
+				[shader_info setObject:[NSDictionary dictionaryWithObjectsAndKeys:
+						textureNames, @"textureNames",
+						[NSNumber numberWithUnsignedInt:(unsigned)shader_program], @"shader_program",
+						nil]
+					forKey: shader_key];
+			}
 		}
 		
 		OOLog(kOOLogShaderInitDumpShaderInfo, @"TESTING: shader_info = %@", shader_info);
@@ -3448,8 +3437,9 @@ void testForShaders()
 
 
 						GLfloat utime = (GLfloat)[universe getTime];
-						GLfloat engine_level = (max_flight_speed > 0.0f)? flight_speed / max_flight_speed : 0.0f;
+						GLfloat engine_level = [self speed_factor];
 						GLfloat laser_heat_level = (isPlayer)? [(PlayerEntity*)self dial_weapon_temp]: (weapon_recharge_rate - shot_time) / weapon_recharge_rate;
+						GLfloat hull_heat_level = (isPlayer)? [(PlayerEntity*)self dial_ship_temperature]: ship_temperature / (GLfloat)SHIP_MAX_CABIN_TEMP;
 						
 
 						if (immediate)
@@ -3480,15 +3470,15 @@ void testForShaders()
 #ifndef NO_SHADERS
 								if ((shader_info) && [shader_info objectForKey: textureKey])
 								{
-									NSDictionary* shader = (NSDictionary*)[shader_info objectForKey:textureKey];
-									
-									GLhandleARB shader_program = (GLhandleARB)[(NSNumber*)[shader objectForKey:@"shader_program"] unsignedIntValue];
+									NSDictionary	*shader = (NSDictionary*)[shader_info objectForKey:textureKey];
+									GLhandleARB		shader_program = (GLhandleARB)[(NSNumber*)[shader objectForKey:@"shader_program"] unsignedIntValue];
+									GLint			variable_location;
 									//
 									// set up texture units
 									//
-									glUseProgramObjectARB( shader_program);
+									glUseProgramObjectARB(shader_program);
 									//
-									NSArray* texture_units = (NSArray*)[shader objectForKey:@"textureNames"];
+									NSArray *texture_units = [shader objectForKey:@"textureNames"];
 									int n_tu = [texture_units count];
 									int i;
 									for (i = 0; i < n_tu; i++)
@@ -3502,27 +3492,29 @@ void testForShaders()
 										
 										NSString* texdname = [NSString stringWithFormat:@"tex%d", i];
 										const char* cname = [texdname UTF8String];
-										GLint locator = glGetUniformLocationARB( shader_program, cname);
-										if (locator == -1)
-											NSLog(@"GLSL ERROR couldn't find location of %@ in shader_program %d", texdname, shader_program);
+										variable_location = glGetUniformLocationARB(shader_program, cname);
+										if (variable_location == -1)
+											OOLog(kOOLogShaderTextureNameMissing, @"GLSL ERROR couldn't find location of %@ in shader_program %d", texdname, shader_program);
 										else
-											glUniform1iARB( locator, i);	// associate texture unit number i with tex%d
+											glUniform1iARB(variable_location, i);	// associate texture unit number i with tex%d
 									}
-									//
+									
 									// other variables 'time' 'engine_level'
-									//
-									GLint time_location = glGetUniformLocationARB( shader_program, "time");
-									if (time_location != -1)
-										glUniform1fARB( time_location, utime);
-									//
-									GLint engine_level_location = glGetUniformLocationARB( shader_program, "engine_level");
-									if (engine_level_location != -1)
-										glUniform1fARB( engine_level_location, engine_level);
-									//
-									GLint laser_heat_level_location = glGetUniformLocationARB( shader_program, "laser_heat_level");
-									if (laser_heat_level_location != -1)
-										glUniform1fARB( laser_heat_level_location, laser_heat_level);
-									//
+									variable_location = glGetUniformLocationARB( shader_program, "time");
+									if (variable_location != -1)
+										glUniform1fARB(variable_location, utime);
+									
+									variable_location = glGetUniformLocationARB( shader_program, "engine_level");
+									if (variable_location != -1)
+										glUniform1fARB(variable_location, engine_level);
+									
+									variable_location = glGetUniformLocationARB( shader_program, "laser_heat_level");
+									if (variable_location != -1)
+										glUniform1fARB(variable_location, laser_heat_level);
+										
+									variable_location = glGetUniformLocationARB( shader_program, "hull_heat_level");
+									if (variable_location != -1)
+										glUniform1fARB(variable_location, hull_heat_level);
 								}
 								else
 #endif

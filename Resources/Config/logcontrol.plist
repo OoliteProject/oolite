@@ -124,7 +124,7 @@ mesh.load.error.tooManyVertices			= inherit;
 mesh.load.error.tooManyFaces			= inherit;
 
 
-$plistError = $error;
+$plistError								= $error;
 plist.parse.foundation.failed			= $plistError;
 plist.wrongType							= $plistError;
 plist.homebrew.badEncoding				= $plistError;
@@ -136,6 +136,7 @@ plist.homebrew.interpret.trace			= no;					// Log details of second stage of hom
 plist.homebrew.success					= yes;
 
 
+$shaderError							= $scriptError;
 rendering.opengl.error					= $error;				// Test for and display OpenGL errors
 rendering.opengl.version				= $troubleShootingDump;	// Display renderer version information at startup
 rendering.opengl.extensions				= $troubleShootingDump;	// List OpenGL extensions at startup
@@ -146,7 +147,8 @@ rendering.opengl.shader.init.dump.shader = inherit;
 rendering.opengl.shader.init.dump.texture = inherit;
 rendering.opengl.shader.init.dump.shaderInfo = inherit;
 rendering.opengl.shader.init.success	= inherit;
-rendering.opengl.shader.init.failed		= $scriptError;
+rendering.opengl.shader.init.failed		= $shaderError;
+rendering.opengl.shader.texNameMissing	= $shaderError;
 rendering.opengl.stateDump				= $troubleShootingDump;	// Dump of OpenGL state (debug tool, currently unused)
 
 
