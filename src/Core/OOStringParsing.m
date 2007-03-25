@@ -411,3 +411,27 @@ NSString *ReplaceVariables(NSString *string, Entity *target, NSDictionary *local
 
 	return resultString;
 }
+
+
+@implementation NSString (OOUtilities)
+
+- (BOOL)pathHasExtension:(NSString *)extension
+{
+	return [[self pathExtension] caseInsensitiveCompare:extension] == NSOrderedSame;
+}
+
+
+- (BOOL)pathHasExtensionInArray:(NSArray *)extensions
+{
+	NSEnumerator	*extEnum = nil;
+	NSString		*extension = nil;
+	
+	for (extEnum = [extensions objectEnumerator]; (extension = [extEnum nextObject]); )
+	{
+		if ([[self pathExtension] caseInsensitiveCompare:extension] == NSOrderedSame) return YES;
+	}
+	
+	return NO;
+}
+
+@end

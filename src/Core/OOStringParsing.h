@@ -56,3 +56,11 @@ NSString *ExpandDescriptionsWithLocalsForCurrentSystem(NSString *text, NSDiction
 // target and localVariables are optional; target will default to the player.
 NSString *ReplaceVariables(NSString *string, Entity *target, NSDictionary *localVariables);
 
+
+@interface NSString (OOUtilities)
+
+// Case-insensitive match of [self pathExtension]
+- (BOOL)pathHasExtension:(NSString *)extension;
+- (BOOL)pathHasExtensionInArray:(NSArray *)extensions;
+
+@end

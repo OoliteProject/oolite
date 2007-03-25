@@ -3441,7 +3441,8 @@ void testForShaders()
 						GLfloat laser_heat_level = (isPlayer)? [(PlayerEntity*)self dial_weapon_temp]: (weapon_recharge_rate - shot_time) / weapon_recharge_rate;
 						GLfloat hull_heat_level = (isPlayer)? [(PlayerEntity*)self dial_ship_temperature]: ship_temperature / (GLfloat)SHIP_MAX_CABIN_TEMP;
 						
-
+						laser_heat_level = OOClamp_0_1_f(laser_heat_level);
+						
 						if (immediate)
 						{
 							//

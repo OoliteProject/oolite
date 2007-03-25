@@ -32,6 +32,7 @@ MA 02110-1301, USA.
 #import "OOColor.h"
 #import "OOMaths.h"
 #import "OOTextureScaling.h"
+#import "OOStringParsing.h"
 
 
 static NSString * const kOOLogPlanetTextureGen			= @"texture.planet.generate";
@@ -320,7 +321,6 @@ GLuint	max_texture_dimension = 512;	// conservative start
 }
 
 #ifndef NO_SHADERS
-//+ (GLuint) shaderProgramFromDictionary:(NSDictionary *) shaderDict
 + (GLhandleARB) shaderProgramFromDictionary:(NSDictionary *) shaderDict
 {
 	if ([shaderUniversalDictionary objectForKey:shaderDict])
@@ -341,8 +341,14 @@ GLuint	max_texture_dimension = 512;	// conservative start
 	
 	BOOL		OK = YES;
 	
+	NSString	*shaderEnvMacros =
+					   @"#define OO_TIME\t\t\t\t\t1\n"
+						"#define OO_ENGINE_LEVEL\t\t\t1\n"
+						"#define OO_LASER_HEAT_LEVEL\t\t1\n"
+						"#define OO_HULL_HEAT_LEVEL\t\t1\n\n";
+	
 	if (!GetShaderSource(@"fragment", shaderDict, &fragmentSource)) return NULL;
-	if (fragmentSource == nil) [shaderDict objectForKey:@"glsl"];
+	if (fragmentSource == nil) fragmentSource = [shaderDict objectForKey:@"glsl"];
 	
 	if (!GetShaderSource(@"vertex", shaderDict, &vertexSource)) return NULL;
 	
@@ -364,6 +370,8 @@ GLuint	max_texture_dimension = 512;	// conservative start
 		
 		if (OK)
 		{
+			fragmentSource = [shaderEnvMacros stringByAppendingString:fragmentSource];
+			
 			const GLcharARB *fragment_string;
 			fragment_string = [fragmentSource cString];
 			glShaderSourceARB(shader_object, 1, &fragment_string, NULL);
@@ -396,6 +404,8 @@ GLuint	max_texture_dimension = 512;	// conservative start
 		
 		if (OK)
 		{
+			vertexSource = [shaderEnvMacros stringByAppendingString:vertexSource];
+			
 			const GLcharARB *vertex_string;
 			vertex_string = [vertexSource cString];
 			glShaderSourceARB(shader_object, 1, &vertex_string, NULL);
@@ -917,23 +927,37 @@ void fillSquareImageWithPlanetNMap(unsigned char * imageBuffer, int width, int n
 */
 static BOOL GetShaderSource(NSString *shaderType, NSDictionary *shaderDict, NSString **outResult)
 {
-	NSString	*result = nil;
-	NSString	*shaderName = nil;
+	NSString		*result = nil;
+	NSString		*shaderName = nil;
+	NSArray			*extensions = nil;
+	NSEnumerator	*extEnum = nil;
+	NSString		*extension = nil;
+	NSString		*nameWithExtension = nil;
 	
 	shaderName = [shaderDict objectForKey:[shaderType stringByAppendingString:@"_shader"]];
 	if (shaderName != nil)
 	{
 		result = [ResourceManager stringFromFilesNamed:shaderName inFolder:@"Shaders"];
-		if (result == nil && ![[[shaderName pathExtension] lowercaseString] isEqual:shaderType])
-		{
-			// Futureproofing -- in future, we may wish to support automatic selection between supported shader languages.
-			result = [ResourceManager stringFromFilesNamed:[shaderName stringByAppendingPathExtension:shaderType]
-												  inFolder:@"Shaders"];
-		}
 		if (result == nil)
 		{
-			OOLog(kOOLogFileNotFound, @"GLSL ERROR: failed to find fragment program %@.", shaderName);
-			return NO;
+			extensions = [NSArray arrayWithObjects:shaderType, [shaderType substringToIndex:4], nil];	// vertex and vert, or fragment and frag
+			
+			// Futureproofing -- in future, we may wish to support automatic selection between supported shader languages.
+			if (![shaderName pathHasExtensionInArray:extensions])
+			{
+				for (extEnum = [extensions objectEnumerator]; (extension = [extEnum nextObject]); )
+				{
+					nameWithExtension = [shaderName stringByAppendingPathExtension:extension];
+					result = [ResourceManager stringFromFilesNamed:nameWithExtension
+														  inFolder:@"Shaders"];
+					if (result != nil) break;
+				}
+			}
+			if (result == nil)
+			{
+				OOLog(kOOLogFileNotFound, @"GLSL ERROR: failed to find fragment program %@.", shaderName);
+				return NO;
+			}
 		}
 	}
 	else
