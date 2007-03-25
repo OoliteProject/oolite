@@ -52,7 +52,7 @@ static NSString * const kCacheKeyCaches						= @"caches";
 enum
 {
 	kEndianTagValue			= 0x12345678UL,
-	kFormatVersionValue		= 2
+	kFormatVersionValue		= 3
 };
 
 
@@ -272,12 +272,13 @@ static OOCacheManager *sSingleton = nil;
 
 - (void)load
 {
-	NSDictionary		*cache = nil;
-	NSString			*cacheVersion = nil;
-	NSString			*ooliteVersion = nil;
-	NSNumber			*endianTag = nil;
-	NSNumber			*formatVersion = nil;
-	BOOL				accept = YES;
+	NSDictionary			*cache = nil;
+	NSString				*cacheVersion = nil;
+	NSString				*ooliteVersion = nil;
+	NSData					*endianTag = nil;
+	NSNumber				*formatVersion = nil;
+	BOOL					accept = YES;
+	uint32_t				endianTagValue = nil;
 	
 	ooliteVersion = [[[NSBundle mainBundle] infoDictionary] objectForKey:kCacheKeyVersion];
 	
@@ -297,18 +298,30 @@ static OOCacheManager *sSingleton = nil;
 			accept = NO;
 		}
 		
-		endianTag = [cache objectForKey:kCacheKeyEndianTag];
-		if (accept && [endianTag unsignedIntValue] != kEndianTagValue)
-		{
-			OOLog(kOOLogDataCacheRebuild, @"Data cache endianness is inappropriate for this system, rebuilding cache.");
-			accept = NO;
-		}
-		
 		formatVersion = [cache objectForKey:kCacheKeyFormatVersion];
 		if (accept && [formatVersion unsignedIntValue] != kFormatVersionValue)
 		{
 			OOLog(kOOLogDataCacheRebuild, @"Data cache format (%@) is not supported format (%u), rebuilding cache.", formatVersion, kFormatVersionValue);
 			accept = NO;
+		}
+		
+		if (accept)
+		{
+			endianTag = [cache objectForKey:kCacheKeyEndianTag];
+			if (![endianTag isKindOfClass:[NSData class]] || [endianTag length] != sizeof endianTagValue)
+			{
+				OOLog(kOOLogDataCacheRebuild, @"Data cache endian tag is invalid, rebuilding cache.");
+				accept = NO;
+			}
+			else
+			{
+				endianTagValue = *(const uint32_t *)[endianTag bytes];
+				if (endianTagValue != kEndianTagValue)
+				{
+					OOLog(kOOLogDataCacheRebuild, @"Data cache endianness is inappropriate for this system, rebuilding cache.");
+					accept = NO;
+				}
+			}
 		}
 		
 		if (accept)
@@ -334,14 +347,15 @@ static OOCacheManager *sSingleton = nil;
 {
 	NSMutableDictionary		*newCache = nil;
 	NSString				*ooliteVersion = nil;
-	NSNumber				*endianTag = nil;
+	NSData					*endianTag = nil;
 	NSNumber				*formatVersion = nil;
 	NSDictionary			*pListRep = nil;
+	uint32_t				endianTagValue = kEndianTagValue;
 	
 	if (caches == nil) return;
 	
 	ooliteVersion = [[[NSBundle mainBundle] infoDictionary] objectForKey:kCacheKeyVersion];
-	endianTag = [NSNumber numberWithUnsignedInt:kEndianTagValue];
+	endianTag = [NSData dataWithBytes:&endianTagValue length:sizeof endianTagValue];
 	formatVersion = [NSNumber numberWithUnsignedInt:kFormatVersionValue];
 	pListRep = [self dictionaryOfCaches];
 	if (ooliteVersion == nil || endianTag == nil || formatVersion == nil || pListRep == nil)  return;
