@@ -124,6 +124,9 @@ mesh.load.error.tooManyVertices			= inherit;
 mesh.load.error.tooManyFaces			= inherit;
 
 
+oxp.versionMismatch						= $error;
+
+
 $plistError								= $error;
 plist.parse.foundation.failed			= $plistError;
 plist.wrongType							= $plistError;
@@ -199,6 +202,9 @@ script.debug.syntax.addShips			= inherit;
 script.debug.syntax.set					= inherit;
 script.debug.syntax.reset				= inherit;
 
+script.javascript.compile.success		= inherit;
+script.javascript.compile.failed		= $scriptError;
+
 
 searchPaths.dumpAll						= $troubleShootingDump;
 
@@ -249,3 +255,4 @@ sound.streaming.loop					= $soundDebug;
 sound.streaming.underflow				= $soundError;
 sound.virtualringbuffer					= $soundError;
 sound.streaming.releaseContext			= $soundDebug;
+sound.invalidBeep						= inherit;

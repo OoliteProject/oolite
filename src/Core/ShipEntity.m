@@ -48,6 +48,8 @@ MA 02110-1301, USA.
 #import "WormholeEntity.h"
 #import "GuiDisplayGen.h"
 
+#define kOOLogUnconvertedNSLog @"unclassified.ShipEntity"
+
 
 extern NSString * const kOOLogNoteAddShips;
 extern NSString * const kOOLogSyntaxAddShips;
@@ -414,7 +416,7 @@ NSString* describeStatus(int some_status)
 	NS_HANDLER
 		if ([[localException name] isEqual: OOLITE_EXCEPTION_DATA_NOT_FOUND])
 		{
-			NSLog(@"***** Oolite Data Not Found Exception : '%@' in [ShipEntity setModel:] *****", [localException reason]);
+			OOLog(kOOLogException, @"***** Oolite Data Not Found Exception : '%@' in [ShipEntity setModel:] *****", [localException reason]);
 		}
 		[localException raise];
 	NS_ENDHANDLER
@@ -596,14 +598,14 @@ NSString* describeStatus(int some_status)
 	if ([shipinfoDictionary objectForKey:@"escort-role"])
 	{
 		escortRole = (NSString*)[shipinfoDictionary objectForKey:@"escort-role"];
-		if (![[universe getShipWithRole:escortRole] autorelease])
+		if (![[universe newShipWithRole:escortRole] autorelease])
 			escortRole = @"escort";
 	}
 
 	if ([shipinfoDictionary objectForKey:@"escort-ship"])
 	{
 		escortShipKey = (NSString*)[shipinfoDictionary objectForKey:@"escort-ship"];
-		if (![[universe getShip:escortShipKey] autorelease])
+		if (![[universe newShipWithName:escortShipKey] autorelease])
 			escortShipKey = nil;
 	}
 
@@ -616,9 +618,9 @@ NSString* describeStatus(int some_status)
 		ShipEntity *escorter;
 
 		if (escortShipKey)
-			escorter = [universe getShip:escortShipKey];	// retained
+			escorter = [universe newShipWithName:escortShipKey];	// retained
 		else
-			escorter = [universe getShipWithRole:escortRole];	// retained
+			escorter = [universe newShipWithRole:escortRole];	// retained
 
 		if (!escorter)
 			break;
@@ -984,7 +986,7 @@ NSString* describeStatus(int some_status)
 				NS_HANDLER
 					if ([[localException name] isEqual: OOLITE_EXCEPTION_SHIP_NOT_FOUND])
 					{
-						NSLog(@"***** Oolite Exception : '%@' in [ShipEntity setUpShipFromDictionary:] while basing a ship upon '%@' *****", [localException reason], other_shipdesc);
+						OOLog(kOOLogException, @"***** Oolite Exception : '%@' in [ShipEntity setUpShipFromDictionary:] while basing a ship upon '%@' *****", [localException reason], other_shipdesc);
 						other_shipdict = nil;
 					}
 					else
@@ -1270,7 +1272,7 @@ NSString* describeStatus(int some_status)
 					{
 						quaternion_normalise(&sub_q);
 
-						subent = [universe getShip:subdesc];	// retained
+						subent = [universe newShipWithName:subdesc];	// retained
 
 						if ((self->isStation)&&([subdesc rangeOfString:@"dock"].location != NSNotFound))
 							[(StationEntity*)self setDockingPortModel:(ShipEntity*)subent :sub_pos :sub_q];
@@ -1372,7 +1374,7 @@ NSString* describeStatus(int some_status)
 	{
 		if (universe)
 		{
-			PlayerEntity* player = (PlayerEntity*)[universe entityZero];
+			PlayerEntity* player = [PlayerEntity sharedPlayer];
 			[player setScript_target:self];
 			NSArray * setup_actions = (NSArray *)[shipdict objectForKey:KEY_SETUP_ACTIONS];
 
@@ -2104,8 +2106,8 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	//scripting
 	if ((status == STATUS_IN_FLIGHT)&&([launch_actions count]))
 	{
-		[(PlayerEntity *)[universe entityZero] setScript_target:self];
-		[(PlayerEntity *)[universe entityZero] scriptActions: launch_actions forTarget: self];
+		[[PlayerEntity sharedPlayer] setScript_target:self];
+		[[PlayerEntity sharedPlayer] scriptActions: launch_actions forTarget: self];
 		[launch_actions removeAllObjects];
 	}
 
@@ -3556,7 +3558,7 @@ void testForShaders()
 					}
 					else
 					{
-						NSLog(@"ERROR no basefile for entity %@");
+						OOLog(kOOLogFileNotFound, @"ERROR no basefile for entity %@");
 					}
 				}
 				glShadeModel(GL_SMOOTH);
@@ -3564,8 +3566,8 @@ void testForShaders()
 
 			NS_HANDLER
 
-				NSLog(@"***** [Entity drawEntity::] encountered exception: %@ : %@ *****",[localException name], [localException reason]);
-				NSLog(@"***** Removing entity %@ from universe *****", self);
+				OOLog(kOOLogException, @"***** [Entity drawEntity::] encountered exception: %@ : %@ *****",[localException name], [localException reason]);
+				OOLog(kOOLogException, @"***** Removing entity %@ from universe *****", self);
 				[universe removeEntity:self];
 				if ([[localException name] hasPrefix:@"Oolite"])
 					[universe handleOoliteException:localException];	// handle these ourself
@@ -3624,7 +3626,6 @@ void testForShaders()
 		zero_distance = my_owner->zero_distance;
 		if (zero_distance > no_draw_distance)
 		{
-			//NSLog(@"DEBUG - sub entity '%@' too far away to draw", self);
 			return; // TOO FAR AWAY
 		}
 	}
@@ -3651,8 +3652,6 @@ void testForShaders()
 		glMultMatrixf(rotMatrix);
 
 		[self drawEntity:immediate :translucent];
-		
-//		NSLog(@"drawn active entity : %@", basefile);
 
 	}
 	else
@@ -3847,22 +3846,13 @@ static GLfloat mascem_color2[4] =	{ 0.4, 0.1, 0.4, 1.0};	// purple
 {
 	if (scan_class == CLASS_MISSILE)
 		return;						// missiles are SUPPOSED to collide!
-
-//	NSLog(@"DEBUG ***** %@ in AVOID COLLISION!", self);
-
-
+	
 	ShipEntity* prox_ship = [self proximity_alert];
 
 	if (prox_ship)
 	{
-//		if (self == [universe entityZero])
-//			NSLog(@"DEBUG ***** proximity alert for %@ %d against target %d", name, universal_id, proximity_alert);
-
 		if (previousCondition)
 		{
-			//
-//			NSLog(@"DEBUG ***** avoidCollision dropping previousCondition");
-			//
 			[previousCondition release];
 			previousCondition = nil;
 		}
@@ -3891,9 +3881,7 @@ static GLfloat mascem_color2[4] =	{ 0.4, 0.1, 0.4, 1.0};	// purple
 {
 	if (!previousCondition)
 		return;
-
-//	NSLog(@"DEBUG ***** proximity alert for %@ %d over", name, universal_id, proximity_alert);
-
+	
 	behaviour =		[(NSNumber*)[previousCondition objectForKey:@"behaviour"] intValue];
 	primaryTarget =	[(NSNumber*)[previousCondition objectForKey:@"primaryTarget"] intValue];
 	desired_range =	[(NSNumber*)[previousCondition objectForKey:@"desired_range"] floatValue];
@@ -3982,16 +3970,11 @@ static GLfloat mascem_color2[4] =	{ 0.4, 0.1, 0.4, 1.0};	// purple
 			// check which subtends the greatest angle
 			GLfloat sa_prox = prox->collision_radius * prox->collision_radius / distance2(position, prox->position);
 			GLfloat sa_other = other->collision_radius *  other->collision_radius / distance2(position, other->position);
-			if (sa_prox < sa_other)
-			{
-//				NSLog(@"DEBUG %@ is already avoiding %@", self, prox);
-				return;
-			}
+			if (sa_prox < sa_other)  return;
 		}
 	}
 	proximity_alert = [other universal_id];
 	other->proximity_alert = universal_id;
-//	NSLog(@"DEBUG PROXIMITY ALERT FOR %@  VS %@ == %d", self, other, proximity_alert);
 }
 
 - (NSString *) name
@@ -4145,10 +4128,8 @@ static GLfloat mascem_color2[4] =	{ 0.4, 0.1, 0.4, 1.0};	// purple
 	int result = AEGIS_NONE;
 	p1.x -= position.x;	p1.y -= position.y;	p1.z -= position.z;
 	double d2 = p1.x*p1.x + p1.y*p1.y + p1.z*p1.z;
+	
 	// check if nearing surface
-	//
-//	if (reportAImessages)
-//		NSLog(@"DEBUG reporting altitude d2(%.2f) - cr2(%.2f) = %.2f", d2, cr2, d2 - cr2);
 	BOOL wasNearPlanetSurface = isNearPlanetSurface;
 	isNearPlanetSurface = (d2 - cr2 < 3600000.0);
 	if ((!wasNearPlanetSurface)&&(isNearPlanetSurface))
@@ -4477,9 +4458,6 @@ static GLfloat mascem_color2[4] =	{ 0.4, 0.1, 0.4, 1.0};	// purple
 			double d2 = p2.x*p2.x + p2.y*p2.y + p2.z*p2.z - ecr*ecr;
 			double damage = weapon_energy*desired_range/d2;
 			[e2 takeEnergyDamage:damage from:self becauseOf:[self owner]];
-
-//			if ((e2)&&(e2->isShip))
-//				NSLog(@"DEBUG Doing %.1f damage to %@ %d",damage,[(ShipEntity *)e2 name],[(ShipEntity *)e2 universal_id]);
 		}
 	}
 }
@@ -4585,9 +4563,6 @@ static GLfloat mascem_color2[4] =	{ 0.4, 0.1, 0.4, 1.0};	// purple
 				ShipEntity *group_leader = (ShipEntity *)[universe entityForUniversalID:group_id];
 				if ((group_leader)&&(group_leader->isShip))
 				{
-					//NSLog(@"DEBUG %@ %d informs group leader %@ %d of attack by %@ %d", name, universal_id, [group_leader name], [group_leader universal_id], [hunter name], [hunter universal_id]);
-
-					//[group_leader setReportAImessages:YES];
 					[group_leader setFound_target:hunter];
 					[group_leader setPrimaryAggressor:hunter];
 					[[group_leader getAI] reactToMessage:@"ATTACKED"];
@@ -4665,7 +4640,7 @@ static GLfloat mascem_color2[4] =	{ 0.4, 0.1, 0.4, 1.0};	// purple
 		if ((energy < max_energy *0.125)&&(has_escape_pod)&&((ranrot_rand() & 3) == 0))  // 25% chance he gets to an escape pod
 		{
 			has_escape_pod = NO;
-			//NSLog(@"Escape Pod launched");
+			
 			[shipAI setStateMachine:@"nullAI.plist"];
 			[shipAI setState:@"GLOBAL"];
 			behaviour = BEHAVIOUR_IDLE;
@@ -4721,7 +4696,7 @@ static GLfloat mascem_color2[4] =	{ 0.4, 0.1, 0.4, 1.0};	// purple
 	//scripting
 	if ([death_actions count])
 	{
-		PlayerEntity* player = (PlayerEntity *)[universe entityZero];
+		PlayerEntity* player = [PlayerEntity sharedPlayer];
 
 		[player setScript_target:self];
 		[player scriptActions: death_actions forTarget: self];
@@ -4858,7 +4833,7 @@ static GLfloat mascem_color2[4] =	{ 0.4, 0.1, 0.4, 1.0};	// purple
 				//
 				for (i = 0; i < n_rocks; i++)
 				{
-					ShipEntity* rock = [universe getShipWithRole:@"boulder"];   // retain count = 1
+					ShipEntity* rock = [universe newShipWithRole:@"boulder"];   // retain count = 1
 					if (rock)
 					{
 						Vector  rpos = xposition;
@@ -4894,7 +4869,7 @@ static GLfloat mascem_color2[4] =	{ 0.4, 0.1, 0.4, 1.0};	// purple
 				//
 				for (i = 0; i < n_rocks; i++)
 				{
-					ShipEntity* rock = [universe getShipWithRole:@"splinter"];   // retain count = 1
+					ShipEntity* rock = [universe newShipWithRole:@"splinter"];   // retain count = 1
 					if (rock)
 					{
 						Vector  rpos = xposition;
@@ -4940,7 +4915,7 @@ static GLfloat mascem_color2[4] =	{ 0.4, 0.1, 0.4, 1.0};	// purple
 			
 			for (i = 0; i < n_wreckage; i++)
 			{
-				ShipEntity* wreck = [universe getShipWithRole:@"wreckage"];   // retain count = 1
+				ShipEntity* wreck = [universe newShipWithRole:@"wreckage"];   // retain count = 1
 				if (wreck)
 				{
 					GLfloat expected_mass = 0.1f * mass * (0.75 + 0.5 * randf());
@@ -4979,7 +4954,7 @@ static GLfloat mascem_color2[4] =	{ 0.4, 0.1, 0.4, 1.0};	// purple
 		//
 		for (i = 0; i < n_alloys; i++)
 		{
-			ShipEntity* plate = [universe getShipWithRole:@"alloy"];   // retain count = 1
+			ShipEntity* plate = [universe newShipWithRole:@"alloy"];   // retain count = 1
 			if (plate)
 			{
 				Vector  rpos = xposition;
@@ -5029,7 +5004,7 @@ static GLfloat mascem_color2[4] =	{ 0.4, 0.1, 0.4, 1.0};	// purple
 	[self dealMomentumWithinDesiredRange: 0.125 * mass];
 
 	//
-	if (self != [universe entityZero])	// was if !isPlayer - but I think this may cause ghosts
+	if (self != [PlayerEntity sharedPlayer])	// was if !isPlayer - but I think this may cause ghosts
 		[universe removeEntity:self];
 }
 
@@ -5160,7 +5135,7 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 	//scripting
 	if ([death_actions count])
 	{
-		PlayerEntity* player = (PlayerEntity *)[universe entityZero];
+		PlayerEntity* player = [PlayerEntity sharedPlayer];
 
 		[player setScript_target:self];
 		[player scriptActions: death_actions forTarget: self];
@@ -5206,7 +5181,6 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 		int cargo_to_go = max_cargo / 10;
 		while (cargo_to_go > 15)
 			cargo_to_go = ranrot_rand() % cargo_to_go;
-		//NSLog(@"explosion in %@ %d will launch %d pieces of cargo (max_cargo = %d)", name, universal_id, cargo_to_go, max_cargo);
 		[self setCargo:[universe getContainersOfPlentifulGoods:cargo_to_go]];
 		cargo_chance = 100;
 	}
@@ -5215,7 +5189,6 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 		int cargo_to_go = max_cargo / 10;
 		while (cargo_to_go > 15)
 			cargo_to_go = ranrot_rand() % cargo_to_go;
-		//NSLog(@"explosion in %@ %d will launch %d pieces of cargo (max_cargo = %d)", name, universal_id, cargo_to_go, max_cargo);
 		[self setCargo:[universe getContainersOfScarceGoods:cargo_to_go]];
 		cargo_chance = 100;
 	}
@@ -5454,11 +5427,9 @@ BOOL	class_masslocks(int some_class)
 	Vector my_aim = vector_forward_from_quaternion(q_rotation);
 	Vector my_ref = reference;
 	double aim_cos, ref_cos;
-	//
+	
 	Entity* targent = [self getPrimaryTarget];
-	//
-	//
-	//NSLog(@"DEBUG ball_tracking (before rotation) my_aim (%.2f,%.2f,%.2f) my_ref (%.2f,%.2f,%.2f)", my_aim.x, my_aim.y, my_aim.z,  my_ref.x, my_ref.y, my_ref.z);
+	
 	Entity*		last = nil;
 	Entity*		father = [self owner];
 	GLfloat*	r_mat = [father drawRotationMatrix];
@@ -5492,9 +5463,6 @@ BOOL	class_masslocks(int some_class)
 		aim_cos = 0.0;
 		ref_cos = -1.0;
 	}
-	//
-	//NSLog(@"DEBUG ball_tracking vtt (%.2f,%.2f,%.2f)", vector_to_target.x, vector_to_target.y, vector_to_target.z);
-	//NSLog(@"DEBUG ball_tracking target %@ aim_cos = %.3f ref_cos = %.3f", [(ShipEntity *)targent name], aim_cos, ref_cos);
 
 	if (ref_cos > TURRET_MINIMUM_COS)  // target is forward of self
 	{
@@ -5563,10 +5531,7 @@ BOOL	class_masslocks(int some_class)
 	Entity* targent = [self getPrimaryTarget];
 	//
 	Vector leading = [targent getVelocity];
-//	leading.x *= lead_t;	leading.y *= lead_t;	leading.z *= lead_t;
-	//
-	//
-	//NSLog(@"DEBUG ball_tracking (before rotation) my_aim (%.2f,%.2f,%.2f) my_ref (%.2f,%.2f,%.2f)", my_aim.x, my_aim.y, my_aim.z,  my_ref.x, my_ref.y, my_ref.z);
+	
 	Entity*		last = nil;
 	Entity*		father = [self owner];
 	GLfloat*	r_mat = [father drawRotationMatrix];
@@ -5604,9 +5569,6 @@ BOOL	class_masslocks(int some_class)
 		aim_cos = 0.0;
 		ref_cos = -1.0;
 	}
-	//
-	//NSLog(@"DEBUG ball_tracking vtt (%.2f,%.2f,%.2f)", vector_to_target.x, vector_to_target.y, vector_to_target.z);
-	//NSLog(@"DEBUG ball_tracking target %@ aim_cos = %.3f ref_cos = %.3f", [(ShipEntity *)targent name], aim_cos, ref_cos);
 
 	if (ref_cos > TURRET_MINIMUM_COS)  // target is forward of self
 	{
@@ -5945,10 +5907,7 @@ BOOL	class_masslocks(int some_class)
 	// begin rule-of-thumb manoeuvres
 	stick_pitch = 0.0;
 	stick_roll = 0.0;
-
-//	if (isPlayer)
-//		NSLog(@"DEBUG trackDestination:: max_cos %.4f, d_forward %.4f, we_are_docking %@", max_cos, d_forward, (we_are_docking)? @":YES:" : @":NO:");
-
+	
 	// check if we are flying toward the destination..
 	if ((d_forward < max_cos)||(retreat))	// not on course so we must adjust controls..
 	{
@@ -5994,42 +5953,11 @@ BOOL	class_masslocks(int some_class)
 	if (we_are_docking && docking_match_rotation && (d_forward > max_cos))
 	{
 		/* we are docking and need to consider the rotation/orientation of the docking port */
-
-//		NSLog(@"DEBUG DOCKING MATCH ROTATION %@ targetStation = %d %@ primaryTarget = %d %@",
-//			self, targetStation, [universe entityForUniversalID:targetStation], primaryTarget, [universe entityForUniversalID:primaryTarget]);
 		StationEntity* station_for_docking = (StationEntity*)[universe entityForUniversalID:targetStation];
 
 		if ((station_for_docking)&&(station_for_docking->isStation))
 		{
 			stick_roll = [self rollToMatchUp:[station_for_docking portUpVectorForShipsBoundingBox: boundingBox] rotating:[station_for_docking flight_roll]];
-//			Vector up_vec = [station_for_docking portUpVectorForShipsBoundingBox: boundingBox];
-//			double cosTheta = dot_product(up_vec, v_up);	// == cos of angle between up vectors
-//			double sinTheta = dot_product(up_vec, v_right);
-//
-//			double station_roll = [station_for_docking flight_roll];
-//
-//			if (!isPlayer)
-//			{
-//				station_roll = -station_roll;	// make necessary corrections for a different viewpoint
-//				sinTheta = -sinTheta;
-//			}
-//
-//			if (cosTheta < 0)
-//			{
-//				cosTheta = -cosTheta;
-//				sinTheta = -sinTheta;
-//			}
-//
-//			if (sinTheta > 0.0)
-//			{
-//				// increase roll rate
-//				stick_roll = cosTheta * cosTheta * station_roll + sinTheta * sinTheta * max_flight_roll;
-//			}
-//			else
-//			{
-//				// decrease roll rate
-//				stick_roll = cosTheta * cosTheta * station_roll - sinTheta * sinTheta * max_flight_roll;
-//			}
 		}
 	}
 
@@ -6224,10 +6152,6 @@ BOOL	class_masslocks(int some_class)
 	// set new values from aft_weapon_type
 	//
 	[self set_weapon_data_from_type:aft_weapon_type];
-	//
-	//
-
-	//NSLog(@"DEBUG %@ should fire aft weapon",name);
 
 	if (shot_time < weapon_recharge_rate)
 		return NO;
@@ -6235,8 +6159,6 @@ BOOL	class_masslocks(int some_class)
 		return NO;
 	if (range > randf() * weapon_range)
 		return NO;
-
-	//NSLog(@"DEBUG %@ firing aft weapon",name);
 
 	if (result)
 	{
@@ -6351,8 +6273,6 @@ BOOL	class_masslocks(int some_class)
 	hit_at_range = weapon_range;
 	target_laser_hit = [universe getFirstEntityHitByLaserFromEntity:self inView:direction offset: make_vector(0,0,0) rangeFound: &hit_at_range];
 
-//	NSLog(@"DEBUG target hit by SubEntityLaserShot: %d %@", target_laser_hit, [universe entityForUniversalID:target_laser_hit]);
-
 	shot = [[ParticleEntity alloc] initLaserFromSubentity:self view:direction];	// alloc retains!
 	[shot setColor:laser_color];
 	[shot setScanClass: CLASS_NO_DRAW];
@@ -6394,8 +6314,6 @@ BOOL	class_masslocks(int some_class)
 
 - (BOOL) fireDirectLaserShot
 {
-//	NSLog(@"DEBUG %@ %d laser fired direct shot on %@ %d", name, universal_id, [(ShipEntity*)[self getPrimaryTarget] name], primaryTarget);
-
 	GLfloat			hit_at_range;
 	Entity*	my_target = [self getPrimaryTarget];
 	if (!my_target)
@@ -6408,8 +6326,6 @@ BOOL	class_masslocks(int some_class)
 		r_pos = unit_vector(&r_pos);
 	else
 		r_pos.z = 1.0;
-
-//	target_laser_hit = primaryTarget;
 
 	Quaternion		q_laser = quaternion_rotation_between(r_pos, make_vector(0.0f,0.0f,1.0f));
 	q_laser.x += 0.01 * (randf() - 0.5);	// randomise aim a little (+/- 0.005)
@@ -6501,10 +6417,7 @@ BOOL	class_masslocks(int some_class)
 	}
 
 	target_laser_hit = [universe getFirstEntityHitByLaserFromEntity:self inView:direction offset:laserPortOffset rangeFound: &hit_at_range];
-
-//	if (isPlayer)
-//		NSLog(@"DEBUG target double-check range = %.2f victim = %d --> %@\n\n", hit_at_range, target_laser_hit, [universe entityForUniversalID:target_laser_hit]);
-
+	
 	shot = [[ParticleEntity alloc] initLaserFromShip:self view:direction offset:laserPortOffset];	// alloc retains!
 
 	[shot setColor:laser_color];
@@ -6697,13 +6610,13 @@ BOOL	class_masslocks(int some_class)
 
 	// custom missiles
 	if ([shipinfoDictionary objectForKey:@"missile_role"])
-		missile = [universe getShipWithRole:(NSString*)[shipinfoDictionary objectForKey:@"missile_role"]];
+		missile = [universe newShipWithRole:(NSString*)[shipinfoDictionary objectForKey:@"missile_role"]];
 	if (!missile)	// no custom role
 	{
 		if (randf() < 0.90)	// choose a standard missile 90% of the time
-			missile = [universe getShipWithRole:@"EQ_MISSILE"];   // retained
+			missile = [universe newShipWithRole:@"EQ_MISSILE"];   // retained
 		else				// otherwise choose any with the role 'missile' - which may include alternative weapons
-			missile = [universe getShipWithRole:@"missile"];   // retained
+			missile = [universe newShipWithRole:@"missile"];   // retained
 	}
 
 	if (!missile)
@@ -6793,7 +6706,7 @@ BOOL	class_masslocks(int some_class)
 		return NO;
 	has_energy_bomb = NO;
 	[self setSpeed: max_flight_speed + 300];
-	ShipEntity*	bomb = [universe getShipWithRole:@"energy-bomb"];
+	ShipEntity*	bomb = [universe newShipWithRole:@"energy-bomb"];
 	if (!bomb)
 		return NO;
 	double  start = collision_radius + bomb->collision_radius;
@@ -6831,7 +6744,7 @@ BOOL	class_masslocks(int some_class)
 	[universe addEntity:bomb];
 	[[bomb getAI] setState:@"GLOBAL"];
 	[bomb release];
-	if (self != [universe entityZero])	// get the heck out of here
+	if (self != [PlayerEntity sharedPlayer])	// get the heck out of here
 	{
 		[self addTarget:bomb];
 		behaviour = BEHAVIOUR_FLEE_TARGET;
@@ -6854,12 +6767,12 @@ BOOL	class_masslocks(int some_class)
 	// check for custom escape pod
 	//
 	if ([shipinfoDictionary objectForKey:@"escape_pod_model"])
-		pod = [universe getShipWithRole: (NSString*)[shipinfoDictionary objectForKey:@"escape_pod_model"]];
+		pod = [universe newShipWithRole: (NSString*)[shipinfoDictionary objectForKey:@"escape_pod_model"]];
 	//
 	// if not found - use standard escape pod
 	//
 	if (!pod)
-		pod = [universe getShipWithRole:@"escape-capsule"];   // retain count = 1
+		pod = [universe newShipWithRole:@"escape-capsule"];   // retain count = 1
 
 	if (pod)
 	{
@@ -6888,7 +6801,7 @@ BOOL	class_masslocks(int some_class)
 	int i;
 	for (i = 1; i < n_pods; i++)
 	{
-		pod = [universe getShipWithRole:@"escape-capsule"];
+		pod = [universe newShipWithRole:@"escape-capsule"];
 		if (pod)
 		{
 			Random_Seed orig = [universe systemSeedForSystemNumber:gen_rnd_number()];
@@ -7048,9 +6961,6 @@ BOOL	class_masslocks(int some_class)
 	
 	if (!other)
 		return NO;
-
-//	if ((self->isPlayer)||(other->isPlayer))
-//		NSLog(@"DEBUG %@ %d colliding with other %@ %d", name, universal_id, [other name], [other universal_id]);
 	
 	ShipEntity* otherParent = (ShipEntity*)[other owner];
 	BOOL otherIsSubentity = ((otherParent)&&(otherParent != other)&&([otherParent->sub_entities containsObject:other]));
@@ -7123,23 +7033,13 @@ BOOL	class_masslocks(int some_class)
 	// are they moving apart at over 1m/s already?
 	if (v2b < 0.0f)
 	{
-		if (v2b < -1.0f)
-		{
-//			NSLog(@"MOVING APART! %@ >%.3f %.3f< %@", self, sqrt(distance2(position, opos)), v2b, other);
-			return NO;
-		}
+		if (v2b < -1.0f)  return NO;
 		else
 		{
-//			NSLog(@"MOVING APART TOO SLOW! %@ >%.3f %.3f< %@", self, sqrt(distance2(position, opos)), v2b, other);
 			position = make_vector( position.x - loc.x, position.y - loc.y, position.z - loc.z);	// adjust self position
 			v = make_vector( 0.0f, 0.0f, 0.0f);	// go for the 1m/s solution
 		}
 	}
-//	else
-//	{
-//		NSLog(@"MOVING CLOSER %@ >%.3f %.3f< %@", self, sqrt(distance2(position, opos)), v2b, other);
-//	}
-	//
 
 	// convert change in velocity into damage energy (KE)
 	//
@@ -7190,9 +7090,7 @@ BOOL	class_masslocks(int some_class)
 			[other adjustVelocity:vel1a];
 		}
 	}
-
-//	NSLog(@"DEBUG back-off distance is %.3fm\n\n", back_dist);
-	//
+	
 	if ((!selfDestroyed)&&(!otherDestroyed))
 	{
 		float t = 10.0 * [universe getTimeDelta];	// 10 ticks
@@ -7242,18 +7140,12 @@ BOOL	class_masslocks(int some_class)
 
 - (BOOL) canScoop:(ShipEntity*)other
 {
-//	NSLog(@"DEBUG Checking if %@ %d can scoop %@ %d", name, universal_id, [other name], [other universal_id]);
 	if (!other)										return NO;
-	//
 	if (!has_scoop)									return NO;
-//	NSLog(@"DEBUG scoop okay");
 	if ([cargo count] >= max_cargo)					return NO;
-//	NSLog(@"DEBUG cargo space okay");
 	if (scan_class == CLASS_CARGO)					return NO;	// we have no power so we can't scoop
 	if (other->scan_class != CLASS_CARGO)			return NO;
-//	NSLog(@"DEBUG other scan class is CLASS_CARGO okay");
 	if ([other getCargoType] == CARGO_NOT_CARGO)	return NO;
-//	NSLog(@"DEBUG other cargo type is not CARGO_NOT_CARGO okay");
 
 	if (other->isStation)
 		return NO;
@@ -7320,7 +7212,7 @@ BOOL	class_masslocks(int some_class)
 				//scripting
 				if ([actions count])
 				{
-					PlayerEntity* player = (PlayerEntity *)[universe entityZero];
+					PlayerEntity* player = [PlayerEntity sharedPlayer];
 
 					[player setScript_target:self];
 					[player scriptActions: actions forTarget: other];
@@ -7341,9 +7233,8 @@ BOOL	class_masslocks(int some_class)
 	if (co_amount > 0)
 	{
 		[other setCommodity:co_type andAmount:co_amount];   // belt and braces setting this!
-		if (cargo_flag !=CARGO_FLAG_CANISTERS)
-			cargo_flag = CARGO_FLAG_CANISTERS;
-		//NSLog(@"---> %@ %d scooped %@", name, universal_id, [universe describeCommodity:co_type amount:co_amount]);
+		cargo_flag = CARGO_FLAG_CANISTERS;
+		
 		if (isPlayer)
 		{
 			[universe clearPreviousMessage];
@@ -7536,8 +7427,6 @@ int w_space_seed = 1234567;
 	[shipAI message:@"EXITED_WITCHSPACE"];
 	[universe addEntity:self];
 
-//	NSLog(@"DEBUG Ship: %@ exiting witchspace at %.2f %.2f %.2f", self, position.x, position.y, position.z);
-
 	// witchspace exit effects here
 	ParticleEntity *ring1 = [[ParticleEntity alloc] initHyperringFromShip:self]; // retained
 	[universe addEntity:ring1];
@@ -7550,9 +7439,7 @@ int w_space_seed = 1234567;
 
 - (void) markAsOffender:(int)offence_value
 {
-//	if (![roles isEqual:@"police"])
-	if (scan_class != CLASS_POLICE)
-		bounty |= offence_value;
+	if (scan_class != CLASS_POLICE)  bounty |= offence_value;
 }
 
 - (void) switchLightsOn
@@ -7598,24 +7485,17 @@ inline BOOL pairOK(NSString* my_role, NSString* their_role)
 	pairing_okay |= (![my_role isEqual:@"escort"] && ![my_role isEqual:@"wingman"] && [their_role isEqual:@"escort"]);
 	pairing_okay |= (([my_role isEqual:@"police"]||[my_role isEqual:@"interceptor"]) && [their_role isEqual:@"wingman"]);
 
-//	NSLog(@"checking if pairOK for ( %@, %@) >> %@", my_role, their_role, (pairing_okay)? @"YES":@"NO");
-
 	return pairing_okay;
 }
 
 - (BOOL) acceptAsEscort:(ShipEntity *) other_ship
 {
 	// can't pair with self
-	if (self == other_ship)
-		return NO;
-
-//	NSLog(@"DEBUG %@ %d asked to accept %@ %d as escort when ai_stack_depth is %d", name, universal_id, [other_ship name], [other_ship universal_id], [shipAI ai_stack_depth]);
+	if (self == other_ship)  return NO;
 
 	// if not in standard ai mode reject approach
 	if ([shipAI ai_stack_depth] > 1)
 		return NO;
-
-//	NSLog(@"DEBUG pairOK( %@, %@) = %@", roles, [other_ship roles], (pairOK( roles, [other_ship roles]))? @"YES":@"NO");
 
 	if (pairOK( roles, [other_ship roles]))
 	{
@@ -7640,9 +7520,6 @@ inline BOOL pairOK(NSString* my_role, NSString* their_role)
 			[other_ship setGroup_id:universal_id];
 			[self setGroup_id:universal_id];		// make self part of same group
 			n_escorts++;
-
-			//debug
-//			NSLog(@"DEBUG ::YES:: %@ accepts escort %@", self, other_ship);
 
 			return YES;
 		}
@@ -7680,7 +7557,6 @@ inline BOOL pairOK(NSString* my_role, NSString* their_role)
 	if (primaryTarget == last_escort_target)
 	{
 		// already deployed escorts onto this target!
-//		NSLog(@"DEBUG attempting to deploy more escorts onto same target - denied");
 		return;
 	}
 
@@ -7689,8 +7565,6 @@ inline BOOL pairOK(NSString* my_role, NSString* their_role)
 	int n_deploy = ranrot_rand() % n_escorts;
 	if (n_deploy == 0)
 		n_deploy = 1;
-
-	//NSLog(@"DEBUG %@ %d deploying %d escorts", name, universal_id, n_deploy);
 
 	int i_deploy = n_escorts - 1;
 	while ((n_deploy > 0)&&(n_escorts > 0))
@@ -7714,9 +7588,6 @@ inline BOOL pairOK(NSString* my_role, NSString* their_role)
 			i_deploy--;
 			n_deploy--;
 			n_escorts--;
-			//debug
-			//NSLog(@"DEBUG trader %@ %d deploys escort %@ %d", name, universal_id, [escorter name], [escorter universal_id]);
-			//[escorter setReportAImessages:YES];
 		}
 		else
 		{
@@ -7901,7 +7772,6 @@ inline BOOL pairOK(NSString* my_role, NSString* their_role)
 - (void) broadcastHitByLaserFrom:(ShipEntity*) aggressor_ship
 {
 	/*-- If you're clean, locates all police and stations in range and tells them OFFENCE_COMMITTED --*/
-//	NSLog(@"DEBUG IN [%@ broadcastHitByLaserFrom:%@]", self, aggressor_ship);
 	if (!universe)
 		return;
 	if (bounty)
@@ -7915,7 +7785,6 @@ inline BOOL pairOK(NSString* my_role, NSString* their_role)
 			(scan_class == CLASS_MILITARY)||
 			(scan_class == CLASS_PLAYER))	// only for active ships...
 	{
-//		NSLog(@"DEBUG IN [%@ broadcastHitByLaserFrom:%@]", self, aggressor_ship);
 		int			ent_count =		universe->n_entities;
 		Entity**	uni_entities =	universe->sortedEntities;	// grab the public sorted list
 		Entity*		my_entities[ent_count];
@@ -7931,7 +7800,6 @@ inline BOOL pairOK(NSString* my_role, NSString* their_role)
 			ShipEntity* ship = (ShipEntity *)my_entities[i];
 			if (((ship == mainStation) && (within_station_aegis)) || (distance2( position, ship->position) < SCANNER_MAX_RANGE2))
 			{
-//				NSLog(@"DEBUG SENDING %@'s AI \"OFFENCE_COMMITTED\"", ship);
 				[ship setFound_target: aggressor_ship];
 				[[ship getAI] reactToMessage: @"OFFENCE_COMMITTED"];
 			}
@@ -7993,7 +7861,7 @@ inline BOOL pairOK(NSString* my_role, NSString* their_role)
 	very_random_seed.e = rand() & 255;
 	very_random_seed.f = rand() & 255;
 	seed_RNG_only_for_planet_description(very_random_seed);
-	NSString* expandedMessage = [universe expandDescription:localExpandedMessage forSystem:[universe systemSeed]];
+	NSString* expandedMessage = ExpandDescriptionForCurrentSystem(localExpandedMessage);
 	[self setCommsMessageColor];
 	[other_ship receiveCommsMessage:[NSString stringWithFormat:@"%@:\n %@", name, expandedMessage]];
 	if (other_ship->isPlayer)
@@ -8306,12 +8174,10 @@ inline BOOL pairOK(NSString* my_role, NSString* their_role)
 // No over-ride of Entity's version of the method is required for non-Win32 platforms.
 - (void) reloadTextures
 {
-	//NSLog(@"ShipEntity::reloadTextures called, resetting subentities and calling super");
 	int i;
 	for (i = 0; i < [sub_entities count]; i++)
 	{
 		Entity *e = (Entity *)[sub_entities objectAtIndex:i];
-		//NSLog(@"ShipEntity::reloadTextures calling reloadTextures on: %@", [e description]);
 		[e reloadTextures];
 	}
 

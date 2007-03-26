@@ -44,9 +44,9 @@ JSFunctionSpec Universe_funcs[] = {
 
 JSBool UniverseCheckForShips(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval) {
 	if (argc == 1) {
-	//	PlayerEntity *playerEntity = (PlayerEntity *)[scriptedUniverse entityZero];
+	//	PlayerEntity *playerEntity = [PlayerEntity sharedPlayer];
 		NSString *role = JSValToNSString(cx, argv[0]);
-		int num = [scriptedUniverse countShipsWithRole:role];
+		int num = [[Universe sharedUniverse] countShipsWithRole:role];
 		*rval = INT_TO_JSVAL(num);
 	}
 	return JS_TRUE;
@@ -54,12 +54,12 @@ JSBool UniverseCheckForShips(JSContext *cx, JSObject *obj, uintN argc, jsval *ar
 
 JSBool UniverseAddShips(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval) {
 	if (argc == 2) {
-	//	PlayerEntity *playerEntity = (PlayerEntity *)[scriptedUniverse entityZero];
+	//	PlayerEntity *playerEntity = [PlayerEntity sharedPlayer];
 		NSString *role = JSValToNSString(cx, argv[0]);
 		int num = JSVAL_TO_INT(argv[1]);
 
 		while (num--)
-			[scriptedUniverse witchspaceShipWithRole:role];
+			[[Universe sharedUniverse] witchspaceShipWithRole:role];
 	}
 	return JS_TRUE;
 }
@@ -67,12 +67,12 @@ JSBool UniverseAddShips(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, j
 JSBool UniverseAddSystemShips(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval) {
 	if (argc == 3) {
 		jsdouble posn;
-	//	PlayerEntity *playerEntity = (PlayerEntity *)[scriptedUniverse entityZero];
+	//	PlayerEntity *playerEntity = [PlayerEntity sharedPlayer];
 		NSString *role = JSValToNSString(cx, argv[0]);
 		int num = JSVAL_TO_INT(argv[1]);
 		JS_ValueToNumber(cx, argv[2], &posn);
 		while (num--)
-			[scriptedUniverse addShipWithRole:role nearRouteOneAt:posn];
+			[[Universe sharedUniverse] addShipWithRole:role nearRouteOneAt:posn];
 	}
 	return JS_TRUE;
 }
@@ -80,7 +80,7 @@ JSBool UniverseAddSystemShips(JSContext *cx, JSObject *obj, uintN argc, jsval *a
 JSBool UniverseAddShipsAt(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval) {
 	if (argc == 6) {
 		jsdouble x, y, z;
-		PlayerEntity *playerEntity = (PlayerEntity *)[scriptedUniverse entityZero];
+		PlayerEntity *playerEntity = [PlayerEntity sharedPlayer];
 		NSString *role = JSValToNSString(cx, argv[0]);
 		int num = JSVAL_TO_INT(argv[1]);
 		NSString *coordScheme = JSValToNSString(cx, argv[2]);
@@ -96,7 +96,7 @@ JSBool UniverseAddShipsAt(JSContext *cx, JSObject *obj, uintN argc, jsval *argv,
 JSBool UniverseAddShipsAtPrecisely(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval) {
 	if (argc == 6) {
 		jsdouble x, y, z;
-		PlayerEntity *playerEntity = (PlayerEntity *)[scriptedUniverse entityZero];
+		PlayerEntity *playerEntity = [PlayerEntity sharedPlayer];
 		NSString *role = JSValToNSString(cx, argv[0]);
 		int num = JSVAL_TO_INT(argv[1]);
 		NSString *coordScheme = JSValToNSString(cx, argv[2]);
@@ -112,7 +112,7 @@ JSBool UniverseAddShipsAtPrecisely(JSContext *cx, JSObject *obj, uintN argc, jsv
 JSBool UniverseAddShipsWithinRadius(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval) {
 	if (argc == 7) {
 		jsdouble x, y, z;
-		PlayerEntity *playerEntity = (PlayerEntity *)[scriptedUniverse entityZero];
+		PlayerEntity *playerEntity = [PlayerEntity sharedPlayer];
 		NSString *role = JSValToNSString(cx, argv[0]);
 		int num = JSVAL_TO_INT(argv[1]);
 		NSString *coordScheme = JSValToNSString(cx, argv[2]);
@@ -128,7 +128,7 @@ JSBool UniverseAddShipsWithinRadius(JSContext *cx, JSObject *obj, uintN argc, js
 
 JSBool UniverseSpawn(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval) {
 	if (argc == 2) {
-		PlayerEntity *playerEntity = (PlayerEntity *)[scriptedUniverse entityZero];
+		PlayerEntity *playerEntity = [PlayerEntity sharedPlayer];
 		NSString *role = JSValToNSString(cx, argv[0]);
 		int num = JSVAL_TO_INT(argv[1]);
 		NSString *arg = [NSString stringWithFormat:@"%@ %d", role, num];
@@ -139,7 +139,7 @@ JSBool UniverseSpawn(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsva
 
 JSBool UniverseSpawnShip(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval) {
 	if (argc == 1) {
-		PlayerEntity *playerEntity = (PlayerEntity *)[scriptedUniverse entityZero];
+		PlayerEntity *playerEntity = [PlayerEntity sharedPlayer];
 		[playerEntity spawnShip:JSValToNSString(cx, argv[0])];
 	}
 	return JS_TRUE;
@@ -154,7 +154,7 @@ JSBool UniverseAddMessage(JSContext *cx, JSObject *obj, uintN argc, jsval *argv,
 
 	ok = JS_ValueToInt32(cx, argv[1], &count);
 	NSString *str = JSValToNSString(cx, argv[0]);
-	[scriptedUniverse addMessage: str forCount:(int)count];
+	[[Universe sharedUniverse] addMessage: str forCount:(int)count];
 	//[str dealloc];
 	return JS_TRUE;
 }
@@ -167,7 +167,7 @@ JSBool UniverseAddCommsMessage(JSContext *cx, JSObject *obj, uintN argc, jsval *
 
 	ok = JS_ValueToInt32(cx, argv[1], &count);
 	NSString *str = JSValToNSString(cx, argv[0]);
-	[scriptedUniverse addCommsMessage: str forCount:(int)count];
+	[[Universe sharedUniverse] addCommsMessage: str forCount:(int)count];
 	//[str dealloc];
 	return JS_TRUE;
 }
@@ -175,7 +175,7 @@ JSBool UniverseAddCommsMessage(JSContext *cx, JSObject *obj, uintN argc, jsval *
 /*
 JSBool UniverseGetProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp) {
 	if (JSVAL_IS_INT(id)) {
-		PlayerEntity *playerEntity = (PlayerEntity *)[scriptedUniverse entityZero];
+		PlayerEntity *playerEntity = [PlayerEntity sharedPlayer];
 
 		switch (JSVAL_TO_INT(id)) {
 			case UNI_PLAYER_ENTITY: {

@@ -31,6 +31,9 @@ MA 02110-1301, USA.
 #import "ResourceManager.h"
 #import "OOPListParsing.h"
 
+#define kOOLogUnconvertedNSLog @"unclassified.NSFileManagerOOExtensions"
+
+
 @implementation NSFileManager (OOExtensions)
 
 - (NSArray *)commanderContents
@@ -92,7 +95,6 @@ MA 02110-1301, USA.
 				// check file extension
 				if (![[path pathExtension] isEqual:@"oolite-save"])
 				{
-//					NSLog(@">>>> %@ is not a saved game", path);
 					[contents removeObjectAtIndex: i--];
 					continue;
 				}

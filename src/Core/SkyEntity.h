@@ -28,7 +28,6 @@ MA 02110-1301, USA.
 
 #import "Entity.h"
 
-#define SKY_POINTS		2
 #define SKY_BILLBOARDS	3
 
 #define BILLBOARD_DEPTH	50000.0

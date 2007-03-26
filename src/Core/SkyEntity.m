@@ -26,6 +26,7 @@ MA 02110-1301, USA.
 
 #import "Entity.h"
 #import "SkyEntity.h"
+#import "PlayerEntity.h"
 
 #import "OOMaths.h"
 #import "Universe.h"
@@ -442,7 +443,7 @@ MA 02110-1301, USA.
 {
 	if (usingVAR)
 		[self OGL_UpdateVAR];
-	Entity* player = [universe entityZero];
+	PlayerEntity *player = [PlayerEntity sharedPlayer];
 	zero_distance = MAX_CLEAR_DEPTH * MAX_CLEAR_DEPTH;
 	position = (player)? player->position : position;
 }
@@ -471,10 +472,6 @@ MA 02110-1301, USA.
 		{
 			switch (sky_type)
 			{
-				case SKY_POINTS :
-					NSLog(@"ERROR: SkyEntity SKY_POINTS deprecated");
-					break;
-
 				case SKY_BILLBOARDS :
 
 					if ((star_textureName == 0)&&(universe))
@@ -492,10 +489,6 @@ MA 02110-1301, USA.
 					if (usingVAR)
 						glBindVertexArrayAPPLE(gVertexArrayRangeObjects[0]);
 #endif
-
-//					if (usingVAR)
-//						NSLog(@"DEBUG using accelerated memory technique to draw %@ (%@)", self, basefile);
-//
 					glBindTexture(GL_TEXTURE_2D, star_textureName);
 
 					glEnableClientState(GL_VERTEX_ARRAY);
@@ -594,8 +587,6 @@ MA 02110-1301, USA.
 // No over-ride of Entity's version of the method is required for non-Win32 platforms.
 - (void) reloadTextures
 {
-	//NSLog(@"SkyEntity::reloadTextures called, calling super and resetTextureNames");
-
 	// Force the sky textures to be reloaded next time a frame is drawn.
 	star_textureName = 0;
 	blob_textureName = 0;

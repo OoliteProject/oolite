@@ -50,7 +50,6 @@ BOOL always_include_addons;
 + (NSString *) errors;
 + (NSMutableArray *) paths;
 + (NSMutableArray *) pathsUsingAddOns:(BOOL) include_addons;
-+ (BOOL) areRequirementsFulfilled:(NSDictionary*) requirements;
 + (void) addExternalPath:(NSString *)filename;
 
 + (NSDictionary *) dictionaryFromFilesNamed:(NSString *)filename inFolder:(NSString *)foldername andMerge:(BOOL) mergeFiles;

@@ -31,16 +31,17 @@ MA 02110-1301, USA.
 #import "OOOpenGL.h"
 #import "PlayerEntity.h"
 
+#define kOOLogUnconvertedNSLog @"unclassified.GameController"
+
+
 @implementation GameController
 
 - (id) init
 {
     self = [super init];
-    //
-	//NSLog(@"--- init GameController");
-	//
-   last_timeInterval = [NSDate timeIntervalSinceReferenceDate];
-    delta_t = 0.01; // one hundredth of a second
+	
+	last_timeInterval = [NSDate timeIntervalSinceReferenceDate];
+	delta_t = 0.01; // one hundredth of a second
 	//
 	my_mouse_x = my_mouse_y = 0;
 	//
@@ -49,13 +50,10 @@ MA 02110-1301, USA.
 	expansionPathsToInclude = nil;
 	pauseSelector = (SEL)nil;
 	pauseTarget = nil;
-	//
 	game_is_paused = NO;
 	
-	//
 	debug = 0;
-//	debug = DEBUG_COLLISIONS;
-    //
+	
     return self;
 }
 
@@ -65,14 +63,14 @@ MA 02110-1301, USA.
 	[[[NSWorkspace sharedWorkspace] notificationCenter]	removeObserver:universe];
 #endif
 	//
-    if (timer)		[timer release];
-    if (gameView)	[gameView release];
-    if (universe)	[universe release];
-	//
-    if (playerFileToLoad)	[playerFileToLoad release];
-	if (playerFileDirectory)	[playerFileDirectory release];
-	if (expansionPathsToInclude)	[expansionPathsToInclude release];
-	//
+	[timer release];
+	[gameView release];
+	[universe release];
+	
+	[playerFileToLoad release];
+	[playerFileDirectory release];
+	[expansionPathsToInclude release];
+	
     [super dealloc];
 }
 
@@ -96,7 +94,6 @@ MA 02110-1301, USA.
 	NSDictionary *d_mode = [self findDisplayModeForWidth: d_width Height: d_height Refresh: d_refresh];
 	if (d_mode)
 	{
-		// do stuff
 		width = d_width;
 		height = d_height;
 		refresh = d_refresh;
@@ -120,8 +117,6 @@ MA 02110-1301, USA.
 - (int) indexOfCurrentDisplayMode
 {
     NSDictionary *mode;
-	
-	//NSLog(@"looking for a display mode that's %d x %d %dHz",width, height, refresh);
 	
 	mode = [self findDisplayModeForWidth: width Height: height Refresh: refresh];
 	if (mode == nil)
@@ -149,7 +144,6 @@ MA 02110-1301, USA.
 		modeRefresh = [[mode objectForKey: (NSString *)kCGDisplayRefreshRate] intValue];
 		if ((modeWidth == d_width)&&(modeHeight == d_height)&&(modeRefresh == d_refresh))
 		{
-//			NSLog(@"Found mode %@", mode);
 			return mode;
 		}
 	}
@@ -256,8 +250,7 @@ static int _compareModes(id arg1, id arg2, void *context)
 
     // Fill the popup with the resulting modes
     modeCount = [displayModes count];
-
-    //NSLog(@"displayModes = %@", displayModes);
+	
     int i;
 	for (i = 0; i < modeCount; i++)
 	{
@@ -265,7 +258,6 @@ static int _compareModes(id arg1, id arg2, void *context)
         modeWidth = [[mode objectForKey: (NSString *)kCGDisplayWidth] intValue];
         modeHeight = [[mode objectForKey: (NSString *)kCGDisplayHeight] intValue];
         modeRefresh = [[mode objectForKey: (NSString *)kCGDisplayRefreshRate] intValue];
-		//NSLog(@"()=> %d x %d at %dHz", modeWidth, modeHeight, modeRefresh);
 	}
 #else  // ifndef GNUSTEP
    // SDL code all lives in the gameview.
@@ -378,9 +370,7 @@ static int _compareModes(id arg1, id arg2, void *context)
 	width = 640;	//  standard screen is 640x480 pixels, 32 bit color, 32 bit z-buffer, refresh rate 75Hz
 	height = 480;
 	refresh = 75;
-	//
-	//NSLog(@"--- loading userdefaults");
-	//
+	
 	NSUserDefaults *userDefaults = [NSUserDefaults standardUserDefaults];
 	//
 	if ([userDefaults objectForKey:@"display_width"])
@@ -447,7 +437,7 @@ static int _compareModes(id arg1, id arg2, void *context)
 {
 	if (playerFileToLoad)
 	{
-		PlayerEntity	*player = [universe entityZero];
+		PlayerEntity	*player = [PlayerEntity sharedPlayer];
 		[player loadPlayerFromFile:playerFileToLoad];
 		[player setStatus:STATUS_DOCKED];
 		[player setGuiToStatusScreen];
@@ -465,10 +455,9 @@ static int _compareModes(id arg1, id arg2, void *context)
 
 - (void) logProgress:(NSString*) message
 {
-//	NSLog(@"progress: %@", message);
 #ifndef GNUSTEP
 	[splashProgressTextField setStringValue:message];
-	[splashProgressTextField display];	// **thanks Jens Ayton **
+	[splashProgressTextField display];
 #endif
 }
 
@@ -585,7 +574,6 @@ static int _compareModes(id arg1, id arg2, void *context)
 		}
 		
 		originalDisplayMode = (NSDictionary *)CGDisplayCurrentMode(kCGDirectMainDisplay);
-		//NSLog(@"originalDisplayMode = %@", originalDisplayMode);
 		
 		// Pixel Format Attributes for the FullScreen NSOpenGLContext
 		NSOpenGLPixelFormatAttribute attrs[] = {
@@ -620,7 +608,6 @@ static int _compareModes(id arg1, id arg2, void *context)
 		
 		// Just as a diagnostic, report the renderer ID that this pixel format binds to.  CGLRenderers.h contains a list of known renderers and their corresponding RendererID codes.
 		[pixelFormat getValues:&rendererID forAttribute:NSOpenGLPFARendererID forVirtualScreen:0];
-		//NSLog(@"FullScreen pixelFormat RendererID = %08x", (unsigned)rendererID);
 
 		// Create an NSOpenGLContext with the FullScreen pixel format.  By specifying the non-FullScreen context as our "shareContext", we automatically inherit all of the textures, display lists, and other OpenGL objects it has defined.
 		fullScreenContext = [[NSOpenGLContext alloc] initWithFormat:pixelFormat shareContext:[gameView openGLContext]];
@@ -716,9 +703,8 @@ static int _compareModes(id arg1, id arg2, void *context)
 							my_mouse_x += mouse_dx;
 							my_mouse_y += mouse_dy;
 						}
-						else
-							past_first_mouse_delta =YES;
-						//NSLog(@".. %d, %d ..",my_mouse_x, my_mouse_y);
+						else  past_first_mouse_delta =YES;
+						
 						[gameView setVirtualJoystick:(double)my_mouse_x/width :(double)my_mouse_y/height];
 						CGDisplayMoveCursorToPoint(kCGDirectMainDisplay,centerOfScreen);
 						break;
@@ -800,7 +786,6 @@ static int _compareModes(id arg1, id arg2, void *context)
 
 - (void) exitFullScreenMode
 {
-	//NSLog(@"in gameController exitFullScreenMode");
 	stayInFullScreenMode = NO;
 }
 
@@ -840,7 +825,6 @@ static int _compareModes(id arg1, id arg2, void *context)
 
 - (void)windowDidResize:(NSNotification *)aNotification
 {
-//	NSLog(@"Mwahhahaha");
 	[gameView drawRect:[gameView bounds]];
 }
 
@@ -860,7 +844,6 @@ static int _compareModes(id arg1, id arg2, void *context)
 		[[NSFileManager defaultManager] fileExistsAtPath:filename isDirectory:&dir_test];
 		if (dir_test)
 		{
-//			NSLog(@"Including expansion pack : %@", filename);
 			if (!expansionPathsToInclude)
 				expansionPathsToInclude = [[NSMutableArray alloc] initWithCapacity: 4];	// retained
 			[expansionPathsToInclude addObject: filename];

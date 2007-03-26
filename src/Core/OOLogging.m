@@ -141,13 +141,14 @@ BOOL OOLogWillDisplayMessagesInClass(NSString *inMessageClass)
 	
 	// Look for cached value
 	value = [sDerivedSettingsCache objectForKey:inMessageClass];
-	if (__builtin_expect(value == nil, 0))
+	if (EXPECT_NOT(value == nil))
 	{
 		// No cached value.
 		value = ResolveDisplaySetting(inMessageClass);
 		
 		if (value != nil)
 		{
+			if (EXPECT_NOT(sDerivedSettingsCache == nil)) sDerivedSettingsCache = [[NSMutableDictionary alloc] init];
 			[sDerivedSettingsCache setObject:value forKey:inMessageClass];
 		}
 	}

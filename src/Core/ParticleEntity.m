@@ -34,6 +34,8 @@ MA 02110-1301, USA.
 #import "PlayerEntity.h"
 #import "PlanetEntity.h"
 
+#define kOOLogUnconvertedNSLog @"unclassified.ParticleEntity"
+
 
 static	Vector	circleVertex[65];		// holds vector coordinates for a unit circle
 
@@ -914,7 +916,7 @@ static	Vector	circleVertex[65];		// holds vector coordinates for a unit circle
 			case PARTICLE_BURST2 :
 			case PARTICLE_FLASH :
 				{
-					Entity* player = [universe entityZero];
+					PlayerEntity *player = [PlayerEntity sharedPlayer];
 					if (!texName)
 						[self initialiseTexture: textureNameString];
 					if (player)
@@ -1037,7 +1039,7 @@ static	Vector	circleVertex[65];		// holds vector coordinates for a unit circle
 - (void) updateEnergyMine:(double) delta_t
 {
 	// new billboard routine (working at last!)
-	Entity*	player = [universe entityZero];
+	PlayerEntity *player = [PlayerEntity sharedPlayer];
 	Vector v0 = position;
 	Vector p0 = (player)? player->position : make_vector( 0.0f, 0.0f, 0.0f);
 	v0.x -= p0.x;	v0.y -= p0.y;	v0.z -= p0.z; // vector from player to position
@@ -1606,7 +1608,7 @@ static	Vector	circleVertex[65];		// holds vector coordinates for a unit circle
 			glPushMatrix();
 					// position and orientation is absolute
 			glTranslatef( abspos.x, abspos.y, abspos.z);
-			glMultMatrixf([[universe entityZero] drawRotationMatrix]);
+			glMultMatrixf([[PlayerEntity sharedPlayer] drawRotationMatrix]);
 
 			[self drawEntity:immediate :translucent];
 
@@ -1707,7 +1709,7 @@ static	Vector	circleVertex[65];		// holds vector coordinates for a unit circle
 
 		case	VIEW_CUSTOM :
 			{
-				PlayerEntity* player = (PlayerEntity*)[universe entityZero];
+				PlayerEntity *player = [PlayerEntity sharedPlayer];
 				Vector vi = [player customViewRightVector];		vi.x *= xx;	vi.y *= xx;	vi.z *= xx;
 				Vector vj = [player customViewUpVector];		vj.x *= yy;	vj.y *= yy;	vj.z *= yy;
 				Vector vk = [player customViewForwardVector];	vk.x *= xx;	vk.y *= xx;	vk.z *= xx;
@@ -1960,7 +1962,7 @@ void drawQuadForView(Universe* universe, GLfloat x, GLfloat y, GLfloat z, GLfloa
 			break;
 		case	VIEW_CUSTOM :
 		{
-			PlayerEntity* player = (PlayerEntity*)[universe entityZero];
+			PlayerEntity *player = [PlayerEntity sharedPlayer];
 			Vector vi = [player customViewRightVector];		vi.x *= xx;	vi.y *= xx;	vi.z *= xx;
 			Vector vj = [player customViewUpVector];		vj.x *= yy;	vj.y *= yy;	vj.z *= yy;
 			glTexCoord2f(0.0, 1.0);	glVertex3f(x - vi.x - vj.x, y - vi.y - vj.y, z - vi.z - vj.z);

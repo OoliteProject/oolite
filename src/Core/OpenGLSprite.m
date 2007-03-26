@@ -171,10 +171,6 @@ MA 02110-1301, USA.
     [self makeTextureFromImage:image cropRectangle:NSMakeRect(0, 0, [image size].width, [image size].height) size:[image size]];
     
 	[image release];
-	
-    //
-    //NSLog(@"%@ message sprite [ %f, %f ]", str, [image size].width, [image size].height);
-    //
 #endif
 }
 
@@ -261,8 +257,7 @@ MA 02110-1301, USA.
 
     if ((textureRect.size.width != textureSize.width)||(textureRect.size.height != textureSize.height))
     {
-        NSLog(@"***** ERROR! replacement texture isn't the same size as original texture");
-        NSLog(@"***** cropRect %f x %f textureSize %f x %f",textureRect.size.width, textureRect.size.height, textureSize.width, textureSize.height);
+        OOLog(@"sprite.badReplacementSize", @"***** ERROR! replacement texture isn't the same size as original texture -- cropRect %f x %f textureSize %f x %f",textureRect.size.width, textureRect.size.height, textureSize.width, textureSize.height);
         return;
     }
 
@@ -383,7 +378,6 @@ enum
 
     SDL_Surface *texSurface = [texImage surface];
     SDL_SetAlpha(texSurface, 0, SDL_ALPHA_OPAQUE);
-    //NSLog(@"makeTextureFromSurface: texImage dimensions: %d x %d", texSurface->w, texSurface->h);
 
     size = spriteSize;
     textureCropRect = cropRect;
@@ -397,42 +391,24 @@ enum
     textureCropRect.origin= NSMakePoint(0,0);
 
     textureSize = textureRect.size;
-
-    //image = [[NSImage alloc] initWithSize:textureRect.size];	// retained
-    //NSLog(@"makeTextureFromSurface: texture surface dimensions: %d x %d", (int)textureRect.size.width, (int)textureRect.size.height);
+	
     surface = SDL_CreateRGBSurface(SDL_SWSURFACE, (int)textureRect.size.width, (int)textureRect.size.height, 32, rmask, gmask, bmask, amask);
-
-    //[image lockFocus];
-    //[[OOColor clearColor] set];
-    //NSRectFill(textureRect);
+	
     SDL_FillRect(surface, (SDL_Rect *)0x00, SDL_MapRGBA(surface->format, 0, 0, 0, SDL_ALPHA_TRANSPARENT));
-
-    //[texImage drawInRect:textureCropRect fromRect:cropRect operation:NSCompositeSourceOver fraction:1.0];
-    //bitmapImageRep = [[NSBitmapImageRep alloc] initWithFocusedViewRect:textureRect];	// retained
-    //[image unlockFocus];
 
     SDL_Rect srcRect, destRect;
    	srcRect.x = (int)cropRect.origin.x; srcRect.y = (int)cropRect.origin.y; srcRect.w = (int)cropRect.size.width; srcRect.h = (int)cropRect.size.height;
    	destRect.x = 0; destRect.y = 0;
     SDL_BlitSurface(texSurface, &srcRect, surface, &destRect);
-    //NSLog(@"destRect x: %d, y: %d, w: %d, h: %d", destRect.x, destRect.y, destRect.w, destRect.h);
-
-    //[image release]; // released
 
     // normalise textureCropRect size to 0.0 -> 1.0
     textureCropRect.size.width /= textureRect.size.width;
     textureCropRect.size.height /= textureRect.size.height;
 
-//	int n_bytes = surface->format->BytesPerPixel * surface->w * surface->h;
-	//unsigned char *buffer = malloc(n_bytes);
 	SDL_LockSurface(surface);
-	//memcpy(buffer, surface->pixels, n_bytes);
 
     if (textureData)
         [textureData release];
-    //textureData = [[NSData dataWithBytes:[bitmapImageRep bitmapData] length:n_bytes] retain];
-    //[bitmapImageRep release]; // released
-    //textureData = [[NSData dataWithBytesNoCopy: buffer length: n_bytes] retain];
     textureData = [[NSData dataWithBytes:surface->pixels length:surface->w * surface->h * surface->format->BytesPerPixel] retain];
 
     SDL_UnlockSurface(surface);

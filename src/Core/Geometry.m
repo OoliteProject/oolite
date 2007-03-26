@@ -95,7 +95,7 @@ MA 02110-1301, USA.
 			
 			if (!new_triangles)	// couldn't allocate space
 			{
-				NSLog(@" --- ran out of memory to allocate more geometry!");
+				OOLog(kOOLogAllocationFailure, @" --- ran out of memory to allocate more geometry!");
 				exit(-1);
 			}
 			
@@ -205,8 +205,6 @@ static float volumecount;
 	GLfloat foundRadius = 0.5 + [self findMaxDimensionFromOrigin];	// pad out from geometry by a half meter
 	//	
 	NSObject* foundOctree = [self octreeWithinRadius:foundRadius toDepth:depth];
-	//
-//	NSLog(@"octree found has %d leafs - object has volume %.2f mass %.2f", leafcount, volumecount, volumecount * 8.0);
 	//
 	Octree*	octreeRepresentation = [[Octree alloc] initWithRepresentationOfOctree:foundRadius :foundOctree :leafcount];
 	//

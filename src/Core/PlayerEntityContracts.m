@@ -80,7 +80,7 @@ static NSString * const kOOLogNoteShowShipyardModel = @"script.debug.note.showSh
 		else if ([rescuee insuranceCredits])
 		{
 			// claim insurance reward
-			[result appendFormat:[universe expandDescription:@"[rescue-reward-for-@@-f-credits]\n" forSystem:system_seed],
+			[result appendFormat:ExpandDescriptionForCurrentSystem(@"[rescue-reward-for-@@-f-credits]\n"),
 				[rescuee name], [rescuee shortDescription], (float)[rescuee insuranceCredits]];
 			credits += 10 * [rescuee insuranceCredits];
 		}
@@ -88,7 +88,7 @@ static NSString * const kOOLogNoteShowShipyardModel = @"script.debug.note.showSh
 		{
 			// claim bounty for capture
 			float reward = (5.0 + government) * [rescuee legalStatus];
-			[result appendFormat:[universe expandDescription:@"[capture-reward-for-@@-f-credits]\n" forSystem:system_seed],
+			[result appendFormat:ExpandDescriptionForCurrentSystem(@"[capture-reward-for-@@-f-credits]\n"),
 				[rescuee name], [rescuee shortDescription], 0.1f * reward];
 			credits += reward;
 		}
@@ -141,9 +141,9 @@ static NSString * const kOOLogNoteShowShipyardModel = @"script.debug.note.showSh
 				}
 				credits += 10 * fee;
 				if (!result)
-					result = [NSString stringWithFormat:[universe expandDescription:@"[passenger-delivered-okay-@-d-@]" forSystem:system_seed], passenger_name, fee, passenger_dest_name];
+					result = [NSString stringWithFormat:ExpandDescriptionForCurrentSystem(@"[passenger-delivered-okay-@-d-@]"), passenger_name, fee, passenger_dest_name];
 				else
-					result = [NSString stringWithFormat:[universe expandDescription:@"%@\n[passenger-delivered-okay-@-d-@]" forSystem:system_seed], result, passenger_name, fee, passenger_dest_name];
+					result = [NSString stringWithFormat:ExpandDescriptionForCurrentSystem(@"%@\n[passenger-delivered-okay-@-d-@]"), result, passenger_name, fee, passenger_dest_name];
 				[passengers removeObjectAtIndex:i--];
 				[self increasePassengerReputation];
 			}
@@ -155,9 +155,9 @@ static NSString * const kOOLogNoteShowShipyardModel = @"script.debug.note.showSh
 					fee /= 2;
 				credits += 10 * fee;
 				if (!result)
-					result = [NSString stringWithFormat:[universe expandDescription:@"[passenger-delivered-late-@-d-@]" forSystem:system_seed], passenger_name, fee, passenger_dest_name];
+					result = [NSString stringWithFormat:ExpandDescriptionForCurrentSystem(@"[passenger-delivered-late-@-d-@]"), passenger_name, fee, passenger_dest_name];
 				else
-					result = [NSString stringWithFormat:[universe expandDescription:@"%@\n[passenger-delivered-late-@-d-@]" forSystem:system_seed], result, passenger_name, fee, passenger_dest_name];
+					result = [NSString stringWithFormat:ExpandDescriptionForCurrentSystem(@"%@\n[passenger-delivered-late-@-d-@]"), result, passenger_name, fee, passenger_dest_name];
 				[passengers removeObjectAtIndex:i--];
 			}
 		}
@@ -167,9 +167,9 @@ static NSString * const kOOLogNoteShowShipyardModel = @"script.debug.note.showSh
 			{
 				// we've run out of time!
 				if (!result)
-					result = [NSString stringWithFormat:[universe expandDescription:@"[passenger-failed-@]" forSystem:system_seed], passenger_name];
+					result = [NSString stringWithFormat:ExpandDescriptionForCurrentSystem(@"[passenger-failed-@]"), passenger_name];
 				else
-					result = [NSString stringWithFormat:[universe expandDescription:@"%@\n[passenger-failed-@]" forSystem:system_seed], result, passenger_name];
+					result = [NSString stringWithFormat:ExpandDescriptionForCurrentSystem(@"%@\n[passenger-failed-@]"), result, passenger_name];
 				[passengers removeObjectAtIndex:i--];
 				[self decreasePassengerReputation];
 			}
@@ -215,9 +215,9 @@ static NSString * const kOOLogNoteShowShipyardModel = @"script.debug.note.showSh
 					// pay the premium and fee
 					credits += fee + premium;
 					if (!result)
-						result = [NSString stringWithFormat:[universe expandDescription:@"[cargo-delivered-okay-@-f]" forSystem:system_seed], contract_cargo_desc, (float)(fee + premium) / 10.0];
+						result = [NSString stringWithFormat:ExpandDescriptionForCurrentSystem(@"[cargo-delivered-okay-@-f]"), contract_cargo_desc, (float)(fee + premium) / 10.0];
 					else
-						result = [NSString stringWithFormat:[universe expandDescription:@"%@\n[cargo-delivered-okay-@-f]" forSystem:system_seed], result, contract_cargo_desc, (float)(fee + premium) / 10.0];
+						result = [NSString stringWithFormat:ExpandDescriptionForCurrentSystem(@"%@\n[cargo-delivered-okay-@-f]"), result, contract_cargo_desc, (float)(fee + premium) / 10.0];
 					[contracts removeObjectAtIndex:i--];
 					// repute++
 					[self increaseContractReputation];
@@ -244,18 +244,18 @@ static NSString * const kOOLogNoteShowShipyardModel = @"script.debug.note.showSh
 						int payment = percent_delivered * (fee + premium) / 100.0;
 						credits += payment;
 						if (!result)
-							result = [NSString stringWithFormat:[universe expandDescription:@"[cargo-delivered-short-@-f-d]" forSystem:system_seed], contract_cargo_desc, (float)payment / 10.0, shortfall];
+							result = [NSString stringWithFormat:ExpandDescriptionForCurrentSystem(@"[cargo-delivered-short-@-f-d]"), contract_cargo_desc, (float)payment / 10.0, shortfall];
 						else
-							result = [NSString stringWithFormat:[universe expandDescription:@"%@\n[cargo-delivered-short-@-f-d]" forSystem:system_seed], contract_cargo_desc, (float)payment / 10.0, shortfall];
+							result = [NSString stringWithFormat:ExpandDescriptionForCurrentSystem(@"%@\n[cargo-delivered-short-@-f-d]"), contract_cargo_desc, (float)payment / 10.0, shortfall];
 						[contracts removeObjectAtIndex:i--];
 						// repute unchanged
 					}
 					else
 					{
 						if (!result)
-							result = [NSString stringWithFormat:[universe expandDescription:@"[cargo-refused-short-%@]" forSystem:system_seed], contract_cargo_desc];
+							result = [NSString stringWithFormat:ExpandDescriptionForCurrentSystem(@"[cargo-refused-short-%@]"), contract_cargo_desc];
 						else
-							result = [NSString stringWithFormat:[universe expandDescription:@"%@\n[cargo-refused-short-%@]" forSystem:system_seed], contract_cargo_desc];
+							result = [NSString stringWithFormat:ExpandDescriptionForCurrentSystem(@"%@\n[cargo-refused-short-%@]"), contract_cargo_desc];
 					}
 				}
 			}
@@ -263,9 +263,9 @@ static NSString * const kOOLogNoteShowShipyardModel = @"script.debug.note.showSh
 			{
 				// but we're late!
 				if (!result)
-					result = [NSString stringWithFormat:[universe expandDescription:@"[cargo-delivered-late-@]" forSystem:system_seed], contract_cargo_desc];
+					result = [NSString stringWithFormat:ExpandDescriptionForCurrentSystem(@"[cargo-delivered-late-@]"), contract_cargo_desc];
 				else
-					result = [NSString stringWithFormat:[universe expandDescription:@"%@\n[cargo-delivered-late-@]" forSystem:system_seed], result, contract_cargo_desc];
+					result = [NSString stringWithFormat:ExpandDescriptionForCurrentSystem(@"%@\n[cargo-delivered-late-@]"), result, contract_cargo_desc];
 				[contracts removeObjectAtIndex:i--];
 				// repute--
 				[self decreaseContractReputation];
@@ -277,9 +277,9 @@ static NSString * const kOOLogNoteShowShipyardModel = @"script.debug.note.showSh
 			{
 				// we've run out of time!
 				if (!result)
-					result = [NSString stringWithFormat:[universe expandDescription:@"[cargo-failed-@]" forSystem:system_seed], contract_cargo_desc];
+					result = [NSString stringWithFormat:ExpandDescriptionForCurrentSystem(@"[cargo-failed-@]"), contract_cargo_desc];
 				else
-					result = [NSString stringWithFormat:[universe expandDescription:@"%@\n[cargo-failed-@]" forSystem:system_seed], result, contract_cargo_desc];
+					result = [NSString stringWithFormat:ExpandDescriptionForCurrentSystem(@"%@\n[cargo-failed-@]"), result, contract_cargo_desc];
 				[contracts removeObjectAtIndex:i--];
 				// repute--
 				[self decreaseContractReputation];
@@ -696,8 +696,6 @@ static NSString * const kOOLogNoteShowShipyardModel = @"script.debug.note.showSh
 		[passenger_market removeObject:passenger_info];
 		credits += 10 * passenger_premium;
 		
-//		NSLog(@"DEBUG passengers:\n%@", [passengers description]);
-		
 		return YES;
 	}
 	
@@ -742,8 +740,6 @@ static NSString * const kOOLogNoteShowShipyardModel = @"script.debug.note.showSh
 		[contracts addObject:contract_info];
 		[contract_record setObject:contract_arrival_time forKey:contract_id];
 		[contract_market removeObject:contract_info];
-		
-//		NSLog(@"DEBUG contracts:\n%@", [contracts description]);
 		
 		return YES;
 	}
@@ -967,7 +963,7 @@ static NSString * const kOOLogNoteShowShipyardModel = @"script.debug.note.showSh
 	// GUI stuff
 	{
 		[gui clear];
-		[gui setTitle:[universe expandDescription:@"[arrival-report-title]" forSystem:system_seed]];
+		[gui setTitle:ExpandDescriptionForCurrentSystem(@"[arrival-report-title]")];
 		//
 
 		// report might be a multi-line message
@@ -1017,7 +1013,7 @@ static NSString * const kOOLogNoteShowShipyardModel = @"script.debug.note.showSh
 	// GUI stuff
 	{
 		[gui clear];
-		[gui setTitle:[universe expandDescription:@"[arrival-report-title]" forSystem:system_seed]];
+		[gui setTitle:ExpandDescriptionForCurrentSystem(@"[arrival-report-title]")];
 		//
 
 		// dockingReport might be a multi-line message
@@ -1159,9 +1155,6 @@ static NSMutableDictionary* currentShipyard = nil;
 			}
 		}
 		
-//		NSLog(@"DEBUG Ships for sale n_ships:%d MAX_ROWS_SHIPS_FOR_SALE:%d n_rows:%d skip:%d", n_ships, MAX_ROWS_SHIPS_FOR_SALE, n_rows, skip);
-				
-		//
 		if (n_ships > 0)
 		{
 			[gui setColor:[OOColor greenColor] forRow:GUI_ROW_SHIPYARD_LABELS];
@@ -1227,8 +1220,6 @@ static NSMutableDictionary* currentShipyard = nil;
 	GuiDisplayGen* gui = [universe gui];
 	int sel_row = [gui selectedRow];
 	
-//	NSLog(@"-- %d %d %d", sel_row, [gui selectableRange].location, [gui selectableRange].length);
-	
 	if (sel_row <= 0)
 		return;
 	
@@ -1238,7 +1229,6 @@ static NSMutableDictionary* currentShipyard = nil;
 	
 	NSString* key = [gui keyForRow:sel_row];
 	
-//	NSDictionary* info = (NSDictionary *)[[docked_station localShipyard] objectAtIndex:sel_row - GUI_ROW_SHIPYARD_START];
 	NSDictionary* info = (NSDictionary *)[currentShipyard objectForKey:key];
 	
 	if (info)
@@ -1330,12 +1320,8 @@ static NSMutableDictionary* currentShipyard = nil;
 
 	if ([key hasPrefix:@"More:"])
 	{
-//		NSLog(@"DEBUG Key is '%@'", key);
-		
 		int from_ship = [(NSString*)[[key componentsSeparatedByString:@":"] objectAtIndex:1] intValue];
-
-//		NSLog(@"DEBUG skipping %d", from_ship);
-
+		
 		[self setGuiToShipyardScreen:from_ship];
 		if ([[universe gui] selectedRow] < 0)
 			[[universe gui] setSelectedRow:GUI_ROW_SHIPYARD_START];
@@ -1388,8 +1374,6 @@ static NSMutableDictionary* currentShipyard = nil;
 	port_weapon = WEAPON_NONE;
 	starboard_weapon = WEAPON_NONE;
 	forward_weapon = [universe weaponForEquipmentKey:(NSString*)[(NSDictionary*)[ship_info objectForKey:SHIPYARD_KEY_SHIP] objectForKey:@"forward_weapon_type"]];
-	
-//	NSLog(@"%@ (%d) from %@",[(NSDictionary*)[ship_info objectForKey:SHIPYARD_KEY_SHIP] objectForKey:@"forward_weapon_type"],forward_weapon,[[ship_info objectForKey:SHIPYARD_KEY_SHIP] description]);
 	
 	// get basic max_cargo
 	max_cargo = [universe maxCargoForShip:ship_desc];

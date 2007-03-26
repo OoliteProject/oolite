@@ -27,10 +27,12 @@ MA 02110-1301, USA.
 #import "ParticleEntity.h"
 #import "ShipEntity.h"
 #import "PlanetEntity.h"
+#import "PlayerEntity.h"
 
 #import "Universe.h"
 #import "AI.h"
 #import "TextureStore.h"
+#import "OOStringParsing.h"
 
 
 @implementation WormholeEntity
@@ -61,14 +63,12 @@ MA 02110-1301, USA.
 	//
 	position = [ship getPosition];
     //
-	Entity* player = [universe entityZero];
+	PlayerEntity *player = [PlayerEntity sharedPlayer];
 	if (player)
 		zero_distance = distance2( player->position, position);
 	//
 	isWormhole = YES;
-	//
-//	NSLog(@"DEBUG %@ created!", self);
-	//
+	
 	return self;
 }
 
@@ -86,8 +86,6 @@ MA 02110-1301, USA.
 		witch_mass += [ship mass];
 		expiry_time = time_counter + WORMHOLE_EXPIRES_TIMEINTERVAL;
 		collision_radius = 0.5 * PI * pow( witch_mass, 1.0/3.0);
-
-//		NSLog(@"DEBUG %@ sucks in %@", self, ship);
 
 		// witchspace entry effects here
 		ParticleEntity *ring = [[ParticleEntity alloc] initHyperringFromShip:ship]; // retained
@@ -112,8 +110,6 @@ MA 02110-1301, USA.
 
 - (void) disgorgeShips
 {
-//	NSLog(@"disgorging %@", shipsInTransit);
-	
 	int n_ships = [shipsInTransit count];
 	
 	int i;
@@ -147,10 +143,6 @@ MA 02110-1301, USA.
 		
 		[[ship getAI] reactToMessage:@"EXITED WITCHSPACE"];
 		
-//		[ship setReportAImessages:YES];	// DEBUG
-		
-//		NSLog(@"DEBUG %@ disgorged %@", self, ship);
-		
 		// update the ships's position
 		[ship update: time_passed];
 	}
@@ -170,7 +162,7 @@ MA 02110-1301, USA.
 
 - (NSString*) description
 {
-	NSString* whereto = (universe)? [universe getSystemName: destination] : [Universe systemSeedString: destination];
+	NSString* whereto = (universe) ? [universe getSystemName:destination] : StringFromRandomSeed(destination);
 	return [NSString stringWithFormat:@"<WormholeEntity to %@ ttl: %.2fs>", whereto, WORMHOLE_EXPIRES_TIMEINTERVAL - time_counter];
 }
 
@@ -190,7 +182,7 @@ MA 02110-1301, USA.
 {
 	[super update:delta_t];
 	
-	Entity* player = [universe entityZero];
+	Entity* player = [PlayerEntity sharedPlayer];
 	if (player)
 	{
 		// new billboard routine (from Planetentity.m)

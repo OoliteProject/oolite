@@ -36,16 +36,14 @@ MA 02110-1301, USA.
 #import "AI.h"
 #import "OOCharacter.h"
 
+#define kOOLogUnconvertedNSLog @"unclassified.StationEntity"
+
 
 @implementation StationEntity
 
 - (void) acceptDistressMessageFrom:(ShipEntity *)other
 {
-	if (self != [universe station])
-	{
-		//NSLog(@"DEBUG acceptDistressMessageFrom rejected from sub-station '%@'", name);
-		return;
-	}
+	if (self != [universe station])  return;
 	
 	int old_target = primaryTarget;
 	primaryTarget = [[other getPrimaryTarget] universal_id];
@@ -147,7 +145,6 @@ MA 02110-1301, USA.
 
 - (NSMutableArray *) initialiseLocalMarketWithSeed: (Random_Seed) s_seed andRandomFactor: (int) random_factor
 {
-	//NSLog(@"///// Initialising local market for station %@ with roles %@",self,[self roles]);
 	int rf = (random_factor ^ universal_id) & 0xff;
 	int economy = [(NSNumber *)[[universe generateSystemData:s_seed] objectForKey:KEY_ECONOMY] intValue];
 	if (localMarket)
@@ -158,19 +155,17 @@ MA 02110-1301, USA.
 
 - (NSMutableArray *) initialiseLocalPassengersWithSeed: (Random_Seed) s_seed andRandomFactor: (int) random_factor
 {
-	//NSLog(@"///// Initialising local market for station %@ with roles %@",self,[self roles]);
 	if (localPassengers)
 		[localPassengers release];
-	localPassengers = [[NSMutableArray alloc] initWithArray:[universe passengersForSystem:s_seed atTime:[[(PlayerEntity*)[universe entityZero] clock_number] intValue]]];
+	localPassengers = [[NSMutableArray alloc] initWithArray:[universe passengersForSystem:s_seed atTime:[[[PlayerEntity sharedPlayer] clock_number] intValue]]];
 	return localPassengers;
 }
 
 - (NSMutableArray *) initialiseLocalContractsWithSeed: (Random_Seed) s_seed andRandomFactor: (int) random_factor
 {
-	//NSLog(@"///// Initialising local market for station %@ with roles %@",self,[self roles]);
 	if (localContracts)
 		[localContracts release];
-	localContracts = [[NSMutableArray alloc] initWithArray:[universe contractsForSystem:s_seed atTime:[[(PlayerEntity*)[universe entityZero] clock_number] intValue]]];
+	localContracts = [[NSMutableArray alloc] initWithArray:[universe contractsForSystem:s_seed atTime:[[[PlayerEntity sharedPlayer] clock_number] intValue]]];
 	return localContracts;
 }
 
@@ -423,10 +418,6 @@ NSDictionary* instructions(int station_id, Vector coords, float speed, float ran
 	Vector delta = ship->position;
 	delta.x -= coords.x;	delta.y -= coords.y;	delta.z -= coords.z;
 
-//	if (ship->isPlayer)
-//		NSLog(@"DEBUG docking_stage %d: ship is %.2fm from control point ( %.2f, %.2f, %.2f)",
-//			docking_stage, sqrt(magnitude2(delta)), coords.x, coords.y, coords.z);
-
 	if (magnitude2(delta) > max_allowed_range * max_allowed_range)	// too far from the coordinates - do not remove them from the stack!
 	{
 		if ((docking_stage == 1) &&(magnitude2(delta) < 1000000.0))	// 1km*1km
@@ -508,8 +499,6 @@ NSDictionary* instructions(int station_id, Vector coords, float speed, float ran
 	int			corridor_rotate[] =		{	1,	1,	1,	1,	0,	0,	0,	0,	0};		// whether to match the station rotation
 	int			corridor_count = 9;
 	int			corridor_final_approach = 3;
-	
-//	NSLog(@"DEBUG adding %@ to shipsOnApproach", ship);
 	
 	int			ship_id = [ship universal_id];
 	NSString*   shipID = [NSString stringWithFormat:@"%d", ship_id];
@@ -621,16 +610,12 @@ NSDictionary* instructions(int station_id, Vector coords, float speed, float ran
 
 - (Vector) portUpVector
 {
-//	NSLog(@"DEBUG docking port for %@ is %@ dimensions ( %.2f, %.2f, %.2f)", self, port_model,
-//		port_dimensions.x, port_dimensions.y, port_dimensions.z);
 	if (port_dimensions.x > port_dimensions.y)
 	{
-//		NSLog(@"DEBUG returning UP !");
 		return vector_up_from_quaternion( quaternion_multiply( port_qrotation, q_rotation));
 	}
 	else
 	{
-//		NSLog(@"DEBUG returning RIGHT !");
 		return vector_right_from_quaternion( quaternion_multiply( port_qrotation, q_rotation));
 	}
 }
@@ -638,8 +623,6 @@ NSDictionary* instructions(int station_id, Vector coords, float speed, float ran
 - (Vector) portUpVectorForShipsBoundingBox:(BoundingBox) bb
 {
 	BOOL twist = ((port_dimensions.x < port_dimensions.y) ^ (bb.max.x - bb.min.x < bb.max.y - bb.min.y));
-
-//	NSLog(@"DEBUG docking: port_twist:%@ ship_twist:%@ twist:%@", (port_dimensions.x < port_dimensions.y)?@"YES":@"NO", (bb.max.x - bb.min.x < bb.max.y - bb.min.y)?@"YES":@"NO", twist?@"YES":@"NO");
 
 	if (!twist)
 	{
@@ -749,8 +732,6 @@ NSDictionary* instructions(int station_id, Vector coords, float speed, float ran
 - (id) initWithDictionary:(NSDictionary *) dict
 {
 	self = [super initWithDictionary:dict];
-	
-	//NSLog(@"DEBUG setting up station '%@' from dict:%@",name,[dict description]);
 	
 	if ([dict objectForKey:@"equivalent_tech_level"])
 		equivalent_tech_level = [(NSNumber *)[dict objectForKey:@"equivalent_tech_level"] intValue];
@@ -1043,7 +1024,6 @@ NSDictionary* instructions(int station_id, Vector coords, float speed, float ran
 				if (vdp > 0.86)
 				{
 					isEmpty = NO;
-//					NSLog(@"DEBUG %@ is blocking %@ launch corridor distance = %.0f (%.0f).", ship, self, sqrt(d2), d2);
 					last_launch_time = unitime;
 				}
 			}
@@ -1101,8 +1081,8 @@ NSDictionary* instructions(int station_id, Vector coords, float speed, float ran
 					if (vdp > 0.86)
 					{
 						isClear = NO;
+						
 						// okay it's in the way .. give it a wee nudge (0.25s)
-//						NSLog(@"DEBUG [StationEntity clearDockingCorridor] nudging %@", ship);
 						[ship update: 0.25];
 						time_out += 0.25;
 					}
@@ -1131,9 +1111,6 @@ NSDictionary* instructions(int station_id, Vector coords, float speed, float ran
 	
 	double unitime = [universe getTime];
 	
-//	if (sub_entities)
-//		NSLog(@"DEBUG %@ sub_entities %@", [self name], [sub_entities description]);
-	
 	[super update:delta_t];
 	
 	if (([launchQueue count] > 0)&&([shipsOnApproach count] == 0)&&[self dockingCorridorIsEmpty])
@@ -1160,10 +1137,8 @@ NSDictionary* instructions(int station_id, Vector coords, float speed, float ran
 
 	if ((docked_traders > 0)&&(!isRockHermit))
 	{
-//		NSLog(@"DEBUG1 %f %f", unitime, last_trader_launch_time + trader_launch_interval);
 		if (unitime > last_trader_launch_time + trader_launch_interval)
 		{
-//			NSLog(@"DEBUG O ---> %d docked traders  at %.1f (%.1f and every %.1f)", docked_traders, [universe getTime], last_trader_launch_time + trader_launch_interval, trader_launch_interval);
 			[self launchTrader];
 			docked_traders--;
 			last_trader_launch_time = unitime;
@@ -1173,7 +1148,6 @@ NSDictionary* instructions(int station_id, Vector coords, float speed, float ran
 	// testing patrols
 	if ((unitime > last_patrol_report_time + patrol_launch_interval)&&(isMainStation))
 	{
-//		NSLog(@"%@ %d (%@) launching a patrol...", name, universal_id, roles);
 		if (![self launchPatrol])
 			last_patrol_report_time = unitime;
 	}
@@ -1277,7 +1251,7 @@ NSDictionary* instructions(int station_id, Vector coords, float speed, float ran
 		if ((id_lock[i] == ship_id)||([universe entityForUniversalID:id_lock[i]] == nil))
 			id_lock[i] = NO_TARGET;
 	
-	if (ship == [universe entityZero])	// ie. the player
+	if (ship == [PlayerEntity sharedPlayer])	// ie. the player
 	{
 		//scripting
 		if ([script_actions count])
@@ -1286,10 +1260,6 @@ NSDictionary* instructions(int station_id, Vector coords, float speed, float ran
 			[(PlayerEntity *)ship scriptActions: script_actions forTarget: ship];
 		}
 	}
-			
-//	NSLog(@"DEBUG ::::: %d :: %d :: %d :: %d :: %d :: %d :: %d :: %d :: %d :: %d <<",
-//		id_lock[10],id_lock[9],id_lock[8],id_lock[7],id_lock[6],id_lock[5],id_lock[4],id_lock[3],id_lock[2],id_lock[1]);
-	
 }
 
 
@@ -1359,13 +1329,11 @@ NSDictionary* instructions(int station_id, Vector coords, float speed, float ran
 			[shipAI reactToMessage:@"TARGET_LOST"];
 			return;
 		}
-			
-		//NSLog(@"Launching Police Ship to intercept %@",[universe entityForUniversalID:police_target]);
 		
 		if ((ranrot_rand() & 7) + 6 <= techlevel)
-			police_ship = [universe getShipWithRole:@"interceptor"];   // retain count = 1
+			police_ship = [universe newShipWithRole:@"interceptor"];   // retain count = 1
 		else
-			police_ship = [universe getShipWithRole:@"police"];   // retain count = 1
+			police_ship = [universe newShipWithRole:@"police"];   // retain count = 1
 		if (police_ship)
 		{
 			if (![police_ship crew])
@@ -1415,29 +1383,23 @@ NSDictionary* instructions(int station_id, Vector coords, float speed, float ran
 		
 	if ([shipinfoDictionary objectForKey:@"defense_ship"])
 	{
-//		NSLog(@"DEBUG Defense ship key found: %@", [shipinfoDictionary objectForKey:@"defense_ship"]);
 		defense_ship_key = (NSString*)[shipinfoDictionary objectForKey:@"defense_ship"];
 		defense_ship_ai = nil;
 	}
 	if ([shipinfoDictionary objectForKey:@"defense_ship_role"])
 	{
-//		NSLog(@"DEBUG Defense ship role key found: %@", [shipinfoDictionary objectForKey:@"defense_ship_role"]);
 		defense_ship_role_key = (NSString*)[shipinfoDictionary objectForKey:@"defense_ship_role"];
 		defense_ship_ai = nil;
 	}
-	
-//	NSLog(@"DEBUG Launching defense ship to intercept %@",[(ShipEntity *)[universe entityForUniversalID:defense_target] name]);
 
 	if (defense_ship_key)
 	{
-		defense_ship = [universe getShip:defense_ship_key];
-//		NSLog(@"DEBUG launchDefenseShip Got ship with defense_ship '%@' : %@", defense_ship_key, defense_ship);
+		defense_ship = [universe newShipWithName:defense_ship_key];
 		[defense_ship setRoles:@"defense_ship"];
 	}
 	else
 	{
-		defense_ship = [universe getShipWithRole:defense_ship_role_key];
-//		NSLog(@"DEBUG launchDefenseShip Got ship with defense_ship_role '%@' : %@", defense_ship_role_key, defense_ship);
+		defense_ship = [universe newShipWithRole:defense_ship_role_key];
 		[defense_ship setRoles:@"defense_ship"];
 	}
 	
@@ -1461,17 +1423,11 @@ NSDictionary* instructions(int station_id, Vector coords, float speed, float ran
 
 	if ((scan_class != CLASS_ROCK)&&(scan_class != CLASS_STATION))
 		[defense_ship setScanClass: scan_class];	// same as self
-	
-	//[defense_ship setReportAImessages:YES]; // debug
-	
-//	NSLog(@"DEBUG Launching defense ship %@ %@", defense_ship, [defense_ship name]);
 
 	[self addShipToLaunchQueue:defense_ship];
 	[defense_ship release];
 	no_docking_while_launching = YES;
 	[self abortAllDockings];
-
-//	NSLog(@"DEBUG Launchqueue : %@",[launchQueue description]);
 
 }
 
@@ -1481,17 +1437,12 @@ NSDictionary* instructions(int station_id, Vector coords, float speed, float ran
 	
 	int		scavs = [universe countShipsWithRole:@"scavenger" inRange:SCANNER_MAX_RANGE ofEntity:self] + [self countShipsInLaunchQueueWithRole:@"scavenger"];
 	
-	if (scavs >= max_scavengers)
-		return;
-	
-	if (scavengers_launched >= max_scavengers)
-		return;
-		
-	//NSLog(@"Launching Scavenger");
+	if (scavs >= max_scavengers)  return;
+	if (scavengers_launched >= max_scavengers)  return;
 	
 	scavengers_launched++;
 		
-	scavenger_ship = [universe getShipWithRole:@"scavenger"];   // retain count = 1
+	scavenger_ship = [universe newShipWithRole:@"scavenger"];   // retain count = 1
 	if (scavenger_ship)
 	{
 		if (![scavenger_ship crew])
@@ -1518,13 +1469,9 @@ NSDictionary* instructions(int station_id, Vector coords, float speed, float ran
 		return;
 	
 	// count miners as scavengers...
-	//
-	if (scavengers_launched >= max_scavengers)
-		return;
-	//	
-//	NSLog(@"Launching Miner");
-	//
-	miner_ship = [universe getShipWithRole:@"miner"];   // retain count = 1
+	if (scavengers_launched >= max_scavengers)  return;
+	
+	miner_ship = [universe newShipWithRole:@"miner"];   // retain count = 1
 	if (miner_ship)
 	{
 		if (![miner_ship crew])
@@ -1557,12 +1504,10 @@ NSDictionary* instructions(int station_id, Vector coords, float speed, float ran
 		return;
 	}
 	
-	//NSLog(@"Launching pirate Ship to intercept %@",[(ShipEntity *)[universe entityForUniversalID:defense_target] name]); //debug
-	
 	police_launched++;
 	
 	// Yep! The standard hermit defence ships, even if they're the aggressor.
-	pirate_ship = [universe getShipWithRole:@"pirate"];   // retain count = 1
+	pirate_ship = [universe newShipWithRole:@"pirate"];   // retain count = 1
 	// Nope, use standard pirates in a generic method.
 	
 	if (pirate_ship)
@@ -1594,7 +1539,7 @@ NSDictionary* instructions(int station_id, Vector coords, float speed, float ran
 {
 	ShipEntity  *shuttle_ship;
 		
-	shuttle_ship = [universe getShipWithRole:@"shuttle"];   // retain count = 1
+	shuttle_ship = [universe newShipWithRole:@"shuttle"];   // retain count = 1
 	
 	if (shuttle_ship)
 	{
@@ -1608,9 +1553,6 @@ NSDictionary* instructions(int station_id, Vector coords, float speed, float ran
 		[shuttle_ship setCargoFlag:CARGO_FLAG_FULL_SCARCE];
 		[[shuttle_ship getAI] setStateMachine:@"fallingShuttleAI.plist"];
 		[self addShipToLaunchQueue:shuttle_ship];
-
-//		NSLog(@"%@ Prepping shuttle: %@ %d for launch.", [self name], [shuttle_ship name], [shuttle_ship universal_id]);
-//		[shuttle_ship setReportAImessages:YES];	//DEBUG
 		
 		[shuttle_ship release];
 	}
@@ -1621,19 +1563,8 @@ NSDictionary* instructions(int station_id, Vector coords, float speed, float ran
 	BOOL		sunskimmer = (randf() < 0.1);	// 10%
 	ShipEntity  *trader_ship = nil;
 	
-//	NSLog(@"DEBUG %@ [StationEntity launchTrader]", self);
-	
-//	do {
-//	[trader_ship release];
-	//
-	if (!sunskimmer)
-		trader_ship = [universe getShipWithRole:@"trader"];   // retain count = 1
-	else
-		trader_ship = [universe getShipWithRole:@"sunskim-trader"];   // retain count = 1
-	//
-//	} while (![trader_ship n_escorts]);	// DEBUG we NEED escorts
-	
-//	NSLog(@"DEBUG [StationEntity launchTrader] ---> %@ ", trader_ship);
+	if (!sunskimmer)  trader_ship = [universe newShipWithRole:@"trader"];   // retain count = 1
+	else  trader_ship = [universe newShipWithRole:@"sunskim-trader"];   // retain count = 1
 	
 	if (trader_ship)
 	{
@@ -1663,8 +1594,6 @@ NSDictionary* instructions(int station_id, Vector coords, float speed, float ran
 		[trader_ship setN_escorts:0];
 		while (escorts--)
 			[self launchEscort];
-
-//		NSLog(@"%@ Prepping trader: %@ %d for launch.", [self name], [trader_ship name], [trader_ship universal_id]);
 			
 		[trader_ship release];
 	}
@@ -1674,7 +1603,7 @@ NSDictionary* instructions(int station_id, Vector coords, float speed, float ran
 {
 	ShipEntity  *escort_ship;
 		
-	escort_ship = [universe getShipWithRole:@"escort"];   // retain count = 1
+	escort_ship = [universe newShipWithRole:@"escort"];   // retain count = 1
 	
 	if (escort_ship)
 	{
@@ -1688,8 +1617,6 @@ NSDictionary* instructions(int station_id, Vector coords, float speed, float ran
 		[escort_ship setCargoFlag: CARGO_FLAG_FULL_PLENTIFUL];
 		[[escort_ship getAI] setStateMachine:@"escortAI.plist"];
 		[self addShipToLaunchQueue:escort_ship];
-		
-//		[escort_ship setReportAImessages: YES];
 		
 		[escort_ship release];
 	}
@@ -1708,9 +1635,9 @@ NSDictionary* instructions(int station_id, Vector coords, float speed, float ran
 		police_launched++;
 		
 		if ((ranrot_rand() & 7) + 6 <= techlevel)
-			patrol_ship = [universe getShipWithRole:@"interceptor"];   // retain count = 1
+			patrol_ship = [universe newShipWithRole:@"interceptor"];   // retain count = 1
 		else
-			patrol_ship = [universe getShipWithRole:@"police"];   // retain count = 1
+			patrol_ship = [universe newShipWithRole:@"police"];   // retain count = 1
 		if (patrol_ship)
 		{
 			if (![patrol_ship crew])
@@ -1736,7 +1663,7 @@ NSDictionary* instructions(int station_id, Vector coords, float speed, float ran
 
 - (void) launchShipWithRole:(NSString*) role
 {
-	ShipEntity  *ship = [universe getShipWithRole: role];   // retain count = 1
+	ShipEntity  *ship = [universe newShipWithRole: role];   // retain count = 1
 	if (ship)
 	{
 		if (![ship crew])
@@ -1754,7 +1681,7 @@ NSDictionary* instructions(int station_id, Vector coords, float speed, float ran
 - (void) becomeExplosion
 {
 	// launch docked ships if possible
-	PlayerEntity* player = (PlayerEntity*)[universe entityZero];
+	PlayerEntity* player = [PlayerEntity sharedPlayer];
 	if ((player)&&(player->status == STATUS_DOCKED)&&([player docked_station] == self))
 	{
 		// undock the player!
@@ -1778,19 +1705,13 @@ NSDictionary* instructions(int station_id, Vector coords, float speed, float ran
 - (void) acceptPatrolReportFrom:(ShipEntity*) patrol_ship
 {
 	last_patrol_report_time = [universe getTime];
-//	NSLog(@"..... patrol report received from %@ %d at %3.2f", [patrol_ship name], [patrol_ship universal_id], [universe getTime]);
 }
 
 - (void) acceptDockingClearanceRequestFrom:(ShipEntity *)other
 {
-	if (self != [universe station])
-	{
-		//NSLog(@"DEBUG acceptDistressMessageFrom rejected from sub-station '%@'", name);
-		return;
-	}
+	if (self != [universe station])  return;
 	
 	// check
-	//
 	if ([shipsOnApproach count])
 	{
 		[self sendExpandedMessage:@"Please wait until all ships have completed their approach." toShip:other];
@@ -1836,7 +1757,7 @@ NSDictionary* instructions(int station_id, Vector coords, float speed, float ran
 		return YES;
 	if ([shipinfoDictionary objectForKey:@"hasShipyard"])
 	{
-		PlayerEntity	*player = (PlayerEntity*)[universe entityZero];
+		PlayerEntity	*player = [PlayerEntity sharedPlayer];
 		NSObject		*determinant = [shipinfoDictionary objectForKey:@"hasShipyard"];
 		if ([determinant isKindOfClass:[NSArray class]])
 		{

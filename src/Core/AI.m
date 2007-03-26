@@ -29,6 +29,8 @@ MA 02110-1301, USA.
 
 #import "ShipEntity.h"
 
+#define kOOLogUnconvertedNSLog @"unclassified.AI"
+
 
 static NSString * const kOOLogAIReceiveMessage			= @"ai.message.receive";
 static NSString * const kOOLogAITakeAction				= @"ai.takeAction.takeAction";

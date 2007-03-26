@@ -31,6 +31,8 @@ MA 02110-1301, USA.
 #import "StationEntity.h"
 #import "PlayerEntity.h"
 
+#define kOOLogUnconvertedNSLog @"unclassified.CollisionRegion"
+
 
 @implementation CollisionRegion
 

@@ -194,7 +194,7 @@ MA 02110-1301, USA.
 	pixel_text_size = NSMakeSize( csize, csize);
 	pixel_title_size = NSMakeSize( csize * 1.75, csize * 1.5);
 	
-	NSLog(@"gui %@ reset to rows:%d columns:%d start:%d", self, n_rows, n_columns, pixel_row_start);
+	OOLog(@"gui.reset", @"gui %@ reset to rows:%d columns:%d start:%d", self, n_rows, n_columns, pixel_row_start);
 
 	rowRange = NSMakeRange(0,n_rows);
 	[self clear];
@@ -298,11 +298,8 @@ MA 02110-1301, USA.
 
 - (void) click
 {
-#ifdef HAVE_SOUND  
-	if ([guiclick isPlaying])
-		[guiclick stop];
+	if ([guiclick isPlaying])  [guiclick stop];
 	[guiclick play];
-#endif
 }
 
 - (void)setShowAdvancedNavArray:(BOOL)inFlag
@@ -532,8 +529,6 @@ MA 02110-1301, USA.
 
 - (void) printLongText: (NSString *) str Align:(int) alignment Color:(OOColor*) text_color FadeTime:(float) text_fade Key:(NSString*) text_key AddToArray:(NSMutableArray*) text_array
 {
-//	NSLog(@"GUI printing text '%@'", str);
-	
 	// print a multi-line message
 	//
 	if ([str rangeOfString:@"\n"].location != NSNotFound)
@@ -716,7 +711,7 @@ MA 02110-1301, USA.
 	GLfloat z1 = [[universe gameView] display_z];
 	if (alpha > 0.05)
 	{
-		PlayerEntity* player = (PlayerEntity*)[universe entityZero];
+		PlayerEntity* player = [PlayerEntity sharedPlayer];
 
 		[self drawGLDisplay: drawPosition.x - 0.5 * size_in_pixels.width :drawPosition.y - 0.5 * size_in_pixels.height :z1 :alpha forUniverse:universe];
 
@@ -787,7 +782,7 @@ MA 02110-1301, USA.
 	if (alpha > 0.05)
 	{
 
-		PlayerEntity* player = (PlayerEntity*)[universe entityZero];
+		PlayerEntity* player = [PlayerEntity sharedPlayer];
 
 		[self drawGLDisplay:x - 0.5 * size_in_pixels.width :y - 0.5 * size_in_pixels.height :z :alpha forUniverse:universe];
 
@@ -856,7 +851,7 @@ MA 02110-1301, USA.
 	if (alpha < 0.05)
 		return;			// too dim to see!
 
-	PlayerEntity* player = (PlayerEntity*)[universe entityZero];
+	PlayerEntity* player = [PlayerEntity sharedPlayer];
 
 	[self drawGLDisplay:x - 0.5 * size_in_pixels.width :y - 0.5 * size_in_pixels.height :z :alpha forUniverse:universe];
 
@@ -1047,7 +1042,7 @@ MA 02110-1301, USA.
 
 - (void) drawStarChart:(GLfloat)x :(GLfloat)y :(GLfloat)z :(GLfloat) alpha forUniverse:(Universe*)universe
 {
-	PlayerEntity* player = (PlayerEntity*)[universe entityZero];
+	PlayerEntity* player = [PlayerEntity sharedPlayer];
 
 	if (!player)
 		return;
@@ -1182,7 +1177,7 @@ MA 02110-1301, USA.
 
 - (void) drawGalaxyChart:(GLfloat)x :(GLfloat)y :(GLfloat)z :(GLfloat) alpha forUniverse:(Universe*)universe
 {
-	PlayerEntity* player = (PlayerEntity*)[universe entityZero];
+	PlayerEntity* player = [PlayerEntity sharedPlayer];
 
 	NSPoint	galaxy_coordinates = [player galaxy_coordinates];
 	NSPoint	cursor_coordinates = [player cursor_coordinates];
@@ -1322,7 +1317,7 @@ MA 02110-1301, USA.
 // Advanced Navigation Array -- galactic chart route mapping - contributed by Nikos Barkas (another_commander).
 - (void) drawAdvancedNavArrayAtX:(float)x y:(float)y z:(float)z alpha:(float)alpha forUniverse:(Universe*)universe;
 {
-	PlayerEntity	*player = (PlayerEntity*)[universe entityZero];
+	PlayerEntity	*player = [PlayerEntity sharedPlayer];
 	NSPoint			galaxy_coordinates = [player galaxy_coordinates];
 	NSPoint			cursor_coordinates = [player cursor_coordinates];
 	Random_Seed		galaxy_seed = [player galaxy_seed];

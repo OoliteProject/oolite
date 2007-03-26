@@ -25,6 +25,9 @@ MA 02110-1301, USA.
 #import <Foundation/Foundation.h>
 #import "StringTokeniser.h"
 
+#define kOOLogUnconvertedNSLog @"unclassified.OOSCompiler"
+
+
 @interface NSMutableString (OOScript)
 
 - (void) replaceString:(NSString*)aString withString:(NSString*)otherString;

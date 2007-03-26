@@ -35,6 +35,8 @@ MA 02110-1301, USA.
 #import "OOStringParsing.h"
 #import "PlayerEntity.h"
 
+#define kOOLogUnconvertedNSLog @"unclassified.PlanetEntity"
+
 
 #define LIM500  500.0*500.0 * NO_DRAW_DISTANCE_FACTOR*NO_DRAW_DISTANCE_FACTOR
 #define LIM4K   4000.0*4000.0 * NO_DRAW_DISTANCE_FACTOR*NO_DRAW_DISTANCE_FACTOR
@@ -257,8 +259,7 @@ void setUpSinTable()
 	self = [super init];
 	//
 	percent_land = 3 + (gen_rnd_number() & 31)+(gen_rnd_number() & 31);
-	//NSLog(@"Atmosphere is %d percent clear.",percent_land);
-	//
+	
 	polar_color_factor = 1.0;
 	//
 	amb_land[0] = gen_rnd_number() / 256.0;
@@ -336,18 +337,14 @@ void setUpSinTable()
 	[self setModel:(isTextured)? @"icostextured.dat" : @"icosahedron.dat"];
 	//
 	[self rescaleTo:1.0];
-
-//	NSLog(@"DEBUG atmosphere testing [PlanetEntity initialiseBaseVertexArray]");
+	
 	[self initialiseBaseVertexArray];
-
-//	NSLog(@"DEBUG atmosphere testing [PlanetEntity initialiseBaseTerrainArray:%d]", percent_land);
+	
 	[self initialiseBaseTerrainArray:percent_land];
-
-//	NSLog(@"DEBUG atmosphere painting %d vertices", next_free_vertex);
+	
 	for (i =  0; i < next_free_vertex; i++)
 		[self paintVertex:i :planet_seed];
-
-//	NSLog(@"DEBUG atmosphere scaling %d vertices", next_free_vertex);
+	
 	[self scaleVertices];
 
 	// set speed of rotation
@@ -428,7 +425,7 @@ void setUpSinTable()
 	NSMutableDictionary*   planetinfo = [NSMutableDictionary dictionaryWithDictionary:[uni generateSystemData:p_seed]];
 	int radius_km =		[(NSNumber *)[planetinfo objectForKey:KEY_RADIUS] intValue];
 	int techlevel =		[(NSNumber *)[planetinfo objectForKey:KEY_TECHLEVEL] intValue];
-	//NSLog(@"Generating planet %@ with radius %dkm",[planetinfo objectForKey:KEY_NAME],radius_km);
+	
 	if ([planetinfo objectForKey:@"texture"])
 	{
 		textureName = [TextureStore getTextureNameFor:(NSString*)[planetinfo objectForKey:@"texture"]];
@@ -440,8 +437,6 @@ void setUpSinTable()
 	shuttle_launch_interval = 3600.0 / shuttles_on_ground; // all are launched in an hour
 	last_launch_time = -(ranrot_rand() % 60) * shuttle_launch_interval/60.0;
 	last_launch_time = 30.0 - shuttle_launch_interval;   // debug - launch 30s after player enters universe
-
-	//NSLog(@"shuttles on ground:%d launch_interval:%.1f minutes", shuttles_on_ground, shuttle_launch_interval/60);
 
     //collision_radius = 25000.0; //  25km across
 	collision_radius = radius_km * 10.0; // scale down by a factor of 100 !
@@ -474,8 +469,7 @@ void setUpSinTable()
 
 	// save the current random number generator seed
 	RNG_Seed saved_seed = currentRandomSeed();
-
-	//NSLog(@"Planet surface is %d percent land.",percent_land);
+	
 	for (i = 0; i < n_vertices; i++)
 	{
 		if (gen_rnd_number() < 256 * percent_land / 100)
@@ -560,19 +554,15 @@ void setUpSinTable()
 		shader_program = nil;
 #endif
 	}
-
-//	NSLog(@"DEBUG testing [PlanetEntity initialiseBaseVertexArray]");
+	
 	[self initialiseBaseVertexArray];
-
-//	NSLog(@"DEBUG testing [PlanetEntity initialiseBaseTerrainArray:%d]", percent_land);
+	
 	setRandomSeed(saved_seed);
 	[self initialiseBaseTerrainArray:percent_land];
-
-//	NSLog(@"DEBUG painting %d vertices", next_free_vertex);
+	
 	for (i =  0; i < next_free_vertex; i++)
 		[self paintVertex:i :planet_seed];
-
-//	NSLog(@"DEBUG scaling %d vertices", next_free_vertex);
+	
 	[self scaleVertices];
 
 	// set speed of rotation
@@ -616,8 +606,6 @@ void setUpSinTable()
 	shuttles_on_ground = 0;
 	last_launch_time = 8400.0;
 	shuttle_launch_interval = 8400.0;
-	
-	//NSLog(@"shuttles on ground:%d launch_interval:%.1f minutes", shuttles_on_ground, shuttle_launch_interval/60);
 	
 	collision_radius = [planet collisionRadius] * PLANET_MINIATURE_FACTOR; // teeny tiny
 	//
@@ -743,8 +731,6 @@ void setUpSinTable()
 	shuttle_launch_interval = 3600.0 / shuttles_on_ground; // all are launched in an hour
 	last_launch_time = 3600.0;
 
-	//NSLog(@"shuttles on ground:%d launch_interval:%.1f minutes", shuttles_on_ground, shuttle_launch_interval/60);
-
 	collision_radius = radius_km * 10.0; // scale down by a factor of 100 !
 	//
 	scan_class = CLASS_NO_DRAW;
@@ -774,8 +760,7 @@ void setUpSinTable()
 
 	// save the current random number generator seed
 	RNG_Seed saved_seed = currentRandomSeed();
-
-	//NSLog(@"Planet surface is %d percent land.",percent_land);
+	
 	for (i = 0; i < n_vertices; i++)
 	{
 		if (gen_rnd_number() < 256 * percent_land / 100)
@@ -829,19 +814,15 @@ void setUpSinTable()
 	amb_polar_sea[1] = [[OOColor colorWithCalibratedHue:sea_polar_hsb.x saturation:sea_polar_hsb.y brightness:sea_polar_hsb.z alpha:1.0] blueComponent];
 	amb_polar_sea[2] = [[OOColor colorWithCalibratedHue:sea_polar_hsb.x saturation:sea_polar_hsb.y brightness:sea_polar_hsb.z alpha:1.0] greenComponent];
 	amb_polar_sea[3] = 1.0;
-
-//	NSLog(@"DEBUG testing [PlanetEntity initialiseBaseVertexArray]");
+	
 	[self initialiseBaseVertexArray];
-
-//	NSLog(@"DEBUG testing [PlanetEntity initialiseBaseTerrainArray:%d]", percent_land);
+	
 	setRandomSeed(saved_seed);
 	[self initialiseBaseTerrainArray:percent_land];
-
-//	NSLog(@"DEBUG painting %d vertices", next_free_vertex);
+	
 	for (i =  0; i < next_free_vertex; i++)
 		[self paintVertex:i :planet_seed];
-
-//	NSLog(@"DEBUG scaling %d vertices", next_free_vertex);
+	
 	[self scaleVertices];
 
 	// set speed of rotation
@@ -923,8 +904,6 @@ void setUpSinTable()
 	shuttle_launch_interval = 3600.0 / shuttles_on_ground; // all are launched in an hour
 	last_launch_time = 3600.0;
 
-	//NSLog(@"shuttles on ground:%d launch_interval:%.1f minutes", shuttles_on_ground, shuttle_launch_interval/60);
-
 	collision_radius = radius_km * 10.0; // scale down by a factor of 100 !
 	//
 	scan_class = CLASS_NO_DRAW;
@@ -954,8 +933,7 @@ void setUpSinTable()
 
 	// save the current random number generator seed
 	RNG_Seed saved_seed = currentRandomSeed();
-
-	//NSLog(@"Planet surface is %d percent land.",percent_land);
+	
 	for (i = 0; i < n_vertices; i++)
 	{
 		if (gen_rnd_number() < 256 * percent_land / 100)
@@ -1009,19 +987,15 @@ void setUpSinTable()
 	amb_polar_sea[1] = [[OOColor colorWithCalibratedHue:sea_polar_hsb.x saturation:sea_polar_hsb.y brightness:sea_polar_hsb.z alpha:1.0] blueComponent];
 	amb_polar_sea[2] = [[OOColor colorWithCalibratedHue:sea_polar_hsb.x saturation:sea_polar_hsb.y brightness:sea_polar_hsb.z alpha:1.0] greenComponent];
 	amb_polar_sea[3] = 1.0;
-
-//	NSLog(@"DEBUG testing [PlanetEntity initialiseBaseVertexArray]");
+	
 	[self initialiseBaseVertexArray];
-
-//	NSLog(@"DEBUG testing [PlanetEntity initialiseBaseTerrainArray:%d]", percent_land);
+	
 	setRandomSeed(saved_seed);
 	[self initialiseBaseTerrainArray:percent_land];
-
-//	NSLog(@"DEBUG painting %d vertices", next_free_vertex);
+	
 	for (i =  0; i < next_free_vertex; i++)
 		[self paintVertex:i :planet_seed];
-
-//	NSLog(@"DEBUG scaling %d vertices", next_free_vertex);
+	
 	[self scaleVertices];
 
 	// set speed of rotation
@@ -1190,7 +1164,7 @@ void setUpSinTable()
 		case PLANET_TYPE_SUN :
 		{
 			// new billboard routine (working at last!)
-			PlayerEntity* player = (PlayerEntity*)[universe entityZero];
+			PlayerEntity* player = [PlayerEntity sharedPlayer];
 			Vector v0 = position;
 			Vector p0 = (player)? player->position: make_vector( 0.0f, 0.0f, 0.0f);
 			v0.x -= p0.x;	v0.y -= p0.y;	v0.z -= p0.z; // vector from player to position
@@ -1307,7 +1281,6 @@ void setUpSinTable()
     double  old_collision_radius = collision_radius;
     [super setModel:modelName];
 	collision_radius = old_collision_radius;	// preserve the radius
-	//NSLog(@"Planet collision radius preserved!");
 }
 
 
@@ -1496,7 +1469,6 @@ void setUpSinTable()
 						displayListNames[subdivideLevel] = glGenLists(1);
 						if (displayListNames[subdivideLevel] != 0)	// sanity check
 						{
-							//NSLog(@"Generating planet data for subdivide %d",subdivideLevel);
 							glNewList(displayListNames[subdivideLevel], GL_COMPILE);
 							//
 							glColor4fv(mat1);
@@ -1672,8 +1644,6 @@ void drawCorona (double inner_radius, double outer_radius, int step, double z_di
 	GLfloat r0 = c * x / z;
 	GLfloat z0 = c * r / z;
 
-//	NSLog(@"DEBUG r1 = %.4f  z1 = %.4f  r0 = %.4f  z0 = %.4f", r1, z1, r0, z0);
-
 	glBegin(GL_TRIANGLE_STRIP);
 	for ( i = 0; i < 360; i += step )
 	{
@@ -1713,8 +1683,6 @@ void drawActiveCorona (double inner_radius, double outer_radius, int step, doubl
 
 	GLfloat r0 = c * x / z;
 	GLfloat z0 = c * r / z;
-
-//	NSLog(@"DEBUG r1 = %.4f  z1 = %.4f  r0 = %.4f  z0 = %.4f", r1, z1, r0, z0);
 
 	GLfloat rv0, rv1, rv2;
 
@@ -1858,7 +1826,7 @@ void drawActiveCorona (double inner_radius, double outer_radius, int step, doubl
 	launch_pos.y += start_distance * vf.y;
 	launch_pos.z += start_distance * vf.z;
 
-	shuttle_ship = [universe getShipWithRole:@"shuttle"];   // retain count = 1
+	shuttle_ship = [universe newShipWithRole:@"shuttle"];   // retain count = 1
 	if (shuttle_ship)
 	{
 		if (![shuttle_ship crew])
@@ -1880,8 +1848,6 @@ void drawActiveCorona (double inner_radius, double outer_radius, int step, doubl
 
 		[universe addEntity:shuttle_ship];
 		[[shuttle_ship getAI] setStateMachine:@"risingShuttleAI.plist"];	// must happen after adding to the universe!
-
-		//NSLog(@"Planet %@ in universe %@ Launching shuttle: %@ %d", self, universe, [shuttle_ship name], [shuttle_ship universal_id]);
 
 		[shuttle_ship release];
 	}
@@ -1911,11 +1877,6 @@ static BOOL last_one_was_textured;
 		[PlanetEntity resetBaseVertexArray];
 		last_one_was_textured = isTextured;
 	}
-
-//	if (isTextured)
-//		NSLog(@"DEBUG %@ creating textured vertex data texture_uv_array = <%x>", self, texture_uv_array);
-//	else
-//		NSLog(@"DEBUG %@ creating plain vertex data", self);
 
 	if (edge_to_vertex == nil)
 	{
@@ -1957,9 +1918,6 @@ static BOOL last_one_was_textured;
 			int newlevel = sublevel + 1;
 			triangle_start[newlevel] = triangle_start[sublevel] + n_triangles[sublevel] * 3;
 			n_triangles[newlevel] = n_triangles[sublevel] * 4;
-			//
-
-//			NSLog(@"Building new level of subdivision - level %d.", newlevel);
 
 			int tri;
 			for (tri = 0; tri < n_triangles[sublevel]; tri++)
@@ -1989,12 +1947,8 @@ static BOOL last_one_was_textured;
 				vertex_index_array[triangle_start[newlevel] + tri * 12 +11] = v20;
 
 			}
-
-//			NSLog(@"Current total number of vertices %d.", next_free_vertex);
 		}
 	}
-
-//	NSLog(@"edge_to_vertex %@", edge_to_vertex);
 
 	// all done - copy the indices to the instance
 	//
@@ -2023,8 +1977,6 @@ int baseVertexIndexForEdge(int va, int vb, BOOL textured)
 		base_vertex_array[vindex].y += base_vertex_array[vb].y;
 		base_vertex_array[vindex].z += base_vertex_array[vb].z;
 		base_vertex_array[vindex] = unit_vector(&base_vertex_array[vindex]);	// guaranteed non-zero
-
-//		NSLog(@"%d [%@]= (%.3f,%.3f,%.3f)",	vindex, key, base_vertex_array[vindex].x, base_vertex_array[vindex].y, base_vertex_array[vindex].z);
 
 		if (textured)
 		{
@@ -2221,8 +2173,6 @@ double longitudeFromVector(Vector v)
 // No over-ride of Entity's version of the method is required for non-Win32 platforms.
 - (void) reloadTextures
 {
-	//NSLog(@"PlanetEntity::reloadTextures called, clearing planet draw lists and calling super");
-
 	int i;
 	// Clear out the planet's various detail level display lists.
 	for (i = 0; i < MAX_SUBDIVIDE; i++)

@@ -111,7 +111,6 @@ Ringdata	ringentity;
 		lifetime -= movement;
 		if (lifetime < 0.0)
 		{
-			//NSLog(@"removing ring %@ movement %.3f delta_t %.3f",self,movement,delta_t);
 			[universe removeEntity:self];
 		}
     }
@@ -127,7 +126,6 @@ Ringdata	ringentity;
 	{
 		if (basefile)
 		{
-			//NSLog(@"Drawing ring : %@ n_faces %d, n_vertices %d", basefile, n_faces, n_vertices);
 			if (immediate)
 			{
 #ifdef GNUSTEP

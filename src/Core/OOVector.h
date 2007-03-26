@@ -63,9 +63,9 @@ OOINLINE GLfloat magnitude(Vector vec) INLINE_CONST_FUNC;
 OOINLINE GLfloat fast_magnitude(Vector vec) INLINE_CONST_FUNC;
 
 /* Normalize vector */
-OOINLINE Vector vector_normal(Vector vec) CONST_FUNC;
-OOINLINE Vector fast_vector_normal(Vector vec) CONST_FUNC;
-OOINLINE Vector unit_vector(const Vector *vec) NONNULL_FUNC CONST_FUNC;
+OOINLINE Vector vector_normal(Vector vec) INLINE_CONST_FUNC;
+OOINLINE Vector fast_vector_normal(Vector vec) INLINE_CONST_FUNC;
+OOINLINE Vector unit_vector(const Vector *vec) NONNULL_FUNC INLINE_CONST_FUNC;
 
 /* Square of distance between vectors */
 OOINLINE GLfloat distance2(Vector v1, Vector v2) INLINE_CONST_FUNC;

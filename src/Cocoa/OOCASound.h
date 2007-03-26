@@ -26,10 +26,6 @@ MA 02110-1301, USA.
 
 #import <Cocoa/Cocoa.h>
 
-#ifndef HAVE_SOUND
-#define HAVE_SOUND
-#endif
-
 
 @interface OOSound: NSObject
 {

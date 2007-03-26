@@ -25,6 +25,8 @@ MA 02110-1301, USA.
 #import "SDLSound.h"
 #import "OOBasicSoundSource.h"
 
+#define kOOLogUnconvertedNSLog @"unclassified.SDLSound"
+
 
 static int mixChan=0;
 static float masterVol=1.0;
@@ -148,7 +150,6 @@ static BOOL isSetUp=NO;
 	[super init];
    if(!isSetUp) [OOSound setUp];
 
-	//NSLog(@"loading sample: %s", [filepath cString]);
 	sample = Mix_LoadWAV([filepath cString]);
 	if (!sample) {
 		NSLog(@"Mix_LoadWAV: %s\n", Mix_GetError());

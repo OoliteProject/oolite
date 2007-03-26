@@ -39,6 +39,8 @@ MA 02110-1301, USA.
 #import "ResourceManager.h"
 #endif
 
+#define kOOLogUnconvertedNSLog @"unclassified.PlayerEntityLoadSave"
+
 @implementation PlayerEntity (LoadSave)
 
 - (void) setGuiToLoadCommanderScreen
@@ -510,7 +512,6 @@ MA 02110-1301, USA.
 
 	if(![[self commanderDataDictionary] writeOOXMLToFile:savePath atomically:YES])
 	{
-		//NSBeep();	// appkit dependency
 		NSLog(@"***** ERROR: Save to %@ failed!", savePath);
 		NSException *myException = [NSException
 			exceptionWithName:@"OoliteException"
@@ -529,7 +530,7 @@ MA 02110-1301, USA.
 	[[universe gameController] setPlayerFileDirectory:save_path];
 
 	[universe clearPreviousMessage];	// allow this to be given time and again
-	[universe addMessage:[universe expandDescription:@"[game-saved]" forSystem:system_seed] forCount:2];
+	[universe addMessage:ExpandDescriptionForCurrentSystem(@"[game-saved]") forCount:2];
 }
 
 // check for an existing saved game...
@@ -607,7 +608,7 @@ MA 02110-1301, USA.
 		}
 		else
 		{
-			NSLog(@"\n\n***** Encountered localException in [PlayerEntity (LoadSave) showCommanderShip:] : %@ : %@ *****\n\n", [localException name], [localException reason]);
+			OOLog(kOOLogException, @"***** Exception in [PlayerEntity (LoadSave) showCommanderShip:] : %@ : %@ *****", [localException name], [localException reason]);
 			[localException raise];
 		}
 		

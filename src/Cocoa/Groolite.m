@@ -68,7 +68,7 @@ static NSString * const kOOLogGrooliteDebug	= @"growl.debug";
 	NSString				*displayString;
 	
 	universe = [gameController universe];
-	player = (PlayerEntity *)[universe entityZero];
+	player = [PlayerEntity sharedPlayer];
 	
 	if (!inTitle)
 		return;	// catch blank messages

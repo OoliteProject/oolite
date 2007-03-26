@@ -23,6 +23,9 @@ MA 02110-1301, USA.
 */
 
 #include "SDLMusic.h"
+#import "OOLogging.h"
+
+#define kOOLogUnconvertedNSLog @"unclassified.SDLMusic"
 
 /*
  * This is used by instances of OOMusic to check if they are currently playing

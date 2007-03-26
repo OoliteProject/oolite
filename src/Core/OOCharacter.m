@@ -106,7 +106,6 @@ MA 02110-1301, USA.
 		return castmember;
 	else
 	{
-//		NSLog(@"DEBUG ***** couldn't cast character in role '%@'", c_role);
 		return castmember;
 	}
 }
@@ -140,7 +139,7 @@ MA 02110-1301, USA.
 	// save random seeds for restoration later
 	RNG_Seed saved_seed = currentRandomSeed();
 	// set RNG to character seed
-	seed_for_planet_description( genSeed);
+	seed_for_planet_description(genSeed);
 
 	// determine the planet of origin
 	NSDictionary* originInfo = [universe generateSystemData: originSystemSeed];
@@ -152,16 +151,16 @@ MA 02110-1301, USA.
 	NSString* speciesString = [self species];
 	
 	// determine the character's name
-	seed_RNG_only_for_planet_description( genSeed);
+	seed_RNG_only_for_planet_description(genSeed);
 	NSString* genName;
 	if ([speciesString hasPrefix:@"human"])
-		genName = [NSString stringWithFormat:@"%@ %@", [universe expandDescription:@"%R" forSystem: genSeed], [universe expandDescription:@"[nom]" forSystem: genSeed]];
+		genName = [NSString stringWithFormat:@"%@ %@", ExpandDescriptionForSeed(@"%R", genSeed), ExpandDescriptionForSeed(@"[nom]", genSeed)];
 	else
-		genName = [NSString stringWithFormat:@"%@ %@", [universe expandDescription:@"%R" forSystem: genSeed], [universe expandDescription:@"%R" forSystem: genSeed]];
+		genName = [NSString stringWithFormat:@"%@ %@", ExpandDescriptionForSeed(@"%R", genSeed), ExpandDescriptionForSeed(@"%R", genSeed)];
 	
 	[self setName: genName];
 	
-	[self setShortDescription: [NSString stringWithFormat:[universe expandDescription:@"[character-a-@-from-@]" forSystem: genSeed], speciesString, planetName]];
+	[self setShortDescription: [NSString stringWithFormat:ExpandDescriptionForSeed(@"[character-a-@-from-@]", genSeed), speciesString, planetName]];
 	[self setLongDescription: [self shortDescription]];
 	
 	// determine legal_status for a completely random character
@@ -233,11 +232,7 @@ MA 02110-1301, USA.
 				break;
 		}
 		[self setLongDescription:
-			[universe expandDescription:
-				[NSString stringWithFormat:@"%@ is a [21] %@ from %@", [self name], legalDesc, [self planetOfOrigin]]
-				forSystem: genSeed]];
-		
-//		NSLog(@">>>>> %@", self);
+			ExpandDescriptionForSeed([NSString stringWithFormat:@"%@ is a [21] %@ from %@", [self name], legalDesc, [self planetOfOrigin]], genSeed)];
 		
 		specialSetUpDone = YES;
 	}

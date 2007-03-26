@@ -234,7 +234,6 @@ extern int debug;
 		StationEntity*			cachedStation;
 		PlanetEntity*			cachedPlanet;
 		PlanetEntity*			cachedSun;
-		Entity*					cachedEntityZero;
 		
 		BOOL					strict;
 		
@@ -324,10 +323,10 @@ extern int debug;
 - (BOOL) breakPatternHide;
 
 - (id) recycleOrDiscard:(Entity *) entity;
-- (Entity *) recycledOrNew:(NSString *) classname;
+- (Entity *) allocRecycledOrNewEntity:(NSString *) classname;
 
-- (ShipEntity *) getShipWithRole:(NSString *) desc;
-- (ShipEntity *) getShip:(NSString *) desc;
+- (ShipEntity *) newShipWithRole:(NSString *) desc;
+- (ShipEntity *) newShipWithName:(NSString *) desc;
 - (NSDictionary *) getDictionaryForShip:(NSString *) desc;
 
 - (int) maxCargoForShip:(NSString *) desc;
@@ -357,7 +356,6 @@ extern int debug;
 - (void) drawCrosshairs;
 - (void) drawMessage;
 
-- (id)entityZero;
 - (id)entityForUniversalID:(int)u_id;
 
 BOOL maintainLinkedLists(Universe* uni);
@@ -435,7 +433,6 @@ BOOL maintainLinkedLists(Universe* uni);
 - (NSString *) generateSystemInhabitants:(Random_Seed) s_seed plural:(BOOL)plural;
 - (Random_Seed) findSystemAtCoords:(NSPoint) coords withGalaxySeed:(Random_Seed) gal_seed;
 
-+ (NSString*) systemSeedString:(Random_Seed) s;
 - (NSArray*) nearbyDestinationsWithinRange:(double) range;
 - (Random_Seed) findNeighbouringSystemToCoords:(NSPoint) coords withGalaxySeed:(Random_Seed) gal_seed;
 - (Random_Seed) findConnectedSystemAtCoords:(NSPoint) coords withGalaxySeed:(Random_Seed) gal_seed;
@@ -470,11 +467,6 @@ double estimatedTimeForJourney(double distance, int hops);
 - (int) weaponForEquipmentKey:(NSString*) weapon_string;
 - (NSString*) equipmentKeyForWeapon:(int) weapon;
 - (NSString*) brochureDescriptionWithDictionary:(NSDictionary*) dict standardEquipment:(NSArray*) extras optionalEquipment:(NSArray*) options;
-
-- (NSString *) generateSystemDescription:(Random_Seed) s_seed;
-- (NSString *) expandDescription:(NSString *) desc forSystem:(Random_Seed)s_seed;
-- (NSString *) expandDescriptionWithLocals:(NSString *) desc forSystem:(Random_Seed)s_seed withLocalVariables:(NSDictionary *)locals;
-- (NSString *) getRandomDigrams;
 
 - (Vector) getWitchspaceExitPosition;
 - (Quaternion) getWitchspaceExitRotation;

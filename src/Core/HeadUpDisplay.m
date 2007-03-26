@@ -33,6 +33,8 @@ MA 02110-1301, USA.
 #import "OOColor.h"
 #import "GuiDisplayGen.h"
 
+#define kOOLogUnconvertedNSLog @"unclassified.HeadUpDisplay"
+
 static const char *toAscii(unsigned inCodePoint);
 
 @implementation HeadUpDisplay
@@ -83,8 +85,6 @@ float char_widths[128] = {
 	}
 	if (!areTrumblesToBeDrawn)	// naughty - a hud with no built-in drawTrumbles: - one must be added!
 	{
-//		NSLog(@"DEBUG 	// naughty - a hud with no built-in drawTrumbles: - one must be added!");
-		//
 		NSDictionary* trumble_dial_info = [NSDictionary dictionaryWithObjectsAndKeys: @"drawTrumbles:", SELECTOR_KEY, nil];
 		[self addDial: trumble_dial_info];
 	}
@@ -240,12 +240,8 @@ GLuint ascii_texture_name;
 {
 	if ([info objectForKey:SELECTOR_KEY])
 	{
-		//NSLog(@"DEBUG adding Dial for %@",[info objectForKey:SELECTOR_KEY]);
 		SEL _selector = NSSelectorFromString((NSString *)[info objectForKey:SELECTOR_KEY]);
-		if ([self respondsToSelector:_selector])
-			[dialArray addObject:info];
-		//else
-		//	NSLog(@"DEBUG HeadUpDisplay does not respond to '%@'",[info objectForKey:SELECTOR_KEY]);
+		if ([self respondsToSelector:_selector])  [dialArray addObject:info];
 	}
 }
 
@@ -262,6 +258,8 @@ checkGLErrors(@"HeadUpDisplay after drawLegends");
 //
 }
 
+
+// SLOW_CODE - HUD drawing is taking up a ridiculous 30%-40% of frame time. Much of this seems to be spent in string processing. String caching is needed. -- ahruman
 - (void) drawDials
 {
 	int i;
@@ -306,7 +304,6 @@ checkGLErrors(@"HeadUpDisplay after drawDials");
 	
 	if ([info objectForKey:SELECTOR_KEY])
 	{
-		//NSLog(@"DEBUG about to '%@'",[info objectForKey:SELECTOR_KEY]);
 		SEL _selector = NSSelectorFromString((NSString *)[info objectForKey:SELECTOR_KEY]);
 		if ([self respondsToSelector:_selector])
 			[self performSelector:_selector withObject:info];
@@ -622,7 +619,6 @@ static BOOL hostiles;
 	if ((lt == nil)||(!(lt->isShip)))
 		return;
 	ShipEntity* st = (ShipEntity*)lt;
-//	NSLog(@"DEBUG Last Transmitter (%d) == %@ %d", last_transmitter, [st name], [st universal_id]);
 	if ([st message_time] <= 0.0)
 		[st setMessage_time:2.5];
 }
@@ -2070,8 +2066,6 @@ void hudDrawReticleOnTarget(Entity* target, PlayerEntity* player1, GLfloat z1)
 		glVertex2f(-rs0,-rs2);	glVertex2f(-rs0,-rs0);
 		glVertex2f(-rs0,-rs0);	glVertex2f(-rs2,-rs0);
 	
-//	NSLog(@"DEBUG rs0 %.3f %.3f",rs0, rs2);
-	
 	glEnd();
 	
 	// add text for reticle here
@@ -2114,7 +2108,6 @@ void drawString(NSString *text, double x, double y, double z, NSSize siz)
 	char simple[2] = {0, 0};
 	unsigned ch, next, length;
 	
-//	NSLog(@"DEBUG drawing string (%@) at %.1f, %.1f, %.1f (%.1f x %.1f)", text, x, y, z, siz.width, siz.height);
 	glEnable(GL_TEXTURE_2D);
 	glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
 	glBindTexture(GL_TEXTURE_2D, ascii_texture_name);

@@ -49,8 +49,6 @@ static NSString * kOOLogKeyDown				= @"input.keyMapping.keyPress.keyDown";
 
 - (id) initWithFrame:(NSRect)frameRect
 {
-	//NSLog(@"-- initWithFrame MyOpenGLView");
-	
 	// Pixel Format Attributes for the View-based (non-FullScreen) NSOpenGLContext
     NSOpenGLPixelFormatAttribute attrs[] = {
 
@@ -85,7 +83,6 @@ static NSString * kOOLogKeyDown				= @"input.keyMapping.keyPress.keyDown";
     // Just as a diagnostic, report the renderer ID that this pixel format binds to.  CGLRenderers.h contains a list of known renderers
 	// and their corresponding RendererID codes.
     [pixelFormat getValues:&rendererID forAttribute:NSOpenGLPFARendererID forVirtualScreen:0];
-    //NSLog(@" init! NSOpenGLView pixelFormat RendererID = %08x", (unsigned)rendererID);
 
     self = [super initWithFrame:frameRect pixelFormat:pixelFormat];
 
@@ -137,7 +134,6 @@ static NSString * kOOLogKeyDown				= @"input.keyMapping.keyPress.keyDown";
 
 - (void) setTypedString:(NSString*) value
 {
-//	NSLog(@"DEBUG setTypedString:%@",value);
 	[typedString setString:value];
 }
 
@@ -171,8 +167,6 @@ static NSString * kOOLogKeyDown				= @"input.keyMapping.keyPress.keyDown";
 	{
 		m_glContextInitialized = NO;
 		viewSize = [self frame].size;
-		
-		//NSLog(@"DEBUG resized to %.0f x %.0f", viewSize.width, viewSize.height);
 	}
 	
     if (!m_glContextInitialized)
@@ -300,7 +294,7 @@ static NSString * kOOLogKeyDown				= @"input.keyMapping.keyPress.keyDown";
 		
 	NSString	*pathToPng = [[pathToPic stringByDeletingPathExtension] stringByAppendingPathExtension:@"png"];
 	
-	NSLog(@">>>>> Snapshot %d x %d file path chosen = %@", w, h, pathToPic);
+	NSLog(@"snapshot", @">>>>> Snapshot %d x %d file path chosen = %@", w, h, pathToPic);
 	
     NSBitmapImageRep* bitmapRep = 
         [[NSBitmapImageRep alloc]
@@ -403,7 +397,6 @@ static NSString * kOOLogKeyDown				= @"input.keyMapping.keyPress.keyDown";
 					isAlphabetKeyDown = YES;
 					// convert to lowercase
 					[typedString appendFormat:@"%c", (key | 64)];
-					//NSLog(@"accumulated string '%@'",typedString);
 				}
 				else
 					isAlphabetKeyDown = NO;
@@ -423,7 +416,6 @@ static NSString * kOOLogKeyDown				= @"input.keyMapping.keyPress.keyDown";
 					isAlphabetKeyDown = YES;
 					// convert to lowercase
 					[typedString appendFormat:@"%c", key];
-					//NSLog(@"accumulated string '%@'",typedString);
 				}
 				else
 					isAlphabetKeyDown = NO;
@@ -473,8 +465,6 @@ static NSString * kOOLogKeyDown				= @"input.keyMapping.keyPress.keyDown";
 	{
 		doubleClick = (timeBetweenClicks < MOUSE_DOUBLE_CLICK_INTERVAL);	// One fifth of a second
 		keys[gvMouseDoubleClick] = doubleClick;
-//		if (doubleClick)
-//			NSLog(@"DEBUG registering a double-click!");
 	}
 	
 	keys[gvMouseLeftButton] = NO;  // 'a' up

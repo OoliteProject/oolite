@@ -28,7 +28,9 @@ MA 02110-1301, USA.
 #include <stdio.h>
 #include <string.h>
 
-Universe *scriptedUniverse;
+#define kOOLogUnconvertedNSLog @"unclassified.JSScriptEngine"
+
+
 JSObject *xglob, *universeObj, *systemObj, *playerObj, *missionObj;
 
 extern OXPScript *currentOXPScript;
@@ -66,7 +68,7 @@ JSClass MissionVars_class = {
 };
 
 JSBool MissionVarsGetProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp) {
-	PlayerEntity *playerEntity = (PlayerEntity *)[scriptedUniverse entityZero];
+	PlayerEntity *playerEntity = [PlayerEntity sharedPlayer];
 	NSDictionary *mission_variables = [playerEntity mission_variables];
 
 	if (JSVAL_IS_STRING(id)) {
@@ -104,7 +106,7 @@ JSBool MissionVarsGetProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp)
 }
 
 JSBool MissionVarsSetProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp) {
-	PlayerEntity *playerEntity = (PlayerEntity *)[scriptedUniverse entityZero];
+	PlayerEntity *playerEntity = [PlayerEntity sharedPlayer];
 	NSDictionary *mission_variables = [playerEntity mission_variables];
 
 	if (JSVAL_IS_STRING(id)) {
@@ -156,7 +158,7 @@ JSFunctionSpec Global_funcs[] = {
 
 JSBool GlobalListenForKey(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval) {
 	NSString *key = JSValToNSString(cx, argv[0]);
-	PlayerEntity *playerEntity = (PlayerEntity *)[scriptedUniverse entityZero];
+	PlayerEntity *playerEntity = [PlayerEntity sharedPlayer];
 	[playerEntity mapKey:key toOXP:currentOXPScript];
 	return JS_TRUE;
 }
@@ -177,7 +179,7 @@ JSBool GlobalGetProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp) {
 
 	if (!JSVAL_IS_INT(id)) return JS_TRUE;
 
-	PlayerEntity *playerEntity = (PlayerEntity *)[scriptedUniverse entityZero];
+	PlayerEntity *playerEntity = [PlayerEntity sharedPlayer];
 
 	switch (JSVAL_TO_INT(id)) {
 		case GLOBAL_GALAXY_NUMBER:
@@ -269,7 +271,7 @@ JSFunctionSpec Player_funcs[] = {
 
 JSBool PlayerAwardCargo(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval) {
 	if (argc == 2) {
-		PlayerEntity *playerEntity = (PlayerEntity *)[scriptedUniverse entityZero];
+		PlayerEntity *playerEntity = [PlayerEntity sharedPlayer];
 		NSString *amount_type = [NSString stringWithFormat:@"%@ %@", JSValToNSString(cx, argv[0]), JSValToNSString(cx, argv[1])];
 		[playerEntity awardCargo:amount_type];
 	}
@@ -277,21 +279,21 @@ JSBool PlayerAwardCargo(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, j
 }
 
 JSBool PlayerRemoveAllCargo(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval) {
-	PlayerEntity *playerEntity = (PlayerEntity *)[scriptedUniverse entityZero];
+	PlayerEntity *playerEntity = [PlayerEntity sharedPlayer];
 	[playerEntity removeAllCargo];
 	return JS_TRUE;
 }
 
 JSBool PlayerUseSpecialCargo(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval) {
 	if (argc == 1) {
-		PlayerEntity *playerEntity = (PlayerEntity *)[scriptedUniverse entityZero];
+		PlayerEntity *playerEntity = [PlayerEntity sharedPlayer];
 		[playerEntity useSpecialCargo:JSValToNSString(cx, argv[0])];
 	}
 	return JS_TRUE;
 }
 
 JSBool PlayerAwardEquipment(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval) {
-	PlayerEntity *playerEntity = (PlayerEntity *)[scriptedUniverse entityZero];
+	PlayerEntity *playerEntity = [PlayerEntity sharedPlayer];
 	if (argc > 0 && JSVAL_IS_STRING(argv[0])) {
 		JSString *jskey = JS_ValueToString(cx, argv[0]);
 		[playerEntity awardEquipment: [NSString stringWithCString:JS_GetStringBytes(jskey)]];
@@ -300,7 +302,7 @@ JSBool PlayerAwardEquipment(JSContext *cx, JSObject *obj, uintN argc, jsval *arg
 }
 
 JSBool PlayerRemoveEquipment(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval) {
-	PlayerEntity *playerEntity = (PlayerEntity *)[scriptedUniverse entityZero];
+	PlayerEntity *playerEntity = [PlayerEntity sharedPlayer];
 	if (argc > 0 && JSVAL_IS_STRING(argv[0])) {
 		JSString *jskey = JS_ValueToString(cx, argv[0]);
 		[playerEntity removeEquipment: [NSString stringWithCString:JS_GetStringBytes(jskey)]];
@@ -309,7 +311,7 @@ JSBool PlayerRemoveEquipment(JSContext *cx, JSObject *obj, uintN argc, jsval *ar
 }
 
 JSBool PlayerHasEquipment(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval) {
-	PlayerEntity *playerEntity = (PlayerEntity *)[scriptedUniverse entityZero];
+	PlayerEntity *playerEntity = [PlayerEntity sharedPlayer];
 	if (argc > 0 && JSVAL_IS_STRING(argv[0])) {
 		JSString *jskey = JS_ValueToString(cx, argv[0]);
 		BOOLToJSVal(cx, [playerEntity has_extra_equipment: [NSString stringWithCString:JS_GetStringBytes(jskey)]], rval);
@@ -318,13 +320,13 @@ JSBool PlayerHasEquipment(JSContext *cx, JSObject *obj, uintN argc, jsval *argv,
 }
 
 JSBool PlayerLaunch(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval) {
-	PlayerEntity *playerEntity = (PlayerEntity *)[scriptedUniverse entityZero];
+	PlayerEntity *playerEntity = [PlayerEntity sharedPlayer];
 	[playerEntity launchFromStation];
 	return JS_TRUE;
 }
 
 JSBool PlayerCall(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval) {
-	PlayerEntity *playerEntity = (PlayerEntity *)[scriptedUniverse entityZero];
+	PlayerEntity *playerEntity = [PlayerEntity sharedPlayer];
 	if (argc > 0) {
 		NSString *selectorString = JSValToNSString(cx, argv[0]);
 		// Check if the selector needs a trailing colon to flag an argument will be sent
@@ -349,7 +351,7 @@ JSBool PlayerGetProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp) {
 
 	if (!JSVAL_IS_INT(id)) return JS_TRUE;
 
-	PlayerEntity *playerEntity = (PlayerEntity *)[scriptedUniverse entityZero];
+	PlayerEntity *playerEntity = [PlayerEntity sharedPlayer];
 
 	switch (JSVAL_TO_INT(id)) {
 		case PE_SHIP_DESCRIPTION:
@@ -395,7 +397,7 @@ JSBool PlayerSetProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp) {
 
 	if (!JSVAL_IS_INT(id)) return JS_TRUE;
 
-	PlayerEntity *playerEntity = (PlayerEntity *)[scriptedUniverse entityZero];
+	PlayerEntity *playerEntity = [PlayerEntity sharedPlayer];
 
 	switch (JSVAL_TO_INT(id)) {
 		case PE_SCORE:
@@ -469,7 +471,7 @@ JSFunctionSpec System_funcs[] = {
 };
 
 JSBool SystemAddPlanet(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval) {
-	PlayerEntity *playerEntity = (PlayerEntity *)[scriptedUniverse entityZero];
+	PlayerEntity *playerEntity = [PlayerEntity sharedPlayer];
 	if (argc > 0 && JSVAL_IS_STRING(argv[0])) {
 		NSString *key = JSValToNSString(cx, argv[0]);
 		[playerEntity addPlanet:key];
@@ -478,7 +480,7 @@ JSBool SystemAddPlanet(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, js
 }
 
 JSBool SystemAddMoon(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval) {
-	PlayerEntity *playerEntity = (PlayerEntity *)[scriptedUniverse entityZero];
+	PlayerEntity *playerEntity = [PlayerEntity sharedPlayer];
 	if (argc > 0 && JSVAL_IS_STRING(argv[0])) {
 		NSString *key = JSValToNSString(cx, argv[0]);
 		[playerEntity addMoon:key];
@@ -487,13 +489,13 @@ JSBool SystemAddMoon(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsva
 }
 
 JSBool SystemSendAllShipsAway(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval) {
-	PlayerEntity *playerEntity = (PlayerEntity *)[scriptedUniverse entityZero];
+	PlayerEntity *playerEntity = [PlayerEntity sharedPlayer];
 	[playerEntity sendAllShipsAway];
 	return JS_TRUE;
 }
 
 JSBool SystemSetSunNova(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval) {
-	PlayerEntity *playerEntity = (PlayerEntity *)[scriptedUniverse entityZero];
+	PlayerEntity *playerEntity = [PlayerEntity sharedPlayer];
 	if (argc > 0) {
 		NSString *key = JSValToNSString(cx, argv[0]);
 		[playerEntity setSunNovaIn:key];
@@ -509,14 +511,14 @@ JSBool SystemGetProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp) {
 	if (!JSVAL_IS_INT(id)) return JS_TRUE;
 
 	NSString *str;
-	PlayerEntity *playerEntity = (PlayerEntity *)[scriptedUniverse entityZero];
+	PlayerEntity *playerEntity = [PlayerEntity sharedPlayer];
 	if (!equal_seeds(currentSystem, playerEntity->system_seed)) {
 		//fprintf(stdout, "Current system has changed, regenerating local copy of planetinfo\r\n");
 		currentSystem = playerEntity->system_seed;
 		if (planetinfo)
 			[planetinfo release];
 
-		planetinfo = [[scriptedUniverse generateSystemData:currentSystem] retain];
+		planetinfo = [[[Universe sharedUniverse] generateSystemData:currentSystem] retain];
 	}
 
 	switch (JSVAL_TO_INT(id)) {
@@ -584,29 +586,29 @@ JSBool SystemSetProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp) {
 
 	if (!JSVAL_IS_INT(id)) return JS_TRUE;
 	
-	PlayerEntity *playerEntity = (PlayerEntity *)[scriptedUniverse entityZero];
+	PlayerEntity *playerEntity = [PlayerEntity sharedPlayer];
 	if (!equal_seeds(currentSystem, playerEntity->system_seed)) {
 		//fprintf(stdout, "Current system has changed, regenerating local copy of planetinfo\r\n");
 		currentSystem = playerEntity->system_seed;
 		if (planetinfo)
 			[planetinfo release];
 
-		planetinfo = [[scriptedUniverse generateSystemData:currentSystem] retain];
+		planetinfo = [[[Universe sharedUniverse] generateSystemData:currentSystem] retain];
 	}
 	int gn = [[playerEntity galaxy_number] intValue];
 	int pn = [[playerEntity planet_number] intValue];
 
 	switch (JSVAL_TO_INT(id)) {
 		case SYS_NAME:
-			[scriptedUniverse setSystemDataForGalaxy:gn planet:pn key:KEY_NAME value:JSValToNSString(cx, *vp)];
+			[[Universe sharedUniverse] setSystemDataForGalaxy:gn planet:pn key:KEY_NAME value:JSValToNSString(cx, *vp)];
 			break;
 
 			case SYS_DESCRIPTION:
-			[scriptedUniverse setSystemDataForGalaxy:gn planet:pn key:KEY_DESCRIPTION value:JSValToNSString(cx, *vp)];
+			[[Universe sharedUniverse] setSystemDataForGalaxy:gn planet:pn key:KEY_DESCRIPTION value:JSValToNSString(cx, *vp)];
 			break;
 
 		case SYS_INHABITANTS:
-			[scriptedUniverse setSystemDataForGalaxy:gn planet:pn key:KEY_INHABITANTS value:JSValToNSString(cx, *vp)];
+			[[Universe sharedUniverse] setSystemDataForGalaxy:gn planet:pn key:KEY_INHABITANTS value:JSValToNSString(cx, *vp)];
 			break;
 /*
 		case SYS_GOING_NOVA:
@@ -618,23 +620,23 @@ JSBool SystemSetProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp) {
 			break;
 */
 		case SYS_GOVT_ID:
-			[scriptedUniverse setSystemDataForGalaxy:gn planet:pn key:KEY_GOVERNMENT value:[NSNumber numberWithInt:[JSValToNSString(cx, *vp) intValue]]];
+			[[Universe sharedUniverse] setSystemDataForGalaxy:gn planet:pn key:KEY_GOVERNMENT value:[NSNumber numberWithInt:[JSValToNSString(cx, *vp) intValue]]];
 			break;
 
 		case SYS_ECONOMY_ID:
-			[scriptedUniverse setSystemDataForGalaxy:gn planet:pn key:KEY_ECONOMY value:[NSNumber numberWithInt:[JSValToNSString(cx, *vp) intValue]]];
+			[[Universe sharedUniverse] setSystemDataForGalaxy:gn planet:pn key:KEY_ECONOMY value:[NSNumber numberWithInt:[JSValToNSString(cx, *vp) intValue]]];
 			break;
 
 		case SYS_TECH_LVL:
-			[scriptedUniverse setSystemDataForGalaxy:gn planet:pn key:KEY_TECHLEVEL value:[NSNumber numberWithInt:[JSValToNSString(cx, *vp) intValue]]];
+			[[Universe sharedUniverse] setSystemDataForGalaxy:gn planet:pn key:KEY_TECHLEVEL value:[NSNumber numberWithInt:[JSValToNSString(cx, *vp) intValue]]];
 			break;
 
 		case SYS_POPULATION:
-			[scriptedUniverse setSystemDataForGalaxy:gn planet:pn key:KEY_POPULATION value:[NSNumber numberWithInt:[JSValToNSString(cx, *vp) intValue]]];
+			[[Universe sharedUniverse] setSystemDataForGalaxy:gn planet:pn key:KEY_POPULATION value:[NSNumber numberWithInt:[JSValToNSString(cx, *vp) intValue]]];
 			break;
 
 		case SYS_PRODUCTIVITY:
-			[scriptedUniverse setSystemDataForGalaxy:gn planet:pn key:KEY_PRODUCTIVITY value:[NSNumber numberWithInt:[JSValToNSString(cx, *vp) intValue]]];
+			[[Universe sharedUniverse] setSystemDataForGalaxy:gn planet:pn key:KEY_PRODUCTIVITY value:[NSNumber numberWithInt:[JSValToNSString(cx, *vp) intValue]]];
 			break;
 	}
 	return JS_TRUE;
@@ -687,7 +689,7 @@ JSBool MissionGetProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp) {
 	if (!JSVAL_IS_INT(id)) return JS_TRUE;
 
 	NSString *str;
-	PlayerEntity *playerEntity = (PlayerEntity *)[scriptedUniverse entityZero];
+	PlayerEntity *playerEntity = [PlayerEntity sharedPlayer];
 
 	switch (JSVAL_TO_INT(id)) {
 		case MISSION_CHOICE:
@@ -704,7 +706,7 @@ JSBool MissionSetProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp) {
 
 	if (!JSVAL_IS_INT(id)) return JS_TRUE;
 
-	PlayerEntity *playerEntity = (PlayerEntity *)[scriptedUniverse entityZero];
+	PlayerEntity *playerEntity = [PlayerEntity sharedPlayer];
 
 	switch (JSVAL_TO_INT(id)) {
 		case MISSION_TEXT: {
@@ -753,13 +755,13 @@ JSBool MissionSetProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp) {
 }
 
 JSBool MissionShowMissionScreen(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval) {
-	PlayerEntity *playerEntity = (PlayerEntity *)[scriptedUniverse entityZero];
+	PlayerEntity *playerEntity = [PlayerEntity sharedPlayer];
 	[playerEntity setGuiToMissionScreen];
 	return JS_TRUE;
 }
 
 JSBool MissionShowShipModel(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval) {
-	PlayerEntity *playerEntity = (PlayerEntity *)[scriptedUniverse entityZero];
+	PlayerEntity *playerEntity = [PlayerEntity sharedPlayer];
 	if (argc > 0 && JSVAL_IS_STRING(argv[0])) {
 		JSString *jskey = JS_ValueToString(cx, argv[0]);
 		[playerEntity showShipModel: [NSString stringWithCString:JS_GetStringBytes(jskey)]];
@@ -768,7 +770,7 @@ JSBool MissionShowShipModel(JSContext *cx, JSObject *obj, uintN argc, jsval *arg
 }
 
 JSBool MissionResetMissionChoice(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval) {
-	PlayerEntity *playerEntity = (PlayerEntity *)[scriptedUniverse entityZero];
+	PlayerEntity *playerEntity = [PlayerEntity sharedPlayer];
 	[playerEntity resetMissionChoice];
 	return JS_TRUE;
 }
@@ -795,7 +797,6 @@ void reportJSError(JSContext *cx, const char *message, JSErrorReport *report) {
 - (id) initWithUniverse: (Universe *)universe
 {
 	self = [super init];
-	scriptedUniverse = universe;
 
 	/*set up global JS variables, including global and custom objects */
 

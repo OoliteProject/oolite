@@ -42,6 +42,8 @@ MA 02110-1301, USA.
 #import "Comparison.h"
 #endif
 
+#define kOOLogUnconvertedNSLog @"unclassified.PlayerEntityScripting"
+
 static NSString * const kOOLogScriptAddShipsFailed			= @"script.addShips.failed";
 static NSString * const kOOLogScriptMissionDescNoText		= @"script.missionDescription.noMissionText";
 static NSString * const kOOLogScriptMissionDescNoKey		= @"script.missionDescription.noMissionKey";
@@ -123,7 +125,7 @@ static NSString * mission_key;
 
 - (void) scriptActions:(NSArray*) some_actions forTarget:(ShipEntity*) a_target
 {
-	PlayerEntity* player = (PlayerEntity *)[universe entityZero];
+	PlayerEntity* player = [PlayerEntity sharedPlayer];
 	int i;
 	for (i = 0; i < [some_actions count]; i++)
 	{
@@ -227,7 +229,7 @@ static NSString * mission_key;
 	{
 		[tokens removeObjectAtIndex:0];
 		valueString = [[tokens componentsJoinedByString:@" "] stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceCharacterSet]];
-		valueString = [universe expandDescriptionWithLocals:valueString forSystem:[self system_seed] withLocalVariables:locals];
+		valueString = ExpandDescriptionsWithLocalsForCurrentSystem(valueString, locals);
 		OOLog(kOOLogNoteScriptAction, @"scriptAction after expansion: \"%@ %@\"", selectorString, valueString);
 	}
 
@@ -506,7 +508,7 @@ static NSString * mission_key;
 		OOLog(kOOLogScriptMissionDescNoKey, @"SCRIPT ERROR ***** mission_key not set");
 		return;
 	}
-	text = [universe expandDescription:text forSystem:system_seed];
+	text = ExpandDescriptionForCurrentSystem(text);
 	text = [self replaceVariablesInString: text];
 
 	[mission_variables setObject:text forKey:mission_key];
@@ -850,7 +852,7 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 	very_random_seed.e = rand() & 255;
 	very_random_seed.f = rand() & 255;
 	seed_RNG_only_for_planet_description(very_random_seed);
-	NSString* expandedMessage = [universe expandDescription:valueString forSystem:[universe systemSeed]];
+	NSString* expandedMessage = ExpandDescriptionForCurrentSystem(valueString);
 	expandedMessage = [self replaceVariablesInString: expandedMessage];
 
 	[universe addCommsMessage:expandedMessage forCount:4.5];
@@ -867,7 +869,7 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 	very_random_seed.e = rand() & 255;
 	very_random_seed.f = rand() & 255;
 	seed_RNG_only_for_planet_description(very_random_seed);
-	NSString* expandedMessage = [universe expandDescription:valueString forSystem:[universe systemSeed]];
+	NSString* expandedMessage = ExpandDescriptionForCurrentSystem(valueString);
 	expandedMessage = [self replaceVariablesInString: expandedMessage];
 
 	[universe addMessage: expandedMessage forCount: 3];
@@ -883,7 +885,7 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 	very_random_seed.e = rand() & 255;
 	very_random_seed.f = rand() & 255;
 	seed_RNG_only_for_planet_description(very_random_seed);
-	NSString* expandedMessage = [universe expandDescription:valueString forSystem:[universe systemSeed]];
+	NSString* expandedMessage = ExpandDescriptionForCurrentSystem(valueString);
 	expandedMessage = [self replaceVariablesInString: expandedMessage];
 
 	[universe addMessage: expandedMessage forCount: 6];
@@ -928,7 +930,7 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 
 	if ([eq_type hasSuffix:@"MISSILE"]||[eq_type hasSuffix:@"MINE"])
 	{
-		if ([self mountMissile:[[universe getShipWithRole:eq_type] autorelease]])
+		if ([self mountMissile:[[universe newShipWithRole:eq_type] autorelease]])
 			missiles++;
 		return;
 	}
@@ -1049,7 +1051,7 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 					int smaller_quantity = 1 + ((amount - 1) % amount_per_container);
 					if ([cargo count] < max_cargo)
 					{
-						ShipEntity* container = [universe getShipWithRole:@"cargopod"];
+						ShipEntity* container = [universe newShipWithRole:@"cargopod"];
 						if (container)
 						{
 							[container setUniverse:universe];
@@ -1069,7 +1071,7 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 				{
 					if ([cargo count] < max_cargo)
 					{
-						ShipEntity* container = [universe getShipWithRole:@"cargopod"];
+						ShipEntity* container = [universe newShipWithRole:@"cargopod"];
 						if (container)
 						{
 							[container setUniverse:universe];
@@ -1139,7 +1141,7 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 		return;
 
 	[self removeAllCargo];
-	specialCargo = [[universe expandDescription:descriptionString forSystem:system_seed] retain];
+	specialCargo = [ExpandDescriptionForCurrentSystem(descriptionString) retain];
 	//
 	OOLog(kOOLogNoteUseSpecialCargo, @"Going to useSpecialCargo:'%@'", specialCargo);
 }
@@ -1179,7 +1181,7 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 
 - (void) ejectItem:(NSString *)item_key
 {
-	ShipEntity* item = [universe getShip:item_key];
+	ShipEntity* item = [universe newShipWithName:item_key];
 	if (script_target == nil)
 		script_target = self;
 	if (item)
@@ -1559,9 +1561,9 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 	//
 	GuiDisplayGen   *gui =  [universe gui];
 	NSString		*text = (NSString *)[[universe missiontext] objectForKey:textKey];
-	text = [universe expandDescription:text forSystem:system_seed];
+	text = ExpandDescriptionForCurrentSystem(text);
 	text = [self replaceVariablesInString: text];
-	//NSLog(@"::::: Adding text '%@':\n'%@'", textKey, text);
+	
 	NSArray			*paras = [text componentsSeparatedByString:@"\\n"];
 	if (text)
 	{
@@ -1602,7 +1604,7 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 	{
 		NSString* choice_key = (NSString *)[choice_keys objectAtIndex:i];
 		NSString* choice_text = [NSString stringWithFormat:@" %@ ",[choices_dict objectForKey:choice_key]];
-		choice_text = [universe expandDescription:choice_text forSystem:system_seed];
+		choice_text = ExpandDescriptionForCurrentSystem(choice_text);
 		choice_text = [self replaceVariablesInString: choice_text];
 		[gui setText:choice_text forRow:choices_row align: GUI_ALIGN_CENTER];
 		[gui setKey:choice_key forRow:choices_row];
@@ -1697,7 +1699,7 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 
 	Quaternion		q2 = { (GLfloat)0.707, (GLfloat)0.707, (GLfloat)0.0, (GLfloat)0.0};
 
-	ship = [universe getShipWithRole: shipKey];   // retain count = 1
+	ship = [universe newShipWithRole: shipKey];   // retain count = 1
 	if (ship)
 	{
 		double cr = ship->collision_radius;
@@ -1954,7 +1956,7 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 		}
 		else if ([valueString hasPrefix:@"["]&&[valueString hasSuffix:@"]"])
 		{
-			NSString* replaceString = [universe expandDescription:valueString forSystem:system_seed];
+			NSString* replaceString = ExpandDescriptionForCurrentSystem(valueString);
 			[resultString replaceOccurrencesOfString:valueString withString:replaceString options:NSLiteralSearch range:NSMakeRange(0, [resultString length])];
 		}
 	}
@@ -2069,7 +2071,6 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 		if (![conditions isKindOfClass:[NSArray class]])
 		{
 			NSLog(@"SCENE ERROR \"conditions = %@\" is not an array - returning NO.", [conditions description]);
-			// NSBeep(); AppKit
 			return NO;
 		}
 	}
@@ -2135,9 +2136,9 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 			return NO;				//		   0... 1... 2 3 4 5 6 7 8 9....
 		ShipEntity* ship = nil;
 		if ([i_key isEqual:@"ship"]||[i_key isEqual:@"model"])
-			ship = [universe getShip:(NSString*)[i_info objectAtIndex: 1]];
+			ship = [universe newShipWithName:(NSString*)[i_info objectAtIndex: 1]];
 		if ([i_key isEqual:@"role"])
-			ship = [universe getShipWithRole:(NSString*)[i_info objectAtIndex: 1]];
+			ship = [universe newShipWithRole:(NSString*)[i_info objectAtIndex: 1]];
 		if (!ship)
 			return NO;
 
@@ -2171,7 +2172,7 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 		if ([i_info count] != 9)	// must be player_x_y_z_W_X_Y_Z_align
 			return NO;				//		   0..... 1 2 3 4 5 6 7 8....
 
-		ShipEntity* doppelganger = [universe getShip: ship_desc];   // retain count = 1
+		ShipEntity* doppelganger = [universe newShipWithName: ship_desc];   // retain count = 1
 		if (!doppelganger)
 			return NO;
 		

@@ -239,6 +239,12 @@ Random_Seed RandomSeedFromString(NSString *abcdefString)
 }
 
 
+NSString *StringFromRandomSeed(Random_Seed seed)
+{
+	return [NSString stringWithFormat: @"%d %d %d %d %d %d", seed.a, seed.b, seed.c, seed.d, seed.e, seed.f];
+}
+
+
 NSString *ExpandDescriptionForSeed(NSString *text, Random_Seed seed)
 {
 	// to enable variables to return strings that can be expanded (eg. @"[commanderName_string]")
@@ -253,7 +259,7 @@ NSString *ExpandDescriptionForSeed(NSString *text, Random_Seed seed)
 	do
 	{
 		old_desc = result;
-		result = ExpandDescriptionsWithLocalsForSystemSeed(text, seed, nil);
+		result = ExpandDescriptionsWithLocalsForSystemSeed(result, seed, nil);
 	} while (--stack_check && ![result isEqual:old_desc]);
 	
 	if (!stack_check)
@@ -262,7 +268,7 @@ NSString *ExpandDescriptionForSeed(NSString *text, Random_Seed seed)
 		#if 0
 			// What's the point of breaking? A bad description is better than falling to pieces.
 			[NSException raise:OOLITE_EXCEPTION_LOOPING
-						format:@"script stack overflow for expandDescription: \"%@\"", text];
+						format:@"script stack overflow for ExpandDescriptionForSeed(\"%@\")", text];
 		#endif
 	}
 	
@@ -355,7 +361,7 @@ NSString *ExpandDescriptionsWithLocalsForSystemSeed(NSString *text, Random_Seed 
 				options:NSLiteralSearch range:NSMakeRange(0, [partial length])];
 	
 	[partial	replaceOccurrencesOfString:@"%R"
-				withString:[universe getRandomDigrams]
+				withString:RandomDigrams()
 				options:NSLiteralSearch range:NSMakeRange(0, [partial length])];
 
 	return partial; 
@@ -365,6 +371,19 @@ NSString *ExpandDescriptionsWithLocalsForSystemSeed(NSString *text, Random_Seed 
 NSString *ExpandDescriptionsWithLocalsForCurrentSystem(NSString *text, NSDictionary *locals)
 {
 	return ExpandDescriptionsWithLocalsForSystemSeed(text, [[PlayerEntity sharedPlayer] system_seed], locals);
+}
+
+
+NSString *DescriptionForSystem(Random_Seed seed)
+{
+	seed_RNG_only_for_planet_description(seed);
+	return ExpandDescriptionForSeed(@"[14] is [22].", seed);
+}
+
+
+NSString *DescriptionForCurrentSystem(void)
+{
+	return DescriptionForSystem([[PlayerEntity sharedPlayer] system_seed]);
 }
 
 
@@ -413,6 +432,21 @@ NSString *ReplaceVariables(NSString *string, Entity *target, NSDictionary *local
 }
 
 
+NSString *RandomDigrams(void)
+{
+	int i;
+	int len = gen_rnd_number() & 3;	
+	NSString*			digrams = [[[Universe sharedUniverse] descriptions] objectForKey:@"digrams"];
+	NSMutableString*	name = [NSMutableString stringWithCapacity:256];
+	for (i = 0; i <=len; i++)
+	{
+		int x =  gen_rnd_number() & 0x3e;
+		[name appendString:[digrams substringWithRange:NSMakeRange(x,2)]];
+	}
+	return [name capitalizedString]; 
+}
+
+
 @implementation NSString (OOUtilities)
 
 - (BOOL)pathHasExtension:(NSString *)extension
@@ -435,3 +469,60 @@ NSString *ReplaceVariables(NSString *string, Entity *target, NSDictionary *local
 }
 
 @end
+
+
+NSArray *ComponentsFromVersionString(NSString *string)
+{
+	NSArray				*stringComponents = nil;
+	NSMutableArray		*result = nil;
+	unsigned			i, count;
+	int					value;
+	id					component;
+	
+	stringComponents = [string componentsSeparatedByString:@"."];
+	count = [stringComponents count];
+	result = [NSMutableArray arrayWithCapacity:count];
+	
+	for (i = 0; i != count; ++i)
+	{
+		component = [stringComponents objectAtIndex:i];
+		if ([component respondsToSelector:@selector(intValue)])  value = MAX([component intValue], 0);
+		else  value = 0;
+		
+		[result addObject:[NSNumber numberWithUnsignedInt:value]];
+	}
+	
+	return result;
+}
+
+
+NSComparisonResult CompareVersions(NSArray *version1, NSArray *version2)
+{
+	NSEnumerator		*leftEnum = nil,
+						*rightEnum = nil;
+	NSNumber			*leftComponent = nil,
+						*rightComponent = nil;
+	unsigned			leftValue,
+						rightValue;
+	
+	leftEnum = [version1 objectEnumerator];
+	rightEnum = [version2 objectEnumerator];
+	
+	for (;;)
+	{
+		leftComponent = [leftEnum nextObject];
+		rightComponent = [rightEnum nextObject];
+		
+		if (leftComponent == nil && rightComponent == nil)  break;	// End of both versions
+		
+		// We'll get 0 if the component is nil, which is what we want.
+		leftValue = [leftComponent unsignedIntValue];
+		rightValue = [rightComponent unsignedIntValue];
+		
+		if (leftValue < rightValue) return NSOrderedAscending;
+		if (leftValue > rightValue) return NSOrderedDescending;
+	}
+	
+	// If there was a difference, we'd have returned already.
+	return NSOrderedSame;
+}

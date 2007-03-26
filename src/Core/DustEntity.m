@@ -50,8 +50,7 @@ MA 02110-1301, USA.
 		vertices[vi].y = (ranrot_rand() % DUST_SCALE) - DUST_SCALE / 2;
 		vertices[vi].z = (ranrot_rand() % DUST_SCALE) - DUST_SCALE / 2;
 	}
-	//NSLog(@"DustEntity vertices set");
-	//
+	
 	dust_color = [[OOColor colorWithCalibratedRed:0.5 green:1.0 blue:1.0 alpha:1.0] retain];
     //
     displayListName = 0;
@@ -86,7 +85,7 @@ MA 02110-1301, USA.
 
 - (void) update:(double) delta_t
 {
-	PlayerEntity* player = (PlayerEntity*)[universe entityZero];
+	PlayerEntity* player = [PlayerEntity sharedPlayer];
 	if (!player)						return;	//	DON'T UPDATE
 	// do nowt!
 	zero_distance = 0.0;
@@ -116,7 +115,7 @@ MA 02110-1301, USA.
 
 - (void) drawEntity:(BOOL) immediate :(BOOL) translucent
 {
-	PlayerEntity* player = (PlayerEntity*)[universe entityZero];
+	PlayerEntity* player = [PlayerEntity sharedPlayer];
 	if (!player)
 		return;	//	DON'T DRAW
 	//

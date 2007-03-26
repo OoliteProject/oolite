@@ -34,6 +34,8 @@ MA 02110-1301, USA.
 #import "OOTextureScaling.h"
 #import "OOStringParsing.h"
 
+#define kOOLogUnconvertedNSLog @"unclassified.TextureStore"
+
 
 static NSString * const kOOLogPlanetTextureGen			= @"texture.planet.generate";
 static NSString * const kOOLogShaderInitSuccess			= @"rendering.opengl.shader.init.success";
@@ -58,7 +60,6 @@ GLuint	max_texture_dimension = 512;	// conservative start
 	glGetIntegerv( GL_MAX_TEXTURE_SIZE, &result);
 	max_texture_dimension = result;
 	done_maxsize_test = YES;
-	// NSLog(@"TESTING: GL_MAX_TEXTURE_SIZE =  %d", max_texture_dimension);
 	return max_texture_dimension;
 }
 
@@ -122,8 +123,6 @@ GLuint	max_texture_dimension = 512;	// conservative start
 #ifndef GNUSTEP
 	NSArray* reps = [texImage representations];
 
-//		NSLog(@"DEBUG texture %@ representations:\n%@", filename, reps);
-
 	int i;
 	for (i = 0; ((i < [reps count]) && !bitmapImageRep); i++)
 	{
@@ -177,7 +176,6 @@ GLuint	max_texture_dimension = 512;	// conservative start
 
 	if (([filename hasPrefix:@"blur"])&&(texture_w == image_w)&&(texture_h == image_h))
 	{
-//			NSLog(@"DEBUG filling image data for %@ (%d x %d) with special sauce!", filename, texture_w, texture_h);
 		fillSquareImageDataWithBlur(imageBuffer, texture_w, n_planes);
 	}
 
@@ -364,7 +362,7 @@ GLuint	max_texture_dimension = 512;	// conservative start
 		GLhandleARB shader_object = glCreateShaderObjectARB(GL_FRAGMENT_SHADER_ARB);	// a fragment shader
 		if (!shader_object)
 		{
-			NSLog(kOOLogShaderInitFailed, @"GLSL ERROR: could not create a fragment shader with glCreateShaderObjectARB()");
+			OOLog(kOOLogShaderInitFailed, @"GLSL ERROR: could not create a fragment shader with glCreateShaderObjectARB()");
 			OK = NO;
 		}
 		
@@ -385,7 +383,7 @@ GLuint	max_texture_dimension = 512;	// conservative start
 				char log[1024];
 				GLsizei log_length;
 				glGetInfoLogARB( shader_object, 1024, &log_length, log);
-				NSLog(kOOLogShaderInitFailed, @"GLSL ERROR: shader code would not compile:\n%s\n\n%@\n\n", log, fragmentSource);
+				OOLog(kOOLogShaderInitFailed, @"GLSL ERROR: shader code would not compile:\n%s\n\n%@\n\n", log, fragmentSource);
 				OK = NO;
 			}
 			fragment_shader_object = shader_object;
@@ -398,7 +396,7 @@ GLuint	max_texture_dimension = 512;	// conservative start
 		GLhandleARB shader_object = glCreateShaderObjectARB(GL_VERTEX_SHADER_ARB);	// a vertex shader
 		if (!shader_object)
 		{
-			NSLog(kOOLogShaderInitFailed, @"GLSL ERROR: could not create a fragment shader with glCreateShaderObjectARB()");
+			OOLog(kOOLogShaderInitFailed, @"GLSL ERROR: could not create a fragment shader with glCreateShaderObjectARB()");
 			OK = NO;
 		}
 		
@@ -644,7 +642,6 @@ void fillSquareImageDataWithBlur(unsigned char * imageBuffer, int width, int npl
 
 		if ((i_error > 1.0)&&(i < 255))
 		{
-//			NSLog(@"DEBUG err correct");
 			i_error -= 1.0;
 			i++;
 		}

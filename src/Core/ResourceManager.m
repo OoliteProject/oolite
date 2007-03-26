@@ -31,6 +31,8 @@ MA 02110-1301, USA.
 #import "OOStringParsing.h"
 #import "OOPListParsing.h"
 
+#define kOOLogUnconvertedNSLog @"unclassified.ResourceManager"
+
 
 static NSString * const kOOLogDumpSearchPaths			= @"searchPaths.dumpAll";
 static NSString * const kOOLogCacheUpToDate				= @"dataCache.upToDate";
@@ -42,6 +44,14 @@ static NSString * const kOOCacheKeyModificationDates	= @"modification dates";
 
 
 extern NSDictionary* parseScripts(NSString* script);
+
+
+@interface ResourceManager (OOPrivate)
+
++ (BOOL) areRequirementsFulfilled:(NSDictionary*)requirements forOXP:(NSString *)path;
+
+@end
+
 
 @implementation ResourceManager
 
@@ -185,11 +195,9 @@ NSMutableDictionary*	surface_cache;
 	int i;
 	if (saved_paths)
 		return saved_paths;
-	if (errors)
-	{
-		[errors release];
-		errors = nil;
-	}
+	
+	[errors release];
+	errors = nil;
 	
 	NSFileManager *fmgr = [NSFileManager defaultManager];
 	
@@ -261,7 +269,7 @@ NSMutableDictionary*	surface_cache;
 			NSDictionary* requires_dic = OODictionaryFromFile(requiresPath);
 			if (requires_dic != nil)
 			{
-				require_test = [ResourceManager areRequirementsFulfilled:requires_dic];
+				require_test = [ResourceManager areRequirementsFulfilled:requires_dic forOXP:possibleExpansionPath];
 			}
 			if (require_test)
 			{
@@ -269,24 +277,30 @@ NSMutableDictionary*	surface_cache;
 			}
 			else
 			{
-				NSString* version = (NSString *)[[[NSBundle mainBundle] infoDictionary] objectForKey:@"CFBundleVersion"];
-				// NSBeep(); // AppKit
-				if (!failed_parsing)
+				NSString *errorString = nil;
+				
+				if (failed_parsing)
 				{
-					NSString* old_errors = errors;
-					errors = [[NSString alloc] initWithFormat:@"%@\n\t'%@' requirements property list could not be parsed",old_errors, [possibleExpansionPath lastPathComponent]];
-					[old_errors release];
+					errorString = [NSString stringWithFormat:@"\t'%@' requirements property list could not be parsed.", [possibleExpansionPath lastPathComponent]];
 				}
 				else
 				{
-					NSLog(@"ERROR %@ is incompatible with this version %@ of Oolite",possibleExpansionPath,version);
-					if (!errors)
-						errors = [[NSString alloc] initWithFormat:@"\t'%@' is incompatible with version %@ of Oolite",[possibleExpansionPath lastPathComponent],version];
+					NSString *version = [[[NSBundle mainBundle] infoDictionary] objectForKey:@"CFBundleVersion"];
+					OOLog(@"oxp.versionMismatch", @"ERROR: OXP %@ is incompatible with version %@ of Oolite",possibleExpansionPath,version);
+					errorString = [NSString stringWithFormat:@"\t'%@' is incompatible with version %@ of Oolite", [possibleExpansionPath lastPathComponent], version];
+				}
+				
+				if (errorString != nil)
+				{
+					if (errors)
+					{
+						errorString = [[NSString alloc] initWithFormat:@"%@\n%@", errors, errorString];
+						[errors release];
+						errors = errorString;
+					}
 					else
 					{
-						NSString* old_errors = errors;
-						errors = [[NSString alloc] initWithFormat:@"%@\n\t'%@' is incompatible with version %@ of Oolite",old_errors,[possibleExpansionPath lastPathComponent],version];
-						[old_errors release];
+						errors = [errorString retain];
 					}
 				}
 			}
@@ -303,17 +317,38 @@ NSMutableDictionary*	surface_cache;
 	return file_paths;
 }
 
-+ (BOOL) areRequirementsFulfilled:(NSDictionary*) requirements
++ (BOOL) areRequirementsFulfilled:(NSDictionary*)requirements forOXP:(NSString *)path
 {
-	if (!requirements)
-		return YES;
-	if ([requirements objectForKey:@"version"])
+	BOOL				result = YES;
+	NSString			*requiredVersion;
+	
+	if (result)
 	{
-		NSString* version = (NSString *)[[[NSBundle mainBundle] infoDictionary] objectForKey:@"CFBundleVersion"];
-		if ([version isLessThan:[requirements objectForKey:@"version"]])
-			return NO;
+		requiredVersion = [requirements objectForKey:@"version"];
+		if (requiredVersion != nil)
+		{
+			if ([requiredVersion isKindOfClass:[NSString class]])
+			{
+				static NSArray	*ooVersionComponents = nil;
+				NSArray			*oxpVersionComponents = nil;
+				
+				if (ooVersionComponents == nil)
+				{
+					ooVersionComponents = ComponentsFromVersionString([[[NSBundle mainBundle] infoDictionary] objectForKey:@"CFBundleVersion"]);
+				}
+				
+				oxpVersionComponents = ComponentsFromVersionString([requirements objectForKey:@"version"]);
+				if (NSOrderedAscending == CompareVersions(ooVersionComponents, oxpVersionComponents))  result = NO;
+			}
+			else
+			{
+				OOLog(@"plist.wrongType", @"Expected requires.plist entry \"version\" to be string, but got %@ in OXP %@.", [requirements class], [path lastPathComponent]);
+				result = NO;
+			}
+		}
 	}
-	return YES;
+	
+	return result;
 }
 
 + (void) addExternalPath:(NSString *)filename
@@ -332,7 +367,6 @@ NSMutableDictionary*	surface_cache;
 	}
 	if (!paths_to_load)
 		paths_to_load = [saved_paths retain];
-//	NSLog(@"DEBUG HERE:::: paths_to_load = %@", paths_to_load);
 }
 
 + (NSDictionary *) dictionaryFromFilesNamed:(NSString *)filename inFolder:(NSString *)foldername andMerge:(BOOL) mergeFiles
@@ -390,10 +424,7 @@ NSMutableDictionary*	surface_cache;
 		}
 	}	
 	//
-	if (result)
-		[dictionary_cache setObject:result forKey:dict_key];
-	
-//	NSLog(@"DEBUG ResourceManager dictionary_cache keys:\n%@", [dictionary_cache allKeys]);
+	if (result)  [dictionary_cache setObject:result forKey:dict_key];
 		
 	return [NSDictionary dictionaryWithDictionary:result];
 }
@@ -432,7 +463,6 @@ NSMutableDictionary*	surface_cache;
 	
 	// got results we may want to cache
 	//
-	//NSLog(@"---> ResourceManager found %d file(s) with name '%@' (in folder '%@')", [results count], filename, foldername);
 	NSMutableArray *result = [NSMutableArray arrayWithCapacity:128];
 	if (!mergeFiles)
 	{
@@ -621,22 +651,17 @@ NSMutableDictionary*	surface_cache;
 
 		filepath = [[filepath stringByDeletingPathExtension] stringByAppendingPathExtension:@"oos"];
 		
-		//NSLog(@"looking for oos file: %@", filepath);
 		if ([[NSFileManager defaultManager] fileExistsAtPath:filepath])
 		{
 			// load and compile oos script
 			NSLog(@"trying to load and parse %@", filepath);
 			NSString *script = [NSString stringWithContentsOfFile:filepath];
 			NSDictionary *scriptDict = parseScripts(script);
-			if (scriptDict) {
-				//NSLog(@"parsed ok, adding to results");
-				[results addObject:scriptDict];
-			}
+			if (scriptDict)  [results addObject:scriptDict];
 		}
 		else
 		{
 			filepath = [[filepath stringByDeletingPathExtension] stringByAppendingPathExtension:@"plist"];
-			//NSLog(@"oos not found, looking for plist file: %@", filepath);
 			// All this code replicated from dictionaryFromFileNamed because that method
 			// will traverse all possible locations and any oos files that co-exist with
 			// plist files will probably get their entries overwritten.
@@ -651,7 +676,6 @@ NSMutableDictionary*	surface_cache;
 		{
 			xfilepath = [[(NSString *)[fpaths objectAtIndex:i] stringByAppendingPathComponent:foldername] stringByAppendingPathComponent:filename];
 			filepath = [[xfilepath stringByDeletingPathExtension] stringByAppendingPathExtension:@"oos"];
-			//NSLog(@"looking for oos file: %@", filepath);
 			if ([[NSFileManager defaultManager] fileExistsAtPath:filepath])
 			{
 				// load and compile oos script
@@ -659,7 +683,6 @@ NSMutableDictionary*	surface_cache;
 				NSString *script = [NSString stringWithContentsOfFile:filepath];
 				NSDictionary *scriptDict = parseScripts(script);
 				if (scriptDict) {
-					//NSLog(@"parsed ok, adding to results");
 					[results addObject:scriptDict];
 				}
 			}
@@ -685,8 +708,6 @@ NSMutableDictionary*	surface_cache;
 	if (result) {
 		[dictionary_cache setObject:result forKey:dict_key];
 	}
-
-//	NSLog(@"DEBUG ResourceManager dictionary_cache keys:\n%@", [dictionary_cache allKeys]);
 
 	return [NSDictionary dictionaryWithDictionary:result];
 }

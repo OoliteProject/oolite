@@ -49,4 +49,7 @@ enum
 
 - (void)playBreakPattern;
 
+- (void)playHostileWarning;
+- (void)playAlertConditionRed;
+
 @end

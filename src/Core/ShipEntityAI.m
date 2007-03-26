@@ -35,6 +35,8 @@ MA 02110-1301, USA.
 
 #import "OOStringParsing.h"
 
+#define kOOLogUnconvertedNSLog @"unclassified.ShipEntityAI"
+
 
 @implementation ShipEntity (AI)
 
@@ -384,7 +386,6 @@ MA 02110-1301, USA.
 {
 	flight_roll = max_flight_roll*2.0*(randf() - 0.5);
 	flight_pitch = max_flight_pitch*2.0*(randf() - 0.5);
-//	velocity = make_vector( flight_speed*2.0*(randf() - 0.5), flight_speed*2.0*(randf() - 0.5), flight_speed*2.0*(randf() - 0.5));
 	behaviour = BEHAVIOUR_TUMBLE;
 	frustration = 0.0;
 }
@@ -655,8 +656,6 @@ MA 02110-1301, USA.
 		}
 	}
 		
-//	NSLog(@"DEBUG %@'s scanForOffenders found %@ with legal_factor %.1f", self, [universe entityForUniversalID:found_target], worst_legal_factor);
-		
 	if (found_target != NO_TARGET)
 		[shipAI message:@"TARGET_FOUND"];
 	else
@@ -882,8 +881,7 @@ WormholeEntity*	whole;
 			// scared - ignore the request;
 			break;
 			
-		default :
-			//NSLog(@"%@ %d responding to distress message from %@ %d", name, universal_id, [other name], [other universal_id]);
+		default:
 			if ((scan_class == CLASS_POLICE)||[roles isEqual:@"police"]||[roles isEqual:@"interceptor"]||[roles isEqual:@"wingman"])
 				[(ShipEntity *)[universe entityForUniversalID:found_target] markAsOffender:8];  // you have been warned!!
 			[shipAI reactToMessage:@"ACCEPT_DISTRESS_CALL"];
@@ -1025,31 +1023,15 @@ WormholeEntity*	whole;
 		}
 	}
 		
-	if (found_target != NO_TARGET)
-	{
-		//NSLog(@"DEBUG %@ %d scanForHostiles ----> found %@ %@ %d", name, universal_id, [(ShipEntity *)[universe entityForUniversalID:found_target] roles], [(ShipEntity *)[universe entityForUniversalID:found_target] name], found_target);
-		//[self setReportAImessages:YES];
-		
-		[shipAI message:@"TARGET_FOUND"];
-	}
-	else
-		[shipAI message:@"NOTHING_FOUND"];
+	if (found_target != NO_TARGET)  [shipAI message:@"TARGET_FOUND"];
+	else  [shipAI message:@"NOTHING_FOUND"];
 }
 
 - (void) fightOrFleeHostiles
 {
-	//NSLog(@"DEBUG %@ %d considers fightOrFleeHostiles", name, universal_id);
-	// consider deploying escorts
-	//if ([escorts count] > 0)
 	if (n_escorts > 0)
 	{
-		if (found_target == last_escort_target)
-		{
-			//NSLog(@"DEBUG exit fightOrFleeHostiles because found_target == last_escort_target == %d", found_target);
-			return;
-		}
-		
-		//NSLog(@"DEBUG %@ %d decides to deploy escorts and flee", name, universal_id);
+		if (found_target == last_escort_target)  return;
 		
 		primaryAggressor = found_target;
 		primaryTarget = found_target;
@@ -1064,8 +1046,6 @@ WormholeEntity*	whole;
 	{
 		if (randf() < 0.50)
 		{
-			//NSLog(@"DEBUG %@ %d decides to launch missile and flee", name, universal_id);
-		
 			primaryAggressor = found_target;
 			primaryTarget = found_target;
 			[self fireMissile];
@@ -1077,15 +1057,12 @@ WormholeEntity*	whole;
 	// consider fighting
 	if (energy > max_energy * 0.80)
 	{
-		//NSLog(@"DEBUG %@ %d decides to fight hostiles", name, universal_id);
-		
 		primaryAggressor = found_target;
 		//[self performAttack];
 		[shipAI message:@"FIGHTING"];
 		return;
 	}
-
-	//NSLog(@"DEBUG %@ %d decides to flee hostiles", name, universal_id);
+	
 	[shipAI message:@"FLEEING"];
 }
 
@@ -1105,7 +1082,6 @@ WormholeEntity*	whole;
 				int extra = 1 | (ranrot_rand() & 15);
 				[mother setBounty: [mother legal_status] + extra];
 				bounty += extra;	// obviously we're dodgier than we thought!
-//				NSLog(@"DEBUG setting new bounty for %@ escorting %@ to %d", self, mother, extra);
 			}
 			//
 			[self setOwner:mother];
@@ -1158,9 +1134,6 @@ WormholeEntity*	whole;
 	int own_group_numbers = [self numberOfShipsInGroup:own_group_id] + (ranrot_rand() & 3);			// add a random fudge factor
 	int target_group_numbers = [self numberOfShipsInGroup:target_group_id] + (ranrot_rand() & 3);	// add a random fudge factor
 
-	//debug
-	//NSLog(@"DEBUG pirates of group %d (%d ships) considering an attack on group %d (%d ships)", own_group_id, own_group_numbers, target_group_id, target_group_numbers);
-
 	if (own_group_numbers == target_group_numbers)
 	{
 		[shipAI message:@"ODDS_LEVEL"];
@@ -1177,17 +1150,12 @@ WormholeEntity*	whole;
 {
 	if (group_id == NO_TARGET)		// ship is alone!
 	{
-		//debug
-		//NSLog(@"DEBUG Lone ship %@ %d attacking target %d", name, universal_id, found_target);
-		
 		found_target = primaryTarget;
 		[shipAI reactToMessage:@"GROUP_ATTACK_TARGET"];
 		return;
 	}
 	
 	NSArray* fellow_ships = [self shipsInGroup:group_id];
-	//debug
-	//NSLog(@"DEBUG %d %@ ships of group %d attacking target %d", [fellow_ships count], roles, group_id, found_target);
 	ShipEntity* target_ship = (ShipEntity*) [universe entityForUniversalID:primaryTarget];
 	
 	if ((!target_ship)||(target_ship->isShip != YES))
@@ -1730,8 +1698,6 @@ WormholeEntity*	whole;
 		}
 		[wh release];	//		released
 	}
-
-//	NSLog(@"DEBUG %@ told to enter wormhole %@", self, whole);
 	
 	if (!whole)
 		return;
@@ -1743,7 +1709,7 @@ WormholeEntity*	whole;
 
 - (void) scriptActionOnTarget:(NSString*) action
 {
-	PlayerEntity*	player = (PlayerEntity*)[universe entityZero];
+	PlayerEntity*	player = [PlayerEntity sharedPlayer];
 	Entity*			targEnt = [universe entityForUniversalID:primaryTarget];
 	if ((targEnt)&&(player))
 	{

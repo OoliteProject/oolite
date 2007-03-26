@@ -23,6 +23,7 @@ MA 02110-1301, USA.
 */
 
 #import "Entity.h"
+#import "PlayerEntity.h"
 
 #import "OOMaths.h"
 #import "Geometry.h"
@@ -34,6 +35,8 @@ MA 02110-1301, USA.
 #import "CollisionRegion.h"
 
 #import "NSScannerOOExtensions.h"
+
+#define kOOLogUnconvertedNSLog @"unclassified.Entity"
 
 
 static NSString * const kOOLogEntityAddToList				= @"entity.linkedList.add";
@@ -515,8 +518,7 @@ BOOL global_testForVAR;
 	//
 	collision_radius = [self findCollisionRadius];
 	actual_radius = collision_radius;
-	//NSLog(@"Entity with model '%@' collision radius set to %f",modelName, collision_radius);
-	//
+	
 	[mypool release];
 }
 - (NSString *) getModel
@@ -540,7 +542,6 @@ BOOL global_testForVAR;
 
 - (double) getZeroDistance
 {
-//	NSLog(@"DEBUG %@ %.1f", self, zero_distance);
 	return zero_distance;
 }
 
@@ -821,7 +822,6 @@ BOOL global_testForVAR;
 			else
 			{
 				OOLog(kOOLogFileNotLoaded, @"ERROR no basefile for entity %@");
-			//	NSBeep();	// appkit dependency
 			}
 		}
 		glShadeModel(GL_SMOOTH);
@@ -850,7 +850,6 @@ BOOL global_testForVAR;
 		zero_distance = my_owner->zero_distance;
 		if (zero_distance > no_draw_distance)
 		{
-			//NSLog(@"DEBUG - sub entity '%@' too far away to draw", self);
 			return; // TOO FAR AWAY
 		}
 	}
@@ -896,8 +895,6 @@ BOOL global_testForVAR;
 #ifdef WIN32
     int fi;
 
-	//NSLog(@"Entity::reloadTextures called on [%@]", [self description]);
-
 	// Force the entity to reload the textures for each face by clearing the face's texture name.
     for (fi = 0; fi < n_faces; fi++)
         faces[fi].texName = 0;
@@ -931,7 +928,6 @@ BOOL global_testForVAR;
 		if (!texture_name[ti])
 		{
 			texture_name[ti] = [TextureStore getTextureNameFor: [NSString stringWithUTF8String: (char*)texture_file[ti]]];
-//			NSLog(@"DEBUG (initialiseTextures) Processed textureFile : %@ to texName : %d", entityData[ti].textureFile, entityData[ti].texName);
 		}
 	}
 }
@@ -958,7 +954,7 @@ BOOL global_testForVAR;
 
 - (void) update:(double) delta_t
 {
-	Entity* player = [universe entityZero];
+	PlayerEntity *player = [PlayerEntity sharedPlayer];
 	if (player)
 	{
 		if (status != STATUS_COCKPIT_DISPLAY)
@@ -1011,8 +1007,6 @@ BOOL global_testForVAR;
 //
 - (void) resetFramesFromFrame:(Frame) resetFrame withVelocity:(Vector) vel1
 {
-	// if (isPlayer)  NSLog(@"DEBUG ** resetting track for %@ **", self);
-
 	Vector		v1 = make_vector( 0.1 * vel1.x, 0.1 * vel1.y, 0.1 * vel1.z);
 	double		t_now = [universe getTime];
 	Vector		pos = resetFrame.position;
@@ -1118,8 +1112,7 @@ BOOL global_testForVAR;
 		double period = (moment_in_time - t_frame) - track_time;
 		double f1 =	-t_frame/period;
 		double f0 =	1.0 - f1;
-//		NSLog(@"DEBUG m-i-t:%.3f track_time:%.3f t_frame:%.3f period:%.3f f0:f1 %.3f:%.3f",
-//					moment_in_time, track_time, t_frame, period, f0, f1);
+		
 		Vector posn;
 		posn.x =	f0 * result.position.x + f1 * fr1.position.x;
 		posn.y =	f0 * result.position.y + f1 * fr1.position.y;
@@ -1149,8 +1142,7 @@ BOOL global_testForVAR;
 	double period = track[t0].timeframe - track[t1].timeframe;
 	double f0 = (moment_in_time - track[t1].timeframe)/period;
 	double f1 = 1.0 - f0;
-//		NSLog(@"DEBUG m-i-t:%.3f t0.timeframe:%.3f t1.timeframe:%.3f period:%.3f f0:f1 %.3f:%.3f",
-//					moment_in_time, track[t0].timeframe, track[t1].timeframe, period, f0, f1);
+	
 	Vector posn;
 	posn.x =	f0 * track[t0].position.x + f1 * track[t1].position.x;
 	posn.y =	f0 * track[t0].position.y + f1 * track[t1].position.y;
@@ -1263,8 +1255,6 @@ BOOL global_testForVAR;
 			[lines replaceObjectAtIndex:i withObject:line];
 		}
 		data = [lines componentsJoinedByString:@"\n"];
-
-		//NSLog(@"More data:\n%@",data);
 
 		scanner = [NSScanner scannerWithString:data];
 
@@ -1470,7 +1460,6 @@ BOOL global_testForVAR;
 					{
 //						faces[j].textureFile = [texfile retain];
 						strlcpy( (char*)faces[j].textureFileStr255, [texfile UTF8String], 256);
-//						NSLog(@"DEBUG TEST strlcpy of '%@' result = '%s'", texfile, faces[j].textureFileStr255);
 					}
 					faces[j].texName = 0;
 
@@ -1521,19 +1510,13 @@ BOOL global_testForVAR;
 
 		if ((failFlag)&&([failString rangeOfString:@"TEXTURES"].location != NSNotFound))
 		{
-			//NSLog(@"Off to make new textures!");
 			[self fakeTexturesWithImageFile:@"metal.png" andMaxSize:NSMakeSize(256.0,256.0)];
-
-			// dump out data for ships with faked textures
-			//if (isShip)
-			//	//NSLog(@"Faked Texture coordinates for this model :\n\n%@\n\n", [self toString]);
 		}
 
 		if (failFlag)
 			NSLog([NSString stringWithFormat:@"%@ ..... from %@ %@", failString, filename, (using_preloaded)? @"(from preloaded data)" : @"(from file)"]);
 
-		// check for smooth chading and recalculate normals
-		//
+		// check for smooth shading and recalculate normals
 		if (is_smooth_shaded)
 			[self calculateVertexNormals];
 		//
@@ -1560,6 +1543,8 @@ BOOL global_testForVAR;
 	//
 }
 
+
+// FIXME: this isn't working, we're getting smoothed models with inside-out winding. --ahruman
 - (void) checkNormalsAndAdjustWinding
 {
     Vector calculatedNormal;
@@ -1574,7 +1559,6 @@ BOOL global_testForVAR;
 		calculatedNormal = normal_to_surface (v2, v1, v0);
         if ((norm.x == 0.0)&&(norm.y == 0.0)&&(norm.z == 0.0))
 		{
-			//NSLog(@"Using calculated normal for face %d", i);
 			faces[i].normal = normal_to_surface (v0, v1, v2);
 			norm = normal_to_surface (v0, v1, v2);
 		}
@@ -1585,10 +1569,6 @@ BOOL global_testForVAR;
             int v[faces[i].n_verts];
             GLfloat s[faces[i].n_verts];
             GLfloat t[faces[i].n_verts];
-
-            //
-            //NSLog(@"Normal pointing the wrong way for winding on face %d", i);
-            //
 
             for (j = 0; j < faces[i].n_verts; j++)
             {
@@ -1745,9 +1725,6 @@ BOOL global_testForVAR;
 			}
 			triangle_range[texi].length = tri_index - triangle_range[texi].location;
 
-//			NSLog(@"DEBUG processing %@ texture %@ texName %d triangles %d to %d",
-//				basefile, texture_file[texi], texture_name[texi], triangle_range[texi].location,  triangle_range[texi].location + triangle_range[texi].length);
-
 			//finally...
 			[texturesProcessed setObject:tex_string forKey:tex_string];	// note this texture done
 			texi++;
@@ -1832,7 +1809,6 @@ BOOL global_testForVAR;
 
 - (BoundingBox) findBoundingBoxRelativeToPosition:(Vector)opv InVectors:(Vector) _i :(Vector) _j :(Vector) _k
 {
-//	NSLog(@"DEBUG ** DEPRECATED [Entity findBoundingBoxRelativeToPosition:(Vector)opv InVectors:(Vector) _i :(Vector) _j :(Vector) _k] CALLED **");
 
 	Vector pv, rv;
 	Vector  rpos = position;
@@ -1882,9 +1858,7 @@ BOOL global_testForVAR;
             result = [NSString stringWithFormat:@"%@\n", result];
     }
     result = [NSString stringWithFormat:@"%@\nFACES\n", result];
-    //
-    //NSLog(result);
-    //
+	
     for (j = 0; j < n_faces; j++)
     {
         r = (int)(faces[j].red * 255.0);	g = (int)(faces[j].green * 255.0);	b = (int)(faces[j].blue * 255.0);
@@ -1970,15 +1944,11 @@ BOOL global_testForVAR;
         //
         st_width = max_s - min_s;
         st_height = max_t - min_t;
-        //
-        //NSLog(@"TOP st_width %f st_height %f maxSize.height %f maxSize.width %f", st_width, st_height, maxSize.width, maxSize.height);
-        //
+		
         for (j = 0; j < nf; j++)
         {
             i = fi[j];
-            //fa[i] = faces[i];
-//            fa[i].textureFile = [NSString stringWithFormat:@"top_%@", textureFile];
-//			strlcpy( (char*)fa[i].textureFileStr255, [fa[i].textureFile UTF8String], 256);
+			
 			strlcpy( (char*)fa[i].textureFileStr255, [[NSString stringWithFormat:@"top_%@", textureFile] UTF8String], 256);
             for (k = 0; k < faces[i].n_verts; k++)
             {
@@ -1991,9 +1961,6 @@ BOOL global_testForVAR;
 				// TESTING
 				//
 				fa[i].t[k] = maxSize.height - fa[i].t[k];	// REVERSE t locations
-                //
-                //NSLog(@"%f, %f", fa[i].s[k], fa[i].t[k]);
-                //
             }
         }
 
@@ -2211,26 +2178,21 @@ BOOL global_testForVAR;
                 fa[i].t[k] = (t - min_t) * maxSize.height / st_height;
             }
         }
-        //NSLog(@"%d / %d faces matched at tolerance: %f", n_faces - faces_to_match, n_faces, tolerance);
     }
 
     for (i = 0; i < n_faces; i++)
     {
         NSString *result;
-//        faces[i].textureFile = [fa[i].textureFile retain];
+		
 		strlcpy( (char*)faces[i].textureFileStr255, (char*)fa[i].textureFileStr255, 256);
 		faces[i].texName = 0;
         for (j = 0; j < faces[i].n_verts; j++)
         {
-            //
-            //NSLog(@"face[%d] %f, %f", i, fa[i].s[j], fa[i].t[j]);
-            //
             faces[i].s[j] = fa[i].s[j] / maxSize.width;
             faces[i].t[j] = fa[i].t[j] / maxSize.height;
         }
-//        result = [NSString stringWithFormat:@"%@\t%d %d", faces[i].textureFile, (int)maxSize.width, (int)maxSize.height];
+		
         result = [NSString stringWithFormat:@"%s\t%d %d", faces[i].textureFileStr255, (int)maxSize.width, (int)maxSize.height];
-        //NSLog(@"face[%d] : %@", i, result);
     }
 
 }

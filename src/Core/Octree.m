@@ -28,6 +28,9 @@ MA 02110-1301, USA.
 #import "OOOpenGL.h"
 #import "legacy_random.h"
 
+#define kOOLogUnconvertedNSLog @"unclassified.Octree"
+
+
 @implementation Octree
 
 - (id) init

@@ -38,6 +38,8 @@ MA 02110-1301, USA.
 #import "TextureStore.h"
 #endif
 
+#define kOOLogUnconvertedNSLog @"unclassified.MyOpenGLView"
+
 #include <ctype.h>
 
 @implementation MyOpenGLView

@@ -52,6 +52,8 @@ MA 02110-1301, USA.
 #import "ParticleEntity.h"
 #import "OOStringParsing.h"
 
+#define kOOLogUnconvertedNSLog @"unclassified.Universe"
+
 #define MAX_NUMBER_OF_ENTITIES				200
 #define MAX_NUMBER_OF_SOLAR_SYSTEM_ENTITIES 20
 
@@ -103,7 +105,6 @@ static Universe *sSharedUniverse = nil;
 //	universe_lock = [[NSLock alloc] init];	// alloc retains
 	
 	// init the Resource Manager
-//	NSLog(@"DEBUG Universe initialising ResourceManager...");
 	[ResourceManager pathsUsingAddOns:YES];
 	
 	reducedDetail = NO;
@@ -194,7 +195,6 @@ static Universe *sSharedUniverse = nil;
 	cachedSun = nil;
 	cachedPlanet = nil;
 	cachedStation = nil;
-	cachedEntityZero = nil;
 	
 	station = NO_TARGET;
 	planet = NO_TARGET;
@@ -237,9 +237,6 @@ static Universe *sSharedUniverse = nil;
 	[player release];
 	
 	[self setViewDirection:VIEW_GUI_DISPLAY];
-	
-	
-	//NSLog(@"UNIVERSE INIT station %d, planet %d, sun %d",station,planet,sun);
 	
 	demo_ship = nil;
 	
@@ -326,7 +323,7 @@ static Universe *sSharedUniverse = nil;
 
 - (void) reinit
 {	
-    PlayerEntity* player = [[self entityZero] retain];
+    PlayerEntity* player = [[PlayerEntity sharedPlayer] retain];
 	Quaternion q0 = kIdentityQuaternion;
 	int i;
 	
@@ -442,7 +439,6 @@ static Universe *sSharedUniverse = nil;
 	cachedSun = nil;
 	cachedPlanet = nil;
 	cachedStation = nil;
-	cachedEntityZero = nil;
 	
 	station = NO_TARGET;
 	planet = NO_TARGET;
@@ -457,10 +453,6 @@ static Universe *sSharedUniverse = nil;
 	[self setGalaxy_seed: [player galaxy_seed]];
 
 	system_seed = [self findSystemAtCoords:[player galaxy_coordinates] withGalaxySeed:galaxy_seed];
-	
-//	NSLog(@"Galaxy coords are (%f, %f)", [player galaxy_coordinates].x, [player galaxy_coordinates].y);
-	
-//	NSLog(@"Well whaddayaknow - we're at %@", [self getSystemName:system_seed]);
 	
 	if (activeWormholes)
 		[activeWormholes autorelease];
@@ -516,7 +508,7 @@ static Universe *sSharedUniverse = nil;
 - (void) sleepytime: (id) thing
 {
 	// deal with the machine going to sleep
-	PlayerEntity *player = [self entityZero];
+	PlayerEntity *player = [PlayerEntity sharedPlayer];
 	if ((player)&&(player->status == STATUS_IN_FLIGHT))
 	{
 		[self displayMessage:@" Paused (press 'p') " forCount:1.0];
@@ -530,7 +522,7 @@ static Universe *sSharedUniverse = nil;
 	{
 		// we're in witchspace or this is the first launch...		
 		// save the player
-		PlayerEntity*	player = [self entityZero];
+		PlayerEntity*	player = [PlayerEntity sharedPlayer];
 		// save the docked craft
 		Entity*			docked_station = [player docked_station];
 		// jump to the nearest system
@@ -592,7 +584,7 @@ static Universe *sSharedUniverse = nil;
 	}
 	else
 	{
-		player = [[self entityZero] retain];	// retained here
+		player = [[PlayerEntity sharedPlayer] retain];	// retained here
 	}
 	
 
@@ -630,7 +622,7 @@ static Universe *sSharedUniverse = nil;
 	}
 	else
 	{
-		player = [[self entityZero] retain];	// retained here
+		player = [[PlayerEntity sharedPlayer] retain];	// retained here
 	}
 	
 
@@ -652,7 +644,7 @@ static Universe *sSharedUniverse = nil;
 	// new system is hyper-centric : witchspace exit point is origin
 
     Entity				*thing;
-	PlayerEntity*		player = [self entityZero];
+	PlayerEntity*		player = [PlayerEntity sharedPlayer];
 	Quaternion			randomQ;
 	
 	NSMutableDictionary*	systeminfo = [NSMutableDictionary dictionaryWithCapacity:4];
@@ -663,8 +655,6 @@ static Universe *sSharedUniverse = nil;
 		Random_Seed		s2 = player->target_system_seed;
 		NSString*		override_key = [self keyForInterstellarOverridesForSystemSeeds:s1 :s2 inGalaxySeed:galaxy_seed];
 		
-//		NSLog(@"DEBUG checking interstellar overrides for key '%@'", override_key);
-		
 		// check at this point
 		// for scripted overrides for this insterstellar area
 		if ([planetinfo objectForKey:PLANETINFO_UNIVERSAL_KEY])
@@ -673,9 +663,6 @@ static Universe *sSharedUniverse = nil;
 			[systeminfo addEntriesFromDictionary:(NSDictionary *)[planetinfo objectForKey:override_key]];
 		if ([local_planetinfo_overrides objectForKey:override_key])
 			[systeminfo addEntriesFromDictionary:(NSDictionary *)[local_planetinfo_overrides objectForKey:override_key]];
-		
-//		NSLog(@"DEBUGsysteminfo now:\n%@", systeminfo);
-		
 	}
 	
 	[universeRegion clearSubregions];
@@ -735,7 +722,7 @@ static Universe *sSharedUniverse = nil;
 	for (i = 0; i < n_thargs; i++)
 	{
 		Quaternion  tharg_quaternion;
-		ShipEntity  *thargoid = [self getShipWithRole:@"thargoid"]; // is retained
+		ShipEntity  *thargoid = [self newShipWithRole:@"thargoid"]; // is retained
 		if (thargoid)
 		{
 			Vector		tharg_pos = tharg_start_pos;
@@ -800,11 +787,7 @@ static Universe *sSharedUniverse = nil;
 	
 	[universeRegion clearSubregions];
 	
-//	NSLog(@"DEBUG systeminfo =\n%@", [systeminfo description]);
-	
-	
 	// fixed entities (part of the graphics system really) come first...
-	
 	[self setSky_clear_color:0.0 :0.0 :0.0 :0.0];
 	
 	// set the system seed for random number generation
@@ -933,7 +916,7 @@ static Universe *sSharedUniverse = nil;
 	stationPos.x -= station_orbit * vf.x;					// back away from the planet
 	stationPos.y -= station_orbit * vf.y;
 	stationPos.z -= station_orbit * vf.z;
-	//NSLog(@"Station added at vector (%.1f,%.1f,%.1f) from planet",-vf.x,-vf.y,-vf.z);
+	
 	stationDesc = @"coriolis";
 	if (techlevel > 10)
 	{
@@ -948,8 +931,7 @@ static Universe *sSharedUniverse = nil;
 	if ([systeminfo objectForKey:@"station"])
 		stationDesc = (NSString *)[systeminfo objectForKey:@"station"];
 	
-	//NSLog(@"* INFO *\t>>\tAdding %@ station for TL %d", stationDesc, techlevel);
-	a_station = (StationEntity *)[self getShipWithRole:stationDesc];			   // retain count = 1
+	a_station = (StationEntity *)[self newShipWithRole:stationDesc];			   // retain count = 1
 	if (a_station)
 	{
 		[a_station setStatus:STATUS_ACTIVE];
@@ -974,7 +956,7 @@ static Universe *sSharedUniverse = nil;
 	[self populateSpaceFromHyperPoint:[self getWitchspaceExitPosition] toPlanetPosition: a_planet->position andSunPosition: a_sun->position];
 	
 	/*- nav beacon -*/
-	nav_buoy = [self getShipWithRole:@"buoy"];	// retain count = 1
+	nav_buoy = [self newShipWithRole:@"buoy"];	// retain count = 1
 	if (nav_buoy)
 	{
 		[nav_buoy setRoll:	0.10];	// zero for debugging
@@ -989,7 +971,7 @@ static Universe *sSharedUniverse = nil;
 	
 	/*- nav beacon witchpoint -*/
 	Vector witchpoint = [self getWitchspaceExitPosition];	// witchpoint
-	nav_buoy = [self getShipWithRole:@"buoy-witchpoint"];	// retain count = 1
+	nav_buoy = [self newShipWithRole:@"buoy-witchpoint"];	// retain count = 1
 	if (nav_buoy)
 	{
 		[nav_buoy setRoll:	0.10];
@@ -1043,7 +1025,7 @@ static Universe *sSharedUniverse = nil;
 	
 	if ([systeminfo objectForKey:KEY_SCRIPT_ACTIONS])
 	{
-		PlayerEntity* player = [self entityZero];
+		PlayerEntity* player = [PlayerEntity sharedPlayer];
 		NSArray* script_actions = [systeminfo objectForKey:KEY_SCRIPT_ACTIONS];
 		
 		[player scriptActions: script_actions forTarget: nil];
@@ -1143,16 +1125,11 @@ GLfloat docked_light_specular[]	= { (GLfloat) 1.0, (GLfloat) 1.0, (GLfloat) 0.5,
 
 - (void) populateSpaceFromActiveWormholes
 {
-//	NSLog(@"DEBUG populating from activeWormholes:\n%@", activeWormholes);
-	
 	while ([activeWormholes count])
 	{
 		WormholeEntity* whole = (WormholeEntity*)[activeWormholes objectAtIndex:0];
 		
 		[whole setUniverse: self];
-		
-//		NSLog(@"DEBUG considering wormhole %@ destination %@ (system %@)",
-//			whole, [Universe systemSeedString:[whole destination]], [Universe systemSeedString:system_seed]);
 		
 		if (equal_seeds( [whole destination], system_seed))
 		{			
@@ -1271,7 +1248,7 @@ GLfloat docked_light_specular[]	= { (GLfloat) 1.0, (GLfloat) 1.0, (GLfloat) 0.5,
 		launch_pos.x += ship_location * v_route1.x + SCANNER_MAX_RANGE*((ranrot_rand() & 255)/256.0 - 0.5);
 		launch_pos.y += ship_location * v_route1.y + SCANNER_MAX_RANGE*((ranrot_rand() & 255)/256.0 - 0.5);
 		launch_pos.z += ship_location * v_route1.z + SCANNER_MAX_RANGE*((ranrot_rand() & 255)/256.0 - 0.5);
-		trader_ship = [self getShipWithRole:@"trader"];   // retain count = 1
+		trader_ship = [self newShipWithRole:@"trader"];   // retain count = 1
 		if (trader_ship)
 		{
 			if (![trader_ship crew])
@@ -1327,24 +1304,23 @@ GLfloat docked_light_specular[]	= { (GLfloat) 1.0, (GLfloat) 1.0, (GLfloat) 0.5,
 			lastPiratePosition = launch_pos;
 			wolfPackCounter = 0;
 		}
-		pirate_ship = [self getShipWithRole:@"pirate"];   // retain count = 1
+		pirate_ship = [self newShipWithRole:@"pirate"];   // retain count = 1
 		if (pirate_ship)
 		{
 			if (![pirate_ship crew])
+			{
 				[pirate_ship setCrew:[NSArray arrayWithObject:
 					[OOCharacter randomCharacterWithRole:@"pirate"
 					andOriginalSystem: (randf() > 0.25)? systems[ranrot_rand() & 255]:system_seed
 					inUniverse: self]]];
-//			NSLog(@">>>>> %@", [pirate_ship crew]);
-
+			}
+			
 			if (pirate_ship->scan_class == CLASS_NOT_SET)
 				[pirate_ship setScanClass: CLASS_NEUTRAL];
 			[pirate_ship setPosition:launch_pos];
 			[pirate_ship setStatus:STATUS_IN_FLIGHT];
 			[pirate_ship setBounty: 20 + government + wolfPackCounter + (ranrot_rand() & 7)];
 			[pirate_ship setCargoFlag: CARGO_FLAG_PIRATE];
-
-			//[pirate_ship setReportAImessages: (i == 0) ? YES:NO ]; // debug
 
 			[self addEntity:pirate_ship];
 			
@@ -1377,9 +1353,9 @@ GLfloat docked_light_specular[]	= { (GLfloat) 1.0, (GLfloat) 1.0, (GLfloat) 0.5,
 		if ((ranrot_rand() & 7) < government)
 		{
 			if ((ranrot_rand() & 7) + 6 <= techlevel)
-				hunter_ship = [self getShipWithRole:@"interceptor"];   // retain count = 1
+				hunter_ship = [self newShipWithRole:@"interceptor"];   // retain count = 1
 			else
-				hunter_ship = [self getShipWithRole:@"police"];   // retain count = 1
+				hunter_ship = [self newShipWithRole:@"police"];   // retain count = 1
 			if (hunter_ship)
 			{
 				if (![hunter_ship crew])
@@ -1400,7 +1376,7 @@ GLfloat docked_light_specular[]	= { (GLfloat) 1.0, (GLfloat) 1.0, (GLfloat) 0.5,
 		}
 		else
 		{
-			hunter_ship = [self getShipWithRole:@"hunter"];   // retain count = 1
+			hunter_ship = [self newShipWithRole:@"hunter"];   // retain count = 1
 			if ((hunter_ship)&&(hunter_ship->scan_class == CLASS_NOT_SET))
 				[hunter_ship setScanClass: CLASS_NEUTRAL];
 			if (![hunter_ship crew])
@@ -1418,12 +1394,8 @@ GLfloat docked_light_specular[]	= { (GLfloat) 1.0, (GLfloat) 1.0, (GLfloat) 0.5,
 			[hunter_ship setStatus:STATUS_IN_FLIGHT];
 			[hunter_ship setBounty:0];
 			
-			//[hunter_ship setReportAImessages: (i == 0) ? YES:NO ]; // debug
-
 			[self addEntity:hunter_ship];
 			[[hunter_ship getAI] setStateMachine:@"route1patrolAI.plist"];	// must happen after adding to the universe!
-
-			//NSLog(@"DEBUG hunter ship %@ %@ %d has %d escorts", [hunter_ship roles], [hunter_ship name], [hunter_ship universal_id], escorts_added); 
 
 			[hunter_ship release];
 		}
@@ -1440,7 +1412,7 @@ GLfloat docked_light_specular[]	= { (GLfloat) 1.0, (GLfloat) 1.0, (GLfloat) 0.5,
 		launch_pos.x = h1_pos.x + thargoid_location * v_route1.x + SCANNER_MAX_RANGE*((ranrot_rand() & 255)/256.0 - 0.5);
 		launch_pos.y = h1_pos.y + thargoid_location * v_route1.y + SCANNER_MAX_RANGE*((ranrot_rand() & 255)/256.0 - 0.5);
 		launch_pos.z = h1_pos.z + thargoid_location * v_route1.z + SCANNER_MAX_RANGE*((ranrot_rand() & 255)/256.0 - 0.5);
-		thargoid_ship = [self getShipWithRole:@"thargoid"];   // retain count = 1
+		thargoid_ship = [self newShipWithRole:@"thargoid"];   // retain count = 1
 		if (thargoid_ship)
 		{
 			if (thargoid_ship->scan_class == CLASS_NOT_SET)
@@ -1494,16 +1466,11 @@ GLfloat docked_light_specular[]	= { (GLfloat) 1.0, (GLfloat) 1.0, (GLfloat) 0.5,
 		double		end = 3.0 * [[self sun] getRadius];
 		double		max_length = d_route2 - (start + end);
 		double		ship_location = randf() * max_length + start;
-		
-//		NSLog(@"Planet: %@ \tSun: %@", [self planet], [self sun]);
-//		NSLog(@"Planet collision radius: %.0fm \tSun collision radius: %.0fm \tRoute2 length: %.0fm", [[self planet] getRadius], [[self sun] getRadius], d_route2);
-//		NSLog(@"start: %.0fm \tend: %.0fm", start, end);
-//		NSLog(@"max length: %.0fm \tLocation is: %.0fm", max_length, ship_location);
 //
 		launch_pos.x += ship_location * v_route2.x + SCANNER_MAX_RANGE*((ranrot_rand() & 255)/256.0 - 0.5);
 		launch_pos.y += ship_location * v_route2.y + SCANNER_MAX_RANGE*((ranrot_rand() & 255)/256.0 - 0.5);
 		launch_pos.z += ship_location * v_route2.z + SCANNER_MAX_RANGE*((ranrot_rand() & 255)/256.0 - 0.5);
-		trader_ship = [self getShipWithRole:@"sunskim-trader"];   // retain count = 1
+		trader_ship = [self newShipWithRole:@"sunskim-trader"];   // retain count = 1
 		if (trader_ship)
 		{
 			if (![trader_ship crew])
@@ -1562,7 +1529,7 @@ GLfloat docked_light_specular[]	= { (GLfloat) 1.0, (GLfloat) 1.0, (GLfloat) 0.5,
 			lastPiratePosition = launch_pos;
 			wolfPackCounter = 0;
 		}
-		pirate_ship = [self getShipWithRole:@"pirate"];   // retain count = 1
+		pirate_ship = [self newShipWithRole:@"pirate"];   // retain count = 1
 		if (pirate_ship)
 		{
 			if (![pirate_ship crew])
@@ -1570,7 +1537,6 @@ GLfloat docked_light_specular[]	= { (GLfloat) 1.0, (GLfloat) 1.0, (GLfloat) 0.5,
 					[OOCharacter randomCharacterWithRole:@"pirate"
 					andOriginalSystem: (randf() > 0.25)? systems[ranrot_rand() & 255]:system_seed
 					inUniverse: self]]];
-//			NSLog(@">>>>> %@", [pirate_ship crew]);
 
 			if (pirate_ship->scan_class == CLASS_NOT_SET)
 				[pirate_ship setScanClass: CLASS_NEUTRAL];
@@ -1578,8 +1544,6 @@ GLfloat docked_light_specular[]	= { (GLfloat) 1.0, (GLfloat) 1.0, (GLfloat) 0.5,
 			[pirate_ship setStatus: STATUS_IN_FLIGHT];
 			[pirate_ship setBounty: 20 + government + wolfPackCounter + (ranrot_rand() % 7)];
 			[pirate_ship setCargoFlag: CARGO_FLAG_PIRATE];
-			
-	//		[pirate_ship setReportAImessages: (i == 0) ? YES:NO ]; // debug
 
 			[self addEntity:pirate_ship];
 			
@@ -1612,9 +1576,9 @@ GLfloat docked_light_specular[]	= { (GLfloat) 1.0, (GLfloat) 1.0, (GLfloat) 0.5,
 		if ((ranrot_rand() & 7) < government)
 		{
 			if ((ranrot_rand() & 7) + 6 <= techlevel)
-				hunter_ship = [self getShipWithRole:@"interceptor"];   // retain count = 1
+				hunter_ship = [self newShipWithRole:@"interceptor"];   // retain count = 1
 			else
-				hunter_ship = [self getShipWithRole:@"police"];   // retain count = 1
+				hunter_ship = [self newShipWithRole:@"police"];   // retain count = 1
 			if (hunter_ship)
 			{
 				if (![hunter_ship crew])
@@ -1635,7 +1599,7 @@ GLfloat docked_light_specular[]	= { (GLfloat) 1.0, (GLfloat) 1.0, (GLfloat) 0.5,
 		}
 		else
 		{
-			hunter_ship = [self getShipWithRole:@"hunter"];   // retain count = 1
+			hunter_ship = [self newShipWithRole:@"hunter"];   // retain count = 1
 			if ((hunter_ship)&&(hunter_ship->scan_class == CLASS_NOT_SET))
 				[hunter_ship setScanClass: CLASS_NEUTRAL];
 			if (![hunter_ship crew])
@@ -1699,7 +1663,7 @@ GLfloat docked_light_specular[]	= { (GLfloat) 1.0, (GLfloat) 1.0, (GLfloat) 0.5,
 		launch_pos.x = spawnPos.x + SCANNER_MAX_RANGE * (randf() - randf());
 		launch_pos.y = spawnPos.y + SCANNER_MAX_RANGE * (randf() - randf());
 		launch_pos.z = spawnPos.z + SCANNER_MAX_RANGE * (randf() - randf());
-		asteroid = [self getShipWithRole:@"asteroid"];   // retain count = 1
+		asteroid = [self newShipWithRole:@"asteroid"];   // retain count = 1
 		if (asteroid)
 		{
 			if (asteroid->scan_class == CLASS_NOT_SET)
@@ -1722,13 +1686,11 @@ GLfloat docked_light_specular[]	= { (GLfloat) 1.0, (GLfloat) 1.0, (GLfloat) 0.5,
 	
 	if (spawnHermit)
 	{
-		//debug
-		//NSLog(@"DEBUG ... adding rock-hermit");
 		StationEntity*	hermit;
 		launch_pos.x = spawnPos.x + 0.5 * SCANNER_MAX_RANGE * (randf() - randf());
 		launch_pos.y = spawnPos.y + 0.5 * SCANNER_MAX_RANGE * (randf() - randf());
 		launch_pos.z = spawnPos.z + 0.5 * SCANNER_MAX_RANGE * (randf() - randf());
-		hermit = (StationEntity *)[self getShipWithRole:@"rockhermit"];   // retain count = 1
+		hermit = (StationEntity *)[self newShipWithRole:@"rockhermit"];   // retain count = 1
 		if (hermit)
 		{
 			if (hermit->scan_class == CLASS_NOT_SET)
@@ -1742,12 +1704,6 @@ GLfloat docked_light_specular[]	= { (GLfloat) 1.0, (GLfloat) 1.0, (GLfloat) 0.5,
 			cluster_size++;
 		}
 	}
-	
-//	// hint to the collision detection system
-//	if (cluster_size > 3)
-//	{
-//		[universeRegion addSubregionAtPosition: spawnPos withRadius: SCANNER_MAX_RANGE * 1.5f ];	// 50% fudge on size
-//	}
 	
 	return rocks;
 }
@@ -1770,7 +1726,7 @@ GLfloat docked_light_specular[]	= { (GLfloat) 1.0, (GLfloat) 1.0, (GLfloat) 0.5,
 	launch_pos.z += SCANNER_MAX_RANGE*(randf() - randf());
 	
 	ShipEntity  *ship;
-	ship = [self getShipWithRole:desc];   // retain count = 1
+	ship = [self newShipWithRole:desc];   // retain count = 1
 	if (ship)
 	{
 		if (![ship crew])
@@ -1786,9 +1742,6 @@ GLfloat docked_light_specular[]	= { (GLfloat) 1.0, (GLfloat) 1.0, (GLfloat) 0.5,
 		[[ship getAI] setState:@"GLOBAL"];	// must happen after adding to the universe!
 		
 		[ship setStatus:STATUS_IN_FLIGHT];	// or ships that were 'demo' ships become invisible!
-		
-	//	NSLog(@"DEBUG added %@ %@ %d to universe at (%.0f,%.0f,%.0f)", ship, [ship name], [ship universal_id],
-	//		ship->position.x, ship->position.y, ship->position.z);
 		
 		[ship release];
 	}
@@ -1837,7 +1790,6 @@ GLfloat docked_light_specular[]	= { (GLfloat) 1.0, (GLfloat) 1.0, (GLfloat) 0.5,
 	PlanetEntity* the_sun = [self sun];
 	if ((!the_planet)||(!the_sun))
 	{
-//		NSLog(@"NO ERROR - Universe coordinatesForPosition:withCoordinateSystem: in system with no sun or planet returned as an absolute position");
 		if (my_scalar)
 			*my_scalar = 1.0;
 		return pos;
@@ -1850,8 +1802,6 @@ GLfloat docked_light_specular[]	= { (GLfloat) 1.0, (GLfloat) 1.0, (GLfloat) 0.5,
 	Vector p0 = make_vector(1,0,0);
 	Vector p1 = make_vector(0,1,0);
 	Vector p2 = make_vector(0,0,1);
-	
-//	NSLog(@"DEBUG addShipAt (system %s)", c_sys);
 	
 	switch (c_sys[0])
 	{
@@ -1942,7 +1892,6 @@ GLfloat docked_light_specular[]	= { (GLfloat) 1.0, (GLfloat) 1.0, (GLfloat) 0.5,
 	PlanetEntity* the_sun = [self sun];
 	if ((!the_planet)||(!the_sun))
 	{
-//		NSLog(@"NO ERROR - Universe coordinatesForPosition:withCoordinateSystem: in system with no sun or planet returned as an absolute position");
 		return [NSString stringWithFormat:@"%@ %.2f %.2f %.2f", system, pos.x, pos.y, pos.z];
 	}
 	Vector  w_pos = [self getWitchspaceExitPosition];
@@ -2059,11 +2008,8 @@ GLfloat docked_light_specular[]	= { (GLfloat) 1.0, (GLfloat) 1.0, (GLfloat) 0.5,
 	launch_pos.y += rfactor*(randf() - randf());
 	launch_pos.z += rfactor*(randf() - randf());
 	
-//	NSLog(@"DEBUG POSITION SET (%.1f, %.1f, %.1f)", launch_pos.x, launch_pos.y, launch_pos.z);
-	
-	
 	ShipEntity  *ship;
-	ship = [self getShipWithRole:desc];   // retain count = 1
+	ship = [self newShipWithRole:desc];   // retain count = 1
 	if (ship)
 	{
 		if (![ship crew])
@@ -2100,7 +2046,7 @@ GLfloat docked_light_specular[]	= { (GLfloat) 1.0, (GLfloat) 1.0, (GLfloat) 0.5,
 	while (i < howMany)
 	{
 		ShipEntity  *ship;
-		ship = [self getShipWithRole:desc];   // retain count = 1
+		ship = [self newShipWithRole:desc];   // retain count = 1
 		if (!ship)
 			return NO;
 		if (![ship crew])
@@ -2140,11 +2086,9 @@ GLfloat docked_light_specular[]	= { (GLfloat) 1.0, (GLfloat) 1.0, (GLfloat) 0.5,
 			}
 			if (!safe)
 			{
-//				NSLog(@"DEBUG - AddShips %d/%d : proposed position clashed with ship %d", i, howMany, j + 1);
 				limit_count--;
 				if (!limit_count)	// give up and expand the shell
 				{
-//					NSLog(@"DEBUG - limit_count depleted, expanding area...");
 					limit_count = 8;
 					distance_from_center += sqrt(safe_distance2);	// expand to the next distance
 				}
@@ -2166,9 +2110,6 @@ GLfloat docked_light_specular[]	= { (GLfloat) 1.0, (GLfloat) 1.0, (GLfloat) 0.5,
 		[ship setStatus:STATUS_IN_FLIGHT];	// or ships that were 'demo' ships become invisible!
 		[ship release];
 		
-//		NSLog(@"DEBUG - AddShips %d/%d : ship added successfully %.1fm from the requested position",
-//			i, howMany, distance_from_center);
-		
 		ship_positions[i] = ship_pos;
 		i++;
 		if (i > scale_up_after)
@@ -2176,9 +2117,6 @@ GLfloat docked_light_specular[]	= { (GLfloat) 1.0, (GLfloat) 1.0, (GLfloat) 0.5,
 			current_shell = i;
 			scale_up_after += 1 + 2 * i;
 			distance_from_center += sqrt(safe_distance2);	// fill the next shell
-			
-//			NSLog(@"DEBUG - AddShips %d/%d : Filling a shell of radius %.2fm from the requested position with the next %d ships",
-//				i, howMany, distance_from_center, 1 + scale_up_after - i);
 		}
 	}
 	return YES;
@@ -2261,7 +2199,7 @@ GLfloat docked_light_specular[]	= { (GLfloat) 1.0, (GLfloat) 1.0, (GLfloat) 0.5,
 	
 	
 	ShipEntity  *ship;
-	ship = [self getShipWithRole:desc];   // retain count = 1
+	ship = [self newShipWithRole:desc];   // retain count = 1
 	if (ship)
 	{
 		if (![ship crew])
@@ -2293,7 +2231,7 @@ GLfloat docked_light_specular[]	= { (GLfloat) 1.0, (GLfloat) 1.0, (GLfloat) 0.5,
 	NS_HANDLER
 		if ([[localException name] isEqual: OOLITE_EXCEPTION_SHIP_NOT_FOUND])
 		{
-			NSLog(@"***** Oolite Exception : '%@' in [Universe spawnShip: %@ ] *****", [localException reason], shipdesc);
+			OOLog(kOOLogException, @"***** Oolite Exception : '%@' in [Universe spawnShip: %@ ] *****", [localException reason], shipdesc);
 			shipdict = nil;
 		}
 		else
@@ -2303,7 +2241,7 @@ GLfloat docked_light_specular[]	= { (GLfloat) 1.0, (GLfloat) 1.0, (GLfloat) 0.5,
 	if (!shipdict)
 		return NO;
 	
-	ship = [self getShip:shipdesc];	// retain count is 1
+	ship = [self newShipWithName:shipdesc];	// retain count is 1
 	
 	if (!ship)
 		return NO;
@@ -2369,7 +2307,7 @@ GLfloat docked_light_specular[]	= { (GLfloat) 1.0, (GLfloat) 1.0, (GLfloat) 0.5,
 {
 	// adds a ship exiting witchspace (corollary of when ships leave the system)
 	ShipEntity  *ship;
-	ship = [self getShipWithRole:desc];   // retain count = 1
+	ship = [self newShipWithRole:desc];   // retain count = 1
 	if (ship)
 	{
 		if ((ship->scan_class == CLASS_NO_DRAW)||(ship->scan_class == CLASS_NOT_SET))
@@ -2413,7 +2351,7 @@ GLfloat docked_light_specular[]	= { (GLfloat) 1.0, (GLfloat) 1.0, (GLfloat) 0.5,
 	Vector		vf = vector_forward_from_quaternion(spawn_q);
 	GLfloat		offset = (randf() + randf()) * entity->collision_radius;
 	spawn_pos.x += offset * vf.x;	spawn_pos.y += offset * vf.y;	spawn_pos.z += offset * vf.z;
-	ship = [self getShipWithRole:desc];   // retain count = 1
+	ship = [self newShipWithRole:desc];   // retain count = 1
 	if (ship)
 	{
 		if (![ship crew])
@@ -2446,7 +2384,7 @@ GLfloat docked_light_specular[]	= { (GLfloat) 1.0, (GLfloat) 1.0, (GLfloat) 0.5,
 		
 	for (i = 1; i < 11; i++)
 	{
-		ring = (RingEntity *)[self recycledOrNew:@"RingEntity"];
+		ring = (RingEntity *)[self allocRecycledOrNewEntity:@"RingEntity"];
 		[ring setPosition:pos.x+v.x*i*50.0:pos.y+v.y*i*50.0:pos.z+v.z*i*50.0]; // ahead of the player
 		[ring setQRotation:q];
 		[ring setVelocity:v];
@@ -2460,7 +2398,7 @@ GLfloat docked_light_specular[]	= { (GLfloat) 1.0, (GLfloat) 1.0, (GLfloat) 0.5,
 
 - (void) game_over
 {
-	PlayerEntity*   player = [[self entityZero] retain];
+	PlayerEntity*   player = [[PlayerEntity sharedPlayer] retain];
 
 	
 	[self removeAllEntitiesExceptPlayer:NO];	// don't want to restore afterwards
@@ -2490,7 +2428,7 @@ GLfloat docked_light_specular[]	= { (GLfloat) 1.0, (GLfloat) 1.0, (GLfloat) 0.5,
 
 - (void) set_up_intro1
 {
-	PlayerEntity* player = [self entityZero];
+	PlayerEntity* player = [PlayerEntity sharedPlayer];
 	ShipEntity		*ship;
 	Quaternion		q2;
 	q2.x = 0.0;   q2.y = 0.0;   q2.z = 0.0; q2.w = 1.0;
@@ -2503,15 +2441,12 @@ GLfloat docked_light_specular[]	= { (GLfloat) 1.0, (GLfloat) 1.0, (GLfloat) 0.5,
 	displayGUI = YES;
 	
 	/*- cobra -*/
-	ship = [self getShip:PLAYER_SHIP_DESC];   // retain count = 1   // shows the cobra-player ship
+	ship = [self newShipWithName:PLAYER_SHIP_DESC];   // retain count = 1   // shows the cobra-player ship
 	if (ship)
 	{
 		[ship setStatus: STATUS_COCKPIT_DISPLAY];
 		[ship setQRotation:q2];
-//		[ship setPosition: p0.x : p0.y : p0.z + 3.6 * ship->actual_radius];  // 250m ahead
 		[ship setPosition: 0.0f : 0.0f :3.6f * ship->actual_radius];	// some way ahead
-		
-		//NSLog(@"demo ship %@ has collision radius %.1f 250.0/cr = %.1f", [ship name], ship->collision_radius, 250.0/ship->collision_radius);
 		
 		[ship setScanClass: CLASS_NO_DRAW];
 		[ship setRoll:PI/5.0];
@@ -2540,20 +2475,18 @@ GLfloat docked_light_specular[]	= { (GLfloat) 1.0, (GLfloat) 1.0, (GLfloat) 0.5,
 	// in status demo draw ships and display text
 	
 	[self removeDemoShips];
-	[[self entityZero] setStatus: STATUS_START_GAME];
-	[[self entityZero] setShowDemoShips: YES];
+	[[PlayerEntity sharedPlayer] setStatus: STATUS_START_GAME];
+	[[PlayerEntity sharedPlayer] setShowDemoShips: YES];
 	displayGUI = YES;
 	
 	/*- demo ships -*/
 	demo_ship_index = 0;
-	ship = [self getShip:[demo_ships objectAtIndex:0]];   // retain count = 1
+	ship = [self newShipWithName:[demo_ships objectAtIndex:0]];   // retain count = 1
 	if (ship)
 	{
 		[ship setQRotation:q2];
 		[ship setPosition: 0.0f : 0.0f : 3.6f * ship->actual_radius];
 		[ship setDestination: ship->position];	// ideal position
-		
-		//NSLog(@"demo ship %@ has collision radius %.1f 250.0/cr = %.1f", [ship name], ship->collision_radius, 250.0/ship->collision_radius);
 		
 		[ship setScanClass: CLASS_NO_DRAW];
 		[ship setRoll:PI/5.0];
@@ -2749,7 +2682,7 @@ GLfloat docked_light_specular[]	= { (GLfloat) 1.0, (GLfloat) 1.0, (GLfloat) 0.5,
 
 - (BOOL) breakPatternHide
 {
-	Entity* player = [self entityZero];
+	Entity* player = [PlayerEntity sharedPlayer];
 	return ((breakPatternCounter > 5)||(!player)||(player->status == STATUS_DOCKING));
 }
 
@@ -2769,8 +2702,6 @@ GLfloat docked_light_specular[]	= { (GLfloat) 1.0, (GLfloat) 1.0, (GLfloat) 0.5,
 		classname = @"ShipEntity";
 	if (entity->isStation)
 		classname = @"StationEntity";
-	
-//	NSLog(@"Considering a used %@ with retainCount:%d for recycling",classname,[entity retainCount]);
 	
 	if (classname)
 	{
@@ -2804,7 +2735,7 @@ GLfloat docked_light_specular[]	= { (GLfloat) 1.0, (GLfloat) 1.0, (GLfloat) 0.5,
 	return entity;																	// pass through
 }
 
-- (Entity *) recycledOrNew:(NSString *) classname
+- (Entity *) allocRecycledOrNewEntity:(NSString *) classname
 {
 	Entity			*entity = nil;
 	NSMutableArray  *entlist;
@@ -2816,10 +2747,8 @@ GLfloat docked_light_specular[]	= { (GLfloat) 1.0, (GLfloat) 1.0, (GLfloat) 0.5,
 			entlist = (NSMutableArray *)[entityRecyclePool objectForKey:classname];
 			if ([entlist count] > 0)
 			{
-//				NSLog(@"Recycling a used %@ from %@",classname,[entlist description]);
 				entity = [[entlist objectAtIndex:0] retain];
 				[entlist removeObjectAtIndex:0];
-//				NSLog(@"Recycling a used %@",classname);
 			}
 			[recycleLock unlock];
 		}
@@ -2829,12 +2758,11 @@ GLfloat docked_light_specular[]	= { (GLfloat) 1.0, (GLfloat) 1.0, (GLfloat) 0.5,
 		Class   required_class = [[NSBundle mainBundle] classNamed:classname];
 		entity = [[required_class alloc] init];
 		[entity setUniverse:self];  // ensures access to preloaded data
-//		NSLog(@"Generating a new %@",classname);
 	}
 	return entity;
 }
 
-- (ShipEntity *) getShipWithRole:(NSString *) desc
+- (ShipEntity *) newShipWithRole:(NSString *) desc
 {
 	int i, j, found;
 	ShipEntity		*ship = nil;
@@ -2857,7 +2785,7 @@ GLfloat docked_light_specular[]	= { (GLfloat) 1.0, (GLfloat) 1.0, (GLfloat) 0.5,
 		
 		if ([shipDict objectForKey:@"conditions"])
 		{
-			PlayerEntity* player = [self entityZero];
+			PlayerEntity* player = [PlayerEntity sharedPlayer];
 			if ((player) && (player->isPlayer) && (![player checkCouplet: shipDict onEntity: player]))
 				shipRoles = [NSArray array];	// empty array - ship does not meet conditions listed
 		}
@@ -2895,11 +2823,6 @@ GLfloat docked_light_specular[]	= { (GLfloat) 1.0, (GLfloat) 1.0, (GLfloat) 0.5,
 	
 	if (found > 1)
 	{
-		
-//		NSLog(@"... candidates are: %d (%.3f) %@", found, foundf, [foundShips searchription]);
-		
-//		NSLog(@"... selection is: %.3f", selectedf * foundf);
-		
 		selectedf *= foundf;
 		while (selectedf > [[foundChance objectAtIndex:i] floatValue])
 		{
@@ -2909,18 +2832,17 @@ GLfloat docked_light_specular[]	= { (GLfloat) 1.0, (GLfloat) 1.0, (GLfloat) 0.5,
 		
 		if (i >= found)	// sanity check
 			i = 0;
-//		NSLog(@"... we chose %@",(NSString *)[foundShips objectAtIndex:i]);
 		
 	}
 	
 	if (found)
 	{	
-		ship = [self getShip:(NSString *)[foundShips objectAtIndex:i]];	// may return nil if not found!
+		ship = [self newShipWithName:(NSString *)[foundShips objectAtIndex:i]];	// may return nil if not found!
 		[ship setRoles:search];											// set its roles to this one particular chosen role
 	}
 	else if (debug)
 	{
-		NSLog(@"DEBUG [Universe getShipWithRole: %@] couldn't find a ship!", search);
+		NSLog(@"DEBUG [Universe newShipWithRole: %@] couldn't find a ship!", search);
 	}
 	
 	[mypool release];	// tidy everything up
@@ -2935,7 +2857,7 @@ GLfloat docked_light_specular[]	= { (GLfloat) 1.0, (GLfloat) 1.0, (GLfloat) 0.5,
 }
 
 
-- (ShipEntity *) getShip:(NSString *) desc
+- (ShipEntity *) newShipWithName:(NSString *) desc
 {
 	NSDictionary	*shipDict = nil;
 	ShipEntity		*ship = nil;
@@ -2945,7 +2867,7 @@ GLfloat docked_light_specular[]	= { (GLfloat) 1.0, (GLfloat) 1.0, (GLfloat) 0.5,
 	NS_HANDLER
 		if ([[localException name] isEqual: OOLITE_EXCEPTION_SHIP_NOT_FOUND])
 		{
-			NSLog(@"***** Oolite Exception : '%@' in [Universe getShip: %@ ] *****", [localException reason], desc);
+			OOLog(kOOLogException, @"***** Oolite Exception : '%@' in [Universe newShipWithName: %@ ] *****", [localException reason], desc);
 			shipDict = nil;
 		}
 		else
@@ -2963,9 +2885,9 @@ GLfloat docked_light_specular[]	= { (GLfloat) 1.0, (GLfloat) 1.0, (GLfloat) 0.5,
 		isStation = [[shipDict objectForKey:@"isCarrier"] boolValue];
 
 	if (isStation)
-		ship = (StationEntity *)[self recycledOrNew:@"StationEntity"];	// is returned retained
+		ship = (StationEntity *)[self allocRecycledOrNewEntity:@"StationEntity"];	// is returned retained
 	else
-		ship = (ShipEntity *)[self recycledOrNew:@"ShipEntity"];	// is returned retained
+		ship = (ShipEntity *)[self allocRecycledOrNewEntity:@"ShipEntity"];	// is returned retained
 	[ship setUniverse:self];
 
 	NS_DURING	
@@ -2973,7 +2895,7 @@ GLfloat docked_light_specular[]	= { (GLfloat) 1.0, (GLfloat) 1.0, (GLfloat) 0.5,
 	NS_HANDLER
 		if ([[localException name] isEqual: OOLITE_EXCEPTION_DATA_NOT_FOUND]||[[localException name] isEqual: OOLITE_EXCEPTION_SHIP_NOT_FOUND])
 		{
-			NSLog(@"***** Oolite Exception : '%@' in [Universe getShip: %@ ] *****", [localException reason], desc);
+			OOLog(kOOLogException, @"***** Oolite Exception : '%@' in [Universe newShipWithName: %@ ] *****", [localException reason], desc);
 			[self recycleOrDiscard: ship];
 			ship = nil;
 		}
@@ -3010,7 +2932,7 @@ GLfloat docked_light_specular[]	= { (GLfloat) 1.0, (GLfloat) 1.0, (GLfloat) 0.5,
 			NS_HANDLER
 				if ([[localException name] isEqual: OOLITE_EXCEPTION_SHIP_NOT_FOUND])
 				{
-					NSLog(@"***** Oolite Exception : '%@' in [Universe getDictionaryForShip:] while basing a ship upon '%@' *****", [localException reason], other_shipdesc);
+					OOLog(kOOLogException, @"***** Oolite Exception : '%@' in [Universe getDictionaryForShip:] while basing a ship upon '%@' *****", [localException reason], other_shipdesc);
 					other_shipdict = nil;
 				}
 				else
@@ -3100,7 +3022,7 @@ GLfloat docked_light_specular[]	= { (GLfloat) 1.0, (GLfloat) 1.0, (GLfloat) 0.5,
 	// quantities is now used to determine which good get into the containers
 	for (i = 0; i < how_many; i++)
 	{
-		ShipEntity* container = [self getShipWithRole:@"cargopod"];	// retained
+		ShipEntity* container = [self newShipWithRole:@"cargopod"];	// retained
 		
 		// look for a pre-set filling
 		int co_type = [container getCommodityType];
@@ -3129,15 +3051,13 @@ GLfloat docked_light_specular[]	= { (GLfloat) 1.0, (GLfloat) 1.0, (GLfloat) 0.5,
 			
 			co_amount = [self getRandomAmountOfCommodity:co_type];
 			
-			ShipEntity* special_container = [self getShipWithRole: [self nameForCommodity:co_type]];
+			ShipEntity* special_container = [self newShipWithRole: [self nameForCommodity:co_type]];
 			if (special_container)
 			{
 				[container release];
 				container = special_container;
 			}
 		}
-		
-		//NSLog(@"... loading with plentiful %@",[self describeCommodity:co_type amount:co_amount]);
 		
 		// into the barrel it goes...
 		if (container)
@@ -3172,7 +3092,7 @@ GLfloat docked_light_specular[]	= { (GLfloat) 1.0, (GLfloat) 1.0, (GLfloat) 0.5,
 	// quantities is now used to determine which good get into the containers
 	for (i = 0; i < how_many; i++)
 	{
-		ShipEntity* container = [self getShipWithRole:@"cargopod"];
+		ShipEntity* container = [self newShipWithRole:@"cargopod"];
 		
 		// look for a pre-set filling
 		int co_type = [container getCommodityType];
@@ -3192,7 +3112,7 @@ GLfloat docked_light_specular[]	= { (GLfloat) 1.0, (GLfloat) 1.0, (GLfloat) 0.5,
 			
 			co_amount = [self getRandomAmountOfCommodity:co_type];
 			
-			ShipEntity* special_container = [self getShipWithRole: [self nameForCommodity:co_type]];
+			ShipEntity* special_container = [self newShipWithRole: [self nameForCommodity:co_type]];
 			if (special_container)
 			{
 				[container release];
@@ -3200,7 +3120,6 @@ GLfloat docked_light_specular[]	= { (GLfloat) 1.0, (GLfloat) 1.0, (GLfloat) 0.5,
 			}
 		}
 		
-		//NSLog(@"... loading with scarce %@",[self describeCommodity:co_type amount:co_amount]);
 		if (container)
 		{
 			[container setUniverse:self];
@@ -3228,9 +3147,9 @@ GLfloat docked_light_specular[]	= { (GLfloat) 1.0, (GLfloat) 1.0, (GLfloat) 0.5,
 	int how_much = how_many;
 	while (how_much > 0)
 	{
-		ShipEntity* container = [self getShipWithRole: commodity_name];	// try the commodity name first
+		ShipEntity* container = [self newShipWithRole: commodity_name];	// try the commodity name first
 		if (!container)
-			container = [self getShipWithRole:@"cargopod"];
+			container = [self newShipWithRole:@"cargopod"];
 		int amount = 1;
 		if (commodity_units != 0)
 			amount += ranrot_rand() & (15 * commodity_units);
@@ -3365,7 +3284,6 @@ void	setSunLight(BOOL yesno)
 		else
 			glDisable(GL_LIGHT1);
 		sun_light_on = yesno;
-//		NSLog(@"DEBUG ::::: Sunlight switched %@", (yesno)? @"ON":@"off");
 	}
 }
 void	setDemoLight(BOOL yesno, Vector position)
@@ -3378,14 +3296,12 @@ void	setDemoLight(BOOL yesno, Vector position)
 			demo_light_position[1] = position.y;
 			demo_light_position[2] = position.z;
 			glLightfv(GL_LIGHT0, GL_POSITION, demo_light_position);
-//			NSLog(@"DEBUG ::::: Demo light repositioned at ( %.2f, %.2f, %.2f)", position.x, position.y, position.z);
 		}
 		if (yesno)
 			glEnable(GL_LIGHT0);
 		else
 			glDisable(GL_LIGHT0);
 		demo_light_on = yesno;
-//		NSLog(@"DEBUG ::::: Demo light switched %@", (yesno)? @"ON":@"off");
 	}
 }
 
@@ -3430,8 +3346,6 @@ GLfloat* custom_matrix;
 				// it passed all drawing tests - and it's not a planet or the sky - we can add it to the list
 				my_entities[draw_count++] = [e retain];		//	retained
 			}
-			
-//			NSLog(@"DEBUG drawing %d entities", draw_count);
 			
 			Entity	*viewthing = nil;
 			Entity	*drawthing = nil;
@@ -3480,8 +3394,6 @@ GLfloat* custom_matrix;
 					view_matrix = custom_matrix;
 				/* -- */
 			}
-			
-			//NSLog(@"Drawing from [%f,%f,%f]", position.x, position.y, position.z);
 			
 			checkGLErrors(@"Universe before doing anything");
 			
@@ -3766,7 +3678,7 @@ GLfloat* custom_matrix;
 				[self handleOoliteException:localException];
 			else
 			{
-				NSLog(@"\n\n***** Encountered localException: %@ : %@ *****\n\n",[localException name], [localException reason]);
+				OOLog(kOOLogException, @"***** Exception: %@ : %@ *****",[localException name], [localException reason]);
 				[localException raise];
 			}
 		
@@ -3778,7 +3690,7 @@ GLfloat* custom_matrix;
 
 - (void) drawCrosshairs
 {
-    PlayerEntity*   playerShip = (PlayerEntity *)[self entityZero];
+    PlayerEntity*   playerShip = [PlayerEntity sharedPlayer];
 
 	if (viewDirection == VIEW_CUSTOM)	return;	// don't try to draw cross hairs in a custom view
 
@@ -3880,17 +3792,11 @@ GLfloat* custom_matrix;
 	}
 }
 
-- (id)entityZero
-{
-	if (cachedEntityZero == nil )  cachedEntityZero = [entities objectAtIndex:0];
-	return cachedEntityZero;
-}
-
 
 - (id)entityForUniversalID:(int)u_id
 {
 	if (u_id == 100)
-		return [self entityZero];	// the player
+		return [PlayerEntity sharedPlayer];	// the player
 	
 	if ((u_id == NO_TARGET)||(!entity_for_uid[u_id]))
 		return nil;
@@ -4130,7 +4036,7 @@ BOOL maintainLinkedLists(Universe* uni)
 		
 		// maintain sorted list (and for the scanner relative position)
 		Vector entity_pos = entity->position;
-		Vector delta = vector_between(entity_pos, ((PlayerEntity *)[self entityZero])->position);
+		Vector delta = vector_between(entity_pos, ((PlayerEntity *)[PlayerEntity sharedPlayer])->position);
 		double z_distance = magnitude2(delta);
 		entity->zero_distance = z_distance;
 		entity->relative_position = delta;
@@ -4258,8 +4164,6 @@ BOOL maintainLinkedLists(Universe* uni)
 			
 			[entities removeObject:[self recycleOrDiscard:entity]];
 			
-			//NSLog(@"--(%@)\n%@", entity, [entities description]);
-			
 			return YES;
 		}
 	}
@@ -4386,7 +4290,6 @@ BOOL maintainLinkedLists(Universe* uni)
 	cachedSun = nil;
 	cachedPlanet = nil;
 	cachedStation = nil;
-	cachedEntityZero = nil;
 	firstBeacon = NO_TARGET;
 	lastBeacon = NO_TARGET;
 	
@@ -4540,7 +4443,6 @@ BOOL maintainLinkedLists(Universe* uni)
 	if (!e1)
 	{
 		NSLog(@"ERROR ***** No entity set in Universe getSafeVectorFromEntity:toDistance:fromPoint:");
-		// NSBeep(); // AppKit
 		return make_vector( 0.0f, 0.0f, 0.0f);
 	}
 	Vector  f1;
@@ -4622,7 +4524,6 @@ BOOL maintainLinkedLists(Universe* uni)
 					double current_distance = sqrt (dd.x*dd.x + dd.y*dd.y + dd.z*dd.z);
 					
 					// sanity check current_distance
-					//NSLog(@"Current distance is %.1f CR", current_distance/cr);
 					if (current_distance < cr * 1.25)	// 25% safety margin
 						current_distance = cr * 1.25;
 					if (current_distance > cr * 5.0)	// up to 2 diameters away 
@@ -4633,8 +4534,6 @@ BOOL maintainLinkedLists(Universe* uni)
 					result.x += 0.25 * (outward.x * current_distance) + 0.75 * (backward.x * current_distance);		// push 'out' by this amount
 					result.y += 0.25 * (outward.y * current_distance) + 0.75 * (backward.y * current_distance);
 					result.z += 0.25 * (outward.z * current_distance) + 0.75 * (backward.z * current_distance);
-
-					//NSLog(@"Bypassing %@ by going from (%.1f,%.1f,%.1f) to (%.1f,%.1f,%.1f)",e2,p1.x,p1.y,p1.z,result.x,result.y,result.z);
 					
 				}
 			}
@@ -4679,7 +4578,6 @@ BOOL maintainLinkedLists(Universe* uni)
 		nearest = [(ShipEntity *)e1 weapon_range];
 	else
 		nearest = PARTICLE_LASER_LENGTH;
-//	NSLog(@"DEBUG LASER nearest = %.1f",nearest);
 	
 	int i;
 	int ent_count = n_entities;
@@ -4753,9 +4651,6 @@ BOOL maintainLinkedLists(Universe* uni)
 	
 	if (hit_entity)
 	{
-//		if (e1->isPlayer)
-//			NSLog(@"DEBUG HIT %@ %d at %.2fm", hit_entity, [hit_entity universal_id], nearest);
-	
 		result = [hit_entity universal_id];
 		if ((hit_subentity)&&[hit_entity->sub_entities containsObject:hit_subentity])
 			hit_entity->subentity_taking_damage = hit_subentity;
@@ -5040,7 +4935,7 @@ BOOL maintainLinkedLists(Universe* uni)
 #ifdef GNUSTEP
          [gameView setMouseInDeltaMode: YES];
 #endif
-			ms = [[self entityZero] customViewDescription];
+			ms = [[PlayerEntity sharedPlayer] customViewDescription];
 			displayGUI = NO;   // switch off any text displays
 			break;
 			
@@ -5057,12 +4952,10 @@ BOOL maintainLinkedLists(Universe* uni)
 		if (ms)
 			[self addMessage:ms forCount:3];
 	}
-	//NSLog(@"Universe viewDir : %d %@",viewDirection,ms);
 }
 
 - (int) viewDir
 {
-	//NSLog(@"Universe viewDir : %d",viewDirection);
 	return viewDirection;
 }
 
@@ -5164,7 +5057,7 @@ BOOL maintainLinkedLists(Universe* uni)
 	if (![currentMessage isEqual:text])
 	{
 	#ifndef GNUSTEP
-		PlayerEntity* player = (PlayerEntity *)[self entityZero];
+		PlayerEntity* player = [PlayerEntity sharedPlayer];
 		//speech synthesis
 		if ([player speech_on])
 		{
@@ -5182,11 +5075,8 @@ BOOL maintainLinkedLists(Universe* uni)
 				{
 					NSString *original_phrase = (NSString*)[thePair objectAtIndex: 0];
 					NSString *replacement_phrase = (NSString*)[thePair objectAtIndex: 1];
-//					NSLog(@"Will replace %@ with %@", original_phrase, replacement_phrase);
 					
 					spoken_text = [[spoken_text componentsSeparatedByString: original_phrase] componentsJoinedByString: replacement_phrase];
-					
-//					NSLog(@"%@", spoken_text);
 				}
 				spoken_text = [[spoken_text componentsSeparatedByString: systemName] componentsJoinedByString: systemSaid];
 				spoken_text = [[spoken_text componentsSeparatedByString: h_systemName] componentsJoinedByString: h_systemSaid];
@@ -5212,7 +5102,7 @@ BOOL maintainLinkedLists(Universe* uni)
 {
 	if (![currentMessage isEqual:text])
     {
-		PlayerEntity* player = (PlayerEntity *)[self entityZero];
+		PlayerEntity* player = [PlayerEntity sharedPlayer];
 		
 		if ([player speech_on])
 		{
@@ -5245,7 +5135,7 @@ BOOL maintainLinkedLists(Universe* uni)
 		NSString*	update_stage = @"initialisation";
 		NS_DURING
 			int i;
-			PlayerEntity*	player = (PlayerEntity *)[self entityZero];
+			PlayerEntity*	player = [PlayerEntity sharedPlayer];
 			int				ent_count = n_entities;
 			Entity*			my_entities[ent_count];
 			BOOL			inGUIMode = [player showDemoShips];
@@ -5311,7 +5201,7 @@ BOOL maintainLinkedLists(Universe* uni)
 											// we want to skip on to another ship
 											demo_ship_index++;
 											demo_ship_index %= [demo_ships count];
-											NSLog(@"***** Oolite Data Not Found Exception : '%@' in DEMO_FLY_OUT stage of [Universe update:] *****", [localException reason]);
+											OOLog(kOOLogException, @"***** Oolite Data Not Found Exception : '%@' in DEMO_FLY_OUT stage of [Universe update:] *****", [localException reason]);
 											okay = NO;
 										}
 										else
@@ -5416,7 +5306,7 @@ BOOL maintainLinkedLists(Universe* uni)
 				[self handleOoliteException:localException];
 			else
 			{
-				NSLog(@"\n\n***** Encountered localException during %@ in [Universe update:] : %@ : %@ *****\n\n", update_stage, [localException name], [localException reason]);
+				OOLog(kOOLogException, @"***** Exception during during %@ in [Universe update:] : %@ : %@ *****", update_stage, [localException name], [localException reason]);
 				[localException raise];
 			}
 		
@@ -5701,7 +5591,7 @@ BOOL maintainLinkedLists(Universe* uni)
 - (void) setSystemTo:(Random_Seed) s_seed
 {
 	NSDictionary*   systemData;
-	PlayerEntity*   player = (PlayerEntity *)[self entityZero];
+	PlayerEntity*   player = [PlayerEntity sharedPlayer];
 	
 	[self setGalaxy_seed: [player galaxy_seed]];
 
@@ -5820,7 +5710,7 @@ BOOL maintainLinkedLists(Universe* uni)
 	
 	NSString *name = [self generateSystemName:s_seed];
 	NSString *inhabitants = [self generateSystemInhabitants:s_seed plural:YES];
-	NSString *description = [self generateSystemDescription:s_seed];
+	NSString *description = DescriptionForSystem(s_seed);
 	
 	NSString *override_key = [self keyForPlanetOverridesForSystemSeed:s_seed inGalaxySeed:galaxy_seed];
 	
@@ -5842,8 +5732,6 @@ BOOL maintainLinkedLists(Universe* uni)
 		[systemdata addEntriesFromDictionary:(NSDictionary *)[planetinfo objectForKey:override_key]];
 	if ([local_planetinfo_overrides objectForKey:override_key])
 		[systemdata addEntriesFromDictionary:(NSDictionary *)[local_planetinfo_overrides objectForKey:override_key]];
-		
-	//NSLog(@"Generated system data is :\n%@",[systemdata description]);
 	
 	return [NSDictionary dictionaryWithDictionary:[systemdata autorelease]];
 }
@@ -6024,10 +5912,6 @@ BOOL maintainLinkedLists(Universe* uni)
 	return system;
 }
 
-+ (NSString*) systemSeedString:(Random_Seed) s
-{
-	return [NSString stringWithFormat: @"%d %d %d %d %d %d", s.a, s.b, s.c, s.d, s.e, s.f];
-}
 
 - (NSArray*) nearbyDestinationsWithinRange:(double) range
 {
@@ -6042,14 +5926,12 @@ BOOL maintainLinkedLists(Universe* uni)
 		if ((dist > 0) && (dist <= range) && (dist <= 7.0))	// limit to systems within 7LY
 		{
 			[result addObject: [NSDictionary dictionaryWithObjectsAndKeys:
-				[Universe systemSeedString:systems[i]], @"system_seed",
-				[NSNumber numberWithDouble: dist], @"distance",
+				StringFromRandomSeed(systems[i]), @"system_seed",
+				[NSNumber numberWithDouble:dist], @"distance",
 				[self getSystemName:systems[i]], @"name",
 				nil]];
 		}
 	}
-	
-//	NSLog(@"DEBUG found possible destinations: %@", result);
 	
 	return result;
 }
@@ -6219,9 +6101,6 @@ BOOL maintainLinkedLists(Universe* uni)
 	if ((start < 0)||(start > 255)||(goal < 0)||(goal > 255))
 		return nil;
 	
-//	NSLog(@"DEBUG determining route from %d (%d,%d) to %d (%d, %d)", start, systems[start].d, systems[start].b, goal, systems[goal].d, systems[goal].b);
-	
-	
 	// use A* algorithm to determine shortest route
 	
 	// for this we need the neighbouring (<= 7LY distant) systems
@@ -6292,8 +6171,6 @@ BOOL maintainLinkedLists(Universe* uni)
 		cost_to_goal =			[(NSNumber*)[node objectForKey:@"cost_to_goal"]			doubleValue];
 		total_cost_estimate =	[(NSNumber*)[node objectForKey:@"total_cost_estimate"]	doubleValue];
 		parent_node =			(NSDictionary *)[node objectForKey:@"parent_node"];
-				
-//		NSLog(@"DEBUG examining location %d from list of %d ...", location, [open_nodes count]);
 		
 		// if at goal we're done!
 		if (location == goal)
@@ -6319,8 +6196,6 @@ BOOL maintainLinkedLists(Universe* uni)
 		else
 		{
 			NSArray* neighbours = (NSArray *)[neighbour_systems objectAtIndex:location];
-			
-//			NSLog(@"DEBUG neighbours for %d = %@", location, [neighbours description]);
 			
 			for (i = 0; i < [neighbours count]; i++)
 			{
@@ -6446,16 +6321,9 @@ BOOL maintainLinkedLists(Universe* uni)
 		station_roles = (NSString*)[[self currentSystemData] objectForKey:@"market"];
 	}
 	
-//	NSLog(@"///// station roles detected as '%@'", station_roles);
-	
 	if (![commoditylists objectForKey:station_roles])
 	{
-//		NSLog(@"///// using default economy");
 		station_roles = @"default";
-	}
-	else
-	{
-//		NSLog(@"///// found a special economy");
 	}
 		
 	NSMutableArray *ourEconomy = [NSMutableArray arrayWithArray:(NSArray *)[commoditylists objectForKey:station_roles]];
@@ -6496,7 +6364,7 @@ double estimatedTimeForJourney(double distance, int hops)
 
 - (NSArray *) passengersForSystem:(Random_Seed) s_seed atTime:(double) current_time
 {
-	PlayerEntity* player = [self entityZero];
+	PlayerEntity* player = [PlayerEntity sharedPlayer];
 	
 	int player_repute = [player passengerReputation];
 	
@@ -6522,8 +6390,6 @@ double estimatedTimeForJourney(double distance, int hops)
 	NSMutableArray*	resultArray = [NSMutableArray arrayWithCapacity:255];
 	int i = 0;
 	
-//	NSLog(@"DEBUG Passenger generator for reputation %d...\n", [player passengerReputation]);
-	
 	for (i = 0; i < 256; i++)
 	{
 		long long reference_time = 0x1000000 * floor( current_time / 0x1000000);
@@ -6543,8 +6409,6 @@ double estimatedTimeForJourney(double distance, int hops)
 		int destination_government = [(NSNumber*)[destinationInfo objectForKey:KEY_GOVERNMENT] intValue];
 		
 		int pick_up_factor = destination_government + floor(days_until_departure) - 7;	// lower for anarchies (gov 0)
-		
-//		NSLog(@"DEBUG Passenger to %d pick-up %d repute %d", passenger_destination, pick_up_factor, player_repute);
 				
 		if ((days_until_departure > 0.0)&&(pick_up_factor <= player_repute)&&(passenger_seed.d != start))
 		{
@@ -6560,11 +6424,10 @@ double estimatedTimeForJourney(double distance, int hops)
 			passenger_species_string = [[passenger_species_string lowercaseString] stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceCharacterSet]];
 			
 			// determine the passenger's name
-//			seed_for_planet_description(passenger_seed);	// set the random number generator
 			seed_RNG_only_for_planet_description(passenger_seed);
-			NSString* passenger_name = [NSString stringWithFormat:@"%@ %@", [self expandDescription:@"%R" forSystem:passenger_seed], [self expandDescription:@"%R" forSystem:passenger_seed]];
+			NSString* passenger_name = [NSString stringWithFormat:@"%@ %@", ExpandDescriptionForSeed(@"%R", passenger_seed), ExpandDescriptionForSeed(@"%R", passenger_seed)];
 			if ([passenger_species_string hasPrefix:@"human"])
-				passenger_name = [NSString stringWithFormat:@"%@ %@", [self expandDescription:@"%R" forSystem:passenger_seed], [self expandDescription:@"[nom]" forSystem:passenger_seed]];
+				passenger_name = [NSString stringWithFormat:@"%@ %@", ExpandDescriptionForSeed(@"%R", passenger_seed), ExpandDescriptionForSeed(@"[nom]", passenger_seed)];
 			
 			// determine information about the route...
 			NSDictionary* routeInfo = [self routeFromSystem:start ToSystem:passenger_destination];
@@ -6575,7 +6438,6 @@ double estimatedTimeForJourney(double distance, int hops)
 				NSString* destination_name = [self generateSystemName:destination_seed];
 				
 				double route_length = [(NSNumber *)[routeInfo objectForKey:@"distance"] doubleValue];
-//				double distance_as_crow_flies = accurateDistanceBetweenPlanetPositions(s_seed.d,s_seed.b,destination_seed.d,destination_seed.b);
 				int route_hops = [(NSArray *)[routeInfo objectForKey:@"route"] count] - 1;
 				
 				// 50 cr per hop + 8..15 cr per LY + bonus for low government level of destination
@@ -6588,7 +6450,6 @@ double estimatedTimeForJourney(double distance, int hops)
 				fee -= premium;
 				
 				// 1hr per LY*LY, + 30 mins per hop
-//				double passenger_arrival_time = passenger_departure_time + 4000 * distance_as_crow_flies * distance_as_crow_flies + 2000 * route_hops; 
 				double passenger_arrival_time = passenger_departure_time + estimatedTimeForJourney( route_length, route_hops); 
 				
 					
@@ -6607,8 +6468,6 @@ double estimatedTimeForJourney(double distance, int hops)
 				long_description = [NSString stringWithFormat:
 					@"%@ Will pay %d Cr: %d Cr in advance, and %d Cr on arrival.", long_description,
 					premium + fee, premium, fee];
-					
-//				NSLog(@"DEBUG Passenger %@:\n%@\n...", passenger_name, long_description);
 				
 				NSDictionary* passenger_info_dictionary = [NSDictionary dictionaryWithObjectsAndKeys:
 					passenger_name,											PASSENGER_KEY_NAME,
@@ -6709,7 +6568,7 @@ double estimatedTimeForJourney(double distance, int hops)
 
 - (NSArray *) contractsForSystem:(Random_Seed) s_seed atTime:(double) current_time
 {
-	PlayerEntity* player = [self entityZero];
+	PlayerEntity* player = [PlayerEntity sharedPlayer];
 	
 	int player_repute = [player contractReputation];
 	
@@ -6734,8 +6593,6 @@ double estimatedTimeForJourney(double distance, int hops)
 	NSMutableArray*	resultArray = [NSMutableArray arrayWithCapacity:255];
 	int i = 0;
 	
-//	NSLog(@"DEBUG contract generator for reputation %d...\n", [player contractReputation]);
-	
 	NSArray* localMarket;
 	if ([[self station] localMarket])
 		localMarket = [[self station] localMarket];
@@ -6745,8 +6602,6 @@ double estimatedTimeForJourney(double distance, int hops)
 	for (i = 0; i < 256; i++)
 	{
 		long long reference_time = 0x1000000 * floor( current_time / 0x1000000);
-		
-//		NSLog(@"DEBUG time = %lld (%.1f) reference time = %lld", now, current_time, reference_time);
 		
 		long long contract_time = contract_seed.a * 0x10000 + contract_seed.b * 0x100 + contract_seed.c;
 		double contract_departure_time = reference_time + contract_time;
@@ -6769,8 +6624,6 @@ double estimatedTimeForJourney(double distance, int hops)
 		{			
 			int destination_economy = [(NSNumber*)[destinationInfo objectForKey:KEY_ECONOMY] intValue];
 			NSArray* destinationMarket = [self commodityDataForEconomy:destination_economy andStation:[self station] andRandomFactor:random_factor];
-			
-//			NSLog(@"DEBUG local economy:\n%@\ndestination_economy:\n%@", [localMarket description], [destinationMarket description]);
 			
 			// now we need a commodity that's both plentiful here and scarce there...
 			// build list of goods allocating 0..100 for each based on how
@@ -6882,8 +6735,6 @@ double estimatedTimeForJourney(double distance, int hops)
 						long_description = [NSString stringWithFormat:
 							@"%@ The contract will cost you %.1f Cr, and pay a total of %.1f Cr.", long_description,
 							premium, premium + fee];
-						
-//						NSLog(@"DEBUG (%06x-%06x):\n%@\n...", super_rand1, super_rand2, long_description);
 
 						NSDictionary* contract_info_dictionary = [NSDictionary dictionaryWithObjectsAndKeys:
 							[NSString stringWithFormat:@"%06x-%06x", super_rand1, super_rand2 ],CONTRACT_KEY_ID,
@@ -6941,13 +6792,9 @@ double estimatedTimeForJourney(double distance, int hops)
 	float tech_price_boost = (ship_seed.a + ship_seed.b) / 256.0;
 	int i = 0;
 	
-//	NSLog(@"DEBUG ships for sale generator...\n");
-	
 	for (i = 0; i < 256; i++)
 	{
 		long long reference_time = 0x1000000 * floor( current_time / 0x1000000);
-		
-//		NSLog(@"DEBUG time = %lld (%.1f) reference time = %lld", now, current_time, reference_time);
 		
 		long long c_time = ship_seed.a * 0x10000 + ship_seed.b * 0x100 + ship_seed.c;
 		double ship_sold_time = reference_time + c_time;
@@ -6966,7 +6813,7 @@ double estimatedTimeForJourney(double distance, int hops)
 			NSDictionary* dict = (NSDictionary*)[shipyard objectForKey: key];
 			if ([dict objectForKey:@"conditions"])
 			{
-				PlayerEntity* player = [self entityZero];
+				PlayerEntity* player = [PlayerEntity sharedPlayer];
 				if ((player) && (player->isPlayer) && (![player checkCouplet: dict onEntity: player]))
 					[keysForShips removeObjectAtIndex: si--];
 			}
@@ -6999,7 +6846,7 @@ double estimatedTimeForJourney(double distance, int hops)
 		NS_HANDLER
 			if ([[localException name] isEqual: OOLITE_EXCEPTION_SHIP_NOT_FOUND])
 			{
-				NSLog(@"***** Oolite Ship Not Found Exception : '%@' in [Universe shipsForSaleInSystem:atTime:] *****", [localException reason]);
+				OOLog(kOOLogException, @"***** Oolite Ship Not Found Exception : '%@' in [Universe shipsForSaleInSystem:atTime:] *****", [localException reason]);
 				ship_base_dict = nil;
 			}
 			else
@@ -7226,8 +7073,6 @@ double estimatedTimeForJourney(double distance, int hops)
 			i++;
 	}
 	
-//	NSLog(@"Ships for sale:\n%@", [resultArray description]);
-	
 	return [NSArray arrayWithArray:resultArray];
 }
 
@@ -7282,8 +7127,6 @@ NSComparisonResult comparePrice(NSDictionary *dict1, NSDictionary *dict2, void *
 	int base_weapon_value = [self getPriceForWeaponSystemWithKey:base_fwd_weapon_key] / 10;
 	NSArray* base_extra_equipment = (NSArray*)[basic_info objectForKey:KEY_EQUIPMENT_EXTRAS];
 	
-//	NSLog(@"DEBUG shipyard_info:\n%@\nbasic_info\n%@\n", [shipyard_info description], [basic_info description]);
-	
 	// work out weapon values
 	if (cmdr_fwd_weapon)
 	{
@@ -7325,11 +7168,6 @@ NSComparisonResult comparePrice(NSDictionary *dict1, NSDictionary *dict2, void *
 		extra_equipment_value += [self getPriceForWeaponSystemWithKey:(NSString*)[cmdr_extra_equipment objectAtIndex:j]] / 10;
 	
 	// final reckoning
-	
-//	NSLog(@"DEBUG base_price for %@ %d weapons_bonus %d equipment_bonus %d", cmdr_ship_desc, base_price,
-//		cmdr_missiles_value + cmdr_other_weapons_value + cmdr_fwd_weapon_value - base_weapon_value - base_missiles_value,
-//		extra_equipment_value);
-	
 	result = base_price;
 	
 	// add on extra weapons - base weapons
@@ -7504,179 +7342,6 @@ NSComparisonResult comparePrice(NSDictionary *dict1, NSDictionary *dict2, void *
 }
 
 
-
-- (NSString *) generateSystemDescription:(Random_Seed) s_seed
-{
-//	seed_for_planet_description (s_seed);
-	seed_RNG_only_for_planet_description(s_seed);
-	return [self expandDescription:@"[14] is [22]." forSystem:s_seed];
-}
-
-- (NSString *) expandDescription:(NSString *) desc forSystem:(Random_Seed)s_seed
-{
-//	return [self expandDescriptionWithLocals:desc forSystem:s_seed withLocalVariables:nil];
-	
-	// to enable variables to return strings that can be expanded (eg. @"[commanderName_string]")
-	// we're going to loop until every expansion has been done!
-	// but to check this does not infinitely recurse
-	// we'll stop after 32 loops.
-	
-	int stack_check = 32;
-	NSString	*old_desc = [NSString stringWithString: desc];
-	NSString	*result = desc;
-	do {
-		old_desc = result;
-		result = [self expandDescriptionWithLocals:result forSystem:s_seed withLocalVariables:nil];
-	} while ((--stack_check)&&(![result isEqual:old_desc]));
-	
-	if (!stack_check)
-	{
-		NSLog(@"***** ERROR: script stack overflow for expandDescription: \"%@\"", desc);
-		NSException *myException = [NSException
-			exceptionWithName: OOLITE_EXCEPTION_LOOPING
-			reason:[NSString stringWithFormat:@"script stack overflow for expandDescription: \"%@\"", desc]
-			userInfo:nil];
-		[myException raise];
-	}
-	
-	return result;
-}
-
-- (NSString *) expandDescriptionWithLocals:(NSString *) desc forSystem:(Random_Seed)s_seed withLocalVariables:(NSDictionary *)locals
-{
-	PlayerEntity		*player = [self entityZero];
-	NSMutableString		*partial = [NSMutableString stringWithString:desc];
-	NSMutableDictionary	*all_descriptions = [NSMutableDictionary dictionaryWithDictionary:descriptions];
-//
-// --  GILES move mission variable expansion to new routine --
-//
-//	// add in mission_variables if required
-//	if ([desc rangeOfString:@"[mission_"].location != NSNotFound)
-//	{
-//		NSDictionary* mission_vars = [player mission_variables];
-//		NSEnumerator* missVarsEnum = [mission_vars keyEnumerator];
-//		id key;
-//		while (key = [missVarsEnum nextObject])
-//			[all_descriptions setObject:[mission_vars objectForKey:key] forKey:key];
-//	}
-//	
-//	// also add the mission-local vars, if they have been passed in
-//	if (locals != nil && [desc rangeOfString:@"[local_"].location != NSNotFound)
-//	{
-//		NSEnumerator* localVarsEnum = [locals keyEnumerator];
-//		id key;
-//		while (key = [localVarsEnum nextObject])
-//			[all_descriptions setObject:[locals objectForKey:key] forKey:key];
-//	}
-	
-	// add in player info if required
-	
-	// -- this is now duplicated with new commanderXXX_string and commanderYYY_number methods in PlayerEntity Additions -- GILES
-	
-	if ([desc rangeOfString:@"[commander_"].location != NSNotFound)
-	{
-		// commander's name
-		[all_descriptions setObject:[player commanderName_string] forKey:@"commander_name"];
-		// one or two word description of ship
-		[all_descriptions setObject:[player commanderShip_string] forKey:@"commander_shipname"];
-		// ranking from Hamless to ELITE
-		[all_descriptions setObject:[player commanderRank_string] forKey:@"commander_rank"];
-		// legal status
-		[all_descriptions setObject:[player commanderLegalStatus_string] forKey:@"commander_legal_status"];
-	}
-	
-	while ([partial rangeOfString:@"["].location != NSNotFound)
-	{
-		NSString	*part, *before, *after, *middle;
-		int			sub, rnd, opt;
-		int			p1 = [partial rangeOfString:@"["].location;
-		int			p2 = [partial rangeOfString:@"]"].location + 1;
-		
-		part = nil;	// stop compiler warning...
-		
-		before = [partial substringWithRange:NSMakeRange(0,p1)];
-		after = [partial substringWithRange:NSMakeRange(p2,[partial length] - p2)];
-		middle = [partial substringWithRange:NSMakeRange(p1 + 1 , p2 - p1 - 2)];
-		
-		// check all_descriptions for an array that's keyed to middle
-		if ([all_descriptions objectForKey:middle])
-		{
-			if ([[all_descriptions objectForKey:middle] isKindOfClass:[NSArray class]])
-			{
-				NSArray* choices = (NSArray*)[all_descriptions objectForKey:middle];
-				rnd = gen_rnd_number() % [choices count];
-				part = [NSString stringWithString:(NSString *)[choices objectAtIndex:rnd]];
-			}
-			else
-			{
-				part = [all_descriptions objectForKey:middle];
-			}
-		}
-//		else if (([middle hasSuffix:@"_number"])||([middle hasSuffix:@"_bool"])||([middle hasSuffix:@"_string"]))
-//		{
-//			SEL value_selector = NSSelectorFromString(middle);
-//			if ([player respondsToSelector:value_selector])
-//			{
-//				part = [NSString stringWithFormat:@"%@", [player performSelector:value_selector]];
-//			}
-//		}
-		else if ([[middle stringByTrimmingCharactersInSet:[NSCharacterSet characterSetWithCharactersInString:@"0123456789"]] isEqual:@""])
-		{
-			// if all characters are all from the set "0123456789" interpret it as a number in system_description array
-			if (![middle isEqual:@""])
-			{
-				sub = [middle intValue];
-				
-				//NSLog(@"Expanding:\t%@",partial);
-				rnd = gen_rnd_number();
-				opt = 0;
-				if (rnd >= 0x33) opt++;
-				if (rnd >= 0x66) opt++;
-				if (rnd >= 0x99) opt++;
-				if (rnd >= 0xCC) opt++;
-				
-				part = (NSString *)[(NSArray *)[(NSArray *)[all_descriptions objectForKey:@"system_description"] objectAtIndex:sub] objectAtIndex:opt];
-			}
-			else
-				part = @"";
-		}
-		else
-		{
-			// do replacement of mission and local variables here instead
-			part = [player replaceVariablesInString:middle];
-		}
-		partial = [NSMutableString stringWithFormat:@"%@%@%@",before,part,after];
-	}
-		
-	[partial	replaceOccurrencesOfString:@"%H"
-				withString:[self generateSystemName:s_seed]
-				options:NSLiteralSearch range:NSMakeRange(0, [partial length])];
-	
-	[partial	replaceOccurrencesOfString:@"%I"
-				withString:[NSString stringWithFormat:@"%@ian",[self generateSystemName:s_seed]]
-				options:NSLiteralSearch range:NSMakeRange(0, [partial length])];
-	
-	[partial	replaceOccurrencesOfString:@"%R"
-				withString:[self getRandomDigrams]
-				options:NSLiteralSearch range:NSMakeRange(0, [partial length])];
-
-	return partial; 
-}
-
-- (NSString *) getRandomDigrams
-{
-	int i;
-	int len = gen_rnd_number() & 3;	
-	NSString*			digrams = [descriptions objectForKey:@"digrams"];
-	NSMutableString*	name = [NSMutableString stringWithCapacity:256];
-	for (i = 0; i <=len; i++)
-	{
-		int x =  gen_rnd_number() & 0x3e;
-		[name appendString:[digrams substringWithRange:NSMakeRange(x,2)]];
-	}
-	return [name capitalizedString]; 
-}
-
 - (Vector) getWitchspaceExitPosition
 {
 	Vector result;
@@ -7715,7 +7380,6 @@ NSComparisonResult comparePrice(NSDictionary *dict1, NSDictionary *dict2, void *
 	if (!ship)
 	{
 		NSLog(@"ERROR ***** No ship set in Universe getSunSkimStartPositionForShip:");
-		// NSBeep(); // AppKit
 		return make_vector( 0.0f, 0.0f, 0.0f);
 	}
 	PlanetEntity* the_sun = [self sun];
@@ -7723,7 +7387,6 @@ NSComparisonResult comparePrice(NSDictionary *dict1, NSDictionary *dict2, void *
 	if (!the_sun)
 	{
 		NSLog(@"ERROR ***** No sun set in Universe getSunSkimStartPositionForShip:");
-		// NSBeep(); // AppKit
 		return make_vector( 0.0f, 0.0f, 0.0f);
 	}
 	Vector v0 = the_sun->position;
@@ -7746,14 +7409,12 @@ NSComparisonResult comparePrice(NSDictionary *dict1, NSDictionary *dict2, void *
 	if (!ship)
 	{
 		NSLog(@"ERROR ***** No ship set in Universe getSunSkimEndPositionForShip:");
-		// NSBeep(); // AppKit
 		return make_vector( 0.0f, 0.0f, 0.0f);
 	}
 	// get vector from sun position to ship
 	if (!the_sun)
 	{
 		NSLog(@"ERROR ***** No sun set in Universe getSunSkimEndPositionForShip:");
-		// NSBeep(); // AppKit
 		return make_vector( 0.0f, 0.0f, 0.0f);
 	}
 	Vector v0 = the_sun->position;
@@ -7805,9 +7466,6 @@ NSComparisonResult comparePrice(NSDictionary *dict1, NSDictionary *dict2, void *
 
 - (void) allShipAIsReactToMessage:(NSString*) message
 {
-	
-//	NSLog(@"DEBUG sending all ships '%@'", message);
-	
 	int i;
 	int ent_count = n_entities;
 	int ship_count = 0;
@@ -7920,17 +7578,17 @@ NSComparisonResult comparePrice(NSDictionary *dict1, NSDictionary *dict2, void *
 		{
 			exception = [ooliteException retain];
 			
-			PlayerEntity* player = [self entityZero];
+			PlayerEntity* player = [PlayerEntity sharedPlayer];
 			[player setStatus:STATUS_HANDLING_ERROR];
 			
-			NSLog(@"***** Handling Fatal : %@ : %@ *****",[exception name], [exception reason]);
+			OOLog(kOOLogException, @"***** Handling Fatal : %@ : %@ *****",[exception name], [exception reason]);
 			NSString* exception_msg = [NSString stringWithFormat:@"Exception : %@ : %@ Please take a screenshot and/or press esc or Q to quit.", [exception name], [exception reason]];
 			[self addMessage:exception_msg forCount:30.0];
 			[[self gameController] pause_game];
 		}
 		else
 		{
-			NSLog(@"***** Handling Non-fatal : %@ : %@ *****",[ooliteException name], [ooliteException reason]);
+			OOLog(kOOLogException, @"***** Handling Non-fatal : %@ : %@ *****",[ooliteException name], [ooliteException reason]);
 		}
 	}
 }

@@ -67,7 +67,7 @@ extern NSLock	*gOOCASoundSyncLock;
 extern NSString * const kOOLogDeprecatedMethodOOCASound;
 extern NSString * const kOOLogSoundInitError;
 
-#define kOOLogUnconvertedNSLog @"unclassified.sound"
+#define kOOLogUnconvertedNSLog @"unclassified.OOCASound"
 
 
 #if MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_4

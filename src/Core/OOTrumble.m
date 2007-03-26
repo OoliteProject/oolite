@@ -375,7 +375,6 @@ MA 02110-1301, USA.
 	*/
 	GLfloat wd = 96 * size;
 	GLfloat ht = 96 * size;
-//	NSLog(@"DEBUG drawing Trumble %@ of size %.2f at position %.2fx %.2fy %.2fz", self, size, position.x, position.y, z);
 	glShadeModel(GL_SMOOTH);
 	glEnable(GL_TEXTURE_2D);
 	glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
@@ -614,10 +613,9 @@ MA 02110-1301, USA.
 			{
 				// eaten all of this cargo!
 				Universe* uni = [player universe];
-				Random_Seed seed = [uni systemSeed];
-				NSString* ms = [NSString stringWithFormat:[uni expandDescription:@"[trumbles-eat-@]" forSystem:seed],
+				NSString* ms = [NSString stringWithFormat:ExpandDescriptionForCurrentSystem(@"[trumbles-eat-@]"),
 								[uni nameForCommodity:[selectedCargopod getCommodityType]]];
-//				NSLog(ms);
+				
 				[uni addMessage: ms forCount: 4.5];
 				[cargopods removeObject:selectedCargopod];
 				trumbleAppetiteAccumulator -= 10.0;
@@ -625,7 +623,6 @@ MA 02110-1301, USA.
 				// consider breeding - must be full grown and happy
 				if ((size > 0.95)&&(discomfort < 0.25))
 				{
-//					NSLog(@"Trumbles breeding!");
 					readyToSpawn = YES;
 				}
 			}
@@ -875,7 +872,6 @@ MA 02110-1301, USA.
 	if (animationTime > animationDuration)
 	{
 		// kaputnik!
-//		NSLog(@"TRUMBLE DIES!");
 		[player removeTrumble:self];
 	}
 }
