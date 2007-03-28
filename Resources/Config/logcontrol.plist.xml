@@ -14,10 +14,14 @@
 	<string>yes</string>
 	<key>$linkedListError</key>
 	<string>$error</string>
+	<key>$plistError</key>
+	<string>$error</string>
 	<key>$scriptDebugOn</key>
 	<string>no</string>
 	<key>$scriptError</key>
 	<string>yes</string>
+	<key>$shaderError</key>
+	<string>$scriptError</string>
 	<key>$soundDebug</key>
 	<string>no</string>
 	<key>$soundDebugVerbose</key>
@@ -32,6 +36,8 @@
 	<string>$entityState</string>
 	<key>ai.message.receive</key>
 	<string>inherit</string>
+	<key>ai.pop</key>
+	<string>$entityState</string>
 	<key>ai.takeAction.badSelector</key>
 	<string>$scriptError</string>
 	<key>ai.takeAction.debugMessage</key>
@@ -42,6 +48,10 @@
 	<string>$error</string>
 	<key>ai.takeAction.takeAction</key>
 	<string>$entityState</string>
+	<key>beacon.list</key>
+	<string>$scriptDebugOn</string>
+	<key>beacon.list.flightTraining</key>
+	<string>inherit</string>
 	<key>dataCache.clear.success</key>
 	<string>$dataCacheDebug</string>
 	<key>dataCache.found</key>
@@ -98,6 +108,10 @@
 	<string>$linkedListError</string>
 	<key>entity.linkedList.verify.rebuild</key>
 	<string>inherit</string>
+	<key>equip.buy.mounted</key>
+	<string>no</string>
+	<key>equip.buy.mounted.failed</key>
+	<string>$scriptError</string>
 	<key>exception</key>
 	<string>yes</string>
 	<key>files.notFound</key>
@@ -130,6 +144,26 @@
 	<string>inherit</string>
 	<key>mesh.load.error.tooManyVertices</key>
 	<string>inherit</string>
+	<key>oxp.versionMismatch</key>
+	<string>$error</string>
+	<key>plist.homebrew.badEncoding</key>
+	<string>$plistError</string>
+	<key>plist.homebrew.exception</key>
+	<string>$plistError</string>
+	<key>plist.homebrew.interpret.trace</key>
+	<string>no</string>
+	<key>plist.homebrew.parseError</key>
+	<string>$plistError</string>
+	<key>plist.homebrew.parseWarning</key>
+	<string>$plistError</string>
+	<key>plist.homebrew.success</key>
+	<string>yes</string>
+	<key>plist.homebrew.tokenize.trace</key>
+	<string>no</string>
+	<key>plist.parse.foundation.failed</key>
+	<string>$plistError</string>
+	<key>plist.wrongType</key>
+	<string>$plistError</string>
 	<key>rendering.opengl.error</key>
 	<string>$error</string>
 	<key>rendering.opengl.extensions</key>
@@ -145,11 +179,13 @@
 	<key>rendering.opengl.shader.init.dump.texture</key>
 	<string>inherit</string>
 	<key>rendering.opengl.shader.init.failed</key>
-	<string>$scriptError</string>
+	<string>$shaderError</string>
 	<key>rendering.opengl.shader.init.success</key>
 	<string>inherit</string>
 	<key>rendering.opengl.shader.support</key>
 	<string>$troubleShootingDump</string>
+	<key>rendering.opengl.shader.texNameMissing</key>
+	<string>$shaderError</string>
 	<key>rendering.opengl.stateDump</key>
 	<string>$troubleShootingDump</string>
 	<key>rendering.opengl.version</key>
@@ -236,6 +272,10 @@
 	<string>inherit</string>
 	<key>script.debug.testCondition.testValues</key>
 	<string>inherit</string>
+	<key>script.javascript.compile.failed</key>
+	<string>$scriptError</string>
+	<key>script.javascript.compile.success</key>
+	<string>inherit</string>
 	<key>script.missionDescription.noMissionKey</key>
 	<string>inherit</string>
 	<key>script.missionDescription.noMissionText</key>
@@ -256,6 +296,8 @@
 	<string>inherit</string>
 	<key>sound.initialization.error</key>
 	<string>$soundError</string>
+	<key>sound.invalidBeep</key>
+	<string>inherit</string>
 	<key>sound.load.failed</key>
 	<string>$soundError</string>
 	<key>sound.load.success</key>
