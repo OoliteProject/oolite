@@ -438,7 +438,7 @@ MA 02110-1301, USA.
 	{
 		NSLog(@"WIN32: clearing texture store cache");
 		[TextureStore reloadTextures]; // clears the cached references
-		PlayerEntity *player = (PlayerEntity *)[universe entityZero];
+		PlayerEntity *player = [PlayerEntity sharedPlayer];
 		if (player)
 		{
 			NSLog(@"WIN32: resetting text texture");

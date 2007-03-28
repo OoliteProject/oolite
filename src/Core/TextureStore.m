@@ -327,12 +327,12 @@ GLuint	max_texture_dimension = 512;	// conservative start
 	if (!shaderDict)
 	{
 		NSLog(@"ERROR: null dictionary passed to [TextureStore prepareShaderFDromDictionary:]");
-		return 0;	// failed!
+		return NULL_SHADER;	// failed!
 	}
 	
-	GLhandleARB	fragment_shader_object = NULL;
-	GLhandleARB	vertex_shader_object = NULL;
-	GLhandleARB	shader_program = NULL;
+	GLhandleARB	fragment_shader_object = NULL_SHADER;
+	GLhandleARB	vertex_shader_object = NULL_SHADER;
+	GLhandleARB	shader_program = NULL_SHADER;
 	
 	NSString	*fragmentSource = nil;
 	NSString	*vertexSource = nil;
@@ -340,20 +340,24 @@ GLuint	max_texture_dimension = 512;	// conservative start
 	BOOL		OK = YES;
 	
 	NSString	*shaderEnvMacros =
-					   @"#define OO_TIME\t\t\t\t\t1\n"
-						"#define OO_ENGINE_LEVEL\t\t\t1\n"
-						"#define OO_LASER_HEAT_LEVEL\t\t1\n"
-						"#define OO_HULL_HEAT_LEVEL\t\t1\n\n";
+					   @"#define OO_TIME\t\t\t\t\t\t1\n"
+						"#define OO_ENGINE_LEVEL\t\t\t\t1\n"
+						"#define OO_LASER_HEAT_LEVEL\t\t\t1\n"
+						"#define OO_HULL_HEAT_LEVEL\t\t\t1\n"
+						"#define OO_HULL_HEAT_LEVEL\t\t\t1\n"
+						"#define OO_ENTITY_PERSONALITY_INT\t1\n"
+						"#define OO_ENTITY_PERSONALITY\t\t1\n"
+						"\n";
 	
-	if (!GetShaderSource(@"fragment", shaderDict, &fragmentSource)) return NULL;
+	if (!GetShaderSource(@"fragment", shaderDict, &fragmentSource)) return NULL_SHADER;
 	if (fragmentSource == nil) fragmentSource = [shaderDict objectForKey:@"glsl"];
 	
-	if (!GetShaderSource(@"vertex", shaderDict, &vertexSource)) return NULL;
+	if (!GetShaderSource(@"vertex", shaderDict, &vertexSource)) return NULL_SHADER;
 	
 	if (fragmentSource == nil && vertexSource == nil)
 	{
 		OOLog(kOOLogShaderInitFailed, @"Shader dictionary specifies neither vertex shader nor fragment shader:\n", shaderDict);
-		return NULL;
+		return NULL_SHADER;
 	}
 	
 	// check if we need to make a fragment shader
@@ -460,9 +464,9 @@ GLuint	max_texture_dimension = 512;	// conservative start
 			OK = NO;
 		}
 	}
-	if (vertex_shader_object != NULL) glDeleteObjectARB(vertex_shader_object);
-	if (fragment_shader_object != NULL) glDeleteObjectARB(fragment_shader_object);
-	if (!OK && shader_program != NULL) glDeleteObjectARB(shader_program);
+	if (vertex_shader_object != NULL_SHADER) glDeleteObjectARB(vertex_shader_object);
+	if (fragment_shader_object != NULL_SHADER) glDeleteObjectARB(fragment_shader_object);
+	if (!OK && shader_program != NULL_SHADER) glDeleteObjectARB(shader_program);
 	
 	if (OK)
 	{
@@ -471,17 +475,17 @@ GLuint	max_texture_dimension = 512;	// conservative start
 		[shaderUniversalDictionary setObject: [NSNumber numberWithUnsignedInt: (unsigned int) shader_program] forKey: shaderDict];	
 	}
 	
-	return OK ? shader_program : NULL;
+	return OK ? shader_program : NULL_SHADER;
 }
 #endif
 
+
 + (void) reloadTextures
 {
-#ifdef WIN32
+	// Is this ever called? Seems not. --ahruman
 	int i;
 
-	// Free up the texture image data from video memory. I assume this is a reasonable thing
-	// to do for any platform, but just in case... stick it in a WIN32 only condition.
+	// Free up the texture image data from video memory.
 	NSArray *keys = [textureUniversalDictionary allKeys];
 	for (i = 0; i < [keys count]; i++)
 	{
@@ -489,7 +493,6 @@ GLuint	max_texture_dimension = 512;	// conservative start
 		NSLog(@"deleting texture #%d (%@)", texName, (NSString *)[keys objectAtIndex:i]);
 		glDeleteTextures(1, &texName);
 	}
-#endif
 
 	[textureUniversalDictionary removeAllObjects];
 	return;

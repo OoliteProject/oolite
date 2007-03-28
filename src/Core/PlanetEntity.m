@@ -298,7 +298,7 @@ void setUpSinTable()
 	}
 	isShadered = NO;
 #ifndef NO_SHADERS
-	shader_program = nil;
+	shader_program = NULL_SHADER;
 #endif
     if (!planet)
     {
@@ -540,7 +540,7 @@ void setUpSinTable()
 			{
 				NSLog(@"TESTING: creating planet shader from:\n%@", shader_info);
 				shader_program = [TextureStore shaderProgramFromDictionary:shader_info];
-				isShadered = (shader_program != nil);
+				isShadered = (shader_program != NULL_SHADER);
 				normalMapTextureName = [TextureStore getPlanetNormalMapNameFor: planetinfo intoData: &normalMapTextureData];
 				NSLog(@"TESTING: planet-surface-shader: %d normalMapTextureName: %d", (int)shader_program, (int)normalMapTextureName);
 			}
@@ -551,7 +551,7 @@ void setUpSinTable()
 	{
 		isShadered = NO;
 #ifndef NO_SHADERS
-		shader_program = nil;
+		shader_program = NULL_SHADER;
 #endif
 	}
 	
@@ -1461,7 +1461,7 @@ void setUpSinTable()
 						[self drawModelWithVertexArraysAndSubdivision:subdivideLevel];
 						//
 						glDisable(GL_COLOR_MATERIAL);
-						glUseProgramObjectARB( nil);	// shader OFF
+						glUseProgramObjectARB(NULL_SHADER);	// shader OFF
 #endif
 					}
 					else

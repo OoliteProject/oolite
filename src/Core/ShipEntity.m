@@ -234,6 +234,9 @@ void loadOpenGLFunctions()
 	brain = nil;
 	//
 	is_hulk = NO;
+	
+	// TODO: is there a reason we're using this brain-dead PRNG? Not the world-generating one, the other one.
+	entity_personality = ranrot_rand() & 0x7FFF;
 
 	return self;
 }
@@ -3502,7 +3505,7 @@ void testForShaders()
 											glUniform1iARB(variable_location, i);	// associate texture unit number i with tex%d
 									}
 									
-									// other variables 'time' 'engine_level'
+									// other uniform variables
 									variable_location = glGetUniformLocationARB( shader_program, "time");
 									if (variable_location != -1)
 										glUniform1fARB(variable_location, utime);
@@ -3514,10 +3517,18 @@ void testForShaders()
 									variable_location = glGetUniformLocationARB( shader_program, "laser_heat_level");
 									if (variable_location != -1)
 										glUniform1fARB(variable_location, laser_heat_level);
-										
+									
 									variable_location = glGetUniformLocationARB( shader_program, "hull_heat_level");
 									if (variable_location != -1)
 										glUniform1fARB(variable_location, hull_heat_level);
+									
+									variable_location = glGetUniformLocationARB( shader_program, "entity_personality_int");
+									if (variable_location != -1)
+										glUniform1iARB(variable_location, entity_personality);
+									
+									variable_location = glGetUniformLocationARB( shader_program, "entity_personality");
+									if (variable_location != -1)
+										glUniform1fARB(variable_location, entity_personality / (float)0x7FFF);
 								}
 								else
 #endif

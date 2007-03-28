@@ -1047,6 +1047,7 @@
 		1AEAACDA0BA45895000705D0 /* JSUniverse.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = JSUniverse.h; path = JavaScript/JSUniverse.h; sourceTree = "<group>"; };
 		1AEAACDB0BA45895000705D0 /* OXPScript.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = OXPScript.m; path = JavaScript/OXPScript.m; sourceTree = "<group>"; };
 		1AEAACDC0BA45895000705D0 /* ScriptEngine.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = ScriptEngine.h; path = JavaScript/ScriptEngine.h; sourceTree = "<group>"; };
+		1AED74C70BBA3CAA009410CD /* logcontrol.plist.xml */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xml; path = logcontrol.plist.xml; sourceTree = "<group>"; };
 		2512833C09BA27C100F43D55 /* Octree.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = Octree.m; sourceTree = "<group>"; };
 		2512833D09BA27C100F43D55 /* Octree.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Octree.h; sourceTree = "<group>"; };
 		2512834009BA27EC00F43D55 /* Geometry.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Geometry.h; sourceTree = "<group>"; };
@@ -1247,6 +1248,7 @@
 				1A2316E60B9CFAD700EF0852 /* illegal_goods.plist */,
 				1A2316E70B9CFAD700EF0852 /* keyconfig.plist */,
 				1A2316E80B9CFAD700EF0852 /* logcontrol.plist */,
+				1AED74C70BBA3CAA009410CD /* logcontrol.plist.xml */,
 				1A2316E90B9CFAD700EF0852 /* missiontext.plist */,
 				1A2316EA0B9CFAD700EF0852 /* script.plist */,
 				1A2316EB0B9CFAD700EF0852 /* shipdata.plist */,

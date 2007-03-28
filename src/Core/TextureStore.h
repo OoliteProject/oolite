@@ -49,11 +49,11 @@ extern int debug;
 + (NSSize) getSizeOfTexture:(NSString *)filename;
 
 #ifndef NO_SHADERS
-//+ (GLuint) shaderProgramFromDictionary:(NSDictionary *) shaderDict;
 + (GLhandleARB) shaderProgramFromDictionary:(NSDictionary *) shaderDict;
 #endif
 
 + (void) reloadTextures;
+
 
 // routines to create textures...
 

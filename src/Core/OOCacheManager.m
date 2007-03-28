@@ -61,7 +61,7 @@ static OOCacheManager *sSingleton = nil;
 
 @interface OOCacheManager (Private)
 
-- (void)load;
+- (void)loadCache;
 - (void)write;
 - (void)clear;
 - (BOOL)dirty;
@@ -90,7 +90,7 @@ static OOCacheManager *sSingleton = nil;
 	if (self != nil)
 	{
 		[self platformInit];
-		[self load];
+		[self loadCache];
 	}
 	return self;
 }
@@ -270,7 +270,7 @@ static OOCacheManager *sSingleton = nil;
 
 @implementation OOCacheManager (Private)
 
-- (void)load
+- (void)loadCache
 {
 	NSDictionary			*cache = nil;
 	NSString				*cacheVersion = nil;
@@ -278,7 +278,7 @@ static OOCacheManager *sSingleton = nil;
 	NSData					*endianTag = nil;
 	NSNumber				*formatVersion = nil;
 	BOOL					accept = YES;
-	uint32_t				endianTagValue = nil;
+	uint32_t				endianTagValue = 0;
 	
 	ooliteVersion = [[[NSBundle mainBundle] infoDictionary] objectForKey:kCacheKeyVersion];
 	

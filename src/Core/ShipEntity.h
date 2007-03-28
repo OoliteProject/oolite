@@ -25,9 +25,8 @@ MA 02110-1301, USA.
 
 */
 
-#import <Foundation/Foundation.h>
-
 #import "Entity.h"
+#import "OOMaths.h"
 
 #define BEHAVIOUR_IDLE			0
 #define BEHAVIOUR_TRACK_TARGET	1
@@ -367,6 +366,8 @@ MA 02110-1301, USA.
 		NSMutableDictionary* shader_info;
 		
 		BOOL					is_hulk; // This is used to distinguish abandoned ships from cargo
+		
+		uint16_t				entity_personality;	// Per-entity random number. Used for shaders, maybe scripting at some point.
 }
 
 // ship brains
