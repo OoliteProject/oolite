@@ -202,7 +202,7 @@ NSMutableDictionary*	surface_cache;
 	NSFileManager *fmgr = [NSFileManager defaultManager];
 	
 #ifdef WIN32
-	NSString	*app_path = @"oolite.app/Contents/Resources";
+	NSString	*app_path = @"oolite.app/Resources";
 	NSString	*app_addon_path = @"AddOns";
 	NSString	*appsupport_path=nil;
 	NSString	*nix_path=nil;

@@ -17,16 +17,15 @@ else
 	BINARY=$(SHAREDOBJ)/$(OBJC_PROGRAM_NAME)
 endif
 
-CONTENTS = Contents
 PROGDIR=$(OBJC_PROGRAM_NAME).$(EXTENSION)
-CONTENTDIR=$(OBJC_PROGRAM_NAME).$(EXTENSION)/$(CONTENTS)
 GNUSTEP_OW=$(OBJC_PROGRAM_NAME).$(EXTENSION)/Resources/Info-gnustep.plist
 
 after-all:: 
-	rm -rf $(CONTENTDIR)
+	rm -rf $(PROGDIR)
 	$(MKDIRS) $(PROGDIR)
 	$(MKDIRS) $(PROGDIR)/Resources
-	$(MKDIRS) $(CONTENTDIR)
-	$(CP) -r Resources $(CONTENTDIR)/Resources
+	$(CP) -r Resources $(PROGDIR)
 	$(CP) src/Cocoa/Info-Oolite.plist $(GNUSTEP_OW)
 	$(CP) $(BINARY) $(PROGDIR)
+	rm $(PROGDIR)/Resources/Config/logcontrol.plist
+	mv $(PROGDIR)/Resources/Config/logcontrol.plist.xml $(PROGDIR)/Resources/Config/logcontrol.plist
