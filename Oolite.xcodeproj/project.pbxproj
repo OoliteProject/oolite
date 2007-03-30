@@ -1542,8 +1542,6 @@
 				1A8A3A370B962AEF007D20B8 /* NSScannerOOExtensions.m */,
 				083325DB09DDBCDE00F5B8E4 /* OOColor.h */,
 				083325DC09DDBCDE00F5B8E4 /* OOColor.m */,
-				25F3E6300994F033002F25FD /* legacy_random.h */,
-				25F3E6320994F04C002F25FD /* legacy_random.c */,
 				25F3E6380994F07A002F25FD /* entities.h */,
 				08125F0809F9083F00AB9BF9 /* OOGLDefs.h */,
 				25F3E63A0994F08A002F25FD /* OOOpenGL.h */,
@@ -1555,8 +1553,6 @@
 				1A9403CF0BAF36C3005F6CF3 /* OOFunctionAttributes.h */,
 				1A9404240BAF3DED005F6CF3 /* OOCollectionExtractors.m */,
 				1A9404250BAF3DED005F6CF3 /* OOCollectionExtractors.h */,
-				1A9404640BAF42BE005F6CF3 /* OOPListParsing.h */,
-				1A9404650BAF42BF005F6CF3 /* OOPListParsing.m */,
 			);
 			name = Utilities;
 			sourceTree = "<group>";
@@ -1628,6 +1624,8 @@
 				1A29967D0B9F064C002D2149 /* OOCache.m */,
 				1AB01ABC0BB15AED00F1B949 /* OOTextureScaling.h */,
 				1AB01ABD0BB15AED00F1B949 /* OOTextureScaling.m */,
+				1A9404640BAF42BE005F6CF3 /* OOPListParsing.h */,
+				1A9404650BAF42BF005F6CF3 /* OOPListParsing.m */,
 			);
 			name = "Resource Management";
 			sourceTree = "<group>";
@@ -1668,6 +1666,8 @@
 				1A9406B30BAF67BF005F6CF3 /* OOTriangle.m */,
 				1AB01BB90BB16A8A00F1B949 /* OOFastArithmetic.h */,
 				1AB01BBA0BB16A8A00F1B949 /* OOFastArithmetic.m */,
+				25F3E6300994F033002F25FD /* legacy_random.h */,
+				25F3E6320994F04C002F25FD /* legacy_random.c */,
 			);
 			name = Mathematics;
 			sourceTree = "<group>";

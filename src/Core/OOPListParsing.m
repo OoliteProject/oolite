@@ -26,6 +26,13 @@ MA 02110-1301, USA.
 #import "OOPListParsing.h"
 #import "OOLogging.h"
 #import "OOStringParsing.h"
+#import <ctype.h>
+#import <string.h>
+
+
+#if defined GNUSTEP
+#define NO_DYNAMIC_PLIST_DTD_CHANGE
+#endif
 
 
 static NSString * const kOOLogPListFoundationParseError		= @"plist.parse.foundation.failed";
@@ -48,6 +55,10 @@ typedef struct
 	id				content;	// content of tag
 } OOXMLElement;
 
+
+#ifndef NO_DYNAMIC_PLIST_DTD_CHANGE
+static NSData *ChangeDTDIfApplicable(NSData *data);
+#endif
 
 static NSData *CopyDataFromFile(NSString *path);
 static id ValueIfClass(id value, Class class);
@@ -73,6 +84,10 @@ id OOPropertyListFromData(NSData *data, NSString *whereFrom)
 	
 	if (data != nil)
 	{
+		#ifndef NO_DYNAMIC_PLIST_DTD_CHANGE
+		data = ChangeDTDIfApplicable(data);
+		#endif
+		
 		result = [NSPropertyListSerialization propertyListFromData:data mutabilityOption:NSPropertyListImmutable format:NULL errorDescription:&error];
 		if (result == nil)	// Foundation parser failed
 		{
@@ -114,6 +129,54 @@ id OOPropertyListFromFile(NSString *path)
 	
 	return result;
 }
+
+
+#ifndef NO_DYNAMIC_PLIST_DTD_CHANGE
+static NSData *ChangeDTDIfApplicable(NSData *data)
+{
+	const uint8_t		*bytes = NULL;
+	uint8_t				*newBytes = NULL;
+	size_t				length,
+						newLength,
+						offset = 0,
+						newOffset = 0;
+	const char			xmlDeclLine[] = "<\?xml version=\"1.0\" encoding=\"UTF-8\"\?>";
+	const char			appleDTDLine[] = "<!DOCTYPE plist PUBLIC \"-//Apple Computer//DTD PLIST 1.0//EN\" \"http://www.apple.com/DTDs/PropertyList-1.0.dtd\">";
+	const char			gstepDTDLine[] = "<!DOCTYPE plist PUBLIC \"-//GNUstep//DTD plist 0.9//EN\" \"http://www.gnustep.org/plist-0_9.xml\">";
+	
+	length = [data length];
+	if (length < sizeof xmlDeclLine + sizeof appleDTDLine) return data;
+	
+	bytes = [data bytes];
+	
+	// Check if it starts with an XML declaration. Bogus: there are valid XML declarations which don't match xmlDeclLine.
+	if (memcmp(bytes, xmlDeclLine, sizeof xmlDeclLine - 1) != 0) return data;
+	
+	offset += sizeof xmlDeclLine - 1;
+	while (offset < length && isspace(bytes[offset]))  ++offset;
+	
+	// Check if first non-blank stuff after XML declaration is Apple plist DTD. Also somewhat bogus.
+	if (length - offset < sizeof appleDTDLine) return data;
+	if (memcmp(bytes + offset, appleDTDLine, sizeof appleDTDLine - 1) != 0) return data;
+	
+	// If we get here, it's a match.
+	offset += sizeof appleDTDLine - 1;
+	
+	newLength = length - offset + sizeof xmlDeclLine + sizeof gstepDTDLine - 1;
+	newBytes = malloc(newLength);
+	if (newBytes == NULL) return data;
+	
+	// Construct modified version with altered DTD line
+	memcpy(newBytes, xmlDeclLine, sizeof xmlDeclLine - 1);
+	newOffset = sizeof xmlDeclLine - 1;
+	newBytes[newOffset++] = '\n';
+	memcpy(newBytes + newOffset, gstepDTDLine, sizeof gstepDTDLine - 1);
+	newOffset += sizeof gstepDTDLine - 1;
+	memcpy(newBytes + newOffset, bytes + offset, length - offset);
+	
+	return [NSData dataWithBytes:newBytes length:newLength];
+}
+#endif
 
 
 /*	Load data from file. Returns a retained pointer.

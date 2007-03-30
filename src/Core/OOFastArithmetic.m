@@ -42,7 +42,9 @@ MA 02110-1301, USA.
 	
 	The original was found here:
 	http://sources.redhat.com/ml/libc-alpha/2006-12/txt00004.txt
-	and is LGPL-licensed.
+	and is LGPL-licensed. This version may also be distributed under the GNU
+	Lesser General Public License, in addition the GPL as specified in the
+	file header.
 	
 	This may not build under Linux-PPC; it may need to be modified to use
 	GCC's crazy asm syntax.
