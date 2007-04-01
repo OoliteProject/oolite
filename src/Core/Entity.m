@@ -824,7 +824,7 @@ BOOL global_testForVAR;
 				OOLog(kOOLogFileNotLoaded, @"ERROR no basefile for entity %@");
 			}
 		}
-		glShadeModel(GL_SMOOTH);
+		if (!is_smooth_shaded) glShadeModel(GL_SMOOTH);
 		checkGLErrors([NSString stringWithFormat:@"Entity after drawing %@", self]);
 
 	NS_HANDLER

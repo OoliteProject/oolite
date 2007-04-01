@@ -37,6 +37,30 @@ MA 02110-1301, USA.
 #define kOOLogUnconvertedNSLog @"unclassified.ParticleEntity"
 
 
+#ifndef ADDITIVE_BLENDING
+#define ADDITIVE_BLENDING	1
+#endif
+
+#if ADDITIVE_BLENDING
+static inline void BeginAdditiveBlending(void)
+{
+	glPushAttrib(GL_COLOR_BUFFER_BIT);
+	glEnable(GL_BLEND);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE);
+}
+
+
+static inline void EndAdditiveBlending(void)
+{
+	glPopAttrib();
+}
+#else
+#define BeginAdditiveBlending()	do {} while (0)
+#define EndAdditiveBlending()	do {} while (0)
+#endif
+
+
+
 static	Vector	circleVertex[65];		// holds vector coordinates for a unit circle
 
 @implementation ParticleEntity
@@ -1257,7 +1281,13 @@ static	Vector	circleVertex[65];		// holds vector coordinates for a unit circle
 
 - (void) updateExhaust2:(double) delta_t
 {
-	GLfloat ex_emissive[4]	= {0.6, 0.8, 1.0, 0.9};   // pale blue
+	#if ADDITIVE_BLENDING
+		#define OVERALL_ALPHA		0.3f
+	#else
+		#define OVERALL_ALPHA		1.0f
+	#endif
+	
+	GLfloat ex_emissive[4]	= {0.6, 0.8, 1.0, 0.9 * OVERALL_ALPHA};   // pale blue
 	GLfloat s1[8] = { 0.0, 0.707, 1.0, 0.707, 0.0, -0.707, -1.0, -0.707};
 	GLfloat c1[8] = { 1.0, 0.707, 0.0, -0.707, -1.0, -0.707, 0.0, 0.707};
 	ShipEntity  *ship =(ShipEntity *)[universe entityForUniversalID:owner];
@@ -1267,7 +1297,7 @@ static	Vector	circleVertex[65];		// holds vector coordinates for a unit circle
 
 	Quaternion shipQrotation = ship->q_rotation;
 	if (ship->isPlayer)	shipQrotation.w = -shipQrotation.w;
-
+	
 	Frame zero;
 	zero.q_rotation = shipQrotation;
 	int dam = [ship damage];
@@ -1341,7 +1371,7 @@ static	Vector	circleVertex[65];		// holds vector coordinates for a unit circle
 	int i;
 	float r1;
 	//
-	ex_emissive[3] = flare_factor;	// fade alpha towards rear of exhaust
+	ex_emissive[3] = flare_factor * OVERALL_ALPHA;	// fade alpha towards rear of exhaust
 	ex_emissive[1] = green_factor;	// diminish green part towards rear of exhaust
 	ex_emissive[0] = red_factor;		// diminish red part towards rear of exhaust
 	verts[iv++] = f03.position.x + b03.x;// + zero.k.x * flare_factor * 4.0;
@@ -1352,7 +1382,7 @@ static	Vector	circleVertex[65];		// holds vector coordinates for a unit circle
 	exhaustBaseColors[ci++] = ex_emissive[2];
 	exhaustBaseColors[ci++] = ex_emissive[3];
 	//
-	ex_emissive[3] = 0.9 * flare_factor;	// fade alpha towards rear of exhaust
+	ex_emissive[3] = 0.9 * flare_factor * OVERALL_ALPHA;	// fade alpha towards rear of exhaust
 	ex_emissive[1] = 0.9 * green_factor;	// diminish green part towards rear of exhaust
 	ex_emissive[0] = 0.9 * red_factor;		// diminish red part towards rear of exhaust
 	Vector k1 = f01.k;
@@ -1376,7 +1406,7 @@ static	Vector	circleVertex[65];		// holds vector coordinates for a unit circle
 		exhaustBaseColors[ci++] = ex_emissive[3];
 	}
 	//
-	ex_emissive[3] = 0.6 * flare_factor;	// fade alpha towards rear of exhaust
+	ex_emissive[3] = 0.6 * flare_factor * OVERALL_ALPHA;	// fade alpha towards rear of exhaust
 	ex_emissive[1] = 0.6 * green_factor;	// diminish green part towards rear of exhaust
 	ex_emissive[0] = 0.6 * red_factor;		// diminish red part towards rear of exhaust
 	k1 = f03.k;
@@ -1396,7 +1426,7 @@ static	Vector	circleVertex[65];		// holds vector coordinates for a unit circle
 		exhaustBaseColors[ci++] = ex_emissive[3];
 	}
 	//
-	ex_emissive[3] = 0.4 * flare_factor;	// fade alpha towards rear of exhaust
+	ex_emissive[3] = 0.4 * flare_factor * OVERALL_ALPHA;	// fade alpha towards rear of exhaust
 	ex_emissive[1] = 0.4 * green_factor;	// diminish green part towards rear of exhaust
 	ex_emissive[0] = 0.4 * red_factor;		// diminish red part towards rear of exhaust
 	k1 = f06.k;
@@ -1416,7 +1446,7 @@ static	Vector	circleVertex[65];		// holds vector coordinates for a unit circle
 		exhaustBaseColors[ci++] = ex_emissive[3];
 	}
 	//
-	ex_emissive[3] = 0.2 * flare_factor;	// fade alpha towards rear of exhaust
+	ex_emissive[3] = 0.2 * flare_factor * OVERALL_ALPHA;	// fade alpha towards rear of exhaust
 	ex_emissive[1] = 0.2 * green_factor;	// diminish green part towards rear of exhaust
 	ex_emissive[0] = 0.2 * red_factor;		// diminish red part towards rear of exhaust
 	k1 = f08.k;
@@ -1640,10 +1670,11 @@ static	Vector	circleVertex[65];		// holds vector coordinates for a unit circle
 	glColor4fv( color_fv);
 
 	glTexEnvfv(GL_TEXTURE_ENV, GL_TEXTURE_ENV_COLOR, color_fv);
-
 	glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_BLEND);
 
 	glBindTexture(GL_TEXTURE_2D, texName);
+	
+	BeginAdditiveBlending();
 
 	glBegin(GL_QUADS);
 
@@ -1739,6 +1770,8 @@ static	Vector	circleVertex[65];		// holds vector coordinates for a unit circle
 			break;
 	}
 	glEnd();
+	
+	EndAdditiveBlending();
 }
 
 - (void) drawLaser
@@ -1753,6 +1786,8 @@ static	Vector	circleVertex[65];		// holds vector coordinates for a unit circle
 	glDisable(GL_TEXTURE_2D);
 
 	glColor4fv(color_fv);
+	
+	BeginAdditiveBlending();
 
 	glBegin(GL_QUADS);
 
@@ -1767,6 +1802,8 @@ static	Vector	circleVertex[65];		// holds vector coordinates for a unit circle
 	glVertex3f(0.0, -0.25, 0.0);
 
 	glEnd();
+	
+	EndAdditiveBlending();
 
 	glEnable(GL_CULL_FACE);			// face culling
 }
@@ -1793,6 +1830,8 @@ GLuint tfan2[10] = {	33,	25,	26,	27,	28,	29,	30,	31,	32,	25};	// final fan 64..7
 	glDisable( GL_TEXTURE_2D);
 	glDisable( GL_CULL_FACE);		// face culling
 	glShadeModel( GL_SMOOTH);
+	
+	BeginAdditiveBlending();
 
 	glEnableClientState(GL_VERTEX_ARRAY);
 	glVertexPointer( 3, GL_FLOAT, 0, verts);
@@ -1809,6 +1848,8 @@ GLuint tfan2[10] = {	33,	25,	26,	27,	28,	29,	30,	31,	32,	25};	// final fan 64..7
 	glDrawElements( GL_QUAD_STRIP, 18, GL_UNSIGNED_INT, qstrip3);
 	glDrawElements( GL_TRIANGLE_FAN, 10, GL_UNSIGNED_INT, tfan2);
 
+	EndAdditiveBlending();
+	
 	glEnable( GL_CULL_FACE);		// face culling
 	glEnable( GL_TEXTURE_2D);
 }
@@ -1825,6 +1866,8 @@ GLuint tfan2[10] = {	33,	25,	26,	27,	28,	29,	30,	31,	32,	25};	// final fan 64..7
 	glDisable(GL_CULL_FACE);			// face culling
 	glDisable(GL_TEXTURE_2D);
 	glShadeModel(GL_SMOOTH);
+	
+	BeginAdditiveBlending();
 
 	//NSLog(@"... drawing hyppering inner_radius:%.1f  alpha:%.2f", ring_inner_radius, aleph);
 
@@ -1840,6 +1883,8 @@ GLuint tfan2[10] = {	33,	25,	26,	27,	28,	29,	30,	31,	32,	25};	// final fan 64..7
 		glVertex3f( ring_outer_radius*circleVertex[i].x, ring_outer_radius*circleVertex[i].y, ring_outer_radius*circleVertex[i].z );
 	}
 	glEnd();
+	
+	EndAdditiveBlending();
 
 	glEnable(GL_CULL_FACE);			// face culling
 	glPopMatrix();
@@ -1853,6 +1898,8 @@ GLuint tfan2[10] = {	33,	25,	26,	27,	28,	29,	30,	31,	32,	25};	// final fan 64..7
 
 	glDisable(GL_CULL_FACE);			// face culling
 	glDisable(GL_TEXTURE_2D);
+	
+	BeginAdditiveBlending();
 
 	int step = 4;
 
@@ -1865,6 +1912,8 @@ GLuint tfan2[10] = {	33,	25,	26,	27,	28,	29,	30,	31,	32,	25};	// final fan 64..7
 
 //	NSLog(@"DEBUG ENERGY BOMB radius: %.3f, expansion: %.3f, color: [ %.3f, %.3f, %.3f, %.3f]", collision_radius, velocity.z, color_fv[0], color_fv[1], color_fv[2], alpha);
 
+	EndAdditiveBlending();
+	
 	glEnable(GL_CULL_FACE);			// face culling
 }
 
@@ -1876,6 +1925,8 @@ GLuint tfan2[10] = {	33,	25,	26,	27,	28,	29,	30,	31,	32,	25};	// final fan 64..7
 	glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
 	glBindTexture(GL_TEXTURE_2D, texName);
 	glPushMatrix();
+	
+	BeginAdditiveBlending();
 
 	glBegin(GL_QUADS);
 	for (i = 0; i < n_vertices; i++)
@@ -1884,6 +1935,8 @@ GLuint tfan2[10] = {	33,	25,	26,	27,	28,	29,	30,	31,	32,	25};	// final fan 64..7
 		drawQuadForView( universe, vertices[i].x, vertices[i].y, vertices[i].z, faces[i].normal.x, faces[i].normal.x);
 	}
 	glEnd();
+	
+	EndAdditiveBlending();
 
 	glPopMatrix();
 	glDisable(GL_TEXTURE_2D);
@@ -1897,6 +1950,8 @@ GLuint tfan2[10] = {	33,	25,	26,	27,	28,	29,	30,	31,	32,	25};	// final fan 64..7
 	glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
 	glBindTexture(GL_TEXTURE_2D, texName);
 	glPushMatrix();
+	
+	BeginAdditiveBlending();
 
 	glBegin(GL_QUADS);
 	for (i = 0; i < n_vertices; i++)
@@ -1905,6 +1960,8 @@ GLuint tfan2[10] = {	33,	25,	26,	27,	28,	29,	30,	31,	32,	25};	// final fan 64..7
 		drawQuadForView( universe, vertices[i].x, vertices[i].y, vertices[i].z, size.width, size.width);
 	}
 	glEnd();
+	
+	EndAdditiveBlending();
 
 	glPopMatrix();
 	glDisable(GL_TEXTURE_2D);

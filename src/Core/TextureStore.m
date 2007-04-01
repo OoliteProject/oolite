@@ -625,6 +625,8 @@ GLuint	max_texture_dimension = 512;	// conservative start
 
 void fillSquareImageDataWithBlur(unsigned char * imageBuffer, int width, int nplanes)
 {
+	OOLog(@"texture.generatingBlur", @"Genrating blur - %u pixels wide, %u planes.", width, nplanes);
+	
 	int x, y;
 	int r = width / 2;
 	float r1 = 1.0 / r;
