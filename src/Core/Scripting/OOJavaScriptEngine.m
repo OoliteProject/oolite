@@ -42,8 +42,8 @@ static JSObject *xglob, *universeObj, *systemObj, *playerObj, *missionObj;
 extern OOJSScript *currentOOJSScript;
 
 
-OOINLINE inline jsval BOOLToJSVal(BOOL b) INLINE_CONST_FUNC;
-OOINLINE inline jsval BOOLToJSVal(BOOL b)
+OOINLINE jsval BOOLToJSVal(BOOL b) INLINE_CONST_FUNC;
+OOINLINE jsval BOOLToJSVal(BOOL b)
 {
 	return BOOLEAN_TO_JSVAL(b != NO);
 }
@@ -51,7 +51,7 @@ OOINLINE inline jsval BOOLToJSVal(BOOL b)
 
 // For _bool scripting methods which always return @"YES" or @"NO" and nothing else.
 OOINLINE jsval BooleanStringToJSVal(NSString *string) INLINE_PURE_FUNC;
-OOINLINE inline jsval BooleanStringToJSVal(NSString *string)
+OOINLINE jsval BooleanStringToJSVal(NSString *string)
 {
 	return BOOLEAN_TO_JSVAL([string isEqualToString:@"YES"]);
 }

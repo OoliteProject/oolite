@@ -1,6 +1,6 @@
 include $(GNUSTEP_MAKEFILES)/common.make
 CP = cp
-vpath %.m src/SDL:src/Core:src/Core/JavaScript
+vpath %.m src/SDL:src/Core:src/Core/JavaScript:src/Core/Scripting
 vpath %.h src/SDL:src/Core
 vpath %.c src/SDL:src/Core:src/BSDCompat
 GNUSTEP_INSTALLATION_DIR = $(GNUSTEP_USER_ROOT)
