@@ -1,6 +1,6 @@
 /*
 
-StringTokeniser.m
+OOSTokenizer.m
 
 Script Compiler for Oolite
 Copyright (C) 2006 David Taylor
@@ -22,10 +22,10 @@ MA 02110-1301, USA.
 
 */
 
-#import "StringTokeniser.h"
+#import "OOSTokenizer.h"
 
 
-@implementation StringTokeniser : NSObject
+@implementation OOSTokenizer : NSObject
 
 // Initialise an instance of the string tokeniser to parse the given string
 - (id)initWithString:(NSString*)string {

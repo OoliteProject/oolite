@@ -23,7 +23,7 @@ MA 02110-1301, USA.
 */
 
 #import <Foundation/Foundation.h>
-#import "StringTokeniser.h"
+#import "OOSTokenizer.h"
 
 #define kOOLogUnconvertedNSLog @"unclassified.OOSCompiler"
 
@@ -82,7 +82,7 @@ NSString* preprocess(NSString* source) {
 }
 
 
-NSDictionary* parseIf(StringTokeniser* st) {
+NSDictionary* parseIf(OOSTokenizer* st) {
 	NSMutableString *statement = [NSMutableString stringWithCapacity:80];
 	NSMutableArray *conditions = [[NSMutableArray alloc] init];
 	NSMutableArray *actions = [[NSMutableArray alloc] init];
@@ -209,7 +209,7 @@ NSDictionary* parseIf(StringTokeniser* st) {
 
 NSDictionary* ParseOOSScripts(NSString* script) {
 	NSString *processedScript = preprocess(script);
-	StringTokeniser *st = [[StringTokeniser alloc] initWithString:processedScript];
+	OOSTokenizer *st = [[OOSTokenizer alloc] initWithString:processedScript];
 	NSMutableDictionary *scriptDict = [[NSMutableDictionary alloc] initWithCapacity:10];
 	NSDictionary *ifDict;
 	NSMutableArray *ifStatements = [[NSMutableArray alloc] init];

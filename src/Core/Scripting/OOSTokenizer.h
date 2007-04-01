@@ -1,6 +1,6 @@
 /*
 
-StringTokeniser.h
+OOSTokenizer.h
 
 Script Compiler for Oolite
 Copyright (C) 2006 David Taylor
@@ -28,7 +28,7 @@ MA 02110-1301, USA.
 #define TT_EOL 2
 #define TT_EOS 3
 
-@interface StringTokeniser : NSObject
+@interface OOSTokenizer : NSObject
 {
 @public
 	// A local copy of the string to be parsed
