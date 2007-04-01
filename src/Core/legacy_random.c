@@ -29,8 +29,14 @@ MA 02110-1301, USA.
 #include <math.h>
 #include "legacy_random.h"
 
+
+const Random_Seed	kNilRandomSeed = {0};
+
+
 static struct random_seed   rnd_seed;
 
+
+// TODO: Why is this based on a static? Should change to MungeCheckSum(&checkSum, value);
 static int checksum;
 void clear_checksum()
 {
@@ -91,25 +97,6 @@ inline int ranrot_rand()
 	m_high += m_low;
 	m_low += m_high;
 	return m_high & 0x7FFFFFFF;
-}
- 
-// a method used to determine interplanetary distances,
-// if accurate, it has to scale distance down by a factor of 7.15:7.0
-// to allow routes navigable in the original!
-double distanceBetweenPlanetPositions ( int x1, int y1, int x2, int y2)
-{
-	int dx = x1 - x2;
-	int dy = (y1 - y2)/2;
-	int dist = sqrt(dx*dx + dy*dy); // here's where the rounding errors come in!
-	return 0.4*dist;
-}
-
-double accurateDistanceBetweenPlanetPositions ( int x1, int y1, int x2, int y2)
-{
-	double dx = x1 - x2;
-	double dy = (y1 - y2)/2;
-	double dist = sqrt(dx*dx + dy*dy); // here's where the rounding errors come in!
-	return 0.4*dist;
 }
 
 void seed_for_planet_description (Random_Seed s_seed)
@@ -194,17 +181,9 @@ void make_pseudo_random_seed (struct rand_seed_6uc *seed_ptr)
 
 Random_Seed nil_seed()
 {
-	Random_Seed result = { (unsigned char)0,  (unsigned char)0,  (unsigned char)0,  (unsigned char)0,  (unsigned char)0,  (unsigned char)0};
-	return result;
+	return kNilRandomSeed;
 }
 
-int is_nil_seed(Random_Seed a_seed)
-{
-	if (a_seed.a | a_seed.b | a_seed.c | a_seed.d | a_seed.e | a_seed.f)
-		return 0;
-	else
-		return -1;
-}
 
 void rotate_seed (struct rand_seed_6uc *seed_ptr)
 {
@@ -239,15 +218,3 @@ void rotate_seed (struct rand_seed_6uc *seed_ptr)
 	seed_ptr->e = x;
 	seed_ptr->f = y;
 }
-
-int rotate_byte_left (int x)
-{
-	return ((x << 1) | (x >> 7)) & 255;
-}
-
-
-int equal_seeds (Random_Seed seed1, Random_Seed seed2)
-{
-	return ((seed1.a == seed2.a)&&(seed1.b == seed2.b)&&(seed1.c == seed2.c)&&(seed1.d == seed2.d)&&(seed1.e == seed2.e)&&(seed1.f == seed2.f));
-}
-

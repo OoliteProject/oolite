@@ -49,7 +49,6 @@ NSMutableArray *ScanTokensFromString(NSString *values)
 	
 	// Note: Shark suggests we're getting a lot of early exits, but testing showed a pretty steady 2% early exit rate.
 	if (EXPECT_NOT(values == nil))  return [NSArray array];
-	
 	if (EXPECT_NOT(space_set == nil)) space_set = [[NSCharacterSet whitespaceAndNewlineCharacterSet] retain];
 	
 	result = [NSMutableArray array];
@@ -232,7 +231,7 @@ Random_Seed RandomSeedFromString(NSString *abcdefString)
 	else
 	{
 		OOLog(kOOLogStringRandomSeedConversion, @"***** ERROR cannot make Random_Seed from '%@': %@", abcdefString, error);
-		result = nil_seed();
+		result = kNilRandomSeed;
 	}
 	
 	return result;

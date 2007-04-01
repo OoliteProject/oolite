@@ -1282,7 +1282,7 @@ static	Vector	circleVertex[65];		// holds vector coordinates for a unit circle
 - (void) updateExhaust2:(double) delta_t
 {
 	#if ADDITIVE_BLENDING
-		#define OVERALL_ALPHA		0.3f
+		#define OVERALL_ALPHA		0.4f
 	#else
 		#define OVERALL_ALPHA		1.0f
 	#endif

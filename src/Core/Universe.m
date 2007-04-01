@@ -5617,7 +5617,7 @@ BOOL maintainLinkedLists(Universe* uni)
 			return systems[i];
 	}
 	OOLog(kOOLogScriptNoSystemForName, @"SCRIPT ERROR could not find a system with the name '%@' in this galaxy", sysname);
-	return nil_seed();
+	return kNilRandomSeed;
 }
 
 - (NSDictionary *) shipyard
@@ -5683,6 +5683,16 @@ BOOL maintainLinkedLists(Universe* uni)
 
 - (NSDictionary *) generateSystemData:(Random_Seed) s_seed
 {
+	static NSDictionary	*cachedResult = nil;
+	static Random_Seed	cachedSeed = {0};
+	
+	// Cache hit ratio is over 95% during respawn, about 80% during initial set-up.
+	if (EXPECT(cachedResult != nil && equal_seeds(cachedSeed, s_seed)))  return cachedResult;
+	
+	[cachedResult autorelease];	// Stuff may have references to old value, so don't release right off the bat
+	cachedResult = nil;
+	cachedSeed = s_seed;
+	
 	NSMutableDictionary* systemdata = [[NSMutableDictionary alloc] initWithCapacity:8];
 		
 	int government = (s_seed.c / 8) & 7;
@@ -5723,8 +5733,9 @@ BOOL maintainLinkedLists(Universe* uni)
 		[systemdata addEntriesFromDictionary:(NSDictionary *)[planetinfo objectForKey:override_key]];
 	if ([local_planetinfo_overrides objectForKey:override_key])
 		[systemdata addEntriesFromDictionary:(NSDictionary *)[local_planetinfo_overrides objectForKey:override_key]];
-	
-	return [NSDictionary dictionaryWithDictionary:[systemdata autorelease]];
+
+	cachedResult = [systemdata copy];
+	return cachedResult;
 }
 
 - (NSDictionary *) currentSystemData
