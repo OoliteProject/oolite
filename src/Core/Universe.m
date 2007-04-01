@@ -922,7 +922,7 @@ static Universe *sSharedUniverse = nil;
 	
 	//// possibly systeminfo has an override for the station
 	
-	stationDesc = [systeminfo stringForKey:@"station" defaultValue:nil];
+	stationDesc = [systeminfo stringForKey:@"station" defaultValue:stationDesc];
 	
 	a_station = (StationEntity *)[self newShipWithRole:stationDesc];			   // retain count = 1
 	if (a_station)
@@ -2874,7 +2874,7 @@ GLfloat docked_light_specular[]	= { (GLfloat) 1.0, (GLfloat) 1.0, (GLfloat) 0.5,
 	NSString	*shipRoles = (NSString *)[shipDict objectForKey:@"roles"];
 	if (shipRoles)
 		isStation = ([shipRoles rangeOfString:@"station"].location != NSNotFound)||([shipRoles rangeOfString:@"carrier"].location != NSNotFound);
-	isStation = isStation || [shipDict boolForKey:@"isCarrier" defaultValue:isStation];
+	if (!isStation) isStation = [shipDict boolForKey:@"isCarrier" defaultValue:false];
 
 	if (isStation)
 		ship = (StationEntity *)[self allocRecycledOrNewEntity:@"StationEntity"];	// is returned retained
