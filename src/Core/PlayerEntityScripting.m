@@ -755,34 +755,26 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 
 - (NSString *) systemGovernment_string
 {
-	NSDictionary *systeminfo = [universe generateSystemData:system_seed];
-	int government = [(NSNumber *)[systeminfo objectForKey:KEY_GOVERNMENT] intValue]; // 0 .. 7 (0 anarchic .. 7 most stable)
-	switch (government) // oh, that we could...
-	{
-		case 0:
-			return @"Anarchy";
-		case 1:
-			return @"Feudal";
-		case 2:
-			return @"Multi-Government";
-		case 3:
-			return @"Dictatorship";
-		case 4:
-			return @"Communist";
-		case 5:
-			return @"Confederacy";
-		case 6:
-			return @"Democracy";
-		case 7:
-			return @"Corporate State";
-	}
-	return @"UNKNOWN";
+	int government = [[self systemGovernment_number] intValue]; // 0 .. 7 (0 anarchic .. 7 most stable)
+	NSString *result = GovernmentToString(government);
+	if (result == nil) result = @"UNKNOWN";
+	
+	return result;
 }
 
 - (NSNumber *) systemGovernment_number
 {
 	NSDictionary *systeminfo = [universe generateSystemData:system_seed];
 	return [systeminfo objectForKey:KEY_GOVERNMENT];
+}
+
+- (NSString *) systemEconomy_string
+{
+	int economy = [[self systemEconomy_number] intValue]; // 0 .. 7 (0 rich industrial .. 7 poor agricultural)
+	NSString *result = EconomyToString(economy);
+	if (result == nil) result = @"UNKNOWN";
+	
+	return result;
 }
 
 - (NSNumber *) systemEconomy_number

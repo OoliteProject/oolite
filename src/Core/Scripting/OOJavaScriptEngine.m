@@ -182,34 +182,16 @@ static JSPropertySpec Global_props[] =
 };
 
 
-//JSBool GlobalEnableLogging(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval);
 static JSBool GlobalLog(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval);
 static JSBool GlobalLogWithClass(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval);
-//static JSBool GlobalListenForKey(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval);
 
 
 static JSFunctionSpec Global_funcs[] =
 {
-//	{ "EnableLogging", GlobalEnableLogging, 1, 0 },
 	{ "Log", GlobalLog, 1, 0 },
 	{ "LogWithClass", GlobalLogWithClass, 2, 0 },
-//	{ "ListenForKey", GlobalListenForKey, 1, 0 },
 	{ 0 }
 };
-
-
-/*static JSBool GlobalListenForKey(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval)
-{
-	NSString *key = [NSString stringWithJavaScriptValue:argv[0] inContext:cx];
-	[[PlayerEntity sharedPlayer] mapKey:key toOXP:currentOOJSScript];
-	return JS_TRUE;
-}*/
-
-
-/*
-static JSBool GlobalEnableLogging(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval) {
-}
-*/
 
 
 static JSBool GlobalLog(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval)
@@ -302,21 +284,36 @@ static JSClass Player_class =
 enum Player_propertyIDs
 {
 	PE_SHIP_DESCRIPTION, PE_COMMANDER_NAME, PE_SCORE, PE_CREDITS, PE_LEGAL_STATUS,
-	PE_FUEL_LEVEL, PE_FUEL_LEAK_RATE, PE_ALERT_CONDITION, PE_ALERT_FLAGS
+	PE_FUEL_LEVEL, PE_FUEL_LEAK_RATE, PE_ALERT_CONDITION, PE_ALERT_FLAGS,
+	
+	// Special handling -- these correspond to ALERT_FLAG_FOO (PlayerEntity.h). 0x10 is shifted left by the low nybble to get the alert mask.
+	PE_DOCKED					= 0xA0,
+	PE_ALERT_MASS_LOCKED		= 0xA1,
+	PE_ALERT_TEMPERATURE		= 0xA2,
+	PE_ALERT_ALTITUTE			= 0xA3,
+	PE_ALERT_ENERGY				= 0xA4,
+	PE_ALERT_HOSTILES			= 0xA5
 };
 
 
 static JSPropertySpec Player_props[] =
 {
-	{ "shipDescription", PE_SHIP_DESCRIPTION, JSPROP_ENUMERATE },
-	{ "name", PE_COMMANDER_NAME, JSPROP_ENUMERATE },
-	{ "score", PE_SCORE, JSPROP_ENUMERATE },
-	{ "credits", PE_CREDITS, JSPROP_ENUMERATE },
-	{ "legalStatus", PE_LEGAL_STATUS, JSPROP_ENUMERATE },
-	{ "fuel", PE_FUEL_LEVEL, JSPROP_ENUMERATE },
-	{ "fuelLeakRate", PE_FUEL_LEAK_RATE, JSPROP_ENUMERATE },
-	{ "alertCondition", PE_ALERT_CONDITION, JSPROP_ENUMERATE },
-	{ "alertFlags", PE_ALERT_FLAGS, JSPROP_ENUMERATE },
+	// JS name					ID							flags
+	{ "shipDescription",		PE_SHIP_DESCRIPTION,		JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
+	{ "name",					PE_COMMANDER_NAME,			JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
+	{ "score",					PE_SCORE,					JSPROP_PERMANENT | JSPROP_ENUMERATE },
+	{ "credits",				PE_CREDITS,					JSPROP_PERMANENT | JSPROP_ENUMERATE },
+	{ "legalStatus",			PE_LEGAL_STATUS,			JSPROP_PERMANENT | JSPROP_ENUMERATE },
+	{ "fuel",					PE_FUEL_LEVEL,				JSPROP_PERMANENT | JSPROP_ENUMERATE },
+	{ "fuelLeakRate",			PE_FUEL_LEAK_RATE,			JSPROP_PERMANENT | JSPROP_ENUMERATE },
+	{ "alertCondition",			PE_ALERT_CONDITION,			JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
+	{ "alertFlags",				PE_ALERT_FLAGS,				JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
+	{ "docked",					PE_DOCKED,					JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
+	{ "alertTemperature",		PE_ALERT_TEMPERATURE,		JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
+	{ "alertMassLocked",		PE_ALERT_MASS_LOCKED,		JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
+	{ "alertAltitude",			PE_ALERT_ALTITUTE,			JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
+	{ "alertEnergy",			PE_ALERT_ENERGY,			JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
+	{ "alertHostiles",			PE_ALERT_HOSTILES,			JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
 	{ 0 }
 };
 
@@ -333,14 +330,15 @@ static JSBool PlayerUseSpecialCargo(JSContext *cx, JSObject *obj, uintN argc, js
 
 static JSFunctionSpec Player_funcs[] =
 {
-	{ "awardEquipment", PlayerAwardEquipment, 1, 0 },
-	{ "removeEquipment", PlayerRemoveEquipment, 1, 0 },
-	{ "hasEquipment", PlayerHasEquipment, 1, 0 },
-	{ "launch", PlayerLaunch, 0, 0 },
-	{ "call", PlayerCall, 1, 0 },
-	{ "awardCargo", PlayerAwardCargo, 2, 0 },
-	{ "removeAllCargo", PlayerRemoveAllCargo, 0, 0 },
-	{ "useSpecialCargo", PlayerUseSpecialCargo, 1, 0 },
+	// JS name					Function					min args
+	{ "awardEquipment",			PlayerAwardEquipment,		1 },
+	{ "removeEquipment",		PlayerRemoveEquipment,		1 },
+	{ "hasEquipment",			PlayerHasEquipment,			1 },
+	{ "launch",					PlayerLaunch,				0 },
+	{ "call",					PlayerCall,					1 },
+	{ "awardCargo",				PlayerAwardCargo,			2 },
+	{ "removeAllCargo",			PlayerRemoveAllCargo,		0 },
+	{ "useSpecialCargo",		PlayerUseSpecialCargo,		1 },
 	{ 0 }
 };
 
@@ -458,8 +456,9 @@ static JSBool PlayerGetProperty(JSContext *cx, JSObject *obj, jsval name, jsval 
 
 	PlayerEntity *playerEntity = [PlayerEntity sharedPlayer];
 	id<OOJavaScriptConversion> result = nil;
-
-	switch (JSVAL_TO_INT(name))
+	
+	uint8_t ID = JSVAL_TO_INT(name);
+	switch (ID)
 	{
 		case PE_SHIP_DESCRIPTION:
 			result = [playerEntity commanderShip_string];
@@ -496,6 +495,14 @@ static JSBool PlayerGetProperty(JSContext *cx, JSObject *obj, jsval name, jsval 
 		case PE_ALERT_FLAGS:
 			*vp = INT_TO_JSVAL([playerEntity alert_flags]);
 			break;
+		
+		default:
+			if ((ID & 0xF0) == 0xA0)
+			{
+				unsigned flags = [playerEntity alert_flags];
+				unsigned mask = 0x10 << ((unsigned)ID & 0xF);
+				*vp = BOOLToJSVal((flags & mask) != 0);
+			}
 	}
 	
 	if (result != nil) *vp = [result javaScriptValueInContext:cx];
@@ -561,25 +568,28 @@ static JSClass System_class =
 
 enum System_propertyIDs
 {
-	SYS_ID, SYS_NAME, SYS_DESCRIPTION, SYS_GOING_NOVA, SYS_GONE_NOVA, SYS_GOVT_STR, SYS_GOVT_ID, SYS_ECONOMY_ID,
-	SYS_TECH_LVL, SYS_POPULATION, SYS_PRODUCTIVITY, SYS_INHABITANTS
+	SYS_ID, SYS_NAME, SYS_DESCRIPTION, SYS_GOING_NOVA, SYS_GONE_NOVA, SYS_GOVT_STR,
+	SYS_GOVT_ID, SYS_ECONOMY_STR, SYS_ECONOMY_ID, SYS_TECH_LVL, SYS_POPULATION,
+	SYS_PRODUCTIVITY, SYS_INHABITANTS
 };
 
 
 static JSPropertySpec System_props[] =
 {
-	{ "ID", SYS_ID, JSPROP_ENUMERATE },
-	{ "name", SYS_NAME, JSPROP_ENUMERATE },
-	{ "description", SYS_DESCRIPTION, JSPROP_ENUMERATE },
-	{ "inhabitantsDescription", SYS_INHABITANTS, JSPROP_ENUMERATE },
-	{ "goingNova", SYS_GOING_NOVA, JSPROP_ENUMERATE },
-	{ "goneNova", SYS_GONE_NOVA, JSPROP_ENUMERATE },
-	{ "governmentDescription", SYS_GOVT_STR, JSPROP_ENUMERATE },
-	{ "governmentID", SYS_GOVT_ID, JSPROP_ENUMERATE },
-	{ "economyID", SYS_ECONOMY_ID, JSPROP_ENUMERATE },
-	{ "techLevel", SYS_TECH_LVL, JSPROP_ENUMERATE },
-	{ "population", SYS_POPULATION, JSPROP_ENUMERATE },
-	{ "productivity", SYS_PRODUCTIVITY, JSPROP_ENUMERATE },
+	// JS name					ID							flags
+	{ "ID",						SYS_ID,						JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
+	{ "name",					SYS_NAME,					JSPROP_PERMANENT | JSPROP_ENUMERATE },
+	{ "description",			SYS_DESCRIPTION,			JSPROP_PERMANENT | JSPROP_ENUMERATE },
+	{ "inhabitantsDescription",	SYS_INHABITANTS,			JSPROP_PERMANENT | JSPROP_ENUMERATE },
+	{ "goingNova",				SYS_GOING_NOVA,				JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
+	{ "goneNova",				SYS_GONE_NOVA,				JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
+	{ "government",				SYS_GOVT_ID,				JSPROP_PERMANENT | JSPROP_ENUMERATE },
+	{ "governmentDescription",	SYS_GOVT_STR,				JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
+	{ "economy",				SYS_ECONOMY_ID,				JSPROP_PERMANENT | JSPROP_ENUMERATE },
+	{ "economyDescription",		SYS_ECONOMY_STR,			JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
+	{ "techLevel",				SYS_TECH_LVL,				JSPROP_PERMANENT | JSPROP_ENUMERATE },
+	{ "population",				SYS_POPULATION,				JSPROP_PERMANENT | JSPROP_ENUMERATE },
+	{ "productivity",			SYS_PRODUCTIVITY,			JSPROP_PERMANENT | JSPROP_ENUMERATE },
 	{ 0 }
 };
 
@@ -592,10 +602,11 @@ static JSBool SystemSetSunNova(JSContext *cx, JSObject *obj, uintN argc, jsval *
 
 static JSFunctionSpec System_funcs[] =
 {
-	{ "addPlanet", SystemAddPlanet, 1, 0 },
-	{ "addMoon", SystemAddMoon, 1, 0 },
-	{ "sendAllShipsAway", SystemSendAllShipsAway, 1, 0 },
-	{ "setSunNova", SystemSetSunNova, 1, 0 },
+	// JS name					Function					min args
+	{ "addPlanet",				SystemAddPlanet,			1 },
+	{ "addMoon",				SystemAddMoon,				1 },
+	{ "sendAllShipsAway",		SystemSendAllShipsAway,		1 },
+	{ "setSunNova",				SystemSetSunNova,			1 },
 	{ 0 }
 };
 
@@ -696,16 +707,20 @@ static JSBool SystemGetProperty(JSContext *cx, JSObject *obj, jsval name, jsval 
 			*vp = BOOLToJSVal([[playerEntity sunGoneNova_bool] isEqualToString:@"YES"]);
 			break;
 
-		case SYS_GOVT_STR:
-			result = [playerEntity systemGovernment_string];
-			break;
-
 		case SYS_GOVT_ID:
 			result = [playerEntity systemGovernment_number];
 			break;
 
+		case SYS_GOVT_STR:
+			result = [playerEntity systemGovernment_string];
+			break;
+
 		case SYS_ECONOMY_ID:
 			result = [playerEntity systemEconomy_number];
+			break;
+
+		case SYS_ECONOMY_STR:
+			result = [playerEntity systemEconomy_string];
 			break;
 
 		case SYS_TECH_LVL:

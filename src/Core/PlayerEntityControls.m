@@ -2487,6 +2487,7 @@ static BOOL toggling_music;
 				docked_station = [universe station];
 			[self leaveDock:docked_station];
 			[universe setDisplayCursor:NO];
+			[self sendMessageToScripts:@"willLaunch"];
 		}
 	}
 	//

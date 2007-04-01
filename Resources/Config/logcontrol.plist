@@ -192,6 +192,7 @@ script.debug.note.setFuelLeak			= inherit;
 script.debug.note.addPlanet				= inherit;
 script.debug.note.replaceVariablesInString = inherit;
 script.debug.note.processSceneString	= inherit;
+script.debug.note.testCondition			= no;
 
 script.debug.syntax						= $scriptError;			// Messages relating to script formatting
 script.debug.syntax.badConditional		= inherit;
@@ -206,18 +207,19 @@ script.debug.syntax.addShips			= inherit;
 script.debug.syntax.set					= inherit;
 script.debug.syntax.reset				= inherit;
 
-script.javascript.compile.success		= no;
-script.javascript.compile.failed		= $scriptError;
+script.javaScript.compile.success		= no;
+script.javaScript.compile.failed		= $scriptError;
 script.javaScript.init.success			= no;
 script.javaScript.init.error			= $error;				// Fatal start-up error
 script.javaScript.call.badSelector		= $scriptError;
 
+script.load								= no;
 script.load.badName						= $scriptError;
 script.load.notFound					= $scriptError;
-script.load.parseOK						= no;
+script.load.parseOK						= inherit;
 script.load.unnamed						= $scriptError;
 script.load.exception					= $error;
-script.load.world.listAll				= no;					// List names and versions of all loaded world scripts at startup.
+script.load.world.listAll				= inherit;				// List names and versions of all loaded world scripts at startup.
 
 script.plist.run.badTarget				= $error;
 

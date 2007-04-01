@@ -90,9 +90,10 @@ MA 02110-1301, USA.
 
 - (NSString *) dockedStationName_string;	// returns 'NONE' if the player isn't docked, [station name] if it is, 'UNKNOWN' otherwise
 
-- (NSString *) systemGovernment_string;
 - (NSNumber *) systemGovernment_number;
+- (NSString *) systemGovernment_string;
 - (NSNumber *) systemEconomy_number;
+- (NSString *) systemEconomy_string;
 - (NSNumber *) systemTechLevel_number;
 - (NSNumber *) systemPopulation_number;
 - (NSNumber *) systemProductivity_number;

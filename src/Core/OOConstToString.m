@@ -24,6 +24,7 @@ MA );-);, USA.
 
 #import "OOConstToString.h"
 #import "Entity.h"
+#import "Universe.h"
 
 
 	#define CASE(foo) case foo: return @#foo;
@@ -81,4 +82,36 @@ NSString *ScanClassToString(int scanClass)
 		
 		default: return @"UNDEFINED";
 	}
+}
+
+
+NSString *GovernmentToString(unsigned government)
+{
+	NSArray		*strings = nil;
+	NSString	*value = nil;
+	
+	strings = [[[Universe sharedUniverse] descriptions] objectForKey:@"government"]; 
+	if ([strings isKindOfClass:[NSArray class]] && government < [strings count])
+	{
+		value = [strings objectAtIndex:government];
+		if ([value isKindOfClass:[NSString class]]) return value;
+	}
+	
+	return nil;
+}
+
+
+NSString *EconomyToString(unsigned economy)
+{
+	NSArray		*strings = nil;
+	NSString	*value = nil;
+	
+	strings = [[[Universe sharedUniverse] descriptions] objectForKey:@"economy"]; 
+	if ([strings isKindOfClass:[NSArray class]] && economy < [strings count])
+	{
+		value = [strings objectAtIndex:economy];
+		if ([value isKindOfClass:[NSString class]]) return value;
+	}
+	
+	return nil;
 }

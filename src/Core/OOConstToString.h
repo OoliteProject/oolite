@@ -26,10 +26,15 @@ MA 02110-1301, USA.
 */
 
 #import <Foundation/Foundation.h>
+#import "OOFunctionAttributes.h"
 
 
 // STATUS_ACTIVE, STATUS_DOCKING and so forth
-NSString *EntityStatusToString(int status);
+NSString *EntityStatusToString(int status) PURE_FUNC;
 
 // CLASS_STATION, CLASS_MISSILE and so forth
-NSString *ScanClassToString(int scanClass);
+NSString *ScanClassToString(int scanClass) PURE_FUNC;
+
+
+NSString *GovernmentToString(unsigned government);
+NSString *EconomyToString(unsigned economy);

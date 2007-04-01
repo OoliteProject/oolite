@@ -154,7 +154,7 @@ static NSString * const kOOLogLoadScriptNone				= @"script.load.none";
 		if (result != nil) return result;
 	}
 	
-	OOLog(@"script.load.notFound", @"***** Could not find a script file named %@.", fileName);
+	OOLog(@"script.load.notFound", @"***** Could not find a valid script file named %@.", fileName);
 	return nil;
 }
 
@@ -187,7 +187,10 @@ static NSString * const kOOLogLoadScriptNone				= @"script.load.none";
 	
 	if ([extension isEqualToString:@"js"] || [extension isEqualToString:@"es"])
 	{
-		return [NSArray arrayWithObject:[OOJSScript scriptWithPath:filePath]];
+		NSArray		*result = nil;
+		OOScript	*script = [OOJSScript scriptWithPath:filePath];
+		if (script != nil) result = [NSArray arrayWithObject:script];
+		return result;
 	}
 	else if ([extension isEqualToString:@"oos"])
 	{

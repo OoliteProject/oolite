@@ -222,6 +222,8 @@
 	<string>inherit</string>
 	<key>script.debug.note.systemSeedForSystemName</key>
 	<string>inherit</string>
+	<key>script.debug.note.testCondition</key>
+	<string>no</string>
 	<key>script.debug.note.useSpecialCargo</key>
 	<string>inherit</string>
 	<key>script.debug.onOff</key>
@@ -272,13 +274,15 @@
 	<string>inherit</string>
 	<key>script.javaScript.call.badSelector</key>
 	<string>$scriptError</string>
+	<key>script.javaScript.compile.failed</key>
+	<string>$scriptError</string>
+	<key>script.javaScript.compile.success</key>
+	<string>no</string>
 	<key>script.javaScript.init.error</key>
 	<string>$error</string>
 	<key>script.javaScript.init.success</key>
 	<string>no</string>
-	<key>script.javascript.compile.failed</key>
-	<string>$scriptError</string>
-	<key>script.javascript.compile.success</key>
+	<key>script.load</key>
 	<string>no</string>
 	<key>script.load.badName</key>
 	<string>$scriptError</string>
@@ -287,11 +291,11 @@
 	<key>script.load.notFound</key>
 	<string>$scriptError</string>
 	<key>script.load.parseOK</key>
-	<string>no</string>
+	<string>inherit</string>
 	<key>script.load.unnamed</key>
 	<string>$scriptError</string>
 	<key>script.load.world.listAll</key>
-	<string>no</string>
+	<string>inherit</string>
 	<key>script.missionDescription.noMissionKey</key>
 	<string>inherit</string>
 	<key>script.missionDescription.noMissionText</key>
