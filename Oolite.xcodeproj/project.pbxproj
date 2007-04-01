@@ -10,9 +10,6 @@
 		08125F0909F9083F00AB9BF9 /* OOGLDefs.h in Headers */ = {isa = PBXBuildFile; fileRef = 08125F0809F9083F00AB9BF9 /* OOGLDefs.h */; };
 		081329B50A6D534900A5C2CE /* OOInstinct.h in Headers */ = {isa = PBXBuildFile; fileRef = 081329B30A6D534900A5C2CE /* OOInstinct.h */; };
 		081329B60A6D534900A5C2CE /* OOInstinct.m in Sources */ = {isa = PBXBuildFile; fileRef = 081329B40A6D534900A5C2CE /* OOInstinct.m */; };
-		0831C5C909E3396D0058029A /* StringTokeniser.m in Sources */ = {isa = PBXBuildFile; fileRef = 0831C5C609E3396D0058029A /* StringTokeniser.m */; };
-		0831C5CA09E3396D0058029A /* StringTokeniser.h in Headers */ = {isa = PBXBuildFile; fileRef = 0831C5C709E3396D0058029A /* StringTokeniser.h */; };
-		0831C5CB09E3396D0058029A /* ScriptCompiler.m in Sources */ = {isa = PBXBuildFile; fileRef = 0831C5C809E3396D0058029A /* ScriptCompiler.m */; };
 		083325DD09DDBCDE00F5B8E4 /* OOColor.h in Headers */ = {isa = PBXBuildFile; fileRef = 083325DB09DDBCDE00F5B8E4 /* OOColor.h */; };
 		083325DE09DDBCDE00F5B8E4 /* OOColor.m in Sources */ = {isa = PBXBuildFile; fileRef = 083325DC09DDBCDE00F5B8E4 /* OOColor.m */; };
 		083DB4D50A70E51E00B419B2 /* OOBrain.h in Headers */ = {isa = PBXBuildFile; fileRef = 083DB4D30A70E51E00B419B2 /* OOBrain.h */; };
@@ -230,14 +227,20 @@
 		1A472917096B5454000E78D8 /* CoreAudio.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1A472916096B5454000E78D8 /* CoreAudio.framework */; };
 		1A472921096B5468000E78D8 /* AudioToolbox.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1A47291F096B5468000E78D8 /* AudioToolbox.framework */; };
 		1A472922096B5468000E78D8 /* AudioUnit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1A472920096B5468000E78D8 /* AudioUnit.framework */; };
-		1A5DAFFE0BBD6E3300D57389 /* OOJavaScriptEngine.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A5DAFF80BBD6E3300D57389 /* OOJavaScriptEngine.h */; };
-		1A5DAFFF0BBD6E3300D57389 /* OOJSScript.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A5DAFF90BBD6E3300D57389 /* OOJSScript.h */; };
-		1A5DB0010BBD6E3300D57389 /* OOScript.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A5DAFFB0BBD6E3300D57389 /* OOScript.h */; };
-		1A5DB0020BBD6E3300D57389 /* OOScript.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A5DAFFC0BBD6E3300D57389 /* OOScript.m */; };
 		1A5DB1EA0BBD8F0000D57389 /* OOConstToString.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A5DB1E80BBD8F0000D57389 /* OOConstToString.h */; };
 		1A5DB1EB0BBD8F0000D57389 /* OOConstToString.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A5DB1E90BBD8F0000D57389 /* OOConstToString.m */; };
-		1A5DB2980BBE9EC400D57389 /* OOPListScript.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A5DB2970BBE9EC400D57389 /* OOPListScript.h */; };
-		1A5DB2A20BBE9F4700D57389 /* OOPListScript.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A5DB2A10BBE9F4700D57389 /* OOPListScript.m */; };
+		1A5DBAA50BC000DC00D57389 /* JSUniverse.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A5DBA990BC000DC00D57389 /* JSUniverse.h */; };
+		1A5DBAA60BC000DC00D57389 /* OOJavaScriptEngine.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A5DBA9A0BC000DC00D57389 /* OOJavaScriptEngine.h */; };
+		1A5DBAA70BC000DC00D57389 /* OOJavaScriptEngine.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A5DBA9B0BC000DC00D57389 /* OOJavaScriptEngine.m */; };
+		1A5DBAA80BC000DC00D57389 /* OOJSScript.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A5DBA9C0BC000DC00D57389 /* OOJSScript.h */; };
+		1A5DBAA90BC000DC00D57389 /* OOJSScript.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A5DBA9D0BC000DC00D57389 /* OOJSScript.m */; };
+		1A5DBAAA0BC000DC00D57389 /* OOPListScript.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A5DBA9E0BC000DC00D57389 /* OOPListScript.h */; };
+		1A5DBAAB0BC000DC00D57389 /* OOPListScript.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A5DBA9F0BC000DC00D57389 /* OOPListScript.m */; };
+		1A5DBAAC0BC000DC00D57389 /* OOSCompiler.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A5DBAA00BC000DC00D57389 /* OOSCompiler.m */; };
+		1A5DBAAD0BC000DC00D57389 /* OOScript.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A5DBAA10BC000DC00D57389 /* OOScript.h */; };
+		1A5DBAAE0BC000DC00D57389 /* OOScript.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A5DBAA20BC000DC00D57389 /* OOScript.m */; };
+		1A5DBAAF0BC000DC00D57389 /* OOSTokenizer.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A5DBAA30BC000DC00D57389 /* OOSTokenizer.h */; };
+		1A5DBAB00BC000DC00D57389 /* OOSTokenizer.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A5DBAA40BC000DC00D57389 /* OOSTokenizer.m */; };
 		1A81F7090A7BAC4D006580AD /* OOCAMusic.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A81F7070A7BAC4D006580AD /* OOCAMusic.m */; };
 		1A81F70A0A7BAC4D006580AD /* OOCAMusic.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A81F7080A7BAC4D006580AD /* OOCAMusic.h */; };
 		1A8A37040B95CADD007D20B8 /* PlayerEntityLoadSave.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A8A37020B95CADD007D20B8 /* PlayerEntityLoadSave.m */; };
@@ -332,11 +335,6 @@
 		1AEAACCA0BA457E7000705D0 /* prmjtime.h in Headers */ = {isa = PBXBuildFile; fileRef = 1AEAAC9B0BA457E7000705D0 /* prmjtime.h */; };
 		1AEAACCB0BA457E7000705D0 /* resource.h in Headers */ = {isa = PBXBuildFile; fileRef = 1AEAAC9C0BA457E7000705D0 /* resource.h */; };
 		1AEAACCC0BA457E7000705D0 /* jsapi.h in Headers */ = {isa = PBXBuildFile; fileRef = 1AEAAC9D0BA457E7000705D0 /* jsapi.h */; };
-		1AEAACDD0BA45895000705D0 /* OXPScript.h in Headers */ = {isa = PBXBuildFile; fileRef = 1AEAACD80BA45895000705D0 /* OXPScript.h */; };
-		1AEAACDE0BA45895000705D0 /* ScriptEngine.m in Sources */ = {isa = PBXBuildFile; fileRef = 1AEAACD90BA45895000705D0 /* ScriptEngine.m */; };
-		1AEAACDF0BA45895000705D0 /* JSUniverse.h in Headers */ = {isa = PBXBuildFile; fileRef = 1AEAACDA0BA45895000705D0 /* JSUniverse.h */; };
-		1AEAACE00BA45895000705D0 /* OXPScript.m in Sources */ = {isa = PBXBuildFile; fileRef = 1AEAACDB0BA45895000705D0 /* OXPScript.m */; };
-		1AEAACE10BA45895000705D0 /* ScriptEngine.h in Headers */ = {isa = PBXBuildFile; fileRef = 1AEAACDC0BA45895000705D0 /* ScriptEngine.h */; };
 		2512833E09BA27C100F43D55 /* Octree.m in Sources */ = {isa = PBXBuildFile; fileRef = 2512833C09BA27C100F43D55 /* Octree.m */; settings = {COMPILER_FLAGS = "-O3 -falign-loops=32 -falign-loops-max-skip=31 -falign-functions=32"; }; };
 		2512833F09BA27C100F43D55 /* Octree.h in Headers */ = {isa = PBXBuildFile; fileRef = 2512833D09BA27C100F43D55 /* Octree.h */; };
 		2512834209BA27EC00F43D55 /* Geometry.h in Headers */ = {isa = PBXBuildFile; fileRef = 2512834009BA27EC00F43D55 /* Geometry.h */; };
@@ -731,9 +729,6 @@
 		08125F0809F9083F00AB9BF9 /* OOGLDefs.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOGLDefs.h; sourceTree = "<group>"; };
 		081329B30A6D534900A5C2CE /* OOInstinct.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOInstinct.h; sourceTree = "<group>"; };
 		081329B40A6D534900A5C2CE /* OOInstinct.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOInstinct.m; sourceTree = "<group>"; };
-		0831C5C609E3396D0058029A /* StringTokeniser.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = StringTokeniser.m; sourceTree = "<group>"; };
-		0831C5C709E3396D0058029A /* StringTokeniser.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = StringTokeniser.h; sourceTree = "<group>"; };
-		0831C5C809E3396D0058029A /* ScriptCompiler.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ScriptCompiler.m; sourceTree = "<group>"; };
 		083325DB09DDBCDE00F5B8E4 /* OOColor.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOColor.h; sourceTree = "<group>"; };
 		083325DC09DDBCDE00F5B8E4 /* OOColor.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOColor.m; sourceTree = "<group>"; };
 		083DB4D30A70E51E00B419B2 /* OOBrain.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOBrain.h; sourceTree = "<group>"; };
@@ -951,14 +946,20 @@
 		1A47291F096B5468000E78D8 /* AudioToolbox.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AudioToolbox.framework; path = /System/Library/Frameworks/AudioToolbox.framework; sourceTree = "<absolute>"; };
 		1A472920096B5468000E78D8 /* AudioUnit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AudioUnit.framework; path = /System/Library/Frameworks/AudioUnit.framework; sourceTree = "<absolute>"; };
 		1A5BF2720916D47300BF238F /* Oolite-importer.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = "Oolite-importer.xcodeproj"; path = "Oolite-importer/Oolite-importer.xcodeproj"; sourceTree = "<group>"; };
-		1A5DAFF80BBD6E3300D57389 /* OOJavaScriptEngine.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = OOJavaScriptEngine.h; path = Scripting/OOJavaScriptEngine.h; sourceTree = "<group>"; };
-		1A5DAFF90BBD6E3300D57389 /* OOJSScript.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = OOJSScript.h; path = Scripting/OOJSScript.h; sourceTree = "<group>"; };
-		1A5DAFFB0BBD6E3300D57389 /* OOScript.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = OOScript.h; path = Scripting/OOScript.h; sourceTree = "<group>"; };
-		1A5DAFFC0BBD6E3300D57389 /* OOScript.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = OOScript.m; path = Scripting/OOScript.m; sourceTree = "<group>"; };
 		1A5DB1E80BBD8F0000D57389 /* OOConstToString.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOConstToString.h; sourceTree = "<group>"; };
 		1A5DB1E90BBD8F0000D57389 /* OOConstToString.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOConstToString.m; sourceTree = "<group>"; };
-		1A5DB2970BBE9EC400D57389 /* OOPListScript.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = OOPListScript.h; path = Scripting/OOPListScript.h; sourceTree = "<group>"; };
-		1A5DB2A10BBE9F4700D57389 /* OOPListScript.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = OOPListScript.m; path = Scripting/OOPListScript.m; sourceTree = "<group>"; };
+		1A5DBA990BC000DC00D57389 /* JSUniverse.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = JSUniverse.h; sourceTree = "<group>"; };
+		1A5DBA9A0BC000DC00D57389 /* OOJavaScriptEngine.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOJavaScriptEngine.h; sourceTree = "<group>"; };
+		1A5DBA9B0BC000DC00D57389 /* OOJavaScriptEngine.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOJavaScriptEngine.m; sourceTree = "<group>"; };
+		1A5DBA9C0BC000DC00D57389 /* OOJSScript.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOJSScript.h; sourceTree = "<group>"; };
+		1A5DBA9D0BC000DC00D57389 /* OOJSScript.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOJSScript.m; sourceTree = "<group>"; };
+		1A5DBA9E0BC000DC00D57389 /* OOPListScript.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOPListScript.h; sourceTree = "<group>"; };
+		1A5DBA9F0BC000DC00D57389 /* OOPListScript.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOPListScript.m; sourceTree = "<group>"; };
+		1A5DBAA00BC000DC00D57389 /* OOSCompiler.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOSCompiler.m; sourceTree = "<group>"; };
+		1A5DBAA10BC000DC00D57389 /* OOScript.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOScript.h; sourceTree = "<group>"; };
+		1A5DBAA20BC000DC00D57389 /* OOScript.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOScript.m; sourceTree = "<group>"; };
+		1A5DBAA30BC000DC00D57389 /* OOSTokenizer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOSTokenizer.h; sourceTree = "<group>"; };
+		1A5DBAA40BC000DC00D57389 /* OOSTokenizer.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOSTokenizer.m; sourceTree = "<group>"; };
 		1A81F7070A7BAC4D006580AD /* OOCAMusic.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOCAMusic.m; sourceTree = "<group>"; };
 		1A81F7080A7BAC4D006580AD /* OOCAMusic.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOCAMusic.h; sourceTree = "<group>"; };
 		1A8A37020B95CADD007D20B8 /* PlayerEntityLoadSave.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = PlayerEntityLoadSave.m; sourceTree = "<group>"; };
@@ -1058,11 +1059,6 @@
 		1AEAAC9B0BA457E7000705D0 /* prmjtime.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = prmjtime.h; sourceTree = "<group>"; };
 		1AEAAC9C0BA457E7000705D0 /* resource.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = resource.h; sourceTree = "<group>"; };
 		1AEAAC9D0BA457E7000705D0 /* jsapi.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = jsapi.h; sourceTree = "<group>"; };
-		1AEAACD80BA45895000705D0 /* OXPScript.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = OXPScript.h; path = JavaScript/OXPScript.h; sourceTree = "<group>"; };
-		1AEAACD90BA45895000705D0 /* ScriptEngine.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = ScriptEngine.m; path = JavaScript/ScriptEngine.m; sourceTree = "<group>"; };
-		1AEAACDA0BA45895000705D0 /* JSUniverse.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = JSUniverse.h; path = JavaScript/JSUniverse.h; sourceTree = "<group>"; };
-		1AEAACDB0BA45895000705D0 /* OXPScript.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = OXPScript.m; path = JavaScript/OXPScript.m; sourceTree = "<group>"; };
-		1AEAACDC0BA45895000705D0 /* ScriptEngine.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = ScriptEngine.h; path = JavaScript/ScriptEngine.h; sourceTree = "<group>"; };
 		1AED74C70BBA3CAA009410CD /* logcontrol.plist.xml */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xml; path = logcontrol.plist.xml; sourceTree = "<group>"; };
 		2512833C09BA27C100F43D55 /* Octree.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = Octree.m; sourceTree = "<group>"; };
 		2512833D09BA27C100F43D55 /* Octree.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Octree.h; sourceTree = "<group>"; };
@@ -1505,15 +1501,39 @@
 			name = Products;
 			sourceTree = "<group>";
 		};
-		1A5DAFF60BBD6DE400D57389 /* Scripting */ = {
+		1A5DBA980BC000DC00D57389 /* Scripting */ = {
 			isa = PBXGroup;
 			children = (
-				1A5DAFFB0BBD6E3300D57389 /* OOScript.h */,
-				1A5DAFFC0BBD6E3300D57389 /* OOScript.m */,
-				1AEAAB870BA4515E000705D0 /* JavaScript */,
-				1A8A3DAB0B9B061800AB7625 /* PList scripts */,
+				1A5DBAA10BC000DC00D57389 /* OOScript.h */,
+				1A5DBAA20BC000DC00D57389 /* OOScript.m */,
+				1A5DBAB50BC000E700D57389 /* JavaScript */,
+				1A5DBAB80BC000F300D57389 /* PList & OOS scripting */,
 			);
-			name = Scripting;
+			path = Scripting;
+			sourceTree = "<group>";
+		};
+		1A5DBAB50BC000E700D57389 /* JavaScript */ = {
+			isa = PBXGroup;
+			children = (
+				1A5DBA9C0BC000DC00D57389 /* OOJSScript.h */,
+				1A5DBA9D0BC000DC00D57389 /* OOJSScript.m */,
+				1A5DBA990BC000DC00D57389 /* JSUniverse.h */,
+				1A5DBA9A0BC000DC00D57389 /* OOJavaScriptEngine.h */,
+				1A5DBA9B0BC000DC00D57389 /* OOJavaScriptEngine.m */,
+			);
+			name = JavaScript;
+			sourceTree = "<group>";
+		};
+		1A5DBAB80BC000F300D57389 /* PList & OOS scripting */ = {
+			isa = PBXGroup;
+			children = (
+				1A5DBA9E0BC000DC00D57389 /* OOPListScript.h */,
+				1A5DBA9F0BC000DC00D57389 /* OOPListScript.m */,
+				1A5DBAA00BC000DC00D57389 /* OOSCompiler.m */,
+				1A5DBAA30BC000DC00D57389 /* OOSTokenizer.h */,
+				1A5DBAA40BC000DC00D57389 /* OOSTokenizer.m */,
+			);
+			name = "PList & OOS scripting";
 			sourceTree = "<group>";
 		};
 		1A8A3BE90B963F02007D20B8 /* Source */ = {
@@ -1533,7 +1553,7 @@
 				25161116099544390037C2E1 /* OOSound.h */,
 				25161100099544380037C2E1 /* OpenGLSprite.h */,
 				251610FF099544380037C2E1 /* OpenGLSprite.m */,
-				1A5DAFF60BBD6DE400D57389 /* Scripting */,
+				1A5DBA980BC000DC00D57389 /* Scripting */,
 			);
 			name = Source;
 			path = src/Core;
@@ -1739,18 +1759,6 @@
 			name = Groolite;
 			sourceTree = "<group>";
 		};
-		1A8A3DAB0B9B061800AB7625 /* PList scripts */ = {
-			isa = PBXGroup;
-			children = (
-				1A5DB2970BBE9EC400D57389 /* OOPListScript.h */,
-				1A5DB2A10BBE9F4700D57389 /* OOPListScript.m */,
-				0831C5C709E3396D0058029A /* StringTokeniser.h */,
-				0831C5C609E3396D0058029A /* StringTokeniser.m */,
-				0831C5C809E3396D0058029A /* ScriptCompiler.m */,
-			);
-			name = "PList scripts";
-			sourceTree = "<group>";
-		};
 		1AC0E9380B974D8700C46994 /* Documentation */ = {
 			isa = PBXGroup;
 			children = (
@@ -1763,20 +1771,6 @@
 			);
 			name = Documentation;
 			path = Doc;
-			sourceTree = "<group>";
-		};
-		1AEAAB870BA4515E000705D0 /* JavaScript */ = {
-			isa = PBXGroup;
-			children = (
-				1A5DAFF80BBD6E3300D57389 /* OOJavaScriptEngine.h */,
-				1A5DAFF90BBD6E3300D57389 /* OOJSScript.h */,
-				1AEAACDA0BA45895000705D0 /* JSUniverse.h */,
-				1AEAACD80BA45895000705D0 /* OXPScript.h */,
-				1AEAACDB0BA45895000705D0 /* OXPScript.m */,
-				1AEAACDC0BA45895000705D0 /* ScriptEngine.h */,
-				1AEAACD90BA45895000705D0 /* ScriptEngine.m */,
-			);
-			name = JavaScript;
 			sourceTree = "<group>";
 		};
 		1AEAAC6C0BA457C3000705D0 /* SpiderMonkey headers */ = {
@@ -1909,7 +1903,6 @@
 				2512834209BA27EC00F43D55 /* Geometry.h in Headers */,
 				2512834609BA281500F43D55 /* CollisionRegion.h in Headers */,
 				083325DD09DDBCDE00F5B8E4 /* OOColor.h in Headers */,
-				0831C5CA09E3396D0058029A /* StringTokeniser.h in Headers */,
 				08125F0909F9083F00AB9BF9 /* OOGLDefs.h in Headers */,
 				081329B50A6D534900A5C2CE /* OOInstinct.h in Headers */,
 				083DB4D50A70E51E00B419B2 /* OOBrain.h in Headers */,
@@ -1974,9 +1967,6 @@
 				1AEAACCA0BA457E7000705D0 /* prmjtime.h in Headers */,
 				1AEAACCB0BA457E7000705D0 /* resource.h in Headers */,
 				1AEAACCC0BA457E7000705D0 /* jsapi.h in Headers */,
-				1AEAACDD0BA45895000705D0 /* OXPScript.h in Headers */,
-				1AEAACDF0BA45895000705D0 /* JSUniverse.h in Headers */,
-				1AEAACE10BA45895000705D0 /* ScriptEngine.h in Headers */,
 				1A9400C00BAF0EDB005F6CF3 /* OOStringParsing.h in Headers */,
 				1A9403D00BAF36C3005F6CF3 /* OOFunctionAttributes.h in Headers */,
 				1A9404270BAF3DED005F6CF3 /* OOCollectionExtractors.h in Headers */,
@@ -1990,11 +1980,13 @@
 				1AB01ABE0BB15AED00F1B949 /* OOTextureScaling.h in Headers */,
 				1AB01BBB0BB16A8A00F1B949 /* OOFastArithmetic.h in Headers */,
 				1A451D8D0BB1BD2A004CD72F /* OOMaths.h in Headers */,
-				1A5DAFFE0BBD6E3300D57389 /* OOJavaScriptEngine.h in Headers */,
-				1A5DAFFF0BBD6E3300D57389 /* OOJSScript.h in Headers */,
-				1A5DB0010BBD6E3300D57389 /* OOScript.h in Headers */,
 				1A5DB1EA0BBD8F0000D57389 /* OOConstToString.h in Headers */,
-				1A5DB2980BBE9EC400D57389 /* OOPListScript.h in Headers */,
+				1A5DBAA50BC000DC00D57389 /* JSUniverse.h in Headers */,
+				1A5DBAA60BC000DC00D57389 /* OOJavaScriptEngine.h in Headers */,
+				1A5DBAA80BC000DC00D57389 /* OOJSScript.h in Headers */,
+				1A5DBAAA0BC000DC00D57389 /* OOPListScript.h in Headers */,
+				1A5DBAAD0BC000DC00D57389 /* OOScript.h in Headers */,
+				1A5DBAAF0BC000DC00D57389 /* OOSTokenizer.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -2142,8 +2134,6 @@
 				2512834309BA27EC00F43D55 /* Geometry.m in Sources */,
 				2512834709BA281500F43D55 /* CollisionRegion.m in Sources */,
 				083325DE09DDBCDE00F5B8E4 /* OOColor.m in Sources */,
-				0831C5C909E3396D0058029A /* StringTokeniser.m in Sources */,
-				0831C5CB09E3396D0058029A /* ScriptCompiler.m in Sources */,
 				081329B60A6D534900A5C2CE /* OOInstinct.m in Sources */,
 				083DB4D60A70E51E00B419B2 /* OOBrain.m in Sources */,
 				1A81F7090A7BAC4D006580AD /* OOCAMusic.m in Sources */,
@@ -2160,8 +2150,6 @@
 				1A38B4AD0B988532001ED4A0 /* OOLogging.m in Sources */,
 				1ADF5CEC0B9DF59A00FDB2A3 /* OOCacheManager.m in Sources */,
 				1A29967F0B9F064C002D2149 /* OOCache.m in Sources */,
-				1AEAACDE0BA45895000705D0 /* ScriptEngine.m in Sources */,
-				1AEAACE00BA45895000705D0 /* OXPScript.m in Sources */,
 				1A9400BE0BAF0ECD005F6CF3 /* OOStringParsing.m in Sources */,
 				1A9404260BAF3DED005F6CF3 /* OOCollectionExtractors.m in Sources */,
 				1A9404670BAF42BF005F6CF3 /* OOPListParsing.m in Sources */,
@@ -2172,9 +2160,13 @@
 				1A9406B50BAF67BF005F6CF3 /* OOTriangle.m in Sources */,
 				1AB01B5F0BB1639600F1B949 /* OOTextureScaling.m in Sources */,
 				1AB01BBC0BB16A8A00F1B949 /* OOFastArithmetic.m in Sources */,
-				1A5DB0020BBD6E3300D57389 /* OOScript.m in Sources */,
 				1A5DB1EB0BBD8F0000D57389 /* OOConstToString.m in Sources */,
-				1A5DB2A20BBE9F4700D57389 /* OOPListScript.m in Sources */,
+				1A5DBAA70BC000DC00D57389 /* OOJavaScriptEngine.m in Sources */,
+				1A5DBAA90BC000DC00D57389 /* OOJSScript.m in Sources */,
+				1A5DBAAB0BC000DC00D57389 /* OOPListScript.m in Sources */,
+				1A5DBAAC0BC000DC00D57389 /* OOSCompiler.m in Sources */,
+				1A5DBAAE0BC000DC00D57389 /* OOScript.m in Sources */,
+				1A5DBAB00BC000DC00D57389 /* OOSTokenizer.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
