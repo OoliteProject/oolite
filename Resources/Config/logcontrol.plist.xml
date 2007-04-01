@@ -190,21 +190,19 @@
 	<string>$troubleShootingDump</string>
 	<key>rendering.opengl.version</key>
 	<string>$troubleShootingDump</string>
-	<key>script</key>
-	<string>$entityState</string>
 	<key>script.addShips.failed</key>
 	<string>$scriptError</string>
 	<key>script.debug</key>
 	<string>$scriptDebugOn</string>
 	<key>script.debug.message</key>
 	<string>inherit</string>
+	<key>script.debug.note</key>
+	<string>$entityState</string>
 	<key>script.debug.note.addPlanet</key>
 	<string>inherit</string>
 	<key>script.debug.note.addShips</key>
 	<string>inherit</string>
 	<key>script.debug.note.awardCargo</key>
-	<string>inherit</string>
-	<key>script.debug.note.checkScript</key>
 	<string>inherit</string>
 	<key>script.debug.note.processSceneString</key>
 	<string>inherit</string>
@@ -272,13 +270,41 @@
 	<string>inherit</string>
 	<key>script.debug.testCondition.testValues</key>
 	<string>inherit</string>
+	<key>script.javaScript.call.badSelector</key>
+	<string>$scriptError</string>
+	<key>script.javaScript.init.error</key>
+	<string>$error</string>
+	<key>script.javaScript.init.success</key>
+	<string>no</string>
 	<key>script.javascript.compile.failed</key>
 	<string>$scriptError</string>
 	<key>script.javascript.compile.success</key>
-	<string>inherit</string>
+	<string>no</string>
+	<key>script.load.badName</key>
+	<string>$scriptError</string>
+	<key>script.load.exception</key>
+	<string>$error</string>
+	<key>script.load.notFound</key>
+	<string>$scriptError</string>
+	<key>script.load.parseOK</key>
+	<string>no</string>
+	<key>script.load.unnamed</key>
+	<string>$scriptError</string>
+	<key>script.load.world.listAll</key>
+	<string>no</string>
 	<key>script.missionDescription.noMissionKey</key>
 	<string>inherit</string>
 	<key>script.missionDescription.noMissionText</key>
+	<string>inherit</string>
+	<key>script.plist.run.badTarget</key>
+	<string>$error</string>
+	<key>script.trace</key>
+	<string>no</string>
+	<key>script.trace.javaScript.call</key>
+	<string>inherit</string>
+	<key>script.trace.plist.run</key>
+	<string>inherit</string>
+	<key>script.trace.runWorld</key>
 	<string>inherit</string>
 	<key>searchPaths.dumpAll</key>
 	<string>$troubleShootingDump</string>

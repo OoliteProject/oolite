@@ -34,7 +34,8 @@ MA 02110-1301, USA.
 #import "OOSound.h"
 #import "OOColor.h"
 #import "OOCacheManager.h"
-#import "ScriptEngine.h"
+#import "OOStringParsing.h"
+#import "OOCollectionExtractors.h"
 
 #import "Octree.h"
 #import "CollisionRegion.h"
@@ -50,7 +51,6 @@ MA 02110-1301, USA.
 #import "WormholeEntity.h"
 #import "RingEntity.h"
 #import "ParticleEntity.h"
-#import "OOStringParsing.h"
 
 #define kOOLogUnconvertedNSLog @"unclassified.Universe"
 
@@ -200,18 +200,13 @@ static Universe *sSharedUniverse = nil;
 	planet = NO_TARGET;
 	sun = NO_TARGET;
 	
-	// NOTE! scriptEngine MUST be initialised before the PlayerEntity
-	scriptEngine = [[[ScriptEngine alloc] initWithUniverse: self] retain];
-	
 	player = [[PlayerEntity alloc] init];	// alloc retains!
 	[self addEntity:player];
+	[player release];
 	
 	player->x_next = nil;	player->x_previous = nil;	x_list_start = player;
 	player->y_next = nil;	player->y_previous = nil;	y_list_start = player;
 	player->z_next = nil;	player->z_previous = nil;	z_list_start = player;
-	
-	[player set_up];
-	[player sendMessageToScripts:@"Initialise"];
 	
 	[player setUpShipFromDictionary:[self getDictionaryForShip:[player ship_desc]]];	// ship desc is the standard cobra at this point
 
@@ -233,8 +228,6 @@ static Universe *sSharedUniverse = nil;
 	
 	if (cachedStation)
 		[player setPosition: cachedStation->position];
-
-	[player release];
 	
 	[self setViewDirection:VIEW_GUI_DISPLAY];
 	
@@ -243,6 +236,8 @@ static Universe *sSharedUniverse = nil;
 	universeRegion = [[CollisionRegion alloc] initAsUniverse];	// retained
 	
 	doProcedurallyTexturedPlanets = NO;
+	
+	[player sendMessageToScripts:@"startUp"];
 		
     return self;
 }
@@ -286,7 +281,6 @@ static Universe *sSharedUniverse = nil;
 	[activeWormholes release];				
 	[characterPool release];
 	[universeRegion release];
-	[scriptEngine release];
 	
 	int i;
 	for (i = 0; i < 256; i++)  [system_names[i] release];
@@ -928,8 +922,7 @@ static Universe *sSharedUniverse = nil;
 	
 	//// possibly systeminfo has an override for the station
 	
-	if ([systeminfo objectForKey:@"station"])
-		stationDesc = (NSString *)[systeminfo objectForKey:@"station"];
+	stationDesc = [systeminfo stringForKey:@"station" defaultValue:nil];
 	
 	a_station = (StationEntity *)[self newShipWithRole:stationDesc];			   // retain count = 1
 	if (a_station)
@@ -2881,8 +2874,7 @@ GLfloat docked_light_specular[]	= { (GLfloat) 1.0, (GLfloat) 1.0, (GLfloat) 0.5,
 	NSString	*shipRoles = (NSString *)[shipDict objectForKey:@"roles"];
 	if (shipRoles)
 		isStation = ([shipRoles rangeOfString:@"station"].location != NSNotFound)||([shipRoles rangeOfString:@"carrier"].location != NSNotFound);
-	if ([shipDict objectForKey:@"isCarrier"])
-		isStation = [[shipDict objectForKey:@"isCarrier"] boolValue];
+	isStation = isStation || [shipDict boolForKey:@"isCarrier" defaultValue:isStation];
 
 	if (isStation)
 		ship = (StationEntity *)[self allocRecycledOrNewEntity:@"StationEntity"];	// is returned retained
@@ -4001,15 +3993,14 @@ BOOL maintainLinkedLists(Universe* uni)
 				if ([se isBeacon])
 					[self setNextBeacon:se];
 				if (se->isStation)
-				{
-					double stationRoll =   0.4;
-					// check for ststion_roll override
-					NSDictionary*	systeminfo = [self generateSystemData:system_seed];
-					if ([systeminfo objectForKey:@"station_roll"])
-						stationRoll = [(NSNumber *)[systeminfo objectForKey:@"station_roll"] doubleValue];
+				{					
 					// check if it is a proper rotating station (ie. roles contains the word "station")
 					if ([(StationEntity*)se isRotatingStation])
 					{
+						// check for station_roll override
+						NSDictionary*	systeminfo = [self generateSystemData:system_seed];
+						double stationRoll = [systeminfo doubleForKey:@"station_roll" defaultValue:0.4];
+						
 						[se setRoll: stationRoll];
 						[(StationEntity*)se setPlanet:[self planet]];
 						[se setStatus:STATUS_ACTIVE];
@@ -7591,12 +7582,6 @@ NSComparisonResult comparePrice(NSDictionary *dict1, NSDictionary *dict2, void *
 			OOLog(kOOLogException, @"***** Handling Non-fatal : %@ : %@ *****",[ooliteException name], [ooliteException reason]);
 		}
 	}
-}
-
-
-- (ScriptEngine *) scriptEngine
-{
-	return scriptEngine;
 }
 
 

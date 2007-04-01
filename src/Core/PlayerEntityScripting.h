@@ -36,13 +36,15 @@ MA 02110-1301, USA.
 #define COMPARISON_UNDEFINED	010
 
 
-@class OXPScript;
+@class OOScript;
 
 
 @interface PlayerEntity (Scripting)
 
 - (void) checkScript;
+
 - (void) scriptActions:(NSArray*) some_actions forTarget:(ShipEntity*) a_target;
+- (void)runScript:(NSArray*)scriptActions withName:(NSString *)scriptName forTarget:(ShipEntity *)target;	// Hook for OOPListScript
 - (BOOL) checkCouplet:(NSDictionary *) couplet onEntity:(Entity *) entity;
 - (void) scriptAction:(NSString *) scriptAction onEntity:(Entity *) entity;
 - (BOOL) scriptTestCondition:(NSString *) scriptCondition;
@@ -197,7 +199,7 @@ MA 02110-1301, USA.
 
 - (void) playSound:(NSString *) soundName;
 
-- (BOOL) mapKey:(NSString *) keycode toOXP:(OXPScript *)oxp;
+- (BOOL) mapKey:(NSString *) keycode toOXP:(OOScript *)oxp;
 - (void) targetNearestHostile;
 
 /*-----------------------------------------------------*/

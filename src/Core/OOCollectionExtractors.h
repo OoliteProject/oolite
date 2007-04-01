@@ -30,6 +30,9 @@ MA 02110-1301, USA.
 #import <Foundation/Foundation.h>
 
 
+BOOL EvaluateAsBoolean(id object, BOOL defaultValue);
+
+
 @interface NSArray (OOExtractor)
 
 - (char)charAtIndex:(unsigned)index defaultValue:(char)value;

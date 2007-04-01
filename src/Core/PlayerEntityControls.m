@@ -605,6 +605,7 @@ static NSTimeInterval	time_last_frame;
 						if (![universe playCustomSound:@"[autopilot-on]"])
 							[self beep];
 						[universe addMessage:ExpandDescriptionForCurrentSystem(@"[autopilot-on]") forCount:4.5];
+						[self sendMessageToScripts:@"didStartAutoPilot"];
 						//
 						if (ootunes_on)
 						{
@@ -647,6 +648,7 @@ static NSTimeInterval	time_last_frame;
 						if (![universe playCustomSound:@"[autopilot-on]"])
 							[self beep];
 						[universe addMessage:ExpandDescriptionForCurrentSystem(@"[autopilot-on]") forCount:4.5];
+						[self sendMessageToScripts:@"didStartAutoPilot"];
 						//
 						if (ootunes_on)
 						{
@@ -774,6 +776,8 @@ static NSTimeInterval	time_last_frame;
 						// say it!
 						[universe clearPreviousMessage];
 						[universe addMessage:ExpandDescriptionForCurrentSystem(@"[witch-user-abort]") forCount:3.0];
+						
+						[self sendMessageToScripts:@"didCancelJumpCountDown"];
 					}
 
 					if (jumpOK)
@@ -786,6 +790,8 @@ static NSTimeInterval	time_last_frame;
 						// say it!
 						[universe clearPreviousMessage];
 						[universe addMessage:[NSString stringWithFormat:ExpandDescriptionForCurrentSystem(@"[witch-to-@-in-f-seconds]"), [universe getSystemName:target_system_seed], witchspaceCountdown] forCount:1.0];
+						
+						[self sendMessageToScripts:@"didBeginJumpCountDown"withString:@"standard"];
 					}
 				}
 				hyperspace_pressed = YES;
@@ -820,6 +826,8 @@ static NSTimeInterval	time_last_frame;
 						// say it!
 						[universe clearPreviousMessage];
 						[universe addMessage:ExpandDescriptionForCurrentSystem(@"[witch-user-abort]") forCount:3.0];
+						
+						[self sendMessageToScripts:@"didCancelJumpCountDown"];
 					}
 
 					if (jumpOK)
@@ -832,6 +840,8 @@ static NSTimeInterval	time_last_frame;
 								[self beep];
 						// say it!
 						[universe addMessage:[NSString stringWithFormat:ExpandDescriptionForCurrentSystem(@"[witch-galactic-in-f-seconds]"), witchspaceCountdown] forCount:1.0];
+						
+						[self sendMessageToScripts:@"didBeginJumpCountDown" withString:@"galactic"];
 					}
 				}
 				galhyperspace_pressed = YES;
@@ -2430,6 +2440,7 @@ static BOOL toggling_music;
 			if (![universe playCustomSound:@"[autopilot-off]"])
 				[self beep];
 			[universe addMessage:ExpandDescriptionForCurrentSystem(@"[autopilot-off]") forCount:4.5];
+			[self sendMessageToScripts:@"didAbortAutoPilot"];
 			//
 			if (ootunes_on)
 			{

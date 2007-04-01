@@ -207,7 +207,7 @@ NSDictionary* parseIf(StringTokeniser* st) {
 }
 
 
-NSDictionary* parseScripts(NSString* script) {
+NSDictionary* ParseOOSScripts(NSString* script) {
 	NSString *processedScript = preprocess(script);
 	StringTokeniser *st = [[StringTokeniser alloc] initWithString:processedScript];
 	NSMutableDictionary *scriptDict = [[NSMutableDictionary alloc] initWithCapacity:10];

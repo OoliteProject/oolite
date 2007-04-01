@@ -704,6 +704,8 @@ enum
 /* -- */
 
 - (void) sendMessageToScripts:(NSString *)message;
+- (void) sendMessageToScripts:(NSString *)message withString:(NSString *)argument;
+- (void) sendMessageToScripts:(NSString *)message withInteger:(int)argument;
 
 - (BOOL)showInfoFlag;
 

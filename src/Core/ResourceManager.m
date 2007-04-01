@@ -31,6 +31,9 @@ MA 02110-1301, USA.
 #import "OOStringParsing.h"
 #import "OOPListParsing.h"
 
+#import "OOJSScript.h"
+#import "OOPListScript.h"
+
 #define kOOLogUnconvertedNSLog @"unclassified.ResourceManager"
 
 
@@ -43,7 +46,7 @@ static NSString * const kOOCacheKeySearchPaths			= @"search paths";
 static NSString * const kOOCacheKeyModificationDates	= @"modification dates";
 
 
-extern NSDictionary* parseScripts(NSString* script);
+extern NSDictionary* ParseOOSScripts(NSString* script);
 
 
 @interface ResourceManager (OOPrivate)
@@ -53,29 +56,9 @@ extern NSDictionary* parseScripts(NSString* script);
 @end
 
 
-@implementation ResourceManager
-
 static  NSMutableArray* saved_paths;
 static  NSMutableArray* paths_to_load;
 static  NSString* errors;
-
-- (id) init
-{
-	self = [super init];
-	always_include_addons = YES;
-	paths = [[ResourceManager paths] retain];
-	errors = nil;
-	return self;
-}
-
-- (id) initIncludingAddOns: (BOOL) include_addons;
-{
-	self = [super init];
-	always_include_addons = include_addons;
-	paths = [[ResourceManager paths] retain];
-	errors = nil;
-	return self;
-}
 
 // caches allow us to load any given file once only
 //
@@ -89,17 +72,8 @@ NSMutableDictionary*	movie_cache;
 NSMutableDictionary*	surface_cache;
 #endif
 
-- (void) dealloc
-{
-	if (paths)	[paths release];
-	
-//	if (dictionary_cache)	[dictionary_cache release];
-//	if (array_cache)		[array_cache release];
-//	if (image_cache)		[image_cache release];
-//	if (sound_cache)		[sound_cache release];
-	
-	[super dealloc];
-}
+
+@implementation ResourceManager
 
 + (NSString *) errors
 {
@@ -173,18 +147,24 @@ NSMutableDictionary*	surface_cache;
 	if (always_include_addons != include_addons)
 	{
 		// clear the caches
-		if (dictionary_cache)	[dictionary_cache release];
-		if (array_cache)		[array_cache release];
-		if (image_cache)		[image_cache release];
-		if (sound_cache)		[sound_cache release];
-		if (string_cache)		[string_cache release];
-		if (movie_cache)		[movie_cache release];
+		[dictionary_cache release];
 		dictionary_cache = nil;
+		
+		[array_cache release];
 		array_cache = nil;
+		
+		[image_cache release];
 		image_cache = nil;
+		
+		[sound_cache release];
 		sound_cache = nil;
+		
+		[string_cache release];
 		string_cache = nil;
+		
+		[movie_cache release];
 		movie_cache = nil;
+		
 		// set flag for further accesses
 		always_include_addons = include_addons;
 		//
@@ -627,6 +607,8 @@ NSMutableDictionary*	surface_cache;
 #endif
 
 
+#if OLD_SCRIPT_CODE
+
 + (NSDictionary *) loadScripts
 {
 	NSMutableArray *results = [NSMutableArray arrayWithCapacity:16];
@@ -656,7 +638,7 @@ NSMutableDictionary*	surface_cache;
 			// load and compile oos script
 			NSLog(@"trying to load and parse %@", filepath);
 			NSString *script = [NSString stringWithContentsOfFile:filepath];
-			NSDictionary *scriptDict = parseScripts(script);
+			NSDictionary *scriptDict = ParseOOSScripts(script);
 			if (scriptDict)  [results addObject:scriptDict];
 		}
 		else
@@ -681,7 +663,7 @@ NSMutableDictionary*	surface_cache;
 				// load and compile oos script
 				NSLog(@"trying to load and compile %@", filepath);
 				NSString *script = [NSString stringWithContentsOfFile:filepath];
-				NSDictionary *scriptDict = parseScripts(script);
+				NSDictionary *scriptDict = ParseOOSScripts(script);
 				if (scriptDict) {
 					[results addObject:scriptDict];
 				}
@@ -712,5 +694,77 @@ NSMutableDictionary*	surface_cache;
 	return [NSDictionary dictionaryWithDictionary:result];
 }
 
+#else
+
+// New OOScript-based code. Result is dictionary of names -> OOScripts.
+
++ (NSDictionary *)loadScripts
+{
+	NSMutableDictionary			*loadedScripts = nil;
+	NSArray						*results = nil;
+	NSArray						*paths = nil;
+	NSEnumerator				*pathEnum = nil;
+	NSString					*path = nil;
+	NSEnumerator				*scriptEnum = nil;
+	OOScript					*script = nil;
+	NSString					*name = nil;
+	NSAutoreleasePool			*pool = nil;
+	
+	loadedScripts = [NSMutableDictionary dictionary];
+	paths = [ResourceManager paths];
+	for (pathEnum = [paths objectEnumerator]; (path = [pathEnum nextObject]); )
+	{
+		pool = [[NSAutoreleasePool alloc] init];
+		
+		NS_DURING
+			results = [OOScript worldScriptsAtPath:[path stringByAppendingPathComponent:@"Config"]];
+			if (results == nil) results = [OOScript worldScriptsAtPath:path];
+			if (results != nil)
+			{
+				for (scriptEnum = [results objectEnumerator]; (script = [scriptEnum nextObject]); )
+				{
+					name = [script name];
+					if (name != nil)  [loadedScripts setObject:script forKey:name];
+					else  OOLog(@"script.load.unnamed", @"Discarding anonymous script %@", script);
+				}
+			}
+		NS_HANDLER
+			OOLog(@"script.load.exception", @"***** %s encountered exception %@ (%@) while trying to load script from %@ -- ignoring this location.", __FUNCTION__, [localException name], [localException reason], path);
+			// Ignore exception and keep loading other scripts.
+		NS_ENDHANDLER
+		
+		[pool release];
+	}
+	
+	if (OOLogWillDisplayMessagesInClass(@"script.load.world.listAll"))
+	{
+		unsigned count = [loadedScripts count];
+		if (count != 0)
+		{
+			NSMutableArray		*displayNames = nil;
+			NSEnumerator		*scriptEnum = nil;
+			OOScript			*script = nil;
+			NSString			*displayString = nil;
+			
+			displayNames = [NSMutableArray arrayWithCapacity:count];
+			
+			for (scriptEnum = [loadedScripts objectEnumerator]; (script = [scriptEnum nextObject]); )
+			{
+				[displayNames addObject:[script displayName]];
+			}
+			
+			displayString = [[displayNames sortedArrayUsingSelector:@selector(caseInsensitiveCompare:)] componentsJoinedByString:@", "];
+			OOLog(@"script.load.world.listAll", @"Loaded %u world scripts: %@", count, displayString);
+		}
+		else
+		{
+			OOLog(@"script.load.world.listAll", @"*** No world scripts loaded.");
+		}
+	}
+	
+	return loadedScripts;
+}
+
+#endif
 
 @end

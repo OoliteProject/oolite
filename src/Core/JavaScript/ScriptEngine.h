@@ -1,6 +1,6 @@
 /*
 
-ScriptEngine.h
+OOJavaScriptEngine.h
 
 JavaScript support for Oolite
 Copyright (C) 2007 David Taylor
@@ -22,8 +22,10 @@ MA 02110-1301, USA.
 
 */
 
-#ifndef SCRIPTENGINE_H_SEEN
-#define SCRIPTENGINE_H_SEEN
+#ifndef OOJAVASCRIPTENGINE_H_USED
+#error ScriptEngine.h is deprecated, use OOJavaScriptEngine.h.
+#endif
+
 
 #import <Foundation/Foundation.h>
 #import "Universe.h"
@@ -31,7 +33,7 @@ MA 02110-1301, USA.
 #import "PlayerEntityScripting.h"
 #import <jsapi.h>
 
-@interface ScriptEngine : NSObject
+@interface OOJavaScriptEngine : NSObject
 {
 	JSRuntime *rt;
 	JSContext *cx;
@@ -39,11 +41,34 @@ MA 02110-1301, USA.
 	JSBool builtins;
 }
 
-- (id) initWithUniverse: (Universe *) universe;
-- (void) dealloc;
++ (OOJavaScriptEngine *)sharedEngine;
 
 - (JSContext *) context;
 
 @end
 
-#endif
+
+@protocol OOJavaScriptConversion <NSObject>
+
+- (jsval)javaScriptValueInContext:(JSContext *)context;
+
+@end
+
+
+@interface NSString (OOJavaScriptExtensions) <OOJavaScriptConversion>
+
+// Convert a JSString to an NSString.
++ (id)stringWithJavaScriptString:(JSString *)string;
+
+// Convert an arbitrary JS object to an NSString, using JS_ValueToString.
++ (id)stringWithJavaScriptValue:(jsval)value inContext:(JSContext *)context;
+
+// Concatenate sequence of arbitrary JS objects into string.
++ (id)concatenationOfStringsFromJavaScriptValues:(jsval *)values count:(size_t)count separator:(NSString *)separator inContext:(JSContext *)context;
+
+@end
+
+
+@interface NSNumber (OOJavaScriptExtensions) <OOJavaScriptConversion>
+
+@end

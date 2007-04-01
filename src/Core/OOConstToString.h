@@ -1,9 +1,12 @@
 /*
 
-OOJSScript.h
+OOConstToString.h
 
-JavaScript support for Oolite
-Copyright (C) 2007 David Taylor
+Oolite
+Copyright (C) 2004-2007 Giles C Williams and contributors
+
+Convert various sets of integer constants to strings.
+To consider: replacing the integer constants with string constants.
 
 This program is free software; you can redistribute it and/or
 modify it under the terms of the GNU General Public License
@@ -22,29 +25,11 @@ MA 02110-1301, USA.
 
 */
 
-#ifndef OOJSSCRIPT_H_USED
-#error OXPScript.h is deprecated, use OOJSScript.h.
-#endif
+#import <Foundation/Foundation.h>
 
 
-#include "OOScript.h"
-#include <jsapi.h>
+// STATUS_ACTIVE, STATUS_DOCKING and so forth
+NSString *EntityStatusToString(int status);
 
-
-@interface OOJSScript : OOScript
-{
-	JSContext *cx;
-	JSObject *obj;
-
-	NSString *name;
-	NSString *description;
-	NSString *version;
-}
-
-+ (id)scriptWithPath:(NSString *)path;
-
-- (id)initWithPath:(NSString *)path;
-- (id)initWithPath:(NSString *)path andContext:(JSContext *)context;
-
-@end
-
+// CLASS_STATION, CLASS_MISSILE and so forth
+NSString *ScanClassToString(int scanClass);

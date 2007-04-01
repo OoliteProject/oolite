@@ -23,7 +23,39 @@ MA 02110-1301, USA.
 */
 
 #import "OOCollectionExtractors.h"
-#import <limits.h>
+
+
+BOOL EvaluateAsBoolean(id object, BOOL defaultValue)
+{
+	BOOL result = defaultValue;
+	
+	if ([object isKindOfClass:[NSString class]])
+	{
+		// This is here because A. [NSString boolValue] exists, but is not documented; and B. we want to return the default value (rather than NO) if the string doesn't make sense as a boolean.
+		if (NSOrderedSame == [object caseInsensitiveCompare:@"yes"] ||
+			NSOrderedSame == [object caseInsensitiveCompare:@"true"] ||
+			NSOrderedSame == [object caseInsensitiveCompare:@"on"] ||
+			[object intValue] != 0)
+		{
+			result = YES;
+		}
+		else if (NSOrderedSame == [object caseInsensitiveCompare:@"no"] ||
+				 NSOrderedSame == [object caseInsensitiveCompare:@"false"] ||
+				 NSOrderedSame == [object caseInsensitiveCompare:@"off"] ||
+				 NSOrderedSame == [object caseInsensitiveCompare:@"0"] ||
+				 NSOrderedSame == [object caseInsensitiveCompare:@"-0"])
+		{
+			result = NO;
+		}
+	}
+	else if ([object respondsToSelector:@selector(boolValue)])  result = [object boolValue];
+	else if ([object respondsToSelector:@selector(intValue)])
+	{
+		result = [object intValue] != 0;
+	}
+	
+	return result;
+}
 
 
 @implementation NSArray (OOExtractor)
@@ -208,32 +240,7 @@ MA 02110-1301, USA.
 	id					objVal = [self objectAtIndex:index];
 	BOOL				result;
 	
-	if ([objVal isKindOfClass:[NSString class]])
-	{
-		// This is here because A. [NSString boolValue] exists, but is not documented; and B. we want to return the default value (rather than NO) if the string doesn't make sense as a boolean.
-		if (NSOrderedSame == [objVal caseInsensitiveCompare:@"yes"] ||
-			NSOrderedSame == [objVal caseInsensitiveCompare:@"true"] ||
-			NSOrderedSame == [objVal caseInsensitiveCompare:@"on"] ||
-			[objVal intValue] != 0)
-		{
-			result = YES;
-		}
-		else if (NSOrderedSame == [objVal caseInsensitiveCompare:@"no"] ||
-				 NSOrderedSame == [objVal caseInsensitiveCompare:@"false"] ||
-				 NSOrderedSame == [objVal caseInsensitiveCompare:@"off"] ||
-				 NSOrderedSame == [objVal caseInsensitiveCompare:@"0"] ||
-				 NSOrderedSame == [objVal caseInsensitiveCompare:@"-0"])
-		{
-			result = NO;
-		}
-		else result = value;
-	}
-	else if ([objVal respondsToSelector:@selector(boolValue)])  result = [objVal boolValue];
-	else if ([objVal respondsToSelector:@selector(intValue)])
-	{
-		result = [objVal intValue] != 0;
-	}
-	else result = value;
+	result = EvaluateAsBoolean(objVal, value);
 
 	return result;
 }
@@ -475,32 +482,7 @@ MA 02110-1301, USA.
 	id					objVal = [self objectForKey:key];
 	BOOL				result;
 	
-	if ([objVal isKindOfClass:[NSString class]])
-	{
-		// This is here because A. [NSString boolValue] exists, but is not documented; and B. we want to return the default value (rather than NO) if the string doesn't make sense as a boolean.
-		if (NSOrderedSame == [objVal caseInsensitiveCompare:@"yes"] ||
-			NSOrderedSame == [objVal caseInsensitiveCompare:@"true"] ||
-			NSOrderedSame == [objVal caseInsensitiveCompare:@"on"] ||
-			[objVal intValue] != 0)
-		{
-			result = YES;
-		}
-		else if (NSOrderedSame == [objVal caseInsensitiveCompare:@"no"] ||
-				 NSOrderedSame == [objVal caseInsensitiveCompare:@"false"] ||
-				 NSOrderedSame == [objVal caseInsensitiveCompare:@"off"] ||
-				 NSOrderedSame == [objVal caseInsensitiveCompare:@"0"] ||
-				 NSOrderedSame == [objVal caseInsensitiveCompare:@"-0"])
-		{
-			result = NO;
-		}
-		else result = value;
-	}
-	else if ([objVal respondsToSelector:@selector(boolValue)])  result = [objVal boolValue];
-	else if ([objVal respondsToSelector:@selector(intValue)])
-	{
-		result = [objVal intValue] != 0;
-	}
-	else result = value;
+	result = EvaluateAsBoolean(objVal, value);
 
 	return result;
 }

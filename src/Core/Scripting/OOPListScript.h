@@ -1,9 +1,17 @@
 /*
 
-OOJSScript.h
+OOPListScript.h
 
-JavaScript support for Oolite
-Copyright (C) 2007 David Taylor
+Property list-based script.
+
+I started off reimplementing plist scripting here, in order to remove one of
+PlayerEntity's many overloaded functions. The scale of the task was such that
+I've stepped back, and this simply wraps the old plist scripting in
+PlayerEntity. I intend to split it off as initially intended, hopefully as
+early as 1.69.
+
+Oolite
+Copyright (C) 2004-2007 Giles C Williams and contributors
 
 This program is free software; you can redistribute it and/or
 modify it under the terms of the GNU General Public License
@@ -22,29 +30,16 @@ MA 02110-1301, USA.
 
 */
 
-#ifndef OOJSSCRIPT_H_USED
-#error OXPScript.h is deprecated, use OOJSScript.h.
-#endif
+#import "OOScript.h"
 
 
-#include "OOScript.h"
-#include <jsapi.h>
-
-
-@interface OOJSScript : OOScript
+@interface OOPListScript: OOScript
 {
-	JSContext *cx;
-	JSObject *obj;
-
-	NSString *name;
-	NSString *description;
-	NSString *version;
+	NSArray					*_script;
+	NSDictionary			*_metadata;
 }
 
-+ (id)scriptWithPath:(NSString *)path;
-
-- (id)initWithPath:(NSString *)path;
-- (id)initWithPath:(NSString *)path andContext:(JSContext *)context;
++ (NSArray *)scriptsInOOSFile:(NSString *)filePath;
++ (NSArray *)scriptsInPListFile:(NSString *)filePath;
 
 @end
-

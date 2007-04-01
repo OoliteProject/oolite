@@ -124,7 +124,6 @@ MA 02110-1301, USA.
 
 @class TextureStore, GameController, CollisionRegion, MyOpenGLView, GuiDisplayGen;
 @class Entity, ShipEntity, StationEntity, PlanetEntity, PlayerEntity;
-@class ScriptEngine;
 
 extern int debug;
 
@@ -254,8 +253,6 @@ extern int debug;
 		
 		// experimental proc-genned textures
 		BOOL					doProcedurallyTexturedPlanets;
-		
-		ScriptEngine			*scriptEngine;
 }
 
 + (id)sharedUniverse;
@@ -501,8 +498,6 @@ double estimatedTimeForJourney(double distance, int hops);
 - (BOOL) reducedDetail;
 
 - (void) handleOoliteException:(NSException*) ooliteException;
-
-- (ScriptEngine *) scriptEngine;
 
 // speech routines
 //

@@ -1,0 +1,3 @@
+#define OOJAVASCRIPTENGINE_H_USED
+#import "ScriptEngine.h"
+#undef OOJAVASCRIPTENGINE_H_USED

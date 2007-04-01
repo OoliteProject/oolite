@@ -29,10 +29,11 @@ MA 02110-1301, USA.
 #import "TextureStore.h"
 #import "AI.h"
 #import "ShipEntityAI.h"
-#import "OXPScript.h"
+#import "OOScript.h"
 #import "OOSound.h"
 #import "OOColor.h"
 #import "OOStringParsing.h"
+#import "OOConstToString.h"
 
 #import "PlanetEntity.h"
 #import "ParticleEntity.h"
@@ -50,7 +51,7 @@ static NSString * const kOOLogScriptMissionDescNoKey		= @"script.missionDescript
 
 static NSString * const kOOLogDebug							= @"script.debug";
 static NSString * const kOOLogDebugOnMetaClass				= @"$scriptDebugOn";
-static NSString * const kOOLogDebugMessage					= @"script.debug.message";
+	   NSString * const kOOLogDebugMessage					= @"script.debug.message";
 static NSString * const kOOLogDebugOnOff					= @"script.debug.onOff";
 static NSString * const kOOLogDebugTestConditionCheckingVariable = @"script.debug.testCondition.checkingVariable";
 static NSString * const kOOLogDebugTestConditionValues		= @"script.debug.testCondition.testValues";
@@ -64,7 +65,6 @@ static NSString * const kOOLogDebugProcessSceneStringAddTargetPlanet = @"script.
 static NSString * const kOOLogDebugProcessSceneStringAddBillboard = @"script.debug.processSceneString.addBillboard";
 static NSString * const kOOLogDebugSetSunNovaIn				= @"script.debug.setSunNovaIn";
 
-static NSString * const kOOLogNoteCheckScript				= @"script.debug.note.checkScript";
 static NSString * const kOOLogNoteScriptAction				= @"script.debug.note.scriptAction";
 static NSString * const kOOLogNoteTestCondition				= @"script.debug.note.testCondition";
 static NSString * const kOOLogNoteAwardCargo				= @"script.debug.note.awardCargo";
@@ -94,6 +94,7 @@ static NSString * const kOOLogSyntaxReset					= @"script.debug.syntax.reset";
 static NSString * mission_string_value;
 static NSString * mission_key;
 
+#if OLD_SCRIPT_CODE
 - (void) checkScript
 {
 	int i;
@@ -113,27 +114,56 @@ static NSString * mission_key;
 			mission_key = missionTitle;
 			[self scriptActions: mission forTarget: self];
 		}
-		else if ([obj isKindOfClass:[OXPScript class]])
+		else if ([obj isKindOfClass:[OOScript class]])
 		{
-			OXPScript *jscript = (OXPScript *)obj;
+			OOScript *jscript = (OOScript *)obj;
 			[jscript doEvent:[self status_string]];
 		}
 	}
 	
 	OOLogOutdentIf(kOOLogNoteCheckScript);
 }
+#endif
+
+
+- (void) checkScript
+{
+	NSEnumerator				*scriptEnum = nil;
+	OOScript					*theScript = nil;
+	
+	[self setScript_target:self];
+	
+	OOLog(@"script.trace.runWorld", @"----- Running world script with state %@", [self status_string]);
+	OOLogIndentIf(@"script.trace.runWorld");
+	
+	for (scriptEnum = [script objectEnumerator]; (theScript = [scriptEnum nextObject]); )
+	{
+		[theScript runWithTarget:self];
+	}
+	
+	OOLogOutdentIf(@"script.trace.runWorld");
+}
+
+
+- (void)runScript:(NSArray*)scriptActions withName:(NSString *)scriptName forTarget:(ShipEntity *)target
+{
+	[self setScript_target:target];
+	mission_key = scriptName;
+	[self scriptActions:scriptActions forTarget:target];
+}
+
 
 - (void) scriptActions:(NSArray*) some_actions forTarget:(ShipEntity*) a_target
 {
-	PlayerEntity* player = [PlayerEntity sharedPlayer];
 	int i;
+	
 	for (i = 0; i < [some_actions count]; i++)
 	{
 		NSObject* action = [some_actions objectAtIndex:i];
 		if ([action isKindOfClass:[NSDictionary class]])
-			[player checkCouplet:(NSDictionary *)action onEntity: a_target];
+			[self checkCouplet:(NSDictionary *)action onEntity: a_target];
 		if ([action isKindOfClass:[NSString class]])
-			[player scriptAction:(NSString *)action onEntity: a_target];
+			[self scriptAction:(NSString *)action onEntity: a_target];
 	}
 }
 
@@ -546,48 +576,14 @@ static NSString * mission_key;
 {
 	return mission_string_value;
 }
+
+
 - (NSString *) status_string
 {
-	switch(status)
-	{
-		case STATUS_AUTOPILOT_ENGAGED :
-			return @"STATUS_AUTOPILOT_ENGAGED";
-		case STATUS_DEAD :
-			return @"STATUS_DEAD";
-		case STATUS_START_GAME :
-			return @"STATUS_START_GAME";
-		case STATUS_COCKPIT_DISPLAY :
-			return @"STATUS_COCKPIT_DISPLAY";
-		case STATUS_DOCKING :
-			return @"STATUS_DOCKING";
-		case STATUS_DOCKED :
-			return @"STATUS_DOCKED";
-		case STATUS_EFFECT :
-			return @"STATUS_EFFECT";
-		case STATUS_ENTERING_WITCHSPACE :
-			return @"STATUS_ENTERING_WITCHSPACE";
-		case STATUS_ESCAPE_SEQUENCE :
-			return @"STATUS_ESCAPE_SEQUENCE";
-		case STATUS_EXITING_WITCHSPACE :
-			return @"STATUS_EXITING_WITCHSPACE";
-		case STATUS_EXPERIMENTAL :
-			return @"STATUS_EXPERIMENTAL";
-		case STATUS_IN_FLIGHT :
-			return @"STATUS_IN_FLIGHT";
-		case STATUS_IN_HOLD :
-			return @"STATUS_IN_HOLD";
-		case STATUS_INACTIVE :
-			return @"STATUS_INACTIVE";
-		case STATUS_LAUNCHING :
-			return @"STATUS_LAUNCHING";
-		case STATUS_TEST :
-			return @"STATUS_TEST";
-		case STATUS_WITCHSPACE_COUNTDOWN :
-			return @"STATUS_WITCHSPACE_COUNTDOWN";
-		default :
-			return @"UNDEFINED";
-	}
+	return EntityStatusToString(status);
 }
+
+
 - (NSString *) gui_screen_string
 {
 	switch(gui_screen)
@@ -786,31 +782,31 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 - (NSNumber *) systemGovernment_number
 {
 	NSDictionary *systeminfo = [universe generateSystemData:system_seed];
-	return (NSNumber *)[systeminfo objectForKey:KEY_GOVERNMENT];
+	return [systeminfo objectForKey:KEY_GOVERNMENT];
 }
 
 - (NSNumber *) systemEconomy_number
 {
 	NSDictionary *systeminfo = [universe generateSystemData:system_seed];
-	return (NSNumber *)[systeminfo objectForKey:KEY_ECONOMY];
+	return [systeminfo objectForKey:KEY_ECONOMY];
 }
 
 - (NSNumber *) systemTechLevel_number
 {
 	NSDictionary *systeminfo = [universe generateSystemData:system_seed];
-	return (NSNumber *)[systeminfo objectForKey:KEY_TECHLEVEL];
+	return [systeminfo objectForKey:KEY_TECHLEVEL];
 }
 
 - (NSNumber *) systemPopulation_number
 {
 	NSDictionary *systeminfo = [universe generateSystemData:system_seed];
-	return (NSNumber *)[systeminfo objectForKey:KEY_POPULATION];
+	return [systeminfo objectForKey:KEY_POPULATION];
 }
 
 - (NSNumber *) systemProductivity_number
 {
 	NSDictionary *systeminfo = [universe generateSystemData:system_seed];
-	return (NSNumber *)[systeminfo objectForKey:KEY_PRODUCTIVITY];
+	return [systeminfo objectForKey:KEY_PRODUCTIVITY];
 }
 
 - (NSString *) commanderName_string
@@ -2292,31 +2288,33 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 }
 
 
-- (BOOL) mapKey:(NSString *) keycode toOXP:(OXPScript *)oxp
+- (BOOL) mapKey:(NSString *)keycode toOXP:(OOScript *)oxp
 {
-        OXPScript *s = [oxpKeys objectForKey:keycode];
-        if (s == nil)
-        {
-                [oxpKeys setObject:oxp forKey:keycode];
-                return YES;
-        }
-
-        return NO;
+	OOScript *s = [oxpKeys objectForKey:keycode];
+	if (s == nil)
+	{
+		if (oxpKeys == nil)  oxpKeys = [[NSMutableDictionary alloc] init];
+		
+		[oxpKeys setObject:oxp forKey:keycode];
+		return YES;
+	}
+	
+	return NO;
 }
 
 - (void) targetNearestHostile
 {
-        [self scanForHostiles];
-        if (found_target != NO_TARGET)
-        {
-                Entity *ent = [universe entityForUniversalID:found_target];
-                if (ent != 0x00)
-                {
-                        ident_engaged = YES;
-                        missile_status = MISSILE_STATUS_TARGET_LOCKED;
-                        [self addTarget:ent];
-                }
-        }
+	[self scanForHostiles];
+	if (found_target != NO_TARGET)
+	{
+		Entity *ent = [universe entityForUniversalID:found_target];
+		if (ent != 0x00)
+		{
+			ident_engaged = YES;
+			missile_status = MISSILE_STATUS_TARGET_LOCKED;
+			[self addTarget:ent];
+		}
+	}
 }
 
 @end

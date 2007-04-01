@@ -1,4 +1,10 @@
 {
+	"!metadata!" = {
+		// NOTE: metadata tagging syntax is not backwards compatible with versions of Oolite prior to 1.68.
+		version = "Oolite 1.68";
+		description = "Oolite built-in world scripts.";
+	};
+	
     "thargoid_plans" = (
         {
             conditions = (

@@ -230,6 +230,14 @@
 		1A472917096B5454000E78D8 /* CoreAudio.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1A472916096B5454000E78D8 /* CoreAudio.framework */; };
 		1A472921096B5468000E78D8 /* AudioToolbox.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1A47291F096B5468000E78D8 /* AudioToolbox.framework */; };
 		1A472922096B5468000E78D8 /* AudioUnit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1A472920096B5468000E78D8 /* AudioUnit.framework */; };
+		1A5DAFFE0BBD6E3300D57389 /* OOJavaScriptEngine.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A5DAFF80BBD6E3300D57389 /* OOJavaScriptEngine.h */; };
+		1A5DAFFF0BBD6E3300D57389 /* OOJSScript.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A5DAFF90BBD6E3300D57389 /* OOJSScript.h */; };
+		1A5DB0010BBD6E3300D57389 /* OOScript.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A5DAFFB0BBD6E3300D57389 /* OOScript.h */; };
+		1A5DB0020BBD6E3300D57389 /* OOScript.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A5DAFFC0BBD6E3300D57389 /* OOScript.m */; };
+		1A5DB1EA0BBD8F0000D57389 /* OOConstToString.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A5DB1E80BBD8F0000D57389 /* OOConstToString.h */; };
+		1A5DB1EB0BBD8F0000D57389 /* OOConstToString.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A5DB1E90BBD8F0000D57389 /* OOConstToString.m */; };
+		1A5DB2980BBE9EC400D57389 /* OOPListScript.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A5DB2970BBE9EC400D57389 /* OOPListScript.h */; };
+		1A5DB2A20BBE9F4700D57389 /* OOPListScript.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A5DB2A10BBE9F4700D57389 /* OOPListScript.m */; };
 		1A81F7090A7BAC4D006580AD /* OOCAMusic.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A81F7070A7BAC4D006580AD /* OOCAMusic.m */; };
 		1A81F70A0A7BAC4D006580AD /* OOCAMusic.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A81F7080A7BAC4D006580AD /* OOCAMusic.h */; };
 		1A8A37040B95CADD007D20B8 /* PlayerEntityLoadSave.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A8A37020B95CADD007D20B8 /* PlayerEntityLoadSave.m */; };
@@ -943,6 +951,14 @@
 		1A47291F096B5468000E78D8 /* AudioToolbox.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AudioToolbox.framework; path = /System/Library/Frameworks/AudioToolbox.framework; sourceTree = "<absolute>"; };
 		1A472920096B5468000E78D8 /* AudioUnit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AudioUnit.framework; path = /System/Library/Frameworks/AudioUnit.framework; sourceTree = "<absolute>"; };
 		1A5BF2720916D47300BF238F /* Oolite-importer.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = "Oolite-importer.xcodeproj"; path = "Oolite-importer/Oolite-importer.xcodeproj"; sourceTree = "<group>"; };
+		1A5DAFF80BBD6E3300D57389 /* OOJavaScriptEngine.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = OOJavaScriptEngine.h; path = Scripting/OOJavaScriptEngine.h; sourceTree = "<group>"; };
+		1A5DAFF90BBD6E3300D57389 /* OOJSScript.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = OOJSScript.h; path = Scripting/OOJSScript.h; sourceTree = "<group>"; };
+		1A5DAFFB0BBD6E3300D57389 /* OOScript.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = OOScript.h; path = Scripting/OOScript.h; sourceTree = "<group>"; };
+		1A5DAFFC0BBD6E3300D57389 /* OOScript.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = OOScript.m; path = Scripting/OOScript.m; sourceTree = "<group>"; };
+		1A5DB1E80BBD8F0000D57389 /* OOConstToString.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOConstToString.h; sourceTree = "<group>"; };
+		1A5DB1E90BBD8F0000D57389 /* OOConstToString.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOConstToString.m; sourceTree = "<group>"; };
+		1A5DB2970BBE9EC400D57389 /* OOPListScript.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = OOPListScript.h; path = Scripting/OOPListScript.h; sourceTree = "<group>"; };
+		1A5DB2A10BBE9F4700D57389 /* OOPListScript.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = OOPListScript.m; path = Scripting/OOPListScript.m; sourceTree = "<group>"; };
 		1A81F7070A7BAC4D006580AD /* OOCAMusic.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOCAMusic.m; sourceTree = "<group>"; };
 		1A81F7080A7BAC4D006580AD /* OOCAMusic.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOCAMusic.h; sourceTree = "<group>"; };
 		1A8A37020B95CADD007D20B8 /* PlayerEntityLoadSave.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = PlayerEntityLoadSave.m; sourceTree = "<group>"; };
@@ -1489,6 +1505,17 @@
 			name = Products;
 			sourceTree = "<group>";
 		};
+		1A5DAFF60BBD6DE400D57389 /* Scripting */ = {
+			isa = PBXGroup;
+			children = (
+				1A5DAFFB0BBD6E3300D57389 /* OOScript.h */,
+				1A5DAFFC0BBD6E3300D57389 /* OOScript.m */,
+				1AEAAB870BA4515E000705D0 /* JavaScript */,
+				1A8A3DAB0B9B061800AB7625 /* PList scripts */,
+			);
+			name = Scripting;
+			sourceTree = "<group>";
+		};
 		1A8A3BE90B963F02007D20B8 /* Source */ = {
 			isa = PBXGroup;
 			children = (
@@ -1497,7 +1524,6 @@
 				1A8A3C1E0B9640B4007D20B8 /* Mathematics */,
 				1A8A3C180B964030007D20B8 /* Resource Management */,
 				1A8A3C1B0B96407A007D20B8 /* User Interface */,
-				1A8A3DAB0B9B061800AB7625 /* OOScript */,
 				1A8A3BFB0B963F91007D20B8 /* Utilities */,
 				1A8A3BF20B963F3C007D20B8 /* Mac-specific */,
 				25161144099544390037C2E1 /* Universe.h */,
@@ -1507,7 +1533,7 @@
 				25161116099544390037C2E1 /* OOSound.h */,
 				25161100099544380037C2E1 /* OpenGLSprite.h */,
 				251610FF099544380037C2E1 /* OpenGLSprite.m */,
-				1AEAAB870BA4515E000705D0 /* JavaScript */,
+				1A5DAFF60BBD6DE400D57389 /* Scripting */,
 			);
 			name = Source;
 			path = src/Core;
@@ -1553,6 +1579,8 @@
 				1A9403CF0BAF36C3005F6CF3 /* OOFunctionAttributes.h */,
 				1A9404240BAF3DED005F6CF3 /* OOCollectionExtractors.m */,
 				1A9404250BAF3DED005F6CF3 /* OOCollectionExtractors.h */,
+				1A5DB1E80BBD8F0000D57389 /* OOConstToString.h */,
+				1A5DB1E90BBD8F0000D57389 /* OOConstToString.m */,
 			);
 			name = Utilities;
 			sourceTree = "<group>";
@@ -1711,14 +1739,16 @@
 			name = Groolite;
 			sourceTree = "<group>";
 		};
-		1A8A3DAB0B9B061800AB7625 /* OOScript */ = {
+		1A8A3DAB0B9B061800AB7625 /* PList scripts */ = {
 			isa = PBXGroup;
 			children = (
-				0831C5C609E3396D0058029A /* StringTokeniser.m */,
+				1A5DB2970BBE9EC400D57389 /* OOPListScript.h */,
+				1A5DB2A10BBE9F4700D57389 /* OOPListScript.m */,
 				0831C5C709E3396D0058029A /* StringTokeniser.h */,
+				0831C5C609E3396D0058029A /* StringTokeniser.m */,
 				0831C5C809E3396D0058029A /* ScriptCompiler.m */,
 			);
-			name = OOScript;
+			name = "PList scripts";
 			sourceTree = "<group>";
 		};
 		1AC0E9380B974D8700C46994 /* Documentation */ = {
@@ -1738,7 +1768,8 @@
 		1AEAAB870BA4515E000705D0 /* JavaScript */ = {
 			isa = PBXGroup;
 			children = (
-				1AEAAC6C0BA457C3000705D0 /* SpiderMonkey headers */,
+				1A5DAFF80BBD6E3300D57389 /* OOJavaScriptEngine.h */,
+				1A5DAFF90BBD6E3300D57389 /* OOJSScript.h */,
 				1AEAACDA0BA45895000705D0 /* JSUniverse.h */,
 				1AEAACD80BA45895000705D0 /* OXPScript.h */,
 				1AEAACDB0BA45895000705D0 /* OXPScript.m */,
@@ -1800,7 +1831,7 @@
 				1AEAAC9D0BA457E7000705D0 /* jsapi.h */,
 			);
 			name = "SpiderMonkey headers";
-			path = "../../deps/Cocoa-deps/js/headers";
+			path = "deps/Cocoa-deps/js/headers";
 			sourceTree = "<group>";
 		};
 		29B97314FDCFA39411CA2CEA /* Oolite_GUSTO */ = {
@@ -1820,6 +1851,7 @@
 		29B97323FDCFA39411CA2CEA /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				1AEAAC6C0BA457C3000705D0 /* SpiderMonkey headers */,
 				1058C7A0FEA54F0111CA2CBB /* Linked Frameworks */,
 				1058C7A2FEA54F0111CA2CBB /* Other Frameworks */,
 			);
@@ -1958,6 +1990,11 @@
 				1AB01ABE0BB15AED00F1B949 /* OOTextureScaling.h in Headers */,
 				1AB01BBB0BB16A8A00F1B949 /* OOFastArithmetic.h in Headers */,
 				1A451D8D0BB1BD2A004CD72F /* OOMaths.h in Headers */,
+				1A5DAFFE0BBD6E3300D57389 /* OOJavaScriptEngine.h in Headers */,
+				1A5DAFFF0BBD6E3300D57389 /* OOJSScript.h in Headers */,
+				1A5DB0010BBD6E3300D57389 /* OOScript.h in Headers */,
+				1A5DB1EA0BBD8F0000D57389 /* OOConstToString.h in Headers */,
+				1A5DB2980BBE9EC400D57389 /* OOPListScript.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1980,6 +2017,7 @@
 				1A2319640B9D02B900EF0852 /* Copy Models */,
 				1A2319780B9D030400EF0852 /* Copy Music */,
 				1A2319BA0B9D032700EF0852 /* Copy Sounds */,
+				1A5DB2D10BBEA46F00D57389 /* Sync logcontrol.plist.xml */,
 			);
 			buildRules = (
 			);
@@ -2040,6 +2078,25 @@
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXResourcesBuildPhase section */
+
+/* Begin PBXShellScriptBuildPhase section */
+		1A5DB2D10BBEA46F00D57389 /* Sync logcontrol.plist.xml */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+				"$(SRCROOT)/Resources/Config/logcontrol.plist",
+			);
+			name = "Sync logcontrol.plist.xml";
+			outputPaths = (
+				"$(SRCROOT)/Resources/Config/logcontrol.plist.xml",
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "plutil -convert xml1 -o $SRCROOT/Resources/Config/logcontrol.plist.xml $SRCROOT/Resources/Config/logcontrol.plist\necho Updated logcontrol.plist.xml.\n";
+		};
+/* End PBXShellScriptBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
 		0865430306B8447D000CA0AB /* Sources */ = {
@@ -2115,6 +2172,9 @@
 				1A9406B50BAF67BF005F6CF3 /* OOTriangle.m in Sources */,
 				1AB01B5F0BB1639600F1B949 /* OOTextureScaling.m in Sources */,
 				1AB01BBC0BB16A8A00F1B949 /* OOFastArithmetic.m in Sources */,
+				1A5DB0020BBD6E3300D57389 /* OOScript.m in Sources */,
+				1A5DB1EB0BBD8F0000D57389 /* OOConstToString.m in Sources */,
+				1A5DB2A20BBE9F4700D57389 /* OOPListScript.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

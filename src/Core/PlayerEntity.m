@@ -46,9 +46,10 @@ MA 02110-1301, USA.
 #import "OOSound.h"
 #import "OOColor.h"
 #import "OOCacheManager.h"
-#import "OXPScript.h"
 #import "OOStringParsing.h"
 #import "OOPListParsing.h"
+
+#import "OOScript.h"
 
 #ifndef GNUSTEP
 #import "Groolite.h"
@@ -951,6 +952,8 @@ static PlayerEntity *sSharedPlayer = nil;
 	
 	dockingReport = [[NSMutableString string] retain];
 	
+	script = [[ResourceManager loadScripts] retain];
+	
     return self;
 }
 
@@ -977,13 +980,12 @@ static PlayerEntity *sSharedPlayer = nil;
 	[hud resizeGuis:huddict];
 	scanner_zoom_rate = 0.0;
 	
-	script = [[ResourceManager loadScripts] retain];
 	mission_variables =[[NSMutableDictionary dictionaryWithCapacity:16] retain];
 	local_variables =[[NSMutableDictionary dictionaryWithCapacity:[script count]] retain];
 	NSArray *scriptKeys = [script allKeys];
 	for (i = 0; i < [scriptKeys count]; i++)
 		[local_variables setObject:[NSMutableDictionary dictionaryWithCapacity:16] forKey:[scriptKeys objectAtIndex:i]];
-
+	
 	[self setScript_target:nil];
 	[self resetMissionChoice];
 	
@@ -1208,6 +1210,8 @@ static PlayerEntity *sSharedPlayer = nil;
 	scoopsActive = NO;
 	
 	[dockingReport setString:@""];
+	
+	[self sendMessageToScripts:@"reset"];
 }
 
 - (void) setUpShipFromDictionary:(NSDictionary *) dict
@@ -1715,6 +1719,7 @@ double scoopSoundPlayTime = 0.0;
 			// next check in 10s
 
 			status = STATUS_IN_FLIGHT;
+			[self sendMessageToScripts:@"didLaunch"];
 		}
 	}
 
@@ -1740,6 +1745,7 @@ double scoopSoundPlayTime = 0.0;
 				if (![universe playCustomSound:@"[witch-blocked-by-@]"])
 					[witchAbortSound play];
 				status = STATUS_IN_FLIGHT;
+				[self sendMessageToScripts:@"didFailToJump" withString:@"blocked"];
 				go = NO;
 			}
 			
@@ -1755,6 +1761,7 @@ double scoopSoundPlayTime = 0.0;
 					if (![universe playCustomSound:@"[witch-too-far]"])
 						[witchAbortSound play];
 					status = STATUS_IN_FLIGHT;
+					[self sendMessageToScripts:@"didFailToJump" withString:@"too far"];
 					go = NO;
 				}
 			}
@@ -1770,6 +1777,7 @@ double scoopSoundPlayTime = 0.0;
 				if (![universe playCustomSound:@"[witch-no-fuel]"])
 					[witchAbortSound play];
 				status = STATUS_IN_FLIGHT;
+				[self sendMessageToScripts:@"didFailToJump" withString:@"insufficient fuel"];
 				go = NO;
 			}
 
@@ -1802,6 +1810,7 @@ double scoopSoundPlayTime = 0.0;
 				[universe addMessage:ExpandDescriptionForCurrentSystem(@"[witch-engine-malfunction]") forCount:3.0];
 
 			status = STATUS_IN_FLIGHT;
+			[self sendMessageToScripts:@"didExitWitchSpace"];
 		}
 	}
 
@@ -2838,7 +2847,7 @@ double scoopSoundPlayTime = 0.0;
 	}
 	
 	if (alert_condition != old_alert_condition)
-		[self sendMessageToScripts:@"AlertConditionChanged"];
+		[self sendMessageToScripts:@"alertConditionChanged"];
 	
 	return alert_condition;
 }
@@ -2882,6 +2891,7 @@ double scoopSoundPlayTime = 0.0;
 			[[universe gameController] playiTunesPlaylist:@"Oolite-Inflight"];
 			docking_music_on = NO;
 		}
+		[self sendMessageToScripts:@"didRecieveDockingRefusal"];
 	}
 
 	// aegis messages to advanced compass so in planet mode it behaves like the old compass
@@ -3481,6 +3491,8 @@ double scoopSoundPlayTime = 0.0;
 	energy = 25;
 	[universe addMessage:ExpandDescriptionForCurrentSystem(@"[escape-sequence]") forCount:4.5];
 	shot_time = 0.0;
+	
+	[self sendMessageToScripts:@"didLaunchEscapePod"];
 
 	return result;
 }
@@ -3699,6 +3711,7 @@ double scoopSoundPlayTime = 0.0;
 	[universe displayMessage:@"Press Space" forCount:30.0];
 	shot_time = 0.0;
 
+	[self sendMessageToScripts:@"didBecomeDead"];
 	[self loseTargetStatus];
 }
 
@@ -3734,6 +3747,7 @@ double scoopSoundPlayTime = 0.0;
 		return;
 	
 	status = STATUS_DOCKING;
+	[self sendMessageToScripts:@"willDock"];
 
 	afterburner_engaged = NO;
 
@@ -3839,6 +3853,8 @@ double scoopSoundPlayTime = 0.0;
 	}
 	
 	[[OOCacheManager sharedCache] flush];
+	
+	[self sendMessageToScripts:@"didDock"];
 }
 
 - (void) leaveDock:(StationEntity *)station
@@ -3885,6 +3901,7 @@ double scoopSoundPlayTime = 0.0;
 - (void) enterGalacticWitchspace
 {
 	status = STATUS_ENTERING_WITCHSPACE;
+	[self sendMessageToScripts:@"willEnterWitchSpace" withString:@"galactic jump"];
 
 	if (primaryTarget != NO_TARGET)
 		primaryTarget = NO_TARGET;
@@ -3954,6 +3971,7 @@ double scoopSoundPlayTime = 0.0;
 {
 	target_system_seed = [w_hole destination];
 	status = STATUS_ENTERING_WITCHSPACE;
+	[self sendMessageToScripts:@"willEnterWitchSpace" withString:@"wormhole"];
 
 	hyperspeed_engaged = NO;
 
@@ -3998,6 +4016,7 @@ double scoopSoundPlayTime = 0.0;
 	double		distance = distanceBetweenPlanetPositions(target_system_seed.d,target_system_seed.b,galaxy_coordinates.x,galaxy_coordinates.y);
 
 	status = STATUS_ENTERING_WITCHSPACE;
+	[self sendMessageToScripts:@"willEnterWitchSpace" withString:@"standard jump"];
 
 	hyperspeed_engaged = NO;
 
@@ -4107,10 +4126,12 @@ double scoopSoundPlayTime = 0.0;
 	[universe setDisplayText:NO];
 	[universe set_up_break_pattern:position quaternion:q_rotation];
 	[self playBreakPattern];
+	[self sendMessageToScripts:@"willExitWitchSpace"];
 }
 
 - (void) performDocking
 {
+	// Huh? What is this? Doesn't seem to get called. -- ahruman
 	[self abortDocking];			// let the station know that you are no longer on approach
 	autopilot_engaged = NO;
 	status = STATUS_IN_FLIGHT;
@@ -6752,19 +6773,36 @@ OOSound* burnersound;
 
 - (void) sendMessageToScripts:(NSString *)message
 {
-	int i;
-	if (oxpKeys == nil)
-		oxpKeys = [[NSMutableDictionary alloc] init];
-
-	for (i = 0; i < [[script allKeys] count]; i++)
+	NSEnumerator	*scriptEnum;
+	OOScript		*theScript;
+	
+	for (scriptEnum = [script objectEnumerator]; (theScript = [scriptEnum nextObject]); )
 	{
-		NSString *missionTitle = (NSString *)[[script allKeys] objectAtIndex:i];
-		id obj = [script objectForKey:missionTitle];
-		if ([obj isKindOfClass:[OXPScript class]])
-		{
-			OXPScript *jscript = (OXPScript *)obj;
-			[jscript doEvent:message];
-		}
+		[theScript doEvent:message];
+	}
+}
+
+
+- (void) sendMessageToScripts:(NSString *)message withString:(NSString *)argument
+{
+	NSEnumerator	*scriptEnum;
+	OOScript		*theScript;
+	
+	for (scriptEnum = [script objectEnumerator]; (theScript = [scriptEnum nextObject]); )
+	{
+		[theScript doEvent:message withStringArgument:argument];
+	}
+}
+
+
+- (void) sendMessageToScripts:(NSString *)message withInteger:(int)argument
+{
+	NSEnumerator	*scriptEnum;
+	OOScript		*theScript;
+	
+	for (scriptEnum = [script objectEnumerator]; (theScript = [scriptEnum nextObject]); )
+	{
+		[theScript doEvent:message withIntegerArgument:argument];
 	}
 }
 

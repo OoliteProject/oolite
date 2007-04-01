@@ -17,7 +17,12 @@
 	“logging-show-app-name” defaults to 1 under Mac OS X (where log output
 	goes to a shared console) and 0 under GNUstep (where log output goes to an
 	application-specific log file). “logging-show-class” defaults to 1. The
-	others default to 0. 
+	others default to 0.
+	
+	NOTE: the GNUstep plist parser cannot parse this file, presumably because
+	of the $s. Until this is properly analyzed, an XML version is used
+	instead. The XML version is automatically generated from this version when
+	building with Xcode under OS X.
 */
 
 
@@ -155,7 +160,6 @@ rendering.opengl.shader.texNameMissing	= $shaderError;
 rendering.opengl.stateDump				= $troubleShootingDump;	// Dump of OpenGL state (debug tool, currently unused)
 
 
-script									= $entityState;
 script.addShips.failed					= $scriptError;
 script.missionDescription.noMissionText	= inherit;
 script.missionDescription.noMissionKey	= inherit;
@@ -174,8 +178,8 @@ script.debug.processSceneString.addTargetPlanet = inherit;
 script.debug.processSceneString.addBillboard = inherit;
 script.debug.setSunNovaIn				= inherit;
 
-script.debug.note.checkScript			= inherit;				// Messages saying a scripting method was called, with no further info
-script.debug.note.scriptAction			= inherit;
+script.debug.note						= $entityState;
+script.debug.note.scriptAction			= inherit;				// Messages saying a scripting method was called, with no further info
 script.debug.note.awardCargo			= inherit;
 script.debug.note.removeAllCargo		= inherit;
 script.debug.note.useSpecialCargo		= inherit;
@@ -202,8 +206,25 @@ script.debug.syntax.addShips			= inherit;
 script.debug.syntax.set					= inherit;
 script.debug.syntax.reset				= inherit;
 
-script.javascript.compile.success		= inherit;
+script.javascript.compile.success		= no;
 script.javascript.compile.failed		= $scriptError;
+script.javaScript.init.success			= no;
+script.javaScript.init.error			= $error;				// Fatal start-up error
+script.javaScript.call.badSelector		= $scriptError;
+
+script.load.badName						= $scriptError;
+script.load.notFound					= $scriptError;
+script.load.parseOK						= no;
+script.load.unnamed						= $scriptError;
+script.load.exception					= $error;
+script.load.world.listAll				= no;					// List names and versions of all loaded world scripts at startup.
+
+script.plist.run.badTarget				= $error;
+
+script.trace							= no;
+script.trace.runWorld					= inherit;
+script.trace.plist.run					= inherit;
+script.trace.javaScript.call			= inherit;				// Prints selector and parameter string on Player.call()
 
 
 searchPaths.dumpAll						= $troubleShootingDump;

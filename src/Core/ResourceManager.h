@@ -41,11 +41,6 @@ extern int debug;
 BOOL always_include_addons;
 
 @interface ResourceManager : NSObject
-{
-	NSMutableArray  *paths;
-}
-
-- (id) initIncludingAddOns: (BOOL) include_addons;
 
 + (NSString *) errors;
 + (NSMutableArray *) paths;
@@ -68,4 +63,5 @@ BOOL always_include_addons;
 + (NSString *) stringFromFilesNamed:(NSString *)filename inFolder:(NSString *)foldername;
 
 + (NSDictionary *) loadScripts;
+
 @end
