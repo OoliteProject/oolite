@@ -25,6 +25,8 @@ MA 02110-1301, USA.
 #import "OOJavaScriptEngine.h"
 #import "OOJSScript.h"
 #import "OOCollectionExtractors.h"
+#import "Universe.h"
+#import "PlanetEntity.h"
 
 #include <stdio.h>
 #include <string.h>
@@ -40,15 +42,18 @@ static JSObject *xglob, *universeObj, *systemObj, *playerObj, *missionObj;
 extern OOJSScript *currentOOJSScript;
 
 
-static inline jsval BOOLToJSVal(BOOL b)
+OOINLINE inline jsval BOOLToJSVal(BOOL b) INLINE_CONST_FUNC;
+OOINLINE inline jsval BOOLToJSVal(BOOL b)
 {
 	return BOOLEAN_TO_JSVAL(b != NO);
 }
 
 
-static inline jsval ObjectToBooleanJSVal(id object)
+// For _bool scripting methods which always return @"YES" or @"NO" and nothing else.
+OOINLINE jsval BooleanStringToJSVal(NSString *string) INLINE_PURE_FUNC;
+OOINLINE inline jsval BooleanStringToJSVal(NSString *string)
 {
-	return BOOLToJSVal(EvaluateAsBoolean(object, NO));
+	return BOOLEAN_TO_JSVAL([string isEqualToString:@"YES"]);
 }
 
 
@@ -149,6 +154,7 @@ static JSClass global_class =
 {
 	"Oolite",
 	0,
+	
 	JS_PropertyStub,
 	JS_PropertyStub,
 	JS_PropertyStub,
@@ -162,22 +168,21 @@ static JSClass global_class =
 
 enum global_propertyIDs
 {
-	GLOBAL_GALAXY_NUMBER, GLOBAL_PLANET_NUMBER, GLOBAL_DOCKED_AT_MAIN_STATION,
-	GLOBAL_DOCKED_STATION_NAME, GLOBAL_MISSION_VARS, GLOBAL_GUI_SCREEN,
-	GLOBAL_STATUS_STRING
+	GLOBAL_GALAXY_NUMBER,
+	GLOBAL_PLANET_NUMBER,
+	GLOBAL_MISSION_VARS,
+	GLOBAL_GUI_SCREEN
 };
 
 
 // TODO: most of these should be properties of Player class.
 static JSPropertySpec Global_props[] =
 {
-	{ "galaxyNumber", GLOBAL_GALAXY_NUMBER, JSPROP_ENUMERATE, GlobalGetProperty },
-	{ "planetNumber", GLOBAL_PLANET_NUMBER, JSPROP_ENUMERATE, GlobalGetProperty },
-	{ "dockedAtMainStation", GLOBAL_DOCKED_AT_MAIN_STATION, JSPROP_ENUMERATE, GlobalGetProperty },
-	{ "stationName", GLOBAL_DOCKED_STATION_NAME, JSPROP_ENUMERATE, GlobalGetProperty },
-	{ "missionVariables", GLOBAL_MISSION_VARS, JSPROP_ENUMERATE, GlobalGetProperty },
-	{ "guiScreen", GLOBAL_GUI_SCREEN, JSPROP_ENUMERATE, GlobalGetProperty },
-	{ "statusString", GLOBAL_STATUS_STRING, JSPROP_ENUMERATE, GlobalGetProperty },
+	// JS name					ID							flags
+	{ "galaxyNumber",			GLOBAL_GALAXY_NUMBER,		JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY, GlobalGetProperty },
+	{ "planetNumber",			GLOBAL_PLANET_NUMBER,		JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY, GlobalGetProperty },
+	{ "missionVariables",		GLOBAL_MISSION_VARS,		JSPROP_PERMANENT | JSPROP_ENUMERATE, GlobalGetProperty },
+	{ "guiScreen",				GLOBAL_GUI_SCREEN,			JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY, GlobalGetProperty },
 	{ 0 }
 };
 
@@ -226,21 +231,9 @@ static JSBool GlobalGetProperty(JSContext *cx, JSObject *obj, jsval name, jsval 
 		case GLOBAL_PLANET_NUMBER:
 			result = [playerEntity planet_number];
 			break;
-		
-		case GLOBAL_DOCKED_AT_MAIN_STATION:
-			*vp = ObjectToBooleanJSVal([playerEntity dockedAtMainStation_bool]);
-			break;
-		
-		case GLOBAL_DOCKED_STATION_NAME:
-			result = [playerEntity dockedStationName_string];
-			break;
 
 		case GLOBAL_GUI_SCREEN:
 			result = [playerEntity gui_screen_string];
-			break;
-
-		case GLOBAL_STATUS_STRING:
-			result = [playerEntity status_string];
 			break;
 
 		case GLOBAL_MISSION_VARS: {
@@ -254,8 +247,6 @@ static JSBool GlobalGetProperty(JSContext *cx, JSObject *obj, jsval name, jsval 
 	return JS_TRUE;
 }
 
-
-#import "JSUniverse.h"
 
 //===========================================================================
 // Player proxy
@@ -283,8 +274,17 @@ static JSClass Player_class =
 
 enum Player_propertyIDs
 {
-	PE_SHIP_DESCRIPTION, PE_COMMANDER_NAME, PE_SCORE, PE_CREDITS, PE_LEGAL_STATUS,
-	PE_FUEL_LEVEL, PE_FUEL_LEAK_RATE, PE_ALERT_CONDITION, PE_ALERT_FLAGS,
+	PE_SHIP_DESCRIPTION,
+	PE_COMMANDER_NAME,
+	PE_SCORE,
+	PE_CREDITS,
+	PE_LEGAL_STATUS,
+	PE_FUEL_LEVEL,
+	PE_FUEL_LEAK_RATE,
+	PE_ALERT_CONDITION,
+	PE_STATUS_STRING,
+	PE_DOCKED_AT_MAIN_STATION,
+	PE_DOCKED_STATION_NAME,
 	
 	// Special handling -- these correspond to ALERT_FLAG_FOO (PlayerEntity.h). 0x10 is shifted left by the low nybble to get the alert mask.
 	PE_DOCKED					= 0xA0,
@@ -307,13 +307,15 @@ static JSPropertySpec Player_props[] =
 	{ "fuel",					PE_FUEL_LEVEL,				JSPROP_PERMANENT | JSPROP_ENUMERATE },
 	{ "fuelLeakRate",			PE_FUEL_LEAK_RATE,			JSPROP_PERMANENT | JSPROP_ENUMERATE },
 	{ "alertCondition",			PE_ALERT_CONDITION,			JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
-	{ "alertFlags",				PE_ALERT_FLAGS,				JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
 	{ "docked",					PE_DOCKED,					JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
 	{ "alertTemperature",		PE_ALERT_TEMPERATURE,		JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
 	{ "alertMassLocked",		PE_ALERT_MASS_LOCKED,		JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
 	{ "alertAltitude",			PE_ALERT_ALTITUTE,			JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
 	{ "alertEnergy",			PE_ALERT_ENERGY,			JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
 	{ "alertHostiles",			PE_ALERT_HOSTILES,			JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
+	{ "status",					PE_STATUS_STRING,			JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
+	{ "dockedAtMainStation",	PE_DOCKED_AT_MAIN_STATION,	JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
+	{ "stationName",			PE_DOCKED_STATION_NAME,		JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
 	{ 0 }
 };
 
@@ -491,9 +493,17 @@ static JSBool PlayerGetProperty(JSContext *cx, JSObject *obj, jsval name, jsval 
 		case PE_ALERT_CONDITION:
 			*vp = INT_TO_JSVAL([playerEntity alert_condition]);
 			break;
+		
+		case PE_DOCKED_AT_MAIN_STATION:
+			*vp = BooleanStringToJSVal([playerEntity dockedAtMainStation_bool]);
+			break;
+		
+		case PE_DOCKED_STATION_NAME:
+			result = [playerEntity dockedStationName_string];
+			break;
 
-		case PE_ALERT_FLAGS:
-			*vp = INT_TO_JSVAL([playerEntity alert_flags]);
+		case PE_STATUS_STRING:
+			result = [playerEntity status_string];
 			break;
 		
 		default:
@@ -544,7 +554,7 @@ static JSBool PlayerSetProperty(JSContext *cx, JSObject *obj, jsval name, jsval 
 
 
 //===========================================================================
-// System (solar system) proxy
+// Universe (solar system) proxy
 //===========================================================================
 
 static JSBool SystemGetProperty(JSContext *cx, JSObject *obj, jsval name, jsval *vp);
@@ -552,7 +562,7 @@ static JSBool SystemSetProperty(JSContext *cx, JSObject *obj, jsval name, jsval 
 
 static JSClass System_class =
 {
-	"System",
+	"Universe",
 	JSCLASS_HAS_PRIVATE,
 	
 	JS_PropertyStub,
@@ -568,9 +578,19 @@ static JSClass System_class =
 
 enum System_propertyIDs
 {
-	SYS_ID, SYS_NAME, SYS_DESCRIPTION, SYS_GOING_NOVA, SYS_GONE_NOVA, SYS_GOVT_STR,
-	SYS_GOVT_ID, SYS_ECONOMY_STR, SYS_ECONOMY_ID, SYS_TECH_LVL, SYS_POPULATION,
-	SYS_PRODUCTIVITY, SYS_INHABITANTS
+	SYS_ID,
+	SYS_NAME,
+	SYS_DESCRIPTION,
+	SYS_GOING_NOVA,
+	SYS_GONE_NOVA,
+	SYS_GOVT_STR,
+	SYS_GOVT_ID,
+	SYS_ECONOMY_STR,
+	SYS_ECONOMY_ID,
+	SYS_TECH_LVL,
+	SYS_POPULATION,
+	SYS_PRODUCTIVITY,
+	SYS_INHABITANTS
 };
 
 
@@ -598,6 +618,14 @@ static JSBool SystemAddPlanet(JSContext *cx, JSObject *obj, uintN argc, jsval *a
 static JSBool SystemAddMoon(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval);
 static JSBool SystemSendAllShipsAway(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval);
 static JSBool SystemSetSunNova(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval);
+static JSBool SystemCountShipsWithRole(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval);
+static JSBool SystemAddShips(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval);
+static JSBool SystemAddSystemShips(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval);
+static JSBool SystemAddShipsAt(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval);
+static JSBool SystemAddShipsAtPrecisely(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval);
+static JSBool SystemAddShipsWithinRadius(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval);
+static JSBool SystemSpawn(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval);
+static JSBool SystemSpawnShip(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval);
 
 
 static JSFunctionSpec System_funcs[] =
@@ -607,6 +635,14 @@ static JSFunctionSpec System_funcs[] =
 	{ "addMoon",				SystemAddMoon,				1 },
 	{ "sendAllShipsAway",		SystemSendAllShipsAway,		1 },
 	{ "setSunNova",				SystemSetSunNova,			1 },
+	{ "countShipsWithRole",		SystemCountShipsWithRole,	1, 0 },
+	{ "legacy_addShips",		SystemAddShips,				2, 0 },
+	{ "legacy_addSystemShips",	SystemAddSystemShips,		3, 0 },
+	{ "legacy_addShipsAt",		SystemAddShipsAt,			6, 0 },
+	{ "legacy_addShipsAtPrecisely", SystemAddShipsAtPrecisely, 6, 0 },
+	{ "legacy_addShipsWithinRadius", SystemAddShipsWithinRadius, 7, 0 },
+	{ "legacy_spawn",			SystemSpawn,				2, 0 },
+	{ "legacy_spawnShip",		SystemSpawnShip,			1, 0 },
 	{ 0 }
 };
 
@@ -700,11 +736,11 @@ static JSBool SystemGetProperty(JSContext *cx, JSObject *obj, jsval name, jsval 
 			break;
 		
 		case SYS_GOING_NOVA:
-			*vp = BOOLToJSVal([[playerEntity sunWillGoNova_bool] isEqualToString:@"YES"]);
+			*vp = BooleanStringToJSVal([playerEntity sunWillGoNova_bool]);
 			break;
 
 		case SYS_GONE_NOVA:
-			*vp = BOOLToJSVal([[playerEntity sunGoneNova_bool] isEqualToString:@"YES"]);
+			*vp = BooleanStringToJSVal([playerEntity sunGoneNova_bool]);
 			break;
 
 		case SYS_GOVT_ID:
@@ -755,48 +791,173 @@ static JSBool SystemSetProperty(JSContext *cx, JSObject *obj, jsval name, jsval 
 	}
 	int gn = [[playerEntity galaxy_number] intValue];
 	int pn = [[playerEntity planet_number] intValue];
-
+	Universe *universe = [Universe sharedUniverse];
+	
 	switch (JSVAL_TO_INT(name))
 	{
 		case SYS_NAME:
-			[[Universe sharedUniverse] setSystemDataForGalaxy:gn planet:pn key:KEY_NAME value:JSValToNSString(cx, *vp)];
+			[universe setSystemDataForGalaxy:gn planet:pn key:KEY_NAME value:JSValToNSString(cx, *vp)];
 			break;
 
 			case SYS_DESCRIPTION:
-			[[Universe sharedUniverse] setSystemDataForGalaxy:gn planet:pn key:KEY_DESCRIPTION value:JSValToNSString(cx, *vp)];
+			[universe setSystemDataForGalaxy:gn planet:pn key:KEY_DESCRIPTION value:JSValToNSString(cx, *vp)];
 			break;
 
 		case SYS_INHABITANTS:
-			[[Universe sharedUniverse] setSystemDataForGalaxy:gn planet:pn key:KEY_INHABITANTS value:JSValToNSString(cx, *vp)];
+			[universe setSystemDataForGalaxy:gn planet:pn key:KEY_INHABITANTS value:JSValToNSString(cx, *vp)];
 			break;
-/*
+
 		case SYS_GOING_NOVA:
-			//BOOLToJSVal(cx, [[playerEntity sunWillGoNova_bool] isEqualToString:@"YES"], vp);
+			*vp = BOOLToJSVal([[universe sun] willGoNova]);
 			break;
 
 		case SYS_GONE_NOVA:
-			//BOOLToJSVal(cx, [[playerEntity sunGoneNova_bool] isEqualToString:@"YES"], vp);
+			*vp = BOOLToJSVal([[universe sun] goneNova]);
 			break;
-*/
+
 		case SYS_GOVT_ID:
-			[[Universe sharedUniverse] setSystemDataForGalaxy:gn planet:pn key:KEY_GOVERNMENT value:[NSNumber numberWithInt:[JSValToNSString(cx, *vp) intValue]]];
+			[universe setSystemDataForGalaxy:gn planet:pn key:KEY_GOVERNMENT value:[NSNumber numberWithInt:[JSValToNSString(cx, *vp) intValue]]];
 			break;
 
 		case SYS_ECONOMY_ID:
-			[[Universe sharedUniverse] setSystemDataForGalaxy:gn planet:pn key:KEY_ECONOMY value:[NSNumber numberWithInt:[JSValToNSString(cx, *vp) intValue]]];
+			[universe setSystemDataForGalaxy:gn planet:pn key:KEY_ECONOMY value:[NSNumber numberWithInt:[JSValToNSString(cx, *vp) intValue]]];
 			break;
 
 		case SYS_TECH_LVL:
-			[[Universe sharedUniverse] setSystemDataForGalaxy:gn planet:pn key:KEY_TECHLEVEL value:[NSNumber numberWithInt:[JSValToNSString(cx, *vp) intValue]]];
+			[universe setSystemDataForGalaxy:gn planet:pn key:KEY_TECHLEVEL value:[NSNumber numberWithInt:[JSValToNSString(cx, *vp) intValue]]];
 			break;
 
 		case SYS_POPULATION:
-			[[Universe sharedUniverse] setSystemDataForGalaxy:gn planet:pn key:KEY_POPULATION value:[NSNumber numberWithInt:[JSValToNSString(cx, *vp) intValue]]];
+			[universe setSystemDataForGalaxy:gn planet:pn key:KEY_POPULATION value:[NSNumber numberWithInt:[JSValToNSString(cx, *vp) intValue]]];
 			break;
 
 		case SYS_PRODUCTIVITY:
-			[[Universe sharedUniverse] setSystemDataForGalaxy:gn planet:pn key:KEY_PRODUCTIVITY value:[NSNumber numberWithInt:[JSValToNSString(cx, *vp) intValue]]];
+			[universe setSystemDataForGalaxy:gn planet:pn key:KEY_PRODUCTIVITY value:[NSNumber numberWithInt:[JSValToNSString(cx, *vp) intValue]]];
 			break;
+	}
+	return JS_TRUE;
+}
+
+
+static JSBool SystemCountShipsWithRole(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval)
+{
+	if (argc == 1)
+	{
+		NSString *role = JSValToNSString(cx, argv[0]);
+		int num = [[Universe sharedUniverse] countShipsWithRole:role];
+		*rval = INT_TO_JSVAL(num);
+	}
+	return JS_TRUE;
+}
+
+
+static JSBool SystemAddShips(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval)
+{
+	if (argc == 2)
+	{
+		NSString *role = JSValToNSString(cx, argv[0]);
+		int num = JSVAL_TO_INT(argv[1]);
+
+		while (num--)
+			[[Universe sharedUniverse] witchspaceShipWithRole:role];
+	}
+	return JS_TRUE;
+}
+
+
+static JSBool SystemAddSystemShips(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval)
+{
+	if (argc == 3)
+	{
+		jsdouble posn;
+		NSString *role = JSValToNSString(cx, argv[0]);
+		int num = JSVAL_TO_INT(argv[1]);
+		JS_ValueToNumber(cx, argv[2], &posn);
+		while (num--)
+			[[Universe sharedUniverse] addShipWithRole:role nearRouteOneAt:posn];
+	}
+	return JS_TRUE;
+}
+
+
+static JSBool SystemAddShipsAt(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval)
+{
+	if (argc == 6)
+	{
+		jsdouble x, y, z;
+		PlayerEntity *playerEntity = [PlayerEntity sharedPlayer];
+		NSString *role = JSValToNSString(cx, argv[0]);
+		int num = JSVAL_TO_INT(argv[1]);
+		NSString *coordScheme = JSValToNSString(cx, argv[2]);
+		JS_ValueToNumber(cx, argv[3], &x);
+		JS_ValueToNumber(cx, argv[4], &y);
+		JS_ValueToNumber(cx, argv[5], &z);
+		NSString *arg = [NSString stringWithFormat:@"%@ %d %@ %f %f %f", role, num, coordScheme, x, y, z];
+		[playerEntity addShipsAt:arg];
+	}
+	return JS_TRUE;
+}
+
+
+static JSBool SystemAddShipsAtPrecisely(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval)
+{
+	if (argc == 6)
+	{
+		jsdouble x, y, z;
+		PlayerEntity *playerEntity = [PlayerEntity sharedPlayer];
+		NSString *role = JSValToNSString(cx, argv[0]);
+		int num = JSVAL_TO_INT(argv[1]);
+		NSString *coordScheme = JSValToNSString(cx, argv[2]);
+		JS_ValueToNumber(cx, argv[3], &x);
+		JS_ValueToNumber(cx, argv[4], &y);
+		JS_ValueToNumber(cx, argv[5], &z);
+		NSString *arg = [NSString stringWithFormat:@"%@ %d %@ %f %f %f", role, num, coordScheme, x, y, z];
+		[playerEntity addShipsAtPrecisely:arg];
+	}
+	return JS_TRUE;
+}
+
+
+static JSBool SystemAddShipsWithinRadius(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval)
+{
+	if (argc == 7)
+	{
+		jsdouble x, y, z;
+		PlayerEntity *playerEntity = [PlayerEntity sharedPlayer];
+		NSString *role = JSValToNSString(cx, argv[0]);
+		int num = JSVAL_TO_INT(argv[1]);
+		NSString *coordScheme = JSValToNSString(cx, argv[2]);
+		JS_ValueToNumber(cx, argv[3], &x);
+		JS_ValueToNumber(cx, argv[4], &y);
+		JS_ValueToNumber(cx, argv[5], &z);
+		int rad = JSVAL_TO_INT(argv[6]);
+		NSString *arg = [NSString stringWithFormat:@"%@ %d %@ %f %f %f %d", role, num, coordScheme, x, y, z, rad];
+		[playerEntity addShipsAt:arg];
+	}
+	return JS_TRUE;
+}
+
+
+static JSBool SystemSpawn(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval)
+{
+	if (argc == 2)
+	{
+		PlayerEntity *playerEntity = [PlayerEntity sharedPlayer];
+		NSString *role = JSValToNSString(cx, argv[0]);
+		int num = JSVAL_TO_INT(argv[1]);
+		NSString *arg = [NSString stringWithFormat:@"%@ %d", role, num];
+		[playerEntity spawn:arg];
+	}
+	return JS_TRUE;
+}
+
+
+static JSBool SystemSpawnShip(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval)
+{
+	if (argc == 1)
+	{
+		PlayerEntity *playerEntity = [PlayerEntity sharedPlayer];
+		[playerEntity spawnShip:JSValToNSString(cx, argv[0])];
 	}
 	return JS_TRUE;
 }
@@ -1043,9 +1204,9 @@ static void ReportJSError(JSContext *cx, const char *message, JSErrorReport *rep
 	JS_DefineProperties(cx, glob, Global_props);
 	JS_DefineFunctions(cx, glob, Global_funcs);
 
-	universeObj = JS_DefineObject(cx, glob, "universe", &Universe_class, NULL, JSPROP_ENUMERATE);
-	//JS_DefineProperties(cx, universeObj, Universe_props);
-	JS_DefineFunctions(cx, universeObj, Universe_funcs);
+	universeObj = JS_DefineObject(cx, glob, "universe", &System_class, NULL, JSPROP_ENUMERATE);
+	//JS_DefineProperties(cx, universeObj, System_props);
+	JS_DefineFunctions(cx, universeObj, System_funcs);
 
 	systemObj = JS_DefineObject(cx, glob, "system", &System_class, NULL, JSPROP_ENUMERATE);
 	JS_DefineProperties(cx, systemObj, System_props);

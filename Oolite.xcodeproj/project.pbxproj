@@ -229,7 +229,6 @@
 		1A472922096B5468000E78D8 /* AudioUnit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1A472920096B5468000E78D8 /* AudioUnit.framework */; };
 		1A5DB1EA0BBD8F0000D57389 /* OOConstToString.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A5DB1E80BBD8F0000D57389 /* OOConstToString.h */; };
 		1A5DB1EB0BBD8F0000D57389 /* OOConstToString.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A5DB1E90BBD8F0000D57389 /* OOConstToString.m */; };
-		1A5DBAA50BC000DC00D57389 /* JSUniverse.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A5DBA990BC000DC00D57389 /* JSUniverse.h */; };
 		1A5DBAA60BC000DC00D57389 /* OOJavaScriptEngine.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A5DBA9A0BC000DC00D57389 /* OOJavaScriptEngine.h */; };
 		1A5DBAA70BC000DC00D57389 /* OOJavaScriptEngine.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A5DBA9B0BC000DC00D57389 /* OOJavaScriptEngine.m */; };
 		1A5DBAA80BC000DC00D57389 /* OOJSScript.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A5DBA9C0BC000DC00D57389 /* OOJSScript.h */; };
@@ -948,7 +947,6 @@
 		1A5BF2720916D47300BF238F /* Oolite-importer.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = "Oolite-importer.xcodeproj"; path = "Oolite-importer/Oolite-importer.xcodeproj"; sourceTree = "<group>"; };
 		1A5DB1E80BBD8F0000D57389 /* OOConstToString.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOConstToString.h; sourceTree = "<group>"; };
 		1A5DB1E90BBD8F0000D57389 /* OOConstToString.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOConstToString.m; sourceTree = "<group>"; };
-		1A5DBA990BC000DC00D57389 /* JSUniverse.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = JSUniverse.h; sourceTree = "<group>"; };
 		1A5DBA9A0BC000DC00D57389 /* OOJavaScriptEngine.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOJavaScriptEngine.h; sourceTree = "<group>"; };
 		1A5DBA9B0BC000DC00D57389 /* OOJavaScriptEngine.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOJavaScriptEngine.m; sourceTree = "<group>"; };
 		1A5DBA9C0BC000DC00D57389 /* OOJSScript.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOJSScript.h; sourceTree = "<group>"; };
@@ -1517,7 +1515,6 @@
 			children = (
 				1A5DBA9C0BC000DC00D57389 /* OOJSScript.h */,
 				1A5DBA9D0BC000DC00D57389 /* OOJSScript.m */,
-				1A5DBA990BC000DC00D57389 /* JSUniverse.h */,
 				1A5DBA9A0BC000DC00D57389 /* OOJavaScriptEngine.h */,
 				1A5DBA9B0BC000DC00D57389 /* OOJavaScriptEngine.m */,
 			);
@@ -1981,7 +1978,6 @@
 				1AB01BBB0BB16A8A00F1B949 /* OOFastArithmetic.h in Headers */,
 				1A451D8D0BB1BD2A004CD72F /* OOMaths.h in Headers */,
 				1A5DB1EA0BBD8F0000D57389 /* OOConstToString.h in Headers */,
-				1A5DBAA50BC000DC00D57389 /* JSUniverse.h in Headers */,
 				1A5DBAA60BC000DC00D57389 /* OOJavaScriptEngine.h in Headers */,
 				1A5DBAA80BC000DC00D57389 /* OOJSScript.h in Headers */,
 				1A5DBAAA0BC000DC00D57389 /* OOPListScript.h in Headers */,
