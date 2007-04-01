@@ -9,7 +9,7 @@ ifeq ($(GNUSTEP_HOST_OS),mingw32)
 	ADDITIONAL_OBJC_LIBS = -lglu32 -lopengl32 -lmingw32 -lSDLmain -lSDL -lSDL_mixer -lSDL_image -lgnustep-base -ljs32
 	ADDITIONAL_CFLAGS = -DLINUX -DWIN32 -DNEED_STRLCPY `sdl-config --cflags`
 # note the vpath stuff above isn't working for me, so adding src/SDL and src/Core explicitly
-	ADDITIONAL_OBJCFLAGS = -DLOADSAVEGUI -DLINUX -DWIN32 -DXP_WIN -Wno-import `sdl-config --cflags` -Isrc/SDL -Isrc/Core -Isrc/Core/JavaScript
+	ADDITIONAL_OBJCFLAGS = -DLOADSAVEGUI -DLINUX -DWIN32 -DXP_WIN -Wno-import `sdl-config --cflags` -Isrc/SDL -Isrc/Core -Isrc/Core/JavaScript  -Isrc/Core/Scripting
 	oolite_LIB_DIRS += -L$(GNUSTEP_LOCAL_ROOT)/lib -Ldeps/Windows-x86-deps/lib
 else
 	ADDITIONAL_INCLUDE_DIRS = -Isrc/SDL -Isrc/Core -Isrc/BSDCompat
