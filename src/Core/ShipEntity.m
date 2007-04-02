@@ -82,6 +82,10 @@ void loadOpenGLFunctions()
 }
 #endif
 
+
+static void ApplyConstantUniforms(NSDictionary *uniforms, GLhandleARB shaderProgram);
+
+
 @implementation ShipEntity
 
 - (id) init
@@ -3348,17 +3352,18 @@ void testForShaders()
 		OOLog(kOOLogShaderInit, @"Initialising shaders for %@", self);
 		OOLogIndentIf(kOOLogShaderInit);
 		
-		NSDictionary* shaders = (NSDictionary*)[shipinfoDictionary objectForKey:@"shaders"];
-		NSArray* shader_keys = [shaders allKeys];
-		int i, ti;
-		for (i = 0; i < [shader_keys count]; i++)
+		NSDictionary	*shaders = [shipinfoDictionary objectForKey:@"shaders"];
+		NSEnumerator	*shaderEnum = nil;
+		NSString		*shaderKey = nil;
+		
+		for (shaderEnum = [shaders keyEnumerator]; (shaderKey = [shaderEnum nextObject]); )
 		{
-			NSString* shader_key = [shader_keys objectAtIndex:i];	// == the name of the texture to be replaced
-			NSDictionary* shader = (NSDictionary*)[shaders objectForKey:shader_key];
-			NSArray* shader_textures = (NSArray*)[shader objectForKey:@"textures"];
+			NSDictionary* shader = [shaders objectForKey:shaderKey];
+			NSArray* shader_textures = [shader objectForKey:@"textures"];
 			NSMutableArray* textureNames = [NSMutableArray array];
 			
-			OOLog(kOOLogShaderInitDumpShader, @"Shader: initialising shader for %@ : %@", shader_key, shader);
+			OOLog(kOOLogShaderInitDumpShader, @"Shader: initialising shader for %@ : %@", shaderKey, shader);
+			int ti;
 			for (ti = 0; ti < [shader_textures count]; ti ++)
 			{
 				GLuint tn = [TextureStore getTextureNameFor: (NSString*)[shader_textures objectAtIndex:ti]];
@@ -3366,15 +3371,15 @@ void testForShaders()
 				OOLog(kOOLogShaderInitDumpTexture, @"Shader: initialised texture: %@", [shader_textures objectAtIndex:ti]);
 			}
 			
-//			GLuint shader_program = [TextureStore shaderProgramFromDictionary: shader];
-			GLhandleARB shader_program = [TextureStore shaderProgramFromDictionary: shader];
-			if (shader_program)
+			GLhandleARB shaderProgram = [TextureStore shaderProgramFromDictionary:shader];
+			if (shaderProgram)
 			{
 				[shader_info setObject:[NSDictionary dictionaryWithObjectsAndKeys:
 						textureNames, @"textureNames",
-						[NSNumber numberWithUnsignedInt:(unsigned)shader_program], @"shader_program",
+						[NSValue valueWithPointer:shaderProgram], @"shaderProgram",
+						[shader objectForKey:@"uniforms"], @"uniforms",
 						nil]
-					forKey: shader_key];
+					forKey: shaderKey];
 			}
 		}
 		
@@ -3476,13 +3481,13 @@ void testForShaders()
 #ifndef NO_SHADERS
 								if ((shader_info) && [shader_info objectForKey: textureKey])
 								{
-									NSDictionary	*shader = (NSDictionary*)[shader_info objectForKey:textureKey];
-									GLhandleARB		shader_program = (GLhandleARB)[(NSNumber*)[shader objectForKey:@"shader_program"] unsignedIntValue];
+									NSDictionary	*shader = [shader_info objectForKey:textureKey];
+									GLhandleARB		shaderProgram = [[shader objectForKey:@"shaderProgram"] pointerValue];
 									GLint			variable_location;
 									//
 									// set up texture units
 									//
-									glUseProgramObjectARB(shader_program);
+									glUseProgramObjectARB(shaderProgram);
 									//
 									NSArray *texture_units = [shader objectForKey:@"textureNames"];
 									int n_tu = [texture_units count];
@@ -3498,35 +3503,41 @@ void testForShaders()
 										
 										NSString* texdname = [NSString stringWithFormat:@"tex%d", i];
 										const char* cname = [texdname UTF8String];
-										variable_location = glGetUniformLocationARB(shader_program, cname);
+										variable_location = glGetUniformLocationARB(shaderProgram, cname);
 										if (variable_location == -1)
-											OOLog(kOOLogShaderTextureNameMissing, @"GLSL ERROR couldn't find location of %@ in shader_program %d", texdname, shader_program);
+											OOLog(kOOLogShaderTextureNameMissing, @"GLSL ERROR couldn't find location of %@ in shaderProgram %d", texdname, shaderProgram);
 										else
 											glUniform1iARB(variable_location, i);	// associate texture unit number i with tex%d
 									}
 									
+									NSDictionary *uniforms = [shader objectForKey:@"uniforms"];
+									if (uniforms != nil)
+									{
+										ApplyConstantUniforms([shader objectForKey:@"uniforms"], shaderProgram);
+									}
+									
 									// other uniform variables
-									variable_location = glGetUniformLocationARB( shader_program, "time");
+									variable_location = glGetUniformLocationARB( shaderProgram, "time");
 									if (variable_location != -1)
 										glUniform1fARB(variable_location, utime);
 									
-									variable_location = glGetUniformLocationARB( shader_program, "engine_level");
+									variable_location = glGetUniformLocationARB( shaderProgram, "engine_level");
 									if (variable_location != -1)
 										glUniform1fARB(variable_location, engine_level);
 									
-									variable_location = glGetUniformLocationARB( shader_program, "laser_heat_level");
+									variable_location = glGetUniformLocationARB( shaderProgram, "laser_heat_level");
 									if (variable_location != -1)
 										glUniform1fARB(variable_location, laser_heat_level);
 									
-									variable_location = glGetUniformLocationARB( shader_program, "hull_heat_level");
+									variable_location = glGetUniformLocationARB( shaderProgram, "hull_heat_level");
 									if (variable_location != -1)
 										glUniform1fARB(variable_location, hull_heat_level);
 									
-									variable_location = glGetUniformLocationARB( shader_program, "entity_personality_int");
+									variable_location = glGetUniformLocationARB( shaderProgram, "entity_personality_int");
 									if (variable_location != -1)
 										glUniform1iARB(variable_location, entity_personality);
 									
-									variable_location = glGetUniformLocationARB( shader_program, "entity_personality");
+									variable_location = glGetUniformLocationARB( shaderProgram, "entity_personality");
 									if (variable_location != -1)
 										glUniform1fARB(variable_location, entity_personality / (float)0x7FFF);
 								}
@@ -8227,3 +8238,59 @@ static NSString * const kOOCacheOctrees = @"octrees";
 }
 
 @end
+
+
+// This could be more efficient.
+static void ApplyConstantUniforms(NSDictionary *uniforms, GLhandleARB shaderProgram)
+{
+	// Shipdata-defined uniforms. 
+	NSEnumerator	*uniformEnum = nil;
+	NSString		*name = nil;
+	id				definition = nil;
+	id				value = nil;
+	NSString		*type = nil;
+	GLint			variableLocation;
+	GLfloat			floatValue;
+	GLint			intValue;
+	BOOL			gotValue;
+	
+	for (uniformEnum = [uniforms keyEnumerator]; (name = [uniformEnum nextObject]); )
+	{
+		variableLocation = glGetUniformLocationARB(shaderProgram, [name UTF8String]);
+		if (variableLocation == -1)  continue;
+		
+		definition = [uniforms objectForKey:name];
+		if ([definition isKindOfClass:[NSDictionary class]])
+		{
+			value = [definition objectForKey:@"value"];
+			type = [definition objectForKey:@"type"];
+		}
+		else
+		{
+			value = definition;
+			type = @"float";
+		}
+		
+		if ([type isEqualToString:@"float"])
+		{
+			gotValue = YES;
+			if ([value respondsToSelector:@selector(floatValue)])  floatValue = [value floatValue];
+			else if ([value respondsToSelector:@selector(doubleValue)])  floatValue = [value doubleValue];
+			else if ([value respondsToSelector:@selector(intValue)])  floatValue = [value intValue];
+			else gotValue = NO;
+			
+			if (gotValue)
+			{
+				glUniform1fARB(variableLocation, floatValue);
+			}
+		}
+		else if ([type isEqualToString:@"float"])
+		{
+			if ([value respondsToSelector:@selector(intValue)])
+			{
+				intValue = [value intValue];
+				glUniform1iARB(variableLocation, intValue);
+			}
+		}
+	}
+}
