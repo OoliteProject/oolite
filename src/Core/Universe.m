@@ -28,6 +28,7 @@ MA 02110-1301, USA.
 #import "MyOpenGLView.h"
 #import "GameController.h"
 #import "ResourceManager.h"
+#import "TextureStore.h"
 #import "AI.h"
 #import "GuiDisplayGen.h"
 #import "HeadUpDisplay.h"
@@ -325,6 +326,8 @@ static Universe *sSharedUniverse = nil;
 	[self removeAllEntitiesExceptPlayer:NO];
 	
 	[ResourceManager setUseAddOns:!strict];
+	[ResourceManager loadScripts];
+	[TextureStore reloadTextures];
 	
 #ifndef GNUSTEP
 	//// speech stuff

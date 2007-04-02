@@ -611,97 +611,6 @@ NSMutableDictionary*	surface_cache;
 #endif
 
 
-#if OLD_SCRIPT_CODE
-
-+ (NSDictionary *) loadScripts
-{
-	NSMutableArray *results = [NSMutableArray arrayWithCapacity:16];
-	NSMutableArray *fpaths = [ResourceManager paths];
-	NSString *foldername = [NSString stringWithString:@"Config"];
-	NSString *filename = [NSString stringWithString:@"script.plist"];
-
-	int i;
-
-	NSString* dict_key = [NSString stringWithFormat:@"%@:%@", foldername, filename];
-	if (!dictionary_cache)
-		dictionary_cache = [[NSMutableDictionary alloc] initWithCapacity:32];
-	if ([dictionary_cache objectForKey:dict_key])
-	{
-		return [NSDictionary dictionaryWithDictionary:(NSDictionary *)[dictionary_cache objectForKey:dict_key]];	// return the cached dictionary
-	}
-
-	for (i = 0; i < [fpaths count]; i++)
-	{
-		NSString *xfilepath = [(NSString *)[fpaths objectAtIndex:i] stringByAppendingPathComponent:filename];
-		NSString *filepath = [NSMutableString stringWithString:xfilepath];
-
-		filepath = [[filepath stringByDeletingPathExtension] stringByAppendingPathExtension:@"oos"];
-		
-		if ([[NSFileManager defaultManager] fileExistsAtPath:filepath])
-		{
-			// load and compile oos script
-			NSLog(@"trying to load and parse %@", filepath);
-			NSString *script = [NSString stringWithContentsOfFile:filepath];
-			NSDictionary *scriptDict = ParseOOSScripts(script);
-			if (scriptDict)  [results addObject:scriptDict];
-		}
-		else
-		{
-			filepath = [[filepath stringByDeletingPathExtension] stringByAppendingPathExtension:@"plist"];
-			// All this code replicated from dictionaryFromFileNamed because that method
-			// will traverse all possible locations and any oos files that co-exist with
-			// plist files will probably get their entries overwritten.
-			//
-			// This can be simplified if we make a rule that it is a configuration error
-			// that isn't handled if there is a script.oos and script.plist file in
-			// the same place. But that probably isn't realistic.
-			NSDictionary* found_dic = OODictionaryFromFile(filepath);
-			if (found_dic)  [results addObject:found_dic];
-		}
-		if (foldername)
-		{
-			xfilepath = [[(NSString *)[fpaths objectAtIndex:i] stringByAppendingPathComponent:foldername] stringByAppendingPathComponent:filename];
-			filepath = [[xfilepath stringByDeletingPathExtension] stringByAppendingPathExtension:@"oos"];
-			if ([[NSFileManager defaultManager] fileExistsAtPath:filepath])
-			{
-				// load and compile oos script
-				NSLog(@"trying to load and compile %@", filepath);
-				NSString *script = [NSString stringWithContentsOfFile:filepath];
-				NSDictionary *scriptDict = ParseOOSScripts(script);
-				if (scriptDict) {
-					[results addObject:scriptDict];
-				}
-			}
-			else
-			{
-				filepath = [[filepath stringByDeletingPathExtension] stringByAppendingPathExtension:@"plist"];
-				NSDictionary* found_dic = OODictionaryFromFile(filepath);
-				if (found_dic)  [results addObject:found_dic];
-			}
-		}
-	}
-	if ([results count] == 0)
-		return nil;
-
-	// got results we may want to cache
-	//
-	NSMutableDictionary *result = [NSMutableDictionary dictionaryWithCapacity:128];
-	for (i = 0; i < [results count]; i++)
-	{
-		[result addEntriesFromDictionary:(NSDictionary *)[results objectAtIndex:i]];
-	}
-	//
-	if (result) {
-		[dictionary_cache setObject:result forKey:dict_key];
-	}
-
-	return [NSDictionary dictionaryWithDictionary:result];
-}
-
-#else
-
-// New OOScript-based code. Result is dictionary of names -> OOScripts.
-
 + (NSDictionary *)loadScripts
 {
 	NSMutableDictionary			*loadedScripts = nil;
@@ -768,7 +677,5 @@ NSMutableDictionary*	surface_cache;
 	
 	return loadedScripts;
 }
-
-#endif
 
 @end

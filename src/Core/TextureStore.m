@@ -482,9 +482,30 @@ GLuint	max_texture_dimension = 512;	// conservative start
 
 + (void) reloadTextures
 {
-	// Is this ever called? Seems not. --ahruman
-	int i;
-
+	/*
+		FIX_ME: This function is only called when switching between strict and
+		non-strict mode, and apparently under some circumstances under GNUstep.
+		It's so old that the dictionary it works on is used for almost exactly
+		the opposite of what it expects. This is why we use classes and
+		encapsulation, people.
+		-- ahruman
+	*/
+	
+	NSEnumerator		*texEnum = nil;
+	id					texDict = nil;
+	GLuint				texName;
+	
+	for (texEnum = [textureUniversalDictionary objectEnumerator]; (texDict = [texEnum nextObject]); )
+	{
+		if ([texDict isKindOfClass:[NSDictionary class]])
+		{
+			texName = [[texDict objectForKey:@"texName"] intValue];
+			glDeleteTextures(1, &texName);
+		}
+	}
+	
+	[textureUniversalDictionary removeAllObjects];
+	#if 0
 	// Free up the texture image data from video memory.
 	NSArray *keys = [textureUniversalDictionary allKeys];
 	for (i = 0; i < [keys count]; i++)
@@ -496,6 +517,7 @@ GLuint	max_texture_dimension = 512;	// conservative start
 
 	[textureUniversalDictionary removeAllObjects];
 	return;
+	#endif
 }
 
 + (GLuint) getPlanetTextureNameFor:(NSDictionary*)planetinfo intoData:(unsigned char **)textureData
