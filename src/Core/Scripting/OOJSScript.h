@@ -3,7 +3,7 @@
 OOJSScript.h
 
 JavaScript support for Oolite
-Copyright (C) 2007 David Taylor
+Copyright (C) 2007 David Taylor and Jens Ayton.
 
 This program is free software; you can redistribute it and/or
 modify it under the terms of the GNU General Public License
@@ -29,12 +29,12 @@ MA 02110-1301, USA.
 
 @interface OOJSScript : OOScript
 {
-	JSContext *cx;
-	JSObject *obj;
+	JSContext		*context;
+	JSObject		*object;
 
-	NSString *name;
-	NSString *description;
-	NSString *version;
+	NSString		*name;
+	NSString		*description;
+	NSString		*version;
 }
 
 + (id)scriptWithPath:(NSString *)path;

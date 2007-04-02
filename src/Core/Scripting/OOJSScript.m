@@ -3,7 +3,7 @@
 OOJSScript.m
 
 JavaScript support for Oolite
-Copyright (C) 2007 David Taylor
+Copyright (C) 2007 David Taylor and Jens Ayton.
 
 This program is free software; you can redistribute it and/or
 modify it under the terms of the GNU General Public License
@@ -27,6 +27,7 @@ MA 02110-1301, USA.
 #import "OOConstToString.h"
 #import "Entity.h"
 #import "OOJavaScriptEngine.h"
+#import "NSStringOOExtensions.h"
 
 
 OOJSScript *currentOOJSScript;
@@ -47,7 +48,7 @@ JSClass script_class =
 };
 
 
-#define JSValToNSString(cx, val) [NSString stringWithJavaScriptValue:val inContext:cx]
+#define JSValToNSString(context, val) [NSString stringWithJavaScriptValue:val inContext:context]
 
 
 @interface OOJSScript (OOPrivate)
@@ -71,82 +72,75 @@ JSClass script_class =
 }
 
 
-- (id)initWithPath:(NSString *)path andContext:(JSContext *)context
+- (id)initWithPath:(NSString *)path andContext:(JSContext *)inContext
 {
-	self = [super init];
+	NSString		*problem = nil;		// Acts as error flag.
+	NSString		*fileContents = nil;
+	NSData			*data = nil;
+	JSScript		*script = NULL;
+	jsval			returnValue;
 	
-	obj = JS_NewObject(context, &script_class, 0x00, JS_GetGlobalObject(context));
-	JS_AddRoot(context, &obj); // note 2nd arg is a pointer-to-pointer
-
-	cx = context;
-
-	jsval rval;
-	JSBool ok;
-    JSScript *script = JS_CompileFile(context, obj, [path fileSystemRepresentation]);
-    if (script != NULL)
+	self = [super init];
+	if (self == nil) problem = @"allocation failure";
+	
+	// Set up JS object
+	if (!problem)
 	{
-		ok = JS_ExecuteScript(context, obj, script, &rval);
-		if (ok)
+		context = inContext;
+		object = JS_NewObject(context, &script_class, 0x00, JS_GetGlobalObject(context));
+		if (object == NULL) problem = @"allocation failure";
+	}
+	if (!problem)
+	{
+		if (!JS_AddRoot(context, &object)) // note 2nd arg is a pointer-to-pointer
 		{
-			ok = JS_GetProperty(context, obj, "name", &rval);
-			if (ok && !JSVAL_IS_VOID(rval))
-			{
-				name = [[NSString stringWithJavaScriptValue:rval inContext:context] retain];
-			}
-			else
-			{
-				// No name given in the script so use the file name
-				name = [[self scriptNameFromPath:path] retain];
-			}
-			
-			ok = JS_GetProperty(context, obj, "description", &rval);
-			if (ok && !JSVAL_IS_VOID(rval))
-			{
-				description = [[NSString stringWithJavaScriptValue:rval inContext:context] retain];
-			}
-			
-			ok = JS_GetProperty(context, obj, "version", &rval);
-			if (ok && !JSVAL_IS_VOID(rval))
-			{
-				version = [[NSString stringWithJavaScriptValue:rval inContext:context] retain];
-			}
-			
-			OOLog(@"script.javaScript.compile.success", @"Loaded JavaScript OXP: %@ -- %@", [self displayName], description ? description : @"(no description)");
-
-			/*
-			 * Example code to read the mission variables.
-			 *
-			 * So far, this just gets their names. Need to add code to get their values
-			 * and convert the whole thing to Obj-C friendly NSArray and types.
-			 *
-			ok = JS_GetProperty(context, obj, "MissionVars", &rval);
-			if (ok && JSVAL_IS_OBJECT(rval)) {
-				JSObject *ar = JSVAL_TO_OBJECT(rval);
-				JSIdArray *ids = JS_Enumerate(context, ar);
-				int i;
-				for (i = 0; i < ids->length; i++) {
-					if (JS_IdToValue(cx, ids->vector[i], &rval) == JS_TRUE) {
-						if (JSVAL_IS_BOOLEAN(rval))	fprintf(stdout, "a boolean\r\n");
-						if (JSVAL_IS_DOUBLE(rval))	fprintf(stdout, "a double\r\n");
-						if (JSVAL_IS_INT(rval))	fprintf(stdout, "an integer\r\n");
-						if (JSVAL_IS_NUMBER(rval))	fprintf(stdout, "a number\r\n");
-						if (JSVAL_IS_OBJECT(rval))	fprintf(stdout, "an object\r\n");
-						if (JSVAL_IS_STRING(rval)) {
-							fprintf(stdout, "%s\r\n", JS_GetStringBytes(JSVAL_TO_STRING(rval)));
-						}
-					}
-				}
-				JS_DestroyIdArray(context, ids);
-			}
-			*/
+			problem = @"could not add JavaScript root object";
 		}
+	}
+	
+	if (!problem)
+	{
+		fileContents = [NSString stringWithContentsOfUnicodeFile:path];
+		if (fileContents != nil)  data = [fileContents utf16DataWithBOM:NO];
+		if (data == nil) problem = @"could not load file";
+	}
+	
+	// Compile
+	if (!problem)
+	{
+		script = JS_CompileUCScript(context, object, [data bytes], [data length] / sizeof(unichar), [path UTF8String], 1);
+		if (script == NULL) problem = @"compilation failed";
+	}
+	
+	// Run the script (allowing it to set up the properties we need, as well as setting up those event handlers)
+    if (!problem)
+	{
+		if (!JS_ExecuteScript(context, object, script, &returnValue))
+		{
+			problem = @"could not run script";
+		}
+		
+		// We don't need the script any more - the event handlers hang around as long as the JS object exists.
 		JS_DestroyScript(context, script);
 	}
-	else
+	
+	if (!problem)
 	{
-		OOLog(@"script.javaScript.compile.failed", @"Failed to compile JavaScript script %@", path);
+		// Get display attributes from script
+		name = [JSPropertyAsString(context, object, "name") retain];
+		if (name == nil) name = [[self scriptNameFromPath:path] retain];
+		
+		version = [JSPropertyAsString(context, object, "version") retain];
+		description = [JSPropertyAsString(context, object, "description") retain];
+		
+		OOLog(@"script.javaScript.load.success", @"Loaded JavaScript OXP: %@ -- %@", [self displayName], description ? description : @"(no description)");
+	}
+	
+	if (problem)
+	{
+		OOLog(@"script.javaScript.load.failed", @"***** Error loading JavaScript script %@ -- %@", path, problem);
 		[self release];
-		return nil;
+		self = nil;
 	}
 
 	return self;
@@ -177,12 +171,12 @@ JSClass script_class =
 	jsval rval;
 	JSBool ok;
 
-	ok = JS_GetProperty(cx, obj, [eventName cString], &rval);
+	ok = JS_GetProperty(context, object, [eventName cString], &rval);
 	if (ok && !JSVAL_IS_VOID(rval)) {
-		JSFunction *func = JS_ValueToFunction(cx, rval);
+		JSFunction *func = JS_ValueToFunction(context, rval);
 		if (func != 0x00) {
 			currentOOJSScript = self;
-			ok = JS_CallFunction(cx, obj, func, 0, 0x00, &rval);
+			ok = JS_CallFunction(context, object, func, 0, 0x00, &rval);
 			if (ok)
 				return YES;
 		}
@@ -196,14 +190,14 @@ JSClass script_class =
 	jsval rval;
 	JSBool ok;
 
-	ok = JS_GetProperty(cx, obj, [eventName cString], &rval);
+	ok = JS_GetProperty(context, object, [eventName cString], &rval);
 	if (ok && !JSVAL_IS_VOID(rval)) {
-		JSFunction *func = JS_ValueToFunction(cx, rval);
+		JSFunction *func = JS_ValueToFunction(context, rval);
 		if (func != 0x00) {
 			currentOOJSScript = self;
 			jsval args[1];
 			args[0] = INT_TO_JSVAL(argument);
-			ok = JS_CallFunction(cx, obj, func, 1, args, &rval);
+			ok = JS_CallFunction(context, object, func, 1, args, &rval);
 			if (ok)
 				return YES;
 		}
@@ -217,14 +211,14 @@ JSClass script_class =
 	jsval rval;
 	JSBool ok;
 
-	ok = JS_GetProperty(cx, obj, [eventName cString], &rval);
+	ok = JS_GetProperty(context, object, [eventName cString], &rval);
 	if (ok && !JSVAL_IS_VOID(rval)) {
-		JSFunction *func = JS_ValueToFunction(cx, rval);
+		JSFunction *func = JS_ValueToFunction(context, rval);
 		if (func != 0x00) {
 			currentOOJSScript = self;
 			jsval args[1];
-			args[0] = [argument javaScriptValueInContext:cx];
-			ok = JS_CallFunction(cx, obj, func, 1, args, &rval);
+			args[0] = [argument javaScriptValueInContext:context];
+			ok = JS_CallFunction(context, object, func, 1, args, &rval);
 			if (ok)
 				return YES;
 		}

@@ -3,7 +3,7 @@
 OOJavaScriptEngine.h
 
 JavaScript support for Oolite
-Copyright (C) 2007 David Taylor
+Copyright (C) 2007 David Taylor and Jens Ayton.
 
 This program is free software; you can redistribute it and/or
 modify it under the terms of the GNU General Public License
@@ -68,3 +68,6 @@ MA 02110-1301, USA.
 @interface NSNumber (OOJavaScriptExtensions) <OOJavaScriptConversion>
 
 @end
+
+
+NSString *JSPropertyAsString(JSContext *context, JSObject *object, const char *name);

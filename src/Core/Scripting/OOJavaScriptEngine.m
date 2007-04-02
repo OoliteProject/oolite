@@ -3,7 +3,7 @@
 OOJavaScriptEngine.h
 
 JavaScript support for Oolite
-Copyright (C) 2007 David Taylor
+Copyright (C) 2007 David Taylor and Jens Ayton.
 
 This program is free software; you can redistribute it and/or
 modify it under the terms of the GNU General Public License
@@ -27,6 +27,7 @@ MA 02110-1301, USA.
 #import "OOCollectionExtractors.h"
 #import "Universe.h"
 #import "PlanetEntity.h"
+#import "NSStringOOExtensions.h"
 
 #include <stdio.h>
 #include <string.h>
@@ -1144,8 +1145,38 @@ static JSBool MissionUnmarkSystem(JSContext *cx, JSObject *obj, uintN argc, jsva
 
 static void ReportJSError(JSContext *cx, const char *message, JSErrorReport *report)
 {
-	OOLog(@"script.javaScript.error", @"***** JavaScript error: %s", message);
-	OOLog(@"script.javaScript.error.details", @"%s, line %d: %s", report->filename, report->lineno, report->linebuf);
+	NSString		*severity = nil;
+	NSString		*messageText = nil;
+	NSString		*lineBuf = nil;
+	NSString		*messageClass = nil;
+	
+	// Type of problem: error, warning or exception? (Strict flag wilfully ignored.)
+	if (report->flags & JSREPORT_EXCEPTION) severity = @"exception";
+	else if (report->flags & JSREPORT_WARNING) severity = @"warning";
+	else severity = @"error";
+	
+	// The error message itself
+	messageText = [NSString stringWithUTF16String:report->ucmessage];
+	
+	// Get offending line, if present, and trim trailing line breaks
+	lineBuf = [NSString stringWithUTF16String:report->uclinebuf];
+	while ([lineBuf hasSuffix:@"\n"] || [lineBuf hasSuffix:@"\r"])  lineBuf = [lineBuf substringToIndex:[lineBuf length] - 1];
+	
+	// Log message class
+	messageClass = [NSString stringWithFormat:@"script.javaScript.%@.%u", severity, report->errorNumber];
+	
+	// First line: problem description
+	OOLog(messageClass, @"***** JavaScript %@: %@", severity, messageText);
+	
+	// Second line: where error occured, and line if provided. (The line is only provided for compile-time errors, not run-time errors.)
+	if ([lineBuf length] != 0)
+	{
+		OOLog(messageClass, @"      %s, line %d: %@", report->filename, report->lineno, lineBuf);
+	}
+	else
+	{
+		OOLog(messageClass, @"      %s, line %d.", report->filename, report->lineno);
+	}
 }
 
 
@@ -1364,3 +1395,21 @@ static void ReportJSError(JSContext *cx, const char *message, JSErrorReport *rep
 }
 
 @end
+
+
+NSString *JSPropertyAsString(JSContext *context, JSObject *object, const char *name)
+{
+	JSBool			OK;
+	jsval			returnValue;
+	NSString		*result;
+	
+	if (context == NULL || object == NULL || name == NULL) return nil;
+	
+	OK = JS_GetProperty(context, object, name, &returnValue);
+	if (OK && !JSVAL_IS_VOID(returnValue))
+	{
+		result = [NSString stringWithJavaScriptValue:returnValue inContext:context];
+	}
+	
+	return result;
+}

@@ -240,6 +240,8 @@
 		1A5DBAAE0BC000DC00D57389 /* OOScript.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A5DBAA20BC000DC00D57389 /* OOScript.m */; };
 		1A5DBAAF0BC000DC00D57389 /* OOSTokenizer.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A5DBAA30BC000DC00D57389 /* OOSTokenizer.h */; };
 		1A5DBAB00BC000DC00D57389 /* OOSTokenizer.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A5DBAA40BC000DC00D57389 /* OOSTokenizer.m */; };
+		1A5DBD580BC17F0900D57389 /* NSStringOOExtensions.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A5DBD560BC17F0900D57389 /* NSStringOOExtensions.h */; };
+		1A5DBD590BC17F0900D57389 /* NSStringOOExtensions.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A5DBD570BC17F0900D57389 /* NSStringOOExtensions.m */; };
 		1A81F7090A7BAC4D006580AD /* OOCAMusic.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A81F7070A7BAC4D006580AD /* OOCAMusic.m */; };
 		1A81F70A0A7BAC4D006580AD /* OOCAMusic.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A81F7080A7BAC4D006580AD /* OOCAMusic.h */; };
 		1A8A37040B95CADD007D20B8 /* PlayerEntityLoadSave.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A8A37020B95CADD007D20B8 /* PlayerEntityLoadSave.m */; };
@@ -407,7 +409,6 @@
 		2576E7B309B4F418007410F7 /* MyOpenGLView.h in Headers */ = {isa = PBXBuildFile; fileRef = 2576E7B209B4F418007410F7 /* MyOpenGLView.h */; };
 		25F3E6310994F033002F25FD /* legacy_random.h in Headers */ = {isa = PBXBuildFile; fileRef = 25F3E6300994F033002F25FD /* legacy_random.h */; };
 		25F3E6330994F04C002F25FD /* legacy_random.c in Sources */ = {isa = PBXBuildFile; fileRef = 25F3E6320994F04C002F25FD /* legacy_random.c */; };
-		25F3E6390994F07A002F25FD /* entities.h in Headers */ = {isa = PBXBuildFile; fileRef = 25F3E6380994F07A002F25FD /* entities.h */; };
 		25F3E63B0994F08A002F25FD /* OOOpenGL.h in Headers */ = {isa = PBXBuildFile; fileRef = 25F3E63A0994F08A002F25FD /* OOOpenGL.h */; };
 		25F3E6BD0994F30A002F25FD /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 25F3E6BC0994F30A002F25FD /* main.m */; };
 		25F3E6F20994F466002F25FD /* Groolite.h in Headers */ = {isa = PBXBuildFile; fileRef = 25F3E6F00994F466002F25FD /* Groolite.h */; };
@@ -958,6 +959,8 @@
 		1A5DBAA20BC000DC00D57389 /* OOScript.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOScript.m; sourceTree = "<group>"; };
 		1A5DBAA30BC000DC00D57389 /* OOSTokenizer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOSTokenizer.h; sourceTree = "<group>"; };
 		1A5DBAA40BC000DC00D57389 /* OOSTokenizer.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOSTokenizer.m; sourceTree = "<group>"; };
+		1A5DBD560BC17F0900D57389 /* NSStringOOExtensions.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = NSStringOOExtensions.h; sourceTree = "<group>"; };
+		1A5DBD570BC17F0900D57389 /* NSStringOOExtensions.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = NSStringOOExtensions.m; sourceTree = "<group>"; };
 		1A81F7070A7BAC4D006580AD /* OOCAMusic.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOCAMusic.m; sourceTree = "<group>"; };
 		1A81F7080A7BAC4D006580AD /* OOCAMusic.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOCAMusic.h; sourceTree = "<group>"; };
 		1A8A37020B95CADD007D20B8 /* PlayerEntityLoadSave.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = PlayerEntityLoadSave.m; sourceTree = "<group>"; };
@@ -1133,7 +1136,6 @@
 		25CD0C4D09B4F5A70060106D /* Growl.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Growl.framework; path = "deps/Cocoa-deps/Growl.framework"; sourceTree = "<group>"; };
 		25F3E6300994F033002F25FD /* legacy_random.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = legacy_random.h; sourceTree = "<group>"; };
 		25F3E6320994F04C002F25FD /* legacy_random.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = legacy_random.c; sourceTree = "<group>"; };
-		25F3E6380994F07A002F25FD /* entities.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = entities.h; sourceTree = "<group>"; };
 		25F3E63A0994F08A002F25FD /* OOOpenGL.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOOpenGL.h; sourceTree = "<group>"; };
 		25F3E6BC0994F30A002F25FD /* main.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = main.m; sourceTree = "<group>"; };
 		25F3E6F00994F466002F25FD /* Groolite.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Groolite.h; sourceTree = "<group>"; };
@@ -1585,7 +1587,6 @@
 				1A8A3A370B962AEF007D20B8 /* NSScannerOOExtensions.m */,
 				083325DB09DDBCDE00F5B8E4 /* OOColor.h */,
 				083325DC09DDBCDE00F5B8E4 /* OOColor.m */,
-				25F3E6380994F07A002F25FD /* entities.h */,
 				08125F0809F9083F00AB9BF9 /* OOGLDefs.h */,
 				25F3E63A0994F08A002F25FD /* OOOpenGL.h */,
 				25160E2E0995362F0037C2E1 /* OOCocoa.h */,
@@ -1598,6 +1599,8 @@
 				1A9404250BAF3DED005F6CF3 /* OOCollectionExtractors.h */,
 				1A5DB1E80BBD8F0000D57389 /* OOConstToString.h */,
 				1A5DB1E90BBD8F0000D57389 /* OOConstToString.m */,
+				1A5DBD560BC17F0900D57389 /* NSStringOOExtensions.h */,
+				1A5DBD570BC17F0900D57389 /* NSStringOOExtensions.m */,
 			);
 			name = Utilities;
 			sourceTree = "<group>";
@@ -1857,7 +1860,6 @@
 			buildActionMask = 2147483647;
 			files = (
 				25F3E6310994F033002F25FD /* legacy_random.h in Headers */,
-				25F3E6390994F07A002F25FD /* entities.h in Headers */,
 				25F3E63B0994F08A002F25FD /* OOOpenGL.h in Headers */,
 				25F3E6F20994F466002F25FD /* Groolite.h in Headers */,
 				25160E2F0995362F0037C2E1 /* OOCocoa.h in Headers */,
@@ -1983,6 +1985,7 @@
 				1A5DBAAA0BC000DC00D57389 /* OOPListScript.h in Headers */,
 				1A5DBAAD0BC000DC00D57389 /* OOScript.h in Headers */,
 				1A5DBAAF0BC000DC00D57389 /* OOSTokenizer.h in Headers */,
+				1A5DBD580BC17F0900D57389 /* NSStringOOExtensions.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -2163,6 +2166,7 @@
 				1A5DBAAC0BC000DC00D57389 /* OOSCompiler.m in Sources */,
 				1A5DBAAE0BC000DC00D57389 /* OOScript.m in Sources */,
 				1A5DBAB00BC000DC00D57389 /* OOSTokenizer.m in Sources */,
+				1A5DBD590BC17F0900D57389 /* NSStringOOExtensions.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

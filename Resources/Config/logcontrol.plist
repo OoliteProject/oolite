@@ -178,7 +178,7 @@ script.debug.processSceneString.addTargetPlanet = inherit;
 script.debug.processSceneString.addBillboard = inherit;
 script.debug.setSunNovaIn				= inherit;
 
-script.debug.note						= $entityState;
+script.debug.note						= inherit;
 script.debug.note.scriptAction			= inherit;				// Messages saying a scripting method was called, with no further info
 script.debug.note.awardCargo			= inherit;
 script.debug.note.removeAllCargo		= inherit;
@@ -207,11 +207,14 @@ script.debug.syntax.addShips			= inherit;
 script.debug.syntax.set					= inherit;
 script.debug.syntax.reset				= inherit;
 
-script.javaScript.compile.success		= no;
-script.javaScript.compile.failed		= $scriptError;
+script.javaScript.load.success			= no;
+script.javaScript.load.failed			= $scriptError;
 script.javaScript.init.success			= no;
 script.javaScript.init.error			= $error;				// Fatal start-up error
 script.javaScript.call.badSelector		= $scriptError;
+script.javaScript.error					= $scriptError;
+script.javaScript.exception				= $scriptError;
+script.javaScript.warning				= $scriptError;
 
 script.load								= no;
 script.load.badName						= $scriptError;
@@ -219,7 +222,7 @@ script.load.notFound					= $scriptError;
 script.load.parseOK						= inherit;
 script.load.unnamed						= $scriptError;
 script.load.exception					= $error;
-script.load.world.listAll				= inherit;				// List names and versions of all loaded world scripts at startup.
+script.load.world.listAll				= $troubleShootingDump;	// List names and versions of all loaded world scripts at startup.
 
 script.plist.run.badTarget				= $error;
 

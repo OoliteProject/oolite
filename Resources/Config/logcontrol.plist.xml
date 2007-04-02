@@ -197,7 +197,7 @@
 	<key>script.debug.message</key>
 	<string>inherit</string>
 	<key>script.debug.note</key>
-	<string>$entityState</string>
+	<string>inherit</string>
 	<key>script.debug.note.addPlanet</key>
 	<string>inherit</string>
 	<key>script.debug.note.addShips</key>
@@ -274,14 +274,20 @@
 	<string>inherit</string>
 	<key>script.javaScript.call.badSelector</key>
 	<string>$scriptError</string>
-	<key>script.javaScript.compile.failed</key>
+	<key>script.javaScript.error</key>
 	<string>$scriptError</string>
-	<key>script.javaScript.compile.success</key>
-	<string>no</string>
+	<key>script.javaScript.exception</key>
+	<string>$scriptError</string>
 	<key>script.javaScript.init.error</key>
 	<string>$error</string>
 	<key>script.javaScript.init.success</key>
 	<string>no</string>
+	<key>script.javaScript.load.failed</key>
+	<string>$scriptError</string>
+	<key>script.javaScript.load.success</key>
+	<string>no</string>
+	<key>script.javaScript.warning</key>
+	<string>$scriptError</string>
 	<key>script.load</key>
 	<string>no</string>
 	<key>script.load.badName</key>
@@ -295,7 +301,7 @@
 	<key>script.load.unnamed</key>
 	<string>$scriptError</string>
 	<key>script.load.world.listAll</key>
-	<string>inherit</string>
+	<string>$troubleShootingDump</string>
 	<key>script.missionDescription.noMissionKey</key>
 	<string>inherit</string>
 	<key>script.missionDescription.noMissionText</key>
