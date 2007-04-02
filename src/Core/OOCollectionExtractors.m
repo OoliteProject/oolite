@@ -23,9 +23,7 @@ MA 02110-1301, USA.
 */
 
 #import "OOCollectionExtractors.h"
-#ifdef GNUSTEP
 #import <limits.h>
-#endif
 
 BOOL EvaluateAsBoolean(id object, BOOL defaultValue)
 {
