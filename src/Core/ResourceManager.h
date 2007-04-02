@@ -42,10 +42,15 @@ BOOL always_include_addons;
 
 @interface ResourceManager : NSObject
 
-+ (NSString *) errors;
-+ (NSMutableArray *) paths;
-+ (NSMutableArray *) pathsUsingAddOns:(BOOL) include_addons;
-+ (void) addExternalPath:(NSString *)filename;
++ (NSArray *)rootPaths;			// Places add-ons are searched for, not including add-on paths.
++ (NSString *)builtInPath;		// Path for built-in data only.
++ (NSArray *)pathsWithAddOns;	// Root paths + add-on paths.
++ (NSArray *)paths;				// builtInPath or pathsWithAddOns, depending on useAddOns state.
++ (BOOL)useAddOns;
++ (void)setUseAddOns:(BOOL)useAddOns;
++ (void)addExternalPath:(NSString *)filename;
+
++ (NSString *)errors;			// Errors which occured during path scanning - essentially a list of OXPs whose requires.plist is bad.
 
 + (NSDictionary *) dictionaryFromFilesNamed:(NSString *)filename inFolder:(NSString *)foldername andMerge:(BOOL) mergeFiles;
 + (NSDictionary *) dictionaryFromFilesNamed:(NSString *)filename inFolder:(NSString *)foldername andMerge:(BOOL) mergeFiles smart:(BOOL) smartMerge;

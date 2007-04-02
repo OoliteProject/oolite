@@ -37,7 +37,6 @@ MA 02110-1301, USA.
 #define kOOLogUnconvertedNSLog @"unclassified.ResourceManager"
 
 
-static NSString * const kOOLogDumpSearchPaths			= @"searchPaths.dumpAll";
 static NSString * const kOOLogCacheUpToDate				= @"dataCache.upToDate";
 static NSString * const kOOLogCacheStalePaths			= @"dataCache.rebuild.pathsChanged";
 static NSString * const kOOLogCacheStaleDates			= @"dataCache.rebuild.datesChanged";
@@ -51,14 +50,18 @@ extern NSDictionary* ParseOOSScripts(NSString* script);
 
 @interface ResourceManager (OOPrivate)
 
-+ (BOOL) areRequirementsFulfilled:(NSDictionary*)requirements forOXP:(NSString *)path;
++ (void)checkPotentialPath:(NSString *)path :(NSMutableArray *)searchPaths;
++ (BOOL)areRequirementsFulfilled:(NSDictionary*)requirements forOXP:(NSString *)path;
++ (void)addError:(NSString *)error;
++ (void)checkCacheUpToDateForPaths:(NSArray *)searchPaths;
 
 @end
 
 
-static  NSMutableArray* saved_paths;
-static  NSMutableArray* paths_to_load;
-static  NSString* errors;
+static NSMutableArray	*sSearchPaths;
+static BOOL				sUseAddOns = YES;
+static NSMutableArray	*sExternalPaths;
+static NSMutableString	*errors;
 
 // caches allow us to load any given file once only
 //
@@ -80,9 +83,217 @@ NSMutableDictionary*	surface_cache;
 	return errors;
 }
 
-+ (NSMutableArray *) paths
+
++ (NSArray *)rootPaths
 {
-	return [ResourceManager pathsUsingAddOns:always_include_addons];
+	static NSArray			*sRootPaths = nil;
+	
+	if (sRootPaths == nil)
+	{
+		#ifdef WIN32
+			NSString	*app_addon_path = @"AddOns";
+			NSString	*appsupport_path=nil;
+			NSString	*nix_path=nil;
+		#else
+			NSString*	app_addon_path = [[[[NSBundle mainBundle] bundlePath]
+										stringByDeletingLastPathComponent]
+										stringByAppendingPathComponent:@"AddOns"];
+			NSString*	appsupport_path = [[[[NSHomeDirectory()
+											stringByAppendingPathComponent:@"Library"]
+											stringByAppendingPathComponent:@"Application Support"]
+											stringByAppendingPathComponent:@"Oolite"]
+											stringByAppendingPathComponent:@"AddOns"];
+			NSString*	nix_path = [[NSHomeDirectory()
+									stringByAppendingPathComponent:@".Oolite"]
+									stringByAppendingPathComponent:@"AddOns"];
+		#endif
+			
+		sRootPaths = [[NSArray alloc] initWithObjects:[self builtInPath], app_addon_path, appsupport_path, nix_path, nil];
+	}
+	
+	return sRootPaths;
+}
+
+
++ (NSString *)builtInPath
+{
+	#ifdef WIN32
+		return @"oolite.app/Resources";
+	#else
+		static NSString *sBuiltInPath = nil;
+		
+		if (sBuiltInPath == nil)
+		{
+			sBuiltInPath = [[[[[NSBundle mainBundle] bundlePath]
+								stringByAppendingPathComponent:@"Contents"]
+								stringByAppendingPathComponent:@"Resources"] retain];
+		}
+		
+		return sBuiltInPath;
+	#endif
+}
+
+
++ (NSArray *)pathsWithAddOns
+{
+	if (sSearchPaths != nil)  return sSearchPaths;
+	
+	[errors release];
+	errors = nil;
+	
+	NSFileManager			*fmgr = [NSFileManager defaultManager];
+	NSArray					*rootPaths = nil;
+	NSEnumerator			*pathEnum = nil;
+	NSString				*root = nil;
+	NSDirectoryEnumerator	*dirEnum = nil;
+	NSString				*subPath = nil;
+	NSString				*path = nil;
+	BOOL					isDirectory;
+	
+	rootPaths = [self rootPaths];
+	sSearchPaths = [rootPaths mutableCopy];
+	
+	// Iterate over root paths
+	for (pathEnum = [rootPaths objectEnumerator]; (root = [pathEnum nextObject]); )
+	{
+		// Iterate over each root path's contents
+		for (dirEnum = [fmgr enumeratorAtPath:root]; (subPath = [dirEnum nextObject]); )
+		{
+			// Check if it's a directory
+			path = [root stringByAppendingPathComponent:subPath];
+			if ([fmgr fileExistsAtPath:path isDirectory:&isDirectory] && isDirectory)
+			{
+				// If it is, is it an OXP?
+				if ([[[path pathExtension] lowercaseString] isEqualToString:@"oxp"])
+				{
+					[self checkPotentialPath:path :sSearchPaths];
+				}
+				else
+				{
+					// If not, don't search subdirectories
+					[dirEnum skipDescendents];
+				}
+			}
+		}
+	}
+	
+	for (pathEnum = [sExternalPaths objectEnumerator]; (path = [pathEnum nextObject]); )
+	{
+		[self checkPotentialPath:path :sSearchPaths];
+	}
+	
+	OOLog(@"searchPaths.dumpAll", @"---> OXP search paths:\n%@", sSearchPaths);
+	[self checkCacheUpToDateForPaths:sSearchPaths];
+	
+	return sSearchPaths;
+}
+
+
++ (NSArray *)paths
+{
+	return sUseAddOns ? [self pathsWithAddOns] : [NSArray arrayWithObject:[self builtInPath]];
+}
+
+
++ (BOOL)useAddOns
+{
+	return sUseAddOns;
+}
+
+
++ (void)setUseAddOns:(BOOL)useAddOns
+{
+	useAddOns = (useAddOns != 0);
+	if (sUseAddOns != useAddOns)
+	{
+		sUseAddOns = useAddOns;
+		[self checkCacheUpToDateForPaths:[self paths]];
+	}
+}
+
+
++ (void) addExternalPath:(NSString *)path
+{
+	if (!sSearchPaths == nil)  sSearchPaths = [[NSMutableArray alloc] init];
+	if (![sSearchPaths containsObject:path])
+	{
+		[sSearchPaths addObject:path];
+		
+		if (sExternalPaths == nil)  sExternalPaths = [[NSMutableArray alloc] init];
+		[sExternalPaths addObject:path];
+	}
+}
+
+
+// Given a path to an assumed OXP (or other location where files are permissible), check for a requires.plist and add to search paths if acceptable.
++ (void)checkPotentialPath:(NSString *)path :(NSMutableArray *)searchPaths
+{
+	NSDictionary			*requirements = nil;
+	BOOL					requirementsMet;
+	
+	requirements = OODictionaryFromFile([path stringByAppendingPathComponent:@"requires.plist"]);
+	requirementsMet = [self areRequirementsFulfilled:requirements forOXP:path];
+	
+	if (requirementsMet)  [searchPaths addObject:path];
+	else
+	{
+		NSString *version = [[[NSBundle mainBundle] infoDictionary] objectForKey:@"CFBundleVersion"];
+		OOLog(@"oxp.versionMismatch", @"ERROR: OXP %@ is incompatible with version %@ of Oolite.", path, version);
+		[self addError:[NSString stringWithFormat:@"\t'%@' is incompatible with version %@ of Oolite", [path lastPathComponent], version]];
+	}
+}
+
+
++ (BOOL) areRequirementsFulfilled:(NSDictionary*)requirements forOXP:(NSString *)path
+{
+	BOOL				result = YES;
+	NSString			*requiredVersion;
+	
+	if (requirements == nil)  return YES;
+	
+	if (result)
+	{
+		requiredVersion = [requirements objectForKey:@"version"];
+		if (requiredVersion != nil)
+		{
+			if ([requiredVersion isKindOfClass:[NSString class]])
+			{
+				static NSArray	*ooVersionComponents = nil;
+				NSArray			*oxpVersionComponents = nil;
+				
+				if (ooVersionComponents == nil)
+				{
+					ooVersionComponents = ComponentsFromVersionString([[[NSBundle mainBundle] infoDictionary] objectForKey:@"CFBundleVersion"]);
+				}
+				
+				oxpVersionComponents = ComponentsFromVersionString([requirements objectForKey:@"version"]);
+				if (NSOrderedAscending == CompareVersions(ooVersionComponents, oxpVersionComponents))  result = NO;
+			}
+			else
+			{
+				OOLog(@"plist.wrongType", @"Expected requires.plist entry \"version\" to be string, but got %@ in OXP %@.", [requirements class], [path lastPathComponent]);
+				result = NO;
+			}
+		}
+	}
+	
+	return result;
+}
+
+
++ (void)addError:(NSString *)error
+{
+	if (error != nil)
+	{
+		if (errors)
+		{
+			[errors appendFormat:@"\n%@", error];
+		}
+		else
+		{
+			errors = [error mutableCopy];
+		}
+	}
 }
 
 
@@ -141,223 +352,16 @@ NSMutableDictionary*	surface_cache;
 }
 
 
-+ (NSMutableArray *) pathsUsingAddOns:(BOOL) include_addons
-{
-	// check if we need to clear the caches
-	if (always_include_addons != include_addons)
-	{
-		// clear the caches
-		[dictionary_cache release];
-		dictionary_cache = nil;
-		
-		[array_cache release];
-		array_cache = nil;
-		
-		[image_cache release];
-		image_cache = nil;
-		
-		[sound_cache release];
-		sound_cache = nil;
-		
-		[string_cache release];
-		string_cache = nil;
-		
-		[movie_cache release];
-		movie_cache = nil;
-		
-		// set flag for further accesses
-		always_include_addons = include_addons;
-		//
-		[saved_paths release];
-		saved_paths = nil;
-	}
-	//
-	int i;
-	if (saved_paths)
-		return saved_paths;
-	
-	[errors release];
-	errors = nil;
-	
-	NSFileManager *fmgr = [NSFileManager defaultManager];
-	
-#ifdef WIN32
-	NSString	*app_path = @"oolite.app/Resources";
-	NSString	*app_addon_path = @"AddOns";
-	NSString	*appsupport_path=nil;
-	NSString	*nix_path=nil;
-#else
-	NSString*	app_path = [[[[NSBundle mainBundle] bundlePath]
-								stringByAppendingPathComponent:@"Contents"]
-								stringByAppendingPathComponent:@"Resources"];
-	NSString*	app_addon_path = [[[[NSBundle mainBundle] bundlePath]
-								stringByDeletingLastPathComponent]
-								stringByAppendingPathComponent:@"AddOns"];
-	NSString*	appsupport_path = [[[[NSHomeDirectory()
-									stringByAppendingPathComponent:@"Library"]
-									stringByAppendingPathComponent:@"Application Support"]
-									stringByAppendingPathComponent:@"Oolite"]
-									stringByAppendingPathComponent:@"AddOns"];
-	NSString*	nix_path = [[NSHomeDirectory()
-							stringByAppendingPathComponent:@".Oolite"]
-							stringByAppendingPathComponent:@"AddOns"];
-#endif
-	//
-	// set up the default locations to look for expansion packs
-	NSArray*	extra_paths = [NSArray arrayWithObjects: app_addon_path, appsupport_path, nix_path, nil];
-	//
-	NSMutableArray *file_paths = [NSMutableArray arrayWithCapacity:16];
-	//
-	[file_paths addObject: app_path];
-	[file_paths addObjectsFromArray: extra_paths];
-	//
-	if (include_addons)
-	{
-		NSMutableArray*	possibleExpansionPaths = [NSMutableArray arrayWithCapacity: 16];
-		//
-		// check the default locations for expansion packs..
-		for (i = 0; i < [extra_paths count]; i++)
-		{
-			NSString*		addon_path = (NSString*)[extra_paths objectAtIndex: i];
-			NSArray*		possibleExpansions = [fmgr directoryContentsAtPath: addon_path];
-			int j;
-			for (j = 0; j < [possibleExpansions count]; j++)
-			{
-				NSString*	item = (NSString *)[possibleExpansions objectAtIndex: j];
-				if (([[item pathExtension] isEqual:@"oxp"])||([[item pathExtension] isEqual:@"oolite_expansion_pack"]))
-				{
-					BOOL dir_test = NO;
-					NSString*	possibleExpansionPath = [addon_path stringByAppendingPathComponent:item];
-					[fmgr fileExistsAtPath:possibleExpansionPath isDirectory:&dir_test];
-					if (dir_test)
-						[possibleExpansionPaths addObject:possibleExpansionPath];
-				}
-			}
-		}
-		//
-		if (paths_to_load)
-			[possibleExpansionPaths addObjectsFromArray:paths_to_load];	// pre-checked as directories with the correct file extension
-		//
-		for (i = 0; i < [possibleExpansionPaths count]; i++)
-		{
-			NSString* possibleExpansionPath = (NSString *)[possibleExpansionPaths objectAtIndex:i];
-			NSString* requiresPath = [possibleExpansionPath stringByAppendingPathComponent:@"requires.plist"];
-			BOOL require_test = YES;
-			BOOL failed_parsing = NO;
-			
-			// check for compatibility
-			NSDictionary* requires_dic = OODictionaryFromFile(requiresPath);
-			if (requires_dic != nil)
-			{
-				require_test = [ResourceManager areRequirementsFulfilled:requires_dic forOXP:possibleExpansionPath];
-			}
-			if (require_test)
-			{
-				[file_paths addObject:possibleExpansionPath];
-			}
-			else
-			{
-				NSString *errorString = nil;
-				
-				if (failed_parsing)
-				{
-					errorString = [NSString stringWithFormat:@"\t'%@' requirements property list could not be parsed.", [possibleExpansionPath lastPathComponent]];
-				}
-				else
-				{
-					NSString *version = [[[NSBundle mainBundle] infoDictionary] objectForKey:@"CFBundleVersion"];
-					OOLog(@"oxp.versionMismatch", @"ERROR: OXP %@ is incompatible with version %@ of Oolite",possibleExpansionPath,version);
-					errorString = [NSString stringWithFormat:@"\t'%@' is incompatible with version %@ of Oolite", [possibleExpansionPath lastPathComponent], version];
-				}
-				
-				if (errorString != nil)
-				{
-					if (errors)
-					{
-						errorString = [[NSString alloc] initWithFormat:@"%@\n%@", errors, errorString];
-						[errors release];
-						errors = errorString;
-					}
-					else
-					{
-						errors = [errorString retain];
-					}
-				}
-			}
-		}
-	}
-	//
-	if (!saved_paths)
-		saved_paths =[file_paths retain];
-	
-	OOLog(kOOLogDumpSearchPaths, @"---> searching paths:\n%@", file_paths);
-	
-	[self checkCacheUpToDateForPaths:file_paths];
-	
-	return file_paths;
-}
-
-+ (BOOL) areRequirementsFulfilled:(NSDictionary*)requirements forOXP:(NSString *)path
-{
-	BOOL				result = YES;
-	NSString			*requiredVersion;
-	
-	if (result)
-	{
-		requiredVersion = [requirements objectForKey:@"version"];
-		if (requiredVersion != nil)
-		{
-			if ([requiredVersion isKindOfClass:[NSString class]])
-			{
-				static NSArray	*ooVersionComponents = nil;
-				NSArray			*oxpVersionComponents = nil;
-				
-				if (ooVersionComponents == nil)
-				{
-					ooVersionComponents = ComponentsFromVersionString([[[NSBundle mainBundle] infoDictionary] objectForKey:@"CFBundleVersion"]);
-				}
-				
-				oxpVersionComponents = ComponentsFromVersionString([requirements objectForKey:@"version"]);
-				if (NSOrderedAscending == CompareVersions(ooVersionComponents, oxpVersionComponents))  result = NO;
-			}
-			else
-			{
-				OOLog(@"plist.wrongType", @"Expected requires.plist entry \"version\" to be string, but got %@ in OXP %@.", [requirements class], [path lastPathComponent]);
-				result = NO;
-			}
-		}
-	}
-	
-	return result;
-}
-
-+ (void) addExternalPath:(NSString *)filename
-{
-	int i;
-	if (!filename)
-		return;
-	if (!saved_paths)
-		saved_paths = [[NSMutableArray alloc] initWithObjects: filename, nil];	//retained
-	else
-	{
-		for (i = 0; i < [saved_paths count]; i++)
-			if ([[saved_paths objectAtIndex:i] isEqual:filename])
-				return;
-		[saved_paths addObject:filename];
-	}
-	if (!paths_to_load)
-		paths_to_load = [saved_paths retain];
-}
-
 + (NSDictionary *) dictionaryFromFilesNamed:(NSString *)filename inFolder:(NSString *)foldername andMerge:(BOOL) mergeFiles
 {
 	return [ResourceManager dictionaryFromFilesNamed:filename inFolder:foldername andMerge:mergeFiles smart:NO];
 }
 
+
 + (NSDictionary *) dictionaryFromFilesNamed:(NSString *)filename inFolder:(NSString *)foldername andMerge:(BOOL) mergeFiles smart:(BOOL) smartMerge
 {
-	NSMutableArray *results = [NSMutableArray arrayWithCapacity:16];
-	NSMutableArray *fpaths = [ResourceManager paths];
+	NSMutableArray	*results = [NSMutableArray arrayWithCapacity:16];
+	NSArray			*fpaths = [ResourceManager paths];
 	int i;
 	if (!filename)
 		return nil;
@@ -411,8 +415,8 @@ NSMutableDictionary*	surface_cache;
 
 + (NSArray *) arrayFromFilesNamed:(NSString *)filename inFolder:(NSString *)foldername andMerge:(BOOL) mergeFiles
 {
-	NSMutableArray *results = [NSMutableArray arrayWithCapacity:16];
-	NSMutableArray *fpaths = [ResourceManager paths];
+	NSMutableArray	*results = [NSMutableArray arrayWithCapacity:16];
+	NSArray			*fpaths = [ResourceManager paths];
 	int i;
 	if (!filename)
 		return nil;
@@ -464,7 +468,7 @@ NSMutableDictionary*	surface_cache;
 {
 	OOMusic			*result = nil;
 	NSString		*foundPath = nil;
-	NSMutableArray	*fpaths;
+	NSArray			*fpaths;
 	int				i;
 	
 	if (!inFileName) return nil;

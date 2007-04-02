@@ -8284,7 +8284,7 @@ static void ApplyConstantUniforms(NSDictionary *uniforms, GLhandleARB shaderProg
 				glUniform1fARB(variableLocation, floatValue);
 			}
 		}
-		else if ([type isEqualToString:@"float"])
+		else if ([type isEqualToString:@"int"])
 		{
 			if ([value respondsToSelector:@selector(intValue)])
 			{

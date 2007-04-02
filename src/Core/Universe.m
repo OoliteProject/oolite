@@ -102,10 +102,9 @@ static Universe *sSharedUniverse = nil;
 	lastBeacon = NO_TARGET;
 	
 	no_update = NO;
-//	universe_lock = [[NSLock alloc] init];	// alloc retains
 	
 	// init the Resource Manager
-	[ResourceManager pathsUsingAddOns:YES];
+	[ResourceManager paths];
 	
 	reducedDetail = NO;
 	
@@ -325,7 +324,7 @@ static Universe *sSharedUniverse = nil;
 	
 	[self removeAllEntitiesExceptPlayer:NO];
 	
-	[ResourceManager pathsUsingAddOns:!strict];
+	[ResourceManager setUseAddOns:!strict];
 	
 #ifndef GNUSTEP
 	//// speech stuff
@@ -344,10 +343,6 @@ static Universe *sSharedUniverse = nil;
 	next_universal_id = 100;	// start arbitrarily above zero
 	for (i = 0; i < MAX_ENTITY_UID; i++)
 		entity_for_uid[i] = nil;
-	
-	// TODO: originally cache was reloaded here. Is this pointful?
-	OOLog(@"dataCache.notconverting", @"Universe reinit called, should we be reloading cache?");
-
 	
 	if (entityRecyclePool)
 		[entityRecyclePool autorelease];

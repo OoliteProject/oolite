@@ -5488,8 +5488,8 @@ static int last_outfitting_index;
 
 	
 	// check for error messages from Resource Manager
-	
-	if (([ResourceManager pathsUsingAddOns:YES])&&([ResourceManager errors]))
+	[ResourceManager paths];
+	if ([ResourceManager errors])
 	{
 		int ms_start = ms_line;
 		int i = ms_line = [gui addLongText:[ResourceManager errors] startingAtRow:ms_start align:GUI_ALIGN_LEFT];
