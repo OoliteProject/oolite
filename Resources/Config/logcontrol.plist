@@ -35,7 +35,7 @@ _default								= yes;					// Fallback value for otherwise undefined classes. Mu
 $scriptError							= yes;
 $error									= yes;
 $troubleShootingDump					= yes;
-$entityState							= yes;
+$entityState							= no;
 $scriptDebugOn							= no;					// This metaclass is set by the debugOn and debugOff script actions.
 
 
@@ -59,12 +59,12 @@ unclassified							= inherit;
 /*** Module-specific message classes ***/
 ai										= $entityState;
 ai.message.receive						= inherit;
-ai.takeAction.takeAction				= $entityState;
-ai.takeAction.noAction					= $entityState;
+ai.takeAction.takeAction				= inherit;
+ai.takeAction.noAction					= inherit;
 ai.takeAction.orphaned					= $error;
 ai.takeAction.debugMessage				= inherit;
-ai.takeAction.badSelector				= $scriptError;
-ai.pop									= $entityState;
+ai.takeAction.badSelector				= inherit;
+ai.pop									= inherit;
 
 
 beacon.list								= $scriptDebugOn;

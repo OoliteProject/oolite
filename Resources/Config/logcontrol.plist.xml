@@ -9,7 +9,7 @@
 	<key>$dataCacheStatus</key>
 	<string>yes</string>
 	<key>$entityState</key>
-	<string>yes</string>
+	<string>no</string>
 	<key>$error</key>
 	<string>yes</string>
 	<key>$linkedListError</key>
@@ -37,17 +37,17 @@
 	<key>ai.message.receive</key>
 	<string>inherit</string>
 	<key>ai.pop</key>
-	<string>$entityState</string>
+	<string>inherit</string>
 	<key>ai.takeAction.badSelector</key>
-	<string>$scriptError</string>
+	<string>inherit</string>
 	<key>ai.takeAction.debugMessage</key>
 	<string>inherit</string>
 	<key>ai.takeAction.noAction</key>
-	<string>$entityState</string>
+	<string>inherit</string>
 	<key>ai.takeAction.orphaned</key>
 	<string>$error</string>
 	<key>ai.takeAction.takeAction</key>
-	<string>$entityState</string>
+	<string>inherit</string>
 	<key>beacon.list</key>
 	<string>$scriptDebugOn</string>
 	<key>beacon.list.flightTraining</key>
