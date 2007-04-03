@@ -43,6 +43,18 @@ MA 02110-1301, USA.
 #endif
 
 
+/*	OOLOG_SHORT_CIRCUIT:
+	If nonzero, the test of whether to display a message before evaluating the
+	other parameters of the call. This saves time, but could cause weird bugs
+	if the parameters involve calls with side effects.
+	
+	Disabled for 1.68, will be tried leading up to 1.69.
+*/
+#ifndef OOLOG_SHORT_CIRCUIT
+	#define OOLOG_SHORT_CIRCUIT		0
+#endif
+
+
 /*	General usage:
 		OOLog(messageClass, format, parameters);
 	is conceptually equivalent to:
@@ -60,8 +72,13 @@ MA 02110-1301, USA.
 	OOLogSetDisplayMessagesInClass() and tested with
 	OOLogWillDisplayMessagesInClass().
 */
-#define OOLog(class, format, ...)				OOLogWithFunctionFileAndLine(class, OOLOG_FUNCTION_NAME, __FILE__, __LINE__, format, ## __VA_ARGS__)
-#define OOLogWithArgmuents(class, format, args)	OOLogWithFunctionFileAndLine(class, OOLOG_FUNCTION_NAME, __FILE__, __LINE__, format, args)
+#if OOLOG_SHORT_CIRCUIT
+	#define OOLog(class, format, ...)				do { if (OOLogWillDisplayMessagesInClass(class)) { OOLogWithFunctionFileAndLine(class, OOLOG_FUNCTION_NAME, __FILE__, __LINE__, format, ## __VA_ARGS__); }} while (0)
+	#define OOLogWithArgmuents(class, format, args)	do { if (OOLogWillDisplayMessagesInClass(class)) { OOLogWithFunctionFileAndLineAndArguments(class, OOLOG_FUNCTION_NAME, __FILE__, __LINE__, format, args); }} while (0)
+#else
+	#define OOLog(class, format, ...)				OOLogWithFunctionFileAndLine(class, OOLOG_FUNCTION_NAME, __FILE__, __LINE__, format, ## __VA_ARGS__)
+	#define OOLogWithArgmuents(class, format, args)	OOLogWithFunctionFileAndLineAndArguments(class, OOLOG_FUNCTION_NAME, __FILE__, __LINE__, format, args)
+#endif
 
 BOOL OOLogWillDisplayMessagesInClass(NSString *inMessageClass);
 void OOLogSetDisplayMessagesInClass(NSString *inClass, BOOL inFlag);

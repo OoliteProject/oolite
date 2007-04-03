@@ -1401,7 +1401,7 @@ NSString *JSPropertyAsString(JSContext *context, JSObject *object, const char *n
 {
 	JSBool			OK;
 	jsval			returnValue;
-	NSString		*result;
+	NSString		*result = nil;
 	
 	if (context == NULL || object == NULL || name == NULL) return nil;
 	

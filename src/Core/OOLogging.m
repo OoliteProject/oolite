@@ -29,6 +29,7 @@ MA 02110-1301, USA.
 #import "OOLogging.h"
 #import "OOPListParsing.h"
 #import "OOFunctionAttributes.h"
+#import "ResourceManager.h"
 
 
 #ifdef GNUSTEP	// We really need better target macros.
@@ -88,7 +89,7 @@ static void OOLogInternal_(const char *inFunction, NSString *inFormat, ...);
 
 // Functions used internally
 static void LoadExplicitSettings(void);
-static void LoadExplicitSettingsFromDictionary(NSDictionary *inDict, BOOL inExplicitInherit);
+static void LoadExplicitSettingsFromDictionary(NSDictionary *inDict);
 static NSString *AbbreviatedFileName(const char *inName);
 static id ResolveDisplaySetting(NSString *inMessageClass);
 static id ResolveMetaClassReference(NSString *inMetaClass, NSMutableSet *ioSeenMetaClasses);
@@ -275,11 +276,13 @@ void OOLogWithFunctionFileAndLineAndArguments(NSString *inMessageClass, const ch
 	
 	pool = [[NSAutoreleasePool alloc] init];
 	
-	if (!OOLogWillDisplayMessagesInClass(inMessageClass))
-	{
-		[pool release];
-		return;
-	}
+	#if !OOLOG_SHORT_CIRCUIT
+		if (!OOLogWillDisplayMessagesInClass(inMessageClass))
+		{
+			[pool release];
+			return;
+		}
+	#endif
 	
 	// Do argument substitution
 	formattedMessage = [[[NSString alloc] initWithFormat:inFormat arguments:inArguments] autorelease];
@@ -415,6 +418,8 @@ static void OOLogInternal_(const char *inFunction, NSString *inFormat, ...)
 */
 static void LoadExplicitSettings(void)
 {
+	NSEnumerator		*rootEnum = nil;
+	NSString			*basePath = nil;
 	NSString			*configPath = nil;
 	NSDictionary		*dict = nil;
 	NSUserDefaults		*prefs = nil;
@@ -424,24 +429,29 @@ static void LoadExplicitSettings(void)
 	
 	sExplicitSettings = [[NSMutableDictionary alloc] init];
 	
-	// Load defaults from logcontrol.plist
-	#if 0
-		configPath = [[NSBundle mainBundle] pathForResource:@"logcontrol" ofType:@"plist" inDirectory:@"Config"];
-	#else
-		// Attempt to fix a Gnustep-specific bug
-		configPath = [[NSBundle mainBundle] resourcePath];
-		configPath = [configPath stringByAppendingPathComponent:@"Config"];
-		configPath = [configPath stringByAppendingPathComponent:@"logcontrol.plist"];
-	#endif
-	dict = OODictionaryFromFile(configPath);
-	LoadExplicitSettingsFromDictionary(dict, NO);
+	rootEnum = [[ResourceManager rootPaths] objectEnumerator];
+	while ((basePath = [rootEnum nextObject]))
+	{
+		configPath = [[basePath stringByAppendingPathComponent:@"Config"]
+								stringByAppendingPathComponent:@"logcontrol.plist"];
+		dict = OODictionaryFromFile(configPath);
+		if (dict == nil)
+		{
+			configPath = [basePath stringByAppendingPathComponent:@"logcontrol.plist"];
+			dict = OODictionaryFromFile(configPath);
+		}
+		if (dict != nil)
+		{
+			LoadExplicitSettingsFromDictionary(dict);
+		}
+	}
 	
 	// Get overrides from preferences
 	prefs = [NSUserDefaults standardUserDefaults];
 	dict = [prefs objectForKey:@"logging-enable"];
 	if ([dict isKindOfClass:[NSDictionary class]])
 	{
-		LoadExplicitSettingsFromDictionary(dict, YES);
+		LoadExplicitSettingsFromDictionary(dict);
 	}
 	
 	// Get _default and _override value
@@ -501,7 +511,7 @@ static void LoadExplicitSettings(void)
 /*	LoadExplicitSettingsFromDictionary()
 	Helper for LoadExplicitSettings().
 */
-static void LoadExplicitSettingsFromDictionary(NSDictionary *inDict, BOOL inExplicitInherit)
+static void LoadExplicitSettingsFromDictionary(NSDictionary *inDict)
 {
 	NSEnumerator		*keyEnum = nil;
 	id					key = nil;
@@ -535,7 +545,8 @@ static void LoadExplicitSettingsFromDictionary(NSDictionary *inDict, BOOL inExpl
 			else if (NSOrderedSame == [value caseInsensitiveCompare:@"inherit"] ||
 				NSOrderedSame == [value caseInsensitiveCompare:@"inherited"])
 			{
-				value = inExplicitInherit ? kInheritToken : nil;
+				value = nil;
+				[sExplicitSettings removeObjectForKey:key];
 			}
 			else if (![value hasPrefix:@"$"])
 			{
