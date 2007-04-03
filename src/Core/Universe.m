@@ -65,7 +65,6 @@ static NSString * const kOOLogDataCacheRebuild				= @"dataCache.rebuild";
 static NSString * const kOOLogUniversePopulate				= @"universe.populate";
 static NSString * const kOOLogUniversePopulateWitchspace	= @"universe.populate.witchspace";
 static NSString * const kOOLogScriptNoSystemForName			= @"script.debug.note.systemSeedForSystemName";
-static NSString * const kOOLogStringCoordinateConversion	= @"strings.conversion.coordinates";
 extern NSString * const kOOLogEntityVerificationError;
 static NSString * const kOOLogEntityVerificationRebuild		= @"entity.linkedList.verify.rebuild";
 static NSString * const kOOLogFoundBeacon					= @"beacon.list";
@@ -2012,7 +2011,7 @@ GLfloat docked_light_specular[]	= { (GLfloat) 1.0, (GLfloat) 1.0, (GLfloat) 0.5,
 	NSArray* tokens = ScanTokensFromString(system_x_y_z);
 	if ([tokens count] != 4)
 	{
-		OOLog(kOOLogStringCoordinateConversion, @"ERROR: Could not construct system coordinates from \"%@\" - too few pieces of data", system_x_y_z);
+		// Not necessarily an error.
 		return make_vector(0,0,0);
 	}
 	GLfloat dummy;

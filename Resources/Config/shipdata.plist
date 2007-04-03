@@ -545,10 +545,8 @@
 		<string>CARGO_NOT_CARGO</string>
 		<key>death_actions</key>
 		<array>
-			<!-- <string>debugOn</string> -->
 			<string>spawn: cloaking-device 1</string>
 			<string>set: mission_cloak COMPLETE</string>
-			<!-- <string>debugOff</string> -->
 		</array>
 		<key>energy_recharge_rate</key>
 		<real>4</real>
@@ -1441,7 +1439,6 @@
 		<string>CLASS_CARGO</string>
 		<key>script_actions</key>
 		<array>
-			<string>debugOn</string>
 			<string>testForEquipment: EQ_CLOAKING_DEVICE</string>
 			<dict>
 				<key>conditions</key>
@@ -1463,7 +1460,6 @@
 					<string>awardCargo: 100 Gold</string>
 				</array>
 			</dict>
-			<string>debugOff</string>
 		</array>
 		<key>thrust</key>
 		<real>0.0</real>

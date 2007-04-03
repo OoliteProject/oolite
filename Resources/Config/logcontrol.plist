@@ -240,7 +240,6 @@ strings.conversion.vector				= inherit;
 strings.conversion.quaternion			= inherit;
 strings.conversion.vectorAndQuaternion	= inherit;
 strings.conversion.randomSeed			= inherit;
-strings.conversion.coordinates			= inherit;
 
 
 texture.planet.generate					= inherit;

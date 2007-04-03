@@ -4439,8 +4439,8 @@ double scoopSoundPlayTime = 0.0;
 	[universe setDisplayText: YES];
 	[universe setDisplayCursor: NO];
 	[universe setViewDirection: VIEW_GUI_DISPLAY];
-
-
+	
+	#if 0
 	// DEBUG SCENE TEST ROUTINES
 		[universe removeDemoShips];
 		[self debugOn];
@@ -4448,7 +4448,7 @@ double scoopSoundPlayTime = 0.0;
 		[self debugOff];
 		[self setShowDemoShips: YES];
 	// END TEST
-
+	#endif
 }
 
 // DJS: moved from the above method because there are

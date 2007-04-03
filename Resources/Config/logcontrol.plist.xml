@@ -370,8 +370,6 @@
 	<string>$soundError</string>
 	<key>strings.conversion</key>
 	<string>$scriptError</string>
-	<key>strings.conversion.coordinates</key>
-	<string>inherit</string>
 	<key>strings.conversion.quaternion</key>
 	<string>inherit</string>
 	<key>strings.conversion.randomSeed</key>
