@@ -169,11 +169,13 @@ static NSString * mission_key;
 
 - (BOOL) checkCouplet:(NSDictionary *) couplet onEntity:(Entity *) entity
 {
-	NSArray *conditions = (NSArray *)[couplet objectForKey:@"conditions"];
-	NSArray *actions = (NSArray *)[couplet objectForKey:@"do"];
-	NSArray *else_actions = (NSArray *)[couplet objectForKey:@"else"];
-	BOOL success = YES;
-	int i;
+	NSAutoreleasePool	*pool = nil;
+	NSArray				*conditions = (NSArray *)[couplet objectForKey:@"conditions"];
+	NSArray				*actions = (NSArray *)[couplet objectForKey:@"do"];
+	NSArray				*else_actions = (NSArray *)[couplet objectForKey:@"else"];
+	BOOL				success = YES;
+	int					i;
+	
 	if (conditions == nil)
 	{
 		OOLog(kOOLogSyntaxBadConditional, @"SCRIPT ERROR no 'conditions' in %@ - returning YES.", [couplet description]);
@@ -184,43 +186,53 @@ static NSString * mission_key;
 		OOLog(kOOLogSyntaxBadConditional, @"SCRIPT ERROR \"conditions = %@\" is not an array - returning YES.", [conditions description]);
 		return success;
 	}
-	for (i = 0; (i < [conditions count])&&(success); i++)
-		success &= [self scriptTestCondition:(NSString *)[conditions objectAtIndex:i]];
-	if ((success) && (actions))
-	{
-		if (![actions isKindOfClass:[NSArray class]])
+	
+	pool = [[NSAutoreleasePool alloc] init];
+	
+	NS_DURING
+		for (i = 0; (i < [conditions count])&&(success); i++)
+			success &= [self scriptTestCondition:(NSString *)[conditions objectAtIndex:i]];
+		if ((success) && (actions))
 		{
-			OOLog(kOOLogSyntaxBadConditional, @"SCRIPT ERROR \"actions = %@\" is not an array.", [actions description]);
-		}
-		else
-		{
-			for (i = 0; i < [actions count]; i++)
+			if (![actions isKindOfClass:[NSArray class]])
 			{
-				if ([[actions objectAtIndex:i] isKindOfClass:[NSDictionary class]])
-					[self checkCouplet:(NSDictionary *)[actions objectAtIndex:i] onEntity:entity];
-				if ([[actions objectAtIndex:i] isKindOfClass:[NSString class]])
-					[self scriptAction:(NSString *)[actions objectAtIndex:i] onEntity:entity];
+				OOLog(kOOLogSyntaxBadConditional, @"SCRIPT ERROR \"actions = %@\" is not an array.", [actions description]);
+			}
+			else
+			{
+				for (i = 0; i < [actions count]; i++)
+				{
+					if ([[actions objectAtIndex:i] isKindOfClass:[NSDictionary class]])
+						[self checkCouplet:(NSDictionary *)[actions objectAtIndex:i] onEntity:entity];
+					if ([[actions objectAtIndex:i] isKindOfClass:[NSString class]])
+						[self scriptAction:(NSString *)[actions objectAtIndex:i] onEntity:entity];
+				}
 			}
 		}
-	}
-	// now check if there's an 'else' to do if the couplet is false
-	if ((!success) && (else_actions))
-	{
-		if (![else_actions isKindOfClass:[NSArray class]])
+		// now check if there's an 'else' to do if the couplet is false
+		if ((!success) && (else_actions))
 		{
-			OOLog(kOOLogSyntaxBadConditional, @"SCRIPT ERROR \"else_actions = %@\" is not an array.", [else_actions description]);
-		}
-		else
-		{
-			for (i = 0; i < [else_actions count]; i++)
+			if (![else_actions isKindOfClass:[NSArray class]])
 			{
-				if ([[else_actions objectAtIndex:i] isKindOfClass:[NSDictionary class]])
-					[self checkCouplet:(NSDictionary *)[else_actions objectAtIndex:i] onEntity:entity];
-				if ([[else_actions objectAtIndex:i] isKindOfClass:[NSString class]])
-					[self scriptAction:(NSString *)[else_actions objectAtIndex:i] onEntity:entity];
+				OOLog(kOOLogSyntaxBadConditional, @"SCRIPT ERROR \"else_actions = %@\" is not an array.", [else_actions description]);
+			}
+			else
+			{
+				for (i = 0; i < [else_actions count]; i++)
+				{
+					if ([[else_actions objectAtIndex:i] isKindOfClass:[NSDictionary class]])
+						[self checkCouplet:(NSDictionary *)[else_actions objectAtIndex:i] onEntity:entity];
+					if ([[else_actions objectAtIndex:i] isKindOfClass:[NSString class]])
+						[self scriptAction:(NSString *)[else_actions objectAtIndex:i] onEntity:entity];
+				}
 			}
 		}
-	}
+	NS_HANDLER
+		OOLog(kOOLogException, @"***** Exception %@ (%@) during plist script evaluation.", [localException name], [localException reason]);
+		// Suppress
+	NS_ENDHANDLER
+	[pool release];
+	
 	return success;
 }
 

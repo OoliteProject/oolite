@@ -423,8 +423,8 @@ void setUpSinTable()
 	seed_for_planet_description(p_seed);
 	//
 	NSMutableDictionary*   planetinfo = [NSMutableDictionary dictionaryWithDictionary:[uni generateSystemData:p_seed]];
-	int radius_km =		[(NSNumber *)[planetinfo objectForKey:KEY_RADIUS] intValue];
-	int techlevel =		[(NSNumber *)[planetinfo objectForKey:KEY_TECHLEVEL] intValue];
+	int radius_km =		[[planetinfo objectForKey:KEY_RADIUS] intValue];
+	int techlevel =		[[planetinfo objectForKey:KEY_TECHLEVEL] intValue];
 	
 	if ([planetinfo objectForKey:@"texture"])
 	{
@@ -464,7 +464,7 @@ void setUpSinTable()
 	//
 	if ([planetinfo objectForKey:@"percent_land"])
 	{
-		percent_land = [(NSNumber *)[planetinfo objectForKey:@"percent_land"] intValue];
+		percent_land = [[planetinfo objectForKey:@"percent_land"] intValue];
 	}
 
 	// save the current random number generator seed

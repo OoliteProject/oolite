@@ -30,8 +30,16 @@ MA 02110-1301, USA.
 #import "OOSound.h"
 #import "OOOpenGL.h"
 #import "PlayerEntity.h"
+#import <stdlib.h>
 
 #define kOOLogUnconvertedNSLog @"unclassified.GameController"
+
+
+@interface GameController (OOPrivate)
+
+- (void)reportUnhandledStartupException:(NSException *)exception;
+
+@end
 
 
 @implementation GameController
@@ -357,79 +365,84 @@ static int _compareModes(id arg1, id arg2, void *context)
 #else
 - (void) applicationDidFinishLaunching: (NSNotification*) notification
 {
-	//
-	// ensure the gameView is drawn to, so OpenGL is initialised and so textures can initialse.
-	//
-	[gameView drawRect:[gameView bounds]];
-	
-	[self beginSplashScreen];
-	[self logProgress:@"initialising..."];
-	//
-	// check user defaults
-	//
-	width = 640;	//  standard screen is 640x480 pixels, 32 bit color, 32 bit z-buffer, refresh rate 75Hz
-	height = 480;
-	refresh = 75;
-	
-	NSUserDefaults *userDefaults = [NSUserDefaults standardUserDefaults];
-	//
-	if ([userDefaults objectForKey:@"display_width"])
-		width = [userDefaults integerForKey:@"display_width"];
-	if ([userDefaults objectForKey:@"display_height"])
-		height = [userDefaults integerForKey:@"display_height"];
-	if ([userDefaults objectForKey:@"display_refresh"])
-		refresh = [userDefaults integerForKey:@"display_refresh"];
-	
-	/* GDC example code */
-	
-	[self logProgress:@"getting display modes..."];
-	[self getDisplayModes];
-	
-	/* end GDC */
-	
-	fullscreenDisplayMode = [self findDisplayModeForWidth:width Height:height Refresh:refresh];
-	if (fullscreenDisplayMode == nil)
-	{
-		// set full screen mode to first available mode
-		fullscreenDisplayMode = [displayModes objectAtIndex:0];
-        width = [[fullscreenDisplayMode objectForKey: (NSString *)kCGDisplayWidth] intValue];
-        height = [[fullscreenDisplayMode objectForKey: (NSString *)kCGDisplayHeight] intValue];
-        refresh = [[fullscreenDisplayMode objectForKey: (NSString *)kCGDisplayRefreshRate] intValue];
-	}
-	
-	// moved to before the Universe is created
-	[self logProgress:@"loading selected expansion packs..."];
-	if (expansionPathsToInclude)
-	{
-		int i;
-		for (i = 0; i < [expansionPathsToInclude count]; i++)
-			[ResourceManager addExternalPath: (NSString*)[expansionPathsToInclude objectAtIndex: i]];
-	}
-	
-    // moved here to try to avoid initialising this before having an Open GL context
-	[self logProgress:@"initialising universe..."];
-    universe = [[Universe alloc] init];
-	
-	[universe setGameView:gameView];
-	
-	[self logProgress:@"loading player..."];
-	[self loadPlayerIfRequired];
-	
-	//
-	// get the run loop and add the call to doStuff
-	//
-    NSTimeInterval ti = 0.01;
-    
-    timer = [[NSTimer timerWithTimeInterval:ti target:self selector:@selector(doStuff:) userInfo:self repeats:YES] retain];
-    
-    [[NSRunLoop currentRunLoop] addTimer:timer forMode:NSDefaultRunLoopMode];
-	
-	
-	// set up the window to accept mouseMoved events
-	[gameWindow setAcceptsMouseMovedEvents:YES];
-	
-	//
-	[self endSplashScreen];
+	NS_DURING
+		//
+		// ensure the gameView is drawn to, so OpenGL is initialised and so textures can initialse.
+		//
+		[gameView drawRect:[gameView bounds]];
+		
+		[self beginSplashScreen];
+		[self logProgress:@"initialising..."];
+		//
+		// check user defaults
+		//
+		width = 640;	//  standard screen is 640x480 pixels, 32 bit color, 32 bit z-buffer, refresh rate 75Hz
+		height = 480;
+		refresh = 75;
+		
+		NSUserDefaults *userDefaults = [NSUserDefaults standardUserDefaults];
+		//
+		if ([userDefaults objectForKey:@"display_width"])
+			width = [userDefaults integerForKey:@"display_width"];
+		if ([userDefaults objectForKey:@"display_height"])
+			height = [userDefaults integerForKey:@"display_height"];
+		if ([userDefaults objectForKey:@"display_refresh"])
+			refresh = [userDefaults integerForKey:@"display_refresh"];
+		
+		/* GDC example code */
+		
+		[self logProgress:@"getting display modes..."];
+		[self getDisplayModes];
+		
+		/* end GDC */
+		
+		fullscreenDisplayMode = [self findDisplayModeForWidth:width Height:height Refresh:refresh];
+		if (fullscreenDisplayMode == nil)
+		{
+			// set full screen mode to first available mode
+			fullscreenDisplayMode = [displayModes objectAtIndex:0];
+			width = [[fullscreenDisplayMode objectForKey: (NSString *)kCGDisplayWidth] intValue];
+			height = [[fullscreenDisplayMode objectForKey: (NSString *)kCGDisplayHeight] intValue];
+			refresh = [[fullscreenDisplayMode objectForKey: (NSString *)kCGDisplayRefreshRate] intValue];
+		}
+		
+		// moved to before the Universe is created
+		if (expansionPathsToInclude)
+		{
+			[self logProgress:@"loading selected expansion packs..."];
+			int i;
+			for (i = 0; i < [expansionPathsToInclude count]; i++)
+				[ResourceManager addExternalPath: (NSString*)[expansionPathsToInclude objectAtIndex: i]];
+		}
+		
+		// moved here to try to avoid initialising this before having an Open GL context
+		[self logProgress:@"initialising universe..."];
+		universe = [[Universe alloc] init];
+		
+		[universe setGameView:gameView];
+		
+		[self logProgress:@"loading player..."];
+		[self loadPlayerIfRequired];
+		
+		//
+		// get the run loop and add the call to doStuff
+		//
+		NSTimeInterval ti = 0.01;
+		
+		timer = [[NSTimer timerWithTimeInterval:ti target:self selector:@selector(doStuff:) userInfo:self repeats:YES] retain];
+		
+		[[NSRunLoop currentRunLoop] addTimer:timer forMode:NSDefaultRunLoopMode];
+		
+		
+		// set up the window to accept mouseMoved events
+		[gameWindow setAcceptsMouseMovedEvents:YES];
+		
+		//
+		[self endSplashScreen];
+	NS_HANDLER
+		[self reportUnhandledStartupException:localException];
+		exit(EXIT_FAILURE);
+	NS_ENDHANDLER
 }
 #endif
 
@@ -917,6 +930,18 @@ static int _compareModes(id arg1, id arg2, void *context)
 	[ootunesScript release]; 
 }
 #endif
+
+
+- (void)reportUnhandledStartupException:(NSException *)exception
+{
+	OOLog(@"startup.exception", @"***** Unhandled exception during startup: %@ (%@).", [exception name], [exception reason]);
+	
+	#ifndef GNUSTEP
+		// Display an error alert.
+		// TODO: provide better information on reporting bugs in the manual, and refer to it here.
+		NSRunCriticalAlertPanel(@"Oolite failed to start up, because an unhandled exception occurred.", @"An exception of type %@ occurred. If this problem persists, please file a bug report.", @"OK", NULL, NULL, [exception name]);
+	#endif
+}
 
 @end
 

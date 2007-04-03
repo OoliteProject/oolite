@@ -22,6 +22,8 @@ MA 02110-1301, USA.
 
 */
 
+#define USE_RELEASE_LOCK_PROXY	0
+
 #import "OOOpenGL.h"
 #import "OOGLDefs.h"
 #import "Universe.h"
@@ -52,6 +54,10 @@ MA 02110-1301, USA.
 #import "WormholeEntity.h"
 #import "RingEntity.h"
 #import "ParticleEntity.h"
+
+#if USE_RELEASE_LOCK_PROXY
+#import "ReleaseLockProxy.h"
+#endif
 
 #define kOOLogUnconvertedNSLog @"unclassified.Universe"
 
@@ -767,7 +773,7 @@ static Universe *sSharedUniverse = nil;
 	
 	Vector				vf;
 
-	NSDictionary		*systeminfo = [self generateSystemData:system_seed];
+	NSDictionary		*systeminfo = [[self generateSystemData:system_seed] retain];
 	int					techlevel = [(NSNumber *)[systeminfo objectForKey:KEY_TECHLEVEL] intValue];
 	NSString			*stationDesc;
 	OOColor				*bgcolor;
@@ -822,9 +828,7 @@ static Universe *sSharedUniverse = nil;
 	/*- space planet -*/
 	a_planet = [[PlanetEntity alloc] initWithSeed: system_seed fromUniverse: self];	// alloc retains!
 	double planet_radius = [a_planet getRadius];
-	double region_radius = 2.5f * planet_radius;
 	double planet_zpos = (12.0 + (ranrot_rand() & 3) - (ranrot_rand() & 3) ) * planet_radius; // 10..14 pr (planet radii) ahead
-	double region_spacing = 2.0 * region_radius;
 	
 	[a_planet setPlanetType:PLANET_TYPE_GREEN];
 	[a_planet setStatus:STATUS_ACTIVE];
@@ -833,12 +837,16 @@ static Universe *sSharedUniverse = nil;
 	[a_planet setEnergy:  1000000.0];
 	[self addEntity:a_planet]; // [entities addObject:a_planet];
 	
+	#if 0
+	double region_radius = 2.5f * planet_radius;
+	double region_spacing = 2.0 * region_radius;
 	Vector region_pos = a_planet->position;
 	while (region_pos.z > -planet_radius)
 	{
-//		[universeRegion addSubregionAtPosition: region_pos withRadius: region_radius];	// collision regions from planet to witchpoint
+		[universeRegion addSubregionAtPosition: region_pos withRadius: region_radius];	// collision regions from planet to witchpoint
 		region_pos.z -= region_spacing;
 	}
+	#endif
 	
 	planet = [a_planet universal_id];
 	/*--*/
@@ -919,7 +927,6 @@ static Universe *sSharedUniverse = nil;
 	}
 	
 	//// possibly systeminfo has an override for the station
-	
 	stationDesc = [systeminfo stringForKey:@"station" defaultValue:stationDesc];
 	
 	a_station = (StationEntity *)[self newShipWithRole:stationDesc];			   // retain count = 1
@@ -1022,6 +1029,7 @@ static Universe *sSharedUniverse = nil;
 		[player scriptActions: script_actions forTarget: nil];
 	}
 	
+	[systeminfo release];
 }
 
 
@@ -1134,8 +1142,9 @@ GLfloat docked_light_specular[]	= { (GLfloat) 1.0, (GLfloat) 1.0, (GLfloat) 0.5,
 
 - (void) populateSpaceFromHyperPoint:(Vector) h1_pos toPlanetPosition:(Vector) p1_pos andSunPosition:(Vector) s1_pos
 {
-	int i, r, escorts_added;
+	int					i, r, escorts_added;
 	NSDictionary		*systeminfo = [self generateSystemData:system_seed];
+	NSAutoreleasePool	*pool = nil;
 
 	BOOL				sun_gone_nova = NO;
 	if ([systeminfo objectForKey:@"sun_gone_nova"])
@@ -1231,6 +1240,8 @@ GLfloat docked_light_specular[]	= { (GLfloat) 1.0, (GLfloat) 1.0, (GLfloat) 0.5,
 	// add the traders to route1 (witchspace exit to space-station / planet)
 	for (i = 0; (i < trading_parties)&&(!sun_gone_nova); i++)
 	{
+		pool = [[NSAutoreleasePool alloc] init];
+		
 		ShipEntity  *trader_ship;
 		Vector		launch_pos = h1_pos;
 		if (total_clicks < 3)   total_clicks = 3;
@@ -1267,11 +1278,15 @@ GLfloat docked_light_specular[]	= { (GLfloat) 1.0, (GLfloat) 1.0, (GLfloat) 0.5,
 			[[trader_ship getAI] setStateMachine:@"route1traderAI.plist"];	// must happen after adding to the universe!
 			[trader_ship release];
 		}
+		
+		[pool release];
 	}
 	
 	// add the raiders to route1 (witchspace exit to space-station / planet)
 	for (i = 0; (i < raiding_parties)&&(!sun_gone_nova); i++)
 	{
+		pool = [[NSAutoreleasePool alloc] init];
+		
 		ShipEntity  *pirate_ship;
 		Vector		launch_pos = h1_pos;
 		if ((i > 0)&&((ranrot_rand() & 7) > wolfPackCounter))
@@ -1324,11 +1339,15 @@ GLfloat docked_light_specular[]	= { (GLfloat) 1.0, (GLfloat) 1.0, (GLfloat) 0.5,
 			[[pirate_ship getAI] setStateMachine:@"pirateAI.plist"];	// must happen after adding to the universe!
 			[pirate_ship release];
 		}
+		
+		[pool release];
 	}
 	
 	// add the hunters and police ships to route1 (witchspace exit to space-station / planet)
 	for (i = 0; (i < hunting_parties)&&(!sun_gone_nova); i++)
 	{
+		pool = [[NSAutoreleasePool alloc] init];
+		
 		ShipEntity  *hunter_ship;
 		Vector		launch_pos = h1_pos;
 		// random position along route1
@@ -1390,6 +1409,8 @@ GLfloat docked_light_specular[]	= { (GLfloat) 1.0, (GLfloat) 1.0, (GLfloat) 0.5,
 
 			[hunter_ship release];
 		}
+		
+		[pool release];
 	}
 	
 	// add the thargoids to route1 (witchspace exit to space-station / planet) clustered together
@@ -1398,6 +1419,8 @@ GLfloat docked_light_specular[]	= { (GLfloat) 1.0, (GLfloat) 1.0, (GLfloat) 0.5,
 	double thargoid_location = d_route1 * r / total_clicks;
 	for (i = 0; (i < thargoid_parties)&&(!sun_gone_nova); i++)
 	{
+		pool = [[NSAutoreleasePool alloc] init];
+		
 		ShipEntity  *thargoid_ship;
 		Vector		launch_pos;
 		launch_pos.x = h1_pos.x + thargoid_location * v_route1.x + SCANNER_MAX_RANGE*((ranrot_rand() & 255)/256.0 - 0.5);
@@ -1415,6 +1438,8 @@ GLfloat docked_light_specular[]	= { (GLfloat) 1.0, (GLfloat) 1.0, (GLfloat) 0.5,
 			[[thargoid_ship getAI] setState:@"GLOBAL"];
 			[thargoid_ship release];
 		}
+		
+		[pool release];
 	}
 	
 	// add the asteroids to route1 (witchspace exit to space-station / planet) clustered together in a preset location.
@@ -1425,6 +1450,8 @@ GLfloat docked_light_specular[]	= { (GLfloat) 1.0, (GLfloat) 1.0, (GLfloat) 0.5,
 	if (total_clicks < 3)   total_clicks = 3;
 	for (i = 0; i < rock_clusters / 2 - 1; i++)
 	{
+		pool = [[NSAutoreleasePool alloc] init];
+		
 		int cluster_size = 1 + (ranrot_rand() % 6) + (ranrot_rand() % 6);
 		r = 2 + (gen_rnd_number() % (total_clicks - 2));  // find an empty slot
 		double asteroid_location = d_route1 * r / total_clicks;
@@ -1433,6 +1460,8 @@ GLfloat docked_light_specular[]	= { (GLfloat) 1.0, (GLfloat) 1.0, (GLfloat) 0.5,
 		total_rocks += [self	scatterAsteroidsAt: launch_pos
 								withVelocity: make_vector( 0.0f, 0.0f, 0.0f)
 								includingRockHermit: (((ranrot_rand() & 31) <= cluster_size)&&(r < total_clicks * 2 / 3)&&(!sun_gone_nova))];
+		
+		[pool release];
 	}
 		
 	
@@ -1451,6 +1480,8 @@ GLfloat docked_light_specular[]	= { (GLfloat) 1.0, (GLfloat) 1.0, (GLfloat) 0.5,
 	// add the traders to route2
 	for (i = 0; (i < skim_trading_parties)&&(!sun_gone_nova); i++)
 	{
+		pool = [[NSAutoreleasePool alloc] init];
+		
 		ShipEntity*	trader_ship;
 		Vector		launch_pos = p1_pos;
 		double		start = 4.0 * [[self planet] getRadius];
@@ -1491,11 +1522,15 @@ GLfloat docked_light_specular[]	= { (GLfloat) 1.0, (GLfloat) 1.0, (GLfloat) 0.5,
 
 			[trader_ship release];
 		}
+		
+		[pool release];
 	}
 	
 	// add the raiders to route2
 	for (i = 0; (i < skim_raiding_parties)&&(!sun_gone_nova); i++)
 	{
+		pool = [[NSAutoreleasePool alloc] init];
+		
 		ShipEntity*	pirate_ship;
 		Vector		launch_pos = p1_pos;
 		if ((i > 0)&&((ranrot_rand() & 7) > wolfPackCounter))
@@ -1546,11 +1581,15 @@ GLfloat docked_light_specular[]	= { (GLfloat) 1.0, (GLfloat) 1.0, (GLfloat) 0.5,
 			[[pirate_ship getAI] setStateMachine:@"pirateAI.plist"];	// must happen after adding to the universe!
 			[pirate_ship release];
 		}
+		
+		[pool release];
 	}
 	
 	// add the hunters and police ships to route2
 	for (i = 0; (i < skim_hunting_parties)&&(!sun_gone_nova); i++)
 	{
+		pool = [[NSAutoreleasePool alloc] init];
+		
 		ShipEntity*	hunter_ship;
 		Vector		launch_pos = p1_pos;
 		double		start = 4.0 * [[self planet] getRadius];
@@ -1619,6 +1658,8 @@ GLfloat docked_light_specular[]	= { (GLfloat) 1.0, (GLfloat) 1.0, (GLfloat) 0.5,
 			
 			[hunter_ship release];
 		}
+		
+		[pool release];
 	}
 
 	// add the asteroids to route2 clustered together in a preset location.
@@ -1627,6 +1668,8 @@ GLfloat docked_light_specular[]	= { (GLfloat) 1.0, (GLfloat) 1.0, (GLfloat) 0.5,
 	if (total_clicks < 3)   total_clicks = 3;
 	for (i = 0; i < rock_clusters / 2 + 1; i++)
 	{
+		pool = [[NSAutoreleasePool alloc] init];
+		
 		double	start = 6.0 * [[self planet] getRadius];
 		double	end = 4.5 * [[self sun] getRadius];
 		double	max_length = d_route2 - (start + end);
@@ -1637,6 +1680,7 @@ GLfloat docked_light_specular[]	= { (GLfloat) 1.0, (GLfloat) 1.0, (GLfloat) 0.5,
 		total_rocks += [self	scatterAsteroidsAt: launch_pos
 								withVelocity: make_vector( 0.0f, 0.0f, 0.0f)
 								includingRockHermit: (((ranrot_rand() & 31) <= cluster_size)&&(asteroid_location > 0.33 * max_length)&&(!sun_gone_nova))];
+		[pool release];
 	}
 	
 }
@@ -5557,8 +5601,9 @@ BOOL maintainLinkedLists(Universe* uni)
 
 - (void) setGalaxy_seed:(Random_Seed) gal_seed
 {
-	int i;
-	Random_Seed g_seed = gal_seed;
+	int						i;
+	Random_Seed				g_seed = gal_seed;
+	NSAutoreleasePool		*pool = nil;
 
 	if (!equal_seeds(galaxy_seed, gal_seed)) {
 		galaxy_seed = gal_seed;
@@ -5566,6 +5611,8 @@ BOOL maintainLinkedLists(Universe* uni)
 		// systems
 		for (i = 0; i < 256; i++)
 		{
+			pool = [[NSAutoreleasePool alloc] init];
+			
 			systems[i] = g_seed;
 			if (system_names[i])	[system_names[i] release];
 			system_names[i] = [[self getSystemName:g_seed] retain];
@@ -5573,6 +5620,8 @@ BOOL maintainLinkedLists(Universe* uni)
 			rotate_seed(&g_seed);
 			rotate_seed(&g_seed);
 			rotate_seed(&g_seed);
+			
+			[pool release];
 		}
 	}
 }
@@ -5687,12 +5736,15 @@ BOOL maintainLinkedLists(Universe* uni)
 	// Cache hit ratio is over 95% during respawn, about 80% during initial set-up.
 	if (EXPECT(cachedResult != nil && equal_seeds(cachedSeed, s_seed)))  return cachedResult;
 	
+	#if USE_RELEASE_LOCK_PROXY
+	[(ReleaseLockProxy *)cachedResult rlpAllowRelease];
+	#endif
 	[cachedResult autorelease];	// Stuff may have references to old value, so don't release right off the bat
 	cachedResult = nil;
 	cachedSeed = s_seed;
 	
 	NSMutableDictionary* systemdata = [[NSMutableDictionary alloc] initWithCapacity:8];
-		
+	
 	int government = (s_seed.c / 8) & 7;
 	
 	int economy = s_seed.b & 7;
@@ -5733,6 +5785,11 @@ BOOL maintainLinkedLists(Universe* uni)
 		[systemdata addEntriesFromDictionary:(NSDictionary *)[local_planetinfo_overrides objectForKey:override_key]];
 
 	cachedResult = [systemdata copy];
+	
+	#if USE_RELEASE_LOCK_PROXY
+	cachedResult = [[ReleaseLockProxy alloc] initWithRetainedObject:cachedResult name:@"system data"];
+	#endif
+	
 	return cachedResult;
 }
 

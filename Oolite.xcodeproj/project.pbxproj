@@ -34,7 +34,6 @@
 		1A2316F70B9CFAD700EF0852 /* keyconfig.plist in Copy Config */ = {isa = PBXBuildFile; fileRef = 1A2316E70B9CFAD700EF0852 /* keyconfig.plist */; };
 		1A2316F80B9CFAD700EF0852 /* logcontrol.plist in Copy Config */ = {isa = PBXBuildFile; fileRef = 1A2316E80B9CFAD700EF0852 /* logcontrol.plist */; };
 		1A2316F90B9CFAD700EF0852 /* missiontext.plist in Copy Config */ = {isa = PBXBuildFile; fileRef = 1A2316E90B9CFAD700EF0852 /* missiontext.plist */; };
-		1A2316FA0B9CFAD700EF0852 /* script.plist in Copy Config */ = {isa = PBXBuildFile; fileRef = 1A2316EA0B9CFAD700EF0852 /* script.plist */; };
 		1A2316FB0B9CFAD700EF0852 /* shipdata.plist in Copy Config */ = {isa = PBXBuildFile; fileRef = 1A2316EB0B9CFAD700EF0852 /* shipdata.plist */; };
 		1A2316FC0B9CFAD800EF0852 /* shipyard.plist in Copy Config */ = {isa = PBXBuildFile; fileRef = 1A2316EC0B9CFAD700EF0852 /* shipyard.plist */; };
 		1A2316FD0B9CFAD800EF0852 /* speech_pronunciation_guide.plist in Copy Config */ = {isa = PBXBuildFile; fileRef = 1A2316ED0B9CFAD700EF0852 /* speech_pronunciation_guide.plist */; };
@@ -221,6 +220,10 @@
 		1A231A180B9D8B1B00EF0852 /* OOCacheManager.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A231A160B9D8B1B00EF0852 /* OOCacheManager.h */; };
 		1A29967E0B9F064C002D2149 /* OOCache.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A29967C0B9F064C002D2149 /* OOCache.h */; };
 		1A29967F0B9F064C002D2149 /* OOCache.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A29967D0B9F064C002D2149 /* OOCache.m */; };
+		1A34912A0BC25EAA00802DA7 /* world-scripts.plist in Copy Config */ = {isa = PBXBuildFile; fileRef = 1A3491290BC25EAA00802DA7 /* world-scripts.plist */; };
+		1A34912E0BC25EBC00802DA7 /* oolite-legacy-script.plist in Copy Scripts */ = {isa = PBXBuildFile; fileRef = 1A34912D0BC25EBC00802DA7 /* oolite-legacy-script.plist */; };
+		1A3491AC0BC282DE00802DA7 /* ReleaseLockProxy.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A3491AA0BC282DE00802DA7 /* ReleaseLockProxy.h */; };
+		1A3491AD0BC282DE00802DA7 /* ReleaseLockProxy.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A3491AB0BC282DE00802DA7 /* ReleaseLockProxy.m */; };
 		1A38B4AC0B988532001ED4A0 /* OOLogging.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A38B4AA0B988532001ED4A0 /* OOLogging.h */; };
 		1A38B4AD0B988532001ED4A0 /* OOLogging.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A38B4AB0B988532001ED4A0 /* OOLogging.m */; };
 		1A451D8D0BB1BD2A004CD72F /* OOMaths.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A9404920BAF4582005F6CF3 /* OOMaths.h */; };
@@ -461,6 +464,7 @@
 			dstPath = Config;
 			dstSubfolderSpec = 7;
 			files = (
+				1A34912A0BC25EAA00802DA7 /* world-scripts.plist in Copy Config */,
 				1A2316EE0B9CFAD700EF0852 /* characters.plist in Copy Config */,
 				1A2316EF0B9CFAD700EF0852 /* commodities.plist in Copy Config */,
 				1A2316F00B9CFAD700EF0852 /* customsounds.plist in Copy Config */,
@@ -473,7 +477,6 @@
 				1A2316F70B9CFAD700EF0852 /* keyconfig.plist in Copy Config */,
 				1A2316F80B9CFAD700EF0852 /* logcontrol.plist in Copy Config */,
 				1A2316F90B9CFAD700EF0852 /* missiontext.plist in Copy Config */,
-				1A2316FA0B9CFAD700EF0852 /* script.plist in Copy Config */,
 				1A2316FB0B9CFAD700EF0852 /* shipdata.plist in Copy Config */,
 				1A2316FC0B9CFAD800EF0852 /* shipyard.plist in Copy Config */,
 				1A2316FD0B9CFAD800EF0852 /* speech_pronunciation_guide.plist in Copy Config */,
@@ -711,6 +714,17 @@
 			name = "Copy Sounds";
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		1A3491320BC25ED400802DA7 /* Copy Scripts */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = Scripts;
+			dstSubfolderSpec = 7;
+			files = (
+				1A34912E0BC25EBC00802DA7 /* oolite-legacy-script.plist in Copy Scripts */,
+			);
+			name = "Copy Scripts";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		1A5BF29C0916D49800BF238F /* Copy MDImporter */ = {
 			isa = PBXCopyFilesBuildPhase;
 			buildActionMask = 12;
@@ -733,7 +747,7 @@
 		083325DC09DDBCDE00F5B8E4 /* OOColor.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOColor.m; sourceTree = "<group>"; };
 		083DB4D30A70E51E00B419B2 /* OOBrain.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOBrain.h; sourceTree = "<group>"; };
 		083DB4D40A70E51E00B419B2 /* OOBrain.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOBrain.m; sourceTree = "<group>"; };
-		0865432206B8447D000CA0AB /* Oolite.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Oolite.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		0865432206B8447D000CA0AB /* OoliteDev.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = OoliteDev.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		0878FD2F086EF845004CB752 /* Carbon.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Carbon.framework; path = /System/Library/Frameworks/Carbon.framework; sourceTree = "<absolute>"; };
 		1058C7A1FEA54F0111CA2CBB /* Cocoa.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Cocoa.framework; path = /System/Library/Frameworks/Cocoa.framework; sourceTree = "<absolute>"; };
 		1A23154E0B9C778400EF0852 /* solar.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = solar.png; sourceTree = "<group>"; };
@@ -752,7 +766,6 @@
 		1A2316E70B9CFAD700EF0852 /* keyconfig.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xml; path = keyconfig.plist; sourceTree = "<group>"; };
 		1A2316E80B9CFAD700EF0852 /* logcontrol.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist; path = logcontrol.plist; sourceTree = "<group>"; };
 		1A2316E90B9CFAD700EF0852 /* missiontext.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xml; path = missiontext.plist; sourceTree = "<group>"; };
-		1A2316EA0B9CFAD700EF0852 /* script.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist; path = script.plist; sourceTree = "<group>"; };
 		1A2316EB0B9CFAD700EF0852 /* shipdata.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xml; path = shipdata.plist; sourceTree = "<group>"; };
 		1A2316EC0B9CFAD700EF0852 /* shipyard.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xml; path = shipyard.plist; sourceTree = "<group>"; };
 		1A2316ED0B9CFAD700EF0852 /* speech_pronunciation_guide.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xml; path = speech_pronunciation_guide.plist; sourceTree = "<group>"; };
@@ -940,6 +953,10 @@
 		1A231A170B9D8B1B00EF0852 /* OOCacheManager.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOCacheManager.m; sourceTree = "<group>"; };
 		1A29967C0B9F064C002D2149 /* OOCache.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOCache.h; sourceTree = "<group>"; };
 		1A29967D0B9F064C002D2149 /* OOCache.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOCache.m; sourceTree = "<group>"; };
+		1A3491290BC25EAA00802DA7 /* world-scripts.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist; path = "world-scripts.plist"; sourceTree = "<group>"; };
+		1A34912D0BC25EBC00802DA7 /* oolite-legacy-script.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist; path = "oolite-legacy-script.plist"; sourceTree = "<group>"; };
+		1A3491AA0BC282DE00802DA7 /* ReleaseLockProxy.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ReleaseLockProxy.h; sourceTree = "<group>"; };
+		1A3491AB0BC282DE00802DA7 /* ReleaseLockProxy.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ReleaseLockProxy.m; sourceTree = "<group>"; };
 		1A38B4AA0B988532001ED4A0 /* OOLogging.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOLogging.h; sourceTree = "<group>"; };
 		1A38B4AB0B988532001ED4A0 /* OOLogging.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOLogging.m; sourceTree = "<group>"; };
 		1A472916096B5454000E78D8 /* CoreAudio.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreAudio.framework; path = /System/Library/Frameworks/CoreAudio.framework; sourceTree = "<absolute>"; };
@@ -1207,7 +1224,7 @@
 		19C28FACFE9D520D11CA2CBB /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				0865432206B8447D000CA0AB /* Oolite.app */,
+				0865432206B8447D000CA0AB /* OoliteDev.app */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -1226,6 +1243,7 @@
 				1A23154D0B9C778400EF0852 /* Images */,
 				1A2318A50B9D02A900EF0852 /* Models */,
 				1A2319730B9D02F900EF0852 /* Music */,
+				1A34912C0BC25EBC00802DA7 /* Scripts */,
 				1A2319910B9D031D00EF0852 /* Sounds */,
 				1A23181D0B9D026D00EF0852 /* Textures */,
 				29B97319FDCFA39411CA2CEA /* MainMenu.nib */,
@@ -1262,10 +1280,10 @@
 				1A2316E80B9CFAD700EF0852 /* logcontrol.plist */,
 				1AED74C70BBA3CAA009410CD /* logcontrol.plist.xml */,
 				1A2316E90B9CFAD700EF0852 /* missiontext.plist */,
-				1A2316EA0B9CFAD700EF0852 /* script.plist */,
 				1A2316EB0B9CFAD700EF0852 /* shipdata.plist */,
 				1A2316EC0B9CFAD700EF0852 /* shipyard.plist */,
 				1A2316ED0B9CFAD700EF0852 /* speech_pronunciation_guide.plist */,
+				1A3491290BC25EAA00802DA7 /* world-scripts.plist */,
 			);
 			path = Config;
 			sourceTree = "<group>";
@@ -1485,6 +1503,14 @@
 			path = Sounds;
 			sourceTree = "<group>";
 		};
+		1A34912C0BC25EBC00802DA7 /* Scripts */ = {
+			isa = PBXGroup;
+			children = (
+				1A34912D0BC25EBC00802DA7 /* oolite-legacy-script.plist */,
+			);
+			path = Scripts;
+			sourceTree = "<group>";
+		};
 		1A5BF2710916D45B00BF238F /* MDImporter */ = {
 			isa = PBXGroup;
 			children = (
@@ -1601,6 +1627,8 @@
 				1A5DB1E90BBD8F0000D57389 /* OOConstToString.m */,
 				1A5DBD560BC17F0900D57389 /* NSStringOOExtensions.h */,
 				1A5DBD570BC17F0900D57389 /* NSStringOOExtensions.m */,
+				1A3491AA0BC282DE00802DA7 /* ReleaseLockProxy.h */,
+				1A3491AB0BC282DE00802DA7 /* ReleaseLockProxy.m */,
 			);
 			name = Utilities;
 			sourceTree = "<group>";
@@ -1986,6 +2014,7 @@
 				1A5DBAAD0BC000DC00D57389 /* OOScript.h in Headers */,
 				1A5DBAAF0BC000DC00D57389 /* OOSTokenizer.h in Headers */,
 				1A5DBD580BC17F0900D57389 /* NSStringOOExtensions.h in Headers */,
+				1A3491AC0BC282DE00802DA7 /* ReleaseLockProxy.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -2000,6 +2029,7 @@
 				0865424C06B8447D000CA0AB /* Resources */,
 				0865430306B8447D000CA0AB /* Sources */,
 				0865431B06B8447D000CA0AB /* Frameworks */,
+				1A5DB2D10BBEA46F00D57389 /* Sync logcontrol.plist.xml */,
 				1A5BF29C0916D49800BF238F /* Copy MDImporter */,
 				1A23153A0B9C773B00EF0852 /* Copy Images */,
 				1A2316C80B9CFAB800EF0852 /* Copy Config */,
@@ -2008,7 +2038,7 @@
 				1A2319640B9D02B900EF0852 /* Copy Models */,
 				1A2319780B9D030400EF0852 /* Copy Music */,
 				1A2319BA0B9D032700EF0852 /* Copy Sounds */,
-				1A5DB2D10BBEA46F00D57389 /* Sync logcontrol.plist.xml */,
+				1A3491320BC25ED400802DA7 /* Copy Scripts */,
 			);
 			buildRules = (
 			);
@@ -2018,7 +2048,7 @@
 			name = Oolite;
 			productInstallPath = "$(HOME)/Applications";
 			productName = Oolite;
-			productReference = 0865432206B8447D000CA0AB /* Oolite.app */;
+			productReference = 0865432206B8447D000CA0AB /* OoliteDev.app */;
 			productType = "com.apple.product-type.application";
 		};
 /* End PBXNativeTarget section */
@@ -2167,6 +2197,7 @@
 				1A5DBAAE0BC000DC00D57389 /* OOScript.m in Sources */,
 				1A5DBAB00BC000DC00D57389 /* OOSTokenizer.m in Sources */,
 				1A5DBD590BC17F0900D57389 /* NSStringOOExtensions.m in Sources */,
+				1A3491AD0BC282DE00802DA7 /* ReleaseLockProxy.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
