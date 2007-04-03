@@ -22,8 +22,6 @@ MA 02110-1301, USA.
 
 */
 
-#define USE_RELEASE_LOCK_PROXY	0
-
 #import "OOOpenGL.h"
 #import "OOGLDefs.h"
 #import "Universe.h"
@@ -54,10 +52,6 @@ MA 02110-1301, USA.
 #import "WormholeEntity.h"
 #import "RingEntity.h"
 #import "ParticleEntity.h"
-
-#if USE_RELEASE_LOCK_PROXY
-#import "ReleaseLockProxy.h"
-#endif
 
 #define kOOLogUnconvertedNSLog @"unclassified.Universe"
 
@@ -773,7 +767,7 @@ static Universe *sSharedUniverse = nil;
 	
 	Vector				vf;
 
-	NSDictionary		*systeminfo = [[self generateSystemData:system_seed] retain];
+	NSDictionary		*systeminfo = [self generateSystemData:system_seed];
 	int					techlevel = [(NSNumber *)[systeminfo objectForKey:KEY_TECHLEVEL] intValue];
 	NSString			*stationDesc;
 	OOColor				*bgcolor;
@@ -1028,8 +1022,6 @@ static Universe *sSharedUniverse = nil;
 		
 		[player scriptActions: script_actions forTarget: nil];
 	}
-	
-	[systeminfo release];
 }
 
 
@@ -5734,12 +5726,9 @@ BOOL maintainLinkedLists(Universe* uni)
 	static Random_Seed	cachedSeed = {0};
 	
 	// Cache hit ratio is over 95% during respawn, about 80% during initial set-up.
-	if (EXPECT(cachedResult != nil && equal_seeds(cachedSeed, s_seed)))  return cachedResult;
+	if (EXPECT(cachedResult != nil && equal_seeds(cachedSeed, s_seed)))  return [[cachedResult retain] autorelease];
 	
-	#if USE_RELEASE_LOCK_PROXY
-	[(ReleaseLockProxy *)cachedResult rlpAllowRelease];
-	#endif
-	[cachedResult autorelease];	// Stuff may have references to old value, so don't release right off the bat
+	[cachedResult release];
 	cachedResult = nil;
 	cachedSeed = s_seed;
 	
@@ -5785,10 +5774,6 @@ BOOL maintainLinkedLists(Universe* uni)
 		[systemdata addEntriesFromDictionary:(NSDictionary *)[local_planetinfo_overrides objectForKey:override_key]];
 
 	cachedResult = [systemdata copy];
-	
-	#if USE_RELEASE_LOCK_PROXY
-	cachedResult = [[ReleaseLockProxy alloc] initWithRetainedObject:cachedResult name:@"system data"];
-	#endif
 	
 	return cachedResult;
 }
