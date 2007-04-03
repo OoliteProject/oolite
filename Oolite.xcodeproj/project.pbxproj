@@ -419,7 +419,6 @@
 		25F3E8A80994FE65002F25FD /* oolite-expansion-document.icns in Resources */ = {isa = PBXBuildFile; fileRef = 25F3E8A50994FE65002F25FD /* oolite-expansion-document.icns */; };
 		25F3E8A90994FE65002F25FD /* oolite-icon.icns in Resources */ = {isa = PBXBuildFile; fileRef = 25F3E8A60994FE65002F25FD /* oolite-icon.icns */; };
 		25F3E8B40994FE9B002F25FD /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 25F3E8B30994FE9B002F25FD /* InfoPlist.strings */; };
-		25F3E8C4099500F1002F25FD /* SoundInspector.nib in Resources */ = {isa = PBXBuildFile; fileRef = 25F3E8C3099500F1002F25FD /* SoundInspector.nib */; };
 		25F3E8EB099502BB002F25FD /* libOgg.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 25F3E8E9099502BB002F25FD /* libOgg.a */; };
 		25F3E8EC099502BB002F25FD /* libVorbisAll.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 25F3E8EA099502BB002F25FD /* libVorbisAll.a */; };
 		25F46752099695D5009483BF /* OoliteApp.h in Headers */ = {isa = PBXBuildFile; fileRef = 25F46750099695D5009483BF /* OoliteApp.h */; };
@@ -2093,7 +2092,6 @@
 				25F3E8A80994FE65002F25FD /* oolite-expansion-document.icns in Resources */,
 				25F3E8A90994FE65002F25FD /* oolite-icon.icns in Resources */,
 				25F3E8B40994FE9B002F25FD /* InfoPlist.strings in Resources */,
-				25F3E8C4099500F1002F25FD /* SoundInspector.nib in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

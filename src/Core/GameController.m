@@ -304,59 +304,64 @@ static int _compareModes(id arg1, id arg2, void *context)
 #ifdef GNUSTEP
 - (void) applicationDidFinishLaunching: (NSNotification*) notification
 {
-	// A bunch of things get allocated while this method runs and an autorelease pool
-	// is required. The one from main had to be released already because we never go
-	// back there under GNUstep.
-	NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
-	gameView = [MyOpenGLView alloc];
-	[gameView init];
-	[gameView setGameController: self];
+	NS_DURING
+		// A bunch of things get allocated while this method runs and an autorelease pool
+		// is required. The one from main had to be released already because we never go
+		// back there under GNUstep.
+		NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
+		gameView = [MyOpenGLView alloc];
+		[gameView init];
+		[gameView setGameController: self];
 
-	//
-	// ensure the gameView is drawn to, so OpenGL is initialised and so textures can initialse.
-	//
-	[gameView drawRect:[gameView bounds]];
-	
-	[self beginSplashScreen];
-	[self logProgress:@"initialising..."];
-	/* GDC example code */
-
-	[self logProgress:@"getting display modes..."];
-	[self getDisplayModes];
-
-   // keep track of the current full screen mode size
-   NSSize fsmSize=[gameView currentScreenSize];
-   width=fsmSize.width;
-   height=fsmSize.height;
-	
-	/* end GDC */
-   
-	// moved to before the Universe is created
-	[self logProgress:@"loading selected expansion packs..."];
-	if (expansionPathsToInclude)
-	{
-		int i;
-		for (i = 0; i < [expansionPathsToInclude count]; i++)
-			[ResourceManager addExternalPath: (NSString*)[expansionPathsToInclude objectAtIndex: i]];
-	}
-	
-    // moved here to try to avoid initialising this before having an Open GL context
-	[self logProgress:@"initialising universe..."];
-    universe = [[Universe alloc] init];
-	
-	[universe setGameView:gameView];
+		//
+		// ensure the gameView is drawn to, so OpenGL is initialised and so textures can initialse.
+		//
+		[gameView drawRect:[gameView bounds]];
 		
-	[self logProgress:@"loading player..."];
-	[self loadPlayerIfRequired];
-	
-	//
-	// get the run loop and add the call to doStuff
-	//
-   NSTimeInterval ti = 0.01;
-   timer = [[NSTimer timerWithTimeInterval:ti target:gameView selector:@selector(pollControls:) userInfo:self repeats:YES] retain];
-   [[NSRunLoop currentRunLoop] addTimer:timer forMode:NSDefaultRunLoopMode];
-	//
-	[self endSplashScreen];
+		[self beginSplashScreen];
+		[self logProgress:@"initialising..."];
+		/* GDC example code */
+
+		[self logProgress:@"getting display modes..."];
+		[self getDisplayModes];
+
+	   // keep track of the current full screen mode size
+	   NSSize fsmSize=[gameView currentScreenSize];
+	   width=fsmSize.width;
+	   height=fsmSize.height;
+		
+		/* end GDC */
+	   
+		// moved to before the Universe is created
+		[self logProgress:@"loading selected expansion packs..."];
+		if (expansionPathsToInclude)
+		{
+			int i;
+			for (i = 0; i < [expansionPathsToInclude count]; i++)
+				[ResourceManager addExternalPath: (NSString*)[expansionPathsToInclude objectAtIndex: i]];
+		}
+		
+		// moved here to try to avoid initialising this before having an Open GL context
+		[self logProgress:@"initialising universe..."];
+		universe = [[Universe alloc] init];
+		
+		[universe setGameView:gameView];
+			
+		[self logProgress:@"loading player..."];
+		[self loadPlayerIfRequired];
+		
+		//
+		// get the run loop and add the call to doStuff
+		//
+	   NSTimeInterval ti = 0.01;
+	   timer = [[NSTimer timerWithTimeInterval:ti target:gameView selector:@selector(pollControls:) userInfo:self repeats:YES] retain];
+	   [[NSRunLoop currentRunLoop] addTimer:timer forMode:NSDefaultRunLoopMode];
+		//
+		[self endSplashScreen];
+	NS_HANDLER
+		[self reportUnhandledStartupException:localException];
+		exit(EXIT_FAILURE);
+	NS_ENDHANDLER
 
 	// Release anything allocated above that is not required.
 	[pool release];
