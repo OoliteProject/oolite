@@ -37,7 +37,7 @@ extern NSString * const kOOLogDebugMessage;
 
 
 static OOJavaScriptEngine *sSharedEngine = nil;
-static JSObject *xglob, *universeObj, *systemObj, *playerObj, *missionObj;
+static JSObject *xglob, *systemObj, *playerObj, *missionObj;
 
 
 extern OOJSScript *currentOOJSScript;
@@ -75,7 +75,7 @@ static JSBool MissionVarsSetProperty(JSContext *cx, JSObject *obj, jsval name, j
 static JSClass MissionVars_class =
 {
 	"MissionVariables",
-	JSCLASS_HAS_PRIVATE,
+	0,
 	
 	JS_PropertyStub,
 	JS_PropertyStub,
@@ -260,7 +260,7 @@ static JSBool PlayerSetProperty(JSContext *cx, JSObject *obj, jsval name, jsval 
 static JSClass Player_class =
 {
 	"Player",
-	JSCLASS_HAS_PRIVATE,
+	0,
 	
 	JS_PropertyStub,
 	JS_PropertyStub,
@@ -564,7 +564,7 @@ static JSBool SystemSetProperty(JSContext *cx, JSObject *obj, jsval name, jsval 
 static JSClass System_class =
 {
 	"Universe",
-	JSCLASS_HAS_PRIVATE,
+	0,
 	
 	JS_PropertyStub,
 	JS_PropertyStub,
@@ -975,7 +975,7 @@ static JSBool MissionSetProperty(JSContext *cx, JSObject *obj, jsval name, jsval
 static JSClass Mission_class =
 {
 	"Mission",
-	JSCLASS_HAS_PRIVATE,
+	0,
 	
 	JS_PropertyStub,
 	JS_PropertyStub,
@@ -1234,10 +1234,6 @@ static void ReportJSError(JSContext *cx, const char *message, JSErrorReport *rep
 	builtins = JS_InitStandardClasses(cx, glob);
 	JS_DefineProperties(cx, glob, Global_props);
 	JS_DefineFunctions(cx, glob, Global_funcs);
-
-	universeObj = JS_DefineObject(cx, glob, "universe", &System_class, NULL, JSPROP_ENUMERATE);
-	//JS_DefineProperties(cx, universeObj, System_props);
-	JS_DefineFunctions(cx, universeObj, System_funcs);
 
 	systemObj = JS_DefineObject(cx, glob, "system", &System_class, NULL, JSPROP_ENUMERATE);
 	JS_DefineProperties(cx, systemObj, System_props);
