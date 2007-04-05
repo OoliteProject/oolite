@@ -28,6 +28,7 @@ MA 02110-1301, USA.
 #import "Universe.h"
 #import "PlanetEntity.h"
 #import "NSStringOOExtensions.h"
+#import "OOJSVector.h"
 
 #include <stdio.h>
 #include <string.h>
@@ -286,6 +287,8 @@ enum Player_propertyIDs
 	PE_STATUS_STRING,
 	PE_DOCKED_AT_MAIN_STATION,
 	PE_DOCKED_STATION_NAME,
+	PE_POSITION,
+	PE_VELOCITY,
 	
 	// Special handling -- these correspond to ALERT_FLAG_FOO (PlayerEntity.h). 0x10 is shifted left by the low nybble to get the alert mask.
 	PE_DOCKED					= 0xA0,
@@ -317,6 +320,8 @@ static JSPropertySpec Player_props[] =
 	{ "status",					PE_STATUS_STRING,			JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
 	{ "dockedAtMainStation",	PE_DOCKED_AT_MAIN_STATION,	JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
 	{ "stationName",			PE_DOCKED_STATION_NAME,		JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
+	{ "position",				PE_POSITION,				JSPROP_PERMANENT | JSPROP_ENUMERATE },
+	{ "velocity",				PE_VELOCITY,				JSPROP_PERMANENT | JSPROP_ENUMERATE },
 	{ 0 }
 };
 
@@ -507,6 +512,14 @@ static JSBool PlayerGetProperty(JSContext *cx, JSObject *obj, jsval name, jsval 
 			result = [playerEntity status_string];
 			break;
 		
+		case PE_POSITION:
+			*vp = OBJECT_TO_JSVAL(JSVectorWithObjectProperty(cx, playerEntity, @"position"));
+			break;
+		
+		case PE_VELOCITY:
+			*vp = OBJECT_TO_JSVAL(JSVectorWithObjectProperty(cx, playerEntity, @"velocity"));
+			break;
+		
 		default:
 			if ((ID & 0xF0) == 0xA0)
 			{
@@ -527,6 +540,7 @@ static JSBool PlayerSetProperty(JSContext *cx, JSObject *obj, jsval name, jsval 
 	
 	PlayerEntity	*playerEntity = [PlayerEntity sharedPlayer];
 	NSString		*value = [NSString stringWithJavaScriptValue:*vp inContext:cx];
+	Vector			vec;
 	
 	switch (JSVAL_TO_INT(name))
 	{
@@ -549,6 +563,18 @@ static JSBool PlayerSetProperty(JSContext *cx, JSObject *obj, jsval name, jsval 
 		case PE_FUEL_LEAK_RATE:
 			[playerEntity setFuelLeak:value];
 			break;
+		
+		case PE_POSITION:
+			if (ValueToVector(cx, *vp, &vec))
+			{
+				[playerEntity setPosition:vec];
+			}
+		
+		case PE_VELOCITY:
+			if (ValueToVector(cx, *vp, &vec))
+			{
+				[playerEntity setVelocity:vec];
+			}
 	}
 	return JS_TRUE;
 }
@@ -1245,6 +1271,8 @@ static void ReportJSError(JSContext *cx, const char *message, JSErrorReport *rep
 	missionObj = JS_DefineObject(cx, glob, "mission", &Mission_class, NULL, JSPROP_ENUMERATE);
 	JS_DefineProperties(cx, missionObj, Mission_props);
 	JS_DefineFunctions(cx, missionObj, Mission_funcs);
+	
+	InitOOJSVector(cx, glob);
 	
 	OOLog(@"script.javaScript.init.success", @"Set up JavaScript context.");
 	

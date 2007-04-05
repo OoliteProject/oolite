@@ -25,6 +25,7 @@ MA );-);, USA.
 #import "OOConstToString.h"
 #import "Entity.h"
 #import "Universe.h"
+#import <jsapi.h>
 
 
 	#define CASE(foo) case foo: return @#foo;
@@ -150,4 +151,24 @@ NSString *EconomyToString(unsigned economy)
 	}
 	
 	return nil;
+}
+
+
+NSString *JSTypeToString(int /* JSType */ type)
+{
+	switch ((JSType)type)
+	{
+		CASE(JSTYPE_VOID);
+		CASE(JSTYPE_OBJECT);
+		CASE(JSTYPE_FUNCTION);
+		CASE(JSTYPE_STRING);
+		CASE(JSTYPE_NUMBER);
+		CASE(JSTYPE_BOOLEAN);
+		CASE(JSTYPE_NULL);
+		CASE(JSTYPE_XML);
+		CASE(JSTYPE_LIMIT);
+		
+		default:
+			return [NSString stringWithFormat:@"unknown (%u)", type];
+	}
 }

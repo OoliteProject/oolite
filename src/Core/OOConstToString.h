@@ -30,12 +30,14 @@ MA 02110-1301, USA.
 #import "OOTypes.h"
 
 
-NSString *EntityStatusToString(EntityStatus status) PURE_FUNC;
-NSString *ScanClassToString(ScanClass scanClass) PURE_FUNC;
-NSString *InstinctToString(Instinct instinct) PURE_FUNC;
+NSString *EntityStatusToString(EntityStatus status) CONST_FUNC;
+NSString *ScanClassToString(ScanClass scanClass) CONST_FUNC;
+NSString *InstinctToString(Instinct instinct) CONST_FUNC;
 
-Instinct InstinctFromString(NSString* instinctString) CONST_FUNC;
+Instinct InstinctFromString(NSString* instinctString) PURE_FUNC;
 
 
 NSString *GovernmentToString(unsigned government);
 NSString *EconomyToString(unsigned economy);
+
+NSString *JSTypeToString(int /* JSType */ type) CONST_FUNC;
