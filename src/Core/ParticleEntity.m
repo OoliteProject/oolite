@@ -60,6 +60,9 @@ static inline void EndAdditiveBlending(void)
 #endif
 
 
+static void DrawQuadForView(GLfloat x, GLfloat y, GLfloat z, GLfloat xx, GLfloat yy);
+
+
 
 static	Vector	circleVertex[65];		// holds vector coordinates for a unit circle
 
@@ -89,8 +92,8 @@ static	Vector	circleVertex[65];		// holds vector coordinates for a unit circle
 	int i;
 	for (i = 0; i < 65; i++)
 	{
-		circleVertex[i].x = sin(i * PI / 32.0);
-		circleVertex[i].y = cos(i * PI / 32.0);
+		circleVertex[i].x = sin(i * M_PI / 32.0);
+		circleVertex[i].y = cos(i * M_PI / 32.0);
 		circleVertex[i].z = 0.0;
 	}
 	//
@@ -121,22 +124,22 @@ static	Vector	circleVertex[65];		// holds vector coordinates for a unit circle
 	{
 		default:
 		case VIEW_FORWARD :
-			distance = [ship getBoundingBox].max.z;
+			distance = [ship boundingBox].max.z;
 			position.x += distance * v_forward.x;	position.y += distance * v_forward.y;	position.z += distance * v_forward.z;
 			break;
 		case VIEW_AFT :
-			quaternion_rotate_about_axis(&q_rotation, v_up, PI);
-			distance = [ship getBoundingBox].min.z;
+			quaternion_rotate_about_axis(&q_rotation, v_up, M_PI);
+			distance = [ship boundingBox].min.z;
 			position.x += distance * v_forward.x;	position.y += distance * v_forward.y;	position.z += distance * v_forward.z;
 			break;
 		case VIEW_PORT :
-			quaternion_rotate_about_axis(&q_rotation, v_up, PI/2.0);
-			distance = [ship getBoundingBox].min.x;
+			quaternion_rotate_about_axis(&q_rotation, v_up, M_PI/2.0);
+			distance = [ship boundingBox].min.x;
 			position.x += distance * v_right.x;	position.y += distance * v_right.y;	position.z += distance * v_right.z;
 			break;
 		case VIEW_STARBOARD :
-			quaternion_rotate_about_axis(&q_rotation, v_up, -PI/2.0);
-			distance = [ship getBoundingBox].max.x;
+			quaternion_rotate_about_axis(&q_rotation, v_up, -M_PI/2.0);
+			distance = [ship boundingBox].max.x;
 			position.x += distance * v_right.x;	position.y += distance * v_right.y;	position.z += distance * v_right.z;
 			break;
 	}
@@ -190,13 +193,13 @@ static	Vector	circleVertex[65];		// holds vector coordinates for a unit circle
 	switch (view)
 	{
 		case VIEW_AFT :
-			quaternion_rotate_about_axis(&q_rotation, v_up, PI);
+			quaternion_rotate_about_axis(&q_rotation, v_up, M_PI);
 			break;
 		case VIEW_PORT :
-			quaternion_rotate_about_axis(&q_rotation, v_up, PI/2.0);
+			quaternion_rotate_about_axis(&q_rotation, v_up, M_PI/2.0);
 			break;
 		case VIEW_STARBOARD :
-			quaternion_rotate_about_axis(&q_rotation, v_up, -PI/2.0);
+			quaternion_rotate_about_axis(&q_rotation, v_up, -M_PI/2.0);
 			break;
 	}
     quaternion_into_gl_matrix(q_rotation, rotMatrix);
@@ -229,7 +232,7 @@ static	Vector	circleVertex[65];		// holds vector coordinates for a unit circle
 		return self;
     //
 	status = STATUS_EFFECT;
-	BoundingBox bbox = [subent getBoundingBox];
+	BoundingBox bbox = [subent boundingBox];
 	Vector midfrontplane = make_vector( 0.5 * (bbox.max.x + bbox.min.x), 0.5 * (bbox.max.y + bbox.min.y), bbox.max.z);
     position = [subent absolutePositionForSubentityOffset:midfrontplane];
 	q_rotation = parent->q_rotation;
@@ -245,22 +248,22 @@ static	Vector	circleVertex[65];		// holds vector coordinates for a unit circle
 	{
 		default:
 		case VIEW_FORWARD :
-			distance = [subent getBoundingBox].max.z;
+			distance = [subent boundingBox].max.z;
 			position.x += distance * v_forward.x;	position.y += distance * v_forward.y;	position.z += distance * v_forward.z;
 			break;
 		case VIEW_AFT :
-			quaternion_rotate_about_axis(&q_rotation, v_up, PI);
-			distance = [subent getBoundingBox].min.z;
+			quaternion_rotate_about_axis(&q_rotation, v_up, M_PI);
+			distance = [subent boundingBox].min.z;
 			position.x += distance * v_forward.x;	position.y += distance * v_forward.y;	position.z += distance * v_forward.z;
 			break;
 		case VIEW_PORT :
-			quaternion_rotate_about_axis(&q_rotation, v_up, PI/2.0);
-			distance = [subent getBoundingBox].min.x;
+			quaternion_rotate_about_axis(&q_rotation, v_up, M_PI/2.0);
+			distance = [subent boundingBox].min.x;
 			position.x += distance * v_right.x;	position.y += distance * v_right.y;	position.z += distance * v_right.z;
 			break;
 		case VIEW_STARBOARD :
-			quaternion_rotate_about_axis(&q_rotation, v_up, -PI/2.0);
-			distance = [subent getBoundingBox].max.x;
+			quaternion_rotate_about_axis(&q_rotation, v_up, -M_PI/2.0);
+			distance = [subent boundingBox].max.x;
 			position.x += distance * v_right.x;	position.y += distance * v_right.y;	position.z += distance * v_right.z;
 			break;
 	}
@@ -356,7 +359,7 @@ static	Vector	circleVertex[65];		// holds vector coordinates for a unit circle
 	position = ship->position;
 	//
 	status = STATUS_EFFECT;
-	scan_class = CLASS_NO_DRAW;
+	scanClass = CLASS_NO_DRAW;
 	//
 	particle_type = PARTICLE_ECM_MINE;
 	//
@@ -386,7 +389,7 @@ static	Vector	circleVertex[65];		// holds vector coordinates for a unit circle
 	collision_radius = 0;
 	//
 	status = STATUS_EFFECT;
-	scan_class = CLASS_MINE;
+	scanClass = CLASS_MINE;
 	//
 	particle_type = PARTICLE_ENERGY_MINE;
 	//
@@ -414,17 +417,17 @@ static	Vector	circleVertex[65];		// holds vector coordinates for a unit circle
 	ring_outer_radius = size.height;
 	position = ship->position;
 	[self setQRotation:ship->q_rotation];
-	[self setVelocity:[ship getVelocity]];
+	[self setVelocity:[ship velocity]];
 	//
 	status = STATUS_EFFECT;
-	scan_class = CLASS_NO_DRAW;
+	scanClass = CLASS_NO_DRAW;
 	//
 	particle_type = PARTICLE_HYPERRING;
 	int i;
 	for (i = 0; i < 65; i++)
 	{
-		circleVertex[i].x = sin(i * PI / 32.0);
-		circleVertex[i].y = cos(i * PI / 32.0);
+		circleVertex[i].x = sin(i * M_PI / 32.0);
+		circleVertex[i].y = cos(i * M_PI / 32.0);
 		circleVertex[i].z = 0.0;
 	}
 	//
@@ -471,7 +474,7 @@ static	Vector	circleVertex[65];		// holds vector coordinates for a unit circle
 	}
 	//
 	status = STATUS_EFFECT;
-	scan_class = CLASS_NO_DRAW;
+	scanClass = CLASS_NO_DRAW;
 	//
 	particle_type = PARTICLE_FRAGBURST;
 	//
@@ -527,7 +530,7 @@ static	Vector	circleVertex[65];		// holds vector coordinates for a unit circle
 	}
 	//
 	status = STATUS_EFFECT;
-	scan_class = CLASS_NO_DRAW;
+	scanClass = CLASS_NO_DRAW;
 	//
 	particle_type = PARTICLE_FRAGBURST;
 	//
@@ -571,7 +574,7 @@ static	Vector	circleVertex[65];		// holds vector coordinates for a unit circle
 	}
 	//
 	status = STATUS_EFFECT;
-	scan_class = CLASS_NO_DRAW;
+	scanClass = CLASS_NO_DRAW;
 	//
 	particle_type = PARTICLE_BURST2;
 	//
@@ -629,7 +632,7 @@ static	Vector	circleVertex[65];		// holds vector coordinates for a unit circle
 	}
 	//
 	status = STATUS_EFFECT;
-	scan_class = CLASS_NO_DRAW;
+	scanClass = CLASS_NO_DRAW;
 	//
 	particle_type = PARTICLE_BURST2;
 	//
@@ -667,7 +670,7 @@ static	Vector	circleVertex[65];		// holds vector coordinates for a unit circle
 	color_fv[3] = 1.0;
 	//
 	status = STATUS_EFFECT;
-	scan_class = CLASS_NO_DRAW;
+	scanClass = CLASS_NO_DRAW;
 	//
 	particle_type = PARTICLE_FLASH;
 	//
@@ -707,7 +710,7 @@ static	Vector	circleVertex[65];		// holds vector coordinates for a unit circle
 	color_fv[3] = 1.0;
 	//
 	status = STATUS_EFFECT;
-	scan_class = CLASS_NO_DRAW;
+	scanClass = CLASS_NO_DRAW;
 	//
 	particle_type = PARTICLE_FLASH;
 	//
@@ -742,7 +745,7 @@ static	Vector	circleVertex[65];		// holds vector coordinates for a unit circle
 	color_fv[3] = 1.0;
 	//
 	status = STATUS_EFFECT;
-	scan_class = CLASS_NO_DRAW;
+	scanClass = CLASS_NO_DRAW;
 	//
 	particle_type = PARTICLE_BILLBOARD;
 	//
@@ -910,7 +913,7 @@ static	Vector	circleVertex[65];		// holds vector coordinates for a unit circle
 
 - (void) initialiseTexture: (NSString *) name
 {
-    if (universe)
+    if (UNIVERSE)
 	{
          texName = [TextureStore getTextureNameFor:name];
 	}
@@ -923,7 +926,7 @@ static	Vector	circleVertex[65];		// holds vector coordinates for a unit circle
 
 	time_counter += delta_t;
 
-	if (universe)
+	if (UNIVERSE)
 	{
 		switch (particle_type)
 		{
@@ -1026,13 +1029,13 @@ static	Vector	circleVertex[65];		// holds vector coordinates for a unit circle
 	[self setSize:NSMakeSize(diameter, diameter)];
 	alpha = (duration - time_counter);
 	if (time_counter > duration)
-		[universe removeEntity:self];
+		[UNIVERSE removeEntity:self];
 }
 
 - (void) updateFlasher:(double) delta_t
 {
 //	NSLog(@"DEBUG updating flasher %@",self);
-	alpha = 0.5 * sin(duration * PI * (time_counter + energy)) + 0.5;
+	alpha = 0.5 * sin(duration * M_PI * (time_counter + energy)) + 0.5;
 }
 
 - (void) updateECMMine:(double) delta_t
@@ -1043,7 +1046,7 @@ static	Vector	circleVertex[65];		// holds vector coordinates for a unit circle
 		GLfloat radius = 0.5 * activation_time * SCANNER_MAX_RANGE;
 		if (radius > SCANNER_MAX_RANGE)
 			radius = SCANNER_MAX_RANGE;
-		NSArray* targets = [universe getEntitiesWithinRange:radius ofEntity:self];
+		NSArray* targets = [UNIVERSE getEntitiesWithinRange:radius ofEntity:self];
 		if ([targets count] > 0)
 		{
 			int i;
@@ -1057,7 +1060,7 @@ static	Vector	circleVertex[65];		// holds vector coordinates for a unit circle
 		activation_time += 0.5; // go off every half second
 	}
 	if (time_counter > duration)	// until the timer runs out!
-		[universe removeEntity:self];
+		[UNIVERSE removeEntity:self];
 }
 
 - (void) updateEnergyMine:(double) delta_t
@@ -1129,7 +1132,7 @@ static	Vector	circleVertex[65];		// holds vector coordinates for a unit circle
 
 	// expire after ttl
 	if (time_counter > duration)	// until the timer runs out!
-		[universe removeEntity:self];
+		[UNIVERSE removeEntity:self];
 }
 
 - (void) updateShot:(double) delta_t
@@ -1160,7 +1163,7 @@ static	Vector	circleVertex[65];		// holds vector coordinates for a unit circle
 	position.z += velocity.z * delta_t;
 	alpha = (duration - time_counter);
 	if (time_counter > duration)
-		[universe removeEntity:self];
+		[UNIVERSE removeEntity:self];
 }
 
 - (void) updateSpark:(double) delta_t
@@ -1180,7 +1183,7 @@ static	Vector	circleVertex[65];		// holds vector coordinates for a unit circle
 
 	// disappear eventually
 	if (time_counter > duration)
-		[universe removeEntity:self];
+		[UNIVERSE removeEntity:self];
 }
 
 - (void) updateLaser:(double) delta_t
@@ -1190,7 +1193,7 @@ static	Vector	circleVertex[65];		// holds vector coordinates for a unit circle
 	position.z += velocity.z * delta_t;
 	alpha = (duration - time_counter) / PARTICLE_LASER_DURATION;
 	if (time_counter > duration)
-		[universe removeEntity:self];
+		[UNIVERSE removeEntity:self];
 }
 
 - (void) updateHyperring:(double) delta_t
@@ -1202,7 +1205,7 @@ static	Vector	circleVertex[65];		// holds vector coordinates for a unit circle
 	ring_inner_radius += delta_t * size.width * 1.1;
 	ring_outer_radius += delta_t * size.height;
 	if (time_counter > duration)
-		[universe removeEntity:self];
+		[UNIVERSE removeEntity:self];
 }
 
 - (void) updateFragburst:(double) delta_t
@@ -1223,7 +1226,7 @@ static	Vector	circleVertex[65];		// holds vector coordinates for a unit circle
 
 	// disappear eventually
 	if (time_counter > duration)
-		[universe removeEntity:self];
+		[UNIVERSE removeEntity:self];
 }
 
 - (void) updateBurst2:(double) delta_t
@@ -1246,7 +1249,7 @@ static	Vector	circleVertex[65];		// holds vector coordinates for a unit circle
 
 	// disappear eventually
 	if (time_counter > duration)
-		[universe removeEntity:self];
+		[UNIVERSE removeEntity:self];
 }
 
 - (void) updateFlash:(double) delta_t
@@ -1273,7 +1276,7 @@ static	Vector	circleVertex[65];		// holds vector coordinates for a unit circle
 
 	// disappear eventually
 	if (time_counter > duration)
-		[universe removeEntity:self];
+		[UNIVERSE removeEntity:self];
 
 //	NSLog(@"DEBUG *FLASH* time: %.2f size: %.2f alpha: %.2f", time_counter, size.width, alpha);
 
@@ -1290,7 +1293,7 @@ static	Vector	circleVertex[65];		// holds vector coordinates for a unit circle
 	GLfloat ex_emissive[4]	= {0.6, 0.8, 1.0, 0.9 * OVERALL_ALPHA};   // pale blue
 	GLfloat s1[8] = { 0.0, 0.707, 1.0, 0.707, 0.0, -0.707, -1.0, -0.707};
 	GLfloat c1[8] = { 1.0, 0.707, 0.0, -0.707, -1.0, -0.707, 0.0, 0.707};
-	ShipEntity  *ship =(ShipEntity *)[universe entityForUniversalID:owner];
+	ShipEntity  *ship =(ShipEntity *)[UNIVERSE entityForUniversalID:owner];
 
 	if ((!ship)||(!ship->isShip))
 		return;
@@ -1482,10 +1485,10 @@ static	Vector	circleVertex[65];		// holds vector coordinates for a unit circle
 {
 	NSString* debug_type = @"PLAIN";
 
-	if (!universe)
+	if (!UNIVERSE)
 		return;
 
-	if ([universe breakPatternHide])
+	if ([UNIVERSE breakPatternHide])
 		return;		// DON'T DRAW DURING BREAK PATTERN
 
 	if ((particle_type == PARTICLE_FLASHER)&&(zero_distance > no_draw_distance))	return;	// TOO FAR AWAY TO SEE
@@ -1545,12 +1548,12 @@ static	Vector	circleVertex[65];		// holds vector coordinates for a unit circle
 				break;
 		}
 	}
-	checkGLErrors([NSString stringWithFormat:@"ParticleEntity after drawing %@ %@", self, debug_type]);
+	CheckOpenGLErrors([NSString stringWithFormat:@"ParticleEntity after drawing %@ %@", self, debug_type]);
 }
 
 - (void) drawSubEntity:(BOOL) immediate :(BOOL) translucent
 {
-//	NSLog(@"DEBUG drawing subentity %@ for %@", self, [universe entityForUniversalID:owner]);
+//	NSLog(@"DEBUG drawing subentity %@ for %@", self, [UNIVERSE entityForUniversalID:owner]);
 
 	if (particle_type == PARTICLE_EXHAUST)
 	{
@@ -1559,7 +1562,7 @@ static	Vector	circleVertex[65];		// holds vector coordinates for a unit circle
 		return;
 	}
 
-	Entity* my_owner = [universe entityForUniversalID:owner];
+	Entity* my_owner = [UNIVERSE entityForUniversalID:owner];
 
 	if (my_owner)
 	{
@@ -1578,7 +1581,7 @@ static	Vector	circleVertex[65];		// holds vector coordinates for a unit circle
 			[self initialiseTexture: textureNameString];
 
 		Vector		abspos = position;  // in control of it's own orientation
-		int			view_dir = [universe viewDir];
+		int			view_dir = [UNIVERSE viewDir];
 		Entity*		last = nil;
 		Entity*		father = my_owner;
 		GLfloat*	r_mat = [father drawRotationMatrix];
@@ -1678,7 +1681,7 @@ static	Vector	circleVertex[65];		// holds vector coordinates for a unit circle
 
 	glBegin(GL_QUADS);
 
-	viewdir = [universe viewDir];
+	viewdir = [UNIVERSE viewDir];
 
 	switch (viewdir)
 	{
@@ -1816,7 +1819,7 @@ GLuint tfan2[10] = {	33,	25,	26,	27,	28,	29,	30,	31,	32,	25};	// final fan 64..7
 
 - (void) drawExhaust2
 {
-	ShipEntity  *ship =(ShipEntity *)[universe entityForUniversalID:owner];
+	ShipEntity  *ship =(ShipEntity *)[UNIVERSE entityForUniversalID:owner];
 
 	if (!ship)
 		return;
@@ -1932,7 +1935,7 @@ GLuint tfan2[10] = {	33,	25,	26,	27,	28,	29,	30,	31,	32,	25};	// final fan 64..7
 	for (i = 0; i < n_vertices; i++)
 	{
 		glColor4f( faces[i].red, faces[i].green, faces[i].blue, faces[i].normal.z);
-		drawQuadForView( universe, vertices[i].x, vertices[i].y, vertices[i].z, faces[i].normal.x, faces[i].normal.x);
+		DrawQuadForView(vertices[i].x, vertices[i].y, vertices[i].z, faces[i].normal.x, faces[i].normal.x);
 	}
 	glEnd();
 	
@@ -1957,7 +1960,7 @@ GLuint tfan2[10] = {	33,	25,	26,	27,	28,	29,	30,	31,	32,	25};	// final fan 64..7
 	for (i = 0; i < n_vertices; i++)
 	{
 		glColor4f( faces[i].red, faces[i].green, faces[i].blue, faces[i].normal.z);
-		drawQuadForView( universe, vertices[i].x, vertices[i].y, vertices[i].z, size.width, size.width);
+		DrawQuadForView(vertices[i].x, vertices[i].y, vertices[i].z, size.width, size.width);
 	}
 	glEnd();
 	
@@ -1982,15 +1985,16 @@ GLuint tfan2[10] = {	33,	25,	26,	27,	28,	29,	30,	31,	32,	25};	// final fan 64..7
 	glPushMatrix();
 
 	glBegin(GL_QUADS);
-		drawQuadForView( universe, position.x, position.y, position.z, size.width, size.height);
+		DrawQuadForView(position.x, position.y, position.z, size.width, size.height);
 	glEnd();
 
 	glPopMatrix();
 }
 
-void drawQuadForView(Universe* universe, GLfloat x, GLfloat y, GLfloat z, GLfloat xx, GLfloat yy)
+
+static void DrawQuadForView(GLfloat x, GLfloat y, GLfloat z, GLfloat xx, GLfloat yy)
 {
-	int viewdir = universe->viewDirection;
+	int viewdir = UNIVERSE->viewDirection;
 
 	switch (viewdir)
 	{

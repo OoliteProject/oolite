@@ -28,7 +28,7 @@ MA 02110-1301, USA.
 #import "legacy_random.h"
 #import "Universe.h"
 #import "PlayerEntity.h"
-#import "PlayerEntityScripting.h"
+#import "PlayerEntityLegacyScriptEngine.h"
 #import "OOFunctionAttributes.h"
 
 
@@ -283,10 +283,9 @@ NSString *ExpandDescriptionForCurrentSystem(NSString *text)
 
 NSString *ExpandDescriptionsWithLocalsForSystemSeed(NSString *text, Random_Seed seed, NSDictionary *locals)
 {
-	Universe			*universe = [Universe sharedUniverse];
 	PlayerEntity		*player = [PlayerEntity sharedPlayer];
 	NSMutableString		*partial = [text mutableCopy];
-	NSMutableDictionary	*all_descriptions = [[universe descriptions] mutableCopy];
+	NSMutableDictionary	*all_descriptions = [[UNIVERSE descriptions] mutableCopy];
 	id					value = nil;
 	NSString			*part = nil, *before = nil, *after = nil, *middle = nil;
 	int					sub, rnd, opt;
@@ -352,11 +351,11 @@ NSString *ExpandDescriptionsWithLocalsForSystemSeed(NSString *text, Random_Seed 
 	}
 		
 	[partial	replaceOccurrencesOfString:@"%H"
-				withString:[universe generateSystemName:seed]
+				withString:[UNIVERSE generateSystemName:seed]
 				options:NSLiteralSearch range:NSMakeRange(0, [partial length])];
 	
 	[partial	replaceOccurrencesOfString:@"%I"
-				withString:[NSString stringWithFormat:@"%@ian",[universe generateSystemName:seed]]
+				withString:[NSString stringWithFormat:@"%@ian",[UNIVERSE generateSystemName:seed]]
 				options:NSLiteralSearch range:NSMakeRange(0, [partial length])];
 	
 	[partial	replaceOccurrencesOfString:@"%R"
@@ -435,7 +434,7 @@ NSString *RandomDigrams(void)
 {
 	int i;
 	int len = gen_rnd_number() & 3;	
-	NSString*			digrams = [[[Universe sharedUniverse] descriptions] objectForKey:@"digrams"];
+	NSString*			digrams = [[UNIVERSE descriptions] objectForKey:@"digrams"];
 	NSMutableString*	name = [NSMutableString stringWithCapacity:256];
 	for (i = 0; i <=len; i++)
 	{

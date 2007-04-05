@@ -23,11 +23,13 @@ MA 02110-1301, USA.
 */
 
 #import "OOBrain.h"
-
-#import "Universe.h"
 #import "OOInstinct.h"
 
+#import "Universe.h"
+#import "OOConstToString.h"
+
 #import "ShipEntity.h"
+
 
 @implementation OOBrain
 
@@ -65,7 +67,7 @@ MA 02110-1301, USA.
 		{
 			NSString* key = (NSString*)[[instinctDictionary allKeys] objectAtIndex:i];
 			
-			int itype = instinctForString(key);
+			int itype = InstinctFromString(key);
 			
 			if (itype != INSTINCT_NULL)
 			{

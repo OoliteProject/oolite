@@ -706,30 +706,30 @@ MA 02110-1301, USA.
 	}
 }
 
-- (int) drawGUI:(GLfloat) alpha forUniverse:(Universe*)universe drawCursor:(BOOL) drawCursor
+- (int) drawGUI:(GLfloat) alpha drawCursor:(BOOL) drawCursor
 {
-	GLfloat z1 = [[universe gameView] display_z];
+	GLfloat z1 = [[UNIVERSE gameView] display_z];
 	if (alpha > 0.05)
 	{
 		PlayerEntity* player = [PlayerEntity sharedPlayer];
 
-		[self drawGLDisplay: drawPosition.x - 0.5 * size_in_pixels.width :drawPosition.y - 0.5 * size_in_pixels.height :z1 :alpha forUniverse:universe];
+		[self drawGLDisplay: drawPosition.x - 0.5 * size_in_pixels.width :drawPosition.y - 0.5 * size_in_pixels.height :z1 :alpha];
 
 		glEnable(GL_LINE_SMOOTH);
 
-		if (self == [universe gui])
+		if (self == [UNIVERSE gui])
 		{
 			if ([player gui_screen] == GUI_SCREEN_SHORT_RANGE_CHART)
-				[self drawStarChart:drawPosition.x - 0.5 * size_in_pixels.width :drawPosition.y - 0.5 * size_in_pixels.height :z1 :alpha forUniverse:universe];
+				[self drawStarChart:drawPosition.x - 0.5 * size_in_pixels.width :drawPosition.y - 0.5 * size_in_pixels.height :z1 :alpha];
 			if ([player gui_screen] == GUI_SCREEN_LONG_RANGE_CHART)
 			{
-				[self drawGalaxyChart:drawPosition.x - 0.5 * size_in_pixels.width :drawPosition.y - 0.5 * size_in_pixels.height :z1 :alpha forUniverse:universe];
+				[self drawGalaxyChart:drawPosition.x - 0.5 * size_in_pixels.width :drawPosition.y - 0.5 * size_in_pixels.height :z1 :alpha];
 			}
 		}
 		
 		if (fade_sign)
 		{
-			fade_alpha += fade_sign * [universe getTimeDelta];
+			fade_alpha += fade_sign * [UNIVERSE getTimeDelta];
 			if (fade_alpha < 0.0)	// done fading out
 			{
 				fade_alpha = 0.0;
@@ -747,7 +747,7 @@ MA 02110-1301, USA.
 
 	if (drawCursor)
 	{
-		NSPoint vjpos = [[universe gameView] virtualJoystickPosition];
+		NSPoint vjpos = [[UNIVERSE gameView] virtualJoystickPosition];
 		double cursor_x = size_in_pixels.width * vjpos.x;
 		if (cursor_x < -size_in_pixels.width * 0.5)  cursor_x = -size_in_pixels.width * 0.5;
 		if (cursor_x > size_in_pixels.width * 0.5)   cursor_x = size_in_pixels.width * 0.5;
@@ -755,7 +755,7 @@ MA 02110-1301, USA.
 		if (cursor_y < -size_in_pixels.height * 0.5)  cursor_y = -size_in_pixels.height * 0.5;
 		if (cursor_y > size_in_pixels.height * 0.5)   cursor_y = size_in_pixels.height * 0.5;
 		
-		[[universe gameView] setVirtualJoystick:cursor_x/size_in_pixels.width :-cursor_y/size_in_pixels.height];
+		[[UNIVERSE gameView] setVirtualJoystick:cursor_x/size_in_pixels.width :-cursor_y/size_in_pixels.height];
 		cursor_row = 1 + floor((0.5 * size_in_pixels.height - pixel_row_start - cursor_y) / pixel_row_height);
 		
 		GLfloat h1 = 3.0f;
@@ -776,31 +776,31 @@ MA 02110-1301, USA.
 	return cursor_row;
 }
 
-- (int) drawGUI:(GLfloat)x :(GLfloat)y :(GLfloat)z :(GLfloat) alpha forUniverse:(Universe*)universe drawCursor:(BOOL) drawCursor
+- (int) drawGUI:(GLfloat)x :(GLfloat)y :(GLfloat)z :(GLfloat) alpha drawCursor:(BOOL) drawCursor
 {
-	GLfloat z1 = [[universe gameView] display_z];
+	GLfloat z1 = [[UNIVERSE gameView] display_z];
 	if (alpha > 0.05)
 	{
 
 		PlayerEntity* player = [PlayerEntity sharedPlayer];
 
-		[self drawGLDisplay:x - 0.5 * size_in_pixels.width :y - 0.5 * size_in_pixels.height :z :alpha forUniverse:universe];
+		[self drawGLDisplay:x - 0.5 * size_in_pixels.width :y - 0.5 * size_in_pixels.height :z :alpha];
 
 		glEnable(GL_LINE_SMOOTH);
 
-		if (self == [universe gui])
+		if (self == [UNIVERSE gui])
 		{
 			if ([player gui_screen] == GUI_SCREEN_SHORT_RANGE_CHART)
-				[self drawStarChart:x - 0.5 * size_in_pixels.width :y - 0.5 * size_in_pixels.height :z :alpha forUniverse:universe];
+				[self drawStarChart:x - 0.5 * size_in_pixels.width :y - 0.5 * size_in_pixels.height :z :alpha];
 			if ([player gui_screen] == GUI_SCREEN_LONG_RANGE_CHART)
 			{
-				[self drawGalaxyChart:x - 0.5 * size_in_pixels.width :y - 0.5 * size_in_pixels.height :z :alpha forUniverse:universe];
+				[self drawGalaxyChart:x - 0.5 * size_in_pixels.width :y - 0.5 * size_in_pixels.height :z :alpha];
 			}
 		}
 		
 		if (fade_sign)
 		{
-			fade_alpha += fade_sign * [universe getTimeDelta];
+			fade_alpha += fade_sign * [UNIVERSE getTimeDelta];
 			if (fade_alpha < 0.0)	// done fading out
 			{
 				fade_alpha = 0.0;
@@ -818,7 +818,7 @@ MA 02110-1301, USA.
 
 	if (drawCursor)
 	{
-		NSPoint vjpos = [[universe gameView] virtualJoystickPosition];
+		NSPoint vjpos = [[UNIVERSE gameView] virtualJoystickPosition];
 		double cursor_x = size_in_pixels.width * vjpos.x;
 		if (cursor_x < -size_in_pixels.width * 0.5)  cursor_x = -size_in_pixels.width * 0.5;
 		if (cursor_x > size_in_pixels.width * 0.5)   cursor_x = size_in_pixels.width * 0.5;
@@ -840,36 +840,36 @@ MA 02110-1301, USA.
 		glEnd();
 		glLineWidth( 1.0f);
 		
-		[[universe gameView] setVirtualJoystick:cursor_x/size_in_pixels.width :-cursor_y/size_in_pixels.height];
+		[[UNIVERSE gameView] setVirtualJoystick:cursor_x/size_in_pixels.width :-cursor_y/size_in_pixels.height];
 	}
 	
 	return cursor_row;
 }
 
-- (void) drawGUI:(GLfloat)x :(GLfloat)y :(GLfloat)z :(GLfloat) alpha forUniverse:(Universe*)universe
+- (void) drawGUI:(GLfloat)x :(GLfloat)y :(GLfloat)z :(GLfloat) alpha
 {
 	if (alpha < 0.05)
 		return;			// too dim to see!
 
 	PlayerEntity* player = [PlayerEntity sharedPlayer];
 
-	[self drawGLDisplay:x - 0.5 * size_in_pixels.width :y - 0.5 * size_in_pixels.height :z :alpha forUniverse:universe];
+	[self drawGLDisplay:x - 0.5 * size_in_pixels.width :y - 0.5 * size_in_pixels.height :z :alpha];
 
 	glEnable(GL_LINE_SMOOTH);
 
-	if (self == [universe gui])
+	if (self == [UNIVERSE gui])
 	{
 		if ([player gui_screen] == GUI_SCREEN_SHORT_RANGE_CHART)
-			[self drawStarChart:x - 0.5 * size_in_pixels.width :y - 0.5 * size_in_pixels.height :z :alpha forUniverse:universe];
+			[self drawStarChart:x - 0.5 * size_in_pixels.width :y - 0.5 * size_in_pixels.height :z :alpha];
 		if ([player gui_screen] == GUI_SCREEN_LONG_RANGE_CHART)
 		{
-			[self drawGalaxyChart:x - 0.5 * size_in_pixels.width :y - 0.5 * size_in_pixels.height :z :alpha forUniverse:universe];
+			[self drawGalaxyChart:x - 0.5 * size_in_pixels.width :y - 0.5 * size_in_pixels.height :z :alpha];
 		}
 	}
 	
 	if (fade_sign)
 	{
-		fade_alpha += fade_sign * [universe getTimeDelta];
+		fade_alpha += fade_sign * [UNIVERSE getTimeDelta];
 		if (fade_alpha < 0.0)	// done fading out
 		{
 			fade_alpha = 0.0;
@@ -884,11 +884,11 @@ MA 02110-1301, USA.
 }
 
 
-- (void) drawGLDisplay:(GLfloat)x :(GLfloat)y :(GLfloat)z :(GLfloat) alpha forUniverse:(Universe*)universe
+- (void) drawGLDisplay:(GLfloat)x :(GLfloat)y :(GLfloat)z :(GLfloat) alpha
 {
 	NSSize  strsize;
 	int i;
-	double	delta_t = [universe getTimeDelta];
+	double	delta_t = [UNIVERSE getTimeDelta];
 	NSSize characterSize = pixel_text_size;
 	NSSize titleCharacterSize = pixel_title_size;
 	
@@ -997,7 +997,7 @@ MA 02110-1301, USA.
 					NSPoint cu = NSMakePoint( x + rowPosition[i].x + tr.size.width + 0.2 * characterSize.width, y + rowPosition[i].y);
 					tr.origin = cu;
 					tr.size.width = 0.5 * characterSize.width;
-					GLfloat g_alpha = 0.5 * (1.0 + sin(6 * [universe getTime]));
+					GLfloat g_alpha = 0.5 * (1.0 + sin(6 * [UNIVERSE getTime]));
 					glColor4f( 1.0, 0.0, 0.0, row_alpha * g_alpha);	// red
 					glBegin(GL_QUADS);
 						glVertex3f( tr.origin.x,					tr.origin.y,					z);
@@ -1040,7 +1040,7 @@ MA 02110-1301, USA.
 	}
 }
 
-- (void) drawStarChart:(GLfloat)x :(GLfloat)y :(GLfloat)z :(GLfloat) alpha forUniverse:(Universe*)universe
+- (void) drawStarChart:(GLfloat)x :(GLfloat)y :(GLfloat)z :(GLfloat) alpha
 {
 	PlayerEntity* player = [PlayerEntity sharedPlayer];
 
@@ -1083,7 +1083,7 @@ MA 02110-1301, USA.
 
 	for (i = 0; i < 256; i++)
 	{
-		g_seed = [universe systemSeedForSystemNumber:i];
+		g_seed = [UNIVERSE systemSeedForSystemNumber:i];
 		
 		int dx, dy;
 		float blob_size = 4.0 + 0.5 * (g_seed.f & 15);
@@ -1117,7 +1117,7 @@ MA 02110-1301, USA.
 	glColor4f(1.0, 1.0, 0.0, alpha);	// yellow
 	for (i = 0; i < 256; i++)
 	{
-		g_seed = [universe systemSeedForSystemNumber:i];
+		g_seed = [UNIVERSE systemSeedForSystemNumber:i];
 		
 		int dx, dy;
 		
@@ -1129,7 +1129,7 @@ MA 02110-1301, USA.
 		
 		if ((dx < 20)&&(dy < 38))
 		{
-			NSDictionary* sys_info = [universe generateSystemData:g_seed];
+			NSDictionary* sys_info = [UNIVERSE generateSystemData:g_seed];
 			int tec = [[sys_info objectForKey:KEY_TECHLEVEL] intValue];
 			int eco = [[sys_info objectForKey:KEY_ECONOMY] intValue];
 			int gov = [[sys_info objectForKey:KEY_GOVERNMENT] intValue];
@@ -1175,7 +1175,7 @@ MA 02110-1301, USA.
 	glEnd();
 }
 
-- (void) drawGalaxyChart:(GLfloat)x :(GLfloat)y :(GLfloat)z :(GLfloat) alpha forUniverse:(Universe*)universe
+- (void) drawGalaxyChart:(GLfloat)x :(GLfloat)y :(GLfloat)z :(GLfloat) alpha
 {
 	PlayerEntity* player = [PlayerEntity sharedPlayer];
 
@@ -1187,7 +1187,7 @@ MA 02110-1301, USA.
 	// get a list of systems marked as contract destinations
 	NSArray* markedDestinations = [player markedDestinations];
 	
-	BOOL* systems_found = [universe systems_found];
+	BOOL* systems_found = [UNIVERSE systems_found];
 	
 	NSPoint		star, cu;
 	
@@ -1198,9 +1198,9 @@ MA 02110-1301, USA.
 	double		voffset = size_in_pixels.height - pixel_title_size.height - 5;
 	int			i;
 	
-	if (showAdvancedNavArray && ![universe strict] && [player has_extra_equipment:@"EQ_ADVANCED_NAVIGATIONAL_ARRAY"])
+	if (showAdvancedNavArray && ![UNIVERSE strict] && [player has_extra_equipment:@"EQ_ADVANCED_NAVIGATIONAL_ARRAY"])
 	{
-		[self drawAdvancedNavArrayAtX:x y:y z:z alpha:alpha forUniverse:universe];
+		[self drawAdvancedNavArrayAtX:x y:y z:z alpha:alpha];
 	}
 	
 	// draw fuel range circle
@@ -1244,7 +1244,7 @@ MA 02110-1301, USA.
 	glColor4f( 1.0, 0.0, 0.0, alpha);
 	for (i = 0; i < 256; i++)
 	{
-		g_seed = [universe systemSeedForSystemNumber:i];
+		g_seed = [UNIVERSE systemSeedForSystemNumber:i];
 		BOOL mark = [(NSNumber*)[markedDestinations objectAtIndex:i] boolValue];
 		if (mark)
 		{
@@ -1265,7 +1265,7 @@ MA 02110-1301, USA.
 	glBegin( GL_QUADS);
 	for (i = 0; i < 256; i++)
 	{
-		g_seed = [universe systemSeedForSystemNumber:i];
+		g_seed = [UNIVERSE systemSeedForSystemNumber:i];
 		
 		star.x = g_seed.d * hscale + hoffset;
 		star.y = g_seed.b * vscale + voffset;
@@ -1286,7 +1286,7 @@ MA 02110-1301, USA.
 	for (i = 0; i < 256; i++)
 	{
 		BOOL mark = systems_found[i];
-		g_seed = [universe systemSeedForSystemNumber:i];
+		g_seed = [UNIVERSE systemSeedForSystemNumber:i];
 		if (mark)
 		{
 			star.x = g_seed.d * hscale + hoffset;
@@ -1297,7 +1297,7 @@ MA 02110-1301, USA.
 				glVertex3f( x + star.x + 2.0,	y + star.y + 2.0,	z);
 				glVertex3f( x + star.x - 2.0,	y + star.y + 2.0,	z);
 			glEnd();
-			drawString([universe systemNameIndex:i] , x + star.x + 2.0, y + star.y - 10.0, z, NSMakeSize(10,10));
+			drawString([UNIVERSE systemNameIndex:i] , x + star.x + 2.0, y + star.y - 10.0, z, NSMakeSize(10,10));
 		}
 	}
 	
@@ -1315,7 +1315,7 @@ MA 02110-1301, USA.
 
 
 // Advanced Navigation Array -- galactic chart route mapping - contributed by Nikos Barkas (another_commander).
-- (void) drawAdvancedNavArrayAtX:(float)x y:(float)y z:(float)z alpha:(float)alpha forUniverse:(Universe*)universe;
+- (void) drawAdvancedNavArrayAtX:(float)x y:(float)y z:(float)z alpha:(float)alpha
 {
 	PlayerEntity	*player = [PlayerEntity sharedPlayer];
 	NSPoint			galaxy_coordinates = [player galaxy_coordinates];
@@ -1334,8 +1334,8 @@ MA 02110-1301, USA.
 	glBegin( GL_LINES );
 	for (i = 0; i < 256; i++) for (j = i + 1; j < 256; j++)
 	{
-		g_seed = [universe systemSeedForSystemNumber:i];
-		g_seed2 = [universe systemSeedForSystemNumber:j];
+		g_seed = [UNIVERSE systemSeedForSystemNumber:i];
+		g_seed2 = [UNIVERSE systemSeedForSystemNumber:j];
 		
 		star.x = g_seed.d * hscale + hoffset;
 		star.y = g_seed.b * vscale + voffset;
@@ -1352,9 +1352,9 @@ MA 02110-1301, USA.
 	glEnd();
 	
 	// Draw route from player position to currently selected destination.
-	int planetNumber = [universe findSystemNumberAtCoords:galaxy_coordinates withGalaxySeed:galaxy_seed];
-	int destNumber = [universe findSystemNumberAtCoords:cursor_coordinates withGalaxySeed:galaxy_seed];
-	NSDictionary* routeInfo = [universe routeFromSystem:planetNumber ToSystem:destNumber];
+	int planetNumber = [UNIVERSE findSystemNumberAtCoords:galaxy_coordinates withGalaxySeed:galaxy_seed];
+	int destNumber = [UNIVERSE findSystemNumberAtCoords:cursor_coordinates withGalaxySeed:galaxy_seed];
+	NSDictionary* routeInfo = [UNIVERSE routeFromSystem:planetNumber ToSystem:destNumber];
 	
 	if ((destNumber != planetNumber) && routeInfo)
 	{
@@ -1366,8 +1366,8 @@ MA 02110-1301, USA.
 			int loc = [(NSNumber *)[[routeInfo objectForKey:@"route"] objectAtIndex:i] intValue];
 			int loc2 = [(NSNumber *)[[routeInfo objectForKey:@"route"] objectAtIndex:(i+1)] intValue];
 			
-			g_seed = [universe systemSeedForSystemNumber:loc];
-			g_seed2 = [universe systemSeedForSystemNumber:(loc2)];        
+			g_seed = [UNIVERSE systemSeedForSystemNumber:loc];
+			g_seed2 = [UNIVERSE systemSeedForSystemNumber:(loc2)];        
 			star.x = g_seed.d * hscale + hoffset;
 			star.y = g_seed.b * vscale + voffset;
 			star2.x = g_seed2.d * hscale + hoffset;
@@ -1379,10 +1379,10 @@ MA 02110-1301, USA.
 			glEnd();
 			
 			// Label the route.
-			drawString([universe systemNameIndex:loc] , x + star.x + 2.0, y + star.y - 6.0, z, NSMakeSize(8,8));
+			drawString([UNIVERSE systemNameIndex:loc] , x + star.x + 2.0, y + star.y - 6.0, z, NSMakeSize(8,8));
 		}
 		// Label the destination, which was not included in the above loop.
-		drawString([universe systemNameIndex:destNumber] , x + star2.x + 2.0, y + star2.y - 6.0, z, NSMakeSize(8,8));	
+		drawString([UNIVERSE systemNameIndex:destNumber] , x + star2.x + 2.0, y + star2.y - 6.0, z, NSMakeSize(8,8));	
 	}
 }
 

@@ -496,8 +496,8 @@ MA 02110-1301, USA.
 - (void) updateTrumble:(double) delta_t
 {
 	// player movement
-	NSPoint p_mov = NSMakePoint(	TRUMBLE_MAX_ROTATIONAL_VELOCITY * [player dial_pitch],	TRUMBLE_MAX_ROTATIONAL_VELOCITY * [player dial_roll]);
-	switch ([[player universe] viewDir])
+	NSPoint p_mov = NSMakePoint(TRUMBLE_MAX_ROTATIONAL_VELOCITY * [player dial_pitch],	TRUMBLE_MAX_ROTATIONAL_VELOCITY * [player dial_roll]);
+	switch ([UNIVERSE viewDir])
 	{
 		GLfloat t;
 		case VIEW_AFT:
@@ -612,11 +612,10 @@ MA 02110-1301, USA.
 			if (trumbleAppetiteAccumulator > 10.0)
 			{
 				// eaten all of this cargo!
-				Universe* uni = [player universe];
 				NSString* ms = [NSString stringWithFormat:ExpandDescriptionForCurrentSystem(@"[trumbles-eat-@]"),
-								[uni nameForCommodity:[selectedCargopod getCommodityType]]];
+								[UNIVERSE nameForCommodity:[selectedCargopod getCommodityType]]];
 				
-				[uni addMessage: ms forCount: 4.5];
+				[UNIVERSE addMessage: ms forCount: 4.5];
 				[cargopods removeObject:selectedCargopod];
 				trumbleAppetiteAccumulator -= 10.0;
 				

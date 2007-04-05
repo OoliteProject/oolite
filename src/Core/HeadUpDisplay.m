@@ -123,13 +123,9 @@ GLuint ascii_texture_name;
 	// check for entries in hud plist for comm_log_gui and message_gui
 	// resize and reposition them accordingly
 	
-	if (!player)
-		return;
-	Universe* universe = [player universe];
-	if (!universe)
-		return;
+	if (!player)  return;
 	
-	GuiDisplayGen* message_gui = [universe message_gui];
+	GuiDisplayGen* message_gui = [UNIVERSE message_gui];
 	if ((message_gui)&&([info objectForKey:@"message_gui"]))
 	{
 		NSDictionary* gui_info = (NSDictionary*)[info objectForKey:@"message_gui"];
@@ -159,7 +155,7 @@ GLuint ascii_texture_name;
 			[message_gui setBackgroundColor:[OOColor colorFromString:(NSString *)[gui_info objectForKey:BACKGROUND_RGBA_KEY]]];
 	}
 	
-	GuiDisplayGen* comm_log_gui = [universe comm_log_gui];
+	GuiDisplayGen* comm_log_gui = [UNIVERSE comm_log_gui];
 	if ((comm_log_gui)&&([info objectForKey:@"comm_log_gui"]))
 	{
 		NSDictionary* gui_info = (NSDictionary*)[info objectForKey:@"comm_log_gui"];
@@ -250,12 +246,11 @@ GLuint ascii_texture_name;
 	int i;
 	if (!player)
 		return;
-	z1 = [(MyOpenGLView *)[[player universe] gameView] display_z];
+	z1 = [(MyOpenGLView *)[UNIVERSE gameView] display_z];
 	for (i = 0; i < [legendArray count]; i++)
 		[self drawLegend:(NSDictionary *)[legendArray objectAtIndex:i]];
-//
-checkGLErrors(@"HeadUpDisplay after drawLegends");
-//
+	
+	CheckOpenGLErrors(@"HeadUpDisplay after drawLegends");
 }
 
 
@@ -265,12 +260,11 @@ checkGLErrors(@"HeadUpDisplay after drawLegends");
 	int i;
 	if (!player)
 		return;
-	z1 = [(MyOpenGLView *)[[player universe] gameView] display_z];
+	z1 = [(MyOpenGLView *)[UNIVERSE gameView] display_z];
 	for (i = 0; i < [dialArray count]; i++)
 		[self drawHUDItem:(NSDictionary *)[dialArray objectAtIndex:i]];
-//
-checkGLErrors(@"HeadUpDisplay after drawDials");
-//
+	
+	CheckOpenGLErrors(@"HeadUpDisplay after drawDials");
 }
 
 
@@ -311,7 +305,7 @@ checkGLErrors(@"HeadUpDisplay after drawDials");
 			NSLog(@"DEBUG HeadUpDisplay does not respond to '%@'",[info objectForKey:SELECTOR_KEY]);
 	}
 //
-checkGLErrors([NSString stringWithFormat:@"HeadUpDisplay after drawHUDItem %@", info]);
+CheckOpenGLErrors([NSString stringWithFormat:@"HeadUpDisplay after drawHUDItem %@", info]);
 //
 }
 
@@ -366,12 +360,12 @@ static BOOL hostiles;
 	
 	Vector	position, relativePosition;
 	Matrix rotMatrix;
-	int flash = ((int)([[player universe] getTime] * 4))&1;
+	int flash = ((int)([UNIVERSE getTime] * 4))&1;
 
 	//
 	// use a non-mutable copy so this can't be changed under us.
 	//
-	Universe*	uni =			[player universe];
+	Universe*	uni =			UNIVERSE;
 	int			ent_count =		uni->n_entities;
 	Entity**	uni_entities =	uni->sortedEntities;	// grab the public sorted list
 	Entity*		my_entities[ent_count];
@@ -387,7 +381,7 @@ static BOOL hostiles;
 	gl_matrix_into_matrix([player rotationMatrix], rotMatrix);
 		
 	glColor4fv( scanner_color);
-	drawScannerGrid( x, y, z1, siz, [[player universe] viewDir], line_width, scanner_zoom);
+	drawScannerGrid( x, y, z1, siz, [UNIVERSE viewDir], line_width, scanner_zoom);
 	
 	GLfloat off_scope2 = (siz.width > siz.height) ? siz.width * siz.width : siz.height * siz.height;
 	
@@ -404,7 +398,7 @@ static BOOL hostiles;
 		{
 			drawthing = my_entities[i];
 			
-			int drawClass = drawthing->scan_class;
+			int drawClass = drawthing->scanClass;
 			if (drawClass == CLASS_PLAYER)	drawClass = CLASS_NO_DRAW;
 			if (drawthing->isShip)
 			{
@@ -470,11 +464,11 @@ static BOOL hostiles;
 				if (ms_blip > max_blip)
 				{
 					max_blip = ms_blip;
-					last_transmitter = [drawthing universal_id];
+					last_transmitter = [drawthing universalID];
 				}
 				ms_blip -= floor(ms_blip);
 				
-				relativePosition = drawthing->relative_position;
+				relativePosition = drawthing->relativePosition;
 				Vector rp = relativePosition;
 				
 				if (act_dist > max_zoomed_range)
@@ -533,7 +527,7 @@ static BOOL hostiles;
 					if (ship->collision_radius * upscale > 4.5)
 					{
 						Vector bounds[6];
-//						BoundingBox bb = [ship getBoundingBox];
+//						BoundingBox bb = [ship boundingBox];
 						BoundingBox bb = ship->totalBoundingBox;
 						bounds[0] = ship->v_forward;	scale_vector( &bounds[0], bb.max.z);
 						bounds[1] = ship->v_forward;	scale_vector( &bounds[1], bb.min.z);
@@ -615,7 +609,7 @@ static BOOL hostiles;
 
 - (void) refreshLastTransmitter
 {
-	Entity* lt = [[player universe] entityForUniversalID:last_transmitter];
+	Entity* lt = [UNIVERSE entityForUniversalID:last_transmitter];
 	if ((lt == nil)||(!(lt->isShip)))
 		return;
 	ShipEntity* st = (ShipEntity*)lt;
@@ -707,11 +701,11 @@ static BOOL hostiles;
 	glLineWidth( line_width);	// thinner
 	
 	//
-	PlanetEntity*	the_sun = [[player universe] sun];
-	PlanetEntity*	the_planet = [[player universe] planet];
-	StationEntity*	the_station = [[player universe] station];
+	PlanetEntity*	the_sun = [UNIVERSE sun];
+	PlanetEntity*	the_planet = [UNIVERSE planet];
+	StationEntity*	the_station = [UNIVERSE station];
 	Entity*			the_target = [player getPrimaryTarget];
-	Entity*			the_next_beacon = [[player universe] entityForUniversalID:[player nextBeaconID]];
+	Entity*			the_next_beacon = [UNIVERSE entityForUniversalID:[player nextBeaconID]];
 	int				p_status = player->status;
 	if	(((p_status == STATUS_IN_FLIGHT)
 		||(p_status == STATUS_AUTOPILOT_ENGAGED)
@@ -930,7 +924,7 @@ static BOOL hostiles;
 
 - (void) drawAegis:(NSDictionary *) info
 {	
-	if (([[player universe] viewDir] == VIEW_GUI_DISPLAY)||([[player universe] sun] == nil)||([player checkForAegis] != AEGIS_IN_DOCKING_RANGE))
+	if (([UNIVERSE viewDir] == VIEW_GUI_DISPLAY)||([UNIVERSE sun] == nil)||([player checkForAegis] != AEGIS_IN_DOCKING_RANGE))
 		return;	// don't draw
 	
 	NSSize siz = NSMakeSize( AEGIS_WIDTH, AEGIS_HEIGHT);
@@ -1229,7 +1223,7 @@ static BOOL hostiles;
 		siz.height = [(NSNumber *)[info objectForKey:HEIGHT_KEY] intValue];
 
 	double temp = [player dial_ship_temperature];
-	int flash = (int)([[player universe] getTime] * 4);
+	int flash = (int)([UNIVERSE getTime] * 4);
 	flash &= 1;
 	// draw ship_temperature bar
 	glColor4fv(green_color);
@@ -1282,7 +1276,7 @@ static BOOL hostiles;
 		siz.height = [(NSNumber *)[info objectForKey:HEIGHT_KEY] intValue];
 
 	double alt = [player dial_altitude];
-	int flash = (int)([[player universe] getTime] * 4);
+	int flash = (int)([UNIVERSE getTime] * 4);
 	flash &= 1;
 	// draw altitude bar
 	glColor4fv(green_color);
@@ -1322,7 +1316,7 @@ static BOOL hostiles;
 			if ([player missile_for_station:i])
 			{
 				NSString* miss_roles = [[player missile_for_station:i] roles];
-				NSObject* miss_icon = [[[player universe] descriptions] objectForKey:miss_roles];
+				NSObject* miss_icon = [[UNIVERSE descriptions] objectForKey:miss_roles];
 				if (i == [player active_missile])
 				{
 					glColor4fv(yellow_color);
@@ -1443,7 +1437,7 @@ static BOOL hostiles;
 {
 	GLfloat status_color[4] = { 0.25, 0.25, 0.25, 1.0};
 	int alert_condition = [player alert_condition];
-	double flash_alpha = 0.333 * (2.0 + sin([[player universe] getTime] * 2.5 * alert_condition));
+	double flash_alpha = 0.333 * (2.0 + sin([UNIVERSE getTime] * 2.5 * alert_condition));
     int x = STATUS_LIGHT_CENTRE_X;
 	int y = STATUS_LIGHT_CENTRE_Y;
 	NSSize siz = NSMakeSize( STATUS_LIGHT_HEIGHT, STATUS_LIGHT_HEIGHT);
@@ -1500,7 +1494,7 @@ static BOOL hostiles;
 		(![player has_extra_equipment:(NSString *)[info objectForKey:EQUIPMENT_REQUIRED_KEY]]))
 		return;
 	
-	if ([[player universe] displayGUI])
+	if ([UNIVERSE displayGUI])
 		return;
 	
 	if ([player dial_missile_status] == MISSILE_STATUS_TARGET_LOCKED)
@@ -1515,7 +1509,7 @@ static BOOL hostiles;
 		Vector position = player->position;
 		gl_matrix_into_matrix([player rotationMatrix], rotMatrix);
 		//
-		if ([[player universe] viewDir] != VIEW_GUI_DISPLAY)
+		if ([UNIVERSE viewDir] != VIEW_GUI_DISPLAY)
 		{
 			GLfloat siz1 = CROSSHAIR_SIZE * (1.0 - ONE_EIGHTH);
 			GLfloat siz0 = CROSSHAIR_SIZE * ONE_EIGHTH;
@@ -1525,7 +1519,7 @@ static BOOL hostiles;
 			rpn.x -= position.x;   rpn.y -= position.y;   rpn.z -= position.z;
 			// rotate the view
 			mult_vector(&rpn, rotMatrix);
-			switch ([[player universe] viewDir])
+			switch ([UNIVERSE viewDir])
 			{
 				case VIEW_AFT :
 					rpn.x = - rpn.x;
@@ -1580,17 +1574,15 @@ static BOOL hostiles;
 
 - (void) drawFPSInfoCounter:(NSDictionary *) info
 {
-    Universe* universe = [player universe];
-	
-	if (![universe displayFPS])
+	if (![UNIVERSE displayFPS])
 		return;
 	
-	if ((!player)||(!universe))
+	if ((!player)||(!UNIVERSE))
 		return;
 	
-	NSString* positionInfo = [universe expressPosition:player->position inCoordinateSystem:@"pwm"];
+	NSString* positionInfo = [UNIVERSE expressPosition:player->position inCoordinateSystem:@"pwm"];
 	
-	NSString* collDebugInfo = [NSString stringWithFormat:@"%@ - %@", [player dial_objinfo], [universe collisionDescription]];
+	NSString* collDebugInfo = [NSString stringWithFormat:@"%@ - %@", [player dial_objinfo], [UNIVERSE collisionDescription]];
 	
 	int x = FPSINFO_DISPLAY_X;
 	int y = FPSINFO_DISPLAY_Y;
@@ -1635,7 +1627,7 @@ static BOOL hostiles;
 	GLfloat	s2c[4] = { 0.0f, 0.0f, 0.0f, 0.0f };
 	GLfloat	s3c[4] = { 0.0f, 0.0f, 0.0f, 0.0f };
 	int scoop_status = [player dial_fuelscoops_status];
-	double t = [[player universe] getTime];
+	double t = [UNIVERSE getTime];
 	GLfloat a1 = alpha * 0.5f * (1.0f + sin(t * 8.0f));
 	GLfloat a2 = alpha * 0.5f * (1.0f + sin(t * 8.0f - 1.0f));
 	GLfloat a3 = alpha * 0.5f * (1.0f + sin(t * 8.0f - 2.0f));
@@ -1953,7 +1945,7 @@ void hudDrawReticleOnTarget(Entity* target, PlayerEntity* player1, GLfloat z1)
 	if (target_ship->cloaking_device_active)
 		return;
 	
-	switch (target_ship->scan_class)
+	switch (target_ship->scanClass)
 	{
 		case CLASS_NEUTRAL :
 		{
@@ -1961,7 +1953,7 @@ void hudDrawReticleOnTarget(Entity* target, PlayerEntity* player1, GLfloat z1)
 			int legal_i = 0;
 			if (target_legal > 0)
 				legal_i =  (target_legal <= 50) ? 1 : 2;
-			legal_desc = [(NSArray *)[[[player1 universe] descriptions] objectForKey:@"legal_status"] objectAtIndex:legal_i];
+			legal_desc = [[[UNIVERSE descriptions] objectForKey:@"legal_status"] objectAtIndex:legal_i];
 		}
 		break;
 	
@@ -1998,7 +1990,7 @@ void hudDrawReticleOnTarget(Entity* target, PlayerEntity* player1, GLfloat z1)
     Quaternion  back_q = player1->q_rotation;
 	back_q.w = -back_q.w;   // invert
 	Vector v1 = vector_up_from_quaternion(back_q);
-	Vector p0 = [player1 getViewpointPosition];
+	Vector p0 = [player1 viewpointPosition];
 	Vector p1 = target->position;
 	p1.x -= p0.x;	p1.y -= p0.y;	p1.z -= p0.z;
 	double rdist = sqrt(magnitude2(p1));
@@ -2017,7 +2009,7 @@ void hudDrawReticleOnTarget(Entity* target, PlayerEntity* player1, GLfloat z1)
 	// deal with view directions
 	Vector view_dir, view_up;
 	view_up.x = 0.0;	view_up.y = 1.0;	view_up.z = 0.0;
-	switch ([[player1 universe] viewDir])
+	switch ([UNIVERSE viewDir])
 	{
 		default:
 		case VIEW_FORWARD :
@@ -2025,15 +2017,15 @@ void hudDrawReticleOnTarget(Entity* target, PlayerEntity* player1, GLfloat z1)
 			break;
 		case VIEW_AFT :
 			view_dir.x = 0.0;   view_dir.y = 0.0;   view_dir.z = -1.0;
-			quaternion_rotate_about_axis( &back_q, v1, PI);
+			quaternion_rotate_about_axis( &back_q, v1, M_PI);
 			break;
 		case VIEW_PORT :
 			view_dir.x = -1.0;   view_dir.y = 0.0;   view_dir.z = 0.0;
-			quaternion_rotate_about_axis( &back_q, v1, 0.5 * PI);
+			quaternion_rotate_about_axis( &back_q, v1, 0.5 * M_PI);
 			break;
 		case VIEW_STARBOARD :
 			view_dir.x = 1.0;   view_dir.y = 0.0;   view_dir.z = 0.0;
-			quaternion_rotate_about_axis( &back_q, v1, -0.5 * PI);
+			quaternion_rotate_about_axis( &back_q, v1, -0.5 * M_PI);
 			break;
 		case VIEW_CUSTOM :
 			view_dir = [player1 customViewForwardVector];

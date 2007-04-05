@@ -45,8 +45,8 @@ MA 02110-1301, USA.
 
 - (void) setGuiToLoadCommanderScreen
 {
-	GuiDisplayGen *gui=[universe gui];
-	NSString*	dir = [[universe gameController] playerFileDirectory];
+	GuiDisplayGen *gui=[UNIVERSE gui];
+	NSString*	dir = [[UNIVERSE gameController] playerFileDirectory];
 	if (!dir)	dir = [[NSFileManager defaultManager] defaultCommanderPath];
 	
 
@@ -58,19 +58,19 @@ MA 02110-1301, USA.
 	currentPage = 0;
 	[self lsCommanders:gui	directory:dir	pageNumber: currentPage	highlightName:nil];
 	
-	[(MyOpenGLView *)[universe gameView] supressKeysUntilKeyUp];
+	[(MyOpenGLView *)[UNIVERSE gameView] supressKeysUntilKeyUp];
 
 	[self setShowDemoShips: YES];
-	[universe setDisplayText: YES];
-	[universe setDisplayCursor: YES];
-	[universe setViewDirection: VIEW_GUI_DISPLAY];
+	[UNIVERSE setDisplayText: YES];
+	[UNIVERSE setDisplayCursor: YES];
+	[UNIVERSE setViewDirection: VIEW_GUI_DISPLAY];
 }
 
 - (void) setGuiToSaveCommanderScreen: (NSString *)cdrName
 {
-	GuiDisplayGen *gui=[universe gui];
-	MyOpenGLView*	gameView = (MyOpenGLView*)[universe gameView];
-	NSString*	dir = [[universe gameController] playerFileDirectory];
+	GuiDisplayGen *gui=[UNIVERSE gui];
+	MyOpenGLView*	gameView = (MyOpenGLView*)[UNIVERSE gameView];
+	NSString*	dir = [[UNIVERSE gameController] playerFileDirectory];
 	if (!dir)	dir = [[NSFileManager defaultManager] defaultCommanderPath];
 	
 
@@ -94,15 +94,15 @@ MA 02110-1301, USA.
 	[gameView supressKeysUntilKeyUp];
 
 	[self setShowDemoShips: YES];
-	[universe setDisplayText: YES];
-	[universe setDisplayCursor: YES];
-	[universe setViewDirection: VIEW_GUI_DISPLAY];
+	[UNIVERSE setDisplayText: YES];
+	[UNIVERSE setDisplayCursor: YES];
+	[UNIVERSE setViewDirection: VIEW_GUI_DISPLAY];
 }
 
 - (void) setGuiToOverwriteScreen: (NSString *)cdrName
 {
-	GuiDisplayGen *gui=[universe gui];
-	MyOpenGLView*	gameView = (MyOpenGLView*)[universe gameView];
+	GuiDisplayGen *gui=[UNIVERSE gui];
+	MyOpenGLView*	gameView = (MyOpenGLView*)[UNIVERSE gameView];
 
 	// Don't poll controls
 	pollControls=NO;
@@ -124,10 +124,10 @@ MA 02110-1301, USA.
 	[gui setSelectedRow: SAVE_OVERWRITE_NO_ROW];
 
 	[self setShowDemoShips: NO];
-	[universe setDisplayText: YES];
-	[universe setDisplayCursor: NO];
+	[UNIVERSE setDisplayText: YES];
+	[UNIVERSE setDisplayCursor: NO];
 	[gameView setStringInput: gvStringInputNo];
-	[universe setViewDirection: VIEW_GUI_DISPLAY];
+	[UNIVERSE setViewDirection: VIEW_GUI_DISPLAY];
 }
 
 - (void) lsCommanders: (GuiDisplayGen *)gui
@@ -136,7 +136,7 @@ MA 02110-1301, USA.
 						highlightName: (NSString *)highlightName
 {
    NSFileManager *cdrFileManager=[NSFileManager defaultManager];
-   NSDictionary *descriptions=[universe descriptions];
+   NSDictionary *descriptions=[UNIVERSE descriptions];
    int rangeStart=STARTROW;
    int lastIndex;
    int i;
@@ -298,7 +298,7 @@ MA 02110-1301, USA.
             : (GuiDisplayGen *)gui
             : (MyOpenGLView *)gameView
 {
-	NSString*	dir = [[universe gameController] playerFileDirectory];
+	NSString*	dir = [[UNIVERSE gameController] playerFileDirectory];
 	if (!dir)	dir = [[NSFileManager defaultManager] defaultCommanderPath];
 
    int idx;
@@ -361,7 +361,7 @@ MA 02110-1301, USA.
 					{
 						// change directory to the selected path
 						NSString* newDir = (NSString*)[cdr objectForKey:@"saved_game_path"];
-						[[universe gameController] setPlayerFileDirectory: newDir];
+						[[UNIVERSE gameController] setPlayerFileDirectory: newDir];
 						dir = newDir;
 						currentPage = 0;
 						[self lsCommanders: gui	directory: dir	pageNumber: currentPage  highlightName: nil];
@@ -382,7 +382,7 @@ MA 02110-1301, USA.
             : (GuiDisplayGen *)gui
             : (MyOpenGLView *)gameView
 {
-	NSString*	dir = [[universe gameController] playerFileDirectory];
+	NSString*	dir = [[UNIVERSE gameController] playerFileDirectory];
 	if (!dir)	dir = [[NSFileManager defaultManager] defaultCommanderPath];
 	
 	if ([self handleGUIUpDownArrowKeys: gui :gameView])
@@ -437,7 +437,7 @@ MA 02110-1301, USA.
 			{
 				// change directory to the selected path
 				NSString* newDir = (NSString*)[cdr objectForKey:@"saved_game_path"];
-				[[universe gameController] setPlayerFileDirectory: newDir];
+				[[UNIVERSE gameController] setPlayerFileDirectory: newDir];
 				dir = newDir;
 				currentPage = 0;
 				[self lsCommanders: gui	directory: dir	pageNumber: currentPage  highlightName: nil];
@@ -499,7 +499,7 @@ MA 02110-1301, USA.
 - (void) nativeSavePlayer
             : (NSString *)cdrName
 {
-	NSString*	dir = [[universe gameController] playerFileDirectory];
+	NSString*	dir = [[UNIVERSE gameController] playerFileDirectory];
 	if (!dir)	dir = [[NSFileManager defaultManager] defaultCommanderPath];
 
 	NSString *savePath=[dir stringByAppendingPathComponent:[cdrName stringByAppendingPathExtension:@"oolite-save"]];
@@ -526,17 +526,17 @@ MA 02110-1301, USA.
 	if (save_path)
 		[save_path autorelease];
 	save_path = [savePath retain];
-	[[universe gameController] setPlayerFileToLoad:save_path];
-	[[universe gameController] setPlayerFileDirectory:save_path];
+	[[UNIVERSE gameController] setPlayerFileToLoad:save_path];
+	[[UNIVERSE gameController] setPlayerFileDirectory:save_path];
 
-	[universe clearPreviousMessage];	// allow this to be given time and again
-	[universe addMessage:ExpandDescriptionForCurrentSystem(@"[game-saved]") forCount:2];
+	[UNIVERSE clearPreviousMessage];	// allow this to be given time and again
+	[UNIVERSE addMessage:ExpandDescriptionForCurrentSystem(@"[game-saved]") forCount:2];
 }
 
 // check for an existing saved game...
 - (BOOL) existingNativeSave: (NSString *)cdrName
 {
-	NSString*	dir = [[universe gameController] playerFileDirectory];
+	NSString*	dir = [[UNIVERSE gameController] playerFileDirectory];
 	if (!dir)	dir = [[NSFileManager defaultManager] defaultCommanderPath];
 
 	NSString *savePath=[dir stringByAppendingPathComponent:[cdrName stringByAppendingPathExtension:@"oolite-save"]];
@@ -546,9 +546,9 @@ MA 02110-1301, USA.
 // Get some brief details about the commander file.
 - (void) showCommanderShip: (int)cdrArrayIndex
 {
-   NSDictionary *descriptions=[universe descriptions];
-   GuiDisplayGen *gui=[universe gui];
-   [universe removeDemoShips];
+   NSDictionary *descriptions=[UNIVERSE descriptions];
+   GuiDisplayGen *gui=[UNIVERSE gui];
+   [UNIVERSE removeDemoShips];
    NSDictionary *cdr=[cdrDetailArray objectAtIndex: cdrArrayIndex];
    	
 	[gui setText:@"" forRow: CDRDESCROW align: GUI_ALIGN_LEFT]; 
@@ -584,7 +584,7 @@ MA 02110-1301, USA.
 		return;
    
    if(!docked_station)
-      docked_station=[universe station];
+      docked_station=[UNIVERSE station];
 
    // Display the commander's ship.
    NSString *shipDesc=[cdr objectForKey:@"ship_desc"];
@@ -593,7 +593,7 @@ MA 02110-1301, USA.
    
    NS_DURING
 	   
-	   shipDict=[universe getDictionaryForShip: shipDesc];
+	   shipDict=[UNIVERSE getDictionaryForShip: shipDesc];
 	   
 	NS_HANDLER
 		

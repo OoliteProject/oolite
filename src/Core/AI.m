@@ -121,7 +121,7 @@ static NSString * const kOOLogAIPop						= @"ai.pop";
 {
 	owner = ship;   // now we assume this is retained elsewhere!
 	if (owner_desc)			[owner_desc release];
-	owner_desc = [[NSString stringWithFormat:@"%@ %d", [owner name], [owner universal_id]] retain];
+	owner_desc = [[NSString stringWithFormat:@"%@ %d", [owner name], [owner universalID]] retain];
 }
 
 - (void) preserveCurrentStateMachine
@@ -218,7 +218,7 @@ static NSString * const kOOLogAIPop						= @"ai.pop";
 	//  refresh name
 	//
 	if (owner_desc)			[owner_desc release];
-	owner_desc = [[NSString stringWithFormat:@"%@ %d", [owner name], [owner universal_id]] retain];
+	owner_desc = [[NSString stringWithFormat:@"%@ %d", [owner name], [owner universalID]] retain];
 	
 	// refresh stateMachineName
 	//
@@ -244,7 +244,7 @@ static NSString * const kOOLogAIPop						= @"ai.pop";
 {
 	if ([stateMachine objectForKey:stateName])
 	{
-		//if ((owner)&&([owner universal_id])&&([owner reportAImessages])) NSLog(@"AI for %@ enters state %@", owner_desc, stateName);
+		//if ((owner)&&([owner universalID])&&([owner reportAImessages])) NSLog(@"AI for %@ enters state %@", owner_desc, stateName);
 		//
 		[self reactToMessage:@"EXIT"];
 		if (currentState)		[currentState release];
@@ -265,7 +265,7 @@ static NSString * const kOOLogAIPop						= @"ai.pop";
 	if (!owner)
 		return;
 	//
-	if ([owner universal_id] == NO_TARGET)  // don't think until launched
+	if ([owner universalID] == NO_TARGET)  // don't think until launched
 		return;
 	//
 	if (!stateMachine)
@@ -367,7 +367,7 @@ static NSString * const kOOLogAIPop						= @"ai.pop";
 	
 	NSArray *ms_list = nil;
 	
-	if ([owner universal_id] == NO_TARGET)  // don't think until launched
+	if ([owner universalID] == NO_TARGET)  // don't think until launched
 		return;
 	//
 	
@@ -399,7 +399,7 @@ static NSString * const kOOLogAIPop						= @"ai.pop";
 
 - (void) message:(NSString *) ms
 {
-	if ([owner universal_id] == NO_TARGET)  // don't think until launched
+	if ([owner universalID] == NO_TARGET)  // don't think until launched
 		return;
 	//
 

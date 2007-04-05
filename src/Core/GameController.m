@@ -68,12 +68,12 @@ MA 02110-1301, USA.
 - (void) dealloc
 {
 #ifndef GNUSTEP
-	[[[NSWorkspace sharedWorkspace] notificationCenter]	removeObserver:universe];
+	[[[NSWorkspace sharedWorkspace] notificationCenter]	removeObserver:UNIVERSE];
 #endif
 	//
 	[timer release];
 	[gameView release];
-	[universe release];
+	[UNIVERSE release];
 	
 	[playerFileToLoad release];
 	[playerFileDirectory release];
@@ -280,23 +280,11 @@ static int _compareModes(id arg1, id arg2, void *context)
     return gameView;
 }
 
-- (Universe *) universe
-{
-    return universe;
-}
-
-- (void) setUniverse:(Universe *) theUniverse
-{
-    if (universe)	[universe release];
-    universe = [theUniverse retain];
-	if (gameView)   [universe setGameView:gameView];
-}
-
 - (void) setGameView:(MyOpenGLView *)view
 {
-    if (gameView)	[gameView release];
-    gameView = [view retain];
-	if (universe)   [universe setGameView:gameView];
+	[gameView release];
+	gameView = [view retain];
+	[UNIVERSE setGameView:gameView];
 	[gameView setGameController:self];
 }
 
@@ -344,9 +332,9 @@ static int _compareModes(id arg1, id arg2, void *context)
 		
 		// moved here to try to avoid initialising this before having an Open GL context
 		[self logProgress:@"initialising universe..."];
-		universe = [[Universe alloc] init];
+		UNIVERSE = [[Universe alloc] init];
 		
-		[universe setGameView:gameView];
+		[UNIVERSE setGameView:gameView];
 			
 		[self logProgress:@"loading player..."];
 		[self loadPlayerIfRequired];
@@ -423,9 +411,9 @@ static int _compareModes(id arg1, id arg2, void *context)
 		
 		// moved here to try to avoid initialising this before having an Open GL context
 		[self logProgress:@"initialising universe..."];
-		universe = [[Universe alloc] init];
+		[[Universe alloc] init];
 		
-		[universe setGameView:gameView];
+		[UNIVERSE setGameView:gameView];
 		
 		[self logProgress:@"loading player..."];
 		[self loadPlayerIfRequired];
@@ -501,8 +489,7 @@ static int _compareModes(id arg1, id arg2, void *context)
 			delta_t = MINIMUM_GAME_TICK;		// peg the maximum pause (at 0.5->1.0 seconds) to protect against when the machine sleeps	
 	}
 	//
-	if (universe)
-		[universe update:delta_t];
+	[UNIVERSE update:delta_t];
 	//
 #ifdef GNUSTEP
    // GNUstep's fullscreen is actually just a full screen window.
@@ -515,8 +502,7 @@ static int _compareModes(id arg1, id arg2, void *context)
 #else
 	if (fullscreen)
 	{
-		if (universe)
-			[universe drawFromEntity:0];
+		[UNIVERSE drawFromEntity:0];
 	}
 	else
 	{

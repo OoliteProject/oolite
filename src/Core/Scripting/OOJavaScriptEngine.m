@@ -704,7 +704,7 @@ static JSBool SystemGetProperty(JSContext *cx, JSObject *obj, jsval name, jsval 
 		currentSystem = playerEntity->system_seed;
 		
 		[planetinfo release];
-		planetinfo = [[[Universe sharedUniverse] generateSystemData:currentSystem] retain];
+		planetinfo = [[UNIVERSE generateSystemData:currentSystem] retain];
 	}
 
 	switch (JSVAL_TO_INT(name))
@@ -714,7 +714,7 @@ static JSBool SystemGetProperty(JSContext *cx, JSObject *obj, jsval name, jsval 
 			break;
 
 		case SYS_NAME:
-			if ([[Universe sharedUniverse] sun] != nil)
+			if ([UNIVERSE sun] != nil)
 			{
 				result = [planetinfo objectForKey:KEY_NAME];
 				if (result == nil) result = @"None";	// TODO: should this return JSVAL_VOID instead? Other cases below. -- ahruman
@@ -788,52 +788,51 @@ static JSBool SystemSetProperty(JSContext *cx, JSObject *obj, jsval name, jsval 
 		currentSystem = playerEntity->system_seed;
 		if (planetinfo)  [planetinfo release];
 
-		planetinfo = [[[Universe sharedUniverse] generateSystemData:currentSystem] retain];
+		planetinfo = [[UNIVERSE generateSystemData:currentSystem] retain];
 	}
 	int gn = [[playerEntity galaxy_number] intValue];
 	int pn = [[playerEntity planet_number] intValue];
-	Universe *universe = [Universe sharedUniverse];
 	
 	switch (JSVAL_TO_INT(name))
 	{
 		case SYS_NAME:
-			[universe setSystemDataForGalaxy:gn planet:pn key:KEY_NAME value:JSValToNSString(cx, *vp)];
+			[UNIVERSE setSystemDataForGalaxy:gn planet:pn key:KEY_NAME value:JSValToNSString(cx, *vp)];
 			break;
 
 			case SYS_DESCRIPTION:
-			[universe setSystemDataForGalaxy:gn planet:pn key:KEY_DESCRIPTION value:JSValToNSString(cx, *vp)];
+			[UNIVERSE setSystemDataForGalaxy:gn planet:pn key:KEY_DESCRIPTION value:JSValToNSString(cx, *vp)];
 			break;
 
 		case SYS_INHABITANTS:
-			[universe setSystemDataForGalaxy:gn planet:pn key:KEY_INHABITANTS value:JSValToNSString(cx, *vp)];
+			[UNIVERSE setSystemDataForGalaxy:gn planet:pn key:KEY_INHABITANTS value:JSValToNSString(cx, *vp)];
 			break;
 
 		case SYS_GOING_NOVA:
-			*vp = BOOLToJSVal([[universe sun] willGoNova]);
+			*vp = BOOLToJSVal([[UNIVERSE sun] willGoNova]);
 			break;
 
 		case SYS_GONE_NOVA:
-			*vp = BOOLToJSVal([[universe sun] goneNova]);
+			*vp = BOOLToJSVal([[UNIVERSE sun] goneNova]);
 			break;
 
 		case SYS_GOVT_ID:
-			[universe setSystemDataForGalaxy:gn planet:pn key:KEY_GOVERNMENT value:[NSNumber numberWithInt:[JSValToNSString(cx, *vp) intValue]]];
+			[UNIVERSE setSystemDataForGalaxy:gn planet:pn key:KEY_GOVERNMENT value:[NSNumber numberWithInt:[JSValToNSString(cx, *vp) intValue]]];
 			break;
 
 		case SYS_ECONOMY_ID:
-			[universe setSystemDataForGalaxy:gn planet:pn key:KEY_ECONOMY value:[NSNumber numberWithInt:[JSValToNSString(cx, *vp) intValue]]];
+			[UNIVERSE setSystemDataForGalaxy:gn planet:pn key:KEY_ECONOMY value:[NSNumber numberWithInt:[JSValToNSString(cx, *vp) intValue]]];
 			break;
 
 		case SYS_TECH_LVL:
-			[universe setSystemDataForGalaxy:gn planet:pn key:KEY_TECHLEVEL value:[NSNumber numberWithInt:[JSValToNSString(cx, *vp) intValue]]];
+			[UNIVERSE setSystemDataForGalaxy:gn planet:pn key:KEY_TECHLEVEL value:[NSNumber numberWithInt:[JSValToNSString(cx, *vp) intValue]]];
 			break;
 
 		case SYS_POPULATION:
-			[universe setSystemDataForGalaxy:gn planet:pn key:KEY_POPULATION value:[NSNumber numberWithInt:[JSValToNSString(cx, *vp) intValue]]];
+			[UNIVERSE setSystemDataForGalaxy:gn planet:pn key:KEY_POPULATION value:[NSNumber numberWithInt:[JSValToNSString(cx, *vp) intValue]]];
 			break;
 
 		case SYS_PRODUCTIVITY:
-			[universe setSystemDataForGalaxy:gn planet:pn key:KEY_PRODUCTIVITY value:[NSNumber numberWithInt:[JSValToNSString(cx, *vp) intValue]]];
+			[UNIVERSE setSystemDataForGalaxy:gn planet:pn key:KEY_PRODUCTIVITY value:[NSNumber numberWithInt:[JSValToNSString(cx, *vp) intValue]]];
 			break;
 	}
 	return JS_TRUE;
@@ -845,7 +844,7 @@ static JSBool SystemCountShipsWithRole(JSContext *cx, JSObject *obj, uintN argc,
 	if (argc == 1)
 	{
 		NSString *role = JSValToNSString(cx, argv[0]);
-		int num = [[Universe sharedUniverse] countShipsWithRole:role];
+		int num = [UNIVERSE countShipsWithRole:role];
 		*rval = INT_TO_JSVAL(num);
 	}
 	return JS_TRUE;
@@ -860,7 +859,7 @@ static JSBool SystemAddShips(JSContext *cx, JSObject *obj, uintN argc, jsval *ar
 		int num = JSVAL_TO_INT(argv[1]);
 
 		while (num--)
-			[[Universe sharedUniverse] witchspaceShipWithRole:role];
+			[UNIVERSE witchspaceShipWithRole:role];
 	}
 	return JS_TRUE;
 }
@@ -875,7 +874,7 @@ static JSBool SystemAddSystemShips(JSContext *cx, JSObject *obj, uintN argc, jsv
 		int num = JSVAL_TO_INT(argv[1]);
 		JS_ValueToNumber(cx, argv[2], &posn);
 		while (num--)
-			[[Universe sharedUniverse] addShipWithRole:role nearRouteOneAt:posn];
+			[UNIVERSE addShipWithRole:role nearRouteOneAt:posn];
 	}
 	return JS_TRUE;
 }

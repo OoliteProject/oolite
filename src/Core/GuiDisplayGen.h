@@ -45,7 +45,7 @@ MA 02110-1301, USA.
 #import "OpenGLSprite.h"
 #import "HeadUpDisplay.h"
 
-@class Universe, OOSound, OOColor;
+@class OOSound, OOColor;
 
 extern int debug;
 
@@ -183,15 +183,15 @@ extern int debug;
 - (void) setBackgroundImage:(NSImage *) bg_image;
 #endif
 
-- (int) drawGUI:(GLfloat) alpha forUniverse:(Universe*)universe drawCursor:(BOOL) drawCursor;
-- (int) drawGUI:(GLfloat)x :(GLfloat)y :(GLfloat)z :(GLfloat) alpha forUniverse:(Universe*)universe drawCursor:(BOOL) drawCursor;
-- (void) drawGUI:(GLfloat)x :(GLfloat)y :(GLfloat)z :(GLfloat) alpha forUniverse:(Universe*)universe;
+- (int) drawGUI:(GLfloat) alpha drawCursor:(BOOL) drawCursor;
+- (int) drawGUI:(GLfloat)x :(GLfloat)y :(GLfloat)z :(GLfloat) alpha drawCursor:(BOOL) drawCursor;
+- (void) drawGUI:(GLfloat)x :(GLfloat)y :(GLfloat)z :(GLfloat) alpha;
 
-- (void) drawGLDisplay:(GLfloat)x :(GLfloat)y :(GLfloat)z :(GLfloat) alpha forUniverse:(Universe*)universe;
+- (void) drawGLDisplay:(GLfloat)x :(GLfloat)y :(GLfloat)z :(GLfloat) alpha;
 
-- (void) drawStarChart:(GLfloat)x :(GLfloat)y :(GLfloat)z :(GLfloat) alpha forUniverse:(Universe*)universe;
-- (void) drawGalaxyChart:(GLfloat)x :(GLfloat)y :(GLfloat)z :(GLfloat) alpha forUniverse:(Universe*)universe;
+- (void) drawStarChart:(GLfloat)x :(GLfloat)y :(GLfloat)z :(GLfloat) alpha;
+- (void) drawGalaxyChart:(GLfloat)x :(GLfloat)y :(GLfloat)z :(GLfloat) alpha;
 
-- (void) drawAdvancedNavArrayAtX:(float)x y:(float)y z:(float)z alpha:(float)alpha forUniverse:(Universe*)universe;
+- (void) drawAdvancedNavArrayAtX:(float)x y:(float)y z:(float)z alpha:(float)alpha;
 
 @end

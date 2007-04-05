@@ -30,7 +30,7 @@ MA );-);, USA.
 	#define CASE(foo) case foo: return @#foo;
 
 
-NSString *EntityStatusToString(int status)
+NSString *EntityStatusToString(EntityStatus status)
 {
 	switch (status)
 	{
@@ -60,7 +60,7 @@ NSString *EntityStatusToString(int status)
 }
 
 
-NSString *ScanClassToString(int scanClass)
+NSString *ScanClassToString(ScanClass scanClass)
 {
 	switch (scanClass)
 	{
@@ -85,12 +85,48 @@ NSString *ScanClassToString(int scanClass)
 }
 
 
+NSString *InstinctToString(Instinct /* Instinct */ instinct)
+{
+	switch (instinct)
+	{
+		CASE(INSTINCT_ATTACK_PREY);
+		CASE(INSTINCT_AVOID_PREDATORS);
+		CASE(INSTINCT_AVOID_HAZARDS);
+		CASE(INSTINCT_FIGHT_OR_FLIGHT);
+		CASE(INSTINCT_FLOCK_ALIKE);
+		CASE(INSTINCT_FOLLOW_AI);
+		CASE(INSTINCT_NULL);
+		
+		default: return @"INSTINCT_UNKNOWN";
+	}
+}
+
+
+Instinct InstinctFromString(NSString* instinctString)
+{
+	if ([instinctString isEqual:@"INSTINCT_ATTACK_PREY"])
+		return INSTINCT_ATTACK_PREY;
+	if ([instinctString isEqual:@"INSTINCT_AVOID_PREDATORS"])
+		return INSTINCT_AVOID_PREDATORS;
+	if ([instinctString isEqual:@"INSTINCT_AVOID_HAZARDS"])
+		return INSTINCT_AVOID_HAZARDS;
+	if ([instinctString isEqual:@"INSTINCT_FIGHT_OR_FLIGHT"])
+		return INSTINCT_FIGHT_OR_FLIGHT;
+	if ([instinctString isEqual:@"INSTINCT_FLOCK_ALIKE"])
+		return INSTINCT_FLOCK_ALIKE;
+	if ([instinctString isEqual:@"INSTINCT_FOLLOW_AI"])
+		return INSTINCT_FOLLOW_AI;
+	
+	return INSTINCT_NULL;
+}
+
+
 NSString *GovernmentToString(unsigned government)
 {
 	NSArray		*strings = nil;
 	NSString	*value = nil;
 	
-	strings = [[[Universe sharedUniverse] descriptions] objectForKey:@"government"]; 
+	strings = [[UNIVERSE descriptions] objectForKey:@"government"]; 
 	if ([strings isKindOfClass:[NSArray class]] && government < [strings count])
 	{
 		value = [strings objectAtIndex:government];
@@ -106,7 +142,7 @@ NSString *EconomyToString(unsigned economy)
 	NSArray		*strings = nil;
 	NSString	*value = nil;
 	
-	strings = [[[Universe sharedUniverse] descriptions] objectForKey:@"economy"]; 
+	strings = [[UNIVERSE descriptions] objectForKey:@"economy"]; 
 	if ([strings isKindOfClass:[NSArray class]] && economy < [strings count])
 	{
 		value = [strings objectAtIndex:economy];

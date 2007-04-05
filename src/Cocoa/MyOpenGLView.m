@@ -174,16 +174,13 @@ static NSString * kOOLogKeyDown				= @"input.keyMapping.keyPress.keyDown";
     
 	// do all the drawing!
 	//
-	if ([gameController universe])
-		[[gameController universe] drawFromEntity:0];
+	if (UNIVERSE != nil)  [UNIVERSE drawFromEntity:0];
 	else
 	{
 		// not set up yet, draw a black screen
-		glClearColor( 0.0, 0.0, 0.0, 0.0);
-		glClear( GL_COLOR_BUFFER_BIT);
+		glClearColor(0.0, 0.0, 0.0, 0.0);
+		glClear(GL_COLOR_BUFFER_BIT);
 	}
-    //
-	////
 	
 	[[self openGLContext] flushBuffer];
 }
@@ -229,15 +226,14 @@ static NSString * kOOLogKeyDown				= @"input.keyMapping.keyPress.keyDown";
 	glEnable( GL_BLEND);								// alpha blending
 	glBlendFunc( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);	// alpha blending
 	
-	if ([gameController universe])
+	if (UNIVERSE)
 	{
-		Universe* uni = [gameController universe];
-		Entity* the_sun = [uni sun];
+		Entity* the_sun = [UNIVERSE sun];
 		Vector sun_pos = (the_sun)? the_sun->position : make_vector( 0.0f, 0.0f, 0.0f);
 		sun_center_position[0] = sun_pos.x;
 		sun_center_position[1] = sun_pos.y;
 		sun_center_position[2] = sun_pos.z;
-		[uni setLighting];
+		[UNIVERSE setLighting];
 	}
 	else
 	{	

@@ -255,8 +255,6 @@ extern int debug;
 		BOOL					doProcedurallyTexturedPlanets;
 }
 
-+ (id)sharedUniverse;
-
 - (id) init;
 - (void) dealloc;
 
@@ -273,7 +271,7 @@ extern int debug;
 
 - (void) sleepytime: (id) thing;
 
-- (void) set_up_universe_from_station;
+- (void) setUpUniverseFromStation;
 - (void) set_up_universe_from_witchspace;
 - (void) set_up_universe_from_misjump;
 - (void) set_up_witchspace;
@@ -355,7 +353,6 @@ extern int debug;
 
 - (id)entityForUniversalID:(int)u_id;
 
-BOOL maintainLinkedLists(Universe* uni);
 - (BOOL) addEntity:(Entity *) entity;
 - (BOOL) removeEntity:(Entity *) entity;
 - (BOOL) removeWithoutRecyclingEntity:(Entity *) entity;
@@ -510,6 +507,19 @@ double estimatedTimeForJourney(double distance, int hops);
 ////
 
 @end
+
+
+/*	Use UNIVERSE to refer to the global universe object.
+	The purpose of this is that it makes UNIVERSE essentially a read-only
+	global with zero overhead.
+*/
+extern Universe *gSharedUniverse;
+OOINLINE Universe *GetUniverse(void) INLINE_CONST_FUNC;
+OOINLINE Universe *GetUniverse(void)
+{
+	return gSharedUniverse;
+}
+#define UNIVERSE GetUniverse()
 
 
 NSComparisonResult compareName(NSDictionary *dict1, NSDictionary *dict2, void * context);

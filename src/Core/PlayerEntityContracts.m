@@ -23,7 +23,7 @@ MA 02110-1301, USA.
 */
 
 #import "PlayerEntity.h"
-#import "PlayerEntityScripting.h"
+#import "PlayerEntityLegacyScriptEngine.h"
 #import "PlayerEntityContracts.h"
 #import "Universe.h"
 #import "AI.h"
@@ -42,13 +42,13 @@ static NSString * const kOOLogNoteShowShipyardModel = @"script.debug.note.showSh
 
 - (NSString*) processEscapePods // removes pods from cargo bay and treats categories of characters carried
 {
-	if ([universe strict])
+	if ([UNIVERSE strict])
 		return [NSString string];	// return a blank string
 	
 	int i;
 	NSMutableString* result = [NSMutableString string];
 	NSMutableArray* rescuees = [NSMutableArray array];
-	int government = [(NSNumber *)[[universe currentSystemData] objectForKey:KEY_GOVERNMENT] intValue];
+	int government = [(NSNumber *)[[UNIVERSE currentSystemData] objectForKey:KEY_GOVERNMENT] intValue];
 	//
 	// step through the cargo removing crew from any escape pods
 	//
@@ -61,7 +61,7 @@ static NSString * const kOOLogNoteShowShipyardModel = @"script.debug.note.showSh
 		{
 			[rescuees addObjectsFromArray:[thing crew]];
 			[thing setCrew:(NSArray*) nil];
-			[universe recycleOrDiscard: thing];	// reuse before ...
+			[UNIVERSE recycleOrDiscard: thing];	// reuse before ...
 			[cargo removeObject: thing];		// removing from cargo
 			i--;
 		}
@@ -110,7 +110,7 @@ static NSString * const kOOLogNoteShowShipyardModel = @"script.debug.note.showSh
 {
 	NSString* result = nil;
 	
-	if (docked_station != [universe station])	// only drop off passengers or fulfil contracts at main station
+	if (docked_station != [UNIVERSE station])	// only drop off passengers or fulfil contracts at main station
 		return nil;
 	
 	// check escape pods...
@@ -126,7 +126,7 @@ static NSString * const kOOLogNoteShowShipyardModel = @"script.debug.note.showSh
 		int dest = [(NSNumber*)[passenger_info objectForKey:PASSENGER_KEY_DESTINATION] intValue];
 		int dest_eta = [(NSNumber*)[passenger_info objectForKey:PASSENGER_KEY_ARRIVAL_TIME] doubleValue] - ship_clock;
 		
-		if (equal_seeds( system_seed, [universe systemSeedForSystemNumber:dest]))
+		if (equal_seeds( system_seed, [UNIVERSE systemSeedForSystemNumber:dest]))
 		{
 			// we've arrived in system!
 			if (dest_eta > 0)
@@ -195,7 +195,7 @@ static NSString * const kOOLogNoteShowShipyardModel = @"script.debug.note.showSh
 		NSMutableArray* commodityInfo = [NSMutableArray arrayWithArray:(NSArray *)[manifest objectAtIndex:contract_cargo_type]];
 		int quantity_on_hand =  [(NSNumber *)[commodityInfo objectAtIndex:MARKET_QUANTITY] intValue];
 		
-		if (equal_seeds( system_seed, [universe systemSeedForSystemNumber:dest]))
+		if (equal_seeds( system_seed, [UNIVERSE systemSeedForSystemNumber:dest]))
 		{
 			// we've arrived in system!
 			if (dest_eta > 0)
@@ -507,11 +507,11 @@ static NSString * const kOOLogNoteShowShipyardModel = @"script.debug.note.showSh
 	NSMutableArray*		row_info = [NSMutableArray arrayWithCapacity:5];
 	
 	// set up initial markets if there are none
-	StationEntity* the_station = [universe station];
+	StationEntity* the_station = [UNIVERSE station];
 	if (![the_station localPassengers])
-		[the_station setLocalPassengers:[NSMutableArray arrayWithArray:[universe passengersForSystem:system_seed atTime:ship_clock]]];
+		[the_station setLocalPassengers:[NSMutableArray arrayWithArray:[UNIVERSE passengersForSystem:system_seed atTime:ship_clock]]];
 	if (![the_station localContracts])
-		[the_station setLocalContracts:[NSMutableArray arrayWithArray:[universe contractsForSystem:system_seed atTime:ship_clock]]];
+		[the_station setLocalContracts:[NSMutableArray arrayWithArray:[UNIVERSE contractsForSystem:system_seed atTime:ship_clock]]];
 		
 	NSMutableArray* passenger_market = [the_station localPassengers];
 	NSMutableArray* contract_market = [the_station localContracts];
@@ -539,7 +539,7 @@ static NSString * const kOOLogNoteShowShipyardModel = @"script.debug.note.showSh
 	{
 		NSDictionary* info = (NSDictionary *)[contract_market objectAtIndex:i];
 		int cargo_space_required = [(NSNumber *)[info objectForKey:CONTRACT_KEY_CARGO_AMOUNT] intValue];
-		int cargo_units = [universe unitsForCommodity:[(NSNumber *)[info objectForKey:CONTRACT_KEY_CARGO_TYPE] intValue]];
+		int cargo_units = [UNIVERSE unitsForCommodity:[(NSNumber *)[info objectForKey:CONTRACT_KEY_CARGO_TYPE] intValue]];
 		if (cargo_units == UNITS_KILOGRAMS)
 			cargo_space_required /= 1000;
 		if (cargo_units == UNITS_GRAMS)
@@ -551,7 +551,7 @@ static NSString * const kOOLogNoteShowShipyardModel = @"script.debug.note.showSh
 		
 	// GUI stuff
 	{
-		GuiDisplayGen* gui = [universe gui];
+		GuiDisplayGen* gui = [UNIVERSE gui];
 		
 		int tab_stops[GUI_MAX_COLUMNS]; 
 		int n_passengers = [passenger_market count];
@@ -562,7 +562,7 @@ static NSString * const kOOLogNoteShowShipyardModel = @"script.debug.note.showSh
 			n_contracts = 5;
 		
 		[gui clear];
-		[gui setTitle:[NSString stringWithFormat:@"%@ Carrier Market",[universe getSystemName:system_seed]]];
+		[gui setTitle:[NSString stringWithFormat:@"%@ Carrier Market",[UNIVERSE getSystemName:system_seed]]];
 		//
 		tab_stops[0] = 0;
 		tab_stops[1] = 160;
@@ -590,7 +590,7 @@ static NSString * const kOOLogNoteShowShipyardModel = @"script.debug.note.showSh
 			[row_info removeAllObjects];
 			[row_info addObject:[NSString stringWithFormat:@" %@ ",[passenger_info objectForKey:PASSENGER_KEY_NAME]]];
 			[row_info addObject:[NSString stringWithFormat:@" %@ ",[passenger_info objectForKey:PASSENGER_KEY_DESTINATION_NAME]]];
-			[row_info addObject:[NSString stringWithFormat:@" %@ ",[universe shortTimeDescription:dest_eta]]];
+			[row_info addObject:[NSString stringWithFormat:@" %@ ",[UNIVERSE shortTimeDescription:dest_eta]]];
 			[row_info addObject:[NSString stringWithFormat:@" %@ ",[(NSNumber*)[passenger_info objectForKey:PASSENGER_KEY_PREMIUM] stringValue]]];
 			[row_info addObject:[NSString stringWithFormat:@" %@ ",[(NSNumber*)[passenger_info objectForKey:PASSENGER_KEY_FEE] stringValue]]];
 			[gui setColor:[OOColor yellowColor] forRow:GUI_ROW_PASSENGERS_START + i];
@@ -618,7 +618,7 @@ static NSString * const kOOLogNoteShowShipyardModel = @"script.debug.note.showSh
 		{
 			NSDictionary* contract_info = (NSDictionary*)[contract_market objectAtIndex:i];
 			int cargo_space_required = [(NSNumber *)[contract_info objectForKey:CONTRACT_KEY_CARGO_AMOUNT] intValue];
-			int cargo_units = [universe unitsForCommodity:[(NSNumber *)[contract_info objectForKey:CONTRACT_KEY_CARGO_TYPE] intValue]];
+			int cargo_units = [UNIVERSE unitsForCommodity:[(NSNumber *)[contract_info objectForKey:CONTRACT_KEY_CARGO_TYPE] intValue]];
 			if (cargo_units == UNITS_KILOGRAMS)	cargo_space_required /= 1000;
 			if (cargo_units == UNITS_GRAMS)		cargo_space_required /= 1000000;
 			float premium = [(NSNumber *)[contract_info objectForKey:CONTRACT_KEY_PREMIUM] floatValue];
@@ -627,7 +627,7 @@ static NSString * const kOOLogNoteShowShipyardModel = @"script.debug.note.showSh
 			[row_info removeAllObjects];
 			[row_info addObject:[NSString stringWithFormat:@" %@ ",[contract_info objectForKey:CONTRACT_KEY_CARGO_DESCRIPTION]]];
 			[row_info addObject:[NSString stringWithFormat:@" %@ ",[contract_info objectForKey:CONTRACT_KEY_DESTINATION_NAME]]];
-			[row_info addObject:[NSString stringWithFormat:@" %@ ",[universe shortTimeDescription:dest_eta]]];
+			[row_info addObject:[NSString stringWithFormat:@" %@ ",[UNIVERSE shortTimeDescription:dest_eta]]];
 			[row_info addObject:[NSString stringWithFormat:@" %@ ",[(NSNumber*)[contract_info objectForKey:CONTRACT_KEY_PREMIUM] stringValue]]];
 			[row_info addObject:[NSString stringWithFormat:@" %@ ",[(NSNumber*)[contract_info objectForKey:CONTRACT_KEY_FEE] stringValue]]];
 			[gui setColor:[OOColor yellowColor] forRow:GUI_ROW_CARGO_START + i];
@@ -670,18 +670,18 @@ static NSString * const kOOLogNoteShowShipyardModel = @"script.debug.note.showSh
 	gui_screen = GUI_SCREEN_CONTRACTS;
 
 	[self setShowDemoShips: NO];
-	[universe setDisplayText: YES];
-	[universe setDisplayCursor: YES];
-	[universe setViewDirection: VIEW_GUI_DISPLAY];
+	[UNIVERSE setDisplayText: YES];
+	[UNIVERSE setDisplayCursor: YES];
+	[UNIVERSE setViewDirection: VIEW_GUI_DISPLAY];
 }
 
 
 - (BOOL) pickFromGuiContractsScreen
 {
-	GuiDisplayGen* gui = [universe gui];
+	GuiDisplayGen* gui = [UNIVERSE gui];
 	
-	NSMutableArray* passenger_market = [[universe station] localPassengers];
-	NSMutableArray* contract_market = [[universe station] localContracts];
+	NSMutableArray* passenger_market = [[UNIVERSE station] localPassengers];
+	NSMutableArray* contract_market = [[UNIVERSE station] localContracts];
 	
 	if (([gui selectedRow] >= GUI_ROW_PASSENGERS_START)&&([gui selectedRow] < GUI_ROW_CARGO_START))
 	{
@@ -707,7 +707,7 @@ static NSString * const kOOLogNoteShowShipyardModel = @"script.debug.note.showSh
 		int contract_premium = [(NSNumber*)[contract_info objectForKey:PASSENGER_KEY_PREMIUM] intValue];
 		int contract_amount = [(NSNumber*)[contract_info objectForKey:CONTRACT_KEY_CARGO_AMOUNT] intValue];
 		int contract_cargo_type = [(NSNumber*)[contract_info objectForKey:CONTRACT_KEY_CARGO_TYPE] intValue];
-		int contract_cargo_units = [universe unitsForCommodity:contract_cargo_type];
+		int contract_cargo_units = [UNIVERSE unitsForCommodity:contract_cargo_type];
 		int cargo_space_required = contract_amount;
 		if (contract_cargo_units == UNITS_KILOGRAMS)
 			cargo_space_required /= 1000;
@@ -748,11 +748,11 @@ static NSString * const kOOLogNoteShowShipyardModel = @"script.debug.note.showSh
 
 - (void) highlightSystemFromGuiContractsScreen
 {
-	MyOpenGLView*	gameView = (MyOpenGLView *)[universe gameView];
-	GuiDisplayGen*	gui = [universe gui];
+	MyOpenGLView*	gameView = (MyOpenGLView *)[UNIVERSE gameView];
+	GuiDisplayGen*	gui = [UNIVERSE gui];
 	
-	NSMutableArray*	passenger_market = [[universe station] localPassengers];
-	NSMutableArray*	contract_market = [[universe station] localContracts];
+	NSMutableArray*	passenger_market = [[UNIVERSE station] localPassengers];
+	NSMutableArray*	contract_market = [[UNIVERSE station] localContracts];
 	
 	if (([gui selectedRow] >= GUI_ROW_PASSENGERS_START)&&([gui selectedRow] < GUI_ROW_CARGO_START))
 	{
@@ -784,7 +784,7 @@ static NSString * const kOOLogNoteShowShipyardModel = @"script.debug.note.showSh
 		int dest_eta = [(NSNumber*)[passenger_info objectForKey:PASSENGER_KEY_ARRIVAL_TIME] doubleValue] - ship_clock;
 		
 		NSString* short_desc = [NSString stringWithFormat:@"\t%@ travelling to %@ to arrive within %@.",
-			passenger_name, passenger_dest_name, [universe shortTimeDescription:dest_eta]];
+			passenger_name, passenger_dest_name, [UNIVERSE shortTimeDescription:dest_eta]];
 		
 		[result addObject:short_desc];
 	}
@@ -804,7 +804,7 @@ static NSString * const kOOLogNoteShowShipyardModel = @"script.debug.note.showSh
 		int dest_eta = [(NSNumber*)[contract_info objectForKey:PASSENGER_KEY_ARRIVAL_TIME] doubleValue] - ship_clock;
 		
 		NSString* short_desc = [NSString stringWithFormat:@"\tDeliver %@ to %@ within %@.",
-			contract_cargo_desc, contract_dest_name, [universe shortTimeDescription:dest_eta]];
+			contract_cargo_desc, contract_dest_name, [UNIVERSE shortTimeDescription:dest_eta]];
 		
 		[result addObject:short_desc];
 	}
@@ -815,7 +815,7 @@ static NSString * const kOOLogNoteShowShipyardModel = @"script.debug.note.showSh
 {	
 	// GUI stuff
 	{
-		GuiDisplayGen* gui = [universe gui];
+		GuiDisplayGen* gui = [UNIVERSE gui];
 		int i = 0;
 		
 		int n_manifest_rows = 8;
@@ -853,7 +853,7 @@ static NSString * const kOOLogNoteShowShipyardModel = @"script.debug.note.showSh
 			//
 			for (i = 0; i < n_commodities; i++)
 			{
-				if ([universe unitsForCommodity:i] == UNITS_TONS)
+				if ([UNIVERSE unitsForCommodity:i] == UNITS_TONS)
 					current_cargo += [[(NSArray *)[shipCommodityData objectAtIndex:i] objectAtIndex:MARKET_QUANTITY] intValue];
 			}
 		}
@@ -949,14 +949,14 @@ static NSString * const kOOLogNoteShowShipyardModel = @"script.debug.note.showSh
 	gui_screen = GUI_SCREEN_MANIFEST;
 
 	[self setShowDemoShips: NO];
-	[universe setDisplayText: YES];
-	[universe setDisplayCursor: NO];
-	[universe setViewDirection: VIEW_GUI_DISPLAY];
+	[UNIVERSE setDisplayText: YES];
+	[UNIVERSE setDisplayCursor: NO];
+	[UNIVERSE setViewDirection: VIEW_GUI_DISPLAY];
 }
 
 - (void) setGuiToDeliveryReportScreenWithText:(NSString*) report
 {
-	GuiDisplayGen* gui = [universe gui];
+	GuiDisplayGen* gui = [UNIVERSE gui];
 	
 	int text_row = 1;
 	
@@ -997,14 +997,14 @@ static NSString * const kOOLogNoteShowShipyardModel = @"script.debug.note.showSh
 	gui_screen = GUI_SCREEN_REPORT;
 
 	[self setShowDemoShips: NO];
-	[universe setDisplayText: YES];
-	[universe setDisplayCursor: NO];
-	[universe setViewDirection: VIEW_GUI_DISPLAY];
+	[UNIVERSE setDisplayText: YES];
+	[UNIVERSE setDisplayCursor: NO];
+	[UNIVERSE setViewDirection: VIEW_GUI_DISPLAY];
 }
 
 - (void) setGuiToDockingReportScreen
 {
-	GuiDisplayGen* gui = [universe gui];
+	GuiDisplayGen* gui = [UNIVERSE gui];
 	
 	int text_row = 1;
 	
@@ -1057,9 +1057,9 @@ static NSString * const kOOLogNoteShowShipyardModel = @"script.debug.note.showSh
 	gui_screen = GUI_SCREEN_REPORT;
 
 	[self setShowDemoShips: NO];
-	[universe setDisplayText: YES];
-	[universe setDisplayCursor: NO];
-	[universe setViewDirection: VIEW_GUI_DISPLAY];
+	[UNIVERSE setDisplayText: YES];
+	[UNIVERSE setDisplayCursor: NO];
+	[UNIVERSE setViewDirection: VIEW_GUI_DISPLAY];
 }
 
 // ---------------------------------------------------------------------- //
@@ -1071,7 +1071,7 @@ static NSMutableDictionary* currentShipyard = nil;
 	int i;
 	
 	// set up initial market if there is none
-	StationEntity* the_station = [universe station];
+	StationEntity* the_station = [UNIVERSE station];
 
 	int station_tl = NSNotFound;
 	
@@ -1082,7 +1082,7 @@ static NSMutableDictionary* currentShipyard = nil;
 	}
 
 	if (![the_station localShipyard])
-		[the_station setLocalShipyard:[universe shipsForSaleForSystem:system_seed withTL:station_tl atTime:ship_clock]];
+		[the_station setLocalShipyard:[UNIVERSE shipsForSaleForSystem:system_seed withTL:station_tl atTime:ship_clock]];
 		
 	NSMutableArray* shipyard = [the_station localShipyard];
 		
@@ -1104,7 +1104,7 @@ static NSMutableDictionary* currentShipyard = nil;
 							forKey:(NSString *)[(NSDictionary *)[shipyard objectAtIndex:i] objectForKey:SHIPYARD_KEY_ID]];
 	}
 	
-	NSString* shipName = (NSString*)[[universe getDictionaryForShip:ship_desc] objectForKey:KEY_NAME];
+	NSString* shipName = (NSString*)[[UNIVERSE getDictionaryForShip:ship_desc] objectForKey:KEY_NAME];
 		
 	int n_ships = [shipyard count];
 
@@ -1116,12 +1116,12 @@ static NSMutableDictionary* currentShipyard = nil;
 	
 	// GUI stuff
 	{
-		GuiDisplayGen* gui = [universe gui];
+		GuiDisplayGen* gui = [UNIVERSE gui];
 		
 		int tab_stops[GUI_MAX_COLUMNS]; 
 		
 		[gui clear];
-		[gui setTitle:[NSString stringWithFormat:@"%@ Ships For Sale",[universe getSystemName:system_seed]]];
+		[gui setTitle:[NSString stringWithFormat:@"%@ Ships For Sale",[UNIVERSE getSystemName:system_seed]]];
 		//
 		tab_stops[0] = 0;
 		tab_stops[1] = 160;
@@ -1209,15 +1209,15 @@ static NSMutableDictionary* currentShipyard = nil;
 	// the following are necessary...
 
 	[self setShowDemoShips: (n_ships > 0)];
-	[universe setDisplayText: YES];
-	[universe setDisplayCursor: YES];
-	[universe setViewDirection: VIEW_GUI_DISPLAY];
+	[UNIVERSE setDisplayText: YES];
+	[UNIVERSE setDisplayCursor: YES];
+	[UNIVERSE setViewDirection: VIEW_GUI_DISPLAY];
 }
 
 - (void) showShipyardInfoForSelection
 {
 	int i;
-	GuiDisplayGen* gui = [universe gui];
+	GuiDisplayGen* gui = [UNIVERSE gui];
 	int sel_row = [gui selectedRow];
 	
 	if (sel_row <= 0)
@@ -1261,7 +1261,7 @@ static NSMutableDictionary* currentShipyard = nil;
 		[gui addLongText:sales_pitch startingAtRow:GUI_ROW_SHIPYARD_INFO_START align:GUI_ALIGN_LEFT];
 			
 		// now display the ship
-		[universe removeDemoShips];
+		[UNIVERSE removeDemoShips];
 		[self showShipyardModel:(NSDictionary*)[info objectForKey:SHIPYARD_KEY_SHIP]];
 	}
 	else
@@ -1282,20 +1282,20 @@ static NSMutableDictionary* currentShipyard = nil;
 	Quaternion		q2 = { (GLfloat)0.707, (GLfloat)0.707, (GLfloat)0.0, (GLfloat)0.0};
 	
 	ship = [[ShipEntity alloc] init];	//retained
-		
-	[ship setUniverse:universe];
+	
+	[ship wasAddedToUniverse];
 	[ship setUpShipFromDictionary:shipDict];
 	
 	GLfloat cr = ship->collision_radius;
 	OOLog(kOOLogNoteShowShipyardModel, @"::::: showShipyardModel:'%@'.", [ship name]);
 	[ship setQRotation: q2];
 	
-	[ship setPosition: 1.2 * cr : 0.8 * cr : 6.4 * cr];
+	[ship setPositionX:1.2 * cr y:0.8 * cr z:6.4 * cr];
 	[ship setStatus: STATUS_COCKPIT_DISPLAY];
 	[ship setScanClass: CLASS_NO_DRAW];
-	[ship setRoll: PI/10.0];
-	[ship setPitch: PI/25.0];
-	[universe addEntity: ship];
+	[ship setRoll: M_PI/10.0];
+	[ship setPitch: M_PI/25.0];
+	[UNIVERSE addEntity: ship];
 	[[ship getAI] setStateMachine: @"nullAI.plist"];
 	
 	[ship release];
@@ -1305,12 +1305,12 @@ static NSMutableDictionary* currentShipyard = nil;
 - (int) yourTradeInValue
 {
 	// returns down to 75% of the full credit value of your ship
-	return ship_trade_in_factor * [universe tradeInValueForCommanderDictionary:[self commanderDataDictionary]] / 100;
+	return ship_trade_in_factor * [UNIVERSE tradeInValueForCommanderDictionary:[self commanderDataDictionary]] / 100;
 }
 
 - (BOOL) buySelectedShip
 {
-	GuiDisplayGen* gui = [universe gui];
+	GuiDisplayGen* gui = [UNIVERSE gui];
 	int sel_row = [gui selectedRow];
 	
 	if (sel_row <= 0)
@@ -1323,10 +1323,10 @@ static NSMutableDictionary* currentShipyard = nil;
 		int from_ship = [(NSString*)[[key componentsSeparatedByString:@":"] objectAtIndex:1] intValue];
 		
 		[self setGuiToShipyardScreen:from_ship];
-		if ([[universe gui] selectedRow] < 0)
-			[[universe gui] setSelectedRow:GUI_ROW_SHIPYARD_START];
+		if ([[UNIVERSE gui] selectedRow] < 0)
+			[[UNIVERSE gui] setSelectedRow:GUI_ROW_SHIPYARD_START];
 		if (from_ship == 0)
-			[[universe gui] setSelectedRow:GUI_ROW_SHIPYARD_START + MAX_ROWS_SHIPS_FOR_SALE - 1];
+			[[UNIVERSE gui] setSelectedRow:GUI_ROW_SHIPYARD_START + MAX_ROWS_SHIPS_FOR_SALE - 1];
 		return YES;
 	}
 	
@@ -1373,10 +1373,10 @@ static NSMutableDictionary* currentShipyard = nil;
 	aft_weapon = WEAPON_NONE;
 	port_weapon = WEAPON_NONE;
 	starboard_weapon = WEAPON_NONE;
-	forward_weapon = [universe weaponForEquipmentKey:(NSString*)[(NSDictionary*)[ship_info objectForKey:SHIPYARD_KEY_SHIP] objectForKey:@"forward_weapon_type"]];
+	forward_weapon = [UNIVERSE weaponForEquipmentKey:(NSString*)[(NSDictionary*)[ship_info objectForKey:SHIPYARD_KEY_SHIP] objectForKey:@"forward_weapon_type"]];
 	
 	// get basic max_cargo
-	max_cargo = [universe maxCargoForShip:ship_desc];
+	max_cargo = [UNIVERSE maxCargoForShip:ship_desc];
 	
 	// reset BOOLS (has_ecm, has_scoop, has_energy_unit, has_docking_computer, has_galactic_hyperdrive, has_energy_bomb, has_escape_pod, has_fuel_injection) and int (energy_unit)
 	has_docking_computer = NO;
@@ -1408,7 +1408,7 @@ static NSMutableDictionary* currentShipyard = nil;
 	NSMutableArray* portable_equipment = [NSMutableArray array];
 	for (i = 0; i < [extra_equipment count]; i++)
 	{
-		NSArray* equipment = [universe equipmentdata];
+		NSArray* equipment = [UNIVERSE equipmentdata];
 		NSString* eq_desc = (NSString*)[[extra_equipment allKeys] objectAtIndex:i];
 		NSDictionary* eq_dict = nil;
 		int j;

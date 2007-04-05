@@ -35,7 +35,7 @@ MA 02110-1301, USA.
 #define DISPLAY_MIN_WIDTH	640
 #define DISPLAY_MIN_HEIGHT	480
 #else
-// *** Is there a reason for this difference? -- Jens
+// *** Is there a reason for this difference? -- Ahruman
 #define DISPLAY_MIN_WIDTH	800
 #define DISPLAY_MIN_HEIGHT	600
 #endif
@@ -46,7 +46,7 @@ MA 02110-1301, USA.
 // * reduced from 0.5s for tgape * //
 
 
-@class Universe, MyOpenGLView, TextureStore;
+@class MyOpenGLView, TextureStore;
 
 extern int debug;
 
@@ -61,8 +61,6 @@ extern int debug;
 	MyOpenGLView			*switchView;
 #endif
 	IBOutlet MyOpenGLView	*gameView;
-
-	Universe				*universe;
 
 	NSTimeInterval			last_timeInterval;
 	double					delta_t;
@@ -143,8 +141,6 @@ extern int debug;
 
 - (MyOpenGLView *) gameView;
 - (void) setGameView:(MyOpenGLView *)view;
-- (Universe *) universe;
-- (void) setUniverse:(Universe *) theUniverse;
 
 - (void)windowDidResize:(NSNotification *)aNotification;
 

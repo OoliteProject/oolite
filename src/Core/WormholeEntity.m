@@ -57,11 +57,9 @@ MA 02110-1301, USA.
 	collision_radius = 0.0;
 	//
 	status = STATUS_EFFECT;
-	scan_class = CLASS_MINE;
+	scanClass = CLASS_MINE;
 	//
-	[self setUniverse:[ship universe]];
-	//
-	position = [ship getPosition];
+	position = [ship position];
     //
 	PlayerEntity *player = [PlayerEntity sharedPlayer];
 	if (player)
@@ -74,7 +72,7 @@ MA 02110-1301, USA.
 
 - (BOOL) suckInShip:(ShipEntity *) ship
 {
-	if (equal_seeds( destination, [universe systemSeed]))
+	if (equal_seeds( destination, [UNIVERSE systemSeed]))
 		return NO;	// far end of the wormhole!
 	
 	if (ship)
@@ -85,20 +83,20 @@ MA 02110-1301, USA.
 										nil]];
 		witch_mass += [ship mass];
 		expiry_time = time_counter + WORMHOLE_EXPIRES_TIMEINTERVAL;
-		collision_radius = 0.5 * PI * pow( witch_mass, 1.0/3.0);
+		collision_radius = 0.5 * M_PI * pow( witch_mass, 1.0/3.0);
 
 		// witchspace entry effects here
 		ParticleEntity *ring = [[ParticleEntity alloc] initHyperringFromShip:ship]; // retained
-		[universe addEntity:ring];
+		[UNIVERSE addEntity:ring];
 		[ring release];
 		ring = [[ParticleEntity alloc] initHyperringFromShip:ship]; // retained
 		[ring setSize:NSMakeSize([ring size].width * -2.5 ,[ring size].height * -2.0 )]; // shrinking!
-		[universe addEntity:ring];
+		[UNIVERSE addEntity:ring];
 		[ring release];
 		
 		[[ship getAI] message:@"ENTERED_WITCHSPACE"];
 	
-		[universe removeWithoutRecyclingEntity: ship];
+		[UNIVERSE removeWithoutRecyclingEntity: ship];
 		[[ship getAI] clearStack];	// get rid of any preserved states
 		
 		//
@@ -119,7 +117,7 @@ MA 02110-1301, USA.
 		double	time_entered = [(NSNumber*)[(NSDictionary*)[shipsInTransit objectAtIndex:i] objectForKey:@"time"] doubleValue];
 		double	time_passed = time_counter - time_entered;
 
-		Vector pos = [universe getWitchspaceExitPosition];
+		Vector pos = [UNIVERSE getWitchspaceExitPosition];
 		Quaternion	q1;
 		quaternion_set_random(&q1);
 		double		d1 = SCANNER_MAX_RANGE*((ranrot_rand() % 256)/256.0 - 0.5);
@@ -130,7 +128,7 @@ MA 02110-1301, USA.
 		pos.y += v1.y * d1;
 		pos.z += v1.z * d1;
 		[ship setPosition: pos];
-		[ship setQRotation: [universe getWitchspaceExitRotation]];
+		[ship setQRotation: [UNIVERSE getWitchspaceExitRotation]];
 		[ship setPitch: 0.0];
 		[ship setRoll: 0.0];
 		
@@ -139,7 +137,7 @@ MA 02110-1301, USA.
 		if ([ship cargoFlag] == CARGO_FLAG_FULL_PLENTIFUL)
 			[ship setCargoFlag: CARGO_FLAG_FULL_SCARCE];
 		
-		[universe addEntity:ship];
+		[UNIVERSE addEntity:ship];
 		
 		[[ship getAI] reactToMessage:@"EXITED WITCHSPACE"];
 		
@@ -162,13 +160,13 @@ MA 02110-1301, USA.
 
 - (NSString*) description
 {
-	NSString* whereto = (universe) ? [universe getSystemName:destination] : StringFromRandomSeed(destination);
+	NSString* whereto = (UNIVERSE) ? [UNIVERSE getSystemName:destination] : StringFromRandomSeed(destination);
 	return [NSString stringWithFormat:@"<WormholeEntity to %@ ttl: %.2fs>", whereto, WORMHOLE_EXPIRES_TIMEINTERVAL - time_counter];
 }
 
 - (BOOL) canCollide
 {
-	if (equal_seeds( destination, [universe systemSeed]))
+	if (equal_seeds( destination, [UNIVERSE systemSeed]))
 		return NO;	// far end of the wormhole!
 	return (witch_mass > 0.0);
 }
@@ -217,22 +215,22 @@ MA 02110-1301, USA.
 		witch_mass -= WORMHOLE_SHRINK_RATE * delta_t;
 		if (witch_mass < 0.0)
 			witch_mass = 0.0;
-		collision_radius = 0.5 * PI * pow( witch_mass, 1.0/3.0);
+		collision_radius = 0.5 * M_PI * pow( witch_mass, 1.0/3.0);
 		no_draw_distance = collision_radius * collision_radius * NO_DRAW_DISTANCE_FACTOR * NO_DRAW_DISTANCE_FACTOR;
 	}
 
-	scan_class = (witch_mass > 0.0)? CLASS_WORMHOLE : CLASS_NO_DRAW;
+	scanClass = (witch_mass > 0.0)? CLASS_WORMHOLE : CLASS_NO_DRAW;
 	
 	if (time_counter > expiry_time)
-		[universe removeEntity: self];
+		[UNIVERSE removeEntity: self];
 }
 
 - (void) drawEntity:(BOOL) immediate :(BOOL) translucent;
 {	
-	if (!universe)
+	if (!UNIVERSE)
 		return;
 	
-	if ([universe breakPatternHide])
+	if ([UNIVERSE breakPatternHide])
 		return;		// DON'T DRAW DURING BREAK PATTERN
 	
 	if (zero_distance > no_draw_distance)
@@ -265,7 +263,7 @@ MA 02110-1301, USA.
 					
 		glEnable(GL_CULL_FACE);			// face culling
 	}
-	checkGLErrors(@"after drawing WormholeEntity.");
+	CheckOpenGLErrors(@"after drawing WormholeEntity.");
 }
 
 void drawWormholeCorona (double inner_radius, double outer_radius, int step, double z_distance, GLfloat* col4v1)

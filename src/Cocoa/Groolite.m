@@ -27,7 +27,7 @@ MA 02110-1301, USA.
 #import "GameController.h"
 #import "GuiDisplayGen.h"
 #import "Universe.h"
-#import "PlayerEntityScripting.h"
+#import "PlayerEntityLegacyScriptEngine.h"
 
 static NSString * const kOOLogGrooliteError	= @"growl.error";
 static NSString * const kOOLogGrooliteDebug	= @"growl.debug";
@@ -62,12 +62,10 @@ static NSString * const kOOLogGrooliteDebug	= @"growl.debug";
 
 - (void)displayGrowlNotificiationWithTitle:(NSString *)inTitle andMessage:(NSString *)inMessage fromApp:(NSString *) inAppname
 {
-	Universe				*universe;
 	PlayerEntity			*player;
 	NSString				*notificationString;
 	NSString				*displayString;
 	
-	universe = [gameController universe];
 	player = [PlayerEntity sharedPlayer];
 	
 	if (!inTitle)
@@ -99,8 +97,8 @@ static NSString * const kOOLogGrooliteDebug	= @"growl.debug";
 	
 	if ([player speech_on])
 	{
-		if ([universe isSpeaking]) [universe stopSpeaking];
-		[universe startSpeakingString:[NSString stringWithFormat:@"%@ message: %@", notificationString, inTitle]];
+		if ([UNIVERSE isSpeaking]) [UNIVERSE stopSpeaking];
+		[UNIVERSE startSpeakingString:[NSString stringWithFormat:@"%@ message: %@", notificationString, inTitle]];
 	}
 }
 

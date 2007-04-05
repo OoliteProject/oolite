@@ -366,7 +366,7 @@ MA 02110-1301, USA.
 			blob_quad[0][i] = blob_vector[i];
 
 			// rotate vi and vj a random amount
-			double r = randf() * PI * 2.0;
+			double r = randf() * M_PI * 2.0;
 			quaternion_rotate_about_axis(&q, vk, r);
 			vi = vector_right_from_quaternion(q);
 			vj = vector_up_from_quaternion(q);
@@ -455,7 +455,7 @@ MA 02110-1301, USA.
 
 - (void) drawEntity:(BOOL) immediate :(BOOL) translucent
 {
-	if ([universe breakPatternHide])   return; // DON'T DRAW
+	if ([UNIVERSE breakPatternHide])   return; // DON'T DRAW
 
     //
     if (!translucent)
@@ -473,21 +473,15 @@ MA 02110-1301, USA.
 			switch (sky_type)
 			{
 				case SKY_BILLBOARDS :
-
-					if ((star_textureName == 0)&&(universe))
-						star_textureName = [TextureStore getTextureNameFor:@"star64.png"];
-					if ((blob_textureName == 0)&&(universe))
-						blob_textureName = [TextureStore getTextureNameFor:@"galaxy256.png"];
-					//
+					if (star_textureName == 0)  star_textureName = [TextureStore getTextureNameFor:@"star64.png"];
+					if (blob_textureName == 0)  blob_textureName = [TextureStore getTextureNameFor:@"galaxy256.png"];
+					
 					glEnable(GL_TEXTURE_2D);
 					glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
-					//
-					// stars
 #ifdef GNUSTEP
                // TODO: find replacement for APPLE function
 #else
-					if (usingVAR)
-						glBindVertexArrayAPPLE(gVertexArrayRangeObjects[0]);
+					if (usingVAR)  glBindVertexArrayAPPLE(gVertexArrayRangeObjects[0]);
 #endif
 					glBindTexture(GL_TEXTURE_2D, star_textureName);
 
@@ -520,14 +514,13 @@ MA 02110-1301, USA.
 
 					//
 					// blobs
-					if (![universe reducedDetail])
+					if (![UNIVERSE reducedDetail])
 					{
 						glBindTexture(GL_TEXTURE_2D, blob_textureName);
 #ifdef GNUSTEP
                   // TODO: Find replacement for APPLE fncall
 #else
-						if (usingVAR)
-							glBindVertexArrayAPPLE(gVertexArrayRangeObjects[1]);
+						if (usingVAR)  glBindVertexArrayAPPLE(gVertexArrayRangeObjects[1]);
 #endif
 
 						glEnableClientState(GL_VERTEX_ARRAY);
@@ -564,23 +557,21 @@ MA 02110-1301, USA.
 		}
 		else
 		{
-			if (displayListName != 0)
-				glCallList(displayListName);
+			if (displayListName != 0)  glCallList(displayListName);
 			else
 			{
 				[self initialiseTextures];
 				[self generateDisplayList];
-				//
 			}
 		}
 
 		// reapply lighting &c
 		glEnable(GL_CULL_FACE);			// face culling
 		glEnable(GL_LIGHTING);
-		glEnable(GL_DEPTH_TEST);	// read the depth buffer
-		glDepthMask(GL_TRUE);	// restore write to depth buffer
+		glEnable(GL_DEPTH_TEST);		// read the depth buffer
+		glDepthMask(GL_TRUE);			// restore write to depth buffer
 	}
-	checkGLErrors([NSString stringWithFormat:@"SkyEntity after drawing %@", self]);
+	CheckOpenGLErrors([NSString stringWithFormat:@"SkyEntity after drawing %@", self]);
 }
 
 #ifdef WIN32

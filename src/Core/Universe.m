@@ -70,29 +70,26 @@ static NSString * const kOOLogEntityVerificationRebuild		= @"entity.linkedList.v
 static NSString * const kOOLogFoundBeacon					= @"beacon.list";
 
 
-static Universe *sSharedUniverse = nil;
+Universe *gSharedUniverse = nil;
+
+
+static BOOL MaintainLinkedLists(Universe* uni);
 
 
 @implementation Universe
-
-+ (id)sharedUniverse
-{
-	return sSharedUniverse;
-}
-
 
 - (id) init
 {	
     PlayerEntity	*player;
 	int i;
 	
-	if (sSharedUniverse != nil)
+	if (gSharedUniverse != nil)
 	{
 		[NSException raise:NSInternalInconsistencyException format:@"%s: expected only one Universe to exist at a time.", __FUNCTION__];
 	}
 	
 	self = [super init];
-	sSharedUniverse = self;
+	gSharedUniverse = self;
 	
 	n_entities = 0;
 	
@@ -243,7 +240,7 @@ static Universe *sSharedUniverse = nil;
 
 - (void) dealloc
 {
-	sSharedUniverse = nil;
+	gSharedUniverse = nil;
 	
     [currentMessage release];
     
@@ -462,7 +459,7 @@ static Universe *sSharedUniverse = nil;
 	
 	[player setStatus:STATUS_DOCKED];
 	[self setViewDirection:VIEW_GUI_DISPLAY];
-	[player setPosition:0 :0 :0];
+	[player setPosition:kZeroVector];
 	[player setQRotation:q0];
 	[player setGuiToIntro2Screen];
 	[gui setText:(strict)? @"Strict Play Enabled":@"Unrestricted Play Enabled" forRow:1 align:GUI_ALIGN_CENTER];
@@ -507,7 +504,7 @@ static Universe *sSharedUniverse = nil;
 	}
 }
 
-- (void) set_up_universe_from_station
+- (void) setUpUniverseFromStation
 {
 	if (![self sun])
 	{
@@ -549,9 +546,9 @@ static Universe *sSharedUniverse = nil;
 
 		[self set_up_space];	// first launch
 	}
-	station = [[self station] universal_id];
-	planet = [[self planet] universal_id];
-	sun = [[self sun] universal_id];
+	station = [[self station] universalID];
+	planet = [[self planet] universalID];
+	sun = [[self sun] universalID];
 	
 	[self setViewDirection:VIEW_FORWARD];
 	displayGUI = NO;
@@ -730,7 +727,7 @@ static Universe *sSharedUniverse = nil;
 	//		[thargoid setReportAImessages:YES];
 			[self addEntity:thargoid];
 			if (thargoid_group == NO_TARGET)
-				thargoid_group = [thargoid universal_id];
+				thargoid_group = [thargoid universalID];
 			
 			[thargoid setGroup_id:thargoid_group];
 			
@@ -819,13 +816,13 @@ static Universe *sSharedUniverse = nil;
 	seed_for_planet_description(system_seed);
 	
 	/*- space planet -*/
-	a_planet = [[PlanetEntity alloc] initWithSeed: system_seed fromUniverse: self];	// alloc retains!
+	a_planet = [[PlanetEntity alloc] initWithSeed: system_seed];	// alloc retains!
 	double planet_radius = [a_planet getRadius];
 	double planet_zpos = (12.0 + (ranrot_rand() & 3) - (ranrot_rand() & 3) ) * planet_radius; // 10..14 pr (planet radii) ahead
 	
 	[a_planet setPlanetType:PLANET_TYPE_GREEN];
 	[a_planet setStatus:STATUS_ACTIVE];
-	[a_planet setPosition: 0.0: 0.0: planet_zpos];
+	[a_planet setPositionX:0 y:0 z:planet_zpos];
 	[a_planet setScanClass: CLASS_NO_DRAW];
 	[a_planet setEnergy:  1000000.0];
 	[self addEntity:a_planet]; // [entities addObject:a_planet];
@@ -841,7 +838,7 @@ static Universe *sSharedUniverse = nil;
 	}
 	#endif
 	
-	planet = [a_planet universal_id];
+	planet = [a_planet universalID];
 	/*--*/
 	
 	// set the system seed for random number generation
@@ -885,7 +882,7 @@ static Universe *sSharedUniverse = nil;
 	[a_sun setScanClass: CLASS_NO_DRAW];
 	[a_sun setEnergy:  1000000.0];
 	[self addEntity:a_sun];					// [entities addObject:a_sun];
-	sun = [a_sun universal_id];
+	sun = [a_sun universalID];
 	
 	if (sun_gone_nova)
 	{
@@ -933,7 +930,7 @@ static Universe *sSharedUniverse = nil;
 		[a_station setPlanet:(PlanetEntity *)[self entityForUniversalID:planet]];
 		[a_station set_equivalent_tech_level:techlevel];
 		[self addEntity:a_station];
-		station = [a_station universal_id];
+		station = [a_station universalID];
 	}
 
 	cachedSun = a_sun;
@@ -967,7 +964,7 @@ static Universe *sSharedUniverse = nil;
 	{
 		[nav_buoy setRoll:	0.10];
 		[nav_buoy setPitch:	0.15];
-		[nav_buoy setPosition: witchpoint.x: witchpoint.y: witchpoint.z];
+		[nav_buoy setPosition:witchpoint];
 		[nav_buoy setScanClass: CLASS_BUOY];
 		[self addEntity:nav_buoy];
 		[nav_buoy setStatus:STATUS_IN_FLIGHT];
@@ -984,10 +981,10 @@ static Universe *sSharedUniverse = nil;
 		{
 			v0.z *= 2.0;
 			planetPos = a_planet->position;
-			[a_planet setPosition: planetPos.x + v0.x: planetPos.y + v0.y: planetPos.z + v0.z];
-			[a_sun setPosition: sunPos.x + v0.x: sunPos.y + v0.y: sunPos.z + v0.z];
+			[a_planet setPosition:vector_add(planetPos, v0)];
+			[a_sun setPosition:vector_add(sunPos, v0)];
 			sunPos = a_sun->position;
-			[a_station setPosition: stationPos.x + v0.x: stationPos.y + v0.y: stationPos.z + v0.z];
+			[a_station setPosition:vector_add(stationPos, v0)];
 			stationPos = a_station->position;
 		}
 		sun_center_position[0] = sunPos.x;
@@ -1119,8 +1116,6 @@ GLfloat docked_light_specular[]	= { (GLfloat) 1.0, (GLfloat) 1.0, (GLfloat) 0.5,
 	{
 		WormholeEntity* whole = (WormholeEntity*)[activeWormholes objectAtIndex:0];
 		
-		[whole setUniverse: self];
-		
 		if (equal_seeds( [whole destination], system_seed))
 		{			
 			// this is a wormhole to this system
@@ -1247,10 +1242,9 @@ GLfloat docked_light_specular[]	= { (GLfloat) 1.0, (GLfloat) 1.0, (GLfloat) 0.5,
 			if (![trader_ship crew])
 				[trader_ship setCrew:[NSArray arrayWithObject:
 					[OOCharacter randomCharacterWithRole:@"trader"
-					andOriginalSystem: systems[ranrot_rand() & 255]
-					inUniverse: self]]];
+					andOriginalSystem: systems[ranrot_rand() & 255]]]];
 			
-			if (trader_ship->scan_class == CLASS_NOT_SET)
+			if (trader_ship->scanClass == CLASS_NOT_SET)
 				[trader_ship setScanClass: CLASS_NEUTRAL];
 			[trader_ship setPosition:launch_pos];
 			[trader_ship setBounty:0];
@@ -1308,11 +1302,10 @@ GLfloat docked_light_specular[]	= { (GLfloat) 1.0, (GLfloat) 1.0, (GLfloat) 0.5,
 			{
 				[pirate_ship setCrew:[NSArray arrayWithObject:
 					[OOCharacter randomCharacterWithRole:@"pirate"
-					andOriginalSystem: (randf() > 0.25)? systems[ranrot_rand() & 255]:system_seed
-					inUniverse: self]]];
+					andOriginalSystem: (randf() > 0.25)? systems[ranrot_rand() & 255]:system_seed]]];
 			}
 			
-			if (pirate_ship->scan_class == CLASS_NOT_SET)
+			if (pirate_ship->scanClass == CLASS_NOT_SET)
 				[pirate_ship setScanClass: CLASS_NEUTRAL];
 			[pirate_ship setPosition:launch_pos];
 			[pirate_ship setStatus:STATUS_IN_FLIGHT];
@@ -1323,7 +1316,7 @@ GLfloat docked_light_specular[]	= { (GLfloat) 1.0, (GLfloat) 1.0, (GLfloat) 0.5,
 			
 			if (wolfPackCounter == 0)	// first ship
 			{
-				wolfPackGroup_id = [pirate_ship universal_id];
+				wolfPackGroup_id = [pirate_ship universalID];
 			}
 			[pirate_ship setGroup_id:wolfPackGroup_id];
 			
@@ -1362,11 +1355,10 @@ GLfloat docked_light_specular[]	= { (GLfloat) 1.0, (GLfloat) 1.0, (GLfloat) 0.5,
 				if (![hunter_ship crew])
 					[hunter_ship setCrew:[NSArray arrayWithObject:
 						[OOCharacter randomCharacterWithRole:@"police"
-						andOriginalSystem: (randf() > 0.05)? systems[ranrot_rand() & 255]:system_seed
-						inUniverse: self]]];
+						andOriginalSystem: (randf() > 0.05)? systems[ranrot_rand() & 255]:system_seed]]];
 				
 				[hunter_ship setRoles:@"police"];
-				if (hunter_ship->scan_class == CLASS_NOT_SET)
+				if (hunter_ship->scanClass == CLASS_NOT_SET)
 					[hunter_ship setScanClass: CLASS_POLICE];
 				while (((ranrot_rand() & 7) < government - 2)&&([hunter_ship n_escorts] < 6))
 				{
@@ -1378,13 +1370,12 @@ GLfloat docked_light_specular[]	= { (GLfloat) 1.0, (GLfloat) 1.0, (GLfloat) 0.5,
 		else
 		{
 			hunter_ship = [self newShipWithRole:@"hunter"];   // retain count = 1
-			if ((hunter_ship)&&(hunter_ship->scan_class == CLASS_NOT_SET))
+			if ((hunter_ship)&&(hunter_ship->scanClass == CLASS_NOT_SET))
 				[hunter_ship setScanClass: CLASS_NEUTRAL];
 			if (![hunter_ship crew])
 					[hunter_ship setCrew:[NSArray arrayWithObject:
 					[OOCharacter randomCharacterWithRole:@"hunter"
-					andOriginalSystem: (randf() > 0.75)? systems[ranrot_rand() & 255]:system_seed
-					inUniverse: self]]];
+					andOriginalSystem: (randf() > 0.75)? systems[ranrot_rand() & 255]:system_seed]]];
 				
 		}
 		if (hunter_ship)
@@ -1420,7 +1411,7 @@ GLfloat docked_light_specular[]	= { (GLfloat) 1.0, (GLfloat) 1.0, (GLfloat) 0.5,
 		thargoid_ship = [self newShipWithRole:@"thargoid"];   // retain count = 1
 		if (thargoid_ship)
 		{
-			if (thargoid_ship->scan_class == CLASS_NOT_SET)
+			if (thargoid_ship->scanClass == CLASS_NOT_SET)
 				[thargoid_ship setScanClass: CLASS_THARGOID];
 			[thargoid_ship setPosition:launch_pos];
 			[thargoid_ship setBounty:100];
@@ -1489,11 +1480,10 @@ GLfloat docked_light_specular[]	= { (GLfloat) 1.0, (GLfloat) 1.0, (GLfloat) 0.5,
 			if (![trader_ship crew])
 				[trader_ship setCrew:[NSArray arrayWithObject:
 					[OOCharacter randomCharacterWithRole:@"trader"
-					andOriginalSystem: (randf() > 0.85)? systems[ranrot_rand() & 255]:system_seed
-					inUniverse: self]]];
+					andOriginalSystem: (randf() > 0.85)? systems[ranrot_rand() & 255]:system_seed]]];
 				
 			[trader_ship setRoles:@"trader"];	// set this to allow escorts to pair with the ship
-			if ((trader_ship)&&(trader_ship->scan_class == CLASS_NOT_SET))
+			if ((trader_ship)&&(trader_ship->scanClass == CLASS_NOT_SET))
 				[trader_ship setScanClass: CLASS_NEUTRAL];
 			[trader_ship setPosition:launch_pos];
 			[trader_ship setBounty:0];
@@ -1552,10 +1542,9 @@ GLfloat docked_light_specular[]	= { (GLfloat) 1.0, (GLfloat) 1.0, (GLfloat) 0.5,
 			if (![pirate_ship crew])
 				[pirate_ship setCrew:[NSArray arrayWithObject:
 					[OOCharacter randomCharacterWithRole:@"pirate"
-					andOriginalSystem: (randf() > 0.25)? systems[ranrot_rand() & 255]:system_seed
-					inUniverse: self]]];
+					andOriginalSystem: (randf() > 0.25)? systems[ranrot_rand() & 255]:system_seed]]];
 
-			if (pirate_ship->scan_class == CLASS_NOT_SET)
+			if (pirate_ship->scanClass == CLASS_NOT_SET)
 				[pirate_ship setScanClass: CLASS_NEUTRAL];
 			[pirate_ship setPosition: launch_pos];
 			[pirate_ship setStatus: STATUS_IN_FLIGHT];
@@ -1565,7 +1554,7 @@ GLfloat docked_light_specular[]	= { (GLfloat) 1.0, (GLfloat) 1.0, (GLfloat) 0.5,
 			[self addEntity:pirate_ship];
 			
 			if (wolfPackCounter == 0)	// first ship
-				wolfPackGroup_id = [pirate_ship universal_id];
+				wolfPackGroup_id = [pirate_ship universalID];
 
 			[pirate_ship setGroup_id:wolfPackGroup_id];
 			
@@ -1605,11 +1594,10 @@ GLfloat docked_light_specular[]	= { (GLfloat) 1.0, (GLfloat) 1.0, (GLfloat) 0.5,
 				if (![hunter_ship crew])
 					[hunter_ship setCrew:[NSArray arrayWithObject:
 						[OOCharacter randomCharacterWithRole:@"police"
-						andOriginalSystem: (randf() > 0.05)? systems[ranrot_rand() & 255]:system_seed
-						inUniverse: self]]];
+						andOriginalSystem: (randf() > 0.05)? systems[ranrot_rand() & 255]:system_seed]]];
 				
 				[hunter_ship setRoles:@"police"];
-				if (hunter_ship->scan_class == CLASS_NOT_SET)
+				if (hunter_ship->scanClass == CLASS_NOT_SET)
 					[hunter_ship setScanClass: CLASS_POLICE];
 				while (((ranrot_rand() & 7) < government - 2)&&([hunter_ship n_escorts] < 6))
 				{
@@ -1621,13 +1609,12 @@ GLfloat docked_light_specular[]	= { (GLfloat) 1.0, (GLfloat) 1.0, (GLfloat) 0.5,
 		else
 		{
 			hunter_ship = [self newShipWithRole:@"hunter"];   // retain count = 1
-			if ((hunter_ship)&&(hunter_ship->scan_class == CLASS_NOT_SET))
+			if ((hunter_ship)&&(hunter_ship->scanClass == CLASS_NOT_SET))
 				[hunter_ship setScanClass: CLASS_NEUTRAL];
 			if (![hunter_ship crew])
 					[hunter_ship setCrew:[NSArray arrayWithObject:
 						[OOCharacter randomCharacterWithRole:@"hunter"
-						andOriginalSystem: (randf() > 0.75)? systems[ranrot_rand() & 255]:system_seed
-						inUniverse: self]]];
+						andOriginalSystem: (randf() > 0.75)? systems[ranrot_rand() & 255]:system_seed]]];
 				
 		}
 		
@@ -1692,7 +1679,7 @@ GLfloat docked_light_specular[]	= { (GLfloat) 1.0, (GLfloat) 1.0, (GLfloat) 0.5,
 		asteroid = [self newShipWithRole:@"asteroid"];   // retain count = 1
 		if (asteroid)
 		{
-			if (asteroid->scan_class == CLASS_NOT_SET)
+			if (asteroid->scanClass == CLASS_NOT_SET)
 				[asteroid setScanClass: CLASS_ROCK];
 			[asteroid setPosition:launch_pos];
 			[asteroid setVelocity:spawnVel];
@@ -1719,7 +1706,7 @@ GLfloat docked_light_specular[]	= { (GLfloat) 1.0, (GLfloat) 1.0, (GLfloat) 0.5,
 		hermit = (StationEntity *)[self newShipWithRole:@"rockhermit"];   // retain count = 1
 		if (hermit)
 		{
-			if (hermit->scan_class == CLASS_NOT_SET)
+			if (hermit->scanClass == CLASS_NOT_SET)
 				[hermit setScanClass: CLASS_ROCK];
 			[hermit setPosition:launch_pos];
 			[hermit setVelocity:spawnVel];
@@ -1758,10 +1745,9 @@ GLfloat docked_light_specular[]	= { (GLfloat) 1.0, (GLfloat) 1.0, (GLfloat) 0.5,
 		if (![ship crew])
 			[ship setCrew:[NSArray arrayWithObject:
 				[OOCharacter randomCharacterWithRole: desc
-				andOriginalSystem: systems[ranrot_rand() & 255]
-				inUniverse: self]]];
+				andOriginalSystem: systems[ranrot_rand() & 255]]]];
 				
-		if ((ship->scan_class == CLASS_NO_DRAW)||(ship->scan_class == CLASS_NOT_SET))
+		if ((ship->scanClass == CLASS_NO_DRAW)||(ship->scanClass == CLASS_NOT_SET))
 			[ship setScanClass: CLASS_NEUTRAL];
 		[ship setPosition:launch_pos];
 		[self addEntity:ship];
@@ -2041,10 +2027,9 @@ GLfloat docked_light_specular[]	= { (GLfloat) 1.0, (GLfloat) 1.0, (GLfloat) 0.5,
 		if (![ship crew])
 			[ship setCrew:[NSArray arrayWithObject:
 				[OOCharacter randomCharacterWithRole: desc
-				andOriginalSystem: systems[ranrot_rand() & 255]
-				inUniverse: self]]];
+				andOriginalSystem: systems[ranrot_rand() & 255]]]];
 				
-		if ((ship->scan_class == CLASS_NO_DRAW)||(ship->scan_class == CLASS_NOT_SET))
+		if ((ship->scanClass == CLASS_NO_DRAW)||(ship->scanClass == CLASS_NOT_SET))
 			[ship setScanClass: CLASS_NEUTRAL];
 		[ship setPosition:launch_pos];
 		[self addEntity:ship];
@@ -2078,8 +2063,7 @@ GLfloat docked_light_specular[]	= { (GLfloat) 1.0, (GLfloat) 1.0, (GLfloat) 0.5,
 		if (![ship crew])
 			[ship setCrew:[NSArray arrayWithObject:
 				[OOCharacter randomCharacterWithRole: desc
-				andOriginalSystem: systems[ranrot_rand() & 255]
-				inUniverse: self]]];
+				andOriginalSystem: systems[ranrot_rand() & 255]]]];
 		
 		GLfloat safe_distance2 = 2.0 * ship->collision_radius * ship->collision_radius * PROXIMITY_WARN_DISTANCE2;
 		
@@ -2123,7 +2107,7 @@ GLfloat docked_light_specular[]	= { (GLfloat) 1.0, (GLfloat) 1.0, (GLfloat) 0.5,
 			
 		} while (!safe);
 		
-		if ((ship->scan_class == CLASS_NO_DRAW)||(ship->scan_class == CLASS_NOT_SET))
+		if ((ship->scanClass == CLASS_NO_DRAW)||(ship->scanClass == CLASS_NOT_SET))
 			[ship setScanClass: CLASS_NEUTRAL];
 		[ship setPosition:ship_pos];
 		
@@ -2231,10 +2215,9 @@ GLfloat docked_light_specular[]	= { (GLfloat) 1.0, (GLfloat) 1.0, (GLfloat) 0.5,
 		if (![ship crew])
 			[ship setCrew:[NSArray arrayWithObject:
 				[OOCharacter randomCharacterWithRole: desc
-				andOriginalSystem: systems[ranrot_rand() & 255]
-				inUniverse: self]]];
+				andOriginalSystem: systems[ranrot_rand() & 255]]]];
 				
-		if ((ship->scan_class == CLASS_NO_DRAW)||(ship->scan_class == CLASS_NOT_SET))
+		if ((ship->scanClass == CLASS_NO_DRAW)||(ship->scanClass == CLASS_NOT_SET))
 			[ship setScanClass: CLASS_NEUTRAL];
 		[ship setPosition: pos];
 		[self addEntity:ship];
@@ -2294,7 +2277,7 @@ GLfloat docked_light_specular[]	= { (GLfloat) 1.0, (GLfloat) 1.0, (GLfloat) 0.5,
 	if ([spawndict objectForKey:@"facing_position"])
 	{
 		Vector pos, rpos;
-		Vector spos = [ship getPosition];
+		Vector spos = [ship position];
 		Quaternion q1;
 		NSString* positionString = [spawndict objectForKey:@"facing_position"];
 		NSArray* positiontokens = ScanTokensFromString(positionString);
@@ -2314,7 +2297,7 @@ GLfloat docked_light_specular[]	= { (GLfloat) 1.0, (GLfloat) 1.0, (GLfloat) 0.5,
 			
 			GLfloat check = dot_product( vector_forward_from_quaternion(q1), rpos);
 			if (check < 0)
-				quaternion_rotate_about_axis(&q1, vector_right_from_quaternion(q1), PI);	// 180 degree flip
+				quaternion_rotate_about_axis(&q1, vector_right_from_quaternion(q1), M_PI);	// 180 degree flip
 			
 			[ship setQRotation:q1];
 		}
@@ -2336,7 +2319,7 @@ GLfloat docked_light_specular[]	= { (GLfloat) 1.0, (GLfloat) 1.0, (GLfloat) 0.5,
 	ship = [self newShipWithRole:desc];   // retain count = 1
 	if (ship)
 	{
-		if ((ship->scan_class == CLASS_NO_DRAW)||(ship->scan_class == CLASS_NOT_SET))
+		if ((ship->scanClass == CLASS_NO_DRAW)||(ship->scanClass == CLASS_NOT_SET))
 			[ship setScanClass: CLASS_NEUTRAL];
 		if ([desc isEqual:@"trader"])
 		{
@@ -2354,10 +2337,8 @@ GLfloat docked_light_specular[]	= { (GLfloat) 1.0, (GLfloat) 1.0, (GLfloat) 0.5,
 		if (![ship crew])
 			[ship setCrew:[NSArray arrayWithObject:
 				[OOCharacter randomCharacterWithRole: desc
-				andOriginalSystem: systems[ranrot_rand() & 255]
-				inUniverse: self]]];
-				
-		[ship setUniverse:self];
+				andOriginalSystem: systems[ranrot_rand() & 255]]]];
+		
 		[ship leaveWitchspace];				// gets added to the universe here!
 		[[ship getAI] setState:@"GLOBAL"];	// must happen after adding to the universe!
 		[ship setStatus:STATUS_IN_FLIGHT];	// or ships may not werk rite d'uh!
@@ -2383,10 +2364,9 @@ GLfloat docked_light_specular[]	= { (GLfloat) 1.0, (GLfloat) 1.0, (GLfloat) 0.5,
 		if (![ship crew])
 			[ship setCrew:[NSArray arrayWithObject:
 				[OOCharacter randomCharacterWithRole: desc
-				andOriginalSystem: systems[ranrot_rand() & 255]
-				inUniverse: self]]];
+				andOriginalSystem: systems[ranrot_rand() & 255]]]];
 				
-		if (ship->scan_class <= CLASS_NO_DRAW)
+		if (ship->scanClass <= CLASS_NO_DRAW)
 			[ship setScanClass: CLASS_NEUTRAL];
 		[ship setPosition:spawn_pos];
 		[ship setQRotation:spawn_q];
@@ -2411,7 +2391,7 @@ GLfloat docked_light_specular[]	= { (GLfloat) 1.0, (GLfloat) 1.0, (GLfloat) 0.5,
 	for (i = 1; i < 11; i++)
 	{
 		ring = (RingEntity *)[self allocRecycledOrNewEntity:@"RingEntity"];
-		[ring setPosition:pos.x+v.x*i*50.0:pos.y+v.y*i*50.0:pos.z+v.z*i*50.0]; // ahead of the player
+		[ring setPositionX:pos.x+v.x*i*50.0 y:pos.y+v.y*i*50.0 z:pos.z+v.z*i*50.0]; // ahead of the player
 		[ring setQRotation:q];
 		[ring setVelocity:v];
 		[ring setLifetime:i*50.0];
@@ -2458,7 +2438,7 @@ GLfloat docked_light_specular[]	= { (GLfloat) 1.0, (GLfloat) 1.0, (GLfloat) 0.5,
 	ShipEntity		*ship;
 	Quaternion		q2;
 	q2.x = 0.0;   q2.y = 0.0;   q2.z = 0.0; q2.w = 1.0;
-	quaternion_rotate_about_y(&q2,PI);
+	quaternion_rotate_about_y(&q2,M_PI);
 	
 	// in status demo : draw ships and display text
 	
@@ -2472,11 +2452,11 @@ GLfloat docked_light_specular[]	= { (GLfloat) 1.0, (GLfloat) 1.0, (GLfloat) 0.5,
 	{
 		[ship setStatus: STATUS_COCKPIT_DISPLAY];
 		[ship setQRotation:q2];
-		[ship setPosition: 0.0f : 0.0f :3.6f * ship->actual_radius];	// some way ahead
+		[ship setPositionX:0.0f y:0.0f z:3.6f * ship->actual_radius];	// some way ahead
 		
 		[ship setScanClass: CLASS_NO_DRAW];
-		[ship setRoll:PI/5.0];
-		[ship setPitch:PI/10.0];
+		[ship setRoll:M_PI/5.0];
+		[ship setPitch:M_PI/10.0];
 		[[ship getAI] setStateMachine:@"nullAI.plist"];
 		[self addEntity:ship];
 		
@@ -2496,7 +2476,7 @@ GLfloat docked_light_specular[]	= { (GLfloat) 1.0, (GLfloat) 1.0, (GLfloat) 0.5,
 	ShipEntity		*ship;
 	Quaternion		q2;
 	q2.x = 0.0;   q2.y = 0.0;   q2.z = 0.0; q2.w = 1.0;
-	quaternion_rotate_about_y(&q2,PI);
+	quaternion_rotate_about_y(&q2,M_PI);
 	
 	// in status demo draw ships and display text
 	
@@ -2511,12 +2491,12 @@ GLfloat docked_light_specular[]	= { (GLfloat) 1.0, (GLfloat) 1.0, (GLfloat) 0.5,
 	if (ship)
 	{
 		[ship setQRotation:q2];
-		[ship setPosition: 0.0f : 0.0f : 3.6f * ship->actual_radius];
+		[ship setPositionX:0.0f y:0.0f z:3.6f * ship->actual_radius];
 		[ship setDestination: ship->position];	// ideal position
 		
 		[ship setScanClass: CLASS_NO_DRAW];
-		[ship setRoll:PI/5.0];
-		[ship setPitch:PI/10.0];
+		[ship setRoll:M_PI/5.0];
+		[ship setPitch:M_PI/10.0];
 		[[ship getAI] setStateMachine:@"nullAI.plist"];
 		[self addEntity:ship];
 		
@@ -2571,10 +2551,10 @@ GLfloat docked_light_specular[]	= { (GLfloat) 1.0, (GLfloat) 1.0, (GLfloat) 0.5,
 		for (i = 0; ((i < station_count)&&(station == NO_TARGET)) ; i++)
 		{
 			Entity* thing = my_entities[i];
-			if (thing->scan_class == CLASS_STATION)
+			if (thing->scanClass == CLASS_STATION)
 			{
 				cachedStation = (StationEntity *)thing;
-				station = [thing universal_id];
+				station = [thing universalID];
 			}
 		}
 		for (i = 0; i < station_count; i++)
@@ -2606,7 +2586,7 @@ GLfloat docked_light_specular[]	= { (GLfloat) 1.0, (GLfloat) 1.0, (GLfloat) 0.5,
 			if ([thing getPlanetType] == PLANET_TYPE_GREEN)
 			{
 				cachedPlanet = thing;
-				planet = [cachedPlanet universal_id];
+				planet = [cachedPlanet universalID];
 			}
 		}
 		for (i = 0; i < planet_count; i++)
@@ -2637,7 +2617,7 @@ GLfloat docked_light_specular[]	= { (GLfloat) 1.0, (GLfloat) 1.0, (GLfloat) 0.5,
 			if ([thing getPlanetType] == PLANET_TYPE_SUN)
 			{
 				cachedSun = (PlanetEntity*)thing;
-				sun = [cachedSun universal_id];
+				sun = [cachedSun universalID];
 			}
 		}
 		for (i = 0; i < planet_count; i++)
@@ -2676,7 +2656,7 @@ GLfloat docked_light_specular[]	= { (GLfloat) 1.0, (GLfloat) 1.0, (GLfloat) 0.5,
 		[beaconShip setNextBeacon:nil];
 		if ([self lastBeacon])
 			[[self lastBeacon] setNextBeacon:beaconShip];
-		lastBeacon = [beaconShip universal_id];
+		lastBeacon = [beaconShip universalID];
 		if (![self firstBeacon])
 			firstBeacon = lastBeacon;
 	}
@@ -2783,7 +2763,6 @@ GLfloat docked_light_specular[]	= { (GLfloat) 1.0, (GLfloat) 1.0, (GLfloat) 0.5,
 	{
 		Class   required_class = [[NSBundle mainBundle] classNamed:classname];
 		entity = [[required_class alloc] init];
-		[entity setUniverse:self];  // ensures access to preloaded data
 	}
 	return entity;
 }
@@ -2913,7 +2892,6 @@ GLfloat docked_light_specular[]	= { (GLfloat) 1.0, (GLfloat) 1.0, (GLfloat) 0.5,
 		ship = (StationEntity *)[self allocRecycledOrNewEntity:@"StationEntity"];	// is returned retained
 	else
 		ship = (ShipEntity *)[self allocRecycledOrNewEntity:@"ShipEntity"];	// is returned retained
-	[ship setUniverse:self];
 
 	NS_DURING	
 		[ship setUpShipFromDictionary:shipDict];
@@ -3087,7 +3065,6 @@ GLfloat docked_light_specular[]	= { (GLfloat) 1.0, (GLfloat) 1.0, (GLfloat) 0.5,
 		// into the barrel it goes...
 		if (container)
 		{
-			[container setUniverse:self];
 			[container setScanClass: CLASS_CARGO];
 			[container setCommodity:co_type andAmount:co_amount];
 			[accumulator addObject:container];
@@ -3147,7 +3124,6 @@ GLfloat docked_light_specular[]	= { (GLfloat) 1.0, (GLfloat) 1.0, (GLfloat) 0.5,
 		
 		if (container)
 		{
-			[container setUniverse:self];
 			[container setScanClass: CLASS_CARGO];
 			[container setCommodity:co_type andAmount:co_amount];
 			[accumulator addObject:container];
@@ -3183,7 +3159,6 @@ GLfloat docked_light_specular[]	= { (GLfloat) 1.0, (GLfloat) 1.0, (GLfloat) 0.5,
 		// into the barrel it goes...
 		if (container)
 		{
-			[container setUniverse:self];
 			[container setScanClass: CLASS_CARGO];
 			[container setCommodity:commodity_type andAmount:amount];
 			[accumulator addObject:container];
@@ -3400,7 +3375,7 @@ GLfloat* custom_matrix;
 				return; // don't draw if there's not a viewing entity!
 			}
 						
-			position = [viewthing getViewpointPosition];
+			position = [viewthing viewpointPosition];
 			v_status = viewthing->status;
 			
 			GLfloat* view_matrix = fwd_matrix;
@@ -3420,7 +3395,7 @@ GLfloat* custom_matrix;
 				/* -- */
 			}
 			
-			checkGLErrors(@"Universe before doing anything");
+			CheckOpenGLErrors(@"Universe before doing anything");
 			
 			glEnable(GL_LIGHTING);
 			glEnable(GL_DEPTH_TEST);
@@ -3548,7 +3523,7 @@ GLfloat* custom_matrix;
 						}
 						else
 						{
-							Vector viewOffset = [viewthing getViewpointOffset];
+							Vector viewOffset = [viewthing viewpointOffset];
 							// get saved viewpoint
 							glLoadMatrixf( saved_flat_matrix);
 							// rotate according to view direction
@@ -3624,7 +3599,7 @@ GLfloat* custom_matrix;
 						}
 						else
 						{
-							Vector viewOffset = [viewthing getViewpointOffset];
+							Vector viewOffset = [viewthing viewpointOffset];
 							// get saved viewpoint
 							glLoadMatrixf( saved_flat_matrix);
 							// rotate according to view direction
@@ -3690,7 +3665,7 @@ GLfloat* custom_matrix;
 			glFlush();	// don't wait around for drawing to complete
 			
 			// clear errors - and announce them
-			checkGLErrors(@"Universe after all entity drawing is done.");
+			CheckOpenGLErrors(@"Universe after all entity drawing is done.");
 			
 			for (i = 0; i < draw_count; i++)
 				[my_entities[i] release];		//	released
@@ -3803,17 +3778,17 @@ GLfloat* custom_matrix;
 	glDisable(GL_TEXTURE_2D);	// for background sheets
 	
 	if (message_gui)
-		[message_gui drawGUI:[message_gui alpha] forUniverse:self drawCursor:NO];
+		[message_gui drawGUI:[message_gui alpha] drawCursor:NO];
 
 	if (comm_log_gui)
-		[comm_log_gui drawGUI:[comm_log_gui alpha] forUniverse:self drawCursor:NO];
+		[comm_log_gui drawGUI:[comm_log_gui alpha] drawCursor:NO];
 
 	if (displayGUI)
 	{
 		if (displayCursor)
-			cursor_row = [gui drawGUI:1.0 forUniverse:self drawCursor:YES];
+			cursor_row = [gui drawGUI:1.0 drawCursor:YES];
 		else
-			[gui drawGUI:1.0 forUniverse:self drawCursor:NO];
+			[gui drawGUI:1.0 drawCursor:NO];
 	}
 }
 
@@ -3838,7 +3813,8 @@ GLfloat* custom_matrix;
 	return ent;
 }
 
-BOOL maintainLinkedLists(Universe* uni)
+
+static BOOL MaintainLinkedLists(Universe* uni)
 {
 	BOOL result;
 	
@@ -4016,7 +3992,7 @@ BOOL maintainLinkedLists(Universe* uni)
 				while (next_universal_id == NO_TARGET)		// these are the null values - avoid them!
 					next_universal_id++;
 			}
-			[entity setUniversal_id:next_universal_id];
+			[entity setUniversalID:next_universal_id];
 			entity_for_uid[next_universal_id] = entity;
 			if (entity->isShip)
 			{
@@ -4048,22 +4024,22 @@ BOOL maintainLinkedLists(Universe* uni)
 			}
 		}
 		else
-			[entity setUniversal_id:NO_TARGET];
+			[entity setUniversalID:NO_TARGET];
 		
 		// lighting considerations
 		entity->isSunlit = YES;
 		entity->shadingEntityID = NO_TARGET;
 		
 		// add it to the universe
-		[entity setUniverse:self];
 		[entities addObject:entity];
+		[entity wasAddedToUniverse];
 		
 		// maintain sorted list (and for the scanner relative position)
 		Vector entity_pos = entity->position;
 		Vector delta = vector_between(entity_pos, ((PlayerEntity *)[PlayerEntity sharedPlayer])->position);
 		double z_distance = magnitude2(delta);
 		entity->zero_distance = z_distance;
-		entity->relative_position = delta;
+		entity->relativePosition = delta;
 		index = n_entities;
 		sortedEntities[index] = entity;
 		entity->zero_index = index;
@@ -4103,15 +4079,15 @@ BOOL maintainLinkedLists(Universe* uni)
 		// remove reference to entity in linked lists
 		if ([entity canCollide])	// filter only collidables disappearing
 			doLinkedListMaintenanceThisUpdate = YES;
-//			maintainLinkedLists(self);
+//			MaintainLinkedLists(self);
 		[entity removeFromLinkedLists];
 		
 		// moved forward ^^
 		// remove from the reference dictionary
-		int old_id = [entity universal_id];
+		int old_id = [entity universalID];
 		entity_for_uid[old_id] = nil;
-		[entity setUniversal_id:NO_TARGET];
-		[entity setUniverse:nil];
+		[entity setUniversalID:NO_TARGET];
+		[entity wasRemovedFromUniverse];
 		
 		// maintain sorted lists
 		int index = entity->zero_index;
@@ -4176,7 +4152,7 @@ BOOL maintainLinkedLists(Universe* uni)
 						
 						while ([beacon nextBeaconID] != NO_TARGET)
 							beacon = (ShipEntity*)[self entityForUniversalID:[beacon nextBeaconID]];
-						lastBeacon = [beacon universal_id];
+						lastBeacon = [beacon universalID];
 					}
 				}
 				[se setBeaconChar:0];
@@ -4199,13 +4175,14 @@ BOOL maintainLinkedLists(Universe* uni)
 	if (entity)
 	{
 		if ([entity canCollide])	// filter only collidables disappearing
-			maintainLinkedLists(self);
+			MaintainLinkedLists(self);
 		[entity removeFromLinkedLists];	// AHA!
 		
-		int old_id = [entity universal_id];
+		int old_id = [entity universalID];
 		entity_for_uid[old_id] = nil;
-		[entity setUniversal_id:NO_TARGET];
-		[entity setUniverse:nil];
+		[entity setUniversalID:NO_TARGET];
+		[entity wasRemovedFromUniverse];
+		
 		// maintain sorted list
 		int index = entity->zero_index;
 		int n = 1;
@@ -4266,7 +4243,7 @@ BOOL maintainLinkedLists(Universe* uni)
 						
 						while ([beacon nextBeaconID] != NO_TARGET)
 							beacon = (ShipEntity*)[self entityForUniversalID:[beacon nextBeaconID]];
-						lastBeacon = [beacon universal_id];
+						lastBeacon = [beacon universalID];
 					}
 				}
 				[se setBeaconChar:0];
@@ -4587,7 +4564,7 @@ BOOL maintainLinkedLists(Universe* uni)
 	ShipEntity* parent = (ShipEntity*)[e1 owner];
 	if ((e1->isShip)&&(parent)&&(parent != e1)&&(parent->isShip)&&([parent->sub_entities containsObject:e1]))
 	{	// we're a subentity!
-		BoundingBox bbox = [e1 getBoundingBox];
+		BoundingBox bbox = [e1 boundingBox];
 		Vector midfrontplane = make_vector( 0.5 * (bbox.max.x + bbox.min.x), 0.5 * (bbox.max.y + bbox.min.y), bbox.max.z);
 		p0 = [(ShipEntity*)e1 absolutePositionForSubentityOffset:midfrontplane];
 		q1 = parent->q_rotation;
@@ -4623,13 +4600,13 @@ BOOL maintainLinkedLists(Universe* uni)
 	switch (viewdir)
 	{
 		case VIEW_AFT :
-			quaternion_rotate_about_axis(&q1, u1, PI);
+			quaternion_rotate_about_axis(&q1, u1, M_PI);
 			break;
 		case VIEW_PORT :
-			quaternion_rotate_about_axis(&q1, u1, PI/2.0);
+			quaternion_rotate_about_axis(&q1, u1, M_PI/2.0);
 			break;
 		case VIEW_STARBOARD :
-			quaternion_rotate_about_axis(&q1, u1, -PI/2.0);
+			quaternion_rotate_about_axis(&q1, u1, -M_PI/2.0);
 			break;
 	}
 	f1 = vector_forward_from_quaternion(q1);
@@ -4640,7 +4617,7 @@ BOOL maintainLinkedLists(Universe* uni)
 	{
 		ShipEntity *e2 = my_entities[i];
 		
-		debug_laser = ((e1->isPlayer) && ([(ShipEntity*)e1 getPrimaryTargetID] == [e2 universal_id]));
+		debug_laser = ((e1->isPlayer) && ([(ShipEntity*)e1 getPrimaryTargetID] == [e2 universalID]));
 		
 		// check outermost bounding sphere
 		GLfloat cr = e2->collision_radius;
@@ -4675,7 +4652,7 @@ BOOL maintainLinkedLists(Universe* uni)
 	
 	if (hit_entity)
 	{
-		result = [hit_entity universal_id];
+		result = [hit_entity universalID];
 		if ((hit_subentity)&&[hit_entity->sub_entities containsObject:hit_subentity])
 			hit_entity->subentity_taking_damage = hit_subentity;
 		if (range_ptr != (GLfloat *)nil)
@@ -4719,13 +4696,13 @@ BOOL maintainLinkedLists(Universe* uni)
 	switch (viewDirection)
 	{
 		case VIEW_AFT :
-			quaternion_rotate_about_axis(&q1, u1, PI);
+			quaternion_rotate_about_axis(&q1, u1, M_PI);
 			break;
 		case VIEW_PORT :
-			quaternion_rotate_about_axis(&q1, u1, 0.5 * PI);
+			quaternion_rotate_about_axis(&q1, u1, 0.5 * M_PI);
 			break;
 		case VIEW_STARBOARD :
-			quaternion_rotate_about_axis(&q1, u1, -0.5 * PI);
+			quaternion_rotate_about_axis(&q1, u1, -0.5 * M_PI);
 			break;
 	}
 	f1 = vector_forward_from_quaternion(q1);
@@ -4733,7 +4710,7 @@ BOOL maintainLinkedLists(Universe* uni)
 	for (i = 0; i < ship_count; i++)
 	{
 		ShipEntity *e2 = (ShipEntity *)my_entities[i];
-		if ([e2 canCollide]&&(e2->scan_class != CLASS_NO_DRAW))
+		if ([e2 canCollide]&&(e2->scanClass != CLASS_NO_DRAW))
 		{
 			Vector rp = e2->position;
 			rp.x -= p1.x;	rp.y -= p1.y;	rp.z -= p1.z;
@@ -4760,7 +4737,7 @@ BOOL maintainLinkedLists(Universe* uni)
 		hit_entity = nil;
 	
 	if (hit_entity)
-		result = [hit_entity universal_id];
+		result = [hit_entity universalID];
 	
 	for (i = 0; i < ship_count; i++)
 		[my_entities[i] release]; //	released
@@ -4896,10 +4873,10 @@ BOOL maintainLinkedLists(Universe* uni)
 	for (i = 0; i < n_entities; i++)
 		[universeRegion checkEntity: sortedEntities[i]];	//	sorts out which region it's in
 	
-	[universeRegion findCollisionsInUniverse: self];
+	[universeRegion findCollisions];
 	
 	// do check for entities that can't see the sun!
-	[universeRegion findShadowedEntitiesIn: self];
+	[universeRegion findShadowedEntities];
 	
 }
 
@@ -5185,7 +5162,7 @@ BOOL maintainLinkedLists(Universe* uni)
 					Vector  vel;
 					Quaternion		q2;
 					q2.x = 0.0;   q2.y = 0.0;   q2.z = 0.0; q2.w = 1.0;
-					quaternion_rotate_about_y(&q2,PI);
+					quaternion_rotate_about_y(&q2,M_PI);
 					switch (demo_stage)
 					{
 						case DEMO_FLY_IN :
@@ -5236,13 +5213,13 @@ BOOL maintainLinkedLists(Universe* uni)
 								
 								[[demo_ship getAI] setStateMachine:@"nullAI.plist"];
 								[demo_ship setQRotation:q2];
-								[demo_ship setPosition: 0.0f : 0.0f : 360.0f * demo_ship->actual_radius];
+								[demo_ship setPositionX:0.0f y:0.0f z:360.0f * demo_ship->actual_radius];
 								[demo_ship setDestination: make_vector( 0.0f, 0.0f, 3.6f * demo_ship->actual_radius)];	// ideal position
 								vel.x = 0.0;	vel.y = 0.0;	vel.z = -360.0f * demo_ship->actual_radius;
 								[demo_ship setVelocity:vel];
 								[demo_ship setScanClass: CLASS_NO_DRAW];
-								[demo_ship setRoll:PI/5.0];
-								[demo_ship setPitch:PI/10.0];
+								[demo_ship setRoll:M_PI/5.0];
+								[demo_ship setPitch:M_PI/10.0];
 								[gui setText:[demo_ship name] forRow:19 align:GUI_ALIGN_CENTER];
 							}
 							demo_stage = DEMO_FLY_IN;
@@ -5314,7 +5291,7 @@ BOOL maintainLinkedLists(Universe* uni)
 			
 			if (doLinkedListMaintenanceThisUpdate)
 			{
-				maintainLinkedLists( self);
+				MaintainLinkedLists( self);
 				doLinkedListMaintenanceThisUpdate = NO;
 			}
 			

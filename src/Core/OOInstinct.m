@@ -32,59 +32,18 @@ MA 02110-1301, USA.
 
 @implementation OOInstinct
 
-int instinctForString(NSString* instinctString)
-{
-	if ([instinctString isEqual:@"INSTINCT_ATTACK_PREY"])
-		return INSTINCT_ATTACK_PREY;
-	if ([instinctString isEqual:@"INSTINCT_AVOID_PREDATORS"])
-		return INSTINCT_AVOID_PREDATORS;
-	if ([instinctString isEqual:@"INSTINCT_AVOID_HAZARDS"])
-		return INSTINCT_AVOID_HAZARDS;
-	if ([instinctString isEqual:@"INSTINCT_FIGHT_OR_FLIGHT"])
-		return INSTINCT_FIGHT_OR_FLIGHT;
-	if ([instinctString isEqual:@"INSTINCT_FLOCK_ALIKE"])
-		return INSTINCT_FLOCK_ALIKE;
-	if ([instinctString isEqual:@"INSTINCT_FOLLOW_AI"])
-		return INSTINCT_FOLLOW_AI;
-	return INSTINCT_NULL;
-}
-
-NSString*	stringForInstinct(int value)
-{
-	switch (value)
-	{
-		case INSTINCT_ATTACK_PREY:
-			return @"INSTINCT_ATTACK_PREY";
-		case INSTINCT_AVOID_PREDATORS:
-			return @"INSTINCT_AVOID_PREDATORS";
-		case INSTINCT_AVOID_HAZARDS:
-			return @"INSTINCT_AVOID_HAZARDS";
-		case INSTINCT_FIGHT_OR_FLIGHT:
-			return @"INSTINCT_FIGHT_OR_FLIGHT";
-		case INSTINCT_FLOCK_ALIKE:
-			return @"INSTINCT_FLOCK_ALIKE";
-		case INSTINCT_FOLLOW_AI:
-			return @"INSTINCT_FOLLOW_AI";
-		case INSTINCT_NULL:
-			return @"INSTINCT_ATTACK_PREY";
-	}
-	return @"INSTINCT_UNKNOWN";
-}
 
 - (GLfloat)	evaluateInstinctWithEntities:(Entity**) entities	// performs necessary calculations for the instinct and returns priority_out
 {
 	// is the ship in the universe?
-	if (![ship universe])
-		return 0.0f;
+	if (ship->universalID == NO_TARGET)  return 0.0f;
 	
 	// is the ship still as set when initialised?
-	if (ship_id != ship->universal_id)
-		return 0.0f;
+	if (ship_id != ship->universalID)  return 0.0f;
 	
 	// does this instinct have any priority?
-	if (priority_in == 0.0f)
-		return 0.0f;
-		
+	if (priority_in == 0.0f)  return 0.0f;
+	
 	priority_out = 0.0f;	// reset
 	//
 	// todo by type
@@ -127,7 +86,7 @@ NSString*	stringForInstinct(int value)
 	GLfloat max_so_far = 0.0;
 	Entity* avoid_target = nil;
 	int entity_index = 0;
-	Vector u = [ship getVelocity];
+	Vector u = [ship velocity];
 	GLfloat cr = ship->collision_radius;
 	//
 		
@@ -142,7 +101,7 @@ NSString*	stringForInstinct(int value)
 		GLfloat	d = sqrtf(magnitude2( rp)) - sz;
 		if (d < 0.01)
 			d = 0.01;	// 1 cm is suitably small
-		Vector	rv = vector_between( u, [ent getVelocity]);
+		Vector	rv = vector_between( u, [ent velocity]);
 		GLfloat	approach_v = dot_product( rv, unit_vector(&rp));
 		
 		GLfloat assessment = sz * approach_v / d;		// == size x approach velocity / distance
@@ -195,7 +154,7 @@ NSString*	stringForInstinct(int value)
 //				INSTINCT_FOLLOW_AI			201
 - (void) instinct_follow_ai
 {
-	double ut = [[ship universe] getTime];
+	double ut = [UNIVERSE getTime];
 	if (ut > [ai nextThinkTime])
 	{
 		[ai think];
@@ -209,7 +168,7 @@ NSString*	stringForInstinct(int value)
 
 - (void) freezeShipVars
 {
-	if ((ship)&&[ship universe])
+	if ([ship universalID] != 0)
 	{
 		saved_destination = ship->destination;
 		saved_desired_range = ship->desired_range;
@@ -221,7 +180,7 @@ NSString*	stringForInstinct(int value)
 
 - (void) unfreezeShipVars
 {
-	if ((ship)&&[ship universe])
+	if ([ship universalID] != 0)
 	{
 		ship->destination = saved_destination;
 		ship->desired_range	= saved_desired_range;
@@ -233,7 +192,7 @@ NSString*	stringForInstinct(int value)
 
 - (void) setShipVars
 {
-	if ((ship)&&[ship universe])
+	if ([ship universalID] != 0)
 	{
 		ship->destination = destination;
 		ship->desired_range	= desired_range;
@@ -245,7 +204,7 @@ NSString*	stringForInstinct(int value)
 
 - (void) getShipVars
 {
-	if ((ship)&&[ship universe])
+	if ([ship universalID] != 0)
 	{
 		destination = ship->destination;
 		desired_range = ship->desired_range;
@@ -295,7 +254,7 @@ NSString*	stringForInstinct(int value)
 		type =		aType;
 		owner =		anOwner;
 		ship =		aShip;
-		ship_id =	[ship universal_id];
+		ship_id =	[ship universalID];
 		
 		if (type == INSTINCT_FOLLOW_AI)
 		{

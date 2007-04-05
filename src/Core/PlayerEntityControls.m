@@ -24,7 +24,7 @@ MA 02110-1301, USA.
 
 #import "PlayerEntityControls.h"
 #import "PlayerEntityContracts.h"
-#import "PlayerEntityScripting.h"
+#import "PlayerEntityLegacyScriptEngine.h"
 #import "PlayerEntitySound.h"
 #import "PlayerEntityLoadSave.h"
 #import "PlayerEntityStickMapper.h"
@@ -52,7 +52,7 @@ static NSString * const kOOLogFlightTrainingBeacons		= @"beacon.list.flightTrain
 
 - (void) pollControls:(double) delta_t
 {
-	MyOpenGLView  *gameView = (MyOpenGLView *)[universe gameView];
+	MyOpenGLView  *gameView = (MyOpenGLView *)[UNIVERSE gameView];
 
 	if (gameView)
 	{
@@ -133,7 +133,7 @@ static double			saved_script_time;
 static NSTimeInterval	time_last_frame;
 - (void) pollFlightControls:(double) delta_t
 {
-	MyOpenGLView  *gameView = (MyOpenGLView *)[universe gameView];
+	MyOpenGLView  *gameView = (MyOpenGLView *)[UNIVERSE gameView];
 
 #ifdef GNUSTEP
    // DJS: TODO: Sort where SDL keeps its stuff.
@@ -152,7 +152,7 @@ static NSTimeInterval	time_last_frame;
 		//
 		// arrow keys
 		//
-		if ([universe displayGUI])
+		if ([UNIVERSE displayGUI])
 			[self pollGuiArrowKeyControls:delta_t];
 		else
 			[self pollFlightArrowKeyControls:delta_t];
@@ -162,7 +162,7 @@ static NSTimeInterval	time_last_frame;
 		[self pollViewControls];
 
 		//if (![gameView allowingStringInput])
-		if (![universe displayCursor])
+		if (![UNIVERSE displayCursor])
 		{
 			//
 #ifdef GNUSTEP
@@ -173,7 +173,7 @@ static NSTimeInterval	time_last_frame;
 			{
 				if ((fuel > 0)&&(!afterburner_engaged))
 				{
-					[universe addMessage:ExpandDescriptionForCurrentSystem(@"[fuel-inject-on]") forCount:1.5];
+					[UNIVERSE addMessage:ExpandDescriptionForCurrentSystem(@"[fuel-inject-on]") forCount:1.5];
 					afterburner_engaged = YES;
 					if (!afterburnerSoundLooping)
 						[self loopAfterburnerSound];
@@ -181,7 +181,7 @@ static NSTimeInterval	time_last_frame;
 				else
 				{
 					if (fuel <= 0.0)
-						[universe addMessage:ExpandDescriptionForCurrentSystem(@"[fuel-out]") forCount:1.5];
+						[UNIVERSE addMessage:ExpandDescriptionForCurrentSystem(@"[fuel-out]") forCount:1.5];
 				}
 				afterburner_engaged = (fuel > 0);
 			}
@@ -266,9 +266,9 @@ static NSTimeInterval	time_last_frame;
 						hyperspeed_engaged = !hyperspeed_locked;
 						if (hyperspeed_locked)
 						{
-							if (![universe playCustomSound:@"[jump-mass-locked]"])
+							if (![UNIVERSE playCustomSound:@"[jump-mass-locked]"])
 								[self boop];
-							[universe addMessage:ExpandDescriptionForCurrentSystem(@"[jump-mass-locked]") forCount:1.5];
+							[UNIVERSE addMessage:ExpandDescriptionForCurrentSystem(@"[jump-mass-locked]") forCount:1.5];
 						}
 					}
 					else
@@ -346,7 +346,7 @@ static NSTimeInterval	time_last_frame;
 			{
 				if ((!ident_engaged)&&(!next_missile_pressed)&&([self has_extra_equipment:@"EQ_MULTI_TARGET"]))
 				{
-					[[universe gui] click];
+					[[UNIVERSE gui] click];
 					[self select_next_missile];
 				}
 				next_missile_pressed = YES;
@@ -361,10 +361,10 @@ static NSTimeInterval	time_last_frame;
 				if ((!next_target_pressed)&&([self has_extra_equipment:@"EQ_TARGET_MEMORY"]))
 				{
 					if ([self selectNextTargetFromMemory])
-						[[universe gui] click];
+						[[UNIVERSE gui] click];
 					else
 					{
-						if (![universe playCustomSound:@"[no-target-in-memory]"])
+						if (![UNIVERSE playCustomSound:@"[no-target-in-memory]"])
 							[self boop];
 					}
 				}
@@ -380,10 +380,10 @@ static NSTimeInterval	time_last_frame;
 				if ((!previous_target_pressed)&&([self has_extra_equipment:@"EQ_TARGET_MEMORY"]))
 				{
 					if ([self selectPreviousTargetFromMemory])
-						[[universe gui] click];
+						[[UNIVERSE gui] click];
 					else
 					{
-						if (![universe playCustomSound:@"[no-target-in-memory]"])
+						if (![UNIVERSE playCustomSound:@"[no-target-in-memory]"])
 							[self boop];
 					}
 				}
@@ -406,9 +406,9 @@ static NSTimeInterval	time_last_frame;
 					missile_status = MISSILE_STATUS_ARMED;
 					primaryTarget = NO_TARGET;
 					ident_engaged = YES;
-					if (![universe playCustomSound:@"[ident-on]"])
+					if (![UNIVERSE playCustomSound:@"[ident-on]"])
 						[self beep];
-					[universe addMessage:ExpandDescriptionForCurrentSystem(@"[ident-on]") forCount:2.0];
+					[UNIVERSE addMessage:ExpandDescriptionForCurrentSystem(@"[ident-on]") forCount:2.0];
 				}
 				ident_pressed = YES;
 			}
@@ -433,8 +433,8 @@ static NSTimeInterval	time_last_frame;
 						{
 							missile_status = MISSILE_STATUS_TARGET_LOCKED;
 							[missile_entity[active_missile] addTarget:[self getPrimaryTarget]];
-							[universe addMessage:[NSString stringWithFormat:ExpandDescriptionForCurrentSystem(@"[missile-locked-onto-@]"), [(ShipEntity *)[self getPrimaryTarget] identFromShip: self]] forCount:4.5];
-							if (![universe playCustomSound:@"[missile-locked-on]"])
+							[UNIVERSE addMessage:[NSString stringWithFormat:ExpandDescriptionForCurrentSystem(@"[missile-locked-onto-@]"), [(ShipEntity *)[self getPrimaryTarget] identFromShip: self]] forCount:4.5];
+							if (![UNIVERSE playCustomSound:@"[missile-locked-on]"])
 								[self beep];
 						}
 					}
@@ -445,15 +445,15 @@ static NSTimeInterval	time_last_frame;
 						{
 							if (missile_entity[active_missile])
 								[missile_entity[active_missile] removeTarget:nil];
-							[universe addMessage:ExpandDescriptionForCurrentSystem(@"[missile-armed]") forCount:2.0];
-							if (![universe playCustomSound:@"[missile-armed]"])
+							[UNIVERSE addMessage:ExpandDescriptionForCurrentSystem(@"[missile-armed]") forCount:2.0];
+							if (![UNIVERSE playCustomSound:@"[missile-armed]"])
 								[self beep];
 						}
 					}
 					if ([[missile_entity[active_missile] roles] hasSuffix:@"MINE"])
 					{
-						[universe addMessage:ExpandDescriptionForCurrentSystem(@"[mine-armed]") forCount:4.5];
-						if (![universe playCustomSound:@"[mine-armed]"])
+						[UNIVERSE addMessage:ExpandDescriptionForCurrentSystem(@"[mine-armed]") forCount:4.5];
+						if (![UNIVERSE playCustomSound:@"[mine-armed]"])
 							[self beep];
 					}
 					ident_engaged = NO;
@@ -479,18 +479,18 @@ static NSTimeInterval	time_last_frame;
 						missile_status = MISSILE_STATUS_SAFE;
 						primaryTarget = NO_TARGET;
 						[self safe_all_missiles];
-						if (![universe playCustomSound:@"[missile-safe]"])
+						if (![UNIVERSE playCustomSound:@"[missile-safe]"])
 							[self boop];
-						[universe addMessage:ExpandDescriptionForCurrentSystem(@"[missile-safe]") forCount:2.0];
+						[UNIVERSE addMessage:ExpandDescriptionForCurrentSystem(@"[missile-safe]") forCount:2.0];
 					}
 					else
 					{
 						// targetting 'back on' here
 						primaryTarget = [missile_entity[active_missile] getPrimaryTargetID];
 						missile_status = (primaryTarget != NO_TARGET)? MISSILE_STATUS_TARGET_LOCKED : MISSILE_STATUS_SAFE;
-						if (![universe playCustomSound:@"[ident-off]"])
+						if (![UNIVERSE playCustomSound:@"[ident-off]"])
 							[self boop];
-						[universe addMessage:ExpandDescriptionForCurrentSystem(@"[ident-off]") forCount:2.0];
+						[UNIVERSE addMessage:ExpandDescriptionForCurrentSystem(@"[ident-off]") forCount:2.0];
 					}
 					ident_engaged = NO;
 				}
@@ -512,7 +512,7 @@ static NSTimeInterval	time_last_frame;
 					if ([self fireECM])
 					{
 						[self playECMSound];
-						[universe addMessage:ExpandDescriptionForCurrentSystem(@"[ecm-on]") forCount:3.0];
+						[UNIVERSE addMessage:ExpandDescriptionForCurrentSystem(@"[ecm-on]") forCount:3.0];
 					}
 				}
 			}
@@ -533,9 +533,9 @@ static NSTimeInterval	time_last_frame;
 			//  shoot 'escape'   // Escape pod launch
 			//
 #ifdef GNUSTEP
-			if (([gameView isDown:key_launch_escapepod] || joyButtonState[BUTTON_ESCAPE])&&(has_escape_pod)&&([universe station]))
+			if (([gameView isDown:key_launch_escapepod] || joyButtonState[BUTTON_ESCAPE])&&(has_escape_pod)&&([UNIVERSE station]))
 #else
-			if ([gameView isDown:key_launch_escapepod] && has_escape_pod && [universe station])
+			if ([gameView isDown:key_launch_escapepod] && has_escape_pod && [UNIVERSE station])
 #endif
 
 			{
@@ -552,7 +552,7 @@ static NSTimeInterval	time_last_frame;
 			{
 				if ([self dumpCargo] != CARGO_NOT_CARGO)
 				{
-					if (![universe playCustomSound:@"[cargo-jettisoned]"])
+					if (![UNIVERSE playCustomSound:@"[cargo-jettisoned]"])
 						[self beep];
 				}
 			}
@@ -586,9 +586,9 @@ static NSTimeInterval	time_last_frame;
 						if ([self checkForAegis] != AEGIS_IN_DOCKING_RANGE)
 						{
 							isOkayToUseAutopilot = NO;
-							if (![universe playCustomSound:@"[autopilot-out-of-range]"])
+							if (![UNIVERSE playCustomSound:@"[autopilot-out-of-range]"])
 								[self boop];
-							[universe addMessage:ExpandDescriptionForCurrentSystem(@"[autopilot-out-of-range]") forCount:4.5];
+							[UNIVERSE addMessage:ExpandDescriptionForCurrentSystem(@"[autopilot-out-of-range]") forCount:4.5];
 						}
 					}
 					//
@@ -602,15 +602,15 @@ static NSTimeInterval	time_last_frame;
 						velocity = make_vector( 0.0f, 0.0f, 0.0f);
 						status = STATUS_AUTOPILOT_ENGAGED;
 						[shipAI setState:@"GLOBAL"];	// reboot the AI
-						if (![universe playCustomSound:@"[autopilot-on]"])
+						if (![UNIVERSE playCustomSound:@"[autopilot-on]"])
 							[self beep];
-						[universe addMessage:ExpandDescriptionForCurrentSystem(@"[autopilot-on]") forCount:4.5];
+						[UNIVERSE addMessage:ExpandDescriptionForCurrentSystem(@"[autopilot-on]") forCount:4.5];
 						[self sendMessageToScripts:@"didStartAutoPilot"];
 						//
 						if (ootunes_on)
 						{
 							// ootunes - play docking music
-							[[universe gameController] playiTunesPlaylist:@"Oolite-Docking"];
+							[[UNIVERSE gameController] playiTunesPlaylist:@"Oolite-Docking"];
 							docking_music_on = NO;
 						}
 						//
@@ -645,15 +645,15 @@ static NSTimeInterval	time_last_frame;
 						velocity = make_vector( 0.0f, 0.0f, 0.0f);
 						status = STATUS_AUTOPILOT_ENGAGED;
 						[shipAI setState:@"GLOBAL"];	// restart the AI
-						if (![universe playCustomSound:@"[autopilot-on]"])
+						if (![UNIVERSE playCustomSound:@"[autopilot-on]"])
 							[self beep];
-						[universe addMessage:ExpandDescriptionForCurrentSystem(@"[autopilot-on]") forCount:4.5];
+						[UNIVERSE addMessage:ExpandDescriptionForCurrentSystem(@"[autopilot-on]") forCount:4.5];
 						[self sendMessageToScripts:@"didStartAutoPilot"];
 						//
 						if (ootunes_on)
 						{
 							// ootunes - play docking music
-							[[universe gameController] playiTunesPlaylist:@"Oolite-Docking"];
+							[[UNIVERSE gameController] playiTunesPlaylist:@"Oolite-Docking"];
 							docking_music_on = NO;
 						}
 						//
@@ -666,9 +666,9 @@ static NSTimeInterval	time_last_frame;
 					}
 					else
 					{
-						if (![universe playCustomSound:@"[autopilot-cannot-dock-with-target]"])
+						if (![UNIVERSE playCustomSound:@"[autopilot-cannot-dock-with-target]"])
 							[self boop];
-						[universe addMessage:ExpandDescriptionForCurrentSystem(@"Target is not capable of autopilot-docking") forCount:4.5];
+						[UNIVERSE addMessage:ExpandDescriptionForCurrentSystem(@"Target is not capable of autopilot-docking") forCount:4.5];
 					}
 				}
 				target_autopilot_key_pressed = YES;
@@ -688,7 +688,7 @@ static NSTimeInterval	time_last_frame;
 				{
 					if ([self checkForAegis] == AEGIS_IN_DOCKING_RANGE)
 					{
-						StationEntity *the_station = [universe station];
+						StationEntity *the_station = [UNIVERSE station];
 						if (the_station)
 						{
 							if (legal_status > 50)
@@ -703,7 +703,7 @@ static NSTimeInterval	time_last_frame;
 									// there's a slight chance you'll be fined for your past offences when autodocking
 									//
 									int fine_chance = ranrot_rand() & 0x03ff;	//	0..1023
-									int government = 1 + [(NSNumber *)[[universe currentSystemData] objectForKey:KEY_GOVERNMENT] intValue];	// 1..8
+									int government = 1 + [(NSNumber *)[[UNIVERSE currentSystemData] objectForKey:KEY_GOVERNMENT] intValue];	// 1..8
 									fine_chance /= government;
 									if (fine_chance < legal_status)
 										[self markForFines];
@@ -711,16 +711,16 @@ static NSTimeInterval	time_last_frame;
 								ship_clock_adjust = 1200.0;			// 20 minutes penalty to enter dock
 								ident_engaged = NO;
 								[self safe_all_missiles];
-								[universe setViewDirection:VIEW_FORWARD];
+								[UNIVERSE setViewDirection:VIEW_FORWARD];
 								[self enterDock:the_station];
 							}
 						}
 					}
 					else
 					{
-						if (![universe playCustomSound:@"[autopilot-out-of-range]"])
+						if (![UNIVERSE playCustomSound:@"[autopilot-out-of-range]"])
 							[self boop];
-						[universe addMessage:ExpandDescriptionForCurrentSystem(@"[autopilot-out-of-range]") forCount:4.5];
+						[UNIVERSE addMessage:ExpandDescriptionForCurrentSystem(@"[autopilot-out-of-range]") forCount:4.5];
 					}
 				}
 				fast_autopilot_key_pressed = YES;
@@ -745,19 +745,19 @@ static NSTimeInterval	time_last_frame;
 
 					if ((dx == 0) && (dy == 0) && equal_seeds(target_system_seed, system_seed))
 					{
-						if (![universe playCustomSound:@"[witch-no-target]"])
+						if (![UNIVERSE playCustomSound:@"[witch-no-target]"])
 							[self boop];
-						[universe clearPreviousMessage];
-						[universe addMessage:ExpandDescriptionForCurrentSystem(@"[witch-no-target]") forCount:3.0];
+						[UNIVERSE clearPreviousMessage];
+						[UNIVERSE addMessage:ExpandDescriptionForCurrentSystem(@"[witch-no-target]") forCount:3.0];
 						jumpOK = NO;
 					}
 
 					if ((10.0 * distance > fuel)||(fuel == 0))
 					{
-						if (![universe playCustomSound:@"[witch-no-fuel]"])
+						if (![UNIVERSE playCustomSound:@"[witch-no-fuel]"])
 							[self boop];
-						[universe clearPreviousMessage];
-						[universe addMessage:ExpandDescriptionForCurrentSystem(@"[witch-no-fuel]") forCount:3.0];
+						[UNIVERSE clearPreviousMessage];
+						[UNIVERSE addMessage:ExpandDescriptionForCurrentSystem(@"[witch-no-fuel]") forCount:3.0];
 						jumpOK = NO;
 					}
 
@@ -765,17 +765,17 @@ static NSTimeInterval	time_last_frame;
 					{
 						// abort!
 						if (galactic_witchjump)
-							[universe stopCustomSound:@"[galactic-hyperspace-countdown-begun]"];
+							[UNIVERSE stopCustomSound:@"[galactic-hyperspace-countdown-begun]"];
 						else
-							[universe stopCustomSound:@"[hyperspace-countdown-begun]"];
+							[UNIVERSE stopCustomSound:@"[hyperspace-countdown-begun]"];
 						jumpOK = NO;
 						galactic_witchjump = NO;
 						status = STATUS_IN_FLIGHT;
-						if (![universe playCustomSound:@"[hyperspace-countdown-aborted]"])
+						if (![UNIVERSE playCustomSound:@"[hyperspace-countdown-aborted]"])
 							[self boop];
 						// say it!
-						[universe clearPreviousMessage];
-						[universe addMessage:ExpandDescriptionForCurrentSystem(@"[witch-user-abort]") forCount:3.0];
+						[UNIVERSE clearPreviousMessage];
+						[UNIVERSE addMessage:ExpandDescriptionForCurrentSystem(@"[witch-user-abort]") forCount:3.0];
 						
 						[self sendMessageToScripts:@"didCancelJumpCountDown"];
 					}
@@ -785,11 +785,11 @@ static NSTimeInterval	time_last_frame;
 						galactic_witchjump = NO;
 						witchspaceCountdown = 15.0;
 						status = STATUS_WITCHSPACE_COUNTDOWN;
-						if (![universe playCustomSound:@"[hyperspace-countdown-begun]"])
+						if (![UNIVERSE playCustomSound:@"[hyperspace-countdown-begun]"])
 							[self beep];
 						// say it!
-						[universe clearPreviousMessage];
-						[universe addMessage:[NSString stringWithFormat:ExpandDescriptionForCurrentSystem(@"[witch-to-@-in-f-seconds]"), [universe getSystemName:target_system_seed], witchspaceCountdown] forCount:1.0];
+						[UNIVERSE clearPreviousMessage];
+						[UNIVERSE addMessage:[NSString stringWithFormat:ExpandDescriptionForCurrentSystem(@"[witch-to-@-in-f-seconds]"), [UNIVERSE getSystemName:target_system_seed], witchspaceCountdown] forCount:1.0];
 						
 						[self sendMessageToScripts:@"didBeginJumpCountDown"withString:@"standard"];
 					}
@@ -815,17 +815,17 @@ static NSTimeInterval	time_last_frame;
 					{
 						// abort!
 						if (galactic_witchjump)
-							[universe stopCustomSound:@"[galactic-hyperspace-countdown-begun]"];
+							[UNIVERSE stopCustomSound:@"[galactic-hyperspace-countdown-begun]"];
 						else
-							[universe stopCustomSound:@"[hyperspace-countdown-begun]"];
+							[UNIVERSE stopCustomSound:@"[hyperspace-countdown-begun]"];
 						jumpOK = NO;
 						galactic_witchjump = NO;
 						status = STATUS_IN_FLIGHT;
-						if (![universe playCustomSound:@"[hyperspace-countdown-aborted]"])
+						if (![UNIVERSE playCustomSound:@"[hyperspace-countdown-aborted]"])
 							[self boop];
 						// say it!
-						[universe clearPreviousMessage];
-						[universe addMessage:ExpandDescriptionForCurrentSystem(@"[witch-user-abort]") forCount:3.0];
+						[UNIVERSE clearPreviousMessage];
+						[UNIVERSE addMessage:ExpandDescriptionForCurrentSystem(@"[witch-user-abort]") forCount:3.0];
 						
 						[self sendMessageToScripts:@"didCancelJumpCountDown"];
 					}
@@ -835,11 +835,11 @@ static NSTimeInterval	time_last_frame;
 						galactic_witchjump = YES;
 						witchspaceCountdown = 15.0;
 						status = STATUS_WITCHSPACE_COUNTDOWN;
-						if (![universe playCustomSound:@"[galactic-hyperspace-countdown-begun]"])
-							if (![universe playCustomSound:@"[hyperspace-countdown-begun]"])
+						if (![UNIVERSE playCustomSound:@"[galactic-hyperspace-countdown-begun]"])
+							if (![UNIVERSE playCustomSound:@"[hyperspace-countdown-begun]"])
 								[self beep];
 						// say it!
-						[universe addMessage:[NSString stringWithFormat:ExpandDescriptionForCurrentSystem(@"[witch-galactic-in-f-seconds]"), witchspaceCountdown] forCount:1.0];
+						[UNIVERSE addMessage:[NSString stringWithFormat:ExpandDescriptionForCurrentSystem(@"[witch-galactic-in-f-seconds]"), witchspaceCountdown] forCount:1.0];
 						
 						[self sendMessageToScripts:@"didBeginJumpCountDown" withString:@"galactic"];
 					}
@@ -862,24 +862,24 @@ static NSTimeInterval	time_last_frame;
 					if (!cloaking_device_active)
 					{
 						if ([self activateCloakingDevice])
-							[universe addMessage:ExpandDescriptionForCurrentSystem(@"[cloak-on]") forCount:2];
+							[UNIVERSE addMessage:ExpandDescriptionForCurrentSystem(@"[cloak-on]") forCount:2];
 						else
-							[universe addMessage:ExpandDescriptionForCurrentSystem(@"[cloak-low-juice]") forCount:3];
+							[UNIVERSE addMessage:ExpandDescriptionForCurrentSystem(@"[cloak-low-juice]") forCount:3];
 					}
 					else
 					{
 						[self deactivateCloakingDevice];
-						[universe addMessage:ExpandDescriptionForCurrentSystem(@"[cloak-off]") forCount:2];
+						[UNIVERSE addMessage:ExpandDescriptionForCurrentSystem(@"[cloak-off]") forCount:2];
 					}
 					//
 					if (cloaking_device_active)
 					{
-						if (![universe playCustomSound:@"[cloaking-device-on]"])
+						if (![UNIVERSE playCustomSound:@"[cloaking-device-on]"])
 							[self beep];
 					}
 					else
 					{
-						if (![universe playCustomSound:@"[cloaking-device-off]"])
+						if (![UNIVERSE playCustomSound:@"[cloaking-device-off]"])
 							[self boop];
 					}
 				}
@@ -927,9 +927,9 @@ static NSTimeInterval	time_last_frame;
 		{
 			if (!cloak_pressed)
 			{
-				[universe obj_dump];	// dump objects
+				[UNIVERSE obj_dump];	// dump objects
 				debug = 0;
-				[universe addMessage:@"Entity List dumped. Debugging OFF" forCount:3];
+				[UNIVERSE addMessage:@"Entity List dumped. Debugging OFF" forCount:3];
 			}
 			cloak_pressed = YES;
 		}
@@ -939,8 +939,8 @@ static NSTimeInterval	time_last_frame;
 		// look for debugging keys
 		if ([gameView isDown:'f'])// look for the 'f' key
 		{
-			[universe addMessage:@"Flight Training Test Engaged" forCount:3];
-			OOLog(kOOLogFlightTrainingBeacons, @"Flight Training (tr) beacons:\n%@", [universe listBeaconsWithCode:@"tr"]);
+			[UNIVERSE addMessage:@"Flight Training Test Engaged" forCount:3];
+			OOLog(kOOLogFlightTrainingBeacons, @"Flight Training (tr) beacons:\n%@", [UNIVERSE listBeaconsWithCode:@"tr"]);
 			[self awardEquipment:@"EQ_DOCK_COMP"];
 			[self targetFirstBeaconWithCode:@"tr"];
 			[self setRacepointsFromTarget];
@@ -953,28 +953,28 @@ static NSTimeInterval	time_last_frame;
 		if ([gameView isDown:'d'])// look for the 'd' key
 		{
 			debug = -1;
-			[universe addMessage:@"Full debug ON" forCount:3];
+			[UNIVERSE addMessage:@"Full debug ON" forCount:3];
 		}
 
 		// look for debugging keys
 		if ([gameView isDown:'b'])// look for the 'b' key
 		{
 			debug = DEBUG_COLLISIONS;
-			[universe addMessage:@"Collision debug ON" forCount:3];
+			[UNIVERSE addMessage:@"Collision debug ON" forCount:3];
 		}
 
 		// look for debugging keys
 		if ([gameView isDown:'c'])// look for the 'c' key
 		{
 			debug |= DEBUG_OCTREE;
-			[universe addMessage:@"Octree debug ON" forCount:3];
+			[UNIVERSE addMessage:@"Octree debug ON" forCount:3];
 		}
 
 		// look for debugging keys
 		if ([gameView isDown:'t'])// look for the 't' key
 		{
-			[universe setDoProcedurallyTexturedPlanets: YES];
-			[universe addMessage:@"Procedural Textures On" forCount:3];
+			[UNIVERSE setDoProcedurallyTexturedPlanets: YES];
+			[UNIVERSE addMessage:@"Procedural Textures On" forCount:3];
 		}
 	}
 	//
@@ -989,17 +989,17 @@ static NSTimeInterval	time_last_frame;
 				script_time = saved_script_time;
 				gui_screen = GUI_SCREEN_MAIN;
 				[gameView allowStringInput:NO];
-				[universe setDisplayCursor:NO];
-				[universe clearPreviousMessage];
-				[universe setViewDirection:saved_view_direction];
+				[UNIVERSE setDisplayCursor:NO];
+				[UNIVERSE clearPreviousMessage];
+				[UNIVERSE setViewDirection:saved_view_direction];
 				[[gameView gameController] unpause_game];
 			}
 			else
 			{
-				saved_view_direction = [universe viewDir];
+				saved_view_direction = [UNIVERSE viewDir];
 				saved_script_time = script_time;
-				[universe addMessage:ExpandDescriptionForCurrentSystem(@"[game-paused]") forCount:1.0];
-				[universe addMessage:ExpandDescriptionForCurrentSystem(@"[game-paused-options]") forCount:1.0];
+				[UNIVERSE addMessage:ExpandDescriptionForCurrentSystem(@"[game-paused]") forCount:1.0];
+				[UNIVERSE addMessage:ExpandDescriptionForCurrentSystem(@"[game-paused-options]") forCount:1.0];
 				[[gameView gameController] pause_game];
 			}
 		}
@@ -1024,7 +1024,7 @@ static  BOOL	taking_snapshot;
 
 	// does fullscreen / quit / snapshot
 	//
-	MyOpenGLView  *gameView = (MyOpenGLView *)[universe gameView];
+	MyOpenGLView  *gameView = (MyOpenGLView *)[UNIVERSE gameView];
 	//
 	//  command-key controls
 	//
@@ -1034,7 +1034,7 @@ static  BOOL	taking_snapshot;
 		{
 			[[gameView gameController] exitFullScreenMode];
 			if (mouse_control_on)
-				[universe addMessage:ExpandDescriptionForCurrentSystem(@"[mouse-off]") forCount:3.0];
+				[UNIVERSE addMessage:ExpandDescriptionForCurrentSystem(@"[mouse-off]") forCount:3.0];
 			mouse_control_on = NO;
 		}
 		//
@@ -1093,7 +1093,7 @@ static  BOOL	taking_snapshot;
 	if ([gameView isDown:key_show_fps])   //  'F' key
 	{
 		if (!f_key_pressed)
-			[universe setDisplayFPS:![universe displayFPS]];
+			[UNIVERSE setDisplayFPS:![UNIVERSE displayFPS]];
 		f_key_pressed = YES;
 	}
 	else
@@ -1112,13 +1112,13 @@ static  BOOL	taking_snapshot;
 				mouse_control_on = !mouse_control_on;
 				if (mouse_control_on)
 				{
-					[universe addMessage:ExpandDescriptionForCurrentSystem(@"[mouse-on]") forCount:3.0];
+					[UNIVERSE addMessage:ExpandDescriptionForCurrentSystem(@"[mouse-on]") forCount:3.0];
 					// ensure the keyboard pitch override (intended to lock out the joystick if the
 					// player runs to the keyboard) is reset
 					keyboardRollPitchOverride = NO;
 				}
 				else
-					[universe addMessage:ExpandDescriptionForCurrentSystem(@"[mouse-off]") forCount:3.0];
+					[UNIVERSE addMessage:ExpandDescriptionForCurrentSystem(@"[mouse-off]") forCount:3.0];
 			}
 			m_key_pressed = YES;
 		}
@@ -1132,7 +1132,7 @@ static  BOOL	taking_snapshot;
 
 - (void) pollFlightArrowKeyControls:(double) delta_t
 {
-	MyOpenGLView	*gameView = [universe gameView];
+	MyOpenGLView	*gameView = [UNIVERSE gameView];
 	NSPoint			virtualStick = NSZeroPoint;
 #define			kDeadZone 0.03
 	
@@ -1274,7 +1274,7 @@ static  BOOL	taking_snapshot;
 		}
 	}
 	
-	if (![universe strict])
+	if (![UNIVERSE strict])
 	{
 		yawing = NO;
 		if ([gameView isDown:key_yaw_left])
@@ -1363,8 +1363,8 @@ static BOOL spacePressed;
 		if (!upDownKeyPressed)
 		{
 			int click_row = 0;
-			if (universe)
-				click_row = universe->cursor_row;
+			if (UNIVERSE)
+				click_row = UNIVERSE->cursor_row;
 			if ([gui setSelectedRow:click_row])
 			{
 				result = YES;
@@ -1379,10 +1379,10 @@ static BOOL spacePressed;
 
 - (void) pollGuiArrowKeyControls:(double) delta_t
 {
-	MyOpenGLView*	gameView = (MyOpenGLView *)[universe gameView];
+	MyOpenGLView*	gameView = (MyOpenGLView *)[UNIVERSE gameView];
 	BOOL			moving = NO;
 	double			cursor_speed = 10.0;
-	GuiDisplayGen*  gui = [universe gui];
+	GuiDisplayGen*  gui = [UNIVERSE gui];
 	NSString*		commanderFile;
 
 	// deal with string inputs as necessary
@@ -1416,7 +1416,7 @@ static BOOL spacePressed;
 			if ([[gameView typedString] length])
 			{
 				planetSearchString = [gameView typedString];
-				NSPoint search_coords = [universe findSystemCoordinatesWithPrefix:planetSearchString withGalaxySeed:galaxy_seed];
+				NSPoint search_coords = [UNIVERSE findSystemCoordinatesWithPrefix:planetSearchString withGalaxySeed:galaxy_seed];
 				if ((search_coords.x >= 0.0)&&(search_coords.y >= 0.0))
 				{
 					moving = ((cursor_coordinates.x != search_coords.x)||(cursor_coordinates.y != search_coords.y));
@@ -1437,7 +1437,7 @@ static BOOL spacePressed;
 			//
 		case	GUI_SCREEN_SHORT_RANGE_CHART :
 			//
-			show_info_flag = ([gameView isDown:key_map_info] && ![universe strict]);
+			show_info_flag = ([gameView isDown:key_map_info] && ![UNIVERSE strict]);
 			//
 			if (status != STATUS_WITCHSPACE_COUNTDOWN)
 			{
@@ -1506,7 +1506,7 @@ static BOOL spacePressed;
 				}
 				if ((cursor_moving)&&(!moving))
 				{
-					target_system_seed = [universe findSystemAtCoords:cursor_coordinates withGalaxySeed:galaxy_seed];
+					target_system_seed = [UNIVERSE findSystemAtCoords:cursor_coordinates withGalaxySeed:galaxy_seed];
 					cursor_coordinates.x = target_system_seed.d;
 					cursor_coordinates.y = target_system_seed.b;
 					if (gui_screen == GUI_SCREEN_LONG_RANGE_CHART) [self setGuiToLongRangeChartScreen];
@@ -1580,7 +1580,7 @@ static BOOL spacePressed;
 				int volume_row = GUI_ROW_OPTIONS_VOLUME;
 				int display_row =   GUI_ROW_OPTIONS_DISPLAY;
 
-				GameController  *controller = [universe gameController];
+				GameController  *controller = [UNIVERSE gameController];
 				NSArray *modes = [controller displayModes];
 
 				[self handleGUIUpDownArrowKeys: gui :gameView];
@@ -1600,8 +1600,8 @@ static BOOL spacePressed;
 							if ([[localException name] isEqual:@"GameNotSavedException"])	// try saving game instead
 							{
 								OOLog(kOOLogException, @"\n\n***** Trying a normal save instead *****\n\n");
-								if ([[universe gameController] inFullScreenMode])
-									[[universe gameController] pauseFullScreenModeToPerform:@selector(savePlayer) onTarget:self];
+								if ([[UNIVERSE gameController] inFullScreenMode])
+									[[UNIVERSE gameController] pauseFullScreenModeToPerform:@selector(savePlayer) onTarget:self];
 								else
 									[self savePlayer];
 							}
@@ -1621,7 +1621,7 @@ static BOOL spacePressed;
 						[self setGuiToSaveCommanderScreen: player_name];
 #else
 						// for OS X it is preferable to use the Cocoa dialog when in windowed mode.
-						if ([[universe gameController] inFullScreenMode])
+						if ([[UNIVERSE gameController] inFullScreenMode])
 							[self setGuiToSaveCommanderScreen: player_name];
 						else
 							[self savePlayer];
@@ -1634,7 +1634,7 @@ static BOOL spacePressed;
 						// see comments above for save player
 						[self setGuiToLoadCommanderScreen];
 #else
-						if ([[universe gameController] inFullScreenMode])
+						if ([[UNIVERSE gameController] inFullScreenMode])
 							[self setGuiToLoadCommanderScreen];
 						else
 							[self loadPlayer];
@@ -1651,7 +1651,7 @@ static BOOL spacePressed;
 					if (([gui selectedRow] == begin_new_row)&&(!disc_operation_in_progress))
 					{
 						disc_operation_in_progress = YES;
-						[universe reinit];
+						[UNIVERSE reinit];
 					}
 				}
 				else
@@ -1691,7 +1691,7 @@ static BOOL spacePressed;
 
 					[gui click];
 					{
-						GuiDisplayGen* gui = [universe gui];
+						GuiDisplayGen* gui = [UNIVERSE gui];
 						int display_row =   GUI_ROW_OPTIONS_DISPLAY;
 						[gui setText:displayModeString	forRow:display_row  align:GUI_ALIGN_CENTER];
 					}
@@ -1703,7 +1703,7 @@ static BOOL spacePressed;
 #ifndef GNUSTEP
 				if (([gui selectedRow] == speech_row)&&(([gameView isDown:gvArrowKeyRight])||([gameView isDown:gvArrowKeyLeft])))
 				{
-					GuiDisplayGen* gui = [universe gui];
+					GuiDisplayGen* gui = [UNIVERSE gui];
 					if ([gameView isDown:gvArrowKeyRight] != speech_on)
 						[gui click];
 					speech_on = [gameView isDown:gvArrowKeyRight];
@@ -1716,7 +1716,7 @@ static BOOL spacePressed;
 
 				if (([gui selectedRow] == ootunes_row)&&(([gameView isDown:gvArrowKeyRight])||([gameView isDown:gvArrowKeyLeft])))
 				{
-					GuiDisplayGen* gui = [universe gui];
+					GuiDisplayGen* gui = [UNIVERSE gui];
 					if ([gameView isDown:gvArrowKeyRight] != ootunes_on)
 						[gui click];
 					ootunes_on = [gameView isDown:gvArrowKeyRight];
@@ -1734,7 +1734,7 @@ static BOOL spacePressed;
 					{
 						BOOL rightKeyDown = [gameView isDown:gvArrowKeyRight];
 						BOOL leftKeyDown = [gameView isDown:gvArrowKeyLeft];
-						GuiDisplayGen* gui = [universe gui];
+						GuiDisplayGen* gui = [UNIVERSE gui];
 						int volume = 100 * [OOSound masterVolume];
 						volume += (((rightKeyDown && (volume < 100)) ? 5 : 0) - ((leftKeyDown && (volume > 0)) ? 5 : 0));
 						if (volume > 100) volume = 100;
@@ -1766,7 +1766,7 @@ static BOOL spacePressed;
 						NSUserDefaults* prefs = [NSUserDefaults standardUserDefaults];
 						BOOL rightKeyDown = [gameView isDown:gvArrowKeyRight];
 						BOOL leftKeyDown = [gameView isDown:gvArrowKeyLeft];
-						GuiDisplayGen* gui = [universe gui];
+						GuiDisplayGen* gui = [UNIVERSE gui];
 						int growl_min_priority = 3;
 						if ([prefs objectForKey:@"groolite-min-priority"])
 							growl_min_priority = [prefs integerForKey:@"groolite-min-priority"];
@@ -1797,11 +1797,11 @@ static BOOL spacePressed;
 
 				if (([gui selectedRow] == detail_row)&&(([gameView isDown:gvArrowKeyRight])||([gameView isDown:gvArrowKeyLeft])))
 				{
-					GuiDisplayGen* gui = [universe gui];
-					if ([gameView isDown:gvArrowKeyRight] != [universe reducedDetail])
+					GuiDisplayGen* gui = [UNIVERSE gui];
+					if ([gameView isDown:gvArrowKeyRight] != [UNIVERSE reducedDetail])
 						[gui click];
-					[universe setReducedDetail:[gameView isDown:gvArrowKeyRight]];
-					if ([universe reducedDetail])
+					[UNIVERSE setReducedDetail:[gameView isDown:gvArrowKeyRight]];
+					if ([UNIVERSE reducedDetail])
 						[gui setText:@" Reduced detail: ON "	forRow:detail_row  align:GUI_ALIGN_CENTER];
 					else
 						[gui setText:@" Reduced detail: OFF "	forRow:detail_row  align:GUI_ALIGN_CENTER];
@@ -1829,7 +1829,7 @@ static BOOL spacePressed;
             // the things contained.
 				if (([gui selectedRow] == strict_row)&& selectKeyPress)
 				{
-					[universe setStrict:![universe strict]];
+					[UNIVERSE setStrict:![UNIVERSE strict]];
 				}
 
 			}
@@ -2028,7 +2028,7 @@ static BOOL spacePressed;
 
 		case	GUI_SCREEN_SHIPYARD :
 			{
-				GuiDisplayGen* gui = [universe gui];
+				GuiDisplayGen* gui = [UNIVERSE gui];
 				//
 				if ([self handleGUIUpDownArrowKeys:gui :gameView])
 				{
@@ -2073,11 +2073,11 @@ static BOOL spacePressed;
 						{
 							if (money == credits)	// we just skipped to another page
 							{
-								[[universe gui] click];
+								[[UNIVERSE gui] click];
 							}
 							else
 							{
-								[universe removeDemoShips];
+								[UNIVERSE removeDemoShips];
 								[self setGuiToStatusScreen];
 								[self playInterfaceBeep: kInterfaceBeep_Buy];
 							}
@@ -2129,10 +2129,10 @@ static BOOL spacePressed;
 	if (showDemoShips)
 	{
 		[self setShowDemoShips: NO];
-		[universe removeDemoShips];
+		[UNIVERSE removeDemoShips];
 	}
-	[(MyOpenGLView *)[universe gameView] allowStringInput:NO];
-	[universe setDisplayCursor:NO];
+	[(MyOpenGLView *)[UNIVERSE gameView] allowStringInput:NO];
+	[UNIVERSE setDisplayCursor:NO];
 }
 
 static BOOL zoom_pressed;
@@ -2145,36 +2145,36 @@ static BOOL customView_pressed;
    if(!pollControls)
       return;
 
-	MyOpenGLView  *gameView = (MyOpenGLView *)[universe gameView];
+	MyOpenGLView  *gameView = (MyOpenGLView *)[UNIVERSE gameView];
 	//
 	//  view keys
 	//
 	if (([gameView isDown:gvFunctionKey1])||([gameView isDown:gvNumberKey1]))
 	{
-		if ([universe displayGUI])
+		if ([UNIVERSE displayGUI])
 			[self switchToMainView];
-		[universe setViewDirection:VIEW_FORWARD];
+		[UNIVERSE setViewDirection:VIEW_FORWARD];
 		currentWeaponFacing = VIEW_FORWARD;
 	}
 	if (([gameView isDown:gvFunctionKey2])||([gameView isDown:gvNumberKey2]))
 	{
-		if ([universe displayGUI])
+		if ([UNIVERSE displayGUI])
 			[self switchToMainView];
-		[universe setViewDirection:VIEW_AFT];
+		[UNIVERSE setViewDirection:VIEW_AFT];
 		currentWeaponFacing = VIEW_AFT;
 	}
 	if (([gameView isDown:gvFunctionKey3])||([gameView isDown:gvNumberKey3]))
 	{
-		if ([universe displayGUI])
+		if ([UNIVERSE displayGUI])
 			[self switchToMainView];
-		[universe setViewDirection:VIEW_PORT];
+		[UNIVERSE setViewDirection:VIEW_PORT];
 		currentWeaponFacing = VIEW_PORT;
 	}
 	if (([gameView isDown:gvFunctionKey4])||([gameView isDown:gvNumberKey4]))
 	{
-		if ([universe displayGUI])
+		if ([UNIVERSE displayGUI])
 			[self switchToMainView];
-		[universe setViewDirection:VIEW_STARBOARD];
+		[UNIVERSE setViewDirection:VIEW_STARBOARD];
 		currentWeaponFacing = VIEW_STARBOARD;
 	}
 
@@ -2182,9 +2182,9 @@ static BOOL customView_pressed;
 
 	if ([gameView isDown:key_custom_view])
 	{
-		if ((!customView_pressed)&&(custom_views)&&(![universe displayCursor]))
+		if ((!customView_pressed)&&(custom_views)&&(![UNIVERSE displayCursor]))
 		{
-			if ([universe viewDir] == VIEW_CUSTOM)	// already in custom view mode
+			if ([UNIVERSE viewDir] == VIEW_CUSTOM)	// already in custom view mode
 			{
 				// rotate the custom views
 				[custom_views addObject:[custom_views objectAtIndex:0]];
@@ -2193,9 +2193,9 @@ static BOOL customView_pressed;
 
 			[self setCustomViewDataFromDictionary:(NSDictionary*)[custom_views objectAtIndex:0]];
 
-			if ([universe displayGUI])
+			if ([UNIVERSE displayGUI])
 				[self switchToMainView];
-			[universe setViewDirection:VIEW_CUSTOM];
+			[UNIVERSE setViewDirection:VIEW_CUSTOM];
 		}
 		customView_pressed = YES;
 	}
@@ -2251,7 +2251,7 @@ static BOOL customView_pressed;
 	//
 	if ([gameView isDown:key_comms_log])
 	{
-		[universe showCommsLog: 1.5];
+		[UNIVERSE showCommsLog: 1.5];
 		[hud refreshLastTransmitter];
 	}
 }
@@ -2265,7 +2265,7 @@ static BOOL switching_equipship_screens;
    if(!pollControls)
       return;
 
-	MyOpenGLView  *gameView = (MyOpenGLView *)[universe gameView];
+	MyOpenGLView  *gameView = (MyOpenGLView *)[UNIVERSE gameView];
 	BOOL docked_okay = (status == STATUS_DOCKED);// || ((status == STATUS_COCKPIT_DISPLAY) && (gui_screen == GUI_SCREEN_SHIPYARD));
 	//
 	//  text displays
@@ -2275,7 +2275,7 @@ static BOOL switching_equipship_screens;
 		if (!switching_status_screens)
 		{
 			switching_status_screens = YES;
-			if ((gui_screen == GUI_SCREEN_STATUS)&&(![universe strict]))
+			if ((gui_screen == GUI_SCREEN_STATUS)&&(![UNIVERSE strict]))
 				[self setGuiToManifestScreen];
 			else
 				[self setGuiToStatusScreen];
@@ -2326,19 +2326,19 @@ static BOOL switching_equipship_screens;
 			if (!switching_equipship_screens)
 			{
 				if (!docked_station)
-					docked_station = [universe station];
+					docked_station = [UNIVERSE station];
 				if ((gui_screen == GUI_SCREEN_EQUIP_SHIP)&&[docked_station hasShipyard])
 				{
 					[gameView clearKeys];
 					[self setGuiToShipyardScreen:0];
-					[[universe gui] setSelectedRow:GUI_ROW_SHIPYARD_START];
+					[[UNIVERSE gui] setSelectedRow:GUI_ROW_SHIPYARD_START];
 					[self showShipyardInfoForSelection];
 				}
 				else
 				{
 					[gameView clearKeys];
 					[self setGuiToEquipShipScreen:0:-1];
-					[[universe gui] setSelectedRow:GUI_ROW_EQUIPMENT_START];
+					[[UNIVERSE gui] setSelectedRow:GUI_ROW_EQUIPMENT_START];
 				}
 			}
 			switching_equipship_screens = YES;
@@ -2352,17 +2352,17 @@ static BOOL switching_equipship_screens;
 		{
 			if (!switching_market_screens)
 			{
-				if ((gui_screen == GUI_SCREEN_MARKET)&&(docked_station == [universe station])&&(![universe strict]))
+				if ((gui_screen == GUI_SCREEN_MARKET)&&(docked_station == [UNIVERSE station])&&(![UNIVERSE strict]))
 				{
 					[gameView clearKeys];
 					[self setGuiToContractsScreen];
-					[[universe gui] setSelectedRow:GUI_ROW_PASSENGERS_START];
+					[[UNIVERSE gui] setSelectedRow:GUI_ROW_PASSENGERS_START];
 				}
 				else
 				{
 					[gameView clearKeys];
 					[self setGuiToMarketScreen];
-					[[universe gui] setSelectedRow:GUI_ROW_MARKET_START];
+					[[UNIVERSE gui] setSelectedRow:GUI_ROW_MARKET_START];
 				}
 			}
 			switching_market_screens = YES;
@@ -2379,7 +2379,7 @@ static BOOL switching_equipship_screens;
 			if (!switching_market_screens)
 			{
 				[self setGuiToMarketScreen];
-				[[universe gui] setSelectedRow:GUI_ROW_MARKET_START];
+				[[UNIVERSE gui] setSelectedRow:GUI_ROW_MARKET_START];
 			}
 			switching_market_screens = YES;
 		}
@@ -2392,12 +2392,12 @@ static BOOL switching_equipship_screens;
 
 - (void) pollGameOverControls:(double) delta_t
 {
-	MyOpenGLView  *gameView = (MyOpenGLView *)[universe gameView];
+	MyOpenGLView  *gameView = (MyOpenGLView *)[UNIVERSE gameView];
 	if ([gameView isDown:32])   // look for the spacebar
 	{
 		if (!spacePressed)
 		{
-			[universe displayMessage:@"" forCount:1.0];
+			[UNIVERSE displayMessage:@"" forCount:1.0];
 			shot_time = 31.0;	// force restart
 		}
 		spacePressed = YES;
@@ -2413,7 +2413,7 @@ static BOOL toggling_music;
 	// controls polled while the autopilot is active
 	//
 
-	MyOpenGLView  *gameView = (MyOpenGLView *)[universe gameView];
+	MyOpenGLView  *gameView = (MyOpenGLView *)[UNIVERSE gameView];
 	//
 	//  view keys
 	//
@@ -2423,7 +2423,7 @@ static BOOL toggling_music;
 	//
 	[self pollGuiScreenControls];
 	//
-	if ([universe displayGUI])
+	if ([UNIVERSE displayGUI])
 		[self pollGuiArrowKeyControls:delta_t];
 	//
 	//
@@ -2437,15 +2437,15 @@ static BOOL toggling_music;
 			autopilot_engaged = NO;
 			primaryTarget = NO_TARGET;
 			status = STATUS_IN_FLIGHT;
-			if (![universe playCustomSound:@"[autopilot-off]"])
+			if (![UNIVERSE playCustomSound:@"[autopilot-off]"])
 				[self beep];
-			[universe addMessage:ExpandDescriptionForCurrentSystem(@"[autopilot-off]") forCount:4.5];
+			[UNIVERSE addMessage:ExpandDescriptionForCurrentSystem(@"[autopilot-off]") forCount:4.5];
 			[self sendMessageToScripts:@"didAbortAutoPilot"];
 			//
 			if (ootunes_on)
 			{
 				// ootunes - play inflight music
-				[[universe gameController] playiTunesPlaylist:@"Oolite-Inflight"];
+				[[UNIVERSE gameController] playiTunesPlaylist:@"Oolite-Inflight"];
 				docking_music_on = NO;
 			}
 		}
@@ -2476,17 +2476,17 @@ static BOOL toggling_music;
 {
 	if(pollControls)
 	{
-		MyOpenGLView  *gameView = (MyOpenGLView *)[universe gameView];
+		MyOpenGLView  *gameView = (MyOpenGLView *)[UNIVERSE gameView];
 		if (([gameView isDown:gvFunctionKey1])||([gameView isDown:gvNumberKey1]))   // look for the f1 key
 		{
 			// ensure we've not left keyboard entry on
 			[gameView allowStringInput: NO];
 
-			[universe set_up_universe_from_station]; // launch!
+			[UNIVERSE setUpUniverseFromStation]; // launch!
 			if (!docked_station)
-				docked_station = [universe station];
+				docked_station = [UNIVERSE station];
 			[self leaveDock:docked_station];
-			[universe setDisplayCursor:NO];
+			[UNIVERSE setDisplayCursor:NO];
 			[self sendMessageToScripts:@"willLaunch"];
 		}
 	}
@@ -2505,8 +2505,8 @@ static BOOL toggling_music;
 
 - (void) pollDemoControls:(double) delta_t
 {
-	MyOpenGLView*	gameView = (MyOpenGLView *)[universe gameView];
-	GuiDisplayGen*	gui = [universe gui];
+	MyOpenGLView*	gameView = (MyOpenGLView *)[UNIVERSE gameView];
+	GuiDisplayGen*	gui = [UNIVERSE gui];
 
 	switch (gui_screen)
 	{
@@ -2521,12 +2521,12 @@ static BOOL toggling_music;
 					}
 					disc_operation_in_progress = YES;
 					[self setStatus:STATUS_DOCKED];
-					[universe removeDemoShips];
+					[UNIVERSE removeDemoShips];
 					[gui setBackgroundImage:nil];
 #ifdef GNUSTEP
 					[self setGuiToLoadCommanderScreen];
 #else
-					if ([[universe gameController] inFullScreenMode])
+					if ([[UNIVERSE gameController] inFullScreenMode])
 						[self setGuiToLoadCommanderScreen];
 					else
 					{
@@ -2557,7 +2557,7 @@ static BOOL toggling_music;
 			if ([gameView isDown:32])	//  '<space>'
 			{
 				[self setStatus: STATUS_DOCKED];
-				[universe removeDemoShips];
+				[UNIVERSE removeDemoShips];
 				[gui setBackgroundImage:nil];
 				[self setGuiToStatusScreen];
 				if (themeMusic)
@@ -2568,12 +2568,12 @@ static BOOL toggling_music;
 			if ([gameView isDown:gvArrowKeyLeft])	//  '<--'
 			{
 				if (!upDownKeyPressed)
-					[universe selectIntro2Previous];
+					[UNIVERSE selectIntro2Previous];
 			}
 			if ([gameView isDown:gvArrowKeyRight])	//  '-->'
 			{
 				if (!upDownKeyPressed)
-					[universe selectIntro2Next];
+					[UNIVERSE selectIntro2Next];
 			}
 			upDownKeyPressed = (([gameView isDown:gvArrowKeyLeft])||([gameView isDown:gvArrowKeyRight]));
 			break;
@@ -2586,7 +2586,7 @@ static BOOL toggling_music;
 					if (!spacePressed)
 					{
 						[self setStatus:STATUS_DOCKED];
-						[universe removeDemoShips];
+						[UNIVERSE removeDemoShips];
 						[gui setBackgroundImage:nil];
 						[self setGuiToStatusScreen];
 						if (missionMusic)
@@ -2631,7 +2631,7 @@ static BOOL toggling_music;
 							[missionChoice release];
 						missionChoice = [[NSString stringWithString:[gui selectedRowKey]] retain];
 						//
-						[universe removeDemoShips];
+						[UNIVERSE removeDemoShips];
 						[gui setBackgroundImage:nil];
 						[self setGuiToStatusScreen];
 						if (missionMusic)

@@ -40,44 +40,36 @@ MA 02110-1301, USA.
 
 - (void) dealloc
 {
-	if (name)
-		[name release];
-	if (shortDescription)
-		[shortDescription release];
-	if (longDescription)
-		[longDescription release];
-	if (script_actions)
-		[script_actions release];
-	if (brain)
-		[brain release];
+	[name release];
+	[shortDescription release];
+	[longDescription release];
+	[script_actions release];
+	[brain release];
+	
 	[super dealloc];
 }
 
-- (id) initWithGenSeed:(Random_Seed) g_seed andOriginalSystemSeed:(Random_Seed) s_seed inUniverse:(Universe*) uni
+- (id) initWithGenSeed:(Random_Seed) g_seed andOriginalSystemSeed:(Random_Seed) s_seed
 {
 	self = [super init];
 	
 	// do character set-up
-	//
 	genSeed = g_seed;
 	originSystemSeed = s_seed;
-	universe = uni;
-	//
+	
 	[self basicSetUp];
 	
 	return self;
 }
 
-- (id) initWithRole:(NSString*) role andOriginalSystemSeed:(Random_Seed) s_seed inUniverse:(Universe*) uni
+- (id) initWithRole:(NSString*) role andOriginalSystemSeed:(Random_Seed) s_seed
 {
 	self = [super init];
 	
 	// do character set-up
-	//
 	originSystemSeed = s_seed;
 	make_pseudo_random_seed( &genSeed);
-	universe = uni;
-	//
+	
 	[self basicSetUp];
 	
 	[self castInRole: role];
@@ -85,12 +77,12 @@ MA 02110-1301, USA.
 	return self;
 }
 
-+ (OOCharacter*) characterWithRole:(NSString*) c_role andOriginalSystem:(Random_Seed) o_seed inUniverse:(Universe*) uni
++ (OOCharacter*) characterWithRole:(NSString*) c_role andOriginalSystem:(Random_Seed) o_seed
 {
-	return [[[OOCharacter alloc] initWithRole: c_role andOriginalSystemSeed: o_seed inUniverse: uni] autorelease];
+	return [[[OOCharacter alloc] initWithRole: c_role andOriginalSystemSeed: o_seed] autorelease];
 }
 
-+ (OOCharacter*) randomCharacterWithRole:(NSString*) c_role andOriginalSystem:(Random_Seed) o_seed inUniverse:(Universe*) uni
++ (OOCharacter*) randomCharacterWithRole:(NSString*) c_role andOriginalSystem:(Random_Seed) o_seed
 {
 	Random_Seed r_seed;
 	r_seed.a = (ranrot_rand() & 0xff);
@@ -100,7 +92,7 @@ MA 02110-1301, USA.
 	r_seed.e = (ranrot_rand() & 0xff);
 	r_seed.f = (ranrot_rand() & 0xff);
 	
-	OOCharacter	*castmember = [[[OOCharacter alloc] initWithGenSeed: r_seed andOriginalSystemSeed: o_seed inUniverse: uni] autorelease];
+	OOCharacter	*castmember = [[[OOCharacter alloc] initWithGenSeed: r_seed andOriginalSystemSeed: o_seed] autorelease];
 	
 	if ([castmember castInRole: c_role])
 		return castmember;
@@ -110,10 +102,9 @@ MA 02110-1301, USA.
 	}
 }
 
-+ (OOCharacter*) characterWithDictionary:(NSDictionary*) c_dict inUniverse:(Universe*) uni
++ (OOCharacter*) characterWithDictionary:(NSDictionary*) c_dict
 {
 	OOCharacter	*castmember = [[[OOCharacter alloc] init] autorelease];
-	[castmember setUniverse: uni];
 	[castmember setCharacterFromDictionary: c_dict];
 	return castmember;
 }
@@ -122,7 +113,7 @@ MA 02110-1301, USA.
 - (NSString*) planetOfOrigin
 {
 	// determine the planet of origin
-	NSDictionary* originInfo = [universe generateSystemData: originSystemSeed];
+	NSDictionary* originInfo = [UNIVERSE generateSystemData: originSystemSeed];
 	return [originInfo objectForKey: KEY_NAME];
 }
 
@@ -130,7 +121,7 @@ MA 02110-1301, USA.
 {
 	// determine the character's species
 	int species = genSeed.f & 0x03;	// 0-1 native to home system, 2 human colonial, 3 other
-	NSString* speciesString = (species == 3)? [universe generateSystemInhabitants: genSeed plural:NO]:[universe generateSystemInhabitants: originSystemSeed plural:NO];
+	NSString* speciesString = (species == 3)? [UNIVERSE generateSystemInhabitants: genSeed plural:NO]:[UNIVERSE generateSystemInhabitants: originSystemSeed plural:NO];
 	return [[speciesString lowercaseString] stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceCharacterSet]];
 }
 
@@ -142,7 +133,7 @@ MA 02110-1301, USA.
 	seed_for_planet_description(genSeed);
 
 	// determine the planet of origin
-	NSDictionary* originInfo = [universe generateSystemData: originSystemSeed];
+	NSDictionary* originInfo = [UNIVERSE generateSystemData: originSystemSeed];
 	NSString* planetName = [originInfo objectForKey: KEY_NAME];
 	int government = [[originInfo objectForKey:KEY_GOVERNMENT] intValue]; // 0 .. 7 (0 anarchic .. 7 most stable)
 	int criminal_tendency = government ^ 0x07;
@@ -359,10 +350,7 @@ MA 02110-1301, USA.
 	return brain;
 }
 
-- (void) setUniverse: (Universe*) uni
-{
-	universe = uni;
-}
+
 - (void) setName: (NSString*) value
 {
 	if (name)
@@ -424,9 +412,9 @@ MA 02110-1301, USA.
 	if ([dict objectForKey:@"origin"])
 	{
 		if (([[dict objectForKey:@"origin"] intValue] > 0) || [[dict objectForKey:@"origin"] isEqual:@"0"])
-			[self setOriginSystemSeed:[universe systemSeedForSystemNumber:[[dict objectForKey:@"origin"] intValue]]];
+			[self setOriginSystemSeed:[UNIVERSE systemSeedForSystemNumber:[[dict objectForKey:@"origin"] intValue]]];
 		else
-			[self setOriginSystemSeed:[universe systemSeedForSystemName:[dict objectForKey:@"origin"]]];
+			[self setOriginSystemSeed:[UNIVERSE systemSeedForSystemName:[dict objectForKey:@"origin"]]];
 	}	
 	if ([dict objectForKey:@"random_seed"])
 	{

@@ -1,6 +1,6 @@
 /*
 
-PlayerEntityScripting.h
+PlayerEntityLegacyScriptEngine.h
 
 Various utility methods used for scripting.
 

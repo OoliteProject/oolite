@@ -47,7 +47,7 @@ Ringdata	ringentity;
 {    
 	self = [super init];
 
-	[self setModel:@"ring.dat"];
+	[self setModelName:@"ring.dat"];
 	
 	// initialise the vertex arrays
 	//
@@ -111,7 +111,7 @@ Ringdata	ringentity;
 		lifetime -= movement;
 		if (lifetime < 0.0)
 		{
-			[universe removeEntity:self];
+			[UNIVERSE removeEntity:self];
 		}
     }
 }
@@ -166,7 +166,7 @@ Ringdata	ringentity;
 		}
 	}
 	glEnable(GL_LIGHTING);
-	checkGLErrors([NSString stringWithFormat:@"RingEntity after drawing %@", self]);
+	CheckOpenGLErrors([NSString stringWithFormat:@"RingEntity after drawing %@", self]);
 }
 
 - (BOOL) canCollide

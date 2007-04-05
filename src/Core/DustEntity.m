@@ -122,8 +122,8 @@ MA 02110-1301, USA.
     int ct;
 	int vi;
 
-    GLfloat *fogcolor = [universe sky_clear_color];
-	int  dust_size = floor([(MyOpenGLView *)[universe gameView] viewSize].width / 480.0);
+    GLfloat *fogcolor = [UNIVERSE sky_clear_color];
+	int  dust_size = floor([(MyOpenGLView *)[UNIVERSE gameView] viewSize].width / 480.0);
 	if (dust_size < 1.0)
 		dust_size = 1.0;
 	int  line_size = dust_size / 2;
@@ -132,7 +132,7 @@ MA 02110-1301, USA.
 	double  half_scale = DUST_SCALE * 0.50;
 	double  quarter_scale = DUST_SCALE * 0.25;
 	
-	if ([universe breakPatternHide])	return;	// DON'T DRAW
+	if ([UNIVERSE breakPatternHide])	return;	// DON'T DRAW
 
 	BOOL	warp_stars = [player atHyperspeed];
 	Vector  warp_vector = [player velocityVector];
@@ -152,7 +152,7 @@ MA 02110-1301, USA.
 		if (player->isSunlit)
 			glColor4fv(color_fv);
 		else
-			glColor4fv(universe->stars_ambient);
+			glColor4fv(UNIVERSE->stars_ambient);
 		//
 		ct = 0;
 		
@@ -186,7 +186,7 @@ MA 02110-1301, USA.
 		glDisable(GL_FOG);
 	}
 	//
-	checkGLErrors([NSString stringWithFormat:@"DustEntity after drawing %@", self]);
+	CheckOpenGLErrors([NSString stringWithFormat:@"DustEntity after drawing %@", self]);
 	//
 }
 

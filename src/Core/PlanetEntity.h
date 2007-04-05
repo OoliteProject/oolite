@@ -123,13 +123,13 @@ GLfloat		rvalue[729];			// stores random values for adjusting colors in the coro
 void setUpSinTable();
 
 - (id) initAsSunWithColor:(OOColor *) sun_color;
-- (id) initAsAtmosphereForPlanet:(PlanetEntity *) planet inUniverse:(Universe*) uni;
+- (id) initAsAtmosphereForPlanet:(PlanetEntity *) planet;
 - (id) initAsCoronaForPlanet:(PlanetEntity *) planet;
-- (id) initWithSeed:(Random_Seed) p_seed fromUniverse:(Universe *) uni;
-- (id) initMiniatureFromPlanet:(PlanetEntity*) planet inUniverse:(Universe*) uni;
+- (id) initWithSeed:(Random_Seed) p_seed;
+- (id) initMiniatureFromPlanet:(PlanetEntity*) planet;
 
-- (id) initPlanetFromDictionary:(NSDictionary*) dict inUniverse:(Universe *) uni;
-- (id) initMoonFromDictionary:(NSDictionary*) dict inUniverse:(Universe *) uni;
+- (id) initPlanetFromDictionary:(NSDictionary*) dict;
+- (id) initMoonFromDictionary:(NSDictionary*) dict;
 
 void drawBall (double radius, int step, double z_distance);
 void drawBallVertices (double radius, int step, double z_distance);

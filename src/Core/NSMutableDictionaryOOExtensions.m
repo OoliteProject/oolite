@@ -33,7 +33,7 @@ MA 02110-1301, USA.
 	NSEnumerator* otherKeysEnum = [otherKeys objectEnumerator];
 	id key;
 	 
-	while (key = [otherKeysEnum nextObject])
+	while ((key = [otherKeysEnum nextObject]))
 	{
 		if (![self objectForKey:key])
 			[self setObject:[otherDictionary objectForKey:key] forKey:key];

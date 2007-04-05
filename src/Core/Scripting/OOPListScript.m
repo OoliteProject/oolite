@@ -24,7 +24,7 @@ MA 02110-1301, USA.
 
 #import "OOPListScript.h"
 #import "OOPListParsing.h"
-#import "PlayerEntityScripting.h"
+#import "PlayerEntityLegacyScriptEngine.h"
 
 extern NSDictionary *ParseOOSScripts(NSString* script);
 

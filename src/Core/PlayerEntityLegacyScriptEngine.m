@@ -1,6 +1,6 @@
 /*
 
-PlayerEntityScripting.m
+PlayerEntityLegacyScriptEngine.m
 
 Oolite
 Copyright (C) 2004-2007 Giles C Williams and contributors
@@ -22,7 +22,8 @@ MA 02110-1301, USA.
 
 */
 
-#import "PlayerEntityScripting.h"
+#import "PlayerEntityLegacyScriptEngine.h"
+#import "PlayerEntityScriptMethods.h"
 #import "GuiDisplayGen.h"
 #import "Universe.h"
 #import "ResourceManager.h"
@@ -43,7 +44,7 @@ MA 02110-1301, USA.
 #import "Comparison.h"
 #endif
 
-#define kOOLogUnconvertedNSLog @"unclassified.PlayerEntityScripting"
+#define kOOLogUnconvertedNSLog @"unclassified.PlayerEntityLegacyScriptEngine"
 
 static NSString * const kOOLogScriptAddShipsFailed			= @"script.addShips.failed";
 static NSString * const kOOLogScriptMissionDescNoText		= @"script.missionDescription.noMissionText";
@@ -539,10 +540,10 @@ static NSString * mission_key;
 
 - (void) setMissionDescription:(NSString *)textKey
 {
-	NSString		*text = (NSString *)[[universe missiontext] objectForKey:textKey];
+	NSString		*text = (NSString *)[[UNIVERSE missiontext] objectForKey:textKey];
 	if (!text)
 	{
-		OOLog(kOOLogScriptMissionDescNoText, @"SCRIPT ERROR ***** no missiontext set for key '%@' [universe missiontext] is:\n%@ ", textKey, [universe missiontext]);
+		OOLog(kOOLogScriptMissionDescNoText, @"SCRIPT ERROR ***** no missiontext set for key '%@' [UNIVERSE missiontext] is:\n%@ ", textKey, [UNIVERSE missiontext]);
 		return;
 	}
 	if (!mission_key)
@@ -634,9 +635,9 @@ static NSString * mission_key;
 }
 - (NSNumber *) planet_number
 {
-	if (![universe sun])
+	if (![UNIVERSE sun])
 		return [NSNumber numberWithInt:-1];
-	return [NSNumber numberWithInt:[universe findSystemNumberAtCoords:galaxy_coordinates withGalaxySeed:galaxy_seed]];
+	return [NSNumber numberWithInt:[UNIVERSE findSystemNumberAtCoords:galaxy_coordinates withGalaxySeed:galaxy_seed]];
 }
 - (NSNumber *) score_number
 {
@@ -730,7 +731,7 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 
 - (NSString *) dockedAtMainStation_bool
 {
-	if ((status == STATUS_DOCKED)&&(docked_station == [universe station]))
+	if ((status == STATUS_DOCKED)&&(docked_station == [UNIVERSE station]))
 		return @"YES";
 	else
 		return @"NO";
@@ -743,12 +744,12 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 
 - (NSString *) sunWillGoNova_bool		// returns whether the sun is going to go nova
 {
-	return ([[universe sun] willGoNova])? @"YES" : @"NO";
+	return ([[UNIVERSE sun] willGoNova])? @"YES" : @"NO";
 }
 
 - (NSString *) sunGoneNova_bool		// returns whether the sun has gone nova
 {
-	return ([[universe sun] goneNova])? @"YES" : @"NO";
+	return ([[UNIVERSE sun] goneNova])? @"YES" : @"NO";
 }
 
 - (NSString *) missionChoice_string		// returns nil or the key for the chosen option
@@ -776,7 +777,7 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 
 - (NSNumber *) systemGovernment_number
 {
-	NSDictionary *systeminfo = [universe generateSystemData:system_seed];
+	NSDictionary *systeminfo = [UNIVERSE generateSystemData:system_seed];
 	return [systeminfo objectForKey:KEY_GOVERNMENT];
 }
 
@@ -791,25 +792,25 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 
 - (NSNumber *) systemEconomy_number
 {
-	NSDictionary *systeminfo = [universe generateSystemData:system_seed];
+	NSDictionary *systeminfo = [UNIVERSE generateSystemData:system_seed];
 	return [systeminfo objectForKey:KEY_ECONOMY];
 }
 
 - (NSNumber *) systemTechLevel_number
 {
-	NSDictionary *systeminfo = [universe generateSystemData:system_seed];
+	NSDictionary *systeminfo = [UNIVERSE generateSystemData:system_seed];
 	return [systeminfo objectForKey:KEY_TECHLEVEL];
 }
 
 - (NSNumber *) systemPopulation_number
 {
-	NSDictionary *systeminfo = [universe generateSystemData:system_seed];
+	NSDictionary *systeminfo = [UNIVERSE generateSystemData:system_seed];
 	return [systeminfo objectForKey:KEY_POPULATION];
 }
 
 - (NSNumber *) systemProductivity_number
 {
-	NSDictionary *systeminfo = [universe generateSystemData:system_seed];
+	NSDictionary *systeminfo = [UNIVERSE generateSystemData:system_seed];
 	return [systeminfo objectForKey:KEY_PRODUCTIVITY];
 }
 
@@ -821,7 +822,7 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 - (NSString *) commanderRank_string
 {
 	int rating = [self getRatingFromKills: ship_kills];
-	return [NSString stringWithString:(NSString*)[(NSArray*)[[universe descriptions] objectForKey:@"rating"] objectAtIndex:rating]];
+	return [NSString stringWithString:(NSString*)[(NSArray*)[[UNIVERSE descriptions] objectForKey:@"rating"] objectAtIndex:rating]];
 }
 
 - (NSString *) commanderShip_string
@@ -832,7 +833,7 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 - (NSString *) commanderLegalStatus_string
 {
 	int legal_index = 0 + (legal_status <= 50) ? 1 : 2;
-	return [NSString stringWithString:(NSString*)[(NSArray *)[[universe descriptions] objectForKey:@"legal_status"] objectAtIndex:legal_index]];
+	return [NSString stringWithString:(NSString*)[(NSArray *)[[UNIVERSE descriptions] objectForKey:@"legal_status"] objectAtIndex:legal_index]];
 }
 
 - (NSNumber *) commanderLegalStatus_number
@@ -855,7 +856,7 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 	NSString* expandedMessage = ExpandDescriptionForCurrentSystem(valueString);
 	expandedMessage = [self replaceVariablesInString: expandedMessage];
 
-	[universe addCommsMessage:expandedMessage forCount:4.5];
+	[UNIVERSE addCommsMessage:expandedMessage forCount:4.5];
 }
 
 
@@ -872,7 +873,7 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 	NSString* expandedMessage = ExpandDescriptionForCurrentSystem(valueString);
 	expandedMessage = [self replaceVariablesInString: expandedMessage];
 
-	[universe addMessage: expandedMessage forCount: 3];
+	[UNIVERSE addMessage: expandedMessage forCount: 3];
 }
 
 - (void) consoleMessage6s:(NSString *)valueString
@@ -888,7 +889,7 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 	NSString* expandedMessage = ExpandDescriptionForCurrentSystem(valueString);
 	expandedMessage = [self replaceVariablesInString: expandedMessage];
 
-	[universe addMessage: expandedMessage forCount: 6];
+	[UNIVERSE addMessage: expandedMessage forCount: 6];
 }
 
 - (void) setLegalStatus:(NSString *)valueString
@@ -930,7 +931,7 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 
 	if ([eq_type hasSuffix:@"MISSILE"]||[eq_type hasSuffix:@"MINE"])
 	{
-		if ([self mountMissile:[[universe newShipWithRole:eq_type] autorelease]])
+		if ([self mountMissile:[[UNIVERSE newShipWithRole:eq_type] autorelease]])
 			missiles++;
 		return;
 	}
@@ -977,7 +978,7 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 	keyString = [(NSString*)[tokens objectAtIndex:0] stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceCharacterSet]];
 	valueString = [(NSString*)[tokens objectAtIndex:1] stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceCharacterSet]];
 
-	[universe setSystemDataKey:keyString value:valueString];
+	[UNIVERSE setSystemDataKey:keyString value:valueString];
 
 }
 
@@ -999,7 +1000,7 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 	keyString = [(NSString*)[tokens objectAtIndex:2] stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceCharacterSet]];
 	valueString = [(NSString*)[tokens objectAtIndex:3] stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceCharacterSet]];
 
-	[universe setSystemDataForGalaxy:gnum planet:pnum key:keyString value:valueString];
+	[UNIVERSE setSystemDataForGalaxy:gnum planet:pnum key:keyString value:valueString];
 }
 
 - (void) awardCargo:(NSString *)amount_typeString
@@ -1023,16 +1024,16 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 	typeString =	(NSString *)[tokens objectAtIndex:1];
 
 	int amount =	[amountString intValue];
-	int type =		[universe commodityForName:typeString];
+	int type =		[UNIVERSE commodityForName:typeString];
 	if (type == NSNotFound)
 		type = [typeString intValue];
-	if ((type < 0)||(type >= [[universe commoditydata] count]))
+	if ((type < 0)||(type >= [[UNIVERSE commoditydata] count]))
 	{
 		OOLog(kOOLogSyntaxAwardCargo, @"***** CANNOT awardCargo: '%@' (unknown type)",amount_typeString);
 		return;
 	}
 
-	NSArray* commodityArray = (NSArray *)[[universe commoditydata] objectAtIndex:type];
+	NSArray* commodityArray = (NSArray *)[[UNIVERSE commoditydata] objectAtIndex:type];
 	NSString* cargoString = [(NSArray*)commodityArray objectAtIndex:MARKET_NAME];
 
 	OOLog(kOOLogNoteAwardCargo, @"Going to award cargo %d x '%@'", amount, cargoString);
@@ -1051,10 +1052,11 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 					int smaller_quantity = 1 + ((amount - 1) % amount_per_container);
 					if ([cargo count] < max_cargo)
 					{
-						ShipEntity* container = [universe newShipWithRole:@"cargopod"];
+						ShipEntity* container = [UNIVERSE newShipWithRole:@"cargopod"];
 						if (container)
 						{
-							[container setUniverse:universe];
+							// Shouldn't there be a [UNIVERSE addEntity:] here? -- Ahruman
+							[container wasAddedToUniverse];
 							[container setScanClass: CLASS_CARGO];
 							[container setCommodity:type andAmount:smaller_quantity];
 							[cargo addObject:container];
@@ -1071,10 +1073,11 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 				{
 					if ([cargo count] < max_cargo)
 					{
-						ShipEntity* container = [universe newShipWithRole:@"cargopod"];
+						ShipEntity* container = [UNIVERSE newShipWithRole:@"cargopod"];
 						if (container)
 						{
-							[container setUniverse:universe];
+							// Shouldn't there be a [UNIVERSE addEntity:] here? -- Ahruman
+							[container wasAddedToUniverse];
 							[container setScanClass: CLASS_CARGO];
 							[container setStatus:STATUS_IN_HOLD];
 							[container setCommodity:type andAmount:1];
@@ -1176,12 +1179,12 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 	[tokens removeObjectAtIndex:0];
 	messageString = [tokens componentsJoinedByString:@" "];
 
-	[universe sendShipsWithRole:roleString messageToAI:messageString];
+	[UNIVERSE sendShipsWithRole:roleString messageToAI:messageString];
 }
 
 - (void) ejectItem:(NSString *)item_key
 {
-	ShipEntity* item = [universe newShipWithName:item_key];
+	ShipEntity* item = [UNIVERSE newShipWithName:item_key];
 	if (script_target == nil)
 		script_target = self;
 	if (item)
@@ -1208,7 +1211,7 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 	OOLog(kOOLogNoteAddShips, @"DEBUG ..... Going to add %d ships with role '%@'", number, roleString);
 
 	while (number--)
-		[universe witchspaceShipWithRole:roleString];
+		[UNIVERSE witchspaceShipWithRole:roleString];
 }
 
 - (void) addSystemShips:(NSString *)roles_number_position
@@ -1234,7 +1237,7 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 	OOLog(kOOLogNoteAddShips, @"DEBUG Going to add %d ships with role '%@' at a point %.3f along route1", number, roleString, posn);
 
 	while (number--)
-		[universe addShipWithRole:roleString nearRouteOneAt:posn];
+		[UNIVERSE addShipWithRole:roleString nearRouteOneAt:posn];
 }
 
 - (void) addShipsAt:(NSString *)roles_number_system_x_y_z
@@ -1267,7 +1270,7 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 
 	OOLog(kOOLogNoteAddShips, @"DEBUG Going to add %d ship(s) with role '%@' at point (%.3f, %.3f, %.3f) using system %@", number, roleString, posn.x, posn.y, posn.z, systemString);
 
-	if (![universe addShips: number withRole:roleString nearPosition: posn withCoordinateSystem: systemString])
+	if (![UNIVERSE addShips: number withRole:roleString nearPosition: posn withCoordinateSystem: systemString])
 	{
 		OOLog(kOOLogScriptAddShipsFailed, @"***** CANNOT addShipsAt: '%@' (should be addShipsAt: role number coordinate_system x y z)",roles_number_system_x_y_z);
 	}
@@ -1303,7 +1306,7 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 
 	OOLog(kOOLogNoteAddShips, @"DEBUG Going to add %d ship(s) with role '%@' precisely at point (%.3f, %.3f, %.3f) using system %@", number, roleString, posn.x, posn.y, posn.z, systemString);
 
-	if (![universe addShips: number withRole:roleString atPosition: posn withCoordinateSystem: systemString])
+	if (![UNIVERSE addShips: number withRole:roleString atPosition: posn withCoordinateSystem: systemString])
 	{
 		OOLog(kOOLogScriptAddShipsFailed, @"***** CANNOT addShipsAtPrecisely: '%@' (should be addShipsAt: role number coordinate_system x y z)",roles_number_system_x_y_z);
 	}
@@ -1330,7 +1333,7 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 
 	OOLog(kOOLogNoteAddShips, @"DEBUG Going to add %d ship(s) with role '%@' within %.2f radius about point (%.3f, %.3f, %.3f) using system %@", number, roleString, r, x, y, z, systemString);
 
-	if (![universe addShips:number withRole: roleString nearPosition: posn withCoordinateSystem: systemString withinRadius: r])
+	if (![UNIVERSE addShips:number withRole: roleString nearPosition: posn withCoordinateSystem: systemString withinRadius: r])
 	{
 		OOLog(kOOLogScriptAddShipsFailed, @"***** CANNOT 'addShipsWithinRadius: %@' (should be 'addShipsWithinRadius: role number coordinate_system x y z r')",roles_number_system_x_y_z_r);
 	}
@@ -1338,7 +1341,7 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 
 - (void) spawnShip:(NSString *)ship_key
 {
-	if ([universe spawnShip:ship_key])
+	if ([UNIVERSE spawnShip:ship_key])
 	{
 		OOLog(kOOLogNoteAddShips, @"DEBUG Spawned ship with shipdata key '%@'.", ship_key);
 	}
@@ -1544,7 +1547,7 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 
 - (void) checkForShips: (NSString *)roleString
 {
-	shipsFound = [universe countShipsWithRole:roleString];
+	shipsFound = [UNIVERSE countShipsWithRole:roleString];
 }
 
 - (void) resetScriptTimer
@@ -1559,8 +1562,8 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 	if ([textKey isEqual:lastTextKey])
 		return; // don't repeatedly add the same text
 	//
-	GuiDisplayGen   *gui =  [universe gui];
-	NSString		*text = (NSString *)[[universe missiontext] objectForKey:textKey];
+	GuiDisplayGen   *gui =  [UNIVERSE gui];
+	NSString		*text = (NSString *)[[UNIVERSE missiontext] objectForKey:textKey];
 	text = ExpandDescriptionForCurrentSystem(text);
 	text = [self replaceVariablesInString: text];
 	
@@ -1578,7 +1581,7 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 
 - (void) setMissionChoices:(NSString *)choicesKey	// choicesKey is a key for a dictionary of
 {													// choices/choice phrases in missiontext.plist and also..
-	GuiDisplayGen* gui = [universe gui];
+	GuiDisplayGen* gui = [UNIVERSE gui];
 	// TODO MORE STUFF HERE
 	// must find list of choices in missiontext.plist
 	// add them to gui setting the key for each line to the key in the dict of choices
@@ -1588,7 +1591,7 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 	// and only if the selectable range is not present ask:
 	// Press Space Commander...
 	//
-	NSDictionary* choices_dict = (NSDictionary *)[[universe missiontext] objectForKey:choicesKey];
+	NSDictionary* choices_dict = (NSDictionary *)[[UNIVERSE missiontext] objectForKey:choicesKey];
 	if ((choices_dict == nil)||([choices_dict count] == 0))
 		return;
 	//
@@ -1695,22 +1698,22 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 	if (!docked_station)
 		return;
 
-	[universe removeDemoShips];	// get rid of any pre-existing models on display
+	[UNIVERSE removeDemoShips];	// get rid of any pre-existing models on display
 
 	Quaternion		q2 = { (GLfloat)0.707, (GLfloat)0.707, (GLfloat)0.0, (GLfloat)0.0};
 
-	ship = [universe newShipWithRole: shipKey];   // retain count = 1
+	ship = [UNIVERSE newShipWithRole: shipKey];   // retain count = 1
 	if (ship)
 	{
 		double cr = ship->collision_radius;
 		OOLog(kOOLogNoteShowShipModel, @"::::: showShipModel:'%@' (%@) (%@)", shipKey, ship, [ship name]);
 		[ship setQRotation: q2];
 		[ship setStatus: STATUS_COCKPIT_DISPLAY];
-		[ship setPosition: 0.0f: 0.0f: 3.6f * cr];
+		[ship setPositionX:0.0f y:0.0f z:3.6f * cr];
 		[ship setScanClass: CLASS_NO_DRAW];
-		[ship setRoll: PI/5.0];
-		[ship setPitch: PI/10.0];
-		[universe addEntity: ship];
+		[ship setRoll: M_PI/5.0];
+		[ship setPitch: M_PI/10.0];
+		[UNIVERSE addEntity: ship];
 		[[ship getAI] setStateMachine: @"nullAI.plist"];
 
 		[ship release];
@@ -1751,9 +1754,9 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 	fuel_leak_rate = [value doubleValue];
 	if (fuel_leak_rate > 0)
 	{
-		if (![universe playCustomSound:@"[fuel-leak]"])
+		if (![UNIVERSE playCustomSound:@"[fuel-leak]"])
 			[self warnAboutHostiles];
-		[universe addMessage:@"Danger! Fuel leak!" forCount:6];
+		[UNIVERSE addMessage:@"Danger! Fuel leak!" forCount:6];
 		OOLog(kOOLogNoteFuelLeak, @"FUEL LEAK activated!");
 	}
 }
@@ -1766,28 +1769,28 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 - (void) setSunNovaIn: (NSString *)time_value
 {
 	double time_until_nova = [time_value doubleValue];
-	[[universe sun] setGoingNova:YES inTime: time_until_nova];
+	[[UNIVERSE sun] setGoingNova:YES inTime: time_until_nova];
 	OOLog(kOOLogDebugSetSunNovaIn, @"NOVA activated! time until Nova : %.1f s", time_until_nova);
 }
 
 - (void) launchFromStation
 {
 	[self leaveDock:docked_station];
-	[universe setDisplayCursor:NO];
+	[UNIVERSE setDisplayCursor:NO];
 	[breakPatternSound play];
 }
 
 - (void) blowUpStation
 {
-	[[universe station] takeEnergyDamage:500000000.0 from:nil becauseOf:nil];	// 500 million should do it!
+	[[UNIVERSE station] takeEnergyDamage:500000000.0 from:nil becauseOf:nil];	// 500 million should do it!
 }
 
 - (void) sendAllShipsAway
 {
-	if (!universe)
+	if (!UNIVERSE)
 		return;
-	int			ent_count =		universe->n_entities;
-	Entity**	uni_entities =	universe->sortedEntities;	// grab the public sorted list
+	int			ent_count =		UNIVERSE->n_entities;
+	Entity**	uni_entities =	UNIVERSE->sortedEntities;	// grab the public sorted list
 	Entity*		my_entities[ent_count];
 	int i;
 	for (i = 0; i < ent_count; i++)
@@ -1799,7 +1802,7 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 		if (e1->isShip)
 		{
 			ShipEntity* se1 = (ShipEntity*)e1;
-			int e_class = e1->scan_class;
+			int e_class = e1->scanClass;
 			if ((e_class == CLASS_NEUTRAL)||(e_class == CLASS_POLICE)||(e_class == CLASS_MILITARY)||(e_class == CLASS_THARGOID))
 			{
 				AI*	se1AI = [se1 getAI];
@@ -1820,9 +1823,9 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 {
 	OOLog(kOOLogNoteAddPlanet, @"addPlanet: %@", planetKey);
 
-	if (!universe)
+	if (!UNIVERSE)
 		return;
-	NSDictionary* dict = (NSDictionary*)[[universe planetinfo] objectForKey:planetKey];
+	NSDictionary* dict = (NSDictionary*)[[UNIVERSE planetinfo] objectForKey:planetKey];
 	if (!dict)
 	{
 		NSLog(@"ERROR - could not find an entry in planetinfo.plist for '%@'", planetKey);
@@ -1831,7 +1834,7 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 
 	/*- add planet -*/
 	OOLog(kOOLogDebugAddPlanet, @"DEBUG initPlanetFromDictionary: %@", dict);
-	PlanetEntity*	planet = [[[PlanetEntity alloc] initPlanetFromDictionary:dict inUniverse:universe] autorelease];
+	PlanetEntity*	planet = [[[PlanetEntity alloc] initPlanetFromDictionary:dict] autorelease];
 	[planet setStatus:STATUS_ACTIVE];
 	
 	Quaternion orientation;
@@ -1847,7 +1850,7 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 	}
 	
 	NSString *positionString = [dict objectForKey:@"position"];
-	Vector posn = [universe coordinatesFromCoordinateSystemString:positionString];
+	Vector posn = [UNIVERSE coordinatesFromCoordinateSystemString:positionString];
 	if (posn.x || posn.y || posn.z)
 	{
 		OOLog(kOOLogDebugAddPlanet, @"planet position (%.2f %.2f %.2f) derived from %@", posn.x, posn.y, posn.z, positionString);
@@ -1859,7 +1862,7 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 	}
 	[planet setPosition: posn];
 	
-	[universe addEntity:planet];
+	[UNIVERSE addEntity:planet];
 }
 
 
@@ -1867,9 +1870,9 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 {
 	OOLog(kOOLogNoteAddPlanet, @"DEBUG addMoon: %@", moonKey);
 
-	if (!universe)
+	if (!UNIVERSE)
 		return;
-	NSDictionary* dict = (NSDictionary*)[[universe planetinfo] objectForKey:moonKey];
+	NSDictionary* dict = (NSDictionary*)[[UNIVERSE planetinfo] objectForKey:moonKey];
 	if (!dict)
 	{
 		NSLog(@"ERROR - could not find an entry in planetinfo.plist for '%@'", moonKey);
@@ -1877,7 +1880,7 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 	}
 
 	OOLog(kOOLogDebugAddPlanet, @"DEBUG initMoonFromDictionary: %@", dict);
-	PlanetEntity*	planet = [[[PlanetEntity alloc] initMoonFromDictionary:dict inUniverse:universe] autorelease];
+	PlanetEntity*	planet = [[[PlanetEntity alloc] initMoonFromDictionary:dict] autorelease];
 	[planet setStatus:STATUS_ACTIVE];
 	
 	Quaternion orientation;
@@ -1893,7 +1896,7 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 	}
 	
 	NSString *positionString = [dict objectForKey:@"position"];
-	Vector posn = [universe coordinatesFromCoordinateSystemString:positionString];
+	Vector posn = [UNIVERSE coordinatesFromCoordinateSystemString:positionString];
 	if (posn.x || posn.y || posn.z)
 	{
 		OOLog(kOOLogDebugAddPlanet, @"moon position (%.2f %.2f %.2f) derived from %@", posn.x, posn.y, posn.z, positionString);
@@ -1905,7 +1908,7 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 	}
 	[planet setPosition: posn];
 	
-	[universe addEntity:planet];
+	[UNIVERSE addEntity:planet];
 }
 
 
@@ -1979,7 +1982,7 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 
 - (void) setGuiToMissionScreen
 {
-	GuiDisplayGen* gui = [universe gui];
+	GuiDisplayGen* gui = [UNIVERSE gui];
 
 	// GUI stuff
 	{
@@ -2018,13 +2021,13 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 #endif
 
 	// the following are necessary...
-	[universe setDisplayText:YES];
-	[universe setViewDirection:VIEW_GUI_DISPLAY];
+	[UNIVERSE setDisplayText:YES];
+	[UNIVERSE setViewDirection:VIEW_GUI_DISPLAY];
 }
 
 - (void) setBackgroundFromDescriptionsKey:(NSString*) d_key
 {
-	NSArray* items = (NSArray*)[[universe descriptions] objectForKey:d_key];
+	NSArray* items = (NSArray*)[[UNIVERSE descriptions] objectForKey:d_key];
 	//
 	if (!items)
 		return;
@@ -2116,7 +2119,7 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 		Vector	scene_offset = {0};
 		ScanVectorFromString([[i_info subarrayWithRange:NSMakeRange(2, 3)] componentsJoinedByString:@" "], &scene_offset);
 		scene_offset.x += off.x;	scene_offset.y += off.y;	scene_offset.z += off.z;
-		NSArray* scene_items = (NSArray*)[[universe descriptions] objectForKey:scene_key];
+		NSArray* scene_items = (NSArray*)[[UNIVERSE descriptions] objectForKey:scene_key];
 		OOLog(kOOLogDebugProcessSceneStringAddScene, @"::::: adding scene: '%@'", scene_key);
 		//
 		if (scene_items)
@@ -2136,9 +2139,9 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 			return NO;				//		   0... 1... 2 3 4 5 6 7 8 9....
 		ShipEntity* ship = nil;
 		if ([i_key isEqual:@"ship"]||[i_key isEqual:@"model"])
-			ship = [universe newShipWithName:(NSString*)[i_info objectAtIndex: 1]];
+			ship = [UNIVERSE newShipWithName:(NSString*)[i_info objectAtIndex: 1]];
 		if ([i_key isEqual:@"role"])
-			ship = [universe newShipWithRole:(NSString*)[i_info objectAtIndex: 1]];
+			ship = [UNIVERSE newShipWithRole:(NSString*)[i_info objectAtIndex: 1]];
 		if (!ship)
 			return NO;
 
@@ -2154,7 +2157,7 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 		[ship setPosition: model_p0];
 		[ship setStatus: STATUS_COCKPIT_DISPLAY];
 		[ship setScanClass: CLASS_NO_DRAW];
-		[universe addEntity: ship];
+		[UNIVERSE addEntity: ship];
 		[[ship getAI] setStateMachine: @"nullAI.plist"];
 		[ship setRoll: 0.0];
 		[ship setPitch: 0.0];
@@ -2172,7 +2175,7 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 		if ([i_info count] != 9)	// must be player_x_y_z_W_X_Y_Z_align
 			return NO;				//		   0..... 1 2 3 4 5 6 7 8....
 
-		ShipEntity* doppelganger = [universe newShipWithName: ship_desc];   // retain count = 1
+		ShipEntity* doppelganger = [UNIVERSE newShipWithName: ship_desc];   // retain count = 1
 		if (!doppelganger)
 			return NO;
 		
@@ -2188,7 +2191,7 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 		[doppelganger setPosition: model_p0];
 		[doppelganger setStatus: STATUS_COCKPIT_DISPLAY];
 		[doppelganger setScanClass: CLASS_NO_DRAW];
-		[universe addEntity: doppelganger];
+		[UNIVERSE addEntity: doppelganger];
 		[[doppelganger getAI] setStateMachine: @"nullAI.plist"];
 		[doppelganger setRoll: 0.0];
 		[doppelganger setPitch: 0.0];
@@ -2206,9 +2209,8 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 		if ([i_info count] != 4)	// must be local-planet_x_y_z
 			return NO;				//		   0........... 1 2 3
 
-		PlanetEntity* doppelganger = [[PlanetEntity alloc] initMiniatureFromPlanet:[universe planet] inUniverse: universe];   // retain count = 1
-		if (!doppelganger)
-			return NO;
+		PlanetEntity* doppelganger = [[PlanetEntity alloc] initMiniatureFromPlanet:[UNIVERSE planet]];   // retain count = 1
+		if (!doppelganger)  return NO;
 		
 		ScanVectorFromString([[i_info subarrayWithRange:NSMakeRange(1, 3)] componentsJoinedByString:@" "], &model_p0);
 		Quaternion model_q = { 0.707, 0.707, 0.0, 0.0 };
@@ -2219,7 +2221,7 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 		OOLog(kOOLogDebugProcessSceneStringAddLocalPlanet, @"::::: adding local-planet to scene:'%@'", doppelganger);
 		[doppelganger setQRotation: model_q];
 		[doppelganger setPosition: model_p0];
-		[universe addEntity: doppelganger];
+		[UNIVERSE addEntity: doppelganger];
 
 		[doppelganger release];
 		return YES;
@@ -2232,9 +2234,9 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 		if ([i_info count] != 4)	// must be local-planet_x_y_z
 			return NO;				//		   0........... 1 2 3
 
-		PlanetEntity* targetplanet = [[[PlanetEntity alloc] initWithSeed:target_system_seed fromUniverse:universe] autorelease];
+		PlanetEntity* targetplanet = [[[PlanetEntity alloc] initWithSeed:target_system_seed] autorelease];
 
-		PlanetEntity* doppelganger = [[PlanetEntity alloc] initMiniatureFromPlanet:targetplanet inUniverse:universe];   // retain count = 1
+		PlanetEntity* doppelganger = [[PlanetEntity alloc] initMiniatureFromPlanet:targetplanet];   // retain count = 1
 		if (!doppelganger)
 			return NO;
 
@@ -2247,7 +2249,7 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 		OOLog(kOOLogDebugProcessSceneStringAddTargetPlanet, @"::::: adding target-planet to scene:'%@'", doppelganger);
 		[doppelganger setQRotation: model_q];
 		[doppelganger setPosition: model_p0];
-		[universe addEntity: doppelganger];
+		[UNIVERSE addEntity: doppelganger];
 
 		[doppelganger release];
 		return YES;
@@ -2281,7 +2283,7 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 		
 		OOLog(kOOLogDebugProcessSceneStringAddBillboard, @"::::: adding billboard:'%@' to scene.", billboard);
 
-		[universe addEntity: billboard];
+		[UNIVERSE addEntity: billboard];
 
 		[billboard release];
 		return YES;
@@ -2311,7 +2313,7 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 	[self scanForHostiles];
 	if (found_target != NO_TARGET)
 	{
-		Entity *ent = [universe entityForUniversalID:found_target];
+		Entity *ent = [UNIVERSE entityForUniversalID:found_target];
 		if (ent != 0x00)
 		{
 			ident_engaged = YES;

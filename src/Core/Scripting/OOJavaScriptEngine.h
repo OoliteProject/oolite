@@ -26,7 +26,7 @@ MA 02110-1301, USA.
 #import <Foundation/Foundation.h>
 #import "Universe.h"
 #import "PlayerEntity.h"
-#import "PlayerEntityScripting.h"
+#import "PlayerEntityLegacyScriptEngine.h"
 #import <jsapi.h>
 
 @interface OOJavaScriptEngine : NSObject

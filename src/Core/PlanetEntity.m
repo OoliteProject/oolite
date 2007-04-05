@@ -66,7 +66,7 @@ void setUpSinTable()
 	{
 		int i;
 		for (i = 0; i < 450; i++)
-			sin_value[i] = sin(i * PI / 180);
+			sin_value[i] = sin(i * M_PI / 180);
 		cos_value = &sin_value[90];
 	}
 	sinTableIsSetup = YES;
@@ -85,7 +85,7 @@ void setUpSinTable()
 	//
 	setUpSinTable();
 	//
-	scan_class = CLASS_NO_DRAW;
+	scanClass = CLASS_NO_DRAW;
 	//
 	q_rotation.w =  M_SQRT1_2;		// represents a 90 degree rotation around x axis
 	q_rotation.x =  M_SQRT1_2;		// (I hope!)
@@ -101,7 +101,7 @@ void setUpSinTable()
 	for (i = 0; i < 5; i++)
 		displayListNames[i] = 0;	// empty for now!
 	//
-	[self setModel:@"icosahedron.dat"];
+	[self setModelName:@"icosahedron.dat"];
 	//
 	[self rescaleTo:1.0];
 	//
@@ -163,7 +163,7 @@ void setUpSinTable()
 	//
 	setUpSinTable();
 	//
-	scan_class = CLASS_NO_DRAW;
+	scanClass = CLASS_NO_DRAW;
 	//
 	planet_type =   PLANET_TYPE_SUN;
 	//
@@ -248,13 +248,13 @@ void setUpSinTable()
     return self;
 }
 
-- (id) initAsAtmosphereForPlanet:(PlanetEntity *) planet inUniverse:(Universe*) uni
+- (id) initAsAtmosphereForPlanet:(PlanetEntity *) planet
 {
     int		i;
 	int		percent_land;
 	double  aleph =  1.0 / sqrt(2.0);
 	//
-	BOOL	procGen = [uni doProcedurallyTexturedPlanets];
+	BOOL	procGen = [UNIVERSE doProcedurallyTexturedPlanets];
 	//
 	self = [super init];
 	//
@@ -320,7 +320,7 @@ void setUpSinTable()
 	last_launch_time = 0.0;
 	shuttle_launch_interval = 60 * 60;
 
-	scan_class = CLASS_NO_DRAW;
+	scanClass = CLASS_NO_DRAW;
 	//
 	q_rotation.w =  aleph;		// represents a 90 degree rotation around x axis
 	q_rotation.x =  aleph;		// (I hope!)
@@ -334,7 +334,7 @@ void setUpSinTable()
 	for (i = 0; i < 5; i++)
 		displayListNames[i] = 0;	// empty for now!
 	//
-	[self setModel:(isTextured)? @"icostextured.dat" : @"icosahedron.dat"];
+	[self setModelName:(isTextured)? @"icostextured.dat" : @"icosahedron.dat"];
 	//
 	[self rescaleTo:1.0];
 	
@@ -383,7 +383,7 @@ void setUpSinTable()
 	last_launch_time = 0.0;
 	shuttle_launch_interval = 60 * 60;
 	//
-	scan_class = CLASS_NO_DRAW;
+	scanClass = CLASS_NO_DRAW;
 	//
 	planet_type = PLANET_TYPE_CORONA;
 	//
@@ -403,13 +403,13 @@ void setUpSinTable()
     return self;
 }
 
-- (id) initWithSeed:(Random_Seed) p_seed fromUniverse:(Universe *) uni
+- (id) initWithSeed:(Random_Seed) p_seed
 {
     int		i;
 	int		percent_land;
 	double  aleph =  1.0 / sqrt(2.0);
 	//
-	BOOL procGen = [uni doProcedurallyTexturedPlanets];
+	BOOL procGen = [UNIVERSE doProcedurallyTexturedPlanets];
 	//
 	self = [super init];
     //
@@ -422,7 +422,7 @@ void setUpSinTable()
 	//
 	seed_for_planet_description(p_seed);
 	//
-	NSMutableDictionary*   planetinfo = [NSMutableDictionary dictionaryWithDictionary:[uni generateSystemData:p_seed]];
+	NSMutableDictionary*   planetinfo = [NSMutableDictionary dictionaryWithDictionary:[UNIVERSE generateSystemData:p_seed]];
 	int radius_km =		[[planetinfo objectForKey:KEY_RADIUS] intValue];
 	int techlevel =		[[planetinfo objectForKey:KEY_TECHLEVEL] intValue];
 	
@@ -441,7 +441,7 @@ void setUpSinTable()
     //collision_radius = 25000.0; //  25km across
 	collision_radius = radius_km * 10.0; // scale down by a factor of 100 !
 	//
-	scan_class = CLASS_NO_DRAW;
+	scanClass = CLASS_NO_DRAW;
 	//
 	q_rotation.w =  aleph;		// represents a 90 degree rotation around x axis
 	q_rotation.x =  aleph;		// (I hope!)
@@ -453,7 +453,7 @@ void setUpSinTable()
 	for (i = 0; i < 5; i++)
 		displayListNames[i] = 0;	// empty for now!
 	//
-	[self setModel:(procGen)? @"icostextured.dat" : @"icosahedron.dat"];
+	[self setModelName:(procGen)? @"icostextured.dat" : @"icosahedron.dat"];
 	//
 	[self rescaleTo:1.0];
 	//
@@ -533,9 +533,9 @@ void setUpSinTable()
 		isShadered = NO;
 #ifndef NO_SHADERS
 
-		if (uni)
+		if (UNIVERSE)
 		{
-			NSDictionary* shader_info = [[uni descriptions] objectForKey:@"planet-surface-shader"];
+			NSDictionary* shader_info = [[UNIVERSE descriptions] objectForKey:@"planet-surface-shader"];
 			if (shader_info)
 			{
 				NSLog(@"TESTING: creating planet shader from:\n%@", shader_info);
@@ -573,9 +573,7 @@ void setUpSinTable()
 		rotational_velocity *= [[planetinfo objectForKey:@"rotation_speed_factor"] floatValue];
 	// do atmosphere
 	//
-	[self setUniverse:uni];
-	atmosphere = [[PlanetEntity alloc] initAsAtmosphereForPlanet:self inUniverse:uni];
-	[atmosphere setUniverse:universe];
+	atmosphere = [[PlanetEntity alloc] initAsAtmosphereForPlanet:self];
 
 	//
 	usingVAR = [self OGL_InitVAR];
@@ -591,7 +589,7 @@ void setUpSinTable()
     return self;
 }
 
-- (id) initMiniatureFromPlanet:(PlanetEntity*) planet inUniverse:(Universe*) uni
+- (id) initMiniatureFromPlanet:(PlanetEntity*) planet
 {    
     int		i;
 	double  aleph =  1.0 / sqrt(2.0);
@@ -609,7 +607,7 @@ void setUpSinTable()
 	
 	collision_radius = [planet collisionRadius] * PLANET_MINIATURE_FACTOR; // teeny tiny
 	//
-	scan_class = CLASS_NO_DRAW;
+	scanClass = CLASS_NO_DRAW;
 	status = STATUS_COCKPIT_DISPLAY;
 	//
 	q_rotation.w =  aleph;		// represents a 90 degree rotation around x axis
@@ -622,7 +620,7 @@ void setUpSinTable()
 	for (i = 0; i < 5; i++)
 		displayListNames[i] = 0;	// empty for now!
 	//
-	[self setModel:(isTextured)? @"icostextured.dat" : @"icosahedron.dat"];
+	[self setModelName:(isTextured)? @"icostextured.dat" : @"icosahedron.dat"];
 	//
 	[self rescaleTo:1.0];
 	//
@@ -651,8 +649,7 @@ void setUpSinTable()
 	
 	// do atmosphere
 	//
-	atmosphere = [[PlanetEntity alloc] initAsAtmosphereForPlanet:self inUniverse:uni];
-	[atmosphere setUniverse:universe];
+	atmosphere = [[PlanetEntity alloc] initAsAtmosphereForPlanet:self];
 
 	//
 	usingVAR = [self OGL_InitVAR];
@@ -668,17 +665,17 @@ void setUpSinTable()
     return self;
 }
 
-- (id) initPlanetFromDictionary:(NSDictionary*) dict inUniverse:(Universe *) uni
+- (id) initPlanetFromDictionary:(NSDictionary*) dict
 {
     int		i;
 	int		percent_land;
 	double  aleph =  1.0 / sqrt(2.0);
 	//
-	BOOL procGen = [uni doProcedurallyTexturedPlanets];
+	BOOL procGen = [UNIVERSE doProcedurallyTexturedPlanets];
 	//
 	self = [super init];
 	//
-	Random_Seed	p_seed = [uni systemSeed];
+	Random_Seed	p_seed = [UNIVERSE systemSeed];
     //
 	if ([dict objectForKey:@"texture"])
 	{
@@ -719,7 +716,7 @@ void setUpSinTable()
 	//
 	seed_for_planet_description(p_seed);
 	//
-	NSDictionary*   planetinfo = [uni generateSystemData:p_seed];
+	NSDictionary*   planetinfo = [UNIVERSE generateSystemData:p_seed];
 	int radius_km =		[(NSNumber *)[planetinfo objectForKey:KEY_RADIUS] intValue];
 	if ([dict objectForKey:@"radius"])
 	{
@@ -733,7 +730,7 @@ void setUpSinTable()
 
 	collision_radius = radius_km * 10.0; // scale down by a factor of 100 !
 	//
-	scan_class = CLASS_NO_DRAW;
+	scanClass = CLASS_NO_DRAW;
 	//
 	q_rotation.w =  aleph;		// represents a 90 degree rotation around x axis
 	q_rotation.x =  aleph;		// (I hope!)
@@ -745,7 +742,7 @@ void setUpSinTable()
 	for (i = 0; i < 5; i++)
 		displayListNames[i] = 0;	// empty for now!
 	//
-	[self setModel:(isTextured)? @"icostextured.dat" : @"icosahedron.dat"];
+	[self setModelName:(isTextured)? @"icostextured.dat" : @"icosahedron.dat"];
 	//
 	[self rescaleTo:1.0];
 	//
@@ -831,27 +828,24 @@ void setUpSinTable()
 		rotational_velocity = [[dict objectForKey:@"rotational_velocity"] doubleValue];
 
 	// do atmosphere
-	//
-	atmosphere = [[PlanetEntity alloc] initAsAtmosphereForPlanet:self inUniverse:uni];
-	[atmosphere setUniverse:universe];
+	atmosphere = [[PlanetEntity alloc] initAsAtmosphereForPlanet:self];
 
 	// set energy
 	energy = collision_radius * 1000.0;
 
-	//
 	usingVAR = [self OGL_InitVAR];
-	//
+	
 	if (usingVAR)
 		[self OGL_AssignVARMemory:sizeof(VertexData) :(void *)&vertexdata :0];
-	//
+	
 	isPlanet = YES;
-	//
+	
 	root_planet = self;
-	//
+	
     return self;
 }
 
-- (id) initMoonFromDictionary:(NSDictionary*) dict inUniverse:(Universe *) uni
+- (id) initMoonFromDictionary:(NSDictionary*) dict
 {
     int		i;
 	int		percent_land;
@@ -859,7 +853,7 @@ void setUpSinTable()
 	//
 	self = [super init];
 	//
-	Random_Seed	p_seed = [uni systemSeed];
+	Random_Seed	p_seed = [UNIVERSE systemSeed];
     //
 	planet_seed = p_seed.a * 7 + p_seed.c * 11 + p_seed.e * 13;	// pseudo-random set-up for vertex colours
 	//
@@ -892,7 +886,7 @@ void setUpSinTable()
 	//
 	seed_for_planet_description(p_seed);
 	//
-	NSDictionary*   planetinfo = [uni generateSystemData:p_seed];
+	NSDictionary*   planetinfo = [UNIVERSE generateSystemData:p_seed];
 	int radius_km =		[(NSNumber *)[planetinfo objectForKey:KEY_RADIUS] intValue];
 	if ([dict objectForKey:@"radius"])
 	{
@@ -906,7 +900,7 @@ void setUpSinTable()
 
 	collision_radius = radius_km * 10.0; // scale down by a factor of 100 !
 	//
-	scan_class = CLASS_NO_DRAW;
+	scanClass = CLASS_NO_DRAW;
 	//
 	q_rotation.w =  aleph;		// represents a 90 degree rotation around x axis
 	q_rotation.x =  aleph;		// (I hope!)
@@ -918,7 +912,7 @@ void setUpSinTable()
 	for (i = 0; i < 5; i++)
 		displayListNames[i] = 0;	// empty for now!
 	//
-	[self setModel:(isTextured)? @"icostextured.dat" : @"icosahedron.dat"];
+	[self setModelName:(isTextured)? @"icostextured.dat" : @"icosahedron.dat"];
 	//
 	[self rescaleTo:1.0];
 	//
@@ -1022,21 +1016,12 @@ void setUpSinTable()
     return self;
 }
 
-- (void) setUniverse:(Universe *)univ
-{
-    [super setUniverse: univ];
-	if (atmosphere)
-		[atmosphere setUniverse:univ];
-}
-
 - (void) dealloc
 {
-    if (atmosphere)
-		[atmosphere release];
-	if (textureData)
-		free((void *) textureData);
-	if (normalMapTextureData)
-		free((void *) normalMapTextureData);
+    [atmosphere release];
+	if (textureData)  free(textureData);
+	if (normalMapTextureData)  free(normalMapTextureData);
+	
 	[super dealloc];
 }
 
@@ -1099,7 +1084,7 @@ void setUpSinTable()
 		if ([ship reportAImessages])
 		{
 			Vector p1 = ship->position;
-			NSLog(@"DEBUG %@ %d collided with planet at (%.1f,%.1f,%.1f)",[ship name], [ship universal_id], p1.x,p1.y,p1.z);
+			NSLog(@"DEBUG %@ %d collided with planet at (%.1f,%.1f,%.1f)",[ship name], [ship universalID], p1.x,p1.y,p1.z);
 		}
 	}
 
@@ -1119,7 +1104,7 @@ void setUpSinTable()
 	{
 		case PLANET_TYPE_GREEN :
 		{
-			double ugt = [universe getTime];
+			double ugt = [UNIVERSE getTime];
 
 			if ((shuttles_on_ground > 0)&&(ugt > last_launch_time + shuttle_launch_interval))
 			{
@@ -1146,7 +1131,7 @@ void setUpSinTable()
 				double aleph = (atmo - alt) / atmo;
 				if (aleph < 0.0) aleph = 0.0;
 				if (aleph > 1.0) aleph = 1.0;
-				[universe setSky_clear_color:0.8 * aleph * aleph :0.8 * aleph * aleph :0.9 * aleph :aleph];	// test - blue
+				[UNIVERSE setSky_clear_color:0.8 * aleph * aleph :0.8 * aleph * aleph :0.9 * aleph :aleph];	// test - blue
 			}
 		}
 		break;
@@ -1195,7 +1180,7 @@ void setUpSinTable()
 
 			if (planet_type == PLANET_TYPE_CORONA)
 			{
-				Vector v_sun = [universe sun]->position;
+				Vector v_sun = [UNIVERSE sun]->position;
 				Vector v_p = (player)? player->position: make_vector( 0.0f, 0.0f, 0.0f);
 				v_sun.x -= v_p.x;	v_sun.y -= v_p.y;	v_sun.z -= v_p.z;
 				if (v_sun.x||v_sun.y||v_sun.z)
@@ -1219,9 +1204,9 @@ void setUpSinTable()
 					{
 						double sky_bri = 1.0 - 1.5 * velocity.y;
 						if (sky_bri < 0)
-							[universe setSky_clear_color:0 :0 :0 :0];	// back to black
+							[UNIVERSE setSky_clear_color:0 :0 :0 :0];	// back to black
 						else
-							[universe setSky_clear_color:sky_bri :sky_bri :sky_bri : 1];	// whiteout
+							[UNIVERSE setSky_clear_color:sky_bri :sky_bri :sky_bri : 1];	// whiteout
 						if (sky_bri == 1.0)
 							NSLog(@"DEBUG NOVA original radius %.1f", collision_radius);
 						amb_land[0] = 1.0;	amb_land[1] = 1.0;	amb_land[2] = 1.0;	amb_land[3] = 1.0;
@@ -1239,7 +1224,7 @@ void setUpSinTable()
 			}
 
 			// update corona
-			if (![universe reducedDetail])
+			if (![UNIVERSE reducedDetail])
 			{
 				corona_stage += corona_speed_factor * delta_t;
 				if (corona_stage > 1.0)
@@ -1276,10 +1261,10 @@ void setUpSinTable()
 		[atmosphere setPosition:position];
 }
 
-- (void) setModel:(NSString *) modelName
+- (void) setModelName:(NSString *) modelName
 {
     double  old_collision_radius = collision_radius;
-    [super setModel:modelName];
+    [super setModelName:modelName];
 	collision_radius = old_collision_radius;	// preserve the radius
 }
 
@@ -1288,10 +1273,10 @@ void setUpSinTable()
 {
 	int		subdivideLevel =	2;		// 4 is probably the maximum!
 
-	double  drawFactor = [(MyOpenGLView *)[universe gameView] viewSize].width / 100.0;
+	double  drawFactor = [(MyOpenGLView *)[UNIVERSE gameView] viewSize].width / 100.0;
 	double  drawRatio2 = drawFactor * collision_radius / sqrt_zero_distance; // equivalent to size on screen in pixels
 
-	if ([universe breakPatternHide])   return; // DON'T DRAW
+	if ([UNIVERSE breakPatternHide])   return; // DON'T DRAW
 
 	if (zero_distance > 0.0)
 	{
@@ -1301,7 +1286,7 @@ void setUpSinTable()
 	}
 	
 	if (planet_type == PLANET_TYPE_MINIATURE)
-		subdivideLevel = [universe reducedDetail]? 3 : 4 ;		// max detail or less
+		subdivideLevel = [UNIVERSE reducedDetail]? 3 : 4 ;		// max detail or less
 		
 	lastSubdivideLevel = subdivideLevel;	// record
 	
@@ -1527,7 +1512,7 @@ void setUpSinTable()
 					drawBallVertices( collision_radius, steps, sqrt_zero_distance);
 				glEnd();
 
-				if (![universe reducedDetail])
+				if (![UNIVERSE reducedDetail])
 				{
 					glDisable(GL_DEPTH_TEST);
 					if (zero_distance < lim4k)
@@ -1559,7 +1544,7 @@ void setUpSinTable()
 		case PLANET_TYPE_CORONA :
 			if (!translucent)
 			{
-				Entity* my_owner = [universe entityForUniversalID:owner];
+				Entity* my_owner = [UNIVERSE entityForUniversalID:owner];
 				GLfloat bri = 1.0 + polar_color_factor;
 				GLfloat r = 0.42 * bri;
 				GLfloat g = 0.42 * bri;
@@ -1583,7 +1568,7 @@ void setUpSinTable()
 			break;
 	}
 	glFrontFace(GL_CCW);			// face culling - front faces are AntiClockwise!
-	checkGLErrors([NSString stringWithFormat:@"PlanetEntity after drawing %@", self]);
+	CheckOpenGLErrors([NSString stringWithFormat:@"PlanetEntity after drawing %@", self]);
 }
 
 void drawBall (double radius, int step, double z_distance)
@@ -1826,14 +1811,13 @@ void drawActiveCorona (double inner_radius, double outer_radius, int step, doubl
 	launch_pos.y += start_distance * vf.y;
 	launch_pos.z += start_distance * vf.z;
 
-	shuttle_ship = [universe newShipWithRole:@"shuttle"];   // retain count = 1
+	shuttle_ship = [UNIVERSE newShipWithRole:@"shuttle"];   // retain count = 1
 	if (shuttle_ship)
 	{
 		if (![shuttle_ship crew])
 			[shuttle_ship setCrew:[NSArray arrayWithObject:
 				[OOCharacter randomCharacterWithRole: @"trader"
-				andOriginalSystem: [universe systemSeed]
-				inUniverse: universe]]];
+				andOriginalSystem: [UNIVERSE systemSeed]]]];
 				
 		[shuttle_ship setPosition:launch_pos];
 		[shuttle_ship setQRotation:q1];
@@ -1846,7 +1830,7 @@ void drawActiveCorona (double inner_radius, double outer_radius, int step, doubl
 
 		//[shuttle_ship setReportAImessages:YES]; // debug
 
-		[universe addEntity:shuttle_ship];
+		[UNIVERSE addEntity:shuttle_ship];
 		[[shuttle_ship getAI] setStateMachine:@"risingShuttleAI.plist"];	// must happen after adding to the universe!
 
 		[shuttle_ship release];
@@ -2136,17 +2120,17 @@ double longitudeFromVector(Vector v)
 		if (v.z > 0)
 			lon = -atan( v.x / v.z);
 		else
-			lon = -PI - atan( v.x / v.z);
+			lon = -M_PI - atan( v.x / v.z);
 	}
 	else
 	{
 		if (v.x > 0)
-			lon = -0.5 * PI;
+			lon = -0.5 * M_PI;
 		else
-			lon = -1.5 * PI;
+			lon = -1.5 * M_PI;
 	}
 	while (lon < 0)
-		lon += 2 * PI;
+		lon += 2 * M_PI;
 	return lon;
 }
 

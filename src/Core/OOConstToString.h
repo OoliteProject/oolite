@@ -27,13 +27,14 @@ MA 02110-1301, USA.
 
 #import <Foundation/Foundation.h>
 #import "OOFunctionAttributes.h"
+#import "OOTypes.h"
 
 
-// STATUS_ACTIVE, STATUS_DOCKING and so forth
-NSString *EntityStatusToString(int status) PURE_FUNC;
+NSString *EntityStatusToString(EntityStatus status) PURE_FUNC;
+NSString *ScanClassToString(ScanClass scanClass) PURE_FUNC;
+NSString *InstinctToString(Instinct instinct) PURE_FUNC;
 
-// CLASS_STATION, CLASS_MISSILE and so forth
-NSString *ScanClassToString(int scanClass) PURE_FUNC;
+Instinct InstinctFromString(NSString* instinctString) CONST_FUNC;
 
 
 NSString *GovernmentToString(unsigned government);

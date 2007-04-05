@@ -31,33 +31,33 @@ MA 02110-1301, USA.
 #define	COLLISION_REGION_BORDER_RADIUS	32000.0f
 #define	COLLISION_MAX_ENTITIES			128
 
-@class	Entity, Universe;
+@class	Entity;
 
-@interface CollisionRegion : NSObject {
-
+@interface CollisionRegion : NSObject
+{
 @public
 
-	BOOL	isUniverse;			// if YES location is origin and radius is 0.0f
+	BOOL				isUniverse;			// if YES location is origin and radius is 0.0f
 	
-	int		crid;				// identifier
-	Vector	location;			// center of the region
-	GLfloat	radius;				// inner radius of the region
-	GLfloat	border_radius;		// additiønal, border radius of the region (typically 32km or some value > the scanner range)
+	int					crid;				// identifier
+	Vector				location;			// center of the region
+	GLfloat				radius;				// inner radius of the region
+	GLfloat				border_radius;		// additiønal, border radius of the region (typically 32km or some value > the scanner range)
 
-	int		checks_this_tick;
+	int					checks_this_tick;
 
-	NSMutableArray*		subregions;
+	NSMutableArray		*subregions;
 	
 @protected
 	
-	BOOL		isPlayerInRegion;
+	BOOL				isPlayerInRegion;
 	
-	Entity**	entity_array;	// entities within the region
-	int			n_entities;		// number of entities
-	int			max_entities;	// so storage can be expanded
+	Entity				**entity_array;	// entities within the region
+	int					n_entities;		// number of entities
+	int					max_entities;	// so storage can be expanded
 	
 	
-	CollisionRegion*	parentRegion;
+	CollisionRegion		*parentRegion;
 
 }
 
@@ -82,9 +82,8 @@ NSArray* subregionsContainingPosition( Vector position, CollisionRegion* region)
 //
 - (BOOL) checkEntity:(Entity*) ent;
 //
-- (void) findCollisionsInUniverse:(Universe*) universe;
-//
-- (void) findShadowedEntitiesIn:(Universe*) universe;
+- (void) findCollisions;
+- (void) findShadowedEntities;
 
 - (NSString*) debugOut;
 

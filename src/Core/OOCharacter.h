@@ -42,16 +42,15 @@ MA 02110-1301, USA.
 	
 	OOBrain*	brain;				// brain of character
 	
-	Universe*	universe;
 	NSArray*	script_actions;
 }
 
-- (id) initWithGenSeed:(Random_Seed) g_seed andOriginalSystemSeed:(Random_Seed) s_seed inUniverse:(Universe*) uni;
-- (id) initWithRole:(NSString*) role andOriginalSystemSeed:(Random_Seed) s_seed  inUniverse:(Universe*) uni;
+- (id) initWithGenSeed:(Random_Seed) g_seed andOriginalSystemSeed:(Random_Seed) s_seed;
+- (id) initWithRole:(NSString*) role andOriginalSystemSeed:(Random_Seed) s_seed;
 
-+ (OOCharacter*) characterWithRole:(NSString*) c_role andOriginalSystem:(Random_Seed) o_seed inUniverse:(Universe*) uni;
-+ (OOCharacter*) randomCharacterWithRole:(NSString*) c_role andOriginalSystem:(Random_Seed) o_seed inUniverse:(Universe*) uni;
-+ (OOCharacter*) characterWithDictionary:(NSDictionary*) c_dict inUniverse:(Universe*) uni;
++ (OOCharacter*) characterWithRole:(NSString*) c_role andOriginalSystem:(Random_Seed) o_seed;
++ (OOCharacter*) randomCharacterWithRole:(NSString*) c_role andOriginalSystem:(Random_Seed) o_seed;
++ (OOCharacter*) characterWithDictionary:(NSDictionary*) c_dict;
 
 - (NSString*) planetOfOrigin;
 - (NSString*) species;
@@ -69,7 +68,6 @@ MA 02110-1301, USA.
 - (NSArray*)	script;
 - (OOBrain*)	brain;
 
-- (void) setUniverse: (Universe*) uni;
 - (void) setName: (NSString*) value;
 - (void) setShortDescription: (NSString*) value;
 - (void) setLongDescription: (NSString*) value;

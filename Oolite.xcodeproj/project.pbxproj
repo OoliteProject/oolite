@@ -225,6 +225,13 @@
 		1A3491AC0BC282DE00802DA7 /* ReleaseLockProxy.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A3491AA0BC282DE00802DA7 /* ReleaseLockProxy.h */; };
 		1A38B4AC0B988532001ED4A0 /* OOLogging.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A38B4AA0B988532001ED4A0 /* OOLogging.h */; };
 		1A38B4AD0B988532001ED4A0 /* OOLogging.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A38B4AB0B988532001ED4A0 /* OOLogging.m */; };
+		1A3A023B0BC52DDA00B5E2D9 /* PlayerEntityScriptMethods.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A3A02390BC52DDA00B5E2D9 /* PlayerEntityScriptMethods.h */; };
+		1A3A023C0BC52DDA00B5E2D9 /* PlayerEntityScriptMethods.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A3A023A0BC52DDA00B5E2D9 /* PlayerEntityScriptMethods.m */; };
+		1A3A02420BC52DEB00B5E2D9 /* PlayerEntityLegacyScriptEngine.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A3A02400BC52DEB00B5E2D9 /* PlayerEntityLegacyScriptEngine.m */; };
+		1A3A02430BC52DEB00B5E2D9 /* PlayerEntityLegacyScriptEngine.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A3A02410BC52DEB00B5E2D9 /* PlayerEntityLegacyScriptEngine.h */; };
+		1A3A04620BC547DC00B5E2D9 /* OOTypes.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A3A04610BC547DC00B5E2D9 /* OOTypes.h */; };
+		1A3AFF1F0BC4462200B5E2D9 /* OOJSVector.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A3AFF1D0BC4462200B5E2D9 /* OOJSVector.h */; };
+		1A3AFF200BC4462200B5E2D9 /* OOJSVector.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A3AFF1E0BC4462200B5E2D9 /* OOJSVector.m */; };
 		1A451D8D0BB1BD2A004CD72F /* OOMaths.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A9404920BAF4582005F6CF3 /* OOMaths.h */; };
 		1A472917096B5454000E78D8 /* CoreAudio.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1A472916096B5454000E78D8 /* CoreAudio.framework */; };
 		1A472921096B5468000E78D8 /* AudioToolbox.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1A47291F096B5468000E78D8 /* AudioToolbox.framework */; };
@@ -252,8 +259,6 @@
 		1A8A37570B960337007D20B8 /* NSMutableDictionaryOOExtensions.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A8A37550B960337007D20B8 /* NSMutableDictionaryOOExtensions.h */; };
 		1A8A394E0B96229C007D20B8 /* NSFileManagerOOExtensions.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A8A394C0B96229C007D20B8 /* NSFileManagerOOExtensions.m */; };
 		1A8A394F0B96229C007D20B8 /* NSFileManagerOOExtensions.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A8A394D0B96229C007D20B8 /* NSFileManagerOOExtensions.h */; };
-		1A8A39E30B962823007D20B8 /* PlayerEntityScripting.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A8A39E10B962823007D20B8 /* PlayerEntityScripting.m */; };
-		1A8A39E40B962823007D20B8 /* PlayerEntityScripting.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A8A39E20B962823007D20B8 /* PlayerEntityScripting.h */; };
 		1A8A39FF0B96295D007D20B8 /* ShipEntity.m in Sources */ = {isa = PBXBuildFile; fileRef = 2516113B099544390037C2E1 /* ShipEntity.m */; };
 		1A8A3A380B962AEF007D20B8 /* NSScannerOOExtensions.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A8A3A360B962AEF007D20B8 /* NSScannerOOExtensions.h */; };
 		1A8A3A390B962AEF007D20B8 /* NSScannerOOExtensions.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A8A3A370B962AEF007D20B8 /* NSScannerOOExtensions.m */; };
@@ -745,7 +750,7 @@
 		083325DC09DDBCDE00F5B8E4 /* OOColor.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOColor.m; sourceTree = "<group>"; };
 		083DB4D30A70E51E00B419B2 /* OOBrain.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOBrain.h; sourceTree = "<group>"; };
 		083DB4D40A70E51E00B419B2 /* OOBrain.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOBrain.m; sourceTree = "<group>"; };
-		0865432206B8447D000CA0AB /* Oolite.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Oolite.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		0865432206B8447D000CA0AB /* OoliteDev.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = OoliteDev.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		0878FD2F086EF845004CB752 /* Carbon.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Carbon.framework; path = /System/Library/Frameworks/Carbon.framework; sourceTree = "<absolute>"; };
 		1058C7A1FEA54F0111CA2CBB /* Cocoa.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Cocoa.framework; path = /System/Library/Frameworks/Cocoa.framework; sourceTree = "<absolute>"; };
 		1A23154E0B9C778400EF0852 /* solar.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = solar.png; sourceTree = "<group>"; };
@@ -957,6 +962,13 @@
 		1A3491AB0BC282DE00802DA7 /* ReleaseLockProxy.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ReleaseLockProxy.m; sourceTree = "<group>"; };
 		1A38B4AA0B988532001ED4A0 /* OOLogging.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOLogging.h; sourceTree = "<group>"; };
 		1A38B4AB0B988532001ED4A0 /* OOLogging.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOLogging.m; sourceTree = "<group>"; };
+		1A3A02390BC52DDA00B5E2D9 /* PlayerEntityScriptMethods.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PlayerEntityScriptMethods.h; sourceTree = "<group>"; };
+		1A3A023A0BC52DDA00B5E2D9 /* PlayerEntityScriptMethods.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = PlayerEntityScriptMethods.m; sourceTree = "<group>"; };
+		1A3A02400BC52DEB00B5E2D9 /* PlayerEntityLegacyScriptEngine.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = PlayerEntityLegacyScriptEngine.m; sourceTree = "<group>"; };
+		1A3A02410BC52DEB00B5E2D9 /* PlayerEntityLegacyScriptEngine.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PlayerEntityLegacyScriptEngine.h; sourceTree = "<group>"; };
+		1A3A04610BC547DC00B5E2D9 /* OOTypes.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = OOTypes.h; path = ../Core/OOTypes.h; sourceTree = "<group>"; };
+		1A3AFF1D0BC4462200B5E2D9 /* OOJSVector.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOJSVector.h; sourceTree = "<group>"; };
+		1A3AFF1E0BC4462200B5E2D9 /* OOJSVector.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOJSVector.m; sourceTree = "<group>"; };
 		1A472916096B5454000E78D8 /* CoreAudio.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreAudio.framework; path = /System/Library/Frameworks/CoreAudio.framework; sourceTree = "<absolute>"; };
 		1A47291F096B5468000E78D8 /* AudioToolbox.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AudioToolbox.framework; path = /System/Library/Frameworks/AudioToolbox.framework; sourceTree = "<absolute>"; };
 		1A472920096B5468000E78D8 /* AudioUnit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AudioUnit.framework; path = /System/Library/Frameworks/AudioUnit.framework; sourceTree = "<absolute>"; };
@@ -984,8 +996,6 @@
 		1A8A37550B960337007D20B8 /* NSMutableDictionaryOOExtensions.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = NSMutableDictionaryOOExtensions.h; sourceTree = "<group>"; };
 		1A8A394C0B96229C007D20B8 /* NSFileManagerOOExtensions.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = NSFileManagerOOExtensions.m; sourceTree = "<group>"; };
 		1A8A394D0B96229C007D20B8 /* NSFileManagerOOExtensions.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = NSFileManagerOOExtensions.h; sourceTree = "<group>"; };
-		1A8A39E10B962823007D20B8 /* PlayerEntityScripting.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = PlayerEntityScripting.m; sourceTree = "<group>"; };
-		1A8A39E20B962823007D20B8 /* PlayerEntityScripting.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PlayerEntityScripting.h; sourceTree = "<group>"; };
 		1A8A3A360B962AEF007D20B8 /* NSScannerOOExtensions.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = NSScannerOOExtensions.h; sourceTree = "<group>"; };
 		1A8A3A370B962AEF007D20B8 /* NSScannerOOExtensions.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = NSScannerOOExtensions.m; sourceTree = "<group>"; };
 		1A9400BD0BAF0ECD005F6CF3 /* OOStringParsing.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOStringParsing.m; sourceTree = "<group>"; };
@@ -1222,7 +1232,7 @@
 		19C28FACFE9D520D11CA2CBB /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				0865432206B8447D000CA0AB /* Oolite.app */,
+				0865432206B8447D000CA0AB /* OoliteDev.app */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -1543,6 +1553,8 @@
 				1A5DBA9D0BC000DC00D57389 /* OOJSScript.m */,
 				1A5DBA9A0BC000DC00D57389 /* OOJavaScriptEngine.h */,
 				1A5DBA9B0BC000DC00D57389 /* OOJavaScriptEngine.m */,
+				1A3AFF1D0BC4462200B5E2D9 /* OOJSVector.h */,
+				1A3AFF1E0BC4462200B5E2D9 /* OOJSVector.m */,
 			);
 			name = JavaScript;
 			sourceTree = "<group>";
@@ -1585,6 +1597,7 @@
 		1A8A3BF20B963F3C007D20B8 /* Mac-specific */ = {
 			isa = PBXGroup;
 			children = (
+				1A3A04610BC547DC00B5E2D9 /* OOTypes.h */,
 				25F3E6BC0994F30A002F25FD /* main.m */,
 				25F46750099695D5009483BF /* OoliteApp.h */,
 				25F46751099695D5009483BF /* OoliteApp.m */,
@@ -1656,10 +1669,12 @@
 				25161135099544390037C2E1 /* StationEntity.m */,
 				251610FA099544380037C2E1 /* PlayerEntity.h */,
 				251610F5099544380037C2E1 /* PlayerEntity.m */,
-				1AD9AFAE0B91E24C00FB704E /* PlayerEntityContracts.m */,
 				1AD9AFA90B91E24C00FB704E /* PlayerEntityContracts.h */,
-				1A8A39E10B962823007D20B8 /* PlayerEntityScripting.m */,
-				1A8A39E20B962823007D20B8 /* PlayerEntityScripting.h */,
+				1AD9AFAE0B91E24C00FB704E /* PlayerEntityContracts.m */,
+				1A3A02410BC52DEB00B5E2D9 /* PlayerEntityLegacyScriptEngine.h */,
+				1A3A02400BC52DEB00B5E2D9 /* PlayerEntityLegacyScriptEngine.m */,
+				1A3A02390BC52DDA00B5E2D9 /* PlayerEntityScriptMethods.h */,
+				1A3A023A0BC52DDA00B5E2D9 /* PlayerEntityScriptMethods.m */,
 				1AD9AFAD0B91E24C00FB704E /* PlayerEntityControls.h */,
 				1AD9AFAC0B91E24C00FB704E /* PlayerEntityControls.m */,
 				1AD9AFAB0B91E24C00FB704E /* PlayerEntitySound.h */,
@@ -1939,7 +1954,6 @@
 				1A8A37050B95CADD007D20B8 /* PlayerEntityLoadSave.h in Headers */,
 				1A8A37570B960337007D20B8 /* NSMutableDictionaryOOExtensions.h in Headers */,
 				1A8A394F0B96229C007D20B8 /* NSFileManagerOOExtensions.h in Headers */,
-				1A8A39E40B962823007D20B8 /* PlayerEntityScripting.h in Headers */,
 				1A8A3A380B962AEF007D20B8 /* NSScannerOOExtensions.h in Headers */,
 				1A38B4AC0B988532001ED4A0 /* OOLogging.h in Headers */,
 				1A231A180B9D8B1B00EF0852 /* OOCacheManager.h in Headers */,
@@ -2013,6 +2027,10 @@
 				1A5DBAAF0BC000DC00D57389 /* OOSTokenizer.h in Headers */,
 				1A5DBD580BC17F0900D57389 /* NSStringOOExtensions.h in Headers */,
 				1A3491AC0BC282DE00802DA7 /* ReleaseLockProxy.h in Headers */,
+				1A3AFF1F0BC4462200B5E2D9 /* OOJSVector.h in Headers */,
+				1A3A023B0BC52DDA00B5E2D9 /* PlayerEntityScriptMethods.h in Headers */,
+				1A3A02430BC52DEB00B5E2D9 /* PlayerEntityLegacyScriptEngine.h in Headers */,
+				1A3A04620BC547DC00B5E2D9 /* OOTypes.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -2046,7 +2064,7 @@
 			name = Oolite;
 			productInstallPath = "$(HOME)/Applications";
 			productName = Oolite;
-			productReference = 0865432206B8447D000CA0AB /* Oolite.app */;
+			productReference = 0865432206B8447D000CA0AB /* OoliteDev.app */;
 			productType = "com.apple.product-type.application";
 		};
 /* End PBXNativeTarget section */
@@ -2170,7 +2188,6 @@
 				1A8A37040B95CADD007D20B8 /* PlayerEntityLoadSave.m in Sources */,
 				1A8A37560B960337007D20B8 /* NSMutableDictionaryOOExtensions.m in Sources */,
 				1A8A394E0B96229C007D20B8 /* NSFileManagerOOExtensions.m in Sources */,
-				1A8A39E30B962823007D20B8 /* PlayerEntityScripting.m in Sources */,
 				1A8A39FF0B96295D007D20B8 /* ShipEntity.m in Sources */,
 				1A8A3A390B962AEF007D20B8 /* NSScannerOOExtensions.m in Sources */,
 				1A38B4AD0B988532001ED4A0 /* OOLogging.m in Sources */,
@@ -2194,6 +2211,9 @@
 				1A5DBAAE0BC000DC00D57389 /* OOScript.m in Sources */,
 				1A5DBAB00BC000DC00D57389 /* OOSTokenizer.m in Sources */,
 				1A5DBD590BC17F0900D57389 /* NSStringOOExtensions.m in Sources */,
+				1A3AFF200BC4462200B5E2D9 /* OOJSVector.m in Sources */,
+				1A3A023C0BC52DDA00B5E2D9 /* PlayerEntityScriptMethods.m in Sources */,
+				1A3A02420BC52DEB00B5E2D9 /* PlayerEntityLegacyScriptEngine.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -2212,6 +2232,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				DEAD_CODE_STRIPPING = YES;
+				DEBUG_INFORMATION_FORMAT = dwarf;
 				FRAMEWORK_SEARCH_PATHS = "\"$(SRCROOT)/deps/Cocoa-deps/\"";
 				GCC_DEBUGGING_SYMBOLS = full;
 				GCC_DYNAMIC_NO_PIC = NO;
@@ -2236,11 +2257,7 @@
 				PRODUCT_NAME = OoliteDev;
 				SDKROOT_i386 = /Developer/SDKs/MacOSX10.4u.sdk;
 				SECTORDER_FLAGS = "";
-				WARNING_CFLAGS = (
-					"-Wmost",
-					"-Wno-four-char-constants",
-					"-Wno-unknown-pragmas",
-				);
+				WARNING_CFLAGS = "-Wall";
 				WRAPPER_EXTENSION = app;
 				ZERO_LINK = NO;
 			};
@@ -2255,7 +2272,6 @@
 				FRAMEWORK_SEARCH_PATHS = "\"$(SRCROOT)/deps/Cocoa-deps/\"";
 				GCC_DEBUGGING_SYMBOLS = used;
 				GCC_ENABLE_FIX_AND_CONTINUE = NO;
-				GCC_ENABLE_OBJC_EXCEPTIONS = YES;
 				GCC_OPTIMIZATION_LEVEL = s;
 				GCC_PREPROCESSOR_DEFINITIONS = XP_UNIX;
 				GCC_REUSE_STRINGS = YES;
@@ -2275,11 +2291,7 @@
 				PRODUCT_NAME = Oolite;
 				SDKROOT_i386 = /Developer/SDKs/MacOSX10.4u.sdk;
 				SECTORDER_FLAGS = "";
-				WARNING_CFLAGS = (
-					"-Wmost",
-					"-Wno-four-char-constants",
-					"-Wno-unknown-pragmas",
-				);
+				WARNING_CFLAGS = "-Wall";
 				WRAPPER_EXTENSION = app;
 				ZERO_LINK = NO;
 			};

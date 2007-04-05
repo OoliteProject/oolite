@@ -56,6 +56,29 @@ static NSString * const kOOLogEntityTooManyFaces			= @"entity.loadMesh.error.too
 BOOL global_usingVAR;
 BOOL global_testForVAR;
 
+
+@interface Entity (Private)
+
+- (void) loadData:(NSString *)filename;
+- (void) checkNormalsAndAdjustWinding;
+- (void) calculateVertexNormals;
+
+- (NSDictionary*) modelData;
+- (BOOL) setModelFromModelData:(NSDictionary*) dict;
+
+- (Vector) normalForVertex:(int)v_index withSharedRedValue:(GLfloat)red_value;
+
+@end
+
+
+@interface OOCacheManager (Models)
+
++ (NSDictionary *)meshDataForName:(NSString *)inShipName;
++ (void)setMeshData:(NSDictionary *)inData forName:(NSString *)inShipName;
+
+@end
+
+
 @implementation Entity
 
 - (id) init
@@ -70,7 +93,7 @@ BOOL global_testForVAR;
 	zero_distance = 0.0;  //  10 km
 	no_draw_distance = 100000.0;  //  10 km
 	//
-	distance_travelled = 0.0;
+	distanceTravelled = 0.0;
 	//
 	energy =	0.0;
 	//
@@ -78,12 +101,11 @@ BOOL global_testForVAR;
 	//
 	collidingEntities = [(NSMutableArray *)[NSMutableArray alloc] initWithCapacity:16];   // alloc automatically retains
 	//
-	scan_class = CLASS_NOT_SET;
+	scanClass = CLASS_NOT_SET;
 	//
-	universal_id = NO_TARGET;
-	universe = nil;
+	universalID = NO_TARGET;
 	//
-	is_smooth_shaded = NO;
+	isSmoothShaded = NO;
     //
     n_vertices = 0;
     n_faces = 0;
@@ -110,7 +132,7 @@ BOOL global_testForVAR;
 	isSunlit = YES;
 	shadingEntityID = NO_TARGET;
 	//
-	collision_region = nil;
+	collisionRegion = nil;
 	//
 	collisionTestFilter = NO;
 	x_next = x_previous = nil;
@@ -124,11 +146,11 @@ BOOL global_testForVAR;
 
 - (void) dealloc
 {
-	// universe is a mere reference. It is neither retained nor released.
+	// UNIVERSE is a mere reference. It is neither retained nor released.
     if (basefile)	[basefile release];
 	if (collidingEntities)	[collidingEntities release];
 	if (trackLock) [trackLock release];
-	if (collision_region) [collision_region release];
+	if (collisionRegion) [collisionRegion release];
 	[super dealloc];
 }
 
@@ -138,9 +160,9 @@ BOOL global_testForVAR;
 		OOLog(kOOLogEntityAddToList, @"DEBUG adding entity %@ to linked lists", self);
 	//
 	// insert at the start
-	if (universe)
+	if (UNIVERSE)
 	{
-		x_previous = nil; x_next = universe->x_list_start;
+		x_previous = nil; x_next = UNIVERSE->x_list_start;
 		// move UP the list
 		while ((x_next)&&(x_next->position.x - x_next->collision_radius < position.x - collision_radius))
 		{
@@ -149,9 +171,9 @@ BOOL global_testForVAR;
 		}	
 		if (x_next)		x_next->x_previous = self;
 		if (x_previous) x_previous->x_next = self;
-		else			universe->x_list_start = self;
+		else			UNIVERSE->x_list_start = self;
 		
-		y_previous = nil; y_next = universe->y_list_start;
+		y_previous = nil; y_next = UNIVERSE->y_list_start;
 		// move UP the list
 		while ((y_next)&&(y_next->position.y - y_next->collision_radius < position.y - collision_radius))
 		{
@@ -160,9 +182,9 @@ BOOL global_testForVAR;
 		}	
 		if (y_next)		y_next->y_previous = self;
 		if (y_previous) y_previous->y_next = self;
-		else			universe->y_list_start = self;
+		else			UNIVERSE->y_list_start = self;
 
-		z_previous = nil; z_next = universe->z_list_start;
+		z_previous = nil; z_next = UNIVERSE->z_list_start;
 		// move UP the list
 		while ((z_next)&&(z_next->position.z - z_next->collision_radius < position.z - collision_radius))
 		{
@@ -171,7 +193,7 @@ BOOL global_testForVAR;
 		}	
 		if (z_next)		z_next->z_previous = self;
 		if (z_previous) z_previous->z_next = self;
-		else			universe->z_list_start = self;
+		else			UNIVERSE->z_list_start = self;
 				
 	}
 	
@@ -179,7 +201,7 @@ BOOL global_testForVAR;
 		if (![self checkLinkedLists])
 		{
 			OOLog(kOOLogEntityAddToListError, @"DEBUG LINKED LISTS - problem encountered while adding %@ to linked lists", self);
-			[universe obj_dump];
+			[UNIVERSE obj_dump];
 		
 			exit(-1);
 		}
@@ -195,14 +217,14 @@ BOOL global_testForVAR;
 		return;
 
 	// make sure the starting point is still correct
-	if (universe)
+	if (UNIVERSE)
 	{
-		if ((universe->x_list_start == self)&&(x_next))
-				universe->x_list_start = x_next;
-		if ((universe->y_list_start == self)&&(y_next))
-				universe->y_list_start = y_next;
-		if ((universe->z_list_start == self)&&(z_next))
-				universe->z_list_start = z_next;
+		if ((UNIVERSE->x_list_start == self)&&(x_next))
+				UNIVERSE->x_list_start = x_next;
+		if ((UNIVERSE->y_list_start == self)&&(y_next))
+				UNIVERSE->y_list_start = y_next;
+		if ((UNIVERSE->z_list_start == self)&&(z_next))
+				UNIVERSE->z_list_start = z_next;
 	}
 	//
 	if (x_previous)		x_previous->x_next = x_next;
@@ -222,7 +244,7 @@ BOOL global_testForVAR;
 		if (![self checkLinkedLists])
 		{
 			OOLog(kOOLogEntityRemoveFromListError, @"DEBUG LINKED LISTS - problem encountered while removing %@ from linked lists", self);
-			[universe obj_dump];
+			[UNIVERSE obj_dump];
 		
 			exit(-1);
 		}
@@ -231,15 +253,15 @@ BOOL global_testForVAR;
 - (BOOL) checkLinkedLists
 {
 	// DEBUG check for loops
-	if (universe->n_entities > 0)
+	if (UNIVERSE->n_entities > 0)
 	{
 		int n;
 		Entity	*check, *last;
 		//
 		last = nil;
 		//
-		n = universe->n_entities;
-		check = universe->x_list_start;
+		n = UNIVERSE->n_entities;
+		check = UNIVERSE->x_list_start;
 		while ((n--)&&(check))
 		{
 			last = check;
@@ -247,21 +269,21 @@ BOOL global_testForVAR;
 		}
 		if ((check)||(n > 0))
 		{
-			OOLog(kOOLogEntityVerificationError, @"Broken x_next %@ list (%d) ***", universe->x_list_start, n);
+			OOLog(kOOLogEntityVerificationError, @"Broken x_next %@ list (%d) ***", UNIVERSE->x_list_start, n);
 			return NO;
 		}
 		//
-		n = universe->n_entities;
+		n = UNIVERSE->n_entities;
 		check = last;
 		while ((n--)&&(check))	check = check->x_previous;
 		if ((check)||(n > 0))
 		{
-			OOLog(kOOLogEntityVerificationError, @"Broken x_previous %@ list (%d) ***", universe->x_list_start, n);
+			OOLog(kOOLogEntityVerificationError, @"Broken x_previous %@ list (%d) ***", UNIVERSE->x_list_start, n);
 			return NO;
 		}
 		//
-		n = universe->n_entities;
-		check = universe->y_list_start;
+		n = UNIVERSE->n_entities;
+		check = UNIVERSE->y_list_start;
 		while ((n--)&&(check))
 		{
 			last = check;
@@ -269,21 +291,21 @@ BOOL global_testForVAR;
 		}
 		if ((check)||(n > 0))
 		{
-			OOLog(kOOLogEntityVerificationError, @"Broken y_next %@ list (%d) ***", universe->y_list_start, n);
+			OOLog(kOOLogEntityVerificationError, @"Broken y_next %@ list (%d) ***", UNIVERSE->y_list_start, n);
 			return NO;
 		}
 		//
-		n = universe->n_entities;
+		n = UNIVERSE->n_entities;
 		check = last;
 		while ((n--)&&(check))	check = check->y_previous;
 		if ((check)||(n > 0))
 		{
-			OOLog(kOOLogEntityVerificationError, @"Broken y_previous %@ list (%d) ***", universe->y_list_start, n);
+			OOLog(kOOLogEntityVerificationError, @"Broken y_previous %@ list (%d) ***", UNIVERSE->y_list_start, n);
 			return NO;
 		}
 		//
-		n = universe->n_entities;
-		check = universe->z_list_start;
+		n = UNIVERSE->n_entities;
+		check = UNIVERSE->z_list_start;
 		while ((n--)&&(check))
 		{
 			last = check;
@@ -291,16 +313,16 @@ BOOL global_testForVAR;
 		}
 		if ((check)||(n > 0))
 		{
-			OOLog(kOOLogEntityVerificationError, @"Broken z_next %@ list (%d) ***", universe->z_list_start, n);
+			OOLog(kOOLogEntityVerificationError, @"Broken z_next %@ list (%d) ***", UNIVERSE->z_list_start, n);
 			return NO;
 		}
 		//
-		n = universe->n_entities;
+		n = UNIVERSE->n_entities;
 		check = last;
 		while ((n--)&&(check))	check = check->z_previous;
 		if ((check)||(n > 0))
 		{
-			OOLog(kOOLogEntityVerificationError, @"Broken z_previous %@ list (%d) ***", universe->z_list_start, n);
+			OOLog(kOOLogEntityVerificationError, @"Broken z_previous %@ list (%d) ***", UNIVERSE->z_list_start, n);
 			return NO;
 		}
 	}
@@ -309,8 +331,8 @@ BOOL global_testForVAR;
 
 - (void) updateLinkedLists
 {
-	if (!universe)
-		return;	// not in the universe - don't do this!
+	if (!UNIVERSE)
+		return;	// not in the UNIVERSE - don't do this!
 	if ((x_next == nil)&&(x_previous == nil))
 		return;	// not in the lists - don't do this!
 
@@ -318,7 +340,7 @@ BOOL global_testForVAR;
 		if (![self checkLinkedLists])
 		{
 			OOLog(kOOLogEntityVerificationError, @"DEBUG LINKED LISTS problem encountered before updating linked lists for %@", self);
-			[universe obj_dump];
+			[UNIVERSE obj_dump];
 		
 			exit(-1);
 		}
@@ -343,8 +365,8 @@ BOOL global_testForVAR;
 		x_next->x_previous = self;
 	if (x_previous)	// insert self into the list after x_previous..
 		x_previous->x_next = self;
-	if ((x_previous == nil)&&(universe))	// if we're the first then tell the universe!
-			universe->x_list_start = self;
+	if ((x_previous == nil)&&(UNIVERSE))	// if we're the first then tell the UNIVERSE!
+			UNIVERSE->x_list_start = self;
 	
 	// update position in linked list for position.y
 	// take self out of list..
@@ -366,8 +388,8 @@ BOOL global_testForVAR;
 		y_next->y_previous = self;
 	if (y_previous)	// insert self into the list after y_previous..
 		y_previous->y_next = self;
-	if ((y_previous == nil)&&(universe))	// if we're the first then tell the universe!
-			universe->y_list_start = self;
+	if ((y_previous == nil)&&(UNIVERSE))	// if we're the first then tell the UNIVERSE!
+			UNIVERSE->y_list_start = self;
 	
 	// update position in linked list for position.z
 	// take self out of list..
@@ -389,19 +411,32 @@ BOOL global_testForVAR;
 		z_next->z_previous = self;
 	if (z_previous)	// insert self into the list after z_previous..
 		z_previous->z_next = self;
-	if ((z_previous == nil)&&(universe))	// if we're the first then tell the universe!
-			universe->z_list_start = self;
+	if ((z_previous == nil)&&(UNIVERSE))	// if we're the first then tell the UNIVERSE!
+			UNIVERSE->z_list_start = self;
 	
 	// done
 	if (debug & DEBUG_LINKED_LISTS)
 		if (![self checkLinkedLists])
 		{
 			OOLog(kOOLogEntityUpdateError, @"DEBUG LINKED LISTS problem encountered after updating linked lists for %@", self);
-			[universe obj_dump];
+			[UNIVERSE obj_dump];
 		
 			exit(-1);
 		}
 }
+
+
+- (void) wasAddedToUniverse
+{
+	// Do nothing
+}
+
+
+- (void) wasRemovedFromUniverse
+{
+	// Do nothing
+}
+
 
 - (void) warnAboutHostiles
 {
@@ -409,35 +444,25 @@ BOOL global_testForVAR;
 	OOLog(@"general.error.subclassResponsibility.Entity-warnAboutHostiles", @"***** Entity does nothing in warnAboutHostiles");
 }
 
-- (Universe *) universe
+- (CollisionRegion*) collisionRegion
 {
-	return universe;
-}
-
-- (void) setUniverse:(Universe *)univ
-{
-	universe = univ;
-}
-
-- (CollisionRegion*) collision_region
-{
-	return collision_region;
+	return collisionRegion;
 }
 
 - (void) setCollisionRegion: (CollisionRegion*) region
 {
-	if (collision_region) [collision_region release];
-	collision_region = [region retain];
+	if (collisionRegion) [collisionRegion release];
+	collisionRegion = [region retain];
 }
 
-- (void) setUniversal_id:(int)uid
+- (void) setUniversalID:(UniversalID)uid
 {
-	universal_id = uid;
+	universalID = uid;
 }
 
-- (int) universal_id
+- (UniversalID) universalID
 {
-	return universal_id;
+	return universalID;
 }
 
 - (BOOL) throwingSparks
@@ -457,37 +482,30 @@ BOOL global_testForVAR;
 
 - (BOOL) isSmoothShaded
 {
-	return is_smooth_shaded;
+	return isSmoothShaded;
 }
 - (void) setSmoothShaded:(BOOL) value
 {
-	is_smooth_shaded = value;
+	isSmoothShaded = value;
 }
 
 - (void) setOwner:(Entity *) ent
 {
-	int	owner_id = [ent universal_id];
-	if (!universe)
-	{
-		[self setUniverse:[ent universe]];
+	UniversalID	owner_id = [ent universalID];
+	
+	if ([UNIVERSE entityForUniversalID:owner_id] == ent)	// check to make sure it's kosher
 		owner = owner_id;
-	}
 	else
-	{
-		if ([universe entityForUniversalID:owner_id] == ent)	// check to make sure it's kosher
-			owner = owner_id;
-		else
-			owner = NO_TARGET;
-	}
+		owner = NO_TARGET;
 }
 
 - (Entity *) owner
 {
-	return [universe entityForUniversalID:owner];
+	return [UNIVERSE entityForUniversalID:owner];
 }
 
 
-- (void) setModel:(NSString *) modelName
+- (void) setModelName:(NSString *) modelName
 {
 	// use our own pool to save big memory
 	NSAutoreleasePool* mypool = [[NSAutoreleasePool alloc] init];
@@ -503,7 +521,7 @@ BOOL global_testForVAR;
 	NS_HANDLER
 		if ([[localException name] isEqual: OOLITE_EXCEPTION_DATA_NOT_FOUND])
 		{
-			OOLog(kOOLogFileNotFound, @"***** Oolite Data Not Found Exception : '%@' in [Entity setModel:] *****", [localException reason]);
+			OOLog(kOOLogFileNotFound, @"***** Oolite Data Not Found Exception : '%@' in [Entity setModelName:] *****", [localException reason]);
 		}
 		[localException retain];
 		[mypool release];
@@ -521,33 +539,33 @@ BOOL global_testForVAR;
 	
 	[mypool release];
 }
-- (NSString *) getModel
+
+
+- (NSString *) modelName
 {
 	return basefile;
 }
 
 - (void) setPosition:(Vector) posn
 {
-	position.x = posn.x;
-	position.y = posn.y;
-	position.z = posn.z;
+	position = posn;
 }
 
-- (void) setPosition:(GLfloat) x:(GLfloat) y:(GLfloat) z
+- (void) setPositionX:(GLfloat)x y:(GLfloat)y z:(GLfloat)z
 {
 	position.x = x;
 	position.y = y;
 	position.z = z;
 }
 
-- (double) getZeroDistance
+- (double) zeroDistance
 {
 	return zero_distance;
 }
 
-- (Vector) relative_position
+- (Vector) relativePosition
 {
-	return relative_position;
+	return relativePosition;
 }
 
 - (NSComparisonResult) compareZeroDistance:(Entity *)otherEntity;
@@ -558,7 +576,7 @@ BOOL global_testForVAR;
 		return NSOrderedDescending;
 }
 
-- (Geometry*) getGeometry
+- (Geometry*) geometry
 {
 	Geometry* result = [(Geometry *)[Geometry alloc] initWithCapacity: n_faces];
 	int i;
@@ -573,7 +591,7 @@ BOOL global_testForVAR;
 	return [result autorelease];
 }
 
-- (BoundingBox) getBoundingBox
+- (BoundingBox) boundingBox
 {
 	return boundingBox;
 }
@@ -599,44 +617,44 @@ BOOL global_testForVAR;
 	velocity = vel;
 }
 
-- (Vector) getVelocity
+- (Vector) velocity
 {
 	return velocity;
 }
 
-- (double) getVelocityAsSpeed
+- (double) speed
 {
-	return sqrt(velocity.x * velocity.x + velocity.y * velocity.y + velocity.z * velocity.z);
+	return magnitude2(velocity);
 }
 
-- (double) distance_travelled
+- (GLfloat) distanceTravelled
 {
-	return distance_travelled;
+	return distanceTravelled;
 }
 
-- (void) setDistanceTravelled: (double) value
+- (void) setDistanceTravelled: (GLfloat) value
 {
-	distance_travelled = value;
+	distanceTravelled = value;
 }
 
-- (void) setStatus:(int) stat
+- (void) setStatus:(EntityStatus) stat
 {
 	status = stat;
 }
 
-- (int) getStatus
+- (EntityStatus) status
 {
 	return status;
 }
 
-- (void) setScanClass:(int) s_class
+- (void) setScanClass:(ScanClass)sClass
 {
-	scan_class = s_class;
+	scanClass = sClass;
 }
 
-- (int) scanClass
+- (ScanClass) scanClass
 {
-	return scan_class;
+	return scanClass;
 }
 
 - (void) setEnergy:(double) amount
@@ -644,7 +662,7 @@ BOOL global_testForVAR;
 	energy = amount;
 }
 
-- (double) getEnergy
+- (double) energy
 {
 	return energy;
 }
@@ -654,7 +672,7 @@ BOOL global_testForVAR;
 
 - (void) applyRoll:(GLfloat) roll andClimb:(GLfloat) climb
 {
-	if ((roll == 0.0)&&(climb == 0.0)&&(!has_rotated))
+	if ((roll == 0.0)&&(climb == 0.0)&&(!hasRotated))
 		return;
 
 	if (roll)
@@ -668,7 +686,7 @@ BOOL global_testForVAR;
 
 - (void) applyRoll:(GLfloat) roll climb:(GLfloat) climb andYaw:(GLfloat) yaw
 {
-	if ((roll == 0.0)&&(climb == 0.0)&&(yaw == 0.0)&&(!has_rotated))
+	if ((roll == 0.0)&&(climb == 0.0)&&(yaw == 0.0)&&(!hasRotated))
 		return;
 
 	if (roll)
@@ -685,7 +703,7 @@ BOOL global_testForVAR;
 - (void) moveForward:(double) amount
 {
     Vector		forward = vector_forward_from_quaternion(q_rotation);
-	distance_travelled += amount;
+	distanceTravelled += amount;
 	position.x += amount * forward.x;
 	position.y += amount * forward.y;
 	position.z += amount * forward.z;
@@ -701,17 +719,17 @@ BOOL global_testForVAR;
     return rotMatrix;
 }
 
-- (Vector) getPosition
+- (Vector) position
 {
     return position;
 }
 
-- (Vector) getViewpointPosition
+- (Vector) viewpointPosition
 {
     return position;
 }
 
-- (Vector) getViewpointOffset
+- (Vector) viewpointOffset
 {
 	return make_vector( 0.0f, 0.0f, 0.0f);
 }
@@ -747,7 +765,7 @@ BOOL global_testForVAR;
 
 	NS_DURING
 
-		if (is_smooth_shaded)
+		if (isSmoothShaded)
 			glShadeModel(GL_SMOOTH);
 		else
 			glShadeModel(GL_FLAT);
@@ -824,16 +842,16 @@ BOOL global_testForVAR;
 				OOLog(kOOLogFileNotLoaded, @"ERROR no basefile for entity %@");
 			}
 		}
-		if (!is_smooth_shaded) glShadeModel(GL_SMOOTH);
-		checkGLErrors([NSString stringWithFormat:@"Entity after drawing %@", self]);
+		if (!isSmoothShaded) glShadeModel(GL_SMOOTH);
+		CheckOpenGLErrors([NSString stringWithFormat:@"Entity after drawing %@", self]);
 
 	NS_HANDLER
 
 		OOLog(kOOLogException, @"***** [Entity drawEntity::] encountered exception: %@ : %@ *****",[localException name], [localException reason]);
-		OOLog(kOOLogException, @"***** Removing entity %@ from universe *****", self);
-		[universe removeEntity:self];
+		OOLog(kOOLogException, @"***** Removing entity %@ from UNIVERSE *****", self);
+		[UNIVERSE removeEntity:self];
 		if ([[localException name] hasPrefix:@"Oolite"])
-			[universe handleOoliteException:localException];	// handle these ourself
+			[UNIVERSE handleOoliteException:localException];	// handle these ourself
 		else
 			[localException raise];	// pass these on
 
@@ -842,7 +860,7 @@ BOOL global_testForVAR;
 
 - (void) drawSubEntity:(BOOL) immediate :(BOOL) translucent
 {
-	Entity* my_owner = [universe entityForUniversalID:owner];
+	Entity* my_owner = [UNIVERSE entityForUniversalID:owner];
 	if (my_owner)
 	{
 		// this test provides an opportunity to do simple LoD culling
@@ -911,7 +929,7 @@ BOOL global_testForVAR;
     //
     int fi,ti ;
 
-	if (!universe)
+	if (!UNIVERSE)
 		return;
 
     for (fi = 0; fi < n_faces; fi++)
@@ -947,7 +965,7 @@ BOOL global_testForVAR;
 		[self drawEntity:YES:NO];	//	immediate YES	translucent NO
 		glEndList();
 		//
-		checkGLErrors([NSString stringWithFormat:@"Entity after generateDisplayList for %@", self]);
+		CheckOpenGLErrors([NSString stringWithFormat:@"Entity after generateDisplayList for %@", self]);
 		//
 	}
 }
@@ -958,49 +976,49 @@ BOOL global_testForVAR;
 	if (player)
 	{
 		if (status != STATUS_COCKPIT_DISPLAY)
-			relative_position = vector_between( player->position, position);
+			relativePosition = vector_between( player->position, position);
 		else
-			relative_position = position;
+			relativePosition = position;
 		//
-		zero_distance = magnitude2( relative_position);
+		zero_distance = magnitude2( relativePosition);
 	}
 	else
 		zero_distance = -1;
 
-	has_moved = ((position.x != last_position.x)||(position.y != last_position.y)||(position.z != last_position.z));
-	last_position = position;
-	has_rotated = ((q_rotation.w != last_q_rotation.w)||(q_rotation.x != last_q_rotation.x)||(q_rotation.y != last_q_rotation.y)||(q_rotation.z != last_q_rotation.z));
-	last_q_rotation = q_rotation;
+	hasMoved = ((position.x != lastPosition.x)||(position.y != lastPosition.y)||(position.z != lastPosition.z));
+	lastPosition = position;
+	hasRotated = ((q_rotation.w != lastQRotation.w)||(q_rotation.x != lastQRotation.x)||(q_rotation.y != lastQRotation.y)||(q_rotation.z != lastQRotation.z));
+	lastQRotation = q_rotation;
 }
 
 - (void) saveToLastFrame
 {
-	double t_now = [universe getTime];
-	if (t_now >= track_time + 0.1)		// update every 1/10 of a second
+	double t_now = [UNIVERSE getTime];
+	if (t_now >= trackTime + 0.1)		// update every 1/10 of a second
 	{
 		// save previous data
-		track_time = t_now;
-		track[track_index].position =	position;
-		track[track_index].q_rotation =	q_rotation;
-		track[track_index].timeframe =	track_time;
-		track[track_index].k =	vector_forward_from_quaternion(q_rotation);
-		track_index = (track_index + 1 ) & 0xff;
+		trackTime = t_now;
+		track[trackIndex].position =	position;
+		track[trackIndex].q_rotation =	q_rotation;
+		track[trackIndex].timeframe =	trackTime;
+		track[trackIndex].k =	vector_forward_from_quaternion(q_rotation);
+		trackIndex = (trackIndex + 1 ) & 0xff;
 	}
 }
 
 - (void) savePosition:(Vector)pos atTime:(double)t_time atIndex:(int)t_index
 {
-	track_time = t_time;
+	trackTime = t_time;
 	track[t_index].position = pos;
 	track[t_index].timeframe =	t_time;
-	track_index = (t_index + 1 ) & 0xff;
+	trackIndex = (t_index + 1 ) & 0xff;
 }
 
 - (void) saveFrame:(Frame)frame atIndex:(int)t_index
 {
 	track[t_index] = frame;
-	track_time = frame.timeframe;
-	track_index = (t_index + 1 ) & 0xff;
+	trackTime = frame.timeframe;
+	trackIndex = (t_index + 1 ) & 0xff;
 }
 
 // reset frames
@@ -1008,7 +1026,7 @@ BOOL global_testForVAR;
 - (void) resetFramesFromFrame:(Frame) resetFrame withVelocity:(Vector) vel1
 {
 	Vector		v1 = make_vector( 0.1 * vel1.x, 0.1 * vel1.y, 0.1 * vel1.z);
-	double		t_now = [universe getTime];
+	double		t_now = [UNIVERSE getTime];
 	Vector		pos = resetFrame.position;
 	Vector		vk = resetFrame.k;
 	Quaternion	qr = resetFrame.q_rotation;
@@ -1020,8 +1038,8 @@ BOOL global_testForVAR;
 		track[255-i].q_rotation = qr;
 		track[255-i].k = vk;
 	}
-	track_time = t_now;
-	track_index = 0;
+	trackTime = t_now;
+	trackIndex = 0;
 }
 
 - (BOOL) resetToTime:(double) t_frame	// timeframe is relative to now ie. -0.5 = half a second ago.
@@ -1040,17 +1058,17 @@ BOOL global_testForVAR;
 	Frame result;
 	result.position = position;
 	result.q_rotation = q_rotation;
-	result.timeframe = [universe getTime];
+	result.timeframe = [UNIVERSE getTime];
 	result.k = vector_forward_from_quaternion(q_rotation);
 	//
 	if (t_frame >= 0.0)
 		return result;
 	//
-	double moment_in_time = [universe getTime] + t_frame;
-	if (moment_in_time >= track_time)					// between the last saved frame and now
+	double moment_in_time = [UNIVERSE getTime] + t_frame;
+	if (moment_in_time >= trackTime)					// between the last saved frame and now
 	{
-		int t1 = (track_index - 1)&0xff;	// last saved moment
-		double period = result.timeframe - track_time;
+		int t1 = (trackIndex - 1)&0xff;	// last saved moment
+		double period = result.timeframe - trackTime;
 		double f0 = (result.timeframe - moment_in_time)/period;
 		double f1 = 1.0 - f0;
 		Vector posn;
@@ -1069,12 +1087,12 @@ BOOL global_testForVAR;
 		return result;
 	}
 	//
-	if (moment_in_time < track[track_index].timeframe)	// more than 256 frames back
+	if (moment_in_time < track[trackIndex].timeframe)	// more than 256 frames back
 	{
-		return track[track_index];
+		return track[trackIndex];
 	}
 	//
-	int t1 = (track_index - 1)&0xff;
+	int t1 = (trackIndex - 1)&0xff;
 	while (moment_in_time < track[t1].timeframe)
 		t1 = (t1 - 1) & 0xff;
 	int t0 = (t1 + 1) & 0xff;
@@ -1105,11 +1123,11 @@ BOOL global_testForVAR;
 	if (t_frame >= 0.0)
 		return result;
 	//
-	double moment_in_time = [universe getTime] + t_frame;
-	if (moment_in_time > track_time)					// between the last saved frame and now
+	double moment_in_time = [UNIVERSE getTime] + t_frame;
+	if (moment_in_time > trackTime)					// between the last saved frame and now
 	{
-		Frame fr1 = track[(track_index - 1)&0xff];	// last saved moment
-		double period = (moment_in_time - t_frame) - track_time;
+		Frame fr1 = track[(trackIndex - 1)&0xff];	// last saved moment
+		double period = (moment_in_time - t_frame) - trackTime;
 		double f1 =	-t_frame/period;
 		double f0 =	1.0 - f1;
 		
@@ -1129,12 +1147,12 @@ BOOL global_testForVAR;
 		return result;
 	}
 	//
-	if (moment_in_time < track[track_index].timeframe)	// more than 256 frames back
+	if (moment_in_time < track[trackIndex].timeframe)	// more than 256 frames back
 	{
-		return track[track_index];
+		return track[trackIndex];
 	}
 	//
-	int t1 = (track_index - 1)&0xff;
+	int t1 = (trackIndex - 1)&0xff;
 	while (moment_in_time < track[t1].timeframe)
 		t1 = (t1 - 1) & 0xff;
 	int t0 = (t1 + 1) & 0xff;
@@ -1517,7 +1535,7 @@ BOOL global_testForVAR;
 			NSLog([NSString stringWithFormat:@"%@ ..... from %@ %@", failString, filename, (using_preloaded)? @"(from preloaded data)" : @"(from file)"]);
 
 		// check for smooth shading and recalculate normals
-		if (is_smooth_shaded)
+		if (isSmoothShaded)
 			[self calculateVertexNormals];
 		//
 
@@ -1650,7 +1668,7 @@ BOOL global_testForVAR;
 
 	int face, fi, vi, texi;
 
-	// if is_smooth_shaded find any vertices that are between faces of two different colour (by red value)
+	// if isSmoothShaded find any vertices that are between faces of two different colour (by red value)
 	// and mark them as being on an edge and therefore NOT smooth shaded
 	BOOL is_edge_vertex[n_vertices];
 	GLfloat red_value[n_vertices];
@@ -1659,7 +1677,7 @@ BOOL global_testForVAR;
 		is_edge_vertex[vi] = NO;
 		red_value[vi] = -1;
 	}
-	if (is_smooth_shaded)
+	if (isSmoothShaded)
 	{
 		for (fi = 0; fi < n_faces; fi++)
 		{
@@ -1699,14 +1717,14 @@ BOOL global_testForVAR;
 			{
 				Vector normal = make_vector( 0.0, 0.0, 1.0);
 				int v;
-				if (!is_smooth_shaded)
+				if (!isSmoothShaded)
 					normal = faces[fi].normal;
 				if (strcmp( (char*)faces[fi].textureFileStr255, (char*)faces[face].textureFileStr255) == 0)
 				{
 					for (vi = 0; vi < 3; vi++)
 					{
 						v = faces[fi].vertex[vi];
-						if (is_smooth_shaded)
+						if (isSmoothShaded)
 						{
 							if (is_edge_vertex[v])
 								normal = [self normalForVertex: v withSharedRedValue: faces[fi].red];
@@ -1871,7 +1889,7 @@ BOOL global_testForVAR;
         }
         result = [NSString stringWithFormat:@"%@\n", result];
     }
-    if (universe)
+    if (UNIVERSE)
     {
         result = [NSString stringWithFormat:@"%@\nTEXTURES\n", result];
         for (j = 0; j < n_faces; j++)
@@ -2339,7 +2357,7 @@ GLint stored_gl_blend_dst[1];
 //
 GLenum stored_errCode;
 //
-void logGLState()
+void LogOpenGLState()
 {
 	if (!OOLogWillDisplayMessagesInClass(kOOLogOpenGLStateDump)) return;
 	
@@ -2601,7 +2619,7 @@ void logGLState()
 
 // check for OpenGL errors, reporting them if where is not nil
 //
-BOOL checkGLErrors(NSString* where)
+BOOL CheckOpenGLErrors(NSString* where)
 {
 	GLenum			errCode;
 	const GLubyte	*errString = NULL;

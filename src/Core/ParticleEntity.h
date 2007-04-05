@@ -136,8 +136,5 @@ MA 02110-1301, USA.
 - (void) drawFragburst;
 - (void) drawBurst2;
 - (void) drawBillboard;
-//- (void) drawFlash;
-
-void drawQuadForView(Universe* universe, GLfloat x, GLfloat y, GLfloat z, GLfloat xx, GLfloat yy);
 
 @end

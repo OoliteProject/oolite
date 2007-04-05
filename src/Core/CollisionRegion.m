@@ -293,7 +293,7 @@ NSArray* subregionsContainingPosition( Vector position, CollisionRegion* region)
 }
 
 
-- (void) findCollisionsInUniverse:(Universe*) universe
+- (void) findCollisions
 {
 	//
 	// According to Shark, when this was in Universe this was where Oolite spent most time!
@@ -332,9 +332,9 @@ NSArray* subregionsContainingPosition( Vector position, CollisionRegion* region)
 	for (i = 0; i < n_entities_to_test; i++)
 	{
 		e1 = entities_to_test[i];
-		if (e1->has_collided)
+		if (e1->hasCollided)
 			[[e1 collisionArray] removeAllObjects];
-		e1->has_collided = NO;
+		e1->hasCollided = NO;
 		if (e1->isShip)
 			[(ShipEntity*)e1 setProximity_alert:nil];
 		e1->collider = nil;
@@ -344,7 +344,7 @@ NSArray* subregionsContainingPosition( Vector position, CollisionRegion* region)
 	//
 	int n_subs = [subregions count];
 	for (i = 0; i < n_subs; i++)
-		[(CollisionRegion*)[subregions objectAtIndex: i] findCollisionsInUniverse: universe];
+		[(CollisionRegion*)[subregions objectAtIndex: i] findCollisions];
 	//
 	
 	checks_this_tick = 0;
@@ -415,13 +415,13 @@ NSArray* subregionsContainingPosition( Vector position, CollisionRegion* region)
 							[[e1 collisionArray] addObject:e1->collider];
 						else
 							[[e1 collisionArray] addObject:e2];
-						e1->has_collided = YES;
+						e1->hasCollided = YES;
 						//
 						if (e2->collider)
 							[[e2 collisionArray] addObject:e2->collider];
 						else
 							[[e2 collisionArray] addObject:e1];
-						e2->has_collided = YES;
+						e2->hasCollided = YES;
 					}
 				}
 			}
@@ -494,7 +494,7 @@ BOOL testEntityOccludedByEntity(Entity* e1, Entity* e2, PlanetEntity* the_sun)
 	return YES;
 }
 
-- (void) findShadowedEntitiesIn:(Universe*) universe
+- (void) findShadowedEntities
 {
 	//
 	// Copy/pasting the collision code to detect occlusion!
@@ -502,21 +502,17 @@ BOOL testEntityOccludedByEntity(Entity* e1, Entity* e2, PlanetEntity* the_sun)
 	Entity* e1;
 	int i,j;
 	
-	if (!universe)
-		return;	// universe is required!
+	if ([UNIVERSE reducedDetail])  return;	// don't do this in reduced detail mode
 	
-	if ([universe reducedDetail])
-		return;	// don't do this in reduced detail mode
-	
-	PlanetEntity* the_sun = [universe sun];
+	PlanetEntity* the_sun = [UNIVERSE sun];
 	
 	if (!the_sun)
 		return;	// sun is required
 		
 	//
 	// get a list of planet entities because they can shade across regions
-	int			ent_count =		universe->n_entities;
-	Entity**	uni_entities =	universe->sortedEntities;	// grab the public sorted list
+	int			ent_count =		UNIVERSE->n_entities;
+	Entity**	uni_entities =	UNIVERSE->sortedEntities;	// grab the public sorted list
 	Entity*		planets[ent_count];
 	int n_planets = 0;
 	for (i = 0; i < ent_count; i++)
@@ -533,7 +529,7 @@ BOOL testEntityOccludedByEntity(Entity* e1, Entity* e2, PlanetEntity* the_sun)
 	//
 	int n_subs = [subregions count];
 	for (i = 0; i < n_subs; i++)
-		[(CollisionRegion*)[subregions objectAtIndex: i] findShadowedEntitiesIn:(Universe*) universe];
+		[[subregions objectAtIndex: i] findShadowedEntities];
 	//
 	
 	// test each entity in this region against the others
@@ -550,11 +546,11 @@ BOOL testEntityOccludedByEntity(Entity* e1, Entity* e2, PlanetEntity* the_sun)
 		}
 		if (e1->isSunlit == NO)
 		{
-			Entity* occluder = [universe entityForUniversalID:e1->shadingEntityID];
+			Entity* occluder = [UNIVERSE entityForUniversalID:e1->shadingEntityID];
 			if (occluder)
-				occluder_moved = occluder->has_moved;
+				occluder_moved = occluder->hasMoved;
 		}
-		if (((e1->isShip)||(e1->isPlanet))&&((e1->has_moved)||occluder_moved))
+		if (((e1->isShip)||(e1->isPlanet))&&((e1->hasMoved)||occluder_moved))
 		{
 			e1->isSunlit = YES;				// sunlit by default
 			e1->shadingEntityID = NO_TARGET;
@@ -570,7 +566,7 @@ BOOL testEntityOccludedByEntity(Entity* e1, Entity* e2, PlanetEntity* the_sun)
 				if (testEntityOccludedByEntity(e1, planets[j], the_sun))
 				{
 					e1->isSunlit = NO;
-					e1->shadingEntityID = [planets[j] universal_id];
+					e1->shadingEntityID = [planets[j] universalID];
 				}
 			}
 			//
@@ -581,7 +577,7 @@ BOOL testEntityOccludedByEntity(Entity* e1, Entity* e2, PlanetEntity* the_sun)
 				if (testEntityOccludedByEntity(e1, entity_array[j], the_sun))
 				{
 					e1->isSunlit = NO;
-					e1->shadingEntityID = [entity_array[j] universal_id];
+					e1->shadingEntityID = [entity_array[j] universalID];
 				}
 			}
 		}
