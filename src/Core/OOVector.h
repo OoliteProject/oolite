@@ -55,6 +55,9 @@ OOINLINE Vector vector_add(Vector a, Vector b) INLINE_CONST_FUNC;
 OOINLINE Vector vector_subtract(Vector a, Vector b) INLINE_CONST_FUNC;
 #define vector_between(a, b) vector_subtract(b, a)
 
+/* Comparison of vectors */
+OOINLINE GLboolean vector_equal(Vector a, Vector b) INLINE_CONST_FUNC;
+
 /* Square of magnitude of vector */
 OOINLINE GLfloat magnitude2(Vector vec) INLINE_CONST_FUNC;
 
@@ -78,12 +81,18 @@ OOINLINE GLfloat fast_distance(Vector v1, Vector v2) INLINE_CONST_FUNC;
 OOINLINE GLfloat dot_product (Vector first, Vector second) INLINE_CONST_FUNC;
 
 /* NORMALIZED cross product */
-Vector cross_product(Vector first, Vector second) CONST_FUNC;
-Vector fast_cross_product(Vector first, Vector second) CONST_FUNC;
+OOINLINE Vector cross_product(Vector first, Vector second) INLINE_CONST_FUNC;
+OOINLINE Vector fast_cross_product(Vector first, Vector second) INLINE_CONST_FUNC;
+
+/* General cross product */
+OOINLINE Vector true_cross_product(Vector first, Vector second) INLINE_CONST_FUNC;
+
+/* Triple product */
+OOINLINE GLfloat triple_product(Vector first, Vector second, Vector third) INLINE_CONST_FUNC;
 
 /* Given three points on a surface, returns the normal to the surface. */
-OOINLINE Vector normal_to_surface(Vector v1, Vector v2, Vector v3) CONST_FUNC;
-OOINLINE Vector fast_normal_to_surface(Vector v1, Vector v2, Vector v3) CONST_FUNC;
+OOINLINE Vector normal_to_surface(Vector v1, Vector v2, Vector v3) INLINE_CONST_FUNC;
+OOINLINE Vector fast_normal_to_surface(Vector v1, Vector v2, Vector v3) INLINE_CONST_FUNC;
 
 
 
@@ -141,6 +150,12 @@ OOINLINE Vector vector_subtract(Vector a, Vector b)
 }
 
 
+OOINLINE GLboolean vector_equal(Vector a, Vector b)
+{
+	return a.x == b.x && a.y == b.y && a.z == b.z;
+}
+
+
 OOINLINE GLfloat magnitude2(Vector vec)
 {
 	return vec.x * vec.x + vec.y * vec.y + vec.z * vec.z;
@@ -169,7 +184,7 @@ OOINLINE Vector vector_normal(Vector vec)
 	GLfloat mag2 = magnitude2(vec);
 	if (EXPECT_NOT(mag2 == 0))
 	{
-		ReportNormalizeZeroVector();
+	//	ReportNormalizeZeroVector();
 		return kZeroVector;
 	}
 	return vector_multiply_scalar(vec, OOInvSqrtf(mag2));
@@ -181,7 +196,7 @@ OOINLINE Vector fast_vector_normal(Vector vec)
 	GLfloat mag2 = magnitude2(vec);
 	if (EXPECT_NOT(mag2 == 0.0f))
 	{
-		ReportNormalizeZeroVector();
+	//	ReportNormalizeZeroVector();
 		return kZeroVector;
 	}
 	return vector_multiply_scalar(vec, OOFastInvSqrtf(mag2));
@@ -212,6 +227,40 @@ OOINLINE GLfloat fast_distance(Vector v1, Vector v2)
 }
 
 
+OOINLINE Vector true_cross_product(Vector first, Vector second)
+{
+	Vector result;
+	result.x = (first.y * second.z) - (first.z * second.y);
+	result.y = (first.z * second.x) - (first.x * second.z);
+	result.z = (first.x * second.y) - (first.y * second.x);
+	return result;
+}
+
+
+OOINLINE Vector cross_product(Vector first, Vector second)
+{
+	return vector_normal(true_cross_product(first, second));
+}
+
+
+OOINLINE Vector fast_cross_product(Vector first, Vector second)
+{
+	return fast_vector_normal(true_cross_product(first, second));
+}
+
+
+OOINLINE GLfloat dot_product (Vector a, Vector b)
+{
+	return (a.x * b.x) + (a.y * b.y) + (a.z * b.z);	
+}
+
+
+OOINLINE GLfloat triple_product(Vector first, Vector second, Vector third)
+{
+	return dot_product(first, true_cross_product(second, third));
+}
+
+
 OOINLINE Vector normal_to_surface(Vector v1, Vector v2, Vector v3)
 {
 	Vector d0, d1;
@@ -227,12 +276,6 @@ OOINLINE Vector fast_normal_to_surface(Vector v1, Vector v2, Vector v3)
 	d0 = vector_subtract(v2, v1);
 	d1 = vector_subtract(v3, v2);
 	return fast_cross_product(d0, d1);
-}
-
-
-OOINLINE GLfloat dot_product (Vector a, Vector b)
-{
-	return (a.x * b.x) + (a.y * b.y) + (a.z * b.z);	
 }
 
 

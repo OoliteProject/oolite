@@ -112,8 +112,8 @@ static PlayerEntity *sSharedPlayer = nil;
 	
 	key_roll_left = gvArrowKeyLeft;
 	key_roll_right = gvArrowKeyRight;
-	key_yaw_left = 310; // keypad 1
-	key_yaw_right = 311; // keypad 3
+	key_yaw_left = 44;				// ','
+	key_yaw_right = 46;				// '.'
 	key_pitch_forward = gvArrowKeyUp;
 	key_pitch_back = gvArrowKeyDown;
 	key_increase_speed = 119;		// 'w'

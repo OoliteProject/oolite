@@ -1,6 +1,6 @@
 /*
 
-OOVector.m
+PlayerEntityScriptMethods.m
 
 Oolite
 Copyright (C) 2004-2007 Giles C Williams and contributors
@@ -22,18 +22,9 @@ MA 02110-1301, USA.
 
 */
 
-#import "OOMaths.h"
-#import "OOLogging.h"
+#import "PlayerEntityScriptMethods.h"
 
 
-const Vector			kZeroVector = { 0.0f, 0.0f, 0.0f };
-const BoundingBox		kZeroBoundingBox = {{ 0.0f, 0.0f, 0.0f }, { 0.0f, 0.0f, 0.0f }};
+@implementation PlayerEntity (ScriptMethods)
 
-
-static NSString * const kOOLogMathsNormalizeZero = @"maths.vector.normalizeZero";
-
-
-void ReportNormalizeZeroVector(void)
-{
-	OOLog(kOOLogMathsNormalizeZero, @"***** Attempt to normalize zero vector.");
-}
+@end
