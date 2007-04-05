@@ -317,8 +317,7 @@ MA 02110-1301, USA.
 
 	// do all the drawing!
 	//
-	if ([gameController universe])
-		[[gameController universe] drawFromEntity:0];
+	if (UNIVERSE)  [UNIVERSE drawFromEntity:0];
 	else
 	{
 		// not set up yet, draw a black screen
@@ -398,15 +397,14 @@ MA 02110-1301, USA.
 	glEnable( GL_BLEND);								// alpha blending
 	glBlendFunc( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);	// alpha blending
 
-	if ([gameController universe])
+	if (UNIVERSE)
 	{
-      Universe *uni=[gameController universe];
 		Entity* the_sun = [uni sun];
 		Vector sun_pos = (the_sun)? the_sun->position : make_vector(0.0f,0.0f,0.0f);
 		sun_center_position[0] = sun_pos.x;
 		sun_center_position[1] = sun_pos.y;
 		sun_center_position[2] = sun_pos.z;
-		[uni setLighting];
+		[UNIVERSE setLighting];
 	}
 	else
 	{
@@ -433,8 +431,7 @@ MA 02110-1301, USA.
 	glDisable(GL_RESCALE_NORMAL);
 
 #ifdef WIN32
-	Universe *universe = [gameController universe];
-	if (universe)
+	if (UNIVERSE)
 	{
 		NSLog(@"WIN32: clearing texture store cache");
 		[TextureStore reloadTextures]; // clears the cached references
@@ -447,8 +444,8 @@ MA 02110-1301, USA.
 
 		NSLog(@"WIN32: resetting entity textures");
 		int i;
-		Entity **elist = universe->sortedEntities;
-		for (i = 0; i < universe->n_entities; i++)
+		Entity **elist = UNIVERSE->sortedEntities;
+		for (i = 0; i < UNIVERSE->n_entities; i++)
 		{
 			Entity *e = elist[i];
 			[e reloadTextures];
