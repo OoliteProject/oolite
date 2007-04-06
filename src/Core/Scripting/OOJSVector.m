@@ -247,6 +247,12 @@ BOOL VectorFromArgumentList(JSContext *context, uintN argc, jsval *argv, Vector 
 }
 
 
+void ReportVectorParamConversionFailure(JSContext *context, NSString *scriptClass, NSString *function, uintN argc, jsval *argv)
+{
+	OOReportJavaScriptWarning(context, @"%@.%@(): could not construct vector from parameters %@.", scriptClass, function, [NSString stringWithJavaScriptParameters:argv count:argc inContext:context]);
+}
+
+
 static JSBool VectorGetProperty(JSContext *context, JSObject *this, jsval name, jsval *outValue)
 {
 	Vector				vector;
@@ -269,7 +275,7 @@ static JSBool VectorGetProperty(JSContext *context, JSObject *this, jsval name, 
 			break;
 		
 		default:
-			return NO;
+			return YES;
 	}
 	
 	return YES;
@@ -300,7 +306,7 @@ static JSBool VectorSetProperty(JSContext *context, JSObject *this, jsval name, 
 			break;
 		
 		default:
-			return NO;
+			return YES;
 	}
 	
 	return JSVectorSetVector(context, this, vector);
@@ -372,9 +378,10 @@ static JSBool VectorEquality(JSContext *context, JSObject *this, jsval value, JS
 {
 	Vector					thisv, thatv;
 	
-	if (!JSVAL_IS_OBJECT(value)) return NO;
+	*outEqual = NO;
 	if (!JSVectorGetVector(context, this, &thisv)) return NO;
-	if (!JSVectorGetVector(context, JSVAL_TO_OBJECT(value), &thatv)) return NO;
+	if (!JSVAL_IS_OBJECT(value)) return YES;
+	if (!JSVectorGetVector(context, JSVAL_TO_OBJECT(value), &thatv)) return YES;
 	
 	*outEqual = vector_equal(thisv, thatv);
 	return YES;
@@ -386,7 +393,11 @@ static JSBool VectorAdd(JSContext *context, JSObject *this, uintN argc, jsval *a
 	Vector					thisv, thatv, result;
 	
 	if (!JSVectorGetVector(context, this, &thisv)) return NO;
-	if (!VectorFromArgumentList(context, argc, argv, &thatv, NULL)) return NO;
+	if (!VectorFromArgumentList(context, argc, argv, &thatv, NULL))
+	{
+		ReportVectorParamConversionFailure(context, @"Vector", @"add", argc, argv);
+		return YES;
+	}
 	
 	result = vector_add(thisv, thatv);
 	
@@ -399,7 +410,11 @@ static JSBool VectorSubtract(JSContext *context, JSObject *this, uintN argc, jsv
 	Vector					thisv, thatv, result;
 	
 	if (!JSVectorGetVector(context, this, &thisv)) return NO;
-	if (!VectorFromArgumentList(context, argc, argv, &thatv, NULL)) return NO;
+	if (!VectorFromArgumentList(context, argc, argv, &thatv, NULL))
+	{
+		ReportVectorParamConversionFailure(context, @"Vector", @"subtract", argc, argv);
+		return YES;
+	}
 	
 	result = vector_subtract(thisv, thatv);
 	
@@ -413,7 +428,11 @@ static JSBool VectorDistanceTo(JSContext *context, JSObject *this, uintN argc, j
 	GLfloat					result;
 	
 	if (!JSVectorGetVector(context, this, &thisv)) return NO;
-	if (!VectorFromArgumentList(context, argc, argv, &thatv, NULL)) return NO;
+	if (!VectorFromArgumentList(context, argc, argv, &thatv, NULL))
+	{
+		ReportVectorParamConversionFailure(context, @"Vector", @"distanceTo", argc, argv);
+		return YES;
+	}
 	
 	result = distance(thisv, thatv);
 	
@@ -427,7 +446,11 @@ static JSBool VectorSquaredDistanceTo(JSContext *context, JSObject *this, uintN 
 	GLfloat					result;
 	
 	if (!JSVectorGetVector(context, this, &thisv)) return NO;
-	if (!VectorFromArgumentList(context, argc, argv, &thatv, NULL)) return NO;
+	if (!VectorFromArgumentList(context, argc, argv, &thatv, NULL))
+	{
+		ReportVectorParamConversionFailure(context, @"Vector", @"squaredDistanceTo", argc, argv);
+		return YES;
+	}
 	
 	result = distance2(thisv, thatv);
 	
@@ -441,7 +464,11 @@ static JSBool VectorMultiply(JSContext *context, JSObject *this, uintN argc, jsv
 	double					scalar;
 	
 	if (!JSVectorGetVector(context, this, &thisv)) return NO;
-	if (!JS_ValueToNumber(context, argv[0], &scalar)) return NO;
+	if (!JS_ValueToNumber(context, argv[0], &scalar))
+	{
+		OOLog(@"script.javaScript.badParameter.vector.multiply", @"--- JavaScript: Vector.multiply(): expected number, got %@.", [NSString stringWithJavaScriptValue:argv[0] inContext:context]);
+		return YES;
+	}
 	
 	result = vector_multiply_scalar(thisv, scalar);
 	
@@ -455,7 +482,11 @@ static JSBool VectorDot(JSContext *context, JSObject *this, uintN argc, jsval *a
 	GLfloat					result;
 	
 	if (!JSVectorGetVector(context, this, &thisv)) return NO;
-	if (!VectorFromArgumentList(context, argc, argv, &thatv, NULL)) return NO;
+	if (!VectorFromArgumentList(context, argc, argv, &thatv, NULL))
+	{
+		ReportVectorParamConversionFailure(context, @"Vector", @"dot", argc, argv);
+		return YES;
+	}
 	
 	result = dot_product(thisv, thatv);
 	
@@ -469,7 +500,11 @@ static JSBool VectorAngleTo(JSContext *context, JSObject *this, uintN argc, jsva
 	GLfloat					result;
 	
 	if (!JSVectorGetVector(context, this, &thisv)) return NO;
-	if (!VectorFromArgumentList(context, argc, argv, &thatv, NULL)) return NO;
+	if (!VectorFromArgumentList(context, argc, argv, &thatv, NULL))
+	{
+		ReportVectorParamConversionFailure(context, @"Vector", @"angleTo", argc, argv);
+		return YES;
+	}
 	
 	result = acosf(dot_product(vector_normal(thisv), vector_normal(thatv)));
 	
@@ -482,7 +517,11 @@ static JSBool VectorCross(JSContext *context, JSObject *this, uintN argc, jsval 
 	Vector					thisv, thatv, result;
 	
 	if (!JSVectorGetVector(context, this, &thisv)) return NO;
-	if (!VectorFromArgumentList(context, argc, argv, &thatv, NULL)) return NO;
+	if (!VectorFromArgumentList(context, argc, argv, &thatv, NULL))
+	{
+		ReportVectorParamConversionFailure(context, @"Vector", @"cross", argc, argv);
+		return YES;
+	}
 	
 	result = true_cross_product(thisv, thatv);
 	
@@ -497,8 +536,16 @@ static JSBool VectorTripleProduct(JSContext *context, JSObject *this, uintN argc
 	uintN					consumed;
 	
 	if (!JSVectorGetVector(context, this, &thisv)) return NO;
-	if (!VectorFromArgumentList(context, argc, argv, &thatv, &consumed)) return NO;
-	if (!VectorFromArgumentList(context, argc + consumed, argv, &theotherv, NULL)) return NO;
+	if (!VectorFromArgumentList(context, argc, argv, &thatv, &consumed))
+	{
+		ReportVectorParamConversionFailure(context, @"Vector", @"tripleProduct", argc, argv);
+		return YES;
+	}
+	if (!VectorFromArgumentList(context, argc + consumed, argv + consumed, &theotherv, NULL))
+	{
+		ReportVectorParamConversionFailure(context, @"Vector", @"tripleProduct", argc + consumed, argv + consumed);
+		return YES;
+	}
 	
 	result = triple_product(thisv, thatv, theotherv);
 	

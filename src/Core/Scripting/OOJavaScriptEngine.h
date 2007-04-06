@@ -44,6 +44,12 @@ MA 02110-1301, USA.
 @end
 
 
+void OOReportJavaScriptError(JSContext *context, NSString *format, ...);
+void OOReportJavaScriptErrorWithArguments(JSContext *context, NSString *format, va_list args);
+void OOReportJavaScriptWarning(JSContext *context, NSString *format, ...);
+void OOReportJavaScriptWarningWithArguments(JSContext *context, NSString *format, va_list args);
+
+
 @protocol OOJavaScriptConversion <NSObject>
 
 - (jsval)javaScriptValueInContext:(JSContext *)context;
@@ -58,6 +64,9 @@ MA 02110-1301, USA.
 
 // Convert an arbitrary JS object to an NSString, using JS_ValueToString.
 + (id)stringWithJavaScriptValue:(jsval)value inContext:(JSContext *)context;
+
+// For diagnostic messages; produces things like @"(42, true, "a string", an object description)".
++ (id)stringWithJavaScriptParameters:(jsval *)params count:(uintN)count inContext:(JSContext *)context;
 
 // Concatenate sequence of arbitrary JS objects into string.
 + (id)concatenationOfStringsFromJavaScriptValues:(jsval *)values count:(size_t)count separator:(NSString *)separator inContext:(JSContext *)context;

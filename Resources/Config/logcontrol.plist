@@ -215,6 +215,7 @@ script.javaScript.call.badSelector		= $scriptError;
 script.javaScript.error					= $scriptError;
 script.javaScript.exception				= $scriptError;
 script.javaScript.warning				= $scriptError;
+script.javaScript.badParameter			= $scriptError;
 
 script.load								= no;
 script.load.badName						= $scriptError;

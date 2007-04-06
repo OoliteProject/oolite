@@ -46,3 +46,7 @@ BOOL JSVectorSetVector(JSContext *context, JSObject *vectorObj, Vector vector);
 
 // Construct a vector from an argument list which is either a (JS) vector, a (JS) entity, or three things that can be considered numbers. The optional outConsumed argument can be used to find out how many parameters were used (currently, this will be 0 on failure, otherwise 1 or 3). If it fails (and returns NO) the vector will be unaltered.
 BOOL VectorFromArgumentList(JSContext *context, uintN argc, jsval *argv, Vector *outVector, uintN *outConsumed);
+
+
+// Standard error reporter for VectorFromArgumentList() failure.
+void ReportVectorParamConversionFailure(JSContext *context, NSString *scriptClass, NSString *function, uintN argc, jsval *argv);

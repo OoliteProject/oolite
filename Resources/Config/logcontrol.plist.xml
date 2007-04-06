@@ -272,6 +272,8 @@
 	<string>inherit</string>
 	<key>script.debug.testCondition.testValues</key>
 	<string>inherit</string>
+	<key>script.javaScript.badParameter</key>
+	<string>$scriptError</string>
 	<key>script.javaScript.call.badSelector</key>
 	<string>$scriptError</string>
 	<key>script.javaScript.error</key>

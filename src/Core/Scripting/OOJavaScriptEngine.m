@@ -1175,14 +1175,19 @@ static void ReportJSError(JSContext *cx, const char *message, JSErrorReport *rep
 	NSString		*messageText = nil;
 	NSString		*lineBuf = nil;
 	NSString		*messageClass = nil;
+	NSString		*highlight = @"*****";
 	
 	// Type of problem: error, warning or exception? (Strict flag wilfully ignored.)
 	if (report->flags & JSREPORT_EXCEPTION) severity = @"exception";
-	else if (report->flags & JSREPORT_WARNING) severity = @"warning";
+	else if (report->flags & JSREPORT_WARNING)
+	{
+		severity = @"warning";
+		highlight = @"-----";
+	}
 	else severity = @"error";
 	
 	// The error message itself
-	messageText = [NSString stringWithUTF16String:report->ucmessage];
+	messageText = [NSString stringWithUTF8String:message];
 	
 	// Get offending line, if present, and trim trailing line breaks
 	lineBuf = [NSString stringWithUTF16String:report->uclinebuf];
@@ -1192,7 +1197,7 @@ static void ReportJSError(JSContext *cx, const char *message, JSErrorReport *rep
 	messageClass = [NSString stringWithFormat:@"script.javaScript.%@.%u", severity, report->errorNumber];
 	
 	// First line: problem description
-	OOLog(messageClass, @"***** JavaScript %@: %@", severity, messageText);
+	OOLog(messageClass, @"%@ JavaScript %@: %@", highlight, severity, messageText);
 	
 	// Second line: where error occured, and line if provided. (The line is only provided for compile-time errors, not run-time errors.)
 	if ([lineBuf length] != 0)
@@ -1242,6 +1247,7 @@ static void ReportJSError(JSContext *cx, const char *message, JSErrorReport *rep
 
 	/* create a context and associate it with the JS run time */
 	cx = JS_NewContext(rt, 8192);
+	JS_SetOptions(cx, JSOPTION_VAROBJFIX | JSOPTION_STRICT | JSOPTION_NATIVE_BRANCH_CALLBACK);
 	
 	/* if cx does not have a value, end the program here */
 	if (!cx)
@@ -1302,6 +1308,46 @@ static void ReportJSError(JSContext *cx, const char *message, JSErrorReport *rep
 @end
 
 
+void OOReportJavaScriptError(JSContext *context, NSString *format, ...)
+{
+	va_list				args;
+	
+	va_start(args, format);
+	OOReportJavaScriptErrorWithArguments(context, format, args);
+	va_end(args);
+}
+
+
+void OOReportJavaScriptErrorWithArguments(JSContext *context, NSString *format, va_list args)
+{
+	NSString			*msg = nil;
+	
+	msg = [[NSString alloc] initWithFormat:format arguments:args];
+	JS_ReportWarning(context, "%s", [msg UTF8String]);
+	[msg release];
+}
+
+
+void OOReportJavaScriptWarning(JSContext *context, NSString *format, ...)
+{
+	va_list				args;
+	
+	va_start(args, format);
+	OOReportJavaScriptWarningWithArguments(context, format, args);
+	va_end(args);
+}
+
+
+void OOReportJavaScriptWarningWithArguments(JSContext *context, NSString *format, va_list args)
+{
+	NSString			*msg = nil;
+	
+	msg = [[NSString alloc] initWithFormat:format arguments:args];
+	JS_ReportWarning(context, "%s", [msg UTF8String]);
+	[msg release];
+}
+
+
 @implementation NSString (OOJavaScriptExtensions)
 
 // Convert a JSString to an NSString.
@@ -1323,6 +1369,37 @@ static void ReportJSError(JSContext *cx, const char *message, JSErrorReport *rep
 	
 	string = JS_ValueToString(context, value);	// Calls the value's convert method if needed.
 	return [NSString stringWithJavaScriptString:string];
+}
+
+
++ (id)stringWithJavaScriptParameters:(jsval *)params count:(uintN)count inContext:(JSContext *)context
+{
+	if (params == nil && count != 0) return nil;
+	
+	uintN			i;
+	jsval			val;
+	NSMutableString	*result = [NSMutableString string];
+	NSString		*valString = nil;
+	
+	for (i = 0; i != count; ++i)
+	{
+		if (i != 0)  [result appendString:@", "];
+		else  [result appendString:@"("];
+		
+		val = params[i];
+		valString = [self stringWithJavaScriptValue:val inContext:context];
+		if (JSVAL_IS_STRING(val))
+		{
+			[result appendFormat:@"\"%@\"", valString];
+		}
+		else
+		{
+			[result appendString:valString];
+		}
+	}
+	
+	[result appendString:@")"];
+	return result;
 }
 
 

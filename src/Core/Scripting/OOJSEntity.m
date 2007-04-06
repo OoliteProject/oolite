@@ -41,6 +41,8 @@ static JSBool EntityEquality(JSContext *context, JSObject *this, jsval value, JS
 
 // Methods
 static JSBool EntitySetPosition(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
+// static JSBool EntitySetOrientation(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
+static JSBool EntityValid(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
 
 
 static JSExtendedClass sEntityClass =
@@ -108,6 +110,7 @@ static JSFunctionSpec sEntityMethods[] =
 	// JS name					Function					min args
 	{ "setPosition",			EntitySetPosition,			1, },
 //	{ "setOrientation",			EntitySetOrientation,		1, },
+	{ "valid",					EntityValid,				0, },
 	{ 0 }
 };
 
@@ -279,8 +282,14 @@ static JSBool EntityConvert(JSContext *context, JSObject *this, JSType type, jsv
 		case JSTYPE_VOID:		// Used for string concatenation.
 		case JSTYPE_STRING:
 			// Return description of vector
-			if (!JSEntityGetEntity(context, this, &entity))  return NO;
-			*outValue = [[entity description] javaScriptValueInContext:context];
+			if (JSEntityGetEntity(context, this, &entity))
+			{
+				*outValue = [[entity description] javaScriptValueInContext:context];
+			}
+			else
+			{
+				*outValue = STRING_TO_JSVAL(JS_InternString(context, "[stale Entity]"));
+			}
 			return YES;
 		
 		default:
@@ -300,11 +309,11 @@ static JSBool EntityEquality(JSContext *context, JSObject *this, jsval value, JS
 {
 	Entity					*thisEnt, *thatEnt;
 	
-	if (!JSVAL_IS_OBJECT(value)) return NO;
-	if (!JSEntityGetEntity(context, this, &thisEnt)) return NO;
-	if (!JSEntityGetEntity(context, JSVAL_TO_OBJECT(value), &thatEnt)) return NO;
+	// No failures or diagnostic messages.
+	JSEntityGetEntity(context, this, &thisEnt);
+	JSEntityGetEntity(context, JSVAL_TO_OBJECT(value), &thatEnt);
 	
-	*outEqual = [thisEnt isEqual:thatEnt];
+	*outEqual = [thisEnt isEqual:thatEnt];	// Note ![nil isEqual:nil], so two stale entity refs will not be equal.
 	return YES;
 }
 
@@ -314,9 +323,22 @@ static JSBool EntitySetPosition(JSContext *context, JSObject *this, uintN argc, 
 	Entity					*thisEnt;
 	Vector					vector;
 	
-	if (!JSEntityGetEntity(context, this, &thisEnt)) return NO;
-	if (!VectorFromArgumentList(context, argc, argv, &vector, NULL)) return NO;
+	if (!JSEntityGetEntity(context, this, &thisEnt)) return YES;	// stale reference, no-op.
+	if (!VectorFromArgumentList(context, argc, argv, &vector, NULL))
+	{
+		ReportVectorParamConversionFailure(context, @"Entity", @"setPosition", argc, argv);
+		return YES;
+	}
 	
 	[thisEnt setPosition:vector];
+	return YES;
+}
+
+
+static JSBool EntityValid(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
+{
+	Entity					*thisEnt;
+	
+	*outResult = BOOLEAN_TO_JSVAL(JSEntityGetEntity(context, this, &thisEnt));
 	return YES;
 }
