@@ -80,7 +80,11 @@ void quaternion_rotate_about_axis(Quaternion *quat, Vector axis, GLfloat angle) 
 /* Normalize quaternion */
 OOINLINE void quaternion_normalize(Quaternion *quat) NONNULL_FUNC ALWAYS_INLINE_FUNC;
 OOINLINE void fast_quaternion_normalize(Quaternion *quat) NONNULL_FUNC ALWAYS_INLINE_FUNC;
-#define quaternion_normalise quaternion_normalize
+OOINLINE void quaternion_normalise(Quaternion *quat) NONNULL_FUNC ALWAYS_INLINE_FUNC DEPRECATED_FUNC;
+
+#ifdef __OBJC__
+NSString *QuaternionDescription(Quaternion quaternion);	// @"(w, x, y, z)"
+#endif
 
 
 /*** Only inline definitions beyond this point ***/
@@ -123,6 +127,12 @@ OOINLINE void quaternion_normalize(Quaternion *quat)
     quat->x = lv * x;
     quat->y = lv * y;
     quat->z = lv * z;
+}
+
+
+OOINLINE void quaternion_normalise(Quaternion *quat)
+{
+	quaternion_normalize(quat);
 }
 
 

@@ -220,9 +220,14 @@
 		1A231A180B9D8B1B00EF0852 /* OOCacheManager.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A231A160B9D8B1B00EF0852 /* OOCacheManager.h */; };
 		1A29967E0B9F064C002D2149 /* OOCache.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A29967C0B9F064C002D2149 /* OOCache.h */; };
 		1A29967F0B9F064C002D2149 /* OOCache.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A29967D0B9F064C002D2149 /* OOCache.m */; };
+		1A2A8C150BC65FFD001E00FB /* OOJSEntity.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A2A8C130BC65FFD001E00FB /* OOJSEntity.h */; };
+		1A2A8C160BC65FFD001E00FB /* OOJSEntity.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A2A8C140BC65FFD001E00FB /* OOJSEntity.m */; };
+		1A2A8D3A0BC6765F001E00FB /* EntityOOJavaScriptExtensions.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A2A8D380BC6765F001E00FB /* EntityOOJavaScriptExtensions.h */; };
+		1A2A8D3B0BC6765F001E00FB /* EntityOOJavaScriptExtensions.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A2A8D390BC6765F001E00FB /* EntityOOJavaScriptExtensions.m */; };
+		1A2A8E030BC67CCC001E00FB /* OOWeakReference.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A2A8E010BC67CCC001E00FB /* OOWeakReference.h */; };
+		1A2A8E040BC67CCC001E00FB /* OOWeakReference.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A2A8E020BC67CCC001E00FB /* OOWeakReference.m */; };
 		1A34912A0BC25EAA00802DA7 /* world-scripts.plist in Copy Config */ = {isa = PBXBuildFile; fileRef = 1A3491290BC25EAA00802DA7 /* world-scripts.plist */; };
 		1A34912E0BC25EBC00802DA7 /* oolite-legacy-script.plist in Copy Scripts */ = {isa = PBXBuildFile; fileRef = 1A34912D0BC25EBC00802DA7 /* oolite-legacy-script.plist */; };
-		1A3491AC0BC282DE00802DA7 /* ReleaseLockProxy.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A3491AA0BC282DE00802DA7 /* ReleaseLockProxy.h */; };
 		1A38B4AC0B988532001ED4A0 /* OOLogging.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A38B4AA0B988532001ED4A0 /* OOLogging.h */; };
 		1A38B4AD0B988532001ED4A0 /* OOLogging.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A38B4AB0B988532001ED4A0 /* OOLogging.m */; };
 		1A3A023B0BC52DDA00B5E2D9 /* PlayerEntityScriptMethods.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A3A02390BC52DDA00B5E2D9 /* PlayerEntityScriptMethods.h */; };
@@ -956,6 +961,12 @@
 		1A231A170B9D8B1B00EF0852 /* OOCacheManager.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOCacheManager.m; sourceTree = "<group>"; };
 		1A29967C0B9F064C002D2149 /* OOCache.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOCache.h; sourceTree = "<group>"; };
 		1A29967D0B9F064C002D2149 /* OOCache.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOCache.m; sourceTree = "<group>"; };
+		1A2A8C130BC65FFD001E00FB /* OOJSEntity.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOJSEntity.h; sourceTree = "<group>"; };
+		1A2A8C140BC65FFD001E00FB /* OOJSEntity.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOJSEntity.m; sourceTree = "<group>"; };
+		1A2A8D380BC6765F001E00FB /* EntityOOJavaScriptExtensions.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = EntityOOJavaScriptExtensions.h; sourceTree = "<group>"; };
+		1A2A8D390BC6765F001E00FB /* EntityOOJavaScriptExtensions.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = EntityOOJavaScriptExtensions.m; sourceTree = "<group>"; };
+		1A2A8E010BC67CCC001E00FB /* OOWeakReference.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOWeakReference.h; sourceTree = "<group>"; };
+		1A2A8E020BC67CCC001E00FB /* OOWeakReference.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOWeakReference.m; sourceTree = "<group>"; };
 		1A3491290BC25EAA00802DA7 /* world-scripts.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist; path = "world-scripts.plist"; sourceTree = "<group>"; };
 		1A34912D0BC25EBC00802DA7 /* oolite-legacy-script.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist; path = "oolite-legacy-script.plist"; sourceTree = "<group>"; };
 		1A3491AA0BC282DE00802DA7 /* ReleaseLockProxy.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ReleaseLockProxy.h; sourceTree = "<group>"; };
@@ -1555,6 +1566,10 @@
 				1A5DBA9B0BC000DC00D57389 /* OOJavaScriptEngine.m */,
 				1A3AFF1D0BC4462200B5E2D9 /* OOJSVector.h */,
 				1A3AFF1E0BC4462200B5E2D9 /* OOJSVector.m */,
+				1A2A8C130BC65FFD001E00FB /* OOJSEntity.h */,
+				1A2A8C140BC65FFD001E00FB /* OOJSEntity.m */,
+				1A2A8D380BC6765F001E00FB /* EntityOOJavaScriptExtensions.h */,
+				1A2A8D390BC6765F001E00FB /* EntityOOJavaScriptExtensions.m */,
 			);
 			name = JavaScript;
 			sourceTree = "<group>";
@@ -1640,6 +1655,8 @@
 				1A5DBD570BC17F0900D57389 /* NSStringOOExtensions.m */,
 				1A3491AA0BC282DE00802DA7 /* ReleaseLockProxy.h */,
 				1A3491AB0BC282DE00802DA7 /* ReleaseLockProxy.m */,
+				1A2A8E010BC67CCC001E00FB /* OOWeakReference.h */,
+				1A2A8E020BC67CCC001E00FB /* OOWeakReference.m */,
 			);
 			name = Utilities;
 			sourceTree = "<group>";
@@ -2026,11 +2043,13 @@
 				1A5DBAAD0BC000DC00D57389 /* OOScript.h in Headers */,
 				1A5DBAAF0BC000DC00D57389 /* OOSTokenizer.h in Headers */,
 				1A5DBD580BC17F0900D57389 /* NSStringOOExtensions.h in Headers */,
-				1A3491AC0BC282DE00802DA7 /* ReleaseLockProxy.h in Headers */,
 				1A3AFF1F0BC4462200B5E2D9 /* OOJSVector.h in Headers */,
 				1A3A023B0BC52DDA00B5E2D9 /* PlayerEntityScriptMethods.h in Headers */,
 				1A3A02430BC52DEB00B5E2D9 /* PlayerEntityLegacyScriptEngine.h in Headers */,
 				1A3A04620BC547DC00B5E2D9 /* OOTypes.h in Headers */,
+				1A2A8C150BC65FFD001E00FB /* OOJSEntity.h in Headers */,
+				1A2A8D3A0BC6765F001E00FB /* EntityOOJavaScriptExtensions.h in Headers */,
+				1A2A8E030BC67CCC001E00FB /* OOWeakReference.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -2214,6 +2233,9 @@
 				1A3AFF200BC4462200B5E2D9 /* OOJSVector.m in Sources */,
 				1A3A023C0BC52DDA00B5E2D9 /* PlayerEntityScriptMethods.m in Sources */,
 				1A3A02420BC52DEB00B5E2D9 /* PlayerEntityLegacyScriptEngine.m in Sources */,
+				1A2A8C160BC65FFD001E00FB /* OOJSEntity.m in Sources */,
+				1A2A8D3B0BC6765F001E00FB /* EntityOOJavaScriptExtensions.m in Sources */,
+				1A2A8E040BC67CCC001E00FB /* OOWeakReference.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

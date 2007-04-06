@@ -31,6 +31,7 @@ MA 02110-1301, USA.
 #import "GameController.h"
 #import "TextureStore.h"
 #import "ResourceManager.h"
+#import "OOConstToString.h"
 
 #import "CollisionRegion.h"
 
@@ -144,15 +145,38 @@ BOOL global_testForVAR;
     return self;
 }
 
+
 - (void) dealloc
 {
-	// UNIVERSE is a mere reference. It is neither retained nor released.
-    if (basefile)	[basefile release];
-	if (collidingEntities)	[collidingEntities release];
-	if (trackLock) [trackLock release];
-	if (collisionRegion) [collisionRegion release];
+	[basefile release];
+	[collidingEntities release];
+	[trackLock release];
+	[collisionRegion release];
+	[weakSelf weakRefDrop];
+	
 	[super dealloc];
 }
+
+
+- (id)weakRetain
+{
+	if (weakSelf == nil)  weakSelf = [OOWeakReference weakRefWithObject:self];
+	return [weakSelf retain];
+}
+
+
+- (void)weakRefDied:(OOWeakReference *)weakRef
+{
+	assert(weakRef == weakSelf);
+	weakSelf = nil;
+}
+
+
+- (NSString *)description
+{
+	return [NSString stringWithFormat:@"<%@ %p>{%u position=%@ scanClass=%@ status=%@}", [self class], self, [self universalID], VectorDescription([self position]), ScanClassToString([self scanClass]), EntityStatusToString([self status])];
+}
+
 
 - (void) addToLinkedLists
 {
@@ -657,17 +681,29 @@ BOOL global_testForVAR;
 	return scanClass;
 }
 
-- (void) setEnergy:(double) amount
+
+- (void) setEnergy:(GLfloat) amount
 {
 	energy = amount;
 }
 
-- (double) energy
+
+- (GLfloat) energy
 {
 	return energy;
 }
 
 
+- (void) setMaxEnergy:(GLfloat)amount
+{
+	maxEnergy = amount;
+}
+
+
+- (GLfloat) maxEnergy
+{
+	return maxEnergy;
+}
 
 
 - (void) applyRoll:(GLfloat) roll andClimb:(GLfloat) climb
@@ -680,7 +716,7 @@ BOOL global_testForVAR;
 	if (climb)
 		quaternion_rotate_about_x( &q_rotation, -climb);
 
-    quaternion_normalise(&q_rotation);
+    quaternion_normalize(&q_rotation);
     quaternion_into_gl_matrix(q_rotation, rotMatrix);
 }
 
@@ -696,7 +732,7 @@ BOOL global_testForVAR;
 	if (yaw)
 		quaternion_rotate_about_y( &q_rotation, -yaw);
 
-    quaternion_normalise(&q_rotation);
+    quaternion_normalize(&q_rotation);
     quaternion_into_gl_matrix(q_rotation, rotMatrix);
 }
 

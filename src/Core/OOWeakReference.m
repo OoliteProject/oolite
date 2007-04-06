@@ -1,0 +1,124 @@
+/*
+
+OOWeakReference.m
+
+Written by Jens Ayton in 2007 for Oolite.
+This code is hereby placed in the public domain.
+
+*/
+
+#import "OOWeakReference.h"
+
+
+@interface OOWeakReferenceTemplates: NSObject
+
++ (void)weakRefDrop;
++ (BOOL)weakRefObjectStillExists;
++ (id)weakRefUnderlyingObject;
++ (id)nilMethod;
+
+@end
+
+
+@implementation OOWeakReference
+
+// *** Core functionality.
+
++ (id)weakRefWithObject:(id<OOWeakReferenceSupport>)object
+{
+	if (object == nil)  return nil;
+	
+	OOWeakReference	*result = [OOWeakReference alloc];
+	// No init for proxies.
+	result->_object = object;
+	return [result autorelease];
+}
+
+
+- (void)dealloc
+{
+	[_object weakRefDied:self];
+	
+	[super dealloc];
+}
+
+
+- (BOOL)weakRefObjectStillExists
+{
+	return _object != nil;
+}
+
+
+- (id)weakRefUnderlyingObject
+{
+	return [[_object retain] autorelease];
+}
+
+
+- (void)weakRefDrop
+{
+	_object = nil;
+}
+
+
+// *** Proxy evilness beyond this point.
+
+- (void)forwardInvocation:(NSInvocation *)invocation
+{
+	// Does the right thing even with nil _object.
+	[invocation invokeWithTarget:_object];
+}
+
+
+- (NSMethodSignature *)methodSignatureForSelector:(SEL)selector
+{
+	NSMethodSignature		*result = nil;
+	
+	if (__builtin_expect(
+		selector != @selector(weakRefDrop) &&
+		selector != @selector(weakRefObjectStillExists)
+		&& selector != @selector(weakRefUnderlyingObject), 1))
+	{
+		// Not a proxy method; get signature from _object if it exists, otherwise generic signature for nil calls.
+		if (__builtin_expect(_object != nil, 1))  result = [(id)_object methodSignatureForSelector:selector];
+		else  result = [OOWeakReferenceTemplates methodSignatureForSelector:@selector(nilMethod)];
+	}
+	else
+	{
+		// One of OOWeakReference's own methods.
+		result = [OOWeakReferenceTemplates methodSignatureForSelector:selector];
+	}
+	
+	return result;
+}
+
+
+- (BOOL)respondsToSelector:(SEL)selector
+{
+	if (__builtin_expect(_object != nil &&
+		selector != @selector(weakRefDrop)
+		&& selector != @selector(weakRefObjectStillExists) &&
+		selector != @selector(weakRefUnderlyingObject), 1))
+	{
+		// _object exists and it's not one of our methods, ask _object.
+		return [_object respondsToSelector:selector];
+	}
+	else
+	{
+		// Selector we responds to, or _object is nil and therefore responds to everything.
+		return YES;
+	}
+}
+
+@end
+
+
+@implementation OOWeakReferenceTemplates
+
+// These are never called, but an implementation must exist so that -methodSignatureForSelector: works.
++ (void)weakRefDrop  {}
++ (BOOL)weakRefObjectStillExists  { return NO; }
++ (id)weakRefUnderlyingObject  { return nil; }
++ (id)nilMethod { return nil; }
+
+@end

@@ -94,6 +94,10 @@ OOINLINE GLfloat triple_product(Vector first, Vector second, Vector third) INLIN
 OOINLINE Vector normal_to_surface(Vector v1, Vector v2, Vector v3) INLINE_CONST_FUNC;
 OOINLINE Vector fast_normal_to_surface(Vector v1, Vector v2, Vector v3) INLINE_CONST_FUNC;
 
+#ifdef __OBJC__
+NSString *VectorDescription(Vector vector);	// @"(x, y, z)"
+#endif
+
 
 
 /* Internal */

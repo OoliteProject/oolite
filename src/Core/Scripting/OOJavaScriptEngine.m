@@ -29,6 +29,7 @@ MA 02110-1301, USA.
 #import "PlanetEntity.h"
 #import "NSStringOOExtensions.h"
 #import "OOJSVector.h"
+#import "OOJSEntity.h"
 
 #include <stdio.h>
 #include <string.h>
@@ -320,8 +321,8 @@ static JSPropertySpec Player_props[] =
 	{ "status",					PE_STATUS_STRING,			JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
 	{ "dockedAtMainStation",	PE_DOCKED_AT_MAIN_STATION,	JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
 	{ "stationName",			PE_DOCKED_STATION_NAME,		JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
-	{ "position",				PE_POSITION,				JSPROP_PERMANENT | JSPROP_ENUMERATE },
-	{ "velocity",				PE_VELOCITY,				JSPROP_PERMANENT | JSPROP_ENUMERATE },
+	{ "position",				PE_POSITION,				JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
+	{ "velocity",				PE_VELOCITY,				JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
 	{ 0 }
 };
 
@@ -461,7 +462,7 @@ static JSBool PlayerGetProperty(JSContext *cx, JSObject *obj, jsval name, jsval 
 {
 
 	if (!JSVAL_IS_INT(name))  return JS_TRUE;
-
+	
 	PlayerEntity *playerEntity = [PlayerEntity sharedPlayer];
 	id<OOJavaScriptConversion> result = nil;
 	
@@ -513,11 +514,11 @@ static JSBool PlayerGetProperty(JSContext *cx, JSObject *obj, jsval name, jsval 
 			break;
 		
 		case PE_POSITION:
-			*vp = OBJECT_TO_JSVAL(JSVectorWithObjectProperty(cx, playerEntity, @"position"));
+			VectorToJSValue(cx, [playerEntity position], vp);
 			break;
 		
 		case PE_VELOCITY:
-			*vp = OBJECT_TO_JSVAL(JSVectorWithObjectProperty(cx, playerEntity, @"velocity"));
+			VectorToJSValue(cx, [playerEntity velocity], vp);
 			break;
 		
 		default:
@@ -565,13 +566,13 @@ static JSBool PlayerSetProperty(JSContext *cx, JSObject *obj, jsval name, jsval 
 			break;
 		
 		case PE_POSITION:
-			if (ValueToVector(cx, *vp, &vec))
+			if (JSValueToVector(cx, *vp, &vec))
 			{
 				[playerEntity setPosition:vec];
 			}
 		
 		case PE_VELOCITY:
-			if (ValueToVector(cx, *vp, &vec))
+			if (JSValueToVector(cx, *vp, &vec))
 			{
 				[playerEntity setVelocity:vec];
 			}
@@ -1273,6 +1274,7 @@ static void ReportJSError(JSContext *cx, const char *message, JSErrorReport *rep
 	JS_DefineFunctions(cx, missionObj, Mission_funcs);
 	
 	InitOOJSVector(cx, glob);
+	InitOOJSEntity(cx, glob);
 	
 	OOLog(@"script.javaScript.init.success", @"Set up JavaScript context.");
 	

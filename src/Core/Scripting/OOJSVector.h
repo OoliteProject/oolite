@@ -34,10 +34,9 @@ void InitOOJSVector(JSContext *context, JSObject *global);
 
 
 JSObject *JSVectorWithVector(JSContext *context, Vector vector);
-JSObject *JSVectorWithObjectProperty(JSContext *context, id object, NSString *propertyName);
 
-BOOL VectorToValue(JSContext *context, Vector vector, jsval *outValue);
-BOOL ValueToVector(JSContext *context, jsval value, Vector *outVector);
+BOOL VectorToJSValue(JSContext *context, Vector vector, jsval *outValue);
+BOOL JSValueToVector(JSContext *context, jsval value, Vector *outVector);
 
 //	Given a JS Vector proxy, get the corresponding Vector struct. Given a JS Entity, get its position. For anything else, return NO. (Other implicit conversions may be added in future.)
 BOOL JSVectorGetVector(JSContext *context, JSObject *vectorObj, Vector *outVector);

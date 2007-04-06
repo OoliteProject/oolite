@@ -1913,8 +1913,6 @@ GLuint tfan2[10] = {	33,	25,	26,	27,	28,	29,	30,	31,	32,	25};	// final fan 64..7
 	//
 	glEnd();
 
-//	NSLog(@"DEBUG ENERGY BOMB radius: %.3f, expansion: %.3f, color: [ %.3f, %.3f, %.3f, %.3f]", collision_radius, velocity.z, color_fv[0], color_fv[1], color_fv[2], alpha);
-
 	EndAdditiveBlending();
 	
 	glEnable(GL_CULL_FACE);			// face culling

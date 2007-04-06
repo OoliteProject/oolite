@@ -1,6 +1,6 @@
 /*
 
-OOJSVector.h
+OOJSVector.m
 
 Oolite
 Copyright (C) 2004-2007 Giles C Williams and contributors
@@ -27,11 +27,10 @@ MA 02110-1301, USA.
 #import "OOJavaScriptEngine.h"
 #import <objc/objc-runtime.h>
 #import "OOConstToString.h"
+#import "OOJSEntity.h"
 
 
 static JSObject *sVectorPrototype;
-
-typedef Vector(* MsgSendGetVectorType)(id self, SEL op);
 
 
 static JSBool VectorGetProperty(JSContext *context, JSObject *this, jsval name, jsval *outValue);
@@ -52,10 +51,8 @@ static JSBool VectorAngleTo(JSContext *context, JSObject *this, uintN argc, jsva
 static JSBool VectorCross(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
 static JSBool VectorTripleProduct(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
 static JSBool VectorDirection(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
-static JSBool VectorLength(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
-static JSBool VectorSquaredLength(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
-
-static SEL SetterSelectorFromString(NSString *propertyKey);
+static JSBool VectorMagnitude(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
+static JSBool VectorSquaredMagnitude(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
 
 
 static JSExtendedClass sVectorClass =
@@ -103,37 +100,20 @@ static JSPropertySpec sVectorProperties[] =
 static JSFunctionSpec sVectorMethods[] =
 {
 	// JS name					Function					min args
-	{ "add",					VectorAdd,					1, 0, 0 },
-	{ "subtract",				VectorSubtract,				1, 0, 0 },
-	{ "distanceTo",				VectorDistanceTo,			1, 0, 0 },
-	{ "squaredDistanceTo",		VectorSquaredDistanceTo,	1, 0, 0 },
-	{ "multiply",				VectorMultiply,				1, 0, 0 },
-	{ "dot",					VectorDot,					1, 0, 0 },
-	{ "angleTo",				VectorAngleTo,				1, 0, 0 },
-	{ "cross",					VectorCross,				1, 0, 0 },
-	{ "tripleProduct",			VectorTripleProduct,		2, 0, 0 },
-	{ "direction",				VectorDirection,			0, 0, 0 },
-	{ "length",					VectorLength,				0, 0, 0 },
-	{ "squaredLength",			VectorSquaredLength,		0, 0, 0 },
+	{ "add",					VectorAdd,					1, },
+	{ "subtract",				VectorSubtract,				1, },
+	{ "distanceTo",				VectorDistanceTo,			1, },
+	{ "squaredDistanceTo",		VectorSquaredDistanceTo,	1, },
+	{ "multiply",				VectorMultiply,				1, },
+	{ "dot",					VectorDot,					1, },
+	{ "angleTo",				VectorAngleTo,				1, },
+	{ "cross",					VectorCross,				1, },
+	{ "tripleProduct",			VectorTripleProduct,		2, },
+	{ "direction",				VectorDirection,			0, },
+	{ "magnitude",				VectorMagnitude,			0, },
+	{ "squaredMagnitude",		VectorSquaredMagnitude,		0, },
 	{ 0 }
 };
-
-
-
-typedef struct
-{
-	BOOL					isProperty;
-	union
-	{
-		struct
-		{
-			id						object;
-			SEL						getSelector;
-			SEL						setSelector;
-		}						property;
-		Vector					vector;
-	}						value;
-} OOJSVectorPrivate;
 
 
 void InitOOJSVector(JSContext *context, JSObject *global)
@@ -145,15 +125,14 @@ void InitOOJSVector(JSContext *context, JSObject *global)
 JSObject *JSVectorWithVector(JSContext *context, Vector vector)
 {
 	JSObject				*result = NULL;
-	OOJSVectorPrivate		*private = NULL;
+	Vector					*private = NULL;
 	
 	if (context == NULL) context = [[OOJavaScriptEngine sharedEngine] context];
 	
 	private = malloc(sizeof *private);
 	if (private == NULL)  return NULL;
 	
-	private->isProperty = NO;
-	private->value.vector = vector;
+	*private = vector;
 	
 	result = JS_NewObject(context, &sVectorClass.base, sVectorPrototype, NULL);
 	if (result != NULL)
@@ -167,39 +146,7 @@ JSObject *JSVectorWithVector(JSContext *context, Vector vector)
 }
 
 
-JSObject *JSVectorWithObjectProperty(JSContext *context, id object, NSString *propertyName)
-{
-	JSObject				*result = NULL;
-	OOJSVectorPrivate		*private = NULL;
-	
-	if (object == nil) return NULL;
-	if (context == NULL) context = [[OOJavaScriptEngine sharedEngine] context];
-	
-	private = malloc(sizeof *private);
-	if (private == NULL)  return NULL;
-	
-	private->isProperty = YES;
-	private->value.property.object = [object retain];	// released in finalize
-	private->value.property.getSelector = NSSelectorFromString(propertyName);
-	private->value.property.setSelector = SetterSelectorFromString(propertyName);
-	
-	result = JS_NewObject(context, &sVectorClass.base, sVectorPrototype, NULL);
-	if (result != NULL)
-	{
-		if (!JS_SetPrivate(context, result, private))  result = NULL;
-	}
-	
-	if (result == NULL)
-	{
-		[object release];
-		free(private);
-	}
-	
-	return result;
-}
-
-
-BOOL VectorToValue(JSContext *context, Vector vector, jsval *outValue)
+BOOL VectorToJSValue(JSContext *context, Vector vector, jsval *outValue)
 {
 	JSObject				*object = NULL;
 	
@@ -214,9 +161,8 @@ BOOL VectorToValue(JSContext *context, Vector vector, jsval *outValue)
 }
 
 
-BOOL ValueToVector(JSContext *context, jsval value, Vector *outVector)
+BOOL JSValueToVector(JSContext *context, jsval value, Vector *outVector)
 {
-	if (outVector == NULL)  return NO;
 	if (!JSVAL_IS_OBJECT(value))  return NO;
 	
 	return JSVectorGetVector(context, JSVAL_TO_OBJECT(value), outVector);
@@ -225,7 +171,8 @@ BOOL ValueToVector(JSContext *context, jsval value, Vector *outVector)
 
 BOOL JSVectorGetVector(JSContext *context, JSObject *vectorObj, Vector *outVector)
 {
-	OOJSVectorPrivate		*private = NULL;
+	Vector					*private = NULL;
+	Entity					*entity = nil;
 	
 	if (outVector == NULL || vectorObj == NULL) return NO;
 	if (context == NULL)  context = [[OOJavaScriptEngine sharedEngine] context];
@@ -233,19 +180,16 @@ BOOL JSVectorGetVector(JSContext *context, JSObject *vectorObj, Vector *outVecto
 	private = JS_GetInstancePrivate(context, vectorObj, &sVectorClass.base, NULL);
 	if (private != NULL)	// If this is a (JS) Vector...
 	{
-		if (private->isProperty)
-		{
-			// Do ObjC runtime magic to get vector from a method (with the signature (Vector)property;)
-			*outVector = ((MsgSendGetVectorType)objc_msgSend_stret)(private->value.property.object, private->value.property.getSelector);
-		}
-		else
-		{
-			// Non-property vector stored directly in private data.
-			*outVector = private->value.vector;
-		}
+		*outVector = *private;
 		return YES;
 	}
-	// TODO: handle entity proxy
+	
+	// If it's an entity, use its position.
+	if (JSEntityGetEntity(context, vectorObj, &entity))
+	{
+		*outVector = [entity position];
+		return YES;
+	}
 	
 	return NO;
 }
@@ -253,7 +197,7 @@ BOOL JSVectorGetVector(JSContext *context, JSObject *vectorObj, Vector *outVecto
 
 BOOL JSVectorSetVector(JSContext *context, JSObject *vectorObj, Vector vector)
 {
-	OOJSVectorPrivate		*private = NULL;
+	Vector					*private = NULL;
 	
 	if (vectorObj == NULL) return NO;
 	if (context == NULL)  context = [[OOJavaScriptEngine sharedEngine] context];
@@ -261,16 +205,7 @@ BOOL JSVectorSetVector(JSContext *context, JSObject *vectorObj, Vector vector)
 	private = JS_GetInstancePrivate(context, vectorObj, &sVectorClass.base, NULL);
 	if (private != NULL)	// If this is a (JS) Vector...
 	{
-		if (private->isProperty)
-		{
-			// Slightly less hairy ObjC runtime magic to set vector with a method (with the signature (void)setProperty:(Vector)vector;)
-			objc_msgSend(private->value.property.object, private->value.property.setSelector, vector);
-		}
-		else
-		{
-			// Non-property vector stored directly in private data.
-			private->value.vector = vector;
-		}
+		*private = vector;
 		return YES;
 	}
 	// TODO: handle entity proxy
@@ -309,21 +244,6 @@ BOOL VectorFromArgumentList(JSContext *context, uintN argc, jsval *argv, Vector 
 	*outVector = make_vector(x, y, z);
 	if (outConsumed != NULL)  *outConsumed = 3;
 	return YES;
-}
-
-
-//	Given the string @"property", return the selector @selector("setProperty:").
-static SEL SetterSelectorFromString(NSString *propertyKey)
-{
-	NSString			*selName = nil;
-	
-	if (propertyKey == nil || [propertyKey isEqualToString:@""]) return NULL;
-	
-	selName = [[propertyKey substringToIndex:1] uppercaseString];
-	if (1 < [propertyKey length])  selName = [selName stringByAppendingString:[propertyKey substringFromIndex:1]];
-	selName = [NSString stringWithFormat:@"set%@:", selName];
-	
-	return NSSelectorFromString(selName);
 }
 
 
@@ -390,7 +310,6 @@ static JSBool VectorSetProperty(JSContext *context, JSObject *this, jsval name, 
 static JSBool VectorConvert(JSContext *context, JSObject *this, JSType type, jsval *outValue)
 {
 	Vector					vector;
-	NSString				*desc = nil;
 	
 	switch (type)
 	{
@@ -405,8 +324,7 @@ static JSBool VectorConvert(JSContext *context, JSObject *this, JSType type, jsv
 		case JSTYPE_STRING:
 			// Return description of vector
 			if (!JSVectorGetVector(context, this, &vector))  return NO;
-			desc = [NSString stringWithFormat:@"(%g, %g, %g)", vector.x, vector.y, vector.z];
-			*outValue = [desc javaScriptValueInContext:context];
+			*outValue = [VectorDescription(vector) javaScriptValueInContext:context];
 			return YES;
 		
 		default:
@@ -418,15 +336,11 @@ static JSBool VectorConvert(JSContext *context, JSObject *this, JSType type, jsv
 
 static void VectorFinalize(JSContext *context, JSObject *this)
 {
-	OOJSVectorPrivate		*private = NULL;
+	Vector					*private = NULL;
 	
 	private = JS_GetInstancePrivate(context, this, &sVectorClass.base, NULL);
 	if (private != NULL)
 	{
-		if (private->isProperty)
-		{
-			[private->value.property.object release];
-		}
 		free(private);
 	}
 }
@@ -435,15 +349,14 @@ static void VectorFinalize(JSContext *context, JSObject *this)
 static JSBool VectorConstruct(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
 {
 	Vector					vector;
-	OOJSVectorPrivate		*private = NULL;
+	Vector					*private = NULL;
 	
 	private = malloc(sizeof *private);
 	if (private == NULL)  return NO;
 	
 	if (!VectorFromArgumentList(context, argc, argv, &vector, NULL))  vector = kZeroVector;
 	
-	private->isProperty = NO;
-	private->value.vector = vector;
+	*private = vector;
 	
 	if (!JS_SetPrivate(context, this, private))
 	{
@@ -477,7 +390,7 @@ static JSBool VectorAdd(JSContext *context, JSObject *this, uintN argc, jsval *a
 	
 	result = vector_add(thisv, thatv);
 	
-	return VectorToValue(context, result, outResult);
+	return VectorToJSValue(context, result, outResult);
 }
 
 
@@ -490,7 +403,7 @@ static JSBool VectorSubtract(JSContext *context, JSObject *this, uintN argc, jsv
 	
 	result = vector_subtract(thisv, thatv);
 	
-	return VectorToValue(context, result, outResult);
+	return VectorToJSValue(context, result, outResult);
 }
 
 
@@ -532,7 +445,7 @@ static JSBool VectorMultiply(JSContext *context, JSObject *this, uintN argc, jsv
 	
 	result = vector_multiply_scalar(thisv, scalar);
 	
-	return VectorToValue(context, result, outResult);
+	return VectorToJSValue(context, result, outResult);
 }
 
 
@@ -573,7 +486,7 @@ static JSBool VectorCross(JSContext *context, JSObject *this, uintN argc, jsval 
 	
 	result = true_cross_product(thisv, thatv);
 	
-	return VectorToValue(context, result, outResult);
+	return VectorToJSValue(context, result, outResult);
 }
 
 
@@ -601,11 +514,11 @@ static JSBool VectorDirection(JSContext *context, JSObject *this, uintN argc, js
 	
 	result = vector_normal(thisv);
 	
-	return VectorToValue(context, result, outResult);
+	return VectorToJSValue(context, result, outResult);
 }
 
 
-static JSBool VectorLength(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
+static JSBool VectorMagnitude(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
 {
 	Vector					thisv;
 	GLfloat					result;
@@ -618,7 +531,7 @@ static JSBool VectorLength(JSContext *context, JSObject *this, uintN argc, jsval
 }
 
 
-static JSBool VectorSquaredLength(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
+static JSBool VectorSquaredMagnitude(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
 {
 	Vector					thisv;
 	GLfloat					result;

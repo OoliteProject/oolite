@@ -1282,7 +1282,7 @@ NSString* describeStatus(int some_status)
 					}
 					else
 					{
-						quaternion_normalise(&sub_q);
+						quaternion_normalize(&sub_q);
 
 						subent = [UNIVERSE newShipWithName:subdesc];	// retained
 
@@ -3860,7 +3860,7 @@ static GLfloat mascem_color2[4] =	{ 0.4, 0.1, 0.4, 1.0};	// purple
 	if (climb1)  quaternion_rotate_about_x( &q1, -climb1);
 
 	q_rotation = quaternion_multiply( q1, q_rotation);
-	quaternion_normalise(&q_rotation);	// probably not strictly necessary but good to do to keep q_rotation sane
+	quaternion_normalize(&q_rotation);	// probably not strictly necessary but good to do to keep q_rotation sane
     quaternion_into_gl_matrix(q_rotation, rotMatrix);
 
 	v_forward   = vector_forward_from_quaternion(q_rotation);
@@ -5503,7 +5503,7 @@ BOOL	class_masslocks(int some_class)
 
 	quaternion_rotate_about_axis( &q_rotation, axis_to_track_by, thrust * delta_t);
 
-	quaternion_normalise(&q_rotation);
+	quaternion_normalize(&q_rotation);
 	quaternion_into_gl_matrix(q_rotation, rotMatrix);
 
 	status = STATUS_ACTIVE;
@@ -5539,7 +5539,7 @@ BOOL	class_masslocks(int some_class)
 	q_minarc = quaternion_rotation_between( v_forward, vector_to_target);
 	//
 	q_rotation = quaternion_multiply( q_minarc, q_rotation);
-    quaternion_normalise(&q_rotation);
+    quaternion_normalize(&q_rotation);
     quaternion_into_gl_matrix(q_rotation, rotMatrix);
 	//
 	flight_roll = 0.0;
@@ -5609,7 +5609,7 @@ BOOL	class_masslocks(int some_class)
 
 	quaternion_rotate_about_axis( &q_rotation, axis_to_track_by, thrust * delta_t);
 
-	quaternion_normalise(&q_rotation);
+	quaternion_normalize(&q_rotation);
 	quaternion_into_gl_matrix(q_rotation, rotMatrix);
 
 	status = STATUS_ACTIVE;
@@ -6340,7 +6340,7 @@ BOOL	class_masslocks(int some_class)
 	q_laser.x += 0.01 * (randf() - 0.5);	// randomise aim a little (+/- 0.005)
 	q_laser.y += 0.01 * (randf() - 0.5);
 	q_laser.z += 0.01 * (randf() - 0.5);
-	quaternion_normalise(&q_laser);
+	quaternion_normalize(&q_laser);
 
 	Quaternion q_save = q_rotation;	// save rotation
 	q_rotation = q_laser;			// face in direction of laser

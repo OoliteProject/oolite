@@ -29,6 +29,7 @@ MA 02110-1301, USA.
 #import "OOMaths.h"
 #import "OOCacheManager.h"
 #import "OOTypes.h"
+#import "OOWeakReference.h"
 
 
 #define DEBUG_ALL					0xffffffff
@@ -93,6 +94,7 @@ typedef struct
 	int						n_triangles;
 } EntityData;	// per texture
 
+
 typedef struct
 {
 	long					rangeSize;		// # of bytes in this VAR block
@@ -100,6 +102,7 @@ typedef struct
 	BOOL					forceUpdate;	// true if data in VAR block needs updating
 	BOOL					activated;		// set to true the first time we use it
 } VertexArrayRangeType;
+
 
 typedef struct
 {
@@ -113,7 +116,7 @@ typedef struct
 extern int debug;
 
 
-@interface Entity: NSObject
+@interface Entity: NSObject <OOWeakReferenceSupport>
 {
     // the base object for ships/stations/anything actually
 	//////////////////////////////////////////////////////
@@ -142,8 +145,8 @@ extern int debug;
 							throw_sparks: 1,
 							usingVAR: 1;
 	
-	int16_t					scanClass;
-	int16_t					status;
+	ScanClass				scanClass;
+	EntityStatus			status;
 	
 	double					zero_distance;
 	double					no_draw_distance;		// 10 km initially
@@ -172,7 +175,6 @@ extern int debug;
 	CollisionRegion			*collisionRegion;		// initially nil - then maintained
 	
 @protected
-	
 	Vector					lastPosition;
 	Quaternion				lastQRotation;
 	
@@ -209,20 +211,18 @@ extern int debug;
     NSString				*basefile;
 	
 	UniversalID				owner;
-
+	
 	int						n_textures;
 	EntityData				entityData;
 	NSRange					triangle_range[MAX_TEXTURES_PER_ENTITY];
 	Str255					texture_file[MAX_TEXTURES_PER_ENTITY];
 	GLuint					texture_name[MAX_TEXTURES_PER_ENTITY];
-
-
+	
 	// COMMON OGL STUFF
-
-
 	GLuint					gVertexArrayRangeObjects[NUM_VERTEX_ARRAY_RANGES];	// OpenGL's VAR object references
 	VertexArrayRangeType	gVertexArrayRangeData[NUM_VERTEX_ARRAY_RANGES];		// our info about each VAR block
-
+	
+	OOWeakReference			*weakSelf;
 }
 
 - (id) init;
@@ -289,8 +289,11 @@ extern int debug;
 - (void) setScanClass:(ScanClass)sClass;
 - (ScanClass) scanClass;
 
-- (void) setEnergy:(double)amount;
-- (double) energy;
+- (void) setEnergy:(GLfloat)amount;
+- (GLfloat) energy;
+
+- (void) setMaxEnergy:(GLfloat)amount;
+- (GLfloat) maxEnergy;
 
 - (void) applyRoll:(GLfloat)roll andClimb:(GLfloat)climb;
 - (void) applyRoll:(GLfloat)roll climb:(GLfloat) climb andYaw:(GLfloat)yaw;

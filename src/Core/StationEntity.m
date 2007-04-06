@@ -806,7 +806,7 @@ NSDictionary* instructions(int station_id, Vector coords, float speed, float ran
 		port_qrotation.x = [(NSString *)[dockSubEntity objectAtIndex:5] floatValue];
 		port_qrotation.y = [(NSString *)[dockSubEntity objectAtIndex:6] floatValue];
 		port_qrotation.z = [(NSString *)[dockSubEntity objectAtIndex:7] floatValue];
-		quaternion_normalise(&port_qrotation);
+		quaternion_normalize(&port_qrotation);
 	}
 	else
 	{

@@ -1117,7 +1117,7 @@ void setUpSinTable()
 		case PLANET_TYPE_MINIATURE :
 		// normal planetary rotation
 		quaternion_rotate_about_y( &q_rotation, rotational_velocity * delta_t);
-		quaternion_normalise(&q_rotation);
+		quaternion_normalize(&q_rotation);
 		quaternion_into_gl_matrix(q_rotation, rotMatrix);
 
 		if (atmosphere)
@@ -1140,7 +1140,7 @@ void setUpSinTable()
 		{
 			// atmospheric rotation
 			quaternion_rotate_about_y( &q_rotation, rotational_velocity * delta_t);
-			quaternion_normalise(&q_rotation);
+			quaternion_normalize(&q_rotation);
 			quaternion_into_gl_matrix(q_rotation, rotMatrix);
 		}
 		break;

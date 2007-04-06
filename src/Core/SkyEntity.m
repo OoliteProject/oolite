@@ -418,7 +418,7 @@ MA 02110-1301, USA.
 			q.y += p_size * blob_scale_prime * (randf() - 0.5);
 			q.z += p_size * blob_scale_prime * (randf() - 0.5);
 			q.w += p_size * blob_scale_prime * (randf() - 0.5);
-			quaternion_normalise(&q);
+			quaternion_normalize(&q);
 			i++;
 
 

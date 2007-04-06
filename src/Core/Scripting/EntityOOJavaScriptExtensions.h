@@ -1,8 +1,8 @@
 /*
 
-PlayerEntityScriptMethods.h
+EntityOOJavaScriptExtensions.h
 
-Methods for use by scripting mechanisms.
+JavaScript support methods for Entity.
 
 Oolite
 Copyright (C) 2004-2007 Giles C Williams and contributors
@@ -24,11 +24,10 @@ MA 02110-1301, USA.
 
 */
 
-#import "PlayerEntity.h"
+
+#import "Entity.h"
+#import "OOJavaScriptEngine.h"
 
 
-@interface PlayerEntity (ScriptMethods)
-
-
-
+@interface Entity (OOJavaScriptExtensions) <OOJavaScriptConversion>
 @end

@@ -121,7 +121,7 @@ BOOL ScanQuaternionFromString(NSString *wxyzString, Quaternion *outQuaternion)
 		outQuaternion->x = wxyz[1];
 		outQuaternion->y = wxyz[2];
 		outQuaternion->z = wxyz[3];
-		quaternion_normalise(outQuaternion);
+		quaternion_normalize(outQuaternion);
 		return YES;
 	}
 	else

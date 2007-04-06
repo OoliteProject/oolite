@@ -1,8 +1,6 @@
 /*
 
-PlayerEntityScriptMethods.h
-
-Methods for use by scripting mechanisms.
+EntityOOJavaScriptExtensions.m
 
 Oolite
 Copyright (C) 2004-2007 Giles C Williams and contributors
@@ -24,11 +22,18 @@ MA 02110-1301, USA.
 
 */
 
-#import "PlayerEntity.h"
+
+#import "EntityOOJavaScriptExtensions.h"
+#import "OOJSEntity.h"
 
 
-@interface PlayerEntity (ScriptMethods)
+@implementation Entity (OOJavaScriptExtensions)
 
-
+- (jsval)javaScriptValueInContext:(JSContext *)context
+{
+	jsval result = JSVAL_VOID;
+	EntityToJSValue(context, self, &result);
+	return result;
+}
 
 @end

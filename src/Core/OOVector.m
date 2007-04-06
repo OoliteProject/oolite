@@ -37,3 +37,9 @@ void ReportNormalizeZeroVector(void)
 {
 	OOLog(kOOLogMathsNormalizeZero, @"***** Attempt to normalize zero vector.");
 }
+
+
+NSString *VectorDescription(Vector vector)
+{
+	return [NSString stringWithFormat:@"(%g, %g, %g)", vector.x, vector.y, vector.z];
+}

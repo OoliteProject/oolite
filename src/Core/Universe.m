@@ -7388,7 +7388,7 @@ NSComparisonResult comparePrice(NSDictionary *dict1, NSDictionary *dict2, void *
 	q_result.y = (gen_rnd_number() - 128)/1024.0;
 	q_result.z = (gen_rnd_number() - 128)/1024.0;
 	q_result.w = 1.0;
-	quaternion_normalise(&q_result);
+	quaternion_normalize(&q_result);
 	
 	return q_result;
 }

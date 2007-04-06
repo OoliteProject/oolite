@@ -1,8 +1,8 @@
 /*
 
-PlayerEntityScriptMethods.h
+OOJSEntity.h
 
-Methods for use by scripting mechanisms.
+JavaScript proxy for entities.
 
 Oolite
 Copyright (C) 2004-2007 Giles C Williams and contributors
@@ -24,11 +24,20 @@ MA 02110-1301, USA.
 
 */
 
-#import "PlayerEntity.h"
+
+#import <Foundation/Foundation.h>
+#import <jsapi.h>
+
+@class Entity;
 
 
-@interface PlayerEntity (ScriptMethods)
+void InitOOJSEntity(JSContext *context, JSObject *global);
 
+JSObject *JSEntityWithEntity(JSContext *context, Entity *entity);
 
+BOOL EntityToJSValue(JSContext *context, Entity *entity, jsval *outValue);
+BOOL JSValueToEntity(JSContext *context, jsval value, Entity **outEntity);	// Value may be Entity or integer (UniversalID).
 
-@end
+BOOL JSEntityGetEntity(JSContext *context, JSObject *entityObj, Entity **outEntity);
+
+JSClass *EntityJSClass(void);

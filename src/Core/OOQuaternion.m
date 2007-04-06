@@ -52,7 +52,7 @@ void quaternion_set_random(Quaternion *quat)
     quat->x = (GLfloat)(ranrot_rand() % 1024) - 511.5f;  // -511.5 to +511.5
     quat->y = (GLfloat)(ranrot_rand() % 1024) - 511.5f;  // -511.5 to +511.5
     quat->z = (GLfloat)(ranrot_rand() % 1024) - 511.5f;  // -511.5 to +511.5
-	quaternion_normalise(quat);
+	quaternion_normalize(quat);
 }
 
 
@@ -64,7 +64,7 @@ void quaternion_into_gl_matrix(Quaternion quat, GLfloat *glmat)
 	GLfloat	z, zz;
     
 	Quaternion q = quat;
-	quaternion_normalise(&q);
+	quaternion_normalize(&q);
 	
 	w = q.w;
 	z = q.z;
@@ -305,4 +305,10 @@ void quaternion_rotate_about_axis(Quaternion *quat, Vector axis, GLfloat angle)
     quat->x = result.x;
     quat->y = result.y;
     quat->z = result.z;
+}
+
+
+NSString *QuaternionDescription(Quaternion quaternion)
+{
+	return [NSString stringWithFormat:@"(%g, %g, %g, %g)", quaternion.w, quaternion.x, quaternion.y, quaternion.z];
 }

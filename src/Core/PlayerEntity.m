@@ -1443,7 +1443,7 @@ static PlayerEntity *sSharedPlayer = nil;
 					}
 					else
 					{
-						quaternion_normalise(&sub_q);
+						quaternion_normalize(&sub_q);
 
 						subent = [UNIVERSE newShipWithName:subdesc];	// retained
 
@@ -1546,8 +1546,10 @@ static PlayerEntity *sSharedPlayer = nil;
 		case STATUS_DEAD :
 		case STATUS_ESCAPE_SEQUENCE :
 			return NO;
+		
+		default:
+			return YES;
 	}
-	return YES;
 }
 
 - (NSComparisonResult) compareZeroDistance:(Entity *)otherEntity;
@@ -2224,7 +2226,7 @@ double scoopSoundPlayTime = 0.0;
 	if (climb1)
 		quaternion_rotate_about_x( &q_rotation, -climb1);
 
-    quaternion_normalise(&q_rotation);	// probably not strictly necessary but good to do to keep q_rotation sane
+    quaternion_normalize(&q_rotation);	// probably not strictly necessary but good to do to keep q_rotation sane
     quaternion_into_gl_matrix(q_rotation, rotMatrix);
 
 	v_right.x = rotMatrix[0];
@@ -2253,7 +2255,7 @@ double scoopSoundPlayTime = 0.0;
 {
 	quaternion_rotate_about_y( &q_rotation, -yaw);
 
-    quaternion_normalise(&q_rotation);	// probably not strictly necessary but good to do to keep q_rotation sane
+    quaternion_normalize(&q_rotation);	// probably not strictly necessary but good to do to keep q_rotation sane
     quaternion_into_gl_matrix(q_rotation, rotMatrix);
 
 	v_right.x = rotMatrix[0];
