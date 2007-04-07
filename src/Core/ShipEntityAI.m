@@ -1093,7 +1093,7 @@ WormholeEntity*	whole;
 			NSLog(@"DEBUG %@ refused by %@", self, mother);
 
 	}
-	[self setOwner:NO_TARGET];
+	[self setOwner:NULL];
 	[shipAI message:@"NOT_ESCORTING"];
 }
 

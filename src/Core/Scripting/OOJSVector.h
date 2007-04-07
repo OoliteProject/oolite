@@ -41,12 +41,19 @@ BOOL JSValueToVector(JSContext *context, jsval value, Vector *outVector);
 //	Given a JS Vector proxy, get the corresponding Vector struct. Given a JS Entity, get its position. For anything else, return NO. (Other implicit conversions may be added in future.)
 BOOL JSVectorGetVector(JSContext *context, JSObject *vectorObj, Vector *outVector);
 
-//	Set the value of a JS vector object, or the position of an entity.
+//	Set the value of a JS vector object.
 BOOL JSVectorSetVector(JSContext *context, JSObject *vectorObj, Vector vector);
 
-// Construct a vector from an argument list which is either a (JS) vector, a (JS) entity, or three things that can be considered numbers. The optional outConsumed argument can be used to find out how many parameters were used (currently, this will be 0 on failure, otherwise 1 or 3). If it fails (and returns NO) the vector will be unaltered.
-BOOL VectorFromArgumentList(JSContext *context, uintN argc, jsval *argv, Vector *outVector, uintN *outConsumed);
 
-
-// Standard error reporter for VectorFromArgumentList() failure.
-void ReportVectorParamConversionFailure(JSContext *context, NSString *scriptClass, NSString *function, uintN argc, jsval *argv);
+/*	VectorFromArgumentList()
+	
+	Construct a vector from an argument list which is either a (JS) vector, a
+	(JS) entity, or three numbers. The optional outConsumed argument can be
+	used to find out how many parameters were used (currently, this will be 0
+	on failure, otherwise 1 or 3).
+	
+	On failure, it will return NO, annd the vector will be unaltered. If
+	scriptClass and function are non-nil, a warning will be reported to the
+	log.
+*/
+BOOL VectorFromArgumentList(JSContext *context, NSString *scriptClass, NSString *function, uintN argc, jsval *argv, Vector *outVector, uintN *outConsumed);

@@ -41,3 +41,17 @@ BOOL JSValueToEntity(JSContext *context, jsval value, Entity **outEntity);	// Va
 BOOL JSEntityGetEntity(JSContext *context, JSObject *entityObj, Entity **outEntity);
 
 JSClass *EntityJSClass(void);
+
+
+/*	EntityFromArgumentList()
+	
+	Construct a entity from an argument list which is either a (JS) entity or
+	an integer (a UniversalID). The optional outConsumed argument can be
+	used to find out how many parameters were used (currently, this will be 0
+	on failure, otherwise 1).
+	
+	On failure, it will return NO, annd the entity will be unaltered. If
+	scriptClass and function are non-nil, a warning will be reported to the
+	log.
+*/
+BOOL EntityFromArgumentList(JSContext *context, NSString *scriptClass, NSString *function, uintN argc, jsval *argv, Entity **outEntity, uintN *outConsumed);

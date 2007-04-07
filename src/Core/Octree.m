@@ -186,7 +186,7 @@ Vector offsetForOctant(int oct, GLfloat r)
 - (void) drawOctree
 {
 	// it's a series of cubes
-	[self drawOctreeFromLocation:0 :radius : make_vector( 0.0f, 0.0f, 0.0f)];
+	[self drawOctreeFromLocation:0 :radius : kZeroVector];
 }
 
 - (void) drawOctreeFromLocation:(int) loc :(GLfloat) scale :(Vector) offset
@@ -267,7 +267,7 @@ BOOL drawTestForCollisions;
 	// it's a series of cubes
 	drawTestForCollisions = NO;
 	if (hasCollision)
-		[self drawOctreeCollisionFromLocation:0 :radius : make_vector( 0.0f, 0.0f, 0.0f)];
+		[self drawOctreeCollisionFromLocation:0 :radius : kZeroVector];
 	hasCollision = drawTestForCollisions;
 }
 
@@ -513,7 +513,7 @@ BOOL	isHitByLine(int* octbuffer, unsigned char* collbuffer, int level, GLfloat r
 	for (i = 0; i< leafs; i++) octree_collision[i] = (char)0;
 	hasCollided = NO;
 	//
-	if (isHitByLine(octree, octree_collision, 0, radius, v0, v1, make_vector( 0.0f, 0.0f, 0.0f), 0))
+	if (isHitByLine(octree, octree_collision, 0, radius, v0, v1, kZeroVector, 0))
 	{
 		if (debug & DEBUG_OCTREE_TEXT)
 			NSLog(@"DEBUG Hit at distance %.2f\n\n", hit_dist);

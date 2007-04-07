@@ -1348,6 +1348,36 @@ void OOReportJavaScriptWarningWithArguments(JSContext *context, NSString *format
 }
 
 
+BOOL NumberFromArgumentList(JSContext *context, NSString *scriptClass, NSString *function, uintN argc, jsval *argv, double *outNumber, uintN *outConsumed)
+{
+	double				value;
+	
+	// Sanity checks.
+	if (outConsumed != NULL)  *outConsumed = 0;
+	if (EXPECT_NOT(argc == 0 || argv == NULL || outNumber == NULL))
+	{
+		OOLogGenericParameterError();
+		return NO;
+	}
+	
+	// Get value, if possible.
+	if (EXPECT_NOT(!JS_ValueToNumber(context, argv[0], &value) || isnan(value)))
+	{
+		// Failed; report bad parameters, if given a class and function.
+		if (scriptClass != nil && function != nil)
+		{
+			OOReportJavaScriptWarning(context, @"%@.%@(): expected number, got %@.", scriptClass, function, [NSString stringWithJavaScriptParameters:argv count:1 inContext:context]);
+			return NO;
+		}
+	}
+	
+	// Success.
+	*outNumber = value;
+	if (outConsumed != NULL)  *outConsumed = 1;
+	return YES;
+}
+
+
 @implementation NSString (OOJavaScriptExtensions)
 
 // Convert a JSString to an NSString.

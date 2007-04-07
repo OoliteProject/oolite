@@ -31,13 +31,16 @@ MA 02110-1301, USA.
 
 
 NSString *EntityStatusToString(EntityStatus status) CONST_FUNC;
-NSString *ScanClassToString(ScanClass scanClass) CONST_FUNC;
-NSString *InstinctToString(Instinct instinct) CONST_FUNC;
 
+NSString *ScanClassToString(ScanClass scanClass) CONST_FUNC;
+
+NSString *InstinctToString(Instinct instinct) CONST_FUNC;
 Instinct InstinctFromString(NSString* instinctString) PURE_FUNC;
 
+NSString *BehaviourToString(Behaviour behaviour) CONST_FUNC;
 
 NSString *GovernmentToString(unsigned government);
+
 NSString *EconomyToString(unsigned economy);
 
 NSString *JSTypeToString(int /* JSType */ type) CONST_FUNC;

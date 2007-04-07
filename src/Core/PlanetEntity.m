@@ -1151,7 +1151,7 @@ void setUpSinTable()
 			// new billboard routine (working at last!)
 			PlayerEntity* player = [PlayerEntity sharedPlayer];
 			Vector v0 = position;
-			Vector p0 = (player)? player->position: make_vector( 0.0f, 0.0f, 0.0f);
+			Vector p0 = (player)? player->position: kZeroVector;
 			v0.x -= p0.x;	v0.y -= p0.y;	v0.z -= p0.z; // vector from player to position
 
 			if (v0.x||v0.y||v0.z)
@@ -1181,7 +1181,7 @@ void setUpSinTable()
 			if (planet_type == PLANET_TYPE_CORONA)
 			{
 				Vector v_sun = [UNIVERSE sun]->position;
-				Vector v_p = (player)? player->position: make_vector( 0.0f, 0.0f, 0.0f);
+				Vector v_p = (player)? player->position: kZeroVector;
 				v_sun.x -= v_p.x;	v_sun.y -= v_p.y;	v_sun.z -= v_p.z;
 				if (v_sun.x||v_sun.y||v_sun.z)
 					v_sun = unit_vector(&v_sun);
@@ -1217,7 +1217,7 @@ void setUpSinTable()
 					{
 						NSLog(@"DEBUG NOVA final radius %.1f", collision_radius);
 						// reset at the new size
-						velocity = make_vector( 0.0f, 0.0f, 0.0f);
+						velocity = kZeroVector;
 						throw_sparks = YES;	// keep throw_sparks at YES to indicate the higher temperature
 					}
 				}

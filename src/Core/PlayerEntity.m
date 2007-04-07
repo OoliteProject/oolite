@@ -1191,11 +1191,11 @@ static PlayerEntity *sSharedPlayer = nil;
 
 	// views
 	
-	forwardViewOffset = make_vector( 0.0f, 0.0f, 0.0f);
-	aftViewOffset = make_vector( 0.0f, 0.0f, 0.0f);
-	portViewOffset = make_vector( 0.0f, 0.0f, 0.0f);
-	starboardViewOffset = make_vector( 0.0f, 0.0f, 0.0f);
-	customViewOffset = make_vector( 0.0f, 0.0f, 0.0f);
+	forwardViewOffset = kZeroVector;
+	aftViewOffset = kZeroVector;
+	portViewOffset = kZeroVector;
+	starboardViewOffset = kZeroVector;
+	customViewOffset = kZeroVector;
 	
 	currentWeaponFacing = VIEW_FORWARD;
 
@@ -1386,7 +1386,7 @@ static PlayerEntity *sSharedPlayer = nil;
 	ScanVectorFromString([dict objectForKey:@"weapon_position_starboard"], &starboardWeaponOffset);
 
 	// fuel scoop destination position (where cargo gets sucked into)
-	tractor_position = make_vector( 0.0f, 0.0f, 0.0f);
+	tractor_position = kZeroVector;
 	ScanVectorFromString([dict objectForKey:@"scoop_position"], &tractor_position);
 	
 	[sub_entities release];
@@ -1837,7 +1837,7 @@ double scoopSoundPlayTime = 0.0;
 		{
 			ShipEntity*	e = (ShipEntity*)[UNIVERSE entityForUniversalID:primaryTarget];
 			if ((e == nil)||(e->zero_distance > SCANNER_MAX_RANGE2)||
-				((e->isShip)&&(e->cloaking_device_active))||	// checks for cloaked ships
+				((e->isShip)&&([e isCloaked]))||	// checks for cloaked ships
 				((e->isShip)&&(!has_military_scanner_filter)&&([e isJammingScanning])))	// checks for activated jammer
 			{
 				if (!suppressTargetLost)
@@ -2301,7 +2301,7 @@ double scoopSoundPlayTime = 0.0;
 	if ([UNIVERSE breakPatternHide])
 		return viewpoint;	// center view for break pattern
 
-	Vector offset = make_vector( 0.0f, 0.0f, 0.0f);
+	Vector offset = kZeroVector;
 	switch ([UNIVERSE viewDir])
 	{
 		case VIEW_FORWARD:
@@ -2334,7 +2334,7 @@ double scoopSoundPlayTime = 0.0;
 - (Vector) viewpointOffset
 {
 	if ([UNIVERSE breakPatternHide])
-		return make_vector( 0.0f, 0.0f, 0.0f);	// center view for break pattern
+		return kZeroVector;	// center view for break pattern
 
 	switch ([UNIVERSE viewDir])
 	{
@@ -2352,7 +2352,7 @@ double scoopSoundPlayTime = 0.0;
 		/* -- */
 	}
 
-	return make_vector( 0.0f, 0.0f, 0.0f);
+	return kZeroVector;
 }
 
 - (void) drawEntity:(BOOL) immediate :(BOOL) translucent
@@ -3177,7 +3177,7 @@ double scoopSoundPlayTime = 0.0;
 	return NO;
 }
 
-- (int) weaponForView:(int) view
+- (WeaponType) weaponForView:(int) view
 {
 	if (view == VIEW_CUSTOM)
 		view = currentWeaponFacing;
@@ -3211,7 +3211,7 @@ double scoopSoundPlayTime = 0.0;
 
 	[ent retain];
 	[other retain];
-	rel_pos = (ent)? ent->position: make_vector( 0.0f, 0.0f, 0.0f);
+	rel_pos = (ent)? ent->position: kZeroVector;
 
 	rel_pos.x -= position.x;
 	rel_pos.y -= position.y;
@@ -3302,7 +3302,7 @@ double scoopSoundPlayTime = 0.0;
 		return;
 
 	[ent retain];
-	rel_pos = (ent)? ent->position : make_vector( 0.0f, 0.0f, 0.0f);
+	rel_pos = (ent)? ent->position : kZeroVector;
 
 	rel_pos.x -= position.x;
 	rel_pos.y -= position.y;
@@ -5153,7 +5153,7 @@ static int last_outfitting_index;
 
 	NSArray*	equipdata = [UNIVERSE equipmentdata];
 
-	int cargo_space = max_cargo - current_cargo;
+	CargoQuantity cargo_space = max_cargo - current_cargo;
 
 	double price_factor = 1.0;
 	int techlevel =		[(NSNumber *)[[UNIVERSE generateSystemData:system_seed] objectForKey:KEY_TECHLEVEL] intValue];
@@ -5615,14 +5615,13 @@ static int last_outfitting_index;
 - (BOOL) tryBuyingItem:(int) index
 {
 	// note this doesn't check the availability by tech-level
-	
-	NSArray*	equipdata = [UNIVERSE equipmentdata];
-	int			price_per_unit  = [(NSNumber *)[(NSArray *)[equipdata objectAtIndex:index] objectAtIndex:EQUIPMENT_PRICE_INDEX] intValue];
-	NSString*   eq_key			= (NSString *)[(NSArray *)[equipdata objectAtIndex:index] objectAtIndex:EQUIPMENT_KEY_INDEX];
-	NSString*	eq_key_damaged	= [NSString stringWithFormat:@"%@_DAMAGED", eq_key];
-	double		price			= ([eq_key isEqual:@"EQ_FUEL"]) ? ((PLAYER_MAX_FUEL - fuel) * price_per_unit) : (price_per_unit) ;
-	double		price_factor	= 1.0;
-	int			cargo_space = max_cargo - current_cargo;
+	NSArray			*equipdata		= [UNIVERSE equipmentdata];
+	int				price_per_unit	= [[[equipdata objectAtIndex:index] objectAtIndex:EQUIPMENT_PRICE_INDEX] intValue];
+	NSString		*eq_key			= [[equipdata objectAtIndex:index] objectAtIndex:EQUIPMENT_KEY_INDEX];
+	NSString		*eq_key_damaged	= [NSString stringWithFormat:@"%@_DAMAGED", eq_key];
+	double			price			= ([eq_key isEqual:@"EQ_FUEL"]) ? ((PLAYER_MAX_FUEL - fuel) * price_per_unit) : (price_per_unit) ;
+	double			price_factor	= 1.0;
+	CargoQuantity	cargo_space = max_cargo - current_cargo;
 
 	// repairs cost 50%
 	if ([self has_extra_equipment:eq_key_damaged])
@@ -5954,7 +5953,7 @@ static int last_outfitting_index;
 			int available_units = [(NSNumber *)[(NSArray *)[localMarket objectAtIndex:i] objectAtIndex:MARKET_QUANTITY] intValue];
 			int units_in_hold = in_hold[i];
 			int price_per_unit = [(NSNumber *)[(NSArray *)[localMarket objectAtIndex:i] objectAtIndex:MARKET_PRICE] intValue];
-			int unit = [(NSNumber *)[(NSArray *)[localMarket objectAtIndex:i] objectAtIndex:MARKET_UNITS] intValue];
+			MassUnit unit = [(NSNumber *)[(NSArray *)[localMarket objectAtIndex:i] objectAtIndex:MARKET_UNITS] intValue];
 			NSString* available = (available_units > 0) ? [NSString stringWithFormat:@"%d",available_units] : @"-";
 			NSString* price = [NSString stringWithFormat:@" %.1f ",0.1*price_per_unit];
 			NSString* owned = (units_in_hold > 0) ? [NSString stringWithFormat:@"%d",units_in_hold] : @"-";

@@ -852,7 +852,7 @@ static BOOL MaintainLinkedLists(Universe* uni);
 	double		sun_distance = (sunDistanceModifier + (ranrot_rand() % 5) - (ranrot_rand() % 5) ) * planet_radius;
 	double		sun_radius = (2.5 + randf() - randf() ) * planet_radius;
 	Quaternion  q_sun;
-	Vector		sunPos = make_vector( 0.0f, 0.0f, 0.0f);
+	Vector		sunPos = kZeroVector;
 	
 	// here we need to check if the sun collides with (or is too close to) the witchpoint
 	// otherwise at (for example) Maregais in Galaxy 1 we go BANG!
@@ -888,7 +888,7 @@ static BOOL MaintainLinkedLists(Universe* uni);
 	{
 		[a_sun setRadius: sun_radius + 600000];
 		[a_sun setThrowSparks:YES];
-		[a_sun setVelocity: make_vector( 0.0f, 0.0f, 0.0f)];
+		[a_sun setVelocity: kZeroVector];
 	}
 	/*--*/
 		
@@ -997,8 +997,8 @@ static BOOL MaintainLinkedLists(Universe* uni);
 		int i;
 		for (i = 0; i < 3; i++)
 		{
-			[self scatterAsteroidsAt:planetPos withVelocity:make_vector( 0.0f, 0.0f, 0.0f) includingRockHermit:NO];
-			[self scatterAsteroidsAt:make_vector( 0.0f, 0.0f, 0.0f) withVelocity:make_vector( 0.0f, 0.0f, 0.0f) includingRockHermit:NO];
+			[self scatterAsteroidsAt:planetPos withVelocity:kZeroVector includingRockHermit:NO];
+			[self scatterAsteroidsAt:kZeroVector withVelocity:kZeroVector includingRockHermit:NO];
 		}
 		
 	}
@@ -1440,7 +1440,7 @@ GLfloat docked_light_specular[]	= { (GLfloat) 1.0, (GLfloat) 1.0, (GLfloat) 0.5,
 		
 		Vector	launch_pos = make_vector( h1_pos.x + asteroid_location * v_route1.x, h1_pos.y + asteroid_location * v_route1.y, h1_pos.z + asteroid_location * v_route1.z);
 		total_rocks += [self	scatterAsteroidsAt: launch_pos
-								withVelocity: make_vector( 0.0f, 0.0f, 0.0f)
+								withVelocity: kZeroVector
 								includingRockHermit: (((ranrot_rand() & 31) <= cluster_size)&&(r < total_clicks * 2 / 3)&&(!sun_gone_nova))];
 		
 		[pool release];
@@ -1656,7 +1656,7 @@ GLfloat docked_light_specular[]	= { (GLfloat) 1.0, (GLfloat) 1.0, (GLfloat) 0.5,
 		
 		Vector	launch_pos = make_vector( p1_pos.x + asteroid_location * v_route2.x, p1_pos.y + asteroid_location * v_route2.y, p1_pos.z + asteroid_location * v_route2.z);
 		total_rocks += [self	scatterAsteroidsAt: launch_pos
-								withVelocity: make_vector( 0.0f, 0.0f, 0.0f)
+								withVelocity: kZeroVector
 								includingRockHermit: (((ranrot_rand() & 31) <= cluster_size)&&(asteroid_location > 0.33 * max_length)&&(!sun_gone_nova))];
 		[pool release];
 	}
@@ -1797,7 +1797,7 @@ GLfloat docked_light_specular[]	= { (GLfloat) 1.0, (GLfloat) 1.0, (GLfloat) 0.5,
 	
 	NSString* l_sys = [system lowercaseString];
 	if ([l_sys length] != 3)
-		return make_vector( 0.0f, 0.0f, 0.0f);
+		return kZeroVector;
 	PlanetEntity* the_planet = [self planet];
 	PlanetEntity* the_sun = [self sun];
 	if ((!the_planet)||(!the_sun))
@@ -1826,7 +1826,7 @@ GLfloat docked_light_specular[]	= { (GLfloat) 1.0, (GLfloat) 1.0, (GLfloat) 0.5,
 				case 's':
 					p1 = s_pos;	p2 = p_pos;	break;
 				default:
-					return make_vector( 0.0f, 0.0f, 0.0f);
+					return kZeroVector;
 			}
 			break;
 		case 'p':		
@@ -1838,7 +1838,7 @@ GLfloat docked_light_specular[]	= { (GLfloat) 1.0, (GLfloat) 1.0, (GLfloat) 0.5,
 				case 's':
 					p1 = s_pos;	p2 = w_pos;	break;
 				default:
-					return make_vector( 0.0f, 0.0f, 0.0f);
+					return kZeroVector;
 			}
 			break;
 		case 's':
@@ -1850,11 +1850,11 @@ GLfloat docked_light_specular[]	= { (GLfloat) 1.0, (GLfloat) 1.0, (GLfloat) 0.5,
 				case 'p':
 					p1 = p_pos;	p2 = w_pos;	break;
 				default:
-					return make_vector( 0.0f, 0.0f, 0.0f);
+					return kZeroVector;
 			}
 			break;
 		default:
-			return make_vector( 0.0f, 0.0f, 0.0f);
+			return kZeroVector;
 	}
 	Vector k = make_vector(p1.x - p0.x, p1.y - p0.y, p1.z - p0.z);
 	if (k.x||k.y||k.z)
@@ -1880,7 +1880,7 @@ GLfloat docked_light_specular[]	= { (GLfloat) 1.0, (GLfloat) 1.0, (GLfloat) 0.5,
 		case 'm':
 			scalar = 1.0;	break;
 		default:
-			return make_vector( 0.0f, 0.0f, 0.0f);
+			return kZeroVector;
 	}
 	if (my_scalar)
 		*my_scalar = scalar;
@@ -2071,7 +2071,7 @@ GLfloat docked_light_specular[]	= { (GLfloat) 1.0, (GLfloat) 1.0, (GLfloat) 0.5,
 		
 		int limit_count = 8;
 		
-		v_from_center = make_vector( 0.0f, 0.0f, 0.0f);
+		v_from_center = kZeroVector;
 		do
 		{
 			do
@@ -2260,7 +2260,7 @@ GLfloat docked_light_specular[]	= { (GLfloat) 1.0, (GLfloat) 1.0, (GLfloat) 0.5,
 	// position
 	if ([spawndict objectForKey:@"position"])
 	{
-		Vector pos = make_vector( 0.0f, 0.0f, 0.0f);
+		Vector pos = kZeroVector;
 		NSString* positionString = [spawndict objectForKey:@"position"];
 		NSArray* positiontokens = ScanTokensFromString(positionString);
 		if ([positiontokens count] == 4)
@@ -2724,7 +2724,7 @@ GLfloat docked_light_specular[]	= { (GLfloat) 1.0, (GLfloat) 1.0, (GLfloat) 0.5,
 		// reset a few flags
 		entity->isSunlit = YES;
 		entity->shadingEntityID = NO_TARGET;
-		entity->position = make_vector( 0.0f, 0.0f, 0.0f);
+		entity->position = kZeroVector;
 		
 		if (entity->isShip)
 		{
@@ -4444,7 +4444,7 @@ static BOOL MaintainLinkedLists(Universe* uni)
 	if (!e1)
 	{
 		NSLog(@"ERROR ***** No entity set in Universe getSafeVectorFromEntity:toDistance:fromPoint:");
-		return make_vector( 0.0f, 0.0f, 0.0f);
+		return kZeroVector;
 	}
 	Vector  f1;
 	Vector  result = p2;
@@ -7398,14 +7398,14 @@ NSComparisonResult comparePrice(NSDictionary *dict1, NSDictionary *dict2, void *
 	if (!ship)
 	{
 		NSLog(@"ERROR ***** No ship set in Universe getSunSkimStartPositionForShip:");
-		return make_vector( 0.0f, 0.0f, 0.0f);
+		return kZeroVector;
 	}
 	PlanetEntity* the_sun = [self sun];
 	// get vector from sun position to ship
 	if (!the_sun)
 	{
 		NSLog(@"ERROR ***** No sun set in Universe getSunSkimStartPositionForShip:");
-		return make_vector( 0.0f, 0.0f, 0.0f);
+		return kZeroVector;
 	}
 	Vector v0 = the_sun->position;
 	Vector v1 = ship->position;
@@ -7427,13 +7427,13 @@ NSComparisonResult comparePrice(NSDictionary *dict1, NSDictionary *dict2, void *
 	if (!ship)
 	{
 		NSLog(@"ERROR ***** No ship set in Universe getSunSkimEndPositionForShip:");
-		return make_vector( 0.0f, 0.0f, 0.0f);
+		return kZeroVector;
 	}
 	// get vector from sun position to ship
 	if (!the_sun)
 	{
 		NSLog(@"ERROR ***** No sun set in Universe getSunSkimEndPositionForShip:");
-		return make_vector( 0.0f, 0.0f, 0.0f);
+		return kZeroVector;
 	}
 	Vector v0 = the_sun->position;
 	Vector v1 = ship->position;

@@ -403,7 +403,7 @@ static BOOL hostiles;
 			if (drawthing->isShip)
 			{
 				ShipEntity* ship = (ShipEntity*)drawthing;
-				if (ship->cloaking_device_active)	drawClass = CLASS_NO_DRAW;
+				if ([ship isCloaked])  drawClass = CLASS_NO_DRAW;
 			}
 			
 			// consider large bodies for mass_lock
@@ -1942,8 +1942,7 @@ void hudDrawReticleOnTarget(Entity* target, PlayerEntity* player1, GLfloat z1)
 	if ((!target)||(!player1))
 		return;
 
-	if (target_ship->cloaking_device_active)
-		return;
+	if ([target_ship isCloaked])  return;
 	
 	switch (target_ship->scanClass)
 	{

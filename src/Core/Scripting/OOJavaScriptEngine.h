@@ -49,6 +49,18 @@ void OOReportJavaScriptErrorWithArguments(JSContext *context, NSString *format, 
 void OOReportJavaScriptWarning(JSContext *context, NSString *format, ...);
 void OOReportJavaScriptWarningWithArguments(JSContext *context, NSString *format, va_list args);
 
+/*	QuaternionFromArgumentList()
+	
+	Get a single number from an argument list. The optional outConsumed
+	argument can be used to find out how many parameters were used (currently,
+	this will be 0 on failure, otherwise 1).
+	
+	On failure, it will return NO, annd the number will be unaltered. If
+	scriptClass and function are non-nil, a warning will be reported to the
+	log.
+*/
+BOOL NumberFromArgumentList(JSContext *context, NSString *scriptClass, NSString *function, uintN argc, jsval *argv, double *outNumber, uintN *outConsumed);
+
 
 @protocol OOJavaScriptConversion <NSObject>
 

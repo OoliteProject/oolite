@@ -51,7 +51,7 @@ MA 02110-1301, USA.
 	Disabled for 1.68, will be tried leading up to 1.69.
 */
 #ifndef OOLOG_SHORT_CIRCUIT
-	#define OOLOG_SHORT_CIRCUIT		0
+	#define OOLOG_SHORT_CIRCUIT		1
 #endif
 
 
@@ -96,6 +96,10 @@ void OOLogPopIndent(void);
 
 void OOLogWithFunctionFileAndLine(NSString *inMessageClass, const char *inFunction, const char *inFile, unsigned long inLine, NSString *inFormat, ...);
 void OOLogWithFunctionFileAndLineAndArguments(NSString *inMessageClass, const char *inFunction, const char *inFile, unsigned long inLine, NSString *inFormat, va_list inArguments);
+
+// OOLogGenericParameterError(): general parameter error message, "***** $function_name: bad parameters. (This is an internal programming error, please report it.)"
+#define OOLogGenericParameterError()	OOLogGenericParameterErrorForFunction(OOLOG_FUNCTION_NAME)
+void OOLogGenericParameterErrorForFunction(const char *inFunction);
 
 
 void OOLoggingInit(void);

@@ -229,7 +229,7 @@ static NSString * kOOLogKeyDown				= @"input.keyMapping.keyPress.keyDown";
 	if (UNIVERSE)
 	{
 		Entity* the_sun = [UNIVERSE sun];
-		Vector sun_pos = (the_sun)? the_sun->position : make_vector( 0.0f, 0.0f, 0.0f);
+		Vector sun_pos = (the_sun)? the_sun->position : kZeroVector;
 		sun_center_position[0] = sun_pos.x;
 		sun_center_position[1] = sun_pos.y;
 		sun_center_position[2] = sun_pos.z;

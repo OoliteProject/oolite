@@ -52,8 +52,6 @@ MA 02110-1301, USA.
 // ie. the furthest away thing we can draw is at 1280km (a 2.5km wide object would disappear at that range)
 
 
-#define NO_TARGET					0
-
 #define SCANNER_MAX_RANGE			25600.0
 #define SCANNER_MAX_RANGE2			655360000.0
 

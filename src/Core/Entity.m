@@ -89,7 +89,7 @@ BOOL global_testForVAR;
 	q_rotation = kIdentityQuaternion;
     quaternion_into_gl_matrix(q_rotation, rotMatrix);
     //
-	position = make_vector( 0.0f, 0.0f, 0.0f);
+	position = kZeroVector;
 	//
 	zero_distance = 0.0;  //  10 km
 	no_draw_distance = 100000.0;  //  10 km
@@ -767,7 +767,7 @@ BOOL global_testForVAR;
 
 - (Vector) viewpointOffset
 {
-	return make_vector( 0.0f, 0.0f, 0.0f);
+	return kZeroVector;
 }
 
 - (BOOL) canCollide
@@ -1655,7 +1655,7 @@ BOOL global_testForVAR;
 	}
 	for (i = 0; i < n_vertices; i++)
 	{
-		Vector normal_sum = make_vector( 0.0f, 0.0f, 0.0f);
+		Vector normal_sum = kZeroVector;
 		for (j = 0; j < n_faces; j++)
 		{
 			BOOL is_shared = ((faces[j].vertex[0] == i)||(faces[j].vertex[1] == i)||(faces[j].vertex[2] == i));
@@ -1676,7 +1676,7 @@ BOOL global_testForVAR;
 - (Vector) normalForVertex:(int) v_index withSharedRedValue:(GLfloat) red_value
 {
 	int j;
-	Vector normal_sum = make_vector( 0.0f, 0.0f, 0.0f);
+	Vector normal_sum = kZeroVector;
 	for (j = 0; j < n_faces; j++)
 	{
 		if (faces[j].red == red_value)

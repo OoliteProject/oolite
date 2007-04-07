@@ -27,7 +27,7 @@ MA 02110-1301, USA.
 #import "OOCocoa.h"
 #import "OOMaths.h"
 #import "legacy_random.h"
-#import "OOtypes.h"
+#import "OOTypes.h"
 
 
 @class Entity, ShipEntity, OOCharacter, AI;

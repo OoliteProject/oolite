@@ -29,10 +29,23 @@ MA 02110-1301, USA.
 
 @implementation Entity (OOJavaScriptExtensions)
 
+
+- (BOOL)isVisibleToScripts
+{
+	return	self->isShip ||
+		//	self->isStation ||	// Stations are always ships
+		//	self->isPlayer ||	// The player is also a ship
+			self->isPlanet;
+}
+
+
 - (jsval)javaScriptValueInContext:(JSContext *)context
 {
-	jsval result = JSVAL_VOID;
-	EntityToJSValue(context, self, &result);
+	jsval result = JSVAL_NULL;
+	if ([self isVisibleToScripts])
+	{
+		EntityToJSValue(context, self, &result);
+	}
 	return result;
 }
 

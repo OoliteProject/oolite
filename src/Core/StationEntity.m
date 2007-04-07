@@ -1267,9 +1267,9 @@ NSDictionary* instructions(int station_id, Vector coords, float speed, float ran
 	if ((behaviour == BEHAVIOUR_AVOID_COLLISION)&&(previousCondition))
 	{
 		int old_behaviour = [(NSNumber*)[previousCondition objectForKey:@"behaviour"] intValue];
-		return IS_BEHAVIOUR_HOSTILE(old_behaviour);
+		return IsBehaviourHostile(old_behaviour);
 	}
-	return IS_BEHAVIOUR_HOSTILE(behaviour)||(alert_level == STATION_ALERT_LEVEL_YELLOW)||(alert_level == STATION_ALERT_LEVEL_RED);
+	return IsBehaviourHostile(behaviour)||(alert_level == STATION_ALERT_LEVEL_YELLOW)||(alert_level == STATION_ALERT_LEVEL_RED);
 }
 
 //////////////////////////////////////////////// extra AI routines

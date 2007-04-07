@@ -143,7 +143,7 @@ BOOL EntityToJSValue(JSContext *context, Entity *entity, jsval *outValue)
 	JSObject				*object = NULL;
 	
 	if (outValue == NULL) return NO;
-	if (context == NULL)  context = [[OOJavaScriptEngine sharedEngine] context];
+	if (EXPECT_NOT(context == NULL))  context = [[OOJavaScriptEngine sharedEngine] context];
 	
 	object = JSEntityWithEntity(context, entity);
 	if (object == NULL) return NO;
@@ -155,9 +155,25 @@ BOOL EntityToJSValue(JSContext *context, Entity *entity, jsval *outValue)
 
 BOOL JSValueToEntity(JSContext *context, jsval value, Entity **outEntity)
 {
-	if (!JSVAL_IS_OBJECT(value))  return NO;
+	Entity		*entity = nil;
 	
-	return JSEntityGetEntity(context, JSVAL_TO_OBJECT(value), outEntity);
+	if (outEntity == NULL) return NO;
+	
+	if (JSVAL_IS_OBJECT(value))
+	{
+		return JSEntityGetEntity(context, JSVAL_TO_OBJECT(value), outEntity);
+	}
+	else if (JSVAL_IS_INT(value))	// Should we accept general numbers? (Currently, UniversalIDs are clamped to [100, 1000].)
+	{
+		entity = [UNIVERSE entityForUniversalID:JSVAL_TO_INT(value)];
+		if (entity && [entity isVisibleToScripts])
+		{
+			*outEntity = [[entity retain] autorelease];
+			return YES;
+		}
+	}
+	
+	return NO;
 }
 
 
@@ -166,7 +182,7 @@ BOOL JSEntityGetEntity(JSContext *context, JSObject *entityObj, Entity **outEnti
 	OOWeakReference			*proxy = nil;
 	
 	if (outEntity == NULL || entityObj == NULL) return NO;
-	if (context == NULL)  context = [[OOJavaScriptEngine sharedEngine] context];
+	if (EXPECT_NOT(context == NULL))  context = [[OOJavaScriptEngine sharedEngine] context];
 	
 	proxy = JS_GetInstancePrivate(context, entityObj, &sEntityClass.base, NULL);
 	if (proxy != nil)
@@ -182,6 +198,33 @@ BOOL JSEntityGetEntity(JSContext *context, JSObject *entityObj, Entity **outEnti
 JSClass *EntityJSClass(void)
 {
 	return &sEntityClass.base;
+}
+
+
+BOOL EntityFromArgumentList(JSContext *context, NSString *scriptClass, NSString *function, uintN argc, jsval *argv, Entity **outEntity, uintN *outConsumed)
+{
+	// Sanity checks.
+	if (outConsumed != NULL)  *outConsumed = 0;
+	if (EXPECT_NOT(argc == 0 || argv == NULL || outEntity == NULL))
+	{
+		OOLogGenericParameterError();
+		return NO;
+	}
+	
+	// Get value, if possible.
+	if (EXPECT_NOT(!JSValueToEntity(context, argv[0], outEntity)))
+	{
+		// Failed; report bad parameters, if given a class and function.
+		if (scriptClass != nil && function != nil)
+		{
+			OOReportJavaScriptWarning(context, @"%@.%@(): expected entity or universal ID, got %@.", scriptClass, function, [NSString stringWithJavaScriptParameters:argv count:1 inContext:context]);
+			return NO;
+		}
+	}
+	
+	// Success.
+	if (outConsumed != NULL)  *outConsumed = 1;
+	return YES;
 }
 
 
@@ -324,11 +367,7 @@ static JSBool EntitySetPosition(JSContext *context, JSObject *this, uintN argc, 
 	Vector					vector;
 	
 	if (!JSEntityGetEntity(context, this, &thisEnt)) return YES;	// stale reference, no-op.
-	if (!VectorFromArgumentList(context, argc, argv, &vector, NULL))
-	{
-		ReportVectorParamConversionFailure(context, @"Entity", @"setPosition", argc, argv);
-		return YES;
-	}
+	if (!VectorFromArgumentList(context, @"Entity", @"setPosition", argc, argv, &vector, NULL))  return YES;
 	
 	[thisEnt setPosition:vector];
 	return YES;

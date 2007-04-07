@@ -322,7 +322,7 @@ enum
 	int						missile_status;
 	int						active_missile;
 	
-	int						current_cargo;
+	CargoQuantity			current_cargo;
 	
 	NSPoint					cursor_coordinates;
 	double					witchspaceCountdown;
@@ -333,12 +333,12 @@ enum
 	
 	Random_Seed				galaxy_seed;
 	
-	int						credits;	
-	int						galaxy_number;
-	int						forward_weapon;
-	int						aft_weapon;
-	int						port_weapon;
-	int						starboard_weapon;
+	CreditsQuantity			credits;	
+	uint8_t					galaxy_number;
+	WeaponType				forward_weapon;		// Is there a reason for having both this and forward_weapon_type? -- ahruman
+	WeaponType				aft_weapon;			// ditto
+	WeaponType				port_weapon;
+	WeaponType				starboard_weapon;
 	
 	NSMutableArray			*shipCommodityData;
 	
@@ -357,62 +357,62 @@ enum
 	GLfloat					fuel_leak_rate;
         
 	// keys!
-	int						key_roll_left;
-	int						key_roll_right;
-	int						key_yaw_left;
-	int						key_yaw_right;
-	int						key_pitch_forward;
-	int						key_pitch_back;
-	int						key_increase_speed;
-	int						key_decrease_speed;
+	KeyCode					key_roll_left;
+	KeyCode					key_roll_right;
+	KeyCode					key_yaw_left;
+	KeyCode					key_yaw_right;
+	KeyCode					key_pitch_forward;
+	KeyCode					key_pitch_back;
+	KeyCode					key_increase_speed;
+	KeyCode					key_decrease_speed;
 	
-	int						key_inject_fuel;
+	KeyCode					key_inject_fuel;
 	
-	int						key_fire_lasers;
-	int						key_target_missile;
-	int						key_untarget_missile;
-	int						key_launch_missile;
-	int						key_ecm;
-	int						key_launch_escapepod;
-	int						key_energy_bomb;
-	int						key_galactic_hyperspace;
-	int						key_hyperspace;
-	int						key_jumpdrive;
-	int						key_dump_cargo;
-	int						key_rotate_cargo;
-	int						key_autopilot;
-	int						key_autopilot_target;
-	int						key_autodock;
-	int						key_snapshot;
-	int						key_docking_music;
-	int						key_scanner_zoom;
-	int						key_scanner_unzoom;
+	KeyCode					key_fire_lasers;
+	KeyCode					key_target_missile;
+	KeyCode					key_untarget_missile;
+	KeyCode					key_launch_missile;
+	KeyCode					key_ecm;
+	KeyCode					key_launch_escapepod;
+	KeyCode					key_energy_bomb;
+	KeyCode					key_galactic_hyperspace;
+	KeyCode					key_hyperspace;
+	KeyCode					key_jumpdrive;
+	KeyCode					key_dump_cargo;
+	KeyCode					key_rotate_cargo;
+	KeyCode					key_autopilot;
+	KeyCode					key_autopilot_target;
+	KeyCode					key_autodock;
+	KeyCode					key_snapshot;
+	KeyCode					key_docking_music;
+	KeyCode					key_scanner_zoom;
+	KeyCode					key_scanner_unzoom;
 	
-	int						key_map_dump;
-	int						key_map_home;
-	int						key_map_info;
+	KeyCode					key_map_dump;
+	KeyCode					key_map_home;
+	KeyCode					key_map_info;
 	
-	int						key_pausebutton;
-	int						key_show_fps;
-	int						key_mouse_control;
+	KeyCode					key_pausebutton;
+	KeyCode					key_show_fps;
+	KeyCode					key_mouse_control;
 	
-	int						key_emergency_hyperdrive;
+	KeyCode					key_emergency_hyperdrive;
 	
-	int						key_next_missile;
-	int						key_ident_system;
+	KeyCode					key_next_missile;
+	KeyCode					key_ident_system;
 	
-	int						key_comms_log;
+	KeyCode					key_comms_log;
 	
-	int						key_next_compass_mode;
+	KeyCode					key_next_compass_mode;
 	
-	int						key_cloaking_device;
+	KeyCode					key_cloaking_device;
 	
-	int						key_contract_info;
+	KeyCode					key_contract_info;
 	
-	int						key_next_target;
-	int						key_previous_target;
+	KeyCode					key_next_target;
+	KeyCode					key_previous_target;
 	
-	int						key_custom_view;
+	KeyCode					key_custom_view;
         
         // save-file
 	NSString				*save_path;
@@ -422,7 +422,7 @@ enum
         
         // DEBUG
 	ParticleEntity			*drawDebugParticle;
-	int						debugShipID;
+	UniversalID					debugShipID;
         
         // trumbles
 	int						n_trumbles;
@@ -488,17 +488,18 @@ enum
 							speech_on: 1,
 							ootunes_on: 1,
 	
-							docking_music_on: 1;
+							docking_music_on: 1,
+	
+							keyboardRollPitchOverride: 1,
+							waitingForStickCallback: 1;
 	
 	// Note: joystick stuff does nothing under OS X.
 	// Keeping track of joysticks
 	int						numSticks;
 	JoystickHandler			*stickHandler;
-	BOOL					keyboardRollPitchOverride;
   
 	// For PlayerEntity (StickMapper)
 	int						selFunctionIdx;
-	BOOL					waitingForStickCallback;
 	NSArray					*stickFunctions; 
 }
 
@@ -596,7 +597,7 @@ enum
 - (BOOL) launchMine:(ShipEntity*) mine;
 
 - (BOOL) fireMainWeapon;
-- (int) weaponForView:(int) view;
+- (WeaponType) weaponForView:(int) view;
 
 - (void) rotateCargo;
 

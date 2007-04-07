@@ -185,7 +185,7 @@ MA 02110-1301, USA.
 	{
 		// new billboard routine (from Planetentity.m)
 		Vector v0 = position;
-		Vector p0 = (player)? player->position: make_vector( 0.0f, 0.0f, 0.0f);
+		Vector p0 = (player)? player->position: kZeroVector;
 		v0.x -= p0.x;	v0.y -= p0.y;	v0.z -= p0.z; // vector from player to position
 		if (v0.x||v0.y||v0.z)
 			v0 = unit_vector(&v0);

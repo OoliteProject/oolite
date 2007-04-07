@@ -42,6 +42,12 @@ typedef struct
 extern const Quaternion	kIdentityQuaternion;	// 1, 0, 0, 0
 
 
+/* Construct quaternion */
+OOINLINE Quaternion make_quaternion(GLfloat qw, GLfloat qx, GLfloat qy, GLfloat qz) INLINE_CONST_FUNC;
+
+/* Comparison of quaternions */
+OOINLINE GLboolean quaternion_equal(Quaternion a, Quaternion b) INLINE_CONST_FUNC;
+
 /* Multiply quaternions */
 Quaternion quaternion_multiply(Quaternion q1, Quaternion q2) CONST_FUNC;
 
@@ -87,7 +93,24 @@ NSString *QuaternionDescription(Quaternion quaternion);	// @"(w, x, y, z)"
 #endif
 
 
+
 /*** Only inline definitions beyond this point ***/
+
+OOINLINE Quaternion make_quaternion(GLfloat qw, GLfloat qx, GLfloat qy, GLfloat qz)
+{
+	Quaternion result;
+	result.w = qw;
+	result.x = qx;
+	result.y = qy;
+	result.z = qz;
+	return result;
+}
+
+
+OOINLINE GLboolean quaternion_equal(Quaternion a, Quaternion b)
+{
+	return a.w == b.w && a.x == b.x && a.y == b.y && a.z == b.z;
+}
 
 
 OOINLINE void quaternion_set_identity(Quaternion *quat)

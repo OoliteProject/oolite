@@ -41,10 +41,6 @@ MA 02110-1301, USA.
 #define VIEW_GUI_DISPLAY		100
 #define VIEW_BREAK_PATTERN		200
 
-#define UNITS_TONS			0
-#define UNITS_KILOGRAMS		1
-#define UNITS_GRAMS			2
-
 #define DEMO_NO_DEMO		0
 #define DEMO_FLY_IN			101
 #define DEMO_SHOW_THING		102

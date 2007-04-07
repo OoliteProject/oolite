@@ -381,7 +381,7 @@ static	Vector	circleVertex[65];		// holds vector coordinates for a unit circle
 	duration = 20.0;
 	position = ship->position;
 	//
-	[self setVelocity: make_vector( 0.0f, 0.0f, 0.0f)];
+	[self setVelocity: kZeroVector];
 	//
 	[self setColor:[OOColor blueColor]];
 	//
@@ -463,7 +463,7 @@ static	Vector	circleVertex[65];		// holds vector coordinates for a unit circle
 	for (i = 0 ; i < n_vertices; i++)
 	{
 		int speed = (ranrot_rand() % (speed_high - speed_low)) + speed_low;
-		vertices[i] = make_vector( 0.0f, 0.0f, 0.0f);							// position
+		vertices[i] = kZeroVector;							// position
 		vertex_normal[i].x = (ranrot_rand() % speed) - speed / 2;	// velocity
 		vertex_normal[i].y = (ranrot_rand() % speed) - speed / 2;
 		vertex_normal[i].z = (ranrot_rand() % speed) - speed / 2;
@@ -515,7 +515,7 @@ static	Vector	circleVertex[65];		// holds vector coordinates for a unit circle
 	for (i = 0 ; i < n_fragments; i++)
 	{
 		GLfloat speed = speed_low + 0.5 * (randf()+randf()) * (speed_high - speed_low);	// speed tends toward mean of speed_high and speed_low
-		vertices[i] = make_vector( 0.0f, 0.0f, 0.0f);	// position
+		vertices[i] = kZeroVector;	// position
 		vertex_normal[i] = make_vector(randf() - 0.5, randf() - 0.5, randf() - 0.5);
 		vertex_normal[i] = unit_vector(&vertex_normal[i]);
 		vertex_normal[i].x *= speed;	// velocity
@@ -567,7 +567,7 @@ static	Vector	circleVertex[65];		// holds vector coordinates for a unit circle
 	for (i = 0 ; i < n_vertices; i++)
 	{
 		int speed = speed_low + ranrot_rand() % (speed_high - speed_low);
-		vertices[i] = make_vector( 0.0f, 0.0f, 0.0f);
+		vertices[i] = kZeroVector;
 		vertex_normal[i].x = (ranrot_rand() % speed) - speed / 2;
 		vertex_normal[i].y = (ranrot_rand() % speed) - speed / 2;
 		vertex_normal[i].z = (ranrot_rand() % speed) - speed / 2;
@@ -617,7 +617,7 @@ static	Vector	circleVertex[65];		// holds vector coordinates for a unit circle
 	for (i = 0 ; i < n_fragments; i++)
 	{
 		GLfloat speed = speed_low + 0.5 * (randf()+randf()) * (speed_high - speed_low);	// speed tends toward mean of speed_high and speed_low
-		vertices[i] = make_vector( 0.0f, 0.0f, 0.0f);	// position
+		vertices[i] = kZeroVector;	// position
 		vertex_normal[i] = make_vector(randf() - 0.5, randf() - 0.5, randf() - 0.5);
 		vertex_normal[i] = unit_vector(&vertex_normal[i]);
 		vertex_normal[i].x *= speed;	// velocity
@@ -680,7 +680,7 @@ static	Vector	circleVertex[65];		// holds vector coordinates for a unit circle
 	//
 	isParticle = YES;
 	//
-	[self setVelocity: make_vector( 0.0f, 0.0f, 0.0f)];
+	[self setVelocity: kZeroVector];
 
 //	NSLog(@"DEBUG *FLASH* initialised at [ %.2f, %.2f, %.2f]", fragPos.x, fragPos.y, fragPos.z);
 
@@ -720,7 +720,7 @@ static	Vector	circleVertex[65];		// holds vector coordinates for a unit circle
 	//
 	isParticle = YES;
 	//
-	[self setVelocity: make_vector( 0.0f, 0.0f, 0.0f)];
+	[self setVelocity: kZeroVector];
 
 //	NSLog(@"DEBUG *FLASH* initialised at [ %.2f, %.2f, %.2f]", fragPos.x, fragPos.y, fragPos.z);
 
@@ -755,7 +755,7 @@ static	Vector	circleVertex[65];		// holds vector coordinates for a unit circle
 	//
 	isParticle = YES;
 	//
-	[self setVelocity: make_vector( 0.0f, 0.0f, 0.0f)];
+	[self setVelocity: kZeroVector];
 	[self setPosition: make_vector( 0.0f, 0.0f, 640.0f)];
 
     return self;
@@ -1068,7 +1068,7 @@ static	Vector	circleVertex[65];		// holds vector coordinates for a unit circle
 	// new billboard routine (working at last!)
 	PlayerEntity *player = [PlayerEntity sharedPlayer];
 	Vector v0 = position;
-	Vector p0 = (player)? player->position : make_vector( 0.0f, 0.0f, 0.0f);
+	Vector p0 = (player)? player->position : kZeroVector;
 	v0.x -= p0.x;	v0.y -= p0.y;	v0.z -= p0.z; // vector from player to position
 	if (v0.x||v0.y||v0.z)
 		v0 = unit_vector(&v0);

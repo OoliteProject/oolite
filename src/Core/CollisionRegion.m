@@ -51,7 +51,7 @@ static int crid_counter = 1;
 {
 	self = [super init];
 	
-	location = make_vector( 0.0f, 0.0f, 0.0f);
+	location = kZeroVector;
 	radius = 0.0f;
 	border_radius = 0.0f;
 	isUniverse = YES;

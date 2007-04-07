@@ -30,4 +30,7 @@ MA 02110-1301, USA.
 
 
 @interface Entity (OOJavaScriptExtensions) <OOJavaScriptConversion>
+
+- (BOOL)isVisibleToScripts;
+
 @end

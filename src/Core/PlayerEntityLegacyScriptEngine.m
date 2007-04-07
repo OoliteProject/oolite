@@ -2032,7 +2032,7 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 	if (!items)
 		return;
 	//
-	[self addScene: items atOffset: make_vector( 0.0f, 0.0f, 0.0f)];
+	[self addScene: items atOffset: kZeroVector];
 	//
 	[self setShowDemoShips: YES];
 }
@@ -2161,7 +2161,7 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 		[[ship getAI] setStateMachine: @"nullAI.plist"];
 		[ship setRoll: 0.0];
 		[ship setPitch: 0.0];
-		[ship setVelocity: make_vector( 0.0f, 0.0f, 0.0f)];
+		[ship setVelocity: kZeroVector];
 		[ship setBehaviour: BEHAVIOUR_STOP_STILL];
 
 		[ship release];
@@ -2195,7 +2195,7 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 		[[doppelganger getAI] setStateMachine: @"nullAI.plist"];
 		[doppelganger setRoll: 0.0];
 		[doppelganger setPitch: 0.0];
-		[doppelganger setVelocity: make_vector( 0.0f, 0.0f, 0.0f)];
+		[doppelganger setVelocity: kZeroVector];
 		[doppelganger setBehaviour: BEHAVIOUR_STOP_STILL];
 
 		[doppelganger release];

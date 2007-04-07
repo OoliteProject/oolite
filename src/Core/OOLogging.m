@@ -360,6 +360,12 @@ void OOLogWithFunctionFileAndLineAndArguments(NSString *inMessageClass, const ch
 }
 
 
+void OOLogGenericParameterErrorForFunction(const char *inFunction)
+{
+	OOLog(kOOLogParameterError, @"***** %s: bad parameters. (This is an internal programming error, please report it.)", inFunction);
+}
+
+
 void OOLoggingInit(void)
 {
 	NSAutoreleasePool		*pool = nil;
