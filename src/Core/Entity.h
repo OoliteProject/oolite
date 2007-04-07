@@ -143,8 +143,8 @@ extern int debug;
 							throw_sparks: 1,
 							usingVAR: 1;
 	
-	ScanClass				scanClass;
-	EntityStatus			status;
+	OOScanClass				scanClass;
+	OOEntityStatus			status;
 	
 	double					zero_distance;
 	double					no_draw_distance;		// 10 km initially
@@ -162,13 +162,13 @@ extern int debug;
 	
 	Entity					*collision_chain;
 	
-	UniversalID				shadingEntityID;
+	OOUniversalID			shadingEntityID;
 	
 	Vector					relativePosition;
 	
 	Entity*					collider;
 	
-	UniversalID				universalID;			// used to reference the entity
+	OOUniversalID			universalID;			// used to reference the entity
 	
 	CollisionRegion			*collisionRegion;		// initially nil - then maintained
 	
@@ -208,7 +208,7 @@ extern int debug;
     
     NSString				*basefile;
 	
-	UniversalID				owner;
+	OOUniversalID			owner;
 	
 	int						n_textures;
 	EntityData				entityData;
@@ -240,8 +240,8 @@ extern int debug;
 - (CollisionRegion*) collisionRegion;
 - (void) setCollisionRegion:(CollisionRegion*)region;
 
-- (void) setUniversalID:(UniversalID)uid;
-- (UniversalID) universalID;
+- (void) setUniversalID:(OOUniversalID)uid;
+- (OOUniversalID) universalID;
 
 - (BOOL) throwingSparks;
 - (void) setThrowSparks:(BOOL)value;
@@ -281,11 +281,11 @@ extern int debug;
 - (GLfloat) distanceTravelled;
 - (void) setDistanceTravelled:(GLfloat)value;
 
-- (void) setStatus:(EntityStatus)stat;
-- (EntityStatus) status;
+- (void) setStatus:(OOEntityStatus)stat;
+- (OOEntityStatus) status;
 
-- (void) setScanClass:(ScanClass)sClass;
-- (ScanClass) scanClass;
+- (void) setScanClass:(OOScanClass)sClass;
+- (OOScanClass) scanClass;
 
 - (void) setEnergy:(GLfloat)amount;
 - (GLfloat) energy;

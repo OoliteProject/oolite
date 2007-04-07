@@ -57,7 +57,7 @@ MA 02110-1301, USA.
 			[self instinct_follow_ai];
 		break;
 		
-		default :
+		default:
 		break;
 	}
 	//

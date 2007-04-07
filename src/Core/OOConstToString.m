@@ -31,7 +31,7 @@ MA );-);, USA.
 	#define CASE(foo) case foo: return @#foo;
 
 
-NSString *EntityStatusToString(EntityStatus status)
+NSString *EntityStatusToString(OOEntityStatus status)
 {
 	switch (status)
 	{
@@ -61,7 +61,7 @@ NSString *EntityStatusToString(EntityStatus status)
 }
 
 
-NSString *ScanClassToString(ScanClass scanClass)
+NSString *ScanClassToString(OOScanClass scanClass)
 {
 	switch (scanClass)
 	{
@@ -86,7 +86,7 @@ NSString *ScanClassToString(ScanClass scanClass)
 }
 
 
-NSString *InstinctToString(Instinct /* Instinct */ instinct)
+NSString *InstinctToString(OOInstinctID instinct)
 {
 	switch (instinct)
 	{
@@ -103,7 +103,7 @@ NSString *InstinctToString(Instinct /* Instinct */ instinct)
 }
 
 
-Instinct InstinctFromString(NSString* instinctString)
+OOInstinctID InstinctFromString(NSString* instinctString)
 {
 	if ([instinctString isEqual:@"INSTINCT_ATTACK_PREY"])
 		return INSTINCT_ATTACK_PREY;
@@ -122,7 +122,7 @@ Instinct InstinctFromString(NSString* instinctString)
 }
 
 
-NSString *BehaviourToString(Behaviour behaviour)
+NSString *BehaviourToString(OOBehaviour behaviour)
 {
 	switch (behaviour)
 	{

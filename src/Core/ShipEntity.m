@@ -1402,7 +1402,7 @@ static void ApplyConstantUniforms(NSDictionary *uniforms, GLhandleARB shaderProg
 }
 
 
-- (ScanClass) scanClass
+- (OOScanClass) scanClass
 {
 	if (cloaking_device_active)
 		return CLASS_NO_DRAW;
@@ -4068,7 +4068,7 @@ static GLfloat mascem_color2[4] =	{ 0.4, 0.1, 0.4, 1.0};	// purple
 }
 
 
-- (AegisStatus) checkForAegis
+- (OOAegisStatus) checkForAegis
 {
 	PlanetEntity* the_planet = [UNIVERSE planet];
 
@@ -4083,7 +4083,7 @@ static GLfloat mascem_color2[4] =	{ 0.4, 0.1, 0.4, 1.0};	// purple
 	Vector p1 = the_planet->position;
 	double cr = the_planet->collision_radius;
 	double cr2 = cr * cr;
-	AegisStatus result = AEGIS_NONE;
+	OOAegisStatus result = AEGIS_NONE;
 	p1.x -= position.x;	p1.y -= position.y;	p1.z -= position.z;
 	double d2 = p1.x*p1.x + p1.y*p1.y + p1.z*p1.z;
 	
@@ -4212,12 +4212,12 @@ static GLfloat mascem_color2[4] =	{ 0.4, 0.1, 0.4, 1.0};	// purple
 }
 
 
-- (void) setBounty:(CreditsQuantity) amount
+- (void) setBounty:(OOCreditsQuantity) amount
 {
 	bounty = amount;
 }
 
-- (CreditsQuantity) getBounty
+- (OOCreditsQuantity) getBounty
 {
 	return bounty;
 }
@@ -4245,12 +4245,12 @@ static GLfloat mascem_color2[4] =	{ 0.4, 0.1, 0.4, 1.0};	// purple
 	return commodity_amount;
 }
 
-- (CargoQuantity) getMaxCargo
+- (OOCargoQuantity) getMaxCargo
 {
 	return max_cargo;
 }
 
-- (CargoType) getCargoType
+- (OOCargoType) getCargoType
 {
 	return cargo_type;
 }
@@ -4266,12 +4266,12 @@ static GLfloat mascem_color2[4] =	{ 0.4, 0.1, 0.4, 1.0};	// purple
 	[cargo addObjectsFromArray:some_cargo];
 }
 
-- (CargoFlag) cargoFlag
+- (OOCargoFlag) cargoFlag
 {
 	return cargo_flag;
 }
 
-- (void) setCargoFlag:(CargoFlag) flag
+- (void) setCargoFlag:(OOCargoFlag) flag
 {
 	cargo_flag = flag;
 }
@@ -4622,7 +4622,7 @@ static GLfloat mascem_color2[4] =	{ 0.4, 0.1, 0.4, 1.0};	// purple
 
 - (void) becomeExplosion
 {
-	CargoQuantity cargo_to_go;
+	OOCargoQuantity cargo_to_go;
 	
 	// check if we're destroying a subentity
 	ShipEntity* parent = (ShipEntity*)[self owner];
@@ -5092,8 +5092,8 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 {
 	Vector xposition = position;
 	ParticleEntity  *fragment;
-	CargoQuantity n_cargo = (ranrot_rand() % (likely_cargo + 1));
-	CargoQuantity cargo_to_go;
+	OOCargoQuantity n_cargo = (ranrot_rand() % (likely_cargo + 1));
+	OOCargoQuantity cargo_to_go;
 
 	if (status == STATUS_DEAD)
 		return;
@@ -5360,12 +5360,12 @@ BOOL	class_masslocks(int some_class)
 	return primaryTarget;
 }
 
-- (Behaviour) behaviour
+- (OOBehaviour) behaviour
 {
 	return behaviour;
 }
 
-- (void) setBehaviour:(Behaviour) cond
+- (void) setBehaviour:(OOBehaviour) cond
 {
 	if (cond != behaviour)
 	{

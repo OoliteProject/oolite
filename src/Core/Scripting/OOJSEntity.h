@@ -36,7 +36,7 @@ void InitOOJSEntity(JSContext *context, JSObject *global);
 JSObject *JSEntityWithEntity(JSContext *context, Entity *entity);
 
 BOOL EntityToJSValue(JSContext *context, Entity *entity, jsval *outValue);
-BOOL JSValueToEntity(JSContext *context, jsval value, Entity **outEntity);	// Value may be Entity or integer (UniversalID).
+BOOL JSValueToEntity(JSContext *context, jsval value, Entity **outEntity);	// Value may be Entity or integer (OOUniversalID).
 
 BOOL JSEntityGetEntity(JSContext *context, JSObject *entityObj, Entity **outEntity);
 
@@ -46,7 +46,7 @@ JSClass *EntityJSClass(void);
 /*	EntityFromArgumentList()
 	
 	Construct a entity from an argument list which is either a (JS) entity or
-	an integer (a UniversalID). The optional outConsumed argument can be
+	an integer (a OOUniversalID). The optional outConsumed argument can be
 	used to find out how many parameters were used (currently, this will be 0
 	on failure, otherwise 1).
 	

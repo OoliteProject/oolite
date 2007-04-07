@@ -479,12 +479,12 @@ BOOL global_testForVAR;
 	collisionRegion = [region retain];
 }
 
-- (void) setUniversalID:(UniversalID)uid
+- (void) setUniversalID:(OOUniversalID)uid
 {
 	universalID = uid;
 }
 
-- (UniversalID) universalID
+- (OOUniversalID) universalID
 {
 	return universalID;
 }
@@ -515,7 +515,7 @@ BOOL global_testForVAR;
 
 - (void) setOwner:(Entity *) ent
 {
-	UniversalID	owner_id = [ent universalID];
+	OOUniversalID	owner_id = [ent universalID];
 	
 	if ([UNIVERSE entityForUniversalID:owner_id] == ent)	// check to make sure it's kosher
 		owner = owner_id;
@@ -661,22 +661,22 @@ BOOL global_testForVAR;
 	distanceTravelled = value;
 }
 
-- (void) setStatus:(EntityStatus) stat
+- (void) setStatus:(OOEntityStatus) stat
 {
 	status = stat;
 }
 
-- (EntityStatus) status
+- (OOEntityStatus) status
 {
 	return status;
 }
 
-- (void) setScanClass:(ScanClass)sClass
+- (void) setScanClass:(OOScanClass)sClass
 {
 	scanClass = sClass;
 }
 
-- (ScanClass) scanClass
+- (OOScanClass) scanClass
 {
 	return scanClass;
 }

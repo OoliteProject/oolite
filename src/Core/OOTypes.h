@@ -50,7 +50,7 @@ typedef enum
 	STATUS_IN_HOLD					= 600,
 	STATUS_BEING_SCOOPED			= 700,
 	STATUS_HANDLING_ERROR			= 999
-} EntityStatus;
+} OOEntityStatus;
 
 
 typedef enum
@@ -70,7 +70,7 @@ typedef enum
 	CLASS_PLAYER					= 100,
 	CLASS_POLICE					= 999,
 	CLASS_MILITARY					= 333
-} ScanClass;
+} OOScanClass;
 
 
 typedef enum
@@ -90,7 +90,7 @@ typedef enum
 	
 	// advanced AI instincts
 	INSTINCT_FOLLOW_AI				= 201
-} Instinct;
+} OOInstinctID;
 
 
 typedef enum
@@ -143,11 +143,11 @@ typedef enum
 	BEHAVIOUR_TRACTORED						= 701,
 	
 	BEHAVIOUR_EXPERIMENTAL					= 54321
-} Behaviour;
+} OOBehaviour;
 
 
-OOINLINE BOOL IsBehaviourHostile(Behaviour behaviour) INLINE_CONST_FUNC;
-OOINLINE BOOL IsBehaviourHostile(Behaviour behaviour)
+OOINLINE BOOL IsBehaviourHostile(OOBehaviour behaviour) INLINE_CONST_FUNC;
+OOINLINE BOOL IsBehaviourHostile(OOBehaviour behaviour)
 {
 	return 100 < behaviour && behaviour < 120;
 }
@@ -162,7 +162,7 @@ typedef enum
 	WEAPON_MINING_LASER				= 4,
 	WEAPON_MILITARY_LASER			= 5,
 	WEAPON_THARGOID_LASER			= 10
-} WeaponType;
+} OOWeaponType;
 
 
 typedef enum
@@ -170,7 +170,7 @@ typedef enum
 	AEGIS_NONE,
 	AEGIS_CLOSE_TO_PLANET,
 	AEGIS_IN_DOCKING_RANGE
-} AegisStatus;
+} OOAegisStatus;
 
 
 typedef enum
@@ -183,7 +183,7 @@ typedef enum
 	CARGO_RANDOM					= 100,
 	CARGO_SCRIPTED_ITEM				= 200,
 	CARGO_CHARACTER					= 300
-} CargoType;
+} OOCargoType;
 
 
 typedef enum
@@ -195,7 +195,7 @@ typedef enum
 	CARGO_FLAG_FULL_UNIFORM			= 510,
 	CARGO_FLAG_CANISTERS			= 600,
 	CARGO_FLAG_FULL_PASSENGERS		= 700
-} CargoFlag;
+} OOCargoFlag;
 
 
 typedef enum
@@ -203,17 +203,17 @@ typedef enum
 	UNITS_TONS,
 	UNITS_KILOGRAMS,
 	UNITS_GRAMS
-} MassUnit;
+} OOMassUnit;
 
 
-typedef uint16_t	CargoQuantity;
+typedef uint16_t	OOCargoQuantity;
 
 
-typedef uint32_t	CreditsQuantity;
+typedef uint32_t	OOCreditsQuantity;
 
 
-typedef uint16_t	KeyCode;
+typedef uint16_t	OOKeyCode;
 
 
-typedef uint16_t UniversalID;	// Valid IDs range from 100 to 1000.
-static const UniversalID NO_TARGET = 0;
+typedef uint16_t OOUniversalID;	// Valid IDs range from 100 to 1000.
+static const OOUniversalID NO_TARGET = 0;

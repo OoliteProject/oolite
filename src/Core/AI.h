@@ -32,24 +32,24 @@ extern int debug;
 
 @class OOInstinct, ShipEntity;
 
-@interface AI : NSObject {
+@interface AI : NSObject
+{
+	ShipEntity			*owner;						// the object this is the AI for
+	NSString			*owner_desc;				// describes the object this is the AI for
 
-	ShipEntity		*owner;						// the object this is the AI for
-	NSString		*owner_desc;				// describes the object this is the AI for
-
-	NSDictionary	*stateMachine;
-	NSString		*stateMachineName;
-	NSString		*currentState;
-	NSMutableDictionary  *pendingMessages;
+	NSDictionary		*stateMachine;
+	NSString			*stateMachineName;
+	NSString			*currentState;
+	NSMutableDictionary	*pendingMessages;
 	
-	NSMutableArray  *ai_stack;
+	NSMutableArray		*ai_stack;
 	
-	NSLock			*aiLock;
+	NSLock				*aiLock;
 	
-	OOInstinct*		rulingInstinct;
+	OOInstinct			*rulingInstinct;
 	
-	double			nextThinkTime;
-	double			thinkTimeInterval;
+	double				nextThinkTime;
+	double				thinkTimeInterval;
 	
 }
 

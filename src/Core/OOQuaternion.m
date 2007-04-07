@@ -202,7 +202,7 @@ Quaternion quaternion_limited_rotation_between(Vector v0, Vector v1, float maxAr
 			GLfloat a = maxArc * 0.5f;
 			GLfloat w = cosf(a);
 			GLfloat scale = sinf(a);
-			OOLog(kOOLogMathsQuatLimitedRotationDebug, @"DEBUG using maxArc %.5f \tw %.5f \tscale %.5f\n", maxArc, w, scale);
+			OOLog(kOOLogMathsQuatLimitedRotationDebug, @"DEBUG using maxArc %.5f \tw %.5f \tscale %.5f", maxArc, w, scale);
 			q.x = (v0.y * v1.z - v0.z * v1.y) * scale;
 			q.y = (v0.z * v1.x - v0.x * v1.z) * scale;
 			q.z = (v0.x * v1.y - v0.y * v1.x) * scale;
@@ -310,5 +310,5 @@ void quaternion_rotate_about_axis(Quaternion *quat, Vector axis, GLfloat angle)
 
 NSString *QuaternionDescription(Quaternion quaternion)
 {
-	return [NSString stringWithFormat:@"(%g, %g, %g, %g)", quaternion.w, quaternion.x, quaternion.y, quaternion.z];
+	return [NSString stringWithFormat:@"(%g + %gi + %gj + %gk)", quaternion.w, quaternion.x, quaternion.y, quaternion.z];
 }

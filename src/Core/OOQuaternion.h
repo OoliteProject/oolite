@@ -89,7 +89,7 @@ OOINLINE void fast_quaternion_normalize(Quaternion *quat) NONNULL_FUNC ALWAYS_IN
 OOINLINE void quaternion_normalise(Quaternion *quat) NONNULL_FUNC ALWAYS_INLINE_FUNC DEPRECATED_FUNC;
 
 #ifdef __OBJC__
-NSString *QuaternionDescription(Quaternion quaternion);	// @"(w, x, y, z)"
+NSString *QuaternionDescription(Quaternion quaternion);	// @"(w + xi + yj + zk)"
 #endif
 
 

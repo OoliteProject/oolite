@@ -2911,7 +2911,7 @@ GLfloat docked_light_specular[]	= { (GLfloat) 1.0, (GLfloat) 1.0, (GLfloat) 0.5,
 
 - (NSDictionary *) getDictionaryForShip:(NSString *) desc
 {
-	NSMutableDictionary* shipdict = [NSMutableDictionary dictionaryWithDictionary: (NSDictionary*)[shipdata objectForKey:desc]];
+	NSMutableDictionary* shipdict = [[[shipdata objectForKey:desc] mutableCopy] autorelease];
 	if (nil == shipdict)
 	{
 		NSLog(@"***** Universe couldn't find a dictionary for a ship with description '%@'",desc);

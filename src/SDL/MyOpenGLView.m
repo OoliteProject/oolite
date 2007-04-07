@@ -31,7 +31,7 @@ MA 02110-1301, USA.
 #import "OOSound.h"
 #import "NSFileManagerOOExtensions.h" // to find savedir
 #import "PlayerEntity.h"
-#import "GUIDisplayGen.h"
+#import "GuiDisplayGen.h"
 #import "PlanetEntity.h"
 
 #ifdef WIN32
@@ -399,7 +399,7 @@ MA 02110-1301, USA.
 
 	if (UNIVERSE)
 	{
-		Entity* the_sun = [uni sun];
+		Entity* the_sun = [UNIVERSE sun];
 		Vector sun_pos = (the_sun)? the_sun->position : make_vector(0.0f,0.0f,0.0f);
 		sun_center_position[0] = sun_pos.x;
 		sun_center_position[1] = sun_pos.y;

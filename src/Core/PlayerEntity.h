@@ -322,7 +322,7 @@ enum
 	int						missile_status;
 	int						active_missile;
 	
-	CargoQuantity			current_cargo;
+	OOCargoQuantity			current_cargo;
 	
 	NSPoint					cursor_coordinates;
 	double					witchspaceCountdown;
@@ -333,12 +333,12 @@ enum
 	
 	Random_Seed				galaxy_seed;
 	
-	CreditsQuantity			credits;	
+	OOCreditsQuantity		credits;	
 	uint8_t					galaxy_number;
-	WeaponType				forward_weapon;		// Is there a reason for having both this and forward_weapon_type? -- ahruman
-	WeaponType				aft_weapon;			// ditto
-	WeaponType				port_weapon;
-	WeaponType				starboard_weapon;
+	OOWeaponType			forward_weapon;		// Is there a reason for having both this and forward_weapon_type? -- ahruman
+	OOWeaponType			aft_weapon;			// ditto
+	OOWeaponType			port_weapon;
+	OOWeaponType			starboard_weapon;
 	
 	NSMutableArray			*shipCommodityData;
 	
@@ -357,62 +357,62 @@ enum
 	GLfloat					fuel_leak_rate;
         
 	// keys!
-	KeyCode					key_roll_left;
-	KeyCode					key_roll_right;
-	KeyCode					key_yaw_left;
-	KeyCode					key_yaw_right;
-	KeyCode					key_pitch_forward;
-	KeyCode					key_pitch_back;
-	KeyCode					key_increase_speed;
-	KeyCode					key_decrease_speed;
+	OOKeyCode				key_roll_left;
+	OOKeyCode				key_roll_right;
+	OOKeyCode				key_yaw_left;
+	OOKeyCode				key_yaw_right;
+	OOKeyCode				key_pitch_forward;
+	OOKeyCode				key_pitch_back;
+	OOKeyCode				key_increase_speed;
+	OOKeyCode				key_decrease_speed;
 	
-	KeyCode					key_inject_fuel;
+	OOKeyCode				key_inject_fuel;
 	
-	KeyCode					key_fire_lasers;
-	KeyCode					key_target_missile;
-	KeyCode					key_untarget_missile;
-	KeyCode					key_launch_missile;
-	KeyCode					key_ecm;
-	KeyCode					key_launch_escapepod;
-	KeyCode					key_energy_bomb;
-	KeyCode					key_galactic_hyperspace;
-	KeyCode					key_hyperspace;
-	KeyCode					key_jumpdrive;
-	KeyCode					key_dump_cargo;
-	KeyCode					key_rotate_cargo;
-	KeyCode					key_autopilot;
-	KeyCode					key_autopilot_target;
-	KeyCode					key_autodock;
-	KeyCode					key_snapshot;
-	KeyCode					key_docking_music;
-	KeyCode					key_scanner_zoom;
-	KeyCode					key_scanner_unzoom;
+	OOKeyCode				key_fire_lasers;
+	OOKeyCode				key_target_missile;
+	OOKeyCode				key_untarget_missile;
+	OOKeyCode				key_launch_missile;
+	OOKeyCode				key_ecm;
+	OOKeyCode				key_launch_escapepod;
+	OOKeyCode				key_energy_bomb;
+	OOKeyCode				key_galactic_hyperspace;
+	OOKeyCode				key_hyperspace;
+	OOKeyCode				key_jumpdrive;
+	OOKeyCode				key_dump_cargo;
+	OOKeyCode				key_rotate_cargo;
+	OOKeyCode				key_autopilot;
+	OOKeyCode				key_autopilot_target;
+	OOKeyCode				key_autodock;
+	OOKeyCode				key_snapshot;
+	OOKeyCode				key_docking_music;
+	OOKeyCode				key_scanner_zoom;
+	OOKeyCode				key_scanner_unzoom;
 	
-	KeyCode					key_map_dump;
-	KeyCode					key_map_home;
-	KeyCode					key_map_info;
+	OOKeyCode				key_map_dump;
+	OOKeyCode				key_map_home;
+	OOKeyCode				key_map_info;
 	
-	KeyCode					key_pausebutton;
-	KeyCode					key_show_fps;
-	KeyCode					key_mouse_control;
+	OOKeyCode				key_pausebutton;
+	OOKeyCode				key_show_fps;
+	OOKeyCode				key_mouse_control;
 	
-	KeyCode					key_emergency_hyperdrive;
+	OOKeyCode				key_emergency_hyperdrive;
 	
-	KeyCode					key_next_missile;
-	KeyCode					key_ident_system;
+	OOKeyCode				key_next_missile;
+	OOKeyCode				key_ident_system;
 	
-	KeyCode					key_comms_log;
+	OOKeyCode				key_comms_log;
 	
-	KeyCode					key_next_compass_mode;
+	OOKeyCode				key_next_compass_mode;
 	
-	KeyCode					key_cloaking_device;
+	OOKeyCode				key_cloaking_device;
 	
-	KeyCode					key_contract_info;
+	OOKeyCode				key_contract_info;
 	
-	KeyCode					key_next_target;
-	KeyCode					key_previous_target;
+	OOKeyCode				key_next_target;
+	OOKeyCode				key_previous_target;
 	
-	KeyCode					key_custom_view;
+	OOKeyCode				key_custom_view;
         
         // save-file
 	NSString				*save_path;
@@ -422,7 +422,7 @@ enum
         
         // DEBUG
 	ParticleEntity			*drawDebugParticle;
-	UniversalID					debugShipID;
+	OOUniversalID			debugShipID;
         
         // trumbles
 	int						n_trumbles;
@@ -595,7 +595,7 @@ enum
 - (BOOL) launchMine:(ShipEntity*) mine;
 
 - (BOOL) fireMainWeapon;
-- (WeaponType) weaponForView:(int) view;
+- (OOWeaponType) weaponForView:(int) view;
 
 - (void) rotateCargo;
 

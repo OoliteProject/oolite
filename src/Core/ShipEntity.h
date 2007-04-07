@@ -94,10 +94,10 @@ MA 02110-1301, USA.
 	
 	// variables which are controlled by instincts/AI
 	Vector					destination;				// for flying to/from a set point
-	UniversalID				primaryTarget;				// for combat or rendezvous
+	OOUniversalID			primaryTarget;				// for combat or rendezvous
 	GLfloat					desired_range;				// range to which to journey/scan
 	GLfloat					desired_speed;				// speed at which to travel
-	Behaviour				behaviour;					// ship's behavioural state
+	OOBehaviour				behaviour;					// ship's behavioural state
 	
 	BoundingBox				totalBoundingBox;			// records ship configuration
 	
@@ -169,17 +169,17 @@ MA 02110-1301, USA.
 	int						fuel;						// witch-space fuel
 	GLfloat					fuel_accumulator;
 	
-	CargoQuantity			likely_cargo;				// likely amount of cargo (for merchantmen, this is what is spilled as loot)
-	CargoQuantity			max_cargo;					// capacity of cargo hold
-	CargoQuantity			extra_cargo;				// capacity of cargo hold extension (if any)
-	CargoType				cargo_type;					// if this is scooped, this is indicates contents
-	CargoFlag				cargo_flag;					// indicates contents for merchantmen
-	CreditsQuantity			bounty;						// bounty (if any)
+	OOCargoQuantity			likely_cargo;				// likely amount of cargo (for merchantmen, this is what is spilled as loot)
+	OOCargoQuantity			max_cargo;					// capacity of cargo hold
+	OOCargoQuantity			extra_cargo;				// capacity of cargo hold extension (if any)
+	OOCargoType				cargo_type;					// if this is scooped, this is indicates contents
+	OOCargoFlag				cargo_flag;					// indicates contents for merchantmen
+	OOCreditsQuantity		bounty;						// bounty (if any)
 	
 	GLfloat					energy_recharge_rate;		// recharge rate for energy banks
 	
-	WeaponType				forward_weapon_type;		// type of forward weapon (allows lasers, plasma cannon, others)
-	WeaponType				aft_weapon_type;			// type of aft weapon (allows lasers, plasma cannon, others)
+	OOWeaponType			forward_weapon_type;		// type of forward weapon (allows lasers, plasma cannon, others)
+	OOWeaponType			aft_weapon_type;			// type of aft weapon (allows lasers, plasma cannon, others)
 	GLfloat					weapon_energy;				// energy used/delivered by weapon
 	GLfloat					weapon_range;				// range of the weapon (in meters)
 	
@@ -197,11 +197,11 @@ MA 02110-1301, USA.
 	Vector					jink;						// x and y set factors for offsetting a pursuing ship's position
 	Vector					coordinates;				// for flying to/from a set point
 	Vector					reference;					// a direction vector of magnitude 1 (* turrets *)
-	UniversalID				primaryAggressor;			// recorded after an attack
-	UniversalID				targetStation;				// for docking
-	UniversalID				found_target;				// from scans
-	UniversalID				target_laser_hit;			// u-id for the entity hit by the last laser shot
-	UniversalID				owner_id;					// u-id for the controlling owner of this entity (* turrets *)
+	OOUniversalID			primaryAggressor;			// recorded after an attack
+	OOUniversalID			targetStation;				// for docking
+	OOUniversalID			found_target;				// from scans
+	OOUniversalID			target_laser_hit;			// u-id for the entity hit by the last laser shot
+	OOUniversalID			owner_id;					// u-id for the controlling owner of this entity (* turrets *)
 	double					launch_time;				// time at which launched
 	
 	GLfloat					frustration,				// degree of dissatisfaction with the current behavioural state, factor used to test this
@@ -209,7 +209,7 @@ MA 02110-1301, USA.
 	
 	int						patrol_counter;				// keeps track of where the ship is along a patrol route
 	
-	UniversalID				proximity_alert;			// id of a ShipEntity within 2x collision_radius
+	OOUniversalID			proximity_alert;			// id of a ShipEntity within 2x collision_radius
 	NSMutableDictionary		*previousCondition;			// restored after collision avoidance
 	
 	// derived variables
@@ -232,7 +232,7 @@ MA 02110-1301, USA.
 	GLfloat					pitch_tolerance;
 	
 //	BOOL					within_station_aegis;		// set to YES when within the station's protective zone
-	AegisStatus				aegis_status;				// set to YES when within the station's protective zone
+	OOAegisStatus			aegis_status;				// set to YES when within the station's protective zone
 	
 	double					message_time;				// counts down the seconds a radio message is active for
 	
@@ -424,7 +424,7 @@ MA 02110-1301, USA.
 - (BOOL) reportAImessages;
 - (void) setReportAImessages:(BOOL) yn;
 
-- (AegisStatus) checkForAegis;
+- (OOAegisStatus) checkForAegis;
 - (BOOL) within_station_aegis;
 
 - (NSArray*) crew;
@@ -442,21 +442,21 @@ MA 02110-1301, USA.
 
 - (void) setThrust:(double) amount;
 
-- (void) setBounty:(CreditsQuantity) amount;
-- (CreditsQuantity) getBounty;
+- (void) setBounty:(OOCreditsQuantity) amount;
+- (OOCreditsQuantity) getBounty;
 - (int) legal_status;
 
 - (void) setCommodity:(int) co_type andAmount:(int) co_amount;
 - (int) getCommodityType;
 - (int) getCommodityAmount;
 
-- (CargoQuantity) getMaxCargo;
-- (CargoType) getCargoType;
+- (OOCargoQuantity) getMaxCargo;
+- (OOCargoType) getCargoType;
 - (NSMutableArray*) cargo;
 - (void) setCargo:(NSArray *) some_cargo;
 
-- (CargoFlag) cargoFlag;
-- (void) setCargoFlag:(CargoFlag) flag;
+- (OOCargoFlag) cargoFlag;
+- (void) setCargoFlag:(OOCargoFlag) flag;
 
 - (void) setSpeed:(double) amount;
 - (void) setDesiredSpeed:(double) amount;
@@ -535,8 +535,8 @@ BOOL	class_masslocks(int some_class);
 - (Entity *) getPrimaryTarget;
 - (int) getPrimaryTargetID;
 
-- (Behaviour) behaviour;
-- (void) setBehaviour:(Behaviour) cond;
+- (OOBehaviour) behaviour;
+- (void) setBehaviour:(OOBehaviour) cond;
 
 - (void) trackOntoTarget:(double) delta_t withDForward: (GLfloat) dp;
 

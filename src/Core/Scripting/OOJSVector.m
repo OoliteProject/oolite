@@ -336,13 +336,6 @@ static JSBool VectorConvert(JSContext *context, JSObject *this, JSType type, jsv
 	
 	switch (type)
 	{
-		// We could return magnitude for JSTYPE_NUMBER, but that seems incogruous in a language without operator overloading.
-		case JSTYPE_BOOLEAN:
-			// Return true if vector is non-zero
-			if (!JSVectorGetVector(context, this, &vector))  return NO;
-			*outValue = BOOLEAN_TO_JSVAL(!vector_equal(vector, kZeroVector));
-			return YES;
-		
 		case JSTYPE_VOID:		// Used for string concatenation.
 		case JSTYPE_STRING:
 			// Return description of vector
@@ -371,13 +364,13 @@ static void VectorFinalize(JSContext *context, JSObject *this)
 
 static JSBool VectorConstruct(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
 {
-	Vector					vector;
+	Vector					vector = kZeroVector;
 	Vector					*private = NULL;
 	
 	private = malloc(sizeof *private);
 	if (private == NULL)  return NO;
 	
-	if (!VectorFromArgumentList(context, NULL, NULL, argc, argv, &vector, NULL))  vector = kZeroVector;
+	if (argc != 0) VectorFromArgumentList(context, NULL, NULL, argc, argv, &vector, NULL);
 	
 	*private = vector;
 	
@@ -603,6 +596,7 @@ static JSBool VectorRotationTo(JSContext *context, JSObject *this, uintN argc, j
 		if (!NumberFromArgumentList(context, @"Vector", @"rotationTo", argc, argv, &limit,NULL))  return YES;
 		gotLimit = YES;
 	}
+	else gotLimit = NO;
 	
 	if (gotLimit)  result = quaternion_limited_rotation_between(thisv, thatv, limit);
 	else  result = quaternion_rotation_between(thisv, thatv);

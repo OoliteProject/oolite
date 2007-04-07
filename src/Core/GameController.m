@@ -332,7 +332,7 @@ static int _compareModes(id arg1, id arg2, void *context)
 		
 		// moved here to try to avoid initialising this before having an Open GL context
 		[self logProgress:@"initialising universe..."];
-		UNIVERSE = [[Universe alloc] init];
+		[[Universe alloc] init];
 		
 		[UNIVERSE setGameView:gameView];
 			

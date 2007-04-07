@@ -3177,7 +3177,7 @@ double scoopSoundPlayTime = 0.0;
 	return NO;
 }
 
-- (WeaponType) weaponForView:(int) view
+- (OOWeaponType) weaponForView:(int) view
 {
 	if (view == VIEW_CUSTOM)
 		view = currentWeaponFacing;
@@ -4245,36 +4245,50 @@ double scoopSoundPlayTime = 0.0;
 	BOOL loadedOK = YES;
 	NSDictionary*	fileDic = nil;
 	NSString*	fail_reason = nil;
-	if (fileToOpen)
-	{
-		fileDic = OODictionaryFromFile(fileToOpen);
-		
-		if (fileDic)
-		{
-			[self set_up];
-			NS_DURING
-				[self setCommanderDataFromDictionary:fileDic];
-			NS_HANDLER
-				loadedOK = NO;
-				if ([[localException name] isEqual: OOLITE_EXCEPTION_SHIP_NOT_FOUND])
-				{
-					OOLog(kOOLogException, @"***** Oolite Exception : '%@' in [PlayerEntity loadPlayerFromFile: %@ ] *****", [localException reason], fileToOpen);
-					fail_reason = @"Couldn't load Commander details for some reason (AddOns folder missing an OXP perhaps?)";
-				}
-				else
-					[localException raise];
-			NS_ENDHANDLER
-		}
-		else
-			loadedOK = NO;
-	}
+	
+	if (fileToOpen == nil) loadedOK = NO;
+	
 	if (loadedOK)
 	{
-		if (save_path)
-			[save_path autorelease];
+		fileDic = OODictionaryFromFile(fileToOpen);
+		if (!fileDic)  loadedOK = NO;
+	}
+	
+	if (loadedOK)
+	{
+		// Check that player ship exists
+		NSString		*shipKey = nil;
+		NSDictionary	*shipDict = nil;
+		
+		NS_DURING
+			shipKey = [fileDic objectForKey:@"ship_desc"];
+			shipDict = [UNIVERSE getDictionaryForShip:shipKey];
+		NS_HANDLER
+			shipDict = nil;
+		NS_ENDHANDLER
+		
+		if (![shipDict isKindOfClass:[NSDictionary class]])
+		{
+			loadedOK = NO;
+			if (shipKey != nil)  fail_reason = [NSString stringWithFormat:@"Couldn't find ship type \"%@\" - please reinstall the appropriate OXP.", shipKey];
+			else  fail_reason = @"Invalid saved game - no ship specified.";
+		}
+	}
+	else  loadedOK = NO;
+		
+	if (loadedOK)
+	{
+		[self set_up];
+		[self setCommanderDataFromDictionary:fileDic];
+	}
+	
+	if (loadedOK)
+	{
+		if (save_path)  [save_path autorelease];
 		save_path = [fileToOpen retain];
-		[[(MyOpenGLView *)[UNIVERSE gameView] gameController] setPlayerFileToLoad:fileToOpen];
-		[[(MyOpenGLView *)[UNIVERSE gameView] gameController] setPlayerFileDirectory:fileToOpen];
+		
+		[[[UNIVERSE gameView] gameController] setPlayerFileToLoad:fileToOpen];
+		[[[UNIVERSE gameView] gameController] setPlayerFileDirectory:fileToOpen];
 	}
 	else
 	{
@@ -5153,7 +5167,7 @@ static int last_outfitting_index;
 
 	NSArray*	equipdata = [UNIVERSE equipmentdata];
 
-	CargoQuantity cargo_space = max_cargo - current_cargo;
+	OOCargoQuantity cargo_space = max_cargo - current_cargo;
 
 	double price_factor = 1.0;
 	int techlevel =		[(NSNumber *)[[UNIVERSE generateSystemData:system_seed] objectForKey:KEY_TECHLEVEL] intValue];
@@ -5621,7 +5635,7 @@ static int last_outfitting_index;
 	NSString		*eq_key_damaged	= [NSString stringWithFormat:@"%@_DAMAGED", eq_key];
 	double			price			= ([eq_key isEqual:@"EQ_FUEL"]) ? ((PLAYER_MAX_FUEL - fuel) * price_per_unit) : (price_per_unit) ;
 	double			price_factor	= 1.0;
-	CargoQuantity	cargo_space = max_cargo - current_cargo;
+	OOCargoQuantity	cargo_space = max_cargo - current_cargo;
 
 	// repairs cost 50%
 	if ([self has_extra_equipment:eq_key_damaged])
@@ -5950,10 +5964,10 @@ static int last_outfitting_index;
 		for (i = 0; i < n_commodities; i++)
 		{
 			NSString* desc = [NSString stringWithFormat:@" %@ ",(NSString *)[(NSArray *)[localMarket objectAtIndex:i] objectAtIndex:MARKET_NAME]];
-			int available_units = [(NSNumber *)[(NSArray *)[localMarket objectAtIndex:i] objectAtIndex:MARKET_QUANTITY] intValue];
+			int available_units = [[[localMarket objectAtIndex:i] objectAtIndex:MARKET_QUANTITY] intValue];
 			int units_in_hold = in_hold[i];
-			int price_per_unit = [(NSNumber *)[(NSArray *)[localMarket objectAtIndex:i] objectAtIndex:MARKET_PRICE] intValue];
-			MassUnit unit = [(NSNumber *)[(NSArray *)[localMarket objectAtIndex:i] objectAtIndex:MARKET_UNITS] intValue];
+			int price_per_unit = [[[localMarket objectAtIndex:i] objectAtIndex:MARKET_PRICE] intValue];
+			OOMassUnit unit = [[[localMarket objectAtIndex:i] objectAtIndex:MARKET_UNITS] intValue];
 			NSString* available = (available_units > 0) ? [NSString stringWithFormat:@"%d",available_units] : @"-";
 			NSString* price = [NSString stringWithFormat:@" %.1f ",0.1*price_per_unit];
 			NSString* owned = (units_in_hold > 0) ? [NSString stringWithFormat:@"%d",units_in_hold] : @"-";
