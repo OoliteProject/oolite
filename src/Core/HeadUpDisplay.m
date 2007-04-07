@@ -1222,7 +1222,7 @@ static BOOL hostiles;
 	if ([info objectForKey:HEIGHT_KEY])
 		siz.height = [(NSNumber *)[info objectForKey:HEIGHT_KEY] intValue];
 
-	double temp = [player dial_ship_temperature];
+	double temp = [player hullHeatLevel];
 	int flash = (int)([UNIVERSE getTime] * 4);
 	flash &= 1;
 	// draw ship_temperature bar
@@ -1251,7 +1251,7 @@ static BOOL hostiles;
 	if ([info objectForKey:HEIGHT_KEY])
 		siz.height = [(NSNumber *)[info objectForKey:HEIGHT_KEY] intValue];
 
-	double temp = [player dial_weapon_temp];
+	double temp = [player laserHeatLevel];
 	// draw weapon_temp bar
 	glColor4fv(green_color);
 	if (temp > .25)

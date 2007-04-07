@@ -37,6 +37,7 @@ $error									= yes;
 $troubleShootingDump					= yes;
 $entityState							= no;
 $scriptDebugOn							= no;					// This metaclass is set by the debugOn and debugOff script actions.
+$shaderDebugOn							= no;					// Enabled by 's' key while paused, disabled by 'n' while paused.
 
 
 /*** Common programming problems ***/
@@ -158,6 +159,10 @@ rendering.opengl.shader.init.success	= inherit;
 rendering.opengl.shader.init.failed		= $shaderError;
 rendering.opengl.shader.texNameMissing	= $shaderError;
 rendering.opengl.stateDump				= $troubleShootingDump;	// Dump of OpenGL state (debug tool, currently unused)
+rendering.opengl.shader.uniform			= $shaderDebugOn;
+
+
+setup.ship.badEntry.subentities			= inherit;
 
 
 script.addShips.failed					= $scriptError;

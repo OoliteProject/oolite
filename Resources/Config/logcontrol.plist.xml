@@ -20,6 +20,8 @@
 	<string>no</string>
 	<key>$scriptError</key>
 	<string>yes</string>
+	<key>$shaderDebugOn</key>
+	<string>no</string>
 	<key>$shaderError</key>
 	<string>$scriptError</string>
 	<key>$soundDebug</key>
@@ -186,6 +188,8 @@
 	<string>$troubleShootingDump</string>
 	<key>rendering.opengl.shader.texNameMissing</key>
 	<string>$shaderError</string>
+	<key>rendering.opengl.shader.uniform</key>
+	<string>$shaderDebugOn</string>
 	<key>rendering.opengl.stateDump</key>
 	<string>$troubleShootingDump</string>
 	<key>rendering.opengl.version</key>
@@ -320,6 +324,8 @@
 	<string>inherit</string>
 	<key>searchPaths.dumpAll</key>
 	<string>$troubleShootingDump</string>
+	<key>setup.ship.badEntry.subentities</key>
+	<string>inherit</string>
 	<key>sound.channel.cleanup.failed</key>
 	<string>$soundError</string>
 	<key>sound.channel.cleanup.failed.badState</key>

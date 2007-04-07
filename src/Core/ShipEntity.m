@@ -1138,78 +1138,80 @@ static void ApplyConstantUniforms(NSDictionary *uniforms, GLhandleARB shaderProg
 	//
 	if ([shipdict objectForKey:@"subentities"])
 	{
-		// if (UNIVERSE)
+		int i;
+		NSArray *subs = [shipdict objectForKey:@"subentities"];
+		if (![subs isKindOfClass:[NSArray class]])
 		{
-			int i;
-			NSArray *subs = (NSArray *)[shipdict objectForKey:@"subentities"];
-			for (i = 0; i < [subs count]; i++)
+			OOLog(@"setup.ship.badEntry.subentities", @"***** Error setting up ship \"%@\": subentities should be array, is %@. Skipping subentities.", [dict objectForKey:@"name"] ?: @"<unnamed>", [subs class]);
+			subs = nil;
+		}
+		for (i = 0; i < [subs count]; i++)
+		{
+			NSArray* details = ScanTokensFromString([subs objectAtIndex:i]);
+
+			if ([details count] == 8)
 			{
-				NSArray* details = ScanTokensFromString([subs objectAtIndex:i]);
+				Vector sub_pos, ref;
+				Quaternion sub_q;
+				Entity* subent;
+				NSString* subdesc = (NSString *)[details objectAtIndex:0];
+				sub_pos.x = [(NSString *)[details objectAtIndex:1] floatValue];
+				sub_pos.y = [(NSString *)[details objectAtIndex:2] floatValue];
+				sub_pos.z = [(NSString *)[details objectAtIndex:3] floatValue];
+				sub_q.w = [(NSString *)[details objectAtIndex:4] floatValue];
+				sub_q.x = [(NSString *)[details objectAtIndex:5] floatValue];
+				sub_q.y = [(NSString *)[details objectAtIndex:6] floatValue];
+				sub_q.z = [(NSString *)[details objectAtIndex:7] floatValue];
 
-				if ([details count] == 8)
+				if ([subdesc isEqual:@"*FLASHER*"])
 				{
-					Vector sub_pos, ref;
-					Quaternion sub_q;
-					Entity* subent;
-					NSString* subdesc = (NSString *)[details objectAtIndex:0];
-					sub_pos.x = [(NSString *)[details objectAtIndex:1] floatValue];
-					sub_pos.y = [(NSString *)[details objectAtIndex:2] floatValue];
-					sub_pos.z = [(NSString *)[details objectAtIndex:3] floatValue];
-					sub_q.w = [(NSString *)[details objectAtIndex:4] floatValue];
-					sub_q.x = [(NSString *)[details objectAtIndex:5] floatValue];
-					sub_q.y = [(NSString *)[details objectAtIndex:6] floatValue];
-					sub_q.z = [(NSString *)[details objectAtIndex:7] floatValue];
-
-					if ([subdesc isEqual:@"*FLASHER*"])
-					{
-						subent = [[ParticleEntity alloc] init];	// retained
-						[(ParticleEntity*)subent setColor:[OOColor colorWithCalibratedHue: sub_q.w/360.0 saturation:1.0 brightness:1.0 alpha:1.0]];
-						[(ParticleEntity*)subent setDuration: sub_q.x];
-						[(ParticleEntity*)subent setEnergy: 2.0 * sub_q.y];
-						[(ParticleEntity*)subent setSize:NSMakeSize( sub_q.z, sub_q.z)];
-						[(ParticleEntity*)subent setParticleType:PARTICLE_FLASHER];
-						[(ParticleEntity*)subent setStatus:STATUS_EFFECT];
-						[(ParticleEntity*)subent setPosition:sub_pos];
-					}
-					else
-					{
-						quaternion_normalize(&sub_q);
-
-						subent = [UNIVERSE newShipWithName:subdesc];	// retained
-
-						if ((self->isStation)&&([subdesc rangeOfString:@"dock"].location != NSNotFound))
-							[(StationEntity*)self setDockingPortModel:(ShipEntity*)subent :sub_pos :sub_q];
-
-						if (subent)
-						{
-							[(ShipEntity*)subent setStatus:STATUS_INACTIVE];
-							//
-							ref = vector_forward_from_quaternion(sub_q);	// VECTOR FORWARD
-							//
-							[(ShipEntity*)subent setReference: ref];
-							[(ShipEntity*)subent setPosition: sub_pos];
-							[(ShipEntity*)subent setQRotation: sub_q];
-							//
-							[self addSolidSubentityToCollisionRadius:(ShipEntity*)subent];
-							//
-							subent->isSubentity = YES;
-						}
-						//
-					}
-					if (sub_entities == nil)
-						sub_entities = [[NSArray arrayWithObject:subent] retain];
-					else
-					{
-						NSMutableArray *temp = [NSMutableArray arrayWithArray:sub_entities];
-						[temp addObject:subent];
-						[sub_entities release];
-						sub_entities = [[NSArray arrayWithArray:temp] retain];
-					}
-
-					[subent setOwner: self];
-
-					[subent release];
+					subent = [[ParticleEntity alloc] init];	// retained
+					[(ParticleEntity*)subent setColor:[OOColor colorWithCalibratedHue: sub_q.w/360.0 saturation:1.0 brightness:1.0 alpha:1.0]];
+					[(ParticleEntity*)subent setDuration: sub_q.x];
+					[(ParticleEntity*)subent setEnergy: 2.0 * sub_q.y];
+					[(ParticleEntity*)subent setSize:NSMakeSize( sub_q.z, sub_q.z)];
+					[(ParticleEntity*)subent setParticleType:PARTICLE_FLASHER];
+					[(ParticleEntity*)subent setStatus:STATUS_EFFECT];
+					[(ParticleEntity*)subent setPosition:sub_pos];
 				}
+				else
+				{
+					quaternion_normalize(&sub_q);
+
+					subent = [UNIVERSE newShipWithName:subdesc];	// retained
+
+					if ((self->isStation)&&([subdesc rangeOfString:@"dock"].location != NSNotFound))
+						[(StationEntity*)self setDockingPortModel:(ShipEntity*)subent :sub_pos :sub_q];
+
+					if (subent)
+					{
+						[(ShipEntity*)subent setStatus:STATUS_INACTIVE];
+						//
+						ref = vector_forward_from_quaternion(sub_q);	// VECTOR FORWARD
+						//
+						[(ShipEntity*)subent setReference: ref];
+						[(ShipEntity*)subent setPosition: sub_pos];
+						[(ShipEntity*)subent setQRotation: sub_q];
+						//
+						[self addSolidSubentityToCollisionRadius:(ShipEntity*)subent];
+						//
+						subent->isSubentity = YES;
+					}
+					//
+				}
+				if (sub_entities == nil)
+					sub_entities = [[NSArray arrayWithObject:subent] retain];
+				else
+				{
+					NSMutableArray *temp = [NSMutableArray arrayWithArray:sub_entities];
+					[temp addObject:subent];
+					[sub_entities release];
+					sub_entities = [[NSArray arrayWithArray:temp] retain];
+				}
+
+				[subent setOwner: self];
+
+				[subent release];
 			}
 		}
 	}
@@ -3356,12 +3358,15 @@ void testForShaders()
 						glVertexPointer( 3, GL_FLOAT, 0, entityData.vertex_array);
 						glNormalPointer( GL_FLOAT, 0, entityData.normal_array);
 						glTexCoordPointer( 2, GL_FLOAT, 0, entityData.texture_uv_array);
-
-
+						
+						ShipEntity *propertyEntity;
+						if (!isSubentity)  propertyEntity = self;
+						else  propertyEntity = (ShipEntity *)[self owner];
+						
 						GLfloat utime = (GLfloat)[UNIVERSE getTime];
-						GLfloat engine_level = [self speed_factor];
-						GLfloat laser_heat_level = (isPlayer)? [(PlayerEntity*)self dial_weapon_temp]: (weapon_recharge_rate - shot_time) / weapon_recharge_rate;
-						GLfloat hull_heat_level = (isPlayer)? [(PlayerEntity*)self dial_ship_temperature]: ship_temperature / (GLfloat)SHIP_MAX_CABIN_TEMP;
+						GLfloat engine_level = [propertyEntity speed_factor];
+						GLfloat laser_heat_level = [propertyEntity laserHeatLevel];
+						GLfloat hull_heat_level = [propertyEntity hullHeatLevel];
 						
 						laser_heat_level = OOClamp_0_1_f(laser_heat_level);
 						
@@ -3431,27 +3436,45 @@ void testForShaders()
 									// other uniform variables
 									variable_location = glGetUniformLocationARB( shaderProgram, "time");
 									if (variable_location != -1)
+									{
+										OOLog(@"rendering.opengl.shader.uniform.time", @"Binding time: %g", time);
 										glUniform1fARB(variable_location, utime);
+									}
 									
 									variable_location = glGetUniformLocationARB( shaderProgram, "engine_level");
 									if (variable_location != -1)
+									{
+										OOLog(@"rendering.opengl.shader.uniform.engineLevel", @"Binding engine_level: %g", engine_level);
 										glUniform1fARB(variable_location, engine_level);
+									}
 									
 									variable_location = glGetUniformLocationARB( shaderProgram, "laser_heat_level");
 									if (variable_location != -1)
+									{
+										OOLog(@"rendering.opengl.shader.uniform.laserHeatLevel", @"Binding laser_heat_level: %g", laser_heat_level);
 										glUniform1fARB(variable_location, laser_heat_level);
+									}
 									
 									variable_location = glGetUniformLocationARB( shaderProgram, "hull_heat_level");
 									if (variable_location != -1)
+									{
+										OOLog(@"rendering.opengl.shader.uniform.hullHeatLevel", @"Binding hull_heat_level: %g", hull_heat_level);
 										glUniform1fARB(variable_location, hull_heat_level);
+									}
 									
 									variable_location = glGetUniformLocationARB( shaderProgram, "entity_personality_int");
 									if (variable_location != -1)
+									{
+										OOLog(@"rendering.opengl.shader.uniform.entityPersonality.int", @"Binding entity_personality_int: %i", entity_personality);
 										glUniform1iARB(variable_location, entity_personality);
+									}
 									
 									variable_location = glGetUniformLocationARB( shaderProgram, "entity_personality");
 									if (variable_location != -1)
+									{
+										OOLog(@"rendering.opengl.shader.uniform.entityPersonality.float", @"Binding entity_personality: %g", entity_personality / (float)0x7FFF);
 										glUniform1fARB(variable_location, entity_personality / (float)0x7FFF);
+									}
 								}
 								else
 #endif
@@ -5173,6 +5196,18 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 - (NSComparisonResult) compareBeaconCodeWith:(ShipEntity*) other
 {
 	return [[self beaconCode] compare:[other beaconCode] options: NSCaseInsensitiveSearch];
+}
+
+
+- (GLfloat)laserHeatLevel
+{
+	return (weapon_recharge_rate - shot_time) / weapon_recharge_rate;
+}
+
+
+- (GLfloat)hullHeatLevel
+{
+	return ship_temperature / (GLfloat)SHIP_MAX_CABIN_TEMP;
 }
 
 /*-----------------------------------------

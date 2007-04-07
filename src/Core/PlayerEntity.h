@@ -554,8 +554,6 @@ enum
 - (GLfloat) dial_fuel;
 - (GLfloat) dial_hyper_range;
 
-- (GLfloat) dial_ship_temperature;
-- (GLfloat) dial_weapon_temp;
 - (GLfloat) dial_altitude;
 
 - (int) dial_missiles;

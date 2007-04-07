@@ -2483,14 +2483,14 @@ double scoopSoundPlayTime = 0.0;
 	GLfloat distance = distanceBetweenPlanetPositions(target_system_seed.d,target_system_seed.b,galaxy_coordinates.x,galaxy_coordinates.y);
 	return 10.0f * distance / (GLfloat)PLAYER_MAX_FUEL;
 }
-- (GLfloat) dial_ship_temperature
+- (GLfloat) hullHeatLevel
 {
 	GLfloat result = (GLfloat)ship_temperature / (GLfloat)SHIP_MAX_CABIN_TEMP;
 	if (result < 1.0)
 		return result;
 	return 1.0;
 }
-- (GLfloat) dial_weapon_temp
+- (GLfloat) laserHeatLevel
 {
 	GLfloat result = (GLfloat)weapon_temp / (GLfloat)PLAYER_MAX_WEAPON_TEMP;
 	if (result < 1.0)

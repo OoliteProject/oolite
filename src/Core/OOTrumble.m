@@ -571,7 +571,7 @@ MA 02110-1301, USA.
 
 	// feelings
 	//
-	GLfloat temp = [player dial_ship_temperature];
+	GLfloat temp = [player hullHeatLevel];
 	discomfort += delta_t * hunger * 0.02 * (1.0 - hunger);
 	if (temp > 0.33)
 		discomfort += delta_t * (temp - 0.33) * (temp - 0.33) * 0.05;

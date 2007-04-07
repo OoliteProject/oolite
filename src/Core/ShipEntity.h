@@ -511,6 +511,9 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other);
 
 - (NSComparisonResult) compareBeaconCodeWith:(ShipEntity*) other;
 
+- (GLfloat)laserHeatLevel;
+- (GLfloat)hullHeatLevel;
+
 
 /*-----------------------------------------
 

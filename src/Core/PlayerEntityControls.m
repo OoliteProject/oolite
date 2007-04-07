@@ -937,6 +937,7 @@ static NSTimeInterval	time_last_frame;
 			cloak_pressed = NO;
 
 		// look for debugging keys
+		#if 0
 		if ([gameView isDown:'f'])// look for the 'f' key
 		{
 			[UNIVERSE addMessage:@"Flight Training Test Engaged" forCount:3];
@@ -948,33 +949,44 @@ static NSTimeInterval	time_last_frame;
 			[self setAITo:@"fttAI.plist"];
 			[self setReportAImessages: YES];
 		}
-
-		// look for debugging keys
+		#endif
+		
 		if ([gameView isDown:'d'])// look for the 'd' key
 		{
-			debug = -1;
+			debug = DEBUG_ALL;
 			[UNIVERSE addMessage:@"Full debug ON" forCount:3];
 		}
-
-		// look for debugging keys
+		
 		if ([gameView isDown:'b'])// look for the 'b' key
 		{
 			debug = DEBUG_COLLISIONS;
 			[UNIVERSE addMessage:@"Collision debug ON" forCount:3];
 		}
-
-		// look for debugging keys
+		
 		if ([gameView isDown:'c'])// look for the 'c' key
 		{
 			debug |= DEBUG_OCTREE;
 			[UNIVERSE addMessage:@"Octree debug ON" forCount:3];
 		}
-
-		// look for debugging keys
+		
 		if ([gameView isDown:'t'])// look for the 't' key
 		{
 			[UNIVERSE setDoProcedurallyTexturedPlanets: YES];
 			[UNIVERSE addMessage:@"Procedural Textures On" forCount:3];
+		}
+		
+		if ([gameView isDown:'s'])// look for the 's' key
+		{
+			OOLogSetDisplayMessagesInClass(@"$shaderDebugOn", YES);
+			[UNIVERSE addMessage:@"Shader debug ON" forCount:3];
+		}
+		
+		if ([gameView isDown:'n'])// look for the 's' key
+		{
+			debug = 0;
+			OOLogSetDisplayMessagesInClass(@"$shaderDebugOn", NO);
+			[UNIVERSE setDoProcedurallyTexturedPlanets: NO];
+			[UNIVERSE addMessage:@"All debug flags OFF" forCount:3];
 		}
 	}
 	//
