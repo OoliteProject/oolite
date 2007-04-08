@@ -95,4 +95,6 @@ extern int debug;
 
 - (void) clearAllData;
 
+- (void)dumpState;
+
 @end

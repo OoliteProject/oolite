@@ -457,4 +457,24 @@ static NSString * const kOOLogAIPop						= @"ai.pop";
 	[aiLock unlock];
 }
 
+
+- (void)dumpState
+{
+	OOLog(@"dumpState.ai", @"State machine name: %@", stateMachineName);
+	OOLog(@"dumpState.ai", @"Current state: %@", currentState);
+	if (rulingInstinct!= nil && OOLogWillDisplayMessagesInClass(@"dumpState.ai.instinct"))
+	{
+		OOLog(@"dumpState.ai.instinct", @"Ruling instinct:");
+		OOLogPushIndent();
+		OOLogIndent();
+		NS_DURING
+			[rulingInstinct dumpSelfState];
+		NS_HANDLER
+		NS_ENDHANDLER
+		OOLogPopIndent();
+	}
+	OOLog(@"dumpState.ai", @"Next think time: %g", nextThinkTime);
+	OOLog(@"dumpState.ai", @"Next think interval: %g", nextThinkTime);
+}
+
 @end

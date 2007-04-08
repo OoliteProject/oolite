@@ -110,138 +110,74 @@ static PlayerEntity *sSharedPlayer = nil;
 	}
 	
 	// set default keys...
+	#define LOAD_KEY_SETTING(name, default)	name = [kdic intForKey:@#name defaultValue:default]
 	
-	key_roll_left = gvArrowKeyLeft;
-	key_roll_right = gvArrowKeyRight;
-	key_yaw_left = 44;				// ','
-	key_yaw_right = 46;				// '.'
-	key_pitch_forward = gvArrowKeyUp;
-	key_pitch_back = gvArrowKeyDown;
-	key_increase_speed = 119;		// 'w'
-	key_inject_fuel = 105;			// 'i'
-	key_decrease_speed = 115;		// 's'
-	key_fire_lasers = 97;			// 'a'
-	key_target_missile = 116;		// 't'
-	key_untarget_missile = 117;		// 'u'
-	key_launch_missile = 109;		// 'm'
-	key_ecm = 101;					// 'e'
-	key_launch_escapepod = 27;		// 'esc'
-	key_energy_bomb = 9;			// 'tab'
-	key_galactic_hyperspace = 103;	// 'g'
-	key_hyperspace = 104;			// 'h'
-	key_jumpdrive = 106;			// 'j'
-	key_dump_cargo = 100;			// 'd'
-	key_rotate_cargo = 82;			// 'R'
-	key_autopilot = 99;				// 'c'
+	LOAD_KEY_SETTING(key_roll_left,				gvArrowKeyLeft		);
+	LOAD_KEY_SETTING(key_roll_right,			gvArrowKeyRight		);
+	LOAD_KEY_SETTING(key_pitch_forward,			gvArrowKeyUp		);
+	LOAD_KEY_SETTING(key_pitch_back,			gvArrowKeyDown		);
+	LOAD_KEY_SETTING(key_yaw_left,				','					);
+	LOAD_KEY_SETTING(key_yaw_right,				'.'					);
 	
-	key_autopilot_target = 67;		// 'C'
+	LOAD_KEY_SETTING(key_increase_speed,		'w'					);
+	LOAD_KEY_SETTING(key_decrease_speed,		's'					);
+	LOAD_KEY_SETTING(key_inject_fuel,			'i'					);
 	
-	key_autodock = 68;				// 'D'
-	key_snapshot = 42;				// '*'
-	key_docking_music = 115;		// 's'
-	key_scanner_zoom = 122;			// 'z'
-	key_scanner_unzoom = 90;		// 'Z'
+	LOAD_KEY_SETTING(key_fire_lasers,			'a'					);
+	LOAD_KEY_SETTING(key_launch_missile,		'm'					);
+	LOAD_KEY_SETTING(key_next_missile,			'y'					);
+	LOAD_KEY_SETTING(key_ecm,					'e'					);
 	
-	key_map_dump = 33;				// '!'
-	key_map_home = gvHomeKey;		// 'home'
-	key_map_info = 105;				// 'i'
+	LOAD_KEY_SETTING(key_target_missile,		't'					);
+	LOAD_KEY_SETTING(key_untarget_missile,		'u'					);
+	LOAD_KEY_SETTING(key_ident_system,			'r'					);
 	
-	key_pausebutton = 112;			// 'p'
-	key_show_fps = 70;				// 'F'
-	key_mouse_control = 77;			// 'M'
+	LOAD_KEY_SETTING(key_scanner_zoom,			'z'					);
+	LOAD_KEY_SETTING(key_scanner_unzoom,		'Z'					);
 	
-	key_emergency_hyperdrive = 72;	// 'H'
+	LOAD_KEY_SETTING(key_launch_escapepod,		27	/* esc */		);
+	LOAD_KEY_SETTING(key_energy_bomb,			'\t'				);
 	
-	key_next_missile = 121;			// 'y'
-	key_ident_system = 114;			// 'r'
+	LOAD_KEY_SETTING(key_galactic_hyperspace,	'g'					);
+	LOAD_KEY_SETTING(key_hyperspace,			'h'					);
+	LOAD_KEY_SETTING(key_jumpdrive,				'j'					);
 	
-	key_comms_log = 96;				// '`'
+	LOAD_KEY_SETTING(key_dump_cargo,			'd'					);
+	LOAD_KEY_SETTING(key_rotate_cargo,			'R'					);
 	
-	key_next_compass_mode = 92;		// '\'
+	LOAD_KEY_SETTING(key_autopilot,				'c'					);
+	LOAD_KEY_SETTING(key_autopilot_target,		'C'					);
+	LOAD_KEY_SETTING(key_autodock,				'D'					);
 	
-	key_cloaking_device = 48;		// '0'
+	LOAD_KEY_SETTING(key_snapshot,				'*'					);
+	LOAD_KEY_SETTING(key_docking_music,			's'					);
 	
-	key_contract_info = 63;			// '?'
+	LOAD_KEY_SETTING(kay_advanced_nav_array,	'!'					);
+	LOAD_KEY_SETTING(key_map_home,				gvHomeKey			);
+	LOAD_KEY_SETTING(key_map_info,				'i'					);
 	
-	key_next_target = 45;			// '+'
-	key_previous_target = 43;		// '-'
+	LOAD_KEY_SETTING(key_pausebutton,			'p'					);
+	LOAD_KEY_SETTING(key_show_fps,				'F'					);
+	LOAD_KEY_SETTING(key_mouse_control,			'M'					);
 	
-	key_custom_view = 118;			// 'v'
+	LOAD_KEY_SETTING(key_comms_log,				'`'					);
+	LOAD_KEY_SETTING(key_next_compass_mode,		'\\'				);
 	
-	// now check the keyconfig dictionary...
-	if ([kdic objectForKey:@"key_roll_left"])		key_roll_left = [(NSNumber *)[kdic objectForKey:@"key_roll_left"] intValue];
-	if ([kdic objectForKey:@"key_roll_right"])		key_roll_right = [(NSNumber *)[kdic objectForKey:@"key_roll_right"] intValue];
-	if ([kdic objectForKey:@"key_yaw_left"])		key_yaw_left = [(NSNumber *)[kdic objectForKey:@"key_yaw_left"] intValue];
-	if ([kdic objectForKey:@"key_yaw_right"])		key_yaw_right = [(NSNumber *)[kdic objectForKey:@"key_yaw_right"] intValue];
-	if ([kdic objectForKey:@"key_pitch_forward"])   key_pitch_forward = [(NSNumber *)[kdic objectForKey:@"key_pitch_forward"] intValue];
-	if ([kdic objectForKey:@"key_pitch_back"])		key_pitch_back = [(NSNumber *)[kdic objectForKey:@"key_pitch_back"] intValue];
-	if ([kdic objectForKey:@"key_increase_speed"])  key_increase_speed = [(NSNumber *)[kdic objectForKey:@"key_increase_speed"] intValue];
-	if ([kdic objectForKey:@"key_decrease_speed"])  key_decrease_speed = [(NSNumber *)[kdic objectForKey:@"key_decrease_speed"] intValue];
-	if ([kdic objectForKey:@"key_inject_fuel"])		key_inject_fuel = [(NSNumber *)[kdic objectForKey:@"key_inject_fuel"] intValue];
-	if ([kdic objectForKey:@"key_fire_lasers"])		key_fire_lasers = [(NSNumber *)[kdic objectForKey:@"key_fire_lasers"] intValue];
-	if ([kdic objectForKey:@"key_target_missile"])  key_target_missile = [(NSNumber *)[kdic objectForKey:@"key_target_missile"] intValue];
-	if ([kdic objectForKey:@"key_untarget_missile"])	key_untarget_missile = [(NSNumber *)[kdic objectForKey:@"key_untarget_missile"] intValue];
-	if ([kdic objectForKey:@"key_launch_missile"])  key_launch_missile = [(NSNumber *)[kdic objectForKey:@"key_launch_missile"] intValue];
-	if ([kdic objectForKey:@"key_ecm"])				key_ecm = [(NSNumber *)[kdic objectForKey:@"key_ecm"] intValue];
-	if ([kdic objectForKey:@"key_launch_escapepod"])	key_launch_escapepod = [(NSNumber *)[kdic objectForKey:@"key_launch_escapepod"] intValue];
-	if ([kdic objectForKey:@"key_energy_bomb"])		key_energy_bomb = [(NSNumber *)[kdic objectForKey:@"key_energy_bomb"] intValue];
-	if ([kdic objectForKey:@"key_galactic_hyperspace"]) key_galactic_hyperspace = [(NSNumber *)[kdic objectForKey:@"key_galactic_hyperspace"] intValue];
-	if ([kdic objectForKey:@"key_hyperspace"])		key_hyperspace = [(NSNumber *)[kdic objectForKey:@"key_hyperspace"] intValue];
-	if ([kdic objectForKey:@"key_jumpdrive"])		key_jumpdrive = [(NSNumber *)[kdic objectForKey:@"key_jumpdrive"] intValue];
-	if ([kdic objectForKey:@"key_dump_cargo"])		key_dump_cargo = [(NSNumber *)[kdic objectForKey:@"key_dump_cargo"] intValue];
-	if ([kdic objectForKey:@"key_rotate_cargo"])	key_rotate_cargo = [(NSNumber *)[kdic objectForKey:@"key_rotate_cargo"] intValue];
-	if ([kdic objectForKey:@"key_autopilot"])		key_autopilot = [(NSNumber *)[kdic objectForKey:@"key_autopilot"] intValue];
-	if ([kdic objectForKey:@"key_autodock"])		key_autodock = [(NSNumber *)[kdic objectForKey:@"key_autodock"] intValue];
-	if ([kdic objectForKey:@"key_snapshot"])		key_snapshot = [(NSNumber *)[kdic objectForKey:@"key_snapshot"] intValue];
-	if ([kdic objectForKey:@"key_docking_music"])   key_docking_music = [(NSNumber *)[kdic objectForKey:@"key_docking_music"] intValue];
-	if ([kdic objectForKey:@"key_scanner_zoom"])	key_scanner_zoom = [(NSNumber *)[kdic objectForKey:@"key_scanner_zoom"] intValue];
-	if ([kdic objectForKey:@"key_scanner_unzoom"])	key_scanner_unzoom = [(NSNumber *)[kdic objectForKey:@"key_scanner_unzoom"] intValue];
+	LOAD_KEY_SETTING(key_cloaking_device,		'0'					);
 	
-	if ([kdic objectForKey:@"key_next_target"])		key_next_target = [(NSNumber *)[kdic objectForKey:@"key_next_target"] intValue];
-	if ([kdic objectForKey:@"key_previous_target"])	key_previous_target = [(NSNumber *)[kdic objectForKey:@"key_previous_target"] intValue];
+	LOAD_KEY_SETTING(key_contract_info,			'\?'				);
 	
-	if ([kdic objectForKey:@"key_map_dump"])		key_map_dump = [(NSNumber *)[kdic objectForKey:@"key_map_dump"] intValue];
-	if ([kdic objectForKey:@"key_map_home"])		key_map_home = [(NSNumber *)[kdic objectForKey:@"key_map_home"] intValue];
+	LOAD_KEY_SETTING(key_next_target,			'+'					);
+	LOAD_KEY_SETTING(key_previous_target,		'-'					);
 	
-	if ([kdic objectForKey:@"key_mouse_control"])
-		key_mouse_control = [(NSNumber *)[kdic objectForKey:@"key_mouse_control"] intValue];
-	if ([kdic objectForKey:@"key_pausebutton"])
-		key_pausebutton = [(NSNumber *)[kdic objectForKey:@"key_pausebutton"] intValue];
-	if ([kdic objectForKey:@"key_show_fps"])
-		key_show_fps = [(NSNumber *)[kdic objectForKey:@"key_show_fps"] intValue];
+	LOAD_KEY_SETTING(key_custom_view,			'v'					);
 	
-	if ([kdic objectForKey:@"key_next_missile"])
-		key_next_missile = [(NSNumber *)[kdic objectForKey:@"key_next_missile"] intValue];
-	if ([kdic objectForKey:@"key_ident_system"])
-		key_ident_system = [(NSNumber *)[kdic objectForKey:@"key_ident_system"] intValue];
-	
-	if ([kdic objectForKey:@"key_comms_log"])
-		key_comms_log = [(NSNumber *)[kdic objectForKey:@"key_comms_log"] intValue];
-	
-	if ([kdic objectForKey:@"key_next_compass_mode"])
-		key_next_compass_mode = [(NSNumber *)[kdic objectForKey:@"key_next_compass_mode"] intValue];
-	
-	if ([kdic objectForKey:@"key_cloaking_device"])
-		key_cloaking_device = [(NSNumber *)[kdic objectForKey:@"key_cloaking_device"] intValue];
-	
-	if ([kdic objectForKey:@"key_contract_info"])
-		key_contract_info = [(NSNumber *)[kdic objectForKey:@"key_contract_info"] intValue];
-	
-	if ([kdic objectForKey:@"key_next_target"])
-		key_next_target = [(NSNumber *)[kdic objectForKey:@"key_next_target"] intValue];
-	if ([kdic objectForKey:@"key_previous_target"])
-		key_previous_target = [(NSNumber *)[kdic objectForKey:@"key_previous_target"] intValue];
-	
-	if ([kdic objectForKey:@"key_map_info"])
-		key_map_info = [(NSNumber *)[kdic objectForKey:@"key_map_info"] intValue];
-	
-	if ([kdic objectForKey:@"key_custom_view"])
-		key_custom_view = [(NSNumber *)[kdic objectForKey:@"key_custom_view"] intValue];
+	LOAD_KEY_SETTING(key_dump_target_state,		NUM_KEYS + 1		);	// Default to no assignment.
 	
 	// other keys are SET and cannot be varied
-
-   // Enable polling
-   pollControls=YES;
+	
+	// Enable polling
+	pollControls=YES;
 }
 
 - (void) unloadCargoPods

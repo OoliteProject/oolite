@@ -39,6 +39,9 @@ MA 02110-1301, USA.
 #define kOOLogUnconvertedNSLog @"unclassified.StationEntity"
 
 
+static NSDictionary* instructions(int station_id, Vector coords, float speed, float range, NSString* ai_message, NSString* comms_message, BOOL match_rotation);
+
+
 @implementation StationEntity
 
 - (void) acceptDistressMessageFrom:(ShipEntity *)other
@@ -259,7 +262,7 @@ MA 02110-1301, USA.
 	[shipAI message:@"DOCKING_COMPLETE"];
 }
 
-NSDictionary* instructions(int station_id, Vector coords, float speed, float range, NSString* ai_message, NSString* comms_message, BOOL match_rotation)
+static NSDictionary* instructions(int station_id, Vector coords, float speed, float range, NSString* ai_message, NSString* comms_message, BOOL match_rotation)
 {
 	NSMutableDictionary* acc = [NSMutableDictionary dictionaryWithCapacity:8];
 	[acc setObject:[NSString stringWithFormat:@"%.2f %.2f %.2f", coords.x, coords.y, coords.z] forKey:@"destination"];
@@ -663,67 +666,20 @@ NSDictionary* instructions(int station_id, Vector coords, float speed, float ran
 }
 
 
-
-- (id) initWithDictionary:(NSDictionary *) dict
+- (void) dealloc
 {
-	self = [super initWithDictionary:dict];
+	[shipsOnApproach release];
+	[shipsOnHold release];
+	[launchQueue release];
 	
-	if ([dict objectForKey:@"equivalent_tech_level"])
-		equivalent_tech_level = [(NSNumber *)[dict objectForKey:@"equivalent_tech_level"] intValue];
-	else
-		equivalent_tech_level = NSNotFound;
+	[localMarket release];
+	[localPassengers release];
+	[localContracts release];
+	[localShipyard release];
 	
-	if ([dict objectForKey:@"equipment_price_factor"])
-		equipment_price_factor = [(NSNumber *)[dict objectForKey:@"equipment_price_factor"] doubleValue];
-	else
-		equipment_price_factor = 1.0;
-	
-	
-	alert_level = 0;
-	police_launched = 0;
-	last_launch_time = 0.0;
-	approach_spacing = 0.0;
-	
-	localMarket = nil;
-	
-	docked_shuttles = ranrot_rand() % 4;   // 0..3;
-	last_shuttle_launch_time = 0.0;
-	shuttle_launch_interval = 15.0 * 60.0;  // every 15 minutes
-	last_shuttle_launch_time = - (ranrot_rand() % 60) * shuttle_launch_interval / 60.0;
-
-	docked_traders = 3 + (ranrot_rand() & 7);   // 1..3;
-	trader_launch_interval = 3600.0 / docked_traders;  // every few minutes
-	last_trader_launch_time = 60.0 - trader_launch_interval; // in one minute's time
-	
-	int i;
-	for (i = 0; i < MAX_DOCKING_STAGES; i++)
-		id_lock[i] = NO_TARGET;
-
-	isShip = YES;
-	isStation = YES;
-
-	return self;
+    [super dealloc];
 }
 
-- (void) setDockingPortModel:(ShipEntity*) dock_model :(Vector) dock_pos :(Quaternion) dock_q
-{
-	port_model = dock_model;
-		
-	port_position = dock_pos;
-	port_qrotation = dock_q;
-
-	BoundingBox bb = [port_model boundingBox];
-	port_dimensions = make_vector( bb.max.x - bb.min.x, bb.max.y - bb.min.y, bb.max.z - bb.min.z);
-
-	if (bb.max.z > 0.0)
-	{
-		Vector vk = vector_forward_from_quaternion(dock_q);
-		port_position.x += bb.max.z * vk.x;
-		port_position.y += bb.max.z * vk.y;
-		port_position.z += bb.max.z * vk.z;
-	}
-	
-}
 
 - (void) setUpShipFromDictionary:(NSDictionary *) dict
 {
@@ -741,6 +697,14 @@ NSDictionary* instructions(int station_id, Vector coords, float speed, float ran
 	localContracts = nil;
 	[localShipyard autorelease];
 	localShipyard = nil;
+	police_launched = 0;
+	scavengers_launched = 0;
+	approach_spacing = 0.0;
+	last_launch_time = 0.0;
+	for (i = 0; i < MAX_DOCKING_STAGES; i++)  id_lock[i] = NO_TARGET;
+	[shipsOnApproach removeAllObjects];
+	[shipsOnHold removeAllObjects];
+	[launchQueue removeAllObjects];
 #endif
 	
 	isShip = YES;
@@ -748,8 +712,9 @@ NSDictionary* instructions(int station_id, Vector coords, float speed, float ran
 	
 	// ** Set up a the docking port
 	// Look for subentity specifying position
-	NSArray		*subs = (NSArray *)[dict objectForKey:@"subentities"];
+	NSArray		*subs = [dict arrayForKey:@"subentities" defaultValue:nil];
 	NSArray		*dockSubEntity = nil;
+	
 	for (i = 0; i < [subs count]; i++)
 	{
 		NSArray* details = ScanTokensFromString([subs objectAtIndex:i]);
@@ -776,14 +741,7 @@ NSDictionary* instructions(int station_id, Vector coords, float speed, float ran
 	}
 	
 	// port_dimensions can be set for rock-hermits and other specials
-	NSArray* tokens = [[dict objectForKey:@"port_dimensions"] componentsSeparatedByString:@"x"];
-	if ([tokens count] == 3)
-	{
-		port_dimensions = make_vector(	[(NSString*)[tokens objectAtIndex:0] floatValue],
-										[(NSString*)[tokens objectAtIndex:1] floatValue],
-										[(NSString*)[tokens objectAtIndex:2] floatValue]);
-	}
-	else
+	if (!ScanVectorFromString([dict stringForKey:@"port_dimensions" defaultValue:nil], &port_dimensions))
 	{
 		port_dimensions = make_vector( 69, 69, 250);		// base port size (square)
 	}
@@ -795,16 +753,6 @@ NSDictionary* instructions(int station_id, Vector coords, float speed, float ran
 	max_defense_ships = [dict intForKey:@"max_defense_ships" defaultValue:3];
 	max_police = [dict intForKey:@"max_police" defaultValue:STATION_MAX_POLICE];
 	equipment_price_factor = [dict doubleForKey:@"equipment_price_factor" defaultValue:1.0];
-		
-	police_launched = 0;
-	scavengers_launched = 0;
-	approach_spacing = 0.0;
-	[shipsOnApproach removeAllObjects];
-	[shipsOnHold removeAllObjects];
-	[launchQueue removeAllObjects];
-	last_launch_time = 0.0;
-	
-	for (i = 0; i < MAX_DOCKING_STAGES; i++)  id_lock[i] = NO_TARGET;
 
 	if ([self isRotatingStation])
 	{
@@ -826,18 +774,25 @@ NSDictionary* instructions(int station_id, Vector coords, float speed, float ran
 	[self setCrew:[NSArray arrayWithObject:[OOCharacter characterWithRole:@"police" andOriginalSystem:[UNIVERSE systemSeed]]]];
 }
 
-- (void) dealloc
+
+- (void) setDockingPortModel:(ShipEntity*) dock_model :(Vector) dock_pos :(Quaternion) dock_q
 {
-	[shipsOnApproach release];
-	[shipsOnHold release];
-	[launchQueue release];
+	port_model = dock_model;
+		
+	port_position = dock_pos;
+	port_qrotation = dock_q;
+
+	BoundingBox bb = [port_model boundingBox];
+	port_dimensions = make_vector( bb.max.x - bb.min.x, bb.max.y - bb.min.y, bb.max.z - bb.min.z);
+
+	if (bb.max.z > 0.0)
+	{
+		Vector vk = vector_forward_from_quaternion(dock_q);
+		port_position.x += bb.max.z * vk.x;
+		port_position.y += bb.max.z * vk.y;
+		port_position.z += bb.max.z * vk.z;
+	}
 	
-	[localMarket release];
-	[localPassengers release];
-	[localContracts release];
-	[localShipyard release];
-	
-    [super dealloc];
 }
 
 - (BOOL) shipIsInDockingCorridor:(ShipEntity*) ship
@@ -1728,6 +1683,33 @@ NSDictionary* instructions(int station_id, Vector coords, float speed, float ran
 	}
 	else
 		return [NSString stringWithFormat:@"<StationEntity %@ %d>", name, universalID];
+}
+
+
+- (void)dumpSelfState
+{
+	NSMutableArray		*flags = nil;
+	NSString			*flagsString = nil;
+	
+	[super dumpSelfState];
+	
+	OOLog(@"dumpState.stationEntity", @"Alert level: %u", alert_level);
+	OOLog(@"dumpState.stationEntity", @"Max police: %u", max_police);
+	OOLog(@"dumpState.stationEntity", @"Max defence ships: %u", max_defense_ships);
+	OOLog(@"dumpState.stationEntity", @"Police launched: %u", police_launched);
+	OOLog(@"dumpState.stationEntity", @"Max scavengers: %u", max_scavengers);
+	OOLog(@"dumpState.stationEntity", @"Scavengers launched: %u", scavengers_launched);
+	OOLog(@"dumpState.stationEntity", @"Docked shuttles: %u", docked_shuttles);
+	OOLog(@"dumpState.stationEntity", @"Docked traders: %u", docked_traders);
+	OOLog(@"dumpState.stationEntity", @"Equivalent tech level: %i", equivalent_tech_level);
+	OOLog(@"dumpState.stationEntity", @"Equipment price factor: %g", equipment_price_factor);
+	
+	flags = [NSMutableArray array];
+	#define ADD_FLAG_IF_SET(x)		if (x) { [flags addObject:@#x]; }
+	ADD_FLAG_IF_SET(no_docking_while_launching);
+	if ([self isRotatingStation]) { [flags addObject:@"rotatingStation"]; }
+	flagsString = [flags count] ? [flags componentsJoinedByString:@", "] : @"none";
+	OOLog(@"dumpState.stationEntity", @"Flags: %@", flagsString);
 }
 
 @end

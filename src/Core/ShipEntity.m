@@ -7638,6 +7638,88 @@ inline BOOL pairOK(NSString* my_role, NSString* their_role)
 
 #endif
 
+
+- (void)dumpSelfState
+{
+	NSMutableArray		*flags = nil;
+	NSString			*flagsString = nil;
+	
+	[super dumpSelfState];
+	
+	OOLog(@"dumpState.shipEntity", @"Name: %@", name);
+	OOLog(@"dumpState.shipEntity", @"Roles: %@", roles);
+	if (sub_entities != nil)  OOLog(@"dumpState.shipEntity", @"Subentity count: %u", [sub_entities count]);
+	OOLog(@"dumpState.shipEntity", @"Time since shot: %g", shot_time);
+	OOLog(@"dumpState.shipEntity", @"Behaviour: %@", BehaviourToString(behaviour));
+	if (primaryTarget != NO_TARGET)  OOLog(@"dumpState.shipEntity", @"Target: %@", [self getPrimaryTarget]);
+	OOLog(@"dumpState.shipEntity", @"Destination: %@", VectorDescription(destination));
+	OOLog(@"dumpState.shipEntity", @"Other destination: %@", VectorDescription(coordinates));
+	OOLog(@"dumpState.shipEntity", @"Waypoint count: %u", number_of_navpoints);
+	OOLog(@"dumpState.shipEntity", @"Desired speed: %g", desired_speed);
+	if (n_escorts != 0)  OOLog(@"dumpState.shipEntity", @"Escort count: %u", n_escorts);
+	OOLog(@"dumpState.shipEntity", @"Fuel: %i", fuel);
+	OOLog(@"dumpState.shipEntity", @"Fuel accumulator: %g", fuel_accumulator);
+	OOLog(@"dumpState.shipEntity", @"Missile count: %u", missiles);
+	if (brain != nil && OOLogWillDisplayMessagesInClass(@"dumpState.shipEntity.brain"))
+	{
+		OOLog(@"dumpState.shipEntity.brain", @"Brain:");
+		OOLogPushIndent();
+		OOLogIndent();
+		NS_DURING
+			[brain dumpState];
+		NS_HANDLER
+		NS_ENDHANDLER
+		OOLogPopIndent();
+	}
+	if (shipAI != nil && OOLogWillDisplayMessagesInClass(@"dumpState.shipEntity.ai"))
+	{
+		OOLog(@"dumpState.shipEntity.ai", @"AI:");
+		OOLogPushIndent();
+		OOLogIndent();
+		NS_DURING
+			[shipAI dumpState];
+		NS_HANDLER
+		NS_ENDHANDLER
+		OOLogPopIndent();
+	}
+	OOLog(@"dumpState.shipEntity", @"Frustration: %g", frustration);
+	OOLog(@"dumpState.shipEntity", @"Success factor: %g", success_factor);
+	OOLog(@"dumpState.shipEntity", @"Shots fired: %u", shot_counter);
+	if (beaconChar != '\0')
+	{
+		OOLog(@"dumpState.shipEntity", @"Beacon character: '%c'", beaconChar);
+	}
+	OOLog(@"dumpState.shipEntity", @"Hull temperature: %g", ship_temperature);
+	OOLog(@"dumpState.shipEntity", @"Heat insulation: %g", heat_insulation);
+	
+	flags = [NSMutableArray array];
+	#define ADD_FLAG_IF_SET(x)		if (x) { [flags addObject:@#x]; }
+	ADD_FLAG_IF_SET(has_ecm);
+	ADD_FLAG_IF_SET(has_scoop);
+	ADD_FLAG_IF_SET(has_escape_pod);
+	ADD_FLAG_IF_SET(has_energy_bomb);
+	ADD_FLAG_IF_SET(has_cloaking_device);
+	ADD_FLAG_IF_SET(has_military_jammer);
+	ADD_FLAG_IF_SET(military_jammer_active);
+	ADD_FLAG_IF_SET(has_military_scanner_filter);
+	ADD_FLAG_IF_SET(has_fuel_injection);
+	ADD_FLAG_IF_SET(docking_match_rotation);
+	ADD_FLAG_IF_SET(escortsAreSetUp);
+	ADD_FLAG_IF_SET(pitching_over);
+	ADD_FLAG_IF_SET(reportAImessages);
+	ADD_FLAG_IF_SET(being_mined);
+	ADD_FLAG_IF_SET(being_fined);
+	ADD_FLAG_IF_SET(is_hulk);
+	ADD_FLAG_IF_SET(trackCloseContacts);
+	ADD_FLAG_IF_SET(isNearPlanetSurface);
+	ADD_FLAG_IF_SET(isFrangible);
+	ADD_FLAG_IF_SET(cloaking_device_active);
+	ADD_FLAG_IF_SET(canFragment);
+	ADD_FLAG_IF_SET(proximity_alert);
+	flagsString = [flags count] ? [flags componentsJoinedByString:@", "] : @"none";
+	OOLog(@"dumpState.shipEntity", @"Flags: %@", flagsString);
+}
+
 @end
 
 

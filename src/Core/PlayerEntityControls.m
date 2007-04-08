@@ -128,6 +128,8 @@ static BOOL rotateCargo_pressed;
 static BOOL autopilot_key_pressed;
 static BOOL fast_autopilot_key_pressed;
 static BOOL target_autopilot_key_pressed;
+static BOOL dump_target_state_pressed;
+
 static int				saved_view_direction;
 static double			saved_script_time;
 static NSTimeInterval	time_last_frame;
@@ -889,6 +891,18 @@ static NSTimeInterval	time_last_frame;
 				cloak_pressed = NO;
 
 		}
+			
+		if ([gameView isDown:key_dump_target_state])
+		{
+			if (!dump_target_state_pressed)
+			{
+				dump_target_state_pressed = YES;
+				id target = [self getPrimaryTarget];
+				if (target)  [target dumpState];
+				else  OOLog(@"dumpState.noTarget", @"Can't dump target state because no target is selected.");
+			}
+		}
+		else  dump_target_state_pressed = NO;
 
 		//
 		//  text displays
@@ -1408,7 +1422,7 @@ static BOOL spacePressed;
 	switch (gui_screen)
 	{
 		case	GUI_SCREEN_LONG_RANGE_CHART :
-			if ([gameView isDown:key_map_dump])   //  '!' key
+			if ([gameView isDown:kay_advanced_nav_array])   //  '!' key
 			{
 				if (!pling_pressed)
 				{

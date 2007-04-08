@@ -108,4 +108,6 @@ MA 02110-1301, USA.
 
 - (id)	initInstinctOfType:(int) aType ofPriority:(GLfloat)aPriority forOwner:(id) anOwner withShip:(ShipEntity*) aShip;
 
+- (void)dumpState;
+
 @end

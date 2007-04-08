@@ -57,7 +57,7 @@ MA 02110-1301, USA.
 	int						scavengers_launched;
 	
 	int						equivalent_tech_level;
-	double					equipment_price_factor;
+	float					equipment_price_factor;
 
 	Vector					port_position;
 	Quaternion				port_qrotation;
@@ -66,7 +66,7 @@ MA 02110-1301, USA.
 	
 	BOOL					no_docking_while_launching;
 	
-	int						planet;
+	OOUniversalID			planet;
 	
 	NSMutableArray			*localMarket;
 	NSMutableArray			*localPassengers;
@@ -120,7 +120,6 @@ MA 02110-1301, USA.
 
 - (void) autoDockShipsOnApproach;
 
-NSDictionary* instructions(int station_id, Vector coords, float speed, float range, NSString* ai_message, NSString* comms_message, BOOL match_rotation);
 - (NSDictionary *) dockingInstructionsForShip:(ShipEntity *) ship;
 - (void) addShipToShipsOnApproach:(ShipEntity *) ship;
 

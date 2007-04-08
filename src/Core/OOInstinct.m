@@ -26,6 +26,7 @@ MA 02110-1301, USA.
 #import "ShipEntity.h"
 #import "Universe.h"
 #import "AI.h"
+#import "OOConstToString.h"
 
 #define kOOLogUnconvertedNSLog @"unclassified.OOInstinct"
 
@@ -270,6 +271,16 @@ MA 02110-1301, USA.
 		priority_out =	0.0f;
 
 	return self;
+}
+
+
+- (void)dumpState
+{
+	OOLog(@"dumpState.instinct", @"Instinct type: %@", InstinctToString(type));
+	OOLog(@"dumpState.instinct", @"Destination: %@", VectorDescription(destination));
+	if (target_id != NO_TARGET)  OOLog(@"dumpState.instinct", @"Target: %@", [UNIVERSE entityForUniversalID:target_id]);
+	OOLog(@"dumpState.instinct", @"Desired speed: %g", desired_speed);
+	OOLog(@"dumpState.instinct", @"Behaviour: %@", BehaviourToString(behaviour));
 }
 
 @end

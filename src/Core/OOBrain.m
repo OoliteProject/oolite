@@ -209,4 +209,22 @@ MA 02110-1301, USA.
 	}
 }
 
+
+- (void)dumpState
+{
+	OOLog(@"dumpState.brain", @"Instinct count: %u", n_instincts);
+	OOLog(@"dumpState.brain", @"Nearby entities: %u", n_nearby_entities);
+	if (most_urgent_instinct != nil && OOLogWillDisplayMessagesInClass(@"dumpState.brain.instinct"))
+	{
+		OOLog(@"dumpState.brain.instinct", @"Most urgent instinct:");
+		OOLogPushIndent();
+		OOLogIndent();
+		NS_DURING
+			[most_urgent_instinct dumpState];
+		NS_HANDLER
+		NS_ENDHANDLER
+		OOLogPopIndent();
+	}
+}
+
 @end

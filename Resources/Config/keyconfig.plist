@@ -40,8 +40,6 @@
 	<integer>9</integer>
 	<key>key_galactic_hyperspace</key>
 	<integer>103</integer>
-	<key>key_emergency_hyperdrive</key>
-	<integer>72</integer>
 	<key>key_hyperspace</key>
 	<integer>104</integer>
 	<key>key_jumpdrive</key>
@@ -62,10 +60,12 @@
 	<integer>122</integer>
 	<key>key_scanner_unzoom</key>
 	<integer>90</integer>
-	<key>key_map_dump</key>
+	<key>kay_advanced_nav_array</key>
 	<integer>33</integer>
 	<key>key_map_home</key>
 	<integer>302</integer>
+	<key>key_cloaking_device</key>
+	<integer>48</integer>
 	<key>key_comms_log</key>
 	<integer>96</integer>
 	<key>key_next_compass_mode</key>

@@ -337,6 +337,9 @@ extern int debug;
 
 - (NSString *) toString;
 
+- (void)dumpState;		// General "describe situtation verbosely in log" command.
+- (void)dumpSelfState;	// Subclasses should override this, not -dumpState, and call throught to super first.
+
 // COMMON OGL ROUTINES
 
 - (BOOL) OGL_InitVAR;
@@ -345,14 +348,15 @@ extern int debug;
 
 - (void) OGL_UpdateVAR;
 
+@end
+
+
 // keep track of various OpenGL states
 //
 BOOL mygl_texture_2d;
 //
 void my_glEnable(GLenum gl_state);
 void my_glDisable(GLenum gl_state);
-
-@end
 
 // log a list of current states
 //

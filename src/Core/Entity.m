@@ -2251,6 +2251,63 @@ BOOL global_testForVAR;
 
 }
 
+
+- (void)dumpState
+{
+	if (OOLogWillDisplayMessagesInClass(@"dumpState"))
+	{
+		OOLog(@"dumpState", @"State for %@:", self);
+		OOLogPushIndent();
+		OOLogIndent();
+		NS_DURING
+			[self dumpSelfState];
+		NS_HANDLER
+		NS_ENDHANDLER
+		OOLogPopIndent();
+	}
+}
+
+
+- (void)dumpSelfState
+{
+	NSMutableArray		*flags = nil;
+	NSString			*flagsString = nil;
+	
+	OOLog(@"dumpState.entity", @"Universal ID: %u", universalID);
+	OOLog(@"dumpState.entity", @"Scan class: %@", ScanClassToString(scanClass));
+	OOLog(@"dumpState.entity", @"Status: %@", EntityStatusToString(status));
+	OOLog(@"dumpState.entity", @"Position: %@", VectorDescription(position));
+//	OOLog(@"dumpState.entity", @"Velocity: %@", VectorDescription(velocity));	// Not generally meaningful
+	OOLog(@"dumpState.entity", @"Orientation: %@", QuaternionDescription(q_rotation));
+	OOLog(@"dumpState.entity", @"Distance travelled: %g", distanceTravelled);
+	OOLog(@"dumpState.entity", @"Energy: %g of %g", energy, maxEnergy);
+	OOLog(@"dumpState.entity", @"Mass: %g", mass);
+	if (basefile != nil)  OOLog(@"dumpState.entity", @"Model file: %@", basefile);
+	if (owner != NO_TARGET)  OOLog(@"dumpState.entity", @"Owner: %@", [UNIVERSE entityForUniversalID:owner]);
+	
+	flags = [NSMutableArray array];
+	#define ADD_FLAG_IF_SET(x)		if (x) { [flags addObject:@#x]; }
+	ADD_FLAG_IF_SET(isParticle);
+	ADD_FLAG_IF_SET(isRing);
+	ADD_FLAG_IF_SET(isShip);
+	ADD_FLAG_IF_SET(isStation);
+	ADD_FLAG_IF_SET(isPlanet);
+	ADD_FLAG_IF_SET(isPlayer);
+	ADD_FLAG_IF_SET(isSky);
+	ADD_FLAG_IF_SET(isWormhole);
+	ADD_FLAG_IF_SET(isSubentity);
+	ADD_FLAG_IF_SET(hasMoved);
+	ADD_FLAG_IF_SET(hasRotated);
+	ADD_FLAG_IF_SET(isSunlit);
+	ADD_FLAG_IF_SET(collisionTestFilter);
+	ADD_FLAG_IF_SET(isSmoothShaded);
+	ADD_FLAG_IF_SET(throw_sparks);
+	ADD_FLAG_IF_SET(usingVAR);
+	flagsString = [flags count] ? [flags componentsJoinedByString:@", "] : @"none";
+	OOLog(@"dumpState.entity", @"Flags: %@", flagsString);
+}
+
+
 // COMMON OGL STUFF
 
 - (BOOL) OGL_InitVAR

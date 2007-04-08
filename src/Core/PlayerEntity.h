@@ -359,36 +359,45 @@ enum
 	// keys!
 	OOKeyCode				key_roll_left;
 	OOKeyCode				key_roll_right;
-	OOKeyCode				key_yaw_left;
-	OOKeyCode				key_yaw_right;
 	OOKeyCode				key_pitch_forward;
 	OOKeyCode				key_pitch_back;
+	OOKeyCode				key_yaw_left;
+	OOKeyCode				key_yaw_right;
+	
 	OOKeyCode				key_increase_speed;
 	OOKeyCode				key_decrease_speed;
-	
 	OOKeyCode				key_inject_fuel;
 	
 	OOKeyCode				key_fire_lasers;
+	OOKeyCode				key_launch_missile;
+	OOKeyCode				key_next_missile;
+	OOKeyCode				key_ecm;
+	
 	OOKeyCode				key_target_missile;
 	OOKeyCode				key_untarget_missile;
-	OOKeyCode				key_launch_missile;
-	OOKeyCode				key_ecm;
-	OOKeyCode				key_launch_escapepod;
-	OOKeyCode				key_energy_bomb;
-	OOKeyCode				key_galactic_hyperspace;
-	OOKeyCode				key_hyperspace;
-	OOKeyCode				key_jumpdrive;
-	OOKeyCode				key_dump_cargo;
-	OOKeyCode				key_rotate_cargo;
-	OOKeyCode				key_autopilot;
-	OOKeyCode				key_autopilot_target;
-	OOKeyCode				key_autodock;
-	OOKeyCode				key_snapshot;
-	OOKeyCode				key_docking_music;
+	OOKeyCode				key_ident_system;
+	
 	OOKeyCode				key_scanner_zoom;
 	OOKeyCode				key_scanner_unzoom;
 	
-	OOKeyCode				key_map_dump;
+	OOKeyCode				key_launch_escapepod;
+	OOKeyCode				key_energy_bomb;
+	
+	OOKeyCode				key_galactic_hyperspace;
+	OOKeyCode				key_hyperspace;
+	OOKeyCode				key_jumpdrive;
+	
+	OOKeyCode				key_dump_cargo;
+	OOKeyCode				key_rotate_cargo;
+	
+	OOKeyCode				key_autopilot;
+	OOKeyCode				key_autopilot_target;
+	OOKeyCode				key_autodock;
+	
+	OOKeyCode				key_snapshot;
+	OOKeyCode				key_docking_music;
+	
+	OOKeyCode				kay_advanced_nav_array;
 	OOKeyCode				key_map_home;
 	OOKeyCode				key_map_info;
 	
@@ -396,13 +405,7 @@ enum
 	OOKeyCode				key_show_fps;
 	OOKeyCode				key_mouse_control;
 	
-	OOKeyCode				key_emergency_hyperdrive;
-	
-	OOKeyCode				key_next_missile;
-	OOKeyCode				key_ident_system;
-	
 	OOKeyCode				key_comms_log;
-	
 	OOKeyCode				key_next_compass_mode;
 	
 	OOKeyCode				key_cloaking_device;
@@ -413,6 +416,8 @@ enum
 	OOKeyCode				key_previous_target;
 	
 	OOKeyCode				key_custom_view;
+	
+	OOKeyCode				key_dump_target_state;
         
         // save-file
 	NSString				*save_path;

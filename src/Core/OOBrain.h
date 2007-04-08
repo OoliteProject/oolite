@@ -71,4 +71,6 @@ MA 02110-1301, USA.
 
 - (void)	actOnInstincts;	// set ship behaviour from most urgent instinct
 
+- (void)dumpState;
+
 @end
