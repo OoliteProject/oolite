@@ -898,8 +898,8 @@ static NSTimeInterval	time_last_frame;
 			{
 				dump_target_state_pressed = YES;
 				id target = [self getPrimaryTarget];
-				if (target)  [target dumpState];
-				else  OOLog(@"dumpState.noTarget", @"Can't dump target state because no target is selected.");
+				if (target == nil)	target = self;
+				[target dumpState];
 			}
 		}
 		else  dump_target_state_pressed = NO;

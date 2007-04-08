@@ -468,7 +468,7 @@ static NSString * const kOOLogAIPop						= @"ai.pop";
 		OOLogPushIndent();
 		OOLogIndent();
 		NS_DURING
-			[rulingInstinct dumpSelfState];
+			[rulingInstinct dumpState];
 		NS_HANDLER
 		NS_ENDHANDLER
 		OOLogPopIndent();

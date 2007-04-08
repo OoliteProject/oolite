@@ -206,6 +206,14 @@ typedef enum
 } OOMassUnit;
 
 
+typedef enum
+{
+	ENERGY_UNIT_NONE,
+	ENERGY_UNIT_NORMAL				= 15,
+	ENERGY_UNIT_NAVAL				= 20
+} OOEnergyUnitType;
+
+
 typedef uint16_t	OOCargoQuantity;
 
 

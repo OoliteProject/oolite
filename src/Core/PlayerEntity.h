@@ -166,10 +166,6 @@ enum
 #define PORT_FACING_STRING				@"\tPort "
 #define STARBOARD_FACING_STRING			@"\tStarboard "
 
-#define ENERGY_UNIT_NONE				0
-#define ENERGY_UNIT_NORMAL				15
-#define ENERGY_UNIT_NAVAL				20
-
 #define ALERT_FLAG_DOCKED				0x010
 #define ALERT_FLAG_MASS_LOCK			0x020
 #define ALERT_FLAG_YELLOW_LIMIT			0x03f
@@ -342,7 +338,7 @@ enum
 	
 	NSMutableArray			*shipCommodityData;
 	
-	int						energy_unit;
+	OOEnergyUnitType		energy_unit;
 	int						shield_booster, shield_enhancer;
 	
 	int						max_missiles;		// int				- no. of missile pylons

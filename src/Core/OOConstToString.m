@@ -318,3 +318,26 @@ OOCargoType StringToCargoType(NSString *string)
 	
 	return CARGO_NOT_CARGO;
 }
+
+
+NSString *EnergyUnitTypeToString(OOEnergyUnitType unit)
+{
+	switch (unit)
+	{
+		CASE(ENERGY_UNIT_NONE);
+		CASE(ENERGY_UNIT_NORMAL);
+		CASE(ENERGY_UNIT_NAVAL);
+	}
+	
+	return @"Unknown energy unit";
+}
+
+
+OOEnergyUnitType StringToEnergyUnitType(NSString *string)
+{
+	REVERSE_CASE(ENERGY_UNIT_NONE);
+	REVERSE_CASE(ENERGY_UNIT_NORMAL);
+	REVERSE_CASE(ENERGY_UNIT_NAVAL);
+	
+	return ENERGY_UNIT_NONE;
+}

@@ -506,7 +506,7 @@ static void ApplyConstantUniforms(NSDictionary *uniforms, GLhandleARB shaderProg
 {
 	if (debug & DEBUG_ENTITIES)
 	{
-		NSMutableString* result = [NSMutableString stringWithFormat:@"\n<ShipEntity %@ %d>", name, universalID];
+		NSMutableString* result = [NSMutableString stringWithFormat:@"\n<%@ %@ %d>", [self class], name, universalID];
 		[result appendFormat:@"\n isPlayer: %@", (isPlayer)? @"YES":@"NO"];
 		[result appendFormat:@"\n isShip: %@", (isShip)? @"YES":@"NO"];
 		[result appendFormat:@"\n isStation: %@", (isStation)? @"YES":@"NO"];
@@ -518,7 +518,7 @@ static void ApplyConstantUniforms(NSDictionary *uniforms, GLhandleARB shaderProg
 		return result;
 	}
 	else
-		return [NSString stringWithFormat:@"<ShipEntity %@ %d>", name, universalID];
+		return [NSString stringWithFormat:@"<%@ %@ %d>", [self class], name, universalID];
 }
 
 - (void) setOctree:(Octree*) oct
@@ -2869,6 +2869,7 @@ void testForShaders()
 						GLfloat engine_level = [propertyEntity speed_factor];
 						GLfloat laser_heat_level = [propertyEntity laserHeatLevel];
 						GLfloat hull_heat_level = [propertyEntity hullHeatLevel];
+						int entity_personality_int = propertyEntity->entity_personality;
 						
 						laser_heat_level = OOClamp_0_1_f(laser_heat_level);
 						
@@ -2967,15 +2968,15 @@ void testForShaders()
 									variable_location = glGetUniformLocationARB( shaderProgram, "entity_personality_int");
 									if (variable_location != -1)
 									{
-										OOLog(@"rendering.opengl.shader.uniform.entityPersonality.int", @"Binding entity_personality_int: %i", entity_personality);
-										glUniform1iARB(variable_location, entity_personality);
+										OOLog(@"rendering.opengl.shader.uniform.entityPersonality.int", @"Binding entity_personality_int: %i", entity_personality_int);
+										glUniform1iARB(variable_location, entity_personality_int);
 									}
 									
 									variable_location = glGetUniformLocationARB( shaderProgram, "entity_personality");
 									if (variable_location != -1)
 									{
-										OOLog(@"rendering.opengl.shader.uniform.entityPersonality.float", @"Binding entity_personality: %g", entity_personality / (float)0x7FFF);
-										glUniform1fARB(variable_location, entity_personality / (float)0x7FFF);
+										OOLog(@"rendering.opengl.shader.uniform.entityPersonality.float", @"Binding entity_personality: %g", entity_personality_int / (float)0x7FFF);
+										glUniform1fARB(variable_location, entity_personality_int / (float)0x7FFF);
 									}
 								}
 								else
@@ -7718,6 +7719,12 @@ inline BOOL pairOK(NSString* my_role, NSString* their_role)
 	ADD_FLAG_IF_SET(proximity_alert);
 	flagsString = [flags count] ? [flags componentsJoinedByString:@", "] : @"none";
 	OOLog(@"dumpState.shipEntity", @"Flags: %@", flagsString);
+	
+	OOLog(@"dumpState.shipEntity.glsl", @"engine_level: %g", [self speed_factor]);
+	OOLog(@"dumpState.shipEntity.glsl", @"laser_heat_level: %g", OOClamp_0_1_f([self laserHeatLevel]));
+	OOLog(@"dumpState.shipEntity.glsl", @"hull_heat_level: %g", [self hullHeatLevel]);
+	OOLog(@"dumpState.shipEntity.glsl", @"entity_personality: %g", entity_personality / (float)0x7FFF);
+	OOLog(@"dumpState.shipEntity.glsl", @"entity_personality_int: %i", entity_personality);
 }
 
 @end

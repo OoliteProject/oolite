@@ -54,3 +54,6 @@ OOWeaponType StringToWeaponType(NSString *string) PURE_FUNC;
 
 NSString *CargoTypeToString(OOCargoType cargo) CONST_FUNC;
 OOCargoType StringToCargoType(NSString *string) PURE_FUNC;
+
+NSString *EnergyUnitTypeToString(OOEnergyUnitType unit) CONST_FUNC;
+OOEnergyUnitType StringToEnergyUnitType(NSString *string) PURE_FUNC;

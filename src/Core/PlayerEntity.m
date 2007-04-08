@@ -49,6 +49,7 @@ MA 02110-1301, USA.
 #import "OOStringParsing.h"
 #import "OOPListParsing.h"
 #import "OOCollectionExtractors.h"
+#import "OOConstToString.h"
 
 #import "OOScript.h"
 
@@ -6121,6 +6122,8 @@ static int last_outfitting_index;
 	{
 		switch (energy_unit)
 		{
+			case ENERGY_UNIT_NONE:
+				break;
 			case ENERGY_UNIT_NORMAL :
 				[self add_extra_equipment:@"EQ_ENERGY_UNIT"];
 				break;
@@ -6752,6 +6755,67 @@ OOSound* burnersound;
 	{
 		[theScript doEvent:message withIntegerArgument:argument];
 	}
+}
+
+
+- (void)dumpSelfState
+{
+	NSMutableArray		*flags = nil;
+	NSString			*flagsString = nil;
+	
+	[super dumpSelfState];
+	
+	OOLog(@"dumpState.playerEntity", @"Ship: %@", ship_desc);
+	OOLog(@"dumpState.playerEntity", @"Script time: %g", script_time);
+	OOLog(@"dumpState.playerEntity", @"Script time check: %g", script_time_check);
+	OOLog(@"dumpState.playerEntity", @"Script time interval: %g", script_time_interval);
+	OOLog(@"dumpState.playerEntity", @"Roll/pitch/yaw delta: %g, %g, %g", roll_delta, pitch_delta, yaw_delta);
+	OOLog(@"dumpState.playerEntity", @"Shield: %g fore, %g aft", forward_weapon, aft_shield);
+	OOLog(@"dumpState.playerEntity", @"Alert level: %u, flags: %#x", alert_flags, alert_condition);
+	OOLog(@"dumpState.playerEntity", @"Missile status: %i", missile_status);
+	OOLog(@"dumpState.playerEntity", @"Energy unit: %@", EnergyUnitTypeToString(energy_unit));
+	OOLog(@"dumpState.playerEntity", @"Shield booster: %i", shield_booster);
+	OOLog(@"dumpState.playerEntity", @"Shield enhancer: %i", shield_enhancer);
+	OOLog(@"dumpState.playerEntity", @"Fuel leak rate: %g", fuel_leak_rate);
+	OOLog(@"dumpState.playerEntity", @"Trumble count: %u", n_trumbles);
+	
+	flags = [NSMutableArray array];
+	#define ADD_FLAG_IF_SET(x)		if (x) { [flags addObject:@#x]; }
+	ADD_FLAG_IF_SET(found_equipment);
+	ADD_FLAG_IF_SET(pollControls);
+	ADD_FLAG_IF_SET(has_energy_unit);
+	ADD_FLAG_IF_SET(has_docking_computer);
+	ADD_FLAG_IF_SET(has_galactic_hyperdrive);
+	ADD_FLAG_IF_SET(saved);
+	ADD_FLAG_IF_SET(suppressTargetLost);
+	ADD_FLAG_IF_SET(scoopsActive);
+	ADD_FLAG_IF_SET(game_over);
+	ADD_FLAG_IF_SET(docked);
+	ADD_FLAG_IF_SET(finished);
+	ADD_FLAG_IF_SET(bomb_detonated);
+	ADD_FLAG_IF_SET(autopilot_engaged);
+	ADD_FLAG_IF_SET(afterburner_engaged);
+	ADD_FLAG_IF_SET(afterburnerSoundLooping);
+	ADD_FLAG_IF_SET(hyperspeed_engaged);
+	ADD_FLAG_IF_SET(travelling_at_hyperspeed);
+	ADD_FLAG_IF_SET(hyperspeed_locked);
+	ADD_FLAG_IF_SET(ident_engaged);
+	ADD_FLAG_IF_SET(galactic_witchjump);
+	ADD_FLAG_IF_SET(ecm_in_operation);
+	ADD_FLAG_IF_SET(show_info_flag);
+	ADD_FLAG_IF_SET(showDemoShips);
+	ADD_FLAG_IF_SET(rolling);
+	ADD_FLAG_IF_SET(pitching);
+	ADD_FLAG_IF_SET(yawing);
+	ADD_FLAG_IF_SET(using_mining_laser);
+	ADD_FLAG_IF_SET(mouse_control_on);
+	ADD_FLAG_IF_SET(speech_on);
+	ADD_FLAG_IF_SET(ootunes_on);
+	ADD_FLAG_IF_SET(docking_music_on);
+	ADD_FLAG_IF_SET(keyboardRollPitchOverride);
+	ADD_FLAG_IF_SET(waitingForStickCallback);
+	flagsString = [flags count] ? [flags componentsJoinedByString:@", "] : @"none";
+	OOLog(@"dumpState.playerEntity", @"Flags: %@", flagsString);
 }
 
 @end
