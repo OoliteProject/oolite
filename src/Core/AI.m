@@ -200,33 +200,24 @@ static NSString * const kOOLogAIPop						= @"ai.pop";
 	if (newSM)
 	{
 		[self preserveCurrentStateMachine];
-		if (stateMachine)
-			[stateMachine release];	// release old state machine
+		[stateMachine release];	// release old state machine
 		stateMachine = [newSM retain];
 		nextThinkTime = 0.0;	// think at next tick
 	}
 	//
 	[aiLock unlock];
 	//
-	if (currentState)		[currentState release];
-	currentState = [[NSString stringWithString:@"GLOBAL"] retain];
+	if (currentState)  [currentState release];
+	currentState = @"GLOBAL";
 	[self reactToMessage:@"ENTER"];
-    //
-    //NSLog(@"AI Loaded:\n%@",[stateMachine description]);
-    //
 	
 	//  refresh name
-	//
-	if (owner_desc)			[owner_desc release];
+	if (owner_desc)  [owner_desc release];
 	owner_desc = [[NSString stringWithFormat:@"%@ %d", [owner name], [owner universalID]] retain];
 	
 	// refresh stateMachineName
-	//
-	if (stateMachineName)
-	{
-		[stateMachineName release];
-		stateMachineName = [[NSString stringWithString:smName] retain];
-	}
+	[stateMachineName release];
+	stateMachineName = [smName copy];
 }
 
 - (NSString*) name
@@ -244,8 +235,6 @@ static NSString * const kOOLogAIPop						= @"ai.pop";
 {
 	if ([stateMachine objectForKey:stateName])
 	{
-		//if ((owner)&&([owner universalID])&&([owner reportAImessages])) NSLog(@"AI for %@ enters state %@", owner_desc, stateName);
-		//
 		[self reactToMessage:@"EXIT"];
 		if (currentState)		[currentState release];
 		currentState = [stateName retain];
@@ -380,10 +369,9 @@ static NSString * const kOOLogAIPop						= @"ai.pop";
 	[aiLock lock];
 	if ([pendingMessages retain])
 	{
-		//NSLog(@"debug1");
 		if ([pendingMessages count] > 0)
 			ms_list = [pendingMessages allKeys];
-		//NSLog(@"debug2");
+		
 		[pendingMessages removeAllObjects];
 		[pendingMessages release];
 	}

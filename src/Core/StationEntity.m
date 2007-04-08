@@ -632,34 +632,19 @@ NSDictionary* instructions(int station_id, Vector coords, float speed, float ran
 {
 	self = [super init];
 	
-	shipsOnApproach = [[NSMutableDictionary alloc] initWithCapacity:5]; // alloc retains
-	shipsOnHold = [[NSMutableDictionary alloc] initWithCapacity:5]; // alloc retains
-	launchQueue = [[NSMutableArray alloc] initWithCapacity:16]; // retained
-		
-	int i;
-	for (i = 0; i < MAX_DOCKING_STAGES; i++)
-		id_lock[i] = NO_TARGET;
-
-	alert_level = 0;
-	police_launched = 0;
-	last_launch_time = 0.0;
-	no_docking_while_launching = NO;
-	
-	localMarket = nil;
+	shipsOnApproach = [[NSMutableDictionary alloc] init]; // alloc retains
+	shipsOnHold = [[NSMutableDictionary alloc] init]; // alloc retains
+	launchQueue = [[NSMutableArray alloc] init]; // retained
 	
 	// local specials
 	equivalent_tech_level = NSNotFound;
 	equipment_price_factor = 1.0;
-	approach_spacing = 0.0;
 	
 	max_scavengers = 3;
 	max_defense_ships = 3;
 	max_police = STATION_MAX_POLICE;
-	police_launched = 0;
-	scavengers_launched = 0;
 	
 	docked_shuttles = ranrot_rand() % 4;   // 0..3;
-	last_shuttle_launch_time = 0.0;
 	shuttle_launch_interval = 15.0 * 60.0;  // every 15 minutes
 	last_shuttle_launch_time = - (ranrot_rand() % 60) * shuttle_launch_interval / 60.0;
 
@@ -674,51 +659,10 @@ NSDictionary* instructions(int station_id, Vector coords, float speed, float ran
 	isShip = YES;
 	isStation = YES;
 	
-	port_model = nil;
-	
 	return self;
 }
 
-- (void) reinit
-{
-	[super reinit];
-	
-	if (localMarket) [localMarket autorelease];
-	localMarket = nil;
-	
-	if (localPassengers) [localPassengers autorelease];
-	localPassengers = nil;
-	
-	if (localContracts) [localContracts autorelease];
-	localContracts = nil;
-	
-	if (localShipyard) [localShipyard autorelease];
-	localShipyard = nil;
-	
-	if (shipsOnApproach) [shipsOnApproach autorelease];
-	shipsOnApproach = [[NSMutableDictionary alloc] initWithCapacity:5]; // alloc retains
-	
-	if (shipsOnHold) [shipsOnHold autorelease];
-	shipsOnHold = [[NSMutableDictionary alloc] initWithCapacity:5]; // alloc retains
-	
-	if (launchQueue) [launchQueue autorelease];
-	launchQueue = [[NSMutableArray alloc] initWithCapacity:16]; // retained
 
-	int i;
-	for (i = 0; i < MAX_DOCKING_STAGES; i++)
-		id_lock[i] = NO_TARGET;
-
-	alert_level = 0;
-	police_launched = 0;
-	last_launch_time = 0.0;
-	no_docking_while_launching = NO;
-	//
-	isShip = YES;
-	isStation = YES;
-
-	port_model = nil;
-	
-}
 
 - (id) initWithDictionary:(NSDictionary *) dict
 {
@@ -735,9 +679,6 @@ NSDictionary* instructions(int station_id, Vector coords, float speed, float ran
 		equipment_price_factor = 1.0;
 	
 	
-	shipsOnApproach = [[NSMutableDictionary alloc] initWithCapacity:16]; // alloc retains
-	shipsOnHold = [[NSMutableDictionary alloc] initWithCapacity:16]; // alloc retains
-	launchQueue = [[NSMutableArray alloc] initWithCapacity:16]; // retained
 	alert_level = 0;
 	police_launched = 0;
 	last_launch_time = 0.0;
@@ -786,9 +727,27 @@ NSDictionary* instructions(int station_id, Vector coords, float speed, float ran
 
 - (void) setUpShipFromDictionary:(NSDictionary *) dict
 {
+	int			i;
+	
+	// Throw out the old...
+	// Moved out of -reinit. TODO: check for duplicates, and generaly clean up this method.
+	
+#ifndef NO_RECYCLE
+	[localMarket autorelease];
+	localMarket = nil;
+	[localPassengers autorelease];
+	localPassengers = nil;
+	[localContracts autorelease];
+	localContracts = nil;
+	[localShipyard autorelease];
+	localShipyard = nil;
+#endif
+	
+	isShip = YES;
+	isStation = YES;
+	
 	// ** Set up a the docking port
 	// Look for subentity specifying position
-	int			i;
 	NSArray		*subs = (NSArray *)[dict objectForKey:@"subentities"];
 	NSArray		*dockSubEntity = nil;
 	for (i = 0; i < [subs count]; i++)
@@ -817,7 +776,7 @@ NSDictionary* instructions(int station_id, Vector coords, float speed, float ran
 	}
 	
 	// port_dimensions can be set for rock-hermits and other specials
-	NSArray* tokens = [(NSString*)[dict objectForKey:@"port_dimensions"] componentsSeparatedByString:@"x"];
+	NSArray* tokens = [[dict objectForKey:@"port_dimensions"] componentsSeparatedByString:@"x"];
 	if ([tokens count] == 3)
 	{
 		port_dimensions = make_vector(	[(NSString*)[tokens objectAtIndex:0] floatValue],
@@ -1159,7 +1118,7 @@ NSDictionary* instructions(int station_id, Vector coords, float speed, float ran
 {
 	[self sanityCheckShipsOnApproach];
 	if (!launchQueue)
-		launchQueue = [[NSMutableArray alloc] initWithCapacity:16]; // retained
+		launchQueue = [[NSMutableArray alloc] init]; // retained
 	if (ship)
 		[launchQueue addObject:ship];
 }

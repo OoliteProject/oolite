@@ -102,16 +102,13 @@ MA 02110-1301, USA.
 	BoundingBox				totalBoundingBox;			// records ship configuration
 	
 @protected
-	// per collision directions
-	NSMutableDictionary		*collisionInfoForEntity;
-	
 	//set-up
 	NSDictionary			*shipinfoDictionary;
 	
 	//scripting
-	NSMutableArray			*launch_actions;
-	NSMutableArray			*script_actions;
-	NSMutableArray			*death_actions;
+	NSArray					*launch_actions;
+	NSArray					*script_actions;
+	NSArray					*death_actions;
 	
 	//docking instructions
 	NSDictionary			*dockingInstructions;
@@ -309,8 +306,6 @@ MA 02110-1301, USA.
 
 - (void) setUpEscorts;
 
-- (void) reinit;
-
 - (void) rescaleBy:(GLfloat) factor;
 
 - (id) initWithDictionary:(NSDictionary *) dict;
@@ -408,9 +403,6 @@ MA 02110-1301, USA.
 - (void) setRoles:(NSString *) value;
 
 - (BOOL) hasHostileTarget;
-
-- (NSMutableArray *) launch_actions;
-- (NSMutableArray *) death_actions;
 
 - (GLfloat) weapon_range;
 - (void) setWeaponRange: (GLfloat) value;

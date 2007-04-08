@@ -2697,6 +2697,9 @@ GLfloat docked_light_specular[]	= { (GLfloat) 1.0, (GLfloat) 1.0, (GLfloat) 0.5,
 	NSMutableArray  *entlist;
 	NSString		*classname = nil;
 	
+	// TEMP: ignore recycling crap.
+	return entity;
+	
 	if (!entity)
 		return nil;
 	
@@ -2729,7 +2732,7 @@ GLfloat docked_light_specular[]	= { (GLfloat) 1.0, (GLfloat) 1.0, (GLfloat) 0.5,
 		if (entity->isShip)
 		{
 			ShipEntity* ship = (ShipEntity*)entity;
-			[ship reinit];
+			[ship reinit];	// FIXME: kill the damn recycling, or add a -[ShipEntity clear] methof.
 			[[ship getAI] setOwner: nil];					//  save ai misreporting
 			[ship setAI: nil];	// remove it.
 		}

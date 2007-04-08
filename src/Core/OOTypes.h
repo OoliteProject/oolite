@@ -216,4 +216,4 @@ typedef uint16_t	OOKeyCode;
 
 
 typedef uint16_t OOUniversalID;	// Valid IDs range from 100 to 1000.
-static const OOUniversalID NO_TARGET = 0;
+#define NO_TARGET	((OOUniversalID)0)

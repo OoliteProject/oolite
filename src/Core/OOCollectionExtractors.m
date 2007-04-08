@@ -578,7 +578,7 @@ BOOL EvaluateAsBoolean(id object, BOOL defaultValue)
 	NSString			*result;
 	
 	if ([objVal isKindOfClass:[NSString class]])  result = objVal;
-	else result =  value;
+	else result = value;
 	
 	return result;
 }
@@ -590,7 +590,7 @@ BOOL EvaluateAsBoolean(id object, BOOL defaultValue)
 	id					result;
 	
 	if ([objVal isKindOfClass:[NSArray class]])  result = objVal;
-	else result =  value;
+	else result = value;
 	
 	return result;
 }
@@ -602,7 +602,7 @@ BOOL EvaluateAsBoolean(id object, BOOL defaultValue)
 	NSDictionary		*result;
 	
 	if ([objVal isKindOfClass:[NSDictionary class]])  result = objVal;
-	else result =  value;
+	else result = value;
 	
 	return result;
 }

@@ -37,7 +37,8 @@ MA 02110-1301, USA.
 
 #define MAX_DOCKING_STAGES				16
 
-@interface StationEntity : ShipEntity {
+@interface StationEntity: ShipEntity
+{
 	
 	NSMutableDictionary		*shipsOnApproach;
 	NSMutableDictionary		*shipsOnHold;
@@ -46,7 +47,7 @@ MA 02110-1301, USA.
 	double					approach_spacing;
 	int						alert_level;
 	
-	int						id_lock[MAX_DOCKING_STAGES];	// ship id's or NO_TARGET's
+	OOUniversalID			id_lock[MAX_DOCKING_STAGES];	// ship id's or NO_TARGET's
 	
 	int						max_police;					// max no. of police ships allowed
 	int						max_defense_ships;			// max no. of defense ships allowed
