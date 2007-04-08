@@ -3,6 +3,8 @@
 OOCollectionExtractors.h
 
 Convenience extensions to Foundation collections to extract optional values.
+In addition to being convenient, these perform type checking. Which is,
+y'know, good to have.
 
 Note on types: ideally, stdint.h types would be used for integers. However,
 NSNumber doesn't do this, so doing so portably would add new complications.
@@ -48,12 +50,15 @@ BOOL EvaluateAsBoolean(id object, BOOL defaultValue);
 - (unsigned long long)unsignedLongLongAtIndex:(unsigned)index defaultValue:(unsigned long long)value;
 
 - (BOOL)boolAtIndex:(unsigned)index defaultValue:(BOOL)value;
+- (BOOL)fuzzyBooleanAtIndex:(unsigned)index defaultValue:(float)value;	// Reads a float in the range [0, 1], and returns YES with that probability.
 
 - (float)floatAtIndex:(unsigned)index defaultValue:(float)value;
 - (double)doubleAtIndex:(unsigned)index defaultValue:(double)value;
 
 - (id)objectAtIndex:(unsigned)index defaultValue:(id)value;
 - (NSString *)stringAtIndex:(unsigned)index defaultValue:(NSString *)value;
+- (NSArray *)arrayAtIndex:(unsigned)index defaultValue:(NSArray *)value;
+- (NSDictionary *)dictionaryAtIndex:(unsigned)index defaultValue:(NSDictionary *)value;
 
 @end
 
@@ -73,11 +78,14 @@ BOOL EvaluateAsBoolean(id object, BOOL defaultValue);
 - (unsigned long long)unsignedLongLongForKey:(id)key defaultValue:(unsigned long long)value;
 
 - (BOOL)boolForKey:(id)key defaultValue:(BOOL)value;
+- (BOOL)fuzzyBooleanForKey:(id)key defaultValue:(float)value;	// Reads a float in the range [0, 1], and returns YES with that probability.
 
 - (float)floatForKey:(id)key defaultValue:(float)value;
 - (double)doubleForKey:(id)key defaultValue:(double)value;
 
 - (id)objectForKey:(id)key defaultValue:(id)value;
 - (NSString *)stringForKey:(id)key defaultValue:(NSString *)value;
+- (NSArray *)arrayForKey:(id)key defaultValue:(NSArray *)value;
+- (NSDictionary *)dictionaryForKey:(id)key defaultValue:(NSDictionary *)value;
 
 @end

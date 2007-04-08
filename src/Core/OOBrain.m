@@ -67,7 +67,7 @@ MA 02110-1301, USA.
 		{
 			NSString* key = (NSString*)[[instinctDictionary allKeys] objectAtIndex:i];
 			
-			int itype = InstinctFromString(key);
+			OOInstinctID itype = StringToInstinct(key);
 			
 			if (itype != INSTINCT_NULL)
 			{

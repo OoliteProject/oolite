@@ -2914,13 +2914,14 @@ GLfloat docked_light_specular[]	= { (GLfloat) 1.0, (GLfloat) 1.0, (GLfloat) 0.5,
 	NSMutableDictionary* shipdict = [[[shipdata objectForKey:desc] mutableCopy] autorelease];
 	if (nil == shipdict)
 	{
-		NSLog(@"***** Universe couldn't find a dictionary for a ship with description '%@'",desc);
-		// throw an exception here...	 
-		NSException* myException = [NSException	 
-			exceptionWithName: OOLITE_EXCEPTION_SHIP_NOT_FOUND	 
-			reason:[NSString stringWithFormat:@"No ship called '%@' could be found in the Oolite folder.", desc]	 
-			userInfo:nil];	 
-		[myException raise];	 
+		/*	There used to be an attempt to throw a OOLITE_EXCEPTION_SHIP_NOT_FOUND
+			exception here. However, it never worked -- the line above was
+			broken so an empty dictionary was created instead, which was
+			rather pointless. Once this was fixed, it turned out there are OXPs
+			causing bad ships to be created, which wasn't noticed because the
+			exception wasn't handled.
+			-- Ahruman
+		*/	 
 		return nil;
 	}
 	// check if this is based upon a different ship

@@ -2553,16 +2553,6 @@ static BOOL toggling_music;
 				[self setGuiToIntro2Screen];
 			}
 
-//			// test exception handling
-//			if ([gameView isDown:48])	//  '0'
-//			{
-//				NSException* myException = [NSException
-//					exceptionWithName:	@"OoliteException"
-//					reason:				@"Testing: The Foo throggled the Bar!"
-//					userInfo:			nil];
-//				[myException raise];
-//			}
-
 			break;
 
 		case	GUI_SCREEN_INTRO2 :

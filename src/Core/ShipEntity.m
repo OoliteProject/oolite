@@ -640,7 +640,7 @@ static void ApplyConstantUniforms(NSDictionary *uniforms, GLhandleARB shaderProg
 	aft_weapon_type = WEAPON_NONE;
 	weapon_energy = 0.0;
 	weapon_recharge_rate = 6.0;
-	shot_time = 0.0;
+	shot_time = 1000.0;
 	//
 	launch_time = 0.0;
 	//
@@ -860,57 +860,49 @@ static void ApplyConstantUniforms(NSDictionary *uniforms, GLhandleARB shaderProg
 	//
 	isNearPlanetSurface = NO;
 	//
+	
 	return self;
 }
 
 
 - (void) setUpShipFromDictionary:(NSDictionary *) dict
 {
-    NSString*   cargo_type_string;
-    NSString*   weapon_type_string;
-	NSMutableDictionary* shipdict = [NSMutableDictionary dictionaryWithDictionary:dict];
-
+	NSMutableDictionary	*shipdict = [NSMutableDictionary dictionaryWithDictionary:dict];
+	int					i;
+	
 	// reset all settings
+	// TODO: get rid of reinit and set defaults when objects are missing instead. CollectionExtractors helps here. -- ahruman
 	[self reinit];
 
-	if (collisionInfoForEntity)
-		[collisionInfoForEntity removeAllObjects];
-	else
-		collisionInfoForEntity = [(NSMutableDictionary *)[NSMutableDictionary alloc] initWithCapacity:12];
+	if (collisionInfoForEntity)  [collisionInfoForEntity removeAllObjects];
+	else  collisionInfoForEntity = [[NSMutableDictionary alloc] init];
 
 	// check if this is based upon a different ship
 	while ([shipdict objectForKey:@"like_ship"])
 	{
-		// if (UNIVERSE)
+		NSString		*other_shipdesc = (NSString *)[shipdict objectForKey:@"like_ship"];
+		NSDictionary	*other_shipdict = nil;
+		if (other_shipdesc)
 		{
-			NSString*		other_shipdesc = (NSString *)[shipdict objectForKey:@"like_ship"];
-			NSDictionary*	other_shipdict = nil;
-			if (other_shipdesc)
-			{
-				NS_DURING
-					other_shipdict = [UNIVERSE getDictionaryForShip:other_shipdesc];	// handle OOLITE_EXCEPTION_SHIP_NOT_FOUND
-				NS_HANDLER
-					if ([[localException name] isEqual: OOLITE_EXCEPTION_SHIP_NOT_FOUND])
-					{
-						OOLog(kOOLogException, @"***** Oolite Exception : '%@' in [ShipEntity setUpShipFromDictionary:] while basing a ship upon '%@' *****", [localException reason], other_shipdesc);
-						other_shipdict = nil;
-					}
-					else
-						[localException raise];
-				NS_ENDHANDLER
-			}
-			if (other_shipdict)
-			{
-				[shipdict removeObjectForKey:@"like_ship"];	// so it may inherit a new one from the like_ship
+			NS_DURING
+				other_shipdict = [UNIVERSE getDictionaryForShip:other_shipdesc];	// handle OOLITE_EXCEPTION_SHIP_NOT_FOUND
+			NS_HANDLER
+				if ([[localException name] isEqual: OOLITE_EXCEPTION_SHIP_NOT_FOUND])
+				{
+					OOLog(kOOLogException, @"***** Oolite Exception : '%@' in [ShipEntity setUpShipFromDictionary:] while basing a ship upon '%@' *****", [localException reason], other_shipdesc);
+					other_shipdict = nil;
+				}
+				else
+					[localException raise];
+			NS_ENDHANDLER
+		}
+		if (other_shipdict)
+		{
+			[shipdict removeObjectForKey:@"like_ship"];	// so it may inherit a new one from the like_ship
 
-	//				NSLog(@"DEBUG setting up ship alike unto : %@", other_shipdesc);
-
-				NSMutableDictionary* this_shipdict = [NSMutableDictionary dictionaryWithDictionary:other_shipdict]; // basics from that one
-				[this_shipdict addEntriesFromDictionary:shipdict];	// overrides from this one
-				shipdict = [NSMutableDictionary dictionaryWithDictionary:this_shipdict];	// synthesis'
-
-	//				NSLog(@"DEBUG resulting shipdict is :\n%@", shipdict);
-			}
+			NSMutableDictionary* this_shipdict = [NSMutableDictionary dictionaryWithDictionary:other_shipdict]; // basics from that one
+			[this_shipdict addEntriesFromDictionary:shipdict];	// overrides from this one
+			shipdict = [NSMutableDictionary dictionaryWithDictionary:this_shipdict];	// synthesis'
 		}
 	}
 
@@ -935,118 +927,54 @@ static void ApplyConstantUniforms(NSDictionary *uniforms, GLhandleARB shaderProg
 	maxEnergy = [shipdict floatForKey:@"max_energy" defaultValue:maxEnergy];
 	energy_recharge_rate = [shipdict floatForKey:@"energy_recharge_rate" defaultValue:energy_recharge_rate];
 	energy = maxEnergy;
-	//
-	if ([shipdict objectForKey:@"aft_weapon_type"])
-	{
-		weapon_type_string = (NSString *)[shipdict objectForKey:@"aft_weapon_type"];
-		if ([weapon_type_string isEqual:@"WEAPON_PULSE_LASER"])
-			aft_weapon_type = WEAPON_PULSE_LASER;
-		if ([weapon_type_string isEqual:@"WEAPON_BEAM_LASER"])
-			aft_weapon_type = WEAPON_BEAM_LASER;
-		if ([weapon_type_string isEqual:@"WEAPON_MINING_LASER"])
-			aft_weapon_type = WEAPON_MINING_LASER;
-		if ([weapon_type_string isEqual:@"WEAPON_MILITARY_LASER"])
-			aft_weapon_type = WEAPON_MILITARY_LASER;
-		if ([weapon_type_string isEqual:@"WEAPON_THARGOID_LASER"])
-			aft_weapon_type = WEAPON_THARGOID_LASER;
-		if ([weapon_type_string isEqual:@"WEAPON_PLASMA_CANNON"])
-			aft_weapon_type = WEAPON_PLASMA_CANNON;
-		if ([weapon_type_string isEqual:@"WEAPON_NONE"])
-			aft_weapon_type = WEAPON_NONE;
-	}
-	//
-	if ([shipdict objectForKey:@"forward_weapon_type"])
-	{
-		weapon_type_string = (NSString *)[shipdict objectForKey:@"forward_weapon_type"];
-		if ([weapon_type_string isEqual:@"WEAPON_PULSE_LASER"])
-			forward_weapon_type = WEAPON_PULSE_LASER;
-		if ([weapon_type_string isEqual:@"WEAPON_BEAM_LASER"])
-			forward_weapon_type = WEAPON_BEAM_LASER;
-		if ([weapon_type_string isEqual:@"WEAPON_MINING_LASER"])
-			forward_weapon_type = WEAPON_MINING_LASER;
-		if ([weapon_type_string isEqual:@"WEAPON_MILITARY_LASER"])
-			forward_weapon_type = WEAPON_MILITARY_LASER;
-		if ([weapon_type_string isEqual:@"WEAPON_THARGOID_LASER"])
-			forward_weapon_type = WEAPON_THARGOID_LASER;
-		if ([weapon_type_string isEqual:@"WEAPON_PLASMA_CANNON"])
-			forward_weapon_type = WEAPON_PLASMA_CANNON;
-		if ([weapon_type_string isEqual:@"WEAPON_NONE"])
-			forward_weapon_type = WEAPON_NONE;
-		[self set_weapon_data_from_type:forward_weapon_type];
-	}
-	//
-	if ([shipdict objectForKey:@"weapon_energy"])
-		weapon_energy = [(NSNumber *)[shipdict objectForKey:@"weapon_energy"] doubleValue];
-	//
-	if ([shipdict objectForKey:@"scanner_range"])
-		scanner_range = [(NSNumber *)[shipdict objectForKey:@"scanner_range"] doubleValue];
-	//
-	if ([shipdict objectForKey:@"missiles"])
-		missiles = [(NSNumber *)[shipdict objectForKey:@"missiles"] intValue];
+	
+	aft_weapon_type = StringToWeaponType([shipdict objectForKey:@"aft_weapon_type"]);
+	forward_weapon_type = StringToWeaponType([shipdict objectForKey:@"forward_weapon_type"]);
+	
+	weapon_energy = [shipdict doubleForKey:@"weapon_energy" defaultValue:weapon_energy];
+	scanner_range = [shipdict doubleForKey:@"weapon_energy" defaultValue:scanner_range];
+	missiles = [shipdict doubleForKey:@"missiles" defaultValue:missiles];
 
 	// upgrades:
-	//		did use [NSNumber boolValue], but now have a random chance instead
-	//
-	if ([shipdict objectForKey:@"has_ecm"])
-		has_ecm = (randf() < [(NSNumber *)[shipdict objectForKey:@"has_ecm"] floatValue]);
-	if ([shipdict objectForKey:@"has_scoop"])
-		has_scoop = (randf() < [(NSNumber *)[shipdict objectForKey:@"has_scoop"] floatValue]);
-	if ([shipdict objectForKey:@"has_escape_pod"])
-		has_escape_pod = (randf() < [(NSNumber *)[shipdict objectForKey:@"has_escape_pod"] floatValue]);
-	if ([shipdict objectForKey:@"has_energy_bomb"])
-		has_energy_bomb = (randf() < [(NSNumber *)[shipdict objectForKey:@"has_energy_bomb"] floatValue]);
-	if ([shipdict objectForKey:@"has_fuel_injection"])
-		has_fuel_injection = (randf() < [(NSNumber *)[shipdict objectForKey:@"has_fuel_injection"] floatValue]);
-	//
-	if ([shipdict objectForKey:@"has_shield_booster"])
-		maxEnergy += (randf() < [(NSNumber *)[shipdict objectForKey:@"has_shield_booster"] floatValue])? 256:0;
-	if ([shipdict objectForKey:@"has_shield_enhancer"])
+	has_ecm = [shipdict fuzzyBooleanForKey:@"has_ecm" defaultValue:0.0];
+	has_scoop = [shipdict fuzzyBooleanForKey:@"has_scoop" defaultValue:0.0];
+	has_escape_pod = [shipdict fuzzyBooleanForKey:@"has_escape_pod" defaultValue:0.0];
+	has_energy_bomb = [shipdict fuzzyBooleanForKey:@"has_energy_bomb" defaultValue:0.0];
+	has_fuel_injection = [shipdict fuzzyBooleanForKey:@"has_fuel_injection" defaultValue:0.0];
+	has_cloaking_device = [shipdict fuzzyBooleanForKey:@"has_cloaking_device" defaultValue:0.0];
+	has_military_jammer = [shipdict fuzzyBooleanForKey:@"has_military_jammer" defaultValue:0.0];
+	has_military_scanner_filter = [shipdict fuzzyBooleanForKey:@"has_military_scanner_filter" defaultValue:0.0];
+	canFragment = [shipdict fuzzyBooleanForKey:@"fragment_chance" defaultValue:0.9];
+	
+	cloaking_device_active = NO;
+	military_jammer_active = NO;
+	
+	if ([shipdict fuzzyBooleanForKey:@"has_shield_booster" defaultValue:0.0])
 	{
-		maxEnergy += (randf() < [(NSNumber *)[shipdict objectForKey:@"has_shield_enhancer"] floatValue])? 256:0;
+		maxEnergy += 256.0f;
+	}
+	if ([shipdict fuzzyBooleanForKey:@"has_shield_enhancer" defaultValue:0.0])
+	{
+		maxEnergy += 256.0f;
 		energy_recharge_rate *= 1.5;
 	}
-	//
-	if ([shipdict objectForKey:@"has_cloaking_device"])
-		has_cloaking_device = (randf() < [(NSNumber *)[shipdict objectForKey:@"has_cloaking_device"] floatValue]);
-	//
-	cloaking_device_active = NO;
-	//
-	if ([shipdict objectForKey:@"has_military_jammer"])
-		has_military_jammer = (randf() < [(NSNumber *)[shipdict objectForKey:@"has_military_jammer"] floatValue]);
-	//
-	military_jammer_active = NO;
-	//
-	if ([shipdict objectForKey:@"has_military_scanner_filter"])
-		has_military_scanner_filter = (randf() < [(NSNumber *)[shipdict objectForKey:@"has_military_scanner_filter"] floatValue]);
-	//
-	// /upgrades
-
-	if ([shipdict objectForKey:@"fuel"])
-		fuel = [(NSNumber *)[shipdict objectForKey:@"fuel"] intValue];
-
-	//
-	if ([shipdict objectForKey:@"bounty"])
-		bounty = [(NSNumber *)[shipdict objectForKey:@"bounty"] intValue];
-	//
+	
+	fuel = [shipdict intForKey:@"fuel" defaultValue:fuel];
+	bounty = [shipdict intForKey:@"bounty" defaultValue:bounty];
+	
 	if ([shipdict objectForKey:@"ai_type"])
 	{
-		if (shipAI)
-			[shipAI autorelease];
-		shipAI = [[AI alloc] init]; // alloc retains
+		[shipAI autorelease];
+		shipAI = [[AI alloc] init];
 		[shipAI setOwner:self];
-		[shipAI setStateMachine:(NSString *)[shipdict objectForKey:@"ai_type"]];
+		[shipAI setStateMachine:[shipdict objectForKey:@"ai_type"]];
 		[shipAI setState:@"GLOBAL"];
 	}
-	//
-	if ([shipdict objectForKey:@"max_cargo"])
-		max_cargo = [(NSNumber *)[shipdict objectForKey:@"max_cargo"] intValue];
-	if ([shipdict objectForKey:@"likely_cargo"])
-		likely_cargo = [(NSNumber *)[shipdict objectForKey:@"likely_cargo"] intValue];
-	if ([dict objectForKey:@"extra_cargo"])
-		extra_cargo = [(NSNumber*)[dict objectForKey:@"extra_cargo"] intValue];
-	else
-		extra_cargo = 15;
-	//
+	
+	max_cargo = [shipdict intForKey:@"max_cargo" defaultValue:max_cargo];
+	likely_cargo = [shipdict intForKey:@"likely_cargo" defaultValue:likely_cargo];
+	extra_cargo = [shipdict intForKey:@"extra_cargo" defaultValue:15];
+	
 	if ([shipdict objectForKey:@"cargo_carried"])
 	{
 		cargo_flag = CARGO_FLAG_FULL_UNIFORM;
@@ -1054,10 +982,10 @@ static void ApplyConstantUniforms(NSDictionary *uniforms, GLhandleARB shaderProg
 		[self setCommodity:NSNotFound andAmount:0];
 		int c_commodity = NSNotFound;
 		int c_amount = 1;
-		NSScanner*	scanner = [NSScanner scannerWithString: (NSString*)[shipdict objectForKey:@"cargo_carried"]];
+		NSScanner*	scanner = [NSScanner scannerWithString: [shipdict objectForKey:@"cargo_carried"]];
 		if ([scanner scanInt: &c_amount])
 		{
-			[scanner ooliteScanCharactersFromSet:[NSCharacterSet whitespaceCharacterSet] intoString:(NSString * *)nil];	// skip whitespace
+			[scanner ooliteScanCharactersFromSet:[NSCharacterSet whitespaceCharacterSet] intoString:NULL];	// skip whitespace
 			c_commodity = [UNIVERSE commodityForName: [[scanner string] substringFromIndex:[scanner scanLocation]]];
 		}
 		else
@@ -1066,209 +994,129 @@ static void ApplyConstantUniforms(NSDictionary *uniforms, GLhandleARB shaderProg
 			c_commodity = [UNIVERSE commodityForName: (NSString*)[shipdict objectForKey:@"cargo_carried"]];
 		}
 
-		if (c_commodity != NSNotFound)
-			[self setCommodity:c_commodity andAmount:c_amount];
+		if (c_commodity != NSNotFound)  [self setCommodity:c_commodity andAmount:c_amount];
 	}
-	//
+	
 	if ([shipdict objectForKey:@"cargo_type"])
 	{
-		cargo_type_string = (NSString *)[shipdict objectForKey:@"cargo_type"];
-		if ([cargo_type_string isEqual:@"CARGO_THARGOID"])
-			cargo_type = CARGO_THARGOID;
-		if ([cargo_type_string isEqual:@"CARGO_ALLOY"])
-			cargo_type = CARGO_ALLOY;
-		if ([cargo_type_string isEqual:@"CARGO_MINERALS"])
-			cargo_type = CARGO_MINERALS;
-		if ([cargo_type_string isEqual:@"CARGO_SLAVES"])
-			cargo_type = CARGO_SLAVES;
-		if ([cargo_type_string isEqual:@"CARGO_NOT_CARGO"])
-			cargo_type = CARGO_NOT_CARGO;
-		if ([cargo_type_string isEqual:@"CARGO_RANDOM"]||[cargo_type_string isEqual:@"CARGO_CARRIED"])
-			cargo_type = CARGO_RANDOM;
-		if ([cargo_type_string isEqual:@"CARGO_SCRIPTED_ITEM"])
-			cargo_type = CARGO_SCRIPTED_ITEM;
-		if (cargo)
-			[cargo autorelease];
-		cargo = [(NSMutableArray *)[NSMutableArray alloc] initWithCapacity:max_cargo]; // alloc retains;
+		cargo_type = StringToCargoType([shipdict objectForKey:@"cargo_type"]);
+		
+		[cargo autorelease];
+		cargo = [[NSMutableArray alloc] initWithCapacity:max_cargo]; // alloc retains;
 	}
-	//
+	
 	// A HACK!! - must do this before the model is set
-	if ([shipdict objectForKey:@"smooth"])
-		isSmoothShaded = YES;
-	else
-		isSmoothShaded = NO;
-	//
+	isSmoothShaded = [shipdict boolForKey:@"smooth" defaultValue:NO];
+	
 	// must do this next one before checking subentities
-	if ([shipdict objectForKey:@"model"])
-		[self setModelName:(NSString *)[shipdict objectForKey:@"model"]];
-	//
-	if (octree)
-		mass = 20.0 * [octree volume];
-	//
-	if ([shipdict objectForKey:KEY_NAME])
-	{
-		if (name)
-			[name release];
-		name = [[NSString stringWithString:(NSString *)[shipdict objectForKey:KEY_NAME]] retain];
-	}
-	//
-	if ([shipdict objectForKey:@"roles"])
-	{
-		if (roles)
-			[roles release];
-		roles = [[NSString stringWithString:(NSString *)[shipdict objectForKey:@"roles"]] retain];
-	}
-	//
+	NSString *modelName = [shipdict stringForKey:@"model" defaultValue:nil];
+	if (modelName != nil)  [self setModelName:modelName];
+	
+	float density = [shipdict floatForKey:@"density" defaultValue:1.0];
+	if (octree)  mass = density * 20.0 * [octree volume];
+	
+	[name release];
+	name = [[shipdict stringForKey:@"name" defaultValue:nil] copy];
+	
+	[roles release];
+	roles = [[shipdict stringForKey:@"roles" defaultValue:nil] copy];
+	
 	[self setOwner:self];
-	//
-	if ([shipdict objectForKey:@"exhaust"])
+	
+	NSArray *plumes = [shipdict arrayForKey:@"exhaust" defaultValue:nil];
+	for (i = 0; i < [plumes count]; i++)
 	{
-		int i;
-		NSArray *plumes = (NSArray *)[shipdict objectForKey:@"exhaust"];
-		for (i = 0; i < [plumes count]; i++)
-		{
-			ParticleEntity *exhaust = [[ParticleEntity alloc] initExhaustFromShip:self details:(NSString *)[plumes objectAtIndex:i]];
-			[self addExhaust:exhaust];
-			[exhaust release];
-		}
+		ParticleEntity *exhaust = [[ParticleEntity alloc] initExhaustFromShip:self details:[plumes objectAtIndex:i]];
+		[self addExhaust:exhaust];
+		[exhaust release];
 	}
-
-	if ([shipdict objectForKey:@"is_hulk"])
-		is_hulk = [[shipdict objectForKey:@"is_hulk"] boolValue];
-	//
-	if ([shipdict objectForKey:@"subentities"])
+	
+	is_hulk = [shipdict boolForKey:@"is_hulk" defaultValue:is_hulk];
+	
+	NSArray *subs = [shipdict arrayForKey:@"subentities" defaultValue:nil];
+	for (i = 0; i < [subs count]; i++)
 	{
-		int i;
-		NSArray *subs = [shipdict objectForKey:@"subentities"];
-		if (![subs isKindOfClass:[NSArray class]])
-		{
-			OOLog(@"setup.ship.badEntry.subentities", @"***** Error setting up ship \"%@\": subentities should be array, is %@. Skipping subentities.", [dict objectForKey:@"name"] ?: @"<unnamed>", [subs class]);
-			subs = nil;
-		}
-		for (i = 0; i < [subs count]; i++)
-		{
-			NSArray* details = ScanTokensFromString([subs objectAtIndex:i]);
+		NSArray *details = ScanTokensFromString([subs objectAtIndex:i]);
 
-			if ([details count] == 8)
+		if ([details count] == 8)
+		{
+			Vector sub_pos, ref;
+			Quaternion sub_q;
+			Entity* subent;
+			NSString* subdesc = (NSString *)[details objectAtIndex:0];
+			sub_pos.x = [(NSString *)[details objectAtIndex:1] floatValue];
+			sub_pos.y = [(NSString *)[details objectAtIndex:2] floatValue];
+			sub_pos.z = [(NSString *)[details objectAtIndex:3] floatValue];
+			sub_q.w = [(NSString *)[details objectAtIndex:4] floatValue];
+			sub_q.x = [(NSString *)[details objectAtIndex:5] floatValue];
+			sub_q.y = [(NSString *)[details objectAtIndex:6] floatValue];
+			sub_q.z = [(NSString *)[details objectAtIndex:7] floatValue];
+
+			if ([subdesc isEqual:@"*FLASHER*"])
 			{
-				Vector sub_pos, ref;
-				Quaternion sub_q;
-				Entity* subent;
-				NSString* subdesc = (NSString *)[details objectAtIndex:0];
-				sub_pos.x = [(NSString *)[details objectAtIndex:1] floatValue];
-				sub_pos.y = [(NSString *)[details objectAtIndex:2] floatValue];
-				sub_pos.z = [(NSString *)[details objectAtIndex:3] floatValue];
-				sub_q.w = [(NSString *)[details objectAtIndex:4] floatValue];
-				sub_q.x = [(NSString *)[details objectAtIndex:5] floatValue];
-				sub_q.y = [(NSString *)[details objectAtIndex:6] floatValue];
-				sub_q.z = [(NSString *)[details objectAtIndex:7] floatValue];
-
-				if ([subdesc isEqual:@"*FLASHER*"])
-				{
-					subent = [[ParticleEntity alloc] init];	// retained
-					[(ParticleEntity*)subent setColor:[OOColor colorWithCalibratedHue: sub_q.w/360.0 saturation:1.0 brightness:1.0 alpha:1.0]];
-					[(ParticleEntity*)subent setDuration: sub_q.x];
-					[(ParticleEntity*)subent setEnergy: 2.0 * sub_q.y];
-					[(ParticleEntity*)subent setSize:NSMakeSize( sub_q.z, sub_q.z)];
-					[(ParticleEntity*)subent setParticleType:PARTICLE_FLASHER];
-					[(ParticleEntity*)subent setStatus:STATUS_EFFECT];
-					[(ParticleEntity*)subent setPosition:sub_pos];
-				}
-				else
-				{
-					quaternion_normalize(&sub_q);
-
-					subent = [UNIVERSE newShipWithName:subdesc];	// retained
-
-					if ((self->isStation)&&([subdesc rangeOfString:@"dock"].location != NSNotFound))
-						[(StationEntity*)self setDockingPortModel:(ShipEntity*)subent :sub_pos :sub_q];
-
-					if (subent)
-					{
-						[(ShipEntity*)subent setStatus:STATUS_INACTIVE];
-						//
-						ref = vector_forward_from_quaternion(sub_q);	// VECTOR FORWARD
-						//
-						[(ShipEntity*)subent setReference: ref];
-						[(ShipEntity*)subent setPosition: sub_pos];
-						[(ShipEntity*)subent setQRotation: sub_q];
-						//
-						[self addSolidSubentityToCollisionRadius:(ShipEntity*)subent];
-						//
-						subent->isSubentity = YES;
-					}
-					//
-				}
-				if (sub_entities == nil)
-					sub_entities = [[NSArray arrayWithObject:subent] retain];
-				else
-				{
-					NSMutableArray *temp = [NSMutableArray arrayWithArray:sub_entities];
-					[temp addObject:subent];
-					[sub_entities release];
-					sub_entities = [[NSArray arrayWithArray:temp] retain];
-				}
-
-				[subent setOwner: self];
-
-				[subent release];
+				subent = [[ParticleEntity alloc] init];	// retained
+				[(ParticleEntity*)subent setColor:[OOColor colorWithCalibratedHue: sub_q.w/360.0 saturation:1.0 brightness:1.0 alpha:1.0]];
+				[(ParticleEntity*)subent setDuration: sub_q.x];
+				[(ParticleEntity*)subent setEnergy: 2.0 * sub_q.y];
+				[(ParticleEntity*)subent setSize:NSMakeSize( sub_q.z, sub_q.z)];
+				[(ParticleEntity*)subent setParticleType:PARTICLE_FLASHER];
+				[(ParticleEntity*)subent setStatus:STATUS_EFFECT];
+				[(ParticleEntity*)subent setPosition:sub_pos];
 			}
+			else
+			{
+				quaternion_normalize(&sub_q);
+
+				subent = [UNIVERSE newShipWithName:subdesc];	// retained
+
+				if ((self->isStation)&&([subdesc rangeOfString:@"dock"].location != NSNotFound))
+					[(StationEntity*)self setDockingPortModel:(ShipEntity*)subent :sub_pos :sub_q];
+
+				if (subent)
+				{
+					[(ShipEntity*)subent setStatus:STATUS_INACTIVE];
+					//
+					ref = vector_forward_from_quaternion(sub_q);	// VECTOR FORWARD
+					//
+					[(ShipEntity*)subent setReference: ref];
+					[(ShipEntity*)subent setPosition: sub_pos];
+					[(ShipEntity*)subent setQRotation: sub_q];
+					//
+					[self addSolidSubentityToCollisionRadius:(ShipEntity*)subent];
+					//
+					subent->isSubentity = YES;
+				}
+				//
+			}
+			if (sub_entities == nil)
+				sub_entities = [[NSArray arrayWithObject:subent] retain];
+			else
+			{
+				NSMutableArray *temp = [NSMutableArray arrayWithArray:sub_entities];
+				[temp addObject:subent];
+				[sub_entities release];
+				sub_entities = [[NSArray arrayWithArray:temp] retain];
+			}
+
+			[subent setOwner: self];
+
+			[subent release];
 		}
 	}
-	//
-	if ([shipdict objectForKey:@"frangible"])	// if an object has frangible == YES then it can have its subentities shot away!
-		isFrangible = [(NSNumber *)[shipdict objectForKey:@"frangible"] boolValue];
+	
+	isFrangible = [shipdict boolForKey:@"frangible" defaultValue:isFrangible];
+	
 	subentity_taking_damage = nil;
-	//
-	if ([shipdict objectForKey:@"laser_color"])
-	{
-		NSString *laser_color_string = (NSString *)[shipdict objectForKey:@"laser_color"];
-		SEL color_selector = NSSelectorFromString(laser_color_string);
-		if ([OOColor respondsToSelector:color_selector])
-		{
-			id  color_thing = [OOColor performSelector:color_selector];
-			if ([color_thing isKindOfClass:[OOColor class]])
-				[self setLaserColor:(OOColor *)color_thing];
-		}
-	}
-	else
-		[self setLaserColor:[OOColor redColor]];
-	//
+	
+	OOColor *color = [OOColor brightColorWithDescription:[shipdict objectForKey:@"laser_color"]];
+	if (color == nil)  color = [OOColor redColor];
+	[self setLaserColor:color];
+	
 	// scan class
-	if ([shipdict objectForKey:@"scanClass"])
-	{
-		NSString *s_class= (NSString *)[shipdict objectForKey:@"scanClass"];
-
-		//NSLog(@"----- initialising ship with scan class '%@'",s_class);
-
-		scanClass = CLASS_NEUTRAL;
-		if ([s_class isEqual:@"CLASS_STATION"])
-			scanClass = CLASS_STATION;
-		if ([s_class isEqual:@"CLASS_THARGOID"])
-			scanClass = CLASS_THARGOID;
-		if ([s_class isEqual:@"CLASS_TARGET"])
-			scanClass = CLASS_TARGET;
-		if ([s_class isEqual:@"CLASS_CARGO"])
-			scanClass = CLASS_CARGO;
-		if ([s_class isEqual:@"CLASS_POLICE"])
-			scanClass = CLASS_POLICE;
-		if ([s_class isEqual:@"CLASS_MILITARY"])
-			scanClass = CLASS_MILITARY;
-		if ([s_class isEqual:@"CLASS_BUOY"])
-			scanClass = CLASS_BUOY;
-		if ([s_class isEqual:@"CLASS_NO_DRAW"])
-			scanClass = CLASS_NO_DRAW;
-		if ([s_class isEqual:@"CLASS_MISSILE"])
-			scanClass = CLASS_MISSILE;
-		if ([s_class isEqual:@"CLASS_NEUTRAL"])
-			scanClass = CLASS_NEUTRAL;
-		if ([s_class isEqual:@"CLASS_ROCK"])
-			scanClass = CLASS_ROCK;
-	}
-	else
-		scanClass = CLASS_NOT_SET;
-	//
+	scanClass = StringToScanClass([shipdict objectForKey:@"scanClass"]);
+	
 	// scripting
+	// TODO: use OOScript here. -- Ahruman
 	if ([shipdict objectForKey:KEY_LAUNCH_ACTIONS])
 		[launch_actions addObjectsFromArray:(NSArray *)[shipdict objectForKey:KEY_LAUNCH_ACTIONS]];
 	if ([shipdict objectForKey:KEY_SCRIPT_ACTIONS])
@@ -1289,28 +1137,14 @@ static void ApplyConstantUniforms(NSDictionary *uniforms, GLhandleARB shaderProg
 	}
 
 	//  escorts
-	//
-	if ([shipdict objectForKey:@"escorts"])
-	{
-		n_escorts = [(NSNumber *)[shipdict objectForKey:@"escorts"] intValue];
-		//NSLog(@"DEBUG adding %d escorts for new %@", n_escorts, name);
-		escortsAreSetUp = (n_escorts == 0);
-	}
+	n_escorts = [shipdict intForKey:@"escorts" defaultValue:0];
+	escortsAreSetUp = (n_escorts == 0);
 
 	// beacons
-	//
-	if ([shipdict objectForKey:@"beacon"])
-	{
-		NSString* beaconCode = (NSString*)[shipdict objectForKey:@"beacon"];
-		const char* bcode = [beaconCode lossyCString];
-		beaconChar = bcode[0];
-//		NSLog(@"DEBUG new %@ is a beacon with code: %s", name, bcode);
-	}
-	else
-	{
-		beaconChar = 0;
-	}
-
+	NSString *beaconCode = [shipdict stringForKey:@"beacon" defaultValue:nil];
+	if (beaconCode == nil)  beaconChar = '\0';
+	else  beaconChar = [beaconCode lossyCString][0];
+	
 	// rotating subentities
 	subentityRotationalVelocity = kIdentityQuaternion;
 	ScanQuaternionFromString([shipdict objectForKey:@"rotational_velocity"], &subentityRotationalVelocity);
@@ -1337,43 +1171,32 @@ static void ApplyConstantUniforms(NSDictionary *uniforms, GLhandleARB shaderProg
 	ScanVectorFromString([shipdict objectForKey:@"weapon_position_starboard"], &starboardWeaponOffset);
 
 	// fuel scoop destination position (where cargo gets sucked into)
-	if (!ScanVectorFromString([shipdict objectForKey:@"scoop_position"], &tractor_position))
-	{
-		tractor_position = kZeroVector;
-	}
+	tractor_position = kZeroVector;
+	ScanVectorFromString([shipdict objectForKey:@"scoop_position"], &tractor_position);
 
 	// ship skin insulation factor (1.0 is normal)
 	heat_insulation = [shipdict doubleForKey:@"heat_insulation"	defaultValue:1.0];
 		
 	// crew and passengers
-	if ([shipdict objectForKey:@"pilot"])	// returns a key in characters.plist
+	NSDictionary* cdict = [[UNIVERSE characters] objectForKey:[shipdict stringForKey:@"pilot" defaultValue:nil]];
+	if (cdict != nil)
 	{
-		NSDictionary* cdict = [[UNIVERSE characters] objectForKey:[shipdict objectForKey:@"pilot"]];
-		if ((cdict)&&(UNIVERSE))
+		OOCharacter	*pilot = [OOCharacter characterWithDictionary:cdict];
+		if (crew == nil)  [self setCrew:[NSArray arrayWithObject:pilot]];
+		else
 		{
-			OOCharacter* pilot = [OOCharacter characterWithDictionary:cdict];
-			if (!crew)
-				[self setCrew:[NSArray arrayWithObject:pilot]];
-			else
-			{
-				NSMutableArray* nucrew = [NSMutableArray arrayWithObject:pilot];
-				[nucrew addObjectsFromArray:crew];
-				[self setCrew: nucrew];
-			}
+			NSMutableArray* nucrew = [NSMutableArray arrayWithObject:pilot];
+			[nucrew addObjectsFromArray:crew];
+			[self setCrew: nucrew];
 		}
 	}
-	//
-	// unpiloted (like missiles asteroids etc.)
-	if ([shipdict objectForKey:@"unpiloted"])
-	{
-		if (randf() < [[shipdict objectForKey:@"unpiloted"] floatValue])
-			[self setCrew: nil];	// empty
-	}
 	
-	// debugging flags
-	debug_flag = [shipdict intForKey:@"heat_insulation"	defaultValue:0];
-		
+	// unpiloted (like missiles asteroids etc.)
+	if ([shipdict fuzzyBooleanForKey:@"unpiloted" defaultValue:0.0f])  [self setCrew:nil];
+	float chance = [shipdict floatForKey:@"unpiloted" defaultValue:0.0f];
+	if (randf() < chance) [self setCrew:nil];
 }
+
 
 - (NSDictionary*)	 shipInfoDictionary
 {
@@ -4646,7 +4469,7 @@ static GLfloat mascem_color2[4] =	{ 0.4, 0.1, 0.4, 1.0};	// purple
 	Vector v;
 	Quaternion q;
 	int speed_low = 200;
-	int n_alloys = floor(sqrtf( mass / 25000.0));
+	int n_alloys = floor(sqrtf(sqrtf(mass / 25000.0)));
 
 	if (status == STATUS_DEAD)
 	{
@@ -4680,18 +4503,18 @@ static GLfloat mascem_color2[4] =	{ 0.4, 0.1, 0.4, 1.0};	// purple
 		[UNIVERSE addEntity:ring];
 		[ring release];
 	}
-
+	
 	// several parts to the explosion:
 	// 1. fast sparks
-	fragment = [[ParticleEntity alloc] initFragburstSize: collision_radius FromPosition: xposition];
+	fragment = [[ParticleEntity alloc] initFragburstSize:collision_radius FromPosition:xposition];
 	[UNIVERSE addEntity:fragment];
 	[fragment release];
 	// 2. slow clouds
-	fragment = [[ParticleEntity alloc] initBurst2Size: collision_radius FromPosition: xposition];
+	fragment = [[ParticleEntity alloc] initBurst2Size:collision_radius FromPosition:xposition];
 	[UNIVERSE addEntity:fragment];
 	[fragment release];
 	// 3. flash
-	fragment = [[ParticleEntity alloc] initFlashSize: collision_radius FromPosition: xposition];
+	fragment = [[ParticleEntity alloc] initFlashSize:collision_radius FromPosition:xposition];
 	[UNIVERSE addEntity:fragment];
 	[fragment release];
 
@@ -4867,7 +4690,7 @@ static GLfloat mascem_color2[4] =	{ 0.4, 0.1, 0.4, 1.0};	// purple
 
 		// throw out burning chunks of wreckage
 		//
-		if (n_alloys)
+		if (n_alloys && canFragment)
 		{
 			int n_wreckage = (n_alloys < 3)? n_alloys : 3;
 			

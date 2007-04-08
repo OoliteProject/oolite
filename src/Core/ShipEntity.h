@@ -163,8 +163,9 @@ MA 02110-1301, USA.
 	
 	// check for landing on planet
 							isNearPlanetSurface: 1,
-							isFrangible: 1,				//	frangible => subentities can be damaged individually
-							cloaking_device_active: 1;	// cloaking_device
+							isFrangible: 1,				// frangible => subentities can be damaged individually
+							cloaking_device_active: 1,	// cloaking_device
+							canFragment: 1;				// Can it break into wreckage?
 	
 	int						fuel;						// witch-space fuel
 	GLfloat					fuel_accumulator;

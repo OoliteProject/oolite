@@ -24,6 +24,8 @@ MA 02110-1301, USA.
 
 #import "OOCollectionExtractors.h"
 #import <limits.h>
+#import "OOMaths.h"
+
 
 BOOL EvaluateAsBoolean(id object, BOOL defaultValue)
 {
@@ -246,6 +248,15 @@ BOOL EvaluateAsBoolean(id object, BOOL defaultValue)
 }
 
 
+- (BOOL)fuzzyBooleanAtIndex:(unsigned)index defaultValue:(float)value
+{
+	float				chance;
+	
+	chance = [self floatAtIndex:index defaultValue:value];
+	return randf() < chance;
+}
+
+
 - (float)floatAtIndex:(unsigned)index defaultValue:(float)value
 {
 	id					objVal = [self objectAtIndex:index];
@@ -279,8 +290,8 @@ BOOL EvaluateAsBoolean(id object, BOOL defaultValue)
 	id					objVal = [self objectAtIndex:index];
 	id					result;
 	
-	if (objVal != nil) result = objVal;
-	else result = value;
+	if (objVal != nil)  result = objVal;
+	else  result = value;
 	
 	return result;
 }
@@ -289,12 +300,36 @@ BOOL EvaluateAsBoolean(id object, BOOL defaultValue)
 - (NSString *)stringAtIndex:(unsigned)index defaultValue:(NSString *)value
 {
 	id					objVal = [self objectAtIndex:index];
-	id					result;
+	NSString			*result;
 	
-	if ([objVal isKindOfClass:[NSString class]]) result = objVal;
-	else result = value;
+	if ([objVal isKindOfClass:[NSString class]])  result = objVal;
+	else  result = value;
 	
 	return result;
+}
+
+
+- (NSArray *)arrayAtIndex:(unsigned)index defaultValue:(NSArray *)value
+{
+	id					objVal = [self objectAtIndex:index];
+	NSArray				*result;
+	
+	if ([objVal isKindOfClass:[NSArray class]])  result = objVal;
+	else  result = value;
+	
+	return result;	
+}
+
+
+- (NSDictionary *)dictionaryAtIndex:(unsigned)index defaultValue:(NSDictionary *)value
+{
+	id					objVal = [self objectAtIndex:index];
+	NSDictionary		*result;
+	
+	if ([objVal isKindOfClass:[NSDictionary class]])  result = objVal;
+	else  result = value;
+	
+	return result;	
 }
 
 @end
@@ -488,6 +523,15 @@ BOOL EvaluateAsBoolean(id object, BOOL defaultValue)
 }
 
 
+- (BOOL)fuzzyBooleanForKey:(id)key defaultValue:(float)value
+{
+	float				chance;
+	
+	chance = [self floatForKey:key defaultValue:value];
+	return randf() < chance;
+}
+
+
 - (float)floatForKey:(id)key defaultValue:(float)value
 {
 	id					objVal = [self objectForKey:key];
@@ -521,8 +565,8 @@ BOOL EvaluateAsBoolean(id object, BOOL defaultValue)
 	id					objVal = [self objectForKey:key];
 	id					result;
 	
-	if (objVal != nil) result = objVal;
-	else result = value;
+	if (objVal != nil)  result = objVal;
+	else  result = value;
 	
 	return result;
 }
@@ -531,10 +575,34 @@ BOOL EvaluateAsBoolean(id object, BOOL defaultValue)
 - (NSString *)stringForKey:(id)key defaultValue:(NSString *)value
 {
 	id					objVal = [self objectForKey:key];
+	NSString			*result;
+	
+	if ([objVal isKindOfClass:[NSString class]])  result = objVal;
+	else result =  value;
+	
+	return result;
+}
+
+
+- (NSArray *)arrayForKey:(id)key defaultValue:(NSArray *)value
+{
+	id					objVal = [self objectForKey:key];
 	id					result;
 	
-	if ([objVal isKindOfClass:[NSString class]]) result = objVal;
-	else result = value;
+	if ([objVal isKindOfClass:[NSArray class]])  result = objVal;
+	else result =  value;
+	
+	return result;
+}
+
+
+- (NSDictionary *)dictionaryForKey:(id)key defaultValue:(NSDictionary *)value
+{
+	id					objVal = [self objectForKey:key];
+	NSDictionary		*result;
+	
+	if ([objVal isKindOfClass:[NSDictionary class]])  result = objVal;
+	else result =  value;
 	
 	return result;
 }

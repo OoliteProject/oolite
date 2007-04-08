@@ -2,11 +2,13 @@
 
 OOConstToString.h
 
-Oolite
-Copyright (C) 2004-2007 Giles C Williams and contributors
-
 Convert various sets of integer constants to strings.
 To consider: replacing the integer constants with string constants.
+
+This has grown beyond "const-to-string" at this point.
+
+Oolite
+Copyright (C) 2004-2007 Giles C Williams and contributors
 
 This program is free software; you can redistribute it and/or
 modify it under the terms of the GNU General Public License
@@ -31,11 +33,13 @@ MA 02110-1301, USA.
 
 
 NSString *EntityStatusToString(OOEntityStatus status) CONST_FUNC;
+OOEntityStatus StringToEntityStatus(NSString *string) PURE_FUNC;
 
 NSString *ScanClassToString(OOScanClass scanClass) CONST_FUNC;
+OOScanClass StringToScanClass(NSString *string) PURE_FUNC;
 
 NSString *InstinctToString(OOInstinctID instinct) CONST_FUNC;
-OOInstinctID InstinctFromString(NSString* instinctString) PURE_FUNC;
+OOInstinctID StringToInstinct(NSString *string) PURE_FUNC;
 
 NSString *BehaviourToString(OOBehaviour behaviour) CONST_FUNC;
 
@@ -44,3 +48,9 @@ NSString *GovernmentToString(unsigned government);
 NSString *EconomyToString(unsigned economy);
 
 NSString *JSTypeToString(int /* JSType */ type) CONST_FUNC;
+
+NSString *WeaponTypeToString(OOWeaponType weapon) CONST_FUNC;
+OOWeaponType StringToWeaponType(NSString *string) PURE_FUNC;
+
+NSString *CargoTypeToString(OOCargoType cargo) CONST_FUNC;
+OOCargoType StringToCargoType(NSString *string) PURE_FUNC;

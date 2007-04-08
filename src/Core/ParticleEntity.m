@@ -510,7 +510,7 @@ static	Vector	circleVertex[65];		// holds vector coordinates for a unit circle
     time_counter = 0.0;
 	duration = 1.5;
 	position = fragPos;
-	[self setColor:[OOColor colorWithCalibratedHue:0.12 + 0.08 * randf() saturation:1.0 brightness:1.0 alpha:1.0]]; // yellow/orage (0.12) through yellow (0.1667) to yellow/slightly green (0.20)
+	[self setColor:[OOColor colorWithCalibratedHue:0.12 + 0.08 * randf() saturation:1.0 brightness:1.0 alpha:1.0]]; // yellow/orange (0.12) through yellow (0.1667) to yellow/slightly green (0.20)
 	//
 	for (i = 0 ; i < n_fragments; i++)
 	{
@@ -1285,7 +1285,7 @@ static	Vector	circleVertex[65];		// holds vector coordinates for a unit circle
 - (void) updateExhaust2:(double) delta_t
 {
 	#if ADDITIVE_BLENDING
-		#define OVERALL_ALPHA		0.4f
+		#define OVERALL_ALPHA		0.5f
 	#else
 		#define OVERALL_ALPHA		1.0f
 	#endif

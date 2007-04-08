@@ -4798,6 +4798,8 @@
 		<string>CLASS_CARGO</string>
 		<key>thrust</key>
 		<real>0.0</real>
+		<key>fragment_chance</key>
+		<real>0.2</real>
 	</dict>
 	<key>more-wreckage2</key>
 	<dict>

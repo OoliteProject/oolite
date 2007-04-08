@@ -34,13 +34,17 @@ MA 02110-1301, USA.
 	GLfloat	rgba[4];
 }
 
-/* Create NSCalibratedRGBColorSpace colors.
-*/
 + (OOColor *)colorWithCalibratedHue:(float)hue saturation:(float)saturation brightness:(float)brightness alpha:(float)alpha;
 + (OOColor *)colorWithCalibratedRed:(float)red green:(float)green blue:(float)blue alpha:(float)alpha;
++ (OOColor *)colorWithCalibratedWhite:(float)white alpha:(float)alpha;
 
-/* Some convenience methods to create colors in the calibrated color spaces...
-*/
+// Flexible color creator; takes a selector name, a string with components, or an array.
++ (OOColor *)colorWithDescription:(id)description;
+
+// Like +colorWithDescription:, but forces brightness of at least 0.5.
++ (OOColor *)brightColorWithDescription:(id)description;
+
+// Creates a colour given a string with components.
 + (OOColor *)colorFromString:(NSString*) colorFloatString;
 
 + (OOColor *)blackColor;	/* 0.0 white */

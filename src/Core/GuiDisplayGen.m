@@ -490,7 +490,7 @@ MA 02110-1301, USA.
 
 - (void) setText: (NSString *) str forRow:(int) row align:(int) alignment
 {
-	if ((row >= rowRange.location)&&(row < rowRange.location+rowRange.length))
+	if (str != nil && row >= rowRange.location && row < rowRange.location+rowRange.length)
 	{
 		[rowText replaceObjectAtIndex:row withObject:str];
 		rowAlignment[row] = alignment;
