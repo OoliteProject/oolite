@@ -715,45 +715,44 @@ static BOOL hostiles;
 		&&(the_planet))									// and be in a system
 	{
 		Vector relativePosition;
-		if ([player compass_mode] == COMPASS_MODE_BASIC)
+		
+		switch ([player compass_mode])
 		{
-			relativePosition = the_planet->position;
-			if (([player checkForAegis] != AEGIS_NONE)&&(the_station))
-				relativePosition = the_station->position;
-		}
-		else
-		{
-			switch ([player compass_mode])
-			{
-				case COMPASS_MODE_PLANET:
-					relativePosition = the_planet->position;
-					break;
-				case COMPASS_MODE_STATION:
+			case COMPASS_MODE_BASIC:
+				relativePosition = the_planet->position;
+				if (([player checkForAegis] != AEGIS_NONE)&&(the_station))
 					relativePosition = the_station->position;
-					break;
-				case COMPASS_MODE_SUN:
-					relativePosition = the_sun->position;
-					break;
-				case COMPASS_MODE_TARGET:
-					if (the_target)
-						relativePosition = the_target->position;
-					else
-					{
-						[player setCompass_mode:COMPASS_MODE_PLANET];
-						relativePosition = the_planet->position;
-					}	
-					break;
-				case COMPASS_MODE_BEACONS:
-					if (the_next_beacon)
-						relativePosition = the_next_beacon->position;
-					else
-					{
-						[player setCompass_mode:COMPASS_MODE_PLANET];
-						relativePosition = the_planet->position;
-					}	
-					break;
-			}
+				break;
+			
+			case COMPASS_MODE_PLANET:
+				relativePosition = the_planet->position;
+				break;
+			case COMPASS_MODE_STATION:
+				relativePosition = the_station->position;
+				break;
+			case COMPASS_MODE_SUN:
+				relativePosition = the_sun->position;
+				break;
+			case COMPASS_MODE_TARGET:
+				if (the_target)
+					relativePosition = the_target->position;
+				else
+				{
+					[player setCompass_mode:COMPASS_MODE_PLANET];
+					relativePosition = the_planet->position;
+				}	
+				break;
+			case COMPASS_MODE_BEACONS:
+				if (the_next_beacon)
+					relativePosition = the_next_beacon->position;
+				else
+				{
+					[player setCompass_mode:COMPASS_MODE_PLANET];
+					relativePosition = the_planet->position;
+				}	
+				break;
 		}
+		
 		// translate the view
 		relativePosition.x -= position.x;   relativePosition.y -= position.y;   relativePosition.z -= position.z;
 		// rotate the view
@@ -768,37 +767,33 @@ static BOOL hostiles;
 		relativePosition.x += x;
 		relativePosition.y += y;
 
-		if ([player compass_mode] == COMPASS_MODE_BASIC)
+		NSSize sz = siz;
+		sz.width *= 0.2;
+		sz.height *= 0.2;
+		glLineWidth(2.0);
+		switch ([player compass_mode])
 		{
-			NSSize oldblipsize = NSMakeSize( 6, 6);
-			[self drawCompassPlanetBlipAt:relativePosition Size:oldblipsize Alpha:alpha];
-		}
-		else
-		{
-			NSSize sz = siz;
-			sz.width *= 0.2;
-			sz.height *= 0.2;
-			glLineWidth(2.0);
-			switch ([player compass_mode])
-			{
-				case COMPASS_MODE_PLANET:
-					[self drawCompassPlanetBlipAt:relativePosition Size:sz Alpha:alpha];
-					break;
-				case COMPASS_MODE_STATION:
-					[self drawCompassStationBlipAt:relativePosition Size:sz Alpha:alpha];
-					break;
-				case COMPASS_MODE_SUN:
-					[self drawCompassSunBlipAt:relativePosition Size:sz Alpha:alpha];
-					break;
-				case COMPASS_MODE_TARGET:
-					[self drawCompassTargetBlipAt:relativePosition Size:sz Alpha:alpha];
-					break;
-				case COMPASS_MODE_BEACONS:
-					[self drawCompassBeaconBlipAt:relativePosition Size:sz Alpha:alpha];
-					drawString(	[NSString stringWithFormat:@"%c", [(ShipEntity*)the_next_beacon beaconChar]],
-								x - 2.5 * sz.width, y - 3.0 * sz.height, z1, NSMakeSize(sz.width * 2, sz.height * 2));
-					break;
-			}
+			case COMPASS_MODE_BASIC:
+				[self drawCompassPlanetBlipAt:relativePosition Size:NSMakeSize( 6, 6) Alpha:alpha];
+				break;
+			
+			case COMPASS_MODE_PLANET:
+				[self drawCompassPlanetBlipAt:relativePosition Size:sz Alpha:alpha];
+				break;
+			case COMPASS_MODE_STATION:
+				[self drawCompassStationBlipAt:relativePosition Size:sz Alpha:alpha];
+				break;
+			case COMPASS_MODE_SUN:
+				[self drawCompassSunBlipAt:relativePosition Size:sz Alpha:alpha];
+				break;
+			case COMPASS_MODE_TARGET:
+				[self drawCompassTargetBlipAt:relativePosition Size:sz Alpha:alpha];
+				break;
+			case COMPASS_MODE_BEACONS:
+				[self drawCompassBeaconBlipAt:relativePosition Size:sz Alpha:alpha];
+				drawString(	[NSString stringWithFormat:@"%c", [(ShipEntity*)the_next_beacon beaconChar]],
+							x - 2.5 * sz.width, y - 3.0 * sz.height, z1, NSMakeSize(sz.width * 2, sz.height * 2));
+				break;
 		}
 	}
 }

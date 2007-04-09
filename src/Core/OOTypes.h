@@ -247,3 +247,7 @@ typedef uint16_t	OOKeyCode;
 
 typedef uint16_t OOUniversalID;	// Valid IDs range from 100 to 1000.
 #define NO_TARGET	((OOUniversalID)0)
+
+
+typedef double OOTimeAbsolute;
+typedef double OOTimeDelta;

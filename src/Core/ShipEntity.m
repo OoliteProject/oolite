@@ -3891,170 +3891,6 @@ static GLfloat mascem_color2[4] =	{ 0.4, 0.1, 0.4, 1.0};	// purple
 	}
 }
 
-- (void) takeEnergyDamage:(double) amount from:(Entity *) ent becauseOf:(Entity *) other
-{
-	if (status == STATUS_DEAD)  // it's too late for this one!
-		return;
-	if (amount == 0.0)
-		return;
-	if ((ent)&&(ent->isParticle)&&(ent->scanClass == CLASS_MINE))
-	{
-		if (self == [UNIVERSE station])
-		{
-			if ((other)&&(other->isShip))
-			{
-				[(ShipEntity*)other markAsOffender:96];
-				[self setPrimaryAggressor:other];
-				found_target = primaryAggressor;
-			}
-			[(StationEntity*)self increaseAlertLevel];
-			[shipAI reactToMessage:@"ATTACKED"];	// note use the reactToMessage: method NOT the think-delayed message: method
-			return;	// Main stations are energy-bomb-proof!
-		}
-
-		// otherwise start a chain-reaction
-		//
-		if ((amount > energy)&&(energy > 10))
-		{
-				ParticleEntity* chain_reaction = [[ParticleEntity alloc] initEnergyMineFromShip:self];
-				[UNIVERSE addEntity:chain_reaction];
-				[chain_reaction setOwner:[ent owner]];
-				[chain_reaction release];
-//			}
-		}
-	}
-	//
-	BOOL iAmTheLaw = (scanClass == CLASS_POLICE);
-	BOOL uAreTheLaw = ((other)&&(other->scanClass == CLASS_POLICE));
-	//
-	energy -= amount;
-	being_mined = NO;
-	//
-	if ((other)&&(other->isShip))
-	{
-		ShipEntity* hunter = (ShipEntity *)other;
-		if ([hunter isCloaked])  other = nil;	// lose it!
-	}
-	//
-	// if the other entity is a ship note it as an aggressor
-	if ((other)&&(other->isShip))
-	{
-		ShipEntity* hunter = (ShipEntity *)other;
-		//
-		last_escort_target = NO_TARGET;	// we're being attacked, escorts can scramble!
-		//
-		primaryAggressor = [hunter universalID];
-		found_target = primaryAggressor;
-
-		// firing on an innocent ship is an offence
-		[self broadcastHitByLaserFrom: hunter];
-
-		// tell ourselves we've been attacked
-		if (energy > 0)
-			[shipAI reactToMessage:@"ATTACKED"];	// note use the reactToMessage: method NOT the think-delayed message: method
-
-		// firing on an innocent ship is an offence
-		[self broadcastHitByLaserFrom:(ShipEntity*) other];
-
-		// tell our group we've been attacked
-		if (group_id != NO_TARGET)
-		{
-			if ([roles isEqual:@"escort"]||[roles isEqual:@"trader"])
-			{
-				ShipEntity *group_leader = (ShipEntity *)[UNIVERSE entityForUniversalID:group_id];
-				if ((group_leader)&&(group_leader->isShip))
-				{
-					[group_leader setFound_target:hunter];
-					[group_leader setPrimaryAggressor:hunter];
-					[[group_leader getAI] reactToMessage:@"ATTACKED"];
-				}
-				else
-					group_id = NO_TARGET;
-			}
-			if ([roles isEqual:@"pirate"])
-			{
-				NSArray	*fellow_pirates = [self shipsInGroup:group_id];
-				int i;
-				for (i = 0; i < [fellow_pirates count]; i++)
-				{
-					ShipEntity *other_pirate = (ShipEntity *)[fellow_pirates objectAtIndex:i];
-					if (randf() < 0.5)	// 50% chance they'll help
-					{
-						[other_pirate setFound_target:hunter];
-						[other_pirate setPrimaryAggressor:hunter];
-						[[other_pirate getAI] reactToMessage:@"ATTACKED"];
-					}
-				}
-			}
-			if (iAmTheLaw)
-			{
-				NSArray	*fellow_police = [self shipsInGroup:group_id];
-				int i;
-				for (i = 0; i < [fellow_police count]; i++)
-				{
-					ShipEntity *other_police = (ShipEntity *)[fellow_police objectAtIndex:i];
-					[other_police setFound_target:hunter];
-					[other_police setPrimaryAggressor:hunter];
-					[[other_police getAI] reactToMessage:@"ATTACKED"];
-				}
-			}
-		}
-
-		// if I'm a copper and you're not, then mark the other as an offender!
-		if ((iAmTheLaw)&&(!uAreTheLaw))
-			[hunter markAsOffender:64];
-
-		// avoid shooting each other
-		if (([hunter group_id] == group_id)||(iAmTheLaw && uAreTheLaw))
-		{
-			if ([hunter behaviour] == BEHAVIOUR_ATTACK_FLY_TO_TARGET)	// avoid me please!
-			{
-				[hunter setBehaviour:BEHAVIOUR_ATTACK_FLY_FROM_TARGET];
-				[hunter setDesiredSpeed:[hunter max_flight_speed]];
-			}
-		}
-
-		if ((other)&&(other->isShip))
-			being_mined = [(ShipEntity *)other isMining];
-	}
-	// die if I'm out of energy
-	if (energy <= 0.0)
-	{
-		if ((other)&&(other->isShip))
-		{
-			ShipEntity* hunter = (ShipEntity *)other;
-			[hunter collectBountyFor:self];
-			if ([hunter getPrimaryTarget] == (Entity *)self)
-			{
-				[hunter removeTarget:(Entity *)self];
-				[[hunter getAI] message:@"TARGET_DESTROYED"];
-			}
-		}
-
-		[self becomeExplosion];
-	}
-	else
-	{
-		// warn if I'm low on energy
-		if (energy < maxEnergy *0.25)
-			[shipAI reactToMessage:@"ENERGY_LOW"];
-		if ((energy < maxEnergy *0.125)&&(has_escape_pod)&&((ranrot_rand() & 3) == 0))  // 25% chance he gets to an escape pod
-		{
-			has_escape_pod = NO;
-			
-			[shipAI setStateMachine:@"nullAI.plist"];
-			[shipAI setState:@"GLOBAL"];
-			behaviour = BEHAVIOUR_IDLE;
-			frustration = 0.0;
-			[self launchEscapeCapsule];
-			[self setScanClass: CLASS_CARGO];			// we're unmanned now!
-			thrust = thrust * 0.5;
-			desired_speed = 0.0;
-			max_flight_speed = 0.0;
-			is_hulk = YES;
-		}
-	}
-}
 
 - (BOOL) isHulk
 {
@@ -6686,20 +6522,167 @@ BOOL	class_masslocks(int some_class)
 	[UNIVERSE removeEntity:other];
 }
 
+
+- (void) takeEnergyDamage:(double)amount from:(Entity *)ent becauseOf:(Entity *)other
+{
+	if (status == STATUS_DEAD)  return;
+	if (amount == 0.0)  return;
+	
+	// If it's an energy mine...
+	if (ent && ent->isParticle && ent->scanClass == CLASS_MINE)
+	{
+		// ...start a chain reaction, if we're dying and have a non-trivial amount of energy.
+		if (energy < amount && energy > 10)
+		{
+			ParticleEntity *chainReaction = [[ParticleEntity alloc] initEnergyMineFromShip:self];
+			[UNIVERSE addEntity:chainReaction];
+			[chainReaction setOwner:[ent owner]];
+			[chainReaction release];
+		}
+	}
+	
+	BOOL iAmTheLaw = (scanClass == CLASS_POLICE);
+	BOOL uAreTheLaw = ((other)&&(other->scanClass == CLASS_POLICE));
+	//
+	energy -= amount;
+	being_mined = NO;
+	//
+	if ((other)&&(other->isShip))
+	{
+		ShipEntity* hunter = (ShipEntity *)other;
+		if ([hunter isCloaked])  other = nil;	// lose it!
+	}
+	//
+	// if the other entity is a ship note it as an aggressor
+	if ((other)&&(other->isShip))
+	{
+		ShipEntity* hunter = (ShipEntity *)other;
+		//
+		last_escort_target = NO_TARGET;	// we're being attacked, escorts can scramble!
+		//
+		primaryAggressor = [hunter universalID];
+		found_target = primaryAggressor;
+
+		// firing on an innocent ship is an offence
+		[self broadcastHitByLaserFrom: hunter];
+
+		// tell ourselves we've been attacked
+		if (energy > 0)
+			[shipAI reactToMessage:@"ATTACKED"];	// note use the reactToMessage: method NOT the think-delayed message: method
+
+		// firing on an innocent ship is an offence
+		[self broadcastHitByLaserFrom:(ShipEntity*) other];
+
+		// tell our group we've been attacked
+		if (group_id != NO_TARGET)
+		{
+			if ([roles isEqual:@"escort"]||[roles isEqual:@"trader"])
+			{
+				ShipEntity *group_leader = (ShipEntity *)[UNIVERSE entityForUniversalID:group_id];
+				if ((group_leader)&&(group_leader->isShip))
+				{
+					[group_leader setFound_target:hunter];
+					[group_leader setPrimaryAggressor:hunter];
+					[[group_leader getAI] reactToMessage:@"ATTACKED"];
+				}
+				else
+					group_id = NO_TARGET;
+			}
+			if ([roles isEqual:@"pirate"])
+			{
+				NSArray	*fellow_pirates = [self shipsInGroup:group_id];
+				int i;
+				for (i = 0; i < [fellow_pirates count]; i++)
+				{
+					ShipEntity *other_pirate = (ShipEntity *)[fellow_pirates objectAtIndex:i];
+					if (randf() < 0.5)	// 50% chance they'll help
+					{
+						[other_pirate setFound_target:hunter];
+						[other_pirate setPrimaryAggressor:hunter];
+						[[other_pirate getAI] reactToMessage:@"ATTACKED"];
+					}
+				}
+			}
+			if (iAmTheLaw)
+			{
+				NSArray	*fellow_police = [self shipsInGroup:group_id];
+				int i;
+				for (i = 0; i < [fellow_police count]; i++)
+				{
+					ShipEntity *other_police = (ShipEntity *)[fellow_police objectAtIndex:i];
+					[other_police setFound_target:hunter];
+					[other_police setPrimaryAggressor:hunter];
+					[[other_police getAI] reactToMessage:@"ATTACKED"];
+				}
+			}
+		}
+
+		// if I'm a copper and you're not, then mark the other as an offender!
+		if ((iAmTheLaw)&&(!uAreTheLaw))
+			[hunter markAsOffender:64];
+
+		// avoid shooting each other
+		if (([hunter group_id] == group_id)||(iAmTheLaw && uAreTheLaw))
+		{
+			if ([hunter behaviour] == BEHAVIOUR_ATTACK_FLY_TO_TARGET)	// avoid me please!
+			{
+				[hunter setBehaviour:BEHAVIOUR_ATTACK_FLY_FROM_TARGET];
+				[hunter setDesiredSpeed:[hunter max_flight_speed]];
+			}
+		}
+
+		if ((other)&&(other->isShip))
+			being_mined = [(ShipEntity *)other isMining];
+	}
+	// die if I'm out of energy
+	if (energy <= 0.0)
+	{
+		if ((other)&&(other->isShip))
+		{
+			ShipEntity* hunter = (ShipEntity *)other;
+			[hunter collectBountyFor:self];
+			if ([hunter getPrimaryTarget] == (Entity *)self)
+			{
+				[hunter removeTarget:(Entity *)self];
+				[[hunter getAI] message:@"TARGET_DESTROYED"];
+			}
+		}
+
+		[self becomeExplosion];
+	}
+	else
+	{
+		// warn if I'm low on energy
+		if (energy < maxEnergy *0.25)
+			[shipAI reactToMessage:@"ENERGY_LOW"];
+		if ((energy < maxEnergy *0.125)&&(has_escape_pod)&&((ranrot_rand() & 3) == 0))  // 25% chance he gets to an escape pod
+		{
+			has_escape_pod = NO;
+			
+			[shipAI setStateMachine:@"nullAI.plist"];
+			[shipAI setState:@"GLOBAL"];
+			behaviour = BEHAVIOUR_IDLE;
+			frustration = 0.0;
+			[self launchEscapeCapsule];
+			[self setScanClass: CLASS_CARGO];			// we're unmanned now!
+			thrust = thrust * 0.5;
+			desired_speed = 0.0;
+			max_flight_speed = 0.0;
+			is_hulk = YES;
+		}
+	}
+}
+
+
 - (void) takeScrapeDamage:(double) amount from:(Entity *) ent
 {
-	if (status == STATUS_DEAD)					// it's too late for this one!
-		return;
-
-	if ([UNIVERSE station] == self)				// main stations are indestructible
-		return;
+	if (status == STATUS_DEAD)  return;
 
 	if (status == STATUS_LAUNCHING)					// no collisions during launches please
 		return;
-	if ((ent)&&(ent->status == STATUS_LAUNCHING))	// no collisions during launches please
+	if (ent && ent->status == STATUS_LAUNCHING)		// no collisions during launches please
 		return;
-
-	//
+	
 	energy -= amount;
 	// oops we hit too hard!!!
 	if (energy <= 0.0)

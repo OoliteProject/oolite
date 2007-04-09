@@ -39,26 +39,31 @@ MA 02110-1301, USA.
 
 #define SCRIPT_TIMER_INTERVAL			10.0
 
-#define GUI_SCREEN_MAIN					000
-#define GUI_SCREEN_INTRO1				001
-#define GUI_SCREEN_INTRO2				002
-#define GUI_SCREEN_STATUS				101
-#define GUI_SCREEN_MANIFEST				111
-#define GUI_SCREEN_EQUIP_SHIP			102
-#define GUI_SCREEN_SHIPYARD				112
-#define GUI_SCREEN_LONG_RANGE_CHART		103
-#define GUI_SCREEN_SHORT_RANGE_CHART	113
-#define GUI_SCREEN_SYSTEM_DATA			105
-#define GUI_SCREEN_MARKET				106
-#define GUI_SCREEN_CONTRACTS			116
-#define GUI_SCREEN_INVENTORY			107
-#define GUI_SCREEN_OPTIONS				108
-#define GUI_SCREEN_LOAD					118
-#define GUI_SCREEN_SAVE					128
-#define GUI_SCREEN_SAVE_OVERWRITE		129
-#define GUI_SCREEN_STICKMAPPER			138
-#define GUI_SCREEN_MISSION				201
-#define GUI_SCREEN_REPORT				301
+
+// Shouldn't this be in GuiDisplayGen.h? -- Ahruman
+typedef enum
+{
+	GUI_SCREEN_MAIN,
+	GUI_SCREEN_INTRO1,
+	GUI_SCREEN_INTRO2,
+	GUI_SCREEN_STATUS,
+	GUI_SCREEN_MANIFEST,
+	GUI_SCREEN_EQUIP_SHIP,
+	GUI_SCREEN_SHIPYARD,
+	GUI_SCREEN_LONG_RANGE_CHART,
+	GUI_SCREEN_SHORT_RANGE_CHART,
+	GUI_SCREEN_SYSTEM_DATA,
+	GUI_SCREEN_MARKET,
+	GUI_SCREEN_CONTRACTS,
+	GUI_SCREEN_INVENTORY,
+	GUI_SCREEN_OPTIONS,
+	GUI_SCREEN_LOAD,
+	GUI_SCREEN_SAVE,
+	GUI_SCREEN_SAVE_OVERWRITE,
+	GUI_SCREEN_STICKMAPPER,
+	GUI_SCREEN_MISSION,
+	GUI_SCREEN_REPORT,
+} OOGUIScreen;
 
 enum
 {
@@ -69,14 +74,16 @@ enum
 	GUI_ROW_OPTIONS_OPTIONS,
 	GUI_ROW_OPTIONS_DISPLAY,
 	
-#ifndef GNUSTEP
+#if OOLITE_MAC_OS_X
 	GUI_ROW_OPTIONS_SPEECH,
 	GUI_ROW_OPTIONS_VOLUME,
 	GUI_ROW_OPTIONS_GROWL,
 	GUI_ROW_OPTIONS_OOTUNES,
 	GUI_ROW_OPTIONS_DETAIL,
 	GUI_ROW_OPTIONS_STRICT,
-#else
+#endif
+
+#if OOLITE_SDL
 	GUI_ROW_OPTIONS_DISPLAYSTYLE,
 	GUI_ROW_OPTIONS_VOLUME,
 	GUI_ROW_OPTIONS_DETAIL,
@@ -85,7 +92,15 @@ enum
 	GUI_ROW_OPTIONS_QUIT,
 #endif
 	
-	GUI_ROW_OPTIONS_END_OF_LIST
+	GUI_ROW_OPTIONS_END_OF_LIST,
+	
+	GUI_ROW_EQUIPMENT_START				= 3,
+	GUI_MAX_ROWS_EQUIPMENT				= 12,
+	GUI_ROW_EQUIPMENT_DETAIL			= GUI_ROW_EQUIPMENT_START + GUI_MAX_ROWS_EQUIPMENT + 1,
+	GUI_ROW_EQUIPMENT_CASH				= 1,
+	GUI_ROW_MARKET_KEY					= 1,
+	GUI_ROW_MARKET_START				= 2,
+	GUI_ROW_MARKET_CASH					= 20
 };
 
 enum
@@ -96,13 +111,36 @@ enum
 	SCOOP_STATUS_ACTIVE
 };
 
-#define GUI_ROW_EQUIPMENT_START			3
-#define GUI_MAX_ROWS_EQUIPMENT			12
-#define GUI_ROW_EQUIPMENT_DETAIL		GUI_ROW_EQUIPMENT_START+GUI_MAX_ROWS_EQUIPMENT+1
-#define GUI_ROW_EQUIPMENT_CASH			1
-#define GUI_ROW_MARKET_KEY				1
-#define GUI_ROW_MARKET_START			2
-#define GUI_ROW_MARKET_CASH				20
+
+typedef enum
+{
+// NOTE: numerical values are available to scripts.
+	ALERT_CONDITION_DOCKED,
+	ALERT_CONDITION_GREEN,
+	ALERT_CONDITION_YELLOW,
+	ALERT_CONDITION_RED
+} OOAlertCondition;
+
+
+enum
+{
+	ALERT_FLAG_DOCKED				= 0x010,
+	ALERT_FLAG_MASS_LOCK			= 0x020,
+	ALERT_FLAG_YELLOW_LIMIT			= 0x03f,
+	ALERT_FLAG_TEMP					= 0x040,
+	ALERT_FLAG_ALT					= 0x080,
+	ALERT_FLAG_ENERGY				= 0x100,
+	ALERT_FLAG_HOSTILES				= 0x200
+};
+typedef uint16_t OOAlertFlags;
+
+
+typedef enum
+{
+	MISSILE_STATUS_SAFE,
+	MISSILE_STATUS_ARMED,
+	MISSILE_STATUS_TARGET_LOCKED
+} OOMissileStatus;
 
 #define WEAPON_COOLING_FACTOR			6.0
 #define ENERGY_RECHARGE_FACTOR			energy_recharge_rate
@@ -127,11 +165,6 @@ enum
 #define	PLAYER_TARGET_MEMORY_SIZE		16
 
 	//  ~~~~~~~~~~~~~~~~~~~~~~~~	= 40km
-	
-#define ALERT_CONDITION_DOCKED			0
-#define ALERT_CONDITION_GREEN			1
-#define ALERT_CONDITION_YELLOW			2
-#define ALERT_CONDITION_RED				3
 
 #define SHOT_RELOAD						0.25
 
@@ -149,9 +182,6 @@ enum
 #define MS_WITCHSPACE_SF				@"[witch-to-@-in-f-seconds]"
 #define MS_GAL_WITCHSPACE_F				@"[witch-galactic-in-f-seconds]"
 
-#define MISSILE_STATUS_SAFE				0
-#define MISSILE_STATUS_ARMED			1
-#define MISSILE_STATUS_TARGET_LOCKED	2
 
 #define WEAPON_FACING_NONE				0
 #define WEAPON_FACING_FORWARD			1
@@ -166,14 +196,6 @@ enum
 #define PORT_FACING_STRING				@"\tPort "
 #define STARBOARD_FACING_STRING			@"\tStarboard "
 
-#define ALERT_FLAG_DOCKED				0x010
-#define ALERT_FLAG_MASS_LOCK			0x020
-#define ALERT_FLAG_YELLOW_LIMIT			0x03f
-#define ALERT_FLAG_TEMP					0x040
-#define ALERT_FLAG_ALT					0x080
-#define ALERT_FLAG_ENERGY				0x100
-#define ALERT_FLAG_HOSTILES				0x200
-
 #define KEY_REPEAT_INTERVAL				0.20
 
 #define OOTUNES_ON						ootunes_on
@@ -187,13 +209,17 @@ enum
 #define PASSAGE_BAD_KEY					@"passage_expired"
 #define PASSAGE_UNKNOWN_KEY				@"passage_unknown"
 
-#define COMPASS_MODE_BASIC				0
-#define COMPASS_MODE_PLANET				1
-#define COMPASS_MODE_STATION			2
-#define COMPASS_MODE_SUN				3
-#define COMPASS_MODE_TARGET				4
-#define COMPASS_MODE_BEACONS			6
-#define COMPASS_MODE_ADVANCED_OKAY		((compass_mode >= 1)&&(compass_mode <= 10))
+
+typedef enum
+{
+	COMPASS_MODE_BASIC,
+	COMPASS_MODE_PLANET,
+	COMPASS_MODE_STATION,
+	COMPASS_MODE_SUN,
+	COMPASS_MODE_TARGET,
+	COMPASS_MODE_BEACONS
+} OOCompassMode;
+
 
 #define SCANNER_ZOOM_RATE_UP			2.0
 #define SCANNER_ZOOM_RATE_DOWN			-8.0
@@ -227,11 +253,11 @@ enum
 
 	NSMutableDictionary		*oxpKeys;
 #ifdef GNUSTEP
- SDLImage					*missionBackgroundImage;
+	SDLImage				*missionBackgroundImage;
 #else
 	NSImage					*missionBackgroundImage;
 #endif
-        
+	
 	NSMutableDictionary		*extra_equipment;
 	BOOL					found_equipment;
 	
@@ -313,8 +339,8 @@ enum
 	OOSoundSource			*breakPatternSource;
 	
 	int						gui_screen;
-	int						alert_flags;
-	int						alert_condition;
+	OOAlertFlags			alert_flags;
+	OOAlertCondition		alert_condition;
 	int						missile_status;
 	int						active_missile;
 	
@@ -346,9 +372,9 @@ enum
 
 	int						legal_status;
 	int						market_rnd;
-	int						ship_kills;
+	unsigned				ship_kills;
 	
-	int						compass_mode;
+	OOCompassMode			compass_mode;
 	
 	GLfloat					fuel_leak_rate;
         
@@ -568,8 +594,8 @@ enum
 
 - (NSMutableArray*) comm_log;
 
-- (int) compass_mode;
-- (void) setCompass_mode:(int) value;
+- (OOCompassMode) compass_mode;
+- (void) setCompass_mode:(OOCompassMode) value;
 - (void) setNextCompassMode;
 
 - (int) active_missile;

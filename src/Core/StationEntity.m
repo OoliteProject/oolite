@@ -32,6 +32,7 @@ MA 02110-1301, USA.
 
 #import "PlayerEntityLegacyScriptEngine.h"
 #import "PlanetEntity.h"
+#import "ParticleEntity.h"
 
 #import "AI.h"
 #import "OOCharacter.h"
@@ -1162,6 +1163,48 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 		return IsBehaviourHostile(old_behaviour);
 	}
 	return IsBehaviourHostile(behaviour)||(alert_level == STATION_ALERT_LEVEL_YELLOW)||(alert_level == STATION_ALERT_LEVEL_RED);
+}
+
+
+- (void)takeEnergyDamage:(double)amount from:(Entity *)ent becauseOf:(Entity *)other
+{
+	// If it's an energy mine...
+	if (ent && ent->isParticle && ent->scanClass == CLASS_MINE)
+	{
+		// ...and this is the system's main station...
+		if (self == [UNIVERSE station])
+		{
+			// ...then get angry...
+			if (other && other->isShip)
+			{
+				[(ShipEntity*)other markAsOffender:96];
+				[self setPrimaryAggressor:other];
+				found_target = primaryAggressor;
+			}
+			[self increaseAlertLevel];
+			[shipAI reactToMessage:@"ATTACKED"];	// note use the reactToMessage: method NOT the think-delayed message: method
+			
+			// ...and don't blow up.
+			return;
+		}
+	}
+	
+	// Handle damage like a ship.
+	[super takeEnergyDamage:amount from:ent becauseOf:other];
+}
+
+
+- (void)takeScrapeDamage:(double)amount from:(Entity *)ent
+{
+	// Stop damage if main station
+	if (self != [UNIVERSE station])  [super takeScrapeDamage:amount from:ent];
+}
+
+
+- (void) takeHeatDamage:(double)amount
+{
+	// Stop damage if main station
+	if (self != [UNIVERSE station])  [super takeHeatDamage:amount];
 }
 
 //////////////////////////////////////////////// extra AI routines

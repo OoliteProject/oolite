@@ -2541,49 +2541,35 @@ double scoopSoundPlayTime = 0.0;
 	return comm_log;
 }
 
-- (int) compass_mode
+- (OOCompassMode) compass_mode
 {
 	return compass_mode;
 }
 
-- (void) setCompass_mode:(int) value
+- (void) setCompass_mode:(OOCompassMode) value
 {
 	compass_mode = value;
 }
 
 - (void) setNextCompassMode
 {
-	if COMPASS_MODE_ADVANCED_OKAY
+	switch (compass_mode)
 	{
-		switch (compass_mode)
-		{
-			case COMPASS_MODE_PLANET:
-				if ([self checkForAegis] == AEGIS_NONE)
-					[self setCompass_mode:COMPASS_MODE_SUN];
-				else
-					[self setCompass_mode:COMPASS_MODE_STATION];
-				break;
-			case COMPASS_MODE_STATION:
+		case COMPASS_MODE_BASIC:
+		case COMPASS_MODE_PLANET:
+			if ([self checkForAegis] == AEGIS_NONE)
 				[self setCompass_mode:COMPASS_MODE_SUN];
-				break;
-			case COMPASS_MODE_SUN:
-				if ([self getPrimaryTarget])
-					[self setCompass_mode:COMPASS_MODE_TARGET];
-				else
-				{
-					nextBeaconID = [[UNIVERSE firstBeacon] universalID];
-					while ((nextBeaconID != NO_TARGET)&&[(ShipEntity*)[UNIVERSE entityForUniversalID:nextBeaconID] isJammingScanning])
-					{
-						nextBeaconID = [(ShipEntity*)[UNIVERSE entityForUniversalID:nextBeaconID] nextBeaconID];
-					}
-					
-					if (nextBeaconID != NO_TARGET)
-						[self setCompass_mode:COMPASS_MODE_BEACONS];
-					else
-						[self setCompass_mode:COMPASS_MODE_PLANET];
-				}
-				break;
-			case COMPASS_MODE_TARGET:
+			else
+				[self setCompass_mode:COMPASS_MODE_STATION];
+			break;
+		case COMPASS_MODE_STATION:
+			[self setCompass_mode:COMPASS_MODE_SUN];
+			break;
+		case COMPASS_MODE_SUN:
+			if ([self getPrimaryTarget])
+				[self setCompass_mode:COMPASS_MODE_TARGET];
+			else
+			{
 				nextBeaconID = [[UNIVERSE firstBeacon] universalID];
 				while ((nextBeaconID != NO_TARGET)&&[(ShipEntity*)[UNIVERSE entityForUniversalID:nextBeaconID] isJammingScanning])
 				{
@@ -2594,17 +2580,29 @@ double scoopSoundPlayTime = 0.0;
 					[self setCompass_mode:COMPASS_MODE_BEACONS];
 				else
 					[self setCompass_mode:COMPASS_MODE_PLANET];
-				break;
-			case COMPASS_MODE_BEACONS:
-				do
-				{
-					nextBeaconID = [(ShipEntity*)[UNIVERSE entityForUniversalID:nextBeaconID] nextBeaconID];
-				} while ((nextBeaconID != NO_TARGET)&&[(ShipEntity*)[UNIVERSE entityForUniversalID:nextBeaconID] isJammingScanning]);
-				
-				if (nextBeaconID == NO_TARGET)
-					[self setCompass_mode:COMPASS_MODE_PLANET];
-				break;
-		}
+			}
+			break;
+		case COMPASS_MODE_TARGET:
+			nextBeaconID = [[UNIVERSE firstBeacon] universalID];
+			while ((nextBeaconID != NO_TARGET)&&[(ShipEntity*)[UNIVERSE entityForUniversalID:nextBeaconID] isJammingScanning])
+			{
+				nextBeaconID = [(ShipEntity*)[UNIVERSE entityForUniversalID:nextBeaconID] nextBeaconID];
+			}
+			
+			if (nextBeaconID != NO_TARGET)
+				[self setCompass_mode:COMPASS_MODE_BEACONS];
+			else
+				[self setCompass_mode:COMPASS_MODE_PLANET];
+			break;
+		case COMPASS_MODE_BEACONS:
+			do
+			{
+				nextBeaconID = [(ShipEntity*)[UNIVERSE entityForUniversalID:nextBeaconID] nextBeaconID];
+			} while ((nextBeaconID != NO_TARGET)&&[(ShipEntity*)[UNIVERSE entityForUniversalID:nextBeaconID] isJammingScanning]);
+			
+			if (nextBeaconID == NO_TARGET)
+				[self setCompass_mode:COMPASS_MODE_PLANET];
+			break;
 	}
 }
 
@@ -3134,27 +3132,22 @@ double scoopSoundPlayTime = 0.0;
 }
 
 
-- (void) takeEnergyDamage:(double) amount from:(Entity *) ent becauseOf:(Entity *) other
+- (void) takeEnergyDamage:(double)amount from:(Entity *)ent becauseOf:(Entity *)other
 {
-	Vector  rel_pos;
-	double  d_forward;
-	BOOL	internal_damage = NO;	// base chance
+	Vector		rel_pos;
+	double		d_forward;
+	BOOL		internal_damage = NO;	// base chance
 
-	if (status == STATUS_DEAD)
-		return;
-	if (amount == 0.0)
-		return;
+	if (status == STATUS_DEAD)  return;
+	if (amount == 0.0)  return;
 
 	[ent retain];
 	[other retain];
-	rel_pos = (ent)? ent->position: kZeroVector;
-
-	rel_pos.x -= position.x;
-	rel_pos.y -= position.y;
-	rel_pos.z -= position.z;
-
-	d_forward   =   dot_product(rel_pos, v_forward);
-
+	rel_pos = (ent != nil) ? [ent position] : kZeroVector;
+	rel_pos = vector_subtract(rel_pos, position);
+	
+	d_forward = dot_product(rel_pos, v_forward);
+	
 	if (damageSound)
 	{
 		if ([damageSound isPlaying]) [damageSound stop];
