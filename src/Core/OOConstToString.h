@@ -57,3 +57,6 @@ OOCargoType StringToCargoType(NSString *string) PURE_FUNC;
 
 NSString *EnergyUnitTypeToString(OOEnergyUnitType unit) CONST_FUNC;
 OOEnergyUnitType StringToEnergyUnitType(NSString *string) PURE_FUNC;
+
+NSString *GUIScreenIDToString(OOGUIScreenID screen) CONST_FUNC;
+OOEnergyUnitType StringToGUIScreenID(NSString *string) PURE_FUNC;

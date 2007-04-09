@@ -257,19 +257,11 @@ static NSString * const kOOLogLoadScriptNone				= @"script.load.none";
 
 - (BOOL)doEvent:(NSString *)eventName
 {
-	OOLog(kOOLogScriptSubclassResponsibility, @"OOScript should not be used directly!");
-	return NO;
+	return [self doEvent:eventName withArguments:nil];
 }
 
 
-- (BOOL)doEvent:(NSString *)eventName withIntegerArgument:(int)argument
-{
-	OOLog(kOOLogScriptSubclassResponsibility, @"OOScript should not be used directly!");
-	return NO;
-}
-
-
-- (BOOL)doEvent:(NSString *)eventName withStringArgument:(NSString *)argument
+- (BOOL)doEvent:(NSString *)eventName withArguments:(NSArray *)arguments
 {
 	OOLog(kOOLogScriptSubclassResponsibility, @"OOScript should not be used directly!");
 	return NO;

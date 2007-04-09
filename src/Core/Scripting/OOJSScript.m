@@ -28,6 +28,7 @@ MA 02110-1301, USA.
 #import "Entity.h"
 #import "OOJavaScriptEngine.h"
 #import "NSStringOOExtensions.h"
+#import "EntityOOJavaScriptExtensions.h"
 
 
 OOJSScript *currentOOJSScript;
@@ -163,64 +164,29 @@ JSClass script_class =
 
 - (void)runWithTarget:(Entity *)target
 {
-	[self doEvent:@"tickle" withStringArgument:[[PlayerEntity sharedPlayer] status_string]];
+	[self doEvent:@"tickle" withArguments:[NSArray arrayWithObject:[[PlayerEntity sharedPlayer] status_string]]];
 }
 
-- (BOOL) doEvent: (NSString *) eventName
+
+- (BOOL)doEvent:(NSString *)eventName withArguments:(NSArray *)arguments
 {
-	jsval rval;
-	JSBool ok;
+	BOOL			OK;
+	jsval			value;
+	JSFunction		*function;
+	uintN			argc;
+	jsval			*argv = NULL;
 
-	ok = JS_GetProperty(context, object, [eventName cString], &rval);
-	if (ok && !JSVAL_IS_VOID(rval)) {
-		JSFunction *func = JS_ValueToFunction(context, rval);
-		if (func != 0x00) {
+	OK = JS_GetProperty(context, object, [eventName cString], &value);
+	if (OK && !JSVAL_IS_VOID(value))
+	{
+		function = JS_ValueToFunction(context, value);
+		if (function != NULL)
+		{
 			currentOOJSScript = self;
-			ok = JS_CallFunction(context, object, func, 0, 0x00, &rval);
-			if (ok)
-				return YES;
-		}
-	}
-
-	return NO;
-}
-
-- (BOOL) doEvent: (NSString *) eventName withIntegerArgument:(int)argument
-{
-	jsval rval;
-	JSBool ok;
-
-	ok = JS_GetProperty(context, object, [eventName cString], &rval);
-	if (ok && !JSVAL_IS_VOID(rval)) {
-		JSFunction *func = JS_ValueToFunction(context, rval);
-		if (func != 0x00) {
-			currentOOJSScript = self;
-			jsval args[1];
-			args[0] = INT_TO_JSVAL(argument);
-			ok = JS_CallFunction(context, object, func, 1, args, &rval);
-			if (ok)
-				return YES;
-		}
-	}
-
-	return NO;
-}
-
-- (BOOL) doEvent: (NSString *) eventName withStringArgument:(NSString *)argument
-{
-	jsval rval;
-	JSBool ok;
-
-	ok = JS_GetProperty(context, object, [eventName cString], &rval);
-	if (ok && !JSVAL_IS_VOID(rval)) {
-		JSFunction *func = JS_ValueToFunction(context, rval);
-		if (func != 0x00) {
-			currentOOJSScript = self;
-			jsval args[1];
-			args[0] = [argument javaScriptValueInContext:context];
-			ok = JS_CallFunction(context, object, func, 1, args, &rval);
-			if (ok)
-				return YES;
+			JSArgumentsFromArray(context, arguments, &argc, &argv);
+			OK = JS_CallFunction(context, object, function, argc, argv, &value);
+			if (argv != NULL) free(argv);
+			return OK;
 		}
 	}
 

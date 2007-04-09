@@ -105,21 +105,7 @@ static NSString * const kKeyMetadata		= @"!metadata!";
 }
 
 
-- (BOOL)doEvent:(NSString *)eventName
-{
-	// PList scripts don't have event handlers.
-	return NO;
-}
-
-
-- (BOOL)doEvent:(NSString *)eventName withIntegerArgument:(int)argument
-{
-	// PList scripts don't have event handlers.
-	return NO;
-}
-
-
-- (BOOL)doEvent:(NSString *)eventName withStringArgument:(NSString *)argument
+- (BOOL)doEvent:(NSString *)eventName withArguments:(NSArray *)argument
 {
 	// PList scripts don't have event handlers.
 	return NO;

@@ -1378,6 +1378,57 @@ BOOL NumberFromArgumentList(JSContext *context, NSString *scriptClass, NSString 
 }
 
 
+BOOL JSArgumentsFromArray(JSContext *context, NSArray *array, uintN *outArgc, jsval **outArgv)
+{
+	if (outArgc != NULL) *outArgc = 0;
+	if (outArgv != NULL) *outArgv = NULL;
+	
+	if (array == nil)  return YES;
+	
+	// Sanity checks.
+	if (outArgc == NULL || outArgv == NULL)
+	{
+		OOLogGenericParameterError();
+		return NO;
+	}
+	if (context == NULL) context = [[OOJavaScriptEngine sharedEngine] context];
+	
+	uintN			i = 0, argc = [array count];
+	NSEnumerator	*objectEnum = nil;
+	id				object = nil;
+	jsval			*argv = NULL;
+	
+	if (argc == 0) return YES;
+	
+	// Allocate result buffer
+	argv = malloc(sizeof *argv * argc);
+	if (argv == NULL)
+	{
+		OOLog(kOOLogAllocationFailure, @"Failed to allocate space for %u JavaScript parameters.", argc);
+		return NO;
+	}
+	
+	// Convert objects
+	for (objectEnum = [array objectEnumerator]; (object = [objectEnum nextObject]); )
+	{
+		argv[i] = JSVAL_VOID;
+		
+		NS_DURING
+			if ([object respondsToSelector:@selector(javaScriptValueInContext:)])
+			{
+				argv[i] = [object javaScriptValueInContext:context];
+			}
+		NS_HANDLER
+		NS_ENDHANDLER
+		++i;
+	}
+	
+	*outArgc = argc;
+	*outArgv = argv;
+	return YES;
+}
+
+
 @implementation NSString (OOJavaScriptExtensions)
 
 // Convert a JSString to an NSString.
@@ -1524,6 +1575,16 @@ BOOL NumberFromArgumentList(JSContext *context, NSString *scriptClass, NSString 
 	}
 	
 	return result;
+}
+
+@end
+
+
+@implementation NSNull (OOJavaScriptExtensions)
+
+- (jsval)javaScriptValueInContext:(JSContext *)context
+{
+	return JSVAL_NULL;
 }
 
 @end

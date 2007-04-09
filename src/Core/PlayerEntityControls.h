@@ -29,6 +29,8 @@ MA 02110-1301, USA.
 
 @interface PlayerEntity (Controls)
 
+- (void) initControls;
+
 - (void) pollControls:(double) delta_t;
 - (void) pollApplicationControls;
 - (void) pollFlightControls:(double) delta_t;

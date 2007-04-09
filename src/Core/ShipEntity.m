@@ -3647,9 +3647,9 @@ static GLfloat mascem_color2[4] =	{ 0.4, 0.1, 0.4, 1.0};	// purple
 }
 
 
-- (void) setThrust:(double) amount
+- (void)setThrustForDemo:(float)factor
 {
-	thrust = amount;
+	flight_speed = factor * max_flight_speed;
 }
 
 
@@ -3897,6 +3897,15 @@ static GLfloat mascem_color2[4] =	{ 0.4, 0.1, 0.4, 1.0};	// purple
 	return is_hulk;
 }
 
+
+- (void) getDestroyedBy:(Entity *)whom context:(NSString *)context
+{
+	suppressExplosion = NO;		// Can only be set in death handler
+	// TODO: send didBecomeDead(whom, context) script event here
+	[self becomeExplosion];
+}
+
+
 - (void) becomeExplosion
 {
 	OOCargoQuantity cargo_to_go;
@@ -3943,283 +3952,285 @@ static GLfloat mascem_color2[4] =	{ 0.4, 0.1, 0.4, 1.0};	// purple
 		[death_actions release];
 		death_actions = nil;
 	}
-
-
+	
 	if ([roles isEqual:@"thargoid"])
 		[self broadcastThargoidDestroyed];
-
-	if ((mass > 200000.0f)&&(randf() < 0.25f)) // big!
-	{
-		// draw an expanding ring
-		ParticleEntity *ring = [[ParticleEntity alloc] initHyperringFromShip:self]; // retained
-		Vector ring_vel = [self velocity];
-		ring_vel.x *= 0.25;	ring_vel.y *= 0.25;	ring_vel.z *= 0.25;	// quarter velocity
-		[ring setVelocity:ring_vel];
-		[UNIVERSE addEntity:ring];
-		[ring release];
-	}
 	
-	// several parts to the explosion:
-	// 1. fast sparks
-	fragment = [[ParticleEntity alloc] initFragburstSize:collision_radius FromPosition:xposition];
-	[UNIVERSE addEntity:fragment];
-	[fragment release];
-	// 2. slow clouds
-	fragment = [[ParticleEntity alloc] initBurst2Size:collision_radius FromPosition:xposition];
-	[UNIVERSE addEntity:fragment];
-	[fragment release];
-	// 3. flash
-	fragment = [[ParticleEntity alloc] initFlashSize:collision_radius FromPosition:xposition];
-	[UNIVERSE addEntity:fragment];
-	[fragment release];
-
-	BOOL add_more_explosion = YES;
-	if (UNIVERSE)
+	if (!suppressExplosion)
 	{
-		add_more_explosion &= (UNIVERSE->n_entities < 0.95 * UNIVERSE_MAX_ENTITIES);	// 
-		add_more_explosion &= ([UNIVERSE getTimeDelta] < 0.125);						// FPS > 8
-	}
-	// quick - check if UNIVERSE is nearing limit for entities - if it is don't add to it!
-	//
-	if (add_more_explosion)
-	{
-		// we need to throw out cargo at this point.
-		NSArray *jetsam = nil;  // this will contain the stuff to get thrown out
-		int cargo_chance = 10;
-		if ([[name lowercaseString] rangeOfString:@"medical"].location != NSNotFound)
+		if ((mass > 200000.0f)&&(randf() < 0.25f)) // big!
 		{
+			// draw an expanding ring
+			ParticleEntity *ring = [[ParticleEntity alloc] initHyperringFromShip:self]; // retained
+			Vector ring_vel = [self velocity];
+			ring_vel.x *= 0.25;	ring_vel.y *= 0.25;	ring_vel.z *= 0.25;	// quarter velocity
+			[ring setVelocity:ring_vel];
+			[UNIVERSE addEntity:ring];
+			[ring release];
+		}
+		
+		// several parts to the explosion:
+		// 1. fast sparks
+		fragment = [[ParticleEntity alloc] initFragburstSize:collision_radius FromPosition:xposition];
+		[UNIVERSE addEntity:fragment];
+		[fragment release];
+		// 2. slow clouds
+		fragment = [[ParticleEntity alloc] initBurst2Size:collision_radius FromPosition:xposition];
+		[UNIVERSE addEntity:fragment];
+		[fragment release];
+		// 3. flash
+		fragment = [[ParticleEntity alloc] initFlashSize:collision_radius FromPosition:xposition];
+		[UNIVERSE addEntity:fragment];
+		[fragment release];
+
+		BOOL add_more_explosion = YES;
+		if (UNIVERSE)
+		{
+			add_more_explosion &= (UNIVERSE->n_entities < 0.95 * UNIVERSE_MAX_ENTITIES);	// 
+			add_more_explosion &= ([UNIVERSE getTimeDelta] < 0.125);						// FPS > 8
+		}
+		// quick - check if UNIVERSE is nearing limit for entities - if it is don't add to it!
+		//
+		if (add_more_explosion)
+		{
+			// we need to throw out cargo at this point.
+			NSArray *jetsam = nil;  // this will contain the stuff to get thrown out
+			int cargo_chance = 10;
+			if ([[name lowercaseString] rangeOfString:@"medical"].location != NSNotFound)
+			{
+				cargo_to_go = max_cargo * cargo_chance / 100;
+				while (cargo_to_go > 15)
+					cargo_to_go = ranrot_rand() % cargo_to_go;
+				[self setCargo:[UNIVERSE getContainersOfDrugs:cargo_to_go]];
+				cargo_chance = 100;  //  chance of any given piece of cargo surviving decompression
+				cargo_flag = CARGO_FLAG_CANISTERS;
+			}
+			
 			cargo_to_go = max_cargo * cargo_chance / 100;
 			while (cargo_to_go > 15)
 				cargo_to_go = ranrot_rand() % cargo_to_go;
-			[self setCargo:[UNIVERSE getContainersOfDrugs:cargo_to_go]];
 			cargo_chance = 100;  //  chance of any given piece of cargo surviving decompression
-			cargo_flag = CARGO_FLAG_CANISTERS;
-		}
-		
-		cargo_to_go = max_cargo * cargo_chance / 100;
-		while (cargo_to_go > 15)
-			cargo_to_go = ranrot_rand() % cargo_to_go;
-		cargo_chance = 100;  //  chance of any given piece of cargo surviving decompression
-		switch (cargo_flag)
-		{
-			case CARGO_FLAG_NONE:
-			case CARGO_FLAG_FULL_PASSENGERS:
-				break;
-			
-			case CARGO_FLAG_FULL_UNIFORM :
-				{
-					NSString* commodity_name = (NSString*)[shipinfoDictionary objectForKey:@"cargo_carried"];
-					jetsam = [UNIVERSE getContainersOfCommodity:commodity_name :cargo_to_go];
-				}
-				break;
-
-			case CARGO_FLAG_FULL_PLENTIFUL :
-				jetsam = [UNIVERSE getContainersOfPlentifulGoods:cargo_to_go];
-				break;
-
-			case CARGO_FLAG_PIRATE :
-				cargo_to_go = likely_cargo;
-				while (cargo_to_go > 15)
-					cargo_to_go = ranrot_rand() % cargo_to_go;
-				cargo_chance = 65;	// 35% chance of spoilage
-				jetsam = [UNIVERSE getContainersOfScarceGoods:cargo_to_go];
-				break;
-
-			case CARGO_FLAG_FULL_SCARCE :
-				jetsam = [UNIVERSE getContainersOfScarceGoods:cargo_to_go];
-				break;
-
-			case CARGO_FLAG_CANISTERS:
-				jetsam = [NSArray arrayWithArray:cargo];   // what the ship is carrying
-				[cargo removeAllObjects];   // dispense with it!
-				break;
-		}
-
-		//  Throw out cargo
-		//
-		if (jetsam)
-		{
-			int n_jetsam = [jetsam count];
-			//
-			for (i = 0; i < n_jetsam; i++)
+			switch (cargo_flag)
 			{
-				if (ranrot_rand() % 100 < cargo_chance)  //  chance of any given piece of cargo surviving decompression
+				case CARGO_FLAG_NONE:
+				case CARGO_FLAG_FULL_PASSENGERS:
+					break;
+				
+				case CARGO_FLAG_FULL_UNIFORM :
+					{
+						NSString* commodity_name = (NSString*)[shipinfoDictionary objectForKey:@"cargo_carried"];
+						jetsam = [UNIVERSE getContainersOfCommodity:commodity_name :cargo_to_go];
+					}
+					break;
+
+				case CARGO_FLAG_FULL_PLENTIFUL :
+					jetsam = [UNIVERSE getContainersOfPlentifulGoods:cargo_to_go];
+					break;
+
+				case CARGO_FLAG_PIRATE :
+					cargo_to_go = likely_cargo;
+					while (cargo_to_go > 15)
+						cargo_to_go = ranrot_rand() % cargo_to_go;
+					cargo_chance = 65;	// 35% chance of spoilage
+					jetsam = [UNIVERSE getContainersOfScarceGoods:cargo_to_go];
+					break;
+
+				case CARGO_FLAG_FULL_SCARCE :
+					jetsam = [UNIVERSE getContainersOfScarceGoods:cargo_to_go];
+					break;
+
+				case CARGO_FLAG_CANISTERS:
+					jetsam = [NSArray arrayWithArray:cargo];   // what the ship is carrying
+					[cargo removeAllObjects];   // dispense with it!
+					break;
+			}
+
+			//  Throw out cargo
+			//
+			if (jetsam)
+			{
+				int n_jetsam = [jetsam count];
+				//
+				for (i = 0; i < n_jetsam; i++)
 				{
-					ShipEntity* container = [jetsam objectAtIndex:i];
+					if (ranrot_rand() % 100 < cargo_chance)  //  chance of any given piece of cargo surviving decompression
+					{
+						ShipEntity* container = [jetsam objectAtIndex:i];
+						Vector  rpos = xposition;
+						Vector	rrand = randomPositionInBoundingBox(boundingBox);
+						rpos.x += rrand.x;	rpos.y += rrand.y;	rpos.z += rrand.z;
+						rpos.x += (ranrot_rand() % 7) - 3;
+						rpos.y += (ranrot_rand() % 7) - 3;
+						rpos.z += (ranrot_rand() % 7) - 3;
+						[container setPosition:rpos];
+						v.x = 0.1 *((ranrot_rand() % speed_low) - speed_low / 2);
+						v.y = 0.1 *((ranrot_rand() % speed_low) - speed_low / 2);
+						v.z = 0.1 *((ranrot_rand() % speed_low) - speed_low / 2);
+						[container setVelocity:v];
+						quaternion_set_random(&q);
+						[container setQRotation:q];
+						[container setStatus:STATUS_IN_FLIGHT];
+						[container setScanClass: CLASS_CARGO];
+						[UNIVERSE addEntity:container];
+						[[container getAI] setState:@"GLOBAL"];
+					}
+				}
+			}
+
+			//  Throw out rocks and alloys to be scooped up
+			//
+			if ([roles isEqual:@"asteroid"])
+			{
+				if ((being_mined)||(randf() < 0.20))
+				{
+					int n_rocks = likely_cargo;
+					//
+					for (i = 0; i < n_rocks; i++)
+					{
+						ShipEntity* rock = [UNIVERSE newShipWithRole:@"boulder"];   // retain count = 1
+						if (rock)
+						{
+							Vector  rpos = xposition;
+							int  r_speed = 20.0 * [rock max_flight_speed];
+							int cr = 3 * rock->collision_radius;
+							rpos.x += (ranrot_rand() % cr) - cr/2;
+							rpos.y += (ranrot_rand() % cr) - cr/2;
+							rpos.z += (ranrot_rand() % cr) - cr/2;
+							[rock setPosition:rpos];
+							v.x = 0.1 *((ranrot_rand() % r_speed) - r_speed / 2);
+							v.y = 0.1 *((ranrot_rand() % r_speed) - r_speed / 2);
+							v.z = 0.1 *((ranrot_rand() % r_speed) - r_speed / 2);
+							[rock setVelocity:v];
+							quaternion_set_random(&q);
+							[rock setQRotation:q];
+							[rock setStatus:STATUS_IN_FLIGHT];
+							[rock setScanClass: CLASS_ROCK];
+							[UNIVERSE addEntity:rock];
+							[[rock getAI] setState:@"GLOBAL"];
+							[rock release];
+						}
+					}
+				}
+				[UNIVERSE removeEntity:self];
+				return; // don't do anything more
+			}
+
+			if ([roles isEqual:@"boulder"])
+			{
+				if ((being_mined)||(ranrot_rand() % 100 < 20))
+				{
+					int n_rocks = 2 + (ranrot_rand() % 5);
+					//
+					for (i = 0; i < n_rocks; i++)
+					{
+						ShipEntity* rock = [UNIVERSE newShipWithRole:@"splinter"];   // retain count = 1
+						if (rock)
+						{
+							Vector  rpos = xposition;
+							int  r_speed = 20.0 * [rock max_flight_speed];
+							int cr = 3 * rock->collision_radius;
+							rpos.x += (ranrot_rand() % cr) - cr/2;
+							rpos.y += (ranrot_rand() % cr) - cr/2;
+							rpos.z += (ranrot_rand() % cr) - cr/2;
+							[rock setPosition:rpos];
+							v.x = 0.1 *((ranrot_rand() % r_speed) - r_speed / 2);
+							v.y = 0.1 *((ranrot_rand() % r_speed) - r_speed / 2);
+							v.z = 0.1 *((ranrot_rand() % r_speed) - r_speed / 2);
+							[rock setBounty: 0];
+							[rock setCommodity:[UNIVERSE commodityForName:@"Minerals"] andAmount: 1];
+							[rock setVelocity:v];
+							quaternion_set_random(&q);
+							[rock setQRotation:q];
+							[rock setStatus:STATUS_IN_FLIGHT];
+							[rock setScanClass: CLASS_CARGO];
+							[UNIVERSE addEntity:rock];
+							[[rock getAI] setState:@"GLOBAL"];
+							[rock release];
+						}
+					}
+				}
+				[UNIVERSE removeEntity:self];
+				return; // don't do anything more
+			}
+
+			// throw out burning chunks of wreckage
+			//
+			if (n_alloys && canFragment)
+			{
+				int n_wreckage = (n_alloys < 3)? n_alloys : 3;
+				
+				// quick - check if UNIVERSE is nearing limit for entities - if it is don't make wreckage
+				//
+				add_more_explosion &= (UNIVERSE->n_entities < 0.50 * UNIVERSE_MAX_ENTITIES);
+				if (!add_more_explosion)
+					n_wreckage = 0;
+				//
+				////
+				
+				for (i = 0; i < n_wreckage; i++)
+				{
+					ShipEntity* wreck = [UNIVERSE newShipWithRole:@"wreckage"];   // retain count = 1
+					if (wreck)
+					{
+						GLfloat expected_mass = 0.1f * mass * (0.75 + 0.5 * randf());
+						GLfloat wreck_mass = [wreck mass];
+						GLfloat scale_factor = powf(expected_mass / wreck_mass, 0.33333333f);	// cube root of volume ratio
+						[wreck rescaleBy: scale_factor];
+						
+						Vector r1 = randomFullNodeFrom([octree octreeDetails], kZeroVector);
+						Vector rpos = make_vector ( v_right.x * r1.x + v_up.x * r1.y + v_forward.x * r1.z,
+													v_right.y * r1.x + v_up.y * r1.y + v_forward.y * r1.z,
+													v_right.z * r1.x + v_up.z * r1.y + v_forward.z * r1.z);
+						rpos.x += xposition.x;
+						rpos.y += xposition.y;
+						rpos.z += xposition.z;
+						[wreck setPosition:rpos];
+						
+						[wreck setVelocity:[self velocity]];
+
+						quaternion_set_random(&q);
+						[wreck setQRotation:q];
+						
+						[wreck setTemperature: 1000.0];		// take 1000e heat damage per second
+						[wreck setHeatInsulation: 1.0e7];	// very large! so it won't cool down
+						[wreck setEnergy: 750.0 * randf() + 250.0 * i + 100.0];	// burn for 0.25s -> 1.25s
+						
+						[wreck setStatus:STATUS_IN_FLIGHT];
+						[UNIVERSE addEntity: wreck];
+						[wreck performTumble];
+						[wreck release];
+					}
+				}
+				n_alloys = ranrot_rand() % n_alloys;
+			}
+
+			// Throw out scrap metal
+			//
+			for (i = 0; i < n_alloys; i++)
+			{
+				ShipEntity* plate = [UNIVERSE newShipWithRole:@"alloy"];   // retain count = 1
+				if (plate)
+				{
 					Vector  rpos = xposition;
 					Vector	rrand = randomPositionInBoundingBox(boundingBox);
 					rpos.x += rrand.x;	rpos.y += rrand.y;	rpos.z += rrand.z;
 					rpos.x += (ranrot_rand() % 7) - 3;
 					rpos.y += (ranrot_rand() % 7) - 3;
 					rpos.z += (ranrot_rand() % 7) - 3;
-					[container setPosition:rpos];
+					[plate setPosition:rpos];
 					v.x = 0.1 *((ranrot_rand() % speed_low) - speed_low / 2);
 					v.y = 0.1 *((ranrot_rand() % speed_low) - speed_low / 2);
 					v.z = 0.1 *((ranrot_rand() % speed_low) - speed_low / 2);
-					[container setVelocity:v];
+					[plate setVelocity:v];
 					quaternion_set_random(&q);
-					[container setQRotation:q];
-					[container setStatus:STATUS_IN_FLIGHT];
-					[container setScanClass: CLASS_CARGO];
-					[UNIVERSE addEntity:container];
-					[[container getAI] setState:@"GLOBAL"];
+					[plate setQRotation:q];
+					[plate setScanClass: CLASS_CARGO];
+					[plate setCommodity:9 andAmount:1];
+					[UNIVERSE addEntity:plate];
+					[plate setStatus:STATUS_IN_FLIGHT];
+					[[plate getAI] setState:@"GLOBAL"];
+					[plate release];
 				}
-			}
-		}
-
-		//  Throw out rocks and alloys to be scooped up
-		//
-		if ([roles isEqual:@"asteroid"])
-		{
-			if ((being_mined)||(randf() < 0.20))
-			{
-				int n_rocks = likely_cargo;
-				//
-				for (i = 0; i < n_rocks; i++)
-				{
-					ShipEntity* rock = [UNIVERSE newShipWithRole:@"boulder"];   // retain count = 1
-					if (rock)
-					{
-						Vector  rpos = xposition;
-						int  r_speed = 20.0 * [rock max_flight_speed];
-						int cr = 3 * rock->collision_radius;
-						rpos.x += (ranrot_rand() % cr) - cr/2;
-						rpos.y += (ranrot_rand() % cr) - cr/2;
-						rpos.z += (ranrot_rand() % cr) - cr/2;
-						[rock setPosition:rpos];
-						v.x = 0.1 *((ranrot_rand() % r_speed) - r_speed / 2);
-						v.y = 0.1 *((ranrot_rand() % r_speed) - r_speed / 2);
-						v.z = 0.1 *((ranrot_rand() % r_speed) - r_speed / 2);
-						[rock setVelocity:v];
-						quaternion_set_random(&q);
-						[rock setQRotation:q];
-						[rock setStatus:STATUS_IN_FLIGHT];
-						[rock setScanClass: CLASS_ROCK];
-						[UNIVERSE addEntity:rock];
-						[[rock getAI] setState:@"GLOBAL"];
-						[rock release];
-					}
-				}
-			}
-			[UNIVERSE removeEntity:self];
-			return; // don't do anything more
-		}
-
-		if ([roles isEqual:@"boulder"])
-		{
-			if ((being_mined)||(ranrot_rand() % 100 < 20))
-			{
-				int n_rocks = 2 + (ranrot_rand() % 5);
-				//
-				for (i = 0; i < n_rocks; i++)
-				{
-					ShipEntity* rock = [UNIVERSE newShipWithRole:@"splinter"];   // retain count = 1
-					if (rock)
-					{
-						Vector  rpos = xposition;
-						int  r_speed = 20.0 * [rock max_flight_speed];
-						int cr = 3 * rock->collision_radius;
-						rpos.x += (ranrot_rand() % cr) - cr/2;
-						rpos.y += (ranrot_rand() % cr) - cr/2;
-						rpos.z += (ranrot_rand() % cr) - cr/2;
-						[rock setPosition:rpos];
-						v.x = 0.1 *((ranrot_rand() % r_speed) - r_speed / 2);
-						v.y = 0.1 *((ranrot_rand() % r_speed) - r_speed / 2);
-						v.z = 0.1 *((ranrot_rand() % r_speed) - r_speed / 2);
-						[rock setBounty: 0];
-						[rock setCommodity:[UNIVERSE commodityForName:@"Minerals"] andAmount: 1];
-						[rock setVelocity:v];
-						quaternion_set_random(&q);
-						[rock setQRotation:q];
-						[rock setStatus:STATUS_IN_FLIGHT];
-						[rock setScanClass: CLASS_CARGO];
-						[UNIVERSE addEntity:rock];
-						[[rock getAI] setState:@"GLOBAL"];
-						[rock release];
-					}
-				}
-			}
-			[UNIVERSE removeEntity:self];
-			return; // don't do anything more
-		}
-
-		// throw out burning chunks of wreckage
-		//
-		if (n_alloys && canFragment)
-		{
-			int n_wreckage = (n_alloys < 3)? n_alloys : 3;
-			
-			// quick - check if UNIVERSE is nearing limit for entities - if it is don't make wreckage
-			//
-			add_more_explosion &= (UNIVERSE->n_entities < 0.50 * UNIVERSE_MAX_ENTITIES);
-			if (!add_more_explosion)
-				n_wreckage = 0;
-			//
-			////
-			
-			for (i = 0; i < n_wreckage; i++)
-			{
-				ShipEntity* wreck = [UNIVERSE newShipWithRole:@"wreckage"];   // retain count = 1
-				if (wreck)
-				{
-					GLfloat expected_mass = 0.1f * mass * (0.75 + 0.5 * randf());
-					GLfloat wreck_mass = [wreck mass];
-					GLfloat scale_factor = powf(expected_mass / wreck_mass, 0.33333333f);	// cube root of volume ratio
-					[wreck rescaleBy: scale_factor];
-					
-					Vector r1 = randomFullNodeFrom([octree octreeDetails], kZeroVector);
-					Vector rpos = make_vector ( v_right.x * r1.x + v_up.x * r1.y + v_forward.x * r1.z,
-												v_right.y * r1.x + v_up.y * r1.y + v_forward.y * r1.z,
-												v_right.z * r1.x + v_up.z * r1.y + v_forward.z * r1.z);
-					rpos.x += xposition.x;
-					rpos.y += xposition.y;
-					rpos.z += xposition.z;
-					[wreck setPosition:rpos];
-					
-					[wreck setVelocity:[self velocity]];
-
-					quaternion_set_random(&q);
-					[wreck setQRotation:q];
-					
-					[wreck setTemperature: 1000.0];		// take 1000e heat damage per second
-					[wreck setHeatInsulation: 1.0e7];	// very large! so it won't cool down
-					[wreck setEnergy: 750.0 * randf() + 250.0 * i + 100.0];	// burn for 0.25s -> 1.25s
-					
-					[wreck setStatus:STATUS_IN_FLIGHT];
-					[UNIVERSE addEntity: wreck];
-					[wreck performTumble];
-					[wreck release];
-				}
-			}
-			n_alloys = ranrot_rand() % n_alloys;
-		}
-
-		// Throw out scrap metal
-		//
-		for (i = 0; i < n_alloys; i++)
-		{
-			ShipEntity* plate = [UNIVERSE newShipWithRole:@"alloy"];   // retain count = 1
-			if (plate)
-			{
-				Vector  rpos = xposition;
-				Vector	rrand = randomPositionInBoundingBox(boundingBox);
-				rpos.x += rrand.x;	rpos.y += rrand.y;	rpos.z += rrand.z;
-				rpos.x += (ranrot_rand() % 7) - 3;
-				rpos.y += (ranrot_rand() % 7) - 3;
-				rpos.z += (ranrot_rand() % 7) - 3;
-				[plate setPosition:rpos];
-				v.x = 0.1 *((ranrot_rand() % speed_low) - speed_low / 2);
-				v.y = 0.1 *((ranrot_rand() % speed_low) - speed_low / 2);
-				v.z = 0.1 *((ranrot_rand() % speed_low) - speed_low / 2);
-				[plate setVelocity:v];
-				quaternion_set_random(&q);
-				[plate setQRotation:q];
-				[plate setScanClass: CLASS_CARGO];
-				[plate setCommodity:9 andAmount:1];
-				[UNIVERSE addEntity:plate];
-				[plate setStatus:STATUS_IN_FLIGHT];
-				[[plate getAI] setState:@"GLOBAL"];
-				[plate release];
 			}
 		}
 	}
@@ -4233,10 +4244,13 @@ static GLfloat mascem_color2[4] =	{ 0.4, 0.1, 0.4, 1.0};	// purple
 			Entity*		se = (Entity *)[sub_entities objectAtIndex:i];
 			if (se->isShip)
 			{
-				Vector  origin = [(ShipEntity*)se absolutePositionForSubentity];
-				[se setPosition:origin];	// is this what's messing thing up??
-				[UNIVERSE addEntity:se];
-				[(ShipEntity *)se becomeExplosion];
+				ShipEntity	*sse = (ShipEntity *)se;
+				Vector		pos = [sse absolutePositionForSubentity];
+				
+				[sse setSuppressExplosion:suppressExplosion];
+				[sse setPosition:pos];	// is this what's messing thing up??
+				[UNIVERSE addEntity:sse];
+				[sse becomeExplosion];
 			}
 		}
 		[sub_entities release]; // releases each subentity too!
@@ -4316,6 +4330,7 @@ Vector randomPositionInBoundingBox(BoundingBox bb)
 	return result;
 }
 
+
 Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q, NSString* align)
 {
 	NSString* padAlign = [NSString stringWithFormat:@"%@---", align];
@@ -4365,6 +4380,7 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 	}
 	return result;
 }
+
 
 - (void) becomeLargeExplosion:(double) factor
 {
@@ -4466,6 +4482,7 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 		[UNIVERSE removeEntity:self];
 }
 
+
 - (void) collectBountyFor:(ShipEntity *)other
 {
 	if ([roles isEqual:@"pirate"])
@@ -4487,6 +4504,12 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 - (GLfloat)hullHeatLevel
 {
 	return ship_temperature / (GLfloat)SHIP_MAX_CABIN_TEMP;
+}
+
+
+- (void)setSuppressExplosion:(BOOL)suppress
+{
+	suppressExplosion = suppress != NO;
 }
 
 /*-----------------------------------------
@@ -6176,12 +6199,8 @@ BOOL	class_masslocks(int some_class)
 			}
 			if (ent->isPlanet)
 			{
-				if (isPlayer)
-				{
-					[(PlayerEntity *)self getDestroyed];
-					return;
-				}
-				[self becomeExplosion];
+				[self getDestroyedBy:ent context:@"hit a planet"];
+				if (self == [PlayerEntity sharedPlayer]) [self retain];
 			}
 			if (ent->isWormhole)
 			{
@@ -6200,6 +6219,7 @@ BOOL	class_masslocks(int some_class)
 		}
 	}
 }
+
 
 - (BOOL) collideWithShip:(ShipEntity *)other
 {
@@ -6543,7 +6563,7 @@ BOOL	class_masslocks(int some_class)
 	
 	BOOL iAmTheLaw = (scanClass == CLASS_POLICE);
 	BOOL uAreTheLaw = ((other)&&(other->scanClass == CLASS_POLICE));
-	//
+	
 	energy -= amount;
 	being_mined = NO;
 	//

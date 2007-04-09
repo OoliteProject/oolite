@@ -162,7 +162,8 @@ MA 02110-1301, USA.
 							isNearPlanetSurface: 1,
 							isFrangible: 1,				// frangible => subentities can be damaged individually
 							cloaking_device_active: 1,	// cloaking_device
-							canFragment: 1;				// Can it break into wreckage?
+							canFragment: 1,				// Can it break into wreckage?
+							suppressExplosion: 1;		// Avoid exploding on death (script hook)
 	
 	int						fuel;						// witch-space fuel
 	GLfloat					fuel_accumulator;
@@ -433,7 +434,7 @@ MA 02110-1301, USA.
 - (void) setRoll:(double) amount;
 - (void) setPitch:(double) amount;
 
-- (void) setThrust:(double) amount;
+- (void)setThrustForDemo:(float)factor;
 
 - (void) setBounty:(OOCreditsQuantity) amount;
 - (OOCreditsQuantity) getBounty;
@@ -477,6 +478,7 @@ MA 02110-1301, USA.
 - (void) dealEnergyDamageWithinDesiredRange;
 - (void) dealMomentumWithinDesiredRange:(double)amount;
 
+- (void) getDestroyedBy:(Entity *)whom context:(NSString *)why;
 - (void) becomeExplosion;
 - (void) becomeLargeExplosion:(double) factor;
 - (void) becomeEnergyBlast;
@@ -506,6 +508,8 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other);
 
 - (GLfloat)laserHeatLevel;
 - (GLfloat)hullHeatLevel;
+
+- (void)setSuppressExplosion:(BOOL)suppress;
 
 
 /*-----------------------------------------

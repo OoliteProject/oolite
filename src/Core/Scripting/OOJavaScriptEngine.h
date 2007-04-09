@@ -49,7 +49,7 @@ void OOReportJavaScriptErrorWithArguments(JSContext *context, NSString *format, 
 void OOReportJavaScriptWarning(JSContext *context, NSString *format, ...);
 void OOReportJavaScriptWarningWithArguments(JSContext *context, NSString *format, va_list args);
 
-/*	QuaternionFromArgumentList()
+/*	NumberFromArgumentList()
 	
 	Get a single number from an argument list. The optional outConsumed
 	argument can be used to find out how many parameters were used (currently,
@@ -60,6 +60,18 @@ void OOReportJavaScriptWarningWithArguments(JSContext *context, NSString *format
 	log.
 */
 BOOL NumberFromArgumentList(JSContext *context, NSString *scriptClass, NSString *function, uintN argc, jsval *argv, double *outNumber, uintN *outConsumed);
+
+
+/*	JSArgumentsFromArray()
+	
+	Convert an ObjC array to an array of JavaScript values. For objects which
+	don't respond to -javaScriptValueInContext:, JSVAL_VOID will be used.
+	
+	*outArgv will be NULL if *outArgc is 0. If *outArgv is not NULL, it should
+	be free()d when finished with.
+*/
+BOOL JSArgumentsFromArray(JSContext *context, NSArray *array, uintN *outArgc, jsval **outArgv);
+
 
 
 @protocol OOJavaScriptConversion <NSObject>
@@ -87,6 +99,11 @@ BOOL NumberFromArgumentList(JSContext *context, NSString *scriptClass, NSString 
 
 
 @interface NSNumber (OOJavaScriptExtensions) <OOJavaScriptConversion>
+
+@end
+
+
+@interface NSNull (OOJavaScriptExtensions) <OOJavaScriptConversion>
 
 @end
 

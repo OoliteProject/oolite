@@ -37,10 +37,12 @@ MA 02110-1301, USA.
 #import "MyOpenGLView.h"
 #import "OOSound.h"
 #import "OOStringParsing.h"
+#import "OOCollectionExtractors.h"
+#import "ResourceManager.h"
 
 #import "JoystickHandler.h"
 
-#ifndef GNUSTEP
+#if OOLITE_MAC_OS_X
 #import "Groolite.h"
 #endif
 
@@ -49,6 +51,106 @@ static NSString * const kOOLogFlightTrainingBeacons		= @"beacon.list.flightTrain
 
 
 @implementation PlayerEntity (Controls)
+
+- (void) initControls
+{
+	NSMutableDictionary	*kdic = [NSMutableDictionary dictionaryWithDictionary:[ResourceManager dictionaryFromFilesNamed:@"keyconfig.plist" inFolder:@"Config" andMerge:YES]];
+	
+	// pre-process kdic - replace any strings with an integer representing the ASCII value of the first character
+	
+	int i;
+	NSArray* keys = [kdic allKeys];
+	for (i = 0; i < [keys count]; i++)
+	{
+		id key = [keys objectAtIndex:i];
+		id value = [kdic objectForKey: key];
+		int i_value = [value intValue];
+		
+		//	for '0' '1' '2' '3' '4' '5' '6' '7' '8' '9' - we want to interpret those as strings - not numbers
+		//	alphabetical characters and symbols will return an intValue of 0
+		//	acceptable i_values are 11 .. 255
+		
+		if ([value isKindOfClass:[NSString class]] && (i_value < 10))
+		{
+			char keychar = 0;
+			NSString* keystring = (NSString*)value;
+			if ([keystring length])
+				keychar = [keystring characterAtIndex: 0] & 0x00ff; // uses lower byte of unichar
+			[kdic setObject:[NSNumber numberWithInt:(int)keychar] forKey:key];
+		}
+	}
+	
+	// set default keys...
+	#define LOAD_KEY_SETTING(name, default)	name = [kdic intForKey:@#name defaultValue:default]
+	
+	LOAD_KEY_SETTING(key_roll_left,				gvArrowKeyLeft		);
+	LOAD_KEY_SETTING(key_roll_right,			gvArrowKeyRight		);
+	LOAD_KEY_SETTING(key_pitch_forward,			gvArrowKeyUp		);
+	LOAD_KEY_SETTING(key_pitch_back,			gvArrowKeyDown		);
+	LOAD_KEY_SETTING(key_yaw_left,				','					);
+	LOAD_KEY_SETTING(key_yaw_right,				'.'					);
+	
+	LOAD_KEY_SETTING(key_increase_speed,		'w'					);
+	LOAD_KEY_SETTING(key_decrease_speed,		's'					);
+	LOAD_KEY_SETTING(key_inject_fuel,			'i'					);
+	
+	LOAD_KEY_SETTING(key_fire_lasers,			'a'					);
+	LOAD_KEY_SETTING(key_launch_missile,		'm'					);
+	LOAD_KEY_SETTING(key_next_missile,			'y'					);
+	LOAD_KEY_SETTING(key_ecm,					'e'					);
+	
+	LOAD_KEY_SETTING(key_target_missile,		't'					);
+	LOAD_KEY_SETTING(key_untarget_missile,		'u'					);
+	LOAD_KEY_SETTING(key_ident_system,			'r'					);
+	
+	LOAD_KEY_SETTING(key_scanner_zoom,			'z'					);
+	LOAD_KEY_SETTING(key_scanner_unzoom,		'Z'					);
+	
+	LOAD_KEY_SETTING(key_launch_escapepod,		27	/* esc */		);
+	LOAD_KEY_SETTING(key_energy_bomb,			'\t'				);
+	
+	LOAD_KEY_SETTING(key_galactic_hyperspace,	'g'					);
+	LOAD_KEY_SETTING(key_hyperspace,			'h'					);
+	LOAD_KEY_SETTING(key_jumpdrive,				'j'					);
+	
+	LOAD_KEY_SETTING(key_dump_cargo,			'd'					);
+	LOAD_KEY_SETTING(key_rotate_cargo,			'R'					);
+	
+	LOAD_KEY_SETTING(key_autopilot,				'c'					);
+	LOAD_KEY_SETTING(key_autopilot_target,		'C'					);
+	LOAD_KEY_SETTING(key_autodock,				'D'					);
+	
+	LOAD_KEY_SETTING(key_snapshot,				'*'					);
+	LOAD_KEY_SETTING(key_docking_music,			's'					);
+	
+	LOAD_KEY_SETTING(kay_advanced_nav_array,	'!'					);
+	LOAD_KEY_SETTING(key_map_home,				gvHomeKey			);
+	LOAD_KEY_SETTING(key_map_info,				'i'					);
+	
+	LOAD_KEY_SETTING(key_pausebutton,			'p'					);
+	LOAD_KEY_SETTING(key_show_fps,				'F'					);
+	LOAD_KEY_SETTING(key_mouse_control,			'M'					);
+	
+	LOAD_KEY_SETTING(key_comms_log,				'`'					);
+	LOAD_KEY_SETTING(key_next_compass_mode,		'\\'				);
+	
+	LOAD_KEY_SETTING(key_cloaking_device,		'0'					);
+	
+	LOAD_KEY_SETTING(key_contract_info,			'\?'				);
+	
+	LOAD_KEY_SETTING(key_next_target,			'+'					);
+	LOAD_KEY_SETTING(key_previous_target,		'-'					);
+	
+	LOAD_KEY_SETTING(key_custom_view,			'v'					);
+	
+	LOAD_KEY_SETTING(key_dump_target_state,		NUM_KEYS + 1		);	// Default to no assignment.
+	
+	// other keys are SET and cannot be varied
+	
+	// Enable polling
+	pollControls=YES;
+}
+
 
 - (void) pollControls:(double) delta_t
 {

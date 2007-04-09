@@ -599,58 +599,41 @@ static NSString * mission_key;
 
 - (NSString *) gui_screen_string
 {
-	switch(gui_screen)
-	{
-		case GUI_SCREEN_EQUIP_SHIP :
-			return @"GUI_SCREEN_EQUIP_SHIP";
-		case GUI_SCREEN_INTRO1 :
-			return @"GUI_SCREEN_INTRO1";
-		case GUI_SCREEN_INTRO2 :
-			return @"GUI_SCREEN_INTRO2";
-		case GUI_SCREEN_INVENTORY :
-			return @"GUI_SCREEN_INVENTORY";
-		case GUI_SCREEN_LONG_RANGE_CHART :
-			return @"GUI_SCREEN_LONG_RANGE_CHART";
-		case GUI_SCREEN_MAIN :
-			return @"GUI_SCREEN_MAIN";
-		case GUI_SCREEN_MARKET :
-			return @"GUI_SCREEN_MARKET";
-		case GUI_SCREEN_MISSION :
-			return @"GUI_SCREEN_MISSION";
-		case GUI_SCREEN_OPTIONS :
-			return @"GUI_SCREEN_OPTIONS";
-		case GUI_SCREEN_SHORT_RANGE_CHART :
-			return @"GUI_SCREEN_SHORT_RANGE_CHART";
-		case GUI_SCREEN_STATUS :
-			return @"GUI_SCREEN_STATUS";
-		case GUI_SCREEN_SYSTEM_DATA :
-			return @"GUI_SCREEN_SYSTEM_DATA";
-		default :
-			return @"UNDEFINED";
-	}
+	return GUIScreenIDToString(gui_screen);
 }
+
+
 - (NSNumber *) galaxy_number
 {
 	return [NSNumber numberWithInt:galaxy_number];
 }
+
+
 - (NSNumber *) planet_number
 {
 	if (![UNIVERSE sun])
 		return [NSNumber numberWithInt:-1];
 	return [NSNumber numberWithInt:[UNIVERSE findSystemNumberAtCoords:galaxy_coordinates withGalaxySeed:galaxy_seed]];
 }
+
+
 - (NSNumber *) score_number
 {
 	return [NSNumber numberWithInt:ship_kills];
 }
+
+
 - (NSNumber *) credits_number
 {
 	return [NSNumber numberWithFloat: 0.1 * credits];
 }
+
+
 - (NSNumber *) scriptTimer_number
 {
 	return [NSNumber numberWithDouble:script_time];
 }
+
 
 static int shipsFound;
 - (NSNumber *) shipsFound_number
@@ -658,10 +641,12 @@ static int shipsFound;
 	return [NSNumber numberWithInt:shipsFound];
 }
 
+
 - (NSNumber *) legalStatus_number
 {
 	return [NSNumber numberWithInt:legal_status];
 }
+
 
 static int scriptRandomSeed = -1;	// ensure proper random function
 - (NSNumber *) d100_number
@@ -673,6 +658,7 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 	return [NSNumber numberWithInt:d100];
 }
 
+
 - (NSNumber *) pseudoFixedD100_number
 {
 	// set the system seed for random number generation
@@ -680,6 +666,7 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 	int d100 = (gen_rnd_number() * 256 + gen_rnd_number()) % 100;
 	return [NSNumber numberWithInt:d100];
 }
+
 
 - (NSNumber *) d256_number
 {
@@ -690,6 +677,7 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 	return [NSNumber numberWithInt:d256];
 }
 
+
 - (NSNumber *) pseudoFixedD256_number
 {
 	// set the system seed for random number generation
@@ -698,30 +686,36 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 	return [NSNumber numberWithInt:d256];
 }
 
+
 - (NSNumber *) clock_number				// returns the game time in seconds
 {
 	return [NSNumber numberWithDouble:ship_clock];
 }
+
 
 - (NSNumber *) clock_secs_number		// returns the game time in seconds
 {
 	return [NSNumber numberWithInt:floor(ship_clock)];
 }
 
+
 - (NSNumber *) clock_mins_number		// returns the game time in minutes
 {
 	return [NSNumber numberWithInt:floor(ship_clock / 60.0)];
 }
+
 
 - (NSNumber *) clock_hours_number		// returns the game time in hours
 {
 	return [NSNumber numberWithInt:floor(ship_clock / 3600.0)];
 }
 
+
 - (NSNumber *) clock_days_number		// returns the game time in days
 {
 	return [NSNumber numberWithInt:floor(ship_clock / 86400.0)];
 }
+
 
 - (NSNumber *) fuel_level_number		// returns the fuel level in LY
 {
@@ -737,10 +731,12 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 		return @"NO";
 }
 
+
 - (NSString *) foundEquipment_bool
 {
 	return (found_equipment)? @"YES" : @"NO";
 }
+
 
 - (NSString *) sunWillGoNova_bool		// returns whether the sun is going to go nova
 {

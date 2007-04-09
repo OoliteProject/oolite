@@ -39,32 +39,6 @@ MA 02110-1301, USA.
 
 #define SCRIPT_TIMER_INTERVAL			10.0
 
-
-// Shouldn't this be in GuiDisplayGen.h? -- Ahruman
-typedef enum
-{
-	GUI_SCREEN_MAIN,
-	GUI_SCREEN_INTRO1,
-	GUI_SCREEN_INTRO2,
-	GUI_SCREEN_STATUS,
-	GUI_SCREEN_MANIFEST,
-	GUI_SCREEN_EQUIP_SHIP,
-	GUI_SCREEN_SHIPYARD,
-	GUI_SCREEN_LONG_RANGE_CHART,
-	GUI_SCREEN_SHORT_RANGE_CHART,
-	GUI_SCREEN_SYSTEM_DATA,
-	GUI_SCREEN_MARKET,
-	GUI_SCREEN_CONTRACTS,
-	GUI_SCREEN_INVENTORY,
-	GUI_SCREEN_OPTIONS,
-	GUI_SCREEN_LOAD,
-	GUI_SCREEN_SAVE,
-	GUI_SCREEN_SAVE_OVERWRITE,
-	GUI_SCREEN_STICKMAPPER,
-	GUI_SCREEN_MISSION,
-	GUI_SCREEN_REPORT,
-} OOGUIScreen;
-
 enum
 {
 	GUI_ROW_OPTIONS_QUICKSAVE			= 6,
@@ -530,7 +504,6 @@ typedef enum
 
 + (id)sharedPlayer;
 
-- (void) init_keys;
 - (void) warnAboutHostiles;
 
 - (void) unloadCargoPods;
@@ -631,7 +604,6 @@ typedef enum
 
 - (void) takeInternalDamage;
 - (NSDictionary*) damageInformation;
-- (void) getDestroyed;
 
 - (void) loseTargetStatus;
 
@@ -723,7 +695,7 @@ typedef enum
 
 - (void) sendMessageToScripts:(NSString *)message;
 - (void) sendMessageToScripts:(NSString *)message withString:(NSString *)argument;
-- (void) sendMessageToScripts:(NSString *)message withInteger:(int)argument;
+- (void) sendMessageToScripts:(NSString *)message withArguments:(NSArray *)arguments;
 
 - (BOOL)showInfoFlag;
 
