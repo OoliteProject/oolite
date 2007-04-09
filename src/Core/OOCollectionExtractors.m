@@ -608,3 +608,278 @@ BOOL EvaluateAsBoolean(id object, BOOL defaultValue)
 }
 
 @end
+
+
+@implementation NSUserDefaults (OOExtractor)
+
+- (char)charForKey:(id)key defaultValue:(char)value
+{
+	id					objVal = [self objectForKey:key];
+	int					intVal;
+	char				result;
+	
+	if ([objVal respondsToSelector:@selector(charValue)])  result = [objVal charValue];
+	else if ([objVal respondsToSelector:@selector(intValue)])
+	{
+		intVal = [objVal intValue];
+		if (intVal < CHAR_MIN) intVal = CHAR_MIN;
+		else if (CHAR_MAX < intVal) intVal = CHAR_MAX;
+		result = intVal;
+	}
+	else result = value;
+
+	return result;
+}
+
+
+- (short)shortForKey:(id)key defaultValue:(short)value
+{
+	id					objVal = [self objectForKey:key];
+	int					intVal;
+	short				result;
+	
+	if ([objVal respondsToSelector:@selector(shortValue)])  result = [objVal shortValue];
+	else if ([objVal respondsToSelector:@selector(intValue)])
+	{
+		intVal = [objVal intValue];
+		if (intVal < SHRT_MIN) intVal = SHRT_MIN;
+		else if (SHRT_MAX < intVal) intVal = SHRT_MAX;
+		result = intVal;
+	}
+	else result = value;
+
+	return result;
+}
+
+
+- (int)intForKey:(id)key defaultValue:(int)value
+{
+	id					objVal = [self objectForKey:key];
+	int					result;
+	
+	if ([objVal respondsToSelector:@selector(intValue)])  result = [objVal intValue];
+	else result = value;
+
+	return result;
+}
+
+
+- (long)longForKey:(id)key defaultValue:(long)value
+{
+	id					objVal = [self objectForKey:key];
+	long				result;
+	
+	if ([objVal respondsToSelector:@selector(longValue)])  result = [objVal longValue];
+	else if ([objVal respondsToSelector:@selector(intValue)])  result = [objVal intValue];
+	else result = value;
+
+	return result;
+}
+
+
+- (long long)longLongForKey:(id)key defaultValue:(long long)value
+{
+	id					objVal = [self objectForKey:key];
+	long long			result;
+	
+	if ([objVal respondsToSelector:@selector(longLongValue)])  result = [objVal longLongValue];
+	else if ([objVal respondsToSelector:@selector(intValue)])  result = [objVal intValue];
+	else result = value;
+
+	return result;
+}
+
+
+- (unsigned char)unsignedCharForKey:(id)key defaultValue:(unsigned char)value
+{
+	id					objVal = [self objectForKey:key];
+	int					intVal;
+	unsigned char		result;
+	
+	if ([objVal respondsToSelector:@selector(unsignedCharValue)])  result = [objVal unsignedCharValue];
+	else if ([objVal respondsToSelector:@selector(intValue)])
+	{
+		intVal = [objVal intValue];
+		if (intVal < 0) intVal = 0;
+		else if (UCHAR_MAX < intVal) intVal = UCHAR_MAX;
+		result = intVal;
+	}
+	else result = value;
+
+	return result;
+}
+
+
+- (unsigned short)unsignedShortForKey:(id)key defaultValue:(unsigned short)value
+{
+	id					objVal = [self objectForKey:key];
+	int					intVal;
+	unsigned short		result;
+	
+	if ([objVal respondsToSelector:@selector(unsignedShortValue)])  result = [objVal unsignedShortValue];
+	else if ([objVal respondsToSelector:@selector(intValue)])
+	{
+		intVal = [objVal intValue];
+		if (intVal < 0) intVal = 0;
+		else if (USHRT_MAX < intVal) intVal = USHRT_MAX;
+		result = intVal;
+	}
+	else result = value;
+
+	return result;
+}
+
+
+- (unsigned int)unsignedIntForKey:(id)key defaultValue:(unsigned int)value
+{
+	id					objVal = [self objectForKey:key];
+	int					intVal;
+	unsigned int		result;
+	
+	if ([objVal respondsToSelector:@selector(unsignedIntValue)])  result = [objVal unsignedIntValue];
+	else if ([objVal respondsToSelector:@selector(intValue)])
+	{
+		intVal = [objVal intValue];
+		if (intVal < 0) intVal = 0;
+		result = intVal;
+	}
+	else result = value;
+
+	return result;
+}
+
+
+- (unsigned long)unsignedLongForKey:(id)key defaultValue:(unsigned long)value
+{
+	id					objVal = [self objectForKey:key];
+	int					intVal;
+	unsigned long		result;
+	
+	if ([objVal respondsToSelector:@selector(unsignedLongValue)])  result = [objVal unsignedLongValue];
+	else if ([objVal respondsToSelector:@selector(intValue)])
+	{
+		intVal = [objVal intValue];
+		if (intVal < 0) intVal = 0;
+		result = intVal;
+	}
+	else result = value;
+
+	return result;
+}
+
+
+- (unsigned long long)unsignedLongLongForKey:(id)key defaultValue:(unsigned long long)value
+{
+	id					objVal = [self objectForKey:key];
+	int					intVal;
+	unsigned long long	result;
+	
+	if ([objVal respondsToSelector:@selector(unsignedLongLongValue)])  result = [objVal unsignedLongLongValue];
+	else if ([objVal respondsToSelector:@selector(intValue)])
+	{
+		intVal = [objVal intValue];
+		if (intVal < 0) intVal = 0;
+		result = intVal;
+	}
+	else result = value;
+
+	return result;
+}
+
+
+- (BOOL)boolForKey:(id)key defaultValue:(BOOL)value
+{
+	id					objVal = [self objectForKey:key];
+	BOOL				result;
+	
+	result = EvaluateAsBoolean(objVal, value);
+
+	return result;
+}
+
+
+- (BOOL)fuzzyBooleanForKey:(id)key defaultValue:(float)value
+{
+	float				chance;
+	
+	chance = [self floatForKey:key defaultValue:value];
+	return randf() < chance;
+}
+
+
+- (float)floatForKey:(id)key defaultValue:(float)value
+{
+	id					objVal = [self objectForKey:key];
+	float				result;
+	
+	if ([objVal respondsToSelector:@selector(floatValue)])  result = [objVal floatValue];
+	else if ([objVal respondsToSelector:@selector(doubleValue)])  result = [objVal doubleValue];
+	else if ([objVal respondsToSelector:@selector(intValue)])  result = [objVal intValue];
+	else result = value;
+
+	return result;
+}
+
+
+- (double)doubleForKey:(id)key defaultValue:(double)value
+{
+	id					objVal = [self objectForKey:key];
+	double				result;
+	
+	if ([objVal respondsToSelector:@selector(doubleValue)])  result = [objVal doubleValue];
+	else if ([objVal respondsToSelector:@selector(floatValue)])  result = [objVal floatValue];
+	else if ([objVal respondsToSelector:@selector(intValue)])  result = [objVal intValue];
+	else result = value;
+
+	return result;
+}
+
+
+- (id)objectForKey:(id)key defaultValue:(id)value
+{
+	id					objVal = [self objectForKey:key];
+	id					result;
+	
+	if (objVal != nil)  result = objVal;
+	else  result = value;
+	
+	return result;
+}
+
+
+- (NSString *)stringForKey:(id)key defaultValue:(NSString *)value
+{
+	id					objVal = [self objectForKey:key];
+	NSString			*result;
+	
+	if ([objVal isKindOfClass:[NSString class]])  result = objVal;
+	else result = value;
+	
+	return result;
+}
+
+
+- (NSArray *)arrayForKey:(id)key defaultValue:(NSArray *)value
+{
+	id					objVal = [self objectForKey:key];
+	id					result;
+	
+	if ([objVal isKindOfClass:[NSArray class]])  result = objVal;
+	else result = value;
+	
+	return result;
+}
+
+
+- (NSDictionary *)dictionaryForKey:(id)key defaultValue:(NSDictionary *)value
+{
+	id					objVal = [self objectForKey:key];
+	NSDictionary		*result;
+	
+	if ([objVal isKindOfClass:[NSDictionary class]])  result = objVal;
+	else result = value;
+	
+	return result;
+}
+
+@end

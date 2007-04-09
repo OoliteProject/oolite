@@ -137,7 +137,7 @@ static NSTimeInterval	time_last_frame;
 {
 	MyOpenGLView  *gameView = (MyOpenGLView *)[UNIVERSE gameView];
 
-#ifdef GNUSTEP
+#if OOLITE_HAVE_JOYSTICK
    // DJS: TODO: Sort where SDL keeps its stuff.
    if(!stickHandler)
    {
@@ -167,7 +167,7 @@ static NSTimeInterval	time_last_frame;
 		if (![UNIVERSE displayCursor])
 		{
 			//
-#ifdef GNUSTEP
+#if OOLITE_HAVE_JOYSTICK
 			if ((joyButtonState[BUTTON_FUELINJECT] || [gameView isDown:key_inject_fuel])&&(has_fuel_injection)&&(!hyperspeed_engaged))
 #else
 			if (([gameView isDown:key_inject_fuel])&&(has_fuel_injection)&&(!hyperspeed_engaged))
@@ -194,7 +194,7 @@ static NSTimeInterval	time_last_frame;
 				[self stopAfterburnerSound];
 			//
 
-#ifdef GNUSTEP
+#if OOLITE_HAVE_JOYSTICK
 		 // DJS: Thrust can be an axis or a button. Axis takes precidence.
          double reqSpeed=[stickHandler getAxisState: AXIS_THRUST];
          if(reqSpeed == STICK_AXISUNASSIGNED || [stickHandler getNumSticks] == 0)
@@ -254,7 +254,7 @@ static NSTimeInterval	time_last_frame;
 			//  hyperspeed controls
 			//
 
-#ifdef GNUSTEP
+#if OOLITE_HAVE_JOYSTICK
 			if ([gameView isDown:key_jumpdrive] || joyButtonState[BUTTON_HYPERSPEED])		// 'j'
 #else
 			if ([gameView isDown:key_jumpdrive])		// 'j'
@@ -287,7 +287,7 @@ static NSTimeInterval	time_last_frame;
 			//
 			//  shoot 'a'
 			//
-#ifdef GNUSTEP
+#if OOLITE_HAVE_JOYSTICK
 			if ((([gameView isDown:key_fire_lasers])||((mouse_control_on)&&([gameView isDown:gvMouseLeftButton]))||joyButtonState[BUTTON_FIRE])&&(shot_time > weapon_reload_time))
 #else
 			if ((([gameView isDown:key_fire_lasers])||((mouse_control_on)&&([gameView isDown:gvMouseLeftButton])))&&(shot_time > weapon_reload_time))
@@ -318,7 +318,7 @@ static NSTimeInterval	time_last_frame;
 			//
 			//  shoot 'm'   // launch missile
 			//
-#ifdef GNUSTEP
+#if OOLITE_HAVE_JOYSTICK
 			if ([gameView isDown:key_launch_missile] || joyButtonState[BUTTON_LAUNCHMISSILE])
 #else
 			if ([gameView isDown:key_launch_missile])
@@ -340,7 +340,7 @@ static NSTimeInterval	time_last_frame;
 			//
 			//  shoot 'y'   // next missile
 			//
-#ifdef GNUSTEP
+#if OOLITE_HAVE_JOYSTICK
 			if ([gameView isDown:key_next_missile] || joyButtonState[BUTTON_CYCLEMISSILE])
 #else
 			if ([gameView isDown:key_next_missile])
@@ -396,7 +396,7 @@ static NSTimeInterval	time_last_frame;
 			//
 			//  shoot 'r'   // switch on ident system
 			//
-#ifdef GNUSTEP
+#if OOLITE_HAVE_JOYSTICK
 			if ([gameView isDown:key_ident_system] || joyButtonState[BUTTON_ID])
 #else
 			if ([gameView isDown:key_ident_system])
@@ -419,7 +419,7 @@ static NSTimeInterval	time_last_frame;
 			//
 			//  shoot 't'   // switch on missile targetting
 			//
-#ifdef GNUSTEP
+#if OOLITE_HAVE_JOYSTICK
 			if (([gameView isDown:key_target_missile] || joyButtonState[BUTTON_ARMMISSILE])&&(missile_entity[active_missile]))
 #else
 			if ([gameView isDown:key_target_missile] && missile_entity[active_missile])
@@ -467,7 +467,7 @@ static NSTimeInterval	time_last_frame;
 			//
 			//  shoot 'u'   // disarm missile targetting
 			//
-#ifdef GNUSTEP
+#if OOLITE_HAVE_JOYSTICK
 			if ([gameView isDown:key_untarget_missile] || joyButtonState[BUTTON_UNARM])
 #else
 			if ([gameView isDown:key_untarget_missile])
@@ -503,7 +503,7 @@ static NSTimeInterval	time_last_frame;
 			//
 			//  shoot 'e'   // ECM
 			//
-#ifdef GNUSTEP
+#if OOLITE_HAVE_JOYSTICK
 			if (([gameView isDown:key_ecm] || joyButtonState[BUTTON_ECM])&&(has_ecm))
 #else
 			if ([gameView isDown:key_ecm] && has_ecm)
@@ -521,7 +521,7 @@ static NSTimeInterval	time_last_frame;
 			//
 			//  shoot 'tab'   // Energy bomb
 			//
-#ifdef GNUSTEP
+#if OOLITE_HAVE_JOYSTICK
 			if (([gameView isDown:key_energy_bomb] || joyButtonState[BUTTON_ENERGYBOMB])&&(has_energy_bomb))
 #else
 			if ([gameView isDown:key_energy_bomb] && has_energy_bomb)
@@ -534,7 +534,7 @@ static NSTimeInterval	time_last_frame;
 			//
 			//  shoot 'escape'   // Escape pod launch
 			//
-#ifdef GNUSTEP
+#if OOLITE_HAVE_JOYSTICK
 			if (([gameView isDown:key_launch_escapepod] || joyButtonState[BUTTON_ESCAPE])&&(has_escape_pod)&&([UNIVERSE station]))
 #else
 			if ([gameView isDown:key_launch_escapepod] && has_escape_pod && [UNIVERSE station])
@@ -546,7 +546,7 @@ static NSTimeInterval	time_last_frame;
 			//
 			//  shoot 'd'   // Dump Cargo
 			//
-#ifdef GNUSTEP
+#if OOLITE_HAVE_JOYSTICK
 			if (([gameView isDown:key_dump_cargo] || joyButtonState[BUTTON_JETTISON])&&([cargo count] > 0))
 #else
 			if ([gameView isDown:key_dump_cargo] && ([cargo count] > 0))
@@ -572,7 +572,7 @@ static NSTimeInterval	time_last_frame;
 			//
 			// autopilot 'c'
 			//
-#ifdef GNUSTEP
+#if OOLITE_HAVE_JOYSTICK
 			if ([gameView isDown:key_autopilot] || joyButtonState[BUTTON_DOCKCPU])   // look for the 'c' key
 #else
 			if ([gameView isDown:key_autopilot])   // look for the 'c' key
@@ -680,7 +680,7 @@ static NSTimeInterval	time_last_frame;
 			//
 			// autopilot 'D'
 			//
-#ifdef GNUSTEP
+#if OOLITE_HAVE_JOYSTICK
 			if ([gameView isDown:key_autodock] || joyButtonState[BUTTON_DOCKCPUFAST])   // look for the 'D' key
 #else
 			if ([gameView isDown:key_autodock])   // look for the 'D' key
@@ -732,7 +732,7 @@ static NSTimeInterval	time_last_frame;
 			//
 			// hyperspace 'h'
 			//
-#ifdef GNUSTEP
+#if OOLITE_HAVE_JOYSTICK
 			if ([gameView isDown:key_hyperspace] || joyButtonState[BUTTON_HYPERDRIVE])   // look for the 'h' key
 #else
 			if ([gameView isDown:key_hyperspace])   // look for the 'h' key
@@ -803,7 +803,7 @@ static NSTimeInterval	time_last_frame;
 			//
 			// Galactic hyperspace 'g'
 			//
-#ifdef GNUSTEP
+#if OOLITE_HAVE_JOYSTICK
 			if (([gameView isDown:key_galactic_hyperspace] || joyButtonState[BUTTON_GALACTICDRIVE])&&(has_galactic_hyperdrive))// look for the 'g' key
 #else
 			if ([gameView isDown:key_galactic_hyperspace] &&(has_galactic_hyperdrive))// look for the 'g' key
@@ -853,7 +853,7 @@ static NSTimeInterval	time_last_frame;
 					//
 			//  shoot '0'   // Cloaking Device
 			//
-#ifdef GNUSTEP
+#if OOLITE_HAVE_JOYSTICK
 			if (([gameView isDown:key_cloaking_device] || joyButtonState[BUTTON_CLOAK]) && has_cloaking_device)
 #else
 			if ([gameView isDown:key_cloaking_device] && has_cloaking_device)
@@ -919,13 +919,8 @@ static NSTimeInterval	time_last_frame;
 			[gameView clearKeys];
 			[self setGuiToLoadSaveScreen];
 		}
-		//
-#ifdef GNUSTEP
-		if (gui_screen == GUI_SCREEN_OPTIONS ||
-          gui_screen == GUI_SCREEN_STICKMAPPER)
-#else
-		if (gui_screen == GUI_SCREEN_OPTIONS)
-#endif
+		
+		if (gui_screen == GUI_SCREEN_OPTIONS || gui_screen == GUI_SCREEN_STICKMAPPER)
 		{
 			NSTimeInterval time_this_frame = [NSDate timeIntervalSinceReferenceDate];
 			double time_delta = time_this_frame - time_last_frame;
@@ -1070,8 +1065,7 @@ static  BOOL	taking_snapshot;
 		}
 	}
 
-#ifdef WIN32
-          // Allow Win32 Quit
+#if OOLITE_WINDOWS
           if ( ([gameView isDown:'Q']) )
           {
                   [[gameView gameController] exitApp];
@@ -1160,7 +1154,7 @@ static  BOOL	taking_snapshot;
 {
 	MyOpenGLView	*gameView = [UNIVERSE gameView];
 	NSPoint			virtualStick = NSZeroPoint;
-#define			kDeadZone 0.03
+	#define			kDeadZone 0.02
 	
 	// TODO: Rework who owns the stick.
 	if(!stickHandler)
@@ -1562,10 +1556,10 @@ static BOOL spacePressed;
 
       // DJS: Farm off load/save screen options to LoadSave.m
 			case GUI_SCREEN_LOAD:
-				commanderFile=[self commanderSelector: gui :gameView];
+				commanderFile = [self commanderSelector: gui :gameView];
 				if(commanderFile)
 				{
-					[self loadPlayerFromFile: commanderFile];
+					[self loadPlayerFromFile:commanderFile];
 					[self setGuiToStatusScreen];
 				}
 				break;
@@ -1576,10 +1570,10 @@ static BOOL spacePressed;
 				[self overwriteCommanderInputHandler: gui :gameView];
 				break;
 
-#ifdef GNUSTEP
-      case GUI_SCREEN_STICKMAPPER:
-         [self stickMapperInputHandler: gui view: gameView];
-         break;
+#if OOLITE_HAVE_JOYSTICK
+		case GUI_SCREEN_STICKMAPPER:
+			[self stickMapperInputHandler: gui view: gameView];
+			break;
 #endif
 
 		case	GUI_SCREEN_OPTIONS :
@@ -1590,14 +1584,15 @@ static BOOL spacePressed;
 				int begin_new_row =	GUI_ROW_OPTIONS_BEGIN_NEW;
 				int strict_row =	GUI_ROW_OPTIONS_STRICT;
 				int detail_row =	GUI_ROW_OPTIONS_DETAIL;
-#ifdef GNUSTEP
+#if OOLITE_SDL
 				// quit only appears in GNUstep as users aren't
 				// used to Cmd-Q equivs. Same goes for window
 				// vs fullscreen.
 				int quit_row = GUI_ROW_OPTIONS_QUIT;
 				int display_style_row = GUI_ROW_OPTIONS_DISPLAYSTYLE;
 				int stickmap_row = GUI_ROW_OPTIONS_STICKMAPPER;
-#else
+#endif
+#if OOLITE_MAC_OS_X
 				// Macintosh only
 				int ootunes_row =	GUI_ROW_OPTIONS_OOTUNES;
 				int speech_row =	GUI_ROW_OPTIONS_SPEECH;
@@ -1640,40 +1635,21 @@ static BOOL spacePressed;
 					if (([gui selectedRow] == save_row)&&(!disc_operation_in_progress))
 					{
 						disc_operation_in_progress = YES;
-#ifdef GNUSTEP
-						// for GNUstep it is always preferable to use the OOgui - GNUstep's
-						// Load/Save dialog doesn't play well with an SDL window (stacking
-						// order always seems to be wrong)
-						[self setGuiToSaveCommanderScreen: player_name];
-#else
-						// for OS X it is preferable to use the Cocoa dialog when in windowed mode.
-						if ([[UNIVERSE gameController] inFullScreenMode])
-							[self setGuiToSaveCommanderScreen: player_name];
-						else
-							[self savePlayer];
-#endif
+						[self savePlayer];
 					}
 					if (([gui selectedRow] == load_row)&&(!disc_operation_in_progress))
 					{
 						disc_operation_in_progress = YES;
-#ifdef GNUSTEP
-						// see comments above for save player
-						[self setGuiToLoadCommanderScreen];
-#else
-						if ([[UNIVERSE gameController] inFullScreenMode])
-							[self setGuiToLoadCommanderScreen];
-						else
-							[self loadPlayer];
-#endif
+						[self loadPlayer];
 					}
 
-#ifdef GNUSTEP
+#if OOLITE_HAVE_JOYSTICK
 					if ([gui selectedRow] == stickmap_row)
 					{
 						[self setGuiToStickMapperScreen];
 					}
 #endif
-
+					
 					if (([gui selectedRow] == begin_new_row)&&(!disc_operation_in_progress))
 					{
 						disc_operation_in_progress = YES;
@@ -1707,7 +1683,7 @@ static BOOL spacePressed;
 					int modeHeight = [[mode objectForKey: (NSString *)kCGDisplayHeight] intValue];
 					int modeRefresh = [[mode objectForKey: (NSString *)kCGDisplayRefreshRate] intValue];
 					[controller setDisplayWidth:modeWidth Height:modeHeight Refresh:modeRefresh];
-#ifdef GNUSTEP
+#if OOLITE_SDL
 					// TODO: The gameView for the SDL game currently holds and
 					// sets the actual screen resolution (controller just stores
 					// it). This probably ought to change.
@@ -1726,7 +1702,7 @@ static BOOL spacePressed;
 				if ((![gameView isDown:gvArrowKeyRight])&&(![gameView isDown:gvArrowKeyLeft])&&(!selectKeyPress))
 					switching_resolution = NO;
 
-#ifndef GNUSTEP
+#if OOLITE_MAC_OS_X
 				if (([gui selectedRow] == speech_row)&&(([gameView isDown:gvArrowKeyRight])||([gameView isDown:gvArrowKeyLeft])))
 				{
 					GuiDisplayGen* gui = [UNIVERSE gui];
@@ -1784,7 +1760,7 @@ static BOOL spacePressed;
 				else
 					volumeControlPressed = NO;
 
-#ifndef GNUSTEP
+#if OOLITE_MAC_OS_X
 				if (([gui selectedRow] == growl_row)&&([gameView isDown:gvArrowKeyRight]||[gameView isDown:gvArrowKeyLeft]))
 				{
 					if ((!leftRightKeyPressed)||(script_time > timeLastKeyPress + KEY_REPEAT_INTERVAL))
@@ -1833,8 +1809,8 @@ static BOOL spacePressed;
 						[gui setText:@" Reduced detail: OFF "	forRow:detail_row  align:GUI_ALIGN_CENTER];
 				}
 
-#ifdef GNUSTEP
-            // GNUstep only menu quit item
+#if OOLITE_SDL
+            // SDL-only menu quit item
             if (([gui selectedRow] == quit_row) && [gameView isDown:13])
             {
 			      [[gameView gameController] exitApp];
@@ -2549,17 +2525,7 @@ static BOOL toggling_music;
 					[self setStatus:STATUS_DOCKED];
 					[UNIVERSE removeDemoShips];
 					[gui setBackgroundImage:nil];
-#ifdef GNUSTEP
-					[self setGuiToLoadCommanderScreen];
-#else
-					if ([[UNIVERSE gameController] inFullScreenMode])
-						[self setGuiToLoadCommanderScreen];
-					else
-					{
-						[self loadPlayer];
-						[self setGuiToStatusScreen];
-					}
-#endif
+					[self loadPlayer];
 				}
 			}
 			if (([gameView isDown:110])||([gameView isDown:78]))	//  'nN'

@@ -29,7 +29,7 @@ MA 02110-1301, USA.
 #import "TextureStore.h"
 #import "OOSound.h"
 #import "OOOpenGL.h"
-#import "PlayerEntity.h"
+#import "PlayerEntityLoadSave.h"
 #import <stdlib.h>
 
 #define kOOLogUnconvertedNSLog @"unclassified.GameController"

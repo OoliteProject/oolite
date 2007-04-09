@@ -46,30 +46,28 @@ static NSString * const kOOLogNoteShowShipyardModel = @"script.debug.note.showSh
 		return [NSString string];	// return a blank string
 	
 	int i;
-	NSMutableString* result = [NSMutableString string];
-	NSMutableArray* rescuees = [NSMutableArray array];
-	int government = [(NSNumber *)[[UNIVERSE currentSystemData] objectForKey:KEY_GOVERNMENT] intValue];
-	//
+	NSMutableString	*result = [NSMutableString string];
+	NSMutableArray	*rescuees = [NSMutableArray array];
+	int				government = [[[UNIVERSE currentSystemData] objectForKey:KEY_GOVERNMENT] intValue];
+	
 	// step through the cargo removing crew from any escape pods
-	//
+	// No enumerator because we're mutating the array -- Ahruman
 	for (i = 0; i < [cargo count]; i++)
 	{
-		ShipEntity* thing = (ShipEntity *)[cargo objectAtIndex:i];
+		ShipEntity	*cargoItem = [cargo objectAtIndex:i];
+		NSArray		*podCrew = [cargoItem crew];
 		
-		// is it an escape pod? - check for crew
-		if ([thing crew])
+		if (podCrew != nil)
 		{
-			[rescuees addObjectsFromArray:[thing crew]];
-			[thing setCrew:(NSArray*) nil];
-			[UNIVERSE recycleOrDiscard: thing];	// reuse before ...
-			[cargo removeObject: thing];		// removing from cargo
+			// Has crew -> is escape pod.
+			[rescuees addObjectsFromArray:podCrew];
+			[cargoItem setCrew:nil];
+			[cargo removeObjectAtIndex:i];
 			i--;
 		}
 	}
 	
-	//
 	// step through the rescuees awarding insurance or bounty or adding to slaves
-	//
 	for (i = 0; i < [rescuees count]; i++)
 	{
 		OOCharacter* rescuee = (OOCharacter*)[rescuees objectAtIndex: i];
@@ -1462,7 +1460,7 @@ static NSMutableDictionary* currentShipyard = nil;
 	
 	// perform the transformation
 	NSDictionary* cmdr_dict = [self commanderDataDictionary];	// gather up all the info
-	[self setCommanderDataFromDictionary:cmdr_dict];			// apply all the info
+	if (![self setCommanderDataFromDictionary:cmdr_dict])  return NO;
 
 	status = STATUS_DOCKED;
 	

@@ -32,20 +32,6 @@ MA 02110-1301, USA.
 
 #define CROSSHAIR_SIZE			32.0
 
-#define VIEW_FORWARD			0
-#define VIEW_AFT				1
-#define VIEW_PORT				2
-#define VIEW_STARBOARD			3
-#define VIEW_CUSTOM				7
-#define VIEW_NONE				-1
-#define VIEW_GUI_DISPLAY		100
-#define VIEW_BREAK_PATTERN		200
-
-#define DEMO_NO_DEMO		0
-#define DEMO_FLY_IN			101
-#define DEMO_SHOW_THING		102
-#define DEMO_FLY_OUT		103
-
 #define MARKET_NAME					0
 #define MARKET_QUANTITY				1
 #define MARKET_PRICE				2
@@ -114,7 +100,6 @@ MA 02110-1301, USA.
 #define	UNIVERSE_MAX_ENTITIES		2048
 
 #define OOLITE_EXCEPTION_LOOPING		@"OoliteLoopingException"
-#define OOLITE_EXCEPTION_SHIP_NOT_FOUND	@"OoliteShipNotFoundException"
 #define OOLITE_EXCEPTION_DATA_NOT_FOUND	@"OoliteDataNotFoundException"
 #define OOLITE_EXCEPTION_FATAL			@"OoliteFatalException"
 
@@ -157,12 +142,6 @@ extern int debug;
 		
 		int						next_universal_id;
 		Entity*					entity_for_uid[MAX_ENTITY_UID];
-		
-		//
-		////
-		
-		NSLock					*recycleLock;
-		NSMutableDictionary		*entityRecyclePool;
 
 		NSMutableArray			*entities;
 				
@@ -251,9 +230,6 @@ extern int debug;
 		BOOL					doProcedurallyTexturedPlanets;
 }
 
-- (id) init;
-- (void) dealloc;
-
 - (BOOL) doProcedurallyTexturedPlanets;
 - (void) setDoProcedurallyTexturedPlanets:(BOOL) value;
 
@@ -312,9 +288,6 @@ extern int debug;
 
 - (BOOL) breakPatternOver;
 - (BOOL) breakPatternHide;
-
-- (id) recycleOrDiscard:(Entity *) entity;
-- (Entity *) allocRecycledOrNewEntity:(NSString *) classname;
 
 - (ShipEntity *) newShipWithRole:(NSString *) desc;
 - (ShipEntity *) newShipWithName:(NSString *) desc;

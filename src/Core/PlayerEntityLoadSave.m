@@ -34,6 +34,7 @@ MA 02110-1301, USA.
 #import "OOColor.h"
 #import "OOStringParsing.h"
 #import "OOPListParsing.h"
+#import "StationEntity.h"
 
 #ifdef WIN32
 #import "ResourceManager.h"
@@ -41,7 +42,520 @@ MA 02110-1301, USA.
 
 #define kOOLogUnconvertedNSLog @"unclassified.PlayerEntityLoadSave"
 
+
+@interface PlayerEntity (OOLoadSavePrivate)
+
+#if OOLITE_USE_APPKIT_LOAD_SAVE
+
+- (void) loadPlayerWithPanel;
+- (void) savePlayerWithPanel;
+
+#endif
+
+- (void) setGuiToLoadCommanderScreen;
+- (void) setGuiToSaveCommanderScreen: (NSString *)cdrName;
+- (void) setGuiToOverwriteScreen: (NSString *)cdrName;
+- (void) lsCommanders: (GuiDisplayGen *)gui directory: (NSString*)directory pageNumber: (int)page highlightName: (NSString *)highlightName;
+- (void) nativeSavePlayer: (NSString *)cdrName;
+- (BOOL) existingNativeSave: (NSString *)cdrName;
+- (void) showCommanderShip: (int)cdrArrayIndex;
+- (int) findIndexOfCommander: (NSString *)cdrName;
+
+@end
+
+
 @implementation PlayerEntity (LoadSave)
+
+- (void)loadPlayer
+{
+#if OOLITE_USE_APPKIT_LOAD_SAVE
+	// OS X: use system open/save dialogs in windowed mode, custom interface in full-screen.
+    if ([[UNIVERSE gameController] inFullScreenMode])
+	{
+		[self setGuiToLoadCommanderScreen];
+	}
+	else
+	{
+		[self loadPlayerWithPanel];
+	}
+#else
+	// Other platforms: use custom interface all the time.
+	[self setGuiToLoadCommanderScreen];
+#endif
+}
+
+
+- (void)savePlayer
+{
+#if OOLITE_USE_APPKIT_LOAD_SAVE
+	// OS X: use system open/save dialogs in windowed mode, custom interface in full-screen.
+    if ([[UNIVERSE gameController] inFullScreenMode])
+	{
+		[self setGuiToSaveCommanderScreen:player_name];
+	}
+	else
+	{
+		[self savePlayerWithPanel];
+	}
+#else
+	// Other platforms: use custom interface all the time.
+	[self setGuiToSaveCommanderScreen:player_name];
+#endif
+}
+
+
+- (void) quicksavePlayer
+{
+	NSString* filename = save_path;
+	if (!filename)
+		filename = [[(MyOpenGLView *)[UNIVERSE gameView] gameController] playerFileToLoad];
+	if (!filename)
+	{
+		NSLog(@"ERROR no filename returned by [[(MyOpenGLView *)[UNIVERSE gameView] gameController] playerFileToLoad]");
+		NSException* myException = [NSException
+			exceptionWithName:@"GameNotSavedException"
+			reason:@"ERROR no filename returned by [[(MyOpenGLView *)[UNIVERSE gameView] gameController] playerFileToLoad]"
+			userInfo:nil];
+		[myException raise];
+		return;
+	}
+	if (![[self commanderDataDictionary] writeOOXMLToFile:filename atomically:YES])
+	{
+		NSLog(@"***** ERROR: Save to %@ failed!", filename);
+		NSException* myException = [NSException
+			exceptionWithName:@"OoliteException"
+			reason:[NSString stringWithFormat:@"Attempt to save game to file '%@' failed for some reason", filename]
+			userInfo:nil];
+		[myException raise];
+		return;
+	}
+	else
+	{
+		
+		[UNIVERSE clearPreviousMessage];	// allow this to be given time and again
+		[UNIVERSE addMessage:ExpandDescriptionForCurrentSystem(@"[game-saved]") forCount:2];
+		if (save_path)
+			[save_path autorelease];
+		save_path = [filename retain];
+	}
+	
+	[self setGuiToStatusScreen];
+}
+
+
+- (NSString *)commanderSelector:(GuiDisplayGen *)gui :(MyOpenGLView *)gameView
+{
+	NSString*	dir = [[UNIVERSE gameController] playerFileDirectory];
+	if (!dir)	dir = [[NSFileManager defaultManager] defaultCommanderPath];
+
+   int idx;
+   if([self handleGUIUpDownArrowKeys: gui :gameView])
+   {
+      int guiSelectedRow=[gui selectedRow];
+      idx=(guiSelectedRow - STARTROW) + (currentPage * NUMROWS);
+      if (guiSelectedRow != MOREROW && guiSelectedRow != BACKROW)
+      {
+         [self showCommanderShip: idx];
+      }
+   }
+   else
+   {
+      idx=([gui selectedRow] - STARTROW) + (currentPage * NUMROWS);
+   }
+   
+	// handle page <-- and page --> keys
+	if ([gameView isDown:gvArrowKeyLeft] && [[gui keyForRow:BACKROW] isEqual: GUI_KEY_OK])
+	{
+		currentPage--;
+		[self lsCommanders: gui	directory: dir	pageNumber: currentPage  highlightName: nil];
+		[gameView supressKeysUntilKeyUp];
+	}
+	//
+	if ([gameView isDown:gvArrowKeyRight] && [[gui keyForRow:MOREROW] isEqual: GUI_KEY_OK])
+	{
+		currentPage++;
+		[self lsCommanders: gui	directory: dir	pageNumber: currentPage  highlightName: nil];
+		[gameView supressKeysUntilKeyUp];
+	}
+   
+	// Enter pressed - find the commander name underneath.
+	if ([gameView isDown:13]||[gameView isDown:gvMouseDoubleClick])
+	{
+		NSDictionary *cdr;
+		switch ([gui selectedRow])
+		{
+			case BACKROW:
+				currentPage--;
+				[self lsCommanders: gui	directory: dir	pageNumber: currentPage  highlightName: nil];
+				[gameView supressKeysUntilKeyUp];
+				break;
+			case MOREROW:
+				currentPage++;
+				[self lsCommanders: gui	directory: dir	pageNumber: currentPage  highlightName: nil];
+				[gameView supressKeysUntilKeyUp];
+				break;
+			default:
+				cdr=[cdrDetailArray objectAtIndex: idx];
+				if ([cdr objectForKey:@"isSavedGame"])
+					return [cdr objectForKey:@"saved_game_path"];
+				else
+				{
+#ifdef GNUSTEP              
+					if ([gameView isCtrlDown]||[gameView isDown:gvMouseDoubleClick])
+#else                 
+					if ([gameView isCommandDown]||[gameView isDown:gvMouseDoubleClick])
+#endif                 
+					{
+						// change directory to the selected path
+						NSString* newDir = (NSString*)[cdr objectForKey:@"saved_game_path"];
+						[[UNIVERSE gameController] setPlayerFileDirectory: newDir];
+						dir = newDir;
+						currentPage = 0;
+						[self lsCommanders: gui	directory: dir	pageNumber: currentPage  highlightName: nil];
+						[gameView supressKeysUntilKeyUp];
+					}
+				}
+		}
+	}
+
+   if([gameView isDown: 27])
+   {
+      [self setGuiToStatusScreen];
+   }
+   return nil;
+}
+
+- (void) saveCommanderInputHandler:(GuiDisplayGen *)gui :(MyOpenGLView *)gameView
+{
+	NSString*	dir = [[UNIVERSE gameController] playerFileDirectory];
+	if (!dir)	dir = [[NSFileManager defaultManager] defaultCommanderPath];
+	
+	if ([self handleGUIUpDownArrowKeys: gui :gameView])
+	{
+		int guiSelectedRow=[gui selectedRow];
+		int	idx = (guiSelectedRow - STARTROW) + (currentPage * NUMROWS);
+		if (guiSelectedRow != MOREROW && guiSelectedRow != BACKROW)
+		{
+			[self showCommanderShip: idx];
+		}
+		if ([(NSDictionary *)[cdrDetailArray objectAtIndex:idx] objectForKey:@"isSavedGame"])	// don't show things that aren't saved games
+			commanderNameString = [(NSDictionary *)[cdrDetailArray objectAtIndex:idx] objectForKey:@"player_name"];
+		else
+			commanderNameString = [gameView typedString];
+	}
+	else
+		commanderNameString = [gameView typedString];
+	[gameView setTypedString: commanderNameString];
+	
+	[gui setText:
+		[NSString stringWithFormat:@"Commander name: %@", commanderNameString]
+		forRow: INPUTROW];
+	[gui setColor:[OOColor cyanColor] forRow:INPUTROW];
+
+	// handle page <-- and page --> keys
+	if ([gameView isDown:gvArrowKeyLeft] && [[gui keyForRow:BACKROW] isEqual: GUI_KEY_OK])
+	{
+		currentPage--;
+		[self lsCommanders: gui	directory: dir	pageNumber: currentPage  highlightName: nil];
+		[gameView supressKeysUntilKeyUp];
+	}
+	//
+	if ([gameView isDown:gvArrowKeyRight] && [[gui keyForRow:MOREROW] isEqual: GUI_KEY_OK])
+	{
+		currentPage++;
+		[self lsCommanders: gui	directory: dir	pageNumber: currentPage  highlightName: nil];
+		[gameView supressKeysUntilKeyUp];
+	}
+   
+	if(([gameView isDown: 13]||[gameView isDown:gvMouseDoubleClick]) && [commanderNameString length])
+	{
+#ifdef GNUSTEP // Linux/Win32
+      if ([gameView isCtrlDown]||[gameView isDown:gvMouseDoubleClick])
+#else          // OS X
+		if ([gameView isCommandDown]||[gameView isDown:gvMouseDoubleClick])
+#endif        
+		{
+			int guiSelectedRow=[gui selectedRow];
+			int	idx = (guiSelectedRow - STARTROW) + (currentPage * NUMROWS);
+			NSDictionary* cdr = [cdrDetailArray objectAtIndex:idx];
+			if (![cdr objectForKey:@"isSavedGame"])	// don't open saved games
+			{
+				// change directory to the selected path
+				NSString* newDir = (NSString*)[cdr objectForKey:@"saved_game_path"];
+				[[UNIVERSE gameController] setPlayerFileDirectory: newDir];
+				dir = newDir;
+				currentPage = 0;
+				[self lsCommanders: gui	directory: dir	pageNumber: currentPage  highlightName: nil];
+				[gameView supressKeysUntilKeyUp];
+			}
+		}
+		else
+		{
+			pollControls=YES;
+			if ([self existingNativeSave: commanderNameString])
+			{
+				[gameView supressKeysUntilKeyUp];
+				[self setGuiToOverwriteScreen: commanderNameString];
+			}
+			else
+			{
+				[self nativeSavePlayer: commanderNameString];
+				[self setGuiToStatusScreen];
+			}
+		}
+			
+	}
+
+   if([gameView isDown: 27])
+   {
+      // esc was pressed - get out of here
+      pollControls=YES;
+      [self setGuiToStatusScreen];
+   }
+}
+
+- (void) overwriteCommanderInputHandler:(GuiDisplayGen *)gui :(MyOpenGLView *)gameView
+{
+	[self handleGUIUpDownArrowKeys: gui :gameView];
+	
+	if (([gameView isDown: 13] && ([gui selectedRow] == SAVE_OVERWRITE_YES_ROW))||[gameView isDown: 121]||[gameView isDown: 89])
+	{
+		pollControls=YES;
+		[self nativeSavePlayer: commanderNameString];
+		[self setGuiToStatusScreen];
+
+		[beepSound play];
+	}
+
+	if (([gameView isDown: 13] && ([gui selectedRow] == SAVE_OVERWRITE_NO_ROW))||[gameView isDown: 27]||[gameView isDown: 110]||[gameView isDown: 78])
+	{
+		// esc or NO was pressed - get out of here
+		pollControls=YES;
+		[self setGuiToStatusScreen];
+
+		[boopSound play];
+	}
+}
+
+
+- (void) loadPlayerFromFile:(NSString *)fileToOpen
+{
+	/*	TODO: it would probably be better to load by creating a new
+		PlayerEntity, verifying that's OK, then replacing the global player.
+		
+		Actually, it'd be better to separate PlayerEntity into OOPlayer and
+		OOPlayerShipEntity. And then move most of OOPlayerShipEntity into
+		ShipEntity, and make NPC ships behave more like player ships.
+		-- Ahruman
+	*/
+	
+	BOOL			loadedOK = YES;
+	NSDictionary	*fileDic = nil;
+	NSString		*fail_reason = nil;
+	
+	if (fileToOpen == nil)
+	{
+		fail_reason = @"No file specified!";
+		loadedOK = NO;
+	}
+	
+	if (loadedOK)
+	{
+		fileDic = OODictionaryFromFile(fileToOpen);
+		if (fileDic == nil)
+		{
+			fail_reason = @"Could not load file.";
+			loadedOK = NO;
+		}
+	}
+	
+	if (loadedOK)
+	{
+		// Check that player ship exists
+		NSString		*shipKey = nil;
+		NSDictionary	*shipDict = nil;
+		
+		shipKey = [fileDic objectForKey:@"ship_desc"];
+		shipDict = [UNIVERSE getDictionaryForShip:shipKey];
+		
+		if (![shipDict isKindOfClass:[NSDictionary class]])
+		{
+			loadedOK = NO;
+			if (shipKey != nil)  fail_reason = [NSString stringWithFormat:@"Couldn't find ship type \"%@\" - please reinstall the appropriate OXP.", shipKey];
+			else  fail_reason = @"Invalid saved game - no ship specified.";
+		}
+	}
+		
+	if (loadedOK)
+	{
+		[self set_up];
+		if (![self setCommanderDataFromDictionary:fileDic])
+		{
+			fail_reason = @"Could not set up player ship.";
+			loadedOK = NO;
+		}
+	}
+	
+	if (loadedOK)
+	{
+		if (save_path)  [save_path autorelease];
+		save_path = [fileToOpen retain];
+		
+		[[[UNIVERSE gameView] gameController] setPlayerFileToLoad:fileToOpen];
+		[[[UNIVERSE gameView] gameController] setPlayerFileDirectory:fileToOpen];
+	}
+	else
+	{
+		NSLog(@"***** FILE LOADING ERROR!! *****");
+		[[UNIVERSE gameController] setPlayerFileToLoad:nil];
+		[UNIVERSE game_over];
+		[UNIVERSE clearPreviousMessage];
+		[UNIVERSE addMessage:@"Saved game failed to load." forCount: 9.0];
+		if (fail_reason != nil)  [UNIVERSE addMessage: fail_reason forCount: 9.0];
+		return;
+	}
+
+	[UNIVERSE setSystemTo:system_seed];
+	[UNIVERSE removeAllEntitiesExceptPlayer:NO];
+	[UNIVERSE set_up_space];
+
+	status = STATUS_DOCKED;
+	[UNIVERSE setViewDirection:VIEW_GUI_DISPLAY];
+
+	docked_station = [UNIVERSE station];
+	if (docked_station)
+	{
+		position = [docked_station position];
+		[self setQRotation: kIdentityQuaternion];
+		v_forward = vector_forward_from_quaternion(q_rotation);
+		v_right = vector_right_from_quaternion(q_rotation);
+		v_up = vector_up_from_quaternion(q_rotation);
+	}
+
+	flight_roll = 0.0;
+	flight_pitch = 0.0;
+	flight_yaw = 0.0;
+	flight_speed = 0.0;
+
+	if (![docked_station localMarket])
+	{
+		if ([fileDic objectForKey:@"localMarket"])
+		{
+			[docked_station setLocalMarket:(NSArray *)[fileDic objectForKey:@"localMarket"]];
+		}
+		else
+		{
+			[docked_station initialiseLocalMarketWithSeed:system_seed andRandomFactor:market_rnd];
+		}
+	}
+	[self setGuiToStatusScreen];
+}
+
+@end
+
+
+@implementation PlayerEntity (OOLoadSavePrivate)
+
+#if OOLITE_USE_APPKIT_LOAD_SAVE
+
+- (void)loadPlayerWithPanel
+{
+    int				result;
+    NSArray			*fileTypes = nil;
+    NSOpenPanel		*oPanel = nil;
+	
+	fileTypes = [NSArray arrayWithObject:@"oolite-save"];
+	oPanel = [NSOpenPanel openPanel];
+	
+    [oPanel setAllowsMultipleSelection:NO];
+    result = [oPanel runModalForDirectory:nil file:nil types:fileTypes];
+    if (result == NSOKButton)  [self loadPlayerFromFile:[oPanel filename]];
+}
+
+
+- (void) savePlayerWithPanel
+{
+	NSSavePanel		*sp;
+	int				runResult;
+	
+	sp = [NSSavePanel savePanel];
+	[sp setRequiredFileType:@"oolite-save"];
+	
+	// display the NSSavePanel
+	runResult = [sp runModalForDirectory:nil file:player_name];
+	
+	// if successful, save file under designated name
+	// TODO: break actual writing into a separate method to avoid redundancy. -- Ahruman
+	if (runResult == NSOKButton)
+	{
+		NSArray*	path_components = [[sp filename] pathComponents];
+		NSString*   new_name = [[path_components objectAtIndex:[path_components count]-1] stringByDeletingPathExtension];
+
+		if (player_name)	[player_name release];
+		player_name = [new_name retain];
+
+		if (![[self commanderDataDictionary] writeOOXMLToFile:[sp filename] atomically:YES])
+		{
+			NSLog(@"***** ERROR: Save to %@ failed!", [sp filename]);
+			NSException* myException = [NSException
+				exceptionWithName:@"OoliteException"
+				reason:[NSString stringWithFormat:@"Attempt to save game to file '%@' failed for some reason", [sp filename]]
+				userInfo:nil];
+			[myException raise];
+			return;
+		}
+		else
+		{
+			// set this as the default file to load / save
+			if (save_path)
+				[save_path autorelease];
+			save_path = [[NSString stringWithString:[sp filename]] retain];
+			[[UNIVERSE gameController] setPlayerFileToLoad:save_path];
+			[[UNIVERSE gameController] setPlayerFileDirectory:save_path];
+		}
+	}
+	[self setGuiToStatusScreen];
+}
+
+
+- (void)nativeSavePlayer:(NSString *)cdrName
+{
+	NSString*	dir = [[UNIVERSE gameController] playerFileDirectory];
+	if (!dir)	dir = [[NSFileManager defaultManager] defaultCommanderPath];
+
+	NSString *savePath=[dir stringByAppendingPathComponent:[cdrName stringByAppendingPathExtension:@"oolite-save"]];
+
+	if (player_name)
+		[player_name release];
+
+   // use a copy of the passed value to ensure it never gets changed underneath us
+	player_name=[[NSString alloc] initWithString: cdrName];
+
+	if(![[self commanderDataDictionary] writeOOXMLToFile:savePath atomically:YES])
+	{
+		NSLog(@"***** ERROR: Save to %@ failed!", savePath);
+		NSException *myException = [NSException
+			exceptionWithName:@"OoliteException"
+			reason:[NSString stringWithFormat:@"Attempt to save '%@' failed",
+			savePath]
+			userInfo:nil];
+		[myException raise];
+		return;
+	}
+	
+	// set this as the default file to load / save
+	if (save_path)
+		[save_path autorelease];
+	save_path = [savePath retain];
+	[[UNIVERSE gameController] setPlayerFileToLoad:save_path];
+	[[UNIVERSE gameController] setPlayerFileDirectory:save_path];
+
+	[UNIVERSE clearPreviousMessage];	// allow this to be given time and again
+	[UNIVERSE addMessage:ExpandDescriptionForCurrentSystem(@"[game-saved]") forCount:2];
+}
+
+#endif
+
 
 - (void) setGuiToLoadCommanderScreen
 {
@@ -65,6 +579,7 @@ MA 02110-1301, USA.
 	[UNIVERSE setDisplayCursor: YES];
 	[UNIVERSE setViewDirection: VIEW_GUI_DISPLAY];
 }
+
 
 - (void) setGuiToSaveCommanderScreen: (NSString *)cdrName
 {
@@ -99,6 +614,7 @@ MA 02110-1301, USA.
 	[UNIVERSE setViewDirection: VIEW_GUI_DISPLAY];
 }
 
+
 - (void) setGuiToOverwriteScreen: (NSString *)cdrName
 {
 	GuiDisplayGen *gui=[UNIVERSE gui];
@@ -129,6 +645,7 @@ MA 02110-1301, USA.
 	[gameView setStringInput: gvStringInputNo];
 	[UNIVERSE setViewDirection: VIEW_GUI_DISPLAY];
 }
+
 
 - (void) lsCommanders: (GuiDisplayGen *)gui
 						directory: (NSString*) directory
@@ -291,247 +808,8 @@ MA 02110-1301, USA.
 	highlightIdx = (highlightRowOnPage - STARTROW) + (currentPage * NUMROWS);
 	// show the first ship, this will be the selected row
 	[self showCommanderShip: highlightIdx];
-
 }
 
-- (NSString *) commanderSelector
-            : (GuiDisplayGen *)gui
-            : (MyOpenGLView *)gameView
-{
-	NSString*	dir = [[UNIVERSE gameController] playerFileDirectory];
-	if (!dir)	dir = [[NSFileManager defaultManager] defaultCommanderPath];
-
-   int idx;
-   if([self handleGUIUpDownArrowKeys: gui :gameView])
-   {
-      int guiSelectedRow=[gui selectedRow];
-      idx=(guiSelectedRow - STARTROW) + (currentPage * NUMROWS);
-      if (guiSelectedRow != MOREROW && guiSelectedRow != BACKROW)
-      {
-         [self showCommanderShip: idx];
-      }
-   }
-   else
-   {
-      idx=([gui selectedRow] - STARTROW) + (currentPage * NUMROWS);
-   }
-   
-	// handle page <-- and page --> keys
-	if ([gameView isDown:gvArrowKeyLeft] && [[gui keyForRow:BACKROW] isEqual: GUI_KEY_OK])
-	{
-		currentPage--;
-		[self lsCommanders: gui	directory: dir	pageNumber: currentPage  highlightName: nil];
-		[gameView supressKeysUntilKeyUp];
-	}
-	//
-	if ([gameView isDown:gvArrowKeyRight] && [[gui keyForRow:MOREROW] isEqual: GUI_KEY_OK])
-	{
-		currentPage++;
-		[self lsCommanders: gui	directory: dir	pageNumber: currentPage  highlightName: nil];
-		[gameView supressKeysUntilKeyUp];
-	}
-   
-	// Enter pressed - find the commander name underneath.
-	if ([gameView isDown:13]||[gameView isDown:gvMouseDoubleClick])
-	{
-		NSDictionary *cdr;
-		switch ([gui selectedRow])
-		{
-			case BACKROW:
-				currentPage--;
-				[self lsCommanders: gui	directory: dir	pageNumber: currentPage  highlightName: nil];
-				[gameView supressKeysUntilKeyUp];
-				break;
-			case MOREROW:
-				currentPage++;
-				[self lsCommanders: gui	directory: dir	pageNumber: currentPage  highlightName: nil];
-				[gameView supressKeysUntilKeyUp];
-				break;
-			default:
-				cdr=[cdrDetailArray objectAtIndex: idx];
-				if ([cdr objectForKey:@"isSavedGame"])
-					return [cdr objectForKey:@"saved_game_path"];
-				else
-				{
-#ifdef GNUSTEP              
-					if ([gameView isCtrlDown]||[gameView isDown:gvMouseDoubleClick])
-#else                 
-					if ([gameView isCommandDown]||[gameView isDown:gvMouseDoubleClick])
-#endif                 
-					{
-						// change directory to the selected path
-						NSString* newDir = (NSString*)[cdr objectForKey:@"saved_game_path"];
-						[[UNIVERSE gameController] setPlayerFileDirectory: newDir];
-						dir = newDir;
-						currentPage = 0;
-						[self lsCommanders: gui	directory: dir	pageNumber: currentPage  highlightName: nil];
-						[gameView supressKeysUntilKeyUp];
-					}
-				}
-		}
-	}
-
-   if([gameView isDown: 27])
-   {
-      [self setGuiToStatusScreen];
-   }
-   return nil;
-}
-
-- (void) saveCommanderInputHandler
-            : (GuiDisplayGen *)gui
-            : (MyOpenGLView *)gameView
-{
-	NSString*	dir = [[UNIVERSE gameController] playerFileDirectory];
-	if (!dir)	dir = [[NSFileManager defaultManager] defaultCommanderPath];
-	
-	if ([self handleGUIUpDownArrowKeys: gui :gameView])
-	{
-		int guiSelectedRow=[gui selectedRow];
-		int	idx = (guiSelectedRow - STARTROW) + (currentPage * NUMROWS);
-		if (guiSelectedRow != MOREROW && guiSelectedRow != BACKROW)
-		{
-			[self showCommanderShip: idx];
-		}
-		if ([(NSDictionary *)[cdrDetailArray objectAtIndex:idx] objectForKey:@"isSavedGame"])	// don't show things that aren't saved games
-			commanderNameString = [(NSDictionary *)[cdrDetailArray objectAtIndex:idx] objectForKey:@"player_name"];
-		else
-			commanderNameString = [gameView typedString];
-	}
-	else
-		commanderNameString = [gameView typedString];
-	[gameView setTypedString: commanderNameString];
-	
-	[gui setText:
-		[NSString stringWithFormat:@"Commander name: %@", commanderNameString]
-		forRow: INPUTROW];
-	[gui setColor:[OOColor cyanColor] forRow:INPUTROW];
-
-	// handle page <-- and page --> keys
-	if ([gameView isDown:gvArrowKeyLeft] && [[gui keyForRow:BACKROW] isEqual: GUI_KEY_OK])
-	{
-		currentPage--;
-		[self lsCommanders: gui	directory: dir	pageNumber: currentPage  highlightName: nil];
-		[gameView supressKeysUntilKeyUp];
-	}
-	//
-	if ([gameView isDown:gvArrowKeyRight] && [[gui keyForRow:MOREROW] isEqual: GUI_KEY_OK])
-	{
-		currentPage++;
-		[self lsCommanders: gui	directory: dir	pageNumber: currentPage  highlightName: nil];
-		[gameView supressKeysUntilKeyUp];
-	}
-   
-	if(([gameView isDown: 13]||[gameView isDown:gvMouseDoubleClick]) && [commanderNameString length])
-	{
-#ifdef GNUSTEP // Linux/Win32
-      if ([gameView isCtrlDown]||[gameView isDown:gvMouseDoubleClick])
-#else          // OS X
-		if ([gameView isCommandDown]||[gameView isDown:gvMouseDoubleClick])
-#endif        
-		{
-			int guiSelectedRow=[gui selectedRow];
-			int	idx = (guiSelectedRow - STARTROW) + (currentPage * NUMROWS);
-			NSDictionary* cdr = [cdrDetailArray objectAtIndex:idx];
-			if (![cdr objectForKey:@"isSavedGame"])	// don't open saved games
-			{
-				// change directory to the selected path
-				NSString* newDir = (NSString*)[cdr objectForKey:@"saved_game_path"];
-				[[UNIVERSE gameController] setPlayerFileDirectory: newDir];
-				dir = newDir;
-				currentPage = 0;
-				[self lsCommanders: gui	directory: dir	pageNumber: currentPage  highlightName: nil];
-				[gameView supressKeysUntilKeyUp];
-			}
-		}
-		else
-		{
-			pollControls=YES;
-			if ([self existingNativeSave: commanderNameString])
-			{
-				[gameView supressKeysUntilKeyUp];
-				[self setGuiToOverwriteScreen: commanderNameString];
-			}
-			else
-			{
-				[self nativeSavePlayer: commanderNameString];
-				[self setGuiToStatusScreen];
-			}
-		}
-			
-	}
-
-   if([gameView isDown: 27])
-   {
-      // esc was pressed - get out of here
-      pollControls=YES;
-      [self setGuiToStatusScreen];
-   }
-}
-
-- (void) overwriteCommanderInputHandler
-            : (GuiDisplayGen *)gui
-            : (MyOpenGLView *)gameView
-{
-	[self handleGUIUpDownArrowKeys: gui :gameView];
-	
-	if (([gameView isDown: 13] && ([gui selectedRow] == SAVE_OVERWRITE_YES_ROW))||[gameView isDown: 121]||[gameView isDown: 89])
-	{
-		pollControls=YES;
-		[self nativeSavePlayer: commanderNameString];
-		[self setGuiToStatusScreen];
-
-		[beepSound play];
-	}
-
-	if (([gameView isDown: 13] && ([gui selectedRow] == SAVE_OVERWRITE_NO_ROW))||[gameView isDown: 27]||[gameView isDown: 110]||[gameView isDown: 78])
-	{
-		// esc or NO was pressed - get out of here
-		pollControls=YES;
-		[self setGuiToStatusScreen];
-
-		[boopSound play];
-	}
-}
-
-// essentially the same as savePlayer but omitting all the AppKit dialog
-// stuff and taking a string instead.
-- (void) nativeSavePlayer
-            : (NSString *)cdrName
-{
-	NSString*	dir = [[UNIVERSE gameController] playerFileDirectory];
-	if (!dir)	dir = [[NSFileManager defaultManager] defaultCommanderPath];
-
-	NSString *savePath=[dir stringByAppendingPathComponent:[cdrName stringByAppendingPathExtension:@"oolite-save"]];
-
-	if (player_name)
-		[player_name release];
-
-   // use a copy of the passed value to ensure it never gets changed underneath us
-	player_name=[[NSString alloc] initWithString: cdrName];
-
-	if(![[self commanderDataDictionary] writeOOXMLToFile:savePath atomically:YES])
-	{
-		NSLog(@"***** ERROR: Save to %@ failed!", savePath);
-		NSException *myException = [NSException
-			exceptionWithName:@"OoliteException"
-			reason:[NSString stringWithFormat:@"Attempt to save '%@' failed",
-			savePath]
-			userInfo:nil];
-		[myException raise];
-		return;
-	}
-	
-	// set this as the default file to load / save
-	if (save_path)
-		[save_path autorelease];
-	save_path = [savePath retain];
-	[[UNIVERSE gameController] setPlayerFileToLoad:save_path];
-	[[UNIVERSE gameController] setPlayerFileDirectory:save_path];
-
-	[UNIVERSE clearPreviousMessage];	// allow this to be given time and again
-	[UNIVERSE addMessage:ExpandDescriptionForCurrentSystem(@"[game-saved]") forCount:2];
-}
 
 // check for an existing saved game...
 - (BOOL) existingNativeSave: (NSString *)cdrName
@@ -543,17 +821,18 @@ MA 02110-1301, USA.
 	return [[NSFileManager defaultManager] fileExistsAtPath:savePath];
 }
 
+
 // Get some brief details about the commander file.
-- (void) showCommanderShip: (int)cdrArrayIndex
+- (void) showCommanderShip:(int)cdrArrayIndex
 {
-   NSDictionary *descriptions=[UNIVERSE descriptions];
-   GuiDisplayGen *gui=[UNIVERSE gui];
-   [UNIVERSE removeDemoShips];
-   NSDictionary *cdr=[cdrDetailArray objectAtIndex: cdrArrayIndex];
-   	
+	NSDictionary *descriptions = [UNIVERSE descriptions];
+	GuiDisplayGen *gui=[UNIVERSE gui];
+	[UNIVERSE removeDemoShips];
+	NSDictionary *cdr=[cdrDetailArray objectAtIndex: cdrArrayIndex];
+	
 	[gui setText:@"" forRow: CDRDESCROW align: GUI_ALIGN_LEFT]; 
 	[gui setText:@"" forRow: CDRDESCROW + 1 align: GUI_ALIGN_LEFT]; 
-	          
+	
 	if ([cdr objectForKey:@"isFolder"])
 	{
 #ifdef GNUSTEP
@@ -561,7 +840,7 @@ MA 02110-1301, USA.
 #else     
 		NSString *folderDesc=[NSString stringWithFormat: @"Hold command and press return to open folder: %@", [(NSString *)[cdr objectForKey:@"saved_game_path"] lastPathComponent]];
 #endif
-            
+		
 		[gui addLongText: folderDesc startingAtRow: CDRDESCROW align: GUI_ALIGN_LEFT];             
 		
 		return;
@@ -574,7 +853,7 @@ MA 02110-1301, USA.
 #else      
 		NSString *folderDesc=[NSString stringWithFormat: @"Hold command and press return to open parent folder: %@", [(NSString *)[cdr objectForKey:@"saved_game_path"] lastPathComponent]];
 #endif
-            
+		
 		[gui addLongText: folderDesc startingAtRow: CDRDESCROW align: GUI_ALIGN_LEFT];             
 		
 		return;
@@ -582,84 +861,63 @@ MA 02110-1301, USA.
 	
 	if (![cdr objectForKey:@"isSavedGame"])	// don't show things that aren't saved games
 		return;
-   
-   if(!docked_station)
-      docked_station=[UNIVERSE station];
-
-   // Display the commander's ship.
-   NSString *shipDesc=[cdr objectForKey:@"ship_desc"];
-   NSString *shipName = @"non-existent ship";
-   NSDictionary *shipDict = nil;
-   
-   NS_DURING
-	   
-	   shipDict=[UNIVERSE getDictionaryForShip: shipDesc];
-	   
-	NS_HANDLER
-		
-		if ([[localException name] isEqual: OOLITE_EXCEPTION_SHIP_NOT_FOUND])
-		{
-			NSLog(@"DEBUG EXCEPTION: No shipDict for %@", shipDesc);
-			shipName = @"ship not found.";
-			[gui setKey: GUI_KEY_SKIP forRow:[gui selectedRow]];
-			[gui setColor:[OOColor grayColor] forRow:[gui selectedRow]];
-			[gui setText:[NSString stringWithFormat:@"%@ (ship not found)", [gui selectedRowText]] forRow:[gui selectedRow]];
-			[boopSound play];
-		}
-		else
-		{
-			OOLog(kOOLogException, @"***** Exception in [PlayerEntity (LoadSave) showCommanderShip:] : %@ : %@ *****", [localException name], [localException reason]);
-			[localException raise];
-		}
-		
-	NS_ENDHANDLER
 	
-   if(shipDict)
-   {
-	  [self showShipyardModel: shipDict];
-	  shipName=(NSString *)[shipDict objectForKey: KEY_NAME];
-   }
-
-   // Make a short description of the commander
-   int legalStatus=[(NSNumber *)[cdr objectForKey: @"legal_status"] intValue];
-   NSString *legalDesc;
-   int legalIndex=0;
-   if(legalStatus)
-      legalIndex=(legalStatus <= 50) ? 1 : 2;
-   switch (legalIndex)
-   {
-      case 0:
-         legalDesc=@"clean";
-         break;
-      case 1:
-         legalDesc=@"an offender";
-         break;
-      case 2:
-         legalDesc=@"a fugitive";
-         break;
-      default:
-         // never should get here
-         legalDesc=@"an unperson";
-   }
-
-   int rating=[self getRatingFromKills: 
-                     [(NSNumber *)[cdr objectForKey:@"ship_kills"] intValue]];
-   int money=[(NSNumber *)[cdr objectForKey:@"credits"] intValue];
-
-   // it will suffice to display the balance to the nearest credit
-   // instead of tenths of a credit.
-   money /= 10;
-
-   NSString *cdrDesc=[NSString stringWithFormat:
-         @"Commander %@ is rated %@ and is %@, with %d Cr in the bank. Ship: %@",
-            (NSString *)[cdr objectForKey:@"player_name"],
-            [(NSArray *)[descriptions objectForKey:@"rating"] objectAtIndex: rating],
-            legalDesc, 
-            money, 
-            shipName];
-            
-   [gui addLongText: cdrDesc startingAtRow: CDRDESCROW align: GUI_ALIGN_LEFT];             
+	if(!docked_station)  docked_station = [UNIVERSE station];
+	
+	// Display the commander's ship.
+	NSString		*shipDesc = [cdr objectForKey:@"ship_desc"];
+	NSString		*shipName = nil;
+	NSDictionary	*shipDict = nil;
+	
+	shipDict = [UNIVERSE getDictionaryForShip:shipDesc];
+	if(shipDict != nil)
+	{
+		[self showShipyardModel:shipDict];
+		shipName = [shipDict objectForKey: KEY_NAME];
+	}
+	else  shipName = @"Unknown - missing OXP?";
+	
+	// Make a short description of the commander
+	int legalStatus=[(NSNumber *)[cdr objectForKey: @"legal_status"] intValue];
+	NSString *legalDesc;
+	int legalIndex=0;
+	if(legalStatus)
+		legalIndex=(legalStatus <= 50) ? 1 : 2;
+	switch (legalIndex)
+	{
+		case 0:
+			legalDesc=@"clean";
+			break;
+		case 1:
+			legalDesc=@"an offender";
+			break;
+		case 2:
+			legalDesc=@"a fugitive";
+			break;
+		default:
+			// never should get here
+			legalDesc=@"an unperson";
+	}
+	
+	int rating=[self getRatingFromKills: 
+		[(NSNumber *)[cdr objectForKey:@"ship_kills"] intValue]];
+	int money=[(NSNumber *)[cdr objectForKey:@"credits"] intValue];
+	
+	// it will suffice to display the balance to the nearest credit
+	// instead of tenths of a credit.
+	money /= 10;
+	
+	NSString *cdrDesc;
+	cdrDesc = [NSString stringWithFormat:@"Commander %@ is rated %@ and is %@, with %d Cr in the bank. Ship: %@",
+										 [cdr objectForKey:@"player_name"],
+										 [[descriptions objectForKey:@"rating"] objectAtIndex: rating],
+										 legalDesc, 
+										 money, 
+										 shipName];
+	
+	[gui addLongText:cdrDesc startingAtRow:CDRDESCROW align:GUI_ALIGN_LEFT];             
 }
+
 
 - (int) findIndexOfCommander: (NSString *)cdrName
 {
@@ -678,4 +936,3 @@ MA 02110-1301, USA.
 }
 
 @end
-

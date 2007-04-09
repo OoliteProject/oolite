@@ -104,7 +104,15 @@ static void ApplyConstantUniforms(NSDictionary *uniforms, GLhandleARB shaderProg
 - (id) initWithDictionary:(NSDictionary *) dict
 {
 	self = [super init];
+	
 	isShip = YES;
+	entity_personality = ranrot_rand() & 0x7FFF;
+	
+	zero_distance = SCANNER_MAX_RANGE2 * 2.0;
+	weapon_recharge_rate = 6.0;
+	shot_time = 100000.0;
+	ship_temperature = 60.0;
+	
 	[self setUpShipFromDictionary:dict];
 	return self;
 }
@@ -115,7 +123,6 @@ static void ApplyConstantUniforms(NSDictionary *uniforms, GLhandleARB shaderProg
 	NSDictionary		*shipdict = dict;
 	int					i;
 	
-	// Reset state (in case we've been recycled)
 	// Does this positional stuff need setting up here?
 	// Either way, having four representations of orientation is dumb. Needs fixing. --Ahruman
     q_rotation = kIdentityQuaternion;
@@ -125,56 +132,7 @@ static void ApplyConstantUniforms(NSDictionary *uniforms, GLhandleARB shaderProg
 	v_right		= vector_right_from_quaternion(q_rotation);
 	reference	= v_forward;  // reference vector for (* turrets *)
 	
-	zero_distance = SCANNER_MAX_RANGE2 * 2.0;
-	weapon_recharge_rate = 6.0;
-	shot_time = 100000.0;		// Time since last shot -- ensure laser isn't hot to start with.
-	ship_temperature = 60.0;
-	
 	isShip = YES;
-	
-	entity_personality = ranrot_rand() & 0x7FFF;
-	
-#ifndef NO_RECYCLE
-	// All of this can go away with recycling (it just sets zeroes, which +alloc does for us)
-	isSubentity = NO;
-	owner_id	= NO_TARGET;   // owner_id for (* turrets *)
-	group_id	= NO_TARGET;
-	[launch_actions release]; launch_actions = nil;
-	[script_actions release]; script_actions = nil;
-	[death_actions release]; death_actions = nil;
-	last_escort_target = NO_TARGET;
-	position = kZeroVector;
-	velocity = kZeroVector;
-	flight_speed = 0.0;
-	flight_roll = 0.0;
-	flight_pitch = 0.0;
-	flight_yaw = 0.0;
-	pitching_over = NO;
-	launch_time = 0.0;
-	cargo_dump_time = 0.0;
- 	thanked_ship_id = NO_TARGET;
-	subentity_taking_damage = nil;
-	dockingInstructions = nil;
-	crew = nil;
-	[self setTrackCloseContacts:NO];
-	isNearPlanetSurface = NO;
-	[lastRadioMessage autorelease];
-	lastRadioMessage = nil;
-	tractor_position = kZeroVector;
-	debug_flag = 0;
-	[self setCollisionRegion:nil];
-	[self setOctree: nil];
-	[self setBrain: nil];
-	[shader_info release];
-	shader_info = nil;
-	primaryTarget = NO_TARGET;
-	targetStation = NO_TARGET;
-	proximity_alert = NO_TARGET;
-	behaviour = BEHAVIOUR_IDLE;
-	frustration = 0.0;
-	patrol_counter = 0;
-	reportAImessages = NO;
-#endif
 	
 	// check if this is based upon a different ship
 	for (;;)
@@ -4373,7 +4331,7 @@ static GLfloat mascem_color2[4] =	{ 0.4, 0.1, 0.4, 1.0};	// purple
 					GLfloat scale_factor = powf(expected_mass / wreck_mass, 0.33333333f);	// cube root of volume ratio
 					[wreck rescaleBy: scale_factor];
 					
-					Vector r1 = randomFullNodeFrom([octree octreeDetails], make_vector( 0.0, 0.0, 0.0));
+					Vector r1 = randomFullNodeFrom([octree octreeDetails], kZeroVector);
 					Vector rpos = make_vector ( v_right.x * r1.x + v_up.x * r1.y + v_forward.x * r1.z,
 												v_right.y * r1.x + v_up.y * r1.y + v_forward.y * r1.z,
 												v_right.z * r1.x + v_up.z * r1.y + v_forward.z * r1.z);
@@ -6718,15 +6676,13 @@ BOOL	class_masslocks(int some_class)
 			}
 		}
 		[cargo insertObject: other atIndex: 0];	// places most recently scooped object at eject position
-		[other setStatus:STATUS_IN_HOLD];		// prevents entity from being recycled!
+		[other setStatus:STATUS_IN_HOLD];
 		[other setBehaviour:BEHAVIOUR_TUMBLE];
 		[shipAI message:@"CARGO_SCOOPED"];
-		if ([cargo count] == max_cargo)
-			[shipAI message:@"HOLD_FULL"];
+		if ([cargo count] == max_cargo)  [shipAI message:@"HOLD_FULL"];
 	}
 	[[other collisionArray] removeObject:self];			// so it can't be scooped twice!
-	if (isPlayer)
-		[(PlayerEntity*)self suppressTargetLost];
+	if (isPlayer)  [(PlayerEntity*)self suppressTargetLost];
 	[UNIVERSE removeEntity:other];
 }
 

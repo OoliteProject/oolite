@@ -200,36 +200,35 @@ static PlayerEntity *sSharedPlayer = nil;
 		[manifest replaceObjectAtIndex:i withObject:commodityInfo];
 	}
 	
-	NSArray* cargoArray = [[NSArray arrayWithArray:cargo] retain];  // retain
+	NSArray			*cargoArray = [cargo copy];
+	NSEnumerator	*cargoEnumerator = nil;
+	ShipEntity		*cargoItem = nil;
 	
 	// step through the cargo pods adding in the quantities
-	
-	for (i = 0; i < [cargoArray count]; i++)
+	// TODO: does this alter cargo? If not, why do we need a copy? -- Ahruman
+	for (cargoEnumerator = [cargoArray objectEnumerator]; (cargoItem = [cargoEnumerator nextObject]); )
 	{
-		NSMutableArray* commodityInfo;
-		int co_type, co_amount, quantity;
+		NSMutableArray	*commodityInfo;
+		int				co_type, co_amount, quantity;
 
-		co_type = [(ShipEntity *)[cargoArray objectAtIndex:i] getCommodityType];
-		co_amount = [(ShipEntity *)[cargoArray objectAtIndex:i] getCommodityAmount];
-
-		commodityInfo = (NSMutableArray *)[manifest objectAtIndex:co_type];
-		quantity =  [(NSNumber *)[commodityInfo objectAtIndex:MARKET_QUANTITY] intValue] + co_amount;
-
+		co_type = [cargoItem getCommodityType];
+		co_amount = [cargoItem getCommodityAmount];
+		
+		commodityInfo = [manifest objectAtIndex:co_type];
+		quantity =  [[commodityInfo objectAtIndex:MARKET_QUANTITY] intValue] + co_amount;
+		
 		[commodityInfo replaceObjectAtIndex:MARKET_QUANTITY withObject:[NSNumber numberWithInt:quantity]]; // enter the adjusted quantity
 	}
+	
 	[shipCommodityData release];
-	shipCommodityData = [[NSArray arrayWithArray:manifest] retain];
-	[manifest release]; // release, done
-	[cargoArray release]; // release, done
-	for (i = 0; i < [cargoArray count]; i++)	// recycle these entities rather than leave them to be garbage collected
-	{
-		[(Entity *)[cargoArray objectAtIndex:i] setStatus:STATUS_DEAD];
-		[UNIVERSE recycleOrDiscard:(Entity *)[cargoArray objectAtIndex:i]];
-	}
+	shipCommodityData = manifest;
+	
+	[cargoArray release];
 	[cargo removeAllObjects];   // empty the hold
 	
 	[self calculateCurrentCargo];	// work out the correct value for current_cargo
 }
+
 
 - (void) loadCargoPods
 {
@@ -448,6 +447,7 @@ static PlayerEntity *sSharedPlayer = nil;
 	[result setObject:[self trumbleValue] forKey:@"trumbles"];
 	
 	#if 0
+	// DISABLED -- this setting should be stored in preferences. Saving it in games makes no sense. -- Ahruman
 	// texture experiments
 	if ([UNIVERSE doProcedurallyTexturedPlanets])
 		[result setObject:[NSNumber numberWithBool:YES] forKey:@"procedural_planet_textures"];
@@ -473,9 +473,10 @@ static PlayerEntity *sSharedPlayer = nil;
 	return [NSDictionary dictionaryWithDictionary:[result autorelease]];
 }
 
-- (void) setCommanderDataFromDictionary:(NSDictionary *) dict
+- (BOOL)setCommanderDataFromDictionary:(NSDictionary *) dict
 {
-	if ([dict objectForKey:@"strict"])
+	// TODO: use CollectionExtractors for type-safety. -- Ahruman
+	if ([dict boolForKey:@"strict" defaultValue:NO])
 	{
 		if (![UNIVERSE strict])
 		{
@@ -496,35 +497,23 @@ static PlayerEntity *sSharedPlayer = nil;
 		}
 	}
 	
+	#if 0
+	// DISABLED -- this setting should be stored in preferences. Saving it in games makes no sense. -- Ahruman
 	// texture experiments
 	if ([dict objectForKey:@"procedural_planet_textures"])
 		[UNIVERSE setDoProcedurallyTexturedPlanets: [[dict objectForKey:@"procedural_planet_textures"] boolValue]];
+	#endif
 	
 	//base ship description
 	if ([dict objectForKey:@"ship_desc"])
 	{
-		NSDictionary*	ship_dict = nil;
-		if (ship_desc) [ship_desc release];
-		ship_desc = [(NSString *)[dict objectForKey:@"ship_desc"] retain];
-		NS_DURING
-			ship_dict = [UNIVERSE getDictionaryForShip:ship_desc];
-		NS_HANDLER
-			if ([[localException name] isEqual: OOLITE_EXCEPTION_SHIP_NOT_FOUND])
-				ship_dict = nil;
-			else
-				[localException raise];
-		NS_ENDHANDLER
-		if (ship_dict)
-			[self setUpShipFromDictionary:ship_dict];
-		else
-		{
-			NSException* myException = [NSException
-				exceptionWithName: OOLITE_EXCEPTION_SHIP_NOT_FOUND
-				reason:[NSString stringWithFormat:@"Couldn't set player ship to '%@' (it couldn't be found)", ship_desc]
-				userInfo:nil];
-			[myException raise];
-			return;
-		}
+		[ship_desc release];
+		ship_desc = [[dict objectForKey:@"ship_desc"] copy];
+		
+		NSDictionary *shipDict = [UNIVERSE getDictionaryForShip:ship_desc];
+		if (shipDict == nil)  return NO;
+		
+		[self setUpShipFromDictionary:shipDict];
 	}
 
 	// ship depreciation
@@ -851,6 +840,8 @@ static PlayerEntity *sSharedPlayer = nil;
 
 	// finally
 	missiles = [self calc_missiles];
+	
+	return YES;
 }
 
 ///////////////////////////////////////////////////////////
@@ -890,6 +881,8 @@ static PlayerEntity *sSharedPlayer = nil;
 	dockingReport = [[NSMutableString string] retain];
 	
 	script = [[ResourceManager loadScripts] retain];
+
+	[self init_keys];
 	
     return self;
 }
@@ -903,29 +896,30 @@ static PlayerEntity *sSharedPlayer = nil;
 	
 	show_info_flag = NO;
 
-	if (ship_desc)
-		[ship_desc release];
+	[ship_desc release];
 	ship_desc = [[NSString stringWithString:PLAYER_SHIP_DESC] retain];
 	ship_trade_in_factor = 95;
 	
 	NSDictionary *huddict = [ResourceManager dictionaryFromFilesNamed:@"hud.plist" inFolder:@"Config" andMerge:YES];
-	if (hud)
-		[hud release];
+	[hud release];
 	hud = [[HeadUpDisplay alloc] initWithDictionary:huddict];
 	[hud setPlayer:self];
 	[hud setScannerZoom:1.0];
 	[hud resizeGuis:huddict];
 	scanner_zoom_rate = 0.0;
 	
-	mission_variables =[[NSMutableDictionary dictionaryWithCapacity:16] retain];
-	local_variables =[[NSMutableDictionary dictionaryWithCapacity:[script count]] retain];
+	[mission_variables release];
+	mission_variables = [[NSMutableDictionary alloc] init];
+	[local_variables release];
+	// TODO: local_variable subdicts should be set up on the fly. -- Ahruman
+	local_variables = [[NSMutableDictionary alloc] init];
 	NSArray *scriptKeys = [script allKeys];
-	for (i = 0; i < [scriptKeys count]; i++)
-		[local_variables setObject:[NSMutableDictionary dictionaryWithCapacity:16] forKey:[scriptKeys objectAtIndex:i]];
+	for (i = 0; i < [scriptKeys count]; i++)  [local_variables setObject:[NSMutableDictionary dictionary] forKey:[scriptKeys objectAtIndex:i]];
 	
 	[self setScript_target:nil];
 	[self resetMissionChoice];
 	
+	[reputation release];
 	reputation = [[NSMutableDictionary alloc] initWithCapacity:6];
 	[reputation setObject:[NSNumber numberWithInt:0] forKey:CONTRACTS_GOOD_KEY];
 	[reputation setObject:[NSNumber numberWithInt:0] forKey:CONTRACTS_BAD_KEY];
@@ -934,33 +928,37 @@ static PlayerEntity *sSharedPlayer = nil;
 	[reputation setObject:[NSNumber numberWithInt:0] forKey:PASSAGE_BAD_KEY];
 	[reputation setObject:[NSNumber numberWithInt:7] forKey:PASSAGE_UNKNOWN_KEY];
 	
+	energy					= 256;
+	weapon_temp				= 0.0;
+	forward_weapon_temp		= 0.0;
+	aft_weapon_temp			= 0.0;
+	port_weapon_temp		= 0.0;
+	starboard_weapon_temp	= 0.0;
+	ship_temperature		= 60.0;
+	heat_insulation			= 1.0;
+	alert_flags				= 0;
+	
 	max_passengers = 0;
-	if (passengers)
-		[passengers release];
-	passengers = [[NSMutableArray alloc] initWithCapacity:8];
-	if (passenger_record)
-		[passenger_record release];
-	passenger_record = [[NSMutableDictionary dictionaryWithCapacity:16] retain];
+	[passengers release];
+	passengers = [[NSMutableArray alloc] init];
+	[passenger_record release];
+	passenger_record = [[NSMutableDictionary alloc] init];
 	
-	if (contracts)
-		[contracts release];
-	contracts = [[NSMutableArray alloc] initWithCapacity:8];
-	if (contract_record)
-		[contract_record release];
-	contract_record = [[NSMutableDictionary dictionaryWithCapacity:16] retain];
+	[contracts release];
+	contracts = [[NSMutableArray alloc] init];
+	[contract_record release];
+	contract_record = [[NSMutableDictionary alloc] init];
 	
-	if (missionDestinations)
-		[missionDestinations release];
-	missionDestinations = [[NSMutableArray alloc] initWithCapacity:8];
+	[missionDestinations release];
+	missionDestinations = [[NSMutableArray alloc] init];
 	
-	if (shipyard_record)
-		[shipyard_record release];
-	shipyard_record = [[NSMutableDictionary dictionaryWithCapacity:4] retain];
+	[shipyard_record release];
+	shipyard_record = [[NSMutableDictionary alloc] init];
 	
-	if (extra_equipment)
-		[extra_equipment release];
-	extra_equipment =[[NSMutableDictionary dictionaryWithCapacity:16] retain];
+	[extra_equipment release];
+	extra_equipment =[[NSMutableDictionary alloc] init];
 	
+	[missionBackgroundImage release];
 	missionBackgroundImage = nil;
 	
 	script_time = 0.0;
@@ -978,25 +976,26 @@ static PlayerEntity *sSharedPlayer = nil;
 	speech_on = NO;
 	ootunes_on = NO;
 	
-	if (custom_views)
-		[custom_views release];
+	[custom_views release];
 	custom_views = nil;
 	
 	mouse_control_on = NO;
 	
-	docking_music_on = YES;	// check user defaults for whether we like docking music or not...
-	if ([[NSUserDefaults standardUserDefaults] objectForKey:KEY_DOCKING_MUSIC])
-		docking_music_on = [[NSUserDefaults standardUserDefaults] boolForKey:KEY_DOCKING_MUSIC];
+	docking_music_on = [[NSUserDefaults standardUserDefaults] boolForKey:KEY_DOCKING_MUSIC defaultValue:YES];
 	
-	if (name)
-		[name release];
-	name = [[NSString stringWithString:@"Player"] retain];
+#if OBSOLETE
+	// ShipEntity stuff. set_up must be followed by setting up a ship to be meaningful, so this is unneeded.
+	// Ship name
+	[name release];
+	name = nil;
+	
 	rolling = NO;
 	pitching = NO;
 	galactic_witchjump = NO;
 	
-	flight_speed =		0.0;
-	max_flight_speed =  160.0;
+	//
+	flight_speed		= 0.0;
+	max_flight_speed	= 160.0;
 	max_flight_roll =   2.0;
 	max_flight_pitch =  1.0;
 	max_flight_yaw =  1.0;
@@ -1056,100 +1055,97 @@ static PlayerEntity *sSharedPlayer = nil;
 	if (shipAI)		[shipAI release];
 	shipAI = [[AI alloc] initWithStateMachine:AI_DOCKING_COMPUTER andState:@"GLOBAL"]; // alloc retains dealloc'd by ShipEntity
 	[shipAI setOwner:self];
-	
+#endif
 
 	// player commander data
+	// Most of this is probably also set more than once
 	
-	player_name =			[[NSString alloc] initWithString:@"Jameson"];  // alloc retains
-	galaxy_coordinates =	NSMakePoint(0x14,0xAD);	// 20,173
-	galaxy_seed =			gal_seed;
-	credits =				1000;
-	fuel =					PLAYER_MAX_FUEL;
-	fuel_accumulator =		0.0;
+	player_name				= [[NSString alloc] initWithString:@"Jameson"];  // alloc retains
+	galaxy_coordinates		= NSMakePoint(0x14,0xAD);	// 20,173
+	galaxy_seed				= gal_seed;
+	credits					= 1000;
+	fuel					= PLAYER_MAX_FUEL;
+	fuel_accumulator		= 0.0;
 
-	galaxy_number =			0;
-	forward_weapon =		WEAPON_PULSE_LASER;
-	aft_weapon =			WEAPON_NONE;
-	port_weapon =			WEAPON_NONE;
-	starboard_weapon =		WEAPON_NONE;
+	galaxy_number			= 0;
+	forward_weapon			= WEAPON_PULSE_LASER;
+	aft_weapon				= WEAPON_NONE;
+	port_weapon				= WEAPON_NONE;
+	starboard_weapon		= WEAPON_NONE;
 
-	max_cargo =				20; // will be reset later
+	max_cargo				= 20; // will be reset later
 
-	shipCommodityData = [(NSArray *)[(NSDictionary *)[ResourceManager dictionaryFromFilesNamed:@"commodities.plist" inFolder:@"Config" andMerge:YES] objectForKey:@"default"] retain];
+	shipCommodityData = [[[ResourceManager dictionaryFromFilesNamed:@"commodities.plist" inFolder:@"Config" andMerge:YES] objectForKey:@"default"] retain];
+	
+	has_ecm					= NO;
+	has_scoop				= NO;
+	has_energy_bomb			= NO;
+	has_energy_unit			= NO;
+	has_docking_computer	= NO;
+	has_galactic_hyperdrive	= NO;
+	has_escape_pod			= NO;
+	has_fuel_injection		= NO;
 
-	has_ecm =					NO;
-	has_scoop =					NO;
-	has_energy_bomb =			NO;
-	has_energy_unit =			NO;
-	has_docking_computer =		NO;
-	has_galactic_hyperdrive =   NO;
-	has_escape_pod =			NO;
-	has_fuel_injection =		NO;
-
-	shield_booster =			1;
-	shield_enhancer =			0;
+	shield_booster			= 1;
+	shield_enhancer			= 0;
 
 	// set up missiles
-	missiles =				PLAYER_STARTING_MISSILES;
-	max_missiles =			PLAYER_MAX_MISSILES;
+	missiles				= PLAYER_STARTING_MISSILES;
+	max_missiles			= PLAYER_MAX_MISSILES;
+	
 	[self setActive_missile: 0];
 	for (i = 0; i < missiles; i++)
 	{
-		if (missile_entity[i])
-			[missile_entity[i] release];
+		[missile_entity[i] release];
 		missile_entity[i] = [UNIVERSE newShipWithRole:@"EQ_MISSILE"];   // retain count = 1
 	}
 	[self safe_all_missiles];
+	
+	legal_status			= 0;
 
-	legal_status =			0;
-
-	market_rnd =			0;
-	ship_kills =			0;
-	saved =					NO;
-	cursor_coordinates = galaxy_coordinates;
-
-	[self init_keys];
-
+	market_rnd				= 0;
+	ship_kills				= 0;
+	saved					= NO;
+	cursor_coordinates		= galaxy_coordinates;
+	
 	scanClass = CLASS_PLAYER;
-
+	
 	[UNIVERSE clearGUIs];
-
+	
 	docked_station = [UNIVERSE station];
-
-	if (comm_log)	[comm_log release];
-	comm_log = [[NSMutableArray alloc] initWithCapacity:200];	// retained
 	
-
-	if (specialCargo)
-		[specialCargo release];
+	[comm_log release];
+	comm_log = [[NSMutableArray alloc] init];	// retained
+	
+	[specialCargo release];
 	specialCargo = nil;
-
+	
 	debugShipID = NO_TARGET;
-
+	
 	// views
+	forwardViewOffset	= kZeroVector;
+	aftViewOffset		= kZeroVector;
+	portViewOffset		= kZeroVector;
+	starboardViewOffset	= kZeroVector;
+	customViewOffset	= kZeroVector;
 	
-	forwardViewOffset = kZeroVector;
-	aftViewOffset = kZeroVector;
-	portViewOffset = kZeroVector;
-	starboardViewOffset = kZeroVector;
-	customViewOffset = kZeroVector;
-	
-	currentWeaponFacing = VIEW_FORWARD;
+	currentWeaponFacing	= VIEW_FORWARD;
 
-	if (save_path)
-		[save_path autorelease];
+	[save_path autorelease];
 	save_path = nil;
 
 	[self setUpTrumbles];
-
+	
 	suppressTargetLost = NO;
-
+	
 	scoopsActive = NO;
 	
-	[dockingReport setString:@""];
+	[dockingReport release];
+	dockingReport = [[NSMutableString alloc] init];
 	
 	[self sendMessageToScripts:@"reset"];
 }
+
 
 - (void) setUpShipFromDictionary:(NSDictionary *) dict
 {
@@ -1888,7 +1884,6 @@ double scoopSoundPlayTime = 0.0;
 	}
 	// copy new temp to main temp
 	
-//	switch ([UNIVERSE viewDir])
 	switch (currentWeaponFacing)
 	{
 		case VIEW_GUI_DISPLAY:
@@ -1905,6 +1900,8 @@ double scoopSoundPlayTime = 0.0;
 			break;
 		case VIEW_STARBOARD:
 			weapon_temp = starboard_weapon_temp;
+			break;
+		case VIEW_CUSTOM:
 			break;
 	}
 
@@ -3090,6 +3087,8 @@ double scoopSoundPlayTime = 0.0;
 		case VIEW_STARBOARD:
 			starboard_weapon_temp += weapon_heat_increment_per_shot;
 			break;
+		case VIEW_CUSTOM:
+			break;
 	}
 	
 	switch (weapon_to_be_fired)
@@ -3114,7 +3113,7 @@ double scoopSoundPlayTime = 0.0;
 	return NO;
 }
 
-- (OOWeaponType) weaponForView:(int) view
+- (OOWeaponType) weaponForView:(OOViewID)view
 {
 	if (view == VIEW_CUSTOM)
 		view = currentWeaponFacing;
@@ -4071,212 +4070,6 @@ double scoopSoundPlayTime = 0.0;
 	[self abortDocking];			// let the station know that you are no longer on approach
 	autopilot_engaged = NO;
 	status = STATUS_IN_FLIGHT;
-}
-
-/////////////////////////////////////
-
-- (void) quicksavePlayer
-{
-	NSString* filename = save_path;
-	if (!filename)
-		filename = [[(MyOpenGLView *)[UNIVERSE gameView] gameController] playerFileToLoad];
-	if (!filename)
-	{
-		NSLog(@"ERROR no filename returned by [[(MyOpenGLView *)[UNIVERSE gameView] gameController] playerFileToLoad]");
-		NSException* myException = [NSException
-			exceptionWithName:@"GameNotSavedException"
-			reason:@"ERROR no filename returned by [[(MyOpenGLView *)[UNIVERSE gameView] gameController] playerFileToLoad]"
-			userInfo:nil];
-		[myException raise];
-		return;
-	}
-	if (![[self commanderDataDictionary] writeOOXMLToFile:filename atomically:YES])
-	{
-		NSLog(@"***** ERROR: Save to %@ failed!", filename);
-		NSException* myException = [NSException
-			exceptionWithName:@"OoliteException"
-			reason:[NSString stringWithFormat:@"Attempt to save game to file '%@' failed for some reason", filename]
-			userInfo:nil];
-		[myException raise];
-		return;
-	}
-	else
-	{
-		
-		[UNIVERSE clearPreviousMessage];	// allow this to be given time and again
-		[UNIVERSE addMessage:ExpandDescriptionForCurrentSystem(@"[game-saved]") forCount:2];
-		if (save_path)
-			[save_path autorelease];
-		save_path = [filename retain];
-	}
-	
-	[self setGuiToStatusScreen];
-}
-
-- (void) savePlayer
-{
-// Load/Save is done by an Oolite native function for gnustep.
-#ifndef GNUSTEP
-	NSSavePanel *sp;
-	int runResult;
-
-	/* create or get the shared instance of NSSavePanel */
-	sp = [NSSavePanel savePanel];
-
-	/* set up new attributes */
-	[sp setRequiredFileType:@"oolite-save"];
-
-	/* display the NSSavePanel */
-
-	runResult = [sp runModalForDirectory:nil file:player_name];
-
-	/* if successful, save file under designated name */
-	if (runResult == NSOKButton)
-	{
-		NSArray*	path_components = [[sp filename] pathComponents];
-		NSString*   new_name = [[path_components objectAtIndex:[path_components count]-1] stringByDeletingPathExtension];
-
-		if (player_name)	[player_name release];
-		player_name = [new_name retain];
-
-		if (![[self commanderDataDictionary] writeOOXMLToFile:[sp filename] atomically:YES])
-		{
-			NSLog(@"***** ERROR: Save to %@ failed!", [sp filename]);
-			NSException* myException = [NSException
-				exceptionWithName:@"OoliteException"
-				reason:[NSString stringWithFormat:@"Attempt to save game to file '%@' failed for some reason", [sp filename]]
-				userInfo:nil];
-			[myException raise];
-			return;
-		}
-		else
-		{
-			// set this as the default file to load / save
-			if (save_path)
-				[save_path autorelease];
-			save_path = [[NSString stringWithString:[sp filename]] retain];
-			[[UNIVERSE gameController] setPlayerFileToLoad:save_path];
-			[[UNIVERSE gameController] setPlayerFileDirectory:save_path];
-		}
-	}
-	[self setGuiToStatusScreen];
-#endif
-}
-
-- (void) loadPlayer
-{
-#ifndef GNUSTEP
-    int result;
-    NSArray *fileTypes = [NSArray arrayWithObject:@"oolite-save"];
-    NSOpenPanel *oPanel = [NSOpenPanel openPanel];
-
-    [oPanel setAllowsMultipleSelection:NO];
-    result = [oPanel runModalForDirectory:nil file:nil types:fileTypes];
-    if (result == NSOKButton)
-		[self loadPlayerFromFile:[oPanel filename]];
-#endif
-}
-
-- (void) loadPlayerFromFile:(NSString *)fileToOpen
-{
-	BOOL loadedOK = YES;
-	NSDictionary*	fileDic = nil;
-	NSString*	fail_reason = nil;
-	
-	if (fileToOpen == nil) loadedOK = NO;
-	
-	if (loadedOK)
-	{
-		fileDic = OODictionaryFromFile(fileToOpen);
-		if (!fileDic)  loadedOK = NO;
-	}
-	
-	if (loadedOK)
-	{
-		// Check that player ship exists
-		NSString		*shipKey = nil;
-		NSDictionary	*shipDict = nil;
-		
-		NS_DURING
-			shipKey = [fileDic objectForKey:@"ship_desc"];
-			shipDict = [UNIVERSE getDictionaryForShip:shipKey];
-		NS_HANDLER
-			shipDict = nil;
-		NS_ENDHANDLER
-		
-		if (![shipDict isKindOfClass:[NSDictionary class]])
-		{
-			loadedOK = NO;
-			if (shipKey != nil)  fail_reason = [NSString stringWithFormat:@"Couldn't find ship type \"%@\" - please reinstall the appropriate OXP.", shipKey];
-			else  fail_reason = @"Invalid saved game - no ship specified.";
-		}
-	}
-	else  loadedOK = NO;
-		
-	if (loadedOK)
-	{
-		[self set_up];
-		[self setCommanderDataFromDictionary:fileDic];
-	}
-	
-	if (loadedOK)
-	{
-		if (save_path)  [save_path autorelease];
-		save_path = [fileToOpen retain];
-		
-		[[[UNIVERSE gameView] gameController] setPlayerFileToLoad:fileToOpen];
-		[[[UNIVERSE gameView] gameController] setPlayerFileDirectory:fileToOpen];
-	}
-	else
-	{
-		NSLog(@"***** FILE LOADING ERROR!! *****");
-		[[UNIVERSE gameController] setPlayerFileToLoad:nil];
-		[UNIVERSE game_over];
-		[UNIVERSE clearPreviousMessage];
-		[UNIVERSE addMessage:@"Saved game failed to load." forCount: 9.0];
-		if (fail_reason)
-			[UNIVERSE addMessage: fail_reason forCount: 9.0];
-		return;
-	}
-
-	[UNIVERSE setSystemTo:system_seed];
-	[UNIVERSE removeAllEntitiesExceptPlayer:NO];
-	[UNIVERSE set_up_space];
-
-	status = STATUS_DOCKED;
-	[UNIVERSE setViewDirection:VIEW_GUI_DISPLAY];
-
-	docked_station = [UNIVERSE station];
-	if (docked_station)
-	{
-		position = docked_station->position;
-		[self setQRotation: kIdentityQuaternion];
-		v_forward = vector_forward_from_quaternion(q_rotation);
-		v_right = vector_right_from_quaternion(q_rotation);
-		v_up = vector_up_from_quaternion(q_rotation);
-	}
-
-	flight_roll = 0.0;
-	flight_pitch = 0.0;
-	flight_yaw = 0.0;
-	flight_speed = 0.0;
-
-	if (![docked_station localMarket])
-	{
-		if ([fileDic objectForKey:@"localMarket"])
-		{
-			[docked_station setLocalMarket:(NSArray *)[fileDic objectForKey:@"localMarket"]];
-		}
-		else
-		{
-			[docked_station initialiseLocalMarketWithSeed:system_seed andRandomFactor:market_rnd];
-		}
-	}
-	[self setGuiToStatusScreen];
-}
-
-- (void) changePlayerName
-{
 }
 
 
@@ -5775,7 +5568,6 @@ static int last_outfitting_index;
 				NSString* weapon_key = [weapon roles];
 				int weapon_value = [UNIVERSE getPriceForWeaponSystemWithKey:weapon_key];
 				credits += weapon_value;
-				[UNIVERSE recycleOrDiscard: weapon];
 				[weapon release];
 			}
 		}
@@ -6271,7 +6063,7 @@ OOSound* burnersound;
 	aftViewOffset = make_vector( 0.0, 0.0, boundingBox.min.z + halfLength);
 	portViewOffset = make_vector( boundingBox.min.x + halfWidth, 0.0, 0.0);
 	starboardViewOffset = make_vector( boundingBox.max.x - halfWidth, 0.0, 0.0);
-	customViewOffset = make_vector( 0.0, 0.0, 0.0);
+	customViewOffset = kZeroVector;
 }
 
 - (Vector) weaponViewOffset
@@ -6288,8 +6080,13 @@ OOSound* burnersound;
 			return starboardViewOffset;
 		case VIEW_CUSTOM:
 			return customViewOffset;
+		
+		case VIEW_NONE:
+		case VIEW_GUI_DISPLAY:
+		case VIEW_BREAK_PATTERN:
+			break;
 	}
-	return make_vector ( 0, 0, 0);
+	return kZeroVector;
 }
 
 - (void) setDefaultWeaponOffsets
@@ -6682,7 +6479,7 @@ OOSound* burnersound;
 	Quaternion view_q = kIdentityQuaternion;
 	
 	quaternion_into_gl_matrix( view_q, customViewMatrix);
-	customViewOffset = make_vector( 0.0, 0.0, 0.0);
+	customViewOffset = kZeroVector;
 	if (!viewDict)  return;
 	
 	ScanQuaternionFromString([viewDict objectForKey:@"view_orientation"], &view_q);

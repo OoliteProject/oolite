@@ -155,6 +155,28 @@ OOINLINE BOOL IsBehaviourHostile(OOBehaviour behaviour)
 
 typedef enum
 {
+	VIEW_FORWARD			= 0,
+	VIEW_AFT				= 1,
+	VIEW_PORT				= 2,
+	VIEW_STARBOARD			= 3,
+	VIEW_CUSTOM				= 7,
+	VIEW_NONE				= -1,
+	VIEW_GUI_DISPLAY		= 10,
+	VIEW_BREAK_PATTERN		= 20
+} OOViewID;
+
+
+typedef enum
+{
+	DEMO_NO_DEMO		= 0,
+	DEMO_FLY_IN			= 101,
+	DEMO_SHOW_THING		= 102,
+	DEMO_FLY_OUT		= 103
+} OODemoMode;
+
+
+typedef enum
+{
 	WEAPON_NONE						= 0U,
 	WEAPON_PLASMA_CANNON			= 1,
 	WEAPON_PULSE_LASER				= 2,

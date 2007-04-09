@@ -178,7 +178,7 @@ enum
 
 #define OOTUNES_ON						ootunes_on
 
-#define PLAYER_SHIP_CLOCK_START			2084004 * 86400.0
+#define PLAYER_SHIP_CLOCK_START			(2084004 * 86400.0)
 
 #define CONTRACTS_GOOD_KEY				@"contracts_fulfilled"
 #define CONTRACTS_BAD_KEY				@"contracts_expired"
@@ -435,17 +435,15 @@ enum
         // target memory
 	int						target_memory[PLAYER_TARGET_MEMORY_SIZE];
 	int						target_memory_index;
-        
-        /* GILES custom viewpoints */
-        
-        // custom view points
+	
+	// custom view points
 	NSMutableArray*			custom_views;
 	Quaternion				customViewQuaternion;
 	GLfloat					customViewMatrix[16];
 	Vector					customViewOffset, customViewForwardVector, customViewUpVector, customViewRightVector;
 	NSString*				customViewDescription;
 	
-	int						currentWeaponFacing;	// decoupled from view direction
+	OOViewID				currentWeaponFacing;	// decoupled from view direction
 	
         // docking reports
 	NSMutableString*		dockingReport;
@@ -522,7 +520,7 @@ enum
 - (Random_Seed) target_system_seed;
 
 - (NSDictionary *) commanderDataDictionary;
-- (void) setCommanderDataFromDictionary:(NSDictionary *) dict;
+- (BOOL)setCommanderDataFromDictionary:(NSDictionary *) dict;
 
 - (void) set_up;
 
@@ -596,7 +594,7 @@ enum
 - (BOOL) launchMine:(ShipEntity*) mine;
 
 - (BOOL) fireMainWeapon;
-- (OOWeaponType) weaponForView:(int) view;
+- (OOWeaponType) weaponForView:(OOViewID)view;
 
 - (void) rotateCargo;
 
@@ -612,12 +610,6 @@ enum
 - (void) loseTargetStatus;
 
 - (void) docked;
-
-- (void) quicksavePlayer;
-- (void) savePlayer;
-- (void) loadPlayer;
-- (void) loadPlayerFromFile:(NSString *)fileToOpen;
-- (void) changePlayerName;
 
 - (void) setGuiToStatusScreen;
 - (int) getRatingFromKills: (int)shipKills;

@@ -125,10 +125,6 @@ static BOOL MaintainLinkedLists(Universe* uni);
 	// Preload cache
 	[OOCacheManager sharedCache];
 	
-	
-	entityRecyclePool =			[[NSMutableDictionary dictionaryWithCapacity:MAX_NUMBER_OF_ENTITIES] retain];
-	recycleLock =				[[NSLock alloc] init];
-	
     entities =				[[NSMutableArray arrayWithCapacity:MAX_NUMBER_OF_ENTITIES] retain];
 	
 	sun_center_position[0] = 4000000.0;
@@ -248,9 +244,6 @@ static BOOL MaintainLinkedLists(Universe* uni);
     [message_gui release];
 	[comm_log_gui release];
 	
-	[entityRecyclePool release];
-	[recycleLock release];
-	
 	[entities release];
 	[shipdata release];
 	[shipyard release];
@@ -343,25 +336,15 @@ static BOOL MaintainLinkedLists(Universe* uni);
 	for (i = 0; i < MAX_ENTITY_UID; i++)
 		entity_for_uid[i] = nil;
 	
-	if (entityRecyclePool)
-		[entityRecyclePool autorelease];
-	entityRecyclePool =			[[NSMutableDictionary dictionaryWithCapacity:MAX_NUMBER_OF_ENTITIES] retain];
-	if (recycleLock)
-		[recycleLock autorelease];
-	recycleLock =				[[NSLock alloc] init];
-	
 	sun_center_position[0] = 4000000.0;
 	sun_center_position[1] = 0.0;
 	sun_center_position[2] = 0.0;
 	sun_center_position[3] = 1.0;
 	
-	if (gui)
-		[gui autorelease];
+	if (gui)  [gui autorelease];
 	gui = [[GuiDisplayGen alloc] init]; // alloc retains
 	
-	
-	if (message_gui)
-		[message_gui autorelease];
+	if (message_gui)  [message_gui autorelease];
 	message_gui = [[GuiDisplayGen alloc] initWithPixelSize:NSMakeSize( 480, 160) Columns:1 Rows:8 RowHeight:20 RowStart:20 Title:nil];
 	[message_gui setCurrentRow:7];
 	[message_gui setCharacterSize:NSMakeSize(16,20)];	// slightly narrower characters
@@ -2235,25 +2218,12 @@ GLfloat docked_light_specular[]	= { (GLfloat) 1.0, (GLfloat) 1.0, (GLfloat) 0.5,
 	ShipEntity* ship;
 	NSDictionary* shipdict = nil;
 	
-	NS_DURING	
-		shipdict = [self getDictionaryForShip:shipdesc];	// handle OOLITE_EXCEPTION_SHIP_NOT_FOUND
-	NS_HANDLER
-		if ([[localException name] isEqual: OOLITE_EXCEPTION_SHIP_NOT_FOUND])
-		{
-			OOLog(kOOLogException, @"***** Oolite Exception : '%@' in [Universe spawnShip: %@ ] *****", [localException reason], shipdesc);
-			shipdict = nil;
-		}
-		else
-			[localException raise];
-	NS_ENDHANDLER
-	
-	if (!shipdict)
-		return NO;
+	shipdict = [self getDictionaryForShip:shipdesc];
+	if (shipdict == nil)  return NO;
 	
 	ship = [self newShipWithName:shipdesc];	// retain count is 1
 	
-	if (!ship)
-		return NO;
+	if (ship == nil)  return NO;
 	
 	// set any spawning characteristics
 	NSDictionary* spawndict = [shipdict objectForKey:@"spawn"];
@@ -2390,7 +2360,7 @@ GLfloat docked_light_specular[]	= { (GLfloat) 1.0, (GLfloat) 1.0, (GLfloat) 0.5,
 		
 	for (i = 1; i < 11; i++)
 	{
-		ring = (RingEntity *)[self allocRecycledOrNewEntity:@"RingEntity"];
+		ring = [[RingEntity alloc] init];
 		[ring setPositionX:pos.x+v.x*i*50.0 y:pos.y+v.y*i*50.0 z:pos.z+v.z*i*50.0]; // ahead of the player
 		[ring setQRotation:q];
 		[ring setVelocity:v];
@@ -2401,6 +2371,7 @@ GLfloat docked_light_specular[]	= { (GLfloat) 1.0, (GLfloat) 1.0, (GLfloat) 0.5,
 		[ring release];
     }
 }
+
 
 - (void) game_over
 {
@@ -2692,83 +2663,6 @@ GLfloat docked_light_specular[]	= { (GLfloat) 1.0, (GLfloat) 1.0, (GLfloat) 0.5,
 	return ((breakPatternCounter > 5)||(!player)||(player->status == STATUS_DOCKING));
 }
 
-- (id) recycleOrDiscard:(Entity *) entity
-{
-	NSMutableArray  *entlist;
-	NSString		*classname = nil;
-	
-	// TEMP: ignore recycling crap.
-	return entity;
-	
-	if (!entity)
-		return nil;
-	
-	// we're only interested in three types of entity currently
-	
-	if (entity->isRing)
-		classname = @"RingEntity";
-	if (entity->isShip)
-		classname = @"ShipEntity";
-	if (entity->isStation)
-		classname = @"StationEntity";
-	
-	if (classname)
-	{
-		if (entity->status == STATUS_IN_HOLD)
-			return entity;  // don't recycle scooped objects
-		
-		[recycleLock lock];
-		if (![entityRecyclePool objectForKey:classname])
-			[entityRecyclePool setObject:[NSMutableArray arrayWithCapacity:100] forKey:classname];   // add a new array
-		entlist = (NSMutableArray *)[entityRecyclePool objectForKey:classname];
-		
-		[entity setScanClass: CLASS_NO_DRAW];   //  housekeeping, keeps glitches from appearing on scanner
-		
-		// reset a few flags
-		entity->isSunlit = YES;
-		entity->shadingEntityID = NO_TARGET;
-		entity->position = kZeroVector;
-		
-		if (entity->isShip)
-		{
-			ShipEntity* ship = (ShipEntity*)entity;
-			[ship reinit];	// FIXME: kill the damn recycling, or add a -[ShipEntity clear] methof.
-			[[ship getAI] setOwner: nil];					//  save ai misreporting
-			[ship setAI: nil];	// remove it.
-		}
-		
-		if ([entlist count] < 100)		//  keep only up to 100 of each thing
-			[entlist addObject:entity]; // add the entity to the array
-		[recycleLock unlock];
-	}
-	return entity;																	// pass through
-}
-
-- (Entity *) allocRecycledOrNewEntity:(NSString *) classname
-{
-	Entity			*entity = nil;
-	NSMutableArray  *entlist;
-	if (classname)
-	{
-		if ([entityRecyclePool objectForKey:classname])
-		{
-			[recycleLock lock];
-			entlist = (NSMutableArray *)[entityRecyclePool objectForKey:classname];
-			if ([entlist count] > 0)
-			{
-				entity = [[entlist objectAtIndex:0] retain];
-				[entlist removeObjectAtIndex:0];
-			}
-			[recycleLock unlock];
-		}
-	}
-	if (!entity)
-	{
-		Class   required_class = [[NSBundle mainBundle] classNamed:classname];
-		entity = [[required_class alloc] init];
-	}
-	return entity;
-}
 
 - (ShipEntity *) newShipWithRole:(NSString *) desc
 {
@@ -2870,43 +2764,31 @@ GLfloat docked_light_specular[]	= { (GLfloat) 1.0, (GLfloat) 1.0, (GLfloat) 0.5,
 	NSDictionary	*shipDict = nil;
 	ShipEntity		*ship = nil;
 
-	NS_DURING	
-		shipDict = [self getDictionaryForShip: desc];	// handle OOLITE_EXCEPTION_SHIP_NOT_FOUND
-	NS_HANDLER
-		if ([[localException name] isEqual: OOLITE_EXCEPTION_SHIP_NOT_FOUND])
-		{
-			OOLog(kOOLogException, @"***** Oolite Exception : '%@' in [Universe newShipWithName: %@ ] *****", [localException reason], desc);
-			shipDict = nil;
-		}
-		else
-			[localException raise];
-	NS_ENDHANDLER
+	shipDict = [self getDictionaryForShip: desc];
 
-	if (!shipDict)
-		return nil;
+	if (shipDict == nil)  return nil;
 
 	BOOL		isStation = NO;
-	NSString	*shipRoles = (NSString *)[shipDict objectForKey:@"roles"];
+	NSString	*shipRoles = [shipDict objectForKey:@"roles"];
 	if (shipRoles)
 		isStation = ([shipRoles rangeOfString:@"station"].location != NSNotFound)||([shipRoles rangeOfString:@"carrier"].location != NSNotFound);
 	if (!isStation) isStation = [shipDict boolForKey:@"isCarrier" defaultValue:false];
-
-	if (isStation)
-		ship = (StationEntity *)[self allocRecycledOrNewEntity:@"StationEntity"];	// is returned retained
-	else
-		ship = (ShipEntity *)[self allocRecycledOrNewEntity:@"ShipEntity"];	// is returned retained
-
-	NS_DURING	
-		[ship setUpShipFromDictionary:shipDict];
+	
+	Class shipClass;
+	if (!isStation)  shipClass = [ShipEntity class];
+	else  shipClass = [StationEntity class];
+	
+	ship = [shipClass alloc];
+	NS_DURING
+		[ship initWithDictionary:shipDict];
 	NS_HANDLER
-		if ([[localException name] isEqual: OOLITE_EXCEPTION_DATA_NOT_FOUND]||[[localException name] isEqual: OOLITE_EXCEPTION_SHIP_NOT_FOUND])
+		[ship release];
+		
+		if ([[localException name] isEqual:OOLITE_EXCEPTION_DATA_NOT_FOUND])
 		{
 			OOLog(kOOLogException, @"***** Oolite Exception : '%@' in [Universe newShipWithName: %@ ] *****", [localException reason], desc);
-			[self recycleOrDiscard: ship];
-			ship = nil;
 		}
-		else
-			[localException raise];
+		else  [localException raise];
 	NS_ENDHANDLER
 
 	return ship;   // retain count = 1
@@ -2915,7 +2797,7 @@ GLfloat docked_light_specular[]	= { (GLfloat) 1.0, (GLfloat) 1.0, (GLfloat) 0.5,
 - (NSDictionary *) getDictionaryForShip:(NSString *) desc
 {
 	NSMutableDictionary* shipdict = [[[shipdata objectForKey:desc] mutableCopy] autorelease];
-	if (nil == shipdict)
+	if (shipdict == nil)
 	{
 		/*	There used to be an attempt to throw a OOLITE_EXCEPTION_SHIP_NOT_FOUND
 			exception here. However, it never worked -- the line above was
@@ -2928,25 +2810,17 @@ GLfloat docked_light_specular[]	= { (GLfloat) 1.0, (GLfloat) 1.0, (GLfloat) 0.5,
 		return nil;
 	}
 	// check if this is based upon a different ship
+	// TODO: move all like_ship handling into one place. (Actually, it may be that this already _is_ that place and all others are redundant.) -- Ahruman
 	while ([shipdict objectForKey:@"like_ship"])
 	{
 		NSString*		other_shipdesc = (NSString *)[shipdict objectForKey:@"like_ship"];
 		NSDictionary*	other_shipdict = nil;
-		if (other_shipdesc)
+		
+		if (other_shipdesc != nil)
 		{
-			NS_DURING	
-				other_shipdict = [self getDictionaryForShip:other_shipdesc];	// handle OOLITE_EXCEPTION_SHIP_NOT_FOUND
-			NS_HANDLER
-				if ([[localException name] isEqual: OOLITE_EXCEPTION_SHIP_NOT_FOUND])
-				{
-					OOLog(kOOLogException, @"***** Oolite Exception : '%@' in [Universe getDictionaryForShip:] while basing a ship upon '%@' *****", [localException reason], other_shipdesc);
-					other_shipdict = nil;
-				}
-				else
-					[localException raise];
-			NS_ENDHANDLER
+			other_shipdict = [self getDictionaryForShip:other_shipdesc];
 		}
-		if (other_shipdict)
+		if (other_shipdict != nil)
 		{
 			[shipdict removeObjectForKey:@"like_ship"];	// so it may inherit a new one from the like_ship
 			NSMutableDictionary* this_shipdict = [NSMutableDictionary dictionaryWithDictionary:other_shipdict]; // basics from that one
@@ -2962,14 +2836,7 @@ GLfloat docked_light_specular[]	= { (GLfloat) 1.0, (GLfloat) 1.0, (GLfloat) 0.5,
 	int result = 0;
 	NSDictionary* dict = nil;
 	
-	NS_DURING
-		dict = [self getDictionaryForShip:desc];
-	NS_HANDLER
-		if ([[localException name] isEqual:OOLITE_EXCEPTION_SHIP_NOT_FOUND])
-			dict = nil;
-		else
-			[localException raise];
-	NS_ENDHANDLER
+	dict = [self getDictionaryForShip:desc];
 			
 	if (dict)
 	{
@@ -4166,7 +4033,7 @@ static BOOL MaintainLinkedLists(Universe* uni)
 			if (entity->isWormhole)
 				[activeWormholes removeObject:entity];
 			
-			[entities removeObject:[self recycleOrDiscard:entity]];
+			[entities removeObject:entity];
 			
 			return YES;
 		}
@@ -6863,17 +6730,7 @@ double estimatedTimeForJourney(double distance, int hops)
 		
 		NSDictionary* ship_base_dict = nil;
 		
-		NS_DURING
-			ship_base_dict= [self getDictionaryForShip:ship_key];
-		NS_HANDLER
-			if ([[localException name] isEqual: OOLITE_EXCEPTION_SHIP_NOT_FOUND])
-			{
-				OOLog(kOOLogException, @"***** Oolite Ship Not Found Exception : '%@' in [Universe shipsForSaleInSystem:atTime:] *****", [localException reason]);
-				ship_base_dict = nil;
-			}
-			else
-				[localException raise];
-		NS_ENDHANDLER
+		ship_base_dict = [self getDictionaryForShip:ship_key];
 		
 		if ((days_until_sale > 0.0) && (days_until_sale < 30.0) && (ship_techlevel < techlevel) && (randf() < chance) && (ship_base_dict != nil))
 		{			

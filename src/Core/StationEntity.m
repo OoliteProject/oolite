@@ -685,28 +685,6 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 {
 	int			i;
 	
-	// Throw out the old...
-	// Moved out of -reinit. TODO: check for duplicates, and generaly clean up this method.
-	
-#ifndef NO_RECYCLE
-	[localMarket autorelease];
-	localMarket = nil;
-	[localPassengers autorelease];
-	localPassengers = nil;
-	[localContracts autorelease];
-	localContracts = nil;
-	[localShipyard autorelease];
-	localShipyard = nil;
-	police_launched = 0;
-	scavengers_launched = 0;
-	approach_spacing = 0.0;
-	last_launch_time = 0.0;
-	for (i = 0; i < MAX_DOCKING_STAGES; i++)  id_lock[i] = NO_TARGET;
-	[shipsOnApproach removeAllObjects];
-	[shipsOnHold removeAllObjects];
-	[launchQueue removeAllObjects];
-#endif
-	
 	isShip = YES;
 	isStation = YES;
 	

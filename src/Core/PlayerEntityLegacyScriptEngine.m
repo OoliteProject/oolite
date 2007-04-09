@@ -1191,6 +1191,7 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 		[script_target dumpItem:item];
 }
 
+
 - (void) addShips:(NSString *)roles_number
 {
 	NSMutableArray*	tokens = ScanTokensFromString(roles_number);
@@ -1207,12 +1208,18 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 	numberString = (NSString *)[tokens objectAtIndex:1];
 
 	int number = [numberString intValue];
-
+	if (number < 0)
+	{
+		OOLog(kOOLogSyntaxAddShips, @"***** Can't add %u ships -- that's less than zero, y'know.", number);
+		return;
+	}
+	
 	OOLog(kOOLogNoteAddShips, @"DEBUG ..... Going to add %d ships with role '%@'", number, roleString);
 
 	while (number--)
 		[UNIVERSE witchspaceShipWithRole:roleString];
 }
+
 
 - (void) addSystemShips:(NSString *)roles_number_position
 {
@@ -1233,12 +1240,18 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 
 	int number = [numberString intValue];
 	double posn = [positionString doubleValue];
+	if (number < 0)
+	{
+		OOLog(kOOLogSyntaxAddShips, @"***** Can't add %u ships -- that's less than zero, y'know.", number);
+		return;
+	}
 
 	OOLog(kOOLogNoteAddShips, @"DEBUG Going to add %d ships with role '%@' at a point %.3f along route1", number, roleString, posn);
 
 	while (number--)
 		[UNIVERSE addShipWithRole:roleString nearRouteOneAt:posn];
 }
+
 
 - (void) addShipsAt:(NSString *)roles_number_system_x_y_z
 {
@@ -1267,6 +1280,11 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 	Vector posn = make_vector( [xString floatValue], [yString floatValue], [zString floatValue]);
 
 	int number = [numberString intValue];
+	if (number < 0)
+	{
+		OOLog(kOOLogSyntaxAddShips, @"***** Can't add %u ships -- that's less than zero, y'know.", number);
+		return;
+	}
 
 	OOLog(kOOLogNoteAddShips, @"DEBUG Going to add %d ship(s) with role '%@' at point (%.3f, %.3f, %.3f) using system %@", number, roleString, posn.x, posn.y, posn.z, systemString);
 
@@ -1275,6 +1293,7 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 		OOLog(kOOLogScriptAddShipsFailed, @"***** CANNOT addShipsAt: '%@' (should be addShipsAt: role number coordinate_system x y z)",roles_number_system_x_y_z);
 	}
 }
+
 
 - (void) addShipsAtPrecisely:(NSString *)roles_number_system_x_y_z
 {
@@ -1303,6 +1322,11 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 	Vector posn = make_vector( [xString floatValue], [yString floatValue], [zString floatValue]);
 
 	int number = [numberString intValue];
+	if (number < 0)
+	{
+		OOLog(kOOLogSyntaxAddShips, @"***** Can't add %u ships -- that's less than zero, y'know.", number);
+		return;
+	}
 
 	OOLog(kOOLogNoteAddShips, @"DEBUG Going to add %d ship(s) with role '%@' precisely at point (%.3f, %.3f, %.3f) using system %@", number, roleString, posn.x, posn.y, posn.z, systemString);
 
@@ -1311,6 +1335,7 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 		OOLog(kOOLogScriptAddShipsFailed, @"***** CANNOT addShipsAtPrecisely: '%@' (should be addShipsAt: role number coordinate_system x y z)",roles_number_system_x_y_z);
 	}
 }
+
 
 - (void) addShipsWithinRadius:(NSString *)roles_number_system_x_y_z_r
 {
@@ -1330,6 +1355,12 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 	GLfloat z = [[tokens objectAtIndex:5] floatValue];
 	GLfloat r = [[tokens objectAtIndex:6] floatValue];
 	Vector posn = make_vector( x, y, z);
+
+	if (number < 0)
+	{
+		OOLog(kOOLogSyntaxAddShips, @"***** Can't add %u ships -- that's less than zero, y'know.", number);
+		return;
+	}
 
 	OOLog(kOOLogNoteAddShips, @"DEBUG Going to add %d ship(s) with role '%@' within %.2f radius about point (%.3f, %.3f, %.3f) using system %@", number, roleString, r, x, y, z, systemString);
 

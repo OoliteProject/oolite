@@ -89,3 +89,31 @@ BOOL EvaluateAsBoolean(id object, BOOL defaultValue);
 - (NSDictionary *)dictionaryForKey:(id)key defaultValue:(NSDictionary *)value;
 
 @end
+
+
+@interface NSUserDefaults (OOExtractor)
+
+- (char)charForKey:(id)key defaultValue:(char)value;
+- (short)shortForKey:(id)key defaultValue:(short)value;
+- (int)intForKey:(id)key defaultValue:(int)value;
+- (long)longForKey:(id)key defaultValue:(long)value;
+- (long long)longLongForKey:(id)key defaultValue:(long long)value;
+
+- (unsigned char)unsignedCharForKey:(id)key defaultValue:(unsigned char)value;
+- (unsigned short)unsignedShortForKey:(id)key defaultValue:(unsigned short)value;
+- (unsigned int)unsignedIntForKey:(id)key defaultValue:(unsigned int)value;
+- (unsigned long)unsignedLongForKey:(id)key defaultValue:(unsigned long)value;
+- (unsigned long long)unsignedLongLongForKey:(id)key defaultValue:(unsigned long long)value;
+
+- (BOOL)boolForKey:(id)key defaultValue:(BOOL)value;
+- (BOOL)fuzzyBooleanForKey:(id)key defaultValue:(float)value;	// Reads a float in the range [0, 1], and returns YES with that probability.
+
+- (float)floatForKey:(id)key defaultValue:(float)value;
+- (double)doubleForKey:(id)key defaultValue:(double)value;
+
+- (id)objectForKey:(id)key defaultValue:(id)value;
+- (NSString *)stringForKey:(id)key defaultValue:(NSString *)value;
+- (NSArray *)arrayForKey:(id)key defaultValue:(NSArray *)value;
+- (NSDictionary *)dictionaryForKey:(id)key defaultValue:(NSDictionary *)value;
+
+@end

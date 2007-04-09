@@ -25,9 +25,37 @@ MA 02110-1301, USA.
 
 */
 
-#if defined(GNUSTEP) && !defined(OOLITE_SDL_MAC)
+#import <math.h>
+#import <Foundation/Foundation.h>
+
+#ifdef GNUSTEP
+#define OOLITE_GNUSTEP			1
+#else
+#import <AppKit/AppKit.h>
+
+#define OOLITE_MAC_OS_X			1
+#define OOLITE_HAVE_APPKIT		1
+#ifdef OOLITE_SDL_MAC
+#define OOLITE_SDL				1
+#endif
+#endif
+
+
+#if OOLITE_GNUSTEP && !defined(OOLITE_SDL_MAC)
 #include <stdint.h>
 #include <limits.h> // to get UINT_MAX
+
+
+#define OOLITE_SDL				1
+
+#ifdef WIN32
+#define OOLITE_WINDOWS			1
+#endif
+
+#ifdef LINUX
+#define OOLITE_LINUX			1
+#endif
+
 
 #define Boolean unsigned char
 #define Byte unsigned char
@@ -134,12 +162,36 @@ enum {
 
 #endif
 
-#import <math.h>
-#import <Foundation/Foundation.h>
 
-#ifndef GNUSTEP
-#import <AppKit/AppKit.h>
+#ifndef OOLITE_GNUSTEP
+#define OOLITE_GNUSTEP			0
 #endif
+
+#ifndef OOLITE_MAC_OS_X
+#define OOLITE_MAC_OS_X			0
+#endif
+
+#ifndef OOLITE_WINDOWS
+#define OOLITE_WINDOWS			0
+#endif
+
+#ifndef OOLITE_LINUX
+#define OOLITE_LINUX			0
+#endif
+
+#ifndef OOLITE_SDL
+#define OOLITE_SDL				0
+#endif
+
+#ifndef OOLITE_HAVE_APPKIT
+#define OOLITE_HAVE_APPKIT		0
+#endif
+
+#define OOLITE_HAVE_JOYSTICK	OOLITE_SDL
+
+
+// When Oolite-Linux used AppKit, the load/save dialogs didn't work well with the SDL window, so we use a separate macro for this.
+#define OOLITE_USE_APPKIT_LOAD_SAVE	OOLITE_MAC_OS_X
 
 
 #import "OOLogging.h"

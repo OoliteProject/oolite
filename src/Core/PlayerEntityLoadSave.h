@@ -48,17 +48,16 @@ MA 02110-1301, USA.
 
 @interface PlayerEntity (LoadSave)
 
-- (void) setGuiToLoadCommanderScreen;
-- (void) setGuiToSaveCommanderScreen: (NSString *)cdrName;
-- (void) setGuiToOverwriteScreen: (NSString *)cdrName;
-- (void) lsCommanders: (GuiDisplayGen *)gui directory: (NSString*)directory pageNumber: (int)page highlightName: (NSString *)highlightName;
-- (NSString *) commanderSelector: (GuiDisplayGen *)gui : (MyOpenGLView *)gameView;
-- (void) saveCommanderInputHandler: (GuiDisplayGen *)gui : (MyOpenGLView *)gameView;
-- (void) overwriteCommanderInputHandler: (GuiDisplayGen *)gui : (MyOpenGLView *)gameView;
-- (void) nativeSavePlayer: (NSString *)cdrName;
-- (BOOL) existingNativeSave: (NSString *)cdrName;
-- (void) showCommanderShip: (int)cdrArrayIndex;
-- (int) findIndexOfCommander: (NSString *)cdrName;
+- (void) loadPlayer;
+- (void) savePlayer;
+- (void) quicksavePlayer;
+
+- (NSString *) commanderSelector:(GuiDisplayGen *)gui :(MyOpenGLView *)gameView;
+- (void) saveCommanderInputHandler:(GuiDisplayGen *)gui :(MyOpenGLView *)gameView;
+- (void) overwriteCommanderInputHandler:(GuiDisplayGen *)gui :(MyOpenGLView *)gameView;
+
+- (void) loadPlayerFromFile:(NSString *)fileToOpen;
+
 
 @end
 
