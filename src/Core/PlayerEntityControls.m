@@ -64,18 +64,22 @@ static NSString * const kOOLogFlightTrainingBeacons		= @"beacon.list.flightTrain
 	{
 		id key = [keys objectAtIndex:i];
 		id value = [kdic objectForKey: key];
-		int i_value = [value intValue];
+		int iValue = [value intValue];
 		
 		//	for '0' '1' '2' '3' '4' '5' '6' '7' '8' '9' - we want to interpret those as strings - not numbers
-		//	alphabetical characters and symbols will return an intValue of 0
-		//	acceptable i_values are 11 .. 255
+		//	alphabetical characters and symbols will return an intValue of 0.
 		
-		if ([value isKindOfClass:[NSString class]] && (i_value < 10))
+		if ([value isKindOfClass:[NSString class]] && (iValue < 10))
 		{
-			char keychar = 0;
-			NSString* keystring = (NSString*)value;
-			if ([keystring length])
+			char		keychar;
+			NSString	*keystring = value;
+			
+			if ([keystring length] == 1 || (iValue == 0 && [keystring length] != 0))
+			{
 				keychar = [keystring characterAtIndex: 0] & 0x00ff; // uses lower byte of unichar
+			}
+			else if (iValue <= 0xFF)  keychar = iValue;
+			
 			[kdic setObject:[NSNumber numberWithInt:(int)keychar] forKey:key];
 		}
 	}

@@ -777,7 +777,7 @@
 		1A2316E40B9CFAD700EF0852 /* hud-small.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xml; path = "hud-small.plist"; sourceTree = "<group>"; };
 		1A2316E50B9CFAD700EF0852 /* hud.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xml; path = hud.plist; sourceTree = "<group>"; };
 		1A2316E60B9CFAD700EF0852 /* illegal_goods.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xml; path = illegal_goods.plist; sourceTree = "<group>"; };
-		1A2316E70B9CFAD700EF0852 /* keyconfig.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xml; path = keyconfig.plist; sourceTree = "<group>"; };
+		1A2316E70B9CFAD700EF0852 /* keyconfig.plist */ = {isa = PBXFileReference; fileEncoding = 4; languageSpecificationIdentifier = plist; lastKnownFileType = text.xml; path = keyconfig.plist; sourceTree = "<group>"; };
 		1A2316E80B9CFAD700EF0852 /* logcontrol.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist; path = logcontrol.plist; sourceTree = "<group>"; };
 		1A2316E90B9CFAD700EF0852 /* missiontext.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xml; path = missiontext.plist; sourceTree = "<group>"; };
 		1A2316EB0B9CFAD700EF0852 /* shipdata.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xml; path = shipdata.plist; sourceTree = "<group>"; };

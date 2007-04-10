@@ -1,80 +1,61 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<!DOCTYPE plist PUBLIC "-//Apple Computer//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
-<plist version="1.0">
-<dict>
-	<key>key_roll_left</key>
-	<integer>253</integer>
-	<key>key_roll_right</key>
-	<integer>252</integer>
-	<key>key_yaw_left</key>
-	<integer>44</integer>
-	<key>key_yaw_right</key>
-	<integer>46</integer>
-	<key>key_pitch_forward</key>
-	<integer>255</integer>
-	<key>key_pitch_back</key>
-	<integer>254</integer>
-	<key>key_increase_speed</key>
-	<integer>119</integer>
-	<key>key_inject_fuel</key>
-	<integer>105</integer>
-	<key>key_decrease_speed</key>
-	<integer>115</integer>
-	<key>key_fire_lasers</key>
-	<integer>97</integer>
-	<key>key_target_missile</key>
-	<integer>116</integer>
-	<key>key_untarget_missile</key>
-	<integer>117</integer>
-	<key>key_launch_missile</key>
-	<integer>109</integer>
-	<key>key_next_missile</key>
-	<integer>121</integer>
-	<key>key_ident_system</key>
-	<integer>114</integer>
-	<key>key_ecm</key>
-	<integer>101</integer>
-	<key>key_launch_escapepod</key>
-	<integer>27</integer>
-	<key>key_energy_bomb</key>
-	<integer>9</integer>
-	<key>key_galactic_hyperspace</key>
-	<integer>103</integer>
-	<key>key_hyperspace</key>
-	<integer>104</integer>
-	<key>key_jumpdrive</key>
-	<integer>106</integer>
-	<key>key_dump_cargo</key>
-	<integer>100</integer>
-	<key>key_rotate_cargo</key>
-	<integer>82</integer>
-	<key>key_autopilot</key>
-	<integer>99</integer>
-	<key>key_autodock</key>
-	<integer>68</integer>
-	<key>key_snapshot</key>
-	<integer>42</integer>
-	<key>key_docking_music</key>
-	<integer>115</integer>
-	<key>key_scanner_zoom</key>
-	<integer>122</integer>
-	<key>key_scanner_unzoom</key>
-	<integer>90</integer>
-	<key>kay_advanced_nav_array</key>
-	<integer>33</integer>
-	<key>key_map_home</key>
-	<integer>302</integer>
-	<key>key_cloaking_device</key>
-	<integer>48</integer>
-	<key>key_comms_log</key>
-	<integer>96</integer>
-	<key>key_next_compass_mode</key>
-	<integer>92</integer>
-	<key>key_next_target</key>
-	<integer>45</integer>
-	<key>key_previous_target</key>
-	<integer>43</integer>
-	<key>key_custom_view</key>
-	<string>118</string>
-</dict>
-</plist>
+key_roll_left				= 253;		// left arrow
+key_roll_right				= 252;		// right arrow
+key_pitch_forward			= 255;		// up arrow
+key_pitch_back				= 254;		// down arrow
+key_yaw_left				= ",";
+key_yaw_right				= ".";
+
+key_increase_speed			= "w";
+key_decrease_speed			= "s";
+key_inject_fuel				= "i";
+
+key_fire_lasers				= "a";
+key_launch_missile			= "m";
+key_next_missile			= "y";
+key_ecm						= "e";
+
+key_target_missile			= "t";
+key_untarget_missile		= "u";
+key_ident_system			= "r";
+
+key_scanner_zoom			= "z";
+key_scanner_unzoom			= "Z";
+
+key_launch_escapepod		= 27;		// escape
+key_energy_bomb				= "\t";		// tab
+
+key_galactic_hyperspace		= "g";
+key_hyperspace				= "h";
+key_jumpdrive				= "j";
+
+key_dump_cargo				= "d";
+key_rotate_cargo			= "R";
+
+key_autopilot				= "c";
+key_autopilot_target		= "C";
+key_autodock				= "D";
+
+key_snapshot				= "*";
+key_docking_music			= "s";
+
+kay_advanced_nav_array		= "!";
+key_map_home				= 302;		// Home
+key_map_info				= "i";
+
+key_pausebutton				= "p";
+key_show_fps				= "F";
+key_mouse_control			= "M";
+
+key_comms_log				= "`";
+key_next_compass_mode		= "\\";
+
+key_cloaking_device			= "0";
+
+key_contract_info			= "?";
+
+key_next_target				= "+";
+key_previous_target			= "-";
+
+key_custom_view				= "v";
+
+// key_dump_target_state	= "H";
