@@ -28,9 +28,13 @@ MA 02110-1301, USA.
 #import "OOMaths.h"
 #import "Universe.h"
 #import "TextureStore.h"
+#import "OOShaderMaterial.h"
+
+#import "ResourceManager.h"
 #import "OOStringParsing.h"
 #import "OOCollectionExtractors.h"
 #import "OOConstToString.h"
+#import "NSScannerOOExtensions.h"
 
 #import "OOCharacter.h"
 #import "OOBrain.h"
@@ -38,7 +42,6 @@ MA 02110-1301, USA.
 
 #import "Geometry.h"
 #import "Octree.h"
-#import "NSScannerOOExtensions.h"
 #import "OOColor.h"
 
 #import "ParticleEntity.h"
@@ -57,11 +60,6 @@ extern NSString * const kOOLogSyntaxAddShips;
 static NSString * const kOOLogEntityBehaviourChanged	= @"entity.behaviour.changed";
 static NSString * const kOOLogOpenGLVersion				= @"rendering.opengl.version";
 static NSString * const kOOLogOpenGLShaderSupport		= @"rendering.opengl.shader.support";
-static NSString * const kOOLogShaderInit				= @"rendering.opengl.shader.init";
-static NSString * const kOOLogShaderInitDumpShader		= @"rendering.opengl.shader.init.dump.shader";
-static NSString * const kOOLogShaderInitDumpTexture		= @"rendering.opengl.shader.init.dump.texture";
-static NSString * const kOOLogShaderInitDumpShaderInfo	= @"rendering.opengl.shader.init.dump.shaderInfo";
-static NSString * const	kOOLogShaderTextureNameMissing	= @"rendering.opengl.shader.texNameMissing";
 
 #ifdef GNUSTEP
 void loadOpenGLFunctions()
@@ -84,7 +82,9 @@ void loadOpenGLFunctions()
 #endif
 
 
+#if OLD_SHADERS
 static void ApplyConstantUniforms(NSDictionary *uniforms, GLhandleARB shaderProgram);
+#endif
 
 
 @implementation ShipEntity
@@ -454,7 +454,12 @@ static void ApplyConstantUniforms(NSDictionary *uniforms, GLhandleARB shaderProg
 
 	[octree autorelease];
 	
+#ifndef NO_SHADERS
+#if OLD_SHADERS
 	[shader_info release];
+#endif
+#endif
+	[materials release];
 
 	[super dealloc];
 }
@@ -2709,330 +2714,226 @@ void testForShaders()
 #endif
 }
 
+
 - (void) initialiseTextures
 {
-    [super initialiseTextures];
+	NSDictionary			*shaderDefs = nil;
+	NSEnumerator			*shaderEnum = nil;
+	NSString				*shaderKey = nil;
+	NSDictionary			*shaderConfig = nil;
+	OOShaderMaterial		*shader = nil;
+	static NSDictionary		*macros = nil;
+	static NSDictionary		*defaultBindings = nil;
+	Entity					*propertyEntity = nil;
+	NSDictionary			*materialDefaults = nil;
 	
-	if (testForShaderSupport)
-		testForShaders();
-	if ([shipinfoDictionary objectForKey:@"shaders"] && shaders_supported)
+	[super initialiseTextures];
+	
+	if (testForShaderSupport)  testForShaders();
+	if (!shaders_supported) return;
+	
+	shaderDefs = [shipinfoDictionary objectForKey:@"shaders"];
+	if (shaderDefs)
 	{
-#ifndef NO_SHADERS
-		// initialise textures in shaders
-		
-		if (!shader_info)
-			shader_info = [[NSMutableDictionary dictionary] retain];
-					
-		OOLog(kOOLogShaderInit, @"Initialising shaders for %@", self);
-		OOLogIndentIf(kOOLogShaderInit);
-		
-		NSDictionary	*shaders = [shipinfoDictionary objectForKey:@"shaders"];
-		NSEnumerator	*shaderEnum = nil;
-		NSString		*shaderKey = nil;
-		
-		for (shaderEnum = [shaders keyEnumerator]; (shaderKey = [shaderEnum nextObject]); )
+		if (materials)
 		{
-			NSDictionary* shader = [shaders objectForKey:shaderKey];
-			NSArray* shader_textures = [shader objectForKey:@"textures"];
-			NSMutableArray* textureNames = [NSMutableArray array];
-			
-			OOLog(kOOLogShaderInitDumpShader, @"Shader: initialising shader for %@ : %@", shaderKey, shader);
-			int ti;
-			for (ti = 0; ti < [shader_textures count]; ti ++)
+			OOLog(@"shipEntity.squashRecycling", @"Hmm, shaders is non-nil for %@.", self);
+			[materials release];
+		}
+		
+		materials = [[NSMutableDictionary alloc] init];
+		
+		OOLog(@"shader.vessel.init", @"Initialising shaders for %@", self);
+		OOLogIndentIf(@"shader.vessel.init");
+		
+		if (macros == nil)
+		{
+			// Set up macros and bindings used for all ship shaders
+			materialDefaults = [ResourceManager dictionaryFromFilesNamed:@"material-defaults.plist" inFolder:@"Config" andMerge:YES];
+			macros = [[materialDefaults dictionaryForKey:@"ship-prefix-macros" defaultValue:[NSDictionary dictionary]] retain];
+			defaultBindings = [[materialDefaults dictionaryForKey:@"ship-default-bindings" defaultValue:[NSDictionary dictionary]] retain];
+		}
+		
+		propertyEntity = [self entityForShaderProperties];
+		
+		for (shaderEnum = [shaderDefs keyEnumerator]; (shaderKey = [shaderEnum nextObject]); )
+		{
+			shaderConfig = [shaderDefs dictionaryForKey:shaderKey defaultValue:nil];
+			if (shaderConfig != nil)
 			{
-				GLuint tn = [TextureStore getTextureNameFor: (NSString*)[shader_textures objectAtIndex:ti]];
-				[textureNames addObject:[NSNumber numberWithUnsignedInt:tn]];
-				OOLog(kOOLogShaderInitDumpTexture, @"Shader: initialised texture: %@", [shader_textures objectAtIndex:ti]);
-			}
-			
-			GLhandleARB shaderProgram = [TextureStore shaderProgramFromDictionary:shader];
-			if (shaderProgram)
-			{
-				[shader_info setObject:[NSDictionary dictionaryWithObjectsAndKeys:
-						textureNames, @"textureNames",
-						[NSValue valueWithPointer:shaderProgram], @"shaderProgram",
-						[shader objectForKey:@"uniforms"], @"uniforms",
-						nil]
-					forKey: shaderKey];
+				shader = [OOShaderMaterial shaderWithConfiguration:shaderConfig macros:macros bindingTarget:propertyEntity];
+				if (shader != nil)
+				{
+					[materials setObject:shader forKey:shaderKey];
+					
+					[shader addUniformsFromDictionary:defaultBindings withBindingTarget:propertyEntity];
+					
+					[shader bindUniform:@"time"
+							   toObject:UNIVERSE
+							   property:@selector(getTime)
+								clamped:NO];
+				}
 			}
 		}
 		
-		OOLog(kOOLogShaderInitDumpShaderInfo, @"TESTING: shader_info = %@", shader_info);
-		OOLogOutdentIf(kOOLogShaderInit);
-#endif
-	}
-	else
-	{
-		if (shader_info)
-			[shader_info release];
-		shader_info = nil;
-	}
+		OOLogOutdentIf(@"shader.vessel.init");
+	}	
 }
+
+
+- (Entity *)entityForShaderProperties
+{
+	if (!isSubentity)  return self;
+	else  return [self owner];
+}
+
 
 - (void) drawEntity:(BOOL) immediate :(BOOL) translucent
 {
-	if (testForShaderSupport)
-		testForShaders();
+	NSString					*textureKey = nil;
+	unsigned					i;
+	OOMaterial					*material = nil;
+	NSEnumerator				*subEntityEnum = nil;
+	Entity						*subEntity = nil;
 	
-	if (zero_distance > no_draw_distance)	return;	// TOO FAR AWAY
-
-	if ([UNIVERSE breakPatternHide])	return;	// DON'T DRAW
-
-	if (cloaking_device_active && (randf() > 0.10))			return;	// DON'T DRAW
-
-	if (!translucent)
+	if (no_draw_distance < zero_distance ||
+		[UNIVERSE breakPatternHide] ||
+		(cloaking_device_active && randf() > 0.10))
 	{
-		if (!shaders_supported)
+		// Don't draw.
+		return;
+	}
+	
+	NS_DURING
+		if (!translucent)
 		{
-			[super drawEntity:immediate:translucent];
-		}
-		else
-		{
-			// draw the thing - code take from Entity drawEntity::
-			//
-			int ti;
-			GLfloat mat_ambient[] = { 1.0, 1.0, 1.0, 1.0 };
-			GLfloat mat_no[] =		{ 0.0, 0.0, 0.0, 1.0 };
-
-			NS_DURING
-
-				if (isSmoothShaded)
-					glShadeModel(GL_SMOOTH);
-				else
-					glShadeModel(GL_FLAT);
-
-				if (!translucent)
+			GLfloat mat_ambient[]	= { 1.0, 1.0, 1.0, 1.0 };
+			GLfloat mat_no[]		= { 0.0, 0.0, 0.0, 1.0 };
+			GLfloat amb_diff0[]		= { 0.5, 0.5, 0.5, 1.0 };
+			
+			if (EXPECT_NOT(basefile == nil))
+			{
+				OOLog(@"render.shipEntity.expectedBaseFile", @"Error: no basefile for entity %@", self);
+			}
+			
+			// Set up state
+			glShadeModel(isSmoothShaded ? GL_SMOOTH : GL_FLAT);
+			
+			glDisableClientState(GL_COLOR_ARRAY);
+			glDisableClientState(GL_INDEX_ARRAY);
+			glDisableClientState(GL_EDGE_FLAG_ARRAY);
+			glEnableClientState(GL_VERTEX_ARRAY);
+			glEnableClientState(GL_NORMAL_ARRAY);
+			glEnableClientState(GL_TEXTURE_COORD_ARRAY);
+			
+			glVertexPointer( 3, GL_FLOAT, 0, entityData.vertex_array);
+			glNormalPointer( GL_FLOAT, 0, entityData.normal_array);
+			glTexCoordPointer( 2, GL_FLOAT, 0, entityData.texture_uv_array);
+			
+			if (immediate)
+			{
+				/*	Gap removal (draw flat polys).
+				
+					It is my belief that this has absolutely no effect whatsoever on gaps,
+					as it's using the same geometry as the "real" rendering, but does stop
+					alpha textures from semi-working. This is probably good, since we
+					don't depth sort, but could be replaced with disabling blending.
+					TODO: try the blending thing as above.
+					-- Ahruman
+				*/
+				glDisable(GL_TEXTURE_2D);
+				glMaterialfv( GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE, amb_diff0);
+				glMaterialfv( GL_FRONT_AND_BACK, GL_EMISSION, mat_no);
+				glColor4f( 0.25, 0.25, 0.25, 1.0);	// gray
+				glDepthMask(GL_FALSE); // don't write to depth buffer
+				glDrawArrays(GL_TRIANGLES, 0, entityData.n_triangles);	// draw in gray to mask the edges
+				glDepthMask(GL_TRUE);
+				
+				// Now draw textured polygons.
+				glEnable(GL_TEXTURE_2D);
+				glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
+				glMaterialfv( GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE, mat_ambient);
+				glMaterialfv( GL_FRONT_AND_BACK, GL_EMISSION, mat_no);	// TODO: replace with using default OOMaterial if no custom material is defined.
+				
+				for (i = 1; i <= n_textures; i++)
 				{
-					if (basefile)
+					textureKey = [TextureStore getNameOfTextureWithGLuint: texture_name[i]];
+					material = [materials objectForKey:textureKey];
+					
+					if (material == nil)
 					{
-						// calls moved here because they are unsupported in display lists
-						//
-						glDisableClientState(GL_COLOR_ARRAY);
-						glDisableClientState(GL_INDEX_ARRAY);
-						glDisableClientState(GL_EDGE_FLAG_ARRAY);
-						//
-						glEnableClientState(GL_VERTEX_ARRAY);
-						glEnableClientState(GL_NORMAL_ARRAY);
-						glEnableClientState(GL_TEXTURE_COORD_ARRAY);
-
-						glVertexPointer( 3, GL_FLOAT, 0, entityData.vertex_array);
-						glNormalPointer( GL_FLOAT, 0, entityData.normal_array);
-						glTexCoordPointer( 2, GL_FLOAT, 0, entityData.texture_uv_array);
-						
-						ShipEntity *propertyEntity;
-						if (!isSubentity)  propertyEntity = self;
-						else  propertyEntity = (ShipEntity *)[self owner];
-						
-						GLfloat utime = (GLfloat)[UNIVERSE getTime];
-						GLfloat engine_level = [propertyEntity speed_factor];
-						GLfloat laser_heat_level = [propertyEntity laserHeatLevel];
-						GLfloat hull_heat_level = [propertyEntity hullHeatLevel];
-						int entity_personality_int = propertyEntity->entity_personality;
-						
-						laser_heat_level = OOClamp_0_1_f(laser_heat_level);
-						
-						if (immediate)
-						{
-							//
-							// gap removal (draws flat polys)
-							//
-							glDisable(GL_TEXTURE_2D);
-							GLfloat amb_diff0[] = { 0.5, 0.5, 0.5, 1.0};
-							glMaterialfv( GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE, amb_diff0);
-							glMaterialfv( GL_FRONT_AND_BACK, GL_EMISSION, mat_no);
-							glColor4f( 0.25, 0.25, 0.25, 1.0);	// gray
-							glDepthMask(GL_FALSE); // don't write to depth buffer
-							glDrawArrays( GL_TRIANGLES, 0, entityData.n_triangles);	// draw in gray to mask the edges
-							glDepthMask(GL_TRUE);
-
-							//
-							// now the textures ...
-							//
-							glEnable(GL_TEXTURE_2D);
-							glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
-							glMaterialfv( GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE, mat_ambient);
-							glMaterialfv( GL_FRONT_AND_BACK, GL_EMISSION, mat_no);
-
-							for (ti = 1; ti <= n_textures; ti++)
-							{
-								NSString* textureKey = [TextureStore getNameOfTextureWithGLuint: texture_name[ti]];
-#ifndef NO_SHADERS
-								if ((shader_info) && [shader_info objectForKey: textureKey])
-								{
-									NSDictionary	*shader = [shader_info objectForKey:textureKey];
-									GLhandleARB		shaderProgram = [[shader objectForKey:@"shaderProgram"] pointerValue];
-									GLint			variable_location;
-									//
-									// set up texture units
-									//
-									glUseProgramObjectARB(shaderProgram);
-									//
-									NSArray *texture_units = [shader objectForKey:@"textureNames"];
-									int n_tu = [texture_units count];
-									int i;
-									for (i = 0; i < n_tu; i++)
-									{
-										// set up each texture unit in turn
-										// associating texN with each texture
-										GLuint textureN = [[texture_units objectAtIndex:i] intValue];
-										
-										glActiveTextureARB( GL_TEXTURE0_ARB + i);
-										glBindTexture( GL_TEXTURE_2D, textureN);
-										
-										NSString* texdname = [NSString stringWithFormat:@"tex%d", i];
-										const char* cname = [texdname UTF8String];
-										variable_location = glGetUniformLocationARB(shaderProgram, cname);
-										if (variable_location == -1)
-											OOLog(kOOLogShaderTextureNameMissing, @"GLSL ERROR couldn't find location of %@ in shaderProgram %d", texdname, shaderProgram);
-										else
-											glUniform1iARB(variable_location, i);	// associate texture unit number i with tex%d
-									}
-									
-									NSDictionary *uniforms = [shader objectForKey:@"uniforms"];
-									if (uniforms != nil)
-									{
-										ApplyConstantUniforms([shader objectForKey:@"uniforms"], shaderProgram);
-									}
-									
-									// other uniform variables
-									variable_location = glGetUniformLocationARB( shaderProgram, "time");
-									if (variable_location != -1)
-									{
-										OOLog(@"rendering.opengl.shader.uniform.time", @"Binding time: %g", time);
-										glUniform1fARB(variable_location, utime);
-									}
-									
-									variable_location = glGetUniformLocationARB( shaderProgram, "engine_level");
-									if (variable_location != -1)
-									{
-										OOLog(@"rendering.opengl.shader.uniform.engineLevel", @"Binding engine_level: %g", engine_level);
-										glUniform1fARB(variable_location, engine_level);
-									}
-									
-									variable_location = glGetUniformLocationARB( shaderProgram, "laser_heat_level");
-									if (variable_location != -1)
-									{
-										OOLog(@"rendering.opengl.shader.uniform.laserHeatLevel", @"Binding laser_heat_level: %g", laser_heat_level);
-										glUniform1fARB(variable_location, laser_heat_level);
-									}
-									
-									variable_location = glGetUniformLocationARB( shaderProgram, "hull_heat_level");
-									if (variable_location != -1)
-									{
-										OOLog(@"rendering.opengl.shader.uniform.hullHeatLevel", @"Binding hull_heat_level: %g", hull_heat_level);
-										glUniform1fARB(variable_location, hull_heat_level);
-									}
-									
-									variable_location = glGetUniformLocationARB( shaderProgram, "entity_personality_int");
-									if (variable_location != -1)
-									{
-										OOLog(@"rendering.opengl.shader.uniform.entityPersonality.int", @"Binding entity_personality_int: %i", entity_personality_int);
-										glUniform1iARB(variable_location, entity_personality_int);
-									}
-									
-									variable_location = glGetUniformLocationARB( shaderProgram, "entity_personality");
-									if (variable_location != -1)
-									{
-										OOLog(@"rendering.opengl.shader.uniform.entityPersonality.float", @"Binding entity_personality: %g", entity_personality_int / (float)0x7FFF);
-										glUniform1fARB(variable_location, entity_personality_int / (float)0x7FFF);
-									}
-								}
-								else
-#endif
-									glBindTexture(GL_TEXTURE_2D, texture_name[ti]);
-
-								glDrawArrays( GL_TRIANGLES, triangle_range[ti].location, triangle_range[ti].length);
-
-#ifndef NO_SHADERS
-								// switch off shader
-								if ((shader_info) && [shader_info objectForKey: textureKey])
-								{
-									glUseProgramObjectARB(0);
-									glActiveTextureARB( GL_TEXTURE0_ARB);
-								}
-#endif
-							}
-						}
-						else
-						{
-							if (displayListName != 0)
-							{
-								[self drawEntity: YES : translucent];
-							}
-							else
-							{
-								[self initialiseTextures];
-
-#ifdef GNUSTEP
-								// TODO: Find out what these APPLE functions can be replaced with
-#else
-								if (usingVAR)
-									glBindVertexArrayAPPLE(gVertexArrayRangeObjects[0]);
-#endif
-
-								[self generateDisplayList];
-							}
-						}
+						// TODO: use a default material instead
+						[OOMaterial applyNone];
+						glBindTexture(GL_TEXTURE_2D, texture_name[i]);
 					}
 					else
 					{
-						OOLog(kOOLogFileNotFound, @"ERROR no basefile for entity %@");
+						[material apply];
 					}
+					
+					glDrawArrays( GL_TRIANGLES, triangle_range[i].location, triangle_range[i].length);
 				}
-				glShadeModel(GL_SMOOTH);
-				CheckOpenGLErrors([NSString stringWithFormat:@"Entity after drawing %@", self]);
-
-			NS_HANDLER
-
-				OOLog(kOOLogException, @"***** [Entity drawEntity::] encountered exception: %@ : %@ *****",[localException name], [localException reason]);
-				OOLog(kOOLogException, @"***** Removing entity %@ from UNIVERSE *****", self);
-				[UNIVERSE removeEntity:self];
-				if ([[localException name] hasPrefix:@"Oolite"])
-					[UNIVERSE handleOoliteException:localException];	// handle these ourself
+				[OOMaterial applyNone];
+			}
+			else
+			{
+				// Not immediate.
+				if (displayListName != 0)
+				{
+					// TODO: Isn't this equivalent to "if immedate || displayListName != 0" above, along with passing displayListName != 0 as the super call's immediate parameter? -- Ahruman
+					[self drawEntity:YES :translucent];
+				}
 				else
-					[localException raise];	// pass these on
-
-			NS_ENDHANDLER
+				{
+					// Set up display list.
+					[self initialiseTextures];
+#if GL_APPLE_vertex_array_object
+					if (usingVAR)  glBindVertexArrayAPPLE(gVertexArrayRangeObjects[0]);
+#endif
+					[self generateDisplayList];
+				}
+			}
+			
+			if (!isSmoothShaded)  glShadeModel(GL_SMOOTH);
 		}
-	}
-	else
-	{
-		if ((status == STATUS_COCKPIT_DISPLAY)&&((debug | debug_flag) & (DEBUG_COLLISIONS | DEBUG_OCTREE)))
-			[octree drawOctree];
-	
-		if ((debug | debug_flag) & (DEBUG_COLLISIONS | DEBUG_OCTREE))
-			[octree drawOctreeCollisions];
-	
-		if ((isSubentity)&&[self owner])
+		else
 		{
-			if (([self owner]->status == STATUS_COCKPIT_DISPLAY)&&((debug | debug_flag) & (DEBUG_COLLISIONS | DEBUG_OCTREE)))
+			// Translucent.
+			if ((status == STATUS_COCKPIT_DISPLAY)&&((debug | debug_flag) & (DEBUG_COLLISIONS | DEBUG_OCTREE)))
 				[octree drawOctree];
+		
 			if ((debug | debug_flag) & (DEBUG_COLLISIONS | DEBUG_OCTREE))
 				[octree drawOctreeCollisions];
+		
+			if ((isSubentity)&&[self owner])
+			{
+				if (([self owner]->status == STATUS_COCKPIT_DISPLAY)&&((debug | debug_flag) & (DEBUG_COLLISIONS | DEBUG_OCTREE)))
+					[octree drawOctree];
+				if ((debug | debug_flag) & (DEBUG_COLLISIONS | DEBUG_OCTREE))
+					[octree drawOctreeCollisions];
+			}
 		}
-	}
-	//
-	CheckOpenGLErrors([NSString stringWithFormat:@"ShipEntity after drawing Entity (main) %@", self]);
-	//
-
-	if (immediate)
-		return;		// don't draw sub-entities when constructing a displayList
-
-	if (sub_entities)
-	{
-		int i;
-		for (i = 0; i < [sub_entities count]; i++)
+		
+		if (!immediate)
 		{
-			Entity  *se = (Entity *)[sub_entities objectAtIndex:i];
-			[se setOwner:self]; // refresh ownership
-			[se drawSubEntity:immediate:translucent];
+			// Draw subentities.
+			for (subEntityEnum = [sub_entities objectEnumerator]; (subEntity = [subEntityEnum nextObject]); )
+			{
+				[subEntity setOwner:self]; // refresh ownership
+				[subEntity drawSubEntity:immediate :translucent];
+			}
 		}
-	}
-
-	//
-	CheckOpenGLErrors([NSString stringWithFormat:@"ShipEntity after drawing Entity (subentities) %@", self]);
-	//
+		
+		CheckOpenGLErrors([NSString stringWithFormat:@"%s after drawing %@ (immediate: %s, translucent: %s)", __PRETTY_FUNCTION__, self, immediate ? "YES" : "NO", translucent ? "YES" : "NO"]);
+	NS_HANDLER
+		OOLog(@"exception.shipEntity.draw", @"***** %s encountered exception: %@ : %@ *****", __PRETTY_FUNCTION__, [localException name], [localException reason]);
+		OOLog(@"exception.shipEntity.draw", @"***** Removing entity %@ from UNIVERSE *****", self);
+		[UNIVERSE removeEntity:self];
+		if ([[localException name] hasPrefix:@"Oolite"])  [UNIVERSE handleOoliteException:localException];	// handle these ourself
+		else  [localException raise];	// pass these on
+	NS_ENDHANDLER
 }
+
 
 - (void) drawSubEntity:(BOOL) immediate :(BOOL) translucent
 {
@@ -3821,10 +3722,9 @@ static GLfloat mascem_color2[4] =	{ 0.4, 0.1, 0.4, 1.0};	// purple
 	return max_flight_speed;
 }
 
-- (GLfloat) speed_factor
+- (GLfloat) speedFactor
 {
-	if (max_flight_speed <= 0.0)
-		return 0.0;
+	if (max_flight_speed <= 0.0)  return 0.0;
 	return flight_speed / max_flight_speed;
 }
 
@@ -4495,15 +4395,28 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 }
 
 
-- (GLfloat)laserHeatLevel
+- (float)laserHeatLevel
 {
-	return (weapon_recharge_rate - shot_time) / weapon_recharge_rate;
+	float result = (weapon_recharge_rate - shot_time) / weapon_recharge_rate;
+	return result;
 }
 
 
-- (GLfloat)hullHeatLevel
+- (float)hullHeatLevel
 {
 	return ship_temperature / (GLfloat)SHIP_MAX_CABIN_TEMP;
+}
+
+
+- (float)entityPersonality
+{
+	return entity_personality / (float)0x7FFF;
+}
+
+
+- (int)entityPersonalityInt
+{
+	return entity_personality;
 }
 
 
@@ -7679,7 +7592,7 @@ inline BOOL pairOK(NSString* my_role, NSString* their_role)
 	flagsString = [flags count] ? [flags componentsJoinedByString:@", "] : @"none";
 	OOLog(@"dumpState.shipEntity", @"Flags: %@", flagsString);
 	
-	OOLog(@"dumpState.shipEntity.glsl", @"engine_level: %g", [self speed_factor]);
+	OOLog(@"dumpState.shipEntity.glsl", @"engine_level: %g", [self speedFactor]);
 	OOLog(@"dumpState.shipEntity.glsl", @"laser_heat_level: %g", OOClamp_0_1_f([self laserHeatLevel]));
 	OOLog(@"dumpState.shipEntity.glsl", @"hull_heat_level: %g", [self hullHeatLevel]);
 	OOLog(@"dumpState.shipEntity.glsl", @"entity_personality: %g", entity_personality / (float)0x7FFF);
@@ -7717,6 +7630,7 @@ static NSString * const kOOCacheOctrees = @"octrees";
 @end
 
 
+#if OLD_SHADERS
 // This could be more efficient.
 static void ApplyConstantUniforms(NSDictionary *uniforms, GLhandleARB shaderProgram)
 {
@@ -7771,3 +7685,4 @@ static void ApplyConstantUniforms(NSDictionary *uniforms, GLhandleARB shaderProg
 		}
 	}
 }
+#endif

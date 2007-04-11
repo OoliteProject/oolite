@@ -532,7 +532,7 @@ void setUpSinTable()
 		isTextured = (textureName != 0);
 		isShadered = NO;
 #ifndef NO_SHADERS
-
+#if OLD_SHADERS
 		if (UNIVERSE)
 		{
 			NSDictionary* shader_info = [[UNIVERSE descriptions] objectForKey:@"planet-surface-shader"];
@@ -545,6 +545,7 @@ void setUpSinTable()
 				NSLog(@"TESTING: planet-surface-shader: %d normalMapTextureName: %d", (int)shader_program, (int)normalMapTextureName);
 			}
 		}
+#endif
 #endif
 	}
 	else
@@ -1786,11 +1787,8 @@ void drawActiveCorona (double inner_radius, double outer_radius, int step, doubl
 
 - (void) drawModelWithVertexArraysAndSubdivision: (int) subdivide
 {
-#ifdef GNUSTEP
-// TODO: Find a suitable replacement fn for APPLE
-#else
-	if (usingVAR)
-		glBindVertexArrayAPPLE(gVertexArrayRangeObjects[0]);
+#if GL_APPLE_vertex_array_object
+	if (usingVAR)  glBindVertexArrayAPPLE(gVertexArrayRangeObjects[0]);
 #endif
 
 	glDrawElements( GL_TRIANGLES, 3 * n_triangles[subdivide], GL_UNSIGNED_INT, &vertexdata.index_array[triangle_start[subdivide]]);

@@ -478,9 +478,8 @@ MA 02110-1301, USA.
 					
 					glEnable(GL_TEXTURE_2D);
 					glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
-#ifdef GNUSTEP
-               // TODO: find replacement for APPLE function
-#else
+					
+#if GL_APPLE_vertex_array_object
 					if (usingVAR)  glBindVertexArrayAPPLE(gVertexArrayRangeObjects[0]);
 #endif
 					glBindTexture(GL_TEXTURE_2D, star_textureName);
@@ -517,9 +516,8 @@ MA 02110-1301, USA.
 					if (![UNIVERSE reducedDetail])
 					{
 						glBindTexture(GL_TEXTURE_2D, blob_textureName);
-#ifdef GNUSTEP
-                  // TODO: Find replacement for APPLE fncall
-#else
+						
+#if GL_APPLE_vertex_array_object
 						if (usingVAR)  glBindVertexArrayAPPLE(gVertexArrayRangeObjects[1]);
 #endif
 

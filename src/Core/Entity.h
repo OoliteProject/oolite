@@ -140,8 +140,10 @@ extern int debug;
 							isSunlit: 1,
 							collisionTestFilter: 1,
 							isSmoothShaded: 1,
-							throw_sparks: 1,
-							usingVAR: 1;
+#if GL_APPLE_vertex_array_object
+							usingVAR: 1,
+#endif
+							throw_sparks: 1;
 	
 	OOScanClass				scanClass;
 	OOEntityStatus			status;
@@ -217,8 +219,10 @@ extern int debug;
 	GLuint					texture_name[MAX_TEXTURES_PER_ENTITY];
 	
 	// COMMON OGL STUFF
+#if GL_APPLE_vertex_array_object
 	GLuint					gVertexArrayRangeObjects[NUM_VERTEX_ARRAY_RANGES];	// OpenGL's VAR object references
 	VertexArrayRangeType	gVertexArrayRangeData[NUM_VERTEX_ARRAY_RANGES];		// our info about each VAR block
+#endif
 	
 	OOWeakReference			*weakSelf;
 }
@@ -340,13 +344,12 @@ extern int debug;
 - (void)dumpState;		// General "describe situtation verbosely in log" command.
 - (void)dumpSelfState;	// Subclasses should override this, not -dumpState, and call throught to super first.
 
+#if GL_APPLE_vertex_array_object
 // COMMON OGL ROUTINES
-
 - (BOOL) OGL_InitVAR;
-
 - (void) OGL_AssignVARMemory:(long) size :(void *) data :(Byte) whichVAR;
-
 - (void) OGL_UpdateVAR;
+#endif
 
 @end
 

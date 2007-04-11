@@ -354,11 +354,16 @@ static OOCacheManager *sSingleton = nil;
 	
 	if (caches == nil) return;
 	
+	OOLog(@"dataCache.willWrite", @"About to write data cache.");	// Added for 1.69 to detect possible write-related crash. -- Ahruman
 	ooliteVersion = [[[NSBundle mainBundle] infoDictionary] objectForKey:kCacheKeyVersion];
 	endianTag = [NSData dataWithBytes:&endianTagValue length:sizeof endianTagValue];
 	formatVersion = [NSNumber numberWithUnsignedInt:kFormatVersionValue];
 	pListRep = [self dictionaryOfCaches];
-	if (ooliteVersion == nil || endianTag == nil || formatVersion == nil || pListRep == nil)  return;
+	if (ooliteVersion == nil || endianTag == nil || formatVersion == nil || pListRep == nil)
+	{
+		OOLog(@"dataCache.cantWrite", @"Failed to write data cache -- prerequisites not fulfilled. (This is an internal error, please report it.)");
+		return;
+	}
 	
 	newCache = [NSMutableDictionary dictionaryWithCapacity:4];
 	[newCache setObject:ooliteVersion forKey:kCacheKeyVersion];

@@ -280,8 +280,12 @@ MA 02110-1301, USA.
 	int						debug_flag;
 	int						debug_condition;
 	
+#ifdef OLD_SHADERS
 	// shaders
 	NSMutableDictionary		*shader_info;
+#else
+	NSMutableDictionary		*materials;
+#endif
 	
 	uint16_t				entity_personality;	// Per-entity random number. Used for shaders, maybe scripting at some point.
 }
@@ -469,7 +473,7 @@ MA 02110-1301, USA.
 - (GLfloat) flight_yaw;
 - (GLfloat) flight_speed;
 - (GLfloat) max_flight_speed;
-- (GLfloat) speed_factor;
+- (GLfloat) speedFactor;
 
 - (void) setTemperature:(GLfloat) value;
 - (void) setHeatInsulation:(GLfloat) value;
@@ -506,8 +510,10 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other);
 
 - (NSComparisonResult) compareBeaconCodeWith:(ShipEntity*) other;
 
-- (GLfloat)laserHeatLevel;
-- (GLfloat)hullHeatLevel;
+- (float)laserHeatLevel;
+- (float)hullHeatLevel;
+- (float)entityPersonality;
+- (int)entityPersonalityInt;
 
 - (void)setSuppressExplosion:(BOOL)suppress;
 
@@ -640,15 +646,12 @@ inline BOOL pairOK(NSString* my_role, NSString* their_role);
 - (void) sendCoordinatesToPilot;
 - (void) pilotArrived;
 
-/****************************************************************
-
-straight c stuff
-
-****************************************************************/
-
-BOOL ship_canCollide (ShipEntity* ship);
+- (Entity *)entityForShaderProperties;
 
 @end
+
+
+BOOL ship_canCollide (ShipEntity* ship);
 
 
 @interface OOCacheManager (Octree)

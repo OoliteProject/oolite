@@ -276,8 +276,24 @@ static BOOL MaintainLinkedLists(Universe* uni);
 	
 	[[OOCacheManager sharedCache] flush];
 	
+	[weakSelf weakRefDrop];
+	
     [super dealloc];
 }
+
+
+- (id)weakRetain
+{
+	if (weakSelf == nil)  weakSelf = [OOWeakReference weakRefWithObject:self];
+	return [weakSelf retain];
+}
+
+
+- (void)weakRefDied:(OOWeakReference *)weakRef
+{
+	if (weakRef == weakSelf)  weakSelf = nil;
+}
+
 
 - (BOOL) doProcedurallyTexturedPlanets
 {

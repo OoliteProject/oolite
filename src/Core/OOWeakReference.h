@@ -14,7 +14,9 @@ Client use is extremely simple: to get a weak reference to the object, call
 -weakRetain and use the returned proxy instead of the actual object. When
 finished, release the proxy. Messages sent to the proxy will be forwarded as
 long as the underlying object exists; beyond that, they will act exactly like
-messages to nil. Example:
+messages to nil. (IMPORTANT: this means messages returning floating-point or
+struct values have undefined return values, so use -weakRefObjectStillExists
+or -weakRefUnderlyingObject in such cases.) Example:
 
 @interface ThingWatcher: NSObject
 {

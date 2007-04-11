@@ -1,0 +1,24 @@
+/*	Settings for shader system.
+	
+	While it is possible to override this in the usual fashion, it would not
+	be a very good idea.
+*/
+
+"ship-default-bindings" =
+{
+	"engine_level" = { type = "binding"; value = "speedFactor"; };
+	"laser_heat_level" = { type = "binding"; value = "laserHeatLevel"; clamped = "YES"; };
+	"hull_heat_level" = { type = "binding"; value = "hullHeatLevel"; };
+	"entity_personality" = { type = "binding"; value = "entityPersonality"; };
+	"entity_personality_int" = { type = "binding"; value = "entityPersonalityInt"; };
+};
+
+"ship-prefix-macros" =
+{
+	"OO_ENGINE_LEVEL" = 1;
+	"OO_ENTITY_PERSONALITY" = 1;
+	"OO_ENTITY_PERSONALITY_INT" = 1;
+	"OO_ENTITY_LASER_HEAT_LEVEL" = 1;
+	"OO_HULL_HEAT_LEVEL" = 1;
+	"OO_TIME" = 1;
+};

@@ -1304,7 +1304,7 @@ static	Vector	circleVertex[65];		// holds vector coordinates for a unit circle
 	Frame zero;
 	zero.q_rotation = shipQrotation;
 	int dam = [ship damage];
-	GLfloat flare_length = [ship speed_factor];
+	GLfloat flare_length = [ship speedFactor];
 
 	if (!flare_length)	// don't draw if there's no fire!
 		return;
@@ -1824,7 +1824,7 @@ GLuint tfan2[10] = {	33,	25,	26,	27,	28,	29,	30,	31,	32,	25};	// final fan 64..7
 	if (!ship)
 		return;
 
-	if ([ship speed_factor] <= 0.0)	// don't draw if there's no fire!
+	if ([ship speedFactor] <= 0.0)	// don't draw if there's no fire!
 		return;
 
 	glPopMatrix();	// restore absolute positioning

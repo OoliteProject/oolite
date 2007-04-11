@@ -24,7 +24,10 @@ MA 02110-1301, USA.
 
 */
 
-#ifndef GNUSTEP
+#import "OOCocoa.h"
+
+
+#if OOLITE_MAC_OS_X
 
 // Apple OpenGL includes...
 #include <OpenGL/OpenGL.h>
@@ -32,7 +35,11 @@ MA 02110-1301, USA.
 #include <OpenGL/glu.h>
 #include <OpenGL/glext.h>
 
-#else
+typedef CGLContextObj OOOpenGLContext;
+#define OOOpenGLGetCurrentContext CGLGetCurrentContext
+#define OOOpenGLSetCurrentContext(ctx) (CGLSetCurrentContext(ctx) == kCGLNoError)
+
+#elif OOLITE_SDL
 
 // SDL OpenGL includes...
 
@@ -45,7 +52,11 @@ MA 02110-1301, USA.
 // include an up-to-date version of glext.h
 #include <GL/glext.h>
 
-// Define the function pointers for the OpenGL extensions used in the game - this is not required on the Mac, but is on at least Windows.
+
+#if OOLITE_WINDOWS
+/*	Define the function pointers for the OpenGL extensions used in the game -
+	this is not required on the Mac, but is on at least Windows.
+*/
 PFNGLUSEPROGRAMOBJECTARBPROC glUseProgramObjectARB;
 PFNGLACTIVETEXTUREARBPROC glActiveTextureARB;
 PFNGLGETUNIFORMLOCATIONARBPROC glGetUniformLocationARB;
@@ -60,6 +71,25 @@ PFNGLDELETEOBJECTARBPROC glDeleteObjectARB;
 PFNGLLINKPROGRAMARBPROC glLinkProgramARB;
 PFNGLCOMPILESHADERARBPROC glCompileShaderARB;
 PFNGLSHADERSOURCEARBPROC glShaderSourceARB;
+#endif	// OOLITE_WINDOWS
+
+
+/*	FIXME: should probably use glXCopyContext() and glXMakeCurrent() on Linux;
+	there should be an equivalent for Windows. This isn't very urgent since
+	Oolite doesnt' use distinct contexts, though. I can't see an obvious SDL
+	version, unfortunately.
+*/
+
+typedef uintptr_t OOOpenGLContext;	// Opaque context identifier
+// OOOpenGLContext OOOpenGLGetCurrentContext(void)
+#define OOOpenGLGetCurrentContext() ((OOOpenGLContextID)1UL)
+// BOOL OOOpenGLSetCurrentContext(OOOpenGLContext context)
+#define OOOpenGLSetCurrentContext(ctx) ((ctx) == 1UL)
+
+
+#else	// Not OS X or SDL
+
+#error OOOpenGL.h: unknown target!
 
 #endif
 

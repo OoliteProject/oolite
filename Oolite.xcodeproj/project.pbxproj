@@ -258,10 +258,15 @@
 		1A5DBAB00BC000DC00D57389 /* OOSTokenizer.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A5DBAA40BC000DC00D57389 /* OOSTokenizer.m */; };
 		1A5DBD580BC17F0900D57389 /* NSStringOOExtensions.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A5DBD560BC17F0900D57389 /* NSStringOOExtensions.h */; };
 		1A5DBD590BC17F0900D57389 /* NSStringOOExtensions.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A5DBD570BC17F0900D57389 /* NSStringOOExtensions.m */; };
-		1A71D85C0BCA88AA00CD5C13 /* OOPlayer.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A71D85A0BCA88AA00CD5C13 /* OOPlayer.h */; };
-		1A71D85D0BCA88AA00CD5C13 /* OOPlayer.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A71D85B0BCA88AA00CD5C13 /* OOPlayer.m */; };
-		1A71D8A10BCA8B6500CD5C13 /* OOLocalPlayer.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A71D89F0BCA8B6500CD5C13 /* OOLocalPlayer.h */; };
-		1A71D8A20BCA8B6500CD5C13 /* OOLocalPlayer.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A71D8A00BCA8B6500CD5C13 /* OOLocalPlayer.m */; };
+		1A71DC350BCBA17000CD5C13 /* OOShaderMaterial.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A71DC330BCBA17000CD5C13 /* OOShaderMaterial.h */; };
+		1A71DC360BCBA17000CD5C13 /* OOShaderMaterial.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A71DC340BCBA17000CD5C13 /* OOShaderMaterial.m */; };
+		1A71DDD80BCC0F0400CD5C13 /* OOShaderProgram.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A71DDD60BCC0F0400CD5C13 /* OOShaderProgram.h */; };
+		1A71DDD90BCC0F0400CD5C13 /* OOShaderProgram.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A71DDD70BCC0F0400CD5C13 /* OOShaderProgram.m */; };
+		1A71DF0B0BCC3DED00CD5C13 /* OOMaterial.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A71DF090BCC3DED00CD5C13 /* OOMaterial.h */; };
+		1A71DF0C0BCC3DED00CD5C13 /* OOMaterial.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A71DF0A0BCC3DED00CD5C13 /* OOMaterial.m */; };
+		1A71DF610BCC46F300CD5C13 /* OOShaderUniform.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A71DF5F0BCC46F300CD5C13 /* OOShaderUniform.h */; };
+		1A71DF620BCC46F300CD5C13 /* OOShaderUniform.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A71DF600BCC46F300CD5C13 /* OOShaderUniform.m */; };
+		1A71E44A0BCD5C4200CD5C13 /* material-defaults.plist in Copy Config */ = {isa = PBXBuildFile; fileRef = 1A71E4490BCD5C4200CD5C13 /* material-defaults.plist */; };
 		1A81F7090A7BAC4D006580AD /* OOCAMusic.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A81F7070A7BAC4D006580AD /* OOCAMusic.m */; };
 		1A81F70A0A7BAC4D006580AD /* OOCAMusic.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A81F7080A7BAC4D006580AD /* OOCAMusic.h */; };
 		1A8A37040B95CADD007D20B8 /* PlayerEntityLoadSave.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A8A37020B95CADD007D20B8 /* PlayerEntityLoadSave.m */; };
@@ -478,6 +483,7 @@
 			dstPath = Config;
 			dstSubfolderSpec = 7;
 			files = (
+				1A71E44A0BCD5C4200CD5C13 /* material-defaults.plist in Copy Config */,
 				1A34912A0BC25EAA00802DA7 /* world-scripts.plist in Copy Config */,
 				1A2316EE0B9CFAD700EF0852 /* characters.plist in Copy Config */,
 				1A2316EF0B9CFAD700EF0852 /* commodities.plist in Copy Config */,
@@ -1011,6 +1017,15 @@
 		1A71D85B0BCA88AA00CD5C13 /* OOPlayer.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOPlayer.m; sourceTree = "<group>"; };
 		1A71D89F0BCA8B6500CD5C13 /* OOLocalPlayer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOLocalPlayer.h; sourceTree = "<group>"; };
 		1A71D8A00BCA8B6500CD5C13 /* OOLocalPlayer.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOLocalPlayer.m; sourceTree = "<group>"; };
+		1A71DC330BCBA17000CD5C13 /* OOShaderMaterial.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOShaderMaterial.h; sourceTree = "<group>"; };
+		1A71DC340BCBA17000CD5C13 /* OOShaderMaterial.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOShaderMaterial.m; sourceTree = "<group>"; };
+		1A71DDD60BCC0F0400CD5C13 /* OOShaderProgram.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOShaderProgram.h; sourceTree = "<group>"; };
+		1A71DDD70BCC0F0400CD5C13 /* OOShaderProgram.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOShaderProgram.m; sourceTree = "<group>"; };
+		1A71DF090BCC3DED00CD5C13 /* OOMaterial.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOMaterial.h; sourceTree = "<group>"; };
+		1A71DF0A0BCC3DED00CD5C13 /* OOMaterial.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOMaterial.m; sourceTree = "<group>"; };
+		1A71DF5F0BCC46F300CD5C13 /* OOShaderUniform.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOShaderUniform.h; sourceTree = "<group>"; };
+		1A71DF600BCC46F300CD5C13 /* OOShaderUniform.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOShaderUniform.m; sourceTree = "<group>"; };
+		1A71E4490BCD5C4200CD5C13 /* material-defaults.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist; path = "material-defaults.plist"; sourceTree = "<group>"; };
 		1A81F7070A7BAC4D006580AD /* OOCAMusic.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOCAMusic.m; sourceTree = "<group>"; };
 		1A81F7080A7BAC4D006580AD /* OOCAMusic.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOCAMusic.h; sourceTree = "<group>"; };
 		1A8A37020B95CADD007D20B8 /* PlayerEntityLoadSave.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = PlayerEntityLoadSave.m; sourceTree = "<group>"; };
@@ -1310,6 +1325,7 @@
 				1A2316E70B9CFAD700EF0852 /* keyconfig.plist */,
 				1A2316E80B9CFAD700EF0852 /* logcontrol.plist */,
 				1AED74C70BBA3CAA009410CD /* logcontrol.plist.xml */,
+				1A71E4490BCD5C4200CD5C13 /* material-defaults.plist */,
 				1A2316E90B9CFAD700EF0852 /* missiontext.plist */,
 				1A2316EB0B9CFAD700EF0852 /* shipdata.plist */,
 				1A2316EC0B9CFAD700EF0852 /* shipyard.plist */,
@@ -1600,6 +1616,32 @@
 			name = "PList & OOS scripting";
 			sourceTree = "<group>";
 		};
+		1A71DDD30BCC0EEF00CD5C13 /* Materials */ = {
+			isa = PBXGroup;
+			children = (
+				1A71DF090BCC3DED00CD5C13 /* OOMaterial.h */,
+				1A71DF0A0BCC3DED00CD5C13 /* OOMaterial.m */,
+				1A71DC330BCBA17000CD5C13 /* OOShaderMaterial.h */,
+				1A71DC340BCBA17000CD5C13 /* OOShaderMaterial.m */,
+				1A71DDD60BCC0F0400CD5C13 /* OOShaderProgram.h */,
+				1A71DDD70BCC0F0400CD5C13 /* OOShaderProgram.m */,
+				1A71DF5F0BCC46F300CD5C13 /* OOShaderUniform.h */,
+				1A71DF600BCC46F300CD5C13 /* OOShaderUniform.m */,
+			);
+			name = Materials;
+			sourceTree = "<group>";
+		};
+		1A71E5230BCD7C4E00CD5C13 /* Player refactoring */ = {
+			isa = PBXGroup;
+			children = (
+				1A71D85A0BCA88AA00CD5C13 /* OOPlayer.h */,
+				1A71D85B0BCA88AA00CD5C13 /* OOPlayer.m */,
+				1A71D89F0BCA8B6500CD5C13 /* OOLocalPlayer.h */,
+				1A71D8A00BCA8B6500CD5C13 /* OOLocalPlayer.m */,
+			);
+			name = "Player refactoring";
+			sourceTree = "<group>";
+		};
 		1A8A3BE90B963F02007D20B8 /* Source */ = {
 			isa = PBXGroup;
 			children = (
@@ -1617,10 +1659,8 @@
 				25161116099544390037C2E1 /* OOSound.h */,
 				25161100099544380037C2E1 /* OpenGLSprite.h */,
 				251610FF099544380037C2E1 /* OpenGLSprite.m */,
-				1A71D85A0BCA88AA00CD5C13 /* OOPlayer.h */,
-				1A71D85B0BCA88AA00CD5C13 /* OOPlayer.m */,
-				1A71D89F0BCA8B6500CD5C13 /* OOLocalPlayer.h */,
-				1A71D8A00BCA8B6500CD5C13 /* OOLocalPlayer.m */,
+				1A71E5230BCD7C4E00CD5C13 /* Player refactoring */,
+				1A71DDD30BCC0EEF00CD5C13 /* Materials */,
 				1A5DBA980BC000DC00D57389 /* Scripting */,
 			);
 			name = Source;
@@ -2069,8 +2109,10 @@
 				1A2A8D3A0BC6765F001E00FB /* EntityOOJavaScriptExtensions.h in Headers */,
 				1A2A8E030BC67CCC001E00FB /* OOWeakReference.h in Headers */,
 				1A2A91520BC6BC66001E00FB /* OOJSQuaternion.h in Headers */,
-				1A71D85C0BCA88AA00CD5C13 /* OOPlayer.h in Headers */,
-				1A71D8A10BCA8B6500CD5C13 /* OOLocalPlayer.h in Headers */,
+				1A71DC350BCBA17000CD5C13 /* OOShaderMaterial.h in Headers */,
+				1A71DDD80BCC0F0400CD5C13 /* OOShaderProgram.h in Headers */,
+				1A71DF0B0BCC3DED00CD5C13 /* OOMaterial.h in Headers */,
+				1A71DF610BCC46F300CD5C13 /* OOShaderUniform.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -2258,8 +2300,10 @@
 				1A2A8D3B0BC6765F001E00FB /* EntityOOJavaScriptExtensions.m in Sources */,
 				1A2A8E040BC67CCC001E00FB /* OOWeakReference.m in Sources */,
 				1A2A91530BC6BC66001E00FB /* OOJSQuaternion.m in Sources */,
-				1A71D85D0BCA88AA00CD5C13 /* OOPlayer.m in Sources */,
-				1A71D8A20BCA8B6500CD5C13 /* OOLocalPlayer.m in Sources */,
+				1A71DC360BCBA17000CD5C13 /* OOShaderMaterial.m in Sources */,
+				1A71DDD90BCC0F0400CD5C13 /* OOShaderProgram.m in Sources */,
+				1A71DF0C0BCC3DED00CD5C13 /* OOMaterial.m in Sources */,
+				1A71DF620BCC46F300CD5C13 /* OOShaderUniform.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

@@ -20,10 +20,12 @@
 	<string>no</string>
 	<key>$scriptError</key>
 	<string>yes</string>
+	<key>$shaderDebug</key>
+	<string>no</string>
 	<key>$shaderDebugOn</key>
 	<string>no</string>
 	<key>$shaderError</key>
-	<string>$scriptError</string>
+	<string>$error</string>
 	<key>$soundDebug</key>
 	<string>no</string>
 	<key>$soundDebugVerbose</key>
@@ -84,6 +86,8 @@
 	<string>$dataCacheDebug</string>
 	<key>dataCache.upToDate</key>
 	<string>$dataCacheStatus</string>
+	<key>dataCache.willWrite</key>
+	<string>no</string>
 	<key>dataCache.write.buildPath.failed</key>
 	<string>$dataCacheError</string>
 	<key>dataCache.write.failed</key>
@@ -170,24 +174,8 @@
 	<string>$error</string>
 	<key>rendering.opengl.extensions</key>
 	<string>$troubleShootingDump</string>
-	<key>rendering.opengl.shader.init</key>
-	<string>inherit</string>
-	<key>rendering.opengl.shader.init.dump</key>
-	<string>$troubleShootingDump</string>
-	<key>rendering.opengl.shader.init.dump.shader</key>
-	<string>inherit</string>
-	<key>rendering.opengl.shader.init.dump.shaderInfo</key>
-	<string>inherit</string>
-	<key>rendering.opengl.shader.init.dump.texture</key>
-	<string>inherit</string>
-	<key>rendering.opengl.shader.init.failed</key>
-	<string>$shaderError</string>
-	<key>rendering.opengl.shader.init.success</key>
-	<string>inherit</string>
 	<key>rendering.opengl.shader.support</key>
 	<string>$troubleShootingDump</string>
-	<key>rendering.opengl.shader.texNameMissing</key>
-	<string>$shaderError</string>
 	<key>rendering.opengl.shader.uniform</key>
 	<string>$shaderDebugOn</string>
 	<key>rendering.opengl.stateDump</key>
@@ -326,6 +314,26 @@
 	<string>$troubleShootingDump</string>
 	<key>setup.ship.badEntry.subentities</key>
 	<string>inherit</string>
+	<key>shader.compile.fragment.failure</key>
+	<string>$shaderError</string>
+	<key>shader.compile.vertex.failure</key>
+	<string>$shaderError</string>
+	<key>shader.link.failure</key>
+	<string>$shaderError</string>
+	<key>shader.load.noShader</key>
+	<string>$error</string>
+	<key>shader.uniform</key>
+	<string>$shaderDebug</string>
+	<key>shader.uniform.badDescription</key>
+	<string>inherit</string>
+	<key>shader.uniform.bind.failed</key>
+	<string>inherit</string>
+	<key>shader.uniform.set</key>
+	<string>inherit</string>
+	<key>shader.uniform.unSet</key>
+	<string>inherit</string>
+	<key>shader.vessel.init</key>
+	<string>$shaderDebug</string>
 	<key>sound.channel.cleanup.failed</key>
 	<string>$soundError</string>
 	<key>sound.channel.cleanup.failed.badState</key>

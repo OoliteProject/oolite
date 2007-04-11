@@ -128,11 +128,8 @@ Ringdata	ringentity;
 		{
 			if (immediate)
 			{
-#ifdef GNUSTEP
-        // TODO: replace APPLE function call
-#else           
-				if (usingVAR)
-					glBindVertexArrayAPPLE(gVertexArrayRangeObjects[0]);
+#if GL_APPLE_vertex_array_object
+				if (usingVAR)  glBindVertexArrayAPPLE(gVertexArrayRangeObjects[0]);
 #endif            
 				
 				glEnableClientState(GL_VERTEX_ARRAY);

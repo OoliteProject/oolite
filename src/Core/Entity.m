@@ -53,9 +53,11 @@ static NSString * const kOOLogEntityTooManyVertices			= @"entity.loadMesh.error.
 static NSString * const kOOLogEntityTooManyFaces			= @"entity.loadMesh.error.tooManyFaces";
 
 
+#if GL_APPLE_vertex_array_object
 // global flag for VAR
 BOOL global_usingVAR;
 BOOL global_testForVAR;
+#endif
 
 
 @interface Entity (Private)
@@ -827,11 +829,8 @@ BOOL global_testForVAR;
 				if (immediate)
 				{
 
-#ifdef GNUSTEP
-           			// TODO: Find out what these APPLE functions can be replaced with
-#else
-					if (usingVAR)
-						glBindVertexArrayAPPLE(gVertexArrayRangeObjects[0]);
+#if GL_APPLE_vertex_array_object
+					if (usingVAR)  glBindVertexArrayAPPLE(gVertexArrayRangeObjects[0]);
 #endif
 
 					//
@@ -875,7 +874,7 @@ BOOL global_testForVAR;
 			}
 			else
 			{
-				OOLog(kOOLogFileNotLoaded, @"ERROR no basefile for entity %@");
+				OOLog(kOOLogFileNotLoaded, @"ERROR no basefile for entity %@", self);
 			}
 		}
 		if (!isSmoothShaded) glShadeModel(GL_SMOOTH);
@@ -963,10 +962,7 @@ BOOL global_testForVAR;
 {
     // roll out each face and texture in turn
     //
-    int fi,ti ;
-
-	if (!UNIVERSE)
-		return;
+    int fi,ti;
 
     for (fi = 0; fi < n_faces; fi++)
     {
@@ -2308,8 +2304,9 @@ BOOL global_testForVAR;
 }
 
 
-// COMMON OGL STUFF
+#if GL_APPLE_vertex_array_object
 
+// COMMON OGL STUFF
 - (BOOL) OGL_InitVAR
 {
 	short			i;
@@ -2337,11 +2334,7 @@ BOOL global_testForVAR;
 
 	if (!global_usingVAR)
 		return NO;
-#ifdef GNUSTEP
-   // TODO: Find out what these APPLE functions do
-#else
 	glGenVertexArraysAPPLE(NUM_VERTEX_ARRAY_RANGES, &gVertexArrayRangeObjects[0]);
-#endif
 
 	// INIT OUR DATA
 	//
@@ -2393,9 +2386,6 @@ BOOL global_testForVAR;
 		if (!gVertexArrayRangeData[i].forceUpdate)
 			continue;
 
-#ifdef GNUSTEP
-      // TODO: find out what non-AAPL OpenGL stuff is equivalent
-#else
 		// BIND THIS VAR OBJECT SO WE CAN DO STUFF TO IT
 
 		glBindVertexArrayAPPLE(gVertexArrayRangeObjects[i]);
@@ -2420,11 +2410,13 @@ BOOL global_testForVAR;
 		{
 			glFlushVertexArrayRangeAPPLE(size, gVertexArrayRangeData[i].dataBlockPtr);
 		}
-#endif
 
 		gVertexArrayRangeData[i].forceUpdate = false;
 	}
 }
+
+#endif
+
 
 // log a list of current states
 //

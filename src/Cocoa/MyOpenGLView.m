@@ -256,7 +256,10 @@ static NSString * kOOLogKeyDown				= @"input.keyMapping.keyPress.keyDown";
 	
 	
 	// world's simplest OpenGL optimisations...
+#if GL_APPLE_transform_hint
 	glHint(GL_TRANSFORM_HINT_APPLE, GL_FASTEST);
+#endif
+	
 	glDisable(GL_NORMALIZE);
 	glDisable(GL_RESCALE_NORMAL);
 		

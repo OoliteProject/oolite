@@ -78,6 +78,7 @@ dataCache.rebuild						= inherit;
 dataCache.write.success					= inherit;
 dataCache.write.failed					= $error;
 dataCache.rebuild.octree				= no;
+dataCache.willWrite						= no;
 
 $dataCacheStatus = yes;
 $dataCacheError = $error;
@@ -150,14 +151,6 @@ rendering.opengl.error					= $error;				// Test for and display OpenGL errors
 rendering.opengl.version				= $troubleShootingDump;	// Display renderer version information at startup
 rendering.opengl.extensions				= $troubleShootingDump;	// List OpenGL extensions at startup
 rendering.opengl.shader.support			= $troubleShootingDump;	// Messages about factors influencing availability of OpenGL shaders
-rendering.opengl.shader.init			= inherit;
-rendering.opengl.shader.init.dump		= $troubleShootingDump;
-rendering.opengl.shader.init.dump.shader = inherit;
-rendering.opengl.shader.init.dump.texture = inherit;
-rendering.opengl.shader.init.dump.shaderInfo = inherit;
-rendering.opengl.shader.init.success	= inherit;
-rendering.opengl.shader.init.failed		= $shaderError;
-rendering.opengl.shader.texNameMissing	= $shaderError;
 rendering.opengl.stateDump				= $troubleShootingDump;	// Dump of OpenGL state (debug tool, currently unused)
 rendering.opengl.shader.uniform			= $shaderDebugOn;
 
@@ -239,6 +232,20 @@ script.trace.javaScript.call			= inherit;				// Prints selector and parameter st
 
 
 searchPaths.dumpAll						= $troubleShootingDump;
+
+
+$shaderDebug							= no;
+$shaderError							= $error;
+shader.load.noShader					= $error;
+shader.uniform							= $shaderDebug;
+shader.uniform.set						= inherit;				// Successfully set a uniform.
+shader.uniform.unSet					= inherit;				// A uniform went unset or was cleared (either because there was no matching uniform in the shader, or the new uniform could not be set up).
+shader.uniform.badDescription			= inherit;				// A uniform specified in shipdata.plist could not be set up, because the configuration could not be understood.
+shader.uniform.bind.failed				= inherit;				// Problem setting up uniform bound to an object property.
+shader.vessel.init						= $shaderDebug;
+shader.compile.vertex.failure			= $shaderError;
+shader.compile.fragment.failure			= $shaderError;
+shader.link.failure						= $shaderError;
 
 
 strings.conversion						= $scriptError;			// Conversion of text to values (vectors, quaternions etc)
