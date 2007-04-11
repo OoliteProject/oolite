@@ -329,8 +329,6 @@ extern int debug;
 
 - (double) findCollisionRadius;
 
-- (BoundingBox) findBoundingBoxRelativeTo:(Entity *)other InVectors:(Vector) _i :(Vector) _j :(Vector) _k;
-
 - (BoundingBox) findBoundingBoxRelativeToPosition:(Vector)opv InVectors:(Vector) _i :(Vector) _j :(Vector) _k;
 
 - (BOOL) checkCloseCollisionWith:(Entity *)other;

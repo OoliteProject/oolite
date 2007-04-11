@@ -493,11 +493,7 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 
 - (void) collectBountyFor:(ShipEntity *)other;
 
-- (BOOL) checkBoundingBoxCollisionWith:(Entity *)other;
-- (BOOL) subentityCheckBoundingBoxCollisionWith:(Entity *)other;
 - (BoundingBox) findSubentityBoundingBox;
-- (BoundingBox) findSubentityBoundingBoxRelativeTo: (Entity*)other inVectors: (Vector)vi: (Vector)vj: (Vector)vk;
-- (BoundingBox) findSubentityBoundingBoxRelativeToPosition: (Vector)othpos inVectors: (Vector)vi: (Vector)vj: (Vector)vk;
 
 - (Vector) absolutePositionForSubentity;
 - (Vector) absolutePositionForSubentityOffset:(Vector) offset;
