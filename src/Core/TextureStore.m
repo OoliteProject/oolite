@@ -337,21 +337,6 @@ GLuint	max_texture_dimension = 512;	// conservative start
 			glDeleteTextures(1, &texName);
 		}
 	}
-	
-	[textureUniversalDictionary removeAllObjects];
-	#if 0
-	// Free up the texture image data from video memory.
-	NSArray *keys = [textureUniversalDictionary allKeys];
-	for (i = 0; i < [keys count]; i++)
-	{
-		GLuint texName = [[(NSDictionary *)[textureUniversalDictionary objectForKey:[keys objectAtIndex:i]] objectForKey:@"texName"] intValue];
-		NSLog(@"deleting texture #%d (%@)", texName, (NSString *)[keys objectAtIndex:i]);
-		glDeleteTextures(1, &texName);
-	}
-
-	[textureUniversalDictionary removeAllObjects];
-	return;
-	#endif
 }
 
 + (GLuint) getPlanetTextureNameFor:(NSDictionary*)planetinfo intoData:(unsigned char **)textureData

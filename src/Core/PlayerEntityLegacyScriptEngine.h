@@ -26,15 +26,6 @@ MA 02110-1301, USA.
 
 #import "PlayerEntity.h"
 
-#define COMPARISON_NO			000
-#define COMPARISON_EQUAL		001
-#define COMPARISON_LESSTHAN		002
-#define COMPARISON_GREATERTHAN  003
-// +dajt: black ops
-#define COMPARISON_ONEOF        004
-// -dajt: black ops
-#define COMPARISON_UNDEFINED	010
-
 
 @class OOScript;
 

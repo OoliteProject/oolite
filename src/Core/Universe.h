@@ -430,8 +430,6 @@ double estimatedTimeForJourney(double distance, int hops);
 
 - (NSArray *) shipsForSaleForSystem:(Random_Seed) s_seed withTL:(int) specialTL atTime:(double) current_time;
 - (int) tradeInValueForCommanderDictionary:(NSDictionary*) cmdr_dict;
-- (int) weaponForEquipmentKey:(NSString*) weapon_string;
-- (NSString*) equipmentKeyForWeapon:(int) weapon;
 - (NSString*) brochureDescriptionWithDictionary:(NSDictionary*) dict standardEquipment:(NSArray*) extras optionalEquipment:(NSArray*) options;
 
 - (Vector) getWitchspaceExitPosition;

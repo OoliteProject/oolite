@@ -33,8 +33,6 @@ MA 02110-1301, USA.
 #import "PlanetEntity.h"
 #import "WormholeEntity.h"
 
-#import "OOXMLExtensions.h"
-
 #import "OOMaths.h"
 #import "GameController.h"
 #import "ResourceManager.h"

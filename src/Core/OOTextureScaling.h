@@ -30,3 +30,29 @@ MA 02110-1301, USA.
 
 
 uint8_t *ScaleUpPixMap(uint8_t *srcPixels, unsigned srcWidth, unsigned srcHeight, unsigned srcBytesPerRow, unsigned planes, unsigned dstWidth, unsigned dstHeight);
+
+
+/*	Assumes 4 planes, 8 bits per sample, interleaved.
+	dstPixels must have space for dstWidth * dstHeight pixels (no row padding
+	is generated).
+*/
+void ScalePixMap(void *srcPixels, unsigned srcWidth, unsigned srcHeight, unsigned srcRowBytes, void *dstPixels, unsigned dstWidth, unsigned dstHeight);
+
+/*	Assumes 4 planes, 8 bits per sample, interleaved, with the first three
+	forming a normalized vector.
+	dstPixels must have space for dstWidth * dstHeight pixels (no row padding
+	is generated).
+*/
+void ScaleNormalMap(void *srcTexels, unsigned srcWidth, unsigned srcHeight, unsigned srcRowBytes, void *dstTexels, unsigned dstWidth, unsigned dstHeight);
+
+
+/*	Assumes 4 planes, 8 bits per sample, interleaved.
+	Buffer must have space for (4 * width * height) / 3 pixels.
+*/
+void GenerateMipMaps(void *textureBytes, unsigned width, unsigned height);
+
+
+/*	Assumes 4 planes, 8 bits per sample, interleaved.
+	Buffer must have space for (4 * width * height) / 3 pixels.
+*/
+void GenerateNormalMapMipMaps(void *textureBytes, unsigned width, unsigned height);

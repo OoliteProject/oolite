@@ -33,6 +33,7 @@ MA 02110-1301, USA.
 #import "GuiDisplayGen.h"
 #import "OOStringParsing.h"
 #import "OOCollectionExtractors.h"
+#import "OOConstToString.h"
 
 
 static NSString * const kOOLogNoteShowShipyardModel = @"script.debug.note.showShipyardModel";
@@ -1358,9 +1359,11 @@ static NSMutableDictionary* currentShipyard = nil;
 	credits -= 10 * (price - trade_in);
 	
 	// change ship_desc
+	// TODO: detect brokenness here.
 	if (ship_desc) [ship_desc release];
-	ship_desc = [(NSString *)[ship_info objectForKey:SHIPYARD_KEY_SHIPDATA_KEY] retain];
-		
+	ship_desc = [[ship_info stringForKey:SHIPYARD_KEY_SHIPDATA_KEY defaultValue:nil] copy];
+	NSDictionary *shipDict = [ship_info dictionaryForKey:SHIPYARD_KEY_SHIP defaultValue:nil];
+	
 	// get a full tank for free
 	fuel = PLAYER_MAX_FUEL;
 	
@@ -1371,7 +1374,7 @@ static NSMutableDictionary* currentShipyard = nil;
 	aft_weapon = WEAPON_NONE;
 	port_weapon = WEAPON_NONE;
 	starboard_weapon = WEAPON_NONE;
-	forward_weapon = [UNIVERSE weaponForEquipmentKey:(NSString*)[(NSDictionary*)[ship_info objectForKey:SHIPYARD_KEY_SHIP] objectForKey:@"forward_weapon_type"]];
+	forward_weapon = EquipmentStringToWeaponType([shipDict stringForKey:@"forward_weapon_type" defaultValue:nil]);
 	
 	// get basic max_cargo
 	max_cargo = [UNIVERSE maxCargoForShip:ship_desc];
@@ -1391,7 +1394,7 @@ static NSMutableDictionary* currentShipyard = nil;
 	[self tidyMissilePylons];
 
 	// get missiles from ship_info
-	missiles = [(NSNumber*)[(NSDictionary*)[ship_info objectForKey:SHIPYARD_KEY_SHIP] objectForKey:@"missiles"] intValue];
+	missiles = [shipDict intForKey:@"missiles" defaultValue:0];
 	
 	// clear legal_status for free
 	legal_status = 0;
@@ -1403,16 +1406,17 @@ static NSMutableDictionary* currentShipyard = nil;
 	//
 	// keep track of portable equipment..
 	//
-	NSMutableArray* portable_equipment = [NSMutableArray array];
-	for (i = 0; i < [extra_equipment count]; i++)
+	NSArray			*equipment = [UNIVERSE equipmentdata];
+	NSMutableArray	*portable_equipment = [NSMutableArray arrayWithCapacity:[extra_equipment count]];
+	NSEnumerator	*eqEnum = nil;
+	NSString		*eq_desc = nil;
+	
+	for (eqEnum = [extra_equipment keyEnumerator]; (eq_desc = [eqEnum nextObject]); )
 	{
-		NSArray* equipment = [UNIVERSE equipmentdata];
-		NSString* eq_desc = (NSString*)[[extra_equipment allKeys] objectAtIndex:i];
 		NSDictionary* eq_dict = nil;
-		int j;
-		for (j = 0; (j < [equipment count])&&(!eq_dict); j++)
+		for (i = 0; (i < [equipment count])&&(!eq_dict); i++)
 		{
-			NSArray* eq_info = (NSArray*)[equipment objectAtIndex:j];
+			NSArray* eq_info = [equipment objectAtIndex:i];
 			if (([eq_desc isEqual:[eq_info objectAtIndex:EQUIPMENT_KEY_INDEX]])&&([eq_info count] > EQUIPMENT_EXTRA_INFO_INDEX))
 				eq_dict = [eq_info objectAtIndex:EQUIPMENT_EXTRA_INFO_INDEX];
 		}

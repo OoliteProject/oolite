@@ -65,14 +65,15 @@ static NSMutableString	*errors;
 
 // caches allow us to load any given file once only
 //
-NSMutableDictionary*	dictionary_cache;
-NSMutableDictionary*	array_cache;
-NSMutableDictionary*	image_cache;
-NSMutableDictionary*	sound_cache;
-NSMutableDictionary*	string_cache;
-NSMutableDictionary*	movie_cache;
-#ifdef GNUSTEP
-NSMutableDictionary*	surface_cache;
+static NSMutableDictionary*	dictionary_cache;
+static NSMutableDictionary*	array_cache;
+static NSMutableDictionary*	sound_cache;
+static NSMutableDictionary*	string_cache;
+static NSMutableDictionary*	genericPathCache;
+#if OOLITE_MAC_OS_X && !OOLITE_SDL
+static NSMutableDictionary*	image_cache;
+#elif OOLITE_SDL
+static NSMutableDictionary*	surface_cache;
 #endif
 
 
@@ -464,50 +465,76 @@ NSMutableDictionary*	surface_cache;
 }
 
 
-+ (id) retrieveFileNamed:(NSString *)inFileName inFolder:(NSString *)inFolderName cache:(NSMutableDictionary **)ioCache key:(NSString *)inKey class:(Class)inClass
++ (NSString *) pathForFileNamed:(NSString *)fileName inFolder:(NSString *)folderName
 {
-	OOMusic			*result = nil;
-	NSString		*foundPath = nil;
-	NSArray			*fpaths;
-	int				i;
+	NSString		*key = nil;
+	NSString		*result = nil;
+	NSEnumerator	*pathEnum = nil;
+	NSString		*path = nil;
+	NSString		*filePath = nil;
+	NSFileManager	*fmgr = nil;
 	
-	if (!inFileName) return nil;
+	if (fileName == nil)  return nil;
+	
+	key = [NSString stringWithFormat:@"%@:%@", folderName, fileName];
+	if (genericPathCache != nil)
+	{
+		// return the cached object, if any
+		result = [genericPathCache objectForKey:key];
+		if (result)  return result;
+	}
+	
+	// Search for file
+	fmgr = [NSFileManager defaultManager];
+	for (pathEnum = [[ResourceManager paths] objectEnumerator]; (path = [pathEnum nextObject]); )
+	{
+		filePath = [[path stringByAppendingPathComponent:folderName] stringByAppendingPathComponent:fileName];
+		if ([fmgr fileExistsAtPath:filePath])
+		{
+			result = filePath;
+			break;
+		}
+		
+		filePath = [path stringByAppendingPathComponent:fileName];
+		if ([fmgr fileExistsAtPath:filePath])
+		{
+			result = filePath;
+			break;
+		}
+	}
+	
+	if (result != nil)
+	{
+		if (genericPathCache == nil)  genericPathCache = [[NSMutableDictionary alloc] init];
+		[genericPathCache setObject:result forKey:key];
+	}
+	return result;
+}
+
+
++ (id) retrieveFileNamed:(NSString *)fileName inFolder:(NSString *)folderName cache:(NSMutableDictionary **)ioCache key:(NSString *)key class:(Class)class
+{
+	id				result = nil;
+	NSString		*path = nil;
 	
 	if (ioCache)
 	{
-		if (!inKey) inKey = [NSString stringWithFormat:@"%@:%@", inFolderName, inFileName];
-		if (!*ioCache) *ioCache = [[NSMutableDictionary alloc] initWithCapacity:32];
-		else
+		if (key == nil)  key = [NSString stringWithFormat:@"%@:%@", folderName, fileName];
+		if (*ioCache != nil)
 		{
 			// return the cached object, if any
-			result = [*ioCache objectForKey:inKey];
-			if (result) return result;
+			result = [*ioCache objectForKey:key];
+			if (result)  return result;
 		}
 	}
 	
-	fpaths = [ResourceManager paths];
+	path = [self pathForFileNamed:fileName inFolder:folderName];
+	if (path != nil)  result = [[[class alloc] initWithContentsOfFile:path] autorelease];
 	
-	for (i = 0; i < [fpaths count]; i++)
+	if (result != nil && ioCache != nil)
 	{
-		NSString *filepath = [(NSString *)[fpaths objectAtIndex:i] stringByAppendingPathComponent:inFileName];
-		if ([[NSFileManager defaultManager] fileExistsAtPath:filepath])
-		{
-			foundPath = filepath;
-		}
-		if (inFolderName)
-		{
-			filepath = [[(NSString *)[fpaths objectAtIndex:i] stringByAppendingPathComponent:inFolderName] stringByAppendingPathComponent:inFileName];
-			if ([[NSFileManager defaultManager] fileExistsAtPath:filepath])
-			{
-				foundPath = filepath;
-			}
-		}
-	}
-	
-	if (foundPath) result = [[[inClass alloc] initWithContentsOfFile:foundPath] autorelease];
-	if (result && ioCache)
-	{
-		[(*ioCache) setObject:result forKey:inKey];
+		if (*ioCache == nil)  *ioCache = [[NSMutableDictionary alloc] init];
+		[*ioCache setObject:result forKey:key];
 	}
 	
 	return result;
@@ -533,8 +560,17 @@ NSMutableDictionary*	surface_cache;
 				 class:[OOSound class]];
 }
 
++ (NSString *) stringFromFilesNamed:(NSString *)filename inFolder:(NSString *)foldername
+{
+	return [self retrieveFileNamed:filename
+				 inFolder:foldername
+				 cache:&string_cache
+				 key:nil
+				 class:[NSString class]];
+}
 
-#ifndef GNUSTEP
+
+#if OOLITE_MAC_OS_X && !OOLITE_SDL
 
 + (NSImage *) imageNamed:(NSString *)filename inFolder:(NSString *)foldername
 {
@@ -545,18 +581,8 @@ NSMutableDictionary*	surface_cache;
 				 class:[NSImage class]];
 }
 
-#endif
+#elif OOLITE_SDL
 
-+ (NSString *) stringFromFilesNamed:(NSString *)filename inFolder:(NSString *)foldername
-{
-	return [self retrieveFileNamed:filename
-				 inFolder:foldername
-				 cache:&string_cache
-				 key:nil
-				 class:[NSString class]];
-}
-
-#ifdef GNUSTEP
 + (SDLImage *) surfaceNamed:(NSString *)filename inFolder:(NSString *)foldername
 {
 	SDLImage *result = 0;
@@ -608,6 +634,7 @@ NSMutableDictionary*	surface_cache;
 
 	return result;
 }
+
 #endif
 
 

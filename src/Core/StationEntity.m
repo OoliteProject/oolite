@@ -190,6 +190,9 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 {
 	int i;
 	NSArray*	ships = [shipsOnApproach allKeys];
+	
+	// Remove dead entities.
+	// No enumerator because we mutate the dictionary.
 	for (i = 0; i < [ships count]; i++)
 	{
 		int sid = [[ships objectAtIndex:i] intValue];
@@ -200,11 +203,13 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 				[shipAI message:@"DOCKING_COMPLETE"];
 		}
 	}
+	
 	if ([shipsOnApproach count] == 0)
 	{
 		last_launch_time = [UNIVERSE getTime];
 		approach_spacing = 0.0;
 	}
+	
 	ships = [shipsOnHold allKeys];
 	for (i = 0; i < [ships count]; i++)
 	{
@@ -222,19 +227,21 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 	NSArray*	ships = [shipsOnApproach allKeys];
 	for (i = 0; i < [ships count]; i++)
 	{
-		int sid = [(NSString *)[ships objectAtIndex:i] intValue];
+		int sid = [[ships objectAtIndex:i] intValue];
 		if ([UNIVERSE entityForUniversalID:sid])
 			[[(ShipEntity *)[UNIVERSE entityForUniversalID:sid] getAI] message:@"DOCKING_ABORTED"];
-		[shipsOnApproach removeObjectForKey:[ships objectAtIndex:i]];
 	}
+	[shipsOnApproach removeAllObjects];
+	
 	ships = [shipsOnHold allKeys];
 	for (i = 0; i < [ships count]; i++)
 	{
-		int sid = [(NSString *)[ships objectAtIndex:i] intValue];
+		int sid = [[ships objectAtIndex:i] intValue];
 		if ([UNIVERSE entityForUniversalID:sid])
 			[[(ShipEntity *)[UNIVERSE entityForUniversalID:sid] getAI] message:@"DOCKING_ABORTED"];
-		[shipsOnHold removeObjectForKey:[ships objectAtIndex:i]];
 	}
+	[shipsOnHold removeAllObjects];
+	
 	[shipAI message:@"DOCKING_COMPLETE"];
 	last_launch_time = [UNIVERSE getTime];
 	approach_spacing = 0.0;
@@ -250,16 +257,18 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 		int sid = [(NSString *)[ships objectAtIndex:i] intValue];
 		if ([UNIVERSE entityForUniversalID:sid])
 			[(ShipEntity *)[UNIVERSE entityForUniversalID:sid] enterDock:self];
-		[shipsOnApproach removeObjectForKey:[ships objectAtIndex:i]];
 	}
+	[shipsOnApproach removeAllObjects];
+	
 	ships = [shipsOnHold allKeys];
 	for (i = 0; i < [ships count]; i++)
 	{
 		int sid = [(NSString *)[ships objectAtIndex:i] intValue];
 		if ([UNIVERSE entityForUniversalID:sid])
 			[(ShipEntity *)[UNIVERSE entityForUniversalID:sid] enterDock:self];
-		[shipsOnHold removeObjectForKey:[ships objectAtIndex:i]];
 	}
+	[shipsOnHold removeAllObjects];
+	
 	[shipAI message:@"DOCKING_COMPLETE"];
 }
 

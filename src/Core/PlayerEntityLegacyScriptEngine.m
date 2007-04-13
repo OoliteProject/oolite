@@ -46,6 +46,18 @@ MA 02110-1301, USA.
 
 #define kOOLogUnconvertedNSLog @"unclassified.PlayerEntityLegacyScriptEngine"
 
+
+enum
+{
+	COMPARISON_NO,
+	COMPARISON_EQUAL,
+	COMPARISON_LESSTHAN,
+	COMPARISON_GREATERTHAN,
+	COMPARISON_ONEOF,
+	COMPARISON_UNDEFINED
+};
+
+
 static NSString * const kOOLogScriptAddShipsFailed			= @"script.addShips.failed";
 static NSString * const kOOLogScriptMissionDescNoText		= @"script.missionDescription.noMissionText";
 static NSString * const kOOLogScriptMissionDescNoKey		= @"script.missionDescription.noMissionKey";
@@ -94,37 +106,6 @@ static NSString * const kOOLogSyntaxReset					= @"script.debug.syntax.reset";
 
 static NSString * mission_string_value;
 static NSString * mission_key;
-
-#if OLD_SCRIPT_CODE
-- (void) checkScript
-{
-	int i;
-
-	[self setScript_target:self];
-	
-	OOLog(kOOLogNoteCheckScript, @"----- checkScript");
-	OOLogIndentIf(kOOLogNoteCheckScript);
-	
-	for (i = 0; i < [[script allKeys] count]; i++)
-	{
-		NSString *missionTitle = (NSString *)[[script allKeys] objectAtIndex:i];
-		id obj = [script objectForKey:missionTitle];
-		if ([obj isKindOfClass:[NSArray class]])
-		{
-			NSArray *mission = (NSArray *)[script objectForKey:missionTitle];
-			mission_key = missionTitle;
-			[self scriptActions: mission forTarget: self];
-		}
-		else if ([obj isKindOfClass:[OOScript class]])
-		{
-			OOScript *jscript = (OOScript *)obj;
-			[jscript doEvent:[self status_string]];
-		}
-	}
-	
-	OOLogOutdentIf(kOOLogNoteCheckScript);
-}
-#endif
 
 
 - (void) checkScript
@@ -527,13 +508,21 @@ static NSString * mission_key;
 
 - (NSArray*) missionsList
 {
-	int i;
-	NSArray*  keys = [script allKeys];
-	NSMutableArray* result = [NSMutableArray arrayWithCapacity:[keys count]];
-	for (i = 0; i < [keys count]; i++)
+	NSEnumerator			*scriptEnum = nil;
+	NSString				*scriptName = nil;
+	NSString				*vars = nil;
+	NSMutableArray			*result = nil;
+	
+	result = [NSMutableArray array];
+	
+	for (scriptEnum = [script keyEnumerator]; (scriptName = [scriptEnum nextObject]); )
 	{
-		if ([mission_variables objectForKey:[keys objectAtIndex:i]])
-			[result addObject:[NSString stringWithFormat:@"\t%@",[mission_variables objectForKey:[keys objectAtIndex:i]]]];
+		vars = [mission_variables objectForKey:scriptName];
+		
+		if (vars != nil)
+		{
+			[result addObject:[NSString stringWithFormat:@"\t%@", vars]];
+		}
 	}
 	return result;
 }
@@ -1609,7 +1598,7 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 - (void) setMissionChoices:(NSString *)choicesKey	// choicesKey is a key for a dictionary of
 {													// choices/choice phrases in missiontext.plist and also..
 	GuiDisplayGen* gui = [UNIVERSE gui];
-	// TODO MORE STUFF HERE
+	// TODO: MORE STUFF HERE
 	// must find list of choices in missiontext.plist
 	// add them to gui setting the key for each line to the key in the dict of choices
 	// and the text of the line to the value in the dict of choices
@@ -1628,16 +1617,18 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 	[gui setKey:@"" forRow:21];				// clears the key to enable pollDemoControls to check for a selection
 	[gui setSelectableRange:NSMakeRange(0,0)];	// clears the selectable range
 	//
-	int choices_row = 22 - [choice_keys count];
-	int i;
-	for (i = 0; i < [choice_keys count]; i++)
+	int					choices_row = 22 - [choice_keys count];
+	NSEnumerator		*choiceEnum = nil;
+	NSString			*choiceKey = nil;
+	NSString			*choiceText = nil;
+	
+	for (choiceEnum = [choice_keys objectEnumerator]; (choiceKey = [choiceEnum nextObject]); )
 	{
-		NSString* choice_key = (NSString *)[choice_keys objectAtIndex:i];
-		NSString* choice_text = [NSString stringWithFormat:@" %@ ",[choices_dict objectForKey:choice_key]];
-		choice_text = ExpandDescriptionForCurrentSystem(choice_text);
-		choice_text = [self replaceVariablesInString: choice_text];
-		[gui setText:choice_text forRow:choices_row align: GUI_ALIGN_CENTER];
-		[gui setKey:choice_key forRow:choices_row];
+		choiceText = [NSString stringWithFormat:@" %@ ",[choices_dict objectForKey:choiceKey]];
+		choiceText = ExpandDescriptionForCurrentSystem(choiceText);
+		choiceText = [self replaceVariablesInString:choiceText];
+		[gui setText:choiceText forRow:choices_row align: GUI_ALIGN_CENTER];
+		[gui setKey:choiceKey forRow:choices_row];
 		[gui setColor:[OOColor yellowColor] forRow:choices_row];
 		choices_row++;
 	}

@@ -27,7 +27,7 @@ MA 02110-1301, USA.
 #import "OOCocoa.h"
 #import "OOOpenGL.h"
 
-#ifdef GNUSTEP
+#if OOLITE_SDL
 #import "SDLImage.h"
 #endif
 
@@ -52,6 +52,8 @@ BOOL always_include_addons;
 
 + (NSString *)errors;			// Errors which occured during path scanning - essentially a list of OXPs whose requires.plist is bad.
 
++ (NSString *) pathForFileNamed:(NSString *)fileName inFolder:(NSString *)folderName;
+
 + (NSDictionary *) dictionaryFromFilesNamed:(NSString *)filename inFolder:(NSString *)foldername andMerge:(BOOL) mergeFiles;
 + (NSDictionary *) dictionaryFromFilesNamed:(NSString *)filename inFolder:(NSString *)foldername andMerge:(BOOL) mergeFiles smart:(BOOL) smartMerge;
 + (NSArray *) arrayFromFilesNamed:(NSString *)filename inFolder:(NSString *)foldername andMerge:(BOOL) mergeFiles;
@@ -59,9 +61,9 @@ BOOL always_include_addons;
 + (OOSound *) ooSoundNamed:(NSString *)filename inFolder:(NSString *)foldername;
 + (OOMusic *) ooMusicNamed:(NSString *)filename inFolder:(NSString *)foldername;
 
-#ifndef GNUSTEP
+#if OOLITE_MAC_OS_X && !OOLITE_SDL
 + (NSImage *) imageNamed:(NSString *)filename inFolder:(NSString *)foldername;
-#else
+#elif OOLITE_SDL
 + (SDLImage *) surfaceNamed:(NSString *)filename inFolder:(NSString *)foldername;
 #endif
 

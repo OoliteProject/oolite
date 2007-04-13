@@ -29,11 +29,10 @@ MA 02110-1301, USA.
 
 - (void)mergeEntriesFromDictionary:(NSDictionary *)otherDictionary
 {
-	NSArray* otherKeys = [otherDictionary allKeys];
-	NSEnumerator* otherKeysEnum = [otherKeys objectEnumerator];
-	id key;
+	NSEnumerator	*otherKeysEnum = nil;
+	id				key = nil;
 	 
-	while ((key = [otherKeysEnum nextObject]))
+	for (otherKeysEnum = [otherDictionary keyEnumerator]; (key = [otherKeysEnum nextObject]); )
 	{
 		if (![self objectForKey:key])
 			[self setObject:[otherDictionary objectForKey:key] forKey:key];

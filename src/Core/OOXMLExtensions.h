@@ -34,6 +34,8 @@ MA 02110-1301, USA.
 
 /* interfaces */
 
+#if OO_USE_CUSTOM_EXPORTER
+
 @interface NSString (OOXMLExtensions)
 
 - (NSString *) OOXMLencodedString;
@@ -56,8 +58,16 @@ MA 02110-1301, USA.
 @interface NSDictionary (OOXMLExtensions)
 
 - (NSString *) OOXMLdescription;
-- (BOOL) writeOOXMLToFile:(NSString *)path atomically:(BOOL)flag;
-- (BOOL) writeOOXMLToURL:(NSURL *)aURL atomically:(BOOL)atomically;
+- (BOOL) writeOOXMLToFile:(NSString *)path atomically:(BOOL)flag errorDescription:(NSString **)outErrorDesc;
 
 @end
 
+#else	// !OO_USE_CUSTOM_EXPORTER
+
+@interface NSDictionary (OOXMLExtensions)
+
+- (BOOL) writeOOXMLToFile:(NSString *)path atomically:(BOOL)flag errorDescription:(NSString **)outErrorDesc;
+
+@end
+
+#endif

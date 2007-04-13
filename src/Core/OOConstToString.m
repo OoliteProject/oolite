@@ -285,6 +285,41 @@ OOWeaponType StringToWeaponType(NSString *string)
 }
 
 
+NSString *WeaponTypeToEquipmentString(OOWeaponType weapon)
+{
+#define EQ_CASE(foo) case foo: return @"EQ_"#foo;
+	
+	switch (weapon)
+	{
+//		EQ_CASE(WEAPON_PLASMA_CANNON);
+		EQ_CASE(WEAPON_PULSE_LASER);
+		EQ_CASE(WEAPON_BEAM_LASER);
+		EQ_CASE(WEAPON_MINING_LASER);
+		EQ_CASE(WEAPON_MILITARY_LASER);
+		EQ_CASE(WEAPON_THARGOID_LASER);
+		
+		case WEAPON_PLASMA_CANNON:
+		case WEAPON_NONE:
+			break;
+	}
+	return nil;
+}
+
+
+OOWeaponType EquipmentStringToWeaponType(NSString *string)
+{
+#define EQ_REVERSE_CASE(foo) if ([string hasSuffix:@#foo]) return WEAPON_##foo;
+//	EQ_REVERSE_CASE(PLASMA_CANNON);
+	EQ_REVERSE_CASE(PULSE_LASER);
+	EQ_REVERSE_CASE(BEAM_LASER);
+	EQ_REVERSE_CASE(MINING_LASER);
+	EQ_REVERSE_CASE(MILITARY_LASER);
+	EQ_REVERSE_CASE(THARGOID_LASER);
+	
+	return WEAPON_NONE;
+}
+
+
 NSString *CargoTypeToString(OOCargoType cargo)
 {
 	switch (cargo)

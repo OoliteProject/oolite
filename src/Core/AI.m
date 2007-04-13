@@ -381,7 +381,7 @@ static NSString * const kOOLogAIPop						= @"ai.pop";
 	{
 		int i;
 		for (i = 0; i < [ms_list count]; i++)
-			[self reactToMessage:(NSString *)[ms_list objectAtIndex:i]];
+			[self reactToMessage:[ms_list objectAtIndex:i]];
 	}
 }
 

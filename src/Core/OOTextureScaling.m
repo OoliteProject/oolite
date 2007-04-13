@@ -99,3 +99,126 @@ uint8_t *ScaleUpPixMap(uint8_t *srcPixels, unsigned srcWidth, unsigned srcHeight
 	
 	return texBytes;
 }
+
+
+static void ScaleUpHorizontally(const uint8_t *srcPixels, unsigned srcWidth, unsigned srcHeight, unsigned srcRowBytes, uint8_t *dstPixels, unsigned dstWidth);
+static void ScaleDownHorizontally(const uint8_t *srcPixels, unsigned srcWidth, unsigned srcHeight, unsigned srcRowBytes, uint8_t *dstPixels, unsigned dstWidth);
+static void ScaleUpVertically(const uint8_t *srcPixels, unsigned srcWidth, unsigned srcHeight, unsigned srcRowBytes, uint8_t *dstPixels, unsigned dstHeight);
+static void ScaleDownVertically(const uint8_t *srcPixels, unsigned srcWidth, unsigned srcHeight, unsigned srcRowBytes, uint8_t *dstPixels, unsigned dstHeight);
+static void CopyRows(const uint8_t *srcPixels, unsigned srcWidth, unsigned srcHeight, unsigned srcRowBytes, uint8_t *dstPixels);
+
+
+void ScalePixMap(void *srcPixels, unsigned srcWidth, unsigned srcHeight, unsigned srcRowBytes, void *dstPixels, unsigned dstWidth, unsigned dstHeight)
+{
+	// Divide and conquer - handle horizontal and vertical resizing in separate passes.
+	
+	void			*interData;
+	unsigned		interWidth, interHeight, interRowBytes;
+	
+	// Sanity checks
+	if (EXPECT_NOT(srcWidth == 0 || srcHeight == 0 || srcPixels == NULL || dstPixels == NULL || srcRowBytes < srcWidth * 4)) return;
+	
+	// Scale horizontally, if needed
+	if (srcWidth < dstWidth)
+	{
+		ScaleUpHorizontally(srcPixels, srcWidth, srcHeight, srcRowBytes, dstPixels, dstWidth);
+		interData = dstPixels;
+		interWidth = dstWidth;
+		interHeight = dstHeight;
+		interRowBytes = interWidth * 4;
+	}
+	else if (dstWidth < srcWidth)
+	{
+		ScaleDownHorizontally(srcPixels, srcWidth, srcHeight, srcRowBytes, dstPixels, dstWidth);
+		interData = dstPixels;
+		interWidth = dstWidth;
+		interHeight = dstHeight;
+		interRowBytes = interWidth * 4;
+	}
+	else
+	{
+		interData = srcPixels;
+		interWidth = srcWidth;
+		interHeight = srcHeight;
+		interRowBytes = srcRowBytes;
+	}
+	
+	// Scale vertically, if needed.
+	if (srcHeight < dstHeight)
+	{
+		ScaleUpVertically(interData, interWidth, interHeight, interRowBytes, dstPixels, dstHeight);
+	}
+	else if (dstHeight < srcHeight)
+	{
+		ScaleDownVertically(interData, interWidth, interHeight, interRowBytes, dstPixels, dstHeight);
+	}
+	else
+	{
+		// This handles the no-scaling case as well as the horizontal-scaling-only case.
+		CopyRows(interData, interWidth, interHeight, interRowBytes, dstPixels);
+	}
+}
+
+
+void ScaleNormalMap(void *srcTexels, unsigned srcWidth, unsigned srcHeight, unsigned srcRowBytes, void *dstTexels, unsigned dstWidth, unsigned dstHeight)
+{
+	ScalePixMap(srcTexels, srcWidth, srcHeight, srcRowBytes, dstTexels, dstWidth, dstHeight);
+}
+
+
+void GenerateMipMaps(void *textureBytes, unsigned width, unsigned height)
+{
+	
+}
+
+
+void GenerateNormalMapMipMaps(void *textureBytes, unsigned width, unsigned height)
+{
+	
+}
+
+
+static void ScaleUpHorizontally(const uint8_t *srcPixels, unsigned srcWidth, unsigned srcHeight, unsigned srcRowBytes, uint8_t *dstPixels, unsigned dstWidth)
+{
+	// TODO
+}
+
+
+static void ScaleDownHorizontally(const uint8_t *srcPixels, unsigned srcWidth, unsigned srcHeight, unsigned srcRowBytes, uint8_t *dstPixels, unsigned dstWidth)
+{
+	// TODO
+}
+
+
+static void ScaleUpVertically(const uint8_t *srcPixels, unsigned srcWidth, unsigned srcHeight, unsigned srcRowBytes, uint8_t *dstPixels, unsigned dstHeight)
+{
+	// TODO
+}
+
+
+static void ScaleDownVertically(const uint8_t *srcPixels, unsigned srcWidth, unsigned srcHeight, unsigned srcRowBytes, uint8_t *dstPixels, unsigned dstHeight)
+{
+	// TODO
+}
+
+
+static void CopyRows(const uint8_t *srcPixels, unsigned srcWidth, unsigned srcHeight, unsigned srcRowBytes, uint8_t *dstPixels)
+{
+	unsigned			y;
+	unsigned			rowBytes;
+	
+	rowBytes = srcWidth * 4;
+	
+	if (rowBytes == srcRowBytes)
+	{
+		memcpy(dstPixels, srcPixels, srcHeight * rowBytes);
+		return;
+	}
+	
+	for (y = 0; y != srcHeight; ++y)
+	{
+		__builtin_memcpy(dstPixels, srcPixels, rowBytes);
+		dstPixels += rowBytes;
+		srcPixels += rowBytes;
+	}
+}

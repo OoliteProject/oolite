@@ -37,6 +37,7 @@ MA 02110-1301, USA.
 #import "OOCacheManager.h"
 #import "OOStringParsing.h"
 #import "OOCollectionExtractors.h"
+#import "OOConstToString.h"
 
 #import "Octree.h"
 #import "CollisionRegion.h"
@@ -2689,16 +2690,25 @@ GLfloat docked_light_specular[]	= { (GLfloat) 1.0, (GLfloat) 1.0, (GLfloat) 0.5,
 	
 	NSAutoreleasePool* mypool = [[NSAutoreleasePool alloc] init];	// let's make sure we tidy up each time this is called
 	
+	NSEnumerator	*shipEnum = nil;
+	NSString		*shipKey = nil;
 	NSMutableArray  *foundShips = [NSMutableArray arrayWithCapacity:16];
 	NSMutableArray  *foundChance = [NSMutableArray arrayWithCapacity:16];
-	NSArray			*shipKeys = [shipdata allKeys];
-	float foundf = 0.0;
-	float selectedf = randf();
+	float			foundf = 0.0;
+	float			selectedf = randf();
 	
-	found = 0;
-	for (i = 0; i < [shipKeys count]; i++)
+	/*	FIXME: this sucks.
+		Checking conditions if there's no role match seems pointless, for one.
+		Also, the search is silly. We ought to have a dictionary of roles to
+		sets of ship definitions. Ship definitions should be a class, not just
+		raw dictionaries. And roles within each ship definition/ship class
+		should be something better than a string, too.
+		-- Ahruman
+	*/
+	
+	for (shipEnum = [shipdata keyEnumerator]; (shipKey = [shipEnum nextObject]); )
 	{
-		NSDictionary*	shipDict = [shipdata objectForKey:[shipKeys objectAtIndex:i]];
+		NSDictionary*	shipDict = [shipdata objectForKey:shipKey];
 		NSArray*		shipRoles = ScanTokensFromString([shipDict objectForKey:@"roles"]);
 		
 		if ([shipDict objectForKey:@"conditions"])
@@ -2728,8 +2738,8 @@ GLfloat docked_light_specular[]	= { (GLfloat) 1.0, (GLfloat) 1.0, (GLfloat) 0.5,
 		
 				if ([putative_roles isEqual:search] && (chance > 0.0))
 				{
-					[foundShips addObject:	[shipKeys objectAtIndex:i]];
-					[foundChance addObject:	[NSNumber numberWithFloat:chance]];
+					[foundShips addObject:shipKey];
+					[foundChance addObject:[NSNumber numberWithFloat:chance]];
 					found++;
 					foundf += chance;
 				}
@@ -2810,9 +2820,15 @@ GLfloat docked_light_specular[]	= { (GLfloat) 1.0, (GLfloat) 1.0, (GLfloat) 0.5,
 	return ship;   // retain count = 1
 }
 
-- (NSDictionary *) getDictionaryForShip:(NSString *) desc
+- (NSDictionary *)getDictionaryForShip:(NSString *)desc
 {
-	NSMutableDictionary* shipdict = [[[shipdata objectForKey:desc] mutableCopy] autorelease];
+	static NSDictionary		*cachedResult = nil;
+	static NSString			*cachedKey = nil;
+	
+	if (desc == nil)  return nil;
+	if ([desc isEqualToString:cachedKey])  return [[cachedResult retain] autorelease];
+	
+	NSMutableDictionary *shipdict = [[[shipdata objectForKey:desc] mutableCopy] autorelease];
 	if (shipdict == nil)
 	{
 		/*	There used to be an attempt to throw a OOLITE_EXCEPTION_SHIP_NOT_FOUND
@@ -2826,7 +2842,7 @@ GLfloat docked_light_specular[]	= { (GLfloat) 1.0, (GLfloat) 1.0, (GLfloat) 0.5,
 		return nil;
 	}
 	// check if this is based upon a different ship
-	// TODO: move all like_ship handling into one place. (Actually, it may be that this already _is_ that place and all others are redundant.) -- Ahruman
+	// TODO: move all like_ship handling into one place. (Actually, it may be that this already _is_ that place and all others are redundant.) Should probably fold resolved like_ships back into dictionary. -- Ahruman
 	while ([shipdict objectForKey:@"like_ship"])
 	{
 		NSString*		other_shipdesc = (NSString *)[shipdict objectForKey:@"like_ship"];
@@ -2844,6 +2860,12 @@ GLfloat docked_light_specular[]	= { (GLfloat) 1.0, (GLfloat) 1.0, (GLfloat) 0.5,
 			shipdict = [NSMutableDictionary dictionaryWithDictionary:this_shipdict];	// synthesis'
 		}
 	}
+	
+	[cachedResult release];
+	cachedResult = [shipdict copy];
+	[cachedKey release];
+	cachedKey = [desc copy];
+	
 	return shipdict;
 }
 
@@ -6681,8 +6703,7 @@ double estimatedTimeForJourney(double distance, int hops)
 	ship_seed.b ^= ship_seed.c;	// XOR
 	ship_seed.a	^= ship_seed.b;	// XOR
 	
-	NSMutableArray*	resultArray = [NSMutableArray arrayWithCapacity:32];
-	NSMutableDictionary* resultDictionary = [NSMutableDictionary dictionaryWithCapacity:32];
+	NSMutableDictionary		*resultDictionary = [NSMutableDictionary dictionaryWithCapacity:32];
 	
 	float tech_price_boost = (ship_seed.a + ship_seed.b) / 256.0;
 	int i = 0;
@@ -6941,21 +6962,22 @@ double estimatedTimeForJourney(double distance, int hops)
 		rotate_seed(&ship_seed);
 	}
 	
-	NSArray* shipsForSale = [resultDictionary allKeys];
-	
-	for (i = 0; i < [shipsForSale count]; i++)
-		[resultArray addObject:[resultDictionary objectForKey:[shipsForSale objectAtIndex:i]]];
-	
+	NSMutableArray *resultArray = [[[resultDictionary allKeys] mutableCopy] autorelease];
 	[resultArray sortUsingFunction:compareName context:nil];
 	
 	// remove identically priced ships of the same name
 	i = 1;
+	
 	while (i < [resultArray count])
 	{
 		if (compareName([resultArray objectAtIndex:i - 1], [resultArray objectAtIndex:i], nil) == NSOrderedSame )
+		{
 			[resultArray removeObjectAtIndex: i];
+		}
 		else
+		{
 			i++;
+		}
 	}
 	
 	return [NSArray arrayWithArray:resultArray];
@@ -6989,48 +7011,48 @@ NSComparisonResult comparePrice(NSDictionary *dict1, NSDictionary *dict2, void *
 	
 	// get basic information about the commander's craft
 	
-	NSString* cmdr_ship_desc = (NSString*)[cmdr_dict objectForKey:@"ship_desc"];
-	int cmdr_fwd_weapon = [(NSNumber*)[cmdr_dict objectForKey:@"forward_weapon"] intValue];
+	NSString* cmdr_ship_desc = [cmdr_dict objectForKey:@"ship_desc"];
+	int cmdr_fwd_weapon = [[cmdr_dict objectForKey:@"forward_weapon"] intValue];
 	int cmdr_fwd_weapon_value = 0;
 	int cmdr_other_weapons_value = 0;
-	int cmdr_aft_weapon = [(NSNumber*)[cmdr_dict objectForKey:@"aft_weapon"] intValue];
-	int cmdr_port_weapon = [(NSNumber*)[cmdr_dict objectForKey:@"port_weapon"] intValue];
-	int cmdr_starboard_weapon = [(NSNumber*)[cmdr_dict objectForKey:@"starboard_weapon"] intValue];
-	int cmdr_missiles = [(NSNumber*)[cmdr_dict objectForKey:@"missiles"] intValue];
+	int cmdr_aft_weapon = [[cmdr_dict objectForKey:@"aft_weapon"] intValue];
+	int cmdr_port_weapon = [[cmdr_dict objectForKey:@"port_weapon"] intValue];
+	int cmdr_starboard_weapon = [[cmdr_dict objectForKey:@"starboard_weapon"] intValue];
+	int cmdr_missiles = [[cmdr_dict objectForKey:@"missiles"] intValue];
 	int cmdr_missiles_value = cmdr_missiles * [self getPriceForWeaponSystemWithKey:@"EQ_MISSILE"] / 10;
-	int cmdr_max_passengers = [(NSNumber*)[cmdr_dict objectForKey:@"max_passengers"] intValue];
-	NSMutableArray* cmdr_extra_equipment = [NSMutableArray arrayWithArray:[(NSDictionary *)[cmdr_dict objectForKey:@"extra_equipment"] allKeys]];
+	int cmdr_max_passengers = [[cmdr_dict objectForKey:@"max_passengers"] intValue];
+	NSMutableArray* cmdr_extra_equipment = [NSMutableArray arrayWithArray:[[cmdr_dict objectForKey:@"extra_equipment"] allKeys]];
 	
 	// given the ship model (from cmdr_ship_desc)
 	// get the basic information about the standard customer model for that craft
-	NSDictionary* shipyard_info = (NSDictionary*)[shipyard objectForKey:cmdr_ship_desc];
-	NSDictionary* basic_info = (NSDictionary*)[shipyard_info objectForKey:KEY_STANDARD_EQUIPMENT];
-	int base_price = [(NSNumber*)[shipyard_info objectForKey:SHIPYARD_KEY_PRICE] intValue];
-	int base_missiles = [(NSNumber*)[basic_info objectForKey:KEY_EQUIPMENT_MISSILES] intValue];
+	NSDictionary* shipyard_info = [shipyard objectForKey:cmdr_ship_desc];
+	NSDictionary* basic_info = [shipyard_info objectForKey:KEY_STANDARD_EQUIPMENT];
+	int base_price = [[shipyard_info objectForKey:SHIPYARD_KEY_PRICE] intValue];
+	int base_missiles = [[basic_info objectForKey:KEY_EQUIPMENT_MISSILES] intValue];
 	int base_missiles_value = base_missiles * [self getPriceForWeaponSystemWithKey:@"EQ_MISSILE"] / 10;
-	NSString* base_fwd_weapon_key = (NSString*)[basic_info objectForKey:KEY_EQUIPMENT_FORWARD_WEAPON];
+	NSString* base_fwd_weapon_key = [basic_info objectForKey:KEY_EQUIPMENT_FORWARD_WEAPON];
 	int base_weapon_value = [self getPriceForWeaponSystemWithKey:base_fwd_weapon_key] / 10;
-	NSArray* base_extra_equipment = (NSArray*)[basic_info objectForKey:KEY_EQUIPMENT_EXTRAS];
+	NSArray* base_extra_equipment = [basic_info objectForKey:KEY_EQUIPMENT_EXTRAS];
 	
 	// work out weapon values
 	if (cmdr_fwd_weapon)
 	{
-		NSString* weapon_key = [self equipmentKeyForWeapon:cmdr_fwd_weapon];
+		NSString* weapon_key = WeaponTypeToEquipmentString(cmdr_fwd_weapon);
 		cmdr_fwd_weapon_value = [self getPriceForWeaponSystemWithKey:weapon_key] / 10;
 	}
 	if (cmdr_aft_weapon)
 	{
-		NSString* weapon_key = [self equipmentKeyForWeapon:cmdr_aft_weapon];
+		NSString* weapon_key = WeaponTypeToEquipmentString(cmdr_aft_weapon);
 		cmdr_other_weapons_value += [self getPriceForWeaponSystemWithKey:weapon_key] / 10;
 	}
 	if (cmdr_port_weapon)
 	{
-		NSString* weapon_key = [self equipmentKeyForWeapon:cmdr_port_weapon];
+		NSString* weapon_key = WeaponTypeToEquipmentString(cmdr_port_weapon);
 		cmdr_other_weapons_value += [self getPriceForWeaponSystemWithKey:weapon_key] / 10;
 	}
 	if (cmdr_starboard_weapon)
 	{
-		NSString* weapon_key = [self equipmentKeyForWeapon:cmdr_starboard_weapon];
+		NSString* weapon_key = WeaponTypeToEquipmentString(cmdr_starboard_weapon);
 		cmdr_other_weapons_value += [self getPriceForWeaponSystemWithKey:weapon_key] / 10;
 	}
 	
@@ -7038,12 +7060,12 @@ NSComparisonResult comparePrice(NSDictionary *dict1, NSDictionary *dict2, void *
 	int i,j;
 	for (i = 0; i < [base_extra_equipment count]; i++)
 	{
-		NSString* standard_option = (NSString*)[base_extra_equipment objectAtIndex:i];
+		NSString* standard_option = [base_extra_equipment objectAtIndex:i];
 		for (j = 0; j < [cmdr_extra_equipment count]; j++)
 		{
-			if ([(NSString*)[cmdr_extra_equipment objectAtIndex:j] isEqual:standard_option])
+			if ([[cmdr_extra_equipment objectAtIndex:j] isEqual:standard_option])
 				[cmdr_extra_equipment removeObjectAtIndex:j--];
-			if ((j > 0)&&([(NSString*)[cmdr_extra_equipment objectAtIndex:j] isEqual:@"EQ_PASSENGER_BERTH"]))
+			if ((j > 0)&&([[cmdr_extra_equipment objectAtIndex:j] isEqual:@"EQ_PASSENGER_BERTH"]))
 				[cmdr_extra_equipment removeObjectAtIndex:j--];
 		}
 	}
@@ -7066,40 +7088,6 @@ NSComparisonResult comparePrice(NSDictionary *dict1, NSDictionary *dict2, void *
 	result += extra_equipment_value;
 	
 	return result;
-}
-
-- (int) weaponForEquipmentKey:(NSString*) weapon_string
-{
-	int result = WEAPON_NONE;
-	if ([weapon_string  hasSuffix:@"PULSE_LASER"])
-		result = WEAPON_PULSE_LASER;
-	if ([weapon_string  hasSuffix:@"BEAM_LASER"])
-		result = WEAPON_BEAM_LASER;
-	if ([weapon_string  hasSuffix:@"MINING_LASER"])
-		result = WEAPON_MINING_LASER;
-	if ([weapon_string  hasSuffix:@"MILITARY_LASER"])
-		result = WEAPON_MILITARY_LASER;
-	if ([weapon_string  hasSuffix:@"THARGOID_LASER"])
-		result = WEAPON_THARGOID_LASER;
-	return result;
-}
-
-- (NSString*) equipmentKeyForWeapon:(int) weapon
-{
-	switch (weapon)
-	{
-		case WEAPON_PULSE_LASER :
-			return	@"EQ_WEAPON_PULSE_LASER";
-		case WEAPON_BEAM_LASER :
-			return	@"EQ_WEAPON_BEAM_LASER";
-		case WEAPON_MINING_LASER :
-			return	@"EQ_WEAPON_MINING_LASER";
-		case WEAPON_MILITARY_LASER :
-			return	@"EQ_WEAPON_MILITARY_LASER";
-		case WEAPON_THARGOID_LASER :
-			return	@"EQ_WEAPON_THARGOID_LASER";
-	}
-	return nil;
 }
 
 

@@ -19,6 +19,7 @@
 #define NONNULL_FUNC		GCC_ATTR((nonnull))			// Pointer parameters may not be NULL
 #define ALWAYS_INLINE_FUNC	GCC_ATTR((always_inline))	// Force inlining of function
 #define DEPRECATED_FUNC		GCC_ATTR((deprecated))		// Warn if this function is used
+#define NO_RETURN_FUNC		GCC_ATTR((noreturn))		// Function can never return
 
 #define INLINE_PURE_FUNC	ALWAYS_INLINE_FUNC PURE_FUNC
 #define INLINE_CONST_FUNC	ALWAYS_INLINE_FUNC CONST_FUNC

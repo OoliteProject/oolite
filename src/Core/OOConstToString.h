@@ -52,6 +52,9 @@ NSString *JSTypeToString(int /* JSType */ type) CONST_FUNC;
 NSString *WeaponTypeToString(OOWeaponType weapon) CONST_FUNC;
 OOWeaponType StringToWeaponType(NSString *string) PURE_FUNC;
 
+NSString *WeaponTypeToEquipmentString(OOWeaponType weapon) CONST_FUNC;
+OOWeaponType EquipmentStringToWeaponType(NSString *string) PURE_FUNC;
+
 NSString *CargoTypeToString(OOCargoType cargo) CONST_FUNC;
 OOCargoType StringToCargoType(NSString *string) PURE_FUNC;
 

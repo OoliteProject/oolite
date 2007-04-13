@@ -1161,12 +1161,11 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	{
 		// in checkCloseCollisionWith: we check if some thing has come within touch range (origin within our collision_radius)
 		// here we check if it has gone outside that range
-		NSArray* shipIDs = [closeContactsInfo allKeys];
-		int i = 0;
-		int n_ships = [shipIDs count];
-		for (i = 0; i < n_ships; i++)
+		NSEnumerator			*contactEnum = nil;
+		NSString				*other_key = nil;
+		
+		for (contactEnum = [closeContactsInfo keyEnumerator]; (other_key = [contactEnum nextObject]); )
 		{
-			NSString*	other_key = (NSString*)[shipIDs objectAtIndex:i];
 			ShipEntity* other = (ShipEntity*)[UNIVERSE entityForUniversalID:[other_key intValue]];
 			if ((other != nil) && (other->isShip))
 			{

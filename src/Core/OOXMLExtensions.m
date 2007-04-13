@@ -59,6 +59,8 @@ which would be used by:
 
 #import "OOXMLExtensions.h"
 
+#if OO_USE_CUSTOM_EXPORTER
+
 int OOXMLindentation_level = 0;
 
 /* implementations */
@@ -162,7 +164,7 @@ int OOXMLindentation_level = 0;
 	NSMutableArray* my_keys = [NSMutableArray arrayWithArray:[self allKeys]];
 	[my_keys sortUsingSelector:@selector(compare:)];
 	int n_items = [my_keys count];
-		
+	
 	if (n_items)
 	{
 		int i;
@@ -202,23 +204,47 @@ int OOXMLindentation_level = 0;
 	
 	NSData* resultData = [NSData dataWithBytes:(const void *)utf8data length:bytes];
 	
-	return [resultData writeToFile:path atomically: flag];
-}
-
-- (BOOL) writeOOXMLToURL:(NSURL *)aURL atomically:(BOOL)atomically
-{
-	NSMutableString* result = [NSMutableString stringWithString:@"<?xml version=\"1.0\" encoding=\"UTF-8\"?>"];
-	[result appendString:@"\n<!DOCTYPE plist PUBLIC \"-//Apple Computer//DTD PLIST 1.0//EN\" \"http://www.apple.com/DTDs/PropertyList-1.0.dtd\">"];
-	[result appendString:@"\n<plist version=\"1.0\">"];
-	[result appendFormat:@"\n%@", [self OOXMLdescription]];
-	[result appendString:@"\n</plist>"];
-
-	const char* utf8data = [result UTF8String];
-	int bytes = strlen(utf8data);
-	
-	NSData* resultData = [NSData dataWithBytes:(const void *)utf8data length:bytes];
-	
-	return [resultData writeToURL: aURL atomically: atomically];
+	if (![resultData writeToFile:path atomically: flag])
+	{
+		OOLog(@"save.failed.write", @"***** SAVE ERROR: Failed to write player data.");
+		return NO;
+	}
+	return YES;
 }
 
 @end
+
+#else	// !OO_USE_CUSTOM_EXPORTER
+
+@implementation NSDictionary (OOXMLExtensions)
+
+- (BOOL) writeOOXMLToFile:(NSString *)path atomically:(BOOL)flag errorDescription:(NSString **)outErrorDesc
+{
+	NSData		*data = nil;
+	NSString	*errorDesc = nil;
+	
+	data = [NSPropertyListSerialization dataFromPropertyList:self format:NSPropertyListXMLFormat_v1_0 errorDescription:outErrorDesc];
+	if (data == nil)
+	{
+		if (outErrorDesc != NULL)
+		{
+			*outErrorDesc = [NSString stringWithFormat:@"could not convert property list to XML: %@", errorDesc];
+		}
+		return NO;
+	}
+	
+	if (![data writeToFile:path atomically:YES])
+	{
+		if (outErrorDesc != NULL)
+		{
+			*outErrorDesc = [NSString stringWithFormat:@"could not write data to %@.", path];
+		}
+		return NO;
+	}
+	
+	return YES;
+}
+
+@end
+
+#endif

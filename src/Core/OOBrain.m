@@ -27,6 +27,7 @@ MA 02110-1301, USA.
 
 #import "Universe.h"
 #import "OOConstToString.h"
+#import "OOCollectionExtractors.h"
 
 #import "ShipEntity.h"
 
@@ -59,31 +60,43 @@ MA 02110-1301, USA.
 
 - (id)initBrainWithInstincts:(NSDictionary*) instinctDictionary forOwner:(id) anOwner andShip:(ShipEntity*) aShip
 {
+	NSEnumerator			*instinctEnum = nil;
+	NSString				*key = nil;
+	OOInstinct				*instinct = nil;
+	
 	self = [super init];
 	
-		n_instincts = 0;
-		int i;
-		for (i = 0; i < [instinctDictionary count]; i++)
+	n_instincts = 0;
+	
+	for (instinctEnum = [instinctDictionary keyEnumerator]; (key = [instinctEnum nextObject]); )
+	{
+		OOInstinctID itype = StringToInstinct(key);
+		
+		if (itype != INSTINCT_NULL)
 		{
-			NSString* key = (NSString*)[[instinctDictionary allKeys] objectAtIndex:i];
-			
-			OOInstinctID itype = StringToInstinct(key);
-			
-			if (itype != INSTINCT_NULL)
+			if (n_instincts == MAX_INSTINCTS)
 			{
-				GLfloat iprio = [[instinctDictionary objectForKey:key] floatValue];
+				OOLog(@"brain.full", @"Instinct dictionary has too many instincts, giving up at %@.", key);
+				break;
+			}
 			
-				OOInstinct* instinct0 = [[OOInstinct alloc] initInstinctOfType:itype ofPriority:iprio forOwner:anOwner withShip:aShip];
-				
-				instincts[n_instincts++] = instinct0;	// retained
+			GLfloat iprio = [instinctDictionary floatForKey:key defaultValue:0.0f];
+			if (iprio != 0.0f)
+			{
+				instinct = [[OOInstinct alloc] initInstinctOfType:itype ofPriority:iprio forOwner:anOwner withShip:aShip];
+				if (instinct != nil)
+				{
+					instincts[n_instincts++] = instinct;	// retained
+				}
 			}
 		}
-		
-		time_until_action = randf() * 0.5;
-		action_interval = 0.125;
+	}
 	
-		time_until_observation = randf() * 0.5;
-		observe_interval = 0.25;
+	time_until_action = randf() * 0.5;
+	action_interval = 0.125;
+
+	time_until_observation = randf() * 0.5;
+	observe_interval = 0.25;
 	
 	return self;
 }

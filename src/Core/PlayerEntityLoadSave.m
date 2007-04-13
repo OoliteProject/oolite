@@ -56,6 +56,7 @@ MA 02110-1301, USA.
 - (void) setGuiToSaveCommanderScreen: (NSString *)cdrName;
 - (void) setGuiToOverwriteScreen: (NSString *)cdrName;
 - (void) lsCommanders: (GuiDisplayGen *)gui directory: (NSString*)directory pageNumber: (int)page highlightName: (NSString *)highlightName;
+- (void) writePlayerToPath:(NSString *)path;
 - (void) nativeSavePlayer: (NSString *)cdrName;
 - (BOOL) existingNativeSave: (NSString *)cdrName;
 - (void) showCommanderShip: (int)cdrArrayIndex;
@@ -106,38 +107,18 @@ MA 02110-1301, USA.
 
 - (void) quicksavePlayer
 {
-	NSString* filename = save_path;
-	if (!filename)
-		filename = [[(MyOpenGLView *)[UNIVERSE gameView] gameController] playerFileToLoad];
-	if (!filename)
+	NSString		*path = nil;
+	
+	path = save_path;
+	if (!path)  path = [[[UNIVERSE gameView] gameController] playerFileToLoad];
+	if (!path)
 	{
-		NSLog(@"ERROR no filename returned by [[(MyOpenGLView *)[UNIVERSE gameView] gameController] playerFileToLoad]");
-		NSException* myException = [NSException
-			exceptionWithName:@"GameNotSavedException"
-			reason:@"ERROR no filename returned by [[(MyOpenGLView *)[UNIVERSE gameView] gameController] playerFileToLoad]"
-			userInfo:nil];
-		[myException raise];
-		return;
+		NSLog(@"ERROR no file name returned by [[[UNIVERSE gameView] gameController] playerFileToLoad]");
+		[NSException raise:@"OoliteGameNotSavedException"
+					format:@"ERROR no file name returned by [[UNIVERSE gameView] gameController] playerFileToLoad]"];
 	}
-	if (![[self commanderDataDictionary] writeOOXMLToFile:filename atomically:YES])
-	{
-		NSLog(@"***** ERROR: Save to %@ failed!", filename);
-		NSException* myException = [NSException
-			exceptionWithName:@"OoliteException"
-			reason:[NSString stringWithFormat:@"Attempt to save game to file '%@' failed for some reason", filename]
-			userInfo:nil];
-		[myException raise];
-		return;
-	}
-	else
-	{
-		
-		[UNIVERSE clearPreviousMessage];	// allow this to be given time and again
-		[UNIVERSE addMessage:ExpandDescriptionForCurrentSystem(@"[game-saved]") forCount:2];
-		if (save_path)
-			[save_path autorelease];
-		save_path = [filename retain];
-	}
+	
+	[self writePlayerToPath:path];
 	
 	[self setGuiToStatusScreen];
 }
@@ -480,6 +461,7 @@ MA 02110-1301, USA.
 	
 	sp = [NSSavePanel savePanel];
 	[sp setRequiredFileType:@"oolite-save"];
+	[sp setCanSelectHiddenExtension:YES];
 	
 	// display the NSSavePanel
 	runResult = [sp runModalForDirectory:nil file:player_name];
@@ -491,29 +473,47 @@ MA 02110-1301, USA.
 		NSArray*	path_components = [[sp filename] pathComponents];
 		NSString*   new_name = [[path_components objectAtIndex:[path_components count]-1] stringByDeletingPathExtension];
 
-		if (player_name)	[player_name release];
-		player_name = [new_name retain];
-
-		if (![[self commanderDataDictionary] writeOOXMLToFile:[sp filename] atomically:YES])
-		{
-			NSLog(@"***** ERROR: Save to %@ failed!", [sp filename]);
-			NSException* myException = [NSException
-				exceptionWithName:@"OoliteException"
-				reason:[NSString stringWithFormat:@"Attempt to save game to file '%@' failed for some reason", [sp filename]]
-				userInfo:nil];
-			[myException raise];
-			return;
-		}
-		else
-		{
-			// set this as the default file to load / save
-			if (save_path)
-				[save_path autorelease];
-			save_path = [[NSString stringWithString:[sp filename]] retain];
-			[[UNIVERSE gameController] setPlayerFileToLoad:save_path];
-			[[UNIVERSE gameController] setPlayerFileDirectory:save_path];
-		}
+		[player_name release];
+		player_name = [new_name copy];
+		
+		[self writePlayerToPath:[sp filename]];
 	}
+	[self setGuiToStatusScreen];
+}
+
+
+- (void) writePlayerToPath:(NSString *)path
+{
+	NSString		*errDesc = nil;
+	NSDictionary	*dict = nil;
+	BOOL			didSave = NO;
+	
+	if (!path)
+	{
+		OOLog(@"save.failed", @"***** SAVE ERROR: %s called with nil path.", __PRETTY_FUNCTION__);
+		return;
+	}
+	
+	dict = [self commanderDataDictionary];
+	if (dict == nil)  errDesc = @"could not construct commander data dictionary.";
+	else  didSave = [dict writeOOXMLToFile:path atomically:YES errorDescription:&errDesc];
+	if (didSave)
+	{
+		
+		[UNIVERSE clearPreviousMessage];	// allow this to be given time and again
+		[UNIVERSE addMessage:ExpandDescriptionForCurrentSystem(@"[game-saved]") forCount:2];
+		[save_path autorelease];
+		save_path = [path copy];
+		[[UNIVERSE gameController] setPlayerFileToLoad:save_path];
+		[[UNIVERSE gameController] setPlayerFileDirectory:save_path];
+	}
+	else
+	{
+		OOLog(@"save.failed", @"***** SAVE ERROR: %@", errDesc);
+		[NSException raise:@"OoliteException"
+					format:@"Attempt to save game to file '%@' failed: %@", errDesc];
+	}
+	
 	[self setGuiToStatusScreen];
 }
 
@@ -523,35 +523,12 @@ MA 02110-1301, USA.
 	NSString*	dir = [[UNIVERSE gameController] playerFileDirectory];
 	if (!dir)	dir = [[NSFileManager defaultManager] defaultCommanderPath];
 
-	NSString *savePath=[dir stringByAppendingPathComponent:[cdrName stringByAppendingPathExtension:@"oolite-save"]];
-
-	if (player_name)
-		[player_name release];
-
-   // use a copy of the passed value to ensure it never gets changed underneath us
-	player_name=[[NSString alloc] initWithString: cdrName];
-
-	if(![[self commanderDataDictionary] writeOOXMLToFile:savePath atomically:YES])
-	{
-		NSLog(@"***** ERROR: Save to %@ failed!", savePath);
-		NSException *myException = [NSException
-			exceptionWithName:@"OoliteException"
-			reason:[NSString stringWithFormat:@"Attempt to save '%@' failed",
-			savePath]
-			userInfo:nil];
-		[myException raise];
-		return;
-	}
+	NSString *savePath = [dir stringByAppendingPathComponent:[cdrName stringByAppendingPathExtension:@"oolite-save"]];
 	
-	// set this as the default file to load / save
-	if (save_path)
-		[save_path autorelease];
-	save_path = [savePath retain];
-	[[UNIVERSE gameController] setPlayerFileToLoad:save_path];
-	[[UNIVERSE gameController] setPlayerFileDirectory:save_path];
-
-	[UNIVERSE clearPreviousMessage];	// allow this to be given time and again
-	[UNIVERSE addMessage:ExpandDescriptionForCurrentSystem(@"[game-saved]") forCount:2];
+	[player_name release];
+	player_name = [cdrName copy];
+	
+	[self writePlayerToPath:savePath];
 }
 
 #endif

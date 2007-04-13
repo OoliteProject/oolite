@@ -155,6 +155,10 @@ rendering.opengl.stateDump				= $troubleShootingDump;	// Dump of OpenGL state (d
 rendering.opengl.shader.uniform			= $shaderDebugOn;
 
 
+save.failed								= yes;
+save.success							= no;
+
+
 setup.ship.badEntry.subentities			= inherit;
 
 

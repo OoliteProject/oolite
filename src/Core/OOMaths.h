@@ -42,6 +42,7 @@ extern "C" {
 #include "OOFunctionAttributes.h"
 #include <math.h>
 #include <stdint.h>
+#include <limits.h>
 #include "OOOpenGL.h"
 
 
