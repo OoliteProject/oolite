@@ -1701,7 +1701,7 @@
 				1A71E8610BCE8A6E00CD5C13 /* Shaders */,
 				1A71E85D0BCE8A5500CD5C13 /* Textures */,
 			);
-			name = Materials;
+			path = Materials;
 			sourceTree = "<group>";
 		};
 		1A71E5230BCD7C4E00CD5C13 /* Player refactoring */ = {
@@ -1883,7 +1883,7 @@
 				1A8A37020B95CADD007D20B8 /* PlayerEntityLoadSave.m */,
 				1A8A37030B95CADD007D20B8 /* PlayerEntityLoadSave.h */,
 			);
-			name = Entities;
+			path = Entities;
 			sourceTree = "<group>";
 		};
 		1A8A3C0F0B964002007D20B8 /* AI */ = {
