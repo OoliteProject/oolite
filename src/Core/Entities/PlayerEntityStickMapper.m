@@ -30,7 +30,7 @@ MA 02110-1301, USA.
 
 - (void) setGuiToStickMapperScreen
 {
-   GuiDisplayGen *gui=[universe gui];
+   GuiDisplayGen *gui=[UNIVERSE gui];
    NSArray *stickList=[stickHandler listSticks];
    int i;
    int tabStop[GUI_MAX_COLUMNS];
@@ -58,7 +58,7 @@ MA 02110-1301, USA.
           forRow: INSTRUCT_ROW];
 
    [gui setSelectedRow: selFunctionIdx + FUNCSTART_ROW];
-   [[universe gameView] supressKeysUntilKeyUp];
+   [[UNIVERSE gameView] supressKeysUntilKeyUp];
 
 }
 
