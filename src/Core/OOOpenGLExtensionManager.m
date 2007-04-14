@@ -104,9 +104,17 @@ static unsigned IntegerFromString(const GLubyte **ioString);
 
 - (BOOL)haveExtension:(NSString *)extension
 {
+// NSSet is documented as thread-safe under OS X, but I'm not sure about GNUstep. -- Ahruman
+#if !OOLITE_MAC_OS_X
 	[lock lock];
+#endif
+	
 	BOOL result = [extensions containsObject:extension];
-	[lock unlock];
+	
+#if !OOLITE_MAC_OS_X
+	[lock lock];
+#endif
+	
 	return result;
 }
 

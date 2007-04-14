@@ -83,7 +83,14 @@ enum
 	if (sQueueLock == nil)
 	{
 		sQueueLock = [[NSConditionLock alloc] initWithCondition:kConditionNoData];
-		if (sQueueLock != nil)  [NSThread detachNewThreadSelector:@selector(queueTask) toTarget:self withObject:nil];
+		if (sQueueLock != nil)
+		{
+			// For now, generate four threads for testing purposes. TODO: use number of processors. -- Ahruman
+			[NSThread detachNewThreadSelector:@selector(queueTask) toTarget:self withObject:nil];
+			[NSThread detachNewThreadSelector:@selector(queueTask) toTarget:self withObject:nil];
+			[NSThread detachNewThreadSelector:@selector(queueTask) toTarget:self withObject:nil];
+			[NSThread detachNewThreadSelector:@selector(queueTask) toTarget:self withObject:nil];
+		}
 	}
 	if (sQueueLock == nil)
 	{
@@ -180,15 +187,28 @@ enum
 			width:(uint32_t *)outWidth
 		   height:(uint32_t *)outHeight
 {
-	if (!ready)
+	if (EXPECT_NOT(completionLock != NULL))
 	{
+		/*	If the lock exists, we must block on it until it is unlocked by
+			the loader thread, _even if the ready flag is set_, because of
+			potential write reordering issues. A read barrier here and a write
+			barrier at the end of loading (before setting the ready flag)
+			would probably be OK, too, if we had cross-platform barriers.
+			
+			If you don't understand the previous paragraph, you don't know
+			enough about threading to optimize out this unlock. If you do, and
+			you're sure it can be bypassed safely, you may be right. :-)
+			-- Ahruman
+		*/
+		
 		priority = YES;
-		OOLog(@"textureLoader.block", @"Blocking for completion of loading of %@", [path lastPathComponent]);
-		[completionLock lock];	// Block until ready
+		BOOL block = !ready;
+		if (block)  OOLog(@"textureLoader.block", @"Blocking for completion of loading of %@", [path lastPathComponent]);
+		[completionLock lock];
 		[completionLock unlock];
 		[completionLock release];
 		completionLock = nil;
-		OOLog(@"textureLoader.block.done", @"Finished waiting around.");
+		if (block)  OOLog(@"textureLoader.block.done", @"Finished waiting around.");
 	}
 	
 	if (EXPECT(outData != NULL))  *outData = data;
@@ -263,6 +283,19 @@ enum
 {
 	NSAutoreleasePool			*pool = nil;
 	OOTextureLoader				*loader = nil;
+	
+	/*	Lower thread priority so the loader doesn't go "Hey! This thread's
+		just woken up, let's give it exclusive use of the CPU for a second or
+		five!", thus stopping graphics from happening, which is somewhat
+		against the point.
+		
+		This leads to priority inversion when the main thread blocks for
+		texture load completion. I'm assuming people aren't going to be
+		running other CPU-hogging time at the same time as Oolite, so it won't
+		be a problem.
+		-- Ahruman
+	*/
+	[NSThread setThreadPriority:0.5];
 	
 	for (;;)
 	{

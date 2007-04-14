@@ -1007,6 +1007,9 @@ static PlayerEntity *sSharedPlayer = nil;
 	saved					= NO;
 	cursor_coordinates		= galaxy_coordinates;
 	
+	forward_shield = PLAYER_MAX_FORWARD_SHIELD;
+	aft_shield = PLAYER_MAX_AFT_SHIELD;
+	
 	scanClass = CLASS_PLAYER;
 	
 	[UNIVERSE clearGUIs];
