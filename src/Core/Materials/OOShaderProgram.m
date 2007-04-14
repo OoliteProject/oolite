@@ -28,6 +28,7 @@ MA 02110-1301, USA.
 #import "OOFunctionAttributes.h"
 #import "OOStringParsing.h"
 #import "ResourceManager.h"
+#import "OOOpenGLExtensionManager.h"
 
 
 static NSMutableDictionary		*sShaderCache = nil;

@@ -37,6 +37,7 @@ static void PNGRead(png_structp png, png_bytep bytes, png_size_t size);
 
 @interface OOPNGTextureLoader (OOPrivate)
 
+- (void)doLoadTexture;
 - (void)readBytes:(png_bytep)bytes count:(png_size_t)count;
 
 @end
@@ -46,17 +47,42 @@ static void PNGRead(png_structp png, png_bytep bytes, png_size_t size);
 
 - (void)loadTexture
 {
-	png_bytepp					rows;
+	// Get data from file
+	fileData = [[NSData alloc] initWithContentsOfMappedFile:path];
+	if (fileData == nil)  return;
+	length = [fileData length];
+	
+	[self doLoadTexture];
+	
+	[fileData release];
+	fileData = nil;
+}
+
+
+- (void)dealloc
+{
+	[fileData release];
+	if (png != NULL)
+	{
+		png_destroy_read_struct(&png, &pngInfo, &pngEndInfo);
+	}
+	
+	[super dealloc];
+}
+
+@end
+
+
+@implementation OOPNGTextureLoader (OOPrivate)
+
+- (void)doLoadTexture
+{
+	png_bytepp					rows = NULL;
 	png_uint_32					pngWidth,
 								pngHeight;
 	int							depth,
 								colorType;
 	uint32_t					i;
-	
-	// Get data from file
-	fileData = [[NSData alloc] initWithContentsOfMappedFile:path];
-	if (fileData == nil)  return;
-	length = [fileData length];
 	
 	// Set up PNG decoding
 	png = png_create_read_struct(PNG_LIBPNG_VER_STRING, NULL, PNGError, PNGWarning);
@@ -93,73 +119,60 @@ static void PNGRead(png_structp png, png_bytep bytes, png_size_t size);
 	
 	png_set_read_fn(png, self, PNGRead);
 	
-	png_read_png(png, pngInfo, PNG_TRANSFORM_STRIP_16 | PNG_TRANSFORM_PACKING | PNG_TRANSFORM_SHIFT | PNG_TRANSFORM_SWAP_ALPHA, NULL);
-	
-	// We're done with the file now.
-	[fileData release];
-	fileData = nil;
-	
-	// Get format info and check that it meets our expectations.
+	png_read_info(png, pngInfo);
+	// Read header, get format info and check that it meets our expectations.
 	if (EXPECT_NOT(!png_get_IHDR(png, pngInfo, &pngWidth, &pngHeight, &depth, &colorType, NULL, NULL, NULL)))
 	{
 		OOLog(@"texture.load.png.failed", @"Failed to get metadata from PNG %@", path);
 		return;
 	}
-	OOLog(@"texture.load.png.info", @"Loaded PNG %@\n\twidth: %u\n\theight: %u\n\tdepth: %i\n\tcolorType: %i", path, width, height, depth, colorType);
-	
-	// The png_read_png transformation options should have assured we got 8-bit ARGB.
-	if (EXPECT_NOT(colorType != PNG_COLOR_TYPE_RGB_ALPHA || depth != 8))
+	png_set_strip_16(png);			// 16 bits per channel -> 8 bpc
+	png_set_packing(png);			// <8 bpc -> 8 bpc (is this needed with png_set_expand()?)
+	if (depth < 8 || colorType == PNG_COLOR_TYPE_PALETTE)
 	{
-		OOLog(@"texture.load.png.failed", @"Unexpected PNG format (colour type %i, depth %i) for %@", colorType, depth, path);
-		return;
+		png_set_expand(png);		// Paletted -> RGB, greyscale -> 8 bpc
+	}
+//	png_set_bgr for little-endian? If so, do we want png_set_swap_alpha in that case?
+	png_set_bgr(png);
+	png_set_swap_alpha(png);		// RGBA->ARGB
+	
+//	if ((colorType & PNG_COLOR_MASK_ALPHA) == 0)
+	{
+		png_set_filler(png, 0xFF, PNG_FILLER_BEFORE);	// PNG_FILLER_AFTER for little-endian?
 	}
 	
-	// Data is good, allocate buffer and copy. TODO: avoid copying stage by using low-level PNG reading.
+	png_read_update_info(png, pngInfo);
+	
+	// Metadata is acceptable; load data.
 	width = pngWidth;
 	height = pngHeight;
-	rowBytes = width * 4;
+	rowBytes = png_get_rowbytes(png, pngInfo); // width * 4;
 	
+	// png_read_png
+	rows = malloc(sizeof *rows * height);
 	data = malloc(rowBytes * height);
-	if (EXPECT_NOT(data == NULL))
+	if (EXPECT_NOT(rows == NULL || data == NULL))
 	{
+		if (rows != NULL)  free(rows);
+		if (data != NULL)
+		{
+			free(data);
+			data = NULL;
+		}
 		OOLog(kOOLogAllocationFailure, @"Failed to allocate space (%u bytes) for texture %@", rowBytes * height, path);
 		return;
 	}
 	
-	rows = png_get_rows(png, pngInfo);
-	if (EXPECT_NOT(data == NULL))
-	{
-		OOLog(@"texture.load.png.failed", @"Failed to get image rows for PNG %@", path);
-		return;
-	}
+	for (i = 0; i != height; ++i)  rows[i] = ((png_bytep)data) + i * rowBytes;
+	png_set_rows(png, pngInfo, rows);
+	png_read_image(png, rows);
+	png_read_end(png, pngEndInfo);
 	
-	for (i = 0; i != height; ++i)
-	{
-		memcpy(((uint8_t *)data) + height * rowBytes, rows[i], rowBytes);
-	}
+	free(rows);
 	
-	if (png != NULL)
-	{
-		png_destroy_read_struct(&png, &pngInfo, &pngEndInfo);
-	}
+	png_destroy_read_struct(&png, &pngInfo, &pngEndInfo);
 }
 
-
-- (void)dealloc
-{
-	if (png != NULL)
-	{
-		png_destroy_read_struct(&png, &pngInfo, &pngEndInfo);
-	}
-	[fileData release];
-	
-	[super dealloc];
-}
-
-@end
-
-
-@implementation OOPNGTextureLoader (OOPrivate)
 
 - (void)readBytes:(png_bytep)bytes count:(png_size_t)count
 {
@@ -172,10 +185,10 @@ static void PNGRead(png_structp png, png_bytep bytes, png_size_t size);
 	
 	assert(bytes != NULL);
 	
-	OOLog(@"texture.load.png.read", @"Reading %u bytes starting at offset %u", count, offset);
+//	OOLog(@"texture.load.png.read", @"Reading %u bytes starting at offset %u", count, offset);
 	
 	// Copy bytes
-	memcpy(bytes, [fileData bytes], count);
+	memcpy(bytes, [fileData bytes] + offset, count);
 	offset += count;
 }
 

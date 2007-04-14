@@ -33,17 +33,28 @@ MA 02110-1301, USA.
 
 enum
 {
-	kOOTextureFilterDefault			= 0x0000UL,
-	kOOTextureFilterLinear			= 0x0001UL,
-	kOOTextureFilterNoMipMap		= 0x0002UL,
-	kOOTextureFilterForceMipMap		= 0x0003UL,
+	kOOTextureMinFilterDefault		= 0x0000UL,
+	kOOTextureMinFilterNearest		= 0x0001UL,
+	kOOTextureMinFilterLinear		= 0x0002UL,
+	kOOTextureMinFilterMipMap		= 0x0003UL,
 	
-	kOOTextureNoShrink				= 0x0010UL,
-	kOOTextureIsNormalMap			= 0x0020UL,
+	kOOTextureMagFilterNearest		= 0x0010UL,
+	kOOTextureMagFilterLinear		= 0x0020UL,
 	
-	kOOTextureFilterMask			= 0x000FUL,
-	kOOTextureFlagsMask				= ~kOOTextureFilterMask
+	kOOTextureNoShrink				= 0x0100UL,
+	kOOTextureRepeatS				= 0x0200UL,
+	kOOTextureRepeatT				= 0x0200UL,
+	
+	kOOTextureMinFilterMask			= 0x000FUL,
+	kOOTextureMagFilterMask			= 0x00F0UL,
+	kOOTextureFlagsMask				= ~(kOOTextureMinFilterMask | kOOTextureMagFilterMask),
+	
+	kOOTextureDefaultOptions		= kOOTextureMinFilterDefault | kOOTextureMagFilterLinear,
+	kOOTextureDefinedFlags			= 0x0733UL
 };
+
+
+#define kOOTextureDefaultAnisotropy		0.5
 
 
 @interface OOTexture: NSObject
@@ -56,35 +67,52 @@ enum
 		{
 			OOTextureLoader			*loader;
 			uint32_t				options;
+#if GL_EXT_texture_filter_anisotropic
+			float					anisotropy;
+#endif
 		}						loading;
 		struct
 		{
 			void					*bytes;
 			GLuint					textureName;
+			uint32_t				width,
+									height;
 		}						loaded;
 	}						data;
-	uint32_t				width,
-							height;
 }
 
 /*	Load a texture, looking in Textures directories.
+	
+	NOTE: anisotropy is normalized to the range [0, 1]. 1 means as high an
+	anisotropy setting as the hardware supports.
+	
+	This method may change; +textureWithConfiguration is generally more
+	appropriate. 
 */
-+ (id)textureWithName:(NSString *)name options:(uint32_t)options;
++ (id)textureWithName:(NSString *)name options:(uint32_t)options anisotropy:(float)anisotropy;
 
 /*	Load a texure, looking in Textures directories, using configuration
-	dictionary.
+	dictionary or name. (That is, configuration may be either an NSDictionary
+	or an NSString.)
 	
 	Supported keys:
 		name (string, required)
-		mipMap (string, optional, one of: "never", "default", "force")
-		noFilter (boolean, optional)
-		noShrink (boolean, optional)
-		isNormalMap (boolean, optional)
+		minFilter (string, one of "default", "nearest", "linear", "mipmap")
+		maxFilter (string, one of "default", "nearest", "linear")
+		noShrink (boolean)
+		repeatS (boolean)
+		repeatT (boolean)
+		anisotropy (real)
 */
-+ (id)textureWithConfiguration:(NSDictionary *)configuration;
++ (id)textureWithConfiguration:(id)configuration;
 
 /*	Bind the texture to the current texture unit.
 */
 - (void)apply;
+
+/*	Ensure texture is loaded. This is required because setting up textures
+	inside display lists isn't allowed.
+*/
+- (void)ensureFinishedLoading;
 
 @end

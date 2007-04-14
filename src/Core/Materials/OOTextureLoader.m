@@ -97,7 +97,7 @@ enum
 		glGetIntegerv(GL_MAX_TEXTURE_SIZE, &sGLMaxSize);
 		if (sGLMaxSize < 64)  sGLMaxSize = 64;
 		
-		sUserMaxSize = [[NSUserDefaults standardUserDefaults] unsignedIntForKey:@"max-texture-size" defaultValue:UINT_MAX];
+		sUserMaxSize = [[NSUserDefaults standardUserDefaults] unsignedIntForKey:@"max-texture-size" defaultValue:0x80000000];
 		sUserMaxSize = OORoundUpToPowerOf2(sUserMaxSize);
 		if (sUserMaxSize < 64)  sUserMaxSize = 64;
 	}
@@ -138,8 +138,7 @@ enum
 	
 	[completionLock lock];	// Will be unlocked when loading is done.
 	
-	generateMipMaps = (options & kOOTextureFilterMask) == kOOTextureFilterDefault;
-	scaleAsNormalMap = (options & kOOTextureIsNormalMap) != 0;
+	generateMipMaps = (options & kOOTextureMinFilterMask) == kOOTextureMinFilterMipMap;
 	avoidShrinking = (options & kOOTextureNoShrink) != 0;
 	
 	return self;
@@ -184,9 +183,12 @@ enum
 	if (!ready)
 	{
 		priority = YES;
+		OOLog(@"textureLoader.block", @"Blocking for completion of loading of %@", [path lastPathComponent]);
 		[completionLock lock];	// Block until ready
+		[completionLock unlock];
 		[completionLock release];
 		completionLock = nil;
+		OOLog(@"textureLoader.block.done", @"Finished waiting around.");
 	}
 	
 	if (EXPECT(outData != NULL))  *outData = data;
@@ -275,7 +277,9 @@ enum
 			if (sQueueTail == loader)  sQueueTail = nil;
 			[sQueueLock unlockWithCondition:(sQueueHead != nil) ? kConditionQueuedData : kConditionNoData];
 			
+			OOLog(@"textureLoader.asyncLoad", @"Loading texture %@", [loader->path lastPathComponent]);
 			[loader performLoad];
+			OOLog(@"textureLoader.asyncLoad.done", @"Loading complete.");
 			[loader release];	// Was retained in -queue.
 		}
 		else
@@ -352,7 +356,7 @@ enum
 	rescale = (width != desiredWidth || height != desiredHeight);
 	if (rescale)
 	{
-		newSize = desiredWidth * desiredHeight;
+		newSize = desiredWidth * 4 * desiredHeight;
 		if (generateMipMaps)  newSize = (newSize * 4) / 3;
 		
 		newData = malloc(newSize);
@@ -360,7 +364,7 @@ enum
 		{
 			// Try again without space for mipmaps
 			generateMipMaps = NO;
-			newSize = desiredWidth * desiredHeight;
+			newSize = desiredWidth * 4 * desiredHeight;
 			newData = malloc(newSize);
 		}
 		if (newData == NULL)
@@ -370,14 +374,7 @@ enum
 			return;
 		}
 		
-		if (!scaleAsNormalMap)
-		{
-			ScalePixMap(data, width, height, rowBytes, newData, desiredWidth, desiredHeight);
-		}
-		else
-		{
-			ScaleNormalMap(data, width, height, rowBytes, newData, desiredWidth, desiredHeight);
-		}
+		ScalePixMap(data, width, height, rowBytes, newData, desiredWidth, desiredHeight);
 		
 		// Replace data with new, scaled data.
 		free(data);
@@ -390,20 +387,15 @@ enum
 	if (generateMipMaps && !rescale)
 	{
 		// Make space...
-		newData = realloc(data, (width * height * 4) / 3);
+		newSize = desiredWidth * 4 * desiredHeight;
+		newSize = (newSize * 4) / 3;
+		newData = realloc(data, newSize);
 		if (newData != nil)  data = newData;
 		else  generateMipMaps = NO;
 	}
 	if (generateMipMaps)
 	{
-		if (!scaleAsNormalMap)
-		{
-			GenerateMipMaps(data, width, height);
-		}
-		else
-		{
-			GenerateNormalMapMipMaps(data, width, height);
-		}
+		GenerateMipMaps(data, width, height);
 	}
 	
 	// All done.

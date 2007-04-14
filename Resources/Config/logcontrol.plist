@@ -155,6 +155,9 @@ rendering.opengl.stateDump				= $troubleShootingDump;	// Dump of OpenGL state (d
 rendering.opengl.shader.uniform			= $shaderDebugOn;
 
 
+resourceManager.foundFile				= off;					// Tells you where all assets (models, textures, sounds) are found. Very verbose!
+
+
 save.failed								= yes;
 save.success							= no;
 

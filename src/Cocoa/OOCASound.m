@@ -238,8 +238,9 @@ static size_t				sMaxBufferedSoundSize = 1 << 20;	// 1 MB
 
 - (void)decrementPlayingCount
 {
-	assert(0 != _playingCount);
-	--_playingCount;
+	//assert(0 != _playingCount);
+	if (EXPECT(_playingCount != 0))  --_playingCount;
+	else  OOLog(@"sound.playUnderflow", @"Playing count for %@ dropped below 0!", self);
 }
 
 

@@ -67,6 +67,12 @@ static OOMaterial *sActiveMaterial;
 }
 
 
+- (void)ensureFinishedLoading
+{
+	
+}
+
+
 - (void)unapply
 {
 	// Do nothing.

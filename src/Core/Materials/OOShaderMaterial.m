@@ -29,7 +29,8 @@ MA 02110-1301, USA.
 #import "OOFunctionAttributes.h"
 #import "OOCollectionExtractors.h"
 #import "OOShaderProgram.h"
-#import "TextureStore.h"
+#import "OOTexture.h"
+#import "OOOpenGLExtensionManager.h"
 
 
 static NSString *MacrosToString(NSDictionary *macros);
@@ -132,10 +133,21 @@ static NSString *MacrosToString(NSDictionary *macros);
 
 - (void)dealloc
 {
+	uint32_t			i;
+	
 	[self willDealloc];
 	
 	[shaderProgram release];
 	[uniforms release];
+	
+	if (textures != NULL)
+	{
+		for (i = 0; i != texCount; ++i)
+		{
+			[textures[i] release];
+		}
+		free(textures);
+	}
 	
 	[super dealloc];
 }
@@ -249,12 +261,19 @@ static NSString *MacrosToString(NSDictionary *macros);
 				[self setUniform:name floatValue:floatValue];
 			}
 		}
-		else if ([type isEqualToString:@"int"])
+		else if ([type isEqualToString:@"int"] || [type isEqualToString:@"texture"])
 		{
+			/*	"texture" is allowed as a synonym for "int" because shader#d
+				uniforms are mapped to texture units by specifying an integer
+				index.
+				uniforms = { diffuseMap = { type = texture; value = 0; }; };
+				means "bind uniform diffuseMap to texture unit 0" (which will
+				have the first texture in the textures array).
+			*/
 			if ([value respondsToSelector:@selector(intValue)])
 			{
-				gotValue = YES;
 				[self setUniform:name intValue:[value intValue]];
+				gotValue = YES;
 			}
 			else  gotValue = NO;
 		}
@@ -263,9 +282,9 @@ static NSString *MacrosToString(NSDictionary *macros);
 			selector = NSSelectorFromString(value);
 			if (selector)
 			{
-				gotValue = YES;
 				clamped = [definition boolForKey:@"clamped" defaultValue:NO];
 				[self bindUniform:name toObject:target property:selector clamped:clamped];
+				gotValue = YES;
 			}
 			else  gotValue = NO;
 		}
@@ -282,14 +301,15 @@ static NSString *MacrosToString(NSDictionary *macros);
 {
 	NSEnumerator			*uniformEnum = nil;
 	OOShaderUniform			*uniform = nil;
-	GLint					i;
+	uint32_t				i;
 	
 	[shaderProgram apply];
 	
 	for (i = 0; i != texCount; ++i)
 	{
 		glActiveTextureARB(GL_TEXTURE0_ARB + i);
-		glBindTexture(GL_TEXTURE_2D, textures[i]);
+		/*glBindTexture(GL_TEXTURE_2D, textures[i]);*/
+		[textures[i] apply];
 	}
 	glActiveTextureARB(GL_TEXTURE0_ARB);
 	
@@ -309,6 +329,20 @@ static NSString *MacrosToString(NSDictionary *macros);
 }
 
 
+- (void)ensureFinishedLoading
+{
+	uint32_t			i;
+	
+	if (textures != NULL)
+	{
+		for (i = 0; i != texCount; ++i)
+		{
+			[textures[i] ensureFinishedLoading];
+		}
+	}
+}
+
+
 - (void)unapplyWithNext:(OOMaterial *)next
 {
 	if (![next isKindOfClass:[OOShaderMaterial class]])	// Avoid redundant state change
@@ -324,7 +358,7 @@ static NSString *MacrosToString(NSDictionary *macros);
 
 - (void)addTexturesFromArray:(NSArray *)textureNames unitCount:(GLint)max
 {
-	NSString				*name = nil;
+	id						textureDef = nil;
 	unsigned				i = 0;
 	
 	// Allocate space for texture object name array
@@ -343,12 +377,8 @@ static NSString *MacrosToString(NSDictionary *macros);
 	{
 		[self setUniform:[NSString stringWithFormat:@"tex%u", i] intValue:i];
 		
-		name = [textureNames objectAtIndex:i];
-		if ([name isKindOfClass:[NSString class]])
-		{
-			OOLog(@"shader.temp.loadTexture", @"Getting texture %@", name);
-			textures[i] = [TextureStore getTextureNameFor:name];
-		}
+		textureDef = [textureNames objectAtIndex:i];
+		textures[i] = [[OOTexture textureWithConfiguration:textureDef] retain];
 	}
 }
 

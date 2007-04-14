@@ -53,27 +53,6 @@ typedef CGLContextObj OOOpenGLContext;
 #include <GL/glext.h>
 
 
-#if OOLITE_WINDOWS
-/*	Define the function pointers for the OpenGL extensions used in the game -
-	this is not required on the Mac, but is on at least Windows.
-*/
-PFNGLUSEPROGRAMOBJECTARBPROC glUseProgramObjectARB;
-PFNGLACTIVETEXTUREARBPROC glActiveTextureARB;
-PFNGLGETUNIFORMLOCATIONARBPROC glGetUniformLocationARB;
-PFNGLUNIFORM1IARBPROC glUniform1iARB;
-PFNGLUNIFORM1FARBPROC glUniform1fARB;
-PFNGLGETOBJECTPARAMETERIVARBPROC glGetObjectParameterivARB;
-PFNGLCREATESHADEROBJECTARBPROC glCreateShaderObjectARB;
-PFNGLGETINFOLOGARBPROC glGetInfoLogARB;
-PFNGLCREATEPROGRAMOBJECTARBPROC glCreateProgramObjectARB;
-PFNGLATTACHOBJECTARBPROC glAttachObjectARB;
-PFNGLDELETEOBJECTARBPROC glDeleteObjectARB;
-PFNGLLINKPROGRAMARBPROC glLinkProgramARB;
-PFNGLCOMPILESHADERARBPROC glCompileShaderARB;
-PFNGLSHADERSOURCEARBPROC glShaderSourceARB;
-#endif	// OOLITE_WINDOWS
-
-
 /*	FIXME: should probably use glXCopyContext() and glXMakeCurrent() on Linux;
 	there should be an equivalent for Windows. This isn't very urgent since
 	Oolite doesnt' use distinct contexts, though. I can't see an obvious SDL

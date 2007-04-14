@@ -39,8 +39,15 @@ MA 02110-1301, USA.
 // Make this the current material.
 - (void)apply;
 
-// Make no material the current material, tearing down anything set up by the current material.
+/*	Make no material the current material, tearing down anything set up by the
+	current material.
+*/
 + (void)applyNone;
+
+/*	Ensure material is ready to be used in a display list. This is not
+	required before using a material directly.
+*/
+- (void)ensureFinishedLoading;
 
 @end
 

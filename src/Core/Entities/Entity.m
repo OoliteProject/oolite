@@ -867,7 +867,7 @@ BOOL global_testForVAR;
 					}
 					else
 					{
-						[self initialiseTextures];
+						if (!materialsReady)  [self initialiseTextures];
 						[self generateDisplayList];
 					}
 				}
@@ -951,7 +951,9 @@ BOOL global_testForVAR;
 	// Force the entity to reload the textures for each face by clearing the face's texture name.
     for (fi = 0; fi < n_faces; fi++)
         faces[fi].texName = 0;
-
+	
+	materialsReady = NO;
+	
 	// Force the display list to be regenerated next time a frame is drawn.
 	[self regenerateDisplayList];
 #endif
@@ -980,6 +982,7 @@ BOOL global_testForVAR;
 			texture_name[ti] = [TextureStore getTextureNameFor: [NSString stringWithUTF8String: (char*)texture_file[ti]]];
 		}
 	}
+	materialsReady = YES;
 }
 
 - (void) regenerateDisplayList

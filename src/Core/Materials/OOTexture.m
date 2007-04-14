@@ -27,6 +27,14 @@ MA 02110-1301, USA.
 #import "OOCollectionExtractors.h"
 #import "Universe.h"
 #import "ResourceManager.h"
+#import "OOOpenGLExtensionManager.h"
+
+
+#if __BIG_ENDIAN__
+	#define RGBA_IMAGE_TYPE GL_UNSIGNED_INT_8_8_8_8_REV
+#else
+	#define RGBA_IMAGE_TYPE GL_UNSIGNED_INT_8_8_8_8
+#endif
 
 
 static NSMutableDictionary	*sInUseTextures = nil;
@@ -45,32 +53,83 @@ static NSMutableDictionary	*sInUseTextures = nil;
 	-- Ahruman
 */
 
+
+static BOOL		sCheckedExtensions = NO;
+
+// Anisotropic filtering
+#if GL_EXT_texture_filter_anisotropic
+static BOOL		sAnisotropyAvailable;
+static float	sAnisotropyScale;	// Scale of anisotropy values
+#else
+#warning GL_EXT_texture_filter_anisotropic unavialble -- are you using an up-to-date glext.h?
+#endif
+
+
+// CLAMP_TO_EDGE (OK, requiring OpenGL 1.2 wouln't be _that_ big a deal...)
+#if !defined(GL_CLAMP_TO_EDGE) && GL_SGIS_texture_edge_clamp
+#define GL_CLAMP_TO_EDGE GL_CLAMP_TO_EDGE_SGIS
+#endif
+
+#ifdef GL_CLAMP_TO_EDGE
+static BOOL		sClampToEdgeAvailable;
+#else
+#warning GL_CLAMP_TO_EDGE (OpenGL 1.2) and GL_SGIS_texture_edge_clamp are unavialble -- are you using an up-to-date gl.h?
+#define sClampToEdgeAvailable	NO
+#define GL_CLAMP_TO_EDGE		GL_CLAMP
+#endif
+
+
+// Client storage: reduce copying by requiring the app to keep data around
+#if GL_APPLE_client_storage
+#define OO_GL_CLIENT_STORAGE	1
+static inline void EnableClientStorage(void) { glPixelStorei(GL_UNPACK_CLIENT_STORAGE_APPLE, GL_TRUE); }
+// #elif in any equivalents on other platforms here
+#else
+#define OO_GL_CLIENT_STORAGE	0
+#define sClientStorageAvialable	NO
+#define EnableClientStorage()	do {} while (0)
+#endif
+
+#if OO_GL_CLIENT_STORAGE
+static BOOL		sClientStorageAvialable;
+#endif
+
+
 @interface OOTexture (OOPrivate)
 
-- (id)initWithPath:(NSString *)path key:(NSString *)key options:(uint32_t)options;
+- (id)initWithPath:(NSString *)path key:(NSString *)key options:(uint32_t)options anisotropy:(float)anisotropy;
+- (void)setUpTexture;
+- (void)uploadTextureDataWithMipMap:(BOOL)mipMap;
+
++ (void)checkExtensions;
 
 @end
 
 
 @implementation OOTexture
 
-+ (id)textureWithName:(NSString *)name options:(uint32_t)options
++ (id)textureWithName:(NSString *)name options:(uint32_t)options anisotropy:(float)anisotropy
 {
 	NSString				*key = nil;
 	OOTexture				*result = nil;
 	NSString				*path = nil;
 	
-	// Work out whether we want mip-mapping.
-	if ((options & kOOTextureFilterMask) == kOOTextureFilterDefault)
+	options &= kOOTextureDefinedFlags;
+	// Set default flags if needed
+	if ((options & kOOTextureMinFilterMask) == kOOTextureMinFilterDefault)
 	{
 		if ([UNIVERSE reducedDetail])
 		{
-			options |= kOOTextureFilterNoMipMap;
+			options |= kOOTextureMinFilterLinear;
 		}
 		else
 		{
-			options |= kOOTextureFilterForceMipMap;
+			options |= kOOTextureMinFilterMipMap;
 		}
+	}
+	if ((options & kOOTextureMagFilterMask) != kOOTextureMagFilterNearest)
+	{
+		options = (options & ~kOOTextureMagFilterMask) | kOOTextureMagFilterLinear;
 	}
 	
 	// Look for existing texture
@@ -85,8 +144,10 @@ static NSMutableDictionary	*sInUseTextures = nil;
 			return nil;
 		}
 		
+		if (!sCheckedExtensions)  [self checkExtensions];
+		
 		// No existing texture, load texture...
-		result = [[[OOTexture alloc] initWithPath:path key:key options:options] autorelease];
+		result = [[[OOTexture alloc] initWithPath:path key:key options:options anisotropy:anisotropy] autorelease];
 		
 		if (result != nil)
 		{
@@ -100,63 +161,50 @@ static NSMutableDictionary	*sInUseTextures = nil;
 }
 
 
-+ (id)textureWithConfiguration:(NSDictionary *)configuration
++ (id)textureWithConfiguration:(id)configuration
 {
 	NSString				*name = nil;
-	NSString				*useMipMapString = nil;
+	NSString				*filterString = nil;
 	uint32_t				options = 0;
+	float					anisotropy;
 	
-	name = [configuration stringForKey:@"name" defaultValue:nil];
-	if (name == nil)
+	if ([configuration isKindOfClass:[NSString class]])
 	{
-		OOLog(@"texture.load", @"Invalid texture configuration dictionary (must specify name):\n%@", configuration);
-		return nil;
+		name = configuration;
+		options = kOOTextureDefaultOptions;
 	}
-	
-	if ([configuration boolForKey:@"noFilter" defaultValue:NO])
+	else if ([configuration isKindOfClass:[NSDictionary class]])
 	{
-		options |= kOOTextureFilterLinear;
+		name = [configuration stringForKey:@"name" defaultValue:nil];
+		if (name == nil)
+		{
+			OOLog(@"texture.load", @"Invalid texture configuration dictionary (must specify name):\n%@", configuration);
+			return nil;
+		}
+		
+		filterString = [configuration stringForKey:@"minFilter" defaultValue:@"default"];
+		if ([filterString isEqualToString:@"nearest"])  options |= kOOTextureMinFilterNearest;
+		else if ([filterString isEqualToString:@"linear"])  options |= kOOTextureMinFilterLinear;
+		else if ([filterString isEqualToString:@"mipMap"])  options |= kOOTextureMinFilterMipMap;
+		else  options |= kOOTextureMinFilterDefault;	// Covers "default"
+		
+		filterString = [configuration stringForKey:@"magFilter" defaultValue:@"default"];
+		if ([filterString isEqualToString:@"nearest"])  options |= kOOTextureMagFilterNearest;
+		else  options |= kOOTextureMagFilterLinear;	// Covers "default" and "linear"
+		
+		if ([configuration boolForKey:@"noShrink" defaultValue:NO])  options |= kOOTextureNoShrink;
+		if ([configuration boolForKey:@"repeatS" defaultValue:NO])  options |= kOOTextureRepeatS;
+		if ([configuration boolForKey:@"repeatT" defaultValue:NO])  options |= kOOTextureRepeatT;
+		anisotropy = [configuration floatForKey:@"anisotropy" defaultValue:kOOTextureDefaultAnisotropy];
 	}
 	else
 	{
-		useMipMapString = [configuration stringForKey:@"mipMap" defaultValue:nil];
-		if (useMipMapString != nil)
-		{
-			if ([useMipMapString isEqualToString:@"never"])  options |= kOOTextureFilterNoMipMap;
-			else if ([useMipMapString isEqualToString:@"force"])  options |= kOOTextureFilterForceMipMap;
-			// Silently ignore other options; this covers "default"
-		}
-	}
-	
-	if ([configuration boolForKey:@"noShrink" defaultValue:NO])
-	{
-		options |= kOOTextureNoShrink;
-	}
-	
-	if ([configuration boolForKey:@"isNormalMap" defaultValue:NO])
-	{
-		options |= kOOTextureIsNormalMap;
-	}
-	
-	return [self textureWithName:name options:options];
-}
-
-
-- (id)initWithPath:(NSString *)path key:(NSString *)inKey options:(uint32_t)options
-{
-	self = [super init];
-	if (EXPECT_NOT(self == nil))  return nil;
-	
-	data.loading.loader = [OOTextureLoader loaderWithPath:path options:options];
-	if (EXPECT_NOT(data.loading.loader == nil))
-	{
-		[self release];
+		// Bad type
+		OOLog(kOOLogParameterError, @"%s: expected string or dictionary, got %@.", __PRETTY_FUNCTION__, [configuration class]);
 		return nil;
 	}
 	
-	key = [inKey copy];
-	
-	return self;
+	return [self textureWithName:name options:options anisotropy:anisotropy];
 }
 
 
@@ -166,8 +214,8 @@ static NSMutableDictionary	*sInUseTextures = nil;
 	
 	if (loaded)
 	{
-		if (data.loaded.bytes != NULL) free(data.loaded.bytes);
 		if (data.loaded.textureName != 0)  glDeleteTextures(1, &data.loaded.textureName);
+		if (data.loaded.bytes != NULL) free(data.loaded.bytes);
 	}
 	else
 	{
@@ -186,7 +234,7 @@ static NSMutableDictionary	*sInUseTextures = nil;
 	{
 		if (data.loaded.bytes != NULL)
 		{
-			stateDesc = [NSString stringWithFormat:@"%u x %u", width, height];
+			stateDesc = [NSString stringWithFormat:@"%u x %u", data.loaded.width, data.loaded.height];
 		}
 		else
 		{
@@ -204,28 +252,162 @@ static NSMutableDictionary	*sInUseTextures = nil;
 
 - (void)apply
 {
-	OOTextureLoader			*loader = nil;
-	uint32_t				options;
+	if (EXPECT_NOT(!loaded))  [self setUpTexture];
+	else  glBindTexture(GL_TEXTURE_2D, data.loaded.textureName);
+}
+
+
+- (void)ensureFinishedLoading
+{
+	if (EXPECT_NOT(!loaded))  [self setUpTexture];
+}
+
+@end
+
+
+@implementation OOTexture (OOPrivate)
+
+- (id)initWithPath:(NSString *)path key:(NSString *)inKey options:(uint32_t)options anisotropy:(float)anisotropy
+{
+	self = [super init];
+	if (EXPECT_NOT(self == nil))  return nil;
 	
-	if (EXPECT_NOT(!loaded))
+	data.loading.loader = [[OOTextureLoader loaderWithPath:path options:options] retain];
+	if (EXPECT_NOT(data.loading.loader == nil))
 	{
-		loader = data.loading.loader;
-		options = data.loading.options;
-		
-		if ([loader getResult:&data.loaded.bytes width:&width height:&height])
-		{
-			// TODO: set up texture here
-		}
-		else
-		{
-			data.loaded.textureName = 0;
-		}
-		
-		[loader release];
-		loaded = YES;
+		[self release];
+		return nil;
 	}
 	
-	glBindTexture(GL_TEXTURE_2D, data.loaded.textureName);
+	data.loading.options = options;
+#if GL_EXT_texture_filter_anisotropic
+	data.loading.anisotropy = OOClamp_0_1_f(anisotropy) * sAnisotropyScale;
+#endif
+	
+	key = [inKey copy];
+	
+	return self;
+}
+
+
+- (void)setUpTexture
+{
+	OOTextureLoader			*loader = nil;
+	uint32_t				options;
+	GLint					clampMode;
+	GLint					filter;
+	float					anisotropy;
+	BOOL					mipMap = NO;
+	
+	loader = data.loading.loader;
+	options = data.loading.options;
+	anisotropy = data.loading.anisotropy;
+	
+	loaded = YES;
+	// data.loaded considered invalid beyond this point.
+	
+	if ([loader getResult:&data.loaded.bytes width:&data.loaded.width height:&data.loaded.height])
+	{
+		glPixelStorei(GL_UNPACK_ALIGNMENT, 1);		// FIXME: this is probably not needed. Remove it once stuff works and see if anything changes. (Should probably be 4 if we need to keep it.)
+		glGenTextures(1, &data.loaded.textureName);
+		glBindTexture(GL_TEXTURE_2D, data.loaded.textureName);
+		
+		// Select wrap mode
+		clampMode = sClampToEdgeAvailable ? GL_CLAMP_TO_EDGE : GL_CLAMP;
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, (options & kOOTextureRepeatS) ? GL_REPEAT : clampMode);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, (options & kOOTextureRepeatT) ? GL_REPEAT : clampMode);
+		
+		// Select min filter
+		filter = options & kOOTextureMinFilterMask;
+		if (filter == kOOTextureMinFilterNearest)  filter = GL_NEAREST;
+		else if (filter == kOOTextureMinFilterMipMap)
+		{
+			mipMap = YES;
+			filter = GL_LINEAR_MIPMAP_LINEAR;
+		}
+		else  filter = GL_LINEAR;
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, filter);
+		
+#if GL_EXT_texture_filter_anisotropic
+		if (sAnisotropyAvailable && mipMap && 1.0 < anisotropy)
+		{
+			glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY_EXT, 4.0);
+		}
+#endif
+		
+		// Select mag filter
+		filter = options & kOOTextureMagFilterMask;
+		if (filter == kOOTextureMagFilterNearest)  filter = GL_NEAREST;
+		else  filter = GL_LINEAR;
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, filter);
+		
+		if (sClientStorageAvialable)  EnableClientStorage();
+		
+		[self uploadTextureDataWithMipMap:mipMap];
+		
+		if (!sClientStorageAvialable)
+		{
+			free(data.loaded.bytes);
+			data.loaded.bytes = NULL;
+		}
+		
+		OOLog(@"texture.setUp", @"Set up texture %u (%ux%u pixels, %@)", data.loaded.textureName, data.loaded.width, data.loaded.height, key);
+	}
+	else
+	{
+		data.loaded.textureName = 0;
+	}
+	
+	[loader release];
+}
+
+
+- (void)uploadTextureDataWithMipMap:(BOOL)mipMap
+{
+	if (!mipMap)
+	{
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, data.loaded.width, data.loaded.height, 0, GL_RGBA, RGBA_IMAGE_TYPE, data.loaded.bytes);
+	}
+	else
+	{
+		unsigned			w = data.loaded.width,
+							h = data.loaded.height,
+							level = 0;
+		uint32_t			*bytes = data.loaded.bytes;
+		
+		while (1 < w && 1 < h)
+		{
+			glTexImage2D(GL_TEXTURE_2D, level++, GL_RGBA, w, h, 0, GL_RGBA, RGBA_IMAGE_TYPE, bytes);
+			bytes += w * h;
+			w >>= 1;
+			h >>= 1;
+		}
+		
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, level - 1);
+	}
+}
+
+
++ (void)checkExtensions
+{
+	sCheckedExtensions = YES;
+	
+	OOOpenGLExtensionManager	*extMgr = [OOOpenGLExtensionManager sharedManager];
+	
+#if GL_EXT_texture_filter_anisotropic
+	sAnisotropyAvailable = [extMgr haveExtension:@"GL_EXT_texture_filter_anisotropic"];
+	glGetFloatv(GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT, &sAnisotropyScale);
+	sAnisotropyScale *= OOClamp_0_1_f([[NSUserDefaults standardUserDefaults] floatForKey:@"texture-anisotropy-bias" defaultValue:1.0]);
+#endif
+	
+#ifdef GL_CLAMP_TO_EDGE
+	// GL_CLAMP_TO_EDGE requires OpenGL 1.2 or later
+	sClampToEdgeAvailable = (2 < [extMgr minorVersionNumber]) || [extMgr haveExtension:@"GL_SGIS_texture_edge_clamp"];
+#endif
+	
+#if GL_APPLE_client_storage
+	sClientStorageAvialable = [extMgr haveExtension:@"GL_APPLE_client_storage"];
+#endif
 }
 
 @end

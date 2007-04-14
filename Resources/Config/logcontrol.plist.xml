@@ -182,6 +182,8 @@
 	<string>$troubleShootingDump</string>
 	<key>rendering.opengl.version</key>
 	<string>$troubleShootingDump</string>
+	<key>resourceManager.foundFile</key>
+	<string>off</string>
 	<key>save.failed</key>
 	<string>yes</string>
 	<key>save.success</key>

@@ -29,6 +29,7 @@ MA 02110-1301, USA.
 #import "OOFunctionAttributes.h"
 #import <string.h>
 #import "OOMaths.h"
+#import "OOOpenGLExtensionManager.h"
 
 
 typedef enum

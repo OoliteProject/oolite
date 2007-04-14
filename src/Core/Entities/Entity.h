@@ -143,7 +143,8 @@ extern int debug;
 #if GL_APPLE_vertex_array_object
 							usingVAR: 1,
 #endif
-							throw_sparks: 1;
+							throw_sparks: 1,
+							materialsReady: 1;
 	
 	OOScanClass				scanClass;
 	OOEntityStatus			status;

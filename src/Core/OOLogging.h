@@ -125,7 +125,6 @@ extern NSString * const kOOLogFileNotFound;					// @"files.notfound"
 extern NSString * const kOOLogFileNotLoaded;				// @"files.notloaded"
 
 extern NSString * const kOOLogOpenGLError;					// @"rendering.opengl.error"
-extern NSString * const kOOLogOpenGLExtensions;				// @"rendering.opengl.extensions"
 
 // Don't use. However, #defining it as @"unclassified.module" can be used as a stepping stone to OOLog support.
 extern NSString * const kOOLogUnconvertedNSLog;				// @"unclassified"

@@ -23,11 +23,14 @@ MA 02110-1301, USA.
 */
 
 
+// Temporarily disabled build flags: -O3 -falign-loops=32 -falign-loops-max-skip=31
+
+
 #import "OOTextureScaling.h"
 #import "OOFunctionAttributes.h"
-#import <math.h>
 #import <stdlib.h>
 #import "OOLogging.h"
+#import "OOMaths.h"
 
 
 uint8_t *ScaleUpPixMap(uint8_t *srcPixels, unsigned srcWidth, unsigned srcHeight, unsigned srcBytesPerRow, unsigned planes, unsigned dstWidth, unsigned dstHeight)
@@ -101,11 +104,11 @@ uint8_t *ScaleUpPixMap(uint8_t *srcPixels, unsigned srcWidth, unsigned srcHeight
 }
 
 
-static void ScaleUpHorizontally(const uint8_t *srcPixels, unsigned srcWidth, unsigned srcHeight, unsigned srcRowBytes, uint8_t *dstPixels, unsigned dstWidth);
-static void ScaleDownHorizontally(const uint8_t *srcPixels, unsigned srcWidth, unsigned srcHeight, unsigned srcRowBytes, uint8_t *dstPixels, unsigned dstWidth);
-static void ScaleUpVertically(const uint8_t *srcPixels, unsigned srcWidth, unsigned srcHeight, unsigned srcRowBytes, uint8_t *dstPixels, unsigned dstHeight);
-static void ScaleDownVertically(const uint8_t *srcPixels, unsigned srcWidth, unsigned srcHeight, unsigned srcRowBytes, uint8_t *dstPixels, unsigned dstHeight);
-static void CopyRows(const uint8_t *srcPixels, unsigned srcWidth, unsigned srcHeight, unsigned srcRowBytes, uint8_t *dstPixels);
+static void ScaleUpHorizontally(const char *srcPixels, unsigned srcWidth, unsigned srcHeight, unsigned srcRowBytes, uint8_t *dstPixels, unsigned dstWidth);
+static void ScaleDownHorizontally(const char *srcPixels, unsigned srcWidth, unsigned srcHeight, unsigned srcRowBytes, uint8_t *dstPixels, unsigned dstWidth);
+static void ScaleUpVertically(const char *srcPixels, unsigned srcWidth, unsigned srcHeight, unsigned srcRowBytes, uint8_t *dstPixels, unsigned dstHeight);
+static void ScaleDownVertically(const char *srcPixels, unsigned srcWidth, unsigned srcHeight, unsigned srcRowBytes, uint8_t *dstPixels, unsigned dstHeight);
+static void CopyRows(const char *srcPixels, unsigned srcWidth, unsigned srcHeight, unsigned srcRowBytes, uint8_t *dstPixels);
 
 
 void ScalePixMap(void *srcPixels, unsigned srcWidth, unsigned srcHeight, unsigned srcRowBytes, void *dstPixels, unsigned dstWidth, unsigned dstHeight)
@@ -160,49 +163,120 @@ void ScalePixMap(void *srcPixels, unsigned srcWidth, unsigned srcHeight, unsigne
 }
 
 
-void ScaleNormalMap(void *srcTexels, unsigned srcWidth, unsigned srcHeight, unsigned srcRowBytes, void *dstTexels, unsigned dstWidth, unsigned dstHeight)
-{
-	ScalePixMap(srcTexels, srcWidth, srcHeight, srcRowBytes, dstTexels, dstWidth, dstHeight);
-}
-
-
 void GenerateMipMaps(void *textureBytes, unsigned width, unsigned height)
 {
+	if (EXPECT_NOT(width != OORoundUpToPowerOf2(width) || height != OORoundUpToPowerOf2(height)))
+	{
+		OOLog(@"texture.generateMipMaps.skip", @"Non-power-of-two dimensions (%ux%u) passed to GenerateMipMaps() - ignoring, data will be junk.", width, height);
+		return;
+	}
 	
-}
-
-
-void GenerateNormalMapMipMaps(void *textureBytes, unsigned width, unsigned height)
-{
+	uint_fast32_t			w = width, h = height, x, y;
+	uint32_t				*src0, *src1, *dst, *next;
+	uint_fast32_t			px00, px01, px10, px11;
+	uint_fast32_t			ag, rb;	// red and blue channel, green and alpha channel.
 	
+	next = textureBytes;
+	
+#define DUMP_MIP_MAPS 
+#ifdef DUMP_MIP_MAPS
+	static unsigned ID = -1;
+	++ID;
+	uint32_t *start;
+	unsigned level = 0;
+#endif
+	
+	while (1 < w && 1 < h)
+	{
+		src0 = next;
+		next = src0 + w * h;
+		src1 = src0 + w;
+		dst = next;
+		
+#ifdef DUMP_MIP_MAPS
+		start = src0;
+#endif
+		
+		w >>= 1;
+		h >>= 1;
+		
+		y = h;
+		do
+		{
+			x = w;
+			do
+			{
+				// Read four pixels in a square...
+				px00 = *src0++;
+				px01 = *src0++;
+				px10 = *src1++;
+				px11 = *src1++;
+				
+				// ...and add them together, channel by channel.
+				ag = (px00 & 0xFF00FF00) >> 8;
+				rb = (px00 & 0x00FF00FF);
+				ag += (px01 & 0xFF00FF00) >> 8;
+				rb += (px01 & 0x00FF00FF);
+				ag += (px10 & 0xFF00FF00) >> 8;
+				rb += (px10 & 0x00FF00FF);
+				ag += (px11 & 0xFF00FF00) >> 8;
+				rb += (px11 & 0x00FF00FF);
+				
+				// ...shift the sums into place...
+				ag <<= 6;
+				rb >>= 2;
+				
+				// ...and write output pixel.
+				*dst++ = (ag & 0xFF00FF00) | (rb & 0x00FF00FF);
+			} while (--x);
+			
+			// Skip a row for each source row
+			src0 = src1;
+			src1 += w << 1;
+		} while (--y);
+		
+#ifdef DUMP_MIP_MAPS
+		NSString *name = [NSString stringWithFormat:@"/Users/jayton/Desktop/tex-debug/dump-%u-%u.raw", ID, level++];
+		FILE *dump = fopen([name UTF8String], "w");
+		if (dump != NULL)
+		{
+			fwrite(start, w, h * 16, dump);
+			fclose(dump);
+		}
+#endif
+	}
 }
 
 
-static void ScaleUpHorizontally(const uint8_t *srcPixels, unsigned srcWidth, unsigned srcHeight, unsigned srcRowBytes, uint8_t *dstPixels, unsigned dstWidth)
+static void ScaleUpHorizontally(const char *srcPixels, unsigned srcWidth, unsigned srcHeight, unsigned srcRowBytes, uint8_t *dstPixels, unsigned dstWidth)
 {
 	// TODO
+	OOLog(@"scale.unimplemented", @"Attempt to scale texture, currently unsupported - expect noise.");
 }
 
 
-static void ScaleDownHorizontally(const uint8_t *srcPixels, unsigned srcWidth, unsigned srcHeight, unsigned srcRowBytes, uint8_t *dstPixels, unsigned dstWidth)
+static void ScaleDownHorizontally(const char *srcPixels, unsigned srcWidth, unsigned srcHeight, unsigned srcRowBytes, uint8_t *dstPixels, unsigned dstWidth)
 {
 	// TODO
+	OOLog(@"scale.unimplemented", @"Attempt to scale texture, currently unsupported - expect noise.");
 }
 
 
-static void ScaleUpVertically(const uint8_t *srcPixels, unsigned srcWidth, unsigned srcHeight, unsigned srcRowBytes, uint8_t *dstPixels, unsigned dstHeight)
+static void ScaleUpVertically(const char *srcPixels, unsigned srcWidth, unsigned srcHeight, unsigned srcRowBytes, uint8_t *dstPixels, unsigned dstHeight)
 {
 	// TODO
+	OOLog(@"scale.unimplemented", @"Attempt to scale texture, currently unsupported - expect noise.");
 }
 
 
-static void ScaleDownVertically(const uint8_t *srcPixels, unsigned srcWidth, unsigned srcHeight, unsigned srcRowBytes, uint8_t *dstPixels, unsigned dstHeight)
+static void ScaleDownVertically(const char *srcPixels, unsigned srcWidth, unsigned srcHeight, unsigned srcRowBytes, uint8_t *dstPixels, unsigned dstHeight)
 {
 	// TODO
+	OOLog(@"scale.unimplemented", @"Attempt to scale texture, currently unsupported - expect noise.");
 }
 
 
-static void CopyRows(const uint8_t *srcPixels, unsigned srcWidth, unsigned srcHeight, unsigned srcRowBytes, uint8_t *dstPixels)
+static void CopyRows(const char *srcPixels, unsigned srcWidth, unsigned srcHeight, unsigned srcRowBytes, uint8_t *dstPixels)
 {
 	unsigned			y;
 	unsigned			rowBytes;

@@ -31,15 +31,16 @@ MA 02110-1301, USA.
 
 #ifndef NO_SHADERS
 
-@class OOShaderProgram;
+@class OOShaderProgram, OOTexture;
 
 
 @interface OOShaderMaterial: OOMaterial
 {
 	OOShaderProgram					*shaderProgram;
 	NSMutableDictionary				*uniforms;
-	GLuint							*textures;
-	GLuint							texCount;
+	
+	uint32_t						texCount;
+	OOTexture						**textures;
 }
 
 /*	Set up an OOShaderMaterial.

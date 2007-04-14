@@ -29,6 +29,7 @@ MA 02110-1301, USA.
 #import "Universe.h"
 #import "TextureStore.h"
 #import "OOShaderMaterial.h"
+#import "OOOpenGLExtensionManager.h"
 
 #import "ResourceManager.h"
 #import "OOStringParsing.h"
@@ -58,28 +59,6 @@ MA 02110-1301, USA.
 extern NSString * const kOOLogNoteAddShips;
 extern NSString * const kOOLogSyntaxAddShips;
 static NSString * const kOOLogEntityBehaviourChanged	= @"entity.behaviour.changed";
-static NSString * const kOOLogOpenGLVersion				= @"rendering.opengl.version";
-static NSString * const kOOLogOpenGLShaderSupport		= @"rendering.opengl.shader.support";
-
-#ifdef GNUSTEP
-void loadOpenGLFunctions()
-{
-	glGetObjectParameterivARB = (PFNGLGETOBJECTPARAMETERIVARBPROC)wglGetProcAddress("glGetObjectParameterivARB");
-	glCreateShaderObjectARB = (PFNGLCREATESHADEROBJECTARBPROC)wglGetProcAddress("glCreateShaderObjectARB");
-	glGetInfoLogARB = (PFNGLGETINFOLOGARBPROC)wglGetProcAddress("glGetInfoLogARB");
-	glCreateProgramObjectARB = (PFNGLCREATEPROGRAMOBJECTARBPROC)wglGetProcAddress("glCreateProgramObjectARB");
-	glAttachObjectARB = (PFNGLATTACHOBJECTARBPROC)wglGetProcAddress("glAttachObjectARB");
-	glDeleteObjectARB = (PFNGLDELETEOBJECTARBPROC)wglGetProcAddress("glDeleteObjectARB");
-	glLinkProgramARB = (PFNGLLINKPROGRAMARBPROC)wglGetProcAddress("glLinkProgramARB");
-	glCompileShaderARB = (PFNGLCOMPILESHADERARBPROC)wglGetProcAddress("glCompileShaderARB");
-	glShaderSourceARB = (PFNGLSHADERSOURCEARBPROC)wglGetProcAddress("glShaderSourceARB");
-	glUseProgramObjectARB = (PFNGLUSEPROGRAMOBJECTARBPROC)wglGetProcAddress("glUseProgramObjectARB");
-	glActiveTextureARB = (PFNGLACTIVETEXTUREARBPROC)wglGetProcAddress("glActiveTextureARB");
-	glGetUniformLocationARB = (PFNGLGETUNIFORMLOCATIONARBPROC)wglGetProcAddress("glGetUniformLocationARB");
-	glUniform1iARB = (PFNGLUNIFORM1IARBPROC)wglGetProcAddress("glUniform1iARB");
-	glUniform1fARB = (PFNGLUNIFORM1FARBPROC)wglGetProcAddress("glUniform1fARB");
-}
-#endif
 
 
 #if OLD_SHADERS
@@ -422,6 +401,8 @@ static void ApplyConstantUniforms(NSDictionary *uniforms, GLhandleARB shaderProg
 		OOCharacter	*pilot = [OOCharacter characterWithDictionary:cdict];
 		[self setCrew:[NSArray arrayWithObject:pilot]];
 	}
+	
+	[self initialiseTextures];
 	
 	// unpiloted (like missiles asteroids etc.)
 	if ([shipdict fuzzyBooleanForKey:@"unpiloted" defaultValue:0.0f])  [self setCrew:nil];
@@ -2450,101 +2431,6 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	return viewpoint;
 }
 
-#ifndef NO_SHADERS
-BOOL shaders_supported = YES;
-BOOL testForShaderSupport = YES;
-#else
-BOOL shaders_supported = NO;
-BOOL testForShaderSupport = NO;
-#endif
-
-void testForShaders()
-{
-#ifndef NO_SHADERS
-	testForShaderSupport = NO;
-	NSString* version_info = [NSString stringWithCString: (const char *)glGetString(GL_VERSION)];
-	NSScanner* vscan = [NSScanner scannerWithString:version_info];
-	int major = 0;
-	int minor = 0;
-	NSString* temp;
-	if ([vscan scanUpToCharactersFromSet:[NSCharacterSet characterSetWithCharactersInString:@". "] intoString:&temp])
-		major = [temp intValue];
-	[vscan scanCharactersFromSet:[NSCharacterSet characterSetWithCharactersInString:@". "] intoString:(NSString**)nil];
-	if ([vscan scanUpToCharactersFromSet:[NSCharacterSet characterSetWithCharactersInString:@". "] intoString:&temp])
-		minor = [temp intValue];
-
-	OOLog(kOOLogOpenGLVersion, @"OpenGL renderer version: %d.%d ('%@')", major, minor, version_info);
-
-	if ((major < 2)&&(minor < 5))
-	{
-		shaders_supported = NO;
-		NSLog(@"INFORMATION: Oolite does not use shaders for OpenGL drivers before OpenGL 1.5");
-		return;
-	}
-	
-	// check for the necessary extensions
-	NSString* extension_info = [NSString stringWithCString: (const char *)glGetString(GL_EXTENSIONS)];
-
-	OOLog(kOOLogOpenGLExtensions, @"OPENGL EXTENSIONS:\n%@", extension_info);
-	
-	shaders_supported &= ([extension_info rangeOfString:@"GL_ARB_multitexture"].location != NSNotFound);
-	if (!shaders_supported)
-	{
-		OOLog(kOOLogOpenGLShaderSupport, @"INFORMATION: shaders require the GL_ARB_multitexture OpenGL extension, which is not present.");
-		return;
-	}
-	
-	shaders_supported &= ([extension_info rangeOfString:@"GL_ARB_shader_objects"].location != NSNotFound);
-	if (!shaders_supported)
-	{
-		OOLog(kOOLogOpenGLShaderSupport, @"INFORMATION: shaders require the GL_ARB_multitexture OpenGL extension, which is not present.");
-		return;
-	}
-		
-	shaders_supported &= ([extension_info rangeOfString:@"GL_ARB_shading_language_100"].location != NSNotFound);
-	if (!shaders_supported)
-	{
-		OOLog(kOOLogOpenGLShaderSupport, @"INFORMATION: shaders require the GL_ARB_shading_language_100 OpenGL extension, which is not present.");
-		return;
-	}
-	
-	shaders_supported &= ([extension_info rangeOfString:@"GL_ARB_fragment_program"].location != NSNotFound);
-	if (!shaders_supported)
-	{
-		OOLog(kOOLogOpenGLShaderSupport, @"INFORMATION: shaders require the GL_ARB_fragment_program OpenGL extension, which is not present.");
-		return;
-	}
-	
-	shaders_supported &= ([extension_info rangeOfString:@"GL_ARB_fragment_shader"].location != NSNotFound);
-	if (!shaders_supported)
-	{
-		OOLog(kOOLogOpenGLShaderSupport, @"INFORMATION: shaders require the GL_ARB_fragment_shader OpenGL extension, which is not present.");
-		return;
-	}
-	
-	shaders_supported &= ([extension_info rangeOfString:@"GL_ARB_vertex_program"].location != NSNotFound);
-	if (!shaders_supported)
-	{
-		OOLog(kOOLogOpenGLShaderSupport, @"INFORMATION: shaders require the GL_ARB_vertex_program OpenGL extension, which is not present.");
-		return;
-	}
-	
-	shaders_supported &= ([extension_info rangeOfString:@"GL_ARB_vertex_shader"].location != NSNotFound);
-	if (!shaders_supported)
-	{
-		OOLog(kOOLogOpenGLShaderSupport, @"INFORMATION: shaders require the GL_ARB_vertex_shader OpenGL extension, which is not present.");
-		return;
-	}
-
-#ifdef GNUSTEP
-	// I am assuming none of the extensions will be used before this call because they have only just been checked for.
-	// Note this this won't be called unless everything required is available because all the checks about return immediately
-	// if a required extension is not found.
-	loadOpenGLFunctions();
-#endif
-#endif
-}
-
 
 - (void) initialiseTextures
 {
@@ -2560,8 +2446,8 @@ void testForShaders()
 	
 	[super initialiseTextures];
 	
-	if (testForShaderSupport)  testForShaders();
-	if (!shaders_supported) return;
+	// TODO: this won't do when we have non-shader OOMaterials.
+	if (![[OOOpenGLExtensionManager sharedManager] shadersSupported])  return;
 	
 	shaderDefs = [shipinfoDictionary objectForKey:@"shaders"];
 	if (shaderDefs)
@@ -2608,7 +2494,8 @@ void testForShaders()
 		}
 		
 		OOLogOutdentIf(@"shader.vessel.init");
-	}	
+	}
+	materialsReady = YES;
 }
 
 
@@ -2616,6 +2503,18 @@ void testForShaders()
 {
 	if (!isSubentity)  return self;
 	else  return [self owner];
+}
+
+
+- (void)exerciseMaterials
+{
+	NSEnumerator				*materialEnum = nil;
+	OOMaterial					*material = nil;
+	
+	for (materialEnum = [materials objectEnumerator]; (material = [materialEnum nextObject]); )
+	{
+		[material ensureFinishedLoading];
+	}
 }
 
 
@@ -2717,10 +2616,17 @@ void testForShaders()
 				else
 				{
 					// Set up display list.
-					[self initialiseTextures];
+					if (!materialsReady)  [self initialiseTextures];
 #if GL_APPLE_vertex_array_object
 					if (usingVAR)  glBindVertexArrayAPPLE(gVertexArrayRangeObjects[0]);
 #endif
+					/*	Apply all materials to ensure textures are loaded.
+						This is needed because you can't create textures in a
+						display list.
+					*/
+					[self exerciseMaterials];
+					
+					// Do the display list.
 					[self generateDisplayList];
 				}
 			}

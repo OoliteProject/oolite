@@ -38,6 +38,7 @@ MA 02110-1301, USA.
 #import "OOStringParsing.h"
 #import "OOCollectionExtractors.h"
 #import "OOConstToString.h"
+#import "OOOpenGLExtensionManager.h"
 
 #import "Octree.h"
 #import "CollisionRegion.h"
@@ -101,22 +102,22 @@ static BOOL MaintainLinkedLists(Universe* uni);
 	
 	no_update = NO;
 	
+	// init OpenGL extension manager (must be done before any other threads might use it)
+	[OOOpenGLExtensionManager sharedManager];
+	
 	// init the Resource Manager
 	[ResourceManager paths];
 	
 	reducedDetail = NO;
 	
-	#ifndef GNUSTEP
+#if OOLITE_MAC_OS_X
 	//// speech stuff
-	
 	speechSynthesizer = [[NSSpeechSynthesizer alloc] init];
 	
 	//Jester Speech Begin
 	speechArray = [[ResourceManager arrayFromFilesNamed:@"speech_pronunciation_guide.plist" inFolder:@"Config" andMerge:YES] retain];
 	//Jester Speech End
-	
-	////
-	#endif
+#endif
 	
  	dumpCollisionInfo = NO;
 	next_universal_id = 100;	// start arbitrarily above zero

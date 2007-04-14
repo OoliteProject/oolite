@@ -11,13 +11,12 @@
 
 /* Read transformations we don't use */
 #define PNG_NO_READ_STRIP_ALPHA
-#define PNG_NO_READ_BGR
+// #define PNG_NO_READ_BGR
 #define PNG_NO_READ_SWAP
 #define PNG_NO_READ_PACKSWAP
 #define PNG_NO_READ_INVERT
 #define PNG_NO_READ_DITHER
 #define PNG_NO_READ_GAMMA
-#define PNG_NO_READ_SWAP_ALPHA
 #define PNG_NO_READ_INVERT_ALPHA
 #define PNG_NO_READ_STRIP_ALPHA
 #define PNG_NO_READ_USER_TRANSFORM

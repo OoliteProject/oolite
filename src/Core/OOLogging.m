@@ -390,7 +390,6 @@ NSString * const kOOLogException					= @"exception";
 NSString * const kOOLogFileNotFound					= @"files.notFound";
 NSString * const kOOLogFileNotLoaded				= @"files.notLoaded";
 NSString * const kOOLogOpenGLError					= @"rendering.opengl.error";
-NSString * const kOOLogOpenGLExtensions				= @"rendering.opengl.extensions";
 NSString * const kOOLogUnconvertedNSLog				= @"unclassified";
 
 

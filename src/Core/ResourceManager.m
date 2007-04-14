@@ -492,19 +492,20 @@ static NSMutableDictionary*	surface_cache;
 		if ([fmgr fileExistsAtPath:filePath])
 		{
 			result = filePath;
-			break;
+		//	break;
 		}
 		
 		filePath = [path stringByAppendingPathComponent:fileName];
 		if ([fmgr fileExistsAtPath:filePath])
 		{
 			result = filePath;
-			break;
+		//	break;
 		}
 	}
 	
 	if (result != nil)
 	{
+		OOLog(@"resourceManager.foundFile", @"Found %@/%@ at %@", folderName, fileName, filePath);
 		if (genericPathCache == nil)  genericPathCache = [[NSMutableDictionary alloc] init];
 		[genericPathCache setObject:result forKey:key];
 	}
