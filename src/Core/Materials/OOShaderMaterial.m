@@ -234,6 +234,7 @@ static NSString *MacrosToString(NSDictionary *macros);
 	
 	for (uniformEnum = [uniformDefs keyEnumerator]; (name = [uniformEnum nextObject]); )
 	{
+		gotValue = NO;
 		uniform = nil;
 		definition = [uniformDefs objectForKey:name];
 		
@@ -275,7 +276,6 @@ static NSString *MacrosToString(NSDictionary *macros);
 				[self setUniform:name intValue:[value intValue]];
 				gotValue = YES;
 			}
-			else  gotValue = NO;
 		}
 		else if (target != nil && [type isEqualToString:@"binding"])
 		{
@@ -286,7 +286,6 @@ static NSString *MacrosToString(NSDictionary *macros);
 				[self bindUniform:name toObject:target property:selector clamped:clamped];
 				gotValue = YES;
 			}
-			else  gotValue = NO;
 		}
 		
 		if (!gotValue)

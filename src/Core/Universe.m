@@ -2684,7 +2684,7 @@ GLfloat docked_light_specular[]	= { (GLfloat) 1.0, (GLfloat) 1.0, (GLfloat) 0.5,
 
 - (ShipEntity *) newShipWithRole:(NSString *) desc
 {
-	int i, j, found;
+	int				i, j, found = 0;
 	ShipEntity		*ship = nil;
 	
 	NSString* search = [ScanTokensFromString(desc) componentsJoinedByString:@"_"];

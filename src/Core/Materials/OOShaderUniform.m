@@ -334,7 +334,7 @@ OOINLINE BOOL ValidBindingType(OOShaderUniformType type)
 {
 	
 	id							object = nil;
-	int							iVal;
+	int							iVal = 0;
 	float						fVal;
 	BOOL						fp = NO;
 	

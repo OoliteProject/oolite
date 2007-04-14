@@ -172,6 +172,7 @@ static BOOL		sClientStorageAvialable;
 	{
 		name = configuration;
 		options = kOOTextureDefaultOptions;
+		anisotropy = kOOTextureDefaultAnisotropy;
 	}
 	else if ([configuration isKindOfClass:[NSDictionary class]])
 	{
