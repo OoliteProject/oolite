@@ -1528,6 +1528,9 @@ static BOOL hostiles;
 				case VIEW_CUSTOM :
 					mult_vector_gl_matrix(&rpn, [player customViewMatrix]);
 					break;
+				
+				default:
+					break;
 			}
 			rpn.z = 0;	// flatten vector
 			if (rpn.x||rpn.y)

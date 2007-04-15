@@ -514,6 +514,9 @@ MA 02110-1301, USA.
 			p_mov.x = p_mov.y;
 			p_mov.y = -t;
 			break;
+		
+		default:
+			break;
 	}
 	p_mov.x *= -4.0;
 	

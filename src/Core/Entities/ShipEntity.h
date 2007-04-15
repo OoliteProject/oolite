@@ -280,12 +280,7 @@ MA 02110-1301, USA.
 	int						debug_flag;
 	int						debug_condition;
 	
-#ifdef OLD_SHADERS
-	// shaders
-	NSMutableDictionary		*shader_info;
-#else
 	NSMutableDictionary		*materials;
-#endif
 	
 	uint16_t				entity_personality;	// Per-entity random number. Used for shaders, maybe scripting at some point.
 }

@@ -34,20 +34,20 @@ MA 02110-1301, USA.
 @interface OOBasicMaterial: OOMaterial
 {
 	// Colours
-	GLfloat					diffuse[4],		// Default: { 0.8, 0.8, 0.8, 1.0 }
-							specular[4],	// Default: { 0.0, 0.0, 0.0, 1.0 }
-							ambient[4],		// Default: { 0.2, 0.2, 0.2, 1.0 }
-							emission[4];	// Default: { 0.0, 0.0, 0.0, 1.0 }
+	GLfloat					diffuse[4],
+							specular[4],
+							ambient[4],
+							emission[4];
 	
 	// Specular exponent
 	uint8_t					shininess;		// Default: 0.0
 	BOOL					smooth;			// Default: YES
 }
 
-/*	Initialize with default values:
-		diffuse		{ 0.8, 0.8, 0.8, 1.0 }
+/*	Initialize with default values (historical Olite defaults, not GL defaults):
+		diffuse		{ 1.0, 1.0, 1.0, 1.0 }
 		specular	{ 0.0, 0.0, 0.0, 1.0 }
-		ambient		{ 0.2, 0.2, 0.2, 1.0 }
+		ambient		{ 1.0, 1.0, 1.0, 1.0 }
 		emission	{ 0.0, 0.0, 0.0, 1.0 }
 		shininess	0
 		smooth		YES

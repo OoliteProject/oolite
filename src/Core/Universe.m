@@ -2918,7 +2918,7 @@ GLfloat docked_light_specular[]	= { (GLfloat) 1.0, (GLfloat) 1.0, (GLfloat) 0.5,
 	return penalty;
 }
 
-- (NSArray *) getContainersOfPlentifulGoods:(int) how_many
+- (NSArray *) getContainersOfPlentifulGoods:(OOCargoQuantity) how_many
 {
 	// build list of goods allocating 0..100 for each based on how
 	// much of each quantity there is. Use a ratio of n x 100/64
@@ -2987,7 +2987,7 @@ GLfloat docked_light_specular[]	= { (GLfloat) 1.0, (GLfloat) 1.0, (GLfloat) 0.5,
 	return [NSArray arrayWithArray:accumulator];	
 }
 
-- (NSArray *) getContainersOfScarceGoods:(int) how_many
+- (NSArray *) getContainersOfScarceGoods:(OOCargoQuantity) how_many
 {
 	// build list of goods allocating 0..100 for each based on how
 	// much of each quantity there is. Use a ratio of (64 - n) x 100/64
@@ -3046,12 +3046,12 @@ GLfloat docked_light_specular[]	= { (GLfloat) 1.0, (GLfloat) 1.0, (GLfloat) 0.5,
 	return [NSArray arrayWithArray:accumulator];	
 }
 
-- (NSArray *) getContainersOfDrugs:(int) how_many
+- (NSArray *) getContainersOfDrugs:(OOCargoQuantity) how_many
 {
 	return [self getContainersOfCommodity:@"Narcotics" :how_many];	
 }
 
-- (NSArray *) getContainersOfCommodity:(NSString*) commodity_name :(int) how_many
+- (NSArray *) getContainersOfCommodity:(NSString*) commodity_name :(OOCargoQuantity) how_many
 {
 	NSMutableArray  *accumulator = [NSMutableArray arrayWithCapacity:how_many];
 	int commodity_type = [self commodityForName: commodity_name];
@@ -3086,15 +3086,15 @@ GLfloat docked_light_specular[]	= { (GLfloat) 1.0, (GLfloat) 1.0, (GLfloat) 0.5,
 	return [NSArray arrayWithArray:accumulator];	
 }
 
-- (int) getRandomCommodity
+- (OOCargoType) getRandomCommodity
 {
 	int cd = ranrot_rand() % [commoditydata count];
 	return cd;
 }
 
-- (int) getRandomAmountOfCommodity:(int) co_type
+- (OOCargoQuantity) getRandomAmountOfCommodity:(OOCargoType) co_type
 {
-	int units;
+	OOMassUnit units;
 	if ((co_type < 0)||(co_type >= [commoditydata count]))
 		return 0;
 	units = [[[commoditydata objectAtIndex:co_type] objectAtIndex:MARKET_UNITS] intValue];
@@ -3113,7 +3113,7 @@ GLfloat docked_light_specular[]	= { (GLfloat) 1.0, (GLfloat) 1.0, (GLfloat) 0.5,
 	return 1;
 }
 
-- (int) commodityForName:(NSString *) co_name
+- (OOCargoType) commodityForName:(NSString *) co_name
 {
 	int i;
 	NSString* capName = [co_name capitalizedString];
@@ -3125,14 +3125,14 @@ GLfloat docked_light_specular[]	= { (GLfloat) 1.0, (GLfloat) 1.0, (GLfloat) 0.5,
 	return NSNotFound;
 }
 
-- (NSString *) nameForCommodity:(int) co_type
+- (NSString *) nameForCommodity:(OOCargoType) co_type
 {
 	if ((co_type < 0)||(co_type >= [commoditydata count]))
 		return @"";
 	return [NSString stringWithFormat:@"%@",[[commoditydata objectAtIndex:co_type] objectAtIndex:MARKET_NAME]];
 }
 
-- (int) unitsForCommodity:(int) co_type
+- (OOMassUnit) unitsForCommodity:(OOCargoType)co_type
 {
 	if ((co_type < 0)||(co_type >= [commoditydata count]))
 		return NSNotFound;
@@ -3141,7 +3141,7 @@ GLfloat docked_light_specular[]	= { (GLfloat) 1.0, (GLfloat) 1.0, (GLfloat) 0.5,
 
 
 
-- (NSString *) describeCommodity:(int) co_type amount:(int) co_amount
+- (NSString *) describeCommodity:(OOCargoType) co_type amount:(OOCargoQuantity) co_amount
 {
 	int units;
 	NSString	*desc2, *desc3;
@@ -3226,7 +3226,7 @@ GLfloat	port_matrix[] = {		0.0f, 0.0f, -1.0f, 0.0f,	0.0f, 1.0f, 0.0f, 0.0f,		1.0
 GLfloat	starboard_matrix[] = {	0.0f, 0.0f, 1.0f, 0.0f,		0.0f, 1.0f, 0.0f, 0.0f,		-1.0f, 0.0f, 0.0f, 0.0f,	0.0f, 0.0f, 0.0f, 1.0f};
 GLfloat* custom_matrix;
 
-- (void) drawFromEntity:(int) n
+- (void) drawFromEntity:(OOUniversalID) n
 {
 	if (!no_update)
 	{
@@ -3706,7 +3706,7 @@ GLfloat* custom_matrix;
 }
 
 
-- (id)entityForUniversalID:(int)u_id
+- (id)entityForUniversalID:(OOUniversalID)u_id
 {
 	if (u_id == 100)
 		return [PlayerEntity sharedPlayer];	// the player
@@ -4803,7 +4803,7 @@ static BOOL MaintainLinkedLists(Universe* uni)
 	dumpCollisionInfo = YES;
 }
 
-- (void) setViewDirection:(int) vd
+- (void) setViewDirection:(OOViewID) vd
 {
 	NSString	*ms = nil;
 	
@@ -4865,7 +4865,7 @@ static BOOL MaintainLinkedLists(Universe* uni)
 	}
 }
 
-- (int) viewDir
+- (OOViewID) viewDir
 {
 	return viewDirection;
 }

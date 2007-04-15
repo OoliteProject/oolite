@@ -213,7 +213,7 @@ extern int debug;
 	
 	OOUniversalID			owner;
 	
-	int						n_textures;
+	unsigned				n_textures;
 	EntityData				entityData;
 	NSRange					triangle_range[MAX_TEXTURES_PER_ENTITY];
 	Str255					texture_file[MAX_TEXTURES_PER_ENTITY];

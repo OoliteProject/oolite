@@ -30,6 +30,7 @@ MA 02110-1301, USA.
 #import "OOMaths.h"
 #import "OOColor.h"
 #import "OOWeakReference.h"
+#import "OOTypes.h"
 
 #define CROSSHAIR_SIZE			32.0
 
@@ -302,28 +303,28 @@ extern int debug;
 
 - (int) legal_status_of_manifest:(NSArray *)manifest;
 
-- (NSArray *) getContainersOfPlentifulGoods:(int) how_many;
-- (NSArray *) getContainersOfScarceGoods:(int) how_many;
-- (NSArray *) getContainersOfDrugs:(int) how_many;
-- (NSArray *) getContainersOfCommodity:(NSString*) commodity_name :(int) how_many;
+- (NSArray *) getContainersOfPlentifulGoods:(OOCargoQuantity) how_many;
+- (NSArray *) getContainersOfScarceGoods:(OOCargoQuantity) how_many;
+- (NSArray *) getContainersOfDrugs:(OOCargoQuantity) how_many;
+- (NSArray *) getContainersOfCommodity:(NSString*) commodity_name :(OOCargoQuantity) how_many;
 
-- (int) getRandomCommodity;
-- (int) getRandomAmountOfCommodity:(int) co_type;
+- (OOCargoType) getRandomCommodity;
+- (OOCargoQuantity) getRandomAmountOfCommodity:(OOCargoType) co_type;
 
-- (int) commodityForName:(NSString *) co_name;
-- (NSString *) nameForCommodity:(int) co_type;
-- (int) unitsForCommodity:(int) co_type;
-- (NSString *) describeCommodity:(int) co_type amount:(int) co_amount;
+- (OOCargoType) commodityForName:(NSString *) co_name;
+- (NSString *) nameForCommodity:(OOCargoType) co_type;
+- (OOMassUnit) unitsForCommodity:(OOCargoType) co_type;
+- (NSString *) describeCommodity:(OOCargoType) co_type amount:(OOCargoQuantity) co_amount;
 
 - (void) setGameView:(MyOpenGLView *)view;
 - (MyOpenGLView *) gameView;
 - (GameController *) gameController;
 
-- (void) drawFromEntity:(int) n;
+- (void) drawFromEntity:(OOUniversalID) n;
 - (void) drawCrosshairs;
 - (void) drawMessage;
 
-- (id)entityForUniversalID:(int)u_id;
+- (id)entityForUniversalID:(OOUniversalID)u_id;
 
 - (BOOL) addEntity:(Entity *) entity;
 - (BOOL) removeEntity:(Entity *) entity;
@@ -343,15 +344,15 @@ extern int debug;
 - (int) countShipsWithRole:(NSString *) desc;
 - (void) sendShipsWithRole:(NSString *) desc messageToAI:(NSString *) ms;
 
-- (double) getTime;
-- (double) getTimeDelta;
+- (OOTimeAbsolute) getTime;
+- (OOTimeDelta) getTimeDelta;
 
 - (void) findCollisionsAndShadows;
 - (NSString*) collisionDescription;
 - (void) dumpCollisions;
 
-- (void) setViewDirection:(int) vd;
-- (int) viewDir;
+- (void) setViewDirection:(OOViewID) vd;
+- (OOViewID) viewDir;
 
 - (BOOL) playCustomSound:(NSString*)key;
 - (BOOL) stopCustomSound:(NSString*)key;

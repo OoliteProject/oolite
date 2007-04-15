@@ -40,8 +40,8 @@ static OOBasicMaterial *sDefaultMaterial = nil;
 	self = [super init];
 	if (EXPECT_NOT(self == nil))  return nil;
 	
-	[self setDiffuseRed:0.8f green:0.8f blue:0.8f alpha:1.0f];
-	[self setAmbientRed:0.2f green:0.2f blue:0.2f alpha:1.0f];
+	[self setDiffuseRed:1.0f green:1.0f blue:1.0f alpha:1.0f];
+	[self setAmbientRed:1.0f green:1.0f blue:1.0f alpha:1.0f];
 	specular[3] = 1.0;
 	emission[3] = 1.0;
 	smooth = YES;

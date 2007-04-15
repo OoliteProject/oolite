@@ -155,12 +155,12 @@ static void ApplyConstantUniforms(NSDictionary *uniforms, GLhandleARB shaderProg
 	maxEnergy = [shipdict floatForKey:@"max_energy" defaultValue:0.0];
 	energy_recharge_rate = [shipdict floatForKey:@"energy_recharge_rate" defaultValue:0.0];
 	
-	aft_weapon_type = StringToWeaponType([shipdict objectForKey:@"aft_weapon_type"]);
-	forward_weapon_type = StringToWeaponType([shipdict objectForKey:@"forward_weapon_type"]);
+	forward_weapon_type = StringToWeaponType([shipdict stringForKey:@"forward_weapon_type" defaultValue:@"WEAPON_NONE"]);
+	aft_weapon_type = StringToWeaponType([shipdict stringForKey:@"aft_weapon_type" defaultValue:@"WEAPON_NONE"]);
 	
 	weapon_energy = [shipdict doubleForKey:@"weapon_energy" defaultValue:0.0];
 	scanner_range = [shipdict doubleForKey:@"weapon_energy" defaultValue:25600.0];
-	missiles = [shipdict doubleForKey:@"missiles" defaultValue:0];
+	missiles = [shipdict intForKey:@"missiles" defaultValue:0];
 
 	// upgrades:
 	has_ecm = [shipdict fuzzyBooleanForKey:@"has_ecm" defaultValue:0.0];
@@ -242,8 +242,8 @@ static void ApplyConstantUniforms(NSDictionary *uniforms, GLhandleARB shaderProg
 	float density = [shipdict floatForKey:@"density" defaultValue:1.0];
 	if (octree)  mass = density * 20.0 * [octree volume];
 	
-	[name release];
-	name = [[shipdict stringForKey:@"name" defaultValue:nil] copy];
+	[name autorelease];
+	name = [[shipdict stringForKey:@"name" defaultValue:name] copy];
 	
 	[roles release];
 	roles = [[shipdict stringForKey:@"roles" defaultValue:nil] copy];
@@ -4047,7 +4047,6 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 	float how_many = factor;
 	while (how_many > 0.5f)
 	{
-	//	fragment = [[ParticleEntity alloc] initFragburstFromPosition:xposition];
 		fragment = [[ParticleEntity alloc] initFragburstSize: collision_radius FromPosition:xposition];
 		[UNIVERSE addEntity:fragment];
 		[fragment release];
@@ -5466,6 +5465,9 @@ BOOL	class_masslocks(int some_class)
 				vel = v_right;
 				vel.x = -vel.x; vel.y = -vel.y; vel.z = -vel.z; // reverse
 				rt = v_forward;
+				break;
+			
+			default:
 				break;
 		}
 	}

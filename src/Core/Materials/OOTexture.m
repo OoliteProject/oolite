@@ -310,7 +310,7 @@ static BOOL		sClientStorageAvialable;
 	
 	if ([loader getResult:&data.loaded.bytes format:&format width:&data.loaded.width height:&data.loaded.height])
 	{
-		glPixelStorei(GL_UNPACK_ALIGNMENT, 1);		// FIXME: this is probably not needed. Remove it once stuff works and see if anything changes. (Should probably be 4 if we need to keep it.)
+	//	glPixelStorei(GL_UNPACK_ALIGNMENT, 1);		// FIXME: this is probably not needed. Remove it once stuff works and see if anything changes. (Should probably be 4 if we need to keep it.)
 		glGenTextures(1, &data.loaded.textureName);
 		glBindTexture(GL_TEXTURE_2D, data.loaded.textureName);
 		

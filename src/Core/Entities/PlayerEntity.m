@@ -135,11 +135,14 @@ static PlayerEntity *sSharedPlayer = nil;
 	int i,j;
 	NSMutableArray* localMarket = [docked_station localMarket];
 	NSMutableArray* manifest = [[NSMutableArray arrayWithArray:shipCommodityData] retain];  // retain
+	
+	if (cargo == nil)  cargo = [[NSMutableArray alloc] init];
+	
 	for (i = 0; i < [manifest count]; i++)
 	{
-		NSMutableArray* commodityInfo = [[NSMutableArray arrayWithArray:(NSArray *)[manifest objectAtIndex:i]] retain];  // retain
-		int quantity =  [(NSNumber *)[commodityInfo objectAtIndex:MARKET_QUANTITY] intValue];
-		int units =		[UNIVERSE unitsForCommodity:i];
+		NSMutableArray*	commodityInfo = [[NSMutableArray arrayWithArray:(NSArray *)[manifest objectAtIndex:i]] retain];  // retain
+		OOCargoQuantity	quantity = [[commodityInfo objectAtIndex:MARKET_QUANTITY] intValue];
+		OOMassUnit		units =	[UNIVERSE unitsForCommodity:i];
 		if (quantity > 0)
 		{
 			if (units == UNITS_TONS)
@@ -1050,30 +1053,22 @@ static PlayerEntity *sSharedPlayer = nil;
 }
 
 
-- (void) setUpShipFromDictionary:(NSDictionary *) dict
+- (void) setUpShipFromDictionary:(NSDictionary *)dict
 {
-	if (shipinfoDictionary)
-		[shipinfoDictionary release];
-	shipinfoDictionary = [[NSDictionary alloc] initWithDictionary:dict];	// retained
+	[shipinfoDictionary release];
+	shipinfoDictionary = [dict copy];
 	
 	// set things from dictionary from here out
 	
-	if ([dict objectForKey:@"max_flight_speed"])
-		max_flight_speed = [(NSNumber *)[dict objectForKey:@"max_flight_speed"] doubleValue];
-	if ([dict objectForKey:@"max_flight_roll"])
-		max_flight_roll = [(NSNumber *)[dict objectForKey:@"max_flight_roll"] doubleValue];
-	if ([dict objectForKey:@"max_flight_pitch"])
-		max_flight_pitch = [(NSNumber *)[dict objectForKey:@"max_flight_pitch"] doubleValue];
-	if ([dict objectForKey:@"max_flight_yaw"])
-		max_flight_yaw = [(NSNumber *)[dict objectForKey:@"max_flight_yaw"] doubleValue];
+	max_flight_speed = [dict doubleForKey:@"max_flight_speed" defaultValue:160.0f];
+	max_flight_roll = [dict doubleForKey:@"max_flight_roll" defaultValue:2.0f];
+	max_flight_pitch = [dict doubleForKey:@"max_flight_pitch" defaultValue:1.0f];
+	max_flight_yaw = [dict doubleForKey:@"max_flight_yaw" defaultValue:max_flight_pitch];	// Note by default yaw == pitch
 	
 	// set control factors..
-	
 	roll_delta =		2.0 * max_flight_roll;
 	pitch_delta =		2.0 * max_flight_pitch;
 	yaw_delta =			2.0 * max_flight_yaw;
-    
-
 	
 	if ([dict objectForKey:@"thrust"])
 	{
@@ -1084,95 +1079,52 @@ static PlayerEntity *sSharedPlayer = nil;
 	energy_recharge_rate = [dict floatForKey:@"energy_recharge_rate" defaultValue:energy_recharge_rate];
 	energy = maxEnergy;
 	
-	if ([dict objectForKey:@"forward_weapon_type"])
-	{
-		NSString *weapon_type_string = (NSString *)[dict objectForKey:@"forward_weapon_type"];
-		if ([weapon_type_string isEqual:@"WEAPON_PULSE_LASER"])
-			forward_weapon_type = WEAPON_PULSE_LASER;
-		if ([weapon_type_string isEqual:@"WEAPON_BEAM_LASER"])
-			forward_weapon_type = WEAPON_BEAM_LASER;
-		if ([weapon_type_string isEqual:@"WEAPON_MINING_LASER"])
-			forward_weapon_type = WEAPON_MINING_LASER;
-		if ([weapon_type_string isEqual:@"WEAPON_MILITARY_LASER"])
-			forward_weapon_type = WEAPON_MILITARY_LASER;
-		if ([weapon_type_string isEqual:@"WEAPON_THARGOID_LASER"])
-			forward_weapon_type = WEAPON_THARGOID_LASER;
-		if ([weapon_type_string isEqual:@"WEAPON_PLASMA_CANNON"])
-			forward_weapon_type = WEAPON_PLASMA_CANNON;
-		if ([weapon_type_string isEqual:@"WEAPON_NONE"])
-			forward_weapon_type = WEAPON_NONE;
-	}
+	forward_weapon_type = StringToWeaponType([dict stringForKey:@"forward_weapon_type" defaultValue:@"WEAPON_NONE"]);
+	aft_weapon_type = StringToWeaponType([dict stringForKey:@"aft_weapon_type" defaultValue:@"WEAPON_NONE"]);
 	
-	if ([dict objectForKey:@"missiles"])
-		missiles = [(NSNumber *)[dict objectForKey:@"missiles"] intValue];
-	if ([dict objectForKey:@"has_ecm"])
-		has_ecm = [(NSNumber *)[dict objectForKey:@"has_ecm"] boolValue];
-	if ([dict objectForKey:@"has_scoop"])
-		has_scoop = [(NSNumber *)[dict objectForKey:@"has_scoop"] boolValue];
-	if ([dict objectForKey:@"has_escape_pod"])
-		has_escape_pod = [(NSNumber *)[dict objectForKey:@"has_escape_pod"] boolValue];
+	missiles = [dict doubleForKey:@"missiles" defaultValue:0];
+	has_ecm = [dict fuzzyBooleanForKey:@"has_ecm" defaultValue:0.0];
+	has_scoop = [dict fuzzyBooleanForKey:@"has_scoop" defaultValue:0.0];
+	has_escape_pod = [dict fuzzyBooleanForKey:@"has_escape_pod" defaultValue:0.0];
 	
-	if ([dict objectForKey:@"max_cargo"])
-		max_cargo = [(NSNumber *)[dict objectForKey:@"max_cargo"] intValue];
-	if ([dict objectForKey:@"extra_cargo"])
-		extra_cargo = [(NSNumber*)[dict objectForKey:@"extra_cargo"] intValue];
-	else
-		extra_cargo = 15;
+	max_cargo = [dict intForKey:@"max_cargo" defaultValue:0];
+	extra_cargo = [dict intForKey:@"extra_cargo" defaultValue:15];
 	
 	// A HACK!! - must do this before the model is set
-	if ([dict objectForKey:@"smooth"])
-		isSmoothShaded = YES;
-	else
-		isSmoothShaded = NO;
+	isSmoothShaded = [dict boolForKey:@"smooth" defaultValue:NO];
 	
-	if ([dict objectForKey:@"model"])
-		[self setModelName:(NSString *)[dict objectForKey:@"model"]];
+	// must do this next one before checking subentities
+	NSString *modelName = [dict stringForKey:@"model" defaultValue:nil];
+	if (modelName != nil)  [self setModelName:modelName];
 	
-	if ([dict objectForKey:KEY_NAME])
-	{
-		if (name)
-			[name release];
-		name = [[NSString stringWithString:(NSString *)[dict objectForKey:KEY_NAME]] retain];
-	}
+	float density = [dict floatForKey:@"density" defaultValue:1.0];
+	if (octree)  mass = density * 20.0 * [octree volume];
 	
-//	if ([dict objectForKey:@"roles"])
-//	{
-//		[self setRoles:(NSString *)[dict objectForKey:@"roles"]];
-//	}
-	[self setRoles:@"player"];	// overrides previous
+	[name autorelease];
+	name = [[dict stringForKey:@"name" defaultValue:name] copy];
 	
-	if ([dict objectForKey:@"laser_color"])
-	{
-		NSString *laser_color_string = (NSString *)[dict objectForKey:@"laser_color"];
-		SEL color_selector = NSSelectorFromString(laser_color_string);
-		if ([OOColor respondsToSelector:color_selector])
-		{
-			id  color_thing = [OOColor performSelector:color_selector];
-			if ([color_thing isKindOfClass:[OOColor class]])
-				[self setLaserColor:(OOColor *)color_thing];
-		}
-	}
-	else
-		[self setLaserColor:[OOColor redColor]];
+	[self setRoles:@"player"];
+	
+	OOColor *color = [OOColor brightColorWithDescription:[dict objectForKey:@"laser_color"]];
+	if (color == nil)  color = [OOColor redColor];
+	[self setLaserColor:color];
 	
 	if ([dict objectForKey:@"extra_equipment"])
 	{
+		// Shouldn't we be doing this anyway? -- Ahruman
 		[extra_equipment removeAllObjects];
-		[extra_equipment addEntriesFromDictionary:(NSDictionary *)[dict objectForKey:@"extra_equipment"]];
+		[extra_equipment addEntriesFromDictionary:[dict dictionaryForKey:@"extra_equipment" defaultValue:nil]];
 	}
 	
-	if ([dict objectForKey:@"max_missiles"])
-	{
-		max_missiles = [(NSNumber *)[dict objectForKey:@"max_missiles"] intValue];
-	}
+	max_missiles = [dict intForKey:@"max_missiles" defaultValue:missiles];
 	
-	if ([dict objectForKey:@"hud"])
+	NSString *hud_desc = [dict stringForKey:@"hud" defaultValue:nil];
+	if (hud_desc != nil)
 	{
-		NSString *hud_desc = (NSString *)[dict objectForKey:@"hud"];
 		NSDictionary *huddict = [ResourceManager dictionaryFromFilesNamed:hud_desc inFolder:@"Config" andMerge:YES];
 		if (huddict)
 		{
-			if (hud)	[hud release];
+			[hud release];
 			hud = [[HeadUpDisplay alloc] initWithDictionary:huddict];
 			[hud setPlayer:self];
 			[hud setScannerZoom:1.0];
@@ -1185,13 +1137,14 @@ static PlayerEntity *sSharedPlayer = nil;
 	int i;
 	for (i = 0; i < SHIPENTITY_MAX_MISSILES; i++)
 	{
-		if (missile_entity[i])
-			[missile_entity[i] release];
+		[missile_entity[i] release];
 		missile_entity[i] = nil;
 	}
 	for (i = 0; i < missiles; i++)
+	{
 		missile_entity[i] = [UNIVERSE newShipWithRole:@"EQ_MISSILE"];   // retain count = 1
-	[self setActive_missile: 0];
+	}
+	[self setActive_missile:0];
 	
 
 	// set view offsets
@@ -1207,8 +1160,7 @@ static PlayerEntity *sSharedPlayer = nil;
 		NSObject*	obj = [dict objectForKey:@"custom_views"];
 		if ([obj isKindOfClass:[NSArray class]])
 		{
-			if (custom_views)
-				[custom_views release];
+			[custom_views release];
 			custom_views = [[NSMutableArray arrayWithArray:(NSArray*)obj] retain];
 		}
 	}
@@ -2148,6 +2100,9 @@ double scoopSoundPlayTime = 0.0;
 			offset = starboardViewOffset;	break;
 		case VIEW_CUSTOM:
 			offset = customViewOffset;	break;
+		
+		default:
+			break;
 	}
 	if (offset.x)
 	{
@@ -2184,6 +2139,9 @@ double scoopSoundPlayTime = 0.0;
 		case VIEW_CUSTOM:
 			return customViewOffset;
 		/* -- */
+		
+		default:
+			break;
 	}
 
 	return kZeroVector;
