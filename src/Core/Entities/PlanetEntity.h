@@ -25,7 +25,7 @@ MA 02110-1301, USA.
 
 */
 
-#import "Entity.h"
+#import "OOSelfDrawingEntity.h"
 #import "legacy_random.h"
 #import "OOColor.h"
 
@@ -54,63 +54,63 @@ typedef struct
 	GLuint					index_array[MAX_TRI_INDICES];
 }	VertexData;
 
-@interface PlanetEntity : Entity {
+@interface PlanetEntity: OOSelfDrawingEntity
+{
+@public
+	GLfloat		sun_diffuse[4];
+	GLfloat		sun_specular[4];
 	
-	@public
-		GLfloat		sun_diffuse[4];
-		GLfloat		sun_specular[4];
-		
-		int			lastSubdivideLevel;
-		
-	@protected
-		int planet_type;
-		int r_seed[MAX_VERTICES_PER_ENTITY];
-		GLuint		displayListNames[MAX_SUBDIVIDE];	// 0 -> 20 verts
-														// 1 -> 80 verts
-														// 2 -> 320 verts
-														// 3 -> 1280 verts
-														// 4 -> 5120 verts
-														// 5 -> 20480 verts !!
-		
-		BOOL		isTextured;
-		GLuint		textureName;
-		unsigned char*	textureData;
+	int			lastSubdivideLevel;
+	
+@protected
+	int planet_type;
+	int r_seed[MAX_VERTICES_PER_ENTITY];
+	GLuint		displayListNames[MAX_SUBDIVIDE];	// 0 -> 20 verts
+													// 1 -> 80 verts
+													// 2 -> 320 verts
+													// 3 -> 1280 verts
+													// 4 -> 5120 verts
+													// 5 -> 20480 verts !!
+	
+	BOOL		isTextured;
+	GLuint		textureName;
+	unsigned char*	textureData;
 
-		BOOL			isShadered;
+	BOOL			isShadered;
 
 #ifndef NO_SHADERS
-		GLhandleARB		shader_program;
+	GLhandleARB		shader_program;
 #endif
 
-		GLuint			normalMapTextureName;
-		unsigned char*	normalMapTextureData;
-		
-		int			planet_seed;
-		double		polar_color_factor;
-		
-		double		rotational_velocity;
-		
-		GLfloat		amb_land[4];
-		GLfloat		amb_polar_land[4];
-		GLfloat		amb_sea[4];
-		GLfloat		amb_polar_sea[4];
-		
-		PlanetEntity*   atmosphere;				// secondary sphere used to show atmospheric details
-		PlanetEntity*   root_planet;			// link back to owning planet
-		
-		int			shuttles_on_ground;			// starting number of shuttles
-		double		last_launch_time;			// space launches out by about 15 minutes
-		double		shuttle_launch_interval;	// space launches out by about 15 minutes
-		
-		double		sqrt_zero_distance;
-		
-		// the normal array can be the base_vertex_array
-		// the index array can come from the vertex_index_array
-		VertexData				vertexdata;
-		
-		double	cor4k, lim4k;
-		double	cor8k, lim8k;
-		double	cor16k, lim16k;
+	GLuint			normalMapTextureName;
+	unsigned char*	normalMapTextureData;
+	
+	int			planet_seed;
+	double		polar_color_factor;
+	
+	double		rotational_velocity;
+	
+	GLfloat		amb_land[4];
+	GLfloat		amb_polar_land[4];
+	GLfloat		amb_sea[4];
+	GLfloat		amb_polar_sea[4];
+	
+	PlanetEntity*   atmosphere;				// secondary sphere used to show atmospheric details
+	PlanetEntity*   root_planet;			// link back to owning planet
+	
+	int			shuttles_on_ground;			// starting number of shuttles
+	double		last_launch_time;			// space launches out by about 15 minutes
+	double		shuttle_launch_interval;	// space launches out by about 15 minutes
+	
+	double		sqrt_zero_distance;
+	
+	// the normal array can be the base_vertex_array
+	// the index array can come from the vertex_index_array
+	VertexData				vertexdata;
+	
+	double	cor4k, lim4k;
+	double	cor8k, lim8k;
+	double	cor16k, lim16k;
 }
 
 // straight c

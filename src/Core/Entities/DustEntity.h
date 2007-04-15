@@ -24,16 +24,14 @@ MA 02110-1301, USA.
 
 */
 
-#import <Foundation/Foundation.h>
-
-#import "Entity.h"
+#import "OOSelfDrawingEntity.h"
 
 #define DUST_SCALE			2000
 #define DUST_N_PARTICLES	600
 
 @class Entity, OOColor;
 
-@interface DustEntity : Entity
+@interface DustEntity: OOSelfDrawingEntity
 {
 	OOColor *dust_color;
 	GLfloat color_fv[4];

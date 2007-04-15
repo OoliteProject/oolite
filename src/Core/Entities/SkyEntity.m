@@ -558,7 +558,7 @@ MA 02110-1301, USA.
 			if (displayListName != 0)  glCallList(displayListName);
 			else
 			{
-				[self initialiseTextures];
+				[self initializeTextures];
 				[self generateDisplayList];
 			}
 		}

@@ -24,8 +24,7 @@ MA 02110-1301, USA.
 
 */
 
-#import <Foundation/Foundation.h>
-#import "Entity.h"
+#import "OOSelfDrawingEntity.h"
 
 #import "Universe.h"
 #import "OOMaths.h"
@@ -56,12 +55,12 @@ MA 02110-1301, USA.
 #define PARTICLE_LASER_LENGTH		10000.0
 #define PARTICLE_LASER_RANGE_LIMIT	1000000000.0
 
-#define LASER_FLASH_SIZE			1.0 + 2.0 * randf()
+#define LASER_FLASH_SIZE			(1.0 + 2.0 * randf())
 
 @class Entity;
 
-@interface ParticleEntity : Entity {
-
+@interface ParticleEntity: OOSelfDrawingEntity
+{
     NSString*	textureNameString;
     GLuint		texName;
 	

@@ -38,6 +38,7 @@ typedef struct
 
 Ringdata	ringentity;
 
+
 - (void) setLifetime:(double) amount
 {
 	lifetime = amount;
@@ -76,13 +77,13 @@ Ringdata	ringentity;
 			ringentity.color_array[i*4+3] = amb_diff2[3];
 		}
 	}
-	//
+	
+#if GL_APPLE_vertex_array_object
 	usingVAR = [self OGL_InitVAR];
 	//
 	if (usingVAR)
 		[self OGL_AssignVARMemory:sizeof(Ringdata) :(void *)&ringentity :0];
-	//
-	////
+#endif
 	
 	lifetime = 50.0;
 	status = STATUS_EFFECT;

@@ -101,6 +101,10 @@ void OOLogWithFunctionFileAndLineAndArguments(NSString *inMessageClass, const ch
 #define OOLogGenericParameterError()	OOLogGenericParameterErrorForFunction(OOLOG_FUNCTION_NAME)
 void OOLogGenericParameterErrorForFunction(const char *inFunction);
 
+// OOLogGenericSubclassResponsibility(): general subclass responsibility message, "***** $function_name is a subclass responsibility. (This is an internal programming error, please report it.)"
+#define OOLogGenericSubclassResponsibility()	OOLogGenericSubclassResponsibilityForFunction(OOLOG_FUNCTION_NAME)
+void OOLogGenericSubclassResponsibilityForFunction(const char *inFunction);
+
 
 void OOLoggingInit(void);
 

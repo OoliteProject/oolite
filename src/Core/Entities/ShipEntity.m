@@ -402,7 +402,7 @@ static void ApplyConstantUniforms(NSDictionary *uniforms, GLhandleARB shaderProg
 		[self setCrew:[NSArray arrayWithObject:pilot]];
 	}
 	
-	[self initialiseTextures];
+	[self initializeTextures];
 	
 	// unpiloted (like missiles asteroids etc.)
 	if ([shipdict fuzzyBooleanForKey:@"unpiloted" defaultValue:0.0f])  [self setCrew:nil];
@@ -2432,7 +2432,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 }
 
 
-- (void) initialiseTextures
+- (void) initializeTextures
 {
 	NSDictionary			*shaderDefs = nil;
 	NSEnumerator			*shaderEnum = nil;
@@ -2444,7 +2444,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	Entity					*propertyEntity = nil;
 	NSDictionary			*materialDefaults = nil;
 	
-	[super initialiseTextures];
+	[super initializeTextures];
 	
 	// TODO: this won't do when we have non-shader OOMaterials.
 	if (![[OOOpenGLExtensionManager sharedManager] shadersSupported])  return;
@@ -2616,7 +2616,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 				else
 				{
 					// Set up display list.
-					if (!materialsReady)  [self initialiseTextures];
+					if (!materialsReady)  [self initializeTextures];
 #if GL_APPLE_vertex_array_object
 					if (usingVAR)  glBindVertexArrayAPPLE(gVertexArrayRangeObjects[0]);
 #endif

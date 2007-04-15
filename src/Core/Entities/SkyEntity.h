@@ -24,9 +24,8 @@ MA 02110-1301, USA.
 
 */
 
-#import <Foundation/Foundation.h>
+#import "OOSelfDrawingEntity.h"
 
-#import "Entity.h"
 
 #define SKY_BILLBOARDS	3
 
@@ -41,6 +40,7 @@ MA 02110-1301, USA.
 #define SKY_BLOB_ALPHA			0.10
 #define SKY_BLOB_SCALE			10.0
 #define SKY_BLOB_SCALE_PRIME	0.0005
+
 
 typedef struct
 {
@@ -58,7 +58,7 @@ typedef struct
 
 @class OOColor;
 
-@interface SkyEntity : Entity
+@interface SkyEntity: OOSelfDrawingEntity
 {
 	int sky_type;
 

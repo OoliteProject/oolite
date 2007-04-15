@@ -25,12 +25,16 @@ MA 02110-1301, USA.
 
 */
 
-#import "Entity.h"
+// #import "OOEntityWithDrawable.h"
+#import "OOSelfDrawingEntity.h"
+
+@class	OOBrain, OOColor, StationEntity, ParticleEntity, PlanetEntity,
+		WormholeEntity, AI, Octree;
 
 
-#define MAX_TARGETS							24
-#define RAIDER_MAX_CARGO					5
-#define MERCHANTMAN_MAX_CARGO				125
+#define MAX_TARGETS						24
+#define RAIDER_MAX_CARGO				5
+#define MERCHANTMAN_MAX_CARGO			125
 
 #define LAUNCH_DELAY					2.0
 
@@ -50,9 +54,9 @@ MA 02110-1301, USA.
 #define MILITARY_JAMMER_ENERGY_RATE		3
 #define MILITARY_JAMMER_MIN_ENERGY		128
 
-#define COMBAT_IN_RANGE_FACTOR						0.035
-#define COMBAT_OUT_RANGE_FACTOR						0.500
-#define COMBAT_WEAPON_RANGE_FACTOR					1.200
+#define COMBAT_IN_RANGE_FACTOR			0.035
+#define COMBAT_OUT_RANGE_FACTOR			0.500
+#define COMBAT_WEAPON_RANGE_FACTOR		1.200
 
 #define SHIP_COOLING_FACTOR				1.0
 #define SHIP_INSULATION_FACTOR			0.00175
@@ -75,9 +79,8 @@ MA 02110-1301, USA.
 // number of vessels considered when scanning around
 #define MAX_SCAN_NUMBER					16
 
-@class OOBrain, OOColor, StationEntity, ParticleEntity, PlanetEntity, WormholeEntity, AI, Octree;
 
-@interface ShipEntity: Entity
+@interface ShipEntity: OOSelfDrawingEntity // OOEntityWithDrawable
 {
 @public
 	NSArray					*sub_entities;
@@ -104,6 +107,8 @@ MA 02110-1301, USA.
 @protected
 	//set-up
 	NSDictionary			*shipinfoDictionary;
+	
+	Quaternion				subentityRotationalVelocity;
 	
 	//scripting
 	NSArray					*launch_actions;

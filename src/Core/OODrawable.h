@@ -1,8 +1,8 @@
 /*
 
-RingEntity.h
+OOEntityWithDrawable.h
 
-Entity implementing tunnel effect for hyperspace and stations.
+Abstract base class for objects which can draw themselves.
 
 Oolite
 Copyright (C) 2004-2007 Giles C Williams and contributors
@@ -24,17 +24,14 @@ MA 02110-1301, USA.
 
 */
 
-#import "OOSelfDrawingEntity.h"
+#import "OOCocoa.h"
+
+@class OOMaterial;
 
 
-#define RING_SPEED		200.0
+@interface OODrawable: NSObject
 
-
-@interface RingEntity : OOSelfDrawingEntity
-{
-	double lifetime;
-}
-
-- (void) setLifetime:(double) amount;
+- (void)render;
+- (void)reloadTextures;
 
 @end

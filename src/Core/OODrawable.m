@@ -1,10 +1,6 @@
 /*
 
-WormholeEntity.h
-
-Entity subclass representing a wormhole between systems. (This is -- to use
-technical terminology -- the blue blobby thing you see hanging in space. The
-purple tunnel is RingEntity.)
+OOEntityWithDrawable.m
 
 Oolite
 Copyright (C) 2004-2007 Giles C Williams and contributors
@@ -26,32 +22,20 @@ MA 02110-1301, USA.
 
 */
 
-#import "Entity.h"
+#import "OODrawable.h"
 
-#define WORMHOLE_EXPIRES_TIMEINTERVAL	900.0
-#define WORMHOLE_SHRINK_RATE			4000.0
 
-@class ShipEntity, Universe;
+@implementation OODrawable
 
-@interface WormholeEntity: Entity
+- (void)render
 {
-	double			time_counter, expiry_time;
-	
-	Random_Seed		destination;
-	
-	NSMutableArray	*shipsInTransit;
-	
-	double			witch_mass;
 	
 }
 
-- (id) initWormholeTo:(Random_Seed) s_seed fromShip:(ShipEntity *) ship;
 
-- (BOOL) suckInShip:(ShipEntity *) ship;
-- (void) disgorgeShips;
-
-- (Random_Seed) destination;
-
-void drawWormholeCorona (double inner_radius, double outer_radius, int step, double z_distance, GLfloat* col4v1);
+- (void)reloadTextures
+{
+	
+}
 
 @end

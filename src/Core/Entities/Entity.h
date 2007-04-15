@@ -2,10 +2,10 @@
 
 Entity.h
 
+Base class for entities, i.e. drawable world objects.
+
 Oolite
 Copyright (C) 2004-2007 Giles C Williams and contributors
-
-Base class for entities, i.e. drawable world objects.
 
 This program is free software; you can redistribute it and/or
 modify it under the terms of the GNU General Public License
@@ -31,6 +31,8 @@ MA 02110-1301, USA.
 #import "OOTypes.h"
 #import "OOWeakReference.h"
 
+@class Universe, Geometry, CollisionRegion;
+
 
 #define DEBUG_ALL					0xffffffff
 #define DEBUG_LINKED_LISTS			0x00000001
@@ -39,13 +41,6 @@ MA 02110-1301, USA.
 // 0x8 is now unused
 #define DEBUG_OCTREE				0x00000010
 #define DEBUG_OCTREE_TEXT			0x00000020
-
-#define MAX_VERTICES_PER_ENTITY		320
-#define MAX_FACES_PER_ENTITY		512
-#define MAX_TEXTURES_PER_ENTITY		8
-#define MAX_VERTICES_PER_FACE		16
-
-#define	NUM_VERTEX_ARRAY_RANGES		16
 
 #define NO_DRAW_DISTANCE_FACTOR		512.0
 #define ABSOLUTE_NO_DRAW_DISTANCE2	(2500.0 * 2500.0 * NO_DRAW_DISTANCE_FACTOR * NO_DRAW_DISTANCE_FACTOR)
@@ -56,50 +51,6 @@ MA 02110-1301, USA.
 #define SCANNER_MAX_RANGE2			655360000.0
 
 #define CLOSE_COLLISION_CHECK_MAX_RANGE2 1000000000.0
-
-
-@class Universe, Geometry, CollisionRegion;
-
-
-typedef struct
-{
-	GLfloat					red;
-	GLfloat					green;
-	GLfloat					blue;
-	
-	Vector					normal;
-	
-	int						n_verts;
-	
-	GLint					vertex[MAX_VERTICES_PER_FACE];
-	
-	Str255					textureFileStr255;
-	GLuint					texName;
-	GLfloat					s[MAX_VERTICES_PER_FACE];
-	GLfloat					t[MAX_VERTICES_PER_FACE];
-} Face;
-
-
-typedef struct
-{
-	GLint					index_array[3 * MAX_FACES_PER_ENTITY];	// triangles
-	GLfloat					texture_uv_array[ 3 * MAX_FACES_PER_ENTITY * 2];
-	Vector					vertex_array[3 * MAX_FACES_PER_ENTITY];
-	Vector					normal_array[3 * MAX_FACES_PER_ENTITY];
-	
-	GLuint					texName;
-	
-	int						n_triangles;
-} EntityData;	// per texture
-
-
-typedef struct
-{
-	long					rangeSize;		// # of bytes in this VAR block
-	void					*dataBlockPtr;	// ptr to the memory that we're making VAR
-	BOOL					forceUpdate;	// true if data in VAR block needs updating
-	BOOL					activated;		// set to true the first time we use it
-} VertexArrayRangeType;
 
 
 typedef struct
@@ -125,6 +76,8 @@ extern int debug;
 	// lose the overheads of Obj-C accessor methods...
 	//
 @public
+	OOUniversalID			universalID;			// used to reference the entity
+	
 	uint32_t				isParticle: 1,
 							isRing: 1,
 							isShip: 1,
@@ -139,12 +92,7 @@ extern int debug;
 							hasCollided: 1,
 							isSunlit: 1,
 							collisionTestFilter: 1,
-							isSmoothShaded: 1,
-#if GL_APPLE_vertex_array_object
-							usingVAR: 1,
-#endif
-							throw_sparks: 1,
-							materialsReady: 1;
+							throw_sparks: 1;
 	
 	OOScanClass				scanClass;
 	OOEntityStatus			status;
@@ -171,8 +119,6 @@ extern int debug;
 	
 	Entity*					collider;
 	
-	OOUniversalID			universalID;			// used to reference the entity
-	
 	CollisionRegion			*collisionRegion;		// initially nil - then maintained
 	
 @protected
@@ -186,9 +132,8 @@ extern int debug;
     
 	Vector					velocity;
 	
-	Quaternion				subentityRotationalVelocity;
-	
 	// positions+rotations for trails and trackbacks
+	// TODO: Can these be moved into a subclass? -- Ahruman
 	Frame					track[256];
 	int						trackIndex;
 	double					trackTime;
@@ -197,33 +142,12 @@ extern int debug;
 	GLfloat					energy;
 	GLfloat					maxEnergy;
 	
-	NSMutableArray			*collidingEntities;
-    
-    int						n_vertices, n_faces;
-    Vector					vertices[MAX_VERTICES_PER_ENTITY];
-	
-    Vector					vertex_normal[MAX_VERTICES_PER_ENTITY];
-	
-    Face					faces[MAX_FACES_PER_ENTITY];
 	BoundingBox				boundingBox;
 	GLfloat					mass;
-    GLuint					displayListName;
-    
-    NSString				*basefile;
+	
+	NSMutableArray			*collidingEntities;
 	
 	OOUniversalID			owner;
-	
-	unsigned				n_textures;
-	EntityData				entityData;
-	NSRange					triangle_range[MAX_TEXTURES_PER_ENTITY];
-	Str255					texture_file[MAX_TEXTURES_PER_ENTITY];
-	GLuint					texture_name[MAX_TEXTURES_PER_ENTITY];
-	
-	// COMMON OGL STUFF
-#if GL_APPLE_vertex_array_object
-	GLuint					gVertexArrayRangeObjects[NUM_VERTEX_ARRAY_RANGES];	// OpenGL's VAR object references
-	VertexArrayRangeType	gVertexArrayRangeData[NUM_VERTEX_ARRAY_RANGES];		// our info about each VAR block
-#endif
 	
 	OOWeakReference			*weakSelf;
 }
@@ -252,14 +176,8 @@ extern int debug;
 - (void) setThrowSparks:(BOOL)value;
 - (void) throwSparks;
 
-- (BOOL) isSmoothShaded;
-- (void) setSmoothShaded:(BOOL)value;
-
 - (void) setOwner:(Entity *)ent;
 - (Entity *)owner;
-
-- (void) setModelName:(NSString *)modelName;
-- (NSString *)modelName;
 
 - (void) setPosition:(Vector)posn;
 - (void) setPositionX:(GLfloat)x y:(GLfloat)y z:(GLfloat)z;
@@ -271,7 +189,6 @@ extern int debug;
 - (Vector) relativePosition;
 - (NSComparisonResult) compareZeroDistance:(Entity *)otherEntity;
 
-- (Geometry*) geometry;
 - (BoundingBox) boundingBox;
 
 - (GLfloat) mass;
@@ -310,13 +227,6 @@ extern int debug;
 - (void) setCollisionRadius:(double)amount;
 - (NSMutableArray *)collisionArray;
 
-- (void) drawEntity:(BOOL)immediate :(BOOL)translucent;
-- (void) drawSubEntity:(BOOL)immediate :(BOOL)translucent;
-- (void) reloadTextures;
-- (void) initialiseTextures;
-- (void) regenerateDisplayList;
-- (void) generateDisplayList;
-
 - (void) update:(double) delta_t;
 - (void) saveToLastFrame;
 - (void) savePosition:(Vector)pos atTime:(double)t_time atIndex:(int)t_index;
@@ -326,44 +236,18 @@ extern int debug;
 - (Frame) frameAtTime:(double) t_frame;	// timeframe is relative to now ie. -0.5 = half a second ago.
 - (Frame) frameAtTime:(double) t_frame fromFrame:(Frame) frame_zero;	// t_frame is relative to now ie. -0.5 = half a second ago.
 
-- (void) setUpVertexArrays;
-
-- (double) findCollisionRadius;
-
-- (BoundingBox) findBoundingBoxRelativeToPosition:(Vector)opv InVectors:(Vector) _i :(Vector) _j :(Vector) _k;
-
 - (BOOL) checkCloseCollisionWith:(Entity *)other;
 
 - (void) takeEnergyDamage:(double) amount from:(Entity *) ent becauseOf:(Entity *) other;
 
-- (void) fakeTexturesWithImageFile: (NSString *) textureFile andMaxSize:(NSSize) maxSize;
-
-- (NSString *) toString;
-
 - (void)dumpState;		// General "describe situtation verbosely in log" command.
 - (void)dumpSelfState;	// Subclasses should override this, not -dumpState, and call throught to super first.
 
-#if GL_APPLE_vertex_array_object
-// COMMON OGL ROUTINES
-- (BOOL) OGL_InitVAR;
-- (void) OGL_AssignVARMemory:(long) size :(void *) data :(Byte) whichVAR;
-- (void) OGL_UpdateVAR;
-#endif
+// Subclass repsonsibilities
+- (double) findCollisionRadius;
+- (Geometry*) geometry;
+- (BoundingBox) findBoundingBoxRelativeToPosition:(Vector)opv InVectors:(Vector) _i :(Vector) _j :(Vector) _k;
+- (void) drawEntity:(BOOL)immediate :(BOOL)translucent;
+- (void) reloadTextures;
 
 @end
-
-
-// keep track of various OpenGL states
-//
-BOOL mygl_texture_2d;
-//
-void my_glEnable(GLenum gl_state);
-void my_glDisable(GLenum gl_state);
-
-// log a list of current states
-//
-void LogOpenGLState();
-
-// check for OpenGL errors, reporting them if where is not nil
-//
-BOOL CheckOpenGLErrors(NSString* where);
