@@ -25,6 +25,7 @@ MA 02110-1301, USA.
 #import "OOPNGTextureLoader.h"
 #import "png.h"
 #import "OOFunctionAttributes.h"
+#import "OOCPUInfo.h"
 
 
 void png_error(png_structp, png_const_charp) NO_RETURN_FUNC;
@@ -83,6 +84,8 @@ static void PNGRead(png_structp png, png_bytep bytes, png_size_t size);
 	int							depth,
 								colorType;
 	uint32_t					i;
+	BOOL						grayscale;
+	uint8_t						planes;
 	
 	// Set up PNG decoding
 	png = png_create_read_struct(PNG_LIBPNG_VER_STRING, NULL, PNGError, PNGWarning);
@@ -132,13 +135,30 @@ static void PNGRead(png_structp png, png_bytep bytes, png_size_t size);
 	{
 		png_set_expand(png);		// Paletted -> RGB, greyscale -> 8 bpc
 	}
-//	png_set_bgr for little-endian? If so, do we want png_set_swap_alpha in that case?
-	png_set_bgr(png);
-	png_set_swap_alpha(png);		// RGBA->ARGB
-	
-//	if ((colorType & PNG_COLOR_MASK_ALPHA) == 0)
+	if (colorType == PNG_COLOR_TYPE_GRAY)
 	{
-		png_set_filler(png, 0xFF, PNG_FILLER_BEFORE);	// PNG_FILLER_AFTER for little-endian?
+		// TODO: what about PNG_COLOR_TYPE_GRAY_ALPHA ?
+		grayscale = YES;
+		planes = 1;
+		format = kOOTextureDataGrayscale;
+		
+		png_set_invert_mono(png);
+	}
+	else
+	{
+		grayscale = YES;
+		planes = 4;
+		format = kOOTextureDataRGBA;
+		
+#if OOLITE_BIG_ENDIAN
+		png_set_bgr(png);
+		png_set_swap_alpha(png);		// RGBA->ARGB
+#endif
+		
+	//	if ((colorType & PNG_COLOR_MASK_ALPHA) == 0)
+		{
+			png_set_filler(png, 0xFF, PNG_FILLER_BEFORE);	// PNG_FILLER_AFTER for little-endian?
+		}
 	}
 	
 	png_read_update_info(png, pngInfo);
@@ -146,7 +166,7 @@ static void PNGRead(png_structp png, png_bytep bytes, png_size_t size);
 	// Metadata is acceptable; load data.
 	width = pngWidth;
 	height = pngHeight;
-	rowBytes = png_get_rowbytes(png, pngInfo); // width * 4;
+	rowBytes = png_get_rowbytes(png, pngInfo);
 	
 	// png_read_png
 	rows = malloc(sizeof *rows * height);
@@ -163,7 +183,10 @@ static void PNGRead(png_structp png, png_bytep bytes, png_size_t size);
 		return;
 	}
 	
-	for (i = 0; i != height; ++i)  rows[i] = ((png_bytep)data) + i * rowBytes;
+	for (i = 0; i != height; ++i)
+	{
+		rows[i] = ((png_bytep)data) + i * rowBytes;
+	}
 	png_set_rows(png, pngInfo, rows);
 	png_read_image(png, rows);
 	png_read_end(png, pngEndInfo);
@@ -184,8 +207,6 @@ static void PNGRead(png_structp png, png_bytep bytes, png_size_t size);
 	}
 	
 	assert(bytes != NULL);
-	
-//	OOLog(@"texture.load.png.read", @"Reading %u bytes starting at offset %u", count, offset);
 	
 	// Copy bytes
 	memcpy(bytes, [fileData bytes] + offset, count);

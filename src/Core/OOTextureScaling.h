@@ -26,20 +26,20 @@ MA 02110-1301, USA.
 
 */
 
-#import <stdint.h>
+#import "OOMaths.h"
 
 
 uint8_t *ScaleUpPixMap(uint8_t *srcPixels, unsigned srcWidth, unsigned srcHeight, unsigned srcBytesPerRow, unsigned planes, unsigned dstWidth, unsigned dstHeight);
 
 
-/*	Assumes 4 planes, 8 bits per sample, interleaved.
+/*	Assumes 8 bits per sample, interleaved.
 	dstPixels must have space for dstWidth * dstHeight pixels (no row padding
 	is generated).
 */
-void ScalePixMap(void *srcPixels, unsigned srcWidth, unsigned srcHeight, unsigned srcRowBytes, void *dstPixels, unsigned dstWidth, unsigned dstHeight);
+BOOL ScalePixMap(void *srcPixels, uint32_t srcWidth, uint32_t srcHeight, uint8_t planes, uint32_t srcRowBytes, void *dstPixels, uint32_t dstWidth, uint32_t dstHeight);
 
 
-/*	Assumes 4 planes, 8 bits per sample, interleaved.
+/*	Assumes 8 bits per sample, interleaved.
 	Buffer must have space for (4 * width * height) / 3 pixels.
 */
-void GenerateMipMaps(void *textureBytes, unsigned width, unsigned height);
+BOOL GenerateMipMaps(void *textureBytes, uint32_t width, uint32_t height, uint8_t planes);

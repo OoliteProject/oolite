@@ -270,6 +270,10 @@
 		1A26D0F60BCF9D8D0073F257 /* pngusr.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A26D0F40BCF9D8D0073F257 /* pngusr.h */; };
 		1A29967E0B9F064C002D2149 /* OOCache.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A29967C0B9F064C002D2149 /* OOCache.h */; };
 		1A29967F0B9F064C002D2149 /* OOCache.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A29967D0B9F064C002D2149 /* OOCache.m */; };
+		1A2A16680BD10B1200152975 /* OOSingleTextureMaterial.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A2A16660BD10B1200152975 /* OOSingleTextureMaterial.m */; };
+		1A2A16690BD10B1200152975 /* OOSingleTextureMaterial.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A2A16670BD10B1200152975 /* OOSingleTextureMaterial.h */; };
+		1A2A17D60BD1587D00152975 /* OOCPUInfo.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A2A17D40BD1587D00152975 /* OOCPUInfo.h */; };
+		1A2A17D70BD1587D00152975 /* OOCPUInfo.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A2A17D50BD1587D00152975 /* OOCPUInfo.m */; settings = {COMPILER_FLAGS = "-maltivec"; }; };
 		1A2A8C150BC65FFD001E00FB /* OOJSEntity.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A2A8C130BC65FFD001E00FB /* OOJSEntity.h */; };
 		1A2A8C160BC65FFD001E00FB /* OOJSEntity.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A2A8C140BC65FFD001E00FB /* OOJSEntity.m */; };
 		1A2A8D3A0BC6765F001E00FB /* EntityOOJavaScriptExtensions.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A2A8D380BC6765F001E00FB /* EntityOOJavaScriptExtensions.h */; };
@@ -285,8 +289,6 @@
 		1A3A04620BC547DC00B5E2D9 /* OOTypes.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A3A04610BC547DC00B5E2D9 /* OOTypes.h */; };
 		1A3AFF1F0BC4462200B5E2D9 /* OOJSVector.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A3AFF1D0BC4462200B5E2D9 /* OOJSVector.h */; };
 		1A3AFF200BC4462200B5E2D9 /* OOJSVector.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A3AFF1E0BC4462200B5E2D9 /* OOJSVector.m */; };
-		1A43234C0BCFC9BB00F65914 /* OOOpenGLExtensionManager.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A43234A0BCFC9BB00F65914 /* OOOpenGLExtensionManager.h */; };
-		1A43234D0BCFC9BB00F65914 /* OOOpenGLExtensionManager.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A43234B0BCFC9BB00F65914 /* OOOpenGLExtensionManager.m */; };
 		1A43234E0BCFC9BB00F65914 /* OOOpenGLExtensionManager.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A43234A0BCFC9BB00F65914 /* OOOpenGLExtensionManager.h */; };
 		1A43234F0BCFC9BB00F65914 /* OOOpenGLExtensionManager.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A43234B0BCFC9BB00F65914 /* OOOpenGLExtensionManager.m */; };
 		1A451D8D0BB1BD2A004CD72F /* OOMaths.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A9404920BAF4582005F6CF3 /* OOMaths.h */; };
@@ -364,6 +366,8 @@
 		1AB01B5F0BB1639600F1B949 /* OOTextureScaling.m in Sources */ = {isa = PBXBuildFile; fileRef = 1AB01ABD0BB15AED00F1B949 /* OOTextureScaling.m */; };
 		1AB01BBB0BB16A8A00F1B949 /* OOFastArithmetic.h in Headers */ = {isa = PBXBuildFile; fileRef = 1AB01BB90BB16A8A00F1B949 /* OOFastArithmetic.h */; };
 		1AB01BBC0BB16A8A00F1B949 /* OOFastArithmetic.m in Sources */ = {isa = PBXBuildFile; fileRef = 1AB01BBA0BB16A8A00F1B949 /* OOFastArithmetic.m */; settings = {COMPILER_FLAGS = "-O3 -falign-loops=32 -falign-loops-max-skip=31 -falign-functions=32"; }; };
+		1ADBA5500BD0F173008FC99C /* OOBasicMaterial.h in Headers */ = {isa = PBXBuildFile; fileRef = 1ADBA54E0BD0F173008FC99C /* OOBasicMaterial.h */; };
+		1ADBA5510BD0F173008FC99C /* OOBasicMaterial.m in Sources */ = {isa = PBXBuildFile; fileRef = 1ADBA54F0BD0F173008FC99C /* OOBasicMaterial.m */; };
 		1ADF5CEC0B9DF59A00FDB2A3 /* OOCacheManager.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A231A170B9D8B1B00EF0852 /* OOCacheManager.m */; };
 		1ADF5F130B9E374B00FDB2A3 /* JoystickHandler.h in Headers */ = {isa = PBXBuildFile; fileRef = 1ADF5F110B9E374B00FDB2A3 /* JoystickHandler.h */; };
 		1AEAAB8F0BA45248000705D0 /* libjs.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 1AEAAB8E0BA45248000705D0 /* libjs.a */; };
@@ -808,7 +812,7 @@
 		083325DC09DDBCDE00F5B8E4 /* OOColor.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOColor.m; sourceTree = "<group>"; };
 		083DB4D30A70E51E00B419B2 /* OOBrain.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOBrain.h; sourceTree = "<group>"; };
 		083DB4D40A70E51E00B419B2 /* OOBrain.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOBrain.m; sourceTree = "<group>"; };
-		0865432206B8447D000CA0AB /* Oolite.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Oolite.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		0865432206B8447D000CA0AB /* OoliteDev.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = OoliteDev.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		0878FD2F086EF845004CB752 /* Carbon.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Carbon.framework; path = /System/Library/Frameworks/Carbon.framework; sourceTree = "<absolute>"; };
 		1058C7A1FEA54F0111CA2CBB /* Cocoa.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Cocoa.framework; path = /System/Library/Frameworks/Cocoa.framework; sourceTree = "<absolute>"; };
 		1A23154E0B9C778400EF0852 /* solar.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = solar.png; sourceTree = "<group>"; };
@@ -1065,6 +1069,10 @@
 		1A26D0F40BCF9D8D0073F257 /* pngusr.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = pngusr.h; path = src/Core/Materials/pngusr.h; sourceTree = SOURCE_ROOT; };
 		1A29967C0B9F064C002D2149 /* OOCache.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOCache.h; sourceTree = "<group>"; };
 		1A29967D0B9F064C002D2149 /* OOCache.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOCache.m; sourceTree = "<group>"; };
+		1A2A16660BD10B1200152975 /* OOSingleTextureMaterial.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOSingleTextureMaterial.m; sourceTree = "<group>"; };
+		1A2A16670BD10B1200152975 /* OOSingleTextureMaterial.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOSingleTextureMaterial.h; sourceTree = "<group>"; };
+		1A2A17D40BD1587D00152975 /* OOCPUInfo.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOCPUInfo.h; sourceTree = "<group>"; };
+		1A2A17D50BD1587D00152975 /* OOCPUInfo.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOCPUInfo.m; sourceTree = "<group>"; };
 		1A2A8C130BC65FFD001E00FB /* OOJSEntity.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOJSEntity.h; sourceTree = "<group>"; };
 		1A2A8C140BC65FFD001E00FB /* OOJSEntity.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOJSEntity.m; sourceTree = "<group>"; };
 		1A2A8D380BC6765F001E00FB /* EntityOOJavaScriptExtensions.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = EntityOOJavaScriptExtensions.h; sourceTree = "<group>"; };
@@ -1158,8 +1166,8 @@
 		1A9406B20BAF67BF005F6CF3 /* OOTriangle.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOTriangle.h; sourceTree = "<group>"; };
 		1A9406B30BAF67BF005F6CF3 /* OOTriangle.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOTriangle.m; sourceTree = "<group>"; };
 		1A9407BF0BAF7032005F6CF3 /* GNUmakefile */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = GNUmakefile; sourceTree = "<group>"; };
-		1AB01ABC0BB15AED00F1B949 /* OOTextureScaling.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOTextureScaling.h; sourceTree = "<group>"; };
-		1AB01ABD0BB15AED00F1B949 /* OOTextureScaling.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOTextureScaling.m; sourceTree = "<group>"; };
+		1AB01ABC0BB15AED00F1B949 /* OOTextureScaling.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = OOTextureScaling.h; path = ../OOTextureScaling.h; sourceTree = "<group>"; };
+		1AB01ABD0BB15AED00F1B949 /* OOTextureScaling.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = OOTextureScaling.m; path = ../OOTextureScaling.m; sourceTree = "<group>"; };
 		1AB01BB90BB16A8A00F1B949 /* OOFastArithmetic.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOFastArithmetic.h; sourceTree = "<group>"; };
 		1AB01BBA0BB16A8A00F1B949 /* OOFastArithmetic.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOFastArithmetic.m; sourceTree = "<group>"; };
 		1AC0E9460B974DC200C46994 /* GPL.TXT */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = GPL.TXT; sourceTree = "<group>"; };
@@ -1168,6 +1176,8 @@
 		1AC0E9490B974DC200C46994 /* LICENSE.TXT */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = LICENSE.TXT; sourceTree = "<group>"; };
 		1AC0E94A0B974DC200C46994 /* PORTING.TXT */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = PORTING.TXT; sourceTree = "<group>"; };
 		1AC0E94B0B974DC200C46994 /* README_LINUX.TXT */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = README_LINUX.TXT; sourceTree = "<group>"; };
+		1ADBA54E0BD0F173008FC99C /* OOBasicMaterial.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOBasicMaterial.h; sourceTree = "<group>"; };
+		1ADBA54F0BD0F173008FC99C /* OOBasicMaterial.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOBasicMaterial.m; sourceTree = "<group>"; };
 		1ADF5F110B9E374B00FDB2A3 /* JoystickHandler.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = JoystickHandler.h; sourceTree = "<group>"; };
 		1AEAAB8E0BA45248000705D0 /* libjs.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libjs.a; path = "deps/Cocoa-deps/js/libjs.a"; sourceTree = "<group>"; };
 		1AEAAC6F0BA457E6000705D0 /* jsarena.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = jsarena.h; sourceTree = "<group>"; };
@@ -1353,7 +1363,7 @@
 		19C28FACFE9D520D11CA2CBB /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				0865432206B8447D000CA0AB /* Oolite.app */,
+				0865432206B8447D000CA0AB /* OoliteDev.app */,
 				1A71E6F30BCE340C00CD5C13 /* libpng.a */,
 			);
 			name = Products;
@@ -1728,8 +1738,12 @@
 			children = (
 				1A26D0D30BCF9D0D0073F257 /* OOMaterial.h */,
 				1A26D0D20BCF9D0D0073F257 /* OOMaterial.m */,
+				1ADBA54E0BD0F173008FC99C /* OOBasicMaterial.h */,
+				1ADBA54F0BD0F173008FC99C /* OOBasicMaterial.m */,
 				1A26D0D00BCF9D0D0073F257 /* OOShaderMaterial.h */,
 				1A26D0D10BCF9D0D0073F257 /* OOShaderMaterial.m */,
+				1A2A16670BD10B1200152975 /* OOSingleTextureMaterial.h */,
+				1A2A16660BD10B1200152975 /* OOSingleTextureMaterial.m */,
 				1A71E8610BCE8A6E00CD5C13 /* Shaders */,
 				1A71E85D0BCE8A5500CD5C13 /* Textures */,
 			);
@@ -1785,6 +1799,8 @@
 				1A26D0E50BCF9D3B0073F257 /* OOTextureLoader.m */,
 				1A26D0E40BCF9D3B0073F257 /* OOPNGTextureLoader.h */,
 				1A26D0E20BCF9D3B0073F257 /* OOPNGTextureLoader.m */,
+				1AB01ABC0BB15AED00F1B949 /* OOTextureScaling.h */,
+				1AB01ABD0BB15AED00F1B949 /* OOTextureScaling.m */,
 			);
 			name = Textures;
 			sourceTree = "<group>";
@@ -1811,8 +1827,8 @@
 				1A8A3BFB0B963F91007D20B8 /* Utilities */,
 				1A8A3BF20B963F3C007D20B8 /* Mac-specific */,
 				25161144099544390037C2E1 /* Universe.h */,
-				25161116099544390037C2E1 /* OOSound.h */,
 				25161143099544390037C2E1 /* Universe.m */,
+				25161116099544390037C2E1 /* OOSound.h */,
 				25161110099544390037C2E1 /* OOTrumble.h */,
 				25161108099544390037C2E1 /* OOTrumble.m */,
 				25161100099544380037C2E1 /* OpenGLSprite.h */,
@@ -1875,6 +1891,8 @@
 				1A2A8E020BC67CCC001E00FB /* OOWeakReference.m */,
 				1A43234A0BCFC9BB00F65914 /* OOOpenGLExtensionManager.h */,
 				1A43234B0BCFC9BB00F65914 /* OOOpenGLExtensionManager.m */,
+				1A2A17D40BD1587D00152975 /* OOCPUInfo.h */,
+				1A2A17D50BD1587D00152975 /* OOCPUInfo.m */,
 			);
 			name = Utilities;
 			sourceTree = "<group>";
@@ -1933,8 +1951,6 @@
 				1A231A170B9D8B1B00EF0852 /* OOCacheManager.m */,
 				1A29967C0B9F064C002D2149 /* OOCache.h */,
 				1A29967D0B9F064C002D2149 /* OOCache.m */,
-				1AB01ABC0BB15AED00F1B949 /* OOTextureScaling.h */,
-				1AB01ABD0BB15AED00F1B949 /* OOTextureScaling.m */,
 				1A9404640BAF42BE005F6CF3 /* OOPListParsing.h */,
 				1A9404650BAF42BF005F6CF3 /* OOPListParsing.m */,
 			);
@@ -2267,6 +2283,9 @@
 				1A26D0EA0BCF9D3B0073F257 /* OOPNGTextureLoader.h in Headers */,
 				1A26D0F50BCF9D8D0073F257 /* pngusr.h in Headers */,
 				1A43234E0BCFC9BB00F65914 /* OOOpenGLExtensionManager.h in Headers */,
+				1ADBA5500BD0F173008FC99C /* OOBasicMaterial.h in Headers */,
+				1A2A16690BD10B1200152975 /* OOSingleTextureMaterial.h in Headers */,
+				1A2A17D60BD1587D00152975 /* OOCPUInfo.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -2277,7 +2296,6 @@
 				1A71E7170BCE34CF00CD5C13 /* pngconf.h in Headers */,
 				1A71E71B0BCE34CF00CD5C13 /* png.h in Headers */,
 				1A26D0F60BCF9D8D0073F257 /* pngusr.h in Headers */,
-				1A43234C0BCFC9BB00F65914 /* OOOpenGLExtensionManager.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -2312,7 +2330,7 @@
 			name = Oolite;
 			productInstallPath = "$(HOME)/Applications";
 			productName = Oolite;
-			productReference = 0865432206B8447D000CA0AB /* Oolite.app */;
+			productReference = 0865432206B8447D000CA0AB /* OoliteDev.app */;
 			productType = "com.apple.product-type.application";
 		};
 		1A71E6F20BCE340C00CD5C13 /* libpng-custom */ = {
@@ -2492,6 +2510,9 @@
 				1A26D0E80BCF9D3B0073F257 /* OOPNGTextureLoader.m in Sources */,
 				1A26D0EB0BCF9D3B0073F257 /* OOTextureLoader.m in Sources */,
 				1A43234F0BCFC9BB00F65914 /* OOOpenGLExtensionManager.m in Sources */,
+				1ADBA5510BD0F173008FC99C /* OOBasicMaterial.m in Sources */,
+				1A2A16680BD10B1200152975 /* OOSingleTextureMaterial.m in Sources */,
+				1A2A17D70BD1587D00152975 /* OOCPUInfo.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -2517,7 +2538,6 @@
 				1A71E7280BCE34CF00CD5C13 /* pngrio.c in Sources */,
 				1A71E7290BCE34CF00CD5C13 /* pngvcrd.c in Sources */,
 				1A71E72A0BCE34CF00CD5C13 /* pngpread.c in Sources */,
-				1A43234D0BCFC9BB00F65914 /* OOOpenGLExtensionManager.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

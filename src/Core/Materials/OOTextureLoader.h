@@ -30,6 +30,16 @@ MA 02110-1301, USA.
 
 #import "OOTexture.h"
 
+
+typedef enum
+{
+	kOOTextureDataInvalid,
+	
+	kOOTextureDataRGBA,			// GL_RGBA, GL_UNSIGNED_INT_8_8_8_8 little-endian/GL_UNSIGNED_INT_8_8_8_8_REV big-endian.
+	kOOTextureDataGrayscale
+} OOTextureDataFormat;
+
+
 @interface OOTextureLoader: NSObject
 {
 	OOTextureLoader				*prev, *next;
@@ -42,6 +52,7 @@ MA 02110-1301, USA.
 								avoidShrinking: 1,
 								ready: 1,
 								priority: 1;
+	OOTextureDataFormat			format;
 	
 	void						*data;
 	uint32_t					width,
@@ -55,6 +66,7 @@ MA 02110-1301, USA.
 
 //	Return value indicates success of loading.
 - (BOOL)getResult:(void **)outData
+		   format:(OOTextureDataFormat *)outFormat
 			width:(uint32_t *)outWidth
 		   height:(uint32_t *)outHeight;
 
@@ -79,3 +91,21 @@ MA 02110-1301, USA.
 - (void)loadTexture;
 
 @end
+
+
+static inline uint8_t OOTexturePlanesForFormat(OOTextureDataFormat format)
+{
+	switch (format)
+	{
+		case kOOTextureDataRGBA:
+			return 4;
+		
+		case kOOTextureDataGrayscale:
+			return 1;
+		
+		case kOOTextureDataInvalid:
+			break;
+	}
+	
+	return 0;
+}

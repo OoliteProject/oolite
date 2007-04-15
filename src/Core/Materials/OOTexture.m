@@ -99,7 +99,7 @@ static BOOL		sClientStorageAvialable;
 
 - (id)initWithPath:(NSString *)path key:(NSString *)key options:(uint32_t)options anisotropy:(float)anisotropy;
 - (void)setUpTexture;
-- (void)uploadTextureDataWithMipMap:(BOOL)mipMap;
+- (void)uploadTextureDataWithMipMap:(BOOL)mipMap format:(OOTextureDataFormat)format;
 
 + (void)checkExtensions;
 
@@ -299,6 +299,7 @@ static BOOL		sClientStorageAvialable;
 	GLint					filter;
 	float					anisotropy;
 	BOOL					mipMap = NO;
+	OOTextureDataFormat		format;
 	
 	loader = data.loading.loader;
 	options = data.loading.options;
@@ -307,7 +308,7 @@ static BOOL		sClientStorageAvialable;
 	loaded = YES;
 	// data.loaded considered invalid beyond this point.
 	
-	if ([loader getResult:&data.loaded.bytes width:&data.loaded.width height:&data.loaded.height])
+	if ([loader getResult:&data.loaded.bytes format:&format width:&data.loaded.width height:&data.loaded.height])
 	{
 		glPixelStorei(GL_UNPACK_ALIGNMENT, 1);		// FIXME: this is probably not needed. Remove it once stuff works and see if anything changes. (Should probably be 4 if we need to keep it.)
 		glGenTextures(1, &data.loaded.textureName);
@@ -344,7 +345,7 @@ static BOOL		sClientStorageAvialable;
 		
 		if (sClientStorageAvialable)  EnableClientStorage();
 		
-		[self uploadTextureDataWithMipMap:mipMap];
+		[self uploadTextureDataWithMipMap:mipMap format:format];
 		
 		if (!sClientStorageAvialable)
 		{
@@ -363,29 +364,44 @@ static BOOL		sClientStorageAvialable;
 }
 
 
-- (void)uploadTextureDataWithMipMap:(BOOL)mipMap
+- (void)uploadTextureDataWithMipMap:(BOOL)mipMap format:(OOTextureDataFormat)format
 {
-	if (!mipMap)
+	GLint					glFormat, internalFormat, type;
+	
+	switch (format)
 	{
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, data.loaded.width, data.loaded.height, 0, GL_RGBA, RGBA_IMAGE_TYPE, data.loaded.bytes);
+		case kOOTextureDataRGBA:
+			glFormat = GL_RGBA;
+			internalFormat = GL_RGBA;
+			type = RGBA_IMAGE_TYPE;
+			break;
+		
+		case kOOTextureDataGrayscale:
+			glFormat = GL_LUMINANCE;
+			internalFormat = GL_LUMINANCE;
+			type = GL_UNSIGNED_BYTE;
+			break;
+		
+		default:
+			OOLog(kOOLogParameterError, @"Unexpected texture format %u.", format);
+			return;
 	}
-	else
-	{
-		unsigned			w = data.loaded.width,
+	
+	unsigned				w = data.loaded.width,
 							h = data.loaded.height,
 							level = 0;
-		uint32_t			*bytes = data.loaded.bytes;
-		
-		while (1 < w && 1 < h)
-		{
-			glTexImage2D(GL_TEXTURE_2D, level++, GL_RGBA, w, h, 0, GL_RGBA, RGBA_IMAGE_TYPE, bytes);
-			bytes += w * h;
-			w >>= 1;
-			h >>= 1;
-		}
-		
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, level - 1);
+	uint32_t				*bytes = data.loaded.bytes;
+	
+	while (1 < w && 1 < h)
+	{
+		glTexImage2D(GL_TEXTURE_2D, level++, glFormat, w, h, 0, internalFormat, type, bytes);
+		if (!mipMap)  return;
+		bytes += w * h;
+		w >>= 1;
+		h >>= 1;
 	}
+	
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, level - 1);
 }
 
 

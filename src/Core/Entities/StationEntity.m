@@ -1665,12 +1665,8 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 
 - (BOOL) isRotatingStation
 {
-	NSString*	shipRoles = (NSString *)[shipinfoDictionary objectForKey:@"roles"];
-	BOOL		isRotatingStation = NO;
-	if ([shipinfoDictionary objectForKey:@"rotating"])
-		isRotatingStation = [[shipinfoDictionary objectForKey:@"rotating"] boolValue];
-	isRotatingStation |= ([shipRoles rangeOfString:@"rotating-station"].location != NSNotFound);	// legacy
-	return isRotatingStation;
+	if ([shipinfoDictionary boolForKey:@"rotating" defaultValue:NO])  return YES;
+	return [[shipinfoDictionary objectForKey:@"roles"] rangeOfString:@"rotating-station"].location != NSNotFound;	// legacy
 }
 
 

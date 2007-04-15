@@ -33,7 +33,6 @@ BOOL EvaluateAsBoolean(id object, BOOL defaultValue)
 	
 	if ([object isKindOfClass:[NSString class]])
 	{
-		// This is here because A. [NSString boolValue] exists, but is not documented; and B. we want to return the default value (rather than NO) if the string doesn't make sense as a boolean.
 		if (NSOrderedSame == [object caseInsensitiveCompare:@"yes"] ||
 			NSOrderedSame == [object caseInsensitiveCompare:@"true"] ||
 			NSOrderedSame == [object caseInsensitiveCompare:@"on"] ||

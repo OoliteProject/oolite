@@ -897,25 +897,23 @@ static PlayerEntity *sSharedPlayer = nil;
 	max_flight_speed	= 160.0;
 	max_flight_roll =   2.0;
 	max_flight_pitch =  1.0;
-	max_flight_yaw =  1.0;
+	max_flight_yaw =	1.0;
 	
 	// control factors
 	
-	thrust =			32.0;
-	roll_delta =		2.0 * max_flight_roll;
-	pitch_delta =		2.0 * max_flight_pitch;
-	yaw_delta =			2.0 * max_flight_yaw;
+	thrust =				32.0;
+	roll_delta =			2.0 * max_flight_roll;
+	pitch_delta =			2.0 * max_flight_pitch;
+	yaw_delta =				2.0 * max_flight_yaw;
     
-    displayListName =   0;
+    displayListName =		0;
     
-    status =			STATUS_ACTIVE;
+    status =				STATUS_ACTIVE;
 	
-	shield_booster =			1;
-	shield_enhancer =			0;
-	forward_shield =	PLAYER_MAX_FORWARD_SHIELD;
-	aft_shield =		PLAYER_MAX_AFT_SHIELD;
+	shield_booster =		1;
+	shield_enhancer =		0;
 	
-	energy =			256;
+	energy =				256;
 	weapon_temp =			0.0;
 	forward_weapon_temp =	0.0;
 	aft_weapon_temp =		0.0;
@@ -1007,10 +1005,13 @@ static PlayerEntity *sSharedPlayer = nil;
 	saved					= NO;
 	cursor_coordinates		= galaxy_coordinates;
 	
-	forward_shield = PLAYER_MAX_FORWARD_SHIELD;
-	aft_shield = PLAYER_MAX_AFT_SHIELD;
 	
-	scanClass = CLASS_PLAYER;
+	shield_booster			= 1;
+	shield_enhancer			= 0;
+	forward_shield			= PLAYER_MAX_FORWARD_SHIELD;
+	aft_shield				= PLAYER_MAX_AFT_SHIELD;
+	
+	scanClass				= CLASS_PLAYER;
 	
 	[UNIVERSE clearGUIs];
 	
@@ -1025,13 +1026,13 @@ static PlayerEntity *sSharedPlayer = nil;
 	debugShipID = NO_TARGET;
 	
 	// views
-	forwardViewOffset	= kZeroVector;
-	aftViewOffset		= kZeroVector;
-	portViewOffset		= kZeroVector;
-	starboardViewOffset	= kZeroVector;
-	customViewOffset	= kZeroVector;
+	forwardViewOffset		= kZeroVector;
+	aftViewOffset			= kZeroVector;
+	portViewOffset			= kZeroVector;
+	starboardViewOffset		= kZeroVector;
+	customViewOffset		= kZeroVector;
 	
-	currentWeaponFacing	= VIEW_FORWARD;
+	currentWeaponFacing		= VIEW_FORWARD;
 
 	[save_path autorelease];
 	save_path = nil;

@@ -104,14 +104,16 @@ uint8_t *ScaleUpPixMap(uint8_t *srcPixels, unsigned srcWidth, unsigned srcHeight
 }
 
 
-static void ScaleUpHorizontally(const char *srcPixels, unsigned srcWidth, unsigned srcHeight, unsigned srcRowBytes, uint8_t *dstPixels, unsigned dstWidth);
-static void ScaleDownHorizontally(const char *srcPixels, unsigned srcWidth, unsigned srcHeight, unsigned srcRowBytes, uint8_t *dstPixels, unsigned dstWidth);
-static void ScaleUpVertically(const char *srcPixels, unsigned srcWidth, unsigned srcHeight, unsigned srcRowBytes, uint8_t *dstPixels, unsigned dstHeight);
-static void ScaleDownVertically(const char *srcPixels, unsigned srcWidth, unsigned srcHeight, unsigned srcRowBytes, uint8_t *dstPixels, unsigned dstHeight);
-static void CopyRows(const char *srcPixels, unsigned srcWidth, unsigned srcHeight, unsigned srcRowBytes, uint8_t *dstPixels);
+static void ScaleUpHorizontally4(const char *srcPixels, uint32_t srcWidth, uint32_t srcHeight, uint32_t srcRowBytes, char *dstPixels, uint32_t dstWidth);
+static void ScaleDownHorizontally4(const char *srcPixels, uint32_t srcWidth, uint32_t srcHeight, uint32_t srcRowBytes, char *dstPixels, uint32_t dstWidth);
+static void ScaleUpHorizontally1(const char *srcPixels, uint32_t srcWidth, uint32_t srcHeight, uint32_t srcRowBytes, char *dstPixels, uint32_t dstWidth);
+static void ScaleDownHorizontally1(const char *srcPixels, uint32_t srcWidth, uint32_t srcHeight, uint32_t srcRowBytes, char *dstPixels, uint32_t dstWidth);
+static void ScaleUpVertically(const char *srcPixels, uint32_t srcWidth, uint32_t srcHeight, uint32_t srcRowBytes, char *dstPixels, unsigned dstHeight);
+static void ScaleDownVertically(const char *srcPixels, uint32_t srcWidth, uint32_t srcHeight, uint32_t srcRowBytes, char *dstPixels, unsigned dstHeight);
+static void CopyRows(const char *srcPixels, uint32_t widthInBytes, uint32_t height, uint32_t srcRowBytes, char *dstPixels);
 
 
-void ScalePixMap(void *srcPixels, unsigned srcWidth, unsigned srcHeight, unsigned srcRowBytes, void *dstPixels, unsigned dstWidth, unsigned dstHeight)
+BOOL ScalePixMap(void *srcPixels, uint32_t srcWidth, uint32_t srcHeight, uint8_t planes, uint32_t srcRowBytes, void *dstPixels, uint32_t dstWidth, uint32_t dstHeight)
 {
 	// Divide and conquer - handle horizontal and vertical resizing in separate passes.
 	
@@ -119,24 +121,30 @@ void ScalePixMap(void *srcPixels, unsigned srcWidth, unsigned srcHeight, unsigne
 	unsigned		interWidth, interHeight, interRowBytes;
 	
 	// Sanity checks
-	if (EXPECT_NOT(srcWidth == 0 || srcHeight == 0 || srcPixels == NULL || dstPixels == NULL || srcRowBytes < srcWidth * 4)) return;
+	if (EXPECT_NOT(srcWidth == 0 || srcHeight == 0 || srcPixels == NULL || dstPixels == NULL || srcRowBytes < srcWidth * 4 || (planes != 1 && planes != 4)))
+	{
+		OOLog(kOOLogParameterError, @"***** Internal error: bad parameters -- %s(%p, %u, %u, %u, %u, %p, %u, %u)", srcPixels, srcWidth, srcHeight, planes, srcRowBytes, dstPixels, dstWidth, dstHeight);
+		return NO;
+	}
 	
 	// Scale horizontally, if needed
 	if (srcWidth < dstWidth)
 	{
-		ScaleUpHorizontally(srcPixels, srcWidth, srcHeight, srcRowBytes, dstPixels, dstWidth);
+		if (planes == 4)  ScaleUpHorizontally4(srcPixels, srcWidth, srcHeight, srcRowBytes, dstPixels, dstWidth);
+		else if (planes == 1)  ScaleUpHorizontally1(srcPixels, srcWidth, srcHeight, srcRowBytes, dstPixels, dstWidth);
 		interData = dstPixels;
 		interWidth = dstWidth;
 		interHeight = dstHeight;
-		interRowBytes = interWidth * 4;
+		interRowBytes = interWidth * planes;
 	}
 	else if (dstWidth < srcWidth)
 	{
-		ScaleDownHorizontally(srcPixels, srcWidth, srcHeight, srcRowBytes, dstPixels, dstWidth);
+		if (planes == 4)  ScaleDownHorizontally4(srcPixels, srcWidth, srcHeight, srcRowBytes, dstPixels, dstWidth);
+		else if (planes == 1)  ScaleDownHorizontally1(srcPixels, srcWidth, srcHeight, srcRowBytes, dstPixels, dstWidth);
 		interData = dstPixels;
 		interWidth = dstWidth;
 		interHeight = dstHeight;
-		interRowBytes = interWidth * 4;
+		interRowBytes = interWidth * planes;
 	}
 	else
 	{
@@ -149,39 +157,57 @@ void ScalePixMap(void *srcPixels, unsigned srcWidth, unsigned srcHeight, unsigne
 	// Scale vertically, if needed.
 	if (srcHeight < dstHeight)
 	{
-		ScaleUpVertically(interData, interWidth, interHeight, interRowBytes, dstPixels, dstHeight);
+		ScaleUpVertically(interData, interWidth * planes, interHeight, interRowBytes, dstPixels, dstHeight);
 	}
 	else if (dstHeight < srcHeight)
 	{
-		ScaleDownVertically(interData, interWidth, interHeight, interRowBytes, dstPixels, dstHeight);
+		ScaleDownVertically(interData, interWidth * planes, interHeight, interRowBytes, dstPixels, dstHeight);
 	}
 	else
 	{
 		// This handles the no-scaling case as well as the horizontal-scaling-only case.
-		CopyRows(interData, interWidth, interHeight, interRowBytes, dstPixels);
+		CopyRows(interData, interWidth * planes, interHeight, interRowBytes, dstPixels);
 	}
+	return YES;
 }
 
 
-void GenerateMipMaps(void *textureBytes, unsigned width, unsigned height)
+static BOOL GenerateMipMaps4(void *textureBytes, unsigned width, unsigned height);
+static BOOL GenerateMipMaps1(void *textureBytes, unsigned width, unsigned height);
+
+
+BOOL GenerateMipMaps(void *textureBytes, unsigned width, unsigned height, uint8_t planes)
 {
 	if (EXPECT_NOT(width != OORoundUpToPowerOf2(width) || height != OORoundUpToPowerOf2(height)))
 	{
-		OOLog(@"texture.generateMipMaps.skip", @"Non-power-of-two dimensions (%ux%u) passed to GenerateMipMaps() - ignoring, data will be junk.", width, height);
-		return;
+		OOLog(kOOLogParameterError, @"Non-power-of-two dimensions (%ux%u) passed to GenerateMipMaps() - ignoring, data will be junk.", width, height);
+		return NO;
 	}
 	
+	if (planes == 4)  return GenerateMipMaps4(textureBytes, width, height);
+	if (planes == 1)  return GenerateMipMaps1(textureBytes, width, height);
+	
+	OOLog(kOOLogParameterError, @"Bad plane count (%u, should be 1 or 4) - ignoring, data will be junk.", planes);
+	return NO;
+}
+
+
+// #define DUMP_MIP_MAPS 
+#ifdef DUMP_MIP_MAPS
+	static SInt32 sID = 0;
+#endif
+
+static BOOL GenerateMipMaps4(void *textureBytes, unsigned width, unsigned height)
+{
 	uint_fast32_t			w = width, h = height, x, y;
 	uint32_t				*src0, *src1, *dst, *next;
 	uint_fast32_t			px00, px01, px10, px11;
-	uint_fast32_t			ag, rb;	// red and blue channel, green and alpha channel.
+	uint_fast32_t			ag, br;	// Channel layout is ABGR (actually RGBA little-endian, but it doesn't really matter). We use two accumulators, with alternating channels, so overflow doesn't cross channel boundaries.
 	
 	next = textureBytes;
 	
-#define DUMP_MIP_MAPS 
 #ifdef DUMP_MIP_MAPS
-	static unsigned ID = -1;
-	++ID;
+	unsigned ID = OTAtomicAdd32(1, &sID);
 	uint32_t *start;
 	unsigned level = 0;
 #endif
@@ -214,20 +240,20 @@ void GenerateMipMaps(void *textureBytes, unsigned width, unsigned height)
 				
 				// ...and add them together, channel by channel.
 				ag = (px00 & 0xFF00FF00) >> 8;
-				rb = (px00 & 0x00FF00FF);
+				br = (px00 & 0x00FF00FF);
 				ag += (px01 & 0xFF00FF00) >> 8;
-				rb += (px01 & 0x00FF00FF);
+				br += (px01 & 0x00FF00FF);
 				ag += (px10 & 0xFF00FF00) >> 8;
-				rb += (px10 & 0x00FF00FF);
+				br += (px10 & 0x00FF00FF);
 				ag += (px11 & 0xFF00FF00) >> 8;
-				rb += (px11 & 0x00FF00FF);
+				br += (px11 & 0x00FF00FF);
 				
 				// ...shift the sums into place...
 				ag <<= 6;
-				rb >>= 2;
+				br >>= 2;
 				
 				// ...and write output pixel.
-				*dst++ = (ag & 0xFF00FF00) | (rb & 0x00FF00FF);
+				*dst++ = (ag & 0xFF00FF00) | (br & 0x00FF00FF);
 			} while (--x);
 			
 			// Skip a row for each source row
@@ -236,63 +262,156 @@ void GenerateMipMaps(void *textureBytes, unsigned width, unsigned height)
 		} while (--y);
 		
 #ifdef DUMP_MIP_MAPS
-		NSString *name = [NSString stringWithFormat:@"/Users/jayton/Desktop/tex-debug/dump-%u-%u.raw", ID, level++];
+		NSString *name = [NSString stringWithFormat:@"tex-debug/dump-%u-%u-rgb.raw", ID, level++];
 		FILE *dump = fopen([name UTF8String], "w");
 		if (dump != NULL)
 		{
-			fwrite(start, w, h * 16, dump);
+			fwrite(start, w * 2, h * 2 * 4, dump);
 			fclose(dump);
 		}
 #endif
 	}
+	
+#ifdef DUMP_MIP_MAPS
+	OOLog(@"texture.generateMipMaps.dump", @"Debug-dumping texture %u (%u x %u, %u levels)", ID, width, height, level);
+#endif
+	
+	return YES;
 }
 
 
-static void ScaleUpHorizontally(const char *srcPixels, unsigned srcWidth, unsigned srcHeight, unsigned srcRowBytes, uint8_t *dstPixels, unsigned dstWidth)
+// TODO: for widths that are multiples of 4, it'd be more efficient to use GenerateMipMaps4(textureBytes, width / 4, height). Look into that when breaking out the base loop. -- Ahruman
+static BOOL GenerateMipMaps1(void *textureBytes, unsigned width, unsigned height)
+{
+	uint_fast32_t			w = width, h = height, x, y;
+	uint8_t					*src0, *src1, *dst, *next;
+	uint_fast8_t			px00, px01, px10, px11;
+	uint_fast16_t			sum;
+	
+	next = textureBytes;
+	
+#ifdef DUMP_MIP_MAPS
+	unsigned ID = OTAtomicAdd32(1, &sID);
+	uint8_t *start;
+	unsigned level = 0;
+#endif
+	
+	while (1 < w && 1 < h)
+	{
+		src0 = next;
+		next = src0 + w * h;
+		src1 = src0 + w;
+		dst = next;
+		
+#ifdef DUMP_MIP_MAPS
+		start = src0;
+#endif
+		
+		w >>= 1;
+		h >>= 1;
+		
+		y = h;
+		do
+		{
+			x = w;
+			do
+			{
+				// Read four pixels in a square...
+				px00 = *src0++;
+				px01 = *src0++;
+				px10 = *src1++;
+				px11 = *src1++;
+				
+				// ...add them together...
+				sum = px00 + px01 + px10 + px11;
+				
+				// ...shift the sums into place...
+				sum >>= 2;
+				
+				// ...and write output pixel.
+				*dst++ = sum;
+			} while (--x);
+			
+			// Skip a row for each source row
+			src0 = src1;
+			src1 += w << 1;
+		} while (--y);
+		
+#ifdef DUMP_MIP_MAPS
+		NSString *name = [NSString stringWithFormat:@"tex-debug/dump-%u-%u-g.raw", ID, level++];
+		FILE *dump = fopen([name UTF8String], "w");
+		if (dump != NULL)
+		{
+			fwrite(start, w * 2, h * 2, dump);
+			fclose(dump);
+		}
+#endif
+	}
+	
+#ifdef DUMP_MIP_MAPS
+	OOLog(@"texture.generateMipMaps.dump", @"Debug-dumping texture %u (%u x %u, %u levels)", ID, width, height, level);
+#endif
+	
+	return YES;
+}
+
+
+static void ScaleUpHorizontally4(const char *srcPixels, uint32_t srcWidth, uint32_t srcHeight, uint32_t srcRowBytes, char *dstPixels, uint32_t dstWidth)
 {
 	// TODO
 	OOLog(@"scale.unimplemented", @"Attempt to scale texture, currently unsupported - expect noise.");
 }
 
 
-static void ScaleDownHorizontally(const char *srcPixels, unsigned srcWidth, unsigned srcHeight, unsigned srcRowBytes, uint8_t *dstPixels, unsigned dstWidth)
+static void ScaleDownHorizontally4(const char *srcPixels, uint32_t srcWidth, uint32_t srcHeight, uint32_t srcRowBytes, char *dstPixels, uint32_t dstWidth)
 {
 	// TODO
 	OOLog(@"scale.unimplemented", @"Attempt to scale texture, currently unsupported - expect noise.");
 }
 
 
-static void ScaleUpVertically(const char *srcPixels, unsigned srcWidth, unsigned srcHeight, unsigned srcRowBytes, uint8_t *dstPixels, unsigned dstHeight)
+static void ScaleUpHorizontally1(const char *srcPixels, uint32_t srcWidth, uint32_t srcHeight, uint32_t srcRowBytes, char *dstPixels, uint32_t dstWidth)
 {
 	// TODO
 	OOLog(@"scale.unimplemented", @"Attempt to scale texture, currently unsupported - expect noise.");
 }
 
 
-static void ScaleDownVertically(const char *srcPixels, unsigned srcWidth, unsigned srcHeight, unsigned srcRowBytes, uint8_t *dstPixels, unsigned dstHeight)
+static void ScaleDownHorizontally1(const char *srcPixels, uint32_t srcWidth, uint32_t srcHeight, uint32_t srcRowBytes, char *dstPixels, uint32_t dstWidth)
 {
 	// TODO
 	OOLog(@"scale.unimplemented", @"Attempt to scale texture, currently unsupported - expect noise.");
 }
 
 
-static void CopyRows(const char *srcPixels, unsigned srcWidth, unsigned srcHeight, unsigned srcRowBytes, uint8_t *dstPixels)
+static void ScaleUpVertically(const char *srcPixels, uint32_t srcWidthInBytes, uint32_t srcHeight, uint32_t srcRowBytes, char *dstPixels, unsigned dstHeight)
+{
+	// TODO
+	OOLog(@"scale.unimplemented", @"Attempt to scale texture, currently unsupported - expect noise.");
+}
+
+
+static void ScaleDownVertically(const char *srcPixels, uint32_t srcWidthInBytes, uint32_t srcHeight, uint32_t srcRowBytes, char *dstPixels, unsigned dstHeight)
+{
+	// TODO
+	OOLog(@"scale.unimplemented", @"Attempt to scale texture, currently unsupported - expect noise.");
+}
+
+
+static void CopyRows(const char *srcPixels, uint32_t widthInBytes, uint32_t height, uint32_t srcRowBytes, char *dstPixels)
 {
 	unsigned			y;
-	unsigned			rowBytes;
 	
-	rowBytes = srcWidth * 4;
-	
-	if (rowBytes == srcRowBytes)
+	if (srcRowBytes == widthInBytes)
 	{
-		memcpy(dstPixels, srcPixels, srcHeight * rowBytes);
+		memcpy(dstPixels, srcPixels, height * widthInBytes);
 		return;
 	}
 	
-	for (y = 0; y != srcHeight; ++y)
+	for (y = 0; y != height; ++y)
 	{
-		__builtin_memcpy(dstPixels, srcPixels, rowBytes);
-		dstPixels += rowBytes;
-		srcPixels += rowBytes;
+		__builtin_memcpy(dstPixels, srcPixels, widthInBytes);
+		dstPixels += srcRowBytes;
+		srcPixels += widthInBytes;
 	}
 }

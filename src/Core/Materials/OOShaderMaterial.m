@@ -64,7 +64,7 @@ static NSString *MacrosToString(NSDictionary *macros);
 	
 	if (configuration == nil)  OK = NO;
 	
-	self = [super init];
+	self = [super initWithConfiguration:configuration];
 	if (self == nil)  OK = NO;
 	
 	if (OK && configuration == nil)  OK = NO;

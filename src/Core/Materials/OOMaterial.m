@@ -28,15 +28,25 @@ MA 02110-1301, USA.
 */
 
 #import "OOMaterial.h"
+#import "OOFunctionAttributes.h"
 
 static OOMaterial *sActiveMaterial;
 
 
 @implementation OOMaterial
 
+- (void)dealloc
+{
+	// Ensure cleanup happens; doing it more than once is safe.
+	[self willDealloc];
+	
+	[super dealloc];
+}
+
+
 - (void)willDealloc
 {
-	if (sActiveMaterial == self)
+	if (EXPECT_NOT(sActiveMaterial == self))
 	{
 		OOLog(@"shader.dealloc.imbalance", @"***** Material deallocated while active, indicating a retain/release imbalance. Expect imminent crash.");
 		[self unapplyWithNext:nil];

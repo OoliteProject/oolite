@@ -29,6 +29,7 @@ MA 02110-1301, USA.
 #import "OOMaths.h"
 #import "Universe.h"
 #import "OOTextureScaling.h"
+#import "OOCPUInfo.h"
 
 
 typedef struct
@@ -79,17 +80,17 @@ enum
 	
 	if (path == nil) return nil;
 	
-	// Set up loading thread and queue lock
+	// Set up loading threads (up to four) and queue lock
 	if (sQueueLock == nil)
 	{
 		sQueueLock = [[NSConditionLock alloc] initWithCondition:kConditionNoData];
 		if (sQueueLock != nil)
 		{
-			// For now, generate four threads for testing purposes. TODO: use number of processors. -- Ahruman
-			[NSThread detachNewThreadSelector:@selector(queueTask) toTarget:self withObject:nil];
-			[NSThread detachNewThreadSelector:@selector(queueTask) toTarget:self withObject:nil];
-			[NSThread detachNewThreadSelector:@selector(queueTask) toTarget:self withObject:nil];
-			[NSThread detachNewThreadSelector:@selector(queueTask) toTarget:self withObject:nil];
+			int threadCount = MIN(OOCPUCount() / 2, 4);
+			do
+			{
+				[NSThread detachNewThreadSelector:@selector(queueTask) toTarget:self withObject:nil];
+			} while (--threadCount > 0);
 		}
 	}
 	if (sQueueLock == nil)
@@ -104,6 +105,7 @@ enum
 		glGetIntegerv(GL_MAX_TEXTURE_SIZE, &sGLMaxSize);
 		if (sGLMaxSize < 64)  sGLMaxSize = 64;
 		
+		// Why 0x80000000? Because it's the biggest number OORoundUpToPowerOf2() can handle.
 		sUserMaxSize = [[NSUserDefaults standardUserDefaults] unsignedIntForKey:@"max-texture-size" defaultValue:0x80000000];
 		sUserMaxSize = OORoundUpToPowerOf2(sUserMaxSize);
 		if (sUserMaxSize < 64)  sUserMaxSize = 64;
@@ -184,6 +186,7 @@ enum
 
 
 - (BOOL)getResult:(void **)outData
+		   format:(OOTextureDataFormat *)outFormat
 			width:(uint32_t *)outWidth
 		   height:(uint32_t *)outHeight
 {
@@ -212,6 +215,7 @@ enum
 	}
 	
 	if (EXPECT(outData != NULL))  *outData = data;
+	if (EXPECT(outFormat != NULL))  *outFormat = format;
 	if (EXPECT(outWidth != NULL))  *outWidth = width;
 	if (EXPECT(outHeight != NULL))  *outHeight = height;
 	
@@ -355,8 +359,11 @@ enum
 	BOOL				rescale;
 	void				*newData = NULL;
 	size_t				newSize;
+	uint8_t				planes;
 	
-	if (rowBytes == 0)  rowBytes = width * 4;
+	planes = OOTexturePlanesForFormat(format);
+	
+	if (rowBytes == 0)  rowBytes = width * planes;
 	
 	// Work out appropriate final size for textures.
 	if (!sHaveNPOTTextures)
@@ -407,7 +414,7 @@ enum
 			return;
 		}
 		
-		ScalePixMap(data, width, height, rowBytes, newData, desiredWidth, desiredHeight);
+		ScalePixMap(data, width, height, planes, rowBytes, newData, desiredWidth, desiredHeight);
 		
 		// Replace data with new, scaled data.
 		free(data);
@@ -420,7 +427,7 @@ enum
 	if (generateMipMaps && !rescale)
 	{
 		// Make space...
-		newSize = desiredWidth * 4 * desiredHeight;
+		newSize = desiredWidth * planes * desiredHeight;
 		newSize = (newSize * 4) / 3;
 		newData = realloc(data, newSize);
 		if (newData != nil)  data = newData;
@@ -428,7 +435,7 @@ enum
 	}
 	if (generateMipMaps)
 	{
-		GenerateMipMaps(data, width, height);
+		GenerateMipMaps(data, width, height, planes);
 	}
 	
 	// All done.

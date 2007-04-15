@@ -2,8 +2,7 @@
 
 OOShaderMaterial.h
 
-Managers a combination of a shader program, textures and uniforms. Ought to be
-a subclass of a hypothetical OOMaterial.
+Managers a combination of a shader program, textures and uniforms.
 
 Oolite
 Copyright (C) 2004-2007 Giles C Williams and contributors
@@ -25,7 +24,7 @@ MA 02110-1301, USA.
 
 */
 
-#import "OOMaterial.h"
+#import "OOBasicMaterial.h"
 #import "OOWeakReference.h"
 
 
@@ -34,7 +33,7 @@ MA 02110-1301, USA.
 @class OOShaderProgram, OOTexture;
 
 
-@interface OOShaderMaterial: OOMaterial
+@interface OOShaderMaterial: OOBasicMaterial
 {
 	OOShaderProgram					*shaderProgram;
 	NSMutableDictionary				*uniforms;
@@ -56,7 +55,7 @@ MA 02110-1301, USA.
 		glsl				fragment shader source (if no glsl-fragment).
 		uniforms			dictionary of uniforms. Values are either reals or
 							dictionaries containing:
-			type			"int" or "float"
+			type			"int", "texture" or "float"
 			value			number
 	
 	Macros is a dictionary which is converted to macro definitions and

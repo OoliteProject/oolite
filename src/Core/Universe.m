@@ -39,6 +39,7 @@ MA 02110-1301, USA.
 #import "OOCollectionExtractors.h"
 #import "OOConstToString.h"
 #import "OOOpenGLExtensionManager.h"
+#import "OOCPUInfo.h"
 
 #import "Octree.h"
 #import "CollisionRegion.h"
@@ -101,6 +102,8 @@ static BOOL MaintainLinkedLists(Universe* uni);
 	lastBeacon = NO_TARGET;
 	
 	no_update = NO;
+	
+	OOCPUInfoInit();
 	
 	// init OpenGL extension manager (must be done before any other threads might use it)
 	[OOOpenGLExtensionManager sharedManager];
