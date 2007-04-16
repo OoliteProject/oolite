@@ -2478,7 +2478,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 			shaderConfig = [shaderDefs dictionaryForKey:shaderKey defaultValue:nil];
 			if (shaderConfig != nil)
 			{
-				shader = [OOShaderMaterial shaderWithConfiguration:shaderConfig macros:macros bindingTarget:propertyEntity];
+				shader = [OOShaderMaterial shaderMaterialWithName:shaderKey configuration:shaderConfig macros:macros bindingTarget:propertyEntity];
 				if (shader != nil)
 				{
 					[materials setObject:shader forKey:shaderKey];
@@ -3595,7 +3595,7 @@ static GLfloat mascem_color2[4] =	{ 0.4, 0.1, 0.4, 1.0};	// purple
 	
 	if (!suppressExplosion)
 	{
-		if ((mass > 200000.0f)&&(randf() < 0.25f)) // big!
+		if ((mass > 500000.0f)&&(randf() < 0.25f)) // big!
 		{
 			// draw an expanding ring
 			ParticleEntity *ring = [[ParticleEntity alloc] initHyperringFromShip:self]; // retained

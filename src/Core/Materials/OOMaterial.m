@@ -29,6 +29,7 @@ MA 02110-1301, USA.
 
 #import "OOMaterial.h"
 #import "OOFunctionAttributes.h"
+#import "OOLogging.h"
 
 static OOMaterial *sActiveMaterial;
 
@@ -44,6 +45,12 @@ static OOMaterial *sActiveMaterial;
 }
 
 
+- (NSString *)description
+{
+	return [NSString stringWithFormat:@"<%@ %p>{%@}", [self className], self, [self name]];
+}
+
+
 - (void)willDealloc
 {
 	if (EXPECT_NOT(sActiveMaterial == self))
@@ -52,6 +59,13 @@ static OOMaterial *sActiveMaterial;
 		[self unapplyWithNext:nil];
 		sActiveMaterial = nil;
 	}
+}
+
+
+- (NSString *)name
+{
+	OOLogGenericParameterError();
+	return nil;
 }
 
 

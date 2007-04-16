@@ -35,10 +35,12 @@ static OOBasicMaterial *sDefaultMaterial = nil;
 
 @implementation OOBasicMaterial
 
-- (id)init
+- (id)initWithName:(NSString *)name
 {
 	self = [super init];
 	if (EXPECT_NOT(self == nil))  return nil;
+	
+	materialName = [name copy];
 	
 	[self setDiffuseRed:1.0f green:1.0f blue:1.0f alpha:1.0f];
 	[self setAmbientRed:1.0f green:1.0f blue:1.0f alpha:1.0f];
@@ -50,11 +52,11 @@ static OOBasicMaterial *sDefaultMaterial = nil;
 }
 
 
-- (id)initWithConfiguration:(NSDictionary *)configuration
+- (id)initWithName:(NSString *)name configuration:(NSDictionary *)configuration
 {
 	id					colorDesc = nil;
 	
-	self = [self init];
+	self = [self initWithName:name];
 	if (EXPECT_NOT(self == nil))  return nil;
 	
 	// Load colours from config. OOColor takes care of type checking.
@@ -75,6 +77,21 @@ static OOBasicMaterial *sDefaultMaterial = nil;
 }
 
 
+- (void)dealloc
+{
+	[super willDealloc];
+	[materialName release];
+	
+	[super dealloc];
+}
+
+
+- (NSString *)name
+{
+	return materialName;
+}
+
+
 - (BOOL)doApply
 {
 	glMaterialfv(FACE, GL_DIFFUSE, diffuse);
@@ -92,7 +109,7 @@ static OOBasicMaterial *sDefaultMaterial = nil;
 {
 	if (![next isKindOfClass:[OOBasicMaterial class]])
 	{
-		if (EXPECT_NOT(sDefaultMaterial == nil))  sDefaultMaterial = [[OOBasicMaterial alloc] init];
+		if (EXPECT_NOT(sDefaultMaterial == nil))  sDefaultMaterial = [[OOBasicMaterial alloc] initWithName:@"<default material>"];
 		[sDefaultMaterial doApply];
 	}
 }

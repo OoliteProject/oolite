@@ -25,6 +25,7 @@ MA 02110-1301, USA.
 */
 
 #import "OOCocoa.h"
+#import <stdint.h>
 
 
 /*	Must be called once -- currently in [Universe init].
@@ -99,6 +100,7 @@ unsigned OOCPUCount(void);
 
 #ifndef OOLITE_NATIVE_64_BIT
 
+#ifdef _UINT64_T
 #ifdef __ppc64__
 #define OOLITE_NATIVE_64_BIT	1
 #elif __amd64__
@@ -106,6 +108,7 @@ unsigned OOCPUCount(void);
 #elif __x86_64__
 #define OOLITE_NATIVE_64_BIT	1
 #endif
+#endif	// _UINT64_T
 
 #ifndef OOLITE_NATIVE_64_BIT
 #define OOLITE_NATIVE_64_BIT	0

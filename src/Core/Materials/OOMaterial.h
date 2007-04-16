@@ -36,6 +36,8 @@ MA 02110-1301, USA.
 
 @interface OOMaterial: NSObject
 
+- (NSString *)name;
+
 // Make this the current material.
 - (void)apply;
 

@@ -37,6 +37,16 @@ static OOOpenGLExtensionManager *sSingleton = nil;
 static unsigned IntegerFromString(const GLubyte **ioString);
 
 
+@interface OOOpenGLExtensionManager (OOPrivate)
+
+#ifndef NO_SHADERS
+- (void)checkShadersSupported;
+#endif NO_SHADERS
+
+@end
+
+
+
 @implementation OOOpenGLExtensionManager
 
 - (id)init
@@ -80,6 +90,31 @@ static unsigned IntegerFromString(const GLubyte **ioString);
 		
 		OOLog(@"rendering.opengl.version", @"OpenGL renderer version: %u.%u.%u (\"%s\")\nVendor: %@\nRenderer: %@", major, minor, release, versionString, vendor, renderer);
 		OOLog(@"rendering.opengl.extensions", @"OpenGL extensions (%u):\n%@", [extensions count], extensionString);
+		
+		if (major <= 1 && minor <= 1)
+		{
+			/*	Ensure we have OpenGL 1.1 or later (basic stuff like
+				glBindTexture(), glDrawArrays()).
+				We probably have implicit requirements for later versions, but
+				I don't feel like auditing.
+				-- Ahruman
+			*/
+			OOLog(@"rendering.opengl.version.insufficient", @"***** Oolite requires OpenGL version 1.1 or later.");
+			[NSException raise:@"OoliteOpenGLTooOldException"
+						format:@"Oolite requires at least OpenGL 1.1. You have %u.%u (\"%s\").", major, minor, versionString];
+		}
+		
+#if OOLITE_WINDOWS
+#if GL_ARB_vertex_buffer_object
+			glBindBufferARB = (PFNGLBINDBUFFERARBPROC)wglGetProcAddress("glBindBufferARB");
+			glGenBuffersARB = (PFNGLGENBUFFERSARBPROC)wglGetProcAddress("glGenBuffersARB");
+			glBufferDataARB = (PFNGLBUFFERDATAARBPROC)wglGetProcAddress("glBufferDataARB");
+#endif
+#endif
+		
+#ifndef NO_SHADERS
+		[self checkShadersSupported];
+#endif
 	}
 	return self;
 }
@@ -122,64 +157,7 @@ static unsigned IntegerFromString(const GLubyte **ioString);
 - (BOOL)shadersSupported
 {
 #ifndef NO_SHADERS
-	if (EXPECT(testedForShaders))  return shadersAvailable;
-	
-	[lock lock];
-	testedForShaders = YES;
-	
-	if (major == 1 && minor < 5)
-	{
-		OOLog(kOOLogOpenGLShaderSupport, @"Shaders will not be used (OpenGL version < 1.5).");
-		goto END;
-	}
-	
-	const NSString		*requiredExtension[] = 
-						{
-							@"GL_ARB_multitexture",
-							@"GL_ARB_shader_objects",
-							@"GL_ARB_shading_language_100",
-							@"GL_ARB_fragment_shader",
-							@"GL_ARB_vertex_shader",
-							@"GL_ARB_fragment_program",
-							@"GL_ARB_vertex_program",
-							nil	// sentinel - don't remove!
-						};
-	NSString			**required = NULL;
-	
-	for (required = requiredExtension; *required != nil; ++required)
-	{
-		if (![extensions containsObject:*required])	// Note to people cleaning up: can't use haveExtension: because we've already got the lock.
-		{
-			OOLog(kOOLogOpenGLShaderSupport, @"Shaders will not be used (OpenGL extension %@ is not available).", *required);
-			goto END;
-		}
-	}
-	
-#if OOLITE_WINDOWS
-	glGetObjectParameterivARB = (PFNGLGETOBJECTPARAMETERIVARBPROC)wglGetProcAddress("glGetObjectParameterivARB");
-	glCreateShaderObjectARB = (PFNGLCREATESHADEROBJECTARBPROC)wglGetProcAddress("glCreateShaderObjectARB");
-	glGetInfoLogARB = (PFNGLGETINFOLOGARBPROC)wglGetProcAddress("glGetInfoLogARB");
-	glCreateProgramObjectARB = (PFNGLCREATEPROGRAMOBJECTARBPROC)wglGetProcAddress("glCreateProgramObjectARB");
-	glAttachObjectARB = (PFNGLATTACHOBJECTARBPROC)wglGetProcAddress("glAttachObjectARB");
-	glDeleteObjectARB = (PFNGLDELETEOBJECTARBPROC)wglGetProcAddress("glDeleteObjectARB");
-	glLinkProgramARB = (PFNGLLINKPROGRAMARBPROC)wglGetProcAddress("glLinkProgramARB");
-	glCompileShaderARB = (PFNGLCOMPILESHADERARBPROC)wglGetProcAddress("glCompileShaderARB");
-	glShaderSourceARB = (PFNGLSHADERSOURCEARBPROC)wglGetProcAddress("glShaderSourceARB");
-	glUseProgramObjectARB = (PFNGLUSEPROGRAMOBJECTARBPROC)wglGetProcAddress("glUseProgramObjectARB");
-	glActiveTextureARB = (PFNGLACTIVETEXTUREARBPROC)wglGetProcAddress("glActiveTextureARB");
-	glGetUniformLocationARB = (PFNGLGETUNIFORMLOCATIONARBPROC)wglGetProcAddress("glGetUniformLocationARB");
-	glUniform1iARB = (PFNGLUNIFORM1IARBPROC)wglGetProcAddress("glUniform1iARB");
-	glUniform1fARB = (PFNGLUNIFORM1FARBPROC)wglGetProcAddress("glUniform1fARB");
-#endif
-	
-	shadersAvailable = YES;
-	
-END:
-	[lock unlock];
 	return shadersAvailable;
-#else
-	// NO_SHADERS
-	return NO;
 #endif
 }
 
@@ -227,6 +205,67 @@ static unsigned IntegerFromString(const GLubyte **ioString)
 	*ioString = curr;
 	return result;
 }
+
+
+@implementation OOOpenGLExtensionManager (OOPrivate)
+
+
+#ifndef NO_SHADERS
+
+- (void)checkShadersSupported
+{
+	shadersAvailable = NO;
+	
+	if (major <= 1 && minor < 5)
+	{
+		OOLog(kOOLogOpenGLShaderSupport, @"Shaders will not be used (OpenGL version < 1.5).");
+		return;
+	}
+	
+	const NSString		*requiredExtension[] = 
+						{
+							@"GL_ARB_multitexture",
+							@"GL_ARB_shader_objects",
+							@"GL_ARB_shading_language_100",
+							@"GL_ARB_fragment_shader",
+							@"GL_ARB_vertex_shader",
+							@"GL_ARB_fragment_program",
+							@"GL_ARB_vertex_program",
+							nil	// sentinel - don't remove!
+						};
+	NSString			**required = NULL;
+	
+	for (required = requiredExtension; *required != nil; ++required)
+	{
+		if (![self haveExtension:*required])
+		{
+			OOLog(kOOLogOpenGLShaderSupport, @"Shaders will not be used (OpenGL extension %@ is not available).", *required);
+			return;
+		}
+	}
+	
+#if OOLITE_WINDOWS
+	glGetObjectParameterivARB = (PFNGLGETOBJECTPARAMETERIVARBPROC)wglGetProcAddress("glGetObjectParameterivARB");
+	glCreateShaderObjectARB = (PFNGLCREATESHADEROBJECTARBPROC)wglGetProcAddress("glCreateShaderObjectARB");
+	glGetInfoLogARB = (PFNGLGETINFOLOGARBPROC)wglGetProcAddress("glGetInfoLogARB");
+	glCreateProgramObjectARB = (PFNGLCREATEPROGRAMOBJECTARBPROC)wglGetProcAddress("glCreateProgramObjectARB");
+	glAttachObjectARB = (PFNGLATTACHOBJECTARBPROC)wglGetProcAddress("glAttachObjectARB");
+	glDeleteObjectARB = (PFNGLDELETEOBJECTARBPROC)wglGetProcAddress("glDeleteObjectARB");
+	glLinkProgramARB = (PFNGLLINKPROGRAMARBPROC)wglGetProcAddress("glLinkProgramARB");
+	glCompileShaderARB = (PFNGLCOMPILESHADERARBPROC)wglGetProcAddress("glCompileShaderARB");
+	glShaderSourceARB = (PFNGLSHADERSOURCEARBPROC)wglGetProcAddress("glShaderSourceARB");
+	glUseProgramObjectARB = (PFNGLUSEPROGRAMOBJECTARBPROC)wglGetProcAddress("glUseProgramObjectARB");
+	glActiveTextureARB = (PFNGLACTIVETEXTUREARBPROC)wglGetProcAddress("glActiveTextureARB");
+	glGetUniformLocationARB = (PFNGLGETUNIFORMLOCATIONARBPROC)wglGetProcAddress("glGetUniformLocationARB");
+	glUniform1iARB = (PFNGLUNIFORM1IARBPROC)wglGetProcAddress("glUniform1iARB");
+	glUniform1fARB = (PFNGLUNIFORM1FARBPROC)wglGetProcAddress("glUniform1fARB");
+#endif
+	
+	shadersAvailable = YES;
+}
+#endif
+
+@end
 
 
 @implementation OOOpenGLExtensionManager (Singleton)

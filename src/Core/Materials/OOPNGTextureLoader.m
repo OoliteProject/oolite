@@ -142,11 +142,11 @@ static void PNGRead(png_structp png, png_bytep bytes, png_size_t size);
 		planes = 1;
 		format = kOOTextureDataGrayscale;
 		
-		png_set_invert_mono(png);
+	//	png_set_invert_mono(png);
 	}
 	else
 	{
-		grayscale = YES;
+		grayscale = NO;
 		planes = 4;
 		format = kOOTextureDataRGBA;
 		

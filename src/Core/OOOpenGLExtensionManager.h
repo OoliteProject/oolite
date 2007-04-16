@@ -76,9 +76,8 @@ MA 02110-1301, USA.
 	NSString				*renderer;
 	
 	unsigned				major, minor, release;
-	
+
 #ifndef NO_SHADERS
-	BOOL					testedForShaders;
 	BOOL					shadersAvailable;
 #endif
 }
@@ -99,9 +98,18 @@ MA 02110-1301, USA.
 
 #if OOLITE_WINDOWS && !defined(NO_SHADERS)
 /*	Define the function pointers for the OpenGL extensions used in the game
-	(required for Windows only)
-	These are set up by -[OOOpenGLExtensionManager shadersSupported]
+	(required for Windows only).
 */
+
+#if GL_ARB_vertex_buffer_object
+// Vertex Buffer Object functions
+PFNGLBINDBUFFERARBPRO				glBindBufferARB;
+PFNGLGENBUFFERSARBPROC				glGenBuffersARB;
+PFNGLBUFFERDATAARBPROC				glBufferDataARB;
+#endif
+
+#ifndef NO_SHADERS
+// Shader functions
 PFNGLUSEPROGRAMOBJECTARBPROC		glUseProgramObjectARB;
 PFNGLACTIVETEXTUREARBPROC			glActiveTextureARB;
 PFNGLGETUNIFORMLOCATIONARBPROC		glGetUniformLocationARB;
@@ -116,4 +124,5 @@ PFNGLDELETEOBJECTARBPROC			glDeleteObjectARB;
 PFNGLLINKPROGRAMARBPROC				glLinkProgramARB;
 PFNGLCOMPILESHADERARBPROC			glCompileShaderARB;
 PFNGLSHADERSOURCEARBPROC			glShaderSourceARB;
+#endif	// !defined(NO_SHADERS)
 #endif	// OOLITE_WINDOWS

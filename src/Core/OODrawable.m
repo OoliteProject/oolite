@@ -1,6 +1,6 @@
 /*
 
-OOEntityWithDrawable.m
+OODrawable.m
 
 Oolite
 Copyright (C) 2004-2007 Giles C Williams and contributors

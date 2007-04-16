@@ -29,11 +29,11 @@ MA 02110-1301, USA.
 
 @implementation OOSingleTextureMaterial
 
-- (id)initWithTextureName:(NSString *)name configuration:(NSDictionary *)configuration
+- (id)initWithName:(NSString *)name configuration:(NSDictionary *)configuration
 {
 	NSDictionary		*texSpec = nil;
 	
-	self = [super initWithConfiguration:configuration];
+	self = [super initWithName:name configuration:configuration];
 	if (name != nil && self != nil)
 	{
 		texSpec = [configuration dictionaryForKey:@"texture" defaultValue:nil];

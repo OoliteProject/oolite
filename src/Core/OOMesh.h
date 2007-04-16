@@ -1,8 +1,8 @@
 /*
 
-OODrawable.h
+OOMesh.h
 
-Abstract base class for objects which can draw themselves.
+Standard OODrawable for static meshes from DAT files.
 
 Oolite
 Copyright (C) 2004-2007 Giles C Williams and contributors
@@ -24,12 +24,39 @@ MA 02110-1301, USA.
 
 */
 
-#import "OOCocoa.h"
+#import "OODrawable.h"
+#import "OOOpenGL.h"
+#import "OOMaths.h"
+
+@class OOMaterial;
 
 
-@interface OODrawable: NSObject
+typedef struct
+{
+	GLfloat				s, t;
+} OOMeshTexCoords;
 
-- (void)render;
-- (void)reloadTextures;
+
+typedef struct
+{
+	size_t				vertexCount;
+	OOMaterial			*material;
+#if GL_ARB_vertex_buffer_object
+	GLuint				buffer;
+#endif
+	Vector				*vertices;
+	Vector				*normals;
+	OOMeshTexCoords		*texCoords;
+} OOMeshSubMesh;
+
+
+@interface OOMesh: OODrawable
+{
+	NSString			*name;
+	size_t				subMeshCount;
+	OOMeshSubMesh		*meshes;
+}
+
++ (id)meshWithName:(NSString *)name materialConfiguration:(NSDictionary *)materialConf;
 
 @end

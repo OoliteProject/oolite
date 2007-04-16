@@ -42,6 +42,6 @@ MA 02110-1301, USA.
 	If the found OOTexture config dictionary contains a "name" key, it will be
 	used in preference to the name parameter.
 */
-- (id)initWithTextureName:(NSString *)name configuration:(NSDictionary *)configuration;
+- (id)initWithName:(NSString *)name configuration:(NSDictionary *)configuration;
 
 @end

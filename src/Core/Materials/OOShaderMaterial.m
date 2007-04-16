@@ -31,6 +31,7 @@ MA 02110-1301, USA.
 #import "OOShaderProgram.h"
 #import "OOTexture.h"
 #import "OOOpenGLExtensionManager.h"
+#import "OOMacroOpenGL.h"
 
 
 static NSString *MacrosToString(NSDictionary *macros);
@@ -45,13 +46,13 @@ static NSString *MacrosToString(NSDictionary *macros);
 
 @implementation OOShaderMaterial
 
-+ (id)shaderWithConfiguration:(NSDictionary *)configuration macros:(NSDictionary *)macros bindingTarget:(id<OOWeakReferenceSupport>)target
++ (id)shaderMaterialWithName:(NSString *)name configuration:(NSDictionary *)configuration macros:(NSDictionary *)macros bindingTarget:(id<OOWeakReferenceSupport>)target
 {
-	return [[[self alloc] initWithConfiguration:configuration macros:macros bindingTarget:target] autorelease];
+	return [[[self alloc] initWithName:name configuration:configuration macros:macros bindingTarget:target] autorelease];
 }
 
 
-- (id)initWithConfiguration:(NSDictionary *)configuration macros:(NSDictionary *)macros bindingTarget:(id<OOWeakReferenceSupport>)target
+- (id)initWithName:(NSString *)name configuration:(NSDictionary *)configuration macros:(NSDictionary *)macros bindingTarget:(id<OOWeakReferenceSupport>)target
 {
 	BOOL					OK = YES;
 	NSDictionary			*uniformDefs = nil;
@@ -64,7 +65,9 @@ static NSString *MacrosToString(NSDictionary *macros);
 	
 	if (configuration == nil)  OK = NO;
 	
-	self = [super initWithConfiguration:configuration];
+	OO_ENTER_OPENGL();
+	
+	self = [super initWithName:name configuration:configuration];
 	if (self == nil)  OK = NO;
 	
 	if (OK && configuration == nil)  OK = NO;
@@ -301,6 +304,8 @@ static NSString *MacrosToString(NSDictionary *macros);
 	NSEnumerator			*uniformEnum = nil;
 	OOShaderUniform			*uniform = nil;
 	uint32_t				i;
+	
+	OO_ENTER_OPENGL();
 	
 	[shaderProgram apply];
 	

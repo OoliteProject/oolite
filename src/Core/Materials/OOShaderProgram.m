@@ -29,6 +29,7 @@ MA 02110-1301, USA.
 #import "OOStringParsing.h"
 #import "ResourceManager.h"
 #import "OOOpenGLExtensionManager.h"
+#import "OOMacroOpenGL.h"
 
 
 static NSMutableDictionary		*sShaderCache = nil;
@@ -99,6 +100,8 @@ static NSString *GetGLSLInfoLog(GLhandleARB shaderObject);
 
 - (void)dealloc
 {
+	OO_ENTER_OPENGL();
+	
 	if (EXPECT_NOT(sActiveProgram == self))
 	{
 		OOLog(@"shader.dealloc.imbalance", @"***** OOShaderProgram deallocated while active, indicating a retain/release imbalance. Expect imminent crash.");
@@ -121,6 +124,8 @@ static NSString *GetGLSLInfoLog(GLhandleARB shaderObject);
 
 - (void)apply
 {
+	OO_ENTER_OPENGL();
+	
 	if (sActiveProgram != self)
 	{
 		[sActiveProgram release];
@@ -132,6 +137,8 @@ static NSString *GetGLSLInfoLog(GLhandleARB shaderObject);
 
 + (void)applyNone
 {
+	OO_ENTER_OPENGL();
+	
 	if (sActiveProgram != nil)
 	{
 		[sActiveProgram release];
@@ -156,6 +163,8 @@ static NSString *GetGLSLInfoLog(GLhandleARB shaderObject);
 	BOOL					OK = YES;
 	const GLcharARB			*sourceString = nil;
 	GLint					compileStatus;
+	
+	OO_ENTER_OPENGL();
 	
 	self = [super init];
 	if (self == nil)  OK = NO;
@@ -294,7 +303,9 @@ static NSString *GetGLSLInfoLog(GLhandleARB shaderObject)
 	GLcharARB				*log = nil;
 	NSString				*result = nil;
 	
-	if (shaderObject == NULL_SHADER)  return nil;
+	OO_ENTER_OPENGL();
+	
+	if (EXPECT_NOT(shaderObject == NULL_SHADER))  return nil;
 	
 	glGetObjectParameterivARB(shaderObject, GL_OBJECT_INFO_LOG_LENGTH_ARB, &length);
 	log = malloc(length);

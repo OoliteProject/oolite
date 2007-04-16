@@ -68,8 +68,8 @@ MA 02110-1301, USA.
 	will be transformed into:
 		#define OO_ENGINE_LEVEL 1
 */
-+ (id)shaderWithConfiguration:(NSDictionary *)configuration macros:(NSDictionary *)macros bindingTarget:(id<OOWeakReferenceSupport>)object;
-- (id)initWithConfiguration:(NSDictionary *)configuration macros:(NSDictionary *)macros bindingTarget:(id<OOWeakReferenceSupport>)object;
++ (id)shaderMaterialWithName:(NSString *)name configuration:(NSDictionary *)configuration macros:(NSDictionary *)macros bindingTarget:(id<OOWeakReferenceSupport>)object;
+- (id)initWithName:(NSString *)name configuration:(NSDictionary *)configuration macros:(NSDictionary *)macros bindingTarget:(id<OOWeakReferenceSupport>)object;
 
 /*	Bind a uniform to a property of an object.
 	

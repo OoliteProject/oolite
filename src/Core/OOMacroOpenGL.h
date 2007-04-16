@@ -1,8 +1,13 @@
 /*
 
-OODrawable.h
+OOMacroOpenGL.h
 
-Abstract base class for objects which can draw themselves.
+Under Mac OS X, OpenGL performance can be improved somewhat by using macros
+that call through to a function table directly, avoiding calls to functions
+that just look up the current context and pass their parameters through to
+a context-specific implementation function.
+
+This header abstracts that behaviour for cross-platformity.
 
 Oolite
 Copyright (C) 2004-2007 Giles C Williams and contributors
@@ -24,12 +29,20 @@ MA 02110-1301, USA.
 
 */
 
-#import "OOCocoa.h"
+#if OOLITE_MAC_OS_X && !defined(OOLITE_NO_CGL_MACRO)
 
+#if MAC_OS_X_VERSION_10_4 <= MAC_OS_X_VERSION_MAX_ALLOWED
 
-@interface OODrawable: NSObject
+#define CGL_MACRO_CACHE_RENDERER
+#import <OpenGL/CGLMacro.h>
 
-- (void)render;
-- (void)reloadTextures;
+#define OO_ENTER_OPENGL CGL_MACRO_DECLARE_VARIABLES
 
-@end
+#else
+
+#import <OpenGL/CGLMacro.h>
+
+#define OO_ENTER_OPENGL()	CGLContextObj CGL_MACRO_CONTEXT = CGLGetCurrentContext();	\
+
+#endif
+#endif

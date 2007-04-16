@@ -2813,6 +2813,7 @@ GLfloat docked_light_specular[]	= { (GLfloat) 1.0, (GLfloat) 1.0, (GLfloat) 0.5,
 		[ship initWithDictionary:shipDict];
 	NS_HANDLER
 		[ship release];
+		ship = nil;
 		
 		if ([[localException name] isEqual:OOLITE_EXCEPTION_DATA_NOT_FOUND])
 		{

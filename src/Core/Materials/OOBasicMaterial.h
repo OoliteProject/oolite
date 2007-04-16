@@ -33,6 +33,8 @@ MA 02110-1301, USA.
 
 @interface OOBasicMaterial: OOMaterial
 {
+	NSString				*materialName;
+	
 	// Colours
 	GLfloat					diffuse[4],
 							specular[4],
@@ -52,7 +54,7 @@ MA 02110-1301, USA.
 		shininess	0
 		smooth		YES
 */
-- (id)init;
+- (id)initWithName:(NSString *)name;
 
 /*	Initialize with dictionary. Accepted keys:
 		diffuse		colour description
@@ -66,7 +68,7 @@ MA 02110-1301, USA.
 	"Colour description" refers to anything +[OOColor colorWithDescription:]
 	will accept.
 */
-- (id)initWithConfiguration:(NSDictionary *)configuration;
+- (id)initWithName:(NSString *)name configuration:(NSDictionary *)configuration;
 
 - (OOColor *)diffuseColor;
 - (void)setDiffuseColor:(OOColor *)color;
