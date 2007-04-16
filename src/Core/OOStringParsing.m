@@ -477,7 +477,8 @@ NSArray *ComponentsFromVersionString(NSString *string)
 	int					value;
 	id					component;
 	
-	stringComponents = [string componentsSeparatedByString:@"."];
+	stringComponents = [string componentsSeparatedByString:@" "];
+	stringComponents = [[stringComponents objectAtIndex:0] componentsSeparatedByString:@"."];
 	count = [stringComponents count];
 	result = [NSMutableArray arrayWithCapacity:count];
 	
