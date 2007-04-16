@@ -28,6 +28,7 @@ MA 02110-1301, USA.
 #import "Universe.h"
 #import "ResourceManager.h"
 #import "OOOpenGLExtensionManager.h"
+#import "OOMacroOpenGL.h"
 
 
 #if __BIG_ENDIAN__
@@ -81,8 +82,15 @@ static BOOL		sClampToEdgeAvailable;
 
 // Client storage: reduce copying by requiring the app to keep data around
 #if GL_APPLE_client_storage
+
 #define OO_GL_CLIENT_STORAGE	1
-static inline void EnableClientStorage(void) { glPixelStorei(GL_UNPACK_CLIENT_STORAGE_APPLE, GL_TRUE); }
+static inline void EnableClientStorage(void)
+{
+	OO_ENTER_OPENGL();
+	glPixelStorei(GL_UNPACK_CLIENT_STORAGE_APPLE, GL_TRUE);
+}
+
+
 // #elif in any equivalents on other platforms here
 #else
 #define OO_GL_CLIENT_STORAGE	0
@@ -95,9 +103,14 @@ static BOOL		sClientStorageAvialable;
 #endif
 
 
+#if GL_EXT_texture_lod_bias
+static BOOL		sTextureLODBiasAvailable;
+#endif
+
+
 @interface OOTexture (OOPrivate)
 
-- (id)initWithPath:(NSString *)path key:(NSString *)key options:(uint32_t)options anisotropy:(float)anisotropy;
+- (id)initWithPath:(NSString *)path key:(NSString *)key options:(uint32_t)options anisotropy:(float)anisotropy lodBias:(GLfloat)lodBias;
 - (void)setUpTexture;
 - (void)uploadTextureDataWithMipMap:(BOOL)mipMap format:(OOTextureDataFormat)format;
 
@@ -108,11 +121,16 @@ static BOOL		sClientStorageAvialable;
 
 @implementation OOTexture
 
-+ (id)textureWithName:(NSString *)name options:(uint32_t)options anisotropy:(float)anisotropy
++ (id)textureWithName:(NSString *)name
+			  options:(uint32_t)options
+		   anisotropy:(GLfloat)anisotropy
+			  lodBias:(GLfloat)lodBias
 {
 	NSString				*key = nil;
 	OOTexture				*result = nil;
 	NSString				*path = nil;
+	
+	if (EXPECT_NOT(name == nil))  return nil;
 	
 	options &= kOOTextureDefinedFlags;
 	// Set default flags if needed
@@ -147,7 +165,7 @@ static BOOL		sClientStorageAvialable;
 		if (!sCheckedExtensions)  [self checkExtensions];
 		
 		// No existing texture, load texture...
-		result = [[[OOTexture alloc] initWithPath:path key:key options:options anisotropy:anisotropy] autorelease];
+		result = [[[OOTexture alloc] initWithPath:path key:key options:options anisotropy:anisotropy lodBias:lodBias] autorelease];
 		
 		if (result != nil)
 		{
@@ -161,18 +179,29 @@ static BOOL		sClientStorageAvialable;
 }
 
 
++ (id)textureWithName:(NSString *)name
+{
+	return [self textureWithName:name
+						 options:kOOTextureDefaultOptions
+					  anisotropy:kOOTextureDefaultAnisotropy
+						 lodBias:kOOTextureDefaultLODBias];
+}
+
+
 + (id)textureWithConfiguration:(id)configuration
 {
 	NSString				*name = nil;
 	NSString				*filterString = nil;
 	uint32_t				options = 0;
-	float					anisotropy;
+	GLfloat					anisotropy;
+	GLfloat					lodBias;
 	
 	if ([configuration isKindOfClass:[NSString class]])
 	{
 		name = configuration;
 		options = kOOTextureDefaultOptions;
 		anisotropy = kOOTextureDefaultAnisotropy;
+		lodBias = kOOTextureDefaultLODBias;
 	}
 	else if ([configuration isKindOfClass:[NSDictionary class]])
 	{
@@ -183,20 +212,21 @@ static BOOL		sClientStorageAvialable;
 			return nil;
 		}
 		
-		filterString = [configuration stringForKey:@"minFilter" defaultValue:@"default"];
+		filterString = [configuration stringForKey:@"min_filter" defaultValue:@"default"];
 		if ([filterString isEqualToString:@"nearest"])  options |= kOOTextureMinFilterNearest;
 		else if ([filterString isEqualToString:@"linear"])  options |= kOOTextureMinFilterLinear;
-		else if ([filterString isEqualToString:@"mipMap"])  options |= kOOTextureMinFilterMipMap;
+		else if ([filterString isEqualToString:@"mipmap"])  options |= kOOTextureMinFilterMipMap;
 		else  options |= kOOTextureMinFilterDefault;	// Covers "default"
 		
-		filterString = [configuration stringForKey:@"magFilter" defaultValue:@"default"];
+		filterString = [configuration stringForKey:@"mag_filter" defaultValue:@"default"];
 		if ([filterString isEqualToString:@"nearest"])  options |= kOOTextureMagFilterNearest;
 		else  options |= kOOTextureMagFilterLinear;	// Covers "default" and "linear"
 		
-		if ([configuration boolForKey:@"noShrink" defaultValue:NO])  options |= kOOTextureNoShrink;
-		if ([configuration boolForKey:@"repeatS" defaultValue:NO])  options |= kOOTextureRepeatS;
-		if ([configuration boolForKey:@"repeatT" defaultValue:NO])  options |= kOOTextureRepeatT;
+		if ([configuration boolForKey:@"no_shrink" defaultValue:NO])  options |= kOOTextureNoShrink;
+		if ([configuration boolForKey:@"repeat_s" defaultValue:NO])  options |= kOOTextureRepeatS;
+		if ([configuration boolForKey:@"repeat_t" defaultValue:NO])  options |= kOOTextureRepeatT;
 		anisotropy = [configuration floatForKey:@"anisotropy" defaultValue:kOOTextureDefaultAnisotropy];
+		lodBias = [configuration floatForKey:@"texture_LOD_bias" defaultValue:kOOTextureDefaultLODBias];
 	}
 	else
 	{
@@ -205,12 +235,14 @@ static BOOL		sClientStorageAvialable;
 		return nil;
 	}
 	
-	return [self textureWithName:name options:options anisotropy:anisotropy];
+	return [self textureWithName:name options:options anisotropy:anisotropy lodBias:lodBias];
 }
 
 
 - (void)dealloc
 {
+	OO_ENTER_OPENGL();
+	
 	[sInUseTextures removeObjectForKey:key];
 	
 	if (loaded)
@@ -253,8 +285,14 @@ static BOOL		sClientStorageAvialable;
 
 - (void)apply
 {
+	OO_ENTER_OPENGL();
+	
 	if (EXPECT_NOT(!loaded))  [self setUpTexture];
 	else  glBindTexture(GL_TEXTURE_2D, data.loaded.textureName);
+	
+#if GL_EXT_texture_lod_bias
+	if (sTextureLODBiasAvailable)  glTexEnvf(GL_TEXTURE_FILTER_CONTROL_EXT, GL_TEXTURE_LOD_BIAS_EXT, lodBias);
+#endif
 }
 
 
@@ -268,7 +306,7 @@ static BOOL		sClientStorageAvialable;
 
 @implementation OOTexture (OOPrivate)
 
-- (id)initWithPath:(NSString *)path key:(NSString *)inKey options:(uint32_t)options anisotropy:(float)anisotropy
+- (id)initWithPath:(NSString *)path key:(NSString *)inKey options:(uint32_t)options anisotropy:(float)anisotropy lodBias:(GLfloat)inLodBias
 {
 	self = [super init];
 	if (EXPECT_NOT(self == nil))  return nil;
@@ -281,8 +319,12 @@ static BOOL		sClientStorageAvialable;
 	}
 	
 	data.loading.options = options;
+	
 #if GL_EXT_texture_filter_anisotropic
 	data.loading.anisotropy = OOClamp_0_1_f(anisotropy) * sAnisotropyScale;
+#endif
+#if GL_EXT_texture_lod_bias
+	lodBias = inLodBias;
 #endif
 	
 	key = [inKey copy];
@@ -300,6 +342,8 @@ static BOOL		sClientStorageAvialable;
 	float					anisotropy;
 	BOOL					mipMap = NO;
 	OOTextureDataFormat		format;
+	
+	OO_ENTER_OPENGL();
 	
 	loader = data.loading.loader;
 	options = data.loading.options;
@@ -367,6 +411,13 @@ static BOOL		sClientStorageAvialable;
 - (void)uploadTextureDataWithMipMap:(BOOL)mipMap format:(OOTextureDataFormat)format
 {
 	GLint					glFormat, internalFormat, type;
+	unsigned				w = data.loaded.width,
+							h = data.loaded.height,
+							level = 0;
+	char					*bytes = data.loaded.bytes;
+	uint8_t					planes = OOTexturePlanesForFormat(format);
+	
+	OO_ENTER_OPENGL();
 	
 	switch (format)
 	{
@@ -387,16 +438,11 @@ static BOOL		sClientStorageAvialable;
 			return;
 	}
 	
-	unsigned				w = data.loaded.width,
-							h = data.loaded.height,
-							level = 0;
-	uint32_t				*bytes = data.loaded.bytes;
-	
 	while (1 < w && 1 < h)
 	{
 		glTexImage2D(GL_TEXTURE_2D, level++, glFormat, w, h, 0, internalFormat, type, bytes);
 		if (!mipMap)  return;
-		bytes += w * h;
+		bytes += w * planes * h;
 		w >>= 1;
 		h >>= 1;
 	}
@@ -407,6 +453,8 @@ static BOOL		sClientStorageAvialable;
 
 + (void)checkExtensions
 {
+	OO_ENTER_OPENGL();
+	
 	sCheckedExtensions = YES;
 	
 	OOOpenGLExtensionManager	*extMgr = [OOOpenGLExtensionManager sharedManager];
@@ -424,6 +472,10 @@ static BOOL		sClientStorageAvialable;
 	
 #if GL_APPLE_client_storage
 	sClientStorageAvialable = [extMgr haveExtension:@"GL_APPLE_client_storage"];
+#endif
+	
+#if GL_EXT_texture_lod_bias
+	sTextureLODBiasAvailable = [extMgr haveExtension:@"GL_EXT_texture_lod_bias"];
 #endif
 }
 

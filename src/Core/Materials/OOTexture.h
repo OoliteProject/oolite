@@ -55,6 +55,7 @@ enum
 
 
 #define kOOTextureDefaultAnisotropy		0.5
+#define kOOTextureDefaultLODBias		-0.25
 
 
 @interface OOTexture: NSObject
@@ -79,6 +80,9 @@ enum
 									height;
 		}						loaded;
 	}						data;
+#if GL_EXT_texture_lod_bias
+	GLfloat					lodBias;	// Used both before and after loading
+#endif
 }
 
 /*	Load a texture, looking in Textures directories.
@@ -89,20 +93,31 @@ enum
 	This method may change; +textureWithConfiguration is generally more
 	appropriate. 
 */
-+ (id)textureWithName:(NSString *)name options:(uint32_t)options anisotropy:(float)anisotropy;
++ (id)textureWithName:(NSString *)name
+			  options:(uint32_t)options
+		   anisotropy:(GLfloat)anisotropy
+			  lodBias:(GLfloat)lodBias;
+
+/*	Equivalent to textureWithName:name
+						  options:kOOTextureDefaultOptions
+					   anisotropy:kOOTextureDefaultAnisotropy
+						  lodBias:kOOTextureDefaultLODBias
+*/
++ (id)textureWithName:(NSString *)name;
 
 /*	Load a texure, looking in Textures directories, using configuration
 	dictionary or name. (That is, configuration may be either an NSDictionary
 	or an NSString.)
 	
 	Supported keys:
-		name (string, required)
-		minFilter (string, one of "default", "nearest", "linear", "mipmap")
-		maxFilter (string, one of "default", "nearest", "linear")
-		noShrink (boolean)
-		repeatS (boolean)
-		repeatT (boolean)
-		anisotropy (real)
+		name				(string, required)
+		min_filter			(string, one of "default", "nearest", "linear", "mipmap")
+		max_filter			(string, one of "default", "nearest", "linear")
+		noShrink			(boolean)
+		repeat_s			(boolean)
+		repeat_t			(boolean)
+		anisotropy			(real)
+		texture_LOD_bias	(real)
 */
 + (id)textureWithConfiguration:(id)configuration;
 
