@@ -81,7 +81,7 @@ enum
 	if (path == nil) return nil;
 	
 	// Set up loading threads (up to four) and queue lock
-	if (sQueueLock == nil)
+	if (EXPECT_NOT(sQueueLock == nil))
 	{
 		sQueueLock = [[NSConditionLock alloc] initWithCondition:kConditionNoData];
 		if (sQueueLock != nil)
@@ -93,9 +93,9 @@ enum
 			} while (--threadCount > 0);
 		}
 	}
-	if (sQueueLock == nil)
+	if (EXPECT_NOT(sQueueLock == nil))
 	{
-		OOLog(@"textureLoader.detachThread", @"Could not start texture-loader thread.");
+		OOLog(@"textureLoader.detachThreads", @"Could not start texture-loader threads.");
 		return nil;
 	}
 	
@@ -369,7 +369,7 @@ enum
 	if (!sHaveNPOTTextures)
 	{
 		desiredWidth = OORoundUpToPowerOf2((2 * width) / 3);
-		desiredHeight = OORoundUpToPowerOf2((2 * width) / 3);
+		desiredHeight = OORoundUpToPowerOf2((2 * height) / 3);
 	}
 	else
 	{

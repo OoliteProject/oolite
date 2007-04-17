@@ -805,7 +805,6 @@ static PlayerEntity *sSharedPlayer = nil;
 	NSDictionary *huddict = [ResourceManager dictionaryFromFilesNamed:@"hud.plist" inFolder:@"Config" andMerge:YES];
 	[hud release];
 	hud = [[HeadUpDisplay alloc] initWithDictionary:huddict];
-	[hud setPlayer:self];
 	[hud setScannerZoom:1.0];
 	[hud resizeGuis:huddict];
 	scanner_zoom_rate = 0.0;
@@ -1126,7 +1125,6 @@ static PlayerEntity *sSharedPlayer = nil;
 		{
 			[hud release];
 			hud = [[HeadUpDisplay alloc] initWithDictionary:huddict];
-			[hud setPlayer:self];
 			[hud setScannerZoom:1.0];
 			[hud resizeGuis: huddict];
 		}

@@ -282,7 +282,7 @@ static BOOL GenerateMipMaps1(void *textureBytes, uint32_t width, uint32_t height
 		DUMP_MIP_MAP_DUMP(curr, w, h);
 		
 		next = curr + w * h;
-		ScaleToHalf_4_x1(curr, next, w >> 2, h);
+		ScaleToHalf_4_x1(curr, next, w >> 2	, h);
 		ScaleToHalf_1_x4(curr, next, w, h);
 		
 		w >>= 1;

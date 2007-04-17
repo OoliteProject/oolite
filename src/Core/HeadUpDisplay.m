@@ -28,14 +28,24 @@ MA 02110-1301, USA.
 #import "PlanetEntity.h"
 #import "StationEntity.h"
 #import "Universe.h"
-#import "TextureStore.h"
 #import "OOTrumble.h"
 #import "OOColor.h"
 #import "GuiDisplayGen.h"
+#import "OOTexture.h"
+#import "TextureStore.h"
 
 #define kOOLogUnconvertedNSLog @"unclassified.HeadUpDisplay"
 
-static const char *toAscii(unsigned inCodePoint);
+
+static OOTexture		*sFontTexture = nil;
+
+enum
+{
+	kFontTextureOptions = kOOTextureMinFilterMipMap | kOOTextureMagFilterLinear | kOOTextureNoShrink
+};
+
+
+static const char *UnicodeToASCII(unsigned inCodePoint);
 
 @implementation HeadUpDisplay
 
@@ -57,7 +67,7 @@ float char_widths[128] = {
 	3.848,	3.848,	2.452,	3.504,	2.098,	3.848,	3.504,	4.900,	3.504,	3.504,	3.150,	2.452,	1.763,	2.452,	3.679,	6.000
 };
 
-- (id) initWithDictionary:(NSDictionary *) hudinfo;
+- (id) initWithDictionary:(NSDictionary *) hudinfo
 {
 	int i;
 	BOOL areTrumblesToBeDrawn = NO;
@@ -67,6 +77,14 @@ float char_widths[128] = {
 	line_width = 1.0;
 	
 	setUpSinTable();
+	if (sFontTexture == nil)
+	{
+		sFontTexture = [OOTexture textureWithName:@"asciitext.png"
+										  options:kFontTextureOptions
+									   anisotropy:0.0f
+										  lodBias:-0.75f];
+		[sFontTexture retain];
+	}
 			
 	// init arrays
 	dialArray = [[NSMutableArray alloc] initWithCapacity:16];   // alloc retains
@@ -110,20 +128,11 @@ float char_widths[128] = {
 
 //------------------------------------------------------------------------------------//
 
-GLuint ascii_texture_name;
-
-- (void) setPlayer:(PlayerEntity *) player_entity
-{
-	player = player_entity;
-	ascii_texture_name = [TextureStore getTextureNameFor:@"asciitext.png"];	// intitalise text texture
-}
 
 - (void) resizeGuis:(NSDictionary*) info
 {
 	// check for entries in hud plist for comm_log_gui and message_gui
 	// resize and reposition them accordingly
-	
-	if (!player)  return;
 	
 	GuiDisplayGen* message_gui = [UNIVERSE message_gui];
 	if ((message_gui)&&([info objectForKey:@"message_gui"]))
@@ -244,8 +253,7 @@ GLuint ascii_texture_name;
 - (void) drawLegends
 {
 	int i;
-	if (!player)
-		return;
+	
 	z1 = [(MyOpenGLView *)[UNIVERSE gameView] display_z];
 	for (i = 0; i < [legendArray count]; i++)
 		[self drawLegend:(NSDictionary *)[legendArray objectAtIndex:i]];
@@ -258,8 +266,7 @@ GLuint ascii_texture_name;
 - (void) drawDials
 {
 	int i;
-	if (!player)
-		return;
+	
 	z1 = [(MyOpenGLView *)[UNIVERSE gameView] display_z];
 	for (i = 0; i < [dialArray count]; i++)
 		[self drawHUDItem:(NSDictionary *)[dialArray objectAtIndex:i]];
@@ -293,7 +300,7 @@ GLuint ascii_texture_name;
 - (void) drawHUDItem:(NSDictionary *) info
 {
 	if (([info objectForKey:EQUIPMENT_REQUIRED_KEY])&&
-		(![player has_extra_equipment:(NSString *)[info objectForKey:EQUIPMENT_REQUIRED_KEY]]))
+		(![[PlayerEntity sharedPlayer] has_extra_equipment:(NSString *)[info objectForKey:EQUIPMENT_REQUIRED_KEY]]))
 		return;
 	
 	if ([info objectForKey:SELECTOR_KEY])
@@ -362,21 +369,24 @@ static BOOL hostiles;
 	Matrix rotMatrix;
 	int flash = ((int)([UNIVERSE getTime] * 4))&1;
 
-	//
+	Universe		*uni			= UNIVERSE;
+	PlayerEntity	*player = [PlayerEntity sharedPlayer];
+	if (player == nil)  return;
+	
 	// use a non-mutable copy so this can't be changed under us.
-	//
-	Universe*	uni =			UNIVERSE;
-	int			ent_count =		uni->n_entities;
-	Entity**	uni_entities =	uni->sortedEntities;	// grab the public sorted list
-	Entity*		my_entities[ent_count];
+	int				ent_count		= uni->n_entities;
+	Entity			**uni_entities	= uni->sortedEntities;	// grab the public sorted list
+	Entity			*my_entities[ent_count];
 	
 	for (i = 0; i < ent_count; i++)
+	{
 		my_entities[i] = [uni_entities[i] retain];	// retained
-	//
+	}
+	
 	Entity	*drawthing = nil;
-	//
-	GLfloat col[4] =	{ 1.0, 1.0, 1.0, 1.0};	// can be manipulated
-
+	
+	GLfloat col[4] =	{ 1.0, 1.0, 1.0, 1.0 };	// can be manipulated
+	
 	position = player->position;
 	gl_matrix_into_matrix([player rotationMatrix], rotMatrix);
 		
@@ -652,12 +662,13 @@ static BOOL hostiles;
 	glColor4fv( zoom_color);
 	glEnable(GL_TEXTURE_2D);
 	glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
-	glBindTexture(GL_TEXTURE_2D, ascii_texture_name);
+	[sFontTexture apply];
 	glBegin(GL_QUADS);
 	drawCharacterQuad( 48 + zl, cx - 0.4 * siz.width, cy, z1, siz);
 	drawCharacterQuad( 58, cx, cy, z1, siz);
 	drawCharacterQuad( 49, cx + 0.3 * siz.width, cy, z1, siz);
 	glEnd();
+	[OOTexture applyNone];
 	glDisable(GL_TEXTURE_2D);
 	
 }
@@ -680,6 +691,7 @@ static BOOL hostiles;
 		alpha = [(NSNumber *)[info objectForKey:ALPHA_KEY] floatValue];
 	// draw the compass
 	Matrix rotMatrix;
+	PlayerEntity *player = [PlayerEntity sharedPlayer];
 	Vector position = player->position;
 	gl_matrix_into_matrix([player rotationMatrix], rotMatrix);
 	//	
@@ -918,8 +930,8 @@ static BOOL hostiles;
 }
 
 - (void) drawAegis:(NSDictionary *) info
-{	
-	if (([UNIVERSE viewDir] == VIEW_GUI_DISPLAY)||([UNIVERSE sun] == nil)||([player checkForAegis] != AEGIS_IN_DOCKING_RANGE))
+{
+	if (([UNIVERSE viewDir] == VIEW_GUI_DISPLAY)||([UNIVERSE sun] == nil)||([[PlayerEntity sharedPlayer] checkForAegis] != AEGIS_IN_DOCKING_RANGE))
 		return;	// don't draw
 	
 	NSSize siz = NSMakeSize( AEGIS_WIDTH, AEGIS_HEIGHT);
@@ -954,9 +966,9 @@ static BOOL hostiles;
 }
 
 - (void) drawSpeedBar:(NSDictionary *) info
-{	
-    double ds = [player dial_speed];
-//	double hs = [player dial_hyper_speed];
+{
+    double ds = [[PlayerEntity sharedPlayer] dial_speed];
+	
 	int x = SPEED_BAR_CENTRE_X;
 	int y = SPEED_BAR_CENTRE_Y;
 	NSSize siz = NSMakeSize( SPEED_BAR_WIDTH, SPEED_BAR_HEIGHT);
@@ -1012,7 +1024,7 @@ static BOOL hostiles;
 	}
 	// draw ROLL bar
 	glColor4fv(yellow_color);
-	hudDrawIndicatorAt( x, y, z1, siz, [player dial_roll]);
+	hudDrawIndicatorAt( x, y, z1, siz, [[PlayerEntity sharedPlayer] dial_roll]);
 }
 
 - (void) drawPitchBar:(NSDictionary *) info
@@ -1040,12 +1052,12 @@ static BOOL hostiles;
 	}
 	// draw PITCH bar
 	glColor4fv(yellow_color);
-	hudDrawIndicatorAt( x, y, z1, siz, [player dial_pitch]);
+	hudDrawIndicatorAt( x, y, z1, siz, [[PlayerEntity sharedPlayer] dial_pitch]);
 }
 
 - (void) drawEnergyGauge:(NSDictionary *) info
 {	
-	int n_bars = [player dial_max_energy]/64.0;
+	int n_bars = [[PlayerEntity sharedPlayer] dial_max_energy]/64.0;
 	if (n_bars < 1)
 		n_bars = 1;
 
@@ -1087,8 +1099,8 @@ static BOOL hostiles;
 		int qy = siz.height / n_bars;
 		NSSize dial_size = NSMakeSize(siz.width,qy - 2);
 		int cy = y - (n_bars - 1) * qy / 2;
-		double energy = [player dial_energy]*n_bars;
-		[player setAlert_flag:ALERT_FLAG_ENERGY :((energy < 1.0)&&(player->status == STATUS_IN_FLIGHT))];
+		double energy = [[PlayerEntity sharedPlayer] dial_energy]*n_bars;
+		[[PlayerEntity sharedPlayer] setAlert_flag:ALERT_FLAG_ENERGY :((energy < 1.0)&&([[PlayerEntity sharedPlayer] status] == STATUS_IN_FLIGHT))];
 		int i;
 		for (i = 0; i < n_bars; i++)
 		{
@@ -1126,7 +1138,7 @@ static BOOL hostiles;
 	if ([info objectForKey:DRAW_SURROUND_KEY])
 		draw_surround = [(NSNumber *)[info objectForKey:DRAW_SURROUND_KEY] boolValue];
 
-	double shield = [player dial_forward_shield];
+	double shield = [[PlayerEntity sharedPlayer] dial_forward_shield];
 	if (draw_surround)
 	{
 		// draw forward_shield surround
@@ -1159,7 +1171,7 @@ static BOOL hostiles;
 	if ([info objectForKey:DRAW_SURROUND_KEY])
 		draw_surround = [(NSNumber *)[info objectForKey:DRAW_SURROUND_KEY] boolValue];
 
-	double shield = [player dial_aft_shield];
+	double shield = [[PlayerEntity sharedPlayer] dial_aft_shield];
 	if (draw_surround)
 	{
 		// draw aft_shield surround
@@ -1177,8 +1189,8 @@ static BOOL hostiles;
 
 - (void) drawFuelBar:(NSDictionary *) info
 {	
-    float fu = [player dial_fuel];
-	float hr = [player dial_hyper_range];
+    float fu = [[PlayerEntity sharedPlayer] dial_fuel];
+	float hr = [[PlayerEntity sharedPlayer] dial_hyper_range];
 	int x = FUEL_BAR_CENTRE_X;
 	int y = FUEL_BAR_CENTRE_Y;
 	NSSize siz = NSMakeSize( FUEL_BAR_WIDTH, FUEL_BAR_HEIGHT);
@@ -1204,7 +1216,7 @@ static BOOL hostiles;
 }
 
 - (void) drawCabinTempBar:(NSDictionary *) info
-{	
+{
     int x = CABIN_TEMP_BAR_CENTRE_X;
 	int y = CABIN_TEMP_BAR_CENTRE_Y;
 	NSSize siz = NSMakeSize( CABIN_TEMP_BAR_WIDTH, CABIN_TEMP_BAR_HEIGHT);
@@ -1217,6 +1229,8 @@ static BOOL hostiles;
 	if ([info objectForKey:HEIGHT_KEY])
 		siz.height = [(NSNumber *)[info objectForKey:HEIGHT_KEY] intValue];
 
+	PlayerEntity *player = [PlayerEntity sharedPlayer];
+	
 	double temp = [player hullHeatLevel];
 	int flash = (int)([UNIVERSE getTime] * 4);
 	flash &= 1;
@@ -1246,7 +1260,7 @@ static BOOL hostiles;
 	if ([info objectForKey:HEIGHT_KEY])
 		siz.height = [(NSNumber *)[info objectForKey:HEIGHT_KEY] intValue];
 
-	double temp = [player laserHeatLevel];
+	double temp = [[PlayerEntity sharedPlayer] laserHeatLevel];
 	// draw weapon_temp bar
 	glColor4fv(green_color);
 	if (temp > .25)
@@ -1269,7 +1283,9 @@ static BOOL hostiles;
 		siz.width = [(NSNumber *)[info objectForKey:WIDTH_KEY] intValue];
 	if ([info objectForKey:HEIGHT_KEY])
 		siz.height = [(NSNumber *)[info objectForKey:HEIGHT_KEY] intValue];
-
+	
+	PlayerEntity *player = [PlayerEntity sharedPlayer];
+	
 	double alt = [player dial_altitude];
 	int flash = (int)([UNIVERSE getTime] * 4);
 	flash &= 1;
@@ -1301,7 +1317,9 @@ static BOOL hostiles;
 		siz.width = [(NSNumber *)[info objectForKey:WIDTH_KEY] intValue];
 	if ([info objectForKey:HEIGHT_KEY])
 		siz.height = [(NSNumber *)[info objectForKey:HEIGHT_KEY] intValue];
-
+	
+	PlayerEntity *player = [PlayerEntity sharedPlayer];
+	
 	if (![player dial_ident_engaged])
 	{
 		int n_mis = [player dial_max_missiles];
@@ -1412,8 +1430,10 @@ static BOOL hostiles;
 	
 }
 
-- (void) drawTargetReticle:(NSDictionary *) info;
+- (void) drawTargetReticle:(NSDictionary *) info
 {
+	PlayerEntity *player = [PlayerEntity sharedPlayer];
+	
 	// the missile target reticle is an advanced option
 	// so we need to check for its extra equipment flag first
 //	if (([info objectForKey:EQUIPMENT_REQUIRED_KEY])&&
@@ -1422,8 +1442,7 @@ static BOOL hostiles;
 //	
 	if ([player dial_missile_status] == MISSILE_STATUS_TARGET_LOCKED)
 	{
-		//Entity *target = [player getPrimaryTarget];
-		hudDrawReticleOnTarget( [player getPrimaryTarget], player, z1);
+		hudDrawReticleOnTarget([player getPrimaryTarget], player, z1);
 		[self drawDirectionCue:info];
 	}
 }
@@ -1431,7 +1450,7 @@ static BOOL hostiles;
 - (void) drawStatusLight:(NSDictionary *) info
 {
 	GLfloat status_color[4] = { 0.25, 0.25, 0.25, 1.0};
-	int alert_condition = [player alert_condition];
+	int alert_condition = [[PlayerEntity sharedPlayer] alert_condition];
 	double flash_alpha = 0.333 * (2.0 + sin([UNIVERSE getTime] * 2.5 * alert_condition));
     int x = STATUS_LIGHT_CENTRE_X;
 	int y = STATUS_LIGHT_CENTRE_Y;
@@ -1483,6 +1502,8 @@ static BOOL hostiles;
 
 - (void) drawDirectionCue:(NSDictionary *) info
 {	
+	PlayerEntity *player = [PlayerEntity sharedPlayer];
+	
  	// the direction cue is an advanced option
 	// so we need to check for its extra equipment flag first
 	if (([info objectForKey:EQUIPMENT_REQUIRED_KEY])&&
@@ -1567,7 +1588,7 @@ static BOOL hostiles;
 		siz.height = [(NSNumber *)[info objectForKey:HEIGHT_KEY] intValue];
 
 	glColor4f( 0.0, 1.0, 0.0, 1.0);
-	drawString( [player dial_clock], x, y, z1, siz);
+	drawString( [[PlayerEntity sharedPlayer] dial_clock], x, y, z1, siz);
 }
 
 - (void) drawFPSInfoCounter:(NSDictionary *) info
@@ -1575,11 +1596,9 @@ static BOOL hostiles;
 	if (![UNIVERSE displayFPS])
 		return;
 	
-	if ((!player)||(!UNIVERSE))
-		return;
+	PlayerEntity *player = [PlayerEntity sharedPlayer];
 	
 	NSString* positionInfo = [UNIVERSE expressPosition:player->position inCoordinateSystem:@"pwm"];
-	
 	NSString* collDebugInfo = [NSString stringWithFormat:@"%@ - %@", [player dial_objinfo], [UNIVERSE collisionDescription]];
 	
 	int x = FPSINFO_DISPLAY_X;
@@ -1624,7 +1643,7 @@ static BOOL hostiles;
 	GLfloat	s1c[4] = { 0.0f, 0.0f, 0.0f, 0.0f };
 	GLfloat	s2c[4] = { 0.0f, 0.0f, 0.0f, 0.0f };
 	GLfloat	s3c[4] = { 0.0f, 0.0f, 0.0f, 0.0f };
-	int scoop_status = [player dial_fuelscoops_status];
+	int scoop_status = [[PlayerEntity sharedPlayer] dial_fuelscoops_status];
 	double t = [UNIVERSE getTime];
 	GLfloat a1 = alpha * 0.5f * (1.0f + sin(t * 8.0f));
 	GLfloat a2 = alpha * 0.5f * (1.0f + sin(t * 8.0f - 1.0f));
@@ -1749,25 +1768,14 @@ static BOOL hostiles;
 
 - (void) drawTrumbles:(NSDictionary *) info
 {	
-	if (!player)
-		return;
-		
+	PlayerEntity *player = [PlayerEntity sharedPlayer];
+	
 	OOTrumble** trumbles = [player trumbleArray];
 	int i;
 	for (i = [player n_trumbles]; i > 0; i--)
 	{
 		OOTrumble* trum = trumbles[i - 1];
-//		NSPoint trumpos = [trum position];
-//		trumpos.x -= 32;
-//		trumpos.y += 32;
-		
-//		[trum updateTrumble:dt];
 		[trum drawTrumble: z1];
-		
-//		glColor4fv(yellow_color);
-//		hudDrawSurroundAt(trumpos.x, trumpos.y, z1, NSMakeSize(32, 12));
-//		hudDrawBarAt(trumpos.x, trumpos.y + 4, z1, NSMakeSize(32, 4), [trum discomfort]);
-//		hudDrawBarAt(trumpos.x, trumpos.y - 4, z1, NSMakeSize(32, 4), [trum hunger]);
 	}
 }
 
@@ -2099,7 +2107,7 @@ void drawString(NSString *text, double x, double y, double z, NSSize siz)
 	
 	glEnable(GL_TEXTURE_2D);
 	glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
-	glBindTexture(GL_TEXTURE_2D, ascii_texture_name);
+	[sFontTexture apply];
 
 	glBegin(GL_QUADS);
 	length = [text length];
@@ -2123,7 +2131,7 @@ void drawString(NSString *text, double x, double y, double z, NSSize siz)
 			}
 		}
 		
-		if (0x7f < ch) string = toAscii(ch);
+		if (0x7f < ch) string = UnicodeToASCII(ch);
 		else
 		{
 			// An alternative for tabs would be to round cx up to the next multiple of foo
@@ -2139,12 +2147,13 @@ void drawString(NSString *text, double x, double y, double z, NSSize siz)
 		}
 	}
 	glEnd();
-
+	
+	[OOTexture applyNone];
 	glDisable(GL_TEXTURE_2D);
 	
 }
 
-static const char *toAscii(unsigned inCodePoint)
+static const char *UnicodeToASCII(unsigned inCodePoint)
 {
 	// Convert some Unicode code points likely(ish) to occur in Roman text to ASCII near equivalents.
 	// Doesn’t do characters with diacritics, 'cos there's loads.
@@ -2229,7 +2238,7 @@ void drawPlanetInfo(int gov, int eco, int tec, double x, double y, double z, NSS
 	
 	glEnable(GL_TEXTURE_2D);
 	glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
-	glBindTexture(GL_TEXTURE_2D, ascii_texture_name);
+	[sFontTexture apply];
 
 	glBegin(GL_QUADS);
 	
@@ -2242,7 +2251,8 @@ void drawPlanetInfo(int gov, int eco, int tec, double x, double y, double z, NSS
 		cx += drawCharacterQuad( 49, cx, y - 2, z, siz) - 2.0;
 	cx += drawCharacterQuad( 48 + (tl % 10), cx, y - 2, z, siz);
 	glEnd();
-
+	
+	[OOTexture applyNone];
 	glDisable(GL_TEXTURE_2D);
 		
 }

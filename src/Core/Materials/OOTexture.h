@@ -140,6 +140,8 @@ enum
 */
 - (void)apply;
 
++ (void)applyNone;
+
 /*	Ensure texture is loaded. This is required because setting up textures
 	inside display lists isn't allowed.
 */

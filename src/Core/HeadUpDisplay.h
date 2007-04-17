@@ -182,10 +182,8 @@ MA 02110-1301, USA.
 
 extern int debug;
 
-@interface HeadUpDisplay : NSObject {
-
-	PlayerEntity*   player;
-	
+@interface HeadUpDisplay: NSObject
+{
 	NSMutableArray  *legendArray;
 	NSMutableArray  *dialArray;
 	
@@ -202,8 +200,6 @@ extern int debug;
 }
 
 - (id) initWithDictionary:(NSDictionary *) hudinfo;
-
-- (void) setPlayer:(PlayerEntity *) player_entity;
 
 - (void) resizeGuis:(NSDictionary*) info;
 

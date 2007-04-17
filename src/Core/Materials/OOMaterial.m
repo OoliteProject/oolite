@@ -97,7 +97,7 @@ static OOMaterial *sActiveMaterial;
 }
 
 
-- (void)unapply
+- (void)unapplyWithNext:(OOMaterial *)next;
 {
 	// Do nothing.
 }

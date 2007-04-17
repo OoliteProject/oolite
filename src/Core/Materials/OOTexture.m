@@ -334,6 +334,14 @@ static BOOL		sRectangleTextureAvailable;
 }
 
 
++ (void)applyNone
+{
+	OO_ENTER_OPENGL();
+	
+	glBindTexture(GL_TEXTURE_2D, 0);
+}
+
+
 - (void)ensureFinishedLoading
 {
 	if (EXPECT_NOT(!loaded))  [self setUpTexture];

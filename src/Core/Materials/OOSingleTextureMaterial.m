@@ -25,6 +25,7 @@ MA 02110-1301, USA.
 #import "OOSingleTextureMaterial.h"
 #import "OOTexture.h"
 #import "OOCollectionExtractors.h"
+#import "OOFunctionAttributes.h"
 
 
 @implementation OOSingleTextureMaterial
@@ -84,6 +85,22 @@ MA 02110-1301, USA.
 - (NSString *)description
 {
 	return [NSString stringWithFormat:@"<%@ %p>{%@}", [self class], self, texture];
+}
+
+
+- (BOOL)doApply
+{
+	if (EXPECT_NOT(![super doApply]))  return NO;
+	
+	[texture apply];
+	return YES;
+}
+
+
+- (void)unapplyWithNext:(OOMaterial *)next
+{
+	if (![next isKindOfClass:[OOSingleTextureMaterial class]])  [OOTexture applyNone];
+	[super unapplyWithNext:next];
 }
 
 @end
