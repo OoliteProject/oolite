@@ -3,7 +3,30 @@
 OOCache.h
 By Jens Ayton
 
-OOCache is an implementation detail of OOCacheManager. Don't use it directly.
+An OOCache handles storage of a limited number of elements for quick reuse. It
+may be used directly for in-memory cache, or indirectly through OOCacheManager
+for on-disk cache.
+
+Every OOCache has a 'prune threshold', which controls how many elements it
+contains, and an 'auto-prune' flag, which determines how pruning is managed.
+
+If auto-pruning is on, the cache will pruned to 80% of the prune threshold
+whenever the prune threshold is exceeded.
+
+If auto-pruning is off, the cache will be prined to the prune threshold when
+explicitly calling -prune, or when calling -pListRepresentation (which is
+intended for use by OOCacheManager).
+
+While OOCacheManager-manged caches must have string keys and property list
+values, OOCaches used directly may have any keys allowable for a mutable
+dictionary (that is, keys should conform to <NSCopying> and values may be
+arbitrary objects) -- an 'unmanaged' cache is essentially a mutable dictionary
+with a prune limit. (Project: with the addition of a -keyEnumerator method and
+sutiable NSEnumerator subclass, and a -count method, it could be turned into a
+subclass of NSMutableDictionary.)
+
+Default and minimum prune threshold values are specified in OOCacheManager.h.
+
 
 Oolite
 Copyright (C) 2004-2007 Giles C Williams and contributors
@@ -33,6 +56,7 @@ MA 02110-1301, USA.
 @private
 	struct OOCacheImpl		*cache;
 	unsigned				pruneThreshold;
+	BOOL					autoPrune;
 	BOOL					dirty;
 }
 
@@ -40,12 +64,17 @@ MA 02110-1301, USA.
 - (id)initWithPList:(id)pList;
 - (id)pListRepresentation;
 
-- (id)objectForKey:(NSString *)key;
-- (void)setObject:(id)value forKey:(NSString *)key;
-- (void)removeObjectForKey:(NSString *)key;
+- (id)objectForKey:(id)key;
+- (void)setObject:(id)value forKey:(id)key;
+- (void)removeObjectForKey:(id)key;
 
 - (void)setPruneThreshold:(unsigned)threshold;
 - (unsigned)pruneThreshold;
+
+- (void)setAutoPrune:(BOOL)flag;
+- (BOOL)autoPrune;
+
+- (void)prune;
 
 - (BOOL)dirty;
 - (void)markClean;

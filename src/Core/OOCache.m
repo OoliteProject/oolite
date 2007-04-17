@@ -83,21 +83,23 @@ MA 02110-1301, USA.
 	youngest end of the age list. Pruning proceeds from the oldest end of the
 	age list.
 	
-	#if OOCACHE_AUTO_PRUNE
-	PRUNING is batched, handling 20% of the cache at once. This is primarily
-	because deletion somewhat pessimizes the tree (see "Self-optimization"
-	below). It also provides a bit of code coherency. To reduce pruning
-	batches while in flight, pruning is also performed before serialization
-	(which in turn is done, if the cache has changed, whenever the user
-	docks). This has the effect that the number of items in the cache on disk
-	never exceeds 80% of the prune threshold. This is probably not actually
-	poinful, since pruning should be a very small portion of the per-frame run
-	time in any case. Premature optimization and all that jazz.
-	Pruning performs at most 0.2n deletions, and is thus O(n log n).
-	#else
-	PRUNING has been modified: it now prunes down to the prune "threshold" on
-	write, and doesn't prune at all at other times. This needs testing.
-	#endif
+	if (autoPrune)
+	{
+		PRUNING is batched, handling 20% of the cache at once. This is primarily
+		because deletion somewhat pessimizes the tree (see "Self-optimization"
+		below). It also provides a bit of code coherency. To reduce pruning
+		batches while in flight, pruning is also performed before serialization
+		(which in turn is done, if the cache has changed, whenever the user
+		docks). This has the effect that the number of items in the cache on disk
+		never exceeds 80% of the prune threshold. This is probably not actually
+		poinful, since pruning should be a very small portion of the per-frame run
+		time in any case. Premature optimization and all that jazz.
+		Pruning performs at most 0.2n deletions, and is thus O(n log n).
+	}
+	else
+	{
+		PRUNING is performed manually, or when -pListRepresentation is called.
+	}
 	
 	If the macro OOCACHE_PERFORM_INTEGRITY_CHECKS is set to a non-zero value,
 	the integrity of the tree and the age list will be checked before and
@@ -111,10 +113,6 @@ MA 02110-1301, USA.
 
 #ifndef OOCACHE_PERFORM_INTEGRITY_CHECKS
 #define OOCACHE_PERFORM_INTEGRITY_CHECKS	0
-#endif
-
-#ifndef OOCACHE_AUTO_PRUNE
-#define OOCACHE_AUTO_PRUNE					0
 #endif
 
 
@@ -136,10 +134,10 @@ static NSString * const kSerializedEntryKeyValue	= @"value";
 static OOCacheImpl *CacheAllocate(void);
 static void CacheFree(OOCacheImpl *cache);
 
-static BOOL CacheInsert(OOCacheImpl *cache, NSString *key, id value);
-static BOOL CacheRemove(OOCacheImpl *cache, NSString *key);
+static BOOL CacheInsert(OOCacheImpl *cache, id key, id value);
+static BOOL CacheRemove(OOCacheImpl *cache, id key);
 static BOOL CacheRemoveOldest(OOCacheImpl *cache);
-static id CacheRetrieve(OOCacheImpl *cache, NSString *key);
+static id CacheRetrieve(OOCacheImpl *cache, id key);
 static unsigned CacheGetCount(OOCacheImpl *cache);
 static NSArray *CacheArrayOfNodesByAge(OOCacheImpl *cache);
 
@@ -155,7 +153,6 @@ static NSArray *CacheArrayOfNodesByAge(OOCacheImpl *cache);
 @interface OOCache (Private)
 
 - (void)loadFromArray:(NSArray *)inArray;
-- (void)prune;
 
 @end
 
@@ -202,7 +199,11 @@ static NSArray *CacheArrayOfNodesByAge(OOCacheImpl *cache);
 		if (OK) OK = [pList isKindOfClass:[NSArray class]];
 		if (OK) [self loadFromArray:pList];
 	}
-	if (OK) pruneThreshold = kOOCacheDefaultPruneThreshold;
+	if (OK)
+	{
+		pruneThreshold = kOOCacheDefaultPruneThreshold;
+		autoPrune = YES;
+	}
 	
 	if (!OK)
 	{
@@ -216,14 +217,14 @@ static NSArray *CacheArrayOfNodesByAge(OOCacheImpl *cache);
 
 - (id)pListRepresentation
 {
-	[self prune];
+	if (!autoPrune)  [self prune];
 	return CacheArrayOfNodesByAge(cache);
 	
 	return nil;
 }
 
 
-- (id)objectForKey:(NSString *)key
+- (id)objectForKey:(id)key
 {
 	id						result = nil;
 	
@@ -238,23 +239,21 @@ static NSArray *CacheArrayOfNodesByAge(OOCacheImpl *cache);
 }
 
 
-- (void)setObject:inObject forKey:(NSString *)key
+- (void)setObject:inObject forKey:(id)key
 {
 	CHECK_INTEGRITY(@"setObject:forKey: before");
 	
 	if (CacheInsert(cache, key, inObject))
 	{
 		dirty = YES;
-		#if OOCACHE_AUTO_PRUNE
-			if (pruneThreshold < CacheGetCount(cache)) [self prune];
-		#endif
+		if (autoPrune)  [self prune];
 	}
 	
 	CHECK_INTEGRITY(@"setObject:forKey: after");
 }
 
 
-- (void)removeObjectForKey:(NSString *)key
+- (void)removeObjectForKey:(id)key
 {
 	CHECK_INTEGRITY(@"removeObjectForKey: before");
 	
@@ -273,6 +272,45 @@ static NSArray *CacheArrayOfNodesByAge(OOCacheImpl *cache);
 - (unsigned)pruneThreshold
 {
 	return pruneThreshold;
+}
+
+
+- (void)setAutoPrune:(BOOL)flag
+{
+	BOOL prune = (flag != NO);
+	if (prune != autoPrune)
+	{
+		autoPrune = prune;
+		[self prune];
+	}
+}
+
+
+- (BOOL)autoPrune
+{
+	return autoPrune;
+}
+
+
+- (void)prune
+{
+	unsigned				pruneCount;
+	unsigned				desiredCount;
+	
+	// Order of operations is to ensure rounding down.
+	if (autoPrune)  desiredCount = (pruneThreshold * 4) / 5;
+	else  desiredCount = pruneThreshold;
+	
+	if (pruneThreshold == kOOCacheNoPrune || CacheGetCount(cache) < desiredCount)  return;
+	
+	pruneCount = pruneThreshold - desiredCount;
+	
+	OOLog(kOOLogCachePrune, @"Pruning cache - removing %u entries", pruneCount);
+	OOLogIndentIf(kOOLogCachePrune);
+	
+	while (pruneCount--)  CacheRemoveOldest(cache);
+	
+	OOLogOutdentIf(kOOLogCachePrune);
 }
 
 
@@ -315,30 +353,6 @@ static NSArray *CacheArrayOfNodesByAge(OOCacheImpl *cache);
 	}
 }
 
-
-- (void)prune
-{
-	unsigned				pruneCount;
-	unsigned				desiredCount;
-	
-	// Order of operations is to ensure rounding down.
-	#if OOCACHE_AUTO_PRUNE
-		desiredCount = (pruneThreshold * 4) / 5;
-	#else
-		desiredCount = pruneThreshold;
-	#endif
-	if (pruneThreshold == kOOCacheNoPrune || CacheGetCount(cache) < desiredCount) return;
-	
-	pruneCount = pruneThreshold - desiredCount;
-	
-	OOLog(kOOLogCachePrune, @"Pruning cache - removing %u entries", pruneCount);
-	OOLogIndentIf(kOOLogCachePrune);
-	
-	while (pruneCount--) CacheRemoveOldest(cache);
-	
-	OOLogOutdentIf(kOOLogCachePrune);
-}
-
 @end
 
 
@@ -359,7 +373,7 @@ struct OOCacheImpl
 struct OOCacheNode
 {
 	// Payload
-	NSString				*key;
+	id			key;
 	id						value;
 	
 	// Splay tree
@@ -378,8 +392,8 @@ static void CacheNodeSetValue(OOCacheNode *node, id value);
 static NSString *CacheNodeGetDescription(OOCacheNode *node);
 #endif
 
-static OOCacheNode *TreeSplay(OOCacheNode **root, NSString *key);
-static OOCacheNode *TreeInsert(OOCacheImpl *cache, NSString *key, id value);
+static OOCacheNode *TreeSplay(OOCacheNode **root, id key);
+static OOCacheNode *TreeInsert(OOCacheImpl *cache, id key, id value);
 static unsigned TreeCountNodes(OOCacheNode *node);
 
 #if OOCACHE_PERFORM_INTEGRITY_CHECKS
@@ -411,7 +425,7 @@ static void CacheFree(OOCacheImpl *cache)
 }
 
 
-static BOOL CacheInsert(OOCacheImpl *cache, NSString *key, id value)
+static BOOL CacheInsert(OOCacheImpl *cache, id key, id value)
 {
 	OOCacheNode				*node = NULL;
 	
@@ -428,7 +442,7 @@ static BOOL CacheInsert(OOCacheImpl *cache, NSString *key, id value)
 }
 
 
-static BOOL CacheRemove(OOCacheImpl *cache, NSString *key)
+static BOOL CacheRemove(OOCacheImpl *cache, id key)
 {
 	OOCacheNode				*node = NULL, *newRoot = NULL;
 	
@@ -466,7 +480,7 @@ static BOOL CacheRemoveOldest(OOCacheImpl *cache)
 }
 
 
-static id CacheRetrieve(OOCacheImpl *cache, NSString *key)
+static id CacheRetrieve(OOCacheImpl *cache, id key)
 {
 	OOCacheNode			*node = NULL;
 	id					result = nil;
@@ -607,7 +621,7 @@ static NSString *CacheNodeGetDescription(OOCacheNode *node)
 	would have been found before the target, and will thus be a neighbour of
 	the target if the key is subsequently inserted.
 */
-static OOCacheNode *TreeSplay(OOCacheNode **root, NSString *key)
+static OOCacheNode *TreeSplay(OOCacheNode **root, id key)
 {
 	NSComparisonResult		order;
 	OOCacheNode				N = { leftChild: NULL, rightChild: NULL };
@@ -676,7 +690,7 @@ static OOCacheNode *TreeSplay(OOCacheNode **root, NSString *key)
 }
 
 
-static OOCacheNode *TreeInsert(OOCacheImpl *cache, NSString *key, id value)
+static OOCacheNode *TreeInsert(OOCacheImpl *cache, id key, id value)
 {
 	OOCacheNode				*closest = NULL,
 							*node = NULL;

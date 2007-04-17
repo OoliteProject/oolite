@@ -27,6 +27,9 @@ MA 02110-1301, USA.
 #import "OOPListParsing.h"
 
 
+#define AUTO_PRUNE NO
+
+
 static NSString * const kOOLogDataCacheFound				= @"dataCache.found";
 static NSString * const kOOLogDataCacheNotFound				= @"dataCache.notFound";
 static NSString * const kOOLogDataCacheRebuild				= @"dataCache.rebuild";
@@ -124,7 +127,7 @@ static OOCacheManager *sSingleton = nil;
 
 - (id)objectForKey:(NSString *)inKey inCache:(NSString *)inCacheKey
 {
-	NSDictionary			*cache = nil;
+	OOCache					*cache = nil;
 	id						result = nil;
 	
 	// Sanity check
@@ -159,7 +162,7 @@ static OOCacheManager *sSingleton = nil;
 
 - (void)setObject:(id)onObject forKey:(NSString *)inKey inCache:(NSString *)inCacheKey
 {
-	NSMutableDictionary		*cache = nil;
+	OOCache					*cache = nil;
 	
 	// Sanity check
 	if (onObject == nil || inCacheKey == nil || inKey == nil)  OOLog(kOOLogDataCacheParamError, @"Bad parameters -- nil object, key or cacheKey.");
@@ -175,6 +178,7 @@ static OOCacheManager *sSingleton = nil;
 			OOLog(kOOLogDataCacheSetFailed, @"Failed to create cache for key %@.", inCacheKey);
 			return;
 		}
+		[cache setAutoPrune:AUTO_PRUNE];
 		[caches setObject:cache forKey:inCacheKey];
 	}
 	
@@ -185,7 +189,7 @@ static OOCacheManager *sSingleton = nil;
 
 - (void)removeObjectForKey:(NSString *)inKey inCache:(NSString *)inCacheKey
 {
-	NSMutableDictionary		*cache = nil;
+	OOCache					*cache = nil;
 	
 	// Sanity check
 	if (inCacheKey == nil || inKey == nil)  OOLog(kOOLogDataCacheParamError, @"Bad parameters -- nil key or cacheKey.");

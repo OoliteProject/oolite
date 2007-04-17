@@ -29,6 +29,35 @@ MA 02110-1301, USA.
 #import "ResourceManager.h"
 #import "OOOpenGLExtensionManager.h"
 #import "OOMacroOpenGL.h"
+#import "OOCache.h"
+
+
+/*	Texture caching:
+	two parallel caching mechanisms are used. sInUseTextures tracks all live
+	texture objects, without retaining them (using NSValues to refer to the
+	objects). sRecentTextures tracks up to kRecentTexturesCount textures which
+	have been used recently, and retains them.
+	
+	This means that the number of live texture objects will never fall below
+	80% of kRecentTexturesCount (80% comes from the behaviour of OOCache), but
+	old textures will eventually be released. If the number of active textures
+	exceeds kRecentTexturesCount, all of them will be reusable through
+	sInUseTextures, but only a most-recently-fetched subset will be kept
+	around by the cache when the number drops.
+	
+	Note that any texture in sRecentTextures will also be in sInUseTextures,
+	but not necessarily vice versa.
+*/
+enum
+{
+	kRecentTexturesCount		= 50
+};
+
+static NSMutableDictionary	*sInUseTextures = nil;
+static OOCache				*sRecentTextures = nil;
+
+
+static BOOL		sCheckedExtensions = NO;
 
 
 #if __BIG_ENDIAN__
@@ -37,25 +66,6 @@ MA 02110-1301, USA.
 	#define RGBA_IMAGE_TYPE GL_UNSIGNED_INT_8_8_8_8
 #endif
 
-
-static NSMutableDictionary	*sInUseTextures = nil;
-
-/*	TODO: add limited-sized OOCache of recently-used textures -- requires
-	(re-)adding auto-prune option to OOCache.
-	
-	Design outline: keep a cache of N recently-accessed textures, which
-	retains them, in parallel to the in-use cache. If less than N textures are
-	currently in use, the cache will keep additional ones around. Old textures
-	which fall out of the cache are released, and if they're not used they
-	immediately die; if they are, they stay about (and in sInUseTextures)
-	until they're not in use any longer. If something calls for a texture
-	which is in sInUseTextures but not the cache, they should get the existing
-	one, which should be re-added to the cache.
-	-- Ahruman
-*/
-
-
-static BOOL		sCheckedExtensions = NO;
 
 // Anisotropic filtering
 #if GL_EXT_texture_filter_anisotropic
@@ -89,8 +99,6 @@ static inline void EnableClientStorage(void)
 	OO_ENTER_OPENGL();
 	glPixelStorei(GL_UNPACK_CLIENT_STORAGE_APPLE, GL_TRUE);
 }
-
-
 // #elif in any equivalents on other platforms here
 #else
 #define OO_GL_CLIENT_STORAGE	0
@@ -243,7 +251,12 @@ static BOOL		sTextureLODBiasAvailable;
 {
 	OO_ENTER_OPENGL();
 	
+	OOLog(@"texture.dealloc", @"Deallocating and uncaching texture %@", self);
+	
 	[sInUseTextures removeObjectForKey:key];
+	[sRecentTextures removeObjectForKey:key];
+	
+	[key release];
 	
 	if (loaded)
 	{
@@ -328,6 +341,15 @@ static BOOL		sTextureLODBiasAvailable;
 #endif
 	
 	key = [inKey copy];
+	
+	// Add self to recent textures cache
+	if (EXPECT_NOT(sRecentTextures == nil))
+	{
+		sRecentTextures = [[OOCache alloc] init];
+		[sRecentTextures setAutoPrune:YES];
+		[sRecentTextures setPruneThreshold:kRecentTexturesCount];
+	}
+	[sRecentTextures setObject:self forKey:key];
 	
 	return self;
 }
