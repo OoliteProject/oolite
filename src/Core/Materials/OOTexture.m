@@ -29,6 +29,7 @@ MA 02110-1301, USA.
 #import "ResourceManager.h"
 #import "OOOpenGLExtensionManager.h"
 #import "OOMacroOpenGL.h"
+#import "OOCPUInfo.h"
 #import "OOCache.h"
 
 
@@ -60,10 +61,12 @@ static OOCache				*sRecentTextures = nil;
 static BOOL		sCheckedExtensions = NO;
 
 
-#if __BIG_ENDIAN__
+#if OOLITE_BIG_ENDIAN
 	#define RGBA_IMAGE_TYPE GL_UNSIGNED_INT_8_8_8_8_REV
-#else
+#elif OOLITE_LITTLE_ENDIAN
 	#define RGBA_IMAGE_TYPE GL_UNSIGNED_INT_8_8_8_8
+#else
+	#error Neither OOLITE_BIG_ENDIAN nor OOLITE_LITTLE_ENDIAN is defined as nonzero!
 #endif
 
 
@@ -72,7 +75,7 @@ static BOOL		sCheckedExtensions = NO;
 static BOOL		sAnisotropyAvailable;
 static float	sAnisotropyScale;	// Scale of anisotropy values
 #else
-#warning GL_EXT_texture_filter_anisotropic unavialble -- are you using an up-to-date glext.h?
+#warning GL_EXT_texture_filter_anisotropic unavailble -- are you using an up-to-date glext.h?
 #endif
 
 
@@ -116,6 +119,11 @@ static BOOL		sTextureLODBiasAvailable;
 #endif
 
 
+#if GL_EXT_texture_rectangle
+static BOOL		sRectangleTextureAvailable;
+#endif
+
+
 @interface OOTexture (OOPrivate)
 
 - (id)initWithPath:(NSString *)path key:(NSString *)key options:(uint32_t)options anisotropy:(float)anisotropy lodBias:(GLfloat)lodBias;
@@ -139,8 +147,8 @@ static BOOL		sTextureLODBiasAvailable;
 	NSString				*path = nil;
 	
 	if (EXPECT_NOT(name == nil))  return nil;
+	if (EXPECT_NOT(!sCheckedExtensions))  [self checkExtensions];
 	
-	options &= kOOTextureDefinedFlags;
 	// Set default flags if needed
 	if ((options & kOOTextureMinFilterMask) == kOOTextureMinFilterDefault)
 	{
@@ -158,6 +166,25 @@ static BOOL		sTextureLODBiasAvailable;
 		options = (options & ~kOOTextureMagFilterMask) | kOOTextureMagFilterLinear;
 	}
 	
+	if (options & kOOTextureAllowRectTexture)
+	{
+		// Apply rectangle texture restrictions (regardless of whether rectangle textures are available, for consistency)
+		options &= kOOTextureFlagsAllowedForRectangleTexture;
+		if ((options & kOOTextureMinFilterMask) == kOOTextureMinFilterMipMap)
+		{
+			options = (kOOTextureMinFilterMask & ~kOOTextureMinFilterMask) | kOOTextureMinFilterLinear;
+		}
+		
+#if GL_EXT_texture_rectangle
+		if (!sRectangleTextureAvailable)
+		{
+			options &= ~kOOTextureAllowRectTexture;
+		}
+#endif	// Else, options &= kOOTextureDefinedFlags below will clear the flag
+	}
+	
+	options &= kOOTextureDefinedFlags;
+	
 	// Look for existing texture
 	key = [NSString stringWithFormat:@"%@:0x%.4X", name, options];
 	result = [[sInUseTextures objectForKey:key] pointerValue];
@@ -169,9 +196,7 @@ static BOOL		sTextureLODBiasAvailable;
 			OOLog(kOOLogFileNotFound, @"Could not find texture file \"%@\".", name);
 			return nil;
 		}
-		
-		if (!sCheckedExtensions)  [self checkExtensions];
-		
+				
 		// No existing texture, load texture...
 		result = [[[OOTexture alloc] initWithPath:path key:key options:options anisotropy:anisotropy lodBias:lodBias] autorelease];
 		
@@ -314,6 +339,48 @@ static BOOL		sTextureLODBiasAvailable;
 	if (EXPECT_NOT(!loaded))  [self setUpTexture];
 }
 
+
+- (NSSize)dimensions
+{
+	[self ensureFinishedLoading];
+	
+	return NSMakeSize(data.loaded.width, data.loaded.height);
+}
+
+
+- (NSSize)texCoordsScale
+{
+#if GL_EXT_texture_rectangle
+	if (loaded)
+	{
+		if (!data.loaded.isRectTexture)
+		{
+			return NSMakeSize(1.0f, 1.0f);
+		}
+		else
+		{
+			return NSMakeSize(data.loaded.width, data.loaded.height);
+		}
+	}
+	else
+	{
+		// Not loaded
+		if (!data.loading.options & kOOTextureAllowRectTexture)
+		{
+			return NSMakeSize(1.0f, 1.0f);
+		}
+		else
+		{
+			// Finishing may clear the rectangle texture flag (if the texture turns out to be POT)
+			[self ensureFinishedLoading];
+			return [self texCoordsScale];
+		}
+	}
+#else
+	return NSMakeSize(1.0f, 1.0f);
+#endif
+}
+
 @end
 
 
@@ -374,9 +441,9 @@ static BOOL		sTextureLODBiasAvailable;
 	loaded = YES;
 	// data.loaded considered invalid beyond this point.
 	
+	// This will block until loading is completed, if necessary.
 	if ([loader getResult:&data.loaded.bytes format:&format width:&data.loaded.width height:&data.loaded.height])
 	{
-	//	glPixelStorei(GL_UNPACK_ALIGNMENT, 1);		// FIXME: this is probably not needed. Remove it once stuff works and see if anything changes. (Should probably be 4 if we need to keep it.)
 		glGenTextures(1, &data.loaded.textureName);
 		glBindTexture(GL_TEXTURE_2D, data.loaded.textureName);
 		
@@ -488,7 +555,7 @@ static BOOL		sTextureLODBiasAvailable;
 #endif
 	
 #ifdef GL_CLAMP_TO_EDGE
-	// GL_CLAMP_TO_EDGE requires OpenGL 1.2 or later
+	// GL_CLAMP_TO_EDGE requires OpenGL 1.2 or later. Oolite probably does too...
 	sClampToEdgeAvailable = (2 < [extMgr minorVersionNumber]) || [extMgr haveExtension:@"GL_SGIS_texture_edge_clamp"];
 #endif
 	
@@ -498,6 +565,10 @@ static BOOL		sTextureLODBiasAvailable;
 	
 #if GL_EXT_texture_lod_bias
 	sTextureLODBiasAvailable = [extMgr haveExtension:@"GL_EXT_texture_lod_bias"];
+#endif
+	
+#if GL_EXT_texture_rectangle
+	sRectangleTextureAvailable = [extMgr haveExtension:@"GL_EXT_texture_rectangle"];
 #endif
 }
 

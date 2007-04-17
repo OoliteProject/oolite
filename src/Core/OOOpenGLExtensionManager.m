@@ -25,6 +25,7 @@ MA 02110-1301, USA.
 #import "OOOpenGLExtensionManager.h"
 #import "OOLogging.h"
 #import "OOFunctionAttributes.h"
+#import <stdlib.h>
 
 
 static NSString * const kOOLogOpenGLShaderSupport		= @"rendering.opengl.shader.support";
@@ -106,9 +107,21 @@ static unsigned IntegerFromString(const GLubyte **ioString);
 		
 #if OOLITE_WINDOWS
 #if GL_ARB_vertex_buffer_object
+		if ([self haveExtension:@"GL_ARB_vertex_buffer_object"])
+		{
 			glBindBufferARB = (PFNGLBINDBUFFERARBPROC)wglGetProcAddress("glBindBufferARB");
 			glGenBuffersARB = (PFNGLGENBUFFERSARBPROC)wglGetProcAddress("glGenBuffersARB");
 			glBufferDataARB = (PFNGLBUFFERDATAARBPROC)wglGetProcAddress("glBufferDataARB");
+		}
+#endif
+		
+#if GL_APPLE_vertex_array_object
+		if ([self haveExtension:@"GL_APPLE_vertex_array_object"])
+		{
+			glBindBufferARB = (PFNGLBINDBUFFERARBPROC)wglGetProcAddress("glBindBufferARB");
+			glGenBuffersARB = (PFNGLGENBUFFERSARBPROC)wglGetProcAddress("glGenBuffersARB");
+			glBufferDataARB = (PFNGLBUFFERDATAARBPROC)wglGetProcAddress("glBufferDataARB");
+		}
 #endif
 #endif
 		
@@ -316,3 +329,14 @@ static unsigned IntegerFromString(const GLubyte **ioString)
 }
 
 @end
+
+
+#if OOLITE_WINDOWS && !defined(NO_SHADERS)
+
+void OOBadOpenGLExtensionUsed(void)
+{
+	OOLog(@"rendering.opengl.badExtension", @"***** An uninitialized OpenGL extension function has been called, terminating. This is a serious error, please report it. *****");
+	exit(EXIT_FAILURE);
+}
+
+#endif

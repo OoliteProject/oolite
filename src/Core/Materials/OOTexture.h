@@ -43,14 +43,25 @@ enum
 	
 	kOOTextureNoShrink				= 0x0100UL,
 	kOOTextureRepeatS				= 0x0200UL,
-	kOOTextureRepeatT				= 0x0200UL,
+	kOOTextureRepeatT				= 0x0400UL,
+	kOOTextureAllowRectTexture		= 0x0800UL,	// Indicates that GL_TEXTURE_RECTANGLE_EXT may be used instead of GL_TEXTURE_2D. See -texCoordsScale for a discussion of rectangle textures.
 	
 	kOOTextureMinFilterMask			= 0x000FUL,
 	kOOTextureMagFilterMask			= 0x00F0UL,
 	kOOTextureFlagsMask				= ~(kOOTextureMinFilterMask | kOOTextureMagFilterMask),
 	
 	kOOTextureDefaultOptions		= kOOTextureMinFilterDefault | kOOTextureMagFilterLinear,
-	kOOTextureDefinedFlags			= 0x0733UL
+	
+	kOOTextureDefinedFlags			= kOOTextureMinFilterMask | kOOTextureMagFilterMask
+									| kOOTextureNoShrink
+#if GL_EXT_texture_rectangle
+									| kOOTextureAllowRectTexture
+#endif
+									| kOOTextureRepeatS
+									| kOOTextureRepeatT,
+	
+	kOOTextureFlagsAllowedForRectangleTexture =
+									kOOTextureDefinedFlags & ~(kOOTextureRepeatS | kOOTextureRepeatT)
 };
 
 
@@ -78,6 +89,9 @@ enum
 			GLuint					textureName;
 			uint32_t				width,
 									height;
+#if GL_EXT_texture_rectangle
+			BOOL					isRectTexture;
+#endif
 		}						loaded;
 	}						data;
 #if GL_EXT_texture_lod_bias
@@ -122,6 +136,7 @@ enum
 + (id)textureWithConfiguration:(id)configuration;
 
 /*	Bind the texture to the current texture unit.
+	This will block until loading is completed.
 */
 - (void)apply;
 
@@ -129,5 +144,37 @@ enum
 	inside display lists isn't allowed.
 */
 - (void)ensureFinishedLoading;
+
+/*	Dimensions in pixels.
+	This will block until loading is completed.
+*/
+- (NSSize)dimensions;
+
+
+/*	Dimensions in texture coordinates.
+	
+	If kOOTextureAllowRectTexture is set, and GL_EXT_texture_rectangle is
+	available, textures whose dimensions are not powers of two will be loaded
+	as rectangle textures. Rectangle textures use unnormalized co-ordinates;
+	that is, co-oridinates range from 0 to the actual size of the texture
+	rather than 0 to 1. Thus, for rectangle textures, -texCoordsScale returns
+	-dimensions (with the required wait for loading) for a rectangle texture.
+	For non-rectangle textures, (1, 1) is returned without delay. If the
+	texture has power-of-two dimensions, it will be loaded as a normal
+	texture.
+	
+	Rectangle textures have additional limitations: kOOTextureMinFilterMipMap
+	is not supported (kOOTextureMinFilterLinear will be used instead), and
+	kOOTextureRepeatS/kOOTextureRepeatT will be ignored. 
+	
+	Note that 'rectangle texture' is a misnomer; non-rectangle textures may
+	be rectangular, as long as their sides are powers of two. Non-power-of-two
+	textures would be more descriptive, but this phrase is used for the
+	extension that allows 'normal' textures to have non-power-of-two sides
+	without additional restrictions. It is intended that OOTexture should
+	support this in future, but this shouldn’t affect the interface, only
+	avoid the scaling-to-power-of-two stage.
+*/
+- (NSSize)texCoordsScale;
 
 @end

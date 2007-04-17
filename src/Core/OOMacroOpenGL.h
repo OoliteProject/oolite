@@ -45,4 +45,7 @@ MA 02110-1301, USA.
 #define OO_ENTER_OPENGL()	CGLContextObj CGL_MACRO_CONTEXT = CGLGetCurrentContext();	\
 
 #endif
+#else
+// Not OS X
+#define OO_ENTER_OPENGL()	do {} while (0)
 #endif

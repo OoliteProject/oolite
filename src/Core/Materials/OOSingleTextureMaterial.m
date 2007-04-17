@@ -57,7 +57,7 @@ MA 02110-1301, USA.
 		}
 		else
 		{
-			texture = [OOTexture textureWithName:name options:kOOTextureDefaultOptions anisotropy:kOOTextureDefaultAnisotropy];
+			texture = [OOTexture textureWithName:name options:kOOTextureDefaultOptions anisotropy:kOOTextureDefaultAnisotropy lodBias:kOOTextureDefaultLODBias];
 		}
 		[texture retain];
 	}
