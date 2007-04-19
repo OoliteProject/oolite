@@ -32,12 +32,30 @@ MA 02110-1301, USA.
 #import "ResourceManager.h"
 
 
-#ifdef GNUSTEP	// We really need better target macros.
-#define SHOW_APPLICATION	NO
+#define PER_THREAD_INDENTATION		1
+#define APPNAME						@"Oolite"
+
+
+#if OOLITE_MAC_OS_X
+#define SHOW_APPLICATION			1
 #else
-#define SHOW_APPLICATION	YES
+#define SHOW_APPLICATION			0
 #endif
-#define APPNAME @"Oolite"
+
+
+#if PER_THREAD_INDENTATION
+	#if OOLITE_USE_TLS	// Define to use __thread keyword where supported
+		#define USE_INDENT_GLOBALS	1
+		#define THREAD_LOCAL		__thread
+	#else
+		#define USE_INDENT_GLOBALS	0
+		static NSString * const kIndentLevelKey = @"org.aegidian.oolite.oolog.indentLevel";
+		static NSString * const kIndentStackKey = @"org.aegidian.oolite.oolog.indentStack";
+	#endif
+#else
+	#define USE_INDENT_GLOBALS		1
+	#define THREAD_LOCAL
+#endif
 
 
 // Control flags for OOLogInternal() - like message classes, but less cool.
@@ -66,8 +84,11 @@ static NSLock					*sLock = nil;
 static NSMutableDictionary		*sExplicitSettings = nil;
 static NSMutableDictionary		*sDerivedSettingsCache = nil;
 static NSMutableDictionary		*sFileNamesCache = nil;
-static unsigned					sIndentLevel = 0;
-static OOLogIndentStackElement	*sIndentStack = NULL;
+#if USE_INDENT_GLOBALS
+static THREAD_LOCAL unsigned	sIndentLevel = 0;
+static THREAD_LOCAL OOLogIndentStackElement
+								*sIndentStack = NULL;
+#endif
 static BOOL						sShowFunction = NO;
 static BOOL						sShowFileAndLine = NO;
 static BOOL						sShowClass = YES;
@@ -93,6 +114,9 @@ static void LoadExplicitSettingsFromDictionary(NSDictionary *inDict);
 static NSString *AbbreviatedFileName(const char *inName);
 static id ResolveDisplaySetting(NSString *inMessageClass);
 static id ResolveMetaClassReference(NSString *inMetaClass, NSMutableSet *ioSeenMetaClasses);
+
+OOINLINE unsigned GetIndentLevel(void) PURE_FUNC;
+OOINLINE void SetIndentLevel(unsigned level);
 
 
 /*	void PrimitiveLog(NSString *)
@@ -188,7 +212,7 @@ void OOLogSetDisplayMessagesInClass(NSString *inClass, BOOL inFlag)
 
 NSString *OOLogGetParentMessageClass(NSString *inClass)
 {
-	NSRange			range;
+	NSRange					range;
 	
 	if (inClass == nil) return nil;
 	
@@ -199,22 +223,7 @@ NSString *OOLogGetParentMessageClass(NSString *inClass)
 }
 
 
-void OOLogIndent(void)
-{
-	// These could be handled with atomic updates, but aren’t called much, so let’s not introduce porting complexity.
-	[sLock lock];
-	++sIndentLevel;
-	[sLock unlock];
-}
-
-
-void OOLogOutdent(void)
-{
-	[sLock lock];
-	if (sIndentLevel != 0) --sIndentLevel;
-	[sLock unlock];
-}
-
+#if !OOLOG_SHORT_CIRCUIT
 
 void OOLogIndentIf(NSString *inMessageClass)
 {
@@ -227,6 +236,31 @@ void OOLogOutdentIf(NSString *inMessageClass)
 	if (OOLogWillDisplayMessagesInClass(inMessageClass)) OOLogOutdent();
 }
 
+#endif
+
+
+#if USE_INDENT_GLOBALS
+
+#if OOLITE_USE_TLS
+	#define INDENT_LOCK()		do {} while (0)
+	#define INDENT_UNLOCK()		do {} while (0)
+#else
+	#define INDENT_LOCK()		[sLock lock]
+	#define INDENT_UNLOCK()		[sLock unlock]
+#endif
+
+
+OOINLINE unsigned GetIndentLevel(void)
+{
+	return sIndentLevel;
+}
+
+
+OOINLINE void SetIndentLevel(unsigned value)
+{
+	sIndentLevel = value;
+}
+
 
 void OOLogPushIndent(void)
 {
@@ -235,9 +269,71 @@ void OOLogPushIndent(void)
 	elem = malloc(sizeof *elem);
 	if (elem != NULL)
 	{
+		INDENT_LOCK();
+		
 		elem->indent = sIndentLevel;
 		elem->link = sIndentStack;
 		sIndentStack = elem;
+		
+		INDENT_UNLOCK();
+	}
+}
+
+
+void OOLogPopIndent(void)
+{
+	INDENT_LOCK();
+	
+	OOLogIndentStackElement	*elem = sIndentStack;
+	
+	if (elem != NULL)
+	{
+		sIndentStack = elem->link;
+		sIndentLevel = elem->indent;
+		free(elem);
+	}
+	else
+	{
+		OOLogInternal(OOLOG_BAD_POP_INDENT, @"OOLogPopIndent(): state stack underflow.");
+	}
+	INDENT_UNLOCK();
+}
+
+#else	// !USE_INDENT_GLOBALS
+
+#define INDENT_LOCK()			do {} while (0)
+#define INDENT_UNLOCK()			do {} while (0)
+
+
+OOINLINE unsigned GetIndentLevel(void)
+{
+	NSMutableDictionary *threadDict = [[NSThread currentThread] threadDictionary];
+	return [[threadDict objectForKey:kIndentLevelKey] unsignedIntValue];
+}
+
+
+OOINLINE void SetIndentLevel(unsigned value)
+{
+	NSMutableDictionary *threadDict = [[NSThread currentThread] threadDictionary];
+	[threadDict setObject:[NSNumber numberWithUnsignedInt:value] forKey:kIndentLevelKey];
+}
+
+
+void OOLogPushIndent(void)
+{
+	OOLogIndentStackElement	*elem = NULL;
+	NSMutableDictionary		*threadDict = nil;
+	NSValue					*val = nil;
+	
+	elem = malloc(sizeof *elem);
+	if (elem != NULL)
+	{
+		threadDict = [[NSThread currentThread] threadDictionary];
+		val = [threadDict objectForKey:kIndentStackKey];
+		
+		elem->indent = [[threadDict objectForKey:kIndentLevelKey] intValue];
+		elem->link = [val pointerValue];
+		[threadDict setObject:[NSValue valueWithPointer:elem] forKey:kIndentStackKey];
 	}
 }
 
@@ -245,17 +341,47 @@ void OOLogPushIndent(void)
 void OOLogPopIndent(void)
 {
 	OOLogIndentStackElement	*elem = NULL;
+	NSMutableDictionary		*threadDict = nil;
+	NSValue					*val = nil;
 	
-	if (EXPECT_NOT(sIndentStack == NULL))
+	threadDict = [[NSThread currentThread] threadDictionary];
+	val = [threadDict objectForKey:kIndentStackKey];
+	
+	elem = [val pointerValue];
+	
+	if (elem != NULL)
+	{
+		[threadDict setObject:[NSNumber numberWithUnsignedInt:elem->indent] forKey:kIndentLevelKey];
+		[threadDict setObject:[NSValue valueWithPointer:elem->link] forKey:kIndentStackKey];
+		free(elem);
+	}
+	else
 	{
 		OOLogInternal(OOLOG_BAD_POP_INDENT, @"OOLogPopIndent(): state stack underflow.");
-		return;
 	}
+}
+
+#endif	// USE_INDENT_GLOBALS
+
+
+void OOLogIndent(void)
+{
+	INDENT_LOCK();
+
+	SetIndentLevel(GetIndentLevel() + 1);
 	
-	elem = sIndentStack;
-	sIndentStack = elem->link;
-	sIndentLevel = elem->indent;
-	free(elem);
+	INDENT_UNLOCK();
+}
+
+
+void OOLogOutdent(void)
+{
+	INDENT_LOCK();
+	
+	unsigned indentLevel = GetIndentLevel();
+	if (indentLevel != 0)  SetIndentLevel(indentLevel - 1);
+	
+	INDENT_UNLOCK();
 }
 
 
@@ -273,6 +399,7 @@ void OOLogWithFunctionFileAndLineAndArguments(NSString *inMessageClass, const ch
 {
 	NSAutoreleasePool	*pool = nil;
 	NSString			*formattedMessage = nil;
+	unsigned			indentLevel;
 	
 	pool = [[NSAutoreleasePool alloc] init];
 	
@@ -336,7 +463,8 @@ void OOLogWithFunctionFileAndLineAndArguments(NSString *inMessageClass, const ch
 	}
 	
 	// Apply indentation
-	if (sIndentLevel != 0)
+	indentLevel = GetIndentLevel();
+	if (indentLevel != 0)
 	{
 		#define INDENT_FACTOR	2		/* Spaces per indent level */
 		#define MAX_INDENT		64		/* Maximum number of indentation _spaces_ */
@@ -347,7 +475,7 @@ void OOLogWithFunctionFileAndLineAndArguments(NSString *inMessageClass, const ch
 							"                                                                ";
 		const char			*indentString;
 		
-		indent = INDENT_FACTOR * sIndentLevel;
+		indent = INDENT_FACTOR * indentLevel;
 		if (MAX_INDENT < indent) indent = MAX_INDENT;
 		indentString = &spaces[MAX_INDENT - indent];
 		

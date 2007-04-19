@@ -47,8 +47,6 @@ MA 02110-1301, USA.
 	If nonzero, the test of whether to display a message before evaluating the
 	other parameters of the call. This saves time, but could cause weird bugs
 	if the parameters involve calls with side effects.
-	
-	Disabled for 1.68, will be tried leading up to 1.69.
 */
 #ifndef OOLOG_SHORT_CIRCUIT
 	#define OOLOG_SHORT_CIRCUIT		1
@@ -87,8 +85,13 @@ NSString *OOLogGetParentMessageClass(NSString *inClass);
 void OOLogIndent(void);
 void OOLogOutdent(void);
 
+#if OOLOG_SHORT_CIRCUIT
+#define OOLogIndentIf(class)		do { if (OOLogWillDisplayMessagesInClass(class)) OOLogIndent(); } while (0)
+#define OOLogOutdentIf(class)		do { if (OOLogWillDisplayMessagesInClass(class)) OOLogOutdent(); } while (0)
+#else
 void OOLogIndentIf(NSString *inMessageClass);
 void OOLogOutdentIf(NSString *inMessageClass);
+#endif
 
 // Remember/restore indent levels, for cases where an exception may occur while indented.
 void OOLogPushIndent(void);
