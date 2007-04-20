@@ -159,6 +159,7 @@ enum
 	if (EXPECT_NOT(next != nil || prev != nil))  [self unqueue];
 	[path release];
 	[completionLock release];
+	if (data != NULL)  free(data);
 	
 	[super dealloc];
 }
@@ -190,7 +191,7 @@ enum
 			width:(uint32_t *)outWidth
 		   height:(uint32_t *)outHeight
 {
-	if (EXPECT_NOT(completionLock != NULL))
+	if (completionLock != NULL)
 	{
 		/*	If the lock exists, we must block on it until it is unlocked by
 			the loader thread, _even if the ready flag is set_, because of
@@ -202,6 +203,9 @@ enum
 			enough about threading to optimize out this unlock. If you do, and
 			you're sure it can be bypassed safely, you may be right. :-)
 			-- Ahruman
+			
+			Additional note: since it's not meaningful to call getResult...
+			more than once, the lock will probably be there every time.
 		*/
 		
 		priority = YES;
@@ -214,12 +218,25 @@ enum
 		if (block)  OOLog(@"textureLoader.block.done", @"Finished waiting around.");
 	}
 	
-	if (EXPECT(outData != NULL))  *outData = data;
-	if (EXPECT(outFormat != NULL))  *outFormat = format;
-	if (EXPECT(outWidth != NULL))  *outWidth = width;
-	if (EXPECT(outHeight != NULL))  *outHeight = height;
-	
-	return data != nil;
+	if (data != NULL)
+	{
+		if (outData != NULL)  *outData = data;
+		if (outFormat != NULL)  *outFormat = format;
+		if (outWidth != NULL)  *outWidth = width;
+		if (outHeight != NULL)  *outHeight = height;
+		
+		data = NULL;
+		return YES;
+	}
+	else
+	{
+		if (outData != NULL)  *outData = NULL;
+		if (outFormat != NULL)  *outFormat = kOOTextureDataInvalid;
+		if (outWidth != NULL)  *outWidth = 0;
+		if (outHeight != NULL)  *outHeight = 0;
+		
+		return NO;
+	}
 }
 
 

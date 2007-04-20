@@ -64,7 +64,12 @@ typedef enum
 
 - (BOOL)isReady;
 
-//	Return value indicates success of loading.
+/*	Return value indicates success. This may only be called once (subsequent
+	attempts will return failure). This is basically necessary so that the
+	loader can free() the data if it's still there on dealloc - an alternative
+	would be to have an explicit -drop, but there's no real need to get at
+	data more than once, so we don't bother.
+*/
 - (BOOL)getResult:(void **)outData
 		   format:(OOTextureDataFormat *)outFormat
 			width:(uint32_t *)outWidth

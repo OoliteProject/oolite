@@ -76,8 +76,10 @@ static void ScaleToHalf_4_x1(void *srcBytes, void *dstBytes, OOTextureDimension 
 #endif
 
 
-OOINLINE void StretchVertically1(OOScalerPixMap srcPx, OOScalerPixMap dstPx, OOTexturePlaneCount planes) ALWAYS_INLINE_FUNC;
+OOINLINE void StretchVertically(OOScalerPixMap srcPx, OOScalerPixMap dstPx, OOTexturePlaneCount planes) ALWAYS_INLINE_FUNC;
+
 static void StretchVerticallyN_x1(OOScalerPixMap srcPx, OOScalerPixMap dstPx, OOTexturePlaneCount planes);
+
 static void SqueezeVertically4(OOScalerPixMap srcPx, OOTextureDimension dstHeight);
 static void SqueezeVertically1(OOScalerPixMap srcPx, OOTextureDimension dstHeight);
 static void StretchHorizontally1(OOScalerPixMap srcPx, OOScalerPixMap dstPx);

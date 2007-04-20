@@ -486,20 +486,20 @@ static NSMutableDictionary*	surface_cache;
 	
 	// Search for file
 	fmgr = [NSFileManager defaultManager];
-	for (pathEnum = [[ResourceManager paths] objectEnumerator]; (path = [pathEnum nextObject]); )
+	for (pathEnum = [[ResourceManager paths] reverseObjectEnumerator]; (path = [pathEnum nextObject]); )
 	{
 		filePath = [[path stringByAppendingPathComponent:folderName] stringByAppendingPathComponent:fileName];
 		if ([fmgr fileExistsAtPath:filePath])
 		{
 			result = filePath;
-		//	break;
+			break;
 		}
 		
 		filePath = [path stringByAppendingPathComponent:fileName];
 		if ([fmgr fileExistsAtPath:filePath])
 		{
 			result = filePath;
-		//	break;
+			break;
 		}
 	}
 	
