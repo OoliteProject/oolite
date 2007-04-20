@@ -29,17 +29,23 @@ MA 02110-1301, USA.
 #import "OOMaths.h"
 
 
+typedef uint_fast32_t		OOTextureDimension;
+typedef uint_fast8_t		OOTexturePlaneCount;
+
+
 uint8_t *ScaleUpPixMap(uint8_t *srcPixels, unsigned srcWidth, unsigned srcHeight, unsigned srcBytesPerRow, unsigned planes, unsigned dstWidth, unsigned dstHeight);
 
 
 /*	Assumes 8 bits per sample, interleaved.
 	dstPixels must have space for dstWidth * dstHeight pixels (no row padding
 	is generated).
+	
+	IMPORTANT: this will free() srcPixels.
 */
-BOOL ScalePixMap(void *srcPixels, uint32_t srcWidth, uint32_t srcHeight, uint8_t planes, uint32_t srcRowBytes, void *dstPixels, uint32_t dstWidth, uint32_t dstHeight);
+void *OOScalePixMap(void *srcPixels, OOTextureDimension srcWidth, OOTextureDimension srcHeight, OOTexturePlaneCount planes, size_t srcRowBytes, OOTextureDimension dstWidth, OOTextureDimension dstHeight, BOOL leaveSpaceForMipMaps);
 
 
 /*	Assumes 8 bits per sample, interleaved.
 	Buffer must have space for (4 * width * height) / 3 pixels.
 */
-BOOL GenerateMipMaps(void *textureBytes, uint32_t width, uint32_t height, uint8_t planes);
+BOOL OOGenerateMipMaps(void *textureBytes, OOTextureDimension width, OOTextureDimension height, OOTexturePlaneCount planes);

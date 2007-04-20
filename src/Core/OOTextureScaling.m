@@ -34,14 +34,26 @@ MA 02110-1301, USA.
 #import "OOCPUInfo.h"
 
 
-#define SUPPORT_TWO_CHANNELS	0
+// Structure used to track buffers in OOScalePixMap() and its helpers.
+typedef struct
+{
+	void					*pixels;
+	OOTextureDimension		width, height;
+	size_t					rowBytes;
+	size_t					dataSize;
+} OOScalerPixMap;
 
 
-static BOOL GenerateMipMaps1(void *textureBytes, uint32_t width, uint32_t height);
-#if SUPPORT_TWO_CHANNELS
-static BOOL GenerateMipMaps2(void *textureBytes, uint32_t width, uint32_t height);
-#endif
-static BOOL GenerateMipMaps4(void *textureBytes, uint32_t width, uint32_t height);
+/*	Internal function declarations.
+	
+	NOTE: the function definitions are grouped together for best code cache
+	coherence rather than the order listed here.
+*/
+static BOOL GenerateMipMaps1(void *textureBytes, OOTextureDimension width, OOTextureDimension height) NONNULL_FUNC;
+static BOOL GenerateMipMaps4(void *textureBytes, OOTextureDimension width, OOTextureDimension height) NONNULL_FUNC;
+
+static void ScaleDownByHalvingInPlace1(OOScalerPixMap *srcPx, OOTextureDimension dstWidth, OOTextureDimension dstHeight) NONNULL_FUNC;
+static void ScaleDownByHalvingInPlace4(OOScalerPixMap *srcPx, OOTextureDimension dstWidth, OOTextureDimension dstHeight) NONNULL_FUNC;
 
 
 /*	ScaleToHalf_P_xN functions
@@ -51,26 +63,65 @@ static BOOL GenerateMipMaps4(void *textureBytes, uint32_t width, uint32_t height
 	crash.
 	
 	Scaling is an unweighted average. 8 bits per channel assumed.
+	It is safe and meaningful for srcBytes == dstBytes.
 */
-static void ScaleToHalf_1_x1(void *srcBytes, void *dstBytes, uint32_t srcWidth, uint32_t srcHeight) NONNULL_FUNC;
-#if SUPPORT_TWO_CHANNELS
-static void ScaleToHalf_2_x1(void *srcBytes, void *dstBytes, uint32_t srcWidth, uint32_t srcHeight) NONNULL_FUNC;
-#endif
-static void ScaleToHalf_4_x1(void *srcBytes, void *dstBytes, uint32_t srcWidth, uint32_t srcHeight) NONNULL_FUNC;
+static void ScaleToHalf_1_x1(void *srcBytes, void *dstBytes, OOTextureDimension srcWidth, OOTextureDimension srcHeight) NONNULL_FUNC;
+static void ScaleToHalf_4_x1(void *srcBytes, void *dstBytes, OOTextureDimension srcWidth, OOTextureDimension srcHeight) NONNULL_FUNC;
 
 #if OOLITE_NATIVE_64_BIT
-	static void ScaleToHalf_1_x8(void *srcBytes, void *dstBytes, uint32_t srcWidth, uint32_t srcHeight) NONNULL_FUNC;
-	#if SUPPORT_TWO_CHANNELS
-	static void ScaleToHalf_2_x4(void *srcBytes, void *dstBytes, uint32_t srcWidth, uint32_t srcHeight) NONNULL_FUNC;
-	#endif
-	static void ScaleToHalf_4_x2(void *srcBytes, void *dstBytes, uint32_t srcWidth, uint32_t srcHeight) NONNULL_FUNC;
+	static void ScaleToHalf_1_x8(void *srcBytes, void *dstBytes, OOTextureDimension srcWidth, OOTextureDimension srcHeight) NONNULL_FUNC;
+	static void ScaleToHalf_4_x2(void *srcBytes, void *dstBytes, OOTextureDimension srcWidth, OOTextureDimension srcHeight) NONNULL_FUNC;
 #else
-	static void ScaleToHalf_1_x4(void *srcBytes, void *dstBytes, uint32_t srcWidth, uint32_t srcHeight) NONNULL_FUNC;
-	#if SUPPORT_TWO_CHANNELS
-	static void ScaleToHalf_2_x2(void *srcBytes, void *dstBytes, uint32_t srcWidth, uint32_t srcHeight) NONNULL_FUNC;
-	#endif
+	static void ScaleToHalf_1_x4(void *srcBytes, void *dstBytes, OOTextureDimension srcWidth, OOTextureDimension srcHeight) NONNULL_FUNC;
 #endif
 
+
+OOINLINE void StretchVertically1(OOScalerPixMap srcPx, OOScalerPixMap dstPx, OOTexturePlaneCount planes) ALWAYS_INLINE_FUNC;
+static void StretchVerticallyN_x1(OOScalerPixMap srcPx, OOScalerPixMap dstPx, OOTexturePlaneCount planes);
+static void SqueezeVertically4(OOScalerPixMap srcPx, OOTextureDimension dstHeight);
+static void SqueezeVertically1(OOScalerPixMap srcPx, OOTextureDimension dstHeight);
+static void StretchHorizontally1(OOScalerPixMap srcPx, OOScalerPixMap dstPx);
+static void StretchHorizontally4(OOScalerPixMap srcPx, OOScalerPixMap dstPx);
+static void SqueezeHorizontally4(OOScalerPixMap srcPx, OOTextureDimension dstHeight);
+static void SqueezeHorizontally1(OOScalerPixMap srcPx, OOTextureDimension dstHeight);
+
+
+static void EnsureCorrectDataSize(OOScalerPixMap *pixMap, BOOL leaveSpaceForMipMaps) NONNULL_FUNC;
+
+
+#if !OOLITE_NATIVE_64_BIT
+
+static void StretchVerticallyN_x4(OOScalerPixMap srcPx, OOScalerPixMap dstPx, OOTexturePlaneCount planes);
+
+OOINLINE void StretchVertically(OOScalerPixMap srcPx, OOScalerPixMap dstPx, OOTexturePlaneCount planes)
+{
+	if (!(((srcPx.width * planes) | srcPx.height) & 3))
+	{
+		StretchVerticallyN_x4(srcPx, dstPx, planes);
+	}
+	else
+	{
+		StretchVerticallyN_x1(srcPx, dstPx, planes);
+	}
+}
+
+#else	// OOLITE_NATIVE_64_BIT
+
+static void StretchVerticallyN_x8(OOScalerPixMap srcPx, OOScalerPixMap dstPx, OOTexturePlaneCount planes);
+
+OOINLINE void StretchVertically(OOScalerPixMap srcPx, OOScalerPixMap dstPx, OOTexturePlaneCount planes)
+{
+	if (!(((srcPx.width * planes) | srcPx.height) & 7))
+	{
+		StretchVerticallyN_x8(srcPx, dstPx, planes);
+	}
+	else
+	{
+		StretchVerticallyN_x1(srcPx, dstPx, planes);
+	}
+}
+
+#endif
 
 
 // #define DUMP_MIP_MAPS
@@ -85,7 +136,7 @@ SInt32 sPreviousDumpID		= 0;
 										uint32_t dumpPlanes = pl; \
 										OOLog(@"texture.mipMap.dump", @"Dumping mip-maps as dump ID%u lv# %uch XxY.raw.", dumpID, dumpPlanes);
 #define DUMP_MIP_MAP_DUMP(px, w, h)		DumpMipMap(px, w, h, dumpPlanes, dumpID, dumpLevel++);
-static void DumpMipMap(void *data, uint32_t width, uint32_t height, uint32_t planes, SInt32 ID, uint32_t level);
+static void DumpMipMap(void *data, OOTextureDimension width, OOTextureDimension height, OOTexturePlaneCount planes, SInt32 ID, uint32_t level);
 #else
 #define DUMP_MIP_MAP_PREPARE(pl)		do {} while (0)
 #define DUMP_MIP_MAP_DUMP(px, w, h)		do {} while (0)
@@ -163,79 +214,136 @@ uint8_t *ScaleUpPixMap(uint8_t *srcPixels, unsigned srcWidth, unsigned srcHeight
 }
 
 
-static void ScaleUpHorizontally4(const char *srcPixels, uint32_t srcWidth, uint32_t srcHeight, uint32_t srcRowBytes, char *dstPixels, uint32_t dstWidth);
-static void ScaleDownHorizontally4(const char *srcPixels, uint32_t srcWidth, uint32_t srcHeight, uint32_t srcRowBytes, char *dstPixels, uint32_t dstWidth);
-static void ScaleUpHorizontally1(const char *srcPixels, uint32_t srcWidth, uint32_t srcHeight, uint32_t srcRowBytes, char *dstPixels, uint32_t dstWidth);
-static void ScaleDownHorizontally1(const char *srcPixels, uint32_t srcWidth, uint32_t srcHeight, uint32_t srcRowBytes, char *dstPixels, uint32_t dstWidth);
-static void ScaleUpVertically(const char *srcPixels, uint32_t srcWidth, uint32_t srcHeight, uint32_t srcRowBytes, char *dstPixels, unsigned dstHeight);
-static void ScaleDownVertically(const char *srcPixels, uint32_t srcWidth, uint32_t srcHeight, uint32_t srcRowBytes, char *dstPixels, unsigned dstHeight);
-static void CopyRows(const char *srcPixels, uint32_t widthInBytes, uint32_t height, uint32_t srcRowBytes, char *dstPixels);
-
-
-BOOL ScalePixMap(void *srcPixels, uint32_t srcWidth, uint32_t srcHeight, uint8_t planes, uint32_t srcRowBytes, void *dstPixels, uint32_t dstWidth, uint32_t dstHeight)
+void *OOScalePixMap(void *srcPixels, OOTextureDimension srcWidth, OOTextureDimension srcHeight, OOTexturePlaneCount planes, size_t srcRowBytes, OOTextureDimension dstWidth, OOTextureDimension dstHeight, BOOL leaveSpaceForMipMaps)
 {
-	// Divide and conquer - handle horizontal and vertical resizing in separate passes.
+	BOOL				haveScaled = NO;
+	OOScalerPixMap		srcPx, dstPx = {0}, sparePx = {0};
 	
-	void			*interData;
-	unsigned		interWidth, interHeight, interRowBytes;
-	
-	// Sanity checks
-	if (EXPECT_NOT(srcWidth == 0 || srcHeight == 0 || srcPixels == NULL || dstPixels == NULL || srcRowBytes < srcWidth * 4 || (planes != 1 && planes != 4)))
+	//	Sanity check.
+	if (EXPECT_NOT(srcPixels == NULL || (planes != 4 && planes != 1) || (srcRowBytes < srcWidth * planes)))
 	{
-		OOLog(kOOLogParameterError, @"***** Internal error: bad parameters -- %s(%p, %u, %u, %u, %u, %p, %u, %u)", srcPixels, srcWidth, srcHeight, planes, srcRowBytes, dstPixels, dstWidth, dstHeight);
-		return NO;
+		OOLogGenericParameterError();
+		free(srcPixels);
+		return NULL;
 	}
 	
-	// Scale horizontally, if needed
-	if (srcWidth < dstWidth)
+	srcPx.pixels = srcPixels;
+	srcPx.width = srcWidth;
+	srcPx.height = srcHeight;
+	srcPx.rowBytes = srcRowBytes;
+	srcPx.dataSize = srcRowBytes * srcHeight;
+	
+	/*	If src is at least twice as big as dst in both dimensions, scale using
+		MIP map scalers (which provide better quality than the linear
+		downscaler at this scale).
+		
+		This will do all the scaling in some cases when scaling down large
+		textures to meet user or hardware requirements or for big textures in
+		reduced-detail mode.
+	*/
+	if (EXPECT_NOT(dstWidth * 2 <= srcWidth && dstHeight * 2 <= srcHeight))
 	{
-		if (planes == 4)  ScaleUpHorizontally4(srcPixels, srcWidth, srcHeight, srcRowBytes, dstPixels, dstWidth);
-		else if (planes == 1)  ScaleUpHorizontally1(srcPixels, srcWidth, srcHeight, srcRowBytes, dstPixels, dstWidth);
-		interData = dstPixels;
-		interWidth = dstWidth;
-		interHeight = dstHeight;
-		interRowBytes = interWidth * planes;
-	}
-	else if (dstWidth < srcWidth)
-	{
-		if (planes == 4)  ScaleDownHorizontally4(srcPixels, srcWidth, srcHeight, srcRowBytes, dstPixels, dstWidth);
-		else if (planes == 1)  ScaleDownHorizontally1(srcPixels, srcWidth, srcHeight, srcRowBytes, dstPixels, dstWidth);
-		interData = dstPixels;
-		interWidth = dstWidth;
-		interHeight = dstHeight;
-		interRowBytes = interWidth * planes;
-	}
-	else
-	{
-		interData = srcPixels;
-		interWidth = srcWidth;
-		interHeight = srcHeight;
-		interRowBytes = srcRowBytes;
+		if (planes == 4)  ScaleDownByHalvingInPlace4(&srcPx, dstWidth, dstHeight);
+		else /* planes == 1 */  ScaleDownByHalvingInPlace1(&srcPx, dstWidth, dstHeight);
+		
+		haveScaled = YES;
 	}
 	
-	// Scale vertically, if needed.
+	/*	If we were called with src == dst or the use of the MIP map scalers
+		was sufficient, resize buffer if needed and return.
+	*/
+	if (EXPECT_NOT(srcWidth == dstWidth && srcHeight == dstHeight))
+	{
+		if (leaveSpaceForMipMaps)
+		{
+			dstPx.pixels = realloc(srcPx.pixels, dstWidth * dstHeight * planes * 4 / 3);
+			if (EXPECT_NOT(dstPx.pixels == NULL))  free(srcPx.pixels);
+		}
+		else if (haveScaled)
+		{
+			dstPx.pixels = realloc(srcPx.pixels, dstWidth * dstHeight * planes);
+			if (EXPECT_NOT(dstPx.pixels == NULL))  free(srcPx.pixels);
+		}
+		else
+		{
+			dstPx.pixels = srcPx.pixels;
+		}
+		return dstPx.pixels;
+	}
+	
 	if (srcHeight < dstHeight)
 	{
-		ScaleUpVertically(interData, interWidth * planes, interHeight, interRowBytes, dstPixels, dstHeight);
+		// Stretch vertically. This requires a separate buffer.
+		dstPx.width = srcPx.width;	// Not dstWidth!
+		dstPx.height = dstHeight;
+		dstPx.rowBytes = srcPx.width * planes;
+		dstPx.dataSize = dstPx.rowBytes * dstPx.height;
+		dstPx.pixels = malloc(dstPx.dataSize);
+		if (EXPECT_NOT(dstPx.pixels == NULL))  goto FAIL;
+		
+		StretchVertically(srcPx, dstPx, planes);
+		
+		sparePx = srcPx;
+		srcPx = dstPx;
 	}
 	else if (dstHeight < srcHeight)
 	{
-		ScaleDownVertically(interData, interWidth * planes, interHeight, interRowBytes, dstPixels, dstHeight);
+		// Squeeze vertically. This can be done in-place.
+		if (planes == 4)  SqueezeVertically4(srcPx, dstHeight);
+		else /* planes == 1 */  SqueezeVertically1(srcPx, dstHeight);
+		srcPx.height = dstHeight;
+	}
+	
+	if (srcWidth < dstWidth)
+	{
+		// Stretch horizontally. This requires a separate buffer.
+		dstPx.height = srcPx.height;
+		dstPx.width = dstWidth;
+		dstPx.rowBytes = dstPx.width * planes;
+		dstPx.dataSize = dstPx.rowBytes * srcPx.height;
+		if (leaveSpaceForMipMaps)  dstPx.dataSize = dstPx.dataSize * 4 / 3;
+		if (dstPx.dataSize <= sparePx.dataSize)  dstPx = sparePx;
+		else
+		{
+			dstPx.pixels = malloc(dstPx.dataSize);
+			if (EXPECT_NOT(dstPx.pixels == NULL))  goto FAIL;
+		}
+		
+		if (planes == 4)  StretchHorizontally4(srcPx, dstPx);
+		else /* planes == 1 */  StretchHorizontally1(srcPx, dstPx);
+	}
+	else if (dstHeight < srcHeight)
+	{
+		// Squeeze horizontally. This can be done in-place.
+		if (planes == 4)  SqueezeHorizontally4(srcPx, dstWidth);
+		else /* planes == 1 */  SqueezeHorizontally1(srcPx, dstWidth);
+		
+		dstPx = srcPx;
+		dstPx.width = dstWidth;
+		dstPx.rowBytes = dstPx.width * planes;
 	}
 	else
 	{
-		// This handles the no-scaling case as well as the horizontal-scaling-only case.
-		CopyRows(interData, interWidth * planes, interHeight, interRowBytes, dstPixels);
+		// No horizontal scaling.
+		dstPx = srcPx;
 	}
-	return YES;
+	
+	// dstPx is now the result.
+	EnsureCorrectDataSize(&srcPx, leaveSpaceForMipMaps);
+	
+FAIL:
+	if (srcPx.pixels != NULL && srcPx.pixels != dstPx.pixels)  free(srcPx.pixels);
+	if (sparePx.pixels != NULL && sparePx.pixels != dstPx.pixels && sparePx.pixels != srcPx.pixels)  free(sparePx.pixels);
+	
+	return dstPx.pixels;
 }
 
 
-BOOL GenerateMipMaps(void *textureBytes, unsigned width, unsigned height, uint8_t planes)
+BOOL OOGenerateMipMaps(void *textureBytes, OOTextureDimension width, OOTextureDimension height, OOTexturePlaneCount planes)
 {
 	if (EXPECT_NOT(width != OORoundUpToPowerOf2(width) || height != OORoundUpToPowerOf2(height)))
 	{
-		OOLog(kOOLogParameterError, @"Non-power-of-two dimensions (%ux%u) passed to GenerateMipMaps() - ignoring, data will be junk.", width, height);
+		OOLog(kOOLogParameterError, @"Non-power-of-two dimensions (%ux%u) passed to %s() - ignoring, data will be junk.", width, height, __FUNCTION__);
 		return NO;
 	}
 	if (EXPECT_NOT(textureBytes == NULL))
@@ -247,18 +355,15 @@ BOOL GenerateMipMaps(void *textureBytes, unsigned width, unsigned height, uint8_
 	// In order of likelyhood, for very small optimization.
 	if (planes == 4)  return GenerateMipMaps4(textureBytes, width, height);
 	if (planes == 1)  return GenerateMipMaps1(textureBytes, width, height);
-#if SUPPORT_TWO_CHANNELS
-	if (planes == 2)  return GenerateMipMaps2(textureBytes, width, height);
-#endif
 	
-	OOLog(kOOLogParameterError, @"Bad plane count (%u, should be 1 or 4) - ignoring, data will be junk.", planes);
+	OOLog(kOOLogParameterError, @"%s(): bad plane count (%u, should be 1 or 4) - ignoring, data will be junk.", __FUNCTION__, planes);
 	return NO;
 }
 
 
-static BOOL GenerateMipMaps1(void *textureBytes, uint32_t width, uint32_t height)
+static BOOL GenerateMipMaps1(void *textureBytes, OOTextureDimension width, OOTextureDimension height)
 {
-	uint_fast32_t			w = width, h = height;
+	OOTextureDimension		w = width, h = height;
 	uint8_t					*curr, *next;
 	
 	DUMP_MIP_MAP_PREPARE(1);
@@ -310,9 +415,9 @@ static BOOL GenerateMipMaps1(void *textureBytes, uint32_t width, uint32_t height
 }
 
 
-static void ScaleToHalf_1_x1(void *srcBytes, void *dstBytes, uint32_t srcWidth, uint32_t srcHeight)
+static void ScaleToHalf_1_x1(void *srcBytes, void *dstBytes, OOTextureDimension srcWidth, OOTextureDimension srcHeight)
 {
-	uint_fast32_t			x, y;
+	OOTextureDimension		x, y;
 	uint8_t					*src0, *src1, *dst;
 	uint_fast8_t			px00, px01, px10, px11;
 	uint_fast16_t			sum;
@@ -352,9 +457,9 @@ static void ScaleToHalf_1_x1(void *srcBytes, void *dstBytes, uint32_t srcWidth, 
 
 #if !OOLITE_NATIVE_64_BIT
 
-static void ScaleToHalf_1_x4(void *srcBytes, void *dstBytes, uint32_t srcWidth, uint32_t srcHeight)
+static void ScaleToHalf_1_x4(void *srcBytes, void *dstBytes, OOTextureDimension srcWidth, OOTextureDimension srcHeight)
 {
-	uint_fast32_t			x, y;
+	OOTextureDimension		x, y;
 	uint32_t				*src0, *src1, *dst;
 	uint_fast32_t			px00, px01, px10, px11;
 	uint_fast32_t			sum0, sum1;
@@ -402,9 +507,9 @@ static void ScaleToHalf_1_x4(void *srcBytes, void *dstBytes, uint32_t srcWidth, 
 
 #else	// OOLITE_NATIVE_64_BIT
 
-static void ScaleToHalf_1_x8(void *srcBytes, void *dstBytes, uint32_t srcWidth, uint32_t srcHeight)
+static void ScaleToHalf_1_x8(void *srcBytes, void *dstBytes, OOTextureDimension srcWidth, OOTextureDimension srcHeight)
 {
-	uint_fast32_t			x, y;
+	OOTextureDimension		x, y;
 	uint64_t				*src0, *src1;
 	uint64_t				*dst;
 	uint_fast64_t			px00, px01, px10, px11;
@@ -460,73 +565,41 @@ static void ScaleToHalf_1_x8(void *srcBytes, void *dstBytes, uint32_t srcWidth, 
 #endif
 
 
-#if SUPPORT_TWO_CHANNELS
-static BOOL GenerateMipMaps2(void *textureBytes, uint32_t width, uint32_t height)
+static void ScaleDownByHalvingInPlace1(OOScalerPixMap *srcPx, OOTextureDimension dstWidth, OOTextureDimension dstHeight)
 {
-	uint_fast32_t			w = width, h = height;
-	uint16_t				*curr, *next;
-	
-	DUMP_MIP_MAP_PREPARE(2);
-	curr = textureBytes;
-	
-#if OOLITE_NATIVE_64_BIT
-	while (4 < w && 1 < h)
-	{
-		DUMP_MIP_MAP_DUMP(curr, w, h);
-		
-		next = curr + w * h;
-		ScaleToHalf_2_x4(curr, next, w, h);
-		
-		w >>= 1;
-		h >>= 1;
-		curr = next;
-	}
-	
-	while (1 < w && 1 < h)
-	{
-		DUMP_MIP_MAP_DUMP(curr, w, h);
-		
-		next = curr + w * h;
-		ScaleToHalf_2_x1(curr, next, w, h);
-		
-		w >>= 1;
-		h >>= 1;
-		curr = next;
-	}
-#else
-	while (2 < w && 1 < h)
-	{
-		DUMP_MIP_MAP_DUMP(curr, w, h);
-		
-		next = curr + w * h;
-		ScaleToHalf_2_x2(curr, next, w, h);
-		
-		w >>= 1;
-		h >>= 1;
-		curr = next;
-	}
-	if (EXPECT(1 < w && 1 < h))
-	{
-		DUMP_MIP_MAP_DUMP(curr, w, h);
-		ScaleToHalf_2_x1(curr, next, w, h);
-		#if DUMP_MIP_MAPS
-			w >>= 1;
-			h >>= 1;
-		#endif
-	}
-#endif
-	
-	DUMP_MIP_MAP_DUMP(curr, w, h);
-	
-	// TODO: handle residual 1xN/Nx1 mips. For now, we just limit maximum mip level for non-square textures.
-	return YES;
+	#if OOLITE_NATIVE_64_BIT
+		while ((dstWidth * 2 <= srcPx->width && dstHeight * 2 <= srcPx->height) && 8 <= dstWidth && !(srcPx->width & 1) && !(srcPx->height & 1))
+		{
+			ScaleToHalf_1_x8(srcPx->pixels, srcPx->pixels, srcPx->width, srcPx->height);
+			srcPx->width /= 2;
+			srcPx->height /= 2;
+		}
+		while (dstWidth * 2 <= srcPx->width && dstHeight * 2 <= srcPx->height && !(srcPx->width & 1) && !(srcPx->height & 1))
+		{
+			ScaleToHalf_1_x1(srcPx->pixels, srcPx->pixels, srcPx->width, srcPx->height);
+			srcPx->width /= 2;
+			srcPx->height /= 2;
+		}
+	#else
+		while ((dstWidth * 2 <= srcPx->width && dstHeight * 2 <= srcPx->height) && 4 <= dstWidth && !(srcPx->width & 1) && !(srcPx->height & 1))
+		{
+			ScaleToHalf_1_x4(srcPx->pixels, srcPx->pixels, srcPx->width, srcPx->height);
+			srcPx->width /= 2;
+			srcPx->height /= 2;
+		}
+		while (dstWidth * 2 <= srcPx->width && dstHeight * 2 <= srcPx->height && !(srcPx->width & 1) && !(srcPx->height & 1))
+		{
+			ScaleToHalf_1_x1(srcPx->pixels, srcPx->pixels, srcPx->width, srcPx->height);
+			srcPx->width /= 2;
+			srcPx->height /= 2;
+		}
+	#endif
 }
-#endif	// SUPPORT_TWO_CHANNELS
 
 
-static BOOL GenerateMipMaps4(void *textureBytes, uint32_t width, uint32_t height)
+static BOOL GenerateMipMaps4(void *textureBytes, OOTextureDimension width, OOTextureDimension height)
 {
-	uint_fast32_t			w = width, h = height;
+	OOTextureDimension		w = width, h = height;
 	uint32_t				*curr, *next;
 	
 	DUMP_MIP_MAP_PREPARE(4);
@@ -574,9 +647,9 @@ static BOOL GenerateMipMaps4(void *textureBytes, uint32_t width, uint32_t height
 }
 
 
-static void ScaleToHalf_4_x1(void *srcBytes, void *dstBytes, uint32_t srcWidth, uint32_t srcHeight)
+static void ScaleToHalf_4_x1(void *srcBytes, void *dstBytes, OOTextureDimension srcWidth, OOTextureDimension srcHeight)
 {
-	uint_fast32_t			x, y;
+	OOTextureDimension		x, y;
 	uint32_t				*src0, *src1, *dst;
 	uint_fast32_t			px00, px01, px10, px11;
 	
@@ -630,9 +703,9 @@ static void ScaleToHalf_4_x1(void *srcBytes, void *dstBytes, uint32_t srcWidth, 
 
 #if OOLITE_NATIVE_64_BIT
 
-static void ScaleToHalf_4_x2(void *srcBytes, void *dstBytes, uint32_t srcWidth, uint32_t srcHeight)
+static void ScaleToHalf_4_x2(void *srcBytes, void *dstBytes, OOTextureDimension srcWidth, OOTextureDimension srcHeight)
 {
-	uint_fast32_t			x, y;
+	OOTextureDimension		x, y;
 	uint_fast64_t			*src0, *src1, *dst;
 	uint_fast64_t			px00, px01, px10, px11;
 	
@@ -693,9 +766,35 @@ static void ScaleToHalf_4_x2(void *srcBytes, void *dstBytes, uint32_t srcWidth, 
 #endif
 
 
+static void ScaleDownByHalvingInPlace4(OOScalerPixMap *srcPx, OOTextureDimension dstWidth, OOTextureDimension dstHeight)
+{
+	#if OOLITE_NATIVE_64_BIT
+		while ((dstWidth * 2 <= srcPx->width && dstHeight * 2 <= srcPx->height) && 2 <= dstWidth && !(srcPx->width & 1) && !(srcPx->height & 1))
+		{
+			ScaleToHalf_4_x2(srcPx->pixels, srcPx->pixels, srcPx->width, srcPx->height);
+			srcPx->width /= 2;
+			srcPx->height /= 2;
+		}
+		if (EXPECT_NOT(dstWidth == 1 && dstHeight * 2 <= srcPx->height && !(srcPx->height & 1)))
+		{
+			ScaleToHalf_4_x1(srcPx->pixels, srcPx->pixels, srcPx->width, srcPx->height);
+			srcPx->width = 1;
+			srcPx->height /= 2;
+		}
+	#else
+		while ((dstWidth * 2 <= srcPx->width && dstHeight * 2 <= srcPx->height) && !(srcPx->width & 1) && !(srcPx->height & 1))
+		{
+			ScaleToHalf_4_x1(srcPx->pixels, srcPx->pixels, srcPx->width, srcPx->height);
+			srcPx->width /= 2;
+			srcPx->height /= 2;
+		}
+	#endif
+}
+
+
 #ifdef DUMP_MIP_MAPS
 
-static void DumpMipMap(void *data, uint32_t width, uint32_t height, uint32_t planes, SInt32 ID, uint32_t level)
+static void DumpMipMap(void *data, OOTextureDimension width, OOTextureDimension height, OOTexturePlaneCount planes, SInt32 ID, uint32_t level)
 {
 	NSString *name = [NSString stringWithFormat:@"tex-debug/dump ID %u lv%u %uch %ux%u.raw", ID, level, planes, width, height];
 	FILE *dump = fopen([name UTF8String], "w");
@@ -709,62 +808,156 @@ static void DumpMipMap(void *data, uint32_t width, uint32_t height, uint32_t pla
 #endif
 
 
-static void ScaleUpHorizontally4(const char *srcPixels, uint32_t srcWidth, uint32_t srcHeight, uint32_t srcRowBytes, char *dstPixels, uint32_t dstWidth)
+static void StretchVerticallyN_x1(OOScalerPixMap srcPx, OOScalerPixMap dstPx, OOTexturePlaneCount planes)
 {
-	// TODO
-	OOLog(@"scale.unimplemented", @"Attempt to scale texture, currently unsupported - expect noise.");
-}
-
-
-static void ScaleDownHorizontally4(const char *srcPixels, uint32_t srcWidth, uint32_t srcHeight, uint32_t srcRowBytes, char *dstPixels, uint32_t dstWidth)
-{
-	// TODO
-	OOLog(@"scale.unimplemented", @"Attempt to scale texture, currently unsupported - expect noise.");
-}
-
-
-static void ScaleUpHorizontally1(const char *srcPixels, uint32_t srcWidth, uint32_t srcHeight, uint32_t srcRowBytes, char *dstPixels, uint32_t dstWidth)
-{
-	// TODO
-	OOLog(@"scale.unimplemented", @"Attempt to scale texture, currently unsupported - expect noise.");
-}
-
-
-static void ScaleDownHorizontally1(const char *srcPixels, uint32_t srcWidth, uint32_t srcHeight, uint32_t srcRowBytes, char *dstPixels, uint32_t dstWidth)
-{
-	// TODO
-	OOLog(@"scale.unimplemented", @"Attempt to scale texture, currently unsupported - expect noise.");
-}
-
-
-static void ScaleUpVertically(const char *srcPixels, uint32_t srcWidthInBytes, uint32_t srcHeight, uint32_t srcRowBytes, char *dstPixels, unsigned dstHeight)
-{
-	// TODO
-	OOLog(@"scale.unimplemented", @"Attempt to scale texture, currently unsupported - expect noise.");
-}
-
-
-static void ScaleDownVertically(const char *srcPixels, uint32_t srcWidthInBytes, uint32_t srcHeight, uint32_t srcRowBytes, char *dstPixels, unsigned dstHeight)
-{
-	// TODO
-	OOLog(@"scale.unimplemented", @"Attempt to scale texture, currently unsupported - expect noise.");
-}
-
-
-static void CopyRows(const char *srcPixels, uint32_t widthInBytes, uint32_t height, uint32_t srcRowBytes, char *dstPixels)
-{
-	unsigned			y;
+	uint8_t				*src, *src0, *src1, *prev, *dst;
+	uint8_t				px0, px1;
+	uint_fast32_t		x, y, xCount;
+	uint_fast16_t		weight0, weight1;
+	uint_fast32_t		fractY;	// Y coordinate, fixed-point (24.8)
 	
-	if (srcRowBytes == widthInBytes)
+	src = srcPx.pixels;
+	dst = dstPx.pixels;	// Assumes dstPx.width == dstPx.rowBytes.
+	
+	prev = src;
+	
+	xCount = srcPx.width * planes;
+	
+	for (y = 0; y != dstPx.height; ++y)
 	{
-		memcpy(dstPixels, srcPixels, height * widthInBytes);
-		return;
+		fractY = ((srcPx.height * (y + 1)) << 8) / dstPx.height;
+		
+		src0 = prev;
+		prev = src1 = src + srcPx.rowBytes * (fractY >> 8);
+		
+		weight1 = fractY & 0xFF;
+		weight0 = 0x100 - weight1;
+		
+		x = xCount;
+		while (x--)
+		{
+			px0 = *src0++;
+			px1 = *src1++;
+			
+			*dst++ = (px0 * weight0 + px1 * weight1) >> 8;
+		}
 	}
+}
+
+
+#if !OOLITE_NATIVE_64_BIT
+
+static void StretchVerticallyN_x4(OOScalerPixMap srcPx, OOScalerPixMap dstPx, OOTexturePlaneCount planes)
+{
+	uint8_t				*src;
+	uint32_t			*src0, *src1, *prev, *dst;
+	uint32_t			px0, px1, ag, br;
+	uint_fast32_t		x, y, xCount;
+	uint_fast16_t		weight0, weight1;
+	uint_fast32_t		fractY;	// Y coordinate, fixed-point (24.8)
 	
-	for (y = 0; y != height; ++y)
+	src = srcPx.pixels;
+	dst = dstPx.pixels;	// Assumes dstPx.width == dstPx.rowBytes.
+	
+	prev = (uint32_t *)src;
+	
+	xCount = (srcPx.width * planes) >> 2;
+	
+	for (y = 0; y != dstPx.height; ++y)
 	{
-		__builtin_memcpy(dstPixels, srcPixels, widthInBytes);
-		dstPixels += srcRowBytes;
-		srcPixels += widthInBytes;
+		fractY = ((srcPx.height * (y + 1)) << 8) / dstPx.height;
+		
+		src0 = prev;
+		prev = src1 = (uint32_t *)(src + srcPx.rowBytes * (fractY >> 8));
+		
+		weight1 = fractY & 0xFF;
+		weight0 = 0x100 - weight1;
+		
+		x = xCount;
+		while (x--)
+		{
+			px0 = *src0++;
+			px1 = *src1++;
+			
+			ag = ((px0 & 0xFF00FF00) >> 8) * weight0 + ((px1 & 0xFF00FF00) >> 8) * weight1;
+			br = (px0 & 0x00FF00FF) * weight0 + (px1 & 0x00FF00FF) * weight1;
+			
+			*dst++ = (ag & 0xFF00FF00) | ((br >> 8) & 0x00FF00FF);
+		}
+	}
+}
+
+#else	// OOLITE_NATIVE_64_BIT
+
+static void StretchVerticallyN_x8(OOScalerPixMap srcPx, OOScalerPixMap dstPx, OOTexturePlaneCount planes)
+{
+	uint8_t				*src;
+	uint64_t			*src0, *src1, *prev, *dst;
+	uint64_t			px0, px1, agag, brbr;
+	uint_fast32_t		x, y, xCount;
+	uint_fast16_t		weight0, weight1;
+	uint_fast32_t		fractY;	// Y coordinate, fixed-point (24.8)
+	
+	src = srcPx.pixels;
+	dst = dstPx.pixels;	// Assumes dstPx.width == dstPx.rowBytes.
+	
+	prev = (uint64_t *)src;
+	
+	xCount = (srcPx.width * planes) >> 3;
+	
+	for (y = 0; y != dstPx.height; ++y)
+	{
+		fractY = ((srcPx.height * (y + 1)) << 8) / dstPx.height;
+		
+		src0 = prev;
+		prev = src1 = (uint64_t *)(src + srcPx.rowBytes * (fractY >> 8));
+		
+		weight1 = fractY & 0xFF;
+		weight0 = 0x100 - weight1;
+		
+		x = xCount;
+		while (x--)
+		{
+			px0 = *src0++;
+			px1 = *src1++;
+			
+			agag = ((px0 & 0xFF00FF00FF00FF00ULL) >> 8) * weight0 + ((px1 & 0xFF00FF00FF00FF00ULL) >> 8) * weight1;
+			brbr = (px0 & 0x00FF00FF00FF00FFULL) * weight0 + (px1 & 0x00FF00FF00FF00FFULL) * weight1;
+			
+			*dst++ = (agag & 0xFF00FF00FF00FF00ULL) | ((brbr >> 8) & 0x00FF00FF00FF00FFULL);
+		}
+	}
+}
+#endif
+
+
+static void SqueezeVertically1(OOScalerPixMap srcPx, OOTextureDimension dstHeight) {}
+static void StretchHorizontally1(OOScalerPixMap srcPx, OOScalerPixMap dstPx) {}
+static void SqueezeHorizontally1(OOScalerPixMap srcPx, OOTextureDimension dstHeight) {}
+
+static void SqueezeVertically4(OOScalerPixMap srcPx, OOTextureDimension dstHeight) {}
+static void StretchHorizontally4(OOScalerPixMap srcPx, OOScalerPixMap dstPx) {}
+static void SqueezeHorizontally4(OOScalerPixMap srcPx, OOTextureDimension dstHeight) {}
+
+
+static void EnsureCorrectDataSize(OOScalerPixMap *pixMap, BOOL leaveSpaceForMipMaps)
+{
+	size_t				correctSize;
+	void				*bytes = NULL;
+	
+	correctSize = pixMap->rowBytes * pixMap->height;
+	if (leaveSpaceForMipMaps)  correctSize = correctSize * 4 / 3;
+	if (correctSize < pixMap->dataSize)
+	{
+		bytes = realloc(pixMap->pixels, correctSize);
+		if (EXPECT_NOT(bytes == NULL))  free(pixMap->pixels);
+		pixMap->pixels = bytes;
+		pixMap->dataSize = correctSize;
+	}
+	else if (EXPECT_NOT(pixMap->dataSize < correctSize))
+	{
+		OOLogGenericParameterError();
+		free(pixMap->pixels);
+		pixMap->pixels = NULL;
 	}
 }

@@ -55,22 +55,28 @@ static OOBasicMaterial *sDefaultMaterial = nil;
 - (id)initWithName:(NSString *)name configuration:(NSDictionary *)configuration
 {
 	id					colorDesc = nil;
+	int					shininess;
 	
 	self = [self initWithName:name];
 	if (EXPECT_NOT(self == nil))  return nil;
 	
-	// Load colours from config. OOColor takes care of type checking.
 	colorDesc = [configuration objectForKey:@"diffuse"];
 	if (colorDesc != nil)  [self setDiffuseColor:[OOColor colorWithDescription:colorDesc]];
-	colorDesc = [configuration objectForKey:@"specular"];
-	if (colorDesc != nil)  [self setSpecularColor:[OOColor colorWithDescription:colorDesc]];
+	
 	colorDesc = [configuration objectForKey:@"ambient"];
 	if (colorDesc != nil)  [self setAmbientColor:[OOColor colorWithDescription:colorDesc]];
+	
+	else  [self setAmbientColor:[self diffuseColor]];
 	colorDesc = [configuration objectForKey:@"emission"];
 	if (colorDesc != nil)  [self setEmissionColor:[OOColor colorWithDescription:colorDesc]];
 	
-	// ...and other attributes
-	[self setShininess:[configuration intForKey:@"shininess" defaultValue:0]];
+	shininess = [configuration intForKey:@"shininess" defaultValue:0];
+	if (0 < shininess)
+	{
+		[self setShininess:shininess];
+		colorDesc = [configuration objectForKey:@"specular"];
+		if (colorDesc != nil)  [self setSpecularColor:[OOColor colorWithDescription:colorDesc]];
+	}
 	[self setSmooth:[configuration boolForKey:@"smooth" defaultValue:NO]];
 	
 	return self;

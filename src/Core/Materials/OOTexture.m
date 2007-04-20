@@ -75,6 +75,8 @@ static BOOL		sCheckedExtensions = NO;
 static BOOL		sAnisotropyAvailable;
 static float	sAnisotropyScale;	// Scale of anisotropy values
 #else
+#define sAnisotropyAvailable		(NO)
+#define sAnisotropyScale			(0)
 #warning GL_EXT_texture_filter_anisotropic unavailble -- are you using an up-to-date glext.h?
 #endif
 
@@ -88,7 +90,7 @@ static float	sAnisotropyScale;	// Scale of anisotropy values
 static BOOL		sClampToEdgeAvailable;
 #else
 #warning GL_CLAMP_TO_EDGE (OpenGL 1.2) and GL_SGIS_texture_edge_clamp are unavialble -- are you using an up-to-date gl.h?
-#define sClampToEdgeAvailable	NO
+#define sClampToEdgeAvailable	(NO)
 #define GL_CLAMP_TO_EDGE		GL_CLAMP
 #endif
 
@@ -96,7 +98,7 @@ static BOOL		sClampToEdgeAvailable;
 // Client storage: reduce copying by requiring the app to keep data around
 #if GL_APPLE_client_storage
 
-#define OO_GL_CLIENT_STORAGE	1
+#define OO_GL_CLIENT_STORAGE	(1)
 static inline void EnableClientStorage(void)
 {
 	OO_ENTER_OPENGL();
@@ -104,23 +106,28 @@ static inline void EnableClientStorage(void)
 }
 // #elif in any equivalents on other platforms here
 #else
-#define OO_GL_CLIENT_STORAGE	0
-#define sClientStorageAvialable	NO
+#define OO_GL_CLIENT_STORAGE	(0)
 #define EnableClientStorage()	do {} while (0)
 #endif
 
 #if OO_GL_CLIENT_STORAGE
 static BOOL		sClientStorageAvialable;
+#else
+#define sClientStorageAvialable		(NO)
 #endif
 
 
 #if GL_EXT_texture_lod_bias
 static BOOL		sTextureLODBiasAvailable;
+#else
+#define sTextureLODBiasAvailable	(NO)
 #endif
 
 
 #if GL_EXT_texture_rectangle
 static BOOL		sRectangleTextureAvailable;
+#else
+#define sRectangleTextureAvailable	(NO)
 #endif
 
 
@@ -161,10 +168,6 @@ static BOOL		sRectangleTextureAvailable;
 			options |= kOOTextureMinFilterMipMap;
 		}
 	}
-	if ((options & kOOTextureMagFilterMask) != kOOTextureMagFilterNearest)
-	{
-		options = (options & ~kOOTextureMagFilterMask) | kOOTextureMagFilterLinear;
-	}
 	
 	if (options & kOOTextureAllowRectTexture)
 	{
@@ -185,8 +188,17 @@ static BOOL		sRectangleTextureAvailable;
 	
 	options &= kOOTextureDefinedFlags;
 	
+	if (!sAnisotropyAvailable || (options & kOOTextureMinFilterMask) != kOOTextureMinFilterMipMap)
+	{
+		anisotropy = 0.0f;
+	}
+	if (!sTextureLODBiasAvailable || (options & kOOTextureMinFilterMask) != kOOTextureMinFilterMipMap)
+	{
+		lodBias = 0.0f;
+	}
+	
 	// Look for existing texture
-	key = [NSString stringWithFormat:@"%@:0x%.4X", name, options];
+	key = [NSString stringWithFormat:@"%@:0x%.4X/%g/%g", name, options, anisotropy, lodBias];
 	result = [[sInUseTextures objectForKey:key] pointerValue];
 	if (result == nil)
 	{
@@ -525,7 +537,7 @@ static BOOL		sRectangleTextureAvailable;
 			break;
 		
 		case kOOTextureDataGrayscale:
-			glFormat = GL_LUMINANCE;
+			glFormat = GL_LUMINANCE8;
 			internalFormat = GL_LUMINANCE;
 			type = GL_UNSIGNED_BYTE;
 			break;
@@ -581,3 +593,39 @@ static BOOL		sRectangleTextureAvailable;
 }
 
 @end
+
+
+@implementation NSDictionary (OOTextureConveniences)
+
+- (id)textureSpecifierForKey:(id)key defaultName:(NSString *)name
+{
+	return OOTextureSpecFromObject([self objectForKey:key], name);
+}
+
+@end
+
+@implementation NSArray (OOTextureConveniences)
+
+- (id)textureSpecifierAtIndex:(unsigned)index defaultName:(NSString *)name
+{
+	return OOTextureSpecFromObject([self objectAtIndex:index], name);
+}
+
+@end
+
+id OOTextureSpecFromObject(id object, NSString *defaultName)
+{
+	NSMutableDictionary		*mutableResult = nil;
+	
+	if (object == nil)  return [[defaultName copy] autorelease];
+	if ([object isKindOfClass:[NSString class]])  return [[object copy] autorelease];
+	if (![object isKindOfClass:[NSDictionary class]])  return nil;
+	
+	// If we're here, it's a dictionary.
+	if (defaultName == nil || [mutableResult objectForKey:@"name"] != nil)  return object;
+	
+	// If we get here, there's no "name" key and there is a default, so we fill it in:
+	mutableResult = [object mutableCopy];
+	[mutableResult setObject:defaultName forKey:@"name"];
+	return [mutableResult autorelease];
+}

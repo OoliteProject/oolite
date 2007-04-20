@@ -38,16 +38,17 @@ enum
 	kOOTextureMinFilterLinear		= 0x0002UL,
 	kOOTextureMinFilterMipMap		= 0x0003UL,
 	
-	kOOTextureMagFilterNearest		= 0x0010UL,
-	kOOTextureMagFilterLinear		= 0x0020UL,
+	kOOTextureMagFilterNearest		= 0x0000UL,
+	kOOTextureMagFilterLinear		= 0x0004UL,
 	
-	kOOTextureNoShrink				= 0x0100UL,
-	kOOTextureRepeatS				= 0x0200UL,
-	kOOTextureRepeatT				= 0x0400UL,
-	kOOTextureAllowRectTexture		= 0x0800UL,	// Indicates that GL_TEXTURE_RECTANGLE_EXT may be used instead of GL_TEXTURE_2D. See -texCoordsScale for a discussion of rectangle textures.
+	kOOTextureNoShrink				= 0x0010UL,
+	kOOTextureRepeatS				= 0x0020UL,
+	kOOTextureRepeatT				= 0x0040UL,
+	kOOTextureAllowRectTexture		= 0x0080UL,	// Indicates that GL_TEXTURE_RECTANGLE_EXT may be used instead of GL_TEXTURE_2D. See -texCoordsScale for a discussion of rectangle textures.
+	kOOTextureSearchInImages		= 0x0100UL,	// Search in Images directories rather than Textures directories.
 	
-	kOOTextureMinFilterMask			= 0x000FUL,
-	kOOTextureMagFilterMask			= 0x00F0UL,
+	kOOTextureMinFilterMask			= 0x0003UL,
+	kOOTextureMagFilterMask			= 0x0004UL,
 	kOOTextureFlagsMask				= ~(kOOTextureMinFilterMask | kOOTextureMagFilterMask),
 	
 	kOOTextureDefaultOptions		= kOOTextureMinFilterDefault | kOOTextureMagFilterLinear,
@@ -180,3 +181,16 @@ enum
 - (NSSize)texCoordsScale;
 
 @end
+
+
+@interface NSDictionary (OOTextureConveniences)
+// Returns either a dictionary or a string.
+- (id)textureSpecifierForKey:(id)key defaultName:(NSString *)name;
+@end
+
+@interface NSArray (OOTextureConveniences)
+// Returns either a dictionary or a string.
+- (id)textureSpecifierAtIndex:(unsigned)index defaultName:(NSString *)name;
+@end
+
+id OOTextureSpecFromObject(id object, NSString *defaultName);

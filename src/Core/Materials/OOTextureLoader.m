@@ -396,29 +396,9 @@ enum
 	rescale = (width != desiredWidth || height != desiredHeight);
 	if (rescale)
 	{
-		newSize = desiredWidth * 4 * desiredHeight;
-		if (generateMipMaps)  newSize = (newSize * 4) / 3;
+		data = OOScalePixMap(data, width, height, planes, rowBytes, desiredWidth, desiredHeight, generateMipMaps);
+		if (EXPECT_NOT(data == NULL))  return;
 		
-		newData = malloc(newSize);
-		if (generateMipMaps && newData == NULL)
-		{
-			// Try again without space for mipmaps
-			generateMipMaps = NO;
-			newSize = desiredWidth * 4 * desiredHeight;
-			newData = malloc(newSize);
-		}
-		if (newData == NULL)
-		{
-			free(data);
-			data = NULL;	// Signal failure
-			return;
-		}
-		
-		ScalePixMap(data, width, height, planes, rowBytes, newData, desiredWidth, desiredHeight);
-		
-		// Replace data with new, scaled data.
-		free(data);
-		data = newData;
 		width = desiredWidth;
 		height = desiredHeight;
 	}
@@ -435,7 +415,7 @@ enum
 	}
 	if (generateMipMaps)
 	{
-		GenerateMipMaps(data, width, height, planes);
+		OOGenerateMipMaps(data, width, height, planes);
 	}
 	
 	// All done.

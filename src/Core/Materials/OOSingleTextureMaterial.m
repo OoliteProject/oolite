@@ -37,30 +37,8 @@ MA 02110-1301, USA.
 	self = [super initWithName:name configuration:configuration];
 	if (name != nil && self != nil)
 	{
-		texSpec = [configuration dictionaryForKey:@"texture" defaultValue:nil];
-		if (texSpec == nil)
-		{
-			texSpec = [[configuration arrayForKey:@"textures" defaultValue:nil]
-						dictionaryAtIndex:0 defaultValue:nil];
-		}
-		
-		if (texSpec != nil)
-		{
-			if ([texSpec stringForKey:@"name" defaultValue:nil] == nil)
-			{
-				// Add name entry to dictionary...
-				texSpec = [texSpec mutableCopy];
-				[(NSMutableDictionary *)texSpec setObject:name forKey:@"name"];
-				[texSpec autorelease];
-			}
-			
-			texture = [OOTexture textureWithConfiguration:texSpec];
-		}
-		else
-		{
-			texture = [OOTexture textureWithName:name options:kOOTextureDefaultOptions anisotropy:kOOTextureDefaultAnisotropy lodBias:kOOTextureDefaultLODBias];
-		}
-		[texture retain];
+		texSpec = [configuration textureSpecifierForKey:@"diffuse_map" defaultName:name];
+		texture = [[OOTexture textureWithConfiguration:texSpec] retain];
 	}
 	
 	if (texture == nil)

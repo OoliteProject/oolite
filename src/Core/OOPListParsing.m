@@ -91,6 +91,7 @@ id OOPropertyListFromData(NSData *data, NSString *whereFrom)
 		result = [NSPropertyListSerialization propertyListFromData:data mutabilityOption:NSPropertyListImmutable format:NULL errorDescription:&error];
 		if (result == nil)	// Foundation parser failed
 		{
+			[error autorelease];
 			// Ensure we can say something sensible...
 			if (error == nil) error = @"<no error message>";
 			if (whereFrom == nil) whereFrom = @"<data in memory>";

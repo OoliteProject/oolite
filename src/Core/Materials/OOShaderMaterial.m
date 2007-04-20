@@ -252,7 +252,7 @@ static NSString *MacrosToString(NSDictionary *macros);
 			type = @"float";
 		}
 		
-		if ([type isEqualToString:@"float"])
+		if ([type isEqualToString:@"float"] || [type isEqualToString:@"real"])
 		{
 			gotValue = YES;
 			if ([value respondsToSelector:@selector(floatValue)])  floatValue = [value floatValue];
@@ -265,7 +265,7 @@ static NSString *MacrosToString(NSDictionary *macros);
 				[self setUniform:name floatValue:floatValue];
 			}
 		}
-		else if ([type isEqualToString:@"int"] || [type isEqualToString:@"texture"])
+		else if ([type isEqualToString:@"int"] || [type isEqualToString:@"integer"] || [type isEqualToString:@"texture"])
 		{
 			/*	"texture" is allowed as a synonym for "int" because shader#d
 				uniforms are mapped to texture units by specifying an integer
