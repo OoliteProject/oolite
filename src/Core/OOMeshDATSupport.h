@@ -1,8 +1,8 @@
 /*
 
-OOPNGTextureLoader.h
+OOMeshDATSupport.h
 
-It's a texture loader. Which loads PNGs.
+Input handler for Oolite's "DAT" mesh format.
 
 Oolite
 Copyright (C) 2004-2007 Giles C Williams and contributors
@@ -47,17 +47,16 @@ SOFTWARE.
 
 */
 
-#import "OOTextureLoader.h"
+#import "OOMesh.h"
 
 
-@interface OOPNGTextureLoader: OOTextureLoader
-{
-	struct png_struct_def		*png;
-	struct png_info_struct		*pngInfo;
-	struct png_info_struct		*pngEndInfo;
-	NSData						*fileData;
-	size_t						length;
-	size_t						offset;
-}
+@interface OOMesh (OODATSupport)
+
+  + meshWithDATFile:(NSString *)path
+			   name:(NSString *)name
+ materialDictionary:(NSDictionary *)materialDict 
+  shadersDictionary:(NSDictionary *)shadersDict
+	   shaderMacros:(NSDictionary *)macros
+shaderBindingTarget:(id<OOWeakReferenceSupport>)object;
 
 @end

@@ -265,6 +265,21 @@ strings.conversion.randomSeed			= inherit;
 texture.planet.generate					= inherit;
 
 
+$textureDebug							= $troubleShootingDump;
+texture.load.noName						= $error;
+texture.dealloc							= $textureDebug;
+texture.setUp							= $textureDebug;
+
+textureLoader.asyncLoad					= $textureDebug;
+textureLoader.asyncLoad.done			= inherit;
+textureLoader.asyncLoad.exception		= $error;
+textureLoader.block						= $textureDebug;
+textureLoader.block.done				= inherit;
+textureLoader.detachThreads.failed		= $error;
+textureLoader.queueTask.inconsistency	= $error;
+textureLoader.unknownType				= $error;
+
+
 universe.populate						= $troubleShootingDump;	// “Populating a system with…” message when generating a star system
 universe.populate.witchspace			= inherit;
 

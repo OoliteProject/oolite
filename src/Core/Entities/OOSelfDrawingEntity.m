@@ -561,11 +561,7 @@ BOOL global_testForVAR;
 		{
 			// Model not found
 			OOLog(kOOLogEntityDataNotFound, @"ERROR - could not find %@", filename);
-			NSException* myException = [NSException
-				exceptionWithName: OOLITE_EXCEPTION_DATA_NOT_FOUND
-				reason:[NSString stringWithFormat:@"No data for model called '%@' could be found in %@.", filename, [ResourceManager paths]]
-				userInfo:nil];
-			[myException raise];
+			[NSException raise:OOLITE_EXCEPTION_DATA_NOT_FOUND format:@"No data for model called '%@' could be found in %@.", filename, [ResourceManager paths]];
 		}
 
 		// strip out comments and commas between values

@@ -20,6 +20,29 @@ along with this program; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
 MA 02110-1301, USA.
 
+
+This file may also be distributed under the MIT/X11 license:
+
+Copyright (C) 2007 Jens Ayton
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+
 */
 
 #import "OOTextureLoader.h"
@@ -32,19 +55,17 @@ MA 02110-1301, USA.
 #import "OOCPUInfo.h"
 
 
-typedef struct
-{
-	OOTextureLoader			*head,
-							*tail;
-} LoaderQueue;
-
-
 static NSConditionLock		*sQueueLock = nil;
 OOTextureLoader				*sQueueHead = nil, *sQueueTail = nil;
 static GLint				sGLMaxSize = 0;
 static uint32_t				sUserMaxSize;
 static BOOL					sReducedDetail;
 static BOOL					sHaveNPOTTextures = NO;	// TODO: support "true" non-power-of-two textures.
+
+
+#if !USE_COMPLETION_LOCK
+static NSString * const		kOOAsyncWaitForCompletionRunLoopMode = @"org.aegidian.oolite.asyncWaitForCompletion";
+#endif
 
 
 enum
@@ -54,14 +75,6 @@ enum
 };
 
 
-@interface OOTextureLoader (OOPrivate)
-
-// Manipulate queue (call without lock acquired)
-- (void)queue;
-- (void)unqueue;
-
-@end
-
 @interface OOTextureLoader (OOTextureLoadingThread)
 
 + (void)queueTask;
@@ -69,6 +82,16 @@ enum
 - (void)applySettings;
 
 @end
+
+
+#if !USE_COMPLETION_LOCK
+@interface OOTextureLoader (OOCompletionNotification)
+
+- (void)noteCompletion;
+- (void)waitForCompletion;
+
+@end
+#endif
 
 
 @implementation OOTextureLoader
@@ -95,7 +118,7 @@ enum
 	}
 	if (EXPECT_NOT(sQueueLock == nil))
 	{
-		OOLog(@"textureLoader.detachThreads", @"Could not start texture-loader threads.");
+		OOLog(@"textureLoader.detachThreads.failed", @"Could not start texture-loader threads.");
 		return nil;
 	}
 	
@@ -125,7 +148,18 @@ enum
 		OOLog(@"textureLoader.unknownType", @"Can't use %@ as a texture - extension \"%@\" does not identify a known type.", path, extension);
 	}
 	
-	if (result != nil)  [result queue];
+	if (result != nil)
+	{
+		// Add to queue
+		[sQueueLock lock];
+		
+		[result retain];		// Will be released in +queueTask.
+		if (sQueueTail != nil)  sQueueTail->queueNext = result;
+		sQueueTail = result;
+		if (sQueueHead == nil)  sQueueHead = result;
+		
+		[sQueueLock unlockWithCondition:kConditionQueuedData];
+	}
 	
 	return [result autorelease];
 }
@@ -137,15 +171,23 @@ enum
 	if (self == nil)  return nil;
 	
 	path = [inPath copy];
+	if (EXPECT_NOT(path == nil))
+	{
+		[self release];
+		return nil;
+	}
+	
+#if USE_COMPLETION_LOCK
 	completionLock = [[NSLock alloc] init];
 	
-	if (EXPECT_NOT(path == nil || completionLock == nil))
+	if (EXPECT_NOT(completionLock == nil))
 	{
 		[self release];
 		return nil;
 	}
 	
 	[completionLock lock];	// Will be unlocked when loading is done.
+#endif
 	
 	generateMipMaps = (options & kOOTextureMinFilterMask) == kOOTextureMinFilterMipMap;
 	avoidShrinking = (options & kOOTextureNoShrink) != 0;
@@ -156,9 +198,13 @@ enum
 
 - (void)dealloc
 {
-	if (EXPECT_NOT(next != nil || prev != nil))  [self unqueue];
+	// If we're still in the queue, we've been overreleased and the game will crash.
+	assert(queueNext == nil);
+	
 	[path release];
+#if USE_COMPLETION_LOCK
 	[completionLock release];
+#endif
 	if (data != NULL)  free(data);
 	
 	[super dealloc];
@@ -176,7 +222,7 @@ enum
 	}
 	else  state = @"loading";
 	
-	return [NSString stringWithFormat:@"<%@ %p>{%@ -- ready:%@}", [self class], self, path, state];
+	return [NSString stringWithFormat:@"<%@ %p>{%@ -- %@}", [self class], self, path, state];
 }
 
 
@@ -191,6 +237,7 @@ enum
 			width:(uint32_t *)outWidth
 		   height:(uint32_t *)outHeight
 {
+#if USE_COMPLETION_LOCK
 	if (completionLock != NULL)
 	{
 		/*	If the lock exists, we must block on it until it is unlocked by
@@ -217,6 +264,9 @@ enum
 		completionLock = nil;
 		if (block)  OOLog(@"textureLoader.block.done", @"Finished waiting around.");
 	}
+#else
+	if (!ready)  [self waitForCompletion];
+#endif
 	
 	if (data != NULL)
 	{
@@ -249,53 +299,6 @@ enum
 @end
 
 
-@implementation OOTextureLoader (OOPrivate)
-
-- (void)queue
-{
-	if (EXPECT_NOT(prev != nil || next != nil))
-	{
-		// Already queued.
-		return;
-	}
-	
-	[sQueueLock lock];
-	
-	[self retain];		// Will be released in +queueTask.
-	prev = sQueueTail;
-	// Already established that next is nil above.
-	
-	if (sQueueTail != nil)  sQueueTail->next = self;
-	sQueueTail = self;
-	
-	if (sQueueHead == nil)  sQueueHead = self;
-	
-	[sQueueLock unlockWithCondition:kConditionQueuedData];
-}
-
-
-- (void)unqueue
-{
-	if (EXPECT_NOT(prev == nil && next == nil))
-	{
-		// Not queued.
-		return;
-	}
-	
-	[sQueueLock lock];
-	
-	if (next != nil)  next->prev = prev;
-	if (prev != nil)  prev->next = next;
-	
-	if (sQueueHead == self)  sQueueHead = next;
-	if (sQueueTail == self)  sQueueTail = prev;
-	
-	[sQueueLock unlockWithCondition:(sQueueHead != nil) ? kConditionQueuedData : kConditionNoData];
-}
-
-@end
-
-
 /*** Methods performed on the loader thread. ***/
 
 @implementation OOTextureLoader (OOTextureLoadingThread)
@@ -303,7 +306,7 @@ enum
 + (void)queueTask
 {
 	NSAutoreleasePool			*pool = nil;
-	OOTextureLoader				*loader = nil;
+	OOTextureLoader				*loader = nil, *curr = nil;
 	
 	/*	Lower thread priority so the loader doesn't go "Hey! This thread's
 		just woken up, let's give it exclusive use of the CPU for a second or
@@ -312,8 +315,8 @@ enum
 		
 		This leads to priority inversion when the main thread blocks for
 		texture load completion. I'm assuming people aren't going to be
-		running other CPU-hogging time at the same time as Oolite, so it won't
-		be a problem.
+		running other CPU-hogging tasks at the same time as Oolite, so it
+		won't be a problem.
 		-- Ahruman
 	*/
 	[NSThread setThreadPriority:0.5];
@@ -323,17 +326,35 @@ enum
 		pool = [[NSAutoreleasePool alloc] init];
 		
 		[sQueueLock lockWhenCondition:kConditionQueuedData];
-		loader = sQueueHead;
-		if (EXPECT(loader != nil))
+		if (EXPECT(sQueueHead != nil))
 		{
-			// TODO: search for first item with priority bit set.
-			sQueueHead = loader->next;
-			if (sQueueTail == loader)  sQueueTail = nil;
+			loader = nil;
+			if (!sQueueHead->priority)
+			{
+				// Search queue for a loader with the priority flag.
+				for (curr = sQueueHead; curr->queueNext != nil; curr = curr->queueNext)
+				{
+					if (curr->queueNext->priority)
+					{
+						loader = curr->queueNext;
+						curr->queueNext = loader->queueNext;
+						if (loader == sQueueTail)  sQueueTail = curr->queueNext;
+						break;
+					}
+				}
+			}
+			if (loader == nil)
+			{
+				// Grab first object
+				loader = sQueueHead;
+				sQueueHead = loader->queueNext;
+				if (sQueueTail == loader)  sQueueTail = nil;
+			}
+			loader->queueNext = nil;
+			
 			[sQueueLock unlockWithCondition:(sQueueHead != nil) ? kConditionQueuedData : kConditionNoData];
 			
-			OOLog(@"textureLoader.asyncLoad", @"Loading texture %@", [loader->path lastPathComponent]);
 			[loader performLoad];
-			OOLog(@"textureLoader.asyncLoad.done", @"Loading complete.");
 			[loader release];	// Was retained in -queue.
 		}
 		else
@@ -349,13 +370,15 @@ enum
 
 - (void)performLoad
 {
-	next = prev = nil;
-	
 	NS_DURING
+		OOLog(@"textureLoader.asyncLoad", @"Loading texture %@", [path lastPathComponent]);
+		
 		[self loadTexture];
 		if (data != NULL)  [self applySettings];
+		
+		OOLog(@"textureLoader.asyncLoad.done", @"Loading complete.");
 	NS_HANDLER
-		OOLog(kOOLogException, @"***** Exception loading texture %@: %@ (%@).", path, [localException name], [localException reason]);
+		OOLog(@"textureLoader.asyncLoad.exception", @"***** Exception loading texture %@: %@ (%@).", path, [localException name], [localException reason]);
 		
 		// Be sure to signal load failure
 		if (data != NULL)
@@ -365,8 +388,15 @@ enum
 		}
 	NS_ENDHANDLER
 	
+#if USE_COMPLETION_LOCK
 	ready = YES;
 	[completionLock unlock];	// Signal readyness
+#else
+	static NSArray *modes = nil;
+	if (EXPECT_NOT(modes == nil))  modes = [[NSArray alloc] initWithObjects:NSDefaultRunLoopMode, kOOAsyncWaitForCompletionRunLoopMode, nil];
+	
+	[self performSelectorOnMainThread:@selector(noteCompletion) withObject:nil waitUntilDone:NO modes:modes];
+#endif
 }
 
 
@@ -439,3 +469,29 @@ enum
 }
 
 @end
+
+
+#if !USE_COMPLETION_LOCK
+@implementation OOTextureLoader (OOCompletionNotification)
+
+- (void)noteCompletion
+{
+	ready = YES;
+	OOLog(@"textureLoader.noteCompletion", @"Loading completed for texture %@.", [path lastPathComponent]);
+}
+
+
+- (void)waitForCompletion
+{
+	NSRunLoop				*runLoop = nil;
+	
+	runLoop = [NSRunLoop currentRunLoop];
+	assert(runLoop != nil);
+	
+	OOLog(@"textureLoader.waitForCompletion", @"Waiting for completion notification for texture %@.", [path lastPathComponent]);
+	
+	while (!ready)  [runLoop acceptInputForMode:kOOAsyncWaitForCompletionRunLoopMode beforeDate:[NSDate distantFuture]];
+}
+
+@end
+#endif

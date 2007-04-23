@@ -25,13 +25,42 @@ along with this program; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
 MA 02110-1301, USA.
 
+
+This file may also be distributed under the MIT/X11 license:
+
+Copyright (C) 2007 Jens Ayton
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+
 */
 
 #import "OOMaterial.h"
 #import "OOFunctionAttributes.h"
 #import "OOLogging.h"
 
-static OOMaterial *sActiveMaterial;
+#import "OOOpenGLExtensionManager.h"
+#import "OOShaderMaterial.h"
+#import "OOSingleTextureMaterial.h"
+#import "OOCollectionExtractors.h";
+
+
+static OOMaterial *sActiveMaterial = nil;
 
 
 @implementation OOMaterial
@@ -48,17 +77,6 @@ static OOMaterial *sActiveMaterial;
 - (NSString *)description
 {
 	return [NSString stringWithFormat:@"<%@ %p>{%@}", [self className], self, [self name]];
-}
-
-
-- (void)willDealloc
-{
-	if (EXPECT_NOT(sActiveMaterial == self))
-	{
-		OOLog(@"shader.dealloc.imbalance", @"***** Material deallocated while active, indicating a retain/release imbalance. Expect imminent crash.");
-		[self unapplyWithNext:nil];
-		sActiveMaterial = nil;
-	}
 }
 
 
@@ -96,10 +114,87 @@ static OOMaterial *sActiveMaterial;
 	
 }
 
+@end
+
+
+@implementation OOMaterial (OOConvenienceCreators)
+
++ (id)materialWithName:(NSString *)name configuration:(NSDictionary *)configuration macros:(NSDictionary *)macros bindingTarget:(id<OOWeakReferenceSupport>)object
+{
+	id						result = nil;
+	
+#ifndef NO_SHADERS
+	if ([[OOOpenGLExtensionManager sharedManager] shadersSupported])
+	{
+		if ([OOShaderMaterial configurationDictionarySpecifiesShaderMaterial:configuration])
+		{
+			result = [OOShaderMaterial shaderMaterialWithName:name configuration:configuration macros:macros bindingTarget:object];
+		}
+	}
+#endif
+	
+	if (result == nil)
+	{
+		if ([[configuration objectForKey:@"diffuse_map"] isEqual:@""])
+		{
+			result = [[OOBasicMaterial alloc] initWithName:name configuration:configuration];
+		}
+		else
+		{
+			result = [[OOSingleTextureMaterial alloc] initWithName:name configuration:configuration];
+		}
+		[result autorelease];
+	}
+	
+	return result;
+}
+
+
++ (id)materialWithName:(NSString *)name materialDictionary:(NSDictionary *)materialDict shadersDictionary:(NSDictionary *)shadersDict macros:(NSDictionary *)macros bindingTarget:(id<OOWeakReferenceSupport>)object
+{
+	NSDictionary			*configuration = nil;
+	
+#ifndef NO_SHADERS
+	if ([[OOOpenGLExtensionManager sharedManager] shadersSupported])
+	{
+		configuration = [shadersDict dictionaryForKey:name defaultValue:nil];
+	}
+#endif
+	
+	if (configuration == nil)
+	{
+		configuration = [materialDict dictionaryForKey:name defaultValue:nil];
+	}
+	
+	return [self materialWithName:name configuration:configuration macros:macros bindingTarget:object];
+}
+
+@end
+
+
+@implementation OOMaterial (OOSubclassInterface)
+
+- (BOOL)doApply
+{
+	OOLogGenericSubclassResponsibility();
+	return NO;
+}
+
 
 - (void)unapplyWithNext:(OOMaterial *)next;
 {
 	// Do nothing.
+}
+
+
+- (void)willDealloc
+{
+	if (EXPECT_NOT(sActiveMaterial == self))
+	{
+		OOLog(@"shader.dealloc.imbalance", @"***** Material deallocated while active, indicating a retain/release imbalance. Expect imminent crash.");
+		[self unapplyWithNext:nil];
+		sActiveMaterial = nil;
+	}
 }
 
 @end

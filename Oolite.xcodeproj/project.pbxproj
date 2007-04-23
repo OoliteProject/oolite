@@ -301,6 +301,8 @@
 		1A43234E0BCFC9BB00F65914 /* OOOpenGLExtensionManager.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A43234A0BCFC9BB00F65914 /* OOOpenGLExtensionManager.h */; };
 		1A43234F0BCFC9BB00F65914 /* OOOpenGLExtensionManager.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A43234B0BCFC9BB00F65914 /* OOOpenGLExtensionManager.m */; };
 		1A451D8D0BB1BD2A004CD72F /* OOMaths.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A9404920BAF4582005F6CF3 /* OOMaths.h */; };
+		1A45B4260BDAC43A0078EA87 /* OOMeshDATSupport.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A45B4240BDAC43A0078EA87 /* OOMeshDATSupport.h */; };
+		1A45B4270BDAC43A0078EA87 /* OOMeshDATSupport.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A45B4250BDAC43A0078EA87 /* OOMeshDATSupport.m */; };
 		1A472917096B5454000E78D8 /* CoreAudio.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1A472916096B5454000E78D8 /* CoreAudio.framework */; };
 		1A472921096B5468000E78D8 /* AudioToolbox.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1A47291F096B5468000E78D8 /* AudioToolbox.framework */; };
 		1A472922096B5468000E78D8 /* AudioUnit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1A472920096B5468000E78D8 /* AudioUnit.framework */; };
@@ -1110,6 +1112,8 @@
 		1A3AFF1E0BC4462200B5E2D9 /* OOJSVector.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOJSVector.m; sourceTree = "<group>"; };
 		1A43234A0BCFC9BB00F65914 /* OOOpenGLExtensionManager.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOOpenGLExtensionManager.h; sourceTree = "<group>"; };
 		1A43234B0BCFC9BB00F65914 /* OOOpenGLExtensionManager.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOOpenGLExtensionManager.m; sourceTree = "<group>"; };
+		1A45B4240BDAC43A0078EA87 /* OOMeshDATSupport.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOMeshDATSupport.h; sourceTree = "<group>"; };
+		1A45B4250BDAC43A0078EA87 /* OOMeshDATSupport.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOMeshDATSupport.m; sourceTree = "<group>"; };
 		1A472916096B5454000E78D8 /* CoreAudio.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreAudio.framework; path = /System/Library/Frameworks/CoreAudio.framework; sourceTree = "<absolute>"; };
 		1A47291F096B5468000E78D8 /* AudioToolbox.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AudioToolbox.framework; path = /System/Library/Frameworks/AudioToolbox.framework; sourceTree = "<absolute>"; };
 		1A472920096B5468000E78D8 /* AudioUnit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AudioUnit.framework; path = /System/Library/Frameworks/AudioUnit.framework; sourceTree = "<absolute>"; };
@@ -1694,6 +1698,8 @@
 				1A2A1B130BD2774300152975 /* OODrawable.m */,
 				1A2A1CA80BD2914F00152975 /* OOMesh.h */,
 				1A2A1CA90BD2914F00152975 /* OOMesh.m */,
+				1A45B4240BDAC43A0078EA87 /* OOMeshDATSupport.h */,
+				1A45B4250BDAC43A0078EA87 /* OOMeshDATSupport.m */,
 				1A43234A0BCFC9BB00F65914 /* OOOpenGLExtensionManager.h */,
 				1A43234B0BCFC9BB00F65914 /* OOOpenGLExtensionManager.m */,
 				25161100099544380037C2E1 /* OpenGLSprite.h */,
@@ -2326,6 +2332,7 @@
 				1A2A1B2C0BD277D800152975 /* OOSelfDrawingEntity.h in Headers */,
 				1A2A1CAC0BD2914F00152975 /* OOMesh.h in Headers */,
 				1A2A1DEC0BD2A28E00152975 /* OOMacroOpenGL.h in Headers */,
+				1A45B4260BDAC43A0078EA87 /* OOMeshDATSupport.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -2557,6 +2564,7 @@
 				1A2A1B170BD2774300152975 /* OODrawable.m in Sources */,
 				1A2A1B2D0BD277D800152975 /* OOSelfDrawingEntity.m in Sources */,
 				1A2A1CAD0BD2914F00152975 /* OOMesh.m in Sources */,
+				1A45B4270BDAC43A0078EA87 /* OOMeshDATSupport.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
