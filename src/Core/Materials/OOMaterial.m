@@ -65,6 +65,12 @@ static OOMaterial *sActiveMaterial = nil;
 
 @implementation OOMaterial
 
++ (void)setUp
+{
+	OOLog(@"material.setUp", @"%s called.", __FUNCTION__);
+}
+
+
 - (void)dealloc
 {
 	// Ensure cleanup happens; doing it more than once is safe.

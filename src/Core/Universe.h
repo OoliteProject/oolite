@@ -147,11 +147,11 @@ extern int debug;
 
 	NSMutableArray			*entities;
 			
-	int						station;
-	int						sun;
-	int						planet;
+	OOUniversalID			station;
+	OOUniversalID			sun;
+	OOUniversalID			planet;
 	
-	int						firstBeacon, lastBeacon;
+	OOUniversalID			firstBeacon, lastBeacon;
 	
 	GLfloat					sky_clear_color[4];
 	
@@ -251,7 +251,7 @@ extern int debug;
 - (void) set_up_universe_from_witchspace;
 - (void) set_up_universe_from_misjump;
 - (void) set_up_witchspace;
-- (void) set_up_space;
+- (void) setUpSpace;
 - (void) setLighting;
 
 - (void) populateSpaceFromActiveWormholes;

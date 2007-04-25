@@ -49,6 +49,8 @@ BOOL always_include_addons;
 + (BOOL)useAddOns;
 + (void)setUseAddOns:(BOOL)useAddOns;
 + (void)addExternalPath:(NSString *)filename;
++ (NSEnumerator *)pathEnumerator;
++ (NSEnumerator *)reversePathEnumerator;
 
 + (NSString *)errors;			// Errors which occured during path scanning - essentially a list of OXPs whose requires.plist is bad.
 

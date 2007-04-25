@@ -65,15 +65,13 @@ static NSMutableString	*errors;
 
 // caches allow us to load any given file once only
 //
-static NSMutableDictionary*	dictionary_cache;
-static NSMutableDictionary*	array_cache;
-static NSMutableDictionary*	sound_cache;
-static NSMutableDictionary*	string_cache;
-static NSMutableDictionary*	genericPathCache;
+static NSMutableDictionary *sound_cache;
+static NSMutableDictionary *string_cache;
+
 #if OOLITE_MAC_OS_X && !OOLITE_SDL
-static NSMutableDictionary*	image_cache;
+static NSMutableDictionary *image_cache;
 #elif OOLITE_SDL
-static NSMutableDictionary*	surface_cache;
+static NSMutableDictionary *surface_cache;
 #endif
 
 
@@ -226,6 +224,18 @@ static NSMutableDictionary*	surface_cache;
 }
 
 
++ (NSEnumerator *)pathEnumerator
+{
+	return [[self paths] objectEnumerator];
+}
+
+
++ (NSEnumerator *)reversePathEnumerator
+{
+	return [[self paths] reverseObjectEnumerator];
+}
+
+
 // Given a path to an assumed OXP (or other location where files are permissible), check for a requires.plist and add to search paths if acceptable.
 + (void)checkPotentialPath:(NSString *)path :(NSMutableArray *)searchPaths
 {
@@ -361,105 +371,145 @@ static NSMutableDictionary*	surface_cache;
 
 + (NSDictionary *) dictionaryFromFilesNamed:(NSString *)filename inFolder:(NSString *)foldername andMerge:(BOOL) mergeFiles smart:(BOOL) smartMerge
 {
-	NSMutableArray	*results = [NSMutableArray arrayWithCapacity:16];
-	NSArray			*fpaths = [ResourceManager paths];
-	int i;
-	if (!filename)
-		return nil;
+	id				result = nil;
+	NSMutableArray	*results = nil;
+	NSString		*cacheKey = nil;
+	NSString		*mergeType = nil;
+	OOCacheManager	*cache = [OOCacheManager sharedCache];
+	NSEnumerator	*enumerator = nil;
+	NSString		*path = nil;
+	NSString		*dictPath = nil;
+	NSDictionary	*dict = nil;
 	
-	NSString* dict_key = [NSString stringWithFormat:@"%@:%@", foldername, filename];
-	if (!dictionary_cache)
-		dictionary_cache = [[NSMutableDictionary alloc] initWithCapacity:32];
-	if ([dictionary_cache objectForKey:dict_key])
-	{
-		return [[[dictionary_cache objectForKey:dict_key] copy] autorelease];	// return the cached dictionary
-	}
+	if (filename == nil)  return nil;
 	
-	for (i = 0; i < [fpaths count]; i++)
+	if (mergeFiles)
 	{
-		NSString *filepath = [(NSString *)[fpaths objectAtIndex:i] stringByAppendingPathComponent:filename];
-		
-		NSDictionary* found_dic = OODictionaryFromFile(filepath);
-		if (found_dic)  [results addObject:found_dic];
-		if (foldername)
-		{
-			filepath = [[(NSString *)[fpaths objectAtIndex:i] stringByAppendingPathComponent:foldername] stringByAppendingPathComponent:filename];
-			NSDictionary* found_dic = OODictionaryFromFile(filepath);
-			if (found_dic)  [results addObject:found_dic];
-		}
+		if (smartMerge)  mergeType = @"smart";
+		else  mergeType = @"basic";
 	}
-	if ([results count] == 0)
-		return nil;
-		
-	// got results we may want to cache
-	//
-	NSMutableDictionary *result = [NSMutableDictionary dictionaryWithCapacity:128];
+	else  mergeType = @"none";
+	
+	cacheKey = [NSString stringWithFormat:@"%@%@ merge:%@", (foldername != nil) ? [foldername stringByAppendingString:@"/"] : @"", filename, mergeType];
+	result = [cache objectForKey:cacheKey inCache:@"dictionaries"];
+	if (result != nil)  return result;
+	
 	if (!mergeFiles)
 	{
-		[result addEntriesFromDictionary:(NSDictionary *)[results objectAtIndex:[results count] - 1]];// the last loaded file
+		// Find "last" matching dictionary
+		for (enumerator = [ResourceManager reversePathEnumerator]; (path = [enumerator nextObject]); )
+		{
+			if (foldername != nil)
+			{
+				dictPath = [[path stringByAppendingPathComponent:foldername] stringByAppendingPathComponent:filename];
+				dict = OODictionaryFromFile(dictPath);
+				if (dict != nil)  break;
+			}
+			dictPath = [path stringByAppendingPathComponent:filename];
+			dict = OODictionaryFromFile(dictPath);
+			if (dict != nil)  break;
+		}
+		result = dict;
 	}
 	else
 	{
-		for (i = 0; i < [results count]; i++)
+		// Find all matching dictionaries
+		results = [NSMutableArray array];
+		for (enumerator = [ResourceManager pathEnumerator]; (path = [enumerator nextObject]); )
 		{
-			if (smartMerge)
-				[result mergeEntriesFromDictionary:(NSDictionary *)[results objectAtIndex:i]];
-			else
-				[result addEntriesFromDictionary:(NSDictionary *)[results objectAtIndex:i]];
+			dictPath = [path stringByAppendingPathComponent:filename];
+			dict = OODictionaryFromFile(dictPath);
+			if (dict != nil)  [results addObject:dict];
+			if (foldername != nil)
+			{
+				dictPath = [[path stringByAppendingPathComponent:foldername] stringByAppendingPathComponent:filename];
+				dict = OODictionaryFromFile(dictPath);
+				if (dict != nil)  [results addObject:dict];
+			}
 		}
-	}	
-	//
-	if (result)  [dictionary_cache setObject:result forKey:dict_key];
 		
-	return [NSDictionary dictionaryWithDictionary:result];
+		if ([results count] == 0)  return nil;
+		
+		// Merge result
+		result = [NSMutableDictionary dictionary];
+		
+		for (enumerator = [results objectEnumerator]; (dict = [enumerator nextObject]); )
+		{
+			if (smartMerge)  [result mergeEntriesFromDictionary:dict];
+			else  [result addEntriesFromDictionary:dict];
+		}
+		result = [[result copy] autorelease];	// Make immutable
+	}
+	
+	if (result != nil)  [cache setObject:result forKey:cacheKey inCache:@"dictionaries"];
+	
+	return result;
 }
 
 + (NSArray *) arrayFromFilesNamed:(NSString *)filename inFolder:(NSString *)foldername andMerge:(BOOL) mergeFiles
 {
-	NSMutableArray	*results = [NSMutableArray arrayWithCapacity:16];
-	NSArray			*fpaths = [ResourceManager paths];
-	int i;
-	if (!filename)
-		return nil;
-
-	NSString* array_key = [NSString stringWithFormat:@"%@:%@", foldername, filename];
-	if (!array_cache)
-		array_cache = [[NSMutableDictionary alloc] initWithCapacity:32];
-	if ([array_cache objectForKey:array_key])
-		return [NSArray arrayWithArray:(NSArray *)[array_cache objectForKey:array_key]];	// return the cached array
+	id				result = nil;
+	NSMutableArray	*results = nil;
+	NSString		*cacheKey = nil;
+	OOCacheManager	*cache = [OOCacheManager sharedCache];
+	NSEnumerator	*enumerator = nil;
+	NSString		*path = nil;
+	NSString		*arrayPath = nil;
+	NSArray			*array = nil;
 	
-	for (i = 0; i < [fpaths count]; i++)
-	{
-		NSString *filepath = [(NSString *)[fpaths objectAtIndex:i] stringByAppendingPathComponent:filename];
-		
-		NSArray* found_array = OOArrayFromFile(filepath);
-		if (found_array)  [results addObject:found_array];
-		
-		if (foldername)
-		{
-			filepath = [[(NSString *)[fpaths objectAtIndex:i] stringByAppendingPathComponent:foldername] stringByAppendingPathComponent:filename];
-			
-			NSArray* found_array = OOArrayFromFile(filepath);
-			if (found_array)  [results addObject:found_array];
-		}
-	}
-	if ([results count] == 0)
-		return nil;
+	if (filename == nil)  return nil;
 	
-	// got results we may want to cache
-	//
-	NSMutableArray *result = [NSMutableArray arrayWithCapacity:128];
+	cacheKey = [NSString stringWithFormat:@"%@%@ merge:%@", (foldername != nil) ? [foldername stringByAppendingString:@"/"] : @"", filename, mergeFiles ? @"yes" : @"no"];
+	result = [cache objectForKey:cacheKey inCache:@"arrays"];
+	if (result != nil)  return result;
+	
 	if (!mergeFiles)
 	{
-		[result addObjectsFromArray:(NSArray *)[results objectAtIndex:[results count] - 1]];	// last loaded file
+		// Find "last" matching array
+		for (enumerator = [ResourceManager reversePathEnumerator]; (path = [enumerator nextObject]); )
+		{
+			if (foldername != nil)
+			{
+				arrayPath = [[path stringByAppendingPathComponent:foldername] stringByAppendingPathComponent:filename];
+				array = OOArrayFromFile(arrayPath);
+				if (array != nil)  break;
+			}
+			arrayPath = [path stringByAppendingPathComponent:filename];
+			array = OOArrayFromFile(arrayPath);
+			if (array != nil)  break;
+		}
+		result = array;
 	}
 	else
 	{
-		for (i = 0; i < [results count]; i++)
-			[result addObjectsFromArray:(NSArray *)[results objectAtIndex:i]];
-	}	
-	if (result)
-		[array_cache setObject:result forKey:array_key];
+		// Find all matching arrays
+		results = [NSMutableArray array];
+		for (enumerator = [ResourceManager pathEnumerator]; (path = [enumerator nextObject]); )
+		{
+			arrayPath = [path stringByAppendingPathComponent:filename];
+			array = OOArrayFromFile(arrayPath);
+			if (array != nil)  [results addObject:array];
+			if (foldername != nil)
+			{
+				arrayPath = [[path stringByAppendingPathComponent:foldername] stringByAppendingPathComponent:filename];
+				array = OOArrayFromFile(arrayPath);
+				if (array != nil)  [results addObject:array];
+			}
+		}
+		
+		if ([results count] == 0)  return nil;
+		
+		// Merge result
+		result = [NSMutableArray array];
+		
+		for (enumerator = [results objectEnumerator]; (array = [enumerator nextObject]); )
+		{
+			[result addObjectsFromArray:array];
+		}
+		result = [[result copy] autorelease];	// Make immutable
+	}
+	
+	if (result != nil)  [cache setObject:result forKey:cacheKey inCache:@"arrays"];
 	
 	return [NSArray arrayWithArray:result];
 }
@@ -467,8 +517,9 @@ static NSMutableDictionary*	surface_cache;
 
 + (NSString *) pathForFileNamed:(NSString *)fileName inFolder:(NSString *)folderName
 {
-	NSString		*key = nil;
 	NSString		*result = nil;
+	NSString		*cacheKey = nil;
+	OOCacheManager	*cache = [OOCacheManager sharedCache];
 	NSEnumerator	*pathEnum = nil;
 	NSString		*path = nil;
 	NSString		*filePath = nil;
@@ -476,13 +527,10 @@ static NSMutableDictionary*	surface_cache;
 	
 	if (fileName == nil)  return nil;
 	
-	key = [NSString stringWithFormat:@"%@:%@", folderName, fileName];
-	if (genericPathCache != nil)
-	{
-		// return the cached object, if any
-		result = [genericPathCache objectForKey:key];
-		if (result)  return result;
-	}
+	if (folderName != nil)  cacheKey = [NSString stringWithFormat:@"%@/%@", folderName, fileName];
+	else  cacheKey = fileName;
+	result = [cache objectForKey:cacheKey inCache:@"resolved paths"];
+	if (result != nil)  return result;
 	
 	// Search for file
 	fmgr = [NSFileManager defaultManager];
@@ -506,8 +554,8 @@ static NSMutableDictionary*	surface_cache;
 	if (result != nil)
 	{
 		OOLog(@"resourceManager.foundFile", @"Found %@/%@ at %@", folderName, fileName, filePath);
-		if (genericPathCache == nil)  genericPathCache = [[NSMutableDictionary alloc] init];
-		[genericPathCache setObject:result forKey:key];
+		[cache setObject:result forKey:cacheKey inCache:@"resolved paths"];
+		[cache setPruneThreshold:400 forCache:@"resolved paths"];
 	}
 	return result;
 }
@@ -545,29 +593,29 @@ static NSMutableDictionary*	surface_cache;
 + (OOMusic *) ooMusicNamed:(NSString *)filename inFolder:(NSString *)foldername
 {
 	return [self retrieveFileNamed:filename
-				 inFolder:foldername
-				 cache:&sound_cache
-				 key:[NSString stringWithFormat:@"OOMusic:%@:%@", foldername, filename]
-				 class:[OOMusic class]];
+						  inFolder:foldername
+							 cache:&sound_cache
+							   key:[NSString stringWithFormat:@"OOMusic:%@:%@", foldername, filename]
+							 class:[OOMusic class]];
 }
 
 
 + (OOSound *) ooSoundNamed:(NSString *)filename inFolder:(NSString *)foldername
 {
 	return [self retrieveFileNamed:filename
-				 inFolder:foldername
-				 cache:&sound_cache
-				 key:[NSString stringWithFormat:@"OOSound:%@:%@", foldername, filename]
-				 class:[OOSound class]];
+						  inFolder:foldername
+							 cache:&sound_cache
+							   key:[NSString stringWithFormat:@"OOSound:%@:%@", foldername, filename]
+							 class:[OOSound class]];
 }
 
-+ (NSString *) stringFromFilesNamed:(NSString *)filename inFolder:(NSString *)foldername
++ (NSString *) stringFromFilesNamed:(NSString *)fileName inFolder:(NSString *)folderName
 {
-	return [self retrieveFileNamed:filename
-				 inFolder:foldername
-				 cache:&string_cache
-				 key:nil
-				 class:[NSString class]];
+	return [self retrieveFileNamed:fileName
+						  inFolder:folderName
+							 cache:&string_cache
+							   key:nil
+							 class:[NSString class]];
 }
 
 

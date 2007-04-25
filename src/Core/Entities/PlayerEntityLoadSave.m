@@ -398,7 +398,7 @@ MA 02110-1301, USA.
 
 	[UNIVERSE setSystemTo:system_seed];
 	[UNIVERSE removeAllEntitiesExceptPlayer:NO];
-	[UNIVERSE set_up_space];
+	[UNIVERSE setUpSpace];
 
 	status = STATUS_DOCKED;
 	[UNIVERSE setViewDirection:VIEW_GUI_DISPLAY];

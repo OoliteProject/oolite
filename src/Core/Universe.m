@@ -40,6 +40,7 @@ MA 02110-1301, USA.
 #import "OOConstToString.h"
 #import "OOOpenGLExtensionManager.h"
 #import "OOCPUInfo.h"
+#import "OOMaterial.h"
 
 #import "Octree.h"
 #import "CollisionRegion.h"
@@ -108,6 +109,11 @@ static BOOL MaintainLinkedLists(Universe* uni);
 	// init OpenGL extension manager (must be done before any other threads might use it)
 	[OOOpenGLExtensionManager sharedManager];
 	
+	[OOMaterial setUp];
+	
+	// Preload cache
+	[OOCacheManager sharedCache];
+	
 	// init the Resource Manager
 	[ResourceManager paths];
 	
@@ -126,9 +132,6 @@ static BOOL MaintainLinkedLists(Universe* uni);
 	next_universal_id = 100;	// start arbitrarily above zero
 	for (i = 0; i < MAX_ENTITY_UID; i++)
 		entity_for_uid[i] = nil;
-	
-	// Preload cache
-	[OOCacheManager sharedCache];
 	
     entities =				[[NSMutableArray arrayWithCapacity:MAX_NUMBER_OF_ENTITIES] retain];
 	
@@ -216,15 +219,12 @@ static BOOL MaintainLinkedLists(Universe* uni);
 	
 	
 	activeWormholes = [[NSMutableArray arrayWithCapacity:16] retain];
-
 	
 	characterPool = [[NSMutableArray arrayWithCapacity:256] retain];
-
 	
-	[self set_up_space];
+	[self setUpSpace];
 	
-	if (cachedStation)
-		[player setPosition: cachedStation->position];
+	if (cachedStation)  [player setPosition:cachedStation->position];
 	
 	[self setViewDirection:VIEW_GUI_DISPLAY];
 	
@@ -452,7 +452,7 @@ static BOOL MaintainLinkedLists(Universe* uni);
 	
 	[characterPool removeAllObjects];
 
-	[self set_up_space];
+	[self setUpSpace];
 
 	demo_ship = nil;
 	
@@ -548,7 +548,7 @@ static BOOL MaintainLinkedLists(Universe* uni);
 			[self removeAllEntitiesExceptPlayer:NO];	// get rid of witchspace sky etc. if still extant
 		}
 
-		[self set_up_space];	// first launch
+		[self setUpSpace];	// first launch
 	}
 	station = [[self station] universalID];
 	planet = [[self planet] universalID];
@@ -580,7 +580,7 @@ static BOOL MaintainLinkedLists(Universe* uni);
 	}
 	
 
-	[self set_up_space];
+	[self setUpSpace];
 	
 	[player leaveWitchspace];
 	[player release];											// released here
@@ -753,10 +753,8 @@ static BOOL MaintainLinkedLists(Universe* uni);
 	OOLogOutdentIf(kOOLogUniversePopulateWitchspace);
 }
 
-- (void) set_up_space
+- (void) setUpSpace
 {
-	// new system is hyper-centric : witchspace exit point is origin
-	
     Entity				*thing;
     ShipEntity			*nav_buoy;
     StationEntity		*a_station;
@@ -1137,12 +1135,12 @@ GLfloat docked_light_specular[]	= { (GLfloat) 1.0, (GLfloat) 1.0, (GLfloat) 0.5,
 	NSAutoreleasePool	*pool = nil;
 
 	BOOL				sun_gone_nova = NO;
-	if ([systeminfo objectForKey:@"sun_gone_nova"])
+	if ([systeminfo objectForKey:@"sun_gone_nova"])	// FIXME: this is never set anywhere. Obsolete flag? -- Ahruman
 		sun_gone_nova = YES;
 	
-	int techlevel =		[(NSNumber *)[systeminfo objectForKey:KEY_TECHLEVEL] intValue]; // 0 .. 13
-	int government =	[(NSNumber *)[systeminfo objectForKey:KEY_GOVERNMENT] intValue]; // 0 .. 7 (0 anarchic .. 7 most stable)
-	int economy =		[(NSNumber *)[systeminfo objectForKey:KEY_ECONOMY] intValue];	// 0 .. 7 (0 richest .. 7 poorest)
+	int techlevel =		[[systeminfo objectForKey:KEY_TECHLEVEL] intValue];		// 0 .. 13
+	int government =	[[systeminfo objectForKey:KEY_GOVERNMENT] intValue];	// 0 .. 7 (0 anarchic .. 7 most stable)
+	int economy =		[[systeminfo objectForKey:KEY_ECONOMY] intValue];		// 0 .. 7 (0 richest .. 7 poorest)
 	int thargoidChance = (system_seed.e < 127) ? 10 : 3; // if Human Colonials live here, there's a greater % chance the Thargoids will attack!
 	Vector  lastPiratePosition = p1_pos;
 	int		wolfPackCounter = 0;
@@ -2411,7 +2409,7 @@ GLfloat docked_light_specular[]	= { (GLfloat) 1.0, (GLfloat) 1.0, (GLfloat) 0.5,
 	
 	
 	if (![self station])
-		[self set_up_space];
+		[self setUpSpace];
 	
 	if (![[self station] localMarket])
 		[[self station] initialiseLocalMarketWithSeed:system_seed andRandomFactor:[player random_factor]];
@@ -6967,7 +6965,7 @@ double estimatedTimeForJourney(double distance, int hops)
 		rotate_seed(&ship_seed);
 	}
 	
-	NSMutableArray *resultArray = [[[resultDictionary allKeys] mutableCopy] autorelease];
+	NSMutableArray *resultArray = [[[resultDictionary allValues] mutableCopy] autorelease];
 	[resultArray sortUsingFunction:compareName context:nil];
 	
 	// remove identically priced ships of the same name

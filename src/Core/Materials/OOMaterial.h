@@ -60,6 +60,10 @@ SOFTWARE.
 
 @interface OOMaterial: NSObject
 
+// Called once at startup (by -[Universe init]).
++ (void)setUp;
+
+
 - (NSString *)name;
 
 // Make this the current material.
