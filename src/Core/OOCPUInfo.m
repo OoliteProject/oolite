@@ -83,7 +83,7 @@ void OOCPUInfoInit(void)
 	}
 #endif
 	
-	/*	Cound processors - only implemented for OS X at the moment.
+	/*	Count processors - only implemented for OS X at the moment.
 		sysconf(_SC_NPROCESSORS_ONLN) may be appropriate for some Unices, but
 		_SC_NPROCESSORS_ONLN is not defined on OS X.
 	*/
@@ -118,7 +118,7 @@ void OOCPUInfoInit(void)
 
 unsigned OOCPUCount(void)
 {
-	return sNumberOfCPUs ? sNumberOfCPUs : 1;
+	return (sNumberOfCPUs != 0) ? sNumberOfCPUs : 1;
 }
 
 

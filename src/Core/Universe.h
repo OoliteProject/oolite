@@ -485,12 +485,16 @@ double estimatedTimeForJourney(double distance, int hops);
 	global with zero overhead.
 */
 extern Universe *gSharedUniverse;
+#ifndef NDEBUG
 OOINLINE Universe *GetUniverse(void) INLINE_CONST_FUNC;
 OOINLINE Universe *GetUniverse(void)
 {
 	return gSharedUniverse;
 }
 #define UNIVERSE GetUniverse()
+#else
+#define UNIVERSE gSharedUniverse	// Just in case the overhead isn't zero. :-p
+#endif
 
 
 NSComparisonResult compareName(NSDictionary *dict1, NSDictionary *dict2, void * context);

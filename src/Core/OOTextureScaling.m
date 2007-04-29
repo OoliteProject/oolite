@@ -933,6 +933,7 @@ static void StretchVerticallyN_x8(OOScalerPixMap srcPx, OOScalerPixMap dstPx, OO
 #endif
 
 
+#warning Several scalers still do nothing!
 static void SqueezeVertically1(OOScalerPixMap srcPx, OOTextureDimension dstHeight) {}
 static void StretchHorizontally1(OOScalerPixMap srcPx, OOScalerPixMap dstPx) {}
 static void SqueezeHorizontally1(OOScalerPixMap srcPx, OOTextureDimension dstHeight) {}

@@ -32,6 +32,8 @@
 	<string>$soundDebug</string>
 	<key>$soundError</key>
 	<string>$error</string>
+	<key>$textureDebug</key>
+	<string>$troubleShootingDump</string>
 	<key>$troubleShootingDump</key>
 	<string>yes</string>
 	<key>_default</key>
@@ -400,8 +402,30 @@
 	<string>inherit</string>
 	<key>strings.conversion.vectorAndQuaternion</key>
 	<string>inherit</string>
+	<key>texture.dealloc</key>
+	<string>$textureDebug</string>
+	<key>texture.load.noName</key>
+	<string>$error</string>
 	<key>texture.planet.generate</key>
 	<string>inherit</string>
+	<key>texture.setUp</key>
+	<string>$textureDebug</string>
+	<key>textureLoader.asyncLoad</key>
+	<string>$textureDebug</string>
+	<key>textureLoader.asyncLoad.done</key>
+	<string>inherit</string>
+	<key>textureLoader.asyncLoad.exception</key>
+	<string>$error</string>
+	<key>textureLoader.block</key>
+	<string>$textureDebug</string>
+	<key>textureLoader.block.done</key>
+	<string>inherit</string>
+	<key>textureLoader.detachThreads.failed</key>
+	<string>$error</string>
+	<key>textureLoader.queueTask.inconsistency</key>
+	<string>$error</string>
+	<key>textureLoader.unknownType</key>
+	<string>$error</string>
 	<key>unclassified</key>
 	<string>inherit</string>
 	<key>universe.populate</key>

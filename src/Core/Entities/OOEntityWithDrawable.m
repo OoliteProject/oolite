@@ -36,22 +36,35 @@ MA 02110-1301, USA.
 	[super dealloc];
 }
 
-/*
-- (void) drawEntity:(BOOL)immediate :(BOOL)translucent
-{
-	
-}
 
-
-- (void) drawSubEntity:(BOOL)immediate :(BOOL)translucent
-{
-	
-}
-*/
-
-- (void) reloadTextures
+- (void)reloadTextures
 {
 	[drawable reloadTextures];
+}
+
+
+- (GLfloat)findCollisionRadius
+{
+	return [drawable collisionRadius];
+}
+
+
+- (Geometry *)geometry
+{
+	return [drawable geometry];
+}
+
+
+- (BoundingBox)findBoundingBoxRelativeToPosition:(Vector)opv InVectors:(Vector) _i :(Vector) _j :(Vector) _k
+{
+	return [drawable findBoundingBoxRelativeToPosition:vector_subtract(position, opv) InVectors:_i :_j :_k];
+}
+
+
+- (void)drawEntity:(BOOL)immediate :(BOOL)translucent
+{
+	if (translucent)  [drawable renderTranslucentParts];
+	else  [drawable renderOpaqueParts];
 }
 
 @end

@@ -67,7 +67,7 @@ static OOMaterial *sActiveMaterial = nil;
 
 + (void)setUp
 {
-	OOLog(@"material.setUp", @"%s called.", __FUNCTION__);
+	// I thought we'd need this, but the stuff I needed it for turned out to be problematic. Maybe in future. -- Ahruman
 }
 
 

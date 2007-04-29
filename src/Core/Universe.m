@@ -3417,6 +3417,8 @@ GLfloat* custom_matrix;
 					
 					if (((d_status == STATUS_COCKPIT_DISPLAY)&&(inGUIMode)) || ((d_status != STATUS_COCKPIT_DISPLAY)&&(!inGUIMode)))
 					{
+						OOLog(@"render.entity.opaque", @"Rendering %@", drawthing);
+						
 						// reset material properties
 						glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE, flat_ambdiff);
 						glMaterialfv(GL_FRONT_AND_BACK, GL_EMISSION, mat_no);
@@ -3497,6 +3499,8 @@ GLfloat* custom_matrix;
 					
 					if (((d_status == STATUS_COCKPIT_DISPLAY)&&(inGUIMode)) || ((d_status != STATUS_COCKPIT_DISPLAY)&&(!inGUIMode)))
 					{
+						OOLog(@"render.entity.translucent", @"Rendering %@", drawthing);
+						
 						// experimental - atmospheric fog
 						BOOL fogging = (air_resist_factor > 0.01);
 						
@@ -3546,6 +3550,7 @@ GLfloat* custom_matrix;
 								
 				glDepthMask(GL_TRUE);	// restore write to depth buffer
 			}
+			if (OOLogWillDisplayMessagesInClass(@"$shaderDebugOn")) OOLogSetDisplayMessagesInClass(@"$shaderDebugOn", NO);
 			
 			glPopMatrix(); //restore saved flat viewpoint
 

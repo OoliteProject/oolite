@@ -26,54 +26,7 @@ MA 02110-1301, USA.
 */
 
 #import "Entity.h"
-
-#define MAX_VERTICES_PER_ENTITY		320
-#define MAX_FACES_PER_ENTITY		512
-#define MAX_TEXTURES_PER_ENTITY		8
-#define MAX_VERTICES_PER_FACE		16
-
-#define	NUM_VERTEX_ARRAY_RANGES		16
-
-
-typedef struct
-{
-	GLfloat					red;
-	GLfloat					green;
-	GLfloat					blue;
-	
-	Vector					normal;
-	
-	int						n_verts;
-	
-	GLint					vertex[MAX_VERTICES_PER_FACE];
-	
-	Str255					textureFileStr255;
-	GLuint					texName;
-	GLfloat					s[MAX_VERTICES_PER_FACE];
-	GLfloat					t[MAX_VERTICES_PER_FACE];
-} Face;
-
-
-typedef struct
-{
-	GLint					index_array[3 * MAX_FACES_PER_ENTITY];	// triangles
-	GLfloat					texture_uv_array[ 3 * MAX_FACES_PER_ENTITY * 2];
-	Vector					vertex_array[3 * MAX_FACES_PER_ENTITY];
-	Vector					normal_array[3 * MAX_FACES_PER_ENTITY];
-	
-	GLuint					texName;
-	
-	int						n_triangles;
-} EntityData;	// per texture
-
-
-typedef struct
-{
-	long					rangeSize;		// # of bytes in this VAR block
-	void					*dataBlockPtr;	// ptr to the memory that we're making VAR
-	BOOL					forceUpdate;	// true if data in VAR block needs updating
-	BOOL					activated;		// set to true the first time we use it
-} VertexArrayRangeType;
+#import "OOMesh.h" // Currently, we're sharing structures and constants with OOMesh
 
 
 @interface OOSelfDrawingEntity: Entity
@@ -82,6 +35,7 @@ typedef struct
 #if GL_APPLE_vertex_array_object
 							usingVAR: 1,
 #endif
+							brokenInRender: 1,
 							materialsReady: 1;
 	
 	uint8_t					n_textures;
@@ -114,7 +68,7 @@ typedef struct
 
 
 #if GL_APPLE_vertex_array_object
-@interface OOSelfDrawingEntity(OOVertexArrayRange)
+@interface OOSelfDrawingEntity (OOVertexArrayRange)
 
 // COMMON OGL ROUTINES
 - (BOOL) OGL_InitVAR;
@@ -123,21 +77,3 @@ typedef struct
 
 @end
 #endif
-
-
-// TODO: move this stuff to OOOpenGL
-
-// keep track of various OpenGL states
-//
-BOOL mygl_texture_2d;
-//
-void my_glEnable(GLenum gl_state);
-void my_glDisable(GLenum gl_state);
-
-// log a list of current states
-//
-void LogOpenGLState();
-
-// check for OpenGL errors, reporting them if where is not nil
-//
-BOOL CheckOpenGLErrors(NSString* where);

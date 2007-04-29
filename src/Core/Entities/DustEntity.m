@@ -86,8 +86,8 @@ MA 02110-1301, USA.
 - (void) update:(double) delta_t
 {
 	PlayerEntity* player = [PlayerEntity sharedPlayer];
-	if (!player)						return;	//	DON'T UPDATE
-	// do nowt!
+	if (!player)  return;	//	DON'T UPDATE
+	
 	zero_distance = 0.0;
 			
 	Vector offset = (player)? player->position: position;
@@ -116,8 +116,7 @@ MA 02110-1301, USA.
 - (void) drawEntity:(BOOL) immediate :(BOOL) translucent
 {
 	PlayerEntity* player = [PlayerEntity sharedPlayer];
-	if (!player)
-		return;	//	DON'T DRAW
+	if (!player)  return;	//	DON'T DRAW
 	//
     int ct;
 	int vi;
@@ -156,21 +155,22 @@ MA 02110-1301, USA.
 		//
 		ct = 0;
 		
-		GLenum	dustmode = GL_POINTS;
+		GLenum dustMode;
 		
 		if (!warp_stars)
 		{
 			glEnable(GL_POINT_SMOOTH);
 			glPointSize(dust_size);
+			dustMode = GL_POINTS;
 		}
 		else
 		{
 			glEnable(GL_LINE_SMOOTH);
 			glLineWidth(line_size);
-			dustmode = GL_LINES;
+			dustMode = GL_LINES;
 		}
 		
-		glBegin(dustmode);
+		glBegin(dustMode);
 		
 		for (vi = 0; vi < n_vertices; vi++)
 		{

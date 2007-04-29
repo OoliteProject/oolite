@@ -48,11 +48,29 @@ SOFTWARE.
 */
 
 #import "OOCocoa.h"
+#import "OOOpenGL.h"
+#import "OOMaths.h"
+
+@class Geometry;
 
 
 @interface OODrawable: NSObject
 
-- (void)render;
+- (void)renderOpaqueParts;
+- (void)renderTranslucentParts;
+- (BOOL)hasOpaqueParts;
+- (BOOL)hasTranslucentParts;
+
 - (void)reloadTextures;
+
+- (GLfloat)collisionRadius;
+- (GLfloat)maxDrawDistance;
+- (Geometry *)geometry;
+- (GLfloat)volume;
+
+// This needs a better name.
+- (BoundingBox)findBoundingBoxRelativeToPosition:(Vector)opv InVectors:(Vector) _i :(Vector) _j :(Vector) _k;
+
+- (void)dumpSelfState;
 
 @end

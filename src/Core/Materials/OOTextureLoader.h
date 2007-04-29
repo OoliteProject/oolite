@@ -54,9 +54,6 @@ SOFTWARE.
 #import "OOTexture.h"
 
 
-#define USE_COMPLETION_LOCK		0
-
-
 typedef enum
 {
 	kOOTextureDataInvalid,
@@ -68,18 +65,19 @@ typedef enum
 
 @interface OOTextureLoader: NSObject
 {
+@public
+	// TODO: should use separate structs or objects for queue elements.
+	struct OOTextureLoaderQueue	*queue;
 	OOTextureLoader				*queueNext;
+	BOOL						priority;
 	
+@protected
 	NSString					*path;
-#if USE_COMPLETION_LOCK
-	NSLock						*completionLock;
-#endif
 	
 	uint8_t						generateMipMaps: 1,
 								scaleAsNormalMap: 1,
 								avoidShrinking: 1,
-								ready: 1,
-								priority: 1;
+								ready: 1;
 	OOTextureDataFormat			format;
 	
 	void						*data;

@@ -884,29 +884,26 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 
 - (void) awardCredits:(NSString *)valueString
 {
-
-	if ((!script_target)||(!script_target->isPlayer))
-		return;
-
+	if (script_target != self)  return;
+	
 	int award = 10 * [valueString intValue];
-	credits += award;
+	if (credits < -award)  credits = 0;
+	else  credits += award;
 }
 
 - (void) awardShipKills:(NSString *)valueString
 {
-
-	if ((!script_target)||(!script_target->isPlayer))
-		return;
-
-	ship_kills += [valueString intValue];
+	if (script_target != self)  return;
+	
+	int value = [valueString intValue];
+	if (0 < value)  ship_kills += value;
 }
 
 - (void) awardEquipment:(NSString *)equipString  //eg. EQ_NAVAL_ENERGY_UNIT
 {
 	NSString*   eq_type		= equipString;
 
-	if ((!script_target)||(!script_target->isPlayer))
-		return;
+	if (script_target != self)  return;
 
 	if ([eq_type isEqual:@"EQ_FUEL"])
 	{
@@ -932,8 +929,7 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 {
 	NSString*   eq_type		= equipString;
 
-	if ((!script_target)||(!script_target->isPlayer))
-		return;
+	if (script_target != self)  return;
 
 	if ([eq_type isEqual:@"EQ_FUEL"])
 	{
@@ -992,8 +988,7 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 {
 //	NSArray*	tokens = [amount_typeString componentsSeparatedByString:@" "];
 
-	if ((!script_target)||(!script_target->isPlayer))
-		return;
+	if (script_target != self)  return;
 
 	NSArray*	tokens = ScanTokensFromString(amount_typeString);
 	NSString*   amountString = nil;
@@ -1010,11 +1005,16 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 
 	int amount =	[amountString intValue];
 	int type =		[UNIVERSE commodityForName:typeString];
-	if (type == NSNotFound)
-		type = [typeString intValue];
+	if (type == NSNotFound)  type = [typeString intValue];
+	
 	if ((type < 0)||(type >= [[UNIVERSE commoditydata] count]))
 	{
-		OOLog(kOOLogSyntaxAwardCargo, @"***** CANNOT awardCargo: '%@' (unknown type)",amount_typeString);
+		OOLog(kOOLogSyntaxAwardCargo, @"***** CANNOT awardCargo: '%@' (unknown type)", amount_typeString);
+		return;
+	}
+	if (amount < 0)
+	{
+		OOLog(kOOLogSyntaxAwardCargo, @"***** CANNOT awardCargo: '%@' (negative quantity)", amount_typeString);
 		return;
 	}
 
@@ -1023,7 +1023,7 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 
 	OOLog(kOOLogNoteAwardCargo, @"Going to award cargo %d x '%@'", amount, cargoString);
 
-	int unit = [(NSNumber *)[commodityArray objectAtIndex:MARKET_UNITS] intValue];
+	int unit = [[commodityArray objectAtIndex:MARKET_UNITS] intValue];
 
 	if (status != STATUS_DOCKED)
 	{	// in-flight
@@ -1095,12 +1095,12 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 	}
 }
 
+
 - (void) removeAllCargo
 {
 	int type;
 
-	if ((!script_target)||(!script_target->isPlayer))
-		return;
+	if (script_target != self)  return;
 
 	OOLog(kOOLogNoteRemoveAllCargo, @"Going to removeAllCargo");
 
@@ -1125,8 +1125,7 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 - (void) useSpecialCargo:(NSString *)descriptionString;
 {
 
-	if ((!script_target)||(!script_target->isPlayer))
-		return;
+	if (script_target != self)  return;
 
 	[self removeAllCargo];
 	specialCargo = [ExpandDescriptionForCurrentSystem(descriptionString) retain];

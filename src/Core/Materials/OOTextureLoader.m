@@ -53,26 +53,56 @@ SOFTWARE.
 #import "Universe.h"
 #import "OOTextureScaling.h"
 #import "OOCPUInfo.h"
+#import <stdlib.h>
 
 
-static NSConditionLock		*sQueueLock = nil;
-OOTextureLoader				*sQueueHead = nil, *sQueueTail = nil;
-static GLint				sGLMaxSize = 0;
+typedef struct OOTextureLoaderQueue
+{
+	OOTextureLoader			*head, *last;
+	NSConditionLock			*lock;
+} OOTextureLoaderQueue;
+
+
+static OOTextureLoaderQueue	sLoadQueue,
+							sReadyQueue;
+static GLint				sGLMaxSize;
 static uint32_t				sUserMaxSize;
 static BOOL					sReducedDetail;
 static BOOL					sHaveNPOTTextures = NO;	// TODO: support "true" non-power-of-two textures.
-
-
-#if !USE_COMPLETION_LOCK
-static NSString * const		kOOAsyncWaitForCompletionRunLoopMode = @"org.aegidian.oolite.asyncWaitForCompletion";
-#endif
+static BOOL					sHaveSetUp = NO;
 
 
 enum
 {
-	kConditionNoData = 1,
+	kConditionNoData		= 1,
 	kConditionQueuedData
 };
+
+enum
+{
+	kMaxWorkThreads			= 4
+};
+
+
+/*	Implements a many-to-many thread-safe queue - that is, elements can be
+	enqueued from any thread and dequeued from any thread. The queue supports
+	a simple priority model - entries with a "priority" flag set will be
+	dequeued before objects without the flag. A full priority queue isn't
+	useful here.
+	
+	Note: as it stands, Dequeue always blocks until the queue is non-empty.
+*/
+static BOOL LoaderQueueInit(OOTextureLoaderQueue *queue);
+static BOOL LoaderQueueEnueue(OOTextureLoaderQueue *queue, OOTextureLoader *element);
+static OOTextureLoader *LoaderQueueDequeue(OOTextureLoaderQueue *queue);
+static void LoaderQueuePrioritizeElement(OOTextureLoaderQueue *queue, OOTextureLoader *element);
+
+
+@interface OOTextureLoader (OOPrivate)
+
++ (void)setUp;
+
+@end
 
 
 @interface OOTextureLoader (OOTextureLoadingThread)
@@ -84,14 +114,11 @@ enum
 @end
 
 
-#if !USE_COMPLETION_LOCK
 @interface OOTextureLoader (OOCompletionNotification)
 
-- (void)noteCompletion;
 - (void)waitForCompletion;
 
 @end
-#endif
 
 
 @implementation OOTextureLoader
@@ -102,46 +129,17 @@ enum
 	id						result = nil;
 	
 	if (path == nil) return nil;
-	
-	// Set up loading threads (up to four) and queue lock
-	if (EXPECT_NOT(sQueueLock == nil))
-	{
-		sQueueLock = [[NSConditionLock alloc] initWithCondition:kConditionNoData];
-		if (sQueueLock != nil)
-		{
-			int threadCount = MIN(OOCPUCount() / 2, 4);
-			do
-			{
-				[NSThread detachNewThreadSelector:@selector(queueTask) toTarget:self withObject:nil];
-			} while (--threadCount > 0);
-		}
-	}
-	if (EXPECT_NOT(sQueueLock == nil))
-	{
-		OOLog(@"textureLoader.detachThreads.failed", @"Could not start texture-loader threads.");
-		return nil;
-	}
-	
-	// Load two maximum sizes - graphics hardware limit and user-specified limit.
-	if (sGLMaxSize == 0)
-	{
-		glGetIntegerv(GL_MAX_TEXTURE_SIZE, &sGLMaxSize);
-		if (sGLMaxSize < 64)  sGLMaxSize = 64;
-		
-		// Why 0x80000000? Because it's the biggest number OORoundUpToPowerOf2() can handle.
-		sUserMaxSize = [[NSUserDefaults standardUserDefaults] unsignedIntForKey:@"max-texture-size" defaultValue:0x80000000];
-		sUserMaxSize = OORoundUpToPowerOf2(sUserMaxSize);
-		if (sUserMaxSize < 64)  sUserMaxSize = 64;
-	}
+	if (!sHaveSetUp)  [self setUp];
 	
 	// Get reduced detail setting (every time, in case it changes; we don't want to call through to Universe on the loading thread in case the implementation becomes non-trivial
 	sReducedDetail = [UNIVERSE reducedDetail];
 	
-	// Get a suitable loader.
+	// Get a suitable loader. FIXME -- this should sniff the data instead of relying on extensions.
 	extension = [[path pathExtension] lowercaseString];
 	if ([extension isEqualToString:@"png"])
 	{
 		result = [[OOPNGTextureLoader alloc] initWithPath:path options:options];
+		[result autorelease];
 	}
 	else
 	{
@@ -150,18 +148,10 @@ enum
 	
 	if (result != nil)
 	{
-		// Add to queue
-		[sQueueLock lock];
-		
-		[result retain];		// Will be released in +queueTask.
-		if (sQueueTail != nil)  sQueueTail->queueNext = result;
-		sQueueTail = result;
-		if (sQueueHead == nil)  sQueueHead = result;
-		
-		[sQueueLock unlockWithCondition:kConditionQueuedData];
+		if (!LoaderQueueEnueue(&sLoadQueue, result))  result = nil;
 	}
 	
-	return [result autorelease];
+	return result;
 }
 
 
@@ -177,18 +167,6 @@ enum
 		return nil;
 	}
 	
-#if USE_COMPLETION_LOCK
-	completionLock = [[NSLock alloc] init];
-	
-	if (EXPECT_NOT(completionLock == nil))
-	{
-		[self release];
-		return nil;
-	}
-	
-	[completionLock lock];	// Will be unlocked when loading is done.
-#endif
-	
 	generateMipMaps = (options & kOOTextureMinFilterMask) == kOOTextureMinFilterMipMap;
 	avoidShrinking = (options & kOOTextureNoShrink) != 0;
 	
@@ -202,9 +180,6 @@ enum
 	assert(queueNext == nil);
 	
 	[path release];
-#if USE_COMPLETION_LOCK
-	[completionLock release];
-#endif
 	if (data != NULL)  free(data);
 	
 	[super dealloc];
@@ -232,41 +207,22 @@ enum
 }
 
 
+- (void)setPriority
+{
+	LoaderQueuePrioritizeElement(queue, self);
+}
+
+
 - (BOOL)getResult:(void **)outData
 		   format:(OOTextureDataFormat *)outFormat
 			width:(uint32_t *)outWidth
 		   height:(uint32_t *)outHeight
-{
-#if USE_COMPLETION_LOCK
-	if (completionLock != NULL)
+{	
+	if (!ready)
 	{
-		/*	If the lock exists, we must block on it until it is unlocked by
-			the loader thread, _even if the ready flag is set_, because of
-			potential write reordering issues. A read barrier here and a write
-			barrier at the end of loading (before setting the ready flag)
-			would probably be OK, too, if we had cross-platform barriers.
-			
-			If you don't understand the previous paragraph, you don't know
-			enough about threading to optimize out this unlock. If you do, and
-			you're sure it can be bypassed safely, you may be right. :-)
-			-- Ahruman
-			
-			Additional note: since it's not meaningful to call getResult...
-			more than once, the lock will probably be there every time.
-		*/
-		
-		priority = YES;
-		BOOL block = !ready;
-		if (block)  OOLog(@"textureLoader.block", @"Blocking for completion of loading of %@", [path lastPathComponent]);
-		[completionLock lock];
-		[completionLock unlock];
-		[completionLock release];
-		completionLock = nil;
-		if (block)  OOLog(@"textureLoader.block.done", @"Finished waiting around.");
+		[self setPriority];
+		[self waitForCompletion];
 	}
-#else
-	if (!ready)  [self waitForCompletion];
-#endif
 	
 	if (data != NULL)
 	{
@@ -299,6 +255,40 @@ enum
 @end
 
 
+@implementation OOTextureLoader (OOPrivate)
+
++ (void)setUp
+{
+	int						threadCount;
+	
+	if (!LoaderQueueInit(&sLoadQueue) || !LoaderQueueInit(&sReadyQueue))
+	{
+		OOLog(@"textureLoader.createQueues.failed", @"***** FATAL ERROR: could not set up texture loader queues!");
+		exit(EXIT_FAILURE);
+	}
+	
+	// Set up loading threads.
+	threadCount = MIN(OOCPUCount() - 1, kMaxWorkThreads);
+	do
+	{
+		[NSThread detachNewThreadSelector:@selector(queueTask) toTarget:self withObject:nil];
+	} while (--threadCount > 0);
+	
+	// Load two maximum sizes - graphics hardware limit and user-specified limit.
+	glGetIntegerv(GL_MAX_TEXTURE_SIZE, &sGLMaxSize);
+	if (sGLMaxSize < 64)  sGLMaxSize = 64;
+	
+	// Why 0x80000000? Because it's the biggest number OORoundUpToPowerOf2() can handle.
+	sUserMaxSize = [[NSUserDefaults standardUserDefaults] unsignedIntForKey:@"max-texture-size" defaultValue:0x80000000];
+	sUserMaxSize = OORoundUpToPowerOf2(sUserMaxSize);
+	if (sUserMaxSize < 64)  sUserMaxSize = 64;
+	
+	sHaveSetUp = YES;
+}
+
+@end
+
+
 /*** Methods performed on the loader thread. ***/
 
 @implementation OOTextureLoader (OOTextureLoadingThread)
@@ -306,7 +296,7 @@ enum
 + (void)queueTask
 {
 	NSAutoreleasePool			*pool = nil;
-	OOTextureLoader				*loader = nil, *curr = nil;
+	OOTextureLoader				*loader = nil;
 	
 	/*	Lower thread priority so the loader doesn't go "Hey! This thread's
 		just woken up, let's give it exclusive use of the CPU for a second or
@@ -325,43 +315,8 @@ enum
 	{
 		pool = [[NSAutoreleasePool alloc] init];
 		
-		[sQueueLock lockWhenCondition:kConditionQueuedData];
-		if (EXPECT(sQueueHead != nil))
-		{
-			loader = nil;
-			if (!sQueueHead->priority)
-			{
-				// Search queue for a loader with the priority flag.
-				for (curr = sQueueHead; curr->queueNext != nil; curr = curr->queueNext)
-				{
-					if (curr->queueNext->priority)
-					{
-						loader = curr->queueNext;
-						curr->queueNext = loader->queueNext;
-						if (loader == sQueueTail)  sQueueTail = curr->queueNext;
-						break;
-					}
-				}
-			}
-			if (loader == nil)
-			{
-				// Grab first object
-				loader = sQueueHead;
-				sQueueHead = loader->queueNext;
-				if (sQueueTail == loader)  sQueueTail = nil;
-			}
-			loader->queueNext = nil;
-			
-			[sQueueLock unlockWithCondition:(sQueueHead != nil) ? kConditionQueuedData : kConditionNoData];
-			
-			[loader performLoad];
-			[loader release];	// Was retained in -queue.
-		}
-		else
-		{
-			OOLog(@"textureLoader.queueTask.inconsistency", @"***** Texture loader queue state was data-available when queue was empty!");
-			[sQueueLock unlockWithCondition:kConditionNoData];
-		}
+		loader = LoaderQueueDequeue(&sLoadQueue);
+		[loader performLoad];
 		
 		[pool release];
 	}
@@ -388,15 +343,7 @@ enum
 		}
 	NS_ENDHANDLER
 	
-#if USE_COMPLETION_LOCK
-	ready = YES;
-	[completionLock unlock];	// Signal readyness
-#else
-	static NSArray *modes = nil;
-	if (EXPECT_NOT(modes == nil))  modes = [[NSArray alloc] initWithObjects:NSDefaultRunLoopMode, kOOAsyncWaitForCompletionRunLoopMode, nil];
-	
-	[self performSelectorOnMainThread:@selector(noteCompletion) withObject:nil waitUntilDone:NO modes:modes];
-#endif
+	LoaderQueueEnueue(&sReadyQueue, self);
 }
 
 
@@ -471,27 +418,117 @@ enum
 @end
 
 
-#if !USE_COMPLETION_LOCK
 @implementation OOTextureLoader (OOCompletionNotification)
-
-- (void)noteCompletion
-{
-	ready = YES;
-	OOLog(@"textureLoader.noteCompletion", @"Loading completed for texture %@.", [path lastPathComponent]);
-}
-
 
 - (void)waitForCompletion
 {
-	NSRunLoop				*runLoop = nil;
+	OOTextureLoader				*loader = nil;
 	
-	runLoop = [NSRunLoop currentRunLoop];
-	assert(runLoop != nil);
-	
-	OOLog(@"textureLoader.waitForCompletion", @"Waiting for completion notification for texture %@.", [path lastPathComponent]);
-	
-	while (!ready)  [runLoop acceptInputForMode:kOOAsyncWaitForCompletionRunLoopMode beforeDate:[NSDate distantFuture]];
+	do
+	{
+		loader = LoaderQueueDequeue(&sReadyQueue);
+		loader->ready = YES;
+	}  while (loader != self);
 }
 
 @end
-#endif
+
+
+static BOOL LoaderQueueInit(OOTextureLoaderQueue *queue)
+{
+	if (EXPECT_NOT(queue == NULL))  return NO;
+	
+	queue->head = queue->last = nil;
+	queue->lock = [[NSConditionLock alloc] initWithCondition:kConditionNoData];
+	return queue->lock != nil;
+}
+
+
+static BOOL LoaderQueueEnueue(OOTextureLoaderQueue *queue, OOTextureLoader *element)
+{
+	if (EXPECT_NOT(queue == NULL))  return NO;
+	if (EXPECT_NOT(element->queue != NULL))  return NO;
+	
+	[queue->lock lock];
+	
+	[element retain];	// Will be autoreleased when dequeued.
+	if (queue->last != nil)  queue->last->queueNext = element;
+	queue->last = element;
+	if (queue->head == nil)  queue->head = element;
+	element->queue = queue;
+	
+	[queue->lock unlockWithCondition:kConditionQueuedData];
+	
+	return YES;
+}
+
+
+static OOTextureLoader *LoaderQueueDequeue(OOTextureLoaderQueue *queue)
+{
+	OOTextureLoader			*result = nil,
+							*curr = nil;
+	
+	if (EXPECT_NOT(queue == NULL))  return nil;
+	
+	// Block until queue is nonempty, then lock:
+	[queue->lock lockWhenCondition:kConditionQueuedData];
+	
+	// This condition should always be true
+	if (EXPECT(queue->head != nil))
+	{
+		if (!queue->head->priority)
+		{
+			/*	Search queue for an entry with the priority flag. Note that
+				we're looking at next each step, not curr. The previous
+				condition was the special case for the head.
+			*/
+			for (curr = queue->head; curr->queueNext != nil; curr = curr->queueNext)
+			{
+				if (curr->queueNext->priority)
+				{
+					result = curr->queueNext;
+					curr->queueNext = result->queueNext;
+					if (result == queue->last)  queue->last = curr;
+					break;
+				}
+			}
+		}
+		if (result == nil)
+		{
+			//	No priority object found; dequeue the first object.
+			result = queue->head;
+			queue->head = result->queueNext;
+			if (queue->last == result)  queue->last = nil;
+		}
+		if (EXPECT(result != nil))
+		{
+			result->queue = NULL;
+			result->queueNext = nil;
+			result->priority = NO;
+		}
+	}
+	else
+	{
+		/*	If we locked with condition kConditionQueuedData, but queue->head
+			is nil, something is badly wrong, but it may be recoverable so we
+			just whine about it.
+		*/
+		OOLog(@"textureLoader.queueTask.inconsistency", @"***** Texture loader queue state was data-available when queue was empty!");
+	}
+	
+	//	Unlock, setting appropriate lock state.
+	[queue->lock unlockWithCondition:(queue->head == nil) ? kConditionNoData : kConditionQueuedData];
+	
+	return [result autorelease];
+}
+
+
+static void LoaderQueuePrioritizeElement(OOTextureLoaderQueue *queue, OOTextureLoader *element)
+{
+	if (EXPECT_NOT(queue == NULL || element == nil))  return;
+	
+	// Note: we can't simply grab the queue from the element for thread-safety reasons.
+	[queue->lock lock];
+	if (element->queue == queue)  element->priority = YES;
+	[queue->lock unlock];
+}

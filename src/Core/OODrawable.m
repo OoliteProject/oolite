@@ -50,13 +50,66 @@ SOFTWARE.
 
 @implementation OODrawable
 
-- (void)render
+- (void)renderOpaqueParts
 {
 	
 }
 
 
+- (void)renderTranslucentParts
+{
+
+}
+
+
+- (BOOL)hasOpaqueParts
+{
+	return NO;
+}
+
+
+- (BOOL)hasTranslucentParts
+{
+	return NO;
+}
+
+
 - (void)reloadTextures
+{
+	
+}
+
+- (GLfloat)collisionRadius
+{
+	return 0.0f;
+}
+
+
+- (GLfloat)maxDrawDistance
+{
+	return 0.0f;
+}
+
+
+- (Geometry *)geometry
+{
+	return nil;
+}
+
+
+- (GLfloat)volume
+{
+	return 0.0f;
+}
+
+
+- (BoundingBox)findBoundingBoxRelativeToPosition:(Vector)opv InVectors:(Vector) _i :(Vector) _j :(Vector) _k
+{
+	return kZeroBoundingBox;
+}
+
+
+- (void)dumpSelfState
 {
 	
 }

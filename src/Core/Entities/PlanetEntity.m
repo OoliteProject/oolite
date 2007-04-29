@@ -1270,6 +1270,7 @@ void setUpSinTable()
 }
 
 
+// TODO: some translucent stuff is drawn in the opaque pass, which is Naughty.
 - (void) drawEntity:(BOOL) immediate :(BOOL) translucent;
 {
 	int		subdivideLevel =	2;		// 4 is probably the maximum!

@@ -223,8 +223,8 @@ extern int debug;
 - (GLfloat *) drawRotationMatrix;
 
 - (BOOL) canCollide;
-- (double) collisionRadius;
-- (void) setCollisionRadius:(double)amount;
+- (GLfloat) collisionRadius;
+- (void) setCollisionRadius:(GLfloat)amount;
 - (NSMutableArray *)collisionArray;
 
 - (void) update:(double) delta_t;

@@ -634,12 +634,12 @@ static NSString * const kOOLogEntityUpdateError				= @"entity.linkedList.update.
 	return YES;
 }
 
-- (double) collisionRadius
+- (GLfloat) collisionRadius
 {
 	return collision_radius;
 }
 
-- (void) setCollisionRadius:(double) amount
+- (void) setCollisionRadius:(GLfloat) amount
 {
 	collision_radius = amount;
 }
