@@ -160,12 +160,12 @@ static OOCacheManager *sSingleton = nil;
 
 
 
-- (void)setObject:(id)onObject forKey:(NSString *)inKey inCache:(NSString *)inCacheKey
+- (void)setObject:(id)inObject forKey:(NSString *)inKey inCache:(NSString *)inCacheKey
 {
 	OOCache					*cache = nil;
 	
 	// Sanity check
-	if (onObject == nil || inCacheKey == nil || inKey == nil)  OOLog(kOOLogDataCacheParamError, @"Bad parameters -- nil object, key or cacheKey.");
+	if (inObject == nil || inCacheKey == nil || inKey == nil)  OOLog(kOOLogDataCacheParamError, @"Bad parameters -- nil object, key or cacheKey.");
 	
 	if (caches == nil)  return;
 	
@@ -182,7 +182,7 @@ static OOCacheManager *sSingleton = nil;
 		[caches setObject:cache forKey:inCacheKey];
 	}
 	
-	[cache setObject:onObject forKey:inKey];
+	[cache setObject:inObject forKey:inKey];
 	OOLog(kOOLogDataCacheSetSuccess, @"Updated entry %@ in cache %@.", inKey, inCacheKey);
 }
 

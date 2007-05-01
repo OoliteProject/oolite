@@ -112,7 +112,7 @@ MA 02110-1301, USA.
 
 
 #ifndef OOCACHE_PERFORM_INTEGRITY_CHECKS
-#define OOCACHE_PERFORM_INTEGRITY_CHECKS	0
+#define OOCACHE_PERFORM_INTEGRITY_CHECKS	1
 #endif
 
 
@@ -435,7 +435,6 @@ static BOOL CacheInsert(OOCacheImpl *cache, id key, id value)
 	if (node != NULL)
 	{
 		AgeListMakeYoungest(cache, node);
-		++cache->count;
 		return YES;
 	}
 	else  return NO;
@@ -702,6 +701,7 @@ static OOCacheNode *TreeInsert(OOCacheImpl *cache, id key, id value)
 	{
 		node = CacheNodeAllocate(key, value);
 		cache->root = node;
+		cache->count = 1;
 	}
 	else
 	{
@@ -724,6 +724,7 @@ static OOCacheNode *TreeInsert(OOCacheImpl *cache, id key, id value)
 				node->rightChild = closest;
 				closest->leftChild = NULL;
 				cache->root = node;
+				++cache->count;
 			}
 			else if (order == NSOrderedDescending)
 			{
@@ -732,11 +733,12 @@ static OOCacheNode *TreeInsert(OOCacheImpl *cache, id key, id value)
 				node->leftChild = closest;
 				closest->rightChild = NULL;
 				cache->root = node;
+				++cache->count;
 			}
 			else
 			{
 				// Key already exists, which we should have caught above
-				OOLog(@"dataCache.inconsistency", @"CNInsert() internal inconsistency, insertion failed.");
+				OOLog(@"dataCache.inconsistency", @"%s() internal inconsistency, insertion failed.", __FUNCTION__);
 				CacheNodeFree(cache, node);
 				return NULL;
 			}
