@@ -481,6 +481,8 @@ MA 02110-1301, USA.
 	[self setGuiToStatusScreen];
 }
 
+#endif
+
 
 - (void) writePlayerToPath:(NSString *)path
 {
@@ -531,7 +533,6 @@ MA 02110-1301, USA.
 	[self writePlayerToPath:savePath];
 }
 
-#endif
 
 
 - (void) setGuiToLoadCommanderScreen
@@ -884,13 +885,43 @@ MA 02110-1301, USA.
 	// instead of tenths of a credit.
 	money /= 10;
 	
+// Nikos - Add some more information in the load game screen (current location, galaxy number and timestamp).
+//-------------------------------------------------------------------------------------------------------------------------
+   NSPoint gal_coords = (NSPoint)PointFromString([cdr objectForKey:@"galaxy_coordinates"]);
+   Random_Seed g_seed = {0, 0, 0, 0, 0, 0};
+   NSArray *seed_vals = ScanTokensFromString([cdr objectForKey:@"galaxy_seed"]);
+   g_seed.a = (unsigned char)[(NSString *)[seed_vals objectAtIndex:0] intValue];
+   g_seed.b = (unsigned char)[(NSString *)[seed_vals objectAtIndex:1] intValue];
+   g_seed.c = (unsigned char)[(NSString *)[seed_vals objectAtIndex:2] intValue];
+   g_seed.d = (unsigned char)[(NSString *)[seed_vals objectAtIndex:3] intValue];
+   g_seed.e = (unsigned char)[(NSString *)[seed_vals objectAtIndex:4] intValue];
+   g_seed.f = (unsigned char)[(NSString *)[seed_vals objectAtIndex:5] intValue];
+   int locationNumber = [UNIVERSE findSystemNumberAtCoords:gal_coords withGalaxySeed:g_seed];
+   NSString *locationName = [UNIVERSE systemNameIndex:locationNumber];
+   
+   int galNumber = [(NSNumber *)[cdr objectForKey:@"galaxy_number"] intValue] + 1;	// Galaxy numbering starts at 0.
+   
+   double saveGameTime = [(NSNumber *)[cdr objectForKey:@"ship_clock"] doubleValue];
+   int days = floor(saveGameTime / 86400.0); // days
+   int secs = floor(saveGameTime - days * 86400.0);
+   int hrs = floor(secs / 3600.0); // hrs
+   secs %= 3600;
+   int mins = floor(secs / 60.0);	// mins
+   secs %= 60;
+   NSString *timeStamp = [NSString stringWithFormat:@"%07d:%02d:%02d:%02d", days, hrs, mins, secs];
+//-------------------------------------------------------------------------------------------------------------------------
+   
+	
 	NSString *cdrDesc;
-	cdrDesc = [NSString stringWithFormat:@"Commander %@ is rated %@ and is %@, with %d Cr in the bank. Ship: %@",
+	cdrDesc = [NSString stringWithFormat:@"Commander %@ is rated %@ and is %@, with %d Cr in the bank. Ship: %@. Location: %@ (G%d). Timestamp: %@",
 										 [cdr objectForKey:@"player_name"],
 										 [[descriptions objectForKey:@"rating"] objectAtIndex: rating],
 										 legalDesc, 
 										 money, 
-										 shipName];
+										 shipName,
+										 locationName,
+										 galNumber,
+										 timeStamp];
 	
 	[gui addLongText:cdrDesc startingAtRow:CDRDESCROW align:GUI_ALIGN_LEFT];             
 }
