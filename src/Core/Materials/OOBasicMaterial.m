@@ -93,7 +93,7 @@ static OOBasicMaterial *sDefaultMaterial = nil;
 	colorDesc = [configuration objectForKey:@"emission"];
 	if (colorDesc != nil)  [self setEmissionColor:[OOColor colorWithDescription:colorDesc]];
 	
-	shininessVal = [configuration intForKey:@"shininess" defaultValue:0];
+	shininessVal = [configuration intForKey:@"shininess"];
 	if (0 < shininessVal)
 	{
 		[self setShininess:shininessVal];

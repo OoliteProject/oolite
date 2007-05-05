@@ -63,6 +63,8 @@ SOFTWARE.
 	
 	uint32_t						texCount;
 	OOTexture						**textures;
+	
+	OOWeakReference					*bindingTarget;
 }
 
 + (BOOL)configurationDictionarySpecifiesShaderMaterial:(NSDictionary *)configuration;
@@ -93,8 +95,14 @@ SOFTWARE.
 	will be transformed into:
 		#define OO_ENGINE_LEVEL 1
 */
-+ (id)shaderMaterialWithName:(NSString *)name configuration:(NSDictionary *)configuration macros:(NSDictionary *)macros bindingTarget:(id<OOWeakReferenceSupport>)object;
-- (id)initWithName:(NSString *)name configuration:(NSDictionary *)configuration macros:(NSDictionary *)macros bindingTarget:(id<OOWeakReferenceSupport>)object;
++ (id)shaderMaterialWithName:(NSString *)name
+			   configuration:(NSDictionary *)configuration
+					  macros:(NSDictionary *)macros bindingTarget:(id<OOWeakReferenceSupport>)object;
+
+- (id)initWithName:(NSString *)name
+	 configuration:(NSDictionary *)configuration
+			macros:(NSDictionary *)macros
+	 bindingTarget:(id<OOWeakReferenceSupport>)object;
 
 /*	Bind a uniform to a property of an object.
 	

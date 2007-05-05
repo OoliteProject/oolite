@@ -203,6 +203,9 @@ enum
 */
 - (NSSize)texCoordsScale;
 
+//	Forget all cached textures so new texture objects will reload.
++ (void)clearCache;
+
 @end
 
 

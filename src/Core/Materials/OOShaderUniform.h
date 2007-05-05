@@ -56,7 +56,10 @@ SOFTWARE.
 {
 	NSString					*name;
 	GLint						location;
-	BOOL						isBinding;
+	uint8_t						isBinding: 1,
+								// flags that apply only to bindings:
+								isClamped: 1,
+								isActiveBinding: 1;
 	uint8_t						type;
 	union
 	{
@@ -67,16 +70,17 @@ SOFTWARE.
 			OOWeakReference				*object;
 			SEL							selector;
 			IMP							method;
-			BOOL						clamped;
 		}							binding;
 	}							value;
 }
 
 - (id)initWithName:(NSString *)uniformName shaderProgram:(OOShaderProgram *)shaderProgram intValue:(int)constValue;
 - (id)initWithName:(NSString *)uniformName shaderProgram:(OOShaderProgram *)shaderProgram floatValue:(int)constValue;
-- (id)initWithName:(NSString *)uniformName shaderProgram:(OOShaderProgram *)shaderProgram boundToObject:(id<OOWeakReferenceSupport>)source property:(SEL)selector clamped:(BOOL)clamped;
+- (id)initWithName:(NSString *)uniformName shaderProgram:(OOShaderProgram *)shaderProgram boundToObject:(id<OOWeakReferenceSupport>)target property:(SEL)selector clamped:(BOOL)clamped;
 
 - (void)apply;
+
+- (void)setBindingTarget:(id<OOWeakReferenceSupport>)target;
 
 @end
 

@@ -267,13 +267,14 @@ static BOOL		sRectangleTextureAvailable;
 	if ([configuration isKindOfClass:[NSString class]])
 	{
 		name = configuration;
+		if ([name isEqual:@""])  return nil;
 		options = kOOTextureDefaultOptions;
 		anisotropy = kOOTextureDefaultAnisotropy;
 		lodBias = kOOTextureDefaultLODBias;
 	}
 	else if ([configuration isKindOfClass:[NSDictionary class]])
 	{
-		name = [configuration stringForKey:@"name" defaultValue:nil];
+		name = [configuration stringForKey:@"name"];
 		if (name == nil)
 		{
 			OOLog(@"texture.load.noName", @"Invalid texture configuration dictionary (must specify name):\n%@", configuration);
@@ -299,7 +300,7 @@ static BOOL		sRectangleTextureAvailable;
 	else
 	{
 		// Bad type
-		OOLog(kOOLogParameterError, @"%s: expected string or dictionary, got %@.", __PRETTY_FUNCTION__, [configuration class]);
+		if (configuration != nil)  OOLog(kOOLogParameterError, @"%s: expected string or dictionary, got %@.", __PRETTY_FUNCTION__, [configuration class]);
 		return nil;
 	}
 	
@@ -313,8 +314,11 @@ static BOOL		sRectangleTextureAvailable;
 	
 	OOLog(@"texture.dealloc", @"Deallocating and uncaching texture %@", self);
 	
-	[sInUseTextures removeObjectForKey:key];
-	[sRecentTextures removeObjectForKey:key];
+	if (key != nil)
+	{
+		[sInUseTextures removeObjectForKey:key];
+		[sRecentTextures removeObjectForKey:key];
+	}
 	
 	[key release];
 	
@@ -422,6 +426,15 @@ static BOOL		sRectangleTextureAvailable;
 #else
 	return NSMakeSize(1.0f, 1.0f);
 #endif
+}
+
+
++ (void)clearCache
+{
+	[sInUseTextures release];
+	sInUseTextures = nil;
+	[sRecentTextures release];
+	sRecentTextures = nil;
 }
 
 @end

@@ -55,12 +55,19 @@ SOFTWARE.
 
 - (id)initWithName:(NSString *)name configuration:(NSDictionary *)configuration
 {
-	NSDictionary		*texSpec = nil;
+	id					texSpec = nil;
 	
 	self = [super initWithName:name configuration:configuration];
 	if (name != nil && self != nil)
 	{
-		texSpec = [configuration textureSpecifierForKey:@"diffuse_map" defaultName:name];
+		if (texSpec != nil)
+		{
+			texSpec = [configuration textureSpecifierForKey:@"diffuse_map" defaultName:name];
+		}
+		else
+		{
+			texSpec = name;
+		}
 		texture = [[OOTexture textureWithConfiguration:texSpec] retain];
 	}
 	
@@ -102,6 +109,18 @@ SOFTWARE.
 {
 	if (![next isKindOfClass:[OOSingleTextureMaterial class]])  [OOTexture applyNone];
 	[super unapplyWithNext:next];
+}
+
+
+- (void)reloadTextures
+{
+	// FIXME
+}
+
+
+- (void)ensureFinishedLoading
+{
+	[texture ensureFinishedLoading];
 }
 
 @end

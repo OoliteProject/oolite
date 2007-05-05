@@ -173,15 +173,10 @@ static void PNGRead(png_structp png, png_bytep bytes, png_size_t size);
 		planes = 4;
 		format = kOOTextureDataRGBA;
 		
-#if OOLITE_BIG_ENDIAN
 		png_set_bgr(png);
 		png_set_swap_alpha(png);		// RGBA->ARGB
-#endif
 		
-	//	if ((colorType & PNG_COLOR_MASK_ALPHA) == 0)
-		{
-			png_set_filler(png, 0xFF, PNG_FILLER_BEFORE);	// PNG_FILLER_AFTER for little-endian?
-		}
+		png_set_filler(png, 0xFF, PNG_FILLER_BEFORE);
 	}
 	
 	png_read_update_info(png, pngInfo);

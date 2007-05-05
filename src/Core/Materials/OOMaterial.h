@@ -79,6 +79,11 @@ SOFTWARE.
 */
 - (void)ensureFinishedLoading;
 
+// Only used by shader material, but defined for all materials for convenience.
+- (void)setBindingTarget:(id<OOWeakReferenceSupport>)target;
+
+- (void)reloadTextures;
+
 @end
 
 

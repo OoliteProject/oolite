@@ -34,6 +34,9 @@ MA 02110-1301, USA.
 #import "OOCPUInfo.h"
 
 
+// #define DUMP_MIP_MAPS
+
+
 // Structure used to track buffers in OOScalePixMap() and its helpers.
 typedef struct
 {
@@ -126,18 +129,18 @@ OOINLINE void StretchVertically(OOScalerPixMap srcPx, OOScalerPixMap dstPx, OOTe
 #endif
 
 
-// #define DUMP_MIP_MAPS
-
-
 #ifdef DUMP_MIP_MAPS
 // NOTE: currently only works on OS X because of OTAtomicAdd32() (used to increment ID counter in thread-safe way). A simple increment would be sufficient if limited to a single thread (in OOTextureLoader).
 SInt32 sPreviousDumpID		= 0;
 
-#define DUMP_MIP_MAP_PREPARE(pl)		SInt32 dumpID = OTAtomicAdd32(1, &sPreviousDumpID); \
-										uint32_t dumpLevel = 0;	 \
-										uint32_t dumpPlanes = pl; \
-										OOLog(@"texture.mipMap.dump", @"Dumping mip-maps as dump ID%u lv# %uch XxY.raw.", dumpID, dumpPlanes);
-#define DUMP_MIP_MAP_DUMP(px, w, h)		DumpMipMap(px, w, h, dumpPlanes, dumpID, dumpLevel++);
+#define	DUMP_CHANNELS		1		// Bitmap of channel counts - 5 for both 4-chan and 1-chan dumps
+
+#define DUMP_MIP_MAP_PREPARE(pl)		uint32_t dumpPlanes = pl; \
+										uint32_t dumpLevel = 0; \
+										BOOL dumpThis = (dumpPlanes & DUMP_CHANNELS) != 0; \
+										SInt32 dumpID = dumpThis ? OTAtomicAdd32(1, &sPreviousDumpID) : 0; \
+										if (dumpThis) OOLog(@"texture.mipMap.dump", @"Dumping mip-maps as dump ID%u lv# %uch XxY.raw.", dumpID, dumpPlanes);
+#define DUMP_MIP_MAP_DUMP(px, w, h)		if (dumpThis) DumpMipMap(px, w, h, dumpPlanes, dumpID, dumpLevel++);
 static void DumpMipMap(void *data, OOTextureDimension width, OOTextureDimension height, OOTexturePlaneCount planes, SInt32 ID, uint32_t level);
 #else
 #define DUMP_MIP_MAP_PREPARE(pl)		do {} while (0)
@@ -389,7 +392,6 @@ static BOOL GenerateMipMaps1(void *textureBytes, OOTextureDimension width, OOTex
 		DUMP_MIP_MAP_DUMP(curr, w, h);
 		
 		next = curr + w * h;
-		ScaleToHalf_4_x1(curr, next, w >> 2	, h);
 		ScaleToHalf_1_x4(curr, next, w, h);
 		
 		w >>= 1;
@@ -494,8 +496,15 @@ static void ScaleToHalf_1_x4(void *srcBytes, void *dstBytes, OOTextureDimension 
 					((px11 & 0xFF00FF00) >> 8);
 			
 			// ...swizzle the sums around...
+#if OOLITE_BIG_ENDIAN
 			sum0 = ((sum0 << 6) & 0xFF000000) | ((sum0 << 14) & 0x00FF0000);
 			sum1 = ((sum1 >> 10) & 0x0000FF00) | ((sum1 >>2) & 0x000000FF);
+#elif OOLITE_LITTLE_ENDIAN
+			sum0 = ((sum0 >> 10) & 0x0000FF00) | ((sum0 >>2) & 0x000000FF);
+			sum1 = ((sum1 << 6) & 0xFF000000) | ((sum1 << 14) & 0x00FF0000);
+#else
+			#error Neither OOLITE_BIG_ENDIAN nor OOLITE_LITTLE_ENDIAN is defined as nonzero!
+#endif
 			
 			// ...and write output pixel.
 				*dst++ = sum0 | sum1;
@@ -545,6 +554,7 @@ static void ScaleToHalf_1_x8(void *srcBytes, void *dstBytes, OOTextureDimension 
 					((px11 & 0xFF00FF00FF00FF00ULL) >> 8);
 			
 			// ...swizzle the sums around...
+#if OOLITE_BIG_ENDIAN
 			sum0 =	((sum0 << 06) & 0xFF00000000000000ULL) |
 					((sum0 << 14) & 0x00FF000000000000ULL) |
 					((sum0 << 22) & 0x0000FF0000000000ULL) |
@@ -553,7 +563,18 @@ static void ScaleToHalf_1_x8(void *srcBytes, void *dstBytes, OOTextureDimension 
 					((sum1 >> 18) & 0x0000000000FF0000ULL) |
 					((sum1 >> 10) & 0x000000000000FF00ULL) |
 					((sum1 >> 02) & 0x00000000000000FFULL);
-			
+#elif OOLITE_LITTLE_ENDIAN
+			sum0 =	((sum0 >> 26) & 0x00000000FF000000ULL) |
+					((sum0 >> 18) & 0x0000000000FF0000ULL) |
+					((sum0 >> 10) & 0x000000000000FF00ULL) |
+					((sum0 >> 02) & 0x00000000000000FFULL);
+			sum1 =	((sum1 << 06) & 0xFF00000000000000ULL) |
+					((sum1 << 14) & 0x00FF000000000000ULL) |
+					((sum1 << 22) & 0x0000FF0000000000ULL) |
+					((sum1 << 30) & 0x000000FF00000000ULL);
+#else
+			#error Neither OOLITE_BIG_ENDIAN nor OOLITE_LITTLE_ENDIAN is defined as nonzero!
+#endif
 			// ...and write output pixel.
 				*dst++ = sum0 | sum1;
 		} while (--x);
@@ -622,11 +643,12 @@ static BOOL GenerateMipMaps4(void *textureBytes, OOTextureDimension width, OOTex
 	if (EXPECT(1 < w && 1 < h))
 	{
 		DUMP_MIP_MAP_DUMP(curr, w, h);
+		
+		next = curr + w * h;
 		ScaleToHalf_4_x1(curr, next, w, h);
-		#if DUMP_MIP_MAPS
-			w >>= 1;
-			h >>= 1;
-		#endif
+		
+		w >>= 1;
+		h >>= 1;
 	}
 #else
 	while (1 < w && 1 < h)

@@ -73,11 +73,11 @@ static NSString *MacrosToString(NSDictionary *macros);
 {
 	if (configuration == nil)  return NO;
 	
-	if ([configuration stringForKey:@"vertex_shader" defaultValue:nil] != nil)  return YES;
-	if ([configuration stringForKey:@"fragment_shader" defaultValue:nil] != nil)  return YES;
-	if ([configuration stringForKey:@"glsl-vertex" defaultValue:nil] != nil)  return YES;
-	if ([configuration stringForKey:@"glsl-fragment" defaultValue:nil] != nil)  return YES;
-	if ([configuration stringForKey:@"glsl" defaultValue:nil] != nil)  return YES;
+	if ([configuration stringForKey:@"vertex_shader"] != nil)  return YES;
+	if ([configuration stringForKey:@"fragment_shader"] != nil)  return YES;
+	if ([configuration stringForKey:@"glsl-vertex"] != nil)  return YES;
+	if ([configuration stringForKey:@"glsl-fragment"] != nil)  return YES;
+	if ([configuration stringForKey:@"glsl"] != nil)  return YES;
 	
 	return NO;
 }
@@ -120,8 +120,8 @@ static NSString *MacrosToString(NSDictionary *macros);
 	
 	if (OK)
 	{
-		vertexShader = [configuration stringForKey:@"vertex_shader" defaultValue:nil];
-		fragmentShader = [configuration stringForKey:@"fragment_shader" defaultValue:nil];
+		vertexShader = [configuration stringForKey:@"vertex_shader"];
+		fragmentShader = [configuration stringForKey:@"fragment_shader"];
 		
 		if (vertexShader != nil || fragmentShader != nil)
 		{
@@ -131,9 +131,9 @@ static NSString *MacrosToString(NSDictionary *macros);
 		else
 		{
 			// Otherwise, look for inline source
-			vertexShader = [configuration stringForKey:@"glsl-vertex" defaultValue:nil];
-			fragmentShader = [configuration stringForKey:@"glsl-fragment" defaultValue:nil];
-			if (fragmentShader == nil)  fragmentShader = [configuration stringForKey:@"glsl" defaultValue:nil];
+			vertexShader = [configuration stringForKey:@"glsl-vertex"];
+			fragmentShader = [configuration stringForKey:@"glsl-fragment"];
+			if (fragmentShader == nil)  fragmentShader = [configuration stringForKey:@"glsl"];
 			
 			if (vertexShader != nil || fragmentShader != nil)
 			{
@@ -152,8 +152,8 @@ static NSString *MacrosToString(NSDictionary *macros);
 	if (OK)
 	{
 		// Load uniforms
-		uniformDefs = [configuration dictionaryForKey:@"uniforms" defaultValue:nil];
-		textureDefs = [configuration arrayForKey:@"textures" defaultValue:nil];
+		uniformDefs = [configuration dictionaryForKey:@"uniforms"];
+		textureDefs = [configuration arrayForKey:@"textures"];
 		
 		uniforms = [[NSMutableDictionary alloc] initWithCapacity:[uniformDefs count] + [textureDefs count]];
 		[self addUniformsFromDictionary:uniformDefs withBindingTarget:target];
@@ -390,6 +390,23 @@ static NSString *MacrosToString(NSDictionary *macros);
 	{
 		[OOShaderProgram applyNone];
 	}
+}
+
+
+- (void)setBindingTarget:(id<OOWeakReferenceSupport>)target
+{
+	if (target != [bindingTarget weakRefUnderlyingObject])
+	{
+		[[uniforms allValues] makeObjectsPerformSelector:@selector(setBindingTarget:) withObject:target];
+		[bindingTarget release];
+		bindingTarget = [target weakRetain];
+	}
+}
+
+
+- (void)reloadTextures
+{
+	// FIXME
 }
 
 @end

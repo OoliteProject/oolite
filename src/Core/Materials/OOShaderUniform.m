@@ -159,15 +159,11 @@ OOINLINE BOOL ValidBindingType(OOShaderUniformType type)
 }
 
 
-- (id)initWithName:(NSString *)uniformName shaderProgram:(OOShaderProgram *)shaderProgram boundToObject:(id<OOWeakReferenceSupport>)source property:(SEL)selector clamped:(BOOL)clamped
+- (id)initWithName:(NSString *)uniformName shaderProgram:(OOShaderProgram *)shaderProgram boundToObject:(id<OOWeakReferenceSupport>)target property:(SEL)selector clamped:(BOOL)clamped
 {
 	BOOL					OK = YES;
-	NSMethodSignature		*sig = nil;
-	unsigned				argCount;
-	NSString				*methodProblem = nil;
-	const char				*typeCode = nil;
 	
-	if (EXPECT_NOT(uniformName == NULL || shaderProgram == NULL || source == nil || selector == NULL)) OK = NO;
+	if (EXPECT_NOT(uniformName == NULL || shaderProgram == NULL || selector == NULL)) OK = NO;
 	
 	if (OK)
 	{
@@ -179,61 +175,7 @@ OOINLINE BOOL ValidBindingType(OOShaderUniformType type)
 	{
 		location = glGetUniformLocationARB([shaderProgram program], [uniformName lossyCString]);
 		if (location == -1)  OK = NO;
-	}
-	
-	// Check to see if it's a valid method.
-	if (OK)
-	{
-		if (![source respondsToSelector:selector])
-		{
-			methodProblem = @"target does not respond to selector";
-			OK = NO;
-		}
-	}
-	
-	if (OK)
-	{
-		value.binding.method = [(id)source methodForSelector:selector];
-		if (value.binding.method == NULL)
-		{
-			methodProblem = @"could not retrieve method implementation";
-			OK = NO;
-		}
-	}
-	
-	if (OK)
-	{
-		sig = [(id)source methodSignatureForSelector:selector];
-		if (sig == nil)
-		{
-			methodProblem = @"could not retrieve method signature";
-			OK = NO;
-		}
-	}
-	
-	if (OK)
-	{
-		argCount = [sig numberOfArguments];
-		if (argCount != 2)	// "no-arguments" methods actually take two arguments, self and _msg.
-		{
-			methodProblem = @"only methods which do not require arguments may be bound to";
-			OK = NO;
-		}
-	}
-	
-	if (OK)
-	{
-		typeCode = [sig methodReturnType];
-		if (0 == strcmp("f", typeCode))  type = kOOShaderUniformTypeFloat;
-		else if (0 == strcmp("d", typeCode))  type = kOOShaderUniformTypeDouble;
-		else if (0 == strcmp("c", typeCode) || 0 == strcmp("C", typeCode))  type = kOOShaderUniformTypeChar;	// Signed or unsigned
-		else if (0 == strcmp("s", typeCode) || 0 == strcmp("S", typeCode))  type = kOOShaderUniformTypeShort;
-		else if (0 == strcmp("i", typeCode) || 0 == strcmp("I", typeCode))  type = kOOShaderUniformTypeInt;
-		else if (0 == strcmp("l", typeCode) || 0 == strcmp("L", typeCode))  type = kOOShaderUniformTypeLong;
-		else
-		{
-			methodProblem = [NSString stringWithFormat:@"unsupported type \"%s\"", typeCode];
-		}
+		OOLog(@"shader.uniform.bind.failed", @"***** Shader error: could not bind uniform \"%@\" to -[%@ %s] (no uniform of that name could be found).", uniformName, [target class], selector);
 	}
 	
 	// If we're still OK, it's a bindable method.
@@ -241,18 +183,13 @@ OOINLINE BOOL ValidBindingType(OOShaderUniformType type)
 	{
 		name = [uniformName retain];
 		isBinding = YES;
-		value.binding.object = [source weakRetain];
 		value.binding.selector = selector;
-		value.binding.clamped = clamped;
+		isClamped = clamped;
+		if (target != nil)  [self setBindingTarget:target];
 	}
 	
 	if (!OK)
 	{
-		if (methodProblem != nil)
-		{
-			OOLog(@"shader.uniform.bind.failed", @"***** Shader error: could not bind uniform \"%@\" to -[%@ %s] (%@).", uniformName, [source class], selector, methodProblem);
-		}
-		
 		[self release];
 		self = nil;
 	}
@@ -329,8 +266,89 @@ OOINLINE BOOL ValidBindingType(OOShaderUniformType type)
 - (void)apply
 {
 	
-	if (isBinding)  [self applyBinding];
+	if (isBinding)
+	{
+		if (isActiveBinding)  [self applyBinding];
+	}
 	else  [self applySimple];
+}
+
+
+- (void)setBindingTarget:(id<OOWeakReferenceSupport>)target
+{
+	BOOL					OK = YES;
+	NSMethodSignature		*sig = nil;
+	unsigned				argCount;
+	NSString				*methodProblem = nil;
+	const char				*typeCode = nil;
+	
+	if (!isBinding)  return;
+	if (EXPECT_NOT([value.binding.object weakRefUnderlyingObject] == target))  return;
+	[value.binding.object release];
+	value.binding.object = [target weakRetain];
+	
+	if (target == nil)
+	{
+		isActiveBinding = NO;
+		return;
+	}
+	
+	if (OK)
+	{
+		if (![target respondsToSelector:value.binding.selector])
+		{
+			methodProblem = @"target does not respond to selector";
+			OK = NO;
+		}
+	}
+	
+	if (OK)
+	{
+		value.binding.method = [(id)target methodForSelector:value.binding.selector];
+		if (value.binding.method == NULL)
+		{
+			methodProblem = @"could not retrieve method implementation";
+			OK = NO;
+		}
+	}
+	
+	if (OK)
+	{
+		sig = [(id)target methodSignatureForSelector:value.binding.selector];
+		if (sig == nil)
+		{
+			methodProblem = @"could not retrieve method signature";
+			OK = NO;
+		}
+	}
+	
+	if (OK)
+	{
+		argCount = [sig numberOfArguments];
+		if (argCount != 2)	// "no-arguments" methods actually take two arguments, self and _msg.
+		{
+			methodProblem = @"only methods which do not require arguments may be bound to";
+			OK = NO;
+		}
+	}
+	
+	if (OK)
+	{
+		typeCode = [sig methodReturnType];
+		if (0 == strcmp("f", typeCode))  type = kOOShaderUniformTypeFloat;
+		else if (0 == strcmp("d", typeCode))  type = kOOShaderUniformTypeDouble;
+		else if (0 == strcmp("c", typeCode) || 0 == strcmp("C", typeCode))  type = kOOShaderUniformTypeChar;	// Signed or unsigned
+		else if (0 == strcmp("s", typeCode) || 0 == strcmp("S", typeCode))  type = kOOShaderUniformTypeShort;
+		else if (0 == strcmp("i", typeCode) || 0 == strcmp("I", typeCode))  type = kOOShaderUniformTypeInt;
+		else if (0 == strcmp("l", typeCode) || 0 == strcmp("L", typeCode))  type = kOOShaderUniformTypeLong;
+		else
+		{
+			methodProblem = [NSString stringWithFormat:@"unsupported type \"%s\"", typeCode];
+		}
+	}
+	
+	isActiveBinding = OK;
+	if (!OK)  OOLog(@"shader.uniform.bind.failed", @"Shader could not bind uniform \"%@\" to -[%@ %s] (%@).", name, [target class], value.binding.selector, methodProblem);
 }
 
 @end
@@ -403,12 +421,12 @@ OOINLINE BOOL ValidBindingType(OOShaderUniformType type)
 	
 	if (!fp)
 	{
-		if (EXPECT_NOT(value.binding.clamped))  iVal = iVal ? 1 : 0;
+		if (EXPECT_NOT(isClamped))  iVal = iVal ? 1 : 0;
 		glUniform1iARB(location, iVal);
 	}
 	else
 	{
-		if (EXPECT_NOT(value.binding.clamped))  fVal = OOClamp_0_1_f(fVal);
+		if (EXPECT_NOT(isClamped))  fVal = OOClamp_0_1_f(fVal);
 		glUniform1fARB(location, fVal);
 	}
 }

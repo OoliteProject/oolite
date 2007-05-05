@@ -120,6 +120,18 @@ static OOMaterial *sActiveMaterial = nil;
 	
 }
 
+
+- (void)setBindingTarget:(id<OOWeakReferenceSupport>)target
+{
+	
+}
+
+
+- (void)reloadTextures
+{
+	
+}
+
 @end
 
 
@@ -149,6 +161,10 @@ static OOMaterial *sActiveMaterial = nil;
 		{
 			result = [[OOSingleTextureMaterial alloc] initWithName:name configuration:configuration];
 		}
+		if (result == nil)
+		{
+			result = [[OOBasicMaterial alloc] initWithName:name];
+		}
 		[result autorelease];
 	}
 	
@@ -163,13 +179,13 @@ static OOMaterial *sActiveMaterial = nil;
 #ifndef NO_SHADERS
 	if ([[OOOpenGLExtensionManager sharedManager] shadersSupported])
 	{
-		configuration = [shadersDict dictionaryForKey:name defaultValue:nil];
+		configuration = [shadersDict dictionaryForKey:name];
 	}
 #endif
 	
 	if (configuration == nil)
 	{
-		configuration = [materialDict dictionaryForKey:name defaultValue:nil];
+		configuration = [materialDict dictionaryForKey:name];
 	}
 	
 	return [self materialWithName:name configuration:configuration macros:macros bindingTarget:object];
@@ -197,7 +213,7 @@ static OOMaterial *sActiveMaterial = nil;
 {
 	if (EXPECT_NOT(sActiveMaterial == self))
 	{
-		OOLog(@"shader.dealloc.imbalance", @"***** Material deallocated while active, indicating a retain/release imbalance. Expect imminent crash.");
+		OOLog(@"shader.dealloc.imbalance", @"***** Material deallocated while active, indicating a retain/release imbalance.");
 		[self unapplyWithNext:nil];
 		sActiveMaterial = nil;
 	}
