@@ -1053,72 +1053,78 @@ static PlayerEntity *sSharedPlayer = nil;
 }
 
 
-- (void) setUpShipFromDictionary:(NSDictionary *)dict
+- (void) setUpShipFromDictionary:(NSDictionary *)shipDict
 {
 	[shipinfoDictionary release];
-	shipinfoDictionary = [dict copy];
+	shipinfoDictionary = [shipDict copy];
 	
 	// set things from dictionary from here out
 	
-	max_flight_speed = [dict doubleForKey:@"max_flight_speed" defaultValue:160.0f];
-	max_flight_roll = [dict doubleForKey:@"max_flight_roll" defaultValue:2.0f];
-	max_flight_pitch = [dict doubleForKey:@"max_flight_pitch" defaultValue:1.0f];
-	max_flight_yaw = [dict doubleForKey:@"max_flight_yaw" defaultValue:max_flight_pitch];	// Note by default yaw == pitch
+	max_flight_speed = [shipDict doubleForKey:@"max_flight_speed" defaultValue:160.0f];
+	max_flight_roll = [shipDict doubleForKey:@"max_flight_roll" defaultValue:2.0f];
+	max_flight_pitch = [shipDict doubleForKey:@"max_flight_pitch" defaultValue:1.0f];
+	max_flight_yaw = [shipDict doubleForKey:@"max_flight_yaw" defaultValue:max_flight_pitch];	// Note by default yaw == pitch
 	
 	// set control factors..
 	roll_delta =		2.0 * max_flight_roll;
 	pitch_delta =		2.0 * max_flight_pitch;
 	yaw_delta =			2.0 * max_flight_yaw;
 	
-	if ([dict objectForKey:@"thrust"])
+	if ([shipDict objectForKey:@"thrust"])
 	{
-		thrust = [(NSNumber *)[dict objectForKey:@"thrust"] doubleValue];
+		thrust = [(NSNumber *)[shipDict objectForKey:@"thrust"] doubleValue];
 	}
 	
-	maxEnergy = [dict floatForKey:@"max_energy" defaultValue:maxEnergy];
-	energy_recharge_rate = [dict floatForKey:@"energy_recharge_rate" defaultValue:energy_recharge_rate];
+	maxEnergy = [shipDict floatForKey:@"max_energy" defaultValue:maxEnergy];
+	energy_recharge_rate = [shipDict floatForKey:@"energy_recharge_rate" defaultValue:energy_recharge_rate];
 	energy = maxEnergy;
 	
-	forward_weapon_type = StringToWeaponType([dict stringForKey:@"forward_weapon_type" defaultValue:@"WEAPON_NONE"]);
-	aft_weapon_type = StringToWeaponType([dict stringForKey:@"aft_weapon_type" defaultValue:@"WEAPON_NONE"]);
+	forward_weapon_type = StringToWeaponType([shipDict stringForKey:@"forward_weapon_type" defaultValue:@"WEAPON_NONE"]);
+	aft_weapon_type = StringToWeaponType([shipDict stringForKey:@"aft_weapon_type" defaultValue:@"WEAPON_NONE"]);
 	
-	missiles = [dict doubleForKey:@"missiles" defaultValue:0];
-	has_ecm = [dict fuzzyBooleanForKey:@"has_ecm" defaultValue:0.0];
-	has_scoop = [dict fuzzyBooleanForKey:@"has_scoop" defaultValue:0.0];
-	has_escape_pod = [dict fuzzyBooleanForKey:@"has_escape_pod" defaultValue:0.0];
+	missiles = [shipDict doubleForKey:@"missiles"];
+	has_ecm = [shipDict fuzzyBooleanForKey:@"has_ecm"];
+	has_scoop = [shipDict fuzzyBooleanForKey:@"has_scoop"];
+	has_escape_pod = [shipDict fuzzyBooleanForKey:@"has_escape_pod"];
 	
-	max_cargo = [dict intForKey:@"max_cargo" defaultValue:0];
-	extra_cargo = [dict intForKey:@"extra_cargo" defaultValue:15];
+	max_cargo = [shipDict intForKey:@"max_cargo"];
+	extra_cargo = [shipDict intForKey:@"extra_cargo" defaultValue:15];
 	
-	// A HACK!! - must do this before the model is set
-	isSmoothShaded = [dict boolForKey:@"smooth" defaultValue:NO];
+	// Load the model (must be before subentities)
+	NSString *modelName = [shipDict stringForKey:@"model"];
+	if (modelName != nil)
+	{
+		OOMesh *mesh = [OOMesh meshWithName:modelName
+						 materialDictionary:[shipDict dictionaryForKey:@"materials"]
+						  shadersDictionary:[shipDict dictionaryForKey:@"shaders"]
+									 smooth:[shipDict boolForKey:@"smooth" defaultValue:NO]
+							   shaderMacros:DefaultShipShaderMacros()
+						shaderBindingTarget:self];
+		[self setMesh:mesh];
+	}
 	
-	// must do this next one before checking subentities
-	NSString *modelName = [dict stringForKey:@"model" defaultValue:nil];
-	if (modelName != nil)  [self setModelName:modelName];
-	
-	float density = [dict floatForKey:@"density" defaultValue:1.0];
+	float density = [shipDict floatForKey:@"density" defaultValue:1.0];
 	if (octree)  mass = density * 20.0 * [octree volume];
 	
 	[name autorelease];
-	name = [[dict stringForKey:@"name" defaultValue:name] copy];
+	name = [[shipDict stringForKey:@"name" defaultValue:name] copy];
 	
 	[self setRoles:@"player"];
 	
-	OOColor *color = [OOColor brightColorWithDescription:[dict objectForKey:@"laser_color"]];
+	OOColor *color = [OOColor brightColorWithDescription:[shipDict objectForKey:@"laser_color"]];
 	if (color == nil)  color = [OOColor redColor];
 	[self setLaserColor:color];
 	
-	if ([dict objectForKey:@"extra_equipment"])
+	if ([shipDict objectForKey:@"extra_equipment"])
 	{
 		// Shouldn't we be doing this anyway? -- Ahruman
 		[extra_equipment removeAllObjects];
-		[extra_equipment addEntriesFromDictionary:[dict dictionaryForKey:@"extra_equipment" defaultValue:nil]];
+		[extra_equipment addEntriesFromDictionary:[shipDict dictionaryForKey:@"extra_equipment"]];
 	}
 	
-	max_missiles = [dict intForKey:@"max_missiles" defaultValue:missiles];
+	max_missiles = [shipDict intForKey:@"max_missiles" defaultValue:missiles];
 	
-	NSString *hud_desc = [dict stringForKey:@"hud" defaultValue:nil];
+	NSString *hud_desc = [shipDict stringForKey:@"hud"];
 	if (hud_desc != nil)
 	{
 		NSDictionary *huddict = [ResourceManager dictionaryFromFilesNamed:hud_desc inFolder:@"Config" andMerge:YES];
@@ -1149,123 +1155,114 @@ static PlayerEntity *sSharedPlayer = nil;
 	// set view offsets
 	[self setDefaultViewOffsets];
 	
-	ScanVectorFromString([dict objectForKey:@"view_position_forward"], &forwardViewOffset);
-	ScanVectorFromString([dict objectForKey:@"view_position_aft"], &aftViewOffset);
-	ScanVectorFromString([dict objectForKey:@"view_position_port"], &portViewOffset);
-	ScanVectorFromString([dict objectForKey:@"view_position_starboard"], &starboardViewOffset);
+	ScanVectorFromString([shipDict stringForKey:@"view_position_forward"], &forwardViewOffset);
+	ScanVectorFromString([shipDict stringForKey:@"view_position_aft"], &aftViewOffset);
+	ScanVectorFromString([shipDict stringForKey:@"view_position_port"], &portViewOffset);
+	ScanVectorFromString([shipDict stringForKey:@"view_position_starboard"], &starboardViewOffset);
 
-	if ([dict objectForKey:@"custom_views"])
+	if ([shipDict objectForKey:@"custom_views"])
 	{
-		NSObject*	obj = [dict objectForKey:@"custom_views"];
+		NSObject*	obj = [shipDict objectForKey:@"custom_views"];
 		if ([obj isKindOfClass:[NSArray class]])
 		{
 			[custom_views release];
 			custom_views = [[NSMutableArray arrayWithArray:(NSArray*)obj] retain];
 		}
 	}
-
+	
 	// set weapon offsets
 	[self setDefaultWeaponOffsets];
 	
-	ScanVectorFromString([dict objectForKey:@"weapon_position_forward"], &forwardWeaponOffset);
-	ScanVectorFromString([dict objectForKey:@"weapon_position_aft"], &aftWeaponOffset);
-	ScanVectorFromString([dict objectForKey:@"weapon_position_port"], &portWeaponOffset);
-	ScanVectorFromString([dict objectForKey:@"weapon_position_starboard"], &starboardWeaponOffset);
-
+	ScanVectorFromString([shipDict stringForKey:@"weapon_position_forward"], &forwardWeaponOffset);
+	ScanVectorFromString([shipDict stringForKey:@"weapon_position_aft"], &aftWeaponOffset);
+	ScanVectorFromString([shipDict stringForKey:@"weapon_position_port"], &portWeaponOffset);
+	ScanVectorFromString([shipDict stringForKey:@"weapon_position_starboard"], &starboardWeaponOffset);
+	
 	// fuel scoop destination position (where cargo gets sucked into)
 	tractor_position = kZeroVector;
-	ScanVectorFromString([dict objectForKey:@"scoop_position"], &tractor_position);
+	ScanVectorFromString([shipDict stringForKey:@"scoop_position"], &tractor_position);
 	
 	[sub_entities release];
 	sub_entities = nil;
 
 	// exhaust plumes
-	if ([dict objectForKey:@"exhaust"])
+	NSArray *plumes = [shipDict arrayForKey:@"exhaust"];
+	for (i = 0; i < [plumes count]; i++)
 	{
-		int i;
-		NSArray *plumes = (NSArray *)[dict objectForKey:@"exhaust"];
-		for (i = 0; i < [plumes count]; i++)
-		{
-			ParticleEntity *exhaust = [[ParticleEntity alloc] initExhaustFromShip:self details:(NSString *)[plumes objectAtIndex:i]];
-			[self addExhaust:exhaust];
-			[exhaust release];
-		}
+		ParticleEntity *exhaust = [[ParticleEntity alloc] initExhaustFromShip:self details:[plumes objectAtIndex:i]];
+		[self addExhaust:exhaust];
+		[exhaust release];
 	}
-
+	
 	// other subentities
-	if ([dict objectForKey:@"subentities"])
+	NSArray *subs = [shipDict arrayForKey:@"subentities"];
+	for (i = 0; i < [subs count]; i++)
 	{
-		if (UNIVERSE)
+		NSArray *details = ScanTokensFromString([subs objectAtIndex:i]);
+
+		if ([details count] == 8)
 		{
-			int i;
-			NSArray *subs = (NSArray *)[dict objectForKey:@"subentities"];
-			for (i = 0; i < [subs count]; i++)
+			Vector sub_pos, ref;
+			Quaternion sub_q;
+			Entity* subent;
+			NSString* subdesc = (NSString *)[details objectAtIndex:0];
+			sub_pos.x = [(NSString *)[details objectAtIndex:1] floatValue];
+			sub_pos.y = [(NSString *)[details objectAtIndex:2] floatValue];
+			sub_pos.z = [(NSString *)[details objectAtIndex:3] floatValue];
+			sub_q.w = [(NSString *)[details objectAtIndex:4] floatValue];
+			sub_q.x = [(NSString *)[details objectAtIndex:5] floatValue];
+			sub_q.y = [(NSString *)[details objectAtIndex:6] floatValue];
+			sub_q.z = [(NSString *)[details objectAtIndex:7] floatValue];
+
+			if ([subdesc isEqual:@"*FLASHER*"])
 			{
-				NSArray* details = ScanTokensFromString([subs objectAtIndex:i]);
-
-				if ([details count] == 8)
-				{
-					Vector sub_pos, ref;
-					Quaternion sub_q;
-					Entity* subent;
-					NSString* subdesc = (NSString *)[details objectAtIndex:0];
-					sub_pos.x = [(NSString *)[details objectAtIndex:1] floatValue];
-					sub_pos.y = [(NSString *)[details objectAtIndex:2] floatValue];
-					sub_pos.z = [(NSString *)[details objectAtIndex:3] floatValue];
-					sub_q.w = [(NSString *)[details objectAtIndex:4] floatValue];
-					sub_q.x = [(NSString *)[details objectAtIndex:5] floatValue];
-					sub_q.y = [(NSString *)[details objectAtIndex:6] floatValue];
-					sub_q.z = [(NSString *)[details objectAtIndex:7] floatValue];
-
-					if ([subdesc isEqual:@"*FLASHER*"])
-					{
-						subent = [[ParticleEntity alloc] init];	// retained
-						[(ParticleEntity*)subent setColor:[OOColor colorWithCalibratedHue: sub_q.w/360.0 saturation:1.0 brightness:1.0 alpha:1.0]];
-						[(ParticleEntity*)subent setDuration: sub_q.x];
-						[(ParticleEntity*)subent setEnergy: 2.0 * sub_q.y];
-						[(ParticleEntity*)subent setSize:NSMakeSize( sub_q.z, sub_q.z)];
-						[(ParticleEntity*)subent setParticleType:PARTICLE_FLASHER];
-						[(ParticleEntity*)subent setStatus:STATUS_EFFECT];
-						[(ParticleEntity*)subent setPosition:sub_pos];
-					}
-					else
-					{
-						quaternion_normalize(&sub_q);
-
-						subent = [UNIVERSE newShipWithName:subdesc];	// retained
-
-						if (subent)
-						{
-							[(ShipEntity*)subent setStatus:STATUS_INACTIVE];
-							
-							ref = vector_forward_from_quaternion(sub_q);	// VECTOR FORWARD
-							
-							[(ShipEntity*)subent setReference: ref];
-							[(ShipEntity*)subent setPosition: sub_pos];
-							[(ShipEntity*)subent setQRotation: sub_q];
-							
-							if ([[(ShipEntity*)subent roles] isEqual:@"docking-slit"])
-								[subent setStatus:STATUS_EFFECT];			// hack keeps docking slit visible when at reduced detail
-							else
-								[self addSolidSubentityToCollisionRadius:(ShipEntity*)subent];	// hack - ignore docking-slit for collision radius
-						}
-						
-					}
-					if (sub_entities == nil)
-						sub_entities = [[NSArray arrayWithObject:subent] retain];
-					else
-					{
-						NSMutableArray *temp = [NSMutableArray arrayWithArray:sub_entities];
-						[temp addObject:subent];
-						[sub_entities release];
-						sub_entities = [[NSArray arrayWithArray:temp] retain];
-					}
-
-					[subent setOwner: self];
-
-					[subent release];
-				}
+				subent = [[ParticleEntity alloc] init];	// retained
+				[(ParticleEntity*)subent setColor:[OOColor colorWithCalibratedHue: sub_q.w/360.0 saturation:1.0 brightness:1.0 alpha:1.0]];
+				[(ParticleEntity*)subent setDuration: sub_q.x];
+				[(ParticleEntity*)subent setEnergy: 2.0 * sub_q.y];
+				[(ParticleEntity*)subent setSize:NSMakeSize( sub_q.z, sub_q.z)];
+				[(ParticleEntity*)subent setParticleType:PARTICLE_FLASHER];
+				[(ParticleEntity*)subent setStatus:STATUS_EFFECT];
+				[(ParticleEntity*)subent setPosition:sub_pos];
 			}
+			else
+			{
+				quaternion_normalize(&sub_q);
+
+				subent = [UNIVERSE newShipWithName:subdesc];	// retained
+
+				if ((self->isStation)&&([subdesc rangeOfString:@"dock"].location != NSNotFound))
+					[(StationEntity*)self setDockingPortModel:(ShipEntity*)subent :sub_pos :sub_q];
+
+				if (subent)
+				{
+					[(ShipEntity*)subent setStatus:STATUS_INACTIVE];
+					//
+					ref = vector_forward_from_quaternion(sub_q);	// VECTOR FORWARD
+					//
+					[(ShipEntity*)subent setReference: ref];
+					[(ShipEntity*)subent setPosition: sub_pos];
+					[(ShipEntity*)subent setQRotation: sub_q];
+					//
+					[self addSolidSubentityToCollisionRadius:(ShipEntity*)subent];
+					//
+					subent->isSubentity = YES;
+				}
+				//
+			}
+			if (sub_entities == nil)
+				sub_entities = [[NSArray arrayWithObject:subent] retain];
+			else
+			{
+				NSMutableArray *temp = [NSMutableArray arrayWithArray:sub_entities];
+				[temp addObject:subent];
+				[sub_entities release];
+				sub_entities = [[NSArray arrayWithArray:temp] retain];
+			}
+
+			[subent setOwner: self];
+
+			[subent release];
 		}
 	}
 }
@@ -1889,10 +1886,11 @@ double scoopSoundPlayTime = 0.0;
 		if ([self getPrimaryTarget])
 		{
 			// restore player ship
-			ShipEntity *player_ship = [UNIVERSE newShipWithName: ship_desc];	// retained
+			ShipEntity *player_ship = [UNIVERSE newShipWithName:ship_desc];	// retained
 			if (player_ship)
 			{
-				[self setModelName:[player_ship modelName]];
+				// FIXME: this should use OOShipType, which should exist. -- Ahruman
+				[self setMesh:[player_ship mesh]];
 				[player_ship release];						// we only wanted it for its polygons!
 			}
 			[UNIVERSE setViewDirection:VIEW_FORWARD];
@@ -3251,7 +3249,14 @@ double scoopSoundPlayTime = 0.0;
 	}
 
 	// set up you
-	[self setModelName:@"escpod_redux.dat"];				// look right to anyone else (for multiplayer later)
+	ShipEntity *escapePod = [UNIVERSE newShipWithName:@"escpod_redux.dat"];	// retained
+	if (escapePod)
+	{
+		// FIXME: this should use OOShipType, which should exist. -- Ahruman
+		[self setMesh:[escapePod mesh]];
+		[escapePod release];
+	}
+	
 	[UNIVERSE setViewDirection:VIEW_FORWARD];
 	flight_speed = 1.0;
 	flight_pitch = 0.2 * (randf() - 0.5);
@@ -3959,14 +3964,11 @@ double scoopSoundPlayTime = 0.0;
 	// GUI stuff
 	{
 		GuiDisplayGen* gui = [UNIVERSE gui];
-		int equip_row = 10;
 		int tab_stops[GUI_MAX_COLUMNS];
 		tab_stops[0] = 20;
 		tab_stops[1] = 160;
 		tab_stops[2] = 256;
 		[gui setTabStops:tab_stops];
-
-		NSArray*	gear = [self equipmentList];
 
 		int legal_index = 0;
 		if (legal_status != 0)
@@ -4000,6 +4002,8 @@ double scoopSoundPlayTime = 0.0;
 		// Nikos - Block of code below ifdef'd out, since now we use drawString for equipment list
 		//---------------------------------------------------------------------------------------------------------
 #if 0
+		int equip_row = 10;
+		NSArray*	gear = [self equipmentList];
 		int i = 0;
 		int n_equip_rows = 5;
 		while ([gear count] > n_equip_rows * 2)	// make room for larger numbers of items
@@ -5975,7 +5979,7 @@ OOSound* burnersound;
 	while ([trumbleDigrams length] < PLAYER_MAX_TRUMBLES + 2)
 	{
 		if ((player_name)&&[player_name length])
-			[trumbleDigrams appendFormat:@"%@%@", player_name, basefile];
+			[trumbleDigrams appendFormat:@"%@%@", player_name, [[self mesh] modelName]];
 		else
 			[trumbleDigrams appendString:@"Some Random Text!"];
 	}
