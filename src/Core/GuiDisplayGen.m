@@ -706,6 +706,51 @@ MA 02110-1301, USA.
 	}
 }
 
+- (void) drawEqptList: (NSArray *)eqptList
+{
+	int 		eqpt_items_per_column = 12;	// Default value.
+	int i;
+	
+	if (eqptList == nil) return;	
+	
+	int		equipment_list_items_count = [eqptList count];
+	
+	// Nikos - Draw the equipment list.
+	// How it works: By default we have two columns of 12 items each, for a total of 24. If the player has
+	// acquired more than 24 equipment items, the total number of items in the player's posession is checked
+	// for oddness/evenness. If it is odd (e.g. for 25 items), then the number of items per column becomes
+	// the total number of inventory items over 2 plus 1. If it is even, then number of items per column will
+	// be total number of inventory items over 2. So, for example, in the case of 25 or 26 inventory items,
+	// this will create two columns, each capable of holding 13 items. For 27 or 28 items, we will have two
+	// columns of capacity 14 each. This approach was chosen because it simulates the original equipment list
+	// behavior best.
+	
+	if (equipment_list_items_count > eqpt_items_per_column * 2)
+	{
+		eqpt_items_per_column = (equipment_list_items_count % 2 == 1) ? 
+						(equipment_list_items_count / 2) + 1 :
+						 equipment_list_items_count / 2;
+	}
+	
+	for (i=0; i < equipment_list_items_count; i++)
+	{
+		// Damaged items in the equipment list appear in orange color.
+		BOOL is_eqpt_damaged = [[eqptList objectAtIndex:i] hasSuffix:@"(N/A)"];
+		if (is_eqpt_damaged == YES) glColor4f (1.0, 0.5, 0.0, 1.0);
+		
+		if (i < eqpt_items_per_column)
+		{
+			drawString ([eqptList objectAtIndex:i], -220, 40 - (15 * i), 640, NSMakeSize(15,15));
+		}
+		else
+		{
+			drawString ([eqptList objectAtIndex:i], 50, 40 - (15 * (i - eqpt_items_per_column)), 640, NSMakeSize(15,15));
+		}
+		glColor4f (1.0, 1.0, 0.0, 1.0);		// Reset text color to yellow.
+	}
+}
+
+
 - (int) drawGUI:(GLfloat) alpha drawCursor:(BOOL) drawCursor
 {
 	GLfloat z1 = [[UNIVERSE gameView] display_z];
@@ -724,6 +769,10 @@ MA 02110-1301, USA.
 			if ([player gui_screen] == GUI_SCREEN_LONG_RANGE_CHART)
 			{
 				[self drawGalaxyChart:drawPosition.x - 0.5 * size_in_pixels.width :drawPosition.y - 0.5 * size_in_pixels.height :z1 :alpha];
+			}
+			if ([player gui_screen] == GUI_SCREEN_STATUS)
+			{
+				[self drawEqptList:[player equipmentList]];
 			}
 		}
 		
@@ -796,6 +845,10 @@ MA 02110-1301, USA.
 			{
 				[self drawGalaxyChart:x - 0.5 * size_in_pixels.width :y - 0.5 * size_in_pixels.height :z :alpha];
 			}
+			if ([player gui_screen] == GUI_SCREEN_STATUS)
+			{
+				[self drawEqptList:[player equipmentList]];
+			}
 		}
 		
 		if (fade_sign)
@@ -864,6 +917,10 @@ MA 02110-1301, USA.
 		if ([player gui_screen] == GUI_SCREEN_LONG_RANGE_CHART)
 		{
 			[self drawGalaxyChart:x - 0.5 * size_in_pixels.width :y - 0.5 * size_in_pixels.height :z :alpha];
+		}
+		if ([player gui_screen] == GUI_SCREEN_STATUS)
+		{
+			[self drawEqptList:[player equipmentList]];
 		}
 	}
 	

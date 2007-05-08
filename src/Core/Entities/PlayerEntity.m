@@ -43,6 +43,7 @@ MA 02110-1301, USA.
 #import "PlayerEntityLoadSave.h"
 #import "OOSound.h"
 #import "OOColor.h"
+#import "Octree.h"
 #import "OOCacheManager.h"
 #import "OOStringParsing.h"
 #import "OOPListParsing.h"
@@ -3996,6 +3997,9 @@ double scoopSoundPlayTime = 0.0;
 		
 		[gui setText:[descriptions objectForKey:@"status-equipment"] forRow:9];
 
+		// Nikos - Block of code below ifdef'd out, since now we use drawString for equipment list
+		//---------------------------------------------------------------------------------------------------------
+#if 0
 		int i = 0;
 		int n_equip_rows = 5;
 		while ([gear count] > n_equip_rows * 2)	// make room for larger numbers of items
@@ -4017,7 +4021,9 @@ double scoopSoundPlayTime = 0.0;
 				[row_info addObject:@""];
 			[gui setArray:(NSArray *)row_info forRow:equip_row + i];
 		}
-
+#endif
+		//---------------------------------------------------------------------------------------------------------
+		// Nikos - End commented out block.
 
 		[gui setShowTextCursor:NO];
 
@@ -4075,8 +4081,14 @@ double scoopSoundPlayTime = 0.0;
 	for (i =0; i < [equipmentinfo count]; i++)
 	{
 		NSString *w_key = (NSString *)[(NSArray *)[equipmentinfo objectAtIndex:i] objectAtIndex:EQUIPMENT_KEY_INDEX];
+		NSString *w_key_damaged	= [NSString stringWithFormat:@"%@_DAMAGED", w_key];
 		if ([self has_extra_equipment:w_key])
 			[quip addObject:(NSString *)[(NSArray *)[equipmentinfo objectAtIndex:i] objectAtIndex:EQUIPMENT_SHORT_DESC_INDEX]];
+		if (![UNIVERSE strict])
+		{
+			if ([self has_extra_equipment:w_key_damaged])
+				[quip addObject:(NSString *)[[(NSArray *)[equipmentinfo objectAtIndex:i] objectAtIndex:EQUIPMENT_SHORT_DESC_INDEX] stringByAppendingString:@" (N/A)"]];
+		}
 	}
 
 	if (forward_weapon > 0)
