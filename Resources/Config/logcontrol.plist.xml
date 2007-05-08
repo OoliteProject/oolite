@@ -70,8 +70,6 @@
 	<string>$dataCacheStatus</string>
 	<key>dataCache.rebuild.datesChanged</key>
 	<string>inherit</string>
-	<key>dataCache.rebuild.octree</key>
-	<string>no</string>
 	<key>dataCache.rebuild.pathsChanged</key>
 	<string>inherit</string>
 	<key>dataCache.remove.success</key>
@@ -88,8 +86,6 @@
 	<string>$dataCacheDebug</string>
 	<key>dataCache.upToDate</key>
 	<string>$dataCacheStatus</string>
-	<key>dataCache.willWrite</key>
-	<string>no</string>
 	<key>dataCache.write.buildPath.failed</key>
 	<string>$dataCacheError</string>
 	<key>dataCache.write.failed</key>

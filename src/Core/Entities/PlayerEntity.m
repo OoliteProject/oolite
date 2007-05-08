@@ -997,7 +997,8 @@ static PlayerEntity *sSharedPlayer = nil;
 	for (i = 0; i < missiles; i++)
 	{
 		[missile_entity[i] release];
-		missile_entity[i] = [UNIVERSE newShipWithRole:@"EQ_MISSILE"];   // retain count = 1
+	//	missile_entity[i] = [UNIVERSE newShipWithRole:@"EQ_MISSILE"];   // retain count = 1
+		missile_entity[i] = nil;
 	}
 	[self safe_all_missiles];
 	

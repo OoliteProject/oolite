@@ -454,13 +454,13 @@ static	Vector	circleVertex[65];		// holds vector coordinates for a unit circle
 	[self initialiseTexture: textureNameString];
 	size = NSMakeSize(32.0,32.0);
 	//
-	n_vertices = n_fragments;
+	vertexCount = n_fragments;
     time_counter = 0.0;
 	duration = 1.5;
 	position = fragPos;
 	[self setColor:[OOColor yellowColor]];
 	//
-	for (i = 0 ; i < n_vertices; i++)
+	for (i = 0 ; i < vertexCount; i++)
 	{
 		int speed = (ranrot_rand() % (speed_high - speed_low)) + speed_low;
 		vertices[i] = kZeroVector;							// position
@@ -506,7 +506,7 @@ static	Vector	circleVertex[65];		// holds vector coordinates for a unit circle
 	[self initialiseTexture: textureNameString];
 	size = NSMakeSize( fragSize, fragSize);
 	//
-	n_vertices = n_fragments;
+	vertexCount = n_fragments;
     time_counter = 0.0;
 	duration = 1.5;
 	position = fragPos;
@@ -559,12 +559,12 @@ static	Vector	circleVertex[65];		// holds vector coordinates for a unit circle
 	[self initialiseTexture: textureNameString];
 	size = NSMakeSize(32.0,32.0);
 	//
-	n_vertices = n_fragments;
+	vertexCount = n_fragments;
     time_counter = 0.0;
 	duration = 1.5;
 	position = fragPos;
 	//
-	for (i = 0 ; i < n_vertices; i++)
+	for (i = 0 ; i < vertexCount; i++)
 	{
 		int speed = speed_low + ranrot_rand() % (speed_high - speed_low);
 		vertices[i] = kZeroVector;
@@ -607,7 +607,7 @@ static	Vector	circleVertex[65];		// holds vector coordinates for a unit circle
 	[self initialiseTexture: textureNameString];
 	size = NSMakeSize( burstSize, burstSize);
 	//
-	n_vertices = n_fragments;
+	vertexCount = n_fragments;
     time_counter = 0.0;
 	duration = 1.0;
 	position = fragPos;
@@ -1212,7 +1212,7 @@ static	Vector	circleVertex[65];		// holds vector coordinates for a unit circle
 {
 	int i;
 	//
-	for (i = 0 ; i < n_vertices; i++)
+	for (i = 0 ; i < vertexCount; i++)
 	{
 		GLfloat du = 0.5 + 0.03125 * (32 - i);
 		GLfloat alf = 1.0 - time_counter / du;
@@ -1234,8 +1234,8 @@ static	Vector	circleVertex[65];		// holds vector coordinates for a unit circle
 	int i;
 	size.width = (1.0 + time_counter) * size.height;	// current size vs starting size
 	//
-	GLfloat di = 1.0 / (n_vertices - 1);
-	for (i = 0 ; i < n_vertices; i++)
+	GLfloat di = 1.0 / (vertexCount - 1);
+	for (i = 0 ; i < vertexCount; i++)
 	{
 		GLfloat du = duration * (0.5 + di * i);
 		GLfloat alf = 1.0 - time_counter / du;
@@ -1930,7 +1930,7 @@ GLuint tfan2[10] = {	33,	25,	26,	27,	28,	29,	30,	31,	32,	25};	// final fan 64..7
 	BeginAdditiveBlending();
 
 	glBegin(GL_QUADS);
-	for (i = 0; i < n_vertices; i++)
+	for (i = 0; i < vertexCount; i++)
 	{
 		glColor4f( faces[i].red, faces[i].green, faces[i].blue, faces[i].normal.z);
 		DrawQuadForView(vertices[i].x, vertices[i].y, vertices[i].z, faces[i].normal.x, faces[i].normal.x);
@@ -1955,7 +1955,7 @@ GLuint tfan2[10] = {	33,	25,	26,	27,	28,	29,	30,	31,	32,	25};	// final fan 64..7
 	BeginAdditiveBlending();
 
 	glBegin(GL_QUADS);
-	for (i = 0; i < n_vertices; i++)
+	for (i = 0; i < vertexCount; i++)
 	{
 		glColor4f( faces[i].red, faces[i].green, faces[i].blue, faces[i].normal.z);
 		DrawQuadForView(vertices[i].x, vertices[i].y, vertices[i].z, size.width, size.width);

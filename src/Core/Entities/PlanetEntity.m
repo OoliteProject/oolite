@@ -110,7 +110,7 @@ void setUpSinTable()
 	ranrot_srand(planet_seed);
 	percent_land = (ranrot_rand() % 50);
 	
-	for (i = 0; i < n_vertices; i++)
+	for (i = 0; i < vertexCount; i++)
 	{
 		if (ranrot_rand() % 100 < percent_land)  r_seed[i] = 0;  // land
 		else  r_seed[i] = 1;  // sea
@@ -470,7 +470,7 @@ void setUpSinTable()
 	// save the current random number generator seed
 	RNG_Seed saved_seed = currentRandomSeed();
 	
-	for (i = 0; i < n_vertices; i++)
+	for (i = 0; i < vertexCount; i++)
 	{
 		if (gen_rnd_number() < 256 * percent_land / 100)
 			r_seed[i] = 0;  // land
@@ -636,7 +636,7 @@ void setUpSinTable()
 	[self initialiseBaseVertexArray];
 	
 	int* planet_r_seed = [planet r_seed];
-	for (i = 0; i < n_vertices; i++)
+	for (i = 0; i < vertexCount; i++)
 		r_seed[i] = planet_r_seed[i];  // land or sea
 	[self initialiseBaseTerrainArray: -1];	// use the vertices we just set up
 	
@@ -759,7 +759,7 @@ void setUpSinTable()
 	// save the current random number generator seed
 	RNG_Seed saved_seed = currentRandomSeed();
 	
-	for (i = 0; i < n_vertices; i++)
+	for (i = 0; i < vertexCount; i++)
 	{
 		if (gen_rnd_number() < 256 * percent_land / 100)
 			r_seed[i] = 0;  // land
@@ -929,7 +929,7 @@ void setUpSinTable()
 	// save the current random number generator seed
 	RNG_Seed saved_seed = currentRandomSeed();
 	
-	for (i = 0; i < n_vertices; i++)
+	for (i = 0; i < vertexCount; i++)
 	{
 		if (gen_rnd_number() < 256 * percent_land / 100)
 			r_seed[i] = 0;  // land
@@ -1773,7 +1773,7 @@ void drawActiveCorona (double inner_radius, double outer_radius, int step, doubl
     int i;
 	Vector  vert;
 
-    for (i = 0; i < n_vertices; i++)
+    for (i = 0; i < vertexCount; i++)
     {
 		vert = vertices[i];			// not guaranteed non-zero
         if ((vert.x == 0.0)&&(vert.y == 0.0)&&(vert.z == 0.0))
@@ -1870,14 +1870,14 @@ static BOOL last_one_was_textured;
 		//
 		// set first 12 or 14 vertices
 		//
-		for (vi = 0; vi < n_vertices; vi++)
+		for (vi = 0; vi < vertexCount; vi++)
 			base_vertex_array[next_free_vertex++] =  vertices[vi];
 		//
 		// set first 20 triangles
 		//
 		triangle_start[0] = 0;
-		n_triangles[0] = n_faces;
-		for (fi = 0; fi < n_faces; fi++)
+		n_triangles[0] = faceCount;
+		for (fi = 0; fi < faceCount; fi++)
 		{
 			vertex_index_array[fi * 3 + 0] = faces[fi].vertex[0];
 			vertex_index_array[fi * 3 + 1] = faces[fi].vertex[1];
@@ -1991,7 +1991,7 @@ int baseVertexIndexForEdge(int va, int vb, BOOL textured)
 	// set first 12 or 14 vertices
 	if (percent_land >= 0)
 	{
-		for (vi = 0; vi < n_vertices; vi++)
+		for (vi = 0; vi < vertexCount; vi++)
 		{
 			if (gen_rnd_number() < 256 * percent_land / 100)
 				base_terrain_array[vi] = 0;  // land

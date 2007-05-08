@@ -140,6 +140,8 @@ static BOOL CacheRemoveOldest(OOCacheImpl *cache);
 static id CacheRetrieve(OOCacheImpl *cache, id key);
 static unsigned CacheGetCount(OOCacheImpl *cache);
 static NSArray *CacheArrayOfNodesByAge(OOCacheImpl *cache);
+static NSString *CacheGetName(OOCacheImpl *cache);
+static void CacheSetName(OOCacheImpl *cache, NSString *name);
 
 #if OOCACHE_PERFORM_INTEGRITY_CHECKS
 	static void CacheCheckIntegrity(OOCacheImpl *cache, NSString *context);
@@ -171,7 +173,7 @@ static NSArray *CacheArrayOfNodesByAge(OOCacheImpl *cache);
 
 - (NSString *)description
 {
-	return [NSString stringWithFormat:@"<%@ %p>{%u elements, prune threshold=%u, dirty=%s}", [self class], self, CacheGetCount(cache), pruneThreshold, dirty ? "yes" : "no"];
+	return [NSString stringWithFormat:@"<%@ %p>{\"%@\", %u elements, prune threshold=%u, auto-prune=%s dirty=%s}", [self class], self, [self name], CacheGetCount(cache), pruneThreshold, autoPrune ? "yes" : "no", dirty ? "yes" : "no"];
 }
 
 
@@ -301,11 +303,11 @@ static NSArray *CacheArrayOfNodesByAge(OOCacheImpl *cache);
 	if (autoPrune)  desiredCount = (pruneThreshold * 4) / 5;
 	else  desiredCount = pruneThreshold;
 	
-	if (pruneThreshold == kOOCacheNoPrune || CacheGetCount(cache) < desiredCount)  return;
+	if (pruneThreshold == kOOCacheNoPrune || CacheGetCount(cache) <= desiredCount)  return;
 	
 	pruneCount = pruneThreshold - desiredCount;
 	
-	OOLog(kOOLogCachePrune, @"Pruning cache - removing %u entries", pruneCount);
+	OOLog(kOOLogCachePrune, @"Pruning cache \"%@\" - removing %u entries", CacheGetName(cache), pruneCount);
 	OOLogIndentIf(kOOLogCachePrune);
 	
 	while (pruneCount--)  CacheRemoveOldest(cache);
@@ -323,6 +325,18 @@ static NSArray *CacheArrayOfNodesByAge(OOCacheImpl *cache);
 - (void)markClean
 {
 	dirty = NO;
+}
+
+
+- (NSString *)name
+{
+	return CacheGetName(cache);
+}
+
+
+- (void)setName:(NSString *)name
+{
+	CacheSetName(cache, name);
 }
 
 @end
@@ -367,6 +381,7 @@ struct OOCacheImpl
 	OOCacheNode				*oldest, *youngest;
 	
 	unsigned				count;
+	NSString				*name;
 };
 
 
@@ -421,6 +436,7 @@ static void CacheFree(OOCacheImpl *cache)
 	if (cache == NULL) return;
 	
 	CacheNodeFree(cache, cache->root);
+	[cache->name autorelease];
 	free(cache);
 }
 
@@ -474,7 +490,7 @@ static BOOL CacheRemoveOldest(OOCacheImpl *cache)
 	// This could be more efficient, but does it need to be?
 	if (cache == NULL || cache->oldest == NULL) return NO;
 	
-	OOLog(kOOLogCachePrune, @"Pruning cache: removing %@", cache->oldest->key);
+	OOLog(kOOLogCachePrune, @"Pruning cache \"%@\": removing %@", cache->name, cache->oldest->key);
 	return CacheRemove(cache, cache->oldest->key);
 }
 
@@ -517,6 +533,19 @@ static NSArray *CacheArrayOfNodesByAge(OOCacheImpl *cache)
 }
 
 
+static NSString *CacheGetName(OOCacheImpl *cache)
+{
+	return cache->name;
+}
+
+
+static void CacheSetName(OOCacheImpl *cache, NSString *name)
+{
+	[cache->name autorelease];
+	cache->name = [name copy];
+}
+
+
 static unsigned CacheGetCount(OOCacheImpl *cache)
 {
 	return cache->count;
@@ -534,7 +563,7 @@ static void CacheCheckIntegrity(OOCacheImpl *cache, NSString *context)
 	if (kCountUnknown == cache->count)  cache->count = trueCount;
 	else if (cache->count != trueCount)
 	{
-		OOLog(kOOLogCacheIntegrityCheck, @"Count is %u, but should be %u.", cache->count, trueCount);
+		OOLog(kOOLogCacheIntegrityCheck, @"Integrity check (%@ for \"%@\"): count is %u, but should be %u.", context, cache->name, cache->count, trueCount);
 		cache->count = trueCount;
 	}
 	
@@ -738,7 +767,7 @@ static OOCacheNode *TreeInsert(OOCacheImpl *cache, id key, id value)
 			else
 			{
 				// Key already exists, which we should have caught above
-				OOLog(@"dataCache.inconsistency", @"%s() internal inconsistency, insertion failed.", __FUNCTION__);
+				OOLog(@"dataCache.inconsistency", @"%s() internal inconsistency for cache \"%@\", insertion failed.", __FUNCTION__, cache->name);
 				CacheNodeFree(cache, node);
 				return NULL;
 			}
@@ -767,13 +796,13 @@ static OOCacheNode *TreeCheckIntegrity(OOCacheImpl *cache, OOCacheNode *node, OO
 	
 	if (OK && node->key == nil)
 	{
-		OOLog(kOOLogCacheIntegrityCheck, @"Integrity check (%@): node %@ has nil key; deleting subtree.", context, CacheNodeGetDescription(node));
+		OOLog(kOOLogCacheIntegrityCheck, @"Integrity check (%@ for \"%@\"): node %@ has nil key; deleting subtree.", context, cache->name, CacheNodeGetDescription(node));
 		OK = NO;
 	}
 	
 	if (OK && node->value == nil)
 	{
-		OOLog(kOOLogCacheIntegrityCheck, @"Integrity check (%@): node %@ has nil value, deleting.", context, CacheNodeGetDescription(node));
+		OOLog(kOOLogCacheIntegrityCheck, @"Integrity check (%@ for \"%@\"): node %@ has nil value, deleting.", context, cache->name, CacheNodeGetDescription(node));
 		OK = NO;
 	}	
 	if (OK && node->leftChild != NULL)
@@ -781,7 +810,7 @@ static OOCacheNode *TreeCheckIntegrity(OOCacheImpl *cache, OOCacheNode *node, OO
 		order = [node->key compare:node->leftChild->key];
 		if (order != NSOrderedDescending)
 		{
-			OOLog(kOOLogCacheIntegrityCheck, @"Integrity check (%@): node %@'s left child %@ is not correctly ordered. Deleting subtree.", context, CacheNodeGetDescription(node), CacheNodeGetDescription(node->leftChild));
+			OOLog(kOOLogCacheIntegrityCheck, @"Integrity check (%@ for \"%@\"): node %@'s left child %@ is not correctly ordered. Deleting subtree.", context, cache->name, CacheNodeGetDescription(node), CacheNodeGetDescription(node->leftChild));
 			CacheNodeFree(cache, node->leftChild);
 			node->leftChild = nil;
 			cache->count = kCountUnknown;
@@ -796,7 +825,7 @@ static OOCacheNode *TreeCheckIntegrity(OOCacheImpl *cache, OOCacheNode *node, OO
 		order = [node->key compare:node->rightChild->key];
 		if (order != NSOrderedAscending)
 		{
-			OOLog(kOOLogCacheIntegrityCheck, @"Integrity check (%@): node %@'s right child %@ is not correctly ordered. Deleting subtree.", context, CacheNodeGetDescription(node), CacheNodeGetDescription(node->rightChild));
+			OOLog(kOOLogCacheIntegrityCheck, @"Integrity check (%@ for \"%@\"): node %@'s right child %@ is not correctly ordered. Deleting subtree.", context, cache->name, CacheNodeGetDescription(node), CacheNodeGetDescription(node->rightChild));
 			CacheNodeFree(cache, node->rightChild);
 			node->rightChild = nil;
 			cache->count = kCountUnknown;
@@ -874,7 +903,7 @@ static void AgeListCheckIntegrity(OOCacheImpl *cache, NSString *context)
 		
 		if (next->younger != node)
 		{
-			OOLog(kOOLogCacheIntegrityCheck, @"Integrity check (%@): node %@ has invalid older link (should be %@, is %@); repairing.", context, CacheNodeGetDescription(next), CacheNodeGetDescription(node), CacheNodeGetDescription(next->older));
+			OOLog(kOOLogCacheIntegrityCheck, @"Integrity check (%@ for \"%@\"): node %@ has invalid older link (should be %@, is %@); repairing.", context, cache->name, CacheNodeGetDescription(next), CacheNodeGetDescription(node), CacheNodeGetDescription(next->older));
 			next->older = node;
 		}
 		node = next;
@@ -883,7 +912,7 @@ static void AgeListCheckIntegrity(OOCacheImpl *cache, NSString *context)
 	if (seenCount != cache->count)
 	{
 		// This is especially bad since this function is called just after verifying that the count field reflects the number of objects in the tree.
-		OOLog(kOOLogCacheIntegrityCheck, @"Integrity check (%@): expected %u nodes, found %u. Cannot repair; clearing cache.", context, cache->count, seenCount);
+		OOLog(kOOLogCacheIntegrityCheck, @"Integrity check (%@ for \"%@\"): expected %u nodes, found %u. Cannot repair; clearing cache.", context, cache->name, cache->count, seenCount);
 		cache->count = 0;
 		CacheNodeFree(cache, cache->root);
 		cache->root = NULL;
@@ -894,7 +923,7 @@ static void AgeListCheckIntegrity(OOCacheImpl *cache, NSString *context)
 	
 	if (node != cache->oldest)
 	{
-		OOLog(kOOLogCacheIntegrityCheck, @"Integrity check (%@): oldest pointer in cache is wrong (should be %@, is %@); repairing.", context, CacheNodeGetDescription(node), CacheNodeGetDescription(cache->oldest));
+		OOLog(kOOLogCacheIntegrityCheck, @"Integrity check (%@ for \"%@\"): oldest pointer in cache is wrong (should be %@, is %@); repairing.", context, cache->name, CacheNodeGetDescription(node), CacheNodeGetDescription(cache->oldest));
 		cache->oldest = node;
 	}
 }

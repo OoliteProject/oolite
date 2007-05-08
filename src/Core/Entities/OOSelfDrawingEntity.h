@@ -29,6 +29,28 @@ MA 02110-1301, USA.
 #import "OOMesh.h" // Currently, we're sharing structures and constants with OOMesh
 
 
+typedef char OOStr255[256];	// Not the same as the previously-abused Str255
+
+
+typedef struct
+{
+	GLfloat					red;
+	GLfloat					green;
+	GLfloat					blue;
+	
+	Vector					normal;
+	
+	int						n_verts;
+	
+	GLint					vertex[MAX_VERTICES_PER_FACE];
+	
+	OOStr255				textureFileName;
+	GLuint					textureName;
+	GLfloat					s[MAX_VERTICES_PER_FACE];
+	GLfloat					t[MAX_VERTICES_PER_FACE];
+} Face;
+
+
 @interface OOSelfDrawingEntity: Entity
 {
 	uint8_t					isSmoothShaded: 1,
@@ -38,8 +60,9 @@ MA 02110-1301, USA.
 							brokenInRender: 1,
 							materialsReady: 1;
 	
-	uint8_t					n_textures;
-    uint16_t				n_vertices, n_faces;
+	OOMeshMaterialCount		textureCount;
+    OOMeshVertexCount		vertexCount;
+	OOMeshFaceCount			faceCount;
     
     NSString				*basefile;
 	
@@ -50,8 +73,8 @@ MA 02110-1301, USA.
 	
 	EntityData				entityData;
 	NSRange					triangle_range[MAX_TEXTURES_PER_ENTITY];
-	Str255					texture_file[MAX_TEXTURES_PER_ENTITY];
-	GLuint					texture_name[MAX_TEXTURES_PER_ENTITY];
+	OOStr255				textureFileName[MAX_TEXTURES_PER_ENTITY];
+	GLuint					textureNames[MAX_TEXTURES_PER_ENTITY];
 	
 	// COMMON OGL STUFF
 #if GL_APPLE_vertex_array_object
@@ -63,6 +86,12 @@ MA 02110-1301, USA.
 
 - (void) setModelName:(NSString *)modelName;
 - (NSString *) modelName;
+
+
+- (void)generateDisplayList;
+- (void)regenerateDisplayList;
+
+- (void) initializeTextures;
 
 @end
 

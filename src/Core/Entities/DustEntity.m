@@ -41,10 +41,10 @@ MA 02110-1301, USA.
     
     self = [super init];
     //
-    n_vertices = DUST_N_PARTICLES;
-    n_faces = 0;
+    vertexCount = DUST_N_PARTICLES;
+    faceCount = 0;
 	//
-	for (vi = 0; vi < n_vertices; vi++)
+	for (vi = 0; vi < vertexCount; vi++)
 	{
 		vertices[vi].x = (ranrot_rand() % DUST_SCALE) - DUST_SCALE / 2;
 		vertices[vi].y = (ranrot_rand() % DUST_SCALE) - DUST_SCALE / 2;
@@ -93,7 +93,7 @@ MA 02110-1301, USA.
 	Vector offset = (player)? player->position: position;
 	double  half_scale = DUST_SCALE * 0.50;
 	int vi;
-	for (vi = 0; vi < n_vertices; vi++)
+	for (vi = 0; vi < vertexCount; vi++)
 	{
 		while (vertices[vi].x - offset.x < -half_scale)
 			vertices[vi].x += DUST_SCALE;
@@ -172,7 +172,7 @@ MA 02110-1301, USA.
 		
 		glBegin(dustMode);
 		
-		for (vi = 0; vi < n_vertices; vi++)
+		for (vi = 0; vi < vertexCount; vi++)
 		{
 			glVertex3f( vertices[vi].x, vertices[vi].y, vertices[vi].z);
 			if (warp_stars)

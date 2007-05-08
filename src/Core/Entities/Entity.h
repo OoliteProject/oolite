@@ -92,7 +92,8 @@ extern int debug;
 							hasCollided: 1,
 							isSunlit: 1,
 							collisionTestFilter: 1,
-							throw_sparks: 1;
+							throw_sparks: 1,
+							isImmuneToBreakPatternHide: 1;
 	
 	OOScanClass				scanClass;
 	OOEntityStatus			status;

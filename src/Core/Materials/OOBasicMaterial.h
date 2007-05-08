@@ -66,7 +66,6 @@ SOFTWARE.
 	
 	// Specular exponent
 	uint8_t					shininess;		// Default: 0.0
-	BOOL					smooth;			// Default: YES
 }
 
 /*	Initialize with default values (historical Olite defaults, not GL defaults):
@@ -75,7 +74,6 @@ SOFTWARE.
 		ambient		{ 1.0, 1.0, 1.0, 1.0 }
 		emission	{ 0.0, 0.0, 0.0, 1.0 }
 		shininess	0
-		smooth		YES
 */
 - (id)initWithName:(NSString *)name;
 
@@ -85,8 +83,6 @@ SOFTWARE.
 		ambient		colour description
 		emission	colour description
 		shininess	integer
-		smooth		boolean (probably not useful to expose to users, since
-					normals won't automagically be adjusted)
 	
 	"Colour description" refers to anything +[OOColor colorWithDescription:]
 	will accept.
@@ -121,8 +117,5 @@ SOFTWARE.
 
 - (uint8_t)shininess;
 - (void)setShininess:(uint8_t)value;	// Clamped to [0, 128]
-
-- (BOOL)smooth;
-- (void)setSmooth:(BOOL)value;
 
 @end

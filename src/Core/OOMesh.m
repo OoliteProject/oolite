@@ -46,12 +46,13 @@ SOFTWARE.
 */
 
 #import "OOMesh.h"
-#import "OOMeshDATSupport.h"
 #import "Universe.h"
 #import "TextureStore.h"
 #import "Geometry.h"
 #import "ResourceManager.h"
 #import "Entity.h"		// for NO_DRAW_DISTANCE_FACTOR.
+#import "Octree.h"
+#import "OOMaterial.h"
 
 
 static NSString * const kOOLogOpenGLExtensionsVAR			= @"rendering.opengl.extensions.var";
@@ -68,9 +69,24 @@ BOOL global_testForVAR;
 #endif
 
 
-@interface OOMesh (Private)
+#define DEBUG_DRAW_NORMALS		0
 
-- (void) loadData:(NSString *)filename;
+
+@interface OOMesh (Private) <NSMutableCopying>
+
+- (id)initWithName:(NSString *)name
+materialDictionary:(NSDictionary *)materialDict
+ shadersDictionary:(NSDictionary *)shadersDict
+			smooth:(BOOL)smooth
+	  shaderMacros:(NSDictionary *)macros
+shaderBindingTarget:(id<OOWeakReferenceSupport>)object;
+
+- (void)setUpMaterialsWithMaterialsDictionary:(NSDictionary *)materialDict
+							shadersDictionary:(NSDictionary *)shadersDict
+								 shaderMacros:(NSDictionary *)macros
+						  shaderBindingTarget:(id<OOWeakReferenceSupport>)target;
+
+- (BOOL) loadData:(NSString *)filename;
 - (void) checkNormalsAndAdjustWinding;
 - (void) calculateVertexNormals;
 
@@ -81,25 +97,43 @@ BOOL global_testForVAR;
 
 - (void)regenerateDisplayList;
 
-- (void) initializeTextures;
-
-- (void) fakeTexturesWithImageFile: (NSString *) textureFile andMaxSize:(NSSize) maxSize;
-
 - (void) setUpVertexArrays;
 
-- (GLfloat) findCollisionRadius;
+- (void) calculateBoundingVolumes;
+
+- (void)rescaleByX:(GLfloat)scaleX y:(GLfloat)scaleY z:(GLfloat)scaleZ;
+
+#if DEBUG_DRAW_NORMALS
+- (void)debugDrawNormals;
+#endif
 
 @end
 
 
 @implementation OOMesh
 
++ (id)meshWithName:(NSString *)name
+materialDictionary:(NSDictionary *)materialDict
+ shadersDictionary:(NSDictionary *)shadersDict
+			smooth:(BOOL)smooth
+	  shaderMacros:(NSDictionary *)macros
+shaderBindingTarget:(id<OOWeakReferenceSupport>)object
+{
+	return [[[self alloc] initWithName:name
+					materialDictionary:materialDict
+					 shadersDictionary:shadersDict
+								smooth:smooth
+						  shaderMacros:macros
+				   shaderBindingTarget:object] autorelease];
+}
+
+
 - (id)init
 {
     self = [super init];
 	if (self == nil)  return nil;
 	
-    basefile = @"No Model";
+    baseFile = @"No Model";
 	
 	return self;
 }
@@ -107,46 +141,38 @@ BOOL global_testForVAR;
 
 - (void) dealloc
 {
-	[basefile release];
+	unsigned				i;
+	
+	[baseFile release];
+	[octree autorelease];
+	
+	for (i = 0; i != MAX_TEXTURES_PER_ENTITY; ++i)
+	{
+		[materials[i] release];
+	}
+	
+	[textureNameSet release];
 	
 	[super dealloc];
 }
 
 
-- (void) setModelName:(NSString *)modelName
+- (NSString *)description
 {
-	NSAutoreleasePool* mypool = [[NSAutoreleasePool alloc] init];
-	
-	[basefile autorelease];
-    basefile = [modelName retain];
-	
-	[self regenerateDisplayList];
-	
-	NS_DURING
-		[self loadData:basefile];
-	NS_HANDLER
-		if ([[localException name] isEqual: OOLITE_EXCEPTION_DATA_NOT_FOUND])
-		{
-			OOLog(kOOLogFileNotFound, @"***** Oolite Data Not Found Exception : '%@' in %s *****", [localException reason], __FUNCTION__);
-		}
-		[localException retain];
-		[mypool release];
-		[localException autorelease];
-		[localException raise];
-	NS_ENDHANDLER
+	return [NSString stringWithFormat:@"<%@ %p>{\"%@\", %u vertices, %u faces, radius: %g m volume:%g m^3 smooth: %s}", [self class], self, [self modelName], [self vertexCount], [self faceCount], [self collisionRadius], [self volume], isSmoothShaded ? "YES" : "NO"];
+}
 
-    [self checkNormalsAndAdjustWinding];
-	
-	// set the collision radius
-	collisionRadius = [self findCollisionRadius];
-	
-	[mypool release];
+
+- (id)copyWithZone:(NSZone *)zone
+{
+	if (zone == [self zone])  return [self retain];	// OK because we're immutable seen from the outside
+	else  return [self mutableCopyWithZone:zone];
 }
 
 
 - (NSString *) modelName
 {
-	return basefile;
+	return baseFile;
 }
 
 
@@ -162,30 +188,19 @@ BOOL global_testForVAR;
 }
 
 
-- (BOOL)isSmoothShaded
-{
-	return isSmoothShaded;
-}
-
-
-- (void)setSmoothShaded:(BOOL) value
-{
-	isSmoothShaded = value;
-}
-
 - (void)renderOpaqueParts
 {
-	if (EXPECT_NOT(basefile == nil))
+	if (EXPECT_NOT(baseFile == nil))
 	{
-		OOLog(kOOLogFileNotLoaded, @"***** ERROR no basefile for entity %@", self);
+		OOLog(kOOLogFileNotLoaded, @"***** ERROR no baseFile for entity %@", self);
 		return;
 	}
 	
     int			ti;
-    GLfloat		mat_ambient[] = { 1.0, 1.0, 1.0, 1.0 };
-    GLfloat		mat_no[] =		{ 0.0, 0.0, 0.0, 1.0 };
 	
-	if (isSmoothShaded)  glShadeModel(GL_SMOOTH);	// Redundant?
+	glPushAttrib(GL_ENABLE_BIT);
+	
+	if (isSmoothShaded)  glShadeModel(GL_SMOOTH);
 	else  glShadeModel(GL_FLAT);
 	
 	glDisableClientState(GL_COLOR_ARRAY);
@@ -196,9 +211,9 @@ BOOL global_testForVAR;
 	glEnableClientState(GL_NORMAL_ARRAY);
 	glEnableClientState(GL_TEXTURE_COORD_ARRAY);
 
-	glVertexPointer( 3, GL_FLOAT, 0, entityData.vertex_array);
-	glNormalPointer( GL_FLOAT, 0, entityData.normal_array);
-	glTexCoordPointer( 2, GL_FLOAT, 0, entityData.texture_uv_array);
+	glVertexPointer(3, GL_FLOAT, 0, entityData.vertex_array);
+	glNormalPointer(GL_FLOAT, 0, entityData.normal_array);
+	glTexCoordPointer(2, GL_FLOAT, 0, entityData.texture_uv_array);
 	
 	if (displayList != 0)
 	{
@@ -207,39 +222,27 @@ BOOL global_testForVAR;
 	else
 	{
 		NS_DURING
-			if (!materialsReady)  [self initializeTextures];
+			// Ensure all textures are loaded
+			for (ti = 1; ti <= materialCount; ti++)
+			{
+				[materials[ti] ensureFinishedLoading];
+			}
+			
 			displayList = glGenLists(1);
 			glNewList(displayList, GL_COMPILE_AND_EXECUTE);
-
+			
 #if GL_APPLE_vertex_array_object
 			if (usingVAR)  glBindVertexArrayAPPLE(gVertexArrayRangeObjects[0]);
 #endif
-			//
-			// gap removal (draws flat polys)
-			//
-			glDisable(GL_TEXTURE_2D);
-			GLfloat amb_diff0[] = { 0.5, 0.5, 0.5, 1.0};
-			glMaterialfv( GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE, amb_diff0);
-			glMaterialfv( GL_FRONT_AND_BACK, GL_EMISSION, mat_no);
-			glColor4f( 0.25, 0.25, 0.25, 1.0);	// gray
-			glDepthMask(GL_FALSE); // don't write to depth buffer
-			glDrawArrays( GL_TRIANGLES, 0, entityData.n_triangles);	// draw in gray to mask the edges
-			glDepthMask(GL_TRUE);
-			
-			//
-			// now the textures ...
-			//
+			glDisable(GL_BLEND);
 			glEnable(GL_TEXTURE_2D);
-			glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
-			glMaterialfv( GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE, mat_ambient);
-			glMaterialfv( GL_FRONT_AND_BACK, GL_EMISSION, mat_no);
+		//	glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
 			
-			for (ti = 1; ti <= textureCount; ti++)
+			for (ti = 1; ti <= materialCount; ti++)
 			{
-				glBindTexture(GL_TEXTURE_2D, texture_name[ti]);
+				[materials[ti] apply];
 				glDrawArrays( GL_TRIANGLES, triangle_range[ti].location, triangle_range[ti].length);
 			}
-			if (!isSmoothShaded) glShadeModel(GL_SMOOTH);
 			
 			brokenInRender = NO;
 		NS_HANDLER
@@ -252,9 +255,16 @@ BOOL global_testForVAR;
 			else  [localException raise];	// pass these on
 		NS_ENDHANDLER
 		
-		glEndList();
-		CheckOpenGLErrors([NSString stringWithFormat:@"OOMesh after drawing %@", self]);
+#if DEBUG_DRAW_NORMALS
+		[self debugDrawNormals];
+#endif
+		
+		[OOMaterial applyNone];
+		if (displayList != 0)  glEndList();
+		CheckOpenGLErrors([NSString stringWithFormat:@"OOMesh after generating display list for %@", self]);
 	}
+	
+	glPopAttrib();
 }
 
 
@@ -277,7 +287,7 @@ BOOL global_testForVAR;
 
 - (Geometry *)geometry
 {
-	Geometry *result = [(Geometry *)[Geometry alloc] initWithCapacity: faceCount];
+	Geometry *result = [(Geometry *)[Geometry alloc] initWithCapacity:faceCount];
 	int i;
 	for (i = 0; i < faceCount; i++)
 	{
@@ -285,15 +295,83 @@ BOOL global_testForVAR;
 		tri.v[0] = vertices[faces[i].vertex[0]];
 		tri.v[1] = vertices[faces[i].vertex[1]];
 		tri.v[2] = vertices[faces[i].vertex[2]];
-		[result addTriangle: tri];
+		[result addTriangle:tri];
 	}
 	return [result autorelease];
+}
+
+
+- (Octree *)octree
+{
+	if (octree == nil)
+	{
+		octree = [OOCacheManager octreeForModel:baseFile];
+		if (octree == nil)
+		{
+			octree = [[self geometry] findOctreeToDepth:OCTREE_MAX_DEPTH];
+			[OOCacheManager setOctree:octree forModel:baseFile];
+		}
+		[octree retain];
+	}
+	
+	return octree;
+}
+
+
+- (BoundingBox)findSubentityBoundingBoxWithPosition:(Vector)position rotMatrix:(gl_matrix)rotMatrix
+{
+	// HACK! Should work out what the various bounding box things do and make it neat and consistant.
+	BoundingBox result;
+	Vector  v = vertices[0];
+	mult_vector_gl_matrix(&v, rotMatrix);
+	v.x += position.x;	v.y += position.y;	v.z += position.z;
+	bounding_box_reset_to_vector(&result,v);
+	int i;
+    for (i = 1; i < vertexCount; i++)
+    {
+		v = vertices[i];
+		mult_vector_gl_matrix(&v, rotMatrix);
+		v.x += position.x;	v.y += position.y;	v.z += position.z;
+		bounding_box_add_vector(&result,v);
+    }
+
+//	NSLog(@"DEBUG subentity bounding box for %@ of %@ is [%.1fm %.1fm]x [%.1fm %.1fm]y [%.1fm %.1fm]z", self, [self owner],
+//		result.min.x, result.max.x, result.min.y, result.max.y, result.min.z, result.max.z);
+
+	return result;
 }
 
 
 - (GLfloat)volume
 {
 	return volume;
+}
+
+
+- (OOMesh *)meshRescaledBy:(GLfloat)scaleFactor
+{
+	return [self meshRescaledByX:scaleFactor y:scaleFactor z:scaleFactor];
+}
+
+
+- (OOMesh *)meshRescaledByX:(GLfloat)scaleX y:(GLfloat)scaleY z:(GLfloat)scaleZ
+{
+	id					result = nil;
+		
+	result = [self mutableCopy];
+	[result rescaleByX:scaleX y:scaleY z:scaleZ];
+	return [result autorelease];
+}
+
+
+- (void)setBindingTarget:(id<OOWeakReferenceSupport>)target
+{
+	unsigned				i;
+	
+	for (i = 0; i != MAX_TEXTURES_PER_ENTITY; ++i)
+	{
+		[materials[i] setBindingTarget:target];
+	}
 }
 
 
@@ -304,7 +382,7 @@ BOOL global_testForVAR;
 	
 	[super dumpSelfState];
 	
-	if (basefile != nil)  OOLog(@"dumpState.mesh", @"Model file: %@", basefile);
+	if (baseFile != nil)  OOLog(@"dumpState.mesh", @"Model file: %@", baseFile);
 	OOLog(@"dumpState.mesh", @"Vertex count: %u, face count: %u", vertexCount, faceCount);
 	
 	flags = [NSMutableArray array];
@@ -313,7 +391,6 @@ BOOL global_testForVAR;
 #if GL_APPLE_vertex_array_object
 	ADD_FLAG_IF_SET(usingVAR);
 #endif
-	ADD_FLAG_IF_SET(materialsReady);
 	flagsString = [flags count] ? [flags componentsJoinedByString:@", "] : @"none";
 	OOLog(@"dumpState.mesh", @"Flags: %@", flagsString);
 }
@@ -365,8 +442,8 @@ BOOL global_testForVAR;
 	{
 		gVertexArrayRangeData[i].rangeSize		= 0;
 		gVertexArrayRangeData[i].dataBlockPtr	= nil;
-		gVertexArrayRangeData[i].forceUpdate	= true;
-		gVertexArrayRangeData[i].activated		= false;
+		gVertexArrayRangeData[i].forceUpdate	= YES;
+		gVertexArrayRangeData[i].activated		= NO;
 	}
 
 	return YES;
@@ -382,7 +459,7 @@ BOOL global_testForVAR;
 
 	gVertexArrayRangeData[whichVAR].rangeSize 		= size;
 	gVertexArrayRangeData[whichVAR].dataBlockPtr 	= data;
-	gVertexArrayRangeData[whichVAR].forceUpdate 	= true;
+	gVertexArrayRangeData[whichVAR].forceUpdate 	= YES;
 }
 
 - (void) OGL_UpdateVAR
@@ -419,7 +496,7 @@ BOOL global_testForVAR;
 
 			glFlushVertexArrayRangeAPPLE(size, gVertexArrayRangeData[i].dataBlockPtr);
 			glEnableClientState(GL_VERTEX_ARRAY_RANGE_APPLE);
-			gVertexArrayRangeData[i].activated = true;
+			gVertexArrayRangeData[i].activated = YES;
 		}
 
 		// ALREADY ACTIVE, SO JUST UPDATING
@@ -429,7 +506,7 @@ BOOL global_testForVAR;
 			glFlushVertexArrayRangeAPPLE(size, gVertexArrayRangeData[i].dataBlockPtr);
 		}
 
-		gVertexArrayRangeData[i].forceUpdate = false;
+		gVertexArrayRangeData[i].forceUpdate = NO;
 	}
 }
 
@@ -439,46 +516,99 @@ BOOL global_testForVAR;
 
 @implementation OOMesh (Private)
 
-- (void) reloadTextures
+- (id)initWithName:(NSString *)name
+materialDictionary:(NSDictionary *)materialDict
+ shadersDictionary:(NSDictionary *)shadersDict
+			smooth:(BOOL)smooth
+	  shaderMacros:(NSDictionary *)macros
+shaderBindingTarget:(id<OOWeakReferenceSupport>)target
 {
-#ifdef WIN32
-    int fi;
-
-	// Force the entity to reload the textures for each face by clearing the face's texture name.
-    for (fi = 0; fi < faceCount; fi++)
-        faces[fi].texName = 0;
+	self = [super init];
+	if (self == nil)  return nil;
 	
-	materialsReady = NO;
+	NSAutoreleasePool* pool = [[NSAutoreleasePool alloc] init];
+	isSmoothShaded = smooth != NO;
 	
-	// Force the display list to be regenerated next time a frame is drawn.
-	[self regenerateDisplayList];
-#endif
+	if ([self loadData:name])
+	{
+		[self checkNormalsAndAdjustWinding];
+		[self calculateBoundingVolumes];
+		baseFile = [name copy];
+		[self setUpMaterialsWithMaterialsDictionary:materialDict shadersDictionary:shadersDict shaderMacros:macros shaderBindingTarget:target];
+	}
+	else
+	{
+		[self release];
+		self = nil;
+	}
+	
+	[pool release];
+	return self;
 }
 
 
-- (void) initializeTextures
+- (void)setUpMaterialsWithMaterialsDictionary:(NSDictionary *)materialDict
+							shadersDictionary:(NSDictionary *)shadersDict
+								 shaderMacros:(NSDictionary *)macros
+						  shaderBindingTarget:(id<OOWeakReferenceSupport>)target
 {
-    // roll out each face and texture in turn
-    //
-    int fi,ti;
-
-    for (fi = 0; fi < faceCount; fi++)
-    {
-		NSString* texture = [NSString stringWithUTF8String:(char*)faces[fi].textureFileStr255];
-        if ((faces[fi].texName == 0)&&(texture))
-        {
-			 faces[fi].texName = [TextureStore getTextureNameFor: texture];
-        }
-    }
-
-	for (ti = 1; ti <= textureCount; ti++)
+	OOMeshMaterialCount		i;
+	NSString				*key = nil;
+	
+	for (i = 1; i <= materialCount; ++i)
 	{
-		if (!texture_name[ti])
-		{
-			texture_name[ti] = [TextureStore getTextureNameFor: [NSString stringWithUTF8String: (char*)texture_file[ti]]];
-		}
+		key = texFileNames[i];
+		materials[i] = [OOMaterial materialWithName:texFileNames[i]
+								 materialDictionary:materialDict
+								  shadersDictionary:shadersDict
+											 macros:macros
+									  bindingTarget:target];
+		[materials[i] retain];
 	}
-	materialsReady = YES;
+}
+
+
+- (id)mutableCopyWithZone:(NSZone *)zone
+{
+	OOMesh				*result = nil;
+	OOMeshMaterialCount	i;
+	
+	result = (OOMesh *)NSCopyObject(self, 0, zone);
+	
+	if (result != nil)
+	{
+		[result->baseFile retain];
+		[result->octree retain];
+		[result->textureNameSet retain];
+		
+		for (i = 0; i != MAX_TEXTURES_PER_ENTITY; ++i)
+		{
+			[result->materials[i] retain];
+		}
+		
+		// Reset unsharable GL state
+		result->displayList = 0;
+#if GL_APPLE_vertex_array_object
+		result->usingVAR = [result OGL_InitVAR];
+		bzero(result->gVertexArrayRangeObjects, sizeof result->gVertexArrayRangeObjects);
+#endif
+	}
+	
+	return result;
+}
+
+
+- (void) reloadTextures
+{
+	unsigned				i;
+	
+	for (i = 0; i != MAX_TEXTURES_PER_ENTITY; ++i)
+	{
+		[materials[i] reloadTextures];
+	}
+	
+	// Force the display list to be regenerated next time a frame is drawn.
+	[self regenerateDisplayList];
 }
 
 
@@ -491,46 +621,19 @@ BOOL global_testForVAR;
 
 - (NSDictionary*) modelData
 {
-	NSMutableDictionary*	mdict = [NSMutableDictionary dictionaryWithCapacity:8];
-	[mdict setObject:[NSNumber numberWithInt: vertexCount]	forKey:@"vertexCount"];
-	[mdict setObject:[NSData dataWithBytes: vertices		length: sizeof(Vector)*vertexCount]	forKey:@"vertices"];
-	[mdict setObject:[NSData dataWithBytes: vertex_normal	length: sizeof(Vector)*vertexCount]	forKey:@"normals"];
-	[mdict setObject:[NSNumber numberWithInt: faceCount] forKey:@"faceCount"];
-	[mdict setObject:[NSData dataWithBytes: faces			length: sizeof(Face)*faceCount]		forKey:@"faces"];
-	return [NSDictionary dictionaryWithDictionary:mdict];
+	// FIXME: reimplement cache rep
+	return nil;
 }
+
 
 - (BOOL) setModelFromModelData:(NSDictionary*) dict
 {
-	vertexCount = [[dict objectForKey:@"vertexCount"] intValue];
-	faceCount = [[dict objectForKey:@"faceCount"] intValue];
-	NSData* vdata = (NSData*)[dict objectForKey:@"vertices"];
-	NSData* ndata = (NSData*)[dict objectForKey:@"normals"];
-	NSData* fdata = (NSData*)[dict objectForKey:@"faces"];
-	if ((vdata) && (ndata) && (fdata))
-	{
-		Vector* vbytes = (Vector*)[vdata bytes];
-		Vector* nbytes = (Vector*)[ndata bytes];
-		Face* fbytes = (Face*)[fdata bytes];
-		int i;
-		for (i = 0; i < vertexCount; i++)
-		{
-			vertices[i] = vbytes[i];
-			vertex_normal[i] = nbytes[i];
-		}
-		for (i = 0; i < faceCount; i++)
-		{
-			faces[i] = fbytes[i];
-		}
-		return YES;
-	}
-	else
-	{
-		return NO;
-	}
+	// FIXME: reimplement cache rep
+	return NO;
 }
 
-- (void) loadData:(NSString *) filename
+
+- (BOOL)loadData:(NSString *)filename
 {
     NSScanner			*scanner;
 	NSDictionary		*cacheData = nil;
@@ -539,10 +642,10 @@ BOOL global_testForVAR;
     BOOL				failFlag = NO;
     NSString			*failString = @"***** ";
     int					i, j;
-
+	NSMutableSet		*texFiles = nil;
+	
 	BOOL using_preloaded = NO;
 	
-	// TODO: rejigger this to look for the file and check modification date.
 	cacheData = [OOCacheManager meshDataForName:filename];
 	if (cacheData != nil)
 	{
@@ -551,12 +654,14 @@ BOOL global_testForVAR;
 	
 	if (!using_preloaded)
 	{
+		texFiles = [NSMutableSet set];
+		
 		data = [ResourceManager stringFromFilesNamed:filename inFolder:@"Models"];
 		if (data == nil)
 		{
 			// Model not found
 			OOLog(kOOLogEntityDataNotFound, @"ERROR - could not find %@", filename);
-			[NSException raise:OOLITE_EXCEPTION_DATA_NOT_FOUND format:@"No data for model called '%@' could be found in %@.", filename, [ResourceManager paths]];
+			return NO;
 		}
 
 		// strip out comments and commas between values
@@ -608,12 +713,7 @@ BOOL global_testForVAR;
 		{
 			OOLog(kOOLogEntityTooManyVertices, @"ERROR - model %@ has too many vertices (model has %d, maximum is %d)", filename, vertexCount, MAX_VERTICES_PER_ENTITY);
 			failFlag = YES;
-			// ERROR model file not found
-			NSException* myException = [NSException
-				exceptionWithName:@"OoliteException"
-				reason:[NSString stringWithFormat:@"ERROR - model %@ has too many vertices (model has %d, maximum is %d)", filename, vertexCount, MAX_VERTICES_PER_ENTITY]
-				userInfo:nil];
-			[myException raise];
+			return NO;
 		}
 
 		// get number of faces
@@ -641,11 +741,7 @@ BOOL global_testForVAR;
 			OOLog(kOOLogEntityTooManyFaces, @"ERROR - model %@ has too many faces (model has %d, maximum is %d)", filename, faceCount, MAX_FACES_PER_ENTITY);
 			failFlag = YES;
 			// ERROR model file not found
-			NSException* myException = [NSException
-				exceptionWithName:@"OoliteException"
-				reason:[NSString stringWithFormat:@"ERROR - model %@ has too many faces (model has %d, maximum is %d)", filename, faceCount, MAX_FACES_PER_ENTITY]
-				userInfo:nil];
-			[myException raise];
+			return NO;
 		}
 
 		// get vertex data
@@ -702,7 +798,9 @@ BOOL global_testForVAR;
 						failFlag = YES;
 					if (!failFlag)
 					{
-						faces[j].red = r/255.0;    faces[j].green = g/255.0;    faces[j].blue = b/255.0;
+						faces[j].red = r/255.0;
+						faces[j].green = g/255.0;
+						faces[j].blue = b/255.0;
 					}
 					else
 					{
@@ -719,7 +817,9 @@ BOOL global_testForVAR;
 						failFlag = YES;
 					if (!failFlag)
 					{
-						faces[j].normal.x = nx;    faces[j].normal.y = ny;    faces[j].normal.z = nz;
+						faces[j].normal.x = nx;
+						faces[j].normal.y = ny;
+						faces[j].normal.z = nz;
 					}
 					else
 					{
@@ -784,10 +884,14 @@ BOOL global_testForVAR;
 					}
 					else
 					{
-//						faces[j].textureFile = [texfile retain];
-						strlcpy( (char*)faces[j].textureFileStr255, [texfile UTF8String], 256);
+					//	strlcpy(faces[j].textureFileName, [texfile UTF8String], 256);
+						faces[j].texFileName = [texFiles member:texfile];
+						if (faces[j].texFileName == nil)
+						{
+							[texFiles addObject:texfile];
+							faces[j].texFileName = texfile;	// Not retained; we retain the set later instead.
+						}
 					}
-					faces[j].texName = 0;
 
 					// texture size
 					//
@@ -827,33 +931,24 @@ BOOL global_testForVAR;
 			failFlag = YES;
 			failString = [NSString stringWithFormat:@"%@Failed to find TEXTURES data\n",failString];
 		}
-
 		
-
-		// check normals before creating new textures
-		//
 		[self checkNormalsAndAdjustWinding];
-
-		if ((failFlag)&&([failString rangeOfString:@"TEXTURES"].location != NSNotFound))
-		{
-			[self fakeTexturesWithImageFile:@"metal.png" andMaxSize:NSMakeSize(256.0,256.0)];
-		}
-
+		
 		if (failFlag)
-			NSLog([NSString stringWithFormat:@"%@ ..... from %@ %@", failString, filename, (using_preloaded)? @"(from preloaded data)" : @"(from file)"]);
+		{
+			NSLog([NSString stringWithFormat:@"%@ ..... from %@ %@", failString, filename, (using_preloaded)? @"(from preloaded data)" :@"(from file)"]);
+		}
 
 		// check for smooth shading and recalculate normals
 		if (isSmoothShaded)
 			[self calculateVertexNormals];
-		//
-
+		
 		// save the resulting data for possible reuse
 		[OOCacheManager setMeshData:[self modelData] forName:filename];
 	}
 	
-	// set the collision radius
-	collisionRadius = [self findCollisionRadius];
-
+	[self calculateBoundingVolumes];
+	
 	// set up vertex arrays for drawing
 	//
 	[self setUpVertexArrays];
@@ -864,7 +959,10 @@ BOOL global_testForVAR;
 	{
 		[self OGL_AssignVARMemory:sizeof(EntityData) :(void *)&entityData :0];
 	}
-	//
+	
+	textureNameSet = [texFiles retain];
+	
+	return YES;
 }
 
 
@@ -939,7 +1037,7 @@ BOOL global_testForVAR;
 			normal_sum = unit_vector(&normal_sum);
 		else
 			normal_sum.z = 1.0;
-		vertex_normal[i] = normal_sum;
+		normals[i] = normal_sum;
 	}
 }
 
@@ -970,7 +1068,7 @@ BOOL global_testForVAR;
 
 - (void) setUpVertexArrays
 {
-	NSMutableDictionary*	texturesProcessed = [NSMutableDictionary dictionaryWithCapacity:MAX_TEXTURES_PER_ENTITY];
+	NSMutableSet	*texturesProcessed = [NSMutableSet setWithCapacity:MAX_TEXTURES_PER_ENTITY];
 
 	int face, fi, vi, texi;
 
@@ -1005,27 +1103,26 @@ BOOL global_testForVAR;
 	int tri_index = 0;
 	int uv_index = 0;
 	int vertex_index = 0;
-	entityData.texName = 0;
 
 	texi = 1; // index of first texture
 
 	for (face = 0; face < faceCount; face++)
 	{
-		NSString* tex_string = [NSString stringWithUTF8String: (char*)faces[face].textureFileStr255];
-		if (![texturesProcessed objectForKey:tex_string])
+		NSString* tex_string = faces[face].texFileName;
+		if (tex_string == nil)  tex_string = @"";
+		if ([texturesProcessed member:tex_string] == nil)
 		{
 			// do this texture
 			triangle_range[texi].location = tri_index;
-			strlcpy( (char*)texture_file[texi], (char*)faces[face].textureFileStr255, 256);
-			texture_name[texi] = faces[face].texName;
-
+			texFileNames[texi] = tex_string;	// Not retained; it's in textureNameSet.
+			
 			for (fi = 0; fi < faceCount; fi++)
 			{
 				Vector normal = make_vector( 0.0, 0.0, 1.0);
 				int v;
 				if (!isSmoothShaded)
 					normal = faces[fi].normal;
-				if (strcmp( (char*)faces[fi].textureFileStr255, (char*)faces[face].textureFileStr255) == 0)
+				if (faces[fi].texFileName == faces[face].texFileName)	// Identical duplicate strings should not occur, so pointer comparision is OK.
 				{
 					for (vi = 0; vi < 3; vi++)
 					{
@@ -1033,12 +1130,15 @@ BOOL global_testForVAR;
 						if (isSmoothShaded)
 						{
 							if (is_edge_vertex[v])
-								normal = [self normalForVertex: v withSharedRedValue: faces[fi].red];
+								normal = [self normalForVertex:v withSharedRedValue:faces[fi].red];
 							else
-								normal = vertex_normal[v];
+								normal = normals[v];
 						}
 						else
+						{
 							normal = faces[fi].normal;
+						}
+						
 						entityData.index_array[tri_index++] = vertex_index;
 						entityData.normal_array[vertex_index] = normal;
 						entityData.vertex_array[vertex_index++] = vertices[v];
@@ -1050,18 +1150,18 @@ BOOL global_testForVAR;
 			triangle_range[texi].length = tri_index - triangle_range[texi].location;
 
 			//finally...
-			[texturesProcessed setObject:tex_string forKey:tex_string];	// note this texture done
+			[texturesProcessed addObject:tex_string];
 			texi++;
 		}
 	}
 	entityData.n_triangles = tri_index;	// total number of triangle vertices
 	triangle_range[0] = NSMakeRange( 0, tri_index);
 
-	textureCount = texi - 1;
+	materialCount = texi - 1;
 }
 
 
-- (GLfloat) findCollisionRadius
+- (void) calculateBoundingVolumes
 {
     int i;
 	double d_squared, length_longest_axis, length_shortest_axis;
@@ -1095,8 +1195,48 @@ BOOL global_testForVAR;
 	maxDrawDistance = d_squared * NO_DRAW_DISTANCE_FACTOR * NO_DRAW_DISTANCE_FACTOR;	// no longer based on the collision radius
 
 	volume = (boundingBox.max.x - boundingBox.min.x) * (boundingBox.max.y - boundingBox.min.y) * (boundingBox.max.z - boundingBox.min.z);
+	
+	collisionRadius = sqrt(result);
+}
 
-	return sqrt(result);
+
+- (void)rescaleByX:(GLfloat)scaleX y:(GLfloat)scaleY z:(GLfloat)scaleZ
+{
+	
+	OOMeshVertexCount	i;
+	BOOL				isotropic;
+	Vector				*vertex = NULL, *normal = NULL;
+	
+	isotropic = (scaleX == scaleY && scaleY == scaleZ);
+	
+	for (i = 0; i != vertexCount; ++i)
+	{
+		vertex = &vertices[i];
+		
+		vertex->x *= scaleX;
+		vertex->y *= scaleY;
+		vertex->z *= scaleZ;
+		
+		if (!isotropic)
+		{
+			normal = &normals[i];
+			// For efficiency freaks: let's assume some sort of adaptive branch prediction.
+			normal->x *= scaleX;
+			normal->y *= scaleY;
+			normal->z *= scaleZ;
+			*normal = vector_normal(*normal);
+		}
+	}
+	
+	[self calculateBoundingVolumes];
+	[octree release];
+	octree = nil;
+}
+
+
+- (BoundingBox)boundingBox
+{
+	return boundingBox;
 }
 
 
@@ -1123,303 +1263,50 @@ BOOL global_testForVAR;
 	return result;
 }
 
-- (void) fakeTexturesWithImageFile: (NSString *) textureFile andMaxSize:(NSSize) maxSize
+
+#if DEBUG_DRAW_NORMALS
+- (void)debugDrawNormals
 {
-    int i, j, k;
-    Vector vec;
-    int nf = 0;
-    int		fi[MAX_FACES_PER_ENTITY];
-    float	max_s, min_s, max_t, min_t, st_width, st_height;
-    float	tolerance;
-    Face	fa[MAX_FACES_PER_ENTITY];
-    int		faces_to_match;
-    BOOL	face_matched[MAX_FACES_PER_ENTITY];
-
-    tolerance = 1.00;
-    faces_to_match = faceCount;
-    for (i = 0; i < faceCount; i++)
-    {
-	    face_matched[i] = NO;
-    }
-	while (faces_to_match > 0)
-    {
-        tolerance -= 0.05;
-
-        // Top (+y) first
-        vec.x = 0.0;	vec.y = 1.0;	vec.z = 0.0;
-        // build list of faces that face in that direction...
-        nf = 0;
-        max_s = -999999.0; min_s = 999999.0;
-        max_t = -999999.0; min_t = 999999.0;
-        for (i = 0; i < faceCount; i++)
-        {
-            float s, t;
-            float g = dot_product(vec, faces[i].normal) * sqrt(2.0);
-            if ((g >= tolerance)&&(!face_matched[i]))
-            {
-                fi[nf++] = i;
-                face_matched[i] = YES;
-                faces_to_match--;
-                for (j = 0; j < faces[i].n_verts; j++)
-                {
-                    s = vertices[faces[i].vertex[j]].x;
-                    t = vertices[faces[i].vertex[j]].z;
-                    max_s = (max_s > s) ? max_s:s ;	min_s = (min_s < s) ? min_s:s ;
-                    max_t = (max_t > t) ? max_t:t ;	min_t = (min_t < t) ? min_t:t ;
-                }
-            }
-        }
-        //
-        st_width = max_s - min_s;
-        st_height = max_t - min_t;
+	unsigned			i, max = 0;
+	Vector				v, n;
+	float				length, blend;
+	GLfloat				color[3];
+	
+	// Set up state
+	glPushAttrib(GL_ENABLE_BIT);
+	glDisable(GL_LIGHTING);
+	glDisable(GL_TEXTURE_2D);
+	
+	// Find largest used triangle index
+	for (i = 0; i != 3 * MAX_FACES_PER_ENTITY; ++i)
+	{
+		if (max < entityData.index_array[i])  max = entityData.index_array[i];
+	}
+	
+	// Draw
+	glBegin(GL_LINES);
+	for (i = 0; i != max; ++i)
+	{
+		v = entityData.vertex_array[i];
+		n = entityData.normal_array[i];
 		
-        for (j = 0; j < nf; j++)
-        {
-            i = fi[j];
-			
-			strlcpy( (char*)fa[i].textureFileStr255, [[NSString stringWithFormat:@"top_%@", textureFile] UTF8String], 256);
-            for (k = 0; k < faces[i].n_verts; k++)
-            {
-                float s, t;
-                s = vertices[faces[i].vertex[k]].x;
-                t = vertices[faces[i].vertex[k]].z;
-                fa[i].s[k] = (s - min_s) * maxSize.width / st_width;
-                fa[i].t[k] = (t - min_t) * maxSize.height / st_height;
-				//
-				// TESTING
-				//
-				fa[i].t[k] = maxSize.height - fa[i].t[k];	// REVERSE t locations
-            }
-        }
-
-        // Bottom (-y)
-        vec.x = 0.0;	vec.y = -1.0;	vec.z = 0.0;
-        // build list of faces that face in that direction...
-        nf = 0;
-        max_s = -999999.0; min_s = 999999.0;
-        max_t = -999999.0; min_t = 999999.0;
-        for (i = 0; i < faceCount; i++)
-        {
-            float s, t;
-            float g = dot_product(vec, faces[i].normal) * sqrt(2.0);
-            if ((g >= tolerance)&&(!face_matched[i]))
-            {
-                fi[nf++] = i;
-                face_matched[i] = YES;
-                faces_to_match--;
-                for (j = 0; j < faces[i].n_verts; j++)
-                {
-                    s = -vertices[faces[i].vertex[j]].x;
-                    t = -vertices[faces[i].vertex[j]].z;
-                    max_s = (max_s > s) ? max_s:s ;	min_s = (min_s < s) ? min_s:s ;
-                    max_t = (max_t > t) ? max_t:t ;	min_t = (min_t < t) ? min_t:t ;
-                }
-            }
-        }
-        st_width = max_s - min_s;
-        st_height = max_t - min_t;
-        for (j = 0; j < nf; j++)
-        {
-            i = fi[j];
-            //fa[i] = faces[i];
-//            fa[i].textureFile = [NSString stringWithFormat:@"bottom_%@", textureFile];
-//			strlcpy( (char*)fa[i].textureFileStr255, [fa[i].textureFile UTF8String], 256);
-			strlcpy( (char*)fa[i].textureFileStr255, [[NSString stringWithFormat:@"bottom_%@", textureFile] UTF8String], 256);
-            for (k = 0; k < faces[i].n_verts; k++)
-            {
-                float s, t;
-                s = -vertices[faces[i].vertex[k]].x;
-                t = -vertices[faces[i].vertex[k]].z;
-                fa[i].s[k] = (s - min_s) * maxSize.width / st_width;
-                fa[i].t[k] = (t - min_t) * maxSize.height / st_height;
-            }
-        }
-
-        // Right (+x)
-        vec.x = 1.0;	vec.y = 0.0;	vec.z = 0.0;
-        // build list of faces that face in that direction...
-        nf = 0;
-        max_s = -999999.0; min_s = 999999.0;
-        max_t = -999999.0; min_t = 999999.0;
-        for (i = 0; i < faceCount; i++)
-        {
-            float s, t;
-            float g = dot_product(vec, faces[i].normal) * sqrt(2.0);
-            if ((g >= tolerance)&&(!face_matched[i]))
-            {
-                fi[nf++] = i;
-                face_matched[i] = YES;
-                faces_to_match--;
-                for (j = 0; j < faces[i].n_verts; j++)
-                {
-                    s = vertices[faces[i].vertex[j]].z;
-                    t = vertices[faces[i].vertex[j]].y;
-                    max_s = (max_s > s) ? max_s:s ;	min_s = (min_s < s) ? min_s:s ;
-                    max_t = (max_t > t) ? max_t:t ;	min_t = (min_t < t) ? min_t:t ;
-                }
-            }
-        }
-        st_width = max_s - min_s;
-        st_height = max_t - min_t;
-        for (j = 0; j < nf; j++)
-        {
-            i = fi[j];
-            //fa[i] = faces[i];
-//            fa[i].textureFile = [NSString stringWithFormat:@"right_%@", textureFile];
-//			strlcpy( (char*)fa[i].textureFileStr255, [fa[i].textureFile UTF8String], 256);
-			strlcpy( (char*)fa[i].textureFileStr255, [[NSString stringWithFormat:@"right_%@", textureFile] UTF8String], 256);
-            for (k = 0; k < faces[i].n_verts; k++)
-            {
-                float s, t;
-                s = vertices[faces[i].vertex[k]].z;
-                t = vertices[faces[i].vertex[k]].y;
-                fa[i].s[k] = (s - min_s) * maxSize.width / st_width;
-                fa[i].t[k] = (t - min_t) * maxSize.height / st_height;
-            }
-        }
-
-        // Left (-x)
-        vec.x = -1.0;	vec.y = 0.0;	vec.z = 0.0;
-        // build list of faces that face in that direction...
-        nf = 0;
-        max_s = -999999.0; min_s = 999999.0;
-        max_t = -999999.0; min_t = 999999.0;
-        for (i = 0; i < faceCount; i++)
-        {
-            float s, t;
-            float g = dot_product(vec, faces[i].normal) * sqrt(2.0);
-            if ((g >= tolerance)&&(!face_matched[i]))
-            {
-                fi[nf++] = i;
-                face_matched[i] = YES;
-                faces_to_match--;
-                for (j = 0; j < faces[i].n_verts; j++)
-                {
-                    s = -vertices[faces[i].vertex[j]].z;
-                    t = -vertices[faces[i].vertex[j]].y;
-                    max_s = (max_s > s) ? max_s:s ;	min_s = (min_s < s) ? min_s:s ;
-                    max_t = (max_t > t) ? max_t:t ;	min_t = (min_t < t) ? min_t:t ;
-                }
-            }
-        }
-        st_width = max_s - min_s;
-        st_height = max_t - min_t;
-        for (j = 0; j < nf; j++)
-        {
-            i = fi[j];
-            //fa[i] = faces[i];
-//            fa[i].textureFile = [NSString stringWithFormat:@"left_%@", textureFile];
-//			strlcpy( (char*)fa[i].textureFileStr255, [fa[i].textureFile UTF8String], 256);
-			strlcpy( (char*)fa[i].textureFileStr255, [[NSString stringWithFormat:@"left_%@", textureFile] UTF8String], 256);
-            for (k = 0; k < faces[i].n_verts; k++)
-            {
-                float s, t;
-                s = -vertices[faces[i].vertex[k]].z;
-                t = -vertices[faces[i].vertex[k]].y;
-                fa[i].s[k] = (s - min_s) * maxSize.width / st_width;
-                fa[i].t[k] = (t - min_t) * maxSize.height / st_height;
-            }
-        }
-
-        // Front (+z)
-        vec.x = 0.0;	vec.y = 0.0;	vec.z = 1.0;
-        // build list of faces that face in that direction...
-        nf = 0;
-        max_s = -999999.0; min_s = 999999.0;
-        max_t = -999999.0; min_t = 999999.0;
-        for (i = 0; i < faceCount; i++)
-        {
-            float s, t;
-            float g = dot_product(vec, faces[i].normal) * sqrt(2.0);
-            if ((g >= tolerance)&&(!face_matched[i]))
-            {
-                fi[nf++] = i;
-                face_matched[i] = YES;
-                faces_to_match--;
-                for (j = 0; j < faces[i].n_verts; j++)
-                {
-                    s = vertices[faces[i].vertex[j]].x;
-                    t = vertices[faces[i].vertex[j]].y;
-                    max_s = (max_s > s) ? max_s:s ;	min_s = (min_s < s) ? min_s:s ;
-                    max_t = (max_t > t) ? max_t:t ;	min_t = (min_t < t) ? min_t:t ;
-                }
-            }
-        }
-        st_width = max_s - min_s;
-        st_height = max_t - min_t;
-        for (j = 0; j < nf; j++)
-        {
-            i = fi[j];
-            //fa[i] = faces[i];
-//            fa[i].textureFile = [NSString stringWithFormat:@"front_%@", textureFile];
-//			strlcpy( (char*)fa[i].textureFileStr255, [fa[i].textureFile UTF8String], 256);
-			strlcpy( (char*)fa[i].textureFileStr255, [[NSString stringWithFormat:@"front_%@", textureFile] UTF8String], 256);
-            for (k = 0; k < faces[i].n_verts; k++)
-            {
-                float s, t;
-                s = vertices[faces[i].vertex[k]].x;
-                t = vertices[faces[i].vertex[k]].y;
-                fa[i].s[k] = (s - min_s) * maxSize.width / st_width;
-                fa[i].t[k] = (t - min_t) * maxSize.height / st_height;
-            }
-        }
-
-        // Back (-z)
-        vec.x = 0.0;	vec.y = 0.0;	vec.z = -1.0;
-        // build list of faces that face in that direction...
-        nf = 0;
-        max_s = -999999.0; min_s = 999999.0;
-        max_t = -999999.0; min_t = 999999.0;
-        for (i = 0; i < faceCount; i++)
-        {
-            float s, t;
-            float g = dot_product(vec, faces[i].normal) * sqrt(2.0);
-            if ((g >= tolerance)&&(!face_matched[i]))
-            {
-                fi[nf++] = i;
-                face_matched[i] = YES;
-                faces_to_match--;
-                for (j = 0; j < faces[i].n_verts; j++)
-                {
-                    s = -vertices[faces[i].vertex[j]].x;
-                    t = -vertices[faces[i].vertex[j]].y;
-                    max_s = (max_s > s) ? max_s:s ;	min_s = (min_s < s) ? min_s:s ;
-                    max_t = (max_t > t) ? max_t:t ;	min_t = (min_t < t) ? min_t:t ;
-                }
-            }
-        }
-        st_width = max_s - min_s;
-        st_height = max_t - min_t;
-        for (j = 0; j < nf; j++)
-        {
-            i = fi[j];
-			strlcpy( (char*)fa[i].textureFileStr255, [[NSString stringWithFormat:@"back_%@", textureFile] UTF8String], 256);
-            for (k = 0; k < faces[i].n_verts; k++)
-            {
-                float s, t;
-                s = -vertices[faces[i].vertex[k]].x;
-                t = -vertices[faces[i].vertex[k]].y;
-                fa[i].s[k] = (s - min_s) * maxSize.width / st_width;
-                fa[i].t[k] = (t - min_t) * maxSize.height / st_height;
-            }
-        }
-    }
-
-    for (i = 0; i < faceCount; i++)
-    {
-        NSString *result;
+		length = magnitude2(n);
+		blend = fabsf(length - 1) * 5.0;
+		color[0] = MIN(blend, 1.0f);
+		color[1] = 1.0f - color[0];
+		color[2] = color[1];
+		glColor3fv(color);
 		
-		strlcpy( (char*)faces[i].textureFileStr255, (char*)fa[i].textureFileStr255, 256);
-		faces[i].texName = 0;
-        for (j = 0; j < faces[i].n_verts; j++)
-        {
-            faces[i].s[j] = fa[i].s[j] / maxSize.width;
-            faces[i].t[j] = fa[i].t[j] / maxSize.height;
-        }
-		
-        result = [NSString stringWithFormat:@"%s\t%d %d", faces[i].textureFileStr255, (int)maxSize.width, (int)maxSize.height];
-    }
+		glVertex3f(v.x, v.y, v.z);
+		scale_vector(&n, 5.0f);
+		v = vector_add(n, v);
+		glVertex3f(v.x, v.y, v.z);
+	}
+	glEnd();
+	
+	glPopAttrib();
 }
+#endif
 
 @end
 
@@ -1780,8 +1667,41 @@ static NSString * const kOOCacheMeshes = @"meshes";
 
 + (void)setMeshData:(NSDictionary *)inData forName:(NSString *)inShipName
 {
-	[[self sharedCache] setObject:inData forKey:inShipName inCache:kOOCacheMeshes];
+	if (inData != nil && inShipName != nil)
+	{
+		[[self sharedCache] setObject:inData forKey:inShipName inCache:kOOCacheMeshes];
+	}
 }
 
 @end
 
+
+static NSString * const kOOCacheOctrees = @"octrees";
+
+@implementation OOCacheManager (Octree)
+
++ (Octree *)octreeForModel:(NSString *)inKey
+{
+	NSDictionary		*dict = nil;
+	Octree				*result = nil;
+	
+	dict = [[self sharedCache] objectForKey:inKey inCache:kOOCacheOctrees];
+	if (dict != nil)
+	{
+		result = [[Octree alloc] initWithDictionary:dict];
+		[result autorelease];
+	}
+	
+	return result;
+}
+
+
++ (void)setOctree:(Octree *)inOctree forModel:(NSString *)inKey
+{
+	if (inOctree != nil && inKey != nil)
+	{
+		[[self sharedCache] setObject:[inOctree dict] forKey:inKey inCache:kOOCacheOctrees];
+	}
+}
+
+@end

@@ -41,6 +41,7 @@ MA 02110-1301, USA.
 #import "OOOpenGLExtensionManager.h"
 #import "OOCPUInfo.h"
 #import "OOMaterial.h"
+#import "OOTexture.h"
 
 #import "Octree.h"
 #import "CollisionRegion.h"
@@ -338,6 +339,7 @@ static BOOL MaintainLinkedLists(Universe* uni);
 	[ResourceManager setUseAddOns:!strict];
 	[ResourceManager loadScripts];
 	[TextureStore reloadTextures];
+	[OOTexture clearCache];
 	
 #ifndef GNUSTEP
 	//// speech stuff
@@ -3402,7 +3404,7 @@ GLfloat* custom_matrix;
 				
 				int		furthest = draw_count - 1;
 				int		nearest = 0;
-								
+				BOOL	bpHide = [self breakPatternHide];
 				
 				//		DRAW ALL THE OPAQUE ENTITIES
 				
@@ -3412,13 +3414,13 @@ GLfloat* custom_matrix;
 					drawthing = my_entities[i];
 					d_status = drawthing->status;
 					
+					if (bpHide && !drawthing->isImmuneToBreakPatternHide)  continue;
+					
 					GLfloat flat_ambdiff[4]	= {1.0, 1.0, 1.0, 1.0};   // for alpha
 					GLfloat mat_no[4]		= {0.0, 0.0, 0.0, 1.0};   // nothing
 					
 					if (((d_status == STATUS_COCKPIT_DISPLAY)&&(inGUIMode)) || ((d_status != STATUS_COCKPIT_DISPLAY)&&(!inGUIMode)))
 					{
-						OOLog(@"render.entity.opaque", @"Rendering %@", drawthing);
-						
 						// reset material properties
 						glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE, flat_ambdiff);
 						glMaterialfv(GL_FRONT_AND_BACK, GL_EMISSION, mat_no);
@@ -3497,10 +3499,10 @@ GLfloat* custom_matrix;
 					drawthing = my_entities[i];
 					d_status = drawthing->status;
 					
+					if (bpHide && !drawthing->isImmuneToBreakPatternHide)  continue;
+					
 					if (((d_status == STATUS_COCKPIT_DISPLAY)&&(inGUIMode)) || ((d_status != STATUS_COCKPIT_DISPLAY)&&(!inGUIMode)))
 					{
-						OOLog(@"render.entity.translucent", @"Rendering %@", drawthing);
-						
 						// experimental - atmospheric fog
 						BOOL fogging = (air_resist_factor > 0.01);
 						
@@ -3550,7 +3552,6 @@ GLfloat* custom_matrix;
 								
 				glDepthMask(GL_TRUE);	// restore write to depth buffer
 			}
-			if (OOLogWillDisplayMessagesInClass(@"$shaderDebugOn")) OOLogSetDisplayMessagesInClass(@"$shaderDebugOn", NO);
 			
 			glPopMatrix(); //restore saved flat viewpoint
 

@@ -174,8 +174,11 @@ OOINLINE BOOL ValidBindingType(OOShaderUniformType type)
 	if (OK)
 	{
 		location = glGetUniformLocationARB([shaderProgram program], [uniformName lossyCString]);
-		if (location == -1)  OK = NO;
-		OOLog(@"shader.uniform.bind.failed", @"***** Shader error: could not bind uniform \"%@\" to -[%@ %s] (no uniform of that name could be found).", uniformName, [target class], selector);
+		if (location == -1)
+		{
+			OK = NO;
+			OOLog(@"shader.uniform.bind.failed", @"***** Shader error: could not bind uniform \"%@\" to -[%@ %s] (no uniform of that name could be found).", uniformName, [target class], selector);
+		}
 	}
 	
 	// If we're still OK, it's a bindable method.
@@ -343,6 +346,7 @@ OOINLINE BOOL ValidBindingType(OOShaderUniformType type)
 		else if (0 == strcmp("l", typeCode) || 0 == strcmp("L", typeCode))  type = kOOShaderUniformTypeLong;
 		else
 		{
+			OK = NO;
 			methodProblem = [NSString stringWithFormat:@"unsupported type \"%s\"", typeCode];
 		}
 	}

@@ -37,6 +37,27 @@ MA 02110-1301, USA.
 }
 
 
+- (OODrawable *)drawable
+{
+	return drawable;
+}
+
+
+- (void)setDrawable:(OODrawable *)inDrawable
+{
+	if (inDrawable != drawable)
+	{
+		[drawable autorelease];
+		drawable = [inDrawable retain];
+		[drawable setBindingTarget:self];
+		
+		actual_radius = collision_radius = [drawable collisionRadius];
+		no_draw_distance = [drawable maxDrawDistance];
+		boundingBox = [drawable boundingBox];
+	}
+}
+
+
 - (void)reloadTextures
 {
 	[drawable reloadTextures];
@@ -63,6 +84,13 @@ MA 02110-1301, USA.
 
 - (void)drawEntity:(BOOL)immediate :(BOOL)translucent
 {
+	if (no_draw_distance < zero_distance)
+	{
+		// Don't draw.
+		return;
+	}
+	
+	
 	if (translucent)  [drawable renderTranslucentParts];
 	else  [drawable renderOpaqueParts];
 }

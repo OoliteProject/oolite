@@ -272,11 +272,11 @@
 		<key>fuel</key>
 		<integer>70</integer>
 		<key>has_ecm</key>
-		<real>0.94999999999999996</real>
+		<real>0.95</real>
 		<key>has_escape_pod</key>
-		<real>0.94999999999999996</real>
+		<real>0.95</real>
 		<key>has_scoop</key>
-		<real>0.94999999999999996</real>
+		<real>0.95</real>
 		<key>likely_cargo</key>
 		<integer>7</integer>
 		<key>max_cargo</key>
@@ -931,7 +931,7 @@
 		<key>fuel</key>
 		<integer>70</integer>
 		<key>has_ecm</key>
-		<real>0.94999999999999996</real>
+		<real>0.95</real>
 		<key>has_escape_pod</key>
 		<real>1</real>
 		<key>has_scoop</key>
@@ -1488,11 +1488,11 @@
 		<key>fuel</key>
 		<integer>70</integer>
 		<key>has_ecm</key>
-		<real>0.94999999999999996</real>
+		<real>0.95</real>
 		<key>has_escape_pod</key>
-		<real>0.94999999999999996</real>
+		<real>0.95</real>
 		<key>has_scoop</key>
-		<real>0.94999999999999996</real>
+		<real>0.95</real>
 		<key>likely_cargo</key>
 		<integer>3</integer>
 		<key>max_cargo</key>
@@ -1755,9 +1755,9 @@
 		<key>has_ecm</key>
 		<real>0.14999999999999999</real>
 		<key>has_escape_pod</key>
-		<real>0.94999999999999996</real>
+		<real>0.95</real>
 		<key>has_scoop</key>
-		<real>0.94999999999999996</real>
+		<real>0.95</real>
 		<key>likely_cargo</key>
 		<integer>3</integer>
 		<key>max_cargo</key>
@@ -1813,7 +1813,7 @@
 		<key>fuel</key>
 		<integer>70</integer>
 		<key>has_scoop</key>
-		<real>0.94999999999999996</real>
+		<real>0.95</real>
 		<key>likely_cargo</key>
 		<integer>2</integer>
 		<key>max_cargo</key>
@@ -1871,7 +1871,7 @@
 		<key>has_fuel_injection</key>
 		<real>0.25</real>
 		<key>has_scoop</key>
-		<real>0.94999999999999996</real>
+		<real>0.95</real>
 		<key>has_shield_booster</key>
 		<real>0.25</real>
 		<key>likely_cargo</key>
@@ -2803,7 +2803,7 @@
 		<key>has_fuel_injection</key>
 		<real>0.65000000000000002</real>
 		<key>has_scoop</key>
-		<real>0.94999999999999996</real>
+		<real>0.95</real>
 		<key>has_shield_booster</key>
 		<real>0.5</real>
 		<key>has_shield_enhancer</key>
@@ -2870,7 +2870,7 @@
 		<key>forward_weapon_type</key>
 		<string>WEAPON_BEAM_LASER</string>
 		<key>has_scoop</key>
-		<real>0.94999999999999996</real>
+		<real>0.95</real>
 		<key>has_shield_booster</key>
 		<real>0.25</real>
 		<key>likely_cargo</key>
@@ -2880,9 +2880,9 @@
 		<key>max_energy</key>
 		<real>240</real>
 		<key>max_flight_pitch</key>
-		<real>1.3999999999999999</real>
+		<real>1.4</real>
 		<key>max_flight_roll</key>
-		<real>2.1000000000000001</real>
+		<real>2.1</real>
 		<key>max_flight_speed</key>
 		<real>320</real>
 		<key>max_missiles</key>
@@ -2941,9 +2941,9 @@
 		<key>max_energy</key>
 		<real>240</real>
 		<key>max_flight_pitch</key>
-		<real>1.3999999999999999</real>
+		<real>1.4</real>
 		<key>max_flight_roll</key>
-		<real>2.1000000000000001</real>
+		<real>2.1</real>
 		<key>max_flight_speed</key>
 		<real>320</real>
 		<key>max_missiles</key>

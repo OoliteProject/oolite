@@ -84,6 +84,35 @@ BOOL EvaluateAsBoolean(id object, BOOL defaultValue);
 - (NSDictionary *)dictionaryAtIndex:(unsigned)index defaultValue:(NSDictionary *)value;
 - (NSData *)dataAtIndex:(unsigned)index defaultValue:(NSData *)value;
 
+
+// Default: 0
+- (char)charAtIndex:(unsigned)index;
+- (short)shortAtIndex:(unsigned)index;
+- (int)intAtIndex:(unsigned)index;
+- (long)longAtIndex:(unsigned)index;
+- (long long)longLongAtIndex:(unsigned)index;
+
+- (unsigned char)unsignedCharAtIndex:(unsigned)index;
+- (unsigned short)unsignedShortAtIndex:(unsigned)index;
+- (unsigned int)unsignedIntAtIndex:(unsigned)index;
+- (unsigned long)unsignedLongAtIndex:(unsigned)index;
+- (unsigned long long)unsignedLongLongAtIndex:(unsigned)index;
+
+// Default: NO
+- (BOOL)boolAtIndex:(unsigned)index;
+- (BOOL)fuzzyBooleanAtIndex:(unsigned)index;	// Reads a float in the range [0, 1], and returns YES with that probability.
+
+// Default: 0.0
+- (float)floatAtIndex:(unsigned)index;
+- (double)doubleAtIndex:(unsigned)index;
+
+// Default: nil
+// - (id)objectAtIndex:(unsigned)index;	// Already defined
+- (NSString *)stringAtIndex:(unsigned)index;
+- (NSArray *)arrayAtIndex:(unsigned)index;
+- (NSDictionary *)dictionaryAtIndex:(unsigned)index;
+- (NSData *)dataAtIndex:(unsigned)index;
+
 @end
 
 
@@ -113,6 +142,35 @@ BOOL EvaluateAsBoolean(id object, BOOL defaultValue);
 - (NSDictionary *)dictionaryForKey:(id)key defaultValue:(NSDictionary *)value;
 - (NSData *)dataForKey:(id)key defaultValue:(NSData *)value;
 
+
+// Default: 0
+- (char)charForKey:(id)key;
+- (short)shortForKey:(id)key;
+- (int)intForKey:(id)key;
+- (long)longForKey:(id)key;
+- (long long)longLongForKey:(id)key;
+
+- (unsigned char)unsignedCharForKey:(id)key;
+- (unsigned short)unsignedShortForKey:(id)key;
+- (unsigned int)unsignedIntForKey:(id)key;
+- (unsigned long)unsignedLongForKey:(id)key;
+- (unsigned long long)unsignedLongLongForKey:(id)key;
+
+// Default: NO
+- (BOOL)boolForKey:(id)key;
+- (BOOL)fuzzyBooleanForKey:(id)key;	// Reads a float in the range [0, 1], and returns YES with that probability.
+
+// Default: 0.0
+- (float)floatForKey:(id)key;
+- (double)doubleForKey:(id)key;
+
+// Default: nil
+// - (id)objectForKey:(id)key;	// Already defined
+- (NSString *)stringForKey:(id)key;
+- (NSArray *)arrayForKey:(id)key;
+- (NSDictionary *)dictionaryForKey:(id)key;
+- (NSData *)dataForKey:(id)key;
+
 @end
 
 
@@ -141,5 +199,34 @@ BOOL EvaluateAsBoolean(id object, BOOL defaultValue);
 - (NSArray *)arrayForKey:(id)key defaultValue:(NSArray *)value;
 - (NSDictionary *)dictionaryForKey:(id)key defaultValue:(NSDictionary *)value;
 - (NSData *)dataForKey:(id)key defaultValue:(NSData *)value;
+
+
+// Default: 0
+- (char)charForKey:(id)key;
+- (short)shortForKey:(id)key;
+- (int)intForKey:(id)key;
+- (long)longForKey:(id)key;
+- (long long)longLongForKey:(id)key;
+
+- (unsigned char)unsignedCharForKey:(id)key;
+- (unsigned short)unsignedShortForKey:(id)key;
+- (unsigned int)unsignedIntForKey:(id)key;
+- (unsigned long)unsignedLongForKey:(id)key;
+- (unsigned long long)unsignedLongLongForKey:(id)key;
+
+// Default: NO
+// - (BOOL)boolForKey:(id)key;
+- (BOOL)fuzzyBooleanForKey:(id)key;	// Reads a float in the range [0, 1], and returns YES with that probability.
+
+// Default: 0.0
+// - (float)floatForKey:(id)key;
+- (double)doubleForKey:(id)key;
+
+// Default: nil
+// - (id)objectForKey:(id)key;	// Already defined
+// - (NSString *)stringForKey:(id)key;
+// - (NSArray *)arrayForKey:(id)key;
+// - (NSDictionary *)dictionaryForKey:(id)key;
+// - (NSData *)dataForKey:(id)key;
 
 @end

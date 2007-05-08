@@ -366,6 +366,114 @@ BOOL EvaluateAsBoolean(id object, BOOL defaultValue)
 	return result;	
 }
 
+
+- (char)charAtIndex:(unsigned)index
+{
+	return [self charAtIndex:index defaultValue:0];
+}
+
+
+- (short)shortAtIndex:(unsigned)index
+{
+	return [self shortAtIndex:index defaultValue:0];
+}
+
+
+- (int)intAtIndex:(unsigned)index
+{
+	return [self intAtIndex:index defaultValue:0];
+}
+
+
+- (long)longAtIndex:(unsigned)index
+{
+	return [self longAtIndex:index defaultValue:0];
+}
+
+
+- (long long)longLongAtIndex:(unsigned)index
+{
+	return [self longLongAtIndex:index defaultValue:0];
+}
+
+
+- (unsigned char)unsignedCharAtIndex:(unsigned)index
+{
+	return [self unsignedCharAtIndex:index defaultValue:0];
+}
+
+
+- (unsigned short)unsignedShortAtIndex:(unsigned)index
+{
+	return [self unsignedShortAtIndex:index defaultValue:0];
+}
+
+
+- (unsigned int)unsignedIntAtIndex:(unsigned)index
+{
+	return [self unsignedIntAtIndex:index defaultValue:0];
+}
+
+
+- (unsigned long)unsignedLongAtIndex:(unsigned)index
+{
+	return [self unsignedLongAtIndex:index defaultValue:0];
+}
+
+
+- (unsigned long long)unsignedLongLongAtIndex:(unsigned)index
+{
+	return [self unsignedLongLongAtIndex:index defaultValue:0];
+}
+
+
+- (BOOL)boolAtIndex:(unsigned)index
+{
+	return [self boolAtIndex:index defaultValue:NO];
+}
+
+
+- (BOOL)fuzzyBooleanAtIndex:(unsigned)index
+{
+	return [self fuzzyBooleanAtIndex:index defaultValue:0.0f];
+}
+
+
+- (float)floatAtIndex:(unsigned)index
+{
+	return [self floatAtIndex:index defaultValue:0.0f];
+}
+
+
+- (double)doubleAtIndex:(unsigned)index
+{
+	return [self doubleAtIndex:index defaultValue:0.0];
+}
+
+
+- (NSString *)stringAtIndex:(unsigned)index
+{
+	return [self stringAtIndex:index defaultValue:nil];
+}
+
+
+- (NSArray *)arrayAtIndex:(unsigned)index
+{
+	return [self arrayAtIndex:index defaultValue:nil];
+}
+
+
+- (NSDictionary *)dictionaryAtIndex:(unsigned)index
+{
+	return [self dictionaryAtIndex:index defaultValue:nil];
+}
+
+
+- (NSData *)dataAtIndex:(unsigned)index
+{
+	return [self dataAtIndex:index defaultValue:nil];
+}
+
 @end
 
 
@@ -653,6 +761,114 @@ BOOL EvaluateAsBoolean(id object, BOOL defaultValue)
 	return result;
 }
 
+
+- (char)charForKey:(id)key
+{
+	return [self charForKey:key defaultValue:0];
+}
+
+
+- (short)shortForKey:(id)key
+{
+	return [self shortForKey:key defaultValue:0];
+}
+
+
+- (int)intForKey:(id)key
+{
+	return [self intForKey:key defaultValue:0];
+}
+
+
+- (long)longForKey:(id)key
+{
+	return [self longForKey:key defaultValue:0];
+}
+
+
+- (long long)longLongForKey:(id)key
+{
+	return [self longLongForKey:key defaultValue:0];
+}
+
+
+- (unsigned char)unsignedCharForKey:(id)key
+{
+	return [self unsignedCharForKey:key defaultValue:0];
+}
+
+
+- (unsigned short)unsignedShortForKey:(id)key
+{
+	return [self unsignedShortForKey:key defaultValue:0];
+}
+
+
+- (unsigned int)unsignedIntForKey:(id)key
+{
+	return [self unsignedIntForKey:key defaultValue:0];
+}
+
+
+- (unsigned long)unsignedLongForKey:(id)key
+{
+	return [self unsignedLongForKey:key defaultValue:0];
+}
+
+
+- (unsigned long long)unsignedLongLongForKey:(id)key
+{
+	return [self unsignedLongLongForKey:key defaultValue:0];
+}
+
+
+- (BOOL)boolForKey:(id)key
+{
+	return [self boolForKey:key defaultValue:NO];
+}
+
+
+- (BOOL)fuzzyBooleanForKey:(id)key
+{
+	return [self fuzzyBooleanForKey:key defaultValue:0.0f];
+}
+
+
+- (float)floatForKey:(id)key
+{
+	return [self floatForKey:key defaultValue:0.0f];
+}
+
+
+- (double)doubleForKey:(id)key
+{
+	return [self doubleForKey:key defaultValue:0.0];
+}
+
+
+- (NSString *)stringForKey:(id)key
+{
+	return [self stringForKey:key defaultValue:nil];
+}
+
+
+- (NSArray *)arrayForKey:(id)key
+{
+	return [self arrayForKey:key defaultValue:nil];
+}
+
+
+- (NSDictionary *)dictionaryForKey:(id)key
+{
+	return [self dictionaryForKey:key defaultValue:nil];
+}
+
+
+- (NSData *)dataForKey:(id)key
+{
+	return [self dataForKey:key defaultValue:nil];
+}
+
 @end
 
 
@@ -938,6 +1154,78 @@ BOOL EvaluateAsBoolean(id object, BOOL defaultValue)
 	else result = value;
 	
 	return result;
+}
+
+
+- (char)charForKey:(id)key
+{
+	return [self charForKey:key defaultValue:0];
+}
+
+
+- (short)shortForKey:(id)key
+{
+	return [self shortForKey:key defaultValue:0];
+}
+
+
+- (int)intForKey:(id)key
+{
+	return [self intForKey:key defaultValue:0];
+}
+
+
+- (long)longForKey:(id)key
+{
+	return [self longForKey:key defaultValue:0];
+}
+
+
+- (long long)longLongForKey:(id)key
+{
+	return [self longLongForKey:key defaultValue:0];
+}
+
+
+- (unsigned char)unsignedCharForKey:(id)key
+{
+	return [self unsignedCharForKey:key defaultValue:0];
+}
+
+
+- (unsigned short)unsignedShortForKey:(id)key
+{
+	return [self unsignedShortForKey:key defaultValue:0];
+}
+
+
+- (unsigned int)unsignedIntForKey:(id)key
+{
+	return [self unsignedIntForKey:key defaultValue:0];
+}
+
+
+- (unsigned long)unsignedLongForKey:(id)key
+{
+	return [self unsignedLongForKey:key defaultValue:0];
+}
+
+
+- (unsigned long long)unsignedLongLongForKey:(id)key
+{
+	return [self unsignedLongLongForKey:key defaultValue:0];
+}
+
+
+- (BOOL)fuzzyBooleanForKey:(id)key
+{
+	return [self fuzzyBooleanForKey:key defaultValue:0.0f];
+}
+
+
+- (double)doubleForKey:(id)key
+{
+	return [self doubleForKey:key defaultValue:0.0];
 }
 
 @end

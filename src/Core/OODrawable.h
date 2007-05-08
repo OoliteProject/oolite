@@ -50,6 +50,7 @@ SOFTWARE.
 #import "OOCocoa.h"
 #import "OOOpenGL.h"
 #import "OOMaths.h"
+#import "OOWeakReference.h"
 
 @class Geometry;
 
@@ -68,8 +69,12 @@ SOFTWARE.
 - (Geometry *)geometry;
 - (GLfloat)volume;
 
+- (BoundingBox)boundingBox;
 // This needs a better name.
 - (BoundingBox)findBoundingBoxRelativeToPosition:(Vector)opv InVectors:(Vector) _i :(Vector) _j :(Vector) _k;
+
+// Passed to all materials.
+- (void)setBindingTarget:(id<OOWeakReferenceSupport>)target;
 
 - (void)dumpSelfState;
 

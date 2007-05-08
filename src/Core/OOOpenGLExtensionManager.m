@@ -51,6 +51,14 @@ SOFTWARE.
 #import <stdlib.h>
 
 
+/*	If nonzero, disable shaders for OpenGL versions less than 1.5. It is my
+	contention that this isn't needed since we test for extensions. Enabling
+	this check disables shaders on Intel GMA 950 hardware under Mac OS 
+	10.4.9; they seem to work fine otherwise. -- Ahruman
+*/
+#define SHADER_CHECK_FOR_VERSION	0
+
+
 static NSString * const kOOLogOpenGLShaderSupport		= @"rendering.opengl.shader.support";
 
 
@@ -252,11 +260,13 @@ static unsigned IntegerFromString(const GLubyte **ioString)
 {
 	shadersAvailable = NO;
 	
+#if SHADER_CHECK_FOR_VERSION
 	if (major <= 1 && minor < 5)
 	{
 		OOLog(kOOLogOpenGLShaderSupport, @"Shaders will not be used (OpenGL version < 1.5).");
 		return;
 	}
+#endif
 	
 	const NSString		*requiredExtension[] = 
 						{

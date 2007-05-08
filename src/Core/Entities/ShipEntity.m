@@ -41,6 +41,7 @@ MA 02110-1301, USA.
 #import "OOBrain.h"
 #import "AI.h"
 
+#import "OOMesh.h"
 #import "Geometry.h"
 #import "Octree.h"
 #import "OOColor.h"
@@ -61,9 +62,11 @@ extern NSString * const kOOLogSyntaxAddShips;
 static NSString * const kOOLogEntityBehaviourChanged	= @"entity.behaviour.changed";
 
 
-#if OLD_SHADERS
-static void ApplyConstantUniforms(NSDictionary *uniforms, GLhandleARB shaderProgram);
-#endif
+@interface ShipEntity (Private)
+
+- (void) drawSubEntity:(BOOL) immediate :(BOOL) translucent;
+
+@end
 
 
 @implementation ShipEntity
@@ -99,7 +102,7 @@ static void ApplyConstantUniforms(NSDictionary *uniforms, GLhandleARB shaderProg
 
 - (void) setUpShipFromDictionary:(NSDictionary *) dict
 {
-	NSDictionary		*shipdict = dict;
+	NSDictionary		*shipDict = dict;
 	int					i;
 	
 	// Does this positional stuff need setting up here?
@@ -117,31 +120,31 @@ static void ApplyConstantUniforms(NSDictionary *uniforms, GLhandleARB shaderProg
 	for (;;)
 	{
 		// TODO: avoid reference loops.
-		NSString		*other_shipdesc = [shipdict stringForKey:@"like_ship" defaultValue:nil];
-		NSDictionary	*other_shipdict = [UNIVERSE getDictionaryForShip:other_shipdesc];
-		if (other_shipdict == nil)  break;
+		NSString		*other_shipdesc = [shipDict stringForKey:@"like_ship"];
+		NSDictionary	*other_shipDict = [UNIVERSE getDictionaryForShip:other_shipdesc];
+		if (other_shipDict == nil)  break;
 		
-		other_shipdesc = [other_shipdict objectForKey:@"like_ship"];
+		other_shipdesc = [other_shipDict objectForKey:@"like_ship"];
 		
-		NSMutableDictionary* this_shipdict = [NSMutableDictionary dictionaryWithDictionary:other_shipdict]; // basics from that one
-		[this_shipdict addEntriesFromDictionary:shipdict];	// overrides from this one
-		[this_shipdict setObject:other_shipdesc forKey:@"like_ship"];
-		shipdict = this_shipdict;
+		NSMutableDictionary* this_shipDict = [NSMutableDictionary dictionaryWithDictionary:other_shipDict]; // basics from that one
+		[this_shipDict addEntriesFromDictionary:shipDict];	// overrides from this one
+		[this_shipDict setObject:other_shipdesc forKey:@"like_ship"];
+		shipDict = this_shipDict;
 	}
 	
-	shipinfoDictionary = [shipdict copy];
-	shipdict = shipinfoDictionary;	// TEMP: ensure no mutation
+	shipinfoDictionary = [shipDict copy];
+	shipDict = shipinfoDictionary;	// TEMP: ensure no mutation
 	
 	// set things from dictionary from here out
-	max_flight_speed = [shipdict doubleForKey:@"max_flight_speed" defaultValue:0.0f];
-	max_flight_roll = [shipdict doubleForKey:@"max_flight_roll" defaultValue:0.0f];
-	max_flight_pitch = [shipdict doubleForKey:@"max_flight_pitch" defaultValue:0.0f];
-	max_flight_yaw = [shipdict doubleForKey:@"max_flight_yaw" defaultValue:max_flight_pitch];	// Note by default yaw == pitch
+	max_flight_speed = [shipDict doubleForKey:@"max_flight_speed"];
+	max_flight_roll = [shipDict doubleForKey:@"max_flight_roll"];
+	max_flight_pitch = [shipDict doubleForKey:@"max_flight_pitch"];
+	max_flight_yaw = [shipDict doubleForKey:@"max_flight_yaw" defaultValue:max_flight_pitch];	// Note by default yaw == pitch
 	
-	thrust = [shipdict doubleForKey:@"thrust" defaultValue:thrust];
+	thrust = [shipDict doubleForKey:@"thrust" defaultValue:thrust];
 	
 	// This was integer percentages, made it floating point... I don't see any reason to limit the value's precision. -- Ahruman
-	float accuracy = [shipdict doubleForKey:@"accuracy" defaultValue:-100];	// Out-of-range default
+	float accuracy = [shipDict doubleForKey:@"accuracy" defaultValue:-100];	// Out-of-range default
 	if (accuracy >= -5.0f && accuracy <= 10.0f)
 	{
 		pitch_tolerance = 0.01 * (85.0f + accuracy);
@@ -152,35 +155,35 @@ static void ApplyConstantUniforms(NSDictionary *uniforms, GLhandleARB shaderProg
 		pitch_tolerance = 0.01 * (80 +(ranrot_rand() & 15));
 	}
 	
-	maxEnergy = [shipdict floatForKey:@"max_energy" defaultValue:0.0];
-	energy_recharge_rate = [shipdict floatForKey:@"energy_recharge_rate" defaultValue:0.0];
+	maxEnergy = [shipDict floatForKey:@"max_energy"];
+	energy_recharge_rate = [shipDict floatForKey:@"energy_recharge_rate"];
 	
-	forward_weapon_type = StringToWeaponType([shipdict stringForKey:@"forward_weapon_type" defaultValue:@"WEAPON_NONE"]);
-	aft_weapon_type = StringToWeaponType([shipdict stringForKey:@"aft_weapon_type" defaultValue:@"WEAPON_NONE"]);
+	forward_weapon_type = StringToWeaponType([shipDict stringForKey:@"forward_weapon_type" defaultValue:@"WEAPON_NONE"]);
+	aft_weapon_type = StringToWeaponType([shipDict stringForKey:@"aft_weapon_type" defaultValue:@"WEAPON_NONE"]);
 	
-	weapon_energy = [shipdict doubleForKey:@"weapon_energy" defaultValue:0.0];
-	scanner_range = [shipdict doubleForKey:@"weapon_energy" defaultValue:25600.0];
-	missiles = [shipdict intForKey:@"missiles" defaultValue:0];
+	weapon_energy = [shipDict doubleForKey:@"weapon_energy"];
+	scanner_range = [shipDict doubleForKey:@"weapon_energy" defaultValue:25600.0];
+	missiles = [shipDict intForKey:@"missiles"];
 
 	// upgrades:
-	has_ecm = [shipdict fuzzyBooleanForKey:@"has_ecm" defaultValue:0.0];
-	has_scoop = [shipdict fuzzyBooleanForKey:@"has_scoop" defaultValue:0.0];
-	has_escape_pod = [shipdict fuzzyBooleanForKey:@"has_escape_pod" defaultValue:0.0];
-	has_energy_bomb = [shipdict fuzzyBooleanForKey:@"has_energy_bomb" defaultValue:0.0];
-	has_fuel_injection = [shipdict fuzzyBooleanForKey:@"has_fuel_injection" defaultValue:0.0];
-	has_cloaking_device = [shipdict fuzzyBooleanForKey:@"has_cloaking_device" defaultValue:0.0];
-	has_military_jammer = [shipdict fuzzyBooleanForKey:@"has_military_jammer" defaultValue:0.0];
-	has_military_scanner_filter = [shipdict fuzzyBooleanForKey:@"has_military_scanner_filter" defaultValue:0.0];
-	canFragment = [shipdict fuzzyBooleanForKey:@"fragment_chance" defaultValue:0.9];
+	has_ecm = [shipDict fuzzyBooleanForKey:@"has_ecm"];
+	has_scoop = [shipDict fuzzyBooleanForKey:@"has_scoop"];
+	has_escape_pod = [shipDict fuzzyBooleanForKey:@"has_escape_pod"];
+	has_energy_bomb = [shipDict fuzzyBooleanForKey:@"has_energy_bomb"];
+	has_fuel_injection = [shipDict fuzzyBooleanForKey:@"has_fuel_injection"];
+	has_cloaking_device = [shipDict fuzzyBooleanForKey:@"has_cloaking_device"];
+	has_military_jammer = [shipDict fuzzyBooleanForKey:@"has_military_jammer"];
+	has_military_scanner_filter = [shipDict fuzzyBooleanForKey:@"has_military_scanner_filter"];
+	canFragment = [shipDict fuzzyBooleanForKey:@"fragment_chance" defaultValue:0.9];
 	
 	cloaking_device_active = NO;
 	military_jammer_active = NO;
 	
-	if ([shipdict fuzzyBooleanForKey:@"has_shield_booster" defaultValue:0.0])
+	if ([shipDict fuzzyBooleanForKey:@"has_shield_booster"])
 	{
 		maxEnergy += 256.0f;
 	}
-	if ([shipdict fuzzyBooleanForKey:@"has_shield_enhancer" defaultValue:0.0])
+	if ([shipDict fuzzyBooleanForKey:@"has_shield_enhancer"])
 	{
 		maxEnergy += 256.0f;
 		energy_recharge_rate *= 1.5;
@@ -189,27 +192,27 @@ static void ApplyConstantUniforms(NSDictionary *uniforms, GLhandleARB shaderProg
 	// Moved here from above upgrade loading so that ships start with full energy banks. -- Ahruman
 	energy = maxEnergy;
 	
-	fuel = [shipdict intForKey:@"fuel" defaultValue:0];	// Does it make sense that this defaults to 0? Should it not be 70? -- Ahruman
+	fuel = [shipDict intForKey:@"fuel"];	// Does it make sense that this defaults to 0? Should it not be 70? -- Ahruman
 	fuel_accumulator = 1.0;
 	
-	bounty = [shipdict intForKey:@"bounty" defaultValue:0];
+	bounty = [shipDict intForKey:@"bounty"];
 	
 	[shipAI autorelease];
 	shipAI = [[AI alloc] init];
-	[shipAI setStateMachine:[shipdict stringForKey:@"ai_type" defaultValue:@"nullAI.plist"]];
+	[shipAI setStateMachine:[shipDict stringForKey:@"ai_type" defaultValue:@"nullAI.plist"]];
 	
-	max_cargo = [shipdict intForKey:@"max_cargo" defaultValue:0];
-	likely_cargo = [shipdict intForKey:@"likely_cargo" defaultValue:0];
-	extra_cargo = [shipdict intForKey:@"extra_cargo" defaultValue:15];
+	max_cargo = [shipDict intForKey:@"max_cargo"];
+	likely_cargo = [shipDict intForKey:@"likely_cargo"];
+	extra_cargo = [shipDict intForKey:@"extra_cargo" defaultValue:15];
 	
-	if ([shipdict objectForKey:@"cargo_carried"])
+	if ([shipDict objectForKey:@"cargo_carried"])
 	{
 		cargo_flag = CARGO_FLAG_FULL_UNIFORM;
 
 		[self setCommodity:NSNotFound andAmount:0];
 		int c_commodity = NSNotFound;
 		int c_amount = 1;
-		NSScanner*	scanner = [NSScanner scannerWithString: [shipdict objectForKey:@"cargo_carried"]];
+		NSScanner*	scanner = [NSScanner scannerWithString: [shipDict objectForKey:@"cargo_carried"]];
 		if ([scanner scanInt: &c_amount])
 		{
 			[scanner ooliteScanCharactersFromSet:[NSCharacterSet whitespaceCharacterSet] intoString:NULL];	// skip whitespace
@@ -218,39 +221,45 @@ static void ApplyConstantUniforms(NSDictionary *uniforms, GLhandleARB shaderProg
 		else
 		{
 			c_amount = 1;
-			c_commodity = [UNIVERSE commodityForName: (NSString*)[shipdict objectForKey:@"cargo_carried"]];
+			c_commodity = [UNIVERSE commodityForName: (NSString*)[shipDict objectForKey:@"cargo_carried"]];
 		}
 
 		if (c_commodity != NSNotFound)  [self setCommodity:c_commodity andAmount:c_amount];
 	}
 	
-	if ([shipdict objectForKey:@"cargo_type"])
+	if ([shipDict objectForKey:@"cargo_type"])
 	{
-		cargo_type = StringToCargoType([shipdict objectForKey:@"cargo_type"]);
+		cargo_type = StringToCargoType([shipDict objectForKey:@"cargo_type"]);
 		
 		[cargo autorelease];
 		cargo = [[NSMutableArray alloc] initWithCapacity:max_cargo]; // alloc retains;
 	}
 	
-	// A HACK!! - must do this before the model is set
-	isSmoothShaded = [shipdict boolForKey:@"smooth" defaultValue:NO];
+	// Load the model (must be before subentities)
+	NSString *modelName = [shipDict stringForKey:@"model"];
+	if (modelName != nil)
+	{
+		OOMesh *mesh = [OOMesh meshWithName:modelName
+						 materialDictionary:[shipDict dictionaryForKey:@"materials"]
+						  shadersDictionary:[shipDict dictionaryForKey:@"shaders"]
+									 smooth:[shipDict boolForKey:@"smooth" defaultValue:NO]
+							   shaderMacros:DefaultShipShaderMacros()
+						shaderBindingTarget:self];
+		[self setMesh:mesh];
+	}
 	
-	// must do this next one before checking subentities
-	NSString *modelName = [shipdict stringForKey:@"model" defaultValue:nil];
-	if (modelName != nil)  [self setModelName:modelName];
-	
-	float density = [shipdict floatForKey:@"density" defaultValue:1.0];
+	float density = [shipDict floatForKey:@"density" defaultValue:1.0];
 	if (octree)  mass = density * 20.0 * [octree volume];
 	
 	[name autorelease];
-	name = [[shipdict stringForKey:@"name" defaultValue:name] copy];
+	name = [[shipDict stringForKey:@"name" defaultValue:name] copy];
 	
 	[roles release];
-	roles = [[shipdict stringForKey:@"roles" defaultValue:nil] copy];
+	roles = [[shipDict stringForKey:@"roles"] copy];
 	
 	[self setOwner:self];
 	
-	NSArray *plumes = [shipdict arrayForKey:@"exhaust" defaultValue:nil];
+	NSArray *plumes = [shipDict arrayForKey:@"exhaust"];
 	for (i = 0; i < [plumes count]; i++)
 	{
 		ParticleEntity *exhaust = [[ParticleEntity alloc] initExhaustFromShip:self details:[plumes objectAtIndex:i]];
@@ -258,9 +267,9 @@ static void ApplyConstantUniforms(NSDictionary *uniforms, GLhandleARB shaderProg
 		[exhaust release];
 	}
 	
-	is_hulk = [shipdict boolForKey:@"is_hulk" defaultValue:NO];
+	is_hulk = [shipDict boolForKey:@"is_hulk" defaultValue:NO];
 	
-	NSArray *subs = [shipdict arrayForKey:@"subentities" defaultValue:nil];
+	NSArray *subs = [shipDict arrayForKey:@"subentities"];
 	for (i = 0; i < [subs count]; i++)
 	{
 		NSArray *details = ScanTokensFromString([subs objectAtIndex:i]);
@@ -331,21 +340,21 @@ static void ApplyConstantUniforms(NSDictionary *uniforms, GLhandleARB shaderProg
 		}
 	}
 	
-	isFrangible = [shipdict boolForKey:@"frangible" defaultValue:YES];
+	isFrangible = [shipDict boolForKey:@"frangible" defaultValue:YES];
 	
-	OOColor *color = [OOColor brightColorWithDescription:[shipdict objectForKey:@"laser_color"]];
+	OOColor *color = [OOColor brightColorWithDescription:[shipDict objectForKey:@"laser_color"]];
 	if (color == nil)  color = [OOColor redColor];
 	[self setLaserColor:color];
 	
 	// scan class
-	scanClass = StringToScanClass([shipdict objectForKey:@"scanClass"]);
+	scanClass = StringToScanClass([shipDict objectForKey:@"scanClass"]);
 	
 	// scripting
 	// TODO: use OOScript here. -- Ahruman
-	launch_actions = [[shipdict arrayForKey:KEY_LAUNCH_ACTIONS defaultValue:nil] copy];
-	script_actions = [[shipdict arrayForKey:KEY_LAUNCH_ACTIONS defaultValue:nil] copy];
-	death_actions = [[shipdict arrayForKey:KEY_LAUNCH_ACTIONS defaultValue:nil] copy];
-	NSArray *setUpActions = [shipdict arrayForKey:KEY_SETUP_ACTIONS defaultValue:nil];
+	launch_actions = [[shipDict arrayForKey:KEY_LAUNCH_ACTIONS] copy];
+	script_actions = [[shipDict arrayForKey:KEY_LAUNCH_ACTIONS] copy];
+	death_actions = [[shipDict arrayForKey:KEY_LAUNCH_ACTIONS] copy];
+	NSArray *setUpActions = [shipDict arrayForKey:KEY_SETUP_ACTIONS];
 	if (setUpActions != nil)
 	{
 		PlayerEntity* player = [PlayerEntity sharedPlayer];
@@ -354,23 +363,23 @@ static void ApplyConstantUniforms(NSDictionary *uniforms, GLhandleARB shaderProg
 	}
 	
 	//  escorts
-	n_escorts = [shipdict intForKey:@"escorts" defaultValue:0];
+	n_escorts = [shipDict intForKey:@"escorts"];
 	escortsAreSetUp = (n_escorts == 0);
 
 	// beacons
-	NSString *beaconCode = [shipdict stringForKey:@"beacon" defaultValue:nil];
+	NSString *beaconCode = [shipDict stringForKey:@"beacon"];
 	if (beaconCode == nil)  beaconChar = '\0';
 	else  beaconChar = [beaconCode lossyCString][0];
 	
 	// rotating subentities
 	subentityRotationalVelocity = kIdentityQuaternion;
-	ScanQuaternionFromString([shipdict objectForKey:@"rotational_velocity"], &subentityRotationalVelocity);
+	ScanQuaternionFromString([shipDict objectForKey:@"rotational_velocity"], &subentityRotationalVelocity);
 
 	// contact tracking entities
 	//
-	if ([shipdict objectForKey:@"track_contacts"])
+	if ([shipDict objectForKey:@"track_contacts"])
 	{
-		[self setTrackCloseContacts:[[shipdict objectForKey:@"track_contacts"] boolValue]];
+		[self setTrackCloseContacts:[[shipDict objectForKey:@"track_contacts"] boolValue]];
 		// DEBUG....
 		[self setReportAImessages:YES];
 	}
@@ -382,30 +391,28 @@ static void ApplyConstantUniforms(NSDictionary *uniforms, GLhandleARB shaderProg
 	// set weapon offsets
 	[self setDefaultWeaponOffsets];
 	//
-	ScanVectorFromString([shipdict objectForKey:@"weapon_position_forward"], &forwardWeaponOffset);
-	ScanVectorFromString([shipdict objectForKey:@"weapon_position_aft"], &aftWeaponOffset);
-	ScanVectorFromString([shipdict objectForKey:@"weapon_position_port"], &portWeaponOffset);
-	ScanVectorFromString([shipdict objectForKey:@"weapon_position_starboard"], &starboardWeaponOffset);
+	ScanVectorFromString([shipDict objectForKey:@"weapon_position_forward"], &forwardWeaponOffset);
+	ScanVectorFromString([shipDict objectForKey:@"weapon_position_aft"], &aftWeaponOffset);
+	ScanVectorFromString([shipDict objectForKey:@"weapon_position_port"], &portWeaponOffset);
+	ScanVectorFromString([shipDict objectForKey:@"weapon_position_starboard"], &starboardWeaponOffset);
 
 	// fuel scoop destination position (where cargo gets sucked into)
 	tractor_position = kZeroVector;
-	ScanVectorFromString([shipdict objectForKey:@"scoop_position"], &tractor_position);
+	ScanVectorFromString([shipDict objectForKey:@"scoop_position"], &tractor_position);
 
 	// ship skin insulation factor (1.0 is normal)
-	heat_insulation = [shipdict doubleForKey:@"heat_insulation"	defaultValue:1.0];
+	heat_insulation = [shipDict doubleForKey:@"heat_insulation"	defaultValue:1.0];
 		
 	// crew and passengers
-	NSDictionary* cdict = [[UNIVERSE characters] objectForKey:[shipdict stringForKey:@"pilot" defaultValue:nil]];
+	NSDictionary* cdict = [[UNIVERSE characters] objectForKey:[shipDict stringForKey:@"pilot"]];
 	if (cdict != nil)
 	{
 		OOCharacter	*pilot = [OOCharacter characterWithDictionary:cdict];
 		[self setCrew:[NSArray arrayWithObject:pilot]];
 	}
 	
-	[self initializeTextures];
-	
 	// unpiloted (like missiles asteroids etc.)
-	if ([shipdict fuzzyBooleanForKey:@"unpiloted" defaultValue:0.0f])  [self setCrew:nil];
+	if ([shipDict fuzzyBooleanForKey:@"unpiloted"])  [self setCrew:nil];
 }
 
 
@@ -465,35 +472,23 @@ static void ApplyConstantUniforms(NSDictionary *uniforms, GLhandleARB shaderProg
 		return [NSString stringWithFormat:@"<%@ %@ %d>", [self class], name, universalID];
 }
 
-- (void) setOctree:(Octree*) oct
+
+- (OOMesh *)mesh
 {
-	[octree release];
-	octree = [oct retain];
+	return (OOMesh *)[self drawable];
 }
 
 
-- (void) setModelName:(NSString*) modelName
+- (void)setMesh:(OOMesh *)mesh
 {
-	NS_DURING
-		[super setModelName:modelName];
-	NS_HANDLER
-		if ([[localException name] isEqual: OOLITE_EXCEPTION_DATA_NOT_FOUND])
-		{
-			OOLog(kOOLogException, @"***** Oolite Data Not Found Exception : '%@' in [ShipEntity setModelName:] *****", [localException reason]);
-		}
-		[localException raise];
-	NS_ENDHANDLER
-	
-	Octree *newOctree;
-	newOctree = [OOCacheManager octreeForModel:modelName];
-	if (newOctree == nil)
+	if (mesh != [self mesh])
 	{
-		newOctree = [[self geometry] findOctreeToDepth: OCTREE_MAX_DEPTH];
-		[OOCacheManager setOctree:newOctree forModel:modelName];
+		[self setDrawable:mesh];
+		[octree autorelease];
+		octree = [[mesh octree] retain];
 	}
-	
-	[self setOctree:newOctree];
 }
+
 
 // ship's brains!
 - (OOBrain*)	brain
@@ -590,8 +585,8 @@ static void ApplyConstantUniforms(NSDictionary *uniforms, GLhandleARB shaderProg
 	}
 
 	//	Tell subentities, too
-	NSEnumerator	*subEntityEnum;
-	Entity			*subEntity;
+	NSEnumerator	*subEntityEnum = nil;
+	Entity			*subEntity = nil;
 	
 	for (subEntityEnum = [sub_entities objectEnumerator]; (subEntity = [subEntityEnum nextObject]); )
 	{
@@ -604,8 +599,8 @@ static void ApplyConstantUniforms(NSDictionary *uniforms, GLhandleARB shaderProg
 
 - (void) wasRemovedFromUniverse
 {
-	NSEnumerator	*subEntityEnum;
-	Entity			*subEntity;
+	NSEnumerator	*subEntityEnum = nil;
+	Entity			*subEntity = nil;
 	
 	for (subEntityEnum = [sub_entities objectEnumerator]; (subEntity = [subEntityEnum nextObject]); )
 	{
@@ -752,70 +747,7 @@ static void ApplyConstantUniforms(NSDictionary *uniforms, GLhandleARB shaderProg
 }
 
 
-- (void) rescaleBy:(GLfloat) factor
-{
-	// rescale vertices and rebuild vertex arrays
-	//
-	int i;
-	for (i = 0; i < n_vertices; i++)
-	{
-		vertices[i].x *= factor;
-		vertices[i].y *= factor;
-		vertices[i].z *= factor;
-	}
-	[self setUpVertexArrays];
-	usingVAR = [self OGL_InitVAR];
-	if (usingVAR)
-		[self OGL_AssignVARMemory:sizeof(EntityData) :(void *)&entityData :0];
-	
-	// rescale the collision radii & bounding box
-	//
-	collision_radius *= factor;
-	actual_radius *= factor;
-	boundingBox.min.x *= factor;
-	boundingBox.min.y *= factor;
-	boundingBox.min.z *= factor;
-	boundingBox.max.x *= factor;
-	boundingBox.max.y *= factor;
-	boundingBox.max.z *= factor;
-
-	// rescale octree
-	//
-	[self setOctree:[octree octreeScaledBy: factor]];
-	
-	// rescale positions of subentities
-	//
-	int n_subs = [sub_entities count];
-	for (i = 0; i < n_subs; i++)
-	{
-		Entity* se = (Entity*)[sub_entities objectAtIndex:i];
-		se->position.x *= factor;
-		se->position.y *= factor;
-		se->position.z *= factor;
-		
-		// rescale ship subentities
-		if (se->isShip)
-			[(ShipEntity*)se rescaleBy: factor];
-		
-		// rescale particle subentities
-		if (se->isParticle)
-		{
-			ParticleEntity* pe = (ParticleEntity*)se;
-			NSSize sz = [pe size];
-			sz.width *= factor;
-			sz.height *= factor;
-			[pe setSize: sz];
-		}
-	}
-	
-	// rescale mass
-	//
-	mass *= factor * factor * factor;
-	
-}
-
-
-- (NSDictionary*)	 shipInfoDictionary
+- (NSDictionary *)shipInfoDictionary
 {
 	return shipinfoDictionary;
 }
@@ -1016,6 +948,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 }
 
 
+#if OBSOLETE
 - (BoundingBox) findSubentityBoundingBox
 {
 	BoundingBox result;
@@ -1037,6 +970,12 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 
 	return result;
 }
+#else
+- (BoundingBox)findSubentityBoundingBox
+{
+	return [[self mesh] findSubentityBoundingBoxWithPosition:position rotMatrix:rotMatrix];
+}
+#endif
 
 
 - (Vector) absolutePositionForSubentity
@@ -2432,243 +2371,30 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 }
 
 
-- (void) initializeTextures
+- (void)drawEntity:(BOOL)immediate :(BOOL)translucent
 {
-	NSDictionary			*shaderDefs = nil;
-	NSEnumerator			*shaderEnum = nil;
-	NSString				*shaderKey = nil;
-	NSDictionary			*shaderConfig = nil;
-	OOShaderMaterial		*shader = nil;
-	static NSDictionary		*macros = nil;
-	static NSDictionary		*defaultBindings = nil;
-	Entity					*propertyEntity = nil;
-	NSDictionary			*materialDefaults = nil;
-	
-	[super initializeTextures];
-	
-	// TODO: this won't do when we have non-shader OOMaterials.
-	if (![[OOOpenGLExtensionManager sharedManager] shadersSupported])  return;
-	
-	shaderDefs = [shipinfoDictionary objectForKey:@"shaders"];
-	if (shaderDefs)
-	{
-		if (materials)
-		{
-			OOLog(@"shipEntity.squashRecycling", @"Hmm, shaders is non-nil for %@.", self);
-			[materials release];
-		}
-		
-		materials = [[NSMutableDictionary alloc] init];
-		
-		OOLog(@"shader.vessel.init", @"Initialising shaders for %@", self);
-		OOLogIndentIf(@"shader.vessel.init");
-		
-		if (macros == nil)
-		{
-			// Set up macros and bindings used for all ship shaders
-			materialDefaults = [ResourceManager dictionaryFromFilesNamed:@"material-defaults.plist" inFolder:@"Config" andMerge:YES];
-			macros = [[materialDefaults dictionaryForKey:@"ship-prefix-macros" defaultValue:[NSDictionary dictionary]] retain];
-			defaultBindings = [[materialDefaults dictionaryForKey:@"ship-default-bindings" defaultValue:[NSDictionary dictionary]] retain];
-		}
-		
-		propertyEntity = [self entityForShaderProperties];
-		
-		for (shaderEnum = [shaderDefs keyEnumerator]; (shaderKey = [shaderEnum nextObject]); )
-		{
-			shaderConfig = [shaderDefs dictionaryForKey:shaderKey defaultValue:nil];
-			if (shaderConfig != nil)
-			{
-				shader = [OOShaderMaterial shaderMaterialWithName:shaderKey configuration:shaderConfig macros:macros bindingTarget:propertyEntity];
-				if (shader != nil)
-				{
-					[materials setObject:shader forKey:shaderKey];
-					
-					[shader addUniformsFromDictionary:defaultBindings withBindingTarget:propertyEntity];
-					
-					[shader bindUniform:@"time"
-							   toObject:UNIVERSE
-							   property:@selector(getTime)
-								clamped:NO];
-				}
-			}
-		}
-		
-		OOLogOutdentIf(@"shader.vessel.init");
-	}
-	materialsReady = YES;
-}
-
-
-- (Entity *)entityForShaderProperties
-{
-	if (!isSubentity)  return self;
-	else  return [self owner];
-}
-
-
-- (void)exerciseMaterials
-{
-	NSEnumerator				*materialEnum = nil;
-	OOMaterial					*material = nil;
-	
-	for (materialEnum = [materials objectEnumerator]; (material = [materialEnum nextObject]); )
-	{
-		[material ensureFinishedLoading];
-	}
-}
-
-
-- (void) drawEntity:(BOOL) immediate :(BOOL) translucent
-{
-	NSString					*textureKey = nil;
-	unsigned					i;
-	OOMaterial					*material = nil;
 	NSEnumerator				*subEntityEnum = nil;
-	Entity						*subEntity = nil;
+	ShipEntity					*subEntity = nil;
 	
-	if (no_draw_distance < zero_distance ||
-		[UNIVERSE breakPatternHide] ||
+	if ((no_draw_distance < zero_distance) ||	// Done redundantly to skip subentities
 		(cloaking_device_active && randf() > 0.10))
 	{
 		// Don't draw.
 		return;
 	}
 	
-	NS_DURING
-		if (!translucent)
+	// Draw self.
+	[super drawEntity:immediate :translucent];
+	
+	// Draw subentities.
+	if (!immediate)	// TODO: is this relevant any longer?
+	{
+		for (subEntityEnum = [sub_entities objectEnumerator]; (subEntity = [subEntityEnum nextObject]); )
 		{
-			GLfloat mat_ambient[]	= { 1.0, 1.0, 1.0, 1.0 };
-			GLfloat mat_no[]		= { 0.0, 0.0, 0.0, 1.0 };
-			GLfloat amb_diff0[]		= { 0.5, 0.5, 0.5, 1.0 };
-			
-			if (EXPECT_NOT(basefile == nil))
-			{
-				OOLog(@"render.shipEntity.expectedBaseFile", @"Error: no basefile for entity %@", self);
-			}
-			
-			// Set up state
-			glShadeModel(isSmoothShaded ? GL_SMOOTH : GL_FLAT);
-			
-			glDisableClientState(GL_COLOR_ARRAY);
-			glDisableClientState(GL_INDEX_ARRAY);
-			glDisableClientState(GL_EDGE_FLAG_ARRAY);
-			glEnableClientState(GL_VERTEX_ARRAY);
-			glEnableClientState(GL_NORMAL_ARRAY);
-			glEnableClientState(GL_TEXTURE_COORD_ARRAY);
-			
-			glVertexPointer( 3, GL_FLOAT, 0, entityData.vertex_array);
-			glNormalPointer( GL_FLOAT, 0, entityData.normal_array);
-			glTexCoordPointer( 2, GL_FLOAT, 0, entityData.texture_uv_array);
-			
-			if (immediate)
-			{
-				/*	Gap removal (draw flat polys).
-				
-					It is my belief that this has absolutely no effect whatsoever on gaps,
-					as it's using the same geometry as the "real" rendering, but does stop
-					alpha textures from semi-working. This is probably good, since we
-					don't depth sort, but could be replaced with disabling blending.
-					TODO: try the blending thing as above.
-					-- Ahruman
-				*/
-				glDisable(GL_TEXTURE_2D);
-				glMaterialfv( GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE, amb_diff0);
-				glMaterialfv( GL_FRONT_AND_BACK, GL_EMISSION, mat_no);
-				glColor4f( 0.25, 0.25, 0.25, 1.0);	// gray
-				glDepthMask(GL_FALSE); // don't write to depth buffer
-				glDrawArrays(GL_TRIANGLES, 0, entityData.n_triangles);	// draw in gray to mask the edges
-				glDepthMask(GL_TRUE);
-				
-				// Now draw textured polygons.
-				glEnable(GL_TEXTURE_2D);
-				glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
-				glMaterialfv( GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE, mat_ambient);
-				glMaterialfv( GL_FRONT_AND_BACK, GL_EMISSION, mat_no);	// TODO: replace with using default OOMaterial if no custom material is defined.
-				
-				for (i = 1; i <= n_textures; i++)
-				{
-					textureKey = [TextureStore getNameOfTextureWithGLuint: texture_name[i]];
-					material = [materials objectForKey:textureKey];
-					
-					if (material == nil)
-					{
-						// TODO: use a default material instead
-						[OOMaterial applyNone];
-						glBindTexture(GL_TEXTURE_2D, texture_name[i]);
-					}
-					else
-					{
-						[material apply];
-					}
-					
-					glDrawArrays( GL_TRIANGLES, triangle_range[i].location, triangle_range[i].length);
-				}
-				[OOMaterial applyNone];
-			}
-			else
-			{
-				// Not immediate.
-				if (displayListName != 0)
-				{
-					// TODO: Isn't this equivalent to "if immedate || displayListName != 0" above, along with passing displayListName != 0 as the super call's immediate parameter? -- Ahruman
-					[self drawEntity:YES :translucent];
-				}
-				else
-				{
-					// Set up display list.
-					if (!materialsReady)  [self initializeTextures];
-#if GL_APPLE_vertex_array_object
-					if (usingVAR)  glBindVertexArrayAPPLE(gVertexArrayRangeObjects[0]);
-#endif
-					/*	Apply all materials to ensure textures are loaded.
-						This is needed because you can't create textures in a
-						display list.
-					*/
-					[self exerciseMaterials];
-					
-					// Do the display list.
-					[self generateDisplayList];
-				}
-			}
-			
-			if (!isSmoothShaded)  glShadeModel(GL_SMOOTH);
+			[subEntity setOwner:self]; // refresh ownership
+			[subEntity drawSubEntity:immediate :translucent];
 		}
-		else
-		{
-			// Translucent.
-			if ((status == STATUS_COCKPIT_DISPLAY)&&((debug | debug_flag) & (DEBUG_COLLISIONS | DEBUG_OCTREE)))
-				[octree drawOctree];
-		
-			if ((debug | debug_flag) & (DEBUG_COLLISIONS | DEBUG_OCTREE))
-				[octree drawOctreeCollisions];
-		
-			if ((isSubentity)&&[self owner])
-			{
-				if (([self owner]->status == STATUS_COCKPIT_DISPLAY)&&((debug | debug_flag) & (DEBUG_COLLISIONS | DEBUG_OCTREE)))
-					[octree drawOctree];
-				if ((debug | debug_flag) & (DEBUG_COLLISIONS | DEBUG_OCTREE))
-					[octree drawOctreeCollisions];
-			}
-		}
-		
-		if (!immediate)
-		{
-			// Draw subentities.
-			for (subEntityEnum = [sub_entities objectEnumerator]; (subEntity = [subEntityEnum nextObject]); )
-			{
-				[subEntity setOwner:self]; // refresh ownership
-				[subEntity drawSubEntity:immediate :translucent];
-			}
-		}
-		
-		CheckOpenGLErrors([NSString stringWithFormat:@"%s after drawing %@ (immediate: %s, translucent: %s)", __PRETTY_FUNCTION__, self, immediate ? "YES" : "NO", translucent ? "YES" : "NO"]);
-	NS_HANDLER
-		OOLog(@"exception.shipEntity.draw", @"***** %s encountered exception: %@ : %@ *****", __PRETTY_FUNCTION__, [localException name], [localException reason]);
-		OOLog(@"exception.shipEntity.draw", @"***** Removing entity %@ from UNIVERSE *****", self);
-		[UNIVERSE removeEntity:self];
-		if ([[localException name] hasPrefix:@"Oolite"])  [UNIVERSE handleOoliteException:localException];	// handle these ourself
-		else  [localException raise];	// pass these on
-	NS_ENDHANDLER
+	}
 }
 
 
@@ -2722,6 +2448,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 		glPopMatrix();
 	}
 }
+
 
 static GLfloat cargo_color[4] =		{ 0.9, 0.9, 0.9, 1.0};	// gray
 static GLfloat hostile_color[4] =	{ 1.0, 0.25, 0.0, 1.0};	// red/orange
@@ -3540,6 +3267,41 @@ static GLfloat mascem_color2[4] =	{ 0.4, 0.1, 0.4, 1.0};	// purple
 	suppressExplosion = NO;		// Can only be set in death handler
 	// TODO: send didBecomeDead(whom, context) script event here
 	[self becomeExplosion];
+}
+
+
+- (void) rescaleBy:(GLfloat) factor
+{
+	// rescale mesh (and collision detection stuff)
+	[self setMesh:[[self mesh] meshRescaledBy:factor]];
+	
+	// rescale positions of subentities
+	unsigned i, n_subs = [sub_entities count];
+	for (i = 0; i < n_subs; i++)
+	{
+		Entity* se = (Entity*)[sub_entities objectAtIndex:i];
+		se->position.x *= factor;
+		se->position.y *= factor;
+		se->position.z *= factor;
+		
+		// rescale ship subentities
+		if (se->isShip)
+			[(ShipEntity*)se rescaleBy: factor];
+		
+		// rescale particle subentities
+		if (se->isParticle)
+		{
+			ParticleEntity* pe = (ParticleEntity*)se;
+			NSSize sz = [pe size];
+			sz.width *= factor;
+			sz.height *= factor;
+			[pe setSize: sz];
+		}
+	}
+	
+	// rescale mass
+	//
+	mass *= factor * factor * factor;
 }
 
 
@@ -7026,45 +6788,10 @@ inline BOOL pairOK(NSString* my_role, NSString* their_role)
 
 - (BoundingBox) findBoundingBoxRelativeTo:(Entity *)other InVectors:(Vector) _i :(Vector) _j :(Vector) _k
 {
-	Vector  opv = (other)? other->position : position;
+	Vector  opv = other ? other->position : position;
 	return [self findBoundingBoxRelativeToPosition:opv InVectors:_i :_j :_k];
 }
 
-- (BoundingBox) findBoundingBoxRelativeToPosition:(Vector)opv InVectors:(Vector) _i :(Vector) _j :(Vector) _k
-{
-	Vector	pv, rv;
-	Vector  rpos = position;
-	rpos.x -= opv.x;	rpos.y -= opv.y;	rpos.z -= opv.z;	// model origin relative to opv
-	rv.x = dot_product(_i,rpos);
-	rv.y = dot_product(_j,rpos);
-	rv.z = dot_product(_k,rpos);	// model origin rel to opv in ijk
-	BoundingBox result;
-	if (n_vertices < 1)
-		bounding_box_reset_to_vector(&result,rv);
-	else
-	{
-		pv.x = rpos.x + v_right.x * vertices[0].x + v_up.x * vertices[0].y + v_forward.x * vertices[0].z;
-		pv.y = rpos.y + v_right.y * vertices[0].x + v_up.y * vertices[0].y + v_forward.y * vertices[0].z;
-		pv.z = rpos.z + v_right.z * vertices[0].x + v_up.z * vertices[0].y + v_forward.z * vertices[0].z;	// vertices[0] position rel to opv
-		rv.x = dot_product(_i,pv);
-		rv.y = dot_product(_j,pv);
-		rv.z = dot_product(_k,pv);	// vertices[0] position rel to opv in ijk
-		bounding_box_reset_to_vector(&result,rv);
-    }
-	int i;
-    for (i = 1; i < n_vertices; i++)
-    {
-		pv.x = rpos.x + v_right.x * vertices[i].x + v_up.x * vertices[i].y + v_forward.x * vertices[i].z;
-		pv.y = rpos.y + v_right.y * vertices[i].x + v_up.y * vertices[i].y + v_forward.y * vertices[i].z;
-		pv.z = rpos.z + v_right.z * vertices[i].x + v_up.z * vertices[i].y + v_forward.z * vertices[i].z;
-		rv.x = dot_product(_i,pv);
-		rv.y = dot_product(_j,pv);
-		rv.z = dot_product(_k,pv);
-		bounding_box_add_vector(&result,rv);
-    }
-
-	return result;
-}
 
 - (void) spawn:(NSString *)roles_number
 {
@@ -7338,90 +7065,26 @@ inline BOOL pairOK(NSString* my_role, NSString* their_role)
 	OOLog(@"dumpState.shipEntity.glsl", @"entity_personality_int: %i", entity_personality);
 }
 
-@end
 
-
-static NSString * const kOOCacheOctrees = @"octrees";
-
-@implementation OOCacheManager (Octree)
-
-+ (Octree *)octreeForModel:(NSString *)inKey
+- (Entity *)entityForShaderProperties
 {
-	NSDictionary		*dict = nil;
-	Octree				*result = nil;
-	
-	dict = [[self sharedCache] objectForKey:inKey inCache:kOOCacheOctrees];
-	if (dict != nil)
-	{
-		result = [[Octree alloc] initWithDictionary:dict];
-		[result autorelease];
-	}
-	
-	return result;
-}
-
-
-+ (void)setOctree:(Octree *)inOctree forModel:(NSString *)inKey
-{
-	[[self sharedCache] setObject:[inOctree dict] forKey:inKey inCache:kOOCacheOctrees];
+	if (!isSubentity)  return self;
+	else  return [self owner];
 }
 
 @end
 
 
-#if OLD_SHADERS
-// This could be more efficient.
-static void ApplyConstantUniforms(NSDictionary *uniforms, GLhandleARB shaderProgram)
+NSDictionary *DefaultShipShaderMacros(void)
 {
-	// Shipdata-defined uniforms. 
-	NSEnumerator	*uniformEnum = nil;
-	NSString		*name = nil;
-	id				definition = nil;
-	id				value = nil;
-	NSString		*type = nil;
-	GLint			variableLocation;
-	GLfloat			floatValue;
-	GLint			intValue;
-	BOOL			gotValue;
+	static NSDictionary		*macros = nil;
+	NSDictionary			*materialDefaults = nil;
 	
-	for (uniformEnum = [uniforms keyEnumerator]; (name = [uniformEnum nextObject]); )
+	if (macros == nil)
 	{
-		variableLocation = glGetUniformLocationARB(shaderProgram, [name UTF8String]);
-		if (variableLocation == -1)  continue;
-		
-		definition = [uniforms objectForKey:name];
-		if ([definition isKindOfClass:[NSDictionary class]])
-		{
-			value = [definition objectForKey:@"value"];
-			type = [definition objectForKey:@"type"];
-		}
-		else
-		{
-			value = definition;
-			type = @"float";
-		}
-		
-		if ([type isEqualToString:@"float"])
-		{
-			gotValue = YES;
-			if ([value respondsToSelector:@selector(floatValue)])  floatValue = [value floatValue];
-			else if ([value respondsToSelector:@selector(doubleValue)])  floatValue = [value doubleValue];
-			else if ([value respondsToSelector:@selector(intValue)])  floatValue = [value intValue];
-			else gotValue = NO;
-			
-			if (gotValue)
-			{
-				glUniform1fARB(variableLocation, floatValue);
-			}
-		}
-		else if ([type isEqualToString:@"int"])
-		{
-			if ([value respondsToSelector:@selector(intValue)])
-			{
-				intValue = [value intValue];
-				glUniform1iARB(variableLocation, intValue);
-			}
-		}
+		materialDefaults = [ResourceManager dictionaryFromFilesNamed:@"material-defaults.plist" inFolder:@"Config" andMerge:YES];
+		macros = [[materialDefaults dictionaryForKey:@"ship-prefix-macros" defaultValue:[NSDictionary dictionary]] retain];
 	}
+	
+	return macros;
 }
-#endif

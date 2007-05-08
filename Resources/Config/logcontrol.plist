@@ -72,14 +72,6 @@ beacon.list								= $scriptDebugOn;
 beacon.list.flightTraining				= inherit;
 
 
-dataCache.found							= inherit;
-dataCache.notFound						= inherit;
-dataCache.rebuild						= inherit;
-dataCache.write.success					= inherit;
-dataCache.write.failed					= $error;
-dataCache.rebuild.octree				= no;
-dataCache.willWrite						= no;
-
 $dataCacheStatus = yes;
 $dataCacheError = $error;
 $dataCacheDebug = no;

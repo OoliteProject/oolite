@@ -93,6 +93,7 @@ Ringdata	ringentity;
 	velocity.z = 1.0;
 	//
 	isRing = YES;
+	isImmuneToBreakPatternHide = YES;
 	//
     return self;
 }

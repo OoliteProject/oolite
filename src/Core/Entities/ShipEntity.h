@@ -25,11 +25,10 @@ MA 02110-1301, USA.
 
 */
 
-// #import "OOEntityWithDrawable.h"
-#import "OOSelfDrawingEntity.h"
+#import "OOEntityWithDrawable.h"
 
 @class	OOBrain, OOColor, StationEntity, ParticleEntity, PlanetEntity,
-		WormholeEntity, AI, Octree;
+		WormholeEntity, AI, Octree, OOMesh;
 
 
 #define MAX_TARGETS						24
@@ -80,7 +79,7 @@ MA 02110-1301, USA.
 #define MAX_SCAN_NUMBER					16
 
 
-@interface ShipEntity: OOSelfDrawingEntity // OOEntityWithDrawable
+@interface ShipEntity: OOEntityWithDrawable
 {
 @public
 	NSArray					*sub_entities;
@@ -91,9 +90,6 @@ MA 02110-1301, USA.
 	
 	// navigation
 	Vector					v_forward, v_up, v_right;	// unit vectors derived from the direction faced
-	
-	// collision management
-	Octree*					octree;						// this is not retained by the ShipEntity but kept in a global dict.
 	
 	// variables which are controlled by instincts/AI
 	Vector					destination;				// for flying to/from a set point
@@ -235,7 +231,6 @@ MA 02110-1301, USA.
 	
 	GLfloat					pitch_tolerance;
 	
-//	BOOL					within_station_aegis;		// set to YES when within the station's protective zone
 	OOAegisStatus			aegis_status;				// set to YES when within the station's protective zone
 	
 	double					message_time;				// counts down the seconds a radio message is active for
@@ -281,6 +276,9 @@ MA 02110-1301, USA.
 	int						next_navpoint_index;
 	int						number_of_navpoints;
 	
+	// Collision detection
+	Octree					*octree;
+	
 	// DEBUGGING
 	int						debug_flag;
 	int						debug_condition;
@@ -293,6 +291,9 @@ MA 02110-1301, USA.
 // ship brains
 - (OOBrain*)	brain;
 - (void)		setBrain:(OOBrain*) aBrain;
+
+- (OOMesh *)mesh;
+- (void)setMesh:(OOMesh *)mesh;
 
 // octree collision hunting
 - (GLfloat) doesHitLine:(Vector) v0: (Vector) v1;
@@ -311,13 +312,9 @@ MA 02110-1301, USA.
 
 - (void) setUpEscorts;
 
-- (void) rescaleBy:(GLfloat) factor;
-
 - (id) initWithDictionary:(NSDictionary *) dict;
 - (void) setUpShipFromDictionary:(NSDictionary *) dict;
 - (NSDictionary*)	 shipInfoDictionary;
-
-- (void) setOctree:(Octree*) oct;
 
 - (void) setDefaultWeaponOffsets;
 
@@ -649,10 +646,4 @@ inline BOOL pairOK(NSString* my_role, NSString* their_role);
 
 BOOL ship_canCollide (ShipEntity* ship);
 
-
-@interface OOCacheManager (Octree)
-
-+ (Octree *)octreeForModel:(NSString *)inKey;
-+ (void)setOctree:(Octree *)inOctree forModel:(NSString *)inKey;
-
-@end
+NSDictionary *DefaultShipShaderMacros(void);

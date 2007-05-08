@@ -80,7 +80,7 @@ MA 02110-1301, USA.
 				break;
 			}
 			
-			GLfloat iprio = [instinctDictionary floatForKey:key defaultValue:0.0f];
+			GLfloat iprio = [instinctDictionary floatForKey:key];
 			if (iprio != 0.0f)
 			{
 				instinct = [[OOInstinct alloc] initInstinctOfType:itype ofPriority:iprio forOwner:anOwner withShip:aShip];

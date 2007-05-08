@@ -143,16 +143,16 @@ static OOCacheManager *sSingleton = nil;
 		result = [cache objectForKey:inKey];
 		if (result != nil)
 		{
-			OOLog(kOOLogDataCacheRetrieveSuccess, @"Retrieved cache %@ object %@.", inCacheKey, inKey);
+			OOLog(kOOLogDataCacheRetrieveSuccess, @"Retrieved \"%@\" cache object %@.", inCacheKey, inKey);
 		}
 		else
 		{
-			OOLog(kOOLogDataCacheRetrieveFailed, @"Failed to retrive %@ cache object %@ -- no such entry.", inCacheKey, inKey);
+			OOLog(kOOLogDataCacheRetrieveFailed, @"Failed to retrive \"%@\" cache object %@ -- no such entry.", inCacheKey, inKey);
 		}
 	}
 	else
 	{
-		OOLog(kOOLogDataCacheRetrieveFailed, @"Failed to retrive %@ cache object %@ -- no such cache.", inCacheKey, inKey);
+		OOLog(kOOLogDataCacheRetrieveFailed, @"Failed to retrive\"%@\" cache object %@ -- no such cache.", inCacheKey, inKey);
 	}
 	
 	return result;
@@ -175,15 +175,16 @@ static OOCacheManager *sSingleton = nil;
 		cache = [[OOCache alloc] init];
 		if (cache == nil)
 		{
-			OOLog(kOOLogDataCacheSetFailed, @"Failed to create cache for key %@.", inCacheKey);
+			OOLog(kOOLogDataCacheSetFailed, @"Failed to create cache for key \"%@\".", inCacheKey);
 			return;
 		}
+		[cache setName:inCacheKey];
 		[cache setAutoPrune:AUTO_PRUNE];
 		[caches setObject:cache forKey:inCacheKey];
 	}
 	
 	[cache setObject:inObject forKey:inKey];
-	OOLog(kOOLogDataCacheSetSuccess, @"Updated entry %@ in cache %@.", inKey, inCacheKey);
+	OOLog(kOOLogDataCacheSetSuccess, @"Updated entry %@ in cache \"%@\".", inKey, inCacheKey);
 }
 
 
@@ -200,16 +201,16 @@ static OOCacheManager *sSingleton = nil;
 		if (nil != [cache objectForKey:inKey])
 		{
 			[cache removeObjectForKey:inKey];
-			OOLog(kOOLogDataCacheRemoveSuccess, @"Removed entry keyed %@ from cache %@.", inKey, inCacheKey);
+			OOLog(kOOLogDataCacheRemoveSuccess, @"Removed entry keyed %@ from cache \"%@\".", inKey, inCacheKey);
 		}
 		else
 		{
-			OOLog(kOOLogDataCacheRemoveSuccess, @"No need to remove non-existent entry keyed %@ from cache %@.", inKey, inCacheKey);
+			OOLog(kOOLogDataCacheRemoveSuccess, @"No need to remove non-existent entry keyed %@ from cache \"%@\".", inKey, inCacheKey);
 		}
 	}
 	else
 	{
-		OOLog(kOOLogDataCacheRemoveSuccess, @"No need to remove entry keyed %@ from non-existent cache %@.", inKey, inCacheKey);
+		OOLog(kOOLogDataCacheRemoveSuccess, @"No need to remove entry keyed %@ from non-existent cache \"%@\".", inKey, inCacheKey);
 	}
 }
 
@@ -222,11 +223,11 @@ static OOCacheManager *sSingleton = nil;
 	if (nil != [caches objectForKey:inCacheKey])
 	{
 		[caches removeObjectForKey:inCacheKey];
-		OOLog(kOOLogDataCacheClearSuccess, @"Cleared cache %@.", inCacheKey);
+		OOLog(kOOLogDataCacheClearSuccess, @"Cleared cache \"%@\".", inCacheKey);
 	}
 	else
 	{
-		OOLog(kOOLogDataCacheClearSuccess, @"No need to clear non-existent cache %@.", inCacheKey);
+		OOLog(kOOLogDataCacheClearSuccess, @"No need to clear non-existent cache \"%@\".", inCacheKey);
 	}
 }
 
@@ -437,6 +438,7 @@ static OOCacheManager *sSingleton = nil;
 		cache = [[OOCache alloc] initWithPList:value];
 		if (cache != nil)
 		{
+			[cache setName:key];
 			[caches setObject:cache forKey:key];
 			[cache release];
 		}

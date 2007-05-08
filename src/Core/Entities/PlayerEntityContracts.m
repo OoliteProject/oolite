@@ -1361,8 +1361,8 @@ static NSMutableDictionary* currentShipyard = nil;
 	// change ship_desc
 	// TODO: detect brokenness here.
 	if (ship_desc) [ship_desc release];
-	ship_desc = [[ship_info stringForKey:SHIPYARD_KEY_SHIPDATA_KEY defaultValue:nil] copy];
-	NSDictionary *shipDict = [ship_info dictionaryForKey:SHIPYARD_KEY_SHIP defaultValue:nil];
+	ship_desc = [[ship_info stringForKey:SHIPYARD_KEY_SHIPDATA_KEY] copy];
+	NSDictionary *shipDict = [ship_info dictionaryForKey:SHIPYARD_KEY_SHIP];
 	
 	// get a full tank for free
 	fuel = PLAYER_MAX_FUEL;
@@ -1374,7 +1374,7 @@ static NSMutableDictionary* currentShipyard = nil;
 	aft_weapon = WEAPON_NONE;
 	port_weapon = WEAPON_NONE;
 	starboard_weapon = WEAPON_NONE;
-	forward_weapon = EquipmentStringToWeaponType([shipDict stringForKey:@"forward_weapon_type" defaultValue:nil]);
+	forward_weapon = EquipmentStringToWeaponType([shipDict stringForKey:@"forward_weapon_type"]);
 	
 	// get basic max_cargo
 	max_cargo = [UNIVERSE maxCargoForShip:ship_desc];
@@ -1394,7 +1394,7 @@ static NSMutableDictionary* currentShipyard = nil;
 	[self tidyMissilePylons];
 
 	// get missiles from ship_info
-	missiles = [shipDict intForKey:@"missiles" defaultValue:0];
+	missiles = [shipDict intForKey:@"missiles"];
 	
 	// clear legal_status for free
 	legal_status = 0;

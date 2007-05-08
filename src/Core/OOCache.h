@@ -79,4 +79,7 @@ MA 02110-1301, USA.
 - (BOOL)dirty;
 - (void)markClean;
 
+- (NSString *)name;
+- (void)setName:(NSString *)name;
+
 @end

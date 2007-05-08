@@ -69,7 +69,6 @@ static OOBasicMaterial *sDefaultMaterial = nil;
 	[self setAmbientRed:1.0f green:1.0f blue:1.0f alpha:1.0f];
 	specular[3] = 1.0;
 	emission[3] = 1.0;
-	smooth = YES;
 	
 	return self;
 }
@@ -100,7 +99,6 @@ static OOBasicMaterial *sDefaultMaterial = nil;
 		colorDesc = [configuration objectForKey:@"specular"];
 		if (colorDesc != nil)  [self setSpecularColor:[OOColor colorWithDescription:colorDesc]];
 	}
-	[self setSmooth:[configuration boolForKey:@"smooth" defaultValue:NO]];
 	
 	return self;
 }
@@ -128,7 +126,6 @@ static OOBasicMaterial *sDefaultMaterial = nil;
 	glMaterialfv(FACE, GL_AMBIENT, ambient);
 	glMaterialfv(FACE, GL_EMISSION, emission);
 	glMateriali(FACE, GL_SHININESS, shininess);
-	glShadeModel(smooth ? GL_SMOOTH : GL_FLAT);
 	
 	return YES;
 }
@@ -343,18 +340,6 @@ static OOBasicMaterial *sDefaultMaterial = nil;
 - (void)setShininess:(uint8_t)value
 {
 	shininess = MAX(value, 128);
-}
-
-
-- (BOOL)smooth
-{
-	return smooth;
-}
-
-
-- (void)setSmooth:(BOOL)value
-{
-	smooth = value;
 }
 
 @end

@@ -30,7 +30,7 @@ MA 02110-1301, USA.
 #else
 
 
-typedef struct
+typedef struct Quaternion
 {
 	GLfloat w;
 	GLfloat x;

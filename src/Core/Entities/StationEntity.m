@@ -700,7 +700,7 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 	
 	// ** Set up a the docking port
 	// Look for subentity specifying position
-	NSArray		*subs = [dict arrayForKey:@"subentities" defaultValue:nil];
+	NSArray		*subs = [dict arrayForKey:@"subentities"];
 	NSArray		*dockSubEntity = nil;
 	
 	for (i = 0; i < [subs count]; i++)
@@ -729,7 +729,7 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 	}
 	
 	// port_dimensions can be set for rock-hermits and other specials
-	if (!ScanVectorFromString([dict stringForKey:@"port_dimensions" defaultValue:nil], &port_dimensions))
+	if (!ScanVectorFromString([dict stringForKey:@"port_dimensions"], &port_dimensions))
 	{
 		port_dimensions = make_vector( 69, 69, 250);		// base port size (square)
 	}

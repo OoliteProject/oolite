@@ -126,7 +126,7 @@ MA 02110-1301, USA.
 		if ([description objectForKey:@"hue"] != nil)
 		{
 			// Treat as HSB(A) dictionary
-			float h = [description floatForKey:@"hue" defaultValue:0.0f];
+			float h = [description floatForKey:@"hue"];
 			float s = [description floatForKey:@"saturation" defaultValue:1.0f];
 			float b = [description floatForKey:@"brightness" defaultValue:-1.0f];
 			if (b < 0.0f)  b = [description floatForKey:@"value" defaultValue:1.0f];
@@ -138,9 +138,9 @@ MA 02110-1301, USA.
 		else
 		{
 			// Treat as RGB(A) dictionary
-			float r = [description floatForKey:@"red" defaultValue:0.0f];
-			float g = [description floatForKey:@"green" defaultValue:0.0f];
-			float b = [description floatForKey:@"blue" defaultValue:0.0f];
+			float r = [description floatForKey:@"red"];
+			float g = [description floatForKey:@"green"];
+			float b = [description floatForKey:@"blue"];
 			float a = [description floatForKey:@"alpha" defaultValue:-1.0f];
 			if (a < 0.0f)  a = [description floatForKey:@"opacity" defaultValue:1.0f];
 			

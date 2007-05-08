@@ -2,7 +2,17 @@
 
 OOMesh.h
 
-Standard OODrawable for static meshes from DAT files.
+Standard OODrawable for static meshes from DAT files. OOMeshes are immutable
+(and can therefore be shared). Avoid the temptation to add externally-visible
+mutator methods as it will break such sharing. (Sharing will be implemented
+when ship types are turned into objects instead of dictionaries; this is
+currently slated for post-1.70. -- Ahruman)
+
+Hmm. On further consideration, sharing will be problematic because of material
+bindings. Two possible solutions: separate mesh data into shared object with
+each mesh instance having its own set of materials but shared data, or
+retarget bindings each frame. -- Ahruman
+
 
 Oolite
 Copyright (C) 2004-2007 Giles C Williams and contributors
@@ -28,7 +38,7 @@ MA 02110-1301, USA.
 #import "OOOpenGL.h"
 #import "OOWeakReference.h"
 
-@class OOMaterial;
+@class OOMaterial, Octree;
 
 
 enum
@@ -54,21 +64,18 @@ typedef struct
 	
 	GLint					vertex[MAX_VERTICES_PER_FACE];
 	
-	Str255					textureFileStr255;
-	GLuint					texName;
+	NSString				*texFileName;
 	GLfloat					s[MAX_VERTICES_PER_FACE];
 	GLfloat					t[MAX_VERTICES_PER_FACE];
-} Face;
+} OOMeshFace;
 
 
 typedef struct
 {
 	GLint					index_array[3 * MAX_FACES_PER_ENTITY];	// triangles
-	GLfloat					texture_uv_array[ 3 * MAX_FACES_PER_ENTITY * 2];
+	GLfloat					texture_uv_array[3 * MAX_FACES_PER_ENTITY * 2];
 	Vector					vertex_array[3 * MAX_FACES_PER_ENTITY];
 	Vector					normal_array[3 * MAX_FACES_PER_ENTITY];
-	
-	GLuint					texName;
 	
 	int						n_triangles;
 } EntityData;	// per texture
@@ -83,34 +90,41 @@ typedef struct
 } VertexArrayRangeType;
 
 
-@interface OOMesh: OODrawable
+typedef uint16_t			OOMeshVertexCount, OOMeshFaceCount;
+typedef uint8_t				OOMeshMaterialCount;
+
+
+@interface OOMesh: OODrawable <NSCopying>
 {
 	uint8_t					isSmoothShaded: 1,
 #if GL_APPLE_vertex_array_object
 							usingVAR: 1,
 #endif
-							brokenInRender: 1,
-							materialsReady: 1;
+							brokenInRender: 1;
 	
-	uint8_t					textureCount;
-    uint16_t				vertexCount, faceCount;
+	OOMeshMaterialCount		materialCount;
+    OOMeshVertexCount		vertexCount;
+	OOMeshFaceCount			faceCount;
     
-    NSString				*basefile;
+    NSString				*baseFile;
+	NSSet					*textureNameSet;
 	
     Vector					vertices[MAX_VERTICES_PER_ENTITY];
-    Vector					vertex_normal[MAX_VERTICES_PER_ENTITY];
-    Face					faces[MAX_FACES_PER_ENTITY];
+    Vector					normals[MAX_VERTICES_PER_ENTITY];
+    OOMeshFace				faces[MAX_FACES_PER_ENTITY];
     GLuint					displayList;
 	
 	EntityData				entityData;
 	NSRange					triangle_range[MAX_TEXTURES_PER_ENTITY];
-	Str255					texture_file[MAX_TEXTURES_PER_ENTITY];
-	GLuint					texture_name[MAX_TEXTURES_PER_ENTITY];
+	NSString				*texFileNames[MAX_TEXTURES_PER_ENTITY];
+	OOMaterial				*materials[MAX_TEXTURES_PER_ENTITY];
 	
 	GLfloat					collisionRadius;
 	GLfloat					maxDrawDistance;
 	BoundingBox				boundingBox;
 	GLfloat					volume;
+	
+	Octree					*octree;
 	
 	// COMMON OGL STUFF
 #if GL_APPLE_vertex_array_object
@@ -119,17 +133,24 @@ typedef struct
 #endif
 }
 
-// + (id)meshWithName:(NSString *)name materialDictionary:(NSDictionary *)materialDict shadersDictionary:(NSDictionary *)shadersDict smooth:(BOOL)smooth shaderMacros:(NSDictionary *)macros shaderBindingTarget:(id<OOWeakReferenceSupport>)object;
++ (id)meshWithName:(NSString *)name
+materialDictionary:(NSDictionary *)materialDict
+ shadersDictionary:(NSDictionary *)shadersDict
+			smooth:(BOOL)smooth
+	  shaderMacros:(NSDictionary *)macros
+shaderBindingTarget:(id<OOWeakReferenceSupport>)object;
 
-- (void) setModelName:(NSString *)modelName;
 - (NSString *) modelName;
 
 - (size_t)vertexCount;
 - (size_t)faceCount;
 
-- (BOOL)isSmoothShaded;
+- (Octree *)octree;
 
-- (Geometry *)geometry;
+- (BoundingBox)findSubentityBoundingBoxWithPosition:(Vector)position rotMatrix:(gl_matrix)rotMatrix;
+
+- (OOMesh *)meshRescaledBy:(GLfloat)scaleFactor;
+- (OOMesh *)meshRescaledByX:(GLfloat)scaleX y:(GLfloat)scaleY z:(GLfloat)scaleZ;
 
 @end
 
@@ -170,3 +191,11 @@ void LogOpenGLState();
 // check for OpenGL errors, reporting them if where is not nil
 //
 BOOL CheckOpenGLErrors(NSString* where);
+
+
+@interface OOCacheManager (Octree)
+
++ (Octree *)octreeForModel:(NSString *)inKey;
++ (void)setOctree:(Octree *)inOctree forModel:(NSString *)inKey;
+
+@end

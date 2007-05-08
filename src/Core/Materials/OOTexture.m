@@ -469,6 +469,7 @@ static BOOL		sRectangleTextureAvailable;
 	if (EXPECT_NOT(sRecentTextures == nil))
 	{
 		sRecentTextures = [[OOCache alloc] init];
+		[sRecentTextures setName:@"recent textures"];
 		[sRecentTextures setAutoPrune:YES];
 		[sRecentTextures setPruneThreshold:kRecentTexturesCount];
 	}
