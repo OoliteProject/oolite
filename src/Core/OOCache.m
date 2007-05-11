@@ -601,7 +601,9 @@ static void CacheNodeFree(OOCacheImpl *cache, OOCacheNode *node)
 	AgeListRemove(cache, node);
 	
 	[node->key release];
+	node->key = nil;
 	[node->value release];
+	node->value = nil;
 	
 	CacheNodeFree(cache, node->leftChild);
 	CacheNodeFree(cache, node->rightChild);

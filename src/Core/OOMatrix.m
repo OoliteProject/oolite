@@ -27,20 +27,20 @@ MA 02110-1301, USA.
 
 
 const Matrix			kIdentityMatrix =
-						{
+						{{
 							{ 1.0f, 0.0f, 0.0f },
 							{ 0.0f, 1.0f, 0.0f },
 							{ 0.0f, 0.0f, 1.0f }
-						};
+						}};
 const Matrix			kZeroMatrix =
-						{
+						{{
 							{ 0.0f, 0.0f, 0.0f },
 							{ 0.0f, 0.0f, 0.0f },
 							{ 0.0f, 0.0f, 0.0f }
-						};
+						}};
 
 
-void mult_matrix(Matrix a, const Matrix b)
+void mult_matrix(Matrix *a, const Matrix b)
 {
 	int i;
 	Matrix rv;
@@ -48,22 +48,20 @@ void mult_matrix(Matrix a, const Matrix b)
 	for (i = 0; i < 3; i++)
 	{
 
-		rv[i].x =	(a[0].x * b[i].x) +
-				 	(a[1].x * b[i].y) +
-					(a[2].x * b[i].z);
+		rv.m[i].x =	(a->m[0].x * b.m[i].x) +
+				 	(a->m[1].x * b.m[i].y) +
+					(a->m[2].x * b.m[i].z);
 
-		rv[i].y =	(a[0].y * b[i].x) +
-					(a[1].y * b[i].y) +
-					(a[2].y * b[i].z);
+		rv.m[i].y =	(a->m[0].y * b.m[i].x) +
+					(a->m[1].y * b.m[i].y) +
+					(a->m[2].y * b.m[i].z);
 
-		rv[i].z =	(a[0].z * b[i].x) +
-					(a[1].z * b[i].y) +
-					(a[2].z * b[i].z);
+		rv.m[i].z =	(a->m[0].z * b.m[i].x) +
+					(a->m[1].z * b.m[i].y) +
+					(a->m[2].z * b.m[i].z);
 	}
 	
-	a[0] = rv[0];
-	a[1] = rv[1];
-	a[2] = rv[2];
+	*a = rv;
 }
 
 
@@ -73,17 +71,17 @@ void mult_vector(Vector *v, const Matrix m)
 	GLfloat y;
 	GLfloat z;
 
-	x = (v->x * m[0].x) +
-		(v->y * m[0].y) +
-		(v->z * m[0].z);
+	x = (v->x * m.m[0].x) +
+		(v->y * m.m[0].y) +
+		(v->z * m.m[0].z);
 
-	y = (v->x * m[1].x) +
-		(v->y * m[1].y) +
-		(v->z * m[1].z);
+	y = (v->x * m.m[1].x) +
+		(v->y * m.m[1].y) +
+		(v->z * m.m[1].z);
 
-	z = (v->x * m[2].x) +
-		(v->y * m[2].y) +
-		(v->z * m[2].z);
+	z = (v->x * m.m[2].x) +
+		(v->y * m.m[2].y) +
+		(v->z * m.m[2].z);
 
 	v->x = x;
 	v->y = y;
@@ -93,18 +91,18 @@ void mult_vector(Vector *v, const Matrix m)
 
 void matrix_into_gl_matrix(const Matrix mat, gl_matrix glmat)
 {
-    glmat[0] = mat[0].x;	glmat[4] = mat[0].y;	glmat[8] = mat[0].z;	glmat[3] = 0.0f;
-    glmat[1] = mat[1].x;	glmat[5] = mat[1].y;	glmat[9] = mat[1].z;	glmat[7] = 0.0f;
-    glmat[2] = mat[2].x;	glmat[6] = mat[2].y;	glmat[10] = mat[2].z;	glmat[11] = 0.0f;
+    glmat[0] = mat.m[0].x;	glmat[4] = mat.m[0].y;	glmat[8] = mat.m[0].z;	glmat[3] = 0.0f;
+    glmat[1] = mat.m[1].x;	glmat[5] = mat.m[1].y;	glmat[9] = mat.m[1].z;	glmat[7] = 0.0f;
+    glmat[2] = mat.m[2].x;	glmat[6] = mat.m[2].y;	glmat[10] = mat.m[2].z;	glmat[11] = 0.0f;
     glmat[12] = 0.0f;		glmat[13] = 0.0f;		glmat[14] = 0.0f;		glmat[15] = 1.0f;
 }
 
 
-void gl_matrix_into_matrix(const gl_matrix glmat, Matrix mat)
+void gl_matrix_into_matrix(const gl_matrix glmat, Matrix *mat)
 {
-    mat[0].x = glmat[0];	mat[0].y = glmat[4];	mat[0].z = glmat[8];
-	mat[1].x = glmat[1];	mat[1].y = glmat[5];	mat[1].z = glmat[9];
-	mat[2].x = glmat[2];	mat[2].y = glmat[6];	mat[2].z = glmat[10];
+    mat->m[0].x = glmat[0];	mat->m[0].y = glmat[4];	mat->m[0].z = glmat[8];
+	mat->m[1].x = glmat[1];	mat->m[1].y = glmat[5];	mat->m[1].z = glmat[9];
+	mat->m[2].x = glmat[2];	mat->m[2].y = glmat[6];	mat->m[2].z = glmat[10];
 }
 
 

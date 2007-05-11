@@ -97,12 +97,15 @@ SOFTWARE.
 */
 + (id)shaderMaterialWithName:(NSString *)name
 			   configuration:(NSDictionary *)configuration
-					  macros:(NSDictionary *)macros bindingTarget:(id<OOWeakReferenceSupport>)object;
+					  macros:(NSDictionary *)macros
+			 defaultBindings:(NSDictionary *)defaults
+			   bindingTarget:(id<OOWeakReferenceSupport>)target;
 
 - (id)initWithName:(NSString *)name
 	 configuration:(NSDictionary *)configuration
 			macros:(NSDictionary *)macros
-	 bindingTarget:(id<OOWeakReferenceSupport>)object;
+   defaultBindings:(NSDictionary *)defaults
+	 bindingTarget:(id<OOWeakReferenceSupport>)target;
 
 /*	Bind a uniform to a property of an object.
 	

@@ -79,7 +79,7 @@ typedef float (*FloatReturnMsgSend)(id, SEL);
 typedef double (*DoubleReturnMsgSend)(id, SEL);
 typedef Vector (*VectorReturnMsgSend)(id, SEL);
 typedef Quaternion (*QuaternionReturnMsgSend)(id, SEL);
-// typedef Matrix (*MatrixReturnMsgSend)(id, SEL);
+typedef Matrix (*MatrixReturnMsgSend)(id, SEL);
 
 
 OOINLINE BOOL ValidBindingType(OOShaderUniformType type)
@@ -380,15 +380,23 @@ OOINLINE BOOL ValidBindingType(OOShaderUniformType type)
 	if (OK)
 	{
 		typeCode = [sig methodReturnType];
-		if (0 == strcmp("f", typeCode))  type = kOOShaderUniformTypeFloat;
-		else if (0 == strcmp("d", typeCode))  type = kOOShaderUniformTypeDouble;
-		else if (0 == strcmp("c", typeCode) || 0 == strcmp("C", typeCode))  type = kOOShaderUniformTypeChar;	// Signed or unsigned
-		else if (0 == strcmp("s", typeCode) || 0 == strcmp("S", typeCode))  type = kOOShaderUniformTypeShort;
-		else if (0 == strcmp("i", typeCode) || 0 == strcmp("I", typeCode))  type = kOOShaderUniformTypeInt;
-		else if (0 == strcmp("l", typeCode) || 0 == strcmp("L", typeCode))  type = kOOShaderUniformTypeLong;
-		else if (0 == strcmp("{Vector=fff}", typeCode))  type = kOOShaderUniformTypeVector;
-		else if (0 == strcmp("{Quaternion=ffff}", typeCode))  type = kOOShaderUniformTypeQuaternion;
-		else if (0 == strcmp("@", typeCode))  type = kOOShaderUniformTypeObject;
+		
+		#define TYPE_MATCH(T, TC)  (0 == strcmp(@encode(T), TC))
+		
+		if (TYPE_MATCH(float, typeCode))  type = kOOShaderUniformTypeFloat;
+		else if (TYPE_MATCH(double, typeCode))  type = kOOShaderUniformTypeDouble;
+		else if (TYPE_MATCH(signed char, typeCode))  type = kOOShaderUniformTypeChar;
+		else if (TYPE_MATCH(unsigned char, typeCode))  type = kOOShaderUniformTypeChar;
+		else if (TYPE_MATCH(signed short, typeCode))  type = kOOShaderUniformTypeShort;
+		else if (TYPE_MATCH(unsigned short, typeCode))  type = kOOShaderUniformTypeShort;
+		else if (TYPE_MATCH(signed int, typeCode))  type = kOOShaderUniformTypeInt;
+		else if (TYPE_MATCH(unsigned int, typeCode))  type = kOOShaderUniformTypeInt;
+		else if (TYPE_MATCH(signed long, typeCode))  type = kOOShaderUniformTypeLong;
+		else if (TYPE_MATCH(unsigned long, typeCode))  type = kOOShaderUniformTypeLong;
+		else if (TYPE_MATCH(Vector, typeCode))  type = kOOShaderUniformTypeVector;
+		else if (TYPE_MATCH(Quaternion, typeCode))  type = kOOShaderUniformTypeQuaternion;
+		else if (TYPE_MATCH(Matrix, typeCode))  type = kOOShaderUniformTypeMatrix;
+		else if (TYPE_MATCH(id, typeCode))  type = kOOShaderUniformTypeObject;
 		else
 		{
 			OK = NO;
@@ -540,6 +548,11 @@ OOINLINE BOOL ValidBindingType(OOShaderUniformType type)
 				expVVal[3] = qVal.w;
 				isVector = YES;
 			}
+			break;
+		
+		case kOOShaderUniformTypeMatrix:
+			matrix_into_gl_matrix(((MatrixReturnMsgSend)value.binding.method)(object, value.binding.selector), mVal);
+			isMatrix = YES;
 			break;
 		
 		case kOOShaderUniformTypeObject:

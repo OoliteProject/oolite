@@ -1100,6 +1100,7 @@ static PlayerEntity *sSharedPlayer = nil;
 						  shadersDictionary:[shipDict dictionaryForKey:@"shaders"]
 									 smooth:[shipDict boolForKey:@"smooth" defaultValue:NO]
 							   shaderMacros:DefaultShipShaderMacros()
+							defaultBindings:DefaultShipShaderBindings()
 						shaderBindingTarget:self];
 		[self setMesh:mesh];
 	}

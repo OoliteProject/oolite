@@ -33,7 +33,11 @@ MA 02110-1301, USA.
 typedef GLfloat	gl_matrix[16];
 
 /* NOTE: this definition makes Matrix a pointer type. */
-typedef Vector Matrix[3];
+//typedef Vector Matrix[3];
+typedef struct
+{
+	Vector				m[3];
+} Matrix;
 
 
 extern const Matrix		kIdentityMatrix;		// {1, 0, 0}, {0, 1, 0}, {0, 0, 1}
@@ -41,20 +45,20 @@ extern const Matrix		kZeroMatrix;			// {0, 0, 0}, {0, 0, 0}, {0, 0, 0}
 
 
 /* Set matrix to identity matrix */
-OOINLINE void set_matrix_identity(Matrix outMatrix) ALWAYS_INLINE_FUNC NONNULL_FUNC;
+OOINLINE void set_matrix_identity(Matrix *outMatrix) ALWAYS_INLINE_FUNC NONNULL_FUNC DEPRECATED_FUNC;
 
 /* Copy one matrix to another */
-OOINLINE void matrix_copy(Matrix outMatrix, const Matrix value) ALWAYS_INLINE_FUNC NONNULL_FUNC;
+OOINLINE void matrix_copy(Matrix *outMatrix, const Matrix value) ALWAYS_INLINE_FUNC NONNULL_FUNC DEPRECATED_FUNC;
 
 /* Mutiply two matrices, storing the result in a. */
-void mult_matrix(Matrix outA, const Matrix b) NONNULL_FUNC;
+void mult_matrix(Matrix *outA, const Matrix b) NONNULL_FUNC;
 
 /* Muliply a vector by a matrix, storing the result in v. */
 void mult_vector(Vector *outV, const Matrix m) NONNULL_FUNC;
 
 /* Convert between Matrix and OpenGL matrix */
 void matrix_into_gl_matrix(const Matrix m, gl_matrix outGLMatrix) NONNULL_FUNC;
-void gl_matrix_into_matrix(const gl_matrix glmat, Matrix outMatrix) NONNULL_FUNC;
+void gl_matrix_into_matrix(const gl_matrix glmat, Matrix *outMatrix) NONNULL_FUNC;
 
 
 /* Multiply vector by OpenGL matrix */
@@ -66,17 +70,15 @@ void vectors_into_gl_matrix(Vector forward, Vector right, Vector up, gl_matrix o
 
 
 /*** Only inline definitions beyond this point ***/
-OOINLINE void matrix_copy(Matrix matrix, const Matrix value)
+OOINLINE void matrix_copy(Matrix *matrix, const Matrix value)
 {
-	matrix[0] = value[0];
-	matrix[1] = value[1];
-	matrix[2] = value[2];
+	*matrix = value;
 }
 
 
-OOINLINE void set_matrix_identity(Matrix matrix)
+OOINLINE void set_matrix_identity(Matrix *matrix)
 {
-	matrix_copy(matrix, kIdentityMatrix);
+	*matrix = kIdentityMatrix;
 }
 
 

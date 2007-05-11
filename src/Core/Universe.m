@@ -163,7 +163,6 @@ static BOOL MaintainLinkedLists(Universe* uni);
 	
 	time_delta = 0.0;
 	universal_time = 0.0;
-	ai_think_time = AI_THINK_INTERVAL;				// one eighth of a second
 	
 	shipdata = [[ResourceManager dictionaryFromFilesNamed:@"shipdata.plist" inFolder:@"Config" andMerge:YES] retain];
 	
@@ -386,7 +385,6 @@ static BOOL MaintainLinkedLists(Universe* uni);
 	
 	time_delta = 0.0;
 	universal_time = 0.0;
-	ai_think_time = AI_THINK_INTERVAL;				// one eighth of a second
 	
 	[shipdata autorelease];
 	shipdata = [[ResourceManager dictionaryFromFilesNamed:@"shipdata.plist" inFolder:@"Config" andMerge:YES] retain];
@@ -4766,12 +4764,12 @@ static BOOL MaintainLinkedLists(Universe* uni)
 }
 
 
-- (double) getTime
+- (OOTimeAbsolute) getTime
 {
 	return universal_time;
 }
 
-- (double) getTimeDelta
+- (OOTimeDelta) getTimeDelta
 {
 	return time_delta;
 }

@@ -168,11 +168,10 @@ extern int debug;
 	
 	BOOL					displayFPS;		
 			
-	double					universal_time;
-	double					time_delta;
-	double					ai_think_time;
+	OOTimeAbsolute			universal_time;
+	OOTimeDelta				time_delta;
 	
-	double					demo_stage_time;
+	OOTimeAbsolute			demo_stage_time;
 	int						demo_stage;
 	int						demo_ship_index;
 	NSArray					*demo_ships;

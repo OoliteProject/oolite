@@ -79,11 +79,13 @@ materialDictionary:(NSDictionary *)materialDict
  shadersDictionary:(NSDictionary *)shadersDict
 			smooth:(BOOL)smooth
 	  shaderMacros:(NSDictionary *)macros
+   defaultBindings:(NSDictionary *)defaults
 shaderBindingTarget:(id<OOWeakReferenceSupport>)object;
 
 - (void)setUpMaterialsWithMaterialsDictionary:(NSDictionary *)materialDict
 							shadersDictionary:(NSDictionary *)shadersDict
 								 shaderMacros:(NSDictionary *)macros
+							  defaultBindings:(NSDictionary *)defaults
 						  shaderBindingTarget:(id<OOWeakReferenceSupport>)target;
 
 - (BOOL) loadData:(NSString *)filename;
@@ -117,6 +119,7 @@ materialDictionary:(NSDictionary *)materialDict
  shadersDictionary:(NSDictionary *)shadersDict
 			smooth:(BOOL)smooth
 	  shaderMacros:(NSDictionary *)macros
+   defaultBindings:(NSDictionary *)defaults
 shaderBindingTarget:(id<OOWeakReferenceSupport>)object
 {
 	return [[[self alloc] initWithName:name
@@ -124,6 +127,7 @@ shaderBindingTarget:(id<OOWeakReferenceSupport>)object
 					 shadersDictionary:shadersDict
 								smooth:smooth
 						  shaderMacros:macros
+					   defaultBindings:defaults
 				   shaderBindingTarget:object] autorelease];
 }
 
@@ -521,6 +525,7 @@ materialDictionary:(NSDictionary *)materialDict
  shadersDictionary:(NSDictionary *)shadersDict
 			smooth:(BOOL)smooth
 	  shaderMacros:(NSDictionary *)macros
+   defaultBindings:(NSDictionary *)defaults
 shaderBindingTarget:(id<OOWeakReferenceSupport>)target
 {
 	self = [super init];
@@ -534,7 +539,7 @@ shaderBindingTarget:(id<OOWeakReferenceSupport>)target
 		[self checkNormalsAndAdjustWinding];
 		[self calculateBoundingVolumes];
 		baseFile = [name copy];
-		[self setUpMaterialsWithMaterialsDictionary:materialDict shadersDictionary:shadersDict shaderMacros:macros shaderBindingTarget:target];
+		[self setUpMaterialsWithMaterialsDictionary:materialDict shadersDictionary:shadersDict shaderMacros:macros defaultBindings:defaults shaderBindingTarget:target];
 	}
 	else
 	{
@@ -550,6 +555,7 @@ shaderBindingTarget:(id<OOWeakReferenceSupport>)target
 - (void)setUpMaterialsWithMaterialsDictionary:(NSDictionary *)materialDict
 							shadersDictionary:(NSDictionary *)shadersDict
 								 shaderMacros:(NSDictionary *)macros
+							  defaultBindings:(NSDictionary *)defaults
 						  shaderBindingTarget:(id<OOWeakReferenceSupport>)target
 {
 	OOMeshMaterialCount		i;
@@ -562,6 +568,7 @@ shaderBindingTarget:(id<OOWeakReferenceSupport>)target
 								 materialDictionary:materialDict
 								  shadersDictionary:shadersDict
 											 macros:macros
+								    defaultBindings:(NSDictionary *)defaults
 									  bindingTarget:target];
 		[materials[i] retain];
 	}

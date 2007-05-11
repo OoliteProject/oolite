@@ -244,6 +244,7 @@ static NSString * const kOOLogEntityBehaviourChanged	= @"entity.behaviour.change
 						  shadersDictionary:[shipDict dictionaryForKey:@"shaders"]
 									 smooth:[shipDict boolForKey:@"smooth" defaultValue:NO]
 							   shaderMacros:DefaultShipShaderMacros()
+							defaultBindings:DefaultShipShaderBindings()
 						shaderBindingTarget:self];
 		[self setMesh:mesh];
 	}
@@ -7079,6 +7080,21 @@ inline BOOL pairOK(NSString* my_role, NSString* their_role)
 }
 
 @end
+
+
+NSDictionary *DefaultShipShaderBindings(void)
+{
+	static NSDictionary		*bindings = nil;
+	NSDictionary			*materialDefaults = nil;
+	
+	if (bindings == nil)
+	{
+		materialDefaults = [ResourceManager dictionaryFromFilesNamed:@"material-defaults.plist" inFolder:@"Config" andMerge:YES];
+		bindings = [[materialDefaults dictionaryForKey:@"ship-default-bindings" defaultValue:[NSDictionary dictionary]] retain];
+	}
+	
+	return bindings;
+}
 
 
 NSDictionary *DefaultShipShaderMacros(void)

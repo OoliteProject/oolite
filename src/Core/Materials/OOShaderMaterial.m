@@ -55,6 +55,7 @@ SOFTWARE.
 #import "OOTexture.h"
 #import "OOOpenGLExtensionManager.h"
 #import "OOMacroOpenGL.h"
+#import "Universe.h"
 
 
 static NSString *MacrosToString(NSDictionary *macros);
@@ -83,13 +84,21 @@ static NSString *MacrosToString(NSDictionary *macros);
 }
 
 
-+ (id)shaderMaterialWithName:(NSString *)name configuration:(NSDictionary *)configuration macros:(NSDictionary *)macros bindingTarget:(id<OOWeakReferenceSupport>)target
++ (id)shaderMaterialWithName:(NSString *)name
+			   configuration:(NSDictionary *)configuration
+					  macros:(NSDictionary *)macros
+			 defaultBindings:(NSDictionary *)defaults
+			   bindingTarget:(id<OOWeakReferenceSupport>)target
 {
-	return [[[self alloc] initWithName:name configuration:configuration macros:macros bindingTarget:target] autorelease];
+	return [[[self alloc] initWithName:name configuration:configuration macros:macros defaultBindings:defaults bindingTarget:target] autorelease];
 }
 
 
-- (id)initWithName:(NSString *)name configuration:(NSDictionary *)configuration macros:(NSDictionary *)macros bindingTarget:(id<OOWeakReferenceSupport>)target
+- (id)initWithName:(NSString *)name
+	 configuration:(NSDictionary *)configuration
+			macros:(NSDictionary *)macros
+   defaultBindings:(NSDictionary *)defaults
+	 bindingTarget:(id<OOWeakReferenceSupport>)target
 {
 	BOOL					OK = YES;
 	NSDictionary			*uniformDefs = nil;
@@ -155,7 +164,9 @@ static NSString *MacrosToString(NSDictionary *macros);
 		uniformDefs = [configuration dictionaryForKey:@"uniforms"];
 		textureDefs = [configuration arrayForKey:@"textures"];
 		
-		uniforms = [[NSMutableDictionary alloc] initWithCapacity:[uniformDefs count] + [textureDefs count]];
+		uniforms = [[NSMutableDictionary alloc] initWithCapacity:[uniformDefs count] + [textureDefs count] + [defaults count] + 1];
+		[self bindUniform:@"time" toObject:UNIVERSE property:@selector(getTime) convert:NO];
+		[self addUniformsFromDictionary:defaults withBindingTarget:target];
 		[self addUniformsFromDictionary:uniformDefs withBindingTarget:target];
 		
 		// ...and textures, which are a flavour of uniform four our purpose.

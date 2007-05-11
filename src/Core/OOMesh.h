@@ -138,6 +138,7 @@ materialDictionary:(NSDictionary *)materialDict
  shadersDictionary:(NSDictionary *)shadersDict
 			smooth:(BOOL)smooth
 	  shaderMacros:(NSDictionary *)macros
+   defaultBindings:(NSDictionary *)defaults
 shaderBindingTarget:(id<OOWeakReferenceSupport>)object;
 
 - (NSString *) modelName;

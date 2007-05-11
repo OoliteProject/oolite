@@ -647,4 +647,6 @@ inline BOOL pairOK(NSString* my_role, NSString* their_role);
 
 BOOL ship_canCollide (ShipEntity* ship);
 
+
+NSDictionary *DefaultShipShaderBindings(void);
 NSDictionary *DefaultShipShaderMacros(void);

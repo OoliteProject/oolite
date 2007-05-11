@@ -93,13 +93,22 @@ SOFTWARE.
 	OOBasicMaterial, OOSingleTextureMaterial or OOShaderMaterial (the latter
 	only if shaders are available).
 */
-+ (id)materialWithName:(NSString *)name configuration:(NSDictionary *)configuration macros:(NSDictionary *)macros bindingTarget:(id<OOWeakReferenceSupport>)object;
++ (id)materialWithName:(NSString *)name
+		 configuration:(NSDictionary *)configuration
+				macros:(NSDictionary *)macros
+	   defaultBindings:(NSDictionary *)defaults
+		 bindingTarget:(id<OOWeakReferenceSupport>)object;
 
 /*	Select an appropriate material description (based on availability of
 	shaders and content of dictionaries, which may be nil) and call
 	+materialWithDescription:.
 */
-+ (id)materialWithName:(NSString *)name materialDictionary:(NSDictionary *)materialDict shadersDictionary:(NSDictionary *)shadersDict macros:(NSDictionary *)macros bindingTarget:(id<OOWeakReferenceSupport>)object;
++ (id)materialWithName:(NSString *)name
+	materialDictionary:(NSDictionary *)materialDict
+	 shadersDictionary:(NSDictionary *)shadersDict
+				macros:(NSDictionary *)macros
+	   defaultBindings:(NSDictionary *)defaults
+		 bindingTarget:(id<OOWeakReferenceSupport>)object;
 
 @end
 

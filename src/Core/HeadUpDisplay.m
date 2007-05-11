@@ -388,7 +388,7 @@ static BOOL hostiles;
 	GLfloat col[4] =	{ 1.0, 1.0, 1.0, 1.0 };	// can be manipulated
 	
 	position = player->position;
-	gl_matrix_into_matrix([player rotationMatrix], rotMatrix);
+	gl_matrix_into_matrix([player rotationMatrix], &rotMatrix);
 		
 	glColor4fv( scanner_color);
 	drawScannerGrid( x, y, z1, siz, [UNIVERSE viewDir], line_width, scanner_zoom);
@@ -693,7 +693,7 @@ static BOOL hostiles;
 	Matrix rotMatrix;
 	PlayerEntity *player = [PlayerEntity sharedPlayer];
 	Vector position = player->position;
-	gl_matrix_into_matrix([player rotationMatrix], rotMatrix);
+	gl_matrix_into_matrix([player rotationMatrix], &rotMatrix);
 	//	
 	// new
 	GLfloat h1 = siz.height * 0.125;
@@ -1523,7 +1523,7 @@ static BOOL hostiles;
 		// draw the direction cue
 		Matrix rotMatrix;
 		Vector position = player->position;
-		gl_matrix_into_matrix([player rotationMatrix], rotMatrix);
+		gl_matrix_into_matrix([player rotationMatrix], &rotMatrix);
 		//
 		if ([UNIVERSE viewDir] != VIEW_GUI_DISPLAY)
 		{
