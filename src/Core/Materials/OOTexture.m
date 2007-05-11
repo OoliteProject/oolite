@@ -356,7 +356,7 @@ static BOOL		sRectangleTextureAvailable;
 		stateDesc = @"loading";
 	}
 	
-	return [NSString stringWithFormat:@"<%@ %p{%@, %@}", [self className], self, key, stateDesc];
+	return [NSString stringWithFormat:@"<%@ %p [%u]>{%@, %@}", [self className], self, [self retainCount], key, stateDesc];
 }
 
 

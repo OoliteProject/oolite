@@ -196,13 +196,13 @@ static NSString *MacrosToString(NSDictionary *macros);
 - (void)bindUniform:(NSString *)uniformName
 		   toObject:(id<OOWeakReferenceSupport>)source
 		   property:(SEL)selector
-			clamped:(BOOL)clamped
+			convert:(BOOL)convert
 {
 	OOShaderUniform			*uniform = nil;
 	
 	if (uniformName == nil) return;
 	
-	uniform = [[OOShaderUniform alloc] initWithName:uniformName	shaderProgram:shaderProgram boundToObject:source property:selector clamped:clamped];
+	uniform = [[OOShaderUniform alloc] initWithName:uniformName	shaderProgram:shaderProgram boundToObject:source property:selector convert:convert];
 	if (uniform != nil)
 	{
 		OOLog(@"shader.uniform.set", @"Set up uniform %@", uniform);
@@ -269,7 +269,7 @@ static NSString *MacrosToString(NSDictionary *macros);
 	GLfloat					floatValue;
 	BOOL					gotValue;
 	OOShaderUniform			*uniform = nil;
-	BOOL					clamped;
+	BOOL					convert;
 	SEL						selector = NULL;
 	
 	for (uniformEnum = [uniformDefs keyEnumerator]; (name = [uniformEnum nextObject]); )
@@ -322,8 +322,8 @@ static NSString *MacrosToString(NSDictionary *macros);
 			selector = NSSelectorFromString(value);
 			if (selector)
 			{
-				clamped = [definition boolForKey:@"clamped" defaultValue:NO];
-				[self bindUniform:name toObject:target property:selector clamped:clamped];
+				convert = [definition boolForKey:@"clamped" defaultValue:NO];
+				[self bindUniform:name toObject:target property:selector convert:convert];
 				gotValue = YES;
 			}
 		}

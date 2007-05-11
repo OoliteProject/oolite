@@ -559,6 +559,7 @@ BOOL	class_masslocks(int some_class);
 - (BOOL) fireAftWeapon:(double) range;
 - (BOOL) fireTurretCannon:(double) range;
 - (void) setLaserColor:(OOColor *) color;
+- (OOColor *)laserColor;
 - (BOOL) fireSubentityLaserShot: (double) range;
 - (BOOL) fireDirectLaserShot;
 - (BOOL) fireLaserShotInDirection: (int) direction;

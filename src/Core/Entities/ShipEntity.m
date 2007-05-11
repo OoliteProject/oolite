@@ -4934,6 +4934,12 @@ BOOL	class_masslocks(int some_class)
 }
 
 
+- (OOColor *)laserColor
+{
+	return [[laser_color retain] autorelease];
+}
+
+
 - (BOOL) fireSubentityLaserShot: (double) range
 {
 	ParticleEntity  *shot;

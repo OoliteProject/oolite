@@ -110,15 +110,24 @@ SOFTWARE.
 	value; it will be called every time -apply is, assuming uniformName is
 	used in the shader. (If not, OOShaderMaterial will not track the binding.)
 	
-	A bound method must return a (signed or unsigned) char, short, int, long,
-	float or double, and not take any parameters. It will be set as a (signed)
-	int or a float as appropriate. TODO: support GLSL vector types, and
-	binding of Vectors and Quaternions.
+	A bound method must not take any parameters, and must return one of the
+	following types:
+		* Any integer or float type.
+		* NSNumber.
+		* Vector.
+		* Quaternion.
+		* Matrix.
+		* OOColor.
+	
+	The "convert" flag has different meanings for different types:
+		* For int, float or NSNumber, it clamps to the range [0..1].
+		* For Vector, it normalizes.
+		* For Quaternion, it converts to a rotation matrix (instead of a vector).
 */
 - (void)bindUniform:(NSString *)uniformName
 		   toObject:(id<OOWeakReferenceSupport>)target
 		   property:(SEL)selector
-			clamped:(BOOL)clamped;
+			convert:(BOOL)convert;
 
 /*	Set a uniform value.
 */

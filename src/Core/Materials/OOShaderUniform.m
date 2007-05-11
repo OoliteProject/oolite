@@ -57,13 +57,17 @@ SOFTWARE.
 
 typedef enum
 {
-	kOOShaderUniformTypeChar,
-	kOOShaderUniformTypeShort,
+	kOOShaderUniformTypeInvalid,
+	kOOShaderUniformTypeChar,		// Binding only
+	kOOShaderUniformTypeShort,		// Binding only
 	kOOShaderUniformTypeInt,
-	kOOShaderUniformTypeLong,
+	kOOShaderUniformTypeLong,		// Binding only
 	kOOShaderUniformTypeFloat,
-	kOOShaderUniformTypeDouble
-	// Vector and matrix types may be added in future.
+	kOOShaderUniformTypeDouble,		// Binding only
+	kOOShaderUniformTypeVector,
+	kOOShaderUniformTypeQuaternion,	// Binding only
+	kOOShaderUniformTypeMatrix,
+	kOOShaderUniformTypeObject		// Binding only
 } OOShaderUniformType;
 
 
@@ -73,6 +77,9 @@ typedef int (*IntReturnMsgSend)(id, SEL);
 typedef long (*LongReturnMsgSend)(id, SEL);
 typedef float (*FloatReturnMsgSend)(id, SEL);
 typedef double (*DoubleReturnMsgSend)(id, SEL);
+typedef Vector (*VectorReturnMsgSend)(id, SEL);
+typedef Quaternion (*QuaternionReturnMsgSend)(id, SEL);
+// typedef Matrix (*MatrixReturnMsgSend)(id, SEL);
 
 
 OOINLINE BOOL ValidBindingType(OOShaderUniformType type)
@@ -83,6 +90,8 @@ OOINLINE BOOL ValidBindingType(OOShaderUniformType type)
 
 @interface OOShaderUniform (OOPrivate)
 
+- (id)initWithName:(NSString *)uniformName shaderProgram:(OOShaderProgram *)shaderProgram;
+
 - (void)applySimple;
 - (void)applyBinding;
 
@@ -91,75 +100,108 @@ OOINLINE BOOL ValidBindingType(OOShaderUniformType type)
 
 @implementation OOShaderUniform
 
-- (id)initWithName:(NSString *)uniformName shaderProgram:(OOShaderProgram *)shaderProgram intValue:(int)constValue
+- (id)initWithName:(NSString *)uniformName shaderProgram:(OOShaderProgram *)shaderProgram intValue:(GLint)constValue
 {
-	BOOL					OK = YES;
-	
-	if (EXPECT_NOT(uniformName == NULL || shaderProgram == NULL)) OK = NO;
-	
-	if (OK)
+	self = [self initWithName:uniformName shaderProgram:shaderProgram];
+	if (self != nil)
 	{
-		self = [super init];
-		if (self == nil) OK = NO;
-	}
-	
-	if (OK)
-	{
-		location = glGetUniformLocationARB([shaderProgram program], [uniformName lossyCString]);
-		if (location == -1)  OK = NO;
-	}
-	
-	if (OK)
-	{
-		name = [uniformName retain];
 		type = kOOShaderUniformTypeInt;
 		value.constInt = constValue;
 	}
 	
-	if (!OK)
-	{
-		[self release];
-		self = nil;
-	}
 	return self;
 }
 
 
-- (id)initWithName:(NSString *)uniformName shaderProgram:(OOShaderProgram *)shaderProgram floatValue:(int)constValue
+- (id)initWithName:(NSString *)uniformName shaderProgram:(OOShaderProgram *)shaderProgram floatValue:(GLfloat)constValue
 {
-	BOOL					OK = YES;
-	
-	if (EXPECT_NOT(uniformName == NULL || shaderProgram == NULL)) OK = NO;
-	
-	if (OK)
+	self = [self initWithName:uniformName shaderProgram:shaderProgram];
+	if (self != nil)
 	{
-		self = [super init];
-		if (self == nil) OK = NO;
-	}
-	
-	if (OK)
-	{
-		location = glGetUniformLocationARB([shaderProgram program], [uniformName lossyCString]);
-		if (location == -1)  OK = NO;
-	}
-	
-	if (OK)
-	{
-		name = [uniformName retain];
 		type = kOOShaderUniformTypeFloat;
 		value.constFloat = constValue;
 	}
 	
-	if (!OK)
-	{
-		[self release];
-		self = nil;
-	}
 	return self;
 }
 
 
-- (id)initWithName:(NSString *)uniformName shaderProgram:(OOShaderProgram *)shaderProgram boundToObject:(id<OOWeakReferenceSupport>)target property:(SEL)selector clamped:(BOOL)clamped
+- (id)initWithName:(NSString *)uniformName shaderProgram:(OOShaderProgram *)shaderProgram vectorValue:(Vector)constValue
+{
+	self = [self initWithName:uniformName shaderProgram:shaderProgram];
+	if (self != nil)
+	{
+		type = kOOShaderUniformTypeVector;
+		value.constVector[0] = constValue.x;
+		value.constVector[1] = constValue.y;
+		value.constVector[2] = constValue.z;
+		value.constVector[3] = 1.0f;
+	}
+	
+	return self;
+}
+
+
+- (id)initWithName:(NSString *)uniformName shaderProgram:(OOShaderProgram *)shaderProgram colorValue:(OOColor *)constValue
+{
+	if (EXPECT_NOT(constValue == nil))
+	{
+		[self release];
+		return nil;
+	}
+	
+	self = [self initWithName:uniformName shaderProgram:shaderProgram];
+	if (self != nil)
+	{
+		type = kOOShaderUniformTypeVector;
+		value.constVector[0] = [constValue redComponent];
+		value.constVector[1] = [constValue greenComponent];
+		value.constVector[2] = [constValue blueComponent];
+		value.constVector[3] = [constValue alphaComponent];
+	}
+	
+	return self;
+}
+
+
+- (id)initWithName:(NSString *)uniformName shaderProgram:(OOShaderProgram *)shaderProgram quaternionValue:(Quaternion)constValue asMatrix:(BOOL)asMatrix
+{
+	self = [self initWithName:uniformName shaderProgram:shaderProgram];
+	if (self != nil)
+	{
+		if (asMatrix)
+		{
+			type = kOOShaderUniformTypeMatrix;
+			quaternion_into_gl_matrix(constValue, value.constMatrix);
+		}
+		else
+		{
+			type = kOOShaderUniformTypeVector;
+			value.constVector[0] = constValue.x;
+			value.constVector[1] = constValue.y;
+			value.constVector[2] = constValue.z;
+			value.constVector[3] = constValue.w;
+		}
+	}
+	
+	return self;
+}
+
+
+- (id)initWithName:(NSString *)uniformName shaderProgram:(OOShaderProgram *)shaderProgram matrixValue:(Matrix)constValue
+{
+	self = [self initWithName:uniformName shaderProgram:shaderProgram];
+	if (self != nil)
+	{
+		type = kOOShaderUniformTypeMatrix;
+		matrix_into_gl_matrix(constValue, value.constMatrix);
+	}
+	
+	return self;
+}
+
+
+- (id)initWithName:(NSString *)uniformName shaderProgram:(OOShaderProgram *)shaderProgram boundToObject:(id<OOWeakReferenceSupport>)target property:(SEL)selector convert:(BOOL)inConvert
 {
 	BOOL					OK = YES;
 	
@@ -187,7 +229,7 @@ OOINLINE BOOL ValidBindingType(OOShaderUniformType type)
 		name = [uniformName retain];
 		isBinding = YES;
 		value.binding.selector = selector;
-		isClamped = clamped;
+		convert = inConvert;
 		if (target != nil)  [self setBindingTarget:target];
 	}
 	
@@ -344,6 +386,9 @@ OOINLINE BOOL ValidBindingType(OOShaderUniformType type)
 		else if (0 == strcmp("s", typeCode) || 0 == strcmp("S", typeCode))  type = kOOShaderUniformTypeShort;
 		else if (0 == strcmp("i", typeCode) || 0 == strcmp("I", typeCode))  type = kOOShaderUniformTypeInt;
 		else if (0 == strcmp("l", typeCode) || 0 == strcmp("L", typeCode))  type = kOOShaderUniformTypeLong;
+		else if (0 == strcmp("{Vector=fff}", typeCode))  type = kOOShaderUniformTypeVector;
+		else if (0 == strcmp("{Quaternion=ffff}", typeCode))  type = kOOShaderUniformTypeQuaternion;
+		else if (0 == strcmp("@", typeCode))  type = kOOShaderUniformTypeObject;
 		else
 		{
 			OK = NO;
@@ -360,6 +405,38 @@ OOINLINE BOOL ValidBindingType(OOShaderUniformType type)
 
 @implementation OOShaderUniform (OOPrivate)
 
+// Designated initializer.
+- (id)initWithName:(NSString *)uniformName shaderProgram:(OOShaderProgram *)shaderProgram
+{
+	BOOL					OK = YES;
+	
+	if (EXPECT_NOT(uniformName == NULL || shaderProgram == NULL)) OK = NO;
+	
+	if (OK)
+	{
+		self = [super init];
+		if (self == nil) OK = NO;
+	}
+	
+	if (OK)
+	{
+		location = glGetUniformLocationARB([shaderProgram program], [uniformName lossyCString]);
+		if (location == -1)  OK = NO;
+	}
+	
+	if (OK)
+	{
+		name = [uniformName copy];
+	}
+	
+	if (!OK)
+	{
+		[self release];
+		self = nil;
+	}
+	return self;
+}
+
 - (void)applySimple
 {
 	switch (type)
@@ -371,6 +448,13 @@ OOINLINE BOOL ValidBindingType(OOShaderUniformType type)
 		case kOOShaderUniformTypeFloat:
 			glUniform1fARB(location, value.constFloat);
 			break;
+		
+		case kOOShaderUniformTypeVector:
+			glUniform4fvARB(location, 1, value.constVector);
+			break;
+		
+		case kOOShaderUniformTypeMatrix:
+			glUniformMatrix4fvARB(location, 1, NO, value.constMatrix);
 	}
 }
 
@@ -379,9 +463,14 @@ OOINLINE BOOL ValidBindingType(OOShaderUniformType type)
 {
 	
 	id							object = nil;
-	int							iVal = 0;
-	float						fVal;
-	BOOL						fp = NO;
+	GLint						iVal = 0;
+	GLfloat						fVal;
+	Vector						vVal;
+	GLfloat						expVVal[4];
+	gl_matrix					mVal;
+	Quaternion					qVal;
+	BOOL						isInt = NO, isFloat = NO, isVector = NO, isMatrix = NO;
+	id							objVal = nil;
 	
 	/*	Design note: if the object has been dealloced, or an exception occurs,
 		do nothing. Shaders can specify a default value for uniforms, which
@@ -398,40 +487,96 @@ OOINLINE BOOL ValidBindingType(OOShaderUniformType type)
 	{
 		case kOOShaderUniformTypeChar:
 			iVal = ((CharReturnMsgSend)value.binding.method)(object, value.binding.selector);
+			isInt = YES;
 			break;
 		
 		case kOOShaderUniformTypeShort:
 			iVal = ((ShortReturnMsgSend)value.binding.method)(object, value.binding.selector);
+			isInt = YES;
 			break;
 		
 		case kOOShaderUniformTypeInt:
 			iVal = ((IntReturnMsgSend)value.binding.method)(object, value.binding.selector);
+			isInt = YES;
 			break;
 		
 		case kOOShaderUniformTypeLong:
 			iVal = ((LongReturnMsgSend)value.binding.method)(object, value.binding.selector);
+			isInt = YES;
 			break;
 		
 		case kOOShaderUniformTypeFloat:
 			fVal = ((FloatReturnMsgSend)value.binding.method)(object, value.binding.selector);
-			fp = YES;
+			isFloat = YES;
 			break;
 		
 		case kOOShaderUniformTypeDouble:
 			fVal = ((DoubleReturnMsgSend)value.binding.method)(object, value.binding.selector);
-			fp = YES;
+			isFloat = YES;
+			break;
+		
+		case kOOShaderUniformTypeVector:
+			vVal = ((VectorReturnMsgSend)value.binding.method)(object, value.binding.selector);
+			if (convert)  vVal = vector_normal(vVal);
+			expVVal[0] = vVal.x;
+			expVVal[1] = vVal.y;
+			expVVal[2] = vVal.z;
+			expVVal[3] = 1.0f;
+			isVector = YES;
+			break;
+		
+		case kOOShaderUniformTypeQuaternion:
+			qVal = ((QuaternionReturnMsgSend)value.binding.method)(object, value.binding.selector);
+			if (convert)
+			{
+				quaternion_into_gl_matrix(qVal, mVal);
+				isMatrix = YES;
+			}
+			else
+			{
+				expVVal[0] = qVal.x;
+				expVVal[1] = qVal.y;
+				expVVal[2] = qVal.z;
+				expVVal[3] = qVal.w;
+				isVector = YES;
+			}
+			break;
+		
+		case kOOShaderUniformTypeObject:
+			objVal = value.binding.method(object, value.binding.selector);
+			if ([objVal isKindOfClass:[NSNumber class]])
+			{
+				fVal = [objVal floatValue];
+				isFloat = YES;
+			}
+			else if ([objVal isKindOfClass:[OOColor class]])
+			{
+				expVVal[0] = [objVal redComponent];
+				expVVal[1] = [objVal greenComponent];
+				expVVal[2] = [objVal blueComponent];
+				expVVal[3] = [objVal alphaComponent];
+				isVector = YES;
+			}
 			break;
 	}
 	
-	if (!fp)
+	if (isFloat)
 	{
-		if (EXPECT_NOT(isClamped))  iVal = iVal ? 1 : 0;
+		if (convert)  fVal = OOClamp_0_1_f(fVal);
+		glUniform1fARB(location, fVal);
+	}
+	else if (isInt)
+	{
+		if (convert)  iVal = iVal ? 1 : 0;
 		glUniform1iARB(location, iVal);
 	}
-	else
+	else if (isVector)
 	{
-		if (EXPECT_NOT(isClamped))  fVal = OOClamp_0_1_f(fVal);
-		glUniform1fARB(location, fVal);
+		glUniform4fvARB(location, 1, expVVal);
+	}
+	else if (isMatrix)
+	{
+		glUniformMatrix4fvARB(location, 1, NO, mVal);
 	}
 }
 
