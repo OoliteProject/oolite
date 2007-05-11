@@ -164,8 +164,7 @@ static NSString *MacrosToString(NSDictionary *macros);
 		uniformDefs = [configuration dictionaryForKey:@"uniforms"];
 		textureDefs = [configuration arrayForKey:@"textures"];
 		
-		uniforms = [[NSMutableDictionary alloc] initWithCapacity:[uniformDefs count] + [textureDefs count] + [defaults count] + 1];
-		[self bindUniform:@"time" toObject:UNIVERSE property:@selector(getTime) convert:NO];
+		uniforms = [[NSMutableDictionary alloc] initWithCapacity:[uniformDefs count] + [textureDefs count] + [defaults count]];
 		[self addUniformsFromDictionary:defaults withBindingTarget:target];
 		[self addUniformsFromDictionary:uniformDefs withBindingTarget:target];
 		

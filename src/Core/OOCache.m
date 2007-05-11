@@ -474,11 +474,12 @@ static BOOL CacheRemove(OOCacheImpl *cache, id key)
 		node->leftChild = NULL;
 		node->rightChild = NULL;
 		
+		cache->root = newRoot;
+		--cache->count;
+		
 		AgeListRemove(cache, node);
 		CacheNodeFree(cache, node);
 		
-		cache->root = newRoot;
-		--cache->count;
 		return YES;
 	}
 	else  return NO;
@@ -596,14 +597,19 @@ static OOCacheNode *CacheNodeAllocate(id key, id value)
 // CacheNodeFree(): recursively delete a cache node and its children in the splay tree. To delete an individual node, first clear its child pointers.
 static void CacheNodeFree(OOCacheImpl *cache, OOCacheNode *node)
 {
+	id key, value;
+	
 	if (node == NULL) return;
 	
 	AgeListRemove(cache, node);
 	
-	[node->key release];
+	key = node->key;
 	node->key = nil;
-	[node->value release];
+	[key release];
+	
+	value = node->value;
 	node->value = nil;
+	[value release];
 	
 	CacheNodeFree(cache, node->leftChild);
 	CacheNodeFree(cache, node->rightChild);

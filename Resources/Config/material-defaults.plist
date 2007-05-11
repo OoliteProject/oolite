@@ -11,6 +11,7 @@
 	"hull_heat_level" = { type = "binding"; value = "hullHeatLevel"; };
 	"entity_personality" = { type = "binding"; value = "entityPersonality"; };
 	"entity_personality_int" = { type = "binding"; value = "entityPersonalityInt"; };
+	"time" = { type = "binding"; value = "universalTime"; };
 };
 
 "ship-prefix-macros" =

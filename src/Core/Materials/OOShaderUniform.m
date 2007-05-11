@@ -471,7 +471,7 @@ OOINLINE BOOL ValidBindingType(OOShaderUniformType type)
 {
 	
 	id							object = nil;
-	GLint						iVal = 0;
+	GLint						iVal;
 	GLfloat						fVal;
 	Vector						vVal;
 	GLfloat						expVVal[4];

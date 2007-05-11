@@ -952,4 +952,10 @@ static NSString * const kOOLogEntityUpdateError				= @"entity.linkedList.update.
 	OOLog(@"dumpState.entity", @"Flags: %@", flagsString);
 }
 
+
+- (GLfloat)universalTime
+{
+	return [UNIVERSE getTime];
+}
+
 @end

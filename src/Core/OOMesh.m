@@ -150,6 +150,8 @@ shaderBindingTarget:(id<OOWeakReferenceSupport>)object
 	[baseFile release];
 	[octree autorelease];
 	
+	[self regenerateDisplayList];
+	
 	for (i = 0; i != MAX_TEXTURES_PER_ENTITY; ++i)
 	{
 		[materials[i] release];
@@ -219,54 +221,57 @@ shaderBindingTarget:(id<OOWeakReferenceSupport>)object
 	glNormalPointer(GL_FLOAT, 0, entityData.normal_array);
 	glTexCoordPointer(2, GL_FLOAT, 0, entityData.texture_uv_array);
 	
-	if (displayList != 0)
-	{
-		glCallList(displayList);
-	}
-	else
-	{
-		NS_DURING
+	NS_DURING
+		if (!listsReady)
+		{
+			displayList0 = glGenLists(materialCount) - 1;
+			
 			// Ensure all textures are loaded
 			for (ti = 1; ti <= materialCount; ti++)
 			{
 				[materials[ti] ensureFinishedLoading];
 			}
-			
-			displayList = glGenLists(1);
-			glNewList(displayList, GL_COMPILE_AND_EXECUTE);
-			
+		}
+		
 #if GL_APPLE_vertex_array_object
-			if (usingVAR)  glBindVertexArrayAPPLE(gVertexArrayRangeObjects[0]);
+		if (usingVAR)  glBindVertexArrayAPPLE(gVertexArrayRangeObjects[0]);
 #endif
-			glDisable(GL_BLEND);
-			glEnable(GL_TEXTURE_2D);
-		//	glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
-			
-			for (ti = 1; ti <= materialCount; ti++)
-			{
-				[materials[ti] apply];
-				glDrawArrays( GL_TRIANGLES, triangle_range[ti].location, triangle_range[ti].length);
-			}
-			
-			brokenInRender = NO;
-		NS_HANDLER
-			if (!brokenInRender)
-			{
-				OOLog(kOOLogException, @"***** %s for %@ encountered exception: %@ : %@ *****", __FUNCTION__, self, [localException name], [localException reason]);
-				brokenInRender = YES;
-			}
-			if ([[localException name] hasPrefix:@"Oolite"])  [UNIVERSE handleOoliteException:localException];	// handle these ourself
-			else  [localException raise];	// pass these on
-		NS_ENDHANDLER
+		glDisable(GL_BLEND);
+		glEnable(GL_TEXTURE_2D);
 		
+		for (ti = 1; ti <= materialCount; ti++)
+		{
+			[materials[ti] apply];
+			if (listsReady)
+			{
+				glCallList(displayList0 + ti);
+			}
+			else
+			{
+				glNewList(displayList0 + ti, GL_COMPILE_AND_EXECUTE);
+				glDrawArrays(GL_TRIANGLES, triangle_range[ti].location, triangle_range[ti].length);
+				glEndList();
+			}
+		}
+		
+		listsReady = YES;
+		brokenInRender = NO;
+	NS_HANDLER
+		if (!brokenInRender)
+		{
+			OOLog(kOOLogException, @"***** %s for %@ encountered exception: %@ : %@ *****", __FUNCTION__, self, [localException name], [localException reason]);
+			brokenInRender = YES;
+		}
+		if ([[localException name] hasPrefix:@"Oolite"])  [UNIVERSE handleOoliteException:localException];	// handle these ourself
+		else  [localException raise];	// pass these on
+	NS_ENDHANDLER
+	
 #if DEBUG_DRAW_NORMALS
-		[self debugDrawNormals];
+	[self debugDrawNormals];
 #endif
-		
-		[OOMaterial applyNone];
-		if (displayList != 0)  glEndList();
-		CheckOpenGLErrors([NSString stringWithFormat:@"OOMesh after generating display list for %@", self]);
-	}
+	
+	[OOMaterial applyNone];
+	CheckOpenGLErrors([NSString stringWithFormat:@"OOMesh after drawing %@", self]);
 	
 	glPopAttrib();
 }
@@ -594,7 +599,7 @@ shaderBindingTarget:(id<OOWeakReferenceSupport>)target
 		}
 		
 		// Reset unsharable GL state
-		result->displayList = 0;
+		result->listsReady = NO;
 #if GL_APPLE_vertex_array_object
 		result->usingVAR = [result OGL_InitVAR];
 		bzero(result->gVertexArrayRangeObjects, sizeof result->gVertexArrayRangeObjects);
@@ -621,8 +626,11 @@ shaderBindingTarget:(id<OOWeakReferenceSupport>)target
 
 - (void) regenerateDisplayList
 {
-	glDeleteLists(displayList,1);
-	displayList = 0;
+	if (listsReady)
+	{
+		glDeleteLists(displayList0 + 1, materialCount);
+		listsReady = NO;
+	}
 }
 
 

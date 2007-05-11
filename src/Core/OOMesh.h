@@ -78,7 +78,7 @@ typedef struct
 	Vector					normal_array[3 * MAX_FACES_PER_ENTITY];
 	
 	int						n_triangles;
-} EntityData;	// per texture
+} EntityData;
 
 
 typedef struct
@@ -100,7 +100,8 @@ typedef uint8_t				OOMeshMaterialCount;
 #if GL_APPLE_vertex_array_object
 							usingVAR: 1,
 #endif
-							brokenInRender: 1;
+							brokenInRender: 1,
+							listsReady: 1;
 	
 	OOMeshMaterialCount		materialCount;
     OOMeshVertexCount		vertexCount;
@@ -112,12 +113,12 @@ typedef uint8_t				OOMeshMaterialCount;
     Vector					vertices[MAX_VERTICES_PER_ENTITY];
     Vector					normals[MAX_VERTICES_PER_ENTITY];
     OOMeshFace				faces[MAX_FACES_PER_ENTITY];
-    GLuint					displayList;
 	
 	EntityData				entityData;
 	NSRange					triangle_range[MAX_TEXTURES_PER_ENTITY];
 	NSString				*texFileNames[MAX_TEXTURES_PER_ENTITY];
 	OOMaterial				*materials[MAX_TEXTURES_PER_ENTITY];
+    GLuint					displayList0;
 	
 	GLfloat					collisionRadius;
 	GLfloat					maxDrawDistance;
