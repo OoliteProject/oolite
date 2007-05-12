@@ -955,13 +955,101 @@ static void StretchVerticallyN_x8(OOScalerPixMap srcPx, OOScalerPixMap dstPx, OO
 #endif
 
 
+static void StretchHorizontally1(OOScalerPixMap srcPx, OOScalerPixMap dstPx)
+{
+	uint8_t				*src, *src0, *src1, *prev, *dst, *dstTop;
+	uint8_t				px0, px1;
+	uint_fast32_t		x, y, yCount, srcRowBytes, dstRowBytes;
+	uint_fast16_t		weight0, weight1;
+	uint_fast32_t		fractX;	// X coordinate, fixed-point (24.8)
+	
+	src = srcPx.pixels;
+	dstTop = dstPx.pixels;
+	srcRowBytes = srcPx.rowBytes;
+	dstRowBytes = dstPx.rowBytes;
+	
+	prev = src;
+	
+	yCount = srcPx.height;
+	
+	for (x = 0; x != dstPx.width; ++x)
+	{
+		fractX = ((srcPx.width * (x + 1)) << 8) / dstPx.width;
+		
+		src0 = prev;
+		prev = src1 = src + (fractX >> 8);
+		
+		weight1 = fractX & 0xFF;
+		weight0 = 0x100 - weight1;
+		
+		y = yCount;
+		dst = dstTop++;
+		while (y--)
+		{
+			px0 = *src0;
+			src0 = (uint8_t *)((char *)src0 + srcRowBytes);
+			px1 = *src1;
+			src1 = (uint8_t *)((char *)src1 + srcRowBytes);
+			
+			*dst = (px0 * weight0 + px1 * weight1) >> 8;
+			dst = (uint8_t *)((char *)dst + dstRowBytes);
+		}
+	}
+}
+
+
+static void StretchHorizontally4(OOScalerPixMap srcPx, OOScalerPixMap dstPx)
+{
+	uint32_t			*src, *src0, *src1, *prev, *dst, *dstTop;
+	uint32_t			px0, px1;
+	uint32_t			ag, br;
+	uint_fast32_t		x, y, yCount, srcRowBytes, dstRowBytes;
+	uint_fast16_t		weight0, weight1;
+	uint_fast32_t		fractX;	// X coordinate, fixed-point (24.8)
+	
+	src = srcPx.pixels;
+	dstTop = dstPx.pixels;
+	srcRowBytes = srcPx.rowBytes;
+	dstRowBytes = dstPx.rowBytes;
+	
+	prev = src;
+	
+	yCount = srcPx.height;
+	
+	for (x = 0; x != dstPx.width; ++x)
+	{
+		fractX = ((srcPx.width * (x + 1)) << 8) / dstPx.width;
+		
+		src0 = prev;
+		prev = src1 = src + (fractX >> 8);
+		
+		weight1 = fractX & 0xFF;
+		weight0 = 0x100 - weight1;
+		
+		y = yCount;
+		dst = dstTop++;
+		while (y--)
+		{
+			px0 = *src0;
+			src0 = (uint32_t *)((char *)src0 + srcRowBytes);
+			px1 = *src1;
+			src1 = (uint32_t *)((char *)src1 + srcRowBytes);
+			
+			ag = ((px0 & 0xFF00FF00) >> 8) * weight0 + ((px1 & 0xFF00FF00) >> 8) * weight1;
+			br = (px0 & 0x00FF00FF) * weight0 + (px1 & 0x00FF00FF) * weight1;
+			
+			*dst = (ag & 0xFF00FF00) | ((br & 0xFF00FF00) >> 8);
+			dst = (uint32_t *)((char *)dst + dstRowBytes);
+		}
+	}
+}
+
+
 #warning Several scalers still do nothing!
 static void SqueezeVertically1(OOScalerPixMap srcPx, OOTextureDimension dstHeight) {}
-static void StretchHorizontally1(OOScalerPixMap srcPx, OOScalerPixMap dstPx) {}
 static void SqueezeHorizontally1(OOScalerPixMap srcPx, OOTextureDimension dstHeight) {}
 
 static void SqueezeVertically4(OOScalerPixMap srcPx, OOTextureDimension dstHeight) {}
-static void StretchHorizontally4(OOScalerPixMap srcPx, OOScalerPixMap dstPx) {}
 static void SqueezeHorizontally4(OOScalerPixMap srcPx, OOTextureDimension dstHeight) {}
 
 

@@ -33,7 +33,9 @@ MA 02110-1301, USA.
 
 
 #define PER_THREAD_INDENTATION		1
+#ifndef APPNAME
 #define APPNAME						@"Oolite"
+#endif
 
 
 #if OOLITE_MAC_OS_X
