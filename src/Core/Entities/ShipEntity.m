@@ -949,34 +949,10 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 }
 
 
-#if OBSOLETE
-- (BoundingBox) findSubentityBoundingBox
-{
-	BoundingBox result;
-	Vector  v = vertices[0];
-	mult_vector_gl_matrix(&v, rotMatrix);
-	v.x += position.x;	v.y += position.y;	v.z += position.z;
-	bounding_box_reset_to_vector(&result,v);
-	int i;
-    for (i = 1; i < n_vertices; i++)
-    {
-		v = vertices[i];
-		mult_vector_gl_matrix(&v, rotMatrix);
-		v.x += position.x;	v.y += position.y;	v.z += position.z;
-		bounding_box_add_vector(&result,v);
-    }
-
-//	NSLog(@"DEBUG subentity bounding box for %@ of %@ is [%.1fm %.1fm]x [%.1fm %.1fm]y [%.1fm %.1fm]z", self, [self owner],
-//		result.min.x, result.max.x, result.min.y, result.max.y, result.min.z, result.max.z);
-
-	return result;
-}
-#else
 - (BoundingBox)findSubentityBoundingBox
 {
 	return [[self mesh] findSubentityBoundingBoxWithPosition:position rotMatrix:rotMatrix];
 }
-#endif
 
 
 - (Vector) absolutePositionForSubentity

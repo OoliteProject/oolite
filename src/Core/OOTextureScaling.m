@@ -20,6 +20,29 @@ along with this program; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
 MA 02110-1301, USA.
 
+
+This file may also be distributed under the MIT/X11 license:
+
+Copyright (C) 2007 Jens Ayton
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+
 */
 
 
@@ -148,77 +171,6 @@ static void DumpMipMap(void *data, OOTextureDimension width, OOTextureDimension 
 #endif
 
 
-uint8_t *ScaleUpPixMap(uint8_t *srcPixels, unsigned srcWidth, unsigned srcHeight, unsigned srcBytesPerRow, unsigned planes, unsigned dstWidth, unsigned dstHeight)
-{
-	uint8_t			*texBytes;
-	int				x, y, n;
-	float			texel_w, texel_h;
-	float			y_lo, y_hi, x_lo, x_hi;
-	int				y0, y1, x0, x1, acc;
-	float			py0, py1, px0, px1;
-	int				xy00, xy01, xy10, xy11;
-	int				texi = 0;
-	
-	if (EXPECT_NOT(srcPixels == NULL)) return NULL;
-	texBytes = malloc(dstWidth * dstHeight * planes);
-	if (EXPECT_NOT(texBytes == NULL)) return NULL;
-	
-//	OOLog(@"image.scale.up", @"Scaling up %u planes from %ux%u to %ux%u", planes, srcWidth, srcHeight, dstWidth, dstHeight);
-
-	// do bilinear scaling
-	texel_w = (float)srcWidth / (float)dstWidth;
-	texel_h = (float)srcHeight / (float)dstHeight;
-
-	for ( y = 0; y < dstHeight; y++)
-	{
-		y_lo = texel_h * y;
-		y_hi = y_lo + texel_h - 0.001f;
-		y0 = floor(y_lo);
-		y1 = floor(y_hi);
-
-		py0 = 1.0f;
-		py1 = 0.0f;
-		if (y1 > y0)
-		{
-			py0 = (y1 - y_lo) / texel_h;
-			py1 = 1.0f - py0;
-		}
-
-		for ( x = 0; x < dstWidth; x++)
-		{
-			x_lo = texel_w * x;
-			x_hi = x_lo + texel_w - 0.001f;
-			x0 = floor(x_lo);
-			x1 = floor(x_hi);
-			acc = 0;
-
-			px0 = 1.0f;
-			px1 = 0.0f;
-			if (x1 > x0)
-			{
-				px0 = (x1 - x_lo) / texel_w;
-				px1 = 1.0f - px0;
-			}
-
-			xy00 = y0 * srcBytesPerRow + planes * x0;
-			xy01 = y0 * srcBytesPerRow + planes * x1;
-			xy10 = y1 * srcBytesPerRow + planes * x0;
-			xy11 = y1 * srcBytesPerRow + planes * x1;
-			
-			// SLOW_CODE This is a bottleneck. Should be reimplemented without float maths or, better, using an optimized library. -- ahruman
-			for (n = 0; n < planes; n++)
-			{
-				acc = py0 * (px0 * srcPixels[ xy00 + n] + px1 * srcPixels[ xy10 + n])
-					+ py1 * (px0 * srcPixels[ xy01 + n] + px1 * srcPixels[ xy11 + n]);
-				texBytes[texi++] = (char)acc;	// float -> char
-			}
-		}
-	}
-	
-	return texBytes;
-}
-
-
 void *OOScalePixMap(void *srcPixels, OOTextureDimension srcWidth, OOTextureDimension srcHeight, OOTexturePlaneCount planes, size_t srcRowBytes, OOTextureDimension dstWidth, OOTextureDimension dstHeight, BOOL leaveSpaceForMipMaps)
 {
 	BOOL				haveScaled = NO;
@@ -283,6 +235,7 @@ void *OOScalePixMap(void *srcPixels, OOTextureDimension srcWidth, OOTextureDimen
 		dstPx.height = dstHeight;
 		dstPx.rowBytes = srcPx.width * planes;
 		dstPx.dataSize = dstPx.rowBytes * dstPx.height;
+		if (leaveSpaceForMipMaps && dstWidth <= srcWidth)  dstPx.dataSize = dstPx.dataSize * 4 / 3;
 		dstPx.pixels = malloc(dstPx.dataSize);
 		if (EXPECT_NOT(dstPx.pixels == NULL))  goto FAIL;
 		
@@ -307,9 +260,15 @@ void *OOScalePixMap(void *srcPixels, OOTextureDimension srcWidth, OOTextureDimen
 		dstPx.rowBytes = dstPx.width * planes;
 		dstPx.dataSize = dstPx.rowBytes * srcPx.height;
 		if (leaveSpaceForMipMaps)  dstPx.dataSize = dstPx.dataSize * 4 / 3;
-		if (dstPx.dataSize <= sparePx.dataSize)  dstPx = sparePx;
+		if (dstPx.dataSize <= sparePx.dataSize)
+		{
+			dstPx.pixels = sparePx.pixels;
+			dstPx.dataSize = sparePx.dataSize;
+		}
 		else
 		{
+			free(sparePx.pixels);
+			sparePx.pixels = NULL;
 			dstPx.pixels = malloc(dstPx.dataSize);
 			if (EXPECT_NOT(dstPx.pixels == NULL))  goto FAIL;
 		}
@@ -334,7 +293,7 @@ void *OOScalePixMap(void *srcPixels, OOTextureDimension srcWidth, OOTextureDimen
 	}
 	
 	// dstPx is now the result.
-	EnsureCorrectDataSize(&srcPx, leaveSpaceForMipMaps);
+	EnsureCorrectDataSize(&dstPx, leaveSpaceForMipMaps);
 	
 FAIL:
 	if (srcPx.pixels != NULL && srcPx.pixels != dstPx.pixels)  free(srcPx.pixels);

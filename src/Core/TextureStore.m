@@ -33,6 +33,7 @@ MA 02110-1301, USA.
 #import "OOMaths.h"
 #import "OOTextureScaling.h"
 #import "OOStringParsing.h"
+#import "OOTexture.h"
 
 #define kOOLogUnconvertedNSLog @"unclassified.TextureStore"
 
@@ -73,229 +74,37 @@ GLuint	max_texture_dimension = 512;	// conservative start
 	return [TextureStore getTextureNameFor: filename inFolder: @"Images"];
 }
 
-+ (GLuint) getTextureNameFor:(NSString *)filename inFolder:(NSString*) foldername
+
++ (GLuint) getTextureNameFor:(NSString *)fileName inFolder:(NSString*)folderName
 {
-#ifndef GNUSTEP
-	NSBitmapImageRep	*bitmapImageRep = nil;
-	NSImage				*texImage;
-#else
-	SDLImage			*texImage;
-#endif
-	NSSize				imageSize;
-	GLuint				texName;
-
-	unsigned char		*texBytes;
-	BOOL				freeTexBytes;
-
-	int					max_d = [TextureStore maxTextureDimension];
-
-	int					texture_h = 4;
-	int					texture_w = 4;
-	int					image_h, image_w;
-	int					n_planes, im_bytes, tex_bytes;
-
-	int					im_bytesPerRow;
-
-	int					texi = 0;
-
-	NSMutableDictionary*	texProps = [NSMutableDictionary dictionaryWithCapacity:3];  // autoreleased
-#ifndef GNUSTEP
-	texImage = [ResourceManager imageNamed:filename inFolder: foldername];
-#else
-	texImage = [ResourceManager surfaceNamed:filename inFolder: foldername];
-#endif
-	if (!texImage)
-	{
-		NSLog(@"***** Couldn't find texture : %@", filename);
-		NSException* myException = [NSException
-			exceptionWithName: OOLITE_EXCEPTION_TEXTURE_NOT_FOUND
-			reason: [NSString stringWithFormat:@"Oolite couldn't find texture : %@ on any search-path.", filename]
-			userInfo: [NSDictionary dictionaryWithObjectsAndKeys: filename, @"texture", nil]];
-		[myException raise];
-		return 0;
-	}
-
-#ifndef GNUSTEP
-	NSArray* reps = [texImage representations];
-
-	int i;
-	for (i = 0; ((i < [reps count]) && !bitmapImageRep); i++)
-	{
-		NSObject* imageRep = [reps objectAtIndex:i];
-		if ([imageRep isKindOfClass:[NSBitmapImageRep class]])
-			bitmapImageRep = (NSBitmapImageRep*)imageRep;
-	}
-	if (!bitmapImageRep)
-	{
-		NSLog(@"***** Couldn't find a representation for texture : %@ %@", filename, texImage);
-		NSException* myException = [NSException
-			exceptionWithName: OOLITE_EXCEPTION_TEXTURE_NOT_FOUND
-			reason: [NSString stringWithFormat:@"Oolite couldn't find a NSBitMapImageRep for texture : %@ : %@.", filename, texImage]
-			userInfo: [NSDictionary dictionaryWithObjectsAndKeys: filename, @"texture", nil]];
-		[myException raise];
-		return 0;
-	}
-
-//		imageSize = [texImage size];			// Gives size in points, which is bad.
-	imageSize = NSMakeSize( [bitmapImageRep pixelsWide], [bitmapImageRep pixelsHigh]);	// Gives size in pixels, which is good.
-	image_w = imageSize.width;
-	image_h = imageSize.height;
-
-	while (texture_w < image_w)
-		texture_w *= 2;
-	while (texture_h < image_h)
-		texture_h *= 2;
-
-	n_planes = [bitmapImageRep samplesPerPixel];
-	im_bytes = image_w * image_h * n_planes;
-	tex_bytes = texture_w * texture_h * n_planes;
-	im_bytesPerRow = [bitmapImageRep bytesPerRow];
-
-	unsigned char* imageBuffer = [bitmapImageRep bitmapData];
-#else
-	imageSize = NSMakeSize([texImage surface]->w, [texImage surface]->h);
-	image_w = imageSize.width;
-	image_h = imageSize.height;
+	OOTexture				*texture = nil;
+	NSDictionary			*texProps = nil;
+	GLint					texName;
+	NSSize					dimensions;
+	NSNumber				*texNameObj = nil;
 	
-	texture_w = OORoundUpToPowerOf2(image_w);
-	texture_h = OORoundUpToPowerOf2(image_h);
-
-	n_planes = [texImage surface]->format->BytesPerPixel;
-	im_bytesPerRow = [texImage surface]->pitch;
-	unsigned char* imageBuffer = [texImage surface]->pixels;
-	im_bytes = image_w * image_h * n_planes;
-	tex_bytes = texture_w * texture_h * n_planes;
-	im_bytesPerRow = [texImage surface]->pitch;
-
-#endif
-
-	if (([filename hasPrefix:@"blur"])&&(texture_w == image_w)&&(texture_h == image_h))
+	texture = [OOTexture textureWithName:fileName inFolder:folderName];
+	texName = [texture glTextureName];
+	if (texName != 0)
 	{
-		fillSquareImageDataWithBlur(imageBuffer, texture_w, n_planes);
-	}
-
-	if (([filename hasPrefix:@"noisegen"])&&(texture_w == image_w)&&(texture_h == image_h))
-	{
-		NSLog(@"DEBUG filling image data for %@ (%d x %d) with special sauce!", filename, texture_w, texture_h);
-		ranrot_srand( 12345);
-		fillRanNoiseBuffer();
-		fillSquareImageWithPlanetTex( imageBuffer, texture_w, n_planes, 1.0f, -0.5f,
-			[OOColor blueColor],
-			[OOColor cyanColor],
-			[OOColor greenColor],
-			[OOColor yellowColor]);
-	}
-
-	if (([filename hasPrefix:@"normalgen"])&&(texture_w == image_w)&&(texture_h == image_h))
-	{
-		NSLog(@"DEBUG filling image data for %@ (%d x %d) with extra-special sauce!", filename, texture_w, texture_h);
-		ranrot_srand( 12345);
-		fillRanNoiseBuffer();
-		fillSquareImageWithPlanetNMap( imageBuffer, texture_w, n_planes, 1.0f, -0.5f, 64.0f);
-	}
-
-	if ((texture_w > image_w)||(texture_h > image_h))	// we need to scale the image up to the texture dimensions
-	{
-		texBytes = ScaleUpPixMap(imageBuffer, image_w, image_h, im_bytesPerRow, n_planes, texture_w, texture_h);
-		freeTexBytes = YES;
-	}
-	else
-	{
-		// no scaling required - we will use the image data directly
-		texBytes = imageBuffer;
-		freeTexBytes = NO;
-	}
-
-	if ((texture_w > max_d)||(texture_h > max_d))	// we need to scale the texture down to the maximum texture dimensions
-	{
-		NSLog(@"INFORMATION: texture '%@' is %d x %d - too large for this version of OpenGL, it will be scaled down.",
-			filename, image_w, image_h);
+		dimensions = [texture dimensions];
+		texNameObj = [NSNumber numberWithInt:texName];
 		
-		int tex_w = (texture_w > max_d)? max_d : texture_w;
-		int tex_h = (texture_h > max_d)? max_d : texture_h;
-		//
-		unsigned char *texBytes2 = malloc( tex_w * tex_h * n_planes);
-		//
-		int x, y, n, ix, iy;
-		//
-		int sx = texture_w / tex_w;	// samples per x
-		int sy = texture_h / tex_h;	// samples per x
-		//
-		float ds = 1.0f / (sx * sy);
-		//
-		texi = 0;
-		//
-		// do sample based scaling
-		for ( y = 0; y < tex_h; y++)
-		{
-			for ( x = 0; x < tex_w; x++)
-			{
-				for (n = 0; n < n_planes; n++)
-				{
-					float acc = 0;
-					for (iy = 0; iy < sy; iy++)	for (ix = 0; ix < sx; ix++)
-						acc += ds * texBytes[ ((y * sy + iy) * texture_w + (x * sx + ix)) * n_planes + n ];
-					//
-					texBytes2[ texi++] = (char)acc;
-				}
-			}
-		}
-		//
-		if (freeTexBytes)
-			free((void*)texBytes);
-		texBytes = texBytes2;
-		texture_w = tex_w;
-		texture_h = tex_h;
-		//
+		texProps = [NSDictionary dictionaryWithObjectsAndKeys:
+						texNameObj, @"texName",
+						[NSNumber numberWithInt:dimensions.width], @"width",
+						[NSNumber numberWithInt:dimensions.height], @"height",
+						texture, @"OOTexture",
+						nil];
+		
+		if (textureUniversalDictionary == nil)  textureUniversalDictionary = [[NSMutableDictionary alloc] init];
+		
+		[textureUniversalDictionary setObject:texProps forKey:fileName];
+		[textureUniversalDictionary setObject:fileName forKey:texNameObj];
 	}
-
-	glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
-	glGenTextures(1, &texName);			// get a new unique texture name
-	glBindTexture(GL_TEXTURE_2D, texName);
-
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);	// adjust this
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);	// adjust this
-
-	switch (n_planes)	// from the number of planes work out how to treat the image as a texture
-	{
-		case 4:
-			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, texture_w, texture_h, 0, GL_RGBA, GL_UNSIGNED_BYTE, texBytes);
-			break;
-		case 3:
-			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, texture_w, texture_h, 0, GL_RGB, GL_UNSIGNED_BYTE, texBytes);
-			break;
-		case 1:
-			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, texture_w, texture_h, 0, GL_LUMINANCE, GL_UNSIGNED_BYTE, texBytes);
-			break;
-		default:
-			// throw an error - we don't know how to deal with this texture format...
-			NSLog(@"***** Couldn't deal with format of texture : %@ (%d image planes)", filename, n_planes);
-			NSException* myException = [NSException
-				exceptionWithName: OOLITE_EXCEPTION_TEXTURE_NOT_UNDERSTOOD
-				reason: [NSString stringWithFormat:@"Oolite couldn't understand the format of texture : %@ (%d image planes)", filename, n_planes]
-				userInfo: [NSDictionary dictionaryWithObjectsAndKeys: filename, @"texture", nil]];
-			[myException raise];
-			return 0;
-	}
-
-	if (freeTexBytes) free(texBytes);
-
-	// add to dictionary
-	//
-	[texProps setObject:[NSNumber numberWithInt:texName] forKey:@"texName"];
-	[texProps setObject:[NSNumber numberWithInt:texture_w] forKey:@"width"];
-	[texProps setObject:[NSNumber numberWithInt:texture_h] forKey:@"height"];
-
-	if (!textureUniversalDictionary)
-		textureUniversalDictionary = [[NSMutableDictionary dictionary] retain];
-
-	[textureUniversalDictionary setObject:texProps forKey:filename];
-	[textureUniversalDictionary setObject:filename forKey:[NSNumber numberWithInt:texName]];
-	
 	return texName;
 }
+
 
 + (NSString*) getNameOfTextureWithGLuint:(GLuint) value
 {

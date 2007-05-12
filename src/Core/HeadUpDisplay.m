@@ -32,7 +32,9 @@ MA 02110-1301, USA.
 #import "OOColor.h"
 #import "GuiDisplayGen.h"
 #import "OOTexture.h"
-#import "TextureStore.h"
+// #import "TextureStore.h"
+#import "OpenGLSprite.h"
+#import "OOCollectionExtractors.h"
 
 #define kOOLogUnconvertedNSLog @"unclassified.HeadUpDisplay"
 
@@ -80,6 +82,7 @@ float char_widths[128] = {
 	if (sFontTexture == nil)
 	{
 		sFontTexture = [OOTexture textureWithName:@"asciitext.png"
+										 inFolder:@"Textures"
 										  options:kFontTextureOptions
 									   anisotropy:0.0f
 										  lodBias:-0.75f];
@@ -210,27 +213,28 @@ float char_widths[128] = {
 
 - (void) addLegend:(NSDictionary *) info
 {
-	if ([info objectForKey:IMAGE_KEY])
+	NSString			*imageName = nil;
+	OOTexture			*texture = nil;
+	NSSize				imageSize;
+	OpenGLSprite		*legendSprite = nil;
+	
+	imageName = [info stringForKey:IMAGE_KEY];
+	if (imageName != nil)
 	{
-		GLuint			image_texture_name = [TextureStore getImageNameFor:[info objectForKey:IMAGE_KEY]];
-		if (!image_texture_name)
+		texture = [OOTexture textureWithName:imageName inFolder:@"Images"];
+		if (texture == nil)
 		{
-			NSLog(@"ERROR: HeadUpDisplay couldn't get an image texture name for %@", [info objectForKey:IMAGE_KEY]);
+			OOLog(kOOLogFileNotFound, @"***** ERROR: HeadUpDisplay couldn't get an image texture name for %@", imageName);
 			return;
 		}
 		
-		NSSize			imageSize = [TextureStore getSizeOfTexture:[info objectForKey:IMAGE_KEY]];
-		NSSize			spriteSize = imageSize;
-		if ([info objectForKey:WIDTH_KEY])
-			spriteSize.width = [(NSNumber *)[info objectForKey:WIDTH_KEY] intValue];
-		if ([info objectForKey:HEIGHT_KEY])
-			spriteSize.height = [(NSNumber *)[info objectForKey:HEIGHT_KEY] intValue];
-			
- 		OpenGLSprite *legendSprite = [[OpenGLSprite alloc] initWithTextureName: image_texture_name andSize: spriteSize];
-
-		NSMutableDictionary *legendDict = [NSMutableDictionary dictionaryWithDictionary:info];
-		[legendDict setObject:legendSprite forKey:SPRITE_KEY];
-		[legendArray addObject:legendDict];																	
+		imageSize = [texture dimensions];
+		imageSize.width = [info floatForKey:WIDTH_KEY defaultValue:imageSize.width];
+		imageSize.height = [info floatForKey:HEIGHT_KEY defaultValue:imageSize.height];
+		
+ 		legendSprite = [[OpenGLSprite alloc] initWithTexture:texture size:imageSize];
+		
+		[legendArray addObject:[NSDictionary dictionaryWithObject:legendSprite forKey:SPRITE_KEY]];																	
 		[legendSprite release];
 		return;
 	}

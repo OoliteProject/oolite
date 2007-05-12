@@ -27,10 +27,6 @@ MA 02110-1301, USA.
 #import "OOCocoa.h"
 #import "OOOpenGL.h"
 
-#if OOLITE_SDL
-#import "SDLImage.h"
-#endif
-
 
 #define OOLITE_EXCEPTION_FATAL					@"OoliteFatalException"
 
@@ -62,12 +58,6 @@ BOOL always_include_addons;
 
 + (OOSound *) ooSoundNamed:(NSString *)filename inFolder:(NSString *)foldername;
 + (OOMusic *) ooMusicNamed:(NSString *)filename inFolder:(NSString *)foldername;
-
-#if OOLITE_MAC_OS_X && !OOLITE_SDL
-+ (NSImage *) imageNamed:(NSString *)filename inFolder:(NSString *)foldername;
-#elif OOLITE_SDL
-+ (SDLImage *) surfaceNamed:(NSString *)filename inFolder:(NSString *)foldername;
-#endif
 
 + (NSString *) stringFromFilesNamed:(NSString *)filename inFolder:(NSString *)foldername;
 

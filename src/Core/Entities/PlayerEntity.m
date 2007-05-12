@@ -51,6 +51,7 @@ MA 02110-1301, USA.
 #import "OOConstToString.h"
 
 #import "OOScript.h"
+#import "HeadUpDisplay.h"
 
 #ifndef GNUSTEP
 #import "Groolite.h"
@@ -860,8 +861,8 @@ static PlayerEntity *sSharedPlayer = nil;
 	[extra_equipment release];
 	extra_equipment =[[NSMutableDictionary alloc] init];
 	
-	[missionBackgroundImage release];
-	missionBackgroundImage = nil;
+	[missionBackgroundTexture release];
+	missionBackgroundTexture = nil;
 	
 	script_time = 0.0;
 	script_time_check = SCRIPT_TIMER_INTERVAL;
@@ -884,78 +885,6 @@ static PlayerEntity *sSharedPlayer = nil;
 	mouse_control_on = NO;
 	
 	docking_music_on = [[NSUserDefaults standardUserDefaults] boolForKey:KEY_DOCKING_MUSIC defaultValue:YES];
-	
-#if OBSOLETE
-	// ShipEntity stuff. set_up must be followed by setting up a ship to be meaningful, so this is unneeded.
-	// Ship name
-	[name release];
-	name = nil;
-	
-	rolling = NO;
-	pitching = NO;
-	galactic_witchjump = NO;
-	
-	//
-	flight_speed		= 0.0;
-	max_flight_speed	= 160.0;
-	max_flight_roll =   2.0;
-	max_flight_pitch =  1.0;
-	max_flight_yaw =	1.0;
-	
-	// control factors
-	
-	thrust =				32.0;
-	roll_delta =			2.0 * max_flight_roll;
-	pitch_delta =			2.0 * max_flight_pitch;
-	yaw_delta =				2.0 * max_flight_yaw;
-    
-    displayListName =		0;
-    
-    status =				STATUS_ACTIVE;
-	
-	shield_booster =		1;
-	shield_enhancer =		0;
-	
-	energy =				256;
-	weapon_temp =			0.0;
-	forward_weapon_temp =	0.0;
-	aft_weapon_temp =		0.0;
-	port_weapon_temp =		0.0;
-	starboard_weapon_temp =	0.0;
-	ship_temperature =		60.0;
-	heat_insulation = 1.0;
-	alert_flags =		0;
-	
-	game_over =				NO;
-	docked =				NO;
-	finished =				NO;
-	bomb_detonated =		NO;
-	has_docking_computer =  NO;
-	autopilot_engaged =		NO;
-	afterburner_engaged =   NO;
-	hyperspeed_engaged =	NO;
-	hyperspeed_locked =		NO;
-	
-	ident_engaged = NO;
-	
-	ecm_in_operation =		NO;
-	ecm_start_time =		0.0;
-	
-	fuel_leak_rate =	0.0;
-	
-	witchspaceCountdown = 0.0;
-
-	collision_radius =  50.0;
-	
-	[self setModelName:PLAYER_MODEL];
-	
-	shot_time =			0.0;
-	shot_counter =		0;
-    
-	if (shipAI)		[shipAI release];
-	shipAI = [[AI alloc] initWithStateMachine:AI_DOCKING_COMPUTER andState:@"GLOBAL"]; // alloc retains dealloc'd by ShipEntity
-	[shipAI setOwner:self];
-#endif
 
 	// player commander data
 	// Most of this is probably also set more than once
@@ -1292,7 +1221,7 @@ static PlayerEntity *sSharedPlayer = nil;
 	[missionDestinations release];
 	[shipyard_record release];
 
-     [missionBackgroundImage release];
+	[missionBackgroundTexture release];
 
     [player_name release];
     [shipCommodityData release];

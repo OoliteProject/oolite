@@ -25,52 +25,26 @@ MA 02110-1301, USA.
 #import "OOCocoa.h"
 #import "OOOpenGL.h"
 
-#ifdef GNUSTEP
-#import "SDLImage.h"
-#endif
+@class OOTexture;
+
 
 #define	OPEN_GL_SPRITE_MIN_WIDTH	64.0
 #define	OPEN_GL_SPRITE_MIN_HEIGHT	64.0
 
-extern int debug;
 
-@interface OpenGLSprite : NSObject {
-
-    NSData*	textureData;
-    GLuint	texName;
-
-    NSRect	textureCropRect;
-    NSSize	textureSize;
-    NSSize	size;
+@interface OpenGLSprite: NSObject
+{
+	OOTexture	*texture;
+	NSSize		size;
 }
 
 
+- (id) initWithTexture:(OOTexture *)texture;
+- (id) initWithTexture:(OOTexture *)texture size:(NSSize)spriteSize;
 
-- (id) init;
-- (id) initWithTextureName:(GLuint) textureName andSize:(NSSize) spriteSize;
-#ifndef GNUSTEP
-- (id) initWithImage:(NSImage *)textureImage cropRectangle:(NSRect)cropRect size:(NSSize) spriteSize;
-- (id) initWithText:(NSString *)str;
-- (id) initWithText:(NSString *)str ofColor:(NSColor *) textColor;
-#endif
-- (void) dealloc;
-
-- (NSSize)  size;
+- (NSSize)size;
 
 - (void)blitToX:(float)x Y:(float)y Z:(float)z Alpha:(float)a;
 - (void)blitCentredToX:(float)x Y:(float)y Z:(float)z Alpha:(float)a;
-
-- (void) setText:(NSString *)str;
-#ifndef GNUSTEP
-- (void)makeTextureFromImage:(NSImage *)texImage cropRectangle:(NSRect)cropRect size:(NSSize)spriteSize;
-
-- (void)replaceTextureFromImage:(NSImage *)texImage cropRectangle:(NSRect)cropRect;
-- (void)substituteTextureFromImage:(NSImage *)texImage;
-#endif
-
-#ifdef GNUSTEP
-- (id) initWithSurface:(SDLImage *)textureImage cropRectangle:(NSRect)cropRect size:(NSSize) spriteSize;
-- (void)makeTextureFromSurface:(SDLImage *)texImage cropRectangle:(NSRect)cropRect size:(NSSize)spriteSize;
-#endif
 
 @end

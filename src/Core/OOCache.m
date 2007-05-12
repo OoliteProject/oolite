@@ -267,7 +267,12 @@ static void CacheSetName(OOCacheImpl *cache, NSString *name);
 
 - (void)setPruneThreshold:(unsigned)threshold
 {
-	pruneThreshold = threshold;
+	threshold = MAX(threshold, kOOCacheMinimumPruneThreshold);
+	if (threshold != pruneThreshold)
+	{
+		pruneThreshold = threshold;
+		if (autoPrune)  [self prune];
+	}
 }
 
 
@@ -298,14 +303,15 @@ static void CacheSetName(OOCacheImpl *cache, NSString *name);
 {
 	unsigned				pruneCount;
 	unsigned				desiredCount;
+	unsigned				count;
 	
 	// Order of operations is to ensure rounding down.
 	if (autoPrune)  desiredCount = (pruneThreshold * 4) / 5;
 	else  desiredCount = pruneThreshold;
 	
-	if (pruneThreshold == kOOCacheNoPrune || CacheGetCount(cache) <= desiredCount)  return;
+	if (pruneThreshold == kOOCacheNoPrune || (count = CacheGetCount(cache)) <= pruneThreshold)  return;
 	
-	pruneCount = pruneThreshold - desiredCount;
+	pruneCount = count - desiredCount;
 	
 	OOLog(kOOLogCachePrune, @"Pruning cache \"%@\" - removing %u entries", CacheGetName(cache), pruneCount);
 	OOLogIndentIf(kOOLogCachePrune);

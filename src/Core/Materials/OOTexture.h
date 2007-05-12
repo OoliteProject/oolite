@@ -132,16 +132,19 @@ enum
 	appropriate. 
 */
 + (id)textureWithName:(NSString *)name
+			 inFolder:(NSString*)directory
 			  options:(uint32_t)options
 		   anisotropy:(GLfloat)anisotropy
 			  lodBias:(GLfloat)lodBias;
 
 /*	Equivalent to textureWithName:name
+						 inFolder:directory
 						  options:kOOTextureDefaultOptions
 					   anisotropy:kOOTextureDefaultAnisotropy
 						  lodBias:kOOTextureDefaultLODBias
 */
-+ (id)textureWithName:(NSString *)name;
++ (id)textureWithName:(NSString *)name
+			 inFolder:(NSString*)directory;
 
 /*	Load a texure, looking in Textures directories, using configuration
 	dictionary or name. (That is, configuration may be either an NSDictionary
@@ -202,6 +205,11 @@ enum
 	avoid the scaling-to-power-of-two stage.
 */
 - (NSSize)texCoordsScale;
+
+/*	OpenGL texture name.
+	Not reccomended, but required for legacy TextureStore.
+*/
+- (GLint)glTextureName;
 
 //	Forget all cached textures so new texture objects will reload.
 + (void)clearCache;

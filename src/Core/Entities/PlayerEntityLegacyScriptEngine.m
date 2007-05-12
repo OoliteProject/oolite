@@ -35,6 +35,7 @@ MA 02110-1301, USA.
 #import "OOColor.h"
 #import "OOStringParsing.h"
 #import "OOConstToString.h"
+#import "OOTexture.h"
 
 #import "PlanetEntity.h"
 #import "ParticleEntity.h"
@@ -1751,20 +1752,19 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 	}
 }
 
+
 - (void) setMissionImage: (NSString *)value
 {
-	if (missionBackgroundImage)   [missionBackgroundImage release];
-	if ([[value lowercaseString] isEqual:@"none"])
-		missionBackgroundImage = nil;
-	else
+	[missionBackgroundTexture release];
+	missionBackgroundTexture = nil;
+	
+	if (![[value lowercaseString] isEqual:@"none"])
  	{
-#ifdef GNUSTEP
- 		missionBackgroundImage =  [[ResourceManager surfaceNamed:value inFolder:@"Images"] retain];
-#else
-		missionBackgroundImage =  [[ResourceManager imageNamed:value inFolder:@"Images"] retain];
-#endif
+		missionBackgroundTexture = [OOTexture textureWithName:value inFolder:@"Images"];
+		[missionBackgroundTexture retain];
  	}
 }
+
 
 - (void) setFuelLeak: (NSString *)value
 {
@@ -2011,7 +2011,7 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 		[gui setKey:@"spacebar" forRow:21];
 		//
 		[gui setSelectableRange:NSMakeRange(0,0)];
-		[gui setBackgroundImage:missionBackgroundImage];
+		[gui setBackgroundTexture:missionBackgroundTexture];
 
 		[gui setShowTextCursor:NO];
 	}

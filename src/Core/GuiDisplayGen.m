@@ -29,6 +29,7 @@ MA 02110-1301, USA.
 #import "ResourceManager.h"
 #import "OOSound.h"
 #import "OOStringParsing.h"
+#import "HeadUpDisplay.h"
 
 
 @implementation GuiDisplayGen
@@ -73,15 +74,10 @@ MA 02110-1301, USA.
 		tabStops[i] = stops[i];
 	}
 	
-	selectedRow = 0;
-	selectableRange = NSMakeRange(0,0);
-	
 	title = @"Test Page";
 	
 	guiclick =  [[ResourceManager ooSoundNamed:@"guiclick.ogg" inFolder:@"Sounds"] retain];
-
-	backgroundImage = nil;
-	backgroundColor = nil;
+	
 	textColor = [[OOColor yellowColor] retain];
 	
 	drawPosition = make_vector( 0.0, 0.0, 640.0);
@@ -123,15 +119,10 @@ MA 02110-1301, USA.
 		rowAlignment[i] = GUI_ALIGN_LEFT;
 	}
 	
-	selectedRow = 0;
-	selectableRange = NSMakeRange(0,0);
-	
 	title = [gui_title retain];
 	
 	guiclick =  [[ResourceManager ooSoundNamed:@"guiclick.ogg" inFolder:@"Sounds"] retain];
-
-	backgroundImage = nil;
-	backgroundColor = nil;
+	
 	textColor = [[OOColor yellowColor] retain];
 
 	return self;
@@ -227,14 +218,14 @@ MA 02110-1301, USA.
 
 - (void) dealloc
 {
-	if (backgroundImage)	[backgroundImage release];
-	if (backgroundSprite)   [backgroundSprite release];
-	if (backgroundColor)	[backgroundColor release];
-	if (textColor)		[textColor release];
-	if (title)			[title release];
-	if (rowText)		[rowText release];
-	if (rowKey)			[rowKey release];
-	if (rowColor)		[rowColor release];
+	[backgroundSprite release];
+	[backgroundColor release];
+	[textColor release];
+	[title release];
+	[rowText release];
+	[rowKey release];
+	[rowColor release];
+	
 	[super dealloc];
 }
 
@@ -673,38 +664,23 @@ MA 02110-1301, USA.
 }
 
 
-#ifdef GNUSTEP
-- (void) setBackgroundImage:(SDLImage *) bg_image;
-#else
-- (void) setBackgroundImage:(NSImage *) bg_image;
-#endif
+- (void)setBackgroundTexture:(OOTexture *)backgroundTexture
 {
-	if (backgroundImage)
-		[backgroundImage release];
-	if (backgroundSprite)
-		[backgroundSprite release];
-	if (bg_image)
+	[backgroundSprite release];
+	backgroundSprite = nil;
+	
+	if (backgroundTexture != nil)
 	{
-		backgroundImage = [bg_image retain];
-#ifdef GNUSTEP
- 		backgroundSprite = [[OpenGLSprite alloc]
- 								initWithSurface:backgroundImage
- 								cropRectangle:NSMakeRect( 0.0, 0.0, [backgroundImage size].width, [backgroundImage size].height)
- 								size:[backgroundImage size]];	// retained
-#else
-
-		backgroundSprite = [[OpenGLSprite alloc]
-								initWithImage:backgroundImage
-								cropRectangle:NSMakeRect( 0.0, 0.0, [backgroundImage size].width, [backgroundImage size].height)
-								size:[backgroundImage size]];	// retained
-#endif
-	}
-	else
-	{
-		backgroundImage = nil;
-		backgroundSprite = nil;
+		backgroundSprite = [[OpenGLSprite alloc] initWithTexture:backgroundTexture];
 	}
 }
+
+
+- (void)clearBackground
+{
+	[self setBackgroundTexture:nil];
+}
+
 
 - (void) drawEqptList: (NSArray *)eqptList
 {

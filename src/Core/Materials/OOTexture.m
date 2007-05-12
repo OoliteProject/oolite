@@ -74,7 +74,7 @@ SOFTWARE.
 */
 enum
 {
-	kRecentTexturesCount		= 50
+	kRecentTexturesCount		= 1002
 };
 
 static NSMutableDictionary	*sInUseTextures = nil;
@@ -168,6 +168,7 @@ static BOOL		sRectangleTextureAvailable;
 @implementation OOTexture
 
 + (id)textureWithName:(NSString *)name
+			 inFolder:(NSString*)directory
 			  options:(uint32_t)options
 		   anisotropy:(GLfloat)anisotropy
 			  lodBias:(GLfloat)lodBias
@@ -221,11 +222,11 @@ static BOOL		sRectangleTextureAvailable;
 	}
 	
 	// Look for existing texture
-	key = [NSString stringWithFormat:@"%@:0x%.4X/%g/%g", name, options, anisotropy, lodBias];
+	key = [NSString stringWithFormat:@"%@%@%@:0x%.4X/%g/%g", directory ? directory : @"", directory ? @"/" : @"", name, options, anisotropy, lodBias];
 	result = [[sInUseTextures objectForKey:key] pointerValue];
 	if (result == nil)
 	{
-		path = [ResourceManager pathForFileNamed:name inFolder:@"Textures"];
+		path = [ResourceManager pathForFileNamed:name inFolder:directory];
 		if (path == nil)
 		{
 			OOLog(kOOLogFileNotFound, @"Could not find texture file \"%@\".", name);
@@ -248,8 +249,10 @@ static BOOL		sRectangleTextureAvailable;
 
 
 + (id)textureWithName:(NSString *)name
+			 inFolder:(NSString*)directory
 {
 	return [self textureWithName:name
+						inFolder:directory
 						 options:kOOTextureDefaultOptions
 					  anisotropy:kOOTextureDefaultAnisotropy
 						 lodBias:kOOTextureDefaultLODBias];
@@ -304,7 +307,7 @@ static BOOL		sRectangleTextureAvailable;
 		return nil;
 	}
 	
-	return [self textureWithName:name options:options anisotropy:anisotropy lodBias:lodBias];
+	return [self textureWithName:name inFolder:@"Textures" options:options anisotropy:anisotropy lodBias:lodBias];
 }
 
 
@@ -426,6 +429,14 @@ static BOOL		sRectangleTextureAvailable;
 #else
 	return NSMakeSize(1.0f, 1.0f);
 #endif
+}
+
+
+- (GLint)glTextureName
+{
+	[self ensureFinishedLoading];
+	
+	return data.loaded.textureName;
 }
 
 

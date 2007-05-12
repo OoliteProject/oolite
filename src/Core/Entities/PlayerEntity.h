@@ -29,13 +29,9 @@ MA 02110-1301, USA.
 #import <Foundation/Foundation.h>
 #import "ShipEntity.h"
 
-#ifdef GNUSTEP
-#import "SDLImage.h"
-#endif
-
 @class GuiDisplayGen, OOTrumble, MyOpenGLView, HeadUpDisplay, ShipEntity;
 @class OOSound, OOMusic, OOSoundSource, OOSoundReferencePoint;
-@class JoystickHandler;
+@class JoystickHandler, OOTexture;
 
 #define SCRIPT_TIMER_INTERVAL			10.0
 
@@ -202,7 +198,7 @@ typedef enum
 
 #define PLAYER_DOCKING_AI_NAME			@"dockingAI.plist"
 
-@interface PlayerEntity : ShipEntity
+@interface PlayerEntity: ShipEntity
 {
 @public
 	
@@ -226,11 +222,8 @@ typedef enum
 	NSMutableArray*			comm_log;
 
 	NSMutableDictionary		*oxpKeys;
-#ifdef GNUSTEP
-	SDLImage				*missionBackgroundImage;
-#else
-	NSImage					*missionBackgroundImage;
-#endif
+	
+	OOTexture				*missionBackgroundTexture;
 	
 	NSMutableDictionary		*extra_equipment;
 	BOOL					found_equipment;

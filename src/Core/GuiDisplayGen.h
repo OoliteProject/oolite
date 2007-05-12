@@ -26,6 +26,7 @@ MA 02110-1301, USA.
 */
 
 #import "OOCocoa.h"
+#import "OOMaths.h"
 
 #define GUI_MAX_ROWS			64
 #define GUI_MAX_COLUMNS			40
@@ -42,15 +43,13 @@ MA 02110-1301, USA.
 #define GUI_KEY_OK				@"OK"
 #define GUI_KEY_SKIP			@"SKIP-ROW"
 
-#import "OpenGLSprite.h"
-#import "HeadUpDisplay.h"
 
-@class OOSound, OOColor;
+@class OOSound, OOColor, OOTexture, OpenGLSprite, HeadUpDisplay;
 
 extern int debug;
 
-@interface GuiDisplayGen : NSObject {
-
+@interface GuiDisplayGen: NSObject
+{
 	NSSize			size_in_pixels;
 	int				n_columns;
 	int				n_rows;
@@ -65,12 +64,6 @@ extern int debug;
 	NSSize			pixel_title_size;
 	
 	OOSound			*guiclick;
-
-#ifdef GNUSTEP
-	SDLImage		*backgroundImage;
-#else
-	NSImage			*backgroundImage;
-#endif
 
 	OOColor			*backgroundColor;
 	OOColor			*textColor;
@@ -177,11 +170,8 @@ extern int debug;
 
 - (void) scrollUp:(int) how_much;
 
-#ifdef GNUSTEP
-- (void) setBackgroundImage:(SDLImage *) bg_image;
-#else
-- (void) setBackgroundImage:(NSImage *) bg_image;
-#endif
+- (void)setBackgroundTexture:(OOTexture *)backgroundTexture;
+- (void)clearBackground;
 
 - (int) drawGUI:(GLfloat) alpha drawCursor:(BOOL) drawCursor;
 - (int) drawGUI:(GLfloat)x :(GLfloat)y :(GLfloat)z :(GLfloat) alpha drawCursor:(BOOL) drawCursor;

@@ -68,12 +68,6 @@ static NSMutableString	*errors;
 static NSMutableDictionary *sound_cache;
 static NSMutableDictionary *string_cache;
 
-#if OOLITE_MAC_OS_X && !OOLITE_SDL
-static NSMutableDictionary *image_cache;
-#elif OOLITE_SDL
-static NSMutableDictionary *surface_cache;
-#endif
-
 
 @implementation ResourceManager
 
@@ -259,6 +253,7 @@ static NSMutableDictionary *surface_cache;
 {
 	BOOL				result = YES;
 	NSString			*requiredVersion;
+	unsigned			conditionsHandled = nil;
 	
 	if (requirements == nil)  return YES;
 	
@@ -267,6 +262,7 @@ static NSMutableDictionary *surface_cache;
 		requiredVersion = [requirements objectForKey:@"version"];
 		if (requiredVersion != nil)
 		{
+			++conditionsHandled;
 			if ([requiredVersion isKindOfClass:[NSString class]])
 			{
 				static NSArray	*ooVersionComponents = nil;
@@ -286,6 +282,12 @@ static NSMutableDictionary *surface_cache;
 				result = NO;
 			}
 		}
+	}
+	
+	if (conditionsHandled < [requirements count])
+	{
+		// There are unknown requirement keys - don't support. NOTE: this check was not made pre 1.69!
+		result = NO;
 	}
 	
 	return result;
@@ -554,8 +556,8 @@ static NSMutableDictionary *surface_cache;
 	if (result != nil)
 	{
 		OOLog(@"resourceManager.foundFile", @"Found %@/%@ at %@", folderName, fileName, filePath);
+		[cache setPruneThreshold:500 forCache:@"resolved paths"];
 		[cache setObject:result forKey:cacheKey inCache:@"resolved paths"];
-		[cache setPruneThreshold:400 forCache:@"resolved paths"];
 	}
 	return result;
 }
@@ -617,74 +619,6 @@ static NSMutableDictionary *surface_cache;
 							   key:nil
 							 class:[NSString class]];
 }
-
-
-#if OOLITE_MAC_OS_X && !OOLITE_SDL
-
-+ (NSImage *) imageNamed:(NSString *)filename inFolder:(NSString *)foldername
-{
-	return [self retrieveFileNamed:filename
-				 inFolder:foldername
-				 cache:&image_cache
-				 key:nil
-				 class:[NSImage class]];
-}
-
-#elif OOLITE_SDL
-
-+ (SDLImage *) surfaceNamed:(NSString *)filename inFolder:(NSString *)foldername
-{
-	SDLImage *result = 0;
-	SDL_Surface *surface;
-	NSMutableArray *fpaths = [ResourceManager paths];
-	NSString *finalFilename=nil;
-	int i, r;
-	r = 0;
-	if (!filename)
-		return 0;
-
-	NSString* image_key = [NSString stringWithFormat:@"%@:%@", foldername, filename];
-	if (!surface_cache)
-		surface_cache = [[NSMutableDictionary alloc] initWithCapacity:32];
-	if ([surface_cache objectForKey:image_key])
-		return (SDLImage *)[surface_cache objectForKey:image_key];
-
-	for (i = 0; i < [fpaths count]; i++)
-	{
-		NSString *filepath = [(NSString *)[fpaths objectAtIndex:i] stringByAppendingPathComponent:filename];
-		if ([[NSFileManager defaultManager] fileExistsAtPath:filepath])
-		{
-			//if (surface != 0)
-			//	SDL_FreeSurface(surface);
-			//surface = IMG_Load([filepath cString]);
-			finalFilename = [NSString stringWithString: filepath];
-			r++;
-		}
-		if (foldername)
-		{
-			filepath = [[(NSString *)[fpaths objectAtIndex:i] stringByAppendingPathComponent:foldername] stringByAppendingPathComponent:filename];
-			if ([[NSFileManager defaultManager] fileExistsAtPath:filepath])
-			{
-				//if (surface != 0)
-				//	SDL_FreeSurface(surface);
-				//surface = IMG_Load([filepath cString]);
-				finalFilename = [NSString stringWithString: filepath];
-				r++;
-			}
-		}
-	}
-
-	if (finalFilename != nil)
-	{
-		surface = IMG_Load([finalFilename cString]);
-		result = [[SDLImage alloc] initWithSurface: surface];
-		[surface_cache setObject:result forKey:image_key];
-	}
-
-	return result;
-}
-
-#endif
 
 
 + (NSDictionary *)loadScripts

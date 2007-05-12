@@ -39,6 +39,7 @@ MA 02110-1301, USA.
 #import "OOStringParsing.h"
 #import "OOCollectionExtractors.h"
 #import "ResourceManager.h"
+#import "HeadUpDisplay.h"
 
 #import "JoystickHandler.h"
 
@@ -2630,7 +2631,7 @@ static BOOL toggling_music;
 					disc_operation_in_progress = YES;
 					[self setStatus:STATUS_DOCKED];
 					[UNIVERSE removeDemoShips];
-					[gui setBackgroundImage:nil];
+					[gui clearBackground];
 					[self loadPlayer];
 				}
 			}
@@ -2646,7 +2647,7 @@ static BOOL toggling_music;
 			{
 				[self setStatus: STATUS_DOCKED];
 				[UNIVERSE removeDemoShips];
-				[gui setBackgroundImage:nil];
+				[gui clearBackground];
 				[self setGuiToStatusScreen];
 				if (themeMusic)
 				{
@@ -2675,7 +2676,7 @@ static BOOL toggling_music;
 					{
 						[self setStatus:STATUS_DOCKED];
 						[UNIVERSE removeDemoShips];
-						[gui setBackgroundImage:nil];
+						[gui clearBackground];
 						[self setGuiToStatusScreen];
 						if (missionMusic)
 							[missionMusic stop];
@@ -2720,7 +2721,7 @@ static BOOL toggling_music;
 						missionChoice = [[NSString stringWithString:[gui selectedRowKey]] retain];
 						//
 						[UNIVERSE removeDemoShips];
-						[gui setBackgroundImage:nil];
+						[gui clearBackground];
 						[self setGuiToStatusScreen];
 						if (missionMusic)
 							[missionMusic stop];

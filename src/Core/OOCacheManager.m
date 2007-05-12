@@ -246,7 +246,7 @@ static OOCacheManager *sSingleton = nil;
 	cache = [caches objectForKey:inCacheKey];
 	if (cache != nil)
 	{
-		[cache setPruneThreshold:MAX(inThreshold, kOOCacheMinimumPruneThreshold)];
+		[cache setPruneThreshold:inThreshold];
 	}
 }
 
