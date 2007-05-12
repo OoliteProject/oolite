@@ -123,7 +123,7 @@ static void StretchVerticallyN_x4(OOScalerPixMap srcPx, OOScalerPixMap dstPx, OO
 
 OOINLINE void StretchVertically(OOScalerPixMap srcPx, OOScalerPixMap dstPx, OOTexturePlaneCount planes)
 {
-	if (!(((srcPx.width * planes) | srcPx.height) & 3))
+	if (!((srcPx.rowBytes) & 3))
 	{
 		StretchVerticallyN_x4(srcPx, dstPx, planes);
 	}
@@ -139,7 +139,7 @@ static void StretchVerticallyN_x8(OOScalerPixMap srcPx, OOScalerPixMap dstPx, OO
 
 OOINLINE void StretchVertically(OOScalerPixMap srcPx, OOScalerPixMap dstPx, OOTexturePlaneCount planes)
 {
-	if (!(((srcPx.width * planes) | srcPx.height) & 7))
+	if (!((srcPx.rowBytes) & 7))
 	{
 		StretchVerticallyN_x8(srcPx, dstPx, planes);
 	}
@@ -795,11 +795,12 @@ static void StretchVerticallyN_x1(OOScalerPixMap srcPx, OOScalerPixMap dstPx, OO
 {
 	uint8_t				*src, *src0, *src1, *prev, *dst;
 	uint8_t				px0, px1;
-	uint_fast32_t		x, y, xCount;
+	uint_fast32_t		x, y, xCount, srcRowBytes;
 	uint_fast16_t		weight0, weight1;
 	uint_fast32_t		fractY;	// Y coordinate, fixed-point (24.8)
 	
 	src = srcPx.pixels;
+	srcRowBytes = srcPx.rowBytes;
 	dst = dstPx.pixels;	// Assumes dstPx.width == dstPx.rowBytes.
 	
 	prev = src;
@@ -811,7 +812,7 @@ static void StretchVerticallyN_x1(OOScalerPixMap srcPx, OOScalerPixMap dstPx, OO
 		fractY = ((srcPx.height * (y + 1)) << 8) / dstPx.height;
 		
 		src0 = prev;
-		prev = src1 = src + srcPx.rowBytes * (fractY >> 8);
+		prev = src1 = src + srcRowBytes * (fractY >> 8);
 		
 		weight1 = fractY & 0xFF;
 		weight0 = 0x100 - weight1;
@@ -835,12 +836,13 @@ static void StretchVerticallyN_x4(OOScalerPixMap srcPx, OOScalerPixMap dstPx, OO
 	uint8_t				*src;
 	uint32_t			*src0, *src1, *prev, *dst;
 	uint32_t			px0, px1, ag, br;
-	uint_fast32_t		x, y, xCount;
+	uint_fast32_t		x, y, xCount, srcRowBytes;
 	uint_fast16_t		weight0, weight1;
 	uint_fast32_t		fractY;	// Y coordinate, fixed-point (24.8)
 	
 	src = srcPx.pixels;
-	dst = dstPx.pixels;	// Assumes dstPx.width == dstPx.rowBytes.
+	srcRowBytes = srcPx.rowBytes;
+	dst = dstPx.pixels;	// Assumes no row padding.
 	
 	prev = (uint32_t *)src;
 	
@@ -851,7 +853,7 @@ static void StretchVerticallyN_x4(OOScalerPixMap srcPx, OOScalerPixMap dstPx, OO
 		fractY = ((srcPx.height * (y + 1)) << 8) / dstPx.height;
 		
 		src0 = prev;
-		prev = src1 = (uint32_t *)(src + srcPx.rowBytes * (fractY >> 8));
+		prev = src1 = (uint32_t *)(src + srcRowBytes * (fractY >> 8));
 		
 		weight1 = fractY & 0xFF;
 		weight0 = 0x100 - weight1;
@@ -877,11 +879,12 @@ static void StretchVerticallyN_x8(OOScalerPixMap srcPx, OOScalerPixMap dstPx, OO
 	uint8_t				*src;
 	uint64_t			*src0, *src1, *prev, *dst;
 	uint64_t			px0, px1, agag, brbr;
-	uint_fast32_t		x, y, xCount;
+	uint_fast32_t		x, y, xCount, srcRowBytes;
 	uint_fast16_t		weight0, weight1;
 	uint_fast32_t		fractY;	// Y coordinate, fixed-point (24.8)
 	
 	src = srcPx.pixels;
+	srcRowBytes = srcPx.rowBytes;
 	dst = dstPx.pixels;	// Assumes dstPx.width == dstPx.rowBytes.
 	
 	prev = (uint64_t *)src;
@@ -893,7 +896,7 @@ static void StretchVerticallyN_x8(OOScalerPixMap srcPx, OOScalerPixMap dstPx, OO
 		fractY = ((srcPx.height * (y + 1)) << 8) / dstPx.height;
 		
 		src0 = prev;
-		prev = src1 = (uint64_t *)(src + srcPx.rowBytes * (fractY >> 8));
+		prev = src1 = (uint64_t *)(src + srcRowBytes * (fractY >> 8));
 		
 		weight1 = fractY & 0xFF;
 		weight0 = 0x100 - weight1;
@@ -916,90 +919,80 @@ static void StretchVerticallyN_x8(OOScalerPixMap srcPx, OOScalerPixMap dstPx, OO
 
 static void StretchHorizontally1(OOScalerPixMap srcPx, OOScalerPixMap dstPx)
 {
-	uint8_t				*src, *src0, *src1, *prev, *dst, *dstTop;
+	uint8_t				*src, *srcStart, *dst;
 	uint8_t				px0, px1;
-	uint_fast32_t		x, y, yCount, srcRowBytes, dstRowBytes;
+	uint_fast32_t		x, y, xCount, srcRowBytes;
 	uint_fast16_t		weight0, weight1;
-	uint_fast32_t		fractX;	// X coordinate, fixed-point (24.8)
+	uint_fast32_t		fractX, deltaX;	// X coordinate, fixed-point (20.12), allowing widths up to 1 mebipixel
 	
-	src = srcPx.pixels;
-	dstTop = dstPx.pixels;
+	srcStart = srcPx.pixels;
 	srcRowBytes = srcPx.rowBytes;
-	dstRowBytes = dstPx.rowBytes;
+	xCount = dstPx.width;
+	dst = dstPx.pixels;	// Assumes no row padding
 	
-	prev = src;
+	deltaX = (srcPx.width << 12) / dstPx.width;
 	
-	yCount = srcPx.height;
-	
-	for (x = 0; x != dstPx.width; ++x)
+	for (y = 0; y != dstPx.height; ++y)
 	{
-		fractX = ((srcPx.width * (x + 1)) << 8) / dstPx.width;
-		
-		src0 = prev;
-		prev = src1 = src + (fractX >> 8);
-		
-		weight1 = fractX & 0xFF;
-		weight0 = 0x100 - weight1;
-		
-		y = yCount;
-		dst = dstTop++;
-		while (y--)
+		px1 = *srcStart;
+		fractX = 0;
+		for (x = 0; x!= xCount; ++x)
 		{
-			px0 = *src0;
-			src0 = (uint8_t *)((char *)src0 + srcRowBytes);
-			px1 = *src1;
-			src1 = (uint8_t *)((char *)src1 + srcRowBytes);
+			fractX += deltaX;
 			
-			*dst = (px0 * weight0 + px1 * weight1) >> 8;
-			dst = (uint8_t *)((char *)dst + dstRowBytes);
+			weight1 = (fractX >> 4) & 0xFF;
+			weight0 = 0x100 - weight1;
+			
+			px0 = px1;
+			src = srcStart + (fractX >> 12);
+			px1 = *src;
+			
+			*dst++ = (px0 * weight0 + px1 * weight1) >> 8;
 		}
+		
+		srcStart += srcRowBytes;
 	}
 }
 
 
 static void StretchHorizontally4(OOScalerPixMap srcPx, OOScalerPixMap dstPx)
 {
-	uint32_t			*src, *src0, *src1, *prev, *dst, *dstTop;
+	uint32_t			*src, *srcStart, *dst;
 	uint32_t			px0, px1;
 	uint32_t			ag, br;
-	uint_fast32_t		x, y, yCount, srcRowBytes, dstRowBytes;
+	uint_fast32_t		x, y, xCount, srcRowBytes;
 	uint_fast16_t		weight0, weight1;
-	uint_fast32_t		fractX;	// X coordinate, fixed-point (24.8)
+	uint_fast32_t		fractX, deltaX;	// X coordinate, fixed-point (20.12), allowing widths up to 1 mebipixel
 	
-	src = srcPx.pixels;
-	dstTop = dstPx.pixels;
+	srcStart = srcPx.pixels;
 	srcRowBytes = srcPx.rowBytes;
-	dstRowBytes = dstPx.rowBytes;
+	xCount = dstPx.width;
+	dst = dstPx.pixels;	// Assumes no row padding
 	
-	prev = src;
+	deltaX = (srcPx.width << 12) / dstPx.width;
 	
-	yCount = srcPx.height;
-	
-	for (x = 0; x != dstPx.width; ++x)
+	for (y = 0; y != dstPx.height; ++y)
 	{
-		fractX = ((srcPx.width * (x + 1)) << 8) / dstPx.width;
-		
-		src0 = prev;
-		prev = src1 = src + (fractX >> 8);
-		
-		weight1 = fractX & 0xFF;
-		weight0 = 0x100 - weight1;
-		
-		y = yCount;
-		dst = dstTop++;
-		while (y--)
+		px1 = *srcStart;
+		fractX = 0;
+		for (x = 0; x!= xCount; ++x)
 		{
-			px0 = *src0;
-			src0 = (uint32_t *)((char *)src0 + srcRowBytes);
-			px1 = *src1;
-			src1 = (uint32_t *)((char *)src1 + srcRowBytes);
+			fractX += deltaX;
+			
+			weight1 = (fractX >> 4) & 0xFF;
+			weight0 = 0x100 - weight1;
+			
+			px0 = px1;
+			src = srcStart + (fractX >> 12);
+			px1 = *src;
 			
 			ag = ((px0 & 0xFF00FF00) >> 8) * weight0 + ((px1 & 0xFF00FF00) >> 8) * weight1;
 			br = (px0 & 0x00FF00FF) * weight0 + (px1 & 0x00FF00FF) * weight1;
 			
-			*dst = (ag & 0xFF00FF00) | ((br & 0xFF00FF00) >> 8);
-			dst = (uint32_t *)((char *)dst + dstRowBytes);
+			*dst++ = (ag & 0xFF00FF00) | ((br & 0xFF00FF00) >> 8);
 		}
+		
+		srcStart = (uint32_t *)((char *)srcStart + srcRowBytes);
 	}
 }
 
