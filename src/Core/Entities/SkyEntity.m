@@ -478,6 +478,7 @@ MA 02110-1301, USA.
 					
 					glEnable(GL_TEXTURE_2D);
 					glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
+					glBlendFunc(GL_ONE, GL_ONE);	// Pure additive blending, ignoring alpha
 					
 #if GL_APPLE_vertex_array_object
 					if (usingVAR)  glBindVertexArrayAPPLE(gVertexArrayRangeObjects[0]);
@@ -550,6 +551,7 @@ MA 02110-1301, USA.
 
 					}
 					glDisable(GL_TEXTURE_2D);
+					glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);	// Basic alpha blending
 					break;
 			}
 		}
