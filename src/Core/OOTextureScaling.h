@@ -52,8 +52,8 @@ SOFTWARE.
 #import "OOMaths.h"
 
 
-typedef uint_fast32_t		OOTextureDimension;
-typedef uint_fast8_t		OOTexturePlaneCount;
+typedef uint_fast32_t		OOTextureDimension;		// Note: dimensions are assumed to be less than 1048576 (2^20) pixels.
+typedef uint_fast8_t		OOTexturePlaneCount;	// Currently supported values are 1 and 4.
 
 
 /*	Assumes 8 bits per sample, interleaved.
