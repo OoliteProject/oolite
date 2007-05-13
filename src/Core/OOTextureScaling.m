@@ -316,7 +316,6 @@ BOOL OOGenerateMipMaps(void *textureBytes, OOTextureDimension width, OOTextureDi
 		return NO;
 	}
 	
-	// In order of likelyhood, for very small optimization.
 	if (planes == 4)  return GenerateMipMaps4(textureBytes, width, height);
 	if (planes == 1)  return GenerateMipMaps1(textureBytes, width, height);
 	
@@ -807,9 +806,9 @@ static void StretchVerticallyN_x1(OOScalerPixMap srcPx, OOScalerPixMap dstPx, OO
 	
 	xCount = srcPx.width * planes;
 	
-	for (y = 0; y != dstPx.height; ++y)
+	for (y = 1; y != dstPx.height; ++y)
 	{
-		fractY = ((srcPx.height * (y + 1)) << 8) / dstPx.height;
+		fractY = ((srcPx.height * y) << 8) / dstPx.height;
 		
 		src0 = prev;
 		prev = src1 = src + srcRowBytes * (fractY >> 8);
@@ -825,6 +824,13 @@ static void StretchVerticallyN_x1(OOScalerPixMap srcPx, OOScalerPixMap dstPx, OO
 			
 			*dst++ = (px0 * weight0 + px1 * weight1) >> 8;
 		}
+	}
+	
+	// Copy last row (without referring to the last-plus-oneth row)
+	x = xCount;
+	while (x--)
+	{
+		*dst++ = *src0++;
 	}
 }
 
@@ -848,9 +854,9 @@ static void StretchVerticallyN_x4(OOScalerPixMap srcPx, OOScalerPixMap dstPx, OO
 	
 	xCount = (srcPx.width * planes) >> 2;
 	
-	for (y = 0; y != dstPx.height; ++y)
+	for (y = 1; y != dstPx.height; ++y)
 	{
-		fractY = ((srcPx.height * (y + 1)) << 8) / dstPx.height;
+		fractY = ((srcPx.height * y) << 8) / dstPx.height;
 		
 		src0 = prev;
 		prev = src1 = (uint32_t *)(src + srcRowBytes * (fractY >> 8));
@@ -869,6 +875,13 @@ static void StretchVerticallyN_x4(OOScalerPixMap srcPx, OOScalerPixMap dstPx, OO
 			
 			*dst++ = (ag & 0xFF00FF00) | ((br >> 8) & 0x00FF00FF);
 		}
+	}
+	
+	// Copy last row (without referring to the last-plus-oneth row)
+	x = xCount;
+	while (x--)
+	{
+		*dst++ = *src0++;
 	}
 }
 
@@ -891,9 +904,9 @@ static void StretchVerticallyN_x8(OOScalerPixMap srcPx, OOScalerPixMap dstPx, OO
 	
 	xCount = (srcPx.width * planes) >> 3;
 	
-	for (y = 0; y != dstPx.height; ++y)
+	for (y = 1; y != dstPx.height; ++y)
 	{
-		fractY = ((srcPx.height * (y + 1)) << 8) / dstPx.height;
+		fractY = ((srcPx.height * y) << 8) / dstPx.height;
 		
 		src0 = prev;
 		prev = src1 = (uint64_t *)(src + srcRowBytes * (fractY >> 8));
@@ -912,6 +925,13 @@ static void StretchVerticallyN_x8(OOScalerPixMap srcPx, OOScalerPixMap dstPx, OO
 			
 			*dst++ = (agag & 0xFF00FF00FF00FF00ULL) | ((brbr >> 8) & 0x00FF00FF00FF00FFULL);
 		}
+	}
+	
+	// Copy last row (without referring to the last-plus-oneth row)
+	x = xCount;
+	while (x--)
+	{
+		*dst++ = *src0++;
 	}
 }
 #endif
@@ -936,6 +956,8 @@ static void StretchHorizontally1(OOScalerPixMap srcPx, OOScalerPixMap dstPx)
 	{
 		px1 = *srcStart;
 		fractX = 0;
+		
+		if (y == dstPx.height - 1)  --xCount;
 		for (x = 0; x!= xCount; ++x)
 		{
 			fractX += deltaX;
@@ -952,6 +974,9 @@ static void StretchHorizontally1(OOScalerPixMap srcPx, OOScalerPixMap dstPx)
 		
 		srcStart = (uint8_t *)((char *)srcStart + srcRowBytes);
 	}
+	
+	// Copy last pixel without reading off end of buffer
+	*dst++ = px1;
 }
 
 
@@ -975,6 +1000,8 @@ static void StretchHorizontally4(OOScalerPixMap srcPx, OOScalerPixMap dstPx)
 	{
 		px1 = *srcStart;
 		fractX = 0;
+		
+		if (y == dstPx.height - 1)  --xCount;
 		for (x = 0; x!= xCount; ++x)
 		{
 			fractX += deltaX;
@@ -994,6 +1021,9 @@ static void StretchHorizontally4(OOScalerPixMap srcPx, OOScalerPixMap dstPx)
 		
 		srcStart = (uint32_t *)((char *)srcStart + srcRowBytes);
 	}
+	
+	// Copy last pixel without reading off end of buffer
+	*dst++ = px1;
 }
 
 
@@ -1038,9 +1068,9 @@ static void SqueezeHorizontally1(OOScalerPixMap srcPx, OOTextureDimension dstWid
 			for (;;)
 			{
 				++x;
-				if (x == endX)
+				if (EXPECT(x == endX))
 				{
-					if (xCount)  borderPx = *++src;
+					if (EXPECT(xCount))  borderPx = *++src;
 					accum += borderPx * borderWeight;
 					break;
 				}
@@ -1128,6 +1158,12 @@ static void SqueezeHorizontally4(OOScalerPixMap srcPx, OOTextureDimension dstWid
 				}
 			}
 			
+			/*	These integer divisions cause a stall -- this is the biggest
+				bottleneck in this file. Unrolling the loop might help on PPC.
+				Linear interpolation instead of box filtering would help, with
+				a quality hit. Given that scaling doesn't happen very often,
+				I think I'll leave it this way. -- Ahruman
+			*/
 			accum1 = (accum1 / weight) & 0xFF;
 			accum2 = (accum2 / weight) & 0xFF;
 			accum3 = (accum3 / weight) & 0xFF;
