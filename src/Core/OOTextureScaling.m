@@ -1089,6 +1089,102 @@ static void SqueezeHorizontally1(OOScalerPixMap srcPx, OOTextureDimension dstWid
 }
 
 
+static void SqueezeVertically1(OOScalerPixMap srcPx, OOTextureDimension dstHeight)
+{
+	uint8_t				*src, *srcStart, *dst;
+	uint_fast32_t		x, y, xCount, startY, endY, srcRowBytes, lastRow;
+	uint_fast32_t		fractY, endFractY, deltaY;
+	uint_fast32_t		accum, weight;
+	uint_fast8_t		startWeight, endWeight;
+	
+	dst = srcPx.pixels;	// Output is placed in same buffer, without line padding.
+	srcRowBytes = srcPx.rowBytes;
+	xCount = srcPx.width;
+	
+	deltaY = (srcPx.height << 12) / dstHeight;
+	endFractY = 0;
+	
+	endWeight = 0;
+	endY = 0;
+	
+	lastRow = srcPx.height - 1;
+	
+	while (endY <= lastRow)
+	{
+		fractY = endFractY;
+		endFractY += deltaY;
+		startY = endY;
+		endY = endFractY >> 12;
+		
+		startWeight = 0xFF - endWeight;
+		endWeight = (endFractY >> 4) & 0xFF;
+		
+		srcStart = (uint8_t *)((char *)srcPx.pixels + srcRowBytes * startY);
+		
+		for (x = 0; x != xCount; ++x)
+		{
+			src = srcStart++;
+			accum = startWeight * *src;
+			weight = startWeight + endWeight;
+			
+			y = startY;
+			for (;;)
+			{
+				++y;
+				src = (uint8_t *)((char *)src + srcRowBytes);
+				if (EXPECT(y == endY))
+				{
+					if (EXPECT(endY != lastRow))  accum += *src * endWeight;
+					break;
+				}
+				else
+				{
+					accum += *src * 0xFF;
+					weight += 0xFF;
+				}
+			}
+			
+			*dst++ = accum / weight;
+		}
+	}	
+}
+
+
+// Macros to manage 4-channel accumulators in 4-channel squeeze scalers.
+#define ACCUM(PX, WT) do {							\
+			uint32_t px = PX;						\
+			uint_fast32_t wt = WT;					\
+			ag = ((px & 0xFF00FF00) >> 8) * wt;		\
+			br = (px & 0x00FF00FF) * wt;			\
+			accum1 += ag >> 16;						\
+			accum2 += br >> 16;						\
+			accum3 += ag & 0xFFFF;					\
+			accum4 += br & 0xFFFF;					\
+			weight += wt;							\
+		} while (0)
+
+#define CLEAR_ACCUM() do {							\
+			accum1 = 0;								\
+			accum2 = 0;								\
+			accum3 = 0;								\
+			accum4 = 0;								\
+			weight = 0;								\
+		} while (0)
+
+/*	These integer divisions cause a stall -- this is the biggest
+	bottleneck in this file. Unrolling the loop might help on PPC.
+	Linear interpolation instead of box filtering would help, with
+	a quality hit. Given that scaling doesn't happen very often,
+	I think I'll leave it this way. -- Ahruman
+*/
+#define ACCUM2PX()	(								\
+			(((accum1 / weight) & 0xFF) << 24) |	\
+			(((accum3 / weight) & 0xFF) << 8) |		\
+			(((accum2 / weight) & 0xFF) << 16) |	\
+			((accum4 / weight) & 0xFF)				\
+		)
+
+
 static void SqueezeHorizontally4(OOScalerPixMap srcPx, OOTextureDimension dstWidth)
 {
 	uint32_t			*src, *srcStart, *dst;
@@ -1103,18 +1199,6 @@ static void SqueezeHorizontally4(OOScalerPixMap srcPx, OOTextureDimension dstWid
 	srcRowBytes = srcPx.rowBytes;
 	
 	deltaX = (srcPx.width << 12) / dstWidth;
-	
-	#define ACCUM(PX, WT) do {						\
-			uint32_t px = PX;						\
-			uint_fast32_t wt = WT;					\
-			ag = ((px & 0xFF00FF00) >> 8) * wt;		\
-			br = (px & 0x00FF00FF) * wt;			\
-			accum1 += ag >> 16;						\
-			accum2 += br >> 16;						\
-			accum3 += ag & 0xFFFF;					\
-			accum4 += br & 0xFFFF;					\
-			weight += wt;							\
-			} while (0)
 	
 	for (y = 0; y != srcPx.height; ++y)
 	{
@@ -1132,11 +1216,7 @@ static void SqueezeHorizontally4(OOScalerPixMap srcPx, OOTextureDimension dstWid
 			endFractX += deltaX;
 			endX = endFractX >> 12;
 			
-			accum1 = 0;
-			accum2 = 0;
-			accum3 = 0;
-			accum4 = 0;
-			weight = 0;
+			CLEAR_ACCUM();
 			
 			borderWeight = 0xFF - borderWeight;
 			ACCUM(borderPx, borderWeight);
@@ -1158,20 +1238,7 @@ static void SqueezeHorizontally4(OOScalerPixMap srcPx, OOTextureDimension dstWid
 				}
 			}
 			
-			/*	These integer divisions cause a stall -- this is the biggest
-				bottleneck in this file. Unrolling the loop might help on PPC.
-				Linear interpolation instead of box filtering would help, with
-				a quality hit. Given that scaling doesn't happen very often,
-				I think I'll leave it this way. -- Ahruman
-			*/
-			accum1 = (accum1 / weight) & 0xFF;
-			accum2 = (accum2 / weight) & 0xFF;
-			accum3 = (accum3 / weight) & 0xFF;
-			accum4 = (accum4 / weight) & 0xFF;
-			
-			ag = (accum1 << 24) | (accum3 << 8);
-			br = (accum2 << 16) | accum4;
-			*dst++ = ag | br;
+			*dst++ = ACCUM2PX();
 		}
 		
 		srcStart = (uint32_t *)((char *)srcStart + srcRowBytes);
@@ -1179,9 +1246,66 @@ static void SqueezeHorizontally4(OOScalerPixMap srcPx, OOTextureDimension dstWid
 }
 
 
-#warning Several scalers still do nothing!
-static void SqueezeVertically1(OOScalerPixMap srcPx, OOTextureDimension dstHeight) {}
-static void SqueezeVertically4(OOScalerPixMap srcPx, OOTextureDimension dstHeight) {}
+static void SqueezeVertically4(OOScalerPixMap srcPx, OOTextureDimension dstHeight)
+{
+	uint32_t			*src, *srcStart, *dst;
+	uint_fast32_t		x, y, xCount, startY, endY, srcRowBytes, lastRow;
+	uint32_t			ag, br;
+	uint_fast32_t		fractY, endFractY, deltaY;
+	uint_fast32_t		accum1, accum2, accum3, accum4, weight;
+	uint_fast8_t		startWeight, endWeight;
+	
+	dst = srcPx.pixels;	// Output is placed in same buffer, without line padding.
+	srcRowBytes = srcPx.rowBytes;
+	xCount = srcPx.width;
+	
+	deltaY = (srcPx.height << 12) / dstHeight;
+	endFractY = 0;
+	
+	endWeight = 0;
+	endY = 0;
+	
+	lastRow = srcPx.height - 1;
+	
+	while (endY <= lastRow)
+	{
+		fractY = endFractY;
+		endFractY += deltaY;
+		startY = endY;
+		endY = endFractY >> 12;
+		
+		startWeight = 0xFF - endWeight;
+		endWeight = (endFractY >> 4) & 0xFF;
+		
+		srcStart = (uint32_t *)((char *)srcPx.pixels + srcRowBytes * startY);
+		
+		for (x = 0; x != xCount; ++x)
+		{
+			src = srcStart++;
+			
+			CLEAR_ACCUM();
+			ACCUM(*src, startWeight);
+			
+			y = startY;
+			for (;;)
+			{
+				++y;
+				src = (uint32_t *)((char *)src + srcRowBytes);
+				if (EXPECT(y == endY))
+				{
+					if (EXPECT(endY <= lastRow))  ACCUM(*src, endWeight);
+					break;
+				}
+				else
+				{
+					ACCUM(*src, 0xFF);
+				}
+			}
+			
+			*dst++ = ACCUM2PX();
+		}
+	}	
+}
 
 
 static void EnsureCorrectDataSize(OOScalerPixMap *pixMap, BOOL leaveSpaceForMipMaps)
