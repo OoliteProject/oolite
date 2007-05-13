@@ -78,9 +78,6 @@ typedef struct
 static BOOL GenerateMipMaps1(void *textureBytes, OOTextureDimension width, OOTextureDimension height) NONNULL_FUNC;
 static BOOL GenerateMipMaps4(void *textureBytes, OOTextureDimension width, OOTextureDimension height) NONNULL_FUNC;
 
-static void ScaleDownByHalvingInPlace1(OOScalerPixMap *srcPx, OOTextureDimension dstWidth, OOTextureDimension dstHeight) NONNULL_FUNC;
-static void ScaleDownByHalvingInPlace4(OOScalerPixMap *srcPx, OOTextureDimension dstWidth, OOTextureDimension dstHeight) NONNULL_FUNC;
-
 
 /*	ScaleToHalf_P_xN functions
 	These scale a texture with P planes (components) to half its size in each
@@ -173,7 +170,6 @@ static void DumpMipMap(void *data, OOTextureDimension width, OOTextureDimension 
 
 void *OOScalePixMap(void *srcPixels, OOTextureDimension srcWidth, OOTextureDimension srcHeight, OOTexturePlaneCount planes, size_t srcRowBytes, OOTextureDimension dstWidth, OOTextureDimension dstHeight, BOOL leaveSpaceForMipMaps)
 {
-	BOOL				haveScaled = NO;
 	OOScalerPixMap		srcPx, dstPx = {0}, sparePx = {0};
 	
 	//	Sanity check.
@@ -189,45 +185,7 @@ void *OOScalePixMap(void *srcPixels, OOTextureDimension srcWidth, OOTextureDimen
 	srcPx.height = srcHeight;
 	srcPx.rowBytes = srcRowBytes;
 	srcPx.dataSize = srcRowBytes * srcHeight;
-	
-	/*	If src is at least twice as big as dst in both dimensions, scale using
-		MIP map scalers (which provide better quality than the linear
-		downscaler at this scale).
 		
-		This will do all the scaling in some cases when scaling down large
-		textures to meet user or hardware requirements or for big textures in
-		reduced-detail mode.
-	*/
-	if (EXPECT_NOT(dstWidth * 2 <= srcWidth && dstHeight * 2 <= srcHeight))
-	{
-		if (planes == 4)  ScaleDownByHalvingInPlace4(&srcPx, dstWidth, dstHeight);
-		else /* planes == 1 */  ScaleDownByHalvingInPlace1(&srcPx, dstWidth, dstHeight);
-		
-		haveScaled = YES;
-	}
-	
-	/*	If we were called with src == dst or the use of the MIP map scalers
-		was sufficient, resize buffer if needed and return.
-	*/
-	if (EXPECT_NOT(srcWidth == dstWidth && srcHeight == dstHeight))
-	{
-		if (leaveSpaceForMipMaps)
-		{
-			dstPx.pixels = realloc(srcPx.pixels, dstWidth * dstHeight * planes * 4 / 3);
-			if (EXPECT_NOT(dstPx.pixels == NULL))  free(srcPx.pixels);
-		}
-		else if (haveScaled)
-		{
-			dstPx.pixels = realloc(srcPx.pixels, dstWidth * dstHeight * planes);
-			if (EXPECT_NOT(dstPx.pixels == NULL))  free(srcPx.pixels);
-		}
-		else
-		{
-			dstPx.pixels = srcPx.pixels;
-		}
-		return dstPx.pixels;
-	}
-	
 	if (srcHeight < dstHeight)
 	{
 		// Stretch vertically. This requires a separate buffer.
@@ -546,38 +504,6 @@ static void ScaleToHalf_1_x8(void *srcBytes, void *dstBytes, OOTextureDimension 
 #endif
 
 
-static void ScaleDownByHalvingInPlace1(OOScalerPixMap *srcPx, OOTextureDimension dstWidth, OOTextureDimension dstHeight)
-{
-	#if OOLITE_NATIVE_64_BIT
-		while ((dstWidth * 2 <= srcPx->width && dstHeight * 2 <= srcPx->height) && 8 <= dstWidth && !(srcPx->width & 1) && !(srcPx->height & 1))
-		{
-			ScaleToHalf_1_x8(srcPx->pixels, srcPx->pixels, srcPx->width, srcPx->height);
-			srcPx->width /= 2;
-			srcPx->height /= 2;
-		}
-		while (dstWidth * 2 <= srcPx->width && dstHeight * 2 <= srcPx->height && !(srcPx->width & 1) && !(srcPx->height & 1))
-		{
-			ScaleToHalf_1_x1(srcPx->pixels, srcPx->pixels, srcPx->width, srcPx->height);
-			srcPx->width /= 2;
-			srcPx->height /= 2;
-		}
-	#else
-		while ((dstWidth * 2 <= srcPx->width && dstHeight * 2 <= srcPx->height) && 4 <= dstWidth && !(srcPx->width & 1) && !(srcPx->height & 1))
-		{
-			ScaleToHalf_1_x4(srcPx->pixels, srcPx->pixels, srcPx->width, srcPx->height);
-			srcPx->width /= 2;
-			srcPx->height /= 2;
-		}
-		while (dstWidth * 2 <= srcPx->width && dstHeight * 2 <= srcPx->height && !(srcPx->width & 1) && !(srcPx->height & 1))
-		{
-			ScaleToHalf_1_x1(srcPx->pixels, srcPx->pixels, srcPx->width, srcPx->height);
-			srcPx->width /= 2;
-			srcPx->height /= 2;
-		}
-	#endif
-}
-
-
 static BOOL GenerateMipMaps4(void *textureBytes, OOTextureDimension width, OOTextureDimension height)
 {
 	OOTextureDimension		w = width, h = height;
@@ -746,32 +672,6 @@ static void ScaleToHalf_4_x2(void *srcBytes, void *dstBytes, OOTextureDimension 
 }
 
 #endif
-
-
-static void ScaleDownByHalvingInPlace4(OOScalerPixMap *srcPx, OOTextureDimension dstWidth, OOTextureDimension dstHeight)
-{
-	#if OOLITE_NATIVE_64_BIT
-		while ((dstWidth * 2 <= srcPx->width && dstHeight * 2 <= srcPx->height) && 2 <= dstWidth && !(srcPx->width & 1) && !(srcPx->height & 1))
-		{
-			ScaleToHalf_4_x2(srcPx->pixels, srcPx->pixels, srcPx->width, srcPx->height);
-			srcPx->width /= 2;
-			srcPx->height /= 2;
-		}
-		if (EXPECT_NOT(dstWidth == 1 && dstHeight * 2 <= srcPx->height && !(srcPx->height & 1)))
-		{
-			ScaleToHalf_4_x1(srcPx->pixels, srcPx->pixels, srcPx->width, srcPx->height);
-			srcPx->width = 1;
-			srcPx->height /= 2;
-		}
-	#else
-		while ((dstWidth * 2 <= srcPx->width && dstHeight * 2 <= srcPx->height) && !(srcPx->width & 1) && !(srcPx->height & 1))
-		{
-			ScaleToHalf_4_x1(srcPx->pixels, srcPx->pixels, srcPx->width, srcPx->height);
-			srcPx->width /= 2;
-			srcPx->height /= 2;
-		}
-	#endif
-}
 
 
 #ifdef DUMP_MIP_MAPS
