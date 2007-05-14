@@ -2798,9 +2798,8 @@ GLfloat docked_light_specular[]	= { (GLfloat) 1.0, (GLfloat) 1.0, (GLfloat) 0.5,
 
 	BOOL		isStation = NO;
 	NSString	*shipRoles = [shipDict objectForKey:@"roles"];
-	if (shipRoles)
-		isStation = ([shipRoles rangeOfString:@"station"].location != NSNotFound)||([shipRoles rangeOfString:@"carrier"].location != NSNotFound);
-	if (!isStation) isStation = [shipDict boolForKey:@"isCarrier" defaultValue:false];
+	if (shipRoles)  isStation = ([shipRoles rangeOfString:@"station"].location != NSNotFound)||([shipRoles rangeOfString:@"carrier"].location != NSNotFound);
+	if (!isStation)  isStation = [shipDict boolForKey:@"isCarrier" defaultValue:NO];
 	
 	Class shipClass;
 	if (!isStation)  shipClass = [ShipEntity class];

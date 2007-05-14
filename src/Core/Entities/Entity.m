@@ -953,6 +953,7 @@ static NSString * const kOOLogEntityUpdateError				= @"entity.linkedList.update.
 }
 
 
+// For shader bindings.
 - (GLfloat)universalTime
 {
 	return [UNIVERSE getTime];

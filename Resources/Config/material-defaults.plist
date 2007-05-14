@@ -4,6 +4,7 @@
 	be a very good idea.
 */
 
+// Default shader uniform bindings for ship entities.
 "ship-default-bindings" =
 {
 	"engine_level" = { type = "binding"; value = "speedFactor"; };
@@ -14,6 +15,8 @@
 	"time" = { type = "binding"; value = "universalTime"; };
 };
 
+
+// Macros prepended to shader source code for ship entities.
 "ship-prefix-macros" =
 {
 	"OO_ENGINE_LEVEL" = 1;
@@ -22,4 +25,16 @@
 	"OO_ENTITY_LASER_HEAT_LEVEL" = 1;
 	"OO_HULL_HEAT_LEVEL" = 1;
 	"OO_TIME" = 1;
+};
+
+
+// Material definition used for DAT files with no TEXTURES section (which specifies material names and texture co-ordinates).
+"no-textures-material" =
+{
+	"diffuse_map" = "";
+	"diffuse" = (0, 0, 0.4);
+	"ambient" = (0, 0, 0.4);
+	"emission" = (0.5, 0.1, 0.0);
+	"specular" = (1.0, 0.2, 0.2);
+	"shininess" = 5;
 };

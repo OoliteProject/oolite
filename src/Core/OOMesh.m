@@ -54,6 +54,7 @@ SOFTWARE.
 #import "Octree.h"
 #import "OOMaterial.h"
 #import "OOBasicMaterial.h"
+#import "OOCollectionExtractors.h"
 
 
 static NSString * const kOOLogOpenGLExtensionsVAR			= @"rendering.opengl.extensions.var";
@@ -565,12 +566,13 @@ shaderBindingTarget:(id<OOWeakReferenceSupport>)target
 	NSString				*key = nil;
 	OOMaterial				*material = nil;
 	static OOBasicMaterial	*placeholderMaterial = nil;
+	NSDictionary			*materialDefaults = nil;
 	
 	for (i = 1; i <= materialCount; ++i)
 	{
 		key = texFileNames[i];
 		
-		if (![key isEqual:@""])
+		if (![key isEqualToString:@""])
 		{
 			material = [OOMaterial materialWithName:texFileNames[i]
 								 materialDictionary:materialDict
@@ -583,11 +585,8 @@ shaderBindingTarget:(id<OOWeakReferenceSupport>)target
 		{
 			if (placeholderMaterial == nil)
 			{
-				placeholderMaterial = [[OOBasicMaterial alloc] initWithName:@"/placeholder/"];
-				[placeholderMaterial setAmbientAndDiffuseRed:0.0f green:0.0f blue:0.4f alpha:1.0f];
-				[placeholderMaterial setEmissionRed:0.5f green:0.1f blue:0.0f alpha:1.0f];
-				[placeholderMaterial setShininess:5];
-				[placeholderMaterial setSpecularRed:1.0f green:0.2f blue:0.2f alpha:1.0f];
+				materialDefaults = [ResourceManager dictionaryFromFilesNamed:@"material-defaults.plist" inFolder:@"Config" andMerge:YES];
+				placeholderMaterial = [[OOBasicMaterial alloc] initWithName:@"/placeholder/" configuration:[materialDefaults dictionaryForKey:@"no-textures-material"]];
 			}
 			material = placeholderMaterial;
 		}
