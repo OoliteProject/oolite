@@ -4162,6 +4162,8 @@
 		<real>50000</real>
 		<key>thrust</key>
 		<real>40</real>
+		<key>unpiloted</key>
+		<true/>
 		<key>weapon_position_aft</key>
 		<string>0.0 0.0 -16.5</string>
 		<key>weapon_position_forward</key>

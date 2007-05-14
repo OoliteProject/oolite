@@ -53,6 +53,7 @@ SOFTWARE.
 #import "Entity.h"		// for NO_DRAW_DISTANCE_FACTOR.
 #import "Octree.h"
 #import "OOMaterial.h"
+#import "OOBasicMaterial.h"
 
 
 static NSString * const kOOLogOpenGLExtensionsVAR			= @"rendering.opengl.extensions.var";
@@ -344,9 +345,6 @@ shaderBindingTarget:(id<OOWeakReferenceSupport>)object
 		bounding_box_add_vector(&result,v);
     }
 
-//	NSLog(@"DEBUG subentity bounding box for %@ of %@ is [%.1fm %.1fm]x [%.1fm %.1fm]y [%.1fm %.1fm]z", self, [self owner],
-//		result.min.x, result.max.x, result.min.y, result.max.y, result.min.z, result.max.z);
-
 	return result;
 }
 
@@ -462,8 +460,8 @@ shaderBindingTarget:(id<OOWeakReferenceSupport>)object
 {
 	if (whichVAR >= NUM_VERTEX_ARRAY_RANGES)
 	{
-		NSLog(@"VAR is out of range!");
-		exit(-1);
+		usingVAR = NO;
+		return;
 	}
 
 	gVertexArrayRangeData[whichVAR].rangeSize 		= size;
@@ -565,16 +563,35 @@ shaderBindingTarget:(id<OOWeakReferenceSupport>)target
 {
 	OOMeshMaterialCount		i;
 	NSString				*key = nil;
+	OOMaterial				*material = nil;
+	static OOBasicMaterial	*placeholderMaterial = nil;
 	
 	for (i = 1; i <= materialCount; ++i)
 	{
 		key = texFileNames[i];
-		materials[i] = [OOMaterial materialWithName:texFileNames[i]
+		
+		if (![key isEqual:@""])
+		{
+			material = [OOMaterial materialWithName:texFileNames[i]
 								 materialDictionary:materialDict
 								  shadersDictionary:shadersDict
 											 macros:macros
-								    defaultBindings:(NSDictionary *)defaults
+									defaultBindings:(NSDictionary *)defaults
 									  bindingTarget:target];
+		}
+		else
+		{
+			if (placeholderMaterial == nil)
+			{
+				placeholderMaterial = [[OOBasicMaterial alloc] initWithName:@"/placeholder/"];
+				[placeholderMaterial setAmbientAndDiffuseRed:0.0f green:0.0f blue:0.4f alpha:1.0f];
+				[placeholderMaterial setEmissionRed:0.5f green:0.1f blue:0.0f alpha:1.0f];
+				[placeholderMaterial setShininess:5];
+				[placeholderMaterial setSpecularRed:1.0f green:0.2f blue:0.2f alpha:1.0f];
+			}
+			material = placeholderMaterial;
+		}
+		materials[i] = material;
 		[materials[i] retain];
 	}
 }
@@ -944,14 +961,14 @@ shaderBindingTarget:(id<OOWeakReferenceSupport>)target
 		else
 		{
 			failFlag = YES;
-			failString = [NSString stringWithFormat:@"%@Failed to find TEXTURES data\n",failString];
+			failString = [NSString stringWithFormat:@"%@Failed to find TEXTURES data (will use placeholder material)\n",failString];
 		}
 		
 		[self checkNormalsAndAdjustWinding];
 		
 		if (failFlag)
 		{
-			NSLog([NSString stringWithFormat:@"%@ ..... from %@ %@", failString, filename, (using_preloaded)? @"(from preloaded data)" :@"(from file)"]);
+			OOLog(@"mesh.error", [NSString stringWithFormat:@"%@ ..... from %@ %@", failString, filename, (using_preloaded)? @"(from preloaded data)" :@"(from file)"]);
 		}
 
 		// check for smooth shading and recalculate normals
@@ -1120,7 +1137,7 @@ shaderBindingTarget:(id<OOWeakReferenceSupport>)target
 	int vertex_index = 0;
 
 	texi = 1; // index of first texture
-
+	
 	for (face = 0; face < faceCount; face++)
 	{
 		NSString* tex_string = faces[face].texFileName;
@@ -1171,6 +1188,9 @@ shaderBindingTarget:(id<OOWeakReferenceSupport>)target
 	}
 	entityData.n_triangles = tri_index;	// total number of triangle vertices
 	triangle_range[0] = NSMakeRange( 0, tri_index);
+	
+	[textureNameSet release];
+	textureNameSet = [texturesProcessed copy];
 
 	materialCount = texi - 1;
 }

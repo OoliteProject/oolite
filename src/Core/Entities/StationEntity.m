@@ -641,9 +641,9 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 
 //////////////////////////////////////////////// from superclass
 
-- (id) init
+- (id) initWithDictionary:(NSDictionary *) dict
 {
-	self = [super init];
+	self = [super initWithDictionary:dict];
 	
 	shipsOnApproach = [[NSMutableDictionary alloc] init]; // alloc retains
 	shipsOnHold = [[NSMutableDictionary alloc] init]; // alloc retains
