@@ -176,6 +176,7 @@ static BOOL		sRectangleTextureAvailable;
 	NSString				*key = nil;
 	OOTexture				*result = nil;
 	NSString				*path = nil;
+	BOOL					noFNF;
 	
 	if (EXPECT_NOT(name == nil))  return nil;
 	if (EXPECT_NOT(!sCheckedExtensions))  [self checkExtensions];
@@ -221,6 +222,9 @@ static BOOL		sRectangleTextureAvailable;
 		lodBias = 0.0f;
 	}
 	
+	noFNF = options & kOOTextureNoFNFMessage;
+	options &= ~kOOTextureNoFNFMessage;
+	
 	// Look for existing texture
 	key = [NSString stringWithFormat:@"%@%@%@:0x%.4X/%g/%g", directory ? directory : @"", directory ? @"/" : @"", name, options, anisotropy, lodBias];
 	result = [[sInUseTextures objectForKey:key] pointerValue];
@@ -229,7 +233,7 @@ static BOOL		sRectangleTextureAvailable;
 		path = [ResourceManager pathForFileNamed:name inFolder:directory];
 		if (path == nil)
 		{
-			OOLog(kOOLogFileNotFound, @"Could not find texture file \"%@\".", name);
+			if (!noFNF)  OOLog(kOOLogFileNotFound, @"***** ERROR: Could not find texture file \"%@\".", name);
 			return nil;
 		}
 				

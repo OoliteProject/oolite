@@ -97,12 +97,6 @@ SOFTWARE.
 }
 
 
-- (GLfloat)volume
-{
-	return 0.0f;
-}
-
-
 - (BoundingBox)boundingBox
 {
 	return kZeroBoundingBox;

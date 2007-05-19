@@ -123,7 +123,6 @@ typedef uint8_t				OOMeshMaterialCount;
 	GLfloat					collisionRadius;
 	GLfloat					maxDrawDistance;
 	BoundingBox				boundingBox;
-	GLfloat					volume;
 	
 	Octree					*octree;
 	

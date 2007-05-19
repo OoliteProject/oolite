@@ -22,240 +22,114 @@ MA 02110-1301, USA.
 
 */
 
-#define SKY_SCALE	2000.0
 
-#import "Entity.h"
 #import "SkyEntity.h"
 #import "PlayerEntity.h"
 
 #import "OOMaths.h"
 #import "Universe.h"
-#import "TextureStore.h"
 #import "MyOpenGLView.h"
 #import "OOColor.h"
 #import "OOStringParsing.h"
+#import "OOTexture.h"
+#import "OOCollectionExtractors.h"
+
+
+OOTexture			*sStarTexture = nil, *sBlobTexture = nil;
+
+
+@interface SkyEntity (OOPrivate)
+
+- (void)readColor1:(OOColor **)ioColor1 andColor2:(OOColor **)ioColor2 fromDictionary:(NSDictionary *)dictionary;
+
+@end
+
 
 @implementation SkyEntity
 
 - (id) init
 {
-    self = [super init];
-    //
-	delta = 0.0;
-    //
-    status = STATUS_EFFECT;
-	sky_type = SKY_BILLBOARDS;
-	//
 	float h1 = (ranrot_rand() % 1024)/1024.0;
 	float h2 = h1 + 1.0 / (1.0 + (ranrot_rand() % 5));
-	while (h2 > 1.0)
-		h2 -= 1.0;
-	OOColor *col1 = [OOColor colorWithCalibratedHue:h1 saturation:(ranrot_rand() % 1024)/1024.0 brightness:0.5 +(ranrot_rand() % 1024)/2048.0 alpha:1.0];
-	OOColor *col2 = [OOColor colorWithCalibratedHue:h2 saturation:0.5 +(ranrot_rand() % 1024)/2048.0 brightness:0.5 +(ranrot_rand() % 1024)/2048.0 alpha:1.0];
-	//
-	sky_color = [[col2 blendedColorWithFraction:0.5 ofColor:col1] retain];
-	//
-	// init stars
-	//
-	[self set_up_billboards:col1 :col2];
-	//
-
-	//
-	usingVAR = [self OGL_InitVAR];
-	//
-	if (usingVAR)
-	{
-		[self OGL_AssignVARMemory:sizeof(SkyStarsData) :(void *)&starsData :0];
-		[self OGL_AssignVARMemory:sizeof(SkyBlobsData) :(void *)&blobsData :1];
-	}
-	//
-	isSky = YES;
-	//
-    return self;
+	while (h2 > 1.0)  h2 -= 1.0;
+	
+	OOColor *col1 = [OOColor colorWithCalibratedHue:h1
+										 saturation:(ranrot_rand() % 1024) / 1024.0
+										 brightness:0.5 + (ranrot_rand() % 1024) / 2048.0
+											  alpha:1.0];
+	OOColor *col2 = [OOColor colorWithCalibratedHue:h2
+										 saturation:0.5 +(ranrot_rand() % 1024) / 2048.0
+										 brightness:0.5 +(ranrot_rand() % 1024) / 2048.0
+											  alpha:1.0];
+	
+	return [self initWithColors:col1 :col2 andSystemInfo:nil];
 }
 
-- (id) initWithColors:(OOColor *) col1:(OOColor *) col2
+
+- (id) initWithColors:(OOColor *) col1:(OOColor *) col2 andSystemInfo:(NSDictionary *) systemInfo
 {
     self = [super init];
-	//
-	n_stars = SKY_N_STARS;
-	n_blobs = SKY_N_BLOBS;
+	if (self == nil)  return nil;
 	
-	delta = 0.0;
-    //
-    status = STATUS_EFFECT;
-	sky_type = SKY_BILLBOARDS;
-	//
+	// Load textures
+	if (sStarTexture == nil)  sStarTexture = [OOTexture textureWithName:@"star64.png" inFolder:@"Textures" options:kOOTextureDefaultOptions anisotropy:0.0f lodBias:-0.6f];
+	if (sBlobTexture == nil)  sBlobTexture = [OOTexture textureWithName:@"galaxy256.png" inFolder:@"Textures" options:kOOTextureDefaultOptions anisotropy:0.0f lodBias:0.0f];
+	
+	// Load colours
+	[self readColor1:&col1 andColor2:&col2 fromDictionary:systemInfo];
 	sky_color = [[col2 blendedColorWithFraction:0.5 ofColor:col1] retain];
-	//
-	// init stars
-	//
-	blob_cluster_chance = SKY_BLOB_CLUSTER_CHANCE;
-	blob_alpha = SKY_BLOB_ALPHA;
-	blob_scale = SKY_BLOB_SCALE;
-	blob_scale_prime = 0.005 / blob_scale;
-	//
-	[self set_up_billboards:col1 :col2];
-	//
-
-	//
-	usingVAR = [self OGL_InitVAR];
-	//
-	if (usingVAR)
-	{
-		[self OGL_AssignVARMemory:sizeof(SkyStarsData) :(void *)&starsData :0];
-		[self OGL_AssignVARMemory:sizeof(SkyBlobsData) :(void *)&blobsData :1];
-	}
-	//
-	isSky = YES;
-	//
-    return self;
-}
-
-- (id) initWithColors:(OOColor *) col1:(OOColor *) col2 andSystemInfo:(NSDictionary *) systeminfo
-{
-	OOColor* color1 = col1;
-	OOColor* color2 = col2;
-
-	self = [super init];
-	//
-	n_stars = SKY_N_STARS;
-	n_blobs = SKY_N_BLOBS;
 	
-	delta = 0.0;
-    //
-    status = STATUS_EFFECT;
-	sky_type = SKY_BILLBOARDS;
-	//
-	blob_cluster_chance = SKY_BLOB_CLUSTER_CHANCE;
-	blob_alpha = SKY_BLOB_ALPHA;
-	blob_scale = SKY_BLOB_SCALE;
+	// Load distribution values
+	blob_cluster_chance = [systemInfo floatForKey:@"sky_blur_cluster_chance" defaultValue:SKY_BLOB_CLUSTER_CHANCE];
+	blob_alpha = [systemInfo floatForKey:@"sky_blur_alpha" defaultValue:SKY_BLOB_ALPHA];
+	blob_scale = [systemInfo floatForKey:@"sky_blur_scale" defaultValue:SKY_BLOB_SCALE];
+	
 	blob_scale_prime = 0.005 / blob_scale;
-	//
-
-	//// possible systeminfo overrides
-	//
-	if ([systeminfo objectForKey:@"sky_rgb_colors"])
+	
+	n_stars = [systemInfo floatForKey:@"sky_n_stars" defaultValue:-1];
+	if (0 <= n_stars)
 	{
-		NSString*   value = (NSString *)[systeminfo objectForKey:@"sky_rgb_colors"];
-		NSArray*	tokens = ScanTokensFromString(value);
-		if ([tokens count] == 6)
-		{
-			float r1 = [(NSString *)[tokens objectAtIndex:0] floatValue];
-			float g1 = [(NSString *)[tokens objectAtIndex:1] floatValue];
-			float b1 = [(NSString *)[tokens objectAtIndex:2] floatValue];
-			float r2 = [(NSString *)[tokens objectAtIndex:3] floatValue];
-			float g2 = [(NSString *)[tokens objectAtIndex:4] floatValue];
-			float b2 = [(NSString *)[tokens objectAtIndex:5] floatValue];
-		color1 = [OOColor colorWithCalibratedRed:r1 green:g1 blue:b1 alpha:1.0];
-		color2 = [OOColor colorWithCalibratedRed:r2 green:g2 blue:b2 alpha:1.0];
-		}
-	}
-	if ([systeminfo objectForKey:@"sky_blur_cluster_chance"])
-	{
-		NSNumber*   value = (NSNumber *)[systeminfo objectForKey:@"sky_blur_cluster_chance"];
-		blob_cluster_chance = [value doubleValue];
-	}
-	if ([systeminfo objectForKey:@"sky_blur_alpha"])
-	{
-		NSNumber*   value = (NSNumber *)[systeminfo objectForKey:@"sky_blur_alpha"];
-		blob_alpha = [value doubleValue];
-	}
-	if ([systeminfo objectForKey:@"sky_blur_scale"])
-	{
-		NSNumber*   value = (NSNumber *)[systeminfo objectForKey:@"sky_blur_scale"];
-		blob_scale = [value doubleValue];
-	}
-	//
-	if ([systeminfo objectForKey:@"sky_n_stars"])
-	{
-		NSNumber*   value = (NSNumber *)[systeminfo objectForKey:@"sky_n_stars"];
-		n_stars = [value doubleValue];
-		if (n_stars < 0)
-			n_stars = 0;
-		if (n_stars > SKY_MAX_STARS)
-			n_stars = SKY_MAX_STARS;
+		n_stars = MIN(SKY_MAX_STARS, n_stars);
 	}
 	else
 	{
-		n_stars = SKY_MAX_STARS * 0.5 * randf() * randf();	// around 0.125
+		n_stars = SKY_MAX_STARS * 0.5 * randf() * randf();
 	}
-	//
-	if ([systeminfo objectForKey:@"sky_n_blurs"])
+	
+	n_blobs = [systemInfo floatForKey:@"sky_n_blurs" defaultValue:-1];
+	if (0 <= n_blobs)
 	{
-		NSNumber*   value = (NSNumber *)[systeminfo objectForKey:@"sky_n_blurs"];
-		n_blobs = [value doubleValue];
-		if (n_blobs < 0)
-			n_blobs = 0;
-		if (n_blobs > SKY_MAX_BLOBS)
-			n_blobs = SKY_MAX_BLOBS;
+		n_blobs = MIN(SKY_MAX_BLOBS, n_stars);
 	}
 	else
 	{
-		n_blobs = SKY_MAX_BLOBS * 0.4 * randf() * randf();	// around 0.10
+		n_blobs = SKY_MAX_BLOBS * 0.5 * randf() * randf();
 	}
-	//
-	////
-
-	sky_color = [[color2 blendedColorWithFraction:0.5 ofColor:color1] retain];
-	//
-	// init stars
-	//
-	[self set_up_billboards:color1 :color2];
-
-	//
+	
+	// init stars and blobs
+	[self set_up_billboards:col1 :col2];
+	
+#if GL_APPLE_vertex_array_object
 	usingVAR = [self OGL_InitVAR];
-	//
 	if (usingVAR)
 	{
 		[self OGL_AssignVARMemory:sizeof(SkyStarsData) :(void *)&starsData :0];
 		[self OGL_AssignVARMemory:sizeof(SkyBlobsData) :(void *)&blobsData :1];
 	}
-	//
+#endif
+	
+    status = STATUS_EFFECT;
 	isSky = YES;
-	//
+	
     return self;
 }
+
 
 - (id) initAsWitchspace
 {
-    self = [super init];
-    //
-	n_stars = SKY_N_STARS;
-	n_blobs = SKY_N_BLOBS;
+	NSDictionary *info = [[UNIVERSE planetinfo] objectForKey:@"interstellar space!"];
 	
-	delta = 0.0;
-    //
-    status = STATUS_EFFECT;
-	sky_type = SKY_BILLBOARDS;
-    //
-	OOColor *col1 = [OOColor colorWithCalibratedRed:0.0 green:1.0 blue:0.5 alpha:1.0];
-	OOColor *col2 = [OOColor colorWithCalibratedRed:0.0 green:1.0 blue:0.0 alpha:1.0];
-	//
-	sky_color = [[col2 blendedColorWithFraction:0.5 ofColor:col1] retain];
-	//
-	// init stars
-	//
-	blob_cluster_chance = SKY_BLOB_CLUSTER_CHANCE;
-	blob_alpha = SKY_BLOB_ALPHA;
-	blob_scale = SKY_BLOB_SCALE;
-	blob_scale_prime = 0.005 / blob_scale;
-	//
-	[self set_up_billboards:col1 :col2];
-	//
-
-	//
-	usingVAR = [self OGL_InitVAR];
-	//
-	if (usingVAR)
-	{
-		[self OGL_AssignVARMemory:sizeof(SkyStarsData) :(void *)&starsData :0];
-		[self OGL_AssignVARMemory:sizeof(SkyBlobsData) :(void *)&blobsData :1];
-	}
-	//
-	isSky = YES;
-	//
-    return self;
+	return [self initWithColors:nil :nil andSystemInfo:info];
 }
 
 - (void) set_up_billboards:(OOColor *) col1:(OOColor *) col2
@@ -332,7 +206,7 @@ MA 02110-1301, USA.
 		}
 
 	}
-	star_textureName = 0;
+	
 	//
 	//
 	// init blobs
@@ -343,7 +217,7 @@ MA 02110-1301, USA.
 		float hu, sa, br, al;
 		[col3 getHue:&hu saturation:&sa brightness:&br alpha:&al];
 		sa = 0.5 * sa + 0.5;	// move saturation up a notch!
-		//br = 0.5 * br + 0.5;	// move brightness up a notch!
+		br *= blob_alpha;		// Premultiply alpha
 		col3 = [OOColor colorWithCalibratedHue:hu saturation:sa brightness:br alpha:al];
 		Quaternion q;
 		quaternion_set_random(&q);
@@ -355,7 +229,7 @@ MA 02110-1301, USA.
 			blob_color[i][0] = [col3 redComponent];
 			blob_color[i][1] = [col3 greenComponent];
 			blob_color[i][2] = [col3 blueComponent];
-			blob_color[i][3] = blob_alpha;
+			blob_color[i][3] = 1.0f;
 			blob_vector[i] = vk;
 			blob_vector[i].x *= BILLBOARD_DEPTH;
 			blob_vector[i].y *= BILLBOARD_DEPTH;
@@ -424,8 +298,6 @@ MA 02110-1301, USA.
 
 		}
 	}
-	blob_textureName = 0;
-	//
 }
 
 - (void) dealloc
@@ -469,91 +341,83 @@ MA 02110-1301, USA.
 //		glShadeModel(GL_SMOOTH);	// smoothing for color values...
 
 		if (immediate)
-		{
-			switch (sky_type)
+{
+			glEnable(GL_TEXTURE_2D);
+			glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
+			glBlendFunc(GL_ONE, GL_ONE);	// Pure additive blending, ignoring alpha
+			
+#if GL_APPLE_vertex_array_object
+			if (usingVAR)  glBindVertexArrayAPPLE(gVertexArrayRangeObjects[0]);
+#endif
+			[sStarTexture apply];
+
+			glEnableClientState(GL_VERTEX_ARRAY);
+			glVertexPointer( 3, GL_FLOAT, 0, starsData.vertex_array);
+			// 3 coords per vertex
+			// of type GL_FLOAT
+			// 0 stride (tightly packed)
+			// pointer to first vertex
+
+			glEnableClientState(GL_TEXTURE_COORD_ARRAY);
+			glTexCoordPointer( 2, GL_INT, 0, starsData.texture_uv_array);
+			// 2 coords per vertex
+			// of type GL_INT
+			// 0 stride (tightly packed)
+			// pointer to first coordinate pair
+
+			glEnableClientState(GL_COLOR_ARRAY);
+			glColorPointer( 4, GL_FLOAT, 0, starsData.color_array);
+			// 4 values per vertex color
+			// of type GL_FLOAT
+			// 0 stride (tightly packed)
+			// pointer to quadruplet
+
+			glDisableClientState(GL_INDEX_ARRAY);
+			glDisableClientState(GL_NORMAL_ARRAY);
+			glDisableClientState(GL_EDGE_FLAG_ARRAY);
+
+			glDrawArrays( GL_QUADS, 0, 4 * n_stars);
+
+			//
+			// blobs
+			if (![UNIVERSE reducedDetail])
 			{
-				case SKY_BILLBOARDS :
-					if (star_textureName == 0)  star_textureName = [TextureStore getTextureNameFor:@"star64.png"];
-					if (blob_textureName == 0)  blob_textureName = [TextureStore getTextureNameFor:@"galaxy256.png"];
-					
-					glEnable(GL_TEXTURE_2D);
-					glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
-					glBlendFunc(GL_ONE, GL_ONE);	// Pure additive blending, ignoring alpha
-					
+				[sBlobTexture apply];
+				
 #if GL_APPLE_vertex_array_object
-					if (usingVAR)  glBindVertexArrayAPPLE(gVertexArrayRangeObjects[0]);
-#endif
-					glBindTexture(GL_TEXTURE_2D, star_textureName);
-
-					glEnableClientState(GL_VERTEX_ARRAY);
-					glVertexPointer( 3, GL_FLOAT, 0, starsData.vertex_array);
-					// 3 coords per vertex
-					// of type GL_FLOAT
-					// 0 stride (tightly packed)
-					// pointer to first vertex
-
-					glEnableClientState(GL_TEXTURE_COORD_ARRAY);
-					glTexCoordPointer( 2, GL_INT, 0, starsData.texture_uv_array);
-					// 2 coords per vertex
-					// of type GL_INT
-					// 0 stride (tightly packed)
-					// pointer to first coordinate pair
-
-					glEnableClientState(GL_COLOR_ARRAY);
-					glColorPointer( 4, GL_FLOAT, 0, starsData.color_array);
-					// 4 values per vertex color
-					// of type GL_FLOAT
-					// 0 stride (tightly packed)
-					// pointer to quadruplet
-
-					glDisableClientState(GL_INDEX_ARRAY);
-					glDisableClientState(GL_NORMAL_ARRAY);
-					glDisableClientState(GL_EDGE_FLAG_ARRAY);
-
-					glDrawArrays( GL_QUADS, 0, 4 * n_stars);
-
-					//
-					// blobs
-					if (![UNIVERSE reducedDetail])
-					{
-						glBindTexture(GL_TEXTURE_2D, blob_textureName);
-						
-#if GL_APPLE_vertex_array_object
-						if (usingVAR)  glBindVertexArrayAPPLE(gVertexArrayRangeObjects[1]);
+				if (usingVAR)  glBindVertexArrayAPPLE(gVertexArrayRangeObjects[1]);
 #endif
 
-						glEnableClientState(GL_VERTEX_ARRAY);
-						glVertexPointer( 3, GL_FLOAT, 0, blobsData.vertex_array);
-						// 3 coords per vertex
-						// of type GL_FLOAT
-						// 0 stride (tightly packed)
-						// pointer to first vertex
+				glEnableClientState(GL_VERTEX_ARRAY);
+				glVertexPointer( 3, GL_FLOAT, 0, blobsData.vertex_array);
+				// 3 coords per vertex
+				// of type GL_FLOAT
+				// 0 stride (tightly packed)
+				// pointer to first vertex
 
-						glEnableClientState(GL_TEXTURE_COORD_ARRAY);
-						glTexCoordPointer( 2, GL_INT, 0, blobsData.texture_uv_array);
-						// 2 coords per vertex
-						// of type GL_INT
-						// 0 stride (tightly packed)
-						// pointer to first coordinate pair
+				glEnableClientState(GL_TEXTURE_COORD_ARRAY);
+				glTexCoordPointer( 2, GL_INT, 0, blobsData.texture_uv_array);
+				// 2 coords per vertex
+				// of type GL_INT
+				// 0 stride (tightly packed)
+				// pointer to first coordinate pair
 
-						glEnableClientState(GL_COLOR_ARRAY);
-						glColorPointer( 4, GL_FLOAT, 0, blobsData.color_array);
-						// 4 values per vertex color
-						// of type GL_FLOAT
-						// 0 stride (tightly packed)
-						// pointer to quadruplet
+				glEnableClientState(GL_COLOR_ARRAY);
+				glColorPointer( 4, GL_FLOAT, 0, blobsData.color_array);
+				// 4 values per vertex color
+				// of type GL_FLOAT
+				// 0 stride (tightly packed)
+				// pointer to quadruplet
 
-						glDisableClientState(GL_INDEX_ARRAY);
-						glDisableClientState(GL_NORMAL_ARRAY);
-						glDisableClientState(GL_EDGE_FLAG_ARRAY);
+				glDisableClientState(GL_INDEX_ARRAY);
+				glDisableClientState(GL_NORMAL_ARRAY);
+				glDisableClientState(GL_EDGE_FLAG_ARRAY);
 
-						glDrawArrays( GL_QUADS, 0, 4 * n_blobs);
+				glDrawArrays( GL_QUADS, 0, 4 * n_blobs);
 
-					}
-					glDisable(GL_TEXTURE_2D);
-					glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);	// Basic alpha blending
-					break;
 			}
+			glDisable(GL_TEXTURE_2D);
+			glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);	// Basic alpha blending
 		}
 		else
 		{
@@ -574,18 +438,55 @@ MA 02110-1301, USA.
 	CheckOpenGLErrors([NSString stringWithFormat:@"SkyEntity after drawing %@", self]);
 }
 
-#ifdef WIN32
-// No over-ride of Entity's version of the method is required for non-Win32 platforms.
-- (void) reloadTextures
+@end
+
+
+@implementation SkyEntity (OOPrivate)
+
+- (void)readColor1:(OOColor **)ioColor1 andColor2:(OOColor **)ioColor2 fromDictionary:(NSDictionary *)dictionary
 {
-	// Force the sky textures to be reloaded next time a frame is drawn.
-	star_textureName = 0;
-	blob_textureName = 0;
-
-	// Reset the entity display list.
-	[super reloadTextures];
+	NSString			*string = nil;
+	NSArray				*tokens = nil;
+	id					colorDesc = nil;
+	OOColor				*color = nil;
+	
+	assert(ioColor1 != NULL && ioColor2 != NULL);
+	
+	string = [dictionary stringForKey:@"sky_rgb_colors"];
+	if (string != nil)
+	{
+		tokens = ScanTokensFromString(string);
+		
+		if ([tokens count] == 6)
+		{
+			float r1 = [tokens floatAtIndex:0];
+			float g1 = [tokens floatAtIndex:1];
+			float b1 = [tokens floatAtIndex:2];
+			float r2 = [tokens floatAtIndex:3];
+			float g2 = [tokens floatAtIndex:4];
+			float b2 = [tokens floatAtIndex:5];
+			*ioColor1 = [OOColor colorWithCalibratedRed:r1 green:g1 blue:b1 alpha:1.0];
+			*ioColor2 = [OOColor colorWithCalibratedRed:r2 green:g2 blue:b2 alpha:1.0];
+		}
+		else
+		{
+			OOLog(@"sky.fromDict", @"ERROR: could not interpret \"%@\" as two RGB colours (must be six numbers).", string);
+		}
+	}
+	colorDesc = [dictionary objectForKey:@"sky_color_1"];
+	if (colorDesc != nil)
+	{
+		color = [[OOColor colorWithDescription:colorDesc] premultipliedColor];
+		if (color != nil)  *ioColor1 = color;
+		else  OOLog(@"sky.fromDict", @"ERROR: could not interpret \"%@\" as a colour.", colorDesc);
+	}
+	colorDesc = [dictionary objectForKey:@"sky_color_2"];
+	if (colorDesc != nil)
+	{
+		color = [[OOColor colorWithDescription:colorDesc] premultipliedColor];
+		if (color != nil)  *ioColor2 = color;
+		else  OOLog(@"sky.fromDict", @"ERROR: could not interpret \"%@\" as a colour.", colorDesc);
+	}
 }
-
-#endif
 
 @end

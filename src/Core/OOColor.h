@@ -85,9 +85,11 @@ MA 02110-1301, USA.
 - (void)getHue:(float *)hue saturation:(float *)saturation brightness:(float *)brightness alpha:(float *)alpha;
 
 
-/* Get the alpha component. For colors which do not have alpha components, this will return 1.0 (opaque).
-*/
+// Get the alpha component.
 - (float)alphaComponent;
+
+// Returns the colour, premultiplied by its alpha channel, and with an alpha of 1.0. If the reciever's alpha is 1.0, it will return itself.
+- (OOColor *)premultipliedColor;
 
 - (GLfloat *) RGBA;
 

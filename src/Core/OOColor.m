@@ -422,6 +422,17 @@ MA 02110-1301, USA.
 	return rgba[3];
 }
 
+
+- (OOColor *)premultipliedColor
+{
+	if (rgba[3] == 1.0f)  return [[self retain] autorelease];
+	return [OOColor colorWithCalibratedRed:rgba[0] * rgba[3]
+									 green:rgba[1] * rgba[3]
+									  blue:rgba[2] * rgba[3]
+									 alpha:1.0f];
+}
+
+
 - (GLfloat *) RGBA;
 {
 	return rgba;

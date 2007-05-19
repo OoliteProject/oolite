@@ -829,17 +829,6 @@ static BOOL MaintainLinkedLists(Universe* uni);
 	[a_planet setEnergy:  1000000.0];
 	[self addEntity:a_planet]; // [entities addObject:a_planet];
 	
-	#if 0
-	double region_radius = 2.5f * planet_radius;
-	double region_spacing = 2.0 * region_radius;
-	Vector region_pos = a_planet->position;
-	while (region_pos.z > -planet_radius)
-	{
-		[universeRegion addSubregionAtPosition: region_pos withRadius: region_radius];	// collision regions from planet to witchpoint
-		region_pos.z -= region_spacing;
-	}
-	#endif
-	
 	planet = [a_planet universalID];
 	/*--*/
 	

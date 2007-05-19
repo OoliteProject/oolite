@@ -31,9 +31,9 @@ MA 02110-1301, USA.
 
 static NSString * const kOOLogOpenGLExtensionsVAR			= @"rendering.opengl.extensions.var";
 static NSString * const kOOLogOpenGLStateDump				= @"rendering.opengl.stateDump";
-static NSString * const kOOLogEntityDataNotFound			= @"entity.loadMesh.error.fileNotFound";
-static NSString * const kOOLogEntityTooManyVertices			= @"entity.loadMesh.error.tooManyVertices";
-static NSString * const kOOLogEntityTooManyFaces			= @"entity.loadMesh.error.tooManyFaces";
+static NSString * const kOOLogEntityDataNotFound			= @"entity.loadMesh.failed.fileNotFound";
+static NSString * const kOOLogEntityTooManyVertices			= @"entity.loadMesh.failed.tooManyVertices";
+static NSString * const kOOLogEntityTooManyFaces			= @"entity.loadMesh.failed.tooManyFaces";
 
 
 #if GL_APPLE_vertex_array_object

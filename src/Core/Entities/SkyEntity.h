@@ -27,19 +27,13 @@ MA 02110-1301, USA.
 #import "OOSelfDrawingEntity.h"
 
 
-#define SKY_BILLBOARDS	3
+#define BILLBOARD_DEPTH			50000.0
 
-#define BILLBOARD_DEPTH	50000.0
-// 50 km away!
-
-#define SKY_N_STARS				480
-#define SKY_N_BLOBS				128
 #define SKY_MAX_STARS			4800
 #define SKY_MAX_BLOBS			1280
 #define SKY_BLOB_CLUSTER_CHANCE	0.80
 #define SKY_BLOB_ALPHA			0.10
 #define SKY_BLOB_SCALE			10.0
-#define SKY_BLOB_SCALE_PRIME	0.0005
 
 
 typedef struct
@@ -60,28 +54,20 @@ typedef struct
 
 @interface SkyEntity: OOSelfDrawingEntity
 {
-	int sky_type;
-
-	OOColor *sky_color;
+	OOColor			*sky_color;
 	
-	GLuint  star_textureName;
-	GLuint  blob_textureName;
-
-	SkyStarsData starsData;
-	SkyBlobsData blobsData;
+	SkyStarsData	starsData;
+	SkyBlobsData	blobsData;
 	
-	double blob_cluster_chance;
-	double blob_alpha;
-	double blob_scale;
-	double blob_scale_prime;
+	double			blob_cluster_chance;
+	double			blob_alpha;
+	double			blob_scale;
+	double			blob_scale_prime;
 	
-	double delta;
-	
-	int n_stars, n_blobs;
+	int				n_stars, n_blobs;
 	
 }
 
-- (id) initWithColors:(OOColor *) col1:(OOColor *) col2;
 - (id) initWithColors:(OOColor *) col1:(OOColor *) col2 andSystemInfo:(NSDictionary *) systeminfo;
 - (id) initAsWitchspace;
 - (void) set_up_billboards:(OOColor *) col1:(OOColor *) col2;

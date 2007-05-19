@@ -167,7 +167,7 @@ shaderBindingTarget:(id<OOWeakReferenceSupport>)object
 
 - (NSString *)description
 {
-	return [NSString stringWithFormat:@"<%@ %p>{\"%@\", %u vertices, %u faces, radius: %g m volume:%g m^3 smooth: %s}", [self class], self, [self modelName], [self vertexCount], [self faceCount], [self collisionRadius], [self volume], isSmoothShaded ? "YES" : "NO"];
+	return [NSString stringWithFormat:@"<%@ %p>{\"%@\", %u vertices, %u faces, radius: %g m volume:%g m^3 smooth: %s}", [self class], self, [self modelName], [self vertexCount], [self faceCount], [self collisionRadius], isSmoothShaded ? "YES" : "NO"];
 }
 
 
@@ -347,12 +347,6 @@ shaderBindingTarget:(id<OOWeakReferenceSupport>)object
     }
 
 	return result;
-}
-
-
-- (GLfloat)volume
-{
-	return volume;
 }
 
 
@@ -1227,8 +1221,6 @@ shaderBindingTarget:(id<OOWeakReferenceSupport>)target
 
 	d_squared = (length_longest_axis + length_shortest_axis) * (length_longest_axis + length_shortest_axis) * 0.25; // square of average length
 	maxDrawDistance = d_squared * NO_DRAW_DISTANCE_FACTOR * NO_DRAW_DISTANCE_FACTOR;	// no longer based on the collision radius
-
-	volume = (boundingBox.max.x - boundingBox.min.x) * (boundingBox.max.y - boundingBox.min.y) * (boundingBox.max.z - boundingBox.min.z);
 	
 	collisionRadius = sqrt(result);
 }

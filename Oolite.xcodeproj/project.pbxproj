@@ -268,6 +268,7 @@
 		1A26D0EB0BCF9D3B0073F257 /* OOTextureLoader.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A26D0E50BCF9D3B0073F257 /* OOTextureLoader.m */; };
 		1A26D0F50BCF9D8D0073F257 /* pngusr.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A26D0F40BCF9D8D0073F257 /* pngusr.h */; };
 		1A26D0F60BCF9D8D0073F257 /* pngusr.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A26D0F40BCF9D8D0073F257 /* pngusr.h */; };
+		1A28CAB50BFF404F000EBA08 /* planetinfo.plist in Resources */ = {isa = PBXBuildFile; fileRef = 1A28CAB40BFF404F000EBA08 /* planetinfo.plist */; };
 		1A29967E0B9F064C002D2149 /* OOCache.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A29967C0B9F064C002D2149 /* OOCache.h */; };
 		1A29967F0B9F064C002D2149 /* OOCache.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A29967D0B9F064C002D2149 /* OOCache.m */; };
 		1A2A16680BD10B1200152975 /* OOSingleTextureMaterial.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A2A16660BD10B1200152975 /* OOSingleTextureMaterial.m */; };
@@ -1076,6 +1077,7 @@
 		1A26D0E40BCF9D3B0073F257 /* OOPNGTextureLoader.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOPNGTextureLoader.h; sourceTree = "<group>"; };
 		1A26D0E50BCF9D3B0073F257 /* OOTextureLoader.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOTextureLoader.m; sourceTree = "<group>"; };
 		1A26D0F40BCF9D8D0073F257 /* pngusr.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = pngusr.h; path = src/Core/Materials/pngusr.h; sourceTree = SOURCE_ROOT; };
+		1A28CAB40BFF404F000EBA08 /* planetinfo.plist */ = {isa = PBXFileReference; explicitFileType = text.plist; fileEncoding = 4; path = planetinfo.plist; sourceTree = "<group>"; };
 		1A29967C0B9F064C002D2149 /* OOCache.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOCache.h; sourceTree = "<group>"; };
 		1A29967D0B9F064C002D2149 /* OOCache.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOCache.m; sourceTree = "<group>"; };
 		1A2A16660BD10B1200152975 /* OOSingleTextureMaterial.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOSingleTextureMaterial.m; sourceTree = "<group>"; };
@@ -1439,6 +1441,7 @@
 				1AED74C70BBA3CAA009410CD /* logcontrol.plist.xml */,
 				1A71E4490BCD5C4200CD5C13 /* material-defaults.plist */,
 				1A2316E90B9CFAD700EF0852 /* missiontext.plist */,
+				1A28CAB40BFF404F000EBA08 /* planetinfo.plist */,
 				1A2316EB0B9CFAD700EF0852 /* shipdata.plist */,
 				1A2316EC0B9CFAD700EF0852 /* shipyard.plist */,
 				1A2316ED0B9CFAD700EF0852 /* speech_pronunciation_guide.plist */,
@@ -1690,15 +1693,12 @@
 			children = (
 				25F3E63A0994F08A002F25FD /* OOOpenGL.h */,
 				1A2A1DEA0BD2A28E00152975 /* OOMacroOpenGL.h */,
-				1A2A1B120BD2774300152975 /* OODrawable.h */,
-				1A2A1B130BD2774300152975 /* OODrawable.m */,
-				1A2A1CA80BD2914F00152975 /* OOMesh.h */,
-				1A2A1CA90BD2914F00152975 /* OOMesh.m */,
 				1A43234A0BCFC9BB00F65914 /* OOOpenGLExtensionManager.h */,
 				1A43234B0BCFC9BB00F65914 /* OOOpenGLExtensionManager.m */,
 				25161100099544380037C2E1 /* OpenGLSprite.h */,
 				251610FF099544380037C2E1 /* OpenGLSprite.m */,
 				08125F0809F9083F00AB9BF9 /* OOGLDefs.h */,
+				1ADC3F850BFA1388000E0F89 /* Drawables */,
 				1A71DDD30BCC0EEF00CD5C13 /* Materials */,
 			);
 			name = Graphics;
@@ -2087,6 +2087,17 @@
 			path = Doc;
 			sourceTree = "<group>";
 		};
+		1ADC3F850BFA1388000E0F89 /* Drawables */ = {
+			isa = PBXGroup;
+			children = (
+				1A2A1B120BD2774300152975 /* OODrawable.h */,
+				1A2A1B130BD2774300152975 /* OODrawable.m */,
+				1A2A1CA80BD2914F00152975 /* OOMesh.h */,
+				1A2A1CA90BD2914F00152975 /* OOMesh.m */,
+			);
+			name = Drawables;
+			sourceTree = "<group>";
+		};
 		1AEAAC6C0BA457C3000705D0 /* SpiderMonkey headers */ = {
 			isa = PBXGroup;
 			children = (
@@ -2434,6 +2445,7 @@
 				25F3E8A80994FE65002F25FD /* oolite-expansion-document.icns in Resources */,
 				25F3E8A90994FE65002F25FD /* oolite-icon.icns in Resources */,
 				25F3E8B40994FE9B002F25FD /* InfoPlist.strings in Resources */,
+				1A28CAB50BFF404F000EBA08 /* planetinfo.plist in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

@@ -69,6 +69,7 @@ enum
 	kOOTextureRepeatT				= 0x0040UL,
 	kOOTextureAllowRectTexture		= 0x0080UL,	// Indicates that GL_TEXTURE_RECTANGLE_EXT may be used instead of GL_TEXTURE_2D. See -texCoordsScale for a discussion of rectangle textures.
 	kOOTextureSearchInImages		= 0x0100UL,	// Search in Images directories rather than Textures directories.
+	kOOTextureNoFNFMessage			= 0x0200UL,	// Don't log file not found error
 	
 	kOOTextureMinFilterMask			= 0x0003UL,
 	kOOTextureMagFilterMask			= 0x0004UL,
@@ -82,7 +83,9 @@ enum
 									| kOOTextureAllowRectTexture
 #endif
 									| kOOTextureRepeatS
-									| kOOTextureRepeatT,
+									| kOOTextureRepeatT
+									| kOOTextureSearchInImages
+									| kOOTextureNoFNFMessage,
 	
 	kOOTextureFlagsAllowedForRectangleTexture =
 									kOOTextureDefinedFlags & ~(kOOTextureRepeatS | kOOTextureRepeatT)

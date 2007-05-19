@@ -34,6 +34,7 @@ MA 02110-1301, USA.
 #import "OOCharacter.h"
 #import "OOStringParsing.h"
 #import "PlayerEntity.h"
+#import "OOCollectionExtractors.h"
 
 #define kOOLogUnconvertedNSLog @"unclassified.PlanetEntity"
 
@@ -186,7 +187,7 @@ void setUpSinTable()
 	sun_diffuse[0] = 0.5 * (1.0 + r);	// paler
 	sun_diffuse[1] = 0.5 * (1.0 + g);	// paler
 	sun_diffuse[2] = 0.5 * (1.0 + b);	// paler
-	sun_diffuse[3] = 1.0;	// paler
+	sun_diffuse[3] = 1.0;
 	sun_specular[0] = r;
 	sun_specular[1] = g;
 	sun_specular[2] = b;
@@ -196,14 +197,13 @@ void setUpSinTable()
 	glLightfv(GL_LIGHT1, GL_DIFFUSE, sun_diffuse);
 	glLightfv(GL_LIGHT1, GL_SPECULAR, sun_specular);
 
-	//
 	// main disc less saturation more brightness
 	color = [OOColor colorWithCalibratedHue: hue saturation: sat * 0.333 brightness: 1.0 alpha: alf];
 	amb_land[0] = [color redComponent];
 	amb_land[1] = [color greenComponent];
 	amb_land[2] = [color blueComponent];
 	amb_land[3] = 1.0;
-	//
+	
 	// nearest corona much more saturation
 	hue += hue_drift;
 	if (hue < 0.0)	hue += 1.0;
@@ -213,7 +213,7 @@ void setUpSinTable()
 	amb_polar_land[1] = [color greenComponent];
 	amb_polar_land[2] = [color blueComponent];
 	amb_polar_land[3] = 1.0;
-	//
+	
 	// next corona slightly more saturation
 	hue += hue_drift;
 	if (hue < 0.0)	hue += 1.0;
@@ -363,45 +363,6 @@ void setUpSinTable()
     return self;
 }
 
-- (id) initAsCoronaForPlanet:(PlanetEntity *) planet
-{
-	self = [super init];
-    //
-	isTextured = NO;
-	isShadered = NO;
-	//
-	if (!planet)
-    {
-    	NSLog(@"ERROR Planetentity initAsCoronaForPlanet:NULL");
-    	return self;
-    }
-    //
-	position = planet->position;
-    collision_radius = planet->collision_radius + ATMOSPHERE_DEPTH * 2; //  atmosphere is 5000m deep only
-	//
-	shuttles_on_ground = 0;
-	last_launch_time = 0.0;
-	shuttle_launch_interval = 60 * 60;
-	//
-	scanClass = CLASS_NO_DRAW;
-	//
-	planet_type = PLANET_TYPE_CORONA;
-	//
-	amb_land[0] = 0.85;
-	amb_land[1] = 0.85;
-	amb_land[2] = 1.0;
-	amb_land[3] = 1.0;  // blue color
-
-	atmosphere = nil;
-
-	[self setOwner:planet];
-	//
-	isPlanet = YES;
-	//
-	root_planet = planet;
-	//
-    return self;
-}
 
 - (id) initWithSeed:(Random_Seed) p_seed
 {
@@ -696,29 +657,25 @@ void setUpSinTable()
 			isTextured = NO;
 		}
 	}
-    //
-	if ([dict objectForKey:@"seed"])
+	
+	NSString *seedStr = [dict stringForKey:@"seed"];
+	if (seedStr != nil)
 	{
-		NSArray* tokens = ScanTokensFromString([dict objectForKey:@"seed"]);
-		if ([tokens count] != 6)
-			NSLog(@"ERROR planet seed '%@' requires 6 values", [dict objectForKey:@"seed"]);
+		Random_Seed seed = RandomSeedFromString(seedStr);
+		if (!is_nil_seed(seed))
+		{
+			p_seed = seed;
+		}
 		else
 		{
-			p_seed.a = [[tokens objectAtIndex:0] intValue];
-			p_seed.b = [[tokens objectAtIndex:1] intValue];
-			p_seed.c = [[tokens objectAtIndex:2] intValue];
-			p_seed.d = [[tokens objectAtIndex:3] intValue];
-			p_seed.e = [[tokens objectAtIndex:4] intValue];
-			p_seed.f = [[tokens objectAtIndex:5] intValue];
+			OOLog(@"planet.fromDict", @"ERROR: could not interpret \"%@\" as planet seed, using default.", seedStr);
 		}
-		planet_seed = p_seed.a * 13 + p_seed.c * 11 + p_seed.e * 7;	// pseudo-random set-up for vertex colours
-		//
 	}
-	//
+	
 	seed_for_planet_description(p_seed);
 	//
 	NSDictionary*   planetinfo = [UNIVERSE generateSystemData:p_seed];
-	int radius_km =		[(NSNumber *)[planetinfo objectForKey:KEY_RADIUS] intValue];
+	int radius_km =		[[planetinfo objectForKey:KEY_RADIUS] intValue];
 	if ([dict objectForKey:@"radius"])
 	{
 		radius_km = [[dict objectForKey:@"radius"] intValue];

@@ -80,19 +80,6 @@ MA 02110-1301, USA.
 	[texture apply];
     glBegin(GL_QUADS);
 	
-#if OBSOLETE
-    glTexCoord2f(0.0, 1.0-textureCropRect.size.height);
-    glVertex3f(x, y+size.height, z);
-
-    glTexCoord2f(0.0, 1.0);
-    glVertex3f(x, y, z);
-	
-    glTexCoord2f(textureCropRect.size.width, 1.0);
-    glVertex3f(x+size.width, y, z);
-
-    glTexCoord2f(textureCropRect.size.width, 1.0-textureCropRect.size.height);
-    glVertex3f(x+size.width, y+size.height, z);
-#else
     glTexCoord2f(0.0, 0.0);
     glVertex3f(x, y+size.height, z);
 	
@@ -104,7 +91,7 @@ MA 02110-1301, USA.
 
     glTexCoord2f(1.0, 0.0);
     glVertex3f(x+size.width, y+size.height, z);
-#endif
+	
     glEnd();
     glDisable(GL_TEXTURE_2D);
 }

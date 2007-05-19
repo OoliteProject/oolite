@@ -33,7 +33,7 @@
 	<key>$soundError</key>
 	<string>$error</string>
 	<key>$textureDebug</key>
-	<string>$troubleShootingDump</string>
+	<string>no</string>
 	<key>$troubleShootingDump</key>
 	<string>yes</string>
 	<key>_default</key>
@@ -425,7 +425,7 @@
 	<key>unclassified</key>
 	<string>inherit</string>
 	<key>universe.populate</key>
-	<string>$troubleShootingDump</string>
+	<string>no</string>
 	<key>universe.populate.witchspace</key>
 	<string>inherit</string>
 </dict>

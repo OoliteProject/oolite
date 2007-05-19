@@ -67,7 +67,6 @@ SOFTWARE.
 - (GLfloat)collisionRadius;
 - (GLfloat)maxDrawDistance;
 - (Geometry *)geometry;
-- (GLfloat)volume;
 
 - (BoundingBox)boundingBox;
 // This needs a better name.
