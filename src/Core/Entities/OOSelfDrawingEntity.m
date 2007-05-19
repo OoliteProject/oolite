@@ -61,6 +61,14 @@ BOOL global_testForVAR;
 @end
 
 
+@interface OOCacheManager (OSSelfDrawingEntity)
+
++ (NSDictionary *)entityDataForName:(NSString *)inShipName;
++ (void)setEntityData:(NSDictionary *)inData forName:(NSString *)inShipName;
+
+@end
+
+
 @implementation OOSelfDrawingEntity
 
 - (id)init
@@ -562,7 +570,7 @@ BOOL global_testForVAR;
 	BOOL using_preloaded = NO;
 	
 	// TODO: rejigger this to look for the file and check modification date.
-	cacheData = [OOCacheManager meshDataForName:filename];
+	cacheData = [OOCacheManager entityDataForName:filename];
 	if (cacheData != nil)
 	{
 		if ([self setModelFromModelData:cacheData]) using_preloaded = YES;
@@ -867,7 +875,7 @@ BOOL global_testForVAR;
 		//
 
 		// save the resulting data for possible reuse
-		[OOCacheManager setMeshData:[self modelData] forName:filename];
+		[OOCacheManager setEntityData:[self modelData] forName:filename];
 	}
 	
 	// set the collision radius
@@ -1479,6 +1487,27 @@ BOOL global_testForVAR;
 	ADD_FLAG_IF_SET(materialsReady);
 	flagsString = [flags count] ? [flags componentsJoinedByString:@", "] : @"none";
 	OOLog(@"dumpState.selfDrawingEntity", @"Flags: %@", flagsString);
+}
+
+@end
+
+
+static NSString * const kOOCacheMeshes = @"OOSelfDrawingEntity-mesh";
+
+@implementation OOCacheManager (OSSelfDrawingEntity)
+
++ (NSDictionary *)entityDataForName:(NSString *)inShipName
+{
+	return [[self sharedCache] objectForKey:inShipName inCache:kOOCacheMeshes];
+}
+
+
++ (void)setEntityData:(NSDictionary *)inData forName:(NSString *)inShipName
+{
+	if (inData != nil && inShipName != nil)
+	{
+		[[self sharedCache] setObject:inData forKey:inShipName inCache:kOOCacheMeshes];
+	}
 }
 
 @end

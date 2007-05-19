@@ -35,7 +35,7 @@ MA 02110-1301, USA.
 enum
 {
 	kOOCacheMinimumPruneThreshold			= 25U,
-	kOOCacheDefaultPruneThreshold			= 125U,
+	kOOCacheDefaultPruneThreshold			= 200U,
 	kOOCacheNoPrune							= -1U
 };
 

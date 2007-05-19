@@ -53,16 +53,21 @@ enum
 };
 
 
+typedef uint8_t				OOMeshSmoothGroup;
+typedef uint8_t				OOMeshMaterialIndex, OOMeshMaterialCount;
+typedef uint16_t			OOMeshVertexCount;
+typedef uint16_t			OOMeshFaceCount;
+typedef uint8_t				OOMeshFaceVertexCount;
+
+
 typedef struct
 {
-	GLfloat					red;
-	
-	Vector					normal;
-	
-	int						n_verts;
+	OOMeshSmoothGroup		smoothGroup;
+	OOMeshMaterialIndex		materialIndex;
+	OOMeshFaceVertexCount	n_verts;
 	GLint					vertex[kOOMeshMaxVertsPerFace];
 	
-	unsigned				materialIndex;
+	Vector					normal;
 	GLfloat					s[kOOMeshMaxVertsPerFace];
 	GLfloat					t[kOOMeshMaxVertsPerFace];
 } OOMeshFace;
@@ -86,10 +91,6 @@ typedef struct
 	BOOL					forceUpdate;	// true if data in VAR block needs updating
 	BOOL					activated;		// set to true the first time we use it
 } VertexArrayRangeType;
-
-
-typedef uint16_t			OOMeshVertexCount, OOMeshFaceCount;
-typedef uint8_t				OOMeshMaterialCount;
 
 
 @interface OOMesh: OODrawable <NSCopying>
@@ -155,14 +156,6 @@ shaderBindingTarget:(id<OOWeakReferenceSupport>)object;
 
 // All of this stuff should go away, but is used to ease transition. -- Ahruman
 
-#import "OOCacheManager.h"
-@interface OOCacheManager (Models)
-
-+ (NSDictionary *)meshDataForName:(NSString *)inShipName;
-+ (void)setMeshData:(NSDictionary *)inData forName:(NSString *)inShipName;
-
-@end
-
 
 #if GL_APPLE_vertex_array_object
 @interface OOMesh (OOVertexArrayRange)
@@ -191,6 +184,8 @@ void LogOpenGLState();
 BOOL CheckOpenGLErrors(NSString* where);
 
 
+
+#import "OOCacheManager.h"
 @interface OOCacheManager (Octree)
 
 + (Octree *)octreeForModel:(NSString *)inKey;

@@ -75,7 +75,7 @@ shaderBindingTarget:(id<OOWeakReferenceSupport>)object;
 - (NSDictionary*) modelData;
 - (BOOL) setModelFromModelData:(NSDictionary*) dict;
 
-- (Vector) normalForVertex:(int)v_index withSharedRedValue:(GLfloat)red_value;
+- (Vector) normalForVertex:(int)v_index inSmoothGroup:(OOMeshSmoothGroup)smoothGroup;
 
 - (void)regenerateDisplayList;
 
@@ -88,6 +88,14 @@ shaderBindingTarget:(id<OOWeakReferenceSupport>)object;
 #if DEBUG_DRAW_NORMALS
 - (void)debugDrawNormals;
 #endif
+
+@end
+
+
+@interface OOCacheManager (OOMesh)
+
++ (NSDictionary *)meshDataForName:(NSString *)inShipName;
++ (void)setMeshData:(NSDictionary *)inData forName:(NSString *)inShipName;
 
 @end
 
@@ -201,12 +209,15 @@ shaderBindingTarget:(id<OOWeakReferenceSupport>)object
 	glTexCoordPointer(2, GL_FLOAT, 0, entityData.texture_uv_array);
 	
 	NS_DURING
+		glDisable(GL_BLEND);
+		glEnable(GL_TEXTURE_2D);
+		
 		if (!listsReady)
 		{
 			displayList0 = glGenLists(materialCount);
 			
 			// Ensure all textures are loaded
-			for (ti = 0; ti <= materialCount; ti++)
+			for (ti = 0; ti < materialCount; ti++)
 			{
 				[materials[ti] ensureFinishedLoading];
 			}
@@ -215,10 +226,8 @@ shaderBindingTarget:(id<OOWeakReferenceSupport>)object
 #if GL_APPLE_vertex_array_object
 		if (usingVAR)  glBindVertexArrayAPPLE(gVertexArrayRangeObjects[0]);
 #endif
-		glDisable(GL_BLEND);
-		glEnable(GL_TEXTURE_2D);
 		
-		for (ti = 0; ti <= materialCount; ti++)
+		for (ti = 0; ti < materialCount; ti++)
 		{
 			[materials[ti] apply];
 			if (listsReady)
@@ -617,24 +626,91 @@ shaderBindingTarget:(id<OOWeakReferenceSupport>)target
 }
 
 
-- (NSDictionary*) modelData
+- (NSDictionary *)modelData
 {
-	NSData				*vertData = nil;
-	NSData				*normData = nil;
-	NSData				*faceData = nil;
+	NSNumber			*vertCnt = nil,
+						*faceCnt = nil;
+	NSData				*vertData = nil,
+						*normData = nil,
+						*faceData = nil;
+	NSArray				*mtlKeys = nil;
+	NSNumber			*smooth = nil;
+	
+	vertCnt = [NSNumber numberWithUnsignedInt:vertexCount];
+	faceCnt = [NSNumber numberWithUnsignedInt:faceCount];
 	
 	vertData = [NSData dataWithBytesNoCopy:vertices length:sizeof *vertices * vertexCount freeWhenDone:NO];
 	normData = [NSData dataWithBytesNoCopy:normals length:sizeof *normals * vertexCount freeWhenDone:NO];
 	faceData = [NSData dataWithBytesNoCopy:faces length:sizeof *faces * faceCount freeWhenDone:NO];
 	
-	return nil;
+	mtlKeys = [NSArray arrayWithObjects:materialKeys count:materialCount];
+	smooth = [NSNumber numberWithBool:isSmoothShaded];
+	
+	if (vertCnt == nil || faceCnt == nil || vertData == nil || normData == nil || faceData == nil || mtlKeys == nil || smooth == nil)  return nil;
+	
+	return [NSDictionary dictionaryWithObjectsAndKeys:
+						vertCnt, @"vertex count",
+						vertData, @"vertex data",
+						normData, @"normal data",
+						faceCnt, @"face count",
+						faceData, @"face data",
+						mtlKeys, @"material keys",
+						smooth, @"smooth",
+						nil];
 }
 
 
-- (BOOL) setModelFromModelData:(NSDictionary*) dict
+- (BOOL)setModelFromModelData:(NSDictionary *)dict
 {
-	// FIXME: reimplement cache rep
-	return NO;
+	NSNumber			*vertCnt = nil,
+						*faceCnt = nil;
+	NSData				*vertData = nil,
+						*normData = nil,
+						*faceData = nil;
+	NSArray				*mtlKeys = nil;
+	NSNumber			*smooth = nil;
+	id					key = nil;
+	unsigned			i;
+	
+	if (dict == nil)  return NO;
+	
+	vertCnt = [dict objectForKey:@"vertex count"];
+	faceCnt = [dict objectForKey:@"face count"];
+	
+	vertData = [dict dataForKey:@"vertex data"];
+	normData = [dict dataForKey:@"normal data"];
+	faceData = [dict dataForKey:@"face data"];
+	
+	mtlKeys = [dict arrayForKey:@"material keys"];
+	smooth = [dict objectForKey:@"smooth"];
+	
+	if (vertCnt == nil || faceCnt == nil || vertData == nil || normData == nil || faceData == nil || mtlKeys == nil || smooth == nil)  return NO;
+	if (![vertCnt respondsToSelector:@selector(unsignedIntValue)])  return NO;
+	if (![faceCnt respondsToSelector:@selector(unsignedIntValue)])  return NO;
+	if (![smooth respondsToSelector:@selector(boolValue)])  return NO;
+	
+	vertexCount = [vertCnt unsignedIntValue];
+	faceCount = [faceCnt unsignedIntValue];
+	
+	if ([vertData length] != sizeof *vertices * vertexCount || [vertData length] > sizeof(vertices))  return NO;
+	if ([normData length] != sizeof *normals * vertexCount || [normData length] > sizeof(normals))  return NO;
+	if ([faceData length] != sizeof *faces * faceCount || [faceData length] > sizeof(faces))  return NO;
+	
+	memcpy(vertices, [vertData bytes], [vertData length]);
+	memcpy(normals, [normData bytes], [normData length]);
+	memcpy(faces, [faceData bytes], [faceData length]);
+	
+	materialCount = [mtlKeys count];
+	for (i = 0; i != materialCount; ++i)
+	{
+		key = [mtlKeys stringAtIndex:i];
+		if (key != nil)  materialKeys[i] = [key retain];
+		else  return NO;
+	}
+	
+	isSmoothShaded = [smooth boolValue] != NO;
+	
+	return YES;
 }
 
 
@@ -800,7 +876,7 @@ shaderBindingTarget:(id<OOWeakReferenceSupport>)target
 						failFlag = YES;
 					if (!failFlag)
 					{
-						faces[j].red = r/255.0;
+						faces[j].smoothGroup = r;
 					}
 					else
 					{
@@ -1051,13 +1127,13 @@ shaderBindingTarget:(id<OOWeakReferenceSupport>)target
 	}
 }
 
-- (Vector) normalForVertex:(int) v_index withSharedRedValue:(GLfloat) red_value
+- (Vector) normalForVertex:(int) v_index inSmoothGroup:(OOMeshSmoothGroup)smoothGroup
 {
 	int j;
 	Vector normal_sum = kZeroVector;
 	for (j = 0; j < faceCount; j++)
 	{
-		if (faces[j].red == red_value)
+		if (faces[j].smoothGroup == smoothGroup)
 		{
 			if ((faces[j].vertex[0] == v_index)||(faces[j].vertex[1] == v_index)||(faces[j].vertex[2] == v_index))
 			{
@@ -1080,27 +1156,28 @@ shaderBindingTarget:(id<OOWeakReferenceSupport>)target
 {
 	int fi, vi, mi;
 
-	// if isSmoothShaded find any vertices that are between faces of two different colour (by red value)
-	// and mark them as being on an edge and therefore NOT smooth shaded
+	// if isSmoothShaded find any vertices that are between faces of different
+	// smoothing groups and mark them as being on an edge and therefore NOT
+	// smooth shaded
 	BOOL is_edge_vertex[vertexCount];
-	GLfloat red_value[vertexCount];
+	GLfloat smoothGroup[vertexCount];
 	for (vi = 0; vi < vertexCount; vi++)
 	{
 		is_edge_vertex[vi] = NO;
-		red_value[vi] = -1;
+		smoothGroup[vi] = -1;
 	}
 	if (isSmoothShaded)
 	{
 		for (fi = 0; fi < faceCount; fi++)
 		{
-			GLfloat rv = faces[fi].red;
+			GLfloat rv = faces[fi].smoothGroup;
 			int i;
 			for (i = 0; i < 3; i++)
 			{
 				vi = faces[fi].vertex[i];
-				if (red_value[vi] < 0.0)	// unassigned
-					red_value[vi] = rv;
-				else if (red_value[vi] != rv)	// a different colour
+				if (smoothGroup[vi] < 0.0)	// unassigned
+					smoothGroup[vi] = rv;
+				else if (smoothGroup[vi] != rv)	// a different colour
 					is_edge_vertex[vi] = YES;
 			}
 		}
@@ -1129,7 +1206,7 @@ shaderBindingTarget:(id<OOWeakReferenceSupport>)target
 					if (isSmoothShaded)
 					{
 						if (is_edge_vertex[v])
-							normal = [self normalForVertex:v withSharedRedValue:faces[fi].red];
+							normal = [self normalForVertex:v inSmoothGroup:faces[fi].smoothGroup];
 						else
 							normal = normals[v];
 					}
@@ -1645,9 +1722,9 @@ void my_glDisable(GLenum gl_state)
 }
 
 
-static NSString * const kOOCacheMeshes = @"meshes";
+static NSString * const kOOCacheMeshes = @"OOMesh";
 
-@implementation OOCacheManager (Models)
+@implementation OOCacheManager (OOMesh)
 
 + (NSDictionary *)meshDataForName:(NSString *)inShipName
 {
@@ -1664,6 +1741,7 @@ static NSString * const kOOCacheMeshes = @"meshes";
 }
 
 @end
+
 
 
 static NSString * const kOOCacheOctrees = @"octrees";
