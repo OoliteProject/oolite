@@ -20,29 +20,6 @@ along with this program; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
 MA 02110-1301, USA.
 
-
-This file may also be distributed under the MIT/X11 license:
-
-Copyright (C) 2007 Jens Ayton
-
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
-
 */
 
 #import "OOMesh.h"
@@ -59,9 +36,10 @@ SOFTWARE.
 
 static NSString * const kOOLogOpenGLExtensionsVAR			= @"rendering.opengl.extensions.var";
 static NSString * const kOOLogOpenGLStateDump				= @"rendering.opengl.stateDump";
-static NSString * const kOOLogEntityDataNotFound			= @"entity.loadMesh.error.fileNotFound";
-static NSString * const kOOLogEntityTooManyVertices			= @"entity.loadMesh.error.tooManyVertices";
-static NSString * const kOOLogEntityTooManyFaces			= @"entity.loadMesh.error.tooManyFaces";
+static NSString * const kOOLogMeshDataNotFound				= @"mesh.load.failed.fileNotFound";
+static NSString * const kOOLogMeshTooManyVertices			= @"mesh.load.failed.tooManyVertices";
+static NSString * const kOOLogMeshTooManyFaces				= @"mesh.load.failed.tooManyFaces";
+static NSString * const kOOLogMeshTooManyMaterials			= @"mesh.load.failed.tooManyMaterials";
 
 
 #if GL_APPLE_vertex_array_object
@@ -154,12 +132,11 @@ shaderBindingTarget:(id<OOWeakReferenceSupport>)object
 	
 	[self regenerateDisplayList];
 	
-	for (i = 0; i != MAX_TEXTURES_PER_ENTITY; ++i)
+	for (i = 0; i != kOOMeshMaxMaterials; ++i)
 	{
 		[materials[i] release];
+		[materialKeys[i] release];
 	}
-	
-	[textureNameSet release];
 	
 	[super dealloc];
 }
@@ -226,10 +203,10 @@ shaderBindingTarget:(id<OOWeakReferenceSupport>)object
 	NS_DURING
 		if (!listsReady)
 		{
-			displayList0 = glGenLists(materialCount) - 1;
+			displayList0 = glGenLists(materialCount);
 			
 			// Ensure all textures are loaded
-			for (ti = 1; ti <= materialCount; ti++)
+			for (ti = 0; ti <= materialCount; ti++)
 			{
 				[materials[ti] ensureFinishedLoading];
 			}
@@ -241,7 +218,7 @@ shaderBindingTarget:(id<OOWeakReferenceSupport>)object
 		glDisable(GL_BLEND);
 		glEnable(GL_TEXTURE_2D);
 		
-		for (ti = 1; ti <= materialCount; ti++)
+		for (ti = 0; ti <= materialCount; ti++)
 		{
 			[materials[ti] apply];
 			if (listsReady)
@@ -370,7 +347,7 @@ shaderBindingTarget:(id<OOWeakReferenceSupport>)object
 {
 	unsigned				i;
 	
-	for (i = 0; i != MAX_TEXTURES_PER_ENTITY; ++i)
+	for (i = 0; i != kOOMeshMaxMaterials; ++i)
 	{
 		[materials[i] setBindingTarget:target];
 	}
@@ -431,7 +408,7 @@ shaderBindingTarget:(id<OOWeakReferenceSupport>)object
 
 	if (!global_usingVAR)
 		return NO;
-	glGenVertexArraysAPPLE(NUM_VERTEX_ARRAY_RANGES, &gVertexArrayRangeObjects[0]);
+	glGenVertexArraysAPPLE(kOOMeshVARCount, &gVertexArrayRangeObjects[0]);
 
 	// INIT OUR DATA
 	//
@@ -440,7 +417,7 @@ shaderBindingTarget:(id<OOWeakReferenceSupport>)object
 	// to data later.
 	//
 
-	for (i = 0; i < NUM_VERTEX_ARRAY_RANGES; i++)
+	for (i = 0; i < kOOMeshVARCount; i++)
 	{
 		gVertexArrayRangeData[i].rangeSize		= 0;
 		gVertexArrayRangeData[i].dataBlockPtr	= nil;
@@ -453,7 +430,7 @@ shaderBindingTarget:(id<OOWeakReferenceSupport>)object
 
 - (void) OGL_AssignVARMemory:(long) size :(void *) data :(Byte) whichVAR
 {
-	if (whichVAR >= NUM_VERTEX_ARRAY_RANGES)
+	if (whichVAR >= kOOMeshVARCount)
 	{
 		usingVAR = NO;
 		return;
@@ -469,7 +446,7 @@ shaderBindingTarget:(id<OOWeakReferenceSupport>)object
 	long	size;
 	Byte	i;
 
-	for (i = 0; i < NUM_VERTEX_ARRAY_RANGES; i++)
+	for (i = 0; i < kOOMeshVARCount; i++)
 	{
 		// SEE IF THIS VAR IS USED
 
@@ -557,35 +534,31 @@ shaderBindingTarget:(id<OOWeakReferenceSupport>)target
 						  shaderBindingTarget:(id<OOWeakReferenceSupport>)target
 {
 	OOMeshMaterialCount		i;
-	NSString				*key = nil;
 	OOMaterial				*material = nil;
 	static OOBasicMaterial	*placeholderMaterial = nil;
 	NSDictionary			*materialDefaults = nil;
 	
-	for (i = 1; i <= materialCount; ++i)
+	if (materialCount != 0)
 	{
-		key = texFileNames[i];
-		
-		if (![key isEqualToString:@""])
+		for (i = 0; i != materialCount; ++i)
 		{
-			material = [OOMaterial materialWithName:texFileNames[i]
+			material = [OOMaterial materialWithName:materialKeys[i]
 								 materialDictionary:materialDict
 								  shadersDictionary:shadersDict
 											 macros:macros
 									defaultBindings:(NSDictionary *)defaults
 									  bindingTarget:target];
+			materials[i] = [material retain];
 		}
-		else
+	}
+	else
+	{
+		if (placeholderMaterial == nil)
 		{
-			if (placeholderMaterial == nil)
-			{
-				materialDefaults = [ResourceManager dictionaryFromFilesNamed:@"material-defaults.plist" inFolder:@"Config" andMerge:YES];
-				placeholderMaterial = [[OOBasicMaterial alloc] initWithName:@"/placeholder/" configuration:[materialDefaults dictionaryForKey:@"no-textures-material"]];
-			}
-			material = placeholderMaterial;
+			materialDefaults = [ResourceManager dictionaryFromFilesNamed:@"material-defaults.plist" inFolder:@"Config" andMerge:YES];
+			placeholderMaterial = [[OOBasicMaterial alloc] initWithName:@"/placeholder/" configuration:[materialDefaults dictionaryForKey:@"no-textures-material"]];
 		}
-		materials[i] = material;
-		[materials[i] retain];
+		material = [placeholderMaterial retain];
 	}
 }
 
@@ -601,10 +574,10 @@ shaderBindingTarget:(id<OOWeakReferenceSupport>)target
 	{
 		[result->baseFile retain];
 		[result->octree retain];
-		[result->textureNameSet retain];
 		
-		for (i = 0; i != MAX_TEXTURES_PER_ENTITY; ++i)
+		for (i = 0; i != kOOMeshMaxMaterials; ++i)
 		{
+			[result->materialKeys[i] retain];
 			[result->materials[i] retain];
 		}
 		
@@ -624,7 +597,7 @@ shaderBindingTarget:(id<OOWeakReferenceSupport>)target
 {
 	unsigned				i;
 	
-	for (i = 0; i != MAX_TEXTURES_PER_ENTITY; ++i)
+	for (i = 0; i != kOOMeshMaxMaterials; ++i)
 	{
 		[materials[i] reloadTextures];
 	}
@@ -638,7 +611,7 @@ shaderBindingTarget:(id<OOWeakReferenceSupport>)target
 {
 	if (listsReady)
 	{
-		glDeleteLists(displayList0 + 1, materialCount);
+		glDeleteLists(displayList0, materialCount);
 		listsReady = NO;
 	}
 }
@@ -646,7 +619,14 @@ shaderBindingTarget:(id<OOWeakReferenceSupport>)target
 
 - (NSDictionary*) modelData
 {
-	// FIXME: reimplement cache rep
+	NSData				*vertData = nil;
+	NSData				*normData = nil;
+	NSData				*faceData = nil;
+	
+	vertData = [NSData dataWithBytesNoCopy:vertices length:sizeof *vertices * vertexCount freeWhenDone:NO];
+	normData = [NSData dataWithBytesNoCopy:normals length:sizeof *normals * vertexCount freeWhenDone:NO];
+	faceData = [NSData dataWithBytesNoCopy:faces length:sizeof *faces * faceCount freeWhenDone:NO];
+	
 	return nil;
 }
 
@@ -667,7 +647,7 @@ shaderBindingTarget:(id<OOWeakReferenceSupport>)target
     BOOL				failFlag = NO;
     NSString			*failString = @"***** ";
     int					i, j;
-	NSMutableSet		*texFiles = nil;
+	NSMutableDictionary	*texFileName2Idx = nil;
 	
 	BOOL using_preloaded = NO;
 	
@@ -679,13 +659,13 @@ shaderBindingTarget:(id<OOWeakReferenceSupport>)target
 	
 	if (!using_preloaded)
 	{
-		texFiles = [NSMutableSet set];
+		texFileName2Idx = [NSMutableDictionary dictionary];
 		
 		data = [ResourceManager stringFromFilesNamed:filename inFolder:@"Models"];
 		if (data == nil)
 		{
 			// Model not found
-			OOLog(kOOLogEntityDataNotFound, @"ERROR - could not find %@", filename);
+			OOLog(kOOLogMeshDataNotFound, @"ERROR - could not find %@", filename);
 			return NO;
 		}
 
@@ -717,7 +697,7 @@ shaderBindingTarget:(id<OOWeakReferenceSupport>)target
 		// get number of vertices
 		//
 		[scanner setScanLocation:0];	//reset
-		if ([scanner scanString:@"NVERTS" intoString:(NSString **)nil])
+		if ([scanner scanString:@"NVERTS" intoString:NULL])
 		{
 			int n_v;
 			if ([scanner scanInt:&n_v])
@@ -734,17 +714,16 @@ shaderBindingTarget:(id<OOWeakReferenceSupport>)target
 			failString = [NSString stringWithFormat:@"%@Failed to read NVERTS\n",failString];
 		}
 
-		if (vertexCount > MAX_VERTICES_PER_ENTITY)
+		if (vertexCount > kOOMeshMaxVertices)
 		{
-			OOLog(kOOLogEntityTooManyVertices, @"ERROR - model %@ has too many vertices (model has %d, maximum is %d)", filename, vertexCount, MAX_VERTICES_PER_ENTITY);
-			failFlag = YES;
+			OOLog(kOOLogMeshTooManyVertices, @"ERROR - model %@ has too many vertices (model has %d, maximum is %d)", filename, vertexCount, kOOMeshMaxVertices);
 			return NO;
 		}
 
 		// get number of faces
 		//
 		//[scanner setScanLocation:0];	//reset
-		if ([scanner scanString:@"NFACES" intoString:(NSString **)nil])
+		if ([scanner scanString:@"NFACES" intoString:NULL])
 		{
 			int n_f;
 			if ([scanner scanInt:&n_f])
@@ -761,18 +740,16 @@ shaderBindingTarget:(id<OOWeakReferenceSupport>)target
 			failString = [NSString stringWithFormat:@"%@Failed to read NFACES\n",failString];
 		}
 
-		if (faceCount > MAX_FACES_PER_ENTITY)
+		if (faceCount > kOOMeshMaxFaces)
 		{
-			OOLog(kOOLogEntityTooManyFaces, @"ERROR - model %@ has too many faces (model has %d, maximum is %d)", filename, faceCount, MAX_FACES_PER_ENTITY);
-			failFlag = YES;
-			// ERROR model file not found
+			OOLog(kOOLogMeshTooManyFaces, @"ERROR - model %@ has too many faces (model has %d, maximum is %d)", filename, faceCount, kOOMeshMaxFaces);
 			return NO;
 		}
 
 		// get vertex data
 		//
 		//[scanner setScanLocation:0];	//reset
-		if ([scanner scanString:@"VERTEX" intoString:(NSString **)nil])
+		if ([scanner scanString:@"VERTEX" intoString:NULL])
 		{
 			for (j = 0; j < vertexCount; j++)
 			{
@@ -804,7 +781,7 @@ shaderBindingTarget:(id<OOWeakReferenceSupport>)target
 
 		// get face data
 		//
-		if ([scanner scanString:@"FACES" intoString:(NSString **)nil])
+		if ([scanner scanString:@"FACES" intoString:NULL])
 		{
 			for (j = 0; j < faceCount; j++)
 			{
@@ -824,8 +801,6 @@ shaderBindingTarget:(id<OOWeakReferenceSupport>)target
 					if (!failFlag)
 					{
 						faces[j].red = r/255.0;
-						faces[j].green = g/255.0;
-						faces[j].blue = b/255.0;
 					}
 					else
 					{
@@ -890,31 +865,42 @@ shaderBindingTarget:(id<OOWeakReferenceSupport>)target
 
 		// get textures data
 		//
-		if ([scanner scanString:@"TEXTURES" intoString:(NSString **)nil])
+		if ([scanner scanString:@"TEXTURES" intoString:NULL])
 		{
 			for (j = 0; j < faceCount; j++)
 			{
-				NSString	*texfile;
+				NSString	*materialKey;
 				float	max_x, max_y;
 				float	s, t;
 				if (!failFlag)
 				{
-					// texfile
+					// materialKey
 					//
-					[scanner scanCharactersFromSet:[NSCharacterSet whitespaceAndNewlineCharacterSet] intoString:(NSString **)nil];
-					if (![scanner scanUpToCharactersFromSet:[NSCharacterSet whitespaceCharacterSet] intoString:&texfile])
+					[scanner scanCharactersFromSet:[NSCharacterSet whitespaceAndNewlineCharacterSet] intoString:NULL];
+					if (![scanner scanUpToCharactersFromSet:[NSCharacterSet whitespaceCharacterSet] intoString:&materialKey])
 					{
 						failFlag = YES;
 						failString = [NSString stringWithFormat:@"%@Failed to read texture filename for face[%d] in TEXTURES\n", failString, j];
 					}
 					else
 					{
-					//	strlcpy(faces[j].textureFileName, [texfile UTF8String], 256);
-						faces[j].texFileName = [texFiles member:texfile];
-						if (faces[j].texFileName == nil)
+						NSNumber *index = [texFileName2Idx objectForKey:materialKey];
+						if (index != nil)
 						{
-							[texFiles addObject:texfile];
-							faces[j].texFileName = texfile;	// Not retained; we retain the set later instead.
+							faces[j].materialIndex = [index unsignedIntValue];
+						}
+						else
+						{
+							if (materialCount == kOOMeshMaxMaterials)
+							{
+								OOLog(kOOLogMeshTooManyMaterials, @"ERROR - model %@ has too many materials (maximum is %d)", filename, kOOMeshMaxMaterials);
+								return NO;
+							}
+							faces[j].materialIndex = materialCount;
+							materialKeys[materialCount] = [materialKey retain];
+							index = [NSNumber numberWithUnsignedInt:materialCount];
+							[texFileName2Idx setObject:index forKey:materialKey];
+							++materialCount;
 						}
 					}
 
@@ -955,6 +941,7 @@ shaderBindingTarget:(id<OOWeakReferenceSupport>)target
 		{
 			failFlag = YES;
 			failString = [NSString stringWithFormat:@"%@Failed to find TEXTURES data (will use placeholder material)\n",failString];
+			materialCount = 1;
 		}
 		
 		[self checkNormalsAndAdjustWinding];
@@ -984,8 +971,6 @@ shaderBindingTarget:(id<OOWeakReferenceSupport>)target
 	{
 		[self OGL_AssignVARMemory:sizeof(EntityData) :(void *)&entityData :0];
 	}
-	
-	textureNameSet = [texFiles retain];
 	
 	return YES;
 }
@@ -1093,9 +1078,7 @@ shaderBindingTarget:(id<OOWeakReferenceSupport>)target
 
 - (void) setUpVertexArrays
 {
-	NSMutableSet	*texturesProcessed = [NSMutableSet setWithCapacity:MAX_TEXTURES_PER_ENTITY];
-
-	int face, fi, vi, texi;
+	int fi, vi, mi;
 
 	// if isSmoothShaded find any vertices that are between faces of two different colour (by red value)
 	// and mark them as being on an edge and therefore NOT smooth shaded
@@ -1128,64 +1111,45 @@ shaderBindingTarget:(id<OOWeakReferenceSupport>)target
 	int tri_index = 0;
 	int uv_index = 0;
 	int vertex_index = 0;
-
-	texi = 1; // index of first texture
 	
-	for (face = 0; face < faceCount; face++)
+	// Iterate over material names
+	for (mi = 0; mi != materialCount; ++mi)
 	{
-		NSString* tex_string = faces[face].texFileName;
-		if (tex_string == nil)  tex_string = @"";
-		if ([texturesProcessed member:tex_string] == nil)
+		triangle_range[mi].location = tri_index;
+		
+		for (fi = 0; fi < faceCount; fi++)
 		{
-			// do this texture
-			triangle_range[texi].location = tri_index;
-			texFileNames[texi] = tex_string;	// Not retained; it's in textureNameSet.
+			Vector normal;
 			
-			for (fi = 0; fi < faceCount; fi++)
+			if (faces[fi].materialIndex == mi)
 			{
-				Vector normal = make_vector( 0.0, 0.0, 1.0);
-				int v;
-				if (!isSmoothShaded)
-					normal = faces[fi].normal;
-				if (faces[fi].texFileName == faces[face].texFileName)	// Identical duplicate strings should not occur, so pointer comparision is OK.
+				for (vi = 0; vi < 3; vi++)
 				{
-					for (vi = 0; vi < 3; vi++)
+					int v = faces[fi].vertex[vi];
+					if (isSmoothShaded)
 					{
-						v = faces[fi].vertex[vi];
-						if (isSmoothShaded)
-						{
-							if (is_edge_vertex[v])
-								normal = [self normalForVertex:v withSharedRedValue:faces[fi].red];
-							else
-								normal = normals[v];
-						}
+						if (is_edge_vertex[v])
+							normal = [self normalForVertex:v withSharedRedValue:faces[fi].red];
 						else
-						{
-							normal = faces[fi].normal;
-						}
-						
-						entityData.index_array[tri_index++] = vertex_index;
-						entityData.normal_array[vertex_index] = normal;
-						entityData.vertex_array[vertex_index++] = vertices[v];
-						entityData.texture_uv_array[uv_index++] = faces[fi].s[vi];
-						entityData.texture_uv_array[uv_index++] = faces[fi].t[vi];
+							normal = normals[v];
 					}
+					else
+					{
+						normal = faces[fi].normal;
+					}
+					
+					entityData.index_array[tri_index++] = vertex_index;
+					entityData.normal_array[vertex_index] = normal;
+					entityData.vertex_array[vertex_index++] = vertices[v];
+					entityData.texture_uv_array[uv_index++] = faces[fi].s[vi];
+					entityData.texture_uv_array[uv_index++] = faces[fi].t[vi];
 				}
 			}
-			triangle_range[texi].length = tri_index - triangle_range[texi].location;
-
-			//finally...
-			[texturesProcessed addObject:tex_string];
-			texi++;
 		}
+		triangle_range[mi].length = tri_index - triangle_range[mi].location;
 	}
-	entityData.n_triangles = tri_index;	// total number of triangle vertices
-	triangle_range[0] = NSMakeRange( 0, tri_index);
 	
-	[textureNameSet release];
-	textureNameSet = [texturesProcessed copy];
-
-	materialCount = texi - 1;
+	entityData.n_triangles = tri_index;	// total number of triangle vertices
 }
 
 
@@ -1304,7 +1268,7 @@ shaderBindingTarget:(id<OOWeakReferenceSupport>)target
 	glDisable(GL_TEXTURE_2D);
 	
 	// Find largest used triangle index
-	for (i = 0; i != 3 * MAX_FACES_PER_ENTITY; ++i)
+	for (i = 0; i != 3 * kOOMeshMaxFaces; ++i)
 	{
 		if (max < entityData.index_array[i])  max = entityData.index_array[i];
 	}

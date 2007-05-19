@@ -43,41 +43,39 @@ MA 02110-1301, USA.
 
 enum
 {
-	MAX_VERTICES_PER_ENTITY		= 320,
-	MAX_FACES_PER_ENTITY		= 512,
-	MAX_TEXTURES_PER_ENTITY		= 8,
-	MAX_VERTICES_PER_FACE		= 16,
 	
-	NUM_VERTEX_ARRAY_RANGES		= 16
+	kOOMeshMaxVertices			= 500,
+	kOOMeshMaxFaces				= 800,
+	kOOMeshMaxMaterials			= 8,
+	kOOMeshMaxVertsPerFace		= 16,
+	
+	kOOMeshVARCount				= 16
 };
 
 
 typedef struct
 {
 	GLfloat					red;
-	GLfloat					green;
-	GLfloat					blue;
 	
 	Vector					normal;
 	
 	int						n_verts;
+	GLint					vertex[kOOMeshMaxVertsPerFace];
 	
-	GLint					vertex[MAX_VERTICES_PER_FACE];
-	
-	NSString				*texFileName;
-	GLfloat					s[MAX_VERTICES_PER_FACE];
-	GLfloat					t[MAX_VERTICES_PER_FACE];
+	unsigned				materialIndex;
+	GLfloat					s[kOOMeshMaxVertsPerFace];
+	GLfloat					t[kOOMeshMaxVertsPerFace];
 } OOMeshFace;
 
 
 typedef struct
 {
-	GLint					index_array[3 * MAX_FACES_PER_ENTITY];	// triangles
-	GLfloat					texture_uv_array[3 * MAX_FACES_PER_ENTITY * 2];
-	Vector					vertex_array[3 * MAX_FACES_PER_ENTITY];
-	Vector					normal_array[3 * MAX_FACES_PER_ENTITY];
+	GLint					index_array[3 * kOOMeshMaxFaces];	// triangles
+	GLfloat					texture_uv_array[3 * kOOMeshMaxFaces * 2];
+	Vector					vertex_array[3 * kOOMeshMaxFaces];
+	Vector					normal_array[3 * kOOMeshMaxFaces];
 	
-	int						n_triangles;
+	int						n_triangles;	// Actually number of entries, i.e. triangle count * 3.
 } EntityData;
 
 
@@ -108,16 +106,15 @@ typedef uint8_t				OOMeshMaterialCount;
 	OOMeshFaceCount			faceCount;
     
     NSString				*baseFile;
-	NSSet					*textureNameSet;
 	
-    Vector					vertices[MAX_VERTICES_PER_ENTITY];
-    Vector					normals[MAX_VERTICES_PER_ENTITY];
-    OOMeshFace				faces[MAX_FACES_PER_ENTITY];
+    Vector					vertices[kOOMeshMaxVertices];
+    Vector					normals[kOOMeshMaxVertices];
+    OOMeshFace				faces[kOOMeshMaxFaces];
 	
 	EntityData				entityData;
-	NSRange					triangle_range[MAX_TEXTURES_PER_ENTITY];
-	NSString				*texFileNames[MAX_TEXTURES_PER_ENTITY];
-	OOMaterial				*materials[MAX_TEXTURES_PER_ENTITY];
+	NSRange					triangle_range[kOOMeshMaxMaterials];
+	NSString				*materialKeys[kOOMeshMaxMaterials];
+	OOMaterial				*materials[kOOMeshMaxMaterials];
     GLuint					displayList0;
 	
 	GLfloat					collisionRadius;
@@ -128,8 +125,8 @@ typedef uint8_t				OOMeshMaterialCount;
 	
 	// COMMON OGL STUFF
 #if GL_APPLE_vertex_array_object
-	GLuint					gVertexArrayRangeObjects[NUM_VERTEX_ARRAY_RANGES];	// OpenGL's VAR object references
-	VertexArrayRangeType	gVertexArrayRangeData[NUM_VERTEX_ARRAY_RANGES];		// our info about each VAR block
+	GLuint					gVertexArrayRangeObjects[kOOMeshVARCount];	// OpenGL's VAR object references
+	VertexArrayRangeType	gVertexArrayRangeData[kOOMeshVARCount];		// our info about each VAR block
 #endif
 }
 

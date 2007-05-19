@@ -606,7 +606,7 @@ BOOL global_testForVAR;
 		// get number of vertices
 		//
 		[scanner setScanLocation:0];	//reset
-		if ([scanner scanString:@"NVERTS" intoString:(NSString **)nil])
+		if ([scanner scanString:@"NVERTS" intoString:NULL])
 		{
 			int n_v;
 			if ([scanner scanInt:&n_v])
@@ -638,7 +638,7 @@ BOOL global_testForVAR;
 		// get number of faces
 		//
 		//[scanner setScanLocation:0];	//reset
-		if ([scanner scanString:@"NFACES" intoString:(NSString **)nil])
+		if ([scanner scanString:@"NFACES" intoString:NULL])
 		{
 			int n_f;
 			if ([scanner scanInt:&n_f])
@@ -670,7 +670,7 @@ BOOL global_testForVAR;
 		// get vertex data
 		//
 		//[scanner setScanLocation:0];	//reset
-		if ([scanner scanString:@"VERTEX" intoString:(NSString **)nil])
+		if ([scanner scanString:@"VERTEX" intoString:NULL])
 		{
 			for (j = 0; j < vertexCount; j++)
 			{
@@ -702,7 +702,7 @@ BOOL global_testForVAR;
 
 		// get face data
 		//
-		if ([scanner scanString:@"FACES" intoString:(NSString **)nil])
+		if ([scanner scanString:@"FACES" intoString:NULL])
 		{
 			for (j = 0; j < faceCount; j++)
 			{
@@ -784,7 +784,7 @@ BOOL global_testForVAR;
 
 		// get textures data
 		//
-		if ([scanner scanString:@"TEXTURES" intoString:(NSString **)nil])
+		if ([scanner scanString:@"TEXTURES" intoString:NULL])
 		{
 			for (j = 0; j < faceCount; j++)
 			{
@@ -795,7 +795,7 @@ BOOL global_testForVAR;
 				{
 					// texfile
 					//
-					[scanner scanCharactersFromSet:[NSCharacterSet whitespaceAndNewlineCharacterSet] intoString:(NSString **)nil];
+					[scanner scanCharactersFromSet:[NSCharacterSet whitespaceAndNewlineCharacterSet] intoString:NULL];
 					if (![scanner scanUpToCharactersFromSet:[NSCharacterSet whitespaceCharacterSet] intoString:&texfile])
 					{
 						failFlag = YES;

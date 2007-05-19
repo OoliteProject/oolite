@@ -222,7 +222,7 @@ static BOOL		sRectangleTextureAvailable;
 		lodBias = 0.0f;
 	}
 	
-	noFNF = options & kOOTextureNoFNFMessage;
+	noFNF = (options & kOOTextureNoFNFMessage) != 0;
 	options &= ~kOOTextureNoFNFMessage;
 	
 	// Look for existing texture

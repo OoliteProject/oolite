@@ -70,7 +70,6 @@ typedef struct
 
 - (id) initWithColors:(OOColor *) col1:(OOColor *) col2 andSystemInfo:(NSDictionary *) systeminfo;
 - (id) initAsWitchspace;
-- (void) set_up_billboards:(OOColor *) col1:(OOColor *) col2;
 
 - (OOColor *) sky_color;
 

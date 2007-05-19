@@ -29,6 +29,17 @@ MA 02110-1301, USA.
 #import "OOMesh.h" // Currently, we're sharing structures and constants with OOMesh
 
 
+enum
+{
+	MAX_VERTICES_PER_ENTITY		= 512,
+	MAX_FACES_PER_ENTITY		= 300,
+	MAX_TEXTURES_PER_ENTITY		= 8,
+	MAX_VERTICES_PER_FACE		= 16,
+	
+	NUM_VERTEX_ARRAY_RANGES		= 16
+};
+
+
 typedef char OOStr255[256];	// Not the same as the previously-abused Str255
 
 
