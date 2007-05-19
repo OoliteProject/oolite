@@ -47,25 +47,6 @@ OOTexture			*sStarTexture = nil, *sBlobTexture = nil;
 
 @implementation SkyEntity
 
-- (id) init
-{
-	float h1 = (ranrot_rand() % 1024)/1024.0;
-	float h2 = h1 + 1.0 / (1.0 + (ranrot_rand() % 5));
-	while (h2 > 1.0)  h2 -= 1.0;
-	
-	OOColor *col1 = [OOColor colorWithCalibratedHue:h1
-										 saturation:(ranrot_rand() % 1024) / 1024.0
-										 brightness:0.5 + (ranrot_rand() % 1024) / 2048.0
-											  alpha:1.0];
-	OOColor *col2 = [OOColor colorWithCalibratedHue:h2
-										 saturation:0.5 +(ranrot_rand() % 1024) / 2048.0
-										 brightness:0.5 +(ranrot_rand() % 1024) / 2048.0
-											  alpha:1.0];
-	
-	return [self initWithColors:col1 :col2 andSystemInfo:nil];
-}
-
-
 - (id) initWithColors:(OOColor *) col1:(OOColor *) col2 andSystemInfo:(NSDictionary *) systemInfo
 {
     self = [super init];
