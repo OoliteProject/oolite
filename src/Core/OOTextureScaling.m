@@ -702,7 +702,7 @@ static void StretchVerticallyN_x1(OOScalerPixMap srcPx, OOScalerPixMap dstPx, OO
 	srcRowBytes = srcPx.rowBytes;
 	dst = dstPx.pixels;	// Assumes dstPx.width == dstPx.rowBytes.
 	
-	prev = src;
+	src0 = prev = src;
 	
 	xCount = srcPx.width * planes;
 	
@@ -750,7 +750,7 @@ static void StretchVerticallyN_x4(OOScalerPixMap srcPx, OOScalerPixMap dstPx, OO
 	srcRowBytes = srcPx.rowBytes;
 	dst = dstPx.pixels;	// Assumes no row padding.
 	
-	prev = (uint32_t *)src;
+	src0 = prev = (uint32_t *)src;
 	
 	xCount = (srcPx.width * planes) >> 2;
 	
@@ -851,10 +851,10 @@ static void StretchHorizontally1(OOScalerPixMap srcPx, OOScalerPixMap dstPx)
 	dst = dstPx.pixels;	// Assumes no row padding
 	
 	deltaX = (srcPx.width << 12) / dstPx.width;
+	px1 = *srcStart;
 	
 	for (y = 0; y != dstPx.height; ++y)
 	{
-		px1 = *srcStart;
 		fractX = 0;
 		
 		if (y == dstPx.height - 1)  --xCount;
@@ -873,6 +873,7 @@ static void StretchHorizontally1(OOScalerPixMap srcPx, OOScalerPixMap dstPx)
 		}
 		
 		srcStart = (uint8_t *)((char *)srcStart + srcRowBytes);
+		px1 = *srcStart;
 	}
 	
 	// Copy last pixel without reading off end of buffer
@@ -895,10 +896,10 @@ static void StretchHorizontally4(OOScalerPixMap srcPx, OOScalerPixMap dstPx)
 	dst = dstPx.pixels;	// Assumes no row padding
 	
 	deltaX = (srcPx.width << 12) / dstPx.width;
+	px1 = *srcStart;
 	
 	for (y = 0; y != dstPx.height; ++y)
 	{
-		px1 = *srcStart;
 		fractX = 0;
 		
 		if (y == dstPx.height - 1)  --xCount;
@@ -920,6 +921,7 @@ static void StretchHorizontally4(OOScalerPixMap srcPx, OOScalerPixMap dstPx)
 		}
 		
 		srcStart = (uint32_t *)((char *)srcStart + srcRowBytes);
+		px1 = *srcStart;
 	}
 	
 	// Copy last pixel without reading off end of buffer
