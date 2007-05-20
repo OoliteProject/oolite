@@ -1,0 +1,7 @@
+"interstellar space!" =
+{
+	sky_color_1 = (0, 0.5, 1);
+	sky_color_2 = (0, 1, 0);
+	sky_n_stars = 480;
+	sky_n_blobs = 128;
+};
