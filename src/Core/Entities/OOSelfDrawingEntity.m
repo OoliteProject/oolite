@@ -30,7 +30,6 @@ MA 02110-1301, USA.
 #import "OOOpenGLExtensionManager.h"
 
 
-static NSString * const kOOLogOpenGLStateDump				= @"rendering.opengl.stateDump";
 static NSString * const kOOLogEntityDataNotFound			= @"entity.loadMesh.failed.fileNotFound";
 static NSString * const kOOLogEntityTooManyVertices			= @"entity.loadMesh.failed.tooManyVertices";
 static NSString * const kOOLogEntityTooManyFaces			= @"entity.loadMesh.failed.tooManyFaces";
@@ -222,7 +221,7 @@ static NSString * const kOOLogEntityTooManyFaces			= @"entity.loadMesh.failed.to
 			}
 		}
 		if (!isSmoothShaded) glShadeModel(GL_SMOOTH);
-		CheckOpenGLErrors([NSString stringWithFormat:@"Entity after drawing %@", self]);
+		CheckOpenGLErrors(@"OOSelfDrawingEntity after drawing %@", self);
 		brokenInRender = NO;
 	NS_HANDLER
 		if (!brokenInRender)
@@ -354,9 +353,6 @@ static NSString * const kOOLogEntityTooManyFaces			= @"entity.loadMesh.failed.to
 		glNewList(displayListName, GL_COMPILE);
 		[self drawEntity:YES:NO];	//	immediate YES	translucent NO
 		glEndList();
-		//
-		CheckOpenGLErrors([NSString stringWithFormat:@"Entity after generateDisplayList for %@", self]);
-		//
 	}
 }
 

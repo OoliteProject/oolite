@@ -1493,7 +1493,7 @@ void setUpSinTable()
 			break;
 	}
 	glFrontFace(GL_CCW);			// face culling - front faces are AntiClockwise!
-	CheckOpenGLErrors([NSString stringWithFormat:@"PlanetEntity after drawing %@", self]);
+	CheckOpenGLErrors(@"PlanetEntity after drawing %@", self);
 }
 
 void drawBall (double radius, int step, double z_distance)

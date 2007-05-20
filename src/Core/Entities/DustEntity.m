@@ -186,7 +186,7 @@ MA 02110-1301, USA.
 		glDisable(GL_FOG);
 	}
 	//
-	CheckOpenGLErrors([NSString stringWithFormat:@"DustEntity after drawing %@", self]);
+	CheckOpenGLErrors(@"DustEntity after drawing %@", self);
 	//
 }
 

@@ -316,7 +316,7 @@ float char_widths[128] = {
 			NSLog(@"DEBUG HeadUpDisplay does not respond to '%@'",[info objectForKey:SELECTOR_KEY]);
 	}
 //
-CheckOpenGLErrors([NSString stringWithFormat:@"HeadUpDisplay after drawHUDItem %@", info]);
+CheckOpenGLErrors(@"HeadUpDisplay after drawHUDItem %@", info);
 //
 }
 

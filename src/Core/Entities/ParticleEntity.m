@@ -1543,12 +1543,11 @@ static	Vector	circleVertex[65];		// holds vector coordinates for a unit circle
 				break;
 
 			default :
-//				NSLog(@"drawParticle immediate:%@ translucent:%@", immediate? @"YES":@"NO", translucent? @"YES":@"NO");
 				[self drawParticle];
 				break;
 		}
 	}
-	CheckOpenGLErrors([NSString stringWithFormat:@"ParticleEntity after drawing %@ %@", self, debug_type]);
+	CheckOpenGLErrors(@"ParticleEntity after drawing %@ %@", self, debug_type);
 }
 
 - (void) drawSubEntity:(BOOL) immediate :(BOOL) translucent

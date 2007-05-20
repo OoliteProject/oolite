@@ -4,6 +4,9 @@ OOOpenGL.h
 
 Do whatever is appropriate to get gl.h, glu.h and glext.h included.
 
+Also declares OpenGL-related utility functions.
+
+
 Oolite
 Copyright (C) 2004-2007 Giles C Williams and contributors
 
@@ -74,3 +77,18 @@ typedef uintptr_t OOOpenGLContext;	// Opaque context identifier
 
 
 #define NULL_SHADER ((GLhandleARB)0)
+
+
+/*	CheckOpenGLErrors()
+	Check for and log OpenGL errors, and returns YES if an error occurred.
+	NOTE: this is controlled by the log message class rendering.opengl.error.
+		  If logging is disabled, no error checking will occur. This is done
+		  because glGetError() is quite expensive, requiring a full OpenGL
+		  state sync.
+*/
+BOOL CheckOpenGLErrors(NSString *format, ...);
+
+/*	LogOpenGLState()
+	Write a bunch of OpenGL state information to the log.
+*/
+void LogOpenGLState(void);

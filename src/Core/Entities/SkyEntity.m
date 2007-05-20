@@ -242,7 +242,7 @@ static OOTexture		*sStarTexture, *sBlobTexture;
 		glEnable(GL_DEPTH_TEST);		// read the depth buffer
 		glDepthMask(GL_TRUE);			// restore write to depth buffer
 	}
-	CheckOpenGLErrors([NSString stringWithFormat:@"SkyEntity after drawing %@", self]);
+	CheckOpenGLErrors(@"SkyEntity after drawing %@", self);
 }
 
 @end
@@ -478,8 +478,6 @@ static OOTexture		*sStarTexture, *sBlobTexture;
 		glNewList(displayListName, GL_COMPILE);
 		[self drawEntity:YES:NO];	//	immediate YES	translucent NO
 		glEndList();
-		
-		CheckOpenGLErrors([NSString stringWithFormat:@"Entity after generateDisplayList for %@", self]);
 	}
 }
 

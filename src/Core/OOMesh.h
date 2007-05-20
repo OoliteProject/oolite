@@ -136,22 +136,6 @@ shaderBindingTarget:(id<OOWeakReferenceSupport>)object;
 @end
 
 
-// TODO: move this stuff to OOOpenGL
-
-// keep track of various OpenGL states
-void my_glEnable(GLenum gl_state);
-void my_glDisable(GLenum gl_state);
-
-// log a list of current states
-//
-void LogOpenGLState();
-
-// check for OpenGL errors, reporting them if where is not nil
-//
-BOOL CheckOpenGLErrors(NSString* where);
-
-
-
 #import "OOCacheManager.h"
 @interface OOCacheManager (Octree)
 

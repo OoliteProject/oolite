@@ -2081,8 +2081,6 @@ double scoopSoundPlayTime = 0.0;
 		return;	// don't draw
 
 	[super drawEntity: immediate : translucent];
-
-	CheckOpenGLErrors([NSString stringWithFormat:@"after drawing PlayerEntity %@", self]);
 }
 
 - (BOOL) massLocked

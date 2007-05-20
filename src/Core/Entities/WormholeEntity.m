@@ -263,7 +263,7 @@ MA 02110-1301, USA.
 					
 		glEnable(GL_CULL_FACE);			// face culling
 	}
-	CheckOpenGLErrors(@"after drawing WormholeEntity.");
+	CheckOpenGLErrors(@"WormholeEntity after drawing %@", self);
 }
 
 void drawWormholeCorona (double inner_radius, double outer_radius, int step, double z_distance, GLfloat* col4v1)
