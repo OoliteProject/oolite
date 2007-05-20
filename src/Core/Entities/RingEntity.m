@@ -78,13 +78,6 @@ Ringdata	ringentity;
 		}
 	}
 	
-#if GL_APPLE_vertex_array_object
-	usingVAR = [self OGL_InitVAR];
-	//
-	if (usingVAR)
-		[self OGL_AssignVARMemory:sizeof(Ringdata) :(void *)&ringentity :0];
-#endif
-	
 	lifetime = 50.0;
 	status = STATUS_EFFECT;
 	
@@ -99,10 +92,7 @@ Ringdata	ringentity;
 }
 
 - (void) update:(double) delta_t
-{	
-	if (usingVAR)
-		[self OGL_UpdateVAR];
-	
+{
 	[super update:delta_t];
 			
     {
@@ -130,10 +120,6 @@ Ringdata	ringentity;
 		{
 			if (immediate)
 			{
-#if GL_APPLE_vertex_array_object
-				if (usingVAR)  glBindVertexArrayAPPLE(gVertexArrayRangeObjects[0]);
-#endif            
-				
 				glEnableClientState(GL_VERTEX_ARRAY);
 				glVertexPointer( 3, GL_FLOAT, 0, ringentity.vertex_array);
 				// 3 coords per vertex

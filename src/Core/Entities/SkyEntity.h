@@ -52,20 +52,21 @@ typedef struct
 
 @class OOColor;
 
-@interface SkyEntity: OOSelfDrawingEntity
+@interface SkyEntity: Entity
 {
-	OOColor			*sky_color;
+	OOColor					*sky_color;
 	
-	SkyStarsData	starsData;
-	SkyBlobsData	blobsData;
+	SkyStarsData			starsData;
+	SkyBlobsData			blobsData;
 	
-	double			blob_cluster_chance;
-	double			blob_alpha;
-	double			blob_scale;
-	double			blob_scale_prime;
+	double					blob_cluster_chance;
+	double					blob_alpha;
+	double					blob_scale;
+	double					blob_scale_prime;
 	
-	int				n_stars, n_blobs;
+	int						n_stars, n_blobs;
 	
+    GLuint					displayListName;
 }
 
 - (id) initWithColors:(OOColor *) col1:(OOColor *) col2 andSystemInfo:(NSDictionary *) systeminfo;

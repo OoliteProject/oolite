@@ -145,15 +145,6 @@ static unsigned IntegerFromString(const GLubyte **ioString);
 			glBufferDataARB = (PFNGLBUFFERDATAARBPROC)wglGetProcAddress("glBufferDataARB");
 		}
 #endif
-		
-#if GL_APPLE_vertex_array_object
-		if ([self haveExtension:@"GL_APPLE_vertex_array_object"])
-		{
-			glBindBufferARB = (PFNGLBINDBUFFERARBPROC)wglGetProcAddress("glBindBufferARB");
-			glGenBuffersARB = (PFNGLGENBUFFERSARBPROC)wglGetProcAddress("glGenBuffersARB");
-			glBufferDataARB = (PFNGLBUFFERDATAARBPROC)wglGetProcAddress("glBufferDataARB");
-		}
-#endif
 #endif
 		
 #ifndef NO_SHADERS

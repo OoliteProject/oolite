@@ -349,17 +349,11 @@ void setUpSinTable()
 
 	// set speed of rotation
 	rotational_velocity = 0.01 + 0.02 * randf();	// 0.01 .. 0.03 avr 0.02;
-
-	//
-	usingVAR = [self OGL_InitVAR];
-	//
-	if (usingVAR)
-		[self OGL_AssignVARMemory:sizeof(VertexData) :(void *)&vertexdata :0];
-	//
+	
 	isPlanet = YES;
-	//
+	
 	root_planet = planet;
-	//
+	
     return self;
 }
 
@@ -536,18 +530,11 @@ void setUpSinTable()
 	// do atmosphere
 	//
 	atmosphere = [[PlanetEntity alloc] initAsAtmosphereForPlanet:self];
-
-	//
-	usingVAR = [self OGL_InitVAR];
-	//
-	if (usingVAR)
-		[self OGL_AssignVARMemory:sizeof(VertexData) :(void *)&vertexdata :0];
-	//
-	//
+	
 	isPlanet = YES;
-	//
+	
 	root_planet = self;
-	//
+	
     return self;
 }
 
@@ -613,17 +600,10 @@ void setUpSinTable()
 	//
 	atmosphere = [[PlanetEntity alloc] initAsAtmosphereForPlanet:self];
 
-	//
-	usingVAR = [self OGL_InitVAR];
-	//
-	if (usingVAR)
-		[self OGL_AssignVARMemory:sizeof(VertexData) :(void *)&vertexdata :0];
-	//
-	//
 	isPlanet = YES;
-	//
+	
 	root_planet = self;
-	//
+	
     return self;
 }
 
@@ -790,11 +770,6 @@ void setUpSinTable()
 
 	// set energy
 	energy = collision_radius * 1000.0;
-
-	usingVAR = [self OGL_InitVAR];
-	
-	if (usingVAR)
-		[self OGL_AssignVARMemory:sizeof(VertexData) :(void *)&vertexdata :0];
 	
 	isPlanet = YES;
 	
@@ -961,16 +936,10 @@ void setUpSinTable()
 
 	energy = collision_radius * 1000.0;
 
-	//
-	usingVAR = [self OGL_InitVAR];
-	//
-	if (usingVAR)
-		[self OGL_AssignVARMemory:sizeof(VertexData) :(void *)&vertexdata :0];
-	//
 	isPlanet = YES;
-	//
+	
 	root_planet = self;
-	//
+	
     return self;
 }
 
@@ -1052,9 +1021,6 @@ void setUpSinTable()
 
 - (void) update:(double) delta_t
 {
-	if (usingVAR)
-		[self OGL_UpdateVAR];
-
 	[super update:delta_t];
 	sqrt_zero_distance = sqrt(zero_distance);
 
@@ -1745,11 +1711,7 @@ void drawActiveCorona (double inner_radius, double outer_radius, int step, doubl
 
 - (void) drawModelWithVertexArraysAndSubdivision: (int) subdivide
 {
-#if GL_APPLE_vertex_array_object
-	if (usingVAR)  glBindVertexArrayAPPLE(gVertexArrayRangeObjects[0]);
-#endif
-
-	glDrawElements( GL_TRIANGLES, 3 * n_triangles[subdivide], GL_UNSIGNED_INT, &vertexdata.index_array[triangle_start[subdivide]]);
+	glDrawElements(GL_TRIANGLES, 3 * n_triangles[subdivide], GL_UNSIGNED_INT, &vertexdata.index_array[triangle_start[subdivide]]);
 }
 
 - (void) launchShuttle

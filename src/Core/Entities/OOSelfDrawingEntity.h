@@ -65,9 +65,6 @@ typedef struct
 @interface OOSelfDrawingEntity: Entity
 {
 	uint8_t					isSmoothShaded: 1,
-#if GL_APPLE_vertex_array_object
-							usingVAR: 1,
-#endif
 							brokenInRender: 1,
 							materialsReady: 1;
 	
@@ -86,12 +83,6 @@ typedef struct
 	NSRange					triangle_range[MAX_TEXTURES_PER_ENTITY];
 	OOStr255				textureFileName[MAX_TEXTURES_PER_ENTITY];
 	GLuint					textureNames[MAX_TEXTURES_PER_ENTITY];
-	
-	// COMMON OGL STUFF
-#if GL_APPLE_vertex_array_object
-	GLuint					gVertexArrayRangeObjects[NUM_VERTEX_ARRAY_RANGES];	// OpenGL's VAR object references
-	VertexArrayRangeType	gVertexArrayRangeData[NUM_VERTEX_ARRAY_RANGES];		// our info about each VAR block
-#endif
 }
 
 
@@ -105,15 +96,3 @@ typedef struct
 - (void) initializeTextures;
 
 @end
-
-
-#if GL_APPLE_vertex_array_object
-@interface OOSelfDrawingEntity (OOVertexArrayRange)
-
-// COMMON OGL ROUTINES
-- (BOOL) OGL_InitVAR;
-- (void) OGL_AssignVARMemory:(long) size :(void *) data :(Byte) whichVAR;
-- (void) OGL_UpdateVAR;
-
-@end
-#endif

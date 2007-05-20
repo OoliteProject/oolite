@@ -49,7 +49,10 @@ static OOTexture		*sStarTexture, *sBlobTexture;
 - (void)setUpStarsWithColor1:(OOColor *)color1 color2:(OOColor *)color2;
 - (void)setUpBlobsWithColor1:(OOColor *)color1 color2:(OOColor *)color2;
 
+- (void)generateDisplayList;
+
 - (void)loadTextures;
+- (void)ensureTexturesLoaded;
 
 @end
 
@@ -100,15 +103,6 @@ static OOTexture		*sStarTexture, *sBlobTexture;
 	[self setUpStarsWithColor1:col1 color2:col2];
 	[self setUpBlobsWithColor1:col1 color2:col2];
 	
-#if GL_APPLE_vertex_array_object
-	usingVAR = [self OGL_InitVAR];
-	if (usingVAR)
-	{
-		[self OGL_AssignVARMemory:sizeof(SkyStarsData) :(void *)&starsData :0];
-		[self OGL_AssignVARMemory:sizeof(SkyBlobsData) :(void *)&blobsData :1];
-	}
-#endif
-	
     status = STATUS_EFFECT;
 	isSky = YES;
 	
@@ -139,8 +133,6 @@ static OOTexture		*sStarTexture, *sBlobTexture;
 
 - (void) update:(double) delta_t
 {
-	if (usingVAR)
-		[self OGL_UpdateVAR];
 	PlayerEntity *player = [PlayerEntity sharedPlayer];
 	zero_distance = MAX_CLEAR_DEPTH * MAX_CLEAR_DEPTH;
 	position = (player)? player->position : position;
@@ -165,18 +157,13 @@ static OOTexture		*sStarTexture, *sBlobTexture;
 		glDisable(GL_DEPTH_TEST);	// don't read the depth buffer
 		glDepthMask(GL_FALSE);		// don't write to depth buffer
 		glDisable(GL_CULL_FACE);	// face culling
-		//
-//		glShadeModel(GL_SMOOTH);	// smoothing for color values...
-
+		
 		if (immediate)
-{
+		{
 			glEnable(GL_TEXTURE_2D);
 			glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
 			glBlendFunc(GL_ONE, GL_ONE);	// Pure additive blending, ignoring alpha
 			
-#if GL_APPLE_vertex_array_object
-			if (usingVAR)  glBindVertexArrayAPPLE(gVertexArrayRangeObjects[0]);
-#endif
 			[sStarTexture apply];
 
 			glEnableClientState(GL_VERTEX_ARRAY);
@@ -211,10 +198,6 @@ static OOTexture		*sStarTexture, *sBlobTexture;
 			if (![UNIVERSE reducedDetail])
 			{
 				[sBlobTexture apply];
-				
-#if GL_APPLE_vertex_array_object
-				if (usingVAR)  glBindVertexArrayAPPLE(gVertexArrayRangeObjects[1]);
-#endif
 
 				glEnableClientState(GL_VERTEX_ARRAY);
 				glVertexPointer(3, GL_FLOAT, 0, blobsData.vertex_array);
@@ -250,11 +233,7 @@ static OOTexture		*sStarTexture, *sBlobTexture;
 		else
 		{
 			if (displayListName != 0)  glCallList(displayListName);
-			else
-			{
-				[self initializeTextures];
-				[self generateDisplayList];
-			}
+			else  [self generateDisplayList];
 		}
 
 		// reapply lighting &c
@@ -489,15 +468,24 @@ static OOTexture		*sStarTexture, *sBlobTexture;
 }
 
 
+- (void)generateDisplayList
+{
+	[self ensureTexturesLoaded];
+	
+	displayListName = glGenLists(1);
+	if (displayListName != 0)
+	{
+		glNewList(displayListName, GL_COMPILE);
+		[self drawEntity:YES:NO];	//	immediate YES	translucent NO
+		glEndList();
+		
+		CheckOpenGLErrors([NSString stringWithFormat:@"Entity after generateDisplayList for %@", self]);
+	}
+}
+
+
 - (void)loadTextures
 {
-#if MULTI_TEXTURE_BLOBS
-	unsigned				i;
-	NSString				*name = nil;
-	NSMutableArray			*blobTextures = nil;
-	OOTexture				*tex;
-#endif
-	
 	sStarTexture = [OOTexture textureWithName:@"star64.png"
 									 inFolder:@"Textures"
 									  options:kOOTextureDefaultOptions
@@ -510,6 +498,11 @@ static OOTexture		*sStarTexture, *sBlobTexture;
 									  lodBias:0.0f];
 	
 #if MULTI_TEXTURE_BLOBS
+	unsigned				i;
+	NSString				*name = nil;
+	NSMutableArray			*blobTextures = nil;
+	OOTexture				*tex;
+	
 	blobTextures = [[NSMutableArray alloc] init];
 	i = 1;
 	for (;;)
@@ -527,6 +520,17 @@ static OOTexture		*sStarTexture, *sBlobTexture;
 #endif
 	
 	sLoadedTextures = YES;
+}
+
+
+- (void)ensureTexturesLoaded
+{
+	[sStarTexture ensureFinishedLoading];
+	[sBlobTexture ensureFinishedLoading];
+	
+#if MULTI_TEXTURE_BLOBS
+	[sBlobTextures makeObjectsPerformSelector:@selector(ensureFinishedLoading)];
+#endif
 }
 
 @end

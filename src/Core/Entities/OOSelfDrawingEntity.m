@@ -27,36 +27,29 @@ MA 02110-1301, USA.
 #import "Geometry.h"
 #import "TextureStore.h"
 #import "ResourceManager.h"
+#import "OOOpenGLExtensionManager.h"
 
 
-static NSString * const kOOLogOpenGLExtensionsVAR			= @"rendering.opengl.extensions.var";
 static NSString * const kOOLogOpenGLStateDump				= @"rendering.opengl.stateDump";
 static NSString * const kOOLogEntityDataNotFound			= @"entity.loadMesh.failed.fileNotFound";
 static NSString * const kOOLogEntityTooManyVertices			= @"entity.loadMesh.failed.tooManyVertices";
 static NSString * const kOOLogEntityTooManyFaces			= @"entity.loadMesh.failed.tooManyFaces";
 
 
-#if GL_APPLE_vertex_array_object
-// global flag for VAR
-BOOL global_usingVAR;
-BOOL global_testForVAR;
-#endif
-
-
 @interface OOSelfDrawingEntity (Private)
 
-- (void) loadData:(NSString *)filename;
-- (void) checkNormalsAndAdjustWinding;
-- (void) calculateVertexNormals;
+- (void)loadData:(NSString *)filename;
+- (void)checkNormalsAndAdjustWinding;
+- (void)calculateVertexNormals;
 
-- (NSDictionary*) modelData;
-- (BOOL) setModelFromModelData:(NSDictionary*) dict;
+- (NSDictionary *)modelData;
+- (BOOL)setModelFromModelData:(NSDictionary*) dict;
 
-- (Vector) normalForVertex:(int)v_index withSharedRedValue:(GLfloat)red_value;
+- (Vector)normalForVertex:(int)v_index withSharedRedValue:(GLfloat)red_value;
 
-- (void) fakeTexturesWithImageFile: (NSString *) textureFile andMaxSize:(NSSize) maxSize;
+- (void)fakeTexturesWithImageFile: (NSString *) textureFile andMaxSize:(NSSize) maxSize;
 
-- (void) setUpVertexArrays;
+- (void)setUpVertexArrays;
 
 @end
 
@@ -174,30 +167,21 @@ BOOL global_testForVAR;
 		{
 			if (basefile)
 			{
-				// calls moved here because they are unsupported in display lists
-				//
 				glDisableClientState(GL_COLOR_ARRAY);
 				glDisableClientState(GL_INDEX_ARRAY);
 				glDisableClientState(GL_EDGE_FLAG_ARRAY);
-				//
+				
 				glEnableClientState(GL_VERTEX_ARRAY);
 				glEnableClientState(GL_NORMAL_ARRAY);
 				glEnableClientState(GL_TEXTURE_COORD_ARRAY);
-
-				glVertexPointer( 3, GL_FLOAT, 0, entityData.vertex_array);
-				glNormalPointer( GL_FLOAT, 0, entityData.normal_array);
-				glTexCoordPointer( 2, GL_FLOAT, 0, entityData.texture_uv_array);
-
+				
+				glVertexPointer(3, GL_FLOAT, 0, entityData.vertex_array);
+				glNormalPointer(GL_FLOAT, 0, entityData.normal_array);
+				glTexCoordPointer(2, GL_FLOAT, 0, entityData.texture_uv_array);
+				
 				if (immediate)
 				{
-
-#if GL_APPLE_vertex_array_object
-					if (usingVAR)  glBindVertexArrayAPPLE(gVertexArrayRangeObjects[0]);
-#endif
-					
-					//
 					// gap removal (draws flat polys)
-					//
 					glDisable(GL_TEXTURE_2D);
 					GLfloat amb_diff0[] = { 0.5, 0.5, 0.5, 1.0};
 					glMaterialfv( GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE, amb_diff0);
@@ -206,10 +190,8 @@ BOOL global_testForVAR;
 					glDepthMask(GL_FALSE); // don't write to depth buffer
 					glDrawArrays( GL_TRIANGLES, 0, entityData.n_triangles);	// draw in gray to mask the edges
 					glDepthMask(GL_TRUE);
-
-					//
+					
 					// now the textures ...
-					//
 					glEnable(GL_TEXTURE_2D);
 					glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
 					glMaterialfv( GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE, mat_ambient);
@@ -381,142 +363,9 @@ BOOL global_testForVAR;
 @end
 
 
-#if GL_APPLE_vertex_array_object
-@implementation OOSelfDrawingEntity(OOVertexArrayRange)
-
-// COMMON OGL STUFF
-- (BOOL) OGL_InitVAR
-{
-	short			i;
-	static char*	s;
-
-	if (global_testForVAR)
-	{
-		global_testForVAR = NO;	// no need for further tests after this
-
-		// see if we have supported hardware
-		s = (char *)glGetString(GL_EXTENSIONS);	// get extensions list
-
-		if (strstr(s, "GL_APPLE_vertex_array_range") == 0)
-		{
-			global_usingVAR &= NO;
-			OOLog(kOOLogOpenGLExtensionsVAR, @"Vertex Array Range optimisation - not supported");
-			return NO;
-		}
-		else
-		{
-			OOLog(kOOLogOpenGLExtensionsVAR, @"Vertex Array Range optimisation - supported");
-			global_usingVAR |= YES;
-		}
-	}
-
-	if (!global_usingVAR)
-		return NO;
-	glGenVertexArraysAPPLE(NUM_VERTEX_ARRAY_RANGES, &gVertexArrayRangeObjects[0]);
-
-	// INIT OUR DATA
-	//
-	// None of the VAR objects has been assigned to any data yet,
-	// so here we just initialize our info.  We'll assign the VAR objects
-	// to data later.
-	//
-
-	for (i = 0; i < NUM_VERTEX_ARRAY_RANGES; i++)
-	{
-		gVertexArrayRangeData[i].rangeSize		= 0;
-		gVertexArrayRangeData[i].dataBlockPtr	= nil;
-		gVertexArrayRangeData[i].forceUpdate	= YES;
-		gVertexArrayRangeData[i].activated		= NO;
-	}
-
-	return YES;
-}
-
-- (void) OGL_AssignVARMemory:(long) size :(void *) data :(Byte) whichVAR
-{
-	if (whichVAR >= NUM_VERTEX_ARRAY_RANGES)
-	{
-		NSLog(@"VAR is out of range!");
-		exit(-1);
-	}
-
-	gVertexArrayRangeData[whichVAR].rangeSize 		= size;
-	gVertexArrayRangeData[whichVAR].dataBlockPtr 	= data;
-	gVertexArrayRangeData[whichVAR].forceUpdate 	= YES;
-}
-
-- (void) OGL_UpdateVAR
-{
-	long	size;
-	Byte	i;
-
-	for (i = 0; i < NUM_VERTEX_ARRAY_RANGES; i++)
-	{
-		// SEE IF THIS VAR IS USED
-
-		size = gVertexArrayRangeData[i].rangeSize;
-		if (size == 0)
-			continue;
-
-
-		// SEE IF VAR NEEDS UPDATING
-
-		if (!gVertexArrayRangeData[i].forceUpdate)
-			continue;
-
-		// BIND THIS VAR OBJECT SO WE CAN DO STUFF TO IT
-
-		glBindVertexArrayAPPLE(gVertexArrayRangeObjects[i]);
-
-		// SEE IF THIS IS THE FIRST TIME IN
-
-		if (!gVertexArrayRangeData[i].activated)
-		{
-			glVertexArrayRangeAPPLE(size, gVertexArrayRangeData[i].dataBlockPtr);
-			glVertexArrayParameteriAPPLE(GL_VERTEX_ARRAY_STORAGE_HINT_APPLE,GL_STORAGE_SHARED_APPLE);
-
-					// you MUST call this flush to get the data primed!
-
-			glFlushVertexArrayRangeAPPLE(size, gVertexArrayRangeData[i].dataBlockPtr);
-			glEnableClientState(GL_VERTEX_ARRAY_RANGE_APPLE);
-			gVertexArrayRangeData[i].activated = YES;
-		}
-
-		// ALREADY ACTIVE, SO JUST UPDATING
-
-		else
-		{
-			glFlushVertexArrayRangeAPPLE(size, gVertexArrayRangeData[i].dataBlockPtr);
-		}
-
-		gVertexArrayRangeData[i].forceUpdate = NO;
-	}
-}
-
-@end
-#endif
-
-
 @implementation OOSelfDrawingEntity (Private)
 
-- (void) reloadTextures
-{
-#ifdef WIN32
-    int fi;
-
-	// Force the entity to reload the textures for each face by clearing the face's texture name.
-    for (fi = 0; fi < faceCount; fi++)
-        faces[fi].textureNames = 0;
-	
-	materialsReady = NO;
-	
-	// Force the display list to be regenerated next time a frame is drawn.
-	[self regenerateDisplayList];
-#endif
-}
-
-
-- (NSDictionary*) modelData
+- (NSDictionary*)modelData
 {
 	NSMutableDictionary*	mdict = [NSMutableDictionary dictionaryWithCapacity:8];
 	[mdict setObject:[NSNumber numberWithInt: vertexCount]	forKey:@"vertexCount"];
@@ -527,7 +376,7 @@ BOOL global_testForVAR;
 	return [NSDictionary dictionaryWithDictionary:mdict];
 }
 
-- (BOOL) setModelFromModelData:(NSDictionary*) dict
+- (BOOL)setModelFromModelData:(NSDictionary*) dict
 {
 	vertexCount = [[dict objectForKey:@"vertexCount"] intValue];
 	faceCount = [[dict objectForKey:@"faceCount"] intValue];
@@ -557,7 +406,7 @@ BOOL global_testForVAR;
 	}
 }
 
-- (void) loadData:(NSString *) filename
+- (void)loadData:(NSString *) filename
 {
     NSScanner			*scanner;
 	NSDictionary		*cacheData = nil;
@@ -811,13 +660,11 @@ BOOL global_testForVAR;
 					}
 					else
 					{
-//						faces[j].textureFile = [texfile retain];
 						strlcpy(faces[j].textureFileName, [texfile UTF8String], 256);
 					}
 					faces[j].textureName = 0;
 
 					// texture size
-					//
 				   if (!failFlag)
 					{
 						if (![scanner scanFloat:&max_x])
@@ -829,7 +676,6 @@ BOOL global_testForVAR;
 					}
 
 					// vertices
-					//
 					if (!failFlag)
 					{
 						for (i = 0; i < faces[j].n_verts; i++)
@@ -858,7 +704,6 @@ BOOL global_testForVAR;
 		
 
 		// check normals before creating new textures
-		//
 		[self checkNormalsAndAdjustWinding];
 
 		if ((failFlag)&&([failString rangeOfString:@"TEXTURES"].location != NSNotFound))
@@ -870,9 +715,7 @@ BOOL global_testForVAR;
 			NSLog([NSString stringWithFormat:@"%@ ..... from %@ %@", failString, filename, (using_preloaded)? @"(from preloaded data)" : @"(from file)"]);
 
 		// check for smooth shading and recalculate normals
-		if (isSmoothShaded)
-			[self calculateVertexNormals];
-		//
+		if (isSmoothShaded)  [self calculateVertexNormals];
 
 		// save the resulting data for possible reuse
 		[OOCacheManager setEntityData:[self modelData] forName:filename];
@@ -884,16 +727,7 @@ BOOL global_testForVAR;
 	actual_radius = collision_radius;
 
 	// set up vertex arrays for drawing
-	//
 	[self setUpVertexArrays];
-	//
-	usingVAR = [self OGL_InitVAR];
-	//
-	if (usingVAR)
-	{
-		[self OGL_AssignVARMemory:sizeof(EntityData) :(void *)&entityData :0];
-	}
-	//
 }
 
 
@@ -1481,9 +1315,6 @@ BOOL global_testForVAR;
 	flags = [NSMutableArray array];
 	#define ADD_FLAG_IF_SET(x)		if (x) { [flags addObject:@#x]; }
 	ADD_FLAG_IF_SET(isSmoothShaded);
-#if GL_APPLE_vertex_array_object
-	ADD_FLAG_IF_SET(usingVAR);
-#endif
 	ADD_FLAG_IF_SET(materialsReady);
 	flagsString = [flags count] ? [flags componentsJoinedByString:@", "] : @"none";
 	OOLog(@"dumpState.selfDrawingEntity", @"Flags: %@", flagsString);

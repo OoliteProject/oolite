@@ -84,21 +84,9 @@ typedef struct
 } EntityData;
 
 
-typedef struct
-{
-	long					rangeSize;		// # of bytes in this VAR block
-	void					*dataBlockPtr;	// ptr to the memory that we're making VAR
-	BOOL					forceUpdate;	// true if data in VAR block needs updating
-	BOOL					activated;		// set to true the first time we use it
-} VertexArrayRangeType;
-
-
 @interface OOMesh: OODrawable <NSCopying>
 {
 	uint8_t					isSmoothShaded: 1,
-#if GL_APPLE_vertex_array_object
-							usingVAR: 1,
-#endif
 							brokenInRender: 1,
 							listsReady: 1;
 	
@@ -123,12 +111,6 @@ typedef struct
 	BoundingBox				boundingBox;
 	
 	Octree					*octree;
-	
-	// COMMON OGL STUFF
-#if GL_APPLE_vertex_array_object
-	GLuint					gVertexArrayRangeObjects[kOOMeshVARCount];	// OpenGL's VAR object references
-	VertexArrayRangeType	gVertexArrayRangeData[kOOMeshVARCount];		// our info about each VAR block
-#endif
 }
 
 + (id)meshWithName:(NSString *)name
@@ -152,21 +134,6 @@ shaderBindingTarget:(id<OOWeakReferenceSupport>)object;
 - (OOMesh *)meshRescaledByX:(GLfloat)scaleX y:(GLfloat)scaleY z:(GLfloat)scaleZ;
 
 @end
-
-
-// All of this stuff should go away, but is used to ease transition. -- Ahruman
-
-
-#if GL_APPLE_vertex_array_object
-@interface OOMesh (OOVertexArrayRange)
-
-// COMMON OGL ROUTINES
-- (BOOL) OGL_InitVAR;
-- (void) OGL_AssignVARMemory:(long) size :(void *) data :(Byte) whichVAR;
-- (void) OGL_UpdateVAR;
-
-@end
-#endif
 
 
 // TODO: move this stuff to OOOpenGL

@@ -32,6 +32,7 @@ MA 02110-1301, USA.
 #import "OOMaterial.h"
 #import "OOBasicMaterial.h"
 #import "OOCollectionExtractors.h"
+#import "OOOpenGLExtensionManager.h"
 
 
 static NSString * const kOOLogOpenGLExtensionsVAR			= @"rendering.opengl.extensions.var";
@@ -40,13 +41,6 @@ static NSString * const kOOLogMeshDataNotFound				= @"mesh.load.failed.fileNotFo
 static NSString * const kOOLogMeshTooManyVertices			= @"mesh.load.failed.tooManyVertices";
 static NSString * const kOOLogMeshTooManyFaces				= @"mesh.load.failed.tooManyFaces";
 static NSString * const kOOLogMeshTooManyMaterials			= @"mesh.load.failed.tooManyMaterials";
-
-
-#if GL_APPLE_vertex_array_object
-// global flag for VAR
-BOOL global_usingVAR;
-BOOL global_testForVAR;
-#endif
 
 
 #define DEBUG_DRAW_NORMALS		0
@@ -199,19 +193,19 @@ shaderBindingTarget:(id<OOWeakReferenceSupport>)object
 	glDisableClientState(GL_COLOR_ARRAY);
 	glDisableClientState(GL_INDEX_ARRAY);
 	glDisableClientState(GL_EDGE_FLAG_ARRAY);
-	//
+	
 	glEnableClientState(GL_VERTEX_ARRAY);
 	glEnableClientState(GL_NORMAL_ARRAY);
 	glEnableClientState(GL_TEXTURE_COORD_ARRAY);
-
+	
 	glVertexPointer(3, GL_FLOAT, 0, entityData.vertex_array);
 	glNormalPointer(GL_FLOAT, 0, entityData.normal_array);
 	glTexCoordPointer(2, GL_FLOAT, 0, entityData.texture_uv_array);
 	
+	glDisable(GL_BLEND);
+	glEnable(GL_TEXTURE_2D);
+	
 	NS_DURING
-		glDisable(GL_BLEND);
-		glEnable(GL_TEXTURE_2D);
-		
 		if (!listsReady)
 		{
 			displayList0 = glGenLists(materialCount);
@@ -222,10 +216,6 @@ shaderBindingTarget:(id<OOWeakReferenceSupport>)object
 				[materials[ti] ensureFinishedLoading];
 			}
 		}
-		
-#if GL_APPLE_vertex_array_object
-		if (usingVAR)  glBindVertexArrayAPPLE(gVertexArrayRangeObjects[0]);
-#endif
 		
 		for (ti = 0; ti < materialCount; ti++)
 		{
@@ -376,130 +366,11 @@ shaderBindingTarget:(id<OOWeakReferenceSupport>)object
 	flags = [NSMutableArray array];
 	#define ADD_FLAG_IF_SET(x)		if (x) { [flags addObject:@#x]; }
 	ADD_FLAG_IF_SET(isSmoothShaded);
-#if GL_APPLE_vertex_array_object
-	ADD_FLAG_IF_SET(usingVAR);
-#endif
 	flagsString = [flags count] ? [flags componentsJoinedByString:@", "] : @"none";
 	OOLog(@"dumpState.mesh", @"Flags: %@", flagsString);
 }
 
 @end
-
-
-#if GL_APPLE_vertex_array_object
-@implementation OOMesh (OOVertexArrayRange)
-
-// COMMON OGL STUFF
-- (BOOL) OGL_InitVAR
-{
-	short			i;
-	static char*	s;
-
-	if (global_testForVAR)
-	{
-		global_testForVAR = NO;	// no need for further tests after this
-
-		// see if we have supported hardware
-		s = (char *)glGetString(GL_EXTENSIONS);	// get extensions list
-
-		if (strstr(s, "GL_APPLE_vertex_array_range") == 0)
-		{
-			global_usingVAR &= NO;
-			OOLog(kOOLogOpenGLExtensionsVAR, @"Vertex Array Range optimisation - not supported");
-			return NO;
-		}
-		else
-		{
-			OOLog(kOOLogOpenGLExtensionsVAR, @"Vertex Array Range optimisation - supported");
-			global_usingVAR |= YES;
-		}
-	}
-
-	if (!global_usingVAR)
-		return NO;
-	glGenVertexArraysAPPLE(kOOMeshVARCount, &gVertexArrayRangeObjects[0]);
-
-	// INIT OUR DATA
-	//
-	// None of the VAR objects has been assigned to any data yet,
-	// so here we just initialize our info.  We'll assign the VAR objects
-	// to data later.
-	//
-
-	for (i = 0; i < kOOMeshVARCount; i++)
-	{
-		gVertexArrayRangeData[i].rangeSize		= 0;
-		gVertexArrayRangeData[i].dataBlockPtr	= nil;
-		gVertexArrayRangeData[i].forceUpdate	= YES;
-		gVertexArrayRangeData[i].activated		= NO;
-	}
-
-	return YES;
-}
-
-- (void) OGL_AssignVARMemory:(long) size :(void *) data :(Byte) whichVAR
-{
-	if (whichVAR >= kOOMeshVARCount)
-	{
-		usingVAR = NO;
-		return;
-	}
-
-	gVertexArrayRangeData[whichVAR].rangeSize 		= size;
-	gVertexArrayRangeData[whichVAR].dataBlockPtr 	= data;
-	gVertexArrayRangeData[whichVAR].forceUpdate 	= YES;
-}
-
-- (void) OGL_UpdateVAR
-{
-	long	size;
-	Byte	i;
-
-	for (i = 0; i < kOOMeshVARCount; i++)
-	{
-		// SEE IF THIS VAR IS USED
-
-		size = gVertexArrayRangeData[i].rangeSize;
-		if (size == 0)
-			continue;
-
-
-		// SEE IF VAR NEEDS UPDATING
-
-		if (!gVertexArrayRangeData[i].forceUpdate)
-			continue;
-
-		// BIND THIS VAR OBJECT SO WE CAN DO STUFF TO IT
-
-		glBindVertexArrayAPPLE(gVertexArrayRangeObjects[i]);
-
-		// SEE IF THIS IS THE FIRST TIME IN
-
-		if (!gVertexArrayRangeData[i].activated)
-		{
-			glVertexArrayRangeAPPLE(size, gVertexArrayRangeData[i].dataBlockPtr);
-			glVertexArrayParameteriAPPLE(GL_VERTEX_ARRAY_STORAGE_HINT_APPLE,GL_STORAGE_SHARED_APPLE);
-
-					// you MUST call this flush to get the data primed!
-
-			glFlushVertexArrayRangeAPPLE(size, gVertexArrayRangeData[i].dataBlockPtr);
-			glEnableClientState(GL_VERTEX_ARRAY_RANGE_APPLE);
-			gVertexArrayRangeData[i].activated = YES;
-		}
-
-		// ALREADY ACTIVE, SO JUST UPDATING
-
-		else
-		{
-			glFlushVertexArrayRangeAPPLE(size, gVertexArrayRangeData[i].dataBlockPtr);
-		}
-
-		gVertexArrayRangeData[i].forceUpdate = NO;
-	}
-}
-
-@end
-#endif
 
 
 @implementation OOMesh (Private)
@@ -592,10 +463,6 @@ shaderBindingTarget:(id<OOWeakReferenceSupport>)target
 		
 		// Reset unsharable GL state
 		result->listsReady = NO;
-#if GL_APPLE_vertex_array_object
-		result->usingVAR = [result OGL_InitVAR];
-		bzero(result->gVertexArrayRangeObjects, sizeof result->gVertexArrayRangeObjects);
-#endif
 	}
 	
 	return result;
@@ -1038,15 +905,7 @@ shaderBindingTarget:(id<OOWeakReferenceSupport>)target
 	[self calculateBoundingVolumes];
 	
 	// set up vertex arrays for drawing
-	//
 	[self setUpVertexArrays];
-	//
-	usingVAR = [self OGL_InitVAR];
-	//
-	if (usingVAR)
-	{
-		[self OGL_AssignVARMemory:sizeof(EntityData) :(void *)&entityData :0];
-	}
 	
 	return YES;
 }
