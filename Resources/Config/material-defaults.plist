@@ -1,40 +1,121 @@
-/*	Settings for shader system.
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple Computer//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+
+<!--
+	Settings for material system.
 	
 	While it is possible to override this in the usual fashion, it would not
 	be a very good idea.
-*/
-
-// Default shader uniform bindings for ship entities.
-"ship-default-bindings" =
-{
-	"engine_level" = { type = "binding"; value = "speedFactor"; };
-	"laser_heat_level" = { type = "binding"; value = "laserHeatLevel"; clamped = "YES"; };
-	"hull_heat_level" = { type = "binding"; value = "hullHeatLevel"; };
-	"entity_personality" = { type = "binding"; value = "entityPersonality"; };
-	"entity_personality_int" = { type = "binding"; value = "entityPersonalityInt"; };
-	"time" = { type = "binding"; value = "universalTime"; };
-};
+-->
 
 
-// Macros prepended to shader source code for ship entities.
-"ship-prefix-macros" =
-{
-	"OO_ENGINE_LEVEL" = 1;
-	"OO_ENTITY_PERSONALITY" = 1;
-	"OO_ENTITY_PERSONALITY_INT" = 1;
-	"OO_ENTITY_LASER_HEAT_LEVEL" = 1;
-	"OO_HULL_HEAT_LEVEL" = 1;
-	"OO_TIME" = 1;
-};
 
-
-// Material definition used for DAT files with no TEXTURES section (which specifies material names and texture co-ordinates).
-"no-textures-material" =
-{
-	"diffuse_map" = "";
-	"diffuse" = (0, 0, 0.4);
-	"ambient" = (0, 0, 0.4);
-	"emission" = (0.5, 0.1, 0.0);
-	"specular" = (1.0, 0.2, 0.2);
-	"shininess" = 5;
-};
+<dict>
+	<!--
+		Material definition used for DAT files with no TEXTURES section
+		(which specifies material names and texture co-ordinates).
+	-->
+	<key>no-textures-material</key>
+	<dict>
+		<key>ambient</key>
+		<array>
+			<string>0</string>
+			<string>0</string>
+			<string>0.4</string>
+		</array>
+		<key>diffuse</key>
+		<array>
+			<string>0</string>
+			<string>0</string>
+			<string>0.4</string>
+		</array>
+		<key>diffuse_map</key>
+		<string></string>
+		<key>emission</key>
+		<array>
+			<string>0.5</string>
+			<string>0.1</string>
+			<string>0.0</string>
+		</array>
+		<key>shininess</key>
+		<string>5</string>
+		<key>specular</key>
+		<array>
+			<string>1.0</string>
+			<string>0.2</string>
+			<string>0.2</string>
+		</array>
+	</dict>
+	
+	<!--
+		Default shader uniform bindings for ship entities.
+	-->
+	<key>ship-default-bindings</key>
+	<dict>
+		<key>engine_level</key>
+		<dict>
+			<key>type</key>
+			<string>binding</string>
+			<key>value</key>
+			<string>speedFactor</string>
+		</dict>
+		<key>entity_personality</key>
+		<dict>
+			<key>type</key>
+			<string>binding</string>
+			<key>value</key>
+			<string>entityPersonality</string>
+		</dict>
+		<key>entity_personality_int</key>
+		<dict>
+			<key>type</key>
+			<string>binding</string>
+			<key>value</key>
+			<string>entityPersonalityInt</string>
+		</dict>
+		<key>hull_heat_level</key>
+		<dict>
+			<key>type</key>
+			<string>binding</string>
+			<key>value</key>
+			<string>hullHeatLevel</string>
+		</dict>
+		<key>laser_heat_level</key>
+		<dict>
+			<key>clamped</key>
+			<string>YES</string>
+			<key>type</key>
+			<string>binding</string>
+			<key>value</key>
+			<string>laserHeatLevel</string>
+		</dict>
+		<key>time</key>
+		<dict>
+			<key>type</key>
+			<string>binding</string>
+			<key>value</key>
+			<string>universalTime</string>
+		</dict>
+	</dict>
+	
+	<!--
+		Macros prepended to shader source code for ship entities.
+	-->
+	<key>ship-prefix-macros</key>
+	<dict>
+		<key>OO_ENGINE_LEVEL</key>
+		<string>1</string>
+		<key>OO_ENTITY_LASER_HEAT_LEVEL</key>
+		<string>1</string>
+		<key>OO_ENTITY_PERSONALITY</key>
+		<string>1</string>
+		<key>OO_ENTITY_PERSONALITY_INT</key>
+		<string>1</string>
+		<key>OO_HULL_HEAT_LEVEL</key>
+		<string>1</string>
+		<key>OO_TIME</key>
+		<string>1</string>
+	</dict>
+</dict>
+</plist>
