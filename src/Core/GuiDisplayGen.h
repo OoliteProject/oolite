@@ -181,7 +181,7 @@ extern int debug;
 
 - (void) drawStarChart:(GLfloat)x :(GLfloat)y :(GLfloat)z :(GLfloat) alpha;
 - (void) drawGalaxyChart:(GLfloat)x :(GLfloat)y :(GLfloat)z :(GLfloat) alpha;
-- (void) drawEqptList: (NSArray *)eqptList;
+- (void) drawEqptList: (NSArray *)eqptList :(GLfloat)z;
 
 - (void) drawAdvancedNavArrayAtX:(float)x y:(float)y z:(float)z alpha:(float)alpha;
 

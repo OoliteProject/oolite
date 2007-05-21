@@ -682,7 +682,7 @@ MA 02110-1301, USA.
 }
 
 
-- (void) drawEqptList: (NSArray *)eqptList
+- (void) drawEqptList: (NSArray *)eqptList :(GLfloat)z
 {
 	int 		eqpt_items_per_column = 12;	// Default value.
 	int i;
@@ -716,11 +716,11 @@ MA 02110-1301, USA.
 		
 		if (i < eqpt_items_per_column)
 		{
-			drawString ([eqptList objectAtIndex:i], -220, 40 - (15 * i), 640, NSMakeSize(15,15));
+			drawString ([eqptList objectAtIndex:i], -220, 40 - (15 * i), z, NSMakeSize(15,15));
 		}
 		else
 		{
-			drawString ([eqptList objectAtIndex:i], 50, 40 - (15 * (i - eqpt_items_per_column)), 640, NSMakeSize(15,15));
+			drawString ([eqptList objectAtIndex:i], 50, 40 - (15 * (i - eqpt_items_per_column)), z, NSMakeSize(15,15));
 		}
 		glColor4f (1.0, 1.0, 0.0, 1.0);		// Reset text color to yellow.
 	}
@@ -748,7 +748,7 @@ MA 02110-1301, USA.
 			}
 			if ([player gui_screen] == GUI_SCREEN_STATUS)
 			{
-				[self drawEqptList:[player equipmentList]];
+				[self drawEqptList:[player equipmentList] :z1];
 			}
 		}
 		
@@ -823,7 +823,7 @@ MA 02110-1301, USA.
 			}
 			if ([player gui_screen] == GUI_SCREEN_STATUS)
 			{
-				[self drawEqptList:[player equipmentList]];
+				[self drawEqptList:[player equipmentList] :z1];
 			}
 		}
 		
@@ -896,7 +896,7 @@ MA 02110-1301, USA.
 		}
 		if ([player gui_screen] == GUI_SCREEN_STATUS)
 		{
-			[self drawEqptList:[player equipmentList]];
+			[self drawEqptList:[player equipmentList] :z];
 		}
 	}
 	
