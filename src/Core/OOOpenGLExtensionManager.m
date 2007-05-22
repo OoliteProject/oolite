@@ -175,15 +175,8 @@ static unsigned IntegerFromString(const GLubyte **ioString);
 - (BOOL)haveExtension:(NSString *)extension
 {
 // NSSet is documented as thread-safe under OS X, but I'm not sure about GNUstep. -- Ahruman
-#if !OOLITE_MAC_OS_X
-	[lock lock];
-#endif
 	
 	BOOL result = [extensions containsObject:extension];
-	
-#if !OOLITE_MAC_OS_X
-	[lock lock];
-#endif
 	
 	return result;
 }
@@ -296,6 +289,8 @@ static unsigned IntegerFromString(const GLubyte **ioString)
 	glGetUniformLocationARB = (PFNGLGETUNIFORMLOCATIONARBPROC)wglGetProcAddress("glGetUniformLocationARB");
 	glUniform1iARB = (PFNGLUNIFORM1IARBPROC)wglGetProcAddress("glUniform1iARB");
 	glUniform1fARB = (PFNGLUNIFORM1FARBPROC)wglGetProcAddress("glUniform1fARB");
+	glUniformMatrix4fvARB = (PFNGLUNIFORMMATRIX4FVARBPROC)wglGetProcAddress("glUniformMatrix4fvARB");
+	glUniform4fvARB = (PFNGLUNIFORM4FVARBPROC)wglGetProcAddress("glUniform4fvARB");
 #endif
 	
 	shadersAvailable = YES;

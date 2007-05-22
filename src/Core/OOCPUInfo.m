@@ -113,11 +113,19 @@ void OOCPUInfoInit(void)
 	#error OOLITE_ALTIVEC_DYNAMIC is (still) set, but Oolite doesn't know how to check for AltiVec on this platform. (The Mac version may work on other BSDs, at least; give it a shot.)
 #endif
 #endif
+
+#if OOLITE_WINDOWS
+	SYSTEM_INFO	sysInfo;
+	
+	GetSystemInfo (&sysInfo);
+	sNumberOfCPUs = sysInfo.dwNumberOfProcessors;
+#endif
 }
 
 
 unsigned OOCPUCount(void)
 {
+	NSLog (@"Value of  sNumberOfCPUs: %u", sNumberOfCPUs);
 	return (sNumberOfCPUs != 0) ? sNumberOfCPUs : 1;
 }
 
