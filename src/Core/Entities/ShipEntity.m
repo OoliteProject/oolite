@@ -27,7 +27,6 @@ MA 02110-1301, USA.
 
 #import "OOMaths.h"
 #import "Universe.h"
-#import "TextureStore.h"
 #import "OOShaderMaterial.h"
 #import "OOOpenGLExtensionManager.h"
 

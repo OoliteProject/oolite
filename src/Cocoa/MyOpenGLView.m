@@ -26,7 +26,6 @@ MA 02110-1301, USA.
 
 #import "GameController.h"
 #import "Universe.h"
-#import "TextureStore.h"
 #import "Entity.h"
 #import "PlanetEntity.h"
 #import "ResourceManager.h"

@@ -27,7 +27,6 @@ MA 02110-1301, USA.
 #import "GuiDisplayGen.h"
 #import "Universe.h"
 #import "ResourceManager.h"
-#import "TextureStore.h"
 #import "AI.h"
 #import "ShipEntityAI.h"
 #import "OOScript.h"
@@ -2285,8 +2284,6 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 		model_p0.x = [[i_info objectAtIndex:2] floatValue] + off.x;
 		model_p0.y = [[i_info objectAtIndex:3] floatValue] + off.y;
 		model_p0.z = off.z;
-		if (![TextureStore getTextureNameFor:texturefile])
-			return NO;
 
 		ParticleEntity* billboard = [[ParticleEntity alloc] initBillboard:billSize withTexture:texturefile];
 		if (!billboard)

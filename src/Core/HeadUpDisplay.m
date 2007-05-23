@@ -32,7 +32,6 @@ MA 02110-1301, USA.
 #import "OOColor.h"
 #import "GuiDisplayGen.h"
 #import "OOTexture.h"
-// #import "TextureStore.h"
 #import "OpenGLSprite.h"
 #import "OOCollectionExtractors.h"
 

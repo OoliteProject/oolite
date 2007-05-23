@@ -544,6 +544,7 @@ static OOTexture		*sStarTexture, *sBlobTexture;
 	if (displayListName != 0)
 	{
 		glDeleteLists(displayListName, 1);
+		displayListName = 0;
 	}
 }
 

@@ -24,7 +24,6 @@ MA 02110-1301, USA.
 
 #import "OOMesh.h"
 #import "Universe.h"
-#import "TextureStore.h"
 #import "Geometry.h"
 #import "ResourceManager.h"
 #import "Entity.h"		// for NO_DRAW_DISTANCE_FACTOR.

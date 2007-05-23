@@ -31,7 +31,6 @@ MA 02110-1301, USA.
 
 #import "Universe.h"
 #import "AI.h"
-#import "TextureStore.h"
 #import "OOStringParsing.h"
 
 

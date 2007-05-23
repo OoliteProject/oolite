@@ -57,14 +57,13 @@ MA 02110-1301, USA.
 
 #define LASER_FLASH_SIZE			(1.0 + 2.0 * randf())
 
-@class Entity;
+@class OOTexture;
 
 @interface ParticleEntity: OOSelfDrawingEntity
 {
-    NSString*	textureNameString;
-    GLuint		texName;
+	OOTexture	*texture;
 	
-	OOColor*	color;
+	OOColor		*color;
 	GLfloat		color_fv[4];
 	
 	double		alpha;
@@ -124,8 +123,6 @@ MA 02110-1301, USA.
 - (void) setDuration:(double) dur;
 - (void) setSize:(NSSize) siz;
 - (NSSize) size;
-
-- (void) initialiseTexture: (NSString *) name;
 
 - (void) drawParticle;
 - (void) drawLaser;

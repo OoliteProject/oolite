@@ -26,8 +26,8 @@ MA 02110-1301, USA.
 
 #import "Universe.h"
 #import "AI.h"
-#import "TextureStore.h"
 #import "OOColor.h"
+#import "OOTexture.h"
 #import "OOStringParsing.h"
 
 #import "ShipEntity.h"
@@ -78,11 +78,9 @@ static	Vector	circleVertex[65];		// holds vector coordinates for a unit circle
 	particle_type = PARTICLE_TEST;
 	//
 	basefile = @"Particle";
-	textureNameString   = @"blur256.png";
+	[self setTexture:@"blur256.png"];
 	[self setColor:[OOColor greenColor]];
 	//
-	texName = 0;
-	[self initialiseTexture: textureNameString];
 	size = NSMakeSize(32.0,32.0);
 	//
 	owner = NO_TARGET;
@@ -448,10 +446,8 @@ static	Vector	circleVertex[65];		// holds vector coordinates for a unit circle
 	self = [super init];
     //
 	basefile = @"Particle";
-	textureNameString   = @"blur256.png";
+	[self setTexture:@"blur256.png"];
 	//
-	texName = 0;
-	[self initialiseTexture: textureNameString];
 	size = NSMakeSize(32.0,32.0);
 	//
 	vertexCount = n_fragments;
@@ -500,10 +496,8 @@ static	Vector	circleVertex[65];		// holds vector coordinates for a unit circle
 	self = [super init];
     //
 	basefile = @"Particle";
-	textureNameString   = @"blur256.png";
+	[self setTexture:@"blur256.png"];
 	//
-	texName = 0;
-	[self initialiseTexture: textureNameString];
 	size = NSMakeSize( fragSize, fragSize);
 	//
 	vertexCount = n_fragments;
@@ -553,10 +547,8 @@ static	Vector	circleVertex[65];		// holds vector coordinates for a unit circle
 	self = [super init];
     //
 	basefile = @"Particle";
-	textureNameString   = @"blur256.png";
+	[self setTexture:@"blur256.png"];
 	//
-	texName = 0;
-	[self initialiseTexture: textureNameString];
 	size = NSMakeSize(32.0,32.0);
 	//
 	vertexCount = n_fragments;
@@ -601,10 +593,8 @@ static	Vector	circleVertex[65];		// holds vector coordinates for a unit circle
 	self = [super init];
     //
 	basefile = @"Particle";
-	textureNameString   = @"blur256.png";
+	[self setTexture:@"blur256.png"];
 	//
-	texName = 0;
-	[self initialiseTexture: textureNameString];
 	size = NSMakeSize( burstSize, burstSize);
 	//
 	vertexCount = n_fragments;
@@ -652,10 +642,8 @@ static	Vector	circleVertex[65];		// holds vector coordinates for a unit circle
 	self = [super init];
     //
 	basefile = @"Particle";
-	textureNameString   = @"flare256.png";
+	[self setTexture:@"flare256.png"];
 	//
-	texName = 0;
-	[self initialiseTexture: textureNameString];
 	size = NSMakeSize( flashSize, flashSize);
 	//
 	growth_rate = 150.0 * flashSize; // if average flashSize is 80 then this is 12000
@@ -694,10 +682,8 @@ static	Vector	circleVertex[65];		// holds vector coordinates for a unit circle
 	self = [super init];
     //
 	basefile = @"Particle";
-	textureNameString   = @"flare256.png";
+	[self setTexture:@"flare256.png"];
 	//
-	texName = 0;
-	[self initialiseTexture: textureNameString];
 	size = NSMakeSize( flashSize, flashSize);
 	//
 	growth_rate = 150.0 * flashSize; // if average flashSize is 80 then this is 12000
@@ -733,8 +719,12 @@ static	Vector	circleVertex[65];		// holds vector coordinates for a unit circle
 	self = [super init];
     //
 	basefile = @"Particle";
-	texName = 0;
-	[self setTexture: textureFile];
+	[self setTexture:textureFile];
+	if (texture == nil)
+	{
+		[self release];
+		return nil;
+	}
 	//
 	size = billSize;
 	//
@@ -763,8 +753,9 @@ static	Vector	circleVertex[65];		// holds vector coordinates for a unit circle
 
 - (void) dealloc
 {
-    if (textureNameString)	[textureNameString release];
-    if (color)				[color release];
+	[texture release];
+	[color release];
+	
     [super dealloc];
 }
 
@@ -853,14 +844,12 @@ static	Vector	circleVertex[65];		// holds vector coordinates for a unit circle
 }
 
 
-- (void) setTexture:(NSString *) filename
+- (void) setTexture:(NSString *)name
 {
-    if (filename)
+    if (name != nil)
 	{
-		if (textureNameString)	[textureNameString release];
-		textureNameString = filename;
-		[textureNameString retain];
-		[self initialiseTexture: textureNameString];
+		[texture autorelease];
+		texture = [[OOTexture textureWithName:name inFolder:@"Textures"] retain];
 	}
 }
 
@@ -911,13 +900,6 @@ static	Vector	circleVertex[65];		// holds vector coordinates for a unit circle
 	return size;
 }
 
-- (void) initialiseTexture: (NSString *) name
-{
-    if (UNIVERSE)
-	{
-         texName = [TextureStore getTextureNameFor:name];
-	}
-}
 
 - (void) update:(double) delta_t
 {
@@ -944,9 +926,7 @@ static	Vector	circleVertex[65];		// holds vector coordinates for a unit circle
 			case PARTICLE_FLASH :
 				{
 					PlayerEntity *player = [PlayerEntity sharedPlayer];
-					if (!texName)
-						[self initialiseTexture: textureNameString];
-					if (player)
+					if (player != nil)
 					{
 						GLfloat* rmix = [player drawRotationMatrix];
 						int i = 0;
@@ -1576,9 +1556,6 @@ static	Vector	circleVertex[65];		// holds vector coordinates for a unit circle
 	{
 		gl_matrix	temp_matrix;
 
-		if (!texName)
-			[self initialiseTexture: textureNameString];
-
 		Vector		abspos = position;  // in control of it's own orientation
 		int			view_dir = [UNIVERSE viewDir];
 		Entity*		last = nil;
@@ -1612,7 +1589,7 @@ static	Vector	circleVertex[65];		// holds vector coordinates for a unit circle
 				glColor4fv( color_fv);
 				glTexEnvfv(GL_TEXTURE_ENV, GL_TEXTURE_ENV_COLOR, color_fv);
 				glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_BLEND);
-				glBindTexture(GL_TEXTURE_2D, texName);
+				[texture apply];
 				
 				glBegin(GL_QUADS);
 					glTexCoord2f(0.0, 1.0);
@@ -1674,7 +1651,7 @@ static	Vector	circleVertex[65];		// holds vector coordinates for a unit circle
 	glTexEnvfv(GL_TEXTURE_ENV, GL_TEXTURE_ENV_COLOR, color_fv);
 	glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_BLEND);
 
-	glBindTexture(GL_TEXTURE_2D, texName);
+	[texture apply];
 	
 	BeginAdditiveBlending();
 
@@ -1923,7 +1900,7 @@ GLuint tfan2[10] = {	33,	25,	26,	27,	28,	29,	30,	31,	32,	25};	// final fan 64..7
 
 	glEnable(GL_TEXTURE_2D);
 	glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
-	glBindTexture(GL_TEXTURE_2D, texName);
+	[texture apply];
 	glPushMatrix();
 	
 	BeginAdditiveBlending();
@@ -1948,7 +1925,7 @@ GLuint tfan2[10] = {	33,	25,	26,	27,	28,	29,	30,	31,	32,	25};	// final fan 64..7
 
 	glEnable(GL_TEXTURE_2D);
 	glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
-	glBindTexture(GL_TEXTURE_2D, texName);
+	[texture apply];
 	glPushMatrix();
 	
 	BeginAdditiveBlending();
@@ -1968,17 +1945,11 @@ GLuint tfan2[10] = {	33,	25,	26,	27,	28,	29,	30,	31,	32,	25};	// final fan 64..7
 }
 
 - (void) drawBillboard
-{
-//	NSLog(@"drawing billboard at: %.2f %.2f %.2f size: %.2f x %.2f texture: %@ (%d)",
-//		position.x, position.y, position.z, size.width, size.height, textureNameString, texName);
-	
-	if (!texName)
-		[self initialiseTexture:textureNameString];
-		
+{	
 	glColor4fv( color_fv);
 	glEnable(GL_TEXTURE_2D);
 	glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
-	glBindTexture(GL_TEXTURE_2D, texName);
+	[texture apply];
 	glPushMatrix();
 
 	glBegin(GL_QUADS);
