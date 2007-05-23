@@ -19,9 +19,9 @@
 	<key>$scriptDebugOn</key>
 	<string>no</string>
 	<key>$scriptError</key>
-	<string>yes</string>
+	<string>$error</string>
 	<key>$shaderDebug</key>
-	<string>no</string>
+	<string>$shaderDebugOn</string>
 	<key>$shaderDebugOn</key>
 	<string>no</string>
 	<key>$shaderError</key>

@@ -32,8 +32,9 @@ _default								= yes;					// Fallback value for otherwise undefined classes. Mu
 
 
 /*** Metaclasses ***/
-$scriptError							= yes;
 $error									= yes;
+$scriptError							= $error;
+$shaderError							= $scriptError;
 $troubleShootingDump					= yes;
 $entityState							= no;
 $scriptDebugOn							= no;					// This metaclass is set by the debugOn and debugOff script actions.
@@ -138,7 +139,6 @@ plist.homebrew.interpret.trace			= no;					// Log details of second stage of hom
 plist.homebrew.success					= yes;
 
 
-$shaderError							= $scriptError;
 rendering.opengl.error					= $error;				// Test for and display OpenGL errors
 rendering.opengl.version				= $troubleShootingDump;	// Display renderer version information at startup
 rendering.opengl.extensions				= $troubleShootingDump;	// List OpenGL extensions at startup
@@ -233,7 +233,7 @@ script.trace.javaScript.call			= inherit;				// Prints selector and parameter st
 searchPaths.dumpAll						= $troubleShootingDump;
 
 
-$shaderDebug							= no;
+$shaderDebug							= $shaderDebugOn;
 $shaderError							= $error;
 shader.load.noShader					= $error;
 shader.uniform							= $shaderDebug;

@@ -344,6 +344,7 @@
 		1A71E8790BCE8EB100CD5C13 /* libz.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 1A71E8780BCE8EB100CD5C13 /* libz.dylib */; };
 		1A71EA8C0BCF8C6B00CD5C13 /* OOXMLExtensions.m in Sources */ = {isa = PBXBuildFile; fileRef = 25161102099544380037C2E1 /* OOXMLExtensions.m */; };
 		1A71EA8D0BCF8C6C00CD5C13 /* OOXMLExtensions.h in Headers */ = {isa = PBXBuildFile; fileRef = 25161107099544390037C2E1 /* OOXMLExtensions.h */; };
+		1A8072230C0483E800BA1935 /* OODebugController.nib in Copy Debug NIB */ = {isa = PBXBuildFile; fileRef = 1A8072220C0483E800BA1935 /* OODebugController.nib */; };
 		1A81F7090A7BAC4D006580AD /* OOCAMusic.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A81F7070A7BAC4D006580AD /* OOCAMusic.m */; };
 		1A81F70A0A7BAC4D006580AD /* OOCAMusic.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A81F7080A7BAC4D006580AD /* OOCAMusic.h */; };
 		1A8A37560B960337007D20B8 /* NSMutableDictionaryOOExtensions.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A8A37540B960337007D20B8 /* NSMutableDictionaryOOExtensions.m */; };
@@ -815,6 +816,17 @@
 			name = "Copy MDImporter";
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		1A8072280C0483FA00BA1935 /* Copy Debug NIB */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = AddOns;
+			dstSubfolderSpec = 16;
+			files = (
+				1A8072230C0483E800BA1935 /* OODebugController.nib in Copy Debug NIB */,
+			);
+			name = "Copy Debug NIB";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
@@ -1161,6 +1173,7 @@
 		1A71E7150BCE34CF00CD5C13 /* pngvcrd.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = pngvcrd.c; sourceTree = "<group>"; };
 		1A71E7160BCE34CF00CD5C13 /* pngpread.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = pngpread.c; sourceTree = "<group>"; };
 		1A71E8780BCE8EB100CD5C13 /* libz.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libz.dylib; path = /usr/lib/libz.dylib; sourceTree = "<absolute>"; };
+		1A8072220C0483E800BA1935 /* OODebugController.nib */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = OODebugController.nib; path = "tools/Mac debug nib/OODebugController.nib"; sourceTree = SOURCE_ROOT; };
 		1A81F7070A7BAC4D006580AD /* OOCAMusic.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOCAMusic.m; sourceTree = "<group>"; };
 		1A81F7080A7BAC4D006580AD /* OOCAMusic.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOCAMusic.h; sourceTree = "<group>"; };
 		1A8A37540B960337007D20B8 /* NSMutableDictionaryOOExtensions.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = NSMutableDictionaryOOExtensions.m; sourceTree = "<group>"; };
@@ -1865,6 +1878,16 @@
 			name = Shaders;
 			sourceTree = "<group>";
 		};
+		1A8071D70C0480AC00BA1935 /* Debug */ = {
+			isa = PBXGroup;
+			children = (
+				1AED2DE50C046BA2004A1118 /* OODebugController.h */,
+				1AED2DE60C046BA2004A1118 /* OODebugController.m */,
+				1A8072220C0483E800BA1935 /* OODebugController.nib */,
+			);
+			name = Debug;
+			sourceTree = "<group>";
+		};
 		1A8A3BE90B963F02007D20B8 /* Source */ = {
 			isa = PBXGroup;
 			children = (
@@ -1900,8 +1923,7 @@
 				1A8A3D8F0B9B058500AB7625 /* Audio */,
 				1A8A3D9E0B9B05C400AB7625 /* Groolite */,
 				1ADF5F110B9E374B00FDB2A3 /* JoystickHandler.h */,
-				1AED2DE50C046BA2004A1118 /* OODebugController.h */,
-				1AED2DE60C046BA2004A1118 /* OODebugController.m */,
+				1A8071D70C0480AC00BA1935 /* Debug */,
 			);
 			name = "Mac-specific";
 			path = ../Cocoa;
@@ -2387,6 +2409,7 @@
 				1A2319780B9D030400EF0852 /* Copy Music */,
 				1A2319BA0B9D032700EF0852 /* Copy Sounds */,
 				1A3491320BC25ED400802DA7 /* Copy Scripts */,
+				1A8072280C0483FA00BA1935 /* Copy Debug NIB */,
 			);
 			buildRules = (
 			);

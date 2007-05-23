@@ -484,16 +484,25 @@ static BOOL MaintainLinkedLists(Universe* uni);
 
 - (void) obj_dump
 {
-	int show_count = (debug)? 10 : n_entities;
-	NSLog(@"DEBUG ENTITY DUMP: [entities count] = %d,\tn_entities = %d", [entities count], n_entities);
-	int i;
+	int				i;
+	int				show_count = (debug)? 10 : n_entities;
+	
+	if (!OOLogWillDisplayMessagesInClass(@"universe.objectDump"))  return;
+	
+	OOLog(@"universe.objectDump", @"DEBUG ENTITY DUMP: [entities count] = %d,\tn_entities = %d", [entities count], n_entities);
+	
+	OOLogIndent();
 	for (i = 0; i < show_count; i++)
 	{
 		ShipEntity* se = (sortedEntities[i]->isShip)? (ShipEntity*)sortedEntities[i]: nil;
-		NSLog(@"-> Ent:%d\t\t%@ mass %.2f %@", i, sortedEntities[i], [sortedEntities[i] mass], [se getAI]);
+		OOLog(@"universe.objectDump", @"-> Ent:%d\t\t%@ mass %.2f %@", i, sortedEntities[i], [sortedEntities[i] mass], [se getAI]);
 	}
+	OOLogOutdent();
+	
 	if ([entities count] != n_entities)
-		NSLog(@"entities = %@", [entities description]);
+	{
+		OOLog(@"universe.objectDump", @"entities = %@", [entities description]);
+	}
 }
 
 - (void) sleepytime: (id) thing
