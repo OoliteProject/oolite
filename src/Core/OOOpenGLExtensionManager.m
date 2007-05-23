@@ -59,6 +59,34 @@ SOFTWARE.
 #define SHADER_CHECK_FOR_VERSION	0
 
 
+#if OOLITE_WINDOWS && !defined(NO_SHADERS)
+/*	Define the function pointers for the OpenGL extensions used in the game
+	(required for Windows only).
+*/
+
+#ifndef NO_SHADERS
+void OOBadOpenGLExtensionUsed(void) GCC_ATTR((noreturn));
+
+PFNGLUSEPROGRAMOBJECTARBPROC		glUseProgramObjectARB		= (PFNGLUSEPROGRAMOBJECTARBPROC)&OOBadOpenGLExtensionUsed;
+PFNGLACTIVETEXTUREARBPROC			glActiveTextureARB			= (PFNGLACTIVETEXTUREARBPROC)&OOBadOpenGLExtensionUsed;				
+PFNGLGETUNIFORMLOCATIONARBPROC		glGetUniformLocationARB		= (PFNGLGETUNIFORMLOCATIONARBPROC)&OOBadOpenGLExtensionUsed;
+PFNGLUNIFORM1IARBPROC				glUniform1iARB				= (PFNGLUNIFORM1IARBPROC)&OOBadOpenGLExtensionUsed;
+PFNGLUNIFORM1FARBPROC				glUniform1fARB				= (PFNGLUNIFORM1FARBPROC)&OOBadOpenGLExtensionUsed;
+PFNGLUNIFORMMATRIX4FVARBPROC		glUniformMatrix4fvARB		= (PFNGLUNIFORMMATRIX4FVARBPROC)&OOBadOpenGLExtensionUsed;
+PFNGLUNIFORM4FVARBPROC				glUniform4fvARB				= (PFNGLUNIFORM4FVARBPROC)&OOBadOpenGLExtensionUsed;
+PFNGLGETOBJECTPARAMETERIVARBPROC	glGetObjectParameterivARB	= (PFNGLGETOBJECTPARAMETERIVARBPROC)&OOBadOpenGLExtensionUsed;
+PFNGLCREATESHADEROBJECTARBPROC		glCreateShaderObjectARB		= (PFNGLCREATESHADEROBJECTARBPROC)&OOBadOpenGLExtensionUsed;
+PFNGLGETINFOLOGARBPROC				glGetInfoLogARB				= (PFNGLGETINFOLOGARBPROC)&OOBadOpenGLExtensionUsed;
+PFNGLCREATEPROGRAMOBJECTARBPROC		glCreateProgramObjectARB	= (PFNGLCREATEPROGRAMOBJECTARBPROC)&OOBadOpenGLExtensionUsed;
+PFNGLATTACHOBJECTARBPROC			glAttachObjectARB			= (PFNGLATTACHOBJECTARBPROC)&OOBadOpenGLExtensionUsed;
+PFNGLDELETEOBJECTARBPROC			glDeleteObjectARB			= (PFNGLDELETEOBJECTARBPROC)&OOBadOpenGLExtensionUsed;
+PFNGLLINKPROGRAMARBPROC				glLinkProgramARB			= (PFNGLLINKPROGRAMARBPROC)&OOBadOpenGLExtensionUsed;
+PFNGLCOMPILESHADERARBPROC			glCompileShaderARB			= (PFNGLCOMPILESHADERARBPROC)&OOBadOpenGLExtensionUsed;
+PFNGLSHADERSOURCEARBPROC			glShaderSourceARB			= (PFNGLSHADERSOURCEARBPROC)&OOBadOpenGLExtensionUsed;
+#endif
+#endif
+
+
 static NSString * const kOOLogOpenGLShaderSupport		= @"rendering.opengl.shader.support";
 
 
@@ -90,7 +118,9 @@ static unsigned IntegerFromString(const GLubyte **ioString);
 	self = [super init];
 	if (self != nil)
 	{
+#if OOOPENGLEXTMGR_LOCK_SET_ACCESS
 		lock = [[NSLock alloc] init];
+#endif
 		
 		extensionString = [NSString stringWithUTF8String:(char *)glGetString(GL_EXTENSIONS)];
 		components = [extensionString componentsSeparatedByString:@" "];
@@ -136,17 +166,6 @@ static unsigned IntegerFromString(const GLubyte **ioString);
 						format:@"Oolite requires at least OpenGL 1.1. You have %u.%u (\"%s\").", major, minor, versionString];
 		}
 		
-#if OOLITE_WINDOWS
-#if GL_ARB_vertex_buffer_object
-		if ([self haveExtension:@"GL_ARB_vertex_buffer_object"])
-		{
-			glBindBufferARB = (PFNGLBINDBUFFERARBPROC)wglGetProcAddress("glBindBufferARB");
-			glGenBuffersARB = (PFNGLGENBUFFERSARBPROC)wglGetProcAddress("glGenBuffersARB");
-			glBufferDataARB = (PFNGLBUFFERDATAARBPROC)wglGetProcAddress("glBufferDataARB");
-		}
-#endif
-#endif
-		
 #ifndef NO_SHADERS
 		[self checkShadersSupported];
 #endif
@@ -157,8 +176,12 @@ static unsigned IntegerFromString(const GLubyte **ioString);
 
 - (void)dealloc
 {
-	[extensions release];
+#if OOOPENGLEXTMGR_LOCK_SET_ACCESS
 	[lock release];
+#endif
+	[extensions release];
+	[vendor release];
+	[renderer release];
 	
 	[super dealloc];
 }
@@ -175,8 +198,15 @@ static unsigned IntegerFromString(const GLubyte **ioString);
 - (BOOL)haveExtension:(NSString *)extension
 {
 // NSSet is documented as thread-safe under OS X, but I'm not sure about GNUstep. -- Ahruman
+#if OOOPENGLEXTMGR_LOCK_SET_ACCESS
+	[lock lock];
+#endif
 	
 	BOOL result = [extensions containsObject:extension];
+	
+#if OOOPENGLEXTMGR_LOCK_SET_ACCESS
+	[lock unlock];
+#endif
 	
 	return result;
 }
