@@ -83,7 +83,7 @@ void OOCPUInfoInit(void)
 	}
 #endif
 	
-	/*	Count processors - only implemented for OS X at the moment.
+	/*	Count processors - only implemented for OS X and Windows at the moment.
 		sysconf(_SC_NPROCESSORS_ONLN) may be appropriate for some Unices, but
 		_SC_NPROCESSORS_ONLN is not defined on OS X.
 	*/
@@ -98,7 +98,14 @@ void OOCPUInfoInit(void)
 	{
 		if (1 <= flag)  sNumberOfCPUs = flag;
 	}
+#elif OOLITE_WINDOWS
+	SYSTEM_INFO	sysInfo;
+	
+	GetSystemInfo(&sysInfo);
+	sNumberOfCPUs = sysInfo.dwNumberOfProcessors;
 #endif
+	
+	OOLog(@"cpuInfo.cpuCount", @"%u processors detected.", sNumberOfCPUs);
 	
 	// Check for AltiVec if relelevant
 #if OOLITE_ALTIVEC_DYNAMIC
@@ -112,20 +119,14 @@ void OOCPUInfoInit(void)
 #else
 	#error OOLITE_ALTIVEC_DYNAMIC is (still) set, but Oolite doesn't know how to check for AltiVec on this platform. (The Mac version may work on other BSDs, at least; give it a shot.)
 #endif
-#endif
-
-#if OOLITE_WINDOWS
-	SYSTEM_INFO	sysInfo;
 	
-	GetSystemInfo (&sysInfo);
-	sNumberOfCPUs = sysInfo.dwNumberOfProcessors;
+	OOLog(@"cpuInfo.altivec", @"Altivec %s available.", sAltiVecAvailable ? "is" : "is not");
 #endif
 }
 
 
 unsigned OOCPUCount(void)
 {
-	NSLog (@"Value of  sNumberOfCPUs: %u", sNumberOfCPUs);
 	return (sNumberOfCPUs != 0) ? sNumberOfCPUs : 1;
 }
 

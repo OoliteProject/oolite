@@ -6943,23 +6943,6 @@ inline BOOL pairOK(NSString* my_role, NSString* their_role)
 	[[self getAI] reactToMessage:@"PILOT_ARRIVED"];
 }
 
-#ifdef WIN32
-// No over-ride of Entity's version of the method is required for non-Win32 platforms.
-- (void) reloadTextures
-{
-	int i;
-	for (i = 0; i < [sub_entities count]; i++)
-	{
-		Entity *e = (Entity *)[sub_entities objectAtIndex:i];
-		[e reloadTextures];
-	}
-
-	// Reset the entity display list.
-	[super reloadTextures];
-}
-
-#endif
-
 
 - (void)dumpSelfState
 {

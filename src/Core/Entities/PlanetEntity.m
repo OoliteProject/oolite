@@ -2071,23 +2071,4 @@ double longitudeFromVector(Vector v)
 	velocity.z = 10000;
 }
 
-#ifdef WIN32
-// No over-ride of Entity's version of the method is required for non-Win32 platforms.
-- (void) reloadTextures
-{
-	int i;
-	// Clear out the planet's various detail level display lists.
-	for (i = 0; i < MAX_SUBDIVIDE; i++)
-	{
-		glDeleteLists(displayListNames[i], 1);
-		displayListNames[i] = 0;
-	}
-
-	// Don't know if this will help for planets, but it shouldn't hurt.
-	[super reloadTextures];
-}
-
-#endif
-
-
 @end

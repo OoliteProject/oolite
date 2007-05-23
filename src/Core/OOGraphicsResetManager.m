@@ -1,6 +1,7 @@
 /*
 
-OOSingleTextureMaterial.h
+OOGraphicsResetManager.m
+
 
 Oolite
 Copyright (C) 2004-2007 Giles C Williams and contributors
@@ -45,76 +46,108 @@ SOFTWARE.
 
 */
 
-#import "OOSingleTextureMaterial.h"
+#import "OOGraphicsResetManager.h"
 #import "OOTexture.h"
-#import "OOCollectionExtractors.h"
-#import "OOFunctionAttributes.h"
 
 
-@implementation OOSingleTextureMaterial
+static OOGraphicsResetManager *sSingleton = nil;
 
-- (id)initWithName:(NSString *)name configuration:(NSDictionary *)configuration
-{
-	id					texSpec = nil;
-	
-	self = [super initWithName:name configuration:configuration];
-	if (name != nil && self != nil)
-	{
-		if (texSpec != nil)
-		{
-			texSpec = [configuration textureSpecifierForKey:@"diffuse_map" defaultName:name];
-		}
-		else
-		{
-			texSpec = name;
-		}
-		texture = [[OOTexture textureWithConfiguration:texSpec] retain];
-	}
-	
-	if (texture == nil)
-	{
-		[self release];
-		return nil;
-	}
-	
-	return self;
-}
 
+@implementation OOGraphicsResetManager
 
 - (void)dealloc
 {
-	[self willDealloc];
-	[texture release];
+	if (sSingleton == self)  sSingleton = nil;
+	[clients release];
 	
 	[super dealloc];
 }
 
 
-- (NSString *)description
++ (id)sharedManager
 {
-	return [NSString stringWithFormat:@"<%@ %p>{%@}", [self class], self, texture];
+	if (sSingleton == nil)  [[self alloc] init];
+	return sSingleton;
 }
 
 
-- (BOOL)doApply
+- (void)registerClient:(id<OOGraphicsResetClient>)client
 {
-	if (EXPECT_NOT(![super doApply]))  return NO;
+	if (client != nil)
+	{
+		if (clients == nil)  clients = [[NSMutableSet alloc] init];
+		[clients addObject:[NSValue valueWithPointer:client]];
+	}
+}
+
+
+- (void)unregisterClient:(id<OOGraphicsResetClient>)client
+{
+	[clients removeObject:[NSValue valueWithPointer:client]];
+}
+
+
+- (void)resetGraphicsState
+{
+	NSEnumerator			*clientEnum = nil;
+	id						client = nil;
 	
-	[texture apply];
-	return YES;
+	[OOTexture rebindAllTextures];
+	
+	for (clientEnum = [clients objectEnumerator]; (client = [[clientEnum nextObject] pointerValue]); )
+	{
+		[client resetGraphicsState];
+	}
+}
+
+@end
+
+
+@implementation OOGraphicsResetManager (Singleton)
+
+/*	Canonical singleton boilerplate.
+	See Cocoa Fundamentals Guide: Creating a Singleton Instance.
+	See also +sharedManager above.
+	
+	// NOTE: assumes single-threaded first access.
+*/
+
++ (id)allocWithZone:(NSZone *)inZone
+{
+	if (sSingleton == nil)
+	{
+		sSingleton = [super allocWithZone:inZone];
+		return sSingleton;
+	}
+	return nil;
 }
 
 
-- (void)unapplyWithNext:(OOMaterial *)next
+- (id)copyWithZone:(NSZone *)inZone
 {
-	if (![next isKindOfClass:[OOSingleTextureMaterial class]])  [OOTexture applyNone];
-	[super unapplyWithNext:next];
+	return self;
 }
 
 
-- (void)ensureFinishedLoading
+- (id)retain
 {
-	[texture ensureFinishedLoading];
+	return self;
+}
+
+
+- (unsigned)retainCount
+{
+	return UINT_MAX;
+}
+
+
+- (void)release
+{}
+
+
+- (id)autorelease
+{
+	return self;
 }
 
 @end

@@ -58,12 +58,6 @@ MA 02110-1301, USA.
 }
 
 
-- (void)reloadTextures
-{
-	[drawable reloadTextures];
-}
-
-
 - (GLfloat)findCollisionRadius
 {
 	return [drawable collisionRadius];

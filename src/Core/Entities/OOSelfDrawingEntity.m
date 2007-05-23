@@ -28,6 +28,7 @@ MA 02110-1301, USA.
 #import "TextureStore.h"
 #import "ResourceManager.h"
 #import "OOOpenGLExtensionManager.h"
+#import "OOGraphicsResetManager.h"
 
 
 static NSString * const kOOLogEntityDataNotFound			= @"entity.loadMesh.failed.fileNotFound";
@@ -35,7 +36,7 @@ static NSString * const kOOLogEntityTooManyVertices			= @"entity.loadMesh.failed
 static NSString * const kOOLogEntityTooManyFaces			= @"entity.loadMesh.failed.tooManyFaces";
 
 
-@interface OOSelfDrawingEntity (Private)
+@interface OOSelfDrawingEntity (Private) <OOGraphicsResetClient>
 
 - (void)loadData:(NSString *)filename;
 - (void)checkNormalsAndAdjustWinding;
@@ -69,6 +70,7 @@ static NSString * const kOOLogEntityTooManyFaces			= @"entity.loadMesh.failed.to
 	if (self == nil)  return nil;
 	
     basefile = @"No Model";
+	[[OOGraphicsResetManager sharedManager] registerClient:self];
 	
 	return self;
 }
@@ -77,6 +79,8 @@ static NSString * const kOOLogEntityTooManyFaces			= @"entity.loadMesh.failed.to
 - (void) dealloc
 {
 	[basefile release];
+	[[OOGraphicsResetManager sharedManager] unregisterClient:self];
+	glDeleteLists(displayListName, 1);
 	
 	[super dealloc];
 }
@@ -401,6 +405,16 @@ static NSString * const kOOLogEntityTooManyFaces			= @"entity.loadMesh.failed.to
 		return NO;
 	}
 }
+
+
+- (void)resetGraphicsState
+{
+	if (displayListName != 0)
+	{
+		glDeleteLists(displayListName, 1);
+	}
+}
+
 
 - (void)loadData:(NSString *) filename
 {

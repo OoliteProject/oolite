@@ -81,12 +81,6 @@ typedef int32_t CGMouseDelta;
 
 #import "Comparison.h"
 
-#if ! OOLITE_GNUSTEP
-#import "OOColor.h"
-#endif
-
-typedef char Str255[256];
-
 /* Define AppKit constants for events */
 enum {
   NSUpArrowFunctionKey = 0xF700,

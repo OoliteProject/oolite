@@ -45,6 +45,7 @@ MA 02110-1301, USA.
 
 #import "Octree.h"
 #import "CollisionRegion.h"
+#import "OOGraphicsResetManager.h"
 
 #import "OOCharacter.h"
 
@@ -317,10 +318,10 @@ static BOOL MaintainLinkedLists(Universe* uni);
 
 - (void) setStrict:(BOOL) value
 {
-	if (strict == value)
-		return;
+	if (strict == value)  return;
+	
 	strict = value;
-	// do other necessary stuff
+	[OOTexture clearCache];	// Force reload of texutres, since search paths effectively change
 	
 	[self reinit];
 }
@@ -337,8 +338,6 @@ static BOOL MaintainLinkedLists(Universe* uni);
 	
 	[ResourceManager setUseAddOns:!strict];
 	[ResourceManager loadScripts];
-	[TextureStore reloadTextures];
-	[OOTexture clearCache];
 	
 #ifndef GNUSTEP
 	//// speech stuff

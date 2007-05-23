@@ -404,7 +404,7 @@
 	<string>$error</string>
 	<key>texture.planet.generate</key>
 	<string>inherit</string>
-	<key>texture.setUp</key>
+	<key>texture.upload</key>
 	<string>$textureDebug</string>
 	<key>textureLoader.asyncLoad</key>
 	<string>$textureDebug</string>

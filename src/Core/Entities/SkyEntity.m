@@ -33,6 +33,7 @@ MA 02110-1301, USA.
 #import "OOStringParsing.h"
 #import "OOTexture.h"
 #import "OOCollectionExtractors.h"
+#import "OOGraphicsResetManager.h"
 
 
 #define MULTI_TEXTURE_BLOBS		0		// Not fully implemented yet
@@ -42,7 +43,7 @@ static BOOL				sLoadedTextures = NO;
 static OOTexture		*sStarTexture, *sBlobTexture;
 
 
-@interface SkyEntity (OOPrivate)
+@interface SkyEntity (OOPrivate) <OOGraphicsResetClient>
 
 - (void)readColor1:(OOColor **)ioColor1 andColor2:(OOColor **)ioColor2 fromDictionary:(NSDictionary *)dictionary;
 
@@ -106,6 +107,8 @@ static OOTexture		*sStarTexture, *sBlobTexture;
     status = STATUS_EFFECT;
 	isSky = YES;
 	
+	[[OOGraphicsResetManager sharedManager] registerClient:self];
+	
     return self;
 }
 
@@ -120,7 +123,11 @@ static OOTexture		*sStarTexture, *sBlobTexture;
 
 - (void) dealloc
 {
-	if (sky_color)  [sky_color release];
+	[sky_color release];
+	
+	[[OOGraphicsResetManager sharedManager] unregisterClient:self];
+	glDeleteLists(displayListName, 1);
+	
 	[super dealloc];
 }
 
@@ -529,6 +536,15 @@ static OOTexture		*sStarTexture, *sBlobTexture;
 #if MULTI_TEXTURE_BLOBS
 	[sBlobTextures makeObjectsPerformSelector:@selector(ensureFinishedLoading)];
 #endif
+}
+
+
+- (void)resetGraphicsState
+{
+	if (displayListName != 0)
+	{
+		glDeleteLists(displayListName, 1);
+	}
 }
 
 @end

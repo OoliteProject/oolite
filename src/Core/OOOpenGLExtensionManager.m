@@ -176,6 +176,8 @@ static unsigned IntegerFromString(const GLubyte **ioString);
 
 - (void)dealloc
 {
+	if (sSingleton == self)  sSingleton = nil;
+	
 #if OOOPENGLEXTMGR_LOCK_SET_ACCESS
 	[lock release];
 #endif

@@ -74,11 +74,6 @@ SOFTWARE.
 }
 
 
-- (void)reloadTextures
-{
-	
-}
-
 - (GLfloat)collisionRadius
 {
 	return 0.0f;

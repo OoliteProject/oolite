@@ -33,6 +33,7 @@ MA 02110-1301, USA.
 #import "PlayerEntity.h"
 #import "GuiDisplayGen.h"
 #import "PlanetEntity.h"
+#import "OOGraphicsResetManager.h"
 
 #ifdef WIN32
 #import "TextureStore.h"
@@ -433,23 +434,7 @@ MA 02110-1301, USA.
 #ifdef WIN32
 	if (UNIVERSE)
 	{
-		NSLog(@"WIN32: clearing texture store cache");
-		[TextureStore reloadTextures]; // clears the cached references
-		PlayerEntity *player = [PlayerEntity sharedPlayer];
-		if (player)
-		{
-			NSLog(@"WIN32: resetting text texture");
-			[[player hud] setPlayer:player]; // resets the reference to the asciitext texture
-		}
-
-		NSLog(@"WIN32: resetting entity textures");
-		int i;
-		Entity **elist = UNIVERSE->sortedEntities;
-		for (i = 0; i < UNIVERSE->n_entities; i++)
-		{
-			Entity *e = elist[i];
-			[e reloadTextures];
-		}
+		[[OOGraphicsResetManager sharedManager] resetGraphicsState];
 	}
 #endif
 

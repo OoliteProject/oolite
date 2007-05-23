@@ -62,8 +62,6 @@ SOFTWARE.
 - (BOOL)hasOpaqueParts;
 - (BOOL)hasTranslucentParts;
 
-- (void)reloadTextures;
-
 - (GLfloat)collisionRadius;
 - (GLfloat)maxDrawDistance;
 - (Geometry *)geometry;

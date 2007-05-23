@@ -724,14 +724,22 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 	{
 		// No dock* subentity found, use defaults.
 		double port_radius = [dict doubleForKey:@"port_radius" defaultValue:500.0];
-		port_position = make_vector( 0, 0, port_radius);
+		port_position = make_vector(0, 0, port_radius);
 		port_qrotation = kIdentityQuaternion;
 	}
 	
 	// port_dimensions can be set for rock-hermits and other specials
-	if (!ScanVectorFromString([dict stringForKey:@"port_dimensions"], &port_dimensions))
+	port_dimensions = make_vector( 69, 69, 250);
+	NSString *portDimensionsStr = [dict stringForKey:@"port_dimensions"];
+	if (portDimensionsStr != nil)   // this can be set for rock-hermits and other specials
 	{
-		port_dimensions = make_vector( 69, 69, 250);		// base port size (square)
+		NSArray* tokens = [portDimensionsStr componentsSeparatedByString:@"x"];
+		if ([tokens count] == 3)
+		{
+			port_dimensions = make_vector([[tokens objectAtIndex:0] floatValue],
+										  [[tokens objectAtIndex:1] floatValue],
+										  [[tokens objectAtIndex:2] floatValue]);
+		}
 	}
 	
 	[super setUpShipFromDictionary:dict];
@@ -766,7 +774,7 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 - (void) setDockingPortModel:(ShipEntity*) dock_model :(Vector) dock_pos :(Quaternion) dock_q
 {
 	port_model = dock_model;
-		
+	
 	port_position = dock_pos;
 	port_qrotation = dock_q;
 

@@ -889,12 +889,6 @@ static NSString * const kOOLogEntityUpdateError				= @"entity.linkedList.update.
 }
 
 
-- (void) reloadTextures
-{
-	OOLogGenericSubclassResponsibility();
-}
-
-
 - (void) takeEnergyDamage:(double) amount from:(Entity *) ent becauseOf:(Entity *) other
 {
 	

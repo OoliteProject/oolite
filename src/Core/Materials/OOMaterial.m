@@ -126,12 +126,6 @@ static OOMaterial *sActiveMaterial = nil;
 	
 }
 
-
-- (void)reloadTextures
-{
-	
-}
-
 @end
 
 

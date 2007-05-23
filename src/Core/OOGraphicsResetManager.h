@@ -1,6 +1,14 @@
 /*
 
-OOSingleTextureMaterial.h
+OOGraphicsResetManager.h
+
+Tracks objects with state that needs to be reset when the graphics context is
+modified (for instance, when switching between windowed and full-screen mode
+in SDL builds). This means re-uploading all textures, and also resetting any
+display lists relying on old texture names. All objects which have display
+lists must therefore register with the OOGraphicsResetManager on init, and
+unregister on dealloc.
+
 
 Oolite
 Copyright (C) 2004-2007 Giles C Williams and contributors
@@ -45,76 +53,28 @@ SOFTWARE.
 
 */
 
-#import "OOSingleTextureMaterial.h"
-#import "OOTexture.h"
-#import "OOCollectionExtractors.h"
-#import "OOFunctionAttributes.h"
+#import "OOCocoa.h"
 
 
-@implementation OOSingleTextureMaterial
+@protocol OOGraphicsResetClient
 
-- (id)initWithName:(NSString *)name configuration:(NSDictionary *)configuration
+- (void)resetGraphicsState;
+
+@end
+
+
+@interface OOGraphicsResetManager: NSObject
 {
-	id					texSpec = nil;
-	
-	self = [super initWithName:name configuration:configuration];
-	if (name != nil && self != nil)
-	{
-		if (texSpec != nil)
-		{
-			texSpec = [configuration textureSpecifierForKey:@"diffuse_map" defaultName:name];
-		}
-		else
-		{
-			texSpec = name;
-		}
-		texture = [[OOTexture textureWithConfiguration:texSpec] retain];
-	}
-	
-	if (texture == nil)
-	{
-		[self release];
-		return nil;
-	}
-	
-	return self;
+	NSMutableSet			*clients;
 }
 
++ (id)sharedManager;
 
-- (void)dealloc
-{
-	[self willDealloc];
-	[texture release];
-	
-	[super dealloc];
-}
+// Clients are not retained.
+- (void)registerClient:(id<OOGraphicsResetClient>)client;
+- (void)unregisterClient:(id<OOGraphicsResetClient>)client;
 
-
-- (NSString *)description
-{
-	return [NSString stringWithFormat:@"<%@ %p>{%@}", [self class], self, texture];
-}
-
-
-- (BOOL)doApply
-{
-	if (EXPECT_NOT(![super doApply]))  return NO;
-	
-	[texture apply];
-	return YES;
-}
-
-
-- (void)unapplyWithNext:(OOMaterial *)next
-{
-	if (![next isKindOfClass:[OOSingleTextureMaterial class]])  [OOTexture applyNone];
-	[super unapplyWithNext:next];
-}
-
-
-- (void)ensureFinishedLoading
-{
-	[texture ensureFinishedLoading];
-}
+// Forwarded to all clients, after resetting textures.
+- (void)resetGraphicsState;
 
 @end

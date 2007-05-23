@@ -48,8 +48,6 @@ extern int debug;
 + (NSString*) getNameOfTextureWithGLuint:(GLuint) value;
 + (NSSize) getSizeOfTexture:(NSString *)filename;
 
-+ (void) reloadTextures;
-
 
 // routines to create textures...
 

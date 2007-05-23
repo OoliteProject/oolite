@@ -123,31 +123,6 @@ GLuint	max_texture_dimension = 512;	// conservative start
 }
 
 
-+ (void) reloadTextures
-{
-	/*
-		FIXME: This function is only called when switching between strict and
-		non-strict mode, and apparently under some circumstances under GNUstep.
-		It's so old that the dictionary it works on is used for almost exactly
-		the opposite of what it expects. This is why we use classes and
-		encapsulation, people.
-		-- ahruman
-	*/
-	
-	NSEnumerator		*texEnum = nil;
-	id					texDict = nil;
-	GLuint				texName;
-	
-	for (texEnum = [textureUniversalDictionary objectEnumerator]; (texDict = [texEnum nextObject]); )
-	{
-		if ([texDict isKindOfClass:[NSDictionary class]])
-		{
-			texName = [[texDict objectForKey:@"texName"] intValue];
-			glDeleteTextures(1, &texName);
-		}
-	}
-}
-
 + (GLuint) getPlanetTextureNameFor:(NSDictionary*)planetinfo intoData:(unsigned char **)textureData
 {
 	GLuint				texName;

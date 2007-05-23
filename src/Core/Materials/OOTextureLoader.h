@@ -54,15 +54,6 @@ SOFTWARE.
 #import "OOTexture.h"
 
 
-typedef enum
-{
-	kOOTextureDataInvalid,
-	
-	kOOTextureDataRGBA,			// GL_RGBA, GL_UNSIGNED_INT_8_8_8_8 little-endian/GL_UNSIGNED_INT_8_8_8_8_REV big-endian.
-	kOOTextureDataGrayscale
-} OOTextureDataFormat;
-
-
 @interface OOTextureLoader: NSObject
 {
 @public

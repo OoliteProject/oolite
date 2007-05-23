@@ -94,33 +94,39 @@ enum
 #define kOOTextureDefaultLODBias		-0.25
 
 
+typedef enum
+{
+	kOOTextureDataInvalid,
+	
+	kOOTextureDataRGBA,			// GL_RGBA, GL_UNSIGNED_INT_8_8_8_8 little-endian/GL_UNSIGNED_INT_8_8_8_8_REV big-endian.
+	kOOTextureDataGrayscale
+} OOTextureDataFormat;
+
+
 @interface OOTexture: NSObject
 {
-	BOOL					loaded;
-	NSString				*key;
-	union
-	{
-		struct
-		{
-			OOTextureLoader			*loader;
-			uint32_t				options;
-#if GL_EXT_texture_filter_anisotropic
-			float					anisotropy;
-#endif
-		}						loading;
-		struct
-		{
-			void					*bytes;
-			GLuint					textureName;
-			uint32_t				width,
-									height;
+	NSString				*_key;
+	uint8_t					_loaded: 1,
+							_uploaded: 1,
 #if GL_EXT_texture_rectangle
-			BOOL					isRectTexture;
+							_isRectTexture: 1,
 #endif
-		}						loaded;
-	}						data;
+							_valid: 1;
+	
+	OOTextureLoader			*_loader;
+	
+	void					*_bytes;
+	GLuint					_textureName;
+	uint32_t				_width,
+							_height;
+	
+	OOTextureDataFormat		_format;
+	uint32_t				_options;
 #if GL_EXT_texture_lod_bias
-	GLfloat					lodBias;	// Used both before and after loading
+	GLfloat					_lodBias;
+#endif
+#if GL_EXT_texture_filter_anisotropic
+	float					_anisotropy;
 #endif
 }
 
@@ -214,6 +220,9 @@ enum
 
 //	Forget all cached textures so new texture objects will reload.
 + (void)clearCache;
+
+// Called by OOGraphicsResetManager as necessary.
++ (void)rebindAllTextures;
 
 @end
 

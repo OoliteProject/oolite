@@ -413,12 +413,6 @@ static NSString *MacrosToString(NSDictionary *macros);
 	}
 }
 
-
-- (void)reloadTextures
-{
-	// FIXME
-}
-
 @end
 
 

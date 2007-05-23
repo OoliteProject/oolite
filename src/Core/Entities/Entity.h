@@ -249,6 +249,5 @@ extern int debug;
 - (Geometry*) geometry;
 - (BoundingBox) findBoundingBoxRelativeToPosition:(Vector)opv InVectors:(Vector) _i :(Vector) _j :(Vector) _k;
 - (void) drawEntity:(BOOL)immediate :(BOOL)translucent;
-- (void) reloadTextures;
 
 @end

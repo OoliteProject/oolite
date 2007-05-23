@@ -158,7 +158,10 @@ static BOOL		sRectangleTextureAvailable;
 
 - (id)initWithPath:(NSString *)path key:(NSString *)key options:(uint32_t)options anisotropy:(float)anisotropy lodBias:(GLfloat)lodBias;
 - (void)setUpTexture;
+- (void)uploadTexture;
 - (void)uploadTextureDataWithMipMap:(BOOL)mipMap format:(OOTextureDataFormat)format;
+
+- (void)forceRebind;
 
 + (void)checkExtensions;
 
@@ -321,23 +324,20 @@ static BOOL		sRectangleTextureAvailable;
 	
 	OOLog(@"texture.dealloc", @"Deallocating and uncaching texture %@", self);
 	
-	if (key != nil)
+	if (_key != nil)
 	{
-		[sInUseTextures removeObjectForKey:key];
-		[sRecentTextures removeObjectForKey:key];
+		[sInUseTextures removeObjectForKey:_key];
+		[sRecentTextures removeObjectForKey:_key];
+		[_key release];
 	}
 	
-	[key release];
+	if (_loaded)
+	{
+		if (_textureName != 0)  glDeleteTextures(1, &_textureName);
+		if (_bytes != NULL) free(_bytes);
+	}
 	
-	if (loaded)
-	{
-		if (data.loaded.textureName != 0)  glDeleteTextures(1, &data.loaded.textureName);
-		if (data.loaded.bytes != NULL) free(data.loaded.bytes);
-	}
-	else
-	{
-		[data.loading.loader release];
-	}
+	[_loader release];
 	
 	[super dealloc];
 }
@@ -347,11 +347,11 @@ static BOOL		sRectangleTextureAvailable;
 {
 	NSString				*stateDesc = nil;
 	
-	if (loaded)
+	if (_loaded)
 	{
-		if (data.loaded.bytes != NULL)
+		if (_valid)
 		{
-			stateDesc = [NSString stringWithFormat:@"%u x %u", data.loaded.width, data.loaded.height];
+			stateDesc = [NSString stringWithFormat:@"%u x %u", _width, _height];
 		}
 		else
 		{
@@ -363,7 +363,7 @@ static BOOL		sRectangleTextureAvailable;
 		stateDesc = @"loading";
 	}
 	
-	return [NSString stringWithFormat:@"<%@ %p [%u]>{%@, %@}", [self className], self, [self retainCount], key, stateDesc];
+	return [NSString stringWithFormat:@"<%@ %p [%u]>{%@, %@}", [self className], self, [self retainCount], _key, stateDesc];
 }
 
 
@@ -371,11 +371,12 @@ static BOOL		sRectangleTextureAvailable;
 {
 	OO_ENTER_OPENGL();
 	
-	if (EXPECT_NOT(!loaded))  [self setUpTexture];
-	else  glBindTexture(GL_TEXTURE_2D, data.loaded.textureName);
+	if (EXPECT_NOT(!_loaded))  [self setUpTexture];
+	else if (EXPECT_NOT(!_uploaded))  [self uploadTexture];
+	else  glBindTexture(GL_TEXTURE_2D, _textureName);
 	
 #if GL_EXT_texture_lod_bias
-	if (sTextureLODBiasAvailable)  glTexEnvf(GL_TEXTURE_FILTER_CONTROL_EXT, GL_TEXTURE_LOD_BIAS_EXT, lodBias);
+	if (sTextureLODBiasAvailable)  glTexEnvf(GL_TEXTURE_FILTER_CONTROL_EXT, GL_TEXTURE_LOD_BIAS_EXT, _lodBias);
 #endif
 }
 
@@ -390,7 +391,7 @@ static BOOL		sRectangleTextureAvailable;
 
 - (void)ensureFinishedLoading
 {
-	if (EXPECT_NOT(!loaded))  [self setUpTexture];
+	if (EXPECT_NOT(!_loaded))  [self setUpTexture];
 }
 
 
@@ -398,28 +399,28 @@ static BOOL		sRectangleTextureAvailable;
 {
 	[self ensureFinishedLoading];
 	
-	return NSMakeSize(data.loaded.width, data.loaded.height);
+	return NSMakeSize(_width, _height);
 }
 
 
 - (NSSize)texCoordsScale
 {
 #if GL_EXT_texture_rectangle
-	if (loaded)
+	if (_loaded)
 	{
-		if (!data.loaded.isRectTexture)
+		if (!_isRectTexture)
 		{
 			return NSMakeSize(1.0f, 1.0f);
 		}
 		else
 		{
-			return NSMakeSize(data.loaded.width, data.loaded.height);
+			return NSMakeSize(_width, _height);
 		}
 	}
 	else
 	{
 		// Not loaded
-		if (!data.loading.options & kOOTextureAllowRectTexture)
+		if (!_options & kOOTextureAllowRectTexture)
 		{
 			return NSMakeSize(1.0f, 1.0f);
 		}
@@ -440,7 +441,7 @@ static BOOL		sRectangleTextureAvailable;
 {
 	[self ensureFinishedLoading];
 	
-	return data.loaded.textureName;
+	return _textureName;
 }
 
 
@@ -450,6 +451,18 @@ static BOOL		sRectangleTextureAvailable;
 	sInUseTextures = nil;
 	[sRecentTextures release];
 	sRecentTextures = nil;
+}
+
+
++ (void)rebindAllTextures
+{
+	NSEnumerator			*textureEnum = nil;
+	id						texture = nil;
+	
+	for (textureEnum = [sInUseTextures objectEnumerator]; (texture = [[textureEnum nextObject] pointerValue]); )
+	{
+		[texture forceRebind];
+	}
 }
 
 @end
@@ -462,23 +475,23 @@ static BOOL		sRectangleTextureAvailable;
 	self = [super init];
 	if (EXPECT_NOT(self == nil))  return nil;
 	
-	data.loading.loader = [[OOTextureLoader loaderWithPath:path options:options] retain];
-	if (EXPECT_NOT(data.loading.loader == nil))
+	_loader = [[OOTextureLoader loaderWithPath:path options:options] retain];
+	if (EXPECT_NOT(_loader == nil))
 	{
 		[self release];
 		return nil;
 	}
 	
-	data.loading.options = options;
+	_options = options;
 	
 #if GL_EXT_texture_filter_anisotropic
-	data.loading.anisotropy = OOClamp_0_1_f(anisotropy) * sAnisotropyScale;
+	_anisotropy = OOClamp_0_1_f(_anisotropy) * sAnisotropyScale;
 #endif
 #if GL_EXT_texture_lod_bias
-	lodBias = inLodBias;
+	_lodBias = inLodBias;
 #endif
 	
-	key = [inKey copy];
+	_key = [inKey copy];
 	
 	// Add self to recent textures cache
 	if (EXPECT_NOT(sRecentTextures == nil))
@@ -488,7 +501,7 @@ static BOOL		sRectangleTextureAvailable;
 		[sRecentTextures setAutoPrune:YES];
 		[sRecentTextures setPruneThreshold:kRecentTexturesCount];
 	}
-	[sRecentTextures setObject:self forKey:key];
+	[sRecentTextures setObject:self forKey:_key];
 	
 	return self;
 }
@@ -496,36 +509,45 @@ static BOOL		sRectangleTextureAvailable;
 
 - (void)setUpTexture
 {
-	OOTextureLoader			*loader = nil;
-	uint32_t				options;
+	// This will block until loading is completed, if necessary.
+	if ([_loader getResult:&_bytes format:&_format width:&_width height:&_height])
+	{
+		[self uploadTexture];
+	}
+	else
+	{
+		_textureName = 0;
+		_valid = NO;
+		_uploaded = YES;
+	}
+	
+	_loaded = YES;
+	
+	[_loader release];
+	_loader = nil;
+}
+
+
+- (void)uploadTexture
+{
 	GLint					clampMode;
 	GLint					filter;
-	float					anisotropy;
 	BOOL					mipMap = NO;
-	OOTextureDataFormat		format;
 	
 	OO_ENTER_OPENGL();
 	
-	loader = data.loading.loader;
-	options = data.loading.options;
-	anisotropy = data.loading.anisotropy;
-	
-	loaded = YES;
-	// data.loaded considered invalid beyond this point.
-	
-	// This will block until loading is completed, if necessary.
-	if ([loader getResult:&data.loaded.bytes format:&format width:&data.loaded.width height:&data.loaded.height])
+	if (!_uploaded)
 	{
-		glGenTextures(1, &data.loaded.textureName);
-		glBindTexture(GL_TEXTURE_2D, data.loaded.textureName);
+		glGenTextures(1, &_textureName);
+		glBindTexture(GL_TEXTURE_2D, _textureName);
 		
 		// Select wrap mode
 		clampMode = sClampToEdgeAvailable ? GL_CLAMP_TO_EDGE : GL_CLAMP;
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, (options & kOOTextureRepeatS) ? GL_REPEAT : clampMode);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, (options & kOOTextureRepeatT) ? GL_REPEAT : clampMode);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, (_options & kOOTextureRepeatS) ? GL_REPEAT : clampMode);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, (_options & kOOTextureRepeatT) ? GL_REPEAT : clampMode);
 		
 		// Select min filter
-		filter = options & kOOTextureMinFilterMask;
+		filter = _options & kOOTextureMinFilterMask;
 		if (filter == kOOTextureMinFilterNearest)  filter = GL_NEAREST;
 		else if (filter == kOOTextureMinFilterMipMap)
 		{
@@ -536,46 +558,37 @@ static BOOL		sRectangleTextureAvailable;
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, filter);
 		
 #if GL_EXT_texture_filter_anisotropic
-		if (sAnisotropyAvailable && mipMap && 1.0 < anisotropy)
+		if (sAnisotropyAvailable && mipMap && 1.0 < _anisotropy)
 		{
-			glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY_EXT, 4.0);
+			glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY_EXT, _anisotropy);
 		}
 #endif
 		
 		// Select mag filter
-		filter = options & kOOTextureMagFilterMask;
+		filter = _options & kOOTextureMagFilterMask;
 		if (filter == kOOTextureMagFilterNearest)  filter = GL_NEAREST;
 		else  filter = GL_LINEAR;
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, filter);
 		
 		if (sClientStorageAvialable)  EnableClientStorage();
 		
-		[self uploadTextureDataWithMipMap:mipMap format:format];
+		[self uploadTextureDataWithMipMap:mipMap format:_format];
 		
-		if (!sClientStorageAvialable)
-		{
-			free(data.loaded.bytes);
-			data.loaded.bytes = NULL;
-		}
+		OOLog(@"texture.upload", @"Uploaded texture %u (%ux%u pixels, %@)", _textureName, _width, _height, _key);
 		
-		OOLog(@"texture.setUp", @"Set up texture %u (%ux%u pixels, %@)", data.loaded.textureName, data.loaded.width, data.loaded.height, key);
+		_valid = YES;
+		_uploaded = YES;
 	}
-	else
-	{
-		data.loaded.textureName = 0;
-	}
-	
-	[loader release];
 }
 
 
 - (void)uploadTextureDataWithMipMap:(BOOL)mipMap format:(OOTextureDataFormat)format
 {
 	GLint					glFormat, internalFormat, type;
-	unsigned				w = data.loaded.width,
-							h = data.loaded.height,
+	unsigned				w = _width,
+							h = _height,
 							level = 0;
-	char					*bytes = data.loaded.bytes;
+	char					*bytes = _bytes;
 	uint8_t					planes = OOTexturePlanesForFormat(format);
 	
 	OO_ENTER_OPENGL();
@@ -609,6 +622,19 @@ static BOOL		sRectangleTextureAvailable;
 	}
 	
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, level - 1);
+}
+
+
+- (void)forceRebind
+{
+	OO_ENTER_OPENGL();
+	
+	if (_loaded && _uploaded && _valid)
+	{
+		_uploaded = NO;
+		glDeleteTextures(1, &_textureName);
+		_textureName = 0;
+	}
 }
 
 

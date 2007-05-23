@@ -31,6 +31,7 @@ MA 02110-1301, USA.
 #import "PlanetEntity.h"
 #import "ResourceManager.h"
 #import "GuiDisplayGen.h"
+#import "OODebugController.h"
 
 
 static NSString * kOOLogKeyCodeOutOfRange	= @"input.keyMapping.codeOutOfRange";
@@ -93,7 +94,7 @@ static NSString * kOOLogKeyDown				= @"input.keyMapping.keyPress.keyDown";
 	isAlphabetKeyDown = NO;
 		
 	timeIntervalAtLastClick = [NSDate timeIntervalSinceReferenceDate];
-	 
+	
     return self;
 }
 
@@ -103,6 +104,15 @@ static NSString * kOOLogKeyDown				= @"input.keyMapping.keyPress.keyDown";
 		[typedString release];
 	[super dealloc];
 }
+
+
+- (void)awakeFromNib
+{	
+#ifndef NDEBUG
+	(void)[OODebugController sharedDebugController];
+#endif
+}
+
 
 - (void) setStringInput: (enum StringInput) value
 {
@@ -149,7 +159,7 @@ static NSString * kOOLogKeyDown				= @"input.keyMapping.keyPress.keyDown";
 }
 
 
-- (GameController *) gameController
+- (GameController *)gameController
 {
 	return gameController;
 }
@@ -160,9 +170,7 @@ static NSString * kOOLogKeyDown				= @"input.keyMapping.keyPress.keyDown";
 }
 
 - (void)drawRect:(NSRect)rect
-{    
-//	AppDelegate	*deleg = (AppDelegate *)[NSApp delegate];
-	
+{
 	if ((viewSize.width != [self frame].size.width)||(viewSize.height != [self frame].size.height)) // resized
 	{
 		m_glContextInitialized = NO;

@@ -33,6 +33,7 @@ MA 02110-1301, USA.
 #import "OOBasicMaterial.h"
 #import "OOCollectionExtractors.h"
 #import "OOOpenGLExtensionManager.h"
+#import "OOGraphicsResetManager.h"
 
 
 static NSString * const kOOLogMeshDataNotFound				= @"mesh.load.failed.fileNotFound";
@@ -44,7 +45,7 @@ static NSString * const kOOLogMeshTooManyMaterials			= @"mesh.load.failed.tooMan
 #define DEBUG_DRAW_NORMALS		0
 
 
-@interface OOMesh (Private) <NSMutableCopying>
+@interface OOMesh (Private) <NSMutableCopying, OOGraphicsResetClient>
 
 - (id)initWithName:(NSString *)name
 materialDictionary:(NSDictionary *)materialDict
@@ -68,8 +69,6 @@ shaderBindingTarget:(id<OOWeakReferenceSupport>)object;
 - (BOOL) setModelFromModelData:(NSDictionary*) dict;
 
 - (Vector) normalForVertex:(int)v_index inSmoothGroup:(OOMeshSmoothGroup)smoothGroup;
-
-- (void)regenerateDisplayList;
 
 - (void) setUpVertexArrays;
 
@@ -130,13 +129,15 @@ shaderBindingTarget:(id<OOWeakReferenceSupport>)object
 	[baseFile release];
 	[octree autorelease];
 	
-	[self regenerateDisplayList];
+	[self resetGraphicsState];
 	
 	for (i = 0; i != kOOMeshMaxMaterials; ++i)
 	{
 		[materials[i] release];
 		[materialKeys[i] release];
 	}
+	
+	[[OOGraphicsResetManager sharedManager] unregisterClient:self];
 	
 	[super dealloc];
 }
@@ -393,6 +394,7 @@ shaderBindingTarget:(id<OOWeakReferenceSupport>)target
 		[self calculateBoundingVolumes];
 		baseFile = [name copy];
 		[self setUpMaterialsWithMaterialsDictionary:materialDict shadersDictionary:shadersDict shaderMacros:macros defaultBindings:defaults shaderBindingTarget:target];
+		[[OOGraphicsResetManager sharedManager] registerClient:self];
 	}
 	else
 	{
@@ -461,27 +463,15 @@ shaderBindingTarget:(id<OOWeakReferenceSupport>)target
 		
 		// Reset unsharable GL state
 		result->listsReady = NO;
+		
+		[[OOGraphicsResetManager sharedManager] registerClient:result];
 	}
 	
 	return result;
 }
 
 
-- (void) reloadTextures
-{
-	unsigned				i;
-	
-	for (i = 0; i != kOOMeshMaxMaterials; ++i)
-	{
-		[materials[i] reloadTextures];
-	}
-	
-	// Force the display list to be regenerated next time a frame is drawn.
-	[self regenerateDisplayList];
-}
-
-
-- (void) regenerateDisplayList
+- (void) resetGraphicsState
 {
 	if (listsReady)
 	{

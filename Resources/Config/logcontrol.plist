@@ -260,7 +260,7 @@ texture.planet.generate					= inherit;
 $textureDebug							= no;
 texture.load.noName						= $error;
 texture.dealloc							= $textureDebug;
-texture.setUp							= $textureDebug;
+texture.upload							= $textureDebug;
 
 textureLoader.asyncLoad					= $textureDebug;
 textureLoader.asyncLoad.done			= inherit;
