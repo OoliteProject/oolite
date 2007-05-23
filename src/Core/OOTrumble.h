@@ -28,7 +28,7 @@ MA 02110-1301, USA.
 #import "OOOpenGL.h"
 
 
-@class PlayerEntity, AI, OOSound;
+@class PlayerEntity, AI, OOSound, OOTexture;
 
 #define TRUMBLE_MAX_ROTATION				15.0
 #define TRUMBLE_MAX_ROTATIONAL_VELOCITY		5.0
@@ -70,51 +70,51 @@ float	trumbleAppetiteAccumulator;
 
 @interface OOTrumble : NSObject
 {
-    PlayerEntity*	player;	// owning entity (not retained)
+    PlayerEntity			*player;	// owning entity (not retained)
 	//
-	unichar			digram[2];	// seed for pseudo-randomly setting up Trumble (pair of characters)
+	unichar					digram[2];	// seed for pseudo-randomly setting up Trumble (pair of characters)
 	//
-	GLfloat			colorBase[4];	// color of Trumble
-	GLfloat			colorPoint1[4];	// color of Trumble (variation 1)
-	GLfloat			colorPoint2[4];	// color of Trumble	(variation 2)
-	GLfloat			colorEyes[4];	// color of Trumble (eye color)
-	GLfloat*		pointColor[6];	// pointscheme
+	GLfloat					colorBase[4];	// color of Trumble
+	GLfloat					colorPoint1[4];	// color of Trumble (variation 1)
+	GLfloat					colorPoint2[4];	// color of Trumble	(variation 2)
+	GLfloat					colorEyes[4];	// color of Trumble (eye color)
+	GLfloat					*pointColor[6];	// pointscheme
 	//
-	GLfloat			hunger;		// behaviour modifier 0.0 (satiated) to 1.0 (starving)
-	GLfloat			discomfort;	// behaviour modifier 0.0 (very happy) to 1.0 (extremely uncomfortable)
+	GLfloat					hunger;		// behaviour modifier 0.0 (satiated) to 1.0 (starving)
+	GLfloat					discomfort;	// behaviour modifier 0.0 (very happy) to 1.0 (extremely uncomfortable)
 	//
-	GLfloat			size;			// 0.0 -> max_size
-	GLfloat			max_size;		// 0.90 -> 1.25
-	GLfloat			growth_rate;	// diff to size per sec.
+	GLfloat					size;			// 0.0 -> max_size
+	GLfloat					max_size;		// 0.90 -> 1.25
+	GLfloat					growth_rate;	// diff to size per sec.
 	//
-	GLfloat			rotation;	// CW rotation in radians (starts at 0.0)
-	GLfloat			rotational_velocity;	// +r (radians/sec)
+	GLfloat					rotation;	// CW rotation in radians (starts at 0.0)
+	GLfloat					rotational_velocity;	// +r (radians/sec)
 	//
-	NSPoint			position;	// x, y onscreen relative to center of screen
-	NSPoint			movement;	// +x, +y (screen units / sec)
+	NSPoint					position;	// x, y onscreen relative to center of screen
+	NSPoint					movement;	// +x, +y (screen units / sec)
 	//
-	NSPoint			eye_position;	// current position of eyes relative to their starting position
-	NSPoint			mouth_position;	// current position of eyes relative to their starting position
+	NSPoint					eye_position;	// current position of eyes relative to their starting position
+	NSPoint					mouth_position;	// current position of eyes relative to their starting position
 	//
-	OOSound*		prootSound;	// FMOD Sample (retained)
-	OOSound*		squealSound;	// FMOD Sample (retained)
+	OOSound					*prootSound;
+	OOSound					*squealSound;
 	//
-	double			animationTime;	// set to 0.0 at start of current animation
-	double			animationDuration;	// set to 0.0 at start of current animation
+	double					animationTime;	// set to 0.0 at start of current animation
+	double					animationDuration;	// set to 0.0 at start of current animation
 	//
 	enum trumble_animation	animation;		// current animation sequence
 	enum trumble_animation	nextAnimation;	// next animation sequence
 	//
-	int animationStage;	// sub-sequence within animation
+	int						animationStage;	// sub-sequence within animation
 	//
 	enum trumble_mouth		mouthFrame;	// which mouth position - determines what part of the texture to display
 	enum trumble_eyes		eyeFrame;	// which eye position - determines what part of the texture to display
 	//
-	GLuint			textureName;	// OpenGL texture reference
+	OOTexture				*texture;
 	//
-	GLfloat			saved_float1, saved_float2;
+	GLfloat					saved_float1, saved_float2;
 	//
-	BOOL			readyToSpawn;
+	BOOL					readyToSpawn;
 }
 
 - (id) initForPlayer:(PlayerEntity*) p1;

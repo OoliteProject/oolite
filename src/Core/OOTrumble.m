@@ -25,7 +25,7 @@ MA 02110-1301, USA.
 #import "OOTrumble.h"
 #import "Universe.h"
 #import "PlayerEntity.h"
-#import "TextureStore.h"
+#import "OOTexture.h"
 #import "ResourceManager.h"
 #import "OOSound.h"
 #import "OOStringParsing.h"
@@ -190,23 +190,23 @@ MA 02110-1301, USA.
 	animationTime = 0.0;
 	animationDuration = 1.5 + randf() * 3.0;	// time until next animation
 	//
-	textureName = [TextureStore getTextureNameFor:@"trumblekit.png"];
-	//
-	if (!prootSound)
-		prootSound = [[ResourceManager ooSoundNamed:@"trumble.ogg" inFolder:@"Sounds"] retain];
-	if (!squealSound)
-		squealSound = [[ResourceManager ooSoundNamed:@"trumblesqueal.ogg" inFolder:@"Sounds"] retain];
-	//
+	texture = [OOTexture textureWithName:@"trumblekit.png"
+								inFolder:@"Textures"
+								 options:kOOTextureDefaultOptions | kOOTextureNoShrink
+							  anisotropy:0.0f
+								 lodBias:kOOTextureDefaultLODBias];
+	
+	prootSound = [[ResourceManager ooSoundNamed:@"trumble.ogg" inFolder:@"Sounds"] retain];
+	squealSound = [[ResourceManager ooSoundNamed:@"trumblesqueal.ogg" inFolder:@"Sounds"] retain];
+	
 	readyToSpawn = NO;
 }
 
 - (void) dealloc
 {
-	//
-	if (prootSound)
-		[prootSound release];
-	if (squealSound)
-		[squealSound release];
+	[prootSound release];
+	[squealSound release];
+	
 	[super dealloc];
 }
 
@@ -378,7 +378,7 @@ MA 02110-1301, USA.
 	glShadeModel(GL_SMOOTH);
 	glEnable(GL_TEXTURE_2D);
 	glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
-	glBindTexture(GL_TEXTURE_2D,textureName);
+	[texture apply];
 	//
 	glPushMatrix();
 	//
