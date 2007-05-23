@@ -2046,8 +2046,8 @@ static void DrawQuadForView(GLfloat x, GLfloat y, GLfloat z, GLfloat xx, GLfloat
 
 	// Force the sky textures to be reloaded next time a frame is drawn.
 	texName = 0;
-	faces[0].texName = 0;
-	faces[1].texName = 0;
+	faces[0].textureName = 0;
+	faces[1].textureName = 0;
 
 	// Reset the entity display list.
 	[super reloadTextures];

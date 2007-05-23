@@ -80,7 +80,10 @@ MA 02110-1301, USA.
 typedef int32_t CGMouseDelta;
 
 #import "Comparison.h"
+
+#if ! OOLITE_GNUSTEP
 #import "OOColor.h"
+#endif
 
 typedef char Str255[256];
 

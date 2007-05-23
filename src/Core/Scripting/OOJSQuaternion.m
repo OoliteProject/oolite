@@ -25,7 +25,13 @@ MA 02110-1301, USA.
 
 #import "OOJSQuaternion.h"
 #import "OOJavaScriptEngine.h"
+
+#if OOLITE_GNUSTEP
+#import <GNUstepBase/GSObjCRuntime.h>
+#else
 #import <objc/objc-runtime.h>
+#endif
+
 #import "OOConstToString.h"
 #import "OOJSEntity.h"
 #import "OOJSVector.h"
