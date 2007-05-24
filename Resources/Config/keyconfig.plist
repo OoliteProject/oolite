@@ -1,61 +1,63 @@
-key_roll_left				= 253;		// left arrow
-key_roll_right				= 252;		// right arrow
-key_pitch_forward			= 255;		// up arrow
-key_pitch_back				= 254;		// down arrow
-key_yaw_left				= ",";
-key_yaw_right				= ".";
+{
+	key_roll_left				= 253;		// left arrow
+	key_roll_right				= 252;		// right arrow
+	key_pitch_forward			= 255;		// up arrow
+	key_pitch_back				= 254;		// down arrow
+	key_yaw_left				= ",";
+	key_yaw_right				= ".";
 
-key_increase_speed			= "w";
-key_decrease_speed			= "s";
-key_inject_fuel				= "i";
+	key_increase_speed			= "w";
+	key_decrease_speed			= "s";
+	key_inject_fuel				= "i";
 
-key_fire_lasers				= "a";
-key_launch_missile			= "m";
-key_next_missile			= "y";
-key_ecm						= "e";
+	key_fire_lasers				= "a";
+	key_launch_missile			= "m";
+	key_next_missile			= "y";
+	key_ecm						= "e";
 
-key_target_missile			= "t";
-key_untarget_missile		= "u";
-key_ident_system			= "r";
+	key_target_missile			= "t";
+	key_untarget_missile		= "u";
+	key_ident_system			= "r";
 
-key_scanner_zoom			= "z";
-key_scanner_unzoom			= "Z";
+	key_scanner_zoom			= "z";
+	key_scanner_unzoom			= "Z";
 
-key_launch_escapepod		= 27;		// escape
-key_energy_bomb				= "\t";		// tab
+	key_launch_escapepod		= 27;		// escape
+	key_energy_bomb				= "\t";		// tab
 
-key_galactic_hyperspace		= "g";
-key_hyperspace				= "h";
-key_jumpdrive				= "j";
+	key_galactic_hyperspace		= "g";
+	key_hyperspace				= "h";
+	key_jumpdrive				= "j";
 
-key_dump_cargo				= "d";
-key_rotate_cargo			= "R";
+	key_dump_cargo				= "d";
+	key_rotate_cargo			= "R";
 
-key_autopilot				= "c";
-key_autopilot_target		= "C";
-key_autodock				= "D";
+	key_autopilot				= "c";
+	key_autopilot_target		= "C";
+	key_autodock				= "D";
 
-key_snapshot				= "*";
-key_docking_music			= "s";
+	key_snapshot				= "*";
+	key_docking_music			= "s";
 
-kay_advanced_nav_array		= "&";
-key_map_home				= 302;		// Home
-key_map_info				= "i";
+	kay_advanced_nav_array		= "&";
+	key_map_home				= 302;		// Home
+	key_map_info				= "i";
 
-key_pausebutton				= "p";
-key_show_fps				= "F";
-key_mouse_control			= "M";
+	key_pausebutton				= "p";
+	key_show_fps				= "F";
+	key_mouse_control			= "M";
 
-key_comms_log				= "`";
-key_next_compass_mode		= "\\";
+	key_comms_log				= "`";
+	key_next_compass_mode		= "\\";
 
-key_cloaking_device			= "0";
+	key_cloaking_device			= "0";
 
-key_contract_info			= "?";
+	key_contract_info			= "?";
 
-key_next_target				= "+";
-key_previous_target			= "-";
+	key_next_target				= "+";
+	key_previous_target			= "-";
 
-key_custom_view				= "v";
+	key_custom_view				= "v";
 
-// key_dump_target_state	= "H";
+	// key_dump_target_state	= "H";
+}

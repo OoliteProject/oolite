@@ -26,285 +26,287 @@
 */
 
 
-/*** Special message classes ***/
-_default								= yes;					// Fallback value for otherwise undefined classes. Must be yes or no.
-// _override							= yes;					// Use to force display of all messages (or suppress all messages). Must be yes or no.
+{
+	/*** Special message classes ***/
+	_default								= yes;					// Fallback value for otherwise undefined classes. Must be yes or no.
+	// _override							= yes;					// Use to force display of all messages (or suppress all messages). Must be yes or no.
 
 
-/*** Metaclasses ***/
-$error									= yes;
-$scriptError							= $error;
-$shaderError							= $scriptError;
-$troubleShootingDump					= yes;
-$entityState							= no;
-$scriptDebugOn							= no;					// This metaclass is set by the debugOn and debugOff script actions.
-$shaderDebugOn							= no;					// Enabled by 's' key while paused, disabled by 'n' while paused.
+	/*** Metaclasses ***/
+	$error									= yes;
+	$scriptError							= $error;
+	$shaderError							= $scriptError;
+	$troubleShootingDump					= yes;
+	$entityState							= no;
+	$scriptDebugOn							= no;					// This metaclass is set by the debugOn and debugOff script actions.
+	$shaderDebugOn							= no;					// Enabled by 's' key while paused, disabled by 'n' while paused.
 
 
-/*** Common programming problems ***/
-general.error.subclassResponsibility	= inherit;
-general.error.parameterError			= inherit;
-general.error.deprecatedMethod			= inherit;
+	/*** Common programming problems ***/
+	general.error.subclassResponsibility	= inherit;
+	general.error.parameterError			= inherit;
+	general.error.deprecatedMethod			= inherit;
 
 
-exception = yes;
+	exception = yes;
 
 
-files.notFound							= $error;				// Failure to load a file.
-files.notLoaded							= $error;				// A file should have been loaded at some earlier point, but wasn’t.
+	files.notFound							= $error;				// Failure to load a file.
+	files.notLoaded							= $error;				// A file should have been loaded at some earlier point, but wasn’t.
 
 
-/*** Old-style logging calls ***/
-unclassified							= inherit;
+	/*** Old-style logging calls ***/
+	unclassified							= inherit;
 
 
-/*** Module-specific message classes ***/
-ai										= $entityState;
-ai.message.receive						= inherit;
-ai.takeAction.takeAction				= inherit;
-ai.takeAction.noAction					= inherit;
-ai.takeAction.orphaned					= $error;
-ai.takeAction.debugMessage				= inherit;
-ai.takeAction.badSelector				= inherit;
-ai.pop									= inherit;
+	/*** Module-specific message classes ***/
+	ai										= $entityState;
+	ai.message.receive						= inherit;
+	ai.takeAction.takeAction				= inherit;
+	ai.takeAction.noAction					= inherit;
+	ai.takeAction.orphaned					= $error;
+	ai.takeAction.debugMessage				= inherit;
+	ai.takeAction.badSelector				= inherit;
+	ai.pop									= inherit;
 
 
-beacon.list								= $scriptDebugOn;
-beacon.list.flightTraining				= inherit;
+	beacon.list								= $scriptDebugOn;
+	beacon.list.flightTraining				= inherit;
 
 
-$dataCacheStatus = yes;
-$dataCacheError = $error;
-$dataCacheDebug = no;
-dataCache.found							= $dataCacheStatus;
-dataCache.upToDate						= $dataCacheStatus;
-dataCache.notFound						= $dataCacheError;
-dataCache.rebuild						= $dataCacheStatus;
-dataCache.rebuild.pathsChanged			= inherit;
-dataCache.rebuild.datesChanged			= inherit;
-dataCache.removedOld					= $dataCacheStatus;
-dataCache.write.success					= $dataCacheStatus;
-dataCache.write.buildPath.failed		= $dataCacheError;
-dataCache.write.failed					= $dataCacheError;
-dataCache.write.serialize.failed		= $dataCacheError;
-dataCache.retrieve.success				= $dataCacheDebug;
-dataCache.retrieve.failed				= $dataCacheDebug;
-dataCache.set.success					= $dataCacheDebug;
-dataCache.set.failed					= $dataCacheError;
-dataCache.remove.success				= $dataCacheDebug;
-dataCache.clear.success					= $dataCacheDebug;
-dataCache.prune							= $dataCacheDebug;
+	$dataCacheStatus = yes;
+	$dataCacheError = $error;
+	$dataCacheDebug = no;
+	dataCache.found							= $dataCacheStatus;
+	dataCache.upToDate						= $dataCacheStatus;
+	dataCache.notFound						= $dataCacheError;
+	dataCache.rebuild						= $dataCacheStatus;
+	dataCache.rebuild.pathsChanged			= inherit;
+	dataCache.rebuild.datesChanged			= inherit;
+	dataCache.removedOld					= $dataCacheStatus;
+	dataCache.write.success					= $dataCacheStatus;
+	dataCache.write.buildPath.failed		= $dataCacheError;
+	dataCache.write.failed					= $dataCacheError;
+	dataCache.write.serialize.failed		= $dataCacheError;
+	dataCache.retrieve.success				= $dataCacheDebug;
+	dataCache.retrieve.failed				= $dataCacheDebug;
+	dataCache.set.success					= $dataCacheDebug;
+	dataCache.set.failed					= $dataCacheError;
+	dataCache.remove.success				= $dataCacheDebug;
+	dataCache.clear.success					= $dataCacheDebug;
+	dataCache.prune							= $dataCacheDebug;
 
 
-$linkedListError						= $error;
-entity.behaviour.changed				= $entityState;
-entity.linkedList						= inherit;				// Management/verification of the lists used to track the relative position of entities.
-entity.linkedList.add					= inherit;
-entity.linkedList.add.error				= $linkedListError;
-entity.linkedList.remove				= inherit;
-entity.linkedList.remove.error			= $linkedListError;
-entity.linkedList.verify.error			= $linkedListError;
-entity.linkedList.verify.rebuild		= inherit;
-entity.linkedList.update.error			= $linkedListError;
+	$linkedListError						= $error;
+	entity.behaviour.changed				= $entityState;
+	entity.linkedList						= inherit;				// Management/verification of the lists used to track the relative position of entities.
+	entity.linkedList.add					= inherit;
+	entity.linkedList.add.error				= $linkedListError;
+	entity.linkedList.remove				= inherit;
+	entity.linkedList.remove.error			= $linkedListError;
+	entity.linkedList.verify.error			= $linkedListError;
+	entity.linkedList.verify.rebuild		= inherit;
+	entity.linkedList.update.error			= $linkedListError;
 
 
-equip.buy.mounted						= no;
-equip.buy.mounted.failed				= $scriptError;
+	equip.buy.mounted						= no;
+	equip.buy.mounted.failed				= $scriptError;
 
 
-input.keyMapping.codeOutOfRange			= inherit;
-input.keyMapping.keyPress				= no;
-input.keyMapping.keyPress.keyDown		= inherit;
-input.keyMapping.keyPress.keyUp			= inherit;
+	input.keyMapping.codeOutOfRange			= inherit;
+	input.keyMapping.keyPress				= no;
+	input.keyMapping.keyPress.keyDown		= inherit;
+	input.keyMapping.keyPress.keyUp			= inherit;
 
 
-mesh.load.error							= $error;
-mesh.load.error.fileNotFound			= inherit;
-mesh.load.error.tooManyVertices			= inherit;
-mesh.load.error.tooManyFaces			= inherit;
+	mesh.load.error							= $error;
+	mesh.load.error.fileNotFound			= inherit;
+	mesh.load.error.tooManyVertices			= inherit;
+	mesh.load.error.tooManyFaces			= inherit;
 
 
-oxp.versionMismatch						= $error;
+	oxp.versionMismatch						= $error;
 
 
-$plistError								= $error;
-plist.parse.foundation.failed			= $plistError;
-plist.wrongType							= $plistError;
-plist.homebrew.badEncoding				= $plistError;
-plist.homebrew.exception				= $plistError;
-plist.homebrew.parseError				= $plistError;
-plist.homebrew.parseWarning				= $plistError;
-plist.homebrew.tokenize.trace			= no;					// Log details of first stage of homebrew parsing. Extremely verbose!
-plist.homebrew.interpret.trace			= no;					// Log details of second stage of homebrew parsing. Also extremely verbose!
-plist.homebrew.success					= yes;
+	$plistError								= $error;
+	plist.parse.foundation.failed			= $plistError;
+	plist.wrongType							= $plistError;
+	plist.homebrew.badEncoding				= $plistError;
+	plist.homebrew.exception				= $plistError;
+	plist.homebrew.parseError				= $plistError;
+	plist.homebrew.parseWarning				= $plistError;
+	plist.homebrew.tokenize.trace			= no;					// Log details of first stage of homebrew parsing. Extremely verbose!
+	plist.homebrew.interpret.trace			= no;					// Log details of second stage of homebrew parsing. Also extremely verbose!
+	plist.homebrew.success					= yes;
 
 
-rendering.opengl.error					= $error;				// Test for and display OpenGL errors
-rendering.opengl.version				= $troubleShootingDump;	// Display renderer version information at startup
-rendering.opengl.extensions				= $troubleShootingDump;	// List OpenGL extensions at startup
-rendering.opengl.shader.support			= $troubleShootingDump;	// Messages about factors influencing availability of OpenGL shaders
-rendering.opengl.stateDump				= $troubleShootingDump;	// Dump of OpenGL state (debug tool, currently unused)
-rendering.opengl.shader.uniform			= $shaderDebugOn;
+	rendering.opengl.error					= $error;				// Test for and display OpenGL errors
+	rendering.opengl.version				= $troubleShootingDump;	// Display renderer version information at startup
+	rendering.opengl.extensions				= $troubleShootingDump;	// List OpenGL extensions at startup
+	rendering.opengl.shader.support			= $troubleShootingDump;	// Messages about factors influencing availability of OpenGL shaders
+	rendering.opengl.stateDump				= $troubleShootingDump;	// Dump of OpenGL state (debug tool, currently unused)
+	rendering.opengl.shader.uniform			= $shaderDebugOn;
 
 
-resourceManager.foundFile				= off;					// Tells you where all assets (models, textures, sounds) are found. Very verbose!
+	resourceManager.foundFile				= off;					// Tells you where all assets (models, textures, sounds) are found. Very verbose!
 
 
-save.failed								= yes;
-save.success							= no;
+	save.failed								= yes;
+	save.success							= no;
 
 
-setup.ship.badEntry.subentities			= inherit;
+	setup.ship.badEntry.subentities			= inherit;
 
 
-script.addShips.failed					= $scriptError;
-script.missionDescription.noMissionText	= inherit;
-script.missionDescription.noMissionKey	= inherit;
+	script.addShips.failed					= $scriptError;
+	script.missionDescription.noMissionText	= inherit;
+	script.missionDescription.noMissionKey	= inherit;
 
-script.debug							= $scriptDebugOn;
-script.debug.message					= inherit;				// debugMessage: script action
-script.debug.onOff						= inherit;				// debugOn/debugOff script actions
-script.debug.testCondition				= inherit;
-script.debug.testCondition.checkingVariable = inherit;
-script.debug.testCondition.testValues	= inherit;
-script.debug.testCondition.oneOf		= inherit;
-script.debug.processSceneString.addScene = inherit;
-script.debug.processSceneString.addModel = inherit;
-script.debug.processSceneString.addLocalPlanet = inherit;
-script.debug.processSceneString.addTargetPlanet = inherit;
-script.debug.processSceneString.addBillboard = inherit;
-script.debug.setSunNovaIn				= inherit;
+	script.debug							= $scriptDebugOn;
+	script.debug.message					= inherit;				// debugMessage: script action
+	script.debug.onOff						= inherit;				// debugOn/debugOff script actions
+	script.debug.testCondition				= inherit;
+	script.debug.testCondition.checkingVariable = inherit;
+	script.debug.testCondition.testValues	= inherit;
+	script.debug.testCondition.oneOf		= inherit;
+	script.debug.processSceneString.addScene = inherit;
+	script.debug.processSceneString.addModel = inherit;
+	script.debug.processSceneString.addLocalPlanet = inherit;
+	script.debug.processSceneString.addTargetPlanet = inherit;
+	script.debug.processSceneString.addBillboard = inherit;
+	script.debug.setSunNovaIn				= inherit;
 
-script.debug.note						= inherit;
-script.debug.note.scriptAction			= inherit;				// Messages saying a scripting method was called, with no further info
-script.debug.note.awardCargo			= inherit;
-script.debug.note.removeAllCargo		= inherit;
-script.debug.note.useSpecialCargo		= inherit;
-script.debug.note.addShips				= inherit;
-script.debug.note.set					= inherit;
-script.debug.note.systemSeedForSystemName = inherit;
-script.debug.note.showShipyardModel		= inherit;
-script.debug.note.showShipModel			= inherit;
-script.debug.note.setFuelLeak			= inherit;
-script.debug.note.addPlanet				= inherit;
-script.debug.note.replaceVariablesInString = inherit;
-script.debug.note.processSceneString	= inherit;
-script.debug.note.testCondition			= no;
+	script.debug.note						= inherit;
+	script.debug.note.scriptAction			= inherit;				// Messages saying a scripting method was called, with no further info
+	script.debug.note.awardCargo			= inherit;
+	script.debug.note.removeAllCargo		= inherit;
+	script.debug.note.useSpecialCargo		= inherit;
+	script.debug.note.addShips				= inherit;
+	script.debug.note.set					= inherit;
+	script.debug.note.systemSeedForSystemName = inherit;
+	script.debug.note.showShipyardModel		= inherit;
+	script.debug.note.showShipModel			= inherit;
+	script.debug.note.setFuelLeak			= inherit;
+	script.debug.note.addPlanet				= inherit;
+	script.debug.note.replaceVariablesInString = inherit;
+	script.debug.note.processSceneString	= inherit;
+	script.debug.note.testCondition			= no;
 
-script.debug.syntax						= $scriptError;			// Messages relating to script formatting
-script.debug.syntax.badConditional		= inherit;
-script.debug.syntax.action				= inherit;
-script.debug.syntax.action.noneSpecified = inherit;
-script.debug.syntax.action.badSelector	= inherit;
-script.debug.syntax.scriptCondition.noneSpecified = inherit;
-script.debug.syntax.setPlanetInfo		= inherit;
-script.debug.syntax.awardCargo			= inherit;
-script.debug.syntax.messageShipAIs		= inherit;
-script.debug.syntax.addShips			= inherit;
-script.debug.syntax.set					= inherit;
-script.debug.syntax.reset				= inherit;
+	script.debug.syntax						= $scriptError;			// Messages relating to script formatting
+	script.debug.syntax.badConditional		= inherit;
+	script.debug.syntax.action				= inherit;
+	script.debug.syntax.action.noneSpecified = inherit;
+	script.debug.syntax.action.badSelector	= inherit;
+	script.debug.syntax.scriptCondition.noneSpecified = inherit;
+	script.debug.syntax.setPlanetInfo		= inherit;
+	script.debug.syntax.awardCargo			= inherit;
+	script.debug.syntax.messageShipAIs		= inherit;
+	script.debug.syntax.addShips			= inherit;
+	script.debug.syntax.set					= inherit;
+	script.debug.syntax.reset				= inherit;
 
-script.javaScript.load.success			= no;
-script.javaScript.load.failed			= $scriptError;
-script.javaScript.init.success			= no;
-script.javaScript.init.error			= $error;				// Fatal start-up error
-script.javaScript.call.badSelector		= $scriptError;
-script.javaScript.error					= $scriptError;
-script.javaScript.exception				= $scriptError;
-script.javaScript.warning				= $scriptError;
-script.javaScript.badParameter			= $scriptError;
+	script.javaScript.load.success			= no;
+	script.javaScript.load.failed			= $scriptError;
+	script.javaScript.init.success			= no;
+	script.javaScript.init.error			= $error;				// Fatal start-up error
+	script.javaScript.call.badSelector		= $scriptError;
+	script.javaScript.error					= $scriptError;
+	script.javaScript.exception				= $scriptError;
+	script.javaScript.warning				= $scriptError;
+	script.javaScript.badParameter			= $scriptError;
 
-script.load								= no;
-script.load.badName						= $scriptError;
-script.load.notFound					= $scriptError;
-script.load.parseOK						= inherit;
-script.load.unnamed						= $scriptError;
-script.load.exception					= $error;
-script.load.world.listAll				= $troubleShootingDump;	// List names and versions of all loaded world scripts at startup.
+	script.load								= no;
+	script.load.badName						= $scriptError;
+	script.load.notFound					= $scriptError;
+	script.load.parseOK						= inherit;
+	script.load.unnamed						= $scriptError;
+	script.load.exception					= $error;
+	script.load.world.listAll				= $troubleShootingDump;	// List names and versions of all loaded world scripts at startup.
 
-script.plist.run.badTarget				= $error;
+	script.plist.run.badTarget				= $error;
 
-script.trace							= no;
-script.trace.runWorld					= inherit;
-script.trace.plist.run					= inherit;
-script.trace.javaScript.call			= inherit;				// Prints selector and parameter string on Player.call()
-
-
-searchPaths.dumpAll						= $troubleShootingDump;
+	script.trace							= no;
+	script.trace.runWorld					= inherit;
+	script.trace.plist.run					= inherit;
+	script.trace.javaScript.call			= inherit;				// Prints selector and parameter string on Player.call()
 
 
-$shaderDebug							= $shaderDebugOn;
-$shaderError							= $error;
-shader.load.noShader					= $error;
-shader.uniform							= $shaderDebug;
-shader.uniform.set						= inherit;				// Successfully set a uniform.
-shader.uniform.unSet					= inherit;				// A uniform went unset or was cleared (either because there was no matching uniform in the shader, or the new uniform could not be set up).
-shader.uniform.badDescription			= inherit;				// A uniform specified in shipdata.plist could not be set up, because the configuration could not be understood.
-shader.uniform.bind.failed				= inherit;				// Problem setting up uniform bound to an object property.
-shader.vessel.init						= $shaderDebug;
-shader.compile.vertex.failure			= $shaderError;
-shader.compile.fragment.failure			= $shaderError;
-shader.link.failure						= $shaderError;
+	searchPaths.dumpAll						= $troubleShootingDump;
 
 
-strings.conversion						= $scriptError;			// Conversion of text to values (vectors, quaternions etc)
-strings.conversion.vector				= inherit;
-strings.conversion.quaternion			= inherit;
-strings.conversion.vectorAndQuaternion	= inherit;
-strings.conversion.randomSeed			= inherit;
+	$shaderDebug							= $shaderDebugOn;
+	$shaderError							= $error;
+	shader.load.noShader					= $error;
+	shader.uniform							= $shaderDebug;
+	shader.uniform.set						= inherit;				// Successfully set a uniform.
+	shader.uniform.unSet					= inherit;				// A uniform went unset or was cleared (either because there was no matching uniform in the shader, or the new uniform could not be set up).
+	shader.uniform.badDescription			= inherit;				// A uniform specified in shipdata.plist could not be set up, because the configuration could not be understood.
+	shader.uniform.bind.failed				= inherit;				// Problem setting up uniform bound to an object property.
+	shader.vessel.init						= $shaderDebug;
+	shader.compile.vertex.failure			= $shaderError;
+	shader.compile.fragment.failure			= $shaderError;
+	shader.link.failure						= $shaderError;
 
 
-texture.planet.generate					= inherit;
+	strings.conversion						= $scriptError;			// Conversion of text to values (vectors, quaternions etc)
+	strings.conversion.vector				= inherit;
+	strings.conversion.quaternion			= inherit;
+	strings.conversion.vectorAndQuaternion	= inherit;
+	strings.conversion.randomSeed			= inherit;
 
 
-$textureDebug							= no;
-texture.load.noName						= $error;
-texture.dealloc							= $textureDebug;
-texture.upload							= $textureDebug;
-
-textureLoader.asyncLoad					= $textureDebug;
-textureLoader.asyncLoad.done			= inherit;
-textureLoader.asyncLoad.exception		= $error;
-textureLoader.block						= $textureDebug;
-textureLoader.block.done				= inherit;
-textureLoader.detachThreads.failed		= $error;
-textureLoader.queueTask.inconsistency	= $error;
-textureLoader.unknownType				= $error;
+	texture.planet.generate					= inherit;
 
 
-universe.populate						= no;	// “Populating a system with…” message when generating a star system
-universe.populate.witchspace			= inherit;
+	$textureDebug							= no;
+	texture.load.noName						= $error;
+	texture.dealloc							= $textureDebug;
+	texture.upload							= $textureDebug;
+
+	textureLoader.asyncLoad					= $textureDebug;
+	textureLoader.asyncLoad.done			= inherit;
+	textureLoader.asyncLoad.exception		= $error;
+	textureLoader.block						= $textureDebug;
+	textureLoader.block.done				= inherit;
+	textureLoader.detachThreads.failed		= $error;
+	textureLoader.queueTask.inconsistency	= $error;
+	textureLoader.unknownType				= $error;
 
 
-/*** Mac OS X/Cocoa-specific ***/
-growl.error								= $error;
-growl.debug								= no;
+	universe.populate						= no;	// “Populating a system with…” message when generating a star system
+	universe.populate.witchspace			= inherit;
 
-$soundError								= $error;
-$soundDebug								= no;
-$soundDebugVerbose						= $soundDebug;
-sound.channel.cleanup.success			= $soundDebugVerbose;
-sound.channel.cleanup.failed			= $soundError;
-sound.channel.cleanup.failed.broken		= inherit;
-sound.channel.cleanup.failed.badState	= inherit;
-sound.channel.machPortError				= $soundError;
-sound.initialization					= inherit;
-sound.initialization.error				= $soundError;
-sound.load.success						= $soundDebug;
-sound.load.failed						= $soundError;
-sound.mixer.outOfChannels				= $soundError;
-sound.mixer.inspector.loadFailed		= $soundError;
-sound.mixer.replacingBrokenChannel		= $soundDebug;
-sound.mixer.failedToConnectChannel		= $soundError;
-sound.play.success						= $soundDebugVerbose;
-sound.play.failed						= $soundError;
-sound.play.failed.badReuse				= inherit;
-sound.play.failed.setupFailed			= inherit;
-sound.play.failed.auError				= inherit;
-sound.render.undexpectedNull			= $soundError;
-sound.streaming.refill					= $soundDebugVerbose;
-sound.streaming.loop					= $soundDebug;
-sound.streaming.underflow				= $soundError;
-sound.virtualringbuffer					= $soundError;
-sound.streaming.releaseContext			= $soundDebug;
-sound.invalidBeep						= inherit;
+
+	/*** Mac OS X/Cocoa-specific ***/
+	growl.error								= $error;
+	growl.debug								= no;
+
+	$soundError								= $error;
+	$soundDebug								= no;
+	$soundDebugVerbose						= $soundDebug;
+	sound.channel.cleanup.success			= $soundDebugVerbose;
+	sound.channel.cleanup.failed			= $soundError;
+	sound.channel.cleanup.failed.broken		= inherit;
+	sound.channel.cleanup.failed.badState	= inherit;
+	sound.channel.machPortError				= $soundError;
+	sound.initialization					= inherit;
+	sound.initialization.error				= $soundError;
+	sound.load.success						= $soundDebug;
+	sound.load.failed						= $soundError;
+	sound.mixer.outOfChannels				= $soundError;
+	sound.mixer.inspector.loadFailed		= $soundError;
+	sound.mixer.replacingBrokenChannel		= $soundDebug;
+	sound.mixer.failedToConnectChannel		= $soundError;
+	sound.play.success						= $soundDebugVerbose;
+	sound.play.failed						= $soundError;
+	sound.play.failed.badReuse				= inherit;
+	sound.play.failed.setupFailed			= inherit;
+	sound.play.failed.auError				= inherit;
+	sound.render.undexpectedNull			= $soundError;
+	sound.streaming.refill					= $soundDebugVerbose;
+	sound.streaming.loop					= $soundDebug;
+	sound.streaming.underflow				= $soundError;
+	sound.virtualringbuffer					= $soundError;
+	sound.streaming.releaseContext			= $soundDebug;
+	sound.invalidBeep						= inherit;
+}
