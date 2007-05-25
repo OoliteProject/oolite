@@ -2788,7 +2788,7 @@ GLfloat docked_light_specular[]	= { (GLfloat) 1.0, (GLfloat) 1.0, (GLfloat) 0.5,
 	NSDictionary	*shipDict = nil;
 	ShipEntity		*ship = nil;
 
-	shipDict = [self getDictionaryForShip: desc];
+	shipDict = [self getDictionaryForShip:desc];
 
 	if (shipDict == nil)  return nil;
 

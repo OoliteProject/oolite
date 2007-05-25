@@ -3134,39 +3134,36 @@ double scoopSoundPlayTime = 0.0;
 	}
 }
 
-- (int) launchEscapeCapsule
+- (int)launchEscapeCapsule
 {
-	ShipEntity *doppelganger;
-	Vector  vel;
-	Vector  origin = position;
-	int result = NO;
-	Quaternion q1 = q_rotation;
+	ShipEntity		*doppelganger = nil;
+	ShipEntity		*escapePod = nil;
+	Vector			vel;
+	Vector			origin = position;
+	int				result = NO;
+	Quaternion		q1 = q_rotation;
 
 	status = STATUS_ESCAPE_SEQUENCE;	// firstly
 	ship_clock_adjust += 43200 + 5400 * (ranrot_rand() & 127);	// add up to 8 days until rescue!
 
 	q1.w = -q1.w;   // player view is reversed remember!
 
-	if (flight_speed < 50.0)
-		flight_speed = 50.0;
-
-	vel.x = flight_speed * v_forward.x;
-	vel.y = flight_speed * v_forward.y;
-	vel.z = flight_speed * v_forward.z;
+	flight_speed = OOMax_f(flight_speed, 50.0f);
+	vel = vector_multiply_scalar(v_forward, flight_speed);
 
 	doppelganger = [UNIVERSE newShipWithName: ship_desc];   // retain count = 1
 	if (doppelganger)
 	{
-		[doppelganger setPosition: origin];						// directly below
-		[doppelganger setScanClass: CLASS_NEUTRAL];
-		[doppelganger setQRotation: q1];
-		[doppelganger setVelocity: vel];
-		[doppelganger setSpeed: flight_speed];
+		[doppelganger setPosition:origin];						// directly below
+		[doppelganger setScanClass:CLASS_NEUTRAL];
+		[doppelganger setQRotation:q1];
+		[doppelganger setVelocity:vel];
+		[doppelganger setSpeed:flight_speed];
 		[doppelganger setRoll:0.2 * (randf() - 0.5)];
-		[doppelganger setDesiredSpeed: flight_speed];
-		[doppelganger setOwner: self];
-		[doppelganger setStatus: STATUS_IN_FLIGHT];  // necessary to get it going!
-		[doppelganger setBehaviour: BEHAVIOUR_IDLE];
+		[doppelganger setDesiredSpeed:flight_speed];
+		[doppelganger setOwner:self];
+		[doppelganger setStatus:STATUS_IN_FLIGHT];  // necessary to get it going!
+		[doppelganger setBehaviour:BEHAVIOUR_IDLE];
 
 		[UNIVERSE addEntity:doppelganger];
 
@@ -3178,8 +3175,8 @@ double scoopSoundPlayTime = 0.0;
 	}
 
 	// set up you
-	ShipEntity *escapePod = [UNIVERSE newShipWithName:@"escpod_redux.dat"];	// retained
-	if (escapePod)
+	escapePod = [UNIVERSE newShipWithName:@"escape-capsule"];	// retained
+	if (escapePod != nil)
 	{
 		// FIXME: this should use OOShipType, which should exist. -- Ahruman
 		[self setMesh:[escapePod mesh]];
@@ -3192,10 +3189,8 @@ double scoopSoundPlayTime = 0.0;
 	flight_roll = 0.2 * (randf() - 0.5);
 
 	double sheight = (boundingBox.max.y - boundingBox.min.y);
-	position.x -= sheight * v_up.x;
-	position.y -= sheight * v_up.y;
-	position.z -= sheight * v_up.z;
-
+	position = vector_subtract(position, vector_multiply_scalar(v_up, sheight));
+	
 	//remove escape pod
 	[self remove_extra_equipment:@"EQ_ESCAPE_POD"];
 	//has_escape_pod = NO;
@@ -3205,8 +3200,7 @@ double scoopSoundPlayTime = 0.0;
 	bounty = 0;
 
 	// reset trumbles
-	if (n_trumbles)
-		n_trumbles = 1;
+	if (n_trumbles != 0)  n_trumbles = 1;
 
 	// remove cargo
 	[cargo removeAllObjects];

@@ -13,11 +13,15 @@
 
 #define OOINLINE			static inline
 
+#ifndef OO_DEBUG
+#define ALWAYS_INLINE_FUNC	GCC_ATTR((always_inline))	// Force inlining of function
+#else
+#define ALWAYS_INLINE_FUNC	GCC_ATTR((noinline))		// Force no inlining of function (because gdb is silly)
+#endif
 
 #define PURE_FUNC			GCC_ATTR((pure))			// result dependent only on params and globals
 #define CONST_FUNC			GCC_ATTR((const))			// pure + no pointer dereferences or globals
 #define NONNULL_FUNC		GCC_ATTR((nonnull))			// Pointer parameters may not be NULL
-#define ALWAYS_INLINE_FUNC	GCC_ATTR((always_inline))	// Force inlining of function
 #define DEPRECATED_FUNC		GCC_ATTR((deprecated))		// Warn if this function is used
 #define NO_RETURN_FUNC		GCC_ATTR((noreturn))		// Function can never return
 

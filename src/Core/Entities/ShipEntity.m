@@ -204,14 +204,15 @@ static NSString * const kOOLogEntityBehaviourChanged	= @"entity.behaviour.change
 	likely_cargo = [shipDict intForKey:@"likely_cargo"];
 	extra_cargo = [shipDict intForKey:@"extra_cargo" defaultValue:15];
 	
-	if ([shipDict objectForKey:@"cargo_carried"])
+	NSString *cargoString = [shipDict stringForKey:@"cargo_carried"];
+	if (cargoString != nil)
 	{
 		cargo_flag = CARGO_FLAG_FULL_UNIFORM;
 
 		[self setCommodity:NSNotFound andAmount:0];
 		int c_commodity = NSNotFound;
 		int c_amount = 1;
-		NSScanner*	scanner = [NSScanner scannerWithString: [shipDict objectForKey:@"cargo_carried"]];
+		NSScanner*	scanner = [NSScanner scannerWithString:cargoString];
 		if ([scanner scanInt: &c_amount])
 		{
 			[scanner ooliteScanCharactersFromSet:[NSCharacterSet whitespaceCharacterSet] intoString:NULL];	// skip whitespace
@@ -226,9 +227,10 @@ static NSString * const kOOLogEntityBehaviourChanged	= @"entity.behaviour.change
 		if (c_commodity != NSNotFound)  [self setCommodity:c_commodity andAmount:c_amount];
 	}
 	
-	if ([shipDict objectForKey:@"cargo_type"])
+	cargoString = [shipDict stringForKey:@"cargo_type"];
+	if (cargoString)
 	{
-		cargo_type = StringToCargoType([shipDict objectForKey:@"cargo_type"]);
+		cargo_type = StringToCargoType(cargoString);
 		
 		[cargo autorelease];
 		cargo = [[NSMutableArray alloc] initWithCapacity:max_cargo]; // alloc retains;
@@ -5419,27 +5421,18 @@ BOOL	class_masslocks(int some_class)
 	return YES;
 }
 
-- (int) launchEscapeCapsule
+- (int)launchEscapeCapsule
 {
+	OOUniversalID	result = NO_TARGET;
+	ShipEntity		*pod = nil;
+	int				n_pods;
+	
 	// check number of pods aboard
 	//
-	int n_pods = [[shipinfoDictionary objectForKey:@"has_escape_pod"] intValue];
-	if (n_pods < 1)
-		n_pods = 1;
+	n_pods = MIN([shipinfoDictionary intForKey:@"has_escape_pod"], 1);
 	
-	int result = NO_TARGET;
-	ShipEntity *pod = (ShipEntity*)nil;
+	pod = [UNIVERSE newShipWithRole:[shipinfoDictionary stringForKey:@"escape_pod_model" defaultValue:@"escape-capsule"]];
 	
-	// check for custom escape pod
-	//
-	if ([shipinfoDictionary objectForKey:@"escape_pod_model"])
-		pod = [UNIVERSE newShipWithRole: (NSString*)[shipinfoDictionary objectForKey:@"escape_pod_model"]];
-	//
-	// if not found - use standard escape pod
-	//
-	if (!pod)
-		pod = [UNIVERSE newShipWithRole:@"escape-capsule"];   // retain count = 1
-
 	if (pod)
 	{
 		[pod setOwner:self];

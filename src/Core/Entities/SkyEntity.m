@@ -521,11 +521,14 @@ static OOTexture		*sStarTexture, *sBlobTexture;
 									  options:kOOTextureDefaultOptions
 								   anisotropy:0.0f
 									  lodBias:-0.6f];
+	[sStarTexture retain];
+	
 	sBlobTexture = [OOTexture textureWithName:@"galaxy256.png"
 									 inFolder:@"Textures"
 									  options:kOOTextureDefaultOptions
 								   anisotropy:0.0f
 									  lodBias:0.0f];
+	[sBlobTexture retain];
 	
 #if MULTI_TEXTURE_BLOBS
 	unsigned				i;
