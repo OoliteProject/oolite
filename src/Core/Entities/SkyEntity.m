@@ -168,6 +168,7 @@ static OOTexture		*sStarTexture, *sBlobTexture;
 #if CHECK_ERROR_AT_EACH_STEP
 	BOOL wasShowingOpenGLErrors = OOLogWillDisplayMessagesInClass(kOOLogOpenGLError);
 	OOLogSetDisplayMessagesInClass(kOOLogOpenGLError, YES);
+	CHECK_INFO(@"prior to rendering SkyEntity");
 #endif
 	
     //
@@ -222,9 +223,7 @@ static OOTexture		*sStarTexture, *sBlobTexture;
 			if (![UNIVERSE reducedDetail])
 			{
 				[sBlobTexture apply];
-#if CHECK_ERROR_AT_EACH_STEP
 				CHECK_INFO(@"after applying blob texture");
-#endif
 
 				CHECK(glEnableClientState(GL_VERTEX_ARRAY));
 				CHECK(glVertexPointer(3, GL_FLOAT, 0, blobsData.vertex_array));
@@ -259,6 +258,7 @@ static OOTexture		*sStarTexture, *sBlobTexture;
 		}
 		else
 		{
+			CHECK_INFO(@"Prior to display list generation/execution.");
 			if (displayListName != 0)  CHECK(glCallList(displayListName));
 			else  [self generateDisplayList];
 		}
@@ -507,7 +507,7 @@ static OOTexture		*sStarTexture, *sBlobTexture;
 	CHECK(displayListName = glGenLists(1));
 	if (displayListName != 0)
 	{
-		CHECK(glNewList(displayListName, GL_COMPILE));
+		CHECK(glNewList(displayListName, GL_COMPILE_AND_EXECUTE));
 		[self drawEntity:YES:NO];	//	immediate YES	translucent NO
 		CHECK(glEndList());
 	}
