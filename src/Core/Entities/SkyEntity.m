@@ -36,7 +36,16 @@ MA 02110-1301, USA.
 #import "OOGraphicsResetManager.h"
 
 
-#define MULTI_TEXTURE_BLOBS		0		// Not fully implemented yet
+#define MULTI_TEXTURE_BLOBS			0		// Not fully implemented yet
+#define CHECK_ERROR_AT_EACH_STEP	1
+
+
+#if CHECK_ERROR_AT_EACH_STEP
+#define CHECK(x)		do { {x;} CheckOpenGLErrors(@"%s (line %u) after %@", __FUNCTION__, __LINE__, @#x); } while (0)
+#define CHECK_INFO(m)	do { CheckOpenGLErrors(@"%s (line %u) %@", __FUNCTION__, __LINE__, m); } while (0)
+#else
+#define CHECK(x)		do {x} while (0)
+#endif
 
 
 static BOOL				sLoadedTextures = NO;
@@ -155,101 +164,117 @@ static OOTexture		*sStarTexture, *sBlobTexture;
 - (void) drawEntity:(BOOL) immediate :(BOOL) translucent
 {
 	if ([UNIVERSE breakPatternHide])   return; // DON'T DRAW
-
+	
+#if CHECK_ERROR_AT_EACH_STEP
+	BOOL wasShowingOpenGLErrors = OOLogWillDisplayMessagesInClass(kOOLogOpenGLError);
+	OOLogSetDisplayMessagesInClass(kOOLogOpenGLError, YES);
+#endif
+	
     //
     if (!translucent)
 	{
 		// disapply lighting
-		glDisable(GL_LIGHTING);
-		glDisable(GL_DEPTH_TEST);	// don't read the depth buffer
-		glDepthMask(GL_FALSE);		// don't write to depth buffer
-		glDisable(GL_CULL_FACE);	// face culling
+		CHECK(glDisable(GL_LIGHTING));
+		CHECK(glDisable(GL_DEPTH_TEST));	// don't read the depth buffer
+		CHECK(glDepthMask(GL_FALSE));		// don't write to depth buffer
+		CHECK(glDisable(GL_CULL_FACE));		// face culling
 		
 		if (immediate)
 		{
-			glEnable(GL_TEXTURE_2D);
-			glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
-			glBlendFunc(GL_ONE, GL_ONE);	// Pure additive blending, ignoring alpha
+			CHECK(glEnable(GL_TEXTURE_2D));
+			CHECK(glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE));
+			CHECK(glBlendFunc(GL_ONE, GL_ONE));	// Pure additive blending, ignoring alpha
 			
 			[sStarTexture apply];
+#if CHECK_ERROR_AT_EACH_STEP
+				CHECK_INFO(@"after applying star texture");
+#endif
 
-			glEnableClientState(GL_VERTEX_ARRAY);
-			glVertexPointer(3, GL_FLOAT, 0, starsData.vertex_array);
+			CHECK(glEnableClientState(GL_VERTEX_ARRAY));
+			CHECK(glVertexPointer(3, GL_FLOAT, 0, starsData.vertex_array));
 			// 3 coords per vertex
 			// of type GL_FLOAT
 			// 0 stride (tightly packed)
 			// pointer to first vertex
 
-			glEnableClientState(GL_TEXTURE_COORD_ARRAY);
-			glTexCoordPointer(2, GL_INT, 0, starsData.texture_uv_array);
+			CHECK(glEnableClientState(GL_TEXTURE_COORD_ARRAY));
+			CHECK(glTexCoordPointer(2, GL_INT, 0, starsData.texture_uv_array));
 			// 2 coords per vertex
 			// of type GL_INT
 			// 0 stride (tightly packed)
 			// pointer to first coordinate pair
 
-			glEnableClientState(GL_COLOR_ARRAY);
-			glColorPointer(4, GL_FLOAT, 0, starsData.color_array);
+			CHECK(glEnableClientState(GL_COLOR_ARRAY));
+			CHECK(glColorPointer(4, GL_FLOAT, 0, starsData.color_array));
 			// 4 values per vertex color
 			// of type GL_FLOAT
 			// 0 stride (tightly packed)
 			// pointer to quadruplet
 
-			glDisableClientState(GL_INDEX_ARRAY);
-			glDisableClientState(GL_NORMAL_ARRAY);
-			glDisableClientState(GL_EDGE_FLAG_ARRAY);
+			CHECK(glDisableClientState(GL_INDEX_ARRAY));
+			CHECK(glDisableClientState(GL_NORMAL_ARRAY));
+			CHECK(glDisableClientState(GL_EDGE_FLAG_ARRAY));
 
-			glDrawArrays(GL_QUADS, 0, 4 * n_stars);
+			CHECK(glDrawArrays(GL_QUADS, 0, 4 * n_stars));
 
 			//
 			// blobs
 			if (![UNIVERSE reducedDetail])
 			{
 				[sBlobTexture apply];
+#if CHECK_ERROR_AT_EACH_STEP
+				CHECK_INFO(@"after applying blob texture");
+#endif
 
-				glEnableClientState(GL_VERTEX_ARRAY);
-				glVertexPointer(3, GL_FLOAT, 0, blobsData.vertex_array);
+				CHECK(glEnableClientState(GL_VERTEX_ARRAY));
+				CHECK(glVertexPointer(3, GL_FLOAT, 0, blobsData.vertex_array));
 				// 3 coords per vertex
 				// of type GL_FLOAT
 				// 0 stride (tightly packed)
 				// pointer to first vertex
 
-				glEnableClientState(GL_TEXTURE_COORD_ARRAY);
-				glTexCoordPointer(2, GL_INT, 0, blobsData.texture_uv_array);
+				CHECK(glEnableClientState(GL_TEXTURE_COORD_ARRAY));
+				CHECK(glTexCoordPointer(2, GL_INT, 0, blobsData.texture_uv_array));
 				// 2 coords per vertex
 				// of type GL_INT
 				// 0 stride (tightly packed)
 				// pointer to first coordinate pair
 
-				glEnableClientState(GL_COLOR_ARRAY);
-				glColorPointer(4, GL_FLOAT, 0, blobsData.color_array);
+				CHECK(glEnableClientState(GL_COLOR_ARRAY));
+				CHECK(glColorPointer(4, GL_FLOAT, 0, blobsData.color_array));
 				// 4 values per vertex color
 				// of type GL_FLOAT
 				// 0 stride (tightly packed)
 				// pointer to quadruplet
 
-				glDisableClientState(GL_INDEX_ARRAY);
-				glDisableClientState(GL_NORMAL_ARRAY);
-				glDisableClientState(GL_EDGE_FLAG_ARRAY);
+				CHECK(glDisableClientState(GL_INDEX_ARRAY));
+				CHECK(glDisableClientState(GL_NORMAL_ARRAY));
+				CHECK(glDisableClientState(GL_EDGE_FLAG_ARRAY));
 
-				glDrawArrays(GL_QUADS, 0, 4 * n_blobs);
+				CHECK(glDrawArrays(GL_QUADS, 0, 4 * n_blobs));
 
 			}
-			glDisable(GL_TEXTURE_2D);
-			glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);	// Basic alpha blending
+			CHECK(glDisable(GL_TEXTURE_2D));
+			CHECK(glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA));	// Basic alpha blending
 		}
 		else
 		{
-			if (displayListName != 0)  glCallList(displayListName);
+			if (displayListName != 0)  CHECK(glCallList(displayListName));
 			else  [self generateDisplayList];
 		}
 
 		// reapply lighting &c
-		glEnable(GL_CULL_FACE);			// face culling
-		glEnable(GL_LIGHTING);
-		glEnable(GL_DEPTH_TEST);		// read the depth buffer
-		glDepthMask(GL_TRUE);			// restore write to depth buffer
+		CHECK(glEnable(GL_CULL_FACE));			// face culling
+		CHECK(glEnable(GL_LIGHTING));
+		CHECK(glEnable(GL_DEPTH_TEST));		// read the depth buffer
+		CHECK(glDepthMask(GL_TRUE));			// restore write to depth buffer
 	}
+	
+#if CHECK_ERROR_AT_EACH_STEP
+	OOLogSetDisplayMessagesInClass(kOOLogOpenGLError, wasShowingOpenGLErrors);
+#else
 	CheckOpenGLErrors(@"SkyEntity after drawing %@", self);
+#endif
 }
 
 @end
@@ -479,12 +504,12 @@ static OOTexture		*sStarTexture, *sBlobTexture;
 {
 	[self ensureTexturesLoaded];
 	
-	displayListName = glGenLists(1);
+	CHECK(displayListName = glGenLists(1));
 	if (displayListName != 0)
 	{
-		glNewList(displayListName, GL_COMPILE);
+		CHECK(glNewList(displayListName, GL_COMPILE));
 		[self drawEntity:YES:NO];	//	immediate YES	translucent NO
-		glEndList();
+		CHECK(glEndList());
 	}
 }
 
@@ -530,8 +555,8 @@ static OOTexture		*sStarTexture, *sBlobTexture;
 
 - (void)ensureTexturesLoaded
 {
-	[sStarTexture ensureFinishedLoading];
-	[sBlobTexture ensureFinishedLoading];
+	CHECK([sStarTexture ensureFinishedLoading]);
+	CHECK([sBlobTexture ensureFinishedLoading]);
 	
 #if MULTI_TEXTURE_BLOBS
 	[sBlobTextures makeObjectsPerformSelector:@selector(ensureFinishedLoading)];
@@ -543,7 +568,7 @@ static OOTexture		*sStarTexture, *sBlobTexture;
 {
 	if (displayListName != 0)
 	{
-		glDeleteLists(displayListName, 1);
+		CHECK(glDeleteLists(displayListName, 1));
 		displayListName = 0;
 	}
 }
