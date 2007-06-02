@@ -239,6 +239,7 @@ static BOOL MaintainLinkedLists(Universe* uni);
     return self;
 }
 
+
 - (void) dealloc
 {
 	gSharedUniverse = nil;
@@ -305,15 +306,18 @@ static BOOL MaintainLinkedLists(Universe* uni);
 	return doProcedurallyTexturedPlanets;
 }
 
+
 - (void) setDoProcedurallyTexturedPlanets:(BOOL) value
 {
 	doProcedurallyTexturedPlanets = value;
 }
 
+
 - (BOOL) strict
 {
 	return strict;
 }
+
 
 - (void) setStrict:(BOOL) value
 {
@@ -324,6 +328,7 @@ static BOOL MaintainLinkedLists(Universe* uni);
 	
 	[self reinit];
 }
+
 
 - (void) reinit
 {	
@@ -481,6 +486,7 @@ static BOOL MaintainLinkedLists(Universe* uni);
 	return [entities count];
 }
 
+
 - (void) obj_dump
 {
 	int				i;
@@ -504,6 +510,7 @@ static BOOL MaintainLinkedLists(Universe* uni);
 	}
 }
 
+
 - (void) sleepytime: (id) thing
 {
 	// deal with the machine going to sleep
@@ -514,6 +521,7 @@ static BOOL MaintainLinkedLists(Universe* uni);
 		[[(MyOpenGLView *)gameView gameController] pause_game];
 	}
 }
+
 
 - (void) setUpUniverseFromStation
 {
@@ -565,6 +573,7 @@ static BOOL MaintainLinkedLists(Universe* uni);
 	displayGUI = NO;
 }
 
+
 - (void) set_up_universe_from_witchspace
 {
     PlayerEntity		*player;
@@ -603,6 +612,7 @@ static BOOL MaintainLinkedLists(Universe* uni);
 	/* ends */
 }
 
+
 - (void) set_up_universe_from_misjump
 {
     PlayerEntity		*player;
@@ -637,6 +647,7 @@ static BOOL MaintainLinkedLists(Universe* uni);
 	displayGUI = NO;
 	/* ends */
 }
+
 
 - (void) set_up_witchspace
 {
@@ -759,6 +770,7 @@ static BOOL MaintainLinkedLists(Universe* uni);
 	
 	OOLogOutdentIf(kOOLogUniversePopulateWitchspace);
 }
+
 
 - (void) setUpSpace
 {
@@ -1107,6 +1119,7 @@ GLfloat docked_light_specular[]	= { (GLfloat) 1.0, (GLfloat) 1.0, (GLfloat) 0.5,
 	glDisable(GL_LIGHT1);
 	sun_light_on = NO;
 }
+
 
 - (void) populateSpaceFromActiveWormholes
 {
@@ -1661,6 +1674,7 @@ GLfloat docked_light_specular[]	= { (GLfloat) 1.0, (GLfloat) 1.0, (GLfloat) 0.5,
 	
 }
 
+
 - (int) scatterAsteroidsAt:(Vector) spawnPos withVelocity:(Vector) spawnVel includingRockHermit:(BOOL) spawnHermit
 {
 	int rocks = 0;
@@ -1719,6 +1733,7 @@ GLfloat docked_light_specular[]	= { (GLfloat) 1.0, (GLfloat) 1.0, (GLfloat) 0.5,
 	return rocks;
 }
 
+
 - (void) addShipWithRole:(NSString *) desc nearRouteOneAt:(double) route_fraction
 {
 	// adds a ship within scanner range of a point on route 1
@@ -1757,6 +1772,7 @@ GLfloat docked_light_specular[]	= { (GLfloat) 1.0, (GLfloat) 1.0, (GLfloat) 0.5,
 	}
 	
 }
+
 
 - (Vector) coordinatesForPosition:(Vector) pos withCoordinateSystem:(NSString *) system returningScalar:(GLfloat*) my_scalar
 {
@@ -1892,6 +1908,7 @@ GLfloat docked_light_specular[]	= { (GLfloat) 1.0, (GLfloat) 1.0, (GLfloat) 0.5,
 	return result;
 }
 
+
 - (NSString *) expressPosition:(Vector) pos inCoordinateSystem:(NSString *) system
 {
 	
@@ -1990,6 +2007,7 @@ GLfloat docked_light_specular[]	= { (GLfloat) 1.0, (GLfloat) 1.0, (GLfloat) 0.5,
 	return [NSString stringWithFormat:@"%@ %.2f %.2f %.2f", system, result.x, result.y, result.z];
 }
 
+
 - (Vector) coordinatesFromCoordinateSystemString:(NSString *) system_x_y_z
 {
 	NSArray* tokens = ScanTokensFromString(system_x_y_z);
@@ -2039,6 +2057,7 @@ GLfloat docked_light_specular[]	= { (GLfloat) 1.0, (GLfloat) 1.0, (GLfloat) 0.5,
 	
 	return NO;
 }
+
 
 - (BOOL) addShips:(int) howMany withRole:(NSString *) desc atPosition:(Vector) pos withCoordinateSystem:(NSString *) system
 {
@@ -2130,6 +2149,7 @@ GLfloat docked_light_specular[]	= { (GLfloat) 1.0, (GLfloat) 1.0, (GLfloat) 0.5,
 	return YES;
 }
 
+
 - (BOOL) addShips:(int) howMany withRole:(NSString *) desc nearPosition:(Vector) pos withCoordinateSystem:(NSString *) system
 {
 	// initial bounding box
@@ -2147,6 +2167,7 @@ GLfloat docked_light_specular[]	= { (GLfloat) 1.0, (GLfloat) 1.0, (GLfloat) 0.5,
 	return [self addShips: howMany withRole: desc intoBoundingBox: launch_bbox];
 }
 
+
 - (BOOL) addShips:(int) howMany withRole:(NSString *) desc nearPosition:(Vector) pos withCoordinateSystem:(NSString *) system withinRadius:(GLfloat) radius
 {
 	// initial bounding box
@@ -2161,6 +2182,7 @@ GLfloat docked_light_specular[]	= { (GLfloat) 1.0, (GLfloat) 1.0, (GLfloat) 0.5,
 	
 	return [self addShips: howMany withRole: desc intoBoundingBox: launch_bbox];
 }
+
 
 - (BOOL) addShips:(int) howMany withRole:(NSString *) desc intoBoundingBox:(BoundingBox) bbox
 {
@@ -2227,6 +2249,7 @@ GLfloat docked_light_specular[]	= { (GLfloat) 1.0, (GLfloat) 1.0, (GLfloat) 0.5,
 	}
 	return NO;
 }
+
 
 - (BOOL) spawnShip:(NSString *) shipdesc
 {
@@ -2332,6 +2355,7 @@ GLfloat docked_light_specular[]	= { (GLfloat) 1.0, (GLfloat) 1.0, (GLfloat) 0.5,
 	}
 }
 
+
 - (void) spawnShipWithRole:(NSString *) desc near:(Entity *) entity
 {
 	// adds a ship within the collision radius of the other entity
@@ -2361,6 +2385,7 @@ GLfloat docked_light_specular[]	= { (GLfloat) 1.0, (GLfloat) 1.0, (GLfloat) 0.5,
 		[ship release];
 	}
 }
+
 
 - (void) set_up_break_pattern:(Vector) pos quaternion:(Quaternion) q
 {
@@ -2418,6 +2443,7 @@ GLfloat docked_light_specular[]	= { (GLfloat) 1.0, (GLfloat) 1.0, (GLfloat) 0.5,
 	
 }
 
+
 - (void) set_up_intro1
 {
 	PlayerEntity* player = [PlayerEntity sharedPlayer];
@@ -2456,6 +2482,7 @@ GLfloat docked_light_specular[]	= { (GLfloat) 1.0, (GLfloat) 1.0, (GLfloat) 0.5,
 	
 	
 }
+
 
 - (void) set_up_intro2
 {
@@ -2505,6 +2532,7 @@ GLfloat docked_light_specular[]	= { (GLfloat) 1.0, (GLfloat) 1.0, (GLfloat) 0.5,
 	
 }
 
+
 - (void) selectIntro2Previous
 {
 	demo_stage = DEMO_SHOW_THING;
@@ -2512,11 +2540,13 @@ GLfloat docked_light_specular[]	= { (GLfloat) 1.0, (GLfloat) 1.0, (GLfloat) 0.5,
 	demo_stage_time  = universal_time - 1.0;	// force change
 }
 
+
 - (void) selectIntro2Next
 {
 	demo_stage = DEMO_SHOW_THING;
 	demo_stage_time  = universal_time - 1.0;	// force change
 }
+
 
 - (StationEntity *) station
 {
@@ -2550,6 +2580,7 @@ GLfloat docked_light_specular[]	= { (GLfloat) 1.0, (GLfloat) 1.0, (GLfloat) 0.5,
 	return cachedStation;
 }
 
+
 - (PlanetEntity *) planet
 {
 	if (cachedPlanet)
@@ -2580,6 +2611,7 @@ GLfloat docked_light_specular[]	= { (GLfloat) 1.0, (GLfloat) 1.0, (GLfloat) 0.5,
 	}
 	return cachedPlanet;
 }
+
 
 - (PlanetEntity *) sun
 {
@@ -2612,6 +2644,7 @@ GLfloat docked_light_specular[]	= { (GLfloat) 1.0, (GLfloat) 1.0, (GLfloat) 0.5,
 	return cachedSun;
 }
 
+
 - (void) resetBeacons
 {
 	ShipEntity* beaconShip = [self firstBeacon];
@@ -2625,15 +2658,18 @@ GLfloat docked_light_specular[]	= { (GLfloat) 1.0, (GLfloat) 1.0, (GLfloat) 0.5,
 	lastBeacon = NO_TARGET;
 }
 
+
 - (ShipEntity *) firstBeacon
 {
 	return (ShipEntity *)[self entityForUniversalID:firstBeacon];
 }
 
+
 - (ShipEntity *) lastBeacon
 {
 	return (ShipEntity *)[self entityForUniversalID:lastBeacon];
 }
+
 
 - (void) setNextBeacon:(ShipEntity *) beaconShip
 {
@@ -2652,10 +2688,12 @@ GLfloat docked_light_specular[]	= { (GLfloat) 1.0, (GLfloat) 1.0, (GLfloat) 0.5,
 	}
 }
 
+
 - (GLfloat *) sky_clear_color
 {
 	return sky_clear_color;
 }
+
 
 - (void) setSky_clear_color:(GLfloat) red :(GLfloat) green :(GLfloat) blue :(GLfloat) alpha
 {
@@ -2671,6 +2709,7 @@ GLfloat docked_light_specular[]	= { (GLfloat) 1.0, (GLfloat) 1.0, (GLfloat) 0.5,
 {
 	return (breakPatternCounter == 0);
 }
+
 
 - (BOOL) breakPatternHide
 {
@@ -2818,6 +2857,7 @@ GLfloat docked_light_specular[]	= { (GLfloat) 1.0, (GLfloat) 1.0, (GLfloat) 0.5,
 	return ship;   // retain count = 1
 }
 
+
 - (NSDictionary *)getDictionaryForShip:(NSString *)desc
 {
 	static NSDictionary		*cachedResult = nil;
@@ -2867,6 +2907,7 @@ GLfloat docked_light_specular[]	= { (GLfloat) 1.0, (GLfloat) 1.0, (GLfloat) 0.5,
 	return shipdict;
 }
 
+
 - (int) maxCargoForShip:(NSString *) desc
 {
 	int result = 0;
@@ -2882,6 +2923,7 @@ GLfloat docked_light_specular[]	= { (GLfloat) 1.0, (GLfloat) 1.0, (GLfloat) 0.5,
 	
 	return result;
 }
+
 
 - (int) getPriceForWeaponSystemWithKey:(NSString *)weapon_key
 {
@@ -2911,6 +2953,7 @@ GLfloat docked_light_specular[]	= { (GLfloat) 1.0, (GLfloat) 1.0, (GLfloat) 0.5,
 	}
 	return penalty;
 }
+
 
 - (NSArray *) getContainersOfPlentifulGoods:(OOCargoQuantity) how_many
 {
@@ -2981,6 +3024,7 @@ GLfloat docked_light_specular[]	= { (GLfloat) 1.0, (GLfloat) 1.0, (GLfloat) 0.5,
 	return [NSArray arrayWithArray:accumulator];	
 }
 
+
 - (NSArray *) getContainersOfScarceGoods:(OOCargoQuantity) how_many
 {
 	// build list of goods allocating 0..100 for each based on how
@@ -3040,10 +3084,12 @@ GLfloat docked_light_specular[]	= { (GLfloat) 1.0, (GLfloat) 1.0, (GLfloat) 0.5,
 	return [NSArray arrayWithArray:accumulator];	
 }
 
+
 - (NSArray *) getContainersOfDrugs:(OOCargoQuantity) how_many
 {
 	return [self getContainersOfCommodity:@"Narcotics" :how_many];	
 }
+
 
 - (NSArray *) getContainersOfCommodity:(NSString*) commodity_name :(OOCargoQuantity) how_many
 {
@@ -3080,11 +3126,13 @@ GLfloat docked_light_specular[]	= { (GLfloat) 1.0, (GLfloat) 1.0, (GLfloat) 0.5,
 	return [NSArray arrayWithArray:accumulator];	
 }
 
+
 - (OOCargoType) getRandomCommodity
 {
 	int cd = ranrot_rand() % [commoditydata count];
 	return cd;
 }
+
 
 - (OOCargoQuantity) getRandomAmountOfCommodity:(OOCargoType) co_type
 {
@@ -3107,6 +3155,7 @@ GLfloat docked_light_specular[]	= { (GLfloat) 1.0, (GLfloat) 1.0, (GLfloat) 0.5,
 	return 1;
 }
 
+
 - (OOCargoType) commodityForName:(NSString *) co_name
 {
 	int i;
@@ -3119,12 +3168,14 @@ GLfloat docked_light_specular[]	= { (GLfloat) 1.0, (GLfloat) 1.0, (GLfloat) 0.5,
 	return NSNotFound;
 }
 
+
 - (NSString *) nameForCommodity:(OOCargoType) co_type
 {
 	if ((co_type < 0)||(co_type >= [commoditydata count]))
 		return @"";
 	return [NSString stringWithFormat:@"%@",[[commoditydata objectAtIndex:co_type] objectAtIndex:MARKET_NAME]];
 }
+
 
 - (OOMassUnit) unitsForCommodity:(OOCargoType)co_type
 {
@@ -3171,10 +3222,12 @@ GLfloat docked_light_specular[]	= { (GLfloat) 1.0, (GLfloat) 1.0, (GLfloat) 0.5,
     [gameView retain];
 }
 
+
 - (MyOpenGLView *) gameView
 {
     return gameView;
 }
+
 
 - (GameController *) gameController
 {
@@ -3684,6 +3737,7 @@ GLfloat* custom_matrix;
 	}
 }
 
+
 - (void) drawMessage
 {
 	glDisable(GL_TEXTURE_2D);	// for background sheets
@@ -3867,6 +3921,7 @@ static BOOL MaintainLinkedLists(Universe* uni)
 	return result;
 }
 
+
 - (BOOL) addEntity:(Entity *) entity
 {
 	if (entity)
@@ -3980,6 +4035,7 @@ static BOOL MaintainLinkedLists(Universe* uni)
 	return NO;
 }
 
+
 - (BOOL) removeEntity:(Entity *) entity
 {
 	if (entity)
@@ -4078,6 +4134,7 @@ static BOOL MaintainLinkedLists(Universe* uni)
 	return NO;
 }
 
+
 - (BOOL) removeWithoutRecyclingEntity:(Entity *) entity
 {
 	if (entity)
@@ -4168,6 +4225,7 @@ static BOOL MaintainLinkedLists(Universe* uni)
 	return NO;
 }
 
+
 - (void) removeAllEntitiesExceptPlayer:(BOOL) restore
 {
 	BOOL updating = no_update;
@@ -4205,6 +4263,7 @@ static BOOL MaintainLinkedLists(Universe* uni)
 	no_update = updating;	// restore drawing
 }
 
+
 - (void) removeDemoShips
 {
 	int i;
@@ -4225,6 +4284,7 @@ static BOOL MaintainLinkedLists(Universe* uni)
 		[my_entities[i] release];
 	demo_ship = nil;
 }
+
 
 - (BOOL) isVectorClearFromEntity:(Entity *) e1 toDistance:(double)dist fromPoint:(Vector) p2
 {
@@ -4285,6 +4345,7 @@ static BOOL MaintainLinkedLists(Universe* uni)
 		[my_entities[i] release]; //	released
 	return YES;
 }
+
 
 - (Entity*) hazardOnRouteFromEntity:(Entity *) e1 toDistance:(double)dist fromPoint:(Vector) p2
 {
@@ -4453,6 +4514,7 @@ static BOOL MaintainLinkedLists(Universe* uni)
 	return result;
 }
 
+
 - (int) getFirstEntityHitByLaserFromEntity:(Entity *) e1 inView:(int) viewdir offset:(Vector) offset rangeFound:(GLfloat*)range_ptr
 {
 	if (!e1)
@@ -4573,6 +4635,7 @@ static BOOL MaintainLinkedLists(Universe* uni)
 	return result;
 }
 
+
 - (int) getFirstEntityTargettedByPlayer:(PlayerEntity*) player
 {
 	if ((!player)||(!player->isPlayer))
@@ -4653,6 +4716,7 @@ static BOOL MaintainLinkedLists(Universe* uni)
 	return result;
 }
 
+
 - (NSArray *) getEntitiesWithinRange:(double) range1 ofEntity:(Entity *) e1
 {
 	if (!e1)
@@ -4682,6 +4746,7 @@ static BOOL MaintainLinkedLists(Universe* uni)
 		[my_entities[i] release]; //	released
 	return  [NSArray arrayWithArray:hitlist];
 }
+
 
 - (int) countShipsWithRole:(NSString *) desc inRange:(double) range1 ofEntity:(Entity *)e1
 {
@@ -4715,6 +4780,7 @@ static BOOL MaintainLinkedLists(Universe* uni)
 	return  found;
 }
 
+
 - (int) countShipsWithRole:(NSString *) desc
 {
 	int i, found;
@@ -4736,6 +4802,7 @@ static BOOL MaintainLinkedLists(Universe* uni)
 		[my_entities[i] release]; //	released
 	return  found;
 }
+
 
 - (void) sendShipsWithRole:(NSString *) desc messageToAI:(NSString *) ms
 {
@@ -4764,10 +4831,12 @@ static BOOL MaintainLinkedLists(Universe* uni)
 	return universal_time;
 }
 
+
 - (OOTimeDelta) getTimeDelta
 {
 	return time_delta;
 }
+
 
 - (void) findCollisionsAndShadows
 {
@@ -4788,6 +4857,7 @@ static BOOL MaintainLinkedLists(Universe* uni)
 	
 }
 
+
 - (NSString*) collisionDescription
 {
 	if (universeRegion)
@@ -4796,10 +4866,12 @@ static BOOL MaintainLinkedLists(Universe* uni)
 		return	@"-";
 }
 
+
 - (void) dumpCollisions
 {
 	dumpCollisionInfo = YES;
 }
+
 
 - (void) setViewDirection:(OOViewID) vd
 {
@@ -4863,10 +4935,12 @@ static BOOL MaintainLinkedLists(Universe* uni)
 	}
 }
 
+
 - (OOViewID) viewDir
 {
 	return viewDirection;
 }
+
 
 - (BOOL) playCustomSound:(NSString*)key
 {
@@ -4883,6 +4957,7 @@ static BOOL MaintainLinkedLists(Universe* uni)
 	return NO;
 }
 
+
 - (BOOL) stopCustomSound:(NSString*)key
 {
 	if ([customsounds objectForKey:key])
@@ -4897,6 +4972,7 @@ static BOOL MaintainLinkedLists(Universe* uni)
 	return NO;
 }
 
+
 - (BOOL) isPlayingCustomSound:(NSString*)key
 {
 	if ([customsounds objectForKey:key])
@@ -4908,16 +4984,19 @@ static BOOL MaintainLinkedLists(Universe* uni)
 	return NO;
 }
 
+
 - (void) clearPreviousMessage
 {
 	if (currentMessage)	[currentMessage release];
 	currentMessage = nil;
 }
 
+
 - (void) setMessageGuiBackgroundColor:(OOColor *) some_color
 {
 	[message_gui setBackgroundColor:some_color];
 }
+
 
 - (void) displayMessage:(NSString *) text forCount:(int) count
 {
@@ -4930,6 +5009,7 @@ static BOOL MaintainLinkedLists(Universe* uni)
     }
 }
 
+
 - (void) displayCountdownMessage:(NSString *) text forCount:(int) count
 {
 	if (![currentMessage isEqual:text])
@@ -4941,6 +5021,7 @@ static BOOL MaintainLinkedLists(Universe* uni)
     }
 }
 
+
 - (void) addDelayedMessage:(NSString *) text forCount:(int) count afterDelay:(double) delay
 {
 	SEL _addDelayedMessageSelector = @selector(addDelayedMessage:);
@@ -4949,6 +5030,7 @@ static BOOL MaintainLinkedLists(Universe* uni)
 	[msgDict setObject:[NSNumber numberWithInt:count] forKey:@"duration"];
 	[self performSelector:_addDelayedMessageSelector withObject:msgDict afterDelay:delay];
 }
+
 
 - (void) addDelayedMessage:(NSDictionary *) textdict
 {
@@ -4960,6 +5042,7 @@ static BOOL MaintainLinkedLists(Universe* uni)
 		msg_duration = [(NSNumber *)[textdict objectForKey:@"duration"] intValue];
 	[self addMessage:msg forCount:msg_duration];
 }
+
 
 - (void) addMessage:(NSString *) text forCount:(int) count
 {
@@ -5007,6 +5090,7 @@ static BOOL MaintainLinkedLists(Universe* uni)
     }
 }
 
+
 - (void) addCommsMessage:(NSString *) text forCount:(int) count
 {
 	if (![currentMessage isEqual:text])
@@ -5031,11 +5115,13 @@ static BOOL MaintainLinkedLists(Universe* uni)
     }
 }
 
+
 - (void) showCommsLog:(double) how_long
 {
 	[comm_log_gui setAlpha:1.0];
 	[comm_log_gui fadeOutFromTime:[self getTime] OverDuration:how_long];
 }
+
 
 - (void) update:(double) delta_t
 {
@@ -5215,6 +5301,7 @@ static BOOL MaintainLinkedLists(Universe* uni)
 		NS_ENDHANDLER
 	}
 }
+
 
 - (void) filterSortedLists
 {
@@ -5468,6 +5555,7 @@ static BOOL MaintainLinkedLists(Universe* uni)
 	// done! list filtered
 }
 
+
 - (void) setGalaxy_seed:(Random_Seed) gal_seed
 {
 	int						i;
@@ -5495,6 +5583,7 @@ static BOOL MaintainLinkedLists(Universe* uni)
 	}
 }
 
+
 - (void) setSystemTo:(Random_Seed) s_seed
 {
 	NSDictionary*   systemData;
@@ -5513,15 +5602,18 @@ static BOOL MaintainLinkedLists(Universe* uni)
 	[systemData release];   // released
 }
 
+
 - (Random_Seed) systemSeed
 {
 	return system_seed;
 }
 
+
 - (Random_Seed) systemSeedForSystemNumber:(int) n
 {
 	return systems[n & 0xff];
 }
+
 
 - (Random_Seed) systemSeedForSystemName:(NSString*) sysname
 {
@@ -5536,25 +5628,36 @@ static BOOL MaintainLinkedLists(Universe* uni)
 	return kNilRandomSeed;
 }
 
+
 - (NSDictionary *) shipyard
 {
 	return shipyard;
 }
+
 
 - (NSDictionary *) descriptions
 {
 	return descriptions;
 }
 
+
 - (NSDictionary *) characters
 {
 	return characters;
 }
 
+
 - (NSDictionary *) missiontext
 {
 	return missiontext;
 }
+
+
+- (NSString *)descriptionForKey:(NSString *)key
+{
+	return [descriptions stringForKey:key];
+}
+
 
 - (NSString *) keyForPlanetOverridesForSystemSeed:(Random_Seed) s_seed inGalaxySeed:(Random_Seed) g_seed
 {
@@ -5573,6 +5676,7 @@ static BOOL MaintainLinkedLists(Universe* uni)
 	}
 	return [NSString stringWithFormat:@"%d %d", gnum, pnum];
 }
+
 
 - (NSString *) keyForInterstellarOverridesForSystemSeeds:(Random_Seed) s_seed1 :(Random_Seed) s_seed2 inGalaxySeed:(Random_Seed) g_seed
 {
@@ -5596,6 +5700,7 @@ static BOOL MaintainLinkedLists(Universe* uni)
 	}
 	return [NSString stringWithFormat:@"interstellar: %d %d %d", gnum, pnum1, pnum2];
 }
+
 
 - (NSDictionary *) generateSystemData:(Random_Seed) s_seed
 {
@@ -5655,10 +5760,12 @@ static BOOL MaintainLinkedLists(Universe* uni)
 	return cachedResult;
 }
 
+
 - (NSDictionary *) currentSystemData
 {
 	return [self generateSystemData:system_seed];
 }
+
 
 - (void) setSystemDataKey:(NSString*) key value:(NSObject*) object
 {
@@ -5671,6 +5778,7 @@ static BOOL MaintainLinkedLists(Universe* uni)
 	[local_overrides setObject:object forKey:key];
 }
 
+
 - (void) setSystemDataForGalaxy:(int) gnum planet:(int) pnum key:(NSString*) key value:(NSObject*) object
 {
 	NSString*	override_key = [NSString stringWithFormat:@"%d %d", gnum, pnum];
@@ -5682,6 +5790,7 @@ static BOOL MaintainLinkedLists(Universe* uni)
 	[local_overrides setObject:object forKey:key];
 }
 
+
 - (NSString *) getSystemName:(Random_Seed) s_seed
 {
 	NSDictionary	*systemDic =	[self generateSystemData:s_seed];
@@ -5689,12 +5798,14 @@ static BOOL MaintainLinkedLists(Universe* uni)
 	return [name capitalizedString];
 }
 
+
 - (NSString *) getSystemInhabitants:(Random_Seed) s_seed
 {
 	NSDictionary	*systemDic =	[self generateSystemData:s_seed];
 	NSString		*inhabitants =  (NSString *)[systemDic objectForKey:KEY_INHABITANTS];
 	return inhabitants;
 }
+
 
 - (NSString *) generateSystemName:(Random_Seed) s_seed
 {
@@ -5725,6 +5836,7 @@ static BOOL MaintainLinkedLists(Universe* uni)
 	return [name capitalizedString];
 }
 
+
 - (NSString *) generatePhoneticSystemName:(Random_Seed) s_seed
 {
 	int i;
@@ -5751,6 +5863,7 @@ static BOOL MaintainLinkedLists(Universe* uni)
 	
 	return [NSString stringWithFormat:@"[[inpt PHON]]%@[[inpt TEXT]]", name];
 }
+
 
 - (NSString *) generateSystemInhabitants:(Random_Seed) s_seed plural:(BOOL) plural
 {
@@ -5855,6 +5968,7 @@ static BOOL MaintainLinkedLists(Universe* uni)
 	return result;
 }
 
+
 - (Random_Seed) findNeighbouringSystemToCoords:(NSPoint) coords withGalaxySeed:(Random_Seed) gal_seed
 {
 	if (!equal_seeds( gal_seed, galaxy_seed))
@@ -5898,6 +6012,7 @@ static BOOL MaintainLinkedLists(Universe* uni)
 
 	return system;
 }
+
 
 - (Random_Seed) findConnectedSystemAtCoords:(NSPoint) coords withGalaxySeed:(Random_Seed) gal_seed
 {
@@ -5943,6 +6058,7 @@ static BOOL MaintainLinkedLists(Universe* uni)
 	return system;
 }
 
+
 - (int) findSystemNumberAtCoords:(NSPoint) coords withGalaxySeed:(Random_Seed) gal_seed
 {
 	if (!equal_seeds( gal_seed, galaxy_seed))
@@ -5971,6 +6087,7 @@ static BOOL MaintainLinkedLists(Universe* uni)
 	}
 	return system;
 }
+
 
 - (NSPoint) findSystemCoordinatesWithPrefix:(NSString *) p_fix withGalaxySeed:(Random_Seed) gal_seed
 {
@@ -6002,15 +6119,18 @@ static BOOL MaintainLinkedLists(Universe* uni)
 	return system_coords;
 }
 
+
 - (BOOL*) systems_found
 {
 	return (BOOL*)system_found;
 }
 
+
 - (NSString*) systemNameIndex:(int) index;
 {
 	return system_names[index & 255];
 }
+
 
 - (NSDictionary *) routeFromSystem:(int) start ToSystem:(int) goal
 {
@@ -6170,6 +6290,7 @@ static BOOL MaintainLinkedLists(Universe* uni)
 	return nil;
 }
 
+
 - (NSArray *) neighboursToSystem: (int) system_number
 {
 	NSMutableArray *neighbours = [NSMutableArray arrayWithCapacity:32];
@@ -6186,10 +6307,12 @@ static BOOL MaintainLinkedLists(Universe* uni)
 	return neighbours;
 }
 
+
 - (NSMutableDictionary*) local_planetinfo_overrides;
 {
 	return local_planetinfo_overrides;
 }
+
 
 - (void) setLocal_planetinfo_overrides:(NSDictionary*) dict
 {
@@ -6198,25 +6321,30 @@ static BOOL MaintainLinkedLists(Universe* uni)
 	local_planetinfo_overrides = [[NSMutableDictionary dictionaryWithDictionary:dict] retain];
 }
 
+
 - (NSDictionary*) planetinfo
 {
 	return planetinfo;
 }
+
 
 - (NSArray *) equipmentdata
 {
 	return equipmentdata;
 }
 
+
 - (NSDictionary *) commoditylists
 {
 	return commoditylists;
 }
 
+
 - (NSArray *) commoditydata
 {
 	return commoditydata;
 }
+
 
 - (BOOL) generateEconomicDataWithEconomy:(int) economy andRandomFactor:(int) random_factor
 {
@@ -6230,6 +6358,7 @@ static BOOL MaintainLinkedLists(Universe* uni)
 	commoditydata = newcommoditydata;
 	return YES;
 }
+
 
 - (NSArray *) commodityDataForEconomy:(int) economy andStation:(StationEntity *)some_station andRandomFactor:(int) random_factor
 {
@@ -6280,6 +6409,7 @@ double estimatedTimeForJourney(double distance, int hops)
 	int min_hops = (hops > 1)? (hops - 1) : 1;
 	return 2000 * hops + 4000 * distance * distance / min_hops;
 }
+
 
 - (NSArray *) passengersForSystem:(Random_Seed) s_seed atTime:(double) current_time
 {
@@ -6415,6 +6545,7 @@ double estimatedTimeForJourney(double distance, int hops)
 	return [NSArray arrayWithArray:resultArray];
 }
 
+
 - (NSString *) timeDescription:(double) interval
 {
 	double r_time = interval;
@@ -6445,6 +6576,7 @@ double estimatedTimeForJourney(double distance, int hops)
 	}
 	return [result stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceCharacterSet]];
 }
+
 
 - (NSString *) shortTimeDescription:(double) interval
 {
@@ -6484,6 +6616,7 @@ double estimatedTimeForJourney(double distance, int hops)
 	}
 	return [result stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceCharacterSet]];
 }
+
 
 - (NSArray *) contractsForSystem:(Random_Seed) s_seed atTime:(double) current_time
 {
@@ -6686,6 +6819,7 @@ double estimatedTimeForJourney(double distance, int hops)
 	
 	return [NSArray arrayWithArray:resultArray];
 }
+
 
 - (NSArray *) shipsForSaleForSystem:(Random_Seed) s_seed withTL:(int) specialTL atTime:(double) current_time
 {
@@ -7007,6 +7141,7 @@ NSComparisonResult comparePrice(NSDictionary *dict1, NSDictionary *dict2, void *
 	return [price1 compare:price2];
 }
 
+
 - (int) tradeInValueForCommanderDictionary:(NSDictionary*) cmdr_dict
 {
 	int result = 0;
@@ -7234,6 +7369,7 @@ NSComparisonResult comparePrice(NSDictionary *dict1, NSDictionary *dict2, void *
 	return result;
 }
 
+
 - (Quaternion) getWitchspaceExitRotation
 {
 	// this should be fairly close to {0,0,0,1}
@@ -7249,6 +7385,7 @@ NSComparisonResult comparePrice(NSDictionary *dict1, NSDictionary *dict2, void *
 	
 	return q_result;
 }
+
 
 - (Vector) getSunSkimStartPositionForShip:(ShipEntity*) ship
 {
@@ -7277,6 +7414,7 @@ NSComparisonResult comparePrice(NSDictionary *dict1, NSDictionary *dict2, void *
 	
 	return v1;
 }
+
 
 - (Vector) getSunSkimEndPositionForShip:(ShipEntity*) ship
 {
@@ -7324,6 +7462,7 @@ NSComparisonResult comparePrice(NSDictionary *dict1, NSDictionary *dict2, void *
 	return v1;
 }
 
+
 - (NSArray*) listBeaconsWithCode:(NSString*) code
 {
 	NSMutableArray* result = [NSMutableArray array];
@@ -7338,6 +7477,7 @@ NSComparisonResult comparePrice(NSDictionary *dict1, NSDictionary *dict2, void *
 	}
 	return [result sortedArrayUsingSelector:@selector(compareBeaconCodeWith:)];
 }
+
 
 - (void) allShipAIsReactToMessage:(NSString*) message
 {
@@ -7364,15 +7504,18 @@ NSComparisonResult comparePrice(NSDictionary *dict1, NSDictionary *dict2, void *
 	return gui;
 }
 
+
 - (GuiDisplayGen *) comm_log_gui
 {
 	return comm_log_gui;
 }
 
+
 - (GuiDisplayGen *) message_gui
 {
 	return message_gui;
 }
+
 
 - (void) clearGUIs
 {
@@ -7382,10 +7525,12 @@ NSComparisonResult comparePrice(NSDictionary *dict1, NSDictionary *dict2, void *
 	[comm_log_gui printLongText:@"Communications Log" Align:GUI_ALIGN_CENTER Color:[OOColor yellowColor] FadeTime:0 Key:nil AddToArray:nil];
 }
 
+
 - (void) resetCommsLogColor
 {
 	[comm_log_gui setTextColor:[OOColor whiteColor]];
 }
+
 
 - (void) setDisplayCursor:(BOOL) value
 {
@@ -7409,35 +7554,42 @@ NSComparisonResult comparePrice(NSDictionary *dict1, NSDictionary *dict2, void *
 #endif
 }
 
+
 - (BOOL) displayCursor
 {
 	return displayCursor;
 }
+
 
 - (void) setDisplayText:(BOOL) value
 {
 	displayGUI = value;
 }
 
+
 - (BOOL) displayGUI
 {
 	return displayGUI;
 }
+
 
 - (void) setDisplayFPS:(BOOL) value
 {
 	displayFPS = value;
 }
 
+
 - (BOOL) displayFPS
 {
 	return displayFPS;
 }
 
+
 - (void) setReducedDetail:(BOOL) value
 {
 	reducedDetail = value;
 }
+
 
 - (BOOL) reducedDetail
 {

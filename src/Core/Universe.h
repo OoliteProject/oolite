@@ -386,6 +386,8 @@ extern int debug;
 - (NSDictionary *) characters;
 - (NSDictionary *) missiontext;
 
+- (NSString *)descriptionForKey:(NSString *)key;
+
 - (NSString *) keyForPlanetOverridesForSystemSeed:(Random_Seed) s_seed inGalaxySeed:(Random_Seed) g_seed;
 - (NSString *) keyForInterstellarOverridesForSystemSeeds:(Random_Seed) s_seed1 :(Random_Seed) s_seed2 inGalaxySeed:(Random_Seed) g_seed;
 - (NSDictionary *) generateSystemData:(Random_Seed) system_seed;
@@ -494,6 +496,9 @@ OOINLINE Universe *GetUniverse(void)
 #else
 #define UNIVERSE gSharedUniverse	// Just in case the overhead isn't zero. :-p
 #endif
+
+
+#define DESC(key)	([UNIVERSE descriptionForKey:(key)])
 
 
 NSComparisonResult compareName(NSDictionary *dict1, NSDictionary *dict2, void * context);

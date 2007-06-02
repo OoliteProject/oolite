@@ -806,19 +806,17 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 
 - (NSString *) commanderRank_string
 {
-	int rating = [self getRatingFromKills: ship_kills];
-	return [NSString stringWithString:(NSString*)[(NSArray*)[[UNIVERSE descriptions] objectForKey:@"rating"] objectAtIndex:rating]];
+	return KillCountToRatingString(ship_kills);
 }
 
 - (NSString *) commanderShip_string
 {
-	return [NSString stringWithString:[self name]];
+	return [self name];
 }
 
 - (NSString *) commanderLegalStatus_string
 {
-	int legal_index = 0 + (legal_status <= 50) ? 1 : 2;
-	return [NSString stringWithString:(NSString*)[(NSArray *)[[UNIVERSE descriptions] objectForKey:@"legal_status"] objectAtIndex:legal_index]];
+	return LegalStatusToString(legal_status);
 }
 
 - (NSNumber *) commanderLegalStatus_number

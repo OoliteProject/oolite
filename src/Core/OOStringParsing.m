@@ -526,3 +526,22 @@ NSComparisonResult CompareVersions(NSArray *version1, NSArray *version2)
 	// If there was a difference, we'd have returned already.
 	return NSOrderedSame;
 }
+
+
+NSString *ClockToString(double clock, BOOL adjusting)
+{
+	int				days, hrs, mins, secs;
+	NSString		*result = nil;
+	
+	days = floor(clock / 86400.0);
+	secs = floor(clock - days * 86400.0);
+	hrs = floor(secs / 3600.0);
+	secs %= 3600;
+	mins = floor(secs / 60.0);
+	secs %= 60;
+	
+	result = [NSString stringWithFormat:@"%07d:%02d:%02d:%02d", days, hrs, mins, secs];
+	if (adjusting)  result = [result stringByAppendingString:@" (adjusting)"];
+	
+	return result;
+}

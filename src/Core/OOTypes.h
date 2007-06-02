@@ -75,6 +75,16 @@ typedef enum
 
 typedef enum
 {
+// NOTE: numerical values are available to scripts.
+	ALERT_CONDITION_DOCKED,
+	ALERT_CONDITION_GREEN,
+	ALERT_CONDITION_YELLOW,
+	ALERT_CONDITION_RED
+} OOAlertCondition;
+
+
+typedef enum
+{
 	GUI_SCREEN_MAIN,
 	GUI_SCREEN_INTRO1,
 	GUI_SCREEN_INTRO2,

@@ -35,12 +35,25 @@ MA 02110-1301, USA.
 #import "OOStringParsing.h"
 #import "OOPListParsing.h"
 #import "StationEntity.h"
-
-#ifdef WIN32
-#import "ResourceManager.h"
-#endif
+#import "OOCollectionExtractors.h"
+#import "OOConstToString.h"
 
 #define kOOLogUnconvertedNSLog @"unclassified.PlayerEntityLoadSave"
+
+
+// Name of modifier key used to issue commands. See also -isCommandModifierKeyDown.
+#if OOLITE_MAC_OS_X
+#define COMMAND_MODIFIER_KEY		"command"
+#else
+#define COMMAND_MODIFIER_KEY		"Ctrl"
+#endif
+
+
+@interface MyOpenGLView (OOLoadSaveExtensions)
+
+- (BOOL)isCommandModifierKeyDown;
+
+@end
 
 
 @interface PlayerEntity (OOLoadSavePrivate)
@@ -181,11 +194,7 @@ MA 02110-1301, USA.
 					return [cdr objectForKey:@"saved_game_path"];
 				else
 				{
-#ifdef GNUSTEP              
-					if ([gameView isCtrlDown]||[gameView isDown:gvMouseDoubleClick])
-#else                 
-					if ([gameView isCommandDown]||[gameView isDown:gvMouseDoubleClick])
-#endif                 
+					if ([gameView isCommandModifierKeyDown]||[gameView isDown:gvMouseDoubleClick])
 					{
 						// change directory to the selected path
 						NSString* newDir = (NSString*)[cdr objectForKey:@"saved_game_path"];
@@ -250,11 +259,7 @@ MA 02110-1301, USA.
    
 	if(([gameView isDown: 13]||[gameView isDown:gvMouseDoubleClick]) && [commanderNameString length])
 	{
-#ifdef GNUSTEP // Linux/Win32
-      if ([gameView isCtrlDown]||[gameView isDown:gvMouseDoubleClick])
-#else          // OS X
-		if ([gameView isCommandDown]||[gameView isDown:gvMouseDoubleClick])
-#endif        
+      if ([gameView isCommandModifierKeyDown]||[gameView isDown:gvMouseDoubleClick])
 		{
 			int guiSelectedRow=[gui selectedRow];
 			int	idx = (guiSelectedRow - STARTROW) + (currentPage * NUMROWS);
@@ -631,7 +636,6 @@ MA 02110-1301, USA.
 						highlightName: (NSString *)highlightName
 {
    NSFileManager *cdrFileManager=[NSFileManager defaultManager];
-   NSDictionary *descriptions=[UNIVERSE descriptions];
    int rangeStart=STARTROW;
    int lastIndex;
    int i;
@@ -746,8 +750,7 @@ MA 02110-1301, USA.
 		NSDictionary *cdr=[cdrDetailArray objectAtIndex: i];
 		if ([cdr objectForKey:@"isSavedGame"])
 		{
-			int rating=[self getRatingFromKills:  [(NSNumber *)[cdr objectForKey:@"ship_kills"] intValue]];
-			NSString *ratingDesc=[(NSArray *)[descriptions objectForKey:@"rating"] objectAtIndex:rating];
+			NSString *ratingDesc = KillCountToRatingString([cdr unsignedIntForKey:@"ship_kills"]);
 			[gui setArray:[NSArray arrayWithObjects:
 					[NSString stringWithFormat:@" %@ ",[cdr objectForKey:@"player_name"]],
 					[NSString stringWithFormat:@" %@ ",ratingDesc],
@@ -803,21 +806,16 @@ MA 02110-1301, USA.
 // Get some brief details about the commander file.
 - (void) showCommanderShip:(int)cdrArrayIndex
 {
-	NSDictionary *descriptions = [UNIVERSE descriptions];
 	GuiDisplayGen *gui=[UNIVERSE gui];
 	[UNIVERSE removeDemoShips];
 	NSDictionary *cdr=[cdrDetailArray objectAtIndex: cdrArrayIndex];
 	
-	[gui setText:@"" forRow: CDRDESCROW align: GUI_ALIGN_LEFT]; 
-	[gui setText:@"" forRow: CDRDESCROW + 1 align: GUI_ALIGN_LEFT]; 
+	[gui setText:@"" forRow:CDRDESCROW align:GUI_ALIGN_LEFT]; 
+	[gui setText:@"" forRow:CDRDESCROW + 1 align:GUI_ALIGN_LEFT]; 
 	
 	if ([cdr objectForKey:@"isFolder"])
 	{
-#ifdef GNUSTEP
-		NSString *folderDesc=[NSString stringWithFormat: @"Hold Ctrl and press return to open folder: %@", [(NSString *)[cdr objectForKey:@"saved_game_path"] lastPathComponent]];
-#else     
-		NSString *folderDesc=[NSString stringWithFormat: @"Hold command and press return to open folder: %@", [(NSString *)[cdr objectForKey:@"saved_game_path"] lastPathComponent]];
-#endif
+		NSString *folderDesc=[NSString stringWithFormat: @"Hold "COMMAND_MODIFIER_KEY" and press return to open folder: %@", [(NSString *)[cdr objectForKey:@"saved_game_path"] lastPathComponent]];
 		
 		[gui addLongText: folderDesc startingAtRow: CDRDESCROW align: GUI_ALIGN_LEFT];             
 		
@@ -826,11 +824,7 @@ MA 02110-1301, USA.
 	
 	if ([cdr objectForKey:@"isParentFolder"])
 	{
-#ifdef GNUSTEP     
-		NSString *folderDesc=[NSString stringWithFormat: @"Hold Ctrl and press return to open parent folder: %@", [(NSString *)[cdr objectForKey:@"saved_game_path"] lastPathComponent]];
-#else      
-		NSString *folderDesc=[NSString stringWithFormat: @"Hold command and press return to open parent folder: %@", [(NSString *)[cdr objectForKey:@"saved_game_path"] lastPathComponent]];
-#endif
+		NSString *folderDesc=[NSString stringWithFormat: @"Hold "COMMAND_MODIFIER_KEY" and press return to open parent folder: %@", [(NSString *)[cdr objectForKey:@"saved_game_path"] lastPathComponent]];
 		
 		[gui addLongText: folderDesc startingAtRow: CDRDESCROW align: GUI_ALIGN_LEFT];             
 		
@@ -843,9 +837,10 @@ MA 02110-1301, USA.
 	if(!docked_station)  docked_station = [UNIVERSE station];
 	
 	// Display the commander's ship.
-	NSString		*shipDesc = [cdr objectForKey:@"ship_desc"];
+	NSString		*shipDesc = [cdr stringForKey:@"ship_desc"];
 	NSString		*shipName = nil;
 	NSDictionary	*shipDict = nil;
+	NSString		*rating;
 	
 	shipDict = [UNIVERSE getDictionaryForShip:shipDesc];
 	if(shipDict != nil)
@@ -853,71 +848,49 @@ MA 02110-1301, USA.
 		[self showShipyardModel:shipDict];
 		shipName = [shipDict objectForKey: KEY_NAME];
 	}
-	else  shipName = @"Unknown - missing OXP?";
-	
-	// Make a short description of the commander
-	int legalStatus=[(NSNumber *)[cdr objectForKey: @"legal_status"] intValue];
-	NSString *legalDesc;
-	int legalIndex=0;
-	if(legalStatus)
-		legalIndex=(legalStatus <= 50) ? 1 : 2;
-	switch (legalIndex)
+	else
 	{
-		case 0:
-			legalDesc=@"clean";
-			break;
-		case 1:
-			legalDesc=@"an offender";
-			break;
-		case 2:
-			legalDesc=@"a fugitive";
-			break;
-		default:
-			// never should get here
-			legalDesc=@"an unperson";
+		shipName = [cdr stringForKey:@"ship_name" defaultValue:@"unknown"];
+		shipName = [shipName stringByAppendingString:@" - OXP not installed"];
 	}
 	
-	int rating=[self getRatingFromKills: 
-		[(NSNumber *)[cdr objectForKey:@"ship_kills"] intValue]];
-	int money=[(NSNumber *)[cdr objectForKey:@"credits"] intValue];
+	// Make a short description of the commander
+	NSString		*legalDesc = nil;
+	int				money;
 	
-	// it will suffice to display the balance to the nearest credit
-	// instead of tenths of a credit.
-	money /= 10;
+	legalDesc = LegalStatusToString([cdr intForKey:@"legal_status"]);
+	
+	rating = KillCountToRatingAndKillString([cdr unsignedIntForKey:@"ship_kills"]);
+	money = [cdr intForKey:@"credits"] / 10;
 	
 // Nikos - Add some more information in the load game screen (current location, galaxy number and timestamp).
 //-------------------------------------------------------------------------------------------------------------------------
-   NSPoint gal_coords = (NSPoint)PointFromString([cdr objectForKey:@"galaxy_coordinates"]);
-   Random_Seed g_seed = {0, 0, 0, 0, 0, 0};
-   NSArray *seed_vals = ScanTokensFromString([cdr objectForKey:@"galaxy_seed"]);
-   g_seed.a = (unsigned char)[(NSString *)[seed_vals objectAtIndex:0] intValue];
-   g_seed.b = (unsigned char)[(NSString *)[seed_vals objectAtIndex:1] intValue];
-   g_seed.c = (unsigned char)[(NSString *)[seed_vals objectAtIndex:2] intValue];
-   g_seed.d = (unsigned char)[(NSString *)[seed_vals objectAtIndex:3] intValue];
-   g_seed.e = (unsigned char)[(NSString *)[seed_vals objectAtIndex:4] intValue];
-   g_seed.f = (unsigned char)[(NSString *)[seed_vals objectAtIndex:5] intValue];
-   int locationNumber = [UNIVERSE findSystemNumberAtCoords:gal_coords withGalaxySeed:g_seed];
-   NSString *locationName = [UNIVERSE systemNameIndex:locationNumber];
-   
-   int galNumber = [(NSNumber *)[cdr objectForKey:@"galaxy_number"] intValue] + 1;	// Galaxy numbering starts at 0.
-   
-   double saveGameTime = [(NSNumber *)[cdr objectForKey:@"ship_clock"] doubleValue];
-   int days = floor(saveGameTime / 86400.0); // days
-   int secs = floor(saveGameTime - days * 86400.0);
-   int hrs = floor(secs / 3600.0); // hrs
-   secs %= 3600;
-   int mins = floor(secs / 60.0);	// mins
-   secs %= 60;
-   NSString *timeStamp = [NSString stringWithFormat:@"%07d:%02d:%02d:%02d", days, hrs, mins, secs];
-//-------------------------------------------------------------------------------------------------------------------------
-   
+	NSPoint			gal_coords;
+	Random_Seed		g_seed;
+	int				locationNumber;
+	int				galNumber;
+	NSString		*locationName = nil;
+	NSString		*timeStamp  = nil;
 	
-	NSString *cdrDesc;
-	cdrDesc = [NSString stringWithFormat:@"Commander %@ is rated %@ and is %@, with %d Cr in the bank. Ship: %@. Location: %@ (G%d). Timestamp: %@",
+	gal_coords = PointFromString([cdr stringForKey:@"galaxy_coordinates"]);
+	g_seed = RandomSeedFromString([cdr stringForKey:@"galaxy_seed"]);
+	
+	locationNumber = [UNIVERSE findSystemNumberAtCoords:gal_coords withGalaxySeed:g_seed];
+	locationName = [UNIVERSE systemNameIndex:locationNumber];
+	
+	galNumber = [cdr intForKey:@"galaxy_number"] + 1;	// Galaxy numbering starts at 0.
+	
+	timeStamp = ClockToString([cdr doubleForKey:@"ship_clock" defaultValue:PLAYER_SHIP_CLOCK_START], NO);
+	
+//-------------------------------------------------------------------------------------------------------------------------
+	
+	NSString		*cdrDesc = nil;
+	
+	cdrDesc = [NSString stringWithFormat:@"Commander %@ is rated %@ and has %d Cr in the bank. Legal status: %@. Ship: %@. Location: %@ (G%d). Timestamp: %@",
 										 [cdr objectForKey:@"player_name"],
-										 [[descriptions objectForKey:@"rating"] objectAtIndex: rating],
-										 legalDesc, 
-										 money, 
+										 rating,
+										 money,
+										 legalDesc,
 										 shipName,
 										 locationName,
 										 galNumber,
@@ -941,6 +914,20 @@ MA 02110-1301, USA.
 
    // not found!
    return -1;
+}
+
+@end
+
+
+@implementation MyOpenGLView (OOLoadSaveExtensions)
+
+- (BOOL)isCommandModifierKeyDown
+{
+#if OOLITE_MAC_OS_X
+	return [self isCommandDown];
+#else
+	return [self isCtrlDown];
+#endif
 }
 
 @end

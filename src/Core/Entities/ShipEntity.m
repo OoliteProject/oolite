@@ -493,18 +493,18 @@ static NSString * const kOOLogEntityBehaviourChanged	= @"entity.behaviour.change
 
 
 // ship's brains!
-- (OOBrain*)	brain
+- (OOBrain *)brain
 {
 	return brain;
 }
 
-- (void)		setBrain:(OOBrain*) aBrain
+- (void)setBrain:(OOBrain *)aBrain
 {
 	brain = aBrain;
 }
 
 
-- (GLfloat) doesHitLine:(Vector) v0: (Vector) v1;
+- (GLfloat)doesHitLine:(Vector)v0: (Vector)v1;
 {
 	Vector u0 = vector_between(position, v0);	// relative to origin of model / octree
 	Vector u1 = vector_between(position, v1);
@@ -513,7 +513,7 @@ static NSString * const kOOLogEntityBehaviourChanged	= @"entity.behaviour.change
 	return [octree isHitByLine:w0 :w1];
 }
 
-- (GLfloat) doesHitLine:(Vector) v0: (Vector) v1 :(ShipEntity**) hitEntity;
+- (GLfloat) doesHitLine:(Vector)v0: (Vector)v1 :(ShipEntity **)hitEntity;
 {
 	if (hitEntity)
 		hitEntity[0] = (ShipEntity*)nil;
@@ -555,7 +555,7 @@ static NSString * const kOOLogEntityBehaviourChanged	= @"entity.behaviour.change
 	return hit_distance;
 }
 
-- (GLfloat) doesHitLine:(Vector) v0: (Vector) v1 withPosition:(Vector) o andIJK:(Vector) i :(Vector) j :(Vector) k;
+- (GLfloat)doesHitLine:(Vector)v0: (Vector)v1 withPosition:(Vector)o andIJK:(Vector)i :(Vector)j :(Vector)k;
 {
 	Vector u0 = vector_between( o, v0);	// relative to origin of model / octree
 	Vector u1 = vector_between( o, v1);
@@ -577,8 +577,7 @@ static NSString * const kOOLogEntityBehaviourChanged	= @"entity.behaviour.change
 		//
 		if (status == STATUS_IN_FLIGHT)	// just popped into existence
 		{
-			if ((!escortsAreSetUp)&&(n_escorts > 0))
-				[self setUpEscorts];
+			if ((!escortsAreSetUp) && (n_escorts > 0))  [self setUpEscorts];
 		}
 		else
 		{
@@ -599,7 +598,7 @@ static NSString * const kOOLogEntityBehaviourChanged	= @"entity.behaviour.change
 }
 
 
-- (void) wasRemovedFromUniverse
+- (void)wasRemovedFromUniverse
 {
 	NSEnumerator	*subEntityEnum = nil;
 	Entity			*subEntity = nil;
@@ -611,7 +610,7 @@ static NSString * const kOOLogEntityBehaviourChanged	= @"entity.behaviour.change
 }
 
 
-- (Vector)	absoluteTractorPosition
+- (Vector)absoluteTractorPosition
 {
 	Vector result = position;
 	result.x += v_right.x * tractor_position.x + v_up.x * tractor_position.y + v_forward.x * tractor_position.z;
@@ -620,38 +619,37 @@ static NSString * const kOOLogEntityBehaviourChanged	= @"entity.behaviour.change
 	return result;
 }
 
-- (NSString*)	beaconCode
+- (NSString *)beaconCode
 {
-	return (NSString*)[shipinfoDictionary objectForKey:@"beacon"];
+	return [shipinfoDictionary stringForKey:@"beacon"];
 }
 
-- (BOOL)	isBeacon
+- (BOOL)isBeacon
 {
 	return (beaconChar != 0);
 }
 
-- (char)	beaconChar
+- (char)beaconChar
 {
 	return beaconChar;
 }
 
-- (void)	setBeaconChar:(char) bchar
+- (void)setBeaconChar:(char)bchar
 {
 	beaconChar = bchar;
 }
 
-- (int)		nextBeaconID
+- (int)nextBeaconID
 {
 	return nextBeaconID;
 }
 
-- (void)	setNextBeacon:(ShipEntity*) beaconShip
+- (void)setNextBeacon:(ShipEntity *)beaconShip
 {
-	if (beaconShip == nil)
-		nextBeaconID = NO_TARGET;
-	else
-		nextBeaconID = [beaconShip universalID];
+	if (beaconShip == nil)  nextBeaconID = NO_TARGET;
+	else  nextBeaconID = [beaconShip universalID];
 }
+
 
 - (void) setUpEscorts
 {
@@ -678,8 +676,6 @@ static NSString * const kOOLogEntityBehaviourChanged	= @"entity.behaviour.change
 			escortShipKey = nil;
 	}
 
-//	NSLog(@"DEBUG Setting up escorts for %@", self);
-
 	while (n_escorts > 0)
 	{
 		Vector ex_pos = [self getCoordinatesForEscortPosition:n_escorts - 1];
@@ -691,8 +687,7 @@ static NSString * const kOOLogEntityBehaviourChanged	= @"entity.behaviour.change
 		else
 			escorter = [UNIVERSE newShipWithRole:escortRole];	// retained
 
-		if (!escorter)
-			break;
+		if (!escorter)  break;
 
 		if (![escorter crew])
 			[escorter setCrew:[NSArray arrayWithObject:
@@ -732,16 +727,11 @@ static NSString * const kOOLogEntityBehaviourChanged	= @"entity.behaviour.change
 			int extra = 1 | (ranrot_rand() & 15);
 			bounty += extra;	// obviously we're dodgier than we thought!
 			[escorter setBounty: extra];
-//			NSLog(@"DEBUG setting bounty for %@ escorting %@ to %d", escorter, self, extra);
-
-//			[escorter setReportAImessages: YES ]; // debug
 		}
 		else
 		{
 			[escorter setBounty:0];
 		}
-
-//		NSLog(@"DEBUG set up escort ship %@ for %@", escorter, self);
 
 		[escorter release];
 		n_escorts--;

@@ -82,3 +82,6 @@ NSArray *ComponentsFromVersionString(NSString *string);
 	component is treated as 0. Thus "1.7" < "1.60", and "1.2.3.0" == "1.2.3".
 */
 NSComparisonResult CompareVersions(NSArray *version1, NSArray *version2);
+
+
+NSString *ClockToString(double clock, BOOL adjusting);

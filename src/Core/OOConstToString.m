@@ -26,6 +26,7 @@ MA );-);, USA.
 #import "Entity.h"
 #import "Universe.h"
 #import <jsapi.h>
+#import "OOCollectionExtractors.h"
 
 
 #define CASE(foo) case foo: return @#foo;
@@ -432,4 +433,81 @@ OOEnergyUnitType StringToGUIScreenID(NSString *string)
 	REVERSE_CASE(GUI_SCREEN_REPORT);
 	
 	return GUI_SCREEN_MAIN;
+}
+
+
+NSString *KillCountToRatingString(unsigned kills)
+{
+	enum { kRatingCount = 9 };
+	
+	static NSArray		*ratingNames = nil;
+	const unsigned		killThresholds[kRatingCount - 1] =
+						{
+							0x0008,
+							0x0010,
+							0x0020,
+							0x0040,
+							0x0080,
+							0x0200,
+							0x0A00,
+							0x1900
+						};
+	unsigned			i;
+	
+	if (ratingNames == nil)
+	{
+		ratingNames = [[UNIVERSE descriptions] arrayForKey:@"rating"];
+	}
+	
+	for (i = 0; i != kRatingCount - 1; ++i)
+	{
+		if (kills < killThresholds[i])  return [ratingNames stringAtIndex:i];
+	}
+	
+	return [ratingNames stringAtIndex:kRatingCount - 1];
+}
+
+
+NSString *KillCountToRatingAndKillString(unsigned kills)
+{
+	return [NSString stringWithFormat:@"%@ (%u)", KillCountToRatingString(kills), kills];
+}
+
+
+NSString *LegalStatusToString(int legalStatus)
+{
+	enum { kStatusCount = 3 };
+	
+	static NSArray		*statusNames = nil;
+	const unsigned		statusThresholds[kStatusCount - 1] =
+						{
+							1,
+							51
+						};
+	unsigned			i;
+	
+	if (statusNames == nil)
+	{
+		statusNames = [[UNIVERSE descriptions] arrayForKey:@"legal_status"];
+	}
+	
+	for (i = 0; i != kStatusCount - 1; ++i)
+	{
+		if (legalStatus < statusThresholds[i])  return [statusNames stringAtIndex:i];
+	}
+	
+	return [statusNames stringAtIndex:kStatusCount - 1];
+}
+
+
+NSString *AlertConditionToString(OOAlertCondition alertCondition)
+{
+	static NSArray		*conditionNames = nil;
+	
+	if (conditionNames == nil)
+	{
+		conditionNames = [[UNIVERSE descriptions] arrayForKey:@"condition"];
+	}
+	
+	return [conditionNames stringAtIndex:alertCondition];
 }

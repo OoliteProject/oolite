@@ -82,16 +82,6 @@ enum
 };
 
 
-typedef enum
-{
-// NOTE: numerical values are available to scripts.
-	ALERT_CONDITION_DOCKED,
-	ALERT_CONDITION_GREEN,
-	ALERT_CONDITION_YELLOW,
-	ALERT_CONDITION_RED
-} OOAlertCondition;
-
-
 enum
 {
 	ALERT_FLAG_DOCKED				= 0x010,
@@ -217,9 +207,9 @@ typedef enum
 	ShipEntity				*script_target;
 	NSString				*missionChoice;
 	
-	NSString*				specialCargo;
+	NSString				*specialCargo;
 	
-	NSMutableArray*			comm_log;
+	NSMutableArray			*comm_log;
 
 	NSMutableDictionary		*oxpKeys;
 	
@@ -430,16 +420,16 @@ typedef enum
 	int						target_memory_index;
 	
 	// custom view points
-	NSMutableArray*			custom_views;
+	NSMutableArray			*custom_views;
 	Quaternion				customViewQuaternion;
 	GLfloat					customViewMatrix[16];
 	Vector					customViewOffset, customViewForwardVector, customViewUpVector, customViewRightVector;
-	NSString*				customViewDescription;
+	NSString				*customViewDescription;
 	
 	OOViewID				currentWeaponFacing;	// decoupled from view direction
 	
         // docking reports
-	NSMutableString*		dockingReport;
+	NSMutableString			*dockingReport;
 	
 	// Woo, flags.
 	unsigned				has_energy_unit: 1,
@@ -603,7 +593,6 @@ typedef enum
 - (void) docked;
 
 - (void) setGuiToStatusScreen;
-- (int) getRatingFromKills: (int)shipKills;
 - (NSArray *) equipmentList;
 - (NSArray *) cargoList;
 - (void) setGuiToSystemDataScreen;
