@@ -233,6 +233,8 @@ extern int debug;
 	OOWeakReference			*weakSelf;
 }
 
+- (id)initWithGameView:(MyOpenGLView *)gameView;
+
 - (BOOL) doProcedurallyTexturedPlanets;
 - (void) setDoProcedurallyTexturedPlanets:(BOOL) value;
 

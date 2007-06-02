@@ -70,6 +70,8 @@
 	<string>$dataCacheStatus</string>
 	<key>dataCache.rebuild.datesChanged</key>
 	<string>inherit</string>
+	<key>dataCache.rebuild.explicitFlush</key>
+	<string>inherit</string>
 	<key>dataCache.rebuild.pathsChanged</key>
 	<string>inherit</string>
 	<key>dataCache.remove.success</key>

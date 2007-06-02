@@ -850,6 +850,7 @@ MA 02110-1301, USA.
 	}
 	else
 	{
+		[self showShipyardModel:[UNIVERSE getDictionaryForShip:@"oolite-unknown-ship"]];
 		shipName = [cdr stringForKey:@"ship_name" defaultValue:@"unknown"];
 		shipName = [shipName stringByAppendingString:@" - OXP not installed"];
 	}

@@ -64,9 +64,6 @@ MA 02110-1301, USA.
 #define MAX_NUMBER_OF_SOLAR_SYSTEM_ENTITIES 20
 
 
-static NSString * const kOOLogDataCacheFound				= @"dataCache.found";
-static NSString * const kOOLogDataCacheNotFound				= @"dataCache.notFound";
-static NSString * const kOOLogDataCacheRebuild				= @"dataCache.rebuild";
 static NSString * const kOOLogUniversePopulate				= @"universe.populate";
 static NSString * const kOOLogUniversePopulateWitchspace	= @"universe.populate.witchspace";
 static NSString * const kOOLogScriptNoSystemForName			= @"script.debug.note.systemSeedForSystemName";
@@ -83,7 +80,7 @@ static BOOL MaintainLinkedLists(Universe* uni);
 
 @implementation Universe
 
-- (id) init
+- (id) initWithGameView:(MyOpenGLView *)inGameView
 {	
     PlayerEntity	*player;
 	int i;
@@ -94,6 +91,7 @@ static BOOL MaintainLinkedLists(Universe* uni);
 	}
 	
 	self = [super init];
+	[self setGameView:inGameView];
 	gSharedUniverse = self;
 	
 	n_entities = 0;

@@ -31,6 +31,7 @@ MA 02110-1301, USA.
 #import "ResourceManager.h"
 #import "GuiDisplayGen.h"
 #import "OODebugController.h"
+#import <Carbon/Carbon.h>
 
 
 static NSString * kOOLogKeyCodeOutOfRange	= @"input.keyMapping.codeOutOfRange";
@@ -97,6 +98,7 @@ static NSString * kOOLogKeyDown				= @"input.keyMapping.keyPress.keyDown";
     return self;
 }
 
+
 - (void) dealloc
 {
 	if (typedString)
@@ -118,6 +120,7 @@ static NSString * kOOLogKeyDown				= @"input.keyMapping.keyPress.keyDown";
 	allowingStringInput = value;
 }
 
+
 - (void) allowStringInput: (BOOL) value
 {
 	if (value)
@@ -131,15 +134,18 @@ static NSString * kOOLogKeyDown				= @"input.keyMapping.keyPress.keyDown";
 	return allowingStringInput;
 }
 
+
 - (NSString *) typedString
 {
 	return typedString;
 }
 
+
 - (void) resetTypedString
 {
 	[typedString setString:@""];
 }
+
 
 - (void) setTypedString:(NSString*) value
 {
@@ -152,6 +158,7 @@ static NSString * kOOLogKeyDown				= @"input.keyMapping.keyPress.keyDown";
 	return viewSize;
 }
 
+
 - (GLfloat) display_z
 {
 	return display_z;
@@ -163,10 +170,12 @@ static NSString * kOOLogKeyDown				= @"input.keyMapping.keyPress.keyDown";
 	return gameController;
 }
 
+
 - (void) setGameController:(GameController *) controller
 {
 	gameController = controller;
 }
+
 
 - (void)drawRect:(NSRect)rect
 {
@@ -191,6 +200,7 @@ static NSString * kOOLogKeyDown				= @"input.keyMapping.keyPress.keyDown";
 	
 	[[self openGLContext] flushBuffer];
 }
+
 
 - (void) initialiseGLWithSize:(NSSize) v_size
 {
@@ -273,6 +283,7 @@ static NSString * kOOLogKeyDown				= @"input.keyMapping.keyPress.keyDown";
 	m_glContextInitialized = YES;
 }
 
+
 - (void) snapShot
 {
     //NSRect boundsRect = [self bounds];
@@ -344,6 +355,7 @@ static NSString * kOOLogKeyDown				= @"input.keyMapping.keyPress.keyDown";
 	free(blue);
 	
 }
+
 
 - (BOOL) acceptsFirstResponder
 {
@@ -452,6 +464,7 @@ static NSString * kOOLogKeyDown				= @"input.keyMapping.keyPress.keyDown";
 
 }
 
+
 - (void)mouseDown:(NSEvent *)theEvent
 {
     if (doubleClick)
@@ -461,6 +474,7 @@ static NSString * kOOLogKeyDown				= @"input.keyMapping.keyPress.keyDown";
 	}
 	keys[gvMouseLeftButton] = YES; // 'a' down
 }
+
 
 - (void)mouseUp:(NSEvent *)theEvent
 {
@@ -586,6 +600,7 @@ static NSString * kOOLogKeyDown				= @"input.keyMapping.keyPress.keyDown";
 	virtualJoystickPosition.y = vmy;
 }
 
+
 - (NSPoint) virtualJoystickPosition
 {
 	return virtualJoystickPosition;
@@ -601,12 +616,14 @@ static NSString * kOOLogKeyDown				= @"input.keyMapping.keyPress.keyDown";
 		keys[i] = NO;
 }
 
+
 - (void) clearMouse
 {
 	keys[gvMouseDoubleClick] = NO;
 	keys[gvMouseLeftButton] = NO;
 	doubleClick = NO;
 }
+
 
 - (BOOL) isAlphabetKeyDown
 {
@@ -623,6 +640,7 @@ static NSString * kOOLogKeyDown				= @"input.keyMapping.keyPress.keyDown";
 	[self clearKeys];
 }
 
+
 - (BOOL) isDown: (int) key
 {
 	if( supressKeys )
@@ -634,29 +652,45 @@ static NSString * kOOLogKeyDown				= @"input.keyMapping.keyPress.keyDown";
 	return keys[key];
 }
 
+
 - (BOOL) isOptDown
 {
 	return opt;
 }
+
 
 - (BOOL) isCtrlDown
 {
 	return ctrl;
 }
 
+
 - (BOOL) isCommandDown
 {
 	return command;
 }
+
 
 - (BOOL) isShiftDown
 {
 	return shift;
 }
 
+
 - (int) numKeys
 {
 	return NUM_KEYS;
-} 
+}
+
+
+- (BOOL)pollShiftKey
+{
+	#define KEYMAP_GET(m, index) ((((uint8_t*)(m))[(index) >> 3] & (1L << ((index) & 7))) ? 1 : 0)
+	
+	KeyMap				map;
+	
+	GetKeys(map);
+	return KEYMAP_GET(map, 56) || KEYMAP_GET(map, 60);	// Left shift or right shift -- although 60 shouldn't occur.
+}
 
 @end

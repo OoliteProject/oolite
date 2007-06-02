@@ -83,6 +83,7 @@
 	dataCache.rebuild						= $dataCacheStatus;
 	dataCache.rebuild.pathsChanged			= inherit;
 	dataCache.rebuild.datesChanged			= inherit;
+	dataCache.rebuild.explicitFlush			= inherit;
 	dataCache.removedOld					= $dataCacheStatus;
 	dataCache.write.success					= $dataCacheStatus;
 	dataCache.write.buildPath.failed		= $dataCacheError;

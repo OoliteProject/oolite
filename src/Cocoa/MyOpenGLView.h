@@ -171,25 +171,29 @@ extern int debug;
 - (NSSize) loadWindowSize;
 - (int) loadFullscreenSettings;
 - (int) findDisplayModeForWidth: (unsigned int) d_width Height:(unsigned int) d_height
-                        Refresh: (unsigned int)d_refresh;
+						Refresh: (unsigned int)d_refresh;
 - (NSSize) currentScreenSize;
 
- - (void) pollControls: (id)sender;
- - (void) handleStringInput: (SDL_KeyboardEvent *) kbd_event; // DJS                
+- (void) pollControls: (id)sender;
+- (void) handleStringInput: (SDL_KeyboardEvent *) kbd_event; // DJS                
 #endif
- - (JoystickHandler *)getStickHandler; // DJS       
+- (JoystickHandler *)getStickHandler; // DJS       
 
 - (void) setVirtualJoystick:(double) vmx :(double) vmy;
 - (NSPoint) virtualJoystickPosition;
 
- - (void) clearKeys;
- - (void) clearMouse;
- - (BOOL) isAlphabetKeyDown;
- - (void) supressKeysUntilKeyUp; // DJS
- - (BOOL) isDown: (int) key;
- - (BOOL) isOptDown;
- - (BOOL) isCtrlDown;
- - (BOOL) isCommandDown;
- - (BOOL) isShiftDown;
- - (int) numKeys;
+- (void) clearKeys;
+- (void) clearMouse;
+- (BOOL) isAlphabetKeyDown;
+- (void) supressKeysUntilKeyUp; // DJS
+- (BOOL) isDown: (int) key;
+- (BOOL) isOptDown;
+- (BOOL) isCtrlDown;
+- (BOOL) isCommandDown;
+- (BOOL) isShiftDown;
+- (int) numKeys;
+
+// Check current state of shift key rather than relying on last event.
+- (BOOL)pollShiftKey;
+
 @end

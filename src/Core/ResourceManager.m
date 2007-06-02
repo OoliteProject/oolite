@@ -30,6 +30,7 @@ MA 02110-1301, USA.
 #import "Universe.h"
 #import "OOStringParsing.h"
 #import "OOPListParsing.h"
+#import "MyOpenGLView.h"
 
 #import "OOJSScript.h"
 #import "OOPListScript.h"
@@ -38,6 +39,7 @@ MA 02110-1301, USA.
 
 
 static NSString * const kOOLogCacheUpToDate				= @"dataCache.upToDate";
+static NSString * const kOOLogCacheExplicitFlush		= @"dataCache.rebuild.explicitFlush";
 static NSString * const kOOLogCacheStalePaths			= @"dataCache.rebuild.pathsChanged";
 static NSString * const kOOLogCacheStaleDates			= @"dataCache.rebuild.datesChanged";
 static NSString * const kOOCacheSearchPathModDates		= @"search path modification dates";
@@ -327,8 +329,14 @@ static NSMutableDictionary *string_cache;
 	NSString			*path = nil;
 	id					modDate = nil;
 	
+	if ([[UNIVERSE gameView] pollShiftKey])
+	{
+		OOLog(kOOLogCacheExplicitFlush, @"Cache explicitly flushed with shift key. Rebuilding from scratch.");
+		upToDate = NO;
+	}
+	
 	oldPaths = [cacheMgr objectForKey:kOOCacheKeySearchPaths inCache:kOOCacheSearchPathModDates];
-	if (![oldPaths isEqual:searchPaths])
+	if (upToDate && ![oldPaths isEqual:searchPaths])
 	{
 		// OXPs added/removed
 		if (oldPaths != nil) OOLog(kOOLogCacheStalePaths, @"Cache is stale (search paths have changed). Rebuilding from scratch.");

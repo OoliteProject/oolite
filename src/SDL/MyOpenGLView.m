@@ -76,6 +76,7 @@ MA 02110-1301, USA.
    return mode;
 }
 
+
 - (id) init
 {
 	self = [super init];
@@ -156,6 +157,7 @@ MA 02110-1301, USA.
    return self;
 }
 
+
 - (void) dealloc
 {
 	if (typedString)
@@ -172,10 +174,12 @@ MA 02110-1301, USA.
 	[super dealloc];
 }
 
+
 - (void) setStringInput: (enum StringInput) value
 {
 	allowingStringInput = value;
 }
+
 
 - (void) allowStringInput: (BOOL) value
 {
@@ -196,10 +200,12 @@ MA 02110-1301, USA.
 	return typedString;
 }
 
+
 - (void) resetTypedString
 {
 	[typedString setString:@""];
 }
+
 
 - (void) setTypedString:(NSString*) value
 {
@@ -207,15 +213,18 @@ MA 02110-1301, USA.
 	[typedString setString:value];
 }
 
+
 - (NSRect) bounds
 {
 	return bounds;
 }
 
+
 - (NSSize) viewSize
 {
 	return viewSize;
 }
+
 
 - (GLfloat) display_z
 {
@@ -228,10 +237,12 @@ MA 02110-1301, USA.
 	return gameController;
 }
 
+
 - (void) setGameController:(GameController *) controller
 {
 	gameController = controller;
 }
+
 
 - (BOOL) inFullScreenMode
 {
@@ -249,6 +260,7 @@ MA 02110-1301, USA.
    [[NSUserDefaults standardUserDefaults] synchronize];
 }
 
+
 - (void) toggleScreenMode
 {
    [self setFullScreenMode: !fullScreen];
@@ -258,6 +270,7 @@ MA 02110-1301, USA.
       [self initialiseGLWithSize: currentWindowSize];
 }
 
+
 - (void) setDisplayMode:(int)mode  fullScreen:(BOOL)fsm
 {
    [self setFullScreenMode: fsm];
@@ -266,10 +279,12 @@ MA 02110-1301, USA.
       [self initialiseGLWithSize: [self modeAsSize: mode]];
 }
 
+
 - (int) indexOfCurrentSize
 {
    return currentSize;
 }
+
 
 - (void) setScreenSize: (int)sizeIndex
 {
@@ -278,10 +293,12 @@ MA 02110-1301, USA.
    	[self initialiseGLWithSize: [self modeAsSize: currentSize]];
 }
 
+
 - (NSMutableArray *)getScreenSizeArray
 {
    return screenSizes;
 }
+
 
 - (NSSize) modeAsSize:(int)sizeIndex
 {
@@ -296,6 +313,7 @@ MA 02110-1301, USA.
 {
 	[self drawRect: NSMakeRect(0, 0, viewSize.width, viewSize.height)];
 }
+
 
 - (void) drawRect:(NSRect)rect
 {
@@ -329,6 +347,7 @@ MA 02110-1301, USA.
 
 	SDL_GL_SwapBuffers();
 }
+
 
 - (void) initialiseGLWithSize:(NSSize) v_size
 {
@@ -440,6 +459,7 @@ MA 02110-1301, USA.
 
 	m_glContextInitialized = YES;
 }
+
 
 - (void) snapShot
 {
@@ -570,11 +590,13 @@ MA 02110-1301, USA.
 	return key;
 }
 
+
 - (void) setVirtualJoystick:(double) vmx :(double) vmy
 {
 	virtualJoystickPosition.x = vmx;
 	virtualJoystickPosition.y = vmy;
 }
+
 
 - (NSPoint) virtualJoystickPosition
 {
@@ -591,12 +613,14 @@ MA 02110-1301, USA.
 		keys[i] = NO;
 }
 
+
 - (void) clearMouse
 {
 	keys[gvMouseDoubleClick] = NO;
 	keys[gvMouseLeftButton] = NO;
 	doubleClick = NO;
 }
+
 
 - (BOOL) isAlphabetKeyDown
 {
@@ -613,6 +637,7 @@ MA 02110-1301, USA.
    [self clearKeys];
 }
 
+
 - (BOOL) isDown: (int) key
 {
    if ( supressKeys )
@@ -624,30 +649,36 @@ MA 02110-1301, USA.
 	return keys[key];
 }
 
+
 - (BOOL) isOptDown
 {
 	return opt;
 }
+
 
 - (BOOL) isCtrlDown
 {
 	return ctrl;
 }
 
+
 - (BOOL) isCommandDown
 {
 	return command;
 }
+
 
 - (BOOL) isShiftDown
 {
 	return shift;
 }
 
+
 - (int) numKeys
 {
 	return NUM_KEYS;
 }
+
 
 - (void) pollControls: (id)sender
 {
@@ -1106,6 +1137,7 @@ MA 02110-1301, USA.
    currentWindowSize=windowSize;
 }
 
+
 - (NSSize) loadWindowSize
 {
    NSSize windowSize;
@@ -1123,6 +1155,7 @@ MA 02110-1301, USA.
    currentWindowSize=windowSize;
    return windowSize;
 }
+
 
 - (int) loadFullscreenSettings
 {
@@ -1146,6 +1179,7 @@ MA 02110-1301, USA.
    }
    return currentSize;
 }
+
 
 - (int) findDisplayModeForWidth:(unsigned int) d_width Height:(unsigned int) d_height Refresh:(unsigned int) d_refresh
 {
@@ -1173,6 +1207,7 @@ MA 02110-1301, USA.
 	return 0;
 }
 
+
 - (NSSize) currentScreenSize
 {
    NSDictionary *mode=[screenSizes objectAtIndex: currentSize];
@@ -1186,14 +1221,22 @@ MA 02110-1301, USA.
    return NSMakeSize(800, 600);
 }
 
+
 - (JoystickHandler *) getStickHandler
 {
    return stickHandler;
 }
 
+
 - (void) setMouseInDeltaMode: (BOOL) inDelta
 {
    mouseInDeltaMode=inDelta;
+}
+
+
+- (BOOL)pollShiftKey
+{
+	return 0 != (SDL_GetModState() & (KMOD_LSHIFT | KMOD_RSHIFT));
 }
 
 @end
