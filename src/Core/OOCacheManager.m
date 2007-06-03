@@ -567,10 +567,9 @@ static OOCacheManager *sSingleton = nil;
 	
 	cachePath = [NSHomeDirectory() stringByAppendingPathComponent:@"GNUstep"];
 	if (![self directoryExists:cachePath create:inCreate]) return nil;
-	cachePath = [NSHomeDirectory() stringByAppendingPathComponent:@"Library"];
+	cachePath = [cachePath stringByAppendingPathComponent:@"Library"];
 	if (![self directoryExists:cachePath create:inCreate]) return nil;
-	cachePath = [NSHomeDirectory() stringByAppendingPathComponent:@"Oolite-cache"];
-	if (![self directoryExists:cachePath create:inCreate]) return nil;
+	cachePath = [cachePath stringByAppendingPathComponent:@"Oolite-cache"];
 	
 	return cachePath;
 }
