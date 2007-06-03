@@ -331,9 +331,7 @@ static int _compareModes(id arg1, id arg2, void *context)
 		
 		// moved here to try to avoid initialising this before having an Open GL context
 		[self logProgress:@"initialising universe..."];
-		[[Universe alloc] init];
-		
-		[UNIVERSE setGameView:gameView];
+		[[Universe alloc] initWithGameView:gameView];
 			
 		[self logProgress:@"loading player..."];
 		[self loadPlayerIfRequired];
