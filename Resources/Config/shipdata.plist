@@ -4847,14 +4847,14 @@
 		<dict>
 			<key>questionmark-material</key>
 			<dict>
-				<key>diffuse</key>
-				<string>0.5 0.0 0.0</string>
 				<key>emission</key>
-				<string>0.0 0.0 0.5</string>
+				<string>200 175 25</string>
+				<key>diffuse</key>
+				<string>42 40 40</string>
 				<key>shininess</key>
 				<integer>16</integer>
 				<key>specular</key>
-				<string>0.8 0.8 0.8</string>
+				<string>20 40 115</string>
 				<key>diffuse_map</key>
 				<string></string>
 			</dict>

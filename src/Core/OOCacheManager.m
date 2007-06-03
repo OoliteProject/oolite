@@ -360,21 +360,36 @@ static OOCacheManager *sSingleton = nil;
 	if (caches == nil) return;
 	
 	OOLog(@"dataCache.willWrite", @"About to write data cache.");	// Added for 1.69 to detect possible write-related crash. -- Ahruman
+	OOLogIndent();
+	OOLog(@"dataCache.debug", @"- creating version number object.");
 	ooliteVersion = [[[NSBundle mainBundle] infoDictionary] objectForKey:kCacheKeyVersion];
+	OOLog(@"dataCache.debug", @"- creating endian tag object.");
 	endianTag = [NSData dataWithBytes:&endianTagValue length:sizeof endianTagValue];
+	OOLog(@"dataCache.debug", @"- creating format version object.");
 	formatVersion = [NSNumber numberWithUnsignedInt:kFormatVersionValue];
+	
+	OOLog(@"dataCache.debug", @"- serializing caches.");
+	OOLogIndent();
 	pListRep = [self dictionaryOfCaches];
+	OOLogOutdent();
+	OOLogOutdent();
 	if (ooliteVersion == nil || endianTag == nil || formatVersion == nil || pListRep == nil)
 	{
 		OOLog(@"dataCache.cantWrite", @"Failed to write data cache -- prerequisites not fulfilled. (This is an internal error, please report it.)");
 		return;
 	}
+	OOLogIndent();
+	OOLog(@"dataCache.debug", @"- verified all objects.");
 	
+	OOLog(@"dataCache.debug", @"- building cache dictionary object.");
 	newCache = [NSMutableDictionary dictionaryWithCapacity:4];
 	[newCache setObject:ooliteVersion forKey:kCacheKeyVersion];
 	[newCache setObject:formatVersion forKey:kCacheKeyFormatVersion];
 	[newCache setObject:endianTag forKey:kCacheKeyEndianTag];
 	[newCache setObject:pListRep forKey:kCacheKeyCaches];
+	
+	OOLog(@"dataCache.debug", @"- writing dictionary.");
+	OOLogOutdent();
 	
 	if ([self writeDict:newCache])
 	{
@@ -458,8 +473,12 @@ static OOCacheManager *sSingleton = nil;
 	for (keyEnum = [caches keyEnumerator]; (key = [keyEnum nextObject]); )
 	{
 		cache = [caches objectForKey:key];
+		OOLog(@"dataCache.debug", @"- serializing cache \"%@\" -- %@.", key, cache);
+		OOLogIndent();
 		pList = [cache pListRepresentation];
-		if (pList != nil) [dict setObject:pList forKey:key];
+		OOLogOutdent();
+		if (pList != nil)  [dict setObject:pList forKey:key];
+		else OOLog(@"dataCache.debug", @"  - serialization failed.");
 	}
 	
 	return dict;
@@ -469,36 +488,6 @@ static OOCacheManager *sSingleton = nil;
 
 
 @implementation OOCacheManager (PlatformSpecific)
-
-#ifdef GNUSTEP
-
-- (NSString *)cachePath
-{
-	return [[[NSHomeDirectory() stringByAppendingPathComponent:@"GNUstep"]
-								stringByAppendingPathComponent:@"Library"]
-								stringByAppendingPathComponent:@"Oolite-cache"];
-}
-
-
-- (void)platformInit
-{
-	// Do nothing
-}
-
-
-// Should probably be using NSPropertyListGNUstepBinaryFormat.
-- (NSDictionary *)loadDict
-{
-	return OODictionaryFromFile([self cachePath]);
-}
-
-
-- (BOOL)writeDict:(NSDictionary *)inDict
-{
-	return [inDict writeToFile:[self cachePath] atomically:NO];
-}
-
-#else
 
 - (BOOL)directoryExists:(NSString *)inPath create:(BOOL)inCreate;
 {
@@ -526,6 +515,8 @@ static OOCacheManager *sSingleton = nil;
 }
 
 
+#if OOLITE_MAC_OS_X
+
 - (NSString *)cachePathCreatingIfNecessary:(BOOL)inCreate
 {
 	NSString			*cachePath = nil;
@@ -546,16 +537,63 @@ static OOCacheManager *sSingleton = nil;
 }
 
 
-- (void)platformInit
+- (NSString *)oldCachePath
 {
-	// Since the cache location has changed, we delete the old cache (if any).
 	NSString			*path = nil;
-	NSFileManager		*fmgr;
 	
 	path = [NSSearchPathForDirectoriesInDomains(NSLibraryDirectory, NSUserDomainMask, YES) objectAtIndex:0];
 	path = [path stringByAppendingPathComponent:@"Application Support"];
 	path = [path stringByAppendingPathComponent:@"Oolite"];
 	path = [path stringByAppendingPathComponent:@"cache"];
+	
+	return path;
+}
+
+
+#define CACHE_PLIST_FORMAT	NSPropertyListBinaryFormat_v1_0
+
+#else
+
+- (NSString *)cachePathCreatingIfNecessary:(BOOL)inCreate
+{
+	NSString			*cachePath = nil;
+	
+	/*	Construct the path for the cache file, which is:
+			~/Library/Caches/org.aegidian.oolite/Data Cache.plist
+		In addition to generally being the right place to put caches,
+		~/Library/Caches has the particular advantage of not being indexed by
+		Spotlight or, in future, backed up by Time Machine.
+	*/
+	
+	cachePath = [NSHomeDirectory() stringByAppendingPathComponent:@"GNUstep"];
+	if (![self directoryExists:cachePath create:inCreate]) return nil;
+	cachePath = [NSHomeDirectory() stringByAppendingPathComponent:@"Library"];
+	if (![self directoryExists:cachePath create:inCreate]) return nil;
+	cachePath = [NSHomeDirectory() stringByAppendingPathComponent:@"Oolite-cache"];
+	if (![self directoryExists:cachePath create:inCreate]) return nil;
+	
+	return cachePath;
+}
+
+
+- (NSString *)oldCachePath
+{
+	return [[[NSHomeDirectory() stringByAppendingPathComponent:@"GNUstep"]
+								stringByAppendingPathComponent:@"Library"]
+								stringByAppendingPathComponent:@"Oolite-cache"];
+}
+
+
+#define CACHE_PLIST_FORMAT	NSPropertyListXMLFormat_v1_0	// NSPropertyListGNUstepBinaryFormat
+
+#endif
+
+
+- (void)platformInit
+{
+	// Since the cache location has changed, we delete the old cache (if any).
+	NSString			*path = [self oldCachePath];
+	NSFileManager		*fmgr;
 	
 	fmgr = [NSFileManager defaultManager];
 	if ([fmgr fileExistsAtPath:path])
@@ -564,6 +602,7 @@ static OOCacheManager *sSingleton = nil;
 		[fmgr removeFileAtPath:path handler:nil];
 	}
 }
+
 
 - (NSDictionary *)loadDict
 {
@@ -582,8 +621,8 @@ static OOCacheManager *sSingleton = nil;
 	path = [self cachePathCreatingIfNecessary:YES];
 	if (path == nil) return NO;
 	
-	plist = [NSPropertyListSerialization dataFromPropertyList:inDict format:NSPropertyListBinaryFormat_v1_0 errorDescription:&errorDesc];
-	if (plist == nil && errorDesc != nil)
+	plist = [NSPropertyListSerialization dataFromPropertyList:inDict format:CACHE_PLIST_FORMAT errorDescription:&errorDesc];
+	if (plist == nil)
 	{
 		OOLog(kOOLogDataCacheSerializationError, @"Could not convert data cache to property list data: %@", errorDesc);
 		return NO;
@@ -591,8 +630,6 @@ static OOCacheManager *sSingleton = nil;
 	
 	return [plist writeToFile:path atomically:NO];
 }
-
-#endif
 
 @end
 

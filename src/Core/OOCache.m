@@ -219,7 +219,11 @@ static void CacheSetName(OOCacheImpl *cache, NSString *name);
 
 - (id)pListRepresentation
 {
-	if (!autoPrune)  [self prune];
+	if (!autoPrune)
+	{
+		OOLog(@"dataCache.debug", @"- pruning.");
+		[self prune];
+	}
 	return CacheArrayOfNodesByAge(cache);
 	
 	return nil;
@@ -533,6 +537,12 @@ static NSArray *CacheArrayOfNodesByAge(OOCacheImpl *cache)
 	
 	for (i = 0; i != count; ++i)
 	{
+		if (node == NULL)
+		{
+			OOLog(@"dataCache.debug.error", @"- ***** BAD CACHE - expected %u nodes, but %u is NULL.", count, i);
+		}
+		
+		OOLog(@"dataCache.debug.verbose", @"- adding %u: %@.", i, node->key);
 		[result addObject:[NSDictionary dictionaryWithObjectsAndKeys:node->key, kSerializedEntryKeyKey, node->value, kSerializedEntryKeyValue, nil]];
 		node = node->younger;
 	}
