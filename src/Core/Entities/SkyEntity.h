@@ -38,16 +38,16 @@ MA 02110-1301, USA.
 
 typedef struct
 {
-	GLint	texture_uv_array[ 4 * SKY_MAX_STARS * 2];
-	GLfloat vertex_array[4 * SKY_MAX_STARS * 3];
-	GLfloat color_array[4 * SKY_MAX_STARS * 4];
+	GLfloat		texture_uv_array[ 4 * SKY_MAX_STARS * 2];
+	GLfloat		vertex_array[4 * SKY_MAX_STARS * 3];
+	GLfloat		color_array[4 * SKY_MAX_STARS * 4];
 } SkyStarsData;
 	
 typedef struct
 {
-	GLint	texture_uv_array[ 4 * SKY_MAX_BLOBS * 2];
-	GLfloat vertex_array[4 * SKY_MAX_BLOBS * 3];
-	GLfloat color_array[4 * SKY_MAX_BLOBS * 4];
+	GLfloat		texture_uv_array[ 4 * SKY_MAX_BLOBS * 2];
+	GLfloat		vertex_array[4 * SKY_MAX_BLOBS * 3];
+	GLfloat		color_array[4 * SKY_MAX_BLOBS * 4];
 } SkyBlobsData;
 
 @class OOColor;

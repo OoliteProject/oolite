@@ -199,7 +199,7 @@ static OOTexture		*sStarTexture, *sBlobTexture;
 			// pointer to first vertex
 
 			CHECK(glEnableClientState(GL_TEXTURE_COORD_ARRAY));
-			CHECK(glTexCoordPointer(2, GL_INT, 0, starsData.texture_uv_array));
+			CHECK(glTexCoordPointer(2, GL_FLOAT, 0, starsData.texture_uv_array));
 			// 2 coords per vertex
 			// of type GL_INT
 			// 0 stride (tightly packed)
@@ -233,7 +233,7 @@ static OOTexture		*sStarTexture, *sBlobTexture;
 				// pointer to first vertex
 
 				CHECK(glEnableClientState(GL_TEXTURE_COORD_ARRAY));
-				CHECK(glTexCoordPointer(2, GL_INT, 0, blobsData.texture_uv_array));
+				CHECK(glTexCoordPointer(2, GL_FLOAT, 0, blobsData.texture_uv_array));
 				// 2 coords per vertex
 				// of type GL_INT
 				// 0 stride (tightly packed)
