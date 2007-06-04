@@ -620,6 +620,48 @@ static OOCacheManager *sSingleton = nil;
 	path = [self cachePathCreatingIfNecessary:YES];
 	if (path == nil) return NO;
 	
+	
+	// DEBUG: write each branch of the cache as a separate file for testing.
+	NSDictionary		*cacheDict = [inDict objectForKey:kCacheKeyCaches];
+	NSString			*cacheDirPath = [path stringByDeletingLastPathComponent];
+	NSString			*cacheFilePath = nil;
+	NSEnumerator		*cacheEnum = nil;
+	NSString			*key = nil;
+	unsigned			i = 0;
+	
+	OOLog(@"dataCache.debug", @"- Writing caches to separate file to track down bad objects.");
+	OOLogIndent();
+	for (cacheEnum = [cacheDict keyEnumerator]; (key = [cacheEnum nextObject]); )
+	{
+		cacheFilePath = [NSString stringWithFormat:@"debug-cache %u.plist", ++i];
+		cacheFilePath = [cacheDirPath stringByAppendingPathComponent:cacheFilePath];
+		OOLog(@"dataCache.debug", @"- Writing cache \"%@\" as %@...", key, cacheFilePath);
+		OOLogIndent();
+		
+		OOLog(@"dataCache.debug", @"- Converting to plist data.");
+		plist = [NSPropertyListSerialization dataFromPropertyList:[cacheDict objectForKey:key] format:CACHE_PLIST_FORMAT errorDescription:&errorDesc];
+		if (plist == nil)
+		{
+			OOLog(@"dataCache.debug", @"- ***** Failed to convert cache \"%@\" to a property list.", key);
+		}
+		else
+		{
+			OOLog(@"dataCache.debug", @"- Writing.");
+			if ([plist writeToFile:cacheFilePath atomically:NO])
+			{
+				OOLog(@"dataCache.debug", @"- Success.");
+			}
+			else
+			{
+				OOLog(@"dataCache.debug", @"- ***** Failed to write cache \"%@\".", key);
+			}
+		}
+		OOLogOutdent();
+	}
+	OOLogOutdent();
+	// END DEBUG
+	
+	
 	plist = [NSPropertyListSerialization dataFromPropertyList:inDict format:CACHE_PLIST_FORMAT errorDescription:&errorDesc];
 	if (plist == nil)
 	{
