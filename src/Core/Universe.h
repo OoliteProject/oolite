@@ -105,6 +105,8 @@ MA 02110-1301, USA.
 #define OOLITE_EXCEPTION_DATA_NOT_FOUND	@"OoliteDataNotFoundException"
 #define OOLITE_EXCEPTION_FATAL			@"OoliteFatalException"
 
+#define BILLBOARD_DEPTH				50000.0
+
 @class TextureStore, GameController, CollisionRegion, MyOpenGLView, GuiDisplayGen;
 @class Entity, ShipEntity, StationEntity, PlanetEntity, PlayerEntity;
 

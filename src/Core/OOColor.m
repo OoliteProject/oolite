@@ -24,6 +24,8 @@ MA 02110-1301, USA.
 
 #import "OOColor.h"
 #import "OOCollectionExtractors.h"
+#import "OOMaths.h"
+
 
 @implementation OOColor
 
@@ -430,6 +432,15 @@ MA 02110-1301, USA.
 									 green:rgba[1] * rgba[3]
 									  blue:rgba[2] * rgba[3]
 									 alpha:1.0f];
+}
+
+
+- (OOColor *)colorWithBrightnessFactor:(float)factor
+{
+	return [OOColor colorWithCalibratedRed:OOClamp_0_1_f(rgba[0] * factor)
+									 green:OOClamp_0_1_f(rgba[1] * factor)
+									  blue:OOClamp_0_1_f(rgba[2] * factor)
+									 alpha:rgba[3]];
 }
 
 

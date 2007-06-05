@@ -79,6 +79,7 @@ BOOL EvaluateAsBoolean(id object, BOOL defaultValue);
 - (double)doubleAtIndex:(unsigned)index defaultValue:(double)value;
 
 - (id)objectAtIndex:(unsigned)index defaultValue:(id)value;
+- (id)objectOfClass:(Class)class atIndex:(unsigned)index defaultValue:(id)value;
 - (NSString *)stringAtIndex:(unsigned)index defaultValue:(NSString *)value;
 - (NSArray *)arrayAtIndex:(unsigned)index defaultValue:(NSArray *)value;
 - (NSDictionary *)dictionaryAtIndex:(unsigned)index defaultValue:(NSDictionary *)value;
@@ -108,6 +109,7 @@ BOOL EvaluateAsBoolean(id object, BOOL defaultValue);
 
 // Default: nil
 // - (id)objectAtIndex:(unsigned)index;	// Already defined
+- (id)objectOfClass:(Class)class atIndex:(unsigned)index;
 - (NSString *)stringAtIndex:(unsigned)index;
 - (NSArray *)arrayAtIndex:(unsigned)index;
 - (NSDictionary *)dictionaryAtIndex:(unsigned)index;
@@ -137,6 +139,7 @@ BOOL EvaluateAsBoolean(id object, BOOL defaultValue);
 - (double)doubleForKey:(id)key defaultValue:(double)value;
 
 - (id)objectForKey:(id)key defaultValue:(id)value;
+- (id)objectOfClass:(Class)class forKey:(id)key defaultValue:(id)value;
 - (NSString *)stringForKey:(id)key defaultValue:(NSString *)value;
 - (NSArray *)arrayForKey:(id)key defaultValue:(NSArray *)value;
 - (NSDictionary *)dictionaryForKey:(id)key defaultValue:(NSDictionary *)value;
@@ -166,6 +169,7 @@ BOOL EvaluateAsBoolean(id object, BOOL defaultValue);
 
 // Default: nil
 // - (id)objectForKey:(id)key;	// Already defined
+- (id)objectOfClass:(Class)class forKey:(id)key;
 - (NSString *)stringForKey:(id)key;
 - (NSArray *)arrayForKey:(id)key;
 - (NSDictionary *)dictionaryForKey:(id)key;
@@ -195,6 +199,7 @@ BOOL EvaluateAsBoolean(id object, BOOL defaultValue);
 - (double)doubleForKey:(id)key defaultValue:(double)value;
 
 - (id)objectForKey:(id)key defaultValue:(id)value;
+- (id)objectOfClass:(Class)class forKey:(id)key defaultValue:(id)value;
 - (NSString *)stringForKey:(id)key defaultValue:(NSString *)value;
 - (NSArray *)arrayForKey:(id)key defaultValue:(NSArray *)value;
 - (NSDictionary *)dictionaryForKey:(id)key defaultValue:(NSDictionary *)value;
@@ -224,6 +229,7 @@ BOOL EvaluateAsBoolean(id object, BOOL defaultValue);
 
 // Default: nil
 // - (id)objectForKey:(id)key;	// Already defined
+- (id)objectOfClass:(Class)class forKey:(id)key;
 // - (NSString *)stringForKey:(id)key;
 // - (NSArray *)arrayForKey:(id)key;
 // - (NSDictionary *)dictionaryForKey:(id)key;

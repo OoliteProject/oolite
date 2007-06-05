@@ -56,6 +56,7 @@ OOINLINE void quaternion_set_identity(Quaternion *quat) ALWAYS_INLINE_FUNC NONNU
 
 /* Set quaternion to random unit quaternion */
 void quaternion_set_random(Quaternion *quat) NONNULL_FUNC;
+OOINLINE Quaternion OORandomQuaternion(void) ALWAYS_INLINE_FUNC;
 
 /* Build quaternion representing a rotation around a given axis */
 OOINLINE void quaternion_set_rotate_about_axis(Quaternion *quat, Vector axis, GLfloat angle) NONNULL_FUNC;
@@ -174,5 +175,12 @@ OOINLINE void fast_quaternion_normalize(Quaternion *quat)
     quat->z = lv * z;
 }
 
+
+OOINLINE Quaternion OORandomQuaternion(void)
+{
+	Quaternion q;
+	quaternion_set_random(&q);
+	return q;
+}
 
 #endif	/* INCLUDED_OOMATHS_h */

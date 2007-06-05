@@ -27,13 +27,14 @@ MA 02110-1301, USA.
 
 #include <stdio.h>
 #include <math.h>
+#include <stdint.h>
 #include "legacy_random.h"
 
 
 const Random_Seed	kNilRandomSeed = {0};
 
 
-static struct random_seed   rnd_seed;
+static RNG_Seed		rnd_seed;
 
 
 // TODO: Why is this based on a static? Should change to MungeCheckSum(&checkSum, value);
@@ -42,6 +43,7 @@ void clear_checksum()
 {
 	checksum = 0;
 }
+
 
 int munge_checksum(int value)
 {
@@ -52,6 +54,7 @@ int munge_checksum(int value)
 	checksum &= 0xffff;
 	return checksum;
 }
+
 
 // cunning price rounding routine:
 //
@@ -80,61 +83,33 @@ float cunningFee(float value)
 // an implementation of RANROT
 // pseudo random number generator
 //
-unsigned int m_high;
-unsigned int m_low;
-inline void ranrot_srand(unsigned int seed)
-{
+static RANROTSeed		sRANROT;
 
-//	printf("***** DEBUG Random seed %d\n", seed);
-//	
-	m_low = seed;
-	m_high = ~seed;
+
+void ranrot_srand(unsigned int seed)
+{
+	sRANROT.low = seed;
+	sRANROT.high = ~seed;
 	ranrot_rand();	ranrot_rand();	ranrot_rand();  // mix it up a bit
 }
-inline int ranrot_rand()
-{
-	m_high = (m_high<<16) + (m_high>>16);
-	m_high += m_low;
-	m_low += m_high;
-	return m_high & 0x7FFFFFFF;
-}
 
-void seed_for_planet_description (Random_Seed s_seed)
-{
-	rnd_seed.a = s_seed.c;
-	rnd_seed.b = s_seed.d;
-	rnd_seed.c = s_seed.e;
-	rnd_seed.d = s_seed.f;
-		
-	ranrot_srand(rnd_seed.a * 0x1000000 + rnd_seed.b * 0x10000 + rnd_seed.c * 0x100 + rnd_seed.d);
-}
 
-void seed_RNG_only_for_planet_description (Random_Seed s_seed)
+int ranrot_rand()
 {
-	rnd_seed.a = s_seed.c;
-	rnd_seed.b = s_seed.d;
-	rnd_seed.c = s_seed.e;
-	rnd_seed.d = s_seed.f;
-}
-
-RNG_Seed currentRandomSeed (void)
-{
-	return rnd_seed;
-}
-
-void setRandomSeed (RNG_Seed a_seed)
-{
-	rnd_seed = a_seed;
+	sRANROT.high = (sRANROT.high << 16) + (sRANROT.high >> 16);
+	sRANROT.high += sRANROT.low;
+	sRANROT.low += sRANROT.high;
+	return sRANROT.high & 0x7FFFFFFF;
 }
 
 
-inline float randf (void)
+float randf (void)
 {
-//	return 0.0009765625 * (ranrot_rand() & 1023);
-	return (ranrot_rand() & 0x00ffff) / (float)0x010000;
+	return (ranrot_rand() & 0xffff) * (1.0f / 65536.0f);
 }
 
-inline float bellf (int n)
+
+float bellf (int n)
 {
 	int i = n;
 	float total = 0;
@@ -147,8 +122,53 @@ inline float bellf (int n)
 	
 	while (i-- > 0)
 		total += (ranrot_rand() & 1023);
-	return 0.0009765625 * total / n;
+	return total / (1024.0f * n);
 }
+
+
+RANROTSeed RANROTGetFullSeed(void)
+{
+	return sRANROT;
+}
+
+
+void RANROTSetFullSeed(RANROTSeed seed)
+{
+	sRANROT = seed;
+}
+
+
+void seed_for_planet_description (Random_Seed s_seed)
+{
+	rnd_seed.a = s_seed.c;
+	rnd_seed.b = s_seed.d;
+	rnd_seed.c = s_seed.e;
+	rnd_seed.d = s_seed.f;
+		
+	ranrot_srand(rnd_seed.a * 0x1000000 + rnd_seed.b * 0x10000 + rnd_seed.c * 0x100 + rnd_seed.d);
+}
+
+
+void seed_RNG_only_for_planet_description (Random_Seed s_seed)
+{
+	rnd_seed.a = s_seed.c;
+	rnd_seed.b = s_seed.d;
+	rnd_seed.c = s_seed.e;
+	rnd_seed.d = s_seed.f;
+}
+
+
+RNG_Seed currentRandomSeed (void)
+{
+	return rnd_seed;
+}
+
+
+void setRandomSeed (RNG_Seed a_seed)
+{
+	rnd_seed = a_seed;
+}
+
 
 int gen_rnd_number (void)
 {
@@ -169,7 +189,8 @@ int gen_rnd_number (void)
 	return a;
 }
 
-void make_pseudo_random_seed (struct rand_seed_6uc *seed_ptr)
+
+void make_pseudo_random_seed (Random_Seed *seed_ptr)
 {
 	seed_ptr->a = gen_rnd_number();
 	seed_ptr->b = gen_rnd_number();
@@ -179,13 +200,14 @@ void make_pseudo_random_seed (struct rand_seed_6uc *seed_ptr)
 	seed_ptr->f = gen_rnd_number();
 }
 
+
 Random_Seed nil_seed()
 {
 	return kNilRandomSeed;
 }
 
 
-void rotate_seed (struct rand_seed_6uc *seed_ptr)
+void rotate_seed (Random_Seed *seed_ptr)
 {
     unsigned int x;
 	unsigned int y;

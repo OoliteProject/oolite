@@ -99,6 +99,8 @@ extern int debug;
 	BOOL					game_is_paused;
 }
 
++ (id)sharedController;
+
 - (void) applicationDidFinishLaunching: (NSNotification *)notification;
 - (BOOL) game_is_paused;
 - (void) pause_game;

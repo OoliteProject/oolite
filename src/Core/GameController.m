@@ -34,6 +34,9 @@ MA 02110-1301, USA.
 #define kOOLogUnconvertedNSLog @"unclassified.GameController"
 
 
+static GameController *sSharedController = nil;
+
+
 @interface GameController (OOPrivate)
 
 - (void)reportUnhandledStartupException:(NSException *)exception;
@@ -43,9 +46,23 @@ MA 02110-1301, USA.
 
 @implementation GameController
 
++ (id)sharedController
+{
+	if (sSharedController == nil)  [[self alloc] init];
+	return sSharedController;
+}
+
+
 - (id) init
 {
+	if (sSharedController != nil)
+	{
+		[self release];
+		[NSException raise:NSInternalInconsistencyException format:@"%s: expected only one GameController to exist at a time.", __FUNCTION__];
+	}
+	
     self = [super init];
+	sSharedController = self;
 	
 	last_timeInterval = [NSDate timeIntervalSinceReferenceDate];
 	delta_t = 0.01; // one hundredth of a second

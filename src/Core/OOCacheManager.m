@@ -30,6 +30,14 @@ MA 02110-1301, USA.
 #define AUTO_PRUNE NO
 
 
+// Use the (presumed) most efficient plist format for each platform.
+#if OOLITE_MAC_OS_X
+#define CACHE_PLIST_FORMAT	NSPropertyListBinaryFormat_v1_0
+#else
+#define CACHE_PLIST_FORMAT	NSPropertyListGNUstepBinaryFormat	// NSPropertyListXMLFormat_v1_0
+#endif
+
+
 static NSString * const kOOLogDataCacheFound				= @"dataCache.found";
 static NSString * const kOOLogDataCacheNotFound				= @"dataCache.notFound";
 static NSString * const kOOLogDataCacheRebuild				= @"dataCache.rebuild";
@@ -70,17 +78,22 @@ static OOCacheManager *sSingleton = nil;
 - (BOOL)dirty;
 - (void)markClean;
 
+- (void)deleteOldCache;
+- (NSDictionary *)loadDict;
+- (BOOL)writeDict:(NSDictionary *)inDict;
+
 - (void)buildCachesFromDictionary:(NSDictionary *)inDict;
 - (NSDictionary *)dictionaryOfCaches;
+
+- (BOOL)directoryExists:(NSString *)inPath create:(BOOL)inCreate;
 
 @end
 
 
 @interface OOCacheManager (PlatformSpecific)
 
-- (void)platformInit;
-- (NSDictionary *)loadDict;
-- (BOOL)writeDict:(NSDictionary *)inDict;
+- (NSString *)cachePathCreatingIfNecessary:(BOOL)inCreate;
+- (NSString *)oldCachePath;
 
 @end
 
@@ -92,7 +105,7 @@ static OOCacheManager *sSingleton = nil;
 	self = [super init];
 	if (self != nil)
 	{
-		[self platformInit];
+		[self deleteOldCache];
 		[self loadCache];
 	}
 	return self;
@@ -421,6 +434,49 @@ static OOCacheManager *sSingleton = nil;
 }
 
 
+- (void)deleteOldCache
+{
+	// Since the cache location has changed, we delete the old cache (if any).
+	NSString			*path = [self oldCachePath];
+	NSFileManager		*fmgr;
+	
+	fmgr = [NSFileManager defaultManager];
+	if ([fmgr fileExistsAtPath:path])
+	{
+		OOLog(kOOLogDataCacheRemovedOld, @"Removed old data cache.");
+		[fmgr removeFileAtPath:path handler:nil];
+	}
+}
+
+
+- (NSDictionary *)loadDict
+{
+	NSString *path = [self cachePathCreatingIfNecessary:NO];
+	if (path == nil) return nil;
+	return [NSDictionary dictionaryWithContentsOfFile:path];
+}
+
+
+- (BOOL)writeDict:(NSDictionary *)inDict
+{
+	NSString			*path = nil;
+	NSData				*plist = nil;
+	NSString			*errorDesc = nil;
+	
+	path = [self cachePathCreatingIfNecessary:YES];
+	if (path == nil) return NO;	
+	
+	plist = [NSPropertyListSerialization dataFromPropertyList:inDict format:CACHE_PLIST_FORMAT errorDescription:&errorDesc];
+	if (plist == nil)
+	{
+		OOLog(kOOLogDataCacheSerializationError, @"Could not convert data cache to property list data: %@", errorDesc);
+		return NO;
+	}
+	
+	return [plist writeToFile:path atomically:NO];
+}
+
+
 - (void)buildCachesFromDictionary:(NSDictionary *)inDict
 {
 	NSEnumerator				*keyEnum = nil;
@@ -467,12 +523,8 @@ static OOCacheManager *sSingleton = nil;
 	return dict;
 }
 
-@end
 
-
-@implementation OOCacheManager (PlatformSpecific)
-
-- (BOOL)directoryExists:(NSString *)inPath create:(BOOL)inCreate;
+- (BOOL)directoryExists:(NSString *)inPath create:(BOOL)inCreate
 {
 	BOOL				exists, directory;
 	NSFileManager		*fmgr =  [NSFileManager defaultManager];
@@ -497,6 +549,10 @@ static OOCacheManager *sSingleton = nil;
 	return YES;
 }
 
+@end
+
+
+@implementation OOCacheManager (PlatformSpecific)
 
 #if OOLITE_MAC_OS_X
 
@@ -532,9 +588,6 @@ static OOCacheManager *sSingleton = nil;
 	return path;
 }
 
-
-#define CACHE_PLIST_FORMAT	NSPropertyListBinaryFormat_v1_0
-
 #else
 
 - (NSString *)cachePathCreatingIfNecessary:(BOOL)inCreate
@@ -542,17 +595,15 @@ static OOCacheManager *sSingleton = nil;
 	NSString			*cachePath = nil;
 	
 	/*	Construct the path for the cache file, which is:
-			~/Library/Caches/org.aegidian.oolite/Data Cache.plist
-		In addition to generally being the right place to put caches,
-		~/Library/Caches has the particular advantage of not being indexed by
-		Spotlight or, in future, backed up by Time Machine.
+			~/GNUstep/Library/Caches/Oolite-cache.plist
 	*/
-	
 	cachePath = [NSHomeDirectory() stringByAppendingPathComponent:@"GNUstep"];
 	if (![self directoryExists:cachePath create:inCreate]) return nil;
 	cachePath = [cachePath stringByAppendingPathComponent:@"Library"];
 	if (![self directoryExists:cachePath create:inCreate]) return nil;
-	cachePath = [cachePath stringByAppendingPathComponent:@"Oolite-cache"];
+	cachePath = [cachePath stringByAppendingPathComponent:@"Caches"];
+	if (![self directoryExists:cachePath create:inCreate]) return nil;
+	cachePath = [cachePath stringByAppendingPathComponent:@"Oolite-cache.plist"];
 	
 	return cachePath;
 }
@@ -565,53 +616,7 @@ static OOCacheManager *sSingleton = nil;
 								stringByAppendingPathComponent:@"Oolite-cache"];
 }
 
-
-#define CACHE_PLIST_FORMAT	NSPropertyListXMLFormat_v1_0	// NSPropertyListGNUstepBinaryFormat
-
 #endif
-
-
-- (void)platformInit
-{
-	// Since the cache location has changed, we delete the old cache (if any).
-	NSString			*path = [self oldCachePath];
-	NSFileManager		*fmgr;
-	
-	fmgr = [NSFileManager defaultManager];
-	if ([fmgr fileExistsAtPath:path])
-	{
-		OOLog(kOOLogDataCacheRemovedOld, @"Removed old data cache.");
-		[fmgr removeFileAtPath:path handler:nil];
-	}
-}
-
-
-- (NSDictionary *)loadDict
-{
-	NSString *path = [self cachePathCreatingIfNecessary:NO];
-	if (path == nil) return nil;
-	return [NSDictionary dictionaryWithContentsOfFile:path];
-}
-
-
-- (BOOL)writeDict:(NSDictionary *)inDict
-{
-	NSString			*path = nil;
-	NSData				*plist = nil;
-	NSString			*errorDesc = nil;
-	
-	path = [self cachePathCreatingIfNecessary:YES];
-	if (path == nil) return NO;	
-	
-	plist = [NSPropertyListSerialization dataFromPropertyList:inDict format:CACHE_PLIST_FORMAT errorDescription:&errorDesc];
-	if (plist == nil)
-	{
-		OOLog(kOOLogDataCacheSerializationError, @"Could not convert data cache to property list data: %@", errorDesc);
-		return NO;
-	}
-	
-	return [plist writeToFile:path atomically:NO];
-}
 
 @end
 

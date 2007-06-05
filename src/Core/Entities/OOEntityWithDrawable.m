@@ -84,7 +84,6 @@ MA 02110-1301, USA.
 		return;
 	}
 	
-	
 	if (translucent)  [drawable renderTranslucentParts];
 	else  [drawable renderOpaqueParts];
 }

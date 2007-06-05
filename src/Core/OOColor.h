@@ -91,6 +91,9 @@ MA 02110-1301, USA.
 // Returns the colour, premultiplied by its alpha channel, and with an alpha of 1.0. If the reciever's alpha is 1.0, it will return itself.
 - (OOColor *)premultipliedColor;
 
+// Multiply r, g and b components of a colour by specified factor, clamped to [0..1].
+- (OOColor *)colorWithBrightnessFactor:(float)factor;
+
 - (GLfloat *) RGBA;
 
 @end

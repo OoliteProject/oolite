@@ -319,51 +319,39 @@ BOOL EvaluateAsBoolean(id object, BOOL defaultValue)
 }
 
 
-- (NSString *)stringAtIndex:(unsigned)index defaultValue:(NSString *)value
+- (id)objectOfClass:(Class)class atIndex:(unsigned)index defaultValue:(id)value
 {
 	id					objVal = [self objectAtIndex:index];
 	NSString			*result;
 	
-	if ([objVal isKindOfClass:[NSString class]])  result = objVal;
+	if ([objVal isKindOfClass:class])  result = objVal;
 	else  result = value;
 	
 	return result;
 }
 
 
+- (NSString *)stringAtIndex:(unsigned)index defaultValue:(NSString *)value
+{
+	return [self objectOfClass:[NSString class] atIndex:index defaultValue:value];
+}
+
+
 - (NSArray *)arrayAtIndex:(unsigned)index defaultValue:(NSArray *)value
 {
-	id					objVal = [self objectAtIndex:index];
-	NSArray				*result;
-	
-	if ([objVal isKindOfClass:[NSArray class]])  result = objVal;
-	else  result = value;
-	
-	return result;	
+	return [self objectOfClass:[NSArray class] atIndex:index defaultValue:value];
 }
 
 
 - (NSDictionary *)dictionaryAtIndex:(unsigned)index defaultValue:(NSDictionary *)value
 {
-	id					objVal = [self objectAtIndex:index];
-	NSDictionary		*result;
-	
-	if ([objVal isKindOfClass:[NSDictionary class]])  result = objVal;
-	else  result = value;
-	
-	return result;	
+	return [self objectOfClass:[NSDictionary class] atIndex:index defaultValue:value];
 }
 
 
 - (NSData *)dataAtIndex:(unsigned)index defaultValue:(NSData *)value
 {
-	id					objVal = [self objectAtIndex:index];
-	NSData				*result;
-	
-	if ([objVal isKindOfClass:[NSData class]])  result = objVal;
-	else  result = value;
-	
-	return result;	
+	return [self objectOfClass:[NSData class] atIndex:index defaultValue:value];
 }
 
 
@@ -448,6 +436,12 @@ BOOL EvaluateAsBoolean(id object, BOOL defaultValue)
 - (double)doubleAtIndex:(unsigned)index
 {
 	return [self doubleAtIndex:index defaultValue:0.0];
+}
+
+
+- (id)objectOfClass:(Class)class atIndex:(unsigned)index
+{
+	return [self objectOfClass:class atIndex:index defaultValue:nil];
 }
 
 
@@ -714,51 +708,39 @@ BOOL EvaluateAsBoolean(id object, BOOL defaultValue)
 }
 
 
-- (NSString *)stringForKey:(id)key defaultValue:(NSString *)value
+- (id)objectOfClass:(Class)class forKey:(id)key defaultValue:(id)value
 {
 	id					objVal = [self objectForKey:key];
-	NSString			*result;
+	id					result;
 	
-	if ([objVal isKindOfClass:[NSString class]])  result = objVal;
-	else result = value;
+	if ([objVal isKindOfClass:class])  result = objVal;
+	else  result = value;
 	
 	return result;
+}
+
+
+- (NSString *)stringForKey:(id)key defaultValue:(NSString *)value
+{
+	return [self objectOfClass:[NSString class] forKey:key defaultValue:value];
 }
 
 
 - (NSArray *)arrayForKey:(id)key defaultValue:(NSArray *)value
 {
-	id					objVal = [self objectForKey:key];
-	id					result;
-	
-	if ([objVal isKindOfClass:[NSArray class]])  result = objVal;
-	else result = value;
-	
-	return result;
+	return [self objectOfClass:[NSArray class] forKey:key defaultValue:value];
 }
 
 
 - (NSDictionary *)dictionaryForKey:(id)key defaultValue:(NSDictionary *)value
 {
-	id					objVal = [self objectForKey:key];
-	NSDictionary		*result;
-	
-	if ([objVal isKindOfClass:[NSDictionary class]])  result = objVal;
-	else result = value;
-	
-	return result;
+	return [self objectOfClass:[NSDictionary class] forKey:key defaultValue:value];
 }
 
 
 - (NSData *)dataForKey:(id)key defaultValue:(NSData *)value
 {
-	id					objVal = [self objectForKey:key];
-	NSData				*result;
-	
-	if ([objVal isKindOfClass:[NSData class]])  result = objVal;
-	else result = value;
-	
-	return result;
+	return [self objectOfClass:[NSData class] forKey:key defaultValue:value];
 }
 
 
@@ -843,6 +825,12 @@ BOOL EvaluateAsBoolean(id object, BOOL defaultValue)
 - (double)doubleForKey:(id)key
 {
 	return [self doubleForKey:key defaultValue:0.0];
+}
+
+
+- (id)objectOfClass:(Class)class forKey:(id)key
+{
+	return [self objectOfClass:class forKey:key defaultValue:nil];
 }
 
 
@@ -1109,51 +1097,39 @@ BOOL EvaluateAsBoolean(id object, BOOL defaultValue)
 }
 
 
-- (NSString *)stringForKey:(id)key defaultValue:(NSString *)value
+- (id)objectOfClass:(Class)class forKey:(id)key defaultValue:(id)value
 {
 	id					objVal = [self objectForKey:key];
-	NSString			*result;
+	id					result;
 	
-	if ([objVal isKindOfClass:[NSString class]])  result = objVal;
-	else result = value;
+	if ([objVal isKindOfClass:class])  result = objVal;
+	else  result = value;
 	
 	return result;
+}
+
+
+- (NSString *)stringForKey:(id)key defaultValue:(NSString *)value
+{
+	return [self objectOfClass:[NSString class] forKey:key defaultValue:value];
 }
 
 
 - (NSArray *)arrayForKey:(id)key defaultValue:(NSArray *)value
 {
-	id					objVal = [self objectForKey:key];
-	id					result;
-	
-	if ([objVal isKindOfClass:[NSArray class]])  result = objVal;
-	else result = value;
-	
-	return result;
+	return [self objectOfClass:[NSArray class] forKey:key defaultValue:value];
 }
 
 
 - (NSDictionary *)dictionaryForKey:(id)key defaultValue:(NSDictionary *)value
 {
-	id					objVal = [self objectForKey:key];
-	NSDictionary		*result;
-	
-	if ([objVal isKindOfClass:[NSDictionary class]])  result = objVal;
-	else result = value;
-	
-	return result;
+	return [self objectOfClass:[NSDictionary class] forKey:key defaultValue:value];
 }
 
 
 - (NSData *)dataForKey:(id)key defaultValue:(NSData *)value
 {
-	id					objVal = [self objectForKey:key];
-	NSData				*result;
-	
-	if ([objVal isKindOfClass:[NSData class]])  result = objVal;
-	else result = value;
-	
-	return result;
+	return [self objectOfClass:[NSData class] forKey:key defaultValue:value];
 }
 
 
@@ -1226,6 +1202,12 @@ BOOL EvaluateAsBoolean(id object, BOOL defaultValue)
 - (double)doubleForKey:(id)key
 {
 	return [self doubleForKey:key defaultValue:0.0];
+}
+
+
+- (id)objectOfClass:(Class)class forKey:(id)key
+{
+	return [self objectOfClass:class forKey:key defaultValue:nil];
 }
 
 @end

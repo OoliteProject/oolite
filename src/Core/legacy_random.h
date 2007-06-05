@@ -31,27 +31,31 @@ MA 02110-1301, USA.
 #import "OOFunctionAttributes.h"
 
 
-struct rand_seed_6uc
+typedef struct Random_Seed
 {
-	unsigned char a;	/* 6c */
-	unsigned char b;	/* 6d */
-	unsigned char c;	/* 6e */
-	unsigned char d;	/* 6f */
-	unsigned char e;	/* 70 */
-	unsigned char f;	/* 71 */
-};
+	uint8_t				a,	/* 6c */
+						b,	/* 6d */
+						c,	/* 6e */
+						d,	/* 6f */
+						e,	/* 70 */
+						f;	/* 71 */
+} Random_Seed;
 
-typedef struct rand_seed_6uc Random_Seed;
 
-struct random_seed
+typedef struct RNG_Seed
 {
-	int a;
-	int b;
-	int c;
-	int d;
-};
+	int32_t				a,
+						b,
+						c,
+						d;
+} RNG_Seed;
 
-typedef struct random_seed RNG_Seed;
+
+typedef struct RANROTSeed
+{
+	uint32_t			high,
+						low;
+} RANROTSeed;
 
 
 extern const Random_Seed	kNilRandomSeed;
@@ -68,8 +72,14 @@ float cunningFee(float value) CONST_FUNC;
 // an implementation of RANROT
 // pseudo random number generator
 //
-inline void ranrot_srand(unsigned int seed);
-inline int ranrot_rand();
+void ranrot_srand(unsigned int seed);
+int ranrot_rand();
+float randf(void);
+float bellf(int n);
+
+RANROTSeed RANROTGetFullSeed(void);
+void RANROTSetFullSeed(RANROTSeed seed);
+
 
 OOINLINE double distanceBetweenPlanetPositions(int x1, int y1, int x2, int y2) INLINE_CONST_FUNC;
 OOINLINE double accurateDistanceBetweenPlanetPositions(int x1, int y1, int x2, int y2) INLINE_CONST_FUNC;
@@ -79,17 +89,14 @@ void seed_RNG_only_for_planet_description(Random_Seed s_seed);
 RNG_Seed currentRandomSeed(void);
 void setRandomSeed(RNG_Seed a_seed);
 
-inline float randf (void);
-inline float bellf (int n);
-
 int gen_rnd_number (void);
 
-void make_pseudo_random_seed (struct rand_seed_6uc *seed_ptr);
+void make_pseudo_random_seed (Random_Seed *seed_ptr);
 
 Random_Seed nil_seed() DEPRECATED_FUNC;
 OOINLINE int is_nil_seed(Random_Seed a_seed) INLINE_CONST_FUNC;
 
-void rotate_seed (struct rand_seed_6uc *seed_ptr);
+void rotate_seed (Random_Seed *seed_ptr);
 OOINLINE int rotate_byte_left (int x) INLINE_CONST_FUNC;
 
 OOINLINE int equal_seeds(Random_Seed seed1, Random_Seed seed2) INLINE_CONST_FUNC;

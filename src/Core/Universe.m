@@ -83,10 +83,11 @@ static BOOL MaintainLinkedLists(Universe* uni);
 - (id) initWithGameView:(MyOpenGLView *)inGameView
 {	
     PlayerEntity	*player;
-	int i;
+	int				i;
 	
 	if (gSharedUniverse != nil)
 	{
+		[self release];
 		[NSException raise:NSInternalInconsistencyException format:@"%s: expected only one Universe to exist at a time.", __FUNCTION__];
 	}
 	
