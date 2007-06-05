@@ -360,36 +360,22 @@ static OOCacheManager *sSingleton = nil;
 	if (caches == nil) return;
 	
 	OOLog(@"dataCache.willWrite", @"About to write data cache.");	// Added for 1.69 to detect possible write-related crash. -- Ahruman
-	OOLogIndent();
-	OOLog(@"dataCache.debug", @"- creating version number object.");
 	ooliteVersion = [[[NSBundle mainBundle] infoDictionary] objectForKey:kCacheKeyVersion];
-	OOLog(@"dataCache.debug", @"- creating endian tag object.");
 	endianTag = [NSData dataWithBytes:&endianTagValue length:sizeof endianTagValue];
-	OOLog(@"dataCache.debug", @"- creating format version object.");
 	formatVersion = [NSNumber numberWithUnsignedInt:kFormatVersionValue];
 	
-	OOLog(@"dataCache.debug", @"- serializing caches.");
-	OOLogIndent();
 	pListRep = [self dictionaryOfCaches];
-	OOLogOutdent();
-	OOLogOutdent();
 	if (ooliteVersion == nil || endianTag == nil || formatVersion == nil || pListRep == nil)
 	{
 		OOLog(@"dataCache.cantWrite", @"Failed to write data cache -- prerequisites not fulfilled. (This is an internal error, please report it.)");
 		return;
 	}
-	OOLogIndent();
-	OOLog(@"dataCache.debug", @"- verified all objects.");
 	
-	OOLog(@"dataCache.debug", @"- building cache dictionary object.");
 	newCache = [NSMutableDictionary dictionaryWithCapacity:4];
 	[newCache setObject:ooliteVersion forKey:kCacheKeyVersion];
 	[newCache setObject:formatVersion forKey:kCacheKeyFormatVersion];
 	[newCache setObject:endianTag forKey:kCacheKeyEndianTag];
 	[newCache setObject:pListRep forKey:kCacheKeyCaches];
-	
-	OOLog(@"dataCache.debug", @"- writing dictionary.");
-	OOLogOutdent();
 	
 	if ([self writeDict:newCache])
 	{
@@ -473,12 +459,9 @@ static OOCacheManager *sSingleton = nil;
 	for (keyEnum = [caches keyEnumerator]; (key = [keyEnum nextObject]); )
 	{
 		cache = [caches objectForKey:key];
-		OOLog(@"dataCache.debug", @"- serializing cache \"%@\" -- %@.", key, cache);
-		OOLogIndent();
 		pList = [cache pListRepresentation];
-		OOLogOutdent();
+		
 		if (pList != nil)  [dict setObject:pList forKey:key];
-		else OOLog(@"dataCache.debug", @"  - serialization failed.");
 	}
 	
 	return dict;
@@ -618,49 +601,7 @@ static OOCacheManager *sSingleton = nil;
 	NSString			*errorDesc = nil;
 	
 	path = [self cachePathCreatingIfNecessary:YES];
-	if (path == nil) return NO;
-	
-	
-	// DEBUG: write each branch of the cache as a separate file for testing.
-	NSDictionary		*cacheDict = [inDict objectForKey:kCacheKeyCaches];
-	NSString			*cacheDirPath = [path stringByDeletingLastPathComponent];
-	NSString			*cacheFilePath = nil;
-	NSEnumerator		*cacheEnum = nil;
-	NSString			*key = nil;
-	unsigned			i = 0;
-	
-	OOLog(@"dataCache.debug", @"- Writing caches to separate file to track down bad objects.");
-	OOLogIndent();
-	for (cacheEnum = [cacheDict keyEnumerator]; (key = [cacheEnum nextObject]); )
-	{
-		cacheFilePath = [NSString stringWithFormat:@"debug-cache %u.plist", ++i];
-		cacheFilePath = [cacheDirPath stringByAppendingPathComponent:cacheFilePath];
-		OOLog(@"dataCache.debug", @"- Writing cache \"%@\" as %@...", key, cacheFilePath);
-		OOLogIndent();
-		
-		OOLog(@"dataCache.debug", @"- Converting to plist data.");
-		plist = [NSPropertyListSerialization dataFromPropertyList:[cacheDict objectForKey:key] format:CACHE_PLIST_FORMAT errorDescription:&errorDesc];
-		if (plist == nil)
-		{
-			OOLog(@"dataCache.debug", @"- ***** Failed to convert cache \"%@\" to a property list.", key);
-		}
-		else
-		{
-			OOLog(@"dataCache.debug", @"- Writing.");
-			if ([plist writeToFile:cacheFilePath atomically:NO])
-			{
-				OOLog(@"dataCache.debug", @"- Success.");
-			}
-			else
-			{
-				OOLog(@"dataCache.debug", @"- ***** Failed to write cache \"%@\".", key);
-			}
-		}
-		OOLogOutdent();
-	}
-	OOLogOutdent();
-	// END DEBUG
-	
+	if (path == nil) return NO;	
 	
 	plist = [NSPropertyListSerialization dataFromPropertyList:inDict format:CACHE_PLIST_FORMAT errorDescription:&errorDesc];
 	if (plist == nil)

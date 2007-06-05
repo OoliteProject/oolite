@@ -494,9 +494,9 @@ shaderBindingTarget:(id<OOWeakReferenceSupport>)target
 	vertCnt = [NSNumber numberWithUnsignedInt:vertexCount];
 	faceCnt = [NSNumber numberWithUnsignedInt:faceCount];
 	
-	vertData = [NSData dataWithBytesNoCopy:vertices length:sizeof *vertices * vertexCount freeWhenDone:NO];
-	normData = [NSData dataWithBytesNoCopy:normals length:sizeof *normals * vertexCount freeWhenDone:NO];
-	faceData = [NSData dataWithBytesNoCopy:faces length:sizeof *faces * faceCount freeWhenDone:NO];
+	vertData = [NSData dataWithBytes:vertices length:sizeof *vertices * vertexCount];
+	normData = [NSData dataWithBytes:normals length:sizeof *normals * vertexCount];
+	faceData = [NSData dataWithBytes:faces length:sizeof *faces * faceCount];
 	
 	mtlKeys = [NSArray arrayWithObjects:materialKeys count:materialCount];
 	smooth = [NSNumber numberWithBool:isSmoothShaded];

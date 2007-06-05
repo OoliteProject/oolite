@@ -221,7 +221,6 @@ static void CacheSetName(OOCacheImpl *cache, NSString *name);
 {
 	if (!autoPrune)
 	{
-		OOLog(@"dataCache.debug", @"- pruning.");
 		[self prune];
 	}
 	return CacheArrayOfNodesByAge(cache);
@@ -525,26 +524,16 @@ static id CacheRetrieve(OOCacheImpl *cache, id key)
 
 static NSArray *CacheArrayOfNodesByAge(OOCacheImpl *cache)
 {
-	unsigned			i, count;
 	OOCacheNode			*node = NULL;
 	NSMutableArray		*result = nil;
 	
 	if (cache == NULL || cache->count == 0) return nil;
 	
-	count = cache->count;
-	result = [NSMutableArray arrayWithCapacity:count];
-	node = cache->oldest;
+	result = [NSMutableArray arrayWithCapacity:cache->count];
 	
-	for (i = 0; i != count; ++i)
+	for (node = cache->oldest; node != NULL; node = node->younger)
 	{
-		if (node == NULL)
-		{
-			OOLog(@"dataCache.debug.error", @"- ***** BAD CACHE - expected %u nodes, but %u is NULL.", count, i);
-		}
-		
-		OOLog(@"dataCache.debug.verbose", @"- adding %u: %@.", i, node->key);
 		[result addObject:[NSDictionary dictionaryWithObjectsAndKeys:node->key, kSerializedEntryKeyKey, node->value, kSerializedEntryKeyValue, nil]];
-		node = node->younger;
 	}
 	return result;
 }
