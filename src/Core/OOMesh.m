@@ -490,6 +490,7 @@ shaderBindingTarget:(id<OOWeakReferenceSupport>)target
 	NSArray				*mtlKeys = nil;
 	NSNumber			*smooth = nil;
 	
+	// Prepare cache data elements.
 	vertCnt = [NSNumber numberWithUnsignedInt:vertexCount];
 	faceCnt = [NSNumber numberWithUnsignedInt:faceCount];
 	
@@ -500,8 +501,19 @@ shaderBindingTarget:(id<OOWeakReferenceSupport>)target
 	mtlKeys = [NSArray arrayWithObjects:materialKeys count:materialCount];
 	smooth = [NSNumber numberWithBool:isSmoothShaded];
 	
-	if (vertCnt == nil || faceCnt == nil || vertData == nil || normData == nil || faceData == nil || mtlKeys == nil || smooth == nil)  return nil;
+	// Ensure we have all thr required data elements.
+	if (vertCnt == nil ||
+		faceCnt == nil ||
+		vertData == nil ||
+		normData == nil ||
+		faceData == nil ||
+		mtlKeys == nil ||
+		smooth == nil)
+	{
+		return nil;
+	}
 	
+	// All OK; stick 'em in a dictionary.
 	return [NSDictionary dictionaryWithObjectsAndKeys:
 						vertCnt, @"vertex count",
 						vertData, @"vertex data",
@@ -523,37 +535,52 @@ shaderBindingTarget:(id<OOWeakReferenceSupport>)target
 						*faceData = nil;
 	NSArray				*mtlKeys = nil;
 	NSNumber			*smooth = nil;
-	id					key = nil;
+	NSString			*key = nil;
 	unsigned			i;
 	
-	if (dict == nil)  return NO;
+	if (dict == nil || ![dict isKindOfClass:[NSDictionary class]])  return NO;
 	
-	vertCnt = [dict objectForKey:@"vertex count"];
-	faceCnt = [dict objectForKey:@"face count"];
+	// Read data elements from dictionary.
+	vertCnt = [dict objectOfClass:[NSNumber class] forKey:@"vertex count"];
+	faceCnt = [dict objectOfClass:[NSNumber class] forKey:@"face count"];
 	
 	vertData = [dict dataForKey:@"vertex data"];
 	normData = [dict dataForKey:@"normal data"];
 	faceData = [dict dataForKey:@"face data"];
 	
 	mtlKeys = [dict arrayForKey:@"material keys"];
-	smooth = [dict objectForKey:@"smooth"];
+	smooth = [dict objectOfClass:[NSNumber class] forKey:@"smooth"];
 	
-	if (vertCnt == nil || faceCnt == nil || vertData == nil || normData == nil || faceData == nil || mtlKeys == nil || smooth == nil)  return NO;
-	if (![vertCnt respondsToSelector:@selector(unsignedIntValue)])  return NO;
-	if (![faceCnt respondsToSelector:@selector(unsignedIntValue)])  return NO;
-	if (![smooth respondsToSelector:@selector(boolValue)])  return NO;
+	// Ensure we have all thr required data elements.
+	if (vertCnt == nil ||
+		faceCnt == nil ||
+		vertData == nil ||
+		normData == nil ||
+		faceData == nil ||
+		mtlKeys == nil ||
+		smooth == nil)
+	{
+		return NO;
+	}
 	
 	vertexCount = [vertCnt unsignedIntValue];
 	faceCount = [faceCnt unsignedIntValue];
 	
-	if ([vertData length] != sizeof *vertices * vertexCount || [vertData length] > sizeof(vertices))  return NO;
-	if ([normData length] != sizeof *normals * vertexCount || [normData length] > sizeof(normals))  return NO;
-	if ([faceData length] != sizeof *faces * faceCount || [faceData length] > sizeof(faces))  return NO;
+	// Check that counts are in range.
+	if (vertexCount == 0 || kOOMeshMaxVertices <= vertexCount)  return NO;
+	if (faceCount == 0 || kOOMeshMaxFaces <= faceCount)  return NO;
 	
+	// Ensure data objects are of correct size.
+	if ([vertData length] != sizeof *vertices * vertexCount)  return NO;
+	if ([normData length] != sizeof *normals * vertexCount)  return NO;
+	if ([faceData length] != sizeof *faces * faceCount)  return NO;
+	
+	// Copy data.
 	memcpy(vertices, [vertData bytes], [vertData length]);
 	memcpy(normals, [normData bytes], [normData length]);
 	memcpy(faces, [faceData bytes], [faceData length]);
 	
+	// Copy material keys.
 	materialCount = [mtlKeys count];
 	for (i = 0; i != materialCount; ++i)
 	{

@@ -43,7 +43,6 @@ MA 02110-1301, USA.
 
 enum
 {
-	
 	kOOMeshMaxVertices			= 500,
 	kOOMeshMaxFaces				= 800,
 	kOOMeshMaxMaterials			= 8,
