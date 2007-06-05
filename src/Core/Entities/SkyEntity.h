@@ -24,14 +24,47 @@ MA 02110-1301, USA.
 
 */
 
-#import "OOEntityWithDrawable.h"
+#import "OOSelfDrawingEntity.h"
+
+
+#define SKY_MAX_STARS			4800
+#define SKY_MAX_BLOBS			1280
+#define SKY_BLOB_CLUSTER_CHANCE	0.80
+#define SKY_BLOB_ALPHA			0.10
+#define SKY_BLOB_SCALE			10.0
+
+
+typedef struct
+{
+	GLfloat		texture_uv_array[ 4 * SKY_MAX_STARS * 2];
+	GLfloat		vertex_array[4 * SKY_MAX_STARS * 3];
+	GLfloat		color_array[4 * SKY_MAX_STARS * 4];
+} SkyStarsData;
+	
+typedef struct
+{
+	GLfloat		texture_uv_array[ 4 * SKY_MAX_BLOBS * 2];
+	GLfloat		vertex_array[4 * SKY_MAX_BLOBS * 3];
+	GLfloat		color_array[4 * SKY_MAX_BLOBS * 4];
+} SkyBlobsData;
 
 @class OOColor;
 
-
-@interface SkyEntity: OOEntityWithDrawable
+@interface SkyEntity: Entity
 {
 	OOColor					*sky_color;
+	
+	SkyStarsData			starsData;
+	SkyBlobsData			blobsData;
+	
+	double					blob_cluster_chance;
+	double					blob_alpha;
+	double					blob_scale;
+	double					blob_scale_prime;
+	
+	int						n_stars, n_blobs;
+	
+    GLuint					displayListName;
 }
 
 - (id) initWithColors:(OOColor *) col1:(OOColor *) col2 andSystemInfo:(NSDictionary *) systeminfo;
