@@ -110,18 +110,6 @@ static OOTexture		*sStarTexture, *sBlobTexture;
 		n_blobs = SKY_MAX_BLOBS * 0.5 * randf() * randf();
 	}
 	
-	RANROTSeed seed = RANROTGetFullSeed();
-	[[[OOSkyDrawable alloc]
-			initWithColor1:col1
-					Color2:col2
-				 starCount:n_stars
-			   nebulaCount:n_blobs
-			 clusterFactor:blob_cluster_chance
-					 alpha:blob_alpha
-					 scale:blob_scale]
-			release];
-	RANROTSetFullSeed(seed);
-	
 	// init stars and blobs
 	[self setUpStarsWithColor1:col1 color2:col2];
 	[self setUpBlobsWithColor1:col1 color2:col2];

@@ -19,6 +19,10 @@
 		0865431D06B8447D000CA0AB /* OpenGL.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 06AFA01500A58FB77F000001 /* OpenGL.framework */; };
 		0878FD30086EF845004CB752 /* Carbon.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0878FD2F086EF845004CB752 /* Carbon.framework */; };
 		1A1502F60C1201C30032F3E8 /* oolite-unknown-ship.dat in Copy Models */ = {isa = PBXBuildFile; fileRef = 1A1502F50C1201C30032F3E8 /* oolite-unknown-ship.dat */; };
+		1A15044B0C12C50D0032F3E8 /* OOSkyDrawable.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A1504490C12C50D0032F3E8 /* OOSkyDrawable.h */; };
+		1A15044C0C12C50D0032F3E8 /* OOSkyDrawable.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A15044A0C12C50D0032F3E8 /* OOSkyDrawable.m */; };
+		1A15049E0C12CA070032F3E8 /* OOProbabilisticTextureManager.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A15049C0C12CA070032F3E8 /* OOProbabilisticTextureManager.h */; };
+		1A15049F0C12CA070032F3E8 /* OOProbabilisticTextureManager.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A15049D0C12CA070032F3E8 /* OOProbabilisticTextureManager.m */; };
 		1A2315520B9C778400EF0852 /* solar.png in Copy Images */ = {isa = PBXBuildFile; fileRef = 1A23154E0B9C778400EF0852 /* solar.png */; };
 		1A2315530B9C778400EF0852 /* splash.png in Resources */ = {isa = PBXBuildFile; fileRef = 1A23154F0B9C778400EF0852 /* splash.png */; };
 		1A2315540B9C778400EF0852 /* splashback.png in Resources */ = {isa = PBXBuildFile; fileRef = 1A2315500B9C778400EF0852 /* splashback.png */; };
@@ -844,6 +848,10 @@
 		0878FD2F086EF845004CB752 /* Carbon.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Carbon.framework; path = /System/Library/Frameworks/Carbon.framework; sourceTree = "<absolute>"; };
 		1058C7A1FEA54F0111CA2CBB /* Cocoa.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Cocoa.framework; path = /System/Library/Frameworks/Cocoa.framework; sourceTree = "<absolute>"; };
 		1A1502F50C1201C30032F3E8 /* oolite-unknown-ship.dat */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = "oolite-unknown-ship.dat"; sourceTree = "<group>"; };
+		1A1504490C12C50D0032F3E8 /* OOSkyDrawable.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOSkyDrawable.h; sourceTree = "<group>"; };
+		1A15044A0C12C50D0032F3E8 /* OOSkyDrawable.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOSkyDrawable.m; sourceTree = "<group>"; };
+		1A15049C0C12CA070032F3E8 /* OOProbabilisticTextureManager.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOProbabilisticTextureManager.h; sourceTree = "<group>"; };
+		1A15049D0C12CA070032F3E8 /* OOProbabilisticTextureManager.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOProbabilisticTextureManager.m; sourceTree = "<group>"; };
 		1A23154E0B9C778400EF0852 /* solar.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = solar.png; sourceTree = "<group>"; };
 		1A23154F0B9C778400EF0852 /* splash.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = splash.png; sourceTree = "<group>"; };
 		1A2315500B9C778400EF0852 /* splashback.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = splashback.png; sourceTree = "<group>"; };
@@ -1729,6 +1737,8 @@
 				1AED2D0B0C04586C004A1118 /* OOGraphicsResetManager.m */,
 				1ADC3F850BFA1388000E0F89 /* Drawables */,
 				1A71DDD30BCC0EEF00CD5C13 /* Materials */,
+				1A15049C0C12CA070032F3E8 /* OOProbabilisticTextureManager.h */,
+				1A15049D0C12CA070032F3E8 /* OOProbabilisticTextureManager.m */,
 			);
 			name = Graphics;
 			sourceTree = "<group>";
@@ -2134,6 +2144,8 @@
 				1A2A1B130BD2774300152975 /* OODrawable.m */,
 				1A2A1CA80BD2914F00152975 /* OOMesh.h */,
 				1A2A1CA90BD2914F00152975 /* OOMesh.m */,
+				1A1504490C12C50D0032F3E8 /* OOSkyDrawable.h */,
+				1A15044A0C12C50D0032F3E8 /* OOSkyDrawable.m */,
 			);
 			name = Drawables;
 			sourceTree = "<group>";
@@ -2379,6 +2391,8 @@
 				1A2A1DEC0BD2A28E00152975 /* OOMacroOpenGL.h in Headers */,
 				1AED2D0C0C04586C004A1118 /* OOGraphicsResetManager.h in Headers */,
 				1AED2DE70C046BA2004A1118 /* OODebugController.h in Headers */,
+				1A15044B0C12C50D0032F3E8 /* OOSkyDrawable.h in Headers */,
+				1A15049E0C12CA070032F3E8 /* OOProbabilisticTextureManager.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -2616,6 +2630,8 @@
 				1A5AA3230C0098AF0029C78A /* OOOpenGL.m in Sources */,
 				1AED2D0D0C04586C004A1118 /* OOGraphicsResetManager.m in Sources */,
 				1AED2DE80C046BA2004A1118 /* OODebugController.m in Sources */,
+				1A15044C0C12C50D0032F3E8 /* OOSkyDrawable.m in Sources */,
+				1A15049F0C12CA070032F3E8 /* OOProbabilisticTextureManager.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

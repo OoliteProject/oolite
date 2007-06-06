@@ -96,8 +96,6 @@
 	dataCache.remove.success				= $dataCacheDebug;
 	dataCache.clear.success					= $dataCacheDebug;
 	dataCache.prune							= $dataCacheDebug;
-	dataCache.debug							= yes;
-	dataCache.debug.verbose					= no;
 
 
 	$linkedListError						= $error;

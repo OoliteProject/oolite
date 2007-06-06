@@ -60,10 +60,6 @@
 	<string>inherit</string>
 	<key>dataCache.clear.success</key>
 	<string>$dataCacheDebug</string>
-	<key>dataCache.debug</key>
-	<string>yes</string>
-	<key>dataCache.debug.verbose</key>
-	<string>no</string>
 	<key>dataCache.found</key>
 	<string>$dataCacheStatus</string>
 	<key>dataCache.notFound</key>
