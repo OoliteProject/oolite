@@ -451,9 +451,30 @@ static OOCacheManager *sSingleton = nil;
 
 - (NSDictionary *)loadDict
 {
-	NSString *path = [self cachePathCreatingIfNecessary:NO];
+	NSString			*path = nil;
+	NSData				*data = nil;
+	NSString			*errorString = nil;
+	id					contents = nil;
+	
+	path = [self cachePathCreatingIfNecessary:NO];
 	if (path == nil) return nil;
-	return [NSDictionary dictionaryWithContentsOfFile:path];
+	
+	data = [NSData dataWithContentsOfFile:path];
+	if (data == nil) return nil;
+	
+	contents = [NSPropertyListSerialization propertyListFromData:data
+												mutabilityOption:NSPropertyListImmutable
+														  format:NULL
+												errorDescription:&errorString];
+	if (errorString != nil)
+	{
+		OOLog(@"dataCache.badData", @"Could not read data cache: %@", errorString);
+		[errorString release];	// Not autoreleased by NSPropertyListSerialization!
+		return nil;
+	}
+	if (![contents isKindOfClass:[NSDictionary class]])  return nil;
+	
+	return contents;
 }
 
 
