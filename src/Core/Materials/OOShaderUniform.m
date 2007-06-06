@@ -67,6 +67,7 @@ typedef enum
 	kOOShaderUniformTypeVector,
 	kOOShaderUniformTypeQuaternion,	// Binding only
 	kOOShaderUniformTypeMatrix,
+	kOOShaderUniformTypePoint,		// Binding only
 	kOOShaderUniformTypeObject		// Binding only
 } OOShaderUniformType;
 
@@ -80,6 +81,7 @@ typedef double (*DoubleReturnMsgSend)(id, SEL);
 typedef Vector (*VectorReturnMsgSend)(id, SEL);
 typedef Quaternion (*QuaternionReturnMsgSend)(id, SEL);
 typedef Matrix (*MatrixReturnMsgSend)(id, SEL);
+typedef NSPoint (*PointReturnMsgSend)(id, SEL);
 
 
 OOINLINE BOOL ValidBindingType(OOShaderUniformType type)
@@ -396,6 +398,7 @@ OOINLINE BOOL ValidBindingType(OOShaderUniformType type)
 		else if (TYPE_MATCH(Vector, typeCode))  type = kOOShaderUniformTypeVector;
 		else if (TYPE_MATCH(Quaternion, typeCode))  type = kOOShaderUniformTypeQuaternion;
 		else if (TYPE_MATCH(Matrix, typeCode))  type = kOOShaderUniformTypeMatrix;
+		else if (TYPE_MATCH(NSPoint, typeCode))  type = kOOShaderUniformTypePoint;
 		else if (TYPE_MATCH(id, typeCode))  type = kOOShaderUniformTypeObject;
 		else
 		{
@@ -477,7 +480,8 @@ OOINLINE BOOL ValidBindingType(OOShaderUniformType type)
 	GLfloat						expVVal[4];
 	gl_matrix					mVal;
 	Quaternion					qVal;
-	BOOL						isInt = NO, isFloat = NO, isVector = NO, isMatrix = NO;
+	NSPoint						pVal;
+	BOOL						isInt = NO, isFloat = NO, isVector = NO, isMatrix = NO, isPoint = NO;
 	id							objVal = nil;
 	
 	/*	Design note: if the object has been dealloced, or an exception occurs,
@@ -555,6 +559,11 @@ OOINLINE BOOL ValidBindingType(OOShaderUniformType type)
 			isMatrix = YES;
 			break;
 		
+		case kOOShaderUniformTypePoint:
+			pVal = ((PointReturnMsgSend)value.binding.method)(object, value.binding.selector);
+			isPoint = YES;
+			break;
+		
 		case kOOShaderUniformTypeObject:
 			objVal = value.binding.method(object, value.binding.selector);
 			if ([objVal isKindOfClass:[NSNumber class]])
@@ -582,6 +591,11 @@ OOINLINE BOOL ValidBindingType(OOShaderUniformType type)
 	{
 		if (convert)  iVal = iVal ? 1 : 0;
 		glUniform1iARB(location, iVal);
+	}
+	else if (isPoint)
+	{
+		GLfloat v2[2] = { pVal.x, pVal.y };
+		glUniform2fvARB(location, 1, v2);
 	}
 	else if (isVector)
 	{

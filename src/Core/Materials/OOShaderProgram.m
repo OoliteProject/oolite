@@ -281,7 +281,6 @@ static NSString *GetGLSLInfoLog(GLhandleARB shaderObject);
 static BOOL GetShaderSource(NSString *fileName, NSString *shaderType, NSString *prefix, NSString **outResult)
 {
 	NSString				*result = nil;
-	NSString				*shaderName = nil;
 	NSArray					*extensions = nil;
 	NSEnumerator			*extEnum = nil;
 	NSString				*extension = nil;
@@ -293,7 +292,7 @@ static BOOL GetShaderSource(NSString *fileName, NSString *shaderType, NSString *
 		extensions = [NSArray arrayWithObjects:shaderType, [shaderType substringToIndex:4], nil];	// vertex and vert, or fragment and frag
 		
 		// Futureproofing -- in future, we may wish to support automatic selection between supported shader languages.
-		if (![shaderName pathHasExtensionInArray:extensions])
+		if (![fileName pathHasExtensionInArray:extensions])
 		{
 			for (extEnum = [extensions objectEnumerator]; (extension = [extEnum nextObject]); )
 			{
@@ -305,7 +304,7 @@ static BOOL GetShaderSource(NSString *fileName, NSString *shaderType, NSString *
 		}
 		if (result == nil)
 		{
-			OOLog(kOOLogFileNotFound, @"GLSL ERROR: failed to find fragment program %@.", shaderName);
+			OOLog(kOOLogFileNotFound, @"GLSL ERROR: failed to find fragment program %@.", fileName);
 			return NO;
 		}
 	}

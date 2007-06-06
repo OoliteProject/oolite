@@ -151,6 +151,8 @@ extern int debug;
 	OOUniversalID			owner;
 	
 	OOWeakReference			*weakSelf;
+	
+	OOTimeAbsolute			spawnTime;
 }
 
 - (id) init;
@@ -249,5 +251,10 @@ extern int debug;
 - (Geometry*) geometry;
 - (BoundingBox) findBoundingBoxRelativeToPosition:(Vector)opv InVectors:(Vector) _i :(Vector) _j :(Vector) _k;
 - (void) drawEntity:(BOOL)immediate :(BOOL)translucent;
+
+// For shader bindings.
+- (GLfloat)universalTime;
+- (GLfloat)spawnTime;
+- (GLfloat)timeElapsedSinceSpawn;
 
 @end
