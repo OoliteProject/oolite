@@ -1184,7 +1184,7 @@
 		1A71E7150BCE34CF00CD5C13 /* pngvcrd.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = pngvcrd.c; sourceTree = "<group>"; };
 		1A71E7160BCE34CF00CD5C13 /* pngpread.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = pngpread.c; sourceTree = "<group>"; };
 		1A71E8780BCE8EB100CD5C13 /* libz.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libz.dylib; path = /usr/lib/libz.dylib; sourceTree = "<absolute>"; };
-		1A8072220C0483E800BA1935 /* OODebugController.nib */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = OODebugController.nib; path = "tools/Mac debug nib/OODebugController.nib"; sourceTree = SOURCE_ROOT; };
+		1A8072220C0483E800BA1935 /* OODebugController.nib */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; path = OODebugController.nib; sourceTree = "<group>"; };
 		1A81F7070A7BAC4D006580AD /* OOCAMusic.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOCAMusic.m; sourceTree = "<group>"; };
 		1A81F7080A7BAC4D006580AD /* OOCAMusic.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOCAMusic.h; sourceTree = "<group>"; };
 		1A8A37540B960337007D20B8 /* NSMutableDictionaryOOExtensions.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = NSMutableDictionaryOOExtensions.m; sourceTree = "<group>"; };
