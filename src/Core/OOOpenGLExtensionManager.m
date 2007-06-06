@@ -68,21 +68,22 @@ SOFTWARE.
 void OOBadOpenGLExtensionUsed(void) GCC_ATTR((noreturn));
 
 PFNGLUSEPROGRAMOBJECTARBPROC		glUseProgramObjectARB		= (PFNGLUSEPROGRAMOBJECTARBPROC)&OOBadOpenGLExtensionUsed;
-PFNGLACTIVETEXTUREARBPROC			glActiveTextureARB			= (PFNGLACTIVETEXTUREARBPROC)&OOBadOpenGLExtensionUsed;				
+PFNGLACTIVETEXTUREARBPROC		glActiveTextureARB		= (PFNGLACTIVETEXTUREARBPROC)&OOBadOpenGLExtensionUsed;				
 PFNGLGETUNIFORMLOCATIONARBPROC		glGetUniformLocationARB		= (PFNGLGETUNIFORMLOCATIONARBPROC)&OOBadOpenGLExtensionUsed;
-PFNGLUNIFORM1IARBPROC				glUniform1iARB				= (PFNGLUNIFORM1IARBPROC)&OOBadOpenGLExtensionUsed;
-PFNGLUNIFORM1FARBPROC				glUniform1fARB				= (PFNGLUNIFORM1FARBPROC)&OOBadOpenGLExtensionUsed;
+PFNGLUNIFORM1IARBPROC			glUniform1iARB			= (PFNGLUNIFORM1IARBPROC)&OOBadOpenGLExtensionUsed;
+PFNGLUNIFORM1FARBPROC			glUniform1fARB			= (PFNGLUNIFORM1FARBPROC)&OOBadOpenGLExtensionUsed;
 PFNGLUNIFORMMATRIX4FVARBPROC		glUniformMatrix4fvARB		= (PFNGLUNIFORMMATRIX4FVARBPROC)&OOBadOpenGLExtensionUsed;
-PFNGLUNIFORM4FVARBPROC				glUniform4fvARB				= (PFNGLUNIFORM4FVARBPROC)&OOBadOpenGLExtensionUsed;
+PFNGLUNIFORM4FVARBPROC			glUniform4fvARB			= (PFNGLUNIFORM4FVARBPROC)&OOBadOpenGLExtensionUsed;
 PFNGLGETOBJECTPARAMETERIVARBPROC	glGetObjectParameterivARB	= (PFNGLGETOBJECTPARAMETERIVARBPROC)&OOBadOpenGLExtensionUsed;
 PFNGLCREATESHADEROBJECTARBPROC		glCreateShaderObjectARB		= (PFNGLCREATESHADEROBJECTARBPROC)&OOBadOpenGLExtensionUsed;
-PFNGLGETINFOLOGARBPROC				glGetInfoLogARB				= (PFNGLGETINFOLOGARBPROC)&OOBadOpenGLExtensionUsed;
+PFNGLGETINFOLOGARBPROC			glGetInfoLogARB			= (PFNGLGETINFOLOGARBPROC)&OOBadOpenGLExtensionUsed;
 PFNGLCREATEPROGRAMOBJECTARBPROC		glCreateProgramObjectARB	= (PFNGLCREATEPROGRAMOBJECTARBPROC)&OOBadOpenGLExtensionUsed;
-PFNGLATTACHOBJECTARBPROC			glAttachObjectARB			= (PFNGLATTACHOBJECTARBPROC)&OOBadOpenGLExtensionUsed;
-PFNGLDELETEOBJECTARBPROC			glDeleteObjectARB			= (PFNGLDELETEOBJECTARBPROC)&OOBadOpenGLExtensionUsed;
-PFNGLLINKPROGRAMARBPROC				glLinkProgramARB			= (PFNGLLINKPROGRAMARBPROC)&OOBadOpenGLExtensionUsed;
-PFNGLCOMPILESHADERARBPROC			glCompileShaderARB			= (PFNGLCOMPILESHADERARBPROC)&OOBadOpenGLExtensionUsed;
-PFNGLSHADERSOURCEARBPROC			glShaderSourceARB			= (PFNGLSHADERSOURCEARBPROC)&OOBadOpenGLExtensionUsed;
+PFNGLATTACHOBJECTARBPROC		glAttachObjectARB		= (PFNGLATTACHOBJECTARBPROC)&OOBadOpenGLExtensionUsed;
+PFNGLDELETEOBJECTARBPROC		glDeleteObjectARB		= (PFNGLDELETEOBJECTARBPROC)&OOBadOpenGLExtensionUsed;
+PFNGLLINKPROGRAMARBPROC			glLinkProgramARB		= (PFNGLLINKPROGRAMARBPROC)&OOBadOpenGLExtensionUsed;
+PFNGLCOMPILESHADERARBPROC		glCompileShaderARB		= (PFNGLCOMPILESHADERARBPROC)&OOBadOpenGLExtensionUsed;
+PFNGLSHADERSOURCEARBPROC		glShaderSourceARB		= (PFNGLSHADERSOURCEARBPROC)&OOBadOpenGLExtensionUsed;
+PFNGLUNIFORM2FVARBPROC			glUniform2fvARB			= (PFNGLUNIFORM2FVARBPROC)&OOBadOpenGLExtensionUsed;
 #endif
 #endif
 
@@ -307,22 +308,23 @@ static unsigned IntegerFromString(const GLubyte **ioString)
 	}
 	
 #if OOLITE_WINDOWS
-	glGetObjectParameterivARB = (PFNGLGETOBJECTPARAMETERIVARBPROC)wglGetProcAddress("glGetObjectParameterivARB");
-	glCreateShaderObjectARB = (PFNGLCREATESHADEROBJECTARBPROC)wglGetProcAddress("glCreateShaderObjectARB");
-	glGetInfoLogARB = (PFNGLGETINFOLOGARBPROC)wglGetProcAddress("glGetInfoLogARB");
-	glCreateProgramObjectARB = (PFNGLCREATEPROGRAMOBJECTARBPROC)wglGetProcAddress("glCreateProgramObjectARB");
-	glAttachObjectARB = (PFNGLATTACHOBJECTARBPROC)wglGetProcAddress("glAttachObjectARB");
-	glDeleteObjectARB = (PFNGLDELETEOBJECTARBPROC)wglGetProcAddress("glDeleteObjectARB");
-	glLinkProgramARB = (PFNGLLINKPROGRAMARBPROC)wglGetProcAddress("glLinkProgramARB");
-	glCompileShaderARB = (PFNGLCOMPILESHADERARBPROC)wglGetProcAddress("glCompileShaderARB");
-	glShaderSourceARB = (PFNGLSHADERSOURCEARBPROC)wglGetProcAddress("glShaderSourceARB");
-	glUseProgramObjectARB = (PFNGLUSEPROGRAMOBJECTARBPROC)wglGetProcAddress("glUseProgramObjectARB");
-	glActiveTextureARB = (PFNGLACTIVETEXTUREARBPROC)wglGetProcAddress("glActiveTextureARB");
-	glGetUniformLocationARB = (PFNGLGETUNIFORMLOCATIONARBPROC)wglGetProcAddress("glGetUniformLocationARB");
-	glUniform1iARB = (PFNGLUNIFORM1IARBPROC)wglGetProcAddress("glUniform1iARB");
-	glUniform1fARB = (PFNGLUNIFORM1FARBPROC)wglGetProcAddress("glUniform1fARB");
-	glUniformMatrix4fvARB = (PFNGLUNIFORMMATRIX4FVARBPROC)wglGetProcAddress("glUniformMatrix4fvARB");
-	glUniform4fvARB = (PFNGLUNIFORM4FVARBPROC)wglGetProcAddress("glUniform4fvARB");
+	glGetObjectParameterivARB	=	(PFNGLGETOBJECTPARAMETERIVARBPROC)wglGetProcAddress("glGetObjectParameterivARB");
+	glCreateShaderObjectARB		=	(PFNGLCREATESHADEROBJECTARBPROC)wglGetProcAddress("glCreateShaderObjectARB");
+	glGetInfoLogARB			=	(PFNGLGETINFOLOGARBPROC)wglGetProcAddress("glGetInfoLogARB");
+	glCreateProgramObjectARB	=	(PFNGLCREATEPROGRAMOBJECTARBPROC)wglGetProcAddress("glCreateProgramObjectARB");
+	glAttachObjectARB		=	(PFNGLATTACHOBJECTARBPROC)wglGetProcAddress("glAttachObjectARB");
+	glDeleteObjectARB		=	(PFNGLDELETEOBJECTARBPROC)wglGetProcAddress("glDeleteObjectARB");
+	glLinkProgramARB		=	(PFNGLLINKPROGRAMARBPROC)wglGetProcAddress("glLinkProgramARB");
+	glCompileShaderARB		=	(PFNGLCOMPILESHADERARBPROC)wglGetProcAddress("glCompileShaderARB");
+	glShaderSourceARB		=	(PFNGLSHADERSOURCEARBPROC)wglGetProcAddress("glShaderSourceARB");
+	glUseProgramObjectARB		=	(PFNGLUSEPROGRAMOBJECTARBPROC)wglGetProcAddress("glUseProgramObjectARB");
+	glActiveTextureARB		=	(PFNGLACTIVETEXTUREARBPROC)wglGetProcAddress("glActiveTextureARB");
+	glGetUniformLocationARB		=	(PFNGLGETUNIFORMLOCATIONARBPROC)wglGetProcAddress("glGetUniformLocationARB");
+	glUniform1iARB			=	(PFNGLUNIFORM1IARBPROC)wglGetProcAddress("glUniform1iARB");
+	glUniform1fARB			=	(PFNGLUNIFORM1FARBPROC)wglGetProcAddress("glUniform1fARB");
+	glUniformMatrix4fvARB		=	(PFNGLUNIFORMMATRIX4FVARBPROC)wglGetProcAddress("glUniformMatrix4fvARB");
+	glUniform4fvARB			=	(PFNGLUNIFORM4FVARBPROC)wglGetProcAddress("glUniform4fvARB");
+	glUniform2fvARB			=	(PFNGLUNIFORM2FVARBPROC)wglGetProcAddress("glUniform2fvARB");
 #endif
 	
 	shadersAvailable = YES;
