@@ -101,6 +101,16 @@ MA 02110-1301, USA.
    stickHandler=[[JoystickHandler alloc] init];
    // end TODO
 
+
+	// Generate the window caption, containing the version number and the date the executable was compiled.
+	static char windowCaption[128];
+	NSString *versionString = [NSString stringWithFormat:@"Oolite Version %@", [[[NSBundle mainBundle] infoDictionary] objectForKey:@"CFBundleVersion"]];
+	
+	strcpy (windowCaption, [versionString UTF8String]);
+	strcat (windowCaption, " - "__DATE__);
+	SDL_WM_SetCaption (windowCaption, "OOLITE");	// Set window title.
+
+
 	SDL_GL_SetAttribute(SDL_GL_RED_SIZE, 5);
 	SDL_GL_SetAttribute(SDL_GL_GREEN_SIZE, 5);
 	SDL_GL_SetAttribute(SDL_GL_BLUE_SIZE, 5);
@@ -782,52 +792,58 @@ MA 02110-1301, USA.
                [self handleStringInput: kbd_event];
             }
 
+	    // Macro KEYCODE_DOWN_EITHER. Detect the keypress state (with shift or without) and assign appropriate values to the
+	    // keys array. This way Oolite can use more keys, since now key '3', for example is a different keypress to '#'.
+	    #define KEYCODE_DOWN_EITHER(a,b)	do { \
+	    				  	    if (shift) { keys[a] = YES; keys[b] = NO; } else { keys[a] = NO; keys[b] = YES; } \
+	    					} while (0)
+	    					
             //NSLog(@"Keydown keysym.sym: %d\n", kbd_event->keysym.sym);
             switch (kbd_event->keysym.sym) {
-               case SDLK_1: if (shift) { keys[33] = YES; keys[gvNumberKey1] = NO; } else { keys[33] = NO; keys[gvNumberKey1] = YES; } break;
-               case SDLK_2: keys[gvNumberKey2] = YES; break;
-               case SDLK_3: keys[gvNumberKey3] = YES; break;
-               case SDLK_4: keys[gvNumberKey4] = YES; break;
-               case SDLK_5: keys[gvNumberKey5] = YES; break;
-               case SDLK_6: keys[gvNumberKey6] = YES; break;
-               case SDLK_7: keys[gvNumberKey7] = YES; break;
-               case SDLK_8: if (shift) { keys[42] = YES; keys[gvNumberKey8] = NO; } else { keys[42] = NO; keys[gvNumberKey8] = YES; } break;
-               case SDLK_9: keys[gvNumberKey9] = YES; break;
-               case SDLK_0: keys[gvNumberKey0] = YES; break;
-               case SDLK_MINUS: if (shift) { keys[43] = NO; } else { keys[43] = YES; } break; // - key, don't know what Oolite# for underscore is
-               case SDLK_COMMA: if (shift) { keys[44] = NO; } else { keys[44] = YES; } break;
-               case SDLK_EQUALS: if (shift) { keys[45] = YES; } else { keys[45] = NO; } break; // + key, don't know what Oolite# for equals is
-               case SDLK_PERIOD: if (shift) { keys[46] = NO; } else { keys[46] = YES; } break;
-               case SDLK_SLASH: if (shift) { keys[47] = NO; } else { keys[47] = YES; } break;
-               case SDLK_a: if (shift) { keys[65] = YES; keys[97] = NO; } else { keys[65] = NO; keys[97] = YES; } break;
-               case SDLK_b: if (shift) { keys[66] = YES; keys[98] = NO; } else { keys[66] = NO; keys[98] = YES; } break;
-               case SDLK_c: if (shift) { keys[67] = YES; keys[99] = NO; } else { keys[67] = NO; keys[99] = YES; } break;
-               case SDLK_d: if (shift) { keys[68] = YES; keys[100] = NO; } else { keys[68] = NO; keys[100] = YES; } break;
-               case SDLK_e: if (shift) { keys[69] = YES; keys[101] = NO; } else { keys[69] = NO; keys[101] = YES; } break;
-               case SDLK_f: if (shift) { keys[70] = YES; keys[102] = NO; } else { keys[70] = NO; keys[102] = YES; } break;
-               case SDLK_g: if (shift) { keys[71] = YES; keys[103] = NO; } else { keys[71] = NO; keys[103] = YES; } break;
-               case SDLK_h: if (shift) { keys[72] = YES; keys[104] = NO; } else { keys[72] = NO; keys[104] = YES; } break;
-               case SDLK_i: if (shift) { keys[73] = YES; keys[105] = NO; } else { keys[73] = NO; keys[105] = YES; } break;
-               case SDLK_j: if (shift) { keys[74] = YES; keys[106] = NO; } else { keys[74] = NO; keys[106] = YES; } break;
-               case SDLK_k: if (shift) { keys[75] = YES; keys[107] = NO; } else { keys[75] = NO; keys[107] = YES; } break;
-               case SDLK_l: if (shift) { keys[76] = YES; keys[108] = NO; } else { keys[76] = NO; keys[108] = YES; } break;
-               case SDLK_m: if (shift) { keys[77] = YES; keys[109] = NO; } else { keys[77] = NO; keys[109] = YES; } break;
-               case SDLK_n: if (shift) { keys[78] = YES; keys[110] = NO; } else { keys[78] = NO; keys[110] = YES; } break;
-               case SDLK_o: if (shift) { keys[79] = YES; keys[111] = NO; } else { keys[79] = NO; keys[111] = YES; } break;
-               case SDLK_p: if (shift) { keys[80] = YES; keys[112] = NO; } else { keys[80] = NO; keys[112] = YES; } break;
-               case SDLK_q: if (shift) { keys[81] = YES; keys[113] = NO; } else { keys[81] = NO; keys[113] = YES; } break;
-               case SDLK_r: if (shift) { keys[82] = YES; keys[114] = NO; } else { keys[82] = NO; keys[114] = YES; } break;
-               case SDLK_s: if (shift) { keys[83] = YES; keys[115] = NO; } else { keys[83] = NO; keys[115] = YES; } break;
-               case SDLK_t: if (shift) { keys[84] = YES; keys[116] = NO; } else { keys[84] = NO; keys[116] = YES; } break;
-               case SDLK_u: if (shift) { keys[85] = YES; keys[117] = NO; } else { keys[85] = NO; keys[117] = YES; } break;
-               case SDLK_v: if (shift) { keys[86] = YES; keys[118] = NO; } else { keys[86] = NO; keys[118] = YES; } break;
-               case SDLK_w: if (shift) { keys[87] = YES; keys[119] = NO; } else { keys[87] = NO; keys[119] = YES; } break;
-               case SDLK_x: if (shift) { keys[88] = YES; keys[120] = NO; } else { keys[88] = NO; keys[120] = YES; } break;
-               case SDLK_y: if (shift) { keys[89] = YES; keys[121] = NO; } else { keys[89] = NO; keys[121] = YES; } break;
-               case SDLK_z: if (shift) { keys[90] = YES; keys[122] = NO; } else { keys[90] = NO; keys[122] = YES; } break;
-               case SDLK_BACKSLASH: if (! shift) keys[92] = YES; break;
-               case SDLK_BACKQUOTE: if (! shift) keys[96] = YES; break;
-               case SDLK_HOME: keys[gvHomeKey] = YES; break;
+               case SDLK_1: KEYCODE_DOWN_EITHER (33, gvNumberKey1); break;	// ! or 1
+               case SDLK_2: KEYCODE_DOWN_EITHER (64, gvNumberKey2); break;	// @ or 2
+               case SDLK_3: KEYCODE_DOWN_EITHER (35, gvNumberKey3); break;	// # or 3
+               case SDLK_4: KEYCODE_DOWN_EITHER (36, gvNumberKey4); break;	// $ or 4
+               case SDLK_5: KEYCODE_DOWN_EITHER (37, gvNumberKey5); break;	// % or 5
+               case SDLK_6: KEYCODE_DOWN_EITHER (94, gvNumberKey6); break;	// ^ or 6
+               case SDLK_7: KEYCODE_DOWN_EITHER (38, gvNumberKey7); break;	// & or 7
+               case SDLK_8: KEYCODE_DOWN_EITHER (42, gvNumberKey8); break;	// * or 8
+               case SDLK_9: KEYCODE_DOWN_EITHER (40, gvNumberKey9); break;	// ( or 9
+               case SDLK_0: KEYCODE_DOWN_EITHER (41, gvNumberKey0); break;	// ) or 0
+               case SDLK_MINUS: KEYCODE_DOWN_EITHER (95, 45); break;		// _ or -
+               case SDLK_COMMA: KEYCODE_DOWN_EITHER (60, 44); break;		// < or ,
+               case SDLK_EQUALS: KEYCODE_DOWN_EITHER (43, 61); break;		// + or =
+               case SDLK_PERIOD: KEYCODE_DOWN_EITHER (62, 46); break;		// > or .
+               case SDLK_SLASH: KEYCODE_DOWN_EITHER (63, 47); break;		// ? or /
+               case SDLK_a: KEYCODE_DOWN_EITHER (65, 97); break;		// A or a
+               case SDLK_b: KEYCODE_DOWN_EITHER (66, 98); break;		// B or b
+               case SDLK_c: KEYCODE_DOWN_EITHER (67, 99); break;		// C or c
+               case SDLK_d: KEYCODE_DOWN_EITHER (68, 100); break;		// D or d
+               case SDLK_e: KEYCODE_DOWN_EITHER (69, 101); break;		// E or e
+               case SDLK_f: KEYCODE_DOWN_EITHER (70, 102); break;		// F or f
+               case SDLK_g: KEYCODE_DOWN_EITHER (71, 103); break;		// G or g
+               case SDLK_h: KEYCODE_DOWN_EITHER (72, 104); break;		// H or h
+               case SDLK_i: KEYCODE_DOWN_EITHER (73, 105); break;		// I or i
+               case SDLK_j: KEYCODE_DOWN_EITHER (74, 106); break;		// J or j
+               case SDLK_k: KEYCODE_DOWN_EITHER (75, 107); break;		// K or k
+               case SDLK_l: KEYCODE_DOWN_EITHER (76, 108); break;		// L or l
+               case SDLK_m: KEYCODE_DOWN_EITHER (77, 109); break;		// M or m
+               case SDLK_n: KEYCODE_DOWN_EITHER (78, 110); break;		// N or n
+               case SDLK_o: KEYCODE_DOWN_EITHER (79, 111); break;		// O or o
+               case SDLK_p: KEYCODE_DOWN_EITHER (80, 112); break;		// P or p
+               case SDLK_q: KEYCODE_DOWN_EITHER (81, 113); break;		// Q or q
+               case SDLK_r: KEYCODE_DOWN_EITHER (82, 114); break;		// R or r
+               case SDLK_s: KEYCODE_DOWN_EITHER (83, 115); break;		// S or s
+               case SDLK_t: KEYCODE_DOWN_EITHER (84, 116); break;		// T or t
+               case SDLK_u: KEYCODE_DOWN_EITHER (85, 117); break;		// U or u
+               case SDLK_v: KEYCODE_DOWN_EITHER (86, 118); break;		// V or v
+               case SDLK_w: KEYCODE_DOWN_EITHER (87, 119); break;		// W or w
+               case SDLK_x: KEYCODE_DOWN_EITHER (88, 120); break;		// X or x
+               case SDLK_y: KEYCODE_DOWN_EITHER (89, 121); break;		// Y or y
+               case SDLK_z: KEYCODE_DOWN_EITHER (90, 122); break;		// Z or z
+               case SDLK_BACKSLASH: KEYCODE_DOWN_EITHER (166, 92); break;	// | or \
+               case SDLK_BACKQUOTE: KEYCODE_DOWN_EITHER (126, 96); break;	// ~ or `
+               case SDLK_HOME: keys[gvHomeKey] = YES; break;	
                case SDLK_SPACE: keys[32] = YES; break;
                case SDLK_RETURN: keys[13] = YES; break;
                case SDLK_TAB: keys[9] = YES; break;
@@ -840,8 +856,8 @@ MA 02110-1301, USA.
                case SDLK_KP6:
                case SDLK_RIGHT: keys[gvArrowKeyRight] = YES; break;
 
-               case SDLK_KP_MINUS: keys[43] = YES; break; // numeric keypad - key
-               case SDLK_KP_PLUS: keys[45] = YES; break; // numeric keypad + key
+               case SDLK_KP_MINUS: keys[45] = YES; break; // numeric keypad - key
+               case SDLK_KP_PLUS: keys[43] = YES; break; // numeric keypad + key
 
                case SDLK_KP1: keys[310] = YES; break;
                case SDLK_KP3: keys[311] = YES; break;
@@ -914,50 +930,55 @@ MA 02110-1301, USA.
             supressKeys = NO;    // DJS
             kbd_event = (SDL_KeyboardEvent*)&event;
             //printf("Keydown scancode: %d\n", kbd_event->keysym.scancode);
+            
+            #define KEYCODE_UP_BOTH(a,b)	do { \
+            			  		    keys[a] = NO; keys[b] = NO; \
+            					} while (0)
+            
             switch (kbd_event->keysym.sym) {
-               case SDLK_1: keys[33] = NO; keys[gvNumberKey1] = NO; break;
-               case SDLK_2: keys[gvNumberKey2] = NO; break;
-               case SDLK_3: keys[gvNumberKey3] = NO; break;
-               case SDLK_4: keys[gvNumberKey4] = NO; break;
-               case SDLK_5: keys[gvNumberKey5] = NO; break;
-               case SDLK_6: keys[gvNumberKey6] = NO; break;
-               case SDLK_7: keys[gvNumberKey7] = NO; break;
-               case SDLK_8: keys[42] = NO; keys[gvNumberKey8] = NO; break;
-               case SDLK_9: keys[gvNumberKey9] = NO; break;
-               case SDLK_0: keys[gvNumberKey0] = NO; break;
-               case SDLK_MINUS: keys[43] = NO; break; // - key, don't know what Oolite# for underscore is
-               case SDLK_COMMA: keys[44] = NO; break;
-               case SDLK_EQUALS: keys[45] = NO; break; // + key, don't know what Oolite# for equals is
-               case SDLK_PERIOD: keys[46] = NO; break;
-               case SDLK_SLASH: keys[47] = NO; break;
-               case SDLK_a: keys[65] = NO; keys[97] = NO; break;
-               case SDLK_b: keys[66] = NO; keys[98] = NO; break;
-               case SDLK_c: keys[67] = NO; keys[99] = NO; break;
-               case SDLK_d: keys[68] = NO; keys[100] = NO; break;
-               case SDLK_e: keys[69] = NO; keys[101] = NO; break;
-               case SDLK_f: keys[70] = NO; keys[102] = NO; break;
-               case SDLK_g: keys[71] = NO; keys[103] = NO; break;
-               case SDLK_h: keys[72] = NO; keys[104] = NO; break;
-               case SDLK_i: keys[73] = NO; keys[105] = NO; break;
-               case SDLK_j: keys[74] = NO; keys[106] = NO; break;
-               case SDLK_k: keys[75] = NO; keys[107] = NO; break;
-               case SDLK_l: keys[76] = NO; keys[108] = NO; break;
-               case SDLK_m: keys[77] = NO; keys[109] = NO; break;
-               case SDLK_n: keys[78] = NO; keys[110] = NO; break;
-               case SDLK_o: keys[79] = NO; keys[111] = NO; break;
-               case SDLK_p: keys[80] = NO; keys[112] = NO; break;
-               case SDLK_q: keys[81] = NO; keys[113] = NO; break;
-               case SDLK_r: keys[82] = NO; keys[114] = NO; break;
-               case SDLK_s: keys[83] = NO; keys[115] = NO; break;
-               case SDLK_t: keys[84] = NO; keys[116] = NO; break;
-               case SDLK_u: keys[85] = NO; keys[117] = NO; break;
-               case SDLK_v: keys[86] = NO; keys[118] = NO; break;
-               case SDLK_w: keys[87] = NO; keys[119] = NO; break;
-               case SDLK_x: keys[88] = NO; keys[120] = NO; break;
-               case SDLK_y: keys[89] = NO; keys[121] = NO; break;
-               case SDLK_z: keys[90] = NO; keys[122] = NO; break;
-               case SDLK_BACKSLASH: keys[92] = NO; break;
-               case SDLK_BACKQUOTE: keys[96] = NO; break;
+               case SDLK_1: KEYCODE_UP_BOTH (33, gvNumberKey1); break;		// ! and 1
+               case SDLK_2: KEYCODE_UP_BOTH (64, gvNumberKey2); break;		// @ and 2
+               case SDLK_3: KEYCODE_UP_BOTH (35, gvNumberKey3); break;		// # and 3
+               case SDLK_4: KEYCODE_UP_BOTH (36, gvNumberKey4); break;		// $ and 4
+               case SDLK_5: KEYCODE_UP_BOTH (37, gvNumberKey5); break;		// % and 5
+               case SDLK_6: KEYCODE_UP_BOTH (94, gvNumberKey6); break;		// ^ and 6
+               case SDLK_7: KEYCODE_UP_BOTH (38, gvNumberKey7); break;		// & and 7
+               case SDLK_8: KEYCODE_UP_BOTH (42, gvNumberKey8); break;		// * and 8
+               case SDLK_9: KEYCODE_UP_BOTH (40, gvNumberKey9);break;		// ( and 9
+               case SDLK_0: KEYCODE_UP_BOTH (41, gvNumberKey0); break;		// ) and 0
+               case SDLK_MINUS: KEYCODE_UP_BOTH (95, 45); break;		// _ and -
+               case SDLK_COMMA: KEYCODE_UP_BOTH (60, 44); break;		// < and ,
+               case SDLK_EQUALS: KEYCODE_UP_BOTH (43, 61); break;		// + and =
+               case SDLK_PERIOD: KEYCODE_UP_BOTH (62, 46); break;		// > and .
+               case SDLK_SLASH: KEYCODE_UP_BOTH (63, 47); break;		// ? and /
+               case SDLK_a: KEYCODE_UP_BOTH (65, 97); break;			// A and a
+               case SDLK_b: KEYCODE_UP_BOTH (66, 98); break;			// B and b
+               case SDLK_c: KEYCODE_UP_BOTH (67, 99); break;			// C and c
+               case SDLK_d: KEYCODE_UP_BOTH (68, 100); break;			// D and d
+               case SDLK_e: KEYCODE_UP_BOTH (69, 101); break;			// E and e
+               case SDLK_f: KEYCODE_UP_BOTH (70, 102); break;			// F and f
+               case SDLK_g: KEYCODE_UP_BOTH (71, 103); break;			// G and g
+               case SDLK_h: KEYCODE_UP_BOTH (72, 104); break;			// H and h
+               case SDLK_i: KEYCODE_UP_BOTH (73, 105); break;			// I and i
+               case SDLK_j: KEYCODE_UP_BOTH (74, 106); break;			// J and j
+               case SDLK_k: KEYCODE_UP_BOTH (75, 107); break;			// K and k
+               case SDLK_l: KEYCODE_UP_BOTH (76, 108); break;			// L and l
+               case SDLK_m: KEYCODE_UP_BOTH (77, 109); break;			// M and m
+               case SDLK_n: KEYCODE_UP_BOTH (78, 110); break;			// N and n
+               case SDLK_o: KEYCODE_UP_BOTH (79, 111); break;			// O and o
+               case SDLK_p: KEYCODE_UP_BOTH (80, 112); break;			// P and p
+               case SDLK_q: KEYCODE_UP_BOTH (81, 113); break;			// Q and q
+               case SDLK_r: KEYCODE_UP_BOTH (82, 114); break;			// R and r
+               case SDLK_s: KEYCODE_UP_BOTH (83, 115); break;			// S and s
+               case SDLK_t: KEYCODE_UP_BOTH (84, 116); break;			// T and t
+               case SDLK_u: KEYCODE_UP_BOTH (85, 117); break;			// U and u
+               case SDLK_v: KEYCODE_UP_BOTH (86, 118); break;			// V and v
+               case SDLK_w: KEYCODE_UP_BOTH (87, 119); break;			// W and w
+               case SDLK_x: KEYCODE_UP_BOTH (88, 120); break;			// X and x
+               case SDLK_y: KEYCODE_UP_BOTH (89, 121); break;			// Y and y
+               case SDLK_z: KEYCODE_UP_BOTH (90, 122); break;			// Z and z
+               case SDLK_BACKSLASH: KEYCODE_UP_BOTH (166, 92); break;		// | and \
+               case SDLK_BACKQUOTE: KEYCODE_UP_BOTH (126, 96); break;		// ~ and `
                case SDLK_HOME: keys[gvHomeKey] = NO; break;
                case SDLK_SPACE: keys[32] = NO; break;
                case SDLK_RETURN: keys[13] = NO; break;
@@ -971,8 +992,8 @@ MA 02110-1301, USA.
                case SDLK_KP6:
                case SDLK_RIGHT: keys[gvArrowKeyRight] = NO; break;
 
-               case SDLK_KP_MINUS: keys[43] = NO; break; // numeric keypad - key
-               case SDLK_KP_PLUS: keys[45] = NO; break; // numeric keypad + key
+               case SDLK_KP_MINUS: keys[45] = NO; break; // numeric keypad - key
+               case SDLK_KP_PLUS: keys[43] = NO; break; // numeric keypad + key
 
                case SDLK_KP1: keys[310] = NO; break;
                case SDLK_KP3: keys[311] = NO; break;
