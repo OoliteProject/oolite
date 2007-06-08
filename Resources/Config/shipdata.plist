@@ -37,7 +37,7 @@
 		<real>2</real>
 		<key>max_flight_roll</key>
 		<real>2.7999999999999998</real>
-		<key>maxFlightSpeed</key>
+		<key>max_flight_speed</key>
 		<real>240</real>
 		<key>max_missiles</key>
 		<integer>1</integer>
@@ -93,7 +93,7 @@
 		<real>2</real>
 		<key>max_flight_roll</key>
 		<real>2.7999999999999998</real>
-		<key>maxFlightSpeed</key>
+		<key>max_flight_speed</key>
 		<real>240</real>
 		<key>max_missiles</key>
 		<integer>1</integer>
@@ -231,7 +231,7 @@
 		<real>0.5</real>
 		<key>max_flight_roll</key>
 		<real>0.5</real>
-		<key>maxFlightSpeed</key>
+		<key>max_flight_speed</key>
 		<real>50</real>
 		<key>missiles</key>
 		<integer>0</integer>
@@ -287,7 +287,7 @@
 		<real>0.40000000000000002</real>
 		<key>max_flight_roll</key>
 		<real>0.75</real>
-		<key>maxFlightSpeed</key>
+		<key>max_flight_speed</key>
 		<real>140</real>
 		<key>max_missiles</key>
 		<integer>7</integer>
@@ -335,7 +335,7 @@
 		<real>0.40000000000000002</real>
 		<key>max_flight_roll</key>
 		<real>0.75</real>
-		<key>maxFlightSpeed</key>
+		<key>max_flight_speed</key>
 		<real>140</real>
 		<key>max_missiles</key>
 		<integer>7</integer>
@@ -500,7 +500,7 @@
 		<real>1</real>
 		<key>max_flight_roll</key>
 		<real>2</real>
-		<key>maxFlightSpeed</key>
+		<key>max_flight_speed</key>
 		<real>400</real>
 		<key>max_missiles</key>
 		<integer>1</integer>
@@ -572,7 +572,7 @@
 		<real>1</real>
 		<key>max_flight_roll</key>
 		<real>2</real>
-		<key>maxFlightSpeed</key>
+		<key>max_flight_speed</key>
 		<real>400</real>
 		<key>max_missiles</key>
 		<integer>1</integer>
@@ -623,7 +623,7 @@
 		<real>1</real>
 		<key>max_flight_roll</key>
 		<real>2</real>
-		<key>maxFlightSpeed</key>
+		<key>max_flight_speed</key>
 		<real>400</real>
 		<key>max_missiles</key>
 		<integer>1</integer>
@@ -765,7 +765,7 @@
 		<real>0.10000000000000001</real>
 		<key>max_flight_roll</key>
 		<real>0.10000000000000001</real>
-		<key>maxFlightSpeed</key>
+		<key>max_flight_speed</key>
 		<real>0.0</real>
 		<key>missiles</key>
 		<integer>0</integer>
@@ -815,7 +815,7 @@
 		<real>0.5</real>
 		<key>max_flight_roll</key>
 		<real>0.5</real>
-		<key>maxFlightSpeed</key>
+		<key>max_flight_speed</key>
 		<real>50</real>
 		<key>missiles</key>
 		<integer>0</integer>
@@ -872,7 +872,7 @@
 		<real>1</real>
 		<key>max_flight_roll</key>
 		<real>2.7999999999999998</real>
-		<key>maxFlightSpeed</key>
+		<key>max_flight_speed</key>
 		<real>240</real>
 		<key>max_missiles</key>
 		<integer>4</integer>
@@ -946,7 +946,7 @@
 		<real>1</real>
 		<key>max_flight_roll</key>
 		<real>2.5</real>
-		<key>maxFlightSpeed</key>
+		<key>max_flight_speed</key>
 		<real>312</real>
 		<key>max_missiles</key>
 		<integer>5</integer>
@@ -1006,7 +1006,7 @@
 		<real>1</real>
 		<key>max_flight_roll</key>
 		<real>2.5</real>
-		<key>maxFlightSpeed</key>
+		<key>max_flight_speed</key>
 		<real>312</real>
 		<key>max_missiles</key>
 		<integer>5</integer>
@@ -1144,7 +1144,7 @@
 		<real>1</real>
 		<key>max_flight_roll</key>
 		<real>2.7999999999999998</real>
-		<key>maxFlightSpeed</key>
+		<key>max_flight_speed</key>
 		<real>240</real>
 		<key>max_missiles</key>
 		<integer>4</integer>
@@ -1288,7 +1288,7 @@
 		<real>0.5</real>
 		<key>max_flight_roll</key>
 		<real>0.5</real>
-		<key>maxFlightSpeed</key>
+		<key>max_flight_speed</key>
 		<real>5</real>
 		<key>missiles</key>
 		<integer>0</integer>
@@ -1340,7 +1340,7 @@
 		<real>2</real>
 		<key>max_flight_roll</key>
 		<real>2</real>
-		<key>maxFlightSpeed</key>
+		<key>max_flight_speed</key>
 		<real>0.0</real>
 		<key>missiles</key>
 		<integer>0</integer>
@@ -1381,7 +1381,7 @@
 		<real>2</real>
 		<key>max_flight_roll</key>
 		<real>2</real>
-		<key>maxFlightSpeed</key>
+		<key>max_flight_speed</key>
 		<real>0.0</real>
 		<key>missiles</key>
 		<integer>0</integer>
@@ -1427,7 +1427,7 @@
 		<real>0.5</real>
 		<key>max_flight_roll</key>
 		<real>0.5</real>
-		<key>maxFlightSpeed</key>
+		<key>max_flight_speed</key>
 		<real>50</real>
 		<key>model</key>
 		<string>barrel.dat</string>
@@ -1503,7 +1503,7 @@
 		<real>1</real>
 		<key>max_flight_roll</key>
 		<real>2</real>
-		<key>maxFlightSpeed</key>
+		<key>max_flight_speed</key>
 		<real>320</real>
 		<key>missile_launch_position</key>
 		<string>0.0 -4.5 16.5</string>
@@ -1567,7 +1567,7 @@
 		<real>1</real>
 		<key>max_flight_roll</key>
 		<real>2</real>
-		<key>maxFlightSpeed</key>
+		<key>max_flight_speed</key>
 		<real>300</real>
 		<key>missile_launch_position</key>
 		<string>0.0 -4.5 16.5</string>
@@ -1615,7 +1615,7 @@
 		<real>1</real>
 		<key>max_flight_roll</key>
 		<real>2</real>
-		<key>maxFlightSpeed</key>
+		<key>max_flight_speed</key>
 		<real>350</real>
 		<key>max_missiles</key>
 		<integer>4</integer>
@@ -1768,7 +1768,7 @@
 		<real>1</real>
 		<key>max_flight_roll</key>
 		<real>2</real>
-		<key>maxFlightSpeed</key>
+		<key>max_flight_speed</key>
 		<real>300</real>
 		<key>missile_launch_position</key>
 		<string>0.0 -4.5 16.5</string>
@@ -1824,7 +1824,7 @@
 		<real>1.2</real>
 		<key>max_flight_roll</key>
 		<real>2</real>
-		<key>maxFlightSpeed</key>
+		<key>max_flight_speed</key>
 		<real>260</real>
 		<key>missile_launch_position</key>
 		<string>0.0 -2.0 14.0</string>
@@ -1884,7 +1884,7 @@
 		<real>1.2</real>
 		<key>max_flight_roll</key>
 		<real>2</real>
-		<key>maxFlightSpeed</key>
+		<key>max_flight_speed</key>
 		<real>260</real>
 		<key>max_missiles</key>
 		<integer>1</integer>
@@ -1944,7 +1944,7 @@
 		<real>1.2</real>
 		<key>max_flight_roll</key>
 		<real>2</real>
-		<key>maxFlightSpeed</key>
+		<key>max_flight_speed</key>
 		<real>260</real>
 		<key>missile_launch_position</key>
 		<string>0.0 -2.0 14.0</string>
@@ -1990,7 +1990,7 @@
 		<real>1.2</real>
 		<key>max_flight_roll</key>
 		<real>2</real>
-		<key>maxFlightSpeed</key>
+		<key>max_flight_speed</key>
 		<real>260</real>
 		<key>max_missiles</key>
 		<integer>1</integer>
@@ -2150,7 +2150,7 @@
 		<real>1.75</real>
 		<key>max_flight_roll</key>
 		<real>2.5</real>
-		<key>maxFlightSpeed</key>
+		<key>max_flight_speed</key>
 		<real>600</real>
 		<key>max_missiles</key>
 		<integer>3</integer>
@@ -2213,7 +2213,7 @@
 		<real>8</real>
 		<key>max_flight_roll</key>
 		<real>8</real>
-		<key>maxFlightSpeed</key>
+		<key>max_flight_speed</key>
 		<real>0.0</real>
 		<key>max_missiles</key>
 		<integer>0</integer>
@@ -2308,7 +2308,7 @@
 		<real>8</real>
 		<key>max_flight_roll</key>
 		<real>8</real>
-		<key>maxFlightSpeed</key>
+		<key>max_flight_speed</key>
 		<real>0.0</real>
 		<key>max_missiles</key>
 		<integer>0</integer>
@@ -2377,7 +2377,7 @@
 		<real>0.5</real>
 		<key>max_flight_roll</key>
 		<real>0.5</real>
-		<key>maxFlightSpeed</key>
+		<key>max_flight_speed</key>
 		<real>50</real>
 		<key>max_missiles</key>
 		<integer>0</integer>
@@ -2458,7 +2458,7 @@
 		<real>1</real>
 		<key>max_flight_roll</key>
 		<real>3.6000000000000001</real>
-		<key>maxFlightSpeed</key>
+		<key>max_flight_speed</key>
 		<real>300</real>
 		<key>max_missiles</key>
 		<integer>2</integer>
@@ -2507,7 +2507,7 @@
 		<real>1</real>
 		<key>max_flight_roll</key>
 		<real>3.6000000000000001</real>
-		<key>maxFlightSpeed</key>
+		<key>max_flight_speed</key>
 		<real>300</real>
 		<key>max_missiles</key>
 		<integer>2</integer>
@@ -2655,7 +2655,7 @@
 		<real>1.5</real>
 		<key>max_flight_roll</key>
 		<real>3</real>
-		<key>maxFlightSpeed</key>
+		<key>max_flight_speed</key>
 		<real>300</real>
 		<key>max_missiles</key>
 		<integer>1</integer>
@@ -2740,7 +2740,7 @@
 		<real>8</real>
 		<key>max_flight_roll</key>
 		<real>8</real>
-		<key>maxFlightSpeed</key>
+		<key>max_flight_speed</key>
 		<real>0.0</real>
 		<key>max_missiles</key>
 		<integer>0</integer>
@@ -2818,7 +2818,7 @@
 		<real>1.5</real>
 		<key>max_flight_roll</key>
 		<real>2.75</real>
-		<key>maxFlightSpeed</key>
+		<key>max_flight_speed</key>
 		<real>300</real>
 		<key>max_missiles</key>
 		<integer>0</integer>
@@ -2883,7 +2883,7 @@
 		<real>1.4</real>
 		<key>max_flight_roll</key>
 		<real>2.1</real>
-		<key>maxFlightSpeed</key>
+		<key>max_flight_speed</key>
 		<real>320</real>
 		<key>max_missiles</key>
 		<integer>0</integer>
@@ -2944,7 +2944,7 @@
 		<real>1.4</real>
 		<key>max_flight_roll</key>
 		<real>2.1</real>
-		<key>maxFlightSpeed</key>
+		<key>max_flight_speed</key>
 		<real>320</real>
 		<key>max_missiles</key>
 		<integer>0</integer>
@@ -3003,7 +3003,7 @@
 		<real>8</real>
 		<key>max_flight_roll</key>
 		<real>10</real>
-		<key>maxFlightSpeed</key>
+		<key>max_flight_speed</key>
 		<real>750</real>
 		<key>max_missiles</key>
 		<integer>0</integer>
@@ -3058,7 +3058,7 @@
 		<real>1.5</real>
 		<key>max_flight_roll</key>
 		<real>2.5</real>
-		<key>maxFlightSpeed</key>
+		<key>max_flight_speed</key>
 		<real>300</real>
 		<key>max_missiles</key>
 		<integer>2</integer>
@@ -3105,7 +3105,7 @@
 		<real>1.5</real>
 		<key>max_flight_roll</key>
 		<real>2.5</real>
-		<key>maxFlightSpeed</key>
+		<key>max_flight_speed</key>
 		<real>300</real>
 		<key>max_missiles</key>
 		<integer>2</integer>
@@ -3253,7 +3253,7 @@
 		<real>1.5</real>
 		<key>max_flight_roll</key>
 		<real>2.5</real>
-		<key>maxFlightSpeed</key>
+		<key>max_flight_speed</key>
 		<real>300</real>
 		<key>max_missiles</key>
 		<integer>2</integer>
@@ -3300,7 +3300,7 @@
 		<real>1.5</real>
 		<key>max_flight_roll</key>
 		<real>2.5</real>
-		<key>maxFlightSpeed</key>
+		<key>max_flight_speed</key>
 		<real>300</real>
 		<key>max_missiles</key>
 		<integer>2</integer>
@@ -3452,7 +3452,7 @@
 		<real>0.80000000000000004</real>
 		<key>max_flight_roll</key>
 		<real>2</real>
-		<key>maxFlightSpeed</key>
+		<key>max_flight_speed</key>
 		<real>200</real>
 		<key>max_missiles</key>
 		<integer>2</integer>
@@ -3517,7 +3517,7 @@
 		<real>0.80000000000000004</real>
 		<key>max_flight_roll</key>
 		<real>2</real>
-		<key>maxFlightSpeed</key>
+		<key>max_flight_speed</key>
 		<real>200</real>
 		<key>max_missiles</key>
 		<integer>2</integer>
@@ -3564,7 +3564,7 @@
 		<real>0.80000000000000004</real>
 		<key>max_flight_roll</key>
 		<real>2</real>
-		<key>maxFlightSpeed</key>
+		<key>max_flight_speed</key>
 		<real>200</real>
 		<key>max_missiles</key>
 		<integer>2</integer>
@@ -3716,7 +3716,7 @@
 		<real>0.80000000000000004</real>
 		<key>max_flight_roll</key>
 		<real>2</real>
-		<key>maxFlightSpeed</key>
+		<key>max_flight_speed</key>
 		<real>200</real>
 		<key>max_missiles</key>
 		<integer>2</integer>
@@ -3753,7 +3753,7 @@
 		<real>2</real>
 		<key>max_flight_roll</key>
 		<real>2</real>
-		<key>maxFlightSpeed</key>
+		<key>max_flight_speed</key>
 		<real>1000</real>
 		<key>model</key>
 		<string>qbomb.dat</string>
@@ -3800,7 +3800,7 @@
 		<real>8</real>
 		<key>max_flight_roll</key>
 		<real>8</real>
-		<key>maxFlightSpeed</key>
+		<key>max_flight_speed</key>
 		<real>0.0</real>
 		<key>max_missiles</key>
 		<integer>0</integer>
@@ -3856,7 +3856,7 @@
 		<real>0.5</real>
 		<key>max_flight_roll</key>
 		<real>0.5</real>
-		<key>maxFlightSpeed</key>
+		<key>max_flight_speed</key>
 		<real>50</real>
 		<key>missiles</key>
 		<integer>0</integer>
@@ -3900,7 +3900,7 @@
 		<real>0.90000000000000002</real>
 		<key>max_flight_roll</key>
 		<real>2</real>
-		<key>maxFlightSpeed</key>
+		<key>max_flight_speed</key>
 		<real>80</real>
 		<key>max_missiles</key>
 		<integer>0</integer>
@@ -3961,7 +3961,7 @@
 		<real>1.6000000000000001</real>
 		<key>max_flight_roll</key>
 		<real>2.7999999999999998</real>
-		<key>maxFlightSpeed</key>
+		<key>max_flight_speed</key>
 		<real>370</real>
 		<key>max_missiles</key>
 		<integer>0</integer>
@@ -4022,7 +4022,7 @@
 		<real>1.8</real>
 		<key>max_flight_roll</key>
 		<real>2.7999999999999998</real>
-		<key>maxFlightSpeed</key>
+		<key>max_flight_speed</key>
 		<real>370</real>
 		<key>max_missiles</key>
 		<integer>0</integer>
@@ -4083,7 +4083,7 @@
 		<real>1</real>
 		<key>max_flight_roll</key>
 		<real>1</real>
-		<key>maxFlightSpeed</key>
+		<key>max_flight_speed</key>
 		<real>10</real>
 		<key>missiles</key>
 		<integer>0</integer>
@@ -4146,7 +4146,7 @@
 		<real>1</real>
 		<key>max_flight_roll</key>
 		<real>2</real>
-		<key>maxFlightSpeed</key>
+		<key>max_flight_speed</key>
 		<real>450</real>
 		<key>missiles</key>
 		<integer>0</integer>
@@ -4209,7 +4209,7 @@
 		<real>1</real>
 		<key>max_flight_roll</key>
 		<real>2</real>
-		<key>maxFlightSpeed</key>
+		<key>max_flight_speed</key>
 		<real>500</real>
 		<key>max_missiles</key>
 		<integer>5</integer>
@@ -4261,7 +4261,7 @@
 		<real>1</real>
 		<key>max_flight_roll</key>
 		<real>2</real>
-		<key>maxFlightSpeed</key>
+		<key>max_flight_speed</key>
 		<real>100</real>
 		<key>max_missiles</key>
 		<integer>0</integer>
@@ -4327,7 +4327,7 @@
 		<real>1</real>
 		<key>max_flight_roll</key>
 		<real>2</real>
-		<key>maxFlightSpeed</key>
+		<key>max_flight_speed</key>
 		<real>100</real>
 		<key>max_missiles</key>
 		<integer>0</integer>
@@ -4393,7 +4393,7 @@
 		<real>1.8</real>
 		<key>max_flight_roll</key>
 		<real>2.7999999999999998</real>
-		<key>maxFlightSpeed</key>
+		<key>max_flight_speed</key>
 		<real>320</real>
 		<key>max_missiles</key>
 		<integer>1</integer>
@@ -4481,7 +4481,7 @@
 		<real>2</real>
 		<key>max_flight_roll</key>
 		<real>4.2000000000000002</real>
-		<key>maxFlightSpeed</key>
+		<key>max_flight_speed</key>
 		<real>520</real>
 		<key>max_missiles</key>
 		<integer>3</integer>
@@ -4564,7 +4564,7 @@
 		<real>1.8</real>
 		<key>max_flight_roll</key>
 		<real>2.7999999999999998</real>
-		<key>maxFlightSpeed</key>
+		<key>max_flight_speed</key>
 		<real>360</real>
 		<key>max_missiles</key>
 		<integer>1</integer>
@@ -4625,7 +4625,7 @@
 		<real>1</real>
 		<key>max_flight_roll</key>
 		<real>2</real>
-		<key>maxFlightSpeed</key>
+		<key>max_flight_speed</key>
 		<real>110</real>
 		<key>max_missiles</key>
 		<integer>0</integer>
@@ -4688,7 +4688,7 @@
 		<real>1</real>
 		<key>max_flight_roll</key>
 		<real>2</real>
-		<key>maxFlightSpeed</key>
+		<key>max_flight_speed</key>
 		<real>100</real>
 		<key>max_missiles</key>
 		<integer>0</integer>
@@ -4748,7 +4748,7 @@
 		<real>8</real>
 		<key>max_flight_roll</key>
 		<real>10</real>
-		<key>maxFlightSpeed</key>
+		<key>max_flight_speed</key>
 		<real>750</real>
 		<key>max_missiles</key>
 		<integer>0</integer>
@@ -4788,7 +4788,7 @@
 		<real>2.0</real>
 		<key>max_flight_roll</key>
 		<real>2.0</real>
-		<key>maxFlightSpeed</key>
+		<key>max_flight_speed</key>
 		<real>500</real>
 		<key>model</key>
 		<string>wreck1.dat</string>

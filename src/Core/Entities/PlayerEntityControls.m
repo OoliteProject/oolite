@@ -244,18 +244,16 @@ static NSTimeInterval	time_last_frame;
 {
 	MyOpenGLView  *gameView = (MyOpenGLView *)[UNIVERSE gameView];
 
-#if OOLITE_HAVE_JOYSTICK
-   // DJS: TODO: Sort where SDL keeps its stuff.
-   if(!stickHandler)
-   {
-      stickHandler=[gameView getStickHandler];
-   }
-   const BOOL *joyButtonState=[stickHandler getAllButtonStates];
-#endif
-
+	// DJS: TODO: Sort where SDL keeps its stuff.
+	if(!stickHandler)
+	{
+		stickHandler=[gameView getStickHandler];
+	}
+	const BOOL *joyButtonState=[stickHandler getAllButtonStates];
+	
     BOOL paused = [[gameView gameController] game_is_paused];
 	double speed_delta = 5.0 * thrust;
-
+	
 	if (!paused)
 	{
 		//
@@ -273,12 +271,7 @@ static NSTimeInterval	time_last_frame;
 		//if (![gameView allowingStringInput])
 		if (![UNIVERSE displayCursor])
 		{
-			//
-#if OOLITE_HAVE_JOYSTICK
 			if ((joyButtonState[BUTTON_FUELINJECT] || [gameView isDown:key_inject_fuel])&&(has_fuel_injection)&&(!hyperspeed_engaged))
-#else
-			if (([gameView isDown:key_inject_fuel])&&(has_fuel_injection)&&(!hyperspeed_engaged))
-#endif
 			{
 				if ((fuel > 0)&&(!afterburner_engaged))
 				{
@@ -361,11 +354,7 @@ static NSTimeInterval	time_last_frame;
 			//  hyperspeed controls
 			//
 
-#if OOLITE_HAVE_JOYSTICK
 			if ([gameView isDown:key_jumpdrive] || joyButtonState[BUTTON_HYPERSPEED])		// 'j'
-#else
-			if ([gameView isDown:key_jumpdrive])		// 'j'
-#endif
 			{
 				if (!jump_pressed)
 				{
@@ -394,11 +383,7 @@ static NSTimeInterval	time_last_frame;
 			//
 			//  shoot 'a'
 			//
-#if OOLITE_HAVE_JOYSTICK
 			if ((([gameView isDown:key_fire_lasers])||((mouse_control_on)&&([gameView isDown:gvMouseLeftButton]))||joyButtonState[BUTTON_FIRE])&&(shot_time > weapon_reload_time))
-#else
-			if ((([gameView isDown:key_fire_lasers])||((mouse_control_on)&&([gameView isDown:gvMouseLeftButton])))&&(shot_time > weapon_reload_time))
-#endif
 
 			{
 				if ([self fireMainWeapon])
@@ -425,11 +410,7 @@ static NSTimeInterval	time_last_frame;
 			//
 			//  shoot 'm'   // launch missile
 			//
-#if OOLITE_HAVE_JOYSTICK
 			if ([gameView isDown:key_launch_missile] || joyButtonState[BUTTON_LAUNCHMISSILE])
-#else
-			if ([gameView isDown:key_launch_missile])
-#endif
 			{
 				// launch here
 				if (!fire_missile_pressed)
@@ -447,11 +428,7 @@ static NSTimeInterval	time_last_frame;
 			//
 			//  shoot 'y'   // next missile
 			//
-#if OOLITE_HAVE_JOYSTICK
 			if ([gameView isDown:key_next_missile] || joyButtonState[BUTTON_CYCLEMISSILE])
-#else
-			if ([gameView isDown:key_next_missile])
-#endif
 			{
 				if ((!ident_engaged)&&(!next_missile_pressed)&&([self has_extra_equipment:@"EQ_MULTI_TARGET"]))
 				{
@@ -503,11 +480,7 @@ static NSTimeInterval	time_last_frame;
 			//
 			//  shoot 'r'   // switch on ident system
 			//
-#if OOLITE_HAVE_JOYSTICK
 			if ([gameView isDown:key_ident_system] || joyButtonState[BUTTON_ID])
-#else
-			if ([gameView isDown:key_ident_system])
-#endif
 			{
 				// ident 'on' here
 				if (!ident_pressed)
@@ -526,11 +499,7 @@ static NSTimeInterval	time_last_frame;
 			//
 			//  shoot 't'   // switch on missile targetting
 			//
-#if OOLITE_HAVE_JOYSTICK
 			if (([gameView isDown:key_target_missile] || joyButtonState[BUTTON_ARMMISSILE])&&(missile_entity[activeMissile]))
-#else
-			if ([gameView isDown:key_target_missile] && missile_entity[activeMissile])
-#endif
 			{
 				// targetting 'on' here
 				if (!target_missile_pressed)
@@ -574,11 +543,7 @@ static NSTimeInterval	time_last_frame;
 			//
 			//  shoot 'u'   // disarm missile targetting
 			//
-#if OOLITE_HAVE_JOYSTICK
 			if ([gameView isDown:key_untarget_missile] || joyButtonState[BUTTON_UNARM])
-#else
-			if ([gameView isDown:key_untarget_missile])
-#endif
 			{
 				if (!safety_pressed)
 				{
@@ -610,11 +575,7 @@ static NSTimeInterval	time_last_frame;
 			//
 			//  shoot 'e'   // ECM
 			//
-#if OOLITE_HAVE_JOYSTICK
 			if (([gameView isDown:key_ecm] || joyButtonState[BUTTON_ECM])&&(has_ecm))
-#else
-			if ([gameView isDown:key_ecm] && has_ecm)
-#endif
 			{
 				if (!ecm_in_operation)
 				{
@@ -628,11 +589,7 @@ static NSTimeInterval	time_last_frame;
 			//
 			//  shoot 'tab'   // Energy bomb
 			//
-#if OOLITE_HAVE_JOYSTICK
 			if (([gameView isDown:key_energy_bomb] || joyButtonState[BUTTON_ENERGYBOMB])&&(has_energy_bomb))
-#else
-			if ([gameView isDown:key_energy_bomb] && has_energy_bomb)
-#endif
 			{
 				// original energy bomb routine
 				[self fireEnergyBomb];
@@ -641,11 +598,7 @@ static NSTimeInterval	time_last_frame;
 			//
 			//  shoot 'escape'   // Escape pod launch
 			//
-#if OOLITE_HAVE_JOYSTICK
 			if (([gameView isDown:key_launch_escapepod] || joyButtonState[BUTTON_ESCAPE])&&(has_escape_pod)&&([UNIVERSE station]))
-#else
-			if ([gameView isDown:key_launch_escapepod] && has_escape_pod && [UNIVERSE station])
-#endif
 
 			{
 				found_target = [self launchEscapeCapsule];
@@ -653,11 +606,7 @@ static NSTimeInterval	time_last_frame;
 			//
 			//  shoot 'd'   // Dump Cargo
 			//
-#if OOLITE_HAVE_JOYSTICK
 			if (([gameView isDown:key_dump_cargo] || joyButtonState[BUTTON_JETTISON])&&([cargo count] > 0))
-#else
-			if ([gameView isDown:key_dump_cargo] && ([cargo count] > 0))
-#endif
 			{
 				if ([self dumpCargo] != CARGO_NOT_CARGO)
 				{
@@ -679,11 +628,7 @@ static NSTimeInterval	time_last_frame;
 			//
 			// autopilot 'c'
 			//
-#if OOLITE_HAVE_JOYSTICK
 			if ([gameView isDown:key_autopilot] || joyButtonState[BUTTON_DOCKCPU])   // look for the 'c' key
-#else
-			if ([gameView isDown:key_autopilot])   // look for the 'c' key
-#endif
 			{
 				if (has_docking_computer && (!autopilot_key_pressed))   // look for the 'c' key
 				{
@@ -787,11 +732,7 @@ static NSTimeInterval	time_last_frame;
 			//
 			// autopilot 'D'
 			//
-#if OOLITE_HAVE_JOYSTICK
 			if ([gameView isDown:key_autodock] || joyButtonState[BUTTON_DOCKCPUFAST])   // look for the 'D' key
-#else
-			if ([gameView isDown:key_autodock])   // look for the 'D' key
-#endif
 			{
 				if (has_docking_computer && (!fast_autopilot_key_pressed))   // look for the 'D' key
 				{
@@ -839,11 +780,7 @@ static NSTimeInterval	time_last_frame;
 			//
 			// hyperspace 'h'
 			//
-#if OOLITE_HAVE_JOYSTICK
 			if ([gameView isDown:key_hyperspace] || joyButtonState[BUTTON_HYPERDRIVE])   // look for the 'h' key
-#else
-			if ([gameView isDown:key_hyperspace])   // look for the 'h' key
-#endif
 			{
 				if (!hyperspace_pressed)
 				{
@@ -910,11 +847,7 @@ static NSTimeInterval	time_last_frame;
 			//
 			// Galactic hyperspace 'g'
 			//
-#if OOLITE_HAVE_JOYSTICK
 			if (([gameView isDown:key_galactic_hyperspace] || joyButtonState[BUTTON_GALACTICDRIVE])&&(has_galactic_hyperdrive))// look for the 'g' key
-#else
-			if ([gameView isDown:key_galactic_hyperspace] &&(has_galactic_hyperdrive))// look for the 'g' key
-#endif
 			{
 				if (!galhyperspace_pressed)
 				{
@@ -960,11 +893,7 @@ static NSTimeInterval	time_last_frame;
 					//
 			//  shoot '0'   // Cloaking Device
 			//
-#if OOLITE_HAVE_JOYSTICK
 			if (([gameView isDown:key_cloaking_device] || joyButtonState[BUTTON_CLOAK]) && has_cloaking_device)
-#else
-			if ([gameView isDown:key_cloaking_device] && has_cloaking_device)
-#endif
 			{
 				if (!cloak_pressed)
 				{

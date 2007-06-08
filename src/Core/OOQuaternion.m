@@ -310,5 +310,16 @@ void quaternion_rotate_about_axis(Quaternion *quat, Vector axis, GLfloat angle)
 
 NSString *QuaternionDescription(Quaternion quaternion)
 {
-	return [NSString stringWithFormat:@"(%g + %gi + %gj + %gk)", quaternion.w, quaternion.x, quaternion.y, quaternion.z];
+	float			x, y, z;
+	char			xs, ys, zs;
+	
+	x = fabsf(quaternion.x);
+	y = fabsf(quaternion.y);
+	z = fabsf(quaternion.z);
+	
+	xs = (x == quaternion.x) ? '+' : '-';
+	ys = (y == quaternion.y) ? '+' : '-';
+	zs = (z == quaternion.z) ? '+' : '-';
+	
+	return [NSString stringWithFormat:@"(%g %c %gi %c %gj %c %gk)", quaternion.w, xs, x, ys, y, zs, z];
 }

@@ -387,6 +387,7 @@
 		1ADBA5510BD0F173008FC99C /* OOBasicMaterial.m in Sources */ = {isa = PBXBuildFile; fileRef = 1ADBA54F0BD0F173008FC99C /* OOBasicMaterial.m */; };
 		1ADF5CEC0B9DF59A00FDB2A3 /* OOCacheManager.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A231A170B9D8B1B00EF0852 /* OOCacheManager.m */; };
 		1ADF5F130B9E374B00FDB2A3 /* JoystickHandler.h in Headers */ = {isa = PBXBuildFile; fileRef = 1ADF5F110B9E374B00FDB2A3 /* JoystickHandler.h */; };
+		1AE546310C19A2E2005B89F3 /* JoystickHandler.m in Sources */ = {isa = PBXBuildFile; fileRef = 1AE546300C19A2E2005B89F3 /* JoystickHandler.m */; };
 		1AEAAB8F0BA45248000705D0 /* libjs.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 1AEAAB8E0BA45248000705D0 /* libjs.a */; };
 		1AEAAC9E0BA457E7000705D0 /* jsarena.h in Headers */ = {isa = PBXBuildFile; fileRef = 1AEAAC6F0BA457E6000705D0 /* jsarena.h */; };
 		1AEAAC9F0BA457E7000705D0 /* jsarray.h in Headers */ = {isa = PBXBuildFile; fileRef = 1AEAAC700BA457E6000705D0 /* jsarray.h */; };
@@ -1228,6 +1229,7 @@
 		1ADBA54E0BD0F173008FC99C /* OOBasicMaterial.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOBasicMaterial.h; sourceTree = "<group>"; };
 		1ADBA54F0BD0F173008FC99C /* OOBasicMaterial.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOBasicMaterial.m; sourceTree = "<group>"; };
 		1ADF5F110B9E374B00FDB2A3 /* JoystickHandler.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = JoystickHandler.h; sourceTree = "<group>"; };
+		1AE546300C19A2E2005B89F3 /* JoystickHandler.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = JoystickHandler.m; sourceTree = "<group>"; };
 		1AEAAB8E0BA45248000705D0 /* libjs.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libjs.a; path = "deps/Cocoa-deps/js/libjs.a"; sourceTree = "<group>"; };
 		1AEAAC6F0BA457E6000705D0 /* jsarena.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = jsarena.h; sourceTree = "<group>"; };
 		1AEAAC700BA457E6000705D0 /* jsarray.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = jsarray.h; sourceTree = "<group>"; };
@@ -1937,6 +1939,7 @@
 				1A8A3D8F0B9B058500AB7625 /* Audio */,
 				1A8A3D9E0B9B05C400AB7625 /* Groolite */,
 				1ADF5F110B9E374B00FDB2A3 /* JoystickHandler.h */,
+				1AE546300C19A2E2005B89F3 /* JoystickHandler.m */,
 				1A8071D70C0480AC00BA1935 /* Debug */,
 			);
 			name = "Mac-specific";
@@ -2632,6 +2635,7 @@
 				1AED2DE80C046BA2004A1118 /* OODebugController.m in Sources */,
 				1A15044C0C12C50D0032F3E8 /* OOSkyDrawable.m in Sources */,
 				1A15049F0C12CA070032F3E8 /* OOProbabilisticTextureManager.m in Sources */,
+				1AE546310C19A2E2005B89F3 /* JoystickHandler.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

@@ -32,6 +32,7 @@ MA 02110-1301, USA.
 #import "GuiDisplayGen.h"
 #import "OODebugController.h"
 #import <Carbon/Carbon.h>
+#import "JoystickHandler.h"
 
 
 static NSString * kOOLogKeyCodeOutOfRange	= @"input.keyMapping.codeOutOfRange";
@@ -109,7 +110,7 @@ static NSString * kOOLogKeyDown				= @"input.keyMapping.keyPress.keyDown";
 
 - (void)awakeFromNib
 {	
-#ifndef NDEBUG
+#if OO_INCLUDE_DEBUG_CONTROLLER
 	(void)[OODebugController sharedDebugController];
 #endif
 }
@@ -590,7 +591,7 @@ static NSString * kOOLogKeyDown				= @"input.keyMapping.keyPress.keyDown";
 
 - (JoystickHandler *)getStickHandler
 {
-	return nil;
+	return [JoystickHandler sharedStickHandler];
 }
 
 
