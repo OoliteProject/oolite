@@ -466,7 +466,7 @@ static BOOL MaintainLinkedLists(Universe* uni);
 	[player setStatus:STATUS_DOCKED];
 	[self setViewDirection:VIEW_GUI_DISPLAY];
 	[player setPosition:kZeroVector];
-	[player setQRotation:q0];
+	[player setOrientation:q0];
 	[player setGuiToIntro2Screen];
 	[gui setText:(strict)? @"Strict Play Enabled":@"Unrestricted Play Enabled" forRow:1 align:GUI_ALIGN_CENTER];
 	
@@ -687,7 +687,7 @@ static BOOL MaintainLinkedLists(Universe* uni);
 	thing = [[SkyEntity alloc] initWithColors:col1:col2 andSystemInfo: systeminfo];	// alloc retains!
 	[thing setScanClass: CLASS_NO_DRAW];
 	quaternion_set_random(&randomQ);
-	[thing setQRotation:randomQ];
+	[thing setOrientation:randomQ];
 	[self addEntity:thing]; // [entities addObject:thing];
 	[thing release];
 	/*--*/
@@ -741,7 +741,7 @@ static BOOL MaintainLinkedLists(Universe* uni);
 			tharg_pos.z += 1.5 * SCANNER_MAX_RANGE * (randf() - 0.5);
 			[thargoid setPosition:tharg_pos];
 			quaternion_set_random(&tharg_quaternion);
-			[thargoid setQRotation:tharg_quaternion];
+			[thargoid setOrientation:tharg_quaternion];
 			[thargoid setScanClass: CLASS_THARGOID];
 			[thargoid setBounty:100];
 			[thargoid setStatus:STATUS_IN_FLIGHT];
@@ -750,7 +750,7 @@ static BOOL MaintainLinkedLists(Universe* uni);
 			if (thargoid_group == NO_TARGET)
 				thargoid_group = [thargoid universalID];
 			
-			[thargoid setGroup_id:thargoid_group];
+			[thargoid setGroupID:thargoid_group];
 			
 			[thargoid release];
 		}
@@ -870,7 +870,7 @@ static BOOL MaintainLinkedLists(Universe* uni);
 		
 		quaternion_set_random(&q_sun);
 		// set up planet's direction in space so it gets a proper day
-		[a_planet setQRotation:q_sun];
+		[a_planet setOrientation:q_sun];
 		
 		vf = vector_right_from_quaternion(q_sun);
 		sunPos.x -= sun_distance * vf.x;	// back off from the planet by 16..24 pr
@@ -932,7 +932,7 @@ static BOOL MaintainLinkedLists(Universe* uni);
 	if (a_station)
 	{
 		[a_station setStatus:STATUS_ACTIVE];
-		[a_station setQRotation: q_station];
+		[a_station setOrientation: q_station];
 		[a_station setPosition: stationPos];
 		[a_station setPitch: 0.0];
 		[a_station setScanClass: CLASS_STATION];
@@ -1261,10 +1261,10 @@ GLfloat docked_light_specular[]	= { (GLfloat) 1.0, (GLfloat) 1.0, (GLfloat) 0.5,
 			[trader_ship setCargoFlag:CARGO_FLAG_FULL_SCARCE];
 			[trader_ship setStatus:STATUS_IN_FLIGHT];
 			
-			if (([trader_ship n_escorts] > 0)&&((ranrot_rand() % 7) < government))	// remove escorts if we feel safe
+			if (([trader_ship escortCount] > 0)&&((ranrot_rand() % 7) < government))	// remove escorts if we feel safe
 			{
-				int nx = [trader_ship n_escorts] - 2 * (1 + (ranrot_rand() & 3));	// remove 2,4,6, or 8 escorts
-				[trader_ship setN_escorts:(nx > 0) ? nx : 0];
+				int nx = [trader_ship escortCount] - 2 * (1 + (ranrot_rand() & 3));	// remove 2,4,6, or 8 escorts
+				[trader_ship setEscortCount:(nx > 0) ? nx : 0];
 			}
 			
 			//[trader_ship setReportAImessages: (i == 0) ? YES:NO ]; // debug
@@ -1328,7 +1328,7 @@ GLfloat docked_light_specular[]	= { (GLfloat) 1.0, (GLfloat) 1.0, (GLfloat) 0.5,
 			{
 				wolfPackGroup_id = [pirate_ship universalID];
 			}
-			[pirate_ship setGroup_id:wolfPackGroup_id];
+			[pirate_ship setGroupID:wolfPackGroup_id];
 			
 			[[pirate_ship getAI] setStateMachine:@"pirateAI.plist"];	// must happen after adding to the universe!
 			[pirate_ship release];
@@ -1370,11 +1370,11 @@ GLfloat docked_light_specular[]	= { (GLfloat) 1.0, (GLfloat) 1.0, (GLfloat) 0.5,
 				[hunter_ship setRoles:@"police"];
 				if (hunter_ship->scanClass == CLASS_NOT_SET)
 					[hunter_ship setScanClass: CLASS_POLICE];
-				while (((ranrot_rand() & 7) < government - 2)&&([hunter_ship n_escorts] < 6))
+				while (((ranrot_rand() & 7) < government - 2)&&([hunter_ship escortCount] < 6))
 				{
-					[hunter_ship setN_escorts:[hunter_ship n_escorts] + 2];
+					[hunter_ship setEscortCount:[hunter_ship escortCount] + 2];
 				}
-				escorts_added = [hunter_ship n_escorts];
+				escorts_added = [hunter_ship escortCount];
 			}
 		}
 		else
@@ -1500,10 +1500,10 @@ GLfloat docked_light_specular[]	= { (GLfloat) 1.0, (GLfloat) 1.0, (GLfloat) 0.5,
 			[trader_ship setCargoFlag:CARGO_FLAG_FULL_PLENTIFUL];
 			[trader_ship setStatus:STATUS_IN_FLIGHT];
 			
-			if (([trader_ship n_escorts] > 0)&&((ranrot_rand() % 7) < government))	// remove escorts if we feel safe
+			if (([trader_ship escortCount] > 0)&&((ranrot_rand() % 7) < government))	// remove escorts if we feel safe
 			{
-				int nx = [trader_ship n_escorts] - 2 * (1 + (ranrot_rand() & 3));	// remove 2,4,6, or 8 escorts
-				[trader_ship setN_escorts:(nx > 0) ? nx : 0];
+				int nx = [trader_ship escortCount] - 2 * (1 + (ranrot_rand() & 3));	// remove 2,4,6, or 8 escorts
+				[trader_ship setEscortCount:(nx > 0) ? nx : 0];
 			}
 			
 			[self addEntity:trader_ship];
@@ -1566,7 +1566,7 @@ GLfloat docked_light_specular[]	= { (GLfloat) 1.0, (GLfloat) 1.0, (GLfloat) 0.5,
 			if (wolfPackCounter == 0)	// first ship
 				wolfPackGroup_id = [pirate_ship universalID];
 
-			[pirate_ship setGroup_id:wolfPackGroup_id];
+			[pirate_ship setGroupID:wolfPackGroup_id];
 			
 			[[pirate_ship getAI] setStateMachine:@"pirateAI.plist"];	// must happen after adding to the universe!
 			[pirate_ship release];
@@ -1609,11 +1609,11 @@ GLfloat docked_light_specular[]	= { (GLfloat) 1.0, (GLfloat) 1.0, (GLfloat) 0.5,
 				[hunter_ship setRoles:@"police"];
 				if (hunter_ship->scanClass == CLASS_NOT_SET)
 					[hunter_ship setScanClass: CLASS_POLICE];
-				while (((ranrot_rand() & 7) < government - 2)&&([hunter_ship n_escorts] < 6))
+				while (((ranrot_rand() & 7) < government - 2)&&([hunter_ship escortCount] < 6))
 				{
-					[hunter_ship setN_escorts:[hunter_ship n_escorts] + 2];
+					[hunter_ship setEscortCount:[hunter_ship escortCount] + 2];
 				}
-				escorts_added = [hunter_ship n_escorts];
+				escorts_added = [hunter_ship escortCount];
 			}
 		}
 		else
@@ -2129,7 +2129,7 @@ GLfloat docked_light_specular[]	= { (GLfloat) 1.0, (GLfloat) 1.0, (GLfloat) 0.5,
 		
 		Quaternion qr;
 		quaternion_set_random(&qr);
-		[ship setQRotation:qr];
+		[ship setOrientation:qr];
 		
 		[self addEntity:ship];
 		[[ship getAI] setState:@"GLOBAL"];	// must happen after adding to the universe!
@@ -2306,7 +2306,7 @@ GLfloat docked_light_specular[]	= { (GLfloat) 1.0, (GLfloat) 1.0, (GLfloat) 0.5,
 			if (check < 0)
 				quaternion_rotate_about_axis(&q1, vector_right_from_quaternion(q1), M_PI);	// 180 degree flip
 			
-			[ship setQRotation:q1];
+			[ship setOrientation:q1];
 		}
 	}
 
@@ -2377,7 +2377,7 @@ GLfloat docked_light_specular[]	= { (GLfloat) 1.0, (GLfloat) 1.0, (GLfloat) 0.5,
 		if (ship->scanClass <= CLASS_NO_DRAW)
 			[ship setScanClass: CLASS_NEUTRAL];
 		[ship setPosition:spawn_pos];
-		[ship setQRotation:spawn_q];
+		[ship setOrientation:spawn_q];
 		[self addEntity:ship];
 		[[ship getAI] setState:@"GLOBAL"];	// must happen after adding to the universe!
 		[ship setStatus:STATUS_IN_FLIGHT];
@@ -2401,7 +2401,7 @@ GLfloat docked_light_specular[]	= { (GLfloat) 1.0, (GLfloat) 1.0, (GLfloat) 0.5,
 	{
 		ring = [[RingEntity alloc] init];
 		[ring setPositionX:pos.x+v.x*i*50.0 y:pos.y+v.y*i*50.0 z:pos.z+v.z*i*50.0]; // ahead of the player
-		[ring setQRotation:q];
+		[ring setOrientation:q];
 		[ring setVelocity:v];
 		[ring setLifetime:i*50.0];
 		[ring setScanClass: CLASS_NO_DRAW];
@@ -2462,7 +2462,7 @@ GLfloat docked_light_specular[]	= { (GLfloat) 1.0, (GLfloat) 1.0, (GLfloat) 0.5,
 	if (ship)
 	{
 		[ship setStatus: STATUS_COCKPIT_DISPLAY];
-		[ship setQRotation:q2];
+		[ship setOrientation:q2];
 		[ship setPositionX:0.0f y:0.0f z:3.6f * ship->actual_radius];	// some way ahead
 		
 		[ship setScanClass: CLASS_NO_DRAW];
@@ -2502,7 +2502,7 @@ GLfloat docked_light_specular[]	= { (GLfloat) 1.0, (GLfloat) 1.0, (GLfloat) 0.5,
 	ship = [self newShipWithName:[demo_ships objectAtIndex:0]];   // retain count = 1
 	if (ship)
 	{
-		[ship setQRotation:q2];
+		[ship setOrientation:q2];
 		[ship setPositionX:0.0f y:0.0f z:3.6f * ship->actual_radius];
 		[ship setDestination: ship->position];	// ideal position
 		
@@ -4526,7 +4526,7 @@ static BOOL MaintainLinkedLists(Universe* uni)
 	ShipEntity  *hit_subentity = nil;
 	
 	Vector p0 = e1->position;
-	Quaternion q1 = e1->q_rotation;
+	Quaternion q1 = e1->orientation;
 	if (e1->isPlayer)
 		q1.w = -q1.w;   //  reverse for player viewpoint
 	
@@ -4536,7 +4536,7 @@ static BOOL MaintainLinkedLists(Universe* uni)
 		BoundingBox bbox = [e1 boundingBox];
 		Vector midfrontplane = make_vector( 0.5 * (bbox.max.x + bbox.min.x), 0.5 * (bbox.max.y + bbox.min.y), bbox.max.z);
 		p0 = [(ShipEntity*)e1 absolutePositionForSubentityOffset:midfrontplane];
-		q1 = parent->q_rotation;
+		q1 = parent->orientation;
 		if (parent->isPlayer)
 			q1.w = -q1.w;
 		isSubentity = YES;
@@ -4545,7 +4545,7 @@ static BOOL MaintainLinkedLists(Universe* uni)
 	int		result = NO_TARGET;
 	double  nearest;
 	if (e1->isShip)
-		nearest = [(ShipEntity *)e1 weapon_range];
+		nearest = [(ShipEntity *)e1 weaponRange];
 	else
 		nearest = PARTICLE_LASER_LENGTH;
 	
@@ -4586,7 +4586,7 @@ static BOOL MaintainLinkedLists(Universe* uni)
 	{
 		ShipEntity *e2 = my_entities[i];
 		
-		debug_laser = ((e1->isPlayer) && ([(ShipEntity*)e1 getPrimaryTargetID] == [e2 universalID]));
+		debug_laser = ((e1->isPlayer) && ([(ShipEntity*)e1 primaryTargetID] == [e2 universalID]));
 		
 		// check outermost bounding sphere
 		GLfloat cr = e2->collision_radius;
@@ -4654,7 +4654,7 @@ static BOOL MaintainLinkedLists(Universe* uni)
 			my_entities[ship_count++] = [sortedEntities[i] retain];	// retained
 
 	Vector p1 = player->position;
-	Quaternion q1 = player->q_rotation;
+	Quaternion q1 = player->orientation;
 	q1.w = -q1.w;   //  reverse for player viewpoint
 	Vector u1 = vector_up_from_quaternion(q1);
 	Vector f1 = vector_forward_from_quaternion(q1);
@@ -5197,7 +5197,7 @@ static BOOL MaintainLinkedLists(Universe* uni)
 							{
 								[self addEntity:demo_ship];
 								[[demo_ship getAI] setStateMachine:@"nullAI.plist"];
-								[demo_ship setQRotation:q2];
+								[demo_ship setOrientation:q2];
 								[demo_ship setPositionX:0.0f y:0.0f z:DEMO2_VANISHING_DISTANCE * demo_ship->actual_radius];
 								[demo_ship setDestination: make_vector( 0.0f, 0.0f, DEMO2_VANISHING_DISTANCE * 0.01f * demo_ship->actual_radius)];	// ideal position
 								vel = make_vector(0, 0, -DEMO2_VANISHING_DISTANCE * demo_ship->actual_radius);
@@ -7251,10 +7251,8 @@ NSComparisonResult comparePrice(NSDictionary *dict1, NSDictionary *dict2, void *
 	}
 
 	// speed
-	int top_speed = 0;
-	if ([dict objectForKey:@"max_flight_speed"])
-		top_speed = [(NSNumber*)[dict objectForKey:@"max_flight_speed"] intValue];
-	[desc appendFormat:@" Top speed %.3 fLS.", 0.001 * top_speed];
+	float top_speed = [dict intForKey:@"max_flight_speed"];
+	[desc appendFormat:@" Top speed %.3fLS.", 0.001 * top_speed];
 
 	// passenger berths
 	if ([mut_extras count])

@@ -51,7 +51,7 @@ MA 02110-1301, USA.
 	Vector				destination;		// for flying to or from a set point, need not be used
 	OOUniversalID		target_id;			// was primaryTarget;		// for combat or rendezvous, may be NO_TARGET
 	GLfloat				desired_range;		// range to which to journey/scan
-	GLfloat				desired_speed;		// speed at which to travel, may be much greater than max_flight_speed of ship
+	GLfloat				desired_speed;		// speed at which to travel, may be much greater than maxFlightSpeed of ship
 	OOBehaviour			behaviour;			// ship's intended behavioural state if this instinct is followed
 
 	Vector				saved_destination;

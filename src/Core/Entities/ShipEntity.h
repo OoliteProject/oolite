@@ -115,8 +115,8 @@ MA 02110-1301, USA.
 	NSDictionary			*dockingInstructions;
 	
 	int						escort_ids[MAX_ESCORTS];	// replaces the mutable array
-	int						n_escorts;					// initially, number of escorts to set up, later number of escorts available
-	int						group_id;					// id of group leader
+	int						escortCount;					// initially, number of escorts to set up, later number of escorts available
+	int						groupID;					// id of group leader
 	int						last_escort_target;			// last target an escort was deployed after
 	int						found_hostiles;				// number of hostiles found
 	
@@ -124,7 +124,7 @@ MA 02110-1301, USA.
 	
 	// per ship-type variables
 	//
-	GLfloat					max_flight_speed;			// top speed			(160.0 for player)  (200.0 for fast raider)
+	GLfloat					maxFlightSpeed;			// top speed			(160.0 for player)  (200.0 for fast raider)
 	GLfloat					max_flight_roll;			// maximum roll rate	(2.0 for player)	(3.0 for fast raider)
 	GLfloat					max_flight_pitch;			// maximum pitch rate   (1.0 for player)	(1.5 for fast raider) also radians/sec for (* turrets *)
 	GLfloat					max_flight_yaw;
@@ -181,9 +181,9 @@ MA 02110-1301, USA.
 	OOWeaponType			forward_weapon_type;		// type of forward weapon (allows lasers, plasma cannon, others)
 	OOWeaponType			aft_weapon_type;			// type of aft weapon (allows lasers, plasma cannon, others)
 	GLfloat					weapon_energy;				// energy used/delivered by weapon
-	GLfloat					weapon_range;				// range of the weapon (in meters)
+	GLfloat					weaponRange;				// range of the weapon (in meters)
 	
-	GLfloat					scanner_range;				// typically 25600
+	GLfloat					scannerRange;				// typically 25600
 	
 	int						missiles;					// number of on-board missiles
 	
@@ -224,16 +224,16 @@ MA 02110-1301, USA.
 														// or gem stones GRAMS (2)
 	
 	// navigation
-	GLfloat					flight_speed;				// current speed
-	GLfloat					flight_roll;				// current roll rate
-	GLfloat					flight_pitch;				// current pitch rate
-	GLfloat					flight_yaw;					// current yaw rate
+	GLfloat					flightSpeed;				// current speed
+	GLfloat					flightRoll;				// current roll rate
+	GLfloat					flightPitch;				// current pitch rate
+	GLfloat					flightYaw;					// current yaw rate
 	
 	GLfloat					pitch_tolerance;
 	
 	OOAegisStatus			aegis_status;				// set to YES when within the station's protective zone
 	
-	double					message_time;				// counts down the seconds a radio message is active for
+	double					messageTime;				// counts down the seconds a radio message is active for
 	
 	double					next_spark_time;			// time of next spark when throwing sparks
 	
@@ -289,87 +289,61 @@ MA 02110-1301, USA.
 }
 
 // ship brains
-- (OOBrain*)	brain;
-- (void)		setBrain:(OOBrain*) aBrain;
+- (OOBrain *)brain;
+- (void)setBrain:(OOBrain*) aBrain;
 
 - (OOMesh *)mesh;
 - (void)setMesh:(OOMesh *)mesh;
 
 // octree collision hunting
-- (GLfloat) doesHitLine:(Vector) v0: (Vector) v1;
-- (GLfloat) doesHitLine:(Vector) v0: (Vector) v1 :(ShipEntity**) hitEntity;
-- (GLfloat) doesHitLine:(Vector) v0: (Vector) v1 withPosition:(Vector) o andIJK:(Vector) i :(Vector) j :(Vector) k;	// for subentities
+- (GLfloat)doesHitLine:(Vector) v0: (Vector) v1;
+- (GLfloat)doesHitLine:(Vector) v0: (Vector) v1 :(ShipEntity**) hitEntity;
+- (GLfloat)doesHitLine:(Vector) v0: (Vector) v1 withPosition:(Vector) o andIJK:(Vector) i :(Vector) j :(Vector) k;	// for subentities
 
-- (Vector)	absoluteTractorPosition;
+- (Vector)absoluteTractorPosition;
 
 	// beacons
-- (NSString*)	beaconCode;
-- (BOOL)	isBeacon;
-- (char)	beaconChar;
-- (void)	setBeaconChar:(char) bchar;
-- (int)		nextBeaconID;
-- (void)	setNextBeacon:(ShipEntity*) beaconShip;
+- (NSString *)beaconCode;
+- (BOOL)isBeacon;
+- (char)beaconChar;
+- (void)setBeaconChar:(char) bchar;
+- (int)nextBeaconID;
+- (void)setNextBeacon:(ShipEntity*) beaconShip;
 
 - (void) setUpEscorts;
 
-- (id) initWithDictionary:(NSDictionary *) dict;
-- (void) setUpShipFromDictionary:(NSDictionary *) dict;
-- (NSDictionary*)	 shipInfoDictionary;
+- (id)initWithDictionary:(NSDictionary *) dict;
+- (void)setUpShipFromDictionary:(NSDictionary *) dict;
+- (NSDictionary *)shipInfoDictionary;
 
 - (void) setDefaultWeaponOffsets;
 
 - (BOOL)isFrangible;
 - (BOOL)isCloaked;
 
-////////////////
-//            //
-// behaviours //
-//            //
+// Behaviours
 - (void) behaviour_stop_still:(double) delta_t;
-//            //
 - (void) behaviour_idle:(double) delta_t;
-//            //
 - (void) behaviour_tumble:(double) delta_t;
-//            //
 - (void) behaviour_tractored:(double) delta_t;
-//            //
 - (void) behaviour_track_target:(double) delta_t;
-//            //
 - (void) behaviour_intercept_target:(double) delta_t;
-//            //
 - (void) behaviour_attack_target:(double) delta_t;
-//            //
 - (void) behaviour_fly_to_target_six:(double) delta_t;
-//            //
 - (void) behaviour_attack_mining_target:(double) delta_t;
-//            //
 - (void) behaviour_attack_fly_to_target:(double) delta_t;
-//            //
 - (void) behaviour_attack_fly_from_target:(double) delta_t;
-//            //
 - (void) behaviour_running_defense:(double) delta_t;
-//            //
 - (void) behaviour_flee_target:(double) delta_t;
-//            //
 - (void) behaviour_fly_range_from_destination:(double) delta_t;
-//            //
 - (void) behaviour_face_destination:(double) delta_t;
-//            //
 - (void) behaviour_formation_form_up:(double) delta_t;
-//            //
 - (void) behaviour_fly_to_destination:(double) delta_t;
-//            //
 - (void) behaviour_fly_from_destination:(double) delta_t;
-//            //
 - (void) behaviour_avoid_collision:(double) delta_t;
-//            //
 - (void) behaviour_track_as_turret:(double) delta_t;
-//            //
 - (void) behaviour_fly_thru_navpoints:(double) delta_t;
-//            //
 - (void) behaviour_experimental:(double) delta_t;
-//            //
-////////////////
 
 
 - (void) resetTracking;
@@ -380,23 +354,22 @@ MA 02110-1301, USA.
 - (BOOL) hasMilitaryScannerFilter;
 
 - (void) addExhaust:(ParticleEntity *) exhaust;
-- (void) addExhaustAt:(Vector) ex_position withScale:(Vector) ex_scale;
 
 - (void) applyThrust:(double) delta_t;
 
 - (void) avoidCollision;
 - (void) resumePostProximityAlert;
 
-- (double) message_time;
-- (void) setMessage_time:(double) value;
+- (double) messageTime;
+- (void) setMessageTime:(double) value;
 
-- (int) group_id;
-- (void) setGroup_id:(int) value;
+- (int) groupID;
+- (void) setGroupID:(int) value;
 
-- (int) n_escorts;
-- (void) setN_escorts:(int) value;
+- (int) escortCount;
+- (void) setEscortCount:(int) value;
 
-- (ShipEntity*) proximity_alert;
+- (ShipEntity *) proximity_alert;
 - (void) setProximity_alert:(ShipEntity*) other;
 
 - (NSString *) name;
@@ -406,11 +379,11 @@ MA 02110-1301, USA.
 
 - (BOOL) hasHostileTarget;
 
-- (GLfloat) weapon_range;
-- (void) setWeaponRange: (GLfloat) value;
-- (void) set_weapon_data_from_type: (int) weapon_type;
+- (GLfloat) weaponRange;
+- (void) setWeaponRange:(GLfloat) value;
+- (void) setWeaponDataFromType:(int) weapon_type;
 
-- (GLfloat) scanner_range;
+- (GLfloat) scannerRange;
 - (void) setScannerRange: (GLfloat) value;
 
 - (Vector) reference;
@@ -420,7 +393,7 @@ MA 02110-1301, USA.
 - (void) setReportAImessages:(BOOL) yn;
 
 - (OOAegisStatus) checkForAegis;
-- (BOOL) within_station_aegis;
+- (BOOL) withinStationAegis;
 
 - (NSArray*) crew;
 - (void) setCrew: (NSArray*) crewArray;
@@ -439,7 +412,7 @@ MA 02110-1301, USA.
 
 - (void) setBounty:(OOCreditsQuantity) amount;
 - (OOCreditsQuantity) getBounty;
-- (int) legal_status;
+- (int) legalStatus;
 
 - (void) setCommodity:(int) co_type andAmount:(int) co_amount;
 - (int) getCommodityType;
@@ -447,7 +420,7 @@ MA 02110-1301, USA.
 
 - (OOCargoQuantity) getMaxCargo;
 - (OOCargoType) getCargoType;
-- (NSMutableArray*) cargo;
+- (NSMutableArray *) cargo;
 - (void) setCargo:(NSArray *) some_cargo;
 
 - (OOCargoFlag) cargoFlag;
@@ -465,11 +438,11 @@ MA 02110-1301, USA.
 - (void) increase_flight_yaw:(double) delta;
 - (void) decrease_flight_yaw:(double) delta;
 
-- (GLfloat) flight_roll;
-- (GLfloat) flight_pitch;
-- (GLfloat) flight_yaw;
-- (GLfloat) flight_speed;
-- (GLfloat) max_flight_speed;
+- (GLfloat) flightRoll;
+- (GLfloat) flightPitch;
+- (GLfloat) flightYaw;
+- (GLfloat) flightSpeed;
+- (GLfloat) maxFlightSpeed;
 - (GLfloat) speedFactor;
 
 - (void) setTemperature:(GLfloat) value;
@@ -497,11 +470,11 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 
 - (Triangle) absoluteIJKForSubentity;
 
-- (void) addSolidSubentityToCollisionRadius:(ShipEntity*) subent;
+- (void) addSolidSubentityToCollisionRadius:(ShipEntity *)subent;
 
-ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other);
+ShipEntity *doOctreesCollide(ShipEntity *prime, ShipEntity *other);
 
-- (NSComparisonResult) compareBeaconCodeWith:(ShipEntity*) other;
+- (NSComparisonResult) compareBeaconCodeWith:(ShipEntity *)other;
 
 - (float)laserHeatLevel;
 - (float)hullHeatLevel;
@@ -529,7 +502,7 @@ BOOL	class_masslocks(int some_class);
 - (void) addTarget:(Entity *) targetEntity;
 - (void) removeTarget:(Entity *) targetEntity;
 - (Entity *) getPrimaryTarget;
-- (int) getPrimaryTargetID;
+- (int) primaryTargetID;
 
 - (OOBehaviour) behaviour;
 - (void) setBehaviour:(OOBehaviour) cond;
@@ -546,7 +519,6 @@ BOOL	class_masslocks(int some_class);
 //- (double) trackPosition:(Vector) track_pos :(double) delta_t :(BOOL) retreat;
 
 - (Vector) destination;
-- (Vector) one_km_six;
 - (Vector) distance_six: (GLfloat) dist;
 - (Vector) distance_twelve: (GLfloat) dist;
 

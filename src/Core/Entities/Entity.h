@@ -57,7 +57,7 @@ typedef struct
 {
 	double					timeframe;		// universal time for this frame
 	Vector					position;		// position
-	Quaternion				q_rotation;		// rotation
+	Quaternion				orientation;		// rotation
 	Vector					k;				// direction vectors
 } Frame;
 
@@ -103,7 +103,7 @@ extern int debug;
 	GLfloat					collision_radius;
 	GLfloat					actual_radius;
 	Vector					position;
-	Quaternion				q_rotation;
+	Quaternion				orientation;
 	
 	int						zero_index;
 	
@@ -196,8 +196,8 @@ extern int debug;
 
 - (GLfloat) mass;
 
-- (void) setQRotation:(Quaternion) quat;
-- (Quaternion) QRotation;
+- (void) setOrientation:(Quaternion) quat;
+- (Quaternion) orientation;
 
 - (void) setVelocity:(Vector)vel;
 - (Vector) velocity;

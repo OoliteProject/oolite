@@ -127,7 +127,7 @@ MA 02110-1301, USA.
 		pos.y += v1.y * d1;
 		pos.z += v1.z * d1;
 		[ship setPosition: pos];
-		[ship setQRotation: [UNIVERSE getWitchspaceExitRotation]];
+		[ship setOrientation: [UNIVERSE getWitchspaceExitRotation]];
 		[ship setPitch: 0.0];
 		[ship setRoll: 0.0];
 		

@@ -88,10 +88,10 @@ void setUpSinTable()
 	//
 	scanClass = CLASS_NO_DRAW;
 	//
-	q_rotation.w =  M_SQRT1_2;		// represents a 90 degree rotation around x axis
-	q_rotation.x =  M_SQRT1_2;		// (I hope!)
-	q_rotation.y =  0.0;
-	q_rotation.z =  0.0;
+	orientation.w =  M_SQRT1_2;		// represents a 90 degree rotation around x axis
+	orientation.x =  M_SQRT1_2;		// (I hope!)
+	orientation.y =  0.0;
+	orientation.z =  0.0;
 	//
 	planet_type =   PLANET_TYPE_GREEN;
 	//
@@ -309,7 +309,7 @@ void setUpSinTable()
 	[self setOwner: planet];
     //
 	position = planet->position;
-	q_rotation = planet->q_rotation;
+	orientation = planet->orientation;
 	
 	if (planet->planet_type == PLANET_TYPE_GREEN)
 		collision_radius = planet->collision_radius + ATMOSPHERE_DEPTH; //  atmosphere is 500m deep only
@@ -322,10 +322,10 @@ void setUpSinTable()
 
 	scanClass = CLASS_NO_DRAW;
 	//
-	q_rotation.w =  aleph;		// represents a 90 degree rotation around x axis
-	q_rotation.x =  aleph;		// (I hope!)
-	q_rotation.y =  0.0;
-	q_rotation.z =  0.0;
+	orientation.w =  aleph;		// represents a 90 degree rotation around x axis
+	orientation.x =  aleph;		// (I hope!)
+	orientation.y =  0.0;
+	orientation.z =  0.0;
 	//
 	planet_type =   PLANET_TYPE_ATMOSPHERE;
 	//
@@ -398,10 +398,10 @@ void setUpSinTable()
 	//
 	scanClass = CLASS_NO_DRAW;
 	//
-	q_rotation.w =  aleph;		// represents a 90 degree rotation around x axis
-	q_rotation.x =  aleph;		// (I hope!)
-	q_rotation.y =  0.0;
-	q_rotation.z =  0.0;
+	orientation.w =  aleph;		// represents a 90 degree rotation around x axis
+	orientation.x =  aleph;		// (I hope!)
+	orientation.y =  0.0;
+	orientation.z =  0.0;
 	//
 	planet_type =   PLANET_TYPE_GREEN;  // generic planet type
 	//
@@ -559,10 +559,10 @@ void setUpSinTable()
 	scanClass = CLASS_NO_DRAW;
 	status = STATUS_COCKPIT_DISPLAY;
 	//
-	q_rotation.w =  aleph;		// represents a 90 degree rotation around x axis
-	q_rotation.x =  aleph;		// (I hope!)
-	q_rotation.y =  0.0;
-	q_rotation.z =  0.0;
+	orientation.w =  aleph;		// represents a 90 degree rotation around x axis
+	orientation.x =  aleph;		// (I hope!)
+	orientation.y =  0.0;
+	orientation.z =  0.0;
 	//
 	planet_type = PLANET_TYPE_MINIATURE;  // generic planet type
 	//
@@ -670,10 +670,10 @@ void setUpSinTable()
 	//
 	scanClass = CLASS_NO_DRAW;
 	//
-	q_rotation.w =  aleph;		// represents a 90 degree rotation around x axis
-	q_rotation.x =  aleph;		// (I hope!)
-	q_rotation.y =  0.0;
-	q_rotation.z =  0.0;
+	orientation.w =  aleph;		// represents a 90 degree rotation around x axis
+	orientation.x =  aleph;		// (I hope!)
+	orientation.y =  0.0;
+	orientation.z =  0.0;
 	//
 	planet_type =   PLANET_TYPE_GREEN;  // generic planet type
 	//
@@ -835,10 +835,10 @@ void setUpSinTable()
 	//
 	scanClass = CLASS_NO_DRAW;
 	//
-	q_rotation.w =  aleph;		// represents a 90 degree rotation around x axis
-	q_rotation.x =  aleph;		// (I hope!)
-	q_rotation.y =  0.0;
-	q_rotation.z =  0.0;
+	orientation.w =  aleph;		// represents a 90 degree rotation around x axis
+	orientation.x =  aleph;		// (I hope!)
+	orientation.y =  0.0;
+	orientation.z =  0.0;
 	//
 	planet_type =   PLANET_TYPE_GREEN;  // generic planet type
 	//
@@ -1040,9 +1040,9 @@ void setUpSinTable()
 		//
 		case PLANET_TYPE_MINIATURE :
 		// normal planetary rotation
-		quaternion_rotate_about_y( &q_rotation, rotational_velocity * delta_t);
-		quaternion_normalize(&q_rotation);
-		quaternion_into_gl_matrix(q_rotation, rotMatrix);
+		quaternion_rotate_about_y( &orientation, rotational_velocity * delta_t);
+		quaternion_normalize(&orientation);
+		quaternion_into_gl_matrix(orientation, rotMatrix);
 
 		if (atmosphere)
 		{
@@ -1063,9 +1063,9 @@ void setUpSinTable()
 		case PLANET_TYPE_ATMOSPHERE :
 		{
 			// atmospheric rotation
-			quaternion_rotate_about_y( &q_rotation, rotational_velocity * delta_t);
-			quaternion_normalize(&q_rotation);
-			quaternion_into_gl_matrix(q_rotation, rotMatrix);
+			quaternion_rotate_about_y( &orientation, rotational_velocity * delta_t);
+			quaternion_normalize(&orientation);
+			quaternion_into_gl_matrix(orientation, rotMatrix);
 		}
 		break;
 
@@ -1738,7 +1738,7 @@ void drawActiveCorona (double inner_radius, double outer_radius, int step, doubl
 				andOriginalSystem: [UNIVERSE systemSeed]]]];
 				
 		[shuttle_ship setPosition:launch_pos];
-		[shuttle_ship setQRotation:q1];
+		[shuttle_ship setOrientation:q1];
 
 		[shuttle_ship setScanClass: CLASS_NEUTRAL];
 

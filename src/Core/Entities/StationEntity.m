@@ -85,7 +85,7 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 {
 	double buoy_distance = 10000.0;				// distance from station entrance
 	Vector result = position;
-	Vector v_f = vector_forward_from_quaternion(q_rotation);
+	Vector v_f = vector_forward_from_quaternion(orientation);
 	result.x += buoy_distance * v_f.x;
 	result.y += buoy_distance * v_f.y;
 	result.z += buoy_distance * v_f.z;
@@ -297,7 +297,7 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 	int			ship_id = [ship universalID];
 	NSString*   shipID = [NSString stringWithFormat:@"%d", ship_id];
 
-	Vector launchVector = vector_forward_from_quaternion( quaternion_multiply(port_qrotation, q_rotation));
+	Vector launchVector = vector_forward_from_quaternion( quaternion_multiply(port_qrotation, orientation));
 	Vector temp = (fabsf(launchVector.x) < 0.8)? make_vector(1,0,0) : make_vector(0,1,0);
 	temp = cross_product( launchVector, temp);	// 90 deg to launchVector & temp
 	Vector vi = cross_product( launchVector, temp);
@@ -307,7 +307,7 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 	if (!ship)
 		return nil;
 	
-	if ((ship->isPlayer)&&([ship legal_status] > 50))	// note: non-player fugitives dock as normal
+	if ((ship->isPlayer)&&([ship legalStatus] > 50))	// note: non-player fugitives dock as normal
 	{
 		// refuse docking to the fugitive player
 		return instructions( universalID, ship->position, 0, 100, @"DOCKING_REFUSED", @"[station-docking-refused-to-fugitive]", NO);
@@ -329,7 +329,7 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 		return instructions( universalID, ship->position, 0, 100, @"HOLD_POSITION", nil, NO);
 	}
 	
-	if	(fabs(flight_pitch) > 0.01)		// no docking while pitching
+	if	(fabs(flightPitch) > 0.01)		// no docking while pitching
 	{
 		if (![shipsOnHold objectForKey:shipID])
 			[self sendExpandedMessage: @"[station-acknowledges-hold-position]" toShip: ship];
@@ -339,7 +339,7 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 	}
 	
 	// rolling is okay for some
-	if	(fabs(flight_pitch) > 0.01)		// rolling
+	if	(fabs(flightPitch) > 0.01)		// rolling
 	{
 		Vector portPos = [self getPortPosition];
 		Vector portDir = vector_forward_from_quaternion(port_qrotation);		
@@ -507,7 +507,7 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 	int			ship_id = [ship universalID];
 	NSString*   shipID = [NSString stringWithFormat:@"%d", ship_id];
 
-	Vector launchVector = vector_forward_from_quaternion( quaternion_multiply(port_qrotation, q_rotation));
+	Vector launchVector = vector_forward_from_quaternion( quaternion_multiply(port_qrotation, orientation));
 	Vector temp = (fabsf(launchVector.x) < 0.8)? make_vector(1,0,0) : make_vector(0,1,0);
 	temp = cross_product( launchVector, temp);	// 90 deg to launchVector & temp
 	Vector rightVector = cross_product( launchVector, temp);
@@ -616,11 +616,11 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 {
 	if (port_dimensions.x > port_dimensions.y)
 	{
-		return vector_up_from_quaternion( quaternion_multiply( port_qrotation, q_rotation));
+		return vector_up_from_quaternion( quaternion_multiply( port_qrotation, orientation));
 	}
 	else
 	{
-		return vector_right_from_quaternion( quaternion_multiply( port_qrotation, q_rotation));
+		return vector_right_from_quaternion( quaternion_multiply( port_qrotation, orientation));
 	}
 }
 
@@ -630,11 +630,11 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 
 	if (!twist)
 	{
-		return vector_up_from_quaternion( quaternion_multiply( port_qrotation, q_rotation));
+		return vector_up_from_quaternion( quaternion_multiply( port_qrotation, orientation));
 	}
 	else
 	{
-		return vector_right_from_quaternion( quaternion_multiply( port_qrotation, q_rotation));
+		return vector_right_from_quaternion( quaternion_multiply( port_qrotation, orientation));
 	}
 }
 
@@ -796,7 +796,7 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 	if ((!ship)||(!ship->isShip))
 		return NO;
 	
-	Quaternion q0 = quaternion_multiply(port_qrotation, q_rotation);
+	Quaternion q0 = quaternion_multiply(port_qrotation, orientation);
 	Vector vi = vector_right_from_quaternion(q0);
 	Vector vj = vector_up_from_quaternion(q0);
 	Vector vk = vector_forward_from_quaternion(q0);
@@ -849,7 +849,7 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 			GLfloat correction_factor = -arbb.min.z / (arbb.max.z - arbb.min.z);	// proportion of ship inside
 		
 			// damage the ship according to velocity but don't collide
-			[ship takeScrapeDamage: 5 * [UNIVERSE getTimeDelta]*[ship flight_speed] from:self];
+			[ship takeScrapeDamage: 5 * [UNIVERSE getTimeDelta]*[ship flightSpeed] from:self];
 			
 			Vector delta;
 			delta.x = 0.5 * (arbb.max.x + arbb.min.x) * correction_factor;
@@ -910,7 +910,7 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 			d2 = distance2( ppos, ship->position);
 			if (d2 < 4000000)	// within 2km of the port entrance
 			{
-				Quaternion q1 = q_rotation;
+				Quaternion q1 = orientation;
 				q1 = quaternion_multiply(port_qrotation, q1);
 				//
 				Vector v_out = vector_forward_from_quaternion(q1);
@@ -967,7 +967,7 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 				d2 = distance2( ppos, ship->position);
 				if (d2 < 4000000)	// within 2km of the port entrance
 				{
-					Quaternion q1 = q_rotation;
+					Quaternion q1 = orientation;
 					q1 = quaternion_multiply(port_qrotation, q1);
 					//
 					Vector v_out = vector_forward_from_quaternion(q1);
@@ -1095,16 +1095,16 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 	
 	Vector launchPos = position;
 	Vector launchVel = velocity;
-	double launchSpeed = 0.5 * [ship max_flight_speed];
-	if ((max_flight_speed > 0)&&(flight_speed > 0))
-		launchSpeed = 0.5 * [ship max_flight_speed] * (1.0 + flight_speed/max_flight_speed);
-	Quaternion q1 = q_rotation;
+	double launchSpeed = 0.5 * [ship maxFlightSpeed];
+	if ((maxFlightSpeed > 0)&&(flightSpeed > 0))
+		launchSpeed = 0.5 * [ship maxFlightSpeed] * (1.0 + flightSpeed/maxFlightSpeed);
+	Quaternion q1 = orientation;
 	q1 = quaternion_multiply(port_qrotation, q1);
 	Vector launchVector = vector_forward_from_quaternion(q1);
 	BoundingBox bb = [ship boundingBox];
 	if ((port_dimensions.x < port_dimensions.y) ^ (bb.max.x - bb.min.x < bb.max.y - bb.min.y))
 		quaternion_rotate_about_axis(&q1, launchVector, M_PI*0.5);  // to account for the slot being at 90 degrees to vertical
-	[ship setQRotation:q1];
+	[ship setOrientation:q1];
 	// launch position
 	launchPos.x += port_position.x * v_right.x + port_position.y * v_up.x + port_position.z * v_forward.x;
 	launchPos.y += port_position.x * v_right.y + port_position.y * v_up.y + port_position.z * v_forward.y;
@@ -1115,7 +1115,7 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 	[ship setSpeed:sqrt(magnitude2(launchVel))];
 	[ship setVelocity:launchVel];
 	// orientation
-	[ship setRoll:flight_roll];
+	[ship setRoll:flightRoll];
 	[ship setPitch:0.0];
 	[ship setStatus: STATUS_LAUNCHING];
 	[[ship getAI] reactToMessage:@"pauseAI: 2.0"]; // pause while launching
@@ -1356,7 +1356,7 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 			andOriginalSystem: [UNIVERSE systemSeed]]]];
 				
 	[defense_ship setOwner: self];
-	[defense_ship setGroup_id:universalID];	// who's your Daddy
+	[defense_ship setGroupID:universalID];	// who's your Daddy
 	
 	if (defense_ship_ai)
 		[[defense_ship getAI] setStateMachine:defense_ship_ai];
@@ -1392,7 +1392,7 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 				andOriginalSystem: [UNIVERSE systemSeed]]]];
 				
 		[scavenger_ship setScanClass: CLASS_NEUTRAL];
-		[scavenger_ship setGroup_id:universalID];	// who's your Daddy
+		[scavenger_ship setGroupID:universalID];	// who's your Daddy
 		[[scavenger_ship getAI] setStateMachine:@"scavengerAI.plist"];
 		[self addShipToLaunchQueue:scavenger_ship];
 		[scavenger_ship release];
@@ -1421,7 +1421,7 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 				
 		scavengers_launched++;
 		[miner_ship setScanClass: CLASS_NEUTRAL];
-		[miner_ship setGroup_id:universalID];	// who's your Daddy
+		[miner_ship setGroupID:universalID];	// who's your Daddy
 		[[miner_ship getAI] setStateMachine:@"minerAI.plist"];
 		[self addShipToLaunchQueue:miner_ship];
 		[miner_ship release];
@@ -1458,7 +1458,7 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 				
 		// set the owner of the ship to the station so that it can check back for docking later
 		[pirate_ship setOwner:self];
-		[pirate_ship setGroup_id:universalID];	// who's your Daddy
+		[pirate_ship setGroupID:universalID];	// who's your Daddy
 		
 		[pirate_ship addTarget:[UNIVERSE entityForUniversalID:defense_target]];
 		[pirate_ship setScanClass: CLASS_NEUTRAL];
@@ -1525,9 +1525,9 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 		[self addShipToLaunchQueue:trader_ship];
 
 		// add escorts to the trader
-		int escorts = [trader_ship n_escorts];
+		int escorts = [trader_ship escortCount];
 		//
-		[trader_ship setN_escorts:0];
+		[trader_ship setEscortCount:0];
 		while (escorts--)
 			[self launchEscort];
 			
@@ -1584,7 +1584,7 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 			[patrol_ship setScanClass: CLASS_POLICE];
 			[patrol_ship setRoles:@"police"];
 			[patrol_ship setBounty:0];
-			[patrol_ship setGroup_id:universalID];	// who's your Daddy
+			[patrol_ship setGroupID:universalID];	// who's your Daddy
 			[[patrol_ship getAI] setStateMachine:@"planetPatrolAI.plist"];
 			[self addShipToLaunchQueue:patrol_ship];
 			[self acceptPatrolReportFrom:patrol_ship];
@@ -1605,7 +1605,7 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 				[OOCharacter randomCharacterWithRole: role
 				andOriginalSystem: [UNIVERSE systemSeed]]]];
 		[ship setRoles: role];
-		[ship setGroup_id: universalID];	// who's your Daddy
+		[ship setGroupID: universalID];	// who's your Daddy
 		[self addShipToLaunchQueue:ship];
 		[ship release];
 	}

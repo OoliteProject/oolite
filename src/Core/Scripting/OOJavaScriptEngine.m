@@ -498,7 +498,7 @@ static JSBool PlayerGetProperty(JSContext *cx, JSObject *obj, jsval name, jsval 
 			break;
 
 		case PE_ALERT_CONDITION:
-			*vp = INT_TO_JSVAL([playerEntity alert_condition]);
+			*vp = INT_TO_JSVAL([playerEntity alertCondition]);
 			break;
 		
 		case PE_DOCKED_AT_MAIN_STATION:
@@ -524,7 +524,7 @@ static JSBool PlayerGetProperty(JSContext *cx, JSObject *obj, jsval name, jsval 
 		default:
 			if ((ID & 0xF0) == 0xA0)
 			{
-				unsigned flags = [playerEntity alert_flags];
+				unsigned flags = [playerEntity alertFlags];
 				unsigned mask = 0x10 << ((unsigned)ID & 0xF);
 				*vp = BOOLToJSVal((flags & mask) != 0);
 			}

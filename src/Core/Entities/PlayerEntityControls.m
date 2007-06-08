@@ -307,51 +307,51 @@ static NSTimeInterval	time_last_frame;
          if(reqSpeed == STICK_AXISUNASSIGNED || [stickHandler getNumSticks] == 0)
          {
             // DJS: original keyboard code
-            if (([gameView isDown:key_increase_speed] || joyButtonState[BUTTON_INCTHRUST])&&(flight_speed < max_flight_speed)&&(!afterburner_engaged))
+            if (([gameView isDown:key_increase_speed] || joyButtonState[BUTTON_INCTHRUST])&&(flightSpeed < maxFlightSpeed)&&(!afterburner_engaged))
             {
-               if (flight_speed < max_flight_speed)
-                  flight_speed += speed_delta * delta_t;
-               if (flight_speed > max_flight_speed)
-                  flight_speed = max_flight_speed;
+               if (flightSpeed < maxFlightSpeed)
+                  flightSpeed += speed_delta * delta_t;
+               if (flightSpeed > maxFlightSpeed)
+                  flightSpeed = maxFlightSpeed;
             }
             // if (([gameView isDown:key_decrease_speed])&&(!hyperspeed_engaged)&&(!afterburner_engaged))
             // ** tgape ** - decrease obviously means no hyperspeed
             if (([gameView isDown:key_decrease_speed] || joyButtonState[BUTTON_DECTHRUST])&&(!afterburner_engaged))
             {
-               if (flight_speed > 0.0)
-                  flight_speed -= speed_delta * delta_t;
-               if (flight_speed < 0.0)
-                  flight_speed = 0.0;
+               if (flightSpeed > 0.0)
+                  flightSpeed -= speed_delta * delta_t;
+               if (flightSpeed < 0.0)
+                  flightSpeed = 0.0;
                // ** tgape ** - decrease obviously means no hyperspeed
                hyperspeed_engaged = NO;
             }
          } // DJS: STICK_NOFUNCTION else...a joystick axis is assigned to thrust.
          else
          {
-            if(flight_speed < max_flight_speed * reqSpeed)
+            if(flightSpeed < maxFlightSpeed * reqSpeed)
             {
-               flight_speed += speed_delta * delta_t;
+               flightSpeed += speed_delta * delta_t;
             }
-            if(flight_speed > max_flight_speed * reqSpeed)
+            if(flightSpeed > maxFlightSpeed * reqSpeed)
             {
-               flight_speed -= speed_delta * delta_t;
+               flightSpeed -= speed_delta * delta_t;
             }
          } // DJS: end joystick thrust axis
 #else
-		 if (([gameView isDown:key_increase_speed])&&(flight_speed < max_flight_speed)&&(!afterburner_engaged))
+		 if (([gameView isDown:key_increase_speed])&&(flightSpeed < maxFlightSpeed)&&(!afterburner_engaged))
 		 {
-			 if (flight_speed < max_flight_speed)
-				 flight_speed += speed_delta * delta_t;
-			 if (flight_speed > max_flight_speed)
-				 flight_speed = max_flight_speed;
+			 if (flightSpeed < maxFlightSpeed)
+				 flightSpeed += speed_delta * delta_t;
+			 if (flightSpeed > maxFlightSpeed)
+				 flightSpeed = maxFlightSpeed;
 		 }
 		 // ** tgape ** - decrease obviously means no hyperspeed
 		 if (([gameView isDown:key_decrease_speed])&&(!afterburner_engaged))
 		 {
-			 if (flight_speed > 0.0)
-				 flight_speed -= speed_delta * delta_t;
-			 if (flight_speed < 0.0)
-				 flight_speed = 0.0;
+			 if (flightSpeed > 0.0)
+				 flightSpeed -= speed_delta * delta_t;
+			 if (flightSpeed < 0.0)
+				 flightSpeed = 0.0;
 			 // ** tgape ** - decrease obviously means no hyperspeed
 			 hyperspeed_engaged = NO;
 		 }
@@ -434,7 +434,7 @@ static NSTimeInterval	time_last_frame;
 				// launch here
 				if (!fire_missile_pressed)
 				{
-					BOOL missile_noise = [[missile_entity[active_missile] roles] hasSuffix:@"MISSILE"];
+					BOOL missile_noise = [[missile_entity[activeMissile] roles] hasSuffix:@"MISSILE"];
 					if ([self fireMissile])
 					{
 						if (missile_noise)  [missileSound play];
@@ -456,7 +456,7 @@ static NSTimeInterval	time_last_frame;
 				if ((!ident_engaged)&&(!next_missile_pressed)&&([self has_extra_equipment:@"EQ_MULTI_TARGET"]))
 				{
 					[[UNIVERSE gui] click];
-					[self select_next_missile];
+					[self selectNextMissile];
 				}
 				next_missile_pressed = YES;
 			}
@@ -527,9 +527,9 @@ static NSTimeInterval	time_last_frame;
 			//  shoot 't'   // switch on missile targetting
 			//
 #if OOLITE_HAVE_JOYSTICK
-			if (([gameView isDown:key_target_missile] || joyButtonState[BUTTON_ARMMISSILE])&&(missile_entity[active_missile]))
+			if (([gameView isDown:key_target_missile] || joyButtonState[BUTTON_ARMMISSILE])&&(missile_entity[activeMissile]))
 #else
-			if ([gameView isDown:key_target_missile] && missile_entity[active_missile])
+			if ([gameView isDown:key_target_missile] && missile_entity[activeMissile])
 #endif
 			{
 				// targetting 'on' here
@@ -538,10 +538,10 @@ static NSTimeInterval	time_last_frame;
 					missile_status = MISSILE_STATUS_ARMED;
 					if ((ident_engaged) && ([self getPrimaryTarget]))
 					{
-						if ([[missile_entity[active_missile] roles] hasSuffix:@"MISSILE"])
+						if ([[missile_entity[activeMissile] roles] hasSuffix:@"MISSILE"])
 						{
 							missile_status = MISSILE_STATUS_TARGET_LOCKED;
-							[missile_entity[active_missile] addTarget:[self getPrimaryTarget]];
+							[missile_entity[activeMissile] addTarget:[self getPrimaryTarget]];
 							[UNIVERSE addMessage:[NSString stringWithFormat:ExpandDescriptionForCurrentSystem(@"[missile-locked-onto-@]"), [(ShipEntity *)[self getPrimaryTarget] identFromShip: self]] forCount:4.5];
 							if (![UNIVERSE playCustomSound:@"[missile-locked-on]"])
 								[self beep];
@@ -550,16 +550,16 @@ static NSTimeInterval	time_last_frame;
 					else
 					{
 						primaryTarget = NO_TARGET;
-						if ([[missile_entity[active_missile] roles] hasSuffix:@"MISSILE"])
+						if ([[missile_entity[activeMissile] roles] hasSuffix:@"MISSILE"])
 						{
-							if (missile_entity[active_missile])
-								[missile_entity[active_missile] removeTarget:nil];
+							if (missile_entity[activeMissile])
+								[missile_entity[activeMissile] removeTarget:nil];
 							[UNIVERSE addMessage:ExpandDescriptionForCurrentSystem(@"[missile-armed]") forCount:2.0];
 							if (![UNIVERSE playCustomSound:@"[missile-armed]"])
 								[self beep];
 						}
 					}
-					if ([[missile_entity[active_missile] roles] hasSuffix:@"MINE"])
+					if ([[missile_entity[activeMissile] roles] hasSuffix:@"MINE"])
 					{
 						[UNIVERSE addMessage:ExpandDescriptionForCurrentSystem(@"[mine-armed]") forCount:4.5];
 						if (![UNIVERSE playCustomSound:@"[mine-armed]"])
@@ -587,7 +587,7 @@ static NSTimeInterval	time_last_frame;
 						// targetting 'off' here
 						missile_status = MISSILE_STATUS_SAFE;
 						primaryTarget = NO_TARGET;
-						[self safe_all_missiles];
+						[self safeAllMissiles];
 						if (![UNIVERSE playCustomSound:@"[missile-safe]"])
 							[self boop];
 						[UNIVERSE addMessage:ExpandDescriptionForCurrentSystem(@"[missile-safe]") forCount:2.0];
@@ -595,7 +595,7 @@ static NSTimeInterval	time_last_frame;
 					else
 					{
 						// targetting 'back on' here
-						primaryTarget = [missile_entity[active_missile] getPrimaryTargetID];
+						primaryTarget = [missile_entity[activeMissile] primaryTargetID];
 						missile_status = (primaryTarget != NO_TARGET)? MISSILE_STATUS_TARGET_LOCKED : MISSILE_STATUS_SAFE;
 						if (![UNIVERSE playCustomSound:@"[ident-off]"])
 							[self boop];
@@ -707,7 +707,7 @@ static NSTimeInterval	time_last_frame;
 						targetStation = NO_TARGET;
 						autopilot_engaged = YES;
 						ident_engaged = NO;
-						[self safe_all_missiles];
+						[self safeAllMissiles];
 						velocity = kZeroVector;
 						status = STATUS_AUTOPILOT_ENGAGED;
 						[shipAI setState:@"GLOBAL"];	// reboot the AI
@@ -750,7 +750,7 @@ static NSTimeInterval	time_last_frame;
 						primaryTarget = NO_TARGET;
 						autopilot_engaged = YES;
 						ident_engaged = NO;
-						[self safe_all_missiles];
+						[self safeAllMissiles];
 						velocity = kZeroVector;
 						status = STATUS_AUTOPILOT_ENGAGED;
 						[shipAI setState:@"GLOBAL"];	// restart the AI
@@ -800,26 +800,26 @@ static NSTimeInterval	time_last_frame;
 						StationEntity *the_station = [UNIVERSE station];
 						if (the_station)
 						{
-							if (legal_status > 50)
+							if (legalStatus > 50)
 							{
 								status = STATUS_AUTOPILOT_ENGAGED;
 								[self interpretAIMessage:@"DOCKING_REFUSED"];
 							}
 							else
 							{
-								if (legal_status > 0)
+								if (legalStatus > 0)
 								{
 									// there's a slight chance you'll be fined for your past offences when autodocking
 									//
 									int fine_chance = ranrot_rand() & 0x03ff;	//	0..1023
 									int government = 1 + [(NSNumber *)[[UNIVERSE currentSystemData] objectForKey:KEY_GOVERNMENT] intValue];	// 1..8
 									fine_chance /= government;
-									if (fine_chance < legal_status)
+									if (fine_chance < legalStatus)
 										[self markForFines];
 								}
 								ship_clock_adjust = 1200.0;			// 20 minutes penalty to enter dock
 								ident_engaged = NO;
-								[self safe_all_missiles];
+								[self safeAllMissiles];
 								[UNIVERSE setViewDirection:VIEW_FORWARD];
 								[self enterDock:the_station];
 							}
@@ -1309,14 +1309,14 @@ static  BOOL	taking_snapshot;
 		if ([gameView isDown:key_roll_left])
 		{
 			keyboardRollPitchOverride=YES;
-			if (flight_roll > 0.0)  flight_roll = 0.0;
+			if (flightRoll > 0.0)  flightRoll = 0.0;
 			[self decrease_flight_roll:delta_t*roll_delta];
 			rolling = YES;
 		}
 		if ([gameView isDown:key_roll_right])
 		{
 			keyboardRollPitchOverride=YES;
-			if (flight_roll < 0.0)  flight_roll = 0.0;
+			if (flightRoll < 0.0)  flightRoll = 0.0;
 			[self increase_flight_roll:delta_t*roll_delta];
 			rolling = YES;
 		}
@@ -1324,31 +1324,31 @@ static  BOOL	taking_snapshot;
 	if((mouse_control_on || numSticks) && !keyboardRollPitchOverride)
 	{
 		double stick_roll = max_flight_roll * virtualStick.x;
-		if (flight_roll < stick_roll)
+		if (flightRoll < stick_roll)
 		{
 			[self increase_flight_roll:delta_t*roll_delta];
-			if (flight_roll > stick_roll)
-				flight_roll = stick_roll;
+			if (flightRoll > stick_roll)
+				flightRoll = stick_roll;
 		}
-		if (flight_roll > stick_roll)
+		if (flightRoll > stick_roll)
 		{
 			[self decrease_flight_roll:delta_t*roll_delta];
-			if (flight_roll < stick_roll)
-				flight_roll = stick_roll;
+			if (flightRoll < stick_roll)
+				flightRoll = stick_roll;
 		}
 		rolling = (abs(virtualStick.x) > kDeadZone);
 	}
 	if (!rolling)
 	{
-		if (flight_roll > 0.0)
+		if (flightRoll > 0.0)
 		{
-			if (flight_roll > roll_dampner)	[self decrease_flight_roll:roll_dampner];
-			else	flight_roll = 0.0;
+			if (flightRoll > roll_dampner)	[self decrease_flight_roll:roll_dampner];
+			else	flightRoll = 0.0;
 		}
-		if (flight_roll < 0.0)
+		if (flightRoll < 0.0)
 		{
-			if (flight_roll < -roll_dampner)   [self increase_flight_roll:roll_dampner];
-			else	flight_roll = 0.0;
+			if (flightRoll < -roll_dampner)   [self increase_flight_roll:roll_dampner];
+			else	flightRoll = 0.0;
 		}
 	}
 	
@@ -1358,14 +1358,14 @@ static  BOOL	taking_snapshot;
 		if ([gameView isDown:key_pitch_back])
 		{
 			keyboardRollPitchOverride=YES;
-			if (flight_pitch < 0.0)  flight_pitch = 0.0;
+			if (flightPitch < 0.0)  flightPitch = 0.0;
 			[self increase_flight_pitch:delta_t*pitch_delta];
 			pitching = YES;
 		}
 		if ([gameView isDown:key_pitch_forward])
 		{
 			keyboardRollPitchOverride=YES;
-			if (flight_pitch > 0.0)  flight_pitch = 0.0;
+			if (flightPitch > 0.0)  flightPitch = 0.0;
 			[self decrease_flight_pitch:delta_t*pitch_delta];
 			pitching = YES;
 		}
@@ -1373,31 +1373,31 @@ static  BOOL	taking_snapshot;
 	if((mouse_control_on || numSticks) && !keyboardRollPitchOverride)
 	{
 		double stick_pitch = max_flight_pitch * virtualStick.y;
-		if (flight_pitch < stick_pitch)
+		if (flightPitch < stick_pitch)
 		{
 			[self increase_flight_pitch:delta_t*roll_delta];
-			if (flight_pitch > stick_pitch)
-				flight_pitch = stick_pitch;
+			if (flightPitch > stick_pitch)
+				flightPitch = stick_pitch;
 		}
-		if (flight_pitch > stick_pitch)
+		if (flightPitch > stick_pitch)
 		{
 			[self decrease_flight_pitch:delta_t*roll_delta];
-			if (flight_pitch < stick_pitch)
-				flight_pitch = stick_pitch;
+			if (flightPitch < stick_pitch)
+				flightPitch = stick_pitch;
 		}
 		pitching = (abs(virtualStick.x) > kDeadZone);
 	}
 	if (!pitching)
 	{
-		if (flight_pitch > 0.0)
+		if (flightPitch > 0.0)
 		{
-			if (flight_pitch > pitch_dampner)	[self decrease_flight_pitch:pitch_dampner];
-			else	flight_pitch = 0.0;
+			if (flightPitch > pitch_dampner)	[self decrease_flight_pitch:pitch_dampner];
+			else	flightPitch = 0.0;
 		}
-		if (flight_pitch < 0.0)
+		if (flightPitch < 0.0)
 		{
-			if (flight_pitch < -pitch_dampner)	[self increase_flight_pitch:pitch_dampner];
-			else	flight_pitch = 0.0;
+			if (flightPitch < -pitch_dampner)	[self increase_flight_pitch:pitch_dampner];
+			else	flightPitch = 0.0;
 		}
 	}
 	
@@ -1406,27 +1406,27 @@ static  BOOL	taking_snapshot;
 		yawing = NO;
 		if ([gameView isDown:key_yaw_left])
 		{
-			if (flight_yaw < 0.0)  flight_yaw = 0.0;
+			if (flightYaw < 0.0)  flightYaw = 0.0;
 			[self increase_flight_yaw:delta_t*yaw_delta];
 			yawing = YES;
 		}
 		else if ([gameView isDown:key_yaw_right])
 		{
-			if (flight_yaw > 0.0)  flight_yaw = 0.0;
+			if (flightYaw > 0.0)  flightYaw = 0.0;
 			[self decrease_flight_yaw:delta_t*yaw_delta];
 			yawing = YES;
 		}
 		if (!yawing)
 		{
-			if (flight_yaw > 0.0)
+			if (flightYaw > 0.0)
 			{
-				if (flight_yaw > yaw_dampner)	[self decrease_flight_yaw:yaw_dampner];
-				else	flight_yaw = 0.0;
+				if (flightYaw > yaw_dampner)	[self decrease_flight_yaw:yaw_dampner];
+				else	flightYaw = 0.0;
 			}
-			if (flight_yaw < 0.0)
+			if (flightYaw < 0.0)
 			{
-				if (flight_yaw < -yaw_dampner)   [self increase_flight_yaw:yaw_dampner];
-				else	flight_yaw = 0.0;
+				if (flightYaw < -yaw_dampner)   [self increase_flight_yaw:yaw_dampner];
+				else	flightYaw = 0.0;
 			}
 		}
 	}
@@ -2210,25 +2210,25 @@ static BOOL spacePressed;
 	//
 	// damp any rotations we entered with
 	//
-	if (flight_roll > 0.0)
+	if (flightRoll > 0.0)
 	{
-		if (flight_roll > delta_t)	[self decrease_flight_roll:delta_t];
-		else	flight_roll = 0.0;
+		if (flightRoll > delta_t)	[self decrease_flight_roll:delta_t];
+		else	flightRoll = 0.0;
 	}
-	if (flight_roll < 0.0)
+	if (flightRoll < 0.0)
 	{
-		if (flight_roll < -delta_t)   [self increase_flight_roll:delta_t];
-		else	flight_roll = 0.0;
+		if (flightRoll < -delta_t)   [self increase_flight_roll:delta_t];
+		else	flightRoll = 0.0;
 	}
-	if (flight_pitch > 0.0)
+	if (flightPitch > 0.0)
 	{
-		if (flight_pitch > delta_t)	[self decrease_flight_pitch:delta_t];
-		else	flight_pitch = 0.0;
+		if (flightPitch > delta_t)	[self decrease_flight_pitch:delta_t];
+		else	flightPitch = 0.0;
 	}
-	if (flight_pitch < 0.0)
+	if (flightPitch < 0.0)
 	{
-		if (flight_pitch < -delta_t)	[self increase_flight_pitch:delta_t];
-		else	flight_pitch = 0.0;
+		if (flightPitch < -delta_t)	[self increase_flight_pitch:delta_t];
+		else	flightPitch = 0.0;
 	}
 }
 
@@ -2347,7 +2347,7 @@ static BOOL customView_pressed;
 	//
 	if ([gameView isDown:key_next_compass_mode]) // look for the '/' key
 	{
-		if ((!compass_mode_pressed)&&(compass_mode != COMPASS_MODE_BASIC))
+		if ((!compass_mode_pressed)&&(compassMode != COMPASS_MODE_BASIC))
 			[self setNextCompassMode];
 		compass_mode_pressed = YES;
 	}

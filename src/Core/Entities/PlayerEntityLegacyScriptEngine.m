@@ -633,7 +633,7 @@ static int shipsFound;
 
 - (NSNumber *) legalStatus_number
 {
-	return [NSNumber numberWithInt:legal_status];
+	return [NSNumber numberWithInt:legalStatus];
 }
 
 
@@ -816,12 +816,12 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 
 - (NSString *) commanderLegalStatus_string
 {
-	return LegalStatusToString(legal_status);
+	return LegalStatusToString(legalStatus);
 }
 
 - (NSNumber *) commanderLegalStatus_number
 {
-	return [NSNumber numberWithInt: legal_status];
+	return [NSNumber numberWithInt: legalStatus];
 }
 
 /*-----------------------------------------------------*/
@@ -877,7 +877,7 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 
 - (void) setLegalStatus:(NSString *)valueString
 {
-	legal_status = [valueString intValue];
+	legalStatus = [valueString intValue];
 }
 
 - (void) awardCredits:(NSString *)valueString
@@ -1722,7 +1722,7 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 	{
 		double cr = ship->collision_radius;
 		OOLog(kOOLogNoteShowShipModel, @"::::: showShipModel:'%@' (%@) (%@)", shipKey, ship, [ship name]);
-		[ship setQRotation: q2];
+		[ship setOrientation: q2];
 		[ship setStatus: STATUS_COCKPIT_DISPLAY];
 		[ship setPositionX:0.0f y:0.0f z:3.6f * cr];
 		[ship setScanClass: CLASS_NO_DRAW];
@@ -1851,10 +1851,10 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 	PlanetEntity*	planet = [[[PlanetEntity alloc] initPlanetFromDictionary:dict] autorelease];
 	[planet setStatus:STATUS_ACTIVE];
 	
-	Quaternion orientation;
-	if (ScanQuaternionFromString([dict objectForKey:@"orientation"], &orientation))
+	Quaternion planetOrientation;
+	if (ScanQuaternionFromString([dict objectForKey:@"orientation"], &planetOrientation))
 	{
-		[planet setQRotation:orientation];
+		[planet setOrientation:planetOrientation];
 	}
 
 	if (![dict objectForKey:@"position"])
@@ -1897,10 +1897,10 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 	PlanetEntity*	planet = [[[PlanetEntity alloc] initMoonFromDictionary:dict] autorelease];
 	[planet setStatus:STATUS_ACTIVE];
 	
-	Quaternion orientation;
-	if (ScanQuaternionFromString([dict objectForKey:@"orientation"], &orientation))
+	Quaternion planetOrientation;
+	if (ScanQuaternionFromString([dict objectForKey:@"orientation"], &planetOrientation))
 	{
-		[planet setQRotation:orientation];
+		[planet setOrientation:planetOrientation];
 	}
 
 	if (![dict objectForKey:@"position"])
@@ -2167,7 +2167,7 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 		model_p0.z += off.z - model_offset.z;
 
 		OOLog(kOOLogDebugProcessSceneStringAddModel, @"::::: adding model to scene:'%@'", ship);
-		[ship setQRotation: model_q];
+		[ship setOrientation: model_q];
 		[ship setPosition: model_p0];
 		[ship setStatus: STATUS_COCKPIT_DISPLAY];
 		[ship setScanClass: CLASS_NO_DRAW];
@@ -2201,7 +2201,7 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 		model_p0.z += off.z - model_offset.z;
 
 		OOLog(kOOLogDebugProcessSceneStringAddModel, @"::::: adding model to scene:'%@'", doppelganger);
-		[doppelganger setQRotation: model_q];
+		[doppelganger setOrientation: model_q];
 		[doppelganger setPosition: model_p0];
 		[doppelganger setStatus: STATUS_COCKPIT_DISPLAY];
 		[doppelganger setScanClass: CLASS_NO_DRAW];
@@ -2233,7 +2233,7 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 		model_p0.z += off.z;
 
 		OOLog(kOOLogDebugProcessSceneStringAddLocalPlanet, @"::::: adding local-planet to scene:'%@'", doppelganger);
-		[doppelganger setQRotation: model_q];
+		[doppelganger setOrientation: model_q];
 		[doppelganger setPosition: model_p0];
 		[UNIVERSE addEntity: doppelganger];
 
@@ -2261,7 +2261,7 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 		model_p0.z += off.z;
 
 		OOLog(kOOLogDebugProcessSceneStringAddTargetPlanet, @"::::: adding target-planet to scene:'%@'", doppelganger);
-		[doppelganger setQRotation: model_q];
+		[doppelganger setOrientation: model_q];
 		[doppelganger setPosition: model_p0];
 		[UNIVERSE addEntity: doppelganger];
 

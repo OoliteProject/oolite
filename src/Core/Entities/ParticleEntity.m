@@ -109,13 +109,13 @@ static	Vector	circleVertex[65];		// holds vector coordinates for a unit circle
     //
 	status = STATUS_EFFECT;
     position = ship->position;
-	q_rotation = ship->q_rotation;
+	orientation = ship->orientation;
 	if (ship->isPlayer)
-		q_rotation.w = -q_rotation.w;   //reverse view direction for the player
-	Vector v_up = vector_up_from_quaternion(q_rotation);
-	Vector v_forward = vector_forward_from_quaternion(q_rotation);
-	Vector v_right = vector_right_from_quaternion(q_rotation);
-	GLfloat fs = [ship flight_speed];
+		orientation.w = -orientation.w;   //reverse view direction for the player
+	Vector v_up = vector_up_from_quaternion(orientation);
+	Vector v_forward = vector_forward_from_quaternion(orientation);
+	Vector v_right = vector_right_from_quaternion(orientation);
+	GLfloat fs = [ship flightSpeed];
 	velocity = make_vector( v_forward.x * fs, v_forward.y * fs, v_forward.z * fs);
 	GLfloat distance;
 	switch (view)
@@ -126,22 +126,22 @@ static	Vector	circleVertex[65];		// holds vector coordinates for a unit circle
 			position.x += distance * v_forward.x;	position.y += distance * v_forward.y;	position.z += distance * v_forward.z;
 			break;
 		case VIEW_AFT :
-			quaternion_rotate_about_axis(&q_rotation, v_up, M_PI);
+			quaternion_rotate_about_axis(&orientation, v_up, M_PI);
 			distance = [ship boundingBox].min.z;
 			position.x += distance * v_forward.x;	position.y += distance * v_forward.y;	position.z += distance * v_forward.z;
 			break;
 		case VIEW_PORT :
-			quaternion_rotate_about_axis(&q_rotation, v_up, M_PI/2.0);
+			quaternion_rotate_about_axis(&orientation, v_up, M_PI/2.0);
 			distance = [ship boundingBox].min.x;
 			position.x += distance * v_right.x;	position.y += distance * v_right.y;	position.z += distance * v_right.z;
 			break;
 		case VIEW_STARBOARD :
-			quaternion_rotate_about_axis(&q_rotation, v_up, -M_PI/2.0);
+			quaternion_rotate_about_axis(&orientation, v_up, -M_PI/2.0);
 			distance = [ship boundingBox].max.x;
 			position.x += distance * v_right.x;	position.y += distance * v_right.y;	position.z += distance * v_right.z;
 			break;
 	}
-    quaternion_into_gl_matrix(q_rotation, rotMatrix);
+    quaternion_into_gl_matrix(orientation, rotMatrix);
     //
 	if ((ship)&&(ship->isPlayer))
 	{
@@ -158,7 +158,7 @@ static	Vector	circleVertex[65];		// holds vector coordinates for a unit circle
 	//
 	[self setOwner:ship];
 	//
-	collision_radius = [ship weapon_range];
+	collision_radius = [ship weaponRange];
 	//
 	isParticle = YES;
 	//
@@ -174,13 +174,13 @@ static	Vector	circleVertex[65];		// holds vector coordinates for a unit circle
     //
 	status = STATUS_EFFECT;
     position = ship->position;
-	q_rotation = ship->q_rotation;
+	orientation = ship->orientation;
 	if (ship->isPlayer)
-		q_rotation.w = -q_rotation.w;   //reverse view direction for the player
-	Vector v_up = vector_up_from_quaternion(q_rotation);
-	Vector v_forward = vector_forward_from_quaternion(q_rotation);
-	Vector v_right = vector_right_from_quaternion(q_rotation);
-	GLfloat fs = [ship flight_speed];
+		orientation.w = -orientation.w;   //reverse view direction for the player
+	Vector v_up = vector_up_from_quaternion(orientation);
+	Vector v_forward = vector_forward_from_quaternion(orientation);
+	Vector v_right = vector_right_from_quaternion(orientation);
+	GLfloat fs = [ship flightSpeed];
 	velocity = make_vector( v_forward.x * fs, v_forward.y * fs, v_forward.z * fs);
 
 //	NSLog(@"DEBUG firing laser with offset [ %.3f, %.3f, %.3f]", offset.x, offset.y, offset.z);
@@ -191,16 +191,16 @@ static	Vector	circleVertex[65];		// holds vector coordinates for a unit circle
 	switch (view)
 	{
 		case VIEW_AFT :
-			quaternion_rotate_about_axis(&q_rotation, v_up, M_PI);
+			quaternion_rotate_about_axis(&orientation, v_up, M_PI);
 			break;
 		case VIEW_PORT :
-			quaternion_rotate_about_axis(&q_rotation, v_up, M_PI/2.0);
+			quaternion_rotate_about_axis(&orientation, v_up, M_PI/2.0);
 			break;
 		case VIEW_STARBOARD :
-			quaternion_rotate_about_axis(&q_rotation, v_up, -M_PI/2.0);
+			quaternion_rotate_about_axis(&orientation, v_up, -M_PI/2.0);
 			break;
 	}
-    quaternion_into_gl_matrix(q_rotation, rotMatrix);
+    quaternion_into_gl_matrix(orientation, rotMatrix);
     //
 	time_counter = 0.0;
 	//
@@ -212,7 +212,7 @@ static	Vector	circleVertex[65];		// holds vector coordinates for a unit circle
 	//
 	[self setOwner:ship];
 	//
-	collision_radius = [ship weapon_range];
+	collision_radius = [ship weaponRange];
 	//
 	isParticle = YES;
 	//
@@ -233,13 +233,13 @@ static	Vector	circleVertex[65];		// holds vector coordinates for a unit circle
 	BoundingBox bbox = [subent boundingBox];
 	Vector midfrontplane = make_vector( 0.5 * (bbox.max.x + bbox.min.x), 0.5 * (bbox.max.y + bbox.min.y), bbox.max.z);
     position = [subent absolutePositionForSubentityOffset:midfrontplane];
-	q_rotation = parent->q_rotation;
+	orientation = parent->orientation;
 	if (parent->isPlayer)
-		q_rotation.w = -q_rotation.w;   //reverse view direction for the player
-	Vector v_up = vector_up_from_quaternion(q_rotation);
-	Vector v_forward = vector_forward_from_quaternion(q_rotation);
-	Vector v_right = vector_right_from_quaternion(q_rotation);
-	GLfloat fs = [(ShipEntity*)parent flight_speed];
+		orientation.w = -orientation.w;   //reverse view direction for the player
+	Vector v_up = vector_up_from_quaternion(orientation);
+	Vector v_forward = vector_forward_from_quaternion(orientation);
+	Vector v_right = vector_right_from_quaternion(orientation);
+	GLfloat fs = [(ShipEntity*)parent flightSpeed];
 	velocity = make_vector( v_forward.x * fs, v_forward.y * fs, v_forward.z * fs);
 	GLfloat distance;
 	switch (view)
@@ -250,22 +250,22 @@ static	Vector	circleVertex[65];		// holds vector coordinates for a unit circle
 			position.x += distance * v_forward.x;	position.y += distance * v_forward.y;	position.z += distance * v_forward.z;
 			break;
 		case VIEW_AFT :
-			quaternion_rotate_about_axis(&q_rotation, v_up, M_PI);
+			quaternion_rotate_about_axis(&orientation, v_up, M_PI);
 			distance = [subent boundingBox].min.z;
 			position.x += distance * v_forward.x;	position.y += distance * v_forward.y;	position.z += distance * v_forward.z;
 			break;
 		case VIEW_PORT :
-			quaternion_rotate_about_axis(&q_rotation, v_up, M_PI/2.0);
+			quaternion_rotate_about_axis(&orientation, v_up, M_PI/2.0);
 			distance = [subent boundingBox].min.x;
 			position.x += distance * v_right.x;	position.y += distance * v_right.y;	position.z += distance * v_right.z;
 			break;
 		case VIEW_STARBOARD :
-			quaternion_rotate_about_axis(&q_rotation, v_up, -M_PI/2.0);
+			quaternion_rotate_about_axis(&orientation, v_up, -M_PI/2.0);
 			distance = [subent boundingBox].max.x;
 			position.x += distance * v_right.x;	position.y += distance * v_right.y;	position.z += distance * v_right.z;
 			break;
 	}
-    quaternion_into_gl_matrix(q_rotation, rotMatrix);
+    quaternion_into_gl_matrix(orientation, rotMatrix);
     //
 	if (parent->isPlayer)
 	{
@@ -282,7 +282,7 @@ static	Vector	circleVertex[65];		// holds vector coordinates for a unit circle
 	//
 	[self setOwner:parent];
 	//
-	collision_radius = [subent weapon_range];
+	collision_radius = [subent weaponRange];
 	//
 	isParticle = YES;
 	//
@@ -291,7 +291,7 @@ static	Vector	circleVertex[65];		// holds vector coordinates for a unit circle
 
 - (id) initExhaustFromShip:(ShipEntity *) ship offsetVector:(Vector) offset scaleVector:(Vector) scale
 {
-	self = [super init];	// sets rotMatrix and q_rotation to initial identities
+	self = [super init];	// sets rotMatrix and orientation to initial identities
     //
 	status = STATUS_EFFECT;
 
@@ -331,10 +331,8 @@ static	Vector	circleVertex[65];		// holds vector coordinates for a unit circle
 	status = STATUS_EFFECT;
 
 	exhaustScale = scale;
-
-	position.x = offset.x;  // position is relative to owner
-	position.y = offset.y;
-	position.z = offset.z;
+	
+	position = offset;
 
 	particle_type = PARTICLE_EXHAUST;
 	//
@@ -414,7 +412,7 @@ static	Vector	circleVertex[65];		// holds vector coordinates for a unit circle
 	ring_inner_radius = size.width;
 	ring_outer_radius = size.height;
 	position = ship->position;
-	[self setQRotation:ship->q_rotation];
+	[self setOrientation:ship->orientation];
 	[self setVelocity:[ship velocity]];
 	//
 	status = STATUS_EFFECT;
@@ -1258,8 +1256,6 @@ static	Vector	circleVertex[65];		// holds vector coordinates for a unit circle
 	if (time_counter > duration)
 		[UNIVERSE removeEntity:self];
 
-//	NSLog(@"DEBUG *FLASH* time: %.2f size: %.2f alpha: %.2f", time_counter, size.width, alpha);
-
 }
 
 - (void) updateExhaust2:(double) delta_t
@@ -1271,18 +1267,18 @@ static	Vector	circleVertex[65];		// holds vector coordinates for a unit circle
 	#endif
 	
 	GLfloat ex_emissive[4]	= {0.6, 0.8, 1.0, 0.9 * OVERALL_ALPHA};   // pale blue
-	GLfloat s1[8] = { 0.0, 0.707, 1.0, 0.707, 0.0, -0.707, -1.0, -0.707};
-	GLfloat c1[8] = { 1.0, 0.707, 0.0, -0.707, -1.0, -0.707, 0.0, 0.707};
-	ShipEntity  *ship =(ShipEntity *)[UNIVERSE entityForUniversalID:owner];
+	const GLfloat s1[8] = { 0.0, 0.707, 1.0, 0.707, 0.0, -0.707, -1.0, -0.707};
+	const GLfloat c1[8] = { 1.0, 0.707, 0.0, -0.707, -1.0, -0.707, 0.0, 0.707};
+	ShipEntity  *ship = [UNIVERSE entityForUniversalID:owner];
 
 	if ((!ship)||(!ship->isShip))
 		return;
 
-	Quaternion shipQrotation = ship->q_rotation;
-	if (ship->isPlayer)	shipQrotation.w = -shipQrotation.w;
+	Quaternion shipQrotation = [ship orientation];
+	if (ship->isPlayer) 	shipQrotation.w = -shipQrotation.w;	// WTF sort of silliness is this? -- Ahruman
 	
 	Frame zero;
-	zero.q_rotation = shipQrotation;
+	zero.orientation = shipQrotation;
 	int dam = [ship damage];
 	GLfloat flare_length = [ship speedFactor];
 
@@ -1311,10 +1307,8 @@ static	Vector	circleVertex[65];		// holds vector coordinates for a unit circle
 	if (flare_length < 0.1)   flare_length = 0.1;
 	Vector currentPos = ship->position;
 	Vector vfwd = vector_forward_from_quaternion(shipQrotation);
-	GLfloat	spd = 0.5 * [ship flight_speed];
-	vfwd.x *= spd;
-	vfwd.y *= spd;
-	vfwd.z *= spd;
+	GLfloat	spd = 0.5 * [ship flightSpeed];
+	vfwd = vector_multiply_scalar(vfwd, spd);
 	Vector master_i = vector_right_from_quaternion(shipQrotation);
 	Vector vi,vj,vk;
 	vi = master_i;
@@ -1795,7 +1789,7 @@ GLuint tfan2[10] = {	33,	25,	26,	27,	28,	29,	30,	31,	32,	25};	// final fan 64..7
 
 - (void) drawExhaust2
 {
-	ShipEntity  *ship =(ShipEntity *)[UNIVERSE entityForUniversalID:owner];
+	ShipEntity  *ship = [UNIVERSE entityForUniversalID:owner];
 
 	if (!ship)
 		return;
@@ -1804,11 +1798,11 @@ GLuint tfan2[10] = {	33,	25,	26,	27,	28,	29,	30,	31,	32,	25};	// final fan 64..7
 		return;
 
 	glPopMatrix();	// restore absolute positioning
-	glPushMatrix();	// restore absolute positioning
+	glPushMatrix();	// avoid stack underflow
 
-	glDisable( GL_TEXTURE_2D);
-	glDisable( GL_CULL_FACE);		// face culling
-	glShadeModel( GL_SMOOTH);
+	glDisable(GL_TEXTURE_2D);
+	glDisable(GL_CULL_FACE);		// face culling
+	glShadeModel(GL_SMOOTH);
 	
 	BeginAdditiveBlending();
 

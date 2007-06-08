@@ -13,10 +13,11 @@
 
 #define OOINLINE			static inline
 
+
 #ifndef OO_DEBUG
 #define ALWAYS_INLINE_FUNC	GCC_ATTR((always_inline))	// Force inlining of function
 #else
-#define ALWAYS_INLINE_FUNC	GCC_ATTR((noinline))		// Force no inlining of function (because gdb is silly)
+#define ALWAYS_INLINE_FUNC								// Don't force inlining of function (because gdb is silly)
 #endif
 
 #define PURE_FUNC			GCC_ATTR((pure))			// result dependent only on params and globals

@@ -75,7 +75,7 @@ typedef enum
 
 typedef enum
 {
-// NOTE: numerical values are available to scripts.
+// NOTE: numerical values are available to scripts and shaders.
 	ALERT_CONDITION_DOCKED,
 	ALERT_CONDITION_GREEN,
 	ALERT_CONDITION_YELLOW,

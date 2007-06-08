@@ -75,6 +75,7 @@ enum
 
 enum
 {
+	// Exposed to shaders.
 	SCOOP_STATUS_NOT_INSTALLED			= 0,
 	SCOOP_STATUS_FULL_HOLD,
 	SCOOP_STATUS_OKAY,
@@ -97,6 +98,7 @@ typedef uint16_t OOAlertFlags;
 
 typedef enum
 {
+	// Exposed to shaders.
 	MISSILE_STATUS_SAFE,
 	MISSILE_STATUS_ARMED,
 	MISSILE_STATUS_TARGET_LOCKED
@@ -172,6 +174,7 @@ typedef enum
 
 typedef enum
 {
+	// Exposed to shaders.
 	COMPASS_MODE_BASIC,
 	COMPASS_MODE_PLANET,
 	COMPASS_MODE_STATION,
@@ -296,10 +299,10 @@ typedef enum
 	OOSoundSource			*breakPatternSource;
 	
 	int						gui_screen;
-	OOAlertFlags			alert_flags;
-	OOAlertCondition		alert_condition;
+	OOAlertFlags			alertFlags;
+	OOAlertCondition		alertCondition;
 	int						missile_status;
-	int						active_missile;
+	int						activeMissile;
 	
 	OOCargoQuantity			current_cargo;
 	
@@ -327,11 +330,11 @@ typedef enum
 	int						max_missiles;		// int				- no. of missile pylons
 	ShipEntity*				missile_entity[SHIPENTITY_MAX_MISSILES];	// holds the actual missile entities or equivalents
 
-	int						legal_status;
+	int						legalStatus;
 	int						market_rnd;
 	unsigned				ship_kills;
 	
-	OOCompassMode			compass_mode;
+	OOCompassMode			compassMode;
 	
 	GLfloat					fuel_leak_rate;
         
@@ -409,7 +412,7 @@ typedef enum
 	OOUniversalID			debugShipID;
         
         // trumbles
-	int						n_trumbles;
+	int						trumbleCount;
 	OOTrumble				*trumble[PLAYER_MAX_TRUMBLES];
         
         // smart zoom
@@ -492,10 +495,10 @@ typedef enum
 - (void) unloadCargoPods;
 - (void) loadCargoPods;
 
-- (int)			random_factor;
+- (int) random_factor;
 - (Random_Seed) galaxy_seed;
-- (NSPoint)		galaxy_coordinates;
-- (NSPoint)		cursor_coordinates;
+- (NSPoint) galaxy_coordinates;
+- (NSPoint) cursor_coordinates;
 
 - (Random_Seed) system_seed;
 - (void) setSystem_seed:(Random_Seed) s_seed;
@@ -521,59 +524,58 @@ typedef enum
 - (void) setShowDemoShips:(BOOL) value;
 - (BOOL) showDemoShips;
 
-- (GLfloat) dial_roll;
-- (GLfloat) dial_pitch;
-- (GLfloat) dial_speed;
-- (GLfloat) dial_hyper_speed;
+- (GLfloat) dialRoll;
+- (GLfloat) dialPitch;
+- (GLfloat) dialSpeed;
+- (GLfloat) dialHyperSpeed;
 
-- (GLfloat) dial_forward_shield;
-- (GLfloat) dial_aft_shield;
+- (GLfloat) dialForwardShield;
+- (GLfloat) dialAftShield;
 
-- (GLfloat) dial_energy;
-- (GLfloat) dial_max_energy;
+- (GLfloat) dialEnergy;
+- (GLfloat) dialMaxEnergy;
 
-- (GLfloat) dial_fuel;
-- (GLfloat) dial_hyper_range;
+- (GLfloat) dialFuel;
+- (GLfloat) dialHyperRange;
 
-- (GLfloat) dial_altitude;
+- (GLfloat) dialAltitude;
 
-- (int) dial_missiles;
-- (int) calc_missiles;
-- (int) dial_missile_status;
+- (int) countMissiles;
+- (int) dialMissileStatus;
 
-- (int) dial_fuelscoops_status;
+- (int) dialFuelScoopStatus;
 
-- (NSString*) dial_clock;
-- (NSString*) dial_clock_adjusted;
-- (NSString*) dial_fpsinfo;
-- (NSString*) dial_objinfo;
+- (NSString *) dial_clock;
+- (NSString *) dial_clock_adjusted;
+- (NSString *) dial_fpsinfo;
+- (NSString *) dial_objinfo;
 
-- (NSMutableArray*) comm_log;
+- (NSMutableArray *) comm_log;
 
-- (OOCompassMode) compass_mode;
-- (void) setCompass_mode:(OOCompassMode) value;
+- (OOCompassMode) compassMode;
+- (void) setCompassMode:(OOCompassMode)value;
 - (void) setNextCompassMode;
 
-- (int) active_missile;
-- (void) setActive_missile: (int) value;
-- (int) dial_max_missiles;
-- (BOOL) dial_ident_engaged;
-- (NSString *) dial_target_name;
-- (ShipEntity *) missile_for_station: (int) value;
-- (void) sort_missiles;
-- (void) safe_all_missiles;
-- (void) select_next_missile;
+- (int) activeMissile;
+- (void) setActiveMissile:(int)value;
+- (int) dialMaxMissiles;
+- (BOOL) dialIdentEngaged;
+- (NSString *) dialTargetName;
+- (ShipEntity *) missileForStation:(int)value;
+- (void) sortMissiles;
+- (void) safeAllMissiles;
+- (void) selectNextMissile;
 - (void) tidyMissilePylons;
 
-- (void) clearAlert_flags;
-- (int) alert_flags;
-- (void) setAlert_flag:(int) flag :(BOOL) value;
-- (int) alert_condition;
+- (void) clearAlertFlags;
+- (int) alertFlags;
+- (void) setAlertFlag:(int)flag to:(BOOL)value;
+- (OOAlertCondition) alertCondition;
 
-- (BOOL) mountMissile: (ShipEntity *)missile;
+- (BOOL) mountMissile:(ShipEntity *)missile;
 
 - (BOOL) fireEnergyBomb;
-- (BOOL) launchMine:(ShipEntity*) mine;
+- (BOOL) launchMine:(ShipEntity *)mine;
 
 - (BOOL) fireMainWeapon;
 - (OOWeaponType) weaponForView:(OOViewID)view;
@@ -586,7 +588,7 @@ typedef enum
 - (void) interpretAIMessage:(NSString *)ms;
 
 - (void) takeInternalDamage;
-- (NSDictionary*) damageInformation;
+- (NSDictionary *)damageInformation;
 
 - (void) loseTargetStatus;
 
@@ -639,13 +641,13 @@ typedef enum
 - (void) setUpTrumbles;
 - (void) addTrumble:(OOTrumble*) papaTrumble;
 - (void) removeTrumble:(OOTrumble*) deadTrumble;
-- (OOTrumble**) trumbleArray;
-- (int) n_trumbles;
-// loading and saving n_trummbles
-- (NSObject*) trumbleValue;
+- (OOTrumble**)trumbleArray;
+- (int) trumbleCount;
+// loading and saving trumbleCount
+- (id)trumbleValue;
 - (void) setTrumbleValueFrom:(NSObject*) trumbleValue;
 
-- (void) munge_checksum_with_NSString:(NSString*) str;
+- (void) mungChecksumWithNSString:(NSString *)str;
 
 - (NSString *)screenModeStringForWidth:(unsigned)inWidth height:(unsigned)inHeight refreshRate:(float)inRate;
 
@@ -664,14 +666,14 @@ typedef enum
 /* GILES custom viewpoints */
 
 // custom view points
-- (Quaternion)	customViewQuaternion;
-- (GLfloat*)	customViewMatrix;
-- (Vector)		customViewOffset;
-- (Vector)		customViewForwardVector;
-- (Vector)		customViewUpVector;
-- (Vector)		customViewRightVector;
-- (NSString*)	customViewDescription;
-- (void)		setCustomViewDataFromDictionary:(NSDictionary*) viewDict;
+- (Quaternion)customViewQuaternion;
+- (GLfloat *)customViewMatrix;
+- (Vector)customViewOffset;
+- (Vector)customViewForwardVector;
+- (Vector)customViewUpVector;
+- (Vector)customViewRightVector;
+- (NSString *)customViewDescription;
+- (void)setCustomViewDataFromDictionary:(NSDictionary*) viewDict;
 
 /* -- */
 

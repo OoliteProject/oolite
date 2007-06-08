@@ -412,16 +412,16 @@ MA 02110-1301, USA.
 	if (docked_station)
 	{
 		position = [docked_station position];
-		[self setQRotation: kIdentityQuaternion];
-		v_forward = vector_forward_from_quaternion(q_rotation);
-		v_right = vector_right_from_quaternion(q_rotation);
-		v_up = vector_up_from_quaternion(q_rotation);
+		[self setOrientation: kIdentityQuaternion];
+		v_forward = vector_forward_from_quaternion(orientation);
+		v_right = vector_right_from_quaternion(orientation);
+		v_up = vector_up_from_quaternion(orientation);
 	}
 
-	flight_roll = 0.0;
-	flight_pitch = 0.0;
-	flight_yaw = 0.0;
-	flight_speed = 0.0;
+	flightRoll = 0.0;
+	flightPitch = 0.0;
+	flightYaw = 0.0;
+	flightSpeed = 0.0;
 
 	if (![docked_station localMarket])
 	{

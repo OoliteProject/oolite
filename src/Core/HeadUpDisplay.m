@@ -458,7 +458,7 @@ static BOOL hostiles;
 					}
 				}
 				
-				[player setAlert_flag:ALERT_FLAG_MASS_LOCK :mass_locked];
+				[player setAlertFlag:ALERT_FLAG_MASS_LOCK to:mass_locked];
 				
 				if (isnan(drawthing->zero_distance))
 					continue;
@@ -473,7 +473,7 @@ static BOOL hostiles;
 				// has it sent a recent message
 				//
 				if (drawthing->isShip) 
-					ms_blip = 2.0 * [(ShipEntity *)drawthing message_time];
+					ms_blip = 2.0 * [(ShipEntity *)drawthing messageTime];
 				if (ms_blip > max_blip)
 				{
 					max_blip = ms_blip;
@@ -500,7 +500,7 @@ static BOOL hostiles;
 				if (drawthing->isShip)
 				{
 					ShipEntity* ship = (ShipEntity *)drawthing;
-					double wr = [ship weapon_range];
+					double wr = [ship weaponRange];
 					isHostile = (([ship hasHostileTarget])&&([ship getPrimaryTarget] == player)&&(drawthing->zero_distance < wr*wr));
 					GLfloat* base_col = [ship scannerDisplayColorForShip:player :isHostile :flash];
 					col[0] = base_col[0];	col[1] = base_col[1];	col[2] = base_col[2];	col[3] = alpha * base_col[3];
@@ -602,7 +602,7 @@ static BOOL hostiles;
 			}
 		}
 		//
-		[player setAlert_flag:ALERT_FLAG_HOSTILES :foundHostiles];
+		[player setAlertFlag:ALERT_FLAG_HOSTILES to:foundHostiles];
 		//	
 		if ((foundHostiles)&&(!hostiles))
 		{
@@ -626,8 +626,8 @@ static BOOL hostiles;
 	if ((lt == nil)||(!(lt->isShip)))
 		return;
 	ShipEntity* st = (ShipEntity*)lt;
-	if ([st message_time] <= 0.0)
-		[st setMessage_time:2.5];
+	if ([st messageTime] <= 0.0)
+		[st setMessageTime:2.5];
 }
 
 - (void) drawScannerZoomIndicator:(NSDictionary *) info
@@ -731,7 +731,7 @@ static BOOL hostiles;
 	{
 		Vector relativePosition;
 		
-		switch ([player compass_mode])
+		switch ([player compassMode])
 		{
 			case COMPASS_MODE_BASIC:
 				relativePosition = the_planet->position;
@@ -753,7 +753,7 @@ static BOOL hostiles;
 					relativePosition = the_target->position;
 				else
 				{
-					[player setCompass_mode:COMPASS_MODE_PLANET];
+					[player setCompassMode:COMPASS_MODE_PLANET];
 					relativePosition = the_planet->position;
 				}	
 				break;
@@ -762,7 +762,7 @@ static BOOL hostiles;
 					relativePosition = the_next_beacon->position;
 				else
 				{
-					[player setCompass_mode:COMPASS_MODE_PLANET];
+					[player setCompassMode:COMPASS_MODE_PLANET];
 					relativePosition = the_planet->position;
 				}	
 				break;
@@ -786,7 +786,7 @@ static BOOL hostiles;
 		sz.width *= 0.2;
 		sz.height *= 0.2;
 		glLineWidth(2.0);
-		switch ([player compass_mode])
+		switch ([player compassMode])
 		{
 			case COMPASS_MODE_BASIC:
 				[self drawCompassPlanetBlipAt:relativePosition Size:NSMakeSize( 6, 6) Alpha:alpha];
@@ -970,7 +970,7 @@ static BOOL hostiles;
 
 - (void) drawSpeedBar:(NSDictionary *) info
 {
-    double ds = [[PlayerEntity sharedPlayer] dial_speed];
+    double ds = [[PlayerEntity sharedPlayer] dialSpeed];
 	
 	int x = SPEED_BAR_CENTRE_X;
 	int y = SPEED_BAR_CENTRE_Y;
@@ -1027,7 +1027,7 @@ static BOOL hostiles;
 	}
 	// draw ROLL bar
 	glColor4fv(yellow_color);
-	hudDrawIndicatorAt( x, y, z1, siz, [[PlayerEntity sharedPlayer] dial_roll]);
+	hudDrawIndicatorAt( x, y, z1, siz, [[PlayerEntity sharedPlayer] dialRoll]);
 }
 
 - (void) drawPitchBar:(NSDictionary *) info
@@ -1055,12 +1055,12 @@ static BOOL hostiles;
 	}
 	// draw PITCH bar
 	glColor4fv(yellow_color);
-	hudDrawIndicatorAt( x, y, z1, siz, [[PlayerEntity sharedPlayer] dial_pitch]);
+	hudDrawIndicatorAt( x, y, z1, siz, [[PlayerEntity sharedPlayer] dialPitch]);
 }
 
 - (void) drawEnergyGauge:(NSDictionary *) info
 {	
-	int n_bars = [[PlayerEntity sharedPlayer] dial_max_energy]/64.0;
+	int n_bars = [[PlayerEntity sharedPlayer] dialMaxEnergy]/64.0;
 	if (n_bars < 1)
 		n_bars = 1;
 
@@ -1102,8 +1102,8 @@ static BOOL hostiles;
 		int qy = siz.height / n_bars;
 		NSSize dial_size = NSMakeSize(siz.width,qy - 2);
 		int cy = y - (n_bars - 1) * qy / 2;
-		double energy = [[PlayerEntity sharedPlayer] dial_energy]*n_bars;
-		[[PlayerEntity sharedPlayer] setAlert_flag:ALERT_FLAG_ENERGY :((energy < 1.0)&&([[PlayerEntity sharedPlayer] status] == STATUS_IN_FLIGHT))];
+		double energy = [[PlayerEntity sharedPlayer] dialEnergy]*n_bars;
+		[[PlayerEntity sharedPlayer] setAlertFlag:ALERT_FLAG_ENERGY to:((energy < 1.0)&&([[PlayerEntity sharedPlayer] status] == STATUS_IN_FLIGHT))];
 		int i;
 		for (i = 0; i < n_bars; i++)
 		{
@@ -1141,7 +1141,7 @@ static BOOL hostiles;
 	if ([info objectForKey:DRAW_SURROUND_KEY])
 		draw_surround = [(NSNumber *)[info objectForKey:DRAW_SURROUND_KEY] boolValue];
 
-	double shield = [[PlayerEntity sharedPlayer] dial_forward_shield];
+	double shield = [[PlayerEntity sharedPlayer] dialForwardShield];
 	if (draw_surround)
 	{
 		// draw forward_shield surround
@@ -1174,7 +1174,7 @@ static BOOL hostiles;
 	if ([info objectForKey:DRAW_SURROUND_KEY])
 		draw_surround = [(NSNumber *)[info objectForKey:DRAW_SURROUND_KEY] boolValue];
 
-	double shield = [[PlayerEntity sharedPlayer] dial_aft_shield];
+	double shield = [[PlayerEntity sharedPlayer] dialAftShield];
 	if (draw_surround)
 	{
 		// draw aft_shield surround
@@ -1192,8 +1192,8 @@ static BOOL hostiles;
 
 - (void) drawFuelBar:(NSDictionary *) info
 {	
-    float fu = [[PlayerEntity sharedPlayer] dial_fuel];
-	float hr = [[PlayerEntity sharedPlayer] dial_hyper_range];
+    float fu = [[PlayerEntity sharedPlayer] dialFuel];
+	float hr = [[PlayerEntity sharedPlayer] dialHyperRange];
 	int x = FUEL_BAR_CENTRE_X;
 	int y = FUEL_BAR_CENTRE_Y;
 	NSSize siz = NSMakeSize( FUEL_BAR_WIDTH, FUEL_BAR_HEIGHT);
@@ -1245,7 +1245,7 @@ static BOOL hostiles;
 		glColor4fv(red_color);
 	if ((flash)&&(temp > .90))
 		glColor4fv(redplus_color);
-	[player setAlert_flag:ALERT_FLAG_TEMP :((temp > .90)&&(player->status == STATUS_IN_FLIGHT))];
+	[player setAlertFlag:ALERT_FLAG_TEMP to:((temp > .90)&&(player->status == STATUS_IN_FLIGHT))];
 	hudDrawBarAt( x, y, z1, siz, temp);
 }
 
@@ -1289,7 +1289,7 @@ static BOOL hostiles;
 	
 	PlayerEntity *player = [PlayerEntity sharedPlayer];
 	
-	double alt = [player dial_altitude];
+	double alt = [player dialAltitude];
 	int flash = (int)([UNIVERSE getTime] * 4);
 	flash &= 1;
 	// draw altitude bar
@@ -1300,7 +1300,7 @@ static BOOL hostiles;
 		glColor4fv(red_color);
 	if ((flash)&&(alt < .10))
 		glColor4fv(redplus_color);
-	[player setAlert_flag:ALERT_FLAG_ALT :((alt < .10)&&(player->status == STATUS_IN_FLIGHT))];
+	[player setAlertFlag:ALERT_FLAG_ALT to:((alt < .10)&&(player->status == STATUS_IN_FLIGHT))];
 	hudDrawBarAt( x, y, z1, siz, alt);
 }
 
@@ -1323,17 +1323,17 @@ static BOOL hostiles;
 	
 	PlayerEntity *player = [PlayerEntity sharedPlayer];
 	
-	if (![player dial_ident_engaged])
+	if (![player dialIdentEngaged])
 	{
-		int n_mis = [player dial_max_missiles];
+		int n_mis = [player dialMaxMissiles];
 		int i;
 		for (i = 0; i < n_mis; i++)
 		{
-			if ([player missile_for_station:i])
+			if ([player missileForStation:i])
 			{
-				NSString* miss_roles = [[player missile_for_station:i] roles];
+				NSString* miss_roles = [[player missileForStation:i] roles];
 				NSObject* miss_icon = [[UNIVERSE descriptions] objectForKey:miss_roles];
-				if (i == [player active_missile])
+				if (i == [player activeMissile])
 				{
 					glColor4fv(yellow_color);
 					glBegin(GL_POLYGON);
@@ -1349,7 +1349,7 @@ static BOOL hostiles;
 							hudDrawMineIconAt( x + i * sp + 2, y + 1, z1, NSMakeSize( siz.width + 4, siz.height + 4));
 					}
 					glEnd();
-					switch ([player dial_missile_status])
+					switch ([player dialMissileStatus])
 					{
 						case MISSILE_STATUS_SAFE :
 							glColor4fv(green_color);	break;
@@ -1361,7 +1361,7 @@ static BOOL hostiles;
 				}
 				else
 				{
-					if ([[player missile_for_station:i] getPrimaryTarget])
+					if ([[player missileForStation:i] getPrimaryTarget])
 						glColor4fv(red_color);
 					else
 						glColor4fv(green_color);
@@ -1379,7 +1379,7 @@ static BOOL hostiles;
 						hudDrawMineIconAt( x + i * sp, y, z1, siz);
 				}
 				glEnd();
-				if (i != [player active_missile])
+				if (i != [player activeMissile])
 				{
 					glColor4fv(green_color);
 					glBegin(GL_LINE_LOOP);
@@ -1412,7 +1412,7 @@ static BOOL hostiles;
 		y -= siz.height * 0.75;
 		siz.width *= 0.80;
 		sp *= 0.75;
-		switch ([player dial_missile_status])
+		switch ([player dialMissileStatus])
 		{
 			case MISSILE_STATUS_SAFE :
 				glColor4fv(green_color);	break;
@@ -1428,7 +1428,7 @@ static BOOL hostiles;
 		glVertex3i( x , y + siz.height, z1);
 		glEnd();
 		glColor4f( 0.0, 1.0, 0.0, 1.0);
-		drawString( [player dial_target_name], x + sp, y, z1, NSMakeSize( siz.width, siz.height));
+		drawString( [player dialTargetName], x + sp, y, z1, NSMakeSize( siz.width, siz.height));
 	}
 	
 }
@@ -1443,7 +1443,7 @@ static BOOL hostiles;
 //		(![player has_extra_equipment:(NSString *)[info objectForKey:EQUIPMENT_REQUIRED_KEY]]))
 //		return;
 //	
-	if ([player dial_missile_status] == MISSILE_STATUS_TARGET_LOCKED)
+	if ([player dialMissileStatus] == MISSILE_STATUS_TARGET_LOCKED)
 	{
 		hudDrawReticleOnTarget([player getPrimaryTarget], player, z1);
 		[self drawDirectionCue:info];
@@ -1453,8 +1453,8 @@ static BOOL hostiles;
 - (void) drawStatusLight:(NSDictionary *) info
 {
 	GLfloat status_color[4] = { 0.25, 0.25, 0.25, 1.0};
-	int alert_condition = [[PlayerEntity sharedPlayer] alert_condition];
-	double flash_alpha = 0.333 * (2.0 + sin([UNIVERSE getTime] * 2.5 * alert_condition));
+	int alertCondition = [[PlayerEntity sharedPlayer] alertCondition];
+	double flash_alpha = 0.333 * (2.0 + sin([UNIVERSE getTime] * 2.5 * alertCondition));
     int x = STATUS_LIGHT_CENTRE_X;
 	int y = STATUS_LIGHT_CENTRE_Y;
 	NSSize siz = NSMakeSize( STATUS_LIGHT_HEIGHT, STATUS_LIGHT_HEIGHT);
@@ -1467,7 +1467,7 @@ static BOOL hostiles;
 	if ([info objectForKey:HEIGHT_KEY])
 		siz.height = [(NSNumber *)[info objectForKey:HEIGHT_KEY] intValue];
 	//
-	switch(alert_condition)
+	switch(alertCondition)
 	{
 		case ALERT_CONDITION_RED :
 //			glColor4fv(red_color);
@@ -1516,7 +1516,7 @@ static BOOL hostiles;
 	if ([UNIVERSE displayGUI])
 		return;
 	
-	if ([player dial_missile_status] == MISSILE_STATUS_TARGET_LOCKED)
+	if ([player dialMissileStatus] == MISSILE_STATUS_TARGET_LOCKED)
 	{
 		GLfloat clear_color[4] = {0.0, 1.0, 0.0, 0.0};
 		Entity *target = [player getPrimaryTarget];
@@ -1646,7 +1646,7 @@ static BOOL hostiles;
 	GLfloat	s1c[4] = { 0.0f, 0.0f, 0.0f, 0.0f };
 	GLfloat	s2c[4] = { 0.0f, 0.0f, 0.0f, 0.0f };
 	GLfloat	s3c[4] = { 0.0f, 0.0f, 0.0f, 0.0f };
-	int scoop_status = [[PlayerEntity sharedPlayer] dial_fuelscoops_status];
+	int scoop_status = [[PlayerEntity sharedPlayer] dialFuelScoopStatus];
 	double t = [UNIVERSE getTime];
 	GLfloat a1 = alpha * 0.5f * (1.0f + sin(t * 8.0f));
 	GLfloat a2 = alpha * 0.5f * (1.0f + sin(t * 8.0f - 1.0f));
@@ -1775,7 +1775,7 @@ static BOOL hostiles;
 	
 	OOTrumble** trumbles = [player trumbleArray];
 	int i;
-	for (i = [player n_trumbles]; i > 0; i--)
+	for (i = [player trumbleCount]; i > 0; i--)
 	{
 		OOTrumble* trum = trumbles[i - 1];
 		[trum drawTrumble: z1];
@@ -1957,7 +1957,7 @@ void hudDrawReticleOnTarget(Entity* target, PlayerEntity* player1, GLfloat z1)
 	{
 		case CLASS_NEUTRAL :
 		{
-			int target_legal = [target_ship legal_status];
+			int target_legal = [target_ship legalStatus];
 			int legal_i = 0;
 			if (target_legal > 0)
 				legal_i =  (target_legal <= 50) ? 1 : 2;
@@ -1995,7 +1995,7 @@ void hudDrawReticleOnTarget(Entity* target, PlayerEntity* player1, GLfloat z1)
 		return;
 	
 	gl_matrix	back_mat;
-    Quaternion  back_q = player1->q_rotation;
+    Quaternion  back_q = player1->orientation;
 	back_q.w = -back_q.w;   // invert
 	Vector v1 = vector_up_from_quaternion(back_q);
 	Vector p0 = [player1 viewpointPosition];

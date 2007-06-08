@@ -835,8 +835,8 @@ static NSString * const kOOLogNoteShowShipyardModel = @"script.debug.note.showSh
 		NSArray*	missionsManifest = [self missionsList];
 
 		int legal_index = 0;
-		if (legal_status != 0)
-			legal_index = (legal_status <= 50) ? 1 : 2;
+		if (legalStatus != 0)
+			legal_index = (legalStatus <= 50) ? 1 : 2;
 		int rating = 0;
 		int kills[8] = { 0x0008,  0x0010,  0x0020,  0x0040,  0x0080,  0x0200,  0x0A00,  0x1900 };
 		while ((rating < 8)&&(kills[rating] <= ship_kills))
@@ -1234,18 +1234,20 @@ static NSMutableDictionary* currentShipyard = nil;
 	if (info)
 	{
 		// the key is a particular ship - show the details
-		NSString* sales_pitch = (NSString*)[info objectForKey:KEY_SHORT_DESCRIPTION];
+		NSString *sales_pitch = (NSString*)[info objectForKey:KEY_SHORT_DESCRIPTION];
+		NSDictionary *shipDict = [info dictionaryForKey:SHIPYARD_KEY_SHIP];
 		
-		int cargo_rating = [(NSNumber*)[(NSDictionary *)[info objectForKey:SHIPYARD_KEY_SHIP] objectForKey:@"max_cargo"] intValue];
+		int cargo_rating = [shipDict intForKey:@"max_cargo"];
 		int cargo_extra;
-		cargo_extra = [[info objectForKey:SHIPYARD_KEY_SHIP] intForKey:@"extra_cargo" defaultValue:15];
-		float speed_rating = 0.001 * [(NSNumber*)[(NSDictionary *)[info objectForKey:SHIPYARD_KEY_SHIP] objectForKey:@"max_flight_speed"] intValue];
-		NSArray* ship_extras = (NSArray*)[info objectForKey:KEY_EQUIPMENT_EXTRAS];
+		cargo_extra = [shipDict intForKey:@"extra_cargo" defaultValue:15];
+		float speed_rating = 0.001 * [shipDict intForKey:@"max_flight_speed"];
+		
+		NSArray *ship_extras = [info arrayForKey:KEY_EQUIPMENT_EXTRAS];
 		for (i = 0; i < [ship_extras count]; i++)
 		{
-			if ([(NSString*)[ship_extras objectAtIndex:i] isEqual:@"EQ_CARGO_BAY"])
+			if ([[ship_extras stringAtIndex:i] isEqualToString:@"EQ_CARGO_BAY"])
 				cargo_rating += cargo_extra;
-			if ([(NSString*)[ship_extras objectAtIndex:i] isEqual:@"EQ_PASSENGER_BERTH"])
+			else if ([[ship_extras stringAtIndex:i] isEqualToString:@"EQ_PASSENGER_BERTH"])
 				cargo_rating -= 5;
 		}
 		
@@ -1262,7 +1264,7 @@ static NSMutableDictionary* currentShipyard = nil;
 			
 		// now display the ship
 		[UNIVERSE removeDemoShips];
-		[self showShipyardModel:(NSDictionary*)[info objectForKey:SHIPYARD_KEY_SHIP]];
+		[self showShipyardModel:shipDict];
 	}
 	else
 	{
@@ -1288,7 +1290,7 @@ static NSMutableDictionary* currentShipyard = nil;
 	
 	GLfloat cr = ship->collision_radius;
 	OOLog(kOOLogNoteShowShipyardModel, @"::::: showShipyardModel:'%@'.", [ship name]);
-	[ship setQRotation: q2];
+	[ship setOrientation: q2];
 	
 	[ship setPositionX:1.2 * cr y:0.8 * cr z:6.4 * cr];
 	[ship setStatus: STATUS_COCKPIT_DISPLAY];
@@ -1369,7 +1371,7 @@ static NSMutableDictionary* currentShipyard = nil;
 	fuel = PLAYER_MAX_FUEL;
 	
 	// this ship has a clean record
-	legal_status = 0;
+	legalStatus = 0;
 	
 	// get forward_weapon aft_weapon port_weapon starboard_weapon from ship_info
 	aft_weapon = WEAPON_NONE;
@@ -1397,8 +1399,8 @@ static NSMutableDictionary* currentShipyard = nil;
 	// get missiles from ship_info
 	missiles = [shipDict intForKey:@"missiles"];
 	
-	// clear legal_status for free
-	legal_status = 0;
+	// clear legalStatus for free
+	legalStatus = 0;
 	
 	// reset max_passengers
 	max_passengers = 0;

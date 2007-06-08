@@ -496,7 +496,7 @@ MA 02110-1301, USA.
 - (void) updateTrumble:(double) delta_t
 {
 	// player movement
-	NSPoint p_mov = NSMakePoint(TRUMBLE_MAX_ROTATIONAL_VELOCITY * [player dial_pitch],	TRUMBLE_MAX_ROTATIONAL_VELOCITY * [player dial_roll]);
+	NSPoint p_mov = NSMakePoint(TRUMBLE_MAX_ROTATIONAL_VELOCITY * [player dialPitch],	TRUMBLE_MAX_ROTATIONAL_VELOCITY * [player dialRoll]);
 	switch ([UNIVERSE viewDir])
 	{
 		GLfloat t;

@@ -75,7 +75,7 @@ enum
 	kEntity_position,			// position in system space, Vector, read-only
 	kEntity_velocity,			// velocity, Vector, read-only
 	kEntity_speed,				// speed, double, read-only (magnitude of velocity)
-	kEntity_orientation,		// q_rotation, quaternion, read-write (unimplemented)
+	kEntity_orientation,		// orientation, quaternion, read-write (unimplemented)
 	kEntity_heading,			// heading, vector, read-only (like orientation but ignoring twist angle)
 	kEntity_status,				// entity status, string, read-only
 	kEntity_scanClass,			// scan class, string, read-only
@@ -257,7 +257,7 @@ static JSBool EntityGetProperty(JSContext *context, JSObject *this, jsval name, 
 	//	case kEntity_orientation:	TODO: implement JS quaternions
 		
 		case kEntity_heading:
-			VectorToJSValue(context, vector_forward_from_quaternion(entity->q_rotation), outValue);
+			VectorToJSValue(context, vector_forward_from_quaternion(entity->orientation), outValue);
 			break;
 		
 		case kEntity_status:

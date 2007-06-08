@@ -53,8 +53,8 @@ static NSString * const kOOLogEntityUpdateError				= @"entity.linkedList.update.
 {
     self = [super init];
     
-	q_rotation = kIdentityQuaternion;
-    quaternion_into_gl_matrix(q_rotation, rotMatrix);
+	orientation = kIdentityQuaternion;
+    quaternion_into_gl_matrix(orientation, rotMatrix);
     
 	position = kZeroVector;
 	
@@ -158,6 +158,7 @@ static NSString * const kOOLogEntityUpdateError				= @"entity.linkedList.update.
 
 }
 
+
 - (void) removeFromLinkedLists
 {
 	if (debug & DEBUG_LINKED_LISTS)
@@ -199,6 +200,7 @@ static NSString * const kOOLogEntityUpdateError				= @"entity.linkedList.update.
 			exit(-1);
 		}
 }
+
 
 - (BOOL) checkLinkedLists
 {
@@ -278,6 +280,7 @@ static NSString * const kOOLogEntityUpdateError				= @"entity.linkedList.update.
 	}
 	return YES;
 }
+
 
 - (void) updateLinkedLists
 {
@@ -394,10 +397,12 @@ static NSString * const kOOLogEntityUpdateError				= @"entity.linkedList.update.
 	OOLog(@"general.error.subclassResponsibility.Entity-warnAboutHostiles", @"***** Entity does nothing in warnAboutHostiles");
 }
 
+
 - (CollisionRegion*) collisionRegion
 {
 	return collisionRegion;
 }
+
 
 - (void) setCollisionRegion: (CollisionRegion*) region
 {
@@ -405,30 +410,36 @@ static NSString * const kOOLogEntityUpdateError				= @"entity.linkedList.update.
 	collisionRegion = [region retain];
 }
 
+
 - (void) setUniversalID:(OOUniversalID)uid
 {
 	universalID = uid;
 }
+
 
 - (OOUniversalID) universalID
 {
 	return universalID;
 }
 
+
 - (BOOL) throwingSparks
 {
 	return throw_sparks;
 }
+
 
 - (void) setThrowSparks:(BOOL) value
 {
 	throw_sparks = value;
 }
 
+
 - (void) throwSparks;
 {
 	// do nothing for now
 }
+
 
 - (void) setOwner:(Entity *) ent
 {
@@ -440,15 +451,18 @@ static NSString * const kOOLogEntityUpdateError				= @"entity.linkedList.update.
 		owner = NO_TARGET;
 }
 
+
 - (Entity *) owner
 {
 	return [UNIVERSE entityForUniversalID:owner];
 }
 
+
 - (void) setPosition:(Vector) posn
 {
 	position = posn;
 }
+
 
 - (void) setPositionX:(GLfloat)x y:(GLfloat)y z:(GLfloat)z
 {
@@ -457,15 +471,18 @@ static NSString * const kOOLogEntityUpdateError				= @"entity.linkedList.update.
 	position.z = z;
 }
 
+
 - (double) zeroDistance
 {
 	return zero_distance;
 }
 
+
 - (Vector) relativePosition
 {
 	return relativePosition;
 }
+
 
 - (NSComparisonResult) compareZeroDistance:(Entity *)otherEntity;
 {
@@ -475,66 +492,79 @@ static NSString * const kOOLogEntityUpdateError				= @"entity.linkedList.update.
 		return NSOrderedDescending;
 }
 
+
 - (BoundingBox) boundingBox
 {
 	return boundingBox;
 }
+
 
 - (GLfloat) mass
 {
 	return mass;
 }
 
-- (void) setQRotation:(Quaternion) quat
+
+- (void) setOrientation:(Quaternion) quat
 {
-	q_rotation = quat;
-    quaternion_into_gl_matrix(q_rotation, rotMatrix);
+	orientation = quat;
+    quaternion_into_gl_matrix(orientation, rotMatrix);
 }
 
-- (Quaternion) QRotation
+
+- (Quaternion) orientation
 {
-	return q_rotation;
+	return orientation;
 }
+
 
 - (void) setVelocity:(Vector) vel
 {
 	velocity = vel;
 }
 
+
 - (Vector) velocity
 {
 	return velocity;
 }
+
 
 - (double) speed
 {
 	return magnitude2(velocity);
 }
 
+
 - (GLfloat) distanceTravelled
 {
 	return distanceTravelled;
 }
+
 
 - (void) setDistanceTravelled: (GLfloat) value
 {
 	distanceTravelled = value;
 }
 
+
 - (void) setStatus:(OOEntityStatus) stat
 {
 	status = stat;
 }
+
 
 - (OOEntityStatus) status
 {
 	return status;
 }
 
+
 - (void) setScanClass:(OOScanClass)sClass
 {
 	scanClass = sClass;
 }
+
 
 - (OOScanClass) scanClass
 {
@@ -572,13 +602,14 @@ static NSString * const kOOLogEntityUpdateError				= @"entity.linkedList.update.
 		return;
 
 	if (roll)
-		quaternion_rotate_about_z( &q_rotation, -roll);
+		quaternion_rotate_about_z(&orientation, -roll);
 	if (climb)
-		quaternion_rotate_about_x( &q_rotation, -climb);
+		quaternion_rotate_about_x(&orientation, -climb);
 
-    quaternion_normalize(&q_rotation);
-    quaternion_into_gl_matrix(q_rotation, rotMatrix);
+    quaternion_normalize(&orientation);
+    quaternion_into_gl_matrix(orientation, rotMatrix);
 }
+
 
 - (void) applyRoll:(GLfloat) roll climb:(GLfloat) climb andYaw:(GLfloat) yaw
 {
@@ -586,69 +617,89 @@ static NSString * const kOOLogEntityUpdateError				= @"entity.linkedList.update.
 		return;
 
 	if (roll)
-		quaternion_rotate_about_z( &q_rotation, -roll);
+		quaternion_rotate_about_z(&orientation, -roll);
 	if (climb)
-		quaternion_rotate_about_x( &q_rotation, -climb);
+		quaternion_rotate_about_x(&orientation, -climb);
 	if (yaw)
-		quaternion_rotate_about_y( &q_rotation, -yaw);
+		quaternion_rotate_about_y(&orientation, -yaw);
 
-    quaternion_normalize(&q_rotation);
-    quaternion_into_gl_matrix(q_rotation, rotMatrix);
+    quaternion_normalize(&orientation);
+    quaternion_into_gl_matrix(orientation, rotMatrix);
 }
+
 
 - (void) moveForward:(double) amount
 {
-    Vector		forward = vector_forward_from_quaternion(q_rotation);
+    Vector		forward = vector_forward_from_quaternion(orientation);
 	distanceTravelled += amount;
 	position.x += amount * forward.x;
 	position.y += amount * forward.y;
 	position.z += amount * forward.z;
 }
 
+
 - (GLfloat *) rotationMatrix
 {
     return rotMatrix;
 }
+
 
 - (GLfloat *) drawRotationMatrix
 {
     return rotMatrix;
 }
 
+
 - (Vector) position
 {
     return position;
 }
 
+
 - (Vector) viewpointPosition
 {
-    return position;
+	Vector		viewpoint = position;
+	Vector		offset = [self viewpointOffset];
+	
+	// FIXME: this ought to be done with matrix or quaternion functions.
+	
+	viewpoint.x += offset.x * rotMatrix[0];	viewpoint.y += offset.x * rotMatrix[4];	viewpoint.z += offset.x * rotMatrix[8];
+	viewpoint.x += offset.y * rotMatrix[1];	viewpoint.y += offset.y * rotMatrix[5];	viewpoint.z += offset.y * rotMatrix[9];
+	viewpoint.x += offset.z * rotMatrix[2];	viewpoint.y += offset.z * rotMatrix[6];	viewpoint.z += offset.z * rotMatrix[10];
+	
+	return viewpoint;
 }
+
 
 - (Vector) viewpointOffset
 {
 	return kZeroVector;
 }
 
+
 - (BOOL) canCollide
 {
 	return YES;
 }
+
 
 - (GLfloat) collisionRadius
 {
 	return collision_radius;
 }
 
+
 - (void) setCollisionRadius:(GLfloat) amount
 {
 	collision_radius = amount;
 }
 
+
 - (NSMutableArray *) collisionArray
 {
 	return collidingEntities;
 }
+
 
 - (void) update:(double) delta_t
 {
@@ -656,20 +707,21 @@ static NSString * const kOOLogEntityUpdateError				= @"entity.linkedList.update.
 	if (player)
 	{
 		if (status != STATUS_COCKPIT_DISPLAY)
-			relativePosition = vector_between( player->position, position);
+			relativePosition = vector_between(player->position, position);
 		else
 			relativePosition = position;
 		//
-		zero_distance = magnitude2( relativePosition);
+		zero_distance = magnitude2(relativePosition);
 	}
 	else
 		zero_distance = -1;
 
 	hasMoved = ((position.x != lastPosition.x)||(position.y != lastPosition.y)||(position.z != lastPosition.z));
 	lastPosition = position;
-	hasRotated = ((q_rotation.w != lastQRotation.w)||(q_rotation.x != lastQRotation.x)||(q_rotation.y != lastQRotation.y)||(q_rotation.z != lastQRotation.z));
-	lastQRotation = q_rotation;
+	hasRotated = ((orientation.w != lastQRotation.w)||(orientation.x != lastQRotation.x)||(orientation.y != lastQRotation.y)||(orientation.z != lastQRotation.z));
+	lastQRotation = orientation;
 }
+
 
 - (void) saveToLastFrame
 {
@@ -679,12 +731,13 @@ static NSString * const kOOLogEntityUpdateError				= @"entity.linkedList.update.
 		// save previous data
 		trackTime = t_now;
 		track[trackIndex].position =	position;
-		track[trackIndex].q_rotation =	q_rotation;
+		track[trackIndex].orientation =	orientation;
 		track[trackIndex].timeframe =	trackTime;
-		track[trackIndex].k =	vector_forward_from_quaternion(q_rotation);
+		track[trackIndex].k =	vector_forward_from_quaternion(orientation);
 		trackIndex = (trackIndex + 1 ) & 0xff;
 	}
 }
+
 
 - (void) savePosition:(Vector)pos atTime:(double)t_time atIndex:(int)t_index
 {
@@ -693,6 +746,7 @@ static NSString * const kOOLogEntityUpdateError				= @"entity.linkedList.update.
 	track[t_index].timeframe =	t_time;
 	trackIndex = (t_index + 1 ) & 0xff;
 }
+
 
 - (void) saveFrame:(Frame)frame atIndex:(int)t_index
 {
@@ -705,22 +759,23 @@ static NSString * const kOOLogEntityUpdateError				= @"entity.linkedList.update.
 //
 - (void) resetFramesFromFrame:(Frame) resetFrame withVelocity:(Vector) vel1
 {
-	Vector		v1 = make_vector( 0.1 * vel1.x, 0.1 * vel1.y, 0.1 * vel1.z);
+	Vector		v1 = make_vector(0.1 * vel1.x, 0.1 * vel1.y, 0.1 * vel1.z);
 	double		t_now = [UNIVERSE getTime];
 	Vector		pos = resetFrame.position;
 	Vector		vk = resetFrame.k;
-	Quaternion	qr = resetFrame.q_rotation;
+	Quaternion	qr = resetFrame.orientation;
 	int i;
 	for (i = 0; i < 256; i++)
 	{
 		track[255-i].position = make_vector(pos.x - i * v1.x, pos.y - i * v1.y, pos.z - i * v1.z);
 		track[255-i].timeframe = t_now - 0.1 * i;
-		track[255-i].q_rotation = qr;
+		track[255-i].orientation = qr;
 		track[255-i].k = vk;
 	}
 	trackTime = t_now;
 	trackIndex = 0;
 }
+
 
 - (BOOL) resetToTime:(double) t_frame	// timeframe is relative to now ie. -0.5 = half a second ago.
 {
@@ -729,17 +784,18 @@ static NSString * const kOOLogEntityUpdateError				= @"entity.linkedList.update.
 
 	Frame	selectedFrame = [self frameAtTime:t_frame];
 	[self setPosition:selectedFrame.position];
-	[self setQRotation:selectedFrame.q_rotation];
+	[self setOrientation:selectedFrame.orientation];
 	return YES;
 }
+
 
 - (Frame) frameAtTime:(double) t_frame	// t_frame is relative to now ie. -0.5 = half a second ago.
 {
 	Frame result;
 	result.position = position;
-	result.q_rotation = q_rotation;
+	result.orientation = orientation;
 	result.timeframe = [UNIVERSE getTime];
-	result.k = vector_forward_from_quaternion(q_rotation);
+	result.k = vector_forward_from_quaternion(orientation);
 	//
 	if (t_frame >= 0.0)
 		return result;
@@ -756,12 +812,12 @@ static NSString * const kOOLogEntityUpdateError				= @"entity.linkedList.update.
 		posn.y =	f0 * result.position.y + f1 * track[t1].position.y;
 		posn.z =	f0 * result.position.z + f1 * track[t1].position.z;
 		Quaternion qrot;
-		qrot.w =	f0 * result.q_rotation.w + f1 * track[t1].q_rotation.w;
-		qrot.x =	f0 * result.q_rotation.x + f1 * track[t1].q_rotation.x;
-		qrot.y =	f0 * result.q_rotation.y + f1 * track[t1].q_rotation.y;
-		qrot.z =	f0 * result.q_rotation.z + f1 * track[t1].q_rotation.z;
+		qrot.w =	f0 * result.orientation.w + f1 * track[t1].orientation.w;
+		qrot.x =	f0 * result.orientation.x + f1 * track[t1].orientation.x;
+		qrot.y =	f0 * result.orientation.y + f1 * track[t1].orientation.y;
+		qrot.z =	f0 * result.orientation.z + f1 * track[t1].orientation.z;
 		result.position = posn;
-		result.q_rotation = qrot;
+		result.orientation = qrot;
 		result.timeframe = moment_in_time;
 		result.k = vector_forward_from_quaternion(qrot);
 		return result;
@@ -785,16 +841,17 @@ static NSString * const kOOLogEntityUpdateError				= @"entity.linkedList.update.
 	posn.y =	f0 * track[t0].position.y + f1 * track[t1].position.y;
 	posn.z =	f0 * track[t0].position.z + f1 * track[t1].position.z;
 	Quaternion qrot;
-	qrot.w =	f0 * track[t0].q_rotation.w + f1 * track[t1].q_rotation.w;
-	qrot.x =	f0 * track[t0].q_rotation.x + f1 * track[t1].q_rotation.x;
-	qrot.y =	f0 * track[t0].q_rotation.y + f1 * track[t1].q_rotation.y;
-	qrot.z =	f0 * track[t0].q_rotation.z + f1 * track[t1].q_rotation.z;
+	qrot.w =	f0 * track[t0].orientation.w + f1 * track[t1].orientation.w;
+	qrot.x =	f0 * track[t0].orientation.x + f1 * track[t1].orientation.x;
+	qrot.y =	f0 * track[t0].orientation.y + f1 * track[t1].orientation.y;
+	qrot.z =	f0 * track[t0].orientation.z + f1 * track[t1].orientation.z;
 	result.position = posn;
-	result.q_rotation = qrot;
+	result.orientation = qrot;
 	result.timeframe = moment_in_time;
 	result.k = vector_forward_from_quaternion(qrot);
 	return result;
 }
+
 
 - (Frame) frameAtTime:(double) t_frame fromFrame:(Frame) frame_zero	// t_frame is relative to now ie. -0.5 = half a second ago.
 {
@@ -816,12 +873,12 @@ static NSString * const kOOLogEntityUpdateError				= @"entity.linkedList.update.
 		posn.y =	f0 * result.position.y + f1 * fr1.position.y;
 		posn.z =	f0 * result.position.z + f1 * fr1.position.z;
 		Quaternion qrot;
-		qrot.w =	f0 * result.q_rotation.w + f1 * fr1.q_rotation.w;
-		qrot.x =	f0 * result.q_rotation.x + f1 * fr1.q_rotation.x;
-		qrot.y =	f0 * result.q_rotation.y + f1 * fr1.q_rotation.y;
-		qrot.z =	f0 * result.q_rotation.z + f1 * fr1.q_rotation.z;
+		qrot.w =	f0 * result.orientation.w + f1 * fr1.orientation.w;
+		qrot.x =	f0 * result.orientation.x + f1 * fr1.orientation.x;
+		qrot.y =	f0 * result.orientation.y + f1 * fr1.orientation.y;
+		qrot.z =	f0 * result.orientation.z + f1 * fr1.orientation.z;
 		result.position = posn;
-		result.q_rotation = qrot;
+		result.orientation = qrot;
 		result.timeframe = moment_in_time;
 		result.k = vector_forward_from_quaternion(qrot);
 		return result;
@@ -846,16 +903,17 @@ static NSString * const kOOLogEntityUpdateError				= @"entity.linkedList.update.
 	posn.y =	f0 * track[t0].position.y + f1 * track[t1].position.y;
 	posn.z =	f0 * track[t0].position.z + f1 * track[t1].position.z;
 	Quaternion qrot;
-	qrot.w =	f0 * track[t0].q_rotation.w + f1 * track[t1].q_rotation.w;
-	qrot.x =	f0 * track[t0].q_rotation.x + f1 * track[t1].q_rotation.x;
-	qrot.y =	f0 * track[t0].q_rotation.y + f1 * track[t1].q_rotation.y;
-	qrot.z =	f0 * track[t0].q_rotation.z + f1 * track[t1].q_rotation.z;
+	qrot.w =	f0 * track[t0].orientation.w + f1 * track[t1].orientation.w;
+	qrot.x =	f0 * track[t0].orientation.x + f1 * track[t1].orientation.x;
+	qrot.y =	f0 * track[t0].orientation.y + f1 * track[t1].orientation.y;
+	qrot.z =	f0 * track[t0].orientation.z + f1 * track[t1].orientation.z;
 	result.position = posn;
-	result.q_rotation = qrot;
+	result.orientation = qrot;
 	result.timeframe = moment_in_time;
 	result.k = vector_forward_from_quaternion(qrot);
 	return result;
 }
+
 
 - (BOOL) checkCloseCollisionWith:(Entity *)other
 {
@@ -921,7 +979,7 @@ static NSString * const kOOLogEntityUpdateError				= @"entity.linkedList.update.
 	OOLog(@"dumpState.entity", @"Scan class: %@", ScanClassToString(scanClass));
 	OOLog(@"dumpState.entity", @"Status: %@", EntityStatusToString(status));
 	OOLog(@"dumpState.entity", @"Position: %@", VectorDescription(position));
-	OOLog(@"dumpState.entity", @"Orientation: %@", QuaternionDescription(q_rotation));
+	OOLog(@"dumpState.entity", @"Orientation: %@", QuaternionDescription(orientation));
 	OOLog(@"dumpState.entity", @"Distance travelled: %g", distanceTravelled);
 	OOLog(@"dumpState.entity", @"Energy: %g of %g", energy, maxEnergy);
 	OOLog(@"dumpState.entity", @"Mass: %g", mass);

@@ -134,10 +134,10 @@ MA 02110-1301, USA.
 	//
 	Entity* scan;
 	GLfloat d2 = 0.0;
-	GLfloat scanner_range = SCANNER_MAX_RANGE;
+	GLfloat scannerRange = SCANNER_MAX_RANGE;
 	//
 	scan = ship->z_previous;	while ((scan)&&(![scan canCollide]))	scan = scan->z_previous;	// skip non-collidables
-	while ((scan)&&(scan->position.z > ship->position.z - scanner_range)&&(n_nearby_entities < MAX_CONSIDERED_ENTITIES))
+	while ((scan)&&(scan->position.z > ship->position.z - scannerRange)&&(n_nearby_entities < MAX_CONSIDERED_ENTITIES))
 	{
 		if ([scan canCollide])
 		{
@@ -155,7 +155,7 @@ MA 02110-1301, USA.
 	}
 	//
 	scan = ship->z_next;	while ((scan)&&(![scan canCollide]))	scan = scan->z_next;	// skip non-collidables
-	while ((scan)&&(scan->position.z < ship->position.z + scanner_range)&&(n_nearby_entities < MAX_CONSIDERED_ENTITIES))
+	while ((scan)&&(scan->position.z < ship->position.z + scannerRange)&&(n_nearby_entities < MAX_CONSIDERED_ENTITIES))
 	{
 		if ([scan canCollide])
 		{

@@ -106,11 +106,11 @@ static NSString * const kOOLogEntityBehaviourChanged	= @"entity.behaviour.change
 	
 	// Does this positional stuff need setting up here?
 	// Either way, having four representations of orientation is dumb. Needs fixing. --Ahruman
-    q_rotation = kIdentityQuaternion;
-    quaternion_into_gl_matrix(q_rotation, rotMatrix);
-	v_forward	= vector_forward_from_quaternion(q_rotation);
-	v_up		= vector_up_from_quaternion(q_rotation);
-	v_right		= vector_right_from_quaternion(q_rotation);
+    orientation = kIdentityQuaternion;
+    quaternion_into_gl_matrix(orientation, rotMatrix);
+	v_forward	= vector_forward_from_quaternion(orientation);
+	v_up		= vector_up_from_quaternion(orientation);
+	v_right		= vector_right_from_quaternion(orientation);
 	reference	= v_forward;  // reference vector for (* turrets *)
 	
 	isShip = YES;
@@ -135,7 +135,7 @@ static NSString * const kOOLogEntityBehaviourChanged	= @"entity.behaviour.change
 	shipDict = shipinfoDictionary;	// TEMP: ensure no mutation
 	
 	// set things from dictionary from here out
-	max_flight_speed = [shipDict doubleForKey:@"max_flight_speed"];
+	maxFlightSpeed = [shipDict doubleForKey:@"max_flight_speed"];
 	max_flight_roll = [shipDict doubleForKey:@"max_flight_roll"];
 	max_flight_pitch = [shipDict doubleForKey:@"max_flight_pitch"];
 	max_flight_yaw = [shipDict doubleForKey:@"max_flight_yaw" defaultValue:max_flight_pitch];	// Note by default yaw == pitch
@@ -161,7 +161,7 @@ static NSString * const kOOLogEntityBehaviourChanged	= @"entity.behaviour.change
 	aft_weapon_type = StringToWeaponType([shipDict stringForKey:@"aft_weapon_type" defaultValue:@"WEAPON_NONE"]);
 	
 	weapon_energy = [shipDict doubleForKey:@"weapon_energy"];
-	scanner_range = [shipDict doubleForKey:@"weapon_energy" defaultValue:25600.0];
+	scannerRange = [shipDict doubleForKey:@"scanner_range" defaultValue:25600.0];
 	missiles = [shipDict intForKey:@"missiles"];
 
 	// upgrades:
@@ -292,14 +292,17 @@ static NSString * const kOOLogEntityBehaviourChanged	= @"entity.behaviour.change
 
 			if ([subdesc isEqual:@"*FLASHER*"])
 			{
-				subent = [[ParticleEntity alloc] init];	// retained
-				[(ParticleEntity*)subent setColor:[OOColor colorWithCalibratedHue: sub_q.w/360.0 saturation:1.0 brightness:1.0 alpha:1.0]];
-				[(ParticleEntity*)subent setDuration: sub_q.x];
-				[(ParticleEntity*)subent setEnergy: 2.0 * sub_q.y];
-				[(ParticleEntity*)subent setSize:NSMakeSize( sub_q.z, sub_q.z)];
-				[(ParticleEntity*)subent setParticleType:PARTICLE_FLASHER];
-				[(ParticleEntity*)subent setStatus:STATUS_EFFECT];
-				[(ParticleEntity*)subent setPosition:sub_pos];
+				ParticleEntity *particle = nil;
+				particle = [[ParticleEntity alloc] init];	// retained
+				[particle setColor:[OOColor colorWithCalibratedHue: sub_q.w/360.0 saturation:1.0 brightness:1.0 alpha:1.0]];
+				[particle setDuration: sub_q.x];
+				[particle setEnergy: 2.0 * sub_q.y];
+				[particle setSize:NSMakeSize( sub_q.z, sub_q.z)];
+				[particle setParticleType:PARTICLE_FLASHER];
+				[particle setStatus:STATUS_EFFECT];
+				[particle setPosition:sub_pos];
+				
+				subent = particle;
 			}
 			else
 			{
@@ -318,7 +321,7 @@ static NSString * const kOOLogEntityBehaviourChanged	= @"entity.behaviour.change
 					//
 					[(ShipEntity*)subent setReference: ref];
 					[(ShipEntity*)subent setPosition: sub_pos];
-					[(ShipEntity*)subent setQRotation: sub_q];
+					[(ShipEntity*)subent setOrientation: sub_q];
 					//
 					[self addSolidSubentityToCollisionRadius:(ShipEntity*)subent];
 					//
@@ -365,8 +368,8 @@ static NSString * const kOOLogEntityBehaviourChanged	= @"entity.behaviour.change
 	}
 	
 	//  escorts
-	n_escorts = [shipDict intForKey:@"escorts"];
-	escortsAreSetUp = (n_escorts == 0);
+	escortCount = [shipDict intForKey:@"escorts"];
+	escortsAreSetUp = (escortCount == 0);
 
 	// beacons
 	NSString *beaconCode = [shipDict stringForKey:@"beacon"];
@@ -498,6 +501,7 @@ static NSString * const kOOLogEntityBehaviourChanged	= @"entity.behaviour.change
 	return brain;
 }
 
+
 - (void)setBrain:(OOBrain *)aBrain
 {
 	brain = aBrain;
@@ -512,6 +516,7 @@ static NSString * const kOOLogEntityBehaviourChanged	= @"entity.behaviour.change
 	Vector w1 = make_vector( dot_product( u1, v_right), dot_product( u1, v_up), dot_product( u1, v_forward));
 	return [octree isHitByLine:w0 :w1];
 }
+
 
 - (GLfloat) doesHitLine:(Vector)v0: (Vector)v1 :(ShipEntity **)hitEntity;
 {
@@ -555,6 +560,7 @@ static NSString * const kOOLogEntityBehaviourChanged	= @"entity.behaviour.change
 	return hit_distance;
 }
 
+
 - (GLfloat)doesHitLine:(Vector)v0: (Vector)v1 withPosition:(Vector)o andIJK:(Vector)i :(Vector)j :(Vector)k;
 {
 	Vector u0 = vector_between( o, v0);	// relative to origin of model / octree
@@ -577,7 +583,7 @@ static NSString * const kOOLogEntityBehaviourChanged	= @"entity.behaviour.change
 		//
 		if (status == STATUS_IN_FLIGHT)	// just popped into existence
 		{
-			if ((!escortsAreSetUp) && (n_escorts > 0))  [self setUpEscorts];
+			if ((!escortsAreSetUp) && (escortCount > 0))  [self setUpEscorts];
 		}
 		else
 		{
@@ -619,30 +625,36 @@ static NSString * const kOOLogEntityBehaviourChanged	= @"entity.behaviour.change
 	return result;
 }
 
+
 - (NSString *)beaconCode
 {
 	return [shipinfoDictionary stringForKey:@"beacon"];
 }
+
 
 - (BOOL)isBeacon
 {
 	return (beaconChar != 0);
 }
 
+
 - (char)beaconChar
 {
 	return beaconChar;
 }
+
 
 - (void)setBeaconChar:(char)bchar
 {
 	beaconChar = bchar;
 }
 
+
 - (int)nextBeaconID
 {
 	return nextBeaconID;
 }
+
 
 - (void)setNextBeacon:(ShipEntity *)beaconShip
 {
@@ -676,9 +688,9 @@ static NSString * const kOOLogEntityBehaviourChanged	= @"entity.behaviour.change
 			escortShipKey = nil;
 	}
 
-	while (n_escorts > 0)
+	while (escortCount > 0)
 	{
-		Vector ex_pos = [self getCoordinatesForEscortPosition:n_escorts - 1];
+		Vector ex_pos = [self getCoordinatesForEscortPosition:escortCount - 1];
 
 		ShipEntity *escorter;
 
@@ -715,8 +727,8 @@ static NSString * const kOOLogEntityBehaviourChanged	= @"entity.behaviour.change
 		[UNIVERSE addEntity:escorter];
 		[[escorter getAI] setStateMachine:@"escortAI.plist"];	// must happen after adding to the UNIVERSE!
 
-		[escorter setGroup_id:universalID];
-		[self setGroup_id:universalID];		// make self part of same group
+		[escorter setGroupID:universalID];
+		[self setGroupID:universalID];		// make self part of same group
 
 		[escorter setOwner: self];	// make self group leader
 
@@ -734,7 +746,7 @@ static NSString * const kOOLogEntityBehaviourChanged	= @"entity.behaviour.change
 		}
 
 		[escorter release];
-		n_escorts--;
+		escortCount--;
 	}
 }
 
@@ -786,6 +798,7 @@ BOOL ship_canCollide (ShipEntity* ship)
 		return NO;
 	return YES;
 }
+
 
 - (BOOL) canCollide
 {
@@ -893,6 +906,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	return (ShipEntity*)nil;
 }
 
+
 - (BOOL) checkCloseCollisionWith:(Entity *)other
 {
 	if (!other)
@@ -963,6 +977,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	return abspos;
 }
 
+
 - (Vector) absolutePositionForSubentityOffset:(Vector) offset
 {
 
@@ -983,6 +998,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	return abspos;
 }
 
+
 - (Triangle) absoluteIJKForSubentity;
 {
 	Triangle	result;
@@ -1002,6 +1018,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	}
 	return result;
 }
+
 
 - (void) addSolidSubentityToCollisionRadius:(ShipEntity*) subent
 {
@@ -1110,11 +1127,11 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 
 	// handle radio message effects
 	//
-	if (message_time > 0.0)
+	if (messageTime > 0.0)
 	{
-		message_time -= delta_t;
-		if (message_time < 0.0)
-			message_time = 0.0;
+		messageTime -= delta_t;
+		if (messageTime < 0.0)
+			messageTime = 0.0;
 	}
 
 	// temperature factors
@@ -1226,7 +1243,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 		else
 		{
 			// ignore behaviour just keep moving...
-			[self applyRoll:delta_t*flight_roll andClimb:delta_t*flight_pitch];
+			[self applyRoll:delta_t*flightRoll andClimb:delta_t*flightPitch];
 			[self applyThrust:delta_t];
 			if (energy < maxEnergy)
 			{
@@ -1262,7 +1279,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	//
 	if (status == STATUS_COCKPIT_DISPLAY)
     {
-		[self applyRoll: delta_t * flight_roll andClimb: delta_t * flight_pitch];
+		[self applyRoll: delta_t * flightRoll andClimb: delta_t * flightPitch];
 		GLfloat range2 = 0.1 * distance2( position, destination) / (collision_radius * collision_radius);
 		if ((range2 > 1.0)||(velocity.z > 0.0))	range2 = 1.0;
 		position.x += range2 * delta_t * velocity.x;
@@ -1272,7 +1289,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
     }
 	else
 	{
-		double  target_speed = max_flight_speed;
+		double  target_speed = maxFlightSpeed;
 
 		ShipEntity*	target = (ShipEntity*)[UNIVERSE entityForUniversalID:primaryTarget];
 
@@ -1286,10 +1303,10 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 			}
 			else
 			{
-				target_speed = [(ShipEntity *)[UNIVERSE entityForUniversalID:primaryTarget] flight_speed];
-				if (target_speed < max_flight_speed)
+				target_speed = [(ShipEntity *)[UNIVERSE entityForUniversalID:primaryTarget] flightSpeed];
+				if (target_speed < maxFlightSpeed)
 				{
-					target_speed += max_flight_speed;
+					target_speed += maxFlightSpeed;
 					target_speed /= 2.0;
 				}
 			}
@@ -1408,10 +1425,10 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 
 		//
 		// update destination position for escorts
-		if (n_escorts > 0)
+		if (escortCount > 0)
 		{
 			int i;
-			for (i = 0; i < n_escorts; i++)
+			for (i = 0; i < escortCount; i++)
 			{
 				ShipEntity *escorter = (ShipEntity *)[UNIVERSE entityForUniversalID:escort_ids[i]];
 				// check it's still an escort ship
@@ -1423,7 +1440,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 				if (escorter_okay)
 					[escorter setDestination:[self getCoordinatesForEscortPosition:i]];	// update its destination
 				else
-					escort_ids[i--] = escort_ids[--n_escorts];	// remove the escort
+					escort_ids[i--] = escort_ids[--escortCount];	// remove the escort
 			}
 		}
     }
@@ -1438,7 +1455,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 		qf.x *= delta_t;
 		qf.y *= delta_t;
 		qf.z *= delta_t;
-		q_rotation = quaternion_multiply( qf, q_rotation);
+		orientation = quaternion_multiply( qf, orientation);
 	}
 	
 	//
@@ -1474,7 +1491,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 //
 - (double) speed
 {
-	return sqrt(velocity.x * velocity.x + velocity.y * velocity.y + velocity.z * velocity.z + flight_speed * flight_speed);
+	return sqrt(velocity.x * velocity.x + velocity.y * velocity.y + velocity.z * velocity.z + flightSpeed * flightSpeed);
 }
 
 
@@ -1486,16 +1503,16 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 {
 	double		damping = 0.5 * delta_t;
 	// damp roll
-	if (flight_roll < 0)
-		flight_roll += (flight_roll < -damping) ? damping : -flight_roll;
-	if (flight_roll > 0)
-		flight_roll -= (flight_roll > damping) ? damping : flight_roll;
+	if (flightRoll < 0)
+		flightRoll += (flightRoll < -damping) ? damping : -flightRoll;
+	if (flightRoll > 0)
+		flightRoll -= (flightRoll > damping) ? damping : flightRoll;
 	// damp pitch
-	if (flight_pitch < 0)
-		flight_pitch += (flight_pitch < -damping) ? damping : -flight_pitch;
-	if (flight_pitch > 0)
-		flight_pitch -= (flight_pitch > damping) ? damping : flight_pitch;
-	[self applyRoll:delta_t*flight_roll andClimb:delta_t*flight_pitch];
+	if (flightPitch < 0)
+		flightPitch += (flightPitch < -damping) ? damping : -flightPitch;
+	if (flightPitch > 0)
+		flightPitch -= (flightPitch > damping) ? damping : flightPitch;
+	[self applyRoll:delta_t*flightRoll andClimb:delta_t*flightPitch];
 	[self applyThrust:delta_t];
 }
 //            //
@@ -1505,26 +1522,26 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	if ((!isStation)&&(scanClass != CLASS_BUOY))
 	{
 		// damp roll
-		if (flight_roll < 0)
-			flight_roll += (flight_roll < -damping) ? damping : -flight_roll;
-		if (flight_roll > 0)
-			flight_roll -= (flight_roll > damping) ? damping : flight_roll;
+		if (flightRoll < 0)
+			flightRoll += (flightRoll < -damping) ? damping : -flightRoll;
+		if (flightRoll > 0)
+			flightRoll -= (flightRoll > damping) ? damping : flightRoll;
 	}
 	if (scanClass != CLASS_BUOY)
 	{
 		// damp pitch
-		if (flight_pitch < 0)
-			flight_pitch += (flight_pitch < -damping) ? damping : -flight_pitch;
-		if (flight_pitch > 0)
-			flight_pitch -= (flight_pitch > damping) ? damping : flight_pitch;
+		if (flightPitch < 0)
+			flightPitch += (flightPitch < -damping) ? damping : -flightPitch;
+		if (flightPitch > 0)
+			flightPitch -= (flightPitch > damping) ? damping : flightPitch;
 	}
-	[self applyRoll:delta_t*flight_roll andClimb:delta_t*flight_pitch];
+	[self applyRoll:delta_t*flightRoll andClimb:delta_t*flightPitch];
 	[self applyThrust:delta_t];
 }
 //            //
 - (void) behaviour_tumble:(double) delta_t
 {
-	[self applyRoll:delta_t*flight_roll andClimb:delta_t*flight_pitch];
+	[self applyRoll:delta_t*flightRoll andClimb:delta_t*flightPitch];
 	[self applyThrust:delta_t];
 }
 //            //
@@ -1572,7 +1589,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 			BOOL lost_contact = (distance > hauler->collision_radius + collision_radius + 250.0f);	// 250m range for tractor beam
 			if (hauler->isPlayer)
 			{
-				switch ([(PlayerEntity*)hauler dial_fuelscoops_status])
+				switch ([(PlayerEntity*)hauler dialFuelScoopStatus])
 				{
 					case SCOOP_STATUS_NOT_INSTALLED :
 					case SCOOP_STATUS_FULL_HOLD :
@@ -1595,7 +1612,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 			}
 		}
 	}
-	[self applyRoll:delta_t*flight_roll andClimb:delta_t*flight_pitch];
+	[self applyRoll:delta_t*flightRoll andClimb:delta_t*flightPitch];
 	desired_speed = 0.0;
 	thrust = 25.0;	// used to damp velocity (must be less than hauler thrust)
 	[self applyThrust:delta_t];
@@ -1607,7 +1624,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	[self trackPrimaryTarget:delta_t:NO];
 	if ((proximity_alert != NO_TARGET)&&(proximity_alert != primaryTarget))
 		[self avoidCollision];
-	[self applyRoll:delta_t*flight_roll andClimb:delta_t*flight_pitch];
+	[self applyRoll:delta_t*flightRoll andClimb:delta_t*flightPitch];
 	[self applyThrust:delta_t];
 }
 //            //
@@ -1616,16 +1633,16 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	double  range = [self rangeToPrimaryTarget];
 	if (behaviour == BEHAVIOUR_INTERCEPT_TARGET)
 	{
-		desired_speed = max_flight_speed;
+		desired_speed = maxFlightSpeed;
 		if (range < desired_range)
 			[shipAI reactToMessage:@"DESIRED_RANGE_ACHIEVED"];
-		desired_speed = max_flight_speed * [self trackPrimaryTarget:delta_t:NO];
+		desired_speed = maxFlightSpeed * [self trackPrimaryTarget:delta_t:NO];
 	}
 	else
 	{
 		ShipEntity*	target = (ShipEntity*)[UNIVERSE entityForUniversalID:primaryTarget];
 		double target_speed = [target speed];
-		double eta = range / (flight_speed - target_speed);
+		double eta = range / (flightSpeed - target_speed);
 		double last_success_factor = success_factor;
 		double last_distance = last_success_factor;
 		double  distance = [self rangeToDestination];
@@ -1634,15 +1651,15 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 		double slowdownTime = 96.0 / thrust;	// more thrust implies better slowing
 		double minTurnSpeedFactor = 0.005 * max_flight_pitch * max_flight_roll;	// faster turning implies higher speeds
 
-		if ((eta < slowdownTime)&&(flight_speed > max_flight_speed * minTurnSpeedFactor))
-			desired_speed = flight_speed * 0.75;   // cut speed by 50% to a minimum minTurnSpeedFactor of speed
+		if ((eta < slowdownTime)&&(flightSpeed > maxFlightSpeed * minTurnSpeedFactor))
+			desired_speed = flightSpeed * 0.75;   // cut speed by 50% to a minimum minTurnSpeedFactor of speed
 		else
-			desired_speed = max_flight_speed;
+			desired_speed = maxFlightSpeed;
 
 		if (desired_speed < target_speed)
 		{
 			desired_speed += target_speed;
-			if (target_speed > max_flight_speed)
+			if (target_speed > maxFlightSpeed)
 				[shipAI reactToMessage:@"TARGET_LOST"];
 		}
 		//
@@ -1671,18 +1688,18 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	}
 	if ((proximity_alert != NO_TARGET)&&(proximity_alert != primaryTarget))
 		[self avoidCollision];
-	[self applyRoll:delta_t*flight_roll andClimb:delta_t*flight_pitch];
+	[self applyRoll:delta_t*flightRoll andClimb:delta_t*flightPitch];
 	[self applyThrust:delta_t];
 }
 //            //
 - (void) behaviour_attack_target:(double) delta_t
 {
 	BOOL	canBurn = has_fuel_injection && (fuel > 1);	// was &&(fuel > 0)
-	double	max_available_speed = (canBurn)? max_flight_speed * AFTERBURNER_FACTOR : max_flight_speed;
+	double	max_available_speed = (canBurn)? maxFlightSpeed * AFTERBURNER_FACTOR : maxFlightSpeed;
 	double  range = [self rangeToPrimaryTarget];
 	[self activateCloakingDevice];
 	desired_speed = max_available_speed;
-	if (range < 0.035 * weapon_range)
+	if (range < 0.035 * weaponRange)
 		behaviour = BEHAVIOUR_ATTACK_FLY_FROM_TARGET;
 	else
 		if (universalID & 1)	// 50% of ships are smart S.M.R.T. smart!
@@ -1697,14 +1714,14 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 			behaviour = BEHAVIOUR_ATTACK_FLY_TO_TARGET;
 		}
 	frustration = 0.0;	// behaviour changed, so reset frustration
-	[self applyRoll:delta_t*flight_roll andClimb:delta_t*flight_pitch];
+	[self applyRoll:delta_t*flightRoll andClimb:delta_t*flightPitch];
 	[self applyThrust:delta_t];
 }
 //            //
 - (void) behaviour_fly_to_target_six:(double) delta_t
 {
 	BOOL canBurn = has_fuel_injection && (fuel > 1);	// was &&(fuel > 0)
-	double max_available_speed = (canBurn)? max_flight_speed * AFTERBURNER_FACTOR : max_flight_speed;
+	double max_available_speed = (canBurn)? maxFlightSpeed * AFTERBURNER_FACTOR : maxFlightSpeed;
 	double  range = [self rangeToPrimaryTarget];
 	// deal with collisions and lost targets
 	//
@@ -1719,14 +1736,14 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 
 	// control speed
 	//
-	BOOL isUsingAfterburner = canBurn && (flight_speed > max_flight_speed);
-	double	slow_down_range = weapon_range * COMBAT_WEAPON_RANGE_FACTOR * ((isUsingAfterburner)? 3.0 * AFTERBURNER_FACTOR : 1.0);
+	BOOL isUsingAfterburner = canBurn && (flightSpeed > maxFlightSpeed);
+	double	slow_down_range = weaponRange * COMBAT_WEAPON_RANGE_FACTOR * ((isUsingAfterburner)? 3.0 * AFTERBURNER_FACTOR : 1.0);
 	ShipEntity*	target = (ShipEntity*)[UNIVERSE entityForUniversalID:primaryTarget];
 	double target_speed = [target speed];
 	double distance = [self rangeToDestination];
 	if (range < slow_down_range)
 	{
-		desired_speed = OOMax_d(target_speed, 0.25 * max_flight_speed);
+		desired_speed = OOMax_d(target_speed, 0.25 * maxFlightSpeed);
 		// avoid head-on collision
 		//
 		if ((range < 0.5 * distance)&&(behaviour == BEHAVIOUR_ATTACK_FLY_TO_TARGET_SIX))
@@ -1742,7 +1759,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	{
 		behaviour = BEHAVIOUR_ATTACK_FLY_TO_TARGET;
 		frustration = 0.0;
-		desired_speed = OOMax_d(target_speed, 0.25 * max_flight_speed);   // within the weapon's range don't use afterburner
+		desired_speed = OOMax_d(target_speed, 0.25 * maxFlightSpeed);   // within the weapon's range don't use afterburner
 	}
 
 	// target-six
@@ -1750,7 +1767,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	{
 		// head for a point weapon-range * 0.5 to the six of the target
 		//
-		destination = [target distance_six:0.5 * weapon_range];
+		destination = [target distance_six:0.5 * weaponRange];
 	}
 	// target-twelve
 	if (behaviour == BEHAVIOUR_ATTACK_FLY_TO_TARGET_TWELVE)
@@ -1776,7 +1793,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	}
 	[self activateCloakingDevice];
 	[self fireMainWeapon:range];
-	[self applyRoll:delta_t*flight_roll andClimb:delta_t*flight_pitch];
+	[self applyRoll:delta_t*flightRoll andClimb:delta_t*flightPitch];
 	[self applyThrust:delta_t];
 }
 //            //
@@ -1787,7 +1804,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	{
 		if (proximity_alert == NO_TARGET)
 		{
-			desired_speed = range * max_flight_speed / (650.0 * 16.0);
+			desired_speed = range * maxFlightSpeed / (650.0 * 16.0);
 		}
 		else
 		{
@@ -1801,20 +1818,20 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 			behaviour = BEHAVIOUR_IDLE;
 			[shipAI reactToMessage:@"TARGET_LOST"];
 		}
-		desired_speed = max_flight_speed * 0.375;
+		desired_speed = maxFlightSpeed * 0.375;
 	}
 	[self trackPrimaryTarget:delta_t:NO];
 	[self fireMainWeapon:range];
-	[self applyRoll:delta_t*flight_roll andClimb:delta_t*flight_pitch];
+	[self applyRoll:delta_t*flightRoll andClimb:delta_t*flightPitch];
 	[self applyThrust:delta_t];
 }
 //            //
 - (void) behaviour_attack_fly_to_target:(double) delta_t
 {
 	BOOL canBurn = has_fuel_injection && (fuel > 1);	// was &&(fuel > 0)
-	double max_available_speed = (canBurn)? max_flight_speed * AFTERBURNER_FACTOR : max_flight_speed;
+	double max_available_speed = (canBurn)? maxFlightSpeed * AFTERBURNER_FACTOR : maxFlightSpeed;
 	double  range = [self rangeToPrimaryTarget];
-	if ((range < COMBAT_IN_RANGE_FACTOR * weapon_range)||(proximity_alert != NO_TARGET))
+	if ((range < COMBAT_IN_RANGE_FACTOR * weaponRange)||(proximity_alert != NO_TARGET))
 	{
 		if (proximity_alert == NO_TARGET)
 		{
@@ -1833,7 +1850,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 				jink = kZeroVector;
 				behaviour = BEHAVIOUR_RUNNING_DEFENSE;
 				frustration = 0.0;
-				desired_speed = max_flight_speed;
+				desired_speed = maxFlightSpeed;
 			}
 		}
 		else
@@ -1853,12 +1870,12 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 
 	// control speed
 	//
-	BOOL isUsingAfterburner = canBurn && (flight_speed > max_flight_speed);
-	double slow_down_range = weapon_range * COMBAT_WEAPON_RANGE_FACTOR * ((isUsingAfterburner)? 3.0 * AFTERBURNER_FACTOR : 1.0);
+	BOOL isUsingAfterburner = canBurn && (flightSpeed > maxFlightSpeed);
+	double slow_down_range = weaponRange * COMBAT_WEAPON_RANGE_FACTOR * ((isUsingAfterburner)? 3.0 * AFTERBURNER_FACTOR : 1.0);
 	ShipEntity*	target = (ShipEntity*)[UNIVERSE entityForUniversalID:primaryTarget];
 	double target_speed = [target speed];
 	if (range <= slow_down_range)
-		desired_speed = OOMax_d(target_speed, 0.25 * max_flight_speed);   // within the weapon's range match speed
+		desired_speed = OOMax_d(target_speed, 0.25 * maxFlightSpeed);   // within the weapon's range match speed
 	else
 		desired_speed = max_available_speed; // use afterburner to approach
 
@@ -1883,7 +1900,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 			jink.z = 1000.0;
 			behaviour = BEHAVIOUR_ATTACK_FLY_FROM_TARGET;
 			frustration = 0.0;
-			desired_speed = max_flight_speed;
+			desired_speed = maxFlightSpeed;
 		}
 	}
 
@@ -1899,14 +1916,14 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	}
 	[self activateCloakingDevice];
 	[self fireMainWeapon:range];
-	[self applyRoll:delta_t*flight_roll andClimb:delta_t*flight_pitch];
+	[self applyRoll:delta_t*flightRoll andClimb:delta_t*flightPitch];
 	[self applyThrust:delta_t];
 }
 //            //
 - (void) behaviour_attack_fly_from_target:(double) delta_t
 {
 	double  range = [self rangeToPrimaryTarget];
-	if (range > COMBAT_OUT_RANGE_FACTOR * weapon_range + 15.0 * jink.x)
+	if (range > COMBAT_OUT_RANGE_FACTOR * weaponRange + 15.0 * jink.x)
 	{
 		jink.x = 0.0;
 		jink.y = 0.0;
@@ -1927,14 +1944,14 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 		[self fireMissile];
 	}
 	[self activateCloakingDevice];
-	[self applyRoll:delta_t*flight_roll andClimb:delta_t*flight_pitch];
+	[self applyRoll:delta_t*flightRoll andClimb:delta_t*flightPitch];
 	[self applyThrust:delta_t];
 }
 //            //
 - (void) behaviour_running_defense:(double) delta_t
 {
 	double  range = [self rangeToPrimaryTarget];
-	if (range > weapon_range)
+	if (range > weaponRange)
 	{
 		jink.x = 0.0;
 		jink.y = 0.0;
@@ -1945,14 +1962,14 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	[self trackPrimaryTarget:delta_t:YES];
 	[self fireAftWeapon:range];
 	[self activateCloakingDevice];
-	[self applyRoll:delta_t*flight_roll andClimb:delta_t*flight_pitch];
+	[self applyRoll:delta_t*flightRoll andClimb:delta_t*flightPitch];
 	[self applyThrust:delta_t];
 }
 //            //
 - (void) behaviour_flee_target:(double) delta_t
 {
 	BOOL canBurn = has_fuel_injection && (fuel > 1);	// was &&(fuel > 0)
-	double max_available_speed = (canBurn)? max_flight_speed * AFTERBURNER_FACTOR : max_flight_speed;
+	double max_available_speed = (canBurn)? maxFlightSpeed * AFTERBURNER_FACTOR : maxFlightSpeed;
 	double  range = [self rangeToPrimaryTarget];
 	if (range > desired_range)
 		[shipAI message:@"REACHED_SAFETY"];
@@ -1977,7 +1994,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	if (([(ShipEntity *)[self getPrimaryTarget] getPrimaryTarget] == self)&&(missiles > missile_chance * hurt_factor))
 		[self fireMissile];
 	[self activateCloakingDevice];
-	[self applyRoll:delta_t*flight_roll andClimb:delta_t*flight_pitch];
+	[self applyRoll:delta_t*flightRoll andClimb:delta_t*flightPitch];
 	[self applyThrust:delta_t];
 }
 //            //
@@ -1989,7 +2006,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	else
 		behaviour = BEHAVIOUR_FLY_TO_DESTINATION;
 	frustration = 0.0;
-	[self applyRoll:delta_t*flight_roll andClimb:delta_t*flight_pitch];
+	[self applyRoll:delta_t*flightRoll andClimb:delta_t*flightPitch];
 	[self applyThrust:delta_t];
 }
 //            //
@@ -2012,7 +2029,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	}
 	if ((proximity_alert != NO_TARGET)&&(proximity_alert != primaryTarget))
 		[self avoidCollision];
-	[self applyRoll:delta_t*flight_roll andClimb:delta_t*flight_pitch];
+	[self applyRoll:delta_t*flightRoll andClimb:delta_t*flightPitch];
 	[self applyThrust:delta_t];
 }
 //            //
@@ -2021,11 +2038,11 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	// get updated destination from owner
 	ShipEntity* leadShip = (ShipEntity *)[UNIVERSE entityForUniversalID:owner];
 	double distance = [self rangeToDestination];
-	double eta = (distance - desired_range) / flight_speed;
+	double eta = (distance - desired_range) / flightSpeed;
 	if ((eta < 5.0)&&(leadShip)&&(leadShip->isShip))
-		desired_speed = [leadShip flight_speed] * 1.25;
+		desired_speed = [leadShip flightSpeed] * 1.25;
 	else
-		desired_speed = max_flight_speed;
+		desired_speed = maxFlightSpeed;
 	[self behaviour_fly_to_destination: delta_t];
 }
 //            //
@@ -2049,12 +2066,12 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 		// do the actual piloting!!
 		[self trackDestination:delta_t: NO];
 		
-		GLfloat eta = (distance - desired_range) / (0.51 * flight_speed);	// 2% safety margin assuming an average of half current speed
-		GLfloat slowdownTime = (thrust > 0.0)? flight_speed / thrust : 4.0;
+		GLfloat eta = (distance - desired_range) / (0.51 * flightSpeed);	// 2% safety margin assuming an average of half current speed
+		GLfloat slowdownTime = (thrust > 0.0)? flightSpeed / thrust : 4.0;
 		GLfloat minTurnSpeedFactor = 0.05 * max_flight_pitch * max_flight_roll;	// faster turning implies higher speeds
 
-		if ((eta < slowdownTime)&&(flight_speed > max_flight_speed * minTurnSpeedFactor))
-			desired_speed = flight_speed * 0.50;   // cut speed by 50% to a minimum minTurnSpeedFactor of speed
+		if ((eta < slowdownTime)&&(flightSpeed > maxFlightSpeed * minTurnSpeedFactor))
+			desired_speed = flightSpeed * 0.50;   // cut speed by 50% to a minimum minTurnSpeedFactor of speed
 
 		if (distance < last_distance)	// improvement
 		{
@@ -2074,7 +2091,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	}
 	if ((proximity_alert != NO_TARGET)&&(proximity_alert != primaryTarget))
 		[self avoidCollision];
-	[self applyRoll:delta_t*flight_roll andClimb:delta_t*flight_pitch];
+	[self applyRoll:delta_t*flightRoll andClimb:delta_t*flightPitch];
 	[self applyThrust:delta_t];
 }
 //            //
@@ -2091,12 +2108,12 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	}
 	else
 	{
-		desired_speed = max_flight_speed;
+		desired_speed = maxFlightSpeed;
 	}
 	[self trackDestination:delta_t:YES];
 	if ((proximity_alert != NO_TARGET)&&(proximity_alert != primaryTarget))
 		[self avoidCollision];
-	[self applyRoll:delta_t*flight_roll andClimb:delta_t*flight_pitch];
+	[self applyRoll:delta_t*flightRoll andClimb:delta_t*flightPitch];
 	[self applyThrust:delta_t];
 }
 //            //
@@ -2120,9 +2137,9 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 			dq = 0.5 * dq + 0.5;
 		else
 			dq = 0.0;
-		desired_speed = max_flight_speed * dq;
+		desired_speed = maxFlightSpeed * dq;
 	}
-	[self applyRoll:delta_t*flight_roll andClimb:delta_t*flight_pitch];
+	[self applyRoll:delta_t*flightRoll andClimb:delta_t*flightPitch];
 	[self applyThrust:delta_t];
 }
 //            //
@@ -2166,7 +2183,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	BOOL in_cone = (r0 > 0.5 * r1);
 	
 	if (!in_cone)	// are we in the approach cone ?
-		r1 = 25.0 * flight_speed;	// aim a few km out!
+		r1 = 25.0 * flightSpeed;	// aim a few km out!
 	else
 		r1 *= 2.0;
 	
@@ -2220,7 +2237,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 		}
 	}
 	
-	[self applyRoll:delta_t*flight_roll andClimb:delta_t*flight_pitch];
+	[self applyRoll:delta_t*flightRoll andClimb:delta_t*flightPitch];
 	GLfloat temp = desired_speed;
 	desired_speed *= v0 * v0;
 	[self applyThrust:delta_t];
@@ -2246,11 +2263,11 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	if (t_now >= trackTime + 0.1)		// update every 1/10 of a second
 	{
 		// save previous data
-		Quaternion qrot = q_rotation;
-		if (isPlayer)	qrot.w = -qrot.w;	// correct player's q_rotation
+		Quaternion qrot = orientation;
+		if (isPlayer)	qrot.w = -qrot.w;	// correct player's orientation
 		trackTime = t_now;
 		track[trackIndex].position =	position;
-		track[trackIndex].q_rotation =	qrot;
+		track[trackIndex].orientation =	qrot;
 		track[trackIndex].timeframe =	trackTime;
 		track[trackIndex].k =	v_forward;
 		//
@@ -2260,7 +2277,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 			int i;
 			int n = [sub_entities count];
 			Frame thisFrame;
-			thisFrame.q_rotation = qrot;
+			thisFrame.orientation = qrot;
 			thisFrame.timeframe = trackTime;
 			thisFrame.k = v_forward;
 			for (i = 0; i < n; i++)
@@ -2288,16 +2305,16 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 //
 - (void) resetTracking
 {
-	Quaternion	qrot = q_rotation;
-	if (isPlayer)	qrot.w = -qrot.w;	// correct player's q_rotation
+	Quaternion	qrot = orientation;
+	if (isPlayer)	qrot.w = -qrot.w;	// correct player's orientation
 	Vector		vi = vector_right_from_quaternion(qrot);
 	Vector		vj = vector_up_from_quaternion(qrot);
 	Vector		vk = vector_forward_from_quaternion(qrot);
 	Frame resetFrame;
 	resetFrame.position = position;
-	resetFrame.q_rotation = qrot;
+	resetFrame.orientation = qrot;
 	resetFrame.k = vk;
-	Vector vel = make_vector( vk.x * flight_speed, vk.y * flight_speed, vk.z * flight_speed);
+	Vector vel = make_vector( vk.x * flightSpeed, vk.y * flightSpeed, vk.z * flightSpeed);
 	
 	if ((isPlayer)&&(debug))
 		NSLog(@"DEBUG resetting tracking for %@", self);
@@ -2327,15 +2344,11 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	}
 }
 
-// return a point 36u back from the front of the ship
-// this equates with the centre point of a cobra mk3
-//
-- (Vector) viewpointPosition
+
+- (Vector) viewpointOffset
 {
-	Vector	viewpoint = position;
-	float	nose = boundingBox.max.z - 36.0;
-	viewpoint.x += nose * v_forward.x;	viewpoint.y += nose * v_forward.y;	viewpoint.z += nose * v_forward.z;
-	return viewpoint;
+	Vector defaultPos = { 0.0f, 0.0f, -36.0f }; // Default view position of a Cobra 3
+	return defaultPos;
 }
 
 
@@ -2487,15 +2500,18 @@ static GLfloat mascem_color2[4] =	{ 0.4, 0.1, 0.4, 1.0};	// purple
 	return neutral_color;
 }
 
+
 - (BOOL) isJammingScanning
 {
 	return (has_military_jammer && military_jammer_active);
 }
 
+
 - (BOOL) hasMilitaryScannerFilter
 {
 	return has_military_scanner_filter;
 }
+
 
 - (void) addExhaust:(ParticleEntity *)exhaust
 {
@@ -2512,19 +2528,11 @@ static GLfloat mascem_color2[4] =	{ 0.4, 0.1, 0.4, 1.0};	// purple
 	}
 }
 
-- (void) addExhaustAt:(Vector) ex_position withScale:(Vector) ex_scale
-{
-	ParticleEntity *exhaust = [[ParticleEntity alloc] initExhaustFromShip:self offsetVector:ex_position scaleVector:ex_scale];  //retained
-	[exhaust setStatus:STATUS_EFFECT];
-	[self addExhaust:exhaust];
-	[exhaust release];  // released
-}
-
 
 - (void) applyThrust:(double) delta_t
 {
 	GLfloat dt_thrust = thrust * delta_t;
-	GLfloat max_available_speed = (has_fuel_injection && (fuel > 1))? max_flight_speed * AFTERBURNER_FACTOR : max_flight_speed;
+	GLfloat max_available_speed = (has_fuel_injection && (fuel > 1))? maxFlightSpeed * AFTERBURNER_FACTOR : maxFlightSpeed;
 
 	position.x += delta_t*velocity.x;
 	position.y += delta_t*velocity.y;
@@ -2549,30 +2557,31 @@ static GLfloat mascem_color2[4] =	{ 0.4, 0.1, 0.4, 1.0};	// purple
 	if (desired_speed > max_available_speed)
 		desired_speed = max_available_speed;
 
-	if (flight_speed > desired_speed)
+	if (flightSpeed > desired_speed)
 	{
 		[self decrease_flight_speed: dt_thrust];
-		if (flight_speed < desired_speed)   flight_speed = desired_speed;
+		if (flightSpeed < desired_speed)   flightSpeed = desired_speed;
 	}
-	if (flight_speed < desired_speed)
+	if (flightSpeed < desired_speed)
 	{
 		[self increase_flight_speed: dt_thrust];
-		if (flight_speed > desired_speed)   flight_speed = desired_speed;
+		if (flightSpeed > desired_speed)   flightSpeed = desired_speed;
 	}
-	[self moveForward: delta_t*flight_speed];
+	[self moveForward: delta_t*flightSpeed];
 
 	// burn fuel at the appropriate rate
-	if ((flight_speed > max_flight_speed) && has_fuel_injection && (fuel > 0))
+	if ((flightSpeed > maxFlightSpeed) && has_fuel_injection && (fuel > 0))
 	{
 		fuel_accumulator -= delta_t * AFTERBURNER_NPC_BURNRATE;
 		while (fuel_accumulator < 0.0)
 		{
 			if (fuel-- < 1)
-				max_available_speed = max_flight_speed;
+				max_available_speed = maxFlightSpeed;
 			fuel_accumulator += 1.0;
 		}
 	}
 }
+
 
 - (void) applyRoll:(GLfloat) roll1 andClimb:(GLfloat) climb1
 {
@@ -2583,13 +2592,13 @@ static GLfloat mascem_color2[4] =	{ 0.4, 0.1, 0.4, 1.0};	// purple
 	if (roll1)  quaternion_rotate_about_z( &q1, -roll1);
 	if (climb1)  quaternion_rotate_about_x( &q1, -climb1);
 
-	q_rotation = quaternion_multiply( q1, q_rotation);
-	quaternion_normalize(&q_rotation);	// probably not strictly necessary but good to do to keep q_rotation sane
-    quaternion_into_gl_matrix(q_rotation, rotMatrix);
+	orientation = quaternion_multiply( q1, orientation);
+	quaternion_normalize(&orientation);	// probably not strictly necessary but good to do to keep orientation sane
+    quaternion_into_gl_matrix(orientation, rotMatrix);
 
-	v_forward   = vector_forward_from_quaternion(q_rotation);
-	v_up		= vector_up_from_quaternion(q_rotation);
-	v_right		= vector_right_from_quaternion(q_rotation);
+	v_forward   = vector_forward_from_quaternion(orientation);
+	v_up		= vector_up_from_quaternion(orientation);
+	v_right		= vector_right_from_quaternion(orientation);
 }
 
 
@@ -2628,6 +2637,7 @@ static GLfloat mascem_color2[4] =	{ 0.4, 0.1, 0.4, 1.0};	// purple
 	}
 }
 
+
 - (void) resumePostProximityAlert
 {
 	if (!previousCondition)
@@ -2650,41 +2660,49 @@ static GLfloat mascem_color2[4] =	{ 0.4, 0.1, 0.4, 1.0};	// purple
 	//[shipAI message:@"RESTART_DOCKING"];	// if docking, start over, other AIs will ignore this message
 }
 
-- (double) message_time
+
+- (double) messageTime
 {
-	return message_time;
+	return messageTime;
 }
 
-- (void) setMessage_time:(double) value
+
+- (void) setMessageTime:(double) value
 {
-	message_time = value;
+	messageTime = value;
 }
 
-- (int) group_id
+
+- (int) groupID
 {
-	return group_id;
+	return groupID;
 }
 
-- (void) setGroup_id:(int) value
+
+- (void) setGroupID:(int) value
 {
-	group_id = value;
+	groupID = value;
 }
 
-- (int) n_escorts
+
+- (int) escortCount
 {
-	return n_escorts;
+	return escortCount;
 }
 
-- (void) setN_escorts:(int) value
+
+- (void) setEscortCount:(int) value
 {
-	n_escorts = value;
-	escortsAreSetUp = (n_escorts == 0);
+	escortCount = value;
+	escortsAreSetUp = (escortCount == 0);
 }
+
 
 - (ShipEntity*) proximity_alert
 {
 	return (ShipEntity*)[UNIVERSE entityForUniversalID:proximity_alert];
 }
+
 
 - (void) setProximity_alert:(ShipEntity*) other
 {
@@ -2705,8 +2723,8 @@ static GLfloat mascem_color2[4] =	{ 0.4, 0.1, 0.4, 1.0};	// purple
 	GLfloat d_forward = dot_product( vdiff, v_forward);
 	GLfloat d_up = dot_product( vdiff, v_up);
 	GLfloat d_right = dot_product( vdiff, v_right);
-	if ((d_forward > 0.0)&&(flight_speed > 0.0))	// it's ahead of us and we're moving forward
-		d_forward *= 0.25 * max_flight_speed / flight_speed;	// extend the collision zone forward up to 400%
+	if ((d_forward > 0.0)&&(flightSpeed > 0.0))	// it's ahead of us and we're moving forward
+		d_forward *= 0.25 * maxFlightSpeed / flightSpeed;	// extend the collision zone forward up to 400%
 	double d2 = d_forward * d_forward + d_up * d_up + d_right * d_right;
 	double cr2 = collision_radius * 2.0 + other->collision_radius;	cr2 *= cr2;	// check with twice the combined radius
 
@@ -2728,10 +2746,12 @@ static GLfloat mascem_color2[4] =	{ 0.4, 0.1, 0.4, 1.0};	// purple
 	other->proximity_alert = universalID;
 }
 
+
 - (NSString *) name
 {
 	return name;
 }
+
 
 - (NSString *) identFromShip:(ShipEntity*) otherShip
 {
@@ -2740,10 +2760,12 @@ static GLfloat mascem_color2[4] =	{ 0.4, 0.1, 0.4, 1.0};	// purple
 	return name;
 }
 
+
 - (NSString *) roles
 {
 	return roles;
 }
+
 
 - (void) setRoles:(NSString *) value
 {
@@ -2752,95 +2774,104 @@ static GLfloat mascem_color2[4] =	{ 0.4, 0.1, 0.4, 1.0};	// purple
 	roles = [[NSString stringWithString:value] retain];
 }
 
+
 - (BOOL) hasHostileTarget
 {
 	if (primaryTarget == NO_TARGET)
 		return NO;
 	if ((behaviour == BEHAVIOUR_AVOID_COLLISION)&&(previousCondition))
 	{
-		int old_behaviour = [(NSNumber*)[previousCondition objectForKey:@"behaviour"] intValue];
+		int old_behaviour = [previousCondition intForKey:@"behaviour"];
 		return IsBehaviourHostile(old_behaviour);
 	}
 	return IsBehaviourHostile(behaviour);
 }
 
 
-- (GLfloat) weapon_range
+- (GLfloat) weaponRange
 {
-	return weapon_range;
+	return weaponRange;
 }
+
 
 - (void) setWeaponRange: (GLfloat) value
 {
-	weapon_range = value;
+	weaponRange = value;
 }
 
-- (void) set_weapon_data_from_type: (int) weapon_type
+
+- (void) setWeaponDataFromType: (int) weapon_type
 {
 	switch (weapon_type)
 	{
 		case WEAPON_PLASMA_CANNON :
 			weapon_energy =			6.0;
 			weapon_recharge_rate =	0.25;
-			weapon_range =			5000;
+			weaponRange =			5000;
 			break;
 		case WEAPON_PULSE_LASER :
 			weapon_energy =			15.0;
 			weapon_recharge_rate =	0.33;
-			weapon_range =			12500;
+			weaponRange =			12500;
 			break;
 		case WEAPON_BEAM_LASER :
 			weapon_energy =			15.0;
 			weapon_recharge_rate =	0.25;
-			weapon_range =			15000;
+			weaponRange =			15000;
 			break;
 		case WEAPON_MINING_LASER :
 			weapon_energy =			50.0;
 			weapon_recharge_rate =	0.5;
-			weapon_range =			12500;
+			weaponRange =			12500;
 			break;
 		case WEAPON_THARGOID_LASER :		// omni directional lasers FRIGHTENING!
 			weapon_energy =			12.5;
 			weapon_recharge_rate =	0.5;
-			weapon_range =			17500;
+			weaponRange =			17500;
 			break;
 		case WEAPON_MILITARY_LASER :
 			weapon_energy =			23.0;
 			weapon_recharge_rate =	0.20;
-			weapon_range =			30000;
+			weaponRange =			30000;
 			break;
 		case WEAPON_NONE :
 			weapon_energy =			0.0;	// indicating no weapon!
 			weapon_recharge_rate =	0.20;	// maximum rate
-			weapon_range =			32000;
+			weaponRange =			32000;
 			break;
 	}
 }
 
-- (GLfloat) scanner_range
+
+- (GLfloat) scannerRange
 {
-	return scanner_range;
+	return scannerRange;
 }
+
 
 - (void) setScannerRange: (GLfloat) value
 {
-	scanner_range = value;
+	scannerRange = value;
 }
+
 
 - (Vector) reference
 {
 	return reference;
 }
 
+
 - (void) setReference:(Vector) v
 {
-	reference.x = v.x;	reference.y = v.y;	reference.z = v.z;
+	reference = v;
 }
+
 
 - (BOOL) reportAImessages
 {
 	return reportAImessages;
 }
+
 
 - (void) setReportAImessages:(BOOL) yn
 {
@@ -2910,7 +2941,7 @@ static GLfloat mascem_color2[4] =	{ 0.4, 0.1, 0.4, 1.0};	// purple
 }
 
 
-- (BOOL) within_station_aegis
+- (BOOL) withinStationAegis
 {
 	return aegis_status == AEGIS_IN_DOCKING_RANGE;
 }
@@ -2923,10 +2954,12 @@ static GLfloat mascem_color2[4] =	{ 0.4, 0.1, 0.4, 1.0};	// purple
 		launch_time = [UNIVERSE getTime];
 }
 
+
 - (NSArray*) crew
 {
 	return crew;
 }
+
 
 - (void) setCrew: (NSArray*) crewArray
 {
@@ -2934,10 +2967,12 @@ static GLfloat mascem_color2[4] =	{ 0.4, 0.1, 0.4, 1.0};	// purple
 	crew = [crewArray copy];
 }
 
+
 - (void) setStateMachine:(NSString *) ai_desc
 {
 	[shipAI setStateMachine: ai_desc];
 }
+
 
 - (void) setAI:(AI *) ai
 {
@@ -2950,15 +2985,18 @@ static GLfloat mascem_color2[4] =	{ 0.4, 0.1, 0.4, 1.0};	// purple
 	shipAI = ai;
 }
 
+
 - (AI *) getAI
 {
 	return shipAI;
 }
 
+
 - (int) fuel
 {
 	return fuel;
 }
+
 
 - (void) setFuel:(int) amount
 {
@@ -2969,20 +3007,22 @@ static GLfloat mascem_color2[4] =	{ 0.4, 0.1, 0.4, 1.0};	// purple
 		fuel = PLAYER_MAX_FUEL;
 }
 
+
 - (void) setRoll:(double) amount
 {
-	flight_roll = amount * M_PI / 2.0;
+	flightRoll = amount * M_PI / 2.0;
 }
+
 
 - (void) setPitch:(double) amount
 {
-	flight_pitch = amount * M_PI / 2.0;
+	flightPitch = amount * M_PI / 2.0;
 }
 
 
 - (void)setThrustForDemo:(float)factor
 {
-	flight_speed = factor * max_flight_speed;
+	flightSpeed = factor * maxFlightSpeed;
 }
 
 
@@ -2991,12 +3031,14 @@ static GLfloat mascem_color2[4] =	{ 0.4, 0.1, 0.4, 1.0};	// purple
 	bounty = amount;
 }
 
+
 - (OOCreditsQuantity) getBounty
 {
 	return bounty;
 }
 
-- (int) legal_status
+
+- (int) legalStatus
 {
 	if (scanClass == CLASS_THARGOID)
 		return 5 * collision_radius;
@@ -3005,34 +3047,43 @@ static GLfloat mascem_color2[4] =	{ 0.4, 0.1, 0.4, 1.0};	// purple
 	return bounty;
 }
 
+
 - (void) setCommodity:(int) co_type andAmount:(int) co_amount;
 {
 	commodity_type = co_type;
 	commodity_amount = co_amount;
 }
+
+
 - (int) getCommodityType
 {
 	return commodity_type;
 }
+
+
 - (int) getCommodityAmount
 {
 	return commodity_amount;
 }
+
 
 - (OOCargoQuantity) getMaxCargo
 {
 	return max_cargo;
 }
 
+
 - (OOCargoType) getCargoType
 {
 	return cargo_type;
 }
 
+
 - (NSMutableArray*) cargo
 {
 	return cargo;
 }
+
 
 - (void) setCargo:(NSArray *) some_cargo
 {
@@ -3040,130 +3091,147 @@ static GLfloat mascem_color2[4] =	{ 0.4, 0.1, 0.4, 1.0};	// purple
 	[cargo addObjectsFromArray:some_cargo];
 }
 
+
 - (OOCargoFlag) cargoFlag
 {
 	return cargo_flag;
 }
+
 
 - (void) setCargoFlag:(OOCargoFlag) flag
 {
 	cargo_flag = flag;
 }
 
+
 - (void) setSpeed:(double) amount
 {
-	flight_speed = amount;
+	flightSpeed = amount;
 }
+
 
 - (void) setDesiredSpeed:(double) amount
 {
 	desired_speed = amount;
 }
 
+
 - (void) increase_flight_speed:(double) delta
 {
-	double factor = ((desired_speed > max_flight_speed)&&(has_fuel_injection)&&(fuel > 0)) ? AFTERBURNER_FACTOR : 1.0;
+	double factor = ((desired_speed > maxFlightSpeed)&&(has_fuel_injection)&&(fuel > 0)) ? AFTERBURNER_FACTOR : 1.0;
 
-	if (flight_speed < max_flight_speed * factor)
-		flight_speed += delta * factor;
+	if (flightSpeed < maxFlightSpeed * factor)
+		flightSpeed += delta * factor;
 	else
-		flight_speed = max_flight_speed * factor;
+		flightSpeed = maxFlightSpeed * factor;
 }
+
 
 - (void) decrease_flight_speed:(double) delta
 {
-	if (flight_speed > -max_flight_speed)
-		flight_speed -= delta;
+	if (flightSpeed > -maxFlightSpeed)
+		flightSpeed -= delta;
 	else
-		flight_speed = -max_flight_speed;
+		flightSpeed = -maxFlightSpeed;
 }
 
 
 - (void) increase_flight_roll:(double) delta
 {
-	if (flight_roll < max_flight_roll)
-		flight_roll += delta;
-	if (flight_roll > max_flight_roll)
-		flight_roll = max_flight_roll;
+	if (flightRoll < max_flight_roll)
+		flightRoll += delta;
+	if (flightRoll > max_flight_roll)
+		flightRoll = max_flight_roll;
 }
+
 
 - (void) decrease_flight_roll:(double) delta
 {
-	if (flight_roll > -max_flight_roll)
-		flight_roll -= delta;
-	if (flight_roll < -max_flight_roll)
-		flight_roll = -max_flight_roll;
+	if (flightRoll > -max_flight_roll)
+		flightRoll -= delta;
+	if (flightRoll < -max_flight_roll)
+		flightRoll = -max_flight_roll;
 }
 
 
 - (void) increase_flight_pitch:(double) delta
 {
-	if (flight_pitch < max_flight_pitch)
-		flight_pitch += delta;
-	if (flight_pitch > max_flight_pitch)
-		flight_pitch = max_flight_pitch;
+	if (flightPitch < max_flight_pitch)
+		flightPitch += delta;
+	if (flightPitch > max_flight_pitch)
+		flightPitch = max_flight_pitch;
 }
 
 
 - (void) decrease_flight_pitch:(double) delta
 {
-	if (flight_pitch > -max_flight_pitch)
-		flight_pitch -= delta;
-	if (flight_pitch < -max_flight_pitch)
-		flight_pitch = -max_flight_pitch;
+	if (flightPitch > -max_flight_pitch)
+		flightPitch -= delta;
+	if (flightPitch < -max_flight_pitch)
+		flightPitch = -max_flight_pitch;
 }
+
 
 - (void) increase_flight_yaw:(double) delta
 {
-	if (flight_yaw < max_flight_yaw)
-		flight_yaw += delta;
-	if (flight_yaw > max_flight_yaw)
-		flight_yaw = max_flight_yaw;
+	if (flightYaw < max_flight_yaw)
+		flightYaw += delta;
+	if (flightYaw > max_flight_yaw)
+		flightYaw = max_flight_yaw;
 }
+
 
 - (void) decrease_flight_yaw:(double) delta
 {
-	if (flight_yaw > -max_flight_yaw)
-		flight_yaw -= delta;
-	if (flight_yaw < -max_flight_yaw)
-		flight_yaw = -max_flight_yaw;
+	if (flightYaw > -max_flight_yaw)
+		flightYaw -= delta;
+	if (flightYaw < -max_flight_yaw)
+		flightYaw = -max_flight_yaw;
 }
 
-- (GLfloat) flight_roll
+
+- (GLfloat) flightRoll
 {
-	return flight_roll;
+	return flightRoll;
 }
 
-- (GLfloat) flight_pitch
+
+- (GLfloat) flightPitch
 {
-	return flight_pitch;
+	return flightPitch;
 }
 
-- (GLfloat) flight_yaw
+
+- (GLfloat) flightYaw
 {
-	return flight_yaw;
+	return flightYaw;
 }
 
-- (GLfloat) flight_speed
+
+- (GLfloat) flightSpeed
 {
-	return flight_speed;
+	return flightSpeed;
 }
 
-- (GLfloat) max_flight_speed
+
+- (GLfloat) maxFlightSpeed
 {
-	return max_flight_speed;
+	return maxFlightSpeed;
 }
+
 
 - (GLfloat) speedFactor
 {
-	if (max_flight_speed <= 0.0)  return 0.0;
-	return flight_speed / max_flight_speed;
+	if (maxFlightSpeed <= 0.0)  return 0.0;
+	return flightSpeed / maxFlightSpeed;
 }
+
 
 - (void) setTemperature:(GLfloat) value
 {
 	ship_temperature = value;
 }
+
 
 - (void) setHeatInsulation:(GLfloat) value
 {
@@ -3195,6 +3263,7 @@ static GLfloat mascem_color2[4] =	{ 0.4, 0.1, 0.4, 1.0};	// purple
 		}
 	}
 }
+
 
 - (void) dealMomentumWithinDesiredRange:(double)amount
 {
@@ -3435,7 +3504,7 @@ static GLfloat mascem_color2[4] =	{ 0.4, 0.1, 0.4, 1.0};	// purple
 						v.z = 0.1 *((ranrot_rand() % speed_low) - speed_low / 2);
 						[container setVelocity:v];
 						quaternion_set_random(&q);
-						[container setQRotation:q];
+						[container setOrientation:q];
 						[container setStatus:STATUS_IN_FLIGHT];
 						[container setScanClass: CLASS_CARGO];
 						[UNIVERSE addEntity:container];
@@ -3458,7 +3527,7 @@ static GLfloat mascem_color2[4] =	{ 0.4, 0.1, 0.4, 1.0};	// purple
 						if (rock)
 						{
 							Vector  rpos = xposition;
-							int  r_speed = 20.0 * [rock max_flight_speed];
+							int  r_speed = 20.0 * [rock maxFlightSpeed];
 							int cr = 3 * rock->collision_radius;
 							rpos.x += (ranrot_rand() % cr) - cr/2;
 							rpos.y += (ranrot_rand() % cr) - cr/2;
@@ -3469,7 +3538,7 @@ static GLfloat mascem_color2[4] =	{ 0.4, 0.1, 0.4, 1.0};	// purple
 							v.z = 0.1 *((ranrot_rand() % r_speed) - r_speed / 2);
 							[rock setVelocity:v];
 							quaternion_set_random(&q);
-							[rock setQRotation:q];
+							[rock setOrientation:q];
 							[rock setStatus:STATUS_IN_FLIGHT];
 							[rock setScanClass: CLASS_ROCK];
 							[UNIVERSE addEntity:rock];
@@ -3494,7 +3563,7 @@ static GLfloat mascem_color2[4] =	{ 0.4, 0.1, 0.4, 1.0};	// purple
 						if (rock)
 						{
 							Vector  rpos = xposition;
-							int  r_speed = 20.0 * [rock max_flight_speed];
+							int  r_speed = 20.0 * [rock maxFlightSpeed];
 							int cr = 3 * rock->collision_radius;
 							rpos.x += (ranrot_rand() % cr) - cr/2;
 							rpos.y += (ranrot_rand() % cr) - cr/2;
@@ -3507,7 +3576,7 @@ static GLfloat mascem_color2[4] =	{ 0.4, 0.1, 0.4, 1.0};	// purple
 							[rock setCommodity:[UNIVERSE commodityForName:@"Minerals"] andAmount: 1];
 							[rock setVelocity:v];
 							quaternion_set_random(&q);
-							[rock setQRotation:q];
+							[rock setOrientation:q];
 							[rock setStatus:STATUS_IN_FLIGHT];
 							[rock setScanClass: CLASS_CARGO];
 							[UNIVERSE addEntity:rock];
@@ -3556,7 +3625,7 @@ static GLfloat mascem_color2[4] =	{ 0.4, 0.1, 0.4, 1.0};	// purple
 						[wreck setVelocity:[self velocity]];
 
 						quaternion_set_random(&q);
-						[wreck setQRotation:q];
+						[wreck setOrientation:q];
 						
 						[wreck setTemperature: 1000.0];		// take 1000e heat damage per second
 						[wreck setHeatInsulation: 1.0e7];	// very large! so it won't cool down
@@ -3590,7 +3659,7 @@ static GLfloat mascem_color2[4] =	{ 0.4, 0.1, 0.4, 1.0};	// purple
 					v.z = 0.1 *((ranrot_rand() % speed_low) - speed_low / 2);
 					[plate setVelocity:v];
 					quaternion_set_random(&q);
-					[plate setQRotation:q];
+					[plate setOrientation:q];
 					[plate setScanClass: CLASS_CARGO];
 					[plate setCommodity:9 andAmount:1];
 					[UNIVERSE addEntity:plate];
@@ -3633,6 +3702,7 @@ static GLfloat mascem_color2[4] =	{ 0.4, 0.1, 0.4, 1.0};	// purple
 		[UNIVERSE removeEntity:self];
 }
 
+
 - (void) becomeEnergyBlast
 {
 	ParticleEntity* blast = [[ParticleEntity alloc] initEnergyMineFromShip:self];
@@ -3650,6 +3720,7 @@ Vector randomPositionInBoundingBox(BoundingBox bb)
 	result.z = bb.min.z + randf() * (bb.max.z - bb.min.z);
 	return result;
 }
+
 
 - (Vector) positionOffsetForAlignment:(NSString*) align
 {
@@ -3855,6 +3926,7 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 		bounty += [other getBounty];
 }
 
+
 - (NSComparisonResult) compareBeaconCodeWith:(ShipEntity*) other
 {
 	return [[self beaconCode] compare:[other beaconCode] options: NSCaseInsensitiveSearch];
@@ -3921,19 +3993,20 @@ BOOL	class_masslocks(int some_class)
 	return YES;
 }
 
+
 - (BOOL) checkTorusJumpClear
 {
 	Entity* scan;
 	//
 	scan = z_previous;	while ((scan)&&(!class_masslocks( scan->scanClass)))	scan = scan->z_previous;	// skip non-mass-locking
-	while ((scan)&&(scan->position.z > position.z - scanner_range))
+	while ((scan)&&(scan->position.z > position.z - scannerRange))
 	{
 		if (class_masslocks( scan->scanClass) && (distance2( position, scan->position) < SCANNER_MAX_RANGE2))
 			return NO;
 		scan = scan->z_previous;	while ((scan)&&(!class_masslocks( scan->scanClass)))	scan = scan->z_previous;
 	}
 	scan = z_next;	while ((scan)&&(!class_masslocks( scan->scanClass)))	scan = scan->z_next;	// skip non-mass-locking
-	while ((scan)&&(scan->position.z < position.z + scanner_range))
+	while ((scan)&&(scan->position.z < position.z + scannerRange))
 	{
 		if (class_masslocks( scan->scanClass) && (distance2( position, scan->position) < SCANNER_MAX_RANGE2))
 			return NO;
@@ -3942,13 +4015,14 @@ BOOL	class_masslocks(int some_class)
 	return YES;
 }
 
+
 - (void) checkScanner
 {
 	Entity* scan;
 	n_scanned_ships = 0;
 	//
 	scan = z_previous;	while ((scan)&&(scan->isShip == NO))	scan = scan->z_previous;	// skip non-ships
-	while ((scan)&&(scan->position.z > position.z - scanner_range)&&(n_scanned_ships < MAX_SCAN_NUMBER))
+	while ((scan)&&(scan->position.z > position.z - scannerRange)&&(n_scanned_ships < MAX_SCAN_NUMBER))
 	{
 		if (scan->isShip)
 		{
@@ -3960,7 +4034,7 @@ BOOL	class_masslocks(int some_class)
 	}
 	//
 	scan = z_next;	while ((scan)&&(scan->isShip == NO))	scan = scan->z_next;	// skip non-ships
-	while ((scan)&&(scan->position.z < position.z + scanner_range)&&(n_scanned_ships < MAX_SCAN_NUMBER))
+	while ((scan)&&(scan->position.z < position.z + scannerRange)&&(n_scanned_ships < MAX_SCAN_NUMBER))
 	{
 		if (scan->isShip)
 		{
@@ -3974,11 +4048,13 @@ BOOL	class_masslocks(int some_class)
 	scanned_ships[n_scanned_ships] = nil;	// terminate array
 }
 
+
 - (ShipEntity**) scannedShips
 {
 	scanned_ships[n_scanned_ships] = nil;	// terminate array
 	return scanned_ships;
 }
+
 
 - (int) numberOfScannedShips
 {
@@ -3992,11 +4068,13 @@ BOOL	class_masslocks(int some_class)
 		found_target = [targetEntity universalID];
 }
 
+
 - (void) setPrimaryAggressor:(Entity *) targetEntity
 {
 	if (targetEntity)
 		primaryAggressor = [targetEntity universalID];
 }
+
 
 - (void) addTarget:(Entity *) targetEntity
 {
@@ -4013,6 +4091,7 @@ BOOL	class_masslocks(int some_class)
 		}
 	}
 }
+
 
 - (void) removeTarget:(Entity *) targetEntity
 {
@@ -4031,20 +4110,24 @@ BOOL	class_masslocks(int some_class)
 	}
 }
 
+
 - (Entity *) getPrimaryTarget
 {
 	return [UNIVERSE entityForUniversalID:primaryTarget];
 }
 
-- (int) getPrimaryTargetID
+
+- (int) primaryTargetID
 {
 	return primaryTarget;
 }
+
 
 - (OOBehaviour) behaviour
 {
 	return behaviour;
 }
+
 
 - (void) setBehaviour:(OOBehaviour) cond
 {
@@ -4055,17 +4138,12 @@ BOOL	class_masslocks(int some_class)
 	}
 }
 
+
 - (Vector) destination
 {
 	return destination;
 }
 
-- (Vector) one_km_six
-{
-	Vector six = position;
-	six.x -= 1000 * v_forward.x;	six.y -= 1000 * v_forward.y;	six.z -= 1000 * v_forward.z;
-	return six;
-}
 
 - (Vector) distance_six: (GLfloat) dist
 {
@@ -4074,6 +4152,7 @@ BOOL	class_masslocks(int some_class)
 	return six;
 }
 
+
 - (Vector) distance_twelve: (GLfloat) dist
 {
 	Vector twelve = position;
@@ -4081,12 +4160,13 @@ BOOL	class_masslocks(int some_class)
 	return twelve;
 }
 
+
 - (double) ballTrackTarget:(double) delta_t
 {
 	Vector vector_to_target;
 	Vector axis_to_track_by;
 	Vector my_position = position;  // position relative to parent
-	Vector my_aim = vector_forward_from_quaternion(q_rotation);
+	Vector my_aim = vector_forward_from_quaternion(orientation);
 	Vector my_ref = reference;
 	double aim_cos, ref_cos;
 	
@@ -4136,15 +4216,16 @@ BOOL	class_masslocks(int some_class)
 		axis_to_track_by = cross_product(my_ref, my_aim);	//	return to center
 	}
 
-	quaternion_rotate_about_axis( &q_rotation, axis_to_track_by, thrust * delta_t);
+	quaternion_rotate_about_axis( &orientation, axis_to_track_by, thrust * delta_t);
 
-	quaternion_normalize(&q_rotation);
-	quaternion_into_gl_matrix(q_rotation, rotMatrix);
+	quaternion_normalize(&orientation);
+	quaternion_into_gl_matrix(orientation, rotMatrix);
 
 	status = STATUS_ACTIVE;
 
 	return aim_cos;
 }
+
 
 - (void) trackOntoTarget:(double) delta_t withDForward: (GLfloat) dp
 {
@@ -4173,20 +4254,21 @@ BOOL	class_masslocks(int some_class)
 	//
 	q_minarc = quaternion_rotation_between( v_forward, vector_to_target);
 	//
-	q_rotation = quaternion_multiply( q_minarc, q_rotation);
-    quaternion_normalize(&q_rotation);
-    quaternion_into_gl_matrix(q_rotation, rotMatrix);
+	orientation = quaternion_multiply( q_minarc, orientation);
+    quaternion_normalize(&orientation);
+    quaternion_into_gl_matrix(orientation, rotMatrix);
 	//
-	flight_roll = 0.0;
-	flight_pitch = 0.0;
+	flightRoll = 0.0;
+	flightPitch = 0.0;
 }
+
 
 - (double) ballTrackLeadingTarget:(double) delta_t
 {
 	Vector vector_to_target;
 	Vector axis_to_track_by;
 	Vector my_position = position;  // position relative to parent
-	Vector my_aim = vector_forward_from_quaternion(q_rotation);
+	Vector my_aim = vector_forward_from_quaternion(orientation);
 	Vector my_ref = reference;
 	double aim_cos, ref_cos;
 	//
@@ -4242,10 +4324,10 @@ BOOL	class_masslocks(int some_class)
 		axis_to_track_by = cross_product(my_ref, my_aim);	//	return to center
 	}
 
-	quaternion_rotate_about_axis( &q_rotation, axis_to_track_by, thrust * delta_t);
+	quaternion_rotate_about_axis( &orientation, axis_to_track_by, thrust * delta_t);
 
-	quaternion_normalize(&q_rotation);
-	quaternion_into_gl_matrix(q_rotation, rotMatrix);
+	quaternion_normalize(&orientation);
+	quaternion_into_gl_matrix(orientation, rotMatrix);
 
 	status = STATUS_ACTIVE;
 
@@ -4290,7 +4372,7 @@ BOOL	class_masslocks(int some_class)
 		}
 		else
 		{
-			Quaternion q = target->q_rotation;
+			Quaternion q = target->orientation;
 			vx = vector_right_from_quaternion(q);
 			vy = vector_up_from_quaternion(q);
 			vz = vector_forward_from_quaternion(q);
@@ -4393,24 +4475,24 @@ BOOL	class_masslocks(int some_class)
 	// end rule-of-thumb manoeuvres
 
 	// apply 'quick-stop' to roll and pitch adjustments
-	if (((stick_roll > 0.0)&&(flight_roll < 0.0))||((stick_roll < 0.0)&&(flight_roll > 0.0)))
+	if (((stick_roll > 0.0)&&(flightRoll < 0.0))||((stick_roll < 0.0)&&(flightRoll > 0.0)))
 		rate1 *= 4.0;	// much faster correction
-	if (((stick_pitch > 0.0)&&(flight_pitch < 0.0))||((stick_pitch < 0.0)&&(flight_pitch > 0.0)))
+	if (((stick_pitch > 0.0)&&(flightPitch < 0.0))||((stick_pitch < 0.0)&&(flightPitch > 0.0)))
 		rate2 *= 4.0;	// much faster correction
 
 	// apply stick movement limits
-	if (flight_roll < stick_roll - rate1)
-		stick_roll = flight_roll + rate1;
-	if (flight_roll > stick_roll + rate1)
-		stick_roll = flight_roll - rate1;
-	if (flight_pitch < stick_pitch - rate2)
-		stick_pitch = flight_pitch + rate2;
-	if (flight_pitch > stick_pitch + rate2)
-		stick_pitch = flight_pitch - rate2;
+	if (flightRoll < stick_roll - rate1)
+		stick_roll = flightRoll + rate1;
+	if (flightRoll > stick_roll + rate1)
+		stick_roll = flightRoll - rate1;
+	if (flightPitch < stick_pitch - rate2)
+		stick_pitch = flightPitch + rate2;
+	if (flightPitch > stick_pitch + rate2)
+		stick_pitch = flightPitch - rate2;
 
 	// apply stick to attitude control
-	flight_roll = stick_roll;
-	flight_pitch = stick_pitch;
+	flightRoll = stick_roll;
+	flightPitch = stick_pitch;
 
 	if (retreat)
 		d_forward *= d_forward;	// make positive AND decrease granularity
@@ -4418,11 +4500,12 @@ BOOL	class_masslocks(int some_class)
 	if (d_forward < 0.0)
 		return 0.0;
 
-	if ((!flight_roll)&&(!flight_pitch))	// no correction
+	if ((!flightRoll)&&(!flightPitch))	// no correction
 		return 1.0;
 
 	return d_forward;
 }
+
 
 - (double) missileTrackPrimaryTarget:(double) delta_t
 {
@@ -4481,28 +4564,28 @@ BOOL	class_masslocks(int some_class)
 	// end rule-of-thumb manoeuvres
 
 	// apply damping
-	if (flight_roll < 0)
-		flight_roll += (flight_roll < -damping) ? damping : -flight_roll;
-	if (flight_roll > 0)
-		flight_roll -= (flight_roll > damping) ? damping : flight_roll;
-	if (flight_pitch < 0)
-		flight_pitch += (flight_pitch < -damping) ? damping : -flight_pitch;
-	if (flight_pitch > 0)
-		flight_pitch -= (flight_pitch > damping) ? damping : flight_pitch;
+	if (flightRoll < 0)
+		flightRoll += (flightRoll < -damping) ? damping : -flightRoll;
+	if (flightRoll > 0)
+		flightRoll -= (flightRoll > damping) ? damping : flightRoll;
+	if (flightPitch < 0)
+		flightPitch += (flightPitch < -damping) ? damping : -flightPitch;
+	if (flightPitch > 0)
+		flightPitch -= (flightPitch > damping) ? damping : flightPitch;
 
 	// apply stick movement limits
-	if (flight_roll + rate1 < stick_roll)
-		stick_roll = flight_roll + rate1;
-	if (flight_roll - rate1 > stick_roll)
-		stick_roll = flight_roll - rate1;
-	if (flight_pitch + rate2 < stick_pitch)
-		stick_pitch = flight_pitch + rate2;
-	if (flight_pitch - rate2 > stick_pitch)
-		stick_pitch = flight_pitch - rate2;
+	if (flightRoll + rate1 < stick_roll)
+		stick_roll = flightRoll + rate1;
+	if (flightRoll - rate1 > stick_roll)
+		stick_roll = flightRoll - rate1;
+	if (flightPitch + rate2 < stick_pitch)
+		stick_pitch = flightPitch + rate2;
+	if (flightPitch - rate2 > stick_pitch)
+		stick_pitch = flightPitch - rate2;
 
 	// apply stick to attitude
-	flight_roll = stick_roll;
-	flight_pitch = stick_pitch;
+	flightRoll = stick_roll;
+	flightPitch = stick_pitch;
 
 	//
 	//  return target confidence 0.0 .. 1.0
@@ -4511,6 +4594,7 @@ BOOL	class_masslocks(int some_class)
 		return 0.0;
 	return d_forward;
 }
+
 
 - (double) trackDestination:(double) delta_t :(BOOL) retreat
 {
@@ -4601,31 +4685,31 @@ BOOL	class_masslocks(int some_class)
 
 		if ((station_for_docking)&&(station_for_docking->isStation))
 		{
-			stick_roll = [self rollToMatchUp:[station_for_docking portUpVectorForShipsBoundingBox: boundingBox] rotating:[station_for_docking flight_roll]];
+			stick_roll = [self rollToMatchUp:[station_for_docking portUpVectorForShipsBoundingBox: boundingBox] rotating:[station_for_docking flightRoll]];
 		}
 	}
 
 	// end rule-of-thumb manoeuvres
 
 	// apply 'quick-stop' to roll and pitch adjustments
-	if (((stick_roll > 0.0)&&(flight_roll < 0.0))||((stick_roll < 0.0)&&(flight_roll > 0.0)))
+	if (((stick_roll > 0.0)&&(flightRoll < 0.0))||((stick_roll < 0.0)&&(flightRoll > 0.0)))
 		rate1 *= 4.0;	// much faster correction
-	if (((stick_pitch > 0.0)&&(flight_pitch < 0.0))||((stick_pitch < 0.0)&&(flight_pitch > 0.0)))
+	if (((stick_pitch > 0.0)&&(flightPitch < 0.0))||((stick_pitch < 0.0)&&(flightPitch > 0.0)))
 		rate2 *= 4.0;	// much faster correction
 
 	// apply stick movement limits
-	if (flight_roll < stick_roll - rate1)
-		stick_roll = flight_roll + rate1;
-	if (flight_roll > stick_roll + rate1)
-		stick_roll = flight_roll - rate1;
-	if (flight_pitch < stick_pitch - rate2)
-		stick_pitch = flight_pitch + rate2;
-	if (flight_pitch > stick_pitch + rate2)
-		stick_pitch = flight_pitch - rate2;
+	if (flightRoll < stick_roll - rate1)
+		stick_roll = flightRoll + rate1;
+	if (flightRoll > stick_roll + rate1)
+		stick_roll = flightRoll - rate1;
+	if (flightPitch < stick_pitch - rate2)
+		stick_pitch = flightPitch + rate2;
+	if (flightPitch > stick_pitch + rate2)
+		stick_pitch = flightPitch - rate2;
 	
 	// apply stick to attitude control
-	flight_roll = stick_roll;
-	flight_pitch = stick_pitch;
+	flightRoll = stick_roll;
+	flightPitch = stick_pitch;
 
 	if (retreat)
 		d_forward *= d_forward;	// make positive AND decrease granularity
@@ -4633,11 +4717,12 @@ BOOL	class_masslocks(int some_class)
 	if (d_forward < 0.0)
 		return 0.0;
 
-	if ((!flight_roll)&&(!flight_pitch))	// no correction
+	if ((!flightRoll)&&(!flightPitch))	// no correction
 		return 1.0;
 
 	return d_forward;
 }
+
 
 - (GLfloat) rollToMatchUp:(Vector) up_vec rotating:(GLfloat) match_roll;
 {
@@ -4668,10 +4753,12 @@ BOOL	class_masslocks(int some_class)
 	}
 }
 
+
 - (GLfloat) rangeToDestination
 {
 	return sqrtf(distance2( position, destination));
 }
+
 
 - (double) rangeToPrimaryTarget
 {
@@ -4689,6 +4776,7 @@ BOOL	class_masslocks(int some_class)
 	dist -= collision_radius;
 	return dist;
 }
+
 
 - (BOOL) onTarget:(BOOL) fwd_weapon
 {
@@ -4723,12 +4811,13 @@ BOOL	class_masslocks(int some_class)
 	return (fabs(dq) >= astq);
 }
 
+
 - (BOOL) fireMainWeapon:(double) range
 {
 	//
 	// set the values for the forward weapon
 	//
-	[self set_weapon_data_from_type:forward_weapon_type];
+	[self setWeaponDataFromType:forward_weapon_type];
 	//
 	if (shot_time < weapon_recharge_rate)
 		return NO;
@@ -4737,9 +4826,9 @@ BOOL	class_masslocks(int some_class)
 		accuracy = [(NSNumber *)[shipinfoDictionary objectForKey:@"accuracy"] intValue];
 	if (accuracy < 1)
 		accuracy = 1;
-	if (range > randf() * weapon_range * accuracy)
+	if (range > randf() * weaponRange * accuracy)
 		return NO;
-	if (range > weapon_range)
+	if (range > weaponRange)
 		return NO;
 	if (![self onTarget:YES])
 		return NO;
@@ -4786,6 +4875,7 @@ BOOL	class_masslocks(int some_class)
 	return fired;
 }
 
+
 - (BOOL) fireAftWeapon:(double) range
 {
 	BOOL result = YES;
@@ -4794,17 +4884,17 @@ BOOL	class_masslocks(int some_class)
 	//
 	double weapon_energy1 = weapon_energy;
 	double weapon_recharge_rate1 = weapon_recharge_rate;
-	double weapon_range1 = weapon_range;
+	double weapon_range1 = weaponRange;
 	//
 	// set new values from aft_weapon_type
 	//
-	[self set_weapon_data_from_type:aft_weapon_type];
+	[self setWeaponDataFromType:aft_weapon_type];
 
 	if (shot_time < weapon_recharge_rate)
 		return NO;
 	if (![self onTarget:NO])
 		return NO;
-	if (range > randf() * weapon_range)
+	if (range > randf() * weaponRange)
 		return NO;
 
 	if (result)
@@ -4833,10 +4923,11 @@ BOOL	class_masslocks(int some_class)
 	//
 	weapon_energy = weapon_energy1;
 	weapon_recharge_rate = weapon_recharge_rate1;
-	weapon_range = weapon_range1;
+	weaponRange = weapon_range1;
 	//
 	return result;
 }
+
 
 - (BOOL) fireTurretCannon:(double) range
 {
@@ -4850,7 +4941,7 @@ BOOL	class_masslocks(int some_class)
 	Entity*		last = nil;
 	Entity*		father = [self owner];
 	GLfloat*	r_mat = [father drawRotationMatrix];
-	Vector		vel = vector_forward_from_quaternion(q_rotation);
+	Vector		vel = vector_forward_from_quaternion(orientation);
 	while ((father)&&(father != last))
 	{
 		mult_vector_gl_matrix(&origin, r_mat);
@@ -4892,6 +4983,7 @@ BOOL	class_masslocks(int some_class)
 	return YES;
 }
 
+
 - (void) setLaserColor:(OOColor *) color
 {
 	if (color)
@@ -4917,17 +5009,17 @@ BOOL	class_masslocks(int some_class)
 
 	if (forward_weapon_type == WEAPON_NONE)
 		return NO;
-	[self set_weapon_data_from_type:forward_weapon_type];
+	[self setWeaponDataFromType:forward_weapon_type];
 
 	ShipEntity* parent = (ShipEntity*)[self owner];
 
 	if (shot_time < weapon_recharge_rate)
 		return NO;
 
-	if (range > weapon_range)
+	if (range > weaponRange)
 		return NO;
 
-	hit_at_range = weapon_range;
+	hit_at_range = weaponRange;
 	target_laser_hit = [UNIVERSE getFirstEntityHitByLaserFromEntity:self inView:direction offset: make_vector(0,0,0) rangeFound: &hit_at_range];
 
 	shot = [[ParticleEntity alloc] initLaserFromSubentity:self view:direction];	// alloc retains!
@@ -4947,13 +5039,13 @@ BOOL	class_masslocks(int some_class)
 			}
 		}
 
-		if (hit_at_range < weapon_range)
+		if (hit_at_range < weaponRange)
 		{
 			[victim takeEnergyDamage:weapon_energy from:self becauseOf: parent];	// a very palpable hit
 
 			[shot setCollisionRadius: hit_at_range];
 			Vector flash_pos = shot->position;
-			Vector vd = vector_forward_from_quaternion(shot->q_rotation);
+			Vector vd = vector_forward_from_quaternion(shot->orientation);
 			flash_pos.x += vd.x * hit_at_range;	flash_pos.y += vd.y * hit_at_range;	flash_pos.z += vd.z * hit_at_range;
 			ParticleEntity* laserFlash = [[ParticleEntity alloc] initFlashSize:1.0 FromPosition: flash_pos Color:laser_color];
 			[laserFlash setVelocity:[victim velocity]];
@@ -4969,6 +5061,7 @@ BOOL	class_masslocks(int some_class)
 	return YES;
 }
 
+
 - (BOOL) fireDirectLaserShot
 {
 	GLfloat			hit_at_range;
@@ -4976,7 +5069,7 @@ BOOL	class_masslocks(int some_class)
 	if (!my_target)
 		return NO;
 	ParticleEntity*	shot;
-	double			range_limit2 = weapon_range*weapon_range;
+	double			range_limit2 = weaponRange*weaponRange;
 	Vector			r_pos = my_target->position;
 	r_pos.x -= position.x;	r_pos.y -= position.y;	r_pos.z -= position.z;
 	if (r_pos.x||r_pos.y||r_pos.z)
@@ -4990,19 +5083,19 @@ BOOL	class_masslocks(int some_class)
 	q_laser.z += 0.01 * (randf() - 0.5);
 	quaternion_normalize(&q_laser);
 
-	Quaternion q_save = q_rotation;	// save rotation
-	q_rotation = q_laser;			// face in direction of laser
+	Quaternion q_save = orientation;	// save rotation
+	orientation = q_laser;			// face in direction of laser
 	target_laser_hit = [UNIVERSE getFirstEntityHitByLaserFromEntity:self inView:VIEW_FORWARD offset: make_vector(0,0,0) rangeFound: &hit_at_range];
-	q_rotation = q_save;			// restore rotation
+	orientation = q_save;			// restore rotation
 
-	Vector  vel = make_vector( v_forward.x * flight_speed, v_forward.y * flight_speed, v_forward.z * flight_speed);
+	Vector  vel = make_vector( v_forward.x * flightSpeed, v_forward.y * flightSpeed, v_forward.z * flightSpeed);
 
 	// do special effects laser line
 	shot = [[ParticleEntity alloc] initLaserFromShip:self view:VIEW_FORWARD];	// alloc retains!
 	[shot setColor:laser_color];
 	[shot setScanClass: CLASS_NO_DRAW];
 	[shot setPosition: position];
-	[shot setQRotation: q_laser];
+	[shot setOrientation: q_laser];
 	[shot setVelocity: vel];
 	ShipEntity *victim = (ShipEntity*)[UNIVERSE entityForUniversalID:target_laser_hit];
 	if ((victim)&&(victim->isShip))
@@ -5024,7 +5117,7 @@ BOOL	class_masslocks(int some_class)
 
 			[shot setCollisionRadius: hit_at_range];
 			Vector flash_pos = shot->position;
-			Vector vd = vector_forward_from_quaternion(shot->q_rotation);
+			Vector vd = vector_forward_from_quaternion(shot->orientation);
 			flash_pos.x += vd.x * hit_at_range;	flash_pos.y += vd.y * hit_at_range;	flash_pos.z += vd.z * hit_at_range;
 			ParticleEntity* laserFlash = [[ParticleEntity alloc] initFlashSize:1.0 FromPosition: flash_pos Color:laser_color];
 			[laserFlash setVelocity:[victim velocity]];
@@ -5044,17 +5137,18 @@ BOOL	class_masslocks(int some_class)
 	return YES;
 }
 
+
 - (BOOL) fireLaserShotInDirection: (int) direction
 {
 	ParticleEntity  *shot;
-	double			range_limit2 = weapon_range*weapon_range;
+	double			range_limit2 = weaponRange*weaponRange;
 	GLfloat			hit_at_range;
 	Vector  vel;
 	target_laser_hit = NO_TARGET;
 
-	vel.x = v_forward.x * flight_speed;
-	vel.y = v_forward.y * flight_speed;
-	vel.z = v_forward.z * flight_speed;
+	vel.x = v_forward.x * flightSpeed;
+	vel.y = v_forward.y * flightSpeed;
+	vel.z = v_forward.z * flightSpeed;
 
 	Vector	laserPortOffset = forwardWeaponOffset;
 
@@ -5100,7 +5194,7 @@ BOOL	class_masslocks(int some_class)
 
 			[shot setCollisionRadius: hit_at_range];
 			Vector flash_pos = shot->position;
-			Vector vd = vector_forward_from_quaternion(shot->q_rotation);
+			Vector vd = vector_forward_from_quaternion(shot->orientation);
 			flash_pos.x += vd.x * hit_at_range;	flash_pos.y += vd.y * hit_at_range;	flash_pos.z += vd.z * hit_at_range;
 			ParticleEntity* laserFlash = [[ParticleEntity alloc] initFlashSize:1.0 FromPosition: flash_pos Color:laser_color];
 			[laserFlash setVelocity:[victim velocity]];
@@ -5119,6 +5213,7 @@ BOOL	class_masslocks(int some_class)
 
 	return YES;
 }
+
 
 - (void) throwSparks
 {
@@ -5167,6 +5262,7 @@ BOOL	class_masslocks(int some_class)
 	next_spark_time = randf();
 }
 
+
 - (BOOL) firePlasmaShot:(double) offset :(double) speed :(OOColor *) color
 {
 	ParticleEntity *shot;
@@ -5174,7 +5270,7 @@ BOOL	class_masslocks(int some_class)
 	Vector  origin = position;
 	double  start = collision_radius + 0.5;
 
-	speed += flight_speed;
+	speed += flightSpeed;
 
 	if (++shot_counter % 2)
 		offset = -offset;
@@ -5238,6 +5334,7 @@ BOOL	class_masslocks(int some_class)
 	return YES;
 }
 
+
 - (BOOL) fireMissile
 {
 	ShipEntity *missile = nil;
@@ -5253,7 +5350,7 @@ BOOL	class_masslocks(int some_class)
 	ScanVectorFromString([shipinfoDictionary objectForKey:@"missile_launch_position"], &start);
 
 	double  throw_speed = 250.0;
-	Quaternion q1 = q_rotation;
+	Quaternion q1 = orientation;
 	Entity  *target = [self getPrimaryTarget];
 
 	if	((missiles <= 0)||(target == nil)||(target->scanClass == CLASS_NO_DRAW))	// no missile lock!
@@ -5300,9 +5397,9 @@ BOOL	class_masslocks(int some_class)
 	if (isPlayer)
 		q1.w = -q1.w;   // player view is reversed remember!
 
-	vel.x += (flight_speed + throw_speed) * v_forward.x;
-	vel.y += (flight_speed + throw_speed) * v_forward.y;
-	vel.z += (flight_speed + throw_speed) * v_forward.z;
+	vel.x += (flightSpeed + throw_speed) * v_forward.x;
+	vel.y += (flightSpeed + throw_speed) * v_forward.y;
+	vel.z += (flightSpeed + throw_speed) * v_forward.z;
 
 	origin.x = position.x + v_right.x * start.x + v_up.x * start.y + v_forward.x * start.z;
 	origin.y = position.y + v_right.y * start.x + v_up.y * start.y + v_forward.y * start.z;
@@ -5310,9 +5407,9 @@ BOOL	class_masslocks(int some_class)
 
 	[missile addTarget:		target];
 	[missile setOwner:		self];
-	[missile setGroup_id:	group_id];
+	[missile setGroupID:	groupID];
 	[missile setPosition:	origin];
-	[missile setQRotation:	q1];
+	[missile setOrientation:	q1];
 	[missile setVelocity:	vel];
 	[missile setSpeed:		150.0];
 	[missile setDistanceTravelled:	0.0];
@@ -5331,6 +5428,7 @@ BOOL	class_masslocks(int some_class)
 	return YES;
 }
 
+
 - (BOOL) fireECM
 {
 	if (!has_ecm)
@@ -5344,6 +5442,7 @@ BOOL	class_masslocks(int some_class)
 	return YES;
 }
 
+
 - (BOOL) activateCloakingDevice
 {
 	if (!has_cloaking_device)
@@ -5353,17 +5452,19 @@ BOOL	class_masslocks(int some_class)
 	return cloaking_device_active;
 }
 
+
 - (void) deactivateCloakingDevice
 {
 	cloaking_device_active = NO;
 }
+
 
 - (BOOL) launchEnergyBomb
 {
 	if (!has_energy_bomb)
 		return NO;
 	has_energy_bomb = NO;
-	[self setSpeed: max_flight_speed + 300];
+	[self setSpeed: maxFlightSpeed + 300];
 	ShipEntity*	bomb = [UNIVERSE newShipWithRole:@"energy-bomb"];
 	if (!bomb)
 		return NO;
@@ -5378,9 +5479,9 @@ BOOL	class_masslocks(int some_class)
 	rpos.x -= v_forward.x * start;
 	rpos.y -= v_forward.y * start;
 	rpos.z -= v_forward.z * start;
-	vel.x = v_forward.x * (flight_speed + eject_speed);
-	vel.y = v_forward.y * (flight_speed + eject_speed);
-	vel.z = v_forward.z * (flight_speed + eject_speed);
+	vel.x = v_forward.x * (flightSpeed + eject_speed);
+	vel.y = v_forward.y * (flightSpeed + eject_speed);
+	vel.z = v_forward.z * (flightSpeed + eject_speed);
 	eject_speed *= 0.5 * (randf() - 0.5);   //  -0.25x .. +0.25x
 	vel.x += v_up.x * eject_speed;
 	vel.y += v_up.y * eject_speed;
@@ -5390,7 +5491,7 @@ BOOL	class_masslocks(int some_class)
 	vel.y += v_right.y * eject_speed;
 	vel.z += v_right.z * eject_speed;
 	[bomb setPosition:rpos];
-	[bomb setQRotation:random_direction];
+	[bomb setOrientation:random_direction];
 	[bomb setRoll:random_roll];
 	[bomb setPitch:random_pitch];
 	[bomb setVelocity:vel];
@@ -5411,6 +5512,7 @@ BOOL	class_masslocks(int some_class)
 	return YES;
 }
 
+
 - (int)launchEscapeCapsule
 {
 	OOUniversalID	result = NO_TARGET;
@@ -5430,12 +5532,12 @@ BOOL	class_masslocks(int some_class)
 		[pod setCommodity:[UNIVERSE commodityForName:@"Slaves"] andAmount:1];
 		if (crew)	// transfer crew
 		{
-			// make sure crew inherit any legal_status
+			// make sure crew inherit any legalStatus
 			int i;
 			for (i = 0; i < [crew count]; i++)
 			{
 				OOCharacter *ch = (OOCharacter*)[crew objectAtIndex:i];
-				[ch setLegalStatus: [self legal_status] | [ch legalStatus]];
+				[ch setLegalStatus: [self legalStatus] | [ch legalStatus]];
 			}
 			[pod setCrew: crew];
 			[self setCrew: nil];
@@ -5468,6 +5570,7 @@ BOOL	class_masslocks(int some_class)
 	return result;
 }
 
+
 - (int) dumpCargo
 {
 	if (status == STATUS_DEAD)
@@ -5486,6 +5589,7 @@ BOOL	class_masslocks(int some_class)
 	}
 	return result;
 }
+
 
 - (int) dumpItem: (ShipEntity*) jetto
 {
@@ -5537,16 +5641,16 @@ BOOL	class_masslocks(int some_class)
 	v_eject.y += (randf() - randf())/eject_speed;
 	v_eject.z += (randf() - randf())/eject_speed;
 
-	vel.x =	v_forward.x * flight_speed + v_eject.x * eject_speed;
-	vel.y = v_forward.y * flight_speed + v_eject.y * eject_speed;
-	vel.z = v_forward.z * flight_speed + v_eject.z * eject_speed;
+	vel.x =	v_forward.x * flightSpeed + v_eject.x * eject_speed;
+	vel.y = v_forward.y * flightSpeed + v_eject.y * eject_speed;
+	vel.z = v_forward.z * flightSpeed + v_eject.z * eject_speed;
 
 	velocity.x += v_eject.x * eject_reaction;
 	velocity.y += v_eject.y * eject_reaction;
 	velocity.z += v_eject.z * eject_reaction;
 
 	[jetto setPosition:rpos];
-	[jetto setQRotation:random_direction];
+	[jetto setOrientation:random_direction];
 	[jetto setRoll:random_roll];
 	[jetto setPitch:random_pitch];
 	[jetto setVelocity:vel];
@@ -5557,6 +5661,7 @@ BOOL	class_masslocks(int some_class)
 	cargo_dump_time = [UNIVERSE getTime];
 	return result;
 }
+
 
 - (void) manageCollisions
 {
@@ -5763,12 +5868,14 @@ BOOL	class_masslocks(int some_class)
 	return YES;
 }
 
+
 - (Vector) velocity	// overrides Entity velocity
 {
 	Vector v = velocity;
-	v.x += flight_speed * v_forward.x;	v.y += flight_speed * v_forward.y;	v.z += flight_speed * v_forward.z;
+	v.x += flightSpeed * v_forward.x;	v.y += flightSpeed * v_forward.y;	v.z += flightSpeed * v_forward.z;
 	return v;
 }
+
 
 - (void) adjustVelocity:(Vector) xVel
 {
@@ -5777,12 +5884,14 @@ BOOL	class_masslocks(int some_class)
 	velocity.z += xVel.z;
 }
 
+
 - (void) addImpactMoment:(Vector) moment fraction:(GLfloat) howmuch
 {
 	velocity.x += howmuch * moment.x / mass;
 	velocity.y += howmuch * moment.y / mass;
 	velocity.z += howmuch * moment.z / mass;
 }
+
 
 - (BOOL) canScoop:(ShipEntity*)other
 {
@@ -5805,6 +5914,7 @@ BOOL	class_masslocks(int some_class)
 	return YES;
 }
 
+
 - (void) getTractoredBy:(ShipEntity *)other
 {
 	desired_speed = 0.0;
@@ -5815,10 +5925,12 @@ BOOL	class_masslocks(int some_class)
 	[self setOwner: other];
 }
 
+
 - (void) scoopIn:(ShipEntity *)other
 {
 	[other getTractoredBy:self];
 }
+
 
 - (void) scoopUp:(ShipEntity *)other
 {
@@ -5973,11 +6085,11 @@ BOOL	class_masslocks(int some_class)
 		[self broadcastHitByLaserFrom:(ShipEntity*) other];
 
 		// tell our group we've been attacked
-		if (group_id != NO_TARGET)
+		if (groupID != NO_TARGET)
 		{
 			if ([roles isEqual:@"escort"]||[roles isEqual:@"trader"])
 			{
-				ShipEntity *group_leader = (ShipEntity *)[UNIVERSE entityForUniversalID:group_id];
+				ShipEntity *group_leader = (ShipEntity *)[UNIVERSE entityForUniversalID:groupID];
 				if ((group_leader)&&(group_leader->isShip))
 				{
 					[group_leader setFound_target:hunter];
@@ -5985,11 +6097,11 @@ BOOL	class_masslocks(int some_class)
 					[[group_leader getAI] reactToMessage:@"ATTACKED"];
 				}
 				else
-					group_id = NO_TARGET;
+					groupID = NO_TARGET;
 			}
 			if ([roles isEqual:@"pirate"])
 			{
-				NSArray	*fellow_pirates = [self shipsInGroup:group_id];
+				NSArray	*fellow_pirates = [self shipsInGroup:groupID];
 				int i;
 				for (i = 0; i < [fellow_pirates count]; i++)
 				{
@@ -6004,7 +6116,7 @@ BOOL	class_masslocks(int some_class)
 			}
 			if (iAmTheLaw)
 			{
-				NSArray	*fellow_police = [self shipsInGroup:group_id];
+				NSArray	*fellow_police = [self shipsInGroup:groupID];
 				int i;
 				for (i = 0; i < [fellow_police count]; i++)
 				{
@@ -6021,12 +6133,12 @@ BOOL	class_masslocks(int some_class)
 			[hunter markAsOffender:64];
 
 		// avoid shooting each other
-		if (([hunter group_id] == group_id)||(iAmTheLaw && uAreTheLaw))
+		if (([hunter groupID] == groupID)||(iAmTheLaw && uAreTheLaw))
 		{
 			if ([hunter behaviour] == BEHAVIOUR_ATTACK_FLY_TO_TARGET)	// avoid me please!
 			{
 				[hunter setBehaviour:BEHAVIOUR_ATTACK_FLY_FROM_TARGET];
-				[hunter setDesiredSpeed:[hunter max_flight_speed]];
+				[hunter setDesiredSpeed:[hunter maxFlightSpeed]];
 			}
 		}
 
@@ -6066,7 +6178,7 @@ BOOL	class_masslocks(int some_class)
 			[self setScanClass: CLASS_CARGO];			// we're unmanned now!
 			thrust = thrust * 0.5;
 			desired_speed = 0.0;
-			max_flight_speed = 0.0;
+			maxFlightSpeed = 0.0;
 			is_hulk = YES;
 		}
 	}
@@ -6107,6 +6219,7 @@ BOOL	class_masslocks(int some_class)
 	}
 }
 
+
 - (void) takeHeatDamage:(double) amount
 {
 	if (status == STATUS_DEAD)					// it's too late for this one!
@@ -6130,6 +6243,7 @@ BOOL	class_masslocks(int some_class)
 	}
 }
 
+
 - (void) enterDock:(StationEntity *)station
 {
 	// throw these away now we're docked...
@@ -6142,25 +6256,27 @@ BOOL	class_masslocks(int some_class)
 	[UNIVERSE removeEntity:self];
 }
 
+
 - (void) leaveDock:(StationEntity *)station
 {
 	if (station)
 	{
 		Vector launchPos = station->position;
-		Vector stat_f = vector_forward_from_quaternion(station->q_rotation);
+		Vector stat_f = vector_forward_from_quaternion(station->orientation);
 		launchPos.x += 500.0*stat_f.x;
 		launchPos.y += 500.0*stat_f.y;
 		launchPos.z += 500.0*stat_f.z;
 		position = launchPos;
-		q_rotation = station->q_rotation;
-		flight_roll = [station flight_roll];
+		orientation = station->orientation;
+		flightRoll = [station flightRoll];
 	}
-	flight_pitch = 0.0;
-	flight_speed = max_flight_speed * 0.5;
+	flightPitch = 0.0;
+	flightSpeed = maxFlightSpeed * 0.5;
 	status = STATUS_LAUNCHING;
 	[shipAI message:@"LAUNCHED"];
 	[UNIVERSE addEntity:self];
 }
+
 
 - (void) enterWormhole:(WormholeEntity *) w_hole
 {
@@ -6169,6 +6285,7 @@ BOOL	class_masslocks(int some_class)
 
 	[w_hole suckInShip: self];	// removes ship from UNIVERSE
 }
+
 
 - (void) enterWitchspace
 {
@@ -6210,10 +6327,10 @@ int w_space_seed = 1234567;
 	position.x += v1.x * d1; // randomise exit position
 	position.y += v1.y * d1;
 	position.z += v1.z * d1;
-	q_rotation = q_rtn;
-	flight_roll = 0.0;
-	flight_pitch = 0.0;
-	flight_speed = max_flight_speed * 0.25;
+	orientation = q_rtn;
+	flightRoll = 0.0;
+	flightPitch = 0.0;
+	flightSpeed = maxFlightSpeed * 0.25;
 	status = STATUS_LAUNCHING;
 	[shipAI message:@"EXITED_WITCHSPACE"];
 	[UNIVERSE addEntity:self];
@@ -6228,10 +6345,12 @@ int w_space_seed = 1234567;
 	[ring2 release];
 }
 
+
 - (void) markAsOffender:(int)offence_value
 {
 	if (scanClass != CLASS_POLICE)  bounty |= offence_value;
 }
+
 
 - (void) switchLightsOn
 {
@@ -6248,6 +6367,7 @@ int w_space_seed = 1234567;
 	}
 }
 
+
 - (void) switchLightsOff
 {
 	if (!sub_entities) return;
@@ -6262,6 +6382,7 @@ int w_space_seed = 1234567;
 		}
 	}
 }
+
 
 - (void) setDestination:(Vector) dest
 {
@@ -6279,6 +6400,7 @@ inline BOOL pairOK(NSString* my_role, NSString* their_role)
 	return pairing_okay;
 }
 
+
 - (BOOL) acceptAsEscort:(ShipEntity *) other_ship
 {
 	// can't pair with self
@@ -6295,28 +6417,29 @@ inline BOOL pairOK(NSString* my_role, NSString* their_role)
 
 		// check it's not already been accepted
 		int i;
-		for (i = 0; i < n_escorts; i++)
+		for (i = 0; i < escortCount; i++)
 		{
 			if (escort_ids[i] == [other_ship universalID])
 			{
-				[other_ship setGroup_id:universalID];
-				[self setGroup_id:universalID];		// make self part of same group
+				[other_ship setGroupID:universalID];
+				[self setGroupID:universalID];		// make self part of same group
 				return YES;
 			}
 		}
 
-		if ((n_escorts < MAX_ESCORTS)&&(n_escorts < max_escorts))
+		if ((escortCount < MAX_ESCORTS)&&(escortCount < max_escorts))
 		{
-			escort_ids[n_escorts] = [other_ship universalID];
-			[other_ship setGroup_id:universalID];
-			[self setGroup_id:universalID];		// make self part of same group
-			n_escorts++;
+			escort_ids[escortCount] = [other_ship universalID];
+			[other_ship setGroupID:universalID];
+			[self setGroupID:universalID];		// make self part of same group
+			escortCount++;
 
 			return YES;
 		}
 	}
 	return NO;
 }
+
 
 - (Vector) getCoordinatesForEscortPosition:(int) f_pos
 {
@@ -6337,9 +6460,10 @@ inline BOOL pairOK(NSString* my_role, NSString* their_role)
 	return pos;
 }
 
+
 - (void) deployEscorts
 {
-	if (n_escorts < 1)
+	if (escortCount < 1)
 		return;
 
 	if (![self getPrimaryTarget])
@@ -6353,12 +6477,12 @@ inline BOOL pairOK(NSString* my_role, NSString* their_role)
 
 	last_escort_target = primaryTarget;
 
-	int n_deploy = ranrot_rand() % n_escorts;
+	int n_deploy = ranrot_rand() % escortCount;
 	if (n_deploy == 0)
 		n_deploy = 1;
 
-	int i_deploy = n_escorts - 1;
-	while ((n_deploy > 0)&&(n_escorts > 0))
+	int i_deploy = escortCount - 1;
+	while ((n_deploy > 0)&&(escortCount > 0))
 	{
 		int escort_id = escort_ids[i_deploy];
 		ShipEntity  *escorter = (ShipEntity *)[UNIVERSE entityForUniversalID:escort_id];
@@ -6370,7 +6494,7 @@ inline BOOL pairOK(NSString* my_role, NSString* their_role)
 			escorter_okay = escorter->isShip;
 		if (escorter_okay)
 		{
-			[escorter setGroup_id:NO_TARGET];	// act individually now!
+			[escorter setGroupID:NO_TARGET];	// act individually now!
 			[escorter addTarget:[self getPrimaryTarget]];
 			[[escorter getAI] setStateMachine:@"interceptAI.plist"];
 			[[escorter getAI] setState:@"GLOBAL"];
@@ -6378,23 +6502,24 @@ inline BOOL pairOK(NSString* my_role, NSString* their_role)
 			escort_ids[i_deploy] = NO_TARGET;
 			i_deploy--;
 			n_deploy--;
-			n_escorts--;
+			escortCount--;
 		}
 		else
 		{
-			escort_ids[i_deploy--] = escort_ids[--n_escorts];	// remove the escort
+			escort_ids[i_deploy--] = escort_ids[--escortCount];	// remove the escort
 		}
 	}
 
 }
 
+
 - (void) dockEscorts
 {
-	if (n_escorts < 1)
+	if (escortCount < 1)
 		return;
 
 	int i;
-	for (i = 0; i < n_escorts; i++)
+	for (i = 0; i < escortCount; i++)
 	{
 		int escort_id = escort_ids[i];
 		ShipEntity  *escorter = (ShipEntity *)[UNIVERSE entityForUniversalID:escort_id];
@@ -6409,23 +6534,24 @@ inline BOOL pairOK(NSString* my_role, NSString* their_role)
 			SEL _setSM =	@selector(setStateMachine:);
 			SEL _setSt =	@selector(setState:);
 			float delay = i * 3.0 + 1.5;		// send them off at three second intervals
-			[escorter setGroup_id:NO_TARGET];	// act individually now!
+			[escorter setGroupID:NO_TARGET];	// act individually now!
 			[[escorter getAI] performSelector:_setSM withObject:@"dockingAI.plist" afterDelay:delay];
 			[[escorter getAI] performSelector:_setSt withObject:@"ABORT" afterDelay:delay + 0.25];
 		}
 		escort_ids[i] = NO_TARGET;
 	}
-	n_escorts = 0;
+	escortCount = 0;
 
 }
 
+
 - (void) setTargetToStation
 {
-	// check if the group_id (parent ship) points to a station...
-	Entity* mother = [UNIVERSE entityForUniversalID:group_id];
+	// check if the groupID (parent ship) points to a station...
+	Entity* mother = [UNIVERSE entityForUniversalID:groupID];
 	if ((mother)&&(mother->isStation))
 	{
-		primaryTarget = group_id;
+		primaryTarget = groupID;
 		targetStation = primaryTarget;
 		return;	// head for mother!
 	}
@@ -6464,6 +6590,7 @@ inline BOOL pairOK(NSString* my_role, NSString* their_role)
 	}
 }
 
+
 - (void) setTargetToSystemStation
 {
 	StationEntity* system_station = [UNIVERSE station];
@@ -6488,6 +6615,7 @@ inline BOOL pairOK(NSString* my_role, NSString* their_role)
 	targetStation = primaryTarget;
 	return;
 }
+
 
 - (PlanetEntity *) findNearestLargeBody
 {
@@ -6521,6 +6649,7 @@ inline BOOL pairOK(NSString* my_role, NSString* their_role)
 	return the_planet;
 }
 
+
 - (void) abortDocking
 {
 	if (!UNIVERSE)
@@ -6532,6 +6661,7 @@ inline BOOL pairOK(NSString* my_role, NSString* their_role)
 		if (uni_entities[i]->isStation)
 			[(StationEntity *)uni_entities[i] abortDockingForShip:self];	// action
 }
+
 
 - (void) broadcastThargoidDestroyed
 {
@@ -6559,6 +6689,7 @@ inline BOOL pairOK(NSString* my_role, NSString* their_role)
 	for (i = 0; i < ship_count; i++)
 		[my_entities[i] release];		//	released
 }
+
 
 - (void) broadcastHitByLaserFrom:(ShipEntity*) aggressor_ship
 {
@@ -6589,7 +6720,7 @@ inline BOOL pairOK(NSString* my_role, NSString* their_role)
 		for (i = 0; i < ship_count ; i++)
 		{
 			ShipEntity* ship = (ShipEntity *)my_entities[i];
-			if (((ship == mainStation) && ([self within_station_aegis])) || (distance2( position, ship->position) < SCANNER_MAX_RANGE2))
+			if (((ship == mainStation) && ([self withinStationAegis])) || (distance2( position, ship->position) < SCANNER_MAX_RANGE2))
 			{
 				[ship setFound_target: aggressor_ship];
 				[[ship getAI] reactToMessage: @"OFFENCE_COMMITTED"];
@@ -6598,6 +6729,8 @@ inline BOOL pairOK(NSString* my_role, NSString* their_role)
 		}
 	}
 }
+
+
 - (NSArray *) shipsInGroup:(int) ship_group_id
 {
 	//-- Locates all the ships with this particular group id --//
@@ -6612,12 +6745,13 @@ inline BOOL pairOK(NSString* my_role, NSString* their_role)
 		if (uni_entities[i]->isShip)
 		{
 			ShipEntity* ship = (ShipEntity*)uni_entities[i];
-			if ([ship group_id] == ship_group_id)
+			if ([ship groupID] == ship_group_id)
 				[result addObject: ship];
 		}
 	}
 	return (NSArray *)result;
 }
+
 
 - (void) sendExpandedMessage:(NSString *) message_text toShip:(ShipEntity*) other_ship
 {
@@ -6625,14 +6759,14 @@ inline BOOL pairOK(NSString* my_role, NSString* their_role)
 		return;
 	if (!crew)
 		return;	// nobody to send the signal
-	if ((lastRadioMessage) && (message_time > 0.0) && [message_text isEqual:lastRadioMessage])
+	if ((lastRadioMessage) && (messageTime > 0.0) && [message_text isEqual:lastRadioMessage])
 		return;	// don't send the same message too often
 	[lastRadioMessage autorelease];
 	lastRadioMessage = [message_text retain];
 	Vector delta = other_ship->position;
 	delta.x -= position.x;  delta.y -= position.y;  delta.z -= position.z;
 	double d2 = delta.x*delta.x + delta.y*delta.y + delta.z*delta.z;
-	if (d2 > scanner_range * scanner_range)
+	if (d2 > scannerRange * scannerRange)
 		return;					// out of comms range
 	if (!other_ship)
 		return;
@@ -6656,9 +6790,10 @@ inline BOOL pairOK(NSString* my_role, NSString* their_role)
 	[self setCommsMessageColor];
 	[other_ship receiveCommsMessage:[NSString stringWithFormat:@"%@:\n %@", name, expandedMessage]];
 	if (other_ship->isPlayer)
-		message_time = 6.0;
+		messageTime = 6.0;
 	[UNIVERSE resetCommsLogColor];
 }
+
 
 - (void) broadcastAIMessage:(NSString *) ai_message
 {
@@ -6672,6 +6807,7 @@ inline BOOL pairOK(NSString* my_role, NSString* their_role)
 		[[ship getAI] message: expandedMessage];
 	}
 }
+
 
 - (void) broadcastMessage:(NSString *) message_text
 {
@@ -6688,10 +6824,11 @@ inline BOOL pairOK(NSString* my_role, NSString* their_role)
 		ShipEntity* ship = scanned_ships[i];
 		[ship receiveCommsMessage: expandedMessage];
 		if (ship->isPlayer)
-			message_time = 6.0;
+			messageTime = 6.0;
 	}
 	[UNIVERSE resetCommsLogColor];
 }
+
 
 - (void) setCommsMessageColor
 {
@@ -6703,23 +6840,27 @@ inline BOOL pairOK(NSString* my_role, NSString* their_role)
 		[[UNIVERSE comm_log_gui] setTextColor:[OOColor cyanColor]];
 }
 
+
 - (void) receiveCommsMessage:(NSString *) message_text
 {
 	// ignore messages for now
 }
 
+
 - (BOOL) markForFines
 {
 	if (being_fined)
 		return NO;	// can't mark twice
-	being_fined = ([self legal_status] > 0);
+	being_fined = ([self legalStatus] > 0);
 	return being_fined;
 }
+
 
 - (BOOL) isMining
 {
 	return ((behaviour == BEHAVIOUR_ATTACK_MINING_TARGET)&&(forward_weapon_type == WEAPON_MINING_LASER));
 }
+
 
 - (void) setNumberOfMinedRocks:(int) value
 {
@@ -6727,6 +6868,7 @@ inline BOOL pairOK(NSString* my_role, NSString* their_role)
 		return;
 	likely_cargo = value;
 }
+
 
 - (void) interpretAIMessage:(NSString *)ms
 {
@@ -6750,6 +6892,7 @@ inline BOOL pairOK(NSString* my_role, NSString* their_role)
 		}
 	}
 }
+
 
 - (BoundingBox) findBoundingBoxRelativeTo:(Entity *)other InVectors:(Vector) _i :(Vector) _j :(Vector) _k
 {
@@ -6780,6 +6923,7 @@ inline BOOL pairOK(NSString* my_role, NSString* their_role)
 	while (number--)
 		[UNIVERSE spawnShipWithRole:roleString near:self];
 }
+
 
 - (int) checkShipsInVicinityForWitchJumpExit
 {
@@ -6820,6 +6964,7 @@ inline BOOL pairOK(NSString* my_role, NSString* their_role)
 	return result;
 }
 
+
 - (void) setTrackCloseContacts:(BOOL) value
 {
 	if (value == trackCloseContacts)
@@ -6838,6 +6983,7 @@ inline BOOL pairOK(NSString* my_role, NSString* their_role)
 		closeContactsInfo = nil;
 	}
 }
+
 
 - (void) claimAsSalvage
 {
@@ -6876,6 +7022,7 @@ inline BOOL pairOK(NSString* my_role, NSString* their_role)
 	[self setStateMachine:@"capturedShipAI.plist"];
 }
 
+
 - (void) sendCoordinatesToPilot
 {
 	Entity		*scan;
@@ -6897,7 +7044,7 @@ inline BOOL pairOK(NSString* my_role, NSString* their_role)
 			
 			if ([scanRoles containsObject:@"pilot"] == YES)
 			{
-				if ([scanShip getPrimaryTargetID] == NO_TARGET)
+				if ([scanShip primaryTargetID] == NO_TARGET)
 				{
 					NSLog(@"found pilot boat with no target, will use this one");
 					pilot = scanShip;
@@ -6919,6 +7066,7 @@ inline BOOL pairOK(NSString* my_role, NSString* their_role)
 		[[self getAI] reactToMessage:@"FOUND_PILOT"];
 	}
 }
+
 
 - (void) pilotArrived
 {
@@ -6943,7 +7091,7 @@ inline BOOL pairOK(NSString* my_role, NSString* their_role)
 	OOLog(@"dumpState.shipEntity", @"Other destination: %@", VectorDescription(coordinates));
 	OOLog(@"dumpState.shipEntity", @"Waypoint count: %u", number_of_navpoints);
 	OOLog(@"dumpState.shipEntity", @"Desired speed: %g", desired_speed);
-	if (n_escorts != 0)  OOLog(@"dumpState.shipEntity", @"Escort count: %u", n_escorts);
+	if (escortCount != 0)  OOLog(@"dumpState.shipEntity", @"Escort count: %u", escortCount);
 	OOLog(@"dumpState.shipEntity", @"Fuel: %i", fuel);
 	OOLog(@"dumpState.shipEntity", @"Fuel accumulator: %g", fuel_accumulator);
 	OOLog(@"dumpState.shipEntity", @"Missile count: %u", missiles);

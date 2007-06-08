@@ -31,12 +31,13 @@ MA 02110-1301, USA.
 
 @implementation OOCharacter
 
-- (NSString*) description
+- (NSString *) description
 {
 	NSString* result = [[NSString alloc] initWithFormat:@"<OOCharacter : %@, %@. %@. Bounty %d.  Insurance %d.>",
 		[self name], [self shortDescription], [self longDescription], [self legalStatus], [self insuranceCredits]];
 	return [result autorelease];
 }
+
 
 - (void) dealloc
 {
@@ -48,6 +49,7 @@ MA 02110-1301, USA.
 	
 	[super dealloc];
 }
+
 
 - (id) initWithGenSeed:(Random_Seed) g_seed andOriginalSystemSeed:(Random_Seed) s_seed
 {
@@ -62,7 +64,8 @@ MA 02110-1301, USA.
 	return self;
 }
 
-- (id) initWithRole:(NSString*) role andOriginalSystemSeed:(Random_Seed) s_seed
+
+- (id) initWithRole:(NSString *) role andOriginalSystemSeed:(Random_Seed) s_seed
 {
 	self = [super init];
 	
@@ -77,12 +80,12 @@ MA 02110-1301, USA.
 	return self;
 }
 
-+ (OOCharacter*) characterWithRole:(NSString*) c_role andOriginalSystem:(Random_Seed) o_seed
++ (OOCharacter *) characterWithRole:(NSString *) c_role andOriginalSystem:(Random_Seed) o_seed
 {
 	return [[[OOCharacter alloc] initWithRole: c_role andOriginalSystemSeed: o_seed] autorelease];
 }
 
-+ (OOCharacter*) randomCharacterWithRole:(NSString*) c_role andOriginalSystem:(Random_Seed) o_seed
++ (OOCharacter *) randomCharacterWithRole:(NSString *) c_role andOriginalSystem:(Random_Seed) o_seed
 {
 	Random_Seed r_seed;
 	r_seed.a = (ranrot_rand() & 0xff);
@@ -102,7 +105,7 @@ MA 02110-1301, USA.
 	}
 }
 
-+ (OOCharacter*) characterWithDictionary:(NSDictionary*) c_dict
++ (OOCharacter *) characterWithDictionary:(NSDictionary *) c_dict
 {
 	OOCharacter	*castmember = [[[OOCharacter alloc] init] autorelease];
 	[castmember setCharacterFromDictionary: c_dict];
@@ -110,20 +113,22 @@ MA 02110-1301, USA.
 }
 
 
-- (NSString*) planetOfOrigin
+- (NSString *) planetOfOrigin
 {
 	// determine the planet of origin
 	NSDictionary* originInfo = [UNIVERSE generateSystemData: originSystemSeed];
 	return [originInfo objectForKey: KEY_NAME];
 }
 
-- (NSString*) species
+
+- (NSString *) species
 {
 	// determine the character's species
 	int species = genSeed.f & 0x03;	// 0-1 native to home system, 2 human colonial, 3 other
 	NSString* speciesString = (species == 3)? [UNIVERSE generateSystemInhabitants: genSeed plural:NO]:[UNIVERSE generateSystemInhabitants: originSystemSeed plural:NO];
 	return [[speciesString lowercaseString] stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceCharacterSet]];
 }
+
 
 - (void) basicSetUp
 {	
@@ -154,7 +159,7 @@ MA 02110-1301, USA.
 	[self setShortDescription: [NSString stringWithFormat:ExpandDescriptionForSeed(@"[character-a-@-from-@]", genSeed), speciesString, planetName]];
 	[self setLongDescription: [self shortDescription]];
 	
-	// determine legal_status for a completely random character
+	// determine legalStatus for a completely random character
 	NSString *legalDesc;
 	[self setLegalStatus: 0];	// clean
 	int legal_index = gen_rnd_number() & gen_rnd_number() & 0x03;
@@ -202,14 +207,15 @@ MA 02110-1301, USA.
 	setRandomSeed( saved_seed);
 }
 
-- (BOOL) castInRole:(NSString*) role
+
+- (BOOL) castInRole:(NSString *) role
 {
 	BOOL specialSetUpDone = NO;
 	
 	NSString *legalDesc;
 	if ([[role lowercaseString] isEqual:@"pirate"])
 	{
-		// determine legal_status for a completely random character
+		// determine legalStatus for a completely random character
 		int sins = 0x08 | (genSeed.a & genSeed.b);
 		[self setLegalStatus: sins & 0x7f];
 		int legal_index = (legalStatus <= 50) ? 1 : 2;
@@ -313,79 +319,110 @@ MA 02110-1301, USA.
 	return specialSetUpDone;
 }
 
-- (NSString*)	name
+
+- (NSString *)name
 {
 	return name;
 }
-- (NSString*)	shortDescription
+
+
+- (NSString *)shortDescription
 {
 	return shortDescription;
 }
-- (NSString*)	longDescription
+
+
+- (NSString *)longDescription
 {
 	return longDescription;
 }
-- (Random_Seed)	originSystemSeed
+
+
+- (Random_Seed)originSystemSeed
 {
 	return originSystemSeed;
 }
-- (Random_Seed)	genSeed
+
+
+- (Random_Seed)genSeed
 {
 	return genSeed;
 }
-- (int)			legalStatus
+
+
+- (int)legalStatus
 {
 	return legalStatus;
 }
-- (int)			insuranceCredits
+
+
+- (int)insuranceCredits
 {
 	return insuranceCredits;
 }
-- (NSArray*)	script
+
+
+- (NSArray *)script
 {
 	return script_actions;
 }
-- (OOBrain*)	brain
+
+
+- (OOBrain *)brain
 {
 	return brain;
 }
 
 
-- (void) setName: (NSString*) value
+- (void)setName:(NSString *)value
 {
 	if (name)
 		[name autorelease];
 	name = [value retain];
 }
-- (void) setShortDescription: (NSString*) value
+
+
+- (void)setShortDescription:(NSString *)value
 {
 	if (shortDescription)
 		[shortDescription autorelease];
 	shortDescription = [value retain];
 }
-- (void) setLongDescription: (NSString*) value
+
+
+- (void)setLongDescription:(NSString *)value
 {
 	if (longDescription)
 		[longDescription autorelease];
 	longDescription = [value retain];
 }
-- (void) setOriginSystemSeed: (Random_Seed) value
+
+
+- (void)setOriginSystemSeed:(Random_Seed)value
 {
 	originSystemSeed = value;
 }
-- (void) setGenSeed: (Random_Seed) value
+
+
+- (void)setGenSeed:(Random_Seed)value
 {
 	genSeed = value;
 }
-- (void) setLegalStatus: (int) value
+
+
+- (void)setLegalStatus:(int)value
 {
 	legalStatus = value;
 }
-- (void) setInsuranceCredits: (int) value
+
+
+- (void)setInsuranceCredits:(int)value
 {
 	insuranceCredits = value;
 }
-- (void) setScript: (NSArray*) some_actions
+
+
+- (void)setScript:(NSArray *)some_actions
 {
 	if (script_actions)
 		[script_actions autorelease];
@@ -394,7 +431,9 @@ MA 02110-1301, USA.
 	else
 		script_actions = nil;
 }
-- (void) setBrain: (OOBrain*) aBrain
+
+
+- (void) setBrain:(OOBrain *)aBrain
 {
 	if (brain)
 		[brain release];
@@ -407,7 +446,7 @@ MA 02110-1301, USA.
 }
 
 
-- (void) setCharacterFromDictionary:(NSDictionary*) dict
+- (void) setCharacterFromDictionary:(NSDictionary *) dict
 {
 	if ([dict objectForKey:@"origin"])
 	{

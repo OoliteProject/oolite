@@ -293,10 +293,20 @@ static NSString *MacrosToString(NSDictionary *macros);
 			value = [definition objectForKey:@"value"];
 			type = [definition objectForKey:@"type"];
 		}
-		else
+		else if ([definition isKindOfClass:[NSNumber class]])
 		{
 			value = definition;
 			type = @"float";
+		}
+		else if ([definition isEqual:@"binding"])
+		{
+			value = name;
+			type = @"binding";
+		}
+		else
+		{
+			type = nil;
+			value = nil;
 		}
 		
 		if ([type isEqualToString:@"float"] || [type isEqualToString:@"real"])
@@ -332,7 +342,10 @@ static NSString *MacrosToString(NSDictionary *macros);
 			selector = NSSelectorFromString(value);
 			if (selector)
 			{
-				convert = [definition boolForKey:@"clamped" defaultValue:NO];
+				if ([definition isKindOfClass:[NSDictionary class]])
+				{
+					convert = [definition boolForKey:@"clamped" defaultValue:NO];
+				}
 				[self bindUniform:name toObject:target property:selector convert:convert];
 				gotValue = YES;
 			}

@@ -85,14 +85,14 @@ OOINLINE Vector cross_product(Vector first, Vector second) INLINE_CONST_FUNC;
 OOINLINE Vector fast_cross_product(Vector first, Vector second) INLINE_CONST_FUNC;
 
 /* General cross product */
-OOINLINE Vector true_cross_product(Vector first, Vector second) INLINE_CONST_FUNC;
+OOINLINE Vector true_cross_product(Vector first, Vector second) CONST_FUNC;
 
 /* Triple product */
 OOINLINE GLfloat triple_product(Vector first, Vector second, Vector third) INLINE_CONST_FUNC;
 
 /* Given three points on a surface, returns the normal to the surface. */
-OOINLINE Vector normal_to_surface(Vector v1, Vector v2, Vector v3) INLINE_CONST_FUNC;
-OOINLINE Vector fast_normal_to_surface(Vector v1, Vector v2, Vector v3) INLINE_CONST_FUNC;
+OOINLINE Vector normal_to_surface(Vector v1, Vector v2, Vector v3) CONST_FUNC;
+OOINLINE Vector fast_normal_to_surface(Vector v1, Vector v2, Vector v3) CONST_FUNC;
 
 #ifdef __OBJC__
 NSString *VectorDescription(Vector vector);	// @"(x, y, z)"

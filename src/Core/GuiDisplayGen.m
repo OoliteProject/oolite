@@ -1084,7 +1084,7 @@ MA 02110-1301, USA.
 	NSPoint	cursor_coordinates = [player cursor_coordinates];
 	NSPoint	cu;
 	
-	double fuel = 35.0 * [player dial_fuel];
+	double fuel = 35.0 * [player dialFuel];
 	
 	Random_Seed g_seed;
 	double		hcenter = size_in_pixels.width/2.0;
@@ -1215,7 +1215,7 @@ MA 02110-1301, USA.
 	NSPoint	galaxy_coordinates = [player galaxy_coordinates];
 	NSPoint	cursor_coordinates = [player cursor_coordinates];
 
-	double fuel = 35.0 * [player dial_fuel];
+	double fuel = 35.0 * [player dialFuel];
 
 	// get a list of systems marked as contract destinations
 	NSArray* markedDestinations = [player markedDestinations];

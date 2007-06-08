@@ -74,6 +74,13 @@ static NSString * const kOOLogBuyMountedFailed		= @"equip.buy.mounted.failed";
 static PlayerEntity *sSharedPlayer = nil;
 
 
+@interface PlayerEntity (OOPrivate)
+
+- (void)updateAlertCondition;
+
+@end
+
+
 @implementation PlayerEntity
 
 + (id)sharedPlayer
@@ -276,11 +283,11 @@ static PlayerEntity *sSharedPlayer = nil;
 			[missile_roles addObject:@"NONE"];
 	}
 	[result setObject:missile_roles forKey:@"missile_roles"];
-//	[self safe_all_missiles];	// affects missile_status!!
+//	[self safeAllMissiles];	// affects missile_status!!
 	
-	[result setObject:[NSNumber numberWithInt:[self calc_missiles]]		forKey:@"missiles"];
+	[result setObject:[NSNumber numberWithInt:missiles]					forKey:@"missiles"];
 	
-	[result setObject:[NSNumber numberWithInt:legal_status]				forKey:@"legal_status"];
+	[result setObject:[NSNumber numberWithInt:legalStatus]				forKey:@"legal_status"];
 	[result setObject:[NSNumber numberWithInt:market_rnd]				forKey:@"market_rnd"];
 	[result setObject:[NSNumber numberWithInt:ship_kills]				forKey:@"ship_kills"];
 	[result setObject:[NSNumber numberWithBool:saved]					forKey:@"saved"];
@@ -365,7 +372,7 @@ static PlayerEntity *sSharedPlayer = nil;
 	munge_checksum((int)galaxy_coordinates.x);	munge_checksum((int)galaxy_coordinates.y);
 	munge_checksum(credits);		munge_checksum(fuel);
 	munge_checksum(max_cargo);		munge_checksum(missiles);
-	munge_checksum(legal_status);	munge_checksum(market_rnd);		munge_checksum(ship_kills);
+	munge_checksum(legalStatus);	munge_checksum(market_rnd);		munge_checksum(ship_kills);
 	if (mission_variables)
 		munge_checksum([[mission_variables description] length]);
 	if (extra_equipment)
@@ -650,7 +657,7 @@ static PlayerEntity *sSharedPlayer = nil;
 		missiles = max_missiles;
 	// end sanity check
 	if ([dict objectForKey:@"legal_status"])
-		legal_status = [(NSNumber *)[dict objectForKey:@"legal_status"] intValue];
+		legalStatus = [(NSNumber *)[dict objectForKey:@"legal_status"] intValue];
 	if ([dict objectForKey:@"market_rnd"])
 		market_rnd = [(NSNumber *)[dict objectForKey:@"market_rnd"]   intValue];
 	if ([dict objectForKey:@"ship_kills"])
@@ -682,7 +689,7 @@ static PlayerEntity *sSharedPlayer = nil;
 
 	// set up missiles
 	int i;
-	[self setActive_missile: 0];
+	[self setActiveMissile: 0];
 	for (i = 0; i < SHIPENTITY_MAX_MISSILES; i++)
 	{
 		if (missile_entity[i])
@@ -724,8 +731,8 @@ static PlayerEntity *sSharedPlayer = nil;
 			missile_entity[i] = [UNIVERSE newShipWithRole:@"EQ_MISSILE"];   // retain count = 1 - should be okay as long as we keep a missile with this role
 																			// in the base package.
 	}
-	while ((missiles > 0)&&(missile_entity[active_missile] == nil))
-		[self select_next_missile];
+	while ((missiles > 0)&&(missile_entity[activeMissile] == nil))
+		[self selectNextMissile];
 	
 
 	
@@ -745,7 +752,7 @@ static PlayerEntity *sSharedPlayer = nil;
 	[self setTrumbleValueFrom:[dict objectForKey:@"trumbles"]];	// if it doesn't exist we'll check user-defaults
 
 	// finally
-	missiles = [self calc_missiles];
+	missiles = [self countMissiles];
 	
 	return YES;
 }
@@ -762,7 +769,7 @@ static PlayerEntity *sSharedPlayer = nil;
     self = [super init];
 	sSharedPlayer = self;
 	
-	compass_mode = COMPASS_MODE_BASIC;
+	compassMode = COMPASS_MODE_BASIC;
 	
 	afterburnerSoundLooping = NO;
 	
@@ -842,7 +849,7 @@ static PlayerEntity *sSharedPlayer = nil;
 	starboard_weapon_temp	= 0.0;
 	ship_temperature		= 60.0;
 	heat_insulation			= 1.0;
-	alert_flags				= 0;
+	alertFlags				= 0;
 	
 	max_passengers = 0;
 	[passengers release];
@@ -925,16 +932,16 @@ static PlayerEntity *sSharedPlayer = nil;
 	missiles				= PLAYER_STARTING_MISSILES;
 	max_missiles			= PLAYER_MAX_MISSILES;
 	
-	[self setActive_missile: 0];
+	[self setActiveMissile: 0];
 	for (i = 0; i < missiles; i++)
 	{
 		[missile_entity[i] release];
 	//	missile_entity[i] = [UNIVERSE newShipWithRole:@"EQ_MISSILE"];   // retain count = 1
 		missile_entity[i] = nil;
 	}
-	[self safe_all_missiles];
+	[self safeAllMissiles];
 	
-	legal_status			= 0;
+	legalStatus			= 0;
 
 	market_rnd				= 0;
 	ship_kills				= 0;
@@ -993,7 +1000,7 @@ static PlayerEntity *sSharedPlayer = nil;
 	
 	// set things from dictionary from here out
 	
-	max_flight_speed = [shipDict doubleForKey:@"max_flight_speed" defaultValue:160.0f];
+	maxFlightSpeed = [shipDict doubleForKey:@"max_flight_speed" defaultValue:160.0f];
 	max_flight_roll = [shipDict doubleForKey:@"max_flight_roll" defaultValue:2.0f];
 	max_flight_pitch = [shipDict doubleForKey:@"max_flight_pitch" defaultValue:1.0f];
 	max_flight_yaw = [shipDict doubleForKey:@"max_flight_yaw" defaultValue:max_flight_pitch];	// Note by default yaw == pitch
@@ -1083,7 +1090,7 @@ static PlayerEntity *sSharedPlayer = nil;
 	{
 		missile_entity[i] = [UNIVERSE newShipWithRole:@"EQ_MISSILE"];   // retain count = 1
 	}
-	[self setActive_missile:0];
+	[self setActiveMissile:0];
 	
 
 	// set view offsets
@@ -1176,7 +1183,7 @@ static PlayerEntity *sSharedPlayer = nil;
 					//
 					[(ShipEntity*)subent setReference: ref];
 					[(ShipEntity*)subent setPosition: sub_pos];
-					[(ShipEntity*)subent setQRotation: sub_q];
+					[(ShipEntity*)subent setOrientation: sub_q];
 					//
 					[self addSolidSubentityToCollisionRadius:(ShipEntity*)subent];
 					//
@@ -1285,8 +1292,8 @@ double scoopSoundPlayTime = 0.0;
 	
 	hasMoved = ((position.x != lastPosition.x)||(position.y != lastPosition.y)||(position.z != lastPosition.z));
 	lastPosition = position;
-	hasRotated = ((q_rotation.w != lastQRotation.w)||(q_rotation.x != lastQRotation.x)||(q_rotation.y != lastQRotation.y)||(q_rotation.z != lastQRotation.z));
-	lastQRotation = q_rotation;
+	hasRotated = ((orientation.w != lastQRotation.w)||(orientation.x != lastQRotation.x)||(orientation.y != lastQRotation.y)||(orientation.z != lastQRotation.z));
+	lastQRotation = orientation;
 
 	if (scoopsActive)
 	{
@@ -1331,7 +1338,9 @@ double scoopSoundPlayTime = 0.0;
 		fps_counter = floor(1.0 / delta_t);
 		fps_check_time = ship_clock + 0.25;
 	}
-
+	
+	[self updateAlertCondition];
+	
 	// scripting
 	if (script_time > script_time_check)
 	{
@@ -1370,7 +1379,7 @@ double scoopSoundPlayTime = 0.0;
 
 	// update trumbles (moved from end of update: to here)
 	OOTrumble** trumbles = [self trumbleArray];
-	for (i = [self n_trumbles] ; i > 0; i--)
+	for (i = [self trumbleCount] ; i > 0; i--)
 	{
 		OOTrumble* trum = trumbles[i - 1];
 		[trum updateTrumble:delta_t];
@@ -1415,10 +1424,10 @@ double scoopSoundPlayTime = 0.0;
 			}
 		}
 
-		[self applyRoll:delta_t*flight_roll andClimb:delta_t*flight_pitch];
-		if (flight_yaw != 0.0)
-			[self applyYaw:delta_t*flight_yaw];
-		[self moveForward:delta_t*flight_speed];
+		[self applyRoll:delta_t*flightRoll andClimb:delta_t*flightPitch];
+		if (flightYaw != 0.0)
+			[self applyYaw:delta_t*flightYaw];
+		[self moveForward:delta_t*flightSpeed];
 	}
 
 	if (status == STATUS_IN_FLIGHT)
@@ -1499,7 +1508,7 @@ double scoopSoundPlayTime = 0.0;
 
 			if (go)
 			{
-				[self safe_all_missiles];
+				[self safeAllMissiles];
 				[UNIVERSE setViewDirection:VIEW_FORWARD];
 				currentWeaponFacing = VIEW_FORWARD;
 				if (galactic_witchjump)
@@ -1582,7 +1591,7 @@ double scoopSoundPlayTime = 0.0;
 	
 	for (i = 0; i < max_missiles; i++)
 	{
-		if ((missile_entity[i])&&([missile_entity[i] getPrimaryTargetID] != NO_TARGET))
+		if ((missile_entity[i])&&([missile_entity[i] primaryTargetID] != NO_TARGET))
 		{
 			ShipEntity*	target_ship = (ShipEntity *)[missile_entity[i] getPrimaryTarget];
 			if ((!target_ship)||(target_ship->zero_distance > SCANNER_MAX_RANGE2))
@@ -1591,7 +1600,7 @@ double scoopSoundPlayTime = 0.0;
 				if (![UNIVERSE playCustomSound:@"[target-lost]"])
 					[self boop];
 				[missile_entity[i] removeTarget:nil];
-				if ((i == active_missile)&&(!ident_engaged))
+				if ((i == activeMissile)&&(!ident_engaged))
 				{
 					primaryTarget = NO_TARGET;
 					missile_status = MISSILE_STATUS_SAFE;
@@ -1600,7 +1609,7 @@ double scoopSoundPlayTime = 0.0;
 		}
 	}
 
-	if ((missile_status == MISSILE_STATUS_ARMED)&&(ident_engaged||[[missile_entity[active_missile] roles] hasSuffix:@"MISSILE"])&&((status == STATUS_IN_FLIGHT)||(status == STATUS_WITCHSPACE_COUNTDOWN)))
+	if ((missile_status == MISSILE_STATUS_ARMED)&&(ident_engaged||[[missile_entity[activeMissile] roles] hasSuffix:@"MISSILE"])&&((status == STATUS_IN_FLIGHT)||(status == STATUS_WITCHSPACE_COUNTDOWN)))
 	{
 		int first_target_id = [UNIVERSE getFirstEntityTargettedByPlayer:self];
 		if (first_target_id != NO_TARGET)
@@ -1610,8 +1619,8 @@ double scoopSoundPlayTime = 0.0;
 			{
 				[self addTarget: first_target];
 				missile_status = MISSILE_STATUS_TARGET_LOCKED;
-				if ((missile_entity[active_missile])&&(!ident_engaged))
-					[missile_entity[active_missile] addTarget:first_target];
+				if ((missile_entity[activeMissile])&&(!ident_engaged))
+					[missile_entity[activeMissile] addTarget:first_target];
 				[UNIVERSE addMessage:[NSString stringWithFormat:ExpandDescriptionForCurrentSystem(@"[@-locked-onto-@]"), (ident_engaged)? @"Ident system": @"Missile", [(ShipEntity *)first_target name]] forCount:4.5];
 				if (ident_engaged)
 				{
@@ -1786,7 +1795,7 @@ double scoopSoundPlayTime = 0.0;
 		// do Revised sun-skimming check here...
 		if ((has_scoop)&&(alt1 > 0.75)&&(fuel < PLAYER_MAX_FUEL))
 		{
-			fuel_accumulator += delta_t * flight_speed * 0.010;
+			fuel_accumulator += delta_t * flightSpeed * 0.010;
 			scoopsActive = YES;
 			while (fuel_accumulator > 1.0)
 			{
@@ -1802,7 +1811,7 @@ double scoopSoundPlayTime = 0.0;
 	{
 		// work on the cabin temperature
 		
-		ship_temperature += delta_t * flight_speed * air_friction / heat_insulation;	// wind_speed
+		ship_temperature += delta_t * flightSpeed * air_friction / heat_insulation;	// wind_speed
 		
 		if (external_temp > ship_temperature)
 			ship_temperature += (external_temp - ship_temperature) * delta_t * SHIP_INSULATION_FACTOR / heat_insulation;
@@ -1837,14 +1846,14 @@ double scoopSoundPlayTime = 0.0;
 	//
 	
 	// MOVED THE FOLLOWING FROM PLAYERENTITY POLLFLIGHTCONTROLS:
-	travelling_at_hyperspeed = (flight_speed > max_flight_speed);
+	travelling_at_hyperspeed = (flightSpeed > maxFlightSpeed);
 	if (hyperspeed_engaged)
 	{
 		// increase speed up to maximum hyperspeed
-		if (flight_speed < max_flight_speed * HYPERSPEED_FACTOR)
-			flight_speed += speed_delta * delta_t * HYPERSPEED_FACTOR;
-		if (flight_speed > max_flight_speed * HYPERSPEED_FACTOR)
-			flight_speed = max_flight_speed * HYPERSPEED_FACTOR;
+		if (flightSpeed < maxFlightSpeed * HYPERSPEED_FACTOR)
+			flightSpeed += speed_delta * delta_t * HYPERSPEED_FACTOR;
+		if (flightSpeed > maxFlightSpeed * HYPERSPEED_FACTOR)
+			flightSpeed = maxFlightSpeed * HYPERSPEED_FACTOR;
 
 		// check for mass lock
 		hyperspeed_locked = [self massLocked];
@@ -1861,10 +1870,10 @@ double scoopSoundPlayTime = 0.0;
 	{
 		if (afterburner_engaged)
 		{
-			if (flight_speed < max_flight_speed * AFTERBURNER_FACTOR)
-				flight_speed += speed_delta * delta_t * AFTERBURNER_FACTOR;
-			if (flight_speed > max_flight_speed * AFTERBURNER_FACTOR)
-				flight_speed = max_flight_speed * AFTERBURNER_FACTOR;
+			if (flightSpeed < maxFlightSpeed * AFTERBURNER_FACTOR)
+				flightSpeed += speed_delta * delta_t * AFTERBURNER_FACTOR;
+			if (flightSpeed > maxFlightSpeed * AFTERBURNER_FACTOR)
+				flightSpeed = maxFlightSpeed * AFTERBURNER_FACTOR;
 			fuel_accumulator -= delta_t * AFTERBURNER_BURNRATE;
 			while ((fuel_accumulator < 0)&&(fuel > 0))
 			{
@@ -1880,9 +1889,9 @@ double scoopSoundPlayTime = 0.0;
 			if (travelling_at_hyperspeed)
 			{
 				// decrease speed to maximum normal speed
-				flight_speed -= speed_delta * delta_t * HYPERSPEED_FACTOR;
-				if (flight_speed < max_flight_speed)
-					flight_speed = max_flight_speed;
+				flightSpeed -= speed_delta * delta_t * HYPERSPEED_FACTOR;
+				if (flightSpeed < maxFlightSpeed)
+					flightSpeed = maxFlightSpeed;
 			}
 		}
 	}
@@ -1943,12 +1952,12 @@ double scoopSoundPlayTime = 0.0;
 		return;
 
 	if (roll1)
-		quaternion_rotate_about_z( &q_rotation, -roll1);
+		quaternion_rotate_about_z( &orientation, -roll1);
 	if (climb1)
-		quaternion_rotate_about_x( &q_rotation, -climb1);
+		quaternion_rotate_about_x( &orientation, -climb1);
 
-    quaternion_normalize(&q_rotation);	// probably not strictly necessary but good to do to keep q_rotation sane
-    quaternion_into_gl_matrix(q_rotation, rotMatrix);
+    quaternion_normalize(&orientation);	// probably not strictly necessary but good to do to keep orientation sane
+    quaternion_into_gl_matrix(orientation, rotMatrix);
 
 	v_right.x = rotMatrix[0];
 	v_right.y = rotMatrix[4];
@@ -1962,9 +1971,9 @@ double scoopSoundPlayTime = 0.0;
 	v_forward.y = rotMatrix[6];
 	v_forward.z = rotMatrix[10];
 
-	q_rotation.w = -q_rotation.w;
-	quaternion_into_gl_matrix(q_rotation, playerRotMatrix);	// this is the rotation similar to ordinary ships
-	q_rotation.w = -q_rotation.w;
+	orientation.w = -orientation.w;
+	quaternion_into_gl_matrix(orientation, playerRotMatrix);	// this is the rotation similar to ordinary ships
+	orientation.w = -orientation.w;
 }
 
 /*
@@ -1974,10 +1983,10 @@ double scoopSoundPlayTime = 0.0;
  */
 - (void) applyYaw:(GLfloat) yaw
 {
-	quaternion_rotate_about_y( &q_rotation, -yaw);
+	quaternion_rotate_about_y( &orientation, -yaw);
 
-    quaternion_normalize(&q_rotation);	// probably not strictly necessary but good to do to keep q_rotation sane
-    quaternion_into_gl_matrix(q_rotation, rotMatrix);
+    quaternion_normalize(&orientation);	// probably not strictly necessary but good to do to keep orientation sane
+    quaternion_into_gl_matrix(orientation, rotMatrix);
 
 	v_right.x = rotMatrix[0];
 	v_right.y = rotMatrix[4];
@@ -1991,9 +2000,9 @@ double scoopSoundPlayTime = 0.0;
 	v_forward.y = rotMatrix[6];
 	v_forward.z = rotMatrix[10];
 
-	q_rotation.w = -q_rotation.w;
-	quaternion_into_gl_matrix(q_rotation, playerRotMatrix);	// this is the rotation similar to ordinary ships
-	q_rotation.w = -q_rotation.w;
+	orientation.w = -orientation.w;
+	quaternion_into_gl_matrix(orientation, playerRotMatrix);	// this is the rotation similar to ordinary ships
+	orientation.w = -orientation.w;
 }
 
 
@@ -2009,52 +2018,6 @@ double scoopSoundPlayTime = 0.0;
 	position.x += amount * v_forward.x;
 	position.y += amount * v_forward.y;
 	position.z += amount * v_forward.z;
-}
-
-// originally:
-// return a point 36u back from the front of the ship
-// this equates with the centre point of a cobra mk3
-
-// now:
-// return the viewpoint set by the relevant view Offset
-
-- (Vector) viewpointPosition
-{
-	Vector	viewpoint = position;
-	if ([UNIVERSE breakPatternHide])
-		return viewpoint;	// center view for break pattern
-
-	Vector offset = kZeroVector;
-	switch ([UNIVERSE viewDir])
-	{
-		case VIEW_FORWARD:
-			offset = forwardViewOffset;	break;
-		case VIEW_AFT:
-			offset = aftViewOffset;	break;
-		case VIEW_PORT:
-			offset = portViewOffset;	break;
-		case VIEW_STARBOARD:
-			offset = starboardViewOffset;	break;
-		case VIEW_CUSTOM:
-			offset = customViewOffset;	break;
-		
-		default:
-			break;
-	}
-	if (offset.x)
-	{
-		viewpoint.x += offset.x * v_right.x;	viewpoint.y += offset.x * v_right.y;	viewpoint.z += offset.x * v_right.z;
-	}
-	if (offset.y)
-	{
-		viewpoint.x += offset.y * v_up.x;		viewpoint.y += offset.y * v_up.y;		viewpoint.z += offset.y * v_up.z;
-	}
-	if (offset.z)
-	{
-		viewpoint.x += offset.z * v_forward.x;	viewpoint.y += offset.z * v_forward.y;	viewpoint.z += offset.z * v_forward.z;
-	}
-
-	return viewpoint;
 }
 
 
@@ -2097,7 +2060,7 @@ double scoopSoundPlayTime = 0.0;
 
 - (BOOL) massLocked
 {
-	return ((alert_flags & ALERT_FLAG_MASS_LOCK) != 0);
+	return ((alertFlags & ALERT_FLAG_MASS_LOCK) != 0);
 }
 
 
@@ -2110,9 +2073,9 @@ double scoopSoundPlayTime = 0.0;
 - (Vector) velocityVector
 {
 	Vector result = v_forward;
-	result.x *= flight_speed;
-	result.y *= flight_speed;
-	result.z *= flight_speed;
+	result.x *= flightSpeed;
+	result.y *= flightSpeed;
+	result.z *= flightSpeed;
 	return result;
 }
 
@@ -2149,9 +2112,9 @@ double scoopSoundPlayTime = 0.0;
 }
 
 
-- (GLfloat) dial_roll
+- (GLfloat) dialRoll
 {
-	GLfloat result = flight_roll / max_flight_roll;
+	GLfloat result = flightRoll / max_flight_roll;
 	if ((result < 1.0f)&&(result > -1.0f))
 		return result;
 	if (result > 0.0f)
@@ -2160,9 +2123,9 @@ double scoopSoundPlayTime = 0.0;
 }
 
 
-- (GLfloat) dial_pitch
+- (GLfloat) dialPitch
 {
-	GLfloat result = flight_pitch / max_flight_pitch;
+	GLfloat result = flightPitch / max_flight_pitch;
 	if ((result < 1.0f)&&(result > -1.0f))
 		return result;
 	if (result > 0.0f)
@@ -2171,22 +2134,22 @@ double scoopSoundPlayTime = 0.0;
 }
 
 
-- (GLfloat) dial_speed
+- (GLfloat) dialSpeed
 {
-	GLfloat result = flight_speed / max_flight_speed;
+	GLfloat result = flightSpeed / maxFlightSpeed;
 	if (result < 1.0f)
 		return result;
 	return 1.0f;
 }
 
 
-- (GLfloat) dial_hyper_speed
+- (GLfloat) dialHyperSpeed
 {
-	return flight_speed / max_flight_speed;
+	return flightSpeed / maxFlightSpeed;
 }
 
 
-- (GLfloat) dial_forward_shield
+- (GLfloat) dialForwardShield
 {
 	GLfloat result = forward_shield / (GLfloat)PLAYER_MAX_FORWARD_SHIELD;
 	if (result < 1.0f)
@@ -2195,7 +2158,7 @@ double scoopSoundPlayTime = 0.0;
 }
 
 
-- (GLfloat) dial_aft_shield
+- (GLfloat) dialAftShield
 {
 	GLfloat result = aft_shield / (GLfloat)PLAYER_MAX_AFT_SHIELD;
 	if (result < 1.0f)
@@ -2204,7 +2167,7 @@ double scoopSoundPlayTime = 0.0;
 }
 
 
-- (GLfloat) dial_energy
+- (GLfloat) dialEnergy
 {
 	GLfloat result = energy / maxEnergy;
 	if (result < 1.0f)
@@ -2213,13 +2176,13 @@ double scoopSoundPlayTime = 0.0;
 }
 
 
-- (GLfloat) dial_max_energy
+- (GLfloat) dialMaxEnergy
 {
 	return maxEnergy;
 }
 
 
-- (GLfloat) dial_fuel
+- (GLfloat) dialFuel
 {
 	if (fuel <= 0.0f)
 		return 0.0f;
@@ -2229,7 +2192,7 @@ double scoopSoundPlayTime = 0.0;
 }
 
 
-- (GLfloat) dial_hyper_range
+- (GLfloat) dialHyperRange
 {
 	GLfloat distance = distanceBetweenPlanetPositions(target_system_seed.d,target_system_seed.b,galaxy_coordinates.x,galaxy_coordinates.y);
 	return 10.0f * distance / (GLfloat)PLAYER_MAX_FUEL;
@@ -2254,7 +2217,7 @@ double scoopSoundPlayTime = 0.0;
 }
 
 
-- (GLfloat) dial_altitude
+- (GLfloat) dialAltitude
 {
 	// find nearest planet type entity...
 	if (!UNIVERSE)
@@ -2312,13 +2275,7 @@ double scoopSoundPlayTime = 0.0;
 }
 
 
-- (int) dial_missiles
-{
-	return missiles;
-}
-
-
-- (int) calc_missiles
+- (int) countMissiles
 {
 	int n_missiles = 0;
 	int i;
@@ -2331,13 +2288,13 @@ double scoopSoundPlayTime = 0.0;
 }
 
 
-- (int) dial_missile_status
+- (int) dialMissileStatus
 {
 	return missile_status;
 }
 
 
-- (int) dial_fuelscoops_status
+- (int) dialFuelScoopStatus
 {
 	if (has_scoop)
 	{
@@ -2358,35 +2315,35 @@ double scoopSoundPlayTime = 0.0;
 }
 
 
-- (OOCompassMode) compass_mode
+- (OOCompassMode) compassMode
 {
-	return compass_mode;
+	return compassMode;
 }
 
 
-- (void) setCompass_mode:(OOCompassMode) value
+- (void) setCompassMode:(OOCompassMode) value
 {
-	compass_mode = value;
+	compassMode = value;
 }
 
 
 - (void) setNextCompassMode
 {
-	switch (compass_mode)
+	switch (compassMode)
 	{
 		case COMPASS_MODE_BASIC:
 		case COMPASS_MODE_PLANET:
 			if ([self checkForAegis] == AEGIS_NONE)
-				[self setCompass_mode:COMPASS_MODE_SUN];
+				[self setCompassMode:COMPASS_MODE_SUN];
 			else
-				[self setCompass_mode:COMPASS_MODE_STATION];
+				[self setCompassMode:COMPASS_MODE_STATION];
 			break;
 		case COMPASS_MODE_STATION:
-			[self setCompass_mode:COMPASS_MODE_SUN];
+			[self setCompassMode:COMPASS_MODE_SUN];
 			break;
 		case COMPASS_MODE_SUN:
 			if ([self getPrimaryTarget])
-				[self setCompass_mode:COMPASS_MODE_TARGET];
+				[self setCompassMode:COMPASS_MODE_TARGET];
 			else
 			{
 				nextBeaconID = [[UNIVERSE firstBeacon] universalID];
@@ -2396,9 +2353,9 @@ double scoopSoundPlayTime = 0.0;
 				}
 				
 				if (nextBeaconID != NO_TARGET)
-					[self setCompass_mode:COMPASS_MODE_BEACONS];
+					[self setCompassMode:COMPASS_MODE_BEACONS];
 				else
-					[self setCompass_mode:COMPASS_MODE_PLANET];
+					[self setCompassMode:COMPASS_MODE_PLANET];
 			}
 			break;
 		case COMPASS_MODE_TARGET:
@@ -2409,9 +2366,9 @@ double scoopSoundPlayTime = 0.0;
 			}
 			
 			if (nextBeaconID != NO_TARGET)
-				[self setCompass_mode:COMPASS_MODE_BEACONS];
+				[self setCompassMode:COMPASS_MODE_BEACONS];
 			else
-				[self setCompass_mode:COMPASS_MODE_PLANET];
+				[self setCompassMode:COMPASS_MODE_PLANET];
 			break;
 		case COMPASS_MODE_BEACONS:
 			do
@@ -2420,37 +2377,37 @@ double scoopSoundPlayTime = 0.0;
 			} while ((nextBeaconID != NO_TARGET)&&[(ShipEntity*)[UNIVERSE entityForUniversalID:nextBeaconID] isJammingScanning]);
 			
 			if (nextBeaconID == NO_TARGET)
-				[self setCompass_mode:COMPASS_MODE_PLANET];
+				[self setCompassMode:COMPASS_MODE_PLANET];
 			break;
 	}
 }
 
 
-- (int) active_missile
+- (int) activeMissile
 {
-	return active_missile;
+	return activeMissile;
 }
 
 
-- (void) setActive_missile: (int) value
+- (void) setActiveMissile: (int) value
 {
-	active_missile = value;
+	activeMissile = value;
 }
 
 
-- (int) dial_max_missiles
+- (int) dialMaxMissiles
 {
 	return max_missiles;
 }
 
 
-- (BOOL) dial_ident_engaged
+- (BOOL) dialIdentEngaged
 {
 	return ident_engaged;
 }
 
 
-- (NSString *) dial_target_name
+- (NSString *) dialTargetName
 {
 	Entity* target_entity = [UNIVERSE entityForUniversalID:primaryTarget];
 	if ((target_entity)&&(target_entity->isShip))
@@ -2460,7 +2417,7 @@ double scoopSoundPlayTime = 0.0;
 }
 
 
-- (ShipEntity *) missile_for_station: (int) value
+- (ShipEntity *) missileForStation: (int) value
 {
 	if ((value < 0)||(value >= max_missiles))
 		return nil;
@@ -2468,13 +2425,13 @@ double scoopSoundPlayTime = 0.0;
 }
 
 
-- (void) sort_missiles
+- (void) sortMissiles
 {
 	
 	//	puts all missiles into the first available slots
 	
 	int i;
-	missiles = [self calc_missiles];
+	missiles = [self countMissiles];
 	for (i = 0; i < missiles; i++)
 	{
 		if (missile_entity[i] == nil)
@@ -2494,7 +2451,7 @@ double scoopSoundPlayTime = 0.0;
 }
 
 
-- (void) safe_all_missiles
+- (void) safeAllMissiles
 {
 	
 	//	sets all missile targets to NO_TARGET
@@ -2534,19 +2491,19 @@ double scoopSoundPlayTime = 0.0;
 }
 
 
-- (void) select_next_missile
+- (void) selectNextMissile
 {
 	int i;
 	for (i = 1; i < max_missiles; i++)
 	{
-		int next_missile = (active_missile + i) % max_missiles;
+		int next_missile = (activeMissile + i) % max_missiles;
 		if (missile_entity[next_missile])
 		{
 			// if this is a missile then select it
 //			if ([[missile_entity[next_missile] roles] isEqual:@"EQ_MISSILE"])
 			if (missile_entity[next_missile])	// if it exists
 			{
-				[self setActive_missile:next_missile];
+				[self setActiveMissile:next_missile];
 				if (([[missile_entity[next_missile] roles] hasSuffix:@"MISSILE"])&&([missile_entity[next_missile] getPrimaryTarget] != nil))
 				{
 					// copy the missile's target
@@ -2562,57 +2519,61 @@ double scoopSoundPlayTime = 0.0;
 }
 
 
-- (void) clearAlert_flags
+- (void) clearAlertFlags
 {
-	alert_flags = 0;
+	alertFlags = 0;
 }
 
 
-- (int) alert_flags
+- (int) alertFlags
 {
-	return alert_flags;
+	return alertFlags;
 }
 
 
-- (void) setAlert_flag:(int) flag :(BOOL) value
+- (void) setAlertFlag:(int)flag to:(BOOL)value
 {
 	if (value)
 	{
-		alert_flags |= flag;
+		alertFlags |= flag;
 	}
 	else
 	{
 		int comp = ~flag;
-		alert_flags &= comp;
+		alertFlags &= comp;
 	}
 }
 
 
-- (int) alert_condition
+- (void) updateAlertCondition
 {
-	int old_alert_condition = alert_condition;
-	alert_condition = ALERT_CONDITION_GREEN;
-	[self setAlert_flag:ALERT_FLAG_DOCKED :(status == STATUS_DOCKED)];
-	if (alert_flags & ALERT_FLAG_DOCKED)
+	int old_alert_condition = alertCondition;
+	alertCondition = ALERT_CONDITION_GREEN;
+	[self setAlertFlag:ALERT_FLAG_DOCKED to:(status == STATUS_DOCKED)];
+	if (alertFlags & ALERT_FLAG_DOCKED)
 	{
-		alert_condition = ALERT_CONDITION_DOCKED;
+		alertCondition = ALERT_CONDITION_DOCKED;
 	}
 	else
 	{
-		if (alert_flags != 0)
-			alert_condition = ALERT_CONDITION_YELLOW;
-		if (alert_flags > ALERT_FLAG_YELLOW_LIMIT)
-			alert_condition = ALERT_CONDITION_RED;
+		if (alertFlags != 0)
+			alertCondition = ALERT_CONDITION_YELLOW;
+		if (alertFlags > ALERT_FLAG_YELLOW_LIMIT)
+			alertCondition = ALERT_CONDITION_RED;
 	}
-	if ((alert_condition == ALERT_CONDITION_RED)&&(old_alert_condition < ALERT_CONDITION_RED))
+	if ((alertCondition == ALERT_CONDITION_RED)&&(old_alert_condition < ALERT_CONDITION_RED))
 	{
 		[self playAlertConditionRed];
 	}
 	
-	if (alert_condition != old_alert_condition)
+	if (alertCondition != old_alert_condition)
 		[self sendMessageToScripts:@"alertConditionChanged"];
-	
-	return alert_condition;
+}
+
+
+- (OOAlertCondition) alertCondition
+{
+	return alertCondition;
 }
 
 ///////////////////////////////////////////////////////////////////////
@@ -2658,21 +2619,21 @@ double scoopSoundPlayTime = 0.0;
 	}
 
 	// aegis messages to advanced compass so in planet mode it behaves like the old compass
-	if (compass_mode != COMPASS_MODE_BASIC)
+	if (compassMode != COMPASS_MODE_BASIC)
 	{
-		if ([ms isEqual:@"AEGIS_CLOSE_TO_PLANET"]&&(compass_mode == COMPASS_MODE_PLANET))
+		if ([ms isEqual:@"AEGIS_CLOSE_TO_PLANET"]&&(compassMode == COMPASS_MODE_PLANET))
 		{
 			[UNIVERSE playCustomSound:@"[aegis-planet]"];
-			[self setCompass_mode:COMPASS_MODE_STATION];
+			[self setCompassMode:COMPASS_MODE_STATION];
 		}
-		if ([ms isEqual:@"AEGIS_IN_DOCKING_RANGE"]&&(compass_mode == COMPASS_MODE_PLANET))
+		if ([ms isEqual:@"AEGIS_IN_DOCKING_RANGE"]&&(compassMode == COMPASS_MODE_PLANET))
 		{
 			[UNIVERSE playCustomSound:@"[aegis-station]"];
-			[self setCompass_mode:COMPASS_MODE_STATION];
+			[self setCompassMode:COMPASS_MODE_STATION];
 		}
-		if ([ms isEqual:@"AEGIS_NONE"]&&(compass_mode == COMPASS_MODE_STATION))
+		if ([ms isEqual:@"AEGIS_NONE"]&&(compassMode == COMPASS_MODE_STATION))
 		{
-			[self setCompass_mode:COMPASS_MODE_PLANET];
+			[self setCompassMode:COMPASS_MODE_PLANET];
 		}
 	}
 }
@@ -2691,14 +2652,14 @@ double scoopSoundPlayTime = 0.0;
 			return YES;
 		}
 	}
-	missiles = [self calc_missiles];
+	missiles = [self countMissiles];
 	return NO;
 }
 
 
 - (BOOL) fireMissile
 {
-	ShipEntity *missile = missile_entity[active_missile];	// retain count is 1
+	ShipEntity *missile = missile_entity[activeMissile];	// retain count is 1
 
 	if (missile == nil)
 		return NO;
@@ -2713,9 +2674,9 @@ double scoopSoundPlayTime = 0.0;
 			[UNIVERSE playCustomSound:@"[mine-launched]"];
 			[missile release];	//  release
 		}
-		missile_entity[active_missile] = nil;
-		[self select_next_missile];
-		missiles = [self calc_missiles];
+		missile_entity[activeMissile] = nil;
+		[self selectNextMissile];
+		missiles = [self countMissiles];
 		return launchedOK;
 	}
 
@@ -2734,15 +2695,15 @@ double scoopSoundPlayTime = 0.0;
 	ScanVectorFromString([shipinfoDictionary objectForKey:@"missile_launch_position"], &start);
 	
 	double  throw_speed = 250.0;
-	Quaternion q1 = q_rotation;
+	Quaternion q1 = orientation;
 	q1.w = -q1.w;   // player view is reversed remember!
 
 	Entity  *target = [self getPrimaryTarget];
 
 	// select a new active missile and decrease the missiles count
-	missile_entity[active_missile] = nil;
-	[self select_next_missile];
-	missiles = [self calc_missiles];
+	missile_entity[activeMissile] = nil;
+	[self selectNextMissile];
+	missiles = [self countMissiles];
 
 
 	v_eject = unit_vector( &start);
@@ -2755,9 +2716,9 @@ double scoopSoundPlayTime = 0.0;
 		start.x += mcr * v_eject.x;	start.y += mcr * v_eject.y;	start.z += mcr * v_eject.z;
 	}
 
-	vel.x = (flight_speed + throw_speed) * v_forward.x;
-	vel.y = (flight_speed + throw_speed) * v_forward.y;
-	vel.z = (flight_speed + throw_speed) * v_forward.z;
+	vel.x = (flightSpeed + throw_speed) * v_forward.x;
+	vel.y = (flightSpeed + throw_speed) * v_forward.y;
+	vel.z = (flightSpeed + throw_speed) * v_forward.z;
 
 	origin.x = position.x + v_right.x * start.x + v_up.x * start.y + v_forward.x * start.z;
 	origin.y = position.y + v_right.y * start.x + v_up.y * start.y + v_forward.y * start.z;
@@ -2766,7 +2727,7 @@ double scoopSoundPlayTime = 0.0;
 	[missile setPosition:origin];
 	[missile setScanClass: CLASS_MISSILE];
 	[missile addTarget:target];
-	[missile setQRotation:q1];
+	[missile setOrientation:q1];
 	[missile setStatus: STATUS_IN_FLIGHT];  // necessary to get it going!
 	[missile setVelocity: vel];
 	[missile setSpeed:150.0];
@@ -2862,28 +2823,28 @@ double scoopSoundPlayTime = 0.0;
 			weapon_energy_per_shot =			6.0;
 			weapon_heat_increment_per_shot =	8.0;
 			weapon_reload_time =				0.25;
-			weapon_range = 5000;
+			weaponRange = 5000;
 			break;
 		case WEAPON_PULSE_LASER :
 			weapon_energy =						15.0;
 			weapon_energy_per_shot =			1.0;
 			weapon_heat_increment_per_shot =	8.0;
 			weapon_reload_time =				0.5;
-			weapon_range = 12500;
+			weaponRange = 12500;
 			break;
 		case WEAPON_BEAM_LASER :
 			weapon_energy =						15.0;
 			weapon_energy_per_shot =			1.0;
 			weapon_heat_increment_per_shot =	8.0;
 			weapon_reload_time =				0.1;
-			weapon_range = 15000;
+			weaponRange = 15000;
 			break;
 		case WEAPON_MINING_LASER :
 			weapon_energy =						50.0;
 			weapon_energy_per_shot =			1.0;
 			weapon_heat_increment_per_shot =	8.0;
 			weapon_reload_time =				2.5;
-			weapon_range = 12500;
+			weaponRange = 12500;
 			break;
 		case WEAPON_THARGOID_LASER :
 		case WEAPON_MILITARY_LASER :
@@ -2891,7 +2852,7 @@ double scoopSoundPlayTime = 0.0;
 			weapon_energy_per_shot =			1.0;
 			weapon_heat_increment_per_shot =	8.0;
 			weapon_reload_time =				0.1;
-			weapon_range = 30000;
+			weaponRange = 30000;
 			break;
 	}
 
@@ -3198,26 +3159,26 @@ double scoopSoundPlayTime = 0.0;
 	Vector			vel;
 	Vector			origin = position;
 	int				result = NO;
-	Quaternion		q1 = q_rotation;
+	Quaternion		q1 = orientation;
 
 	status = STATUS_ESCAPE_SEQUENCE;	// firstly
 	ship_clock_adjust += 43200 + 5400 * (ranrot_rand() & 127);	// add up to 8 days until rescue!
 
 	q1.w = -q1.w;   // player view is reversed remember!
 
-	flight_speed = OOMax_f(flight_speed, 50.0f);
-	vel = vector_multiply_scalar(v_forward, flight_speed);
+	flightSpeed = OOMax_f(flightSpeed, 50.0f);
+	vel = vector_multiply_scalar(v_forward, flightSpeed);
 
 	doppelganger = [UNIVERSE newShipWithName: ship_desc];   // retain count = 1
 	if (doppelganger)
 	{
 		[doppelganger setPosition:origin];						// directly below
 		[doppelganger setScanClass:CLASS_NEUTRAL];
-		[doppelganger setQRotation:q1];
+		[doppelganger setOrientation:q1];
 		[doppelganger setVelocity:vel];
-		[doppelganger setSpeed:flight_speed];
+		[doppelganger setSpeed:flightSpeed];
 		[doppelganger setRoll:0.2 * (randf() - 0.5)];
-		[doppelganger setDesiredSpeed:flight_speed];
+		[doppelganger setDesiredSpeed:flightSpeed];
 		[doppelganger setOwner:self];
 		[doppelganger setStatus:STATUS_IN_FLIGHT];  // necessary to get it going!
 		[doppelganger setBehaviour:BEHAVIOUR_IDLE];
@@ -3241,9 +3202,9 @@ double scoopSoundPlayTime = 0.0;
 	}
 	
 	[UNIVERSE setViewDirection:VIEW_FORWARD];
-	flight_speed = 1.0;
-	flight_pitch = 0.2 * (randf() - 0.5);
-	flight_roll = 0.2 * (randf() - 0.5);
+	flightSpeed = 1.0;
+	flightPitch = 0.2 * (randf() - 0.5);
+	flightRoll = 0.2 * (randf() - 0.5);
 
 	double sheight = (boundingBox.max.y - boundingBox.min.y);
 	position = vector_subtract(position, vector_multiply_scalar(v_up, sheight));
@@ -3253,11 +3214,11 @@ double scoopSoundPlayTime = 0.0;
 	//has_escape_pod = NO;
 
 	// reset legal status
-	legal_status = 0;
+	legalStatus = 0;
 	bounty = 0;
 
 	// reset trumbles
-	if (n_trumbles != 0)  n_trumbles = 1;
+	if (trumbleCount != 0)  trumbleCount = 1;
 
 	// remove cargo
 	[cargo removeAllObjects];
@@ -3274,7 +3235,7 @@ double scoopSoundPlayTime = 0.0;
 
 - (int) dumpCargo
 {
-	if (flight_speed > 4.0 * max_flight_speed)
+	if (flightSpeed > 4.0 * maxFlightSpeed)
 	{
 		[UNIVERSE addMessage:ExpandDescriptionForCurrentSystem(@"[hold-locked]") forCount:3.0];
 		return CARGO_NOT_CARGO;
@@ -3336,19 +3297,19 @@ double scoopSoundPlayTime = 0.0;
 
 - (int) getBounty		// overrides returning 'bounty'
 {
-	return legal_status;
+	return legalStatus;
 }
 
 
-- (int) legal_status
+- (int) legalStatus
 {
-	return legal_status;
+	return legalStatus;
 }
 
 
 - (void) markAsOffender:(int)offence_value
 {
-	legal_status |= offence_value;
+	legalStatus |= offence_value;
 }
 
 
@@ -3361,7 +3322,7 @@ double scoopSoundPlayTime = 0.0;
 	int kill_award = 1;
 	
 	if ([[other roles] isEqual:@"police"])   // oops, we shot a copper!
-		legal_status |= 64;
+		legalStatus |= 64;
 	
 	if (![UNIVERSE strict])	// only mess with the scores if we're not in 'strict' mode
 	{
@@ -3486,7 +3447,7 @@ double scoopSoundPlayTime = 0.0;
 	[UNIVERSE playCustomSound:@"[game-over]"];
 	[destructionSound play];
 	
-	flight_speed = 160.0;
+	flightSpeed = 160.0;
 	status = STATUS_DEAD;
 	[UNIVERSE displayMessage:@"Game Over" forCount:30.0];
 	[UNIVERSE displayMessage:@"" forCount:30.0];
@@ -3548,9 +3509,9 @@ double scoopSoundPlayTime = 0.0;
 	[UNIVERSE setDisplayText:NO];
 	[UNIVERSE setDisplayCursor:NO];
 
-	[self setQRotation: kIdentityQuaternion];	// reset orientation to dock
+	[self setOrientation: kIdentityQuaternion];	// reset orientation to dock
 
-	[UNIVERSE set_up_break_pattern:position quaternion:q_rotation];
+	[UNIVERSE set_up_break_pattern:position quaternion:orientation];
 	[self playBreakPattern];
 
 	[station noteDockedShip:self];
@@ -3575,16 +3536,16 @@ double scoopSoundPlayTime = 0.0;
 		Vector launchPos = docked_station->position;
 		position = launchPos;
 
-		[self setQRotation: kIdentityQuaternion];	// reset orientation to dock
+		[self setOrientation: kIdentityQuaternion];	// reset orientation to dock
 
-		v_forward = vector_forward_from_quaternion(q_rotation);
-		v_right = vector_right_from_quaternion(q_rotation);
-		v_up = vector_up_from_quaternion(q_rotation);
+		v_forward = vector_forward_from_quaternion(orientation);
+		v_right = vector_right_from_quaternion(orientation);
+		v_up = vector_up_from_quaternion(orientation);
 	}
 
-	flight_roll = 0.0;
-	flight_pitch = 0.0;
-	flight_speed = 0.0;
+	flightRoll = 0.0;
+	flightPitch = 0.0;
+	flightSpeed = 0.0;
 
 	hyperspeed_engaged = NO;
 	hyperspeed_locked = NO;
@@ -3599,7 +3560,7 @@ double scoopSoundPlayTime = 0.0;
 	weapon_temp =		0.0;
 	ship_temperature =		60.0;
 
-	[self setAlert_flag:ALERT_FLAG_DOCKED :YES];
+	[self setAlertFlag:ALERT_FLAG_DOCKED to:YES];
 
 	if (![docked_station localMarket])
 		[docked_station initialiseLocalMarketWithSeed:system_seed andRandomFactor:market_rnd];
@@ -3649,7 +3610,7 @@ double scoopSoundPlayTime = 0.0;
 - (void) leaveDock:(StationEntity *)station
 {
 	if (station == [UNIVERSE station])
-		legal_status |= [UNIVERSE legal_status_of_manifest:shipCommodityData];  // 'leaving with those guns were you sir?'
+		legalStatus |= [UNIVERSE legal_status_of_manifest:shipCommodityData];  // 'leaving with those guns were you sir?'
 	[self loadCargoPods];
 
 	// clear the way
@@ -3657,10 +3618,10 @@ double scoopSoundPlayTime = 0.0;
 	[station clearDockingCorridor];
 
 	[station launchShip:self];
-	q_rotation.w = -q_rotation.w;   // need this as a fix...
-	flight_roll = -flight_roll;
+	orientation.w = -orientation.w;   // need this as a fix...
+	flightRoll = -flightRoll;
 
-	[self setAlert_flag:ALERT_FLAG_DOCKED :NO];
+	[self setAlertFlag:ALERT_FLAG_DOCKED to:NO];
 
 	[hud setScannerZoom:1.0];
 	scanner_zoom_rate = 0.0;
@@ -3669,7 +3630,7 @@ double scoopSoundPlayTime = 0.0;
 	[self setShowDemoShips:NO];
 	[UNIVERSE setDisplayText:NO];
 	[UNIVERSE setDisplayCursor:NO];
-	[UNIVERSE set_up_break_pattern:position quaternion:q_rotation];
+	[UNIVERSE set_up_break_pattern:position quaternion:orientation];
 	[self playBreakPattern];
 
 	[(MyOpenGLView *)[UNIVERSE gameView] clearKeys];	// try to stop keybounces
@@ -3753,7 +3714,7 @@ double scoopSoundPlayTime = 0.0;
 	galaxy_coordinates.y = system_seed.b;
     ranrot_srand([[NSDate date] timeIntervalSince1970]);	// seed randomiser by time
 	market_rnd = ranrot_rand() & 255;						// random factor for market values is reset
-	legal_status = 0;
+	legalStatus = 0;
 	[UNIVERSE set_up_universe_from_witchspace];
 }
 
@@ -3773,9 +3734,9 @@ double scoopSoundPlayTime = 0.0;
 	//	reset the compass
 	
 	if ([self has_extra_equipment:@"EQ_ADVANCED_COMPASS"])
-		compass_mode = COMPASS_MODE_PLANET;
+		compassMode = COMPASS_MODE_PLANET;
 	else
-		compass_mode = COMPASS_MODE_BASIC;
+		compassMode = COMPASS_MODE_BASIC;
 
 	double		distance = distanceBetweenPlanetPositions(target_system_seed.d,target_system_seed.b,galaxy_coordinates.x,galaxy_coordinates.y);
 	ship_clock_adjust = distance * distance * 3600.0;		// LY * LY hrs
@@ -3793,7 +3754,7 @@ double scoopSoundPlayTime = 0.0;
 	system_seed = target_system_seed;
 	galaxy_coordinates.x = system_seed.d;
 	galaxy_coordinates.y = system_seed.b;
-	legal_status /= 2;										// 'another day, another system'
+	legalStatus /= 2;										// 'another day, another system'
 	ranrot_srand([[NSDate date] timeIntervalSince1970]);	// seed randomiser by time
 	market_rnd = ranrot_rand() & 255;						// random factor for market values is reset
 	
@@ -3827,9 +3788,9 @@ double scoopSoundPlayTime = 0.0;
 	//	reset the compass
 	
 	if ([self has_extra_equipment:@"EQ_ADVANCED_COMPASS"])
-		compass_mode = COMPASS_MODE_PLANET;
+		compassMode = COMPASS_MODE_PLANET;
 	else
-		compass_mode = COMPASS_MODE_BASIC;
+		compassMode = COMPASS_MODE_BASIC;
 	
 	//  perform any check here for forced witchspace encounters
 	
@@ -3839,9 +3800,9 @@ double scoopSoundPlayTime = 0.0;
 	ranrot_srand([[NSDate date] timeIntervalSince1970]);	// seed randomiser by time
 	BOOL malfunc = ((ranrot_rand() & 0xff) > malfunc_chance);
 	// 75% of the time a malfunction means a misjump
-	BOOL misjump = ((flight_pitch == max_flight_pitch) || (malfunc && (randf() > 0.75)));
+	BOOL misjump = ((flightPitch == max_flight_pitch) || (malfunc && (randf() > 0.75)));
 
-//	malfunc = (malfunc || (flight_pitch == -max_flight_pitch));	// DEBUGGING
+//	malfunc = (malfunc || (flightPitch == -max_flight_pitch));	// DEBUGGING
 
 	fuel -= 10.0 * distance;								// fuel cost to target system
 	ship_clock_adjust = distance * distance * 3600.0;		// LY * LY hrs
@@ -3851,7 +3812,7 @@ double scoopSoundPlayTime = 0.0;
 		system_seed = target_system_seed;
 		galaxy_coordinates.x = system_seed.d;
 		galaxy_coordinates.y = system_seed.b;
-		legal_status /= 2;								// 'another day, another system'
+		legalStatus /= 2;								// 'another day, another system'
 		market_rnd = ranrot_rand() & 255;				// random factor for market values is reset
 		if (market_rnd < 8)
 			[self erodeReputation];						// every 32 systems or so, drop back towards 'unknown'
@@ -3905,11 +3866,11 @@ double scoopSoundPlayTime = 0.0;
 	pos.z += v1.z * d1;
 
 	position = pos;
-	q_rotation = q_rtn;
-	flight_roll = 0.0;
-	flight_pitch = 0.0;
-	flight_yaw = 0.0;
-	flight_speed = max_flight_speed * 0.25;
+	orientation = q_rtn;
+	flightRoll = 0.0;
+	flightPitch = 0.0;
+	flightYaw = 0.0;
+	flightSpeed = maxFlightSpeed * 0.25;
 	status = STATUS_EXITING_WITCHSPACE;
 	gui_screen = GUI_SCREEN_MAIN;
 	being_fined = NO;				// until you're scanned by a copper!
@@ -3917,7 +3878,7 @@ double scoopSoundPlayTime = 0.0;
 	[self setShowDemoShips:NO];
 	[UNIVERSE setDisplayCursor:NO];
 	[UNIVERSE setDisplayText:NO];
-	[UNIVERSE set_up_break_pattern:position quaternion:q_rotation];
+	[UNIVERSE set_up_break_pattern:position quaternion:orientation];
 	[self playBreakPattern];
 	[self sendMessageToScripts:@"willExitWitchSpace"];
 }
@@ -3977,9 +3938,9 @@ double scoopSoundPlayTime = 0.0;
 		ship_dict = [UNIVERSE getDictionaryForShip:ship_desc];
 		shipName = [ship_dict stringForKey:KEY_NAME];
 
-		legal_desc = LegalStatusToString(legal_status);
+		legal_desc = LegalStatusToString(legalStatus);
 		rating_desc = KillCountToRatingAndKillString(ship_kills);
-		alert_desc = AlertConditionToString([self alert_condition]);
+		alert_desc = AlertConditionToString([self alertCondition]);
 		fuel_desc = [NSString stringWithFormat:@"%.1f Light Years", fuel/10.0];
 		credits_desc = [NSString stringWithFormat:@"%.1f Cr", credits/10.0];
 		
@@ -4714,7 +4675,7 @@ static int last_outfitting_index;
 
 - (void) setGuiToEquipShipScreen:(int) skip :(int) itemForSelectFacing
 {
-	missiles = [self calc_missiles];
+	missiles = [self countMissiles];
 
 	// if skip < 0 then use the last recorded index
 	if (skip < 0)
@@ -4834,9 +4795,9 @@ static int last_outfitting_index;
 		if ([eq_extra_info_dict objectForKey:@"requires_cargo_space"])
 			option_okay[i] &= (cargo_space >= [[eq_extra_info_dict objectForKey:@"requires_cargo_space"] intValue]);
 		if ([eq_extra_info_dict objectForKey:@"requires_clean"])
-			option_okay[i] &= ([self legal_status] == 0);
+			option_okay[i] &= ([self legalStatus] == 0);
 		if ([eq_extra_info_dict objectForKey:@"requires_not_clean"])
-			option_okay[i] &= ([self legal_status] != 0);
+			option_okay[i] &= ([self legalStatus] != 0);
 
 		if ([eq_extra_info_dict objectForKey:@"conditions"])
 		{
@@ -5363,9 +5324,9 @@ static int last_outfitting_index;
 		if (mounted_okay)
 		{
 			credits -= price;
-			[self safe_all_missiles];
-			[self sort_missiles];
-			[self select_next_missile];
+			[self safeAllMissiles];
+			[self sortMissiles];
+			[self selectNextMissile];
 		}
 		[self setGuiToEquipShipScreen:-1:-1];
 		return mounted_okay;
@@ -5392,8 +5353,8 @@ static int last_outfitting_index;
 	if ([eq_key isEqual:@"EQ_MISSILE_REMOVAL"])
 	{
 		credits -= price;
-		[self safe_all_missiles];
-		[self sort_missiles];
+		[self safeAllMissiles];
+		[self sortMissiles];
 		int i;
 		for (i = 0; i < missiles; i++)
 		{
@@ -5721,7 +5682,7 @@ static int last_outfitting_index;
 		[extra_equipment removeObjectForKey:damaged_eq_key];
 	
 	// deal with trumbles..
-	if ([eq_key isEqual:@"EQ_TRUMBLE"] && (n_trumbles < 1))
+	if ([eq_key isEqual:@"EQ_TRUMBLE"] && (trumbleCount < 1))
 	{
 		[self addTrumble:trumble[ranrot_rand() % PLAYER_MAX_TRUMBLES]];	// first one!
 		return;
@@ -5813,9 +5774,9 @@ static int last_outfitting_index;
 		energy_unit = ENERGY_UNIT_NONE;
 
 	if ([self has_extra_equipment:@"EQ_ADVANCED_COMPASS"])
-		compass_mode = COMPASS_MODE_PLANET;
+		compassMode = COMPASS_MODE_PLANET;
 	else
-		compass_mode = COMPASS_MODE_BASIC;
+		compassMode = COMPASS_MODE_BASIC;
 
 	shield_booster = ([self has_extra_equipment:@"EQ_SHIELD_BOOSTER"])? 2:1;
 	shield_enhancer = ([self has_extra_equipment:@"EQ_NAVAL_SHIELD_BOOSTER"])? 1:0;
@@ -5884,20 +5845,20 @@ OOSound* burnersound;
 
 - (void) getFined
 {
-	if (legal_status == 0)
+	if (legalStatus == 0)
 		return;				// nothing to pay for
 	int local_gov = [(NSNumber*)[[UNIVERSE currentSystemData] objectForKey:KEY_GOVERNMENT] intValue];
 	int fine = 500 + ((local_gov < 2)||(local_gov > 5))? 500:0;
-	fine *= legal_status;
+	fine *= legalStatus;
 	if (fine > credits)
 	{
-		int payback = legal_status * credits / fine;
-		legal_status -= payback;
+		int payback = legalStatus * credits / fine;
+		legalStatus -= payback;
 		credits = 0;
 	}
 	else
 	{
-		legal_status = 0;
+		legalStatus = 0;
 		credits -= fine;
 	}
 	fine /= 10;	// divide by ten for display
@@ -5983,7 +5944,7 @@ OOSound* burnersound;
 		trumble[i] = [[OOTrumble alloc] initForPlayer:self digram:digramstring];
 	}
 	
-	n_trumbles = 0;
+	trumbleCount = 0;
 	
 	trumbleAppetiteAccumulator = 0.0;
 }
@@ -5991,27 +5952,27 @@ OOSound* burnersound;
 
 - (void) addTrumble:(OOTrumble*) papaTrumble
 {
-	if (n_trumbles >= PLAYER_MAX_TRUMBLES)
+	if (trumbleCount >= PLAYER_MAX_TRUMBLES)
 	{
 		NSLog(@"DEBUG trumble maximum population reached!");
 		return;
 	}
-	OOTrumble* trumblePup = trumble[n_trumbles];
+	OOTrumble* trumblePup = trumble[trumbleCount];
 	[trumblePup spawnFrom:papaTrumble];
-	n_trumbles++;
+	trumbleCount++;
 }
 
 
 - (void) removeTrumble:(OOTrumble*) deadTrumble
 {
-	if (n_trumbles <= 0)
+	if (trumbleCount <= 0)
 	{
 		NSLog(@"DEBUG trumble minimum population reached!");
 		return;
 	}
 	int trumble_index = NSNotFound;
 	int i;
-	for (i = 0; (trumble_index == NSNotFound)&&(i < n_trumbles); i++)
+	for (i = 0; (trumble_index == NSNotFound)&&(i < trumbleCount); i++)
 	{
 		if (trumble[i] == deadTrumble)
 			trumble_index = i;
@@ -6021,9 +5982,9 @@ OOSound* burnersound;
 		NSLog(@"DEBUG can't get rid of inactive trumble %@", deadTrumble);
 		return;
 	}
-	n_trumbles--;	// reduce number of trumbles
-	trumble[trumble_index] = trumble[n_trumbles];	// swap with the current last trumble
-	trumble[n_trumbles] = deadTrumble;				// swap with the current last trumble
+	trumbleCount--;	// reduce number of trumbles
+	trumble[trumble_index] = trumble[trumbleCount];	// swap with the current last trumble
+	trumble[trumbleCount] = deadTrumble;				// swap with the current last trumble
 }
 
 
@@ -6033,25 +5994,25 @@ OOSound* burnersound;
 }
 
 
-- (int) n_trumbles
+- (int) trumbleCount
 {
-	return n_trumbles;
+	return trumbleCount;
 }
 
 
-- (NSObject*) trumbleValue
+- (id)trumbleValue
 {
 	// debugging - force an increase in the trumble population
 	if ([[player_name lowercaseString] hasPrefix:@"trumble"])
-		n_trumbles = PLAYER_MAX_TRUMBLES / 2;
+		trumbleCount = PLAYER_MAX_TRUMBLES / 2;
 	
 	NSString* namekey = [NSString stringWithFormat:@"%@-humbletrash", player_name];
 	int trumbleHash;
 	clear_checksum();
-	[self munge_checksum_with_NSString:player_name];
+	[self mungChecksumWithNSString:player_name];
 	munge_checksum(credits);
 	munge_checksum(ship_kills);
-	trumbleHash = munge_checksum(n_trumbles);
+	trumbleHash = munge_checksum(trumbleCount);
 	
 	[[NSUserDefaults standardUserDefaults]  setInteger:trumbleHash forKey:namekey];
 	
@@ -6060,7 +6021,7 @@ OOSound* burnersound;
 	for (i = 0; i < PLAYER_MAX_TRUMBLES; i++)
 		[trumbleArray addObject:[trumble[i] dictionary]];
 	
-	return [NSArray arrayWithObjects:[NSNumber numberWithInt:n_trumbles],[NSNumber numberWithInt:trumbleHash], trumbleArray, nil];
+	return [NSArray arrayWithObjects:[NSNumber numberWithInt:trumbleCount],[NSNumber numberWithInt:trumbleHash], trumbleArray, nil];
 }
 
 
@@ -6093,7 +6054,7 @@ OOSound* burnersound;
 		}
 		// calculate a hash for the putative values
 		clear_checksum();
-		[self munge_checksum_with_NSString:player_name];
+		[self mungChecksumWithNSString:player_name];
 		munge_checksum(credits);
 		munge_checksum(ship_kills);
 		trumbleHash = munge_checksum(putativeNTrumbles);
@@ -6109,9 +6070,9 @@ OOSound* burnersound;
 		
 		for (i = 1; (info_failed)&&(i < PLAYER_MAX_TRUMBLES); i++)
 		{
-			// try to determine n_trumbles from the key in the saved game
+			// try to determine trumbleCount from the key in the saved game
 			clear_checksum();
-			[self munge_checksum_with_NSString:player_name];
+			[self mungChecksumWithNSString:player_name];
 			munge_checksum(credits);
 			munge_checksum(ship_kills);
 			trumbleHash = munge_checksum(i);
@@ -6128,12 +6089,12 @@ OOSound* burnersound;
 	
 	if (info_failed && [[NSUserDefaults standardUserDefaults] objectForKey:namekey])
 	{
-		// try to determine n_trumbles from the key in user defaults
+		// try to determine trumbleCount from the key in user defaults
 		putativeHash = [[NSUserDefaults standardUserDefaults] integerForKey:namekey];
 		for (i = 1; (info_failed)&&(i < PLAYER_MAX_TRUMBLES); i++)
 		{
 			clear_checksum();
-			[self munge_checksum_with_NSString:player_name];
+			[self mungChecksumWithNSString:player_name];
 			munge_checksum(credits);
 			munge_checksum(ship_kills);
 			trumbleHash = munge_checksum(i);
@@ -6148,7 +6109,7 @@ OOSound* burnersound;
 			NSLog(@"CHEAT DEFEATED - that's not the way to get rid of trumbles!");
 	}
 	// at this stage we've done the best we can to stop cheaters
-	n_trumbles = putativeNTrumbles;
+	trumbleCount = putativeNTrumbles;
 
 	if ((putativeTrumbleArray != nil) && ([putativeTrumbleArray count] == PLAYER_MAX_TRUMBLES))
 	{
@@ -6157,16 +6118,16 @@ OOSound* burnersound;
 	}
 	
 	clear_checksum();
-	[self munge_checksum_with_NSString:player_name];
+	[self mungChecksumWithNSString:player_name];
 	munge_checksum(credits);
 	munge_checksum(ship_kills);
-	trumbleHash = munge_checksum(n_trumbles);
+	trumbleHash = munge_checksum(trumbleCount);
 	
 	[[NSUserDefaults standardUserDefaults]  setInteger:trumbleHash forKey:namekey];
 }
 
 
-- (void) munge_checksum_with_NSString:(NSString*) str
+- (void) mungChecksumWithNSString:(NSString*) str
 {
 	if (!str)
 		return;
@@ -6437,13 +6398,13 @@ OOSound* burnersound;
 	OOLog(@"dumpState.playerEntity", @"Script time interval: %g", script_time_interval);
 	OOLog(@"dumpState.playerEntity", @"Roll/pitch/yaw delta: %g, %g, %g", roll_delta, pitch_delta, yaw_delta);
 	OOLog(@"dumpState.playerEntity", @"Shield: %g fore, %g aft", forward_weapon, aft_shield);
-	OOLog(@"dumpState.playerEntity", @"Alert level: %u, flags: %#x", alert_flags, alert_condition);
+	OOLog(@"dumpState.playerEntity", @"Alert level: %u, flags: %#x", alertFlags, alertCondition);
 	OOLog(@"dumpState.playerEntity", @"Missile status: %i", missile_status);
 	OOLog(@"dumpState.playerEntity", @"Energy unit: %@", EnergyUnitTypeToString(energy_unit));
 	OOLog(@"dumpState.playerEntity", @"Shield booster: %i", shield_booster);
 	OOLog(@"dumpState.playerEntity", @"Shield enhancer: %i", shield_enhancer);
 	OOLog(@"dumpState.playerEntity", @"Fuel leak rate: %g", fuel_leak_rate);
-	OOLog(@"dumpState.playerEntity", @"Trumble count: %u", n_trumbles);
+	OOLog(@"dumpState.playerEntity", @"Trumble count: %u", trumbleCount);
 	
 	flags = [NSMutableArray array];
 	#define ADD_FLAG_IF_SET(x)		if (x) { [flags addObject:@#x]; }

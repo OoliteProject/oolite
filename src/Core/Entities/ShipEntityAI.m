@@ -77,7 +77,7 @@ MA 02110-1301, USA.
 
 - (void) setSpeedFactorTo:(NSString *)speedString
 {
-	desired_speed = max_flight_speed * [speedString doubleValue];
+	desired_speed = maxFlightSpeed * [speedString doubleValue];
 }
 
 - (void) performIdle
@@ -147,7 +147,7 @@ MA 02110-1301, USA.
 	//--     new version using scanned_ships[]    --//
 	[self checkScanner];
 	//
-	GLfloat found_d2 = scanner_range * scanner_range;
+	GLfloat found_d2 = scannerRange * scannerRange;
 	found_target = NO_TARGET;
 	int i;
 	for (i = 0; i < n_scanned_ships ; i++)
@@ -227,7 +227,7 @@ MA 02110-1301, USA.
 	//
 	[self checkScanner];
 	//
-	double found_d2 = scanner_range * scanner_range;
+	double found_d2 = scannerRange * scannerRange;
 	found_target = NO_TARGET;
 	int i;
 	for (i = 0; i < n_scanned_ships; i++)
@@ -322,9 +322,9 @@ MA 02110-1301, USA.
 	if (!UNIVERSE)
 	{
 		coordinates = position;
-		coordinates.x += v_forward.x * max_flight_speed * 10.0;
-		coordinates.y += v_forward.y * max_flight_speed * 10.0;
-		coordinates.z += v_forward.z * max_flight_speed * 10.0;
+		coordinates.x += v_forward.x * maxFlightSpeed * 10.0;
+		coordinates.y += v_forward.y * maxFlightSpeed * 10.0;
+		coordinates.z += v_forward.z * maxFlightSpeed * 10.0;
 		return;
 	}
 	//
@@ -352,7 +352,7 @@ MA 02110-1301, USA.
 	if (station)
 	{
 		coordinates = station->position;
-		Vector  vr = vector_right_from_quaternion(station->q_rotation);
+		Vector  vr = vector_right_from_quaternion(station->orientation);
 		coordinates.x += 10000 * vr.x;  // 10km from station
 		coordinates.y += 10000 * vr.y;
 		coordinates.z += 10000 * vr.z;
@@ -360,9 +360,9 @@ MA 02110-1301, USA.
 	else
 	{
 		coordinates = position;
-		coordinates.x += v_forward.x * max_flight_speed * 10.0;
-		coordinates.y += v_forward.y * max_flight_speed * 10.0;
-		coordinates.z += v_forward.z * max_flight_speed * 10.0;
+		coordinates.x += v_forward.x * maxFlightSpeed * 10.0;
+		coordinates.y += v_forward.y * maxFlightSpeed * 10.0;
+		coordinates.z += v_forward.z * maxFlightSpeed * 10.0;
 	}
 }
 
@@ -384,8 +384,8 @@ MA 02110-1301, USA.
 
 - (void) performTumble
 {
-	flight_roll = max_flight_roll*2.0*(randf() - 0.5);
-	flight_pitch = max_flight_pitch*2.0*(randf() - 0.5);
+	flightRoll = max_flight_roll*2.0*(randf() - 0.5);
+	flightPitch = max_flight_pitch*2.0*(randf() - 0.5);
 	behaviour = BEHAVIOUR_TUMBLE;
 	frustration = 0.0;
 }
@@ -404,12 +404,12 @@ MA 02110-1301, USA.
 		{
 			if ([thing getPrimaryTarget] == self)
 				missile = thing;
-			if ((n_escorts > 0)&&(missile == nil))
+			if ((escortCount > 0)&&(missile == nil))
 			{
 				int j;
-				for (j = 0; j < n_escorts; j++)
+				for (j = 0; j < escortCount; j++)
 				{
-					if ([thing getPrimaryTargetID] == escort_ids[j])
+					if ([thing primaryTargetID] == escort_ids[j])
 						missile = thing;
 				}
 			}
@@ -431,7 +431,7 @@ MA 02110-1301, USA.
 		
 		if ([roles isEqual:@"police"]||[roles isEqual:@"interceptor"]||[roles isEqual:@"wingman"])
 		{
-			NSArray	*fellow_police = [self shipsInGroup:group_id];
+			NSArray	*fellow_police = [self shipsInGroup:groupID];
 			int i;
 			for (i = 0; i < [fellow_police count]; i++)
 			{
@@ -562,7 +562,7 @@ MA 02110-1301, USA.
 	}
 	else
 	{
-		int ls = [other_ship legal_status];
+		int ls = [other_ship legalStatus];
 		if (ls > 50)
 		{
 			[shipAI message:@"TARGET_FUGITIVE"];
@@ -639,14 +639,14 @@ MA 02110-1301, USA.
 	[self checkScanner];
 	int i;
 	float	worst_legal_factor = 0;
-	GLfloat found_d2 = scanner_range * scanner_range;
+	GLfloat found_d2 = scannerRange * scannerRange;
 	for (i = 0; i < n_scanned_ships ; i++)
 	{
 		ShipEntity* ship = scanned_ships[i];
 		if ((ship->scanClass != CLASS_CARGO)&&(ship->status != STATUS_DEAD)&&(ship->status != STATUS_DOCKED))
 		{
 			GLfloat	d2 = distance2_scanned_ships[i];
-			float	legal_factor = [ship legal_status] * gov_factor;
+			float	legal_factor = [ship legalStatus] * gov_factor;
 			int random_factor = ranrot_rand() & 255;   // 25% chance of spotting a fugitive in 15s
 			if ((d2 < found_d2)&&(random_factor < legal_factor)&&(legal_factor > worst_legal_factor))
 			{
@@ -731,14 +731,14 @@ WormholeEntity*	whole;
 
 - (void) wormholeEscorts
 {
-	if (n_escorts < 1)
+	if (escortCount < 1)
 		return;
 	
 	if (!whole)
 		return;
 		
 	int i;
-	for (i = 0; i < n_escorts; i++)
+	for (i = 0; i < escortCount; i++)
 	{
 		int escort_id = escort_ids[i];
 		ShipEntity  *escorter = (ShipEntity *)[UNIVERSE entityForUniversalID:escort_id];
@@ -756,7 +756,7 @@ WormholeEntity*	whole;
 		escort_ids[i] = NO_TARGET;
 	}
 	
-	[self setN_escorts:0];
+	[self setEscortCount:0];
 
 }
 
@@ -781,7 +781,7 @@ WormholeEntity*	whole;
 
 - (void) wormholeEntireGroup
 {
-	NSArray* group = [self shipsInGroup: group_id];	// ships in this group
+	NSArray* group = [self shipsInGroup: groupID];	// ships in this group
 	
 	if (![group count])
 		return;
@@ -826,7 +826,7 @@ WormholeEntity*	whole;
 	found_target = NO_TARGET;
 	BOOL	is_buoy = (scanClass == CLASS_BUOY);
 	
-	if (message_time > 2.0 * randf())
+	if (messageTime > 2.0 * randf())
 		return;					// don't send too many distress messages at once, space them out semi-randomly
 	
 	if (is_buoy)
@@ -921,7 +921,7 @@ WormholeEntity*	whole;
 	[self checkScanner];
 	int i;
 	//
-	GLfloat found_d2 = scanner_range * scanner_range;
+	GLfloat found_d2 = scannerRange * scannerRange;
 	found_target = NO_TARGET;
 	for (i = 0; i < n_scanned_ships; i++)
 	{
@@ -949,7 +949,7 @@ WormholeEntity*	whole;
 	
 	[self checkScanner];
 	int i;
-	GLfloat	found_d2 = scanner_range * scanner_range;
+	GLfloat	found_d2 = scannerRange * scannerRange;
 	for (i = 0; i < n_scanned_ships ; i++)
 	{
 		ShipEntity* thing = scanned_ships[i];
@@ -1010,7 +1010,7 @@ WormholeEntity*	whole;
 
 	[self checkScanner];
 	int i;
-	GLfloat found_d2 = scanner_range * scanner_range;
+	GLfloat found_d2 = scannerRange * scannerRange;
 	for (i = 0; i < n_scanned_ships ; i++)
 	{
 		ShipEntity* thing = scanned_ships[i];
@@ -1029,7 +1029,7 @@ WormholeEntity*	whole;
 
 - (void) fightOrFleeHostiles
 {
-	if (n_escorts > 0)
+	if (escortCount > 0)
 	{
 		if (found_target == last_escort_target)  return;
 		
@@ -1077,10 +1077,10 @@ WormholeEntity*	whole;
 		if ([mother acceptAsEscort:self])
 		{
 			// copy legal status across
-			if (([mother legal_status] > 0)&&(bounty <= 0))
+			if (([mother legalStatus] > 0)&&(bounty <= 0))
 			{
 				int extra = 1 | (ranrot_rand() & 15);
-				[mother setBounty: [mother legal_status] + extra];
+				[mother setBounty: [mother legalStatus] + extra];
 				bounty += extra;	// obviously we're dodgier than we thought!
 			}
 			//
@@ -1128,8 +1128,8 @@ WormholeEntity*	whole;
 
 - (void) checkGroupOddsVersusTarget
 {
-	int own_group_id = group_id;
-	int target_group_id = [(ShipEntity *)[UNIVERSE entityForUniversalID:primaryTarget] group_id];
+	int own_group_id = groupID;
+	int target_group_id = [(ShipEntity *)[UNIVERSE entityForUniversalID:primaryTarget] groupID];
 
 	int own_group_numbers = [self numberOfShipsInGroup:own_group_id] + (ranrot_rand() & 3);			// add a random fudge factor
 	int target_group_numbers = [self numberOfShipsInGroup:target_group_id] + (ranrot_rand() & 3);	// add a random fudge factor
@@ -1148,14 +1148,14 @@ WormholeEntity*	whole;
 
 - (void) groupAttackTarget
 {
-	if (group_id == NO_TARGET)		// ship is alone!
+	if (groupID == NO_TARGET)		// ship is alone!
 	{
 		found_target = primaryTarget;
 		[shipAI reactToMessage:@"GROUP_ATTACK_TARGET"];
 		return;
 	}
 	
-	NSArray* fellow_ships = [self shipsInGroup:group_id];
+	NSArray* fellow_ships = [self shipsInGroup:groupID];
 	ShipEntity* target_ship = (ShipEntity*) [UNIVERSE entityForUniversalID:primaryTarget];
 	
 	if ((!target_ship)||(target_ship->isShip != YES))
@@ -1177,7 +1177,7 @@ WormholeEntity*	whole;
 	found_target = NO_TARGET;
 	[self checkScanner];
 	int i;
-	GLfloat	found_d2 = scanner_range * scanner_range;
+	GLfloat	found_d2 = scannerRange * scannerRange;
 	for (i = 0; i < n_scanned_ships; i++)
 	{
 		ShipEntity* ship = scanned_ships[i];
@@ -1230,7 +1230,7 @@ WormholeEntity*	whole;
 		Vector vSun = make_vector( 0, 0, 1);
 		if (sun_dir.x||sun_dir.y||sun_dir.z)
 			vSun = unit_vector(&sun_dir);
-		Vector v0 = vector_forward_from_quaternion(the_station->q_rotation);
+		Vector v0 = vector_forward_from_quaternion(the_station->orientation);
 		Vector v1 = cross_product( v0, vSun);
 		Vector v2 = cross_product( v0, v1);
 		switch (patrol_counter)
@@ -1328,7 +1328,7 @@ WormholeEntity*	whole;
 	StationEntity* motherStation = (StationEntity*)[self owner];
 	Vector v0 = motherStation->position;
 	Vector rpos = make_vector( position.x - v0.x, position.y - v0.y, position.z - v0.z);
-	double found_d2 = scanner_range * scanner_range;
+	double found_d2 = scannerRange * scannerRange;
 	if (magnitude2(rpos) > found_d2)
 	{
 		[shipAI message:@"NOTHING_FOUND"];
@@ -1387,7 +1387,7 @@ WormholeEntity*	whole;
 	found_target = NO_TARGET;
 	[self checkScanner];
 	int i;
-	GLfloat found_d2 = scanner_range * scanner_range;
+	GLfloat found_d2 = scannerRange * scannerRange;
 	for (i = 0; i < n_scanned_ships; i++)
 	{
 		ShipEntity* thing = scanned_ships[i];
@@ -1453,8 +1453,8 @@ WormholeEntity*	whole;
 	ShipEntity* mother = nil;
 	if ([self owner])
 		mother = (ShipEntity*)[self owner];
-	if ((mother == nil)&&([UNIVERSE entityForUniversalID:group_id]))
-		mother = (ShipEntity*)[UNIVERSE entityForUniversalID:group_id];
+	if ((mother == nil)&&([UNIVERSE entityForUniversalID:groupID]))
+		mother = (ShipEntity*)[UNIVERSE entityForUniversalID:groupID];
 	if (!mother)
 	{
 		[shipAI message:@"MOTHER_LOST"];
@@ -1466,7 +1466,7 @@ WormholeEntity*	whole;
 	found_hostiles = 0;
 	[self checkScanner];
 	int i;
-	GLfloat found_d2 = scanner_range * scanner_range;
+	GLfloat found_d2 = scannerRange * scannerRange;
 	GLfloat max_e = 0;
 	for (i = 0; i < n_scanned_ships ; i++)
 	{
@@ -1511,7 +1511,7 @@ WormholeEntity*	whole;
 	found_target = NO_TARGET;
 	[self checkScanner];
 	int i;
-	GLfloat found_d2 = scanner_range * scanner_range;
+	GLfloat found_d2 = scannerRange * scannerRange;
 	for (i = 0; i < n_scanned_ships ; i++)
 	{
 		ShipEntity* thing = scanned_ships[i];
@@ -1618,8 +1618,8 @@ WormholeEntity*	whole;
 		ScanVectorFromString([instructions objectForKey:@"destination"], &coordinates);
 		destination = coordinates;
 		desired_speed = [(NSNumber *)[instructions objectForKey:@"speed"] floatValue];
-		if (desired_speed > max_flight_speed)
-			desired_speed = max_flight_speed;
+		if (desired_speed > maxFlightSpeed)
+			desired_speed = maxFlightSpeed;
 		desired_range = [(NSNumber *)[instructions objectForKey:@"range"] floatValue];
 		if ([instructions objectForKey:@"ai_message"])
 			[shipAI message:(NSString *)[instructions objectForKey:@"ai_message"]];
@@ -1650,8 +1650,8 @@ WormholeEntity*	whole;
 		ScanVectorFromString([dockingInstructions objectForKey:@"destination"], &coordinates);
 		destination = coordinates;
 		desired_speed = [(NSNumber *)[dockingInstructions objectForKey:@"speed"] floatValue];
-		if (desired_speed > max_flight_speed)
-			desired_speed = max_flight_speed;
+		if (desired_speed > maxFlightSpeed)
+			desired_speed = maxFlightSpeed;
 		desired_range = [(NSNumber *)[dockingInstructions objectForKey:@"range"] floatValue];
 		if ([dockingInstructions objectForKey:@"station_id"])
 		{
@@ -1686,7 +1686,7 @@ WormholeEntity*	whole;
 		if (uni_entities[i]->isWormhole)
 			wormholes[wh_count++] = [uni_entities[i] retain];		//	retained
 	//
-	double found_d2 = scanner_range * scanner_range;
+	double found_d2 = scannerRange * scannerRange;
 	for (i = 0; i < wh_count ; i++)
 	{
 		WormholeEntity* wh = wormholes[i];

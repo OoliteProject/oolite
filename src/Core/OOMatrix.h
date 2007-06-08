@@ -49,6 +49,7 @@ OOINLINE void set_matrix_identity(Matrix *outMatrix) ALWAYS_INLINE_FUNC NONNULL_
 
 /* Copy one matrix to another */
 OOINLINE void matrix_copy(Matrix *outMatrix, const Matrix value) ALWAYS_INLINE_FUNC NONNULL_FUNC DEPRECATED_FUNC;
+OOINLINE void OOCopyGLMatrix(gl_matrix dst, const gl_matrix src) ALWAYS_INLINE_FUNC NONNULL_FUNC;
 
 /* Mutiply two matrices, storing the result in a. */
 void mult_matrix(Matrix *outA, const Matrix b) NONNULL_FUNC;
@@ -73,6 +74,12 @@ void vectors_into_gl_matrix(Vector forward, Vector right, Vector up, gl_matrix o
 OOINLINE void matrix_copy(Matrix *matrix, const Matrix value)
 {
 	*matrix = value;
+}
+
+
+OOINLINE void OOCopyGLMatrix(gl_matrix dst, const gl_matrix src)
+{
+	memcpy(dst, src, sizeof dst);
 }
 
 
