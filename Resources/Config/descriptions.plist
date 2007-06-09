@@ -75,7 +75,7 @@
 			<string>Insects</string>
 		</array>
 	</array>
-	<key>legalStatus</key>
+	<key>legal_status</key>
 	<array>
 		<string>Clean</string>
 		<string>Offender</string>
