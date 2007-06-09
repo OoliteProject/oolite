@@ -44,6 +44,9 @@ static GameController *sSharedController = nil;
 
 - (void)reportUnhandledStartupException:(NSException *)exception;
 
+- (void)performGameTick:(id)userInfo;
+- (void)doPerformGameTick;
+
 @end
 
 
@@ -181,7 +184,7 @@ static GameController *sSharedController = nil;
 }
 
 
-- (void) applicationDidFinishLaunching: (NSNotification*) notification
+- (void) applicationDidFinishLaunching:(NSNotification *)notification
 {
 	NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
 	
@@ -189,7 +192,7 @@ static GameController *sSharedController = nil;
 #if !OOLITE_HAVE_APPKIT
 		gameView = [MyOpenGLView alloc];
 		[gameView init];
-		[gameView setGameController: self];
+		[gameView setGameController:self];
 #endif
 		
 		// ensure the gameView is drawn to, so OpenGL is initialised and so textures can initialse.
@@ -216,9 +219,9 @@ static GameController *sSharedController = nil;
 		[self logProgress:@"loading player..."];
 		[self loadPlayerIfRequired];
 		
-		// get the run loop and add the call to doStuff
+		// get the run loop and add the call to performGameTick:
 		NSTimeInterval ti = 0.01;
-		timer = [[NSTimer timerWithTimeInterval:ti target:self selector:@selector(doStuff:) userInfo:self repeats:YES] retain];
+		timer = [[NSTimer timerWithTimeInterval:ti target:self selector:@selector(performGameTick:) userInfo:nil repeats:YES] retain];
 		[[NSRunLoop currentRunLoop] addTimer:timer forMode:NSDefaultRunLoopMode];
 		
 		[self endSplashScreen];
@@ -254,9 +257,31 @@ static GameController *sSharedController = nil;
 }
 
 
-- (void) doStuff: (id) sender
+#if !OOLITE_HAVE_APPKIT
+
+- (void) performGameTick:(id)userInfo
 {
-    //
+	[self doPerformGameTick];
+}
+
+#else
+
+- (void) performGameTick:(id)sender
+{
+	NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
+	
+	[gameView pollControls];
+	[self doPerformGameTick];
+	
+	[pool release];
+	
+}
+
+#endif
+
+
+- (void)doPerformGameTick
+{
     if (game_is_paused)
 		delta_t = 0.0;  // no movement!
 	else
@@ -280,6 +305,9 @@ static GameController *sSharedController = nil;
 
 	if (gameView != nil)  [gameView display];
 	else  OOLog(kOOLogInconsistentState, @"***** gameView not set : delta_t %f",(float)delta_t);
+	
+#if !OOLITE_HAVE_APPKIT
+	NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
 }
 
 
@@ -288,7 +316,7 @@ static GameController *sSharedController = nil;
 	if (timer == nil)
 	{   
 		NSTimeInterval ti = 0.01;
-		timer = [[NSTimer timerWithTimeInterval:ti target:self selector:@selector(doStuff:) userInfo:self repeats:YES] retain];
+		timer = [[NSTimer timerWithTimeInterval:ti target:self selector:@selector(performGameTick:) userInfo:nil repeats:YES] retain];
 		[[NSRunLoop currentRunLoop] addTimer:timer forMode:NSDefaultRunLoopMode];
 	}
 }
@@ -633,7 +661,7 @@ static int _compareModes(id arg1, id arg2, void *context)
 			}
 
 			// Update our stuff.        
-			[self doStuff:self];
+			[self performGameTick:self];
 
 			[fullScreenContext flushBuffer];
 

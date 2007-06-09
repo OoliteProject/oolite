@@ -173,7 +173,7 @@ extern int debug;
                         Refresh: (unsigned int)d_refresh;
 - (NSSize) currentScreenSize;
 
-- (void) pollControls: (id)sender;
+- (void) pollControls
 - (void) handleStringInput: (SDL_KeyboardEvent *) kbd_event; // DJS
 - (JoystickHandler *)getStickHandler; // DJS
 

@@ -690,17 +690,16 @@ MA 02110-1301, USA.
 }
 
 
-- (void) pollControls: (id)sender
+- (void)pollControls
 {
-	SDL_Event event;
-	SDL_KeyboardEvent* kbd_event;
-	SDL_MouseButtonEvent* mbtn_event;
-	SDL_MouseMotionEvent *mmove_event;
-   int mxdelta, mydelta;
-//	Uint32 startTicks;
-//	Sint32 sleepTicks;
+	SDL_Event				event;
+	SDL_KeyboardEvent		*kbd_event;
+	SDL_MouseButtonEvent	*mbtn_event;
+	SDL_MouseMotionEvent	*mmove_event;
+	int						mxdelta, mydelta;
 
-   while (SDL_PollEvent(&event)) {
+   while (SDL_PollEvent(&event))
+   {
       switch (event.type) {
          case SDL_JOYAXISMOTION:
          case SDL_JOYBUTTONUP:
@@ -1042,12 +1041,8 @@ MA 02110-1301, USA.
          }
       }
    }
-
-   NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
-   [gameController doStuff: nil];
-   // Clean up any autoreleased objects that were created this time through the loop.
-   [pool release];
 }
+
 
 // DJS: String input handler. Since for SDL versions we're also handling
 // freeform typing this has necessarily got more complex than the non-SDL
