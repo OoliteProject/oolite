@@ -298,6 +298,7 @@
 		1A2A91530BC6BC66001E00FB /* OOJSQuaternion.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A2A91510BC6BC66001E00FB /* OOJSQuaternion.m */; };
 		1A34912A0BC25EAA00802DA7 /* world-scripts.plist in Copy Config */ = {isa = PBXBuildFile; fileRef = 1A3491290BC25EAA00802DA7 /* world-scripts.plist */; };
 		1A34912E0BC25EBC00802DA7 /* oolite-legacy-script.plist in Copy Scripts */ = {isa = PBXBuildFile; fileRef = 1A34912D0BC25EBC00802DA7 /* oolite-legacy-script.plist */; };
+		1A358CE20C1AB80D00E52220 /* ReadMe.rtfd in Resources */ = {isa = PBXBuildFile; fileRef = 1A358CE10C1AB80D00E52220 /* ReadMe.rtfd */; };
 		1A38B4AC0B988532001ED4A0 /* OOLogging.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A38B4AA0B988532001ED4A0 /* OOLogging.h */; };
 		1A38B4AD0B988532001ED4A0 /* OOLogging.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A38B4AB0B988532001ED4A0 /* OOLogging.m */; };
 		1A3A04620BC547DC00B5E2D9 /* OOTypes.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A3A04610BC547DC00B5E2D9 /* OOTypes.h */; };
@@ -1132,6 +1133,7 @@
 		1A34912D0BC25EBC00802DA7 /* oolite-legacy-script.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist; path = "oolite-legacy-script.plist"; sourceTree = "<group>"; };
 		1A3491AA0BC282DE00802DA7 /* ReleaseLockProxy.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ReleaseLockProxy.h; sourceTree = "<group>"; };
 		1A3491AB0BC282DE00802DA7 /* ReleaseLockProxy.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ReleaseLockProxy.m; sourceTree = "<group>"; };
+		1A358CE10C1AB80D00E52220 /* ReadMe.rtfd */ = {isa = PBXFileReference; lastKnownFileType = wrapper.rtfd; name = ReadMe.rtfd; path = Doc/ReadMe.rtfd; sourceTree = SOURCE_ROOT; };
 		1A38B4AA0B988532001ED4A0 /* OOLogging.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOLogging.h; sourceTree = "<group>"; };
 		1A38B4AB0B988532001ED4A0 /* OOLogging.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOLogging.m; sourceTree = "<group>"; };
 		1A3A04610BC547DC00B5E2D9 /* OOTypes.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = OOTypes.h; path = ../Core/OOTypes.h; sourceTree = "<group>"; };
@@ -1433,6 +1435,7 @@
 				25F3E8A40994FE65002F25FD /* oolite-document.icns */,
 				25F3E8A50994FE65002F25FD /* oolite-expansion-document.icns */,
 				25F3E8A60994FE65002F25FD /* oolite-icon.icns */,
+				1A358CE10C1AB80D00E52220 /* ReadMe.rtfd */,
 				1A2317900B9D022400EF0852 /* AIs */,
 				1A2316DD0B9CFAD700EF0852 /* Config */,
 				1A23154D0B9C778400EF0852 /* Images */,
@@ -2507,6 +2510,7 @@
 				25F3E8B40994FE9B002F25FD /* InfoPlist.strings in Resources */,
 				1A95338B0C02089E004EBB58 /* material-defaults.plist in Resources */,
 				1A95338C0C02089E004EBB58 /* planetinfo.plist in Resources */,
+				1A358CE20C1AB80D00E52220 /* ReadMe.rtfd in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

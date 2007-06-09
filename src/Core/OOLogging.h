@@ -112,6 +112,17 @@ void OOLogGenericSubclassResponsibilityForFunction(const char *inFunction);
 void OOLoggingInit(void);
 
 
+// Get/set display settings. These are stored in user defaults.
+BOOL OOLogShowApplicationName(void);
+void OOLogSetShowApplicationName(BOOL flag);
+BOOL OOLogShowFunction(void);
+void OOLogSetShowFunction(BOOL flag);
+BOOL OOLogShowFileAndLine(void);
+void OOLogSetShowFileAndLine(BOOL flag);
+BOOL OOLogShowMessageClass(void);
+void OOLogSetShowMessageClass(BOOL flag);
+
+
 // Hijack NSLog. Buahahahaha.
 #define NSLog(format, ...)		OOLog(kOOLogUnconvertedNSLog, format, ## __VA_ARGS__)
 #define NSLogv(NSLogv, args)	OOLogWithArgmuents(kOOLogUnconvertedNSLog, format, args)
@@ -126,6 +137,7 @@ extern NSString * const kOOLogSubclassResponsibility;		// @"general.error.subcla
 extern NSString * const kOOLogParameterError;				// @"general.error.parameterError"
 extern NSString * const kOOLogDeprecatedMethod;				// @"general.error.deprecatedMethod"
 extern NSString * const kOOLogAllocationFailure;			// @"general.error.allocationFailure"
+extern NSString * const kOOLogInconsistentState;			// @"general.error.inconsistentState"
 extern NSString * const kOOLogException;					// @"exception"
 
 extern NSString * const kOOLogFileNotFound;					// @"files.notfound"

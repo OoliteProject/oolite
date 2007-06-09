@@ -30,6 +30,7 @@ MA 02110-1301, USA.
 #import "OOOpenGL.h"
 #import "PlayerEntityLoadSave.h"
 #import <stdlib.h>
+#import "OOCollectionExtractors.h"
 
 #define kOOLogUnconvertedNSLog @"unclassified.GameController"
 
@@ -38,6 +39,8 @@ static GameController *sSharedController = nil;
 
 
 @interface GameController (OOPrivate)
+
+- (void) getDisplayModes;
 
 - (void)reportUnhandledStartupException:(NSException *)exception;
 
@@ -81,9 +84,10 @@ static GameController *sSharedController = nil;
     return self;
 }
 
+
 - (void) dealloc
 {
-#ifndef GNUSTEP
+#if OOLITE_HAVE_APPKIT
 	[[[NSWorkspace sharedWorkspace] notificationCenter]	removeObserver:UNIVERSE];
 #endif
 	//
@@ -98,20 +102,24 @@ static GameController *sSharedController = nil;
     [super dealloc];
 }
 
+
 - (BOOL) game_is_paused
 {
 	return game_is_paused;
 }
+
 
 - (void) pause_game
 {
 	game_is_paused = YES;
 }
 
+
 - (void) unpause_game
 {
 	game_is_paused = NO;
 }
+
 
 - (BOOL) setDisplayWidth:(unsigned int) d_width Height:(unsigned int) d_height Refresh:(unsigned int) d_refresh
 {
@@ -122,21 +130,21 @@ static GameController *sSharedController = nil;
 		height = d_height;
 		refresh = d_refresh;
 		fullscreenDisplayMode = d_mode;
-		//
-		[[NSUserDefaults standardUserDefaults]   setInteger:width   forKey:@"display_width"];
-		[[NSUserDefaults standardUserDefaults]   setInteger:height  forKey:@"display_height"];
-		[[NSUserDefaults standardUserDefaults]   setInteger:refresh forKey:@"display_refresh"];
-		//
-#ifdef GNUSTEP
-      // The SDL game is not strictly a GNUstep app so synchronize
-      // never actually gets called automatically. 
-      // Therefore we need to explicitly call it.
-      [[NSUserDefaults standardUserDefaults] synchronize];
-#endif
+		
+		NSUserDefaults *userDefaults = [NSUserDefaults standardUserDefaults];
+		
+		[userDefaults setInteger:width   forKey:@"display_width"];
+		[userDefaults setInteger:height  forKey:@"display_height"];
+		[userDefaults setInteger:refresh forKey:@"display_refresh"];
+		
+		// Manual synchronization is required for SDL And doesn't hurt much for OS X.
+		[userDefaults synchronize];
+		
 		return YES;
 	}
 	return NO;
 }
+
 
 - (int) indexOfCurrentDisplayMode
 {
@@ -151,42 +159,153 @@ static GameController *sSharedController = nil;
    return NSNotFound; 
 }
 
-- (NSDictionary *) findDisplayModeForWidth:(unsigned int) d_width Height:(unsigned int) d_height Refresh:(unsigned int) d_refresh
-{
-#ifndef GNUSTEP
-    int i, modeCount;
-    NSDictionary *mode;
-    unsigned int modeWidth, modeHeight, modeRefresh;
-	
-    modeCount = [displayModes count];
-
-	for (i = 0; i < modeCount; i++)
-	{
-		mode = [displayModes objectAtIndex: i];
-		modeWidth = [[mode objectForKey: (NSString *)kCGDisplayWidth] intValue];
-		modeHeight = [[mode objectForKey: (NSString *)kCGDisplayHeight] intValue];
-		modeRefresh = [[mode objectForKey: (NSString *)kCGDisplayRefreshRate] intValue];
-		if ((modeWidth == d_width)&&(modeHeight == d_height)&&(modeRefresh == d_refresh))
-		{
-			return mode;
-		}
-	}
-	return nil;
-#else
-	int modenum=[gameView findDisplayModeForWidth: d_width Height: d_height Refresh: d_refresh];
-	return [displayModes objectAtIndex: modenum];
-#endif
-   
-}
 
 - (NSArray *) displayModes
 {
 	return [NSArray arrayWithArray:displayModes];
 }
 
-/* GDC Example code here */
 
-#ifndef GNUSTEP
+- (MyOpenGLView *) gameView
+{
+    return gameView;
+}
+
+
+- (void) setGameView:(MyOpenGLView *)view
+{
+	[gameView release];
+	gameView = [view retain];
+	[UNIVERSE setGameView:gameView];
+	[gameView setGameController:self];
+}
+
+
+- (void) applicationDidFinishLaunching: (NSNotification*) notification
+{
+	NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
+	
+	NS_DURING
+#if !OOLITE_HAVE_APPKIT
+		gameView = [MyOpenGLView alloc];
+		[gameView init];
+		[gameView setGameController: self];
+#endif
+		
+		// ensure the gameView is drawn to, so OpenGL is initialised and so textures can initialse.
+		[gameView drawRect:[gameView bounds]];
+		
+		[self beginSplashScreen];
+		
+		[self logProgress:@"getting display modes..."];
+		[self getDisplayModes];
+		
+		// moved to before the Universe is created
+		if (expansionPathsToInclude)
+		{
+			[self logProgress:@"loading selected expansion packs..."];
+			int i;
+			for (i = 0; i < [expansionPathsToInclude count]; i++)
+				[ResourceManager addExternalPath: (NSString*)[expansionPathsToInclude objectAtIndex: i]];
+		}
+		
+		// moved here to try to avoid initialising this before having an Open GL context
+		[self logProgress:@"initialising universe..."];
+		[[Universe alloc] initWithGameView:gameView];
+		
+		[self logProgress:@"loading player..."];
+		[self loadPlayerIfRequired];
+		
+		// get the run loop and add the call to doStuff
+		NSTimeInterval ti = 0.01;
+		timer = [[NSTimer timerWithTimeInterval:ti target:self selector:@selector(doStuff:) userInfo:self repeats:YES] retain];
+		[[NSRunLoop currentRunLoop] addTimer:timer forMode:NSDefaultRunLoopMode];
+		
+		[self endSplashScreen];
+	NS_HANDLER
+		[self reportUnhandledStartupException:localException];
+		exit(EXIT_FAILURE);
+	NS_ENDHANDLER
+	
+	// Release anything allocated above that is not required.
+	[pool release];
+	
+#if !OOLITE_HAVE_APPKIT
+	[[NSRunLoop currentRunLoop] run];
+#endif
+}
+
+
+- (void) loadPlayerIfRequired
+{
+	if (playerFileToLoad)
+	{
+		PlayerEntity	*player = [PlayerEntity sharedPlayer];
+		[player loadPlayerFromFile:playerFileToLoad];
+		[player setStatus:STATUS_DOCKED];
+		[player setGuiToStatusScreen];
+	}
+}
+
+
+- (void) beginSplashScreen
+{
+	// Nothing to do
+}
+
+
+- (void) doStuff: (id) sender
+{
+    //
+    if (game_is_paused)
+		delta_t = 0.0;  // no movement!
+	else
+	{
+		delta_t = [NSDate timeIntervalSinceReferenceDate] - last_timeInterval;
+		last_timeInterval += delta_t;
+		if (delta_t > MINIMUM_GAME_TICK)
+			delta_t = MINIMUM_GAME_TICK;		// peg the maximum pause (at 0.5->1.0 seconds) to protect against when the machine sleeps	
+	}
+	//
+	[UNIVERSE update:delta_t];
+	[OOSound update];
+	//
+#if OOLITE_HAVE_APPKIT
+	if (fullscreen)
+	{
+		[UNIVERSE drawFromEntity:0];
+		return;
+	}
+#endif
+
+	if (gameView != nil)  [gameView display];
+	else  OOLog(kOOLogInconsistentState, @"***** gameView not set : delta_t %f",(float)delta_t);
+}
+
+
+- (void) startAnimationTimer
+{
+	if (timer == nil)
+	{   
+		NSTimeInterval ti = 0.01;
+		timer = [[NSTimer timerWithTimeInterval:ti target:self selector:@selector(doStuff:) userInfo:self repeats:YES] retain];
+		[[NSRunLoop currentRunLoop] addTimer:timer forMode:NSDefaultRunLoopMode];
+	}
+}
+
+
+- (void) stopAnimationTimer
+{
+    if (timer != nil)
+	{
+        [timer invalidate];
+        [timer release];
+        timer = nil;
+    }
+}
+
+
+#if OOLITE_MAC_OS_X && !OOLITE_SDL
 static int _compareModes(id arg1, id arg2, void *context)
 {
    // TODO: If fullscreen mode is practical in GNUstep
@@ -206,15 +325,20 @@ static int _compareModes(id arg1, id arg2, void *context)
     return (int)[[mode1 objectForKey: (NSString *)kCGDisplayRefreshRate] intValue] -
            (int)[[mode2 objectForKey: (NSString *)kCGDisplayRefreshRate] intValue];
 }
-#endif
+
 
 - (void) getDisplayModes
 {
-#ifndef GNUSTEP
-    unsigned int modeIndex, modeCount;
-    NSArray *modes;
-    NSDictionary *mode;
-    unsigned int modeWidth, modeHeight, color, modeRefresh, flags;
+    unsigned int		modeIndex, modeCount;
+    NSArray				*modes;
+    NSDictionary		*mode;
+    unsigned int		modeWidth, modeHeight, color, modeRefresh, flags;
+	
+	// Load preferences.
+	NSUserDefaults *userDefaults = [NSUserDefaults standardUserDefaults];
+	width = [userDefaults intForKey:@"display_width" defaultValue:DISPLAY_DEFAULT_WIDTH];
+	height = [userDefaults intForKey:@"display_height" defaultValue:DISPLAY_DEFAULT_HEIGHT];
+	refresh = [userDefaults intForKey:@"display_refresh" defaultValue:DISPLAY_DEFAULT_REFRESH];
 	
     // Get the list of all available modes
     modes = [(NSArray *)CGDisplayAvailableModes(kCGDirectMainDisplay) retain];
@@ -283,279 +407,44 @@ static int _compareModes(id arg1, id arg2, void *context)
         modeHeight = [[mode objectForKey: (NSString *)kCGDisplayHeight] intValue];
         modeRefresh = [[mode objectForKey: (NSString *)kCGDisplayRefreshRate] intValue];
 	}
-#else  // ifndef GNUSTEP
-   // SDL code all lives in the gameview.
-   displayModes = [gameView getScreenSizeArray];
-   
-#endif // ifndef GNUSTEP #else
-}
-/* end GDC */
-
-- (MyOpenGLView *) gameView
-{
-    return gameView;
-}
-
-- (void) setGameView:(MyOpenGLView *)view
-{
-	[gameView release];
-	gameView = [view retain];
-	[UNIVERSE setGameView:gameView];
-	[gameView setGameController:self];
-}
-
-
-#ifdef GNUSTEP
-- (void) applicationDidFinishLaunching: (NSNotification*) notification
-{
-	NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
 	
-	NS_DURING
-		// A bunch of things get allocated while this method runs and an autorelease pool
-		// is required. The one from main had to be released already because we never go
-		// back there under GNUstep.
-		gameView = [MyOpenGLView alloc];
-		[gameView init];
-		[gameView setGameController: self];
+	fullscreenDisplayMode = [self findDisplayModeForWidth:width Height:height Refresh:refresh];
+	if (fullscreenDisplayMode == nil)
+	{
+		// set full screen mode to first available mode
+		fullscreenDisplayMode = [displayModes objectAtIndex:0];
+		width = [[fullscreenDisplayMode objectForKey: (NSString *)kCGDisplayWidth] intValue];
+		height = [[fullscreenDisplayMode objectForKey: (NSString *)kCGDisplayHeight] intValue];
+		refresh = [[fullscreenDisplayMode objectForKey: (NSString *)kCGDisplayRefreshRate] intValue];
+	}
+}
 
-		//
-		// ensure the gameView is drawn to, so OpenGL is initialised and so textures can initialse.
-		//
-		[gameView drawRect:[gameView bounds]];
-		
-		[self beginSplashScreen];
-		[self logProgress:@"initialising..."];
-		/* GDC example code */
 
-		[self logProgress:@"getting display modes..."];
-		[self getDisplayModes];
-
-	   // keep track of the current full screen mode size
-	   NSSize fsmSize=[gameView currentScreenSize];
-	   width=fsmSize.width;
-	   height=fsmSize.height;
-		
-		/* end GDC */
-	   
-		// moved to before the Universe is created
-		[self logProgress:@"loading selected expansion packs..."];
-		if (expansionPathsToInclude)
-		{
-			int i;
-			for (i = 0; i < [expansionPathsToInclude count]; i++)
-				[ResourceManager addExternalPath: (NSString*)[expansionPathsToInclude objectAtIndex: i]];
-		}
-		
-		// moved here to try to avoid initialising this before having an Open GL context
-		[self logProgress:@"initialising universe..."];
-		[[Universe alloc] initWithGameView:gameView];
-			
-		[self logProgress:@"loading player..."];
-		[self loadPlayerIfRequired];
-		
-		//
-		// get the run loop and add the call to doStuff
-		//
-	   NSTimeInterval ti = 0.01;
-	   timer = [[NSTimer timerWithTimeInterval:ti target:gameView selector:@selector(pollControls:) userInfo:self repeats:YES] retain];
-	   [[NSRunLoop currentRunLoop] addTimer:timer forMode:NSDefaultRunLoopMode];
-		//
-		[self endSplashScreen];
-	NS_HANDLER
-		[self reportUnhandledStartupException:localException];
-		exit(EXIT_FAILURE);
-	NS_ENDHANDLER
+- (NSDictionary *) findDisplayModeForWidth:(unsigned int) d_width Height:(unsigned int) d_height Refresh:(unsigned int) d_refresh
+{
+    int i, modeCount;
+    NSDictionary *mode;
+    unsigned int modeWidth, modeHeight, modeRefresh;
 	
-	// Release anything allocated above that is not required.
-	[pool release];
-	[[NSRunLoop currentRunLoop] run];
-}
-#else
-- (void) applicationDidFinishLaunching: (NSNotification*) notification
-{
-	NS_DURING
-		//
-		// ensure the gameView is drawn to, so OpenGL is initialised and so textures can initialse.
-		//
-		[gameView drawRect:[gameView bounds]];
-		
-		[self beginSplashScreen];
-		[self logProgress:@"initialising..."];
-		//
-		// check user defaults
-		//
-		width = 640;	//  standard screen is 640x480 pixels, 32 bit color, 32 bit z-buffer, refresh rate 75Hz
-		height = 480;
-		refresh = 75;
-		
-		NSUserDefaults *userDefaults = [NSUserDefaults standardUserDefaults];
-		//
-		if ([userDefaults objectForKey:@"display_width"])
-			width = [userDefaults integerForKey:@"display_width"];
-		if ([userDefaults objectForKey:@"display_height"])
-			height = [userDefaults integerForKey:@"display_height"];
-		if ([userDefaults objectForKey:@"display_refresh"])
-			refresh = [userDefaults integerForKey:@"display_refresh"];
-		
-		/* GDC example code */
-		
-		[self logProgress:@"getting display modes..."];
-		[self getDisplayModes];
-		
-		/* end GDC */
-		
-		fullscreenDisplayMode = [self findDisplayModeForWidth:width Height:height Refresh:refresh];
-		if (fullscreenDisplayMode == nil)
+    modeCount = [displayModes count];
+
+	for (i = 0; i < modeCount; i++)
+	{
+		mode = [displayModes objectAtIndex: i];
+		modeWidth = [[mode objectForKey: (NSString *)kCGDisplayWidth] intValue];
+		modeHeight = [[mode objectForKey: (NSString *)kCGDisplayHeight] intValue];
+		modeRefresh = [[mode objectForKey: (NSString *)kCGDisplayRefreshRate] intValue];
+		if ((modeWidth == d_width)&&(modeHeight == d_height)&&(modeRefresh == d_refresh))
 		{
-			// set full screen mode to first available mode
-			fullscreenDisplayMode = [displayModes objectAtIndex:0];
-			width = [[fullscreenDisplayMode objectForKey: (NSString *)kCGDisplayWidth] intValue];
-			height = [[fullscreenDisplayMode objectForKey: (NSString *)kCGDisplayHeight] intValue];
-			refresh = [[fullscreenDisplayMode objectForKey: (NSString *)kCGDisplayRefreshRate] intValue];
+			return mode;
 		}
-		
-		// moved to before the Universe is created
-		if (expansionPathsToInclude)
-		{
-			[self logProgress:@"loading selected expansion packs..."];
-			int i;
-			for (i = 0; i < [expansionPathsToInclude count]; i++)
-				[ResourceManager addExternalPath: (NSString*)[expansionPathsToInclude objectAtIndex: i]];
-		}
-		
-		// moved here to try to avoid initialising this before having an Open GL context
-		[self logProgress:@"initialising universe..."];
-		[[Universe alloc] initWithGameView:gameView];
-		
-		[self logProgress:@"loading player..."];
-		[self loadPlayerIfRequired];
-		
-		//
-		// get the run loop and add the call to doStuff
-		//
-		NSTimeInterval ti = 0.01;
-		
-		timer = [[NSTimer timerWithTimeInterval:ti target:self selector:@selector(doStuff:) userInfo:self repeats:YES] retain];
-		
-		[[NSRunLoop currentRunLoop] addTimer:timer forMode:NSDefaultRunLoopMode];
-		
-		
-		// set up the window to accept mouseMoved events
-		[gameWindow setAcceptsMouseMovedEvents:YES];
-		
-		//
-		[self endSplashScreen];
-	NS_HANDLER
-		[self reportUnhandledStartupException:localException];
-		exit(EXIT_FAILURE);
-	NS_ENDHANDLER
-}
-#endif
-
-- (void) loadPlayerIfRequired
-{
-	if (playerFileToLoad)
-	{
-		PlayerEntity	*player = [PlayerEntity sharedPlayer];
-		[player loadPlayerFromFile:playerFileToLoad];
-		[player setStatus:STATUS_DOCKED];
-		[player setGuiToStatusScreen];
 	}
+	return nil;
 }
-
-- (void) beginSplashScreen
-{
-// splash screen is what is in the Main Window to begin with
-// we'll swap out the content later when all the textures have been loaded
-
-//	[splashView setFrame:[gameWindow frame]];
-//	[gameWindow setContentView:splashView];
-}
-
-- (void) logProgress:(NSString*) message
-{
-#ifndef GNUSTEP
-	[splashProgressTextField setStringValue:message];
-	[splashProgressTextField display];
-#endif
-}
-
-- (void) endSplashScreen
-{
-#ifndef GNUSTEP
-	[gameWindow setContentView:gameView];
-	[gameWindow makeFirstResponder:gameView];
-#endif
-}
-
-- (void) doStuff: (id) sender
-{
-    //
-    if (game_is_paused)
-		delta_t = 0.0;  // no movement!
-	else
-	{
-		delta_t = [NSDate timeIntervalSinceReferenceDate] - last_timeInterval;
-		last_timeInterval += delta_t;
-		if (delta_t > MINIMUM_GAME_TICK)
-			delta_t = MINIMUM_GAME_TICK;		// peg the maximum pause (at 0.5->1.0 seconds) to protect against when the machine sleeps	
-	}
-	//
-	[UNIVERSE update:delta_t];
-	//
-#ifdef GNUSTEP
-   // GNUstep's fullscreen is actually just a full screen window.
-   // So we use the same view regardless of mode.
-   if(gameView)
-      [gameView display];
-   else
-		NSLog(@"***** gameView not set : delta_t %f",(float)delta_t);
-     
-#else
-	if (fullscreen)
-	{
-		[UNIVERSE drawFromEntity:0];
-	}
-	else
-	{
-		if (gameView)
-			[gameView display];
-		else
-			NSLog(@"***** gameView not set : delta_t %f",(float)delta_t);
-	}
-#endif   
-	//
-	[OOSound update];
-}
-
-- (void) startAnimationTimer
-{
-	if (timer == nil)
-	{   
-		NSTimeInterval ti = 0.01;
-		timer = [[NSTimer timerWithTimeInterval:ti target:self selector:@selector(doStuff:) userInfo:self repeats:YES] retain];
-		[[NSRunLoop currentRunLoop] addTimer:timer forMode:NSDefaultRunLoopMode];
-	}
-}
-
-- (void) stopAnimationTimer
-{
-    if (timer != nil)
-	{
-        [timer invalidate];
-        [timer release];
-        timer = nil;
-    }
-}
-
 
 
 - (IBAction) goFullscreen:(id) sender
 {
-
-#ifdef GNUSTEP
-  // TODO: what goes here?
-#else
     CGLContextObj cglContext;
     CGDisplayErr err;
     long oldSwapInterval;
@@ -586,7 +475,7 @@ static int _compareModes(id arg1, id arg2, void *context)
 		fullscreenDisplayMode = [self findDisplayModeForWidth:width Height:height Refresh:refresh];
 		if (fullscreenDisplayMode == nil)
 		{
-			NSLog(@"***** unable to find suitable full screen mode");
+			OOLog(@"display.mode.noneFound", @"***** unable to find suitable full screen mode");
 			return;
 		}
 		
@@ -633,7 +522,7 @@ static int _compareModes(id arg1, id arg2, void *context)
 
 		if (fullScreenContext == nil)
 		{
-			NSLog(@"***** Failed to create fullScreenContext");
+			OOLog(@"display.context.create.failed", @"***** Failed to create fullScreenContext");
 			return;
 		}
 		
@@ -657,7 +546,7 @@ static int _compareModes(id arg1, id arg2, void *context)
         err = CGDisplaySwitchToMode(kCGDirectMainDisplay, (CFDictionaryRef)fullscreenDisplayMode);
         if (err != CGDisplayNoErr)
 		{
-            NSLog(@"***** Unable to change display mode.");
+            OOLog(@"display.mode.switch.failed", @"***** Unable to change display mode.");
             return;
         }
 		
@@ -773,7 +662,7 @@ static int _compareModes(id arg1, id arg2, void *context)
         err = CGDisplaySwitchToMode(kCGDirectMainDisplay, (CFDictionaryRef)originalDisplayMode);
         if (err != CGDisplayNoErr)
 		{
-            NSLog(@"***** Unable to change display mode.");
+            OOLog(@"display.mode.switch.failed", @"***** Unable to change display mode.");
             return;
         }
 		
@@ -797,56 +686,119 @@ static int _compareModes(id arg1, id arg2, void *context)
 		}
 		
 	}
-#endif // ...if GNUSTEP else
-
 }
 
-- (void) exitFullScreenMode
-{
-	stayInFullScreenMode = NO;
-}
 
 - (BOOL) inFullScreenMode
 {
-#ifdef GNUSTEP
-	return [gameView inFullScreenMode];
-#else
 	return fullscreen;
-#endif
 }
 
-#ifdef GNUSTEP
+#elif OOLITE_SDL
+
+- (void) getDisplayModes
+{
+	// SDL code all lives in the gameview.
+	displayModes = [gameView getScreenSizeArray];
+	NSSize fsmSize = [gameView currentScreenSize];
+	width = fsmSize.width;
+	height = fsmSize.height;
+}
+
+
+- (NSDictionary *) findDisplayModeForWidth:(unsigned int) d_width Height:(unsigned int) d_height Refresh:(unsigned int) d_refresh
+{
+	int modenum=[gameView findDisplayModeForWidth: d_width Height: d_height Refresh: d_refresh];
+	return [displayModes objectAtIndex: modenum];
+}
+
+
 - (void) setFullScreenMode:(BOOL)fsm
 {
 	fullscreen = fsm;
 }
-#endif
 
 
-- (void) pauseFullScreenModeToPerform:(SEL) selector onTarget:(id) target
+- (BOOL) inFullScreenMode
 {
-	pauseSelector = selector;
-	pauseTarget = target;
-	stayInFullScreenMode = NO;
+	return [gameView inFullScreenMode];
 }
 
-- (void) exitApp
-{
-#ifdef GNUSTEP
-	SDL_Quit();
-	exit(0);
 #else
-	[NSApp  terminate:self];
+	#error Unknown environment!
 #endif
+
+
+#if OOLITE_MAC_OS_X
+
+
+- (void) playiTunesPlaylist:(NSString *)playlist_name
+{
+	NSString *ootunesScriptString = [NSString stringWithFormat:@"tell application \"iTunes\"\nif playlist \"%@\" exists then\nset song repeat of playlist \"%@\" to all\nset shuffle of playlist \"%@\" to true\nplay some track of playlist \"%@\"\nend if\nend tell", playlist_name, playlist_name, playlist_name, playlist_name];
+	NSAppleScript *ootunesScript = [[NSAppleScript alloc] initWithSource:ootunesScriptString];
+	NSDictionary *errDict = nil;
+	[ootunesScript executeAndReturnError:&errDict];
+	if (errDict)
+		OOLog(@"iTunesIntegration.failed", @"ootunes returned :%@", [errDict description]);
+	[ootunesScript release]; 
 }
 
-- (void)windowDidResize:(NSNotification *)aNotification
+
+- (void) pauseiTunes
 {
-	[gameView drawRect:[gameView bounds]];
+	NSString *ootunesScriptString = [NSString stringWithFormat:@"tell application \"iTunes\"\npause\nend tell"];
+	NSAppleScript *ootunesScript = [[NSAppleScript alloc] initWithSource:ootunesScriptString];
+	NSDictionary *errDict = nil;
+	[ootunesScript executeAndReturnError:&errDict];
+	if (errDict)
+		OOLog(@"iTunesIntegration.failed", @"ootunes returned :%@", [errDict description]);
+	[ootunesScript release]; 
 }
+
+#else
+
+- (void) playiTunesPlaylist:(NSString *)playlist_name
+{}
+
+
+- (void) pauseiTunes
+{}
+
+#endif
+
+
+#if OOLITE_HAVE_APPKIT
+
+- (void) logProgress:(NSString *)message
+{
+	[splashProgressTextField setStringValue:message];
+	[splashProgressTextField display];
+}
+
+
+- (void) endSplashScreen
+{
+	[gameWindow setAcceptsMouseMovedEvents:YES];
+	[gameWindow setContentView:gameView];
+	[gameWindow makeFirstResponder:gameView];
+}
+
+
+// NIB methods
+- (void)awakeFromNib
+{
+	NSString				*path = nil;
+	
+	// Set contents of Help window
+	path = [[NSBundle mainBundle] pathForResource:@"ReadMe" ofType:@"rtfd"];
+	if (path != nil)
+	{
+		[helpView readRTFDFromFile:path];
+	}
+}
+
 
 // delegate methods
-#ifndef GNUSTEP
 - (BOOL)application:(NSApplication *)theApplication openFile:(NSString *)filename
 {
 	if ([[filename pathExtension] isEqual:@"oolite-save"])
@@ -869,12 +821,58 @@ static int _compareModes(id arg1, id arg2, void *context)
 	}
 	return NO;
 }
+
+
+- (void) exitApp
+{
+	[NSApp terminate:self];
+}
+
+#elif OOLITE_SDL
+
+- (void) logProgress:(NSString *)message
+{}
+
+- (void) endSplashScreen
+{}
+
+
+- (void) exitApp
+{
+	SDL_Quit();
+	exit(0);
+}
+
+#else
+	#error Unknown environment!
 #endif
+
+
+- (void) exitFullScreenMode
+{
+	stayInFullScreenMode = NO;
+}
+
+
+- (void) pauseFullScreenModeToPerform:(SEL) selector onTarget:(id) target
+{
+	pauseSelector = selector;
+	pauseTarget = target;
+	stayInFullScreenMode = NO;
+}
+
+
+- (void)windowDidResize:(NSNotification *)aNotification
+{
+	[gameView drawRect:[gameView bounds]];
+}
+
 
 - (NSString *) playerFileToLoad
 {
 	return playerFileToLoad;
 }
+
 
 - (void) setPlayerFileToLoad:(NSString *)filename
 {
@@ -885,10 +883,12 @@ static int _compareModes(id arg1, id arg2, void *context)
 		playerFileToLoad = [[NSString stringWithString:filename] retain];
 }
 
+
 - (NSString *) playerFileDirectory
 {
 	return playerFileDirectory;
 }
+
 
 - (void) setPlayerFileDirectory:(NSString *)filename
 {	
@@ -901,46 +901,12 @@ static int _compareModes(id arg1, id arg2, void *context)
 		playerFileDirectory = [filename retain];
 }
 
-// only OS X has these two methods
-#ifdef GNUSTEP
-- (void) playiTunesPlaylist:(NSString *)playlist_name
-{
-}
-
-- (void) pauseiTunes
-{
-}
-
-#else
-- (void) playiTunesPlaylist:(NSString *)playlist_name
-{
-	NSString *ootunesScriptString = [NSString stringWithFormat:@"tell application \"iTunes\"\nif playlist \"%@\" exists then\nset song repeat of playlist \"%@\" to all\nset shuffle of playlist \"%@\" to true\nplay some track of playlist \"%@\"\nend if\nend tell", playlist_name, playlist_name, playlist_name, playlist_name];
-	NSAppleScript *ootunesScript = [[NSAppleScript alloc] initWithSource:ootunesScriptString];
-	NSDictionary *errDict = nil;
-	[ootunesScript executeAndReturnError:&errDict];
-	if (errDict)
-		NSLog(@"DEBUG ootunes returned :%@", [errDict description]);
-	[ootunesScript release]; 
-}
-
-- (void) pauseiTunes
-{
-	NSString *ootunesScriptString = [NSString stringWithFormat:@"tell application \"iTunes\"\npause\nend tell"];
-	NSAppleScript *ootunesScript = [[NSAppleScript alloc] initWithSource:ootunesScriptString];
-	NSDictionary *errDict = nil;
-	[ootunesScript executeAndReturnError:&errDict];
-	if (errDict)
-		NSLog(@"DEBUG ootunes returned :%@", [errDict description]);
-	[ootunesScript release]; 
-}
-#endif
-
 
 - (void)reportUnhandledStartupException:(NSException *)exception
 {
 	OOLog(@"startup.exception", @"***** Unhandled exception during startup: %@ (%@).", [exception name], [exception reason]);
 	
-	#ifndef GNUSTEP
+	#if OOLITE_MAC_OS_X
 		// Display an error alert.
 		// TODO: provide better information on reporting bugs in the manual, and refer to it here.
 		NSRunCriticalAlertPanel(@"Oolite failed to start up, because an unhandled exception occurred.", @"An exception of type %@ occurred. If this problem persists, please file a bug report.", @"OK", NULL, NULL, [exception name]);

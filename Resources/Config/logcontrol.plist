@@ -30,35 +30,37 @@
 	/*** Special message classes ***/
 	_default								= yes;					// Fallback value for otherwise undefined classes. Must be yes or no.
 	// _override							= yes;					// Use to force display of all messages (or suppress all messages). Must be yes or no.
-
-
+	
+	
 	/*** Metaclasses ***/
-	$error									= yes;
+	$error									= yes;					// Most errors, ranging from minor to major. Should probably always be enabled.
 	$scriptError							= $error;
 	$shaderError							= $scriptError;
 	$troubleShootingDump					= yes;
 	$entityState							= no;
 	$scriptDebugOn							= no;					// This metaclass is set by the debugOn and debugOff script actions.
 	$shaderDebugOn							= no;					// Enabled by 's' key while paused, disabled by 'n' while paused.
-
-
+	
+	
 	/*** Common programming problems ***/
+	general.error							= $error;
 	general.error.subclassResponsibility	= inherit;
 	general.error.parameterError			= inherit;
 	general.error.deprecatedMethod			= inherit;
-
-
+	general.error.inconsistentState			= inherit;
+	
+	
 	exception = yes;
-
-
+	
+	
 	files.notFound							= $error;				// Failure to load a file.
 	files.notLoaded							= $error;				// A file should have been loaded at some earlier point, but wasn’t.
-
-
+	
+	
 	/*** Old-style logging calls ***/
 	unclassified							= inherit;
-
-
+	
+	
 	/*** Module-specific message classes ***/
 	ai										= $entityState;
 	ai.message.receive						= inherit;
@@ -68,12 +70,12 @@
 	ai.takeAction.debugMessage				= inherit;
 	ai.takeAction.badSelector				= inherit;
 	ai.pop									= inherit;
-
-
+	
+	
 	beacon.list								= $scriptDebugOn;
 	beacon.list.flightTraining				= inherit;
-
-
+	
+	
 	$dataCacheStatus = yes;
 	$dataCacheError = $error;
 	$dataCacheDebug = no;
@@ -96,8 +98,13 @@
 	dataCache.remove.success				= $dataCacheDebug;
 	dataCache.clear.success					= $dataCacheDebug;
 	dataCache.prune							= $dataCacheDebug;
-
-
+	
+	
+	display.modes.noneFound					= $error;
+	display.context.create.failed			= $error;
+	display.mode.switch.failed				= $error;
+	
+	
 	$linkedListError						= $error;
 	entity.behaviour.changed				= $entityState;
 	entity.linkedList						= inherit;				// Management/verification of the lists used to track the relative position of entities.
@@ -108,27 +115,30 @@
 	entity.linkedList.verify.error			= $linkedListError;
 	entity.linkedList.verify.rebuild		= inherit;
 	entity.linkedList.update.error			= $linkedListError;
-
-
+	
+	
 	equip.buy.mounted						= no;
 	equip.buy.mounted.failed				= $scriptError;
-
-
+	
+	
 	input.keyMapping.codeOutOfRange			= inherit;
 	input.keyMapping.keyPress				= no;
 	input.keyMapping.keyPress.keyDown		= inherit;
 	input.keyMapping.keyPress.keyUp			= inherit;
-
-
+	
+	
+	iTunesIntegration.failed				= $error;
+	
+	
 	mesh.load.error							= $error;
 	mesh.load.error.fileNotFound			= inherit;
 	mesh.load.error.tooManyVertices			= inherit;
 	mesh.load.error.tooManyFaces			= inherit;
-
-
+	
+	
 	oxp.versionMismatch						= $error;
-
-
+	
+	
 	$plistError								= $error;
 	plist.parse.foundation.failed			= $plistError;
 	plist.wrongType							= $plistError;
@@ -139,30 +149,30 @@
 	plist.homebrew.tokenize.trace			= no;					// Log details of first stage of homebrew parsing. Extremely verbose!
 	plist.homebrew.interpret.trace			= no;					// Log details of second stage of homebrew parsing. Also extremely verbose!
 	plist.homebrew.success					= yes;
-
-
+	
+	
 	rendering.opengl.error					= $error;				// Test for and display OpenGL errors
 	rendering.opengl.version				= $troubleShootingDump;	// Display renderer version information at startup
 	rendering.opengl.extensions				= $troubleShootingDump;	// List OpenGL extensions at startup
 	rendering.opengl.shader.support			= $troubleShootingDump;	// Messages about factors influencing availability of OpenGL shaders
 	rendering.opengl.stateDump				= $troubleShootingDump;	// Dump of OpenGL state (debug tool, currently unused)
 	rendering.opengl.shader.uniform			= $shaderDebugOn;
-
-
+	
+	
 	resourceManager.foundFile				= off;					// Tells you where all assets (models, textures, sounds) are found. Very verbose!
-
-
+	
+	
 	save.failed								= yes;
 	save.success							= no;
-
-
+	
+	
 	setup.ship.badEntry.subentities			= inherit;
-
-
+	
+	
 	script.addShips.failed					= $scriptError;
 	script.missionDescription.noMissionText	= inherit;
 	script.missionDescription.noMissionKey	= inherit;
-
+	
 	script.debug							= $scriptDebugOn;
 	script.debug.message					= inherit;				// debugMessage: script action
 	script.debug.onOff						= inherit;				// debugOn/debugOff script actions
@@ -176,7 +186,7 @@
 	script.debug.processSceneString.addTargetPlanet = inherit;
 	script.debug.processSceneString.addBillboard = inherit;
 	script.debug.setSunNovaIn				= inherit;
-
+	
 	script.debug.note						= inherit;
 	script.debug.note.scriptAction			= inherit;				// Messages saying a scripting method was called, with no further info
 	script.debug.note.awardCargo			= inherit;
@@ -192,7 +202,7 @@
 	script.debug.note.replaceVariablesInString = inherit;
 	script.debug.note.processSceneString	= inherit;
 	script.debug.note.testCondition			= no;
-
+	
 	script.debug.syntax						= $scriptError;			// Messages relating to script formatting
 	script.debug.syntax.badConditional		= inherit;
 	script.debug.syntax.action				= inherit;
@@ -205,7 +215,7 @@
 	script.debug.syntax.addShips			= inherit;
 	script.debug.syntax.set					= inherit;
 	script.debug.syntax.reset				= inherit;
-
+	
 	script.javaScript.load.success			= no;
 	script.javaScript.load.failed			= $scriptError;
 	script.javaScript.init.success			= no;
@@ -215,7 +225,7 @@
 	script.javaScript.exception				= $scriptError;
 	script.javaScript.warning				= $scriptError;
 	script.javaScript.badParameter			= $scriptError;
-
+	
 	script.load								= no;
 	script.load.badName						= $scriptError;
 	script.load.notFound					= $scriptError;
@@ -223,18 +233,18 @@
 	script.load.unnamed						= $scriptError;
 	script.load.exception					= $error;
 	script.load.world.listAll				= $troubleShootingDump;	// List names and versions of all loaded world scripts at startup.
-
+	
 	script.plist.run.badTarget				= $error;
-
+	
 	script.trace							= no;
 	script.trace.runWorld					= inherit;
 	script.trace.plist.run					= inherit;
 	script.trace.javaScript.call			= inherit;				// Prints selector and parameter string on Player.call()
-
-
+	
+	
 	searchPaths.dumpAll						= $troubleShootingDump;
-
-
+	
+	
 	$shaderDebug							= $shaderDebugOn;
 	$shaderError							= $error;
 	shader.load.noShader					= $error;
@@ -247,23 +257,23 @@
 	shader.compile.vertex.failure			= $shaderError;
 	shader.compile.fragment.failure			= $shaderError;
 	shader.link.failure						= $shaderError;
-
-
+	
+	
 	strings.conversion						= $scriptError;			// Conversion of text to values (vectors, quaternions etc)
 	strings.conversion.vector				= inherit;
 	strings.conversion.quaternion			= inherit;
 	strings.conversion.vectorAndQuaternion	= inherit;
 	strings.conversion.randomSeed			= inherit;
-
-
+	
+	
 	texture.planet.generate					= inherit;
-
-
+	
+	
 	$textureDebug							= no;
 	texture.load.noName						= $error;
 	texture.dealloc							= $textureDebug;
 	texture.upload							= $textureDebug;
-
+	
 	textureLoader.asyncLoad					= $textureDebug;
 	textureLoader.asyncLoad.done			= inherit;
 	textureLoader.asyncLoad.exception		= $error;
@@ -272,16 +282,16 @@
 	textureLoader.detachThreads.failed		= $error;
 	textureLoader.queueTask.inconsistency	= $error;
 	textureLoader.unknownType				= $error;
-
-
+	
+	
 	universe.populate						= no;	// “Populating a system with…” message when generating a star system
 	universe.populate.witchspace			= inherit;
-
-
+	
+	
 	/*** Mac OS X/Cocoa-specific ***/
 	growl.error								= $error;
 	growl.debug								= no;
-
+	
 	$soundError								= $error;
 	$soundDebug								= no;
 	$soundDebugVerbose						= $soundDebug;

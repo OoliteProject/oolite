@@ -27,22 +27,30 @@ MA 02110-1301, USA.
 
 #import "OOCocoa.h"
 
-#define MODE_WINDOWED		100
-#define MODE_FULL_SCREEN	200
+#define MODE_WINDOWED			100
+#define MODE_FULL_SCREEN		200
 
-#define DISPLAY_MIN_COLOURS	32
+#define DISPLAY_MIN_COLOURS		32
 #ifndef GNUSTEP
-#define DISPLAY_MIN_WIDTH	640
-#define DISPLAY_MIN_HEIGHT	480
+#define DISPLAY_MIN_WIDTH		640
+#define DISPLAY_MIN_HEIGHT		480
+
+/*	OS X apps are permitted to assume 800x600 screens. Under OS X, we always
+	start up in windowed mode. Therefore, the default size fits an 800x600
+	screen and leaves space for the menu bar and title bar.
+*/
+#define DISPLAY_DEFAULT_WIDTH	800
+#define DISPLAY_DEFAULT_HEIGHT	540
+#define DISPLAY_DEFAULT_REFRESH	75
 #else
 // *** Is there a reason for this difference? -- Ahruman
-#define DISPLAY_MIN_WIDTH	800
-#define DISPLAY_MIN_HEIGHT	600
+#define DISPLAY_MIN_WIDTH		800
+#define DISPLAY_MIN_HEIGHT		600
 #endif
-#define DISPLAY_MAX_WIDTH	2400
-#define DISPLAY_MAX_HEIGHT	1800
+#define DISPLAY_MAX_WIDTH		2400
+#define DISPLAY_MAX_HEIGHT		1800
 
-#define MINIMUM_GAME_TICK   0.25
+#define MINIMUM_GAME_TICK		0.25
 // * reduced from 0.5s for tgape * //
 
 
@@ -52,11 +60,14 @@ extern int debug;
 
 @interface GameController : NSObject
 {
-#ifndef GNUSTEP
+#if OOLITE_HAVE_APPKIT
     IBOutlet NSTextField	*splashProgressTextField;
     IBOutlet NSView			*splashView;
     IBOutlet NSWindow		*gameWindow;
-#else
+	IBOutlet NSTextView		*helpView;
+#endif
+
+#if OOLITE_SDL
 	NSRect					fsGeometry;
 	MyOpenGLView			*switchView;
 #endif
@@ -83,7 +94,7 @@ extern int debug;
 	NSDictionary			*originalDisplayMode;
 	NSDictionary			*fullscreenDisplayMode;
 
-#ifndef GNUSTEP
+#if OOLITE_MAC_OS_X
 	NSOpenGLContext			*fullScreenContext;
 #endif
 
@@ -106,9 +117,9 @@ extern int debug;
 - (void) pause_game;
 - (void) unpause_game;
 
-#ifndef GNUSTEP
-- (IBAction) goFullscreen:(id) sender;
-#else
+#if OOLITE_HAVE_APPKIT
+- (IBAction) goFullscreen:(id)sender;
+#elif OOLITE_SDL
 - (void) setFullScreenMode:(BOOL)fsm;
 #endif
 - (void) exitFullScreenMode;
@@ -121,8 +132,6 @@ extern int debug;
 - (NSDictionary *) findDisplayModeForWidth:(unsigned int)d_width Height:(unsigned int) d_height Refresh:(unsigned int) d_refresh;
 - (NSArray *) displayModes;
 - (int) indexOfCurrentDisplayMode;
-
-- (void) getDisplayModes;
 
 - (NSString *) playerFileToLoad;
 - (void) setPlayerFileToLoad:(NSString *)filename;

@@ -96,6 +96,12 @@
 	<string>$dataCacheError</string>
 	<key>dataCache.write.success</key>
 	<string>$dataCacheStatus</string>
+	<key>display.context.create.failed</key>
+	<string>$error</string>
+	<key>display.mode.switch.failed</key>
+	<string>$error</string>
+	<key>display.modes.noneFound</key>
+	<string>$error</string>
 	<key>entity.behaviour.changed</key>
 	<string>$entityState</string>
 	<key>entity.linkedList</key>
@@ -124,7 +130,11 @@
 	<string>$error</string>
 	<key>files.notLoaded</key>
 	<string>$error</string>
+	<key>general.error</key>
+	<string>$error</string>
 	<key>general.error.deprecatedMethod</key>
+	<string>inherit</string>
+	<key>general.error.inconsistentState</key>
 	<string>inherit</string>
 	<key>general.error.parameterError</key>
 	<string>inherit</string>
@@ -133,6 +143,8 @@
 	<key>growl.debug</key>
 	<string>no</string>
 	<key>growl.error</key>
+	<string>$error</string>
+	<key>iTunesIntegration.failed</key>
 	<string>$error</string>
 	<key>input.keyMapping.codeOutOfRange</key>
 	<string>inherit</string>

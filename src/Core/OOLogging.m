@@ -30,6 +30,7 @@ MA 02110-1301, USA.
 #import "OOPListParsing.h"
 #import "OOFunctionAttributes.h"
 #import "ResourceManager.h"
+#import "OOCollectionExtractors.h"
 
 
 #define PER_THREAD_INDENTATION		1
@@ -502,6 +503,78 @@ void OOLogGenericSubclassResponsibilityForFunction(const char *inFunction)
 }
 
 
+BOOL OOLogShowApplicationName(void)
+{
+	return sShowApplication;
+}
+
+
+void OOLogSetShowApplicationName(BOOL flag)
+{
+	flag = !!flag;	// YES or NO, not 42.
+	
+	if (flag != sShowApplication)
+	{
+		sShowApplication = flag;
+		[[NSUserDefaults standardUserDefaults] setBool:flag forKey:@"logging-show-app-name"];
+	}
+}
+
+
+BOOL OOLogShowFunction(void)
+{
+	return sShowFunction;
+}
+
+
+void OOLogSetShowFunction(BOOL flag)
+{
+	flag = !!flag;	// YES or NO, not 42.
+	
+	if (flag != sShowFunction)
+	{
+		sShowFunction = flag;
+		[[NSUserDefaults standardUserDefaults] setBool:flag forKey:@"logging-show-function"];
+	}
+}
+
+
+BOOL OOLogShowFileAndLine(void)
+{
+	return sShowFileAndLine;
+}
+
+
+void OOLogSetShowFileAndLine(BOOL flag)
+{
+	flag = !!flag;	// YES or NO, not 42.
+	
+	if (flag != sShowFileAndLine)
+	{
+		sShowFileAndLine = flag;
+		[[NSUserDefaults standardUserDefaults] setBool:flag forKey:@"logging-show-file-and-line"];
+	}
+}
+
+
+BOOL OOLogShowMessageClass(void)
+{
+	return sShowClass;
+}
+
+
+void OOLogSetShowMessageClass(BOOL flag)
+{
+	flag = !!flag;	// YES or NO, not 42.
+	
+	if (flag != sShowClass)
+	{
+		sShowClass = flag;
+		[[NSUserDefaults standardUserDefaults] setBool:flag forKey:@"logging-show-class"];
+	}
+}
+
+
 void OOLoggingInit(void)
 {
 	NSAutoreleasePool		*pool = nil;
@@ -522,6 +595,7 @@ NSString * const kOOLogSubclassResponsibility		= @"general.error.subclassRespons
 NSString * const kOOLogParameterError				= @"general.error.parameterError";
 NSString * const kOOLogDeprecatedMethod				= @"general.error.deprecatedMethod";
 NSString * const kOOLogAllocationFailure			= @"general.error.allocationFailure";
+NSString * const kOOLogInconsistentState			= @"general.error.inconsistentState";
 NSString * const kOOLogException					= @"exception";
 NSString * const kOOLogFileNotFound					= @"files.notFound";
 NSString * const kOOLogFileNotLoaded				= @"files.notLoaded";
@@ -624,26 +698,10 @@ static void LoadExplicitSettings(void)
 	}
 	
 	// Load display settings
-	value = [prefs objectForKey:@"logging-show-app-name"];
-	if (value != nil && [value respondsToSelector:@selector(boolValue)])
-	{
-		sShowApplication = [value boolValue];
-	}
-	value = [prefs objectForKey:@"logging-show-function"];
-	if (value != nil && [value respondsToSelector:@selector(boolValue)])
-	{
-		sShowFunction = [value boolValue];
-	}
-	value = [prefs objectForKey:@"logging-show-file-and-line"];
-	if (value != nil && [value respondsToSelector:@selector(boolValue)])
-	{
-		sShowFileAndLine = [value boolValue];
-	}
-	value = [prefs objectForKey:@"logging-show-class"];
-	if (value != nil && [value respondsToSelector:@selector(boolValue)])
-	{
-		sShowClass = [value boolValue];
-	}
+	sShowApplication = [prefs boolForKey:@"logging-show-app-name" defaultValue:sShowApplication];
+	sShowFunction = [prefs boolForKey:@"logging-show-function" defaultValue:sShowFunction];
+	sShowFileAndLine = [prefs boolForKey:@"logging-show-file-and-line" defaultValue:sShowFileAndLine];
+	sShowClass = [prefs boolForKey:@"logging-show-class" defaultValue:sShowClass];
 	
 	OOLogInternal(OOLOG_SETTING_SET, @"Settings: %@", sExplicitSettings);
 }
