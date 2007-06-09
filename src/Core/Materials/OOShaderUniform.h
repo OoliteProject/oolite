@@ -61,8 +61,10 @@ SOFTWARE.
 	GLint						location;
 	uint8_t						isBinding: 1,
 								// flags that apply only to bindings:
-								convert: 1,
-								isActiveBinding: 1;
+								isActiveBinding: 1,
+								convertClamp: 1,
+								convertNormalize: 1,
+								convertToMatrix: 1;
 	uint8_t						type;
 	union
 	{
@@ -91,7 +93,11 @@ SOFTWARE.
 	For vector types, it normalizes.
 	For quaternions, it converts to rotation matrix (instead of vec4).
 */
-- (id)initWithName:(NSString *)uniformName shaderProgram:(OOShaderProgram *)shaderProgram boundToObject:(id<OOWeakReferenceSupport>)target property:(SEL)selector convert:(BOOL)convert;
+- (id)initWithName:(NSString *)uniformName
+	 shaderProgram:(OOShaderProgram *)shaderProgram
+	 boundToObject:(id<OOWeakReferenceSupport>)target
+		  property:(SEL)selector
+	convertOptions:(OOUniformConvertOptions)options;
 
 - (void)apply;
 

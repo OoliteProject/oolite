@@ -203,7 +203,11 @@ OOINLINE BOOL ValidBindingType(OOShaderUniformType type)
 }
 
 
-- (id)initWithName:(NSString *)uniformName shaderProgram:(OOShaderProgram *)shaderProgram boundToObject:(id<OOWeakReferenceSupport>)target property:(SEL)selector convert:(BOOL)inConvert
+- (id)initWithName:(NSString *)uniformName
+	 shaderProgram:(OOShaderProgram *)shaderProgram
+	 boundToObject:(id<OOWeakReferenceSupport>)target
+		  property:(SEL)selector
+	convertOptions:(OOUniformConvertOptions)options
 {
 	BOOL					OK = YES;
 	
@@ -231,7 +235,11 @@ OOINLINE BOOL ValidBindingType(OOShaderUniformType type)
 		name = [uniformName retain];
 		isBinding = YES;
 		value.binding.selector = selector;
-		convert = inConvert;
+		
+		convertClamp = (options & kOOUniformConvertClamp) != 0;
+		convertNormalize = (options & kOOUniformConvertNormalize) != 0;
+		convertToMatrix = (options & kOOUniformConvertToMatrix) != 0;
+		
 		if (target != nil)  [self setBindingTarget:target];
 	}
 	
@@ -529,7 +537,7 @@ OOINLINE BOOL ValidBindingType(OOShaderUniformType type)
 		
 		case kOOShaderUniformTypeVector:
 			vVal = ((VectorReturnMsgSend)value.binding.method)(object, value.binding.selector);
-			if (convert)  vVal = vector_normal(vVal);
+			if (convertNormalize)  vVal = vector_normal(vVal);
 			expVVal[0] = vVal.x;
 			expVVal[1] = vVal.y;
 			expVVal[2] = vVal.z;
@@ -539,7 +547,7 @@ OOINLINE BOOL ValidBindingType(OOShaderUniformType type)
 		
 		case kOOShaderUniformTypeQuaternion:
 			qVal = ((QuaternionReturnMsgSend)value.binding.method)(object, value.binding.selector);
-			if (convert)
+			if (convertToMatrix)
 			{
 				quaternion_into_gl_matrix(qVal, mVal);
 				isMatrix = YES;
@@ -584,12 +592,12 @@ OOINLINE BOOL ValidBindingType(OOShaderUniformType type)
 	
 	if (isFloat)
 	{
-		if (convert)  fVal = OOClamp_0_1_f(fVal);
+		if (convertClamp)  fVal = OOClamp_0_1_f(fVal);
 		glUniform1fARB(location, fVal);
 	}
 	else if (isInt)
 	{
-		if (convert)  iVal = iVal ? 1 : 0;
+		if (convertClamp)  iVal = iVal ? 1 : 0;
 		glUniform1iARB(location, iVal);
 	}
 	else if (isPoint)

@@ -56,6 +56,18 @@ SOFTWARE.
 @class OOShaderProgram, OOTexture;
 
 
+enum
+{
+	// Conversion settings for uniform bindings
+	kOOUniformConvertClamp			= 0x0001U,
+	kOOUniformConvertNormalize		= 0x0002U,
+	kOOUniformConvertToMatrix		= 0x0004U,
+	
+	kOOUniformConvertDefaults		= kOOUniformConvertToMatrix
+};
+typedef uint16_t OOUniformConvertOptions;
+
+
 @interface OOShaderMaterial: OOBasicMaterial
 {
 	OOShaderProgram					*shaderProgram;
@@ -130,7 +142,7 @@ SOFTWARE.
 - (void)bindUniform:(NSString *)uniformName
 		   toObject:(id<OOWeakReferenceSupport>)target
 		   property:(SEL)selector
-			convert:(BOOL)convert;
+	 convertOptions:(OOUniformConvertOptions)options;
 
 /*	Set a uniform value.
 */

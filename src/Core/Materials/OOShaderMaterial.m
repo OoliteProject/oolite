@@ -206,13 +206,17 @@ static NSString *MacrosToString(NSDictionary *macros);
 - (void)bindUniform:(NSString *)uniformName
 		   toObject:(id<OOWeakReferenceSupport>)source
 		   property:(SEL)selector
-			convert:(BOOL)convert
+	 convertOptions:(OOUniformConvertOptions)options
 {
 	OOShaderUniform			*uniform = nil;
 	
 	if (uniformName == nil) return;
 	
-	uniform = [[OOShaderUniform alloc] initWithName:uniformName	shaderProgram:shaderProgram boundToObject:source property:selector convert:convert];
+	uniform = [[OOShaderUniform alloc] initWithName:uniformName
+									  shaderProgram:shaderProgram
+									  boundToObject:source
+										   property:selector
+									 convertOptions:options];
 	if (uniform != nil)
 	{
 		OOLog(@"shader.uniform.set", @"Set up uniform %@", uniform);
@@ -279,8 +283,8 @@ static NSString *MacrosToString(NSDictionary *macros);
 	GLfloat					floatValue;
 	BOOL					gotValue;
 	OOShaderUniform			*uniform = nil;
-	BOOL					convert;
 	SEL						selector = NULL;
+	OOUniformConvertOptions	convertOptions;
 	
 	for (uniformEnum = [uniformDefs keyEnumerator]; (name = [uniformEnum nextObject]); )
 	{
@@ -344,9 +348,17 @@ static NSString *MacrosToString(NSDictionary *macros);
 			{
 				if ([definition isKindOfClass:[NSDictionary class]])
 				{
-					convert = [definition boolForKey:@"clamped" defaultValue:NO];
+					convertOptions = 0;
+					if ([definition boolForKey:@"clamped" defaultValue:NO])  convertOptions |= kOOUniformConvertClamp;
+					if ([definition boolForKey:@"normalized" defaultValue:NO])  convertOptions |= kOOUniformConvertNormalize;
+					if ([definition boolForKey:@"asMatrix" defaultValue:YES])  convertOptions |= kOOUniformConvertToMatrix;
 				}
-				[self bindUniform:name toObject:target property:selector convert:convert];
+				else
+				{
+					convertOptions = kOOUniformConvertDefaults;
+				}
+				
+				[self bindUniform:name toObject:target property:selector convertOptions:convertOptions];
 				gotValue = YES;
 			}
 		}
