@@ -841,7 +841,8 @@ MA 02110-1301, USA.
                case SDLK_y: KEYCODE_DOWN_EITHER (89, 121); break;		// Y or y
                case SDLK_z: KEYCODE_DOWN_EITHER (90, 122); break;		// Z or z
                case SDLK_BACKSLASH: KEYCODE_DOWN_EITHER (166, 92); break;	// | or \
-               case SDLK_BACKQUOTE: KEYCODE_DOWN_EITHER (126, 96); break;	// ~ or `
+               //SDLK_BACKQUOTE is a special case. No SDLK_ with code 126 exists.
+               case SDLK_BACKQUOTE: if (!shift) keys[96] = YES; break;		// `
                case SDLK_HOME: keys[gvHomeKey] = YES; break;	
                case SDLK_SPACE: keys[32] = YES; break;
                case SDLK_RETURN: keys[13] = YES; break;
@@ -977,7 +978,8 @@ MA 02110-1301, USA.
                case SDLK_y: KEYCODE_UP_BOTH (89, 121); break;			// Y and y
                case SDLK_z: KEYCODE_UP_BOTH (90, 122); break;			// Z and z
                case SDLK_BACKSLASH: KEYCODE_UP_BOTH (166, 92); break;		// | and \
-               case SDLK_BACKQUOTE: KEYCODE_UP_BOTH (126, 96); break;		// ~ and `
+               //SDLK_BACKQUOTE is a special case. No SDLK_ with code 126 exists.
+               case SDLK_BACKQUOTE: keys[96] = NO; break;			// `
                case SDLK_HOME: keys[gvHomeKey] = NO; break;
                case SDLK_SPACE: keys[32] = NO; break;
                case SDLK_RETURN: keys[13] = NO; break;
