@@ -124,12 +124,12 @@ extern int debug;
 	
 @protected
 	Vector					lastPosition;
-	Quaternion				lastQRotation;
+	Quaternion				lastOrientation;
 	
 	GLfloat					distanceTravelled;		// set to zero initially
 	
-    Matrix					rotation;
-    gl_matrix				rotMatrix;
+//	Matrix					rotation;
+	gl_matrix				rotMatrix;
     
 	Vector					velocity;
 	

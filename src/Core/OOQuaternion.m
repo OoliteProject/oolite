@@ -28,6 +28,7 @@ MA 02110-1301, USA.
 
 
 const Quaternion		kIdentityQuaternion = { 1.0f, 0.0f, 0.0f, 0.0f };
+const Quaternion		kZeroQuaternion = { 0.0f, 0.0f, 0.0f, 0.0f };
 
 
 static NSString * const kOOLogMathsZeroRotation = @"maths.quaternion.zeroRotation";

@@ -297,7 +297,7 @@ static NSString * const kOOLogEntityBehaviourChanged	= @"entity.behaviour.change
 				[particle setColor:[OOColor colorWithCalibratedHue: sub_q.w/360.0 saturation:1.0 brightness:1.0 alpha:1.0]];
 				[particle setDuration: sub_q.x];
 				[particle setEnergy: 2.0 * sub_q.y];
-				[particle setSize:NSMakeSize( sub_q.z, sub_q.z)];
+				[particle setSize:NSMakeSize(sub_q.z, sub_q.z)];
 				[particle setParticleType:PARTICLE_FLASHER];
 				[particle setStatus:STATUS_EFFECT];
 				[particle setPosition:sub_pos];
@@ -512,8 +512,8 @@ static NSString * const kOOLogEntityBehaviourChanged	= @"entity.behaviour.change
 {
 	Vector u0 = vector_between(position, v0);	// relative to origin of model / octree
 	Vector u1 = vector_between(position, v1);
-	Vector w0 = make_vector( dot_product( u0, v_right), dot_product( u0, v_up), dot_product( u0, v_forward));	// in ijk vectors
-	Vector w1 = make_vector( dot_product( u1, v_right), dot_product( u1, v_up), dot_product( u1, v_forward));
+	Vector w0 = make_vector(dot_product(u0, v_right), dot_product(u0, v_up), dot_product(u0, v_forward));	// in ijk vectors
+	Vector w1 = make_vector(dot_product(u1, v_right), dot_product(u1, v_up), dot_product(u1, v_forward));
 	return [octree isHitByLine:w0 :w1];
 }
 
@@ -524,8 +524,8 @@ static NSString * const kOOLogEntityBehaviourChanged	= @"entity.behaviour.change
 		hitEntity[0] = (ShipEntity*)nil;
 	Vector u0 = vector_between(position, v0);	// relative to origin of model / octree
 	Vector u1 = vector_between(position, v1);
-	Vector w0 = make_vector( dot_product( u0, v_right), dot_product( u0, v_up), dot_product( u0, v_forward));	// in ijk vectors
-	Vector w1 = make_vector( dot_product( u1, v_right), dot_product( u1, v_up), dot_product( u1, v_forward));
+	Vector w0 = make_vector(dot_product(u0, v_right), dot_product(u0, v_up), dot_product(u0, v_forward));	// in ijk vectors
+	Vector w1 = make_vector(dot_product(u1, v_right), dot_product(u1, v_up), dot_product(u1, v_forward));
 	GLfloat hit_distance = [octree isHitByLine:w0 :w1];
 	if (hit_distance)
 	{
@@ -543,10 +543,10 @@ static NSString * const kOOLogEntityBehaviourChanged	= @"entity.behaviour.change
 			{
 				Vector p0 = [se absolutePositionForSubentity];
 				Triangle ijk = [se absoluteIJKForSubentity];
-				u0 = vector_between( p0, v0);
-				u1 = vector_between( p0, v1);
-				w0 = resolveVectorInIJK( u0, ijk);
-				w1 = resolveVectorInIJK( u1, ijk);
+				u0 = vector_between(p0, v0);
+				u1 = vector_between(p0, v1);
+				w0 = resolveVectorInIJK(u0, ijk);
+				w1 = resolveVectorInIJK(u1, ijk);
 				GLfloat hitSub = [se->octree isHitByLine:w0 :w1];
 				if ((hitSub)&&((!hit_distance)||(hit_distance > hitSub)))
 				{	
@@ -563,10 +563,10 @@ static NSString * const kOOLogEntityBehaviourChanged	= @"entity.behaviour.change
 
 - (GLfloat)doesHitLine:(Vector)v0: (Vector)v1 withPosition:(Vector)o andIJK:(Vector)i :(Vector)j :(Vector)k;
 {
-	Vector u0 = vector_between( o, v0);	// relative to origin of model / octree
-	Vector u1 = vector_between( o, v1);
-	Vector w0 = make_vector( dot_product( u0, i), dot_product( u0, j), dot_product( u0, k));	// in ijk vectors
-	Vector w1 = make_vector( dot_product( u1, j), dot_product( u1, j), dot_product( u1, k));
+	Vector u0 = vector_between(o, v0);	// relative to origin of model / octree
+	Vector u1 = vector_between(o, v1);
+	Vector w0 = make_vector(dot_product(u0, i), dot_product(u0, j), dot_product(u0, k));	// in ijk vectors
+	Vector w1 = make_vector(dot_product(u1, j), dot_product(u1, j), dot_product(u1, k));
 	return [octree isHitByLine:w0 :w1];
 }
 
@@ -837,11 +837,11 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 		other_ijk = [other absoluteIJKForSubentity];
 	}
 
-	Vector		relative_position_of_other = resolveVectorInIJK( vector_between(prime_position, other_position), prime_ijk);
+	Vector		relative_position_of_other = resolveVectorInIJK(vector_between(prime_position, other_position), prime_ijk);
 	Triangle	relative_ijk_of_other;
-	relative_ijk_of_other.v[0] = resolveVectorInIJK( other_ijk.v[0], prime_ijk);
-	relative_ijk_of_other.v[1] = resolveVectorInIJK( other_ijk.v[1], prime_ijk);
-	relative_ijk_of_other.v[2] = resolveVectorInIJK( other_ijk.v[2], prime_ijk);
+	relative_ijk_of_other.v[0] = resolveVectorInIJK(other_ijk.v[0], prime_ijk);
+	relative_ijk_of_other.v[1] = resolveVectorInIJK(other_ijk.v[1], prime_ijk);
+	relative_ijk_of_other.v[2] = resolveVectorInIJK(other_ijk.v[2], prime_ijk);
 	
 	// check hull octree against other hull octree
 	//
@@ -858,7 +858,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 		for (i = 0; i < n_subs; i++)
 		{
 			Entity* se = (Entity*)[prime_subs objectAtIndex:i];
-			if ((se->isShip) && [se canCollide] && doOctreesCollide( (ShipEntity*)se, other))
+			if ((se->isShip) && [se canCollide] && doOctreesCollide((ShipEntity*)se, other))
 				return other;
 		}
 	}
@@ -873,7 +873,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 		for (i = 0; i < n_subs; i++)
 		{
 			Entity* se = (Entity*)[other_subs objectAtIndex:i];
-			if ((se->isShip) && [se canCollide] && doOctreesCollide( prime, (ShipEntity*)se))
+			if ((se->isShip) && [se canCollide] && doOctreesCollide(prime, (ShipEntity*)se))
 				return (ShipEntity*)se;
 		}
 	}
@@ -894,7 +894,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 				for (j = 0; j <  n_psubs; j++)
 				{
 					Entity* pe = (Entity*)[prime_subs objectAtIndex:j];
-					if ((pe->isShip) && [pe canCollide] && doOctreesCollide( (ShipEntity*)pe, (ShipEntity*)oe))
+					if ((pe->isShip) && [pe canCollide] && doOctreesCollide((ShipEntity*)pe, (ShipEntity*)oe))
 						return (ShipEntity*)oe;
 				}
 			}
@@ -922,11 +922,11 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 		// in update we check if close contacts have gone out of touch range (origin within our collision_radius)
 		// here we check if something has come within that range
 		NSString* other_key = [NSString stringWithFormat:@"%d", other->universalID];
-		if ((![closeContactsInfo objectForKey: other_key]) && (distance2( position, other->position) < collision_radius * collision_radius))
+		if ((![closeContactsInfo objectForKey: other_key]) && (distance2(position, other->position) < collision_radius * collision_radius))
 		{
 			// calculate position with respect to our own position and orientation
-			Vector	dpos = vector_between( position, other->position);
-			Vector  rpos = make_vector( dot_product(dpos, v_right), dot_product(dpos, v_up), dot_product(dpos, v_forward));
+			Vector	dpos = vector_between(position, other->position);
+			Vector  rpos = make_vector(dot_product(dpos, v_right), dot_product(dpos, v_up), dot_product(dpos, v_forward));
 			[closeContactsInfo setObject:[NSString stringWithFormat:@"%f %f %f", rpos.x, rpos.y, rpos.z] forKey: other_key];
 			// send AI a message about the touch
 			int	temp_id = primaryTarget;
@@ -943,7 +943,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	{
 		// check hull octree versus other hull octree
 		//
-		collider = doOctreesCollide( self, (ShipEntity*)other);
+		collider = doOctreesCollide(self, (ShipEntity*)other);
 		return (collider != nil);
 	}
 	
@@ -983,7 +983,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 
 	Vector		off = offset;
 	mult_vector_gl_matrix(&off, rotMatrix);
-	Vector		abspos = make_vector( position.x + off.x, position.y + off.y, position.z + off.z);
+	Vector		abspos = make_vector(position.x + off.x, position.y + off.y, position.z + off.z);
 	Entity*		last = nil;
 	Entity*		father = [self owner];
 	while ((father)&&(father != last))
@@ -1002,9 +1002,9 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 - (Triangle) absoluteIJKForSubentity;
 {
 	Triangle	result;
-	result.v[0] = make_vector( 1.0, 0.0, 0.0);
-	result.v[1] = make_vector( 0.0, 1.0, 0.0);
-	result.v[2] = make_vector( 0.0, 0.0, 1.0);
+	result.v[0] = make_vector(1.0, 0.0, 0.0);
+	result.v[1] = make_vector(0.0, 1.0, 0.0);
+	result.v[2] = make_vector(0.0, 0.0, 1.0);
 	Entity*		last = nil;
 	Entity*		father = self;
 	while ((father)&&(father != last))
@@ -1074,11 +1074,11 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 			ShipEntity* other = (ShipEntity*)[UNIVERSE entityForUniversalID:[other_key intValue]];
 			if ((other != nil) && (other->isShip))
 			{
-				if (distance2( position, other->position) > collision_radius * collision_radius)	// moved beyond our sphere!
+				if (distance2(position, other->position) > collision_radius * collision_radius)	// moved beyond our sphere!
 				{
 					// calculate position with respect to our own position and orientation
-					Vector	dpos = vector_between( position, other->position);
-					Vector  pos1 = make_vector( dot_product(dpos, v_right), dot_product(dpos, v_up), dot_product(dpos, v_forward));
+					Vector	dpos = vector_between(position, other->position);
+					Vector  pos1 = make_vector(dot_product(dpos, v_right), dot_product(dpos, v_up), dot_product(dpos, v_forward));
 					Vector	pos0 = {0, 0, 0};
 					ScanVectorFromString([closeContactsInfo objectForKey: other_key], &pos0);
 					// send AI messages about the contact
@@ -1135,18 +1135,16 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	}
 
 	// temperature factors
-	//
 	double external_temp = 0.0;
-	if ([UNIVERSE sun])
+	PlanetEntity *sun = [UNIVERSE sun];
+	if (sun != nil)
 	{
-		PlanetEntity* sun = [UNIVERSE sun];
 		// set the ambient temperature here
-		double  sun_zd = magnitude2(vector_between( position, sun->position));	// square of distance
+		double  sun_zd = magnitude2(vector_between(position, sun->position));	// square of distance
 		double  sun_cr = sun->collision_radius;
 		double	alt1 = sun_cr * sun_cr / sun_zd;
 		external_temp = SUN_TEMPERATURE * alt1;
-		if ([sun goneNova])
-			external_temp *= 100;
+		if ([sun goneNova])  external_temp *= 100;
 	}
 
 	// work on the ship temperature
@@ -1280,7 +1278,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	if (status == STATUS_COCKPIT_DISPLAY)
     {
 		[self applyRoll: delta_t * flightRoll andClimb: delta_t * flightPitch];
-		GLfloat range2 = 0.1 * distance2( position, destination) / (collision_radius * collision_radius);
+		GLfloat range2 = 0.1 * distance2(position, destination) / (collision_radius * collision_radius);
 		if ((range2 > 1.0)||(velocity.z > 0.0))	range2 = 1.0;
 		position.x += range2 * delta_t * velocity.x;
 		position.y += range2 * delta_t * velocity.y;
@@ -1291,7 +1289,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	{
 		double  target_speed = maxFlightSpeed;
 
-		ShipEntity*	target = (ShipEntity*)[UNIVERSE entityForUniversalID:primaryTarget];
+		ShipEntity *target = [UNIVERSE entityForUniversalID:primaryTarget];
 
 		if ((target == nil)||(target->scanClass == CLASS_NO_DRAW)||(!target->isShip)||([target isCloaked]))
 		{
@@ -1303,7 +1301,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 			}
 			else
 			{
-				target_speed = [(ShipEntity *)[UNIVERSE entityForUniversalID:primaryTarget] flightSpeed];
+				target_speed = [target flightSpeed];
 				if (target_speed < maxFlightSpeed)
 				{
 					target_speed += maxFlightSpeed;
@@ -1448,14 +1446,15 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	//
 	// subentity rotation
 	//
-	if ((subentityRotationalVelocity.x)||(subentityRotationalVelocity.y)||(subentityRotationalVelocity.z)||(subentityRotationalVelocity.w != 1.0))
+	if (!quaternion_equal(subentityRotationalVelocity, kIdentityQuaternion) &&
+		!quaternion_equal(subentityRotationalVelocity, kZeroQuaternion))
 	{
 		Quaternion qf = subentityRotationalVelocity;
 		qf.w *= (1.0 - delta_t);
 		qf.x *= delta_t;
 		qf.y *= delta_t;
 		qf.z *= delta_t;
-		orientation = quaternion_multiply( qf, orientation);
+		orientation = quaternion_multiply(qf, orientation);
 	}
 	
 	//
@@ -1473,7 +1472,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 		for (i = 0; i < [sub_entities count]; i++)
 //			[(Entity *)[sub_entities objectAtIndex:i] update:delta_t];
 		{
-			ShipEntity* se = (ShipEntity *)[sub_entities objectAtIndex:i];
+			ShipEntity *se = [sub_entities objectAtIndex:i];
 			[se update:delta_t];
 			if (se->isShip)
 			{
@@ -1562,14 +1561,14 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 		GLfloat tf = TRACTOR_FORCE / mass;
 		destination = [hauler absoluteTractorPosition];
 		// adjust for difference in velocity (spring rule)
-		Vector dv = vector_between( [self velocity], [hauler velocity]);
+		Vector dv = vector_between([self velocity], [hauler velocity]);
 		GLfloat moment = delta_t * 0.25 * tf;
 		velocity.x += moment * dv.x;
 		velocity.y += moment * dv.y;
 		velocity.z += moment * dv.z;
 		// acceleration = force / mass
 		// force proportional to distance (spring rule)
-		Vector dp = vector_between( position, destination);
+		Vector dp = vector_between(position, destination);
 		moment = delta_t * 0.5 * tf;
 		velocity.x += moment * dp.x;
 		velocity.y += moment * dp.y;
@@ -2156,7 +2155,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 		double cr = turret_owner->collision_radius;
 		p1.x -= p0.x;	p1.y -= p0.y;	p1.z -= p0.z;
 		if (aim > .95)
-			[self fireTurretCannon: sqrt( magnitude2( p1)) - cr];
+			[self fireTurretCannon: sqrt(magnitude2(p1)) - cr];
 	}
 }
 //            //
@@ -2170,15 +2169,15 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	Vector ref = vector_between(d2, d1);		// vector from d2 to d1
 	ref = unit_vector(&ref);
 	
-	Vector xp = make_vector( ref.y * rel.z - ref.z * rel.y, ref.z * rel.x - ref.x * rel.z, ref.x * rel.y - ref.y * rel.x);	
+	Vector xp = make_vector(ref.y * rel.z - ref.z * rel.y, ref.z * rel.x - ref.x * rel.z, ref.x * rel.y - ref.y * rel.x);	
 	
 	GLfloat v0 = 0.0;
 	
-	GLfloat	r0 = dot_product( rel, ref);	// proportion of rel in direction ref
+	GLfloat	r0 = dot_product(rel, ref);	// proportion of rel in direction ref
 	
 	// if r0 is negative then we're the wrong side of things
 	
-	GLfloat	r1 = sqrtf(magnitude2( xp));	// distance of position from line
+	GLfloat	r1 = sqrtf(magnitude2(xp));	// distance of position from line
 	
 	BOOL in_cone = (r0 > 0.5 * r1);
 	
@@ -2207,7 +2206,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 		success_factor = dist2;
 
 		// set destination spline point from r1 and ref
-		destination = make_vector( d1.x + r1 * ref.x, d1.y + r1 * ref.y, d1.z + r1 * ref.z);
+		destination = make_vector(d1.x + r1 * ref.x, d1.y + r1 * ref.y, d1.z + r1 * ref.z);
 
 		// do the actual piloting!!
 		//
@@ -2314,7 +2313,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	resetFrame.position = position;
 	resetFrame.orientation = qrot;
 	resetFrame.k = vk;
-	Vector vel = make_vector( vk.x * flightSpeed, vk.y * flightSpeed, vk.z * flightSpeed);
+	Vector vel = make_vector(vk.x * flightSpeed, vk.y * flightSpeed, vk.z * flightSpeed);
 	
 	if ((isPlayer)&&(debug))
 		NSLog(@"DEBUG resetting tracking for %@", self);
@@ -2410,7 +2409,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 		glPopMatrix();  // one down
 		glPushMatrix();
 				// position and orientation is absolute
-		glTranslated( abspos.x, abspos.y, abspos.z);
+		glTranslated(abspos.x, abspos.y, abspos.z);
 
 		glMultMatrixf(rotMatrix);
 
@@ -2421,7 +2420,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	{
 		glPushMatrix();
 
-		glTranslated( position.x, position.y, position.z);
+		glTranslated(position.x, position.y, position.z);
 		glMultMatrixf(rotMatrix);
 
 		[self drawEntity:immediate :translucent];
@@ -2533,12 +2532,9 @@ static GLfloat mascem_color2[4] =	{ 0.4, 0.1, 0.4, 1.0};	// purple
 {
 	GLfloat dt_thrust = thrust * delta_t;
 	GLfloat max_available_speed = (has_fuel_injection && (fuel > 1))? maxFlightSpeed * AFTERBURNER_FACTOR : maxFlightSpeed;
-
-	position.x += delta_t*velocity.x;
-	position.y += delta_t*velocity.y;
-	position.z += delta_t*velocity.z;
-
-	//
+	
+	position = vector_add(position, vector_multiply_scalar(velocity, delta_t));
+	
 	if (thrust)
 	{
 		GLfloat velmag = sqrtf(magnitude2(velocity));
@@ -2589,10 +2585,10 @@ static GLfloat mascem_color2[4] =	{ 0.4, 0.1, 0.4, 1.0};	// purple
 
 	if (!roll1 && !climb1 && !hasRotated)  return;
 
-	if (roll1)  quaternion_rotate_about_z( &q1, -roll1);
-	if (climb1)  quaternion_rotate_about_x( &q1, -climb1);
+	if (roll1)  quaternion_rotate_about_z(&q1, -roll1);
+	if (climb1)  quaternion_rotate_about_x(&q1, -climb1);
 
-	orientation = quaternion_multiply( q1, orientation);
+	orientation = quaternion_multiply(q1, orientation);
 	quaternion_normalize(&orientation);	// probably not strictly necessary but good to do to keep orientation sane
     quaternion_into_gl_matrix(orientation, rotMatrix);
 
@@ -2719,10 +2715,10 @@ static GLfloat mascem_color2[4] =	{ 0.4, 0.1, 0.4, 1.0};	// purple
 		return;
 
 	// check vectors
-	Vector vdiff = vector_between( position, other->position);
-	GLfloat d_forward = dot_product( vdiff, v_forward);
-	GLfloat d_up = dot_product( vdiff, v_up);
-	GLfloat d_right = dot_product( vdiff, v_right);
+	Vector vdiff = vector_between(position, other->position);
+	GLfloat d_forward = dot_product(vdiff, v_forward);
+	GLfloat d_up = dot_product(vdiff, v_up);
+	GLfloat d_right = dot_product(vdiff, v_right);
 	if ((d_forward > 0.0)&&(flightSpeed > 0.0))	// it's ahead of us and we're moving forward
 		d_forward *= 0.25 * maxFlightSpeed / flightSpeed;	// extend the collision zone forward up to 400%
 	double d2 = d_forward * d_forward + d_up * d_up + d_right * d_right;
@@ -3282,7 +3278,7 @@ static GLfloat mascem_color2[4] =	{ 0.4, 0.1, 0.4, 1.0};	// purple
 				double d2 = p2.x*p2.x + p2.y*p2.y + p2.z*p2.z - ecr*ecr;
 				while (d2 <= 0.0)
 				{
-					p2 = make_vector( randf() - 0.5, randf() - 0.5, randf() - 0.5);
+					p2 = make_vector(randf() - 0.5, randf() - 0.5, randf() - 0.5);
 					d2 = p2.x*p2.x + p2.y*p2.y + p2.z*p2.z;
 				}
 				double moment = amount*desired_range/d2;
@@ -3614,7 +3610,7 @@ static GLfloat mascem_color2[4] =	{ 0.4, 0.1, 0.4, 1.0};	// purple
 						[wreck rescaleBy: scale_factor];
 						
 						Vector r1 = randomFullNodeFrom([octree octreeDetails], kZeroVector);
-						Vector rpos = make_vector ( v_right.x * r1.x + v_up.x * r1.y + v_forward.x * r1.z,
+						Vector rpos = make_vector (v_right.x * r1.x + v_up.x * r1.y + v_forward.x * r1.z,
 													v_right.y * r1.x + v_up.y * r1.y + v_forward.y * r1.z,
 													v_right.z * r1.x + v_up.z * r1.y + v_forward.z * r1.z);
 						rpos.x += xposition.x;
@@ -3998,19 +3994,19 @@ BOOL	class_masslocks(int some_class)
 {
 	Entity* scan;
 	//
-	scan = z_previous;	while ((scan)&&(!class_masslocks( scan->scanClass)))	scan = scan->z_previous;	// skip non-mass-locking
+	scan = z_previous;	while ((scan)&&(!class_masslocks(scan->scanClass)))	scan = scan->z_previous;	// skip non-mass-locking
 	while ((scan)&&(scan->position.z > position.z - scannerRange))
 	{
-		if (class_masslocks( scan->scanClass) && (distance2( position, scan->position) < SCANNER_MAX_RANGE2))
+		if (class_masslocks(scan->scanClass) && (distance2(position, scan->position) < SCANNER_MAX_RANGE2))
 			return NO;
-		scan = scan->z_previous;	while ((scan)&&(!class_masslocks( scan->scanClass)))	scan = scan->z_previous;
+		scan = scan->z_previous;	while ((scan)&&(!class_masslocks(scan->scanClass)))	scan = scan->z_previous;
 	}
-	scan = z_next;	while ((scan)&&(!class_masslocks( scan->scanClass)))	scan = scan->z_next;	// skip non-mass-locking
+	scan = z_next;	while ((scan)&&(!class_masslocks(scan->scanClass)))	scan = scan->z_next;	// skip non-mass-locking
 	while ((scan)&&(scan->position.z < position.z + scannerRange))
 	{
-		if (class_masslocks( scan->scanClass) && (distance2( position, scan->position) < SCANNER_MAX_RANGE2))
+		if (class_masslocks(scan->scanClass) && (distance2(position, scan->position) < SCANNER_MAX_RANGE2))
 			return NO;
-		scan = scan->z_previous;	while ((scan)&&(!class_masslocks( scan->scanClass)))	scan = scan->z_previous;
+		scan = scan->z_previous;	while ((scan)&&(!class_masslocks(scan->scanClass)))	scan = scan->z_previous;
 	}
 	return YES;
 }
@@ -4026,7 +4022,7 @@ BOOL	class_masslocks(int some_class)
 	{
 		if (scan->isShip)
 		{
-			distance2_scanned_ships[n_scanned_ships] = distance2( position, scan->position);
+			distance2_scanned_ships[n_scanned_ships] = distance2(position, scan->position);
 			if (distance2_scanned_ships[n_scanned_ships] < SCANNER_MAX_RANGE2)
 				scanned_ships[n_scanned_ships++] = (ShipEntity*)scan;
 		}
@@ -4038,7 +4034,7 @@ BOOL	class_masslocks(int some_class)
 	{
 		if (scan->isShip)
 		{
-			distance2_scanned_ships[n_scanned_ships] = distance2( position, scan->position);
+			distance2_scanned_ships[n_scanned_ships] = distance2(position, scan->position);
 			if (distance2_scanned_ships[n_scanned_ships] < SCANNER_MAX_RANGE2)
 				scanned_ships[n_scanned_ships++] = (ShipEntity*)scan;
 		}
@@ -4216,7 +4212,7 @@ BOOL	class_masslocks(int some_class)
 		axis_to_track_by = cross_product(my_ref, my_aim);	//	return to center
 	}
 
-	quaternion_rotate_about_axis( &orientation, axis_to_track_by, thrust * delta_t);
+	quaternion_rotate_about_axis(&orientation, axis_to_track_by, thrust * delta_t);
 
 	quaternion_normalize(&orientation);
 	quaternion_into_gl_matrix(orientation, rotMatrix);
@@ -4240,7 +4236,7 @@ BOOL	class_masslocks(int some_class)
 	vector_to_target = targent->position;
 	vector_to_target.x -= position.x;	vector_to_target.y -= position.y;	vector_to_target.z -= position.z;
 	//
-	GLfloat range2 =		magnitude2( vector_to_target);
+	GLfloat range2 =		magnitude2(vector_to_target);
 	GLfloat	targetRadius =	0.75 * targent->actual_radius;
 	GLfloat	max_cos =		sqrt(1 - targetRadius*targetRadius/range2);
 	//
@@ -4252,9 +4248,9 @@ BOOL	class_masslocks(int some_class)
 	else
 		vector_to_target.z = 1.0;
 	//
-	q_minarc = quaternion_rotation_between( v_forward, vector_to_target);
+	q_minarc = quaternion_rotation_between(v_forward, vector_to_target);
 	//
-	orientation = quaternion_multiply( q_minarc, orientation);
+	orientation = quaternion_multiply(q_minarc, orientation);
     quaternion_normalize(&orientation);
     quaternion_into_gl_matrix(orientation, rotMatrix);
 	//
@@ -4324,7 +4320,7 @@ BOOL	class_masslocks(int some_class)
 		axis_to_track_by = cross_product(my_ref, my_aim);	//	return to center
 	}
 
-	quaternion_rotate_about_axis( &orientation, axis_to_track_by, thrust * delta_t);
+	quaternion_rotate_about_axis(&orientation, axis_to_track_by, thrust * delta_t);
 
 	quaternion_normalize(&orientation);
 	quaternion_into_gl_matrix(orientation, rotMatrix);
@@ -4424,7 +4420,7 @@ BOOL	class_masslocks(int some_class)
 	}
 
 	// treat missiles specially
-	if ((scanClass == CLASS_MISSILE) && (d_forward > cos( delta_t * max_flight_pitch)))
+	if ((scanClass == CLASS_MISSILE) && (d_forward > cos(delta_t * max_flight_pitch)))
 	{
 		NSLog(@"missile %@ in tracking mode", self);
 		[self trackOntoTarget: delta_t withDForward: d_forward];
@@ -4441,7 +4437,7 @@ BOOL	class_masslocks(int some_class)
 
 		if (d_up > min_d)
 		{
-			int factor = sqrt( fabs(d_right) / fabs(min_d));
+			int factor = sqrt(fabs(d_right) / fabs(min_d));
 			if (factor > 8)
 				factor = 8;
 			if (d_right > min_d)
@@ -4451,7 +4447,7 @@ BOOL	class_masslocks(int some_class)
 		}
 		if (d_up < -min_d)
 		{
-			int factor = sqrt( fabs(d_right) / fabs(min_d));
+			int factor = sqrt(fabs(d_right) / fabs(min_d));
 			if (factor > 8)
 				factor = 8;
 			if (d_right > min_d)
@@ -4462,7 +4458,7 @@ BOOL	class_masslocks(int some_class)
 
 		if (stick_roll == 0.0)
 		{
-			int factor = sqrt( fabs(d_up) / fabs(min_d));
+			int factor = sqrt(fabs(d_up) / fabs(min_d));
 			if (factor > 8)
 				factor = 8;
 			if (d_up > min_d)
@@ -4647,7 +4643,7 @@ BOOL	class_masslocks(int some_class)
 
 		if (d_up > min_d)
 		{
-			int factor = sqrt( fabs(d_right) / fabs(min_d));
+			int factor = sqrt(fabs(d_right) / fabs(min_d));
 			if (factor > 8)
 				factor = 8;
 			if (d_right > min_d)
@@ -4657,7 +4653,7 @@ BOOL	class_masslocks(int some_class)
 		}
 		if (d_up < -min_d)
 		{
-			int factor = sqrt( fabs(d_right) / fabs(min_d));
+			int factor = sqrt(fabs(d_right) / fabs(min_d));
 			if (factor > 8)
 				factor = 8;
 			if (d_right > min_d)
@@ -4668,7 +4664,7 @@ BOOL	class_masslocks(int some_class)
 
 		if (stick_roll == 0.0)
 		{
-			int factor = sqrt( fabs(d_up) / fabs(min_d));
+			int factor = sqrt(fabs(d_up) / fabs(min_d));
 			if (factor > 8)
 				factor = 8;
 			if (d_up > min_d)
@@ -4756,7 +4752,7 @@ BOOL	class_masslocks(int some_class)
 
 - (GLfloat) rangeToDestination
 {
-	return sqrtf(distance2( position, destination));
+	return sqrtf(distance2(position, destination));
 }
 
 
@@ -4801,7 +4797,7 @@ BOOL	class_masslocks(int some_class)
 	if (d2)
 		urp = unit_vector(&rel_pos);
 	else
-		urp = make_vector( 0, 0, 1);
+		urp = make_vector(0, 0, 1);
 	dq = dot_product(urp, v_forward);				// cosine of angle between v_forward and unit relative position
 	if (((fwd_weapon)&&(dq < 0.0)) || ((!fwd_weapon)&&(dq > 0.0)))
 		return NO;
@@ -5088,7 +5084,7 @@ BOOL	class_masslocks(int some_class)
 	target_laser_hit = [UNIVERSE getFirstEntityHitByLaserFromEntity:self inView:VIEW_FORWARD offset: make_vector(0,0,0) rangeFound: &hit_at_range];
 	orientation = q_save;			// restore rotation
 
-	Vector  vel = make_vector( v_forward.x * flightSpeed, v_forward.y * flightSpeed, v_forward.z * flightSpeed);
+	Vector  vel = make_vector(v_forward.x * flightSpeed, v_forward.y * flightSpeed, v_forward.z * flightSpeed);
 
 	// do special effects laser line
 	shot = [[ParticleEntity alloc] initLaserFromShip:self view:VIEW_FORWARD];	// alloc retains!
@@ -5243,7 +5239,7 @@ BOOL	class_masslocks(int some_class)
 
 	float	sz = m * (1 + randf() + randf());	// half minimum dimension on average
 
-	vel = make_vector( 2.0 * (origin.x - position.x), 2.0 * (origin.y - position.y), 2.0 * (origin.z - position.z));
+	vel = make_vector(2.0 * (origin.x - position.x), 2.0 * (origin.y - position.y), 2.0 * (origin.z - position.z));
 
 	spark = [[ParticleEntity alloc] init];	// alloc retains!
 	[spark setPosition:origin]; // directly ahead
@@ -5251,7 +5247,7 @@ BOOL	class_masslocks(int some_class)
 	[spark setVelocity: vel];
 	[spark setDuration: 2.0 + 3.0 * randf()];
 	[spark setCollisionRadius: 2.0];
-	[spark setSize:NSMakeSize( sz, sz)];
+	[spark setSize:NSMakeSize(sz, sz)];
 	[spark setEnergy: 0.0];
 	[spark setParticleType: PARTICLE_SPARK];
 	[spark setColor:[OOColor colorWithCalibratedHue:0.08 + 0.17 * randf() saturation:1.0 brightness:1.0 alpha:1.0]];
@@ -5381,7 +5377,7 @@ BOOL	class_masslocks(int some_class)
 
 	double mcr = missile->collision_radius;
 
-	v_eject = unit_vector( &start);
+	v_eject = unit_vector(&start);
 
 	vel = kZeroVector;	// starting velocity
 
@@ -5635,7 +5631,7 @@ BOOL	class_masslocks(int some_class)
 	rpos.y +=	v_eject.y;
 	rpos.z +=	v_eject.z;
 
-	v_eject = unit_vector( &v_eject);
+	v_eject = unit_vector(&v_eject);
 
 	v_eject.x += (randf() - randf())/eject_speed;
 	v_eject.y += (randf() - randf())/eject_speed;
@@ -5772,10 +5768,10 @@ BOOL	class_masslocks(int some_class)
 	}
 
 	//
-	v = make_vector( vel1b.x - v.x, vel1b.y - v.y, vel1b.z - v.z);	// velocity of self relative to other
+	v = make_vector(vel1b.x - v.x, vel1b.y - v.y, vel1b.z - v.z);	// velocity of self relative to other
 
 	//
-	GLfloat	v2b = dot_product( v, loc);			// velocity of other along loc before collision
+	GLfloat	v2b = dot_product(v, loc);			// velocity of other along loc before collision
 	//
 	GLfloat v1a = sqrt(v2b * v2b * m2 / m1);	// velocity of self along loc after elastic collision
 	if (v2b < 0.0f)	v1a = -v1a;					// in same direction as v2b
@@ -5787,7 +5783,7 @@ BOOL	class_masslocks(int some_class)
 		if (v2b < -1.0f)  return NO;
 		else
 		{
-			position = make_vector( position.x - loc.x, position.y - loc.y, position.z - loc.z);	// adjust self position
+			position = make_vector(position.x - loc.x, position.y - loc.y, position.z - loc.z);	// adjust self position
 			v = kZeroVector;	// go for the 1m/s solution
 		}
 	}
@@ -5798,13 +5794,13 @@ BOOL	class_masslocks(int some_class)
 	dam2 = m1 * v2b * v2b / 50000000;
 
 	// calculate adjustments to velocity after collision
-	Vector vel1a = make_vector( -v1a * loc.x, -v1a * loc.y, -v1a * loc.z);
-	Vector vel2a = make_vector( v2b * loc.x, v2b * loc.y, v2b * loc.z);
+	Vector vel1a = make_vector(-v1a * loc.x, -v1a * loc.y, -v1a * loc.z);
+	Vector vel2a = make_vector(v2b * loc.x, v2b * loc.y, v2b * loc.z);
 
 	if (magnitude2(v) <= 0.1)	// virtually no relative velocity - we must provide at least 1m/s to avoid conjoined objects
 	{
-			vel1a = make_vector( -loc.x, -loc.y, -loc.z);
-			vel2a = make_vector( loc.x, loc.y, loc.z);
+			vel1a = make_vector(-loc.x, -loc.y, -loc.z);
+			vel2a = make_vector(loc.x, loc.y, loc.z);
 	}
 
 	// apply change in velocity
@@ -5905,7 +5901,7 @@ BOOL	class_masslocks(int some_class)
 	if (other->isStation)
 		return NO;
 
-	Vector  loc = vector_between( position, other->position);
+	Vector  loc = vector_between(position, other->position);
 
 	GLfloat inc1 = (v_forward.x*loc.x)+(v_forward.y*loc.y)+(v_forward.z*loc.z);
 	if (inc1 < 0.0f)									return NO;
@@ -6410,7 +6406,7 @@ inline BOOL pairOK(NSString* my_role, NSString* their_role)
 	if ([shipAI ai_stack_depth] > 1)
 		return NO;
 
-	if (pairOK( roles, [other_ship roles]))
+	if (pairOK(roles, [other_ship roles]))
 	{
 		// check total number acceptable
 		int max_escorts = [(NSNumber *)[shipinfoDictionary objectForKey:@"escorts"] intValue];
@@ -6573,7 +6569,7 @@ inline BOOL pairOK(NSString* my_role, NSString* their_role)
 	for (i = 0; i < station_count; i++)
 	{
 		StationEntity* thing = (StationEntity*)my_entities[i];
-		double range2 = distance2( position, thing->position);
+		double range2 = distance2(position, thing->position);
 		if (range2 < nearest2)
 		{
 			station = (StationEntity *)thing;
@@ -6636,7 +6632,7 @@ inline BOOL pairOK(NSString* my_role, NSString* their_role)
 	for (i = 0; i < planet_count; i++)
 	{
 		PlanetEntity  *thing = (PlanetEntity*)my_entities[i];
-		double range2 = distance2( position, thing->position);
+		double range2 = distance2(position, thing->position);
 		if ((!the_planet)||(range2 < nearest2))
 		{
 			the_planet = (PlanetEntity *)thing;
@@ -6682,7 +6678,7 @@ inline BOOL pairOK(NSString* my_role, NSString* their_role)
 	for (i = 0; i < ship_count ; i++)
 	{
 		ShipEntity* ship = (ShipEntity *)my_entities[i];
-		d2 = distance2( position, ship->position);
+		d2 = distance2(position, ship->position);
 		if ((d2 < found_d2)&&([[ship roles] isEqual:@"tharglet"]))
 			[[ship getAI] message:@"THARGOID_DESTROYED"];
 	}
@@ -6720,7 +6716,7 @@ inline BOOL pairOK(NSString* my_role, NSString* their_role)
 		for (i = 0; i < ship_count ; i++)
 		{
 			ShipEntity* ship = (ShipEntity *)my_entities[i];
-			if (((ship == mainStation) && ([self withinStationAegis])) || (distance2( position, ship->position) < SCANNER_MAX_RANGE2))
+			if (((ship == mainStation) && ([self withinStationAegis])) || (distance2(position, ship->position) < SCANNER_MAX_RANGE2))
 			{
 				[ship setFound_target: aggressor_ship];
 				[[ship getAI] reactToMessage: @"OFFENCE_COMMITTED"];
@@ -6773,10 +6769,10 @@ inline BOOL pairOK(NSString* my_role, NSString* their_role)
 	NSMutableString* localExpandedMessage = [NSMutableString stringWithString:message_text];
 	[localExpandedMessage	replaceOccurrencesOfString:@"[self:name]"
 							withString:name
-							options:NSLiteralSearch range:NSMakeRange( 0, [localExpandedMessage length])];
+							options:NSLiteralSearch range:NSMakeRange(0, [localExpandedMessage length])];
 	[localExpandedMessage	replaceOccurrencesOfString:@"[target:name]"
 							withString:[other_ship identFromShip: self]
-							options:NSLiteralSearch range:NSMakeRange( 0, [localExpandedMessage length])];
+							options:NSLiteralSearch range:NSMakeRange(0, [localExpandedMessage length])];
 
 	Random_Seed very_random_seed;
 	very_random_seed.a = rand() & 255;
@@ -6953,7 +6949,7 @@ inline BOOL pairOK(NSString* my_role, NSString* their_role)
 	for (i = 0; (i < ship_count)&&(result == NO_TARGET) ; i++)
 	{
 		ShipEntity* ship = my_entities[i];
-		Vector delta = vector_between( position, ship->position);
+		Vector delta = vector_between(position, ship->position);
 		GLfloat d2 = magnitude2(delta);
 		if ((k * [ship mass] > d2)&&(d2 < SCANNER_MAX_RANGE2))	// if you go off scanner from a blocker - it ceases to block
 			result = [ship universalID];

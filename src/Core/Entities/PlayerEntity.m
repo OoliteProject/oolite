@@ -223,7 +223,7 @@ static PlayerEntity *sSharedPlayer = nil;
 - (void) setSystem_seed:(Random_Seed) s_seed
 {
 	system_seed = s_seed;
-	galaxy_coordinates = NSMakePoint( s_seed.d, s_seed.b);
+	galaxy_coordinates = NSMakePoint(s_seed.d, s_seed.b);
 }
 
 
@@ -989,6 +989,10 @@ static PlayerEntity *sSharedPlayer = nil;
 	[dockingReport release];
 	dockingReport = [[NSMutableString alloc] init];
 	
+	[shipAI release];
+	shipAI = [[AI alloc] initWithStateMachine:PLAYER_DOCKING_AI_NAME andState:@"GLOBAL"];
+	[shipAI setOwner:self];
+	
 	[self sendMessageToScripts:@"reset"];
 }
 
@@ -1161,7 +1165,7 @@ static PlayerEntity *sSharedPlayer = nil;
 				[(ParticleEntity*)subent setColor:[OOColor colorWithCalibratedHue: sub_q.w/360.0 saturation:1.0 brightness:1.0 alpha:1.0]];
 				[(ParticleEntity*)subent setDuration: sub_q.x];
 				[(ParticleEntity*)subent setEnergy: 2.0 * sub_q.y];
-				[(ParticleEntity*)subent setSize:NSMakeSize( sub_q.z, sub_q.z)];
+				[(ParticleEntity*)subent setSize:NSMakeSize(sub_q.z, sub_q.z)];
 				[(ParticleEntity*)subent setParticleType:PARTICLE_FLASHER];
 				[(ParticleEntity*)subent setStatus:STATUS_EFFECT];
 				[(ParticleEntity*)subent setPosition:sub_pos];
@@ -1206,6 +1210,10 @@ static PlayerEntity *sSharedPlayer = nil;
 			[subent release];
 		}
 	}
+	
+	// rotating subentities
+	subentityRotationalVelocity = kIdentityQuaternion;
+	ScanQuaternionFromString([shipDict objectForKey:@"rotational_velocity"], &subentityRotationalVelocity);
 }
 
 
@@ -1290,10 +1298,10 @@ double scoopSoundPlayTime = 0.0;
 	int i;
 	// update flags
 	
-	hasMoved = ((position.x != lastPosition.x)||(position.y != lastPosition.y)||(position.z != lastPosition.z));
+	hasMoved = !vector_equal(position, lastPosition);
+	hasRotated = !quaternion_equal(orientation, lastOrientation);
 	lastPosition = position;
-	hasRotated = ((orientation.w != lastQRotation.w)||(orientation.x != lastQRotation.x)||(orientation.y != lastQRotation.y)||(orientation.z != lastQRotation.z));
-	lastQRotation = orientation;
+	lastOrientation = orientation;
 
 	if (scoopsActive)
 	{
@@ -1400,9 +1408,7 @@ double scoopSoundPlayTime = 0.0;
 		// do flight routines
 		//// velocity stuff
 		
-		position.x += delta_t * velocity.x;
-		position.y += delta_t * velocity.y;
-		position.z += delta_t * velocity.z;
+		position = vector_add(position, vector_multiply_scalar(velocity, delta_t));
 		
 		GLfloat velmag = sqrt(magnitude2(velocity));
 		if (velmag)
@@ -1952,10 +1958,25 @@ double scoopSoundPlayTime = 0.0;
 		return;
 
 	if (roll1)
-		quaternion_rotate_about_z( &orientation, -roll1);
+		quaternion_rotate_about_z(&orientation, -roll1);
 	if (climb1)
-		quaternion_rotate_about_x( &orientation, -climb1);
-
+		quaternion_rotate_about_x(&orientation, -climb1);
+	
+	/*	Bugginess may put us in a state where the orientation quat is all
+		zeros, at which point it’s impossible to move.
+	*/
+	if (EXPECT_NOT(quaternion_equal(orientation, kZeroQuaternion)))
+	{
+		if (!quaternion_equal(lastOrientation, kZeroQuaternion))
+		{
+			orientation = lastOrientation;
+		}
+		else
+		{
+			orientation = kIdentityQuaternion;
+		}
+	}
+	
     quaternion_normalize(&orientation);	// probably not strictly necessary but good to do to keep orientation sane
     quaternion_into_gl_matrix(orientation, rotMatrix);
 
@@ -1983,7 +2004,7 @@ double scoopSoundPlayTime = 0.0;
  */
 - (void) applyYaw:(GLfloat) yaw
 {
-	quaternion_rotate_about_y( &orientation, -yaw);
+	quaternion_rotate_about_y(&orientation, -yaw);
 
     quaternion_normalize(&orientation);	// probably not strictly necessary but good to do to keep orientation sane
     quaternion_into_gl_matrix(orientation, rotMatrix);
@@ -2015,9 +2036,7 @@ double scoopSoundPlayTime = 0.0;
 - (void) moveForward:(double) amount
 {
 	distanceTravelled += amount;
-	position.x += amount * v_forward.x;
-	position.y += amount * v_forward.y;
-	position.z += amount * v_forward.z;
+	position = vector_add(position, vector_multiply_scalar(v_forward, amount));
 }
 
 
@@ -2706,7 +2725,7 @@ double scoopSoundPlayTime = 0.0;
 	missiles = [self countMissiles];
 
 
-	v_eject = unit_vector( &start);
+	v_eject = unit_vector(&start);
 
 	// check if start is within bounding box...
 	while (	(start.x > boundingBox.min.x - mcr)&&(start.x < boundingBox.max.x + mcr)&&
@@ -4110,8 +4129,8 @@ double scoopSoundPlayTime = 0.0;
 		NSString*   inhabitants =		(NSString *)[targetSystemData objectForKey:KEY_INHABITANTS];
 		NSString*   system_desc =		(NSString *)[targetSystemData objectForKey:KEY_DESCRIPTION];
 
-		if ((sun_gone_nova && equal_seeds( target_system_seed, system_seed) && [[UNIVERSE sun] goneNova])||
-			(sun_gone_nova && (!equal_seeds( target_system_seed, system_seed))))
+		if ((sun_gone_nova && equal_seeds(target_system_seed, system_seed) && [[UNIVERSE sun] goneNova])||
+			(sun_gone_nova && (!equal_seeds(target_system_seed, system_seed))))
 		{
 			population = 0;
 			productivity = 0;
@@ -5875,10 +5894,10 @@ OOSound* burnersound;
 	float halfLength = 0.5 * (boundingBox.max.z - boundingBox.min.z);
 	float halfWidth = 0.5 * (boundingBox.max.x - boundingBox.min.x);
 
-	forwardViewOffset = make_vector( 0.0, 0.0, boundingBox.max.z - halfLength);
-	aftViewOffset = make_vector( 0.0, 0.0, boundingBox.min.z + halfLength);
-	portViewOffset = make_vector( boundingBox.min.x + halfWidth, 0.0, 0.0);
-	starboardViewOffset = make_vector( boundingBox.max.x - halfWidth, 0.0, 0.0);
+	forwardViewOffset = make_vector(0.0, 0.0, boundingBox.max.z - halfLength);
+	aftViewOffset = make_vector(0.0, 0.0, boundingBox.min.z + halfLength);
+	portViewOffset = make_vector(boundingBox.min.x + halfWidth, 0.0, 0.0);
+	starboardViewOffset = make_vector(boundingBox.max.x - halfWidth, 0.0, 0.0);
 	customViewOffset = kZeroVector;
 }
 
@@ -5912,10 +5931,10 @@ OOSound* burnersound;
 	float halfLength = 0.5 * (boundingBox.max.z - boundingBox.min.z);
 	float halfWidth = 0.5 * (boundingBox.max.x - boundingBox.min.x);
 
-	forwardWeaponOffset = make_vector( 0.0, -5.0, boundingBox.max.z - halfLength);
-	aftWeaponOffset = make_vector( 0.0, -5.0, boundingBox.min.z + halfLength);
-	portWeaponOffset = make_vector( boundingBox.min.x + halfWidth, -5.0, 0.0);
-	starboardWeaponOffset = make_vector( boundingBox.max.x - halfWidth, -5.0, 0.0);
+	forwardWeaponOffset = make_vector(0.0, -5.0, boundingBox.max.z - halfLength);
+	aftWeaponOffset = make_vector(0.0, -5.0, boundingBox.min.z + halfLength);
+	portWeaponOffset = make_vector(boundingBox.min.x + halfWidth, -5.0, 0.0);
+	starboardWeaponOffset = make_vector(boundingBox.max.x - halfWidth, -5.0, 0.0);
 }
 
 
@@ -6317,7 +6336,7 @@ OOSound* burnersound;
 {
 	Quaternion view_q = kIdentityQuaternion;
 	
-	quaternion_into_gl_matrix( view_q, customViewMatrix);
+	quaternion_into_gl_matrix(view_q, customViewMatrix);
 	customViewOffset = kZeroVector;
 	if (!viewDict)  return;
 	
@@ -6331,7 +6350,7 @@ OOSound* burnersound;
 	
 	Quaternion q1 = view_q;	q1.w = -q1.w;
 		
-	quaternion_into_gl_matrix( q1, customViewMatrix);
+	quaternion_into_gl_matrix(q1, customViewMatrix);
 	
 	ScanVectorFromString([viewDict objectForKey:@"view_position"], &customViewOffset);
 	customViewDescription = [viewDict objectForKey:@"view_description"];

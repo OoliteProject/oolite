@@ -591,6 +591,16 @@ void OOLoggingInit(void)
 }
 
 
+void OOLogInsertMarker(void)
+{
+	static unsigned		markerID = 0;
+	NSString			*marker = nil;
+	
+	marker = [NSString stringWithFormat:@"\n\n========== [Marker %u] ==========", ++markerID];
+	PrimitiveLog(marker);
+}
+
+
 NSString * const kOOLogSubclassResponsibility		= @"general.error.subclassResponsibility";
 NSString * const kOOLogParameterError				= @"general.error.parameterError";
 NSString * const kOOLogDeprecatedMethod				= @"general.error.deprecatedMethod";

@@ -112,6 +112,10 @@ void OOLogGenericSubclassResponsibilityForFunction(const char *inFunction);
 void OOLoggingInit(void);
 
 
+// Write a marker/separator to the log. This is two blank lines followed by a numbered horizontal rule.
+void OOLogInsertMarker(void);
+
+
 // Get/set display settings. These are stored in user defaults.
 BOOL OOLogShowApplicationName(void);
 void OOLogSetShowApplicationName(BOOL flag);

@@ -40,6 +40,7 @@ typedef struct Quaternion
 
 
 extern const Quaternion	kIdentityQuaternion;	// 1, 0, 0, 0
+extern const Quaternion	kZeroQuaternion;		// 0, 0, 0, 0
 
 
 /* Construct quaternion */

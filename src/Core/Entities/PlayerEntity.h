@@ -139,8 +139,6 @@ typedef enum
 
 #define ESCAPE_SEQUENCE_TIME			10.0
 
-#define AI_DOCKING_COMPUTER				@"dockingAI.plist"
-
 #define MS_WITCHSPACE_SF				@"[witch-to-@-in-f-seconds]"
 #define MS_GAL_WITCHSPACE_F				@"[witch-galactic-in-f-seconds]"
 
