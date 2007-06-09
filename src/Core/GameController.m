@@ -257,7 +257,7 @@ static GameController *sSharedController = nil;
 }
 
 
-#if !OOLITE_HAVE_APPKIT
+#if OOLITE_HAVE_APPKIT
 
 - (void) performGameTick:(id)userInfo
 {
@@ -305,9 +305,6 @@ static GameController *sSharedController = nil;
 
 	if (gameView != nil)  [gameView display];
 	else  OOLog(kOOLogInconsistentState, @"***** gameView not set : delta_t %f",(float)delta_t);
-	
-#if !OOLITE_HAVE_APPKIT
-	NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
 }
 
 

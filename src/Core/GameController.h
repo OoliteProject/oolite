@@ -145,8 +145,6 @@ extern int debug;
 - (void) logProgress:(NSString*) message;
 - (void) endSplashScreen;
 
-- (void) doStuff: (id)sender;
-
 - (void) startAnimationTimer;
 - (void) stopAnimationTimer;
 
