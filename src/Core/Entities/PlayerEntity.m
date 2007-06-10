@@ -76,8 +76,6 @@ static PlayerEntity *sSharedPlayer = nil;
 
 @interface PlayerEntity (OOPrivate)
 
-- (void)updateAlertCondition;
-
 @end
 
 
@@ -1347,8 +1345,6 @@ double scoopSoundPlayTime = 0.0;
 		fps_check_time = ship_clock + 0.25;
 	}
 	
-	[self updateAlertCondition];
-	
 	// scripting
 	if (script_time > script_time_check)
 	{
@@ -2564,7 +2560,7 @@ double scoopSoundPlayTime = 0.0;
 }
 
 
-- (void) updateAlertCondition
+- (OOAlertCondition) alertCondition
 {
 	int old_alert_condition = alertCondition;
 	alertCondition = ALERT_CONDITION_GREEN;
@@ -2587,11 +2583,7 @@ double scoopSoundPlayTime = 0.0;
 	
 	if (alertCondition != old_alert_condition)
 		[self sendMessageToScripts:@"alertConditionChanged"];
-}
-
-
-- (OOAlertCondition) alertCondition
-{
+	
 	return alertCondition;
 }
 
@@ -3543,8 +3535,6 @@ double scoopSoundPlayTime = 0.0;
 
 - (void) docked
 {
-//	NSMutableString	*dockingReport = [NSMutableString string];
-	
 	status = STATUS_DOCKED;
 	[UNIVERSE setViewDirection:VIEW_GUI_DISPLAY];
 
