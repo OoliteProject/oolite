@@ -299,6 +299,12 @@
 		1A34912A0BC25EAA00802DA7 /* world-scripts.plist in Copy Config */ = {isa = PBXBuildFile; fileRef = 1A3491290BC25EAA00802DA7 /* world-scripts.plist */; };
 		1A34912E0BC25EBC00802DA7 /* oolite-legacy-script.plist in Copy Scripts */ = {isa = PBXBuildFile; fileRef = 1A34912D0BC25EBC00802DA7 /* oolite-legacy-script.plist */; };
 		1A358CE20C1AB80D00E52220 /* ReadMe.rtfd in Resources */ = {isa = PBXBuildFile; fileRef = 1A358CE10C1AB80D00E52220 /* ReadMe.rtfd */; };
+		1A35916D0C1C375400E52220 /* oolite-nebula-1.png in Copy Textures */ = {isa = PBXBuildFile; fileRef = 1A3591690C1C375400E52220 /* oolite-nebula-1.png */; };
+		1A35916E0C1C375400E52220 /* oolite-star-1.png in Copy Textures */ = {isa = PBXBuildFile; fileRef = 1A35916A0C1C375400E52220 /* oolite-star-1.png */; };
+		1A35916F0C1C375400E52220 /* oolite-nebula-3.png in Copy Textures */ = {isa = PBXBuildFile; fileRef = 1A35916B0C1C375400E52220 /* oolite-nebula-3.png */; };
+		1A3591700C1C375400E52220 /* oolite-nebula-2.png in Copy Textures */ = {isa = PBXBuildFile; fileRef = 1A35916C0C1C375400E52220 /* oolite-nebula-2.png */; };
+		1A3591830C1C382700E52220 /* nebulatextures.plist in Copy Config */ = {isa = PBXBuildFile; fileRef = 1A3591810C1C382700E52220 /* nebulatextures.plist */; };
+		1A3591840C1C382700E52220 /* startextures.plist in Copy Config */ = {isa = PBXBuildFile; fileRef = 1A3591820C1C382700E52220 /* startextures.plist */; };
 		1A38B4AC0B988532001ED4A0 /* OOLogging.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A38B4AA0B988532001ED4A0 /* OOLogging.h */; };
 		1A38B4AD0B988532001ED4A0 /* OOLogging.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A38B4AB0B988532001ED4A0 /* OOLogging.m */; };
 		1A3A04620BC547DC00B5E2D9 /* OOTypes.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A3A04610BC547DC00B5E2D9 /* OOTypes.h */; };
@@ -551,6 +557,8 @@
 			dstPath = Config;
 			dstSubfolderSpec = 7;
 			files = (
+				1A3591830C1C382700E52220 /* nebulatextures.plist in Copy Config */,
+				1A3591840C1C382700E52220 /* startextures.plist in Copy Config */,
 				1A34912A0BC25EAA00802DA7 /* world-scripts.plist in Copy Config */,
 				1A2316EE0B9CFAD700EF0852 /* characters.plist in Copy Config */,
 				1A2316EF0B9CFAD700EF0852 /* commodities.plist in Copy Config */,
@@ -621,6 +629,10 @@
 			dstPath = Textures;
 			dstSubfolderSpec = 7;
 			files = (
+				1A35916D0C1C375400E52220 /* oolite-nebula-1.png in Copy Textures */,
+				1A35916E0C1C375400E52220 /* oolite-star-1.png in Copy Textures */,
+				1A35916F0C1C375400E52220 /* oolite-nebula-3.png in Copy Textures */,
+				1A3591700C1C375400E52220 /* oolite-nebula-2.png in Copy Textures */,
 				1A23185F0B9D026D00EF0852 /* adder_redux.png in Copy Textures */,
 				1A2318600B9D026D00EF0852 /* anaconda_redux.png in Copy Textures */,
 				1A2318610B9D026D00EF0852 /* arcdetail.png in Copy Textures */,
@@ -1134,6 +1146,12 @@
 		1A3491AA0BC282DE00802DA7 /* ReleaseLockProxy.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ReleaseLockProxy.h; sourceTree = "<group>"; };
 		1A3491AB0BC282DE00802DA7 /* ReleaseLockProxy.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ReleaseLockProxy.m; sourceTree = "<group>"; };
 		1A358CE10C1AB80D00E52220 /* ReadMe.rtfd */ = {isa = PBXFileReference; lastKnownFileType = wrapper.rtfd; name = ReadMe.rtfd; path = Doc/ReadMe.rtfd; sourceTree = SOURCE_ROOT; };
+		1A3591690C1C375400E52220 /* oolite-nebula-1.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "oolite-nebula-1.png"; sourceTree = "<group>"; };
+		1A35916A0C1C375400E52220 /* oolite-star-1.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "oolite-star-1.png"; sourceTree = "<group>"; };
+		1A35916B0C1C375400E52220 /* oolite-nebula-3.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "oolite-nebula-3.png"; sourceTree = "<group>"; };
+		1A35916C0C1C375400E52220 /* oolite-nebula-2.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "oolite-nebula-2.png"; sourceTree = "<group>"; };
+		1A3591810C1C382700E52220 /* nebulatextures.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist; path = nebulatextures.plist; sourceTree = "<group>"; };
+		1A3591820C1C382700E52220 /* startextures.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist; path = startextures.plist; sourceTree = "<group>"; };
 		1A38B4AA0B988532001ED4A0 /* OOLogging.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOLogging.h; sourceTree = "<group>"; };
 		1A38B4AB0B988532001ED4A0 /* OOLogging.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOLogging.m; sourceTree = "<group>"; };
 		1A3A04610BC547DC00B5E2D9 /* OOTypes.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = OOTypes.h; path = ../Core/OOTypes.h; sourceTree = "<group>"; };
@@ -1479,10 +1497,12 @@
 				1AED74C70BBA3CAA009410CD /* logcontrol.plist.xml */,
 				1A9533890C02089E004EBB58 /* material-defaults.plist */,
 				1A2316E90B9CFAD700EF0852 /* missiontext.plist */,
+				1A3591810C1C382700E52220 /* nebulatextures.plist */,
 				1A95338A0C02089E004EBB58 /* planetinfo.plist */,
 				1A2316EB0B9CFAD700EF0852 /* shipdata.plist */,
 				1A2316EC0B9CFAD700EF0852 /* shipyard.plist */,
 				1A2316ED0B9CFAD700EF0852 /* speech_pronunciation_guide.plist */,
+				1A3591820C1C382700E52220 /* startextures.plist */,
 				1A3491290BC25EAA00802DA7 /* world-scripts.plist */,
 			);
 			path = Config;
@@ -1571,6 +1591,10 @@
 				1A2318420B9D026D00EF0852 /* moray_redux1.png */,
 				1A2318430B9D026D00EF0852 /* MorayMED_bottom.png */,
 				1A2318440B9D026D00EF0852 /* MorayMED_top.png */,
+				1A3591690C1C375400E52220 /* oolite-nebula-1.png */,
+				1A35916C0C1C375400E52220 /* oolite-nebula-2.png */,
+				1A35916B0C1C375400E52220 /* oolite-nebula-3.png */,
+				1A35916A0C1C375400E52220 /* oolite-star-1.png */,
 				1A2318490B9D026D00EF0852 /* pod2_redux.png */,
 				1A23184A0B9D026D00EF0852 /* python_redux.png */,
 				1A23184B0B9D026D00EF0852 /* python_redux1.png */,

@@ -413,6 +413,10 @@ static OOColor *SaturatedColorInRange(OOColor *color1, OOColor *color2);
 									  options:kOOTextureDefaultOptions
 								   anisotropy:0.0f
 									  lodBias:-0.6f];
+		if (sStarTextures == nil)
+		{
+			[NSException raise:OOLITE_EXCEPTION_DATA_NOT_FOUND format:@"No star textures could be loaded."];
+		}
 	}
 	
 	[sStarTextures setSeed:RANROTGetFullSeed()];
@@ -429,6 +433,10 @@ static OOColor *SaturatedColorInRange(OOColor *color1, OOColor *color2);
 									  options:kOOTextureDefaultOptions
 								   anisotropy:0.0f
 									  lodBias:0.0f];
+		if (sNebulaTextures == nil)
+		{
+			[NSException raise:OOLITE_EXCEPTION_DATA_NOT_FOUND format:@"No nebula textures could be loaded."];
+		}
 	}
 	
 	[sNebulaTextures setSeed:RANROTGetFullSeed()];
