@@ -77,7 +77,11 @@ MA 02110-1301, USA.
 - (float)blueComponent;
 - (void)getRed:(float *)red green:(float *)green blue:(float *)blue alpha:(float *)alpha;
 
-/* Get the components of NSCalibratedRGB or NSDeviceRGB colors as hue, saturation, or brightness.
+/*	Get the components of NSCalibratedRGB or NSDeviceRGB colors as hue, saturation, or brightness.
+	
+	IMPORTANT: for reasons of bugwards compatibility, these return hue values
+	in the range [0, 360], but +colorWithCalibratedHue:... expects values in
+	the range [0, 1].
 */
 - (float)hueComponent;
 - (float)saturationComponent;

@@ -323,3 +323,18 @@ void LogOpenGLState()
 	//
 	OOLog(kOOLogOpenGLStateDump, @"OPENGL_DEBUG GL_FRONT_FACE :%@:", front_face_string);
 }
+
+
+void GLDebugWireframeModeOn(void)
+{
+	glPushAttrib(GL_POLYGON_BIT | GL_LINE_BIT | GL_TEXTURE_BIT);
+	glLineWidth(1.0f);
+	glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+	glDisable(GL_TEXTURE_2D);
+}
+
+
+void GLDebugWireframeModeOff(void)
+{
+	glPopAttrib();
+}

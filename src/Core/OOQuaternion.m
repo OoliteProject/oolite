@@ -169,6 +169,56 @@ Vector vector_right_from_quaternion(Quaternion quat)
 }
 
 
+void basis_vectors_from_quaternion(Quaternion quat, Vector *outRight, Vector *outUp, Vector *outForward)
+{
+    GLfloat	w, wz, wy, wx;
+    GLfloat	x, xz, xy, xx;
+    GLfloat	y, yz, yy;
+    GLfloat	z, zz;
+	
+    w = quat.w;
+    z = quat.z;
+    y = quat.y;
+    x = quat.x;
+    
+    xx = 2.0f * x; yy = 2.0f * y; zz = 2.0f * z;
+    wx = w * xx; wy = w * yy; wz = w * zz;
+    xx = x * xx; xy = x * yy; xz = x * zz;
+    yy = y * yy; yz = y * zz;
+    zz = z * zz;
+	
+	if (outRight != NULL)
+	{
+		outRight->x = 1.0f - yy - zz;
+		outRight->y = xy - wz;
+		outRight->z = xz + wy;
+
+		if (outRight->x || outRight->y || outRight->z)  *outRight = vector_normal(*outRight);
+		else  *outRight = make_vector(1.0f, 0.0f, 0.0f);
+	}
+	
+	if (outUp != NULL)
+	{
+		outUp->x = xy + wz;
+		outUp->y = 1.0f - xx - zz;
+		outUp->z = yz - wx;
+		
+		if (outUp->x || outUp->y || outUp->z)  *outRight = vector_normal(*outRight);
+		else  *outUp = make_vector(0.0f, 1.0f, 0.0f);
+	}
+	
+	if (outForward != NULL)
+	{
+		outForward->x = xz - wy;
+		outForward->y = yz + wx;
+		outForward->z = 1.0f - xx - yy;
+		
+		if (outForward->x || outForward->y || outForward->z)  *outRight = vector_normal(*outRight);
+		else  *outForward = make_vector(0.0f, 0.0f, 1.0f);
+	}
+}
+
+
 Quaternion quaternion_rotation_between(Vector v0, Vector v1)
 {
 	Quaternion q;

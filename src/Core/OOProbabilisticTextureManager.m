@@ -186,6 +186,7 @@ SOFTWARE.
 	savedSeed = RANROTGetFullSeed();
 	RANROTSetFullSeed(_seed);
 	selection = randf();
+	_seed = RANROTGetFullSeed();
 	RANROTSetFullSeed(savedSeed);
 	
 	selection *= _probMax;

@@ -1,3 +1,53 @@
+#define SKY_ENTITY_NEW	1
+
+
+#if SKY_ENTITY_NEW
+
+/*
+
+SkyEntity.h
+
+Entity subclass implementing the game backdrop of stars and nebulae.
+
+Oolite
+Copyright (C) 2004-2007 Giles C Williams and contributors
+
+This program is free software; you can redistribute it and/or
+modify it under the terms of the GNU General Public License
+as published by the Free Software Foundation; either version 2
+of the License, or (at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program; if not, write to the Free Software
+Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
+MA 02110-1301, USA.
+
+*/
+
+#import "OOEntityWithDrawable.h"
+
+@class OOColor;
+
+
+@interface SkyEntity: OOEntityWithDrawable
+{
+	OOColor					*sky_color;
+}
+
+- (id) initWithColors:(OOColor *) col1:(OOColor *) col2 andSystemInfo:(NSDictionary *) systeminfo;
+- (id) initAsWitchspace;
+
+- (OOColor *) sky_color;
+
+@end
+
+#else	// SKY_ENTITY_NEW
+
 /*
 
 SkyEntity.h
@@ -73,3 +123,5 @@ typedef struct
 - (OOColor *) sky_color;
 
 @end
+
+#endif	// SKY_ENTITY_NEW

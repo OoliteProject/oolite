@@ -58,6 +58,8 @@ SOFTWARE.
 #define SKY_ELEMENT_SCALE_FACTOR		(BILLBOARD_DEPTH / 500.0f)
 #define NEBULA_SHUFFLE_FACTOR			0.005f
 
+BOOL		gSkyWireframe = NO;
+
 
 /*	Struct used to describe quads initially. This form is optimized for
 	reasoning about.
@@ -147,10 +149,12 @@ static OOColor *SaturatedColorInRange(OOColor *color1, OOColor *color2);
 	_starCount = starCount;
 	_nebulaCount = nebulaCount;
 	
+	OOLog(@"stars.temp", @"Generating %u stars, %u nebulae; cluster:%g, alpha:%g, scale:%g", _starCount, _nebulaCount, nebulaClusterFactor, nebulaAlpha, nebulaScale);
+	
 	pool = [[NSAutoreleasePool alloc] init];
 	[self setUpStarsWithColor1:color1 color2:color2];
 	
-	if (0 && ![UNIVERSE reducedDetail])
+	if (![UNIVERSE reducedDetail])
 	{
 		[self setUpNebulaeWithColor1:color1
 							  color2:color2
@@ -186,6 +190,9 @@ static OOColor *SaturatedColorInRange(OOColor *color1, OOColor *color2);
 	glDepthMask(GL_FALSE);		// don't write to depth buffer
 	glDisable(GL_CULL_FACE);
 	
+	glEnable(GL_TEXTURE_2D);
+	if (gSkyWireframe)  GLDebugWireframeModeOn();
+	
 	if (_displayListName != 0)
 	{
 		glCallList(_displayListName);
@@ -197,7 +204,6 @@ static OOColor *SaturatedColorInRange(OOColor *color1, OOColor *color2);
 		_displayListName = glGenLists(1);
 		glNewList(_displayListName, GL_COMPILE);
 		
-		glEnable(GL_TEXTURE_2D);
 		glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
 		glBlendFunc(GL_ONE, GL_ONE);	// Pure additive blending, ignoring alpha
 		
@@ -210,11 +216,13 @@ static OOColor *SaturatedColorInRange(OOColor *color1, OOColor *color2);
 		
 		[_quadSets makeObjectsPerformSelector:@selector(render)];
 		
-		glDisable(GL_TEXTURE_2D);
 		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);	// Basic alpha blending
 		
 		glEndList();
 	}
+	
+	if (gSkyWireframe)  GLDebugWireframeModeOff();
+	glDisable(GL_TEXTURE_2D);
 	
 	// Restore state
 	glEnable(GL_CULL_FACE);
@@ -246,7 +254,7 @@ static OOColor *SaturatedColorInRange(OOColor *color1, OOColor *color2);
 	unsigned			i;
 	Quaternion			q;
 	Vector				vi, vj, vk;
-	double				size;
+	float				size;
 	Vector				middle, offset;
 	
 	[self loadStarTextures];
@@ -263,20 +271,22 @@ static OOColor *SaturatedColorInRange(OOColor *color1, OOColor *color2);
 		
 		// Select a direction and rotation.
 		q = OORandomQuaternion();
-		vi = vector_right_from_quaternion(q);
-		vj = vector_up_from_quaternion(q);
-		vk = vector_forward_from_quaternion(q);
+		basis_vectors_from_quaternion(q, &vi, &vj, &vk);
 		
 		// Select scale; calculate centre position and offset to first corner.
 		size = (1 + (ranrot_rand() % 6)) * SKY_ELEMENT_SCALE_FACTOR;
 		middle = vector_multiply_scalar(vk, BILLBOARD_DEPTH);
 		offset = vector_multiply_scalar(vector_add(vi, vj), 0.5f * size);
 		
+		// Scale the "side" vectors.
+		Vector vj2 = vector_multiply_scalar(vj, size);
+		Vector vi2 = vector_multiply_scalar(vi, size);
+		
 		// Set up corners.
 		currQuad->corners[0] = vector_subtract(middle, offset);
-		currQuad->corners[1] = vector_add(currQuad->corners[0], vector_multiply_scalar(vj, size));
-		currQuad->corners[2] = vector_add(currQuad->corners[1], vector_multiply_scalar(vi, size));
-		currQuad->corners[1] = vector_add(currQuad->corners[0], vector_multiply_scalar(vi, size));
+		currQuad->corners[1] = vector_add(currQuad->corners[0], vj2);
+		currQuad->corners[2] = vector_add(currQuad->corners[1], vi2);
+		currQuad->corners[3] = vector_add(currQuad->corners[0], vi2);
 		
 		++currQuad;
 	}
@@ -293,19 +303,17 @@ static OOColor *SaturatedColorInRange(OOColor *color1, OOColor *color2);
 						 scale:(float)nebulaScale
 {
 	OOSkyQuadDesc		*quads = NULL, *currQuad = NULL;
-	unsigned			i, skipped = 0;
+	unsigned			i, actualCount = 0, clusters = 0;
 	OOColor				*color;
 	Quaternion			q;
 	Vector				vi, vj, vk;
-	double				size;
+	double				size, r2;
 	Vector				middle, offset;
 	int					r1;
 	
 	[self loadNebulaTextures];
 	
-	[self loadStarTextures];
-	
-	quads = malloc(sizeof *quads * _starCount);
+	quads = malloc(sizeof *quads * _nebulaCount);
 	if (quads == NULL)  return;
 	
 	currQuad = quads;
@@ -328,15 +336,35 @@ static OOColor *SaturatedColorInRange(OOColor *color1, OOColor *color2);
 			currQuad->texture = [sNebulaTextures selectTexture];	// Not retained, since sStarTextures is never released.
 			
 			// Calculate centre position and offset to first corner.
-			vk = vector_forward_from_quaternion(q);
+			basis_vectors_from_quaternion(q, &vi, &vj, &vk);
 			middle = vector_multiply_scalar(vk, BILLBOARD_DEPTH);
 			offset = vector_multiply_scalar(vector_add(vi, vj), 0.5f * size);
 			
+			// Rotate vi and vj by a random angle
+			r2 = randf() * M_PI * 2.0;
+			quaternion_rotate_about_axis(&q, vk, r2);
+			vi = vector_right_from_quaternion(q);
+			vj = vector_up_from_quaternion(q);
+			
+			#if 1
+			// Scale the "side" vectors.
+			vj = vector_multiply_scalar(vj, size);
+			vi = vector_multiply_scalar(vi, size);
+			
 			// Set up corners.
 			currQuad->corners[0] = vector_subtract(middle, offset);
-			currQuad->corners[1] = vector_add(currQuad->corners[0], vector_multiply_scalar(vj, size));
-			currQuad->corners[2] = vector_add(currQuad->corners[1], vector_multiply_scalar(vi, size));
-			currQuad->corners[1] = vector_add(currQuad->corners[0], vector_multiply_scalar(vi, size));
+			currQuad->corners[1] = vector_add(currQuad->corners[0], vj);
+			currQuad->corners[2] = vector_add(currQuad->corners[1], vi);
+			currQuad->corners[3] = vector_add(currQuad->corners[0], vi);
+			#else
+			// Set up corners.
+			vj = vector_multiply_scalar(vj, size);
+			Vector vi2 = vector_multiply_scalar(vi, size);
+			currQuad->corners[0] = vector_subtract(middle, offset);
+			currQuad->corners[1] = vector_add(currQuad->corners[0], vj);
+			currQuad->corners[2] = vector_add(currQuad->corners[1], vi2);
+			currQuad->corners[3] = vector_add(currQuad->corners[0], vi2);
+			#endif
 			
 			// Shuffle direction quat around a bit to spread the cluster out.
 			size = NEBULA_SHUFFLE_FACTOR / (nebulaScale * SKY_ELEMENT_SCALE_FACTOR);
@@ -348,17 +376,20 @@ static OOColor *SaturatedColorInRange(OOColor *color1, OOColor *color2);
 			
 			++i;
 			++currQuad;
+			++actualCount;
 		}
-		
-		++skipped;
+		++clusters;
 	}
+	
+	OOLog(@"sky.blobs.counts", @"Generated %u blobs in %u clusters, nominal count %u", actualCount, clusters, _nebulaCount);
 	
 	/*	The above code generates less than _nebulaCount quads, because i is
 		incremented once in the outer loop as well as in the inner loop. To
-		keep skies looking the same, we leave the bug in and compensate for
-		it here.
+		keep skies looking the same, we leave the bug in and fill in the
+		actual generated count here.
 	*/
-	_nebulaCount -= skipped;
+	assert(actualCount <= _nebulaCount);
+	_nebulaCount = actualCount;
 	
 	[self addQuads:quads count:_nebulaCount];
 	free(quads);
@@ -466,6 +497,7 @@ static OOColor *SaturatedColorInRange(OOColor *color1, OOColor *color2);
 	GLfloat					*tc;
 	GLfloat					*col;
 	GLfloat					r, g, b;
+	size_t					posSize, tcSize, colSize;
 	
 	self = [super init];
 	if (self == nil)  OK = NO;
@@ -484,11 +516,17 @@ static OOColor *SaturatedColorInRange(OOColor *color1, OOColor *color2);
 	{
 		// Allocate arrays.
 		vertexCount = _count * 4;
-		_positions = malloc(sizeof *_positions * vertexCount * kSkyQuadSetPositionEntriesPerVertex);
-		_texCoords = malloc(sizeof *_texCoords * vertexCount * kSkyQuadSetTexCoordEntriesPerVertex);
-		_colors = malloc(sizeof *_colors * vertexCount * kSkyQuadSetColorEntriesPerVertex);
+		posSize = sizeof *_positions * vertexCount * kSkyQuadSetPositionEntriesPerVertex;
+		tcSize = sizeof *_texCoords * vertexCount * kSkyQuadSetTexCoordEntriesPerVertex;
+		colSize = sizeof *_colors * vertexCount * kSkyQuadSetColorEntriesPerVertex;
+		
+		_positions = malloc(posSize);
+		_texCoords = malloc(tcSize);
+		_colors = malloc(colSize);
 		
 		if (_positions == NULL || _texCoords == NULL || _colors == NULL)  OK = NO;
+		
+		OOLog(@"sky.set.temp", @"Creating quad set with %u entries out of %u (%u vertices); pos buffer size: %u, tc buffer size: %u, col buffer size: %u", _count, totalCount, vertexCount, posSize, tcSize, colSize);
 		
 		pos = _positions;
 		tc = _texCoords;
@@ -534,6 +572,12 @@ static OOColor *SaturatedColorInRange(OOColor *color1, OOColor *color2);
 				*tc++ = 1.0f;
 			}
 		}
+		
+		_texture = [texture retain];
+		
+		if ((char *)pos - (char *)_positions != posSize)  OOLog(@"sky.bug", @"***** Expected to use %u bytes for pos data, used %u.", posSize, (char *)pos - (char *)_positions);
+		if ((char *)tc - (char *)_texCoords != tcSize)  OOLog(@"sky.bug", @"***** Expected to use %u bytes for tc data, used %u.", tcSize, (char *)tc - (char *)_texCoords);
+		if ((char *)col - (char *)_colors != colSize)  OOLog(@"sky.bug", @"***** Expected to use %u bytes for col data, used %u.", colSize, (char *)tc - (char *)_colors);
 	}
 	
 	if (!OK)
@@ -548,6 +592,8 @@ static OOColor *SaturatedColorInRange(OOColor *color1, OOColor *color2);
 
 - (void)dealloc
 {
+	OOLog(@"sky.set.dealloc", @"Deallocating %@", self);
+	
 	[_texture release];
 	
 	if (_positions != NULL)  free(_positions);
@@ -580,6 +626,13 @@ static OOColor *SaturatedColorInRange(OOColor *color1, OOColor *color2);
 
 static OOColor *SaturatedColorInRange(OOColor *color1, OOColor *color2)
 {
+#if 0
+	// DEBUG
+	static OOColor *green = nil;
+	if (!green) green = [[OOColor greenColor] retain];
+	return green;
+#endif
+	
 	OOColor				*color = nil;
 	float				hue, saturation, brightness, alpha;
 	
@@ -588,5 +641,9 @@ static OOColor *SaturatedColorInRange(OOColor *color1, OOColor *color2)
 	
 	saturation = 0.5 * saturation + 0.5;	// move saturation up a notch!
 	
+	/*	NOTE: this changes the hue, because getHue:... produces hue values
+		in [0, 360], but colorWithCalibratedHue:... takes hue values in
+		[0, 1].
+	*/
 	return [OOColor colorWithCalibratedHue:hue saturation:saturation brightness:brightness alpha:alpha];
 }

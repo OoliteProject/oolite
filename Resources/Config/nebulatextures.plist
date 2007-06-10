@@ -1,0 +1,11 @@
+(
+	"oolite-nebula-1.png",	// Default probability: 1.0
+	{
+		texture = "oolite-nebula-2.png";
+		probability = 0.5;
+	},
+	{
+		texture = "oolite-nebula-3.png";
+		probability = 0.1;
+	}
+)

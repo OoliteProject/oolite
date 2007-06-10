@@ -118,7 +118,7 @@ extern int debug;
 	
 	Vector					relativePosition;
 	
-	Entity*					collider;
+	Entity					*collider;
 	
 	CollisionRegion			*collisionRegion;		// initially nil - then maintained
 	
@@ -128,7 +128,6 @@ extern int debug;
 	
 	GLfloat					distanceTravelled;		// set to zero initially
 	
-//	Matrix					rotation;
 	gl_matrix				rotMatrix;
     
 	Vector					velocity;

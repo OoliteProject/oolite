@@ -1,3 +1,221 @@
+#import "SkyEntity.h"
+
+#if SKY_ENTITY_NEW
+
+/*
+
+SkyEntity.m
+
+Oolite
+Copyright (C) 2004-2007 Giles C Williams and contributors
+
+This program is free software; you can redistribute it and/or
+modify it under the terms of the GNU General Public License
+as published by the Free Software Foundation; either version 2
+of the License, or (at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program; if not, write to the Free Software
+Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
+MA 02110-1301, USA.
+
+*/
+
+
+#import "SkyEntity.h"
+#import "OOSkyDrawable.h"
+#import "PlayerEntity.h"
+
+#import "OOMaths.h"
+#import "Universe.h"
+#import "MyOpenGLView.h"
+#import "OOColor.h"
+#import "OOStringParsing.h"
+#import "OOCollectionExtractors.h"
+
+
+#define SKY_MAX_STARS				4800
+#define SKY_MAX_BLOBS				1280
+#define SKY_clusterChance		0.80
+#define SKY_alpha				0.10
+#define SKY_scale				10.0
+
+
+@interface SkyEntity (OOPrivate)
+
+- (void)readColor1:(OOColor **)ioColor1 andColor2:(OOColor **)ioColor2 fromDictionary:(NSDictionary *)dictionary;
+
+@end
+
+
+@implementation SkyEntity
+
+- (id) initWithColors:(OOColor *) col1:(OOColor *) col2 andSystemInfo:(NSDictionary *) systemInfo
+{
+	OOSkyDrawable			*skyDrawable;
+	float					clusterChance,
+							alpha,
+							scale;
+	signed					starCount,	// Need to be able to hold -1...
+							nebulaCount;
+	
+    self = [super init];
+	if (self == nil)  return nil;
+	
+	// Load colours
+	[self readColor1:&col1 andColor2:&col2 fromDictionary:systemInfo];
+	sky_color = [[col2 blendedColorWithFraction:0.5 ofColor:col1] retain];
+	
+	// Load distribution values
+	clusterChance = [systemInfo floatForKey:@"sky_blur_cluster_chance" defaultValue:SKY_clusterChance];
+	alpha = [systemInfo floatForKey:@"sky_blur_alpha" defaultValue:SKY_alpha];
+	scale = [systemInfo floatForKey:@"sky_blur_scale" defaultValue:SKY_scale];
+	
+	// Load star count
+	starCount = [systemInfo floatForKey:@"sky_n_stars" defaultValue:-1];
+	if (0 <= starCount)
+	{
+		starCount = MIN(SKY_MAX_STARS, starCount);
+	}
+	else
+	{
+		starCount = SKY_MAX_STARS * 0.5 * randf() * randf();
+	}
+	
+	// ...and sky count. (Note: simplifying this would change the appearance of stars/blobs.)
+	nebulaCount = [systemInfo floatForKey:@"sky_n_blurs" defaultValue:-1];
+	if (0 <= nebulaCount)
+	{
+		nebulaCount = MIN(SKY_MAX_BLOBS, starCount);
+	}
+	else
+	{
+		nebulaCount = SKY_MAX_BLOBS * 0.5 * randf() * randf();
+	}
+	
+	skyDrawable = [[OOSkyDrawable alloc]
+						initWithColor1:col1
+								Color2:col2
+							 starCount:starCount
+						   nebulaCount:nebulaCount
+						 clusterFactor:clusterChance
+								 alpha:alpha
+								 scale:scale];
+	[self setDrawable:skyDrawable];
+	[skyDrawable release];
+	
+    status = STATUS_EFFECT;
+	isSky = YES;
+	
+    return self;
+}
+
+
+- (id) initAsWitchspace
+{
+	NSDictionary *info = [[UNIVERSE planetinfo] objectForKey:@"interstellar space!"];
+	
+	return [self initWithColors:nil :nil andSystemInfo:info];
+}
+
+
+- (void) dealloc
+{
+	[sky_color release];
+	
+	[super dealloc];
+}
+
+
+- (OOColor *) sky_color
+{
+	return sky_color;
+}
+
+
+- (void) update:(double) delta_t
+{
+	PlayerEntity *player = [PlayerEntity sharedPlayer];
+	zero_distance = MAX_CLEAR_DEPTH * MAX_CLEAR_DEPTH;
+	if (player != nil)  position = player->position;
+}
+
+
+- (BOOL) canCollide
+{
+	return NO;
+}
+
+
+- (void) drawEntity:(BOOL) immediate :(BOOL) translucent
+{
+	if ([UNIVERSE breakPatternHide])  return;
+	
+	[super drawEntity:immediate :translucent];
+	
+	CheckOpenGLErrors(@"SkyEntity after drawing %@", self);
+}
+
+@end
+
+
+@implementation SkyEntity (OOPrivate)
+
+- (void)readColor1:(OOColor **)ioColor1 andColor2:(OOColor **)ioColor2 fromDictionary:(NSDictionary *)dictionary
+{
+	NSString			*string = nil;
+	NSArray				*tokens = nil;
+	id					colorDesc = nil;
+	OOColor				*color = nil;
+	
+	assert(ioColor1 != NULL && ioColor2 != NULL);
+	
+	string = [dictionary stringForKey:@"sky_rgb_colors"];
+	if (string != nil)
+	{
+		tokens = ScanTokensFromString(string);
+		
+		if ([tokens count] == 6)
+		{
+			float r1 = [tokens floatAtIndex:0];
+			float g1 = [tokens floatAtIndex:1];
+			float b1 = [tokens floatAtIndex:2];
+			float r2 = [tokens floatAtIndex:3];
+			float g2 = [tokens floatAtIndex:4];
+			float b2 = [tokens floatAtIndex:5];
+			*ioColor1 = [OOColor colorWithCalibratedRed:r1 green:g1 blue:b1 alpha:1.0];
+			*ioColor2 = [OOColor colorWithCalibratedRed:r2 green:g2 blue:b2 alpha:1.0];
+		}
+		else
+		{
+			OOLog(@"sky.fromDict", @"ERROR: could not interpret \"%@\" as two RGB colours (must be six numbers).", string);
+		}
+	}
+	colorDesc = [dictionary objectForKey:@"sky_color_1"];
+	if (colorDesc != nil)
+	{
+		color = [[OOColor colorWithDescription:colorDesc] premultipliedColor];
+		if (color != nil)  *ioColor1 = color;
+		else  OOLog(@"sky.fromDict", @"ERROR: could not interpret \"%@\" as a colour.", colorDesc);
+	}
+	colorDesc = [dictionary objectForKey:@"sky_color_2"];
+	if (colorDesc != nil)
+	{
+		color = [[OOColor colorWithDescription:colorDesc] premultipliedColor];
+		if (color != nil)  *ioColor2 = color;
+		else  OOLog(@"sky.fromDict", @"ERROR: could not interpret \"%@\" as a colour.", colorDesc);
+	}
+}
+
+@end
+
+#else	// SKY_ENTITY_NEW
+
 /*
 
 SkyEntity.m
@@ -109,6 +327,8 @@ static OOTexture		*sStarTexture, *sBlobTexture;
 	{
 		n_blobs = SKY_MAX_BLOBS * 0.5 * randf() * randf();
 	}
+	
+	OOLog(@"stars.temp", @"Generating %u stars, %u nebulae; cluster:%g, alpha:%g, scale:%g", n_stars, n_blobs, blob_cluster_chance, blob_alpha, blob_scale);
 	
 	// init stars and blobs
 	[self setUpStarsWithColor1:col1 color2:col2];
@@ -408,6 +628,7 @@ static OOTexture		*sStarTexture, *sBlobTexture;
 	GLfloat		blob_color[n_blobs][4];
 	Vector		blob_quad[4][n_blobs];
 	int			i;
+	unsigned	actualCount = 0, clusters = 0;
 	OOColor		*blendedColor = nil;
 	float		hu, sa, br, al;
 	Quaternion	q;
@@ -496,8 +717,12 @@ static OOTexture		*sStarTexture, *sBlobTexture;
 			q.w += p_size * blob_scale_prime * (randf() - 0.5);
 			quaternion_normalize(&q);
 			i++;
+			actualCount++;
 		}
+		clusters++;
 	}
+	
+	OOLog(@"sky.blobs.counts", @"Generated %u blobs in %u clusters, nominal count %u", actualCount, clusters, n_blobs);
 }
 
 
@@ -578,3 +803,7 @@ static OOTexture		*sStarTexture, *sBlobTexture;
 }
 
 @end
+
+
+#endif	// SKY_ENTITY_NEW
+

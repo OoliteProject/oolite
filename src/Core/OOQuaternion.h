@@ -73,6 +73,8 @@ Vector vector_forward_from_quaternion(Quaternion quat) CONST_FUNC;
 Vector vector_up_from_quaternion(Quaternion quat) CONST_FUNC;
 Vector vector_right_from_quaternion(Quaternion quat) CONST_FUNC;
 
+void basis_vectors_from_quaternion(Quaternion quat, Vector *outRight, Vector *outUp, Vector *outForward);
+
 /* produce a quaternion representing an angle between two vectors. Assumes the vectors are normalized. */
 Quaternion quaternion_rotation_between(Vector v0, Vector v1) CONST_FUNC;
 

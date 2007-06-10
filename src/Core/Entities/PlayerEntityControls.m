@@ -1102,11 +1102,11 @@ static  BOOL	taking_snapshot;
 	}
 
 #if OOLITE_WINDOWS
-          if ( ([gameView isDown:'Q']) )
-          {
-                  [[gameView gameController] exitApp];
-                  exit(0); // Force it
-          }
+	if ( ([gameView isDown:'Q']) )
+	{
+		  [[gameView gameController] exitApp];
+		  exit(0); // Force it
+	}
 #endif
 
 	//
@@ -1159,7 +1159,7 @@ static  BOOL	taking_snapshot;
 	//
 	// Mouse control
 	//
-//	if ([[gameView gameController] inFullScreenMode])
+	if ([[gameView gameController] inFullScreenMode])
 	{
 		if ([gameView isDown:key_mouse_control])   //  'M' key
 		{

@@ -92,3 +92,13 @@ BOOL CheckOpenGLErrors(NSString *format, ...);
 	Write a bunch of OpenGL state information to the log.
 */
 void LogOpenGLState(void);
+
+
+/*	GLDebugWireframeModeOn()
+	GLDebugWireframeModeOff()
+	Enable/disable debug wireframe mode. In debug wireframe mode, the polygon
+	mode is set to GL_LINE, textures are disabled and the line size is set to
+	1 pixel.
+*/
+void GLDebugWireframeModeOn(void);
+void GLDebugWireframeModeOff(void);
