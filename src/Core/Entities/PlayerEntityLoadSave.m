@@ -810,8 +810,9 @@ MA 02110-1301, USA.
 	[UNIVERSE removeDemoShips];
 	NSDictionary *cdr=[cdrDetailArray objectAtIndex: cdrArrayIndex];
 	
-	[gui setText:@"" forRow:CDRDESCROW align:GUI_ALIGN_LEFT]; 
-	[gui setText:@"" forRow:CDRDESCROW + 1 align:GUI_ALIGN_LEFT]; 
+	[gui setText:@"" forRow:CDRDESCROW align:GUI_ALIGN_LEFT];
+	[gui setText:@"" forRow:CDRDESCROW + 1 align:GUI_ALIGN_LEFT];
+	[gui setText:@"" forRow:CDRDESCROW + 2 align:GUI_ALIGN_LEFT];
 	
 	if ([cdr objectForKey:@"isFolder"])
 	{
