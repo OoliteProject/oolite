@@ -1,0 +1,31 @@
+#!/bin/sh
+#
+# Quick and dirty patching script.
+# Copyright (C) 2007 Chris Crowther <hikari@hikari.org.uk>
+#
+# $Id$
+#
+PATCHES="01_oolite.desktop.patch"
+FLAGS=""
+
+while getopts ":R" option
+do
+	case $option in
+	R)
+		if test -f patch; then
+			echo "Patches have been applied: reversing."
+			export FLAGS="$FLAGS -R";
+		else
+			echo "Patches have not been applied: not reversing."
+			exit 0;
+		fi
+	;;
+	esac
+done
+
+echo "Using patch flags: $FLAGS"
+
+for PATCH in $PATCHES; do
+ patch $FLAGS -p0 < debian/patches/$PATCH
+done;
+

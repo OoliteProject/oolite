@@ -1,0 +1,4 @@
+oolite (1.69-1) testing; urgency=low
+  * Initial creation of debian build rules.
+  * Fixed missing libpng and libmozjs hooks for the Linux build.
+ -- Chris Crowther <hikari@hikari.org.uk>  Mon, 11 Jun 2007 10:50:06 +0100

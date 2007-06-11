@@ -1,0 +1,79 @@
+#!/usr/bin/make -f
+#
+# Ubuntu/Debian build rules file for OOlite
+# Copyright (c) 2007 Chris Crowther <hikari@hikari.org.uk>
+#
+# Based on the exemplar hello project.
+#
+# $Id$
+
+package=oolite
+docdir=debian/tmp/usr/share/doc/$(package)
+
+patch:
+	debian/apply-patches
+	touch patch
+
+unpatch:
+	debian/apply-patches -R
+	rm -f patch
+
+build: patch
+	. /usr/lib/GNUstep/System/Tools/GNUstep.sh; $(MAKE)
+	touch build
+
+clean: unpatch
+	rm -f build
+	. /usr/lib/GNUstep/System/Tools/GNUstep.sh; $(MAKE) distclean
+	rm -rf *~ debian/tmp debian/*~ debian/files* debian/substvars
+
+# Build target for the application binary
+binary-indep: checkroot build
+	rm -rf debian/tmp
+	install -d debian/tmp/DEBIAN $(docdir)
+
+	# Documentation
+	cp -a debian/changelog $(docdir)/changelog.Debian
+	cp -a Doc/ $(docdir)
+
+	# Application binary
+	mkdir -p debian/tmp/usr/lib/GNUstep/Local/Applications/oolite.app
+	cp -a oolite.app/oolite debian/tmp/usr/lib/GNUstep/Local/Applications/oolite.app
+	mkdir -p debian/tmp/usr/share/applications
+	cp -a FreeDesktop/oolite.desktop debian/tmp/usr/share/applications
+	mkdir -p debian/tmp/usr/share/icons
+	cp -a FreeDesktop/oolite-icon.png debian/tmp/usr/share/icons
+
+	# dpkg stuff
+	dpkg-shlibdeps debian/tmp/usr/lib/GNUstep/Local/Applications/oolite.app/oolite
+	dpkg-gencontrol -poolite
+	chown -R root:root debian/tmp
+	chmod -R u+w,go=rX debian/tmp
+	dpkg --build debian/tmp ..
+
+# Build target for the data package
+data-indep: checkroot build
+	rm -rf debian/tmp
+
+	install -d debian/tmp/DEBIAN $(docdir)-data
+
+	# Documentation
+	cp -a debian/changelog $(docdir)-data/changelog.Debian
+	cp -a oolite.app/Resources/README.TXT $(docdir)-data
+
+	# Application Data
+	mkdir -p debian/tmp/usr/lib/GNUstep/Local/Applications/oolite.app
+	cp -a oolite.app/Resources debian/tmp/usr/lib/GNUstep/Local/Applications/oolite.app
+
+	# dpkg stuff
+	dpkg-gencontrol -poolite-data
+	chown -R root:root debian/tmp
+	chmod -R u+w,go=rX debian/tmp
+	dpkg --build debian/tmp ..
+
+binary: binary-indep binary-arch data-indep data-arch
+
+checkroot:
+        test $$(id -u) = 0
+
+.PHONY: binary binary-arch binary-indep clean checkroot data-indep data-arch
