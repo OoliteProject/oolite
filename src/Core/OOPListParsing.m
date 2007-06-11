@@ -30,7 +30,7 @@ MA 02110-1301, USA.
 #import <string.h>
 
 
-#if defined GNUSTEP
+#if !OOLITE_GNUSTEP
 #define NO_DYNAMIC_PLIST_DTD_CHANGE
 #endif
 
@@ -186,7 +186,9 @@ static NSData *ChangeDTDIfApplicable(NSData *data)
 */
 static NSData *CopyDataFromFile(NSString *path)
 {
-	#ifdef GNUSTEP
+	#ifdef OOLITE_MAC_OS_X
+		return [[NSData alloc] initWithContentsOfMappedFile:path];
+	#else
 		NSFileManager	*fmgr = [NSFileManager defaultManager];
 		BOOL			dir;
 		
@@ -203,8 +205,6 @@ static NSData *CopyDataFromFile(NSString *path)
 		}
 		
 		return nil;
-	#else
-		return [[NSData alloc] initWithContentsOfMappedFile:path];
 	#endif
 }
 

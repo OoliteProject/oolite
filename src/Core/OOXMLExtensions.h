@@ -29,45 +29,13 @@ MA 02110-1301, USA.
 
 */
 
+
 #import <Foundation/Foundation.h>
-#import <Foundation/NSString.h>
 
 /* interfaces */
 
-#if OO_USE_CUSTOM_EXPORTER
-
-@interface NSString (OOXMLExtensions)
-
-- (NSString *) OOXMLencodedString;
-- (NSString *) OOXMLdescription;
-
-@end
-
-@interface NSNumber (OOXMLExtensions)
-
-- (NSString *) OOXMLdescription;
-
-@end
-
-@interface NSArray (OOXMLExtensions)
-
-- (NSString *) OOXMLdescription;
-
-@end
-
-@interface NSDictionary (OOXMLExtensions)
-
-- (NSString *) OOXMLdescription;
-- (BOOL) writeOOXMLToFile:(NSString *)path atomically:(BOOL)flag errorDescription:(NSString **)outErrorDesc;
-
-@end
-
-#else	// !OO_USE_CUSTOM_EXPORTER
-
 @interface NSDictionary (OOXMLExtensions)
 
 - (BOOL) writeOOXMLToFile:(NSString *)path atomically:(BOOL)flag errorDescription:(NSString **)outErrorDesc;
 
 @end
-
-#endif
