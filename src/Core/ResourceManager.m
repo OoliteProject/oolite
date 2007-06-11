@@ -111,13 +111,13 @@ static NSMutableDictionary *string_cache;
 
 + (NSString *)builtInPath
 {
-#if OOLITE_HAVE_APPKIT
-	return [[NSBundle mainBundle] resourcePath];
-#else
-	/*	[[NSBundle mainBundle] resourcePath] causes complaints under GNUstep,
+#if OOLITE_WINDOWS
+	/*	[[NSBundle mainBundle] resourcePath] causes complaints under Windows,
 		because we don't have a properly-built bundle.
 	*/
 	return @"oolite.app/Resources";
+#else
+	return [[NSBundle mainBundle] resourcePath];
 #endif
 }
 
