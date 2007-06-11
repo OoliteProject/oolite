@@ -85,25 +85,24 @@ static NSMutableDictionary *string_cache;
 	
 	if (sRootPaths == nil)
 	{
-#if OOLITE_WINDOWS
-		NSString	*app_addon_path = @"AddOns";
-		NSString	*appsupport_path=nil;
-		NSString	*nix_path=nil;
-#else
-		NSString*	app_addon_path = [[[[NSBundle mainBundle] bundlePath]
+#if OOLITE_MAC_OS_X
+		NSString	*app_addon_path = [[[[NSBundle mainBundle] bundlePath]
 									stringByDeletingLastPathComponent]
 									stringByAppendingPathComponent:@"AddOns"];
-		NSString*	appsupport_path = [[[[NSHomeDirectory()
+		NSString	*appsupport_path = [[[[NSHomeDirectory()
 										stringByAppendingPathComponent:@"Library"]
 										stringByAppendingPathComponent:@"Application Support"]
 										stringByAppendingPathComponent:@"Oolite"]
 										stringByAppendingPathComponent:@"AddOns"];
-		NSString*	nix_path = [[NSHomeDirectory()
+#else
+		NSString	*app_addon_path = @"AddOns";
+		NSString	*appsupport_path = nil;
+#endif
+		NSString	*nix_path = [[NSHomeDirectory()
 								stringByAppendingPathComponent:@".Oolite"]
 								stringByAppendingPathComponent:@"AddOns"];
-#endif
-			
-		sRootPaths = [[NSArray alloc] initWithObjects:[self builtInPath], app_addon_path, appsupport_path, nix_path, nil];
+		
+		sRootPaths = [[NSArray alloc] initWithObjects:[self builtInPath], app_addon_path, nix_path, appsupport_path, nil];
 	}
 	
 	return sRootPaths;
@@ -112,19 +111,13 @@ static NSMutableDictionary *string_cache;
 
 + (NSString *)builtInPath
 {
-#if OOLITE_WINDOWS
-	return @"oolite.app/Resources";
+#if OOLITE_HAVE_APPKIT
+	return [[NSBundle mainBundle] resourcePath];
 #else
-	static NSString *sBuiltInPath = nil;
-	
-	if (sBuiltInPath == nil)
-	{
-		sBuiltInPath = [[[[[NSBundle mainBundle] bundlePath]
-							stringByAppendingPathComponent:@"Contents"]
-							stringByAppendingPathComponent:@"Resources"] retain];
-	}
-	
-	return sBuiltInPath;
+	/*	[[NSBundle mainBundle] resourcePath] causes complaints under GNUstep,
+		because we don't have a properly-built bundle.
+	*/
+	return @"oolite.app/Resources";
 #endif
 }
 
