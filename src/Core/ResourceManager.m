@@ -98,9 +98,15 @@ static NSMutableDictionary *string_cache;
 		NSString	*app_addon_path = @"AddOns";
 		NSString	*appsupport_path = nil;
 #endif
-		NSString	*nix_path = [[NSHomeDirectory()
-								stringByAppendingPathComponent:@".Oolite"]
-								stringByAppendingPathComponent:@"AddOns"];
+		NSString	*nix_path = nil;
+#if !OOLITE_WINDOWS
+		/*	Enabling this path in Windows causes a log message, and it's not
+			actually useful.
+		*/
+		nix_path = [[NSHomeDirectory()
+					stringByAppendingPathComponent:@".Oolite"]
+					stringByAppendingPathComponent:@"AddOns"];
+#endif
 		
 		sRootPaths = [[NSArray alloc] initWithObjects:[self builtInPath], app_addon_path, nix_path, appsupport_path, nil];
 	}
