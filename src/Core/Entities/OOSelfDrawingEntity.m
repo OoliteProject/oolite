@@ -112,7 +112,6 @@ static NSString * const kOOLogEntityTooManyFaces			= @"entity.loadMesh.failed.to
 	
 	// set the collision radius
 	collision_radius = [self findCollisionRadius];
-	actual_radius = collision_radius;
 	
 	[mypool release];
 }
@@ -732,9 +731,7 @@ static NSString * const kOOLogEntityTooManyFaces			= @"entity.loadMesh.failed.to
 	}
 	
 	// set the collision radius
-	//
 	collision_radius = [self findCollisionRadius];
-	actual_radius = collision_radius;
 
 	// set up vertex arrays for drawing
 	[self setUpVertexArrays];

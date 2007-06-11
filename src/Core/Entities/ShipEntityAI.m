@@ -1791,7 +1791,7 @@ WormholeEntity*	whole;
 - (void) performFlyRacepoints
 {
 	next_navpoint_index = 0;
-	desired_range = actual_radius;
+	desired_range = collision_radius;
 	behaviour = BEHAVIOUR_FLY_THRU_NAVPOINTS;
 }
 

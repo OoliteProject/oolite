@@ -51,7 +51,7 @@ MA 02110-1301, USA.
 		drawable = [inDrawable retain];
 		[drawable setBindingTarget:self];
 		
-		actual_radius = collision_radius = [drawable collisionRadius];
+		collision_radius = [drawable collisionRadius];
 		no_draw_distance = [drawable maxDrawDistance];
 		boundingBox = [drawable boundingBox];
 	}

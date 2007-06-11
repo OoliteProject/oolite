@@ -91,7 +91,7 @@ MA 02110-1301, USA.
 	nebulaCount = [systemInfo floatForKey:@"sky_n_blurs" defaultValue:-1];
 	if (0 <= nebulaCount)
 	{
-		nebulaCount = MIN(SKY_MAX_BLOBS, starCount);
+		nebulaCount = MIN(SKY_MAX_BLOBS, nebulaCount);
 	}
 	else
 	{
@@ -327,8 +327,6 @@ static OOTexture		*sStarTexture, *sBlobTexture;
 	{
 		n_blobs = SKY_MAX_BLOBS * 0.5 * randf() * randf();
 	}
-	
-	OOLog(@"stars.temp", @"Generating %u stars, %u nebulae; cluster:%g, alpha:%g, scale:%g", n_stars, n_blobs, blob_cluster_chance, blob_alpha, blob_scale);
 	
 	// init stars and blobs
 	[self setUpStarsWithColor1:col1 color2:col2];
@@ -721,8 +719,6 @@ static OOTexture		*sStarTexture, *sBlobTexture;
 		}
 		clusters++;
 	}
-	
-	OOLog(@"sky.blobs.counts", @"Generated %u blobs in %u clusters, nominal count %u", actualCount, clusters, n_blobs);
 }
 
 

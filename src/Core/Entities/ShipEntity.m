@@ -1053,8 +1053,8 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	{
 		if (bounty > 0)
 			bounty = 0;
-		ShipEntity* targEnt = (ShipEntity*)[UNIVERSE entityForUniversalID:primaryTarget];
-		if ((targEnt)&&(targEnt->scanClass == CLASS_POLICE))
+		ShipEntity* target = (ShipEntity*)[UNIVERSE entityForUniversalID:primaryTarget];
+		if ((target)&&(target->scanClass == CLASS_POLICE))
 		{
 			primaryTarget = NO_TARGET;
 			[shipAI reactToMessage:@"TARGET_LOST"];
@@ -1639,7 +1639,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	}
 	else
 	{
-		ShipEntity*	target = (ShipEntity*)[UNIVERSE entityForUniversalID:primaryTarget];
+		ShipEntity*	target = [UNIVERSE entityForUniversalID:primaryTarget];
 		double target_speed = [target speed];
 		double eta = range / (flightSpeed - target_speed);
 		double last_success_factor = success_factor;
@@ -1665,7 +1665,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 		if (target)	// check introduced to stop crash at next line
 		{
 			destination = target->position;		/* HEISENBUG crash here */
-			desired_range = 0.5 * target->actual_radius;
+			desired_range = 0.5 * target->collision_radius;
 			[self trackDestination: delta_t : NO];
 		}
 		//
@@ -4166,7 +4166,7 @@ BOOL	class_masslocks(int some_class)
 	Vector my_ref = reference;
 	double aim_cos, ref_cos;
 	
-	Entity* targent = [self getPrimaryTarget];
+	Entity* target = [self getPrimaryTarget];
 	
 	Entity*		last = nil;
 	Entity*		father = [self owner];
@@ -4182,9 +4182,9 @@ BOOL	class_masslocks(int some_class)
 		r_mat = [father drawRotationMatrix];
 	}
 
-	if (targent)
+	if (target)
 	{
-		vector_to_target = targent->position;
+		vector_to_target = target->position;
 		//
 		vector_to_target.x -= my_position.x;	vector_to_target.y -= my_position.y;	vector_to_target.z -= my_position.z;
 		if (vector_to_target.x||vector_to_target.y||vector_to_target.z)
@@ -4228,16 +4228,16 @@ BOOL	class_masslocks(int some_class)
 	Vector vector_to_target;
 	Quaternion q_minarc;
 	//
-	Entity* targent = [self getPrimaryTarget];
+	Entity* target = [self getPrimaryTarget];
 	//
-	if (!targent)
+	if (!target)
 		return;
 
-	vector_to_target = targent->position;
+	vector_to_target = target->position;
 	vector_to_target.x -= position.x;	vector_to_target.y -= position.y;	vector_to_target.z -= position.z;
 	//
 	GLfloat range2 =		magnitude2(vector_to_target);
-	GLfloat	targetRadius =	0.75 * targent->actual_radius;
+	GLfloat	targetRadius =	0.75 * target->collision_radius;
 	GLfloat	max_cos =		sqrt(1 - targetRadius*targetRadius/range2);
 	//
 	if (dp > max_cos)
@@ -4268,9 +4268,9 @@ BOOL	class_masslocks(int some_class)
 	Vector my_ref = reference;
 	double aim_cos, ref_cos;
 	//
-	Entity* targent = [self getPrimaryTarget];
+	Entity* target = [self getPrimaryTarget];
 	//
-	Vector leading = [targent velocity];
+	Vector leading = [target velocity];
 	
 	Entity*		last = nil;
 	Entity*		father = [self owner];
@@ -4286,9 +4286,9 @@ BOOL	class_masslocks(int some_class)
 		r_mat = [father drawRotationMatrix];
 	}
 
-	if (targent)
+	if (target)
 	{
-		vector_to_target = targent->position;
+		vector_to_target = target->position;
 		//
 		vector_to_target.x -= my_position.x;	vector_to_target.y -= my_position.y;	vector_to_target.z -= my_position.z;
 		//
@@ -4381,7 +4381,7 @@ BOOL	class_masslocks(int some_class)
 	if (!vector_equal(relPos, kZeroVector))  relPos = vector_normal(relPos);
 	else  relPos.z = 1.0;
 
-	double	targetRadius = 0.75 * target->actual_radius;
+	double	targetRadius = 0.75 * target->collision_radius;
 
 	double	max_cos = sqrt(1 - targetRadius*targetRadius/range2);
 

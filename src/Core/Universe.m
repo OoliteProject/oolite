@@ -2463,7 +2463,7 @@ GLfloat docked_light_specular[]	= { (GLfloat) 1.0, (GLfloat) 1.0, (GLfloat) 0.5,
 	{
 		[ship setStatus: STATUS_COCKPIT_DISPLAY];
 		[ship setOrientation:q2];
-		[ship setPositionX:0.0f y:0.0f z:3.6f * ship->actual_radius];	// some way ahead
+		[ship setPositionX:0.0f y:0.0f z:3.6f * ship->collision_radius];	// some way ahead
 		
 		[ship setScanClass: CLASS_NO_DRAW];
 		[ship setRoll:M_PI/5.0];
@@ -2503,7 +2503,7 @@ GLfloat docked_light_specular[]	= { (GLfloat) 1.0, (GLfloat) 1.0, (GLfloat) 0.5,
 	if (ship)
 	{
 		[ship setOrientation:q2];
-		[ship setPositionX:0.0f y:0.0f z:3.6f * ship->actual_radius];
+		[ship setPositionX:0.0f y:0.0f z:3.6f * ship->collision_radius];
 		[ship setDestination: ship->position];	// ideal position
 		
 		[ship setScanClass: CLASS_NO_DRAW];
@@ -4597,7 +4597,7 @@ static BOOL MaintainLinkedLists(Universe* uni)
 			&&(v_off.x*v_off.x + v_off.y*v_off.y < cr*cr))							// AND not off to both sides
 		{
 			//  within the bounding sphere - do further tests
-			GLfloat ar = e2->actual_radius;
+			GLfloat ar = e2->collision_radius;
 			if ((v_off.z > 0.0)&&(v_off.z < nearest + ar)								// ahead AND within range
 				&&(v_off.x < ar)&&(v_off.x > -ar)&&(v_off.y < ar)&&(v_off.y > -ar)		// AND not off to one side or another
 				&&(v_off.x*v_off.x + v_off.y*v_off.y < ar*ar))							// AND not off to both sides
@@ -4692,7 +4692,7 @@ static BOOL MaintainLinkedLists(Universe* uni)
 				{
 					double du = dot_product(u1,rp);
 					double dr = dot_product(r1,rp);
-					double cr = e2->actual_radius;
+					double cr = e2->collision_radius;
 					if (du*du + dr*dr < cr*cr)
 					{
 						hit_entity = e2;
@@ -5167,7 +5167,7 @@ static BOOL MaintainLinkedLists(Universe* uni)
 							demo_stage_time = universal_time + 6.0;
 							break;
 						case DEMO_SHOW_THING:
-							vel = make_vector(0, 0, DEMO2_VANISHING_DISTANCE * demo_ship->actual_radius);
+							vel = make_vector(0, 0, DEMO2_VANISHING_DISTANCE * demo_ship->collision_radius);
 							[demo_ship setVelocity:vel];
 							demo_stage = DEMO_FLY_OUT;
 							demo_stage_time = universal_time + 1.5;
@@ -5198,9 +5198,9 @@ static BOOL MaintainLinkedLists(Universe* uni)
 								[self addEntity:demo_ship];
 								[[demo_ship getAI] setStateMachine:@"nullAI.plist"];
 								[demo_ship setOrientation:q2];
-								[demo_ship setPositionX:0.0f y:0.0f z:DEMO2_VANISHING_DISTANCE * demo_ship->actual_radius];
-								[demo_ship setDestination: make_vector( 0.0f, 0.0f, DEMO2_VANISHING_DISTANCE * 0.01f * demo_ship->actual_radius)];	// ideal position
-								vel = make_vector(0, 0, -DEMO2_VANISHING_DISTANCE * demo_ship->actual_radius);
+								[demo_ship setPositionX:0.0f y:0.0f z:DEMO2_VANISHING_DISTANCE * demo_ship->collision_radius];
+								[demo_ship setDestination: make_vector( 0.0f, 0.0f, DEMO2_VANISHING_DISTANCE * 0.01f * demo_ship->collision_radius)];	// ideal position
+								vel = make_vector(0, 0, -DEMO2_VANISHING_DISTANCE * demo_ship->collision_radius);
 								[demo_ship setVelocity:vel];
 								[demo_ship setScanClass: CLASS_NO_DRAW];
 								[demo_ship setRoll:M_PI/5.0];

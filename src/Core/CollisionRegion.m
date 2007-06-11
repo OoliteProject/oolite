@@ -457,7 +457,7 @@ BOOL testEntityOccludedByEntity(Entity* e1, Entity* e2, PlanetEntity* the_sun)
 	//
 	GLfloat d2_e2 = distance2( e1->position, e2->position);
 	GLfloat cr_sun = the_sun->collision_radius;
-	GLfloat cr_e2 = e2->actual_radius;
+	GLfloat cr_e2 = e2->collision_radius;
 	if (e2->isShip)
 		cr_e2 *= 0.90;	// 10% smaller shadow for ships
 	if (e2->isPlanet)

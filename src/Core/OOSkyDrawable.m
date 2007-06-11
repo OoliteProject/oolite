@@ -149,8 +149,6 @@ static OOColor *SaturatedColorInRange(OOColor *color1, OOColor *color2);
 	_starCount = starCount;
 	_nebulaCount = nebulaCount;
 	
-	OOLog(@"stars.temp", @"Generating %u stars, %u nebulae; cluster:%g, alpha:%g, scale:%g", _starCount, _nebulaCount, nebulaClusterFactor, nebulaAlpha, nebulaScale);
-	
 	pool = [[NSAutoreleasePool alloc] init];
 	[self setUpStarsWithColor1:color1 color2:color2];
 	
@@ -381,14 +379,11 @@ static OOColor *SaturatedColorInRange(OOColor *color1, OOColor *color2);
 		++clusters;
 	}
 	
-	OOLog(@"sky.blobs.counts", @"Generated %u blobs in %u clusters, nominal count %u", actualCount, clusters, _nebulaCount);
-	
 	/*	The above code generates less than _nebulaCount quads, because i is
 		incremented once in the outer loop as well as in the inner loop. To
 		keep skies looking the same, we leave the bug in and fill in the
 		actual generated count here.
 	*/
-	assert(actualCount <= _nebulaCount);
 	_nebulaCount = actualCount;
 	
 	[self addQuads:quads count:_nebulaCount];
@@ -534,8 +529,6 @@ static OOColor *SaturatedColorInRange(OOColor *color1, OOColor *color2);
 		
 		if (_positions == NULL || _texCoords == NULL || _colors == NULL)  OK = NO;
 		
-		OOLog(@"sky.set.temp", @"Creating quad set with %u entries out of %u (%u vertices); pos buffer size: %u, tc buffer size: %u, col buffer size: %u", _count, totalCount, vertexCount, posSize, tcSize, colSize);
-		
 		pos = _positions;
 		tc = _texCoords;
 		col = _colors;
@@ -582,10 +575,6 @@ static OOColor *SaturatedColorInRange(OOColor *color1, OOColor *color2);
 		}
 		
 		_texture = [texture retain];
-		
-		if ((char *)pos - (char *)_positions != posSize)  OOLog(@"sky.bug", @"***** Expected to use %u bytes for pos data, used %u.", posSize, (char *)pos - (char *)_positions);
-		if ((char *)tc - (char *)_texCoords != tcSize)  OOLog(@"sky.bug", @"***** Expected to use %u bytes for tc data, used %u.", tcSize, (char *)tc - (char *)_texCoords);
-		if ((char *)col - (char *)_colors != colSize)  OOLog(@"sky.bug", @"***** Expected to use %u bytes for col data, used %u.", colSize, (char *)tc - (char *)_colors);
 	}
 	
 	if (!OK)
@@ -600,8 +589,6 @@ static OOColor *SaturatedColorInRange(OOColor *color1, OOColor *color2);
 
 - (void)dealloc
 {
-	OOLog(@"sky.set.dealloc", @"Deallocating %@", self);
-	
 	[_texture release];
 	
 	if (_positions != NULL)  free(_positions);

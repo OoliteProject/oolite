@@ -306,7 +306,6 @@ static	Vector	circleVertex[65];		// holds vector coordinates for a unit circle
 	[self setOwner:ship];
 	//
 	collision_radius = [self findCollisionRadius];
-	actual_radius = collision_radius;
 	//
 	isParticle = YES;
 	//

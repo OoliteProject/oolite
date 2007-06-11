@@ -101,7 +101,6 @@ extern int debug;
 	double					zero_distance;
 	double					no_draw_distance;		// 10 km initially
 	GLfloat					collision_radius;
-	GLfloat					actual_radius;
 	Vector					position;
 	Quaternion				orientation;
 	
