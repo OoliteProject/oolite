@@ -84,9 +84,9 @@ id OOPropertyListFromData(NSData *data, NSString *whereFrom)
 	
 	if (data != nil)
 	{
-		#ifndef NO_DYNAMIC_PLIST_DTD_CHANGE
+#ifndef NO_DYNAMIC_PLIST_DTD_CHANGE
 		data = ChangeDTDIfApplicable(data);
-		#endif
+#endif
 		
 		result = [NSPropertyListSerialization propertyListFromData:data mutabilityOption:NSPropertyListImmutable format:NULL errorDescription:&error];
 		if (result == nil)	// Foundation parser failed
@@ -186,26 +186,26 @@ static NSData *ChangeDTDIfApplicable(NSData *data)
 */
 static NSData *CopyDataFromFile(NSString *path)
 {
-	#ifdef OOLITE_MAC_OS_X
-		return [[NSData alloc] initWithContentsOfMappedFile:path];
-	#else
-		NSFileManager	*fmgr = [NSFileManager defaultManager];
-		BOOL			dir;
-		
-		if ([fmgr fileExistsAtPath:path isDirectory:&dir])
+#if OOLITE_MAC_OS_X
+	return [[NSData alloc] initWithContentsOfMappedFile:path];
+#else
+	NSFileManager	*fmgr = [NSFileManager defaultManager];
+	BOOL			dir;
+	
+	if ([fmgr fileExistsAtPath:path isDirectory:&dir])
+	{
+		if (!dir)
 		{
-			if (!dir)
-			{
-				return [[NSData alloc] initWithContentsOfMappedFile:path];
-			}
-			else
-			{
-				OOLog(kOOLogFileNotFound, @"Expected property list but found directory at %@", path);
-			}
+			return [[NSData alloc] initWithContentsOfMappedFile:path];
 		}
-		
-		return nil;
-	#endif
+		else
+		{
+			OOLog(kOOLogFileNotFound, @"Expected property list but found directory at %@", path);
+		}
+	}
+	
+	return nil;
+#endif
 }
 
 

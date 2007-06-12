@@ -18,8 +18,6 @@ Description: Oolite is a space sim game, inspired by Elite.
  three years. Oolite is available for Mac OS X (10.3.9 and higher), Windows XP
  and Linux. It requires at least a 400MHz processor, 256Mb of memory, and a 
  graphics card capable of accelerating OpenGL graphics.
- .
- Homepage: Homepage: http://starvoyager.bluesky.me.uk/
 
 Package: oolite-data
 Architecture: all
