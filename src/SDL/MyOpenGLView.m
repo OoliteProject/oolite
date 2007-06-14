@@ -1254,7 +1254,16 @@ MA 02110-1301, USA.
 
 - (BOOL)pollShiftKey
 {
+#if OOLITE_WINDOWS
+	// SDL_GetModState() does not seem to do exactly what is intended under Windows. For this reason,
+	// the GetKeyState Windows API call is used to detect the Shift keypress. -- Nikos.
+	
+	return 0 != (GetKeyState(VK_SHIFT) & 0x100);
+	
+#else
 	return 0 != (SDL_GetModState() & (KMOD_LSHIFT | KMOD_RSHIFT));
+	
+#endif
 }
 
 @end
