@@ -102,3 +102,15 @@ void LogOpenGLState(void);
 */
 void GLDebugWireframeModeOn(void);
 void GLDebugWireframeModeOff(void);
+
+/*	GLDrawBallBillboard()
+	Draws a circle corresponding to a sphere of given radius at given distance.
+	Assumes Z buffering will be disabled.
+*/
+void GLDrawBallBillboard(GLfloat radius, GLfloat step, GLfloat z_distance);
+
+/*	GLDrawOval(), GLDrawFilledOval()
+	Draw axis-alligned ellipses, as outline and fill respectively.
+*/
+void GLDrawOval(GLfloat x, GLfloat y, GLfloat z, NSSize siz, GLfloat step);
+void GLDrawFilledOval(GLfloat x, GLfloat y, GLfloat z, NSSize siz, GLfloat step);

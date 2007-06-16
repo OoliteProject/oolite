@@ -116,7 +116,7 @@ static	Vector	circleVertex[65];		// holds vector coordinates for a unit circle
 	Vector v_forward = vector_forward_from_quaternion(orientation);
 	Vector v_right = vector_right_from_quaternion(orientation);
 	GLfloat fs = [ship flightSpeed];
-	velocity = make_vector( v_forward.x * fs, v_forward.y * fs, v_forward.z * fs);
+	velocity = make_vector(v_forward.x * fs, v_forward.y * fs, v_forward.z * fs);
 	GLfloat distance;
 	switch (view)
 	{
@@ -181,7 +181,7 @@ static	Vector	circleVertex[65];		// holds vector coordinates for a unit circle
 	Vector v_forward = vector_forward_from_quaternion(orientation);
 	Vector v_right = vector_right_from_quaternion(orientation);
 	GLfloat fs = [ship flightSpeed];
-	velocity = make_vector( v_forward.x * fs, v_forward.y * fs, v_forward.z * fs);
+	velocity = make_vector(v_forward.x * fs, v_forward.y * fs, v_forward.z * fs);
 
 //	NSLog(@"DEBUG firing laser with offset [ %.3f, %.3f, %.3f]", offset.x, offset.y, offset.z);
 
@@ -231,7 +231,7 @@ static	Vector	circleVertex[65];		// holds vector coordinates for a unit circle
     //
 	status = STATUS_EFFECT;
 	BoundingBox bbox = [subent boundingBox];
-	Vector midfrontplane = make_vector( 0.5 * (bbox.max.x + bbox.min.x), 0.5 * (bbox.max.y + bbox.min.y), bbox.max.z);
+	Vector midfrontplane = make_vector(0.5 * (bbox.max.x + bbox.min.x), 0.5 * (bbox.max.y + bbox.min.y), bbox.max.z);
     position = [subent absolutePositionForSubentityOffset:midfrontplane];
 	orientation = parent->orientation;
 	if (parent->isPlayer)
@@ -240,7 +240,7 @@ static	Vector	circleVertex[65];		// holds vector coordinates for a unit circle
 	Vector v_forward = vector_forward_from_quaternion(orientation);
 	Vector v_right = vector_right_from_quaternion(orientation);
 	GLfloat fs = [(ShipEntity*)parent flightSpeed];
-	velocity = make_vector( v_forward.x * fs, v_forward.y * fs, v_forward.z * fs);
+	velocity = make_vector(v_forward.x * fs, v_forward.y * fs, v_forward.z * fs);
 	GLfloat distance;
 	switch (view)
 	{
@@ -495,7 +495,7 @@ static	Vector	circleVertex[65];		// holds vector coordinates for a unit circle
 	basefile = @"Particle";
 	[self setTexture:@"blur256.png"];
 	//
-	size = NSMakeSize( fragSize, fragSize);
+	size = NSMakeSize(fragSize, fragSize);
 	//
 	vertexCount = n_fragments;
     time_counter = 0.0;
@@ -592,7 +592,7 @@ static	Vector	circleVertex[65];		// holds vector coordinates for a unit circle
 	basefile = @"Particle";
 	[self setTexture:@"blur256.png"];
 	//
-	size = NSMakeSize( burstSize, burstSize);
+	size = NSMakeSize(burstSize, burstSize);
 	//
 	vertexCount = n_fragments;
     time_counter = 0.0;
@@ -641,7 +641,7 @@ static	Vector	circleVertex[65];		// holds vector coordinates for a unit circle
 	basefile = @"Particle";
 	[self setTexture:@"flare256.png"];
 	//
-	size = NSMakeSize( flashSize, flashSize);
+	size = NSMakeSize(flashSize, flashSize);
 	//
 	growth_rate = 150.0 * flashSize; // if average flashSize is 80 then this is 12000
 	if (growth_rate < 6000.0)
@@ -681,7 +681,7 @@ static	Vector	circleVertex[65];		// holds vector coordinates for a unit circle
 	basefile = @"Particle";
 	[self setTexture:@"flare256.png"];
 	//
-	size = NSMakeSize( flashSize, flashSize);
+	size = NSMakeSize(flashSize, flashSize);
 	//
 	growth_rate = 150.0 * flashSize; // if average flashSize is 80 then this is 12000
 	//
@@ -743,7 +743,7 @@ static	Vector	circleVertex[65];		// holds vector coordinates for a unit circle
 	isParticle = YES;
 	//
 	[self setVelocity: kZeroVector];
-	[self setPosition: make_vector( 0.0f, 0.0f, 640.0f)];
+	[self setPosition: make_vector(0.0f, 0.0f, 640.0f)];
 
     return self;
 }
@@ -1063,13 +1063,13 @@ static	Vector	circleVertex[65];		// holds vector coordinates for a unit circle
 		arb1.x = 0.0;   arb1.y = 0.0; arb1.z = 1.0;
 	}
 
-	Vector v1 = cross_product( v0, arb1 ); // 90 degrees to (v0 x arb1)
+	Vector v1 = cross_product(v0, arb1 ); // 90 degrees to (v0 x arb1)
 	//equivalent of v_right
 
-	Vector v2 = cross_product( v0, v1 );   // 90 degrees to (v0 x v1)
+	Vector v2 = cross_product(v0, v1 );   // 90 degrees to (v0 x v1)
 	//equivalent of v_up
 
-	vectors_into_gl_matrix( v0, v1, v2, rotMatrix);
+	vectors_into_gl_matrix(v0, v1, v2, rotMatrix);
 	//
 	// end of new billboard routine
 
@@ -1312,7 +1312,7 @@ static	Vector	circleVertex[65];		// holds vector coordinates for a unit circle
 	Vector vi,vj,vk;
 	vi = master_i;
 	vj = vector_up_from_quaternion(shipQrotation);
-	vk = cross_product( vi, vj);
+	vk = cross_product(vi, vj);
 	zero.position = make_vector(	currentPos.x + vi.x * position.x + vj.x * position.y + vk.x * position.z,
 									currentPos.y + vi.y * position.x + vj.y * position.y + vk.y * position.z,
 									currentPos.z + vi.z * position.x + vj.z * position.y + vk.z * position.z);
@@ -1333,13 +1333,13 @@ static	Vector	circleVertex[65];		// holds vector coordinates for a unit circle
 	GLfloat r06 = 1.0 - q06;
 	GLfloat r08 = 1.0 - q08;
 	Frame	f01 = [self frameAtTime: i01 fromFrame: zero];
-	Vector	b01 = make_vector( r01 * i01 * vfwd.x, r01 * i01 * vfwd.y, r01 * i01 * vfwd.z);
+	Vector	b01 = make_vector(r01 * i01 * vfwd.x, r01 * i01 * vfwd.y, r01 * i01 * vfwd.z);
 	Frame	f03 = [self frameAtTime: i03 fromFrame: zero];
-	Vector	b03 = make_vector( r03 * i03 * vfwd.x, r03 * i03 * vfwd.y, r03 * i03 * vfwd.z);
+	Vector	b03 = make_vector(r03 * i03 * vfwd.x, r03 * i03 * vfwd.y, r03 * i03 * vfwd.z);
 	Frame	f06 = [self frameAtTime: i06 fromFrame: zero];
-	Vector	b06 = make_vector( r06 * i06 * vfwd.x, r06 * i06 * vfwd.y, r06 * i06 * vfwd.z);
+	Vector	b06 = make_vector(r06 * i06 * vfwd.x, r06 * i06 * vfwd.y, r06 * i06 * vfwd.z);
 	Frame	f08 = [self frameAtTime: i08 fromFrame: zero];
-	Vector	b08 = make_vector( r08 * i08 * vfwd.x, r08 * i08 * vfwd.y, r08 * i08 * vfwd.z);
+	Vector	b08 = make_vector(r08 * i08 * vfwd.x, r08 * i08 * vfwd.y, r08 * i08 * vfwd.z);
 	Frame	f10 = [self frameAtTime: i10 fromFrame: zero];
 
 	int ci = 0;
@@ -1362,8 +1362,8 @@ static	Vector	circleVertex[65];		// holds vector coordinates for a unit circle
 	ex_emissive[1] = 0.9 * green_factor;	// diminish green part towards rear of exhaust
 	ex_emissive[0] = 0.9 * red_factor;		// diminish red part towards rear of exhaust
 	Vector k1 = f01.k;
-	Vector j1 = cross_product( master_i, k1);
-	Vector i1 = cross_product( j1, k1);
+	Vector j1 = cross_product(master_i, k1);
+	Vector i1 = cross_product(j1, k1);
 
 	f01.position = make_vector(zero.position.x - vk.x, zero.position.y - vk.y, zero.position.z - vk.z);// 1m out from zero
 //	i1 = vi;
@@ -1386,8 +1386,8 @@ static	Vector	circleVertex[65];		// holds vector coordinates for a unit circle
 	ex_emissive[1] = 0.6 * green_factor;	// diminish green part towards rear of exhaust
 	ex_emissive[0] = 0.6 * red_factor;		// diminish red part towards rear of exhaust
 	k1 = f03.k;
-	j1 = cross_product( master_i, k1);
-	i1 = cross_product( j1, k1);
+	j1 = cross_product(master_i, k1);
+	i1 = cross_product(j1, k1);
 	i1.x *= exhaustScale.x;	i1.y *= exhaustScale.x;	i1.z *= exhaustScale.x;
 	j1.x *= exhaustScale.y;	j1.y *= exhaustScale.y;	j1.z *= exhaustScale.y;
 	for (i = 0; i < 8; i++)
@@ -1406,8 +1406,8 @@ static	Vector	circleVertex[65];		// holds vector coordinates for a unit circle
 	ex_emissive[1] = 0.4 * green_factor;	// diminish green part towards rear of exhaust
 	ex_emissive[0] = 0.4 * red_factor;		// diminish red part towards rear of exhaust
 	k1 = f06.k;
-	j1 = cross_product( master_i, k1);
-	i1 = cross_product( j1, k1);
+	j1 = cross_product(master_i, k1);
+	i1 = cross_product(j1, k1);
 	i1.x *= 0.8 * exhaustScale.x;	i1.y *= 0.8 * exhaustScale.x;	i1.z *= 0.8 * exhaustScale.x;
 	j1.x *= 0.8 * exhaustScale.y;	j1.y *= 0.8 * exhaustScale.y;	j1.z *= 0.8 * exhaustScale.y;
 	for (i = 0; i < 8; i++)
@@ -1426,8 +1426,8 @@ static	Vector	circleVertex[65];		// holds vector coordinates for a unit circle
 	ex_emissive[1] = 0.2 * green_factor;	// diminish green part towards rear of exhaust
 	ex_emissive[0] = 0.2 * red_factor;		// diminish red part towards rear of exhaust
 	k1 = f08.k;
-	j1 = cross_product( master_i, k1);
-	i1 = cross_product( j1, k1);
+	j1 = cross_product(master_i, k1);
+	i1 = cross_product(j1, k1);
 	i1.x *= 0.5 * exhaustScale.x;	i1.y *= 0.5 * exhaustScale.x;	i1.z *= 0.5 * exhaustScale.x;
 	j1.x *= 0.5 * exhaustScale.y;	j1.y *= 0.5 * exhaustScale.y;	j1.z *= 0.5 * exhaustScale.y;
 	for (i = 0; i < 8; i++)
@@ -1570,7 +1570,7 @@ static	Vector	circleVertex[65];		// holds vector coordinates for a unit circle
 			{
 				glGetFloatv(GL_MODELVIEW_MATRIX, temp_matrix);
 				glPopMatrix();	glPushMatrix();  // restore zero!
-				glTranslatef( abspos.x, abspos.y, abspos.z); // move to absolute position
+				glTranslatef(abspos.x, abspos.y, abspos.z); // move to absolute position
 				GLfloat	xx = 0.5 * size.width;
 				GLfloat	yy = 0.5 * size.height;
 
@@ -1579,7 +1579,7 @@ static	Vector	circleVertex[65];		// holds vector coordinates for a unit circle
 				
 				color_fv[3] = alpha;
 				glEnable(GL_TEXTURE_2D);
-				glColor4fv( color_fv);
+				glColor4fv(color_fv);
 				glTexEnvfv(GL_TEXTURE_ENV, GL_TEXTURE_ENV_COLOR, color_fv);
 				glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_BLEND);
 				[texture apply];
@@ -1600,7 +1600,7 @@ static	Vector	circleVertex[65];		// holds vector coordinates for a unit circle
 					
 				glEnd();
 
-				glLoadMatrixf( temp_matrix);
+				glLoadMatrixf(temp_matrix);
 			}
 		}
 		else
@@ -1609,12 +1609,12 @@ static	Vector	circleVertex[65];		// holds vector coordinates for a unit circle
 			glPopMatrix();  // restore zero!
 			glPushMatrix();
 					// position and orientation is absolute
-			glTranslatef( abspos.x, abspos.y, abspos.z);
+			glTranslatef(abspos.x, abspos.y, abspos.z);
 			glMultMatrixf([[PlayerEntity sharedPlayer] drawRotationMatrix]);
 
 			[self drawEntity:immediate :translucent];
 
-			glLoadMatrixf( temp_matrix);
+			glLoadMatrixf(temp_matrix);
 		}
 	}
 }
@@ -1639,7 +1639,7 @@ static	Vector	circleVertex[65];		// holds vector coordinates for a unit circle
 
 	glEnable(GL_TEXTURE_2D);
 
-	glColor4fv( color_fv);
+	glColor4fv(color_fv);
 
 	glTexEnvfv(GL_TEXTURE_ENV, GL_TEXTURE_ENV_COLOR, color_fv);
 	glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_BLEND);
@@ -1717,13 +1717,13 @@ static	Vector	circleVertex[65];		// holds vector coordinates for a unit circle
 				Vector vj = [player customViewUpVector];		vj.x *= yy;	vj.y *= yy;	vj.z *= yy;
 				Vector vk = [player customViewForwardVector];	vk.x *= xx;	vk.y *= xx;	vk.z *= xx;
 				glTexCoord2f(0.0, 1.0);
-				glVertex3f( -vi.x -vj.x -vk.x, -vi.y -vj.y -vk.y, -vi.z -vj.z -vk.z);
+				glVertex3f(-vi.x -vj.x -vk.x, -vi.y -vj.y -vk.y, -vi.z -vj.z -vk.z);
 				glTexCoord2f(1.0, 1.0);
-				glVertex3f( +vi.x -vj.x -vk.x, +vi.y -vj.y -vk.y, +vi.z -vj.z -vk.z);
+				glVertex3f(+vi.x -vj.x -vk.x, +vi.y -vj.y -vk.y, +vi.z -vj.z -vk.z);
 				glTexCoord2f(1.0, 0.0);
-				glVertex3f( +vi.x +vj.x -vk.x, +vi.y +vj.y -vk.y, +vi.z +vj.z -vk.z);
+				glVertex3f(+vi.x +vj.x -vk.x, +vi.y +vj.y -vk.y, +vi.z +vj.z -vk.z);
 				glTexCoord2f(0.0, 0.0);
-				glVertex3f( -vi.x +vj.x -vk.x, -vi.y +vj.y -vk.y, -vi.z +vj.z -vk.z);
+				glVertex3f(-vi.x +vj.x -vk.x, -vi.y +vj.y -vk.y, -vi.z +vj.z -vk.z);
 			}
 			break;
 		
@@ -1806,24 +1806,24 @@ GLuint tfan2[10] = {	33,	25,	26,	27,	28,	29,	30,	31,	32,	25};	// final fan 64..7
 	BeginAdditiveBlending();
 
 	glEnableClientState(GL_VERTEX_ARRAY);
-	glVertexPointer( 3, GL_FLOAT, 0, verts);
+	glVertexPointer(3, GL_FLOAT, 0, verts);
 	glEnableClientState(GL_COLOR_ARRAY);
-	glColorPointer( 4, GL_FLOAT, 0, exhaustBaseColors);
+	glColorPointer(4, GL_FLOAT, 0, exhaustBaseColors);
 	glDisableClientState(GL_NORMAL_ARRAY);
 	glDisableClientState(GL_INDEX_ARRAY);
 	glDisableClientState(GL_TEXTURE_COORD_ARRAY);
 	glDisableClientState(GL_EDGE_FLAG_ARRAY);
 	//
-	glDrawElements( GL_TRIANGLE_FAN, 10, GL_UNSIGNED_INT, tfan1);
-	glDrawElements( GL_QUAD_STRIP, 18, GL_UNSIGNED_INT, qstrip1);
-	glDrawElements( GL_QUAD_STRIP, 18, GL_UNSIGNED_INT, qstrip2);
-	glDrawElements( GL_QUAD_STRIP, 18, GL_UNSIGNED_INT, qstrip3);
-	glDrawElements( GL_TRIANGLE_FAN, 10, GL_UNSIGNED_INT, tfan2);
+	glDrawElements(GL_TRIANGLE_FAN, 10, GL_UNSIGNED_INT, tfan1);
+	glDrawElements(GL_QUAD_STRIP, 18, GL_UNSIGNED_INT, qstrip1);
+	glDrawElements(GL_QUAD_STRIP, 18, GL_UNSIGNED_INT, qstrip2);
+	glDrawElements(GL_QUAD_STRIP, 18, GL_UNSIGNED_INT, qstrip3);
+	glDrawElements(GL_TRIANGLE_FAN, 10, GL_UNSIGNED_INT, tfan2);
 
 	EndAdditiveBlending();
 	
-	glEnable( GL_CULL_FACE);		// face culling
-	glEnable( GL_TEXTURE_2D);
+	glEnable(GL_CULL_FACE);		// face culling
+	glEnable(GL_TEXTURE_2D);
 }
 
 - (void) drawHyperring
@@ -1850,9 +1850,9 @@ GLuint tfan2[10] = {	33,	25,	26,	27,	28,	29,	30,	31,	32,	25};	// final fan 64..7
 	for (i = 0; i < 65; i++)
 	{
 		glColor4fv(ex_em_lo);
-		glVertex3f( ring_inner_radius*circleVertex[i].x, ring_inner_radius*circleVertex[i].y, ring_inner_radius*circleVertex[i].z );
+		glVertex3f(ring_inner_radius*circleVertex[i].x, ring_inner_radius*circleVertex[i].y, ring_inner_radius*circleVertex[i].z );
 		glColor4fv(ex_em_hi);
-		glVertex3f( ring_outer_radius*circleVertex[i].x, ring_outer_radius*circleVertex[i].y, ring_outer_radius*circleVertex[i].z );
+		glVertex3f(ring_outer_radius*circleVertex[i].x, ring_outer_radius*circleVertex[i].y, ring_outer_radius*circleVertex[i].z );
 	}
 	glEnd();
 	
@@ -1875,10 +1875,10 @@ GLuint tfan2[10] = {	33,	25,	26,	27,	28,	29,	30,	31,	32,	25};	// final fan 64..7
 
 	int step = 4;
 
-	glColor4fv( color_fv);
+	glColor4fv(color_fv);
 	glBegin(GL_TRIANGLE_FAN);
 	//
-	drawBallVertices( collision_radius, step, szd);
+	GLDrawBallBillboard(collision_radius, step, szd);
 	//
 	glEnd();
 
@@ -1901,7 +1901,7 @@ GLuint tfan2[10] = {	33,	25,	26,	27,	28,	29,	30,	31,	32,	25};	// final fan 64..7
 	glBegin(GL_QUADS);
 	for (i = 0; i < vertexCount; i++)
 	{
-		glColor4f( faces[i].red, faces[i].green, faces[i].blue, faces[i].normal.z);
+		glColor4f(faces[i].red, faces[i].green, faces[i].blue, faces[i].normal.z);
 		DrawQuadForView(vertices[i].x, vertices[i].y, vertices[i].z, faces[i].normal.x, faces[i].normal.x);
 	}
 	glEnd();
@@ -1926,7 +1926,7 @@ GLuint tfan2[10] = {	33,	25,	26,	27,	28,	29,	30,	31,	32,	25};	// final fan 64..7
 	glBegin(GL_QUADS);
 	for (i = 0; i < vertexCount; i++)
 	{
-		glColor4f( faces[i].red, faces[i].green, faces[i].blue, faces[i].normal.z);
+		glColor4f(faces[i].red, faces[i].green, faces[i].blue, faces[i].normal.z);
 		DrawQuadForView(vertices[i].x, vertices[i].y, vertices[i].z, size.width, size.width);
 	}
 	glEnd();
@@ -1939,7 +1939,7 @@ GLuint tfan2[10] = {	33,	25,	26,	27,	28,	29,	30,	31,	32,	25};	// final fan 64..7
 
 - (void) drawBillboard
 {	
-	glColor4fv( color_fv);
+	glColor4fv(color_fv);
 	glEnable(GL_TEXTURE_2D);
 	glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
 	[texture apply];

@@ -251,10 +251,10 @@ extern int debug;
 
 - (void) drawTrumbles:(NSDictionary *) info;
 
-void hudDrawIndicatorAt( GLfloat x, GLfloat y, GLfloat z, NSSize siz, double amount);
-void hudDrawMarkerAt( GLfloat x, GLfloat y, GLfloat z, NSSize siz, double amount);
-void hudDrawBarAt( GLfloat x, GLfloat y, GLfloat z, NSSize siz, double amount);
-void hudDrawSurroundAt( GLfloat x, GLfloat y, GLfloat z, NSSize siz);
+void hudDrawIndicatorAt(GLfloat x, GLfloat y, GLfloat z, NSSize siz, double amount);
+void hudDrawMarkerAt(GLfloat x, GLfloat y, GLfloat z, NSSize siz, double amount);
+void hudDrawBarAt(GLfloat x, GLfloat y, GLfloat z, NSSize siz, double amount);
+void hudDrawSurroundAt(GLfloat x, GLfloat y, GLfloat z, NSSize siz);
 void hudDrawSpecialIconAt(NSArray* ptsArray, int x, int y, int z, NSSize siz);
 void hudDrawMineIconAt(int x, int y, int z, NSSize siz);
 void hudDrawMissileIconAt(int x, int y, int z, NSSize siz);
@@ -267,10 +267,7 @@ void drawString(NSString *text, double x, double y, double z, NSSize siz);
 void drawPlanetInfo(int gov, int eco, int tec, double x, double y, double z, NSSize siz);
 NSRect rectForString(NSString *text, double x, double y, NSSize siz);
 
-void drawScannerGrid( double x, double y, double z, NSSize siz, int v_dir, GLfloat thickness, double zoom);
-void drawOval( double x, double y, double z, NSSize siz, int step);
-void drawFilledOval( double x, double y, double z, NSSize siz, int step);
-void drawSpecialOval( double x, double y, double z, NSSize siz, int step, GLfloat* color4v);
+void drawScannerGrid(double x, double y, double z, NSSize siz, int v_dir, GLfloat thickness, double zoom);
 
 - (void) setLine_width:(GLfloat) value;
 - (GLfloat) line_width;

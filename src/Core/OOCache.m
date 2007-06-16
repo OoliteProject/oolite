@@ -98,7 +98,7 @@ MA 02110-1301, USA.
 	}
 	else
 	{
-		PRUNING is performed manually, or when -pListRepresentation is called.
+		PRUNING is performed manually by calling -prune.
 	}
 	
 	If the macro OOCACHE_PERFORM_INTEGRITY_CHECKS is set to a non-zero value,
@@ -219,10 +219,6 @@ static void CacheSetName(OOCacheImpl *cache, NSString *name);
 
 - (id)pListRepresentation
 {
-	if (!autoPrune)
-	{
-		[self prune];
-	}
 	return CacheArrayOfNodesByAge(cache);
 	
 	return nil;

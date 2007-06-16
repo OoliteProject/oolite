@@ -30,6 +30,7 @@ MA 02110-1301, USA.
 */
 
 #import "OOCocoa.h"
+#import "OOCache.h"
 
 
 enum

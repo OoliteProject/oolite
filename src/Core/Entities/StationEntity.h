@@ -60,9 +60,9 @@ MA 02110-1301, USA.
 	float					equipment_price_factor;
 
 	Vector					port_position;
-	Quaternion				port_qrotation;
+	Quaternion				port_orientation;
 	Vector  				port_dimensions;
-	ShipEntity*				port_model;
+	ShipEntity				*port_model;
 	
 	BOOL					no_docking_while_launching;
 	

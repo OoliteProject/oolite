@@ -191,7 +191,7 @@
 	<key>rendering.opengl.shader.uniform</key>
 	<string>$shaderDebugOn</string>
 	<key>rendering.opengl.stateDump</key>
-	<string>$troubleShootingDump</string>
+	<string>yes</string>
 	<key>rendering.opengl.version</key>
 	<string>$troubleShootingDump</string>
 	<key>resourceManager.foundFile</key>

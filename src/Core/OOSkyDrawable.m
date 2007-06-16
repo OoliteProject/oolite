@@ -53,6 +53,7 @@ SOFTWARE.
 #import "OOProbabilisticTextureManager.h"
 #import "OOGraphicsResetManager.h"
 #import "Universe.h"
+#import "OOMacroOpenGL.h"
 
 
 #define SKY_ELEMENT_SCALE_FACTOR		(BILLBOARD_DEPTH / 500.0f)
@@ -170,6 +171,8 @@ static OOColor *SaturatedColorInRange(OOColor *color1, OOColor *color2);
 
 - (void)dealloc
 {
+	OO_ENTER_OPENGL();
+	
 	[_quadSets release];
 	[[OOGraphicsResetManager sharedManager] unregisterClient:self];
 	if (_displayListName != 0)  glDeleteLists(_displayListName, 1);
@@ -183,13 +186,12 @@ static OOColor *SaturatedColorInRange(OOColor *color1, OOColor *color2);
 	// While technically translucent, the sky doesn't need to be depth-sorted
 	// since it'll be behind everything else anyway.
 	
+	OO_ENTER_OPENGL();
+	
 	glDisable(GL_LIGHTING);
 	glDisable(GL_DEPTH_TEST);	// don't read the depth buffer
 	glDepthMask(GL_FALSE);		// don't write to depth buffer
 	glDisable(GL_CULL_FACE);
-	
-	glEnable(GL_TEXTURE_2D);
-	if (gSkyWireframe)  GLDebugWireframeModeOn();
 	
 	if (_displayListName != 0)
 	{
@@ -202,6 +204,7 @@ static OOColor *SaturatedColorInRange(OOColor *color1, OOColor *color2);
 		_displayListName = glGenLists(1);
 		glNewList(_displayListName, GL_COMPILE);
 		
+		glEnable(GL_TEXTURE_2D);
 		glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
 		glBlendFunc(GL_ONE, GL_ONE);	// Pure additive blending, ignoring alpha
 		
@@ -214,13 +217,11 @@ static OOColor *SaturatedColorInRange(OOColor *color1, OOColor *color2);
 		
 		[_quadSets makeObjectsPerformSelector:@selector(render)];
 		
+		glDisable(GL_TEXTURE_2D);
 		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);	// Basic alpha blending
 		
 		glEndList();
 	}
-	
-	if (gSkyWireframe)  GLDebugWireframeModeOff();
-	glDisable(GL_TEXTURE_2D);
 	
 	// Restore state
 	glEnable(GL_CULL_FACE);
@@ -448,6 +449,8 @@ static OOColor *SaturatedColorInRange(OOColor *color1, OOColor *color2);
 
 - (void)resetGraphicsState
 {
+	OO_ENTER_OPENGL();
+	
 	if (_displayListName != 0)
 	{
 		glDeleteLists(_displayListName, 1);
@@ -607,6 +610,8 @@ static OOColor *SaturatedColorInRange(OOColor *color1, OOColor *color2);
 
 - (void)render
 {
+	OO_ENTER_OPENGL();
+	
 	[_texture apply];
 	
 	glVertexPointer(kSkyQuadSetPositionEntriesPerVertex, GL_FLOAT, 0, _positions);

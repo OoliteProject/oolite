@@ -27,7 +27,8 @@ MA 02110-1301, USA.
 #import "OOPListParsing.h"
 
 
-#define AUTO_PRUNE NO
+#define AUTO_PRUNE				0
+#define PRUNE_BEFORE_FLUSH		0
 
 
 // Use the (presumed) most efficient plist format for each platform.
@@ -371,6 +372,10 @@ static OOCacheManager *sSingleton = nil;
 	uint32_t				endianTagValue = kEndianTagValue;
 	
 	if (caches == nil) return;
+	
+#if PRUNE_BEFORE_FLUSH
+	[[caches allValues] makeObjectsPerformSelector:@selector(prune)];
+#endif
 	
 	OOLog(@"dataCache.willWrite", @"About to write data cache.");	// Added for 1.69 to detect possible write-related crash. -- Ahruman
 	ooliteVersion = [[[NSBundle mainBundle] infoDictionary] objectForKey:kCacheKeyVersion];

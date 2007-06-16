@@ -38,6 +38,9 @@ MA 02110-1301, USA.
 #define kOOLogUnconvertedNSLog @"unclassified.HeadUpDisplay"
 
 
+static void DrawSpecialOval(GLfloat x, GLfloat y, GLfloat z, NSSize siz, GLfloat step, GLfloat* color4v);
+
+
 static OOTexture		*sFontTexture = nil;
 
 enum
@@ -77,7 +80,6 @@ float char_widths[128] = {
 		
 	line_width = 1.0;
 	
-	setUpSinTable();
 	if (sFontTexture == nil)
 	{
 		sFontTexture = [OOTexture textureWithName:@"asciitext.png"
@@ -119,6 +121,7 @@ float char_widths[128] = {
 	
 	return self;
 }
+
 
 - (void) dealloc
 {
@@ -205,10 +208,12 @@ float char_widths[128] = {
 	return scanner_zoom;
 }
 
+
 - (void) setScannerZoom:(double) value
 {
 	scanner_zoom = value;
 }
+
 
 - (void) addLegend:(NSDictionary *) info
 {
@@ -244,6 +249,7 @@ float char_widths[128] = {
 	}
 }
 
+
 - (void) addDial:(NSDictionary *) info
 {
 	if ([info objectForKey:SELECTOR_KEY])
@@ -252,6 +258,7 @@ float char_widths[128] = {
 		if ([self respondsToSelector:_selector])  [dialArray addObject:info];
 	}
 }
+
 
 - (void) drawLegends
 {
@@ -295,10 +302,11 @@ float char_widths[128] = {
 		NSSize		siz = NSMakeSize([(NSNumber *)[info objectForKey:WIDTH_KEY] floatValue],[(NSNumber *)[info objectForKey:HEIGHT_KEY] floatValue]);
 		double x =		[(NSNumber *)[info objectForKey:X_KEY] doubleValue];
 		double y =		[(NSNumber *)[info objectForKey:Y_KEY] doubleValue];
-		glColor4f( 0.0, 1.0, 0.0, 1.0);
-		drawString( legendText, x, y, z1, siz);
+		glColor4f(0.0, 1.0, 0.0, 1.0);
+		drawString(legendText, x, y, z1, siz);
 	}
 }
+
 
 - (void) drawHUDItem:(NSDictionary *) info
 {
@@ -329,7 +337,7 @@ static BOOL hostiles;
 	int x = SCANNER_CENTRE_X;
 	int y = SCANNER_CENTRE_Y;
 	double alpha = 1.0;
-	NSSize siz = NSMakeSize( SCANNER_WIDTH, SCANNER_HEIGHT);
+	NSSize siz = NSMakeSize(SCANNER_WIDTH, SCANNER_HEIGHT);
 	//
 	if ([info objectForKey:X_KEY])
 		x =		[(NSNumber *)[info objectForKey:X_KEY] intValue];
@@ -393,8 +401,8 @@ static BOOL hostiles;
 	position = player->position;
 	gl_matrix_into_matrix([player rotationMatrix], &rotMatrix);
 		
-	glColor4fv( scanner_color);
-	drawScannerGrid( x, y, z1, siz, [UNIVERSE viewDir], line_width, scanner_zoom);
+	glColor4fv(scanner_color);
+	drawScannerGrid(x, y, z1, siz, [UNIVERSE viewDir], line_width, scanner_zoom);
 	
 	GLfloat off_scope2 = (siz.width > siz.height) ? siz.width * siz.width : siz.height * siz.height;
 	
@@ -542,12 +550,12 @@ static BOOL hostiles;
 						Vector bounds[6];
 //						BoundingBox bb = [ship boundingBox];
 						BoundingBox bb = ship->totalBoundingBox;
-						bounds[0] = ship->v_forward;	scale_vector( &bounds[0], bb.max.z);
-						bounds[1] = ship->v_forward;	scale_vector( &bounds[1], bb.min.z);
-						bounds[2] = ship->v_right;		scale_vector( &bounds[2], bb.max.x);
-						bounds[3] = ship->v_right;		scale_vector( &bounds[3], bb.min.x);
-						bounds[4] = ship->v_up;			scale_vector( &bounds[4], bb.max.y);
-						bounds[5] = ship->v_up;			scale_vector( &bounds[5], bb.min.y);
+						bounds[0] = ship->v_forward;	scale_vector(&bounds[0], bb.max.z);
+						bounds[1] = ship->v_forward;	scale_vector(&bounds[1], bb.min.z);
+						bounds[2] = ship->v_right;		scale_vector(&bounds[2], bb.max.x);
+						bounds[3] = ship->v_right;		scale_vector(&bounds[3], bb.min.x);
+						bounds[4] = ship->v_up;			scale_vector(&bounds[4], bb.max.y);
+						bounds[5] = ship->v_up;			scale_vector(&bounds[5], bb.min.y);
 						// rotate the view
 						int i;
 						for (i = 0; i < 6; i++)
@@ -555,18 +563,18 @@ static BOOL hostiles;
 							bounds[i].x += rp.x;	bounds[i].y += rp.y;	bounds[i].z += rp.z;
 							mult_vector(&bounds[i], rotMatrix);
 							scale_vector(&bounds[i], upscale);
-							bounds[i] = make_vector( bounds[i].x + scanner_cx, bounds[i].z * z_factor + bounds[i].y * y_factor + scanner_cy, z1 );
+							bounds[i] = make_vector(bounds[i].x + scanner_cx, bounds[i].z * z_factor + bounds[i].y * y_factor + scanner_cy, z1 );
 						}
 						// draw the diamond
 						//
 						glBegin(GL_QUADS);
 						glColor4f(col[0], col[1], col[2], 0.33333 * col[3]);
-							glVertex3f( bounds[0].x, bounds[0].y, bounds[0].z);	glVertex3f( bounds[4].x, bounds[4].y, bounds[4].z);
-							glVertex3f( bounds[1].x, bounds[1].y, bounds[1].z);	glVertex3f( bounds[5].x, bounds[5].y, bounds[5].z);
-							glVertex3f( bounds[2].x, bounds[2].y, bounds[2].z);	glVertex3f( bounds[4].x, bounds[4].y, bounds[4].z);
-							glVertex3f( bounds[3].x, bounds[3].y, bounds[3].z);	glVertex3f( bounds[5].x, bounds[5].y, bounds[5].z);
-							glVertex3f( bounds[2].x, bounds[2].y, bounds[2].z);	glVertex3f( bounds[0].x, bounds[0].y, bounds[0].z);
-							glVertex3f( bounds[3].x, bounds[3].y, bounds[3].z);	glVertex3f( bounds[1].x, bounds[1].y, bounds[1].z);
+							glVertex3f(bounds[0].x, bounds[0].y, bounds[0].z);	glVertex3f(bounds[4].x, bounds[4].y, bounds[4].z);
+							glVertex3f(bounds[1].x, bounds[1].y, bounds[1].z);	glVertex3f(bounds[5].x, bounds[5].y, bounds[5].z);
+							glVertex3f(bounds[2].x, bounds[2].y, bounds[2].z);	glVertex3f(bounds[4].x, bounds[4].y, bounds[4].z);
+							glVertex3f(bounds[3].x, bounds[3].y, bounds[3].z);	glVertex3f(bounds[5].x, bounds[5].y, bounds[5].z);
+							glVertex3f(bounds[2].x, bounds[2].y, bounds[2].z);	glVertex3f(bounds[0].x, bounds[0].y, bounds[0].z);
+							glVertex3f(bounds[3].x, bounds[3].y, bounds[3].z);	glVertex3f(bounds[1].x, bounds[1].y, bounds[1].z);
 						glEnd();
 					}
 				}
@@ -574,7 +582,7 @@ static BOOL hostiles;
 
 				if (ms_blip > 0.0)
 				{
-					drawSpecialOval( x1 - 0.5, y2 + 1.5, z1, NSMakeSize(16.0 * (1.0 - ms_blip), 8.0 * (1.0 - ms_blip)), 30, col);
+					DrawSpecialOval(x1 - 0.5, y2 + 1.5, z1, NSMakeSize(16.0 * (1.0 - ms_blip), 8.0 * (1.0 - ms_blip)), 30, col);
 				}
 				if ((drawthing->isParticle)&&(drawClass == CLASS_MINE))
 				{
@@ -583,20 +591,20 @@ static BOOL hostiles;
 					double r0 = (l2 > 0)? sqrt(l2): 0;
 					if (r0 > 0)
 					{
-						glColor4f( 1.0, 0.5, 1.0, alpha);
-						drawOval( x1  - 0.5, y1 + 1.5, z1, NSMakeSize( r0, r0 * siz.height / siz.width), 20);
+						glColor4f(1.0, 0.5, 1.0, alpha);
+						GLDrawOval(x1  - 0.5, y1 + 1.5, z1, NSMakeSize(r0, r0 * siz.height / siz.width), 20);
 					}
-					glColor4f( 0.5, 0.0, 1.0, 0.33333 * alpha);
-					drawFilledOval( x1  - 0.5, y2 + 1.5, z1, NSMakeSize( r1, r1), 15);
+					glColor4f(0.5, 0.0, 1.0, 0.33333 * alpha);
+					GLDrawFilledOval(x1  - 0.5, y2 + 1.5, z1, NSMakeSize(r1, r1), 15);
 				}
 				else
 				{
 					glBegin(GL_QUADS);
 					glColor4fv(col);
-					glVertex3f( x1-3, y2, z1);	glVertex3f( x1+2, y2, z1);	glVertex3f( x1+2, y2+3, z1);	glVertex3f( x1-3, y2+3, z1);	
+					glVertex3f(x1-3, y2, z1);	glVertex3f(x1+2, y2, z1);	glVertex3f(x1+2, y2+3, z1);	glVertex3f(x1-3, y2+3, z1);	
 					col[3] *= 0.3333; // one third the alpha
 					glColor4fv(col);
-					glVertex3f( x1, y1, z1);	glVertex3f( x1+2, y1, z1);	glVertex3f( x1+2, y2, z1);	glVertex3f( x1, y2, z1);
+					glVertex3f(x1, y1, z1);	glVertex3f(x1+2, y1, z1);	glVertex3f(x1+2, y2, z1);	glVertex3f(x1, y2, z1);
 					glEnd();
 				}
 			}
@@ -620,6 +628,7 @@ static BOOL hostiles;
 
 }
 
+
 - (void) refreshLastTransmitter
 {
 	Entity* lt = [UNIVERSE entityForUniversalID:last_transmitter];
@@ -630,12 +639,13 @@ static BOOL hostiles;
 		[st setMessageTime:2.5];
 }
 
+
 - (void) drawScannerZoomIndicator:(NSDictionary *) info
 {	
     GLfloat zoom_color[] = { 1.0f, 0.1f, 0.0f, 1.0f };
 	GLfloat x = ZOOM_INDICATOR_CENTRE_X;
 	GLfloat y = ZOOM_INDICATOR_CENTRE_Y;
-	NSSize siz = NSMakeSize( ZOOM_INDICATOR_WIDTH, ZOOM_INDICATOR_HEIGHT);
+	NSSize siz = NSMakeSize(ZOOM_INDICATOR_WIDTH, ZOOM_INDICATOR_HEIGHT);
 	GLfloat alpha = 1.0;
 	if ([info objectForKey:X_KEY])
 		x =		[(NSNumber *)[info objectForKey:X_KEY] floatValue];
@@ -662,23 +672,24 @@ static BOOL hostiles;
 	if (zl > SCANNER_ZOOM_LEVELS) zl = SCANNER_ZOOM_LEVELS;
 	if (zl == 1) alpha *= 0.75;
 	zoom_color[3] = (GLfloat)alpha;
-	glColor4fv( zoom_color);
+	glColor4fv(zoom_color);
 	glEnable(GL_TEXTURE_2D);
 	glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
 	[sFontTexture apply];
 	glBegin(GL_QUADS);
-	drawCharacterQuad( 48 + zl, cx - 0.4 * siz.width, cy, z1, siz);
-	drawCharacterQuad( 58, cx, cy, z1, siz);
-	drawCharacterQuad( 49, cx + 0.3 * siz.width, cy, z1, siz);
+	drawCharacterQuad(48 + zl, cx - 0.4 * siz.width, cy, z1, siz);
+	drawCharacterQuad(58, cx, cy, z1, siz);
+	drawCharacterQuad(49, cx + 0.3 * siz.width, cy, z1, siz);
 	glEnd();
 	[OOTexture applyNone];
 	glDisable(GL_TEXTURE_2D);
 	
 }
 
+
 - (void) drawCompass:(NSDictionary *) info
 {	
-	NSSize siz = NSMakeSize( COMPASS_HALF_SIZE, COMPASS_HALF_SIZE);
+	NSSize siz = NSMakeSize(COMPASS_HALF_SIZE, COMPASS_HALF_SIZE);
     GLfloat x = COMPASS_CENTRE_X;
 	GLfloat y = COMPASS_CENTRE_Y;
 	GLfloat alpha = 1.0;
@@ -703,17 +714,17 @@ static BOOL hostiles;
 	GLfloat h3 = siz.height * 0.375;
 	GLfloat w1 = siz.width * 0.125;
 	GLfloat w3 = siz.width * 0.375;
-	glLineWidth( 2.0 * line_width);	// thicker
-	glColor4f( 0.0f, 0.0f, 1.0f, alpha);
-	drawOval( x, y, z1, siz, 12);	
-	glColor4f( 0.0f, 0.0f, 1.0f, 0.5f * alpha);
+	glLineWidth(2.0 * line_width);	// thicker
+	glColor4f(0.0f, 0.0f, 1.0f, alpha);
+	GLDrawOval(x, y, z1, siz, 12);	
+	glColor4f(0.0f, 0.0f, 1.0f, 0.5f * alpha);
 	glBegin(GL_LINES);
-		glVertex3f( x - w1, y, z1);	glVertex3f( x - w3, y, z1);
-		glVertex3f( x + w1, y, z1);	glVertex3f( x + w3, y, z1);
-		glVertex3f( x, y - h1, z1);	glVertex3f( x, y - h3, z1);
-		glVertex3f( x, y + h1, z1);	glVertex3f( x, y + h3, z1);
+		glVertex3f(x - w1, y, z1);	glVertex3f(x - w3, y, z1);
+		glVertex3f(x + w1, y, z1);	glVertex3f(x + w3, y, z1);
+		glVertex3f(x, y - h1, z1);	glVertex3f(x, y - h3, z1);
+		glVertex3f(x, y + h1, z1);	glVertex3f(x, y + h3, z1);
 	glEnd();
-	glLineWidth( line_width);	// thinner
+	glLineWidth(line_width);	// thinner
 	
 	//
 	PlanetEntity*	the_sun = [UNIVERSE sun];
@@ -789,7 +800,7 @@ static BOOL hostiles;
 		switch ([player compassMode])
 		{
 			case COMPASS_MODE_BASIC:
-				[self drawCompassPlanetBlipAt:relativePosition Size:NSMakeSize( 6, 6) Alpha:alpha];
+				[self drawCompassPlanetBlipAt:relativePosition Size:NSMakeSize(6, 6) Alpha:alpha];
 				break;
 			
 			case COMPASS_MODE_PLANET:
@@ -813,21 +824,23 @@ static BOOL hostiles;
 	}
 }
 
+
 - (void) drawCompassPlanetBlipAt:(Vector) relativePosition Size:(NSSize) siz Alpha:(GLfloat) alpha
 {
 	if (relativePosition.z >= 0)
 	{
 		glColor4f(0.0,1.0,0.0,0.75 * alpha);
-		drawFilledOval( relativePosition.x, relativePosition.y, z1, siz, 30);
+		GLDrawFilledOval(relativePosition.x, relativePosition.y, z1, siz, 30);
 		glColor4f(0.0,1.0,0.0,alpha);
-		drawOval( relativePosition.x, relativePosition.y, z1, siz, 30);
+		GLDrawOval(relativePosition.x, relativePosition.y, z1, siz, 30);
 	}
 	else
 	{
 		glColor4f(1.0,0.0,0.0,alpha);
-		drawOval( relativePosition.x, relativePosition.y, z1, siz, 30);
+		GLDrawOval(relativePosition.x, relativePosition.y, z1, siz, 30);
 	}
 }
+
 
 - (void) drawCompassStationBlipAt:(Vector) relativePosition Size:(NSSize) siz Alpha:(GLfloat) alpha
 {
@@ -847,21 +860,23 @@ static BOOL hostiles;
 	glEnd();
 }
 
+
 - (void) drawCompassSunBlipAt:(Vector) relativePosition Size:(NSSize) siz Alpha:(GLfloat) alpha
 {
 	glColor4f(1.0,1.0,0.0,0.75 * alpha);
-	drawFilledOval( relativePosition.x, relativePosition.y, z1, siz, 30);
+	GLDrawFilledOval(relativePosition.x, relativePosition.y, z1, siz, 30);
 	if (relativePosition.z >= 0)
 	{
 		glColor4f(0.0,1.0,0.0,alpha);
-		drawOval( relativePosition.x, relativePosition.y, z1, siz, 30);
+		GLDrawOval(relativePosition.x, relativePosition.y, z1, siz, 30);
 	}
 	else
 	{
 		glColor4f(1.0,0.0,0.0,alpha);
-		drawOval( relativePosition.x, relativePosition.y, z1, siz, 30);
+		GLDrawOval(relativePosition.x, relativePosition.y, z1, siz, 30);
 	}
 }
+
 
 - (void) drawCompassTargetBlipAt:(Vector) relativePosition Size:(NSSize) siz Alpha:(GLfloat) alpha
 {
@@ -879,8 +894,9 @@ static BOOL hostiles;
 	glVertex3f(relativePosition.x, relativePosition.y - siz.height, z1);
 	glVertex3f(relativePosition.x, relativePosition.y + siz.height, z1);
 	glEnd();
-	drawOval( relativePosition.x, relativePosition.y, z1, siz, 30);
+	GLDrawOval(relativePosition.x, relativePosition.y, z1, siz, 30);
 }
+
 
 - (void) drawCompassWitchpointBlipAt:(Vector) relativePosition Size:(NSSize) siz Alpha:(GLfloat) alpha
 {
@@ -908,6 +924,7 @@ static BOOL hostiles;
 	glEnd();
 }
 
+
 - (void) drawCompassBeaconBlipAt:(Vector) relativePosition Size:(NSSize) siz Alpha:(GLfloat) alpha
 {
 	if (relativePosition.z >= 0)
@@ -932,12 +949,13 @@ static BOOL hostiles;
 	glEnd();
 }
 
+
 - (void) drawAegis:(NSDictionary *) info
 {
 	if (([UNIVERSE viewDir] == VIEW_GUI_DISPLAY)||([UNIVERSE sun] == nil)||([[PlayerEntity sharedPlayer] checkForAegis] != AEGIS_IN_DOCKING_RANGE))
 		return;	// don't draw
 	
-	NSSize siz = NSMakeSize( AEGIS_WIDTH, AEGIS_HEIGHT);
+	NSSize siz = NSMakeSize(AEGIS_WIDTH, AEGIS_HEIGHT);
     int x = AEGIS_CENTRE_X;
 	int y = AEGIS_CENTRE_Y;
 	GLfloat alpha = 0.5;
@@ -959,14 +977,15 @@ static BOOL hostiles;
 	
 	GLfloat strip[] = { -7,8, -6,5, 5,8, 3,5, 7,2, 4,2, 6,-1, 4,2, -4,-1, -6,2, -4,-1, -7,-1, -3,-4, -5,-7, 6,-4, 7,-7 };
 	
-	glColor4f( 0.0f, 1.0f, 0.0f, alpha);
+	glColor4f(0.0f, 1.0f, 0.0f, alpha);
 	glBegin(GL_QUAD_STRIP);
 	int i;
 	for (i = 0; i < 32; i += 2)
-		glVertex3f( x + w * strip[i], y - h * strip[i + 1], z1);
+		glVertex3f(x + w * strip[i], y - h * strip[i + 1], z1);
 	glEnd();
 	
 }
+
 
 - (void) drawSpeedBar:(NSDictionary *) info
 {
@@ -974,7 +993,7 @@ static BOOL hostiles;
 	
 	int x = SPEED_BAR_CENTRE_X;
 	int y = SPEED_BAR_CENTRE_Y;
-	NSSize siz = NSMakeSize( SPEED_BAR_WIDTH, SPEED_BAR_HEIGHT);
+	NSSize siz = NSMakeSize(SPEED_BAR_WIDTH, SPEED_BAR_HEIGHT);
 	if ([info objectForKey:X_KEY])
 		x = [(NSNumber *)[info objectForKey:X_KEY] intValue];
 	if ([info objectForKey:Y_KEY])
@@ -991,22 +1010,23 @@ static BOOL hostiles;
 	{
 		// draw speed surround
 		glColor4fv(green_color);
-		hudDrawSurroundAt( x, y, z1, siz);
+		hudDrawSurroundAt(x, y, z1, siz);
 	}
 	// draw speed bar
 	if (ds > .25)
 		glColor4fv(yellow_color);
 	if (ds > .80)
 		glColor4fv(red_color);
-	hudDrawBarAt( x, y, z1, siz, ds);
+	hudDrawBarAt(x, y, z1, siz, ds);
 	
 }
+
 
 - (void) drawRollBar:(NSDictionary *) info
 {	
     int x = ROLL_BAR_CENTRE_X;
 	int y = ROLL_BAR_CENTRE_Y;
-	NSSize siz = NSMakeSize( ROLL_BAR_WIDTH, ROLL_BAR_HEIGHT);
+	NSSize siz = NSMakeSize(ROLL_BAR_WIDTH, ROLL_BAR_HEIGHT);
 	if ([info objectForKey:X_KEY])
 		x = [(NSNumber *)[info objectForKey:X_KEY] intValue];
 	if ([info objectForKey:Y_KEY])
@@ -1023,18 +1043,19 @@ static BOOL hostiles;
 	{
 		// draw ROLL surround
 		glColor4fv(green_color);
-		hudDrawSurroundAt( x, y, z1, siz);
+		hudDrawSurroundAt(x, y, z1, siz);
 	}
 	// draw ROLL bar
 	glColor4fv(yellow_color);
-	hudDrawIndicatorAt( x, y, z1, siz, [[PlayerEntity sharedPlayer] dialRoll]);
+	hudDrawIndicatorAt(x, y, z1, siz, [[PlayerEntity sharedPlayer] dialRoll]);
 }
+
 
 - (void) drawPitchBar:(NSDictionary *) info
 {	
     int x = PITCH_BAR_CENTRE_X;
 	int y = PITCH_BAR_CENTRE_Y;
-	NSSize siz = NSMakeSize( PITCH_BAR_WIDTH, PITCH_BAR_HEIGHT);
+	NSSize siz = NSMakeSize(PITCH_BAR_WIDTH, PITCH_BAR_HEIGHT);
 	if ([info objectForKey:X_KEY])
 		x = [(NSNumber *)[info objectForKey:X_KEY] intValue];
 	if ([info objectForKey:Y_KEY])
@@ -1051,12 +1072,13 @@ static BOOL hostiles;
 	{
 		// draw PITCH surround
 		glColor4fv(green_color);
-		hudDrawSurroundAt( x, y, z1, siz);
+		hudDrawSurroundAt(x, y, z1, siz);
 	}
 	// draw PITCH bar
 	glColor4fv(yellow_color);
-	hudDrawIndicatorAt( x, y, z1, siz, [[PlayerEntity sharedPlayer] dialPitch]);
+	hudDrawIndicatorAt(x, y, z1, siz, [[PlayerEntity sharedPlayer] dialPitch]);
 }
+
 
 - (void) drawEnergyGauge:(NSDictionary *) info
 {	
@@ -1068,7 +1090,7 @@ static BOOL hostiles;
 	int y = ENERGY_GAUGE_CENTRE_Y;
 	
 
-	NSSize siz = NSMakeSize( ENERGY_GAUGE_WIDTH, ENERGY_GAUGE_HEIGHT);
+	NSSize siz = NSMakeSize(ENERGY_GAUGE_WIDTH, ENERGY_GAUGE_HEIGHT);
 	if ([info objectForKey:X_KEY])
 		x = [(NSNumber *)[info objectForKey:X_KEY] intValue];
 	if ([info objectForKey:Y_KEY])
@@ -1094,7 +1116,7 @@ static BOOL hostiles;
 	{
 		// draw energy surround
 		glColor4fv(yellow_color);
-		hudDrawSurroundAt( x, y, z1, siz);
+		hudDrawSurroundAt(x, y, z1, siz);
 	}
 
 	// draw energy banks
@@ -1109,12 +1131,12 @@ static BOOL hostiles;
 		{
 			glColor4fv(yellow_color);
 			if (energy > 1.0)
-				hudDrawBarAt( x, cy, z1, dial_size, 1.0);
+				hudDrawBarAt(x, cy, z1, dial_size, 1.0);
 			if ((energy > 0.0)&&(energy <= 1.0))
-				hudDrawBarAt( x, cy, z1, dial_size, energy);
+				hudDrawBarAt(x, cy, z1, dial_size, energy);
 			if (labelled)
 			{
-				glColor4f( 0.0, 1.0, 0.0, 1.0);
+				glColor4f(0.0, 1.0, 0.0, 1.0);
 				drawString([NSString stringWithFormat:@"E%x",n_bars - i], x + 0.5 * dial_size.width + 2, cy - 0.5 * qy, z1, NSMakeSize(9, (qy < 18)? qy : 18 ));
 			}
 			energy -= 1.0;
@@ -1124,11 +1146,12 @@ static BOOL hostiles;
 
 }
 
+
 - (void) drawForwardShieldBar:(NSDictionary *) info
 {	
     int x = FORWARD_SHIELD_BAR_CENTRE_X;
 	int y = FORWARD_SHIELD_BAR_CENTRE_Y;
-	NSSize siz = NSMakeSize( FORWARD_SHIELD_BAR_WIDTH, FORWARD_SHIELD_BAR_HEIGHT);
+	NSSize siz = NSMakeSize(FORWARD_SHIELD_BAR_WIDTH, FORWARD_SHIELD_BAR_HEIGHT);
 	if ([info objectForKey:X_KEY])
 		x = [(NSNumber *)[info objectForKey:X_KEY] intValue];
 	if ([info objectForKey:Y_KEY])
@@ -1146,7 +1169,7 @@ static BOOL hostiles;
 	{
 		// draw forward_shield surround
 		glColor4fv(green_color);
-		hudDrawSurroundAt( x, y, z1, siz);
+		hudDrawSurroundAt(x, y, z1, siz);
 	}
 	// draw forward_shield bar
 	glColor4fv(green_color);
@@ -1154,14 +1177,15 @@ static BOOL hostiles;
 		glColor4fv(yellow_color);
 	if (shield < .25)
 		glColor4fv(red_color);
-	hudDrawBarAt( x, y, z1, siz, shield);
+	hudDrawBarAt(x, y, z1, siz, shield);
 }
+
 
 - (void) drawAftShieldBar:(NSDictionary *) info
 {	
     int x = AFT_SHIELD_BAR_CENTRE_X;
 	int y = AFT_SHIELD_BAR_CENTRE_Y;
-	NSSize siz = NSMakeSize( AFT_SHIELD_BAR_WIDTH, AFT_SHIELD_BAR_HEIGHT);
+	NSSize siz = NSMakeSize(AFT_SHIELD_BAR_WIDTH, AFT_SHIELD_BAR_HEIGHT);
 	if ([info objectForKey:X_KEY])
 		x = [(NSNumber *)[info objectForKey:X_KEY] intValue];
 	if ([info objectForKey:Y_KEY])
@@ -1179,7 +1203,7 @@ static BOOL hostiles;
 	{
 		// draw aft_shield surround
 		glColor4fv(green_color);
-		hudDrawSurroundAt( x, y, z1, siz);
+		hudDrawSurroundAt(x, y, z1, siz);
 	}
 	// draw aft_shield bar
 	glColor4fv(green_color);
@@ -1187,8 +1211,9 @@ static BOOL hostiles;
 		glColor4fv(yellow_color);
 	if (shield < .25)
 		glColor4fv(red_color);
-	hudDrawBarAt( x, y, z1, siz, shield);
+	hudDrawBarAt(x, y, z1, siz, shield);
 }
+
 
 - (void) drawFuelBar:(NSDictionary *) info
 {	
@@ -1196,7 +1221,7 @@ static BOOL hostiles;
 	float hr = [[PlayerEntity sharedPlayer] dialHyperRange];
 	int x = FUEL_BAR_CENTRE_X;
 	int y = FUEL_BAR_CENTRE_Y;
-	NSSize siz = NSMakeSize( FUEL_BAR_WIDTH, FUEL_BAR_HEIGHT);
+	NSSize siz = NSMakeSize(FUEL_BAR_WIDTH, FUEL_BAR_HEIGHT);
 	if ([info objectForKey:X_KEY])
 		x = [(NSNumber *)[info objectForKey:X_KEY] intValue];
 	if ([info objectForKey:Y_KEY])
@@ -1208,21 +1233,22 @@ static BOOL hostiles;
 
 	// draw fuel bar
 	glColor4fv(yellow_color);
-	hudDrawBarAt( x, y, z1, siz, fu);
+	hudDrawBarAt(x, y, z1, siz, fu);
 	
 	// draw range indicator
 	if ((hr > 0)&&(hr <= 1.0))
 	{
 		glColor4fv((fu < hr)? red_color : green_color);
-		hudDrawMarkerAt( x, y, z1, siz, hr);
+		hudDrawMarkerAt(x, y, z1, siz, hr);
 	}
 }
+
 
 - (void) drawCabinTempBar:(NSDictionary *) info
 {
     int x = CABIN_TEMP_BAR_CENTRE_X;
 	int y = CABIN_TEMP_BAR_CENTRE_Y;
-	NSSize siz = NSMakeSize( CABIN_TEMP_BAR_WIDTH, CABIN_TEMP_BAR_HEIGHT);
+	NSSize siz = NSMakeSize(CABIN_TEMP_BAR_WIDTH, CABIN_TEMP_BAR_HEIGHT);
 	if ([info objectForKey:X_KEY])
 		x = [(NSNumber *)[info objectForKey:X_KEY] intValue];
 	if ([info objectForKey:Y_KEY])
@@ -1246,14 +1272,15 @@ static BOOL hostiles;
 	if ((flash)&&(temp > .90))
 		glColor4fv(redplus_color);
 	[player setAlertFlag:ALERT_FLAG_TEMP to:((temp > .90)&&(player->status == STATUS_IN_FLIGHT))];
-	hudDrawBarAt( x, y, z1, siz, temp);
+	hudDrawBarAt(x, y, z1, siz, temp);
 }
+
 
 - (void) drawWeaponTempBar:(NSDictionary *) info
 {	
     int x = WEAPON_TEMP_BAR_CENTRE_X;
 	int y = WEAPON_TEMP_BAR_CENTRE_Y;
-	NSSize siz = NSMakeSize( WEAPON_TEMP_BAR_WIDTH, WEAPON_TEMP_BAR_HEIGHT);
+	NSSize siz = NSMakeSize(WEAPON_TEMP_BAR_WIDTH, WEAPON_TEMP_BAR_HEIGHT);
 	if ([info objectForKey:X_KEY])
 		x = [(NSNumber *)[info objectForKey:X_KEY] intValue];
 	if ([info objectForKey:Y_KEY])
@@ -1270,14 +1297,15 @@ static BOOL hostiles;
 		glColor4fv(yellow_color);
 	if (temp > .80)
 		glColor4fv(red_color);
-	hudDrawBarAt( x, y, z1, siz, temp);
+	hudDrawBarAt(x, y, z1, siz, temp);
 }
+
 
 - (void) drawAltitudeBar:(NSDictionary *) info
 {	
     int x = ALTITUDE_BAR_CENTRE_X;
 	int y = ALTITUDE_BAR_CENTRE_Y;
-	NSSize siz = NSMakeSize( ALTITUDE_BAR_WIDTH, ALTITUDE_BAR_HEIGHT);
+	NSSize siz = NSMakeSize(ALTITUDE_BAR_WIDTH, ALTITUDE_BAR_HEIGHT);
 	if ([info objectForKey:X_KEY])
 		x = [(NSNumber *)[info objectForKey:X_KEY] intValue];
 	if ([info objectForKey:Y_KEY])
@@ -1301,15 +1329,16 @@ static BOOL hostiles;
 	if ((flash)&&(alt < .10))
 		glColor4fv(redplus_color);
 	[player setAlertFlag:ALERT_FLAG_ALT to:((alt < .10)&&(player->status == STATUS_IN_FLIGHT))];
-	hudDrawBarAt( x, y, z1, siz, alt);
+	hudDrawBarAt(x, y, z1, siz, alt);
 }
+
 
 - (void) drawMissileDisplay:(NSDictionary *) info
 {	
     int x = MISSILES_DISPLAY_X;
 	int y = MISSILES_DISPLAY_Y;
 	int sp = MISSILES_DISPLAY_SPACING;
-	NSSize siz = NSMakeSize( MISSILE_ICON_HEIGHT, MISSILE_ICON_HEIGHT);
+	NSSize siz = NSMakeSize(MISSILE_ICON_HEIGHT, MISSILE_ICON_HEIGHT);
 	if ([info objectForKey:X_KEY])
 		x = [(NSNumber *)[info objectForKey:X_KEY] intValue];
 	if ([info objectForKey:Y_KEY])
@@ -1339,14 +1368,14 @@ static BOOL hostiles;
 					glBegin(GL_POLYGON);
 					if (miss_icon)
 					{
-						hudDrawSpecialIconAt( (NSArray*)miss_icon, x + i * sp + 2, y + 1, z1, NSMakeSize( siz.width + 4, siz.height + 4));
+						hudDrawSpecialIconAt((NSArray*)miss_icon, x + i * sp + 2, y + 1, z1, NSMakeSize(siz.width + 4, siz.height + 4));
 					}
 					else
 					{
 						if ([miss_roles hasSuffix:@"MISSILE"])
-							hudDrawMissileIconAt( x + i * sp + 2, y + 1, z1, NSMakeSize( siz.width + 4, siz.height + 4));
+							hudDrawMissileIconAt(x + i * sp + 2, y + 1, z1, NSMakeSize(siz.width + 4, siz.height + 4));
 						if ([miss_roles hasSuffix:@"MINE"])
-							hudDrawMineIconAt( x + i * sp + 2, y + 1, z1, NSMakeSize( siz.width + 4, siz.height + 4));
+							hudDrawMineIconAt(x + i * sp + 2, y + 1, z1, NSMakeSize(siz.width + 4, siz.height + 4));
 					}
 					glEnd();
 					switch ([player dialMissileStatus])
@@ -1369,14 +1398,14 @@ static BOOL hostiles;
 				glBegin(GL_POLYGON);
 				if (miss_icon)
 				{
-					hudDrawSpecialIconAt( (NSArray*)miss_icon, x + i * sp, y, z1, siz);
+					hudDrawSpecialIconAt((NSArray*)miss_icon, x + i * sp, y, z1, siz);
 				}
 				else
 				{
 					if ([miss_roles hasSuffix:@"MISSILE"])
-						hudDrawMissileIconAt( x + i * sp, y, z1, siz);
+						hudDrawMissileIconAt(x + i * sp, y, z1, siz);
 					if ([miss_roles hasSuffix:@"MINE"])
-						hudDrawMineIconAt( x + i * sp, y, z1, siz);
+						hudDrawMineIconAt(x + i * sp, y, z1, siz);
 				}
 				glEnd();
 				if (i != [player activeMissile])
@@ -1385,14 +1414,14 @@ static BOOL hostiles;
 					glBegin(GL_LINE_LOOP);
 					if (miss_icon)
 					{
-						hudDrawSpecialIconAt( (NSArray*)miss_icon, x + i * sp, y, z1, siz);
+						hudDrawSpecialIconAt((NSArray*)miss_icon, x + i * sp, y, z1, siz);
 					}
 					else
 					{
 						if ([miss_roles hasSuffix:@"MISSILE"])
-							hudDrawMissileIconAt( x + i * sp, y, z1, siz);
+							hudDrawMissileIconAt(x + i * sp, y, z1, siz);
 						if ([miss_roles hasSuffix:@"MINE"])
-							hudDrawMineIconAt( x + i * sp, y, z1, siz);
+							hudDrawMineIconAt(x + i * sp, y, z1, siz);
 					}
 					glEnd();
 				}
@@ -1401,7 +1430,7 @@ static BOOL hostiles;
 			{
 				glColor4f(0.25, 0.25, 0.25, 0.5);
 				glBegin(GL_LINE_LOOP);
-				hudDrawMissileIconAt( x + i * sp, y, z1, siz);
+				hudDrawMissileIconAt(x + i * sp, y, z1, siz);
 				glEnd();
 			}
 		}
@@ -1422,16 +1451,17 @@ static BOOL hostiles;
 				glColor4fv(red_color);	break;
 		}
 		glBegin(GL_QUADS);
-		glVertex3i( x , y, z1);
-		glVertex3i( x + siz.width, y, z1);
-		glVertex3i( x + siz.width, y + siz.height, z1);
-		glVertex3i( x , y + siz.height, z1);
+		glVertex3i(x , y, z1);
+		glVertex3i(x + siz.width, y, z1);
+		glVertex3i(x + siz.width, y + siz.height, z1);
+		glVertex3i(x , y + siz.height, z1);
 		glEnd();
-		glColor4f( 0.0, 1.0, 0.0, 1.0);
-		drawString( [player dialTargetName], x + sp, y, z1, NSMakeSize( siz.width, siz.height));
+		glColor4f(0.0, 1.0, 0.0, 1.0);
+		drawString([player dialTargetName], x + sp, y, z1, NSMakeSize(siz.width, siz.height));
 	}
 	
 }
+
 
 - (void) drawTargetReticle:(NSDictionary *) info
 {
@@ -1450,6 +1480,7 @@ static BOOL hostiles;
 	}
 }
 
+
 - (void) drawStatusLight:(NSDictionary *) info
 {
 	GLfloat status_color[4] = { 0.25, 0.25, 0.25, 1.0};
@@ -1457,7 +1488,7 @@ static BOOL hostiles;
 	double flash_alpha = 0.333 * (2.0 + sin([UNIVERSE getTime] * 2.5 * alertCondition));
     int x = STATUS_LIGHT_CENTRE_X;
 	int y = STATUS_LIGHT_CENTRE_Y;
-	NSSize siz = NSMakeSize( STATUS_LIGHT_HEIGHT, STATUS_LIGHT_HEIGHT);
+	NSSize siz = NSMakeSize(STATUS_LIGHT_HEIGHT, STATUS_LIGHT_HEIGHT);
 	if ([info objectForKey:X_KEY])
 		x = [(NSNumber *)[info objectForKey:X_KEY] intValue];
 	if ([info objectForKey:Y_KEY])
@@ -1489,19 +1520,20 @@ static BOOL hostiles;
 			break;
 		default :
 		case ALERT_CONDITION_DOCKED :
-//			glColor4f( 0.25, 0.25, 0.25, 1.0);
+//			glColor4f(0.25, 0.25, 0.25, 1.0);
 			break;
 	}
 	status_color[3] = flash_alpha;
 	glColor4fv(status_color);
 	glBegin(GL_POLYGON);
-	hudDrawStatusIconAt( x, y, z1, siz);
+	hudDrawStatusIconAt(x, y, z1, siz);
 	glEnd();
-	glColor4f( 0.25, 0.25, 0.25, 1.0);
+	glColor4f(0.25, 0.25, 0.25, 1.0);
 	glBegin(GL_LINE_LOOP);
-	hudDrawStatusIconAt( x, y, z1, siz);
+	hudDrawStatusIconAt(x, y, z1, siz);
 	glEnd();
 }
+
 
 - (void) drawDirectionCue:(NSDictionary *) info
 {	
@@ -1562,24 +1594,25 @@ static BOOL hostiles;
 				rpn = unit_vector(&rpn);
 				glBegin(GL_LINES);
 					glColor4fv(clear_color);
-					glVertex3f( rpn.x * siz1 - rpn.y * siz0, rpn.y * siz1 + rpn.x * siz0, z1);
+					glVertex3f(rpn.x * siz1 - rpn.y * siz0, rpn.y * siz1 + rpn.x * siz0, z1);
 					glColor4fv(green_color);
-					glVertex3f( rpn.x * siz2, rpn.y * siz2, z1);
+					glVertex3f(rpn.x * siz2, rpn.y * siz2, z1);
 					glColor4fv(clear_color);
-					glVertex3f( rpn.x * siz1 + rpn.y * siz0, rpn.y * siz1 - rpn.x * siz0, z1);
+					glVertex3f(rpn.x * siz1 + rpn.y * siz0, rpn.y * siz1 - rpn.x * siz0, z1);
 					glColor4fv(green_color);
-					glVertex3f( rpn.x * siz2, rpn.y * siz2, z1);
+					glVertex3f(rpn.x * siz2, rpn.y * siz2, z1);
 				glEnd();
 			}
 		}
 	}
 }
 
+
 - (void) drawClock:(NSDictionary *) info
 {
     int x = CLOCK_DISPLAY_X;
 	int y = CLOCK_DISPLAY_Y;
-	NSSize siz = NSMakeSize( CLOCK_DISPLAY_WIDTH, CLOCK_DISPLAY_HEIGHT);
+	NSSize siz = NSMakeSize(CLOCK_DISPLAY_WIDTH, CLOCK_DISPLAY_HEIGHT);
 	
 	if ([info objectForKey:X_KEY])
 		x = [(NSNumber *)[info objectForKey:X_KEY] intValue];
@@ -1590,9 +1623,10 @@ static BOOL hostiles;
 	if ([info objectForKey:HEIGHT_KEY])
 		siz.height = [(NSNumber *)[info objectForKey:HEIGHT_KEY] intValue];
 
-	glColor4f( 0.0, 1.0, 0.0, 1.0);
-	drawString( [[PlayerEntity sharedPlayer] dial_clock], x, y, z1, siz);
+	glColor4f(0.0, 1.0, 0.0, 1.0);
+	drawString([[PlayerEntity sharedPlayer] dial_clock], x, y, z1, siz);
 }
+
 
 - (void) drawFPSInfoCounter:(NSDictionary *) info
 {
@@ -1606,8 +1640,8 @@ static BOOL hostiles;
 	
 	int x = FPSINFO_DISPLAY_X;
 	int y = FPSINFO_DISPLAY_Y;
-	NSSize siz = NSMakeSize( FPSINFO_DISPLAY_WIDTH, FPSINFO_DISPLAY_HEIGHT);
-	NSSize siz08 = NSMakeSize( 0.8 * FPSINFO_DISPLAY_WIDTH, 0.8 * FPSINFO_DISPLAY_HEIGHT);
+	NSSize siz = NSMakeSize(FPSINFO_DISPLAY_WIDTH, FPSINFO_DISPLAY_HEIGHT);
+	NSSize siz08 = NSMakeSize(0.8 * FPSINFO_DISPLAY_WIDTH, 0.8 * FPSINFO_DISPLAY_HEIGHT);
 	
 	if ([info objectForKey:X_KEY])
 		x = [(NSNumber *)[info objectForKey:X_KEY] intValue];
@@ -1618,16 +1652,17 @@ static BOOL hostiles;
 	if ([info objectForKey:HEIGHT_KEY])
 		siz.height = [(NSNumber *)[info objectForKey:HEIGHT_KEY] intValue];
 
-	glColor4f( 0.0, 1.0, 0.0, 1.0);
-	drawString( [player dial_fpsinfo], x, y, z1, siz);
-	drawString( collDebugInfo, x, y - siz.height, z1, siz);
+	glColor4f(0.0, 1.0, 0.0, 1.0);
+	drawString([player dial_fpsinfo], x, y, z1, siz);
+	drawString(collDebugInfo, x, y - siz.height, z1, siz);
 	
-	drawString( positionInfo, x, y - 1.8 * siz.height, z1, siz08);
+	drawString(positionInfo, x, y - 1.8 * siz.height, z1, siz08);
 }
+
 
 - (void) drawScoopStatus:(NSDictionary *) info
 {
-	NSSize siz = NSMakeSize( SCOOPSTATUS_WIDTH, SCOOPSTATUS_HEIGHT);
+	NSSize siz = NSMakeSize(SCOOPSTATUS_WIDTH, SCOOPSTATUS_HEIGHT);
     GLfloat x = SCOOPSTATUS_CENTRE_X;
 	GLfloat y = SCOOPSTATUS_CENTRE_Y;
 	GLfloat alpha = 0.75;
@@ -1701,21 +1736,22 @@ static BOOL hostiles;
 	GLfloat h4 = 4.0 * h1;
 	
 	glDisable(GL_TEXTURE_2D);
-	glBegin( GL_QUADS);
+	glBegin(GL_QUADS);
 	// section 1
-		glColor4fv( s1c);
-		glVertex3f( x, y + h1, z1);	glVertex3f( x - w2, y + h2, z1);	glVertex3f( x, y + h3, z1);	glVertex3f( x + w2, y + h2, z1);
+		glColor4fv(s1c);
+		glVertex3f(x, y + h1, z1);	glVertex3f(x - w2, y + h2, z1);	glVertex3f(x, y + h3, z1);	glVertex3f(x + w2, y + h2, z1);
 	// section 2
-		glColor4fv( s2c);
-		glVertex3f( x, y - h1, z1);	glVertex3f( x - w4, y + h1, z1);	glVertex3f( x - w4, y + h2, z1);	glVertex3f( x, y, z1);
-		glVertex3f( x, y - h1, z1);	glVertex3f( x + w4, y + h1, z1);	glVertex3f( x + w4, y + h2, z1);	glVertex3f( x, y, z1);
+		glColor4fv(s2c);
+		glVertex3f(x, y - h1, z1);	glVertex3f(x - w4, y + h1, z1);	glVertex3f(x - w4, y + h2, z1);	glVertex3f(x, y, z1);
+		glVertex3f(x, y - h1, z1);	glVertex3f(x + w4, y + h1, z1);	glVertex3f(x + w4, y + h2, z1);	glVertex3f(x, y, z1);
 	// section 3
-		glColor4fv( s3c);
-		glVertex3f( x, y - h4, z1);	glVertex3f( x - w2, y - h2, z1);	glVertex3f( x - w2, y - h1, z1);	glVertex3f( x, y - h2, z1);
-		glVertex3f( x, y - h4, z1);	glVertex3f( x + w2, y - h2, z1);	glVertex3f( x + w2, y - h1, z1);	glVertex3f( x, y - h2, z1);
+		glColor4fv(s3c);
+		glVertex3f(x, y - h4, z1);	glVertex3f(x - w2, y - h2, z1);	glVertex3f(x - w2, y - h1, z1);	glVertex3f(x, y - h2, z1);
+		glVertex3f(x, y - h4, z1);	glVertex3f(x + w2, y - h2, z1);	glVertex3f(x + w2, y - h1, z1);	glVertex3f(x, y - h2, z1);
 	glEnd();
 	
 }
+
 
 - (void) drawGreenSurround:(NSDictionary *) info
 {	
@@ -1740,8 +1776,9 @@ static BOOL hostiles;
 
 	// draw aft_shield surround
 	glColor4fv(green_color);
-	hudDrawSurroundAt( x, y, z1, siz);
+	hudDrawSurroundAt(x, y, z1, siz);
 }
+
 
 - (void) drawYellowSurround:(NSDictionary *) info
 {	
@@ -1766,8 +1803,9 @@ static BOOL hostiles;
 
 	// draw aft_shield surround
 	glColor4fv(yellow_color);
-	hudDrawSurroundAt( x, y, z1, siz);
+	hudDrawSurroundAt(x, y, z1, siz);
 }
+
 
 - (void) drawTrumbles:(NSDictionary *) info
 {	
@@ -1784,17 +1822,17 @@ static BOOL hostiles;
 
 //---------------------------------------------------------------------//
 
-void hudDrawIndicatorAt( GLfloat x, GLfloat y, GLfloat z, NSSize siz, double amount)
+void hudDrawIndicatorAt(GLfloat x, GLfloat y, GLfloat z, NSSize siz, double amount)
 {
 	if (siz.width > siz.height)
 	{
 		GLfloat dial_oy =   y - siz.height/2;
 		GLfloat position =  x + amount * siz.width / 2;
 		glBegin(GL_QUADS);
-			glVertex3f( position, dial_oy, z);
-			glVertex3f( position+2, y, z);
-			glVertex3f( position, dial_oy+siz.height, z);
-			glVertex3f( position-2, y, z);
+			glVertex3f(position, dial_oy, z);
+			glVertex3f(position+2, y, z);
+			glVertex3f(position, dial_oy+siz.height, z);
+			glVertex3f(position-2, y, z);
 		glEnd();
 	}
 	else
@@ -1802,25 +1840,26 @@ void hudDrawIndicatorAt( GLfloat x, GLfloat y, GLfloat z, NSSize siz, double amo
 		GLfloat dial_ox =   x - siz.width/2;
 		GLfloat position =  y + amount * siz.height / 2;
 		glBegin(GL_QUADS);
-			glVertex3f( dial_ox, position, z);
-			glVertex3f( x, position+2, z);
-			glVertex3f( dial_ox + siz.width, position, z);
-			glVertex3f( x, position-2, z);
+			glVertex3f(dial_ox, position, z);
+			glVertex3f(x, position+2, z);
+			glVertex3f(dial_ox + siz.width, position, z);
+			glVertex3f(x, position-2, z);
 		glEnd();
 	}
 }
 
-void hudDrawMarkerAt( GLfloat x, GLfloat y, GLfloat z, NSSize siz, double amount)
+
+void hudDrawMarkerAt(GLfloat x, GLfloat y, GLfloat z, NSSize siz, double amount)
 {
 	if (siz.width > siz.height)
 	{
 		GLfloat dial_oy =   y - siz.height/2;
 		GLfloat position =  x + amount * siz.width - siz.width/2;
 		glBegin(GL_QUADS);
-			glVertex3f( position+1, dial_oy+1, z);
-			glVertex3f( position+1, dial_oy+siz.height-1, z);
-			glVertex3f( position-1, dial_oy+siz.height-1, z);
-			glVertex3f( position-1, dial_oy+1, z);
+			glVertex3f(position+1, dial_oy+1, z);
+			glVertex3f(position+1, dial_oy+siz.height-1, z);
+			glVertex3f(position-1, dial_oy+siz.height-1, z);
+			glVertex3f(position-1, dial_oy+1, z);
 		glEnd();
 	}
 	else
@@ -1828,15 +1867,16 @@ void hudDrawMarkerAt( GLfloat x, GLfloat y, GLfloat z, NSSize siz, double amount
 		GLfloat dial_ox =   x - siz.width/2;
 		GLfloat position =  y + amount * siz.height - siz.height/2;
 		glBegin(GL_QUADS);
-			glVertex3f( dial_ox+1, position+1, z);
-			glVertex3f( dial_ox + siz.width-1, position+1, z);
-			glVertex3f( dial_ox + siz.width-1, position-1, z);
-			glVertex3f( dial_ox+1, position-1, z);
+			glVertex3f(dial_ox+1, position+1, z);
+			glVertex3f(dial_ox + siz.width-1, position+1, z);
+			glVertex3f(dial_ox + siz.width-1, position-1, z);
+			glVertex3f(dial_ox+1, position-1, z);
 		glEnd();
 	}
 }
 
-void hudDrawBarAt( GLfloat x, GLfloat y, GLfloat z, NSSize siz, double amount)
+
+void hudDrawBarAt(GLfloat x, GLfloat y, GLfloat z, NSSize siz, double amount)
 {
 	GLfloat dial_ox =   x - siz.width/2;
 	GLfloat dial_oy =   y - siz.height/2;
@@ -1845,10 +1885,10 @@ void hudDrawBarAt( GLfloat x, GLfloat y, GLfloat z, NSSize siz, double amount)
 		GLfloat position =  dial_ox + amount * siz.width;
 		
 		glBegin(GL_QUADS);
-			glVertex3f( dial_ox, dial_oy, z);
-			glVertex3f( position, dial_oy, z);
-			glVertex3f( position, dial_oy+siz.height, z);
-			glVertex3f( dial_ox, dial_oy+siz.height, z);
+			glVertex3f(dial_ox, dial_oy, z);
+			glVertex3f(position, dial_oy, z);
+			glVertex3f(position, dial_oy+siz.height, z);
+			glVertex3f(dial_ox, dial_oy+siz.height, z);
 		glEnd();
 	}
 	else
@@ -1856,26 +1896,28 @@ void hudDrawBarAt( GLfloat x, GLfloat y, GLfloat z, NSSize siz, double amount)
 		GLfloat position =  dial_oy + amount * siz.height;
 		
 		glBegin(GL_QUADS);
-			glVertex3f( dial_ox, dial_oy, z);
-			glVertex3f( dial_ox, position, z);
-			glVertex3f( dial_ox+siz.width, position, z);
-			glVertex3f( dial_ox+siz.width, dial_oy, z);
+			glVertex3f(dial_ox, dial_oy, z);
+			glVertex3f(dial_ox, position, z);
+			glVertex3f(dial_ox+siz.width, position, z);
+			glVertex3f(dial_ox+siz.width, dial_oy, z);
 		glEnd();
 	}
 }
 
-void hudDrawSurroundAt( GLfloat x, GLfloat y, GLfloat z, NSSize siz)
+
+void hudDrawSurroundAt(GLfloat x, GLfloat y, GLfloat z, NSSize siz)
 {
 	GLfloat dial_ox = x - siz.width/2;
 	GLfloat dial_oy = y - siz.height/2;
 
 	glBegin(GL_LINE_LOOP);
-		glVertex3f( dial_ox-2, dial_oy-2, z);
-		glVertex3f( dial_ox+siz.width+2, dial_oy-2, z);
-		glVertex3f( dial_ox+siz.width+2, dial_oy+siz.height+2, z);
-		glVertex3f( dial_ox-2, dial_oy+siz.height+2, z);
+		glVertex3f(dial_ox-2, dial_oy-2, z);
+		glVertex3f(dial_ox+siz.width+2, dial_oy-2, z);
+		glVertex3f(dial_ox+siz.width+2, dial_oy+siz.height+2, z);
+		glVertex3f(dial_ox-2, dial_oy+siz.height+2, z);
 	glEnd();
 }
+
 
 void hudDrawSpecialIconAt(NSArray* ptsArray, int x, int y, int z, NSSize siz)
 {
@@ -1891,9 +1933,10 @@ void hudDrawSpecialIconAt(NSArray* ptsArray, int x, int y, int z, NSSize siz)
 	{
 		int x = [(NSNumber*)[ptsArray objectAtIndex:i++] intValue];
 		int y = [(NSNumber*)[ptsArray objectAtIndex:i++] intValue];
-		glVertex3i( ox + x * w, oy + y * h, z);
+		glVertex3i(ox + x * w, oy + y * h, z);
 	}
 }
+
 
 void hudDrawMissileIconAt(int x, int y, int z, NSSize siz)
 {
@@ -1902,14 +1945,15 @@ void hudDrawMissileIconAt(int x, int y, int z, NSSize siz)
 	int w = siz.width / 4.0;
 	int h = siz.height / 4.0; 
 
-	glVertex3i( ox, oy + 3 * h, z);
-	glVertex3i( ox + 2 * w, oy, z);
-	glVertex3i( ox + w, oy, z);
-	glVertex3i( ox + w, oy - 2 * h, z);
-	glVertex3i( ox - w, oy - 2 * h, z);
-	glVertex3i( ox - w, oy, z);
-	glVertex3i( ox - 2 * w, oy, z);
+	glVertex3i(ox, oy + 3 * h, z);
+	glVertex3i(ox + 2 * w, oy, z);
+	glVertex3i(ox + w, oy, z);
+	glVertex3i(ox + w, oy - 2 * h, z);
+	glVertex3i(ox - w, oy - 2 * h, z);
+	glVertex3i(ox - w, oy, z);
+	glVertex3i(ox - 2 * w, oy, z);
 }
+
 
 void hudDrawMineIconAt(int x, int y, int z, NSSize siz)
 {
@@ -1918,13 +1962,14 @@ void hudDrawMineIconAt(int x, int y, int z, NSSize siz)
 	int w = siz.width / 4.0;
 	int h = siz.height / 4.0; 
 
-	glVertex3i( ox, oy + 2 * h, z);
-	glVertex3i( ox + w, oy + h, z);
-	glVertex3i( ox + w, oy - h, z);
-	glVertex3i( ox, oy - 2 * h, z);
-	glVertex3i( ox - w, oy - h, z);
-	glVertex3i( ox - w, oy + h, z);
+	glVertex3i(ox, oy + 2 * h, z);
+	glVertex3i(ox + w, oy + h, z);
+	glVertex3i(ox + w, oy - h, z);
+	glVertex3i(ox, oy - 2 * h, z);
+	glVertex3i(ox - w, oy - h, z);
+	glVertex3i(ox - w, oy + h, z);
 }
+
 
 void hudDrawStatusIconAt(int x, int y, int z, NSSize siz)
 {
@@ -1933,14 +1978,14 @@ void hudDrawStatusIconAt(int x, int y, int z, NSSize siz)
 	int w = siz.width / 4.0;
 	int h = siz.height / 4.0; 
 
-	glVertex3i( ox, oy + h, z);
-	glVertex3i( ox, oy + 3 * h, z);
-	glVertex3i( ox + w, oy + 4 * h, z);
-	glVertex3i( ox + 3 * w, oy + 4 * h, z);
-	glVertex3i( ox + 4 * w, oy + 3 * h, z);
-	glVertex3i( ox + 4 * w, oy + h, z);
-	glVertex3i( ox + 3 * w, oy, z);
-	glVertex3i( ox + w, oy, z);
+	glVertex3i(ox, oy + h, z);
+	glVertex3i(ox, oy + 3 * h, z);
+	glVertex3i(ox + w, oy + 4 * h, z);
+	glVertex3i(ox + 3 * w, oy + 4 * h, z);
+	glVertex3i(ox + 4 * w, oy + 3 * h, z);
+	glVertex3i(ox + 4 * w, oy + h, z);
+	glVertex3i(ox + 3 * w, oy, z);
+	glVertex3i(ox + w, oy, z);
 }
 
 
@@ -2025,20 +2070,20 @@ void hudDrawReticleOnTarget(Entity* target, PlayerEntity* player1, GLfloat z1)
 			break;
 		case VIEW_AFT :
 			view_dir.x = 0.0;   view_dir.y = 0.0;   view_dir.z = -1.0;
-			quaternion_rotate_about_axis( &back_q, v1, M_PI);
+			quaternion_rotate_about_axis(&back_q, v1, M_PI);
 			break;
 		case VIEW_PORT :
 			view_dir.x = -1.0;   view_dir.y = 0.0;   view_dir.z = 0.0;
-			quaternion_rotate_about_axis( &back_q, v1, 0.5 * M_PI);
+			quaternion_rotate_about_axis(&back_q, v1, 0.5 * M_PI);
 			break;
 		case VIEW_STARBOARD :
 			view_dir.x = 1.0;   view_dir.y = 0.0;   view_dir.z = 0.0;
-			quaternion_rotate_about_axis( &back_q, v1, -0.5 * M_PI);
+			quaternion_rotate_about_axis(&back_q, v1, -0.5 * M_PI);
 			break;
 		case VIEW_CUSTOM :
 			view_dir = [player1 customViewForwardVector];
 			view_up = [player1 customViewUpVector];
-			back_q = quaternion_multiply( [player1 customViewQuaternion], back_q);
+			back_q = quaternion_multiply([player1 customViewQuaternion], back_q);
 			break;
 	}
 	gluLookAt(view_dir.x, view_dir.y, view_dir.z, 0.0, 0.0, 0.0, view_up.x, view_up.y, view_up.z);
@@ -2070,16 +2115,17 @@ void hudDrawReticleOnTarget(Entity* target, PlayerEntity* player1, GLfloat z1)
 	
 	// add text for reticle here
 	float range = (sqrtf(target->zero_distance) - target->collision_radius) * 0.001f;
-	NSSize textsize = NSMakeSize( rdist * ONE_SIXTYFOURTH, rdist * ONE_SIXTYFOURTH);
+	NSSize textsize = NSMakeSize(rdist * ONE_SIXTYFOURTH, rdist * ONE_SIXTYFOURTH);
 	float line_height = rdist * ONE_SIXTYFOURTH;
 	NSString*	info1 = [target_ship identFromShip: player1];
 	NSString*	info2 = (legal_desc == nil)? [NSString stringWithFormat:@"%0.3f km", range] : [NSString stringWithFormat:@"%0.3f km (%@)", range, legal_desc];
 	// no need to set color - tis green already!
-	drawString( info1, rs0, 0.5 * rs2, 0, textsize);
-	drawString( info2, rs0, 0.5 * rs2 - line_height, 0, textsize);
+	drawString(info1, rs0, 0.5 * rs2, 0, textsize);
+	drawString(info2, rs0, 0.5 * rs2 - line_height, 0, textsize);
 	
 	glPopMatrix();
 }
+
 
 double drawCharacterQuad(int chr, double x, double y, double z, NSSize siz)
 {
@@ -2088,17 +2134,18 @@ double drawCharacterQuad(int chr, double x, double y, double z, NSSize siz)
 	GLfloat texture_x = ONE_SIXTEENTH * (chr & 0x0f);
 	GLfloat texture_y = ONE_EIGHTH * (chr >> 4);		// divide by 16 fast
 	
-	glTexCoord2f( texture_x, texture_y + ONE_EIGHTH);
-	glVertex3f( x, y, z);
-	glTexCoord2f( texture_x + ONE_SIXTEENTH, texture_y + ONE_EIGHTH);
-	glVertex3f( x + siz.width, y, z);
-	glTexCoord2f( texture_x + ONE_SIXTEENTH, texture_y);
-	glVertex3f( x + siz.width, y + siz.height, z);
-	glTexCoord2f( texture_x, texture_y);
-	glVertex3f( x, y + siz.height, z);
+	glTexCoord2f(texture_x, texture_y + ONE_EIGHTH);
+	glVertex3f(x, y, z);
+	glTexCoord2f(texture_x + ONE_SIXTEENTH, texture_y + ONE_EIGHTH);
+	glVertex3f(x + siz.width, y, z);
+	glTexCoord2f(texture_x + ONE_SIXTEENTH, texture_y);
+	glVertex3f(x + siz.width, y + siz.height, z);
+	glTexCoord2f(texture_x, texture_y);
+	glVertex3f(x, y + siz.height, z);
 
 	return siz.width * 0.13 * char_widths[chr];
 }
+
 
 void drawString(NSString *text, double x, double y, double z, NSSize siz)
 {
@@ -2156,10 +2203,11 @@ void drawString(NSString *text, double x, double y, double z, NSSize siz)
 	
 }
 
+
 static const char *UnicodeToASCII(unsigned inCodePoint)
 {
 	// Convert some Unicode code points likely(ish) to occur in Roman text to ASCII near equivalents.
-	// Doesn’t do characters with diacritics, 'cos there's loads.
+	// Doesn't do characters with diacritics, 'cos there's loads.
 	switch (inCodePoint)
 	{
 		case 0x2018:	// Left single quotation mark
@@ -2224,6 +2272,7 @@ static const char *UnicodeToASCII(unsigned inCodePoint)
 	}
 }
 
+
 void drawPlanetInfo(int gov, int eco, int tec, double x, double y, double z, NSSize siz)
 {
 	GLfloat govcol[] = {	0.5, 0.0, 0.7,
@@ -2245,20 +2294,21 @@ void drawPlanetInfo(int gov, int eco, int tec, double x, double y, double z, NSS
 
 	glBegin(GL_QUADS);
 	
-	glColor4f( ce1, 1.0, 0.0, 1.0);
-	cx += drawCharacterQuad( 23 - eco, cx, y, z, siz);	// characters 16..23 are economy symbols
+	glColor4f(ce1, 1.0, 0.0, 1.0);
+	cx += drawCharacterQuad(23 - eco, cx, y, z, siz);	// characters 16..23 are economy symbols
 	glColor3fv(&govcol[gov * 3]);
-	cx += drawCharacterQuad( gov, cx, y, z, siz) - 1.0;		// charcters 0..7 are government symbols
+	cx += drawCharacterQuad(gov, cx, y, z, siz) - 1.0;		// charcters 0..7 are government symbols
 	glColor4f(0.5, 1.0, 1.0, 1.0);
 	if (tl > 9)
-		cx += drawCharacterQuad( 49, cx, y - 2, z, siz) - 2.0;
-	cx += drawCharacterQuad( 48 + (tl % 10), cx, y - 2, z, siz);
+		cx += drawCharacterQuad(49, cx, y - 2, z, siz) - 2.0;
+	cx += drawCharacterQuad(48 + (tl % 10), cx, y - 2, z, siz);
 	glEnd();
 	
 	[OOTexture applyNone];
 	glDisable(GL_TEXTURE_2D);
 		
 }
+
 
 NSRect rectForString(NSString *text, double x, double y, NSSize siz)
 {
@@ -2271,10 +2321,11 @@ NSRect rectForString(NSString *text, double x, double y, NSSize siz)
 		w += siz.width * 0.13 * char_widths[ch];
 	}
 
-	return NSMakeRect( x, y, w, siz.height);
+	return NSMakeRect(x, y, w, siz.height);
 }
 
-void drawScannerGrid( double x, double y, double z, NSSize siz, int v_dir, GLfloat thickness, double zoom)
+
+void drawScannerGrid(double x, double y, double z, NSSize siz, int v_dir, GLfloat thickness, double zoom)
 {
 	GLfloat w1, h1;
 	GLfloat ww = 0.5 * siz.width;
@@ -2301,7 +2352,7 @@ void drawScannerGrid( double x, double y, double z, NSSize siz, int v_dir, GLflo
 	
 	glLineWidth(2.0 * thickness);
 	
-	drawOval( x, y, z, siz, 4);	
+	GLDrawOval(x, y, z, siz, 4);	
 	
 	glLineWidth(thickness);
 	
@@ -2330,72 +2381,53 @@ void drawScannerGrid( double x, double y, double z, NSSize siz, int v_dir, GLflo
 			case VIEW_GUI_DISPLAY :
 			case VIEW_FORWARD :
 			case VIEW_NONE :
-				glVertex3f( x, y, z); glVertex3f(x - w2, y + hh, z);
-				glVertex3f( x, y, z); glVertex3f(x + w2, y + hh, z);
+				glVertex3f(x, y, z); glVertex3f(x - w2, y + hh, z);
+				glVertex3f(x, y, z); glVertex3f(x + w2, y + hh, z);
 				break;
 			case VIEW_AFT :
-				glVertex3f( x, y, z); glVertex3f(x - w2, y - hh, z);
-				glVertex3f( x, y, z); glVertex3f(x + w2, y - hh, z);
+				glVertex3f(x, y, z); glVertex3f(x - w2, y - hh, z);
+				glVertex3f(x, y, z); glVertex3f(x + w2, y - hh, z);
 				break;
 			case VIEW_PORT :
-				glVertex3f( x, y, z); glVertex3f(x - ww, y + h2, z);
-				glVertex3f( x, y, z); glVertex3f(x - ww, y - h2, z);
+				glVertex3f(x, y, z); glVertex3f(x - ww, y + h2, z);
+				glVertex3f(x, y, z); glVertex3f(x - ww, y - h2, z);
 				break;
 			case VIEW_STARBOARD :
-				glVertex3f( x, y, z); glVertex3f(x + ww, y + h2, z);
-				glVertex3f( x, y, z); glVertex3f(x + ww, y - h2, z);
+				glVertex3f(x, y, z); glVertex3f(x + ww, y + h2, z);
+				glVertex3f(x, y, z); glVertex3f(x + ww, y - h2, z);
 				break;
 		}
 	glEnd();
 }
 
-void drawOval( double x, double y, double z, NSSize siz, int step)
-{
-	int i;
-	GLfloat ww = 0.5 * siz.width;
-	GLfloat hh = 0.5 * siz.height;
-	glBegin(GL_LINE_STRIP);
-	for (i = 0; i < 360; i += step)
-		glVertex3f(x + ww * sin_value[i], y + hh * cos_value[i], z);
-	glVertex3f(x, y + hh, z);
-	glEnd();
-	return;
-}
 
-void drawFilledOval( double x, double y, double z, NSSize siz, int step)
+static void DrawSpecialOval(GLfloat x, GLfloat y, GLfloat z, NSSize siz, GLfloat step, GLfloat* color4v)
 {
-	int i;
-	GLfloat ww = 0.5 * siz.width;
-	GLfloat hh = 0.5 * siz.height;
-	glBegin(GL_TRIANGLE_FAN);
-	glVertex3f( x, y, z);
-	for (i = 0; i < 360; i += step)
-		glVertex3f(x + ww * sin_value[i], y + hh * cos_value[i], z);
-	glVertex3f(x, y + hh, z);
-	glEnd();
-	return;
-}
-
-void drawSpecialOval( double x, double y, double z, NSSize siz, int step, GLfloat* color4v)
-{
-	int i;
-	GLfloat ww = 0.5 * siz.width;
-	GLfloat hh = 0.5 * siz.height;
+	GLfloat			ww = 0.5 * siz.width;
+	GLfloat			hh = 0.5 * siz.height;
+	GLfloat			theta;
+	GLfloat			delta;
+	GLfloat			s;
+	
+	delta = step * M_PI / 180.0f;
+	
 	glEnable(GL_LINE_SMOOTH);
 	glBegin(GL_LINE_LOOP);
-	for (i = 0; i < 360; i += step)
+	for (theta = 0.0f; theta < (2.0f * M_PI); theta += delta)
 	{
-		glColor4f( color4v[0], color4v[1], color4v[2], fabs(sin_value[i] * color4v[3]));
-		glVertex3f(x + ww * sin_value[i], y + hh * cos_value[i], z);
+		s = sinf(theta);
+		glColor4f(color4v[0], color4v[1], color4v[2], fabsf(s * color4v[3]));
+		glVertex3f(x + ww * s, y + hh * cosf(theta), z);
 	}
 	glEnd();
-	return;
 }
+
 
 - (void) setLine_width:(GLfloat) value
 {
 	line_width = value;
 }
+
 
 - (GLfloat) line_width
 {

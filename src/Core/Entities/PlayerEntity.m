@@ -5428,23 +5428,15 @@ static int last_outfitting_index;
 
 - (void) setGuiToMarketScreen
 {
-	NSArray*			localMarket;
-
-	if (status == STATUS_DOCKED)
+	NSArray				*localMarket;
+	StationEntity		*station = nil;
+	
+	if (status != STATUS_DOCKED || docked_station == nil)  station = [UNIVERSE station];
+	else  station = docked_station;
+	localMarket = [station localMarket];
+	if (localMarket == nil)
 	{
-		if (docked_station == nil)
-			docked_station = [UNIVERSE station];
-		if ([docked_station localMarket])
-			localMarket = [docked_station localMarket];
-		else
-			localMarket = [docked_station initialiseLocalMarketWithSeed:system_seed andRandomFactor:market_rnd];
-	}
-	else
-	{
-		if ([[UNIVERSE station] localMarket])
-			localMarket = [[UNIVERSE station] localMarket];
-		else
-			localMarket = [[UNIVERSE station] initialiseLocalMarketWithSeed:system_seed andRandomFactor:market_rnd];
+		localMarket = [station initialiseLocalMarketWithSeed:system_seed andRandomFactor:market_rnd];
 	}
 	
 	// fix problems with economies in witch-space

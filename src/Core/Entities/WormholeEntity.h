@@ -52,6 +52,4 @@ MA 02110-1301, USA.
 
 - (Random_Seed) destination;
 
-void drawWormholeCorona (double inner_radius, double outer_radius, int step, double z_distance, GLfloat* col4v1);
-
 @end

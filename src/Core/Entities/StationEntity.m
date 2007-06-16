@@ -40,6 +40,9 @@ MA 02110-1301, USA.
 #define kOOLogUnconvertedNSLog @"unclassified.StationEntity"
 
 
+#define DRAW_WIREFRAME_DOCKING_PORT 1
+
+
 static NSDictionary* instructions(int station_id, Vector coords, float speed, float range, NSString* ai_message, NSString* comms_message, BOOL match_rotation);
 
 
@@ -57,20 +60,24 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 
 }
 
+
 - (int) equivalent_tech_level
 {
 	return equivalent_tech_level;
 }
+
 
 - (void) set_equivalent_tech_level:(int) value
 {
 	equivalent_tech_level = value;
 }
 
+
 - (double) port_radius
 {
 	return magnitude(port_position);
 }
+
 
 - (Vector) getPortPosition
 {
@@ -80,6 +87,7 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 	result.z += port_position.x * v_right.z + port_position.y * v_up.z + port_position.z * v_forward.z;
 	return result;
 }
+
 
 - (Vector) getBeaconPosition
 {
@@ -104,6 +112,7 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 	return localMarket;
 }
 
+
 - (void) setLocalMarket:(NSArray *) some_market
 {
 	if (localMarket)
@@ -111,10 +120,12 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 	localMarket = [[NSMutableArray alloc] initWithArray:some_market];
 }
 
+
 - (NSMutableArray *) localPassengers
 {
 	return localPassengers;
 }
+
 
 - (void) setLocalPassengers:(NSArray *) some_market
 {
@@ -123,10 +134,12 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 	localPassengers = [[NSMutableArray alloc] initWithArray:some_market];
 }
 
+
 - (NSMutableArray *) localContracts
 {
 	return localContracts;
 }
+
 
 - (void) setLocalContracts:(NSArray *) some_market
 {
@@ -135,10 +148,12 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 	localContracts = [[NSMutableArray alloc] initWithArray:some_market];
 }
 
+
 - (NSMutableArray *) localShipyard
 {
 	return localShipyard;
 }
+
 
 - (void) setLocalShipyard:(NSArray *) some_market
 {
@@ -147,15 +162,17 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 	localShipyard = [[NSMutableArray alloc] initWithArray:some_market];
 }
 
+
 - (NSMutableArray *) initialiseLocalMarketWithSeed: (Random_Seed) s_seed andRandomFactor: (int) random_factor
 {
 	int rf = (random_factor ^ universalID) & 0xff;
-	int economy = [(NSNumber *)[[UNIVERSE generateSystemData:s_seed] objectForKey:KEY_ECONOMY] intValue];
+	int economy = [[UNIVERSE generateSystemData:s_seed] intForKey:KEY_ECONOMY];
 	if (localMarket)
 		[localMarket release];
 	localMarket = [[NSMutableArray alloc] initWithArray:[UNIVERSE commodityDataForEconomy:economy andStation:self andRandomFactor:rf]];
 	return localMarket;
 }
+
 
 - (NSMutableArray *) initialiseLocalPassengersWithSeed: (Random_Seed) s_seed andRandomFactor: (int) random_factor
 {
@@ -165,6 +182,7 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 	return localPassengers;
 }
 
+
 - (NSMutableArray *) initialiseLocalContractsWithSeed: (Random_Seed) s_seed andRandomFactor: (int) random_factor
 {
 	if (localContracts)
@@ -172,6 +190,7 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 	localContracts = [[NSMutableArray alloc] initWithArray:[UNIVERSE contractsForSystem:s_seed atTime:[[[PlayerEntity sharedPlayer] clock_number] intValue]]];
 	return localContracts;
 }
+
 
 - (void) setPlanet:(PlanetEntity *)planet_entity
 {
@@ -181,10 +200,12 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 		planet = NO_TARGET;
 }
 
+
 - (PlanetEntity *) planet
 {
 	return [UNIVERSE entityForUniversalID:planet];
 }
+
 
 - (void) sanityCheckShipsOnApproach
 {
@@ -220,6 +241,7 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 		}
 	}
 }
+
 
 - (void) abortAllDockings
 {
@@ -297,11 +319,11 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 	int			ship_id = [ship universalID];
 	NSString*   shipID = [NSString stringWithFormat:@"%d", ship_id];
 
-	Vector launchVector = vector_forward_from_quaternion( quaternion_multiply(port_qrotation, orientation));
+	Vector launchVector = vector_forward_from_quaternion(quaternion_multiply(port_orientation, orientation));
 	Vector temp = (fabsf(launchVector.x) < 0.8)? make_vector(1,0,0) : make_vector(0,1,0);
-	temp = cross_product( launchVector, temp);	// 90 deg to launchVector & temp
-	Vector vi = cross_product( launchVector, temp);
-	Vector vj = cross_product( launchVector, vi);
+	temp = cross_product(launchVector, temp);	// 90 deg to launchVector & temp
+	Vector vi = cross_product(launchVector, temp);
+	Vector vj = cross_product(launchVector, vi);
 	Vector vk = launchVector;
 	
 	if (!ship)
@@ -310,12 +332,12 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 	if ((ship->isPlayer)&&([ship legalStatus] > 50))	// note: non-player fugitives dock as normal
 	{
 		// refuse docking to the fugitive player
-		return instructions( universalID, ship->position, 0, 100, @"DOCKING_REFUSED", @"[station-docking-refused-to-fugitive]", NO);
+		return instructions(universalID, ship->position, 0, 100, @"DOCKING_REFUSED", @"[station-docking-refused-to-fugitive]", NO);
 	}
 	
 	if (no_docking_while_launching)
 	{
-		return instructions( universalID, ship->position, 0, 100, @"TRY_AGAIN_LATER", nil, NO);
+		return instructions(universalID, ship->position, 0, 100, @"TRY_AGAIN_LATER", nil, NO);
 	}
 	
 	[shipAI reactToMessage:@"DOCKING_REQUESTED"];	// react to the request	
@@ -326,7 +348,7 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 			[self sendExpandedMessage: @"[station-acknowledges-hold-position]" toShip: ship];
 		[shipsOnHold setObject: shipID forKey: shipID];
 		[self performStop];
-		return instructions( universalID, ship->position, 0, 100, @"HOLD_POSITION", nil, NO);
+		return instructions(universalID, ship->position, 0, 100, @"HOLD_POSITION", nil, NO);
 	}
 	
 	if	(fabs(flightPitch) > 0.01)		// no docking while pitching
@@ -335,14 +357,14 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 			[self sendExpandedMessage: @"[station-acknowledges-hold-position]" toShip: ship];
 		[shipsOnHold setObject: shipID forKey: shipID];
 		[self performStop];
-		return instructions( universalID, ship->position, 0, 100, @"HOLD_POSITION", nil, NO);
+		return instructions(universalID, ship->position, 0, 100, @"HOLD_POSITION", nil, NO);
 	}
 	
 	// rolling is okay for some
 	if	(fabs(flightPitch) > 0.01)		// rolling
 	{
 		Vector portPos = [self getPortPosition];
-		Vector portDir = vector_forward_from_quaternion(port_qrotation);		
+		Vector portDir = vector_forward_from_quaternion(port_orientation);		
 		BOOL isOffCentre = (fabs(portPos.x) + fabs(portPos.y) > 0.0f)|(fabs(portDir.x) + fabs(portDir.y) > 0.0f);
 		BOOL isRotatingStation = NO;
 		if ([shipinfoDictionary objectForKey:@"rotating"])
@@ -353,7 +375,7 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 				[self sendExpandedMessage: @"[station-acknowledges-hold-position]" toShip: ship];
 			[shipsOnHold setObject: shipID forKey: shipID];
 			[self performStop];
-			return instructions( universalID, ship->position, 0, 100, @"HOLD_POSITION", nil, NO);
+			return instructions(universalID, ship->position, 0, 100, @"HOLD_POSITION", nil, NO);
 		}
 	}
 	
@@ -368,15 +390,15 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 	{
 		Vector	delta = ship->position;
 		delta.x -= position.x;	delta.y -= position.y;	delta.z -= position.z;
-		float	ship_distance = sqrt( magnitude2( delta));
+		float	ship_distance = sqrt(magnitude2(delta));
 
 		[self addShipToShipsOnApproach: ship];
 		
 		if (ship_distance < 1000.0 + collision_radius + ship->collision_radius)	// too close - back off
-			return instructions( universalID, position, 0, 5000, @"BACK_OFF", nil, NO);
+			return instructions(universalID, position, 0, 5000, @"BACK_OFF", nil, NO);
 		
 		if (ship_distance > 12500.0)	// long way off - approach more closely
-			return instructions( universalID, position, 0, 10000, @"APPROACH", nil, NO);
+			return instructions(universalID, position, 0, 10000, @"APPROACH", nil, NO);
 	}
 	
 	if (![shipsOnApproach objectForKey:shipID])
@@ -384,7 +406,7 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 		// some error has occurred - log it, and send the try-again message
 		NSLog(@"ERROR - couldn't addShipToShipsOnApproach:%@ in %@ for some reason.", ship, self);
 		//
-		return instructions( universalID, ship->position, 0, 100, @"TRY_AGAIN_LATER", nil, NO);
+		return instructions(universalID, ship->position, 0, 100, @"TRY_AGAIN_LATER", nil, NO);
 	}
 
 
@@ -396,7 +418,7 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 	{
 		NSLog(@"DEBUG ERROR! -- coordinatesStack = %@", [coordinatesStack description]);
 		
-		return instructions( universalID, ship->position, 0, 100, @"HOLD_POSITION", nil, NO);
+		return instructions(universalID, ship->position, 0, 100, @"HOLD_POSITION", nil, NO);
 	}
 	
 	// get the docking information from the instructions	
@@ -427,7 +449,7 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 		if ((docking_stage == 1) &&(magnitude2(delta) < 1000000.0))	// 1km*1km
 			speedAdvised *= 0.5;	// half speed
 		
-		return instructions( universalID, coords, speedAdvised, rangeAdvised, @"APPROACH_COORDINATES", nil, NO);
+		return instructions(universalID, coords, speedAdvised, rangeAdvised, @"APPROACH_COORDINATES", nil, NO);
 	}
 	else
 	{
@@ -470,7 +492,7 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 			//remove the previous stage from the stack
 			[coordinatesStack removeObjectAtIndex:0];
 			
-			return instructions( universalID, coords, speedAdvised, rangeAdvised, @"APPROACH_COORDINATES", nil, match_rotation);
+			return instructions(universalID, coords, speedAdvised, rangeAdvised, @"APPROACH_COORDINATES", nil, match_rotation);
 		}
 		else
 		{
@@ -486,13 +508,14 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 				[nextCoords setObject:@"YES" forKey:@"hold_message_given"];
 			}
 
-			return instructions( universalID, ship->position, 0, 100, @"HOLD_POSITION", nil, NO);
+			return instructions(universalID, ship->position, 0, 100, @"HOLD_POSITION", nil, NO);
 		}
 	}
 	
 	// we should never reach here.
-	return instructions( universalID, coords, 50, 10, @"APPROACH_COORDINATES", nil, NO);
+	return instructions(universalID, coords, 50, 10, @"APPROACH_COORDINATES", nil, NO);
 }
+
 
 - (void) addShipToShipsOnApproach:(ShipEntity *) ship
 {		
@@ -507,11 +530,11 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 	int			ship_id = [ship universalID];
 	NSString*   shipID = [NSString stringWithFormat:@"%d", ship_id];
 
-	Vector launchVector = vector_forward_from_quaternion( quaternion_multiply(port_qrotation, orientation));
+	Vector launchVector = vector_forward_from_quaternion(quaternion_multiply(port_orientation, orientation));
 	Vector temp = (fabsf(launchVector.x) < 0.8)? make_vector(1,0,0) : make_vector(0,1,0);
-	temp = cross_product( launchVector, temp);	// 90 deg to launchVector & temp
-	Vector rightVector = cross_product( launchVector, temp);
-	Vector upVector = cross_product( launchVector, rightVector);
+	temp = cross_product(launchVector, temp);	// 90 deg to launchVector & temp
+	Vector rightVector = cross_product(launchVector, temp);
+	Vector upVector = cross_product(launchVector, rightVector);
 	
 	// will select a direction for offset based on the shipID
 	//
@@ -531,7 +554,7 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 	alt1.x -= c * upVector.x * corridor_offset[corridor_count - 1] + s * rightVector.x * corridor_offset[corridor_count - 1];
 	alt1.y -= c * upVector.y * corridor_offset[corridor_count - 1] + s * rightVector.y * corridor_offset[corridor_count - 1];
 	alt1.z -= c * upVector.z * corridor_offset[corridor_count - 1] + s * rightVector.z * corridor_offset[corridor_count - 1];
-	if (distance2( alt1, ship->position) < distance2( point1, ship->position))
+	if (distance2(alt1, ship->position) < distance2(point1, ship->position))
 	{
 		s = -s;
 		c = -c;	// turn 180 degrees
@@ -588,6 +611,7 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 
 }
 
+
 - (void) abortDockingForShip:(ShipEntity *) ship
 {
 	int ship_id = [ship universalID];
@@ -612,17 +636,19 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 			
 }
 
+
 - (Vector) portUpVector
 {
 	if (port_dimensions.x > port_dimensions.y)
 	{
-		return vector_up_from_quaternion( quaternion_multiply( port_qrotation, orientation));
+		return vector_up_from_quaternion(quaternion_multiply(port_orientation, orientation));
 	}
 	else
 	{
-		return vector_right_from_quaternion( quaternion_multiply( port_qrotation, orientation));
+		return vector_right_from_quaternion(quaternion_multiply(port_orientation, orientation));
 	}
 }
+
 
 - (Vector) portUpVectorForShipsBoundingBox:(BoundingBox) bb
 {
@@ -630,11 +656,11 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 
 	if (!twist)
 	{
-		return vector_up_from_quaternion( quaternion_multiply( port_qrotation, orientation));
+		return vector_up_from_quaternion(quaternion_multiply(port_orientation, orientation));
 	}
 	else
 	{
-		return vector_right_from_quaternion( quaternion_multiply( port_qrotation, orientation));
+		return vector_right_from_quaternion(quaternion_multiply(port_orientation, orientation));
 	}
 }
 
@@ -714,22 +740,22 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 		port_position.x = [(NSString *)[dockSubEntity objectAtIndex:1] floatValue];
 		port_position.y = [(NSString *)[dockSubEntity objectAtIndex:2] floatValue];
 		port_position.z = [(NSString *)[dockSubEntity objectAtIndex:3] floatValue];
-		port_qrotation.w = [(NSString *)[dockSubEntity objectAtIndex:4] floatValue];
-		port_qrotation.x = [(NSString *)[dockSubEntity objectAtIndex:5] floatValue];
-		port_qrotation.y = [(NSString *)[dockSubEntity objectAtIndex:6] floatValue];
-		port_qrotation.z = [(NSString *)[dockSubEntity objectAtIndex:7] floatValue];
-		quaternion_normalize(&port_qrotation);
+		port_orientation.w = [(NSString *)[dockSubEntity objectAtIndex:4] floatValue];
+		port_orientation.x = [(NSString *)[dockSubEntity objectAtIndex:5] floatValue];
+		port_orientation.y = [(NSString *)[dockSubEntity objectAtIndex:6] floatValue];
+		port_orientation.z = [(NSString *)[dockSubEntity objectAtIndex:7] floatValue];
+		quaternion_normalize(&port_orientation);
 	}
 	else
 	{
 		// No dock* subentity found, use defaults.
 		double port_radius = [dict doubleForKey:@"port_radius" defaultValue:500.0];
 		port_position = make_vector(0, 0, port_radius);
-		port_qrotation = kIdentityQuaternion;
+		port_orientation = kIdentityQuaternion;
 	}
 	
 	// port_dimensions can be set for rock-hermits and other specials
-	port_dimensions = make_vector( 69, 69, 250);
+	port_dimensions = make_vector(69, 69, 250);
 	NSString *portDimensionsStr = [dict stringForKey:@"port_dimensions"];
 	if (portDimensionsStr != nil)   // this can be set for rock-hermits and other specials
 	{
@@ -776,10 +802,10 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 	port_model = dock_model;
 	
 	port_position = dock_pos;
-	port_qrotation = dock_q;
+	port_orientation = dock_q;
 
 	BoundingBox bb = [port_model boundingBox];
-	port_dimensions = make_vector( bb.max.x - bb.min.x, bb.max.y - bb.min.y, bb.max.z - bb.min.z);
+	port_dimensions = make_vector(bb.max.x - bb.min.x, bb.max.y - bb.min.y, bb.max.z - bb.min.z);
 
 	if (bb.max.z > 0.0)
 	{
@@ -791,12 +817,13 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 	
 }
 
+
 - (BOOL) shipIsInDockingCorridor:(ShipEntity*) ship
 {
 	if ((!ship)||(!ship->isShip))
 		return NO;
 	
-	Quaternion q0 = quaternion_multiply(port_qrotation, orientation);
+	Quaternion q0 = quaternion_multiply(port_orientation, orientation);
 	Vector vi = vector_right_from_quaternion(q0);
 	Vector vj = vector_up_from_quaternion(q0);
 	Vector vk = vector_forward_from_quaternion(q0);
@@ -821,7 +848,7 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 	hh *= 0.5;
 	
 	if ((ship->isPlayer)&&(debug & DEBUG_COLLISIONS))
-		NSLog(@"DEBUG player bounding box is at ( %.2f, %.2f, %.2f)-( %.2f, %.2f, %.2f)",
+		NSLog(@"DEBUG player bounding box is at (%.2f, %.2f, %.2f)-(%.2f, %.2f, %.2f)",
 			arbb.min.x, arbb.min.y, arbb.min.z, arbb.max.x, arbb.max.y, arbb.max.z);
 
 	if (arbb.max.z < -dd)
@@ -879,6 +906,7 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 	return NO;
 }
 
+
 - (BOOL) dockingCorridorIsEmpty
 {
 	if (!UNIVERSE)
@@ -903,15 +931,15 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 	for (i = 0; (i < ship_count)&&(isEmpty); i++)
 	{
 		ShipEntity*	ship = (ShipEntity*)my_entities[i];
-		double		d2 = distance2( position, ship->position);
+		double		d2 = distance2(position, ship->position);
 		if ((ship != self)&&(d2 < 25000000)&&(ship->status != STATUS_DOCKED))	// within 5km
 		{
 			Vector ppos = [self getPortPosition];
-			d2 = distance2( ppos, ship->position);
+			d2 = distance2(ppos, ship->position);
 			if (d2 < 4000000)	// within 2km of the port entrance
 			{
 				Quaternion q1 = orientation;
-				q1 = quaternion_multiply(port_qrotation, q1);
+				q1 = quaternion_multiply(port_orientation, q1);
 				//
 				Vector v_out = vector_forward_from_quaternion(q1);
 				Vector r_pos = make_vector(ship->position.x - ppos.x, ship->position.y - ppos.y, ship->position.z - ppos.z);
@@ -920,7 +948,7 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 				else
 					r_pos.z = 1.0;
 				//
-				double vdp = dot_product( v_out, r_pos); //== cos of the angle between r_pos and v_out
+				double vdp = dot_product(v_out, r_pos); //== cos of the angle between r_pos and v_out
 				//
 				if (vdp > 0.86)
 				{
@@ -936,6 +964,7 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 
 	return isEmpty;
 }
+
 
 - (void) clearDockingCorridor
 {
@@ -956,7 +985,7 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 	for (i = 0; i < ship_count; i++)
 	{
 		ShipEntity*	ship = (ShipEntity*)my_entities[i];
-		double		d2 = distance2( position, ship->position);
+		double		d2 = distance2(position, ship->position);
 		if ((ship != self)&&(d2 < 25000000)&&(ship->status != STATUS_DOCKED))	// within 5km
 		{
 			Vector ppos = [self getPortPosition];
@@ -964,11 +993,11 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 			do
 			{
 				isClear = YES;
-				d2 = distance2( ppos, ship->position);
+				d2 = distance2(ppos, ship->position);
 				if (d2 < 4000000)	// within 2km of the port entrance
 				{
 					Quaternion q1 = orientation;
-					q1 = quaternion_multiply(port_qrotation, q1);
+					q1 = quaternion_multiply(port_orientation, q1);
 					//
 					Vector v_out = vector_forward_from_quaternion(q1);
 					Vector r_pos = make_vector(ship->position.x - ppos.x, ship->position.y - ppos.y, ship->position.z - ppos.z);
@@ -977,7 +1006,7 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 					else
 						r_pos.z = 1.0;
 					//
-					double vdp = dot_product( v_out, r_pos); //== cos of the angle between r_pos and v_out
+					double vdp = dot_product(v_out, r_pos); //== cos of the angle between r_pos and v_out
 					//
 					if (vdp > 0.86)
 					{
@@ -989,7 +1018,7 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 					}
 					if (time_out > 0)
 					{
-						Vector v1 = vector_forward_from_quaternion(port_qrotation);
+						Vector v1 = vector_forward_from_quaternion(port_orientation);
 						Vector spos = ship->position;
 						spos.x += 3000.0 * v1.x;	spos.y += 3000.0 * v1.y;	spos.z += 3000.0 * v1.z; 
 						[ship setPosition:spos]; // move 3km out of the way
@@ -1004,6 +1033,7 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 
 	return;
 }
+
 
 - (void) update:(double) delta_t
 {
@@ -1055,6 +1085,7 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 	
 }
 
+
 - (void) clear
 {
 	if (launchQueue)
@@ -1065,6 +1096,7 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 		[shipsOnHold removeAllObjects];
 }
 
+
 - (void) addShipToLaunchQueue:(ShipEntity *) ship
 {
 	[self sanityCheckShipsOnApproach];
@@ -1073,6 +1105,7 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 	if (ship)
 		[launchQueue addObject:ship];
 }
+
 
 - (int) countShipsInLaunchQueueWithRole:(NSString *) a_role
 {
@@ -1088,6 +1121,7 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 	return result;
 }
 
+
 - (void) launchShip:(ShipEntity *) ship
 {
 	if ((!ship)||(!ship->isShip))
@@ -1099,7 +1133,7 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 	if ((maxFlightSpeed > 0)&&(flightSpeed > 0))
 		launchSpeed = 0.5 * [ship maxFlightSpeed] * (1.0 + flightSpeed/maxFlightSpeed);
 	Quaternion q1 = orientation;
-	q1 = quaternion_multiply(port_qrotation, q1);
+	q1 = quaternion_multiply(port_orientation, q1);
 	Vector launchVector = vector_forward_from_quaternion(q1);
 	BoundingBox bb = [ship boundingBox];
 	if ((port_dimensions.x < port_dimensions.y) ^ (bb.max.x - bb.min.x < bb.max.y - bb.min.y))
@@ -1123,6 +1157,7 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 	last_launch_time = [UNIVERSE getTime];
 	[ship resetTracking];	// resets stuff for tracking/exhausts
 }
+
 
 - (void) noteDockedShip:(ShipEntity *) ship
 {
@@ -1169,6 +1204,7 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 	[self abortAllDockings];
 	return [super collideWithShip:other];
 }
+
 
 - (BOOL) hasHostileTarget
 {
@@ -1242,6 +1278,7 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 	}
 }
 
+
 - (void) decreaseAlertLevel
 {
 	switch (alert_level)
@@ -1256,6 +1293,7 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 			break;
 	}
 }
+
 
 - (void) launchPolice
 {
@@ -1297,6 +1335,7 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 	no_docking_while_launching = YES;
 	[self abortAllDockings];
 }
+
 
 - (void) launchDefenseShip
 {
@@ -1372,6 +1411,7 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 
 }
 
+
 - (void) launchScavenger
 {
 	ShipEntity  *scavenger_ship;
@@ -1398,6 +1438,7 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 		[scavenger_ship release];
 	}
 }
+
 
 - (void) launchMiner
 {
@@ -1495,6 +1536,7 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 	}
 }
 
+
 - (void) launchTrader
 {
 	BOOL		sunskimmer = (randf() < 0.1);	// 10%
@@ -1535,6 +1577,7 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 	}
 }
 
+
 - (void) launchEscort
 {
 	ShipEntity  *escort_ship;
@@ -1556,6 +1599,7 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 		[escort_ship release];
 	}
 }
+
 
 - (BOOL) launchPatrol
 {
@@ -1595,6 +1639,7 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 	return NO;
 }
 
+
 - (void) launchShipWithRole:(NSString*) role
 {
 	ShipEntity  *ship = [UNIVERSE newShipWithRole: role];   // retain count = 1
@@ -1610,6 +1655,7 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 		[ship release];
 	}
 }
+
 
 - (void) becomeExplosion
 {
@@ -1635,10 +1681,12 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 	[super becomeExplosion];
 }
 
+
 - (void) acceptPatrolReportFrom:(ShipEntity*) patrol_ship
 {
 	last_patrol_report_time = [UNIVERSE getTime];
 }
+
 
 - (void) acceptDockingClearanceRequestFrom:(ShipEntity *)other
 {
@@ -1662,6 +1710,7 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 	}
 }
 
+
 - (NSString *) roles
 {
 	NSArray* all_roles = ScanTokensFromString([shipinfoDictionary objectForKey:@"roles"]);
@@ -1670,6 +1719,7 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 	else
 		return @"station";
 }
+
 
 - (BOOL) isRotatingStation
 {
@@ -1747,3 +1797,69 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 }
 
 @end
+
+
+#if DRAW_WIREFRAME_DOCKING_PORT
+
+static void GLDrawWireframeCuboid(Vector min, Vector max);
+
+@implementation StationEntity (OOWireframeDockingBox)
+
+
+- (void)drawEntity:(BOOL)immediate :(BOOL)translucent
+{
+	Vector				adjustedPosition;
+	Vector				halfDimensions;
+	
+	[super drawEntity:immediate:translucent];
+	
+	// Draw wireframe of docking area
+	glPushAttrib(GL_ENABLE_BIT);
+	glDisable(GL_TEXTURE_2D);
+	glDisable(GL_LIGHTING);
+	glDisable(GL_DEPTH_TEST);	// don't read the depth buffer
+	glDepthMask(GL_FALSE);		// don't write to depth buffer
+	
+	glColor4f(0.0f, 0.0f, 1.0f, 1.0f);
+	
+	gl_matrix matrix;
+	quaternion_into_gl_matrix(port_orientation, matrix);
+	glMultMatrixf(matrix);
+	
+	halfDimensions = vector_multiply_scalar(port_dimensions, 0.5f);
+	adjustedPosition = port_position;
+	adjustedPosition.z -= halfDimensions.z;
+	GLDrawWireframeCuboid(vector_subtract(adjustedPosition, halfDimensions), vector_add(adjustedPosition, halfDimensions));
+	
+	glDepthMask(GL_TRUE);
+	glPopAttrib();
+}
+
+@end
+
+
+static void GLDrawWireframeCuboid(Vector min, Vector max)
+{
+	glBegin(GL_LINE_LOOP);
+		glVertex3f(min.x, min.y, min.z);
+		glVertex3f(max.x, min.y, min.z);
+		glVertex3f(max.x, max.y, min.z);
+		glVertex3f(min.x, max.y, min.z);
+		glVertex3f(min.x, max.y, max.z);
+		glVertex3f(max.x, max.y, max.z);
+		glVertex3f(max.x, min.y, max.z);
+		glVertex3f(min.x, min.y, max.z);
+	glEnd();
+	glBegin(GL_LINES);
+		glVertex3f(max.x, min.y, min.z);
+		glVertex3f(max.x, min.y, max.z);
+		glVertex3f(max.x, max.y, min.z);
+		glVertex3f(max.x, max.y, max.z);
+		glVertex3f(min.x, min.y, min.z);
+		glVertex3f(min.x, max.y, min.z);
+		glVertex3f(min.x, min.y, max.z);
+		glVertex3f(min.x, max.y, max.z);
+	glEnd();
+}
+
+#endif

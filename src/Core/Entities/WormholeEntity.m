@@ -34,6 +34,9 @@ MA 02110-1301, USA.
 #import "OOStringParsing.h"
 
 
+static void DrawWormholeCorona(GLfloat inner_radius, GLfloat outer_radius, int step, GLfloat z_distance, GLfloat *col4v1);
+
+
 @implementation WormholeEntity
 
 - (id) initWormholeTo:(Random_Seed) s_seed fromShip:(ShipEntity *) ship
@@ -62,16 +65,17 @@ MA 02110-1301, USA.
     //
 	PlayerEntity *player = [PlayerEntity sharedPlayer];
 	if (player)
-		zero_distance = distance2( player->position, position);
+		zero_distance = distance2(player->position, position);
 	//
 	isWormhole = YES;
 	
 	return self;
 }
 
+
 - (BOOL) suckInShip:(ShipEntity *) ship
 {
-	if (equal_seeds( destination, [UNIVERSE systemSeed]))
+	if (equal_seeds(destination, [UNIVERSE systemSeed]))
 		return NO;	// far end of the wormhole!
 	
 	if (ship)
@@ -82,7 +86,7 @@ MA 02110-1301, USA.
 										nil]];
 		witch_mass += [ship mass];
 		expiry_time = time_counter + WORMHOLE_EXPIRES_TIMEINTERVAL;
-		collision_radius = 0.5 * M_PI * pow( witch_mass, 1.0/3.0);
+		collision_radius = 0.5 * M_PI * pow(witch_mass, 1.0/3.0);
 
 		// witchspace entry effects here
 		ParticleEntity *ring = [[ParticleEntity alloc] initHyperringFromShip:ship]; // retained
@@ -104,6 +108,7 @@ MA 02110-1301, USA.
 	// fall through
 	return NO;
 }
+
 
 - (void) disgorgeShips
 {
@@ -151,11 +156,13 @@ MA 02110-1301, USA.
 	return destination;
 }
 
+
 - (void) dealloc
 {
     if (shipsInTransit)	[shipsInTransit release];
     [super dealloc];
 }
+
 
 - (NSString*) description
 {
@@ -163,17 +170,20 @@ MA 02110-1301, USA.
 	return [NSString stringWithFormat:@"<WormholeEntity to %@ ttl: %.2fs>", whereto, WORMHOLE_EXPIRES_TIMEINTERVAL - time_counter];
 }
 
+
 - (BOOL) canCollide
 {
-	if (equal_seeds( destination, [UNIVERSE systemSeed]))
+	if (equal_seeds(destination, [UNIVERSE systemSeed]))
 		return NO;	// far end of the wormhole!
 	return (witch_mass > 0.0);
 }
+
 
 - (BOOL) checkCloseCollisionWith:(Entity *)other
 {
 	return !(other->isParticle);
 }
+
 
 - (void) update:(double) delta_t
 {
@@ -200,11 +210,11 @@ MA 02110-1301, USA.
 		{
 			arb1.x = 0.0;   arb1.y = 0.0; arb1.z = 1.0;
 		}
-		Vector v1 = cross_product( v0, arb1 ); // 90 degrees to (v0 x arb1)
+		Vector v1 = cross_product(v0, arb1 ); // 90 degrees to (v0 x arb1)
 		//equivalent of v_right
-		Vector v2 = cross_product( v0, v1 );   // 90 degrees to (v0 x v1)
+		Vector v2 = cross_product(v0, v1 );   // 90 degrees to (v0 x v1)
 		//equivalent of v_up
-		vectors_into_gl_matrix( v0, v1, v2, rotMatrix);
+		vectors_into_gl_matrix(v0, v1, v2, rotMatrix);
 	}
 	
 	time_counter += delta_t;
@@ -214,7 +224,7 @@ MA 02110-1301, USA.
 		witch_mass -= WORMHOLE_SHRINK_RATE * delta_t;
 		if (witch_mass < 0.0)
 			witch_mass = 0.0;
-		collision_radius = 0.5 * M_PI * pow( witch_mass, 1.0/3.0);
+		collision_radius = 0.5 * M_PI * pow(witch_mass, 1.0/3.0);
 		no_draw_distance = collision_radius * collision_radius * NO_DRAW_DISTANCE_FACTOR * NO_DRAW_DISTANCE_FACTOR;
 	}
 
@@ -224,7 +234,8 @@ MA 02110-1301, USA.
 		[UNIVERSE removeEntity: self];
 }
 
-- (void) drawEntity:(BOOL) immediate :(BOOL) translucent;
+
+- (void) drawEntity:(BOOL) immediate :(BOOL) translucent
 {	
 	if (!UNIVERSE)
 		return;
@@ -251,57 +262,62 @@ MA 02110-1301, USA.
 		glDisable(GL_CULL_FACE);			// face culling
 		glDisable(GL_TEXTURE_2D);
 		
-		glColor4fv( color_fv);
+		glColor4fv(color_fv);
 		glBegin(GL_TRIANGLE_FAN);
 		//
-		drawBallVertices( collision_radius, 4, srzd);
+		GLDrawBallBillboard(collision_radius, 4, srzd);
 		//
 		glEnd();
 				
-		drawWormholeCorona( 0.67 * collision_radius, collision_radius, 4, srzd, color_fv);
+		DrawWormholeCorona(0.67 * collision_radius, collision_radius, 4, srzd, color_fv);
 					
 		glEnable(GL_CULL_FACE);			// face culling
 	}
 	CheckOpenGLErrors(@"WormholeEntity after drawing %@", self);
 }
 
-void drawWormholeCorona (double inner_radius, double outer_radius, int step, double z_distance, GLfloat* col4v1)
+
+static void DrawWormholeCorona(GLfloat inner_radius, GLfloat outer_radius, int step, GLfloat z_distance, GLfloat *col4v1)
 {
 	if (outer_radius >= z_distance) // inside the sphere
 		return;
-	int i, j, half_step;
+	int i;
 	
-	half_step = step / 2;
-	j = -half_step;
+	NSRange				activity = { 0.34, 1.0 };
 	
-	NSRange activity = NSMakeRange(0.34, 1.0);
+	GLfloat				s0, c0, s1, c1;
 	
-	double s0, c0, s1, c1;
+	GLfloat				r0, r1;
+	GLfloat				rv0, rv1, q;
 	
-	double r0 = outer_radius * z_distance / sqrt( z_distance * z_distance - outer_radius * outer_radius); 
-	double r1 = inner_radius * z_distance / sqrt( z_distance * z_distance - inner_radius * inner_radius); 
-	GLfloat rv0, rv1, q;
+	GLfloat				theta, delta, halfStep;
+	
+	r0 = outer_radius * z_distance / sqrt(z_distance * z_distance - outer_radius * outer_radius); 
+	r1 = inner_radius * z_distance / sqrt(z_distance * z_distance - inner_radius * inner_radius); 
+	
+	delta = step * M_PI / 180.0f;
+	halfStep = 0.5f * delta;
+	theta = 0.0f;
 		
 	glBegin(GL_TRIANGLE_STRIP);
-	for ( i = 0; i < 360; i += step )
+	for (i = 0; i < 360; i += step )
 	{
-		j += step;
-		while (j > 360) j-=360;
+		theta += delta;
 		
 		rv0 = randf();
 		rv1 = randf();
 		
 		q = activity.location + rv0 * activity.length;
 		
-		s0 = r0 * sin_value[i];
-		c0 = r0 * cos_value[i];
-		glColor4f( col4v1[0] * q, col4v1[1] * q, col4v1[2] * q, col4v1[3] * rv0);
-		glVertex3f( s0, c0, 0.0);
+		s0 = r0 * sinf(theta);
+		c0 = r0 * cosf(theta);
+		glColor4f(col4v1[0] * q, col4v1[1] * q, col4v1[2] * q, col4v1[3] * rv0);
+		glVertex3f(s0, c0, 0.0);
 
-		s1 = r1 * sin_value[j] * 0.5 * (1.0 + rv1);
-		c1 = r1 * cos_value[j] * 0.5 * (1.0 + rv1);
-		glColor4f( col4v1[0], col4v1[1], col4v1[2], 0.0);
-		glVertex3f( s1, c1, 0.0);
+		s1 = r1 * sinf(theta - halfStep) * 0.5 * (1.0 + rv1);
+		c1 = r1 * cosf(theta - halfStep) * 0.5 * (1.0 + rv1);
+		glColor4f(col4v1[0], col4v1[1], col4v1[2], 0.0);
+		glVertex3f(s1, c1, 0.0);
 		
 	}
 	// repeat last values to close
@@ -310,15 +326,15 @@ void drawWormholeCorona (double inner_radius, double outer_radius, int step, dou
 		
 	q = activity.location + rv0 * activity.length;
 	
-	s0 = r0 * sin_value[0];
-	c0 = r0 * cos_value[0];
-	glColor4f( col4v1[0] * q, col4v1[1] * q, col4v1[2] * q, col4v1[3] * rv0);
-	glVertex3f( s0, c0, 0.0);
+	s0 = 0.0f;	// r0 * sinf(0);
+	c0 = r0;	// r0 * cosf(0);
+	glColor4f(col4v1[0] * q, col4v1[1] * q, col4v1[2] * q, col4v1[3] * rv0);
+	glVertex3f(s0, c0, 0.0);
 
-	s1 = r1 * sin_value[half_step] * 0.5 * (1.0 + rv1);
-	c1 = r1 * cos_value[half_step] * 0.5 * (1.0 + rv1);
-	glColor4f( col4v1[0], col4v1[1], col4v1[2], 0.0);
-	glVertex3f( s1, c1, 0.0);
+	s1 = r1 * sinf(halfStep) * 0.5 * (1.0 + rv1);
+	c1 = r1 * cosf(halfStep) * 0.5 * (1.0 + rv1);
+	glColor4f(col4v1[0], col4v1[1], col4v1[2], 0.0);
+	glVertex3f(s1, c1, 0.0);
 	
 	glEnd();
 }

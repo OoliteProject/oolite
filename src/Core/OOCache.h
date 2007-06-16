@@ -11,11 +11,8 @@ Every OOCache has a 'prune threshold', which controls how many elements it
 contains, and an 'auto-prune' flag, which determines how pruning is managed.
 
 If auto-pruning is on, the cache will pruned to 80% of the prune threshold
-whenever the prune threshold is exceeded.
-
-If auto-pruning is off, the cache will be prined to the prune threshold when
-explicitly calling -prune, or when calling -pListRepresentation (which is
-intended for use by OOCacheManager).
+whenever the prune threshold is exceeded. If auto-pruning is off, the cache
+can be pruned to the prune threshold by explicitly calling -prune.
 
 While OOCacheManager-manged caches must have string keys and property list
 values, OOCaches used directly may have any keys allowable for a mutable

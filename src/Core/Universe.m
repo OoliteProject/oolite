@@ -6378,17 +6378,17 @@ static BOOL MaintainLinkedLists(Universe* uni)
 	
 	for (i = 0; i < [ourEconomy count]; i++)
 	{
-		NSMutableArray *commodityInfo = [[NSMutableArray arrayWithArray:[ourEconomy objectAtIndex:i]] retain];  // retain
+		NSMutableArray *commodityInfo = [[ourEconomy objectAtIndex:i] mutableCopy];
 		
-		int base_price =			[(NSNumber *)[commodityInfo objectAtIndex:MARKET_BASE_PRICE] intValue];
-		int eco_adjust_price =		[(NSNumber *)[commodityInfo objectAtIndex:MARKET_ECO_ADJUST_PRICE] intValue];
-		int eco_adjust_quantity =	[(NSNumber *)[commodityInfo objectAtIndex:MARKET_ECO_ADJUST_QUANTITY] intValue];
-		int base_quantity =			[(NSNumber *)[commodityInfo objectAtIndex:MARKET_BASE_QUANTITY] intValue];
-		int mask_price =			[(NSNumber *)[commodityInfo objectAtIndex:MARKET_MASK_PRICE] intValue];
-		int mask_quantity =			[(NSNumber *)[commodityInfo objectAtIndex:MARKET_MASK_QUANTITY] intValue];
+		int base_price =			[commodityInfo intAtIndex:MARKET_BASE_PRICE];
+		int eco_adjust_price =		[commodityInfo intAtIndex:MARKET_ECO_ADJUST_PRICE];
+		int eco_adjust_quantity =	[commodityInfo intAtIndex:MARKET_ECO_ADJUST_QUANTITY];
+		int base_quantity =			[commodityInfo intAtIndex:MARKET_BASE_QUANTITY];
+		int mask_price =			[commodityInfo intAtIndex:MARKET_MASK_PRICE];
+		int mask_quantity =			[commodityInfo intAtIndex:MARKET_MASK_QUANTITY];
 		
 		int price =		(base_price + (random_factor & mask_price) + (economy * eco_adjust_price)) & 255;
-		int quantity =  (base_quantity  + (random_factor & mask_quantity) - (economy * eco_adjust_quantity)) & 255;
+		int quantity =  (base_quantity + (random_factor & mask_quantity) - (economy * eco_adjust_quantity)) & 255;
 		
 		if (quantity > 127) quantity = 0;
 		quantity &= 63;
@@ -6402,6 +6402,7 @@ static BOOL MaintainLinkedLists(Universe* uni)
 		
 	return [NSArray arrayWithArray:ourEconomy];
 }
+
 
 double estimatedTimeForJourney(double distance, int hops)
 {

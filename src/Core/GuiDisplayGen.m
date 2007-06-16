@@ -38,17 +38,17 @@ MA 02110-1301, USA.
 {
 	self = [super init];
 		
-	size_in_pixels  = NSMakeSize( MAIN_GUI_PIXEL_WIDTH, MAIN_GUI_PIXEL_HEIGHT);
+	size_in_pixels  = NSMakeSize(MAIN_GUI_PIXEL_WIDTH, MAIN_GUI_PIXEL_HEIGHT);
 	n_columns		= 6;
 	n_rows			= 24;
 	pixel_row_center = size_in_pixels.width / 2;
 	pixel_row_height = MAIN_GUI_ROW_HEIGHT;
 	pixel_row_start	= MAIN_GUI_PIXEL_ROW_START;		// first position down the page...
 
-	pixel_text_size = NSMakeSize( 0.9 * pixel_row_height, pixel_row_height);	// main gui has 18x20 characters
+	pixel_text_size = NSMakeSize(0.9 * pixel_row_height, pixel_row_height);	// main gui has 18x20 characters
 	
 	has_title		= YES;
-	pixel_title_size = NSMakeSize( pixel_row_height * 1.75, pixel_row_height * 1.5);
+	pixel_title_size = NSMakeSize(pixel_row_height * 1.75, pixel_row_height * 1.5);
 	
 	int stops[6] = {0, 192, 256, 320, 384, 448};
 	int i;
@@ -80,7 +80,7 @@ MA 02110-1301, USA.
 	
 	textColor = [[OOColor yellowColor] retain];
 	
-	drawPosition = make_vector( 0.0, 0.0, 640.0);
+	drawPosition = make_vector(0.0, 0.0, 640.0);
 
 	return self;
 }
@@ -96,10 +96,10 @@ MA 02110-1301, USA.
 	pixel_row_height = gui_row_height;
 	pixel_row_start	= gui_row_start;		// first position down the page...
 
-	pixel_text_size = NSMakeSize( pixel_row_height, pixel_row_height);
+	pixel_text_size = NSMakeSize(pixel_row_height, pixel_row_height);
 	
 	has_title		= (gui_title != nil);
-	pixel_title_size = NSMakeSize( pixel_row_height * 1.75, pixel_row_height * 1.5);
+	pixel_title_size = NSMakeSize(pixel_row_height * 1.75, pixel_row_height * 1.5);
 	
 	int i;
 	
@@ -139,8 +139,8 @@ MA 02110-1301, USA.
 	pixel_row_height = gui_row_height;
 	pixel_row_start	= gui_row_start;		// first position down the page...
 
-	pixel_text_size = NSMakeSize( pixel_row_height, pixel_row_height);
-	pixel_title_size = NSMakeSize( pixel_row_height * 1.75, pixel_row_height * 1.5);
+	pixel_text_size = NSMakeSize(pixel_row_height, pixel_row_height);
+	pixel_title_size = NSMakeSize(pixel_row_height * 1.75, pixel_row_height * 1.5);
 
 	rowRange = NSMakeRange(0,n_rows);
 	[self clear];
@@ -182,8 +182,8 @@ MA 02110-1301, USA.
 		rowAlignment[i] = GUI_ALIGN_LEFT;
 	}
 
-	pixel_text_size = NSMakeSize( csize, csize);
-	pixel_title_size = NSMakeSize( csize * 1.75, csize * 1.5);
+	pixel_text_size = NSMakeSize(csize, csize);
+	pixel_title_size = NSMakeSize(csize * 1.75, csize * 1.5);
 	
 	OOLog(@"gui.reset", @"gui %@ reset to rows:%d columns:%d start:%d", self, n_rows, n_columns, pixel_row_start);
 
@@ -491,7 +491,7 @@ MA 02110-1301, USA.
 - (int) addLongText: (NSString *) str startingAtRow:(int) row align:(int) alignment
 {
 	NSSize chSize = pixel_text_size;
-	NSSize strsize = rectForString( str, 0.0, 0.0, chSize).size;
+	NSSize strsize = rectForString(str, 0.0, 0.0, chSize).size;
 	if (strsize.width < size_in_pixels.width)
 	{
 		[self setText:str forRow:row align:alignment];
@@ -508,9 +508,9 @@ MA 02110-1301, USA.
 			[string1 appendString:(NSString *)[words objectAtIndex:0]];
 			[string1 appendString:@" "];
 			[words removeObjectAtIndex:0];
-			strsize = rectForString( string1, 0.0, 0.0, chSize).size;
+			strsize = rectForString(string1, 0.0, 0.0, chSize).size;
 			if ([words count] > 0)
-				strsize.width += rectForString( (NSString *)[words objectAtIndex:0], 0.0, 0.0, chSize).size.width;
+				strsize.width += rectForString((NSString *)[words objectAtIndex:0], 0.0, 0.0, chSize).size.width;
 		}
 		[string2 appendString:[words componentsJoinedByString:@" "]];
 		[self setText:string1		forRow:row			align:alignment];
@@ -535,7 +535,7 @@ MA 02110-1301, USA.
 	if (row == n_rows - 1)
 		[self scrollUp:1];
 	NSSize chSize = pixel_text_size;
-	NSSize strsize = rectForString( str, 0.0, 0.0, chSize).size;
+	NSSize strsize = rectForString(str, 0.0, 0.0, chSize).size;
 	if (strsize.width < size_in_pixels.width)
 	{
 		[self setText:str forRow:row align:alignment];
@@ -560,9 +560,9 @@ MA 02110-1301, USA.
 			[string1 appendString:(NSString *)[words objectAtIndex:0]];
 			[string1 appendString:@" "];
 			[words removeObjectAtIndex:0];
-			strsize = rectForString( string1, 0.0, 0.0, chSize).size;
+			strsize = rectForString(string1, 0.0, 0.0, chSize).size;
 			if ([words count] > 0)
-				strsize.width += rectForString( (NSString *)[words objectAtIndex:0], 0.0, 0.0, chSize).size.width;
+				strsize.width += rectForString((NSString *)[words objectAtIndex:0], 0.0, 0.0, chSize).size.width;
 		}
 		[string2 appendString:[words componentsJoinedByString:@" "]];
 		[self setText:string1		forRow:row			align:alignment];
@@ -785,17 +785,17 @@ MA 02110-1301, USA.
 		
 		GLfloat h1 = 3.0f;
 		GLfloat h3 = 9.0f;
-		glColor4f( 0.2f, 0.2f, 1.0f, 0.5f);
-		glLineWidth( 2.0f);
+		glColor4f(0.2f, 0.2f, 1.0f, 0.5f);
+		glLineWidth(2.0f);
 		cursor_x += drawPosition.x;
 		cursor_y += drawPosition.y;
 		glBegin(GL_LINES);
-			glVertex3f( cursor_x - h1, cursor_y, z1);	glVertex3f( cursor_x - h3, cursor_y, z1);
-			glVertex3f( cursor_x + h1, cursor_y, z1);	glVertex3f( cursor_x + h3, cursor_y, z1);
-			glVertex3f( cursor_x, cursor_y - h1, z1);	glVertex3f( cursor_x, cursor_y - h3, z1);
-			glVertex3f( cursor_x, cursor_y + h1, z1);	glVertex3f( cursor_x, cursor_y + h3, z1);
+			glVertex3f(cursor_x - h1, cursor_y, z1);	glVertex3f(cursor_x - h3, cursor_y, z1);
+			glVertex3f(cursor_x + h1, cursor_y, z1);	glVertex3f(cursor_x + h3, cursor_y, z1);
+			glVertex3f(cursor_x, cursor_y - h1, z1);	glVertex3f(cursor_x, cursor_y - h3, z1);
+			glVertex3f(cursor_x, cursor_y + h1, z1);	glVertex3f(cursor_x, cursor_y + h3, z1);
 		glEnd();
-		glLineWidth( 1.0f);
+		glLineWidth(1.0f);
 	}
 	
 	return cursor_row;
@@ -859,15 +859,15 @@ MA 02110-1301, USA.
 		
 		GLfloat h1 = 3.0f;
 		GLfloat h3 = 9.0f;
-		glColor4f( 0.2f, 0.2f, 1.0f, 0.5f);
-		glLineWidth( 2.0f);
+		glColor4f(0.2f, 0.2f, 1.0f, 0.5f);
+		glLineWidth(2.0f);
 		glBegin(GL_LINES);
-			glVertex3f( cursor_x - h1, cursor_y, z1);	glVertex3f( cursor_x - h3, cursor_y, z1);
-			glVertex3f( cursor_x + h1, cursor_y, z1);	glVertex3f( cursor_x + h3, cursor_y, z1);
-			glVertex3f( cursor_x, cursor_y - h1, z1);	glVertex3f( cursor_x, cursor_y - h3, z1);
-			glVertex3f( cursor_x, cursor_y + h1, z1);	glVertex3f( cursor_x, cursor_y + h3, z1);
+			glVertex3f(cursor_x - h1, cursor_y, z1);	glVertex3f(cursor_x - h3, cursor_y, z1);
+			glVertex3f(cursor_x + h1, cursor_y, z1);	glVertex3f(cursor_x + h3, cursor_y, z1);
+			glVertex3f(cursor_x, cursor_y - h1, z1);	glVertex3f(cursor_x, cursor_y - h3, z1);
+			glVertex3f(cursor_x, cursor_y + h1, z1);	glVertex3f(cursor_x, cursor_y + h3, z1);
 		glEnd();
-		glLineWidth( 1.0f);
+		glLineWidth(1.0f);
 		
 		[[UNIVERSE gameView] setVirtualJoystick:cursor_x/size_in_pixels.width :-cursor_y/size_in_pixels.height];
 	}
@@ -929,12 +929,12 @@ MA 02110-1301, USA.
 	//
 	if (backgroundColor)
 	{
-		glColor4f( [backgroundColor redComponent], [backgroundColor greenComponent], [backgroundColor blueComponent], alpha * [backgroundColor alphaComponent]);
+		glColor4f([backgroundColor redComponent], [backgroundColor greenComponent], [backgroundColor blueComponent], alpha * [backgroundColor alphaComponent]);
 		glBegin(GL_QUADS);
-			glVertex3f( x + 0.0,					y + 0.0,					z);
-			glVertex3f( x + size_in_pixels.width,	y + 0.0,					z);
-			glVertex3f( x + size_in_pixels.width,	y + size_in_pixels.height,	z);
-			glVertex3f( x + 0.0,					y + size_in_pixels.height,	z);
+			glVertex3f(x + 0.0,					y + 0.0,					z);
+			glVertex3f(x + size_in_pixels.width,	y + 0.0,					z);
+			glVertex3f(x + size_in_pixels.width,	y + size_in_pixels.height,	z);
+			glVertex3f(x + 0.0,					y + size_in_pixels.height,	z);
 		glEnd();
 	}
 	
@@ -957,17 +957,17 @@ MA 02110-1301, USA.
 		// draw the title
 		//
 		strsize = rectForString(title, 0.0, 0.0, titleCharacterSize).size;
-		glColor4f( 1.0, 0.0, 0.0, alpha);	// red
-		drawString( title, x + pixel_row_center - strsize.width/2.0, y + size_in_pixels.height - pixel_title_size.height, z, titleCharacterSize);
+		glColor4f(1.0, 0.0, 0.0, alpha);	// red
+		drawString(title, x + pixel_row_center - strsize.width/2.0, y + size_in_pixels.height - pixel_title_size.height, z, titleCharacterSize);
 		
 		// draw a horizontal divider
 		//
-		glColor4f( 0.75, 0.75, 0.75, alpha);	// 75% gray
-		glBegin( GL_QUADS);
-			glVertex3f( x + 0,					y + size_in_pixels.height - pixel_title_size.height + 4,	z);
-			glVertex3f( x + size_in_pixels.width,	y + size_in_pixels.height - pixel_title_size.height + 4,	z);
-			glVertex3f( x + size_in_pixels.width,	y + size_in_pixels.height - pixel_title_size.height + 2,		z);
-			glVertex3f( x + 0,					y + size_in_pixels.height - pixel_title_size.height + 2,		z);
+		glColor4f(0.75, 0.75, 0.75, alpha);	// 75% gray
+		glBegin(GL_QUADS);
+			glVertex3f(x + 0,					y + size_in_pixels.height - pixel_title_size.height + 4,	z);
+			glVertex3f(x + size_in_pixels.width,	y + size_in_pixels.height - pixel_title_size.height + 4,	z);
+			glVertex3f(x + size_in_pixels.width,	y + size_in_pixels.height - pixel_title_size.height + 2,		z);
+			glVertex3f(x + 0,					y + size_in_pixels.height - pixel_title_size.height + 2,		z);
 		glEnd();
 	}
 	
@@ -988,7 +988,7 @@ MA 02110-1301, USA.
 			if ((rowFadeTime[i] > 0.0)&&(rowFadeTime[i] < 1.0))
 				row_alpha *= rowFadeTime[i];
 		}
-		glColor4f( [row_color redComponent], [row_color greenComponent], [row_color blueComponent], row_alpha);
+		glColor4f([row_color redComponent], [row_color greenComponent], [row_color blueComponent], row_alpha);
 		
 		if ([[rowText objectAtIndex:i] isKindOfClass:[NSString class]])
 		{
@@ -1010,33 +1010,33 @@ MA 02110-1301, USA.
 				}
 				if (i == selectedRow)
 				{
-					NSRect block = rectForString( text, x + rowPosition[i].x + 2, y + rowPosition[i].y + 2, characterSize);
-					glColor4f( 1.0, 0.0, 0.0, row_alpha);	// red
+					NSRect block = rectForString(text, x + rowPosition[i].x + 2, y + rowPosition[i].y + 2, characterSize);
+					glColor4f(1.0, 0.0, 0.0, row_alpha);	// red
 					glBegin(GL_QUADS);
-						glVertex3f( block.origin.x,						block.origin.y,						z);
-						glVertex3f( block.origin.x + block.size.width,	block.origin.y,						z);
-						glVertex3f( block.origin.x + block.size.width,	block.origin.y + block.size.height,	z);
-						glVertex3f( block.origin.x,						block.origin.y + block.size.height,	z);
+						glVertex3f(block.origin.x,						block.origin.y,						z);
+						glVertex3f(block.origin.x + block.size.width,	block.origin.y,						z);
+						glVertex3f(block.origin.x + block.size.width,	block.origin.y + block.size.height,	z);
+						glVertex3f(block.origin.x,						block.origin.y + block.size.height,	z);
 					glEnd();
-					glColor4f( 0.0, 0.0, 0.0, row_alpha);	// black
+					glColor4f(0.0, 0.0, 0.0, row_alpha);	// black
 				}
-				drawString( text, x + rowPosition[i].x, y + rowPosition[i].y, z, characterSize);
+				drawString(text, x + rowPosition[i].x, y + rowPosition[i].y, z, characterSize);
 				
 				// draw cursor at end of current Row
 				//
 				if ((showTextCursor)&&(i == currentRow))
 				{
-					NSRect	tr = rectForString( text, 0.0, 0.0, characterSize);
-					NSPoint cu = NSMakePoint( x + rowPosition[i].x + tr.size.width + 0.2 * characterSize.width, y + rowPosition[i].y);
+					NSRect	tr = rectForString(text, 0.0, 0.0, characterSize);
+					NSPoint cu = NSMakePoint(x + rowPosition[i].x + tr.size.width + 0.2 * characterSize.width, y + rowPosition[i].y);
 					tr.origin = cu;
 					tr.size.width = 0.5 * characterSize.width;
 					GLfloat g_alpha = 0.5 * (1.0 + sin(6 * [UNIVERSE getTime]));
-					glColor4f( 1.0, 0.0, 0.0, row_alpha * g_alpha);	// red
+					glColor4f(1.0, 0.0, 0.0, row_alpha * g_alpha);	// red
 					glBegin(GL_QUADS);
-						glVertex3f( tr.origin.x,					tr.origin.y,					z);
-						glVertex3f( tr.origin.x + tr.size.width,	tr.origin.y,					z);
-						glVertex3f( tr.origin.x + tr.size.width,	tr.origin.y + tr.size.height,	z);
-						glVertex3f( tr.origin.x,					tr.origin.y + tr.size.height,	z);
+						glVertex3f(tr.origin.x,					tr.origin.y,					z);
+						glVertex3f(tr.origin.x + tr.size.width,	tr.origin.y,					z);
+						glVertex3f(tr.origin.x + tr.size.width,	tr.origin.y + tr.size.height,	z);
+						glVertex3f(tr.origin.x,					tr.origin.y + tr.size.height,	z);
 					glEnd();
 				}
 			}
@@ -1055,17 +1055,17 @@ MA 02110-1301, USA.
 						rowPosition[i].x = tabStops[j];
 						if (i == selectedRow)
 						{
-							NSRect block = rectForString( text, x + rowPosition[i].x + 2, y + rowPosition[i].y + 2, characterSize);
-							glColor4f( 1.0, 0.0, 0.0, row_alpha);	// red
+							NSRect block = rectForString(text, x + rowPosition[i].x + 2, y + rowPosition[i].y + 2, characterSize);
+							glColor4f(1.0, 0.0, 0.0, row_alpha);	// red
 							glBegin(GL_QUADS);
-								glVertex3f( block.origin.x,						block.origin.y,						z);
-								glVertex3f( block.origin.x + block.size.width,	block.origin.y,						z);
-								glVertex3f( block.origin.x + block.size.width,	block.origin.y + block.size.height,	z);
-								glVertex3f( block.origin.x,						block.origin.y + block.size.height,	z);
+								glVertex3f(block.origin.x,						block.origin.y,						z);
+								glVertex3f(block.origin.x + block.size.width,	block.origin.y,						z);
+								glVertex3f(block.origin.x + block.size.width,	block.origin.y + block.size.height,	z);
+								glVertex3f(block.origin.x,						block.origin.y + block.size.height,	z);
 							glEnd();
-							glColor4f( 0.0, 0.0, 0.0, row_alpha);	// black
+							glColor4f(0.0, 0.0, 0.0, row_alpha);	// black
 						}
-						drawString( text, x + rowPosition[i].x, y + rowPosition[i].y, z, characterSize);
+						drawString(text, x + rowPosition[i].x, y + rowPosition[i].y, z, characterSize);
 					}
 				}
 			}
@@ -1104,14 +1104,14 @@ MA 02110-1301, USA.
 
 	// draw fuel range circle
 	//
-	glColor4f( 0.0, 1.0, 0.0, alpha);	//	green
+	glColor4f(0.0, 1.0, 0.0, alpha);	//	green
 	glLineWidth(2.0);
 	cu = NSMakePoint(hscale*galaxy_coordinates.x+hoffset,vscale*galaxy_coordinates.y+voffset);
-	drawOval( x + cu.x, y + cu.y, z, NSMakeSize( fuel*hscale, 2*fuel*vscale), 5);
+	GLDrawOval(x + cu.x, y + cu.y, z, NSMakeSize(fuel*hscale, 2*fuel*vscale), 5);
 		
 	// draw marks and stars
 	//
-	glLineWidth( 1.5);
+	glLineWidth(1.5);
 	glColor4f(1.0, 1.0, 0.75, alpha);	// pale yellow
 
 	for (i = 0; i < 256; i++)
@@ -1132,16 +1132,16 @@ MA 02110-1301, USA.
 			if ([(NSNumber*)[markedDestinations objectAtIndex:i] boolValue])	// is marked
 			{
 				GLfloat mark_size = 0.5 * blob_size + 2.5;
-				glColor4f( 1.0, 0.0, 0.0, alpha);	// red
-				glBegin( GL_LINES);
-					glVertex3f( x + star.x - mark_size,	y + star.y - mark_size,	z);
-					glVertex3f( x + star.x + mark_size,	y + star.y + mark_size,	z);
-					glVertex3f( x + star.x - mark_size,	y + star.y + mark_size,	z);
-					glVertex3f( x + star.x + mark_size,	y + star.y - mark_size,	z);
+				glColor4f(1.0, 0.0, 0.0, alpha);	// red
+				glBegin(GL_LINES);
+					glVertex3f(x + star.x - mark_size,	y + star.y - mark_size,	z);
+					glVertex3f(x + star.x + mark_size,	y + star.y + mark_size,	z);
+					glVertex3f(x + star.x - mark_size,	y + star.y + mark_size,	z);
+					glVertex3f(x + star.x + mark_size,	y + star.y - mark_size,	z);
 				glEnd();
 				glColor4f(1.0, 1.0, 0.75, alpha);	// pale yellow
 			}
-			drawFilledOval( x + star.x, y + star.y, z, NSMakeSize(blob_size,blob_size), 15);
+			GLDrawFilledOval(x + star.x, y + star.y, z, NSMakeSize(blob_size,blob_size), 15);
 		}
 	}
 	
@@ -1169,42 +1169,42 @@ MA 02110-1301, USA.
 			NSString*   p_name = (NSString*)[sys_info objectForKey:KEY_NAME];
 			if (![player showInfoFlag])
 			{
-				drawString( p_name, x + star.x, y + star.y, z, NSMakeSize(pixel_row_height,pixel_row_height));
+				drawString(p_name, x + star.x, y + star.y, z, NSMakeSize(pixel_row_height,pixel_row_height));
 			}
 			else
 			{
-				drawPlanetInfo( gov, eco, tec, x + star.x + 2.0, y + star.y + 2.0, z, NSMakeSize(pixel_row_height,pixel_row_height));
+				drawPlanetInfo(gov, eco, tec, x + star.x + 2.0, y + star.y + 2.0, z, NSMakeSize(pixel_row_height,pixel_row_height));
 			}
 		}
 	}
 	
 	// draw cross-hairs over current location
 	//
-	glColor4f( 0.0, 1.0, 0.0, alpha);	//	green
-	glBegin( GL_QUADS);
-		glVertex3f( x + cu.x - 1,	y + cu.y - 14,	z);
-		glVertex3f( x + cu.x + 1,	y + cu.y - 14,	z);
-		glVertex3f( x + cu.x + 1,	y + cu.y + 14,	z);
-		glVertex3f( x + cu.x - 1,	y + cu.y + 14,	z);
-		glVertex3f( x + cu.x - 14,	y + cu.y - 1,	z);
-		glVertex3f( x + cu.x + 14,	y + cu.y - 1,	z);
-		glVertex3f( x + cu.x + 14,	y + cu.y + 1,	z);
-		glVertex3f( x + cu.x - 14,	y + cu.y + 1,	z);
+	glColor4f(0.0, 1.0, 0.0, alpha);	//	green
+	glBegin(GL_QUADS);
+		glVertex3f(x + cu.x - 1,	y + cu.y - 14,	z);
+		glVertex3f(x + cu.x + 1,	y + cu.y - 14,	z);
+		glVertex3f(x + cu.x + 1,	y + cu.y + 14,	z);
+		glVertex3f(x + cu.x - 1,	y + cu.y + 14,	z);
+		glVertex3f(x + cu.x - 14,	y + cu.y - 1,	z);
+		glVertex3f(x + cu.x + 14,	y + cu.y - 1,	z);
+		glVertex3f(x + cu.x + 14,	y + cu.y + 1,	z);
+		glVertex3f(x + cu.x - 14,	y + cu.y + 1,	z);
 	glEnd();
 	
 	// draw cross hairs over cursor
 	//
-	glColor4f( 1.0, 0.0, 0.0, alpha);	//	red
+	glColor4f(1.0, 0.0, 0.0, alpha);	//	red
 	cu = NSMakePoint(hscale*cursor_coordinates.x+hoffset,vscale*cursor_coordinates.y+voffset);
-	glBegin( GL_QUADS);
-		glVertex3f( x + cu.x - 1,	y + cu.y - 7,	z);
-		glVertex3f( x + cu.x + 1,	y + cu.y - 7,	z);
-		glVertex3f( x + cu.x + 1,	y + cu.y + 7,	z);
-		glVertex3f( x + cu.x - 1,	y + cu.y + 7,	z);
-		glVertex3f( x + cu.x - 7,	y + cu.y - 1,	z);
-		glVertex3f( x + cu.x + 7,	y + cu.y - 1,	z);
-		glVertex3f( x + cu.x + 7,	y + cu.y + 1,	z);
-		glVertex3f( x + cu.x - 7,	y + cu.y + 1,	z);
+	glBegin(GL_QUADS);
+		glVertex3f(x + cu.x - 1,	y + cu.y - 7,	z);
+		glVertex3f(x + cu.x + 1,	y + cu.y - 7,	z);
+		glVertex3f(x + cu.x + 1,	y + cu.y + 7,	z);
+		glVertex3f(x + cu.x - 1,	y + cu.y + 7,	z);
+		glVertex3f(x + cu.x - 7,	y + cu.y - 1,	z);
+		glVertex3f(x + cu.x + 7,	y + cu.y - 1,	z);
+		glVertex3f(x + cu.x + 7,	y + cu.y + 1,	z);
+		glVertex3f(x + cu.x - 7,	y + cu.y + 1,	z);
 	glEnd();
 }
 
@@ -1238,43 +1238,43 @@ MA 02110-1301, USA.
 	
 	// draw fuel range circle
 	//
-	glColor4f( 0.0, 1.0, 0.0, alpha);	//	green
+	glColor4f(0.0, 1.0, 0.0, alpha);	//	green
 	glLineWidth(2.0);
 	cu = NSMakePoint(hscale*galaxy_coordinates.x+hoffset,vscale*galaxy_coordinates.y+voffset);
-	drawOval( x + cu.x, y + cu.y, z, NSMakeSize( fuel*hscale, 2*fuel*vscale), 5);
+	GLDrawOval(x + cu.x, y + cu.y, z, NSMakeSize(fuel*hscale, 2*fuel*vscale), 5);
 	
 	// draw cross-hairs over current location
 	//
-	glBegin( GL_QUADS);
-		glVertex3f( x + cu.x - 1,	y + cu.y - 14,	z);
-		glVertex3f( x + cu.x + 1,	y + cu.y - 14,	z);
-		glVertex3f( x + cu.x + 1,	y + cu.y + 14,	z);
-		glVertex3f( x + cu.x - 1,	y + cu.y + 14,	z);
-		glVertex3f( x + cu.x - 14,	y + cu.y - 1,	z);
-		glVertex3f( x + cu.x + 14,	y + cu.y - 1,	z);
-		glVertex3f( x + cu.x + 14,	y + cu.y + 1,	z);
-		glVertex3f( x + cu.x - 14,	y + cu.y + 1,	z);
+	glBegin(GL_QUADS);
+		glVertex3f(x + cu.x - 1,	y + cu.y - 14,	z);
+		glVertex3f(x + cu.x + 1,	y + cu.y - 14,	z);
+		glVertex3f(x + cu.x + 1,	y + cu.y + 14,	z);
+		glVertex3f(x + cu.x - 1,	y + cu.y + 14,	z);
+		glVertex3f(x + cu.x - 14,	y + cu.y - 1,	z);
+		glVertex3f(x + cu.x + 14,	y + cu.y - 1,	z);
+		glVertex3f(x + cu.x + 14,	y + cu.y + 1,	z);
+		glVertex3f(x + cu.x - 14,	y + cu.y + 1,	z);
 	glEnd();
 	
 	// draw cross hairs over cursor
 	//
-	glColor4f( 1.0, 0.0, 0.0, alpha);	//	red
+	glColor4f(1.0, 0.0, 0.0, alpha);	//	red
 	cu = NSMakePoint(hscale*cursor_coordinates.x+hoffset,vscale*cursor_coordinates.y+voffset);
-	glBegin( GL_QUADS);
-		glVertex3f( x + cu.x - 1,	y + cu.y - 7,	z);
-		glVertex3f( x + cu.x + 1,	y + cu.y - 7,	z);
-		glVertex3f( x + cu.x + 1,	y + cu.y + 7,	z);
-		glVertex3f( x + cu.x - 1,	y + cu.y + 7,	z);
-		glVertex3f( x + cu.x - 7,	y + cu.y - 1,	z);
-		glVertex3f( x + cu.x + 7,	y + cu.y - 1,	z);
-		glVertex3f( x + cu.x + 7,	y + cu.y + 1,	z);
-		glVertex3f( x + cu.x - 7,	y + cu.y + 1,	z);
+	glBegin(GL_QUADS);
+		glVertex3f(x + cu.x - 1,	y + cu.y - 7,	z);
+		glVertex3f(x + cu.x + 1,	y + cu.y - 7,	z);
+		glVertex3f(x + cu.x + 1,	y + cu.y + 7,	z);
+		glVertex3f(x + cu.x - 1,	y + cu.y + 7,	z);
+		glVertex3f(x + cu.x - 7,	y + cu.y - 1,	z);
+		glVertex3f(x + cu.x + 7,	y + cu.y - 1,	z);
+		glVertex3f(x + cu.x + 7,	y + cu.y + 1,	z);
+		glVertex3f(x + cu.x - 7,	y + cu.y + 1,	z);
 	glEnd();
 	
 	// draw marks
 	//
-	glLineWidth( 1.5);
-	glColor4f( 1.0, 0.0, 0.0, alpha);
+	glLineWidth(1.5);
+	glColor4f(1.0, 0.0, 0.0, alpha);
 	for (i = 0; i < 256; i++)
 	{
 		g_seed = [UNIVERSE systemSeedForSystemNumber:i];
@@ -1283,19 +1283,19 @@ MA 02110-1301, USA.
 		{
 			star.x = g_seed.d * hscale + hoffset;
 			star.y = g_seed.b * vscale + voffset;
-			glBegin( GL_LINES);
-				glVertex3f( x + star.x - 2.5,	y + star.y - 2.5,	z);
-				glVertex3f( x + star.x + 2.5,	y + star.y + 2.5,	z);
-				glVertex3f( x + star.x - 2.5,	y + star.y + 2.5,	z);
-				glVertex3f( x + star.x + 2.5,	y + star.y - 2.5,	z);
+			glBegin(GL_LINES);
+				glVertex3f(x + star.x - 2.5,	y + star.y - 2.5,	z);
+				glVertex3f(x + star.x + 2.5,	y + star.y + 2.5,	z);
+				glVertex3f(x + star.x - 2.5,	y + star.y + 2.5,	z);
+				glVertex3f(x + star.x + 2.5,	y + star.y - 2.5,	z);
 			glEnd();
 		}
 	}
 	
 	// draw stars
 	//
-	glColor4f( 1.0, 1.0, 1.0, alpha);
-	glBegin( GL_QUADS);
+	glColor4f(1.0, 1.0, 1.0, alpha);
+	glBegin(GL_QUADS);
 	for (i = 0; i < 256; i++)
 	{
 		g_seed = [UNIVERSE systemSeedForSystemNumber:i];
@@ -1305,17 +1305,17 @@ MA 02110-1301, USA.
 
 		double sz = (4.0 + 0.5 * (0x03 | (g_seed.f & 0x0f))) / 7.0;
 		
-		glVertex3f( x + star.x,			y + star.y + sz,	z);
-		glVertex3f( x + star.x + sz,	y + star.y,			z);
-		glVertex3f( x + star.x,			y + star.y - sz,	z);
-		glVertex3f( x + star.x - sz,	y + star.y,			z);
+		glVertex3f(x + star.x,			y + star.y + sz,	z);
+		glVertex3f(x + star.x + sz,	y + star.y,			z);
+		glVertex3f(x + star.x,			y + star.y - sz,	z);
+		glVertex3f(x + star.x - sz,	y + star.y,			z);
 	}
 	glEnd();
 		
 	// draw found stars and captions
 	//
-	glLineWidth( 1.5);
-	glColor4f( 0.0, 1.0, 0.0, alpha);
+	glLineWidth(1.5);
+	glColor4f(0.0, 1.0, 0.0, alpha);
 	for (i = 0; i < 256; i++)
 	{
 		BOOL mark = systems_found[i];
@@ -1324,11 +1324,11 @@ MA 02110-1301, USA.
 		{
 			star.x = g_seed.d * hscale + hoffset;
 			star.y = g_seed.b * vscale + voffset;
-			glBegin( GL_LINE_LOOP);
-				glVertex3f( x + star.x - 2.0,	y + star.y - 2.0,	z);
-				glVertex3f( x + star.x + 2.0,	y + star.y - 2.0,	z);
-				glVertex3f( x + star.x + 2.0,	y + star.y + 2.0,	z);
-				glVertex3f( x + star.x - 2.0,	y + star.y + 2.0,	z);
+			glBegin(GL_LINE_LOOP);
+				glVertex3f(x + star.x - 2.0,	y + star.y - 2.0,	z);
+				glVertex3f(x + star.x + 2.0,	y + star.y - 2.0,	z);
+				glVertex3f(x + star.x + 2.0,	y + star.y + 2.0,	z);
+				glVertex3f(x + star.x - 2.0,	y + star.y + 2.0,	z);
 			glEnd();
 			drawString([UNIVERSE systemNameIndex:i] , x + star.x + 2.0, y + star.y - 10.0, z, NSMakeSize(10,10));
 		}
@@ -1336,12 +1336,12 @@ MA 02110-1301, USA.
 	
 	// draw bottom horizontal divider
 	//
-	glColor4f( 0.75, 0.75, 0.75, alpha);	// 75% gray
-	glBegin( GL_QUADS);
-		glVertex3f( x + 0,					y + voffset + 260.0*vscale + 0,	z);
-		glVertex3f( x + size_in_pixels.width,	y + voffset + 260.0*vscale + 0,	z);
-		glVertex3f( x + size_in_pixels.width,	y + voffset + 260.0*vscale - 2,		z);
-		glVertex3f( x + 0,					y + voffset + 260.0*vscale - 2,		z);
+	glColor4f(0.75, 0.75, 0.75, alpha);	// 75% gray
+	glBegin(GL_QUADS);
+		glVertex3f(x + 0,					y + voffset + 260.0*vscale + 0,	z);
+		glVertex3f(x + size_in_pixels.width,	y + voffset + 260.0*vscale + 0,	z);
+		glVertex3f(x + size_in_pixels.width,	y + voffset + 260.0*vscale - 2,		z);
+		glVertex3f(x + 0,					y + voffset + 260.0*vscale - 2,		z);
 	glEnd();
 
 }
@@ -1362,9 +1362,9 @@ MA 02110-1301, USA.
 	double			voffset = size_in_pixels.height - pixel_title_size.height - 5;
 	NSPoint			star, star2 = NSZeroPoint;
 	
-	glColor4f( 0.25, 0.25, 0.25, alpha);
+	glColor4f(0.25, 0.25, 0.25, alpha);
 	
-	glBegin( GL_LINES );
+	glBegin(GL_LINES );
 	for (i = 0; i < 256; i++) for (j = i + 1; j < 256; j++)
 	{
 		g_seed = [UNIVERSE systemSeedForSystemNumber:i];
@@ -1378,8 +1378,8 @@ MA 02110-1301, USA.
 		
 		if (d <= (PLAYER_MAX_FUEL / 10.0))	// another_commander - Default to 7.0 LY.
 		{
-			glVertex3f( x+star.x, y+star.y, z );
-			glVertex3f( x+star2.x, y+star2.y, z );
+			glVertex3f(x+star.x, y+star.y, z );
+			glVertex3f(x+star2.x, y+star2.y, z );
 		}
 	}
 	glEnd();

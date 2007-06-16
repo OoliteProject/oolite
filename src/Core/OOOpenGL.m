@@ -24,6 +24,8 @@ MA 02110-1301, USA.
 
 #import "OOOpenGL.h"
 #import "OOLogging.h"
+#import "OOMacroOpenGL.h"
+#import "OOFunctionAttributes.h"
 
 
 static NSString * const kOOLogOpenGLStateDump				= @"rendering.opengl.stateDump";
@@ -35,6 +37,8 @@ BOOL CheckOpenGLErrors(NSString *format, ...)
 	const GLubyte	*errString = NULL;
 	BOOL			errorOccurred = NO;
 	va_list			args;
+	
+	OO_ENTER_OPENGL();
 	
 	// Short-circut here, because glGetError() is quite expensive.
 	if (OOLogWillDisplayMessagesInClass(kOOLogOpenGLError))
@@ -67,6 +71,8 @@ static GLfloat stored_mat_shininess[1];
 void LogOpenGLState()
 {
 	if (!OOLogWillDisplayMessagesInClass(kOOLogOpenGLStateDump))  return;
+	
+	OO_ENTER_OPENGL();
 	
 	// we need to report on the material properties
 	GLfloat mat_ambient[4];
@@ -327,6 +333,8 @@ void LogOpenGLState()
 
 void GLDebugWireframeModeOn(void)
 {
+	OO_ENTER_OPENGL();
+	
 	glPushAttrib(GL_POLYGON_BIT | GL_LINE_BIT | GL_TEXTURE_BIT);
 	glLineWidth(1.0f);
 	glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
@@ -336,5 +344,73 @@ void GLDebugWireframeModeOn(void)
 
 void GLDebugWireframeModeOff(void)
 {
+	OO_ENTER_OPENGL();
+	
 	glPopAttrib();
+}
+
+
+void GLDrawBallBillboard(GLfloat radius, GLfloat step, GLfloat z_distance)
+{
+	if (EXPECT_NOT((radius <= 0)||(step < 1)))  return;
+	if (EXPECT_NOT(radius >= z_distance))  return;	// inside the sphere
+	
+	GLfloat			i, delta;
+	GLfloat			s, c;
+	GLfloat			r;
+	
+	OO_ENTER_OPENGL();
+	
+	r = radius * z_distance / sqrt(z_distance * z_distance - radius * radius);
+	delta = step * M_PI / 180.0f;	// Convert step from degrees to radians
+	
+	glVertex3i(0, 0, 0);
+	for (i = 0; i < (M_PI * 2.0); i += delta)
+	{
+		s = r * sinf(i);
+		c = r * cosf(i);
+		glVertex3f(s, c, 0.0);
+	}
+	glVertex3f(0.0, r, 0.0);	//repeat the zero value to close
+}
+
+
+static void GLDrawOvalPoints(GLfloat x, GLfloat y, GLfloat z, NSSize siz, GLfloat step);
+
+static void GLDrawOvalPoints(GLfloat x, GLfloat y, GLfloat z, NSSize siz, GLfloat step)
+{
+	GLfloat			ww = 0.5 * siz.width;
+	GLfloat			hh = 0.5 * siz.height;
+	GLfloat			theta;
+	GLfloat			delta;
+	
+	OO_ENTER_OPENGL();
+	
+	delta = step * M_PI / 180.0f;
+	
+	for (theta = 0.0f; theta < (2.0f * M_PI); theta += delta)
+	{
+		glVertex3f(x + ww * sinf(theta), y + hh * cosf(theta), z);
+	}
+	glVertex3f(x, y + hh, z);
+}
+
+
+void GLDrawOval(GLfloat x, GLfloat y, GLfloat z, NSSize siz, GLfloat step)
+{
+	OO_ENTER_OPENGL();
+	
+	glBegin(GL_LINE_STRIP);
+	GLDrawOvalPoints(x, y, z, siz, step);
+	glEnd();
+}
+
+
+void GLDrawFilledOval(GLfloat x, GLfloat y, GLfloat z, NSSize siz, GLfloat step)
+{
+	OO_ENTER_OPENGL();
+	
+	glBegin(GL_TRIANGLE_FAN);
+	GLDrawOvalPoints(x, y, z, siz, step);
+	glEnd();
 }
