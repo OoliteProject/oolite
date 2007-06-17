@@ -1196,17 +1196,10 @@ static GLfloat	texture_uv_array[10400 * 2];
 
 
 
-BOOL gCoronaStateDump = NO;
 // TODO: some translucent stuff is drawn in the opaque pass, which is Naughty.
 - (void) drawEntity:(BOOL) immediate :(BOOL) translucent;
 {
 	int		subdivideLevel =	2;		// 4 is probably the maximum!
-	
-	if (gCoronaStateDump && planet_type == PLANET_TYPE_SUN)
-	{
-		LogOpenGLState();
-		gCoronaStateDump = NO;
-	}
 	
 	double  drawFactor = [[UNIVERSE gameView] viewSize].width / 100.0;
 	double  drawRatio2 = drawFactor * collision_radius / sqrt_zero_distance; // equivalent to size on screen in pixels
@@ -1536,6 +1529,7 @@ void drawActiveCorona(GLfloat inner_radius, GLfloat outer_radius, GLfloat step, 
 	
 	delta = step * M_PI / 180.0f;	// Convert step from degrees to radians
 	
+	glShadeModel(GL_SMOOTH);
 	glBegin(GL_TRIANGLE_STRIP);
 	for (i = 0; i < 360; i += step)
 	{

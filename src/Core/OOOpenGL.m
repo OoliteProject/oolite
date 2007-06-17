@@ -61,276 +61,6 @@ BOOL CheckOpenGLErrors(NSString *format, ...)
 }
 
 
-static GLfloat stored_mat_ambient[4];
-static GLfloat stored_mat_diffuse[4];
-static GLfloat stored_mat_emission[4];
-static GLfloat stored_mat_specular[4];
-static GLfloat stored_mat_shininess[1];
-
-
-void LogOpenGLState()
-{
-	if (!OOLogWillDisplayMessagesInClass(kOOLogOpenGLStateDump))  return;
-	
-	OO_ENTER_OPENGL();
-	
-	// we need to report on the material properties
-	GLfloat mat_ambient[4];
-	GLfloat mat_diffuse[4];
-	GLfloat mat_emission[4];
-	GLfloat mat_specular[4];
-	GLfloat mat_shininess[1];
-	//
-	GLfloat current_color[4];
-	//
-	GLint gl_shade_model[1];
-	//
-	GLint gl_texture_env_mode[1];
-	NSString* tex_env_mode_string = nil;
-	//
-	GLint gl_cull_face_mode[1];
-	NSString* cull_face_mode_string = nil;
-	//
-	GLint gl_front_face[1];
-	NSString* front_face_string = nil;
-	//
-	GLint gl_blend_src[1];
-	NSString* blend_src_string = nil;
-	GLint gl_blend_dst[1];
-	NSString* blend_dst_string = nil;
-	//
-	GLenum errCode;
-	const GLubyte *errString;
-
-	glGetMaterialfv( GL_FRONT, GL_AMBIENT, mat_ambient);
-	glGetMaterialfv( GL_FRONT, GL_DIFFUSE, mat_diffuse);
-	glGetMaterialfv( GL_FRONT, GL_EMISSION, mat_emission);
-	glGetMaterialfv( GL_FRONT, GL_SPECULAR, mat_specular);
-	glGetMaterialfv( GL_FRONT, GL_SHININESS, mat_shininess);
-	//
-	glGetFloatv( GL_CURRENT_COLOR, current_color);
-	//
-	glGetIntegerv( GL_SHADE_MODEL, gl_shade_model);
-	//
-	glGetIntegerv( GL_BLEND_SRC, gl_blend_src);
-	switch (gl_blend_src[0])
-	{
-		case GL_ZERO:
-			blend_src_string = @"GL_ZERO";
-			break;
-		case GL_ONE:
-			blend_src_string = @"GL_ONE";
-			break;
-		case GL_DST_COLOR:
-			blend_src_string = @"GL_DST_COLOR";
-			break;
-		case GL_SRC_COLOR:
-			blend_src_string = @"GL_SRC_COLOR";
-			break;
-		case GL_ONE_MINUS_DST_COLOR:
-			blend_src_string = @"GL_ONE_MINUS_DST_COLOR";
-			break;
-		case GL_ONE_MINUS_SRC_COLOR:
-			blend_src_string = @"GL_ONE_MINUS_SRC_COLOR";
-			break;
-		case GL_SRC_ALPHA:
-			blend_src_string = @"GL_SRC_ALPHA";
-			break;
-		case GL_DST_ALPHA:
-			blend_src_string = @"GL_DST_ALPHA";
-			break;
-		case GL_ONE_MINUS_SRC_ALPHA:
-			blend_src_string = @"GL_ONE_MINUS_SRC_ALPHA";
-			break;
-		case GL_ONE_MINUS_DST_ALPHA:
-			blend_src_string = @"GL_ONE_MINUS_DST_ALPHA";
-			break;
-		case GL_SRC_ALPHA_SATURATE:
-			blend_src_string = @"GL_SRC_ALPHA_SATURATE";
-			break;
-		default:
-			break;
-	}
-	//
-	glGetIntegerv( GL_BLEND_DST, gl_blend_dst);
-	switch (gl_blend_dst[0])
-	{
-		case GL_ZERO:
-			blend_dst_string = @"GL_ZERO";
-			break;
-		case GL_ONE:
-			blend_dst_string = @"GL_ONE";
-			break;
-		case GL_DST_COLOR:
-			blend_dst_string = @"GL_DST_COLOR";
-			break;
-		case GL_SRC_COLOR:
-			blend_dst_string = @"GL_SRC_COLOR";
-			break;
-		case GL_ONE_MINUS_DST_COLOR:
-			blend_dst_string = @"GL_ONE_MINUS_DST_COLOR";
-			break;
-		case GL_ONE_MINUS_SRC_COLOR:
-			blend_dst_string = @"GL_ONE_MINUS_SRC_COLOR";
-			break;
-		case GL_SRC_ALPHA:
-			blend_dst_string = @"GL_SRC_ALPHA";
-			break;
-		case GL_DST_ALPHA:
-			blend_dst_string = @"GL_DST_ALPHA";
-			break;
-		case GL_ONE_MINUS_SRC_ALPHA:
-			blend_dst_string = @"GL_ONE_MINUS_SRC_ALPHA";
-			break;
-		case GL_ONE_MINUS_DST_ALPHA:
-			blend_dst_string = @"GL_ONE_MINUS_DST_ALPHA";
-			break;
-		case GL_SRC_ALPHA_SATURATE:
-			blend_dst_string = @"GL_SRC_ALPHA_SATURATE";
-			break;
-		default:
-			break;
-	}
-	//
-	glGetIntegerv( GL_CULL_FACE_MODE, gl_cull_face_mode);
-	switch (gl_cull_face_mode[0])
-	{
-		case GL_BACK:
-			cull_face_mode_string = @"GL_BACK";
-			break;
-		case GL_FRONT:
-			cull_face_mode_string = @"GL_FRONT";
-			break;
-		default:
-			break;
-	}
-	//
-	glGetIntegerv( GL_FRONT_FACE, gl_front_face);
-	switch (gl_front_face[0])
-	{
-		case GL_CCW:
-			front_face_string = @"GL_CCW";
-			break;
-		case GL_CW:
-			front_face_string = @"GL_CW";
-			break;
-		default:
-			break;
-	}
-	//
-	glGetTexEnviv(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, gl_texture_env_mode);
-	switch (gl_texture_env_mode[0])
-	{
-		case GL_DECAL:
-			tex_env_mode_string = @"GL_DECAL";
-			break;
-		case GL_REPLACE:
-			tex_env_mode_string = @"GL_REPLACE";
-			break;
-		case GL_MODULATE:
-			tex_env_mode_string = @"GL_MODULATE";
-			break;
-		case GL_BLEND:
-			tex_env_mode_string = @"GL_BLEND";
-			break;
-		default:
-			break;
-	}
-	//
-	if ((errCode =glGetError()) != GL_NO_ERROR)
-	{
-		errString = gluErrorString(errCode);
-		OOLog(kOOLogOpenGLError, @"OpenGL error: '%s' (%u) in: %@", errString, errCode);
-	}
-
-	/*-- MATERIALS --*/
-	if ((stored_mat_ambient[0] != mat_ambient[0])||(stored_mat_ambient[1] != mat_ambient[1])||(stored_mat_ambient[2] != mat_ambient[2])||(stored_mat_ambient[3] != mat_ambient[2]))
-		OOLog(kOOLogOpenGLStateDump, @"OPENGL_DEBUG GL_AMBIENT ( %.2ff, %.2ff, %.2ff, %.2ff)",
-			mat_ambient[0], mat_ambient[1], mat_ambient[2], mat_ambient[3]);
-	if ((stored_mat_diffuse[0] != mat_diffuse[0])||(stored_mat_diffuse[1] != mat_diffuse[1])||(stored_mat_diffuse[2] != mat_diffuse[2])||(stored_mat_diffuse[3] != mat_diffuse[2]))
-		OOLog(kOOLogOpenGLStateDump, @"OPENGL_DEBUG GL_DIFFUSE ( %.2ff, %.2ff, %.2ff, %.2ff)",
-			mat_diffuse[0], mat_diffuse[1], mat_diffuse[2], mat_diffuse[3]);
-	if ((stored_mat_emission[0] != mat_emission[0])||(stored_mat_emission[1] != mat_emission[1])||(stored_mat_emission[2] != mat_emission[2])||(stored_mat_emission[3] != mat_emission[2]))
-		OOLog(kOOLogOpenGLStateDump, @"OPENGL_DEBUG GL_EMISSION ( %.2ff, %.2ff, %.2ff, %.2ff)",
-			mat_emission[0], mat_emission[1], mat_emission[2], mat_emission[3]);
-	if ((stored_mat_specular[0] != mat_specular[0])||(stored_mat_specular[1] != mat_specular[1])||(stored_mat_specular[2] != mat_specular[2])||(stored_mat_specular[3] != mat_specular[2]))
-		OOLog(kOOLogOpenGLStateDump, @"OPENGL_DEBUG GL_SPECULAR ( %.2ff, %.2ff, %.2ff, %.2ff)",
-			mat_specular[0], mat_specular[1], mat_specular[2], mat_specular[3]);
-	if (stored_mat_shininess[0] != mat_shininess[0])
-		OOLog(kOOLogOpenGLStateDump, @"OPENGL_DEBUG GL_SHININESS ( %.2ff)", mat_shininess[0]);
-	stored_mat_ambient[0] = mat_ambient[0];	stored_mat_ambient[1] = mat_ambient[1];	stored_mat_ambient[2] = mat_ambient[2];	stored_mat_ambient[3] = mat_ambient[3];
-	stored_mat_diffuse[0] = mat_diffuse[0];	stored_mat_diffuse[1] = mat_diffuse[1];	stored_mat_diffuse[2] = mat_diffuse[2];	stored_mat_diffuse[3] = mat_diffuse[3];
-	stored_mat_emission[0] = mat_emission[0];	stored_mat_emission[1] = mat_emission[1];	stored_mat_emission[2] = mat_emission[2];	stored_mat_emission[3] = mat_emission[3];
-	stored_mat_specular[0] = mat_specular[0];	stored_mat_specular[1] = mat_specular[1];	stored_mat_specular[2] = mat_specular[2];	stored_mat_specular[3] = mat_specular[3];
-	stored_mat_shininess[0] = mat_shininess[0];
-	/*-- MATERIALS --*/
-
-	//
-	/*-- LIGHTS --*/
-	if (glIsEnabled(GL_LIGHTING))
-	{
-		OOLog(kOOLogOpenGLStateDump, @"OPENGL_DEBUG GL_LIGHTING :ENABLED:");
-		if (glIsEnabled(GL_LIGHT0))
-			OOLog(kOOLogOpenGLStateDump, @"OPENGL_DEBUG GL_LIGHT0 :ENABLED:");
-		if (glIsEnabled(GL_LIGHT1))
-		{
-			OOLog(kOOLogOpenGLStateDump, @"OPENGL_DEBUG GL_LIGHT1 :ENABLED:");
-			GLfloat light_ambient[4];
-			GLfloat light_diffuse[4];
-			GLfloat light_specular[4];
-			glGetLightfv(GL_LIGHT1, GL_AMBIENT, light_ambient);
-			glGetLightfv(GL_LIGHT1, GL_DIFFUSE, light_diffuse);
-			glGetLightfv(GL_LIGHT1, GL_SPECULAR, light_specular);
-			OOLog(kOOLogOpenGLStateDump, @"OPENGL_DEBUG GL_LIGHT1 GL_AMBIENT ( %.2ff, %.2ff, %.2ff, %.2ff)",
-				light_ambient[0], light_ambient[1], light_ambient[2], light_ambient[3]);
-			OOLog(kOOLogOpenGLStateDump, @"OPENGL_DEBUG GL_LIGHT1 GL_DIFFUSE ( %.2ff, %.2ff, %.2ff, %.2ff)",
-				light_diffuse[0], light_diffuse[1], light_diffuse[2], light_diffuse[3]);
-			OOLog(kOOLogOpenGLStateDump, @"OPENGL_DEBUG GL_LIGHT1 GL_SPECULAR ( %.2ff, %.2ff, %.2ff, %.2ff)",
-				light_specular[0], light_specular[1], light_specular[2], light_specular[3]);
-		}
-		if (glIsEnabled(GL_LIGHT2))
-			OOLog(kOOLogOpenGLStateDump, @"OPENGL_DEBUG GL_LIGHT2 :ENABLED:");
-		if (glIsEnabled(GL_LIGHT3))
-			OOLog(kOOLogOpenGLStateDump, @"OPENGL_DEBUG GL_LIGHT3 :ENABLED:");
-		if (glIsEnabled(GL_LIGHT4))
-			OOLog(kOOLogOpenGLStateDump, @"OPENGL_DEBUG GL_LIGHT4 :ENABLED:");
-		if (glIsEnabled(GL_LIGHT5))
-			OOLog(kOOLogOpenGLStateDump, @"OPENGL_DEBUG GL_LIGHT5 :ENABLED:");
-		if (glIsEnabled(GL_LIGHT6))
-			OOLog(kOOLogOpenGLStateDump, @"OPENGL_DEBUG GL_LIGHT6 :ENABLED:");
-		if (glIsEnabled(GL_LIGHT7))
-			OOLog(kOOLogOpenGLStateDump, @"OPENGL_DEBUG GL_LIGHT7 :ENABLED:");
-	}
-	/*-- LIGHTS --*/
-
-	OOLog(kOOLogOpenGLStateDump, @"OPENGL_DEBUG GL_CURRENT_COLOR ( %.2ff, %.2ff, %.2ff, %.2ff)",
-		current_color[0], current_color[1], current_color[2], current_color[3]);
-	//
-	OOLog(kOOLogOpenGLStateDump, @"OPENGL_DEBUG GL_TEXTURE_ENV_MODE :%@:", tex_env_mode_string);
-	//
-	OOLog(kOOLogOpenGLStateDump, @"OPENGL_DEBUG GL_SHADEMODEL :%@:",  (gl_shade_model[0] == GL_SMOOTH)? @"GL_SMOOTH": @"GL_FLAT");
-	//
-	if (glIsEnabled(GL_FOG))
-		OOLog(kOOLogOpenGLStateDump, @"OPENGL_DEBUG GL_FOG :ENABLED:");
-	//
-	if (glIsEnabled(GL_COLOR_MATERIAL))
-		OOLog(kOOLogOpenGLStateDump, @"OPENGL_DEBUG GL_COLOR_MATERIAL :ENABLED:");
-	//
-	if (glIsEnabled(GL_BLEND))
-	{
-		OOLog(kOOLogOpenGLStateDump, @"OPENGL_DEBUG GL_BLEND :ENABLED:");
-		OOLog(kOOLogOpenGLStateDump, @"OPENGL_DEBUG GL_BLEND_FUNC (:%@:, :%@:)", blend_src_string, blend_dst_string);
-	}
-	//
-	if (glIsEnabled(GL_CULL_FACE))
-		OOLog(kOOLogOpenGLStateDump, @"OPENGL_DEBUG GL_CULL_FACE :ENABLED:");
-	//
-	OOLog(kOOLogOpenGLStateDump, @"OPENGL_DEBUG GL_CULL_FACE_MODE :%@:", cull_face_mode_string);
-	//
-	OOLog(kOOLogOpenGLStateDump, @"OPENGL_DEBUG GL_FRONT_FACE :%@:", front_face_string);
-}
-
-
 void GLDebugWireframeModeOn(void)
 {
 	OO_ENTER_OPENGL();
@@ -413,4 +143,245 @@ void GLDrawFilledOval(GLfloat x, GLfloat y, GLfloat z, NSSize siz, GLfloat step)
 	glBegin(GL_TRIANGLE_FAN);
 	GLDrawOvalPoints(x, y, z, siz, step);
 	glEnd();
+}
+
+
+
+// ======== LogOpenGLState() and helpers ========
+#if 0
+#pragma mark -
+#endif
+
+
+static NSString *GLColorToString(GLfloat color[4]);
+static NSString *GLEnumToString(GLenum value);
+
+static void GLDumpLightState(unsigned lightIdx);
+static void GLDumpMaterialState(void);
+static void GLDumpCullingState(void);
+static void GLDumpFogState(void);
+
+
+void LogOpenGLState()
+{
+	unsigned			i;
+	
+	if (!OOLogWillDisplayMessagesInClass(kOOLogOpenGLStateDump))  return;
+	
+	OOLog(kOOLogOpenGLStateDump, @"OpenGL state dump:");
+	OOLogIndent();
+	
+	GLDumpMaterialState();
+	GLDumpCullingState();
+	for (i = 0; i != 8; ++i)
+	{
+		GLDumpLightState(i);
+	}
+	GLDumpFogState();
+	
+	CheckOpenGLErrors(@"After state dump");
+	
+	OOLogOutdent();
+}
+
+
+static NSString *GLColorToString(GLfloat color[4])
+{
+	#define COLOR_EQUAL(color, r, g, b, a)  (color[0] == (r) && color[1] == (g) && color[2] == (b) && color[3] == (a))
+	#define COLOR_CASE(r, g, b, a, str)  do { if (COLOR_EQUAL(color, (r), (g), (b), (a)))  return (str); } while (0)
+	
+	COLOR_CASE(1, 1, 1, 1, @"white");
+	COLOR_CASE(0, 0, 0, 1, @"black");
+	COLOR_CASE(0, 0, 0, 0, @"clear");
+	COLOR_CASE(1, 0, 0, 1, @"red");
+	COLOR_CASE(0, 1, 0, 1, @"green");
+	COLOR_CASE(0, 0, 1, 1, @"blue");
+	COLOR_CASE(0, 1, 1, 1, @"cyan");
+	COLOR_CASE(1, 0, 1, 1, @"magenta");
+	COLOR_CASE(1, 1, 0, 1, @"yellow");
+	
+	return [NSString stringWithFormat:@"(%.2ff, %.2ff, %.2ff, %.2ff)", color[0], color[1], color[2], color[3]];
+}
+
+
+static void GLDumpLightState(unsigned lightIdx)
+{
+	BOOL			enabled;
+	GLenum			lightID = GL_LIGHT0 + lightIdx;
+	GLfloat			color[4];
+	
+	OO_ENTER_OPENGL();
+	
+	enabled = glIsEnabled(lightID);
+	OOLog(kOOLogOpenGLStateDump, @"Light %u: %s", lightIdx, enabled ? "enabled" : "disabled");
+	
+	if (enabled)
+	{
+		OOLogIndent();
+		
+		glGetLightfv(GL_LIGHT1, GL_AMBIENT, color);
+		OOLog(kOOLogOpenGLStateDump, @"Ambient: %@", GLColorToString(color));
+		glGetLightfv(GL_LIGHT1, GL_DIFFUSE, color);
+		OOLog(kOOLogOpenGLStateDump, @"Diffuse: %@", GLColorToString(color));
+		glGetLightfv(GL_LIGHT1, GL_SPECULAR, color);
+		OOLog(kOOLogOpenGLStateDump, @"Specular: %@", GLColorToString(color));
+		
+		OOLogOutdent();
+	}
+}
+
+
+static void GLDumpMaterialState(void)
+{
+	GLfloat					color[4];
+	GLfloat					shininess;
+	GLint					shadeModel,
+							blendSrc,
+							blendDst,
+							texMode;
+	BOOL					blending;
+	
+	OO_ENTER_OPENGL();
+	
+	OOLog(kOOLogOpenGLStateDump, @"Material state:");
+	OOLogIndent();
+	
+	glGetMaterialfv(GL_FRONT, GL_AMBIENT, color);
+	OOLog(kOOLogOpenGLStateDump, @"Ambient: %@", GLColorToString(color));
+	
+	glGetMaterialfv(GL_FRONT, GL_DIFFUSE, color);
+	OOLog(kOOLogOpenGLStateDump, @"Diffuse: %@", GLColorToString(color));
+	
+	glGetMaterialfv(GL_FRONT, GL_EMISSION, color);
+	OOLog(kOOLogOpenGLStateDump, @"Emission: %@", GLColorToString(color));
+	
+	glGetMaterialfv(GL_FRONT, GL_SPECULAR, color);
+	OOLog(kOOLogOpenGLStateDump, @"Specular: %@", GLColorToString(color));
+	
+	glGetMaterialfv(GL_FRONT, GL_SHININESS, &shininess);
+	OOLog(kOOLogOpenGLStateDump, @"Shininess: %g", shininess);
+	
+	OOLog(kOOLogOpenGLStateDump, @"Colour material: %s", glIsEnabled(GL_COLOR_MATERIAL) ? "enabled" : "disabled");
+	
+	glGetFloatv(GL_CURRENT_COLOR, color);
+	OOLog(kOOLogOpenGLStateDump, @"Current color: %@", GLColorToString(color));
+	
+	glGetIntegerv(GL_SHADE_MODEL, &shadeModel);
+	OOLog(kOOLogOpenGLStateDump, @"Shade model: %@", GLEnumToString(shadeModel));
+	
+	blending = glIsEnabled(GL_BLEND);
+	OOLog(kOOLogOpenGLStateDump, @"Blending: %s", blending ? "enabled" : "disabled");
+	if (blending)
+	{
+		glGetIntegerv(GL_BLEND_SRC, &blendSrc);
+		glGetIntegerv(GL_BLEND_DST, &blendDst);
+		OOLog(kOOLogOpenGLStateDump, @"Blend function: %@, %@", GLEnumToString(blendSrc), GLEnumToString(blendDst));
+	}
+	
+	glGetTexEnviv(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, &texMode);
+	OOLog(kOOLogOpenGLStateDump, @"Texture env mode: %@", GLEnumToString(texMode));
+	
+	OOLogOutdent();
+}
+
+
+static void GLDumpCullingState(void)
+{
+	GLint					value;
+	
+	OO_ENTER_OPENGL();
+	
+	glGetIntegerv(GL_CULL_FACE_MODE, &value);
+	OOLog(kOOLogOpenGLStateDump, @"Cull face mode: %@", GLEnumToString(value));
+	
+	glGetIntegerv(GL_FRONT_FACE, &value);
+	OOLog(kOOLogOpenGLStateDump, @"Front face direction: %@", GLEnumToString(value));
+}
+
+
+static void GLDumpFogState(void)
+{
+	BOOL					enabled;
+	GLint					value;
+	GLfloat					start,
+							end,
+							density,
+							index;
+	GLfloat					color[4];
+	
+	OO_ENTER_OPENGL();
+	
+	enabled = glIsEnabled(GL_FOG);
+	OOLog(kOOLogOpenGLStateDump, @"Fog: %s", enabled ? "enabled" : "disabled");
+	if (enabled)
+	{
+		OOLogIndent();
+		
+		glGetIntegerv(GL_FOG_MODE, &value);
+		OOLog(kOOLogOpenGLStateDump, @"Fog mode: *@", GLEnumToString(value));
+		
+		glGetFloatv(GL_FOG_COLOR, color);
+		OOLog(kOOLogOpenGLStateDump, @"Fog colour: %@", GLColorToString(color));
+		
+		glGetFloatv(GL_FOG_START, &start);
+		glGetFloatv(GL_FOG_START, &end);
+		OOLog(kOOLogOpenGLStateDump, @"Fog start, end: %g, %g", start, end);
+		
+		glGetFloatv(GL_FOG_DENSITY, &density);
+		OOLog(kOOLogOpenGLStateDump, @"Fog density: %g", density);
+		
+		glGetFloatv(GL_FOG_DENSITY, &index);
+		OOLog(kOOLogOpenGLStateDump, @"Fog index: %g", index);
+		
+		OOLogOutdent();
+	}
+}
+
+
+#define CASE(x)		case x: return @#x
+#define DEFAULT		default: return [NSString stringWithFormat:@"unknown: %u", value]
+
+static NSString *GLEnumToString(GLenum value)
+{
+	switch (value)
+	{
+		// ShadingModel
+		CASE(GL_FLAT);
+		CASE(GL_SMOOTH);
+		
+		// BlendingFactorSrc/BlendingFactorDest
+		CASE(GL_ZERO);
+		CASE(GL_ONE);
+		CASE(GL_DST_COLOR);
+		CASE(GL_SRC_COLOR);
+		CASE(GL_ONE_MINUS_DST_COLOR);
+		CASE(GL_ONE_MINUS_SRC_COLOR);
+		CASE(GL_SRC_ALPHA);
+		CASE(GL_DST_ALPHA);
+		CASE(GL_ONE_MINUS_SRC_ALPHA);
+		CASE(GL_ONE_MINUS_DST_ALPHA);
+		CASE(GL_SRC_ALPHA_SATURATE);
+		
+		// TextureEnvMode
+		CASE(GL_MODULATE);
+		CASE(GL_DECAL);
+		CASE(GL_BLEND);
+		CASE(GL_REPLACE);
+		
+		// FrontFaceDirection
+		CASE(GL_CW);
+		CASE(GL_CCW);
+		
+		// CullFaceMode
+		CASE(GL_FRONT);
+		CASE(GL_BACK);
+		CASE(GL_FRONT_AND_BACK);
+		
+		// FogMode
+		CASE(GL_LINEAR);
+		CASE(GL_EXP);
+		CASE(GL_EXP2);
+		
+		DEFAULT;
+	}
 }

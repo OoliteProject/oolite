@@ -40,7 +40,7 @@ MA 02110-1301, USA.
 #define kOOLogUnconvertedNSLog @"unclassified.StationEntity"
 
 
-#define DRAW_WIREFRAME_DOCKING_PORT 1
+#define DRAW_WIREFRAME_DOCKING_PORT 0
 
 
 static NSDictionary* instructions(int station_id, Vector coords, float speed, float range, NSString* ai_message, NSString* comms_message, BOOL match_rotation);
@@ -1824,6 +1824,7 @@ static void GLDrawWireframeCuboid(Vector min, Vector max);
 	
 	gl_matrix matrix;
 	quaternion_into_gl_matrix(port_orientation, matrix);
+	glPushMatrix();
 	glMultMatrixf(matrix);
 	
 	halfDimensions = vector_multiply_scalar(port_dimensions, 0.5f);
@@ -1833,6 +1834,7 @@ static void GLDrawWireframeCuboid(Vector min, Vector max);
 	
 	glDepthMask(GL_TRUE);
 	glPopAttrib();
+	glPopMatrix();
 }
 
 @end
