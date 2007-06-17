@@ -225,7 +225,7 @@ OOINLINE BOOL ValidBindingType(OOShaderUniformType type)
 		if (location == -1)
 		{
 			OK = NO;
-			OOLog(@"shader.uniform.bind.failed", @"***** Shader error: could not bind uniform \"%@\" to -[%@ %s] (no uniform of that name could be found).", uniformName, [target class], selector);
+			OOLog(@"shader.uniform.bind.failed", @"Could not bind uniform \"%@\" to -[%@ %s] (no uniform of that name could be found).", uniformName, [target class], selector);
 		}
 	}
 	
@@ -416,7 +416,7 @@ OOINLINE BOOL ValidBindingType(OOShaderUniformType type)
 	}
 	
 	isActiveBinding = OK;
-	if (!OK)  OOLog(@"shader.uniform.bind.failed", @"Shader could not bind uniform \"%@\" to -[%@ %s] (%@).", name, [target class], value.binding.selector, methodProblem);
+	if (!OK)  OOLog(@"shader.uniform.bind.failed", @"Shader could not bind uniform \"%@\" to -[%@ %@] (%@).", name, [target class], NSStringFromSelector(value.binding.selector), methodProblem);
 }
 
 @end
