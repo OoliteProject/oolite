@@ -45,8 +45,8 @@ SOFTWARE.
 
 */
 
-#import "OOPNGTextureLoader.h"
 #import "png.h"
+#import "OOPNGTextureLoader.h"
 #import "OOFunctionAttributes.h"
 #import "OOCPUInfo.h"
 

@@ -13,7 +13,7 @@ ifeq ($(GNUSTEP_HOST_OS),mingw32)
 	oolite_LIB_DIRS += -L/usr/local/lib -L$(GNUSTEP_LOCAL_ROOT)/lib -Ldeps/Windows-x86-deps/lib
 else
 	ADDITIONAL_INCLUDE_DIRS = -I/usr/include/mozjs -Isrc/SDL -Isrc/Core -Isrc/BSDCompat -Isrc/Core/Scripting -Isrc/Core/Materials -Isrc/Core/Entities
-	ADDITIONAL_OBJC_LIBS = -lpng -lmozjs -lGLU -lGL -lSDL -lpthread -lSDL_mixer -lgnustep-base
+	ADDITIONAL_OBJC_LIBS = -lpng -ljs -lGLU -lGL -lSDL -lpthread -lSDL_mixer -lgnustep-base
 	ADDITIONAL_CFLAGS = -DLINUX -DNEED_STRLCPY `sdl-config --cflags`
 	ADDITIONAL_OBJCFLAGS = -DLOADSAVEGUI -DLINUX -DXP_UNIX -Wno-import `sdl-config --cflags`
 	oolite_LIB_DIRS += -L/usr/X11R6/lib/
