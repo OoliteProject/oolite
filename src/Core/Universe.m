@@ -1095,9 +1095,7 @@ GLfloat docked_light_specular[]	= { (GLfloat) 1.0, (GLfloat) 1.0, (GLfloat) 0.5,
 		// ambient lighting!
 		float r,g,b,a;
 		[[the_sky sky_color] getRed:&r green:&g blue:&b alpha:&a];
-		GLfloat ambient_level = 1.0;
-		if ([systeminfo objectForKey: @"ambient_level"])
-			ambient_level = [[systeminfo objectForKey: @"ambient_level"] floatValue];
+		GLfloat ambient_level = [systeminfo floatForKey:@"ambient_level" defaultValue:1.0];
 		stars_ambient[0] = ambient_level * 0.0625 * (1.0 + r) * (1.0 + r);
 		stars_ambient[1] = ambient_level * 0.0625 * (1.0 + g) * (1.0 + g);
 		stars_ambient[2] = ambient_level * 0.0625 * (1.0 + b) * (1.0 + b);
@@ -2800,13 +2798,16 @@ GLfloat docked_light_specular[]	= { (GLfloat) 1.0, (GLfloat) 1.0, (GLfloat) 0.5,
 	}
 	
 	if (found)
-	{	
+	{
 		ship = [self newShipWithName:(NSString *)[foundShips objectAtIndex:i]];	// may return nil if not found!
 		[ship setRoles:search];											// set its roles to this one particular chosen role
 	}
-	else if (debug)
+	else
 	{
-		NSLog(@"DEBUG [Universe newShipWithRole: %@] couldn't find a ship!", search);
+		if (debug && DEBUG_MISC)
+		{
+			NSLog(@"DEBUG [Universe newShipWithRole: %@] couldn't find a ship!", search);
+		}
 	}
 	
 	[mypool release];	// tidy everything up
@@ -3605,9 +3606,8 @@ GLfloat* custom_matrix;
 			glDisable(GL_CULL_FACE);			// face culling
 			glDepthMask(GL_FALSE);				// don't write to depth buffer
 
-			GLfloat	line_width = [(MyOpenGLView *)gameView viewSize].width / 1024.0; // restore line size
-			if (line_width < 1.0)
-				line_width = 1.0;
+			GLfloat	line_width = [gameView viewSize].width / 1024.0; // restore line size
+			if (line_width < 1.0)  line_width = 1.0;
 			glLineWidth(line_width);
 
 			[self drawMessage];
@@ -3646,7 +3646,6 @@ GLfloat* custom_matrix;
 			}
 		
 		NS_ENDHANDLER
-
 	}
 }
 

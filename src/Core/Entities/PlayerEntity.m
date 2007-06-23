@@ -392,9 +392,7 @@ static PlayerEntity *sSharedPlayer = nil;
 		if (![UNIVERSE strict])
 		{
 			// reset to strict and reload player
-			NSLog(@"DEBUG loading a STRICT player dictionary ..1");
 			[UNIVERSE setStrict:YES];
-			NSLog(@"DEBUG loading a STRICT player dictionary ..2");
 		}
 	}
 	else
@@ -402,9 +400,7 @@ static PlayerEntity *sSharedPlayer = nil;
 		if ([UNIVERSE strict])
 		{
 			// reset to unrestricted and reload player
-			NSLog(@"DEBUG loading a UNRESTRICTED player dictionary ..1");
 			[UNIVERSE setStrict:NO];
-			NSLog(@"DEBUG loading a UNRESTRICTED player dictionary ..2");
 		}
 	}
 	
@@ -1272,11 +1268,11 @@ static PlayerEntity *sSharedPlayer = nil;
 {
 	switch (status)
 	{
-		case STATUS_START_GAME :
-		case STATUS_DOCKING :
-		case STATUS_DOCKED :
-		case STATUS_DEAD :
-		case STATUS_ESCAPE_SEQUENCE :
+		case STATUS_START_GAME:
+		case STATUS_DOCKING:
+		case STATUS_DOCKED:
+		case STATUS_DEAD:
+		case STATUS_ESCAPE_SEQUENCE:
 			return NO;
 		
 		default:
@@ -3811,8 +3807,6 @@ double scoopSoundPlayTime = 0.0;
 	// 75% of the time a malfunction means a misjump
 	BOOL misjump = ((flightPitch == max_flight_pitch) || (malfunc && (randf() > 0.75)));
 
-//	malfunc = (malfunc || (flightPitch == -max_flight_pitch));	// DEBUGGING
-
 	fuel -= 10.0 * distance;								// fuel cost to target system
 	ship_clock_adjust = distance * distance * 3600.0;		// LY * LY hrs
 	if (!misjump)
@@ -6003,12 +5997,9 @@ OOSound* burnersound;
 
 - (id)trumbleValue
 {
-	// debugging - force an increase in the trumble population
-	if ([[player_name lowercaseString] hasPrefix:@"trumble"])
-		trumbleCount = PLAYER_MAX_TRUMBLES / 2;
+	NSString	*namekey = [NSString stringWithFormat:@"%@-humbletrash", player_name];
+	int			trumbleHash;
 	
-	NSString* namekey = [NSString stringWithFormat:@"%@-humbletrash", player_name];
-	int trumbleHash;
 	clear_checksum();
 	[self mungChecksumWithNSString:player_name];
 	munge_checksum(credits);

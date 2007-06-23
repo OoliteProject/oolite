@@ -37,10 +37,15 @@ MA 02110-1301, USA.
 #import "AI.h"
 #import "OOCharacter.h"
 
+#import "OODebugGLDrawing.h"
+
 #define kOOLogUnconvertedNSLog @"unclassified.StationEntity"
 
 
-#define DRAW_WIREFRAME_DOCKING_PORT 0
+#define DRAW_WIREFRAME_DOCKING_PORT 1
+
+static BOOL sDebugDrawBBs = NO;
+static BoundingBox sDebugDrawBB1, sDebugDrawBB2;
 
 
 static NSDictionary* instructions(int station_id, Vector coords, float speed, float range, NSString* ai_message, NSString* comms_message, BOOL match_rotation);
@@ -841,15 +846,32 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 	while (shipbb.max.x - shipbb.min.x > ww * 0.90)	ww *= 1.25;
 	while (shipbb.max.y - shipbb.min.y > hh * 0.90)	hh *= 1.25;
 	
-	if ((ship->isPlayer)&&(debug & DEBUG_COLLISIONS))
-		NSLog(@"DEBUG normalised port dimensions are %.2fx%.2fx%.2f", ww, hh, dd);
-
 	ww *= 0.5;
 	hh *= 0.5;
 	
-	if ((ship->isPlayer)&&(debug & DEBUG_COLLISIONS))
-		NSLog(@"DEBUG player bounding box is at (%.2f, %.2f, %.2f)-(%.2f, %.2f, %.2f)",
-			arbb.min.x, arbb.min.y, arbb.min.z, arbb.max.x, arbb.max.y, arbb.max.z);
+	if ((ship->isPlayer)&&(debug & DEBUG_DOCKING))
+	{
+		BOOL			inLane;
+		float			range;
+		unsigned		laneFlags = 0;
+		
+		sDebugDrawBB1 = shipbb;
+		sDebugDrawBB2 = arbb;
+		sDebugDrawBBs = YES;
+		
+		if (arbb.max.x < ww)   laneFlags |= 1;
+		if (arbb.min.x > -ww)  laneFlags |= 2;
+		if (arbb.max.y < hh)   laneFlags |= 4;
+		if (arbb.min.y > -hh)  laneFlags |= 8;
+		inLane = laneFlags == 0xF;
+		range = 0.90 * arbb.max.z + 0.10 * arbb.min.z;
+		
+		OOLog(@"docking.debug", @"Normalised port dimensions are %g x %g x %g.  Player bounding box is at %@-%@ -- %s (%X), range: %g",
+			ww * 2.0, hh * 2.0, dd,
+			VectorDescription(arbb.min), VectorDescription(arbb.max),
+			inLane ? "in lane" : "out of lane", laneFlags,
+			range);
+	}
 
 	if (arbb.max.z < -dd)
 		return NO;
@@ -1801,8 +1823,6 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 
 #if DRAW_WIREFRAME_DOCKING_PORT
 
-static void GLDrawWireframeCuboid(Vector min, Vector max);
-
 @implementation StationEntity (OOWireframeDockingBox)
 
 
@@ -1814,54 +1834,36 @@ static void GLDrawWireframeCuboid(Vector min, Vector max);
 	[super drawEntity:immediate:translucent];
 	
 	// Draw wireframe of docking area
-	glPushAttrib(GL_ENABLE_BIT);
+	glPushAttrib(GL_ENABLE_BIT | GL_DEPTH_BUFFER_BIT);
 	glDisable(GL_TEXTURE_2D);
 	glDisable(GL_LIGHTING);
 	glDisable(GL_DEPTH_TEST);	// don't read the depth buffer
 	glDepthMask(GL_FALSE);		// don't write to depth buffer
 	
-	glColor4f(0.0f, 0.0f, 1.0f, 1.0f);
+	OODebugDrawBasisAtOrigin(50.0f);
 	
 	gl_matrix matrix;
 	quaternion_into_gl_matrix(port_orientation, matrix);
 	glPushMatrix();
 	glMultMatrixf(matrix);
 	
+	if (sDebugDrawBBs)
+	{
+		OODebugDrawBoundingBox(sDebugDrawBB2);
+		sDebugDrawBBs = NO;
+	}
+	
 	halfDimensions = vector_multiply_scalar(port_dimensions, 0.5f);
 	adjustedPosition = port_position;
 	adjustedPosition.z -= halfDimensions.z;
-	GLDrawWireframeCuboid(vector_subtract(adjustedPosition, halfDimensions), vector_add(adjustedPosition, halfDimensions));
 	
-	glDepthMask(GL_TRUE);
+	OODebugDrawBoundingBoxBetween(vector_subtract(adjustedPosition, halfDimensions), vector_add(adjustedPosition, halfDimensions));
+	OODebugDrawBasisAtOrigin(50.0f);
+	
 	glPopAttrib();
 	glPopMatrix();
 }
 
 @end
-
-
-static void GLDrawWireframeCuboid(Vector min, Vector max)
-{
-	glBegin(GL_LINE_LOOP);
-		glVertex3f(min.x, min.y, min.z);
-		glVertex3f(max.x, min.y, min.z);
-		glVertex3f(max.x, max.y, min.z);
-		glVertex3f(min.x, max.y, min.z);
-		glVertex3f(min.x, max.y, max.z);
-		glVertex3f(max.x, max.y, max.z);
-		glVertex3f(max.x, min.y, max.z);
-		glVertex3f(min.x, min.y, max.z);
-	glEnd();
-	glBegin(GL_LINES);
-		glVertex3f(max.x, min.y, min.z);
-		glVertex3f(max.x, min.y, max.z);
-		glVertex3f(max.x, max.y, min.z);
-		glVertex3f(max.x, max.y, max.z);
-		glVertex3f(min.x, min.y, min.z);
-		glVertex3f(min.x, max.y, min.z);
-		glVertex3f(min.x, min.y, max.z);
-		glVertex3f(min.x, max.y, max.z);
-	glEnd();
-}
 
 #endif

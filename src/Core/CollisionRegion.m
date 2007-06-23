@@ -364,10 +364,8 @@ NSArray* subregionsContainingPosition( Vector position, CollisionRegion* region)
 
 			if (debug & DEBUG_COLLISIONS)
 			{
-				debug = NO;
 				NSLog(@"DEBUG Testing collision between %@ (%@) and %@ (%@)",
 					e1, (e1->collisionTestFilter)?@"YES":@"NO", e2, (e2->collisionTestFilter)?@"YES":@"NO");
-				debug = YES;
 			}
 			
 			checks_this_tick++;

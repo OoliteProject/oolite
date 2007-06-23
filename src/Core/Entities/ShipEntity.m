@@ -53,6 +53,8 @@ MA 02110-1301, USA.
 #import "WormholeEntity.h"
 #import "GuiDisplayGen.h"
 
+#import "OODebugGLDrawing.h"
+
 #define kOOLogUnconvertedNSLog @"unclassified.ShipEntity"
 
 
@@ -2315,7 +2317,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	resetFrame.k = vk;
 	Vector vel = make_vector(vk.x * flightSpeed, vk.y * flightSpeed, vk.z * flightSpeed);
 	
-	if ((isPlayer)&&(debug))
+	if ((isPlayer)&&(debug & DEBUG_MISC))
 		NSLog(@"DEBUG resetting tracking for %@", self);
 	
 	[self resetFramesFromFrame:resetFrame withVelocity:vel];
@@ -2330,7 +2332,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 			if ((se->isParticle)&&([(ParticleEntity*)se particleType] == PARTICLE_EXHAUST))
 			{
 			
-				if ((isPlayer)&&(debug))
+				if ((isPlayer)&&(debug & DEBUG_MISC))
 					NSLog(@"DEBUG resetting tracking for subentity %@ of %@", se, self);
 			
 				resetFrame.position = make_vector(
@@ -2374,6 +2376,11 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 			[subEntity setOwner:self]; // refresh ownership
 			[subEntity drawSubEntity:immediate :translucent];
 		}
+	}
+	
+	if (debug & DEBUG_BOUNDING_BOXES)
+	{
+		OODebugDrawBoundingBox([self boundingBox]);
 	}
 }
 
