@@ -99,10 +99,9 @@ static void DrawWormholeCorona(GLfloat inner_radius, GLfloat outer_radius, int s
 		
 		[[ship getAI] message:@"ENTERED_WITCHSPACE"];
 	
-		[UNIVERSE removeWithoutRecyclingEntity: ship];
+		[UNIVERSE removeEntity:ship];
 		[[ship getAI] clearStack];	// get rid of any preserved states
 		
-		//
 		return YES;
 	}
 	// fall through

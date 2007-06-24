@@ -32,7 +32,6 @@ MA 02110-1301, USA.
 
 @class OOSound, OOMusic;
 
-extern int debug;
 
 BOOL always_include_addons;
 

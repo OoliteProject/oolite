@@ -32,8 +32,6 @@ MA 02110-1301, USA.
 #define OOLITE_EXCEPTION_FATAL					@"OoliteFatalException"
 
 
-extern int debug;
-
 @class OOColor;
 
 @interface TextureStore : NSObject

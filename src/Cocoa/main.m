@@ -3,7 +3,10 @@
 #import "OOLogging.h"
 
 
-int debug = 0;
+#ifndef NDEBUG
+uint32_t gDebugFlags = 0;
+#endif
+
 
 int main(int argc, const char *argv[])
 {

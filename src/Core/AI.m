@@ -162,9 +162,6 @@ static NSString * const kOOLogAIPop						= @"ai.pop";
 		return;
 	NSMutableDictionary *pickledMachine = [ai_stack objectAtIndex:0];
 	
-	//debug
-	//NSLog(@"restoring pickled ai :\n%@",[pickledMachine description]);
-	
 	[aiLock lock];
 	if (stateMachine)   [stateMachine release];
 	stateMachine = [[NSDictionary dictionaryWithDictionary:(NSDictionary *)[pickledMachine objectForKey:@"stateMachine"]] retain];
@@ -174,7 +171,6 @@ static NSString * const kOOLogAIPop						= @"ai.pop";
 	stateMachineName = [[NSString stringWithString:(NSString *)[pickledMachine objectForKey:@"stateMachineName"]] retain];
 	if (pendingMessages)   [pendingMessages release];
 	pendingMessages = [[NSMutableDictionary dictionaryWithDictionary:(NSDictionary *)[pickledMachine objectForKey:@"pendingMessages"]] retain];  // restore a MUTABLE array
-	//NSLog(@"debug restorePreviousStateMachine");
 	[aiLock unlock];
 	
 	[ai_stack removeObjectAtIndex:0];   //  POP

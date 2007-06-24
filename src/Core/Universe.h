@@ -110,7 +110,6 @@ MA 02110-1301, USA.
 @class TextureStore, GameController, CollisionRegion, MyOpenGLView, GuiDisplayGen;
 @class Entity, ShipEntity, StationEntity, PlanetEntity, PlayerEntity;
 
-extern int debug;
 
 @interface Universe: NSObject <OOWeakReferenceSupport>
 {
@@ -246,7 +245,9 @@ extern int debug;
 - (void) reinit;
 
 - (int) obj_count;
+#ifndef NDEBUG
 - (void) obj_dump;
+#endif
 
 - (void) sleepytime: (id) thing;
 
@@ -331,7 +332,6 @@ extern int debug;
 
 - (BOOL) addEntity:(Entity *) entity;
 - (BOOL) removeEntity:(Entity *) entity;
-- (BOOL) removeWithoutRecyclingEntity:(Entity *) entity;
 - (void) removeAllEntitiesExceptPlayer:(BOOL) restore;
 - (void) removeDemoShips;
 

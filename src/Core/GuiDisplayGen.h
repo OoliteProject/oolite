@@ -46,7 +46,6 @@ MA 02110-1301, USA.
 
 @class OOSound, OOColor, OOTexture, OpenGLSprite, HeadUpDisplay;
 
-extern int debug;
 
 @interface GuiDisplayGen: NSObject
 {

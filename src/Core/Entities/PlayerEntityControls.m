@@ -967,52 +967,40 @@ static NSTimeInterval	time_last_frame;
 			[self pollGuiArrowKeyControls:time_delta];
 		}
 
+#ifndef NDEBUG
 		// look for debugging keys
 		if ([gameView isDown:48])// look for the '0' key
 		{
 			if (!cloak_pressed)
 			{
 				[UNIVERSE obj_dump];	// dump objects
-				debug = 0;
+				gDebugFlags = 0;
 				[UNIVERSE addMessage:@"Entity List dumped. Debugging OFF" forCount:3];
 			}
 			cloak_pressed = YES;
 		}
 		else
 			cloak_pressed = NO;
-
-		// look for debugging keys
-		#if 0
-		if ([gameView isDown:'f'])// look for the 'f' key
-		{
-			[UNIVERSE addMessage:@"Flight Training Test Engaged" forCount:3];
-			OOLog(kOOLogFlightTrainingBeacons, @"Flight Training (tr) beacons:\n%@", [UNIVERSE listBeaconsWithCode:@"tr"]);
-			[self awardEquipment:@"EQ_DOCK_COMP"];
-			[self targetFirstBeaconWithCode:@"tr"];
-			[self setRacepointsFromTarget];
-			[self performFlyRacepoints];
-			[self setAITo:@"fttAI.plist"];
-			[self setReportAImessages: YES];
-		}
-		#endif
 		
+		// look for debugging keys
 		if ([gameView isDown:'d'])// look for the 'd' key
 		{
-			debug = DEBUG_ALL;
+			gDebugFlags = DEBUG_ALL;
 			[UNIVERSE addMessage:@"Full debug ON" forCount:3];
 		}
 		
 		if ([gameView isDown:'b'])// look for the 'b' key
 		{
-			debug = DEBUG_COLLISIONS;
+			gDebugFlags = DEBUG_COLLISIONS;
 			[UNIVERSE addMessage:@"Collision debug ON" forCount:3];
 		}
 		
 		if ([gameView isDown:'c'])// look for the 'c' key
 		{
-			debug |= DEBUG_OCTREE;
+			gDebugFlags |= DEBUG_OCTREE;
 			[UNIVERSE addMessage:@"Octree debug ON" forCount:3];
 		}
+#endif
 		
 		if ([gameView isDown:'t'])// look for the 't' key
 		{
@@ -1026,9 +1014,11 @@ static NSTimeInterval	time_last_frame;
 			[UNIVERSE addMessage:@"Shader debug ON" forCount:3];
 		}
 		
-		if ([gameView isDown:'n'])// look for the 's' key
+		if ([gameView isDown:'n'])// look for the 'n' key
 		{
-			debug = 0;
+#ifndef NDEBUG
+			gDebugFlags = 0;
+#endif
 			OOLogSetDisplayMessagesInClass(@"$shaderDebugOn", NO);
 			[UNIVERSE setDoProcedurallyTexturedPlanets: NO];
 			[UNIVERSE addMessage:@"All debug flags OFF" forCount:3];
@@ -1120,6 +1110,7 @@ static  BOOL	taking_snapshot;
 		}
 	}
 
+#ifndef NDEBUG
 	//
 	// dread debugging keypress of fear
 	//
@@ -1127,6 +1118,7 @@ static  BOOL	taking_snapshot;
 	{
 		OOLog(@"debug.atKey", @"%@ status==%@ guiscreen==%@", self, [self status_string], [self gui_screen_string]);
 	}
+#endif
 
 	//
 	//  snapshot

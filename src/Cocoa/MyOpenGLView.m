@@ -312,7 +312,7 @@ static NSString * kOOLogKeyDown				= @"input.keyMapping.keyPress.keyDown";
 		
 	NSString	*pathToPng = [[pathToPic stringByDeletingPathExtension] stringByAppendingPathExtension:@"png"];
 	
-	NSLog(@"snapshot", @">>>>> Snapshot %d x %d file path chosen = %@", w, h, pathToPic);
+	OOLog(@"snapshot", @">>>>> Snapshot %d x %d file path chosen = %@", w, h, pathToPic);
 	
     NSBitmapImageRep* bitmapRep = 
         [[NSBitmapImageRep alloc]

@@ -449,11 +449,6 @@ static NSString * const kOOLogEntityBehaviourChanged	= @"entity.behaviour.change
 
 	[octree autorelease];
 	
-#ifndef NO_SHADERS
-#if OLD_SHADERS
-	[shader_info release];
-#endif
-#endif
 	[materials release];
 
 	[super dealloc];
@@ -462,7 +457,8 @@ static NSString * const kOOLogEntityBehaviourChanged	= @"entity.behaviour.change
 
 - (NSString*) description
 {
-	if (debug & DEBUG_ENTITIES)
+#ifndef NDEBUG
+	if (gDebugFlags & DEBUG_ENTITIES)
 	{
 		NSMutableString* result = [NSMutableString stringWithFormat:@"\n<%@ %@ %d>", [self class], name, universalID];
 		[result appendFormat:@"\n isPlayer: %@", (isPlayer)? @"YES":@"NO"];
@@ -475,8 +471,9 @@ static NSString * const kOOLogEntityBehaviourChanged	= @"entity.behaviour.change
 		[result appendFormat:@"\n collisionRegion: %@", collisionRegion];
 		return result;
 	}
-	else
-		return [NSString stringWithFormat:@"<%@ %@ %d>", [self class], name, universalID];
+#endif
+	
+	return [NSString stringWithFormat:@"<%@ %@ %d>", [self class], name, universalID];
 }
 
 
@@ -732,8 +729,6 @@ static NSString * const kOOLogEntityBehaviourChanged	= @"entity.behaviour.change
 		[escorter setRoles:escortRole];
 
 		[escorter setScanClass:scanClass];		// you are the same as I
-
-		//[escorter setReportAImessages: (i == 0) ? YES:NO ]; // debug
 
 		[UNIVERSE addEntity:escorter];
 		[[escorter getAI] setStateMachine:@"escortAI.plist"];	// must happen after adding to the UNIVERSE!
@@ -2326,8 +2321,12 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	resetFrame.k = vk;
 	Vector vel = make_vector(vk.x * flightSpeed, vk.y * flightSpeed, vk.z * flightSpeed);
 	
-	if ((isPlayer)&&(debug & DEBUG_MISC))
+#ifndef NDEBUG
+	if ((isPlayer)&&(gDebugFlags & DEBUG_MISC))
+	{
 		NSLog(@"DEBUG resetting tracking for %@", self);
+	}
+#endif
 	
 	[self resetFramesFromFrame:resetFrame withVelocity:vel];
 	if (sub_entities)
@@ -2340,10 +2339,11 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 			Vector	sepos = se->position;
 			if ((se->isParticle)&&([(ParticleEntity*)se particleType] == PARTICLE_EXHAUST))
 			{
-			
-				if ((isPlayer)&&(debug & DEBUG_MISC))
+#ifndef NDEBUG
+				if ((isPlayer)&&(gDebugFlags & DEBUG_MISC))
 					NSLog(@"DEBUG resetting tracking for subentity %@ of %@", se, self);
-			
+#endif
+				
 				resetFrame.position = make_vector(
 					position.x + vi.x * sepos.x + vj.x * sepos.y + vk.x * sepos.z,
 					position.y + vi.y * sepos.x + vj.y * sepos.y + vk.y * sepos.z,
@@ -2388,7 +2388,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	}
 	
 #ifndef NDEBUG
-	if (debug & DEBUG_BOUNDING_BOXES)
+	if (gDebugFlags & DEBUG_BOUNDING_BOXES)
 	{
 		OODebugDrawBoundingBox([self boundingBox]);
 		if (!isSubentity)  OODebugDrawColoredBoundingBox(totalBoundingBox, [OOColor purpleColor]);

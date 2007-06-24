@@ -31,8 +31,6 @@ MA 02110-1301, USA.
 #import "StationEntity.h"
 #import "PlayerEntity.h"
 
-#define kOOLogUnconvertedNSLog @"unclassified.CollisionRegion"
-
 
 @implementation CollisionRegion
 
@@ -319,14 +317,14 @@ NSArray* subregionsContainingPosition( Vector position, CollisionRegion* region)
 			entities_to_test[n_entities_to_test++] = e1;
 	}
 	
-	if (debug & DEBUG_COLLISIONS)
-		NSLog(@"\nDEBUG in collision region %@ testing %d out of %d entities", self, n_entities_to_test, n_entities);
-	
+#ifndef NDEBUG
+	if (gDebugFlags & DEBUG_COLLISIONS)
+		OOLog(@"collisionRegion.debug", @"DEBUG in collision region %@ testing %d out of %d entities", self, n_entities_to_test, n_entities);
+#endif
 	
 	if (n_entities_to_test < 2)
 		return;
 
-	
 	//	clear collision variables
 	//
 	for (i = 0; i < n_entities_to_test; i++)
@@ -361,12 +359,13 @@ NSArray* subregionsContainingPosition( Vector position, CollisionRegion* region)
 		e2 = e1->collision_chain;
 		while (e2 != nil)
 		{
-
-			if (debug & DEBUG_COLLISIONS)
+#ifndef NDEBUG
+			if (gDebugFlags & DEBUG_COLLISIONS)
 			{
-				NSLog(@"DEBUG Testing collision between %@ (%@) and %@ (%@)",
+				OOLog(@"collisionRegion.debug", @"DEBUG Testing collision between %@ (%@) and %@ (%@)",
 					e1, (e1->collisionTestFilter)?@"YES":@"NO", e2, (e2->collisionTestFilter)?@"YES":@"NO");
 			}
+#endif
 			
 			checks_this_tick++;
 			

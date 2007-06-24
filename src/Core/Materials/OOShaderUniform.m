@@ -488,7 +488,7 @@ OOINLINE BOOL ValidBindingType(OOShaderUniformType type)
 	GLfloat						expVVal[4];
 	gl_matrix					mVal;
 	Quaternion					qVal;
-	NSPoint						pVal;
+	NSPoint						pVal = {0};
 	BOOL						isInt = NO, isFloat = NO, isVector = NO, isMatrix = NO, isPoint = NO;
 	id							objVal = nil;
 	

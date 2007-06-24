@@ -82,8 +82,6 @@ static GameController *sSharedController = nil;
 	pauseTarget = nil;
 	game_is_paused = NO;
 	
-	debug = 0;
-	
     return self;
 }
 

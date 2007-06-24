@@ -30,9 +30,7 @@ MA 02110-1301, USA.
 
 #define	OCTREE_MAX_DEPTH	5
 #define	OCTREE_MIN_RADIUS	1.0
-// 5 or 6 will be the final working resolution
 
-extern int debug;
 
 struct octree_struct
 {

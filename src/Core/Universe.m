@@ -486,10 +486,11 @@ static BOOL MaintainLinkedLists(Universe* uni);
 }
 
 
+#ifndef NDEBUG
 - (void) obj_dump
 {
 	int				i;
-	int				show_count = (debug)? 10 : n_entities;
+	int				show_count = n_entities;
 	
 	if (!OOLogWillDisplayMessagesInClass(@"universe.objectDump"))  return;
 	
@@ -508,6 +509,7 @@ static BOOL MaintainLinkedLists(Universe* uni);
 		OOLog(@"universe.objectDump", @"entities = %@", [entities description]);
 	}
 }
+#endif
 
 
 - (void) sleepytime: (id) thing
@@ -2681,7 +2683,7 @@ GLfloat docked_light_specular[]	= { (GLfloat) 1.0, (GLfloat) 1.0, (GLfloat) 0.5,
 	}
 	else
 	{
-		NSLog(@"DEBUG ERROR! Universe setNextBeacon:%@ where the ship has no beaconChar set", beaconShip);
+		OOLog(@"universe.beacon.error", @"INTERNAL ERROR! Universe setNextBeacon:%@ where the ship has no beaconChar set", beaconShip);
 	}
 }
 
@@ -2808,10 +2810,12 @@ GLfloat docked_light_specular[]	= { (GLfloat) 1.0, (GLfloat) 1.0, (GLfloat) 0.5,
 			special containers by looking up a ship using the commodity name
 			as a ship role.
 		*/
-		if (debug & DEBUG_MISC)
+#ifndef NDEBUG
+		if (gDebugFlags & DEBUG_MISC)
 		{
-			NSLog(@"DEBUG [Universe newShipWithRole: %@] couldn't find a ship!", search);
+			OOLog(@"universe.newShip.unknownRole", @"DEBUG [Universe newShipWithRole: %@] couldn't find a ship!", search);
 		}
+#endif
 	}
 	
 	[mypool release];	// tidy everything up
@@ -3123,7 +3127,7 @@ GLfloat docked_light_specular[]	= { (GLfloat) 1.0, (GLfloat) 1.0, (GLfloat) 0.5,
 		}
 		else
 		{
-			NSLog(@"***** ERROR failed to find a container to fill with %@ *****", commodity_name);
+			OOLog(@"universe.createContainer.failed", @"***** ERROR failed to find a container to fill with %@ *****", commodity_name);
 		}
 		how_much -= amount;
 	}
@@ -3329,14 +3333,10 @@ GLfloat* custom_matrix;
 			}
 			else
 			{
-				NSLog(@"***** Universe trying to draw from the view of an entity NOT the player");
+				OOLog(kOOLogInconsistentState, @"***** Universe trying to draw from the view of an entity NOT the player");
 				// throw an exception here...
-				NSException* myException = [NSException
-					exceptionWithName: @"OoliteException"
-					reason: @"Universe cannot draw from a non-player entity."
-					userInfo: nil];
-				[myException raise];
-				return; // don't draw if there's not a viewing entity!
+				[NSException raise:@"OoliteException"
+							format:@"Universe cannot draw from a non-player entity."];
 			}
 						
 			position = [viewthing viewpointPosition];
@@ -3928,8 +3928,10 @@ static BOOL MaintainLinkedLists(Universe* uni)
 {
 	if (entity)
 	{
-		if (debug & DEBUG_ENTITIES)
-			NSLog(@"DEBUG ++(%@)", entity);
+#ifndef NDEBUG
+		if (gDebugFlags & DEBUG_ENTITIES)
+			OOLog(@"universe.addEntity", @"Adding entity: %@", entity);
+#endif
 		
 		int index = n_entities;
 		
@@ -3940,14 +3942,12 @@ static BOOL MaintainLinkedLists(Universe* uni)
 		if (n_entities >= UNIVERSE_MAX_ENTITIES - 1)
 		{
 			// throw an exception here...
-			NSLog(@"***** Universe cannot addEntity:%@ Universe is full (%d entities out of %d)", entity, n_entities, UNIVERSE_MAX_ENTITIES);
+			OOLog(@"universe.addEntity.failed", @"***** Universe cannot addEntity:%@ -- Universe is full (%d entities out of %d)", entity, n_entities, UNIVERSE_MAX_ENTITIES);
+#ifndef NDEBUG
 			[self obj_dump];
-			NSException* myException = [NSException
-				exceptionWithName:@"OoliteException"
-				reason:[NSString stringWithFormat:@"Maximum number of entities (%d) in Universe reached. Cannot add %@", UNIVERSE_MAX_ENTITIES, entity]
-				userInfo:nil];
-			[myException raise];
-			return NO;
+#endif
+			[NSException raise:@"OoliteException"
+						format:@"Maximum number of entities (%d) in Universe reached. Cannot add %@", UNIVERSE_MAX_ENTITIES, entity];
 		}
 		
 		if (!(entity->isParticle))
@@ -4045,7 +4045,7 @@ static BOOL MaintainLinkedLists(Universe* uni)
 		// remove reference to entity in linked lists
 		if ([entity canCollide])	// filter only collidables disappearing
 			doLinkedListMaintenanceThisUpdate = YES;
-//			MaintainLinkedLists(self);
+		
 		[entity removeFromLinkedLists];
 		
 		// moved forward ^^
@@ -4063,14 +4063,14 @@ static BOOL MaintainLinkedLists(Universe* uni)
 		{
 			if (sortedEntities[index] != entity)
 			{
-				NSLog(@"DEBUG Universe removeEntity:%@ ENTITY IS NOT IN THE RIGHT PLACE IN THE ZERO_DISTANCE SORTED LIST -- FIXING...", entity);
+				OOLog(kOOLogInconsistentState, @"DEBUG Universe removeEntity:%@ ENTITY IS NOT IN THE RIGHT PLACE IN THE ZERO_DISTANCE SORTED LIST -- FIXING...", entity);
 				int i;
 				index = -1;
 				for (i = 0; (i < n_entities)&&(index == -1); i++)
 					if (sortedEntities[i] == entity)
 						index = i;
 				if (index == -1)
-					 NSLog(@"DEBUG Universe removeEntity:%@ ENTITY IS NOT IN THE ZERO_DISTANCE SORTED LIST -- CONTINUING...", entity);
+					 OOLog(kOOLogInconsistentState, @"DEBUG Universe removeEntity:%@ ENTITY IS NOT IN THE ZERO_DISTANCE SORTED LIST -- CONTINUING...", entity);
 			}
  			if (index != -1)
 			{
@@ -4084,7 +4084,7 @@ static BOOL MaintainLinkedLists(Universe* uni)
 					index++;
 				}
 				if (n > 1)
-					 NSLog(@"DEBUG Universe removeEntity: REMOVED %d EXTRA COPIES OF %@ FROM THE ZERO_DISTANCE SORTED LIST", n - 1, entity);
+					 OOLog(kOOLogInconsistentState, @"DEBUG Universe removeEntity: REMOVED %d EXTRA COPIES OF %@ FROM THE ZERO_DISTANCE SORTED LIST", n - 1, entity);
 				while (n--)
 				{
 					n_entities--;
@@ -4124,97 +4124,6 @@ static BOOL MaintainLinkedLists(Universe* uni)
 				[se setBeaconChar:0];
 			}
 			
-			
-			if (entity->isWormhole)
-				[activeWormholes removeObject:entity];
-			
-			[entities removeObject:entity];
-			
-			return YES;
-		}
-	}
-	return NO;
-}
-
-
-- (BOOL) removeWithoutRecyclingEntity:(Entity *) entity
-{
-	if (entity)
-	{
-		if ([entity canCollide])	// filter only collidables disappearing
-			MaintainLinkedLists(self);
-		[entity removeFromLinkedLists];	// AHA!
-		
-		int old_id = [entity universalID];
-		entity_for_uid[old_id] = nil;
-		[entity setUniversalID:NO_TARGET];
-		[entity wasRemovedFromUniverse];
-		
-		// maintain sorted list
-		int index = entity->zero_index;
-		int n = 1;
-		if (index >= 0)
-		{
-			if (sortedEntities[index] != entity)
-			{
-				NSLog(@"DEBUG Universe removeWithoutRecyclingEntity:%@ ENTITY IS NOT IN THE RIGHT PLACE IN THE SORTED LIST -- FIXING...", entity);
-				int i;
-				index = -1;
-				for (i = 0; (i < n_entities)&&(index == -1); i++)
-					if (sortedEntities[i] == entity)
-						index = i;
-				if (index == -1)
-					 NSLog(@"DEBUG Universe removeWithoutRecyclingEntity:%@ ENTITY IS NOT IN THE SORTED LIST -- CONTINUING...", entity);
-			}
- 			if (index != -1)
-			{
-				while (index < n_entities)
-				{
-					while ((index + n < n_entities)&&(sortedEntities[index + n] == entity))
-						n++;	// ie there's a duplicate entry for this entity
-					sortedEntities[index] = sortedEntities[index + n];	// copy entity[index + n] -> entity[index] (preserves sort order)
-					if (sortedEntities[index])
-						sortedEntities[index]->zero_index = index;				// give it its correct position
-					index++;
-				}
-				if (n > 1)
-					 NSLog(@"DEBUG Universe removeWithoutRecyclingEntity: REMOVED %d EXTRA COPIES OF %@ FROM THE SORTED LIST", n - 1, entity);
-				while (n--)
-				{
-					n_entities--;
-					sortedEntities[n_entities] = nil;
-				}
-			}
-			entity->zero_index = -1;	// it's GONE!
-		}
-		// remove from the definitive list
-		if ([entities containsObject:entity])
-		{
-			if (entity->isRing)
-				breakPatternCounter--;
-			if (entity->isShip)
-			{
-				int bid = firstBeacon;
-				ShipEntity* se = (ShipEntity*)entity;
-				if ([se isBeacon])
-				{
-					if (bid == old_id)
-						firstBeacon = [se nextBeaconID];
-					else
-					{
-						ShipEntity* beacon = (ShipEntity*)[self entityForUniversalID:bid];
-						while ((beacon != nil)&&([beacon nextBeaconID] != old_id))
-							beacon = (ShipEntity*)[self entityForUniversalID:[beacon nextBeaconID]];
-						
-						[beacon setNextBeacon:(ShipEntity*)[self entityForUniversalID:[se nextBeaconID]]];
-						
-						while ([beacon nextBeaconID] != NO_TARGET)
-							beacon = (ShipEntity*)[self entityForUniversalID:[beacon nextBeaconID]];
-						lastBeacon = [beacon universalID];
-					}
-				}
-				[se setBeaconChar:0];
-			}
 			
 			if (entity->isWormhole)
 				[activeWormholes removeObject:entity];
@@ -4233,12 +4142,14 @@ static BOOL MaintainLinkedLists(Universe* uni)
 	BOOL updating = no_update;
 	no_update = YES;			// no drawing while we do this!
 	
-	Entity* p0 = (Entity*)[entities objectAtIndex:0];
+#ifndef NDEBUG
+	Entity* p0 = [entities objectAtIndex:0];
 	if (!(p0->isPlayer))
 	{
-		NSLog(@"***** First entity is not the player in Universe.removeAllEntitiesExceptPlayer - exiting.");
+		OOLog(kOOLogInconsistentState, @"***** First entity is not the player in Universe.removeAllEntitiesExceptPlayer - exiting.");
 		exit(1);
 	}
+#endif
 	
 	// preserve wormholes
 	NSArray* savedWormholes = [NSArray arrayWithArray:activeWormholes];
@@ -4409,14 +4320,14 @@ static BOOL MaintainLinkedLists(Universe* uni)
 
 - (Vector) getSafeVectorFromEntity:(Entity *) e1 toDistance:(double)dist fromPoint:(Vector) p2
 {
-	
 	// heuristic three
 	
 	if (!e1)
 	{
-		NSLog(@"ERROR ***** No entity set in Universe getSafeVectorFromEntity:toDistance:fromPoint:");
+		OOLog(kOOLogParameterError, @"***** No entity set in Universe getSafeVectorFromEntity:toDistance:fromPoint:");
 		return kZeroVector;
 	}
+	
 	Vector  f1;
 	Vector  result = p2;
 	int i;
@@ -4964,10 +4875,9 @@ static BOOL MaintainLinkedLists(Universe* uni)
 {
 	if ([customsounds objectForKey:key])
 	{
-		OOSound* sound = [ResourceManager ooSoundNamed:(NSString*)[customsounds objectForKey:key] inFolder:@"Sounds"];
+		OOSound* sound = [ResourceManager ooSoundNamed:[customsounds stringForKey:key] inFolder:@"Sounds"];
 		if (sound)
 		{
-			NSLog(@"DEBUG TRYING to stop custom sound %@ : %@", key, sound);
 			return [sound stop];
 		}
 	}
@@ -4979,7 +4889,7 @@ static BOOL MaintainLinkedLists(Universe* uni)
 {
 	if ([customsounds objectForKey:key])
 	{
-		OOSound* sound = [ResourceManager ooSoundNamed:(NSString*)[customsounds objectForKey:key] inFolder:@"Sounds"];
+		OOSound* sound = [ResourceManager ooSoundNamed:[customsounds stringForKey:key] inFolder:@"Sounds"];
 		if (sound)
 			return [sound isPlaying];
 	}
@@ -5075,8 +4985,6 @@ static BOOL MaintainLinkedLists(Universe* uni)
 				spoken_text = [[spoken_text componentsSeparatedByString: systemName] componentsJoinedByString: systemSaid];
 				spoken_text = [[spoken_text componentsSeparatedByString: h_systemName] componentsJoinedByString: h_systemSaid];
 			}
-			else
-				NSLog(@"***** ERROR No speechArray");
 
 			if ([self isSpeaking])
 				[self stopSpeaking];
@@ -5240,9 +5148,6 @@ static BOOL MaintainLinkedLists(Universe* uni)
 					sortedEntities[index]->zero_index = index;
 					index--;
 				}
-				
-//				// now the linked lists
-//				[thing updateLinkedLists];
 				
 				// done maintaining sorted lists
 				
@@ -7392,14 +7297,14 @@ NSComparisonResult comparePrice(NSDictionary *dict1, NSDictionary *dict2, void *
 {
 	if (!ship)
 	{
-		NSLog(@"ERROR ***** No ship set in Universe getSunSkimStartPositionForShip:");
+		OOLog(kOOLogParameterError, @"***** No ship set in Universe getSunSkimStartPositionForShip:");
 		return kZeroVector;
 	}
 	PlanetEntity* the_sun = [self sun];
 	// get vector from sun position to ship
 	if (!the_sun)
 	{
-		NSLog(@"ERROR ***** No sun set in Universe getSunSkimStartPositionForShip:");
+		OOLog(kOOLogInconsistentState, @"***** No sun set in Universe getSunSkimStartPositionForShip:");
 		return kZeroVector;
 	}
 	Vector v0 = the_sun->position;
@@ -7422,13 +7327,13 @@ NSComparisonResult comparePrice(NSDictionary *dict1, NSDictionary *dict2, void *
 	PlanetEntity* the_sun = [self sun];
 	if (!ship)
 	{
-		NSLog(@"ERROR ***** No ship set in Universe getSunSkimEndPositionForShip:");
+		OOLog(kOOLogParameterError, @"***** No ship set in Universe getSunSkimEndPositionForShip:");
 		return kZeroVector;
 	}
 	// get vector from sun position to ship
 	if (!the_sun)
 	{
-		NSLog(@"ERROR ***** No sun set in Universe getSunSkimEndPositionForShip:");
+		OOLog(kOOLogInconsistentState, @"***** No sun set in Universe getSunSkimEndPositionForShip:");
 		return kZeroVector;
 	}
 	Vector v0 = the_sun->position;

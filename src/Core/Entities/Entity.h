@@ -34,6 +34,8 @@ MA 02110-1301, USA.
 @class Universe, Geometry, CollisionRegion;
 
 
+#ifndef NDEBUG
+
 #define DEBUG_ALL					0xffffffff
 #define DEBUG_LINKED_LISTS			0x00000001
 #define DEBUG_ENTITIES				0x00000002
@@ -42,7 +44,11 @@ MA 02110-1301, USA.
 #define DEBUG_OCTREE				0x00000010
 #define DEBUG_OCTREE_TEXT			0x00000020
 #define DEBUG_BOUNDING_BOXES		0x00000040
-#define	DEBUG_MISC					0x10000000
+#define DEBUG_MISC					0x10000000
+
+extern uint32_t gDebugFlags;
+
+#endif
 
 #define NO_DRAW_DISTANCE_FACTOR		512.0
 #define ABSOLUTE_NO_DRAW_DISTANCE2	(2500.0 * 2500.0 * NO_DRAW_DISTANCE_FACTOR * NO_DRAW_DISTANCE_FACTOR)
@@ -62,9 +68,6 @@ typedef struct
 	Quaternion				orientation;		// rotation
 	Vector					k;				// direction vectors
 } Frame;
-
-
-extern int debug;
 
 
 @interface Entity: NSObject <OOWeakReferenceSupport>
@@ -155,13 +158,9 @@ extern int debug;
 	OOTimeAbsolute			spawnTime;
 }
 
-- (id) init;
-- (void) dealloc;
-
 - (void) addToLinkedLists;
 - (void) removeFromLinkedLists;
 
-- (BOOL) checkLinkedLists;
 - (void) updateLinkedLists;
 
 - (void) wasAddedToUniverse;

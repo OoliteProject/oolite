@@ -56,7 +56,6 @@ MA 02110-1301, USA.
 
 @class MyOpenGLView, TextureStore;
 
-extern int debug;
 
 @interface GameController : NSObject
 {

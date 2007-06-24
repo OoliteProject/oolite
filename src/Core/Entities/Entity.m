@@ -47,6 +47,13 @@ static NSString * const kOOLogEntityRemoveFromListError		= @"entity.linkedList.r
 static NSString * const kOOLogEntityUpdateError				= @"entity.linkedList.update.error";
 
 
+@interface Entity (OOPrivate)
+
+- (BOOL) checkLinkedLists;
+
+@end
+
+
 @implementation Entity
 
 - (id) init
@@ -106,8 +113,10 @@ static NSString * const kOOLogEntityUpdateError				= @"entity.linkedList.update.
 
 - (void) addToLinkedLists
 {
-	if (debug & DEBUG_LINKED_LISTS)
+#ifndef NDEBUG
+	if (gDebugFlags & DEBUG_LINKED_LISTS)
 		OOLog(kOOLogEntityAddToList, @"DEBUG adding entity %@ to linked lists", self);
+#endif
 	//
 	// insert at the start
 	if (UNIVERSE)
@@ -147,7 +156,9 @@ static NSString * const kOOLogEntityUpdateError				= @"entity.linkedList.update.
 				
 	}
 	
-	if (debug & DEBUG_LINKED_LISTS)
+#ifndef NDEBUG
+	if (gDebugFlags & DEBUG_LINKED_LISTS)
+	{
 		if (![self checkLinkedLists])
 		{
 			OOLog(kOOLogEntityAddToListError, @"DEBUG LINKED LISTS - problem encountered while adding %@ to linked lists", self);
@@ -155,15 +166,18 @@ static NSString * const kOOLogEntityUpdateError				= @"entity.linkedList.update.
 		
 			exit(-1);
 		}
-
+	}
+#endif
 }
 
 
 - (void) removeFromLinkedLists
 {
-	if (debug & DEBUG_LINKED_LISTS)
+#ifndef NDEBUG
+	if (gDebugFlags & DEBUG_LINKED_LISTS)
 		OOLog(kOOLogEntityRemoveFromList, @"DEBUG removing entity %@ from linked lists", self);
-
+#endif
+	
 	if ((x_next == nil)&&(x_previous == nil))	// removed already!
 		return;
 
@@ -191,7 +205,9 @@ static NSString * const kOOLogEntityUpdateError				= @"entity.linkedList.update.
 	y_previous = nil;	y_next = nil;
 	z_previous = nil;	z_next = nil;
 
-	if (debug & DEBUG_LINKED_LISTS)
+#ifndef NDEBUG
+	if (gDebugFlags & DEBUG_LINKED_LISTS)
+	{
 		if (![self checkLinkedLists])
 		{
 			OOLog(kOOLogEntityRemoveFromListError, @"DEBUG LINKED LISTS - problem encountered while removing %@ from linked lists", self);
@@ -199,6 +215,8 @@ static NSString * const kOOLogEntityUpdateError				= @"entity.linkedList.update.
 		
 			exit(-1);
 		}
+	}
+#endif
 }
 
 
@@ -288,8 +306,10 @@ static NSString * const kOOLogEntityUpdateError				= @"entity.linkedList.update.
 		return;	// not in the UNIVERSE - don't do this!
 	if ((x_next == nil)&&(x_previous == nil))
 		return;	// not in the lists - don't do this!
-
-	if (debug & DEBUG_LINKED_LISTS)
+	
+#ifndef NDEBUG
+	if (gDebugFlags & DEBUG_LINKED_LISTS)
+	{
 		if (![self checkLinkedLists])
 		{
 			OOLog(kOOLogEntityVerificationError, @"DEBUG LINKED LISTS problem encountered before updating linked lists for %@", self);
@@ -297,7 +317,9 @@ static NSString * const kOOLogEntityUpdateError				= @"entity.linkedList.update.
 		
 			exit(-1);
 		}
-
+	}
+#endif
+	
 	// update position in linked list for position.x
 	// take self out of list..
 	if (x_previous)		x_previous->x_next = x_next;
@@ -368,7 +390,9 @@ static NSString * const kOOLogEntityUpdateError				= @"entity.linkedList.update.
 			UNIVERSE->z_list_start = self;
 	
 	// done
-	if (debug & DEBUG_LINKED_LISTS)
+#ifndef NDEBUG
+	if (gDebugFlags & DEBUG_LINKED_LISTS)
+	{
 		if (![self checkLinkedLists])
 		{
 			OOLog(kOOLogEntityUpdateError, @"DEBUG LINKED LISTS problem encountered after updating linked lists for %@", self);
@@ -376,6 +400,8 @@ static NSString * const kOOLogEntityUpdateError				= @"entity.linkedList.update.
 		
 			exit(-1);
 		}
+	}
+#endif
 }
 
 

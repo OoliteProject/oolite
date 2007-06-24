@@ -982,8 +982,10 @@ static GLfloat	texture_uv_array[10400 * 2];
 
 - (BOOL) checkCloseCollisionWith:(Entity *)other
 {
-	if (debug & DEBUG_COLLISIONS)
+#ifndef NDEBUG
+	if (gDebugFlags & DEBUG_COLLISIONS)
 		NSLog(@"PLANET Collision!");
+#endif
 	
 	if (!other)
 		return NO;

@@ -844,7 +844,7 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 	hh *= 0.5;
 	
 #ifndef NDEBUG
-	if ((ship->isPlayer)&&(debug & DEBUG_DOCKING))
+	if ((ship->isPlayer)&&(gDebugFlags & DEBUG_DOCKING))
 	{
 		BOOL			inLane;
 		float			range;
@@ -1773,14 +1773,15 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 
 - (NSString*) description
 {
-	if (debug & DEBUG_ENTITIES)
+#ifndef NDEBUG
+	if (gDebugFlags & DEBUG_ENTITIES)
 	{
 		NSString* result = [[NSString alloc] initWithFormat:@"<StationEntity %@ %d (%@)%@%@ // %@>",
 			name, universalID, roles, (UNIVERSE == nil)? @" (not in UNIVERSE)":@"", ([self isRotatingStation])? @" (rotating)":@"", collisionRegion];
 		return [result autorelease];
 	}
-	else
-		return [NSString stringWithFormat:@"<StationEntity %@ %d>", name, universalID];
+#endif
+	return [NSString stringWithFormat:@"<StationEntity %@ %d>", name, universalID];
 }
 
 
@@ -1825,7 +1826,7 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 	
 	[super drawEntity:immediate:translucent];
 	
-	if (debug & DEBUG_BOUNDING_BOXES)
+	if (gDebugFlags & DEBUG_BOUNDING_BOXES)
 	{
 		OODebugDrawBasisAtOrigin(50.0f);
 		

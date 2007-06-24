@@ -28,7 +28,6 @@ MA 02110-1301, USA.
 
 #define AI_THINK_INTERVAL					0.125
 
-extern int debug;
 
 @class OOInstinct, ShipEntity;
 

@@ -28,7 +28,14 @@ MA 02110-1301, USA.
 #import "OOOpenGL.h"
 #import "legacy_random.h"
 
-#define kOOLogUnconvertedNSLog @"unclassified.Octree"
+
+#ifndef NDEBUG
+#define OctreeDebugLogVerbose(format, ...) do { if (EXPECT_NOT(gDebugFlags & DEBUG_OCTREE_TEXT))  OOLog(@"octree.debug", format, ## __VA_ARGS__); } while (0)
+#define OctreeDebugLog(format, ...) do { if (EXPECT_NOT(gDebugFlags & DEBUG_OCTREE))  OOLog(@"octree.debug", format, ## __VA_ARGS__); } while (0)
+#else
+#define OctreeDebugLogVerbose(...) do {} while (0)
+#define OctreeDebugLog(...) do {} while (0)
+#endif
 
 
 @implementation Octree
@@ -109,7 +116,6 @@ MA 02110-1301, USA.
 		octree_collision[i] = (char)0;
 	}
 	
-//	NSLog(@"---> %d", copyRepresentationIntoOctree( octreeArray, octree, 0, 1));
 	copyRepresentationIntoOctree( octreeArray, octree, 0, 1);
 	
 	return self;
@@ -170,11 +176,11 @@ int copyRepresentationIntoOctree(NSObject* theRep, int* theBuffer, int atLocatio
 			NSObject* rep = [theArray objectAtIndex:i];
 			theNextSpace = copyRepresentationIntoOctree( rep, theBuffer, nextFreeLocation + i, theNextSpace);
 		}
-//		theBuffer[atLocation] = nextFreeLocation;				// previous absolute reference
 		theBuffer[atLocation] = nextFreeLocation - atLocation;	// now a relative reference
 		return theNextSpace;
 	}
-	NSLog(@"**** some error creating octree *****");
+	
+	OOLog(@"octree.unarchive.failed", @"**** some error creating octree *****");
 	return nextFreeLocation;
 }
 
@@ -348,23 +354,18 @@ BOOL	isHitByLine(int* octbuffer, unsigned char* collbuffer, int level, GLfloat r
 	Vector u0 = make_vector( v0.x + off.x, v0.y + off.y, v0.z + off.z);
 	Vector u1 = make_vector( v1.x + off.x, v1.y + off.y, v1.z + off.z);
 	
-	if (debug & DEBUG_OCTREE_TEXT)
-	{
-		NSLog(@"DEBUG octant: [%d] radius: %.2f vs. line: ( %.2f, %.2f, %.2f) - ( %.2f, %.2f, %.2f)", 
+	OctreeDebugLogVerbose(@"DEBUG octant: [%d] radius: %.2f vs. line: ( %.2f, %.2f, %.2f) - ( %.2f, %.2f, %.2f)", 
 		level, rad, u0.x, u0.y, u0.z, u1.x, u1.y, u1.z);
-	}
 
 	if (octbuffer[level] == 0)
 	{
-		if (debug & DEBUG_OCTREE_TEXT)
-			NSLog(@"DEBUG Hit an empty octant: [%d]", level);
+		OctreeDebugLogVerbose(@"DEBUG Hit an empty octant: [%d]", level);
 		return NO;
 	}
 	
 	if (octbuffer[level] == -1)
 	{
-		if (debug & DEBUG_OCTREE_TEXT)
-			NSLog(@"DEBUG Hit a solid octant: [%d]", level);
+		OctreeDebugLogVerbose(@"DEBUG Hit a solid octant: [%d]", level);
 		collbuffer[level] = 2;	// green
 		hit_dist = sqrt( u0.x * u0.x + u0.y * u0.y + u0.z * u0.z);
 		return YES;
@@ -376,8 +377,7 @@ BOOL	isHitByLine(int* octbuffer, unsigned char* collbuffer, int level, GLfloat r
 
 	if (faces == 0)
 	{
-		if (debug & DEBUG_OCTREE_TEXT)
-			NSLog(@"----> Line misses octant: [%d].", level);
+		OctreeDebugLogVerbose(@"----> Line misses octant: [%d].", level);
 		return NO;
 	}
 	
@@ -402,14 +402,12 @@ BOOL	isHitByLine(int* octbuffer, unsigned char* collbuffer, int level, GLfloat r
 		if (CUBE_FACE_BOTTOM & faces)
 			octantIntersected = ((vi.x < 0.0)? 0: 4) + ((vi.z < 0.0)? 0: 1);
 
-		if (debug & DEBUG_OCTREE_TEXT)
-			NSLog(@"----> found intersection with face 0x%2x of cube of radius %.2f at ( %.2f, %.2f, %.2f) octant:%d",
+		OctreeDebugLogVerbose(@"----> found intersection with face 0x%2x of cube of radius %.2f at ( %.2f, %.2f, %.2f) octant:%d",
 				faces, rad, vi.x, vi.y, vi.z, octantIntersected);
 	}
 	else
 	{	
-		if (debug & DEBUG_OCTREE_TEXT)
-			NSLog(@"----> inside cube of radius %.2f octant:%d", rad, octantIntersected);
+		OctreeDebugLogVerbose(@"----> inside cube of radius %.2f octant:%d", rad, octantIntersected);
 		faces = 0;	// inside the cube!
 	}
 	
@@ -417,8 +415,7 @@ BOOL	isHitByLine(int* octbuffer, unsigned char* collbuffer, int level, GLfloat r
 	
 	collbuffer[level] = 1;	// red
 	
-	if (debug & DEBUG_OCTREE_TEXT)
-		NSLog(@"----> testing octants...");
+	OctreeDebugLogVerbose(@"----> testing octants...");
 	
 //	int nextlevel = octbuffer[level];			// previous absolute reference
 	int nextlevel = level + octbuffer[level];	// now a relative reference
@@ -434,8 +431,7 @@ BOOL	isHitByLine(int* octbuffer, unsigned char* collbuffer, int level, GLfloat r
 
 	Vector moveLine = off;
 
-	if (debug & DEBUG_OCTREE_TEXT)
-		NSLog(@"----> testing first octant hit [+%d]", oct0);
+	OctreeDebugLogVerbose(@"----> testing first octant hit [+%d]", oct0);
 	if (octbuffer[nextlevel + oct0])
 	{
 		moveLine = offsetForOctant( oct0, rad);
@@ -445,8 +441,7 @@ BOOL	isHitByLine(int* octbuffer, unsigned char* collbuffer, int level, GLfloat r
 		
 	// test the three adjacent octants
 
-	if (debug & DEBUG_OCTREE_TEXT)
-		NSLog(@"----> testing next three octants [+%d] [+%d] [+%d]", oct1, oct2, oct3);
+	OctreeDebugLogVerbose(@"----> testing next three octants [+%d] [+%d] [+%d]", oct1, oct2, oct3);
 	
 	if (octbuffer[nextlevel + oct1])
 	{
@@ -471,8 +466,7 @@ BOOL	isHitByLine(int* octbuffer, unsigned char* collbuffer, int level, GLfloat r
 	
 	oct0 ^= 0x07;	oct1 ^= 0x07;	oct2 ^= 0x07;	oct3 ^= 0x07;
 	
-	if (debug & DEBUG_OCTREE_TEXT)
-		NSLog(@"----> testing back three octants [+%d] [+%d] [+%d]", oct1, oct2, oct3);
+	OctreeDebugLogVerbose(@"----> testing back three octants [+%d] [+%d] [+%d]", oct1, oct2, oct3);
 	
 	if (octbuffer[nextlevel + oct1])
 	{
@@ -494,8 +488,7 @@ BOOL	isHitByLine(int* octbuffer, unsigned char* collbuffer, int level, GLfloat r
 	}
 	
 	// and check the last octant
-	if (debug & DEBUG_OCTREE_TEXT)
-		NSLog(@"----> testing final octant [+%d]", oct0);
+	OctreeDebugLogVerbose(@"----> testing final octant [+%d]", oct0);
 	
 	if (octbuffer[nextlevel + oct0])
 	{
@@ -515,15 +508,13 @@ BOOL	isHitByLine(int* octbuffer, unsigned char* collbuffer, int level, GLfloat r
 	//
 	if (isHitByLine(octree, octree_collision, 0, radius, v0, v1, kZeroVector, 0))
 	{
-		if (debug & DEBUG_OCTREE_TEXT)
-			NSLog(@"DEBUG Hit at distance %.2f\n\n", hit_dist);
+		OctreeDebugLogVerbose(@"DEBUG Hit at distance %.2f", hit_dist);
 		hasCollision = hasCollided;
 		return hit_dist;
 	}
 	else
 	{
-		if (debug & DEBUG_OCTREE_TEXT)
-			NSLog(@"DEBUG Missed!\n\n", hit_dist);
+		OctreeDebugLogVerbose(@"DEBUG Missed!", hit_dist);
 		hasCollision = hasCollided;
 		return 0.0;
 	}
@@ -539,22 +530,19 @@ BOOL	isHitByOctree(	Octree_details axialDetails,
 
 	if (axialBuffer[0] == 0)
 	{
-		if (debug & DEBUG_OCTREE_TEXT)
-			NSLog(@"DEBUG Axial octree is empty.");
+		OctreeDebugLogVerbose(@"DEBUG Axial octree is empty.");
 		return NO;
 	}
 	
 	if (!otherBuffer)
 	{
-		if (debug & DEBUG_OCTREE_TEXT)
-			NSLog(@"DEBUG Other octree is undefined.");
+		OctreeDebugLogVerbose(@"DEBUG Other octree is undefined.");
 		return NO;
 	}
 	
 	if (otherBuffer[0] == 0)
 	{
-		if (debug & DEBUG_OCTREE_TEXT)
-			NSLog(@"DEBUG Other octree is empty.");
+		OctreeDebugLogVerbose(@"DEBUG Other octree is empty.");
 		return NO;
 	}
 	
@@ -568,8 +556,7 @@ BOOL	isHitByOctree(	Octree_details axialDetails,
 			(otherPosition.y + otherRadius < -axialRadius)||(otherPosition.y - otherRadius > axialRadius)||
 			(otherPosition.z + otherRadius < -axialRadius)||(otherPosition.z - otherRadius > axialRadius))
 		{
-			if (debug & DEBUG_OCTREE_TEXT)
-				NSLog(@"----> Other sphere does not intersect axial cube");
+			OctreeDebugLogVerbose(@"----> Other sphere does not intersect axial cube");
 			return NO;
 		}
 	}
@@ -581,8 +568,7 @@ BOOL	isHitByOctree(	Octree_details axialDetails,
 			(axialPosition.y + axialRadius < -otherRadius)||(axialPosition.y - axialRadius > otherRadius)||
 			(axialPosition.z + axialRadius < -otherRadius)||(axialPosition.z - axialRadius > otherRadius))
 		{
-			if (debug & DEBUG_OCTREE_TEXT)
-				NSLog(@"----> Axial sphere does not intersect other cube");
+			OctreeDebugLogVerbose(@"----> Axial sphere does not intersect other cube");
 			return NO;
 		}
 	}
@@ -600,8 +586,7 @@ BOOL	isHitByOctree(	Octree_details axialDetails,
 			axialCollisionBuffer[0] = (unsigned char)255;	// mark
 			otherCollisionBuffer[0] = (unsigned char)255;	// mark
 			//
-			if (debug & DEBUG_OCTREE)
-				NSLog(@"DEBUG Octrees collide!");
+			OctreeDebugLog(@"DEBUG Octrees collide!");
 			return YES;
 		}
 		// the other octree must be decomposed
@@ -609,8 +594,7 @@ BOOL	isHitByOctree(	Octree_details axialDetails,
 		// if any of them collides with this octant
 		// then we have a solid collision
 		//
-		if (debug & DEBUG_OCTREE_TEXT)
-			NSLog(@"----> testing other octants...");
+		OctreeDebugLogVerbose(@"----> testing other octants...");
 		//
 		// work out the nearest octant to the axial octree
 		int	nearest_oct = ((otherPosition.x > 0.0)? 0:4)|((otherPosition.y > 0.0)? 0:2)|((otherPosition.z > 0.0)? 0:1);
@@ -646,8 +630,7 @@ BOOL	isHitByOctree(	Octree_details axialDetails,
 	// the other octree, if any of them collide
 	// we have a solid collision
 	//
-	if (debug & DEBUG_OCTREE_TEXT)
-		NSLog(@"----> testing axial octants...");
+	OctreeDebugLogVerbose(@"----> testing axial octants...");
 	//
 	// work out the nearest octant to the other octree
 	int	nearest_oct = ((otherPosition.x > 0.0)? 4:0)|((otherPosition.y > 0.0)? 2:0)|((otherPosition.z > 0.0)? 1:0);
