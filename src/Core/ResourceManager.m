@@ -252,46 +252,71 @@ static NSMutableDictionary *string_cache;
 
 + (BOOL) areRequirementsFulfilled:(NSDictionary*)requirements forOXP:(NSString *)path
 {
-	BOOL				result = YES;
-	NSString			*requiredVersion;
-	unsigned			conditionsHandled = nil;
+	BOOL				OK = YES;
+	NSString			*requiredVersion = nil;
+	NSString			*maxVersion = nil;
+	unsigned			conditionsHandled = 0;
+	static NSArray		*ooVersionComponents = nil;
+	NSArray				*oxpVersionComponents = nil;
 	
 	if (requirements == nil)  return YES;
 	
-	if (result)
+	if (ooVersionComponents == nil)
 	{
+		ooVersionComponents = ComponentsFromVersionString([[[NSBundle mainBundle] infoDictionary] objectForKey:@"CFBundleVersion"]);
+		[ooVersionComponents retain];
+	}
+	
+	// Check "version" (minimum version)
+	if (OK)
+	{
+		// Not stringForKey:, because we need to be able to complain about non-strings.
 		requiredVersion = [requirements objectForKey:@"version"];
 		if (requiredVersion != nil)
 		{
 			++conditionsHandled;
 			if ([requiredVersion isKindOfClass:[NSString class]])
 			{
-				static NSArray	*ooVersionComponents = nil;
-				NSArray			*oxpVersionComponents = nil;
-				
-				if (ooVersionComponents == nil)
-				{
-					ooVersionComponents = ComponentsFromVersionString([[[NSBundle mainBundle] infoDictionary] objectForKey:@"CFBundleVersion"]);
-				}
-				
-				oxpVersionComponents = ComponentsFromVersionString([requirements objectForKey:@"version"]);
-				if (NSOrderedAscending == CompareVersions(ooVersionComponents, oxpVersionComponents))  result = NO;
+				oxpVersionComponents = ComponentsFromVersionString(requiredVersion);
+				if (NSOrderedAscending == CompareVersions(ooVersionComponents, oxpVersionComponents))  OK = NO;
 			}
 			else
 			{
-				OOLog(@"plist.wrongType", @"Expected requires.plist entry \"version\" to be string, but got %@ in OXP %@.", [requirements class], [path lastPathComponent]);
-				result = NO;
+				OOLog(@"requirements.wrongType", @"Expected requires.plist entry \"%@\" to be string, but got %@ in OXP %@.", @"version", [requirements class], [path lastPathComponent]);
+				OK = NO;
 			}
 		}
 	}
 	
-	if (conditionsHandled < [requirements count])
+	// Check "max_version" (minimum max_version)
+	if (OK)
 	{
-		// There are unknown requirement keys - don't support. NOTE: this check was not made pre 1.69!
-		result = NO;
+		// Not stringForKey:, because we need to be able to complain about non-strings.
+		maxVersion = [requirements objectForKey:@"max_version"];
+		if (maxVersion != nil)
+		{
+			++conditionsHandled;
+			if ([maxVersion isKindOfClass:[NSString class]])
+			{
+				oxpVersionComponents = ComponentsFromVersionString(maxVersion);
+				if (NSOrderedDescending == CompareVersions(ooVersionComponents, oxpVersionComponents))  OK = NO;
+			}
+			else
+			{
+				OOLog(@"requirements.wrongType", @"Expected requires.plist entry \"%@\" to be string, but got %@ in OXP %@.", @"max_version", [requirements class], [path lastPathComponent]);
+				OK = NO;
+			}
+		}
 	}
 	
-	return result;
+	if (OK && conditionsHandled < [requirements count])
+	{
+		// There are unknown requirement keys - don't support. NOTE: this check was not made pre 1.69!
+		OOLog(@"requirements.unknown", @"requires.plist for OXP %@ contains unknown keys, rejecting.", [path lastPathComponent]);
+		OK = NO;
+	}
+	
+	return OK;
 }
 
 

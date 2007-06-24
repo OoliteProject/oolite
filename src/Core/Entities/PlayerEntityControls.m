@@ -927,7 +927,8 @@ static NSTimeInterval	time_last_frame;
 				cloak_pressed = NO;
 
 		}
-			
+		
+#ifndef NDEBUG
 		if ([gameView isDown:key_dump_target_state])
 		{
 			if (!dump_target_state_pressed)
@@ -939,6 +940,7 @@ static NSTimeInterval	time_last_frame;
 			}
 		}
 		else  dump_target_state_pressed = NO;
+#endif
 
 		//
 		//  text displays
