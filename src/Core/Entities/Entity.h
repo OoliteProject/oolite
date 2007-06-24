@@ -249,7 +249,6 @@ extern int debug;
 // Subclass repsonsibilities
 - (double) findCollisionRadius;
 - (Geometry*) geometry;
-- (BoundingBox) findBoundingBoxRelativeToPosition:(Vector)opv InVectors:(Vector) _i :(Vector) _j :(Vector) _k;
 - (void) drawEntity:(BOOL)immediate :(BOOL)translucent;
 
 // For shader bindings.

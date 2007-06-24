@@ -288,33 +288,6 @@ static NSString * const kOOLogEntityTooManyFaces			= @"entity.loadMesh.failed.to
 }
 
 
-- (BoundingBox) findBoundingBoxRelativeToPosition:(Vector)opv InVectors:(Vector) _i :(Vector) _j :(Vector) _k
-{
-
-	Vector pv, rv;
-	Vector  rpos = position;
-	rpos.x -= opv.x;	rpos.y -= opv.y;	rpos.z -= opv.z;
-	rv.x = dot_product(_i,rpos);
-	rv.y = dot_product(_j,rpos);
-	rv.z = dot_product(_k,rpos);
-	BoundingBox result;
-	bounding_box_reset_to_vector(&result,rv);
-	int i;
-    for (i = 0; i < vertexCount; i++)
-    {
-		pv.x = rpos.x + vertices[i].x;
-		pv.y = rpos.y + vertices[i].y;
-		pv.z = rpos.z + vertices[i].z;
-		rv.x = dot_product(_i,pv);
-		rv.y = dot_product(_j,pv);
-		rv.z = dot_product(_k,pv);
-		bounding_box_add_vector(&result,rv);
-    }
-	
-	return result;
-}
-
-
 - (void) initializeTextures
 {
     // roll out each face and texture in turn

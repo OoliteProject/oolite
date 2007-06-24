@@ -928,13 +928,6 @@ static NSString * const kOOLogEntityUpdateError				= @"entity.linkedList.update.
 }
 
 
-- (BoundingBox)findBoundingBoxRelativeToPosition:(Vector)opv InVectors:(Vector) _i :(Vector) _j :(Vector) _k
-{
-	OOLogGenericSubclassResponsibility();
-	return kZeroBoundingBox;
-}
-
-
 - (Geometry *)geometry
 {
 	OOLogGenericSubclassResponsibility();

@@ -947,17 +947,13 @@ static GLfloat	texture_uv_array[10400 * 2];
 	NSString* type_string;
 	switch (planet_type)
 	{
-		case PLANET_TYPE_MINIATURE :
+		case PLANET_TYPE_MINIATURE:
 			type_string = @"PLANET_TYPE_MINIATURE";	break;
-		case PLANET_TYPE_SUN :
+		case PLANET_TYPE_SUN:
 			type_string = @"PLANET_TYPE_SUN";	break;
-		case PLANET_TYPE_GREEN :
+		case PLANET_TYPE_GREEN:
 			type_string = @"PLANET_TYPE_GREEN";	break;
-#if OBSOLETE
-		case PLANET_TYPE_CORONA :
-			type_string = @"PLANET_TYPE_CORONA";	break;
-#endif
-		case PLANET_TYPE_ATMOSPHERE :
+		case PLANET_TYPE_ATMOSPHERE:
 			type_string = @"PLANET_TYPE_ATMOSPHERE";	break;
 		default :
 			type_string = @"UNKNOWN";
@@ -971,15 +967,12 @@ static GLfloat	texture_uv_array[10400 * 2];
 {
 	switch (planet_type)
 	{
-		case PLANET_TYPE_MINIATURE :
-		case PLANET_TYPE_ATMOSPHERE :
-#if OBSOLETE
-		case PLANET_TYPE_CORONA :
-#endif
+		case PLANET_TYPE_MINIATURE:
+		case PLANET_TYPE_ATMOSPHERE:
 			return NO;
 			break;
-		case PLANET_TYPE_GREEN :
-		case PLANET_TYPE_SUN :
+		case PLANET_TYPE_GREEN:
+		case PLANET_TYPE_SUN:
 			return YES;
 			break;
 	}
@@ -1022,7 +1015,7 @@ static GLfloat	texture_uv_array[10400 * 2];
 
 	switch (planet_type)
 	{
-		case PLANET_TYPE_GREEN :
+		case PLANET_TYPE_GREEN:
 		{
 			double ugt = [UNIVERSE getTime];
 
@@ -1034,7 +1027,7 @@ static GLfloat	texture_uv_array[10400 * 2];
 			}
 		}
 		//
-		case PLANET_TYPE_MINIATURE :
+		case PLANET_TYPE_MINIATURE:
 		// normal planetary rotation
 		quaternion_rotate_about_y(&orientation, rotational_velocity * delta_t);
 		quaternion_normalize(&orientation);
@@ -1056,7 +1049,7 @@ static GLfloat	texture_uv_array[10400 * 2];
 		}
 		break;
 
-		case PLANET_TYPE_ATMOSPHERE :
+		case PLANET_TYPE_ATMOSPHERE:
 		{
 			// atmospheric rotation
 			quaternion_rotate_about_y(&orientation, rotational_velocity * delta_t);
@@ -1065,10 +1058,7 @@ static GLfloat	texture_uv_array[10400 * 2];
 		}
 		break;
 		
-#if OBSOLETE
-		case PLANET_TYPE_CORONA :
-#endif
-		case PLANET_TYPE_SUN :
+		case PLANET_TYPE_SUN:
 		{
 			// new billboard routine (working at last!)
 			PlayerEntity* player = [PlayerEntity sharedPlayer];
@@ -1099,20 +1089,6 @@ static GLfloat	texture_uv_array[10400 * 2];
 			//equivalent of v_up
 			
 			vectors_into_gl_matrix(v0, v1, v2, rotMatrix);
-			
-#if OBSOLETE
-			if (planet_type == PLANET_TYPE_CORONA)
-			{
-				Vector v_sun = [UNIVERSE sun]->position;
-				Vector v_p = (player)? player->position: kZeroVector;
-				v_sun.x -= v_p.x;	v_sun.y -= v_p.y;	v_sun.z -= v_p.z;
-				if (v_sun.x||v_sun.y||v_sun.z)
-					v_sun = unit_vector(&v_sun);
-				else
-					v_sun.z = 1.0;
-				polar_color_factor = dot_product(v_sun, v0);
-			}
-#endif
 			
 			if (throw_sparks&&(planet_type == PLANET_TYPE_SUN)&&(velocity.z > 0))	// going NOVA!
 			{
@@ -1237,12 +1213,12 @@ static GLfloat	texture_uv_array[10400 * 2];
 
 	switch (planet_type)
 	{
-		case PLANET_TYPE_ATMOSPHERE :
+		case PLANET_TYPE_ATMOSPHERE:
 			if (root_planet)
 				subdivideLevel = root_planet->lastSubdivideLevel;	// copy it from the planet (stops jerky LOD and such)
 			glMultMatrixf(rotMatrix);	// rotate the clouds!
-		case PLANET_TYPE_GREEN :
-		case PLANET_TYPE_MINIATURE :
+		case PLANET_TYPE_GREEN:
+		case PLANET_TYPE_MINIATURE:
 			if (!translucent)
 			{
 				GLfloat mat1[]		= { 1.0, 1.0, 1.0, 1.0 };	// opaque white
@@ -1423,7 +1399,7 @@ static GLfloat	texture_uv_array[10400 * 2];
 			}
 			break;
 
-		case PLANET_TYPE_SUN :
+		case PLANET_TYPE_SUN:
 			if (!translucent)
 			{
 				int steps = 2 * (MAX_SUBDIVIDE - subdivideLevel);
@@ -1468,34 +1444,6 @@ static GLfloat	texture_uv_array[10400 * 2];
 
 			}
 			break;
-			
-#if OBSOLETE
-		case PLANET_TYPE_CORONA :
-			if (!translucent)
-			{
-				Entity* my_owner = [UNIVERSE entityForUniversalID:owner];
-				GLfloat bri = 1.0 + polar_color_factor;
-				GLfloat r = 0.42 * bri;
-				GLfloat g = 0.42 * bri;
-				GLfloat b = 0.5 * bri;
-
-				GLfloat amb_1[4]		= {1.0, 1.0,	1.0,	1.0 };
-				double  r0 = (my_owner)? my_owner->collision_radius: 5000;
-
-				GLfloat col1[4] = { r, g, b, 1.0};
-				GLfloat col2[4] = { r, g, b, 0.0};
-
-				glDisable(GL_LIGHTING);
-				glDisable(GL_DEPTH_TEST);
-				glMaterialfv(GL_FRONT, GL_AMBIENT_AND_DIFFUSE, amb_1);
-
-				drawCorona(r0, collision_radius, 6 - subdivideLevel, sqrt_zero_distance, col1, col2);
-
-				glEnable(GL_DEPTH_TEST);
-				glEnable(GL_LIGHTING);
-			}
-			break;
-#endif
 	}
 	glFrontFace(GL_CCW);			// face culling - front faces are AntiClockwise!
 	CheckOpenGLErrors(@"PlanetEntity after drawing %@", self);

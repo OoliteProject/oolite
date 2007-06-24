@@ -127,6 +127,11 @@ shaderBindingTarget:(id<OOWeakReferenceSupport>)object;
 
 - (Octree *)octree;
 
+// This needs a better name.
+- (BoundingBox) findBoundingBoxRelativeToPosition:(Vector)opv
+											basis:(Vector)ri :(Vector)rj :(Vector)rk
+									 selfPosition:(Vector)position
+										selfBasis:(Vector)si :(Vector)sj :(Vector)sk;
 - (BoundingBox)findSubentityBoundingBoxWithPosition:(Vector)position rotMatrix:(gl_matrix)rotMatrix;
 
 - (OOMesh *)meshRescaledBy:(GLfloat)scaleFactor;

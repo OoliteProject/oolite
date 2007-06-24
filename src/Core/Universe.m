@@ -2804,7 +2804,11 @@ GLfloat docked_light_specular[]	= { (GLfloat) 1.0, (GLfloat) 1.0, (GLfloat) 0.5,
 	}
 	else
 	{
-		if (debug && DEBUG_MISC)
+		/*	Note: this is a common "error", since the game will look for
+			special containers by looking up a ship using the commodity name
+			as a ship role.
+		*/
+		if (debug & DEBUG_MISC)
 		{
 			NSLog(@"DEBUG [Universe newShipWithRole: %@] couldn't find a ship!", search);
 		}

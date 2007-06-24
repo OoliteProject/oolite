@@ -303,6 +303,51 @@ shaderBindingTarget:(id<OOWeakReferenceSupport>)object
 }
 
 
+- (BoundingBox) findBoundingBoxRelativeToPosition:(Vector)opv
+											basis:(Vector)ri :(Vector)rj :(Vector)rk
+									 selfPosition:(Vector)position
+										selfBasis:(Vector)si :(Vector)sj :(Vector)sk
+{
+	BoundingBox	result;
+	Vector		pv, rv;
+	Vector		rpos = position;
+	int			i;
+	
+	rpos = vector_subtract(position, opv);	// model origin relative to opv
+	
+	rv.x = dot_product(ri,rpos);
+	rv.y = dot_product(rj,rpos);
+	rv.z = dot_product(rk,rpos);	// model origin rel to opv in ijk
+	
+	if (EXPECT_NOT(vertexCount < 1))
+	{
+		bounding_box_reset_to_vector(&result, rv);
+	}
+	else
+	{
+		pv.x = rpos.x + si.x * vertices[0].x + sj.x * vertices[0].y + sk.x * vertices[0].z;
+		pv.y = rpos.y + si.y * vertices[0].x + sj.y * vertices[0].y + sk.y * vertices[0].z;
+		pv.z = rpos.z + si.z * vertices[0].x + sj.z * vertices[0].y + sk.z * vertices[0].z;	// vertices[0] position rel to opv
+		rv.x = dot_product(ri, pv);
+		rv.y = dot_product(rj, pv);
+		rv.z = dot_product(rk, pv);	// vertices[0] position rel to opv in ijk
+		bounding_box_reset_to_vector(&result, rv);
+    }
+    for (i = 1; i < vertexCount; i++)
+    {
+		pv.x = rpos.x + si.x * vertices[i].x + sj.x * vertices[i].y + sk.x * vertices[i].z;
+		pv.y = rpos.y + si.y * vertices[i].x + sj.y * vertices[i].y + sk.y * vertices[i].z;
+		pv.z = rpos.z + si.z * vertices[i].x + sj.z * vertices[i].y + sk.z * vertices[i].z;
+		rv.x = dot_product(ri, pv);
+		rv.y = dot_product(rj, pv);
+		rv.z = dot_product(rk, pv);
+		bounding_box_add_vector(&result, rv);
+    }
+
+	return result;
+}
+
+
 - (BoundingBox)findSubentityBoundingBoxWithPosition:(Vector)position rotMatrix:(gl_matrix)rotMatrix
 {
 	// HACK! Should work out what the various bounding box things do and make it neat and consistant.
@@ -1180,26 +1225,47 @@ shaderBindingTarget:(id<OOWeakReferenceSupport>)target
 }
 
 
-- (BoundingBox) findBoundingBoxRelativeToPosition:(Vector)rpos InVectors:(Vector) _i :(Vector) _j :(Vector) _k
+- (BoundingBox) findBoundingBoxRelativeToPosition:(Vector)opv
+											basis:(Vector)ri :(Vector)rj :(Vector)rk
+									 selfPosition:(Vector)position
+										selfBasis:(Vector)si :(Vector)sj :(Vector)sk
 {
-	Vector pv, rv;
-	rv.x = dot_product(_i,rpos);
-	rv.y = dot_product(_j,rpos);
-	rv.z = dot_product(_k,rpos);
-	BoundingBox result;
-	bounding_box_reset_to_vector(&result,rv);
-	int i;
-    for (i = 0; i < vertexCount; i++)
-    {
-		pv.x = rpos.x + vertices[i].x;
-		pv.y = rpos.y + vertices[i].y;
-		pv.z = rpos.z + vertices[i].z;
-		rv.x = dot_product(_i,pv);
-		rv.y = dot_product(_j,pv);
-		rv.z = dot_product(_k,pv);
-		bounding_box_add_vector(&result,rv);
-    }
+	Vector		pv, rv;
+	Vector		rpos = position;
+	int			i;
 	
+	rpos = vector_subtract(rpos, opv);
+	
+	rv.x = dot_product(ri, rpos);
+	rv.y = dot_product(rj, rpos);
+	rv.z = dot_product(rk, rpos);	// model origin rel to opv in r_ijk
+	
+	BoundingBox result;
+	if (EXPECT_NOT(vertexCount < 1))
+	{
+		bounding_box_reset_to_vector(&result,rv);
+	}
+	else
+	{
+		pv.x = rpos.x + si.x * vertices[0].x + sj.x * vertices[0].y + sk.x * vertices[0].z;
+		pv.y = rpos.y + si.y * vertices[0].x + sj.y * vertices[0].y + sk.y * vertices[0].z;
+		pv.z = rpos.z + si.z * vertices[0].x + sj.z * vertices[0].y + sk.z * vertices[0].z;	// vertices[0] position rel to opv
+		rv.x = dot_product(ri, pv);
+		rv.y = dot_product(rj, pv);
+		rv.z = dot_product(rk, pv);	// vertices[0] position rel to opv in ijk
+		bounding_box_reset_to_vector(&result, rv);
+    }
+    for (i = 1; i < vertexCount; i++)
+    {
+		pv.x = rpos.x + si.x * vertices[i].x + sj.x * vertices[i].y + sk.x * vertices[i].z;
+		pv.y = rpos.y + si.y * vertices[i].x + sj.y * vertices[i].y + sk.y * vertices[i].z;
+		pv.z = rpos.z + si.z * vertices[i].x + sj.z * vertices[i].y + sk.z * vertices[i].z;
+		rv.x = dot_product(ri, pv);
+		rv.y = dot_product(rj, pv);
+		rv.z = dot_product(rk, pv);
+		bounding_box_add_vector(&result, rv);
+    }
+
 	return result;
 }
 

@@ -497,6 +497,15 @@ static NSString * const kOOLogEntityBehaviourChanged	= @"entity.behaviour.change
 }
 
 
+- (BoundingBox)findBoundingBoxRelativeToPosition:(Vector)opv InVectors:(Vector) _i :(Vector) _j :(Vector) _k
+{
+	return [[self mesh] findBoundingBoxRelativeToPosition:opv
+													basis:_i :_j :_k
+											 selfPosition:position
+												selfBasis:v_right :v_up :v_forward];
+}
+
+
 // ship's brains!
 - (OOBrain *)brain
 {
@@ -2378,10 +2387,13 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 		}
 	}
 	
+#ifndef NDEBUG
 	if (debug & DEBUG_BOUNDING_BOXES)
 	{
 		OODebugDrawBoundingBox([self boundingBox]);
+		if (!isSubentity)  OODebugDrawColoredBoundingBox(totalBoundingBox, [OOColor purpleColor]);
 	}
+#endif
 }
 
 

@@ -67,8 +67,6 @@ SOFTWARE.
 - (Geometry *)geometry;
 
 - (BoundingBox)boundingBox;
-// This needs a better name.
-- (BoundingBox)findBoundingBoxRelativeToPosition:(Vector)opv InVectors:(Vector) _i :(Vector) _j :(Vector) _k;
 
 // Passed to all materials.
 - (void)setBindingTarget:(id<OOWeakReferenceSupport>)target;

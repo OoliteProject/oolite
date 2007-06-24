@@ -70,12 +70,6 @@ MA 02110-1301, USA.
 }
 
 
-- (BoundingBox)findBoundingBoxRelativeToPosition:(Vector)opv InVectors:(Vector) _i :(Vector) _j :(Vector) _k
-{
-	return [drawable findBoundingBoxRelativeToPosition:vector_subtract(position, opv) InVectors:_i :_j :_k];
-}
-
-
 - (void)drawEntity:(BOOL)immediate :(BOOL)translucent
 {
 	if (no_draw_distance < zero_distance)

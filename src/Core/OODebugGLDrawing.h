@@ -56,7 +56,9 @@ SOFTWARE.
 #ifndef OODEBUGLDRAWING_DISABLE
 
 OOINLINE void OODebugDrawBoundingBox(BoundingBox box);
-void OODebugDrawBoundingBoxBetween(Vector min, Vector max);
+OOINLINE void OODebugDrawBoundingBoxBetween(Vector min, Vector max);
+OOINLINE void OODebugDrawColoredBoundingBox(BoundingBox box, OOColor *color);
+void OODebugDrawColoredBoundingBoxBetween(Vector min, Vector max, OOColor *color);
 
 // Normals are drawn as cyan lines
 OOINLINE void OODebugDrawNormal(Vector position, Vector normal, GLfloat scale);
@@ -79,9 +81,21 @@ OOINLINE void OODebugDrawBasisAtOrigin(GLfloat scale);
 
 /*** Only inline definitions beyond this point ***/
 
+OOINLINE void OODebugDrawBoundingBoxBetween(Vector min, Vector max)
+{
+	OODebugDrawColoredBoundingBoxBetween(min, max, [OOColor blueColor]);
+}
+
+
 OOINLINE void OODebugDrawBoundingBox(BoundingBox box)
 {
 	OODebugDrawBoundingBoxBetween(box.min, box.max);
+}
+
+
+OOINLINE void OODebugDrawColoredBoundingBox(BoundingBox box, OOColor *color)
+{
+	OODebugDrawColoredBoundingBoxBetween(box.min, box.max, color);
 }
 
 

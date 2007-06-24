@@ -52,14 +52,24 @@ SOFTWARE.
 static void BeginDebugWireframe(void);
 #define EndDebugWireframe() glPopAttrib()
 
+OOINLINE void ApplyColor(OOColor *color)
+{
+	GLfloat				r, g, b, a;
+	
+	OO_ENTER_OPENGL();
+	
+	if (EXPECT_NOT(color == nil))  color = [OOColor lightGrayColor];
+	[color getRed:&r green:&g blue:&b alpha:&a];
+	glColor4f(r, g, b, a);
+}
 
-void OODebugDrawBoundingBoxBetween(Vector min, Vector max)
+
+void OODebugDrawColoredBoundingBoxBetween(Vector min, Vector max, OOColor *color)
 {
 	OO_ENTER_OPENGL();
 	BeginDebugWireframe();
 	
-	glColor4f(0.0f, 0.0f, 1.0f, 1.0f);
-	
+	ApplyColor(color);
 	glBegin(GL_LINE_LOOP);
 		glVertex3f(min.x, min.y, min.z);
 		glVertex3f(max.x, min.y, min.z);
@@ -86,16 +96,11 @@ void OODebugDrawBoundingBoxBetween(Vector min, Vector max)
 
 
 void OODebugDrawColoredLine(Vector start, Vector end, OOColor *color)
-{
-	GLfloat				r, g, b, a;
-	
+{	
 	OO_ENTER_OPENGL();
 	BeginDebugWireframe();
 	
-	if (EXPECT_NOT(color == nil))  color = [OOColor lightGrayColor];
-	[color getRed:&r green:&g blue:&b alpha:&a];
-	glColor4f(r, g, b, a);
-	
+	ApplyColor(color);
 	glBegin(GL_LINES);
 		glVertex3f(start.x, start.y, start.z);
 		glVertex3f(end.x, end.y, end.z);

@@ -98,12 +98,6 @@ SOFTWARE.
 }
 
 
-- (BoundingBox)findBoundingBoxRelativeToPosition:(Vector)opv InVectors:(Vector) _i :(Vector) _j :(Vector) _k
-{
-	return kZeroBoundingBox;
-}
-
-
 - (void)setBindingTarget:(id<OOWeakReferenceSupport>)target
 {
 	

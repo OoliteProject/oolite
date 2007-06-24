@@ -335,7 +335,7 @@ OOINLINE BOOL ValidBindingType(OOShaderUniformType type)
 	NSMethodSignature		*sig = nil;
 	unsigned				argCount;
 	NSString				*methodProblem = nil;
-	const char				*typeCode = nil;
+	const char				*typeCode = NULL;
 	
 	if (!isBinding)  return;
 	if (EXPECT_NOT([value.binding.object weakRefUnderlyingObject] == target))  return;

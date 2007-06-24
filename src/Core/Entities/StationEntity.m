@@ -42,12 +42,6 @@ MA 02110-1301, USA.
 #define kOOLogUnconvertedNSLog @"unclassified.StationEntity"
 
 
-#define DRAW_WIREFRAME_DOCKING_PORT 1
-
-static BOOL sDebugDrawBBs = NO;
-static BoundingBox sDebugDrawBB1, sDebugDrawBB2;
-
-
 static NSDictionary* instructions(int station_id, Vector coords, float speed, float range, NSString* ai_message, NSString* comms_message, BOOL match_rotation);
 
 
@@ -849,15 +843,12 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 	ww *= 0.5;
 	hh *= 0.5;
 	
+#ifndef NDEBUG
 	if ((ship->isPlayer)&&(debug & DEBUG_DOCKING))
 	{
 		BOOL			inLane;
 		float			range;
 		unsigned		laneFlags = 0;
-		
-		sDebugDrawBB1 = shipbb;
-		sDebugDrawBB2 = arbb;
-		sDebugDrawBBs = YES;
 		
 		if (arbb.max.x < ww)   laneFlags |= 1;
 		if (arbb.min.x > -ww)  laneFlags |= 2;
@@ -872,6 +863,7 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 			inLane ? "in lane" : "out of lane", laneFlags,
 			range);
 	}
+#endif
 
 	if (arbb.max.z < -dd)
 		return NO;
@@ -1821,7 +1813,7 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 @end
 
 
-#if DRAW_WIREFRAME_DOCKING_PORT
+#ifndef NDEBUG
 
 @implementation StationEntity (OOWireframeDockingBox)
 
@@ -1833,35 +1825,24 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 	
 	[super drawEntity:immediate:translucent];
 	
-	// Draw wireframe of docking area
-	glPushAttrib(GL_ENABLE_BIT | GL_DEPTH_BUFFER_BIT);
-	glDisable(GL_TEXTURE_2D);
-	glDisable(GL_LIGHTING);
-	glDisable(GL_DEPTH_TEST);	// don't read the depth buffer
-	glDepthMask(GL_FALSE);		// don't write to depth buffer
-	
-	OODebugDrawBasisAtOrigin(50.0f);
-	
-	gl_matrix matrix;
-	quaternion_into_gl_matrix(port_orientation, matrix);
-	glPushMatrix();
-	glMultMatrixf(matrix);
-	
-	if (sDebugDrawBBs)
+	if (debug & DEBUG_BOUNDING_BOXES)
 	{
-		OODebugDrawBoundingBox(sDebugDrawBB2);
-		sDebugDrawBBs = NO;
+		OODebugDrawBasisAtOrigin(50.0f);
+		
+		gl_matrix matrix;
+		quaternion_into_gl_matrix(port_orientation, matrix);
+		glPushMatrix();
+		glMultMatrixf(matrix);
+		
+		halfDimensions = vector_multiply_scalar(port_dimensions, 0.5f);
+		adjustedPosition = port_position;
+		adjustedPosition.z -= halfDimensions.z;
+		
+		OODebugDrawColoredBoundingBoxBetween(vector_subtract(adjustedPosition, halfDimensions), vector_add(adjustedPosition, halfDimensions), [OOColor redColor]);
+		OODebugDrawBasisAtOrigin(30.0f);
+		
+		glPopMatrix();
 	}
-	
-	halfDimensions = vector_multiply_scalar(port_dimensions, 0.5f);
-	adjustedPosition = port_position;
-	adjustedPosition.z -= halfDimensions.z;
-	
-	OODebugDrawBoundingBoxBetween(vector_subtract(adjustedPosition, halfDimensions), vector_add(adjustedPosition, halfDimensions));
-	OODebugDrawBasisAtOrigin(50.0f);
-	
-	glPopAttrib();
-	glPopMatrix();
 }
 
 @end
