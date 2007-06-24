@@ -118,7 +118,7 @@ MA 02110-1301, USA.
 
 - (id) initAsWitchspace
 {
-	NSDictionary *info = [[UNIVERSE planetinfo] objectForKey:@"interstellar space!"];
+	NSDictionary *info = [[UNIVERSE planetinfo] objectForKey:@"interstellar space"];
 	
 	return [self initWithColors:nil :nil andSystemInfo:info];
 }
@@ -343,7 +343,7 @@ static OOTexture		*sStarTexture, *sBlobTexture;
 
 - (id) initAsWitchspace
 {
-	NSDictionary *info = [[UNIVERSE planetinfo] objectForKey:@"interstellar space!"];
+	NSDictionary *info = [[UNIVERSE planetinfo] objectForKey:@"interstellar space"];
 	
 	return [self initWithColors:nil :nil andSystemInfo:info];
 }
