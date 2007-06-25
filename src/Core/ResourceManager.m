@@ -397,49 +397,77 @@ static NSMutableDictionary *string_cache;
 }
 
 
-+ (NSDictionary *) dictionaryFromFilesNamed:(NSString *)filename inFolder:(NSString *)foldername andMerge:(BOOL) mergeFiles
++ (NSDictionary *)dictionaryFromFilesNamed:(NSString *)fileName
+								  inFolder:(NSString *)folderName
+								  andMerge:(BOOL) mergeFiles
 {
-	return [ResourceManager dictionaryFromFilesNamed:filename inFolder:foldername andMerge:mergeFiles smart:NO];
+	return [ResourceManager dictionaryFromFilesNamed:fileName inFolder:folderName mergeMode:mergeFiles ? MERGE_BASIC : MERGE_NONE cache:NO];
 }
 
 
-+ (NSDictionary *) dictionaryFromFilesNamed:(NSString *)filename inFolder:(NSString *)foldername andMerge:(BOOL) mergeFiles smart:(BOOL) smartMerge
++ (NSDictionary *)dictionaryFromFilesNamed:(NSString *)fileName
+								  inFolder:(NSString *)folderName
+								 mergeMode:(OOResourceMergeMode)mergeMode
+									 cache:(BOOL)cache
 {
 	id				result = nil;
 	NSMutableArray	*results = nil;
 	NSString		*cacheKey = nil;
 	NSString		*mergeType = nil;
-	OOCacheManager	*cache = [OOCacheManager sharedCache];
+	OOCacheManager	*cacheMgr = [OOCacheManager sharedCache];
 	NSEnumerator	*enumerator = nil;
 	NSString		*path = nil;
 	NSString		*dictPath = nil;
 	NSDictionary	*dict = nil;
 	
-	if (filename == nil)  return nil;
+	if (fileName == nil)  return nil;
 	
-	if (mergeFiles)
+	switch (mergeMode)
 	{
-		if (smartMerge)  mergeType = @"smart";
-		else  mergeType = @"basic";
+		case MERGE_NONE:
+			mergeType = @"none";
+			break;
+		
+		case MERGE_BASIC:
+			mergeType = @"basic";
+			break;
+		
+		case MERGE_SMART:
+			mergeType = @"smart";
+			break;
+		
+		default:
+			OOLog(kOOLogParameterError, @"Unknown dictionary merge mode %u for %@. (This is an internal programming error, please report it.)", fileName, mergeMode);
+			return nil;
 	}
-	else  mergeType = @"none";
 	
-	cacheKey = [NSString stringWithFormat:@"%@%@ merge:%@", (foldername != nil) ? [foldername stringByAppendingString:@"/"] : @"", filename, mergeType];
-	result = [cache objectForKey:cacheKey inCache:@"dictionaries"];
-	if (result != nil)  return result;
+	if (cache)
+	{
 	
-	if (!mergeFiles)
+		if (folderName != nil)
+		{
+			cacheKey = [NSString stringWithFormat:@"%@/%@ merge:%@", folderName, fileName, mergeType];
+		}
+		else
+		{
+			cacheKey = [NSString stringWithFormat:@"%@ merge:%@", fileName, mergeType];
+		}
+		result = [cacheMgr objectForKey:cacheKey inCache:@"dictionaries"];
+		if (result != nil)  return result;
+	}
+	
+	if (mergeMode == MERGE_NONE)
 	{
 		// Find "last" matching dictionary
 		for (enumerator = [ResourceManager reversePathEnumerator]; (path = [enumerator nextObject]); )
 		{
-			if (foldername != nil)
+			if (folderName != nil)
 			{
-				dictPath = [[path stringByAppendingPathComponent:foldername] stringByAppendingPathComponent:filename];
+				dictPath = [[path stringByAppendingPathComponent:folderName] stringByAppendingPathComponent:fileName];
 				dict = OODictionaryFromFile(dictPath);
 				if (dict != nil)  break;
 			}
-			dictPath = [path stringByAppendingPathComponent:filename];
+			dictPath = [path stringByAppendingPathComponent:fileName];
 			dict = OODictionaryFromFile(dictPath);
 			if (dict != nil)  break;
 		}
@@ -451,12 +479,12 @@ static NSMutableDictionary *string_cache;
 		results = [NSMutableArray array];
 		for (enumerator = [ResourceManager pathEnumerator]; (path = [enumerator nextObject]); )
 		{
-			dictPath = [path stringByAppendingPathComponent:filename];
+			dictPath = [path stringByAppendingPathComponent:fileName];
 			dict = OODictionaryFromFile(dictPath);
 			if (dict != nil)  [results addObject:dict];
-			if (foldername != nil)
+			if (folderName != nil)
 			{
-				dictPath = [[path stringByAppendingPathComponent:foldername] stringByAppendingPathComponent:filename];
+				dictPath = [[path stringByAppendingPathComponent:folderName] stringByAppendingPathComponent:fileName];
 				dict = OODictionaryFromFile(dictPath);
 				if (dict != nil)  [results addObject:dict];
 			}
@@ -469,18 +497,19 @@ static NSMutableDictionary *string_cache;
 		
 		for (enumerator = [results objectEnumerator]; (dict = [enumerator nextObject]); )
 		{
-			if (smartMerge)  [result mergeEntriesFromDictionary:dict];
+			if (mergeMode == MERGE_SMART)  [result mergeEntriesFromDictionary:dict];
 			else  [result addEntriesFromDictionary:dict];
 		}
 		result = [[result copy] autorelease];	// Make immutable
 	}
 	
-	if (result != nil)  [cache setObject:result forKey:cacheKey inCache:@"dictionaries"];
+	if (cache && result != nil)  [cacheMgr setObject:result forKey:cacheKey inCache:@"dictionaries"];
 	
 	return result;
 }
 
-+ (NSArray *) arrayFromFilesNamed:(NSString *)filename inFolder:(NSString *)foldername andMerge:(BOOL) mergeFiles
+
++ (NSArray *) arrayFromFilesNamed:(NSString *)fileName inFolder:(NSString *)folderName andMerge:(BOOL) mergeFiles
 {
 	id				result = nil;
 	NSMutableArray	*results = nil;
@@ -491,9 +520,9 @@ static NSMutableDictionary *string_cache;
 	NSString		*arrayPath = nil;
 	NSArray			*array = nil;
 	
-	if (filename == nil)  return nil;
+	if (fileName == nil)  return nil;
 	
-	cacheKey = [NSString stringWithFormat:@"%@%@ merge:%@", (foldername != nil) ? [foldername stringByAppendingString:@"/"] : @"", filename, mergeFiles ? @"yes" : @"no"];
+	cacheKey = [NSString stringWithFormat:@"%@%@ merge:%@", (folderName != nil) ? [folderName stringByAppendingString:@"/"] : @"", fileName, mergeFiles ? @"yes" : @"no"];
 	result = [cache objectForKey:cacheKey inCache:@"arrays"];
 	if (result != nil)  return result;
 	
@@ -502,13 +531,13 @@ static NSMutableDictionary *string_cache;
 		// Find "last" matching array
 		for (enumerator = [ResourceManager reversePathEnumerator]; (path = [enumerator nextObject]); )
 		{
-			if (foldername != nil)
+			if (folderName != nil)
 			{
-				arrayPath = [[path stringByAppendingPathComponent:foldername] stringByAppendingPathComponent:filename];
+				arrayPath = [[path stringByAppendingPathComponent:folderName] stringByAppendingPathComponent:fileName];
 				array = OOArrayFromFile(arrayPath);
 				if (array != nil)  break;
 			}
-			arrayPath = [path stringByAppendingPathComponent:filename];
+			arrayPath = [path stringByAppendingPathComponent:fileName];
 			array = OOArrayFromFile(arrayPath);
 			if (array != nil)  break;
 		}
@@ -520,12 +549,12 @@ static NSMutableDictionary *string_cache;
 		results = [NSMutableArray array];
 		for (enumerator = [ResourceManager pathEnumerator]; (path = [enumerator nextObject]); )
 		{
-			arrayPath = [path stringByAppendingPathComponent:filename];
+			arrayPath = [path stringByAppendingPathComponent:fileName];
 			array = OOArrayFromFile(arrayPath);
 			if (array != nil)  [results addObject:array];
-			if (foldername != nil)
+			if (folderName != nil)
 			{
-				arrayPath = [[path stringByAppendingPathComponent:foldername] stringByAppendingPathComponent:filename];
+				arrayPath = [[path stringByAppendingPathComponent:folderName] stringByAppendingPathComponent:fileName];
 				array = OOArrayFromFile(arrayPath);
 				if (array != nil)  [results addObject:array];
 			}
@@ -624,22 +653,22 @@ static NSMutableDictionary *string_cache;
 }
 
 
-+ (OOMusic *) ooMusicNamed:(NSString *)filename inFolder:(NSString *)foldername
++ (OOMusic *) ooMusicNamed:(NSString *)fileName inFolder:(NSString *)folderName
 {
-	return [self retrieveFileNamed:filename
-						  inFolder:foldername
+	return [self retrieveFileNamed:fileName
+						  inFolder:folderName
 							 cache:&sound_cache
-							   key:[NSString stringWithFormat:@"OOMusic:%@:%@", foldername, filename]
+							   key:[NSString stringWithFormat:@"OOMusic:%@:%@", folderName, fileName]
 							 class:[OOMusic class]];
 }
 
 
-+ (OOSound *) ooSoundNamed:(NSString *)filename inFolder:(NSString *)foldername
++ (OOSound *) ooSoundNamed:(NSString *)fileName inFolder:(NSString *)folderName
 {
-	return [self retrieveFileNamed:filename
-						  inFolder:foldername
+	return [self retrieveFileNamed:fileName
+						  inFolder:folderName
 							 cache:&sound_cache
-							   key:[NSString stringWithFormat:@"OOSound:%@:%@", foldername, filename]
+							   key:[NSString stringWithFormat:@"OOSound:%@:%@", folderName, fileName]
 							 class:[OOSound class]];
 }
 

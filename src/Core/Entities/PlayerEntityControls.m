@@ -55,7 +55,7 @@ static NSString * const kOOLogFlightTrainingBeacons		= @"beacon.list.flightTrain
 
 - (void) initControls
 {
-	NSMutableDictionary	*kdic = [NSMutableDictionary dictionaryWithDictionary:[ResourceManager dictionaryFromFilesNamed:@"keyconfig.plist" inFolder:@"Config" andMerge:YES]];
+	NSMutableDictionary	*kdic = [NSMutableDictionary dictionaryWithDictionary:[ResourceManager dictionaryFromFilesNamed:@"keyconfig.plist" inFolder:@"Config" mergeMode:MERGE_BASIC cache:NO]];
 	
 	// pre-process kdic - replace any strings with an integer representing the ASCII value of the first character
 	

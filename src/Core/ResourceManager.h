@@ -33,7 +33,13 @@ MA 02110-1301, USA.
 @class OOSound, OOMusic;
 
 
-BOOL always_include_addons;
+typedef enum
+{
+	MERGE_NONE,		// Just use the last file in search order.
+	MERGE_BASIC,	// Merge files by adding the top-level items of each file.
+	MERGE_SMART		// Merge files by merging the top-level elements of each file (second-order merge, but not recursive)
+} OOResourceMergeMode;
+
 
 @interface ResourceManager : NSObject
 
@@ -43,7 +49,7 @@ BOOL always_include_addons;
 + (NSArray *)paths;				// builtInPath or pathsWithAddOns, depending on useAddOns state.
 + (BOOL)useAddOns;
 + (void)setUseAddOns:(BOOL)useAddOns;
-+ (void)addExternalPath:(NSString *)filename;
++ (void)addExternalPath:(NSString *)fileName;
 + (NSEnumerator *)pathEnumerator;
 + (NSEnumerator *)reversePathEnumerator;
 
@@ -51,15 +57,23 @@ BOOL always_include_addons;
 
 + (NSString *) pathForFileNamed:(NSString *)fileName inFolder:(NSString *)folderName;
 
-+ (NSDictionary *) dictionaryFromFilesNamed:(NSString *)filename inFolder:(NSString *)foldername andMerge:(BOOL) mergeFiles;
-+ (NSDictionary *) dictionaryFromFilesNamed:(NSString *)filename inFolder:(NSString *)foldername andMerge:(BOOL) mergeFiles smart:(BOOL) smartMerge;
-+ (NSArray *) arrayFromFilesNamed:(NSString *)filename inFolder:(NSString *)foldername andMerge:(BOOL) mergeFiles;
++ (NSDictionary *)dictionaryFromFilesNamed:(NSString *)fileName
+								  inFolder:(NSString *)folderName
+								  andMerge:(BOOL) mergeFiles;
++ (NSDictionary *)dictionaryFromFilesNamed:(NSString *)fileName
+								  inFolder:(NSString *)folderName
+								 mergeMode:(OOResourceMergeMode)mergeMode
+									 cache:(BOOL)cache;
 
-+ (OOSound *) ooSoundNamed:(NSString *)filename inFolder:(NSString *)foldername;
-+ (OOMusic *) ooMusicNamed:(NSString *)filename inFolder:(NSString *)foldername;
++ (NSArray *)arrayFromFilesNamed:(NSString *)fileName
+						inFolder:(NSString *)folderName
+						andMerge:(BOOL) mergeFiles;
 
-+ (NSString *) stringFromFilesNamed:(NSString *)filename inFolder:(NSString *)foldername;
++ (OOSound *)ooSoundNamed:(NSString *)fileName inFolder:(NSString *)folderName;
++ (OOMusic *)ooMusicNamed:(NSString *)fileName inFolder:(NSString *)folderName;
 
-+ (NSDictionary *) loadScripts;
++ (NSString *)stringFromFilesNamed:(NSString *)fileName inFolder:(NSString *)folderName;
+
++ (NSDictionary *)loadScripts;
 
 @end
