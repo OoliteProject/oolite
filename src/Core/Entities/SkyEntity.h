@@ -36,13 +36,12 @@ MA 02110-1301, USA.
 
 @interface SkyEntity: OOEntityWithDrawable
 {
-	OOColor					*sky_color;
+	OOColor					*skyColor;
 }
 
-- (id) initWithColors:(OOColor *) col1:(OOColor *) col2 andSystemInfo:(NSDictionary *) systeminfo;
-- (id) initAsWitchspace;
+- (id) initWithColors:(OOColor *)col1 :(OOColor *)col2 andSystemInfo:(NSDictionary *)systemInfo;
 
-- (OOColor *) sky_color;
+- (OOColor *)skyColor;
 
 @end
 
@@ -102,7 +101,7 @@ typedef struct
 
 @interface SkyEntity: Entity
 {
-	OOColor					*sky_color;
+	OOColor					*skyColor;
 	
 	SkyStarsData			starsData;
 	SkyBlobsData			blobsData;
@@ -117,10 +116,9 @@ typedef struct
     GLuint					displayListName;
 }
 
-- (id) initWithColors:(OOColor *) col1:(OOColor *) col2 andSystemInfo:(NSDictionary *) systeminfo;
-- (id) initAsWitchspace;
+- (id) initWithColors:(OOColor *)col1 :(OOColor *)col2 andSystemInfo:(NSDictionary *)systemInfo;
 
-- (OOColor *) sky_color;
+- (OOColor *)skyColor;
 
 @end
 

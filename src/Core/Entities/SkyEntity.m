@@ -69,7 +69,7 @@ MA 02110-1301, USA.
 	
 	// Load colours
 	[self readColor1:&col1 andColor2:&col2 fromDictionary:systemInfo];
-	sky_color = [[col2 blendedColorWithFraction:0.5 ofColor:col1] retain];
+	skyColor = [[col2 blendedColorWithFraction:0.5 ofColor:col1] retain];
 	
 	// Load distribution values
 	clusterChance = [systemInfo floatForKey:@"sky_blur_cluster_chance" defaultValue:SKY_clusterChance];
@@ -116,25 +116,17 @@ MA 02110-1301, USA.
 }
 
 
-- (id) initAsWitchspace
-{
-	NSDictionary *info = [[UNIVERSE planetinfo] objectForKey:@"interstellar space"];
-	
-	return [self initWithColors:nil :nil andSystemInfo:info];
-}
-
-
 - (void) dealloc
 {
-	[sky_color release];
+	[skyColor release];
 	
 	[super dealloc];
 }
 
 
-- (OOColor *) sky_color
+- (OOColor *) skyColor
 {
-	return sky_color;
+	return skyColor;
 }
 
 
@@ -297,7 +289,7 @@ static OOTexture		*sStarTexture, *sBlobTexture;
 	
 	// Load colours
 	[self readColor1:&col1 andColor2:&col2 fromDictionary:systemInfo];
-	sky_color = [[col2 blendedColorWithFraction:0.5 ofColor:col1] retain];
+	skyColor = [[col2 blendedColorWithFraction:0.5 ofColor:col1] retain];
 	
 	// Load distribution values
 	blob_cluster_chance = [systemInfo floatForKey:@"sky_blur_cluster_chance" defaultValue:SKY_BLOB_CLUSTER_CHANCE];
@@ -341,17 +333,9 @@ static OOTexture		*sStarTexture, *sBlobTexture;
 }
 
 
-- (id) initAsWitchspace
-{
-	NSDictionary *info = [[UNIVERSE planetinfo] objectForKey:@"interstellar space"];
-	
-	return [self initWithColors:nil :nil andSystemInfo:info];
-}
-
-
 - (void) dealloc
 {
-	[sky_color release];
+	[skyColor release];
 	
 	[[OOGraphicsResetManager sharedManager] unregisterClient:self];
 	glDeleteLists(displayListName, 1);
@@ -360,9 +344,9 @@ static OOTexture		*sStarTexture, *sBlobTexture;
 }
 
 
-- (OOColor *) sky_color
+- (OOColor *) skyColor
 {
-	return sky_color;
+	return skyColor;
 }
 
 

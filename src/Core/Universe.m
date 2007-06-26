@@ -668,24 +668,19 @@ static BOOL MaintainLinkedLists(Universe* uni);
 		
 		// check at this point
 		// for scripted overrides for this insterstellar area
-		if ([planetinfo objectForKey:PLANETINFO_UNIVERSAL_KEY])
-			[systeminfo addEntriesFromDictionary:(NSDictionary *)[planetinfo objectForKey:PLANETINFO_UNIVERSAL_KEY]];
-		if ([planetinfo objectForKey:override_key])
-			[systeminfo addEntriesFromDictionary:(NSDictionary *)[planetinfo objectForKey:override_key]];
-		if ([local_planetinfo_overrides objectForKey:override_key])
-			[systeminfo addEntriesFromDictionary:(NSDictionary *)[local_planetinfo_overrides objectForKey:override_key]];
+		[systeminfo addEntriesFromDictionary:[planetinfo dictionaryForKey:PLANETINFO_UNIVERSAL_KEY]];
+		[systeminfo addEntriesFromDictionary:[planetinfo dictionaryForKey:@"interstellar space"]];
+		[systeminfo addEntriesFromDictionary:[planetinfo dictionaryForKey:override_key]];
+		[systeminfo addEntriesFromDictionary:[local_planetinfo_overrides dictionaryForKey:override_key]];
 	}
 	
 	[universeRegion clearSubregions];
-
 	
 	// fixed entities (part of the graphics system really) come first...
-	
 	
 	/*- the sky backdrop -*/
 	OOColor *col1 = [OOColor colorWithCalibratedRed:0.0 green:1.0 blue:0.5 alpha:1.0];
 	OOColor *col2 = [OOColor colorWithCalibratedRed:0.0 green:1.0 blue:0.0 alpha:1.0];
-//	thing = [[SkyEntity alloc] initAsWitchspace];	// alloc retains!
 	thing = [[SkyEntity alloc] initWithColors:col1:col2 andSystemInfo: systeminfo];	// alloc retains!
 	[thing setScanClass: CLASS_NO_DRAW];
 	quaternion_set_random(&randomQ);
@@ -697,7 +692,7 @@ static BOOL MaintainLinkedLists(Universe* uni);
 	/*- the dust particle system -*/
 	thing = [[DustEntity alloc] init];	// alloc retains!
 	[thing setScanClass: CLASS_NO_DRAW];
-	[self addEntity:thing]; // [entities addObject:thing];
+	[self addEntity:thing];
 	[thing release];
 	/*--*/
 	
@@ -716,9 +711,7 @@ static BOOL MaintainLinkedLists(Universe* uni);
 	OOLog(kOOLogUniversePopulateWitchspace, @"Populating witchspace ...");
 	OOLogIndentIf(kOOLogUniversePopulateWitchspace);
 	
-	
 	// actual thargoids and tharglets next...
-	
 	int n_thargs = 2 + (ranrot_rand() & 3);
 	if (n_thargs < 1)
 		n_thargs = 2;   // just to be sure
@@ -747,7 +740,6 @@ static BOOL MaintainLinkedLists(Universe* uni);
 			[thargoid setScanClass: CLASS_THARGOID];
 			[thargoid setBounty:100];
 			[thargoid setStatus:STATUS_IN_FLIGHT];
-	//		[thargoid setReportAImessages:YES];
 			[self addEntity:thargoid];
 			if (thargoid_group == NO_TARGET)
 				thargoid_group = [thargoid universalID];
@@ -757,8 +749,6 @@ static BOOL MaintainLinkedLists(Universe* uni);
 			[thargoid release];
 		}
 	}
-	
-	// NEW
 	
 	// systeminfo might have a 'script_actions' resource we want to activate now...
 	
@@ -815,7 +805,7 @@ static BOOL MaintainLinkedLists(Universe* uni);
 	thing = [[SkyEntity alloc] initWithColors:col1:col2 andSystemInfo: systeminfo];	// alloc retains!
 	[thing setScanClass: CLASS_NO_DRAW];
 	[self addEntity:thing]; // [entities addObject:thing];
-	bgcolor = [(SkyEntity *)thing sky_color];
+	bgcolor = [(SkyEntity *)thing skyColor];
 	pale_bgcolor = [bgcolor blendedColorWithFraction:0.5 ofColor:[OOColor whiteColor]];
 	[thing release];
 	/*--*/
@@ -1096,7 +1086,7 @@ GLfloat docked_light_specular[]	= { (GLfloat) 1.0, (GLfloat) 1.0, (GLfloat) 0.5,
 	{
 		// ambient lighting!
 		float r,g,b,a;
-		[[the_sky sky_color] getRed:&r green:&g blue:&b alpha:&a];
+		[[the_sky skyColor] getRed:&r green:&g blue:&b alpha:&a];
 		GLfloat ambient_level = [systeminfo floatForKey:@"ambient_level" defaultValue:1.0];
 		stars_ambient[0] = ambient_level * 0.0625 * (1.0 + r) * (1.0 + r);
 		stars_ambient[1] = ambient_level * 0.0625 * (1.0 + g) * (1.0 + g);
