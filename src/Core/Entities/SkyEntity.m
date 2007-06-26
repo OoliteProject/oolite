@@ -255,7 +255,8 @@ MA 02110-1301, USA.
 #define CHECK(x)		do { {x;} CheckOpenGLErrors(@"%s (line %u) after %@", __FUNCTION__, __LINE__, @#x); } while (0)
 #define CHECK_INFO(m)	do { CheckOpenGLErrors(@"%s (line %u) %@", __FUNCTION__, __LINE__, m); } while (0)
 #else
-#define CHECK(x)		do {x} while (0)
+#define CHECK(x)		do {x;} while (0)
+#define CHECK_INFO(m)
 #endif
 
 

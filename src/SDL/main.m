@@ -36,6 +36,10 @@ GameController* controller;
 
 int debug = NO;
 
+#ifndef NDEBUG
+uint32_t gDebugFlags = 0;
+#endif
+
 
 #ifdef OOLITE_SDL_MAC
 #define main SDL_main
