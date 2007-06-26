@@ -34,7 +34,6 @@ MA 02110-1301, USA.
 GameController* controller;
 #endif
 
-int debug = NO;
 
 #ifndef NDEBUG
 uint32_t gDebugFlags = 0;
