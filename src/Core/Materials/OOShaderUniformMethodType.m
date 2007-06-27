@@ -1,0 +1,236 @@
+/*
+
+OOShaderUniformMethodType.m
+
+Oolite
+Copyright (C) 2004-2007 Giles C Williams and contributors
+
+This program is free software; you can redistribute it and/or
+modify it under the terms of the GNU General Public License
+as published by the Free Software Foundation; either version 2
+of the License, or (at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program; if not, write to the Free Software
+Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
+MA 02110-1301, USA.
+
+
+This file may also be distributed under the MIT/X11 license:
+
+Copyright (C) 2007 Jens Ayton
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+
+*/
+
+#ifndef NO_SHADERS
+
+#import "OOShaderUniformMethodType.h"
+#import "OOMaths.h"
+
+static BOOL				sInited = NO;
+static const char		*sTemplates[kOOShaderUniformTypeCount];
+
+static void InitTemplates(void);
+static const char *CopyTemplateForSelector(SEL selector);
+
+
+OOShaderUniformType OOShaderUniformTypeFromMethodSignature(NSMethodSignature *signature)
+{
+	unsigned				i;
+	const char				*typeCode = NULL;
+	
+	if (EXPECT_NOT(sInited == NO))  InitTemplates();
+	
+	typeCode = [signature methodReturnType];
+	if (EXPECT_NOT(typeCode == NULL))  return kOOShaderUniformTypeInvalid;
+	
+	for (i = kOOShaderUniformTypeInvalid + 1; i != kOOShaderUniformTypeCount; ++i)
+	{
+		if (sTemplates[i] != NULL && strcmp(sTemplates[i], typeCode) == 0)  return i;
+	}
+	
+	return kOOShaderUniformTypeInvalid;
+}
+
+
+@interface OOShaderUniformTypeMethodSignatureTemplateClass: NSObject
+
+- (float)floatMethod;
+- (double)doubleMethod;
+- (signed char)signedCharMethod;
+- (unsigned char)unsignedCharMethod;
+- (signed short)signedShortMethod;
+- (unsigned short)unsignedShortMethod;
+- (signed int)signedIntMethod;
+- (unsigned int)unsignedIntMethod;
+- (signed long)signedLongMethod;
+- (unsigned long)unsignedLongMethod;
+- (Vector)vectorMethod;
+- (Quaternion)quaternionMethod;
+- (Matrix)matrixMethod;
+- (NSPoint)pointMethod;
+- (id)idMethod;
+
+@end
+
+
+static void InitTemplates(void)
+{
+	#define GET_TEMPLATE(enumValue, sel) do { \
+					sTemplates[enumValue] = CopyTemplateForSelector(@selector(sel)); \
+				} while (0)
+	
+	GET_TEMPLATE(kOOShaderUniformTypeChar,			signedCharMethod);
+	GET_TEMPLATE(kOOShaderUniformTypeUnsignedChar,	unsignedCharMethod);
+	GET_TEMPLATE(kOOShaderUniformTypeShort,			signedShortMethod);
+	GET_TEMPLATE(kOOShaderUniformTypeUnsignedShort,	unsignedShortMethod);
+	GET_TEMPLATE(kOOShaderUniformTypeInt,			signedIntMethod);
+	GET_TEMPLATE(kOOShaderUniformTypeUnsignedInt,	unsignedIntMethod);
+	GET_TEMPLATE(kOOShaderUniformTypeLong,			signedLongMethod);
+	GET_TEMPLATE(kOOShaderUniformTypeUnsignedLong,	unsignedLongMethod);
+	GET_TEMPLATE(kOOShaderUniformTypeFloat,			floatMethod);
+	GET_TEMPLATE(kOOShaderUniformTypeDouble,		doubleMethod);
+	GET_TEMPLATE(kOOShaderUniformTypeVector,		vectorMethod);
+	GET_TEMPLATE(kOOShaderUniformTypeQuaternion,	quaternionMethod);
+	GET_TEMPLATE(kOOShaderUniformTypeMatrix,		matrixMethod);
+	GET_TEMPLATE(kOOShaderUniformTypePoint,			pointMethod);
+	GET_TEMPLATE(kOOShaderUniformTypeObject,		idMethod);
+	
+	sInited = YES;
+}
+
+
+static const char *CopyTemplateForSelector(SEL selector)
+{
+	NSMethodSignature		*signature = nil;
+	const char				*typeCode = NULL;
+	
+	signature = [OOShaderUniformTypeMethodSignatureTemplateClass instanceMethodSignatureForSelector:selector];
+	typeCode = [signature methodReturnType];
+	
+	/*	typeCode is *probably* a constant, but this isn't formally guaranteed
+		as far as I'm aware, so we make a copy of it.
+	*/
+	return typeCode ? strdup(typeCode) : NULL;
+}
+
+
+@implementation OOShaderUniformTypeMethodSignatureTemplateClass: NSObject
+
+- (signed char)signedCharMethod
+{
+	return 0;
+}
+
+
+- (unsigned char)unsignedCharMethod
+{
+	return 0;
+}
+
+
+- (signed short)signedShortMethod
+{
+	return 0;
+}
+
+
+- (unsigned short)unsignedShortMethod
+{
+	return 0;
+}
+
+
+- (signed int)signedIntMethod
+{
+	return 0;
+}
+
+
+- (unsigned int)unsignedIntMethod
+{
+	return 0;
+}
+
+
+- (signed long)signedLongMethod
+{
+	return 0;
+}
+
+
+- (unsigned long)unsignedLongMethod
+{
+	return 0;
+}
+
+
+- (float)floatMethod
+{
+	return 0.0f;
+}
+
+
+- (double)doubleMethod
+{
+	return 0.0;
+}
+
+
+- (Vector)vectorMethod
+{
+	Vector v = {0};
+	return v;
+}
+
+
+- (Quaternion)quaternionMethod
+{
+	Quaternion q = {0};
+	return q;
+}
+
+
+- (Matrix)matrixMethod
+{
+	return kZeroMatrix;
+}
+
+
+- (NSPoint)pointMethod
+{
+	return NSZeroPoint;
+}
+
+
+- (id)idMethod
+{
+	return nil;
+}
+
+@end
+
+#endif	// NO_SHADERS

@@ -53,23 +53,7 @@ SOFTWARE.
 #import <string.h>
 #import "OOMaths.h"
 #import "OOOpenGLExtensionManager.h"
-
-
-typedef enum
-{
-	kOOShaderUniformTypeInvalid,
-	kOOShaderUniformTypeChar,		// Binding only
-	kOOShaderUniformTypeShort,		// Binding only
-	kOOShaderUniformTypeInt,
-	kOOShaderUniformTypeLong,		// Binding only
-	kOOShaderUniformTypeFloat,
-	kOOShaderUniformTypeDouble,		// Binding only
-	kOOShaderUniformTypeVector,
-	kOOShaderUniformTypeQuaternion,	// Binding only
-	kOOShaderUniformTypeMatrix,
-	kOOShaderUniformTypePoint,		// Binding only
-	kOOShaderUniformTypeObject		// Binding only
-} OOShaderUniformType;
+#import "OOShaderUniformMethodType.h"
 
 
 typedef char (*CharReturnMsgSend)(id, SEL);
@@ -296,9 +280,13 @@ OOINLINE BOOL ValidBindingType(OOShaderUniformType type)
 	switch (type)
 	{
 		case kOOShaderUniformTypeChar:
+		case kOOShaderUniformTypeUnsignedChar:
 		case kOOShaderUniformTypeShort:
+		case kOOShaderUniformTypeUnsignedShort:
 		case kOOShaderUniformTypeInt:
+		case kOOShaderUniformTypeUnsignedInt:
 		case kOOShaderUniformTypeLong:
+		case kOOShaderUniformTypeUnsignedLong:
 			valueType = @"int";
 			break;
 		
@@ -332,10 +320,9 @@ OOINLINE BOOL ValidBindingType(OOShaderUniformType type)
 - (void)setBindingTarget:(id<OOWeakReferenceSupport>)target
 {
 	BOOL					OK = YES;
-	NSMethodSignature		*sig = nil;
+	NSMethodSignature		*signature = nil;
 	unsigned				argCount;
 	NSString				*methodProblem = nil;
-	const char				*typeCode = NULL;
 	
 	if (!isBinding)  return;
 	if (EXPECT_NOT([value.binding.object weakRefUnderlyingObject] == target))  return;
@@ -369,8 +356,8 @@ OOINLINE BOOL ValidBindingType(OOShaderUniformType type)
 	
 	if (OK)
 	{
-		sig = [(id)target methodSignatureForSelector:value.binding.selector];
-		if (sig == nil)
+		signature = [(id)target methodSignatureForSelector:value.binding.selector];
+		if (signature == nil)
 		{
 			methodProblem = @"could not retrieve method signature";
 			OK = NO;
@@ -379,7 +366,7 @@ OOINLINE BOOL ValidBindingType(OOShaderUniformType type)
 	
 	if (OK)
 	{
-		argCount = [sig numberOfArguments];
+		argCount = [signature numberOfArguments];
 		if (argCount != 2)	// "no-arguments" methods actually take two arguments, self and _msg.
 		{
 			methodProblem = @"only methods which do not require arguments may be bound to";
@@ -389,29 +376,11 @@ OOINLINE BOOL ValidBindingType(OOShaderUniformType type)
 	
 	if (OK)
 	{
-		typeCode = [sig methodReturnType];
-		
-		#define TYPE_MATCH(T, TC)  (0 == strcmp(@encode(T), TC))
-		
-		if (TYPE_MATCH(float, typeCode))  type = kOOShaderUniformTypeFloat;
-		else if (TYPE_MATCH(double, typeCode))  type = kOOShaderUniformTypeDouble;
-		else if (TYPE_MATCH(signed char, typeCode))  type = kOOShaderUniformTypeChar;
-		else if (TYPE_MATCH(unsigned char, typeCode))  type = kOOShaderUniformTypeChar;
-		else if (TYPE_MATCH(signed short, typeCode))  type = kOOShaderUniformTypeShort;
-		else if (TYPE_MATCH(unsigned short, typeCode))  type = kOOShaderUniformTypeShort;
-		else if (TYPE_MATCH(signed int, typeCode))  type = kOOShaderUniformTypeInt;
-		else if (TYPE_MATCH(unsigned int, typeCode))  type = kOOShaderUniformTypeInt;
-		else if (TYPE_MATCH(signed long, typeCode))  type = kOOShaderUniformTypeLong;
-		else if (TYPE_MATCH(unsigned long, typeCode))  type = kOOShaderUniformTypeLong;
-		else if (TYPE_MATCH(Vector, typeCode))  type = kOOShaderUniformTypeVector;
-		else if (TYPE_MATCH(Quaternion, typeCode))  type = kOOShaderUniformTypeQuaternion;
-		else if (TYPE_MATCH(Matrix, typeCode))  type = kOOShaderUniformTypeMatrix;
-		else if (TYPE_MATCH(NSPoint, typeCode))  type = kOOShaderUniformTypePoint;
-		else if (TYPE_MATCH(id, typeCode))  type = kOOShaderUniformTypeObject;
-		else
+		type = OOShaderUniformTypeFromMethodSignature(signature);
+		if (type == kOOShaderUniformTypeInvalid)
 		{
 			OK = NO;
-			methodProblem = [NSString stringWithFormat:@"unsupported type \"%s\"", typeCode];
+			methodProblem = [NSString stringWithFormat:@"unsupported type \"%s\"", [signature methodReturnType]];
 		}
 	}
 	
@@ -506,21 +475,25 @@ OOINLINE BOOL ValidBindingType(OOShaderUniformType type)
 	switch (type)
 	{
 		case kOOShaderUniformTypeChar:
+		case kOOShaderUniformTypeUnsignedChar:
 			iVal = ((CharReturnMsgSend)value.binding.method)(object, value.binding.selector);
 			isInt = YES;
 			break;
 		
 		case kOOShaderUniformTypeShort:
+		case kOOShaderUniformTypeUnsignedShort:
 			iVal = ((ShortReturnMsgSend)value.binding.method)(object, value.binding.selector);
 			isInt = YES;
 			break;
 		
 		case kOOShaderUniformTypeInt:
+		case kOOShaderUniformTypeUnsignedInt:
 			iVal = ((IntReturnMsgSend)value.binding.method)(object, value.binding.selector);
 			isInt = YES;
 			break;
 		
 		case kOOShaderUniformTypeLong:
+		case kOOShaderUniformTypeUnsignedLong:
 			iVal = ((LongReturnMsgSend)value.binding.method)(object, value.binding.selector);
 			isInt = YES;
 			break;
