@@ -45,6 +45,26 @@ SOFTWARE.
 
 */
 
+
+/*
+	For shader uniform binding to work, it is necessary to be able to tell the
+	return type of a method. This is done by comparing the methodReturnType of
+	a method's NSMethodSignature to those of methods in a template class, one
+	method for each supported return type.
+	
+	Under OS X, the methodReturnType for a type foo is simply @encode(foo),
+	but under the GNU runtime, it is the @encode() string for the entire
+	method signature. In general, this is platform-defined. In order to
+	maintain an implementation-agnostic approach, we get the signature from a
+	known method of each time at runtime.
+	
+	NOTE: the GNU runtime's approach means that the methodReturnType differs
+	between different method signatures with the same return type. For
+	instance, a method -(id)foo:(int) will have a different methodReturnType
+	than a method -(id)foo. As far as I can see this is a bug, but Oolite only
+	supports binding to methods with no parameters, so this is not a problem.
+*/
+
 #ifndef NO_SHADERS
 
 #import "OOShaderUniformMethodType.h"

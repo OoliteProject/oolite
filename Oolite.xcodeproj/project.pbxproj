@@ -333,6 +333,8 @@
 		1A5DBAB00BC000DC00D57389 /* OOSTokenizer.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A5DBAA40BC000DC00D57389 /* OOSTokenizer.m */; };
 		1A5DBD580BC17F0900D57389 /* NSStringOOExtensions.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A5DBD560BC17F0900D57389 /* NSStringOOExtensions.h */; };
 		1A5DBD590BC17F0900D57389 /* NSStringOOExtensions.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A5DBD570BC17F0900D57389 /* NSStringOOExtensions.m */; };
+		1A5E462F0C32DACE008104B4 /* OOShaderUniformMethodType.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A5E462D0C32DACE008104B4 /* OOShaderUniformMethodType.m */; };
+		1A5E46300C32DACE008104B4 /* OOShaderUniformMethodType.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A5E462E0C32DACE008104B4 /* OOShaderUniformMethodType.h */; };
 		1A71E6F80BCE345000CD5C13 /* libpng.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 1A71E6F30BCE340C00CD5C13 /* libpng.a */; };
 		1A71E7170BCE34CF00CD5C13 /* pngconf.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A71E7030BCE34CF00CD5C13 /* pngconf.h */; };
 		1A71E7180BCE34CF00CD5C13 /* pngmem.c in Sources */ = {isa = PBXBuildFile; fileRef = 1A71E7040BCE34CF00CD5C13 /* pngmem.c */; };
@@ -1184,6 +1186,8 @@
 		1A5DBAA40BC000DC00D57389 /* OOSTokenizer.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOSTokenizer.m; sourceTree = "<group>"; };
 		1A5DBD560BC17F0900D57389 /* NSStringOOExtensions.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = NSStringOOExtensions.h; sourceTree = "<group>"; };
 		1A5DBD570BC17F0900D57389 /* NSStringOOExtensions.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = NSStringOOExtensions.m; sourceTree = "<group>"; };
+		1A5E462D0C32DACE008104B4 /* OOShaderUniformMethodType.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOShaderUniformMethodType.m; sourceTree = "<group>"; };
+		1A5E462E0C32DACE008104B4 /* OOShaderUniformMethodType.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOShaderUniformMethodType.h; sourceTree = "<group>"; };
 		1A71D85A0BCA88AA00CD5C13 /* OOPlayer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOPlayer.h; sourceTree = "<group>"; };
 		1A71D85B0BCA88AA00CD5C13 /* OOPlayer.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOPlayer.m; sourceTree = "<group>"; };
 		1A71D89F0BCA8B6500CD5C13 /* OOLocalPlayer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOLocalPlayer.h; sourceTree = "<group>"; };
@@ -1926,6 +1930,8 @@
 				1A26D0D90BCF9D1E0073F257 /* OOShaderProgram.m */,
 				1A26D0D80BCF9D1E0073F257 /* OOShaderUniform.h */,
 				1A26D0DB0BCF9D1E0073F257 /* OOShaderUniform.m */,
+				1A5E462E0C32DACE008104B4 /* OOShaderUniformMethodType.h */,
+				1A5E462D0C32DACE008104B4 /* OOShaderUniformMethodType.m */,
 			);
 			name = Shaders;
 			sourceTree = "<group>";
@@ -2434,6 +2440,7 @@
 				1A15044B0C12C50D0032F3E8 /* OOSkyDrawable.h in Headers */,
 				1A15049E0C12CA070032F3E8 /* OOProbabilisticTextureManager.h in Headers */,
 				1AC775E20C2DD4E900ECFF3B /* OODebugGLDrawing.h in Headers */,
+				1A5E46300C32DACE008104B4 /* OOShaderUniformMethodType.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -2676,6 +2683,7 @@
 				1A15049F0C12CA070032F3E8 /* OOProbabilisticTextureManager.m in Sources */,
 				1AE546310C19A2E2005B89F3 /* JoystickHandler.m in Sources */,
 				1AC775E30C2DD4E900ECFF3B /* OODebugGLDrawing.m in Sources */,
+				1A5E462F0C32DACE008104B4 /* OOShaderUniformMethodType.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
