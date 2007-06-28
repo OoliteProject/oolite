@@ -20,8 +20,6 @@
 		0878FD30086EF845004CB752 /* Carbon.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0878FD2F086EF845004CB752 /* Carbon.framework */; };
 		1A08317D0C2EED9700E3AE25 /* debugLogMessageClassesMenu.plist in Copy Debug Add-ons */ = {isa = PBXBuildFile; fileRef = 1A08317C0C2EED9700E3AE25 /* debugLogMessageClassesMenu.plist */; };
 		1A1502F60C1201C30032F3E8 /* oolite-unknown-ship.dat in Copy Models */ = {isa = PBXBuildFile; fileRef = 1A1502F50C1201C30032F3E8 /* oolite-unknown-ship.dat */; };
-		1A15044B0C12C50D0032F3E8 /* OOSkyDrawable.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A1504490C12C50D0032F3E8 /* OOSkyDrawable.h */; };
-		1A15044C0C12C50D0032F3E8 /* OOSkyDrawable.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A15044A0C12C50D0032F3E8 /* OOSkyDrawable.m */; };
 		1A15049E0C12CA070032F3E8 /* OOProbabilisticTextureManager.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A15049C0C12CA070032F3E8 /* OOProbabilisticTextureManager.h */; };
 		1A15049F0C12CA070032F3E8 /* OOProbabilisticTextureManager.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A15049D0C12CA070032F3E8 /* OOProbabilisticTextureManager.m */; };
 		1A2315520B9C778400EF0852 /* solar.png in Copy Images */ = {isa = PBXBuildFile; fileRef = 1A23154E0B9C778400EF0852 /* solar.png */; };
@@ -2437,7 +2435,6 @@
 				1A2A1DEC0BD2A28E00152975 /* OOMacroOpenGL.h in Headers */,
 				1AED2D0C0C04586C004A1118 /* OOGraphicsResetManager.h in Headers */,
 				1AED2DE70C046BA2004A1118 /* OODebugController.h in Headers */,
-				1A15044B0C12C50D0032F3E8 /* OOSkyDrawable.h in Headers */,
 				1A15049E0C12CA070032F3E8 /* OOProbabilisticTextureManager.h in Headers */,
 				1AC775E20C2DD4E900ECFF3B /* OODebugGLDrawing.h in Headers */,
 				1A5E46300C32DACE008104B4 /* OOShaderUniformMethodType.h in Headers */,
@@ -2679,7 +2676,6 @@
 				1A5AA3230C0098AF0029C78A /* OOOpenGL.m in Sources */,
 				1AED2D0D0C04586C004A1118 /* OOGraphicsResetManager.m in Sources */,
 				1AED2DE80C046BA2004A1118 /* OODebugController.m in Sources */,
-				1A15044C0C12C50D0032F3E8 /* OOSkyDrawable.m in Sources */,
 				1A15049F0C12CA070032F3E8 /* OOProbabilisticTextureManager.m in Sources */,
 				1AE546310C19A2E2005B89F3 /* JoystickHandler.m in Sources */,
 				1AC775E30C2DD4E900ECFF3B /* OODebugGLDrawing.m in Sources */,

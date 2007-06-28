@@ -39,8 +39,8 @@ MA 02110-1301, USA.
 #import "OOCollectionExtractors.h"
 
 
-#define SKY_MAX_STARS				4800
-#define SKY_MAX_BLOBS				1280
+#define SKY_MAX_STARS			4800
+#define SKY_MAX_BLOBS			1280
 #define SKY_clusterChance		0.80
 #define SKY_alpha				0.10
 #define SKY_scale				10.0
@@ -248,7 +248,7 @@ MA 02110-1301, USA.
 
 
 #define MULTI_TEXTURE_BLOBS			0		// Not fully implemented yet
-#define CHECK_ERROR_AT_EACH_STEP	1
+#define CHECK_ERROR_AT_EACH_STEP	0
 
 
 #if CHECK_ERROR_AT_EACH_STEP
