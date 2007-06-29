@@ -163,7 +163,7 @@ MA 02110-1301, USA.
 	timeIntervalAtLastClick = [NSDate timeIntervalSinceReferenceDate];
 
 	m_glContextInitialized = NO;
-
+	
    return self;
 }
 
@@ -1178,24 +1178,32 @@ MA 02110-1301, USA.
 - (int) loadFullscreenSettings
 {
    currentSize=0;
-   int width=0, height=0, refresh=0;
+   int width=0, height=0, refresh=0, i;
+   NSArray* cmdline_arguments = [[NSProcessInfo processInfo] arguments];
 
-  	NSUserDefaults *userDefaults = [NSUserDefaults standardUserDefaults];
+	NSUserDefaults *userDefaults = [NSUserDefaults standardUserDefaults];
 	if ([userDefaults objectForKey:@"display_width"])
 		width = [userDefaults integerForKey:@"display_width"];
 	if ([userDefaults objectForKey:@"display_height"])
 		height = [userDefaults integerForKey:@"display_height"];
 	if ([userDefaults objectForKey:@"display_refresh"])
 		refresh = [userDefaults integerForKey:@"display_refresh"];
-   if([userDefaults objectForKey:@"fullscreen"])
-      fullScreen=[userDefaults boolForKey:@"fullscreen"];
+	if([userDefaults objectForKey:@"fullscreen"])
+		fullScreen=[userDefaults boolForKey:@"fullscreen"];
+		
+	// Check if -fullscreen has been passed on the command line. If yes, set it regardless of
+	// what is set by .GNUstepDefaults.
+   	for (i = 0; i < [cmdline_arguments count]; i++)
+   	{
+   		if ([[cmdline_arguments objectAtIndex:i] isEqual:@"-fullscreen"]) fullScreen = YES;
+   	}
 
-   if(width && height)
-   {
-      currentSize=[self findDisplayModeForWidth: width Height: height Refresh: refresh];
-      return currentSize;
-   }
-   return currentSize;
+   	if(width && height)
+   	{
+      		currentSize=[self findDisplayModeForWidth: width Height: height Refresh: refresh];
+      		return currentSize;
+   	}
+   	return currentSize;
 }
 
 

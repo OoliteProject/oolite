@@ -65,8 +65,15 @@ int main(int argc, char *argv[])
 
 	for (i = 1; i < argc; i++)
 	{
+		// The commented out lines below do not seem to do anything, at least on Windows.
+		// The -fullscreen argument processing has been implemented in the loadFullscreenSettings
+		// method, inside src/SDL/MyOpenGLView.m.
+		/*
+		 -------- Begin commented out section --------
 		if (strcmp("-fullscreen", argv[i]) == 0)
 			[controller setFullScreenMode: YES];
+		--------- End commented out section --------
+		*/
 
 		if (strcmp("-load", argv[i]) == 0)
 		{

@@ -75,5 +75,5 @@ Oolite Message board at: http://www.aegidian.org/bb
 
 Browse the Oolite wiki at: http://wiki.alioth.net/index.php/Oolite_Main_Page
 
-Get OXPs at: http://oosat.alioth.net/
-
+Get OXPs at: 	http://wiki.alioth.net/index.php/OXP
+		http://oosat.alioth.net/
