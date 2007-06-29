@@ -302,7 +302,11 @@ static NSString *MacrosToString(NSDictionary *macros);
 			value = [definition objectForKey:@"value"];
 			binding = [definition objectForKey:@"binding"];
 			type = [definition objectForKey:@"type"];
-			if (type == nil)  type = @"float";
+			if (type == nil)
+			{
+				if (value == nil && binding != nil)  type = @"binding";
+				else  type = @"float";
+			}
 		}
 		else if ([definition isKindOfClass:[NSNumber class]])
 		{
