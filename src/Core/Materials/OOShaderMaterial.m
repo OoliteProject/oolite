@@ -279,6 +279,7 @@ static NSString *MacrosToString(NSDictionary *macros);
 	NSString				*name = nil;
 	id						definition = nil;
 	id						value = nil;
+	NSString				*binding = nil;
 	NSString				*type = nil;
 	GLfloat					floatValue;
 	BOOL					gotValue;
@@ -292,25 +293,26 @@ static NSString *MacrosToString(NSDictionary *macros);
 		uniform = nil;
 		definition = [uniformDefs objectForKey:name];
 		
+		type = nil;
+		value = nil;
+		binding = nil;
+		
 		if ([definition isKindOfClass:[NSDictionary class]])
 		{
 			value = [definition objectForKey:@"value"];
+			binding = [definition objectForKey:@"binding"];
 			type = [definition objectForKey:@"type"];
+			if (type == nil)  type = @"float";
 		}
 		else if ([definition isKindOfClass:[NSNumber class]])
 		{
 			value = definition;
 			type = @"float";
 		}
-		else if ([definition isEqual:@"binding"])
+		else if ([definition isKindOfClass:[NSString class]])
 		{
-			value = name;
+			binding = definition;
 			type = @"binding";
-		}
-		else
-		{
-			type = nil;
-			value = nil;
 		}
 		
 		if ([type isEqualToString:@"float"] || [type isEqualToString:@"real"])
@@ -343,14 +345,17 @@ static NSString *MacrosToString(NSDictionary *macros);
 		}
 		else if (target != nil && [type isEqualToString:@"binding"])
 		{
-			selector = NSSelectorFromString(value);
+			selector = NSSelectorFromString(binding);
 			if (selector)
 			{
 				if ([definition isKindOfClass:[NSDictionary class]])
 				{
 					convertOptions = 0;
 					if ([definition boolForKey:@"clamped" defaultValue:NO])  convertOptions |= kOOUniformConvertClamp;
-					if ([definition boolForKey:@"normalized" defaultValue:NO])  convertOptions |= kOOUniformConvertNormalize;
+					if ([definition boolForKey:@"normalized" defaultValue:[definition boolForKey:@"normalised" defaultValue:NO]])
+					{
+						convertOptions |= kOOUniformConvertNormalize;
+					}
 					if ([definition boolForKey:@"asMatrix" defaultValue:YES])  convertOptions |= kOOUniformConvertToMatrix;
 				}
 				else
@@ -365,7 +370,7 @@ static NSString *MacrosToString(NSDictionary *macros);
 		
 		if (!gotValue)
 		{
-			OOLog(@"shader.uniform.badDescription", @"----- Warning: could not bind uniform \"%@\" -- could not interpret definition:\n", name, definition);
+			OOLog(@"shader.uniform.badDescription", @"----- Warning: could not bind uniform \"%@\" -- could not interpret definition:\n%@", name, definition);
 		}
 	}
 }
