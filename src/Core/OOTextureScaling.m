@@ -853,11 +853,10 @@ static void StretchHorizontally1(OOScalerPixMap srcPx, OOScalerPixMap dstPx)
 	deltaX = (srcPx.width << 12) / dstPx.width;
 	px1 = *srcStart;
 	
-	for (y = 0; y != dstPx.height; ++y)
+	for (y = 0; y < dstPx.height - 1; ++y)
 	{
 		fractX = 0;
 		
-		if (y == dstPx.height - 1)  --xCount;
 		for (x = 0; x!= xCount; ++x)
 		{
 			fractX += deltaX;
@@ -876,8 +875,21 @@ static void StretchHorizontally1(OOScalerPixMap srcPx, OOScalerPixMap dstPx)
 		px1 = *srcStart;
 	}
 	
-	// Copy last pixel without reading off end of buffer
-	*dst++ = px1;
+	// Copy last row without reading off end of buffer
+	fractX = 0;
+	for (x = 0; x!= xCount; ++x)
+	{
+		fractX += deltaX;
+		
+		weight1 = (fractX >> 4) & 0xFF;
+		weight0 = 0x100 - weight1;
+		
+		px0 = px1;
+		src = srcStart + (fractX >> 12);
+		px1 = *src;
+		
+		*dst++ = (px0 * weight0 + px1 * weight1) >> 8;
+	}
 }
 
 
@@ -898,11 +910,10 @@ static void StretchHorizontally4(OOScalerPixMap srcPx, OOScalerPixMap dstPx)
 	deltaX = (srcPx.width << 12) / dstPx.width;
 	px1 = *srcStart;
 	
-	for (y = 0; y != dstPx.height; ++y)
+	for (y = 0; y < dstPx.height - 1; ++y)
 	{
 		fractX = 0;
 		
-		if (y == dstPx.height - 1)  --xCount;
 		for (x = 0; x!= xCount; ++x)
 		{
 			fractX += deltaX;
@@ -924,8 +935,24 @@ static void StretchHorizontally4(OOScalerPixMap srcPx, OOScalerPixMap dstPx)
 		px1 = *srcStart;
 	}
 	
-	// Copy last pixel without reading off end of buffer
-	*dst++ = px1;
+	// Copy last row without reading off end of buffer
+	fractX = 0;
+	for (x = 0; x!= xCount; ++x)
+	{
+		fractX += deltaX;
+		
+		weight1 = (fractX >> 4) & 0xFF;
+		weight0 = 0x100 - weight1;
+		
+		px0 = px1;
+		src = srcStart + (fractX >> 12);
+		if (EXPECT(x < xCount - 1))  px1 = *src;
+		
+		ag = ((px0 & 0xFF00FF00) >> 8) * weight0 + ((px1 & 0xFF00FF00) >> 8) * weight1;
+		br = (px0 & 0x00FF00FF) * weight0 + (px1 & 0x00FF00FF) * weight1;
+		
+		*dst++ = (ag & 0xFF00FF00) | ((br & 0xFF00FF00) >> 8);
+	}
 }
 
 

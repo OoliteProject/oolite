@@ -34,7 +34,7 @@ typedef GLfloat	gl_matrix[16];
 
 /* NOTE: this definition makes Matrix a pointer type. */
 //typedef Vector Matrix[3];
-typedef struct
+typedef struct Matrix
 {
 	Vector				m[3];
 } Matrix;
