@@ -251,12 +251,21 @@ void *OOScalePixMap(void *srcPixels, OOTextureDimension srcWidth, OOTextureDimen
 		dstPx = srcPx;
 	}
 	
+	// Avoid a potential double free (if the realloc in EnsureCorrectDataSize() relocates the block).
+	if (srcPx.pixels == dstPx.pixels)  srcPx.pixels = NULL;
+	
 	// dstPx is now the result.
 	OK = EnsureCorrectDataSize(&dstPx, leaveSpaceForMipMaps);
 	
 FAIL:
-	if (srcPx.pixels != NULL && srcPx.pixels != dstPx.pixels)  free(srcPx.pixels);
-	if (sparePx.pixels != NULL && sparePx.pixels != dstPx.pixels && sparePx.pixels != srcPx.pixels)  free(sparePx.pixels);
+	if (srcPx.pixels != NULL)
+	{
+		free(srcPx.pixels);
+	}
+	if (sparePx.pixels != NULL && sparePx.pixels != dstPx.pixels && sparePx.pixels != srcPx.pixels)
+	{
+		free(sparePx.pixels);
+	}
 	if (!OK && dstPx.pixels != NULL)
 	{
 		free(dstPx.pixels);
@@ -1249,18 +1258,24 @@ static BOOL EnsureCorrectDataSize(OOScalerPixMap *pixMap, BOOL leaveSpaceForMipM
 	void				*bytes = NULL;
 	
 	correctSize = pixMap->rowBytes * pixMap->height;
+	
+	/*	Ensure that the block is not too small. This needs to be done before
+		adding the mip-map space, as the texture may have been shrunk in place
+		without being grown for mip-maps.
+	*/
+	if (EXPECT_NOT(pixMap->dataSize < correctSize))
+	{
+		OOLogGenericParameterError();
+		return NO;
+	}
+	
 	if (leaveSpaceForMipMaps)  correctSize = correctSize * 4 / 3;
-	if (correctSize < pixMap->dataSize)
+	if (correctSize != pixMap->dataSize)
 	{
 		bytes = realloc(pixMap->pixels, correctSize);
 		if (EXPECT_NOT(bytes == NULL))  free(pixMap->pixels);
 		pixMap->pixels = bytes;
 		pixMap->dataSize = correctSize;
-	}
-	else if (EXPECT_NOT(pixMap->dataSize < correctSize))
-	{
-		OOLogGenericParameterError();
-		return NO;
 	}
 	
 	return YES;
