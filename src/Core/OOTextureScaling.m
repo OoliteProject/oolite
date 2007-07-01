@@ -111,7 +111,7 @@ static void SqueezeHorizontally4(OOScalerPixMap srcPx, OOTextureDimension dstWid
 static void SqueezeHorizontally1(OOScalerPixMap srcPx, OOTextureDimension dstWidth);
 
 
-static void EnsureCorrectDataSize(OOScalerPixMap *pixMap, BOOL leaveSpaceForMipMaps) NONNULL_FUNC;
+static BOOL EnsureCorrectDataSize(OOScalerPixMap *pixMap, BOOL leaveSpaceForMipMaps) NONNULL_FUNC;
 
 
 #if !OOLITE_NATIVE_64_BIT
@@ -171,6 +171,7 @@ static void DumpMipMap(void *data, OOTextureDimension width, OOTextureDimension 
 void *OOScalePixMap(void *srcPixels, OOTextureDimension srcWidth, OOTextureDimension srcHeight, OOTexturePlaneCount planes, size_t srcRowBytes, OOTextureDimension dstWidth, OOTextureDimension dstHeight, BOOL leaveSpaceForMipMaps)
 {
 	OOScalerPixMap		srcPx, dstPx = {0}, sparePx = {0};
+	BOOL				OK = YES;
 	
 	//	Sanity check.
 	if (EXPECT_NOT(srcPixels == NULL || (planes != 4 && planes != 1) || (srcRowBytes < srcWidth * planes)))
@@ -251,11 +252,16 @@ void *OOScalePixMap(void *srcPixels, OOTextureDimension srcWidth, OOTextureDimen
 	}
 	
 	// dstPx is now the result.
-	EnsureCorrectDataSize(&dstPx, leaveSpaceForMipMaps);
+	OK = EnsureCorrectDataSize(&dstPx, leaveSpaceForMipMaps);
 	
 FAIL:
 	if (srcPx.pixels != NULL && srcPx.pixels != dstPx.pixels)  free(srcPx.pixels);
 	if (sparePx.pixels != NULL && sparePx.pixels != dstPx.pixels && sparePx.pixels != srcPx.pixels)  free(sparePx.pixels);
+	if (!OK && dstPx.pixels != NULL)
+	{
+		free(dstPx.pixels);
+		dstPx.pixels = NULL;
+	}
 	
 	return dstPx.pixels;
 }
@@ -1237,7 +1243,7 @@ static void SqueezeVertically4(OOScalerPixMap srcPx, OOTextureDimension dstHeigh
 }
 
 
-static void EnsureCorrectDataSize(OOScalerPixMap *pixMap, BOOL leaveSpaceForMipMaps)
+static BOOL EnsureCorrectDataSize(OOScalerPixMap *pixMap, BOOL leaveSpaceForMipMaps)
 {
 	size_t				correctSize;
 	void				*bytes = NULL;
@@ -1254,7 +1260,8 @@ static void EnsureCorrectDataSize(OOScalerPixMap *pixMap, BOOL leaveSpaceForMipM
 	else if (EXPECT_NOT(pixMap->dataSize < correctSize))
 	{
 		OOLogGenericParameterError();
-		free(pixMap->pixels);
-		pixMap->pixels = NULL;
+		return NO;
 	}
+	
+	return YES;
 }
