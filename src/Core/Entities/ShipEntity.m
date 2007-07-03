@@ -359,8 +359,8 @@ static NSString * const kOOLogEntityBehaviourChanged	= @"entity.behaviour.change
 	// scripting
 	// TODO: use OOScript here. -- Ahruman
 	launch_actions = [[shipDict arrayForKey:KEY_LAUNCH_ACTIONS] copy];
-	script_actions = [[shipDict arrayForKey:KEY_LAUNCH_ACTIONS] copy];
-	death_actions = [[shipDict arrayForKey:KEY_LAUNCH_ACTIONS] copy];
+	script_actions = [[shipDict arrayForKey:KEY_SCRIPT_ACTIONS] copy];
+	death_actions = [[shipDict arrayForKey:KEY_DEATH_ACTIONS] copy];
 	NSArray *setUpActions = [shipDict arrayForKey:KEY_SETUP_ACTIONS];
 	if (setUpActions != nil)
 	{
