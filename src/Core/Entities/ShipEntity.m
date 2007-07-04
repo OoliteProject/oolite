@@ -365,7 +365,7 @@ static NSString * const kOOLogEntityBehaviourChanged	= @"entity.behaviour.change
 	if (setUpActions != nil)
 	{
 		PlayerEntity* player = [PlayerEntity sharedPlayer];
-		[player setScript_target:self];
+		[player setScriptTarget:self];
 		[player scriptActions:setUpActions forTarget:self];
 	}
 	
@@ -1228,7 +1228,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	//scripting
 	if (launch_actions != nil && status == STATUS_IN_FLIGHT)
 	{
-		[[PlayerEntity sharedPlayer] setScript_target:self];
+		[[PlayerEntity sharedPlayer] setScriptTarget:self];
 		[[PlayerEntity sharedPlayer] scriptActions:launch_actions forTarget:self];
 		[launch_actions release];
 		launch_actions = nil;
@@ -3397,7 +3397,7 @@ static GLfloat mascem_color2[4] =	{ 0.4, 0.1, 0.4, 1.0};	// purple
 	{
 		PlayerEntity* player = [PlayerEntity sharedPlayer];
 
-		[player setScript_target:self];
+		[player setScriptTarget:self];
 		[player scriptActions:death_actions forTarget:self];
 		
 		[death_actions release];
@@ -3851,7 +3851,7 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 	{
 		PlayerEntity* player = [PlayerEntity sharedPlayer];
 
-		[player setScript_target:self];
+		[player setScriptTarget:self];
 		[player scriptActions:death_actions forTarget:self];
 		
 		[death_actions release];
@@ -5987,7 +5987,7 @@ BOOL	class_masslocks(int some_class)
 				{
 					PlayerEntity* player = [PlayerEntity sharedPlayer];
 					
-					[player setScript_target:self];
+					[player setScriptTarget:self];
 					[player scriptActions:actions forTarget:other];
 
 				}

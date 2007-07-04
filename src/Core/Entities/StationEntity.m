@@ -1206,7 +1206,7 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 		//scripting
 		if ([script_actions count])
 		{
-			[(PlayerEntity *)ship setScript_target:self];
+			[(PlayerEntity *)ship setScriptTarget:self];
 			[(PlayerEntity *)ship scriptActions: script_actions forTarget: ship];
 		}
 	}

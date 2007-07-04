@@ -823,7 +823,7 @@ static PlayerEntity *sSharedPlayer = nil;
 	NSArray *scriptKeys = [script allKeys];
 	for (i = 0; i < [scriptKeys count]; i++)  [local_variables setObject:[NSMutableDictionary dictionary] forKey:[scriptKeys objectAtIndex:i]];
 	
-	[self setScript_target:nil];
+	[self setScriptTarget:nil];
 	[self resetMissionChoice];
 	
 	[reputation release];
@@ -3411,7 +3411,7 @@ double scoopSoundPlayTime = 0.0;
 		if (!system_name)
 			return;
 		// set the following so removeEquipment works on the right entity
-		[self setScript_target:self];
+		[self setScriptTarget:self];
 		[UNIVERSE clearPreviousMessage];
 		[self removeEquipment:system_key];
 		if (![UNIVERSE strict])
@@ -5814,7 +5814,7 @@ OOSound* burnersound;
 }
 
 
-- (void) setScript_target:(ShipEntity *)ship
+- (void) setScriptTarget:(ShipEntity *)ship
 {
 	script_target = ship;
 }

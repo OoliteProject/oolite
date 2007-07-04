@@ -628,7 +628,7 @@ typedef enum
 - (void) loopAfterburnerSound;
 - (void) stopAfterburnerSound;
 
-- (void) setScript_target:(ShipEntity *)ship;
+- (void) setScriptTarget:(ShipEntity *)ship;
 - (ShipEntity*) script_target;
  
 - (void) getFined;
