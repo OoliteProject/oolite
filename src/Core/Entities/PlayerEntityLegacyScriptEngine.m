@@ -885,7 +885,7 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 	if (script_target != self)  return;
 	
 	int award = 10 * [valueString intValue];
-	if (credits < -award)  credits = 0;
+	if ((int)credits < -award)  credits = 0;
 	else  credits += award;
 }
 
