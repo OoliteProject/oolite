@@ -87,7 +87,11 @@ static BOOL		sCheckedExtensions = NO;
 #if OOLITE_BIG_ENDIAN
 	#define RGBA_IMAGE_TYPE GL_UNSIGNED_INT_8_8_8_8_REV
 #elif OOLITE_LITTLE_ENDIAN
-	#define RGBA_IMAGE_TYPE GL_UNSIGNED_INT_8_8_8_8
+	#if OOLITE_WINDOWS
+		#define RGBA_IMAGE_TYPE GL_UNSIGNED_BYTE
+	#else
+		#define RGBA_IMAGE_TYPE GL_UNSIGNED_INT_8_8_8_8
+	#endif
 #else
 	#error Neither OOLITE_BIG_ENDIAN nor OOLITE_LITTLE_ENDIAN is defined as nonzero!
 #endif
