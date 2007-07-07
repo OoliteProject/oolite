@@ -43,7 +43,7 @@ MA 02110-1301, USA.
 		NSMutableArray *contents=[NSMutableArray arrayWithArray:[self directoryContentsAtPath: @"."]];
 
 		// at this point we should strip out any files not loadable as Oolite saved games
-		int i;
+		unsigned i;
 		for (i = 0; i < [contents count]; i++)
 		{
 			NSString* path = (NSString*)[contents objectAtIndex:i];
@@ -79,17 +79,13 @@ MA 02110-1301, USA.
 		NSMutableArray *contents=[NSMutableArray arrayWithArray:[self directoryContentsAtPath: savePath]];
 				
 		// at this point we should strip out any files not loadable as Oolite saved games
-		int i;
+		unsigned i;
 		for (i = 0; i < [contents count]; i++)
 		{
 			NSString* path = [savePath stringByAppendingPathComponent: (NSString*)[contents objectAtIndex:i]];
 			
-			// check if it's a directory
-			if ([[NSFileManager defaultManager] fileExistsAtPath:path isDirectory:&pathIsDirectory] && pathIsDirectory)
-			{
-//				NSLog(@">>>> %@ is a directory", path);	// we're going to keep directories
-			}
-			else
+			// ensure it's not a directory
+			if (![[NSFileManager defaultManager] fileExistsAtPath:path isDirectory:&pathIsDirectory] && pathIsDirectory)
 			{
 				
 				// check file extension

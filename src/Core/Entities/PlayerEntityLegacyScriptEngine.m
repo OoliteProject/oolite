@@ -35,6 +35,7 @@ MA 02110-1301, USA.
 #import "OOStringParsing.h"
 #import "OOConstToString.h"
 #import "OOTexture.h"
+#import "OOCollectionExtractors.h"
 
 #import "PlanetEntity.h"
 #import "ParticleEntity.h"
@@ -101,6 +102,8 @@ static NSString * const kOOLogSyntaxMessageShipAIs			= @"script.debug.syntax.mes
 static NSString * const kOOLogSyntaxSet						= @"script.debug.syntax.set";
 static NSString * const kOOLogSyntaxReset					= @"script.debug.syntax.reset";
 
+static NSString * const kOOLogRemoveAllCargoNotDocked		= @"script.error.removeAllCargo.notDocked";
+
 
 @implementation PlayerEntity (Scripting)
 
@@ -137,7 +140,7 @@ static NSString * mission_key;
 
 - (void) scriptActions:(NSArray*) some_actions forTarget:(ShipEntity*) a_target
 {
-	int i;
+	unsigned i;
 	
 	for (i = 0; i < [some_actions count]; i++)
 	{
@@ -157,7 +160,7 @@ static NSString * mission_key;
 	NSArray				*actions = (NSArray *)[couplet objectForKey:@"do"];
 	NSArray				*else_actions = (NSArray *)[couplet objectForKey:@"else"];
 	BOOL				success = YES;
-	int					i;
+	unsigned			i;
 	
 	if (conditions == nil)
 	{
@@ -361,7 +364,7 @@ static NSString * mission_key;
 	if ([tokens count] > 2)
 	{
 		NSMutableString* allValues = [NSMutableString stringWithCapacity:256];
-		int value_index = 2;
+		unsigned value_index = 2;
 		while (value_index < [tokens count])
 		{
 			valueString = (NSString *)[tokens objectAtIndex:value_index++];
@@ -404,7 +407,7 @@ static NSString * mission_key;
 				return ([result floatValue] > [valueString floatValue]);
 			case COMPARISON_ONEOF:
 				{
-					int i;
+					unsigned i;
 					NSArray *valueStrings = [valueString componentsSeparatedByString:@","];
 					OOLog(kOOLogDebugTestConditionOnOf, @"performing a ONEOF comparison: is %@ ONEOF %@ ?", result, valueStrings);
 					NSString* r1 = [result stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceCharacterSet]];
@@ -429,7 +432,7 @@ static NSString * mission_key;
 		{
 			NSArray *valueStrings = [valueString componentsSeparatedByString:@","];
 			OOLog(kOOLogDebugTestConditionOnOf, @"performing a ONEOF comparison with %d elements: is %@ ONEOF %@", [valueStrings count], result, valueStrings);
-			int i;
+			unsigned i;
 			for (i = 0; i < [valueStrings count]; i++)
 			{
 				NSNumber *value = [NSNumber numberWithDouble:[[valueStrings objectAtIndex: i] doubleValue]];
@@ -911,7 +914,7 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 	if (script_target != self)  return;
 	
 	int award = 10 * [valueString intValue];
-	if (award < 0 && credits < -award)  credits = 0;
+	if (award < 0 && credits < (unsigned)-award)  credits = 0;
 	else  credits += award;
 }
 
@@ -1018,41 +1021,45 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 {
 	if (script_target != self)  return;
 
-	NSArray*	tokens = ScanTokensFromString(amount_typeString);
-	NSString*   amountString = nil;
-	NSString*	typeString = nil;
+	NSArray					*tokens = ScanTokensFromString(amount_typeString);
+	NSString				*typeString = nil;
+	OOCargoQuantityDelta	amount;
+	OOCargoType				type;
+	OOMassUnit				unit;
+	NSArray					*commodityArray = nil;
+	NSString				*cargoString = nil;
 
 	if ([tokens count] != 2)
 	{
 		OOLog(kOOLogSyntaxAwardCargo, @"***** CANNOT awardCargo: '%@' (%@)",amount_typeString, @"bad parameter count");
 		return;
 	}
-
-	amountString =	(NSString *)[tokens objectAtIndex:0];
-	typeString =	(NSString *)[tokens objectAtIndex:1];
-
-	int amount =	[amountString intValue];
-	int type =		[UNIVERSE commodityForName:typeString];
+	
+	typeString = [tokens objectAtIndex:1];
+	type = [UNIVERSE commodityForName:typeString];
 	if (type == NSNotFound)  type = [typeString intValue];
 	
-	if ((type < 0)||(type >= [[UNIVERSE commoditydata] count]))
+	commodityArray = [UNIVERSE commidityDataForType:type];
+	
+	if (commodityArray == nil)
 	{
 		OOLog(kOOLogSyntaxAwardCargo, @"***** CANNOT awardCargo: '%@' (%@)", amount_typeString, @"unknown type");
 		return;
 	}
+	
+	amount = [tokens intAtIndex:0];
 	if (amount < 0)
 	{
 		OOLog(kOOLogSyntaxAwardCargo, @"***** CANNOT awardCargo: '%@' (%@)", amount_typeString, @"negative quantity");
 		return;
 	}
+	
+	cargoString = [commodityArray objectAtIndex:MARKET_NAME];
 
-	NSArray* commodityArray = (NSArray *)[[UNIVERSE commoditydata] objectAtIndex:type];
-	NSString* cargoString = [(NSArray*)commodityArray objectAtIndex:MARKET_NAME];
+	OOLog(kOOLogNoteAwardCargo, @"Going to award cargo: %d x '%@'", amount, cargoString);
 
-	OOLog(kOOLogNoteAwardCargo, @"Going to award cargo %d x '%@'", amount, cargoString);
-
-	int unit = [[commodityArray objectAtIndex:MARKET_UNITS] intValue];
-
+	unit = [commodityArray intAtIndex:MARKET_UNITS];
+	
 	if (status != STATUS_DOCKED)
 	{	// in-flight
 		while (amount)
@@ -1126,27 +1133,34 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 
 - (void) removeAllCargo
 {
-	int type;
-
+	OOCargoType				type;
+	OOMassUnit				unit;
+	
 	if (script_target != self)  return;
-
-	OOLog(kOOLogNoteRemoveAllCargo, @"Going to removeAllCargo");
-
-	NSMutableArray* manifest = [NSMutableArray arrayWithArray:shipCommodityData];
-	for (type = 0; type < [manifest count]; type++)
+	if (status != STATUS_DOCKED)
 	{
-		NSMutableArray* manifest_commodity = [NSMutableArray arrayWithArray:(NSArray *)[manifest objectAtIndex:type]];
-		int unit = [(NSNumber *)[manifest_commodity objectAtIndex:MARKET_UNITS] intValue];
-		if (unit == 0)
+		OOLog(kOOLogRemoveAllCargoNotDocked, @"***** Error: removeAllCargo only works when docked.");
+		return;
+	}
+	
+	OOLog(kOOLogNoteRemoveAllCargo, @"Going to removeAllCargo");
+	
+	NSMutableArray *manifest = [NSMutableArray arrayWithArray:shipCommodityData];
+	for (type = 0; type < (OOCargoType)[manifest count]; type++)
+	{
+		NSMutableArray *manifest_commodity = [NSMutableArray arrayWithArray:[manifest arrayAtIndex:type]];
+		unit = [manifest_commodity intAtIndex:MARKET_UNITS];
+		if (unit == UNITS_TONS)
 		{
 			[manifest_commodity replaceObjectAtIndex:MARKET_QUANTITY withObject:[NSNumber numberWithInt:0]];
 			[manifest replaceObjectAtIndex:type withObject:[NSArray arrayWithArray:manifest_commodity]];
 		}
 	}
+	
 	[shipCommodityData release];
-	shipCommodityData = [[NSArray arrayWithArray:manifest] retain];
-	if (specialCargo)
-		[specialCargo release];
+	shipCommodityData = [manifest mutableCopy];
+	
+	[specialCargo release];
 	specialCargo = nil;
 }
 
@@ -1628,7 +1642,7 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 	NSArray			*paras = [text componentsSeparatedByString:@"\\n"];
 	if (text)
 	{
-		int i;
+		unsigned i;
 		for (i = 0; i < [paras count]; i++)
 			missionTextRow = [gui addLongText:[self replaceVariablesInString:(NSString *)[paras objectAtIndex:i]] startingAtRow:missionTextRow align:GUI_ALIGN_LEFT];
 	}
@@ -1693,7 +1707,7 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 
 - (void) addMissionDestination:(NSString *)destinations
 {
-	int i, j;
+	unsigned i, j;
 	NSNumber *pnump;
 	int pnum, dest;
 	NSMutableArray*	tokens = ScanTokensFromString(destinations);
@@ -1725,11 +1739,11 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 
 - (void) removeMissionDestination:(NSString *)destinations
 {
-	int i, j;
-	NSNumber *pnump;
-	int pnum, dest;
-	NSMutableArray*	tokens = ScanTokensFromString(destinations);
-	BOOL removeDestination;
+	unsigned			i, j;
+	NSNumber			*pnump = nil;
+	int					pnum, dest;
+	NSMutableArray		*tokens = ScanTokensFromString(destinations);
+	BOOL				removeDestination;
 
 	for (j = 0; j < [tokens count]; j++)
 	{
@@ -2003,11 +2017,11 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 
 - (NSString*) replaceVariablesInString:(NSString*) args
 {
-	NSMutableDictionary* locals = [local_variables objectForKey:mission_key];
-	NSMutableString*	resultString = [NSMutableString stringWithString: args];
-	NSString*			valueString;
-	int i;
-	NSMutableArray*	tokens = ScanTokensFromString(args);
+	NSMutableDictionary	*locals = [local_variables objectForKey:mission_key];
+	NSMutableString		*resultString = [NSMutableString stringWithString: args];
+	NSString			*valueString;
+	unsigned			i;
+	NSMutableArray		*tokens = ScanTokensFromString(args);
 
 	for (i = 0; i < [tokens  count]; i++)
 	{
@@ -2112,11 +2126,12 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 }
 
 
-- (void) addScene:(NSArray*) items atOffset:(Vector) off
+- (void) addScene:(NSArray *)items atOffset:(Vector)off
 {
-	if (!items)
-		return;
-	int i;
+	unsigned				i;
+	
+	if (items == nil)  return;
+	
 	for (i = 0; i < [items count]; i++)
 	{
 		NSObject* item = [items objectAtIndex:i];
@@ -2140,7 +2155,7 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 	if ([couplet objectForKey:@"else"])
 		else_actions = [NSArray arrayWithObject: [couplet objectForKey:@"else"]];
 	BOOL success = YES;
-	int i;
+	unsigned i;
 	if (conditions == nil)
 	{
 		NSLog(@"SCENE ERROR no 'conditions' in %@ - returning YES and performing 'do' actions.", [couplet description]);

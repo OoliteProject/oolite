@@ -62,10 +62,6 @@ MA 02110-1301, USA.
 #define true 1
 #define false 0
 
-#define kCGDisplayWidth (@"Width")
-#define kCGDisplayHeight (@"Height")
-#define kCGDisplayRefreshRate (@"RefreshRate")
-
 #if !defined(MAX)
     #define MAX(A,B)	({ __typeof__(A) __a = (A); __typeof__(B) __b = (B); __a > __b ? __a : __b; })
 #endif

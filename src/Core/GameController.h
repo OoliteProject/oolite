@@ -57,6 +57,19 @@ MA 02110-1301, USA.
 @class MyOpenGLView, TextureStore;
 
 
+#if OOLITE_MAC_OS_X
+#define kOODisplayWidth			((NSString *)kCGDisplayWidth)
+#define kOODisplayHeight		((NSString *)kCGDisplayHeight)
+#define kOODisplayRefreshRate	((NSString *)kCGDisplayRefreshRate)
+#define kOODisplayBitsPerPixel	((NSString *)kCGDisplayBitsPerPixel)
+#define kOODisplayIOFlags		((NSString *)kCGDisplayIOFlags)
+#else
+#define kOODisplayWidth			(@"Width")
+#define kOODisplayHeight		(@"Height")
+#define kOODisplayRefreshRate	(@"RefreshRate")
+#endif
+
+
 @interface GameController : NSObject
 {
 #if OOLITE_HAVE_APPKIT

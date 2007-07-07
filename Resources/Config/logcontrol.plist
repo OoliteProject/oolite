@@ -216,6 +216,9 @@
 	script.debug.syntax.set					= inherit;
 	script.debug.syntax.reset				= inherit;
 	
+	script.error							= $scriptError;
+	script.error.removeAllCargo.notDocked	= inherit;
+	
 	script.javaScript.load.success			= no;
 	script.javaScript.load.failed			= $scriptError;
 	script.javaScript.init.success			= no;

@@ -63,7 +63,7 @@ static NSString *MacrosToString(NSDictionary *macros);
 
 @interface OOShaderMaterial (OOPrivate)
 
-- (void)addTexturesFromArray:(NSArray *)textureNames unitCount:(GLint)max;
+- (void)addTexturesFromArray:(NSArray *)textureNames unitCount:(GLuint)max;
 
 @end
 
@@ -452,13 +452,13 @@ static NSString *MacrosToString(NSDictionary *macros);
 
 @implementation OOShaderMaterial (OOPrivate)
 
-- (void)addTexturesFromArray:(NSArray *)textureNames unitCount:(GLint)max
+- (void)addTexturesFromArray:(NSArray *)textureNames unitCount:(GLuint)max
 {
 	id						textureDef = nil;
 	unsigned				i = 0;
 	
 	// Allocate space for texture object name array
-	texCount = MAX(MIN(max, [textureNames count]), 0);
+	texCount = MAX(MIN(max, [textureNames count]), 0U);
 	if (texCount == 0)  return;
 	
 	textures = malloc(texCount * sizeof *textures);

@@ -264,7 +264,7 @@ static void MixDown(float *inChan1, float *inChan2, float *outMix, size_t inCoun
 	float					*buffer = NULL, *dst, **src;
 	size_t					sizeInFrames, remaining;
 	unsigned				chanCount;
-	unsigned				framesRead;
+	long					framesRead;
 	ogg_int64_t				totalSizeInFrames;
 	BOOL					OK = YES;
 	
@@ -329,7 +329,7 @@ static void MixDown(float *inChan1, float *inChan2, float *outMix, size_t inCoun
 	float					*bufferL = NULL, *bufferR = NULL, *dstL, *dstR, **src;
 	size_t					sizeInFrames, remaining;
 	unsigned				chanCount;
-	unsigned				framesRead;
+	long					framesRead;
 	ogg_int64_t				totalSizeInFrames;
 	BOOL					OK = YES;
 	
@@ -405,8 +405,8 @@ static void MixDown(float *inChan1, float *inChan2, float *outMix, size_t inCoun
 {
 	float					**src;
 	unsigned				chanCount;
-	unsigned				framesRead, size;
-	size_t					remaining;
+	long					framesRead;
+	size_t					size, remaining;
 	unsigned				rightChan;
 	
 	// Note: for our purposes, a frame is a set of one sample for each channel.

@@ -479,7 +479,7 @@ NSString *LegalStatusToString(int legalStatus)
 	enum { kStatusCount = 3 };
 	
 	static NSArray		*statusNames = nil;
-	const unsigned		statusThresholds[kStatusCount - 1] =
+	const int			statusThresholds[kStatusCount - 1] =
 						{
 							1,
 							51

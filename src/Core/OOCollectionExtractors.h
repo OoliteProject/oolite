@@ -9,6 +9,11 @@ y'know, good to have.
 Note on types: ideally, stdint.h types would be used for integers. However,
 NSNumber doesn't do this, so doing so portably would add new complications.
 
+Starting with Oolite 1.69.1, the various integer methods will always clamp
+values to the range of the return type, rather than truncating like NSNumber.
+Before that, they weren't entirely inconsistent.
+
+
 Oolite
 Copyright (C) 2004-2007 Giles C Williams and contributors
 
@@ -53,9 +58,7 @@ SOFTWARE.
 */
 
 #import <Foundation/Foundation.h>
-
-
-BOOL EvaluateAsBoolean(id object, BOOL defaultValue);
+#import "OOFunctionAttributes.h"
 
 
 @interface NSArray (OOExtractor)
@@ -236,3 +239,107 @@ BOOL EvaluateAsBoolean(id object, BOOL defaultValue);
 // - (NSData *)dataForKey:(id)key;
 
 @end
+
+
+@interface NSMutableArray (OOInserter)
+
+- (void)addInteger:(long)value;
+- (void)addUnsignedInteger:(unsigned long)value;
+- (void)addFloat:(double)value;
+- (void)addBool:(BOOL)value;
+
+- (void)insertInteger:(long)value atIndex:(unsigned)index;
+- (void)insertUnsignedInteger:(unsigned long)value atIndex:(unsigned)index;
+- (void)insertFloat:(double)value atIndex:(unsigned)index;
+- (void)insertBool:(BOOL)value atIndex:(unsigned)index;
+
+@end
+
+
+@interface NSMutableDictionary (OOInserter)
+
+- (void)setInteger:(long)value forKey:(id)key;
+- (void)setUnsignedInteger:(unsigned long)value forKey:(id)key;
+- (void)setFloat:(double)value forKey:(id)key;
+- (void)setBool:(BOOL)value forKey:(id)key;
+
+@end
+
+
+@interface NSMutableSet (OOInserter)
+
+- (void)addInteger:(long)value;
+- (void)addUnsignedInteger:(unsigned long)value;
+- (void)addFloat:(double)value;
+- (void)addBool:(BOOL)value;
+
+@end
+
+
+// *** Value extraction utilities ***
+
+/*	Utility function to interpret a boolean. May be an NSNumber or any of the
+	following strings (case-insensitive):
+		yes
+		true
+		on
+		
+		no
+		false
+		off
+*/
+BOOL OOBooleanFromObject(id object, BOOL defaultValue);
+
+
+/*	Utility function to interpret a fuzzy boolean. May be any of the strings
+	accepted by OOBooleanFromObject(), or a number indicating probability of
+	a yes (between 0 and 1).
+*/
+BOOL OOFuzzyBooleanFromObject(id object, BOOL defaultValue);
+
+
+float OOFloatFromObject(id object, float defaultValue);
+double OODoubleFromObject(id object, double defaultValue);
+
+
+OOINLINE long long OOClampInteger(long long value, long long minValue, long long maxValue) ALWAYS_INLINE_FUNC;
+long long OOLongLongFromObject(id object, long long defaultValue);
+unsigned long long OOUnsignedLongLongFromObject(id object, unsigned long long defaultValue);
+
+
+OOINLINE long long OOClampInteger(long long value, long long minValue, long long maxValue)
+{
+	return (minValue < value) ? ((value < maxValue) ? value : maxValue) : minValue;
+}
+
+
+/*	Define an inline function to clamp a give type and its unsigned
+	counterpart. Example:
+	
+		OO_DEFINE_CLAMP_PAIR(char, Char, CHAR)
+	
+	expands to
+	
+		OOINLINE char OOCharFromObject(id object, char defaultValue)
+		{
+			return OOClampInteger(OOLongLongFromObject(object, defaultValue), CHAR_MIN, CHAR_MAX);
+		}
+		OOINLINE unsigned char OOUnsignedCharFromObject(id object, unsigned char defaultValue)
+		{
+			return OOClampInteger(OOLongLongFromObject(object, defaultValue), 0, UCHAR_MAX);
+		}
+*/
+#define OO_DEFINE_CLAMP(type, typeName, min, max) \
+	OOINLINE type OO ## typeName ## FromObject(id object, type defaultValue) \
+	{ \
+		return OOClampInteger(OOLongLongFromObject(object, defaultValue), min, max); \
+	}
+
+#define OO_DEFINE_CLAMP_PAIR(type, typeName, minMaxSymb) \
+	OO_DEFINE_CLAMP(type, typeName, minMaxSymb ## _MIN, minMaxSymb ## _MAX) \
+	OO_DEFINE_CLAMP(unsigned type, Unsigned ## typeName, 0, U ## minMaxSymb ## _MAX)
+
+OO_DEFINE_CLAMP_PAIR(char, Char, CHAR)
+OO_DEFINE_CLAMP_PAIR(short, Short, SHRT)
+OO_DEFINE_CLAMP_PAIR(int, Int, INT)
+OO_DEFINE_CLAMP_PAIR(long, Long, LONG)

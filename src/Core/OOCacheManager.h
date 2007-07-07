@@ -37,7 +37,7 @@ enum
 {
 	kOOCacheMinimumPruneThreshold			= 25U,
 	kOOCacheDefaultPruneThreshold			= 200U,
-	kOOCacheNoPrune							= -1U
+	kOOCacheNoPrune							= 0xFFFFFFFFU
 };
 
 

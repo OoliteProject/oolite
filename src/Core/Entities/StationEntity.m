@@ -208,7 +208,7 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 
 - (void) sanityCheckShipsOnApproach
 {
-	int i;
+	unsigned i;
 	NSArray*	ships = [shipsOnApproach allKeys];
 	
 	// Remove dead entities.
@@ -244,7 +244,7 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 
 - (void) abortAllDockings
 {
-	int i;
+	unsigned i;
 	NSArray*	ships = [shipsOnApproach allKeys];
 	for (i = 0; i < [ships count]; i++)
 	{
@@ -271,7 +271,7 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 
 - (void) autoDockShipsOnApproach
 {
-	int i;
+	unsigned i;
 	NSArray*	ships = [shipsOnApproach allKeys];
 	for (i = 0; i < [ships count]; i++)
 	{
@@ -718,7 +718,7 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 
 - (void) setUpShipFromDictionary:(NSDictionary *) dict
 {
-	int			i;
+	unsigned		i;
 	
 	isShip = YES;
 	isStation = YES;
@@ -1121,12 +1121,12 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 }
 
 
-- (int) countShipsInLaunchQueueWithRole:(NSString *) a_role
+- (unsigned) countShipsInLaunchQueueWithRole:(NSString *) a_role
 {
 	if ([launchQueue count] == 0)
 		return 0;
-	int i;
-	int result = 0;
+	unsigned i;
+	unsigned result = 0;
 	for (i = 0; i < [launchQueue count]; i++)
 	{
 		if ([[(ShipEntity *)[launchQueue objectAtIndex:i] roles] isEqual:a_role])
@@ -1285,9 +1285,13 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 			alert_level = STATION_ALERT_LEVEL_YELLOW;
 			[shipAI reactToMessage:@"YELLOW_ALERT"];
 			break;
+		
 		case STATION_ALERT_LEVEL_YELLOW :
 			alert_level = STATION_ALERT_LEVEL_RED;
 			[shipAI reactToMessage:@"RED_ALERT"];
+			break;
+		
+		case STATION_ALERT_LEVEL_RED:
 			break;
 	}
 }
@@ -1301,9 +1305,13 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 			alert_level = STATION_ALERT_LEVEL_YELLOW;
 			[shipAI reactToMessage:@"CONDITION_YELLOW"];
 			break;
+		
 		case STATION_ALERT_LEVEL_YELLOW :
 			alert_level = STATION_ALERT_LEVEL_GREEN;
 			[shipAI reactToMessage:@"CONDITION_GREEN"];
+			break;
+		
+		case STATION_ALERT_LEVEL_GREEN:
 			break;
 	}
 }
@@ -1315,7 +1323,7 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 	if (techlevel == NSNotFound)
 		techlevel = 6;
 	int police_target = primaryTarget;
-	int i;
+	unsigned i;
 	for (i = 0; (i < 4)&&(police_launched < max_police) ; i++)
 	{
 		ShipEntity  *police_ship;
@@ -1430,7 +1438,7 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 {
 	ShipEntity  *scavenger_ship;
 	
-	int		scavs = [UNIVERSE countShipsWithRole:@"scavenger" inRange:SCANNER_MAX_RANGE ofEntity:self] + [self countShipsInLaunchQueueWithRole:@"scavenger"];
+	unsigned scavs = [UNIVERSE countShipsWithRole:@"scavenger" inRange:SCANNER_MAX_RANGE ofEntity:self] + [self countShipsInLaunchQueueWithRole:@"scavenger"];
 	
 	if (scavs >= max_scavengers)  return;
 	if (scavengers_launched >= max_scavengers)  return;
@@ -1756,7 +1764,7 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 		{
 			NSArray *conditions = (NSArray *)determinant;
 			BOOL success = YES;
-			int i;
+			unsigned i;
 			for (i = 0; (i < [conditions count])&&(success); i++)
 				success &= [player scriptTestCondition:(NSString *)[conditions objectAtIndex:i]];
 			return success;
@@ -1789,10 +1797,29 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 {
 	NSMutableArray		*flags = nil;
 	NSString			*flagsString = nil;
+	NSString			*alertString = nil;
 	
 	[super dumpSelfState];
 	
-	OOLog(@"dumpState.stationEntity", @"Alert level: %u", alert_level);
+	switch (alert_level)
+	{
+		case STATION_ALERT_LEVEL_GREEN:
+			alertString = @"green";
+			break;
+		
+		case STATION_ALERT_LEVEL_YELLOW:
+			alertString = @"yellow";
+			break;
+		
+		case STATION_ALERT_LEVEL_RED:
+			alertString = @"red";
+			break;
+		
+		default:
+			alertString = @"*** ERROR: UNKNOWN ALERT LEVEL ***";
+	}
+	
+	OOLog(@"dumpState.stationEntity", @"Alert level: %@", alertString);
 	OOLog(@"dumpState.stationEntity", @"Max police: %u", max_police);
 	OOLog(@"dumpState.stationEntity", @"Max defence ships: %u", max_defense_ships);
 	OOLog(@"dumpState.stationEntity", @"Police launched: %u", police_launched);

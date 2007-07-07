@@ -185,7 +185,7 @@ MA 02110-1301, USA.
 	
 	GLfloat					scannerRange;				// typically 25600
 	
-	int						missiles;					// number of on-board missiles
+	unsigned				missiles;					// number of on-board missiles
 	
 	OOBrain					*brain;						// brain controlling ship, could be a character brain or the autopilot
 	AI						*shipAI;					// ship's AI system
@@ -280,8 +280,7 @@ MA 02110-1301, USA.
 	Octree					*octree;
 	
 	// DEBUGGING
-	int						debug_flag;
-	int						debug_condition;
+	OOBehaviour				debug_condition;
 	
 	NSMutableDictionary		*materials;
 	

@@ -266,7 +266,7 @@ static void CacheSetName(OOCacheImpl *cache, NSString *name);
 
 - (void)setPruneThreshold:(unsigned)threshold
 {
-	threshold = MAX(threshold, kOOCacheMinimumPruneThreshold);
+	threshold = MAX(threshold, (unsigned)kOOCacheMinimumPruneThreshold);
 	if (threshold != pruneThreshold)
 	{
 		pruneThreshold = threshold;

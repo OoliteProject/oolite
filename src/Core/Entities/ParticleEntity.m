@@ -1026,7 +1026,7 @@ static	Vector	circleVertex[65];		// holds vector coordinates for a unit circle
 		NSArray* targets = [UNIVERSE getEntitiesWithinRange:radius ofEntity:self];
 		if ([targets count] > 0)
 		{
-			int i;
+			unsigned i;
 			for (i = 0; i < [targets count]; i++)
 			{
 				Entity *e2 = [targets objectAtIndex:i];
@@ -1099,7 +1099,7 @@ static	Vector	circleVertex[65];		// holds vector coordinates for a unit circle
 	// manageCollisions
 	if ([collidingEntities count] > 0)
 	{
-		int i;
+		unsigned i;
 		for (i = 0; i < [collidingEntities count]; i++)
 		{
 			Entity *	e = (Entity *)[collidingEntities objectAtIndex:i];
@@ -1116,7 +1116,7 @@ static	Vector	circleVertex[65];		// holds vector coordinates for a unit circle
 {
 	if ([collidingEntities count] > 0)
 	{
-		int i;
+		unsigned i;
 		for (i = 0; i < [collidingEntities count]; i++)
 		{
 			Entity *	e = (Entity *)[collidingEntities objectAtIndex:i];

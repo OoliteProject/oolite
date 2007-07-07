@@ -28,6 +28,7 @@ MA 02110-1301, USA.
 
 #import <Foundation/Foundation.h>
 #import "ShipEntity.h"
+#import "OOTypes.h"
 
 @class GuiDisplayGen, OOTrumble, MyOpenGLView, HeadUpDisplay, ShipEntity;
 @class OOSound, OOMusic, OOSoundSource, OOSoundReferencePoint;
@@ -221,7 +222,7 @@ typedef enum
 	
 	NSMutableDictionary		*reputation;
 	
-	int						max_passengers;
+	unsigned				max_passengers;
 	NSMutableArray			*passengers;
 	NSMutableDictionary		*passenger_record;
 	
@@ -296,11 +297,11 @@ typedef enum
 	OOSoundSource			*ecmSource;
 	OOSoundSource			*breakPatternSource;
 	
-	int						gui_screen;
+	OOGUIScreenID			gui_screen;
 	OOAlertFlags			alertFlags;
 	OOAlertCondition		alertCondition;
-	int						missile_status;
-	int						activeMissile;
+	OOMissileStatus			missile_status;
+	unsigned				activeMissile;
 	
 	OOCargoQuantity			current_cargo;
 	
@@ -308,7 +309,7 @@ typedef enum
 	double					witchspaceCountdown;
 	
 	// player commander data
-	NSString*				player_name;
+	NSString				*player_name;
 	NSPoint					galaxy_coordinates;
 	
 	Random_Seed				galaxy_seed;
@@ -325,8 +326,8 @@ typedef enum
 	OOEnergyUnitType		energy_unit;
 	int						shield_booster, shield_enhancer;
 	
-	int						max_missiles;		// int				- no. of missile pylons
-	ShipEntity*				missile_entity[SHIPENTITY_MAX_MISSILES];	// holds the actual missile entities or equivalents
+	unsigned				max_missiles;		// no. of missile pylons
+	ShipEntity				*missile_entity[SHIPENTITY_MAX_MISSILES];	// holds the actual missile entities or equivalents
 
 	int						legalStatus;
 	int						market_rnd;
@@ -538,8 +539,8 @@ typedef enum
 
 - (GLfloat) dialAltitude;
 
-- (int) countMissiles;
-- (int) dialMissileStatus;
+- (unsigned) countMissiles;
+- (OOMissileStatus) dialMissileStatus;
 
 - (int) dialFuelScoopStatus;
 
@@ -554,12 +555,12 @@ typedef enum
 - (void) setCompassMode:(OOCompassMode)value;
 - (void) setNextCompassMode;
 
-- (int) activeMissile;
-- (void) setActiveMissile:(int)value;
-- (int) dialMaxMissiles;
+- (unsigned) activeMissile;
+- (void) setActiveMissile:(unsigned)value;
+- (unsigned) dialMaxMissiles;
 - (BOOL) dialIdentEngaged;
 - (NSString *) dialTargetName;
-- (ShipEntity *) missileForStation:(int)value;
+- (ShipEntity *) missileForStation:(unsigned)value;
 - (void) sortMissiles;
 - (void) safeAllMissiles;
 - (void) selectNextMissile;
@@ -598,7 +599,6 @@ typedef enum
 - (void) setGuiToSystemDataScreen;
 - (NSArray *) markedDestinations;
 - (void) setGuiToLongRangeChartScreen;
-- (void) starChartDump;
 - (void) setGuiToShortRangeChartScreen;
 - (void) setGuiToLoadSaveScreen;
 - (void) setGuiToEquipShipScreen:(int) skip :(int) itemForSelectFacing;
@@ -609,7 +609,7 @@ typedef enum
 - (void) setGuiToIntro1Screen;
 - (void) setGuiToIntro2Screen;
 
-- (int) gui_screen;
+- (OOGUIScreenID) guiScreen;
 
 - (void) buySelectedItem;
 - (BOOL) tryBuyingItem:(int) index;

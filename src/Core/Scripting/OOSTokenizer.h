@@ -36,16 +36,16 @@ MA 02110-1301, USA.
 	char* cString;
 
 	// The zero based index of the next character to be parsed. 0 <= nextcharIdx < [stringToParse length]
-	int nextCharIdx;
+	unsigned nextCharIdx;
 
 	// The index to go back to when a pushBack is issued
-	int pushBackIdx;
+	unsigned pushBackIdx;
 
 	// Set to one of the TT_* constants after a call to nextToken
 	int tokenType;
 
 	// The line number currently being parsed
-	int lineNo;
+	unsigned lineNo;
 
 	// If tokenType is TT_WORD this contains a reference to the parsed word
 	NSString* tokenWord;

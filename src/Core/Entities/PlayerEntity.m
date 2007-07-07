@@ -90,7 +90,7 @@ static PlayerEntity *sSharedPlayer = nil;
 - (void) unloadCargoPods
 {
 	/* loads commodities from the cargo pods onto the ship's manifest */
-	int i;
+	unsigned i;
 	NSMutableArray* localMarket = [docked_station localMarket];
 	NSMutableArray* manifest = [[NSMutableArray arrayWithArray:localMarket] retain];  // retain
 	
@@ -139,7 +139,7 @@ static PlayerEntity *sSharedPlayer = nil;
 - (void) loadCargoPods
 {
 	/* loads commodities from the ships manifest into individual cargo pods */
-	int i,j;
+	unsigned i,j;
 	NSMutableArray* localMarket = [docked_station localMarket];
 	NSMutableArray* manifest = [[NSMutableArray arrayWithArray:shipCommodityData] retain];  // retain
 	
@@ -233,7 +233,7 @@ static PlayerEntity *sSharedPlayer = nil;
 
 - (NSDictionary *) commanderDataDictionary
 {
-	NSMutableDictionary *result = [[NSMutableDictionary alloc] initWithCapacity:20]; // retained
+	NSMutableDictionary *result = [NSMutableDictionary dictionary];
 
 	NSString *gal_seed = [NSString stringWithFormat:@"%d %d %d %d %d %d",galaxy_seed.a, galaxy_seed.b, galaxy_seed.c, galaxy_seed.d, galaxy_seed.e, galaxy_seed.f];
 	NSString *gal_coords = [NSString stringWithFormat:@"%d %d",(int)galaxy_coordinates.x,(int)galaxy_coordinates.y];
@@ -270,7 +270,7 @@ static PlayerEntity *sSharedPlayer = nil;
 	[result setObject:[NSNumber numberWithBool:has_escape_pod]					forKey:@"has_escape_pod"];
 	[result setObject:[NSNumber numberWithBool:has_fuel_injection]				forKey:@"has_fuel_injection"];
 	NSMutableArray* missile_roles = [NSMutableArray arrayWithCapacity:max_missiles];
-	int i;
+	unsigned i;
 	for (i = 0; i < max_missiles; i++)
 	{
 		if (missile_entity[i])
@@ -379,8 +379,8 @@ static PlayerEntity *sSharedPlayer = nil;
 
 	//set checksum
 	[result setObject:[NSNumber numberWithInt:final_checksum] forKey:@"checksum"];
-
-	return [NSDictionary dictionaryWithDictionary:[result autorelease]];
+	
+	return result;
 }
 
 
@@ -619,7 +619,7 @@ static PlayerEntity *sSharedPlayer = nil;
 
 	// ints
 	
-	int original_hold_size = [UNIVERSE maxCargoForShip:ship_desc];
+	unsigned original_hold_size = [UNIVERSE maxCargoForShip:ship_desc];
 	if ([dict objectForKey:@"max_cargo"])
 		max_cargo = [(NSNumber *)[dict objectForKey:@"max_cargo"]	intValue];
 	if (max_cargo > original_hold_size)
@@ -642,13 +642,11 @@ static PlayerEntity *sSharedPlayer = nil;
 	if ([dict objectForKey:@"starboard_weapon"])
 		starboard_weapon = [(NSNumber *)[dict objectForKey:@"starboard_weapon"] intValue];
 	
-	if ([dict objectForKey:@"missiles"])
-		missiles = [(NSNumber *)[dict objectForKey:@"missiles"] intValue];
+	missiles = [dict unsignedIntForKey:@"missiles"];
 	// sanity check the number of missiles...
-	if (missiles < 0)
-		missiles = 0;
 	if (missiles > max_missiles)
 		missiles = max_missiles;
+	
 	// end sanity check
 	if ([dict objectForKey:@"legal_status"])
 		legalStatus = [(NSNumber *)[dict objectForKey:@"legal_status"] intValue];
@@ -682,7 +680,7 @@ static PlayerEntity *sSharedPlayer = nil;
 	}
 
 	// set up missiles
-	int i;
+	unsigned i;
 	[self setActiveMissile: 0];
 	for (i = 0; i < SHIPENTITY_MAX_MISSILES; i++)
 	{
@@ -700,7 +698,7 @@ static PlayerEntity *sSharedPlayer = nil;
 			missiles = [missile_roles count];	// sanity check the number of missiles
 		for (i = 0; (i < max_missiles)&&(i < [missile_roles count]); i++)
 		{
-			NSString* missile_desc = (NSString*)[missile_roles objectAtIndex:i];
+			NSString* missile_desc = [missile_roles objectAtIndex:i];
 			if (![missile_desc isEqual:@"NONE"])
 			{
 				ShipEntity* amiss = [UNIVERSE newShipWithRole:missile_desc];
@@ -709,12 +707,8 @@ static PlayerEntity *sSharedPlayer = nil;
 				else
 				{
 					NSLog(@"***** ERROR couldn't find a missile of role '%@' while trying to [PlayerEntity setCommanderDataFromDictionary:] *****", missile_desc);
-					// throw an exception here...
-					NSException* myException = [NSException
-						exceptionWithName: OOLITE_EXCEPTION_FATAL
-						reason: [NSString stringWithFormat:@"[PlayerEntity setCommanderDataFromDictionary:] failed to create a missile with role '%@'", missile_desc]
-						userInfo:nil];
-					[myException raise];
+					[NSException raise:OOLITE_EXCEPTION_FATAL
+								format:@"[PlayerEntity setCommanderDataFromDictionary:] failed to create a missile with role '%@'", missile_desc];
 				}
 			}
 		}
@@ -751,7 +745,7 @@ static PlayerEntity *sSharedPlayer = nil;
 	return YES;
 }
 
-///////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////
 
 - (id) init
 {
@@ -797,7 +791,7 @@ static PlayerEntity *sSharedPlayer = nil;
 
 - (void) set_up
 {
-	int i;
+	unsigned i;
 	Random_Seed gal_seed = {0x4a, 0x5a, 0x48, 0x02, 0x53, 0xb7};
 	
 	showDemoShips = NO;
@@ -1078,7 +1072,7 @@ static PlayerEntity *sSharedPlayer = nil;
 	
 
 	// set up missiles
-	int i;
+	unsigned i;
 	for (i = 0; i < SHIPENTITY_MAX_MISSILES; i++)
 	{
 		[missile_entity[i] release];
@@ -1176,18 +1170,18 @@ static PlayerEntity *sSharedPlayer = nil;
 				if (subent)
 				{
 					[(ShipEntity*)subent setStatus:STATUS_INACTIVE];
-					//
+					
 					ref = vector_forward_from_quaternion(sub_q);	// VECTOR FORWARD
-					//
+					
 					[(ShipEntity*)subent setReference: ref];
 					[(ShipEntity*)subent setPosition: sub_pos];
 					[(ShipEntity*)subent setOrientation: sub_q];
-					//
+					
 					[self addSolidSubentityToCollisionRadius:(ShipEntity*)subent];
-					//
+					
 					subent->isSubentity = YES;
 				}
-				//
+				
 			}
 			if (sub_entities == nil)
 				sub_entities = [[NSArray arrayWithObject:subent] retain];
@@ -1289,7 +1283,7 @@ static PlayerEntity *sSharedPlayer = nil;
 double scoopSoundPlayTime = 0.0;
 - (void) update:(double) delta_t
 {
-	int i;
+	unsigned i;
 	// update flags
 	
 	hasMoved = !vector_equal(position, lastPosition);
@@ -1365,6 +1359,19 @@ double scoopSoundPlayTime = 0.0;
 				case GUI_SCREEN_SYSTEM_DATA:
 					[self checkScript];
 					script_time_check += script_time_interval;
+					break;
+				
+				case GUI_SCREEN_MAIN:
+				case GUI_SCREEN_INTRO1:
+				case GUI_SCREEN_INTRO2:
+				case GUI_SCREEN_MARKET:
+				case GUI_SCREEN_OPTIONS:
+				case GUI_SCREEN_LOAD:
+				case GUI_SCREEN_SAVE:
+				case GUI_SCREEN_SAVE_OVERWRITE:
+				case GUI_SCREEN_STICKMAPPER:
+				case GUI_SCREEN_MISSION:
+				case GUI_SCREEN_REPORT:
 					break;
 			}
 		}
@@ -1841,7 +1848,7 @@ double scoopSoundPlayTime = 0.0;
 			[self enterDock:(StationEntity *)[self getPrimaryTarget]];
 		}
 	}
-	//
+	
 	
 	// MOVED THE FOLLOWING FROM PLAYERENTITY POLLFLIGHTCONTROLS:
 	travelling_at_hyperspeed = (flightSpeed > maxFlightSpeed);
@@ -1894,7 +1901,7 @@ double scoopSoundPlayTime = 0.0;
 		}
 	}
 	
-	//
+	
 
 	// fuel leakage
 	
@@ -1937,7 +1944,7 @@ double scoopSoundPlayTime = 0.0;
 	// update subentities
 	if (sub_entities)
 	{
-		int i;
+		unsigned i;
 		for (i = 0; i < [sub_entities count]; i++)
 			[(Entity *)[sub_entities objectAtIndex:i] update:delta_t];
 	}
@@ -2286,10 +2293,10 @@ double scoopSoundPlayTime = 0.0;
 }
 
 
-- (int) countMissiles
+- (unsigned) countMissiles
 {
-	int n_missiles = 0;
-	int i;
+	unsigned n_missiles = 0;
+	unsigned i;
 	for (i = 0; i < max_missiles; i++)
 	{
 		if (missile_entity[i])
@@ -2299,7 +2306,7 @@ double scoopSoundPlayTime = 0.0;
 }
 
 
-- (int) dialMissileStatus
+- (OOMissileStatus) dialMissileStatus
 {
 	return missile_status;
 }
@@ -2394,19 +2401,19 @@ double scoopSoundPlayTime = 0.0;
 }
 
 
-- (int) activeMissile
+- (unsigned) activeMissile
 {
 	return activeMissile;
 }
 
 
-- (void) setActiveMissile: (int) value
+- (void) setActiveMissile: (unsigned) value
 {
 	activeMissile = value;
 }
 
 
-- (int) dialMaxMissiles
+- (unsigned) dialMaxMissiles
 {
 	return max_missiles;
 }
@@ -2428,26 +2435,24 @@ double scoopSoundPlayTime = 0.0;
 }
 
 
-- (ShipEntity *) missileForStation: (int) value
+- (ShipEntity *) missileForStation: (unsigned) value
 {
-	if ((value < 0)||(value >= max_missiles))
-		return nil;
-	return missile_entity[value];
+	if (value < max_missiles)  return missile_entity[value];
+	return nil;
 }
 
 
 - (void) sortMissiles
 {
-	
 	//	puts all missiles into the first available slots
 	
-	int i;
+	unsigned i;
 	missiles = [self countMissiles];
 	for (i = 0; i < missiles; i++)
 	{
 		if (missile_entity[i] == nil)
 		{
-			int j;
+			unsigned j;
 			for (j = i + 1; j < max_missiles; j++)
 			{
 				if (missile_entity[j])
@@ -2464,10 +2469,9 @@ double scoopSoundPlayTime = 0.0;
 
 - (void) safeAllMissiles
 {
-	
 	//	sets all missile targets to NO_TARGET
 	
-	int i;
+	unsigned i;
 	for (i = 0; i < max_missiles; i++)
 	{
 		if (missile_entity[i])
@@ -2504,7 +2508,7 @@ double scoopSoundPlayTime = 0.0;
 
 - (void) selectNextMissile
 {
-	int i;
+	unsigned i;
 	for (i = 1; i < max_missiles; i++)
 	{
 		int next_missile = (activeMissile + i) % max_missiles;
@@ -2558,7 +2562,7 @@ double scoopSoundPlayTime = 0.0;
 
 - (OOAlertCondition) alertCondition
 {
-	int old_alert_condition = alertCondition;
+	OOAlertCondition old_alert_condition = alertCondition;
 	alertCondition = ALERT_CONDITION_GREEN;
 	[self setAlertFlag:ALERT_FLAG_DOCKED to:(status == STATUS_DOCKED)];
 	if (alertFlags & ALERT_FLAG_DOCKED)
@@ -2583,7 +2587,7 @@ double scoopSoundPlayTime = 0.0;
 	return alertCondition;
 }
 
-///////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////
 
 
 - (void) interpretAIMessage:(NSString *)ms
@@ -2648,9 +2652,9 @@ double scoopSoundPlayTime = 0.0;
 
 - (BOOL) mountMissile: (ShipEntity *)missile
 {
-	if (!missile)
-		return NO;
-	int i;
+	if (missile == nil)  return NO;
+	
+	unsigned i;
 	for (i = 0; i < max_missiles; i++)
 	{
 		if (missile_entity[i] == nil)
@@ -2793,7 +2797,7 @@ double scoopSoundPlayTime = 0.0;
 	NSArray* targets = [UNIVERSE getEntitiesWithinRange:SCANNER_MAX_RANGE ofEntity:self];
 	if ([targets count] > 0)
 	{
-		int i;
+		unsigned i;
 		for (i = 0; i < [targets count]; i++)
 		{
 			Entity *e2 = [targets objectAtIndex:i];
@@ -3372,10 +3376,10 @@ double scoopSoundPlayTime = 0.0;
 
 - (void) takeInternalDamage
 {
-	int n_cargo = max_cargo;
-	int n_mass = [self mass] / 10000;
-	int n_considered = n_cargo + n_mass;
-	int damage_to = ranrot_rand() % n_considered;
+	unsigned n_cargo = max_cargo;
+	unsigned n_mass = [self mass] / 10000;
+	unsigned n_considered = n_cargo + n_mass;
+	unsigned damage_to = ranrot_rand() % n_considered;
 	// cargo damage
 	if (damage_to < [cargo count])
 	{
@@ -3401,12 +3405,12 @@ double scoopSoundPlayTime = 0.0;
 		if (([system_key hasSuffix:@"MISSILE"])||([system_key hasSuffix:@"MINE"])||([system_key isEqual:@"EQ_CARGO_BAY"]))
 			return;
 		NSArray* eq = [UNIVERSE equipmentdata];
-		int i;
+		unsigned i;
 		for (i = 0; (i < [eq count])&&(!system_name); i++)
 		{
-			NSArray* eqd = (NSArray*)[eq objectAtIndex:i];
+			NSArray* eqd = [eq arrayAtIndex:i];
 			if ([system_key isEqual:[eqd objectAtIndex:EQUIPMENT_KEY_INDEX]])
-				system_name = (NSString*)[eqd objectAtIndex:EQUIPMENT_SHORT_DESC_INDEX];
+				system_name = [eqd stringAtIndex:EQUIPMENT_SHORT_DESC_INDEX];
 		}
 		if (!system_name)
 			return;
@@ -3684,7 +3688,7 @@ double scoopSoundPlayTime = 0.0;
 	// expire passenger contracts for the old galaxy
 	if (passengers)
 	{
-		int i;
+		unsigned i;
 		for (i = 0; i < [passengers count]; i++)
 		{
 			// set the expected arrival time to now, so they storm off the ship at the first port
@@ -3896,7 +3900,7 @@ double scoopSoundPlayTime = 0.0;
 }
 
 
-/////////////////////////////////////
+///////////////////////////////////
 
 - (void) setGuiToStatusScreen
 {
@@ -3925,14 +3929,14 @@ double scoopSoundPlayTime = 0.0;
 
 	// GUI stuff
 	{
-		GuiDisplayGen	*gui = [UNIVERSE gui];
-		int				tab_stops[GUI_MAX_COLUMNS];
-		NSDictionary	*ship_dict = nil;
-		NSString		*shipName = nil;
-		NSString		*legal_desc = nil, *rating_desc = nil,
-						*alert_desc = nil, *fuel_desc = nil,
-						*credits_desc = nil;
+		GuiDisplayGen		*gui = [UNIVERSE gui];
+		NSDictionary		*ship_dict = nil;
+		NSString			*shipName = nil;
+		NSString			*legal_desc = nil, *rating_desc = nil,
+							*alert_desc = nil, *fuel_desc = nil,
+							*credits_desc = nil;
 		
+		OOGUITabSettings tab_stops;
 		tab_stops[0] = 20;
 		tab_stops[1] = 160;
 		tab_stops[2] = 256;
@@ -3981,15 +3985,15 @@ double scoopSoundPlayTime = 0.0;
 	[UNIVERSE setDisplayCursor: NO];
 	[UNIVERSE setViewDirection: VIEW_GUI_DISPLAY];
 	
-	#if 0
-	// DEBUG SCENE TEST ROUTINES
-		[UNIVERSE removeDemoShips];
-		[self debugOn];
-		[self setBackgroundFromDescriptionsKey:@"test-scene"];
-		[self debugOff];
-		[self setShowDemoShips: YES];
-	// END TEST
-	#endif
+#if 0
+// DEBUG SCENE TEST ROUTINES
+	[UNIVERSE removeDemoShips];
+	[self debugOn];
+	[self setBackgroundFromDescriptionsKey:@"test-scene"];
+	[self debugOff];
+	[self setShowDemoShips: YES];
+// END TEST
+#endif
 }
 
 
@@ -3999,7 +4003,7 @@ double scoopSoundPlayTime = 0.0;
 	//int				original_hold_size = [UNIVERSE maxCargoForShip:ship_desc];
 	NSMutableArray* quip = [NSMutableArray arrayWithCapacity:32];
 	
-	int i;
+	unsigned i;
 	NSArray* equipmentinfo = [UNIVERSE equipmentdata];
 	for (i =0; i < [equipmentinfo count]; i++)
 	{
@@ -4048,16 +4052,16 @@ double scoopSoundPlayTime = 0.0;
 	if (specialCargo)
 		[manifest addObject:specialCargo];
 
-	int n_commodities = [shipCommodityData count];
-	int in_hold[n_commodities];
-	int i;
+	unsigned		n_commodities = [shipCommodityData count];
+	OOCargoQuantity	in_hold[n_commodities];
+	unsigned		i;
 	
 	// following changed to work whether docked or not
 	for (i = 0; i < n_commodities; i++)
-		in_hold[i] = [(NSNumber *)[(NSArray *)[shipCommodityData objectAtIndex:i] objectAtIndex:MARKET_QUANTITY] intValue];
+		in_hold[i] = [[shipCommodityData arrayAtIndex:i] unsignedIntAtIndex:MARKET_QUANTITY];
 	for (i = 0; i < [cargo count]; i++)
 	{
-		ShipEntity *container = (ShipEntity *)[cargo objectAtIndex:i];
+		ShipEntity *container = [cargo objectAtIndex:i];
 		in_hold[[container getCommodityType]] += [container getCommodityAmount];
 	}
 	
@@ -4094,24 +4098,22 @@ double scoopSoundPlayTime = 0.0;
 	// GUI stuff
 	{
 		GuiDisplayGen* gui = [UNIVERSE gui];
-
-		int tab_stops[GUI_MAX_COLUMNS];
+		
+		OOGUITabSettings tab_stops;
 		tab_stops[0] = 0;
 		tab_stops[1] = 96;
 		tab_stops[2] = 144;
 		[gui setTabStops:tab_stops];
 
-		int government =	[(NSNumber *)[targetSystemData objectForKey:KEY_GOVERNMENT] intValue];
-		int economy =		[(NSNumber *)[targetSystemData objectForKey:KEY_ECONOMY] intValue];
-		int techlevel =		[(NSNumber *)[targetSystemData objectForKey:KEY_TECHLEVEL] intValue];
-		int population =	[(NSNumber *)[targetSystemData objectForKey:KEY_POPULATION] intValue];
-		int productivity =	[(NSNumber *)[targetSystemData objectForKey:KEY_PRODUCTIVITY] intValue];
-		int radius =		[(NSNumber *)[targetSystemData objectForKey:KEY_RADIUS] intValue];
+		int techlevel =		[targetSystemData intForKey:KEY_TECHLEVEL];
+		int population =	[targetSystemData intForKey:KEY_POPULATION];
+		int productivity =	[targetSystemData intForKey:KEY_PRODUCTIVITY];
+		int radius =		[targetSystemData intForKey:KEY_RADIUS];
 
-		NSString*   government_desc =   (NSString *)[(NSArray *)[descriptions objectForKey:KEY_GOVERNMENT] objectAtIndex:government];
-		NSString*   economy_desc =		(NSString *)[(NSArray *)[descriptions objectForKey:KEY_ECONOMY] objectAtIndex:economy];
-		NSString*   inhabitants =		(NSString *)[targetSystemData objectForKey:KEY_INHABITANTS];
-		NSString*   system_desc =		(NSString *)[targetSystemData objectForKey:KEY_DESCRIPTION];
+		NSString	*government_desc =	GovernmentToString([targetSystemData intForKey:KEY_GOVERNMENT]);
+		NSString	*economy_desc =		EconomyToString([targetSystemData intForKey:KEY_ECONOMY]);
+		NSString	*inhabitants =		[targetSystemData stringForKey:KEY_INHABITANTS];
+		NSString	*system_desc =		[targetSystemData stringForKey:KEY_DESCRIPTION];
 
 		if ((sun_gone_nova && equal_seeds(target_system_seed, system_seed) && [[UNIVERSE sun] goneNova])||
 			(sun_gone_nova && (!equal_seeds(target_system_seed, system_seed))))
@@ -4173,45 +4175,40 @@ double scoopSoundPlayTime = 0.0;
 
 - (NSArray *) markedDestinations
 {
-	NSMutableArray* destinations = [NSMutableArray arrayWithCapacity:256];
 	// get a list of systems marked as contract destinations
-	BOOL mark[256];
-	int i;
-	for (i = 0; i < 256; i++)
-		mark[i] = NO;
+	NSMutableArray	*destinations = [NSMutableArray arrayWithCapacity:256];
+	BOOL			mark[256] = {0};
+	unsigned		i;
+	
 	for (i = 0; i < [passengers count]; i++)
-		mark[[(NSNumber*)[(NSDictionary*)[passengers objectAtIndex:i] objectForKey:PASSENGER_KEY_DESTINATION] intValue]] = YES;
+	{
+		mark[[[passengers dictionaryAtIndex:i] unsignedCharForKey:PASSENGER_KEY_DESTINATION]] = YES;
+	}
 	for (i = 0; i < [contracts count]; i++)
-		mark[[(NSNumber*)[(NSDictionary*)[contracts objectAtIndex:i] objectForKey:CONTRACT_KEY_DESTINATION] intValue]] = YES;
+	{
+		mark[[[contracts dictionaryAtIndex:i] unsignedCharForKey:CONTRACT_KEY_DESTINATION]] = YES;
+	}
 	for (i = 0; i < [missionDestinations count]; i++)
-		mark[[(NSNumber*)[missionDestinations objectAtIndex:i] intValue]] = YES;
+	{
+		mark[[missionDestinations unsignedCharAtIndex:i]] = YES;
+	}
 	for (i = 0; i < 256; i++)
+	{
 		[destinations addObject:[NSNumber numberWithBool:mark[i]]];
-
+	}
+	
 	return destinations;
 }
 
 
 - (void) setGuiToLongRangeChartScreen
 {
-	NSString*   targetSystemName;
+	NSString	*targetSystemName;
 	double		distance = distanceBetweenPlanetPositions(target_system_seed.d,target_system_seed.b,galaxy_coordinates.x,galaxy_coordinates.y);
-	int			i;
 
 	if ((target_system_seed.d != cursor_coordinates.x)||(target_system_seed.b != cursor_coordinates.y))
 		target_system_seed =	[UNIVERSE findSystemAtCoords:cursor_coordinates withGalaxySeed:galaxy_seed];
 	targetSystemName =		[[UNIVERSE getSystemName:target_system_seed] retain];  // retained
-
-	// get a list of systems marked as contract destinations
-	BOOL mark[256];
-	for (i = 0; i < 256; i++)
-		mark[i] = NO;
-	for (i = 0; i < [passengers count]; i++)
-		mark[[(NSNumber*)[(NSDictionary*)[passengers objectAtIndex:i] objectForKey:PASSENGER_KEY_DESTINATION] intValue]] = YES;
-	for (i = 0; i < [contracts count]; i++)
-		mark[[(NSNumber*)[(NSDictionary*)[contracts objectAtIndex:i] objectForKey:CONTRACT_KEY_DESTINATION] intValue]] = YES;
-	for (i = 0; i < [missionDestinations count]; i++)
-		mark[[(NSNumber*)[missionDestinations objectAtIndex:i] intValue]] = YES;
 
 	// GUI stuff
 	{
@@ -4244,193 +4241,6 @@ double scoopSoundPlayTime = 0.0;
 	[UNIVERSE setDisplayText: YES];
 	[UNIVERSE setDisplayCursor: YES];
 	[UNIVERSE setViewDirection: VIEW_GUI_DISPLAY];
-}
-
-
-- (void) starChartDump
-{
-#ifndef GNUSTEP
-	NSString	*filepath = [[[NSBundle mainBundle] bundlePath] stringByDeletingLastPathComponent];
-	NSString	*pathToPic = [filepath stringByAppendingPathComponent:[NSString stringWithFormat:@"StarChart-Galaxy-%03d.tiff",galaxy_number]];
-	BOOL		dumpPic = (![[NSFileManager defaultManager] fileExistsAtPath:pathToPic]);
-	NSString	*pathToData = [filepath stringByAppendingPathComponent:[NSString stringWithFormat:@"StarChartData-Galaxy-%03d.txt",galaxy_number]];
-	BOOL		dumpData = (![[NSFileManager defaultManager] fileExistsAtPath:pathToData]);
-
-	NSString*   targetSystemName;
-	Random_Seed	g_seed = galaxy_seed;
-
-	target_system_seed =	[UNIVERSE findSystemAtCoords:cursor_coordinates withGalaxySeed:galaxy_seed];
-	targetSystemName =		[[UNIVERSE getSystemName:target_system_seed] retain];  // retained
-
-	int star_x[256];
-	int star_y[256];
-
-	NSPoint nudge[256];
-
-	NSMutableString *stardump = [NSMutableString stringWithString:@"\nStar List\n"];
-	g_seed = galaxy_seed;
-	int i;
-	for (i = 0; i < 256; i++)
-	{
-		NSDictionary* systemDataDic = [UNIVERSE generateSystemData:g_seed];
-		int government =	[(NSNumber *)[systemDataDic objectForKey:KEY_GOVERNMENT] intValue];
-		int techlevel =		[(NSNumber *)[systemDataDic objectForKey:KEY_TECHLEVEL] intValue];
-		NSString*   government_desc =   (NSString *)[(NSArray *)[[UNIVERSE descriptions] objectForKey:KEY_GOVERNMENT] objectAtIndex:government];
-		NSString*   inhabitants =		(NSString *)[systemDataDic objectForKey:KEY_INHABITANTS];
-		NSString*   system_desc =		(NSString *)[systemDataDic objectForKey:KEY_DESCRIPTION];
-
-		star_x[i] = g_seed.d;
-		star_y[i] = g_seed.b;
-
-		nudge[i] = NSMakePoint(0.0,0.0);
-
-		[stardump appendFormat:@"System %d,\t%@\t(%d,%d)\tTL: %d\t%@\t%@\n\t\"%@\"\n", i, [UNIVERSE getSystemName:g_seed], g_seed.d, g_seed.b, techlevel, inhabitants, government_desc, system_desc];
-		rotate_seed(&g_seed);
-		rotate_seed(&g_seed);
-		rotate_seed(&g_seed);
-		rotate_seed(&g_seed);
-	}
-	if (dumpData)
-		[stardump writeToFile:pathToData atomically:YES];
-
-
-	// drawing stuff
-	if (dumpPic)
-	{
-		NSMutableDictionary *textAttributes = [NSMutableDictionary dictionaryWithObjectsAndKeys:
-			[NSFont systemFontOfSize:9.0], NSFontAttributeName,
-			[OOColor blueColor], NSForegroundColorAttributeName, NULL];
-
-		NSSize  imageSize = NSMakeSize(1088,576);
-		NSSize  chartSize = NSMakeSize(1024,512);
-
-		NSImage*	drawImage = [[NSImage alloc] initWithSize:imageSize];
-
-		NSPoint		star;
-
-		g_seed = galaxy_seed;
-		double		hscale = chartSize.width / 256.0;
-		double		vscale = chartSize.height / 256.0;
-		double		hoffset = (imageSize.width - chartSize.width) / 2.0;
-		double		voffset = (imageSize.height - chartSize.height) / 2.0;
-
-		[drawImage lockFocus];
-
-		[[NSColor darkGrayColor] set];
-		NSRectFill(NSMakeRect(0.0,0.0,imageSize.width,imageSize.height));
-
-		[[NSColor grayColor] set];
-		[NSBezierPath setDefaultLineCapStyle:NSRoundLineCapStyle];
-		[NSBezierPath setDefaultLineWidth:36.0];
-		//draw connectivity map
-		int j;
-		for (i = 0; i < 256; i++) for (j = i + 1; j < 256; j++)
-		{
-			double d = distanceBetweenPlanetPositions(star_x[i],star_y[i],star_x[j],star_y[j]);
-
-			if (d <= 7.0)
-			{
-				NSPoint p1 = NSMakePoint(star_x[i] * hscale + hoffset,(256 - star_y[i]) * vscale + voffset);
-				NSPoint p2 = NSMakePoint(star_x[j] * hscale + hoffset,(256 - star_y[j]) * vscale + voffset);
-
-				nudge[i].x += (d != 0.0) ? hscale * (star_x[i] - star_x[j])/(d*d*4.0) : 10.0;
-				nudge[i].y += (d != 0.0) ? vscale * (star_y[i] - star_y[j])/(d*d*4.0) : 10.0;
-				nudge[j].x -= (d != 0.0) ? hscale * (star_x[i] - star_x[j])/(d*d*4.0) : 10.0;
-				nudge[j].y -= (d != 0.0) ? vscale * (star_y[i] - star_y[j])/(d*d*4.0) : 10.0;
-
-				[NSBezierPath strokeLineFromPoint:p1 toPoint:p2];
-
-			}
-		}
-
-		[[NSColor lightGrayColor] set];
-		[NSBezierPath setDefaultLineCapStyle:NSRoundLineCapStyle];
-		[NSBezierPath setDefaultLineWidth:32.0];
-		//draw connectivity map
-		for (i = 0; i < 256; i++) for (j = i + 1; j < 256; j++)
-		{
-			double d = distanceBetweenPlanetPositions(star_x[i],star_y[i],star_x[j],star_y[j]);
-
-			if (d <= 7.0)
-			{
-				NSPoint p1 = NSMakePoint(star_x[i] * hscale + hoffset,(256 - star_y[i]) * vscale + voffset);
-				NSPoint p2 = NSMakePoint(star_x[j] * hscale + hoffset,(256 - star_y[j]) * vscale + voffset);
-
-				[NSBezierPath strokeLineFromPoint:p1 toPoint:p2];
-
-			}
-		}
-
-		[[NSColor whiteColor] set];
-		[NSBezierPath setDefaultLineCapStyle:NSRoundLineCapStyle];
-		[NSBezierPath setDefaultLineWidth:28.0];
-		//draw connectivity map
-		for (i = 0; i < 256; i++) for (j = i + 1; j < 256; j++)
-		{
-			double d = distanceBetweenPlanetPositions(star_x[i],star_y[i],star_x[j],star_y[j]);
-
-			if (d <= 7.0)
-			{
-				NSPoint p1 = NSMakePoint(star_x[i] * hscale + hoffset,(256 - star_y[i]) * vscale + voffset);
-				NSPoint p2 = NSMakePoint(star_x[j] * hscale + hoffset,(256 - star_y[j]) * vscale + voffset);
-
-				[NSBezierPath strokeLineFromPoint:p1 toPoint:p2];
-
-			}
-		}
-
-		[[NSColor yellowColor] set];
-		[NSBezierPath setDefaultLineCapStyle:NSRoundLineCapStyle];
-		[NSBezierPath setDefaultLineWidth:4.0];
-		//draw connectivity map
-		for (i = 0; i < 256; i++) for (j = i + 1; j < 256; j++)
-		{
-			double d = distanceBetweenPlanetPositions(star_x[i],star_y[i],star_x[j],star_y[j]);
-
-			if (d <= 7.0)
-			{
-				NSPoint p1 = NSMakePoint(star_x[i] * hscale + hoffset,(256 - star_y[i]) * vscale + voffset);
-				NSPoint p2 = NSMakePoint(star_x[j] * hscale + hoffset,(256 - star_y[j]) * vscale + voffset);
-
-				[NSBezierPath strokeLineFromPoint:p1 toPoint:p2];
-
-			}
-		}
-
-		g_seed = galaxy_seed;   // keep for sizing!
-		for (i = 0; i < 256; i++)
-		{
-			double sz = ((g_seed.e | 0x50) < 0x90) ? 1.0 : 1.5;
-			star.x = star_x[i] * hscale + hoffset;
-			star.y = (256 - star_y[i]) * vscale + voffset;
-
-			if (nudge[i].x*nudge[i].x > 100.0)
-				nudge[i].x = (nudge[i].x < 0.0) ? -10.0 : 10.0;
-			if (nudge[i].y*nudge[i].y > 100.0)
-				nudge[i].y = (nudge[i].y < 0.0) ? -10.0 : 10.0;
-
-			[[NSColor blackColor] set];
-			[[NSBezierPath bezierPathWithOvalInRect:NSMakeRect(star.x - sz, star.y - sz, sz * 2.0, sz * 2.0)] fill];
-
-			[[NSString  stringWithFormat:@"%d",i] drawAtPoint:NSMakePoint(star.x + 1.0 + nudge[i].x, star.y - 4.5 - nudge[i].y) withAttributes:textAttributes];
-
-			rotate_seed(&g_seed);
-			rotate_seed(&g_seed);
-			rotate_seed(&g_seed);
-			rotate_seed(&g_seed);
-		}
-
-		
-		[drawImage unlockFocus];
-		// write to file
-		[[drawImage TIFFRepresentation] writeToFile:pathToPic atomically:YES];
-		
-		[drawImage release];
-		[NSBezierPath setDefaultLineCapStyle:NSRoundLineCapStyle];
-		[NSBezierPath setDefaultLineWidth:1.0];
-	}
-	/* ends */
-#endif
 }
 
 
@@ -4504,9 +4314,9 @@ double scoopSoundPlayTime = 0.0;
 	{
 		mode = [modeList objectAtIndex:displayModeIndex];
 	}
-	int modeWidth = [[mode objectForKey: (NSString *)kCGDisplayWidth] intValue];
-	int modeHeight = [[mode objectForKey: (NSString *)kCGDisplayHeight] intValue];
-	float modeRefresh = [[mode objectForKey: (NSString *)kCGDisplayRefreshRate] doubleValue];
+	int modeWidth = [[mode objectForKey:kOODisplayWidth] intValue];
+	int modeHeight = [[mode objectForKey:kOODisplayHeight] intValue];
+	float modeRefresh = [[mode objectForKey:kOODisplayRefreshRate] doubleValue];
 
 	NSString *displayModeString = [self screenModeStringForWidth:modeWidth height:modeHeight refreshRate:modeRefresh];
 
@@ -4676,26 +4486,33 @@ double scoopSoundPlayTime = 0.0;
 
 static int last_outfitting_index;
 
-- (void) setGuiToEquipShipScreen:(int) skip :(int) itemForSelectFacing
+- (void) setGuiToEquipShipScreen:(int) skipParam :(int) itemForSelectFacing
 {
 	missiles = [self countMissiles];
+	
+	unsigned skip;
 
 	// if skip < 0 then use the last recorded index
-	if (skip < 0)
+	if (skipParam < 0)
 	{
 		if (last_outfitting_index >= 0)
 			skip = last_outfitting_index;
 		else
 			skip = 0;
 	}
+	else
+	{
+		skip = skipParam;
+	}
+	
 	last_outfitting_index = skip;
 
-	NSArray*	equipdata = [UNIVERSE equipmentdata];
+	NSArray		*equipdata = [UNIVERSE equipmentdata];
 
 	OOCargoQuantity cargo_space = max_cargo - current_cargo;
 
 	double price_factor = 1.0;
-	int techlevel =		[(NSNumber *)[[UNIVERSE generateSystemData:system_seed] objectForKey:KEY_TECHLEVEL] intValue];
+	int techlevel = [[UNIVERSE generateSystemData:system_seed] intForKey:KEY_TECHLEVEL];
 
 	if (docked_station)
 	{
@@ -4705,41 +4522,39 @@ static int last_outfitting_index;
 	}
 
 	// build an array of all equipment - and take away that which has been bought (or is not permitted)
-	NSMutableArray* equipment_allowed = [NSMutableArray arrayWithCapacity:120];
+	NSMutableArray* equipment_allowed = [NSMutableArray array];
 	
 	// find options that agree with this ship
-	BOOL		option_okay[[equipdata count]];
 	NSMutableArray*	options = [NSMutableArray arrayWithArray:[(NSDictionary *)[[UNIVERSE shipyard] objectForKey:ship_desc] objectForKey:KEY_OPTIONAL_EQUIPMENT]];
 	// add standard items too!
 	[options addObjectsFromArray:[(NSDictionary *)[(NSDictionary *)[[UNIVERSE shipyard] objectForKey:ship_desc] objectForKey:KEY_STANDARD_EQUIPMENT] objectForKey:KEY_EQUIPMENT_EXTRAS]];
 	
-	int i,j;
+	unsigned i,j;
 	for (i = 0; i < [equipdata count]; i++)
 	{
-		NSString*	eq_key = (NSString*)[(NSArray*)[equipdata objectAtIndex:i] objectAtIndex:EQUIPMENT_KEY_INDEX];
-		NSString*	eq_key_damaged	= [NSString stringWithFormat:@"%@_DAMAGED", eq_key];
-		int			min_techlevel   = [(NSNumber *)[(NSArray *)[equipdata objectAtIndex:i] objectAtIndex:EQUIPMENT_TECH_LEVEL_INDEX] intValue];
-
-		NSMutableDictionary*	eq_extra_info_dict = [NSMutableDictionary dictionary];
+		NSString	*eq_key = (NSString*)[(NSArray*)[equipdata objectAtIndex:i] objectAtIndex:EQUIPMENT_KEY_INDEX];
+		NSString	*eq_key_damaged	= [NSString stringWithFormat:@"%@_DAMAGED", eq_key];
+		int			min_techlevel   = [[equipdata arrayAtIndex:i] unsignedIntAtIndex:EQUIPMENT_TECH_LEVEL_INDEX];
+		
+		NSMutableDictionary	*eq_extra_info_dict = [NSMutableDictionary dictionary];
 		if ([(NSArray *)[equipdata objectAtIndex:i] count] > 5)
 			[eq_extra_info_dict addEntriesFromDictionary:(NSDictionary *)[(NSArray *)[equipdata objectAtIndex:i] objectAtIndex:EQUIPMENT_EXTRA_INFO_INDEX]];
 
 		// set initial availability to NO
-		option_okay[i] = NO;
+		BOOL isOK = NO;
 
 		// check special availability
 		if ([eq_extra_info_dict objectForKey:@"available_to_all"])
 			[options addObject: eq_key];
-
+		
 		// check if this is a mission special ..
 		if (min_techlevel == 99)
 		{
 			// check mission variables for the existence of a revised tech level (given when item is awarded)
 			NSString* mission_eq_tl_key = [NSString stringWithFormat:@"mission_TL_FOR_%@", eq_key];
-			if ([mission_variables objectForKey:mission_eq_tl_key])
-				min_techlevel = [[mission_variables objectForKey:mission_eq_tl_key] intValue];
+			min_techlevel = [mission_variables unsignedIntForKey:mission_eq_tl_key defaultValue:min_techlevel];
 		}
-
+		
 		// if you have a dmaged system you can get it repaired at a tech level one less than that required to buy it
 		if ([self has_extra_equipment:eq_key_damaged])
 			min_techlevel--;
@@ -4760,115 +4575,114 @@ static int last_outfitting_index;
 		}
 
 		// check initial availability against options AND standard extras
+		// FIXME: options should be a set.
 		for (j = 0; j < [options count]; j++)
 		{
 			if ([eq_key isEqual:[options objectAtIndex:j]])
 			{
-				option_okay[i] = YES;
+				isOK = YES;
 				[options removeObjectAtIndex:j];
-				j = [options count];
+				break;
 			}
 		}
 		
-		// check usual requirements
-		if (([eq_key isEqual:@"EQ_FUEL"])&&(fuel >= PLAYER_MAX_FUEL))	// check if fuel space free
-			option_okay[i] &= NO;
-		if (([eq_key hasSuffix:@"MISSILE"]||[eq_key hasSuffix:@"MINE"]))	// check if pylon is free
-			option_okay[i] &= (missiles < max_missiles);
-		if ([eq_key isEqual:@"EQ_MISSILE_REMOVAL"])
-			option_okay[i] &= (missiles > 0);
-		if (([eq_key isEqual:@"EQ_PASSENGER_BERTH"])&&(cargo_space < 5))
-			option_okay[i] &= NO;
-		if (([eq_key isEqual:@"EQ_PASSENGER_BERTH_REMOVAL"])&&(max_passengers - [passengers count] < 1))
-			option_okay[i] &= NO;
-		if ([self has_extra_equipment:eq_key])
-			option_okay[i] &= NO;
-		if ([eq_key isEqual:@"EQ_ENERGY_UNIT"]&&[self has_extra_equipment:@"EQ_NAVAL_ENERGY_UNIT"])
-			option_okay[i] &= NO;
-		if (techlevel < min_techlevel)
-			option_okay[i] &= NO;
+		if (isOK)
+		{
+			BOOL			requiresEmptyPylon = NO,
+							requiresMountedPylon = NO,
+							requiresClean = NO,
+							requiresNotClean = NO;
+			OOCargoQuantity	requiresCargoSpace = 0;
+			NSString		*requiresEquipment = nil;
+			
+			// check built-in requirements
+			if ([self has_extra_equipment:eq_key])  isOK = NO;
+			if (([eq_key isEqualToString:@"EQ_FUEL"])&&(fuel >= PLAYER_MAX_FUEL))  isOK = NO;	// check if fuel space free
+			if (([eq_key hasSuffix:@"MISSILE"]||[eq_key hasSuffix:@"MINE"]))  requiresEmptyPylon = YES;
+			if ([eq_key isEqualToString:@"EQ_MISSILE_REMOVAL"])  requiresMountedPylon = YES;
+			if ([eq_key isEqualToString:@"EQ_PASSENGER_BERTH"])  requiresCargoSpace = 5;
+			if (([eq_key isEqualToString:@"EQ_PASSENGER_BERTH_REMOVAL"])&&(max_passengers - [passengers count] < 1))  isOK = NO;
+			if ([eq_key isEqualToString:@"EQ_ENERGY_UNIT"])  requiresEquipment = @"EQ_NAVAL_ENERGY_UNIT";
+			if (techlevel < min_techlevel)  isOK = NO;
+			if ([eq_key isEqual:@"EQ_RENOVATION"] && !((75 <= ship_trade_in_factor)&&(ship_trade_in_factor < 85))) isOK = NO;
+			
+			// check custom requirements
+			requiresEmptyPylon = [eq_extra_info_dict boolForKey:@"requires_empty_pylon" defaultValue:requiresEmptyPylon];
+			requiresMountedPylon = [eq_extra_info_dict boolForKey:@"requires_mounted_pylon" defaultValue:requiresMountedPylon];
+			requiresCargoSpace = [eq_extra_info_dict unsignedIntForKey:@"requires_cargo_space" defaultValue:requiresCargoSpace];
+			requiresEquipment = [eq_extra_info_dict stringForKey:@"requires_equipment" defaultValue:requiresEquipment];
+			if ([eq_extra_info_dict objectForKey:@"requires_clean"])  requiresClean = YES;
+			if ([eq_extra_info_dict objectForKey:@"requires_not_clean"])  requiresNotClean = YES;
+			
+			if (isOK)
+			{
+				if (requiresEmptyPylon && missiles >= max_missiles)  isOK = NO;
+				else if (requiresMountedPylon && missiles == 0)  isOK = NO;
+				else if (cargo_space < requiresCargoSpace)  isOK = NO;
+				else if (requiresEquipment != nil && ![self has_extra_equipment:requiresEquipment])  isOK = NO;
+				else if (requiresClean && [self legalStatus] != 0)  isOK = NO;
+				else if (requiresNotClean && [self legalStatus] == 0)  isOK = NO;
+			}
+		}
 		
-		// check special requirements
-		if ([eq_extra_info_dict objectForKey:@"requires_empty_pylon"])
-			option_okay[i] &= (missiles < max_missiles);
-		if ([eq_extra_info_dict objectForKey:@"requires_mounted_pylon"])
-			option_okay[i] &= (missiles > 0);
-		if ([eq_extra_info_dict objectForKey:@"requires_equipment"])
-			option_okay[i] &= [self has_extra_equipment:(NSString*)[eq_extra_info_dict objectForKey:@"requires_equipment"]];
-		if ([eq_extra_info_dict objectForKey:@"requires_cargo_space"])
-			option_okay[i] &= (cargo_space >= [[eq_extra_info_dict objectForKey:@"requires_cargo_space"] intValue]);
-		if ([eq_extra_info_dict objectForKey:@"requires_clean"])
-			option_okay[i] &= ([self legalStatus] == 0);
-		if ([eq_extra_info_dict objectForKey:@"requires_not_clean"])
-			option_okay[i] &= ([self legalStatus] != 0);
-
-		if ([eq_extra_info_dict objectForKey:@"conditions"])
+		if (isOK && [eq_extra_info_dict objectForKey:@"conditions"])
 		{
 			[self debugOn];
 			id conds = [eq_extra_info_dict objectForKey:@"conditions"];
 			if ([conds isKindOfClass:[NSString class]])
-				option_okay[i] &= [self scriptTestCondition:(NSString *) conds];
+			{
+				if (![self scriptTestCondition:(NSString *) conds])  isOK = NO;
+			}
 			else if ([conds isKindOfClass:[NSArray class]])
 			{
 				NSArray* conditions = (NSArray*)conds;
-				int i;
+				unsigned i;
 				for (i = 0; i < [conditions count]; i++)
-					option_okay[i] &= [self scriptTestCondition:(NSString *)[conditions objectAtIndex:i]];
+					if (![self scriptTestCondition:(NSString *)[conditions objectAtIndex:i]])  isOK = NO;
 			}
 			[self debugOff];
 		}
-
-		if ([eq_key isEqual:@"EQ_RENOVATION"])
-		{
-			option_okay[i] &= ((75 <= ship_trade_in_factor)&&(ship_trade_in_factor < 85));
-		}
-
-		if (option_okay[i])
-			[equipment_allowed addObject: [NSNumber numberWithInt:i]];
-
-		if (i == itemForSelectFacing)
+		
+		if (isOK)
+			[equipment_allowed addUnsignedInteger:i];
+		
+		if ((int)i == itemForSelectFacing)
 		{
 			skip = [equipment_allowed count] - 1;	// skip to this upgrade
-			int available_facings = [(NSNumber*)[(NSDictionary*)[[UNIVERSE shipyard] objectForKey:ship_desc] objectForKey:KEY_WEAPON_FACINGS] intValue];
+			unsigned available_facings = [[[UNIVERSE shipyard] dictionaryForKey:ship_desc] unsignedIntForKey:KEY_WEAPON_FACINGS];
 			if (available_facings & WEAPON_FACING_FORWARD)
-				[equipment_allowed addObject: [NSNumber numberWithInt:i]];
+				[equipment_allowed addUnsignedInteger:i];
 			if (available_facings & WEAPON_FACING_AFT)
-				[equipment_allowed addObject: [NSNumber numberWithInt:i]];
+				[equipment_allowed addUnsignedInteger:i];
 			if (available_facings & WEAPON_FACING_PORT)
-				[equipment_allowed addObject: [NSNumber numberWithInt:i]];
+				[equipment_allowed addUnsignedInteger:i];
 			if (available_facings & WEAPON_FACING_STARBOARD)
-				[equipment_allowed addObject: [NSNumber numberWithInt:i]];
+				[equipment_allowed addUnsignedInteger:i];
 		}
 	}
 
 	// GUI stuff
 	{
-		GuiDisplayGen* gui = [UNIVERSE gui];
-
-		int start_row =		GUI_ROW_EQUIPMENT_START;
-		int row = start_row;
-		int i;
-		int tab_stops[GUI_MAX_COLUMNS];
-		int facing_count = 0;
+		GuiDisplayGen	*gui = [UNIVERSE gui];
+		OOGUIRow		start_row = GUI_ROW_EQUIPMENT_START;
+		OOGUIRow		row = start_row;
+		unsigned		i;
+		unsigned		facing_count = 0;
 
 		[gui clear];
 		[gui setTitle:@"Ship Outfitting"];
 		
 		[gui setText:[NSString stringWithFormat:@"Cash:\t%.1f Cr.", 0.1*credits]  forRow: GUI_ROW_EQUIPMENT_CASH];
 		
+		OOGUITabSettings tab_stops;
 		tab_stops[0] = 0;
 		tab_stops[1] = 320;
-		
 		[gui setTabStops:tab_stops];
 		
-		int n_rows = GUI_MAX_ROWS_EQUIPMENT;
+		unsigned n_rows = GUI_MAX_ROWS_EQUIPMENT;
 		
 		if ([equipment_allowed count] > 0)
 		{
-			// double check for sound values of skip
-			if ((skip < 0)||(skip >= [equipment_allowed count]))
-				skip = 0;
-			
 			if (skip > 0)	// lose the first row to Back <--
 			{
 				int	previous = skip - n_rows;
@@ -4880,25 +4694,29 @@ static int last_outfitting_index;
 				[gui setKey:[NSString stringWithFormat:@"More:%d", previous] forRow:row];
 				row++;
 			}
-			for (i = skip; (i < [equipment_allowed count])&&(row - start_row < n_rows - 1); i++)
+			for (i = skip; (i < [equipment_allowed count])&&(row - start_row < (int)n_rows - 1); i++)
 			{
-				int			item   = [(NSNumber *)[equipment_allowed objectAtIndex:i] intValue];
-
-				int			price_per_unit  = [(NSNumber *)[(NSArray *)[equipdata objectAtIndex:item] objectAtIndex:EQUIPMENT_PRICE_INDEX] intValue];
-				NSString*   desc			= [NSString stringWithFormat:@" %@ ",[(NSArray *)[equipdata objectAtIndex:item] objectAtIndex:EQUIPMENT_SHORT_DESC_INDEX]];
-				NSString*   eq_key			= (NSString *)[(NSArray *)[equipdata objectAtIndex:item] objectAtIndex:EQUIPMENT_KEY_INDEX];
-				double		price			= ([eq_key isEqual:@"EQ_FUEL"]) ? ((PLAYER_MAX_FUEL - fuel) * price_per_unit) : (price_per_unit) ;
-				NSString*	eq_key_damaged	= [NSString stringWithFormat:@"%@_DAMAGED", eq_key];
-
-				if ([eq_key isEqual:@"EQ_RENOVATION"])
+				unsigned			item = [equipment_allowed unsignedIntAtIndex:i];
+				NSArray				*itemInfo = [equipdata arrayAtIndex:item];
+				OOCreditsQuantity	price_per_unit = [itemInfo unsignedIntAtIndex:EQUIPMENT_PRICE_INDEX];
+				NSString			*desc = [NSString stringWithFormat:@" %@ ", [itemInfo stringAtIndex:EQUIPMENT_SHORT_DESC_INDEX]];
+				NSString			*eq_key = [equipdata stringAtIndex:EQUIPMENT_KEY_INDEX];
+				NSString			*eq_key_damaged	= [eq_key stringByAppendingString:@"%@_DAMAGED"];
+				double				price;
+				
+				if ([eq_key isEqual:@"EQ_FUEL"])
+				{
+					price = (PLAYER_MAX_FUEL - fuel) * price_per_unit;
+				}
+				else if ([eq_key isEqual:@"EQ_RENOVATION"])
 				{
 					price = cunningFee(0.1 * [UNIVERSE tradeInValueForCommanderDictionary:[self commanderDataDictionary]]);
 				}
-
-				price *= price_factor;  // increased prices at some stations
-
-				// color repairs and renovation items orange
+				else price = price_per_unit;
 				
+				price *= price_factor;  // increased prices at some stations
+				
+				// color repairs and renovation items orange
 				if ([self has_extra_equipment:eq_key_damaged])
 				{
 					desc = [NSString stringWithFormat:@" Repair:%@", desc];
@@ -4906,24 +4724,37 @@ static int last_outfitting_index;
 					[gui setColor:[OOColor orangeColor] forRow:row];
 				}
 				if ([eq_key isEqual:@"EQ_RENOVATION"])
-					[gui setColor:[OOColor orangeColor] forRow:row];
-
-				NSString*	priceString		= [NSString stringWithFormat:@" %.1f ",0.1*price];
-
-				if (item == itemForSelectFacing)
 				{
-					if (facing_count == 0)
-						priceString = @"";
-					if (facing_count == 1)
-						desc = FORWARD_FACING_STRING;
-					if (facing_count == 1)
-						desc = FORWARD_FACING_STRING;
-					if (facing_count == 2)
-						desc = AFT_FACING_STRING;
-					if (facing_count == 3)
-						desc = PORT_FACING_STRING;
-					if (facing_count == 4)
-						desc = STARBOARD_FACING_STRING;
+					[gui setColor:[OOColor orangeColor] forRow:row];
+				}
+
+				NSString *priceString = [NSString stringWithFormat:@" %.1f ", 0.1 * price];
+
+				if ((int)item == itemForSelectFacing)
+				{
+					switch (facing_count)
+					{
+						case 0:
+							priceString = @"";
+							break;
+						
+						case 1:
+							desc = FORWARD_FACING_STRING;
+							break;
+						
+						case 2:
+							desc = AFT_FACING_STRING;
+							break;
+						
+						case 3:
+							desc = PORT_FACING_STRING;
+							break;
+						
+						case 4:
+							desc = STARBOARD_FACING_STRING;
+							break;
+					}
+					
 					facing_count++;
 					[gui setColor:[OOColor greenColor] forRow:row];
 				}
@@ -5039,7 +4870,7 @@ static int last_outfitting_index;
 
 	// check for messages from the command line
 	NSArray* arguments = [[NSProcessInfo processInfo] arguments];
-	int i;
+	unsigned i;
 	for (i = 0; i < [arguments count]; i++)
 	{
 		if (([[arguments objectAtIndex:i] isEqual:@"-message"])&&(i < [arguments count] - 1))
@@ -5132,7 +4963,7 @@ static int last_outfitting_index;
 	if ([item_text isEqual:STARBOARD_FACING_STRING])
 		chosen_weapon_facing = WEAPON_FACING_STARBOARD;
 	
-	int old_credits = credits;
+	OOCreditsQuantity old_credits = credits;
 	if ([self tryBuyingItem:item])
 	{
 		if (credits == old_credits)
@@ -5358,7 +5189,7 @@ static int last_outfitting_index;
 		credits -= price;
 		[self safeAllMissiles];
 		[self sortMissiles];
-		int i;
+		unsigned i;
 		for (i = 0; i < missiles; i++)
 		{
 			ShipEntity* weapon = missile_entity[i];
@@ -5376,8 +5207,8 @@ static int last_outfitting_index;
 		return YES;
 	}
 
-	int i;
-	for (i =0; i < [equipdata count]; i++)
+	unsigned i;
+	for (i = 0; i < [equipdata count]; i++)
 	{
 		NSString *w_key = (NSString *)[(NSArray *)[equipdata objectAtIndex:i] objectAtIndex:EQUIPMENT_KEY_INDEX];
 		if (([eq_key isEqual:w_key])&&(![self has_extra_equipment:eq_key]))
@@ -5396,9 +5227,9 @@ static int last_outfitting_index;
 
 - (void) calculateCurrentCargo
 {
-	int i;
-	int n_commodities = [shipCommodityData count];
-	int in_hold[n_commodities];
+	unsigned i;
+	unsigned n_commodities = [shipCommodityData count];
+	OOCargoQuantity in_hold[n_commodities];
 
 	// following works whether docked or not
 	
@@ -5436,7 +5267,7 @@ static int last_outfitting_index;
 	// fix problems with economies in witch-space
 	if (![UNIVERSE station])
 	{
-		int i;
+		unsigned i;
 		NSMutableArray* ourEconomy = [NSMutableArray arrayWithArray:[UNIVERSE commodityDataForEconomy:0 andStation:(StationEntity*)nil andRandomFactor:0]];
 		for (i = 0; i < [ourEconomy count]; i++)
 		{
@@ -5450,14 +5281,12 @@ static int last_outfitting_index;
 
 	// GUI stuff
 	{
-		GuiDisplayGen* gui = [UNIVERSE gui];
-
-		int start_row =		GUI_ROW_MARKET_START;
-		int row = start_row;
-		int i;
-		int tab_stops[GUI_MAX_COLUMNS];
-		int n_commodities = [shipCommodityData count];
-		int in_hold[n_commodities];
+		GuiDisplayGen	*gui = [UNIVERSE gui];
+		OOGUIRow		start_row = GUI_ROW_MARKET_START;
+		OOGUIRow		row = start_row;
+		unsigned		i;
+		unsigned		n_commodities = [shipCommodityData count];
+		OOCargoQuantity	in_hold[n_commodities];
 
 		// following changed to work whether docked or not
 		
@@ -5472,11 +5301,11 @@ static int last_outfitting_index;
 		[gui clear];
 		[gui setTitle:[NSString stringWithFormat:@"%@ Commodity Market",[UNIVERSE getSystemName:system_seed]]];
 		
+		OOGUITabSettings tab_stops;
 		tab_stops[0] = 0;
 		tab_stops[1] = 192;
 		tab_stops[2] = 288;
 		tab_stops[3] = 384;
-		
 		[gui setTabStops:tab_stops];
 		
 		[gui setColor:[OOColor greenColor] forRow:GUI_ROW_MARKET_KEY];
@@ -5536,7 +5365,7 @@ static int last_outfitting_index;
 }
 
 
-- (int) gui_screen
+- (OOGUIScreenID) guiScreen
 {
 	return gui_screen;
 }
@@ -5574,14 +5403,14 @@ static int last_outfitting_index;
 		return NO; // can't buy if not docked
 	}
 
-	NSArray *commodityArray = (NSArray *)[localMarket objectAtIndex:index];
-	int available_units =   [(NSNumber *)[commodityArray objectAtIndex:MARKET_QUANTITY] intValue];
-	int price_per_unit =	[(NSNumber *)[commodityArray objectAtIndex:MARKET_PRICE] intValue];
-	int unit =				[(NSNumber *)[commodityArray objectAtIndex:MARKET_UNITS] intValue];
+	NSArray				*commodityArray	= [localMarket objectAtIndex:index];
+	OOCargoQuantity		available_units	= [commodityArray unsignedIntAtIndex:MARKET_QUANTITY];
+	OOCreditsQuantity	price_per_unit	= [commodityArray unsignedIntAtIndex:MARKET_PRICE];
+	OOMassUnit			unit			= [(NSNumber *)[commodityArray objectAtIndex:MARKET_UNITS] intValue];
 
 	if ((specialCargo != nil)&&(unit == 0))
 		return NO;									// can't buy tons of stuff when carrying a specialCargo
-
+	
 	if ((available_units == 0)||(price_per_unit > credits)||((unit == 0)&&(current_cargo >= max_cargo)))		return NO;
 	{
 		NSMutableArray* manifest =  [NSMutableArray arrayWithArray:shipCommodityData];
@@ -5699,7 +5528,7 @@ static int last_outfitting_index;
 
 - (void) set_extra_equipment_from_flags
 {
-	int original_hold_size = [UNIVERSE maxCargoForShip:ship_desc];
+	OOCargoQuantity original_hold_size = [UNIVERSE maxCargoForShip:ship_desc];
 	
 	if (max_cargo > original_hold_size)
 		[self add_extra_equipment:@"EQ_CARGO_BAY"];
@@ -5842,8 +5671,8 @@ OOSound* burnersound;
 {
 	if (legalStatus == 0)
 		return;				// nothing to pay for
-	int local_gov = [(NSNumber*)[[UNIVERSE currentSystemData] objectForKey:KEY_GOVERNMENT] intValue];
-	int fine = 500 + ((local_gov < 2)||(local_gov > 5))? 500:0;
+	int local_gov = [[UNIVERSE currentSystemData] intForKey:KEY_GOVERNMENT];
+	OOCreditsQuantity fine = 500 + ((local_gov < 2)||(local_gov > 5))? 500:0;
 	fine *= legalStatus;
 	if (fine > credits)
 	{

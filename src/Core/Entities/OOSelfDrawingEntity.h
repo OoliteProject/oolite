@@ -51,7 +51,7 @@ typedef struct
 	
 	Vector					normal;
 	
-	int						n_verts;
+	unsigned				n_verts;
 	
 	GLint					vertex[MAX_VERTICES_PER_FACE];
 	

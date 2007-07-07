@@ -1477,6 +1477,7 @@ BOOL JSArgumentsFromArray(JSContext *context, NSArray *array, uintN *outArgc, js
 	}
 	
 	// Convert objects
+	JSContext * volatile vCtxt = context;
 	for (objectEnum = [array objectEnumerator]; (object = [objectEnum nextObject]); )
 	{
 		argv[i] = JSVAL_VOID;
@@ -1484,7 +1485,7 @@ BOOL JSArgumentsFromArray(JSContext *context, NSArray *array, uintN *outArgc, js
 		NS_DURING
 			if ([object respondsToSelector:@selector(javaScriptValueInContext:)])
 			{
-				argv[i] = [object javaScriptValueInContext:context];
+				argv[i] = [object javaScriptValueInContext:vCtxt];
 			}
 		NS_HANDLER
 		NS_ENDHANDLER

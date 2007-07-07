@@ -93,13 +93,11 @@ MA 02110-1301, USA.
 
 // ---------------------------------------------------------------------- //
 
-- (void) setGuiToShipyardScreen:(int) skip;
+- (void) setGuiToShipyardScreen:(unsigned) skip;
 
 - (void) showShipyardInfoForSelection;
 
 - (void) showShipyardModel: (NSDictionary *)shipDict;
-
-- (int) yourTradeInValue;
 
 - (BOOL) buySelectedShip;
 

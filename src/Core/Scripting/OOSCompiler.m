@@ -59,7 +59,7 @@ MA 02110-1301, USA.
  * Returns the processed source.
  */
 NSString* preprocess(NSString* source) {
-	int i;
+	unsigned i;
 	NSMutableString *processedSource = [NSMutableString stringWithString:source];
 	// convert DOS and MAC EOLs to *NIX EOL (DOS EOL will create blank lines,
 	// but these are filtered out in the loop)

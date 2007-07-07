@@ -65,7 +65,7 @@ typedef struct OOTextureLoaderQueue
 
 static OOTextureLoaderQueue	sLoadQueue,
 							sReadyQueue;
-static GLint				sGLMaxSize;
+static unsigned				sGLMaxSize;
 static uint32_t				sUserMaxSize;
 static BOOL					sReducedDetail;
 static BOOL					sHaveNPOTTextures = NO;	// TODO: support "true" non-power-of-two textures.
@@ -80,7 +80,7 @@ enum
 
 enum
 {
-	kMaxWorkThreads			= 4
+	kMaxWorkThreads			= 4U
 };
 
 
@@ -260,6 +260,7 @@ static void LoaderQueuePrioritizeElement(OOTextureLoaderQueue *queue, OOTextureL
 + (void)setUp
 {
 	int						threadCount;
+	GLint					maxSize;
 	
 	if (!LoaderQueueInit(&sLoadQueue) || !LoaderQueueInit(&sReadyQueue))
 	{
@@ -268,20 +269,20 @@ static void LoaderQueuePrioritizeElement(OOTextureLoaderQueue *queue, OOTextureL
 	}
 	
 	// Set up loading threads.
-	threadCount = MIN(OOCPUCount() - 1, kMaxWorkThreads);
+	threadCount = MIN(OOCPUCount() - 1, (unsigned)kMaxWorkThreads);
 	do
 	{
 		[NSThread detachNewThreadSelector:@selector(queueTask) toTarget:self withObject:nil];
 	} while (--threadCount > 0);
 	
 	// Load two maximum sizes - graphics hardware limit and user-specified limit.
-	glGetIntegerv(GL_MAX_TEXTURE_SIZE, &sGLMaxSize);
-	if (sGLMaxSize < 64)  sGLMaxSize = 64;
+	glGetIntegerv(GL_MAX_TEXTURE_SIZE, &maxSize);
+	sGLMaxSize = MAX(maxSize, 64);
 	
 	// Why 0x80000000? Because it's the biggest number OORoundUpToPowerOf2() can handle.
 	sUserMaxSize = [[NSUserDefaults standardUserDefaults] unsignedIntForKey:@"max-texture-size" defaultValue:0x80000000];
 	sUserMaxSize = OORoundUpToPowerOf2(sUserMaxSize);
-	if (sUserMaxSize < 64)  sUserMaxSize = 64;
+	sUserMaxSize = MAX(sUserMaxSize, 64U);
 	
 	sHaveSetUp = YES;
 }

@@ -55,23 +55,23 @@ MA 02110-1301, USA.
    {
 #if defined(LINUX) && ! defined (WIN32)
       [mode setValue: [NSNumber numberWithInt: DisplayWidth(dpyInfo.info.x11.display, 0)]
-              forKey: kCGDisplayWidth];
+              forKey: kOODisplayWidth];
       [mode setValue: [NSNumber numberWithInt: DisplayHeight(dpyInfo.info.x11.display, 0)]
-              forKey: kCGDisplayHeight];
-      [mode setValue: [NSNumber numberWithInt: 0] forKey: kCGDisplayRefreshRate];
+              forKey: kOODisplayHeight];
+      [mode setValue: [NSNumber numberWithInt: 0] forKey: kOODisplayRefreshRate];
 #else
       NSLog(@"Unknown architecture, defaulting to 1024x768");
-      [mode setValue: [NSNumber numberWithInt: 1024] forKey: (NSString *)kCGDisplayWidth];
-      [mode setValue: [NSNumber numberWithInt: 768] forKey: (NSString *)kCGDisplayHeight];
-      [mode setValue: [NSNumber numberWithInt: 0] forKey: (NSString *)kCGDisplayRefreshRate];
+      [mode setValue: [NSNumber numberWithInt: 1024] forKey:kOODisplayWidth];
+      [mode setValue: [NSNumber numberWithInt: 768] forKey: kOODisplayHeight];
+      [mode setValue: [NSNumber numberWithInt: 0] forKey: kOODisplayRefreshRate];
 #endif
    }
    else
    {
       NSLog(@"SDL_GetWMInfo failed, defaulting to 1024x768 for native size");
-      [mode setValue: [NSNumber numberWithInt: 1024] forKey: (NSString *)kCGDisplayWidth];
-      [mode setValue: [NSNumber numberWithInt: 768] forKey: (NSString *)kCGDisplayHeight];
-      [mode setValue: [NSNumber numberWithInt: 0] forKey: (NSString *)kCGDisplayRefreshRate];
+      [mode setValue: [NSNumber numberWithInt: 1024] forKey: kOODisplayWidth];
+      [mode setValue: [NSNumber numberWithInt: 768] forKey: kOODisplayHeight];
+      [mode setValue: [NSNumber numberWithInt: 0] forKey: kOODisplayRefreshRate];
    }
    return mode;
 }
@@ -313,8 +313,8 @@ MA 02110-1301, USA.
 - (NSSize) modeAsSize:(int)sizeIndex
 {
    NSDictionary *mode=[screenSizes objectAtIndex: sizeIndex];
-   return NSMakeSize([[mode objectForKey: (NSString *)kCGDisplayWidth] intValue],
-                     [[mode objectForKey: (NSString *)kCGDisplayHeight] intValue]);
+   return NSMakeSize([[mode objectForKey: kOODisplayWidth] intValue],
+                     [[mode objectForKey: kOODisplayHeight] intValue]);
 }
 
 #endif
@@ -1120,8 +1120,8 @@ MA 02110-1301, USA.
       return;
    }
 
-   int lastw=[[mode objectForKey: (NSString *)kCGDisplayWidth] intValue];
-   int lasth=[[mode objectForKey: (NSString *)kCGDisplayHeight] intValue];
+   int lastw=[[mode objectForKey: kOODisplayWidth] intValue];
+   int lasth=[[mode objectForKey: kOODisplayHeight] intValue];
    for(i=0; modes[i]; i++)
    {
       // SDL_ListModes often lists a mode several times,
@@ -1133,11 +1133,11 @@ MA 02110-1301, USA.
          // new resolution, save it
          mode=[[NSMutableDictionary alloc] init];
          [mode setValue: [NSNumber numberWithInt: (int)modes[i]->w]
-                 forKey: (NSString *)kCGDisplayWidth];
+                 forKey: kOODisplayWidth];
          [mode setValue: [NSNumber numberWithInt: (int)modes[i]->h]
-                 forKey: (NSString *)kCGDisplayHeight];
+                 forKey: kOODisplayHeight];
          [mode setValue: [NSNumber numberWithInt: 0]
-                 forKey: (NSString *)kCGDisplayRefreshRate];
+                 forKey: kOODisplayRefreshRate];
          [screenSizes addObject: mode];
          NSLog(@"Added res %d x %d", modes[i]->w, modes[i]->h);
          lastw=modes[i]->w;
@@ -1218,9 +1218,9 @@ MA 02110-1301, USA.
 	for (i = 0; i < modeCount; i++)
 	{
       mode = [screenSizes objectAtIndex: i];
-      modeWidth = [[mode objectForKey: (NSString *)kCGDisplayWidth] intValue];
-      modeHeight = [[mode objectForKey: (NSString *)kCGDisplayHeight] intValue];
-      modeRefresh = [[mode objectForKey: (NSString *)kCGDisplayRefreshRate] intValue];
+      modeWidth = [[mode objectForKey: kOODisplayWidth] intValue];
+      modeHeight = [[mode objectForKey: kOODisplayHeight] intValue];
+      modeRefresh = [[mode objectForKey: kOODisplayRefreshRate] intValue];
 	   if ((modeWidth == d_width)&&(modeHeight == d_height)&&(modeRefresh == d_refresh))
       {
          NSLog(@"Found mode %@", mode);
@@ -1240,8 +1240,8 @@ MA 02110-1301, USA.
 
    if(mode)
    {
-      return NSMakeSize([[mode objectForKey: (NSString *)kCGDisplayWidth] intValue],
-                        [[mode objectForKey: (NSString *)kCGDisplayHeight] intValue]);
+      return NSMakeSize([[mode objectForKey: kOODisplayWidth] intValue],
+                        [[mode objectForKey: kOODisplayHeight] intValue]);
    }
    NSLog(@"Screen size unknown!");
    return NSMakeSize(800, 600);

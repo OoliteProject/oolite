@@ -271,7 +271,8 @@ typedef enum
 } OOEnergyUnitType;
 
 
-typedef uint16_t	OOCargoQuantity;
+typedef uint32_t	OOCargoQuantity;
+typedef int32_t		OOCargoQuantityDelta;
 
 
 typedef uint32_t	OOCreditsQuantity;

@@ -67,7 +67,7 @@ static GameController *sSharedController = nil;
 		[NSException raise:NSInternalInconsistencyException format:@"%s: expected only one GameController to exist at a time.", __FUNCTION__];
 	}
 	
-    self = [super init];
+	self = [super init];
 	sSharedController = self;
 	
 	last_timeInterval = [NSDate timeIntervalSinceReferenceDate];
@@ -82,7 +82,7 @@ static GameController *sSharedController = nil;
 	pauseTarget = nil;
 	game_is_paused = NO;
 	
-    return self;
+	return self;
 }
 
 
@@ -91,7 +91,7 @@ static GameController *sSharedController = nil;
 #if OOLITE_HAVE_APPKIT
 	[[[NSWorkspace sharedWorkspace] notificationCenter]	removeObserver:UNIVERSE];
 #endif
-	//
+	
 	[timer release];
 	[gameView release];
 	[UNIVERSE release];
@@ -100,7 +100,7 @@ static GameController *sSharedController = nil;
 	[playerFileDirectory release];
 	[expansionPathsToInclude release];
 	
-    [super dealloc];
+	[super dealloc];
 }
 
 
@@ -149,7 +149,7 @@ static GameController *sSharedController = nil;
 
 - (int) indexOfCurrentDisplayMode
 {
-    NSDictionary *mode;
+	NSDictionary	*mode;
 	
 	mode = [self findDisplayModeForWidth: width Height: height Refresh: refresh];
 	if (mode == nil)
@@ -169,7 +169,7 @@ static GameController *sSharedController = nil;
 
 - (MyOpenGLView *) gameView
 {
-    return gameView;
+	return gameView;
 }
 
 
@@ -184,7 +184,10 @@ static GameController *sSharedController = nil;
 
 - (void) applicationDidFinishLaunching:(NSNotification *)notification
 {
-	NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
+	NSAutoreleasePool	*pool = nil;
+	unsigned			i;
+	
+	pool = [[NSAutoreleasePool alloc] init];
 	
 	NS_DURING
 #if !OOLITE_HAVE_APPKIT
@@ -205,9 +208,10 @@ static GameController *sSharedController = nil;
 		if (expansionPathsToInclude)
 		{
 			[self logProgress:@"loading selected expansion packs..."];
-			int i;
 			for (i = 0; i < [expansionPathsToInclude count]; i++)
+			{
 				[ResourceManager addExternalPath: (NSString*)[expansionPathsToInclude objectAtIndex: i]];
+			}
 		}
 		
 		// moved here to try to avoid initialising this before having an Open GL context
@@ -280,7 +284,7 @@ static GameController *sSharedController = nil;
 
 - (void)doPerformGameTick
 {
-    if (game_is_paused)
+	if (game_is_paused)
 		delta_t = 0.0;  // no movement!
 	else
 	{
@@ -319,116 +323,77 @@ static GameController *sSharedController = nil;
 
 - (void) stopAnimationTimer
 {
-    if (timer != nil)
+	if (timer != nil)
 	{
-        [timer invalidate];
-        [timer release];
-        timer = nil;
-    }
+		[timer invalidate];
+		[timer release];
+		timer = nil;
+	}
 }
 
 
 #if OOLITE_MAC_OS_X && !OOLITE_SDL
-static int _compareModes(id arg1, id arg2, void *context)
+static int CompareDisplayModes(id arg1, id arg2, void *context)
 {
    // TODO: If fullscreen mode is practical in GNUstep
-    NSDictionary *mode1 = (NSDictionary *)arg1;
-    NSDictionary *mode2 = (NSDictionary *)arg2;
-    int size1, size2;
-    
-    // Sort first on pixel count
-    size1 = [[mode1 objectForKey: (NSString *)kCGDisplayWidth] intValue] *
-            [[mode1 objectForKey: (NSString *)kCGDisplayHeight] intValue];
-    size2 = [[mode2 objectForKey: (NSString *)kCGDisplayWidth] intValue] *
-            [[mode2 objectForKey: (NSString *)kCGDisplayHeight] intValue];
-    if (size1 != size2)
-        return size1 - size2;
-        
-    // Then on refresh rate
-    return (int)[[mode1 objectForKey: (NSString *)kCGDisplayRefreshRate] intValue] -
-           (int)[[mode2 objectForKey: (NSString *)kCGDisplayRefreshRate] intValue];
+	NSDictionary *mode1 = (NSDictionary *)arg1;
+	NSDictionary *mode2 = (NSDictionary *)arg2;
+	int size1, size2;
+	
+	// Sort first on pixel count
+	size1 = [[mode1 objectForKey:kOODisplayWidth] intValue] *
+			[[mode1 objectForKey:kOODisplayHeight] intValue];
+	size2 = [[mode2 objectForKey:kOODisplayWidth] intValue] *
+			[[mode2 objectForKey:kOODisplayHeight] intValue];
+	if (size1 != size2)  return size1 - size2;
+
+	// Then on refresh rate
+	return (int)[[mode1 objectForKey:kOODisplayRefreshRate] intValue] -
+		   (int)[[mode2 objectForKey:kOODisplayRefreshRate] intValue];
 }
 
 
 - (void) getDisplayModes
 {
-    unsigned int		modeIndex, modeCount;
-    NSArray				*modes;
-    NSDictionary		*mode;
-    unsigned int		modeWidth, modeHeight, color, modeRefresh, flags;
+	unsigned			modeIndex, modeCount;
+	NSArray				*modes = nil;
+	NSDictionary		*mode = nil;
+	unsigned			modeWidth, modeHeight, color;
+	NSUserDefaults		*userDefaults = nil;
+	NSMutableSet		*modesSet = nil;
 	
 	// Load preferences.
-	NSUserDefaults *userDefaults = [NSUserDefaults standardUserDefaults];
+	userDefaults = [NSUserDefaults standardUserDefaults];
 	width = [userDefaults intForKey:@"display_width" defaultValue:DISPLAY_DEFAULT_WIDTH];
 	height = [userDefaults intForKey:@"display_height" defaultValue:DISPLAY_DEFAULT_HEIGHT];
 	refresh = [userDefaults intForKey:@"display_refresh" defaultValue:DISPLAY_DEFAULT_REFRESH];
 	
-    // Get the list of all available modes
-    modes = [(NSArray *)CGDisplayAvailableModes(kCGDirectMainDisplay) retain];
-    
-    // Filter out modes that we don't want
-    displayModes = [[NSMutableArray alloc] init];
-    modeCount = [modes count];
-    for (modeIndex = 0; modeIndex < modeCount; modeIndex++)
-	{
-        mode = [modes objectAtIndex: modeIndex];
-        modeWidth = [[mode objectForKey: (NSString *)kCGDisplayWidth] intValue];
-        modeHeight = [[mode objectForKey: (NSString *)kCGDisplayHeight] intValue];
-        color = [[mode objectForKey: (NSString *)kCGDisplayBitsPerPixel] intValue];
-        modeRefresh = [[mode objectForKey: (NSString *)kCGDisplayRefreshRate] intValue];
-        flags = [[mode objectForKey: (NSString *)kCGDisplayIOFlags] intValue];
-        
-        if ((color < DISPLAY_MIN_COLOURS)||(modeWidth < DISPLAY_MIN_WIDTH)||(modeWidth > DISPLAY_MAX_WIDTH)||(modeHeight < DISPLAY_MIN_HEIGHT)||(modeHeight > DISPLAY_MAX_HEIGHT))
-            continue;
-        [displayModes addObject: mode];
-    }
-
-    // Sort the filtered modes
-    [displayModes sortUsingFunction: _compareModes context: NULL];
-
-	// ***JESTER_START*** 11/08/04
-	// Powerbooks return several "identical modes" CGDisplayAvailableModes doesn't appear
-	// to pick up refresh rates. Logged as Radar 3759831.
-	// In order to deal with this, we'll just edit out the duplicates.
+	// Get the list of all available modes
+	modes = (NSArray *)CGDisplayAvailableModes(kCGDirectMainDisplay);
 	
-	unsigned int j;
-	for(j = 0, mode = [displayModes objectAtIndex: j]; j + 1 < [displayModes count];)
+	// Filter out modes that we don't want
+	modesSet = [NSMutableSet set];
+	modeCount = [modes count];
+	for (modeIndex = 0; modeIndex < modeCount; modeIndex++)
 	{
-		modeWidth = [[mode objectForKey: (NSString *)kCGDisplayWidth] intValue];
-		modeHeight = [[mode objectForKey: (NSString *)kCGDisplayHeight] intValue];
-		modeRefresh = [[mode objectForKey: (NSString *)kCGDisplayRefreshRate] intValue];
+		mode = [modes objectAtIndex: modeIndex];
+		modeWidth = [mode unsignedIntForKey:kOODisplayWidth];
+		modeHeight = [mode unsignedIntForKey:kOODisplayHeight];
+		color = [mode unsignedIntForKey:kOODisplayBitsPerPixel];
 
-		do
-		{
-			j = j + 1;
-			NSDictionary *mode2 = [displayModes objectAtIndex: j];
-			int modeWidth2 = [[mode2 objectForKey: (NSString *)kCGDisplayWidth] intValue];
-			int modeHeight2 = [[mode2 objectForKey: (NSString *)kCGDisplayHeight] intValue];
-			int modeRefresh2 = [[mode2 objectForKey: (NSString *)kCGDisplayRefreshRate] intValue];
-			if(modeWidth == modeWidth2 && modeHeight == modeHeight2 && modeRefresh == modeRefresh2)
-			{
-				[displayModes removeObjectsFromIndices: &j numIndices: 1];
-				j = j - 1;
-			}
-			else
-			{
-				mode = mode2;
-				break;
-			}
-		} while(j + 1 < [displayModes count]);
+		if ((color < DISPLAY_MIN_COLOURS)||(modeWidth < DISPLAY_MIN_WIDTH)||(modeWidth > DISPLAY_MAX_WIDTH)||(modeHeight < DISPLAY_MIN_HEIGHT)||(modeHeight > DISPLAY_MAX_HEIGHT))
+			continue;
+		[modesSet addObject:mode];	// Use a set here to remove duplicate modes generated for some displays.
 	}
-	// ***JESTER_END*** 11/08/04
-
-    // Fill the popup with the resulting modes
-    modeCount = [displayModes count];
 	
-    int i;
-	for (i = 0; i < modeCount; i++)
+	// Sort the filtered modes
+	displayModes = [[modesSet allObjects] mutableCopy];
+	[displayModes sortUsingFunction: CompareDisplayModes context: NULL];
+	
+	if ([displayModes count] == 0)
 	{
-        mode = [displayModes objectAtIndex: i];
-        modeWidth = [[mode objectForKey: (NSString *)kCGDisplayWidth] intValue];
-        modeHeight = [[mode objectForKey: (NSString *)kCGDisplayHeight] intValue];
-        modeRefresh = [[mode objectForKey: (NSString *)kCGDisplayRefreshRate] intValue];
+		[NSException raise:@"OoliteNoDisplayModes"
+					format:@"No acceptable display modes could be found!"];
 	}
 	
 	fullscreenDisplayMode = [self findDisplayModeForWidth:width Height:height Refresh:refresh];
@@ -436,27 +401,27 @@ static int _compareModes(id arg1, id arg2, void *context)
 	{
 		// set full screen mode to first available mode
 		fullscreenDisplayMode = [displayModes objectAtIndex:0];
-		width = [[fullscreenDisplayMode objectForKey: (NSString *)kCGDisplayWidth] intValue];
-		height = [[fullscreenDisplayMode objectForKey: (NSString *)kCGDisplayHeight] intValue];
-		refresh = [[fullscreenDisplayMode objectForKey: (NSString *)kCGDisplayRefreshRate] intValue];
+		width = [[fullscreenDisplayMode objectForKey:kOODisplayWidth] intValue];
+		height = [[fullscreenDisplayMode objectForKey:kOODisplayHeight] intValue];
+		refresh = [[fullscreenDisplayMode objectForKey:kOODisplayRefreshRate] intValue];
 	}
 }
 
 
 - (NSDictionary *) findDisplayModeForWidth:(unsigned int) d_width Height:(unsigned int) d_height Refresh:(unsigned int) d_refresh
 {
-    int i, modeCount;
-    NSDictionary *mode;
-    unsigned int modeWidth, modeHeight, modeRefresh;
+	int i, modeCount;
+	NSDictionary *mode;
+	unsigned int modeWidth, modeHeight, modeRefresh;
 	
-    modeCount = [displayModes count];
-
+	modeCount = [displayModes count];
+	
 	for (i = 0; i < modeCount; i++)
 	{
 		mode = [displayModes objectAtIndex: i];
-		modeWidth = [[mode objectForKey: (NSString *)kCGDisplayWidth] intValue];
-		modeHeight = [[mode objectForKey: (NSString *)kCGDisplayHeight] intValue];
-		modeRefresh = [[mode objectForKey: (NSString *)kCGDisplayRefreshRate] intValue];
+		modeWidth = [[mode objectForKey:kOODisplayWidth] intValue];
+		modeHeight = [[mode objectForKey:kOODisplayHeight] intValue];
+		modeRefresh = [[mode objectForKey:kOODisplayRefreshRate] intValue];
 		if ((modeWidth == d_width)&&(modeHeight == d_height)&&(modeRefresh == d_refresh))
 		{
 			return mode;
@@ -468,11 +433,11 @@ static int _compareModes(id arg1, id arg2, void *context)
 
 - (IBAction) goFullscreen:(id) sender
 {
-    CGLContextObj cglContext;
-    CGDisplayErr err;
-    long oldSwapInterval;
-    long newSwapInterval;
-	CGMouseDelta mouse_dx, mouse_dy;
+	CGLContextObj	cglContext;
+	CGDisplayErr	err;
+	long			oldSwapInterval;
+	long			newSwapInterval;
+	CGMouseDelta	mouse_dx, mouse_dy;
 	
 	// empty the event queue and strip all keys - stop problems with hangover keys
 	{
@@ -566,16 +531,16 @@ static int _compareModes(id arg1, id arg2, void *context)
 		}
 
 		// switch resolution!
-        err = CGDisplaySwitchToMode(kCGDirectMainDisplay, (CFDictionaryRef)fullscreenDisplayMode);
-        if (err != CGDisplayNoErr)
+		err = CGDisplaySwitchToMode(kCGDirectMainDisplay, (CFDictionaryRef)fullscreenDisplayMode);
+		if (err != CGDisplayNoErr)
 		{
-            OOLog(@"display.mode.switch.failed", @"***** Unable to change display mode.");
-            return;
-        }
+			OOLog(@"display.mode.switch.failed", @"***** Unable to change display mode.");
+			return;
+		}
 		
 		// Hide the cursor
 		CGDisplayMoveCursorToPoint(kCGDirectMainDisplay,centerOfScreen);
-        CGDisplayHideCursor(kCGDirectMainDisplay);
+		CGDisplayHideCursor(kCGDirectMainDisplay);
 		
 		// Enter FullScreen mode and make our FullScreen context the active context for OpenGL commands.
 		[fullScreenContext setFullScreen];
@@ -682,15 +647,15 @@ static int _compareModes(id arg1, id arg2, void *context)
 		fullScreenContext = nil;
 
 		// switch resolution back!
-        err = CGDisplaySwitchToMode(kCGDirectMainDisplay, (CFDictionaryRef)originalDisplayMode);
-        if (err != CGDisplayNoErr)
+		err = CGDisplaySwitchToMode(kCGDirectMainDisplay, (CFDictionaryRef)originalDisplayMode);
+		if (err != CGDisplayNoErr)
 		{
-            OOLog(@"display.mode.switch.failed", @"***** Unable to change display mode.");
-            return;
-        }
+			OOLog(@"display.mode.switch.failed", @"***** Unable to change display mode.");
+			return;
+		}
 		
 		// show the cursor
-        CGDisplayShowCursor(kCGDirectMainDisplay);
+		CGDisplayShowCursor(kCGDirectMainDisplay);
 		
 		// Release control of the displays.
 		CGReleaseAllDisplays();

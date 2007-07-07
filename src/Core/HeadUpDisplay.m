@@ -73,8 +73,8 @@ float char_widths[128] = {
 
 - (id) initWithDictionary:(NSDictionary *) hudinfo
 {
-	int i;
-	BOOL areTrumblesToBeDrawn = NO;
+	unsigned		i;
+	BOOL			areTrumblesToBeDrawn = NO;
 	
 	self = [super init];
 		
@@ -160,7 +160,7 @@ float char_widths[128] = {
 			rht = [[gui_info objectForKey:ROW_HEIGHT_KEY] intValue];
 		if ([gui_info objectForKey:TITLE_KEY])
 			title = [NSString stringWithFormat:@"%@", [gui_info objectForKey:TITLE_KEY]];
-		[message_gui resizeTo: siz characterHeight: rht Title: title];
+		[message_gui resizeTo:siz characterHeight:rht title:title];
 		if ([gui_info objectForKey:ALPHA_KEY])
 			[message_gui setAlpha: [[gui_info objectForKey:ALPHA_KEY] floatValue]];
 		else
@@ -190,7 +190,7 @@ float char_widths[128] = {
 			rht = [[gui_info objectForKey:ROW_HEIGHT_KEY] intValue];
 		if ([gui_info objectForKey:TITLE_KEY])
 			title = [NSString stringWithFormat:@"%@", [gui_info objectForKey:TITLE_KEY]];
-		[comm_log_gui resizeTo: siz characterHeight: rht Title: title];
+		[comm_log_gui resizeTo:siz characterHeight:rht title:title];
 		if ([gui_info objectForKey:ALPHA_KEY])
 			[comm_log_gui setAlpha: [[gui_info objectForKey:ALPHA_KEY] floatValue]];
 		else
@@ -262,7 +262,7 @@ float char_widths[128] = {
 
 - (void) drawLegends
 {
-	int i;
+	unsigned		i;
 	
 	z1 = [(MyOpenGLView *)[UNIVERSE gameView] display_z];
 	for (i = 0; i < [legendArray count]; i++)
@@ -275,7 +275,7 @@ float char_widths[128] = {
 // SLOW_CODE - HUD drawing is taking up a ridiculous 30%-40% of frame time. Much of this seems to be spent in string processing. String caching is needed. -- ahruman
 - (void) drawDials
 {
-	int i;
+	unsigned		i;
 	
 	z1 = [(MyOpenGLView *)[UNIVERSE gameView] display_z];
 	for (i = 0; i < [dialArray count]; i++)
@@ -1354,8 +1354,8 @@ static BOOL hostiles;
 	
 	if (![player dialIdentEngaged])
 	{
-		int n_mis = [player dialMaxMissiles];
-		int i;
+		unsigned n_mis = [player dialMaxMissiles];
+		unsigned i;
 		for (i = 0; i < n_mis; i++)
 		{
 			if ([player missileForStation:i])
@@ -2033,7 +2033,7 @@ void hudDrawReticleOnTarget(Entity* target, PlayerEntity* player1, GLfloat z1)
 		break;
 	}
 	
-	if ([player1 gui_screen] != GUI_SCREEN_MAIN)	// don't draw on text screens
+	if ([player1 guiScreen] != GUI_SCREEN_MAIN)	// don't draw on text screens
 		return;
 	
 	if (!target)
@@ -2149,11 +2149,11 @@ double drawCharacterQuad(int chr, double x, double y, double z, NSSize siz)
 
 void drawString(NSString *text, double x, double y, double z, NSSize siz)
 {
-	int i;
-	double cx = x;
-	const char *string;
-	char simple[2] = {0, 0};
-	unsigned ch, next, length;
+	unsigned		i;
+	double			cx = x;
+	const char		*string = NULL;
+	char			simple[2] = {0, 0};
+	unsigned		ch, next, length;
 	
 	glEnable(GL_TEXTURE_2D);
 	glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
@@ -2312,8 +2312,9 @@ void drawPlanetInfo(int gov, int eco, int tec, double x, double y, double z, NSS
 
 NSRect rectForString(NSString *text, double x, double y, NSSize siz)
 {
-	int i;
-	double w = 0;
+	unsigned			i;
+	double				w = 0;
+	
 	for (i = 0; i < [text length]; i++)
 	{
 		int ch = (int)[text characterAtIndex:i];

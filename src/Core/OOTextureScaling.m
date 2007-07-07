@@ -1053,7 +1053,7 @@ static void SqueezeVertically1(OOScalerPixMap srcPx, OOTextureDimension dstHeigh
 	
 	lastRow = srcPx.height - 1;
 	
-	while (endY <= lastRow)
+	while (endY < lastRow)
 	{
 		fractY = endFractY;
 		endFractY += deltaY;
@@ -1076,7 +1076,7 @@ static void SqueezeVertically1(OOScalerPixMap srcPx, OOTextureDimension dstHeigh
 			{
 				++y;
 				src = (uint8_t *)((char *)src + srcRowBytes);
-				if (EXPECT(y == endY))
+				if (EXPECT_NOT(y == endY))
 				{
 					if (EXPECT(endY != lastRow))  accum += *src * endWeight;
 					break;
@@ -1211,7 +1211,7 @@ static void SqueezeVertically4(OOScalerPixMap srcPx, OOTextureDimension dstHeigh
 	
 	lastRow = srcPx.height - 1;
 	
-	while (endY <= lastRow)
+	while (endY < lastRow)
 	{
 		fractY = endFractY;
 		endFractY += deltaY;
@@ -1235,7 +1235,7 @@ static void SqueezeVertically4(OOScalerPixMap srcPx, OOTextureDimension dstHeigh
 			{
 				++y;
 				src = (uint32_t *)((char *)src + srcRowBytes);
-				if (EXPECT(y == endY))
+				if (EXPECT_NOT(y == endY))
 				{
 					if (EXPECT(endY <= lastRow))  ACCUM(*src, endWeight);
 					break;

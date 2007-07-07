@@ -29,21 +29,20 @@ MA 02110-1301, USA.
 #define AI_THINK_INTERVAL					0.125
 
 
-@class OOInstinct, ShipEntity;
+@class ShipEntity, OOInstinct;
+
 
 @interface AI : NSObject
 {
-	ShipEntity			*owner;						// the object this is the AI for
-	NSString			*owner_desc;				// describes the object this is the AI for
-
+	id					_owner;						// OOWeakReference to the ShipEntity this is the AI for
+	NSString			*ownerDesc;					// describes the object this is the AI for
+	
 	NSDictionary		*stateMachine;
 	NSString			*stateMachineName;
 	NSString			*currentState;
 	NSMutableDictionary	*pendingMessages;
 	
-	NSMutableArray		*ai_stack;
-	
-	NSLock				*aiLock;
+	NSMutableArray		*aiStack;
 	
 	OOInstinct			*rulingInstinct;
 	
@@ -52,12 +51,19 @@ MA 02110-1301, USA.
 	
 }
 
-- (id) prepare;
+- (NSString*) name;
+
+- (void) setStateMachine:(NSString *)smName;
+- (void) setState:(NSString *)stateName;
+
+- (void) setStateMachine:(NSString *)smName afterDelay:(NSTimeInterval)delay;
+- (void) setState:(NSString *)stateName afterDelay:(NSTimeInterval)delay;
 
 - (id) initWithStateMachine:(NSString *) smName andState:(NSString *) stateName;
 
 - (void) setRulingInstinct:(OOInstinct*) instinct;
 
+- (ShipEntity *)owner;
 - (void) setOwner:(ShipEntity *)ship;
 
 - (void) preserveCurrentStateMachine;
@@ -66,13 +72,7 @@ MA 02110-1301, USA.
 
 - (void) exitStateMachine;
 
-- (void) setStateMachine:(NSString *) smName;
-
-- (NSString*) name;
-
 - (int) ai_stack_depth;
-
-- (void) setState:(NSString *) stateName;
 
 - (void) reactToMessage:(NSString *) message;
 

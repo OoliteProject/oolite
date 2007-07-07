@@ -116,8 +116,8 @@ MA 02110-1301, USA.
 @public
 	// use a sorted list for drawing and other activities
 	//
-	Entity*					sortedEntities[UNIVERSE_MAX_ENTITIES];
-	int						n_entities;
+	Entity					*sortedEntities[UNIVERSE_MAX_ENTITIES];
+	unsigned				n_entities;
 	int						cursor_row;
 	
 //		// collision optimisation sorted lists
@@ -139,12 +139,12 @@ MA 02110-1301, USA.
 	MyOpenGLView			*gameView;
 	
 	#ifndef GNUSTEP
-	NSSpeechSynthesizer*	speechSynthesizer;		// use this from OS X 10.3 onwards
+	NSSpeechSynthesizer		*speechSynthesizer;		// use this from OS X 10.3 onwards
 	NSArray					*speechArray;
 	#endif
 	
 	int						next_universal_id;
-	Entity*					entity_for_uid[MAX_ENTITY_UID];
+	Entity					*entity_for_uid[MAX_ENTITY_UID];
 
 	NSMutableArray			*entities;
 			
@@ -158,9 +158,9 @@ MA 02110-1301, USA.
 	
 	NSString				*currentMessage;
 	
-	GuiDisplayGen*			gui;
-	GuiDisplayGen*			message_gui;
-	GuiDisplayGen*			comm_log_gui;
+	GuiDisplayGen			*gui;
+	GuiDisplayGen			*message_gui;
+	GuiDisplayGen			*comm_log_gui;
 	
 	BOOL					displayGUI;
 	BOOL					displayCursor;
@@ -181,49 +181,49 @@ MA 02110-1301, USA.
 	
 	BOOL					dumpCollisionInfo;
 	
-	NSDictionary			*shipdata;			// holds data on all ships available, loaded at initialisation
-	NSDictionary			*shipyard;			// holds data on all ships for sale, loaded at initialisation
+	NSDictionary			*shipdata;				// holds data on all ships available, loaded at initialisation
+	NSDictionary			*shipyard;				// holds data on all ships for sale, loaded at initialisation
 	
-	NSDictionary			*commoditylists;	// holds data on commodities for various types of station, loaded at initialisation
-	NSArray					*commoditydata;		// holds data on commodities extracted from commoditylists
+	NSDictionary			*commoditylists;		// holds data on commodities for various types of station, loaded at initialisation
+	NSArray					*commoditydata;			// holds data on commodities extracted from commoditylists
 	
-	NSDictionary			*illegal_goods;		// holds the legal penalty for illicit commodities, loaded at initialisation
-	NSDictionary			*descriptions;		// holds descriptive text for lots of stuff, loaded at initialisation
-	NSDictionary			*customsounds;		// holds descriptive audio for lots of stuff, loaded at initialisation
-	NSDictionary			*characters;		// holds descriptons of characters
-	NSDictionary			*planetinfo;		// holds overrides for individual planets, keyed by "g# p#" where g# is the galaxy number 0..7 and p# the planet number 0..255
-	NSDictionary			*missiontext;		// holds descriptive text for missions, loaded at initialisation
-	NSArray					*equipmentdata;		// holds data on available equipment, loaded at initialisation
+	NSDictionary			*illegal_goods;			// holds the legal penalty for illicit commodities, loaded at initialisation
+	NSDictionary			*descriptions;			// holds descriptive text for lots of stuff, loaded at initialisation
+	NSDictionary			*customsounds;			// holds descriptive audio for lots of stuff, loaded at initialisation
+	NSDictionary			*characters;			// holds descriptons of characters
+	NSDictionary			*planetinfo;			// holds overrides for individual planets, keyed by "g# p#" where g# is the galaxy number 0..7 and p# the planet number 0..255
+	NSDictionary			*missiontext;			// holds descriptive text for missions, loaded at initialisation
+	NSArray					*equipmentdata;			// holds data on available equipment, loaded at initialisation
 	
 	Random_Seed				galaxy_seed;
 	Random_Seed				system_seed;
 	Random_Seed				target_system_seed;
 	
-	Random_Seed				systems[256];		// hold pregenerated universe info
-	NSString*				system_names[256];		// hold pregenerated universe info
+	Random_Seed				systems[256];			// hold pregenerated universe info
+	NSString				*system_names[256];		// hold pregenerated universe info
 	BOOL					system_found[256];		// holds matches for input strings
 	
 	int						breakPatternCounter;
 	
 	ShipEntity				*demo_ship;
 	
-	StationEntity*			cachedStation;
-	PlanetEntity*			cachedPlanet;
-	PlanetEntity*			cachedSun;
+	StationEntity			*cachedStation;
+	PlanetEntity			*cachedPlanet;
+	PlanetEntity			*cachedSun;
 	
 	BOOL					strict;
 	
 	BOOL					no_update;
 	
-	NSMutableDictionary*	local_planetinfo_overrides;
+	NSMutableDictionary		*local_planetinfo_overrides;
 	
-	NSException*			exception;
+	NSException				*exception;
 	
-	NSMutableArray*			activeWormholes;
+	NSMutableArray			*activeWormholes;
 	
-	NSMutableArray*			characterPool;
+	NSMutableArray			*characterPool;
 	
-	CollisionRegion*		universeRegion;
+	CollisionRegion			*universeRegion;
 	
 	// check and maintain linked lists occasionally
 	BOOL					doLinkedListMaintenanceThisUpdate;
@@ -301,9 +301,9 @@ MA 02110-1301, USA.
 - (ShipEntity *) newShipWithName:(NSString *) desc;
 - (NSDictionary *) getDictionaryForShip:(NSString *) desc;
 
-- (int) maxCargoForShip:(NSString *) desc;
+- (OOCargoQuantity) maxCargoForShip:(NSString *) desc;
 
-- (int) getPriceForWeaponSystemWithKey:(NSString *)weapon_key;
+- (OOCreditsQuantity) getPriceForWeaponSystemWithKey:(NSString *)weapon_key;
 
 - (int) legal_status_of_manifest:(NSArray *)manifest;
 
@@ -315,6 +315,7 @@ MA 02110-1301, USA.
 - (OOCargoType) getRandomCommodity;
 - (OOCargoQuantity) getRandomAmountOfCommodity:(OOCargoType) co_type;
 
+- (NSArray *)commidityDataForType:(OOCargoType)type;
 - (OOCargoType) commodityForName:(NSString *) co_name;
 - (NSString *) nameForCommodity:(OOCargoType) co_type;
 - (OOMassUnit) unitsForCommodity:(OOCargoType) co_type;
@@ -343,8 +344,8 @@ MA 02110-1301, USA.
 - (int) getFirstEntityTargettedByPlayer:(PlayerEntity*) player;
 
 - (NSArray *) getEntitiesWithinRange:(double) range1 ofEntity:(Entity *) e1;
-- (int) countShipsWithRole:(NSString *) desc inRange:(double) range1 ofEntity:(Entity *)e1;
-- (int) countShipsWithRole:(NSString *) desc;
+- (unsigned) countShipsWithRole:(NSString *) desc inRange:(double) range1 ofEntity:(Entity *)e1;
+- (unsigned) countShipsWithRole:(NSString *) desc;
 - (void) sendShipsWithRole:(NSString *) desc messageToAI:(NSString *) ms;
 
 - (OOTimeAbsolute) getTime;
@@ -435,7 +436,7 @@ double estimatedTimeForJourney(double distance, int hops);
 - (NSArray *) contractsForSystem:(Random_Seed) s_seed atTime:(double) current_time;
 
 - (NSArray *) shipsForSaleForSystem:(Random_Seed) s_seed withTL:(int) specialTL atTime:(double) current_time;
-- (int) tradeInValueForCommanderDictionary:(NSDictionary*) cmdr_dict;
+- (OOCreditsQuantity) tradeInValueForCommanderDictionary:(NSDictionary*) cmdr_dict;
 - (NSString*) brochureDescriptionWithDictionary:(NSDictionary*) dict standardEquipment:(NSArray*) extras optionalEquipment:(NSArray*) options;
 
 - (Vector) getWitchspaceExitPosition;
@@ -503,7 +504,3 @@ OOINLINE Universe *GetUniverse(void)
 
 
 #define DESC(key)	([UNIVERSE descriptionForKey:(key)])
-
-
-NSComparisonResult compareName(NSDictionary *dict1, NSDictionary *dict2, void * context);
-NSComparisonResult comparePrice(NSDictionary *dict1, NSDictionary *dict2, void * context);

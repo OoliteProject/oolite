@@ -432,7 +432,7 @@ MA 02110-1301, USA.
 		if ([roles isEqual:@"police"]||[roles isEqual:@"interceptor"]||[roles isEqual:@"wingman"])
 		{
 			NSArray	*fellow_police = [self shipsInGroup:groupID];
-			int i;
+			unsigned i;
 			for (i = 0; i < [fellow_police count]; i++)
 			{
 				ShipEntity *other_police = (ShipEntity *)[fellow_police objectAtIndex:i];
@@ -767,7 +767,7 @@ WormholeEntity*	whole;
 	if (![group count])
 		return;
 
-	int i;
+	unsigned i;
 	for (i = 0; i < [group count]; i++)
 	{
 		ShipEntity  *ship = (ShipEntity *)[group objectAtIndex:i];
@@ -786,7 +786,7 @@ WormholeEntity*	whole;
 	if (![group count])
 		return;
 
-	int i;
+	unsigned i;
 	for (i = 0; i < [group count]; i++)
 	{
 		ShipEntity  *ship = (ShipEntity *)[group objectAtIndex:i];
@@ -892,7 +892,7 @@ WormholeEntity*	whole;
 - (void) ejectCargo
 {
 	SEL _dumpCargoSelector = @selector(dumpCargo);
-	int i;
+	unsigned i;
 	if ((cargo_flag == CARGO_FLAG_FULL_PLENTIFUL)||(cargo_flag == CARGO_FLAG_FULL_SCARCE))
 	{
 		NSArray* jetsam;
@@ -1161,7 +1161,7 @@ WormholeEntity*	whole;
 	if ((!target_ship)||(target_ship->isShip != YES))
 		return;
 	
-	int i;
+	unsigned i;
 	for (i = 0; i < [fellow_ships count]; i++)
 	{
 		ShipEntity *other_ship = (ShipEntity *)[fellow_ships objectAtIndex:i];
@@ -1744,7 +1744,7 @@ WormholeEntity*	whole;
 	}
 	
 	// find the current beacon in the list..
-	int i = [all_beacons indexOfObject: current_beacon];
+	unsigned i = [all_beacons indexOfObject: current_beacon];
 	
 	if (i == NSNotFound)
 	{

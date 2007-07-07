@@ -134,6 +134,7 @@ static NSString * const kOOLogEntityTooManyFaces			= @"entity.loadMesh.failed.to
 	isSmoothShaded = value;
 }
 
+
 - (Geometry*) geometry
 {
 	Geometry* result = [(Geometry *)[Geometry alloc] initWithCapacity: faceCount];
@@ -236,6 +237,7 @@ static NSString * const kOOLogEntityTooManyFaces			= @"entity.loadMesh.failed.to
 		else  [localException raise];	// pass these on
 	NS_ENDHANDLER
 }
+
 
 - (void) drawSubEntity:(BOOL) immediate :(BOOL) translucent
 {
@@ -348,6 +350,7 @@ static NSString * const kOOLogEntityTooManyFaces			= @"entity.loadMesh.failed.to
 	return [NSDictionary dictionaryWithDictionary:mdict];
 }
 
+
 - (BOOL)setModelFromModelData:(NSDictionary*) dict
 {
 	vertexCount = [[dict objectForKey:@"vertexCount"] intValue];
@@ -396,7 +399,7 @@ static NSString * const kOOLogEntityTooManyFaces			= @"entity.loadMesh.failed.to
     NSMutableArray		*lines;
     BOOL				failFlag = NO;
     NSString			*failString = @"***** ";
-    int					i, j;
+    unsigned			i, j;
 
 	BOOL using_preloaded = NO;
 	
@@ -467,11 +470,8 @@ static NSString * const kOOLogEntityTooManyFaces			= @"entity.loadMesh.failed.to
 			OOLog(kOOLogEntityTooManyVertices, @"ERROR - model %@ has too many vertices (model has %d, maximum is %d)", filename, vertexCount, MAX_VERTICES_PER_ENTITY);
 			failFlag = YES;
 			// ERROR model file not found
-			NSException* myException = [NSException
-				exceptionWithName:@"OoliteException"
-				reason:[NSString stringWithFormat:@"ERROR - model %@ has too many vertices (model has %d, maximum is %d)", filename, vertexCount, MAX_VERTICES_PER_ENTITY]
-				userInfo:nil];
-			[myException raise];
+			[NSException raise:@"OoliteException"
+						format:@"ERROR - model %@ has too many vertices (model has %d, maximum is %d)", filename, vertexCount, MAX_VERTICES_PER_ENTITY];
 		}
 
 		// get number of faces
@@ -499,11 +499,8 @@ static NSString * const kOOLogEntityTooManyFaces			= @"entity.loadMesh.failed.to
 			OOLog(kOOLogEntityTooManyFaces, @"ERROR - model %@ has too many faces (model has %d, maximum is %d)", filename, faceCount, MAX_FACES_PER_ENTITY);
 			failFlag = YES;
 			// ERROR model file not found
-			NSException* myException = [NSException
-				exceptionWithName:@"OoliteException"
-				reason:[NSString stringWithFormat:@"ERROR - model %@ has too many faces (model has %d, maximum is %d)", filename, faceCount, MAX_FACES_PER_ENTITY]
-				userInfo:nil];
-			[myException raise];
+			[NSException raise:@"OoliteException"
+						format:@"ERROR - model %@ has too many faces (model has %d, maximum is %d)", filename, faceCount, MAX_FACES_PER_ENTITY];
 		}
 
 		// get vertex data
@@ -599,7 +596,7 @@ static NSString * const kOOLogEntityTooManyFaces			= @"entity.loadMesh.failed.to
 					if (!failFlag)
 					{
 						int vi;
-						for (i = 0; i < n_v; i++)
+						for (i = 0; i < faces[j].n_verts; i++)
 						{
 							if ([scanner scanInt:&vi])
 							{
@@ -715,7 +712,7 @@ static NSString * const kOOLogEntityTooManyFaces			= @"entity.loadMesh.failed.to
 - (void) checkNormalsAndAdjustWinding
 {
     Vector calculatedNormal;
-    int i, j;
+    unsigned i, j;
     for (i = 0; i < faceCount; i++)
     {
         Vector v0, v1, v2, norm;
@@ -753,9 +750,10 @@ static NSString * const kOOLogEntityTooManyFaces			= @"entity.loadMesh.failed.to
     }
 }
 
+
 - (void) calculateVertexNormals
 {
-	int i,j;
+	unsigned i,j;
 	float	triangle_area[faceCount];
 	for (i = 0 ; i < faceCount; i++)
 	{
@@ -771,7 +769,7 @@ static NSString * const kOOLogEntityTooManyFaces			= @"entity.loadMesh.failed.to
 		Vector normal_sum = kZeroVector;
 		for (j = 0; j < faceCount; j++)
 		{
-			BOOL is_shared = ((faces[j].vertex[0] == i)||(faces[j].vertex[1] == i)||(faces[j].vertex[2] == i));
+			BOOL is_shared = (((unsigned)faces[j].vertex[0] == i)||((unsigned)faces[j].vertex[1] == i)||((unsigned)faces[j].vertex[2] == i));
 			if (is_shared)
 			{
 				float t = triangle_area[j]; // weight sum by area
@@ -785,6 +783,7 @@ static NSString * const kOOLogEntityTooManyFaces			= @"entity.loadMesh.failed.to
 		vertex_normal[i] = normal_sum;
 	}
 }
+
 
 - (Vector) normalForVertex:(int) v_index withSharedRedValue:(GLfloat) red_value
 {
@@ -811,11 +810,12 @@ static NSString * const kOOLogEntityTooManyFaces			= @"entity.loadMesh.failed.to
 	return normal_sum;
 }
 
+
 - (void) setUpVertexArrays
 {
 	NSMutableDictionary*	texturesProcessed = [NSMutableDictionary dictionaryWithCapacity:MAX_TEXTURES_PER_ENTITY];
 
-	int face, fi, vi, texi;
+	unsigned face, fi, vi, texi;
 
 	// if isSmoothShaded find any vertices that are between faces of two different colour (by red value)
 	// and mark them as being on an edge and therefore NOT smooth shaded
@@ -942,17 +942,18 @@ static NSString * const kOOLogEntityTooManyFaces			= @"entity.loadMesh.failed.to
 	return sqrt(result);
 }
 
+
 - (void) fakeTexturesWithImageFile: (NSString *) textureFile andMaxSize:(NSSize) maxSize
 {
-    int i, j, k;
-    Vector vec;
-    int nf = 0;
-    int		fi[MAX_FACES_PER_ENTITY];
-    float	max_s, min_s, max_t, min_t, st_width, st_height;
-    float	tolerance;
-    Face	fa[MAX_FACES_PER_ENTITY];
-    int		faces_to_match;
-    BOOL	face_matched[MAX_FACES_PER_ENTITY];
+    unsigned	i, j, k;
+    Vector		vec;
+    unsigned	nf = 0;
+    unsigned	fi[MAX_FACES_PER_ENTITY];
+    float		max_s, min_s, max_t, min_t, st_width, st_height;
+    float		tolerance;
+    Face		fa[MAX_FACES_PER_ENTITY];
+    unsigned	faces_to_match;
+    BOOL		face_matched[MAX_FACES_PER_ENTITY];
 
     tolerance = 1.00;
     faces_to_match = faceCount;
@@ -1228,59 +1229,6 @@ static NSString * const kOOLogEntityTooManyFaces			= @"entity.loadMesh.failed.to
     }
 
 }
-
-
-#if 0
-// Generate a .DAT file.
-- (NSString *) toString
-{
-    // produce a file from the original data
-    int i,j, r,g,b;
-    NSString *result;
-    NSString *boilerplate = @"# This is a file adapted from the model files for Java Elite\n# which in turn are based on the data released by Ian Bell\n# in the file b7051600.zip at\n# http://www.users.waitrose.com/~elitearc2/elite/archive/b7051600.zip\n#";
-    result = [NSString stringWithFormat:@"%@\n# %@\n#\n\nNVERTS %d\nNFACES %d\n\nVERTEX\n", boilerplate, basefile, vertexCount, faceCount];
-    for (i = 0; i < vertexCount; i++)
-    {
-        result = [NSString stringWithFormat:@"%@%f,\t%f,\t%f\n", result, vertices[i].x, vertices[i].y, vertices[i].z];
-        if ((i % 5)==4)
-            result = [NSString stringWithFormat:@"%@\n", result];
-    }
-    result = [NSString stringWithFormat:@"%@\nFACES\n", result];
-	
-    for (j = 0; j < faceCount; j++)
-    {
-        r = (int)(faces[j].red * 255.0);	g = (int)(faces[j].green * 255.0);	b = (int)(faces[j].blue * 255.0);
-        result = [NSString stringWithFormat:@"%@%d, %d, %d,\t", result, r, g, b];
-        result = [NSString stringWithFormat:@"%@%f, %f, %f,\t", result, faces[j].normal.x, faces[j].normal.y, faces[j].normal.z];
-        result = [NSString stringWithFormat:@"%@%d,\t", result, faces[j].n_verts];
-        for (i = 0; i < faces[j].n_verts; i++)
-        {
-            result = [NSString stringWithFormat:@"%@%d ", result, faces[j].vertex[i]];
-        }
-        result = [NSString stringWithFormat:@"%@\n", result];
-    }
-    if (UNIVERSE)
-    {
-        result = [NSString stringWithFormat:@"%@\nTEXTURES\n", result];
-        for (j = 0; j < faceCount; j++)
-        {
-			NSString* texture = [NSString stringWithUTF8String: faces[j].textureFileName];
-            NSSize	texSize = [TextureStore getSizeOfTexture: texture];
-            result = [NSString stringWithFormat:@"%@%@\t%d %d", result, texture, (int)texSize.width, (int)texSize.height];
-            for (i = 0; i < faces[j].n_verts; i++)
-            {
-                int s = (int)(faces[j].s[i] * texSize.width);
-                int t = (int)(faces[j].t[i] * texSize.height);
-                result = [NSString stringWithFormat:@"%@\t%d %d", result, s, t];
-            }
-            result = [NSString stringWithFormat:@"%@\n", result];
-        }
-    }
-    result = [NSString stringWithFormat:@"%@\nEND\n", result];
-
-    return result;
-}
-#endif
 
 
 - (void)dumpSelfState

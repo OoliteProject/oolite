@@ -1,26 +1,26 @@
 /*
-
-PlayerEntityLoadSave.m
-
-Oolite
-Copyright (C) 2004-2007 Giles C Williams and contributors
-
-This program is free software; you can redistribute it and/or
-modify it under the terms of the GNU General Public License
-as published by the Free Software Foundation; either version 2
-of the License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-
-You should have received a copy of the GNU General Public License
-along with this program; if not, write to the Free Software
-Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
-MA 02110-1301, USA.
-
-*/
+ 
+ PlayerEntityLoadSave.m
+ 
+ Oolite
+ Copyright (C) 2004-2007 Giles C Williams and contributors
+ 
+ This program is free software; you can redistribute it and/or
+ modify it under the terms of the GNU General Public License
+ as published by the Free Software Foundation; either version 2
+ of the License, or (at your option) any later version.
+ 
+ This program is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ GNU General Public License for more details.
+ 
+ You should have received a copy of the GNU General Public License
+ along with this program; if not, write to the Free Software
+ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
+ MA 02110-1301, USA.
+ 
+ */
 
 #import "PlayerEntityLoadSave.h"
 #import "PlayerEntityContracts.h"
@@ -84,7 +84,7 @@ MA 02110-1301, USA.
 {
 #if OOLITE_USE_APPKIT_LOAD_SAVE
 	// OS X: use system open/save dialogs in windowed mode, custom interface in full-screen.
-    if ([[UNIVERSE gameController] inFullScreenMode])
+	if ([[UNIVERSE gameController] inFullScreenMode])
 	{
 		[self setGuiToLoadCommanderScreen];
 	}
@@ -103,7 +103,7 @@ MA 02110-1301, USA.
 {
 #if OOLITE_USE_APPKIT_LOAD_SAVE
 	// OS X: use system open/save dialogs in windowed mode, custom interface in full-screen.
-    if ([[UNIVERSE gameController] inFullScreenMode])
+	if ([[UNIVERSE gameController] inFullScreenMode])
 	{
 		[self setGuiToSaveCommanderScreen:player_name];
 	}
@@ -141,22 +141,22 @@ MA 02110-1301, USA.
 {
 	NSString*	dir = [[UNIVERSE gameController] playerFileDirectory];
 	if (!dir)	dir = [[NSFileManager defaultManager] defaultCommanderPath];
-
-   int idx;
-   if([self handleGUIUpDownArrowKeys: gui :gameView])
-   {
-      int guiSelectedRow=[gui selectedRow];
-      idx=(guiSelectedRow - STARTROW) + (currentPage * NUMROWS);
-      if (guiSelectedRow != MOREROW && guiSelectedRow != BACKROW)
-      {
-         [self showCommanderShip: idx];
-      }
-   }
-   else
-   {
-      idx=([gui selectedRow] - STARTROW) + (currentPage * NUMROWS);
-   }
-   
+	
+	int idx;
+	if([self handleGUIUpDownArrowKeys: gui :gameView])
+	{
+		int guiSelectedRow=[gui selectedRow];
+		idx=(guiSelectedRow - STARTROW) + (currentPage * NUMROWS);
+		if (guiSelectedRow != MOREROW && guiSelectedRow != BACKROW)
+		{
+			[self showCommanderShip: idx];
+		}
+	}
+	else
+	{
+		idx=([gui selectedRow] - STARTROW) + (currentPage * NUMROWS);
+	}
+	
 	// handle page <-- and page --> keys
 	if ([gameView isDown:gvArrowKeyLeft] && [[gui keyForRow:BACKROW] isEqual: GUI_KEY_OK])
 	{
@@ -171,7 +171,7 @@ MA 02110-1301, USA.
 		[self lsCommanders: gui	directory: dir	pageNumber: currentPage  highlightName: nil];
 		[gameView supressKeysUntilKeyUp];
 	}
-   
+	
 	// Enter pressed - find the commander name underneath.
 	if ([gameView isDown:13]||[gameView isDown:gvMouseDoubleClick])
 	{
@@ -207,13 +207,14 @@ MA 02110-1301, USA.
 				}
 		}
 	}
-
-   if([gameView isDown: 27])
-   {
-      [self setGuiToStatusScreen];
-   }
-   return nil;
+	
+	if([gameView isDown: 27])
+	{
+		[self setGuiToStatusScreen];
+	}
+	return nil;
 }
+
 
 - (void) saveCommanderInputHandler:(GuiDisplayGen *)gui :(MyOpenGLView *)gameView
 {
@@ -239,9 +240,9 @@ MA 02110-1301, USA.
 	
 	[gui setText:
 		[NSString stringWithFormat:@"Commander name: %@", commanderNameString]
-		forRow: INPUTROW];
+		  forRow: INPUTROW];
 	[gui setColor:[OOColor cyanColor] forRow:INPUTROW];
-
+	
 	// handle page <-- and page --> keys
 	if ([gameView isDown:gvArrowKeyLeft] && [[gui keyForRow:BACKROW] isEqual: GUI_KEY_OK])
 	{
@@ -256,10 +257,10 @@ MA 02110-1301, USA.
 		[self lsCommanders: gui	directory: dir	pageNumber: currentPage  highlightName: nil];
 		[gameView supressKeysUntilKeyUp];
 	}
-   
+	
 	if(([gameView isDown: 13]||[gameView isDown:gvMouseDoubleClick]) && [commanderNameString length])
 	{
-      if ([gameView isCommandModifierKeyDown]||[gameView isDown:gvMouseDoubleClick])
+		if ([gameView isCommandModifierKeyDown]||[gameView isDown:gvMouseDoubleClick])
 		{
 			int guiSelectedRow=[gui selectedRow];
 			int	idx = (guiSelectedRow - STARTROW) + (currentPage * NUMROWS);
@@ -289,16 +290,17 @@ MA 02110-1301, USA.
 				[self setGuiToStatusScreen];
 			}
 		}
-			
+		
 	}
-
-   if([gameView isDown: 27])
-   {
-      // esc was pressed - get out of here
-      pollControls=YES;
-      [self setGuiToStatusScreen];
-   }
+	
+	if([gameView isDown: 27])
+	{
+		// esc was pressed - get out of here
+		pollControls=YES;
+		[self setGuiToStatusScreen];
+	}
 }
+
 
 - (void) overwriteCommanderInputHandler:(GuiDisplayGen *)gui :(MyOpenGLView *)gameView
 {
@@ -309,16 +311,16 @@ MA 02110-1301, USA.
 		pollControls=YES;
 		[self nativeSavePlayer: commanderNameString];
 		[self setGuiToStatusScreen];
-
+		
 		[beepSound play];
 	}
-
+	
 	if (([gameView isDown: 13] && ([gui selectedRow] == SAVE_OVERWRITE_NO_ROW))||[gameView isDown: 27]||[gameView isDown: 110]||[gameView isDown: 78])
 	{
 		// esc or NO was pressed - get out of here
 		pollControls=YES;
 		[self setGuiToStatusScreen];
-
+		
 		[boopSound play];
 	}
 }
@@ -327,12 +329,12 @@ MA 02110-1301, USA.
 - (void) loadPlayerFromFile:(NSString *)fileToOpen
 {
 	/*	TODO: it would probably be better to load by creating a new
-		PlayerEntity, verifying that's OK, then replacing the global player.
-		
-		Actually, it'd be better to separate PlayerEntity into OOPlayer and
-		OOPlayerShipEntity. And then move most of OOPlayerShipEntity into
-		ShipEntity, and make NPC ships behave more like player ships.
-		-- Ahruman
+	PlayerEntity, verifying that's OK, then replacing the global player.
+	
+	Actually, it'd be better to separate PlayerEntity into OOPlayer and
+	OOPlayerShipEntity. And then move most of OOPlayerShipEntity into
+	ShipEntity, and make NPC ships behave more like player ships.
+	-- Ahruman
 	*/
 	
 	BOOL			loadedOK = YES;
@@ -371,7 +373,7 @@ MA 02110-1301, USA.
 			else  fail_reason = @"Invalid saved game - no ship specified.";
 		}
 	}
-		
+	
 	if (loadedOK)
 	{
 		[self set_up];
@@ -400,14 +402,14 @@ MA 02110-1301, USA.
 		if (fail_reason != nil)  [UNIVERSE addMessage: fail_reason forCount: 9.0];
 		return;
 	}
-
+	
 	[UNIVERSE setSystemTo:system_seed];
 	[UNIVERSE removeAllEntitiesExceptPlayer:NO];
 	[UNIVERSE setUpSpace];
-
+	
 	status = STATUS_DOCKED;
 	[UNIVERSE setViewDirection:VIEW_GUI_DISPLAY];
-
+	
 	docked_station = [UNIVERSE station];
 	if (docked_station)
 	{
@@ -417,12 +419,12 @@ MA 02110-1301, USA.
 		v_right = vector_right_from_quaternion(orientation);
 		v_up = vector_up_from_quaternion(orientation);
 	}
-
+	
 	flightRoll = 0.0;
 	flightPitch = 0.0;
 	flightYaw = 0.0;
 	flightSpeed = 0.0;
-
+	
 	if (![docked_station localMarket])
 	{
 		if ([fileDic objectForKey:@"localMarket"])
@@ -446,16 +448,16 @@ MA 02110-1301, USA.
 
 - (void)loadPlayerWithPanel
 {
-    int				result;
-    NSArray			*fileTypes = nil;
-    NSOpenPanel		*oPanel = nil;
+	int				result;
+	NSArray			*fileTypes = nil;
+	NSOpenPanel		*oPanel = nil;
 	
 	fileTypes = [NSArray arrayWithObject:@"oolite-save"];
 	oPanel = [NSOpenPanel openPanel];
 	
-    [oPanel setAllowsMultipleSelection:NO];
-    result = [oPanel runModalForDirectory:nil file:nil types:fileTypes];
-    if (result == NSOKButton)  [self loadPlayerFromFile:[oPanel filename]];
+	[oPanel setAllowsMultipleSelection:NO];
+	result = [oPanel runModalForDirectory:nil file:nil types:fileTypes];
+	if (result == NSOKButton)  [self loadPlayerFromFile:[oPanel filename]];
 }
 
 
@@ -477,7 +479,7 @@ MA 02110-1301, USA.
 	{
 		NSArray*	path_components = [[sp filename] pathComponents];
 		NSString*   new_name = [[path_components objectAtIndex:[path_components count]-1] stringByDeletingPathExtension];
-
+		
 		[player_name release];
 		player_name = [new_name copy];
 		
@@ -529,7 +531,7 @@ MA 02110-1301, USA.
 {
 	NSString*	dir = [[UNIVERSE gameController] playerFileDirectory];
 	if (!dir)	dir = [[NSFileManager defaultManager] defaultCommanderPath];
-
+	
 	NSString *savePath = [dir stringByAppendingPathComponent:[cdrName stringByAppendingPathExtension:@"oolite-save"]];
 	
 	[player_name release];
@@ -546,17 +548,17 @@ MA 02110-1301, USA.
 	NSString*	dir = [[UNIVERSE gameController] playerFileDirectory];
 	if (!dir)	dir = [[NSFileManager defaultManager] defaultCommanderPath];
 	
-
+	
 	gui_screen = GUI_SCREEN_LOAD;
-
+	
 	[gui clear];
 	[gui setTitle:@"Select Commander"];
-
+	
 	currentPage = 0;
 	[self lsCommanders:gui	directory:dir	pageNumber: currentPage	highlightName:nil];
 	
 	[(MyOpenGLView *)[UNIVERSE gameView] supressKeysUntilKeyUp];
-
+	
 	[self setShowDemoShips: YES];
 	[UNIVERSE setDisplayText: YES];
 	[UNIVERSE setDisplayCursor: YES];
@@ -571,15 +573,15 @@ MA 02110-1301, USA.
 	NSString*	dir = [[UNIVERSE gameController] playerFileDirectory];
 	if (!dir)	dir = [[NSFileManager defaultManager] defaultCommanderPath];
 	
-
+	
 	// Don't poll controls
 	pollControls=NO;
-
+	
 	gui_screen = GUI_SCREEN_SAVE;
-
+	
 	[gui clear];
 	[gui setTitle:[NSString stringWithFormat:@"Save Commander"]];
-
+	
 	currentPage = 0;
 	[self lsCommanders:gui	directory:dir	pageNumber: currentPage	highlightName:nil];
 	
@@ -587,10 +589,10 @@ MA 02110-1301, USA.
 	[gui setColor:[OOColor cyanColor] forRow:INPUTROW];
 	[gui setShowTextCursor: YES];
 	[gui setCurrentRow: INPUTROW];
-
+	
 	[gameView setTypedString: cdrName];
 	[gameView supressKeysUntilKeyUp];
-
+	
 	[self setShowDemoShips: YES];
 	[UNIVERSE setDisplayText: YES];
 	[UNIVERSE setDisplayCursor: YES];
@@ -602,26 +604,26 @@ MA 02110-1301, USA.
 {
 	GuiDisplayGen *gui=[UNIVERSE gui];
 	MyOpenGLView*	gameView = (MyOpenGLView*)[UNIVERSE gameView];
-
+	
 	// Don't poll controls
 	pollControls=NO;
-
+	
 	gui_screen = GUI_SCREEN_SAVE_OVERWRITE;
-
+	
 	[gui clear];
 	[gui setTitle:[NSString stringWithFormat:@"Save Commander %@", cdrName]];
-
+	
 	[gui setText:[NSString stringWithFormat:@"Commander %@ already exists - overwrite this saved game?", cdrName] forRow:SAVE_OVERWRITE_WARN_ROW align: GUI_ALIGN_CENTER];
-
+	
 	[gui setText:@" YES " forRow: SAVE_OVERWRITE_YES_ROW align: GUI_ALIGN_CENTER];
 	[gui setKey:GUI_KEY_OK forRow: SAVE_OVERWRITE_YES_ROW];
-
+	
 	[gui setText:@" NO " forRow: SAVE_OVERWRITE_NO_ROW align: GUI_ALIGN_CENTER];
 	[gui setKey:GUI_KEY_OK forRow: SAVE_OVERWRITE_NO_ROW];
 	
 	[gui setSelectableRange: NSMakeRange(SAVE_OVERWRITE_YES_ROW, 2)];
 	[gui setSelectedRow: SAVE_OVERWRITE_NO_ROW];
-
+	
 	[self setShowDemoShips: NO];
 	[UNIVERSE setDisplayText: YES];
 	[UNIVERSE setDisplayCursor: NO];
@@ -631,19 +633,19 @@ MA 02110-1301, USA.
 
 
 - (void) lsCommanders: (GuiDisplayGen *)gui
-						directory: (NSString*) directory
-						pageNumber: (int)page
-						highlightName: (NSString *)highlightName
+			directory: (NSString*) directory
+		   pageNumber: (int)page
+		highlightName: (NSString *)highlightName
 {
-   NSFileManager *cdrFileManager=[NSFileManager defaultManager];
-   int rangeStart=STARTROW;
-   int lastIndex;
-   int i;
-   int row=STARTROW;
-
-   // cdrArray defined in PlayerEntity.h
-   NSArray *cdrArray=[cdrFileManager commanderContentsOfPath: directory];
-   
+	NSFileManager *cdrFileManager=[NSFileManager defaultManager];
+	int rangeStart=STARTROW;
+	unsigned lastIndex;
+	unsigned i;
+	int row=STARTROW;
+	
+	// cdrArray defined in PlayerEntity.h
+	NSArray *cdrArray=[cdrFileManager commanderContentsOfPath: directory];
+	
 	// get commander details so a brief rundown of the commander's details may
 	// be displayed.
 	if (!cdrDetailArray)
@@ -674,44 +676,44 @@ MA 02110-1301, USA.
 		if (pathIsDirectory && ![[path lastPathComponent] hasPrefix:@"."])
 			[cdrDetailArray addObject: [NSDictionary dictionaryWithObjectsAndKeys: @"YES", @"isFolder", path, @"saved_game_path", nil]];
 	}
-
-   if(![cdrDetailArray count])
-   {
-      // Empty directory; tell the user and exit immediately.
-      [gui setText:@"No commanders found" forRow:STARTROW align:GUI_ALIGN_CENTER];
-      return;
-   }
-
-   // Do we need to highlight a name?
-   int highlightRowOnPage=STARTROW;
-   int highlightIdx=0;
-   if(highlightName)
-   {
-      highlightIdx=[self findIndexOfCommander: highlightName];
-      if(highlightIdx < 0)
-      {
-         NSLog(@"Commander %@ doesn't exist, very bad", highlightName);
-         highlightIdx=0;
-      }
-
-      // figure out what page we need to be on
-      page=highlightIdx/NUMROWS;
-      highlightRowOnPage=highlightIdx % NUMROWS + STARTROW;
-   }
-
-   // We now know for certain what page we're on - 
-   // set the first index of the first commander on this page.
-   int firstIndex=page * NUMROWS;
-
-   // Set up the GUI.
-   int tabStop[GUI_MAX_COLUMNS];
-   tabStop[0]=0;
-   tabStop[1]=160;
-   tabStop[2]=270;
-   [gui setTabStops: tabStop];
-   [gui setColor: [OOColor greenColor] forRow: LABELROW];
-   [gui setArray: [NSArray arrayWithObjects: @"Commander Name", @"Rating", nil]
-         forRow:LABELROW];
+	
+	if(![cdrDetailArray count])
+	{
+		// Empty directory; tell the user and exit immediately.
+		[gui setText:@"No commanders found" forRow:STARTROW align:GUI_ALIGN_CENTER];
+		return;
+	}
+	
+	// Do we need to highlight a name?
+	int highlightRowOnPage=STARTROW;
+	int highlightIdx=0;
+	if(highlightName)
+	{
+		highlightIdx=[self findIndexOfCommander: highlightName];
+		if(highlightIdx < 0)
+		{
+			NSLog(@"Commander %@ doesn't exist, very bad", highlightName);
+			highlightIdx=0;
+		}
+		
+		// figure out what page we need to be on
+		page=highlightIdx/NUMROWS;
+		highlightRowOnPage=highlightIdx % NUMROWS + STARTROW;
+	}
+	
+	// We now know for certain what page we're on - 
+	// set the first index of the first commander on this page.
+	unsigned firstIndex=page * NUMROWS;
+	
+	// Set up the GUI.
+	OOGUITabSettings tabStop;
+	tabStop[0]=0;
+	tabStop[1]=160;
+	tabStop[2]=270;
+	[gui setTabStops: tabStop];
+	[gui setColor: [OOColor greenColor] forRow: LABELROW];
+	[gui setArray: [NSArray arrayWithObjects: @"Commander Name", @"Rating", nil]
+		   forRow:LABELROW];
 	
 	// clear text lines here
 	for (i = STARTROW - 1; i < ENDROW + 1; i++)
@@ -720,31 +722,31 @@ MA 02110-1301, USA.
 		[gui setColor: [OOColor yellowColor] forRow: i];
 		[gui setKey:GUI_KEY_SKIP forRow:i];
 	}
-
-   if (page)
-   {
-      [gui setArray:[NSArray arrayWithObjects:@" Back ", @" <-- ", nil]
-             forRow:STARTROW-1];
-      [gui setKey:GUI_KEY_OK forRow:STARTROW-1];
-      rangeStart=STARTROW-1;
-      if(!highlightIdx)
-         highlightIdx=firstIndex;
-   }
-
-   if (firstIndex + NUMROWS >= [cdrDetailArray count])
-   {
-      lastIndex=[cdrDetailArray count];
-      [gui setSelectableRange: NSMakeRange(rangeStart, lastIndex)];
-   }
-   else
-   {
-      lastIndex=(page * NUMROWS) + NUMROWS;
-      [gui setArray:[NSArray arrayWithObjects:@" More ", @" --> ", nil]
-             forRow:ENDROW];
-      [gui setKey:GUI_KEY_OK forRow:ENDROW];
-      [gui setSelectableRange: NSMakeRange(rangeStart, NUMROWS+1)];
-   }
-  
+	
+	if (page)
+	{
+		[gui setArray:[NSArray arrayWithObjects:@" Back ", @" <-- ", nil]
+			   forRow:STARTROW-1];
+		[gui setKey:GUI_KEY_OK forRow:STARTROW-1];
+		rangeStart=STARTROW-1;
+		if(!highlightIdx)
+			highlightIdx=firstIndex;
+	}
+	
+	if (firstIndex + NUMROWS >= [cdrDetailArray count])
+	{
+		lastIndex=[cdrDetailArray count];
+		[gui setSelectableRange: NSMakeRange(rangeStart, lastIndex)];
+	}
+	else
+	{
+		lastIndex=(page * NUMROWS) + NUMROWS;
+		[gui setArray:[NSArray arrayWithObjects:@" More ", @" --> ", nil]
+			   forRow:ENDROW];
+		[gui setKey:GUI_KEY_OK forRow:ENDROW];
+		[gui setSelectableRange: NSMakeRange(rangeStart, NUMROWS+1)];
+	}
+	
 	for (i=firstIndex; i < lastIndex; i++)
 	{
 		NSDictionary *cdr=[cdrDetailArray objectAtIndex: i];
@@ -752,23 +754,23 @@ MA 02110-1301, USA.
 		{
 			NSString *ratingDesc = KillCountToRatingString([cdr unsignedIntForKey:@"ship_kills"]);
 			[gui setArray:[NSArray arrayWithObjects:
-					[NSString stringWithFormat:@" %@ ",[cdr objectForKey:@"player_name"]],
-					[NSString stringWithFormat:@" %@ ",ratingDesc],
-					nil]
-				forRow:row];
+				[NSString stringWithFormat:@" %@ ",[cdr objectForKey:@"player_name"]],
+				[NSString stringWithFormat:@" %@ ",ratingDesc],
+				nil]
+				   forRow:row];
 			if ([player_name isEqual:[cdr objectForKey:@"player_name"]])
 				highlightRowOnPage = row;
-				
+			
 			[gui setKey:GUI_KEY_OK forRow:row];
 			row++;
 		}
 		if ([cdr objectForKey:@"isParentFolder"])
 		{
 			[gui setArray:[NSArray arrayWithObjects:
-					[NSString stringWithFormat:@" (..) %@ ", [(NSString*)[cdr objectForKey:@"saved_game_path"] lastPathComponent]],
-					@"",
-					nil]
-				forRow:row];
+				[NSString stringWithFormat:@" (..) %@ ", [(NSString*)[cdr objectForKey:@"saved_game_path"] lastPathComponent]],
+				@"",
+				nil]
+				   forRow:row];
 			[gui setColor: [OOColor orangeColor] forRow: row];
 			[gui setKey:GUI_KEY_OK forRow:row];
 			row++;
@@ -776,10 +778,10 @@ MA 02110-1301, USA.
 		if ([cdr objectForKey:@"isFolder"])
 		{
 			[gui setArray:[NSArray arrayWithObjects:
-					[NSString stringWithFormat:@" >> %@ ", [(NSString*)[cdr objectForKey:@"saved_game_path"] lastPathComponent]],
-					@"",
-					nil]
-				forRow:row];
+				[NSString stringWithFormat:@" >> %@ ", [(NSString*)[cdr objectForKey:@"saved_game_path"] lastPathComponent]],
+				@"",
+				nil]
+				   forRow:row];
 			[gui setColor: [OOColor orangeColor] forRow: row];
 			[gui setKey:GUI_KEY_OK forRow:row];
 			row++;
@@ -797,7 +799,7 @@ MA 02110-1301, USA.
 {
 	NSString*	dir = [[UNIVERSE gameController] playerFileDirectory];
 	if (!dir)	dir = [[NSFileManager defaultManager] defaultCommanderPath];
-
+	
 	NSString *savePath=[dir stringByAppendingPathComponent:[cdrName stringByAppendingPathExtension:@"oolite-save"]];
 	return [[NSFileManager defaultManager] fileExistsAtPath:savePath];
 }
@@ -865,8 +867,8 @@ MA 02110-1301, USA.
 	rating = KillCountToRatingAndKillString([cdr unsignedIntForKey:@"ship_kills"]);
 	money = [cdr intForKey:@"credits"] / 10;
 	
-// Nikos - Add some more information in the load game screen (current location, galaxy number and timestamp).
-//-------------------------------------------------------------------------------------------------------------------------
+	// Nikos - Add some more information in the load game screen (current location, galaxy number and timestamp).
+	//-------------------------------------------------------------------------------------------------------------------------
 	NSPoint			gal_coords;
 	Random_Seed		g_seed;
 	int				locationNumber;
@@ -884,19 +886,19 @@ MA 02110-1301, USA.
 	
 	timeStamp = ClockToString([cdr doubleForKey:@"ship_clock" defaultValue:PLAYER_SHIP_CLOCK_START], NO);
 	
-//-------------------------------------------------------------------------------------------------------------------------
+	//-------------------------------------------------------------------------------------------------------------------------
 	
 	NSString		*cdrDesc = nil;
 	
 	cdrDesc = [NSString stringWithFormat:@"Commander %@ is rated %@ and has %d Cr in the bank. Legal status: %@. Ship: %@. Location: %@ (G%d). Timestamp: %@",
-										 [cdr objectForKey:@"player_name"],
-										 rating,
-										 money,
-										 legalDesc,
-										 shipName,
-										 locationName,
-										 galNumber,
-										 timeStamp];
+		[cdr objectForKey:@"player_name"],
+		rating,
+		money,
+		legalDesc,
+		shipName,
+		locationName,
+		galNumber,
+		timeStamp];
 	
 	[gui addLongText:cdrDesc startingAtRow:CDRDESCROW align:GUI_ALIGN_LEFT];             
 }
@@ -904,18 +906,18 @@ MA 02110-1301, USA.
 
 - (int) findIndexOfCommander: (NSString *)cdrName
 {
-   int i;
-   for (i=0; i < [cdrDetailArray count]; i++)
-   {
-      NSString *currentName=[(NSDictionary *)[cdrDetailArray objectAtIndex: i] objectForKey:@"player_name"];
-      if([cdrName compare: currentName] == NSOrderedSame)
-      {
-         return i;
-      }
-   }
-
-   // not found!
-   return -1;
+	unsigned i;
+	for (i=0; i < [cdrDetailArray count]; i++)
+	{
+		NSString *currentName=[(NSDictionary *)[cdrDetailArray objectAtIndex: i] objectForKey:@"player_name"];
+		if([cdrName compare: currentName] == NSOrderedSame)
+		{
+			return i;
+		}
+	}
+	
+	// not found!
+	return -1;
 }
 
 @end

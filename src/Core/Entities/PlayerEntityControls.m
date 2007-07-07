@@ -59,7 +59,7 @@ static NSString * const kOOLogFlightTrainingBeacons		= @"beacon.list.flightTrain
 	
 	// pre-process kdic - replace any strings with an integer representing the ASCII value of the first character
 	
-	int i;
+	unsigned i;
 	NSArray* keys = [kdic allKeys];
 	for (i = 0; i < [keys count]; i++)
 	{
@@ -128,7 +128,7 @@ static NSString * const kOOLogFlightTrainingBeacons		= @"beacon.list.flightTrain
 	LOAD_KEY_SETTING(key_snapshot,				'*'					);
 	LOAD_KEY_SETTING(key_docking_music,			's'					);
 	
-	LOAD_KEY_SETTING(kay_advanced_nav_array,	'!'					);
+	LOAD_KEY_SETTING(kay_advanced_nav_array,	'^'					);
 	LOAD_KEY_SETTING(key_map_home,				gvHomeKey			);
 	LOAD_KEY_SETTING(key_map_info,				'i'					);
 	
@@ -1356,21 +1356,21 @@ static  BOOL	taking_snapshot;
 }
 
 
-static BOOL pling_pressed;
-static BOOL cursor_moving;
-static BOOL disc_operation_in_progress;
-static BOOL switching_resolution;
-static BOOL wait_for_key_up;
-static int searchStringLength;
-static double timeLastKeyPress;
-static BOOL upDownKeyPressed;
-static BOOL leftRightKeyPressed;
-static BOOL enterSelectKeyPressed;
-static BOOL volumeControlPressed;
-static int oldSelection;
-static BOOL selectPressed;
-static BOOL queryPressed;
-static BOOL spacePressed;
+static BOOL			pling_pressed;
+static BOOL			cursor_moving;
+static BOOL			disc_operation_in_progress;
+static BOOL			switching_resolution;
+static BOOL			wait_for_key_up;
+static unsigned		searchStringLength;
+static double		timeLastKeyPress;
+static BOOL			upDownKeyPressed;
+static BOOL			leftRightKeyPressed;
+static BOOL			enterSelectKeyPressed;
+static BOOL			volumeControlPressed;
+static OOGUIRow		oldSelection;
+static BOOL			selectPressed;
+static BOOL			queryPressed;
+static BOOL			spacePressed;
 
 // DJS + aegidian : Moved from the big switch/case block in pollGuiArrowKeyControls
 - (BOOL) handleGUIUpDownArrowKeys
@@ -1446,11 +1446,10 @@ static BOOL spacePressed;
 	switch (gui_screen)
 	{
 		case	GUI_SCREEN_LONG_RANGE_CHART :
-			if ([gameView isDown:kay_advanced_nav_array])   //  '!' key
+			if ([gameView isDown:kay_advanced_nav_array])   //  '^' key
 			{
 				if (!pling_pressed)
 				{
-				//	[self starChartDump];
 					if ([self has_extra_equipment:@"EQ_ADVANCED_NAVIGATIONAL_ARRAY"])  [gui setShowAdvancedNavArray:YES];
 					pling_pressed = YES;
 				}
@@ -1574,7 +1573,7 @@ static BOOL spacePressed;
 				if (!queryPressed)
 				{
 					[self setGuiToContractsScreen];
-					if ((oldSelection >= [gui selectableRange].location)&&(oldSelection < [gui selectableRange].location + [gui selectableRange].length))
+					if ((oldSelection >= (int)[gui selectableRange].location)&&(oldSelection < (int)[gui selectableRange].location + (int)[gui selectableRange].length))
 						[gui setSelectedRow:oldSelection];
 					[self setGuiToContractsScreen];
 				}
@@ -1703,15 +1702,16 @@ static BOOL spacePressed;
 					else
 					{
 						displayModeIndex = displayModeIndex + direction;
+						int count = [modes count];
 						if (displayModeIndex < 0)
-							displayModeIndex = [modes count] - 1;
-						if (displayModeIndex >= [modes count])
+							displayModeIndex = count - 1;
+						if (displayModeIndex >= count)
 							displayModeIndex = 0;
 					}
 					NSDictionary	*mode = [modes objectAtIndex:displayModeIndex];
-					int modeWidth = [[mode objectForKey: (NSString *)kCGDisplayWidth] intValue];
-					int modeHeight = [[mode objectForKey: (NSString *)kCGDisplayHeight] intValue];
-					int modeRefresh = [[mode objectForKey: (NSString *)kCGDisplayRefreshRate] intValue];
+					int modeWidth = [mode intForKey:kOODisplayWidth];
+					int modeHeight = [mode intForKey:kOODisplayHeight];
+					int modeRefresh = [mode intForKey:kOODisplayRefreshRate];
 					[controller setDisplayWidth:modeWidth Height:modeHeight Refresh:modeRefresh];
 #if OOLITE_SDL
 					// TODO: The gameView for the SDL game currently holds and
@@ -2100,7 +2100,7 @@ static BOOL spacePressed;
 					if (!selectPressed)
 					{
 						// try to buy the ship!
-						int money = credits;
+						OOCreditsQuantity money = credits;
 						if ([self buySelectedShip])
 						{
 							if (money == credits)	// we just skipped to another page
@@ -2127,7 +2127,9 @@ static BOOL spacePressed;
 				}
 			}
 			break;
-
+		
+		default:
+			break;
 	}
 
 	//
@@ -2656,6 +2658,9 @@ static BOOL toggling_music;
 				else
 					enterSelectKeyPressed = NO;
 			}
+			break;
+		
+		default:
 			break;
 	}
 

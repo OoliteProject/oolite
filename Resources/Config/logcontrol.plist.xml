@@ -282,6 +282,10 @@
 	<string>inherit</string>
 	<key>script.debug.testCondition.testValues</key>
 	<string>inherit</string>
+	<key>script.error</key>
+	<string>$scriptError</string>
+	<key>script.error.removeAllCargo.notDocked</key>
+	<string>inherit</string>
 	<key>script.javaScript.badParameter</key>
 	<string>$scriptError</string>
 	<key>script.javaScript.call.badSelector</key>

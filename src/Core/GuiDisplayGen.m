@@ -32,6 +32,12 @@ MA 02110-1301, USA.
 #import "HeadUpDisplay.h"
 
 
+OOINLINE BOOL RowInRange(OOGUIRow row, NSRange range)
+{
+	return ((int)range.location <= row && row < (int)(range.location + range.length));
+}
+
+
 @implementation GuiDisplayGen
 
 - (id) init
@@ -47,11 +53,10 @@ MA 02110-1301, USA.
 
 	pixel_text_size = NSMakeSize(0.9 * pixel_row_height, pixel_row_height);	// main gui has 18x20 characters
 	
-	has_title		= YES;
 	pixel_title_size = NSMakeSize(pixel_row_height * 1.75, pixel_row_height * 1.5);
 	
 	int stops[6] = {0, 192, 256, 320, 384, 448};
-	int i;
+	unsigned i;
 	
 	rowRange = NSMakeRange(0,n_rows);
 
@@ -85,7 +90,13 @@ MA 02110-1301, USA.
 	return self;
 }
 
-- (id) initWithPixelSize:(NSSize) gui_size Columns:(int) gui_cols Rows:(int) gui_rows RowHeight:(int) gui_row_height RowStart:(int) gui_row_start Title:(NSString*) gui_title
+
+- (id) initWithPixelSize:(NSSize)gui_size
+				 columns:(int)gui_cols 
+					rows:(int)gui_rows 
+			   rowHeight:(int)gui_row_height
+			    rowStart:(int)gui_row_start
+				   title:(NSString*)gui_title
 {
 	self = [super init];
 		
@@ -98,10 +109,9 @@ MA 02110-1301, USA.
 
 	pixel_text_size = NSMakeSize(pixel_row_height, pixel_row_height);
 	
-	has_title		= (gui_title != nil);
 	pixel_title_size = NSMakeSize(pixel_row_height * 1.75, pixel_row_height * 1.5);
 	
-	int i;
+	unsigned i;
 	
 	rowRange = NSMakeRange(0,n_rows);
 
@@ -128,7 +138,27 @@ MA 02110-1301, USA.
 	return self;
 }
 
-- (void) resizeWithPixelSize:(NSSize) gui_size Columns:(int) gui_cols Rows:(int) gui_rows RowHeight:(int) gui_row_height RowStart:(int) gui_row_start Title:(NSString*) gui_title
+
+- (void) dealloc
+{
+	[backgroundSprite release];
+	[backgroundColor release];
+	[textColor release];
+	[title release];
+	[rowText release];
+	[rowKey release];
+	[rowColor release];
+	
+	[super dealloc];
+}
+
+
+- (void) resizeWithPixelSize:(NSSize)gui_size
+					 columns:(int)gui_cols
+						rows:(int)gui_rows
+				   rowHeight:(int)gui_row_height
+					rowStart:(int)gui_row_start
+					   title:(NSString*) gui_title
 {
 	[self clear];
 	//
@@ -148,7 +178,10 @@ MA 02110-1301, USA.
 	[self setTitle: gui_title];
 }
 
-- (void) resizeTo:(NSSize) gui_size characterHeight:(int) csize Title:(NSString*) gui_title
+
+- (void) resizeTo:(NSSize)gui_size
+  characterHeight:(int)csize
+			title:(NSString*)gui_title
 {
 	[self clear];
 	//
@@ -162,7 +195,7 @@ MA 02110-1301, USA.
 	pixel_row_height = csize;
 	currentRow = n_rows - 1;		// first position down the page...
 
-	if (has_title)
+	if (title != nil)
 		pixel_row_start = 2.75 * csize + 0.5 * (gui_size.height - n_rows * csize);
 	else
 		pixel_row_start = csize + 0.5 * (gui_size.height - n_rows * csize);
@@ -171,7 +204,7 @@ MA 02110-1301, USA.
 	[rowKey removeAllObjects];
 	[rowColor removeAllObjects];
 
-	int i;
+	unsigned i;
 	for (i = 0; i < n_rows; i++)
 	{
 		[rowText addObject:@""];
@@ -191,55 +224,67 @@ MA 02110-1301, USA.
 	[self clear];
 }
 
-- (NSSize)	size
+
+- (NSSize)size
 {
 	return size_in_pixels;
 }
-- (int)	columns
+
+
+- (unsigned)columns
 {
 	return n_columns;
 }
-- (int)	rows
+
+
+- (unsigned)rows
 {
 	return n_rows;
 }
-- (int)	rowHeight
+
+
+- (unsigned)rowHeight
 {
 	return pixel_row_height;
 }
-- (int)	rowStart
+
+
+- (int)rowStart
 {
 	return pixel_row_start;
 }
-- (NSString*)	title
+
+
+- (NSString *)title
 {
 	return title;
 }
 
-- (void) dealloc
+
+- (void) setTitle: (NSString *) str
 {
-	[backgroundSprite release];
-	[backgroundColor release];
-	[textColor release];
-	[title release];
-	[rowText release];
-	[rowKey release];
-	[rowColor release];
-	
-	[super dealloc];
+	if (str != title)
+	{
+		[title release];
+		if ([str length] == 0)  str = nil;
+		title = [str copy];
+	}
 }
+
 
 - (void) setDrawPosition:(Vector) vector
 {
 	drawPosition = vector;
 }
 
+
 - (Vector) drawPosition
 {
 	return drawPosition;
 }
 
-- (void) fadeOutFromTime:(double) now_time OverDuration:(double) duration
+
+- (void) fadeOutFromTime:(OOTimeAbsolute) now_time OverDuration:(OOTimeDelta) duration
 {
 	if (fade_alpha <= 0.0)
 		return;
@@ -248,15 +293,18 @@ MA 02110-1301, USA.
 	fade_duration = duration;
 }
 
+
 - (GLfloat) alpha
 {
 	return fade_alpha;
 }
 
+
 - (void) setAlpha:(GLfloat) an_alpha
 {
 	fade_alpha = an_alpha;
 }
+
 
 - (void) setBackgroundColor:(OOColor*) color
 {
@@ -270,6 +318,7 @@ MA 02110-1301, USA.
 	backgroundColor = [color retain];
 }
 
+
 - (void) setTextColor:(OOColor*) color
 {
 	if (textColor)	[textColor release];
@@ -282,10 +331,12 @@ MA 02110-1301, USA.
 	textColor = [color retain];
 }
 
+
 - (void) setCharacterSize:(NSSize) character_size
 {
 	pixel_text_size = character_size;
 }
+
 
 - (void) click
 {
@@ -293,46 +344,52 @@ MA 02110-1301, USA.
 	[guiclick play];
 }
 
+
 - (void)setShowAdvancedNavArray:(BOOL)inFlag
 {
 	showAdvancedNavArray = inFlag;
 }
 
-- (void) setColor:(OOColor *) color forRow:(int) row
+
+- (void) setColor:(OOColor *) color forRow:(OOGUIRow)row
 {
-	if ((row >= rowRange.location)&&(row < rowRange.location + rowRange.length))
+	if (RowInRange(row, rowRange))
 		[rowColor replaceObjectAtIndex:row withObject:color];
 }
 
-- (id) objectForRow:(int) row
+
+- (id) objectForRow:(OOGUIRow)row
 {
-	if ((row >= rowRange.location)&&(row < rowRange.location + rowRange.length))
+	if (RowInRange(row, rowRange))
 		return [rowText objectAtIndex:row];
 	else
 		return NULL;
 }
 
-- (NSString*) keyForRow:(int) row
+
+- (NSString*) keyForRow:(OOGUIRow)row
 {
-	if ((row >= rowRange.location)&&(row < rowRange.location + rowRange.length))
+	if (RowInRange(row, rowRange))
 		return [rowKey objectAtIndex:row];
 	else
 		return NULL;
 }
 
+
 - (int) selectedRow
 {
-	if ((selectedRow >= selectableRange.location) && (selectedRow < selectableRange.location+selectableRange.length))
+	if (RowInRange(selectedRow, selectableRange))
 		return selectedRow;
 	else
 		return -1;
 }
 
-- (BOOL) setSelectedRow:(int) row
+
+- (BOOL) setSelectedRow:(OOGUIRow)row
 {
-	if ((row == selectedRow)&&(row >= selectableRange.location)&&(row < selectableRange.location+selectableRange.length))
+	if ((row == selectedRow)&&RowInRange(row, selectableRange))
 		return YES;
-	if ((row >= selectableRange.location) && (row < selectableRange.location+selectableRange.length))
+	if (RowInRange(row, selectableRange))
 	{
 		if (![[rowKey objectAtIndex:row] isEqual:GUI_KEY_SKIP])
 		{
@@ -343,10 +400,11 @@ MA 02110-1301, USA.
 	return NO;
 }
 
+
 - (BOOL) setNextRow:(int) direction
 {
 	int row = selectedRow + direction;
-	while ((row >= selectableRange.location) && (row < selectableRange.location+selectableRange.length))
+	while (RowInRange(row, selectableRange))
 	{
 		if (![[rowKey objectAtIndex:row] isEqual:GUI_KEY_SKIP])
 		{
@@ -358,10 +416,11 @@ MA 02110-1301, USA.
 	return NO;
 }
 
+
 - (BOOL) setFirstSelectableRow
 {
 	int row = selectableRange.location;
-	while ((row >= selectableRange.location) && (row < selectableRange.location+selectableRange.length))
+	while (RowInRange(row, selectableRange))
 	{
 		if (![[rowKey objectAtIndex:row] isEqual:GUI_KEY_SKIP])
 		{
@@ -374,10 +433,12 @@ MA 02110-1301, USA.
 	return NO;
 }
 
+
 - (void) setNoSelectedRow
 {
 	selectedRow = -1;
 }
+
 
 - (NSString *) selectedRowText
 {
@@ -388,22 +449,25 @@ MA 02110-1301, USA.
 	return NULL;
 }
 
+
 - (NSString *) selectedRowKey
 {
-	if ((selectedRow < 0)||(selectedRow > [rowKey count]))
+	if ((selectedRow < 0)||((unsigned)selectedRow > [rowKey count]))
 		return nil;
 	else
 		return (NSString *)[rowKey objectAtIndex:selectedRow];
 }
+
 
 - (void) setShowTextCursor:(BOOL) yesno
 {
 	showTextCursor = yesno;
 }
 
-- (void) setCurrentRow:(int) value
+
+- (void) setCurrentRow:(OOGUIRow) value
 {
-	if ((value < 0)||(value >= n_rows))
+	if ((value < 0)||((unsigned)value >= n_rows))
 	{
 		showTextCursor = NO;
 		currentRow = -1;
@@ -414,27 +478,28 @@ MA 02110-1301, USA.
 	}
 }
 
+
 - (NSRange) selectableRange
 {
 	return selectableRange;
 }
+
 
 - (void) setSelectableRange:(NSRange) range
 {
 	selectableRange = range;
 }
 
-- (void) setTabStops:(int *)stops
+
+- (void) setTabStops:(OOGUITabSettings)stops
 {
-	int i = 0;
-	for (i = 0; i < n_columns; i++)
-		tabStops[i] = stops[i];
+	if (stops != NULL)  bcopy(stops, tabStops, sizeof tabStops);
 }
 
 
 - (void) clear
 {
-	int i;
+	unsigned i;
 	[self setTitle: nil];
 	for (i = 0; i < n_rows; i++)
 	{
@@ -449,46 +514,34 @@ MA 02110-1301, USA.
 	[self setSelectableRange:NSMakeRange(0,0)];
 }
 
-- (void) setTitle: (NSString *) str
-{
-	if (title)  [title release];
-	
-	if (str)
-	{
-		title = [str retain];
-		has_title = ![str isEqual:@""];
-	}
-	else
-	{
-		title = nil;
-		has_title = NO;
-	}
-}
 
-- (void) setKey: (NSString *) str forRow:(int) row
+- (void) setKey: (NSString *) str forRow:(OOGUIRow)row
 {
-	if ((row >= rowRange.location)&&(row < rowRange.location + rowRange.length))
+	if (RowInRange(row, rowRange))
 		[rowKey replaceObjectAtIndex:row withObject:str];
 }
 
-- (void) setText: (NSString *) str forRow:(int) row
+
+- (void) setText: (NSString *) str forRow:(OOGUIRow)row
 {
-	if ((row >= rowRange.location)&&(row < rowRange.location+rowRange.length))
+	if (RowInRange(row, rowRange))
 	{
 		[rowText replaceObjectAtIndex:row withObject:str];
 	}
 }
 
-- (void) setText: (NSString *) str forRow:(int) row align:(int) alignment
+
+- (void) setText: (NSString *) str forRow:(OOGUIRow)row align:(OOGUIAlignment)alignment
 {
-	if (str != nil && row >= rowRange.location && row < rowRange.location+rowRange.length)
+	if (str != nil && RowInRange(row, rowRange))
 	{
 		[rowText replaceObjectAtIndex:row withObject:str];
 		rowAlignment[row] = alignment;
 	}
 }
 
-- (int) addLongText: (NSString *) str startingAtRow:(int) row align:(int) alignment
+
+- (int) addLongText: (NSString *) str startingAtRow:(OOGUIRow)row align:(OOGUIAlignment)alignment
 {
 	NSSize chSize = pixel_text_size;
 	NSSize strsize = rectForString(str, 0.0, 0.0, chSize).size;
@@ -518,21 +571,22 @@ MA 02110-1301, USA.
 	}
 }
 
+
 - (void) printLongText: (NSString *) str Align:(int) alignment Color:(OOColor*) text_color FadeTime:(float) text_fade Key:(NSString*) text_key AddToArray:(NSMutableArray*) text_array
 {
 	// print a multi-line message
 	//
 	if ([str rangeOfString:@"\n"].location != NSNotFound)
 	{
-		NSArray*	lines = [str componentsSeparatedByString:@"\n"];
-		int	i;
+		NSArray		*lines = [str componentsSeparatedByString:@"\n"];
+		unsigned	i;
 		for (i = 0; i < [lines count]; i++)
 			[self printLongText:(NSString *)[lines objectAtIndex:i] Align:alignment Color:text_color FadeTime:text_fade Key:text_key AddToArray:text_array];
 		return;
 	}
 	
-	int row = currentRow;
-	if (row == n_rows - 1)
+	OOGUIRow row = currentRow;
+	if (row == (OOGUIRow)n_rows - 1)
 		[self scrollUp:1];
 	NSSize chSize = pixel_text_size;
 	NSSize strsize = rectForString(str, 0.0, 0.0, chSize).size;
@@ -546,7 +600,7 @@ MA 02110-1301, USA.
 		if (text_array)
 			[text_array addObject:str];
 		rowFadeTime[row] = text_fade;
-		if (currentRow < n_rows - 1)
+		if (currentRow < (OOGUIRow)n_rows - 1)
 			currentRow++;
 	}
 	else
@@ -577,6 +631,7 @@ MA 02110-1301, USA.
 	}
 }
 
+
 - (void) printLineNoScroll: (NSString *) str Align:(int) alignment Color:(OOColor*) text_color FadeTime:(float) text_fade Key:(NSString*) text_key AddToArray:(NSMutableArray*) text_array
 {
 	[self setText:str forRow:currentRow align:alignment];
@@ -590,31 +645,33 @@ MA 02110-1301, USA.
 }
 
 
-- (void) setArray: (NSArray *) arr forRow:(int) row
+- (void) setArray: (NSArray *) arr forRow:(OOGUIRow)row
 {
-	if ((row >= rowRange.location)&&(row < rowRange.length))
+	if (RowInRange(row, rowRange))
 		[rowText replaceObjectAtIndex:row withObject:arr];
 }
 
-- (void) insertItemsFromArray:(NSArray*) items WithKeys:(NSArray*) item_keys IntoRow:(int) row Color:(OOColor*) text_color
+
+
+- (void) insertItemsFromArray:(NSArray *)items
+					 withKeys:(NSArray *)item_keys
+					  intoRow:(OOGUIRow)row
+						color:(OOColor *)text_color
 {
 	if (!items)
 		return;
 	if([items count] == 0)
 		return;
-	int n_items = [items count];
+	
+	unsigned n_items = [items count];
 	if ((item_keys)&&([item_keys count] != n_items))
 	{
 		// throw exception
-		NSException* myException = [NSException
-			exceptionWithName:@"ArrayLengthMismatchException"
-			reason:@"The NSArray sent as 'item_keys' to insertItemsFromArray::: must contain the same number of objects as the NSArray 'items'"
-			userInfo:nil];
-		[myException raise];
-		return;
+		[NSException raise:@"ArrayLengthMismatchException"
+					format:@"The NSArray sent as 'item_keys' to insertItemsFromArray::: must contain the same number of objects as the NSArray 'items'"];
 	}
 
-	int i;
+	unsigned i;
 	for (i = n_rows; i >= row + n_items ; i--)
 	{
 		[self setKey:[self keyForRow:i - n_items] forRow:i];
@@ -642,9 +699,10 @@ MA 02110-1301, USA.
 	}
 }
 
+
 - (void) scrollUp:(int) how_much
 {
-	int i;
+	unsigned i;
 	for (i = 0; i + how_much < n_rows; i++)
 	{
 		[rowText	replaceObjectAtIndex:i withObject:[rowText objectAtIndex:	i + how_much]];
@@ -740,13 +798,13 @@ MA 02110-1301, USA.
 
 		if (self == [UNIVERSE gui])
 		{
-			if ([player gui_screen] == GUI_SCREEN_SHORT_RANGE_CHART)
+			if ([player guiScreen] == GUI_SCREEN_SHORT_RANGE_CHART)
 				[self drawStarChart:drawPosition.x - 0.5 * size_in_pixels.width :drawPosition.y - 0.5 * size_in_pixels.height :z1 :alpha];
-			if ([player gui_screen] == GUI_SCREEN_LONG_RANGE_CHART)
+			if ([player guiScreen] == GUI_SCREEN_LONG_RANGE_CHART)
 			{
 				[self drawGalaxyChart:drawPosition.x - 0.5 * size_in_pixels.width :drawPosition.y - 0.5 * size_in_pixels.height :z1 :alpha];
 			}
-			if ([player gui_screen] == GUI_SCREEN_STATUS)
+			if ([player guiScreen] == GUI_SCREEN_STATUS)
 			{
 				[self drawEqptList:[player equipmentList] :z1];
 			}
@@ -801,6 +859,7 @@ MA 02110-1301, USA.
 	return cursor_row;
 }
 
+
 - (int) drawGUI:(GLfloat)x :(GLfloat)y :(GLfloat)z :(GLfloat) alpha drawCursor:(BOOL) drawCursor
 {
 	GLfloat z1 = [[UNIVERSE gameView] display_z];
@@ -815,13 +874,13 @@ MA 02110-1301, USA.
 
 		if (self == [UNIVERSE gui])
 		{
-			if ([player gui_screen] == GUI_SCREEN_SHORT_RANGE_CHART)
+			if ([player guiScreen] == GUI_SCREEN_SHORT_RANGE_CHART)
 				[self drawStarChart:x - 0.5 * size_in_pixels.width :y - 0.5 * size_in_pixels.height :z :alpha];
-			if ([player gui_screen] == GUI_SCREEN_LONG_RANGE_CHART)
+			if ([player guiScreen] == GUI_SCREEN_LONG_RANGE_CHART)
 			{
 				[self drawGalaxyChart:x - 0.5 * size_in_pixels.width :y - 0.5 * size_in_pixels.height :z :alpha];
 			}
-			if ([player gui_screen] == GUI_SCREEN_STATUS)
+			if ([player guiScreen] == GUI_SCREEN_STATUS)
 			{
 				[self drawEqptList:[player equipmentList] :z1];
 			}
@@ -875,6 +934,7 @@ MA 02110-1301, USA.
 	return cursor_row;
 }
 
+
 - (void) drawGUI:(GLfloat)x :(GLfloat)y :(GLfloat)z :(GLfloat) alpha
 {
 	if (alpha < 0.05)
@@ -888,13 +948,13 @@ MA 02110-1301, USA.
 
 	if (self == [UNIVERSE gui])
 	{
-		if ([player gui_screen] == GUI_SCREEN_SHORT_RANGE_CHART)
+		if ([player guiScreen] == GUI_SCREEN_SHORT_RANGE_CHART)
 			[self drawStarChart:x - 0.5 * size_in_pixels.width :y - 0.5 * size_in_pixels.height :z :alpha];
-		if ([player gui_screen] == GUI_SCREEN_LONG_RANGE_CHART)
+		if ([player guiScreen] == GUI_SCREEN_LONG_RANGE_CHART)
 		{
 			[self drawGalaxyChart:x - 0.5 * size_in_pixels.width :y - 0.5 * size_in_pixels.height :z :alpha];
 		}
-		if ([player gui_screen] == GUI_SCREEN_STATUS)
+		if ([player guiScreen] == GUI_SCREEN_STATUS)
 		{
 			[self drawEqptList:[player equipmentList] :z];
 		}
@@ -919,11 +979,11 @@ MA 02110-1301, USA.
 
 - (void) drawGLDisplay:(GLfloat)x :(GLfloat)y :(GLfloat)z :(GLfloat) alpha
 {
-	NSSize  strsize;
-	int i;
-	double	delta_t = [UNIVERSE getTimeDelta];
-	NSSize characterSize = pixel_text_size;
-	NSSize titleCharacterSize = pixel_title_size;
+	NSSize		strsize;
+	unsigned	i;
+	double		delta_t = [UNIVERSE getTimeDelta];
+	NSSize		characterSize = pixel_text_size;
+	NSSize		titleCharacterSize = pixel_title_size;
 	
 	// do backdrop
 	//
@@ -945,13 +1005,13 @@ MA 02110-1301, USA.
 		[backgroundSprite blitCentredToX:x + 0.5 * size_in_pixels.width Y:y + 0.5 * size_in_pixels.height Z:z Alpha:alpha];
 	}
 	
-	if ((selectedRow < selectableRange.location)||(selectedRow >= selectableRange.location + selectableRange.length))
+	if (!RowInRange(selectedRow, selectableRange))
 		selectedRow = -1;   // out of Range;
 	
     ////
 	// drawing operations here
 	
-	if (has_title)
+	if (title != nil)
 	{
 		//
 		// draw the title
@@ -1008,7 +1068,7 @@ MA 02110-1301, USA.
 						rowPosition[i].x = (size_in_pixels.width - strsize.width)/2.0;
 						break;
 				}
-				if (i == selectedRow)
+				if (i == (unsigned)selectedRow)
 				{
 					NSRect block = rectForString(text, x + rowPosition[i].x + 2, y + rowPosition[i].y + 2, characterSize);
 					glColor4f(1.0, 0.0, 0.0, row_alpha);	// red
@@ -1024,7 +1084,7 @@ MA 02110-1301, USA.
 				
 				// draw cursor at end of current Row
 				//
-				if ((showTextCursor)&&(i == currentRow))
+				if ((showTextCursor)&&(i == (unsigned)currentRow))
 				{
 					NSRect	tr = rectForString(text, 0.0, 0.0, characterSize);
 					NSPoint cu = NSMakePoint(x + rowPosition[i].x + tr.size.width + 0.2 * characterSize.width, y + rowPosition[i].y);
@@ -1043,7 +1103,7 @@ MA 02110-1301, USA.
 		}
 		if ([[rowText objectAtIndex:i] isKindOfClass:[NSArray class]])
 		{
-			int j;
+			unsigned j;
 			NSArray*	array = (NSArray *)[rowText objectAtIndex:i];
 			for (j = 0; ((j < [array count])&&(j < n_columns)) ; j++)
 			{
@@ -1053,7 +1113,7 @@ MA 02110-1301, USA.
 					if (![text isEqual:@""])
 					{
 						rowPosition[i].x = tabStops[j];
-						if (i == selectedRow)
+						if (i == (unsigned)selectedRow)
 						{
 							NSRect block = rectForString(text, x + rowPosition[i].x + 2, y + rowPosition[i].y + 2, characterSize);
 							glColor4f(1.0, 0.0, 0.0, row_alpha);	// red
@@ -1072,6 +1132,7 @@ MA 02110-1301, USA.
 		}
 	}
 }
+
 
 - (void) drawStarChart:(GLfloat)x :(GLfloat)y :(GLfloat)z :(GLfloat) alpha
 {
@@ -1207,6 +1268,7 @@ MA 02110-1301, USA.
 		glVertex3f(x + cu.x - 7,	y + cu.y + 1,	z);
 	glEnd();
 }
+
 
 - (void) drawGalaxyChart:(GLfloat)x :(GLfloat)y :(GLfloat)z :(GLfloat) alpha
 {

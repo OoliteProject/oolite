@@ -26,103 +26,107 @@ MA 02110-1301, USA.
 #import "ResourceManager.h"
 #import "OOInstinct.h"
 #import "OOStringParsing.h"
+#import "OOWeakReference.h"
 
 #import "ShipEntity.h"
 
 #define kOOLogUnconvertedNSLog @"unclassified.AI"
 
 
-static NSString * const kOOLogAIReceiveMessage			= @"ai.message.receive";
-static NSString * const kOOLogAITakeAction				= @"ai.takeAction.takeAction";
-static NSString * const kOOLogAINoAction				= @"ai.takeAction.noAction";
-static NSString * const kOOLogAITakeActionOrphaned		= @"ai.takeAction.orphaned";
-static NSString * const kOOLogAIDebugMessage			= @"ai.takeAction.debugNessage";
-static NSString * const kOOLogAIBadSelector				= @"ai.takeAction.badSelector";
-static NSString * const kOOLogAIPop						= @"ai.pop";
+typedef struct
+{
+	AI				*ai;
+	SEL				selector;
+	id				parameter;
+} OOAIDeferredCallTrampolineInfo;
+
+
+@interface AI (OOPrivate)
+
+// Wrapper for performSelector:withObject:afterDelay: to catch/fix bugs.
+- (void)performDeferredCall:(SEL)selector withObject:(id)object afterDelay:(NSTimeInterval)delay;
++ (void)deferredCallTrampolineWithInfo:(NSValue *)info;
+
+- (void)refreshOwnerDesc;
+
+@end
 
 
 @implementation AI
 
-- (id) prepare
-{
-	aiLock = [[NSLock alloc] init];
-	//
-	[aiLock lock];	// protect from asynchronous access
-	//
-	ai_stack = [[NSMutableArray alloc] init];	// retained
-	//
-	pendingMessages = [[NSMutableDictionary alloc] init];	// retained
-	//
-	nextThinkTime = [[NSDate distantFuture] timeIntervalSinceNow];	// don't think for a while
-	//
-	thinkTimeInterval = AI_THINK_INTERVAL;
-	//
-	stateMachine = nil;	// no initial brain
-	//
-	stateMachineName = [[NSString stringWithString:@"None allocated"] retain];	// no initial brain
-	//
-	rulingInstinct = nil;
-	//
-	[aiLock unlock];	// okay now we're ready...
-	//
-	return self;
-}
-
 - (id) init
 {    
     self = [super init];
-    return [self prepare];
+	
+	aiStack = [[NSMutableArray alloc] init];
+	pendingMessages = [[NSMutableDictionary alloc] init];
+	
+	nextThinkTime = [[NSDate distantFuture] timeIntervalSinceNow];	// don't think for a while
+	thinkTimeInterval = AI_THINK_INTERVAL;
+	
+	stateMachineName = [[NSString stringWithString:@"None allocated"] retain];	// no initial brain
+	
+	return self;
 }
 
-- (void) dealloc
-{
-	[aiLock lock];	// LOCK the AI preventing reaction to messages
-	//
-	if (owner_desc)			[owner_desc release];
-	[ai_stack removeAllObjects];	// releasing them all
-	if (ai_stack)			[ai_stack release];
-    if (stateMachine)		[stateMachine release];
-	if (stateMachineName)	[stateMachineName release];
-    if (currentState)		[currentState release];
-	[pendingMessages removeAllObjects];	// releasing them all
-	if (pendingMessages)	[pendingMessages release];
-	//
-	[aiLock unlock];
-	if (aiLock)				[aiLock release];
-	[super dealloc];
-}
-
-- (NSString*) description
-{
-	return [NSString stringWithFormat:@"<AI with stateMachine: '%@' in state: '%@'>", stateMachineName, currentState];
-}
 
 - (id) initWithStateMachine:(NSString *) smName andState:(NSString *) stateName
 {    
-    self = [super init];
-    //
-	[self prepare];
-	//
-	if (smName)
-		[self setStateMachine:smName];
-	//
-	if (stateName)
-		currentState = [stateName retain];
-	//
+    self = [self init];
+	
+	if (smName != nil)  [self setStateMachine:smName];
+	if (stateName != nil)  currentState = [stateName retain];
+	
     return self;
 }
+
+
+- (void) dealloc
+{
+	[_owner release];
+	[ownerDesc release];
+	[aiStack release];
+    [stateMachine release];
+	[stateMachineName release];
+    [currentState release];
+	[pendingMessages release];
+	
+	[super dealloc];
+}
+
+
+- (NSString*) description
+{
+	return [NSString stringWithFormat:@"<%@ %p>{'%@' in state: '%@' for %@}", self, [self class], stateMachineName, currentState, ownerDesc];
+}
+
 
 - (void) setRulingInstinct:(OOInstinct*) instinct
 {
 	rulingInstinct = instinct;
 }
 
+
+- (ShipEntity *)owner
+{
+	ShipEntity		*owner = [_owner weakRefUnderlyingObject];
+	if (owner == nil)
+	{
+		[_owner release];
+		_owner = nil;
+	}
+	
+	return owner;
+}
+
+
 - (void) setOwner:(ShipEntity *)ship
 {
-	owner = ship;   // now we assume this is retained elsewhere!
-	if (owner_desc)			[owner_desc release];
-	owner_desc = [[NSString stringWithFormat:@"%@ %d", [owner name], [owner universalID]] retain];
+	[_owner release];
+	_owner = [ship weakRetain];
+	[self refreshOwnerDesc];
 }
+
 
 - (void) preserveCurrentStateMachine
 {
@@ -131,68 +135,63 @@ static NSString * const kOOLogAIPop						= @"ai.pop";
 	
 	NSMutableDictionary *pickledMachine = [NSMutableDictionary dictionaryWithCapacity:3];
 	
-	// use copies because the currently referenced objects might change
-	[pickledMachine setObject:[NSDictionary dictionaryWithDictionary: stateMachine] forKey:@"stateMachine"];
-	[pickledMachine setObject:[NSString stringWithString: currentState] forKey:@"currentState"];
-	[pickledMachine setObject:[NSString stringWithString: stateMachineName] forKey:@"stateMachineName"];
-	[pickledMachine setObject:[NSDictionary dictionaryWithDictionary: pendingMessages] forKey:@"pendingMessages"];
+	[pickledMachine setObject:stateMachine forKey:@"stateMachine"];
+	[pickledMachine setObject:currentState forKey:@"currentState"];
+	[pickledMachine setObject:stateMachineName forKey:@"stateMachineName"];
+	[pickledMachine setObject:[[pendingMessages copy] autorelease] forKey:@"pendingMessages"];
 	
-	if (!ai_stack)
-		ai_stack = [[NSMutableArray alloc] initWithCapacity:8];
+	if (aiStack == nil)  aiStack = [[NSMutableArray alloc] init];
 	
-	if ([ai_stack count] > 32)
+	if ([aiStack count] > 32)
 	{
-		NSLog(@"***** ERROR: AI stack overflow for %@ stack:\n%@", owner, ai_stack);
-		NSException *myException = [NSException
-			exceptionWithName:@"OoliteException"
-			reason:[NSString stringWithFormat:@"AI stack overflow for %@", owner]
-			userInfo:nil];
-		[myException raise];
-		return;
+		NSLog(@"***** ERROR: AI stack overflow for %@ stack:\n%@", _owner, aiStack);
+		[NSException raise:@"OoliteException"
+					format:@"AI stack overflow for %@", _owner];
 	}
 	
-	[ai_stack insertObject:pickledMachine atIndex:0];	//  PUSH
+	if ([[self owner] reportAImessages])  OOLog(@"ai.stack.push", @"Pushing state machine for %@", self);
+	[aiStack insertObject:pickledMachine atIndex:0];	//  PUSH
 }
+
 
 - (void) restorePreviousStateMachine
 {
-	if (!ai_stack)
-		return;
-	if ([ai_stack count] < 1)
-		return;
-	NSMutableDictionary *pickledMachine = [ai_stack objectAtIndex:0];
+	if ([aiStack count] == 0)  return;
 	
-	[aiLock lock];
-	if (stateMachine)   [stateMachine release];
-	stateMachine = [[NSDictionary dictionaryWithDictionary:(NSDictionary *)[pickledMachine objectForKey:@"stateMachine"]] retain];
-	if (currentState)   [currentState release];
-	currentState = [[NSString stringWithString:(NSString *)[pickledMachine objectForKey:@"currentState"]] retain];
-	if (stateMachineName)   [stateMachineName release];
-	stateMachineName = [[NSString stringWithString:(NSString *)[pickledMachine objectForKey:@"stateMachineName"]] retain];
-	if (pendingMessages)   [pendingMessages release];
-	pendingMessages = [[NSMutableDictionary dictionaryWithDictionary:(NSDictionary *)[pickledMachine objectForKey:@"pendingMessages"]] retain];  // restore a MUTABLE array
-	[aiLock unlock];
+	NSMutableDictionary *pickledMachine = [aiStack objectAtIndex:0];
 	
-	[ai_stack removeObjectAtIndex:0];   //  POP
+	if ([[self owner] reportAImessages])  OOLog(@"ai.stack.pop", @"Popping previous state machine for %@", self);
+	
+	[stateMachine release];
+	stateMachine = [[pickledMachine objectForKey:@"stateMachine"] retain];
+	
+	[currentState release];
+	currentState = [[pickledMachine objectForKey:@"currentState"] retain];
+	
+	[stateMachineName release];
+	stateMachineName = [[pickledMachine objectForKey:@"stateMachineName"] retain];
+	
+	[pendingMessages release];
+	pendingMessages = [[pickledMachine objectForKey:@"pendingMessages"] mutableCopy];  // restore a MUTABLE array
+	
+	[aiStack removeObjectAtIndex:0];   //  POP
 }
+
 
 - (void) exitStateMachine
 {
-	if ([ai_stack count] > 0)
+	if ([aiStack count] != 0)
 	{
-		if ((owner)&&([owner reportAImessages]))  OOLog(kOOLogAIPop, @"Popping previous state machine for %@",self);
 		[self restorePreviousStateMachine];
 		[self reactToMessage:@"RESTARTED"];
 	}
 }
 
+
 - (void) setStateMachine:(NSString *) smName
 {
-	//
-	[aiLock lock];
-	//
 	NSDictionary* newSM = [ResourceManager dictionaryFromFilesNamed:smName inFolder:@"AIs" andMerge:NO];
-	//
+	
 	if (newSM)
 	{
 		[self preserveCurrentStateMachine];
@@ -200,30 +199,24 @@ static NSString * const kOOLogAIPop						= @"ai.pop";
 		stateMachine = [newSM retain];
 		nextThinkTime = 0.0;	// think at next tick
 	}
-	//
-	[aiLock unlock];
-	//
-	if (currentState)  [currentState release];
+	
+	[currentState release];
 	currentState = @"GLOBAL";
+	/*	CRASH in objc_msgSend, apparently on [self reactToMessage:@"ENTER"] (1.69, OS X/x86).
+		Analysis: self corrupted. We're being called by __NSFireDelayedPerform, which doesn't go
+		through -[NSObject performSelector:withObject:], suggesting it's using IMP caching. An
+		invalid self is therefore possible.
+		Attempted fix: new delayed dispatch with trampoline, see -[AI setStateMachine:afterDelay:].
+		 -- Ahruman, 20070706
+	*/
 	[self reactToMessage:@"ENTER"];
 	
-	//  refresh name
-	if (owner_desc)  [owner_desc release];
-	owner_desc = [[NSString stringWithFormat:@"%@ %d", [owner name], [owner universalID]] retain];
+	// refresh name
+	[self refreshOwnerDesc];
 	
 	// refresh stateMachineName
 	[stateMachineName release];
 	stateMachineName = [smName copy];
-}
-
-- (NSString*) name
-{
-	return stateMachineName;
-}
-
-- (int) ai_stack_depth
-{
-	return [ai_stack count];
 }
 
 
@@ -231,181 +224,208 @@ static NSString * const kOOLogAIPop						= @"ai.pop";
 {
 	if ([stateMachine objectForKey:stateName])
 	{
+		/*	CRASH in objc_msgSend, apparently on [self reactToMessage:@"EXIT"] (1.69, OS X/x86).
+			Analysis: self corrupted. We're being called by __NSFireDelayedPerform, which doesn't go
+			through -[NSObject performSelector:withObject:], suggesting it's using IMP caching. An
+			invalid self is therefore possible.
+			Attempted fix: new delayed dispatch with trampoline, see -[AI setState:afterDelay:].
+			 -- Ahruman, 20070706
+		*/
 		[self reactToMessage:@"EXIT"];
-		if (currentState)		[currentState release];
+		[currentState release];
 		currentState = [stateName retain];
 		[self reactToMessage:@"ENTER"];
 	}
 }
 
-- (void) reactToMessage:(NSString *) message
+
+- (void) setStateMachine:(NSString *)smName afterDelay:(NSTimeInterval)delay
 {
-	int i;
-	NSArray* actions;
-	NSDictionary* messagesForState;
+	[self performDeferredCall:@selector(setStateMachine:) withObject:smName afterDelay:delay];
+}
+
+
+- (void) setState:(NSString *)stateName afterDelay:(NSTimeInterval)delay
+{
+	[self performDeferredCall:@selector(setState:) withObject:stateName afterDelay:delay];
+}
+
+
+- (NSString*) name
+{
+	return stateMachineName;
+}
+
+
+- (int) ai_stack_depth
+{
+	return [aiStack count];
+}
+
+
+- (void) reactToMessage:(NSString *)message
+{
+	unsigned		i;
+	NSArray			*actions = nil;
+	NSDictionary	*messagesForState = nil;
+	ShipEntity		*owner = [self owner];
 	
-	if (!message)
-		return;
-	//
-	if (!owner)
-		return;
-	//
-	if ([owner universalID] == NO_TARGET)  // don't think until launched
-		return;
-	//
-	if (!stateMachine)
-		return;
-	//
-	if (![stateMachine objectForKey:currentState])
-		return;
-
-	[aiLock lock];
-	//
-	messagesForState = [NSDictionary dictionaryWithDictionary:[stateMachine objectForKey:currentState]];
-	//
-	if ((currentState)&&(![message isEqual:@"UPDATE"])&&((owner)&&([owner reportAImessages])))
-		OOLog(kOOLogAIReceiveMessage, @"AI for %@ in state '%@' receives message '%@'", owner_desc, currentState, message);
-	//
-	actions = [NSArray arrayWithArray:[messagesForState objectForKey:message]];
-	//
-	[aiLock unlock];
-
-	if (rulingInstinct)
+	/*	CRASH in _freedHandler when called via -setState: __NSFireDelayedPerform (1.69, OS X/x86).
+		Analysis: owner invalid.
+		Fix: make owner an OOWeakReference.
+		 -- Ahruman, 20070706
+	*/
+	if (message == nil || owner == nil || [owner universalID] == NO_TARGET)  return;
+	
+	messagesForState = [stateMachine objectForKey:currentState];
+	if (messagesForState == nil)  return;
+	
+	if (currentState != nil && ![message isEqual:@"UPDATE"] && [owner reportAImessages])
 	{
-		[rulingInstinct freezeShipVars];	// preserve the pre-thinking state
+		OOLog(@"ai.message.receive", @"AI for %@ in state '%@' receives message '%@'", ownerDesc, currentState, message);
 	}
+	
+	actions = [[[messagesForState objectForKey:message] copy] autorelease];
 
-	if ((actions)&&([actions count] > 0))
+	if (rulingInstinct != nil)  [rulingInstinct freezeShipVars];	// preserve the pre-thinking state
+
+	if ([actions count] > 0)
 	{
-		//
 		for (i = 0; i < [actions count]; i++)
+		{
 			[self takeAction:[actions objectAtIndex:i]];
-		//
+		}
 	}
 	else
 	{
-		if (currentState)
+		if (currentState != nil)
 		{
 			SEL _interpretAIMessageSel = @selector(interpretAIMessage:);
 			if ([owner respondsToSelector:_interpretAIMessageSel])
 				[owner performSelector:_interpretAIMessageSel withObject:message];
 		}
 	}
-
-	if (rulingInstinct)
+	
+	if (rulingInstinct != nil)
 	{
 		[rulingInstinct getShipVars];		// record the post-thinking state
 		[rulingInstinct unfreezeShipVars];	// restore the pre-thinking state (AI is now abstract thought = instincts motivate)
 	}
 }
 
+
 - (void) takeAction:(NSString *) action
 {
-	NSArray*	tokens = ScanTokensFromString(action);
-	NSString*	dataString = nil;
-	NSString*   my_selector;
-	SEL			_selector;
+	NSArray			*tokens = ScanTokensFromString(action);
+	NSString		*dataString = nil;
+	NSString		*selectorStr;
+	SEL				selector;
+	ShipEntity		*owner = [self owner];
+	BOOL			report = [owner reportAImessages];
 	
-	if ((owner)&&([owner reportAImessages]))  OOLog(kOOLogAITakeAction, @"%@ to take action %@", owner_desc, action);
-	
-	if ([tokens count] < 1)
+	report = [owner reportAImessages];
+	if (report)
 	{
-		if ([owner reportAImessages])  OOLog(kOOLogAINoAction, @"No action '%@'",action);
-		return;
+		OOLog(@"ai.takeAction.takeAction", @"%@ to take action %@", ownerDesc, action);
+		OOLogIndent();
 	}
 	
-	my_selector = (NSString *)[tokens objectAtIndex:0];
-	
-	if ([tokens count] > 1)
+	if ([tokens count] != 0)
 	{
-		dataString = [[tokens subarrayWithRange:NSMakeRange(1, [tokens count] - 1)] componentsJoinedByString:@" "];
-	}
-	
-	_selector = NSSelectorFromString(my_selector);
-	
-	if (!owner)
-	{
-		OOLog(kOOLogAITakeActionOrphaned, @"***** AI %@, trying to perform %@, is orphaned (no owner)", self, my_selector);
-		return;
-	}
-	
-	if (![owner respondsToSelector:_selector])
-	{
-		if ([my_selector isEqual:@"setStateTo:"])
-			[self setState:dataString];
-		else if ([my_selector isEqual:@"debugMessage:"])
-			OOLog(kOOLogAIDebugMessage, @"AI-DEBUG MESSAGE from %@ : %@", owner_desc, dataString);
+		selectorStr = [tokens objectAtIndex:0];
+		
+		if (owner != nil)
+		{
+			if ([tokens count] > 1)
+			{
+				dataString = [[tokens subarrayWithRange:NSMakeRange(1, [tokens count] - 1)] componentsJoinedByString:@" "];
+			}
+			
+			selector = NSSelectorFromString(selectorStr);
+			if ([owner respondsToSelector:selector])
+			{
+				if (dataString)  [owner performSelector:selector withObject:dataString];
+				else  [owner performSelector:selector];
+			}
+			else
+			{
+				if ([selectorStr isEqual:@"setStateTo:"])  [self setState:dataString];
+				else if ([selectorStr isEqual:@"debugMessage:"])
+				{
+					OOLog(@"ai.takeAction.debugNessage", @"AI-DEBUG MESSAGE from %@ : %@", ownerDesc, dataString);
+				}
+				else
+				{
+					OOLog(@"ai.takeAction.badSelector", @"***** %@ does not respond to %@", ownerDesc, selectorStr);
+				}
+			}
+		}
 		else
-			OOLog(kOOLogAIBadSelector, @"***** %@ does not respond to %@", owner_desc, my_selector);
+		{
+			OOLog(@"ai.takeAction.orphaned", @"***** AI %@, trying to perform %@, is orphaned (no owner)", self, selectorStr);
+		}
 	}
 	else
 	{
-		if (dataString)
-			[owner performSelector:_selector withObject:dataString];
-		else
-			[owner performSelector:_selector];
+		if (report)  OOLog(@"ai.takeAction.noAction", @"  - no action '%@'", action);
+	}
+	
+	if (report)
+	{
+		OOLogOutdent();
 	}
 }
+
 
 - (void) think
 {
+	NSArray			*ms_list = nil;
+	unsigned		i;
 	
-	NSArray *ms_list = nil;
-	
-	if ([owner universalID] == NO_TARGET)  // don't think until launched
-		return;
-	//
-	
-	if (!stateMachine)  // don't think until launched
-		return;
-	//
+	if ([[self owner] universalID] == NO_TARGET || stateMachine == nil)  return;  // don't think until launched
 	
 	[self reactToMessage:@"UPDATE"];
 
-	[aiLock lock];
-	if ([pendingMessages retain])
+	if (pendingMessages != nil)
 	{
 		if ([pendingMessages count] > 0)
+		{
 			ms_list = [pendingMessages allKeys];
+		}
 		
 		[pendingMessages removeAllObjects];
-		[pendingMessages release];
 	}
-	[aiLock unlock];
 	
-	if (ms_list)
+	if (ms_list != nil)
 	{
-		int i;
 		for (i = 0; i < [ms_list count]; i++)
+		{
 			[self reactToMessage:[ms_list objectAtIndex:i]];
+		}
 	}
 }
+
 
 - (void) message:(NSString *) ms
 {
-	if ([owner universalID] == NO_TARGET)  // don't think until launched
-		return;
-	//
+	if ([[self owner] universalID] == NO_TARGET)  return;  // don't think until launched
 
 	if ([pendingMessages count] > 32)
 	{
-		NSLog(@"***** ERROR: AI pending messages overflow for %@ pendingMessages:\n%@", owner, pendingMessages);
-		NSException *myException = [NSException
-			exceptionWithName:@"OoliteException"
-			reason:[NSString stringWithFormat:@"AI pendingMessages overflow for %@", owner]
-			userInfo:nil];
-		[myException raise];
-		return;
+		OOLog(@"ai.message.failed.overflow", @"***** ERROR: AI pending messages overflow for '%@'; pending messages:\n%@", ownerDesc, pendingMessages);
+		[NSException raise:@"OoliteException"
+					format:@"AI pendingMessages overflow for %@", ownerDesc];
 	}
-
+	
 	[pendingMessages setObject: ms forKey: ms];
-	//[self think];
 }
+
 
 - (void) setNextThinkTime:(double) ntt
 {
 	nextThinkTime = ntt;
 }
+
 
 - (double) nextThinkTime
 {
@@ -415,42 +435,32 @@ static NSString * const kOOLogAIPop						= @"ai.pop";
 	return nextThinkTime;
 }
 
+
 - (void) setThinkTimeInterval:(double) tti
 {
 	thinkTimeInterval = tti;
 }
+
 
 - (double) thinkTimeInterval
 {
 	return thinkTimeInterval;
 }
 
+
 - (void) clearStack
 {
-	[aiLock lock];
-	//
-	if (ai_stack)
-		[ai_stack removeAllObjects];
-	//
-	[aiLock unlock];
+	[aiStack removeAllObjects];
 }
+
 
 - (void) clearAllData
 {
-	[aiLock lock];
-	//
-	if (ai_stack)
-		[ai_stack removeAllObjects];
-	//
-	//
-	if (pendingMessages)
-		[pendingMessages removeAllObjects];
-	//
-	//
+	[aiStack removeAllObjects];
+	[pendingMessages removeAllObjects];
+	
 	nextThinkTime += 36000.0;	// should dealloc in under ten hours!
 	thinkTimeInterval = 36000.0;
-	//
-	[aiLock unlock];
 }
 
 
@@ -471,6 +481,69 @@ static NSString * const kOOLogAIPop						= @"ai.pop";
 	}
 	OOLog(@"dumpState.ai", @"Next think time: %g", nextThinkTime);
 	OOLog(@"dumpState.ai", @"Next think interval: %g", nextThinkTime);
+}
+
+@end
+
+
+/*	This is an attempt to fix the bugs referred to above regarding calls from
+	__NSFireDelayedPerform with a corrupt self. I'm not certain whether this
+	will fix the issue or merely cause a less weird crash in
+	+deferredCallTrampolineWithInfo:.
+	-- Ahruman 20070706
+*/
+@implementation AI (OOPrivate)
+
+- (void)performDeferredCall:(SEL)selector withObject:(id)object afterDelay:(NSTimeInterval)delay
+{
+	OOAIDeferredCallTrampolineInfo	infoStruct;
+	NSValue							*info = nil;
+	
+	if (selector != NULL)
+	{
+		infoStruct.ai = [self retain];
+		infoStruct.selector = selector;
+		infoStruct.parameter = object;
+		
+		info = [[NSValue alloc] initWithBytes:&infoStruct objCType:@encode(OOAIDeferredCallTrampolineInfo)];
+		
+		[[AI class] performSelector:@selector(deferredCallTrampolineWithInfo)
+						 withObject:info
+						 afterDelay:delay];
+	}
+}
+
+
++ (void)deferredCallTrampolineWithInfo:(NSValue *)info
+{
+	OOAIDeferredCallTrampolineInfo	infoStruct;
+	
+	if (info != nil)
+	{
+		assert(strcmp([info objCType], @encode(OOAIDeferredCallTrampolineInfo)) == 0);
+		[info getValue:&infoStruct];
+		
+		[infoStruct.ai performSelector:infoStruct.selector withObject:infoStruct.parameter];
+		
+		[infoStruct.ai release];
+		[infoStruct.parameter release];
+		[info release];
+	}
+}
+
+
+- (void)refreshOwnerDesc
+{
+	ShipEntity *owner = [self owner];
+	[ownerDesc release];
+	if (owner != nil)
+	{
+		ownerDesc = [[NSString alloc] initWithFormat:@"%@ %d", [owner name], [owner universalID]];
+	}
+	else
+	{
+		ownerDesc = @"no owner";
+	}
 }
 
 @end

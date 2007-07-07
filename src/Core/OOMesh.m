@@ -648,7 +648,7 @@ shaderBindingTarget:(id<OOWeakReferenceSupport>)target
     NSMutableArray		*lines;
     BOOL				failFlag = NO;
     NSString			*failString = @"***** ";
-    int					i, j;
+    unsigned			i, j;
 	NSMutableDictionary	*texFileName2Idx = nil;
 	
 	BOOL using_preloaded = NO;
@@ -674,7 +674,7 @@ shaderBindingTarget:(id<OOWeakReferenceSupport>)target
 		// strip out comments and commas between values
 		//
 		lines = [NSMutableArray arrayWithArray:[data componentsSeparatedByString:@"\n"]];
-		for (i = 0; i < [ lines count]; i++)
+		for (i = 0; i < [lines count]; i++)
 		{
 			NSString *line = [lines objectAtIndex:i];
 			NSArray *parts;
@@ -843,7 +843,7 @@ shaderBindingTarget:(id<OOWeakReferenceSupport>)target
 					if (!failFlag)
 					{
 						int vi;
-						for (i = 0; i < n_v; i++)
+						for (i = 0; (int)i < n_v; i++)
 						{
 							if ([scanner scanInt:&vi])
 							{

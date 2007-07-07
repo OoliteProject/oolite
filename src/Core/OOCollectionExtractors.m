@@ -50,260 +50,89 @@ SOFTWARE.
 #import "OOMaths.h"
 
 
-BOOL EvaluateAsBoolean(id object, BOOL defaultValue)
-{
-	BOOL result = defaultValue;
-	
-	if ([object isKindOfClass:[NSString class]])
-	{
-		if (NSOrderedSame == [object caseInsensitiveCompare:@"yes"] ||
-			NSOrderedSame == [object caseInsensitiveCompare:@"true"] ||
-			NSOrderedSame == [object caseInsensitiveCompare:@"on"] ||
-			[object intValue] != 0)
-		{
-			result = YES;
-		}
-		else if (NSOrderedSame == [object caseInsensitiveCompare:@"no"] ||
-				 NSOrderedSame == [object caseInsensitiveCompare:@"false"] ||
-				 NSOrderedSame == [object caseInsensitiveCompare:@"off"] ||
-				 NSOrderedSame == [object caseInsensitiveCompare:@"0"] ||
-				 NSOrderedSame == [object caseInsensitiveCompare:@"-0"])
-		{
-			result = NO;
-		}
-	}
-	else if ([object respondsToSelector:@selector(boolValue)])  result = [object boolValue];
-	else if ([object respondsToSelector:@selector(intValue)])
-	{
-		result = [object intValue] != 0;
-	}
-	
-	return result;
-}
-
-
 @implementation NSArray (OOExtractor)
 
 - (char)charAtIndex:(unsigned)index defaultValue:(char)value
 {
-	id					objVal = [self objectAtIndex:index];
-	int					intVal;
-	char				result;
-	
-	if ([objVal respondsToSelector:@selector(charValue)])  result = [objVal charValue];
-	else if ([objVal respondsToSelector:@selector(intValue)])
-	{
-		intVal = [objVal intValue];
-		if (intVal < CHAR_MIN) intVal = CHAR_MIN;
-		else if (CHAR_MAX < intVal) intVal = CHAR_MAX;
-		result = intVal;
-	}
-	else result = value;
-
-	return result;
+	return OOCharFromObject([self objectAtIndex:index], value);
 }
 
 
 - (short)shortAtIndex:(unsigned)index defaultValue:(short)value
 {
-	id					objVal = [self objectAtIndex:index];
-	int					intVal;
-	short				result;
-	
-	if ([objVal respondsToSelector:@selector(shortValue)])  result = [objVal shortValue];
-	else if ([objVal respondsToSelector:@selector(intValue)])
-	{
-		intVal = [objVal intValue];
-		if (intVal < SHRT_MIN) intVal = SHRT_MIN;
-		else if (SHRT_MAX < intVal) intVal = SHRT_MAX;
-		result = intVal;
-	}
-	else result = value;
-
-	return result;
+	return OOShortFromObject([self objectAtIndex:index], value);
 }
 
 
 - (int)intAtIndex:(unsigned)index defaultValue:(int)value
 {
-	id					objVal = [self objectAtIndex:index];
-	int					result;
-	
-	if ([objVal respondsToSelector:@selector(intValue)])  result = [objVal intValue];
-	else result = value;
-
-	return result;
+	return OOIntFromObject([self objectAtIndex:index], value);
 }
 
 
 - (long)longAtIndex:(unsigned)index defaultValue:(long)value
 {
-	id					objVal = [self objectAtIndex:index];
-	long				result;
-	
-	if ([objVal respondsToSelector:@selector(longValue)])  result = [objVal longValue];
-	else if ([objVal respondsToSelector:@selector(intValue)])  result = [objVal intValue];
-	else result = value;
-
-	return result;
+	return OOLongFromObject([self objectAtIndex:index], value);
 }
 
 
 - (long long)longLongAtIndex:(unsigned)index defaultValue:(long long)value
 {
-	id					objVal = [self objectAtIndex:index];
-	long long			result;
-	
-	if ([objVal respondsToSelector:@selector(longLongValue)])  result = [objVal longLongValue];
-	else if ([objVal respondsToSelector:@selector(intValue)])  result = [objVal intValue];
-	else result = value;
-
-	return result;
+	return OOLongLongFromObject([self objectAtIndex:index], value);
 }
 
 
 - (unsigned char)unsignedCharAtIndex:(unsigned)index defaultValue:(unsigned char)value
 {
-	id					objVal = [self objectAtIndex:index];
-	int					intVal;
-	unsigned char		result;
-	
-	if ([objVal respondsToSelector:@selector(unsignedCharValue)])  result = [objVal unsignedCharValue];
-	else if ([objVal respondsToSelector:@selector(intValue)])
-	{
-		intVal = [objVal intValue];
-		if (intVal < 0) intVal = 0;
-		else if (UCHAR_MAX < intVal) intVal = UCHAR_MAX;
-		result = intVal;
-	}
-	else result = value;
-
-	return result;
+	return OOUnsignedCharFromObject([self objectAtIndex:index], value);
 }
 
 
 - (unsigned short)unsignedShortAtIndex:(unsigned)index defaultValue:(unsigned short)value
 {
-	id					objVal = [self objectAtIndex:index];
-	int					intVal;
-	unsigned short		result;
-	
-	if ([objVal respondsToSelector:@selector(unsignedShortValue)])  result = [objVal unsignedShortValue];
-	else if ([objVal respondsToSelector:@selector(intValue)])
-	{
-		intVal = [objVal intValue];
-		if (intVal < 0) intVal = 0;
-		else if (USHRT_MAX < intVal) intVal = USHRT_MAX;
-		result = intVal;
-	}
-	else result = value;
-
-	return result;
+	return OOUnsignedShortFromObject([self objectAtIndex:index], value);
 }
 
 
 - (unsigned int)unsignedIntAtIndex:(unsigned)index defaultValue:(unsigned int)value
 {
-	id					objVal = [self objectAtIndex:index];
-	int					intVal;
-	unsigned int		result;
-	
-	if ([objVal respondsToSelector:@selector(unsignedIntValue)])  result = [objVal unsignedIntValue];
-	else if ([objVal respondsToSelector:@selector(intValue)])
-	{
-		intVal = [objVal intValue];
-		if (intVal < 0) intVal = 0;
-		result = intVal;
-	}
-	else result = value;
-
-	return result;
+	return OOUnsignedIntFromObject([self objectAtIndex:index], value);
 }
 
 
 - (unsigned long)unsignedLongAtIndex:(unsigned)index defaultValue:(unsigned long)value
 {
-	id					objVal = [self objectAtIndex:index];
-	int					intVal;
-	unsigned long		result;
-	
-	if ([objVal respondsToSelector:@selector(unsignedLongValue)])  result = [objVal unsignedLongValue];
-	else if ([objVal respondsToSelector:@selector(intValue)])
-	{
-		intVal = [objVal intValue];
-		if (intVal < 0) intVal = 0;
-		result = intVal;
-	}
-	else result = value;
-
-	return result;
+	return OOUnsignedLongFromObject([self objectAtIndex:index], value);
 }
 
 
 - (unsigned long long)unsignedLongLongAtIndex:(unsigned)index defaultValue:(unsigned long long)value
 {
-	id					objVal = [self objectAtIndex:index];
-	int					intVal;
-	unsigned long long	result;
-	
-	if ([objVal respondsToSelector:@selector(unsignedLongLongValue)])  result = [objVal unsignedLongLongValue];
-	else if ([objVal respondsToSelector:@selector(intValue)])
-	{
-		intVal = [objVal intValue];
-		if (intVal < 0) intVal = 0;
-		result = intVal;
-	}
-	else result = value;
-
-	return result;
+	return OOUnsignedLongLongFromObject([self objectAtIndex:index], value);
 }
 
 
 - (BOOL)boolAtIndex:(unsigned)index defaultValue:(BOOL)value
 {
-	id					objVal = [self objectAtIndex:index];
-	BOOL				result;
-	
-	result = EvaluateAsBoolean(objVal, value);
-
-	return result;
+	return OOBooleanFromObject([self objectAtIndex:index], value);
 }
 
 
 - (BOOL)fuzzyBooleanAtIndex:(unsigned)index defaultValue:(float)value
 {
-	float				chance;
-	
-	chance = [self floatAtIndex:index defaultValue:value];
-	return randf() < chance;
+	return OOFuzzyBooleanFromObject([self objectAtIndex:index], value);
 }
 
 
 - (float)floatAtIndex:(unsigned)index defaultValue:(float)value
 {
-	id					objVal = [self objectAtIndex:index];
-	float				result;
-	
-	if ([objVal respondsToSelector:@selector(floatValue)])  result = [objVal floatValue];
-	else if ([objVal respondsToSelector:@selector(doubleValue)])  result = [objVal doubleValue];
-	else if ([objVal respondsToSelector:@selector(intValue)])  result = [objVal intValue];
-	else result = value;
-
-	return result;
+	return OOFloatFromObject([self objectAtIndex:index], value);
 }
 
 
 - (double)doubleAtIndex:(unsigned)index defaultValue:(double)value
 {
-	id					objVal = [self objectAtIndex:index];
-	double				result;
-	
-	if ([objVal respondsToSelector:@selector(doubleValue)])  result = [objVal doubleValue];
-	else if ([objVal respondsToSelector:@selector(floatValue)])  result = [objVal floatValue];
-	else if ([objVal respondsToSelector:@selector(intValue)])  result = [objVal intValue];
-	else result = value;
-
-	return result;
+	return OODoubleFromObject([self objectAtIndex:index], value);
 }
 
 
@@ -475,224 +304,85 @@ BOOL EvaluateAsBoolean(id object, BOOL defaultValue)
 
 - (char)charForKey:(id)key defaultValue:(char)value
 {
-	id					objVal = [self objectForKey:key];
-	int					intVal;
-	char				result;
-	
-	if ([objVal respondsToSelector:@selector(charValue)])  result = [objVal charValue];
-	else if ([objVal respondsToSelector:@selector(intValue)])
-	{
-		intVal = [objVal intValue];
-		if (intVal < CHAR_MIN) intVal = CHAR_MIN;
-		else if (CHAR_MAX < intVal) intVal = CHAR_MAX;
-		result = intVal;
-	}
-	else result = value;
-
-	return result;
+	return OOCharFromObject([self objectForKey:key], value);
 }
 
 
 - (short)shortForKey:(id)key defaultValue:(short)value
 {
-	id					objVal = [self objectForKey:key];
-	int					intVal;
-	short				result;
-	
-	if ([objVal respondsToSelector:@selector(shortValue)])  result = [objVal shortValue];
-	else if ([objVal respondsToSelector:@selector(intValue)])
-	{
-		intVal = [objVal intValue];
-		if (intVal < SHRT_MIN) intVal = SHRT_MIN;
-		else if (SHRT_MAX < intVal) intVal = SHRT_MAX;
-		result = intVal;
-	}
-	else result = value;
-
-	return result;
+	return OOShortFromObject([self objectForKey:key], value);
 }
 
 
 - (int)intForKey:(id)key defaultValue:(int)value
 {
-	id					objVal = [self objectForKey:key];
-	int					result;
-	
-	if ([objVal respondsToSelector:@selector(intValue)])  result = [objVal intValue];
-	else result = value;
-
-	return result;
+	return OOIntFromObject([self objectForKey:key], value);
 }
 
 
 - (long)longForKey:(id)key defaultValue:(long)value
 {
-	id					objVal = [self objectForKey:key];
-	long				result;
-	
-	if ([objVal respondsToSelector:@selector(longValue)])  result = [objVal longValue];
-	else if ([objVal respondsToSelector:@selector(intValue)])  result = [objVal intValue];
-	else result = value;
-
-	return result;
+	return OOLongFromObject([self objectForKey:key], value);
 }
 
 
 - (long long)longLongForKey:(id)key defaultValue:(long long)value
 {
-	id					objVal = [self objectForKey:key];
-	long long			result;
-	
-	if ([objVal respondsToSelector:@selector(longLongValue)])  result = [objVal longLongValue];
-	else if ([objVal respondsToSelector:@selector(intValue)])  result = [objVal intValue];
-	else result = value;
-
-	return result;
+	return OOLongLongFromObject([self objectForKey:key], value);
 }
 
 
 - (unsigned char)unsignedCharForKey:(id)key defaultValue:(unsigned char)value
 {
-	id					objVal = [self objectForKey:key];
-	int					intVal;
-	unsigned char		result;
-	
-	if ([objVal respondsToSelector:@selector(unsignedCharValue)])  result = [objVal unsignedCharValue];
-	else if ([objVal respondsToSelector:@selector(intValue)])
-	{
-		intVal = [objVal intValue];
-		if (intVal < 0) intVal = 0;
-		else if (UCHAR_MAX < intVal) intVal = UCHAR_MAX;
-		result = intVal;
-	}
-	else result = value;
-
-	return result;
+	return OOUnsignedCharFromObject([self objectForKey:key], value);
 }
 
 
 - (unsigned short)unsignedShortForKey:(id)key defaultValue:(unsigned short)value
 {
-	id					objVal = [self objectForKey:key];
-	int					intVal;
-	unsigned short		result;
-	
-	if ([objVal respondsToSelector:@selector(unsignedShortValue)])  result = [objVal unsignedShortValue];
-	else if ([objVal respondsToSelector:@selector(intValue)])
-	{
-		intVal = [objVal intValue];
-		if (intVal < 0) intVal = 0;
-		else if (USHRT_MAX < intVal) intVal = USHRT_MAX;
-		result = intVal;
-	}
-	else result = value;
-
-	return result;
+	return OOUnsignedShortFromObject([self objectForKey:key], value);
 }
 
 
 - (unsigned int)unsignedIntForKey:(id)key defaultValue:(unsigned int)value
 {
-	id					objVal = [self objectForKey:key];
-	int					intVal;
-	unsigned int		result;
-	
-	if ([objVal respondsToSelector:@selector(unsignedIntValue)])  result = [objVal unsignedIntValue];
-	else if ([objVal respondsToSelector:@selector(intValue)])
-	{
-		intVal = [objVal intValue];
-		if (intVal < 0) intVal = 0;
-		result = intVal;
-	}
-	else result = value;
-
-	return result;
+	return OOUnsignedIntFromObject([self objectForKey:key], value);
 }
 
 
 - (unsigned long)unsignedLongForKey:(id)key defaultValue:(unsigned long)value
 {
-	id					objVal = [self objectForKey:key];
-	int					intVal;
-	unsigned long		result;
-	
-	if ([objVal respondsToSelector:@selector(unsignedLongValue)])  result = [objVal unsignedLongValue];
-	else if ([objVal respondsToSelector:@selector(intValue)])
-	{
-		intVal = [objVal intValue];
-		if (intVal < 0) intVal = 0;
-		result = intVal;
-	}
-	else result = value;
-
-	return result;
+	return OOUnsignedLongFromObject([self objectForKey:key], value);
 }
 
 
 - (unsigned long long)unsignedLongLongForKey:(id)key defaultValue:(unsigned long long)value
 {
-	id					objVal = [self objectForKey:key];
-	int					intVal;
-	unsigned long long	result;
-	
-	if ([objVal respondsToSelector:@selector(unsignedLongLongValue)])  result = [objVal unsignedLongLongValue];
-	else if ([objVal respondsToSelector:@selector(intValue)])
-	{
-		intVal = [objVal intValue];
-		if (intVal < 0) intVal = 0;
-		result = intVal;
-	}
-	else result = value;
-
-	return result;
+	return OOUnsignedLongLongFromObject([self objectForKey:key], value);
 }
 
 
 - (BOOL)boolForKey:(id)key defaultValue:(BOOL)value
 {
-	id					objVal = [self objectForKey:key];
-	BOOL				result;
-	
-	result = EvaluateAsBoolean(objVal, value);
-
-	return result;
+	return OOBooleanFromObject([self objectForKey:key], value);
 }
 
 
 - (BOOL)fuzzyBooleanForKey:(id)key defaultValue:(float)value
 {
-	float				chance;
-	
-	chance = [self floatForKey:key defaultValue:value];
-	return randf() < chance;
+	return OOFuzzyBooleanFromObject([self objectForKey:key], value);
 }
 
 
 - (float)floatForKey:(id)key defaultValue:(float)value
 {
-	id					objVal = [self objectForKey:key];
-	float				result;
-	
-	if ([objVal respondsToSelector:@selector(floatValue)])  result = [objVal floatValue];
-	else if ([objVal respondsToSelector:@selector(doubleValue)])  result = [objVal doubleValue];
-	else if ([objVal respondsToSelector:@selector(intValue)])  result = [objVal intValue];
-	else result = value;
-
-	return result;
+	return OOFloatFromObject([self objectForKey:key], value);
 }
 
 
 - (double)doubleForKey:(id)key defaultValue:(double)value
 {
-	id					objVal = [self objectForKey:key];
-	double				result;
-	
-	if ([objVal respondsToSelector:@selector(doubleValue)])  result = [objVal doubleValue];
-	else if ([objVal respondsToSelector:@selector(floatValue)])  result = [objVal floatValue];
-	else if ([objVal respondsToSelector:@selector(intValue)])  result = [objVal intValue];
-	else result = value;
-
-	return result;
+	return OODoubleFromObject([self objectForKey:key], value);
 }
 
 
@@ -864,224 +554,85 @@ BOOL EvaluateAsBoolean(id object, BOOL defaultValue)
 
 - (char)charForKey:(id)key defaultValue:(char)value
 {
-	id					objVal = [self objectForKey:key];
-	int					intVal;
-	char				result;
-	
-	if ([objVal respondsToSelector:@selector(charValue)])  result = [objVal charValue];
-	else if ([objVal respondsToSelector:@selector(intValue)])
-	{
-		intVal = [objVal intValue];
-		if (intVal < CHAR_MIN) intVal = CHAR_MIN;
-		else if (CHAR_MAX < intVal) intVal = CHAR_MAX;
-		result = intVal;
-	}
-	else result = value;
-
-	return result;
+	return OOCharFromObject([self objectForKey:key], value);
 }
 
 
 - (short)shortForKey:(id)key defaultValue:(short)value
 {
-	id					objVal = [self objectForKey:key];
-	int					intVal;
-	short				result;
-	
-	if ([objVal respondsToSelector:@selector(shortValue)])  result = [objVal shortValue];
-	else if ([objVal respondsToSelector:@selector(intValue)])
-	{
-		intVal = [objVal intValue];
-		if (intVal < SHRT_MIN) intVal = SHRT_MIN;
-		else if (SHRT_MAX < intVal) intVal = SHRT_MAX;
-		result = intVal;
-	}
-	else result = value;
-
-	return result;
+	return OOShortFromObject([self objectForKey:key], value);
 }
 
 
 - (int)intForKey:(id)key defaultValue:(int)value
 {
-	id					objVal = [self objectForKey:key];
-	int					result;
-	
-	if ([objVal respondsToSelector:@selector(intValue)])  result = [objVal intValue];
-	else result = value;
-
-	return result;
+	return OOIntFromObject([self objectForKey:key], value);
 }
 
 
 - (long)longForKey:(id)key defaultValue:(long)value
 {
-	id					objVal = [self objectForKey:key];
-	long				result;
-	
-	if ([objVal respondsToSelector:@selector(longValue)])  result = [objVal longValue];
-	else if ([objVal respondsToSelector:@selector(intValue)])  result = [objVal intValue];
-	else result = value;
-
-	return result;
+	return OOLongFromObject([self objectForKey:key], value);
 }
 
 
 - (long long)longLongForKey:(id)key defaultValue:(long long)value
 {
-	id					objVal = [self objectForKey:key];
-	long long			result;
-	
-	if ([objVal respondsToSelector:@selector(longLongValue)])  result = [objVal longLongValue];
-	else if ([objVal respondsToSelector:@selector(intValue)])  result = [objVal intValue];
-	else result = value;
-
-	return result;
+	return OOLongLongFromObject([self objectForKey:key], value);
 }
 
 
 - (unsigned char)unsignedCharForKey:(id)key defaultValue:(unsigned char)value
 {
-	id					objVal = [self objectForKey:key];
-	int					intVal;
-	unsigned char		result;
-	
-	if ([objVal respondsToSelector:@selector(unsignedCharValue)])  result = [objVal unsignedCharValue];
-	else if ([objVal respondsToSelector:@selector(intValue)])
-	{
-		intVal = [objVal intValue];
-		if (intVal < 0) intVal = 0;
-		else if (UCHAR_MAX < intVal) intVal = UCHAR_MAX;
-		result = intVal;
-	}
-	else result = value;
-
-	return result;
+	return OOUnsignedCharFromObject([self objectForKey:key], value);
 }
 
 
 - (unsigned short)unsignedShortForKey:(id)key defaultValue:(unsigned short)value
 {
-	id					objVal = [self objectForKey:key];
-	int					intVal;
-	unsigned short		result;
-	
-	if ([objVal respondsToSelector:@selector(unsignedShortValue)])  result = [objVal unsignedShortValue];
-	else if ([objVal respondsToSelector:@selector(intValue)])
-	{
-		intVal = [objVal intValue];
-		if (intVal < 0) intVal = 0;
-		else if (USHRT_MAX < intVal) intVal = USHRT_MAX;
-		result = intVal;
-	}
-	else result = value;
-
-	return result;
+	return OOUnsignedShortFromObject([self objectForKey:key], value);
 }
 
 
 - (unsigned int)unsignedIntForKey:(id)key defaultValue:(unsigned int)value
 {
-	id					objVal = [self objectForKey:key];
-	int					intVal;
-	unsigned int		result;
-	
-	if ([objVal respondsToSelector:@selector(unsignedIntValue)])  result = [objVal unsignedIntValue];
-	else if ([objVal respondsToSelector:@selector(intValue)])
-	{
-		intVal = [objVal intValue];
-		if (intVal < 0) intVal = 0;
-		result = intVal;
-	}
-	else result = value;
-
-	return result;
+	return OOUnsignedIntFromObject([self objectForKey:key], value);
 }
 
 
 - (unsigned long)unsignedLongForKey:(id)key defaultValue:(unsigned long)value
 {
-	id					objVal = [self objectForKey:key];
-	int					intVal;
-	unsigned long		result;
-	
-	if ([objVal respondsToSelector:@selector(unsignedLongValue)])  result = [objVal unsignedLongValue];
-	else if ([objVal respondsToSelector:@selector(intValue)])
-	{
-		intVal = [objVal intValue];
-		if (intVal < 0) intVal = 0;
-		result = intVal;
-	}
-	else result = value;
-
-	return result;
+	return OOUnsignedLongFromObject([self objectForKey:key], value);
 }
 
 
 - (unsigned long long)unsignedLongLongForKey:(id)key defaultValue:(unsigned long long)value
 {
-	id					objVal = [self objectForKey:key];
-	int					intVal;
-	unsigned long long	result;
-	
-	if ([objVal respondsToSelector:@selector(unsignedLongLongValue)])  result = [objVal unsignedLongLongValue];
-	else if ([objVal respondsToSelector:@selector(intValue)])
-	{
-		intVal = [objVal intValue];
-		if (intVal < 0) intVal = 0;
-		result = intVal;
-	}
-	else result = value;
-
-	return result;
+	return OOUnsignedLongLongFromObject([self objectForKey:key], value);
 }
 
 
 - (BOOL)boolForKey:(id)key defaultValue:(BOOL)value
 {
-	id					objVal = [self objectForKey:key];
-	BOOL				result;
-	
-	result = EvaluateAsBoolean(objVal, value);
-
-	return result;
+	return OOBooleanFromObject([self objectForKey:key], value);
 }
 
 
 - (BOOL)fuzzyBooleanForKey:(id)key defaultValue:(float)value
 {
-	float				chance;
-	
-	chance = [self floatForKey:key defaultValue:value];
-	return randf() < chance;
+	return OOFuzzyBooleanFromObject([self objectForKey:key], value);
 }
 
 
 - (float)floatForKey:(id)key defaultValue:(float)value
 {
-	id					objVal = [self objectForKey:key];
-	float				result;
-	
-	if ([objVal respondsToSelector:@selector(floatValue)])  result = [objVal floatValue];
-	else if ([objVal respondsToSelector:@selector(doubleValue)])  result = [objVal doubleValue];
-	else if ([objVal respondsToSelector:@selector(intValue)])  result = [objVal intValue];
-	else result = value;
-
-	return result;
+	return OOFloatFromObject([self objectForKey:key], value);
 }
 
 
 - (double)doubleForKey:(id)key defaultValue:(double)value
 {
-	id					objVal = [self objectForKey:key];
-	double				result;
-	
-	if ([objVal respondsToSelector:@selector(doubleValue)])  result = [objVal doubleValue];
-	else if ([objVal respondsToSelector:@selector(floatValue)])  result = [objVal floatValue];
-	else if ([objVal respondsToSelector:@selector(intValue)])  result = [objVal intValue];
-	else result = value;
-
-	return result;
+	return OODoubleFromObject([self objectForKey:key], value);
 }
 
 
@@ -1211,3 +762,226 @@ BOOL EvaluateAsBoolean(id object, BOOL defaultValue)
 }
 
 @end
+
+
+@implementation NSMutableArray (OOInserter)
+
+- (void)addInteger:(long)value
+{
+	[self addObject:[NSNumber numberWithLong:value]];
+}
+
+
+- (void)addUnsignedInteger:(unsigned long)value
+{
+	[self addObject:[NSNumber numberWithUnsignedLong:value]];
+}
+
+
+- (void)addFloat:(double)value
+{
+	[self addObject:[NSNumber numberWithDouble:value]];
+}
+
+
+- (void)addBool:(BOOL)value
+{
+	[self addObject:[NSNumber numberWithBool:value]];
+}
+
+
+- (void)insertInteger:(long)value atIndex:(unsigned)index
+{
+	[self insertObject:[NSNumber numberWithLong:value] atIndex:index];
+}
+
+
+- (void)insertUnsignedInteger:(unsigned long)value atIndex:(unsigned)index;
+{
+	[self insertObject:[NSNumber numberWithUnsignedLong:value] atIndex:index];
+}
+
+
+- (void)insertFloat:(double)value atIndex:(unsigned)index
+{
+	[self insertObject:[NSNumber numberWithDouble:value] atIndex:index];
+}
+
+
+- (void)insertBool:(BOOL)value atIndex:(unsigned)index
+{
+	[self insertObject:[NSNumber numberWithBool:value] atIndex:index];
+}
+
+@end
+
+
+@implementation NSMutableDictionary (OOInserter)
+
+- (void)setInteger:(long)value forKey:(id)key
+{
+	[self setObject:[NSNumber numberWithLong:value] forKey:key];
+}
+
+
+- (void)setUnsignedInteger:(unsigned long)value forKey:(id)key
+{
+	[self setObject:[NSNumber numberWithUnsignedLong:value] forKey:key];
+}
+
+
+- (void)setFloat:(double)value forKey:(id)key
+{
+	[self setObject:[NSNumber numberWithDouble:value] forKey:key];
+}
+
+
+- (void)setBool:(BOOL)value forKey:(id)key
+{
+	[self setObject:[NSNumber numberWithBool:value] forKey:key];
+}
+
+@end
+
+
+@implementation NSMutableSet (OOInserter)
+
+- (void)addInteger:(long)value
+{
+	[self addObject:[NSNumber numberWithLong:value]];
+}
+
+
+- (void)addUnsignedInteger:(unsigned long)value
+{
+	[self addObject:[NSNumber numberWithUnsignedLong:value]];
+}
+
+
+- (void)addFloat:(double)value
+{
+	[self addObject:[NSNumber numberWithDouble:value]];
+}
+
+
+- (void)addBool:(BOOL)value
+{
+	[self addObject:[NSNumber numberWithBool:value]];
+}
+
+@end
+
+
+long long OOLongLongFromObject(id object, long long defaultValue)
+{
+	long long llValue;
+	
+	if ([object respondsToSelector:@selector(longLongValue)])  llValue = [object longLongValue];
+	else if ([object respondsToSelector:@selector(longValue)])  llValue = [object longValue];
+	else if ([object respondsToSelector:@selector(intValue)])  llValue = [object intValue];
+	else llValue = defaultValue;
+	
+	return llValue;
+}
+
+
+unsigned long long OOUnsignedLongLongFromObject(id object, unsigned long long defaultValue)
+{
+	unsigned long long ullValue;
+	
+	if ([object respondsToSelector:@selector(unsignedLongLongValue)])  ullValue = [object unsignedLongLongValue];
+	else if ([object respondsToSelector:@selector(unsignedLongValue)])  ullValue = [object unsignedLongValue];
+	else if ([object respondsToSelector:@selector(unsignedIntValue)])  ullValue = [object unsignedIntValue];
+	else if ([object respondsToSelector:@selector(intValue)])  ullValue = [object intValue];
+	else ullValue = defaultValue;
+	
+	return ullValue;
+}
+
+
+static BOOL IsBooleanString(id object, BOOL *outValue)  NONNULL_FUNC;
+
+
+BOOL OOBooleanFromObject(id object, BOOL defaultValue)
+{
+	BOOL result;
+	
+	if (!IsBooleanString(object, &result))
+	{
+		if ([object respondsToSelector:@selector(boolValue)])  result = [object boolValue];
+		else if ([object respondsToSelector:@selector(intValue)])  result = [object intValue] != 0;
+		else result = defaultValue;
+	}
+	
+	return result;
+}
+
+
+BOOL OOFuzzyBooleanFromObject(id object, BOOL defaultValue)
+{
+	BOOL result;
+	
+	if (!IsBooleanString(object, &result))
+	{
+		/*	This will always be NO for negative values and YES for values
+			greater than 1, as expected. randf() is always less than 1, so
+			< is the correct operator here.
+		*/
+		result = randf() < OOFloatFromObject(object, defaultValue ? 1.0f : 0.0f);
+	}
+	
+	return result;
+}
+
+
+float OOFloatFromObject(id object, float defaultValue)
+{
+	float result;
+	
+	if ([object respondsToSelector:@selector(floatValue)])  result = [object floatValue];
+	else if ([object respondsToSelector:@selector(doubleValue)])  result = [object doubleValue];
+	else if ([object respondsToSelector:@selector(intValue)])  result = [object intValue];
+	else result = defaultValue;
+	
+	return result;
+}
+
+
+double OODoubleFromObject(id object, double defaultValue)
+{
+	float result;
+	
+	if ([object respondsToSelector:@selector(doubleValue)])  result = [object doubleValue];
+	else if ([object respondsToSelector:@selector(floatValue)])  result = [object floatValue];
+	else if ([object respondsToSelector:@selector(intValue)])  result = [object intValue];
+	else result = defaultValue;
+	
+	return result;
+}
+
+
+static BOOL IsBooleanString(id object, BOOL *outValue)
+{
+	if ([object isKindOfClass:[NSString class]])
+	{
+		if (NSOrderedSame == [object caseInsensitiveCompare:@"yes"] ||
+			NSOrderedSame == [object caseInsensitiveCompare:@"true"] ||
+			NSOrderedSame == [object caseInsensitiveCompare:@"on"] ||
+			[object intValue] != 0)
+		{
+			*outValue = YES;
+			return YES;
+		}
+		else if (NSOrderedSame == [object caseInsensitiveCompare:@"no"] ||
+				 NSOrderedSame == [object caseInsensitiveCompare:@"false"] ||
+				 NSOrderedSame == [object caseInsensitiveCompare:@"off"] ||
+				 NSOrderedSame == [object caseInsensitiveCompare:@"0"] ||
+				 NSOrderedSame == [object caseInsensitiveCompare:@"-0"])
+		{
+			*outValue = NO;
+			return YES;
+		}
+	}
+	
+	return NO;
+}

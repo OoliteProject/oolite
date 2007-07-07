@@ -104,7 +104,7 @@ static NSString * const kOOLogEntityBehaviourChanged	= @"entity.behaviour.change
 - (void) setUpShipFromDictionary:(NSDictionary *) dict
 {
 	NSDictionary		*shipDict = dict;
-	int					i;
+	unsigned			i;
 	
 	// Does this positional stuff need setting up here?
 	// Either way, having four representations of orientation is dumb. Needs fixing. --Ahruman
@@ -1120,7 +1120,6 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	[super update:delta_t];
 
 	// DEBUGGING
-	//
 	if (reportAImessages && (debug_condition != behaviour))
 	{
 		OOLog(kOOLogEntityBehaviourChanged, @"%@ behaviour is now %@", self, BehaviourToString(behaviour));
@@ -1260,7 +1259,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 			}
 			if (sub_entities)
 			{
-				int i;
+				unsigned i;
 				for (i = 0; i < [sub_entities count]; i++)
 					[(Entity *)[sub_entities objectAtIndex:i] update:delta_t];
 			}
@@ -1474,7 +1473,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	//
 	if (sub_entities)
 	{
-		int i;
+		unsigned i;
 		for (i = 0; i < [sub_entities count]; i++)
 //			[(Entity *)[sub_entities objectAtIndex:i] update:delta_t];
 		{
@@ -3265,7 +3264,7 @@ static GLfloat mascem_color2[4] =	{ 0.4, 0.1, 0.4, 1.0};	// purple
 	NSArray* targets = [UNIVERSE getEntitiesWithinRange:desired_range ofEntity:self];
 	if ([targets count] > 0)
 	{
-		int i;
+		unsigned i;
 		for (i = 0; i < [targets count]; i++)
 		{
 			Entity *e2 = [targets objectAtIndex:i];
@@ -3285,7 +3284,7 @@ static GLfloat mascem_color2[4] =	{ 0.4, 0.1, 0.4, 1.0};	// purple
 	NSArray* targets = [UNIVERSE getEntitiesWithinRange:desired_range ofEntity:self];
 	if ([targets count] > 0)
 	{
-		int i;
+		unsigned i;
 		for (i = 0; i < [targets count]; i++)
 		{
 			ShipEntity *e2 = (ShipEntity*)[targets objectAtIndex:i];
@@ -3689,7 +3688,7 @@ static GLfloat mascem_color2[4] =	{ 0.4, 0.1, 0.4, 1.0};	// purple
 	//
 	if (sub_entities)
 	{
-		int i;
+		unsigned i;
 		for (i = 0; i < [sub_entities count]; i++)
 		{
 			Entity*		se = (Entity *)[sub_entities objectAtIndex:i];
@@ -4097,7 +4096,7 @@ BOOL	class_masslocks(int some_class)
 		primaryTarget = [targetEntity universalID];
 	if (sub_entities)
 	{
-		int i;
+		unsigned i;
 		for (i = 0; i < [sub_entities count]; i++)
 		{
 			Entity* se = [sub_entities objectAtIndex:i];
@@ -4115,7 +4114,7 @@ BOOL	class_masslocks(int some_class)
 	primaryTarget = NO_TARGET;
 	if (sub_entities)
 	{
-		int i;
+		unsigned i;
 		for (i = 0; i < [sub_entities count]; i++)
 		{
 			Entity* se = [sub_entities objectAtIndex:i];
@@ -5192,6 +5191,14 @@ BOOL	class_masslocks(int some_class)
 	ShipEntity *victim = (ShipEntity*)[UNIVERSE entityForUniversalID:target_laser_hit];
 	if ((victim)&&(victim->isShip))
 	{
+		/*	FIXME CRASH in [victim->sub_entities containsObject:subent] here (1.69, OS X/x86).
+			Analysis: Crash is in _freedHandler called from CFEqual, indicating either a dead
+			object in victim->sub_entities or dead victim->subentity_taking_damage. I suspect
+			the latter. Probably solution: dying subentities must cause parent to clean up
+			properly. This was probably obscured by the entity recycling scheme in the past.
+			Fix: NOT FIXED.
+			-- Ahruman 20070706
+		*/
 		ShipEntity* subent = victim->subentity_taking_damage;
 		if ((subent) && (subent->isShip) && [victim->sub_entities containsObject:subent])
 		{
@@ -5548,7 +5555,7 @@ BOOL	class_masslocks(int some_class)
 		if (crew)	// transfer crew
 		{
 			// make sure crew inherit any legalStatus
-			int i;
+			unsigned i;
 			for (i = 0; i < [crew count]; i++)
 			{
 				OOCharacter *ch = (OOCharacter*)[crew objectAtIndex:i];
@@ -6013,7 +6020,7 @@ BOOL	class_masslocks(int some_class)
 			[UNIVERSE clearPreviousMessage];
 			if ([other crew])
 			{
-				int i;
+				unsigned i;
 				for (i = 0; i < [[other crew] count]; i++)
 				{
 					OOCharacter* rescuee = (OOCharacter*)[[other crew] objectAtIndex:i];
@@ -6053,6 +6060,8 @@ BOOL	class_masslocks(int some_class)
 {
 	if (status == STATUS_DEAD)  return;
 	if (amount == 0.0)  return;
+	
+	unsigned i;
 	
 	// If it's an energy mine...
 	if (ent && ent->isParticle && ent->scanClass == CLASS_MINE)
@@ -6117,7 +6126,6 @@ BOOL	class_masslocks(int some_class)
 			if ([roles isEqual:@"pirate"])
 			{
 				NSArray	*fellow_pirates = [self shipsInGroup:groupID];
-				int i;
 				for (i = 0; i < [fellow_pirates count]; i++)
 				{
 					ShipEntity *other_pirate = (ShipEntity *)[fellow_pirates objectAtIndex:i];
@@ -6132,7 +6140,6 @@ BOOL	class_masslocks(int some_class)
 			if (iAmTheLaw)
 			{
 				NSArray	*fellow_police = [self shipsInGroup:groupID];
-				int i;
 				for (i = 0; i < [fellow_police count]; i++)
 				{
 					ShipEntity *other_police = (ShipEntity *)[fellow_police objectAtIndex:i];
@@ -6370,7 +6377,7 @@ int w_space_seed = 1234567;
 - (void) switchLightsOn
 {
 	if (!sub_entities) return;
-	int i;
+	unsigned i;
 	for (i = 0; i < [sub_entities count]; i++)
 	{
 		Entity* subent = (Entity*)[sub_entities objectAtIndex:i];
@@ -6386,7 +6393,7 @@ int w_space_seed = 1234567;
 - (void) switchLightsOff
 {
 	if (!sub_entities) return;
-	int i;
+	unsigned i;
 	for (i = 0; i < [sub_entities count]; i++)
 	{
 		Entity* subent = (Entity*)[sub_entities objectAtIndex:i];
@@ -6524,7 +6531,6 @@ inline BOOL pairOK(NSString* my_role, NSString* their_role)
 			escort_ids[i_deploy--] = escort_ids[--escortCount];	// remove the escort
 		}
 	}
-
 }
 
 
@@ -6546,12 +6552,13 @@ inline BOOL pairOK(NSString* my_role, NSString* their_role)
 			escorter_okay = escorter->isShip;
 		if (escorter_okay)
 		{
-			SEL _setSM =	@selector(setStateMachine:);
-			SEL _setSt =	@selector(setState:);
-			float delay = i * 3.0 + 1.5;		// send them off at three second intervals
+			float		delay = i * 3.0 + 1.5;		// send them off at three second intervals
+			AI			*ai = [escorter getAI];
+			
 			[escorter setGroupID:NO_TARGET];	// act individually now!
-			[[escorter getAI] performSelector:_setSM withObject:@"dockingAI.plist" afterDelay:delay];
-			[[escorter getAI] performSelector:_setSt withObject:@"ABORT" afterDelay:delay + 0.25];
+			[ai setStateMachine:@"dockingAI.plist" afterDelay:delay];
+			[ai setState:@"ABORT" afterDelay:delay + 0.25];
+			
 		}
 		escort_ids[i] = NO_TARGET;
 	}

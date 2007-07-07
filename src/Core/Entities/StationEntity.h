@@ -27,9 +27,12 @@ MA 02110-1301, USA.
 #import "ShipEntity.h"
 #import "legacy_random.h"
 
-#define STATION_ALERT_LEVEL_GREEN		0
-#define STATION_ALERT_LEVEL_YELLOW		1
-#define STATION_ALERT_LEVEL_RED			2
+typedef enum
+{
+	STATION_ALERT_LEVEL_GREEN,
+	STATION_ALERT_LEVEL_YELLOW,
+	STATION_ALERT_LEVEL_RED
+} OOStationAlertLevel;
 
 #define STATION_MAX_POLICE				8
 
@@ -45,16 +48,16 @@ MA 02110-1301, USA.
 	NSMutableArray			*launchQueue;
 	double					last_launch_time;
 	double					approach_spacing;
-	int						alert_level;
+	OOStationAlertLevel		alert_level;
 	
 	OOUniversalID			id_lock[MAX_DOCKING_STAGES];	// ship id's or NO_TARGET's
 	
-	int						max_police;					// max no. of police ships allowed
-	int						max_defense_ships;			// max no. of defense ships allowed
-	int						police_launched;
+	unsigned				max_police;					// max no. of police ships allowed
+	unsigned				max_defense_ships;			// max no. of defense ships allowed
+	unsigned				police_launched;
 	
-	int						max_scavengers;				// max no. of scavenger ships allowed
-	int						scavengers_launched;
+	unsigned				max_scavengers;				// max no. of scavenger ships allowed
+	unsigned				scavengers_launched;
 	
 	int						equivalent_tech_level;
 	float					equipment_price_factor;
@@ -73,11 +76,11 @@ MA 02110-1301, USA.
 	NSMutableArray			*localContracts;
 	NSMutableArray			*localShipyard;
 	
-	int						docked_shuttles;
+	unsigned				docked_shuttles;
 	double					last_shuttle_launch_time;
 	double					shuttle_launch_interval;
 	
-	int						docked_traders;
+	unsigned				docked_traders;
 	double					last_trader_launch_time;
 	double					trader_launch_interval;
 	
@@ -141,7 +144,7 @@ MA 02110-1301, USA.
 
 - (void) addShipToLaunchQueue:(ShipEntity *) ship;
 
-- (int) countShipsInLaunchQueueWithRole:(NSString *) a_role;
+- (unsigned) countShipsInLaunchQueueWithRole:(NSString *) a_role;
 
 - (void) launchShip:(ShipEntity *) ship;
 
