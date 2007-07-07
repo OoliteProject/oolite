@@ -507,7 +507,7 @@ typedef struct
 		
 		info = [[NSValue alloc] initWithBytes:&infoStruct objCType:@encode(OOAIDeferredCallTrampolineInfo)];
 		
-		[[AI class] performSelector:@selector(deferredCallTrampolineWithInfo)
+		[[AI class] performSelector:@selector(deferredCallTrampolineWithInfo:)
 						 withObject:info
 						 afterDelay:delay];
 	}
