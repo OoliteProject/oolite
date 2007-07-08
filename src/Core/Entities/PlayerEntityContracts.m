@@ -1336,15 +1336,19 @@ static NSMutableDictionary* currentShipyard = nil;
 {
 	// returns down to ship_trade_in_factor% of the full credit value of your ship
 	
-	// FIXME: this is silly. It should be inlined here rather than packing and then unpacking a saved game. -- Ahruman 20070707
 	/*	FIXME: the trade-in value can be more than the sale value, and
 		ship_trade_in_factor starts at 100%, so it can be profitable to sit
-		and buy the same ship over and over again. Proposed solution: make
-		effective trade-in value 75% * ship_trade_in_factor% of the "raw"
-		trade-in value. This bug predates Oolite 1.65.
-		-- Ahruman 20070707
+		and buy the same ship over and over again. This bug predates Oolite
+		1.65.
+		Partial fix: make effective trade-in value 75% * ship_trade_in_factor%
+		of the "raw" trade-in value. This still allows profitability! A better
+		solution would be to unify the price calculation for trade-in and
+		for-sale ships.
+		-- Ahruman 20070707, fix applied 20070708
 	*/
-	return ship_trade_in_factor * [UNIVERSE tradeInValueForCommanderDictionary:[self commanderDataDictionary]] / 100;
+	unsigned long long value = [UNIVERSE tradeInValueForCommanderDictionary:[self commanderDataDictionary]];
+	value = ((value * 75 * ship_trade_in_factor) + 5000) / 10000;	// Multiply by two percentages, divide by 100*100. The +5000 is to get normal rounding.
+	return value;
 }
 
 
