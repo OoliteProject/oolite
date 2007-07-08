@@ -1,12 +1,17 @@
 /*
 
-OOTextureLoader.h
+OOLogOutputHandler.h
+By Jens Ayton
 
-Manage asynchronous (threaded) loading of textures. In general, this should be
-used through OOTexture.
+Mac OS X-specific output handler for OOLogging.
 
-Note: interface is likely to change in future to support other buffer (like
-S3TC/DXT#).
+This does two things:
+1. It writes log output to ~/Logs/org.aegidian.oolite/Oolite.log, handling
+   thread serialization.
+2. It installs a filter to capture NSLogs and convert them to OOLogs. This is
+   different to the macro in OOLogging.h, which acts at compile time; the
+   filter catches logging in included frameworks.
+
 
 Oolite
 Copyright (C) 2004-2007 Giles C Williams and contributors
@@ -51,73 +56,9 @@ SOFTWARE.
 
 */
 
-#import "OOTexture.h"
+#import <Foundation/Foundation.h>
 
 
-@interface OOTextureLoader: NSObject
-{
-	NSString					*path;
-	
-	uint8_t						generateMipMaps: 1,
-								scaleAsNormalMap: 1,
-								avoidShrinking: 1,
-								ready: 1;
-	OOTextureDataFormat			format;
-	
-	void						*data;
-	uint32_t					width,
-								height,
-								rowBytes;
-}
-
-+ (id)loaderWithPath:(NSString *)path options:(uint32_t)options;
-
-- (BOOL)isReady;
-
-/*	Return value indicates success. This may only be called once (subsequent
-	attempts will return failure), and only on the main thread.
-*/
-- (BOOL)getResult:(void **)outData
-		   format:(OOTextureDataFormat *)outFormat
-			width:(uint32_t *)outWidth
-		   height:(uint32_t *)outHeight;
-
-
-/*** Subclass interface; do not use on pain of pain. Unless you're subclassing. ***/
-
-// Subclasses shouldn't do much on init, because of the whole asynchronous thing.
-- (id)initWithPath:(NSString *)path options:(uint32_t)options;
-
-/*	Load data, setting up data, width, and height, and rowBytes if it's not
-	width * 4.
-	
-	Thread-safety concerns: this will be called in a worker thread, and there
-	may be several worker threads. The caller takes responsibility for
-	autorelease pools and exception safety.
-	
-	Data must be little-endian ARGB (FIXME: is this correct?)
-	
-	Superclass will handle scaling and mip-map generation. Data must be
-	allocated with malloc() family.
-*/
-- (void)loadTexture;
-
-@end
-
-
-static inline uint8_t OOTexturePlanesForFormat(OOTextureDataFormat format)
-{
-	switch (format)
-	{
-		case kOOTextureDataRGBA:
-			return 4;
-		
-		case kOOTextureDataGrayscale:
-			return 1;
-		
-		case kOOTextureDataInvalid:
-			break;
-	}
-	
-	return 0;
-}
+void OOLogOutputHandlerInit(void);
+void OOLogOutputHandlerClose(void);
+void OOLogOutputHandlerPrint(NSString *string);

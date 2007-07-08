@@ -54,17 +54,11 @@ SOFTWARE.
 #import "OOTextureScaling.h"
 #import "OOCPUInfo.h"
 #import <stdlib.h>
+#import "OOAsyncQueue.h"
 
 
-typedef struct OOTextureLoaderQueue
-{
-	OOTextureLoader			*head, *last;
-	NSConditionLock			*lock;
-} OOTextureLoaderQueue;
-
-
-static OOTextureLoaderQueue	sLoadQueue,
-							sReadyQueue;
+static OOAsyncQueue			*sLoadQueue,
+							*sReadyQueue;
 static unsigned				sGLMaxSize;
 static uint32_t				sUserMaxSize;
 static BOOL					sReducedDetail;
@@ -74,28 +68,8 @@ static BOOL					sHaveSetUp = NO;
 
 enum
 {
-	kConditionNoData		= 1,
-	kConditionQueuedData
-};
-
-enum
-{
 	kMaxWorkThreads			= 4U
 };
-
-
-/*	Implements a many-to-many thread-safe queue - that is, elements can be
-	enqueued from any thread and dequeued from any thread. The queue supports
-	a simple priority model - entries with a "priority" flag set will be
-	dequeued before objects without the flag. A full priority queue isn't
-	useful here.
-	
-	Note: as it stands, Dequeue always blocks until the queue is non-empty.
-*/
-static BOOL LoaderQueueInit(OOTextureLoaderQueue *queue);
-static BOOL LoaderQueueEnueue(OOTextureLoaderQueue *queue, OOTextureLoader *element);
-static OOTextureLoader *LoaderQueueDequeue(OOTextureLoaderQueue *queue);
-static void LoaderQueuePrioritizeElement(OOTextureLoaderQueue *queue, OOTextureLoader *element);
 
 
 @interface OOTextureLoader (OOPrivate)
@@ -131,7 +105,7 @@ static void LoaderQueuePrioritizeElement(OOTextureLoaderQueue *queue, OOTextureL
 	if (path == nil) return nil;
 	if (!sHaveSetUp)  [self setUp];
 	
-	// Get reduced detail setting (every time, in case it changes; we don't want to call through to Universe on the loading thread in case the implementation becomes non-trivial
+	// Get reduced detail setting (every time, in case it changes; we don't want to call through to Universe on the loading thread in case the implementation becomes non-trivial).
 	sReducedDetail = [UNIVERSE reducedDetail];
 	
 	// Get a suitable loader. FIXME -- this should sniff the data instead of relying on extensions.
@@ -148,7 +122,7 @@ static void LoaderQueuePrioritizeElement(OOTextureLoaderQueue *queue, OOTextureL
 	
 	if (result != nil)
 	{
-		if (!LoaderQueueEnueue(&sLoadQueue, result))  result = nil;
+		if (![sLoadQueue enqueue:result])  result = nil;
 	}
 	
 	return result;
@@ -176,9 +150,6 @@ static void LoaderQueuePrioritizeElement(OOTextureLoaderQueue *queue, OOTextureL
 
 - (void)dealloc
 {
-	// If we're still in the queue, we've been overreleased and the game will crash.
-	assert(queueNext == nil);
-	
 	[path release];
 	if (data != NULL)  free(data);
 	
@@ -207,12 +178,6 @@ static void LoaderQueuePrioritizeElement(OOTextureLoaderQueue *queue, OOTextureL
 }
 
 
-- (void)setPriority
-{
-	LoaderQueuePrioritizeElement(queue, self);
-}
-
-
 - (BOOL)getResult:(void **)outData
 		   format:(OOTextureDataFormat *)outFormat
 			width:(uint32_t *)outWidth
@@ -220,7 +185,6 @@ static void LoaderQueuePrioritizeElement(OOTextureLoaderQueue *queue, OOTextureL
 {	
 	if (!ready)
 	{
-		[self setPriority];
 		[self waitForCompletion];
 	}
 	
@@ -262,7 +226,9 @@ static void LoaderQueuePrioritizeElement(OOTextureLoaderQueue *queue, OOTextureL
 	int						threadCount;
 	GLint					maxSize;
 	
-	if (!LoaderQueueInit(&sLoadQueue) || !LoaderQueueInit(&sReadyQueue))
+	sLoadQueue = [[OOAsyncQueue alloc] init];
+	sReadyQueue = [[OOAsyncQueue alloc] init];
+	if (sLoadQueue == nil || sReadyQueue == nil)
 	{
 		OOLog(@"textureLoader.createQueues.failed", @"***** FATAL ERROR: could not set up texture loader queues!");
 		exit(EXIT_FAILURE);
@@ -316,7 +282,7 @@ static void LoaderQueuePrioritizeElement(OOTextureLoaderQueue *queue, OOTextureL
 	{
 		pool = [[NSAutoreleasePool alloc] init];
 		
-		loader = LoaderQueueDequeue(&sLoadQueue);
+		loader = [sLoadQueue dequeue];
 		[loader performLoad];
 		
 		[pool release];
@@ -344,7 +310,7 @@ static void LoaderQueuePrioritizeElement(OOTextureLoaderQueue *queue, OOTextureL
 		}
 	NS_ENDHANDLER
 	
-	LoaderQueueEnueue(&sReadyQueue, self);
+	[sReadyQueue enqueue:self];
 }
 
 
@@ -427,109 +393,9 @@ static void LoaderQueuePrioritizeElement(OOTextureLoaderQueue *queue, OOTextureL
 	
 	do
 	{
-		loader = LoaderQueueDequeue(&sReadyQueue);
+		loader = [sReadyQueue dequeue];
 		loader->ready = YES;
 	}  while (loader != self);
 }
 
 @end
-
-
-static BOOL LoaderQueueInit(OOTextureLoaderQueue *queue)
-{
-	if (EXPECT_NOT(queue == NULL))  return NO;
-	
-	queue->head = queue->last = nil;
-	queue->lock = [[NSConditionLock alloc] initWithCondition:kConditionNoData];
-	return queue->lock != nil;
-}
-
-
-static BOOL LoaderQueueEnueue(OOTextureLoaderQueue *queue, OOTextureLoader *element)
-{
-	if (EXPECT_NOT(queue == NULL))  return NO;
-	if (EXPECT_NOT(element->queue != NULL))  return NO;
-	
-	[queue->lock lock];
-	
-	[element retain];	// Will be autoreleased when dequeued.
-	if (queue->last != nil)  queue->last->queueNext = element;
-	queue->last = element;
-	if (queue->head == nil)  queue->head = element;
-	element->queue = queue;
-	
-	[queue->lock unlockWithCondition:kConditionQueuedData];
-	
-	return YES;
-}
-
-
-static OOTextureLoader *LoaderQueueDequeue(OOTextureLoaderQueue *queue)
-{
-	OOTextureLoader			*result = nil,
-							*curr = nil;
-	
-	if (EXPECT_NOT(queue == NULL))  return nil;
-	
-	// Block until queue is nonempty, then lock:
-	[queue->lock lockWhenCondition:kConditionQueuedData];
-	
-	// This condition should always be true
-	if (EXPECT(queue->head != nil))
-	{
-		if (!queue->head->priority)
-		{
-			/*	Search queue for an entry with the priority flag. Note that
-				we're looking at next each step, not curr. The previous
-				condition was the special case for the head.
-			*/
-			for (curr = queue->head; curr->queueNext != nil; curr = curr->queueNext)
-			{
-				if (curr->queueNext->priority)
-				{
-					result = curr->queueNext;
-					curr->queueNext = result->queueNext;
-					if (result == queue->last)  queue->last = curr;
-					break;
-				}
-			}
-		}
-		if (result == nil)
-		{
-			//	No priority object found; dequeue the first object.
-			result = queue->head;
-			queue->head = result->queueNext;
-			if (queue->last == result)  queue->last = nil;
-		}
-		if (EXPECT(result != nil))
-		{
-			result->queue = NULL;
-			result->queueNext = nil;
-			result->priority = NO;
-		}
-	}
-	else
-	{
-		/*	If we locked with condition kConditionQueuedData, but queue->head
-			is nil, something is badly wrong, but it may be recoverable so we
-			just whine about it.
-		*/
-		OOLog(@"textureLoader.queueTask.inconsistency", @"***** Texture loader queue state was data-available when queue was empty!");
-	}
-	
-	//	Unlock, setting appropriate lock state.
-	[queue->lock unlockWithCondition:(queue->head == nil) ? kConditionNoData : kConditionQueuedData];
-	
-	return [result autorelease];
-}
-
-
-static void LoaderQueuePrioritizeElement(OOTextureLoaderQueue *queue, OOTextureLoader *element)
-{
-	if (EXPECT_NOT(queue == NULL || element == nil))  return;
-	
-	// Note: we can't simply grab the queue from the element for thread-safety reasons.
-	[queue->lock lock];
-	if (element->queue == queue)  element->priority = YES;
-	[queue->lock unlock];
-}

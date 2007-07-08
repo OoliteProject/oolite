@@ -816,6 +816,13 @@ static int CompareDisplayModes(id arg1, id arg2, void *context)
 	[NSApp terminate:self];
 }
 
+
+- (NSApplicationTerminateReply)applicationShouldTerminate:(NSApplication *)sender
+{
+	OOLoggingTerminate();
+	return NSTerminateNow;
+}
+
 #elif OOLITE_SDL
 
 - (void) logProgress:(NSString *)message
@@ -827,6 +834,7 @@ static int CompareDisplayModes(id arg1, id arg2, void *context)
 
 - (void) exitApp
 {
+	OOLoggingTerminate();
 	SDL_Quit();
 	exit(0);
 }

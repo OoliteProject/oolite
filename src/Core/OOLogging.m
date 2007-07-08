@@ -5,6 +5,7 @@ By Jens Ayton
 
 More flexible alternative to NSLog().
 
+
 Oolite
 Copyright (C) 2004-2007 Giles C Williams and contributors
 
@@ -23,6 +24,29 @@ along with this program; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
 MA 02110-1301, USA.
 
+
+This file may also be distributed under the MIT/X11 license:
+
+Copyright (C) 2007 Jens Ayton
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+
 */
 
 
@@ -31,6 +55,9 @@ MA 02110-1301, USA.
 #import "OOFunctionAttributes.h"
 #import "ResourceManager.h"
 #import "OOCollectionExtractors.h"
+
+
+#undef NSLog		// We need to be able to call the real NSLog.
 
 
 #define PER_THREAD_INDENTATION		1
@@ -122,22 +149,18 @@ OOINLINE unsigned GetIndentLevel(void) PURE_FUNC;
 OOINLINE void SetIndentLevel(unsigned level);
 
 
-/*	void PrimitiveLog(NSString *)
-	This is the bottleneck output function used by both the OOLog() family and
-	OOLogInternal(). Under GNUstep, it uses NSLog(), which I believe logs to a
-	file. Under Mac OS X, it writes to, because NSLog() adds its own prefix
-	before writing to stout.
-	To do: add option to log to file under OS X.
-*/
-static inline void PrimitiveLog(NSString *inString)
+#if OOLITE_MAC_OS_X
+#import "OOLogOutputHandler.h"
+#else
+OOINLINE void OOLogOutputHandlerInit(void)  {}
+OOINLINE OOLogOutputHandlerClose(void)  {}
+
+
+OOINLINE void OOLogOutputHandlerPrint(NSString *string)
 {
-	#ifdef GNUSTEP
-		#undef NSLog
-		NSLog(@"%@", inString);
-	#else
-		puts([inString UTF8String]);
-	#endif
+	NSLog(@"%@", inString);
 }
+#endif
 
 
 // Given a boolean, return the appropriate value for the cache dictionary.
@@ -485,7 +508,7 @@ void OOLogWithFunctionFileAndLineAndArguments(NSString *inMessageClass, const ch
 		formattedMessage = [NSString stringWithFormat:@"%s%@", indentString, formattedMessage];
 	}
 	
-	PrimitiveLog(formattedMessage);
+	OOLogOutputHandlerPrint(formattedMessage);
 	
 	[pool release];
 }
@@ -582,22 +605,41 @@ void OOLoggingInit(void)
 	if (sInited) return;
 	
 	pool = [[NSAutoreleasePool alloc] init];
+	
+	OOLogOutputHandlerInit();
+	
 	sLock = [[NSLock alloc] init];
-	if (sLock == nil) abort();
+	if (sLock == nil) exit(EXIT_FAILURE);
 	
 	LoadExplicitSettings();
 	sInited = YES;
+	
 	[pool release];
+}
+
+
+void OOLoggingTerminate(void)
+{
+	if (!sInited) return;
+	
+	OOLogOutputHandlerClose();
+	
+	sInited = NO;
 }
 
 
 void OOLogInsertMarker(void)
 {
-	static unsigned		markerID = 0;
+	static unsigned		lastMarkerID = 0;
+	unsigned			thisMarkerID;
 	NSString			*marker = nil;
 	
-	marker = [NSString stringWithFormat:@"\n\n========== [Marker %u] ==========", ++markerID];
-	PrimitiveLog(marker);
+	[sLock lock];
+	thisMarkerID = ++lastMarkerID;
+	[sLock unlock];
+	
+	marker = [NSString stringWithFormat:@"\n\n========== [Marker %u] ==========", ++thisMarkerID];
+	OOLogOutputHandlerPrint(marker);
 }
 
 
@@ -630,9 +672,9 @@ static void OOLogInternal_(const char *inFunction, NSString *inFormat, ...)
 	va_end(args);
 	
 	formattedMessage = [NSString stringWithFormat:@"OOLogging internal - %s: %@", inFunction, formattedMessage];
-	if (sShowApplication) formattedMessage = [APPNAME stringByAppendingString:formattedMessage];
+	if (sShowApplication) formattedMessage = [NSString stringWithFormat:@"%@: %@", APPNAME, formattedMessage];
 	
-	PrimitiveLog(formattedMessage);
+	OOLogOutputHandlerPrint(formattedMessage);
 	
 	[pool release];
 }
