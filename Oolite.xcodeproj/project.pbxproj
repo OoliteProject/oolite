@@ -357,6 +357,10 @@
 		1A71E8790BCE8EB100CD5C13 /* libz.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 1A71E8780BCE8EB100CD5C13 /* libz.dylib */; };
 		1A71EA8C0BCF8C6B00CD5C13 /* OOXMLExtensions.m in Sources */ = {isa = PBXBuildFile; fileRef = 25161102099544380037C2E1 /* OOXMLExtensions.m */; };
 		1A71EA8D0BCF8C6C00CD5C13 /* OOXMLExtensions.h in Headers */ = {isa = PBXBuildFile; fileRef = 25161107099544390037C2E1 /* OOXMLExtensions.h */; };
+		1A7D83010C40111B00E4A5F5 /* OOLogOutputHandler.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A7D82FF0C40111B00E4A5F5 /* OOLogOutputHandler.h */; };
+		1A7D83020C40111B00E4A5F5 /* OOLogOutputHandler.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A7D83000C40111B00E4A5F5 /* OOLogOutputHandler.m */; };
+		1A7D833A0C40147800E4A5F5 /* OOAsyncQueue.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A7D83380C40147700E4A5F5 /* OOAsyncQueue.h */; };
+		1A7D833B0C40147800E4A5F5 /* OOAsyncQueue.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A7D83390C40147700E4A5F5 /* OOAsyncQueue.m */; };
 		1A8072230C0483E800BA1935 /* OODebugController.nib in Copy Debug Add-ons */ = {isa = PBXBuildFile; fileRef = 1A8072220C0483E800BA1935 /* OODebugController.nib */; };
 		1A81F7090A7BAC4D006580AD /* OOCAMusic.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A81F7070A7BAC4D006580AD /* OOCAMusic.m */; };
 		1A81F70A0A7BAC4D006580AD /* OOCAMusic.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A81F7080A7BAC4D006580AD /* OOCAMusic.h */; };
@@ -1212,6 +1216,10 @@
 		1A71E7150BCE34CF00CD5C13 /* pngvcrd.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = pngvcrd.c; sourceTree = "<group>"; };
 		1A71E7160BCE34CF00CD5C13 /* pngpread.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = pngpread.c; sourceTree = "<group>"; };
 		1A71E8780BCE8EB100CD5C13 /* libz.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libz.dylib; path = /usr/lib/libz.dylib; sourceTree = "<absolute>"; };
+		1A7D82FF0C40111B00E4A5F5 /* OOLogOutputHandler.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOLogOutputHandler.h; sourceTree = "<group>"; };
+		1A7D83000C40111B00E4A5F5 /* OOLogOutputHandler.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOLogOutputHandler.m; sourceTree = "<group>"; };
+		1A7D83380C40147700E4A5F5 /* OOAsyncQueue.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOAsyncQueue.h; sourceTree = "<group>"; };
+		1A7D83390C40147700E4A5F5 /* OOAsyncQueue.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOAsyncQueue.m; sourceTree = "<group>"; };
 		1A8072220C0483E800BA1935 /* OODebugController.nib */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; path = OODebugController.nib; sourceTree = "<group>"; };
 		1A81F7070A7BAC4D006580AD /* OOCAMusic.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOCAMusic.m; sourceTree = "<group>"; };
 		1A81F7080A7BAC4D006580AD /* OOCAMusic.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOCAMusic.h; sourceTree = "<group>"; };
@@ -1982,6 +1990,8 @@
 				1ADF5F110B9E374B00FDB2A3 /* JoystickHandler.h */,
 				1AE546300C19A2E2005B89F3 /* JoystickHandler.m */,
 				1A8071D70C0480AC00BA1935 /* Debug */,
+				1A7D82FF0C40111B00E4A5F5 /* OOLogOutputHandler.h */,
+				1A7D83000C40111B00E4A5F5 /* OOLogOutputHandler.m */,
 			);
 			name = "Mac-specific";
 			path = ../Cocoa;
@@ -2018,6 +2028,8 @@
 				1A2A8E020BC67CCC001E00FB /* OOWeakReference.m */,
 				1A2A17D40BD1587D00152975 /* OOCPUInfo.h */,
 				1A2A17D50BD1587D00152975 /* OOCPUInfo.m */,
+				1A7D83380C40147700E4A5F5 /* OOAsyncQueue.h */,
+				1A7D83390C40147700E4A5F5 /* OOAsyncQueue.m */,
 			);
 			name = Utilities;
 			sourceTree = "<group>";
@@ -2438,6 +2450,8 @@
 				1A15049E0C12CA070032F3E8 /* OOProbabilisticTextureManager.h in Headers */,
 				1AC775E20C2DD4E900ECFF3B /* OODebugGLDrawing.h in Headers */,
 				1A5E46300C32DACE008104B4 /* OOShaderUniformMethodType.h in Headers */,
+				1A7D83010C40111B00E4A5F5 /* OOLogOutputHandler.h in Headers */,
+				1A7D833A0C40147800E4A5F5 /* OOAsyncQueue.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -2680,6 +2694,8 @@
 				1AE546310C19A2E2005B89F3 /* JoystickHandler.m in Sources */,
 				1AC775E30C2DD4E900ECFF3B /* OODebugGLDrawing.m in Sources */,
 				1A5E462F0C32DACE008104B4 /* OOShaderUniformMethodType.m in Sources */,
+				1A7D83020C40111B00E4A5F5 /* OOLogOutputHandler.m in Sources */,
+				1A7D833B0C40147800E4A5F5 /* OOAsyncQueue.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
