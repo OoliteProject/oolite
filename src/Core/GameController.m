@@ -80,7 +80,7 @@ static GameController *sSharedController = nil;
 	expansionPathsToInclude = nil;
 	pauseSelector = (SEL)nil;
 	pauseTarget = nil;
-	game_is_paused = NO;
+	gameIsPaused = NO;
 	
 	return self;
 }
@@ -104,21 +104,21 @@ static GameController *sSharedController = nil;
 }
 
 
-- (BOOL) game_is_paused
+- (BOOL) gameIsPaused
 {
-	return game_is_paused;
+	return gameIsPaused;
 }
 
 
 - (void) pause_game
 {
-	game_is_paused = YES;
+	gameIsPaused = YES;
 }
 
 
 - (void) unpause_game
 {
-	game_is_paused = NO;
+	gameIsPaused = NO;
 }
 
 
@@ -284,7 +284,7 @@ static GameController *sSharedController = nil;
 
 - (void)doPerformGameTick
 {
-	if (game_is_paused)
+	if (gameIsPaused)
 		delta_t = 0.0;  // no movement!
 	else
 	{
@@ -293,10 +293,10 @@ static GameController *sSharedController = nil;
 		if (delta_t > MINIMUM_GAME_TICK)
 			delta_t = MINIMUM_GAME_TICK;		// peg the maximum pause (at 0.5->1.0 seconds) to protect against when the machine sleeps	
 	}
-	//
+	
 	[UNIVERSE update:delta_t];
 	[OOSound update];
-	//
+	
 #if OOLITE_HAVE_APPKIT
 	if (fullscreen)
 	{

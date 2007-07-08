@@ -67,6 +67,8 @@ static NSString * const kOOLogEntityBehaviourChanged	= @"entity.behaviour.change
 
 - (void) drawSubEntity:(BOOL) immediate :(BOOL) translucent;
 
+- (void)subEntityDied:(ShipEntity *)sub;
+
 @end
 
 
@@ -331,16 +333,8 @@ static NSString * const kOOLogEntityBehaviourChanged	= @"entity.behaviour.change
 				}
 				//
 			}
-			if (sub_entities == nil)
-				sub_entities = [[NSArray arrayWithObject:subent] retain];
-			else
-			{
-				NSMutableArray *temp = [NSMutableArray arrayWithArray:sub_entities];
-				[temp addObject:subent];
-				[sub_entities release];
-				sub_entities = [[NSArray arrayWithArray:temp] retain];
-			}
-
+			if (sub_entities == nil)  sub_entities = [[NSMutableArray alloc] init];
+			[sub_entities addObject:subent];
 			[subent setOwner: self];
 
 			[subent release];
@@ -426,7 +420,12 @@ static NSString * const kOOLogEntityBehaviourChanged	= @"entity.behaviour.change
 - (void) dealloc
 {
 	[self setTrackCloseContacts:NO];	// deallocs tracking dictionary
-
+	
+	if (isSubentity)
+	{
+		[(ShipEntity *)[self owner] subEntityDied:self];
+	}
+	
 	[shipinfoDictionary release];
 	[shipAI release];
 	[cargo release];
@@ -1261,7 +1260,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 			{
 				unsigned i;
 				for (i = 0; i < [sub_entities count]; i++)
-					[(Entity *)[sub_entities objectAtIndex:i] update:delta_t];
+					[[sub_entities objectAtIndex:i] update:delta_t];
 			}
 			return;
 		}
@@ -1475,7 +1474,6 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	{
 		unsigned i;
 		for (i = 0; i < [sub_entities count]; i++)
-//			[(Entity *)[sub_entities objectAtIndex:i] update:delta_t];
 		{
 			ShipEntity *se = [sub_entities objectAtIndex:i];
 			[se update:delta_t];
@@ -2532,17 +2530,10 @@ static GLfloat mascem_color2[4] =	{ 0.4, 0.1, 0.4, 1.0};	// purple
 
 - (void) addExhaust:(ParticleEntity *)exhaust
 {
-	if (!exhaust)
-		return;
-	if (sub_entities == nil)
-		sub_entities = [[NSArray arrayWithObject:exhaust] retain];
-	else
-	{
-		NSMutableArray *temp = [NSMutableArray arrayWithArray:sub_entities];
-		[temp addObject:exhaust];
-		[sub_entities release];
-		sub_entities = [[NSArray arrayWithArray:temp] retain];
-	}
+	if (exhaust == nil)  return;
+	
+	if (sub_entities == nil)  sub_entities = [[NSMutableArray alloc] init];
+	[sub_entities addObject:exhaust];
 }
 
 
@@ -3330,7 +3321,7 @@ static GLfloat mascem_color2[4] =	{ 0.4, 0.1, 0.4, 1.0};	// purple
 	unsigned i, n_subs = [sub_entities count];
 	for (i = 0; i < n_subs; i++)
 	{
-		Entity* se = (Entity*)[sub_entities objectAtIndex:i];
+		Entity* se = [sub_entities objectAtIndex:i];
 		se->position.x *= factor;
 		se->position.y *= factor;
 		se->position.z *= factor;
@@ -3366,11 +3357,9 @@ static GLfloat mascem_color2[4] =	{ 0.4, 0.1, 0.4, 1.0};	// purple
 	{
 		ShipEntity* this_ship = [self retain];
 		Vector this_pos = [self absolutePositionForSubentity];
+		
 		// remove this ship from its parent's subentity list
-		NSMutableArray *temp = [NSMutableArray arrayWithArray:parent->sub_entities];
-		[temp removeObject:this_ship];
-		[parent->sub_entities autorelease];
-		parent->sub_entities = [[NSArray arrayWithArray:temp] retain];
+		[parent subEntityDied:self];
 		[UNIVERSE addEntity:this_ship];
 		this_ship->position = this_pos;
 		[this_ship release];
@@ -3691,7 +3680,7 @@ static GLfloat mascem_color2[4] =	{ 0.4, 0.1, 0.4, 1.0};	// purple
 		unsigned i;
 		for (i = 0; i < [sub_entities count]; i++)
 		{
-			Entity*		se = (Entity *)[sub_entities objectAtIndex:i];
+			Entity*		se = [sub_entities objectAtIndex:i];
 			if (se->isShip)
 			{
 				ShipEntity	*sse = (ShipEntity *)se;
@@ -3725,6 +3714,14 @@ static GLfloat mascem_color2[4] =	{ 0.4, 0.1, 0.4, 1.0};	// purple
 	[blast release];
 	[UNIVERSE removeEntity:self];
 }
+
+
+- (void)subEntityDied:(ShipEntity *)sub
+{
+	if (subentity_taking_damage == sub)  subentity_taking_damage = nil;
+	[sub_entities removeObject:sub];
+}
+
 
 Vector randomPositionInBoundingBox(BoundingBox bb)
 {
@@ -4880,7 +4877,7 @@ BOOL	class_masslocks(int some_class)
 		int i = 0;
 		for (i = 0; i < n_subs; i++)
 		{
-			ShipEntity* subent = (ShipEntity*)[sub_entities objectAtIndex:i];
+			ShipEntity* subent = [sub_entities objectAtIndex:i];
 			if ((subent)&&(subent->isShip))
 				fired |= [subent fireSubentityLaserShot: range];
 		}
@@ -5194,7 +5191,7 @@ BOOL	class_masslocks(int some_class)
 		/*	FIXME CRASH in [victim->sub_entities containsObject:subent] here (1.69, OS X/x86).
 			Analysis: Crash is in _freedHandler called from CFEqual, indicating either a dead
 			object in victim->sub_entities or dead victim->subentity_taking_damage. I suspect
-			the latter. Probably solution: dying subentities must cause parent to clean up
+			the latter. Probable solution: dying subentities must cause parent to clean up
 			properly. This was probably obscured by the entity recycling scheme in the past.
 			Fix: NOT FIXED.
 			-- Ahruman 20070706

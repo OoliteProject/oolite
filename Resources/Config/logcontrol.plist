@@ -13,11 +13,12 @@
 		logging-show-class
 		logging-show-function
 		logging-show-file-and-line
+		logging-echo-to-stderr
 	
-	“logging-show-app-name” defaults to 1 under Mac OS X (where log output
-	goes to a shared console) and 0 under GNUstep (where log output goes to an
-	application-specific log file). “logging-show-class” defaults to 1. The
-	others default to 0.
+	“logging-show-class” defaults to YES. The others default to NO.
+	“logging-echo-to-stderr” is specific to Mac OS X and causes log
+	information to be printed to the standard error file (generally viewable
+	in the Console utility) in addition to the log file.
 	
 	NOTE: the GNUstep plist parser cannot parse this file, presumably because
 	of the $s. Until this is properly analyzed, an XML version is used

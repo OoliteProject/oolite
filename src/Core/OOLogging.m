@@ -66,13 +66,6 @@ SOFTWARE.
 #endif
 
 
-#if OOLITE_MAC_OS_X
-#define SHOW_APPLICATION			1
-#else
-#define SHOW_APPLICATION			0
-#endif
-
-
 #if PER_THREAD_INDENTATION
 	#if OOLITE_USE_TLS	// Define to use __thread keyword where supported
 		#define USE_INDENT_GLOBALS	1
@@ -123,7 +116,7 @@ static BOOL						sShowFunction = NO;
 static BOOL						sShowFileAndLine = NO;
 static BOOL						sShowClass = YES;
 static BOOL						sDefaultDisplay = YES;
-static BOOL						sShowApplication = SHOW_APPLICATION;
+static BOOL						sShowApplication = NO;
 static BOOL						sOverrideInEffect = NO;
 static BOOL						sOverrideValue = NO;
 

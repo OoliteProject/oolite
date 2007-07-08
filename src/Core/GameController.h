@@ -119,13 +119,13 @@ MA 02110-1301, USA.
 	SEL						pauseSelector;
 	NSObject				*pauseTarget;
 
-	BOOL					game_is_paused;
+	BOOL					gameIsPaused;
 }
 
 + (id)sharedController;
 
 - (void) applicationDidFinishLaunching: (NSNotification *)notification;
-- (BOOL) game_is_paused;
+- (BOOL) gameIsPaused;
 - (void) pause_game;
 - (void) unpause_game;
 

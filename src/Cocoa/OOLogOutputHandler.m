@@ -93,6 +93,7 @@ static void OONSLogCStringFunction(const char *string, unsigned length, BOOL wit
 
 
 static BOOL						sInited = NO;
+static BOOL						sWriteToStderr = YES;
 static OOAsyncLogger			*sLogger = nil;
 static LogCStringFunctionProc	sDefaultLogCStringFunction = nil;
 
@@ -103,6 +104,15 @@ void OOLogOutputHandlerInit(void)
 	
 	sLogger = [[OOAsyncLogger alloc] init];
 	sInited = YES;
+	
+	if (sLogger != nil)
+	{
+		sWriteToStderr = [[NSUserDefaults standardUserDefaults] boolForKey:@"logging-echo-to-stderr"];
+	}
+	else
+	{
+		sWriteToStderr = YES;
+	}
 	
 	LoadLogCStringFunctions();
 	if (_NSSetLogCStringFunction != NULL)
@@ -134,6 +144,7 @@ void OOLogOutputHandlerClose(void)
 		}
 		
 		sInited = NO;
+		sWriteToStderr = YES;
 	}
 }
 
@@ -141,10 +152,10 @@ void OOLogOutputHandlerClose(void)
 void OOLogOutputHandlerPrint(NSString *string)
 {
 	if (sInited && sLogger != nil)  [sLogger asyncLogMessage:string];
-	else
+	
+	if (sWriteToStderr)
 	{
-		fputs([string UTF8String], stderr);
-		fputc('\n', stderr);
+		fputs([[string stringByAppendingString:@"\n"] UTF8String], stderr);
 	}
 }
 
@@ -165,17 +176,16 @@ enum
 	NSString			*logPath = nil;
 	NSString			*oldPath = nil;
 	NSBundle			*bundle = nil;
-	NSString			*appIdentifier = nil;
 	NSString			*appName = nil;
-	NSString			*logsSubFolderName = nil;
 	NSFileManager		*fmgr = nil;
 	NSString			*preamble = nil;
 	NSString			*versionString = nil;
 	
 	// We'll need these for a couple of things.
 	bundle = [NSBundle mainBundle];
-	appIdentifier = [bundle bundleIdentifier];
 	appName = [bundle objectForInfoDictionaryKey:@"CFBundleName"];
+	if (appName == nil)  appName = [bundle bundleIdentifier];
+	if (appName == nil)  appName = @"<unknown application>";
 	fmgr = [NSFileManager defaultManager];
 	
 	self = [super init];
@@ -215,17 +225,13 @@ enum
 	
 	if (OK)
 	{
-		// Set up base path -- ~/Library/Logs/org.aegidian.oolite
+		// Set up base path -- ~/Library/Logs/Oolite
 		basePath = [NSSearchPathForDirectoriesInDomains(NSLibraryDirectory, NSUserDomainMask, YES) objectAtIndex:0];
 		basePath = [basePath stringByAppendingPathComponent:@"Logs"];
 		if (![self directoryExists:basePath create:YES]) OK = NO;
 		else
 		{
-			logsSubFolderName = appIdentifier;
-			if (logsSubFolderName == nil)  logsSubFolderName = appName;
-			if (logsSubFolderName == nil)  logsSubFolderName = @"org.aegidian.oolite";
-			
-			basePath = [basePath stringByAppendingPathComponent:logsSubFolderName];
+			basePath = [basePath stringByAppendingPathComponent:appName];
 			if (![self directoryExists:basePath create:YES]) OK = NO;
 		}
 		if (OK)  logPath = [basePath stringByAppendingPathComponent:@"Latest.log"];
@@ -268,9 +274,6 @@ enum
 	if (OK)
 	{
 		// Queue log preamble
-		if (appName == nil)  appName = appIdentifier;
-		if (appName == nil)  appName = @"<unknown application>";
-		
 		versionString = [bundle objectForInfoDictionaryKey:@"CFBundleVersion"];
 		if (versionString == nil)  versionString = @"<unknown version>";
 		

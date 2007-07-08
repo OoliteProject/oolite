@@ -251,7 +251,7 @@ static NSTimeInterval	time_last_frame;
 	}
 	const BOOL *joyButtonState=[stickHandler getAllButtonStates];
 	
-    BOOL paused = [[gameView gameController] game_is_paused];
+    BOOL paused = [[gameView gameController] gameIsPaused];
 	double speed_delta = 5.0 * thrust;
 	
 	if (!paused)
@@ -960,11 +960,19 @@ static NSTimeInterval	time_last_frame;
 		
 		if (gui_screen == GUI_SCREEN_OPTIONS || gui_screen == GUI_SCREEN_STICKMAPPER)
 		{
-			NSTimeInterval time_this_frame = [NSDate timeIntervalSinceReferenceDate];
-			double time_delta = time_this_frame - time_last_frame;
-			time_last_frame = time_this_frame;
-			if ((time_delta > MINIMUM_GAME_TICK)||(time_delta < 0.0))
-				time_delta = MINIMUM_GAME_TICK;		// peg the maximum pause (at 0.5->1.0 seconds) to protect against when the machine sleeps
+			NSTimeInterval	time_this_frame = [NSDate timeIntervalSinceReferenceDate];
+			OOTimeDelta		time_delta;
+			if (![[GameController sharedController] gameIsPaused])
+			{
+				time_delta = time_this_frame - time_last_frame;
+				time_last_frame = time_this_frame;
+				time_delta = OOClamp_0_max_d(time_delta, MINIMUM_GAME_TICK);
+			}
+			else
+			{
+				time_delta = 0.0;
+			}
+			
 			script_time += time_delta;
 			[self pollGuiArrowKeyControls:time_delta];
 		}

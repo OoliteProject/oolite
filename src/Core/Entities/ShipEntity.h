@@ -82,7 +82,7 @@ MA 02110-1301, USA.
 @interface ShipEntity: OOEntityWithDrawable
 {
 @public
-	NSArray					*sub_entities;
+	NSMutableArray			*sub_entities;
 	ShipEntity				*subentity_taking_damage;	//	frangible => subentities can be damaged individually
 	
 	// derived variables

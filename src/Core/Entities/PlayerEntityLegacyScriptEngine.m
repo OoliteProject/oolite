@@ -52,6 +52,7 @@ enum
 {
 	COMPARISON_NO,
 	COMPARISON_EQUAL,
+	COMPARISON_NOTEQUAL,
 	COMPARISON_LESSTHAN,
 	COMPARISON_GREATERTHAN,
 	COMPARISON_ONEOF,
@@ -349,15 +350,17 @@ static NSString * mission_key;
 		comparisonString = (NSString *)[tokens objectAtIndex:1];
 		if ([comparisonString isEqual:@"equal"])
 			comparator = COMPARISON_EQUAL;
-		if ([comparisonString isEqual:@"lessthan"])
+		else if ([comparisonString isEqual:@"notequal"])
+			comparator = COMPARISON_NOTEQUAL;
+		else if ([comparisonString isEqual:@"lessthan"])
 			comparator = COMPARISON_LESSTHAN;
-		if (([comparisonString isEqual:@"greaterthan"])||([comparisonString isEqual:@"morethan"]))
+		else if (([comparisonString isEqual:@"greaterthan"])||([comparisonString isEqual:@"morethan"]))
 			comparator = COMPARISON_GREATERTHAN;
 // +dajt: black ops
-		if ([comparisonString isEqual:@"oneof"])
+		else if ([comparisonString isEqual:@"oneof"])
 			comparator = COMPARISON_ONEOF;
 // -dajt: black ops
-		if ([comparisonString isEqual:@"undefined"])
+		else if ([comparisonString isEqual:@"undefined"])
 			comparator = COMPARISON_UNDEFINED;
 	}
 
@@ -401,6 +404,8 @@ static NSString * mission_key;
 				return NO;
 			case COMPARISON_EQUAL :
 				return ([result isEqual:valueString]);
+			case COMPARISON_NOTEQUAL :
+				return (![result isEqual:valueString]);
 			case COMPARISON_LESSTHAN :
 				return ([result floatValue] < [valueString floatValue]);
 			case COMPARISON_GREATERTHAN :
@@ -458,6 +463,8 @@ static NSString * mission_key;
 					return NO;
 				case COMPARISON_EQUAL :
 					return ([result isEqual:value]);
+				case COMPARISON_NOTEQUAL :
+					return (![result isEqual:value]);
 				case COMPARISON_LESSTHAN :
 					return ([result isLessThan:value]);
 				case COMPARISON_GREATERTHAN :
@@ -473,13 +480,15 @@ static NSString * mission_key;
 		BOOL value = [valueString isEqual:@"YES"];
 		switch (comparator)
 		{
-			case COMPARISON_GREATERTHAN :
-			case COMPARISON_LESSTHAN :
-			case COMPARISON_UNDEFINED :
-			case COMPARISON_NO :
+			case COMPARISON_GREATERTHAN:
+			case COMPARISON_LESSTHAN:
+			case COMPARISON_UNDEFINED:
+			case COMPARISON_NO:
 				return NO;
-			case COMPARISON_EQUAL :
+			case COMPARISON_EQUAL:
 				return (result == value);
+			case COMPARISON_NOTEQUAL:
+				return (result != value);
 		}
 	}
 	// default!

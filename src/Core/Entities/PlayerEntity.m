@@ -1350,7 +1350,6 @@ double scoopSoundPlayTime = 0.0;
 				// screens from which it's safe to jump to the mission screen
 				case GUI_SCREEN_CONTRACTS:
 				case GUI_SCREEN_EQUIP_SHIP:
-				case GUI_SCREEN_INVENTORY:
 				case GUI_SCREEN_LONG_RANGE_CHART:
 				case GUI_SCREEN_MANIFEST:
 				case GUI_SCREEN_SHIPYARD:
@@ -4351,7 +4350,7 @@ double scoopSoundPlayTime = 0.0;
 		}
 		
 		[gui setText:@" Begin New Game " forRow:GUI_ROW_OPTIONS_BEGIN_NEW align:GUI_ALIGN_CENTER];
-		if (![[UNIVERSE gameController] game_is_paused])
+		if (![[UNIVERSE gameController] gameIsPaused])
 		{
 			[gui setKey:GUI_KEY_OK forRow:GUI_ROW_OPTIONS_BEGIN_NEW];
 		}
