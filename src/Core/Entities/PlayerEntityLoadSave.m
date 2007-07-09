@@ -41,6 +41,11 @@
 #define kOOLogUnconvertedNSLog @"unclassified.PlayerEntityLoadSave"
 
 
+#if OO_DEBUG && defined(OOLITE_USE_APPKIT_LOAD_SAVE)
+#undef OOLITE_USE_APPKIT_LOAD_SAVE
+#endif
+
+
 // Name of modifier key used to issue commands. See also -isCommandModifierKeyDown.
 #if OOLITE_MAC_OS_X
 #define COMMAND_MODIFIER_KEY		"command"
@@ -190,14 +195,14 @@
 				break;
 			default:
 				cdr=[cdrDetailArray objectAtIndex: idx];
-				if ([cdr objectForKey:@"isSavedGame"])
-					return [cdr objectForKey:@"saved_game_path"];
+				if ([cdr boolForKey:@"isSavedGame"])
+					return [cdr stringForKey:@"saved_game_path"];
 				else
 				{
 					if ([gameView isCommandModifierKeyDown]||[gameView isDown:gvMouseDoubleClick])
 					{
 						// change directory to the selected path
-						NSString* newDir = (NSString*)[cdr objectForKey:@"saved_game_path"];
+						NSString* newDir = [cdr stringForKey:@"saved_game_path"];
 						[[UNIVERSE gameController] setPlayerFileDirectory: newDir];
 						dir = newDir;
 						currentPage = 0;
@@ -229,8 +234,8 @@
 		{
 			[self showCommanderShip: idx];
 		}
-		if ([(NSDictionary *)[cdrDetailArray objectAtIndex:idx] objectForKey:@"isSavedGame"])	// don't show things that aren't saved games
-			commanderNameString = [(NSDictionary *)[cdrDetailArray objectAtIndex:idx] objectForKey:@"player_name"];
+		if ([(NSDictionary *)[cdrDetailArray objectAtIndex:idx] boolForKey:@"isSavedGame"])	// don't show things that aren't saved games
+			commanderNameString = [[cdrDetailArray dictionaryAtIndex:idx] stringForKey:@"player_name"];
 		else
 			commanderNameString = [gameView typedString];
 	}
@@ -265,10 +270,10 @@
 			int guiSelectedRow=[gui selectedRow];
 			int	idx = (guiSelectedRow - STARTROW) + (currentPage * NUMROWS);
 			NSDictionary* cdr = [cdrDetailArray objectAtIndex:idx];
-			if (![cdr objectForKey:@"isSavedGame"])	// don't open saved games
+			if (![cdr boolForKey:@"isSavedGame"])	// don't open saved games
 			{
 				// change directory to the selected path
-				NSString* newDir = (NSString*)[cdr objectForKey:@"saved_game_path"];
+				NSString* newDir = [cdr stringForKey:@"saved_game_path"];
 				[[UNIVERSE gameController] setPlayerFileDirectory: newDir];
 				dir = newDir;
 				currentPage = 0;
@@ -363,7 +368,7 @@
 		NSString		*shipKey = nil;
 		NSDictionary	*shipDict = nil;
 		
-		shipKey = [fileDic objectForKey:@"ship_desc"];
+		shipKey = [fileDic stringForKey:@"ship_desc"];
 		shipDict = [UNIVERSE getDictionaryForShip:shipKey];
 		
 		if (![shipDict isKindOfClass:[NSDictionary class]])
@@ -427,14 +432,9 @@
 	
 	if (![docked_station localMarket])
 	{
-		if ([fileDic objectForKey:@"localMarket"])
-		{
-			[docked_station setLocalMarket:(NSArray *)[fileDic objectForKey:@"localMarket"]];
-		}
-		else
-		{
-			[docked_station initialiseLocalMarketWithSeed:system_seed andRandomFactor:market_rnd];
-		}
+		NSArray *market = [fileDic arrayForKey:@"localMarket"];
+		if (market != nil)  [docked_station setLocalMarket:market];
+		else  [docked_station initialiseLocalMarketWithSeed:system_seed andRandomFactor:market_rnd];
 	}
 	[self setGuiToStatusScreen];
 }
@@ -660,21 +660,29 @@
 	for(i = 0; i < [cdrArray count]; i++)
 	{
 		NSString*	path = [cdrArray objectAtIndex:i];
-		BOOL	pathIsDirectory = NO;
-		if ([cdrFileManager fileExistsAtPath:path isDirectory:&pathIsDirectory] && (!pathIsDirectory))
+		BOOL		exists, isDirectory = NO;
+		
+		exists = [cdrFileManager fileExistsAtPath:path isDirectory:&isDirectory];
+		
+		if (exists)
 		{
-			NSDictionary *cdr = OODictionaryFromFile(path);
-			if(cdr)
+			if (!isDirectory && [[[path pathExtension] lowercaseString] isEqualToString:@"oolite-save"])
 			{
-				// okay use the same dictionary but add a 'saved_game_path' attribute
-				NSMutableDictionary* cdr1 = [NSMutableDictionary dictionaryWithDictionary:cdr];
-				[cdr1 setObject: @"YES" forKey:@"isSavedGame"];
-				[cdr1 setObject: path forKey:@"saved_game_path"];
-				[cdrDetailArray addObject: cdr1];
+				NSDictionary *cdr = OODictionaryFromFile(path);
+				if(cdr)
+				{
+					// okay use the same dictionary but add a 'saved_game_path' attribute
+					NSMutableDictionary* cdr1 = [NSMutableDictionary dictionaryWithDictionary:cdr];
+					[cdr1 setObject: @"YES" forKey:@"isSavedGame"];
+					[cdr1 setObject: path forKey:@"saved_game_path"];
+					[cdrDetailArray addObject: cdr1];
+				}
+			}
+			if (isDirectory && ![[path lastPathComponent] hasPrefix:@"."])
+			{
+				[cdrDetailArray addObject: [NSDictionary dictionaryWithObjectsAndKeys: @"YES", @"isFolder", path, @"saved_game_path", nil]];
 			}
 		}
-		if (pathIsDirectory && ![[path lastPathComponent] hasPrefix:@"."])
-			[cdrDetailArray addObject: [NSDictionary dictionaryWithObjectsAndKeys: @"YES", @"isFolder", path, @"saved_game_path", nil]];
 	}
 	
 	if(![cdrDetailArray count])
@@ -750,24 +758,24 @@
 	for (i=firstIndex; i < lastIndex; i++)
 	{
 		NSDictionary *cdr=[cdrDetailArray objectAtIndex: i];
-		if ([cdr objectForKey:@"isSavedGame"])
+		if ([cdr boolForKey:@"isSavedGame"])
 		{
 			NSString *ratingDesc = KillCountToRatingString([cdr unsignedIntForKey:@"ship_kills"]);
 			[gui setArray:[NSArray arrayWithObjects:
-				[NSString stringWithFormat:@" %@ ",[cdr objectForKey:@"player_name"]],
+				[NSString stringWithFormat:@" %@ ",[cdr stringForKey:@"player_name"]],
 				[NSString stringWithFormat:@" %@ ",ratingDesc],
 				nil]
 				   forRow:row];
-			if ([player_name isEqual:[cdr objectForKey:@"player_name"]])
+			if ([player_name isEqualToString:[cdr stringForKey:@"player_name"]])
 				highlightRowOnPage = row;
 			
 			[gui setKey:GUI_KEY_OK forRow:row];
 			row++;
 		}
-		if ([cdr objectForKey:@"isParentFolder"])
+		if ([cdr boolForKey:@"isParentFolder"])
 		{
 			[gui setArray:[NSArray arrayWithObjects:
-				[NSString stringWithFormat:@" (..) %@ ", [(NSString*)[cdr objectForKey:@"saved_game_path"] lastPathComponent]],
+				[NSString stringWithFormat:@" (..) %@ ", [[cdr stringForKey:@"saved_game_path"] lastPathComponent]],
 				@"",
 				nil]
 				   forRow:row];
@@ -775,10 +783,10 @@
 			[gui setKey:GUI_KEY_OK forRow:row];
 			row++;
 		}
-		if ([cdr objectForKey:@"isFolder"])
+		if ([cdr boolForKey:@"isFolder"])
 		{
 			[gui setArray:[NSArray arrayWithObjects:
-				[NSString stringWithFormat:@" >> %@ ", [(NSString*)[cdr objectForKey:@"saved_game_path"] lastPathComponent]],
+				[NSString stringWithFormat:@" >> %@ ", [[cdr stringForKey:@"saved_game_path"] lastPathComponent]],
 				@"",
 				nil]
 				   forRow:row];
@@ -816,25 +824,25 @@
 	[gui setText:@"" forRow:CDRDESCROW + 1 align:GUI_ALIGN_LEFT];
 	[gui setText:@"" forRow:CDRDESCROW + 2 align:GUI_ALIGN_LEFT];
 	
-	if ([cdr objectForKey:@"isFolder"])
+	if ([cdr boolForKey:@"isFolder"])
 	{
-		NSString *folderDesc=[NSString stringWithFormat: @"Hold "COMMAND_MODIFIER_KEY" and press return to open folder: %@", [(NSString *)[cdr objectForKey:@"saved_game_path"] lastPathComponent]];
+		NSString *folderDesc=[NSString stringWithFormat: @"Hold "COMMAND_MODIFIER_KEY" and press return to open folder: %@", [[cdr stringForKey:@"saved_game_path"] lastPathComponent]];
 		
 		[gui addLongText: folderDesc startingAtRow: CDRDESCROW align: GUI_ALIGN_LEFT];             
 		
 		return;
 	}
 	
-	if ([cdr objectForKey:@"isParentFolder"])
+	if ([cdr boolForKey:@"isParentFolder"])
 	{
-		NSString *folderDesc=[NSString stringWithFormat: @"Hold "COMMAND_MODIFIER_KEY" and press return to open parent folder: %@", [(NSString *)[cdr objectForKey:@"saved_game_path"] lastPathComponent]];
+		NSString *folderDesc=[NSString stringWithFormat: @"Hold "COMMAND_MODIFIER_KEY" and press return to open parent folder: %@", [[cdr stringForKey:@"saved_game_path"] lastPathComponent]];
 		
 		[gui addLongText: folderDesc startingAtRow: CDRDESCROW align: GUI_ALIGN_LEFT];             
 		
 		return;
 	}
 	
-	if (![cdr objectForKey:@"isSavedGame"])	// don't show things that aren't saved games
+	if (![cdr boolForKey:@"isSavedGame"])	// don't show things that aren't saved games
 		return;
 	
 	if(!docked_station)  docked_station = [UNIVERSE station];
@@ -849,11 +857,11 @@
 	if(shipDict != nil)
 	{
 		[self showShipyardModel:shipDict];
-		shipName = [shipDict objectForKey: KEY_NAME];
+		shipName = [shipDict stringForKey:KEY_NAME];
 	}
 	else
 	{
-		[self showShipyardModel:[UNIVERSE getDictionaryForShip:@"oo-unknown-ship"]];
+		[self showShipyardModel:[UNIVERSE getDictionaryForShip:@"oolite-unknown-ship"]];
 		shipName = [cdr stringForKey:@"ship_name" defaultValue:@"unknown"];
 		shipName = [shipName stringByAppendingString:@" - OXP not installed"];
 	}
@@ -891,7 +899,7 @@
 	NSString		*cdrDesc = nil;
 	
 	cdrDesc = [NSString stringWithFormat:@"Commander %@ is rated %@ and has %d Cr in the bank. Legal status: %@. Ship: %@. Location: %@ (G%d). Timestamp: %@",
-		[cdr objectForKey:@"player_name"],
+		[cdr stringForKey:@"player_name"],
 		rating,
 		money,
 		legalDesc,
@@ -909,7 +917,7 @@
 	unsigned i;
 	for (i=0; i < [cdrDetailArray count]; i++)
 	{
-		NSString *currentName=[(NSDictionary *)[cdrDetailArray objectAtIndex: i] objectForKey:@"player_name"];
+		NSString *currentName = [[cdrDetailArray dictionaryAtIndex: i] stringForKey:@"player_name"];
 		if([cdrName compare: currentName] == NSOrderedSame)
 		{
 			return i;

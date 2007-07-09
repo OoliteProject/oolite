@@ -631,7 +631,7 @@ void OOLogInsertMarker(void)
 	thisMarkerID = ++lastMarkerID;
 	[sLock unlock];
 	
-	marker = [NSString stringWithFormat:@"\n\n========== [Marker %u] ==========", ++thisMarkerID];
+	marker = [NSString stringWithFormat:@"\n\n========== [Marker %u] ==========", thisMarkerID];
 	OOLogOutputHandlerPrint(marker);
 }
 

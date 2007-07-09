@@ -4850,7 +4850,6 @@
 		<key>name</key>
 		<string>Question Mark</string>
 		<key>roles</key>
-		<!-- oo-unknown-ship is used by the game for the load screen when a saved game uses a ship that can't be found, i.e. a ship from an OXP that's not installed. -->
 		<string>oo-unknown-ship oolite-unknown-ship</string>
 		<key>scanClass</key>
 		<string>CLASS_NEUTRAL</string>

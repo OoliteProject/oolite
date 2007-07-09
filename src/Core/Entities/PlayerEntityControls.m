@@ -1161,7 +1161,13 @@ static  BOOL	taking_snapshot;
 	//
 	// Mouse control
 	//
-	//if ([[gameView gameController] inFullScreenMode])
+	BOOL allowMouseControl;
+#if OO_DEBUG
+	allowMouseControl = YES;
+#else
+	allowMouseControl = [[gameView gameController] inFullScreenMode];
+#endif
+	if (allowMouseControl)
 	{
 		if ([gameView isDown:key_mouse_control])   //  'M' key
 		{
