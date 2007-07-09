@@ -59,10 +59,7 @@ SOFTWARE.
 
 #import <Foundation/Foundation.h>
 #import "OOFunctionAttributes.h"
-
-#ifdef GNUSTEP
 #include <limits.h>
-#endif
 
 
 
