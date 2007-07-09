@@ -120,7 +120,7 @@ extern int debug;
 
    // Full screen sizes
 	NSMutableArray		*screenSizes;
-	int					currentSize;
+	unsigned				currentSize;
 	BOOL				fullScreen;
 
 	// Windowed mode

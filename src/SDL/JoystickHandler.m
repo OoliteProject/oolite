@@ -478,7 +478,7 @@ MA 02110-1301, USA.
 
 - (void)loadStickSettings
 {
-   int i;
+   unsigned i;
    [self clearMappings];                  
    NSUserDefaults *defaults=[NSUserDefaults standardUserDefaults];
    NSDictionary *axisSettings=[defaults objectForKey: AXIS_SETTINGS];

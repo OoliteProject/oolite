@@ -149,7 +149,7 @@ OOINLINE void OOLogOutputHandlerInit(void)  {}
 OOINLINE OOLogOutputHandlerClose(void)  {}
 
 
-OOINLINE void OOLogOutputHandlerPrint(NSString *string)
+OOINLINE void OOLogOutputHandlerPrint(NSString *inString)
 {
 	NSLog(@"%@", inString);
 }

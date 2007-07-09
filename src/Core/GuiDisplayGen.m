@@ -493,7 +493,7 @@ OOINLINE BOOL RowInRange(OOGUIRow row, NSRange range)
 
 - (void) setTabStops:(OOGUITabSettings)stops
 {
-	if (stops != NULL)  bcopy(stops, tabStops, sizeof tabStops);
+	if (stops != NULL)  memmove(tabStops, stops, sizeof tabStops);
 }
 
 

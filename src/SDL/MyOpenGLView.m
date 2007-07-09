@@ -1178,7 +1178,9 @@ MA 02110-1301, USA.
 - (int) loadFullscreenSettings
 {
    currentSize=0;
-   int width=0, height=0, refresh=0, i;
+   int width=0, height=0, refresh=0;
+   unsigned i;
+   
    NSArray* cmdline_arguments = [[NSProcessInfo processInfo] arguments];
 
 	NSUserDefaults *userDefaults = [NSUserDefaults standardUserDefaults];

@@ -32,7 +32,7 @@ MA 02110-1301, USA.
 {
    GuiDisplayGen *gui=[UNIVERSE gui];
    NSArray *stickList=[stickHandler listSticks];
-   int i;
+   unsigned i;
    int tabStop[GUI_MAX_COLUMNS];
    tabStop[0]=50;
    tabStop[1]=210;
@@ -173,7 +173,7 @@ MA 02110-1301, USA.
 
 - (void) displayFunctionList: (GuiDisplayGen *)gui
 {
-   int i;
+   unsigned i;
    [gui setColor: [OOColor greenColor] forRow: HEADINGROW];
    [gui setArray: [NSArray arrayWithObjects:
       @"Function", @"Assigned to", @"Type", nil]
