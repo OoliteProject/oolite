@@ -877,17 +877,22 @@
 	
 	// Nikos - Add some more information in the load game screen (current location, galaxy number and timestamp).
 	//-------------------------------------------------------------------------------------------------------------------------
+	
+	// Store the current galaxy seed because findSystemNumberAtCoords will alter it in a while.
+	PlayerEntity		*player = [PlayerEntity sharedPlayer];
+	Random_Seed		player_galaxy_seed = [player galaxy_seed];
+	
+	Random_Seed		gal_seed;
 	NSPoint			gal_coords;
-	Random_Seed		g_seed;
-	int				locationNumber;
-	int				galNumber;
+	int			locationNumber;
+	int			galNumber;
 	NSString		*locationName = nil;
 	NSString		*timeStamp  = nil;
 	
 	gal_coords = PointFromString([cdr stringForKey:@"galaxy_coordinates"]);
-	g_seed = RandomSeedFromString([cdr stringForKey:@"galaxy_seed"]);
+	gal_seed = RandomSeedFromString([cdr stringForKey:@"galaxy_seed"]);
 	
-	locationNumber = [UNIVERSE findSystemNumberAtCoords:gal_coords withGalaxySeed:g_seed];
+	locationNumber = [UNIVERSE findSystemNumberAtCoords:gal_coords withGalaxySeed:gal_seed];
 	locationName = [UNIVERSE systemNameIndex:locationNumber];
 	
 	galNumber = [cdr intForKey:@"galaxy_number"] + 1;	// Galaxy numbering starts at 0.
@@ -908,7 +913,10 @@
 		galNumber,
 		timeStamp];
 	
-	[gui addLongText:cdrDesc startingAtRow:CDRDESCROW align:GUI_ALIGN_LEFT];             
+	[gui addLongText:cdrDesc startingAtRow:CDRDESCROW align:GUI_ALIGN_LEFT];
+	
+	// Restore the seed of the galaxy the player is currently in.
+	[UNIVERSE setGalaxy_seed: player_galaxy_seed];
 }
 
 

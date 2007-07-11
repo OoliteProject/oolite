@@ -4698,8 +4698,8 @@ static int last_outfitting_index;
 				NSArray				*itemInfo = [equipdata arrayAtIndex:item];
 				OOCreditsQuantity	price_per_unit = [itemInfo unsignedIntAtIndex:EQUIPMENT_PRICE_INDEX];
 				NSString			*desc = [NSString stringWithFormat:@" %@ ", [itemInfo stringAtIndex:EQUIPMENT_SHORT_DESC_INDEX]];
-				NSString			*eq_key = [equipdata stringAtIndex:EQUIPMENT_KEY_INDEX];
-				NSString			*eq_key_damaged	= [eq_key stringByAppendingString:@"%@_DAMAGED"];
+				NSString			*eq_key = [(NSArray *)[equipdata objectAtIndex: item] stringAtIndex:EQUIPMENT_KEY_INDEX];
+				NSString			*eq_key_damaged	= [eq_key stringByAppendingString:@"_DAMAGED"];
 				double				price;
 				
 				if ([eq_key isEqual:@"EQ_FUEL"])

@@ -1955,7 +1955,7 @@ GLuint tfan2[10] = {	33,	25,	26,	27,	28,	29,	30,	31,	32,	25};	// final fan 64..7
 
 static void DrawQuadForView(GLfloat x, GLfloat y, GLfloat z, GLfloat xx, GLfloat yy)
 {
-	int viewdir = UNIVERSE->viewDirection;
+	int viewdir = [UNIVERSE viewDirection];
 
 	switch (viewdir)
 	{
