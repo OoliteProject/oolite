@@ -5299,7 +5299,7 @@ BOOL	class_masslocks(int some_class)
 
 	if (isPlayer)					// player can fire into multiple views!
 	{
-		switch ([UNIVERSE viewDir])
+		switch ([UNIVERSE viewDirection])
 		{
 			case VIEW_AFT :
 				vel = v_forward;

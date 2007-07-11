@@ -1652,10 +1652,9 @@ double scoopSoundPlayTime = 0.0;
 	double	external_temp = 0;
 	GLfloat	air_friction = 0.0;
 	if (UNIVERSE)
-		air_friction = 0.5 * UNIVERSE->air_resist_factor;
+		air_friction = 0.5 * [UNIVERSE airResistanceFactor];
 
 	// cool all weapons
-	
 	if (forward_weapon_temp > 0.0)
 	{
 		forward_weapon_temp -= WEAPON_COOLING_FACTOR * delta_t;
@@ -2043,7 +2042,7 @@ double scoopSoundPlayTime = 0.0;
 	if ([UNIVERSE breakPatternHide])
 		return kZeroVector;	// center view for break pattern
 
-	switch ([UNIVERSE viewDir])
+	switch ([UNIVERSE viewDirection])
 	{
 		case VIEW_FORWARD:
 			return forwardViewOffset;

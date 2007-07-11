@@ -32,82 +32,89 @@ MA 02110-1301, USA.
 #import "OOWeakReference.h"
 #import "OOTypes.h"
 
-#define CROSSHAIR_SIZE			32.0
+#define CROSSHAIR_SIZE						32.0
 
-#define MARKET_NAME					0
-#define MARKET_QUANTITY				1
-#define MARKET_PRICE				2
-#define MARKET_BASE_PRICE			3
-#define MARKET_ECO_ADJUST_PRICE		4
-#define MARKET_ECO_ADJUST_QUANTITY  5
-#define MARKET_BASE_QUANTITY		6
-#define MARKET_MASK_PRICE			7
-#define MARKET_MASK_QUANTITY		8
-#define MARKET_UNITS				9
+enum
+{
+	MARKET_NAME								= 0,
+	MARKET_QUANTITY							= 1,
+	MARKET_PRICE							= 2,
+	MARKET_BASE_PRICE						= 3,
+	MARKET_ECO_ADJUST_PRICE					= 4,
+	MARKET_ECO_ADJUST_QUANTITY  			= 5,
+	MARKET_BASE_QUANTITY					= 6,
+	MARKET_MASK_PRICE						= 7,
+	MARKET_MASK_QUANTITY					= 8,
+	MARKET_UNITS							= 9
+};
 
-#define EQUIPMENT_TECH_LEVEL_INDEX	0
-#define EQUIPMENT_PRICE_INDEX		1
-#define EQUIPMENT_SHORT_DESC_INDEX	2
-#define EQUIPMENT_KEY_INDEX			3
-#define EQUIPMENT_LONG_DESC_INDEX	4
-#define EQUIPMENT_EXTRA_INFO_INDEX	5
 
-#define MAX_MESSAGES		5
+enum
+{
+	EQUIPMENT_TECH_LEVEL_INDEX				= 0,
+	EQUIPMENT_PRICE_INDEX					= 1,
+	EQUIPMENT_SHORT_DESC_INDEX				= 2,
+	EQUIPMENT_KEY_INDEX						= 3,
+	EQUIPMENT_LONG_DESC_INDEX				= 4,
+	EQUIPMENT_EXTRA_INFO_INDEX				= 5
+};
 
-#define PROXIMITY_WARN_DISTANCE		10.0
-#define PROXIMITY_WARN_DISTANCE2	100.0
-#define PROXIMITY_AVOID_DISTANCE	10.0
+#define MAX_MESSAGES						5
 
-#define SUN_SKIM_RADIUS_FACTOR		1.15470053838
-#define SUN_SPARKS_RADIUS_FACTOR	2.0
+#define PROXIMITY_WARN_DISTANCE				10.0
+#define PROXIMITY_WARN_DISTANCE2			100.0
+#define PROXIMITY_AVOID_DISTANCE			10.0
 
-#define KEY_TECHLEVEL				@"techlevel"
-#define KEY_ECONOMY					@"economy"
-#define KEY_GOVERNMENT				@"government"
-#define KEY_POPULATION				@"population"
-#define KEY_PRODUCTIVITY			@"productivity"
-#define KEY_RADIUS					@"radius"
-#define KEY_NAME					@"name"
-#define KEY_INHABITANTS				@"inhabitants"
-#define KEY_DESCRIPTION				@"description"
-#define KEY_SHORT_DESCRIPTION		@"short_description"
+#define SUN_SKIM_RADIUS_FACTOR				1.15470053838
+#define SUN_SPARKS_RADIUS_FACTOR			2.0
 
-#define KEY_CHANCE					@"chance"
-#define KEY_PRICE					@"price"
-#define KEY_OPTIONAL_EQUIPMENT		@"optional_equipment"
-#define KEY_STANDARD_EQUIPMENT		@"standard_equipment"
-#define KEY_EQUIPMENT_MISSILES			@"missiles"
-#define KEY_EQUIPMENT_FORWARD_WEAPON	@"forward_weapon_type"
-#define KEY_EQUIPMENT_EXTRAS			@"extras"
-#define KEY_WEAPON_FACINGS			@"weapon_facings"
+#define KEY_TECHLEVEL						@"techlevel"
+#define KEY_ECONOMY							@"economy"
+#define KEY_GOVERNMENT						@"government"
+#define KEY_POPULATION						@"population"
+#define KEY_PRODUCTIVITY					@"productivity"
+#define KEY_RADIUS							@"radius"
+#define KEY_NAME							@"name"
+#define KEY_INHABITANTS						@"inhabitants"
+#define KEY_DESCRIPTION						@"description"
+#define KEY_SHORT_DESCRIPTION				@"short_description"
 
-#define KEY_SCRIPT_ACTIONS			@"script_actions"
+#define KEY_CHANCE							@"chance"
+#define KEY_PRICE							@"price"
+#define KEY_OPTIONAL_EQUIPMENT				@"optional_equipment"
+#define KEY_STANDARD_EQUIPMENT				@"standard_equipment"
+#define KEY_EQUIPMENT_MISSILES				@"missiles"
+#define KEY_EQUIPMENT_FORWARD_WEAPON		@"forward_weapon_type"
+#define KEY_EQUIPMENT_EXTRAS				@"extras"
+#define KEY_WEAPON_FACINGS					@"weapon_facings"
+
+#define KEY_SCRIPT_ACTIONS					@"script_actions"
 	// used by cargo-containers with CARGO_SCRIPT_ACTION when you scoop them, used by Stations when you dock with them, used during custom system set up too
-#define KEY_LAUNCH_ACTIONS			@"launch_actions"
-#define KEY_DEATH_ACTIONS			@"death_actions"
-#define KEY_SETUP_ACTIONS			@"setup_actions"
+#define KEY_LAUNCH_ACTIONS					@"launch_actions"
+#define KEY_DEATH_ACTIONS					@"death_actions"
+#define KEY_SETUP_ACTIONS					@"setup_actions"
 
-#define SHIPYARD_KEY_ID				@"id"
-#define SHIPYARD_KEY_SHIPDATA_KEY	@"shipdata_key"
-#define SHIPYARD_KEY_SHIP			@"ship"
-#define SHIPYARD_KEY_PRICE			@"price"
-#define SHIPYARD_KEY_DESCRIPTION	@"description"
+#define SHIPYARD_KEY_ID						@"id"
+#define SHIPYARD_KEY_SHIPDATA_KEY			@"shipdata_key"
+#define SHIPYARD_KEY_SHIP					@"ship"
+#define SHIPYARD_KEY_PRICE					@"price"
+#define SHIPYARD_KEY_DESCRIPTION			@"description"
 
-#define PLANETINFO_UNIVERSAL_KEY	@"universal"
+#define PLANETINFO_UNIVERSAL_KEY			@"universal"
 
-#define MAX_ENTITY_UID				1000
+#define MAX_ENTITY_UID						1000
 
 #define	NUMBER_OF_STRICT_EQUIPMENT_ITEMS	16
 
-#define	UNIVERSE_MAX_ENTITIES		2048
+#define	UNIVERSE_MAX_ENTITIES				2048
 
-#define OOLITE_EXCEPTION_LOOPING		@"OoliteLoopingException"
-#define OOLITE_EXCEPTION_DATA_NOT_FOUND	@"OoliteDataNotFoundException"
-#define OOLITE_EXCEPTION_FATAL			@"OoliteFatalException"
+#define OOLITE_EXCEPTION_LOOPING			@"OoliteLoopingException"
+#define OOLITE_EXCEPTION_DATA_NOT_FOUND		@"OoliteDataNotFoundException"
+#define OOLITE_EXCEPTION_FATAL				@"OoliteFatalException"
 
-#define BILLBOARD_DEPTH				50000.0
+#define BILLBOARD_DEPTH						50000.0
 
-@class TextureStore, GameController, CollisionRegion, MyOpenGLView, GuiDisplayGen;
+@class GameController, CollisionRegion, MyOpenGLView, GuiDisplayGen;
 @class Entity, ShipEntity, StationEntity, PlanetEntity, PlayerEntity;
 
 
@@ -115,33 +122,27 @@ MA 02110-1301, USA.
 {
 @public
 	// use a sorted list for drawing and other activities
-	//
 	Entity					*sortedEntities[UNIVERSE_MAX_ENTITIES];
 	unsigned				n_entities;
+	
 	int						cursor_row;
 	
-//		// collision optimisation sorted lists
+	// collision optimisation sorted lists
 	Entity					*x_list_start, *y_list_start, *z_list_start;
-//		//
-//		////
 	
-	// colors
-	//
-	GLfloat					sun_diffuse[4];
-	GLfloat					sun_specular[4];
 	GLfloat					stars_ambient[4];
 	
-	GLfloat					air_resist_factor;
+@private
+	// colors
+	GLfloat					sun_diffuse[4];
+	GLfloat					sun_specular[4];
 
-	int						viewDirection;	// read only
+	OOViewID				viewDirection;	// read only
+	
+	GLfloat					airResistanceFactor;
 	
 	@protected
 	MyOpenGLView			*gameView;
-	
-	#ifndef GNUSTEP
-	NSSpeechSynthesizer		*speechSynthesizer;		// use this from OS X 10.3 onwards
-	NSArray					*speechArray;
-	#endif
 	
 	int						next_universal_id;
 	Entity					*entity_for_uid[MAX_ENTITY_UID];
@@ -229,15 +230,26 @@ MA 02110-1301, USA.
 	BOOL					doLinkedListMaintenanceThisUpdate;
 	
 	// experimental proc-genned textures
+#ifdef ALLOW_PROCEDURAL_PLANETS
 	BOOL					doProcedurallyTexturedPlanets;
+#endif
+	
+	NSMutableArray			*entitiesDeadThisUpdate;
 	
 	OOWeakReference			*weakSelf;
+	
+#if OOLITE_MAC_OS_X
+	NSSpeechSynthesizer		*speechSynthesizer;		// use this from OS X 10.3 onwards
+	NSArray					*speechArray;
+#endif
 }
 
 - (id)initWithGameView:(MyOpenGLView *)gameView;
 
+#ifdef ALLOW_PROCEDURAL_PLANETS
 - (BOOL) doProcedurallyTexturedPlanets;
 - (void) setDoProcedurallyTexturedPlanets:(BOOL) value;
+#endif
 
 - (BOOL) strict;
 - (void) setStrict:(BOOL) value;
@@ -285,6 +297,7 @@ MA 02110-1301, USA.
 - (StationEntity *) station;
 - (PlanetEntity *) planet;
 - (PlanetEntity *) sun;
+// FIXME: lists of all planets and stations would be useful in, e.g., -[CollisionRegion findShadowedEntities]
 
 - (void) resetBeacons;
 - (ShipEntity *) firstBeacon;
@@ -333,6 +346,7 @@ MA 02110-1301, USA.
 
 - (BOOL) addEntity:(Entity *) entity;
 - (BOOL) removeEntity:(Entity *) entity;
+- (void) ensureEntityReallyRemoved:(Entity *)entity;
 - (void) removeAllEntitiesExceptPlayer:(BOOL) restore;
 - (void) removeDemoShips;
 
@@ -356,7 +370,7 @@ MA 02110-1301, USA.
 - (void) dumpCollisions;
 
 - (void) setViewDirection:(OOViewID) vd;
-- (OOViewID) viewDir;
+- (OOViewID) viewDirection;
 
 - (BOOL) playCustomSound:(NSString*)key;
 - (BOOL) stopCustomSound:(NSString*)key;
@@ -472,6 +486,8 @@ double estimatedTimeForJourney(double distance, int hops);
 - (BOOL) reducedDetail;
 
 - (void) handleOoliteException:(NSException*) ooliteException;
+
+- (GLfloat)airResistanceFactor;
 
 // speech routines
 //

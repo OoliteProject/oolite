@@ -136,31 +136,31 @@ static GLfloat	texture_uv_array[10400 * 2];
 	int		i;
 	float	hue, sat, bri, alf;
 	OOColor *color;
-	//
+	
 	self = [super init];
     //
 	isTextured = NO;
 	isShadered = NO;
-	//
+	
     collision_radius = 100000.0; //  100km across
-	//
+	
 	lim4k =		LIM4K;
 	lim8k =		LIM8K;
 	lim16k =	LIM16K;
-	//
+	
 	scanClass = CLASS_NO_DRAW;
-	//
+	
 	planet_type =   PLANET_TYPE_SUN;
-	//
+	
 	shuttles_on_ground = 0;
 	last_launch_time = 0.0;
 	shuttle_launch_interval = 60 * 60;
-	//
+	
 	for (i = 0; i < 5; i++)
 		displayListNames[i] = 0;	// empty for now!
-	//
+	
 	[sun_color getHue:&hue saturation:&sat brightness:&bri alpha:&alf];
-	//
+	
 	float hue_drift = 0.34 * (randf() - randf());
 
 	// set the lighting color for the sun
@@ -207,7 +207,7 @@ static GLfloat	texture_uv_array[10400 * 2];
 	amb_sea[1] = [color greenComponent];
 	amb_sea[2] = [color blueComponent];
 	amb_sea[3] = 1.0;
-	//
+	
 	// next corona 100% saturation less bright
 	hue += hue_drift;
 	if (hue < 0.0)	hue += 1.0;
@@ -217,18 +217,18 @@ static GLfloat	texture_uv_array[10400 * 2];
 	amb_polar_sea[1] = [color greenComponent];
 	amb_polar_sea[2] = [color blueComponent];
 	amb_polar_sea[3] = 1.0;
-	//
+	
 	corona_speed_factor = 1.0 / (0.5 + 2.0 * (randf() + randf()));
 	corona_stage = 0.0;
 	for (i = 0; i < 729; i++)
 		rvalue[i] = randf();
-	//
+	
 	isPlanet = YES;
-	//
+	
 	root_planet = self;
-	//
+	
 	textureData = (unsigned char *)nil;
-	//
+	
     return self;
 }
 
@@ -238,15 +238,17 @@ static GLfloat	texture_uv_array[10400 * 2];
     int		i;
 	int		percent_land;
 	double  aleph =  1.0 / sqrt(2.0);
-	//
+	
+#ifdef ALLOW_PROCEDURAL_PLANETS
 	BOOL	procGen = [UNIVERSE doProcedurallyTexturedPlanets];
-	//
+#endif
+	
 	self = [super init];
-	//
+	
 	percent_land = 3 + (gen_rnd_number() & 31)+(gen_rnd_number() & 31);
 	
 	polar_color_factor = 1.0;
-	//
+	
 	amb_land[0] = gen_rnd_number() / 256.0;
 	amb_land[1] = gen_rnd_number() / 256.0;
 	amb_land[2] = gen_rnd_number() / 256.0;
@@ -266,17 +268,18 @@ static GLfloat	texture_uv_array[10400 * 2];
 
 	atmosphere = nil;
 	
+#ifdef ALLOW_PROCEDURAL_PLANETS
 	OOColor* cloudColor = [OOColor colorWithCalibratedRed: amb_sea[0] green: amb_sea[1] blue: amb_sea[2] alpha: 1.0];
 	float cloud_bias = -0.01 * (float)percent_land;
 	float cloud_impress = 1.0 - cloud_bias;
 	
-    //
 	if (procGen)
 	{
 		textureName = [TextureStore getCloudTextureNameFor:cloudColor :cloud_impress :cloud_bias intoData: &textureData];
 		isTextured = (textureName != 0);
 	}
 	else
+#endif
 	{
 		textureName = 0;
 		isTextured = NO;
@@ -290,7 +293,7 @@ static GLfloat	texture_uv_array[10400 * 2];
     	NSLog(@"ERROR Planetentity initAsAtmosphereForPlanet:NULL");
     	return self;
     }
-	//
+	
 	[self setOwner: planet];
     //
 	position = planet->position;
@@ -300,27 +303,27 @@ static GLfloat	texture_uv_array[10400 * 2];
 		collision_radius = planet->collision_radius + ATMOSPHERE_DEPTH; //  atmosphere is 500m deep only
 	if (planet->planet_type == PLANET_TYPE_MINIATURE)
 		collision_radius = planet->collision_radius + ATMOSPHERE_DEPTH * PLANET_MINIATURE_FACTOR; //  atmosphere is 500m deep only
-	//
+	
 	shuttles_on_ground = 0;
 	last_launch_time = 0.0;
 	shuttle_launch_interval = 60 * 60;
 
 	scanClass = CLASS_NO_DRAW;
-	//
+	
 	orientation.w =  aleph;		// represents a 90 degree rotation around x axis
 	orientation.x =  aleph;		// (I hope!)
 	orientation.y =  0.0;
 	orientation.z =  0.0;
-	//
+	
 	planet_type =   PLANET_TYPE_ATMOSPHERE;
-	//
+	
 	planet_seed =	ranrot_rand();	// random set-up for vertex colours
-	//
+	
 	for (i = 0; i < 5; i++)
 		displayListNames[i] = 0;	// empty for now!
-	//
+	
 	[self setModelName:(isTextured)? @"icostextured.dat" : @"icosahedron.dat"];
-	//
+	
 	[self rescaleTo:1.0];
 	
 	[self initialiseBaseVertexArray];
@@ -348,20 +351,22 @@ static GLfloat	texture_uv_array[10400 * 2];
     int		i;
 	int		percent_land;
 	double  aleph =  1.0 / sqrt(2.0);
-	//
-	BOOL procGen = [UNIVERSE doProcedurallyTexturedPlanets];
-	//
+	
+#ifdef ALLOW_PROCEDURAL_PLANETS
+	BOOL	procGen = [UNIVERSE doProcedurallyTexturedPlanets];
+#endif
+	
 	self = [super init];
     //
 	isTextured = NO;
 	textureName = 0;
 	textureData = NULL;
 	normalMapTextureData = NULL;
-	//
+	
 	planet_seed = p_seed.a * 13 + p_seed.c * 11 + p_seed.e * 7;	// pseudo-random set-up for vertex colours
-	//
+	
 	seed_for_planet_description(p_seed);
-	//
+	
 	NSMutableDictionary*   planetinfo = [NSMutableDictionary dictionaryWithDictionary:[UNIVERSE generateSystemData:p_seed]];
 	int radius_km =		[[planetinfo objectForKey:KEY_RADIUS] intValue];
 	int techlevel =		[[planetinfo objectForKey:KEY_TECHLEVEL] intValue];
@@ -380,28 +385,32 @@ static GLfloat	texture_uv_array[10400 * 2];
 
     //collision_radius = 25000.0; //  25km across
 	collision_radius = radius_km * 10.0; // scale down by a factor of 100 !
-	//
+	
 	scanClass = CLASS_NO_DRAW;
-	//
+	
 	orientation.w =  aleph;		// represents a 90 degree rotation around x axis
 	orientation.x =  aleph;		// (I hope!)
 	orientation.y =  0.0;
 	orientation.z =  0.0;
-	//
+	
 	planet_type =   PLANET_TYPE_GREEN;  // generic planet type
-	//
+	
 	for (i = 0; i < 5; i++)
 		displayListNames[i] = 0;	// empty for now!
-	//
+	
+#ifdef ALLOW_PROCEDURAL_PLANETS
 	[self setModelName:(procGen)? @"icostextured.dat" : @"icosahedron.dat"];
-	//
+#else
+	[self setModelName:@"icosahedron.dat"];
+#endif
+	
 	[self rescaleTo:1.0];
-	//
+	
 
 	percent_land = 24 + (gen_rnd_number() % 48);
 
 	//// possibly get percent_land from planetinfo.plist entry
-	//
+	
 	if ([planetinfo objectForKey:@"percent_land"])
 	{
 		percent_land = [[planetinfo objectForKey:@"percent_land"] intValue];
@@ -418,9 +427,9 @@ static GLfloat	texture_uv_array[10400 * 2];
 			r_seed[i] = 100;  // sea
 	}
 	[planetinfo setObject:[NSNumber numberWithFloat:0.01 * percent_land] forKey:@"land_fraction"];
-	//
+	
 	polar_color_factor = 1.0;
-	//
+	
 	Vector land_hsb, sea_hsb, land_polar_hsb, sea_polar_hsb;
 
 	land_hsb.x = gen_rnd_number() / 256.0;  land_hsb.y = gen_rnd_number() / 256.0;  land_hsb.z = 0.5 + gen_rnd_number() / 512.0;
@@ -465,6 +474,7 @@ static GLfloat	texture_uv_array[10400 * 2];
 	[planetinfo setObject:amb_polar_land_color forKey:@"polar_land_color"];
 	[planetinfo setObject:amb_polar_sea_color forKey:@"polar_sea_color"];
 	
+#ifdef ALLOW_PROCEDURAL_PLANETS
 	if (procGen)
 	{
 		fillRanNoiseBuffer();
@@ -489,9 +499,10 @@ static GLfloat	texture_uv_array[10400 * 2];
 #endif
 	}
 	else
+#endif
 	{
-		isShadered = NO;
 #ifndef NO_SHADERS
+		isShadered = NO;
 		shader_program = NULL_SHADER;
 #endif
 	}
@@ -513,7 +524,7 @@ static GLfloat	texture_uv_array[10400 * 2];
 	if ([planetinfo objectForKey:@"rotation_speed_factor"])
 		rotational_velocity *= [[planetinfo objectForKey:@"rotation_speed_factor"] floatValue];
 	// do atmosphere
-	//
+	
 	atmosphere = [[PlanetEntity alloc] initAsAtmosphereForPlanet:self];
 	
 	isPlanet = YES;
@@ -528,12 +539,12 @@ static GLfloat	texture_uv_array[10400 * 2];
 {    
     int		i;
 	double  aleph =  1.0 / sqrt(2.0);
-	//
+	
 	self = [super init];
     //
 	isTextured = [planet isTextured];
 	textureName = [planet textureName];	//debug texture
-	//
+	
 	planet_seed = [planet planet_seed];	// pseudo-random set-up for vertex colours
 	
 	shuttles_on_ground = 0;
@@ -541,24 +552,24 @@ static GLfloat	texture_uv_array[10400 * 2];
 	shuttle_launch_interval = 8400.0;
 	
 	collision_radius = [planet collisionRadius] * PLANET_MINIATURE_FACTOR; // teeny tiny
-	//
+	
 	scanClass = CLASS_NO_DRAW;
 	status = STATUS_COCKPIT_DISPLAY;
-	//
+	
 	orientation.w =  aleph;		// represents a 90 degree rotation around x axis
 	orientation.x =  aleph;		// (I hope!)
 	orientation.y =  0.0;
 	orientation.z =  0.0;
-	//
+	
 	planet_type = PLANET_TYPE_MINIATURE;  // generic planet type
-	//
+	
 	for (i = 0; i < 5; i++)
 		displayListNames[i] = 0;	// empty for now!
-	//
+	
 	[self setModelName:(isTextured)? @"icostextured.dat" : @"icosahedron.dat"];
-	//
+	
 	[self rescaleTo:1.0];
-	//
+	
 	for (i = 0; i < 4; i++)
 	{
 		amb_land[i] =		[planet amb_land][i];
@@ -583,7 +594,7 @@ static GLfloat	texture_uv_array[10400 * 2];
 	rotational_velocity = 0.05;
 	
 	// do atmosphere
-	//
+	
 	atmosphere = [[PlanetEntity alloc] initAsAtmosphereForPlanet:self];
 
 	isPlanet = YES;
@@ -599,11 +610,13 @@ static GLfloat	texture_uv_array[10400 * 2];
     int		i;
 	int		percent_land;
 	double  aleph =  1.0 / sqrt(2.0);
-	//
-	BOOL procGen = [UNIVERSE doProcedurallyTexturedPlanets];
-	//
+	
+#ifdef ALLOW_PROCEDURAL_PLANETS
+	BOOL	procGen = [UNIVERSE doProcedurallyTexturedPlanets];
+#endif
+	
 	self = [super init];
-	//
+	
 	Random_Seed	p_seed = [UNIVERSE systemSeed];
     //
 	if ([dict objectForKey:@"texture"])
@@ -613,12 +626,14 @@ static GLfloat	texture_uv_array[10400 * 2];
 	}
 	else
 	{
+#ifdef ALLOW_PROCEDURAL_PLANETS
 		if (procGen)
 		{
 			textureName = [TextureStore getPlanetTextureNameFor: dict intoData: &textureData];
 			isTextured = (textureName != 0);
 		}
 		else
+#endif
 		{
 			textureName = 0;
 			isTextured = NO;
@@ -640,7 +655,7 @@ static GLfloat	texture_uv_array[10400 * 2];
 	}
 	
 	seed_for_planet_description(p_seed);
-	//
+	
 	NSDictionary*   planetinfo = [UNIVERSE generateSystemData:p_seed];
 	int radius_km =		[[planetinfo objectForKey:KEY_RADIUS] intValue];
 	if ([dict objectForKey:@"radius"])
@@ -654,23 +669,23 @@ static GLfloat	texture_uv_array[10400 * 2];
 	last_launch_time = 3600.0;
 
 	collision_radius = radius_km * 10.0; // scale down by a factor of 100 !
-	//
+	
 	scanClass = CLASS_NO_DRAW;
-	//
+	
 	orientation.w =  aleph;		// represents a 90 degree rotation around x axis
 	orientation.x =  aleph;		// (I hope!)
 	orientation.y =  0.0;
 	orientation.z =  0.0;
-	//
+	
 	planet_type =   PLANET_TYPE_GREEN;  // generic planet type
-	//
+	
 	for (i = 0; i < 5; i++)
 		displayListNames[i] = 0;	// empty for now!
-	//
+	
 	[self setModelName:(isTextured)? @"icostextured.dat" : @"icosahedron.dat"];
-	//
+	
 	[self rescaleTo:1.0];
-	//
+	
 
 	percent_land = (gen_rnd_number() % 48);
 	if ([dict objectForKey:@"percent_land"])
@@ -690,11 +705,11 @@ static GLfloat	texture_uv_array[10400 * 2];
 		else
 			r_seed[i] = 100;  // sea
 	}
-	//
+	
 	polar_color_factor = 1.0;
 	if ([dict objectForKey:@"polar_color_factor"])
 		polar_color_factor = [[dict objectForKey:@"polar_color_factor"] doubleValue];
-	//
+	
 	Vector land_hsb, sea_hsb, land_polar_hsb, sea_polar_hsb;
 
 	if (!isTextured)
@@ -771,13 +786,13 @@ static GLfloat	texture_uv_array[10400 * 2];
     int		i;
 	int		percent_land;
 	double  aleph =  1.0 / sqrt(2.0);
-	//
+	
 	self = [super init];
-	//
+	
 	Random_Seed	p_seed = [UNIVERSE systemSeed];
     //
 	planet_seed = p_seed.a * 7 + p_seed.c * 11 + p_seed.e * 13;	// pseudo-random set-up for vertex colours
-	//
+	
 	if ([dict objectForKey:@"texture"])
 	{
 		textureName = [TextureStore getTextureNameFor:(NSString*)[dict objectForKey:@"texture"]];
@@ -804,9 +819,9 @@ static GLfloat	texture_uv_array[10400 * 2];
 			p_seed.f = [[tokens objectAtIndex:5] intValue];
 		}
 	}
-	//
+	
 	seed_for_planet_description(p_seed);
-	//
+	
 	NSDictionary*   planetinfo = [UNIVERSE generateSystemData:p_seed];
 	int radius_km =		[(NSNumber *)[planetinfo objectForKey:KEY_RADIUS] intValue];
 	if ([dict objectForKey:@"radius"])
@@ -820,23 +835,23 @@ static GLfloat	texture_uv_array[10400 * 2];
 	last_launch_time = 3600.0;
 
 	collision_radius = radius_km * 10.0; // scale down by a factor of 100 !
-	//
+	
 	scanClass = CLASS_NO_DRAW;
-	//
+	
 	orientation.w =  aleph;		// represents a 90 degree rotation around x axis
 	orientation.x =  aleph;		// (I hope!)
 	orientation.y =  0.0;
 	orientation.z =  0.0;
-	//
+	
 	planet_type =   PLANET_TYPE_GREEN;  // generic planet type
-	//
+	
 	for (i = 0; i < 5; i++)
 		displayListNames[i] = 0;	// empty for now!
-	//
+	
 	[self setModelName:(isTextured)? @"icostextured.dat" : @"icosahedron.dat"];
-	//
+	
 	[self rescaleTo:1.0];
-	//
+	
 
 	percent_land = (gen_rnd_number() % 48);
 	if ([dict objectForKey:@"percent_land"])
@@ -856,11 +871,11 @@ static GLfloat	texture_uv_array[10400 * 2];
 		else
 			r_seed[i] = 100;  // sea
 	}
-	//
+	
 	polar_color_factor = 1.0;
 	if ([dict objectForKey:@"polar_color_factor"])
 		polar_color_factor = [[dict objectForKey:@"polar_color_factor"] doubleValue];
-	//
+	
 	Vector land_hsb, sea_hsb, land_polar_hsb, sea_polar_hsb;
 
 	if (!isTextured)
@@ -919,7 +934,7 @@ static GLfloat	texture_uv_array[10400 * 2];
 		rotational_velocity = [[dict objectForKey:@"rotational_velocity"] doubleValue];
 
 	// do NO atmosphere
-	//
+	
 	atmosphere = nil;
 
 	energy = collision_radius * 1000.0;
@@ -1028,7 +1043,7 @@ static GLfloat	texture_uv_array[10400 * 2];
 				last_launch_time = ugt;
 			}
 		}
-		//
+		
 		case PLANET_TYPE_MINIATURE:
 		// normal planetary rotation
 		quaternion_rotate_about_y(&orientation, rotational_velocity * delta_t);
@@ -1246,15 +1261,15 @@ static GLfloat	texture_uv_array[10400 * 2];
 				glFrontFace(GL_CCW);
 				if (displayListNames[subdivideLevel] != 0)
 				{
-					//
+					
 					glDisableClientState(GL_INDEX_ARRAY);
 					glDisableClientState(GL_EDGE_FLAG_ARRAY);
-					//
+					
 					if (isTextured)
 					{
 						glEnableClientState(GL_COLOR_ARRAY);
 						glColorPointer(4, GL_FLOAT, 0, vertexdata.color_array);
-						//
+						
 						glEnableClientState(GL_TEXTURE_COORD_ARRAY);
 						glTexCoordPointer(2, GL_FLOAT, 0, vertexdata.uv_array);
 						glBindTexture(GL_TEXTURE_2D, textureName);
@@ -1264,18 +1279,18 @@ static GLfloat	texture_uv_array[10400 * 2];
 					else
 					{
 						glDisableClientState(GL_TEXTURE_COORD_ARRAY);
-						//
+						
 						glEnableClientState(GL_COLOR_ARRAY);
 						glColorPointer(4, GL_FLOAT, 0, vertexdata.color_array);
 					}
-					//
+					
 					glEnableClientState(GL_VERTEX_ARRAY);
 					glVertexPointer(3, GL_FLOAT, 0, vertexdata.vertex_array);
 					glEnableClientState(GL_NORMAL_ARRAY);
 					glNormalPointer(GL_FLOAT, 0, vertexdata.normal_array);
-					//
+					
 					glCallList(displayListNames[subdivideLevel]);
-					//
+					
 				}
 				else
 				{
@@ -1289,7 +1304,7 @@ static GLfloat	texture_uv_array[10400 * 2];
 						glUseProgramObjectARB(shader_program);	// shader ON!
 						glEnableClientState(GL_COLOR_ARRAY);
 						glColorPointer(4, GL_FLOAT, 0, vertexdata.color_array);
-						//
+						
 						glEnableClientState(GL_TEXTURE_COORD_ARRAY);
 						glTexCoordPointer(2, GL_FLOAT, 0, vertexdata.uv_array);
 						
@@ -1320,7 +1335,7 @@ static GLfloat	texture_uv_array[10400 * 2];
 						{
 							glEnableClientState(GL_COLOR_ARRAY);		// test shading
 							glColorPointer(4, GL_FLOAT, 0, vertexdata.color_array);
-							//
+							
 							glEnableClientState(GL_TEXTURE_COORD_ARRAY);
 							glTexCoordPointer(2, GL_FLOAT, 0, vertexdata.uv_array);
 							glBindTexture(GL_TEXTURE_2D, textureName);
@@ -1330,17 +1345,17 @@ static GLfloat	texture_uv_array[10400 * 2];
 						else
 						{
 							glDisableClientState(GL_TEXTURE_COORD_ARRAY);
-							//
+							
 							glEnableClientState(GL_COLOR_ARRAY);
 							glColorPointer(4, GL_FLOAT, 0, vertexdata.color_array);
 						}
 					}
-					//
+					
 					glEnableClientState(GL_VERTEX_ARRAY);
 					glVertexPointer(3, GL_FLOAT, 0, vertexdata.vertex_array);
 					glEnableClientState(GL_NORMAL_ARRAY);
 					glNormalPointer(GL_FLOAT, 0, vertexdata.normal_array);
-					//
+					
 					if (isShadered)
 					{
 #ifndef NO_SHADERS
@@ -1348,9 +1363,9 @@ static GLfloat	texture_uv_array[10400 * 2];
 						glMaterialfv(GL_FRONT, GL_AMBIENT_AND_DIFFUSE, mat1);
 						glColorMaterial(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE);
 						glEnable(GL_COLOR_MATERIAL);
-						//
+						
 						[self drawModelWithVertexArraysAndSubdivision:subdivideLevel];
-						//
+						
 						glDisable(GL_COLOR_MATERIAL);
 						glUseProgramObjectARB(NULL_SHADER);	// shader OFF
 #endif
@@ -1361,20 +1376,20 @@ static GLfloat	texture_uv_array[10400 * 2];
 						if (displayListNames[subdivideLevel] != 0)	// sanity check
 						{
 							glNewList(displayListNames[subdivideLevel], GL_COMPILE);
-							//
+							
 							glColor4fv(mat1);
 							glMaterialfv(GL_FRONT, GL_AMBIENT_AND_DIFFUSE, mat1);
 							glColorMaterial(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE);
 							glEnable(GL_COLOR_MATERIAL);
-							//
+							
 							[self drawModelWithVertexArraysAndSubdivision:subdivideLevel];
-							//
+							
 							glDisable(GL_COLOR_MATERIAL);
-							//
+							
 							glEndList();
 						}
 					}
-					//
+					
 				}
 				glFrontFace(GL_CW);
 
@@ -1701,14 +1716,14 @@ static BOOL last_one_was_textured;
 
 		int vi,fi;
 		next_free_vertex = 0;
-		//
+		
 		// set first 12 or 14 vertices
-		//
+		
 		for (vi = 0; vi < vertexCount; vi++)
 			base_vertex_array[next_free_vertex++] =  vertices[vi];
-		//
+		
 		// set first 20 triangles
-		//
+		
 		triangle_start[0] = 0;
 		n_triangles[0] = faceCount;
 		for (fi = 0; fi < faceCount; fi++)
@@ -1726,9 +1741,9 @@ static BOOL last_one_was_textured;
 				texture_uv_array[faces[fi].vertex[2] * 2 + 1]	= faces[fi].t[2];
 			}
 		}
-		//
+		
 		// for the next levels of subdivision simply build up from the level below!...
-		//
+		
 		int sublevel;
 		for (sublevel = 0; sublevel < MAX_SUBDIVIDE - 1; sublevel++)
 		{
@@ -1798,16 +1813,16 @@ int baseVertexIndexForEdge(int va, int vb, BOOL textured)
 		if (textured)
 		{
 			//calculate new texture coordinates
-			//
+			
 			NSPoint	uva = NSMakePoint(texture_uv_array[va * 2], texture_uv_array[va * 2 + 1]);
 			NSPoint	uvb = NSMakePoint(texture_uv_array[vb * 2], texture_uv_array[vb * 2 + 1]);
-			//
+			
 			// if either of these is the polar vertex treat it specially to help with polar distortion:
 			if ((uva.y == 0.0)||(uva.y == 1.0))
 				uva.x = uvb.x;
 			if ((uvb.y == 0.0)||(uvb.y == 1.0))
 				uvb.x = uva.x;
-			//
+			
 			texture_uv_array[vindex * 2] = 0.5 * (uva.x + uvb.x);
 			texture_uv_array[vindex * 2 + 1] = 0.5 * (uva.y + uvb.y);
 		}
@@ -1835,9 +1850,9 @@ int baseVertexIndexForEdge(int va, int vb, BOOL textured)
 
 		}
 	}
-	//
+	
 	// for the next levels of subdivision simply build up from the level below!...
-	//
+	
 	int sublevel;
 	for (sublevel = 0; sublevel < MAX_SUBDIVIDE - 1; sublevel++)
 	{
@@ -1942,7 +1957,7 @@ int baseVertexIndexForEdge(int va, int vb, BOOL textured)
 		Vector	v = base_vertex_array[vi];
 		vertexdata.normal_array[vi] = v;
 		vertexdata.vertex_array[vi] = make_vector(v.x * collision_radius, v.y * collision_radius, v.z * collision_radius);
-		//
+		
 		vertexdata.uv_array[vi * 2] = texture_uv_array[vi * 2];
 		vertexdata.uv_array[vi * 2 + 1] = texture_uv_array[vi * 2 + 1];
 	}

@@ -402,7 +402,7 @@ static BOOL hostiles;
 	gl_matrix_into_matrix([player rotationMatrix], &rotMatrix);
 		
 	glColor4fv(scanner_color);
-	drawScannerGrid(x, y, z1, siz, [UNIVERSE viewDir], line_width, scanner_zoom);
+	drawScannerGrid(x, y, z1, siz, [UNIVERSE viewDirection], line_width, scanner_zoom);
 	
 	GLfloat off_scope2 = (siz.width > siz.height) ? siz.width * siz.width : siz.height * siz.height;
 	
@@ -952,7 +952,7 @@ static BOOL hostiles;
 
 - (void) drawAegis:(NSDictionary *) info
 {
-	if (([UNIVERSE viewDir] == VIEW_GUI_DISPLAY)||([UNIVERSE sun] == nil)||([[PlayerEntity sharedPlayer] checkForAegis] != AEGIS_IN_DOCKING_RANGE))
+	if (([UNIVERSE viewDirection] == VIEW_GUI_DISPLAY)||([UNIVERSE sun] == nil)||([[PlayerEntity sharedPlayer] checkForAegis] != AEGIS_IN_DOCKING_RANGE))
 		return;	// don't draw
 	
 	NSSize siz = NSMakeSize(AEGIS_WIDTH, AEGIS_HEIGHT);
@@ -1560,7 +1560,7 @@ static BOOL hostiles;
 		Vector position = player->position;
 		gl_matrix_into_matrix([player rotationMatrix], &rotMatrix);
 		//
-		if ([UNIVERSE viewDir] != VIEW_GUI_DISPLAY)
+		if ([UNIVERSE viewDirection] != VIEW_GUI_DISPLAY)
 		{
 			GLfloat siz1 = CROSSHAIR_SIZE * (1.0 - ONE_EIGHTH);
 			GLfloat siz0 = CROSSHAIR_SIZE * ONE_EIGHTH;
@@ -1570,7 +1570,7 @@ static BOOL hostiles;
 			rpn.x -= position.x;   rpn.y -= position.y;   rpn.z -= position.z;
 			// rotate the view
 			mult_vector(&rpn, rotMatrix);
-			switch ([UNIVERSE viewDir])
+			switch ([UNIVERSE viewDirection])
 			{
 				case VIEW_AFT :
 					rpn.x = - rpn.x;
@@ -2062,7 +2062,7 @@ void hudDrawReticleOnTarget(Entity* target, PlayerEntity* player1, GLfloat z1)
 	// deal with view directions
 	Vector view_dir, view_up;
 	view_up.x = 0.0;	view_up.y = 1.0;	view_up.z = 0.0;
-	switch ([UNIVERSE viewDir])
+	switch ([UNIVERSE viewDirection])
 	{
 		default:
 		case VIEW_FORWARD :

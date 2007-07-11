@@ -1550,7 +1550,7 @@ static	Vector	circleVertex[65];		// holds vector coordinates for a unit circle
 		gl_matrix	temp_matrix;
 
 		Vector		abspos = position;  // in control of it's own orientation
-		int			view_dir = [UNIVERSE viewDir];
+		int			view_dir = [UNIVERSE viewDirection];
 		Entity*		last = nil;
 		Entity*		father = my_owner;
 		GLfloat*	r_mat = [father drawRotationMatrix];
@@ -1650,7 +1650,7 @@ static	Vector	circleVertex[65];		// holds vector coordinates for a unit circle
 
 	glBegin(GL_QUADS);
 
-	viewdir = [UNIVERSE viewDir];
+	viewdir = [UNIVERSE viewDirection];
 
 	switch (viewdir)
 	{

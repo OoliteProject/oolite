@@ -397,6 +397,8 @@
 		1AB01BBC0BB16A8A00F1B949 /* OOFastArithmetic.m in Sources */ = {isa = PBXBuildFile; fileRef = 1AB01BBA0BB16A8A00F1B949 /* OOFastArithmetic.m */; settings = {COMPILER_FLAGS = "-O3 -falign-loops=32 -falign-loops-max-skip=31 -falign-functions=32"; }; };
 		1AC775E20C2DD4E900ECFF3B /* OODebugGLDrawing.h in Headers */ = {isa = PBXBuildFile; fileRef = 1AC775E00C2DD4E900ECFF3B /* OODebugGLDrawing.h */; };
 		1AC775E30C2DD4E900ECFF3B /* OODebugGLDrawing.m in Sources */ = {isa = PBXBuildFile; fileRef = 1AC775E10C2DD4E900ECFF3B /* OODebugGLDrawing.m */; };
+		1AD0C1C30C44DF230070BD23 /* TextureStore.m in Sources */ = {isa = PBXBuildFile; fileRef = 25161145099544390037C2E1 /* TextureStore.m */; };
+		1AD0C1C40C44DF240070BD23 /* TextureStore.h in Headers */ = {isa = PBXBuildFile; fileRef = 25161134099544390037C2E1 /* TextureStore.h */; };
 		1ADBA5500BD0F173008FC99C /* OOBasicMaterial.h in Headers */ = {isa = PBXBuildFile; fileRef = 1ADBA54E0BD0F173008FC99C /* OOBasicMaterial.h */; };
 		1ADBA5510BD0F173008FC99C /* OOBasicMaterial.m in Sources */ = {isa = PBXBuildFile; fileRef = 1ADBA54F0BD0F173008FC99C /* OOBasicMaterial.m */; };
 		1ADF5CEC0B9DF59A00FDB2A3 /* OOCacheManager.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A231A170B9D8B1B00EF0852 /* OOCacheManager.m */; };
@@ -459,7 +461,7 @@
 		2512834209BA27EC00F43D55 /* Geometry.h in Headers */ = {isa = PBXBuildFile; fileRef = 2512834009BA27EC00F43D55 /* Geometry.h */; };
 		2512834309BA27EC00F43D55 /* Geometry.m in Sources */ = {isa = PBXBuildFile; fileRef = 2512834109BA27EC00F43D55 /* Geometry.m */; settings = {COMPILER_FLAGS = "-O3 -falign-loops=32 -falign-loops-max-skip=31 -falign-functions=32"; }; };
 		2512834609BA281500F43D55 /* CollisionRegion.h in Headers */ = {isa = PBXBuildFile; fileRef = 2512834409BA281500F43D55 /* CollisionRegion.h */; };
-		2512834709BA281500F43D55 /* CollisionRegion.m in Sources */ = {isa = PBXBuildFile; fileRef = 2512834509BA281500F43D55 /* CollisionRegion.m */; settings = {COMPILER_FLAGS = "-O3 -falign-loops=32 -falign-loops-max-skip=31 -falign-functions=32"; }; };
+		2512834709BA281500F43D55 /* CollisionRegion.m in Sources */ = {isa = PBXBuildFile; fileRef = 2512834509BA281500F43D55 /* CollisionRegion.m */; };
 		25160E2F0995362F0037C2E1 /* OOCocoa.h in Headers */ = {isa = PBXBuildFile; fileRef = 25160E2E0995362F0037C2E1 /* OOCocoa.h */; };
 		251610DD099544090037C2E1 /* OOCABufferedSound.h in Headers */ = {isa = PBXBuildFile; fileRef = 251610CA099544090037C2E1 /* OOCABufferedSound.h */; };
 		251610DE099544090037C2E1 /* OOCASoundMixer.h in Headers */ = {isa = PBXBuildFile; fileRef = 251610CB099544090037C2E1 /* OOCASoundMixer.h */; };
@@ -497,12 +499,10 @@
 		25161179099544390037C2E1 /* GuiDisplayGen.h in Headers */ = {isa = PBXBuildFile; fileRef = 25161127099544390037C2E1 /* GuiDisplayGen.h */; };
 		2516117D099544390037C2E1 /* HeadUpDisplay.m in Sources */ = {isa = PBXBuildFile; fileRef = 2516112B099544390037C2E1 /* HeadUpDisplay.m */; };
 		2516117E099544390037C2E1 /* HeadUpDisplay.h in Headers */ = {isa = PBXBuildFile; fileRef = 2516112C099544390037C2E1 /* HeadUpDisplay.h */; };
-		25161186099544390037C2E1 /* TextureStore.h in Headers */ = {isa = PBXBuildFile; fileRef = 25161134099544390037C2E1 /* TextureStore.h */; };
 		2516118B099544390037C2E1 /* ResourceManager.m in Sources */ = {isa = PBXBuildFile; fileRef = 25161139099544390037C2E1 /* ResourceManager.m */; };
 		2516118C099544390037C2E1 /* ResourceManager.h in Headers */ = {isa = PBXBuildFile; fileRef = 2516113A099544390037C2E1 /* ResourceManager.h */; };
 		25161195099544390037C2E1 /* Universe.m in Sources */ = {isa = PBXBuildFile; fileRef = 25161143099544390037C2E1 /* Universe.m */; };
 		25161196099544390037C2E1 /* Universe.h in Headers */ = {isa = PBXBuildFile; fileRef = 25161144099544390037C2E1 /* Universe.h */; };
-		25161197099544390037C2E1 /* TextureStore.m in Sources */ = {isa = PBXBuildFile; fileRef = 25161145099544390037C2E1 /* TextureStore.m */; };
 		2576E7B309B4F418007410F7 /* MyOpenGLView.h in Headers */ = {isa = PBXBuildFile; fileRef = 2576E7B209B4F418007410F7 /* MyOpenGLView.h */; };
 		25F3E6310994F033002F25FD /* legacy_random.h in Headers */ = {isa = PBXBuildFile; fileRef = 25F3E6300994F033002F25FD /* legacy_random.h */; };
 		25F3E6330994F04C002F25FD /* legacy_random.c in Sources */ = {isa = PBXBuildFile; fileRef = 25F3E6320994F04C002F25FD /* legacy_random.c */; };
@@ -2317,7 +2317,6 @@
 				2516116E099544390037C2E1 /* OOCharacter.h in Headers */,
 				25161179099544390037C2E1 /* GuiDisplayGen.h in Headers */,
 				2516117E099544390037C2E1 /* HeadUpDisplay.h in Headers */,
-				25161186099544390037C2E1 /* TextureStore.h in Headers */,
 				2516118C099544390037C2E1 /* ResourceManager.h in Headers */,
 				25161196099544390037C2E1 /* Universe.h in Headers */,
 				25F46752099695D5009483BF /* OoliteApp.h in Headers */,
@@ -2452,6 +2451,7 @@
 				1A5E46300C32DACE008104B4 /* OOShaderUniformMethodType.h in Headers */,
 				1A7D83010C40111B00E4A5F5 /* OOLogOutputHandler.h in Headers */,
 				1A7D833A0C40147800E4A5F5 /* OOAsyncQueue.h in Headers */,
+				1AD0C1C40C44DF240070BD23 /* TextureStore.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -2615,7 +2615,6 @@
 				2516117D099544390037C2E1 /* HeadUpDisplay.m in Sources */,
 				2516118B099544390037C2E1 /* ResourceManager.m in Sources */,
 				25161195099544390037C2E1 /* Universe.m in Sources */,
-				25161197099544390037C2E1 /* TextureStore.m in Sources */,
 				25F46753099695D5009483BF /* OoliteApp.m in Sources */,
 				25F4676509969672009483BF /* MyOpenGLView.m in Sources */,
 				2512833E09BA27C100F43D55 /* Octree.m in Sources */,
@@ -2696,6 +2695,7 @@
 				1A5E462F0C32DACE008104B4 /* OOShaderUniformMethodType.m in Sources */,
 				1A7D83020C40111B00E4A5F5 /* OOLogOutputHandler.m in Sources */,
 				1A7D833B0C40147800E4A5F5 /* OOAsyncQueue.m in Sources */,
+				1AD0C1C30C44DF230070BD23 /* TextureStore.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

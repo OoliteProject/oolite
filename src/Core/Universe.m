@@ -82,6 +82,13 @@ static NSComparisonResult compareName(NSDictionary *dict1, NSDictionary *dict2, 
 static NSComparisonResult comparePrice(NSDictionary *dict1, NSDictionary *dict2, void * context);
 
 
+@interface Universe (OOPrivate)
+
+- (BOOL)doRemoveEntity:(Entity *)entity;
+
+@end
+
+
 @implementation Universe
 
 - (id) initWithGameView:(MyOpenGLView *)inGameView
@@ -244,9 +251,13 @@ static NSComparisonResult comparePrice(NSDictionary *dict1, NSDictionary *dict2,
 	
 	demo_ship = nil;
 	
-	universeRegion = [[CollisionRegion alloc] initAsUniverse];	// retained
+	universeRegion = [[CollisionRegion alloc] initAsUniverse];
 	
+	entitiesDeadThisUpdate = [[NSMutableArray alloc] init];
+	
+#ifdef ALLOW_PROCEDURAL_PLANETS	
 	doProcedurallyTexturedPlanets = NO;
+#endif
 	
 	[player sendMessageToScripts:@"startUp"];
 		
@@ -280,23 +291,25 @@ static NSComparisonResult comparePrice(NSDictionary *dict1, NSDictionary *dict2,
 	[equipmentdata release];
 	[demo_ships release];
 	[gameView release];
-	
-	#ifndef GNUSTEP
-	[speechArray release];
-	[speechSynthesizer release];
-	#endif
 
 	[local_planetinfo_overrides release];
 	[activeWormholes release];				
 	[characterPool release];
 	[universeRegion release];
 	
-	int i;
+	unsigned i;
 	for (i = 0; i < 256; i++)  [system_names[i] release];
+	
+	[entitiesDeadThisUpdate release];
 	
 	[[OOCacheManager sharedCache] flush];
 	
 	[weakSelf weakRefDrop];
+	
+#ifndef OOLITE_MAC_OS_X
+	[speechArray release];
+	[speechSynthesizer release];
+#endif
 	
     [super dealloc];
 }
@@ -315,6 +328,7 @@ static NSComparisonResult comparePrice(NSDictionary *dict1, NSDictionary *dict2,
 }
 
 
+#ifdef ALLOW_PROCEDURAL_PLANETS
 - (BOOL) doProcedurallyTexturedPlanets
 {
 	return doProcedurallyTexturedPlanets;
@@ -325,6 +339,7 @@ static NSComparisonResult comparePrice(NSDictionary *dict1, NSDictionary *dict2,
 {
 	doProcedurallyTexturedPlanets = value;
 }
+#endif
 
 
 - (BOOL) strict
@@ -2710,7 +2725,7 @@ GLfloat docked_light_specular[]	= { (GLfloat) 1.0, (GLfloat) 1.0, (GLfloat) 0.5,
 	sky_clear_color[1] = green;
 	sky_clear_color[2] = blue;
 	sky_clear_color[3] = alpha;
-	air_resist_factor = alpha;
+	airResistanceFactor = alpha;
 }  
 
 
@@ -3395,8 +3410,12 @@ GLfloat* custom_matrix;
 					view_matrix = starboard_matrix; break;
 				/* GILES custom view points */
 				case VIEW_CUSTOM:
-					view_matrix = custom_matrix;
+					view_matrix = custom_matrix; break;
 				/* -- */
+				case VIEW_NONE:
+				case VIEW_GUI_DISPLAY:
+				case VIEW_BREAK_PATTERN:
+					break;
 			}
 			
 			CheckOpenGLErrors(@"Universe before doing anything");
@@ -3516,7 +3535,7 @@ GLfloat* custom_matrix;
 						glMaterialfv(GL_FRONT_AND_BACK, GL_EMISSION, mat_no);
 
 						// atmospheric fog
-						BOOL fogging = ((air_resist_factor > 0.01)&&(!drawthing->isPlanet));
+						BOOL fogging = ((airResistanceFactor > 0.01)&&(!drawthing->isPlanet));
 						
 						glPushMatrix();
 						obj_position = drawthing->position;
@@ -3542,7 +3561,7 @@ GLfloat* custom_matrix;
 						// atmospheric fog
 						if (fogging)
 						{
-							double fog_scale = 0.50 * BILLBOARD_DEPTH / air_resist_factor;
+							double fog_scale = 0.50 * BILLBOARD_DEPTH / airResistanceFactor;
 							double half_scale = fog_scale * 0.50;
 							glEnable(GL_FOG);
 							glFogi(GL_FOG_MODE, GL_LINEAR);
@@ -3594,7 +3613,7 @@ GLfloat* custom_matrix;
 					if (((d_status == STATUS_COCKPIT_DISPLAY)&&(inGUIMode)) || ((d_status != STATUS_COCKPIT_DISPLAY)&&(!inGUIMode)))
 					{
 						// experimental - atmospheric fog
-						BOOL fogging = (air_resist_factor > 0.01);
+						BOOL fogging = (airResistanceFactor > 0.01);
 						
 						glPushMatrix();
 						obj_position = drawthing->position;
@@ -3619,7 +3638,7 @@ GLfloat* custom_matrix;
 						// atmospheric fog
 						if (fogging)
 						{
-							double fog_scale = 0.50 * BILLBOARD_DEPTH / air_resist_factor;
+							double fog_scale = 0.50 * BILLBOARD_DEPTH / airResistanceFactor;
 							double half_scale = fog_scale * 0.50;
 							glEnable(GL_FOG);
 							glFogi(GL_FOG_MODE, GL_LINEAR);
@@ -3805,10 +3824,16 @@ GLfloat* custom_matrix;
 	if (u_id == 100)
 		return [PlayerEntity sharedPlayer];	// the player
 	
+	if (MAX_ENTITY_UID < u_id)
+	{
+		OOLog(@"universe.badUID", @"Attempt to retrieve entity for out-of-range UID %u. (This is an internal programming error, please report it.)", u_id);
+		return nil;
+	}
+	
 	if ((u_id == NO_TARGET)||(!entity_for_uid[u_id]))
 		return nil;
-		
-	Entity* ent = entity_for_uid[u_id];
+	
+	Entity *ent = entity_for_uid[u_id];
 	if (ent->isParticle)	// particles SHOULD NOT HAVE U_IDs!
 		return nil;
 	int ent_status = ent->status;
@@ -4082,98 +4107,25 @@ static BOOL MaintainLinkedLists(Universe* uni)
 {
 	if (entity)
 	{
-		// remove reference to entity in linked lists
-		if ([entity canCollide])	// filter only collidables disappearing
-			doLinkedListMaintenanceThisUpdate = YES;
+		/*	Ensure entity won't actually be dealloced until the end of this
+			update (or the next update if none is in progress), because
+			there may be things pointing to it but not retaining it.
+		*/
+		[entitiesDeadThisUpdate addObject:entity];
 		
-		[entity removeFromLinkedLists];
-		
-		// moved forward ^^
-		// remove from the reference dictionary
-		int old_id = [entity universalID];
-		entity_for_uid[old_id] = nil;
-		[entity setUniversalID:NO_TARGET];
-		[entity wasRemovedFromUniverse];
-		
-		// maintain sorted lists
-		int index = entity->zero_index;
-
-		int n = 1;
-		if (index >= 0)
-		{
-			if (sortedEntities[index] != entity)
-			{
-				OOLog(kOOLogInconsistentState, @"DEBUG Universe removeEntity:%@ ENTITY IS NOT IN THE RIGHT PLACE IN THE ZERO_DISTANCE SORTED LIST -- FIXING...", entity);
-				unsigned i;
-				index = -1;
-				for (i = 0; (i < n_entities)&&(index == -1); i++)
-					if (sortedEntities[i] == entity)
-						index = i;
-				if (index == -1)
-					 OOLog(kOOLogInconsistentState, @"DEBUG Universe removeEntity:%@ ENTITY IS NOT IN THE ZERO_DISTANCE SORTED LIST -- CONTINUING...", entity);
-			}
- 			if (index != -1)
-			{
-				while ((unsigned)index < n_entities)
-				{
-					while (((unsigned)index + n < n_entities)&&(sortedEntities[index + n] == entity))
-						n++;	// ie there's a duplicate entry for this entity
-					sortedEntities[index] = sortedEntities[index + n];	// copy entity[index + n] -> entity[index] (preserves sort order)
-					if (sortedEntities[index])
-						sortedEntities[index]->zero_index = index;				// give it its correct position
-					index++;
-				}
-				if (n > 1)
-					 OOLog(kOOLogInconsistentState, @"DEBUG Universe removeEntity: REMOVED %d EXTRA COPIES OF %@ FROM THE ZERO_DISTANCE SORTED LIST", n - 1, entity);
-				while (n--)
-				{
-					n_entities--;
-					sortedEntities[n_entities] = nil;
-				}
-			}
-			entity->zero_index = -1;	// it's GONE!
-		}
-		
-		// remove from the definitive list
-		if ([entities containsObject:entity])
-		{
-			if (entity->isRing)
-				breakPatternCounter--;
-
-			if (entity->isShip)
-			{
-				int bid = firstBeacon;
-				ShipEntity* se = (ShipEntity*)entity;
-				if ([se isBeacon])
-				{
-					if (bid == old_id)
-						firstBeacon = [se nextBeaconID];
-					else
-					{
-						ShipEntity* beacon = (ShipEntity*)[self entityForUniversalID:bid];
-						while ((beacon != nil)&&([beacon nextBeaconID] != old_id))
-							beacon = (ShipEntity*)[self entityForUniversalID:[beacon nextBeaconID]];
-						
-						[beacon setNextBeacon:(ShipEntity*)[self entityForUniversalID:[se nextBeaconID]]];
-						
-						while ([beacon nextBeaconID] != NO_TARGET)
-							beacon = (ShipEntity*)[self entityForUniversalID:[beacon nextBeaconID]];
-						lastBeacon = [beacon universalID];
-					}
-				}
-				[se setBeaconChar:0];
-			}
-			
-			
-			if (entity->isWormhole)
-				[activeWormholes removeObject:entity];
-			
-			[entities removeObject:entity];
-			
-			return YES;
-		}
+		return [self doRemoveEntity:entity];
 	}
 	return NO;
+}
+
+
+- (void) ensureEntityReallyRemoved:(Entity *)entity
+{
+	if ([entity universalID] != NO_TARGET)
+	{
+		OOLog(@"universe.unremovedEntity", @"Entity %@ dealloced without being removed from universe! (This is an internal programming error, please report it.)", entity);
+		[self doRemoveEntity:entity];
+	}
 }
 
 
@@ -4628,6 +4580,8 @@ static BOOL MaintainLinkedLists(Universe* uni)
 		case VIEW_STARBOARD :
 			quaternion_rotate_about_axis(&q1, u1, -0.5 * M_PI);
 			break;
+		default:
+			break;
 	}
 	f1 = vector_forward_from_quaternion(q1);
 	r1 = vector_right_from_quaternion(q1);
@@ -4888,7 +4842,7 @@ static BOOL MaintainLinkedLists(Universe* uni)
 }
 
 
-- (OOViewID) viewDir
+- (OOViewID) viewDirection
 {
 	return viewDirection;
 }
@@ -5244,6 +5198,8 @@ static BOOL MaintainLinkedLists(Universe* uni)
 			}
 		NS_ENDHANDLER
 	}
+	
+	[entitiesDeadThisUpdate removeAllObjects];
 }
 
 
@@ -7565,34 +7521,141 @@ static NSComparisonResult comparePrice(NSDictionary *dict1, NSDictionary *dict2,
 }
 
 
+- (GLfloat)airResistanceFactor
+{
+	return airResistanceFactor;
+}
+
+
 // speech routines
-//
+#if OOLITE_MAC_OS_X
+
 - (void) startSpeakingString:(NSString *) text
 {
-#ifndef GNUSTEP
-	if ([OOSound respondsToSelector:@selector(masterVolume)])
-		[speechSynthesizer startSpeakingString:[NSString stringWithFormat:@"[[volm %.3f]]%@", 0.3333333f * [OOSound masterVolume], text]];
-	else
-		[speechSynthesizer startSpeakingString:text];
-#endif
+	[speechSynthesizer startSpeakingString:[NSString stringWithFormat:@"[[volm %.3f]]%@", 0.3333333f * [OOSound masterVolume], text]];
 }
-//
+
+
 - (void) stopSpeaking
 {
-#ifndef GNUSTEP
 	[speechSynthesizer stopSpeaking];
-#endif
 }
-//
+
+
 - (BOOL) isSpeaking
 {
-#ifndef GNUSTEP
 	return [speechSynthesizer isSpeaking];
-#else
-	return NO;
-#endif
 }
-//
-////
+
+#else
+
+- (void) startSpeakingString:(NSString *) text  {}
+
+- (void) stopSpeaking {}
+
+- (BOOL) isSpeaking
+{
+	return NO;
+}
+#endif
+
+@end
+
+
+@implementation Universe (OOPrivate)
+
+- (BOOL)doRemoveEntity:(Entity *)entity
+{
+	// remove reference to entity in linked lists
+	if ([entity canCollide])	// filter only collidables disappearing
+		doLinkedListMaintenanceThisUpdate = YES;
+	
+	[entity removeFromLinkedLists];
+	
+	// moved forward ^^
+	// remove from the reference dictionary
+	int old_id = [entity universalID];
+	entity_for_uid[old_id] = nil;
+	[entity setUniversalID:NO_TARGET];
+	[entity wasRemovedFromUniverse];
+	
+	// maintain sorted lists
+	int index = entity->zero_index;
+
+	int n = 1;
+	if (index >= 0)
+	{
+		if (sortedEntities[index] != entity)
+		{
+			OOLog(kOOLogInconsistentState, @"DEBUG Universe removeEntity:%@ ENTITY IS NOT IN THE RIGHT PLACE IN THE ZERO_DISTANCE SORTED LIST -- FIXING...", entity);
+			unsigned i;
+			index = -1;
+			for (i = 0; (i < n_entities)&&(index == -1); i++)
+				if (sortedEntities[i] == entity)
+					index = i;
+			if (index == -1)
+				 OOLog(kOOLogInconsistentState, @"DEBUG Universe removeEntity:%@ ENTITY IS NOT IN THE ZERO_DISTANCE SORTED LIST -- CONTINUING...", entity);
+		}
+		if (index != -1)
+		{
+			while ((unsigned)index < n_entities)
+			{
+				while (((unsigned)index + n < n_entities)&&(sortedEntities[index + n] == entity))
+					n++;	// ie there's a duplicate entry for this entity
+				sortedEntities[index] = sortedEntities[index + n];	// copy entity[index + n] -> entity[index] (preserves sort order)
+				if (sortedEntities[index])
+					sortedEntities[index]->zero_index = index;				// give it its correct position
+				index++;
+			}
+			if (n > 1)
+				 OOLog(kOOLogInconsistentState, @"DEBUG Universe removeEntity: REMOVED %d EXTRA COPIES OF %@ FROM THE ZERO_DISTANCE SORTED LIST", n - 1, entity);
+			while (n--)
+			{
+				n_entities--;
+				sortedEntities[n_entities] = nil;
+			}
+		}
+		entity->zero_index = -1;	// it's GONE!
+	}
+	
+	// remove from the definitive list
+	if ([entities containsObject:entity])
+	{
+		if (entity->isRing)  breakPatternCounter--;
+
+		if (entity->isShip)
+		{
+			int bid = firstBeacon;
+			ShipEntity* se = (ShipEntity*)entity;
+			if ([se isBeacon])
+			{
+				if (bid == old_id)
+					firstBeacon = [se nextBeaconID];
+				else
+				{
+					ShipEntity* beacon = (ShipEntity*)[self entityForUniversalID:bid];
+					while ((beacon != nil)&&([beacon nextBeaconID] != old_id))
+						beacon = (ShipEntity*)[self entityForUniversalID:[beacon nextBeaconID]];
+					
+					[beacon setNextBeacon:(ShipEntity*)[self entityForUniversalID:[se nextBeaconID]]];
+					
+					while ([beacon nextBeaconID] != NO_TARGET)
+						beacon = (ShipEntity*)[self entityForUniversalID:[beacon nextBeaconID]];
+					lastBeacon = [beacon universalID];
+				}
+			}
+			[se setBeaconChar:0];
+		}
+		
+		
+		if (entity->isWormhole)
+			[activeWormholes removeObject:entity];
+		
+		[entities removeObject:entity];
+		return YES;
+	}
+	
+	return NO;
+}
 
 @end

@@ -497,7 +497,7 @@ MA 02110-1301, USA.
 {
 	// player movement
 	NSPoint p_mov = NSMakePoint(TRUMBLE_MAX_ROTATIONAL_VELOCITY * [player dialPitch],	TRUMBLE_MAX_ROTATIONAL_VELOCITY * [player dialRoll]);
-	switch ([UNIVERSE viewDir])
+	switch ([UNIVERSE viewDirection])
 	{
 		GLfloat t;
 		case VIEW_AFT:

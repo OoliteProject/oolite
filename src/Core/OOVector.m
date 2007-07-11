@@ -27,6 +27,9 @@ MA 02110-1301, USA.
 
 
 const Vector			kZeroVector = { 0.0f, 0.0f, 0.0f };
+const Vector			kBasisXVector = { 1.0f, 0.0f, 0.0f };
+const Vector			kBasisYVector = { 0.0f, 1.0f, 0.0f };
+const Vector			kBasisZVector = { 0.0f, 0.0f, 1.0f };
 const BoundingBox		kZeroBoundingBox = {{ 0.0f, 0.0f, 0.0f }, { 0.0f, 0.0f, 0.0f }};
 
 

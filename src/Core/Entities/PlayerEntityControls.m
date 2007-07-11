@@ -1001,8 +1001,14 @@ static NSTimeInterval	time_last_frame;
 		
 		if ([gameView isDown:'b'])// look for the 'b' key
 		{
-			gDebugFlags = DEBUG_COLLISIONS;
+			gDebugFlags |= DEBUG_COLLISIONS;
 			[UNIVERSE addMessage:@"Collision debug ON" forCount:3];
+		}
+		
+		if ([gameView isDown:'x'])// look for the 'x' key
+		{
+			gDebugFlags |= DEBUG_BOUNDING_BOXES;
+			[UNIVERSE addMessage:@"Bounding box debug ON" forCount:3];
 		}
 		
 		if ([gameView isDown:'c'])// look for the 'c' key
@@ -1011,12 +1017,13 @@ static NSTimeInterval	time_last_frame;
 			[UNIVERSE addMessage:@"Octree debug ON" forCount:3];
 		}
 #endif
-		
+#ifdef ALLOW_PROCEDURAL_PLANETS
 		if ([gameView isDown:'t'])// look for the 't' key
 		{
 			[UNIVERSE setDoProcedurallyTexturedPlanets: YES];
 			[UNIVERSE addMessage:@"Procedural Textures On" forCount:3];
 		}
+#endif
 		
 		if ([gameView isDown:'s'])// look for the 's' key
 		{
@@ -1028,10 +1035,14 @@ static NSTimeInterval	time_last_frame;
 		{
 #ifndef NDEBUG
 			gDebugFlags = 0;
+			[UNIVERSE addMessage:@"All debug flags OFF" forCount:3];
+#else
+			[UNIVERSE addMessage:@"Procedural textures OFF" forCount:3];
 #endif
 			OOLogSetDisplayMessagesInClass(@"$shaderDebugOn", NO);
+#ifdef ALLOW_PROCEDURAL_PLANETS
 			[UNIVERSE setDoProcedurallyTexturedPlanets: NO];
-			[UNIVERSE addMessage:@"All debug flags OFF" forCount:3];
+#endif ALLOW_PROCEDURAL_PLANETS
 		}
 	}
 	//
@@ -1053,7 +1064,7 @@ static NSTimeInterval	time_last_frame;
 			}
 			else
 			{
-				saved_view_direction = [UNIVERSE viewDir];
+				saved_view_direction = [UNIVERSE viewDirection];
 				saved_script_time = script_time;
 				[UNIVERSE addMessage:ExpandDescriptionForCurrentSystem(@"[game-paused]") forCount:1.0];
 				[UNIVERSE addMessage:ExpandDescriptionForCurrentSystem(@"[game-paused-options]") forCount:1.0];
@@ -2232,7 +2243,7 @@ static BOOL customView_pressed;
 	{
 		if ((!customView_pressed)&&(custom_views)&&(![UNIVERSE displayCursor]))
 		{
-			if ([UNIVERSE viewDir] == VIEW_CUSTOM)	// already in custom view mode
+			if ([UNIVERSE viewDirection] == VIEW_CUSTOM)	// already in custom view mode
 			{
 				// rotate the custom views
 				[custom_views addObject:[custom_views objectAtIndex:0]];

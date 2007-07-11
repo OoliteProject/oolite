@@ -82,6 +82,7 @@ static NSString * const kOOLogEntityUpdateError				= @"entity.linkedList.update.
 
 - (void) dealloc
 {
+	[UNIVERSE ensureEntityReallyRemoved:self];
 	[collidingEntities release];
 	[trackLock release];
 	[collisionRegion release];

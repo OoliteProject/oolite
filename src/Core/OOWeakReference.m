@@ -43,6 +43,13 @@ This code is hereby placed in the public domain.
 }
 
 
+- (NSString *)description
+{
+	if (_object != nil)  return [_object description];
+	else  return [NSString stringWithFormat:@"<Dead %@ %p>", [self class], self];
+}
+
+
 - (BOOL)weakRefObjectStillExists
 {
 	return _object != nil;
@@ -51,7 +58,13 @@ This code is hereby placed in the public domain.
 
 - (id)weakRefUnderlyingObject
 {
-	return [[_object retain] autorelease];
+	return _object;
+}
+
+
+- (id)weakRetain
+{
+	return [self retain];
 }
 
 
@@ -108,6 +121,22 @@ This code is hereby placed in the public domain.
 		// Selector we responds to, or _object is nil and therefore responds to everything.
 		return YES;
 	}
+}
+
+@end
+
+
+@implementation NSObject (OOWeakReference)
+
+- (BOOL)weakRefObjectStillExists
+{
+	return YES;
+}
+
+
+- (id)weakRefUnderlyingObject
+{
+	return self;
 }
 
 @end

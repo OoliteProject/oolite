@@ -54,7 +54,7 @@ MA 02110-1301, USA.
 // * reduced from 0.5s for tgape * //
 
 
-@class MyOpenGLView, TextureStore;
+@class MyOpenGLView;
 
 
 #if OOLITE_MAC_OS_X
@@ -113,8 +113,6 @@ MA 02110-1301, USA.
 	BOOL					stayInFullScreenMode;
 
 	/*  end of GDC */
-
-//	TextureStore			*oldTextureStore;
 
 	SEL						pauseSelector;
 	NSObject				*pauseTarget;

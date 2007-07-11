@@ -38,7 +38,10 @@ typedef struct Vector
 } Vector;
 
 
-extern const Vector		kZeroVector;			/* 0, 0, 0 */
+extern const Vector		kZeroVector,		/* 0, 0, 0 */
+						kBasisXVector,		/* 1, 0, 0 */
+						kBasisYVector,		/* 0, 1, 0 */
+						kBasisZVector;		/* 0, 0, 1 */
 
 
 /* Construct vector */
@@ -69,6 +72,9 @@ OOINLINE GLfloat fast_magnitude(Vector vec) INLINE_CONST_FUNC;
 OOINLINE Vector vector_normal(Vector vec) INLINE_CONST_FUNC;
 OOINLINE Vector fast_vector_normal(Vector vec) INLINE_CONST_FUNC;
 OOINLINE Vector unit_vector(const Vector *vec) NONNULL_FUNC INLINE_CONST_FUNC;
+/* Normalize vector, returning fallback if zero vector. */
+OOINLINE Vector vector_normal_or_fallback(Vector vec, Vector fallback) INLINE_CONST_FUNC;
+OOINLINE Vector fast_vector_normal_or_fallback(Vector vec, Vector fallback) INLINE_CONST_FUNC;
 
 /* Square of distance between vectors */
 OOINLINE GLfloat distance2(Vector v1, Vector v2) INLINE_CONST_FUNC;
@@ -183,27 +189,31 @@ OOINLINE GLfloat fast_magnitude(Vector vec)
 }
 
 
-OOINLINE Vector vector_normal(Vector vec)
+OOINLINE Vector vector_normal_or_fallback(Vector vec, Vector fallback)
 {
 	GLfloat mag2 = magnitude2(vec);
-	if (EXPECT_NOT(mag2 == 0))
-	{
-	//	ReportNormalizeZeroVector();
-		return kZeroVector;
-	}
+	if (EXPECT_NOT(mag2 == 0))  return fallback;
 	return vector_multiply_scalar(vec, OOInvSqrtf(mag2));
+}
+
+
+OOINLINE Vector vector_normal(Vector vec)
+{
+	return vector_normal_or_fallback(vec, kZeroVector);
+}
+
+
+OOINLINE Vector fast_vector_normal_or_fallback(Vector vec, Vector fallback)
+{
+	GLfloat mag2 = magnitude2(vec);
+	if (EXPECT_NOT(mag2 == 0))  return fallback;
+	return vector_multiply_scalar(vec, OOFastInvSqrtf(mag2));
 }
 
 
 OOINLINE Vector fast_vector_normal(Vector vec)
 {
-	GLfloat mag2 = magnitude2(vec);
-	if (EXPECT_NOT(mag2 == 0.0f))
-	{
-	//	ReportNormalizeZeroVector();
-		return kZeroVector;
-	}
-	return vector_multiply_scalar(vec, OOFastInvSqrtf(mag2));
+	return fast_vector_normal_or_fallback(vec, kZeroVector);
 }
 
 

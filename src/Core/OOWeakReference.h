@@ -111,8 +111,18 @@ This code is hereby placed in the public domain.
 - (BOOL)weakRefObjectStillExists;
 - (id)weakRefUnderlyingObject;
 
+- (id)weakRetain;	// Returns self for weakrefs.
+
 // For referred object only:
 + (id)weakRefWithObject:(id<OOWeakReferenceSupport>)object;
 - (void)weakRefDrop;
+
+@end
+
+
+@interface NSObject (OOWeakReference)
+
+- (BOOL)weakRefObjectStillExists;	// Always YES for non-weakrefs. ObjC semantics causes it to return NO for nil, so it acts as an existence check.
+- (id)weakRefUnderlyingObject;		// Always self for non-weakrefs (and of course nil for nil).
 
 @end
