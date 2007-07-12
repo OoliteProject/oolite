@@ -66,6 +66,14 @@ SOFTWARE.
 	#endif
 #endif
 
+#ifndef OOLOG_FILE_NAME
+	#ifdef OOLOG_NO_FILE_NAME
+		#define OOLOG_FILE_NAME NULL
+	#else
+		#define OOLOG_FILE_NAME __FILE__
+	#endif
+#endif
+
 
 /*	OOLOG_SHORT_CIRCUIT:
 	If nonzero, the test of whether to display a message before evaluating the
@@ -95,11 +103,11 @@ SOFTWARE.
 	OOLogWillDisplayMessagesInClass().
 */
 #if OOLOG_SHORT_CIRCUIT
-	#define OOLog(class, format, ...)				do { if (OOLogWillDisplayMessagesInClass(class)) { OOLogWithFunctionFileAndLine(class, OOLOG_FUNCTION_NAME, __FILE__, __LINE__, format, ## __VA_ARGS__); }} while (0)
-	#define OOLogWithArgmuents(class, format, args)	do { if (OOLogWillDisplayMessagesInClass(class)) { OOLogWithFunctionFileAndLineAndArguments(class, OOLOG_FUNCTION_NAME, __FILE__, __LINE__, format, args); }} while (0)
+	#define OOLog(class, format, ...)				do { if (OOLogWillDisplayMessagesInClass(class)) { OOLogWithFunctionFileAndLine(class, OOLOG_FUNCTION_NAME, OOLOG_FILE_NAME, __LINE__, format, ## __VA_ARGS__); }} while (0)
+	#define OOLogWithArgmuents(class, format, args)	do { if (OOLogWillDisplayMessagesInClass(class)) { OOLogWithFunctionFileAndLineAndArguments(class, OOLOG_FUNCTION_NAME, OOLOG_FILE_NAME, __LINE__, format, args); }} while (0)
 #else
-	#define OOLog(class, format, ...)				OOLogWithFunctionFileAndLine(class, OOLOG_FUNCTION_NAME, __FILE__, __LINE__, format, ## __VA_ARGS__)
-	#define OOLogWithArgmuents(class, format, args)	OOLogWithFunctionFileAndLineAndArguments(class, OOLOG_FUNCTION_NAME, __FILE__, __LINE__, format, args)
+	#define OOLog(class, format, ...)				OOLogWithFunctionFileAndLine(class, OOLOG_FUNCTION_NAME, OOLOG_FILE_NAME, __LINE__, format, ## __VA_ARGS__)
+	#define OOLogWithArgmuents(class, format, args)	OOLogWithFunctionFileAndLineAndArguments(class, OOLOG_FUNCTION_NAME, OOLOG_FILE_NAME, __LINE__, format, args)
 #endif
 
 BOOL OOLogWillDisplayMessagesInClass(NSString *inMessageClass);

@@ -108,12 +108,18 @@ static NSString * kOOLogKeyDown				= @"input.keyMapping.keyPress.keyDown";
 }
 
 
-- (void)awakeFromNib
-{	
 #if OO_INCLUDE_DEBUG_CONTROLLER
-	(void)[OODebugController sharedDebugController];
-#endif
+- (void)awakeFromNib
+{
+	[self performSelector:@selector(createDebugController) withObject:nil afterDelay:0.0];
 }
+
+
+- (void)createDebugController
+{
+	(void)[OODebugController sharedDebugController];
+}
+#endif
 
 
 - (void) setStringInput: (enum StringInput) value

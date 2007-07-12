@@ -106,7 +106,6 @@ static BOOL						sInited = NO;
 static NSLock					*sLock = nil;
 static NSMutableDictionary		*sExplicitSettings = nil;
 static NSMutableDictionary		*sDerivedSettingsCache = nil;
-static NSMutableDictionary		*sFileNamesCache = nil;
 #if USE_INDENT_GLOBALS
 static THREAD_LOCAL unsigned	sIndentLevel = 0;
 static THREAD_LOCAL OOLogIndentStackElement
@@ -134,12 +133,17 @@ static void OOLogInternal_(const char *inFunction, NSString *inFormat, ...);
 // Functions used internally
 static void LoadExplicitSettings(void);
 static void LoadExplicitSettingsFromDictionary(NSDictionary *inDict);
-static NSString *AbbreviatedFileName(const char *inName);
 static id ResolveDisplaySetting(NSString *inMessageClass);
 static id ResolveMetaClassReference(NSString *inMetaClass, NSMutableSet *ioSeenMetaClasses);
 
 OOINLINE unsigned GetIndentLevel(void) PURE_FUNC;
 OOINLINE void SetIndentLevel(unsigned level);
+
+
+#ifndef OOLOG_NO_FILE_NAME
+static NSMutableDictionary		*sFileNamesCache = nil;
+static NSString *AbbreviatedFileName(const char *inName);
+#endif
 
 
 #if OOLITE_MAC_OS_X
@@ -434,22 +438,24 @@ void OOLogWithFunctionFileAndLineAndArguments(NSString *inMessageClass, const ch
 	formattedMessage = [[[NSString alloc] initWithFormat:inFormat arguments:inArguments] autorelease];
 	
 	// Apply various prefix options
-	if (sShowFunction)
+#ifndef OOLOG_NO_FILE_NAME
+	if (sShowFileAndLine)
 	{
-		if (sShowFileAndLine)
+		if (sShowFunction)
 		{
 			formattedMessage = [NSString stringWithFormat:@"%s (%@:%u): %@", inFunction, AbbreviatedFileName(inFile), inLine, formattedMessage];
 		}
 		else
 		{
-			formattedMessage = [NSString stringWithFormat:@"%s: %@", inFunction, formattedMessage];
+			formattedMessage = [NSString stringWithFormat:@"%@:%u: %@", AbbreviatedFileName(inFile), inLine, formattedMessage];
 		}
 	}
 	else
+#endif
 	{
-		if (sShowFileAndLine)
+		if (sShowFunction)
 		{
-			formattedMessage = [NSString stringWithFormat:@"%@:%u: %@", AbbreviatedFileName(inFile), inLine, formattedMessage];
+			formattedMessage = [NSString stringWithFormat:@"%s: %@", inFunction, formattedMessage];
 		}
 	}
 	
@@ -820,6 +826,7 @@ static void LoadExplicitSettingsFromDictionary(NSDictionary *inDict)
 }
 
 
+#ifndef OOLOG_NO_FILE_NAME
 /*	AbbreviatedFileName()
 	Map full file paths provided by __FILE__ to more mananagable file names,
 	with caching.
@@ -842,6 +849,7 @@ static NSString *AbbreviatedFileName(const char *inName)
 	
 	return name;
 }
+#endif
 
 
 /*	Look up setting for a message class in explicit settings, resolving

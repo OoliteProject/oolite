@@ -54,9 +54,32 @@ SOFTWARE.
 #import "OOAsyncQueue.h"
 #import <stdlib.h>
 #import <stdio.h>
+#import <sys/sysctl.h>
 
 
 #undef NSLog		// We need to be able to call the real NSLog.
+
+
+// Define CPU_TYPE_STRING for log preamble. Must be a C string literal.
+#if defined (__ppc__)
+		#define CPU_TYPE_STRING_BASE "PPC-32"
+#elif defined (__ppc64__)
+		#define CPU_TYPE_STRING_BASE "PPC-64"
+#elif defined (__i386__)
+		#define CPU_TYPE_STRING_BASE "x86-32"
+#elif defined (__x86_64__)
+		#define CPU_TYPE_STRING_BASE "x86-64"
+#else
+		#define CPU_TYPE_STRING_BASE "Unknown architecture!"
+#endif
+
+#ifdef OO_DEBUG
+	#define CPU_TYPE_STRING CPU_TYPE_STRING_BASE " debug"
+#elif !defined (NDEBUG)
+	#define CPU_TYPE_STRING CPU_TYPE_STRING_BASE " test release"
+#else
+	#define CPU_TYPE_STRING CPU_TYPE_STRING_BASE
+#endif
 
 
 typedef void (*LogCStringFunctionProc)(const char *string, unsigned length, BOOL withSyslogBanner);
@@ -69,6 +92,9 @@ static LogCStringFunctionSetterProc _NSSetLogCStringFunction = NULL;
 static void LoadLogCStringFunctions(void);
 
 static void OONSLogCStringFunction(const char *string, unsigned length, BOOL withSyslogBanner);
+
+static NSString *GetSysCtlString(const char *name);
+static unsigned long long GetSysCtlInt(const char *name);
 
 
 #define kFlushInterval	2.0		// Lower bound on interval between explicit log file flushes.
@@ -180,6 +206,9 @@ enum
 	NSFileManager		*fmgr = nil;
 	NSString			*preamble = nil;
 	NSString			*versionString = nil;
+	NSString			*sysModel = nil;
+	unsigned long long	sysPhysMem, sysCPUType, sysCPUSubType,
+						sysCPUFrequency, sysCPUCount;
 	
 	// We'll need these for a couple of things.
 	bundle = [NSBundle mainBundle];
@@ -277,7 +306,19 @@ enum
 		versionString = [bundle objectForInfoDictionaryKey:@"CFBundleVersion"];
 		if (versionString == nil)  versionString = @"<unknown version>";
 		
-		preamble = [NSString stringWithFormat:@"Opening log for %@ version %@ at %@.\nNote that the contents of the log file can be adjusted by editing logcontrol.plist.\n", appName, versionString, [NSDate date]];
+		// Get some basic system info
+		sysModel = GetSysCtlString("hw.model");
+		sysPhysMem = GetSysCtlInt("hw.physmem");
+		sysCPUType = GetSysCtlInt("hw.cputype");
+		sysCPUSubType = GetSysCtlInt("hw.cpusubtype");
+		sysCPUFrequency = GetSysCtlInt("hw.cpufrequency");
+		sysCPUCount = GetSysCtlInt("hw.logicalcpu");
+		
+		preamble = [NSString stringWithFormat:@"Opening log for %@ version %@ [" CPU_TYPE_STRING "] at %@.\n"
+											   "Machine type: %@, %llu MiB memory, CPU:%llu.%llux%llu @ %llu MHz\n"
+											   "Note that the contents of the log file can be adjusted by editing logcontrol.plist.\n",
+											   appName, versionString, [NSDate date],
+											   sysModel, (sysPhysMem + (1<<19)) / (1<<20), sysCPUType, sysCPUSubType, sysCPUCount, (sysCPUFrequency + 500000) / 1000000];
 		[self asyncLogMessage:preamble];
 	}
 	
@@ -469,4 +510,42 @@ static void OONSLogCStringFunction(const char *string, unsigned length, BOOL wit
 	{
 		OOLogWithFunctionFileAndLine(@"system", NULL, NULL, 0, @"%s", string);
 	}
+}
+
+
+static NSString *GetSysCtlString(const char *name)
+{
+	char					*buffer = nil;
+	size_t					size = 0;
+	
+	// Get size
+	sysctlbyname(name, NULL, &size, NULL, 0);
+	if (size == 0)  return nil;
+	
+	buffer = alloca(size);
+	if (sysctlbyname(name, buffer, &size, NULL, 0) != 0)  return nil;
+	return [NSString stringWithUTF8String:buffer];
+}
+
+
+static unsigned long long GetSysCtlInt(const char *name)
+{
+	unsigned long long		result;
+	size_t					size;
+	
+	size = sizeof result;
+	if (sysctlbyname(name, &result, &size, NULL, 0) != 0)  return 0;
+	if (size != sizeof result)
+	{
+		if (size == sizeof (int))
+		{
+			result = *(int *)&result;
+		}
+		else
+		{
+			result = 0;
+		}
+	}
+	
+	return result;
 }
