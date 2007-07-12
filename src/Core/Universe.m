@@ -57,6 +57,7 @@ MA 02110-1301, USA.
 #import "WormholeEntity.h"
 #import "RingEntity.h"
 #import "ParticleEntity.h"
+#import "ShipEntityAI.h"
 
 #define kOOLogUnconvertedNSLog @"unclassified.Universe"
 
@@ -731,7 +732,7 @@ static NSComparisonResult comparePrice(NSDictionary *dict1, NSDictionary *dict2,
 	/*--*/
 	
 	/*- the dust particle system -*/
-	thing = [[DustEntity alloc] init];	// alloc retains!
+	thing = [[DustEntity alloc] init];
 	[thing setScanClass: CLASS_NO_DRAW];
 	[self addEntity:thing];
 	[thing release];
@@ -758,7 +759,7 @@ static NSComparisonResult comparePrice(NSDictionary *dict1, NSDictionary *dict2,
 		n_thargs = 2;   // just to be sure
 	int i;
 	int thargoid_group = NO_TARGET;
-
+	
 	Vector		tharg_start_pos = [self getWitchspaceExitPosition];
 	ranrot_srand([[NSDate date] timeIntervalSince1970]);   // reset randomiser with current time
 
@@ -2753,6 +2754,10 @@ GLfloat docked_light_specular[]	= { (GLfloat) 1.0, (GLfloat) 1.0, (GLfloat) 0.5,
 	NSMutableArray			*foundShips = nil;
 	NSMutableArray			*foundChance = nil;
 	float					foundf = 0.0, selectedf;
+	NSDictionary			*shipDict = nil;
+	NSArray					*shipRoles = nil;
+	NSString				*autoAI = nil;
+	NSDictionary			*autoAIMap = nil;
 	
 	pool = [[NSAutoreleasePool alloc] init];
 	
@@ -2771,8 +2776,8 @@ GLfloat docked_light_specular[]	= { (GLfloat) 1.0, (GLfloat) 1.0, (GLfloat) 0.5,
 	
 	for (shipEnum = [shipdata keyEnumerator]; (shipKey = [shipEnum nextObject]); )
 	{
-		NSDictionary*	shipDict = [shipdata objectForKey:shipKey];
-		NSArray*		shipRoles = ScanTokensFromString([shipDict objectForKey:@"roles"]);
+		shipDict = [shipdata objectForKey:shipKey];
+		shipRoles = ScanTokensFromString([shipDict objectForKey:@"roles"]);
 		
 		if ([shipDict objectForKey:@"conditions"])
 		{
@@ -2828,8 +2833,22 @@ GLfloat docked_light_specular[]	= { (GLfloat) 1.0, (GLfloat) 1.0, (GLfloat) 0.5,
 	
 	if (found)
 	{
-		ship = [self newShipWithName:(NSString *)[foundShips objectAtIndex:i]];	// may return nil if not found!
-		[ship setRoles:search];											// set its roles to this one particular chosen role
+		shipKey = [foundShips objectAtIndex:i];
+		
+		ship = [self newShipWithName:shipKey];		// may return nil if not found!
+		[ship setRoles:search];						// set its roles to this one particular chosen role
+		
+		shipDict = [shipdata objectForKey:shipKey];
+		if ([shipDict fuzzyBooleanForKey:@"auto_ai"])
+		{
+			// Set AI based on role
+			autoAIMap = [ResourceManager dictionaryFromFilesNamed:@"autoAImap.plist" inFolder:@"Config" andMerge:YES];
+			autoAI = [autoAIMap stringForKey:search];
+			if (autoAI != nil)
+			{
+				[ship setAITo:autoAI];
+			}
+		}
 	}
 	else
 	{

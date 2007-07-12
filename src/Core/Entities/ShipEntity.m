@@ -3947,7 +3947,7 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 - (float)laserHeatLevel
 {
 	float result = (weapon_recharge_rate - shot_time) / weapon_recharge_rate;
-	return result;
+	return OOClamp_0_1_f(result);
 }
 
 
@@ -7172,12 +7172,6 @@ inline BOOL pairOK(NSString* my_role, NSString* their_role)
 	ADD_FLAG_IF_SET(proximity_alert);
 	flagsString = [flags count] ? [flags componentsJoinedByString:@", "] : @"none";
 	OOLog(@"dumpState.shipEntity", @"Flags: %@", flagsString);
-	
-	OOLog(@"dumpState.shipEntity.glsl", @"engine_level: %g", [self speedFactor]);
-	OOLog(@"dumpState.shipEntity.glsl", @"laser_heat_level: %g", OOClamp_0_1_f([self laserHeatLevel]));
-	OOLog(@"dumpState.shipEntity.glsl", @"hull_heat_level: %g", [self hullHeatLevel]);
-	OOLog(@"dumpState.shipEntity.glsl", @"entity_personality: %g", entity_personality / (float)0x7FFF);
-	OOLog(@"dumpState.shipEntity.glsl", @"entity_personality_int: %i", entity_personality);
 }
 
 

@@ -2227,9 +2227,7 @@ double scoopSoundPlayTime = 0.0;
 - (GLfloat) laserHeatLevel
 {
 	GLfloat result = (GLfloat)weapon_temp / (GLfloat)PLAYER_MAX_WEAPON_TEMP;
-	if (result < 1.0)
-		return result;
-	return 1.0;
+	return OOClamp_0_1_f(result);
 }
 
 

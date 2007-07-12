@@ -617,7 +617,11 @@ void OOLoggingTerminate(void)
 	
 	OOLogOutputHandlerClose();
 	
-	sInited = NO;
+	/*	We do not set sInited to NO. Instead, the output handler is required
+		to be able to handle working even after being closed. Under OS X, this
+		is done by writing to stderr in this case; on other platforms, NSLog()
+		is used and OOLogOutputHandlerClose() is a no-op.
+	*/
 }
 
 

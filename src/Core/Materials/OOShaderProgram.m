@@ -286,6 +286,8 @@ static BOOL GetShaderSource(NSString *fileName, NSString *shaderType, NSString *
 	NSString				*extension = nil;
 	NSString				*nameWithExtension = nil;
 	
+	if (fileName == nil)  return YES;	// It's OK for one or the other of the shaders to be undefined.
+	
 	result = [ResourceManager stringFromFilesNamed:fileName inFolder:@"Shaders"];
 	if (result == nil)
 	{

@@ -116,7 +116,6 @@ static NSString *MacrosToString(NSDictionary *macros);
 	self = [super initWithName:name configuration:configuration];
 	if (self == nil)  OK = NO;
 	
-	if (OK && configuration == nil)  OK = NO;
 	if (OK)
 	{
 		modifiedMacros = macros ? [macros mutableCopy] : [[NSMutableDictionary alloc] init];

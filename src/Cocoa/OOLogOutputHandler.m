@@ -133,6 +133,9 @@ void OOLogOutputHandlerClose(void)
 {
 	if (sInited)
 	{
+		sWriteToStderr = YES;
+		sInited = NO;
+		
 		[sLogger endLogging];
 		[sLogger release];
 		sLogger = nil;
@@ -142,9 +145,6 @@ void OOLogOutputHandlerClose(void)
 			_NSSetLogCStringFunction(sDefaultLogCStringFunction);
 			sDefaultLogCStringFunction = NULL;
 		}
-		
-		sInited = NO;
-		sWriteToStderr = YES;
 	}
 }
 
