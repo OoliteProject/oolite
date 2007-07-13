@@ -5178,8 +5178,6 @@ static BOOL MaintainLinkedLists(Universe* uni)
 						}
 					}
 				}
-				
-				////
 			}
 			
 			update_stage = @"updating linked lists";

@@ -400,6 +400,8 @@
 		1AD0C1C30C44DF230070BD23 /* TextureStore.m in Sources */ = {isa = PBXBuildFile; fileRef = 25161145099544390037C2E1 /* TextureStore.m */; };
 		1AD0C1C40C44DF240070BD23 /* TextureStore.h in Headers */ = {isa = PBXBuildFile; fileRef = 25161134099544390037C2E1 /* TextureStore.h */; };
 		1AD0C3300C463FCC0070BD23 /* autoAImap.plist in Copy Config */ = {isa = PBXBuildFile; fileRef = 1AD0C32F0C463FCB0070BD23 /* autoAImap.plist */; };
+		1AD0C6C90C47B77E0070BD23 /* SCRDynamicShim.m in Sources */ = {isa = PBXBuildFile; fileRef = 1AD0C6C80C47B76F0070BD23 /* SCRDynamicShim.m */; };
+		1AD0C6E60C47B82C0070BD23 /* SmartCrashReportsInstall.h in Headers */ = {isa = PBXBuildFile; fileRef = 1AD0C6E40C47B82C0070BD23 /* SmartCrashReportsInstall.h */; };
 		1ADBA5500BD0F173008FC99C /* OOBasicMaterial.h in Headers */ = {isa = PBXBuildFile; fileRef = 1ADBA54E0BD0F173008FC99C /* OOBasicMaterial.h */; };
 		1ADBA5510BD0F173008FC99C /* OOBasicMaterial.m in Sources */ = {isa = PBXBuildFile; fileRef = 1ADBA54F0BD0F173008FC99C /* OOBasicMaterial.m */; };
 		1ADF5CEC0B9DF59A00FDB2A3 /* OOCacheManager.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A231A170B9D8B1B00EF0852 /* OOCacheManager.m */; };
@@ -1266,6 +1268,9 @@
 		1AC775E00C2DD4E900ECFF3B /* OODebugGLDrawing.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OODebugGLDrawing.h; sourceTree = "<group>"; };
 		1AC775E10C2DD4E900ECFF3B /* OODebugGLDrawing.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OODebugGLDrawing.m; sourceTree = "<group>"; };
 		1AD0C32F0C463FCB0070BD23 /* autoAImap.plist */ = {isa = PBXFileReference; fileEncoding = 4; languageSpecificationIdentifier = plist; lastKnownFileType = text.xml; path = autoAImap.plist; sourceTree = "<group>"; };
+		1AD0C6C80C47B76F0070BD23 /* SCRDynamicShim.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = SCRDynamicShim.m; sourceTree = "<group>"; };
+		1AD0C6E30C47B82C0070BD23 /* SmartCrashReportsInstall.o */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.objfile"; path = SmartCrashReportsInstall.o; sourceTree = "<group>"; };
+		1AD0C6E40C47B82C0070BD23 /* SmartCrashReportsInstall.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SmartCrashReportsInstall.h; sourceTree = "<group>"; };
 		1ADBA54E0BD0F173008FC99C /* OOBasicMaterial.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOBasicMaterial.h; sourceTree = "<group>"; };
 		1ADBA54F0BD0F173008FC99C /* OOBasicMaterial.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOBasicMaterial.m; sourceTree = "<group>"; };
 		1ADF5F110B9E374B00FDB2A3 /* JoystickHandler.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = JoystickHandler.h; sourceTree = "<group>"; };
@@ -2197,6 +2202,26 @@
 			path = Doc;
 			sourceTree = "<group>";
 		};
+		1AD0C6B90C47B70F0070BD23 /* Smart Crash Reports */ = {
+			isa = PBXGroup;
+			children = (
+				1AD0C6BC0C47B7350070BD23 /* SCRDynamicShim */,
+				1AD0C6E30C47B82C0070BD23 /* SmartCrashReportsInstall.o */,
+				1AD0C6E40C47B82C0070BD23 /* SmartCrashReportsInstall.h */,
+			);
+			name = "Smart Crash Reports";
+			path = "deps/Cocoa-deps/Smart Crash Reports SDK";
+			sourceTree = "<group>";
+		};
+		1AD0C6BC0C47B7350070BD23 /* SCRDynamicShim */ = {
+			isa = PBXGroup;
+			children = (
+				1AD0C6C80C47B76F0070BD23 /* SCRDynamicShim.m */,
+			);
+			name = SCRDynamicShim;
+			path = "deps/Cocoa-deps/SCRDynamicShim";
+			sourceTree = SOURCE_ROOT;
+		};
 		1ADC3F850BFA1388000E0F89 /* Drawables */ = {
 			isa = PBXGroup;
 			children = (
@@ -2282,6 +2307,7 @@
 		29B97323FDCFA39411CA2CEA /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				1AD0C6B90C47B70F0070BD23 /* Smart Crash Reports */,
 				1A71E6FB0BCE345800CD5C13 /* libpng */,
 				1A71E8780BCE8EB100CD5C13 /* libz.dylib */,
 				1AEAAC6C0BA457C3000705D0 /* SpiderMonkey headers */,
@@ -2456,6 +2482,7 @@
 				1A7D83010C40111B00E4A5F5 /* OOLogOutputHandler.h in Headers */,
 				1A7D833A0C40147800E4A5F5 /* OOAsyncQueue.h in Headers */,
 				1AD0C1C40C44DF240070BD23 /* TextureStore.h in Headers */,
+				1AD0C6E60C47B82C0070BD23 /* SmartCrashReportsInstall.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -2491,6 +2518,8 @@
 				1A2319BA0B9D032700EF0852 /* Copy Sounds */,
 				1A3491320BC25ED400802DA7 /* Copy Scripts */,
 				1A8072280C0483FA00BA1935 /* Copy Debug Add-ons */,
+				1AD0C7890C47C1680070BD23 /* Build SCR Shim */,
+				1AD0C7300C47BDEF0070BD23 /* Copy SCR Shim (test release only) */,
 			);
 			buildRules = (
 			);
@@ -2589,6 +2618,38 @@
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
 			shellScript = "plutil -convert xml1 -o $SRCROOT/Resources/Config/logcontrol.plist.xml $SRCROOT/Resources/Config/logcontrol.plist\necho Updated logcontrol.plist.xml.\n";
+		};
+		1AD0C7300C47BDEF0070BD23 /* Copy SCR Shim (test release only) */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+				"$(SRCROOT)/deps/Cocoa-deps/SCRDynamicShim/bin/SCRDynamicShim.dylib",
+			);
+			name = "Copy SCR Shim (test release only)";
+			outputPaths = (
+				$BUILT_PRODUCTS_DIR/Oolite.app/Contents/Frameworks/SCRDynamicShim.dylib,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/bash;
+			shellScript = "if [ $COPY_SCR_SHIM ]\nthen\n\techo \"Copying SCR shim\"\n\t\n\tTARGET_DIR=\"$BUILT_PRODUCTS_DIR/Oolite.app/Contents/Frameworks\"\n\tif [ ! -e \"$TARGET_DIR\" ]\n\tthen\n\t\tmkdir \"$TARGET_DIR\"\n\tfi\n\tcp \"$SRCROOT/deps/Cocoa-deps/SCRDynamicShim/bin/SCRDynamicShim.dylib\" \"$TARGET_DIR/SCRDynamicShim.dylib\"\nfi\n";
+		};
+		1AD0C7890C47C1680070BD23 /* Build SCR Shim */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+				"$(SRCROOT)/deps/Cocoa-deps/Smart Crash Reports SDK/SmartCrashReportsInstall.o",
+			);
+			name = "Build SCR Shim";
+			outputPaths = (
+				"$(SRCROOT)/deps/Cocoa-deps/SCRDynamicShim/bin/SCRDynamicShim.dylib",
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/bash;
+			shellScript = "# A copy of this script is used in the \"Build SCR Shim\" build phase in Xcode.\n\nif [ $COPY_SCR_SHIM ]\nthen\n\techo \"Building SCR shim\"\n\t\n\tSHIM_DIR=\"$SRCROOT/deps/Cocoa-deps/SCRDynamicShim/\"\n\tBIN_DIR=\"$SHIM_DIR/bin\"\n\tif [ ! -e \"$BIN_DIR\" ]\n\tthen\n\t\tmkdir \"$BIN_DIR\"\n\tfi\n\t\n\t/usr/bin/gcc -o \"$BIN_DIR/SCRDynamicShim.dylib\" -L/Developer/SDKs/MacOSX10.4u.sdk/usr/lib/gcc/darwin/default \"$SHIM_DIR/../Smart Crash Reports SDK/SmartCrashReportsInstall.o\" -exported_symbols_list \"$SHIM_DIR/ExportList.txt\" -framework Carbon -framework Security -lz -arch ppc -Wl,-single_module -compatibility_version 1 -current_version 1 -install_name /usr/local/lib/SCRDynamicShim.dylib -Wl,-Y,1455 -dynamiclib -mmacosx-version-min=10.4 -Wl,-syslibroot,/Developer/SDKs/MacOSX10.4u.sdk\nfi\n";
 		};
 /* End PBXShellScriptBuildPhase section */
 
@@ -2700,6 +2761,7 @@
 				1A7D83020C40111B00E4A5F5 /* OOLogOutputHandler.m in Sources */,
 				1A7D833B0C40147800E4A5F5 /* OOAsyncQueue.m in Sources */,
 				1AD0C1C30C44DF230070BD23 /* TextureStore.m in Sources */,
+				1AD0C6C90C47B77E0070BD23 /* SCRDynamicShim.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -2773,9 +2835,11 @@
 				LIBRARY_SEARCH_PATHS = (
 					"$(LIBRARY_SEARCH_PATHS_QUOTED_1)",
 					"$(LIBRARY_SEARCH_PATHS_QUOTED_2)",
+					"$(LIBRARY_SEARCH_PATHS_QUOTED_3)",
 				);
 				LIBRARY_SEARCH_PATHS_QUOTED_1 = "\"$(SRCROOT)/deps/Cocoa-deps/Ogg\\ Vorbis\"";
 				LIBRARY_SEARCH_PATHS_QUOTED_2 = "\"$(SRCROOT)/deps/Cocoa-deps/js\"";
+				LIBRARY_SEARCH_PATHS_QUOTED_3 = "\"$(SRCROOT)/deps/Cocoa-deps/SCRDynamicShim/bin\"";
 				MACOSX_DEPLOYMENT_TARGET = 10.3;
 				OTHER_CFLAGS = "-DLOADSAVEGUIXX";
 				OTHER_LDFLAGS = "";
@@ -2825,9 +2889,11 @@
 				LIBRARY_SEARCH_PATHS = (
 					"$(LIBRARY_SEARCH_PATHS_QUOTED_1)",
 					"$(LIBRARY_SEARCH_PATHS_QUOTED_2)",
+					"$(LIBRARY_SEARCH_PATHS_QUOTED_3)",
 				);
 				LIBRARY_SEARCH_PATHS_QUOTED_1 = "\"$(SRCROOT)/deps/Cocoa-deps/Ogg\\ Vorbis\"";
 				LIBRARY_SEARCH_PATHS_QUOTED_2 = "\"$(SRCROOT)/deps/Cocoa-deps/js\"";
+				LIBRARY_SEARCH_PATHS_QUOTED_3 = "\"$(SRCROOT)/deps/Cocoa-deps/SCRDynamicShim/bin\"";
 				MACOSX_DEPLOYMENT_TARGET = 10.3;
 				OTHER_LDFLAGS = "-lSystem";
 				PREBINDING = NO;
@@ -2901,13 +2967,17 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				COPY_PHASE_STRIP = NO;
+				COPY_SCR_SHIM = 1;
 				DEAD_CODE_STRIPPING = YES;
 				DEBUG_INFORMATION_FORMAT = dwarf;
 				FRAMEWORK_SEARCH_PATHS = "\"$(SRCROOT)/deps/Cocoa-deps/\"";
 				GCC_DEBUGGING_SYMBOLS = used;
 				GCC_ENABLE_FIX_AND_CONTINUE = NO;
 				GCC_OPTIMIZATION_LEVEL = s;
-				GCC_PREPROCESSOR_DEFINITIONS = XP_UNIX;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					XP_UNIX,
+					"OO_SMART_CRASH_REPORT_INSTALL=1",
+				);
 				GCC_REUSE_STRINGS = YES;
 				HEADER_SEARCH_PATHS = (
 					"$(HEADER_SEARCH_PATHS_QUOTED_1)",
@@ -2924,11 +2994,12 @@
 				LIBRARY_SEARCH_PATHS = (
 					"$(LIBRARY_SEARCH_PATHS_QUOTED_1)",
 					"$(LIBRARY_SEARCH_PATHS_QUOTED_2)",
+					"$(LIBRARY_SEARCH_PATHS_QUOTED_3)",
 				);
 				LIBRARY_SEARCH_PATHS_QUOTED_1 = "\"$(SRCROOT)/deps/Cocoa-deps/Ogg\\ Vorbis\"";
 				LIBRARY_SEARCH_PATHS_QUOTED_2 = "\"$(SRCROOT)/deps/Cocoa-deps/js\"";
 				MACOSX_DEPLOYMENT_TARGET = 10.3;
-				OTHER_LDFLAGS = "-lSystem";
+				OTHER_LDFLAGS_i386 = "\"$(SRCROOT)/deps/Cocoa-deps/Smart Crash Reports SDK/SmartCrashReportsInstall.o\" -framework Security";
 				PREBINDING = NO;
 				PRODUCT_NAME = Oolite;
 				SDKROOT_i386 = /Developer/SDKs/MacOSX10.4u.sdk;

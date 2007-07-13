@@ -468,14 +468,18 @@ static NSString * const kOOLogEntityUpdateError				= @"entity.linkedList.update.
 }
 
 
-- (void) setOwner:(Entity *) ent
+- (void) setOwner:(Entity *)ent
 {
-	OOUniversalID	owner_id = [ent universalID];
-	
-	if ([UNIVERSE entityForUniversalID:owner_id] == ent)	// check to make sure it's kosher
-		owner = owner_id;
-	else
-		owner = NO_TARGET;
+	if (ent != nil)
+	{
+		OOUniversalID	owner_id = [ent universalID];
+		
+		if ([UNIVERSE entityForUniversalID:owner_id] == ent)	// check to make sure it's kosher
+			owner = owner_id;
+		else
+			owner = NO_TARGET;
+	}
+	else  owner = NO_TARGET;
 }
 
 
@@ -1023,6 +1027,12 @@ static NSString * const kOOLogEntityUpdateError				= @"entity.linkedList.update.
 	ADD_FLAG_IF_SET(throw_sparks);
 	flagsString = [flags count] ? [flags componentsJoinedByString:@", "] : @"none";
 	OOLog(@"dumpState.entity", @"Flags: %@", flagsString);
+}
+
+
+- (void)subEntityReallyDied:(ShipEntity *)sub
+{
+	OOLog(@"entity.bug", @"%s called for non-ship entity %@ by %@", self, sub);
 }
 
 

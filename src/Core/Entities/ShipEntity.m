@@ -68,6 +68,7 @@ static NSString * const kOOLogEntityBehaviourChanged	= @"entity.behaviour.change
 - (void) drawSubEntity:(BOOL) immediate :(BOOL) translucent;
 
 - (void)subEntityDied:(ShipEntity *)sub;
+- (void)subEntityReallyDied:(ShipEntity *)sub;
 
 @end
 
@@ -423,7 +424,7 @@ static NSString * const kOOLogEntityBehaviourChanged	= @"entity.behaviour.change
 	
 	if (isSubentity)
 	{
-		[(ShipEntity *)[self owner] subEntityDied:self];
+		[(ShipEntity *)[self owner] subEntityReallyDied:self];
 	}
 	
 	[shipinfoDictionary release];
@@ -3719,7 +3720,40 @@ static GLfloat mascem_color2[4] =	{ 0.4, 0.1, 0.4, 1.0};	// purple
 - (void)subEntityDied:(ShipEntity *)sub
 {
 	if (subentity_taking_damage == sub)  subentity_taking_damage = nil;
+	[sub setOwner:nil];
 	[sub_entities removeObject:sub];
+}
+
+
+- (void)subEntityReallyDied:(ShipEntity *)sub
+{
+	NSMutableArray	*newSubs = nil;
+	unsigned		i, count;
+	id				element;
+	
+	if (subentity_taking_damage == sub)  subentity_taking_damage = nil;
+	if ([sub_entities containsObject:sub])
+	{
+		OOLog(@"shipEntity.bug.subEntityRetainUnderflow", @"Subentity died while still in subentity list! This is bad. Leaking subentity list to avoid crash.");
+		
+		count = [sub_entities count];
+		if (count != 1)
+		{
+			newSubs = [[NSMutableArray alloc] initWithCapacity:count - 1];
+			for (i = 0; i != count; ++i)
+			{
+				element = [sub_entities objectAtIndex:i];
+				if (element != sub)
+				{
+					[newSubs addObject:element];
+					[element release];	// Let it die later, even though there's a reference in the leaked array.
+				}
+			}
+		}
+		
+		// Leak old array, replace with new.
+		sub_entities = newSubs;
+	}
 }
 
 

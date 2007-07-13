@@ -92,5 +92,11 @@
 			</dict>
 		</dict>
 	</array>
+	<key>SmartCrashReports_CompanyName</key>
+	<string>the Oolite team</string>
+	<key>SmartCrashReports_EmailTicket</key>
+	<string>SCR-A36F37AFFD</string>
+	<key>SmartCrashReports_CommentsTemplate</key>
+	<string>Please paste the contents of the run log (in your home folder, open Libray, then Logs, then Oolite, then Latest.log) here.</string>
 </dict>
 </plist>

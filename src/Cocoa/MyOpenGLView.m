@@ -33,6 +33,7 @@ MA 02110-1301, USA.
 #import "OODebugController.h"
 #import <Carbon/Carbon.h>
 #import "JoystickHandler.h"
+#import "SmartCrashReportsInstall.h"
 
 
 static NSString * kOOLogKeyCodeOutOfRange	= @"input.keyMapping.codeOutOfRange";
@@ -108,18 +109,25 @@ static NSString * kOOLogKeyDown				= @"input.keyMapping.keyPress.keyDown";
 }
 
 
-#if OO_INCLUDE_DEBUG_CONTROLLER
 - (void)awakeFromNib
 {
-	[self performSelector:@selector(createDebugController) withObject:nil afterDelay:0.0];
+	[self performSelector:@selector(performLateSetup) withObject:nil afterDelay:0.0];
 }
 
 
-- (void)createDebugController
+- (void)performLateSetup
 {
+#if OO_INCLUDE_DEBUG_CONTROLLER
 	(void)[OODebugController sharedDebugController];
-}
 #endif
+#if OO_SMART_CRASH_REPORT_INSTALL
+	Boolean authenticationWillBeRequired = NO;
+	if (UnsanitySCR_CanInstall(&authenticationWillBeRequired))
+	{
+		UnsanitySCR_Install(authenticationWillBeRequired ? kUnsanitySCR_GlobalInstall : 0);
+	}
+#endif
+}
 
 
 - (void) setStringInput: (enum StringInput) value
