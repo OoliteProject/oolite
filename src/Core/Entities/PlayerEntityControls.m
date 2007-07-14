@@ -235,7 +235,11 @@ static BOOL rotateCargo_pressed;
 static BOOL autopilot_key_pressed;
 static BOOL fast_autopilot_key_pressed;
 static BOOL target_autopilot_key_pressed;
+
+#ifndef NDEBUG
 static BOOL dump_target_state_pressed;
+#endif
+
 
 static int				saved_view_direction;
 static double			saved_script_time;

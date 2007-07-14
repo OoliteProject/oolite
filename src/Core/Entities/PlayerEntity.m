@@ -1048,10 +1048,9 @@ static PlayerEntity *sSharedPlayer = nil;
 	if (color == nil)  color = [OOColor redColor];
 	[self setLaserColor:color];
 	
+	[extra_equipment removeAllObjects];
 	if ([shipDict objectForKey:@"extra_equipment"])
 	{
-		// Shouldn't we be doing this anyway? -- Ahruman
-		[extra_equipment removeAllObjects];
 		[extra_equipment addEntriesFromDictionary:[shipDict dictionaryForKey:@"extra_equipment"]];
 	}
 	
