@@ -233,9 +233,9 @@ MA 02110-1301, USA.
 	for (i = 0; i < n_scanned_ships; i++)
 	{
 		ShipEntity* other = (ShipEntity *)scanned_ships[i];
-		if ((other->scanClass == CLASS_CARGO)&&([other getCargoType] != CARGO_NOT_CARGO))
+		if ((other->scanClass == CLASS_CARGO)&&([other cargoType] != CARGO_NOT_CARGO))
 		{
-			if ((!isPolice) || ([other getCommodityType] == 3)) // police only rescue lifepods and slaves
+			if ((!isPolice) || ([other commodityType] == 3)) // police only rescue lifepods and slaves
 			{
 				GLfloat d2 = distance2_scanned_ships[i];
 				if (d2 < found_d2)
@@ -270,7 +270,7 @@ MA 02110-1301, USA.
 	for (i = 0; (i < n_scanned_ships)&&(things_found < 16) ; i++)
 	{
 		ShipEntity* other = scanned_ships[i];
-		if ((other->scanClass == CLASS_CARGO)&&([other getCargoType] != CARGO_NOT_CARGO))
+		if ((other->scanClass == CLASS_CARGO)&&([other cargoType] != CARGO_NOT_CARGO))
 		{
 			found_target = [other universalID];
 			thing_uids_found[things_found++] = found_target;
@@ -402,7 +402,7 @@ MA 02110-1301, USA.
 		ShipEntity* thing = scanned_ships[i];
 		if (thing->scanClass == CLASS_MISSILE)
 		{
-			if ([thing getPrimaryTarget] == self)
+			if ([thing primaryTarget] == self)
 				missile = thing;
 			if ((escortCount > 0)&&(missile == nil))
 			{
@@ -868,7 +868,7 @@ WormholeEntity*	whole;
 
 - (void) acceptDistressMessageFrom:(ShipEntity *)other
 {
-	found_target = [[other getPrimaryTarget] universalID];
+	found_target = [[other primaryTarget] universalID];
 	switch (behaviour)
 	{
 		case BEHAVIOUR_ATTACK_TARGET :
@@ -975,7 +975,7 @@ WormholeEntity*	whole;
 	for (i = 0; i < ent_count; i++) if (uni_entities[i]->isShip)
 	{
 		ShipEntity* other = (ShipEntity*)uni_entities[i];
-		if ([other getPrimaryTarget] == self)
+		if ([other primaryTarget] == self)
 		{
 			[[other getAI] message:@"TARGET_LOST"];	// lose targetting
 			other->primaryTarget = NO_TARGET;
@@ -1015,7 +1015,7 @@ WormholeEntity*	whole;
 	{
 		ShipEntity* thing = scanned_ships[i];
 		GLfloat d2 = distance2_scanned_ships[i];
-		if (((thing->scanClass == CLASS_THARGOID)||(([thing getPrimaryTarget] == self)&&([thing hasHostileTarget])))&&(d2 < found_d2))
+		if (((thing->scanClass == CLASS_THARGOID)||(([thing primaryTarget] == self)&&([thing hasHostileTarget])))&&(d2 < found_d2))
 		{
 			found_target = [thing universalID];
 			found_d2 = d2;
@@ -1339,26 +1339,26 @@ WormholeEntity*	whole;
 
 - (void) sendTargetCommsMessage:(NSString*) message
 {
-	ShipEntity* ship = (ShipEntity*)[self getPrimaryTarget];
+	ShipEntity* ship = (ShipEntity*)[self primaryTarget];
 	if ((!ship)||(ship->status == STATUS_DEAD)||(ship->status == STATUS_DOCKED))
 	{
 		primaryTarget = NO_TARGET;
 		[shipAI reactToMessage:@"TARGET_LOST"];
 		return;
 	}
-	[self sendExpandedMessage:message toShip:(ShipEntity*)[self getPrimaryTarget]];
+	[self sendExpandedMessage:message toShip:(ShipEntity*)[self primaryTarget]];
 }
 
 - (void) markTargetForFines
 {
-	ShipEntity* ship = (ShipEntity*)[self getPrimaryTarget];
+	ShipEntity* ship = (ShipEntity*)[self primaryTarget];
 	if ((!ship)||(ship->status == STATUS_DEAD)||(ship->status == STATUS_DOCKED))
 	{
 		primaryTarget = NO_TARGET;
 		[shipAI reactToMessage:@"TARGET_LOST"];
 		return;
 	}
-	if ([(ShipEntity*)[self getPrimaryTarget] markForFines])
+	if ([(ShipEntity*)[self primaryTarget] markForFines])
 		[shipAI message:@"TARGET_MARKED"];
 }
 
@@ -1366,7 +1366,7 @@ WormholeEntity*	whole;
 {
 	if ((isStation)||(scanClass == CLASS_POLICE))
 	{
-		ShipEntity* ship = (ShipEntity*)[self getPrimaryTarget];
+		ShipEntity* ship = (ShipEntity*)[self primaryTarget];
 		if ((!ship)||(ship->status == STATUS_DEAD)||(ship->status == STATUS_DOCKED))
 		{
 			primaryTarget = NO_TARGET;
@@ -1432,7 +1432,7 @@ WormholeEntity*	whole;
 
 - (void) setDestinationToDockingAbort
 {
-	Entity* the_target = [self getPrimaryTarget];
+	Entity* the_target = [self primaryTarget];
 	double bo_distance = 8000; //	8km back off
 	Vector v0 = position;
 	Vector d0 = (the_target)? the_target->position : kZeroVector;
@@ -1473,7 +1473,7 @@ WormholeEntity*	whole;
 		ShipEntity* thing = scanned_ships[i];
 		GLfloat d2 = distance2_scanned_ships[i];
 		GLfloat e1 = [thing energy];
-		if (((thing->scanClass == CLASS_THARGOID)||(([thing getPrimaryTarget] == mother)&&([thing hasHostileTarget])))&&(d2 < found_d2))
+		if (((thing->scanClass == CLASS_THARGOID)||(([thing primaryTarget] == mother)&&([thing hasHostileTarget])))&&(d2 < found_d2))
 		{
 			if (e1 > max_e)
 			{

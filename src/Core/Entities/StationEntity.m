@@ -52,8 +52,8 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 	if (self != [UNIVERSE station])  return;
 	
 	int old_target = primaryTarget;
-	primaryTarget = [[other getPrimaryTarget] universalID];
-	[(ShipEntity *)[other getPrimaryTarget] markAsOffender:8];	// mark their card
+	primaryTarget = [[other primaryTarget] universalID];
+	[(ShipEntity *)[other primaryTarget] markAsOffender:8];	// mark their card
 	[self launchDefenseShip];
 	primaryTarget = old_target;
 

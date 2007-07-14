@@ -380,9 +380,23 @@ static NSString * kOOLogKeyDown				= @"input.keyMapping.keyPress.keyDown";
 
 - (void) keyUp:(NSEvent *)theEvent
 {
-	NSString	*stringValue = [theEvent charactersIgnoringModifiers];
-	int			key = [stringValue characterAtIndex:0];
-	int			keycode = [theEvent keyCode] & 255;
+	NSString	*stringValue = nil;
+	int			key;
+	int			keycode;
+	
+	stringValue = [theEvent charactersIgnoringModifiers];
+	
+	/*	Bug: exception when releasing accent key.
+		Analysis: Dead keys (accents and similar) return an empty string.
+		Fix: reject zero-length strings. This is the Wrong Thing - we should
+		really be using KeyTranslate()/UCKeyTranslate() to find out what the
+		string would be if you pressed the key and then space.
+		-- Ahruman 20070714
+	*/
+	if ([stringValue length] < 1)  return;
+	
+	key = [stringValue characterAtIndex:0];
+	keycode = [theEvent keyCode] & 255;
 	
 	supressKeys = NO;
 	
@@ -405,9 +419,23 @@ static NSString * kOOLogKeyDown				= @"input.keyMapping.keyPress.keyDown";
 
 - (void) keyDown:(NSEvent *)theEvent
 {
-	NSString	*stringValue = [theEvent charactersIgnoringModifiers];
-	int			key = [stringValue characterAtIndex:0];
-	int			keycode = [theEvent keyCode] & 255;
+	NSString	*stringValue = nil;
+	int			key;
+	int			keycode;
+	
+	stringValue = [theEvent charactersIgnoringModifiers];
+	
+	/*	Bug: exception when pressing accent key.
+		Analysis: Dead keys (accents and similar) return an empty string.
+		Fix: reject zero-length strings. This is the Wrong Thing - we should
+		really be using KeyTranslate()/UCKeyTranslate() to find out what the
+		string would be if you pressed the key and then space.
+		-- Ahruman 20070714
+	*/
+	if ([stringValue length] < 1)  return;
+	
+	key = [stringValue characterAtIndex:0];
+	keycode = [theEvent keyCode] & 255;
 	
 	key = [self translateKeyCode:key];
 	

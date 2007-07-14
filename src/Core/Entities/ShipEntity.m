@@ -698,7 +698,7 @@ static NSString * const kOOLogEntityBehaviourChanged	= @"entity.behaviour.change
 
 	while (escortCount > 0)
 	{
-		Vector ex_pos = [self getCoordinatesForEscortPosition:escortCount - 1];
+		Vector ex_pos = [self coordinatesForEscortPosition:escortCount - 1];
 
 		ShipEntity *escorter;
 
@@ -1441,7 +1441,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 				else
 					escorter_okay = escorter->isShip;
 				if (escorter_okay)
-					[escorter setDestination:[self getCoordinatesForEscortPosition:i]];	// update its destination
+					[escorter setDestination:[self coordinatesForEscortPosition:i]];	// update its destination
 				else
 					escort_ids[i--] = escort_ids[--escortCount];	// remove the escort
 			}
@@ -1994,7 +1994,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	}
 
 	double hurt_factor = 16 * pow(energy/maxEnergy, 4.0);
-	if (([(ShipEntity *)[self getPrimaryTarget] getPrimaryTarget] == self)&&(missiles > missile_chance * hurt_factor))
+	if (([(ShipEntity *)[self primaryTarget] primaryTarget] == self)&&(missiles > missile_chance * hurt_factor))
 		[self fireMissile];
 	[self activateCloakingDevice];
 	[self applyRoll:delta_t*flightRoll andClimb:delta_t*flightPitch];
@@ -2150,7 +2150,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 {
 	double aim = [self ballTrackLeadingTarget:delta_t];
 	ShipEntity* turret_owner = (ShipEntity *)[self owner];
-	ShipEntity* turret_target = (ShipEntity *)[turret_owner getPrimaryTarget];
+	ShipEntity* turret_target = (ShipEntity *)[turret_owner primaryTarget];
 	//
 	if ((turret_owner)&&(turret_target)&&[turret_owner hasHostileTarget])
 	{
@@ -3038,7 +3038,7 @@ static GLfloat mascem_color2[4] =	{ 0.4, 0.1, 0.4, 1.0};	// purple
 }
 
 
-- (OOCreditsQuantity) getBounty
+- (OOCreditsQuantity) bounty
 {
 	return bounty;
 }
@@ -3054,32 +3054,35 @@ static GLfloat mascem_color2[4] =	{ 0.4, 0.1, 0.4, 1.0};	// purple
 }
 
 
-- (void) setCommodity:(int) co_type andAmount:(int) co_amount;
+- (void) setCommodity:(OOCargoType)co_type andAmount:(OOCargoQuantity)co_amount
 {
-	commodity_type = co_type;
-	commodity_amount = co_amount;
+	if (co_type != NSNotFound)
+	{
+		commodity_type = co_type;
+		commodity_amount = co_amount;
+	}
 }
 
 
-- (int) getCommodityType
+- (OOCargoType) commodityType
 {
 	return commodity_type;
 }
 
 
-- (int) getCommodityAmount
+- (OOCargoQuantity) commodityAmount
 {
 	return commodity_amount;
 }
 
 
-- (OOCargoQuantity) getMaxCargo
+- (OOCargoQuantity) maxCargo
 {
 	return max_cargo;
 }
 
 
-- (OOCargoType) getCargoType
+- (OOCargoType) cargoType
 {
 	return cargo_type;
 }
@@ -3968,7 +3971,7 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 - (void) collectBountyFor:(ShipEntity *)other
 {
 	if ([roles isEqual:@"pirate"])
-		bounty += [other getBounty];
+		bounty += [other bounty];
 }
 
 
@@ -4156,7 +4159,7 @@ BOOL	class_masslocks(int some_class)
 }
 
 
-- (Entity *) getPrimaryTarget
+- (Entity *) primaryTarget
 {
 	return [UNIVERSE entityForUniversalID:primaryTarget];
 }
@@ -4215,7 +4218,7 @@ BOOL	class_masslocks(int some_class)
 	Vector my_ref = reference;
 	double aim_cos, ref_cos;
 	
-	Entity* target = [self getPrimaryTarget];
+	Entity* target = [self primaryTarget];
 	
 	Entity*		last = nil;
 	Entity*		father = [self owner];
@@ -4277,7 +4280,7 @@ BOOL	class_masslocks(int some_class)
 	Vector vector_to_target;
 	Quaternion q_minarc;
 	//
-	Entity* target = [self getPrimaryTarget];
+	Entity* target = [self primaryTarget];
 	//
 	if (!target)
 		return;
@@ -4317,7 +4320,7 @@ BOOL	class_masslocks(int some_class)
 	Vector my_ref = reference;
 	double aim_cos, ref_cos;
 	//
-	Entity* target = [self getPrimaryTarget];
+	Entity* target = [self primaryTarget];
 	//
 	Vector leading = [target velocity];
 	
@@ -4382,7 +4385,7 @@ BOOL	class_masslocks(int some_class)
 
 - (double) trackPrimaryTarget:(double) delta_t :(BOOL) retreat
 {
-	Entity*	target = [self getPrimaryTarget];
+	Entity*	target = [self primaryTarget];
 
 	if (!target)   // leave now!
 	{
@@ -4556,7 +4559,7 @@ BOOL	class_masslocks(int some_class)
 {
 	Vector  relPos;
 	GLfloat  d_forward, d_up, d_right, range2;
-	Entity  *target = [self getPrimaryTarget];
+	Entity  *target = [self primaryTarget];
 
 	if (!target)   // leave now!
 		return 0.0;
@@ -4809,7 +4812,7 @@ BOOL	class_masslocks(int some_class)
 {
 	double dist;
 	Vector delta;
-	Entity  *target = [self getPrimaryTarget];
+	Entity  *target = [self primaryTarget];
 	if (target == nil)   // leave now!
 		return 0.0;
 	delta = target->position;
@@ -4830,7 +4833,7 @@ BOOL	class_masslocks(int some_class)
 	int weapon_type = (fwd_weapon)? forward_weapon_type : aft_weapon_type;
 	if (weapon_type == WEAPON_THARGOID_LASER)
 		return (randf() < 0.05);	// one in twenty shots on target
-	Entity  *target = [self getPrimaryTarget];
+	Entity  *target = [self primaryTarget];
 	if (target == nil)   // leave now!
 		return NO;
 	if (target->status == STATUS_DEAD)
@@ -5110,7 +5113,7 @@ BOOL	class_masslocks(int some_class)
 - (BOOL) fireDirectLaserShot
 {
 	GLfloat			hit_at_range;
-	Entity*	my_target = [self getPrimaryTarget];
+	Entity*	my_target = [self primaryTarget];
 	if (!my_target)
 		return NO;
 	ParticleEntity*	shot;
@@ -5404,7 +5407,7 @@ BOOL	class_masslocks(int some_class)
 
 	double  throw_speed = 250.0;
 	Quaternion q1 = orientation;
-	Entity  *target = [self getPrimaryTarget];
+	Entity  *target = [self primaryTarget];
 
 	if	((missiles <= 0)||(target == nil)||(target->scanClass == CLASS_NO_DRAW))	// no missile lock!
 		return NO;
@@ -5635,7 +5638,7 @@ BOOL	class_masslocks(int some_class)
 		ShipEntity* jetto = [cargo objectAtIndex:0];
 		if (!jetto)
 			return 0;
-		result = [jetto getCommodityType];
+		result = [jetto commodityType];
 		[self dumpItem:jetto];
 		[cargo removeObjectAtIndex:0];
 		cargo_dump_time = [UNIVERSE getTime];
@@ -5648,7 +5651,7 @@ BOOL	class_masslocks(int some_class)
 {
 	if (!jetto)
 		return 0;
-	int result = [jetto getCargoType];
+	int result = [jetto cargoType];
 	Vector start;
 
 	double  eject_speed = 20.0;
@@ -5953,7 +5956,7 @@ BOOL	class_masslocks(int some_class)
 	if ([cargo count] >= max_cargo)					return NO;
 	if (scanClass == CLASS_CARGO)					return NO;	// we have no power so we can't scoop
 	if (other->scanClass != CLASS_CARGO)			return NO;
-	if ([other getCargoType] == CARGO_NOT_CARGO)	return NO;
+	if ([other cargoType] == CARGO_NOT_CARGO)	return NO;
 
 	if (other->isStation)
 		return NO;
@@ -5987,37 +5990,39 @@ BOOL	class_masslocks(int some_class)
 
 - (void) scoopUp:(ShipEntity *)other
 {
-	if (!other)
-		return;
-	int		co_type,co_amount;
-	switch ([other getCargoType])
+	if (other == nil)  return;
+	
+	OOCargoType		co_type;
+	OOCargoQuantity	co_amount;
+	
+	switch ([other cargoType])
 	{
-		case	CARGO_RANDOM :
-			co_type = [other getCommodityType];
-			co_amount = [other getCommodityAmount];
+		case CARGO_RANDOM:
+			co_type = [other commodityType];
+			co_amount = [other commodityAmount];
 			break;
-		case	CARGO_SLAVES :
+		
+		case CARGO_SLAVES:
 			co_amount = 1;
 			co_type = [UNIVERSE commodityForName:@"Slaves"];
-			if (co_type == NSNotFound)  // No 'Slaves' in this game, get something else instead...
-			{
-				co_type = [UNIVERSE getRandomCommodity];
-				co_amount = [UNIVERSE getRandomAmountOfCommodity:co_type];
-			}
 			break;
-		case	CARGO_ALLOY :
+		
+		case CARGO_ALLOY:
 			co_amount = 1;
 			co_type = [UNIVERSE commodityForName:@"Alloys"];
 			break;
-		case	CARGO_MINERALS :
+		
+		case CARGO_MINERALS:
 			co_amount = 1;
 			co_type = [UNIVERSE commodityForName:@"Minerals"];
 			break;
-		case	CARGO_THARGOID :
+		
+		case CARGO_THARGOID:
 			co_amount = 1;
 			co_type = [UNIVERSE commodityForName:@"Alien Items"];
 			break;
-		case	CARGO_SCRIPTED_ITEM :
+		
+		case CARGO_SCRIPTED_ITEM:
 			{
 				NSArray* actions = other->script_actions;
 				//scripting
@@ -6036,11 +6041,27 @@ BOOL	class_masslocks(int some_class)
 					[UNIVERSE addMessage:scoopedMS forCount:4];
 				}
 			}
+		
 		default :
 			co_amount = 0;
 			co_type = 0;
 			break;
 	}
+	
+	/*	Bug: docking failed due to NSRangeException while looking for element
+		NSNotFound of cargo mainfest in -[PlayerEntity unloadCargoPods].
+		Analysis: bad cargo pods being generated due to
+		-[Universe commodityForName:] looking in wrong place for names.
+		Fix 1: fix -[Universe commodityForName:].
+		Fix 2: catch NSNotFound here and substitute random cargo type.
+		-- Ahruman 20070714
+	*/
+	if (co_type == NSNotFound)
+	{
+		co_type = [UNIVERSE getRandomCommodity];
+		co_amount = [UNIVERSE getRandomAmountOfCommodity:co_type];
+	}
+	
 	if (co_amount > 0)
 	{
 		[other setCommodity:co_type andAmount:co_amount];   // belt and braces setting this!
@@ -6205,7 +6226,7 @@ BOOL	class_masslocks(int some_class)
 		{
 			ShipEntity* hunter = (ShipEntity *)other;
 			[hunter collectBountyFor:self];
-			if ([hunter getPrimaryTarget] == (Entity *)self)
+			if ([hunter primaryTarget] == (Entity *)self)
 			{
 				[hunter removeTarget:(Entity *)self];
 				[[hunter getAI] message:@"TARGET_DESTROYED"];
@@ -6256,7 +6277,7 @@ BOOL	class_masslocks(int some_class)
 		{
 			ShipEntity* hunter = (ShipEntity *)ent;
 			[hunter collectBountyFor:self];
-			if ([hunter getPrimaryTarget] == (Entity *)self)
+			if ([hunter primaryTarget] == (Entity *)self)
 			{
 				[hunter removeTarget:(Entity *)self];
 				[[hunter getAI] message:@"TARGET_DESTROYED"];
@@ -6494,7 +6515,7 @@ inline BOOL pairOK(NSString* my_role, NSString* their_role)
 }
 
 
-- (Vector) getCoordinatesForEscortPosition:(int) f_pos
+- (Vector) coordinatesForEscortPosition:(int) f_pos
 {
 	int f_hi = 1 + (f_pos >> 2);
 	int f_lo = f_pos & 3;
@@ -6519,7 +6540,7 @@ inline BOOL pairOK(NSString* my_role, NSString* their_role)
 	if (escortCount < 1)
 		return;
 
-	if (![self getPrimaryTarget])
+	if (![self primaryTarget])
 		return;
 
 	if (primaryTarget == last_escort_target)
@@ -6548,7 +6569,7 @@ inline BOOL pairOK(NSString* my_role, NSString* their_role)
 		if (escorter_okay)
 		{
 			[escorter setGroupID:NO_TARGET];	// act individually now!
-			[escorter addTarget:[self getPrimaryTarget]];
+			[escorter addTarget:[self primaryTarget]];
 			[[escorter getAI] setStateMachine:@"interceptAI.plist"];
 			[[escorter getAI] setState:@"GLOBAL"];
 
@@ -6941,7 +6962,7 @@ inline BOOL pairOK(NSString* my_role, NSString* their_role)
 			else
 				[self sendExpandedMessage:@"[thanks-for-assist]" toShip:(ShipEntity*)rescuer];
 			thanked_ship_id = rescuer_id;
-			[(ShipEntity*)switcher setBounty:[(ShipEntity*)switcher getBounty] + 5 + (ranrot_rand() & 15)];	// reward
+			[(ShipEntity*)switcher setBounty:[(ShipEntity*)switcher bounty] + 5 + (ranrot_rand() & 15)];	// reward
 		}
 	}
 }
@@ -7139,7 +7160,7 @@ inline BOOL pairOK(NSString* my_role, NSString* their_role)
 	if (sub_entities != nil)  OOLog(@"dumpState.shipEntity", @"Subentity count: %u", [sub_entities count]);
 	OOLog(@"dumpState.shipEntity", @"Time since shot: %g", shot_time);
 	OOLog(@"dumpState.shipEntity", @"Behaviour: %@", BehaviourToString(behaviour));
-	if (primaryTarget != NO_TARGET)  OOLog(@"dumpState.shipEntity", @"Target: %@", [self getPrimaryTarget]);
+	if (primaryTarget != NO_TARGET)  OOLog(@"dumpState.shipEntity", @"Target: %@", [self primaryTarget]);
 	OOLog(@"dumpState.shipEntity", @"Destination: %@", VectorDescription(destination));
 	OOLog(@"dumpState.shipEntity", @"Other destination: %@", VectorDescription(coordinates));
 	OOLog(@"dumpState.shipEntity", @"Waypoint count: %u", number_of_navpoints);

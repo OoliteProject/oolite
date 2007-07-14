@@ -509,7 +509,7 @@ static BOOL hostiles;
 				{
 					ShipEntity* ship = (ShipEntity *)drawthing;
 					double wr = [ship weaponRange];
-					isHostile = (([ship hasHostileTarget])&&([ship getPrimaryTarget] == player)&&(drawthing->zero_distance < wr*wr));
+					isHostile = (([ship hasHostileTarget])&&([ship primaryTarget] == player)&&(drawthing->zero_distance < wr*wr));
 					GLfloat* base_col = [ship scannerDisplayColorForShip:player :isHostile :flash];
 					col[0] = base_col[0];	col[1] = base_col[1];	col[2] = base_col[2];	col[3] = alpha * base_col[3];
 				}
@@ -730,7 +730,7 @@ static BOOL hostiles;
 	PlanetEntity*	the_sun = [UNIVERSE sun];
 	PlanetEntity*	the_planet = [UNIVERSE planet];
 	StationEntity*	the_station = [UNIVERSE station];
-	Entity*			the_target = [player getPrimaryTarget];
+	Entity*			the_target = [player primaryTarget];
 	Entity*			the_next_beacon = [UNIVERSE entityForUniversalID:[player nextBeaconID]];
 	int				p_status = player->status;
 	if	(((p_status == STATUS_IN_FLIGHT)
@@ -1390,7 +1390,7 @@ static BOOL hostiles;
 				}
 				else
 				{
-					if ([[player missileForStation:i] getPrimaryTarget])
+					if ([[player missileForStation:i] primaryTarget])
 						glColor4fv(red_color);
 					else
 						glColor4fv(green_color);
@@ -1475,7 +1475,7 @@ static BOOL hostiles;
 //	
 	if ([player dialMissileStatus] == MISSILE_STATUS_TARGET_LOCKED)
 	{
-		hudDrawReticleOnTarget([player getPrimaryTarget], player, z1);
+		hudDrawReticleOnTarget([player primaryTarget], player, z1);
 		[self drawDirectionCue:info];
 	}
 }
@@ -1551,7 +1551,7 @@ static BOOL hostiles;
 	if ([player dialMissileStatus] == MISSILE_STATUS_TARGET_LOCKED)
 	{
 		GLfloat clear_color[4] = {0.0, 1.0, 0.0, 0.0};
-		Entity *target = [player getPrimaryTarget];
+		Entity *target = [player primaryTarget];
 		if (!target)
 			return;
 		

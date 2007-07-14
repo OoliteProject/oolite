@@ -596,7 +596,7 @@ MA 02110-1301, USA.
 		for (i = 0 ; i < n_pods; i++)
 		{
 			ShipEntity* cargopod = [cargopods objectAtIndex:i];
-			int cargo_type = [cargopod getCommodityType];
+			int cargo_type = [cargopod commodityType];
 			float yumminess = (1.0 + randf()) * foodfactor[cargo_type];
 			if (yumminess > mostYummy)
 			{
@@ -616,7 +616,7 @@ MA 02110-1301, USA.
 			{
 				// eaten all of this cargo!
 				NSString* ms = [NSString stringWithFormat:ExpandDescriptionForCurrentSystem(@"[trumbles-eat-@]"),
-								[UNIVERSE nameForCommodity:[selectedCargopod getCommodityType]]];
+								[UNIVERSE nameForCommodity:[selectedCargopod commodityType]]];
 				
 				[UNIVERSE addMessage: ms forCount: 4.5];
 				[cargopods removeObject:selectedCargopod];

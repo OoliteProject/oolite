@@ -106,20 +106,23 @@ static PlayerEntity *sSharedPlayer = nil;
 		[manifest replaceObjectAtIndex:i withObject:commodityInfo];
 	}
 	
-	NSArray			*cargoArray = [cargo copy];
 	NSEnumerator	*cargoEnumerator = nil;
 	ShipEntity		*cargoItem = nil;
 	
 	// step through the cargo pods adding in the quantities
-	// TODO: does this alter cargo? If not, why do we need a copy? -- Ahruman
-	for (cargoEnumerator = [cargoArray objectEnumerator]; (cargoItem = [cargoEnumerator nextObject]); )
+	for (cargoEnumerator = [cargo objectEnumerator]; (cargoItem = [cargoEnumerator nextObject]); )
 	{
 		NSMutableArray	*commodityInfo;
 		int				co_type, co_amount, quantity;
 
-		co_type = [cargoItem getCommodityType];
-		co_amount = [cargoItem getCommodityAmount];
+		co_type = [cargoItem commodityType];
+		co_amount = [cargoItem commodityAmount];
 		
+		if (co_type == NSNotFound)
+		{
+			OOLog(@"player.badCargoPod", @"Cargo pod %@ has bad commodity type (NSNotFound), rejecting.", cargoItem);
+			continue;
+		}
 		commodityInfo = [manifest objectAtIndex:co_type];
 		quantity =  [[commodityInfo objectAtIndex:MARKET_QUANTITY] intValue] + co_amount;
 		
@@ -129,7 +132,6 @@ static PlayerEntity *sSharedPlayer = nil;
 	[shipCommodityData release];
 	shipCommodityData = manifest;
 	
-	[cargoArray release];
 	[cargo removeAllObjects];   // empty the hold
 	
 	[self calculateCurrentCargo];	// work out the correct value for current_cargo
@@ -1596,7 +1598,7 @@ double scoopSoundPlayTime = 0.0;
 	{
 		if ((missile_entity[i])&&([missile_entity[i] primaryTargetID] != NO_TARGET))
 		{
-			ShipEntity*	target_ship = (ShipEntity *)[missile_entity[i] getPrimaryTarget];
+			ShipEntity*	target_ship = (ShipEntity *)[missile_entity[i] primaryTarget];
 			if ((!target_ship)||(target_ship->zero_distance > SCANNER_MAX_RANGE2))
 			{
 				[UNIVERSE addMessage:ExpandDescriptionForCurrentSystem(@"[target-lost]") forCount:3.0];
@@ -1831,7 +1833,7 @@ double scoopSoundPlayTime = 0.0;
 	{
 		[(ShipEntity *)[UNIVERSE entityForUniversalID:found_target] becomeExplosion];	// blow up the doppelganger
 		[self setTargetToStation];
-		if ([self getPrimaryTarget])
+		if ([self primaryTarget])
 		{
 			// restore player ship
 			ShipEntity *player_ship = [UNIVERSE newShipWithName:ship_desc];	// retained
@@ -1842,7 +1844,7 @@ double scoopSoundPlayTime = 0.0;
 				[player_ship release];						// we only wanted it for its polygons!
 			}
 			[UNIVERSE setViewDirection:VIEW_FORWARD];
-			[self enterDock:(StationEntity *)[self getPrimaryTarget]];
+			[self enterDock:(StationEntity *)[self primaryTarget]];
 		}
 	}
 	
@@ -2355,7 +2357,7 @@ double scoopSoundPlayTime = 0.0;
 			[self setCompassMode:COMPASS_MODE_SUN];
 			break;
 		case COMPASS_MODE_SUN:
-			if ([self getPrimaryTarget])
+			if ([self primaryTarget])
 				[self setCompassMode:COMPASS_MODE_TARGET];
 			else
 			{
@@ -2514,10 +2516,10 @@ double scoopSoundPlayTime = 0.0;
 			if (missile_entity[next_missile])	// if it exists
 			{
 				[self setActiveMissile:next_missile];
-				if (([[missile_entity[next_missile] roles] hasSuffix:@"MISSILE"])&&([missile_entity[next_missile] getPrimaryTarget] != nil))
+				if (([[missile_entity[next_missile] roles] hasSuffix:@"MISSILE"])&&([missile_entity[next_missile] primaryTarget] != nil))
 				{
 					// copy the missile's target
-					[self addTarget:[missile_entity[next_missile] getPrimaryTarget]];
+					[self addTarget:[missile_entity[next_missile] primaryTarget]];
 					missile_status = MISSILE_STATUS_TARGET_LOCKED;
 				}
 				else
@@ -2704,7 +2706,7 @@ double scoopSoundPlayTime = 0.0;
 	Quaternion q1 = orientation;
 	q1.w = -q1.w;   // player view is reversed remember!
 
-	Entity  *target = [self getPrimaryTarget];
+	Entity  *target = [self primaryTarget];
 
 	// select a new active missile and decrease the missiles count
 	missile_entity[activeMissile] = nil;
@@ -3010,7 +3012,7 @@ double scoopSoundPlayTime = 0.0;
 		{
 			ShipEntity* hunter = (ShipEntity *)other;
 			[hunter collectBountyFor:self];
-			if ([hunter getPrimaryTarget] == (Entity *)self)
+			if ([hunter primaryTarget] == (Entity *)self)
 			{
 				[hunter removeTarget:(Entity *)self];
 				[[hunter getAI] message:@"TARGET_DESTROYED"];
@@ -3088,7 +3090,7 @@ double scoopSoundPlayTime = 0.0;
 		{
 			ShipEntity* hunter = (ShipEntity *)ent;
 			[hunter collectBountyFor:self];
-			if ([hunter getPrimaryTarget] == (Entity *)self)
+			if ([hunter primaryTarget] == (Entity *)self)
 			{
 				[hunter removeTarget:(Entity *)self];
 				[[hunter getAI] message:@"TARGET_DESTROYED"];
@@ -3262,15 +3264,15 @@ double scoopSoundPlayTime = 0.0;
 	if (n_cargo == 0)
 		return;
 	ShipEntity* pod = (ShipEntity*)[[cargo objectAtIndex:0] retain];
-	int current_contents = [pod getCommodityType];
-	int contents = [pod getCommodityType];
+	int current_contents = [pod commodityType];
+	int contents = [pod commodityType];
 	int rotates = 0;
 	do	{
 		[cargo removeObjectAtIndex:0];	// take it from the eject position
 		[cargo addObject:pod];	// move it to the last position
 		[pod release];
 		pod = (ShipEntity*)[[cargo objectAtIndex:0] retain];
-		contents = [pod getCommodityType];
+		contents = [pod commodityType];
 		rotates++;
 	}	while ((contents == current_contents)&&(rotates < n_cargo));
 	[pod release];
@@ -3288,7 +3290,7 @@ double scoopSoundPlayTime = 0.0;
 	for (i = 1; i < (n_cargo - rotates); i++)
 	{
 		pod = (ShipEntity*)[cargo objectAtIndex:i];
-		if ([pod getCommodityType] == current_contents)
+		if ([pod commodityType] == current_contents)
 		{
 			[pod retain];
 			[cargo removeObjectAtIndex:i--];
@@ -3301,7 +3303,7 @@ double scoopSoundPlayTime = 0.0;
 }
 
 
-- (int) getBounty		// overrides returning 'bounty'
+- (int) bounty		// overrides returning 'bounty'
 {
 	return legalStatus;
 }
@@ -3323,7 +3325,7 @@ double scoopSoundPlayTime = 0.0;
 {
 	if (!other)
 		return;
-	int score = 10 * [other getBounty];
+	int score = 10 * [other bounty];
 	int killClass = other->scanClass; // **tgape** change (+line)
 	int kill_award = 1;
 	
@@ -3332,7 +3334,7 @@ double scoopSoundPlayTime = 0.0;
 	
 	if (![UNIVERSE strict])	// only mess with the scores if we're not in 'strict' mode
 	{
-		BOOL killIsCargo = ((killClass == CLASS_CARGO)&&([other getCommodityAmount] > 0));
+		BOOL killIsCargo = ((killClass == CLASS_CARGO)&&([other commodityAmount] > 0));
 		if ((killIsCargo)||(killClass == CLASS_BUOY)||(killClass == CLASS_ROCK))
 		{
 			if (![[other roles] isEqual:@"tharglet"])	// okay, we'll count tharglets as proper kills
@@ -3379,7 +3381,7 @@ double scoopSoundPlayTime = 0.0;
 	if (damage_to < [cargo count])
 	{
 		ShipEntity* pod = (ShipEntity*)[cargo objectAtIndex:damage_to];
-		NSString* cargo_desc = [UNIVERSE nameForCommodity:[pod getCommodityType]];
+		NSString* cargo_desc = [UNIVERSE nameForCommodity:[pod commodityType]];
 		if (!cargo_desc)
 			return;
 		[UNIVERSE clearPreviousMessage];
@@ -3484,7 +3486,7 @@ double scoopSoundPlayTime = 0.0;
 		if (thing->isShip)
 		{
 			ShipEntity* ship = (ShipEntity *)thing;
-			if (self == [ship getPrimaryTarget])
+			if (self == [ship primaryTarget])
 			{
 				[[ship getAI] message:@"TARGET_LOST"];
 			}
@@ -4057,7 +4059,7 @@ double scoopSoundPlayTime = 0.0;
 	for (i = 0; i < [cargo count]; i++)
 	{
 		ShipEntity *container = [cargo objectAtIndex:i];
-		in_hold[[container getCommodityType]] += [container getCommodityAmount];
+		in_hold[[container commodityType]] += [container commodityAmount];
 	}
 	
 	for (i = 0; i < n_commodities; i++)
@@ -5233,7 +5235,7 @@ static int last_outfitting_index;
 	for (i = 0; i < [cargo count]; i++)
 	{
 		ShipEntity *container = (ShipEntity *)[cargo objectAtIndex:i];
-		in_hold[[container getCommodityType]] += [container getCommodityAmount];
+		in_hold[[container commodityType]] += [container commodityAmount];
 	}
 
 	current_cargo = 0;  // for calculating remaining hold space
@@ -5290,7 +5292,7 @@ static int last_outfitting_index;
 		for (i = 0; i < [cargo count]; i++)
 		{
 			ShipEntity *container = (ShipEntity *)[cargo objectAtIndex:i];
-			in_hold[[container getCommodityType]] += [container getCommodityAmount];
+			in_hold[[container commodityType]] += [container commodityAmount];
 		}
 
 		[gui clear];

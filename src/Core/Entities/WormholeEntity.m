@@ -135,7 +135,7 @@ static void DrawWormholeCorona(GLfloat inner_radius, GLfloat outer_radius, int s
 		[ship setPitch: 0.0];
 		[ship setRoll: 0.0];
 		
-		[ship setBounty:[ship getBounty]/2];	// adjust legal status for new system
+		[ship setBounty:[ship bounty]/2];	// adjust legal status for new system
 		
 		if ([ship cargoFlag] == CARGO_FLAG_FULL_PLENTIFUL)
 			[ship setCargoFlag: CARGO_FLAG_FULL_SCARCE];

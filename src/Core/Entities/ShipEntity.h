@@ -412,15 +412,15 @@ MA 02110-1301, USA.
 - (void)setThrustForDemo:(float)factor;
 
 - (void) setBounty:(OOCreditsQuantity) amount;
-- (OOCreditsQuantity) getBounty;
+- (OOCreditsQuantity) bounty;
 - (int) legalStatus;
 
-- (void) setCommodity:(int) co_type andAmount:(int) co_amount;
-- (int) getCommodityType;
-- (int) getCommodityAmount;
+- (void) setCommodity:(OOCargoType)co_type andAmount:(OOCargoQuantity)co_amount;
+- (OOCargoType) commodityType;
+- (OOCargoQuantity) commodityAmount;
 
-- (OOCargoQuantity) getMaxCargo;
-- (OOCargoType) getCargoType;
+- (OOCargoQuantity) maxCargo;
+- (OOCargoType) cargoType;
 - (NSMutableArray *) cargo;
 - (void) setCargo:(NSArray *) some_cargo;
 
@@ -502,7 +502,7 @@ BOOL	class_masslocks(int some_class);
 - (void) setPrimaryAggressor:(Entity *) targetEntity;
 - (void) addTarget:(Entity *) targetEntity;
 - (void) removeTarget:(Entity *) targetEntity;
-- (Entity *) getPrimaryTarget;
+- (Entity *) primaryTarget;
 - (int) primaryTargetID;
 
 - (OOBehaviour) behaviour;
@@ -574,7 +574,7 @@ BOOL	class_masslocks(int some_class);
 
 inline BOOL pairOK(NSString* my_role, NSString* their_role);
 - (BOOL) acceptAsEscort:(ShipEntity *) other_ship;
-- (Vector) getCoordinatesForEscortPosition:(int) f_pos;
+- (Vector) coordinatesForEscortPosition:(int) f_pos;
 - (void) deployEscorts;
 - (void) dockEscorts;
 

@@ -3042,8 +3042,8 @@ GLfloat docked_light_specular[]	= { (GLfloat) 1.0, (GLfloat) 1.0, (GLfloat) 0.5,
 		ShipEntity* container = [self newShipWithRole:@"cargopod"];	// retained
 		
 		// look for a pre-set filling
-		int co_type = [container getCommodityType];
-		int co_amount = [container getCommodityAmount];
+		int co_type = [container commodityType];
+		int co_amount = [container commodityAmount];
 		
 		int qr;
 		// select a random point in the histogram
@@ -3112,8 +3112,8 @@ GLfloat docked_light_specular[]	= { (GLfloat) 1.0, (GLfloat) 1.0, (GLfloat) 0.5,
 		ShipEntity* container = [self newShipWithRole:@"cargopod"];
 		
 		// look for a pre-set filling
-		int co_type = [container getCommodityType];
-		int co_amount = [container getCommodityAmount];
+		int co_type = [container commodityType];
+		int co_amount = [container commodityAmount];
 		
 		if ((co_type == NSNotFound)||(co_amount == 0))
 		{
@@ -3233,13 +3233,21 @@ GLfloat docked_light_specular[]	= { (GLfloat) 1.0, (GLfloat) 1.0, (GLfloat) 0.5,
 - (OOCargoType) commodityForName:(NSString *) co_name
 {
 	unsigned		i, count;
-	NSString		*capName = [co_name capitalizedString];
+	NSString		*name;
 	
 	count = [commoditydata count];
 	for (i = 0; i < count; i++)
 	{
-		if ([capName isEqual:[commoditydata objectAtIndex:MARKET_NAME]])
+		/*	Bug: NSNotFound being returned for valid names.
+			Analysis: Looking for name in commoditydata rather than ith element.
+			Fix: look in [commoditydata objectAtIndex:i].
+			-- Ahruman 20070714
+		*/
+		name = [[commoditydata objectAtIndex:i] stringAtIndex:MARKET_NAME];
+		if ([co_name caseInsensitiveCompare:name] == NSOrderedSame)
+		{
 			return i;
+		}
 	}
 	return NSNotFound;
 }
