@@ -8,422 +8,402 @@
     "oolite-thargoid-plans" = (
         {
             conditions = (
-                "dockedAtMainStation_bool equal YES", 
+                "dockedAtMainStation_bool equal YES",
                 "galaxy_number equal 2",
                 "mission_conhunt equal MISSION_COMPLETE",
-                "mission_thargplans undefined", 
+                "mission_thargplans undefined",
                 "score_number greaterthan 1280"
-            ); 
+            );
             do = (
-                setGuiToMissionScreen, 
-                "addMissionText: thargoid_plans_intro_brief", 
+                setGuiToMissionScreen,
+                "addMissionText: thargoid_plans_intro_brief",
                 "set: mission_thargplans PRELUDE",
 				"setMissionDescription: thargplans_short_desc1"
-            ); 
-        }, 
+            );
+        },
         {
             conditions = (
-                "status_string equal STATUS_DOCKED", 
-                "galaxy_number equal 2", 
-                "mission_thargplans equal PRELUDE", 
+                "status_string equal STATUS_DOCKED",
+                "galaxy_number equal 2",
+                "mission_thargplans equal PRELUDE",
                 "planet_number equal 83"
-            ); 
+            );
             do = (
-                setGuiToMissionScreen, 
-                "showShipModel: thargoid", 
-                "addMissionText: thargoid_plans_main_brief", 
+                setGuiToMissionScreen,
+                "showShipModel: thargoid",
+                "addMissionText: thargoid_plans_main_brief",
                 "set: mission_thargplans RUNNING",
 				"setMissionDescription: thargplans_short_desc2"
-            ); 
-        }, 
+            );
+        },
         {
             conditions = (
-                "mission_thargplans equal RUNNING", 
+                "mission_thargplans equal RUNNING",
                 "status_string equal STATUS_IN_FLIGHT",
                 "scriptTimer_number lessthan 60"
-            ); 
+            );
             do = (
-                "checkForShips: thargoid", 
+                "checkForShips: thargoid",
                 {
-                    conditions = ("shipsFound_number lessthan 2"); 
+                    conditions = ("shipsFound_number lessthan 2");
                     do = (
                         "addSystemShips: thargoid 1 0.66",
                         "addSystemShips: thargoid 1 0.33"
-                    ); 
+                    );
                 },
                 {
                     conditions = (
                         "shipsFound_number lessthan 5",
                         "d100_number lessthan 50"
-                   ); 
-                    do = ("addShips: thargoid 1"); 
+                   );
+                    do = ("addShips: thargoid 1");
                 }
-            ); 
-        }, 
-        {
-            conditions = (
-                "dockedAtMainStation_bool equal YES", 
-                "galaxy_number equal 2", 
-                "mission_thargplans equal RUNNING", 
-                "planet_number equal 36"
-            ); 
-            do = (
-                setGuiToMissionScreen, 
-                "showShipModel: thargoid", 
-                "addMissionText: thargoid_plans_debrief", 
-                "set: mission_thargplans MISSION_COMPLETE",
-                "awardShipKills: 256", 
-                "awardEquipment: EQ_NAVAL_ENERGY_UNIT",
-				clearMissionDescription
-            ); 
+            );
         },
         {
             conditions = (
-                "mission_thargplans equal MISSION_COMPLETE", 
+                "dockedAtMainStation_bool equal YES",
+                "galaxy_number equal 2",
+                "mission_thargplans equal RUNNING",
+                "planet_number equal 36"
+            );
+            do = (
+                setGuiToMissionScreen,
+                "showShipModel: thargoid",
+                "addMissionText: thargoid_plans_debrief",
+                "set: mission_thargplans MISSION_COMPLETE",
+                "awardShipKills: 256",
+                "awardEquipment: EQ_NAVAL_ENERGY_UNIT",
+				clearMissionDescription
+            );
+        },
+        {
+            conditions = (
+                "mission_thargplans equal MISSION_COMPLETE",
                 "mission_TL_FOR_EQ_NAVAL_ENERGY_UNIT undefined"
-            ); 
-            do = ("set: mission_TL_FOR_EQ_NAVAL_ENERGY_UNIT 13"); 
+            );
+            do = ("set: mission_TL_FOR_EQ_NAVAL_ENERGY_UNIT 13");
         }
     );
 	"oolite-constrictor-hunt" = (
         {
             conditions = (
-                "dockedAtMainStation_bool equal YES", 
-                "galaxy_number lessthan 2", 
-                "mission_conhunt undefined", 
+                "dockedAtMainStation_bool equal YES",
+                "galaxy_number lessthan 2",
+                "mission_conhunt undefined",
                 "score_number greaterthan 255"
-            ); 
+            );
             do = (
-                setGuiToMissionScreen, 
-                "showShipModel: constrictor", 
-                "addMissionText: constrictor_hunt_brief1", 
+                setGuiToMissionScreen,
+                "showShipModel: constrictor",
+                "addMissionText: constrictor_hunt_brief1",
                 {
-                    conditions = ("galaxy_number equal 0"); 
-                    do = ("addMissionText: constrictor_hunt_brief1a"); 
-                }, 
-                {
-                    conditions = ("galaxy_number equal 1"); 
-                    do = ("addMissionText: constrictor_hunt_brief1b"); 
-                }, 
-                "set: mission_conhunt STAGE_1",
-				"setMissionDescription: conhunt_short_desc1"
-            ); 
-        }, 
-        {
-            conditions = (
-                "mission_conhunt equal STAGE_1", 
-                "gui_screen_string equal GUI_SCREEN_SYSTEM_DATA"
-            ); 
-            do = (
-                {
-                    conditions = ("galaxy_number equal 0"); 
-                    do = (
-                        {
-                            conditions = ("planet_number equal 150"); 
-                            do = ("addMissionText: constrictor_hunt_0_150"); 
-                        }, 
-                        {
-                            conditions = ("planet_number equal 36"); 
-                            do = ("addMissionText: constrictor_hunt_0_36"); 
-                        }, 
-                        {
-                            conditions = ("planet_number equal 28"); 
-                            do = ("addMissionText: constrictor_hunt_0_28"); 
-                        }
-                    ); 
+                    conditions = ("galaxy_number equal 0");
+                    do = ("addMissionText: constrictor_hunt_brief1a");
                 },
                 {
-                    conditions = ("galaxy_number equal 1"); 
-                    do = (
-                        {
-                            conditions = ("planet_number equal 3"); 
-                            do = ("addMissionText: constrictor_hunt_1_A"); 
-                        }, 
-                        {
-                            conditions = ("planet_number equal 5"); 
-                            do = ("addMissionText: constrictor_hunt_1_A"); 
-                        }, 
-                        {
-                            conditions = ("planet_number equal 16"); 
-                            do = ("addMissionText: constrictor_hunt_1_A"); 
-                        }, 
-                        {
-                            conditions = ("planet_number equal 26"); 
-                            do = ("addMissionText: constrictor_hunt_1_A"); 
-                        }, 
-                        {
-                            conditions = ("planet_number equal 32"); 
-                            do = ("addMissionText: constrictor_hunt_1_A"); 
-                        }, 
-                        {
-                            conditions = ("planet_number equal 68"); 
-                            do = ("addMissionText: constrictor_hunt_1_A"); 
-                        }, 
-                        {
-                            conditions = ("planet_number equal 106"); 
-                            do = ("addMissionText: constrictor_hunt_1_A"); 
-                        }, 
-                        {
-                            conditions = ("planet_number equal 107"); 
-                            do = ("addMissionText: constrictor_hunt_1_A"); 
-                        }, 
-                        {
-                            conditions = ("planet_number equal 162"); 
-                            do = ("addMissionText: constrictor_hunt_1_A"); 
-                        }, 
-                        {
-                            conditions = ("planet_number equal 164"); 
-                            do = ("addMissionText: constrictor_hunt_1_A"); 
-                        }, 
-                        {
-                            conditions = ("planet_number equal 184"); 
-                            do = ("addMissionText: constrictor_hunt_1_A"); 
-                        }, 
-                        {
-                            conditions = ("planet_number equal 192"); 
-                            do = ("addMissionText: constrictor_hunt_1_A"); 
-                        }, 
-                        {
-                            conditions = ("planet_number equal 220"); 
-                            do = ("addMissionText: constrictor_hunt_1_A"); 
-                        }, 
-                        {
-                            conditions = ("planet_number equal 253"); 
-                            do = ("addMissionText: constrictor_hunt_1_253"); 
-                        }, 
-                        {
-                            conditions = ("planet_number equal 79"); 
-                            do = ("addMissionText: constrictor_hunt_1_79"); 
-                        }, 
-                        {
-                            conditions = ("planet_number equal 53"); 
-                            do = ("addMissionText: constrictor_hunt_1_53"); 
-                        }, 
-                        {
-                            conditions = ("planet_number equal 118"); 
-                            do = ("addMissionText: constrictor_hunt_1_118"); 
-                        }, 
-                        {
-                            conditions = ("planet_number equal 193"); 
-                            do = ("addMissionText: constrictor_hunt_1_193"); 
-                        }
-                    ); 
-                }
-            ); 
-        }, 
-        {
-            conditions = (
-                "mission_conhunt equal STAGE_1", 
-                "status_string equal STATUS_IN_FLIGHT", 
-                "galaxy_number equal 1", 
-                "planet_number equal 193"
-            ); 
-            do = (
-                "checkForShips: constrictor", 
-                {
-                    conditions = ("shipsFound_number equal 0"); 
-                    do = ("addShips: constrictor 1"); 
-                }
-            ); 
-        }, 
-        {
-            conditions = (
-                "dockedAtMainStation_bool equal YES", 
-                "mission_conhunt equal CONSTRICTOR_DESTROYED"
-            ); 
-            do = (
-                setGuiToMissionScreen, 
-                "showShipModel: constrictor", 
-                "awardCredits: 5000", 
-                "setLegalStatus: 0", 
-                "awardShipKills: 256", 
-                "addMissionText: constrictor_hunt_debrief", 
-                "set: mission_conhunt MISSION_COMPLETE",
-				clearMissionDescription
-            ); 
-        }
-    ); 
-    "oolite-nova" = (
-		{
-            conditions = ("status_string equal STATUS_IN_FLIGHT", "sunGoneNova_bool equal YES"); 
-            do = (sendAllShipsAway); 
-        }, 
-        {
-            conditions = ("status_string equal STATUS_IN_FLIGHT", "sunWillGoNova_bool equal YES"); 
-            do = (sendAllShipsAway); 
+                    conditions = ("galaxy_number equal 1");
+                    do = ("addMissionText: constrictor_hunt_brief1b");
+                },
+                "set: mission_conhunt STAGE_1",
+				"setMissionDescription: conhunt_short_desc1"
+            );
         },
         {
-            conditions = ("galaxy_number equal 3", "mission_novacount undefined", "mission_nova undefined"); 
-            do = ("set: mission_novacount 0"); 
-        }, 
-        {
-            conditions = ("galaxy_number equal 3", "status_string equal STATUS_EXITING_WITCHSPACE"); 
+            conditions = (
+                "mission_conhunt equal STAGE_1",
+                "gui_screen_string equal GUI_SCREEN_SYSTEM_DATA"
+            );
             do = (
-                "increment: mission_novacount", 
-                "testForEquipment: EQ_GAL_DRIVE", 
+                {
+                    conditions = ("galaxy_number equal 0");
+                    do = (
+                        {
+                            conditions = ("planet_number equal 150");
+                            do = ("addMissionText: constrictor_hunt_0_150");
+                        },
+                        {
+                            conditions = ("planet_number equal 36");
+                            do = ("addMissionText: constrictor_hunt_0_36");
+                        },
+                        {
+                            conditions = ("planet_number equal 28");
+                            do = ("addMissionText: constrictor_hunt_0_28");
+                        }
+                    );
+                },
+                {
+                    conditions = ("galaxy_number equal 1");
+                    do = (
+                        {
+                            conditions = ("planet_number equal 3");
+                            do = ("addMissionText: constrictor_hunt_1_A");
+                        },
+                        {
+                            conditions = ("planet_number equal 5");
+                            do = ("addMissionText: constrictor_hunt_1_A");
+                        },
+                        {
+                            conditions = ("planet_number equal 16");
+                            do = ("addMissionText: constrictor_hunt_1_A");
+                        },
+                        {
+                            conditions = ("planet_number equal 26");
+                            do = ("addMissionText: constrictor_hunt_1_A");
+                        },
+                        {
+                            conditions = ("planet_number equal 32");
+                            do = ("addMissionText: constrictor_hunt_1_A");
+                        },
+                        {
+                            conditions = ("planet_number equal 68");
+                            do = ("addMissionText: constrictor_hunt_1_A");
+                        },
+                        {
+                            conditions = ("planet_number equal 106");
+                            do = ("addMissionText: constrictor_hunt_1_A");
+                        },
+                        {
+                            conditions = ("planet_number equal 107");
+                            do = ("addMissionText: constrictor_hunt_1_A");
+                        },
+                        {
+                            conditions = ("planet_number equal 162");
+                            do = ("addMissionText: constrictor_hunt_1_A");
+                        },
+                        {
+                            conditions = ("planet_number equal 164");
+                            do = ("addMissionText: constrictor_hunt_1_A");
+                        },
+                        {
+                            conditions = ("planet_number equal 184");
+                            do = ("addMissionText: constrictor_hunt_1_A");
+                        },
+                        {
+                            conditions = ("planet_number equal 192");
+                            do = ("addMissionText: constrictor_hunt_1_A");
+                        },
+                        {
+                            conditions = ("planet_number equal 220");
+                            do = ("addMissionText: constrictor_hunt_1_A");
+                        },
+                        {
+                            conditions = ("planet_number equal 253");
+                            do = ("addMissionText: constrictor_hunt_1_253");
+                        },
+                        {
+                            conditions = ("planet_number equal 79");
+                            do = ("addMissionText: constrictor_hunt_1_79");
+                        },
+                        {
+                            conditions = ("planet_number equal 53");
+                            do = ("addMissionText: constrictor_hunt_1_53");
+                        },
+                        {
+                            conditions = ("planet_number equal 118");
+                            do = ("addMissionText: constrictor_hunt_1_118");
+                        },
+                        {
+                            conditions = ("planet_number equal 193");
+                            do = ("addMissionText: constrictor_hunt_1_193");
+                        }
+                    );
+                }
+            );
+        },
+        {
+            conditions = (
+                "mission_conhunt equal STAGE_1",
+                "status_string equal STATUS_IN_FLIGHT",
+                "galaxy_number equal 1",
+                "planet_number equal 193"
+            );
+            do = (
+                "checkForShips: constrictor",
+                {
+                    conditions = ("shipsFound_number equal 0");
+                    do = ("addShips: constrictor 1");
+                }
+            );
+        },
+        {
+            conditions = (
+                "dockedAtMainStation_bool equal YES",
+                "mission_conhunt equal CONSTRICTOR_DESTROYED"
+            );
+            do = (
+                setGuiToMissionScreen,
+                "showShipModel: constrictor",
+                "awardCredits: 5000",
+                "setLegalStatus: 0",
+                "awardShipKills: 256",
+                "addMissionText: constrictor_hunt_debrief",
+                "set: mission_conhunt MISSION_COMPLETE",
+				clearMissionDescription
+            );
+        }
+    );
+    "oolite-nova" = (
+		{
+            conditions = ("status_string equal STATUS_IN_FLIGHT", "sunGoneNova_bool equal YES");
+            do = (sendAllShipsAway);
+        },
+        {
+            conditions = ("status_string equal STATUS_IN_FLIGHT", "sunWillGoNova_bool equal YES");
+            do = (sendAllShipsAway);
+        },
+        {
+            conditions = ("galaxy_number equal 3", "mission_novacount undefined", "mission_nova undefined");
+            do = ("set: mission_novacount 0");
+        },
+        {
+            conditions = ("galaxy_number equal 3", "status_string equal STATUS_EXITING_WITCHSPACE");
+            do = (
+                "increment: mission_novacount",
+                "testForEquipment: EQ_GAL_DRIVE",
                 {
                     conditions = (
-                        "foundEquipment_bool equal YES", 
-                        "mission_novacount greaterthan 3", 
+                        "foundEquipment_bool equal YES",
+                        "mission_novacount greaterthan 3",
                         "mission_nova undefined"
-                    ); 
+                    );
                     do = (
-                        "set: mission_nova 2HRS_TO_ZERO", 
-                        "setFuelLeak: 25", 
-                        "setSunNovaIn: 7200", 
-                        "setPlanetinfo: market = none", 
+                        "set: mission_nova 2HRS_TO_ZERO",
+                        "setFuelLeak: 25",
+                        "setSunNovaIn: 7200",
+                        "setPlanetinfo: market = none",
                         "setPlanetinfo: sun_gone_nova = YES"
-                    ); 
+                    );
                 }
-            ); 
-        }, 
+            );
+        },
         {
-            conditions = ("mission_nova equal 2HRS_TO_ZERO", "status_string equal STATUS_IN_FLIGHT", "sunWillGoNova_bool equal NO"); 
-            do = (sendAllShipsAway); 
-        }, 
+            conditions = ("mission_nova equal 2HRS_TO_ZERO", "status_string equal STATUS_IN_FLIGHT", "sunWillGoNova_bool equal NO");
+            do = (sendAllShipsAway);
+        },
         {
             conditions = (
-                "mission_nova equal 2HRS_TO_ZERO", 
-                "dockedAtMainStation_bool equal YES", 
+                "mission_nova equal 2HRS_TO_ZERO",
+                "dockedAtMainStation_bool equal YES",
                 "missionChoice_string undefined"
-            ); 
+            );
             do = (
-				"setMissionImage: solar.png", 
-                setGuiToMissionScreen, 
-                "addMissionText: nova_1", 
+				"setMissionImage: solar.png",
+                setGuiToMissionScreen,
+                "addMissionText: nova_1",
                 "setMissionChoices: nova_yesno"
-            ); 
-        }, 
+            );
+        },
         {
             conditions = (
-                "mission_nova equal 2HRS_TO_ZERO", 
-                "dockedAtMainStation_bool equal YES", 
+                "mission_nova equal 2HRS_TO_ZERO",
+                "dockedAtMainStation_bool equal YES",
                 "missionChoice_string equal YES"
-            ); 
+            );
             do = (
-                "useSpecialCargo: A hold full of %I refugees.", 
-                "setMissionDescription: nova_missiondesc", 
-                launchFromStation, 
-                blowUpStation, 
-                "set: mission_nova NOVA_ESCAPE_HERO", 
+                "useSpecialCargo: A hold full of %I refugees.",
+                "setMissionDescription: nova_missiondesc",
+                launchFromStation,
+                blowUpStation,
+                "set: mission_nova NOVA_ESCAPE_HERO",
                 "setSunNovaIn: 30",
 				"reset: mission_nova_count"
-            ); 
-        }, 
+            );
+        },
         {
             conditions = (
-                "mission_nova equal 2HRS_TO_ZERO", 
-                "dockedAtMainStation_bool equal YES", 
+                "mission_nova equal 2HRS_TO_ZERO",
+                "dockedAtMainStation_bool equal YES",
                 "missionChoice_string equal NO"
-            ); 
+            );
             do = (
-                launchFromStation, 
-                blowUpStation, 
-                "set: mission_nova NOVA_ESCAPE_COWARD", 
-                "commsMessage: Coward! You chose not to help the refugees!", 
+                launchFromStation,
+                blowUpStation,
+                "set: mission_nova NOVA_ESCAPE_COWARD",
+                "commsMessage: Coward! You chose not to help the refugees!",
                 "setSunNovaIn: 3",
 				"reset: mission_nova_count"
-            ); 
-        }, 
+            );
+        },
         {
-            conditions = ("mission_nova equal NOVA_ESCAPE_HERO", "status_string equal STATUS_EXITING_WITCHSPACE"); 
-            do = ("set: mission_nova NOVA_ESCAPED_SYSTEM"); 
-        }, 
+            conditions = ("mission_nova equal NOVA_ESCAPE_HERO", "status_string equal STATUS_EXITING_WITCHSPACE");
+            do = ("set: mission_nova NOVA_ESCAPED_SYSTEM");
+        },
         {
-            conditions = ("mission_nova equal NOVA_ESCAPED_SYSTEM", "dockedAtMainStation_bool equal YES"); 
+            conditions = ("mission_nova equal NOVA_ESCAPED_SYSTEM", "dockedAtMainStation_bool equal YES");
             do = (
-                removeAllCargo, 
-                "awardCargo: 100 Gem-Stones", 
-                "setMissionImage: solar.png", 
-                setGuiToMissionScreen, 
-                "addMissionText: nova_hero", 
+                removeAllCargo,
+                "awardCargo: 100 Gem-Stones",
+                "setMissionImage: solar.png",
+                setGuiToMissionScreen,
+                "addMissionText: nova_hero",
                 "set: mission_nova NOVA_HERO",
 				clearMissionDescription
-            ); 
+            );
         }
-    ); 
-    "oolite-cloaking-device" = (
-        {
-            conditions = (
-                "galaxy_number equal 4", 
-                "status_string equal STATUS_EXITING_WITCHSPACE", 
-                "mission_cloak undefined"
-            ); 
-            do = (
-                {
-                    conditions = ("mission_cloakcounter undefined"); 
-                    do = ("set: mission_cloakcounter 0"); 
-                }, 
-                "increment: mission_cloakcounter", 
-                "checkForShips: asp-cloaked", 
-                {
-                    conditions = ("shipsFound_number equal 0", "mission_cloakcounter greaterthan 6"); 
-                    do = ("addShips: asp-cloaked 1", "addShips: asp-pirate 2"); 
-                }
-            ); 
-        }
-    ); 
+    );
+	
     "oolite-trumbles" = (
         {
             conditions = (
-                "dockedAtMainStation_bool equal YES", 
-                "mission_trumbles undefined", 
+                "dockedAtMainStation_bool equal YES",
+                "mission_trumbles undefined",
                 "mission_novacount undefined",
 				"credits_number greaterthan 6553.5"
-            ); 
-            do = ("set: mission_trumbles BUY_ME"); 
-        }, 
+            );
+            do = ("set: mission_trumbles BUY_ME");
+        },
         {
             conditions = (
-                "status_string equal STATUS_DOCKED", 
-                "mission_trumbles equal BUY_ME", 
-                "d100_number lessthan 20", 
+                "status_string equal STATUS_DOCKED",
+                "mission_trumbles equal BUY_ME",
+                "d100_number lessthan 20",
                 "missionChoice_string undefined"
-            ); 
+            );
             do = (
 				"showShipModel: none",
-                "setMissionImage: trumblebox.png", 
+                "setMissionImage: trumblebox.png",
                 setGuiToMissionScreen,
-                "addMissionText: trumble_offer", 
+                "addMissionText: trumble_offer",
                 "setMissionChoices: trumble_offer_yesno",
                 "set: mission_trumbles OFFER_MADE"
-            ); 
-        }, 
+            );
+        },
         {
             conditions = (
-                "status_string equal STATUS_DOCKED", 
-                "mission_trumbles equal OFFER_MADE", 
+                "status_string equal STATUS_DOCKED",
+                "mission_trumbles equal OFFER_MADE",
                 "missionChoice_string equal YES"
-            ); 
+            );
             do = (
             	resetMissionChoice,
-                setGuiToStatusScreen, 
-                "setMissionImage: none", 
-                "set: mission_trumbles TRUMBLE_BOUGHT", 
-                "awardCredits: -30", 
+                setGuiToStatusScreen,
+                "setMissionImage: none",
+                "set: mission_trumbles TRUMBLE_BOUGHT",
+                "awardCredits: -30",
                 "awardEquipment: EQ_TRUMBLE"
-            ); 
-        }, 
+            );
+        },
         {
             conditions = (
-                "status_string equal STATUS_DOCKED", 
-                "mission_trumbles equal OFFER_MADE", 
+                "status_string equal STATUS_DOCKED",
+                "mission_trumbles equal OFFER_MADE",
                 "missionChoice_string equal NO"
-            ); 
+            );
             do = (
             	resetMissionChoice,
             	setGuiToStatusScreen,
-                "setMissionImage: none", 
+                "setMissionImage: none",
             	"set: mission_trumbles NOT_NOW"
-            ); 
-        }, 
+            );
+        },
         {
             conditions = (
-                "status_string equal STATUS_EXITING_WITCHSPACE", 
-                "mission_trumbles equal NOT_NOW", 
+                "status_string equal STATUS_EXITING_WITCHSPACE",
+                "mission_trumbles equal NOT_NOW",
                 "d100_number lessthan 2"
-            ); 
-            do = ("set: mission_trumbles BUY_ME", resetMissionChoice); 
+            );
+            do = ("set: mission_trumbles BUY_ME", resetMissionChoice);
         }
-    ); 
+    );
 }

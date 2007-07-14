@@ -333,6 +333,7 @@
 		1A5DBD590BC17F0900D57389 /* NSStringOOExtensions.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A5DBD570BC17F0900D57389 /* NSStringOOExtensions.m */; };
 		1A5E462F0C32DACE008104B4 /* OOShaderUniformMethodType.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A5E462D0C32DACE008104B4 /* OOShaderUniformMethodType.m */; };
 		1A5E46300C32DACE008104B4 /* OOShaderUniformMethodType.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A5E462E0C32DACE008104B4 /* OOShaderUniformMethodType.h */; };
+		1A67050F0C4904ED002551AA /* oolite-cloaking-device.js in Copy Scripts */ = {isa = PBXBuildFile; fileRef = 1A67050E0C4904ED002551AA /* oolite-cloaking-device.js */; };
 		1A71E6F80BCE345000CD5C13 /* libpng.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 1A71E6F30BCE340C00CD5C13 /* libpng.a */; };
 		1A71E7170BCE34CF00CD5C13 /* pngconf.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A71E7030BCE34CF00CD5C13 /* pngconf.h */; };
 		1A71E7180BCE34CF00CD5C13 /* pngmem.c in Sources */ = {isa = PBXBuildFile; fileRef = 1A71E7040BCE34CF00CD5C13 /* pngmem.c */; };
@@ -832,6 +833,7 @@
 			dstSubfolderSpec = 7;
 			files = (
 				1A34912E0BC25EBC00802DA7 /* oolite-legacy-script.plist in Copy Scripts */,
+				1A67050F0C4904ED002551AA /* oolite-cloaking-device.js in Copy Scripts */,
 			);
 			name = "Copy Scripts";
 			runOnlyForDeploymentPostprocessing = 0;
@@ -1194,6 +1196,7 @@
 		1A5DBD570BC17F0900D57389 /* NSStringOOExtensions.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = NSStringOOExtensions.m; sourceTree = "<group>"; };
 		1A5E462D0C32DACE008104B4 /* OOShaderUniformMethodType.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOShaderUniformMethodType.m; sourceTree = "<group>"; };
 		1A5E462E0C32DACE008104B4 /* OOShaderUniformMethodType.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOShaderUniformMethodType.h; sourceTree = "<group>"; };
+		1A67050E0C4904ED002551AA /* oolite-cloaking-device.js */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.javascript; path = "oolite-cloaking-device.js"; sourceTree = "<group>"; };
 		1A71D85A0BCA88AA00CD5C13 /* OOPlayer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOPlayer.h; sourceTree = "<group>"; };
 		1A71D85B0BCA88AA00CD5C13 /* OOPlayer.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOPlayer.m; sourceTree = "<group>"; };
 		1A71D89F0BCA8B6500CD5C13 /* OOLocalPlayer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOLocalPlayer.h; sourceTree = "<group>"; };
@@ -1804,6 +1807,7 @@
 			isa = PBXGroup;
 			children = (
 				1A34912D0BC25EBC00802DA7 /* oolite-legacy-script.plist */,
+				1A67050E0C4904ED002551AA /* oolite-cloaking-device.js */,
 			);
 			path = Scripts;
 			sourceTree = "<group>";

@@ -41,7 +41,10 @@
 #define kOOLogUnconvertedNSLog @"unclassified.PlayerEntityLoadSave"
 
 
-#if OO_DEBUG && defined(OOLITE_USE_APPKIT_LOAD_SAVE)
+// Set to 1 to use custom load/save dialogs in windowed mode on Macs in debug builds. No effect on other platforms.
+#define USE_CUSTOM_LOAD_SAVE_ON_MAC_DEBUG		0
+
+#if USE_CUSTOM_LOAD_SAVE_ON_MAC_DEBUG && OO_DEBUG && defined(OOLITE_USE_APPKIT_LOAD_SAVE)
 #undef OOLITE_USE_APPKIT_LOAD_SAVE
 #endif
 
