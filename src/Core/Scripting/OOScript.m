@@ -34,7 +34,6 @@ MA 02110-1301, USA.
 
 static NSString * const kOOLogScriptSubclassResponsibility	= @"general.error.subclassResponsibility.OOScript";
 static NSString * const kOOLogLoadScriptJavaScript			= @"script.load.javaScript";
-static NSString * const kOOLogLoadScriptOOS					= @"script.load.oos";
 static NSString * const kOOLogLoadScriptPList				= @"script.load.pList";
 static NSString * const kOOLogLoadScriptOK					= @"script.load.parseOK";
 static NSString * const kOOLogLoadScriptParseError			= @"script.load.parseError";
@@ -93,25 +92,7 @@ static NSString * const kOOLogLoadScriptNone				= @"script.load.none";
 		}
 	}
 	
-	// Third, try to load an OOS script.
-	if (result == nil)
-	{
-		filePath = [path stringByAppendingPathComponent:@"script.oos"];
-		if ([fmgr fileExistsAtPath:filePath])
-		{
-			foundScript = YES;
-			OOLog(kOOLogLoadScriptOOS, @"Trying to load OOS script %@", filePath);
-			OOLogIndentIf(kOOLogLoadScriptOOS);
-			
-			result = [OOPListScript scriptsInOOSFile:filePath];
-			if (result != nil)  OOLog(kOOLogLoadScriptOK, @"Successfully loaded OOS script %@", filePath);
-			else  OOLog(kOOLogLoadScriptParseError, @"*** Failed to load OOS script %@", filePath);
-			
-			OOLogOutdentIf(kOOLogLoadScriptOOS);
-		}
-	}
-	
-	// Fourth, try to load an plist script.
+	// Third, try to load an plist script.
 	if (result == nil)
 	{
 		filePath = [path stringByAppendingPathComponent:@"script.plist"];
@@ -191,10 +172,6 @@ static NSString * const kOOLogLoadScriptNone				= @"script.load.none";
 		OOScript	*script = [OOJSScript scriptWithPath:filePath];
 		if (script != nil) result = [NSArray arrayWithObject:script];
 		return result;
-	}
-	else if ([extension isEqualToString:@"oos"])
-	{
-		return [OOPListScript scriptsInOOSFile:filePath];
 	}
 	else if ([extension isEqualToString:@"plist"])
 	{

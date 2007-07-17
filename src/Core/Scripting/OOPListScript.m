@@ -26,8 +26,6 @@ MA 02110-1301, USA.
 #import "OOPListParsing.h"
 #import "PlayerEntityLegacyScriptEngine.h"
 
-extern NSDictionary *ParseOOSScripts(NSString* script);
-
 
 static NSString * const kMDKeyName			= @"name";
 static NSString * const kMDKeyDescription	= @"description";
@@ -44,13 +42,6 @@ static NSString * const kKeyMetadata		= @"!metadata!";
 
 
 @implementation OOPListScript
-
-+ (NSArray *)scriptsInOOSFile:(NSString *)filePath
-{
-	NSString *script = [NSString stringWithContentsOfFile:filePath];
-	return [self scriptsFromDictionaryOfScripts:ParseOOSScripts(script)];
-}
-
 
 + (NSArray *)scriptsInPListFile:(NSString *)filePath
 {

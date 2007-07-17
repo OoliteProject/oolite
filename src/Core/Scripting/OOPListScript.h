@@ -39,7 +39,6 @@ MA 02110-1301, USA.
 	NSDictionary			*_metadata;
 }
 
-+ (NSArray *)scriptsInOOSFile:(NSString *)filePath;
 + (NSArray *)scriptsInPListFile:(NSString *)filePath;
 
 @end

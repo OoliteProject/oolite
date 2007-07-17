@@ -3,13 +3,14 @@
 OOScript.h
 
 Abstract base class for scripts.
-Currently, Oolite supports three types of script: the original property list
-scripts, OOS scripts which translate into plist scripts, and JavaScript
-scripts. OOScript unifies the interfaces to the script types and abstracts
-loading. Additionally, it falls back to a more "primitive" script if loading
-of one type fails; specifically, the order of precedence is:
+Currently, Oolite supports two types of script: the original property list
+scripts and JavaScript scripts. OOS, a format that translated into plist
+scripts, was supported until 1.69.1, but never used. OOScript unifies the
+interfaces to the script types and abstracts loading. Additionally, it falls
+back to a more "primitive" script if loading of one type fails; specifically,
+the order of precedence is:
 	script.js		(JavaScript)
-	script.oos		(OOS)
+//	script.oos		(OOS)
 	script.plist	(property list)
 
 Oolite
