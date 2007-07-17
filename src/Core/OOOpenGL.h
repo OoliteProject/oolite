@@ -114,3 +114,13 @@ void GLDrawBallBillboard(GLfloat radius, GLfloat step, GLfloat z_distance);
 */
 void GLDrawOval(GLfloat x, GLfloat y, GLfloat z, NSSize siz, GLfloat step);
 void GLDrawFilledOval(GLfloat x, GLfloat y, GLfloat z, NSSize siz, GLfloat step);
+
+
+/*	Texture name cache.
+	
+	glGenTextures() and glDeleteTextures() are expensive operations -- each
+	requres a complete flush of the rendering pipeline. We work around this by
+	caching texture objects.
+*/
+GLuint GLAllocateTextureName(void);
+void GLRecycleTextureName(GLuint name, GLuint mipLevels);

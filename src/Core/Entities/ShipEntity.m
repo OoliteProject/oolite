@@ -108,6 +108,7 @@ static NSString * const kOOLogEntityBehaviourChanged	= @"entity.behaviour.change
 {
 	NSDictionary		*shipDict = dict;
 	unsigned			i;
+	PlayerEntity		*player = [PlayerEntity sharedPlayer];
 	
 	// Does this positional stuff need setting up here?
 	// Either way, having four representations of orientation is dumb. Needs fixing. --Ahruman
@@ -140,24 +141,23 @@ static NSString * const kOOLogEntityBehaviourChanged	= @"entity.behaviour.change
 	shipDict = shipinfoDictionary;	// TEMP: ensure no mutation
 	
 	// set things from dictionary from here out
-	maxFlightSpeed = [shipDict doubleForKey:@"max_flight_speed"];
-	max_flight_roll = [shipDict doubleForKey:@"max_flight_roll"];
-	max_flight_pitch = [shipDict doubleForKey:@"max_flight_pitch"];
-	max_flight_yaw = [shipDict doubleForKey:@"max_flight_yaw" defaultValue:max_flight_pitch];	// Note by default yaw == pitch
+	maxFlightSpeed = [shipDict floatForKey:@"max_flight_speed"];
+	max_flight_roll = [shipDict floatForKey:@"max_flight_roll"];
+	max_flight_pitch = [shipDict floatForKey:@"max_flight_pitch"];
+	max_flight_yaw = [shipDict floatForKey:@"max_flight_yaw" defaultValue:max_flight_pitch];	// Note by default yaw == pitch
 	
-	thrust = [shipDict doubleForKey:@"thrust" defaultValue:thrust];
+	thrust = [shipDict floatForKey:@"thrust"];
 	
-	// This was integer percentages, made it floating point... I don't see any reason to limit the value's precision. -- Ahruman
-	float accuracy = [shipDict doubleForKey:@"accuracy" defaultValue:-100];	// Out-of-range default
+	accuracy = [shipDict floatForKey:@"accuracy" defaultValue:-100.0f];	// Out-of-range default
 	if (accuracy >= -5.0f && accuracy <= 10.0f)
 	{
 		pitch_tolerance = 0.01 * (85.0f + accuracy);
 	}
 	else
 	{
-		// TODO: reimplement with randf(), or maybe bellf(). -- Ahruman
-		pitch_tolerance = 0.01 * (80 +(ranrot_rand() & 15));
+		pitch_tolerance = 0.01 * (80 + (randf() * 15.0f));
 	}
+	if (accuracy < 1.0f)  accuracy = 1.0f;
 	
 	maxEnergy = [shipDict floatForKey:@"max_energy"];
 	energy_recharge_rate = [shipDict floatForKey:@"energy_recharge_rate"];
@@ -165,8 +165,8 @@ static NSString * const kOOLogEntityBehaviourChanged	= @"entity.behaviour.change
 	forward_weapon_type = StringToWeaponType([shipDict stringForKey:@"forward_weapon_type" defaultValue:@"WEAPON_NONE"]);
 	aft_weapon_type = StringToWeaponType([shipDict stringForKey:@"aft_weapon_type" defaultValue:@"WEAPON_NONE"]);
 	
-	weapon_energy = [shipDict doubleForKey:@"weapon_energy"];
-	scannerRange = [shipDict doubleForKey:@"scanner_range" defaultValue:25600.0];
+	weapon_energy = [shipDict floatForKey:@"weapon_energy"];
+	scannerRange = [shipDict floatForKey:@"scanner_range" defaultValue:25600.0];
 	missiles = [shipDict intForKey:@"missiles"];
 
 	// upgrades:
@@ -248,9 +248,8 @@ static NSString * const kOOLogEntityBehaviourChanged	= @"entity.behaviour.change
 		OOMesh *mesh = [OOMesh meshWithName:modelName
 						 materialDictionary:[shipDict dictionaryForKey:@"materials"]
 						  shadersDictionary:[shipDict dictionaryForKey:@"shaders"]
-									 smooth:[shipDict boolForKey:@"smooth" defaultValue:NO]
+									 smooth:[shipDict boolForKey:@"smooth"]
 							   shaderMacros:DefaultShipShaderMacros()
-							defaultBindings:DefaultShipShaderBindings()
 						shaderBindingTarget:self];
 		[self setMesh:mesh];
 	}
@@ -274,7 +273,7 @@ static NSString * const kOOLogEntityBehaviourChanged	= @"entity.behaviour.change
 		[exhaust release];
 	}
 	
-	is_hulk = [shipDict boolForKey:@"is_hulk" defaultValue:NO];
+	is_hulk = [shipDict boolForKey:@"is_hulk"];
 	
 	NSArray *subs = [shipDict arrayForKey:@"subentities"];
 	for (i = 0; i < [subs count]; i++)
@@ -348,24 +347,23 @@ static NSString * const kOOLogEntityBehaviourChanged	= @"entity.behaviour.change
 	if (color == nil)  color = [OOColor redColor];
 	[self setLaserColor:color];
 	
-	// scan class
+	// scan class. NOTE: non-standard capitalization is documented and entrenched.
 	scanClass = StringToScanClass([shipDict objectForKey:@"scanClass"]);
 	
 	// scripting
 	// TODO: use OOScript here. -- Ahruman
-	launch_actions = [[shipDict arrayForKey:KEY_LAUNCH_ACTIONS] copy];
-	script_actions = [[shipDict arrayForKey:KEY_SCRIPT_ACTIONS] copy];
-	death_actions = [[shipDict arrayForKey:KEY_DEATH_ACTIONS] copy];
-	NSArray *setUpActions = [shipDict arrayForKey:KEY_SETUP_ACTIONS];
+	launch_actions = [[shipDict arrayForKey:@"launch_actions"] copy];
+	script_actions = [[shipDict arrayForKey:@"script_actions"] copy];
+	death_actions = [[shipDict arrayForKey:@"death_actions"] copy];
+	NSArray *setUpActions = [shipDict arrayForKey:@"setup_actions"];
 	if (setUpActions != nil)
 	{
-		PlayerEntity* player = [PlayerEntity sharedPlayer];
 		[player setScriptTarget:self];
 		[player scriptActions:setUpActions forTarget:self];
 	}
 	
 	//  escorts
-	escortCount = [shipDict intForKey:@"escorts"];
+	escortCount = [shipDict unsignedIntForKey:@"escorts"];
 	escortsAreSetUp = (escortCount == 0);
 
 	// beacons
@@ -381,7 +379,7 @@ static NSString * const kOOLogEntityBehaviourChanged	= @"entity.behaviour.change
 	//
 	if ([shipDict objectForKey:@"track_contacts"])
 	{
-		[self setTrackCloseContacts:[[shipDict objectForKey:@"track_contacts"] boolValue]];
+		[self setTrackCloseContacts:[shipDict boolForKey:@"track_contacts"]];
 		// DEBUG....
 		[self setReportAImessages:YES];
 	}
@@ -392,7 +390,7 @@ static NSString * const kOOLogEntityBehaviourChanged	= @"entity.behaviour.change
 
 	// set weapon offsets
 	[self setDefaultWeaponOffsets];
-	//
+	
 	ScanVectorFromString([shipDict objectForKey:@"weapon_position_forward"], &forwardWeaponOffset);
 	ScanVectorFromString([shipDict objectForKey:@"weapon_position_aft"], &aftWeaponOffset);
 	ScanVectorFromString([shipDict objectForKey:@"weapon_position_port"], &portWeaponOffset);
@@ -401,10 +399,10 @@ static NSString * const kOOLogEntityBehaviourChanged	= @"entity.behaviour.change
 	// fuel scoop destination position (where cargo gets sucked into)
 	tractor_position = kZeroVector;
 	ScanVectorFromString([shipDict objectForKey:@"scoop_position"], &tractor_position);
-
+	
 	// ship skin insulation factor (1.0 is normal)
 	heat_insulation = [shipDict doubleForKey:@"heat_insulation"	defaultValue:1.0];
-		
+	
 	// crew and passengers
 	NSDictionary* cdict = [[UNIVERSE characters] objectForKey:[shipDict stringForKey:@"pilot"]];
 	if (cdict != nil)
@@ -675,23 +673,24 @@ static NSString * const kOOLogEntityBehaviourChanged	= @"entity.behaviour.change
 {
 	NSString *escortRole = @"escort";
 	NSString *escortShipKey = nil;
-
+	
+	// FIXME: should look for substring, or in more sensible role manager
 	if ([roles isEqual:@"trader"])
 		escortRole = @"escort";
-
+	
 	if ([roles isEqual:@"police"])
 		escortRole = @"wingman";
-
+	
 	if ([shipinfoDictionary objectForKey:@"escort-role"])
 	{
-		escortRole = (NSString*)[shipinfoDictionary objectForKey:@"escort-role"];
+		escortRole = [shipinfoDictionary stringForKey:@"escort-role"];
 		if (![[UNIVERSE newShipWithRole:escortRole] autorelease])
 			escortRole = @"escort";
 	}
-
+	
 	if ([shipinfoDictionary objectForKey:@"escort-ship"])
 	{
-		escortShipKey = (NSString*)[shipinfoDictionary objectForKey:@"escort-ship"];
+		escortShipKey = [shipinfoDictionary stringForKey:@"escort-ship"];
 		if (![[UNIVERSE newShipWithName:escortShipKey] autorelease])
 			escortShipKey = nil;
 	}
@@ -699,47 +698,48 @@ static NSString * const kOOLogEntityBehaviourChanged	= @"entity.behaviour.change
 	while (escortCount > 0)
 	{
 		Vector ex_pos = [self coordinatesForEscortPosition:escortCount - 1];
-
-		ShipEntity *escorter;
-
+		
+		ShipEntity *escorter = nil;
+		
 		if (escortShipKey)
 			escorter = [UNIVERSE newShipWithName:escortShipKey];	// retained
 		else
 			escorter = [UNIVERSE newShipWithRole:escortRole];	// retained
-
+		
 		if (!escorter)  break;
-
+		
 		if (![escorter crew])
+		{
 			[escorter setCrew:[NSArray arrayWithObject:
 				[OOCharacter randomCharacterWithRole: @"hunter"
 				andOriginalSystem: [UNIVERSE systemSeed]]]];
-				
+		}
+		
 		// spread them around a little randomly
 		double dd = escorter->collision_radius;
 		ex_pos.x += dd * 6.0 * (randf() - 0.5);
 		ex_pos.y += dd * 6.0 * (randf() - 0.5);
 		ex_pos.z += dd * 6.0 * (randf() - 0.5);
-
-
+		
 		[escorter setScanClass: CLASS_NEUTRAL];
 		[escorter setPosition:ex_pos];
-
+		
 		[escorter setStatus:STATUS_IN_FLIGHT];
-
+		
 		[escorter setRoles:escortRole];
-
+		
 		[escorter setScanClass:scanClass];		// you are the same as I
-
+		
 		[UNIVERSE addEntity:escorter];
 		[[escorter getAI] setStateMachine:@"escortAI.plist"];	// must happen after adding to the UNIVERSE!
-
+		
 		[escorter setGroupID:universalID];
 		[self setGroupID:universalID];		// make self part of same group
-
+		
 		[escorter setOwner: self];	// make self group leader
-
+		
 		[[escorter getAI] setState:@"FLYING_ESCORT"];	// begin immediately
-
+		
 		if (bounty)
 		{
 			int extra = 1 | (ranrot_rand() & 15);
@@ -750,7 +750,7 @@ static NSString * const kOOLogEntityBehaviourChanged	= @"entity.behaviour.change
 		{
 			[escorter setBounty:0];
 		}
-
+		
 		[escorter release];
 		escortCount--;
 	}
@@ -1059,7 +1059,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	{
 		if (bounty > 0)
 			bounty = 0;
-		ShipEntity* target = (ShipEntity*)[UNIVERSE entityForUniversalID:primaryTarget];
+		ShipEntity* target = [UNIVERSE entityForUniversalID:primaryTarget];
 		if ((target)&&(target->scanClass == CLASS_POLICE))
 		{
 			primaryTarget = NO_TARGET;
@@ -1077,7 +1077,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 		
 		for (contactEnum = [closeContactsInfo keyEnumerator]; (other_key = [contactEnum nextObject]); )
 		{
-			ShipEntity* other = (ShipEntity*)[UNIVERSE entityForUniversalID:[other_key intValue]];
+			ShipEntity* other = [UNIVERSE entityForUniversalID:[other_key intValue]];
 			if ((other != nil) && (other->isShip))
 			{
 				if (distance2(position, other->position) > collision_radius * collision_radius)	// moved beyond our sphere!
@@ -1430,16 +1430,13 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 		// update destination position for escorts
 		if (escortCount > 0)
 		{
-			int i;
+			unsigned i;
 			for (i = 0; i < escortCount; i++)
 			{
-				ShipEntity *escorter = (ShipEntity *)[UNIVERSE entityForUniversalID:escort_ids[i]];
+				ShipEntity *escorter = [UNIVERSE entityForUniversalID:escort_ids[i]];
 				// check it's still an escort ship
-				BOOL escorter_okay = YES;
-				if (!escorter)
-					escorter_okay = NO;
-				else
-					escorter_okay = escorter->isShip;
+				BOOL escorter_okay = (escorter != nil) && escorter->isShip;
+				
 				if (escorter_okay)
 					[escorter setDestination:[self coordinatesForEscortPosition:i]];	// update its destination
 				else
@@ -1741,7 +1738,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	//
 	BOOL isUsingAfterburner = canBurn && (flightSpeed > maxFlightSpeed);
 	double	slow_down_range = weaponRange * COMBAT_WEAPON_RANGE_FACTOR * ((isUsingAfterburner)? 3.0 * AFTERBURNER_FACTOR : 1.0);
-	ShipEntity*	target = (ShipEntity*)[UNIVERSE entityForUniversalID:primaryTarget];
+	ShipEntity*	target = [UNIVERSE entityForUniversalID:primaryTarget];
 	double target_speed = [target speed];
 	double distance = [self rangeToDestination];
 	if (range < slow_down_range)
@@ -1875,7 +1872,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	//
 	BOOL isUsingAfterburner = canBurn && (flightSpeed > maxFlightSpeed);
 	double slow_down_range = weaponRange * COMBAT_WEAPON_RANGE_FACTOR * ((isUsingAfterburner)? 3.0 * AFTERBURNER_FACTOR : 1.0);
-	ShipEntity*	target = (ShipEntity*)[UNIVERSE entityForUniversalID:primaryTarget];
+	ShipEntity*	target = [UNIVERSE entityForUniversalID:primaryTarget];
 	double target_speed = [target speed];
 	if (range <= slow_down_range)
 		desired_speed = OOMax_d(target_speed, 0.25 * maxFlightSpeed);   // within the weapon's range match speed
@@ -2039,7 +2036,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 - (void) behaviour_formation_form_up:(double) delta_t
 {
 	// get updated destination from owner
-	ShipEntity* leadShip = (ShipEntity *)[UNIVERSE entityForUniversalID:owner];
+	ShipEntity* leadShip = [UNIVERSE entityForUniversalID:owner];
 	double distance = [self rangeToDestination];
 	double eta = (distance - desired_range) / flightSpeed;
 	if ((eta < 5.0)&&(leadShip)&&(leadShip->isShip))
@@ -2691,13 +2688,13 @@ static GLfloat mascem_color2[4] =	{ 0.4, 0.1, 0.4, 1.0};	// purple
 }
 
 
-- (int) escortCount
+- (unsigned) escortCount
 {
 	return escortCount;
 }
 
 
-- (void) setEscortCount:(int) value
+- (void) setEscortCount:(unsigned) value
 {
 	escortCount = value;
 	escortsAreSetUp = (escortCount == 0);
@@ -2706,7 +2703,7 @@ static GLfloat mascem_color2[4] =	{ 0.4, 0.1, 0.4, 1.0};	// purple
 
 - (ShipEntity*) proximity_alert
 {
-	return (ShipEntity*)[UNIVERSE entityForUniversalID:proximity_alert];
+	return [UNIVERSE entityForUniversalID:proximity_alert];
 }
 
 
@@ -2739,7 +2736,7 @@ static GLfloat mascem_color2[4] =	{ 0.4, 0.1, 0.4, 1.0};	// purple
 
 	if (behaviour == BEHAVIOUR_AVOID_COLLISION)	//	already avoiding something
 	{
-		ShipEntity* prox = (ShipEntity*)[UNIVERSE entityForUniversalID:proximity_alert];
+		ShipEntity* prox = [UNIVERSE entityForUniversalID:proximity_alert];
 		if ((prox)&&(prox != other))
 		{
 			// check which subtends the greatest angle
@@ -3461,7 +3458,7 @@ static GLfloat mascem_color2[4] =	{ 0.4, 0.1, 0.4, 1.0};	// purple
 				
 				case CARGO_FLAG_FULL_UNIFORM :
 					{
-						NSString* commodity_name = (NSString*)[shipinfoDictionary objectForKey:@"cargo_carried"];
+						NSString* commodity_name = [shipinfoDictionary stringForKey:@"cargo_carried"];
 						jetsam = [UNIVERSE getContainersOfCommodity:commodity_name :cargo_to_go];
 					}
 					break;
@@ -4571,8 +4568,6 @@ BOOL	class_masslocks(int some_class)
 	double stick_roll = 0.0;	//desired roll and pitch
 	double stick_pitch = 0.0;
 
-	double tolerance1 = pitch_tolerance;
-
 	relPos = vector_subtract(target->position, position);
 	range2 = magnitude2(relPos);
 
@@ -4590,7 +4585,7 @@ BOOL	class_masslocks(int some_class)
 	if (pitching_over)
 		pitching_over = (stick_pitch != 0.0);
 
-	if ((d_forward < -tolerance1) && (!pitching_over))
+	if ((d_forward < -pitch_tolerance) && (!pitching_over))
 	{
 		pitching_over = YES;
 		if (d_up >= 0)
@@ -4866,14 +4861,10 @@ BOOL	class_masslocks(int some_class)
 	// set the values for the forward weapon
 	//
 	[self setWeaponDataFromType:forward_weapon_type];
-	//
+	
 	if (shot_time < weapon_recharge_rate)
 		return NO;
-	int accuracy = 1;
-	if ([shipinfoDictionary objectForKey:@"accuracy"])
-		accuracy = [(NSNumber *)[shipinfoDictionary objectForKey:@"accuracy"] intValue];
-	if (accuracy < 1)
-		accuracy = 1;
+	
 	if (range > randf() * weaponRange * accuracy)
 		return NO;
 	if (range > weaponRange)
@@ -5073,7 +5064,7 @@ BOOL	class_masslocks(int some_class)
 	shot = [[ParticleEntity alloc] initLaserFromSubentity:self view:direction];	// alloc retains!
 	[shot setColor:laser_color];
 	[shot setScanClass: CLASS_NO_DRAW];
-	ShipEntity *victim = (ShipEntity*)[UNIVERSE entityForUniversalID:target_laser_hit];
+	ShipEntity *victim = [UNIVERSE entityForUniversalID:target_laser_hit];
 	if ((victim)&&(victim->isShip))
 	{
 		ShipEntity* subent = victim->subentity_taking_damage;
@@ -5145,7 +5136,7 @@ BOOL	class_masslocks(int some_class)
 	[shot setPosition: position];
 	[shot setOrientation: q_laser];
 	[shot setVelocity: vel];
-	ShipEntity *victim = (ShipEntity*)[UNIVERSE entityForUniversalID:target_laser_hit];
+	ShipEntity *victim = [UNIVERSE entityForUniversalID:target_laser_hit];
 	if ((victim)&&(victim->isShip))
 	{
 		ShipEntity* subent = victim->subentity_taking_damage;
@@ -5222,7 +5213,7 @@ BOOL	class_masslocks(int some_class)
 	[shot setColor:laser_color];
 	[shot setScanClass: CLASS_NO_DRAW];
 	[shot setVelocity: vel];
-	ShipEntity *victim = (ShipEntity*)[UNIVERSE entityForUniversalID:target_laser_hit];
+	ShipEntity *victim = [UNIVERSE entityForUniversalID:target_laser_hit];
 	if ((victim)&&(victim->isShip))
 	{
 		/*	FIXME CRASH in [victim->sub_entities containsObject:subent] here (1.69, OS X/x86).
@@ -5393,10 +5384,13 @@ BOOL	class_masslocks(int some_class)
 
 - (BOOL) fireMissile
 {
-	ShipEntity *missile = nil;
-	Vector  vel;
-	Vector  origin = position;
-	Vector  start, v_eject;
+	NSString		*missileRole = nil;
+	ShipEntity		*missile = nil;
+	Vector			vel;
+	Vector			origin = position;
+	Vector			start, v_eject;
+	Entity			*target = nil;
+	ShipEntity		*target_ship = nil;
 
 	// default launching position
 	start.x = 0.0;						// in the middle
@@ -5407,40 +5401,43 @@ BOOL	class_masslocks(int some_class)
 
 	double  throw_speed = 250.0;
 	Quaternion q1 = orientation;
-	Entity  *target = [self primaryTarget];
+	target = [self primaryTarget];
 
 	if	((missiles <= 0)||(target == nil)||(target->scanClass == CLASS_NO_DRAW))	// no missile lock!
 		return NO;
 
 	if (target->isShip)
 	{
-		ShipEntity* target_ship = (ShipEntity*)target;
+		target_ship = (ShipEntity*)target;
 		if ([target_ship isCloaked])  return NO;
 		if ((!has_military_scanner_filter)&&[target_ship isJammingScanning])  return NO;
 	}
 
 	// custom missiles
-	if ([shipinfoDictionary objectForKey:@"missile_role"])
-		missile = [UNIVERSE newShipWithRole:(NSString*)[shipinfoDictionary objectForKey:@"missile_role"]];
-	if (!missile)	// no custom role
+	missileRole = [shipinfoDictionary stringForKey:@"missile_role"];
+	if (missileRole != nil)  missile = [UNIVERSE newShipWithRole:missileRole];
+	if (missile == nil)	// no custom role
 	{
 		if (randf() < 0.90)	// choose a standard missile 90% of the time
-			missile = [UNIVERSE newShipWithRole:@"EQ_MISSILE"];   // retained
+		{
+			missile = [UNIVERSE newShipWithRole:@"EQ_MISSILE"];	// retained
+		}
 		else				// otherwise choose any with the role 'missile' - which may include alternative weapons
-			missile = [UNIVERSE newShipWithRole:@"missile"];   // retained
+		{
+			missile = [UNIVERSE newShipWithRole:@"missile"];	// retained
+		}
 	}
 
-	if (!missile)
-		return NO;
+	if (missile == nil) return NO;
 
 	missiles--;
-
+	
 	double mcr = missile->collision_radius;
-
+	
 	v_eject = unit_vector(&start);
-
+	
 	vel = kZeroVector;	// starting velocity
-
+	
 	// check if start is within bounding box...
 	while (	(start.x > boundingBox.min.x - mcr)&&(start.x < boundingBox.max.x + mcr)&&
 			(start.y > boundingBox.min.y - mcr)&&(start.y < boundingBox.max.y + mcr)&&
@@ -5452,7 +5449,7 @@ BOOL	class_masslocks(int some_class)
 
 	if (isPlayer)
 		q1.w = -q1.w;   // player view is reversed remember!
-
+	
 	vel.x += (flightSpeed + throw_speed) * v_forward.x;
 	vel.y += (flightSpeed + throw_speed) * v_forward.y;
 	vel.z += (flightSpeed + throw_speed) * v_forward.z;
@@ -5461,24 +5458,24 @@ BOOL	class_masslocks(int some_class)
 	origin.y = position.y + v_right.y * start.x + v_up.y * start.y + v_forward.y * start.z;
 	origin.z = position.z + v_right.z * start.x + v_up.z * start.y + v_forward.z * start.z;
 
-	[missile addTarget:		target];
-	[missile setOwner:		self];
-	[missile setGroupID:	groupID];
-	[missile setPosition:	origin];
-	[missile setOrientation:	q1];
-	[missile setVelocity:	vel];
-	[missile setSpeed:		150.0];
-	[missile setDistanceTravelled:	0.0];
-	[missile setStatus:		STATUS_IN_FLIGHT];  // necessary to get it going!
-	//
+	[missile addTarget:target];
+	[missile setOwner:self];
+	[missile setGroupID:groupID];
+	[missile setPosition:origin];
+	[missile setOrientation:q1];
+	[missile setVelocity:vel];
+	[missile setSpeed:150.0];
+	[missile setDistanceTravelled:0.0];
+	[missile setStatus:STATUS_IN_FLIGHT];  // necessary to get it going!
+	
 	[UNIVERSE addEntity:	missile];
-	//
+	
 	[missile release]; //release
 
 	if ([missile scanClass] == CLASS_MISSILE)
 	{
-		[(ShipEntity *)target setPrimaryAggressor:self];
-		[[(ShipEntity *)target getAI] reactToMessage:@"INCOMING_MISSILE"];
+		[target_ship setPrimaryAggressor:self];
+		[[target_ship getAI] reactToMessage:@"INCOMING_MISSILE"];
 	}
 
 	return YES;
@@ -5571,13 +5568,12 @@ BOOL	class_masslocks(int some_class)
 
 - (int)launchEscapeCapsule
 {
-	OOUniversalID	result = NO_TARGET;
-	ShipEntity		*pod = nil;
-	int				n_pods;
+	OOUniversalID		result = NO_TARGET;
+	ShipEntity			*pod = nil;
+	unsigned			n_pods;
 	
-	// check number of pods aboard
-	//
-	n_pods = MIN([shipinfoDictionary intForKey:@"has_escape_pod"], 1);
+	// check number of pods aboard -- require at least one.
+	n_pods = [shipinfoDictionary unsignedIntForKey:@"has_escape_pod"];
 	
 	pod = [UNIVERSE newShipWithRole:[shipinfoDictionary stringForKey:@"escape_pod_model" defaultValue:@"escape-capsule"]];
 	
@@ -5605,7 +5601,7 @@ BOOL	class_masslocks(int some_class)
 		result = [pod universalID];
 	}
 	// launch other pods (passengers)
-	int i;
+	unsigned i;
 	for (i = 1; i < n_pods; i++)
 	{
 		pod = [UNIVERSE newShipWithRole:@"escape-capsule"];
@@ -6165,7 +6161,7 @@ BOOL	class_masslocks(int some_class)
 		{
 			if ([roles isEqual:@"escort"]||[roles isEqual:@"trader"])
 			{
-				ShipEntity *group_leader = (ShipEntity *)[UNIVERSE entityForUniversalID:groupID];
+				ShipEntity *group_leader = [UNIVERSE entityForUniversalID:groupID];
 				if ((group_leader)&&(group_leader->isShip))
 				{
 					[group_leader setFound_target:hunter];
@@ -6486,11 +6482,8 @@ inline BOOL pairOK(NSString* my_role, NSString* their_role)
 
 	if (pairOK(roles, [other_ship roles]))
 	{
-		// check total number acceptable
-		int max_escorts = [(NSNumber *)[shipinfoDictionary objectForKey:@"escorts"] intValue];
-
+		unsigned i;
 		// check it's not already been accepted
-		int i;
 		for (i = 0; i < escortCount; i++)
 		{
 			if (escort_ids[i] == [other_ship universalID])
@@ -6500,7 +6493,9 @@ inline BOOL pairOK(NSString* my_role, NSString* their_role)
 				return YES;
 			}
 		}
-
+		
+		// check total number acceptable
+		unsigned max_escorts = [shipinfoDictionary unsignedIntForKey:@"escorts"];
 		if ((escortCount < MAX_ESCORTS)&&(escortCount < max_escorts))
 		{
 			escort_ids[escortCount] = [other_ship universalID];
@@ -6559,7 +6554,7 @@ inline BOOL pairOK(NSString* my_role, NSString* their_role)
 	while ((n_deploy > 0)&&(escortCount > 0))
 	{
 		int escort_id = escort_ids[i_deploy];
-		ShipEntity  *escorter = (ShipEntity *)[UNIVERSE entityForUniversalID:escort_id];
+		ShipEntity  *escorter = [UNIVERSE entityForUniversalID:escort_id];
 		// check it's still an escort ship
 		BOOL escorter_okay = YES;
 		if (!escorter)
@@ -6591,11 +6586,11 @@ inline BOOL pairOK(NSString* my_role, NSString* their_role)
 	if (escortCount < 1)
 		return;
 
-	int i;
+	unsigned i;
 	for (i = 0; i < escortCount; i++)
 	{
 		int escort_id = escort_ids[i];
-		ShipEntity  *escorter = (ShipEntity *)[UNIVERSE entityForUniversalID:escort_id];
+		ShipEntity  *escorter = [UNIVERSE entityForUniversalID:escort_id];
 		// check it's still an escort ship
 		BOOL escorter_okay = YES;
 		if (!escorter)
@@ -6874,7 +6869,7 @@ inline BOOL pairOK(NSString* my_role, NSString* their_role)
 	NSString* expandedMessage = ExpandDescriptionForCurrentSystem(ai_message);
 
 	[self checkScanner];
-	int i;
+	unsigned i;
 	for (i = 0; i < n_scanned_ships ; i++)
 	{
 		ShipEntity* ship = scanned_ships[i];
@@ -6892,7 +6887,7 @@ inline BOOL pairOK(NSString* my_role, NSString* their_role)
 
 	[self setCommsMessageColor];
 	[self checkScanner];
-	int i;
+	unsigned i;
 	for (i = 0; i < n_scanned_ships ; i++)
 	{
 		ShipEntity* ship = scanned_ships[i];
@@ -7237,21 +7232,6 @@ inline BOOL pairOK(NSString* my_role, NSString* their_role)
 }
 
 @end
-
-
-NSDictionary *DefaultShipShaderBindings(void)
-{
-	static NSDictionary		*bindings = nil;
-	NSDictionary			*materialDefaults = nil;
-	
-	if (bindings == nil)
-	{
-		materialDefaults = [ResourceManager dictionaryFromFilesNamed:@"material-defaults.plist" inFolder:@"Config" andMerge:YES];
-		bindings = [[materialDefaults dictionaryForKey:@"ship-default-bindings" defaultValue:[NSDictionary dictionary]] retain];
-	}
-	
-	return bindings;
-}
 
 
 NSDictionary *DefaultShipShaderMacros(void)

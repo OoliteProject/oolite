@@ -793,11 +793,9 @@ static NSComparisonResult comparePrice(NSDictionary *dict1, NSDictionary *dict2,
 	}
 	
 	// systeminfo might have a 'script_actions' resource we want to activate now...
-	
-	if ([systeminfo objectForKey:KEY_SCRIPT_ACTIONS])
+	if ([systeminfo objectForKey:@"script_actions"])
 	{
-		NSArray* script_actions = (NSArray *)[systeminfo objectForKey:KEY_SCRIPT_ACTIONS];
-		
+		NSArray *script_actions = [systeminfo arrayForKey:@"script_actions"];
 		[player scriptActions:script_actions forTarget: nil];
 	}
 	
@@ -1050,16 +1048,11 @@ static NSComparisonResult comparePrice(NSDictionary *dict1, NSDictionary *dict2,
 	[a_station release];
 	[a_planet release];
 	
-	// NEW
-	
 	// systeminfo might have a 'script_actions' resource we want to activate now...
-	
-	if ([systeminfo objectForKey:KEY_SCRIPT_ACTIONS])
+	if ([systeminfo objectForKey:@"script_actions"])
 	{
-		PlayerEntity* player = [PlayerEntity sharedPlayer];
-		NSArray* script_actions = [systeminfo objectForKey:KEY_SCRIPT_ACTIONS];
-		
-		[player scriptActions: script_actions forTarget: nil];
+		NSArray *script_actions = [systeminfo arrayForKey:@"script_actions"];
+		[[PlayerEntity sharedPlayer] scriptActions:script_actions forTarget: nil];
 	}
 }
 
@@ -3259,7 +3252,7 @@ GLfloat docked_light_specular[]	= { (GLfloat) 1.0, (GLfloat) 1.0, (GLfloat) 0.5,
 	
 	if (commodity == nil)  return @"";
 	
-	return [NSString stringWithFormat:@"%@",[commoditydata objectAtIndex:MARKET_NAME]];
+	return [commodity stringAtIndex:MARKET_NAME];
 }
 
 
@@ -3269,7 +3262,7 @@ GLfloat docked_light_specular[]	= { (GLfloat) 1.0, (GLfloat) 1.0, (GLfloat) 0.5,
 	
 	if (commodity == nil)  return NSNotFound;
 	
-	return [[commodity objectAtIndex:MARKET_UNITS] intValue];
+	return [commodity intAtIndex:MARKET_UNITS];
 }
 
 

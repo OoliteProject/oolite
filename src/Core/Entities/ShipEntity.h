@@ -108,17 +108,17 @@ MA 02110-1301, USA.
 	
 	//scripting
 	NSArray					*launch_actions;
-	NSArray					*script_actions;
+	NSArray					*script_actions;			// used by cargo-containers with CARGO_SCRIPT_ACTION when you scoop them, used by Stations when you dock with them, used during custom system set up too
 	NSArray					*death_actions;
 	
 	//docking instructions
 	NSDictionary			*dockingInstructions;
 	
-	int						escort_ids[MAX_ESCORTS];	// replaces the mutable array
-	int						escortCount;					// initially, number of escorts to set up, later number of escorts available
+	OOUniversalID			escort_ids[MAX_ESCORTS];	// replaces the mutable array
+	unsigned				escortCount;				// initially, number of escorts to set up, later number of escorts available
 	int						groupID;					// id of group leader
-	int						last_escort_target;			// last target an escort was deployed after
-	int						found_hostiles;				// number of hostiles found
+	OOUniversalID			last_escort_target;			// last target an escort was deployed after
+	unsigned				found_hostiles;				// number of hostiles found
 	
 	OOColor					*laser_color;
 	
@@ -225,11 +225,12 @@ MA 02110-1301, USA.
 	
 	// navigation
 	GLfloat					flightSpeed;				// current speed
-	GLfloat					flightRoll;				// current roll rate
+	GLfloat					flightRoll;					// current roll rate
 	GLfloat					flightPitch;				// current pitch rate
 	GLfloat					flightYaw;					// current yaw rate
 	
-	GLfloat					pitch_tolerance;
+	float					accuracy;
+	float					pitch_tolerance;
 	
 	OOAegisStatus			aegis_status;				// set to YES when within the station's protective zone
 	
@@ -269,12 +270,12 @@ MA 02110-1301, USA.
 	// for advanced scanning etc.
 	ShipEntity*				scanned_ships[MAX_SCAN_NUMBER + 1];
 	GLfloat					distance2_scanned_ships[MAX_SCAN_NUMBER + 1];
-	int						n_scanned_ships;
+	unsigned				n_scanned_ships;
 	
 	// advanced navigation
 	Vector					navpoints[32];
-	int						next_navpoint_index;
-	int						number_of_navpoints;
+	unsigned				next_navpoint_index;
+	unsigned				number_of_navpoints;
 	
 	// Collision detection
 	Octree					*octree;
@@ -367,8 +368,8 @@ MA 02110-1301, USA.
 - (int) groupID;
 - (void) setGroupID:(int) value;
 
-- (int) escortCount;
-- (void) setEscortCount:(int) value;
+- (unsigned) escortCount;
+- (void) setEscortCount:(unsigned) value;
 
 - (ShipEntity *) proximity_alert;
 - (void) setProximity_alert:(ShipEntity*) other;
@@ -621,5 +622,4 @@ inline BOOL pairOK(NSString* my_role, NSString* their_role);
 BOOL ship_canCollide (ShipEntity* ship);
 
 
-NSDictionary *DefaultShipShaderBindings(void);
 NSDictionary *DefaultShipShaderMacros(void);

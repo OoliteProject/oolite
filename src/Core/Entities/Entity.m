@@ -86,23 +86,8 @@ static NSString * const kOOLogEntityUpdateError				= @"entity.linkedList.update.
 	[collidingEntities release];
 	[trackLock release];
 	[collisionRegion release];
-	[weakSelf weakRefDrop];
 	
 	[super dealloc];
-}
-
-
-- (id)weakRetain
-{
-	if (weakSelf == nil)  weakSelf = [OOWeakReference weakRefWithObject:self];
-	return [weakSelf retain];
-}
-
-
-- (void)weakRefDied:(OOWeakReference *)weakRef
-{
-	assert(weakRef == weakSelf);
-	weakSelf = nil;
 }
 
 
@@ -1032,7 +1017,7 @@ static NSString * const kOOLogEntityUpdateError				= @"entity.linkedList.update.
 
 - (void)subEntityReallyDied:(ShipEntity *)sub
 {
-	OOLog(@"entity.bug", @"%s called for non-ship entity %@ by %@", self, sub);
+	OOLog(@"entity.bug", @"%s called for non-ship entity %@ by %@", __FUNCTION__, self, sub);
 }
 
 

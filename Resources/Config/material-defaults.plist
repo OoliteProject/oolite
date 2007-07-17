@@ -5,18 +5,6 @@
 */
 
 {
-	// Default shader uniform bindings for ship entities.
-	"ship-default-bindings" =
-	{
-		"engine_level" = { type = "binding"; value = "speedFactor"; };
-		"laser_heat_level" = { type = "binding"; value = "laserHeatLevel"; clamped = "YES"; };
-		"hull_heat_level" = { type = "binding"; value = "hullHeatLevel"; };
-		"entity_personality" = { type = "binding"; value = "entityPersonality"; };
-		"entity_personality_int" = { type = "binding"; value = "entityPersonalityInt"; };
-		"time" = { type = "binding"; value = "universalTime"; };
-	};
-
-
 	// Macros prepended to shader source code for ship entities.
 	"ship-prefix-macros" =
 	{

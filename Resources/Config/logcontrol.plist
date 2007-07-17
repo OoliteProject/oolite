@@ -278,6 +278,8 @@
 	texture.dealloc							= $textureDebug;
 	texture.upload							= $textureDebug;
 	
+	textureCache							= $textureDebug;
+	
 	textureLoader.asyncLoad					= $textureDebug;
 	textureLoader.asyncLoad.done			= inherit;
 	textureLoader.asyncLoad.exception		= $error;

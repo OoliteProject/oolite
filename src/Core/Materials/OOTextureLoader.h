@@ -88,6 +88,8 @@ SOFTWARE.
 // Subclasses shouldn't do much on init, because of the whole asynchronous thing.
 - (id)initWithPath:(NSString *)path options:(uint32_t)options;
 
+- (NSString *)path;
+
 /*	Load data, setting up data, width, and height, and rowBytes if it's not
 	width * 4.
 	

@@ -142,6 +142,30 @@ This code is hereby placed in the public domain.
 @end
 
 
+@implementation OOWeakRefObject
+
+- (id)weakRetain
+{
+	if (weakSelf == nil)  weakSelf = [OOWeakReference weakRefWithObject:self];
+	return [weakSelf retain];
+}
+
+
+- (void)weakRefDied:(OOWeakReference *)weakRef
+{
+	if (weakRef == weakSelf)  weakSelf = nil;
+}
+
+
+- (void)dealloc
+{
+	[weakSelf weakRefDrop];	// Very important!
+	[super dealloc];
+}
+
+@end
+
+
 @implementation OOWeakReferenceTemplates
 
 // These are never called, but an implementation must exist so that -methodSignatureForSelector: works.

@@ -84,6 +84,7 @@ static NSString *GetGLSLInfoLog(GLhandleARB shaderObject);
 	if ([prefixString length] == 0)  prefixString = nil;
 	
 	// Use cache to avoid creating duplicate shader programs -- saves on GPU resources and potentially state changes.
+	// FIXME: probably needs to respond to graphics resets.
 	key = [NSString stringWithFormat:@"vertex:%@\nfragment:%@\n----\n%@", vertexShaderName, fragmentShaderName, prefixString ?: @""];
 	program = [[sShaderCache objectForKey:key] pointerValue];
 	
@@ -104,20 +105,6 @@ static NSString *GetGLSLInfoLog(GLhandleARB shaderObject);
 	}
 	
 	return program;
-}
-
-
-+ (id)shaderProgramWithVertexShaderSource:(NSString *)vertexShaderSource
-					 fragmentShaderSource:(NSString *)fragmentShaderSource
-								   prefix:(NSString *)prefixString
-{
-	if (prefixString != nil)
-	{
-		if (vertexShaderSource != nil)  vertexShaderSource = [prefixString stringByAppendingString:vertexShaderSource];
-		if (fragmentShaderSource != nil)  fragmentShaderSource = [prefixString stringByAppendingString:fragmentShaderSource];
-	}
-	
-	return [[[self alloc] initWithVertexShaderSource:vertexShaderSource fragmentShaderSource:fragmentShaderSource key:nil] autorelease];
 }
 
 

@@ -994,20 +994,17 @@ static PlayerEntity *sSharedPlayer = nil;
 	
 	// set things from dictionary from here out
 	
-	maxFlightSpeed = [shipDict doubleForKey:@"max_flight_speed" defaultValue:160.0f];
-	max_flight_roll = [shipDict doubleForKey:@"max_flight_roll" defaultValue:2.0f];
-	max_flight_pitch = [shipDict doubleForKey:@"max_flight_pitch" defaultValue:1.0f];
-	max_flight_yaw = [shipDict doubleForKey:@"max_flight_yaw" defaultValue:max_flight_pitch];	// Note by default yaw == pitch
+	maxFlightSpeed = [shipDict floatForKey:@"max_flight_speed" defaultValue:160.0f];
+	max_flight_roll = [shipDict floatForKey:@"max_flight_roll" defaultValue:2.0f];
+	max_flight_pitch = [shipDict floatForKey:@"max_flight_pitch" defaultValue:1.0f];
+	max_flight_yaw = [shipDict floatForKey:@"max_flight_yaw" defaultValue:max_flight_pitch];	// Note by default yaw == pitch
 	
 	// set control factors..
 	roll_delta =		2.0 * max_flight_roll;
 	pitch_delta =		2.0 * max_flight_pitch;
 	yaw_delta =			2.0 * max_flight_yaw;
 	
-	if ([shipDict objectForKey:@"thrust"])
-	{
-		thrust = [(NSNumber *)[shipDict objectForKey:@"thrust"] doubleValue];
-	}
+	thrust = [shipDict floatForKey:@"thrust" defaultValue:thrust];
 	
 	maxEnergy = [shipDict floatForKey:@"max_energy" defaultValue:maxEnergy];
 	energy_recharge_rate = [shipDict floatForKey:@"energy_recharge_rate" defaultValue:energy_recharge_rate];
@@ -1033,7 +1030,6 @@ static PlayerEntity *sSharedPlayer = nil;
 						  shadersDictionary:[shipDict dictionaryForKey:@"shaders"]
 									 smooth:[shipDict boolForKey:@"smooth" defaultValue:NO]
 							   shaderMacros:DefaultShipShaderMacros()
-							defaultBindings:DefaultShipShaderBindings()
 						shaderBindingTarget:self];
 		[self setMesh:mesh];
 	}
@@ -1093,15 +1089,12 @@ static PlayerEntity *sSharedPlayer = nil;
 	ScanVectorFromString([shipDict stringForKey:@"view_position_aft"], &aftViewOffset);
 	ScanVectorFromString([shipDict stringForKey:@"view_position_port"], &portViewOffset);
 	ScanVectorFromString([shipDict stringForKey:@"view_position_starboard"], &starboardViewOffset);
-
-	if ([shipDict objectForKey:@"custom_views"])
+	
+	NSArray *customViews = [shipDict arrayForKey:@"custom_views"];
+	if (customViews != nil)
 	{
-		NSObject*	obj = [shipDict objectForKey:@"custom_views"];
-		if ([obj isKindOfClass:[NSArray class]])
-		{
-			[custom_views release];
-			custom_views = [[NSMutableArray arrayWithArray:(NSArray*)obj] retain];
-		}
+		[custom_views release];
+		custom_views = [customViews mutableCopy];	// FIXME: This is mutable because it's used as a queue rather than using an index. Silly, fix. -- Ahruman
 	}
 	
 	// set weapon offsets
@@ -1467,7 +1460,7 @@ double scoopSoundPlayTime = 0.0;
 			BOOL go = YES;
 
 			// check nearby masses
-			ShipEntity* blocker = (ShipEntity*)[UNIVERSE entityForUniversalID:[self checkShipsInVicinityForWitchJumpExit]];
+			ShipEntity* blocker = [UNIVERSE entityForUniversalID:[self checkShipsInVicinityForWitchJumpExit]];
 			if (blocker)
 			{
 				[UNIVERSE clearPreviousMessage];
@@ -1566,7 +1559,7 @@ double scoopSoundPlayTime = 0.0;
 	{
 		if (missile_status == MISSILE_STATUS_TARGET_LOCKED)
 		{
-			ShipEntity*	e = (ShipEntity*)[UNIVERSE entityForUniversalID:primaryTarget];
+			ShipEntity*	e = [UNIVERSE entityForUniversalID:primaryTarget];
 			if ((e == nil)||(e->zero_distance > SCANNER_MAX_RANGE2)||
 				((e->isShip)&&([e isCloaked]))||	// checks for cloaked ships
 				((e->isShip)&&(!has_military_scanner_filter)&&([e isJammingScanning])))	// checks for activated jammer
@@ -1831,7 +1824,7 @@ double scoopSoundPlayTime = 0.0;
 
 	if ((status == STATUS_ESCAPE_SEQUENCE)&&(shot_time > ESCAPE_SEQUENCE_TIME))
 	{
-		[(ShipEntity *)[UNIVERSE entityForUniversalID:found_target] becomeExplosion];	// blow up the doppelganger
+		[[UNIVERSE entityForUniversalID:found_target] becomeExplosion];	// blow up the doppelganger
 		[self setTargetToStation];
 		if ([self primaryTarget])
 		{
@@ -2362,9 +2355,9 @@ double scoopSoundPlayTime = 0.0;
 			else
 			{
 				nextBeaconID = [[UNIVERSE firstBeacon] universalID];
-				while ((nextBeaconID != NO_TARGET)&&[(ShipEntity*)[UNIVERSE entityForUniversalID:nextBeaconID] isJammingScanning])
+				while ((nextBeaconID != NO_TARGET)&&[[UNIVERSE entityForUniversalID:nextBeaconID] isJammingScanning])
 				{
-					nextBeaconID = [(ShipEntity*)[UNIVERSE entityForUniversalID:nextBeaconID] nextBeaconID];
+					nextBeaconID = [[UNIVERSE entityForUniversalID:nextBeaconID] nextBeaconID];
 				}
 				
 				if (nextBeaconID != NO_TARGET)
@@ -2375,9 +2368,9 @@ double scoopSoundPlayTime = 0.0;
 			break;
 		case COMPASS_MODE_TARGET:
 			nextBeaconID = [[UNIVERSE firstBeacon] universalID];
-			while ((nextBeaconID != NO_TARGET)&&[(ShipEntity*)[UNIVERSE entityForUniversalID:nextBeaconID] isJammingScanning])
+			while ((nextBeaconID != NO_TARGET)&&[[UNIVERSE entityForUniversalID:nextBeaconID] isJammingScanning])
 			{
-				nextBeaconID = [(ShipEntity*)[UNIVERSE entityForUniversalID:nextBeaconID] nextBeaconID];
+				nextBeaconID = [[UNIVERSE entityForUniversalID:nextBeaconID] nextBeaconID];
 			}
 			
 			if (nextBeaconID != NO_TARGET)
@@ -2388,8 +2381,8 @@ double scoopSoundPlayTime = 0.0;
 		case COMPASS_MODE_BEACONS:
 			do
 			{
-				nextBeaconID = [(ShipEntity*)[UNIVERSE entityForUniversalID:nextBeaconID] nextBeaconID];
-			} while ((nextBeaconID != NO_TARGET)&&[(ShipEntity*)[UNIVERSE entityForUniversalID:nextBeaconID] isJammingScanning]);
+				nextBeaconID = [[UNIVERSE entityForUniversalID:nextBeaconID] nextBeaconID];
+			} while ((nextBeaconID != NO_TARGET)&&[[UNIVERSE entityForUniversalID:nextBeaconID] isJammingScanning]);
 			
 			if (nextBeaconID == NO_TARGET)
 				[self setCompassMode:COMPASS_MODE_PLANET];
@@ -6031,7 +6024,7 @@ OOSound* burnersound;
 		if (++target_memory_index >= PLAYER_TARGET_MEMORY_SIZE)
 			target_memory_index -= PLAYER_TARGET_MEMORY_SIZE;
 		int targ_id = target_memory[target_memory_index];
-		ShipEntity* potential_target = (ShipEntity*)[UNIVERSE entityForUniversalID: targ_id];
+		ShipEntity* potential_target = [UNIVERSE entityForUniversalID: targ_id];
 
 		if ((potential_target)&&(potential_target->isShip))
 		{
@@ -6058,7 +6051,7 @@ OOSound* burnersound;
 		if (--target_memory_index < 0)
 			target_memory_index += PLAYER_TARGET_MEMORY_SIZE;
 		int targ_id = target_memory[target_memory_index];
-		ShipEntity* potential_target = (ShipEntity*)[UNIVERSE entityForUniversalID: targ_id];
+		ShipEntity* potential_target = [UNIVERSE entityForUniversalID: targ_id];
 
 		if ((potential_target)&&(potential_target->isShip))
 		{

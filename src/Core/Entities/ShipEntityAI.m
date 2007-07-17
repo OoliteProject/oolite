@@ -127,7 +127,7 @@ MA 02110-1301, USA.
 	Entity* primeTarget = [UNIVERSE entityForUniversalID:primaryTarget];
 	if ((primeTarget)&&(primeTarget->isShip))
 	{
-		ShipEntity* currentShip = (ShipEntity*)[UNIVERSE entityForUniversalID:primaryTarget];
+		ShipEntity* currentShip = [UNIVERSE entityForUniversalID:primaryTarget];
 		[[currentShip getAI] message:[NSString stringWithFormat:@"%@ %d %d", AIMS_AGGRESSOR_SWITCHED_TARGET, universalID, primaryAggressor]];
 	}
 	
@@ -149,7 +149,7 @@ MA 02110-1301, USA.
 	//
 	GLfloat found_d2 = scannerRange * scannerRange;
 	found_target = NO_TARGET;
-	int i;
+	unsigned i;
 	for (i = 0; i < n_scanned_ships ; i++)
 	{
 		ShipEntity* ship = scanned_ships[i];
@@ -176,10 +176,10 @@ MA 02110-1301, USA.
 	//-- Locates one of the merchantman in range --//
 	[self checkScanner];
 	//
-	int ids_found[n_scanned_ships];
-	int n_found = 0;
+	OOUniversalID ids_found[n_scanned_ships];
+	unsigned n_found = 0;
 	found_target = NO_TARGET;
-	int i;
+	unsigned i;
 	for (i = 0; i < n_scanned_ships ; i++)
 	{
 		ShipEntity* ship = scanned_ships[i];
@@ -229,7 +229,7 @@ MA 02110-1301, USA.
 	//
 	double found_d2 = scannerRange * scannerRange;
 	found_target = NO_TARGET;
-	int i;
+	unsigned i;
 	for (i = 0; i < n_scanned_ships; i++)
 	{
 		ShipEntity* other = (ShipEntity *)scanned_ships[i];
@@ -263,10 +263,10 @@ MA 02110-1301, USA.
 	//
 	[self checkScanner];
 	//
-	int thing_uids_found[16];
-	int things_found = 0;
+	OOUniversalID thing_uids_found[16];
+	unsigned things_found = 0;
 	found_target = NO_TARGET;
-	int i;
+	unsigned i;
 	for (i = 0; (i < n_scanned_ships)&&(things_found < 16) ; i++)
 	{
 		ShipEntity* other = scanned_ships[i];
@@ -334,7 +334,7 @@ MA 02110-1301, USA.
 	//
 	StationEntity* station =  nil;
 	double nearest2 = SCANNER_MAX_RANGE2 * 1000000.0; // 1000x scanner range (25600 km), squared.
-	int i;
+	unsigned i;
 	for (i = 0; i < n_scanned_ships; i++)
 	{
 		if (scanned_ships[i]->isStation)
@@ -394,9 +394,9 @@ MA 02110-1301, USA.
 {
 	// find an incoming missile...
 	//
-	ShipEntity* missile =  nil;
+	ShipEntity *missile =  nil;
 	[self checkScanner];
-	int i;
+	unsigned i;
 	for (i = 0; (i < n_scanned_ships)&&(missile == nil); i++)
 	{
 		ShipEntity* thing = scanned_ships[i];
@@ -406,7 +406,7 @@ MA 02110-1301, USA.
 				missile = thing;
 			if ((escortCount > 0)&&(missile == nil))
 			{
-				int j;
+				unsigned j;
 				for (j = 0; j < escortCount; j++)
 				{
 					if ([thing primaryTargetID] == escort_ids[j])
@@ -554,7 +554,7 @@ MA 02110-1301, USA.
 
 - (void) checkTargetLegalStatus
 {
-	ShipEntity  *other_ship = (ShipEntity *)[UNIVERSE entityForUniversalID:primaryTarget];
+	ShipEntity  *other_ship = [UNIVERSE entityForUniversalID:primaryTarget];
 	if (!other_ship)
 	{
 		[shipAI message:@"NO_TARGET"];
@@ -637,7 +637,7 @@ MA 02110-1301, USA.
 	// find the worst offender on the scanner
 	//
 	[self checkScanner];
-	int i;
+	unsigned i;
 	float	worst_legal_factor = 0;
 	GLfloat found_d2 = scannerRange * scannerRange;
 	for (i = 0; i < n_scanned_ships ; i++)
@@ -700,7 +700,7 @@ WormholeEntity*	whole;
 	}
 	
 	// check if we're clear of nearby masses
-	ShipEntity* blocker = (ShipEntity*)[UNIVERSE entityForUniversalID:[self checkShipsInVicinityForWitchJumpExit]];
+	ShipEntity* blocker = [UNIVERSE entityForUniversalID:[self checkShipsInVicinityForWitchJumpExit]];
 	if (blocker)
 	{
 		found_target = [blocker universalID];
@@ -737,11 +737,11 @@ WormholeEntity*	whole;
 	if (!whole)
 		return;
 		
-	int i;
+	unsigned i;
 	for (i = 0; i < escortCount; i++)
 	{
 		int escort_id = escort_ids[i];
-		ShipEntity  *escorter = (ShipEntity *)[UNIVERSE entityForUniversalID:escort_id];
+		ShipEntity  *escorter = [UNIVERSE entityForUniversalID:escort_id];
 		// check it's still an escort ship
 		BOOL escorter_okay = YES;
 		if (!escorter)
@@ -834,7 +834,7 @@ WormholeEntity*	whole;
 	else
 		distress_message = @"[distress-call]";
 	
-	int i;
+	unsigned i;
 	for (i = 0; i < n_scanned_ships; i++)
 	{
 		ShipEntity*	ship = scanned_ships[i];
@@ -883,7 +883,7 @@ WormholeEntity*	whole;
 			
 		default:
 			if ((scanClass == CLASS_POLICE)||[roles isEqual:@"police"]||[roles isEqual:@"interceptor"]||[roles isEqual:@"wingman"])
-				[(ShipEntity *)[UNIVERSE entityForUniversalID:found_target] markAsOffender:8];  // you have been warned!!
+				[[UNIVERSE entityForUniversalID:found_target] markAsOffender:8];  // you have been warned!!
 			[shipAI reactToMessage:@"ACCEPT_DISTRESS_CALL"];
 			break;
 	}
@@ -919,7 +919,7 @@ WormholeEntity*	whole;
 {
 	/*-- Locates all the thargoid warships in range and chooses the nearest --*/
 	[self checkScanner];
-	int i;
+	unsigned i;
 	//
 	GLfloat found_d2 = scannerRange * scannerRange;
 	found_target = NO_TARGET;
@@ -948,7 +948,7 @@ WormholeEntity*	whole;
 	found_target = NO_TARGET;
 	
 	[self checkScanner];
-	int i;
+	unsigned i;
 	GLfloat	found_d2 = scannerRange * scannerRange;
 	for (i = 0; i < n_scanned_ships ; i++)
 	{
@@ -1009,7 +1009,7 @@ WormholeEntity*	whole;
 	found_hostiles = 0;
 
 	[self checkScanner];
-	int i;
+	unsigned i;
 	GLfloat found_d2 = scannerRange * scannerRange;
 	for (i = 0; i < n_scanned_ships ; i++)
 	{
@@ -1068,7 +1068,7 @@ WormholeEntity*	whole;
 
 - (void) suggestEscort
 {
-	ShipEntity   *mother = (ShipEntity *)[UNIVERSE entityForUniversalID:primaryTarget];
+	ShipEntity   *mother = [UNIVERSE entityForUniversalID:primaryTarget];
 	if (mother)
 	{
 		if (reportAImessages)
@@ -1099,7 +1099,7 @@ WormholeEntity*	whole;
 
 - (void) escortCheckMother
 {
-	ShipEntity   *mother = (ShipEntity *)[UNIVERSE entityForUniversalID:owner];
+	ShipEntity   *mother = [UNIVERSE entityForUniversalID:owner];
 	if (mother)
 	{
 		if ([mother acceptAsEscort:self])
@@ -1129,7 +1129,7 @@ WormholeEntity*	whole;
 - (void) checkGroupOddsVersusTarget
 {
 	int own_group_id = groupID;
-	int target_group_id = [(ShipEntity *)[UNIVERSE entityForUniversalID:primaryTarget] groupID];
+	int target_group_id = [[UNIVERSE entityForUniversalID:primaryTarget] groupID];
 
 	int own_group_numbers = [self numberOfShipsInGroup:own_group_id] + (ranrot_rand() & 3);			// add a random fudge factor
 	int target_group_numbers = [self numberOfShipsInGroup:target_group_id] + (ranrot_rand() & 3);	// add a random fudge factor
@@ -1176,7 +1176,7 @@ WormholeEntity*	whole;
 	//-- Locates the nearest suitable formation leader in range --//
 	found_target = NO_TARGET;
 	[self checkScanner];
-	int i;
+	unsigned i;
 	GLfloat	found_d2 = scannerRange * scannerRange;
 	for (i = 0; i < n_scanned_ships; i++)
 	{
@@ -1207,7 +1207,7 @@ WormholeEntity*	whole;
 
 - (void) messageMother:(NSString *)msgString
 {
-	ShipEntity   *mother = (ShipEntity *)[UNIVERSE entityForUniversalID:owner];
+	ShipEntity   *mother = [UNIVERSE entityForUniversalID:owner];
 	if (mother)
 	{
 		[[mother getAI] reactToMessage:msgString];
@@ -1386,7 +1386,7 @@ WormholeEntity*	whole;
 	//
 	found_target = NO_TARGET;
 	[self checkScanner];
-	int i;
+	unsigned i;
 	GLfloat found_d2 = scannerRange * scannerRange;
 	for (i = 0; i < n_scanned_ships; i++)
 	{
@@ -1454,7 +1454,7 @@ WormholeEntity*	whole;
 	if ([self owner])
 		mother = (ShipEntity*)[self owner];
 	if ((mother == nil)&&([UNIVERSE entityForUniversalID:groupID]))
-		mother = (ShipEntity*)[UNIVERSE entityForUniversalID:groupID];
+		mother = [UNIVERSE entityForUniversalID:groupID];
 	if (!mother)
 	{
 		[shipAI message:@"MOTHER_LOST"];
@@ -1465,7 +1465,7 @@ WormholeEntity*	whole;
 	found_target = NO_TARGET;
 	found_hostiles = 0;
 	[self checkScanner];
-	int i;
+	unsigned i;
 	GLfloat found_d2 = scannerRange * scannerRange;
 	GLfloat max_e = 0;
 	for (i = 0; i < n_scanned_ships ; i++)
@@ -1510,7 +1510,7 @@ WormholeEntity*	whole;
 	/*-- Locates all the ships in range and chooses the nearest --*/
 	found_target = NO_TARGET;
 	[self checkScanner];
-	int i;
+	unsigned i;
 	GLfloat found_d2 = scannerRange * scannerRange;
 	for (i = 0; i < n_scanned_ships ; i++)
 	{
@@ -1734,7 +1734,7 @@ WormholeEntity*	whole;
 - (void) targetNextBeaconWithCode:(NSString*) code
 {
 	NSArray* all_beacons = [UNIVERSE listBeaconsWithCode: code];
-	ShipEntity* current_beacon = (ShipEntity*)[UNIVERSE entityForUniversalID:primaryTarget];
+	ShipEntity* current_beacon = [UNIVERSE entityForUniversalID:primaryTarget];
 	
 	if ((!current_beacon)||(![current_beacon isBeacon]))
 	{
@@ -1770,7 +1770,7 @@ WormholeEntity*	whole;
 - (void) setRacepointsFromTarget
 {
 	// two point - one at z - cr one at z + cr
-	ShipEntity* ship = (ShipEntity*)[UNIVERSE entityForUniversalID:primaryTarget];
+	ShipEntity* ship = [UNIVERSE entityForUniversalID:primaryTarget];
 	if (!ship)
 	{
 		[shipAI message:@"NOTHING_FOUND"];

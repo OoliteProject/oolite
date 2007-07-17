@@ -13,6 +13,9 @@ Starting with Oolite 1.69.1, the various integer methods will always clamp
 values to the range of the return type, rather than truncating like NSNumber.
 Before that, they weren't entirely inconsistent.
 
+The "non-negative float"/"non-negative double" will clamp read values to zero
+if negative, but will return a negative defaultValue unchanged.
+
 
 Oolite
 Copyright (C) 2004-2007 Giles C Williams and contributors
@@ -82,6 +85,8 @@ SOFTWARE.
 
 - (float)floatAtIndex:(unsigned)index defaultValue:(float)value;
 - (double)doubleAtIndex:(unsigned)index defaultValue:(double)value;
+- (float)nonNegativeFloatAtIndex:(unsigned)index defaultValue:(float)value;
+- (double)nonNegativeDoubleAtIndex:(unsigned)index defaultValue:(double)value;
 
 - (id)objectAtIndex:(unsigned)index defaultValue:(id)value;
 - (id)objectOfClass:(Class)class atIndex:(unsigned)index defaultValue:(id)value;
@@ -89,6 +94,9 @@ SOFTWARE.
 - (NSArray *)arrayAtIndex:(unsigned)index defaultValue:(NSArray *)value;
 - (NSDictionary *)dictionaryAtIndex:(unsigned)index defaultValue:(NSDictionary *)value;
 - (NSData *)dataAtIndex:(unsigned)index defaultValue:(NSData *)value;
+
+- (struct Vector)vectorAtIndex:(unsigned)index defaultValue:(struct Vector)value;
+- (struct Quaternion)quaternionAtIndex:(unsigned)index defaultValue:(struct Quaternion)value;
 
 
 // Default: 0
@@ -111,6 +119,8 @@ SOFTWARE.
 // Default: 0.0
 - (float)floatAtIndex:(unsigned)index;
 - (double)doubleAtIndex:(unsigned)index;
+- (float)nonNegativeFloatAtIndex:(unsigned)index;
+- (double)nonNegativeDoubleAtIndex:(unsigned)index;
 
 // Default: nil
 // - (id)objectAtIndex:(unsigned)index;	// Already defined
@@ -119,6 +129,11 @@ SOFTWARE.
 - (NSArray *)arrayAtIndex:(unsigned)index;
 - (NSDictionary *)dictionaryAtIndex:(unsigned)index;
 - (NSData *)dataAtIndex:(unsigned)index;
+
+// Default: kZeroVector
+- (struct Vector)vectorAtIndex:(unsigned)index;
+// Default: kIdentityQuaternion
+- (struct Quaternion)quaternionAtIndex:(unsigned)index;
 
 @end
 
@@ -142,6 +157,8 @@ SOFTWARE.
 
 - (float)floatForKey:(id)key defaultValue:(float)value;
 - (double)doubleForKey:(id)key defaultValue:(double)value;
+- (float)nonNegativeFloatForKey:(id)key defaultValue:(float)value;
+- (double)nonNegativeDoubleForKey:(id)key defaultValue:(double)value;
 
 - (id)objectForKey:(id)key defaultValue:(id)value;
 - (id)objectOfClass:(Class)class forKey:(id)key defaultValue:(id)value;
@@ -149,6 +166,9 @@ SOFTWARE.
 - (NSArray *)arrayForKey:(id)key defaultValue:(NSArray *)value;
 - (NSDictionary *)dictionaryForKey:(id)key defaultValue:(NSDictionary *)value;
 - (NSData *)dataForKey:(id)key defaultValue:(NSData *)value;
+
+- (struct Vector)vectorForKey:(id)key defaultValue:(struct Vector)value;
+- (struct Quaternion)quaternionForKey:(id)key defaultValue:(struct Quaternion)value;
 
 
 // Default: 0
@@ -171,6 +191,8 @@ SOFTWARE.
 // Default: 0.0
 - (float)floatForKey:(id)key;
 - (double)doubleForKey:(id)key;
+- (float)nonNegativeFloatForKey:(id)key;
+- (double)nonNegativeDoubleForKey:(id)key;
 
 // Default: nil
 // - (id)objectForKey:(id)key;	// Already defined
@@ -179,6 +201,11 @@ SOFTWARE.
 - (NSArray *)arrayForKey:(id)key;
 - (NSDictionary *)dictionaryForKey:(id)key;
 - (NSData *)dataForKey:(id)key;
+
+// Default: kZeroVector
+- (struct Vector)vectorForKey:(id)key;
+// Default: kIdentityQuaternion
+- (struct Quaternion)quaternionForKey:(id)key;
 
 @end
 
@@ -202,6 +229,8 @@ SOFTWARE.
 
 - (float)floatForKey:(id)key defaultValue:(float)value;
 - (double)doubleForKey:(id)key defaultValue:(double)value;
+- (float)nonNegativeFloatForKey:(id)key defaultValue:(float)value;
+- (double)nonNegativeDoubleForKey:(id)key defaultValue:(double)value;
 
 - (id)objectForKey:(id)key defaultValue:(id)value;
 - (id)objectOfClass:(Class)class forKey:(id)key defaultValue:(id)value;
@@ -231,6 +260,8 @@ SOFTWARE.
 // Default: 0.0
 // - (float)floatForKey:(id)key;
 - (double)doubleForKey:(id)key;
+- (float)nonNegativeFloatForKey:(id)key;
+- (double)nonNegativeDoubleForKey:(id)key;
 
 // Default: nil
 // - (id)objectForKey:(id)key;	// Already defined
@@ -302,6 +333,13 @@ BOOL OOFuzzyBooleanFromObject(id object, BOOL defaultValue);
 
 float OOFloatFromObject(id object, float defaultValue);
 double OODoubleFromObject(id object, double defaultValue);
+float OONonNegativeFloatFromObject(id object, float defaultValue);
+double OONonNegativeDoubleFromObject(id object, double defaultValue);
+
+/*	These take strings, dictionaries or arrays.
+*/
+struct Vector OOVectorFromObject(id object, struct Vector defaultValue);
+struct Quaternion OOQuaternionFromObject(id object, struct Quaternion defaultValue);
 
 
 OOINLINE long long OOClampInteger(long long value, long long minValue, long long maxValue) ALWAYS_INLINE_FUNC;

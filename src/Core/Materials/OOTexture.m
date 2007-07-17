@@ -74,7 +74,7 @@ SOFTWARE.
 */
 enum
 {
-	kRecentTexturesCount		= 1002
+	kRecentTexturesCount		= 50
 };
 
 static NSMutableDictionary	*sInUseTextures = nil;
@@ -320,8 +320,6 @@ static BOOL		sRectangleTextureAvailable;
 
 - (void)dealloc
 {
-	OO_ENTER_OPENGL();
-	
 	OOLog(@"texture.dealloc", @"Deallocating and uncaching texture %@", self);
 	
 	if (_key != nil)
@@ -333,7 +331,7 @@ static BOOL		sRectangleTextureAvailable;
 	
 	if (_loaded)
 	{
-		if (_textureName != 0)  glDeleteTextures(1, &_textureName);
+		if (_textureName != 0)  GLRecycleTextureName(_textureName, _mipLevels);
 		if (_bytes != NULL) free(_bytes);
 	}
 	
@@ -538,7 +536,7 @@ static BOOL		sRectangleTextureAvailable;
 	
 	if (!_uploaded)
 	{
-		glGenTextures(1, &_textureName);
+		_textureName = GLAllocateTextureName();
 		glBindTexture(GL_TEXTURE_2D, _textureName);
 		
 		// Select wrap mode
@@ -621,18 +619,17 @@ static BOOL		sRectangleTextureAvailable;
 		h >>= 1;
 	}
 	
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, level - 1);
+	_mipLevels = level - 1;
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, _mipLevels);
 }
 
 
 - (void)forceRebind
 {
-	OO_ENTER_OPENGL();
-	
 	if (_loaded && _uploaded && _valid)
 	{
 		_uploaded = NO;
-		glDeleteTextures(1, &_textureName);
+		GLRecycleTextureName(_textureName, _mipLevels);
 		_textureName = 0;
 	}
 }

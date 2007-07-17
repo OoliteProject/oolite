@@ -217,7 +217,7 @@ typedef enum
 	
 	OOTexture				*missionBackgroundTexture;
 	
-	NSMutableDictionary		*extra_equipment;
+	NSMutableDictionary		*extra_equipment;	// TODO: this seems to be a dictionary whose values are all [NSNumber numberWithBool:YES]. Should be a set; remember to convert to dictionary for savinh.
 	BOOL					found_equipment;
 	
 	NSMutableDictionary		*reputation;
@@ -378,7 +378,7 @@ typedef enum
 	OOKeyCode				key_snapshot;
 	OOKeyCode				key_docking_music;
 	
-	OOKeyCode				kay_advanced_nav_array;
+	OOKeyCode				key_advanced_nav_array;
 	OOKeyCode				key_map_home;
 	OOKeyCode				key_map_info;
 	

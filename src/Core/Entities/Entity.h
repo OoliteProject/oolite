@@ -70,7 +70,7 @@ typedef struct
 } Frame;
 
 
-@interface Entity: NSObject <OOWeakReferenceSupport>
+@interface Entity: OOWeakRefObject
 {
     // the base object for ships/stations/anything actually
 	//////////////////////////////////////////////////////
@@ -152,8 +152,6 @@ typedef struct
 	NSMutableArray			*collidingEntities;
 	
 	OOUniversalID			owner;
-	
-	OOWeakReference			*weakSelf;
 	
 	OOTimeAbsolute			spawnTime;
 }

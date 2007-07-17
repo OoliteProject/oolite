@@ -134,7 +134,6 @@ static OOMaterial *sActiveMaterial = nil;
 + (id)materialWithName:(NSString *)name
 		 configuration:(NSDictionary *)configuration
 				macros:(NSDictionary *)macros
-	   defaultBindings:(NSDictionary *)defaults
 		 bindingTarget:(id<OOWeakReferenceSupport>)object
 {
 	id						result = nil;
@@ -144,7 +143,7 @@ static OOMaterial *sActiveMaterial = nil;
 	{
 		if ([OOShaderMaterial configurationDictionarySpecifiesShaderMaterial:configuration])
 		{
-			result = [OOShaderMaterial shaderMaterialWithName:name configuration:configuration macros:macros defaultBindings:defaults bindingTarget:object];
+			result = [OOShaderMaterial shaderMaterialWithName:name configuration:configuration macros:macros bindingTarget:object];
 		}
 	}
 #endif
@@ -174,7 +173,6 @@ static OOMaterial *sActiveMaterial = nil;
 	materialDictionary:(NSDictionary *)materialDict
 	 shadersDictionary:(NSDictionary *)shadersDict
 				macros:(NSDictionary *)macros
-	   defaultBindings:(NSDictionary *)defaults
 		 bindingTarget:(id<OOWeakReferenceSupport>)object
 {
 	NSDictionary			*configuration = nil;
@@ -191,7 +189,7 @@ static OOMaterial *sActiveMaterial = nil;
 		configuration = [materialDict dictionaryForKey:name];
 	}
 	
-	return [self materialWithName:name configuration:configuration macros:macros defaultBindings:defaults bindingTarget:object];
+	return [self materialWithName:name configuration:configuration macros:macros bindingTarget:object];
 }
 
 @end

@@ -88,10 +88,7 @@ typedef uint16_t OOUniformConvertOptions;
 	will look for are currently:
 		textures			array of texture file names.
 		vertex_shader		name of vertex shader file.
-		glsl-vertex			vertex shader source (if no vertex_shader).
 		fragment_shader		name of fragment shader file.
-		glsl-fragment		fragment shader source (if no fragment_shader).
-		glsl				fragment shader source (if no glsl-fragment).
 		uniforms			dictionary of uniforms. Values are either reals or
 							dictionaries containing:
 			type			"int", "texture" or "float"
@@ -110,13 +107,11 @@ typedef uint16_t OOUniformConvertOptions;
 + (id)shaderMaterialWithName:(NSString *)name
 			   configuration:(NSDictionary *)configuration
 					  macros:(NSDictionary *)macros
-			 defaultBindings:(NSDictionary *)defaults
 			   bindingTarget:(id<OOWeakReferenceSupport>)target;
 
 - (id)initWithName:(NSString *)name
 	 configuration:(NSDictionary *)configuration
 			macros:(NSDictionary *)macros
-   defaultBindings:(NSDictionary *)defaults
 	 bindingTarget:(id<OOWeakReferenceSupport>)target;
 
 /*	Bind a uniform to a property of an object.

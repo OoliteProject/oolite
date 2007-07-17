@@ -111,7 +111,7 @@ static void PNGRead(png_structp png, png_bytep bytes, png_size_t size);
 	uint8_t						planes;
 	
 	// Set up PNG decoding
-	png = png_create_read_struct(PNG_LIBPNG_VER_STRING, NULL, PNGError, PNGWarning);
+	png = png_create_read_struct(PNG_LIBPNG_VER_STRING, self, PNGError, PNGWarning);
 	if (png == NULL)
 	{
 		OOLog(@"texture.load.png.setup.failed", @"***** Error preparing to read %@.", path);
@@ -236,13 +236,19 @@ static void PNGRead(png_structp png, png_bytep bytes, png_size_t size);
 
 static void PNGError(png_structp png, png_const_charp message)
 {
-	OOLog(@"texture.load.png.error", @"***** A PNG loading error occurred: %s", message);
+	OOPNGTextureLoader		*loader = nil;
+	
+	loader = png->error_ptr;
+	OOLog(@"texture.load.png.error", @"***** A PNG loading error occurred for %@: %s", [loader path], message);
 }
 
 
 static void PNGWarning(png_structp png, png_const_charp message)
 {
-	OOLog(@"texture.load.png.warning", @"***** A PNG loading warning occurred: %s", message);
+	OOPNGTextureLoader		*loader = nil;
+	
+	loader = png->error_ptr;
+	OOLog(@"texture.load.png.warning", @"***** A PNG loading warning occurred for %@: %s", [loader path], message);
 }
 
 

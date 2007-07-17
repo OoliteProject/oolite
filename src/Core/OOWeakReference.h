@@ -126,3 +126,15 @@ This code is hereby placed in the public domain.
 - (id)weakRefUnderlyingObject;		// Always self for non-weakrefs (and of course nil for nil).
 
 @end
+
+
+/*	OOWeakRefObject
+	Simple object implementing OOWeakReferenceSupport, to subclass. This
+	provides a full implementation for simplicity, but keep in mind that the
+	protocol can be implemented by any class.
+*/
+@interface OOWeakRefObject: NSObject <OOWeakReferenceSupport>
+{
+	OOWeakReference		*weakSelf;
+}
+@end

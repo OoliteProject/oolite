@@ -88,12 +88,6 @@ enum
 #define KEY_EQUIPMENT_EXTRAS				@"extras"
 #define KEY_WEAPON_FACINGS					@"weapon_facings"
 
-#define KEY_SCRIPT_ACTIONS					@"script_actions"
-	// used by cargo-containers with CARGO_SCRIPT_ACTION when you scoop them, used by Stations when you dock with them, used during custom system set up too
-#define KEY_LAUNCH_ACTIONS					@"launch_actions"
-#define KEY_DEATH_ACTIONS					@"death_actions"
-#define KEY_SETUP_ACTIONS					@"setup_actions"
-
 #define SHIPYARD_KEY_ID						@"id"
 #define SHIPYARD_KEY_SHIPDATA_KEY			@"shipdata_key"
 #define SHIPYARD_KEY_SHIP					@"ship"

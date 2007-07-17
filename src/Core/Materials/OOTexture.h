@@ -49,7 +49,9 @@ SOFTWARE.
 */
 
 #import <Foundation/Foundation.h>
+
 #import "OOOpenGL.h"
+#import "OOWeakReference.h"
 
 @class OOTextureLoader;
 
@@ -103,7 +105,7 @@ typedef enum
 } OOTextureDataFormat;
 
 
-@interface OOTexture: NSObject
+@interface OOTexture: OOWeakRefObject
 {
 	NSString				*_key;
 	uint8_t					_loaded: 1,
@@ -112,6 +114,7 @@ typedef enum
 							_isRectTexture: 1,
 #endif
 							_valid: 1;
+	uint8_t					_mipLevels;
 	
 	OOTextureLoader			*_loader;
 	

@@ -69,11 +69,6 @@ SOFTWARE.
 					 fragmentShaderName:(NSString *)fragmentShaderName
 								 prefix:(NSString *)prefixString;
 
-// Loads a shader from memory, always generating a new instance.
-+ (id)shaderProgramWithVertexShaderSource:(NSString *)vertexShaderSource
-					 fragmentShaderSource:(NSString *)fragmentShaderSource
-								   prefix:(NSString *)prefixString;
-
 - (void)apply;
 + (void)applyNone;
 

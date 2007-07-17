@@ -76,9 +76,6 @@ static NSString *MacrosToString(NSDictionary *macros);
 	
 	if ([configuration stringForKey:@"vertex_shader"] != nil)  return YES;
 	if ([configuration stringForKey:@"fragment_shader"] != nil)  return YES;
-	if ([configuration stringForKey:@"glsl-vertex"] != nil)  return YES;
-	if ([configuration stringForKey:@"glsl-fragment"] != nil)  return YES;
-	if ([configuration stringForKey:@"glsl"] != nil)  return YES;
 	
 	return NO;
 }
@@ -87,17 +84,15 @@ static NSString *MacrosToString(NSDictionary *macros);
 + (id)shaderMaterialWithName:(NSString *)name
 			   configuration:(NSDictionary *)configuration
 					  macros:(NSDictionary *)macros
-			 defaultBindings:(NSDictionary *)defaults
 			   bindingTarget:(id<OOWeakReferenceSupport>)target
 {
-	return [[[self alloc] initWithName:name configuration:configuration macros:macros defaultBindings:defaults bindingTarget:target] autorelease];
+	return [[[self alloc] initWithName:name configuration:configuration macros:macros bindingTarget:target] autorelease];
 }
 
 
 - (id)initWithName:(NSString *)name
 	 configuration:(NSDictionary *)configuration
 			macros:(NSDictionary *)macros
-   defaultBindings:(NSDictionary *)defaults
 	 bindingTarget:(id<OOWeakReferenceSupport>)target
 {
 	BOOL					OK = YES;
@@ -138,19 +133,7 @@ static NSString *MacrosToString(NSDictionary *macros);
 		}
 		else
 		{
-			// Otherwise, look for inline source
-			vertexShader = [configuration stringForKey:@"glsl-vertex"];
-			fragmentShader = [configuration stringForKey:@"glsl-fragment"];
-			if (fragmentShader == nil)  fragmentShader = [configuration stringForKey:@"glsl"];
-			
-			if (vertexShader != nil || fragmentShader != nil)
-			{
-				shaderProgram = [OOShaderProgram shaderProgramWithVertexShaderSource:vertexShader fragmentShaderSource:fragmentShader prefix:macroString];
-			}
-			else
-			{
-				OOLog(@"shader.load.noShader", @"***** Error: no vertex or fragment shader specified specified in shader dictionary:\n%@", configuration);
-			}
+			OOLog(@"shader.load.noShader", @"***** Error: no vertex or fragment shader specified specified in shader dictionary:\n%@", configuration);
 		}
 		
 		OK = (shaderProgram != nil);
@@ -163,11 +146,9 @@ static NSString *MacrosToString(NSDictionary *macros);
 		uniformDefs = [configuration dictionaryForKey:@"uniforms"];
 		textureDefs = [configuration arrayForKey:@"textures"];
 		
-		uniforms = [[NSMutableDictionary alloc] initWithCapacity:[uniformDefs count] + [textureDefs count] + [defaults count]];
-		[self addUniformsFromDictionary:defaults withBindingTarget:target];
+		uniforms = [[NSMutableDictionary alloc] initWithCapacity:[uniformDefs count] + [textureDefs count]];
 		[self addUniformsFromDictionary:uniformDefs withBindingTarget:target];
-		
-		// ...and textures, which are a flavour of uniform four our purpose.
+		// ...and textures, which are a flavour of uniform for our purpose.
 		[self addTexturesFromArray:textureDefs unitCount:textureUnits];
 	}
 	

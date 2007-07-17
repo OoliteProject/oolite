@@ -48,6 +48,7 @@ SOFTWARE.
 #import "OOCollectionExtractors.h"
 #import <limits.h>
 #import "OOMaths.h"
+#import "OOStringParsing.h"
 
 
 @implementation NSArray (OOExtractor)
@@ -136,6 +137,18 @@ SOFTWARE.
 }
 
 
+- (float)nonNegativeFloatAtIndex:(unsigned)index defaultValue:(float)value
+{
+	return OONonNegativeFloatFromObject([self objectAtIndex:index], value);
+}
+
+
+- (double)nonNegativeDoubleAtIndex:(unsigned)index defaultValue:(double)value
+{
+	return OONonNegativeDoubleFromObject([self objectAtIndex:index], value);
+}
+
+
 - (id)objectAtIndex:(unsigned)index defaultValue:(id)value
 {
 	id					objVal = [self objectAtIndex:index];
@@ -181,6 +194,18 @@ SOFTWARE.
 - (NSData *)dataAtIndex:(unsigned)index defaultValue:(NSData *)value
 {
 	return [self objectOfClass:[NSData class] atIndex:index defaultValue:value];
+}
+
+
+- (struct Vector)vectorAtIndex:(unsigned)index defaultValue:(struct Vector)value
+{
+	return OOVectorFromObject([self objectAtIndex:index], value);
+}
+
+
+- (struct Quaternion)quaternionAtIndex:(unsigned)index defaultValue:(struct Quaternion)value;
+{
+	return OOQuaternionFromObject([self objectAtIndex:index], value);
 }
 
 
@@ -258,13 +283,25 @@ SOFTWARE.
 
 - (float)floatAtIndex:(unsigned)index
 {
-	return [self floatAtIndex:index defaultValue:0.0f];
+	return OOFloatFromObject([self objectAtIndex:index], 0.0f);
 }
 
 
 - (double)doubleAtIndex:(unsigned)index
 {
-	return [self doubleAtIndex:index defaultValue:0.0];
+	return OODoubleFromObject([self objectAtIndex:index], 0.0);
+}
+
+
+- (float)nonNegativeFloatAtIndex:(unsigned)index
+{
+	return OONonNegativeFloatFromObject([self objectAtIndex:index], 0.0f);
+}
+
+
+- (double)nonNegativeDoubleAtIndex:(unsigned)index
+{
+	return OONonNegativeDoubleFromObject([self objectAtIndex:index], 0.0);
 }
 
 
@@ -295,6 +332,18 @@ SOFTWARE.
 - (NSData *)dataAtIndex:(unsigned)index
 {
 	return [self dataAtIndex:index defaultValue:nil];
+}
+
+
+- (struct Vector)vectorAtIndex:(unsigned)index
+{
+	return [self vectorAtIndex:index defaultValue:kZeroVector];
+}
+
+
+- (struct Quaternion)quaternionAtIndex:(unsigned)index
+{
+	return [self quaternionAtIndex:index defaultValue:kIdentityQuaternion];
 }
 
 @end
@@ -386,6 +435,18 @@ SOFTWARE.
 }
 
 
+- (float)nonNegativeFloatForKey:(id)key defaultValue:(float)value
+{
+	return OONonNegativeFloatFromObject([self objectForKey:key], value);
+}
+
+
+- (double)nonNegativeDoubleForKey:(id)key defaultValue:(double)value
+{
+	return OONonNegativeDoubleFromObject([self objectForKey:key], value);
+}
+
+
 - (id)objectForKey:(id)key defaultValue:(id)value
 {
 	id					objVal = [self objectForKey:key];
@@ -431,6 +492,18 @@ SOFTWARE.
 - (NSData *)dataForKey:(id)key defaultValue:(NSData *)value
 {
 	return [self objectOfClass:[NSData class] forKey:key defaultValue:value];
+}
+
+
+- (struct Vector)vectorForKey:(id)key defaultValue:(struct Vector)value
+{
+	return OOVectorFromObject([self objectForKey:key], value);
+}
+
+
+- (struct Quaternion)quaternionForKey:(id)key defaultValue:(struct Quaternion)value
+{
+	return OOQuaternionFromObject([self objectForKey:key], value);
 }
 
 
@@ -508,13 +581,25 @@ SOFTWARE.
 
 - (float)floatForKey:(id)key
 {
-	return [self floatForKey:key defaultValue:0.0f];
+	return OOFloatFromObject([self objectForKey:key], 0.0f);
 }
 
 
 - (double)doubleForKey:(id)key
 {
-	return [self doubleForKey:key defaultValue:0.0];
+	return OODoubleFromObject([self objectForKey:key], 0.0);
+}
+
+
+- (float)nonNegativeFloatForKey:(id)key
+{
+	return OONonNegativeFloatFromObject([self objectForKey:key], 0.0f);
+}
+
+
+- (double)nonNegativeDoubleForKey:(id)key
+{
+	return OONonNegativeDoubleFromObject([self objectForKey:key], 0.0);
 }
 
 
@@ -545,6 +630,18 @@ SOFTWARE.
 - (NSData *)dataForKey:(id)key
 {
 	return [self dataForKey:key defaultValue:nil];
+}
+
+
+- (struct Vector)vectorForKey:(id)key
+{
+	return [self vectorForKey:key defaultValue:kZeroVector];
+}
+
+
+- (struct Quaternion)quaternionForKey:(id)key
+{
+	return [self quaternionForKey:key defaultValue:kIdentityQuaternion];
 }
 
 @end
@@ -636,6 +733,18 @@ SOFTWARE.
 }
 
 
+- (float)nonNegativeFloatForKey:(id)key defaultValue:(float)value
+{
+	return OONonNegativeFloatFromObject([self objectForKey:key], value);
+}
+
+
+- (double)nonNegativeDoubleForKey:(id)key defaultValue:(double)value
+{
+	return OONonNegativeDoubleFromObject([self objectForKey:key], value);
+}
+
+
 - (id)objectForKey:(id)key defaultValue:(id)value
 {
 	id					objVal = [self objectForKey:key];
@@ -752,7 +861,19 @@ SOFTWARE.
 
 - (double)doubleForKey:(id)key
 {
-	return [self doubleForKey:key defaultValue:0.0];
+	return OODoubleFromObject([self objectForKey:key], 0.0);
+}
+
+
+- (float)nonNegativeFloatForKey:(id)key
+{
+	return OONonNegativeFloatFromObject([self objectForKey:key], 0.0f);
+}
+
+
+- (double)nonNegativeDoubleForKey:(id)key
+{
+	return OONonNegativeDoubleFromObject([self objectForKey:key], 0.0);
 }
 
 
@@ -949,12 +1070,107 @@ float OOFloatFromObject(id object, float defaultValue)
 
 double OODoubleFromObject(id object, double defaultValue)
 {
-	float result;
+	double result;
 	
 	if ([object respondsToSelector:@selector(doubleValue)])  result = [object doubleValue];
 	else if ([object respondsToSelector:@selector(floatValue)])  result = [object floatValue];
 	else if ([object respondsToSelector:@selector(intValue)])  result = [object intValue];
 	else result = defaultValue;
+	
+	return result;
+}
+
+
+float OONonNegativeFloatFromObject(id object, float defaultValue)
+{
+	float result;
+	
+	if ([object respondsToSelector:@selector(floatValue)])  result = [object floatValue];
+	else if ([object respondsToSelector:@selector(doubleValue)])  result = [object doubleValue];
+	else if ([object respondsToSelector:@selector(intValue)])  result = [object intValue];
+	else return defaultValue;	// Don't clamp default
+	
+	return OOMax_f(result, 0.0f);
+}
+
+
+double OONonNegativeDoubleFromObject(id object, double defaultValue)
+{
+	double result;
+	
+	if ([object respondsToSelector:@selector(doubleValue)])  result = [object doubleValue];
+	else if ([object respondsToSelector:@selector(floatValue)])  result = [object floatValue];
+	else if ([object respondsToSelector:@selector(intValue)])  result = [object intValue];
+	else return defaultValue;	// Don't clamp default
+	
+	return OOMax_d(result, 0.0f);
+}
+
+
+struct Vector OOVectorFromObject(id object, struct Vector defaultValue)
+{
+	Vector result = defaultValue;
+	
+	if ([object isKindOfClass:[NSString class]])
+	{
+		// This will only write result if a valid vector is found, and will write an error message otherwise.
+		ScanVectorFromString(object, &result);
+	}
+	else if ([object isKindOfClass:[NSArray class]] && [object count] == 3)
+	{
+		result.x = [object floatAtIndex:0];
+		result.y = [object floatAtIndex:1];
+		result.z = [object floatAtIndex:2];
+	}
+	else if ([object isKindOfClass:[NSDictionary class]])
+	{
+		// Require at least one of the keys x, y, or z
+		if ([object objectForKey:@"x"] != nil ||
+			[object objectForKey:@"y"] != nil ||
+			[object objectForKey:@"z"] != nil)
+		{
+			// Note: uses 0 for unknown components rather than components of defaultValue.
+			result.x = [object floatForKey:@"x" defaultValue:0.0f];
+			result.y = [object floatForKey:@"y" defaultValue:0.0f];
+			result.z = [object floatForKey:@"z" defaultValue:0.0f];
+		}
+	}
+	
+	return result;
+}
+
+
+struct Quaternion OOQuaternionFromObject(id object, struct Quaternion defaultValue)
+{
+	Quaternion result = defaultValue;
+	
+	if ([object isKindOfClass:[NSString class]])
+	{
+		// This will only write result if a valid quaternion is found, and will write an error message otherwise.
+		ScanQuaternionFromString(object, &result);
+	}
+	else if ([object isKindOfClass:[NSArray class]] && [object count] == 4)
+	{
+		result.w = [object floatAtIndex:0];
+		result.x = [object floatAtIndex:1];
+		result.y = [object floatAtIndex:2];
+		result.z = [object floatAtIndex:3];
+	}
+	else if ([object isKindOfClass:[NSDictionary class]])
+	{
+		// Require at least one of the keys w, x, y, or z
+		if ([object objectForKey:@"w"] != nil ||
+			[object objectForKey:@"x"] != nil ||
+			[object objectForKey:@"y"] != nil ||
+			[object objectForKey:@"z"] != nil)
+		{
+			// Note: uses 0 for unknown components rather than components of defaultValue.
+			result.w = [object floatForKey:@"w" defaultValue:0.0f];
+			result.x = [object floatForKey:@"x" defaultValue:0.0f];
+			result.y = [object floatForKey:@"y" defaultValue:0.0f];
+			result.z = [object floatForKey:@"z" defaultValue:0.0f];
+		}
+	}
 	
 	return result;
 }

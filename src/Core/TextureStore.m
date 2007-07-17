@@ -159,7 +159,7 @@ GLuint	max_texture_dimension = 512;	// conservative start
 	texBytes = imageBuffer;
 
 	glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
-	glGenTextures(1, &texName);			// get a new unique texture name
+	texName = GLAllocateTextureName();
 	glBindTexture(GL_TEXTURE_2D, texName);
 
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
@@ -200,7 +200,7 @@ GLuint	max_texture_dimension = 512;	// conservative start
 	texBytes = imageBuffer;
 
 	glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
-	glGenTextures(1, &texName);			// get a new unique texture name
+	texName = GLAllocateTextureName();
 	glBindTexture(GL_TEXTURE_2D, texName);
 
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
@@ -235,7 +235,7 @@ GLuint	max_texture_dimension = 512;	// conservative start
 	texBytes = imageBuffer;
 
 	glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
-	glGenTextures(1, &texName);			// get a new unique texture name
+	texName = GLAllocateTextureName();
 	glBindTexture(GL_TEXTURE_2D, texName);
 
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);

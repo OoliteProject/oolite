@@ -250,7 +250,7 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 	{
 		int sid = [[ships objectAtIndex:i] intValue];
 		if ([UNIVERSE entityForUniversalID:sid])
-			[[(ShipEntity *)[UNIVERSE entityForUniversalID:sid] getAI] message:@"DOCKING_ABORTED"];
+			[[[UNIVERSE entityForUniversalID:sid] getAI] message:@"DOCKING_ABORTED"];
 	}
 	[shipsOnApproach removeAllObjects];
 	
@@ -259,7 +259,7 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 	{
 		int sid = [[ships objectAtIndex:i] intValue];
 		if ([UNIVERSE entityForUniversalID:sid])
-			[[(ShipEntity *)[UNIVERSE entityForUniversalID:sid] getAI] message:@"DOCKING_ABORTED"];
+			[[[UNIVERSE entityForUniversalID:sid] getAI] message:@"DOCKING_ABORTED"];
 	}
 	[shipsOnHold removeAllObjects];
 	
@@ -277,7 +277,7 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 	{
 		int sid = [(NSString *)[ships objectAtIndex:i] intValue];
 		if ([UNIVERSE entityForUniversalID:sid])
-			[(ShipEntity *)[UNIVERSE entityForUniversalID:sid] enterDock:self];
+			[[UNIVERSE entityForUniversalID:sid] enterDock:self];
 	}
 	[shipsOnApproach removeAllObjects];
 	
@@ -286,7 +286,7 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 	{
 		int sid = [(NSString *)[ships objectAtIndex:i] intValue];
 		if ([UNIVERSE entityForUniversalID:sid])
-			[(ShipEntity *)[UNIVERSE entityForUniversalID:sid] enterDock:self];
+			[[UNIVERSE entityForUniversalID:sid] enterDock:self];
 	}
 	[shipsOnHold removeAllObjects];
 	
@@ -365,9 +365,7 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 		Vector portPos = [self getPortPosition];
 		Vector portDir = vector_forward_from_quaternion(port_orientation);		
 		BOOL isOffCentre = (fabs(portPos.x) + fabs(portPos.y) > 0.0f)|(fabs(portDir.x) + fabs(portDir.y) > 0.0f);
-		BOOL isRotatingStation = NO;
-		if ([shipinfoDictionary objectForKey:@"rotating"])
-			isRotatingStation = [[shipinfoDictionary objectForKey:@"rotating"] boolValue];
+		BOOL isRotatingStation = [shipinfoDictionary boolForKey:@"rotating" defaultValue:NO];
 		if ((!isRotatingStation)&&(isOffCentre))
 		{
 			if (![shipsOnHold objectForKey:shipID])
@@ -616,7 +614,7 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 	int ship_id = [ship universalID];
 	NSString*   shipID = [NSString stringWithFormat:@"%d",ship_id];
 	if ([UNIVERSE entityForUniversalID:[ship universalID]])
-		[[(ShipEntity *)[UNIVERSE entityForUniversalID:[ship universalID]] getAI] message:@"DOCKING_ABORTED"];
+		[[[UNIVERSE entityForUniversalID:[ship universalID]] getAI] message:@"DOCKING_ABORTED"];
 	
 	if ([shipsOnHold objectForKey:shipID])
 		[shipsOnHold removeObjectForKey:shipID];
@@ -1361,15 +1359,13 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 
 - (void) launchDefenseShip
 {
-	int defense_target = primaryTarget;
-	ShipEntity  *defense_ship;
-	NSString* defense_ship_key		= nil;
-	NSString* defense_ship_role_key	= nil;
-	NSString* defense_ship_ai		= @"policeInterceptAI.plist";
+	OOUniversalID	defense_target = primaryTarget;
+	ShipEntity		*defense_ship = nil;
+	NSString		*defense_ship_key = nil;
+	NSString		*defense_ship_role_key = nil;
 	
 	int techlevel = [self equivalent_tech_level];
-	if (techlevel == NSNotFound)
-	techlevel = 6;
+	if (techlevel == NSNotFound)  techlevel = 6;
 	if ((ranrot_rand() & 7) + 6 <= techlevel)
 		defense_ship_role_key	= @"interceptor";
 	else
@@ -1383,54 +1379,44 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 		[shipAI reactToMessage:@"TARGET_LOST"];
 		return;
 	}
-		
-	if ([shipinfoDictionary objectForKey:@"defense_ship"])
-	{
-		defense_ship_key = (NSString*)[shipinfoDictionary objectForKey:@"defense_ship"];
-		defense_ship_ai = nil;
-	}
-	if ([shipinfoDictionary objectForKey:@"defense_ship_role"])
-	{
-		defense_ship_role_key = (NSString*)[shipinfoDictionary objectForKey:@"defense_ship_role"];
-		defense_ship_ai = nil;
-	}
-
-	if (defense_ship_key)
+	
+	defense_ship_key = [shipinfoDictionary stringForKey:@"defense_ship"];
+	if (defense_ship_key != nil)
 	{
 		defense_ship = [UNIVERSE newShipWithName:defense_ship_key];
-		[defense_ship setRoles:@"defense_ship"];
 	}
 	else
 	{
+		defense_ship_role_key = [shipinfoDictionary stringForKey:@"defense_ship_role"];
 		defense_ship = [UNIVERSE newShipWithRole:defense_ship_role_key];
-		[defense_ship setRoles:@"defense_ship"];
 	}
 	
 	if (!defense_ship)
 		return;
 	
+	[defense_ship setRoles:@"defense_ship"];
+	
 	police_launched++;
 	
 	if (![defense_ship crew])
+	{
 		[defense_ship setCrew:[NSArray arrayWithObject:
 			[OOCharacter randomCharacterWithRole: @"hunter"
 			andOriginalSystem: [UNIVERSE systemSeed]]]];
+	}
 				
 	[defense_ship setOwner: self];
 	[defense_ship setGroupID:universalID];	// who's your Daddy
 	
-	if (defense_ship_ai)
-		[[defense_ship getAI] setStateMachine:defense_ship_ai];
 	[defense_ship addTarget:[UNIVERSE entityForUniversalID:defense_target]];
 
 	if ((scanClass != CLASS_ROCK)&&(scanClass != CLASS_STATION))
 		[defense_ship setScanClass: scanClass];	// same as self
-
+	
 	[self addShipToLaunchQueue:defense_ship];
 	[defense_ship release];
 	no_docking_while_launching = YES;
 	[self abortAllDockings];
-
 }
 
 
@@ -1756,10 +1742,12 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 		return NO;
 	if ([UNIVERSE station] == self)
 		return YES;
+	
+	// NOTE: non-standard capitalization is documented and entrenched.
 	if ([shipinfoDictionary objectForKey:@"hasShipyard"])
 	{
 		PlayerEntity	*player = [PlayerEntity sharedPlayer];
-		NSObject		*determinant = [shipinfoDictionary objectForKey:@"hasShipyard"];
+		id				determinant = [shipinfoDictionary objectForKey:@"hasShipyard"];
 		if ([determinant isKindOfClass:[NSArray class]])
 		{
 			NSArray *conditions = (NSArray *)determinant;
@@ -1771,7 +1759,7 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 		}
 		if ([determinant isKindOfClass:[NSNumber class]])
 		{
-			float chance = [(NSNumber*)determinant floatValue];;
+			float chance = [(NSNumber*)determinant floatValue];
 			return (randf() < chance);
 		}
 	}

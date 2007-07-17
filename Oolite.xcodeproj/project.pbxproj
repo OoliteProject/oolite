@@ -390,8 +390,8 @@
 		1A9406850BAF66D6005F6CF3 /* OOVoxel.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A9406830BAF66D6005F6CF3 /* OOVoxel.m */; settings = {COMPILER_FLAGS = "-O3 -falign-loops=32 -falign-loops-max-skip=31 -falign-functions=32"; }; };
 		1A9406B40BAF67BF005F6CF3 /* OOTriangle.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A9406B20BAF67BF005F6CF3 /* OOTriangle.h */; };
 		1A9406B50BAF67BF005F6CF3 /* OOTriangle.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A9406B30BAF67BF005F6CF3 /* OOTriangle.m */; settings = {COMPILER_FLAGS = "-O3 -falign-loops=32 -falign-loops-max-skip=31 -falign-functions=32"; }; };
-		1A95338B0C02089E004EBB58 /* material-defaults.plist in Resources */ = {isa = PBXBuildFile; fileRef = 1A9533890C02089E004EBB58 /* material-defaults.plist */; };
-		1A95338C0C02089E004EBB58 /* planetinfo.plist in Resources */ = {isa = PBXBuildFile; fileRef = 1A95338A0C02089E004EBB58 /* planetinfo.plist */; };
+		1A95338B0C02089E004EBB58 /* material-defaults.plist in Copy Config */ = {isa = PBXBuildFile; fileRef = 1A9533890C02089E004EBB58 /* material-defaults.plist */; };
+		1A95338C0C02089E004EBB58 /* planetinfo.plist in Copy Config */ = {isa = PBXBuildFile; fileRef = 1A95338A0C02089E004EBB58 /* planetinfo.plist */; };
 		1AB01ABE0BB15AED00F1B949 /* OOTextureScaling.h in Headers */ = {isa = PBXBuildFile; fileRef = 1AB01ABC0BB15AED00F1B949 /* OOTextureScaling.h */; };
 		1AB01B5F0BB1639600F1B949 /* OOTextureScaling.m in Sources */ = {isa = PBXBuildFile; fileRef = 1AB01ABD0BB15AED00F1B949 /* OOTextureScaling.m */; };
 		1AB01BBB0BB16A8A00F1B949 /* OOFastArithmetic.h in Headers */ = {isa = PBXBuildFile; fileRef = 1AB01BB90BB16A8A00F1B949 /* OOFastArithmetic.h */; };
@@ -568,6 +568,8 @@
 			dstPath = Config;
 			dstSubfolderSpec = 7;
 			files = (
+				1A95338B0C02089E004EBB58 /* material-defaults.plist in Copy Config */,
+				1A95338C0C02089E004EBB58 /* planetinfo.plist in Copy Config */,
 				1AD0C3300C463FCC0070BD23 /* autoAImap.plist in Copy Config */,
 				1A3591830C1C382700E52220 /* nebulatextures.plist in Copy Config */,
 				1A3591840C1C382700E52220 /* startextures.plist in Copy Config */,
@@ -872,7 +874,7 @@
 		083325DC09DDBCDE00F5B8E4 /* OOColor.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOColor.m; sourceTree = "<group>"; };
 		083DB4D30A70E51E00B419B2 /* OOBrain.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOBrain.h; sourceTree = "<group>"; };
 		083DB4D40A70E51E00B419B2 /* OOBrain.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOBrain.m; sourceTree = "<group>"; };
-		0865432206B8447D000CA0AB /* Oolite.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Oolite.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		0865432206B8447D000CA0AB /* OoliteDev.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = OoliteDev.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		0878FD2F086EF845004CB752 /* Carbon.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Carbon.framework; path = /System/Library/Frameworks/Carbon.framework; sourceTree = "<absolute>"; };
 		1058C7A1FEA54F0111CA2CBB /* Cocoa.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Cocoa.framework; path = /System/Library/Frameworks/Cocoa.framework; sourceTree = "<absolute>"; };
 		1A08317C0C2EED9700E3AE25 /* debugLogMessageClassesMenu.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist; path = debugLogMessageClassesMenu.plist; sourceTree = "<group>"; };
@@ -1197,10 +1199,6 @@
 		1A5E462D0C32DACE008104B4 /* OOShaderUniformMethodType.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOShaderUniformMethodType.m; sourceTree = "<group>"; };
 		1A5E462E0C32DACE008104B4 /* OOShaderUniformMethodType.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOShaderUniformMethodType.h; sourceTree = "<group>"; };
 		1A67050E0C4904ED002551AA /* oolite-cloaking-device.js */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.javascript; path = "oolite-cloaking-device.js"; sourceTree = "<group>"; };
-		1A71D85A0BCA88AA00CD5C13 /* OOPlayer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOPlayer.h; sourceTree = "<group>"; };
-		1A71D85B0BCA88AA00CD5C13 /* OOPlayer.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOPlayer.m; sourceTree = "<group>"; };
-		1A71D89F0BCA8B6500CD5C13 /* OOLocalPlayer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOLocalPlayer.h; sourceTree = "<group>"; };
-		1A71D8A00BCA8B6500CD5C13 /* OOLocalPlayer.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOLocalPlayer.m; sourceTree = "<group>"; };
 		1A71E6F30BCE340C00CD5C13 /* libpng.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libpng.a; sourceTree = BUILT_PRODUCTS_DIR; };
 		1A71E7030BCE34CF00CD5C13 /* pngconf.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = pngconf.h; sourceTree = "<group>"; };
 		1A71E7040BCE34CF00CD5C13 /* pngmem.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = pngmem.c; sourceTree = "<group>"; };
@@ -1466,7 +1464,7 @@
 		19C28FACFE9D520D11CA2CBB /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				0865432206B8447D000CA0AB /* Oolite.app */,
+				0865432206B8447D000CA0AB /* OoliteDev.app */,
 				1A71E6F30BCE340C00CD5C13 /* libpng.a */,
 			);
 			name = Products;
@@ -1887,17 +1885,6 @@
 			path = Materials;
 			sourceTree = "<group>";
 		};
-		1A71E5230BCD7C4E00CD5C13 /* Player refactoring */ = {
-			isa = PBXGroup;
-			children = (
-				1A71D85A0BCA88AA00CD5C13 /* OOPlayer.h */,
-				1A71D85B0BCA88AA00CD5C13 /* OOPlayer.m */,
-				1A71D89F0BCA8B6500CD5C13 /* OOLocalPlayer.h */,
-				1A71D8A00BCA8B6500CD5C13 /* OOLocalPlayer.m */,
-			);
-			name = "Player refactoring";
-			sourceTree = "<group>";
-		};
 		1A71E6FB0BCE345800CD5C13 /* libpng */ = {
 			isa = PBXGroup;
 			children = (
@@ -1982,7 +1969,6 @@
 				25161110099544390037C2E1 /* OOTrumble.h */,
 				25161108099544390037C2E1 /* OOTrumble.m */,
 				1A2A1B020BD2768300152975 /* Graphics */,
-				1A71E5230BCD7C4E00CD5C13 /* Player refactoring */,
 				1A5DBA980BC000DC00D57389 /* Scripting */,
 			);
 			name = Source;
@@ -2534,7 +2520,7 @@
 			name = Oolite;
 			productInstallPath = "$(HOME)/Applications";
 			productName = Oolite;
-			productReference = 0865432206B8447D000CA0AB /* Oolite.app */;
+			productReference = 0865432206B8447D000CA0AB /* OoliteDev.app */;
 			productType = "com.apple.product-type.application";
 		};
 		1A71E6F20BCE340C00CD5C13 /* libpng-custom */ = {
@@ -2598,8 +2584,6 @@
 				25F3E8A80994FE65002F25FD /* oolite-expansion-document.icns in Resources */,
 				25F3E8A90994FE65002F25FD /* oolite-icon.icns in Resources */,
 				25F3E8B40994FE9B002F25FD /* InfoPlist.strings in Resources */,
-				1A95338B0C02089E004EBB58 /* material-defaults.plist in Resources */,
-				1A95338C0C02089E004EBB58 /* planetinfo.plist in Resources */,
 				1A358CE20C1AB80D00E52220 /* ReadMe.rtfd in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -2824,6 +2808,7 @@
 				GCC_PREPROCESSOR_DEFINITIONS = XP_UNIX;
 				GCC_PREPROCESSOR_DEFINITIONS_NOT_USED_IN_PRECOMPS = OO_DEBUG;
 				GCC_REUSE_STRINGS = YES;
+				GCC_TREAT_WARNINGS_AS_ERRORS = YES;
 				HEADER_SEARCH_PATHS = (
 					"$(HEADER_SEARCH_PATHS_QUOTED_1)",
 					"$(HEADER_SEARCH_PATHS_QUOTED_2)",
@@ -2877,6 +2862,7 @@
 					OOLOG_NO_FILE_NAME,
 				);
 				GCC_REUSE_STRINGS = YES;
+				GCC_TREAT_WARNINGS_AS_ERRORS = YES;
 				HEADER_SEARCH_PATHS = (
 					"$(HEADER_SEARCH_PATHS_QUOTED_1)",
 					"$(HEADER_SEARCH_PATHS_QUOTED_2)",
@@ -2980,6 +2966,7 @@
 					"OO_SMART_CRASH_REPORT_INSTALL=1",
 				);
 				GCC_REUSE_STRINGS = YES;
+				GCC_TREAT_WARNINGS_AS_ERRORS = YES;
 				HEADER_SEARCH_PATHS = (
 					"$(HEADER_SEARCH_PATHS_QUOTED_1)",
 					"$(HEADER_SEARCH_PATHS_QUOTED_2)",

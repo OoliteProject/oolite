@@ -59,34 +59,38 @@ static NSString * const kOOLogFlightTrainingBeacons		= @"beacon.list.flightTrain
 	
 	// pre-process kdic - replace any strings with an integer representing the ASCII value of the first character
 	
-	unsigned i;
-	NSArray* keys = [kdic allKeys];
+	unsigned		i;
+	NSArray			*keys = nil;
+	id				key = nil, value = nil;
+	int				iValue;
+	unsigned char	keychar;
+	NSString		*keystring = nil;
+	
+	keys = [kdic allKeys];
 	for (i = 0; i < [keys count]; i++)
 	{
-		id key = [keys objectAtIndex:i];
-		id value = [kdic objectForKey: key];
-		int iValue = [value intValue];
+		key = [keys objectAtIndex:i];
+		value = [kdic objectForKey: key];
+		iValue = [value intValue];
 		
 		//	for '0' '1' '2' '3' '4' '5' '6' '7' '8' '9' - we want to interpret those as strings - not numbers
 		//	alphabetical characters and symbols will return an intValue of 0.
 		
 		if ([value isKindOfClass:[NSString class]] && (iValue < 10))
 		{
-			char		keychar;
-			NSString	*keystring = value;
-			
+			keystring = value;
 			if ([keystring length] == 1 || (iValue == 0 && [keystring length] != 0))
 			{
 				keychar = [keystring characterAtIndex: 0] & 0x00ff; // uses lower byte of unichar
 			}
 			else if (iValue <= 0xFF)  keychar = iValue;
 			
-			[kdic setObject:[NSNumber numberWithInt:(int)keychar] forKey:key];
+			[kdic setObject:[NSNumber numberWithUnsignedChar:keychar] forKey:key];
 		}
 	}
 	
-	// set default keys...
-	#define LOAD_KEY_SETTING(name, default)	name = [kdic intForKey:@#name defaultValue:default]
+	// set default keys.
+	#define LOAD_KEY_SETTING(name, default)	name = [kdic unsignedShortForKey:@#name defaultValue:default]
 	
 	LOAD_KEY_SETTING(key_roll_left,				gvArrowKeyLeft		);
 	LOAD_KEY_SETTING(key_roll_right,			gvArrowKeyRight		);
@@ -128,7 +132,7 @@ static NSString * const kOOLogFlightTrainingBeacons		= @"beacon.list.flightTrain
 	LOAD_KEY_SETTING(key_snapshot,				'*'					);
 	LOAD_KEY_SETTING(key_docking_music,			's'					);
 	
-	LOAD_KEY_SETTING(kay_advanced_nav_array,	'^'					);
+	LOAD_KEY_SETTING(key_advanced_nav_array,	'^'					);
 	LOAD_KEY_SETTING(key_map_home,				gvHomeKey			);
 	LOAD_KEY_SETTING(key_map_info,				'i'					);
 	
@@ -1475,7 +1479,7 @@ static BOOL			spacePressed;
 	switch (gui_screen)
 	{
 		case	GUI_SCREEN_LONG_RANGE_CHART :
-			if ([gameView isDown:kay_advanced_nav_array])   //  '^' key
+			if ([gameView isDown:key_advanced_nav_array])   //  '^' key
 			{
 				if (!pling_pressed)
 				{

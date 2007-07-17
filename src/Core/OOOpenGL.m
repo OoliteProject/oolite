@@ -146,6 +146,69 @@ void GLDrawFilledOval(GLfloat x, GLfloat y, GLfloat z, NSSize siz, GLfloat step)
 }
 
 
+enum
+{
+	// Number of cached texture names. Unused texture names are cheap, so we use lots.
+	kTextureNameCacheMaxSize		= 128,
+	
+	// Number of texture names to discard at a time when cache overflows.
+	kTextureNameCacheFlushCount		= kTextureNameCacheMaxSize / 4
+};
+
+static GLuint		sTextureNameCache[kTextureNameCacheMaxSize];
+static unsigned		sTextureNameCacheSize = 0;
+
+
+GLuint GLAllocateTextureName(void)
+{
+	OOLog(@"textureCache.allocate", @"Request for texture name while cache size is %u.", sTextureNameCacheSize);
+	
+	if (sTextureNameCacheSize == 0)
+	{
+		OO_ENTER_OPENGL();
+		
+		OOLog(@"textureCache.fill", @"Adding %u elements to texture names cache.", kTextureNameCacheMaxSize);
+		// Allocate a block of names.
+		glGenTextures(kTextureNameCacheMaxSize, sTextureNameCache);
+		sTextureNameCacheSize = kTextureNameCacheMaxSize;
+	}
+	
+	assert(sTextureNameCacheSize != 0);
+	
+	return sTextureNameCache[--sTextureNameCacheSize];
+}
+
+
+void GLRecycleTextureName(GLuint name, GLuint mipLevels)
+{
+	if (name == 0)  return;
+	
+	OOLog(@"textureCache.recycle", @"Recycling texture name while cache size is %u.", sTextureNameCacheSize);
+	
+	OO_ENTER_OPENGL();
+	
+	if (sTextureNameCacheSize == kTextureNameCacheMaxSize)
+	{
+		OOLog(@"textureCache.flush", @"Deleting %u elements from texture names cache.", kTextureNameCacheFlushCount);
+		// No more space; delete several elements (to avoid a series of individual deletes)
+		sTextureNameCacheSize -= kTextureNameCacheFlushCount;
+		glDeleteTextures(kTextureNameCacheFlushCount, &sTextureNameCache[sTextureNameCacheSize]);
+	}
+	
+	assert(sTextureNameCacheSize < kTextureNameCacheMaxSize);
+	
+	GLuint		i;
+	uint8_t		junk[4];
+	
+	for (i = 0; i != mipLevels; ++i)
+	{
+		glBindTexture(GL_TEXTURE_2D, name);
+		glTexImage2D(GL_TEXTURE_2D, i, GL_RGBA, 0, 0, 0, GL_RGBA, GL_UNSIGNED_BYTE, junk);
+	}
+	
+	sTextureNameCache[sTextureNameCacheSize++] = name;
+}
+
 
 // ======== LogOpenGLState() and helpers ========
 #if 0

@@ -150,7 +150,7 @@ enum
 
 - (void)dealloc
 {
-	[path release];
+	[path autorelease];
 	if (data != NULL)  free(data);
 	
 	[super dealloc];
@@ -169,6 +169,12 @@ enum
 	else  state = @"loading";
 	
 	return [NSString stringWithFormat:@"<%@ %p>{%@ -- %@}", [self class], self, path, state];
+}
+
+
+- (NSString *)path
+{
+	return path;
 }
 
 
