@@ -714,7 +714,7 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 }
 
 
-- (void) setUpShipFromDictionary:(NSDictionary *) dict
+- (BOOL) setUpShipFromDictionary:(NSDictionary *) dict
 {
 	unsigned		i;
 	
@@ -791,6 +791,8 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 	}
 	
 	[self setCrew:[NSArray arrayWithObject:[OOCharacter characterWithRole:@"police" andOriginalSystem:[UNIVERSE systemSeed]]]];
+	
+	return YES;
 }
 
 

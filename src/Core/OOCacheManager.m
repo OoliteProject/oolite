@@ -58,7 +58,7 @@ static NSString * const kOOLogDataCacheRemovedOld			= @"dataCache.removedOld";
 static NSString * const kCacheKeyVersion					= @"CFBundleVersion";	// Legacy name
 static NSString * const kCacheKeyEndianTag					= @"endian tag";
 static NSString * const kCacheKeyFormatVersion				= @"format version";
-static NSString * const kCacheKeyCaches						= @"caches";
+static NSString * const kCacheKeyCaches						= @"_caches";
 
 
 enum
@@ -106,6 +106,7 @@ static OOCacheManager *sSingleton = nil;
 	self = [super init];
 	if (self != nil)
 	{
+		_permitWrites = YES;
 		[self deleteOldCache];
 		[self loadCache];
 	}
@@ -151,7 +152,7 @@ static OOCacheManager *sSingleton = nil;
 		return nil;
 	}
 	
-	cache = [caches objectForKey:inCacheKey];
+	cache = [_caches objectForKey:inCacheKey];
 	if (cache != nil)
 	{
 		result = [cache objectForKey:inKey];
@@ -181,9 +182,9 @@ static OOCacheManager *sSingleton = nil;
 	// Sanity check
 	if (inObject == nil || inCacheKey == nil || inKey == nil)  OOLog(kOOLogDataCacheParamError, @"Bad parameters -- nil object, key or cacheKey.");
 	
-	if (caches == nil)  return;
+	if (_caches == nil)  return;
 	
-	cache = [caches objectForKey:inCacheKey];
+	cache = [_caches objectForKey:inCacheKey];
 	if (cache == nil)
 	{
 		cache = [[OOCache alloc] init];
@@ -194,7 +195,7 @@ static OOCacheManager *sSingleton = nil;
 		}
 		[cache setName:inCacheKey];
 		[cache setAutoPrune:AUTO_PRUNE];
-		[caches setObject:cache forKey:inCacheKey];
+		[_caches setObject:cache forKey:inCacheKey];
 	}
 	
 	[cache setObject:inObject forKey:inKey];
@@ -209,7 +210,7 @@ static OOCacheManager *sSingleton = nil;
 	// Sanity check
 	if (inCacheKey == nil || inKey == nil)  OOLog(kOOLogDataCacheParamError, @"Bad parameters -- nil key or cacheKey.");
 	
-	cache = [caches objectForKey:inCacheKey];
+	cache = [_caches objectForKey:inCacheKey];
 	if (cache != nil)
 	{
 		if (nil != [cache objectForKey:inKey])
@@ -234,9 +235,9 @@ static OOCacheManager *sSingleton = nil;
 	// Sanity check
 	if (inCacheKey == nil)  OOLog(kOOLogDataCacheParamError, @"Bad parameter -- nil cacheKey.");
 	
-	if (nil != [caches objectForKey:inCacheKey])
+	if (nil != [_caches objectForKey:inCacheKey])
 	{
-		[caches removeObjectForKey:inCacheKey];
+		[_caches removeObjectForKey:inCacheKey];
 		OOLog(kOOLogDataCacheClearSuccess, @"Cleared cache \"%@\".", inCacheKey);
 	}
 	else
@@ -248,8 +249,8 @@ static OOCacheManager *sSingleton = nil;
 
 - (void)clearAllCaches
 {
-	[caches release];
-	caches = [[NSMutableDictionary alloc] init];
+	[_caches release];
+	_caches = [[NSMutableDictionary alloc] init];
 }
 
 
@@ -257,7 +258,7 @@ static OOCacheManager *sSingleton = nil;
 {
 	OOCache				*cache = nil;
 	
-	cache = [caches objectForKey:inCacheKey];
+	cache = [_caches objectForKey:inCacheKey];
 	if (cache != nil)
 	{
 		[cache setPruneThreshold:inThreshold];
@@ -269,7 +270,7 @@ static OOCacheManager *sSingleton = nil;
 {
 	OOCache				*cache = nil;
 	
-	cache = [caches objectForKey:inCacheKey];
+	cache = [_caches objectForKey:inCacheKey];
 	if (cache != nil)  return [cache pruneThreshold];
 	else  return kOOCacheDefaultPruneThreshold;
 }
@@ -277,11 +278,17 @@ static OOCacheManager *sSingleton = nil;
 
 - (void)flush
 {
-	if ([self dirty])
+	if (_permitWrites && [self dirty])
 	{
 		[self write];
 		[self markClean];
 	}
+}
+
+
+- (void)setAllowCacheWrites:(BOOL)flag
+{
+	_permitWrites = (flag != NO);
 }
 
 @end
@@ -358,7 +365,7 @@ static OOCacheManager *sSingleton = nil;
 	}
 	
 	// If loading failed, or there was a version or endianness conflict
-	if (caches == nil) caches = [[NSMutableDictionary alloc] init];
+	if (_caches == nil) _caches = [[NSMutableDictionary alloc] init];
 }
 
 
@@ -371,10 +378,10 @@ static OOCacheManager *sSingleton = nil;
 	NSDictionary			*pListRep = nil;
 	uint32_t				endianTagValue = kEndianTagValue;
 	
-	if (caches == nil) return;
+	if (_caches == nil) return;
 	
 #if PRUNE_BEFORE_FLUSH
-	[[caches allValues] makeObjectsPerformSelector:@selector(prune)];
+	[[_caches allValues] makeObjectsPerformSelector:@selector(prune)];
 #endif
 	
 	OOLog(@"dataCache.willWrite", @"About to write data cache.");	// Added for 1.69 to detect possible write-related crash. -- Ahruman
@@ -409,8 +416,8 @@ static OOCacheManager *sSingleton = nil;
 
 - (void)clear
 {
-	[caches release];
-	caches = nil;
+	[_caches release];
+	_caches = nil;
 }
 
 
@@ -419,7 +426,7 @@ static OOCacheManager *sSingleton = nil;
 	NSEnumerator				*cacheEnum = nil;
 	OOCache						*cache = nil;
 	
-	for (cacheEnum = [caches objectEnumerator]; (cache = [cacheEnum nextObject]); )
+	for (cacheEnum = [_caches objectEnumerator]; (cache = [cacheEnum nextObject]); )
 	{
 		if ([cache dirty]) return YES;
 	}
@@ -432,7 +439,7 @@ static OOCacheManager *sSingleton = nil;
 	NSEnumerator				*cacheEnum = nil;
 	OOCache						*cache = nil;
 	
-	for (cacheEnum = [caches objectEnumerator]; (cache = [cacheEnum nextObject]); )
+	for (cacheEnum = [_caches objectEnumerator]; (cache = [cacheEnum nextObject]); )
 	{
 		[cache markClean];
 	}
@@ -512,8 +519,8 @@ static OOCacheManager *sSingleton = nil;
 	
 	if (inDict == nil ) return;
 	
-	[caches release];
-	caches = [[NSMutableDictionary alloc] initWithCapacity:[inDict count]];
+	[_caches release];
+	_caches = [[NSMutableDictionary alloc] initWithCapacity:[inDict count]];
 	
 	for (keyEnum = [inDict keyEnumerator]; (key = [keyEnum nextObject]); )
 	{
@@ -522,7 +529,7 @@ static OOCacheManager *sSingleton = nil;
 		if (cache != nil)
 		{
 			[cache setName:key];
-			[caches setObject:cache forKey:key];
+			[_caches setObject:cache forKey:key];
 			[cache release];
 		}
 	}
@@ -537,10 +544,10 @@ static OOCacheManager *sSingleton = nil;
 	OOCache						*cache = nil;
 	id							pList = nil;
 	
-	dict = [NSMutableDictionary dictionaryWithCapacity:[caches count]];
-	for (keyEnum = [caches keyEnumerator]; (key = [keyEnum nextObject]); )
+	dict = [NSMutableDictionary dictionaryWithCapacity:[_caches count]];
+	for (keyEnum = [_caches keyEnumerator]; (key = [keyEnum nextObject]); )
 	{
-		cache = [caches objectForKey:key];
+		cache = [_caches objectForKey:key];
 		pList = [cache pListRepresentation];
 		
 		if (pList != nil)  [dict setObject:pList forKey:key];
@@ -588,7 +595,7 @@ static OOCacheManager *sSingleton = nil;
 	
 	/*	Construct the path for the cache file, which is:
 			~/Library/Caches/org.aegidian.oolite/Data Cache.plist
-		In addition to generally being the right place to put caches,
+		In addition to generally being the right place to put _caches,
 		~/Library/Caches has the particular advantage of not being indexed by
 		Spotlight or, in future, backed up by Time Machine.
 	*/

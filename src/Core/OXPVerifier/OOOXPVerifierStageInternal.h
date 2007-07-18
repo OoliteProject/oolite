@@ -1,18 +1,8 @@
 /*
 
-OOLogOutputHandler.h
-By Jens Ayton
+OOOXPVerifierStageInternal.h
 
-Mac OS X-specific output handler for OOLogging.
-
-This does two things:
-1. It writes log output to ~/Logs/org.aegidian.oolite/Oolite.log, handling
-   thread serialization.
-2. It installs a filter to capture NSLogs and convert them to OOLogs. This is
-   different to the macro in OOLogging.h, which acts at compile time; the
-   filter catches logging in included frameworks.
-
-OOLogOutputHandlerPrint() is thread-safe. Other functions are not.
+Private interface between OOOXPVerifierStage and OOOXPVerifier.
 
 
 Oolite
@@ -58,13 +48,21 @@ SOFTWARE.
 
 */
 
-#import <Foundation/Foundation.h>
+#import "OOOXPVerifierStage.h"
 
+#if OO_OXP_VERIFIER_ENABLED
 
-void OOLogOutputHandlerInit(void);
-void OOLogOutputHandlerClose(void);
-void OOLogOutputHandlerPrint(NSString *string);
+@interface OOOXPVerifierStage (OOInternal)
 
-// This will attempt to ensure the containing directory exists. If it fails, it will return nil.
-NSString *OOLogHandlerGetLogPath(void);
-void OOLogOutputHandlerChangeLogFile(NSString *newLogName);
+- (void)setVerifier:(OOOXPVerifier *)verifier;
+- (BOOL)isDependentOf:(OOOXPVerifierStage *)stage;
+- (void)registerDependency:(OOOXPVerifierStage *)dependency;
+- (void)dependencyRegistrationComplete;
+
+- (BOOL)completed;
+- (BOOL)canRun;
+- (void)performRun;
+
+@end
+
+#endif

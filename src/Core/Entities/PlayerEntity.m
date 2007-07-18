@@ -422,7 +422,7 @@ static PlayerEntity *sSharedPlayer = nil;
 		NSDictionary *shipDict = [UNIVERSE getDictionaryForShip:ship_desc];
 		if (shipDict == nil)  return NO;
 		
-		[self setUpShipFromDictionary:shipDict];
+		if (![self setUpShipFromDictionary:shipDict])  return NO;
 	}
 
 	// ship depreciation
@@ -987,7 +987,7 @@ static PlayerEntity *sSharedPlayer = nil;
 }
 
 
-- (void) setUpShipFromDictionary:(NSDictionary *)shipDict
+- (BOOL) setUpShipFromDictionary:(NSDictionary *)shipDict
 {
 	[shipinfoDictionary release];
 	shipinfoDictionary = [shipDict copy];
@@ -1157,6 +1157,11 @@ static PlayerEntity *sSharedPlayer = nil;
 				quaternion_normalize(&sub_q);
 
 				subent = [UNIVERSE newShipWithName:subdesc];	// retained
+				if (subent == nil)
+				{
+					// Failing to find a subentity could result in a partial ship, which'd be, y'know, weird.
+					return nil;
+				}
 
 				if ((self->isStation)&&([subdesc rangeOfString:@"dock"].location != NSNotFound))
 					[(StationEntity*)self setDockingPortModel:(ShipEntity*)subent :sub_pos :sub_q];
@@ -1196,6 +1201,8 @@ static PlayerEntity *sSharedPlayer = nil;
 	// rotating subentities
 	subentityRotationalVelocity = kIdentityQuaternion;
 	ScanQuaternionFromString([shipDict objectForKey:@"rotational_velocity"], &subentityRotationalVelocity);
+	
+	return YES;
 }
 
 
@@ -3346,8 +3353,10 @@ double scoopSoundPlayTime = 0.0;
 		NSString* bonusMS2 = [NSString stringWithFormat:ExpandDescriptionForCurrentSystem(@"[total-f-credits]"), 0.1 * credits];
 		
 		if (score > 9)
+		{
 			[UNIVERSE addDelayedMessage:bonusMS1 forCount:6 afterDelay:0.15];
-		[UNIVERSE addDelayedMessage:bonusMS2 forCount:6 afterDelay:0.15];
+			[UNIVERSE addDelayedMessage:bonusMS2 forCount:6 afterDelay:0.15];
+		}
 	}
 	
 	while (kill_award > 0)
@@ -4828,25 +4837,25 @@ static int last_outfitting_index;
 	GuiDisplayGen* gui = [UNIVERSE gui];
 	
 	[[OOCacheManager sharedCache] flush];	// At first startup, a lot of stuff is cached
-
+	
 	// GUI stuff
 	int ms_line = 2;
-
+	
 	[gui clear];
 	[gui setTitle:@"Oolite"];
-
+	
 	text = ExpandDescriptionForCurrentSystem(@"[game-copyright]");
 	[gui setText:text forRow:17 align:GUI_ALIGN_CENTER];
 	[gui setColor:[OOColor whiteColor] forRow:17];
-
+	
 	text = ExpandDescriptionForCurrentSystem(@"[theme-music-credit]");
 	[gui setText:text forRow:19 align:GUI_ALIGN_CENTER];
 	[gui setColor:[OOColor grayColor] forRow:19];
-
+	
 	text = ExpandDescriptionForCurrentSystem(@"[load-previous-commander]");
 	[gui setText:text forRow:21 align:GUI_ALIGN_CENTER];
 	[gui setColor:[OOColor yellowColor] forRow:21];
-
+	
 	
 	// check for error messages from Resource Manager
 	[ResourceManager paths];
@@ -4857,7 +4866,7 @@ static int last_outfitting_index;
 		for (i-- ; i >= ms_start ; i--) [gui setColor:[OOColor redColor] forRow:i];
 		ms_line++;
 	}
-
+	
 	// check for messages from the command line
 	NSArray* arguments = [[NSProcessInfo processInfo] arguments];
 	unsigned i;

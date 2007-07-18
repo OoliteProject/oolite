@@ -99,12 +99,16 @@ static NSString * const kOOLogEntityBehaviourChanged	= @"entity.behaviour.change
 	shot_time = 100000.0;
 	ship_temperature = 60.0;
 	
-	[self setUpShipFromDictionary:dict];
+	if (![self setUpShipFromDictionary:dict])
+	{
+		[self release];
+		self = nil;
+	}
 	return self;
 }
 
 
-- (void) setUpShipFromDictionary:(NSDictionary *) dict
+- (BOOL) setUpShipFromDictionary:(NSDictionary *) dict
 {
 	NSDictionary		*shipDict = dict;
 	unsigned			i;
@@ -313,25 +317,26 @@ static NSString * const kOOLogEntityBehaviourChanged	= @"entity.behaviour.change
 				quaternion_normalize(&sub_q);
 
 				subent = [UNIVERSE newShipWithName:subdesc];	// retained
-
+				if (subent == nil)
+				{
+					// Failing to find a subentity could result in a partial ship, which'd be, y'know, weird.
+					return nil;
+				}
+				
 				if ((self->isStation)&&([subdesc rangeOfString:@"dock"].location != NSNotFound))
 					[(StationEntity*)self setDockingPortModel:(ShipEntity*)subent :sub_pos :sub_q];
-
-				if (subent)
-				{
-					[(ShipEntity*)subent setStatus:STATUS_INACTIVE];
-					//
-					ref = vector_forward_from_quaternion(sub_q);	// VECTOR FORWARD
-					//
-					[(ShipEntity*)subent setReference: ref];
-					[(ShipEntity*)subent setPosition: sub_pos];
-					[(ShipEntity*)subent setOrientation: sub_q];
-					//
-					[self addSolidSubentityToCollisionRadius:(ShipEntity*)subent];
-					//
-					subent->isSubentity = YES;
-				}
-				//
+				
+				[(ShipEntity*)subent setStatus:STATUS_INACTIVE];
+				
+				ref = vector_forward_from_quaternion(sub_q);	// VECTOR FORWARD
+				
+				[(ShipEntity*)subent setReference: ref];
+				[(ShipEntity*)subent setPosition: sub_pos];
+				[(ShipEntity*)subent setOrientation: sub_q];
+				
+				[self addSolidSubentityToCollisionRadius:(ShipEntity*)subent];
+				
+				subent->isSubentity = YES;
 			}
 			if (sub_entities == nil)  sub_entities = [[NSMutableArray alloc] init];
 			[sub_entities addObject:subent];
@@ -413,6 +418,8 @@ static NSString * const kOOLogEntityBehaviourChanged	= @"entity.behaviour.change
 	
 	// unpiloted (like missiles asteroids etc.)
 	if ([shipDict fuzzyBooleanForKey:@"unpiloted"])  [self setCrew:nil];
+	
+	return YES;
 }
 
 

@@ -1,18 +1,8 @@
 /*
 
-OOLogOutputHandler.h
-By Jens Ayton
+OOOXPVerifierStage.h
 
-Mac OS X-specific output handler for OOLogging.
-
-This does two things:
-1. It writes log output to ~/Logs/org.aegidian.oolite/Oolite.log, handling
-   thread serialization.
-2. It installs a filter to capture NSLogs and convert them to OOLogs. This is
-   different to the macro in OOLogging.h, which acts at compile time; the
-   filter catches logging in included frameworks.
-
-OOLogOutputHandlerPrint() is thread-safe. Other functions are not.
+Pipeline stage for OXP verification pipeline managed by OOOXPVerifier.
 
 
 Oolite
@@ -58,13 +48,47 @@ SOFTWARE.
 
 */
 
-#import <Foundation/Foundation.h>
+#import "OOOXPVerifier.h"
 
+#if OO_OXP_VERIFIER_ENABLED
 
-void OOLogOutputHandlerInit(void);
-void OOLogOutputHandlerClose(void);
-void OOLogOutputHandlerPrint(NSString *string);
+@interface OOOXPVerifierStage: NSObject
+{
+@private
+	OOOXPVerifier				*_verifier;
+	NSMutableSet				*_dependencies;
+	NSMutableSet				*_incompleteDependencies;
+	NSMutableSet				*_dependents;
+	BOOL						_canRun, _hasRun;
+}
 
-// This will attempt to ensure the containing directory exists. If it fails, it will return nil.
-NSString *OOLogHandlerGetLogPath(void);
-void OOLogOutputHandlerChangeLogFile(NSString *newLogName);
+- (OOOXPVerifier *)verifier;
+
+// Subclass responsibilities:
+
+/*	Name of stage. Used for display and for dependency resolution; must be
+	unique. The name should be a phrase describing what will be done, like
+	"Scanning files" or "Verifying plist scripts".
+*/
+- (NSString *)name;
+- (NSSet *)requiredStages;	// Names of stages that must be run before this one. Default: empty set.
+
+/*	This is called once by the verifier.
+	When it is called, all the verifier stages listed in -requiredStages will
+	have run. At this point, it is possible to access them using the
+	verifier's -stageWithName: method in order to query them about results.
+	Stages whose dependencies have all run will be released, so the result of
+	calling -stageWithName: with a name not in -requiredStages is undefined.
+*/
+- (void)run;
+
+/*	Post-run: some verifier stage, like the file set stage, need to perform
+	checks after all other stages are completed. Such stages must implement
+	-needsPostRun to return YES.
+*/
+- (BOOL)needsPostRun;
+- (void)postRun;
+
+@end
+
+#endif

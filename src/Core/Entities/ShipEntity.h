@@ -315,7 +315,7 @@ MA 02110-1301, USA.
 - (void) setUpEscorts;
 
 - (id)initWithDictionary:(NSDictionary *) dict;
-- (void)setUpShipFromDictionary:(NSDictionary *) dict;
+- (BOOL)setUpShipFromDictionary:(NSDictionary *) dict;
 - (NSDictionary *)shipInfoDictionary;
 
 - (void) setDefaultWeaponOffsets;

@@ -44,7 +44,8 @@ enum
 @interface OOCacheManager: NSObject
 {
 @private
-	NSMutableDictionary		*caches;
+	NSMutableDictionary		*_caches;
+	BOOL					_permitWrites;
 }
 
 + (id)sharedCache;
@@ -62,6 +63,8 @@ enum
 */
 - (void)setPruneThreshold:(unsigned)inThreshold forCache:(NSString *)inCacheKey;
 - (unsigned)pruneThresholdForCache:(NSString *)inCacheKey;
+
+- (void)setAllowCacheWrites:(BOOL)flag;
 
 - (void)flush;
 

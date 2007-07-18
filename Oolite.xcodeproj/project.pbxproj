@@ -272,6 +272,11 @@
 		1A26D0EB0BCF9D3B0073F257 /* OOTextureLoader.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A26D0E50BCF9D3B0073F257 /* OOTextureLoader.m */; };
 		1A26D0F50BCF9D8D0073F257 /* pngusr.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A26D0F40BCF9D8D0073F257 /* pngusr.h */; };
 		1A26D0F60BCF9D8D0073F257 /* pngusr.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A26D0F40BCF9D8D0073F257 /* pngusr.h */; };
+		1A27DB3B0C4E349F00CB4CE8 /* OOOXPVerifierStageInternal.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A27DB380C4E349F00CB4CE8 /* OOOXPVerifierStageInternal.h */; };
+		1A27DB3C0C4E349F00CB4CE8 /* OOOXPVerifierStage.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A27DB390C4E349F00CB4CE8 /* OOOXPVerifierStage.h */; };
+		1A27DB3D0C4E349F00CB4CE8 /* OOOXPVerifierStage.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A27DB3A0C4E349F00CB4CE8 /* OOOXPVerifierStage.m */; };
+		1A27DB420C4E34B300CB4CE8 /* OOFileScannerVerifierStage.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A27DB400C4E34B300CB4CE8 /* OOFileScannerVerifierStage.h */; };
+		1A27DB430C4E34B300CB4CE8 /* OOFileScannerVerifierStage.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A27DB410C4E34B300CB4CE8 /* OOFileScannerVerifierStage.m */; };
 		1A29967E0B9F064C002D2149 /* OOCache.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A29967C0B9F064C002D2149 /* OOCache.h */; };
 		1A29967F0B9F064C002D2149 /* OOCache.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A29967D0B9F064C002D2149 /* OOCache.m */; };
 		1A2A16680BD10B1200152975 /* OOSingleTextureMaterial.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A2A16660BD10B1200152975 /* OOSingleTextureMaterial.m */; };
@@ -395,6 +400,9 @@
 		1AB01B5F0BB1639600F1B949 /* OOTextureScaling.m in Sources */ = {isa = PBXBuildFile; fileRef = 1AB01ABD0BB15AED00F1B949 /* OOTextureScaling.m */; };
 		1AB01BBB0BB16A8A00F1B949 /* OOFastArithmetic.h in Headers */ = {isa = PBXBuildFile; fileRef = 1AB01BB90BB16A8A00F1B949 /* OOFastArithmetic.h */; };
 		1AB01BBC0BB16A8A00F1B949 /* OOFastArithmetic.m in Sources */ = {isa = PBXBuildFile; fileRef = 1AB01BBA0BB16A8A00F1B949 /* OOFastArithmetic.m */; settings = {COMPILER_FLAGS = "-O3 -falign-loops=32 -falign-loops-max-skip=31 -falign-functions=32"; }; };
+		1AB2AAFA0C4CE0CC0008CF4E /* OOOXPVerifier.h in Headers */ = {isa = PBXBuildFile; fileRef = 1AB2AAF80C4CE0CC0008CF4E /* OOOXPVerifier.h */; };
+		1AB2AAFB0C4CE0CC0008CF4E /* OOOXPVerifier.m in Sources */ = {isa = PBXBuildFile; fileRef = 1AB2AAF90C4CE0CC0008CF4E /* OOOXPVerifier.m */; };
+		1AB2AB130C4CE4070008CF4E /* verifyOXP.plist in Copy Config */ = {isa = PBXBuildFile; fileRef = 1AB2AB120C4CE4070008CF4E /* verifyOXP.plist */; };
 		1AC775E20C2DD4E900ECFF3B /* OODebugGLDrawing.h in Headers */ = {isa = PBXBuildFile; fileRef = 1AC775E00C2DD4E900ECFF3B /* OODebugGLDrawing.h */; };
 		1AC775E30C2DD4E900ECFF3B /* OODebugGLDrawing.m in Sources */ = {isa = PBXBuildFile; fileRef = 1AC775E10C2DD4E900ECFF3B /* OODebugGLDrawing.m */; };
 		1AD0C1C30C44DF230070BD23 /* TextureStore.m in Sources */ = {isa = PBXBuildFile; fileRef = 25161145099544390037C2E1 /* TextureStore.m */; };
@@ -567,6 +575,7 @@
 			dstPath = Config;
 			dstSubfolderSpec = 7;
 			files = (
+				1AB2AB130C4CE4070008CF4E /* verifyOXP.plist in Copy Config */,
 				1A95338B0C02089E004EBB58 /* material-defaults.plist in Copy Config */,
 				1A95338C0C02089E004EBB58 /* planetinfo.plist in Copy Config */,
 				1AD0C3300C463FCC0070BD23 /* autoAImap.plist in Copy Config */,
@@ -1134,6 +1143,11 @@
 		1A26D0E40BCF9D3B0073F257 /* OOPNGTextureLoader.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOPNGTextureLoader.h; sourceTree = "<group>"; };
 		1A26D0E50BCF9D3B0073F257 /* OOTextureLoader.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOTextureLoader.m; sourceTree = "<group>"; };
 		1A26D0F40BCF9D8D0073F257 /* pngusr.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = pngusr.h; path = src/Core/Materials/pngusr.h; sourceTree = SOURCE_ROOT; };
+		1A27DB380C4E349F00CB4CE8 /* OOOXPVerifierStageInternal.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOOXPVerifierStageInternal.h; sourceTree = "<group>"; };
+		1A27DB390C4E349F00CB4CE8 /* OOOXPVerifierStage.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOOXPVerifierStage.h; sourceTree = "<group>"; };
+		1A27DB3A0C4E349F00CB4CE8 /* OOOXPVerifierStage.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOOXPVerifierStage.m; sourceTree = "<group>"; };
+		1A27DB400C4E34B300CB4CE8 /* OOFileScannerVerifierStage.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOFileScannerVerifierStage.h; sourceTree = "<group>"; };
+		1A27DB410C4E34B300CB4CE8 /* OOFileScannerVerifierStage.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOFileScannerVerifierStage.m; sourceTree = "<group>"; };
 		1A29967C0B9F064C002D2149 /* OOCache.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOCache.h; sourceTree = "<group>"; };
 		1A29967D0B9F064C002D2149 /* OOCache.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOCache.m; sourceTree = "<group>"; };
 		1A2A16660BD10B1200152975 /* OOSingleTextureMaterial.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOSingleTextureMaterial.m; sourceTree = "<group>"; };
@@ -1258,6 +1272,9 @@
 		1AB01ABD0BB15AED00F1B949 /* OOTextureScaling.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = OOTextureScaling.m; path = ../OOTextureScaling.m; sourceTree = "<group>"; };
 		1AB01BB90BB16A8A00F1B949 /* OOFastArithmetic.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOFastArithmetic.h; sourceTree = "<group>"; };
 		1AB01BBA0BB16A8A00F1B949 /* OOFastArithmetic.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOFastArithmetic.m; sourceTree = "<group>"; };
+		1AB2AAF80C4CE0CC0008CF4E /* OOOXPVerifier.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOOXPVerifier.h; sourceTree = "<group>"; };
+		1AB2AAF90C4CE0CC0008CF4E /* OOOXPVerifier.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOOXPVerifier.m; sourceTree = "<group>"; };
+		1AB2AB120C4CE4070008CF4E /* verifyOXP.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist; path = verifyOXP.plist; sourceTree = "<group>"; };
 		1AC0E9460B974DC200C46994 /* GPL.TXT */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = GPL.TXT; sourceTree = "<group>"; };
 		1AC0E9470B974DC200C46994 /* FAQ.TXT */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = FAQ.TXT; sourceTree = "<group>"; };
 		1AC0E9480B974DC200C46994 /* ReadMe.rtfd */ = {isa = PBXFileReference; lastKnownFileType = wrapper.rtfd; path = ReadMe.rtfd; sourceTree = "<group>"; };
@@ -1392,7 +1409,6 @@
 		25F3E8B30994FE9B002F25FD /* InfoPlist.strings */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.strings; path = InfoPlist.strings; sourceTree = "<group>"; };
 		25F3E8BC09950088002F25FD /* Info-Oolite.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xml; name = "Info-Oolite.plist"; path = "../src/Cocoa/Info-Oolite.plist"; sourceTree = "<group>"; };
 		25F3E8BD09950088002F25FD /* Info-OoliteDev.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xml; name = "Info-OoliteDev.plist"; path = "../src/Cocoa/Info-OoliteDev.plist"; sourceTree = "<group>"; };
-		25F3E8BE09950088002F25FD /* Info-OoliteUB.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xml; name = "Info-OoliteUB.plist"; path = "../src/Cocoa/Info-OoliteUB.plist"; sourceTree = "<group>"; };
 		25F3E8C3099500F1002F25FD /* SoundInspector.nib */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = SoundInspector.nib; path = ../src/Cocoa/SoundInspector.nib; sourceTree = "<group>"; };
 		25F3E8E9099502BB002F25FD /* libOgg.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libOgg.a; path = "deps/Cocoa-deps/Ogg Vorbis/libOgg.a"; sourceTree = "<group>"; };
 		25F3E8EA099502BB002F25FD /* libVorbisAll.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libVorbisAll.a; path = "deps/Cocoa-deps/Ogg Vorbis/libVorbisAll.a"; sourceTree = "<group>"; };
@@ -1473,7 +1489,6 @@
 			children = (
 				25F3E8BC09950088002F25FD /* Info-Oolite.plist */,
 				25F3E8BD09950088002F25FD /* Info-OoliteDev.plist */,
-				25F3E8BE09950088002F25FD /* Info-OoliteUB.plist */,
 				25F3E8A40994FE65002F25FD /* oolite-document.icns */,
 				25F3E8A50994FE65002F25FD /* oolite-expansion-document.icns */,
 				25F3E8A60994FE65002F25FD /* oolite-icon.icns */,
@@ -1528,6 +1543,7 @@
 				1A2316EC0B9CFAD700EF0852 /* shipyard.plist */,
 				1A2316ED0B9CFAD700EF0852 /* speech_pronunciation_guide.plist */,
 				1A3591820C1C382700E52220 /* startextures.plist */,
+				1AB2AB120C4CE4070008CF4E /* verifyOXP.plist */,
 				1A3491290BC25EAA00802DA7 /* world-scripts.plist */,
 			);
 			path = Config;
@@ -1965,8 +1981,11 @@
 				25161116099544390037C2E1 /* OOSound.h */,
 				25161110099544390037C2E1 /* OOTrumble.h */,
 				25161108099544390037C2E1 /* OOTrumble.m */,
+				2516110B099544390037C2E1 /* GameController.h */,
+				2516110C099544390037C2E1 /* GameController.m */,
 				1A2A1B020BD2768300152975 /* Graphics */,
 				1A5DBA980BC000DC00D57389 /* Scripting */,
+				1AB2AAE70C4CDF890008CF4E /* OXP Verification */,
 			);
 			name = Source;
 			path = src/Core;
@@ -2097,8 +2116,6 @@
 		1A8A3C1B0B96407A007D20B8 /* User Interface */ = {
 			isa = PBXGroup;
 			children = (
-				2516110B099544390037C2E1 /* GameController.h */,
-				2516110C099544390037C2E1 /* GameController.m */,
 				2516112C099544390037C2E1 /* HeadUpDisplay.h */,
 				2516112B099544390037C2E1 /* HeadUpDisplay.m */,
 				25161127099544390037C2E1 /* GuiDisplayGen.h */,
@@ -2173,6 +2190,21 @@
 				25F3E6F10994F466002F25FD /* Groolite.m */,
 			);
 			name = Groolite;
+			sourceTree = "<group>";
+		};
+		1AB2AAE70C4CDF890008CF4E /* OXP Verification */ = {
+			isa = PBXGroup;
+			children = (
+				1AB2AAF80C4CE0CC0008CF4E /* OOOXPVerifier.h */,
+				1AB2AAF90C4CE0CC0008CF4E /* OOOXPVerifier.m */,
+				1A27DB390C4E349F00CB4CE8 /* OOOXPVerifierStage.h */,
+				1A27DB380C4E349F00CB4CE8 /* OOOXPVerifierStageInternal.h */,
+				1A27DB3A0C4E349F00CB4CE8 /* OOOXPVerifierStage.m */,
+				1A27DB400C4E34B300CB4CE8 /* OOFileScannerVerifierStage.h */,
+				1A27DB410C4E34B300CB4CE8 /* OOFileScannerVerifierStage.m */,
+			);
+			name = "OXP Verification";
+			path = OXPVerifier;
 			sourceTree = "<group>";
 		};
 		1AC0E9380B974D8700C46994 /* Documentation */ = {
@@ -2470,6 +2502,10 @@
 				1A7D833A0C40147800E4A5F5 /* OOAsyncQueue.h in Headers */,
 				1AD0C1C40C44DF240070BD23 /* TextureStore.h in Headers */,
 				1AD0C6E60C47B82C0070BD23 /* SmartCrashReportsInstall.h in Headers */,
+				1AB2AAFA0C4CE0CC0008CF4E /* OOOXPVerifier.h in Headers */,
+				1A27DB3B0C4E349F00CB4CE8 /* OOOXPVerifierStageInternal.h in Headers */,
+				1A27DB3C0C4E349F00CB4CE8 /* OOOXPVerifierStage.h in Headers */,
+				1A27DB420C4E34B300CB4CE8 /* OOFileScannerVerifierStage.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -2746,6 +2782,9 @@
 				1A7D833B0C40147800E4A5F5 /* OOAsyncQueue.m in Sources */,
 				1AD0C1C30C44DF230070BD23 /* TextureStore.m in Sources */,
 				1AD0C6C90C47B77E0070BD23 /* SCRDynamicShim.m in Sources */,
+				1AB2AAFB0C4CE0CC0008CF4E /* OOOXPVerifier.m in Sources */,
+				1A27DB3D0C4E349F00CB4CE8 /* OOOXPVerifierStage.m in Sources */,
+				1A27DB430C4E34B300CB4CE8 /* OOFileScannerVerifierStage.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -2968,11 +3007,13 @@
 					"$(HEADER_SEARCH_PATHS_QUOTED_2)",
 					"$(HEADER_SEARCH_PATHS_QUOTED_3)",
 					"$(HEADER_SEARCH_PATHS_QUOTED_4)",
+					"$(HEADER_SEARCH_PATHS_QUOTED_5)",
 				);
 				HEADER_SEARCH_PATHS_QUOTED_1 = "\"$(SRCROOT)/deps/Cocoa-deps/Ogg Vorbis\"";
 				HEADER_SEARCH_PATHS_QUOTED_2 = "\"$(SRCROOT)/src/Core/\"";
 				HEADER_SEARCH_PATHS_QUOTED_3 = "\"$(SRCROOT)/src/Core/Entites/\"";
 				HEADER_SEARCH_PATHS_QUOTED_4 = "\"$(SRCROOT)/src/Core/Materials/\"";
+				HEADER_SEARCH_PATHS_QUOTED_5 = "\"$(SRCROOT)/src/Core/OXPVerifier/\"";
 				INFOPLIST_FILE = "src/Cocoa/Info-Oolite.plist";
 				INSTALL_PATH = "$(HOME)/Applications";
 				LIBRARY_SEARCH_PATHS = (

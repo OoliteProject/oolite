@@ -1,18 +1,6 @@
 /*
 
-OOLogOutputHandler.h
-By Jens Ayton
-
-Mac OS X-specific output handler for OOLogging.
-
-This does two things:
-1. It writes log output to ~/Logs/org.aegidian.oolite/Oolite.log, handling
-   thread serialization.
-2. It installs a filter to capture NSLogs and convert them to OOLogs. This is
-   different to the macro in OOLogging.h, which acts at compile time; the
-   filter catches logging in included frameworks.
-
-OOLogOutputHandlerPrint() is thread-safe. Other functions are not.
+OOFileScannerVerifierStage.m
 
 
 Oolite
@@ -58,13 +46,77 @@ SOFTWARE.
 
 */
 
-#import <Foundation/Foundation.h>
+#import "OOFileScannerVerifierStage.h"
+
+#if OO_OXP_VERIFIER_ENABLED
+
+NSString * const kOOFileScannerVerifierStageName	= @"Scanning files";
 
 
-void OOLogOutputHandlerInit(void);
-void OOLogOutputHandlerClose(void);
-void OOLogOutputHandlerPrint(NSString *string);
+@interface OOFileScannerVerifierStage (OOPrivate)
 
-// This will attempt to ensure the containing directory exists. If it fails, it will return nil.
-NSString *OOLogHandlerGetLogPath(void);
-void OOLogOutputHandlerChangeLogFile(NSString *newLogName);
+- (void)setUp;
+
+@end
+
+
+@implementation OOFileScannerVerifierStage
+
+- (void)dealloc
+{
+	[_foundFiles release];
+	[_usedFiles release];
+	
+	[super dealloc];
+}
+
+
+- (NSString *)name
+{
+	return kOOFileScannerVerifierStageName;
+}
+
+
+- (void)run
+{
+	[self setUp];
+}
+
+
+- (BOOL)needsPostRun
+{
+	return YES;
+}
+
+
+- (void)postRun
+{
+	
+}
+
+@end
+
+
+@implementation OOFileScannerVerifierStage (OOPrivate)
+
+- (void)setUp
+{
+	NSArray					*implicitlyUsedFiles = nil;
+	NSEnumerator			*impUsedEnum = nil;
+	NSString				*impUsed = nil;
+	
+	_foundFiles = [[NSMutableSet alloc] init];
+	_usedFiles = [[NSMutableSet alloc] init];
+	
+	// Set up "implicitly used" files.
+	implicitlyUsedFiles = [[self verifier] configurationValueForKey:@"implictlyUsedConfigFiles"];
+	for (impUsedEnum = [implicitlyUsedFiles objectEnumerator]; (impUsed = [impUsedEnum nextObject]); )
+	{
+		[_usedFiles addObject:impUsed];
+		[_usedFiles addObject:[@"Config" stringByAppendingPathComponent:impUsed]];
+	}
+}
+
+@end
+
+#endif

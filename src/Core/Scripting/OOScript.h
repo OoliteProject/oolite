@@ -40,8 +40,7 @@ MA 02110-1301, USA.
 
 @interface OOScript: NSObject
 
-/*	Looks for path/world-scripts.plist, path/script.js, then path/script.oos,
-	then path/script.plist.
+/*	Looks for path/world-scripts.plist, path/script.js, then path/script.plist.
 	May return zero or more scripts.
 */
 + (NSArray *)worldScriptsAtPath:(NSString *)path;

@@ -2927,10 +2927,18 @@ GLfloat docked_light_specular[]	= { (GLfloat) 1.0, (GLfloat) 1.0, (GLfloat) 0.5,
 	}
 	// check if this is based upon a different ship
 	// TODO: move all like_ship handling into one place. (Actually, it may be that this already _is_ that place and all others are redundant.) Should probably fold resolved like_ships back into dictionary. -- Ahruman
+	unsigned recursionLimiter = 0;
+	
 	while ([shipdict objectForKey:@"like_ship"])
 	{
 		NSString*		other_shipdesc = (NSString *)[shipdict objectForKey:@"like_ship"];
 		NSDictionary*	other_shipdict = nil;
+		
+		if (++recursionLimiter == 30)
+		{
+			OOLog(@"universe.getShip.badReference", @"Failed to construct ship dictionary for \"%@\" -- hit safety limit of %u like_ship redirections.", desc, recursionLimiter);
+			return nil;
+		}
 		
 		if (other_shipdesc != nil)
 		{
@@ -2942,6 +2950,11 @@ GLfloat docked_light_specular[]	= { (GLfloat) 1.0, (GLfloat) 1.0, (GLfloat) 0.5,
 			NSMutableDictionary* this_shipdict = [NSMutableDictionary dictionaryWithDictionary:other_shipdict]; // basics from that one
 			[this_shipdict addEntriesFromDictionary:shipdict];	// overrides from this one
 			shipdict = [NSMutableDictionary dictionaryWithDictionary:this_shipdict];	// synthesis'
+		}
+		else
+		{
+			OOLog(@"universe.getShip.badReference", @"Failed to construct ship dictionary for \"%@\" -- like_ship reference to unknown ship type \"%@\".", desc, other_shipdesc);
+			return nil;
 		}
 	}
 	

@@ -1,18 +1,8 @@
 /*
 
-OOLogOutputHandler.h
-By Jens Ayton
+OOOXPVerifier.h
 
-Mac OS X-specific output handler for OOLogging.
-
-This does two things:
-1. It writes log output to ~/Logs/org.aegidian.oolite/Oolite.log, handling
-   thread serialization.
-2. It installs a filter to capture NSLogs and convert them to OOLogs. This is
-   different to the macro in OOLogging.h, which acts at compile time; the
-   filter catches logging in included frameworks.
-
-OOLogOutputHandlerPrint() is thread-safe. Other functions are not.
+Oolite expansion pack verification manager.
 
 
 Oolite
@@ -58,13 +48,64 @@ SOFTWARE.
 
 */
 
-#import <Foundation/Foundation.h>
+#ifndef OO_OXP_VERIFIER_ENABLED
+	#ifdef NDEBUG
+		#define OO_OXP_VERIFIER_ENABLED 0
+	#else
+		#define OO_OXP_VERIFIER_ENABLED 1
+	#endif
+#endif
+
+#if OO_OXP_VERIFIER_ENABLED
+
+#import "OOCocoa.h"
+
+@class OOOXPVerifierStage;
 
 
-void OOLogOutputHandlerInit(void);
-void OOLogOutputHandlerClose(void);
-void OOLogOutputHandlerPrint(NSString *string);
+@interface OOOXPVerifier: NSObject
+{
+	NSDictionary				*_verifierPList;
+	
+	NSString					*_basePath;
+	NSString					*_displayName;
+	
+	NSMutableDictionary			*_stagesByName;
+	NSMutableSet				*_waitingStages;
+	
+	BOOL						_openForRegistration;
+}
 
-// This will attempt to ensure the containing directory exists. If it fails, it will return nil.
-NSString *OOLogHandlerGetLogPath(void);
-void OOLogOutputHandlerChangeLogFile(NSString *newLogName);
+/*	Look for command-line arguments requesting OXP verification. If any are
+	found, run the verification and return YES. Otherwise, return NO.
+	
+	At the moment, only one OXP may be verified per run; additional requests
+	are ignored.
+*/
++ (BOOL)runVerificationIfRequested;
+
+
+/*	Stage registration. Currently, stages are registered by OOOXPVerifier
+	itself. Stages may also register other stages - substages, as it were -
+	in their -initWithVerifier: methods. Registration at later points is not
+	permitted.
+*/
+- (void)registerStage:(OOOXPVerifierStage *)stage;
+
+
+//	All other methods are for use by verifier stages.
+- (NSString *)oxpPath;
+- (NSString *)oxpDisplayName;
+
+// Will only return registered, completed stages.
+- (OOOXPVerifierStage *)stageWithName:(NSString *)name;
+
+// Read from verifyOXP.plist
+- (id)configurationValueForKey:(NSString *)key;
+- (NSArray *)configurationArrayForKey:(NSString *)key;
+- (NSDictionary *)configurationDictionaryForKey:(NSString *)key;
+- (NSString *)configurationStringForKey:(NSString *)key;
+
+@end
+
+#endif

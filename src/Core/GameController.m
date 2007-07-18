@@ -31,6 +31,7 @@ MA 02110-1301, USA.
 #import "PlayerEntityLoadSave.h"
 #import <stdlib.h>
 #import "OOCollectionExtractors.h"
+#import "OOOXPVerifier.h"
 
 #define kOOLogUnconvertedNSLog @"unclassified.GameController"
 
@@ -200,6 +201,13 @@ static GameController *sSharedController = nil;
 		[gameView drawRect:[gameView bounds]];
 		
 		[self beginSplashScreen];
+		
+#if OO_OXP_VERIFIER_ENABLED
+		if ([OOOXPVerifier runVerificationIfRequested])
+		{
+			[self exitApp];
+		}
+#endif
 		
 		[self logProgress:@"getting display modes..."];
 		[self getDisplayModes];

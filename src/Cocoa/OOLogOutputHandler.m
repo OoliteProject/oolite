@@ -55,6 +55,7 @@ SOFTWARE.
 #import <stdlib.h>
 #import <stdio.h>
 #import <sys/sysctl.h>
+#import <mach/machine.h>
 
 
 #undef NSLog		// We need to be able to call the real NSLog.
@@ -95,6 +96,11 @@ static void OONSLogCStringFunction(const char *string, unsigned length, BOOL wit
 
 static NSString *GetSysCtlString(const char *name);
 static unsigned long long GetSysCtlInt(const char *name);
+static NSString *GetCPUDescription(void);
+
+static BOOL DirectoryExistCreatingIfNecessary(NSString *path);
+static NSString *GetLogBasePath(void);
+static NSString *GetAppName(void);
 
 
 #define kFlushInterval	2.0		// Lower bound on interval between explicit log file flushes.
@@ -111,9 +117,11 @@ static unsigned long long GetSysCtlInt(const char *name);
 - (void)asyncLogMessage:(NSString *)message;
 - (void)endLogging;
 
+- (void)changeFile;
+
 // Internal
+- (BOOL)startLogging;
 - (void)loggerThread;
-- (BOOL)directoryExists:(NSString *)inPath create:(BOOL)inCreate;
 
 @end
 
@@ -122,6 +130,7 @@ static BOOL						sInited = NO;
 static BOOL						sWriteToStderr = YES;
 static OOAsyncLogger			*sLogger = nil;
 static LogCStringFunctionProc	sDefaultLogCStringFunction = nil;
+static NSString					*sLogFileName = @"Latest.log";
 
 
 void OOLogOutputHandlerInit(void)
@@ -186,6 +195,22 @@ void OOLogOutputHandlerPrint(NSString *string)
 }
 
 
+NSString *OOLogHandlerGetLogPath(void)
+{
+	return [GetLogBasePath() stringByAppendingPathComponent:sLogFileName];	
+}
+
+
+void OOLogOutputHandlerChangeLogFile(NSString *newLogName)
+{
+	if (![sLogFileName isEqual:newLogName])
+	{
+		sLogFileName = [newLogName copy];
+		[sLogger changeFile];
+	}
+}
+
+
 enum
 {
 	kConditionReadyToDealloc = 1,
@@ -201,20 +226,61 @@ enum
 	NSString			*basePath = nil;
 	NSString			*logPath = nil;
 	NSString			*oldPath = nil;
-	NSBundle			*bundle = nil;
-	NSString			*appName = nil;
+	NSFileManager		*fmgr = nil;
+	
+	// We'll need these for a couple of things.
+	fmgr = [NSFileManager defaultManager];
+	
+	basePath = GetLogBasePath();
+	// If there is an existing file, move it to Previous.log.
+	if ([fmgr fileExistsAtPath:logPath])
+	{
+		oldPath = [basePath stringByAppendingPathComponent:@"Previous.log"];
+		[fmgr removeFileAtPath:oldPath handler:nil];
+		if (![fmgr movePath:logPath toPath:oldPath handler:nil])
+		{
+			if (![fmgr removeFileAtPath:logPath handler:nil])
+			{
+				NSLog(@"Log setup: could not move or delete existing log at %@, will log to stdout instead.", logPath);
+				OK = NO;
+			}
+		}
+	}
+	
+	if (OK)  OK = [self startLogging];
+	
+	if (!OK)
+	{
+		[self release];
+		self = nil;
+	}
+	
+	return self;
+}
+
+
+- (void)dealloc
+{
+	[messageQueue release];
+	[threadStateMonitor release];
+	[logFile release];
+	[flushTimer invalidate];
+	
+	[super dealloc];
+}
+
+
+- (BOOL)startLogging
+{
+	BOOL				OK = YES;
+	NSString			*logPath = nil;
 	NSFileManager		*fmgr = nil;
 	NSString			*preamble = nil;
 	NSString			*versionString = nil;
 	NSString			*sysModel = nil;
-	unsigned long long	sysPhysMem, sysCPUType, sysCPUSubType,
-						sysCPUFrequency, sysCPUCount;
+	unsigned long		sysPhysMem;
 	
 	// We'll need these for a couple of things.
-	bundle = [NSBundle mainBundle];
-	appName = [bundle objectForInfoDictionaryKey:@"CFBundleName"];
-	if (appName == nil)  appName = [bundle bundleIdentifier];
-	if (appName == nil)  appName = @"<unknown application>";
 	fmgr = [NSFileManager defaultManager];
 	
 	self = [super init];
@@ -254,34 +320,8 @@ enum
 	
 	if (OK)
 	{
-		// Set up base path -- ~/Library/Logs/Oolite
-		basePath = [NSSearchPathForDirectoriesInDomains(NSLibraryDirectory, NSUserDomainMask, YES) objectAtIndex:0];
-		basePath = [basePath stringByAppendingPathComponent:@"Logs"];
-		if (![self directoryExists:basePath create:YES]) OK = NO;
-		else
-		{
-			basePath = [basePath stringByAppendingPathComponent:appName];
-			if (![self directoryExists:basePath create:YES]) OK = NO;
-		}
-		if (OK)  logPath = [basePath stringByAppendingPathComponent:@"Latest.log"];
-	}
-	
-	if (OK)
-	{
-		// If there is an existing file, move it to Previous.log.
-		if ([fmgr fileExistsAtPath:logPath])
-		{
-			oldPath = [basePath stringByAppendingPathComponent:@"Previous.log"];
-			[fmgr removeFileAtPath:oldPath handler:nil];
-			if (![fmgr movePath:logPath toPath:oldPath handler:nil])
-			{
-				if (![fmgr removeFileAtPath:logPath handler:nil])
-				{
-					NSLog(@"Log setup: could not move or delete existing log at %@, will log to stdout instead.", logPath);
-					OK = NO;
-				}
-			}
-		}
+		logPath = OOLogHandlerGetLogPath();
+		OK = (logPath != nil);
 	}
 	
 	if (OK)
@@ -303,43 +343,22 @@ enum
 	if (OK)
 	{
 		// Queue log preamble
-		versionString = [bundle objectForInfoDictionaryKey:@"CFBundleVersion"];
+		versionString = [[NSBundle mainBundle] objectForInfoDictionaryKey:@"CFBundleVersion"];
 		if (versionString == nil)  versionString = @"<unknown version>";
 		
 		// Get some basic system info
 		sysModel = GetSysCtlString("hw.model");
-		sysPhysMem = GetSysCtlInt("hw.physmem");
-		sysCPUType = GetSysCtlInt("hw.cputype");
-		sysCPUSubType = GetSysCtlInt("hw.cpusubtype");
-		sysCPUFrequency = GetSysCtlInt("hw.cpufrequency");
-		sysCPUCount = GetSysCtlInt("hw.logicalcpu");
+		Gestalt(gestaltPhysicalRAMSizeInMegabytes, (long *)&sysPhysMem);
 		
 		preamble = [NSString stringWithFormat:@"Opening log for %@ version %@ [" CPU_TYPE_STRING "] at %@.\n"
-											   "Machine type: %@, %llu MiB memory, CPU:%llu.%llux%llu @ %llu MHz\n"
+											   "Machine type: %@, %u MiB memory, CPU: %@.\n"
 											   "Note that the contents of the log file can be adjusted by editing logcontrol.plist.\n",
-											   appName, versionString, [NSDate date],
-											   sysModel, (sysPhysMem + (1<<19)) / (1<<20), sysCPUType, sysCPUSubType, sysCPUCount, (sysCPUFrequency + 500000) / 1000000];
+											   GetAppName(), versionString, [NSDate date],
+											   sysModel, sysPhysMem, GetCPUDescription()];
 		[self asyncLogMessage:preamble];
 	}
 	
-	if (!OK)
-	{
-		// Fail to create logger; OOLogOutputHandlerPrint() will use puts() fallback.
-		[self release];
-		self = nil;
-	}
-	return self;
-}
-
-
-- (void)dealloc
-{
-	[messageQueue release];
-	[threadStateMonitor release];
-	[logFile release];
-	[flushTimer invalidate];
-	
-	[super dealloc];
+	return OK;
 }
 
 
@@ -358,6 +377,13 @@ enum
 		
 		[logFile closeFile];
 	}
+}
+
+
+- (void)changeFile
+{
+	[self endLogging];
+	if (![self startLogging])  sWriteToStderr = YES;
 }
 
 
@@ -427,32 +453,6 @@ enum
 	[threadStateMonitor unlockWithCondition:kConditionReadyToDealloc];
 	
 	[rootPool release];
-}
-
-
-- (BOOL)directoryExists:(NSString *)inPath create:(BOOL)inCreate
-{
-	BOOL				exists, directory;
-	NSFileManager		*fmgr =  [NSFileManager defaultManager];
-	
-	exists = [fmgr fileExistsAtPath:inPath isDirectory:&directory];
-	
-	if (exists && !directory)
-	{
-		NSLog(@"Log setup: expected %@ to be a folder, but it is a file.", inPath);
-		return NO;
-	}
-	if (!exists)
-	{
-		if (!inCreate) return NO;
-		if (![fmgr createDirectoryAtPath:inPath attributes:nil])
-		{
-			NSLog(@"Log setup: could not create folder %@.", inPath);
-			return NO;
-		}
-	}
-	
-	return YES;
 }
 
 @end
@@ -530,22 +530,138 @@ static NSString *GetSysCtlString(const char *name)
 
 static unsigned long long GetSysCtlInt(const char *name)
 {
-	unsigned long long		result;
+	unsigned long long		llresult = 0;
+	unsigned int			intresult = 0;
 	size_t					size;
 	
-	size = sizeof result;
-	if (sysctlbyname(name, &result, &size, NULL, 0) != 0)  return 0;
-	if (size != sizeof result)
+	size = sizeof llresult;
+	if (sysctlbyname(name, &llresult, &size, NULL, 0) != 0)  return 0;
+	if (size == sizeof llresult)  return llresult;
+	
+	size = sizeof intresult;
+	if (sysctlbyname(name, &intresult, &size, NULL, 0) != 0)  return 0;
+	if (size == sizeof intresult)  return intresult;
+	
+	return 0;
+}
+
+
+static NSString *GetCPUDescription(void)
+{
+	unsigned long long	sysCPUType, sysCPUSubType,
+						sysCPUFrequency, sysCPUCount;
+	NSString			*typeStr = nil, *subTypeStr = nil;
+	
+	sysCPUType = GetSysCtlInt("hw.cputype");
+	sysCPUSubType = GetSysCtlInt("hw.cpusubtype");
+	sysCPUFrequency = GetSysCtlInt("hw.cpufrequency");
+	sysCPUCount = GetSysCtlInt("hw.logicalcpu");
+	
+	/*	Note: CPU_TYPE_STRING tells us the build architecture. This gets the
+		physical CPU type. They may differ, for instance, when running under
+		Rosetta. The code is written for flexibility, although ruling out
+		x86 code running on PPC would be entirely reasonable.
+	*/
+	switch (sysCPUType)
 	{
-		if (size == sizeof (int))
+		case CPU_TYPE_POWERPC:
+			typeStr = @"PowerPC";
+			switch (sysCPUSubType)
+			{
+				case CPU_SUBTYPE_POWERPC_750:
+					subTypeStr = @" G3 (750)";
+					break;
+				
+				case CPU_SUBTYPE_POWERPC_7400:
+					subTypeStr = @" G4 (7400)";
+					break;
+				
+				case CPU_SUBTYPE_POWERPC_7450:
+					subTypeStr = @" G4 (7450)";
+					break;
+				
+				case CPU_SUBTYPE_POWERPC_970:
+					subTypeStr = @" G5 (970)";
+					break;
+			}
+			break;
+		
+		case CPU_TYPE_I386:
+			typeStr = @"x86";
+			// Currently all x86 CPUs seem to report subtype CPU_SUBTYPE_486, which isn't very useful.
+			if (sysCPUSubType == CPU_SUBTYPE_486)  subTypeStr = @"";
+			break;
+	}
+	
+	if (typeStr == nil)  typeStr = [NSString stringWithFormat:@"%u", sysCPUType];
+	if (subTypeStr == nil)  subTypeStr = [NSString stringWithFormat:@":%u", sysCPUSubType];
+	
+	return [NSString stringWithFormat:@"%llu x %@%@ @ %llu MHz", sysCPUCount, typeStr, subTypeStr, (sysCPUFrequency + 500000) / 1000000];
+}
+
+
+static BOOL DirectoryExistCreatingIfNecessary(NSString *path)
+{
+	BOOL				exists, directory;
+	NSFileManager		*fmgr =  [NSFileManager defaultManager];
+	
+	exists = [fmgr fileExistsAtPath:path isDirectory:&directory];
+	
+	if (exists && !directory)
+	{
+		NSLog(@"Log setup: expected %@ to be a folder, but it is a file.", path);
+		return NO;
+	}
+	if (!exists)
+	{
+		if (![fmgr createDirectoryAtPath:path attributes:nil])
 		{
-			result = *(int *)&result;
-		}
-		else
-		{
-			result = 0;
+			NSLog(@"Log setup: could not create folder %@.", path);
+			return NO;
 		}
 	}
 	
-	return result;
+	return YES;
+}
+
+
+static NSString *GetLogBasePath(void)
+{
+	static NSString		*basePath = nil;
+	
+	if (basePath == nil)
+	{
+		// ~/Library
+		basePath = [NSSearchPathForDirectoriesInDomains(NSLibraryDirectory, NSUserDomainMask, YES) objectAtIndex:0];
+		
+		// ~/Library/Logs
+		basePath = [basePath stringByAppendingPathComponent:@"Logs"];
+		if (!DirectoryExistCreatingIfNecessary(basePath))  return nil;
+		
+		// ~/Library/Logs/Oolite
+		basePath = [basePath stringByAppendingPathComponent:GetAppName()];
+		if (!DirectoryExistCreatingIfNecessary(basePath))  return nil;
+		
+		[basePath retain];
+	}
+	
+	return basePath;
+}
+
+
+static NSString *GetAppName(void)
+{
+	static NSString		*appName = nil;
+	NSBundle			*bundle = nil;
+	
+	if (appName == nil)
+	{
+		bundle = [NSBundle mainBundle];
+		appName = [bundle objectForInfoDictionaryKey:@"CFBundleName"];
+		if (appName == nil)  appName = [bundle bundleIdentifier];
+		if (appName == nil)  appName = @"<unknown application>";
+		[appName retain];
+	}
+	
+	return appName;
 }

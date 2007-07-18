@@ -38,5 +38,8 @@
 #define PNG_USER_HEIGHT_MAX		PNG_USER_WIDTH_MAX
 
 /* We don't want any ancillary chunks. */
-#define PNG_NO_iTXt_SUPPORTED
+#define PNG_NO_READ_TEXT
 #define PNG_READ_ANCILLARY_CHUNKS_NOT_SUPPORTED
+
+/* tRNS chunk support has a	vulnerability prior to libpng 1.2.18, and we don't need it anyway. */
+#define PNG_NO_READ_tRNS
