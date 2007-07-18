@@ -1,8 +1,8 @@
 include $(GNUSTEP_MAKEFILES)/common.make
 CP = cp
 BUILD_WITH_DEBUG_FUNCTIONALITY = yes
-vpath %.m src/SDL:src/Core:src/Core/Entities:src/Core/Materials:src/Core/Scripting
-vpath %.h src/SDL:src/Core:src/Core/Entities:src/Core/Materials:src/Core/Scripting
+vpath %.m src/SDL:src/Core:src/Core/Entities:src/Core/Materials:src/Core/Scripting:src/Core/OXPVerifier
+vpath %.h src/SDL:src/Core:src/Core/Entities:src/Core/Materials:src/Core/Scripting:src/Core/OXPVerifier
 vpath %.c src/SDL:src/Core:src/BSDCompat
 GNUSTEP_INSTALLATION_DIR = $(GNUSTEP_USER_ROOT)
 ifeq ($(GNUSTEP_HOST_OS),mingw32)
