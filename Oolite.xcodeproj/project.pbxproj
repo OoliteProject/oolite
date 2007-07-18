@@ -331,8 +331,6 @@
 		1A5DBAAB0BC000DC00D57389 /* OOPListScript.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A5DBA9F0BC000DC00D57389 /* OOPListScript.m */; };
 		1A5DBAAD0BC000DC00D57389 /* OOScript.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A5DBAA10BC000DC00D57389 /* OOScript.h */; };
 		1A5DBAAE0BC000DC00D57389 /* OOScript.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A5DBAA20BC000DC00D57389 /* OOScript.m */; };
-		1A5DBAAF0BC000DC00D57389 /* OOSTokenizer.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A5DBAA30BC000DC00D57389 /* OOSTokenizer.h */; };
-		1A5DBAB00BC000DC00D57389 /* OOSTokenizer.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A5DBAA40BC000DC00D57389 /* OOSTokenizer.m */; };
 		1A5DBD580BC17F0900D57389 /* NSStringOOExtensions.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A5DBD560BC17F0900D57389 /* NSStringOOExtensions.h */; };
 		1A5DBD590BC17F0900D57389 /* NSStringOOExtensions.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A5DBD570BC17F0900D57389 /* NSStringOOExtensions.m */; };
 		1A5E462F0C32DACE008104B4 /* OOShaderUniformMethodType.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A5E462D0C32DACE008104B4 /* OOShaderUniformMethodType.m */; };
@@ -1204,8 +1202,6 @@
 		1A5DBA9F0BC000DC00D57389 /* OOPListScript.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOPListScript.m; sourceTree = "<group>"; };
 		1A5DBAA10BC000DC00D57389 /* OOScript.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOScript.h; sourceTree = "<group>"; };
 		1A5DBAA20BC000DC00D57389 /* OOScript.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOScript.m; sourceTree = "<group>"; };
-		1A5DBAA30BC000DC00D57389 /* OOSTokenizer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOSTokenizer.h; sourceTree = "<group>"; };
-		1A5DBAA40BC000DC00D57389 /* OOSTokenizer.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOSTokenizer.m; sourceTree = "<group>"; };
 		1A5DBD560BC17F0900D57389 /* NSStringOOExtensions.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = NSStringOOExtensions.h; sourceTree = "<group>"; };
 		1A5DBD570BC17F0900D57389 /* NSStringOOExtensions.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = NSStringOOExtensions.m; sourceTree = "<group>"; };
 		1A5E462D0C32DACE008104B4 /* OOShaderUniformMethodType.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOShaderUniformMethodType.m; sourceTree = "<group>"; };
@@ -1875,8 +1871,6 @@
 			children = (
 				1A5DBA9E0BC000DC00D57389 /* OOPListScript.h */,
 				1A5DBA9F0BC000DC00D57389 /* OOPListScript.m */,
-				1A5DBAA30BC000DC00D57389 /* OOSTokenizer.h */,
-				1A5DBAA40BC000DC00D57389 /* OOSTokenizer.m */,
 			);
 			name = "PList & OOS scripting";
 			sourceTree = "<group>";
@@ -2450,7 +2444,6 @@
 				1A5DBAA80BC000DC00D57389 /* OOJSScript.h in Headers */,
 				1A5DBAAA0BC000DC00D57389 /* OOPListScript.h in Headers */,
 				1A5DBAAD0BC000DC00D57389 /* OOScript.h in Headers */,
-				1A5DBAAF0BC000DC00D57389 /* OOSTokenizer.h in Headers */,
 				1A5DBD580BC17F0900D57389 /* NSStringOOExtensions.h in Headers */,
 				1A3AFF1F0BC4462200B5E2D9 /* OOJSVector.h in Headers */,
 				1A3A04620BC547DC00B5E2D9 /* OOTypes.h in Headers */,
@@ -2731,7 +2724,6 @@
 				1A5DBAA90BC000DC00D57389 /* OOJSScript.m in Sources */,
 				1A5DBAAB0BC000DC00D57389 /* OOPListScript.m in Sources */,
 				1A5DBAAE0BC000DC00D57389 /* OOScript.m in Sources */,
-				1A5DBAB00BC000DC00D57389 /* OOSTokenizer.m in Sources */,
 				1A5DBD590BC17F0900D57389 /* NSStringOOExtensions.m in Sources */,
 				1A3AFF200BC4462200B5E2D9 /* OOJSVector.m in Sources */,
 				1A2A8C160BC65FFD001E00FB /* OOJSEntity.m in Sources */,
