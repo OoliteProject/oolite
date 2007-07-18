@@ -102,7 +102,7 @@ static unsigned IntegerFromString(const GLubyte **ioString);
 
 #ifndef NO_SHADERS
 - (void)checkShadersSupported;
-#endif NO_SHADERS
+#endif	// NO_SHADERS
 
 @end
 

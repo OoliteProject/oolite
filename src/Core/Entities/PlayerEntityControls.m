@@ -1050,7 +1050,7 @@ static NSTimeInterval	time_last_frame;
 			OOLogSetDisplayMessagesInClass(@"$shaderDebugOn", NO);
 #ifdef ALLOW_PROCEDURAL_PLANETS
 			[UNIVERSE setDoProcedurallyTexturedPlanets: NO];
-#endif ALLOW_PROCEDURAL_PLANETS
+#endif	// ALLOW_PROCEDURAL_PLANETS
 		}
 	}
 	//

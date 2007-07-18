@@ -448,5 +448,7 @@
 	<string>no</string>
 	<key>universe.populate.witchspace</key>
 	<string>inherit</string>
+	<key>verifyOXP.verbose</key>
+	<string>no</string>
 </dict>
 </plist>

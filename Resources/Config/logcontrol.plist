@@ -294,6 +294,9 @@
 	universe.populate.witchspace			= inherit;
 	
 	
+	verifyOXP.verbose						= no;
+	
+	
 	/*** Mac OS X/Cocoa-specific ***/
 	growl.error								= $error;
 	growl.debug								= no;

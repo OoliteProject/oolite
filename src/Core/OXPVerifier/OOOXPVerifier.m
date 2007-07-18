@@ -291,6 +291,7 @@ static void NoteVerificationStage(NSString *displayName, NSString *stage);
 	[ResourceManager setUseAddOns:NO];
 	
 	SwitchLogFileAndOpenLog(_displayName);
+	OOLog(@"verifyOXP.start", @"Running OXP verifier for %@", _displayName);
 	
 	[self registerBaseStages];
 	_openForRegistration = NO;

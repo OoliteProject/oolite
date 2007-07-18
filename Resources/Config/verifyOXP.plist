@@ -37,19 +37,23 @@
 	
 	knownConfigFiles =
 	(
-		// Files that are implicitly considered to be "used". May occur in root or in Config/.
 		"autoAImap.plist",
 		"characters.plist",
+		"commodities.plist",
 		"customsounds.plist",
 		"demoships.plist",
 		"descriptions.plist",
 		"equipment.plist",
 		"hud.plist",
+		"illegal_goods.plist",
+		"keyconfig.plist",
+		"material-defaults.plist",
 		"missiontext.plist",
 		"nebulatextures.plist",
 		"planetinfo.plist",
 		"requires.plist",
 		"script.plist",
+		"script.js",
 		"shipdata.plist",
 		"shipyard.plist",
 		"speech_pronounciation_guide.plist",

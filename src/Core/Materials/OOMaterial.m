@@ -57,7 +57,7 @@ SOFTWARE.
 #import "OOOpenGLExtensionManager.h"
 #import "OOShaderMaterial.h"
 #import "OOSingleTextureMaterial.h"
-#import "OOCollectionExtractors.h";
+#import "OOCollectionExtractors.h"
 
 
 static OOMaterial *sActiveMaterial = nil;

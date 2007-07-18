@@ -3,7 +3,8 @@
 OOFileScannerVerifierStage.h
 
 OOOXPVerifierStage which keeps track of which files are used and ensures file
-name capitalization is consistent.
+name capitalization is consistent. It also provides the file lookup service
+for other stages.
 
 
 Oolite
@@ -58,9 +59,27 @@ extern NSString * const kOOFileScannerVerifierStageName;
 
 @interface OOFileScannerVerifierStage: OOOXPVerifierStage
 {
-	NSMutableSet				*_foundFiles;
+	NSString					*_basePath;
 	NSMutableSet				*_usedFiles;
+	NSMutableSet				*_caseWarnings;
+	NSDictionary				*_directoryListings;
+	NSDictionary				*_directoryCases;
 }
+
+/*	This method does the following:
+		A.	Checks whether a file exists.
+		B.	Checks whether case matches, and logs a warning otherwise.
+		C.	Maintains list of files which are referred to.
+		D.	Optionally falls back on Oolite's built-in files.
+	
+	For example, to test whether a texture referenced in a shipdata.plist entry
+	exists, one would use:
+	[fileScanner fileExists:textureName inFolder:@"Textures" referencedFrom:@"shipdata.plist" checkBuiltIn:YES];
+*/
+- (BOOL)fileExists:(NSString *)file inFolder:(NSString *)folder referencedFrom:(NSString *)context checkBuiltIn:(BOOL)checkBuiltIn;
+
+//	This method performs all the checks the previous one does, but also returns a file path.
+- (NSString *)pathForFile:(NSString *)file inFolder:(NSString *)folder referencedFrom:(NSString *)context checkBuiltIn:(BOOL)checkBuiltIn;
 
 @end
 
