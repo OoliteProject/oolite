@@ -1,9 +1,9 @@
 /*
 
-OOCheckRequiresPListVerifierStage.h
+OOCheckDemoShipsPListVerifierStage.h
 
-OOOXPVerifierStage which checks that requires.plist only contains recognized
-keys and that the version numbers make sense.
+OOOXPVerifierStage which checks that demoships.plist only contains ships
+defined in shipdata.plist.
 
 
 Oolite
@@ -53,10 +53,10 @@ SOFTWARE.
 
 #if OO_OXP_VERIFIER_ENABLED
 
-extern NSString * const kOOCheckRequiresPListVerifierStageName;
+extern NSString * const kOOCheckDemoShipsPListVerifierStageName;
 
 
-@interface OOCheckRequiresPListVerifierStage: OOOXPVerifierStage
+@interface OOCheckDemoShipsPListVerifierStage: OOOXPVerifierStage
 @end
 
 #endif

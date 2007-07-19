@@ -85,7 +85,7 @@ NSString * const kOOCheckRequiresPListVerifierStageName	= @"Checking requires.pl
 - (void)run
 {
 	OOFileScannerVerifierStage	*fileScanner = nil;
-	id							requiresPList = nil;
+	NSDictionary				*requiresPList = nil;
 	NSSet						*knownKeys = nil;
 	NSMutableSet				*actualKeys = nil;
 	NSString					*version = nil,
@@ -100,11 +100,7 @@ NSString * const kOOCheckRequiresPListVerifierStageName	= @"Checking requires.pl
 							 referencedFrom:nil
 							   checkBuiltIn:NO];
 	
-	if (requiresPList == nil)
-	{
-		// fileScanner will have noted plist syntax error
-		return;
-	}
+	if (requiresPList == nil)  return;
 	
 	// Check that it's a dictionary
 	if (![requiresPList isKindOfClass:[NSDictionary class]])

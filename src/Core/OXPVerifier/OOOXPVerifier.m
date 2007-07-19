@@ -319,9 +319,9 @@ static void OpenLogFile(NSString *name);
 	NSEnumerator			*messageClassEnum = nil;
 	NSString				*messageClass = nil;
 	
-	overrides = [_verifierPList dictionaryForKey:@"logControlOverride"];
-	OOLogSetShowMessageClass(NO);
+	OOLogSetShowMessageClass([_verifierPList boolForKey:@"logShowMessageClassOverride" defaultValue:NO]);
 	
+	overrides = [_verifierPList dictionaryForKey:@"logControlOverride"];
 	for (messageClassEnum = [overrides keyEnumerator]; (messageClass = [messageClassEnum nextObject]); )
 	{
 		OOLogSetDisplayMessagesInClass(messageClass, [overrides boolForKey:messageClass defaultValue:NO]);
@@ -591,7 +591,8 @@ static void SwitchLogFile(NSString *name)
 {
 	name = [name stringByAppendingPathExtension:@"log"];
 	OOLog(@"verifyOXP.switchingLog", @"Switching log files -- logging to \"%@\".", name);
-	OOLogOutputHandlerChangeLogFile(name);}
+	OOLogOutputHandlerChangeLogFile(name);
+}
 
 
 static void NoteVerificationStage(NSString *displayName, NSString *stage)

@@ -96,8 +96,8 @@ static BOOL CheckNameConflict(NSString *lcName, NSDictionary *directoryCases, NS
 - (NSDictionary *)lowercaseMap:(NSArray *)array;
 
 - (NSDictionary *)scanDirectory:(NSString *)path;
-
 - (void)checkPListFormat:(NSPropertyListFormat)format file:(NSString *)file folder:(NSString *)folder;
+- (NSSet *)constructReadMeNames;
 
 @end
 
@@ -331,14 +331,17 @@ static BOOL CheckNameConflict(NSString *lcName, NSDictionary *directoryCases, NS
 - (void)scanForFiles
 {
 	NSDirectoryEnumerator	*dirEnum = nil;
-	NSString				*name = nil, *path = nil;
-	NSMutableDictionary		*directoryListings = nil;
-	NSMutableDictionary		*directoryCases = nil;
-	NSMutableDictionary		*rootFiles = nil;
+	NSString				*name = nil,
+							*path = nil,
+							*type = nil,
+							*lcName = nil,
+							*existing = nil,
+							*existingType = nil;
+	NSMutableDictionary		*directoryListings = nil,
+							*directoryCases = nil,
+							*rootFiles = nil;
 	NSDictionary			*dirFiles = nil;
-	NSString				*type = nil;
-	NSString				*lcName = nil;
-	NSString				*existing = nil, *existingType = nil;
+	NSSet					*readMeNames = nil;
 	
 	_basePath = [[[self verifier] oxpPath] copy];
 	
@@ -347,6 +350,7 @@ static BOOL CheckNameConflict(NSString *lcName, NSDictionary *directoryCases, NS
 	directoryCases = [NSMutableDictionary dictionary];
 	directoryListings = [NSMutableDictionary dictionary];
 	rootFiles = [NSMutableDictionary dictionary];
+	readMeNames = [self constructReadMeNames];
 	
 	dirEnum = [[NSFileManager defaultManager] enumeratorAtPath:_basePath];
 	while ((name = [dirEnum nextObject]))
@@ -376,7 +380,11 @@ static BOOL CheckNameConflict(NSString *lcName, NSDictionary *directoryCases, NS
 		{
 			if ([_junkFileNames member:name])
 			{
-				OOLog(@"verifyOXP.scanFiles.skipJunk", @"NOTE: skipping junk file %@", name);
+				OOLog(@"verifyOXP.scanFiles.skipJunk", @"NOTE: ignoring junk file %@", name);
+			}
+			else if ([readMeNames member:lcName])
+			{
+				OOLog(@"verifyOXP.scanFiles.readMe", @"WARNING: apparent Read Me file (\"%@\") inside OXP. This is the wrong place for a Read Me file, because it will not be read.", name);
 			}
 			else if (!CheckNameConflict(lcName, directoryCases, rootFiles, &existing, &existingType))
 			{
@@ -589,6 +597,45 @@ static BOOL CheckNameConflict(NSString *lcName, NSDictionary *directoryCases, NS
 			OOLog(@"verifyOXP.plist.weirdFormat", @"Property list %@ is in %@; OpenStep text format and XML format are the recommended formats for Oolite.", displayPath, formatDesc);
 		}
 	}
+}
+
+
+- (NSSet *)constructReadMeNames
+{
+	NSDictionary			*dict = nil;
+	NSArray					*stems = nil,
+							*extensions = nil;
+	NSMutableSet			*result = nil;
+	unsigned				i, j, stemCount, extCount;
+	NSString				*stem = nil,
+							*extension = nil;
+	
+	dict = [[self verifier] configurationDictionaryForKey:@"readMeNames"];
+	stems = [dict arrayForKey:@"stems"];
+	extensions = [dict arrayForKey:@"extensions"];
+	stemCount = [stems count];
+	extCount = [extensions count];
+	if (stemCount * extCount == 0)  return nil;
+	
+	// Construct all stem+extension permutations
+	result = [NSMutableSet setWithCapacity:stemCount * extCount];
+	for (i = 0; i != stemCount; ++i)
+	{
+		stem = [[stems stringAtIndex:i] lowercaseString];
+		if (stem != nil)
+		{
+			for (j = 0; j != extCount; ++j)
+			{
+				extension = [[extensions stringAtIndex:j] lowercaseString];
+				if (extension != nil)
+				{
+					[result addObject:[stem stringByAppendingString:extension]];
+				}
+			}
+		}
+	}
+	
+	return result;
 }
 
 @end
