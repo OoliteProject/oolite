@@ -346,6 +346,7 @@ static BOOL CheckNameConflict(NSString *lcName, NSDictionary *directoryCases, NS
 	_basePath = [[[self verifier] oxpPath] copy];
 	
 	_junkFileNames = [[self verifier] configurationSetForKey:@"junkFiles"];
+	_skipDirectoryNames = [[self verifier] configurationSetForKey:@"skipDirectories"];
 	
 	directoryCases = [NSMutableDictionary dictionary];
 	directoryListings = [NSMutableDictionary dictionary];
@@ -361,14 +362,19 @@ static BOOL CheckNameConflict(NSString *lcName, NSDictionary *directoryCases, NS
 		
 		if ([type isEqualToString:NSFileTypeDirectory])
 		{
-			if (!CheckNameConflict(lcName, directoryCases, rootFiles, &existing, &existingType))
+			[dirEnum skipDescendents];
+			
+			if ([_skipDirectoryNames member:name] != nil)
+			{
+				// Silently skip .svn and CVS
+			}
+			else if (!CheckNameConflict(lcName, directoryCases, rootFiles, &existing, &existingType))
 			{
 				OOLog(@"verifyOXP.verbose.listFiles", @"- %@/", name);
 				OOLogIndentIf(@"verifyOXP.verbose.listFiles");
 				dirFiles = [self scanDirectory:path];
 				[directoryListings setObject:dirFiles forKey:lcName];
 				[directoryCases setObject:name forKey:lcName];
-				[dirEnum skipDescendents];
 				OOLogOutdentIf(@"verifyOXP.verbose.listFiles");
 			}
 			else
@@ -407,6 +413,8 @@ static BOOL CheckNameConflict(NSString *lcName, NSDictionary *directoryCases, NS
 	}
 	
 	_junkFileNames = nil;
+	_skipDirectoryNames = nil;
+	
 	[directoryListings setObject:rootFiles forKey:@""];
 	_directoryListings = [directoryListings copy];
 	_directoryCases = [directoryCases copy];
@@ -538,10 +546,13 @@ static BOOL CheckNameConflict(NSString *lcName, NSDictionary *directoryCases, NS
 		}
 		else
 		{
-			if ([type isEqualToString:NSFileTypeSymbolicLink])
+			if ([type isEqualToString:NSFileTypeDirectory])
 			{
 				[dirEnum skipDescendents];
-				OOLog(@"verifyOXP.scanFiles.symLink", @"WARNING: \"%@\" is a nested directory, ignoring.", relativeName);
+				if ([_skipDirectoryNames member:name] == nil)
+				{
+					OOLog(@"verifyOXP.scanFiles.directory", @"WARNING: \"%@\" is a nested directory, ignoring.", relativeName);
+				}
 			}
 			else if ([type isEqualToString:NSFileTypeSymbolicLink])
 			{
@@ -549,7 +560,7 @@ static BOOL CheckNameConflict(NSString *lcName, NSDictionary *directoryCases, NS
 			}
 			else
 			{
-				OOLog(@"verifyOXP.scanFiles.nonStandardFile", @"WARNING: \"%@\" is a non-standard file (%@), ignoring.", name, relativeName);
+				OOLog(@"verifyOXP.scanFiles.nonStandardFile", @"WARNING: \"%@\" is a non-standard file (%@), ignoring.", relativeName, type);
 			}
 		}
 	}

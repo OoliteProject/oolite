@@ -66,6 +66,7 @@ extern NSString * const kOOFileScannerVerifierStageName;
 	NSDictionary				*_directoryCases;
 	NSMutableSet				*_badPLists;
 	NSSet						*_junkFileNames;
+	NSSet						*_skipDirectoryNames;
 }
 
 /*	This method does the following:

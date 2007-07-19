@@ -364,6 +364,8 @@
 		1A7D3A190C4F6162008EDC33 /* OOCheckRequiresPListVerifierStage.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A7D3A170C4F6162008EDC33 /* OOCheckRequiresPListVerifierStage.m */; };
 		1A7D3B9B0C4F7843008EDC33 /* OOCheckDemoShipsPListVerifierStage.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A7D3B990C4F7843008EDC33 /* OOCheckDemoShipsPListVerifierStage.h */; };
 		1A7D3B9C0C4F7843008EDC33 /* OOCheckDemoShipsPListVerifierStage.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A7D3B9A0C4F7843008EDC33 /* OOCheckDemoShipsPListVerifierStage.m */; };
+		1A7D3C490C4F818C008EDC33 /* OOCheckEquipmentPListVerifierStage.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A7D3C470C4F818C008EDC33 /* OOCheckEquipmentPListVerifierStage.h */; };
+		1A7D3C4A0C4F818C008EDC33 /* OOCheckEquipmentPListVerifierStage.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A7D3C480C4F818C008EDC33 /* OOCheckEquipmentPListVerifierStage.m */; };
 		1A7D83010C40111B00E4A5F5 /* OOLogOutputHandler.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A7D82FF0C40111B00E4A5F5 /* OOLogOutputHandler.h */; };
 		1A7D83020C40111B00E4A5F5 /* OOLogOutputHandler.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A7D83000C40111B00E4A5F5 /* OOLogOutputHandler.m */; };
 		1A7D833A0C40147800E4A5F5 /* OOAsyncQueue.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A7D83380C40147700E4A5F5 /* OOAsyncQueue.h */; };
@@ -1237,6 +1239,8 @@
 		1A7D3A170C4F6162008EDC33 /* OOCheckRequiresPListVerifierStage.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOCheckRequiresPListVerifierStage.m; sourceTree = "<group>"; };
 		1A7D3B990C4F7843008EDC33 /* OOCheckDemoShipsPListVerifierStage.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOCheckDemoShipsPListVerifierStage.h; sourceTree = "<group>"; };
 		1A7D3B9A0C4F7843008EDC33 /* OOCheckDemoShipsPListVerifierStage.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOCheckDemoShipsPListVerifierStage.m; sourceTree = "<group>"; };
+		1A7D3C470C4F818C008EDC33 /* OOCheckEquipmentPListVerifierStage.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOCheckEquipmentPListVerifierStage.h; sourceTree = "<group>"; };
+		1A7D3C480C4F818C008EDC33 /* OOCheckEquipmentPListVerifierStage.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOCheckEquipmentPListVerifierStage.m; sourceTree = "<group>"; };
 		1A7D82FF0C40111B00E4A5F5 /* OOLogOutputHandler.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOLogOutputHandler.h; sourceTree = "<group>"; };
 		1A7D83000C40111B00E4A5F5 /* OOLogOutputHandler.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOLogOutputHandler.m; sourceTree = "<group>"; };
 		1A7D83380C40147700E4A5F5 /* OOAsyncQueue.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOAsyncQueue.h; sourceTree = "<group>"; };
@@ -2208,6 +2212,8 @@
 				1A7D3A170C4F6162008EDC33 /* OOCheckRequiresPListVerifierStage.m */,
 				1A7D3B990C4F7843008EDC33 /* OOCheckDemoShipsPListVerifierStage.h */,
 				1A7D3B9A0C4F7843008EDC33 /* OOCheckDemoShipsPListVerifierStage.m */,
+				1A7D3C470C4F818C008EDC33 /* OOCheckEquipmentPListVerifierStage.h */,
+				1A7D3C480C4F818C008EDC33 /* OOCheckEquipmentPListVerifierStage.m */,
 			);
 			name = "OXP Verification";
 			path = OXPVerifier;
@@ -2513,6 +2519,7 @@
 				1A27DB420C4E34B300CB4CE8 /* OOFileScannerVerifierStage.h in Headers */,
 				1A7D3A180C4F6162008EDC33 /* OOCheckRequiresPListVerifierStage.h in Headers */,
 				1A7D3B9B0C4F7843008EDC33 /* OOCheckDemoShipsPListVerifierStage.h in Headers */,
+				1A7D3C490C4F818C008EDC33 /* OOCheckEquipmentPListVerifierStage.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -2793,6 +2800,7 @@
 				1A27DB430C4E34B300CB4CE8 /* OOFileScannerVerifierStage.m in Sources */,
 				1A7D3A190C4F6162008EDC33 /* OOCheckRequiresPListVerifierStage.m in Sources */,
 				1A7D3B9C0C4F7843008EDC33 /* OOCheckDemoShipsPListVerifierStage.m in Sources */,
+				1A7D3C4A0C4F818C008EDC33 /* OOCheckEquipmentPListVerifierStage.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

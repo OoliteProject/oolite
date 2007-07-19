@@ -51,7 +51,6 @@ SOFTWARE.
 #if OO_OXP_VERIFIER_ENABLED
 
 #import "OOFileScannerVerifierStage.h"
-#import "OOStringParsing.h"
 
 NSString * const kOOCheckDemoShipsPListVerifierStageName	= @"Checking demoships.plist";
 
@@ -107,7 +106,7 @@ NSString * const kOOCheckDemoShipsPListVerifierStageName	= @"Checking demoships.
 	// Check that it's an array
 	if (![demoshipsPList isKindOfClass:[NSArray class]])
 	{
-		OOLog(@"verifyOXP.demoshipsPList.notDict", @"ERROR: demoships.plist is not an array.");
+		OOLog(@"verifyOXP.demoshipsPList.notArray", @"ERROR: demoships.plist is not an array.");
 		return;
 	}
 	

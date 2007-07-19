@@ -8,7 +8,8 @@
 	(
 		"OOFileScannerVerifierStage",
 		"OOCheckRequiresPListVerifierStage",
-		"OOCheckDemoShipsPListVerifierStage"
+		"OOCheckDemoShipsPListVerifierStage",
+		"OOCheckEquipmentPListVerifierStage"
 	);
 	
 	logControlOverride =
@@ -67,6 +68,13 @@
 		".DS_Store",
 		"Thumbs.db",
 		"zipinfo.txt"
+	);
+	
+	skipDirectories =
+	(
+		// Directories to silently skip (version control systems make these)
+		".svn",
+		"CVS"
 	);
 	
 	readMeNames =
