@@ -81,6 +81,12 @@ SOFTWARE.
 }
 
 
+- (BOOL)completed
+{
+	return _hasRun;
+}
+
+
 - (NSString *)name
 {
 	OOLogGenericSubclassResponsibility();
@@ -94,9 +100,15 @@ SOFTWARE.
 }
 
 
+- (BOOL)shouldRun
+{
+	return YES;
+}
+
+
 - (void)run
 {
-	
+	OOLogGenericSubclassResponsibility();
 }
 
 
@@ -153,12 +165,6 @@ SOFTWARE.
 }
 
 
-- (BOOL)completed
-{
-	return _hasRun;
-}
-
-
 - (BOOL)canRun
 {
 	return _canRun;
@@ -183,9 +189,31 @@ SOFTWARE.
 }
 
 
+- (void)noteSkipped
+{
+	assert(_canRun && !_hasRun);
+	
+	_hasRun = YES;
+	_canRun = NO;
+	[_dependents makeObjectsPerformSelector:@selector(dependencyCompleted:) withObject:self];
+}
+
+
 - (void)dependencyRegistrationComplete
 {
 	_canRun = [_incompleteDependencies count] == 0;
+}
+
+
+- (NSSet *)dependencies
+{
+	return _dependencies;
+}
+
+
+- (NSSet *)dependents
+{
+	return _dependents;
 }
 
 @end

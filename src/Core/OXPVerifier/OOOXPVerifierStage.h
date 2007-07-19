@@ -63,6 +63,7 @@ SOFTWARE.
 }
 
 - (OOOXPVerifier *)verifier;
+- (BOOL)completed;
 
 // Subclass responsibilities:
 
@@ -79,7 +80,13 @@ SOFTWARE.
 	verifier's -stageWithName: method in order to query them about results.
 	Stages whose dependencies have all run will be released, so the result of
 	calling -stageWithName: with a name not in -requiredStages is undefined.
+	
+	shouldRun can be overridden to avoid running at all (without anything
+	being logged). For dependency resolution purposes, returning NO from
+	shouldRun counts as running; that is, it will stop this verifier stage
+	from running but will not stop dependencies from running.
 */
+- (BOOL)shouldRun;
 - (void)run;
 
 /*	Post-run: some verifier stage, like the file set stage, need to perform

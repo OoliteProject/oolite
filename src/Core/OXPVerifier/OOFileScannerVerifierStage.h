@@ -64,6 +64,8 @@ extern NSString * const kOOFileScannerVerifierStageName;
 	NSMutableSet				*_caseWarnings;
 	NSDictionary				*_directoryListings;
 	NSDictionary				*_directoryCases;
+	NSMutableSet				*_badPLists;
+	NSSet						*_junkFileNames;
 }
 
 /*	This method does the following:
@@ -76,10 +78,31 @@ extern NSString * const kOOFileScannerVerifierStageName;
 	exists, one would use:
 	[fileScanner fileExists:textureName inFolder:@"Textures" referencedFrom:@"shipdata.plist" checkBuiltIn:YES];
 */
-- (BOOL)fileExists:(NSString *)file inFolder:(NSString *)folder referencedFrom:(NSString *)context checkBuiltIn:(BOOL)checkBuiltIn;
+- (BOOL)fileExists:(NSString *)file
+		  inFolder:(NSString *)folder
+	referencedFrom:(NSString *)context
+	  checkBuiltIn:(BOOL)checkBuiltIn;
 
 //	This method performs all the checks the previous one does, but also returns a file path.
-- (NSString *)pathForFile:(NSString *)file inFolder:(NSString *)folder referencedFrom:(NSString *)context checkBuiltIn:(BOOL)checkBuiltIn;
+- (NSString *)pathForFile:(NSString *)file
+				 inFolder:(NSString *)folder
+		   referencedFrom:(NSString *)context
+			 checkBuiltIn:(BOOL)checkBuiltIn;
+
+//	Data getters based on above method.
+- (NSData *)dataForFile:(NSString *)file
+			   inFolder:(NSString *)folder
+		 referencedFrom:(NSString *)context
+		   checkBuiltIn:(BOOL)checkBuiltIn;
+
+- (id)plistNamed:(NSString *)file	// Only uses "real" plist parser, not homebrew.
+		inFolder:(NSString *)folder
+  referencedFrom:(NSString *)context
+	checkBuiltIn:(BOOL)checkBuiltIn;
+
+
+// Utility to handle display names of files. If a file and folder are provided, returns folder/file, otherwise just file.
+- (id)displayNameForFile:(NSString *)file andFolder:(NSString *)folder;
 
 @end
 

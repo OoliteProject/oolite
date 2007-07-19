@@ -97,6 +97,8 @@ static BOOL CheckNameConflict(NSString *lcName, NSDictionary *directoryCases, NS
 
 - (NSDictionary *)scanDirectory:(NSString *)path;
 
+- (void)checkPListFormat:(NSPropertyListFormat)format file:(NSString *)file folder:(NSString *)folder;
+
 @end
 
 
@@ -109,6 +111,7 @@ static BOOL CheckNameConflict(NSString *lcName, NSDictionary *directoryCases, NS
 	[_caseWarnings release];
 	[_directoryListings release];
 	[_directoryCases release];
+	[_badPLists release];
 	
 	[super dealloc];
 }
@@ -126,6 +129,7 @@ static BOOL CheckNameConflict(NSString *lcName, NSDictionary *directoryCases, NS
 	
 	_usedFiles = [[NSMutableSet alloc] init];
 	_caseWarnings = [[NSMutableSet alloc] init];
+	_badPLists = [[NSMutableSet alloc] init];
 	
 	pool = [[NSAutoreleasePool alloc] init];
 	[self scanForFiles];
@@ -150,13 +154,19 @@ static BOOL CheckNameConflict(NSString *lcName, NSDictionary *directoryCases, NS
 }
 
 
-- (BOOL)fileExists:(NSString *)file inFolder:(NSString *)folder referencedFrom:(NSString *)context checkBuiltIn:(BOOL)checkBuiltIn
+- (BOOL)fileExists:(NSString *)file
+		  inFolder:(NSString *)folder
+	referencedFrom:(NSString *)context
+	  checkBuiltIn:(BOOL)checkBuiltIn
 {
 	return [self pathForFile:file inFolder:folder referencedFrom:context checkBuiltIn:checkBuiltIn] != nil;
 }
 
 
-- (NSString *)pathForFile:(NSString *)file inFolder:(NSString *)folder referencedFrom:(NSString *)context checkBuiltIn:(BOOL)checkBuiltIn
+- (NSString *)pathForFile:(NSString *)file
+				 inFolder:(NSString *)folder
+		   referencedFrom:(NSString *)context
+			 checkBuiltIn:(BOOL)checkBuiltIn
 {
 	NSString				*lcName = nil,
 							*lcDirName = nil,
@@ -210,8 +220,7 @@ static BOOL CheckNameConflict(NSString *lcName, NSDictionary *directoryCases, NS
 			{
 				[_caseWarnings addObject:lcName];
 				
-				if (folder != nil)  expectedPath = [folder stringByAppendingPathComponent:file];
-				else  expectedPath = file;
+				expectedPath = [self displayNameForFile:file andFolder:folder];
 				
 				if (context != nil)  context = [@" referenced in " stringByAppendingString:context];
 				else  context = @"";
@@ -229,6 +238,90 @@ static BOOL CheckNameConflict(NSString *lcName, NSDictionary *directoryCases, NS
 	return nil;
 }
 
+
+- (NSData *)dataForFile:(NSString *)file
+			   inFolder:(NSString *)folder
+		 referencedFrom:(NSString *)context
+		   checkBuiltIn:(BOOL)checkBuiltIn
+{
+	NSString				*path = nil;
+	
+	path = [self pathForFile:file inFolder:folder referencedFrom:context checkBuiltIn:checkBuiltIn];
+	if (path == nil)  return nil;
+	
+	return [NSData dataWithContentsOfMappedFile:path];
+}
+
+
+- (id)plistNamed:(NSString *)file
+		inFolder:(NSString *)folder
+  referencedFrom:(NSString *)context
+	checkBuiltIn:(BOOL)checkBuiltIn
+{
+	NSData					*data = nil;
+	NSString				*errorString = nil;
+	NSPropertyListFormat	format;
+	id						plist = nil;
+	NSArray					*errorLines = nil;
+	NSEnumerator			*errLineEnum = nil;
+	NSString				*displayName = nil,
+							*errorKey = nil;
+	NSAutoreleasePool		*pool = nil;
+	
+	data = [self dataForFile:file inFolder:folder referencedFrom:context checkBuiltIn:checkBuiltIn];
+	if (data == nil)  return nil;
+	
+	pool = [[NSAutoreleasePool alloc] init];
+	
+	plist = [NSPropertyListSerialization propertyListFromData:data
+											 mutabilityOption:NSPropertyListImmutable
+													   format:&format
+											 errorDescription:&errorString];
+	[errorString autorelease];	// Documented wart: this is caller responsibility
+	
+	if (plist != nil)
+	{
+		// PList is readable; check that it's in an official Oolite format.
+		[self checkPListFormat:format file:file folder:folder];
+	}
+	else
+	{
+		/*	Couldn't parse plist; report problem.
+			This is complicated somewhat by the need to present a possibly
+			multi-line error description while maintaining our indentation.
+		*/
+		displayName = [self displayNameForFile:file andFolder:folder];
+		errorKey = [displayName lowercaseString];
+		if ([_badPLists member:errorKey] == nil)
+		{
+			[_badPLists addObject:errorKey];
+			OOLog(@"verifyOXP.plist.parseError", @"Could not interpret property list %@.", displayName);
+			OOLogIndent();
+			errorLines = [errorString componentsSeparatedByString:@"\n"];
+			for (errLineEnum = [errorLines objectEnumerator]; (errorString = [errLineEnum nextObject]); )
+			{
+				while ([errorString hasPrefix:@"\t"])
+				{
+					errorString = [@"    " stringByAppendingString:[errorString substringFromIndex:1]];
+				}
+				OOLog(@"verifyOXP.plist.parseError", errorString);
+			}
+			OOLogOutdent();
+		}
+	}
+	
+	[plist retain];
+	[pool release];
+	
+	return [plist autorelease];
+}
+
+
+- (id)displayNameForFile:(NSString *)file andFolder:(NSString *)folder
+{
+	if (file != nil && folder != nil)  return [folder stringByAppendingPathComponent:file];
+	return file;
+}
 
 @end
 
@@ -249,6 +342,8 @@ static BOOL CheckNameConflict(NSString *lcName, NSDictionary *directoryCases, NS
 	
 	_basePath = [[[self verifier] oxpPath] copy];
 	
+	_junkFileNames = [[self verifier] configurationSetForKey:@"junkFiles"];
+	
 	directoryCases = [NSMutableDictionary dictionary];
 	directoryListings = [NSMutableDictionary dictionary];
 	rootFiles = [NSMutableDictionary dictionary];
@@ -262,12 +357,15 @@ static BOOL CheckNameConflict(NSString *lcName, NSDictionary *directoryCases, NS
 		
 		if ([type isEqualToString:NSFileTypeDirectory])
 		{
-			dirFiles = [self scanDirectory:path];
 			if (!CheckNameConflict(lcName, directoryCases, rootFiles, &existing, &existingType))
 			{
+				OOLog(@"verifyOXP.verbose.listFiles", @"- %@/", name);
+				OOLogIndentIf(@"verifyOXP.verbose.listFiles");
+				dirFiles = [self scanDirectory:path];
 				[directoryListings setObject:dirFiles forKey:lcName];
 				[directoryCases setObject:name forKey:lcName];
 				[dirEnum skipDescendents];
+				OOLogOutdentIf(@"verifyOXP.verbose.listFiles");
 			}
 			else
 			{
@@ -276,8 +374,13 @@ static BOOL CheckNameConflict(NSString *lcName, NSDictionary *directoryCases, NS
 		}
 		else if ([type isEqualToString:NSFileTypeRegular])
 		{
-			if (!CheckNameConflict(lcName, directoryCases, rootFiles, &existing, &existingType))
+			if ([_junkFileNames member:name])
 			{
+				OOLog(@"verifyOXP.scanFiles.skipJunk", @"NOTE: skipping junk file %@", name);
+			}
+			else if (!CheckNameConflict(lcName, directoryCases, rootFiles, &existing, &existingType))
+			{
+				OOLog(@"verifyOXP.verbose.listFiles", @"- %@", name);
 				[rootFiles setObject:name forKey:lcName];
 			}
 			else
@@ -295,6 +398,7 @@ static BOOL CheckNameConflict(NSString *lcName, NSDictionary *directoryCases, NS
 		}
 	}
 	
+	_junkFileNames = nil;
 	[directoryListings setObject:rootFiles forKey:@""];
 	_directoryListings = [directoryListings copy];
 	_directoryCases = [directoryCases copy];
@@ -405,13 +509,18 @@ static BOOL CheckNameConflict(NSString *lcName, NSDictionary *directoryCases, NS
 		type = [[dirEnum fileAttributes] fileType];
 		relativeName = [dirName stringByAppendingPathComponent:name];
 		
-		if ([type isEqualToString:NSFileTypeRegular])
+		if ([_junkFileNames member:name])
+		{
+			OOLog(@"verifyOXP.scanFiles.skipJunk", @"NOTE: skipping junk file %@/%@.", dirName, name);
+		}
+		else if ([type isEqualToString:NSFileTypeRegular])
 		{
 			lcName = [name lowercaseString];
 			existing = [result objectForKey:lcName];
 			
 			if (existing == nil)
 			{
+				OOLog(@"verifyOXP.verbose.listFiles", @"- %@", name);
 				[result setObject:name forKey:lcName];
 			}
 			else
@@ -440,12 +549,54 @@ static BOOL CheckNameConflict(NSString *lcName, NSDictionary *directoryCases, NS
 	return result;
 }
 
+
+- (void)checkPListFormat:(NSPropertyListFormat)format file:(NSString *)file folder:(NSString *)folder
+{
+	NSString				*weirdnessKey = nil;
+	NSString				*formatDesc = nil;
+	NSString				*displayPath = nil;
+	
+	if (format != NSPropertyListOpenStepFormat && format != NSPropertyListXMLFormat_v1_0)
+	{
+		displayPath = [self displayNameForFile:file andFolder:folder];
+		weirdnessKey = [displayPath lowercaseString];
+		
+		if ([_badPLists member:weirdnessKey] == nil)
+		{
+			// Warn about "non-standard" format
+			[_badPLists addObject:weirdnessKey];
+			
+			switch (format)
+			{
+				case NSPropertyListBinaryFormat_v1_0:
+					formatDesc = @"Apple binary format";
+					break;
+				
+#if OOLITE_GNUSTEP
+				case NSPropertyListGNUstepFormat:
+					formatDesc = @"GNUstep text format";
+					break;
+				
+				case NSPropertyListGNUstepBinaryFormat:
+					formatDesc = @"GNUstep binary format";
+					break;
+#endif
+				
+				default:
+					formatDesc = [NSString stringWithFormat:@"unknown format (%i)", (int)format];
+			}
+			
+			OOLog(@"verifyOXP.plist.weirdFormat", @"Property list %@ is in %@; OpenStep text format and XML format are the recommended formats for Oolite.", displayPath, formatDesc);
+		}
+	}
+}
+
 @end
 
 
 static BOOL CheckNameConflict(NSString *lcName, NSDictionary *directoryCases, NSDictionary *rootFiles, NSString **outExisting, NSString **outExistingType)
 {
-	NSString			*existing = nil;
+	NSString				*existing = nil;
 	
 	existing = [directoryCases objectForKey:lcName];
 	if (existing != nil)

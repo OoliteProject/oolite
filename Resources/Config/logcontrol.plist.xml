@@ -448,6 +448,8 @@
 	<string>no</string>
 	<key>universe.populate.witchspace</key>
 	<string>inherit</string>
+	<key>verifyOXP.listStageDependencies</key>
+	<string>no</string>
 	<key>verifyOXP.verbose</key>
 	<string>no</string>
 </dict>

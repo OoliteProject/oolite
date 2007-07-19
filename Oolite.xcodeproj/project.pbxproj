@@ -360,6 +360,8 @@
 		1A71E8790BCE8EB100CD5C13 /* libz.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 1A71E8780BCE8EB100CD5C13 /* libz.dylib */; };
 		1A71EA8C0BCF8C6B00CD5C13 /* OOXMLExtensions.m in Sources */ = {isa = PBXBuildFile; fileRef = 25161102099544380037C2E1 /* OOXMLExtensions.m */; };
 		1A71EA8D0BCF8C6C00CD5C13 /* OOXMLExtensions.h in Headers */ = {isa = PBXBuildFile; fileRef = 25161107099544390037C2E1 /* OOXMLExtensions.h */; };
+		1A7D3A180C4F6162008EDC33 /* OOCheckRequiresPListVerifierStage.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A7D3A160C4F6162008EDC33 /* OOCheckRequiresPListVerifierStage.h */; };
+		1A7D3A190C4F6162008EDC33 /* OOCheckRequiresPListVerifierStage.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A7D3A170C4F6162008EDC33 /* OOCheckRequiresPListVerifierStage.m */; };
 		1A7D83010C40111B00E4A5F5 /* OOLogOutputHandler.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A7D82FF0C40111B00E4A5F5 /* OOLogOutputHandler.h */; };
 		1A7D83020C40111B00E4A5F5 /* OOLogOutputHandler.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A7D83000C40111B00E4A5F5 /* OOLogOutputHandler.m */; };
 		1A7D833A0C40147800E4A5F5 /* OOAsyncQueue.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A7D83380C40147700E4A5F5 /* OOAsyncQueue.h */; };
@@ -1229,6 +1231,8 @@
 		1A71E7150BCE34CF00CD5C13 /* pngvcrd.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = pngvcrd.c; sourceTree = "<group>"; };
 		1A71E7160BCE34CF00CD5C13 /* pngpread.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = pngpread.c; sourceTree = "<group>"; };
 		1A71E8780BCE8EB100CD5C13 /* libz.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libz.dylib; path = /usr/lib/libz.dylib; sourceTree = "<absolute>"; };
+		1A7D3A160C4F6162008EDC33 /* OOCheckRequiresPListVerifierStage.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOCheckRequiresPListVerifierStage.h; sourceTree = "<group>"; };
+		1A7D3A170C4F6162008EDC33 /* OOCheckRequiresPListVerifierStage.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOCheckRequiresPListVerifierStage.m; sourceTree = "<group>"; };
 		1A7D82FF0C40111B00E4A5F5 /* OOLogOutputHandler.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOLogOutputHandler.h; sourceTree = "<group>"; };
 		1A7D83000C40111B00E4A5F5 /* OOLogOutputHandler.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOLogOutputHandler.m; sourceTree = "<group>"; };
 		1A7D83380C40147700E4A5F5 /* OOAsyncQueue.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOAsyncQueue.h; sourceTree = "<group>"; };
@@ -2196,6 +2200,8 @@
 				1A27DB3A0C4E349F00CB4CE8 /* OOOXPVerifierStage.m */,
 				1A27DB400C4E34B300CB4CE8 /* OOFileScannerVerifierStage.h */,
 				1A27DB410C4E34B300CB4CE8 /* OOFileScannerVerifierStage.m */,
+				1A7D3A160C4F6162008EDC33 /* OOCheckRequiresPListVerifierStage.h */,
+				1A7D3A170C4F6162008EDC33 /* OOCheckRequiresPListVerifierStage.m */,
 			);
 			name = "OXP Verification";
 			path = OXPVerifier;
@@ -2499,6 +2505,7 @@
 				1A27DB3B0C4E349F00CB4CE8 /* OOOXPVerifierStageInternal.h in Headers */,
 				1A27DB3C0C4E349F00CB4CE8 /* OOOXPVerifierStage.h in Headers */,
 				1A27DB420C4E34B300CB4CE8 /* OOFileScannerVerifierStage.h in Headers */,
+				1A7D3A180C4F6162008EDC33 /* OOCheckRequiresPListVerifierStage.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -2777,6 +2784,7 @@
 				1AB2AAFB0C4CE0CC0008CF4E /* OOOXPVerifier.m in Sources */,
 				1A27DB3D0C4E349F00CB4CE8 /* OOOXPVerifierStage.m in Sources */,
 				1A27DB430C4E34B300CB4CE8 /* OOFileScannerVerifierStage.m in Sources */,
+				1A7D3A190C4F6162008EDC33 /* OOCheckRequiresPListVerifierStage.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

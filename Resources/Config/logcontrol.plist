@@ -295,6 +295,7 @@
 	
 	
 	verifyOXP.verbose						= no;
+	verifyOXP.listStageDependencies			= no;
 	
 	
 	/*** Mac OS X/Cocoa-specific ***/

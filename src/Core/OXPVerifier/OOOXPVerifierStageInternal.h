@@ -59,9 +59,13 @@ SOFTWARE.
 - (void)registerDependency:(OOOXPVerifierStage *)dependency;
 - (void)dependencyRegistrationComplete;
 
-- (BOOL)completed;
 - (BOOL)canRun;
+
 - (void)performRun;
+- (void)noteSkipped;
+
+- (NSSet *)dependencies;
+- (NSSet *)dependents;
 
 @end
 

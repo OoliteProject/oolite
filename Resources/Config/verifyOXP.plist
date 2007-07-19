@@ -1,7 +1,6 @@
 /*	verifyOXP.plist
 	
-	Various things used internally by the OXP verifier. This can be modified
-	by OXPs, but the utility of doing so is questionable to say the least.
+	Various things used internally by the OXP verifier.
 */
 
 {
@@ -61,8 +60,15 @@
 		"world-scripts.plist"
 	);
 	
+	requiresPListSupportedKeys =
+	(
+		"version",
+		"max_version"
+	);
+	
 	stages =
 	(
-		"OOFileScannerVerifierStage"
+		"OOFileScannerVerifierStage",
+		"OOCheckRequiresPListVerifierStage"
 	);
 }

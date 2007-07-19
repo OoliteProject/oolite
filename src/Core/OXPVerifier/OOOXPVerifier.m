@@ -59,11 +59,13 @@ SOFTWARE.
 
 
 #if OOLITE_HAVE_APPKIT
-static void SwitchLogFileAndOpenLog(NSString *name);
+static void SwitchLogFile(NSString *name);
 static void NoteVerificationStage(NSString *displayName, NSString *stage);
+static void OpenLogFile(NSString *name);
 #else
-#define SwitchLogFileAndOpenLog(name) do {} while (0)
+#define SwitchLogFile(name) do {} while (0)
 #define NoteVerificationStage(displayName, stage) do {} while (0)
+#define OpenLogFile(name) do {} while (0)
 #endif
 
 
@@ -80,6 +82,8 @@ static void NoteVerificationStage(NSString *displayName, NSString *stage);
 - (void)postRunStages;
 
 - (BOOL)setUpDependenciesForStage:(OOOXPVerifierStage *)stage;
+
+- (void)listStageDependencies;
 
 @end
 
@@ -208,16 +212,11 @@ static void NoteVerificationStage(NSString *displayName, NSString *stage);
 }
 
 
-- (OOOXPVerifierStage *)stageWithName:(NSString *)name
+- (id)stageWithName:(NSString *)name
 {
-	OOOXPVerifierStage		*stage = nil;
-	
 	if (name == nil)  return nil;
 	
-	stage = [_stagesByName objectForKey:name];
-	if (![stage completed])  return nil;
-	
-	return stage;
+	return [_stagesByName objectForKey:name];
 }
 
 
@@ -244,6 +243,13 @@ static void NoteVerificationStage(NSString *displayName, NSString *stage);
 	return [_verifierPList stringForKey:key];
 }
 
+
+- (NSSet *)configurationSetForKey:(NSString *)key
+{
+	NSArray *array = [_verifierPList arrayForKey:key];
+	return array != nil ? [NSSet setWithArray:array] : nil;
+}
+
 @end
 
 
@@ -255,7 +261,7 @@ static void NoteVerificationStage(NSString *displayName, NSString *stage);
 	
 	_verifierPList = [ResourceManager dictionaryFromFilesNamed:@"verifyOXP.plist"
 													  inFolder:@"Config"
-													  andMerge:YES];
+													  andMerge:NO];
 	[_verifierPList retain];
 	
 	_basePath = [path copy];
@@ -290,7 +296,7 @@ static void NoteVerificationStage(NSString *displayName, NSString *stage);
 	[[OOCacheManager sharedCache] setAllowCacheWrites:NO];
 	[ResourceManager setUseAddOns:NO];
 	
-	SwitchLogFileAndOpenLog(_displayName);
+	SwitchLogFile(_displayName);
 	OOLog(@"verifyOXP.start", @"Running OXP verifier for %@", _displayName);
 	
 	[self registerBaseStages];
@@ -302,6 +308,8 @@ static void NoteVerificationStage(NSString *displayName, NSString *stage);
 	
 	NoteVerificationStage(_displayName, @"");
 	OOLog(@"verifyOXP.done", @"OXP verification complete.");
+	
+	OpenLogFile(_displayName);
 }
 
 
@@ -364,7 +372,7 @@ static void NoteVerificationStage(NSString *displayName, NSString *stage);
 	// Iterate over all stages, and resolve dependencies.
 	stageKeys = [_stagesByName allKeys];	// Make a copy because we may need to remove entries from dictionary.
 	
-	for (stageEnum = [stageKeys objectEnumerator]; (stage = [stageEnum nextObject]); )
+	for (stageEnum = [stageKeys objectEnumerator]; (stageKey = [stageEnum nextObject]); )
 	{
 		stage = [_stagesByName objectForKey:stageKey];
 		if (stage == nil)  continue;
@@ -386,6 +394,8 @@ static void NoteVerificationStage(NSString *displayName, NSString *stage);
 	
 	_waitingStages = [[NSMutableSet alloc] initWithArray:[_stagesByName allValues]];
 	[_waitingStages makeObjectsPerformSelector:@selector(dependencyRegistrationComplete)];
+	
+	if (OOLogWillDisplayMessagesInClass(@"verifyOXP.listStageDependencies"))  [self listStageDependencies];
 	
 	[pool release];
 }
@@ -422,12 +432,20 @@ static void NoteVerificationStage(NSString *displayName, NSString *stage);
 		}
 		
 		stageName = [stageToRun name];
-		NoteVerificationStage(_displayName, stageName);
-		OOLog(@"verifyOXP.runStage", @"%@", stageName);
-		OOLogPushIndent();
-		OOLogIndent();
-		[stageToRun performRun];
-		OOLogPopIndent();
+		if ([stageToRun shouldRun])
+		{
+			NoteVerificationStage(_displayName, stageName);
+			OOLog(@"verifyOXP.runStage", @"%@", stageName);
+			OOLogPushIndent();
+			OOLogIndent();
+			[stageToRun performRun];
+			OOLogPopIndent();
+		}
+		else
+		{
+			OOLog(@"verifyOXP.verbose.skipStage", @"- Skipping stage: %@", stageName);
+			[stageToRun noteSkipped];
+		}
 		
 		[_waitingStages removeObject:stageToRun];
 		[pool release];
@@ -503,44 +521,92 @@ static void NoteVerificationStage(NSString *displayName, NSString *stage);
 	return YES;
 }
 
+
+- (void)listStageDependencies
+{
+	NSEnumerator				*stageEnum = nil;
+	OOOXPVerifierStage			*stage = nil;
+	NSSet						*deps = nil;
+	NSEnumerator				*depEnum = nil;
+	OOOXPVerifierStage			*dep = nil;
+	
+	OOLog(@"verifyOXP.listStageDependencies", @"Verifier stage dependencies:");
+	OOLogIndent();
+	
+	for (stageEnum = [_stagesByName objectEnumerator]; (stage = [stageEnum nextObject]); )
+	{
+		OOLog(@"verifyOXP.listStageDependencies", @"%@", stage);
+		OOLogIndent();
+		
+		deps = [stage dependencies];
+		if (deps == nil)
+		{
+			OOLog(@"verifyOXP.listStageDependencies", @"Requires: none.");
+		}
+		else
+		{
+			OOLog(@"verifyOXP.listStageDependencies", @"Requires:");
+			OOLogIndent();
+			
+			for (depEnum = [deps objectEnumerator]; (dep = [depEnum nextObject]); )
+			{
+				OOLog(@"verifyOXP.listStageDependencies", @"* %@", dep);
+			}
+			
+			OOLogOutdent();
+		}
+		
+		deps = [stage dependents];
+		if (deps == nil)
+		{
+			OOLog(@"verifyOXP.listStageDependencies", @"Required by: none.");
+		}
+		else
+		{
+			OOLog(@"verifyOXP.listStageDependencies", @"Required by:");
+			OOLogIndent();
+			
+			for (depEnum = [deps objectEnumerator]; (dep = [depEnum nextObject]); )
+			{
+				OOLog(@"verifyOXP.listStageDependencies", @"* %@", dep);
+			}
+			
+			OOLogOutdent();
+		}
+		
+		OOLogOutdent();
+	}
+	
+	OOLogOutdent();
+}
+
 @end
 
 
 #if OOLITE_HAVE_APPKIT
+
 #import "OOLogOutputHandler.h"
 
-
-static void SwitchLogFileAndOpenLog(NSString *name)
+static void SwitchLogFile(NSString *name)
 {
-	/*	Open log file in Console.app.
-		
-		This specifically doesn't use the default app since this requires live
-		updating to be at all useful.
-		
-		FIXME: the log doesn't actually always update live. Possibly opening
-		(or re-opening) after run would help?
-	*/
-	NSURL					*logURL = nil;
-	
 	name = [name stringByAppendingPathExtension:@"log"];
 	OOLog(@"verifyOXP.switchingLog", @"Switching log files -- logging to \"%@\".", name);
-	OOLogOutputHandlerChangeLogFile(name);
-	
-	logURL = [NSURL fileURLWithPath:OOLogHandlerGetLogPath()];
-	if (logURL == nil)  return;
-	
-	[[NSWorkspace sharedWorkspace] openURLs:[NSArray arrayWithObject:logURL]
-					withAppBundleIdentifier:@"com.apple.Console"
-									options:NSWorkspaceLaunchDefault
-			  additionalEventParamDescriptor:nil
-						   launchIdentifiers:nil];
-}
+	OOLogOutputHandlerChangeLogFile(name);}
 
 
 static void NoteVerificationStage(NSString *displayName, NSString *stage)
 {
 	[[GameController sharedController] logProgress:[NSString stringWithFormat:@"Verifying %@\n%@", displayName, stage]];
 }
+
+
+static void OpenLogFile(NSString *name)
+{
+	//	Open log file in appropriate application.
+	
+	[[NSWorkspace sharedWorkspace] openFile:OOLogHandlerGetLogPath()];
+}
+
 #endif	// OOLITE_HAVE_APPKIT
 
 #endif	// OO_OXP_VERIFIER_ENABLED
