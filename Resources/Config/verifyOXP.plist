@@ -9,7 +9,8 @@
 		"OOCheckRequiresPListVerifierStage",
 		"OOCheckDemoShipsPListVerifierStage",
 		"OOCheckEquipmentPListVerifierStage",
-		"OOTextureVerifierStage"
+		"OOTextureVerifierStage",
+		"OOCheckShipDataPListVerifierStage"
 	);
 	excludeStages =
 	(

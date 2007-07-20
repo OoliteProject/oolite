@@ -683,7 +683,7 @@ static BOOL CheckNameConflict(NSString *lcName, NSDictionary *directoryCases, NS
 
 - (void)run
 {
-	
+	OOLog(@"verifyOXP.unusedFiles.unimplemented", @"TODO: implement unused files check.");
 }
 
 

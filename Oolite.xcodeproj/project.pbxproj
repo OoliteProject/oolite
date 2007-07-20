@@ -369,6 +369,10 @@
 		1A7D3D2B0C4F8D02008EDC33 /* OOTextureVerifierStage.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A7D3D290C4F8D01008EDC33 /* OOTextureVerifierStage.h */; };
 		1A7D3D2C0C4F8D02008EDC33 /* OOTextureVerifierStage.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A7D3D2A0C4F8D02008EDC33 /* OOTextureVerifierStage.m */; };
 		1A7D3EFE0C50F337008EDC33 /* OXP verifier design.txt in Resources */ = {isa = PBXBuildFile; fileRef = 1A7D3EFD0C50F337008EDC33 /* OXP verifier design.txt */; };
+		1A7D41860C516B90008EDC33 /* OOModelVerifierStage.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A7D41840C516B90008EDC33 /* OOModelVerifierStage.m */; };
+		1A7D41870C516B90008EDC33 /* OOModelVerifierStage.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A7D41850C516B90008EDC33 /* OOModelVerifierStage.h */; };
+		1A7D41E20C516E9E008EDC33 /* OOCheckShipDataPListVerifierStage.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A7D41E00C516E9E008EDC33 /* OOCheckShipDataPListVerifierStage.h */; };
+		1A7D41E30C516E9E008EDC33 /* OOCheckShipDataPListVerifierStage.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A7D41E10C516E9E008EDC33 /* OOCheckShipDataPListVerifierStage.m */; };
 		1A7D83010C40111B00E4A5F5 /* OOLogOutputHandler.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A7D82FF0C40111B00E4A5F5 /* OOLogOutputHandler.h */; };
 		1A7D83020C40111B00E4A5F5 /* OOLogOutputHandler.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A7D83000C40111B00E4A5F5 /* OOLogOutputHandler.m */; };
 		1A7D833A0C40147800E4A5F5 /* OOAsyncQueue.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A7D83380C40147700E4A5F5 /* OOAsyncQueue.h */; };
@@ -1247,6 +1251,10 @@
 		1A7D3D290C4F8D01008EDC33 /* OOTextureVerifierStage.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOTextureVerifierStage.h; sourceTree = "<group>"; };
 		1A7D3D2A0C4F8D02008EDC33 /* OOTextureVerifierStage.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOTextureVerifierStage.m; sourceTree = "<group>"; };
 		1A7D3EFD0C50F337008EDC33 /* OXP verifier design.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = "OXP verifier design.txt"; sourceTree = "<group>"; };
+		1A7D41840C516B90008EDC33 /* OOModelVerifierStage.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOModelVerifierStage.m; sourceTree = "<group>"; };
+		1A7D41850C516B90008EDC33 /* OOModelVerifierStage.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOModelVerifierStage.h; sourceTree = "<group>"; };
+		1A7D41E00C516E9E008EDC33 /* OOCheckShipDataPListVerifierStage.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOCheckShipDataPListVerifierStage.h; sourceTree = "<group>"; };
+		1A7D41E10C516E9E008EDC33 /* OOCheckShipDataPListVerifierStage.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOCheckShipDataPListVerifierStage.m; sourceTree = "<group>"; };
 		1A7D82FF0C40111B00E4A5F5 /* OOLogOutputHandler.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOLogOutputHandler.h; sourceTree = "<group>"; };
 		1A7D83000C40111B00E4A5F5 /* OOLogOutputHandler.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOLogOutputHandler.m; sourceTree = "<group>"; };
 		1A7D83380C40147700E4A5F5 /* OOAsyncQueue.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOAsyncQueue.h; sourceTree = "<group>"; };
@@ -2223,6 +2231,10 @@
 				1A7D3C480C4F818C008EDC33 /* OOCheckEquipmentPListVerifierStage.m */,
 				1A7D3D290C4F8D01008EDC33 /* OOTextureVerifierStage.h */,
 				1A7D3D2A0C4F8D02008EDC33 /* OOTextureVerifierStage.m */,
+				1A7D41850C516B90008EDC33 /* OOModelVerifierStage.h */,
+				1A7D41840C516B90008EDC33 /* OOModelVerifierStage.m */,
+				1A7D41E00C516E9E008EDC33 /* OOCheckShipDataPListVerifierStage.h */,
+				1A7D41E10C516E9E008EDC33 /* OOCheckShipDataPListVerifierStage.m */,
 			);
 			name = "OXP Verification";
 			path = OXPVerifier;
@@ -2530,6 +2542,8 @@
 				1A7D3B9B0C4F7843008EDC33 /* OOCheckDemoShipsPListVerifierStage.h in Headers */,
 				1A7D3C490C4F818C008EDC33 /* OOCheckEquipmentPListVerifierStage.h in Headers */,
 				1A7D3D2B0C4F8D02008EDC33 /* OOTextureVerifierStage.h in Headers */,
+				1A7D41870C516B90008EDC33 /* OOModelVerifierStage.h in Headers */,
+				1A7D41E20C516E9E008EDC33 /* OOCheckShipDataPListVerifierStage.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -2813,6 +2827,8 @@
 				1A7D3B9C0C4F7843008EDC33 /* OOCheckDemoShipsPListVerifierStage.m in Sources */,
 				1A7D3C4A0C4F818C008EDC33 /* OOCheckEquipmentPListVerifierStage.m in Sources */,
 				1A7D3D2C0C4F8D02008EDC33 /* OOTextureVerifierStage.m in Sources */,
+				1A7D41860C516B90008EDC33 /* OOModelVerifierStage.m in Sources */,
+				1A7D41E30C516E9E008EDC33 /* OOCheckShipDataPListVerifierStage.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
