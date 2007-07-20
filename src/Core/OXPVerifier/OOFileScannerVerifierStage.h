@@ -54,9 +54,6 @@ SOFTWARE.
 
 #if OO_OXP_VERIFIER_ENABLED
 
-extern NSString * const kOOFileScannerVerifierStageName;
-
-
 @interface OOFileScannerVerifierStage: OOOXPVerifierStage
 {
 	NSString					*_basePath;
@@ -68,6 +65,9 @@ extern NSString * const kOOFileScannerVerifierStageName;
 	NSSet						*_junkFileNames;
 	NSSet						*_skipDirectoryNames;
 }
+
+// Returns name to be used in -dependencies by other stages; also registers stage.
++ (NSString *)nameForDependencyForVerifier:(OOOXPVerifier *)verifier;
 
 /*	This method does the following:
 		A.	Checks whether a file exists.
@@ -104,6 +104,27 @@ extern NSString * const kOOFileScannerVerifierStageName;
 
 // Utility to handle display names of files. If a file and folder are provided, returns folder/file, otherwise just file.
 - (id)displayNameForFile:(NSString *)file andFolder:(NSString *)folder;
+
+@end
+
+
+@interface OOListUnusedFilesStage: OOOXPVerifierStage
+
+// Returns name to be used in -dependents by other stages; also registers stage.
++ (NSString *)nameForReverseDependencyForVerifier:(OOOXPVerifier *)verifier;
+
+@end
+
+
+@interface OOOXPVerifier(OOFileScannerVerifierStage)
+
+- (OOFileScannerVerifierStage *)fileScannerStage;
+
+@end
+
+
+// Convenience base class for stages that require OOFileScannerVerifierStage and OOListUnusedFilesStage.
+@interface OOFileHandlingVerifierStage: OOOXPVerifierStage
 
 @end
 

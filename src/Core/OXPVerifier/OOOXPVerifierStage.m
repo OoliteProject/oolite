@@ -60,9 +60,25 @@ SOFTWARE.
 
 @implementation OOOXPVerifierStage
 
+- (id)init
+{
+	self = [super init];
+	
+	if (self != nil)
+	{
+		_dependencies = [[NSMutableSet alloc] init];
+		_incompleteDependencies = [[NSMutableSet alloc] init];
+		_dependents = [[NSMutableSet alloc] init];
+	}
+	
+	return self;
+}
+
+
 - (void)dealloc
 {
 	[_dependencies release];
+	[_incompleteDependencies release];
 	[_dependents release];
 	
 	[super dealloc];
@@ -94,9 +110,15 @@ SOFTWARE.
 }
 
 
-- (NSSet *)requiredStages
+- (NSSet *)dependencies
 {
-	return [NSSet set];
+	return nil;
+}
+
+
+- (NSSet *)dependents
+{
+	return nil;
 }
 
 
@@ -107,18 +129,6 @@ SOFTWARE.
 
 
 - (void)run
-{
-	OOLogGenericSubclassResponsibility();
-}
-
-
-- (BOOL)needsPostRun
-{
-	return NO;
-}
-
-
-- (void)postRun
 {
 	OOLogGenericSubclassResponsibility();
 }
@@ -156,9 +166,7 @@ SOFTWARE.
 
 - (void)registerDependency:(OOOXPVerifierStage *)dependency
 {
-	if (_dependencies == nil)  _dependencies = [[NSMutableSet alloc] init];
 	[_dependencies addObject:dependency];
-	if (_incompleteDependencies == nil)  _incompleteDependencies = [[NSMutableSet alloc] init];
 	[_incompleteDependencies addObject:dependency];
 	
 	[dependency registerDepedent:self];
@@ -205,13 +213,13 @@ SOFTWARE.
 }
 
 
-- (NSSet *)dependencies
+- (NSSet *)resolvedDependencies
 {
 	return _dependencies;
 }
 
 
-- (NSSet *)dependents
+- (NSSet *)resolvedDependents
 {
 	return _dependents;
 }
@@ -225,7 +233,6 @@ SOFTWARE.
 {
 	assert(![self isDependentOf:dependent]);
 	
-	if (_dependents == nil)  _dependents = [[NSMutableSet alloc] init];
 	[_dependents addObject:dependent];
 }
 

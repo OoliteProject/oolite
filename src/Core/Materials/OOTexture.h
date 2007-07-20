@@ -71,6 +71,7 @@ enum
 	kOOTextureRepeatT				= 0x0040UL,
 	kOOTextureAllowRectTexture		= 0x0080UL,	// Indicates that GL_TEXTURE_RECTANGLE_EXT may be used instead of GL_TEXTURE_2D. See -texCoordsScale for a discussion of rectangle textures.
 	kOOTextureNoFNFMessage			= 0x0100UL,	// Don't log file not found error
+	kOOTextureNeverScale			= 0x0200UL,	// Don't rescale texture, even if rect textures are not available. This *must not* be used for regular textures, but may be passed to OOTextureLoader when being used for other purposes.
 	
 	kOOTextureMinFilterMask			= 0x0003UL,
 	kOOTextureMagFilterMask			= 0x0004UL,
@@ -85,7 +86,8 @@ enum
 #endif
 									| kOOTextureRepeatS
 									| kOOTextureRepeatT
-									| kOOTextureNoFNFMessage,
+									| kOOTextureNoFNFMessage
+									| kOOTextureNeverScale,
 	
 	kOOTextureFlagsAllowedForRectangleTexture =
 									kOOTextureDefinedFlags & ~(kOOTextureRepeatS | kOOTextureRepeatT)

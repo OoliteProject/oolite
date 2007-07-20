@@ -72,7 +72,16 @@ SOFTWARE.
 	"Scanning files" or "Verifying plist scripts".
 */
 - (NSString *)name;
-- (NSSet *)requiredStages;	// Names of stages that must be run before this one. Default: empty set.
+
+/*	Dependencies and dependents:
+	-dependencies returns a set of names of stages that must be run before this
+	one. If it contains the name of a stage that's not registered, this stage
+	cannot run.
+	-dependents returns a set of names of stages that should not be run before
+	this one. Unlike -dependencies, these are considered non-critical.
+*/
+- (NSSet *)dependencies;
+- (NSSet *)dependents;
 
 /*	This is called once by the verifier.
 	When it is called, all the verifier stages listed in -requiredStages will
@@ -88,13 +97,6 @@ SOFTWARE.
 */
 - (BOOL)shouldRun;
 - (void)run;
-
-/*	Post-run: some verifier stage, like the file set stage, need to perform
-	checks after all other stages are completed. Such stages must implement
-	-needsPostRun to return YES.
-*/
-- (BOOL)needsPostRun;
-- (void)postRun;
 
 @end
 

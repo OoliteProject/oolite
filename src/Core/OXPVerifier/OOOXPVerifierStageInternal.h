@@ -64,8 +64,9 @@ SOFTWARE.
 - (void)performRun;
 - (void)noteSkipped;
 
-- (NSSet *)dependencies;
-- (NSSet *)dependents;
+// These return sets of stages set up by -registerDependency, wheras -dependencies/dependents return sets of names.
+- (NSSet *)resolvedDependencies;
+- (NSSet *)resolvedDependents;
 
 @end
 

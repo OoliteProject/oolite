@@ -46,6 +46,10 @@ SOFTWARE.
 
 */
 
+/*	Design notes:
+	see "verifier design.txt".
+*/
+
 #import "OOOXPVerifier.h"
 
 #if OO_OXP_VERIFIER_ENABLED
@@ -79,11 +83,14 @@ static void OpenLogFile(NSString *name);
 - (void)registerBaseStages;
 - (void)buildDependencyGraph;
 - (void)runStages;
-- (void)postRunStages;
 
-- (BOOL)setUpDependenciesForStage:(OOOXPVerifierStage *)stage;
+- (BOOL)setUpDependencies:(NSSet *)dependencies
+				 forStage:(OOOXPVerifierStage *)stage;
 
-- (void)listStageDependencies;
+- (void)setUpDependents:(NSSet *)dependents
+			   forStage:(OOOXPVerifierStage *)stage;
+
+- (void)dumpDebugGraphviz;
 
 @end
 
@@ -195,8 +202,8 @@ static void OpenLogFile(NSString *name);
 	}
 	
 	// Checks passed, store state.
-	if (_stagesByName == nil)  _stagesByName = [[NSMutableDictionary alloc] init];
 	[_stagesByName setObject:stage forKey:name];
+	[_waitingStages addObject:stage];
 }
 
 
@@ -269,6 +276,9 @@ static void OpenLogFile(NSString *name);
 	if (_displayName == nil)  _displayName = [_basePath lastPathComponent];
 	[_displayName retain];
 	
+	_stagesByName = [[NSMutableDictionary alloc] init];
+	_waitingStages = [[NSMutableSet alloc] init];
+	
 	if (_verifierPList == nil ||
 		_basePath == nil)
 	{
@@ -300,11 +310,8 @@ static void OpenLogFile(NSString *name);
 	OOLog(@"verifyOXP.start", @"Running OXP verifier for %@", _displayName);
 	
 	[self registerBaseStages];
-	_openForRegistration = NO;
-	
 	[self buildDependencyGraph];
 	[self runStages];
-	[self postRunStages];
 	
 	NoteVerificationStage(_displayName, @"");
 	OOLog(@"verifyOXP.done", @"OXP verification complete.");
@@ -366,11 +373,53 @@ static void OpenLogFile(NSString *name);
 	NSString				*stageKey = nil;
 	OOOXPVerifierStage		*stage = nil;
 	NSString				*name = nil;
+	NSMutableDictionary		*dependenciesByStage = nil,
+							*dependentsByStage = nil;
+	NSSet					*dependencies = nil,
+							*dependents = nil;
+	NSValue					*key = nil;
 	
 	pool = [[NSAutoreleasePool alloc] init];
 	
-	// Iterate over all stages, and resolve dependencies.
-	stageKeys = [_stagesByName allKeys];	// Make a copy because we may need to remove entries from dictionary.
+	/*	Iterate over all stages, getting dependency and dependent sets.
+		This is done in advance so that -dependencies and -dependents may
+		register stages.
+	*/
+	dependenciesByStage = [NSMutableDictionary dictionary];
+	dependentsByStage = [NSMutableDictionary dictionary];
+	
+	for (;;)
+	{
+		/*	Loop while there are stages whose dependency lists haven't been
+			checked. This is an indeterminate loop since new ones can be
+			added.
+		*/
+		stage = [_waitingStages anyObject];
+		if (stage == nil)  break;
+		[_waitingStages removeObject:stage];
+		
+		key = [NSValue valueWithNonretainedObject:stage];
+		
+		dependencies = [stage dependencies];
+		if (dependencies != nil)
+		{
+			[dependenciesByStage setObject:dependencies
+									forKey:key];
+		}
+		
+		dependents = [stage dependents];
+		if (dependents != nil)
+		{
+			[dependentsByStage setObject:dependents
+								  forKey:key];
+		}
+	}
+	[_waitingStages release];
+	_waitingStages = nil;
+	_openForRegistration = NO;
+	
+	// Iterate over all stages, resolving dependencies.
+	stageKeys = [_stagesByName allKeys];	// Get the keys up front because we may need to remove entries from dictionary.
 	
 	for (stageEnum = [stageKeys objectEnumerator]; (stageKey = [stageEnum nextObject]); )
 	{
@@ -386,16 +435,44 @@ static void OpenLogFile(NSString *name);
 			continue;
 		}
 		
-		if (![self setUpDependenciesForStage:stage])
+		// Get dependency set
+		key = [NSValue valueWithNonretainedObject:stage];
+		dependencies = [dependenciesByStage objectForKey:key];
+		
+		if (dependencies != nil && ![self setUpDependencies:dependencies forStage:stage])
 		{
 			[_stagesByName removeObjectForKey:stageKey];
+		}
+	}
+	
+	/*	Iterate over all stages again, resolving reverse dependencies.
+		This is done in a separate pass because reverse dependencies are "weak"
+		while forward dependencies are "strong". 
+	*/
+	stageKeys = [_stagesByName allKeys];
+	
+	for (stageEnum = [stageKeys objectEnumerator]; (stageKey = [stageEnum nextObject]); )
+	{
+		stage = [_stagesByName objectForKey:stageKey];
+		if (stage == nil)  continue;
+		
+		// Get dependent set
+		key = [NSValue valueWithNonretainedObject:stage];
+		dependents = [dependentsByStage objectForKey:key];
+		
+		if (dependents != nil)
+		{
+			[self setUpDependents:dependents forStage:stage];
 		}
 	}
 	
 	_waitingStages = [[NSMutableSet alloc] initWithArray:[_stagesByName allValues]];
 	[_waitingStages makeObjectsPerformSelector:@selector(dependencyRegistrationComplete)];
 	
-	if (OOLogWillDisplayMessagesInClass(@"verifyOXP.listStageDependencies"))  [self listStageDependencies];
+	if ([[NSUserDefaults standardUserDefaults] boolForKey:@"oxp-verifier-dump-debug-graphviz"])
+	{
+		[self dumpDebugGraphviz];
+	}
 	
 	[pool release];
 }
@@ -470,114 +547,139 @@ static void OpenLogFile(NSString *name);
 }
 
 
-- (void)postRunStages
+- (BOOL)setUpDependencies:(NSSet *)dependencies
+				 forStage:(OOOXPVerifierStage *)stage
 {
-	NSAutoreleasePool		*pool = nil;
-	NSEnumerator			*stageEnum = nil;
-	OOOXPVerifierStage		*candidateStage = nil;
-	
-	pool = [[NSAutoreleasePool alloc] init];
-	
-	for (stageEnum = [_waitingStages objectEnumerator]; (candidateStage = [stageEnum nextObject]); )
-	{
-		if ([candidateStage completed] && [candidateStage needsPostRun])
-		{
-			[candidateStage postRun];
-		}
-	}
-	
-	[pool release];
-}
-
-
-- (BOOL)setUpDependenciesForStage:(OOOXPVerifierStage *)stage
-{
-	NSSet					*depNames = nil;
-	NSEnumerator			*depEnum = nil;
 	NSString				*depName = nil;
-	OOOXPVerifierStage		*dependency = nil;
+	NSEnumerator			*depEnum = nil;
+	OOOXPVerifierStage		*depStage = nil;
 	
 	// Iterate over dependencies, connecting them up.
-	depNames = [stage requiredStages];
-	for (depEnum = [depNames objectEnumerator]; (depName = [depEnum nextObject]); )
+	for (depEnum = [dependencies objectEnumerator]; (depName = [depEnum nextObject]); )
 	{
-		dependency = [_stagesByName objectForKey:depName];
-		if (dependency == nil)
+		depStage = [_stagesByName objectForKey:depName];
+		if (depStage == nil)
 		{
-			OOLog(@"verifyOXP.buildDependencyGraph.unresolved", @"Verifier stage %@ has unresolved depdency \"%@\", skipping.", stage, depName);
+			OOLog(@"verifyOXP.buildDependencyGraph.unresolved", @"Verifier stage %@ has unresolved dependency \"%@\", skipping.", stage, depName);
 			return NO;
 		}
 		
-		if ([dependency isDependentOf:stage])
+		if ([depStage isDependentOf:stage])
 		{
-			OOLog(@"verifyOXP.buildDependencyGraph.circularReference", @"Verifier stages %@ and %@ have a dependency loop, skipping.", stage, dependency);
+			OOLog(@"verifyOXP.buildDependencyGraph.circularReference", @"Verifier stages %@ and %@ have a dependency loop, skipping.", stage, depStage);
 			[_stagesByName removeObjectForKey:depName];
 			return NO;
 		}
 		
-		[stage registerDependency:dependency];
+		[stage registerDependency:depStage];
 	}
 	
 	return YES;
 }
 
 
-- (void)listStageDependencies
+- (void)setUpDependents:(NSSet *)dependents
+			   forStage:(OOOXPVerifierStage *)stage
 {
+	NSString				*depName = nil;
+	NSEnumerator			*depEnum = nil;
+	OOOXPVerifierStage		*depStage = nil;
+	
+	// Iterate over dependents, connecting them up.
+	for (depEnum = [dependents objectEnumerator]; (depName = [depEnum nextObject]); )
+	{
+		depStage = [_stagesByName objectForKey:depName];
+		if (depStage == nil)
+		{
+			OOLog(@"verifyOXP.buildDependencyGraph.unresolved", @"Verifier stage %@ has unresolved dependent \"%@\".", stage, depName);
+			continue;	// Unresolved/conflicting dependents are non-fatal
+		}
+		
+		if ([stage isDependentOf:depStage])
+		{
+			OOLog(@"verifyOXP.buildDependencyGraph.circularReference", @"Verifier stage %@ lists %@ as both dependent and dependency (possibly indirectly); will execute %@ after %@.", stage, depStage, stage, depStage);
+			continue;
+		}
+		
+		[depStage registerDependency:stage];
+	}
+}
+
+
+- (void)dumpDebugGraphviz
+{
+	NSMutableString				*graphViz = nil;
+	NSDictionary				*graphVizTemplate = nil;
+	NSString					*template = nil,
+								*startTemplate = nil,
+								*endTemplate = nil;
 	NSEnumerator				*stageEnum = nil;
 	OOOXPVerifierStage			*stage = nil;
 	NSSet						*deps = nil;
 	NSEnumerator				*depEnum = nil;
 	OOOXPVerifierStage			*dep = nil;
 	
-	OOLog(@"verifyOXP.listStageDependencies", @"Verifier stage dependencies:");
-	OOLogIndent();
+	graphVizTemplate = [self configurationDictionaryForKey:@"debugGraphvizTempate"];
+	graphViz = [[graphVizTemplate stringForKey:@"preamble"] mutableCopy];
+	[graphViz autorelease];
 	
+	/*	Pass 1: enumerate over graph setting node attributes for each stage.
+		We use pointers as node names for simplicity of generation.
+	*/
+	template = [graphVizTemplate stringForKey:@"node"];
 	for (stageEnum = [_stagesByName objectEnumerator]; (stage = [stageEnum nextObject]); )
 	{
-		OOLog(@"verifyOXP.listStageDependencies", @"%@", stage);
-		OOLogIndent();
-		
-		deps = [stage dependencies];
-		if (deps == nil)
-		{
-			OOLog(@"verifyOXP.listStageDependencies", @"Requires: none.");
-		}
-		else
-		{
-			OOLog(@"verifyOXP.listStageDependencies", @"Requires:");
-			OOLogIndent();
-			
-			for (depEnum = [deps objectEnumerator]; (dep = [depEnum nextObject]); )
-			{
-				OOLog(@"verifyOXP.listStageDependencies", @"* %@", dep);
-			}
-			
-			OOLogOutdent();
-		}
-		
-		deps = [stage dependents];
-		if (deps == nil)
-		{
-			OOLog(@"verifyOXP.listStageDependencies", @"Required by: none.");
-		}
-		else
-		{
-			OOLog(@"verifyOXP.listStageDependencies", @"Required by:");
-			OOLogIndent();
-			
-			for (depEnum = [deps objectEnumerator]; (dep = [depEnum nextObject]); )
-			{
-				OOLog(@"verifyOXP.listStageDependencies", @"* %@", dep);
-			}
-			
-			OOLogOutdent();
-		}
-		
-		OOLogOutdent();
+		[graphViz appendFormat:template, stage, [stage class], [stage name]];
 	}
 	
-	OOLogOutdent();
+	[graphViz appendString:[graphVizTemplate stringForKey:@"forwardPreamble"]];
+	
+	/*	Pass 2: enumerate over graph setting forward arcs for each dependency.
+	*/
+	template = [graphVizTemplate stringForKey:@"forwardArc"];
+	startTemplate = [graphVizTemplate stringForKey:@"startArc"];
+	for (stageEnum = [_stagesByName objectEnumerator]; (stage = [stageEnum nextObject]); )
+	{
+		deps = [stage resolvedDependencies];
+		if ([deps count] != 0)
+		{
+			for (depEnum = [deps objectEnumerator]; (dep = [depEnum nextObject]); )
+			{
+				[graphViz appendFormat:template, dep, stage];
+			}
+		}
+		else
+		{
+			[graphViz appendFormat:startTemplate, stage];
+		}
+	}
+	
+	[graphViz appendString:[graphVizTemplate stringForKey:@"backwardPreamble"]];
+	
+	/*	Pass 3: enumerate over graph setting backward arcs for each dependent.
+	*/
+	template = [graphVizTemplate stringForKey:@"backwardArc"];
+	endTemplate = [graphVizTemplate stringForKey:@"endArc"];
+	for (stageEnum = [_stagesByName objectEnumerator]; (stage = [stageEnum nextObject]); )
+	{
+		deps = [stage resolvedDependents];
+		if ([deps count] != 0)
+		{
+			for (depEnum = [deps objectEnumerator]; (dep = [depEnum nextObject]); )
+			{
+				[graphViz appendFormat:template, dep, stage];
+			}
+		}
+		else
+		{
+			[graphViz appendFormat:endTemplate, stage];
+		}
+	}
+	
+	[graphViz appendString:[graphVizTemplate stringForKey:@"postamble"]];
+	
+	// Write file
+	[[graphViz dataUsingEncoding:NSUTF8StringEncoding] writeToFile:@"OXPVerifierStageDependencies.dot" atomically:YES];
 }
 
 @end

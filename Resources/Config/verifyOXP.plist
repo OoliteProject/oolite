@@ -6,7 +6,6 @@
 {
 	stages =
 	(
-		"OOFileScannerVerifierStage",
 		"OOCheckRequiresPListVerifierStage",
 		"OOCheckDemoShipsPListVerifierStage",
 		"OOCheckEquipmentPListVerifierStage"
@@ -108,4 +107,25 @@
 		"version",
 		"max_version"
 	);
+	
+	debugGraphvizTempate =
+	{
+		/*	Bits needed to generate graphviz code describing verifier stage
+			dependency relationships. This is generated (and written to the
+			current working directory) if the preference
+			"oxp-verifier-dump-debug-graphviz" is set to YES.
+		*/
+		preamble = "// OXPVerifier stage dependencies:\n\ndigraph stagedeps\n{\n\tgraph [charset=\"UTF-8\"];\n\tnode [shape=box];\n\t\n\tstart [label=Start shape=Mdiamond];\n\tend [label=End shape=Msquare];\n\t\n";
+		node = "\tn%p [label=\"%@\\n“%@”\"];\n";
+		
+		forwardPreamble = "\t\n\t// Forward arcs, from dependencies to dependents.\n\t// These indicate acceptable execution orders.\n\tedge [arrowhead=normal, color=blue];\n";
+		forwardArc = "\tn%p -> n%p;\n";
+		startArc = "\tstart -> n%p;\n";
+		
+		backwardPreamble = "\t\n\t// Backward arcs, from dependents to dependencies.\n\t// There should be one backwards arc for each forward arc.\n\tedge [arrowhead=dot, color=green, constraint=false];\n";
+		backwardArc = "\tn%p -> n%p;\n";
+		endArc = "\tn%p -> end [constraint=true, arrowhead=none, arrowtail=dot];\n";
+		
+		postamble = "}\n";
+	};
 }

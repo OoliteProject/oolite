@@ -21,29 +21,6 @@ along with this program; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
 MA 02110-1301, USA.
 
-
-This file may also be distributed under the MIT/X11 license:
-
-Copyright (C) 2007 Jens Ayton
-
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
-
 */
 
 #import "OOCheckDemoShipsPListVerifierStage.h"
@@ -52,7 +29,7 @@ SOFTWARE.
 
 #import "OOFileScannerVerifierStage.h"
 
-NSString * const kOOCheckDemoShipsPListVerifierStageName	= @"Checking demoships.plist";
+static NSString * const kStageName	= @"Checking demoships.plist";
 
 
 @interface OOCheckDemoShipsPListVerifierStage (OOPrivate)
@@ -66,13 +43,7 @@ NSString * const kOOCheckDemoShipsPListVerifierStageName	= @"Checking demoships.
 
 - (NSString *)name
 {
-	return kOOCheckDemoShipsPListVerifierStageName;
-}
-
-
-- (NSSet *)requiredStages
-{
-	return [NSSet setWithObjects:kOOFileScannerVerifierStageName, nil];
+	return kStageName;
 }
 
 
@@ -80,7 +51,7 @@ NSString * const kOOCheckDemoShipsPListVerifierStageName	= @"Checking demoships.
 {
 	OOFileScannerVerifierStage	*fileScanner = nil;
 	
-	fileScanner = [[self verifier] stageWithName:kOOFileScannerVerifierStageName];
+	fileScanner = [[self verifier] fileScannerStage];
 	return [fileScanner fileExists:@"demoships.plist"
 						  inFolder:@"Config"
 					referencedFrom:nil
@@ -94,7 +65,7 @@ NSString * const kOOCheckDemoShipsPListVerifierStageName	= @"Checking demoships.
 	NSArray						*demoshipsPList = nil;
 	NSDictionary				*shipdataPList = nil;
 	
-	fileScanner = [[self verifier] stageWithName:kOOFileScannerVerifierStageName];
+	fileScanner = [[self verifier] fileScannerStage];
 	
 	demoshipsPList = [fileScanner plistNamed:@"demoships.plist"
 									inFolder:@"Config"

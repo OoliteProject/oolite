@@ -73,7 +73,8 @@ SOFTWARE.
 #import "OOCollectionExtractors.h"
 #import "ResourceManager.h"
 
-NSString * const kOOFileScannerVerifierStageName	= @"Scanning files";
+static NSString * const kFileScannerStageName	= @"Scanning files";
+static NSString * const kUnusedListerStageName	= @"Checking for unused files";
 
 
 static BOOL CheckNameConflict(NSString *lcName, NSDictionary *directoryCases, NSDictionary *rootFiles, NSString **outExisting, NSString **outExistingType);
@@ -119,7 +120,7 @@ static BOOL CheckNameConflict(NSString *lcName, NSDictionary *directoryCases, NS
 
 - (NSString *)name
 {
-	return kOOFileScannerVerifierStageName;
+	return kFileScannerStageName;
 }
 
 
@@ -142,15 +143,17 @@ static BOOL CheckNameConflict(NSString *lcName, NSDictionary *directoryCases, NS
 }
 
 
-- (BOOL)needsPostRun
++ (NSString *)nameForDependencyForVerifier:(OOOXPVerifier *)verifier
 {
-	return YES;
-}
-
-
-- (void)postRun
-{
+	OOFileScannerVerifierStage *stage = [verifier stageWithName:kFileScannerStageName];
+	if (stage == nil)
+	{
+		stage = [[OOFileScannerVerifierStage alloc] init];
+		[verifier registerStage:stage];
+		[stage release];
+	}
 	
+	return kFileScannerStageName;
 }
 
 
@@ -209,7 +212,7 @@ static BOOL CheckNameConflict(NSString *lcName, NSDictionary *directoryCases, NS
 			if ([_caseWarnings member:lcDirName] == nil)
 			{
 				[_caseWarnings addObject:lcDirName];
-				OOLog(@"verifyOXP.files.caseMismatch", @"ERROR: Case mismatch: directory \"%@\" should be called \"%@\".", realDirName, folder);
+				OOLog(@"verifyOXP.files.caseMismatch", @"ERROR: case mismatch: directory \"%@\" should be called \"%@\".", realDirName, folder);
 			}
 		}
 		
@@ -225,7 +228,7 @@ static BOOL CheckNameConflict(NSString *lcName, NSDictionary *directoryCases, NS
 				if (context != nil)  context = [@" referenced in " stringByAppendingString:context];
 				else  context = @"";
 				
-				OOLog(@"verifyOXP.files.caseMismatch", @"ERROR: Case mismatch: request for file \"%@\"%@ resolved to \"%@\".", expectedPath, context, path);
+				OOLog(@"verifyOXP.files.caseMismatch", @"ERROR: case mismatch: request for file \"%@\"%@ resolved to \"%@\".", expectedPath, context, path);
 			}
 		}
 		
@@ -367,6 +370,7 @@ static BOOL CheckNameConflict(NSString *lcName, NSDictionary *directoryCases, NS
 			if ([_skipDirectoryNames member:name] != nil)
 			{
 				// Silently skip .svn and CVS
+				OOLog(@"verifyOXP.verbose.listFiles", @"- Skipping %@/", name);
 			}
 			else if (!CheckNameConflict(lcName, directoryCases, rootFiles, &existing, &existingType))
 			{
@@ -440,7 +444,7 @@ static BOOL CheckNameConflict(NSString *lcName, NSDictionary *directoryCases, NS
 		
 		if (![actual isEqualToString:name])
 		{
-			OOLog(@"verifyOXP.files.caseMismatch", @"ERROR: Case mismatch: directory \"%@\" should be called \"%@\".", actual, name);
+			OOLog(@"verifyOXP.files.caseMismatch", @"ERROR: case mismatch: directory \"%@\" should be called \"%@\".", actual, name);
 		}
 		[_caseWarnings addObject:lcName];
 	}
@@ -474,7 +478,7 @@ static BOOL CheckNameConflict(NSString *lcName, NSDictionary *directoryCases, NS
 		if (![realFileName isEqualToString:name])
 		{
 			if (inConfigDir)  realFileName = [@"Config" stringByAppendingPathComponent:realFileName];
-			OOLog(@"verifyOXP.files.caseMismatch", @"ERROR: Case mismatch: configuration file \"%@\" should be called \"%@\".", realFileName, name);
+			OOLog(@"verifyOXP.files.caseMismatch", @"ERROR: case mismatch: configuration file \"%@\" should be called \"%@\".", realFileName, name);
 		}
 	}
 }
@@ -552,6 +556,10 @@ static BOOL CheckNameConflict(NSString *lcName, NSDictionary *directoryCases, NS
 				if ([_skipDirectoryNames member:name] == nil)
 				{
 					OOLog(@"verifyOXP.scanFiles.directory", @"WARNING: \"%@\" is a nested directory, ignoring.", relativeName);
+				}
+				else
+				{
+					OOLog(@"verifyOXP.verbose.listFiles", @"- Skipping %@/%@/", dirName, name);
 				}
 			}
 			else if ([type isEqualToString:NSFileTypeSymbolicLink])
@@ -647,6 +655,68 @@ static BOOL CheckNameConflict(NSString *lcName, NSDictionary *directoryCases, NS
 	}
 	
 	return result;
+}
+
+@end
+
+
+@implementation OOListUnusedFilesStage: OOOXPVerifierStage
+
+- (NSString *)name
+{
+	return kUnusedListerStageName;
+}
+
+
+- (NSSet *)dependencies
+{
+	return [NSSet setWithObject:kFileScannerStageName];
+}
+
+
+- (void)run
+{
+	
+}
+
+
++ (NSString *)nameForReverseDependencyForVerifier:(OOOXPVerifier *)verifier
+{
+	OOListUnusedFilesStage *stage = [verifier stageWithName:kUnusedListerStageName];
+	if (stage == nil)
+	{
+		stage = [[OOListUnusedFilesStage alloc] init];
+		[verifier registerStage:stage];
+		[stage release];
+	}
+	
+	return kUnusedListerStageName;
+}
+
+@end
+
+
+@implementation OOOXPVerifier(OOFileScannerVerifierStage)
+
+- (OOFileScannerVerifierStage *)fileScannerStage
+{
+	return [self stageWithName:kFileScannerStageName];
+}
+
+@end
+
+
+@implementation OOFileHandlingVerifierStage
+
+- (NSSet *)dependencies
+{
+	return [NSSet setWithObject:[OOFileScannerVerifierStage nameForDependencyForVerifier:[self verifier]]];
+}
+
+
+- (NSSet *)dependents
+{
+	return [NSSet setWithObject:[OOListUnusedFilesStage nameForReverseDependencyForVerifier:[self verifier]]];
 }
 
 @end

@@ -4,6 +4,8 @@ OOOXPVerifier.h
 
 Oolite expansion pack verification manager.
 
+NOTE: the overall design is discussed in OXP verifier design.txt.
+
 
 Oolite
 Copyright (C) 2004-2007 Giles C Williams and contributors
@@ -87,8 +89,8 @@ SOFTWARE.
 
 /*	Stage registration. Currently, stages are registered by OOOXPVerifier
 	itself. Stages may also register other stages - substages, as it were -
-	in their -initWithVerifier: methods. Registration at later points is not
-	permitted.
+	in their -initWithVerifier: methods, or when -dependencies or
+	-dependents are called. Registration at later points is not permitted.
 */
 - (void)registerStage:(OOOXPVerifierStage *)stage;
 

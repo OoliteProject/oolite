@@ -61,6 +61,7 @@ SOFTWARE.
 	uint8_t						generateMipMaps: 1,
 								scaleAsNormalMap: 1,
 								avoidShrinking: 1,
+								noScalingWhatsoever: 1,
 								ready: 1;
 	OOTextureDataFormat			format;
 	

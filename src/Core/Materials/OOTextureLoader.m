@@ -84,6 +84,7 @@ enum
 + (void)queueTask;
 - (void)performLoad;
 - (void)applySettings;
+- (void)getDesiredWidth:(uint32_t *)outDesiredWidth andHeight:(uint32_t *)outDesiredHeight;
 
 @end
 
@@ -143,6 +144,7 @@ enum
 	
 	generateMipMaps = (options & kOOTextureMinFilterMask) == kOOTextureMinFilterMipMap;
 	avoidShrinking = (options & kOOTextureNoShrink) != 0;
+	noScalingWhatsoever = (options & kOOTextureNeverScale) != 0;
 	
 	return self;
 }
@@ -331,33 +333,7 @@ enum
 	planes = OOTexturePlanesForFormat(format);
 	
 	if (rowBytes == 0)  rowBytes = width * planes;
-	
-	// Work out appropriate final size for textures.
-	if (!sHaveNPOTTextures)
-	{
-		desiredWidth = OORoundUpToPowerOf2((2 * width) / 3);
-		desiredHeight = OORoundUpToPowerOf2((2 * height) / 3);
-	}
-	else
-	{
-		desiredWidth = width;
-		desiredHeight = height;
-	}
-	
-	desiredWidth = MIN(desiredWidth, sGLMaxSize);
-	desiredHeight = MIN(desiredHeight, sGLMaxSize);
-	
-	if (!avoidShrinking)
-	{
-		desiredWidth = MIN(desiredWidth, sUserMaxSize);
-		desiredHeight = MIN(desiredHeight, sUserMaxSize);
-		
-		if (sReducedDetail)
-		{
-			if (512 < desiredWidth)  desiredWidth /= 2;
-			if (512 < desiredHeight)  desiredHeight /= 2;
-		}
-	}
+	[self getDesiredWidth:&desiredWidth andHeight:&desiredHeight];
 	
 	// Rescale if needed.
 	rescale = (width != desiredWidth || height != desiredHeight);
@@ -386,6 +362,51 @@ enum
 	}
 	
 	// All done.
+}
+
+
+- (void)getDesiredWidth:(uint32_t *)outDesiredWidth andHeight:(uint32_t *)outDesiredHeight
+{
+	uint32_t			desiredWidth, desiredHeight;
+	
+	// Work out appropriate final size for textures.
+	if (!noScalingWhatsoever)
+	{
+		if (!sHaveNPOTTextures)
+		{
+			// Round to nearest power of two. NOTE: this is duplicated in OOTextureVerifierStage.m.
+			desiredWidth = OORoundUpToPowerOf2((2 * width) / 3);
+			desiredHeight = OORoundUpToPowerOf2((2 * height) / 3);
+		}
+		else
+		{
+			desiredWidth = width;
+			desiredHeight = height;
+		}
+		
+		desiredWidth = MIN(desiredWidth, sGLMaxSize);
+		desiredHeight = MIN(desiredHeight, sGLMaxSize);
+		
+		if (!avoidShrinking)
+		{
+			desiredWidth = MIN(desiredWidth, sUserMaxSize);
+			desiredHeight = MIN(desiredHeight, sUserMaxSize);
+			
+			if (sReducedDetail)
+			{
+				if (512 < desiredWidth)  desiredWidth /= 2;
+				if (512 < desiredHeight)  desiredHeight /= 2;
+			}
+		}
+	}
+	else
+	{
+		desiredWidth = width;
+		desiredHeight = height;
+	}
+	
+	if (outDesiredWidth != NULL)  *outDesiredWidth = desiredWidth;
+	if (outDesiredHeight != NULL)  *outDesiredHeight = desiredHeight;
 }
 
 @end
