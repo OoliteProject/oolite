@@ -8,7 +8,16 @@
 	(
 		"OOCheckRequiresPListVerifierStage",
 		"OOCheckDemoShipsPListVerifierStage",
-		"OOCheckEquipmentPListVerifierStage"
+		"OOCheckEquipmentPListVerifierStage",
+		"OOTextureVerifierStage"
+	);
+	excludeStages =
+	(
+		/*	Add stages here to stop them from being used. For instance, to
+			skip the texture verification, create a verifyOXP.plist file in
+			your AddOns folder with the following content:
+				{ excludeStages = ( "OOTextureVerifierStage" ); }
+		*/
 	);
 	
 	logControlOverride =

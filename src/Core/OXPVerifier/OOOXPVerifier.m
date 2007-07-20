@@ -202,6 +202,7 @@ static void OpenLogFile(NSString *name);
 	}
 	
 	// Checks passed, store state.
+	[stage setVerifier:self];
 	[_stagesByName setObject:stage forKey:name];
 	[_waitingStages addObject:stage];
 }
@@ -339,7 +340,8 @@ static void OpenLogFile(NSString *name);
 - (void)registerBaseStages
 {
 	NSAutoreleasePool		*pool = nil;
-	NSArray					*stages = nil;
+	NSSet					*stages = nil;
+	NSSet					*excludeStages = nil;
 	NSEnumerator			*stageEnum = nil;
 	NSString				*stageName = nil;
 	Class					stageClass = Nil;
@@ -348,14 +350,19 @@ static void OpenLogFile(NSString *name);
 	pool = [[NSAutoreleasePool alloc] init];
 	
 	// Load stages specified as array of class names in verifyOXP.plist
-	stages = [self configurationArrayForKey:@"stages"];
+	stages = [self configurationSetForKey:@"stages"];
+	excludeStages = [self configurationSetForKey:@"excludeStages"];
+	if ([excludeStages count] != 0)
+	{
+		stages = [[stages mutableCopy] autorelease];
+		[(NSMutableSet *)stages minusSet:excludeStages];
+	}
 	for (stageEnum = [stages objectEnumerator]; (stageName = [stageEnum nextObject]); )
 	{
 		if ([stageName isKindOfClass:[NSString class]])
 		{
 			stageClass = NSClassFromString(stageName);
 			stage = [[stageClass alloc] init];
-			[stage setVerifier:self];
 			[self registerStage:stage];
 			[stage release];
 		}

@@ -49,7 +49,6 @@ static NSString * const kStageName	= @"Testing textures and images";
 	if (self != nil)
 	{
 		_usedTextures = [[NSMutableSet alloc] init];
-		_usedImages = [[NSMutableSet alloc] init];
 	}
 	return self;
 }
@@ -58,7 +57,6 @@ static NSString * const kStageName	= @"Testing textures and images";
 - (void)dealloc
 {
 	[_usedTextures release];
-	[_usedImages release];
 	
 	[super dealloc];
 }
@@ -66,6 +64,8 @@ static NSString * const kStageName	= @"Testing textures and images";
 
 + (NSString *)nameForReverseDependencyForVerifier:(OOOXPVerifier *)verifier
 {
+#if 0
+	// In order to allow this stage to be disabled with excludeStages, it is _not_ implicitly pulled in but rather listed explicitly.
 	OOTextureVerifierStage *stage = [verifier stageWithName:kStageName];
 	if (stage == nil)
 	{
@@ -73,6 +73,7 @@ static NSString * const kStageName	= @"Testing textures and images";
 		[verifier registerStage:stage];
 		[stage release];
 	}
+#endif
 	
 	return kStageName;
 }
@@ -86,7 +87,7 @@ static NSString * const kStageName	= @"Testing textures and images";
 
 - (BOOL)shouldRun
 {
-	return [_usedTextures count] + [_usedImages count] != 0;
+	return [_usedTextures count] != 0 || [[[self verifier] fileScannerStage] filesInFolder:@"Images"] != nil;
 }
 
 
@@ -105,14 +106,12 @@ static NSString * const kStageName	= @"Testing textures and images";
 	[_usedTextures release];
 	_usedTextures = nil;
 	
-	for (nameEnum = [_usedImages objectEnumerator]; (name = [nameEnum nextObject]); )
+	// All "images" are considered used, since we don't have a reasonable way to look for images referenced in JavaScript scripts.
+	nameEnum = [[[[self verifier] fileScannerStage] filesInFolder:@"Images"] objectEnumerator];
+	while ((name = [nameEnum nextObject]))
 	{
-		pool = [[NSAutoreleasePool alloc] init];
 		[self checkTextureNamed:name inFolder:@"Images"];
-		[pool release];
 	}
-	[_usedImages release];
-	_usedImages = nil;
 }
 
 
@@ -133,24 +132,6 @@ static NSString * const kStageName	= @"Testing textures and images";
 	}
 }
 
-
-- (void) imageNamed:(NSString *)name usedInContext:(NSString *)context
-{
-	OOFileScannerVerifierStage	*fileScanner = nil;
-	
-	if ([_usedImages member:name] != nil)  return;
-	[_usedImages addObject:name];
-	
-	fileScanner = [[self verifier] fileScannerStage];
-	if (![fileScanner fileExists:name
-						inFolder:@"Images"
-				  referencedFrom:context
-					checkBuiltIn:YES])
-	{
-		OOLog(@"verifyOXP.texture.notFound", @"WARNING: image \"%@\" referenced in %@ could not be found in %@ or in Oolite.", name, context, [[self verifier] oxpDisplayName]);
-	}
-}
-
 @end
 
 
@@ -161,6 +142,7 @@ static NSString * const kStageName	= @"Testing textures and images";
 	OOTextureLoader				*loader = nil;
 	NSString					*path = nil;
 	OOFileScannerVerifierStage	*fileScanner = nil;
+	NSString					*displayName = nil;
 	void						*data = nil;
 	uint32_t					width, height, rWidth, rHeight;
 	
@@ -179,9 +161,10 @@ static NSString * const kStageName	= @"Testing textures and images";
 											 kOOTextureNoFNFMessage |
 											 kOOTextureNeverScale];
 	
+	displayName = [fileScanner displayNameForFile:name andFolder:folder];
 	if (loader == nil)
 	{
-		OOLog(@"verifyOXP.texture.failed", @"ERROR: image %@ could not be read.", [fileScanner displayNameForFile:name andFolder:folder]);
+		OOLog(@"verifyOXP.texture.failed", @"ERROR: image %@ could not be read.", displayName);
 	}
 	else
 	{
@@ -192,7 +175,11 @@ static NSString * const kStageName	= @"Testing textures and images";
 		rHeight = OORoundUpToPowerOf2((2 * height) / 3);
 		if (width != rWidth || height != rHeight)
 		{
-			OOLog(@"verifyOXP.texture.notPOT", @"WARNING: image %@ has non-power-of-two dimensions; it will have to be rescaled (from %ux%u pixels to %ux%u pixels) at runtime.", [fileScanner displayNameForFile:name andFolder:folder], width, height, rWidth, rHeight);
+			OOLog(@"verifyOXP.texture.notPOT", @"WARNING: image %@ has non-power-of-two dimensions; it will have to be rescaled (from %ux%u pixels to %ux%u pixels) at runtime.", displayName, width, height, rWidth, rHeight);
+		}
+		else
+		{
+			OOLog(@"verifyOXP.verbose.texture.OK", @"- %@ OK.", displayName);
 		}
 	}
 }

@@ -326,6 +326,13 @@ static BOOL CheckNameConflict(NSString *lcName, NSDictionary *directoryCases, NS
 	return file;
 }
 
+
+- (NSArray *)filesInFolder:(NSString *)folder
+{
+	if (folder == nil)  return nil;
+	return [[_directoryListings objectForKey:[folder lowercaseString]] allValues];
+}
+
 @end
 
 

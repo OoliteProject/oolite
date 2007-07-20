@@ -33,7 +33,6 @@ MA 02110-1301, USA.
 @interface OOTextureVerifierStage: OOFileHandlingVerifierStage
 {
 	NSMutableSet					*_usedTextures;
-	NSMutableSet					*_usedImages;
 }
 
 // Returns name to be used in -dependents by other stages; also registers stage.
@@ -45,7 +44,6 @@ MA 02110-1301, USA.
 	It should make sense with "Texture \"foo\" referenced in " in front of it.
 */
 - (void) textureNamed:(NSString *)name usedInContext:(NSString *)context;
-- (void) imageNamed:(NSString *)name usedInContext:(NSString *)context;
 
 @end
 

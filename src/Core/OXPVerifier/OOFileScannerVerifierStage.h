@@ -102,8 +102,14 @@ SOFTWARE.
 	checkBuiltIn:(BOOL)checkBuiltIn;
 
 
-// Utility to handle display names of files. If a file and folder are provided, returns folder/file, otherwise just file.
+/*	Utility to handle display names of files.
+	If a file and folder are provided, returns folder/file, otherwise just file.
+*/
 - (id)displayNameForFile:(NSString *)file andFolder:(NSString *)folder;
+
+/*	Get a list of files in a subfolder of the OXP. Order is undefined.
+*/
+- (NSArray *)filesInFolder:(NSString *)folder;
 
 @end
 
