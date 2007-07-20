@@ -620,8 +620,7 @@ static void OpenLogFile(NSString *name);
 	OOOXPVerifierStage			*dep = nil;
 	
 	graphVizTemplate = [self configurationDictionaryForKey:@"debugGraphvizTempate"];
-	graphViz = [[graphVizTemplate stringForKey:@"preamble"] mutableCopy];
-	[graphViz autorelease];
+	graphViz = [NSMutableString stringWithFormat:[graphVizTemplate stringForKey:@"preamble"], [NSDate date]];
 	
 	/*	Pass 1: enumerate over graph setting node attributes for each stage.
 		We use pointers as node names for simplicity of generation.
