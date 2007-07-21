@@ -30,8 +30,25 @@ MA 02110-1301, USA.
 
 #import "OOFileScannerVerifierStage.h"
 #import "OOStringParsing.h"
+#import "ResourceManager.h"
+#import "OOCollectionExtractors.h"
+#import "OOStringParsing.h"
 
 static NSString * const kStageName	= @"Checking shipdata.plist";
+
+
+@interface OOCheckShipDataPListVerifierStage (OOPrivate)
+
+- (void)verifyShipInfo:(NSDictionary *)info withName:(NSString *)name;
+
+- (void)message:(NSString *)format, ...;
+
+- (void)getRoles;
+- (void)checkKeys;
+
+- (NSSet *)rolesFromString:(NSString *)string;
+
+@end
 
 
 @implementation OOCheckShipDataPListVerifierStage
@@ -65,24 +82,196 @@ static NSString * const kStageName	= @"Checking shipdata.plist";
 - (void)run
 {
 	OOFileScannerVerifierStage	*fileScanner = nil;
-	NSDictionary				*shipdataPList = nil;
+	NSAutoreleasePool			*pool = nil;
+	NSEnumerator				*shipEnum = nil;
+	NSString					*shipKey = nil;
+	NSDictionary				*shipInfo = nil;
+	NSDictionary				*ooliteShipData = nil;
+	NSDictionary				*settings = nil;
+	NSMutableSet				*mergeSet = nil;
+	NSArray						*shipList = nil;
 	
 	fileScanner = [[self verifier] fileScannerStage];
-	shipdataPList = [fileScanner plistNamed:@"shipdata.plist"
-								   inFolder:@"Config"
-							 referencedFrom:nil
-							   checkBuiltIn:NO];
+	_shipdataPList = [fileScanner plistNamed:@"shipdata.plist"
+									inFolder:@"Config"
+							  referencedFrom:nil
+								checkBuiltIn:NO];
 	
-	if (shipdataPList == nil)  return;
+	if (_shipdataPList == nil)  return;
+	
+	ooliteShipData = [ResourceManager dictionaryFromFilesNamed:@"shipdata.plist"
+													  inFolder:@"Config"
+													  andMerge:YES];
 	
 	// Check that it's a dictionary
-	if (![shipdataPList isKindOfClass:[NSDictionary class]])
+	if (![_shipdataPList isKindOfClass:[NSDictionary class]])
 	{
 		OOLog(@"verifyOXP.shipdataPList.notDict", @"ERROR: shipdata.plist is not a dictionary.");
 		return;
 	}
 	
-	OOLog(@"verifyOXP.models.unimplemented", @"TODO: implement shipdata.plist verifier.");
+	// Keys that apply to all ships
+	_ooliteShipNames = [NSSet setWithArray:[ooliteShipData allKeys]];
+	settings = [[self verifier] configurationDictionaryForKey:@"shipdataPListSettings"];
+	_basicKeys = [settings setForKey:@"knownShipKeys"];
+	
+	// Keys that apply to stations/carriers
+	mergeSet = [_basicKeys mutableCopy];
+	[mergeSet addObjectsFromArray:[settings arrayForKey:@"knownStationKeys"]];
+	_stationKeys = mergeSet;
+	
+	// Keys that apply to player ships
+	mergeSet = [_basicKeys mutableCopy];
+	[mergeSet addObjectsFromArray:[settings arrayForKey:@"knownPlayerKeys"]];
+	_playerKeys = [[mergeSet copy] autorelease];
+	
+	// Keys that apply to _any_ ship -- union of the above
+	[mergeSet unionSet:_stationKeys];
+	_allKeys = mergeSet;
+	
+	shipList = [[_shipdataPList allKeys] sortedArrayUsingSelector:@selector(caseInsensitiveCompare:)];
+	for (shipEnum = [shipList objectEnumerator]; (shipKey = [shipEnum nextObject]); )
+	{
+		pool = [[NSAutoreleasePool alloc] init];
+		
+		shipInfo = [_shipdataPList dictionaryForKey:shipKey];
+		if (shipInfo == nil)
+		{
+			OOLog(@"verifyOXP.shipdata.badType", @"ERROR: shipdata.plist entry for \"%@\" is not a dictionary.", shipKey);
+		}
+		else
+		{
+			[self verifyShipInfo:shipInfo withName:shipKey];
+		}
+		
+		[pool release];
+	}
+	
+	_shipdataPList = nil;
+	_ooliteShipNames = nil;
+	_basicKeys = nil;
+	_stationKeys = nil;
+	_playerKeys = nil;
+}
+
+@end
+
+
+@implementation OOCheckShipDataPListVerifierStage (OOPrivate)
+
+- (void)verifyShipInfo:(NSDictionary *)info withName:(NSString *)name
+{
+	_name = name;
+	_info = info;
+	_havePrintedMessage = NO;
+	OOLogPushIndent();
+	
+	[self getRoles];
+	[self checkKeys];
+	
+	OOLogPopIndent();
+	if (!_havePrintedMessage)
+	{
+		OOLog(@"verifyOXP.verbose.shipData.OK", @"- ship \"%@\" OK.", _name);
+	}
+	_name = nil;
+	_info = nil;
+	_roles = nil;
+}
+
+
+// Custom log method to group messages by ship.
+- (void)message:(NSString *)format, ...
+{
+	va_list						args;
+	
+	if (!_havePrintedMessage)
+	{
+		OOLog(@"verifyOXP.shipData.firstMessage", @"Ship \"%@\":", _name);
+		OOLogIndent();
+		_havePrintedMessage = YES;
+	}
+	
+	va_start(args, format);
+	OOLogWithFunctionFileAndLineAndArguments(@"verifyOXP.shipData", NULL, NULL, 0, format, args);
+	va_end(args);
+}
+
+
+- (void)getRoles
+{
+	NSString					*rolesString = nil;
+	
+	rolesString = [_info objectForKey:@"roles"];
+	_roles = [self rolesFromString:rolesString];
+	_isPlayer = [_roles member:@"player"] != nil;
+	_isStation = [_info boolForKey:@"isCarrier" defaultValue:NO] ||
+				 [rolesString rangeOfString:@"station"].location != NSNotFound ||
+				 [rolesString rangeOfString:@"carrier"].location != NSNotFound;
+	
+	if (_isPlayer && _isStation)
+	{
+		[self message:@"ERROR: ship is both a player ship and a station. Treating as non-station."];
+		_isStation = NO;
+	}
+}
+
+
+- (void)checkKeys
+{
+	NSSet						*referenceSet = nil;
+	NSEnumerator				*keyEnum = nil;
+	NSString					*key = nil;
+	
+	if (_isPlayer)  referenceSet = _playerKeys;
+	else if (_isStation)  referenceSet = _stationKeys;
+	else  referenceSet = _basicKeys;
+	
+	for (keyEnum = [_info keyEnumerator]; (key = [keyEnum nextObject]); )
+	{
+		if ([referenceSet member:key] == nil)
+		{
+			if ([_allKeys member:key] != nil)
+			{
+				[self message:@"WARNING: key \"%@\" does not apply to this catgory of ship.", key];
+			}
+			else
+			{
+				[self message:@"WARNING: unknown key \"%@\".", key];
+			}
+		}
+	}
+}
+
+
+// Convert a roles string to a set of role names, discarding probabilities.
+- (NSSet *)rolesFromString:(NSString *)string
+{
+	NSArray						*parts = nil;
+	NSMutableSet				*result = nil;
+	unsigned					i, count;
+	NSString					*role = nil;
+	NSRange						parenRange;
+	
+	if (string == nil)  return [NSSet set];
+	
+	parts = ScanTokensFromString(string);
+	count = [parts count];
+	if (count == 0)  return [NSSet set];
+	
+	result = [NSMutableSet setWithCapacity:count];
+	for (i = 0; i != count; ++i)
+	{
+		role = [parts objectAtIndex:i];
+		parenRange = [role rangeOfString:@"("];
+		if (parenRange.location != NSNotFound)
+		{
+			role = [role substringToIndex:parenRange.location];
+		}
+		[result addObject:role];
+	}
+	
+	return result;
 }
 
 @end

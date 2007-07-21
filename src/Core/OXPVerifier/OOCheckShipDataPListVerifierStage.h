@@ -30,6 +30,22 @@ MA 02110-1301, USA.
 #if OO_OXP_VERIFIER_ENABLED
 
 @interface OOCheckShipDataPListVerifierStage: OOTextureHandlingStage
+{
+	NSDictionary				*_shipdataPList;
+	NSSet						*_ooliteShipNames;
+	NSSet						*_basicKeys,
+								*_stationKeys,
+								*_playerKeys,
+								*_allKeys;
+	
+	// Info about ship currently being checked. None of these are retained!
+	NSString					*_name;
+	NSDictionary				*_info;
+	NSSet						*_roles;
+	uint32_t					_isStation: 1,
+								_isPlayer: 1,
+								_havePrintedMessage: 1;
+}
 @end
 
 #endif

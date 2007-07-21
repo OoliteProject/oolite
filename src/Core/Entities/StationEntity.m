@@ -746,7 +746,7 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 	else
 	{
 		// No dock* subentity found, use defaults.
-		double port_radius = [dict doubleForKey:@"port_radius" defaultValue:500.0];
+		double port_radius = [dict nonNegativeDoubleForKey:@"port_radius" defaultValue:500.0];
 		port_position = make_vector(0, 0, port_radius);
 		port_orientation = kIdentityQuaternion;
 	}
@@ -768,10 +768,10 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 	[super setUpShipFromDictionary:dict];
 	
 	equivalent_tech_level = [dict intForKey:@"equivalent_tech_level" defaultValue:NSNotFound];
-	max_scavengers = [dict intForKey:@"max_scavengers" defaultValue:3];
-	max_defense_ships = [dict intForKey:@"max_defense_ships" defaultValue:3];
-	max_police = [dict intForKey:@"max_police" defaultValue:STATION_MAX_POLICE];
-	equipment_price_factor = [dict doubleForKey:@"equipment_price_factor" defaultValue:1.0];
+	max_scavengers = [dict unsignedIntForKey:@"max_scavengers" defaultValue:3];
+	max_defense_ships = [dict unsignedIntForKey:@"max_defense_ships" defaultValue:3];
+	max_police = [dict unsignedIntForKey:@"max_police" defaultValue:STATION_MAX_POLICE];
+	equipment_price_factor = [dict nonNegativeDoubleForKey:@"equipment_price_factor" defaultValue:1.0];
 
 	if ([self isRotatingStation])
 	{

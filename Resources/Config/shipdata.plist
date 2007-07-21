@@ -41,8 +41,6 @@
 		<real>2.8</real>
 		<key>max_flight_speed</key>
 		<real>240</real>
-		<key>max_missiles</key>
-		<integer>1</integer>
 		<key>missile_launch_position</key>
 		<string>0.0 -2.5 16.0</string>
 		<key>missiles</key>
@@ -55,14 +53,6 @@
 		<string>hunter scavenger shuttle hermit-ship oolite-adder</string>
 		<key>thrust</key>
 		<real>30</real>
-		<key>view_position_aft</key>
-		<string>0.0 2.5  -22.5</string>
-		<key>view_position_forward</key>
-		<string>0.0 2.5 14.0</string>
-		<key>view_position_port</key>
-		<string>-12.0 1.5 -1.0</string>
-		<key>view_position_starboard</key>
-		<string>12.0 1.5 -1.0</string>
 		<key>weapon_position_aft</key>
 		<string>0.0 0.0 -22.5</string>
 		<key>weapon_position_forward</key>
@@ -293,8 +283,6 @@
 		<real>0.75</real>
 		<key>max_flight_speed</key>
 		<real>140</real>
-		<key>max_missiles</key>
-		<integer>7</integer>
 		<key>missile_launch_position</key>
 		<string>0.0 -9.0 60.0</string>
 		<key>missiles</key>
@@ -508,8 +496,6 @@
 		<real>2</real>
 		<key>max_flight_speed</key>
 		<real>400</real>
-		<key>max_missiles</key>
-		<integer>1</integer>
 		<key>missile_launch_position</key>
 		<string>0.0 -5.9 17.5</string>
 		<key>missiles</key>
@@ -522,14 +508,6 @@
 		<string>hunter pirate asp-pirate oolite-asp</string>
 		<key>thrust</key>
 		<real>50</real>
-		<key>view_position_aft</key>
-		<string>0.0 5.0 -35.0</string>
-		<key>view_position_forward</key>
-		<string>0.0 5.31 17.5</string>
-		<key>view_position_port</key>
-		<string>-27.0 5.0 0.0</string>
-		<key>view_position_starboard</key>
-		<string>27.0 5.0 0.0</string>
 		<key>weapon_position_aft</key>
 		<string>0.0 -5.0 -35.0</string>
 		<key>weapon_position_forward</key>
@@ -580,8 +558,6 @@
 		<real>2</real>
 		<key>max_flight_speed</key>
 		<real>400</real>
-		<key>max_missiles</key>
-		<integer>1</integer>
 		<key>missile_launch_position</key>
 		<string>0.0 -5.9 17.5</string>
 		<key>missiles</key>
@@ -594,14 +570,6 @@
 		<string>asp-cloaked oolite-asp-cloaked</string>
 		<key>thrust</key>
 		<real>50</real>
-		<key>view_position_aft</key>
-		<string>0.0 5.0 -35.0</string>
-		<key>view_position_forward</key>
-		<string>0.0 5.31 17.5</string>
-		<key>view_position_port</key>
-		<string>-27.0 5.0 0.0</string>
-		<key>view_position_starboard</key>
-		<string>27.0 5.0 0.0</string>
 		<key>weapon_position_aft</key>
 		<string>0.0 -5.0 -35.0</string>
 		<key>weapon_position_forward</key>
@@ -884,8 +852,6 @@
 		<real>2.8</real>
 		<key>max_flight_speed</key>
 		<real>240</real>
-		<key>max_missiles</key>
-		<integer>4</integer>
 		<key>missile_launch_position</key>
 		<string>0.0 -15.9 -5.8</string>
 		<key>missiles</key>
@@ -898,14 +864,6 @@
 		<string>trader oolite-boa</string>
 		<key>thrust</key>
 		<real>36</real>
-		<key>view_position_aft</key>
-		<string>0.0 20.5 -50.75</string>
-		<key>view_position_forward</key>
-		<string>0.0 16.25 23.9</string>
-		<key>view_position_port</key>
-		<string>-7.3 16.25 23.9</string>
-		<key>view_position_starboard</key>
-		<string>7.3 16.25 23.9</string>
 		<key>weapon_position_aft</key>
 		<string>0.0 11.0 -56.0</string>
 		<key>weapon_position_forward</key>
@@ -960,8 +918,6 @@
 		<real>2.5</real>
 		<key>max_flight_speed</key>
 		<real>312</real>
-		<key>max_missiles</key>
-		<integer>5</integer>
 		<key>missile_launch_position</key>
 		<string>0.0 -6.0 37.0</string>
 		<key>missiles</key>
@@ -974,14 +930,6 @@
 		<string>trader sunskim-trader oolite-boa-mk2</string>
 		<key>thrust</key>
 		<real>40</real>
-		<key>view_position_aft</key>
-		<string>0.0 22.875 -47.375</string>
-		<key>view_position_forward</key>
-		<string>0.0 12.5 19.4375 </string>
-		<key>view_position_port</key>
-		<string>-20.67 11.17 -14.67</string>
-		<key>view_position_starboard</key>
-		<string>20.67 11.17 -14.67</string>
 		<key>weapon_energy</key>
 		<real>15</real>
 		<key>weapon_position_aft</key>
@@ -1910,8 +1858,6 @@
 		<real>2</real>
 		<key>max_flight_speed</key>
 		<real>260</real>
-		<key>max_missiles</key>
-		<integer>1</integer>
 		<key>missile_launch_position</key>
 		<string>0.0 -2.0 14.0</string>
 		<key>missiles</key>
@@ -2176,8 +2122,6 @@
 		<real>2.5</real>
 		<key>max_flight_speed</key>
 		<real>600</real>
-		<key>max_missiles</key>
-		<integer>3</integer>
 		<key>missile_launch_position</key>
 		<string>0.0 -5.5 16.0</string>
 		<key>missiles</key>
@@ -2190,14 +2134,6 @@
 		<string>constrictor oolite-constrictor</string>
 		<key>thrust</key>
 		<real>50</real>
-		<key>view_position_aft</key>
-		<string>0.0 5.0 -30.0</string>
-		<key>view_position_forward</key>
-		<string>0.0 -1.875 18.28</string>
-		<key>view_position_port</key>
-		<string>-18.5 0.0 1.25</string>
-		<key>view_position_starboard</key>
-		<string>18.5 0.0 1.25</string>
 		<key>weapon_position_aft</key>
 		<string>0.0 -4.5 -30.0</string>
 		<key>weapon_position_forward</key>
@@ -2239,8 +2175,6 @@
 		<real>8</real>
 		<key>max_flight_speed</key>
 		<real>0.0</real>
-		<key>max_missiles</key>
-		<integer>0</integer>
 		<key>missiles</key>
 		<integer>0</integer>
 		<key>model</key>
@@ -2334,8 +2268,6 @@
 		<real>8</real>
 		<key>max_flight_speed</key>
 		<real>0.0</real>
-		<key>max_missiles</key>
-		<integer>0</integer>
 		<key>missiles</key>
 		<integer>0</integer>
 		<key>model</key>
@@ -4208,7 +4140,7 @@
 		<string>tharglet thargon oolite-tharglet</string>
 		<key>scanClass</key>
 		<string>CLASS_THARGOID</string>
-		<key>scannerRange</key>
+		<key>scanner_range</key>
 		<real>50000</real>
 		<key>thrust</key>
 		<real>40</real>
@@ -4277,7 +4209,7 @@
 		<string>thargoid oolite-thargoid</string>
 		<key>scanClass</key>
 		<string>CLASS_THARGOID</string>
-		<key>scannerRange</key>
+		<key>scanner_range</key>
 		<real>60000</real>
 		<key>thrust</key>
 		<real>50</real>

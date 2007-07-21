@@ -92,6 +92,7 @@ SOFTWARE.
 - (id)objectOfClass:(Class)class atIndex:(unsigned)index defaultValue:(id)value;
 - (NSString *)stringAtIndex:(unsigned)index defaultValue:(NSString *)value;
 - (NSArray *)arrayAtIndex:(unsigned)index defaultValue:(NSArray *)value;
+- (NSSet *)setAtIndex:(unsigned)index defaultValue:(NSSet *)value;
 - (NSDictionary *)dictionaryAtIndex:(unsigned)index defaultValue:(NSDictionary *)value;
 - (NSData *)dataAtIndex:(unsigned)index defaultValue:(NSData *)value;
 
@@ -127,6 +128,7 @@ SOFTWARE.
 - (id)objectOfClass:(Class)class atIndex:(unsigned)index;
 - (NSString *)stringAtIndex:(unsigned)index;
 - (NSArray *)arrayAtIndex:(unsigned)index;
+- (NSSet *)setAtIndex:(unsigned)index;
 - (NSDictionary *)dictionaryAtIndex:(unsigned)index;
 - (NSData *)dataAtIndex:(unsigned)index;
 
@@ -164,6 +166,7 @@ SOFTWARE.
 - (id)objectOfClass:(Class)class forKey:(id)key defaultValue:(id)value;
 - (NSString *)stringForKey:(id)key defaultValue:(NSString *)value;
 - (NSArray *)arrayForKey:(id)key defaultValue:(NSArray *)value;
+- (NSSet *)setForKey:(id)key defaultValue:(NSSet *)value;
 - (NSDictionary *)dictionaryForKey:(id)key defaultValue:(NSDictionary *)value;
 - (NSData *)dataForKey:(id)key defaultValue:(NSData *)value;
 
@@ -199,6 +202,7 @@ SOFTWARE.
 - (id)objectOfClass:(Class)class forKey:(id)key;
 - (NSString *)stringForKey:(id)key;
 - (NSArray *)arrayForKey:(id)key;
+- (NSSet *)setForKey:(id)key;
 - (NSDictionary *)dictionaryForKey:(id)key;
 - (NSData *)dataForKey:(id)key;
 
@@ -236,6 +240,7 @@ SOFTWARE.
 - (id)objectOfClass:(Class)class forKey:(id)key defaultValue:(id)value;
 - (NSString *)stringForKey:(id)key defaultValue:(NSString *)value;
 - (NSArray *)arrayForKey:(id)key defaultValue:(NSArray *)value;
+- (NSSet *)setForKey:(id)key defaultValue:(NSSet *)value;
 - (NSDictionary *)dictionaryForKey:(id)key defaultValue:(NSDictionary *)value;
 - (NSData *)dataForKey:(id)key defaultValue:(NSData *)value;
 
@@ -268,6 +273,7 @@ SOFTWARE.
 - (id)objectOfClass:(Class)class forKey:(id)key;
 // - (NSString *)stringForKey:(id)key;
 // - (NSArray *)arrayForKey:(id)key;
+- (NSSet *)setForKey:(id)key;
 // - (NSDictionary *)dictionaryForKey:(id)key;
 // - (NSData *)dataForKey:(id)key;
 

@@ -51,6 +51,9 @@ SOFTWARE.
 #import "OOStringParsing.h"
 
 
+static NSSet *SetForObject(id object, NSSet *defaultValue);
+
+
 @implementation NSArray (OOExtractor)
 
 - (char)charAtIndex:(unsigned)index defaultValue:(char)value
@@ -182,6 +185,12 @@ SOFTWARE.
 - (NSArray *)arrayAtIndex:(unsigned)index defaultValue:(NSArray *)value
 {
 	return [self objectOfClass:[NSArray class] atIndex:index defaultValue:value];
+}
+
+
+- (NSSet *)setAtIndex:(unsigned)index defaultValue:(NSSet *)value
+{
+	return SetForObject([self objectAtIndex:index], value);
 }
 
 
@@ -320,6 +329,12 @@ SOFTWARE.
 - (NSArray *)arrayAtIndex:(unsigned)index
 {
 	return [self arrayAtIndex:index defaultValue:nil];
+}
+
+
+- (NSSet *)setAtIndex:(unsigned)index
+{
+	return [self setAtIndex:index defaultValue:nil];
 }
 
 
@@ -483,6 +498,12 @@ SOFTWARE.
 }
 
 
+- (NSSet *)setForKey:(id)key defaultValue:(NSSet *)value
+{
+	return SetForObject([self objectForKey:key], value);
+}
+
+
 - (NSDictionary *)dictionaryForKey:(id)key defaultValue:(NSDictionary *)value
 {
 	return [self objectOfClass:[NSDictionary class] forKey:key defaultValue:value];
@@ -618,6 +639,12 @@ SOFTWARE.
 - (NSArray *)arrayForKey:(id)key
 {
 	return [self arrayForKey:key defaultValue:nil];
+}
+
+
+- (NSSet *)setForKey:(id)key
+{
+	return [self setForKey:key defaultValue:nil];
 }
 
 
@@ -781,6 +808,12 @@ SOFTWARE.
 }
 
 
+- (NSSet *)setForKey:(id)key defaultValue:(NSSet *)value
+{
+	return SetForObject([self objectForKey:key], value);
+}
+
+
 - (NSDictionary *)dictionaryForKey:(id)key defaultValue:(NSDictionary *)value
 {
 	return [self objectOfClass:[NSDictionary class] forKey:key defaultValue:value];
@@ -880,6 +913,12 @@ SOFTWARE.
 - (id)objectOfClass:(Class)class forKey:(id)key
 {
 	return [self objectOfClass:class forKey:key defaultValue:nil];
+}
+
+
+- (NSSet *)setForKey:(id)key
+{
+	return [self setForKey:key defaultValue:nil];
 }
 
 @end
@@ -1200,4 +1239,13 @@ static BOOL IsBooleanString(id object, BOOL *outValue)
 	}
 	
 	return NO;
+}
+
+
+static NSSet *SetForObject(id object, NSSet *defaultValue)
+{
+	if ([object isKindOfClass:[NSArray class]])  return [NSSet setWithArray:object];
+	else if ([object isKindOfClass:[NSSet class]])  return [[object copy] autorelease];
+	
+	else return defaultValue;
 }

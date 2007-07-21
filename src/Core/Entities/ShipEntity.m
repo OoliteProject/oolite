@@ -2781,7 +2781,7 @@ static GLfloat mascem_color2[4] =	{ 0.4, 0.1, 0.4, 1.0};	// purple
 {
 	if (roles)
 		[roles release];
-	roles = [[NSString stringWithString:value] retain];
+	roles = value ? [value copy] : @"";
 }
 
 
@@ -6989,8 +6989,8 @@ inline BOOL pairOK(NSString* my_role, NSString* their_role)
 		return;
 	}
 
-	roleString = (NSString *)[tokens objectAtIndex:0];
-	numberString = (NSString *)[tokens objectAtIndex:1];
+	roleString = [tokens stringAtIndex:0];
+	numberString = [tokens stringAtIndex:1];
 
 	int number = [numberString intValue];
 
