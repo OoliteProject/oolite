@@ -32,18 +32,25 @@ MA 02110-1301, USA.
 
 @interface OOModelVerifierStage: OOTextureHandlingStage
 {
-	NSMutableSet					*_usedModels;
+	NSMutableSet					*_modelsToCheck;
 }
 
 // Returns name to be used in -dependents by other stages; also registers stage.
 + (NSString *)nameForReverseDependencyForVerifier:(OOOXPVerifier *)verifier;
 
-/*	These can be called by other stages *before* the model stage runs.
-	The context specifies where the model is used; something like
-	"fooShip.dat" or "shipdata.plist materials dictionary for ship \"foo\"".
-	It should make sense with "Model \"foo\" referenced in " in front of it.
-*/
-- (void) modelNamed:(NSString *)name usedInContext:(NSString *)context;
+//	This can be called by other stages *before* the model stage runs.
+- (void) modelNamed:(NSString *)name
+	   usedForEntry:(NSString *)entryName
+			 inFile:(NSString *)fileName
+	  withMaterials:(NSDictionary *)materials
+		 andShaders:(NSDictionary *)shaders;
+
+@end
+
+
+@interface OOOXPVerifier(OOModelVerifierStage)
+
+- (OOModelVerifierStage *)modelVerifierStage;
 
 @end
 

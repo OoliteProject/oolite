@@ -26,6 +26,7 @@ MA 02110-1301, USA.
 */
 
 #import "OOTextureVerifierStage.h"
+#import "OOPListSchemaVerifier.h"
 
 #if OO_OXP_VERIFIER_ENABLED
 
@@ -37,6 +38,7 @@ MA 02110-1301, USA.
 								*_stationKeys,
 								*_playerKeys,
 								*_allKeys;
+	OOPListSchemaVerifier		*_schemaVerifier;
 	
 	// Info about ship currently being checked. None of these are retained!
 	NSString					*_name;

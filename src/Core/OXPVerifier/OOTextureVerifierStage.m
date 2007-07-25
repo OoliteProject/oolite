@@ -119,6 +119,7 @@ static NSString * const kStageName	= @"Testing textures and images";
 {
 	OOFileScannerVerifierStage	*fileScanner = nil;
 	
+	if (name == nil)  return;
 	if ([_usedTextures member:name] != nil)  return;
 	[_usedTextures addObject:name];
 	
@@ -194,6 +195,16 @@ static NSString * const kStageName	= @"Testing textures and images";
 	NSMutableSet *result = [[super dependents] mutableCopy];
 	[result addObject:[OOTextureVerifierStage nameForReverseDependencyForVerifier:[self verifier]]];
 	return [result autorelease];
+}
+
+@end
+
+
+@implementation OOOXPVerifier(OOTextureVerifierStage)
+
+- (OOTextureVerifierStage *)textureVerifierStage
+{
+	return [self stageWithName:kStageName];
 }
 
 @end

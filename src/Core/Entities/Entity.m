@@ -1017,7 +1017,7 @@ static NSString * const kOOLogEntityUpdateError				= @"entity.linkedList.update.
 
 - (void)subEntityReallyDied:(ShipEntity *)sub
 {
-	OOLog(@"entity.bug", @"%s called for non-ship entity %@ by %@", __FUNCTION__, self, sub);
+	OOLog(@"entity.bug", @"%s called for non-ship entity %p by %p", __FUNCTION__, self, sub);
 }
 
 

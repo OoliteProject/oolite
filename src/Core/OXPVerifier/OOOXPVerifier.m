@@ -527,7 +527,7 @@ static void OpenLogFile(NSString *name);
 		}
 		else
 		{
-			OOLog(@"verifyOXP.verbose.skipStage", @"- Skipping stage: %@", stageName);
+			OOLog(@"verifyOXP.verbose.skipStage", @"- Skipping stage: %@.", stageName);
 			[stageToRun noteSkipped];
 		}
 		
@@ -713,7 +713,10 @@ static void OpenLogFile(NSString *name)
 {
 	//	Open log file in appropriate application.
 	
-	[[NSWorkspace sharedWorkspace] openFile:OOLogHandlerGetLogPath()];
+	if ([[NSUserDefaults standardUserDefaults] boolForKey:@"oxp-verifier-open-log" defaultValue:YES])
+	{
+		[[NSWorkspace sharedWorkspace] openFile:OOLogHandlerGetLogPath()];
+	}
 }
 
 #endif	// OOLITE_HAVE_APPKIT

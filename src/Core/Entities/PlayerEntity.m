@@ -4989,11 +4989,11 @@ static int last_outfitting_index;
 - (BOOL) tryBuyingItem:(int) index
 {
 	// note this doesn't check the availability by tech-level
-	NSArray			*equipdata		= [UNIVERSE equipmentdata];
-	int				price_per_unit	= [[[equipdata objectAtIndex:index] objectAtIndex:EQUIPMENT_PRICE_INDEX] intValue];
-	NSString		*eq_key			= [[equipdata objectAtIndex:index] objectAtIndex:EQUIPMENT_KEY_INDEX];
-	NSString		*eq_key_damaged	= [NSString stringWithFormat:@"%@_DAMAGED", eq_key];
-	double			price			= ([eq_key isEqual:@"EQ_FUEL"]) ? ((PLAYER_MAX_FUEL - fuel) * price_per_unit) : (price_per_unit) ;
+	NSArray				*equipdata		= [UNIVERSE equipmentdata];
+	OOCreditsQuantity	price_per_unit	= [[[equipdata objectAtIndex:index] objectAtIndex:EQUIPMENT_PRICE_INDEX] intValue];
+	NSString			*eq_key			= [[equipdata objectAtIndex:index] objectAtIndex:EQUIPMENT_KEY_INDEX];
+	NSString			*eq_key_damaged	= [NSString stringWithFormat:@"%@_DAMAGED", eq_key];
+	double				price			= ([eq_key isEqual:@"EQ_FUEL"]) ? ((PLAYER_MAX_FUEL - fuel) * price_per_unit) : (price_per_unit) ;
 	double			price_factor	= 1.0;
 	OOCargoQuantity	cargo_space = max_cargo - current_cargo;
 
@@ -5066,30 +5066,39 @@ static int last_outfitting_index;
 
 		credits -= price;
 
-		// refund here for current_weapon;
+		// refund here for current_weapon
+		/*	BUG: equipment_price_factor does not affect trade-ins. This means
+			that an equipment_price_factor less than one can be exploited.
+			Analysis: price factor simply not being applied here.
+			Fix: trivial.
+			Acknowledgment: bug and fix both reported by Cmdr James on forum.
+			-- Ahruman 20070724
+		*/
+		OOCreditsQuantity tradeIn = 0;
 		switch (current_weapon)
 		{
 			case WEAPON_PLASMA_CANNON :
-				credits += [UNIVERSE getPriceForWeaponSystemWithKey:@"EQ_WEAPON_TWIN_PLASMA_CANNON"];
+				tradeIn = [UNIVERSE getPriceForWeaponSystemWithKey:@"EQ_WEAPON_TWIN_PLASMA_CANNON"];
 				break;
 			case WEAPON_PULSE_LASER :
-				credits += [UNIVERSE getPriceForWeaponSystemWithKey:@"EQ_WEAPON_PULSE_LASER"];
+				tradeIn = [UNIVERSE getPriceForWeaponSystemWithKey:@"EQ_WEAPON_PULSE_LASER"];
 				break;
 			case WEAPON_BEAM_LASER :
-				credits += [UNIVERSE getPriceForWeaponSystemWithKey:@"EQ_WEAPON_BEAM_LASER"];
+				tradeIn = [UNIVERSE getPriceForWeaponSystemWithKey:@"EQ_WEAPON_BEAM_LASER"];
 				break;
 			case WEAPON_MINING_LASER :
-				credits += [UNIVERSE getPriceForWeaponSystemWithKey:@"EQ_WEAPON_MINING_LASER"];
+				tradeIn = [UNIVERSE getPriceForWeaponSystemWithKey:@"EQ_WEAPON_MINING_LASER"];
 				break;
 			case WEAPON_MILITARY_LASER :
-				credits += [UNIVERSE getPriceForWeaponSystemWithKey:@"EQ_WEAPON_MILITARY_LASER"];
+				tradeIn = [UNIVERSE getPriceForWeaponSystemWithKey:@"EQ_WEAPON_MILITARY_LASER"];
 				break;
 			case WEAPON_THARGOID_LASER :
-				credits += [UNIVERSE getPriceForWeaponSystemWithKey:@"EQ_WEAPON_THARGOID_LASER"];
+				tradeIn = [UNIVERSE getPriceForWeaponSystemWithKey:@"EQ_WEAPON_THARGOID_LASER"];
 				break;
 			case WEAPON_NONE :
 				break;
 		}
+		if (price_factor < 1.0f)  credits += tradeIn * price_factor;
 
 		[self setGuiToEquipShipScreen:-1:-1];
 		return YES;

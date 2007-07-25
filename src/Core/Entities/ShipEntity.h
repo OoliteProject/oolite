@@ -166,7 +166,7 @@ MA 02110-1301, USA.
 							canFragment: 1,				// Can it break into wreckage?
 							suppressExplosion: 1;		// Avoid exploding on death (script hook)
 	
-	int						fuel;						// witch-space fuel
+	OOFuelQuantity			fuel;						// witch-space fuel
 	GLfloat					fuel_accumulator;
 	
 	OOCargoQuantity			likely_cargo;				// likely amount of cargo (for merchantmen, this is what is spilled as loot)
@@ -404,8 +404,8 @@ MA 02110-1301, USA.
 - (void) setAI:(AI *) ai;
 - (AI *) getAI;
 
-- (int) fuel;
-- (void) setFuel:(int) amount;
+- (OOFuelQuantity) fuel;
+- (void) setFuel:(OOFuelQuantity) amount;
 
 - (void) setRoll:(double) amount;
 - (void) setPitch:(double) amount;

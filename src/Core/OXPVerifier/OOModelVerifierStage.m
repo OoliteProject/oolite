@@ -31,10 +31,15 @@ MA 02110-1301, USA.
 
 static NSString * const kStageName	= @"Testing models";
 
+static id NSNULL = nil;
+
 
 @interface OOModelVerifierStage (OOPrivate)
 
-- (void)checkModelNamed:(NSString *)name inFolder:(NSString *)folder;
+- (void)checkModel:(NSString *)name
+		   context:(NSString *)context
+		 materials:(NSDictionary *)materials
+		   shaders:(NSDictionary *)shaders;
 
 @end
 
@@ -46,7 +51,8 @@ static NSString * const kStageName	= @"Testing models";
 	self = [super init];
 	if (self != nil)
 	{
-		_usedModels = [[NSMutableSet alloc] init];
+		NSNULL = [[NSNull null] retain];
+		_modelsToCheck = [[NSMutableSet alloc] init];
 	}
 	return self;
 }
@@ -54,7 +60,7 @@ static NSString * const kStageName	= @"Testing models";
 
 - (void)dealloc
 {
-	[_usedModels release];
+	[_modelsToCheck release];
 	
 	[super dealloc];
 }
@@ -82,35 +88,60 @@ static NSString * const kStageName	= @"Testing models";
 
 - (BOOL)shouldRun
 {
-	return [_usedModels count] != 0;
+	return [_modelsToCheck count] != 0;
 }
 
 
 - (void)run
 {
 	NSEnumerator				*nameEnum = nil;
-	NSString					*name = nil;
+	NSDictionary				*info = nil;
 	NSAutoreleasePool			*pool = nil;
+	NSString					*name = nil,
+								*context = nil;
+	NSDictionary				*materials = nil,
+								*shaders = nil;
 	
 	OOLog(@"verifyOXP.models.unimplemented", @"TODO: implement model verifier.");
 	
-	for (nameEnum = [_usedModels objectEnumerator]; (name = [nameEnum nextObject]); )
+	for (nameEnum = [_modelsToCheck objectEnumerator]; (info = [nameEnum nextObject]); )
 	{
 		pool = [[NSAutoreleasePool alloc] init];
-		[self checkModelNamed:name inFolder:@"Models"];
+		
+		name = [info objectForKey:@"name"];
+		context = [info objectForKey:@"context"];
+		if (context == NSNULL)  context = nil;
+		materials = [info objectForKey:@"materials"];
+		if (materials == NSNULL)  materials = nil;
+		shaders = [info objectForKey:@"shaders"];
+		if (shaders == NSNULL)  shaders = nil;
+		
+		[self checkModel:name
+				 context:context
+			   materials:materials
+				 shaders:shaders];
+		
 		[pool release];
 	}
-	[_usedModels release];
-	_usedModels = nil;
+	[_modelsToCheck release];
+	_modelsToCheck = nil;
 }
 
 
-- (void) modelNamed:(NSString *)name usedInContext:(NSString *)context
+- (void) modelNamed:(NSString *)name
+		  usedForEntry:(NSString *)entryName
+					  inFile:(NSString *)fileName
+		 withMaterials:(NSDictionary *)materials
+			   andShaders:(NSDictionary *)shaders
 {
 	OOFileScannerVerifierStage	*fileScanner = nil;
+	NSDictionary				*info = nil;
+	NSString					*context = nil;
 	
-	if ([_usedModels member:name] != nil)  return;
-	[_usedModels addObject:name];
+	if (name == nil)  return;
+	
+	if (entryName != nil)  context = [NSString stringWithFormat:@"entry \"%@\" of %@", entryName, fileName];
+	else context = fileName;
 	
 	fileScanner = [[self verifier] fileScannerStage];
 	if (![fileScanner fileExists:name
@@ -120,6 +151,19 @@ static NSString * const kStageName	= @"Testing models";
 	{
 		OOLog(@"verifyOXP.model.notFound", @"WARNING: model \"%@\" referenced in %@ could not be found in %@ or in Oolite.", name, context, [[self verifier] oxpDisplayName]);
 	}
+	
+	if (context == nil)  context = NSNULL;
+	if (materials == nil)  materials = NSNULL;
+	if (shaders == nil)  shaders = NSNULL;
+	
+	info = [NSDictionary dictionaryWithObjectsAndKeys:
+				name, @"name",
+				context, @"context",
+				materials, @"materials",
+				shaders, @"shaders",
+				nil];
+	
+	[_modelsToCheck addObject:info];
 }
 
 @end
@@ -127,9 +171,24 @@ static NSString * const kStageName	= @"Testing models";
 
 @implementation OOModelVerifierStage (OOPrivate)
 
-- (void)checkModelNamed:(NSString *)name inFolder:(NSString *)folder
+
+- (void)checkModel:(NSString *)name
+				 context:(NSString *)context
+			   materials:(NSDictionary *)materials
+				 shaders:(NSDictionary *)shaders
 {
+	OOLog(@"verifyOXP.verbose.model.unimp", @"- Pretending to verify model %@ referenced in %@.", name, context);
 	// FIXME: this should check DAT files.
+}
+
+@end
+
+
+@implementation OOOXPVerifier(OOModelVerifierStage)
+
+- (OOModelVerifierStage *)modelVerifierStage
+{
+	return [self stageWithName:kStageName];
 }
 
 @end

@@ -771,8 +771,9 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 	max_scavengers = [dict unsignedIntForKey:@"max_scavengers" defaultValue:3];
 	max_defense_ships = [dict unsignedIntForKey:@"max_defense_ships" defaultValue:3];
 	max_police = [dict unsignedIntForKey:@"max_police" defaultValue:STATION_MAX_POLICE];
-	equipment_price_factor = [dict nonNegativeDoubleForKey:@"equipment_price_factor" defaultValue:1.0];
-
+	equipment_price_factor = [dict nonNegativeFloatForKey:@"equipment_price_factor" defaultValue:1.0];
+	equipment_price_factor = MAX(equipment_price_factor, 0.5f);
+	
 	if ([self isRotatingStation])
 	{
 		docked_shuttles = ranrot_rand() & 3;   // 0..3;

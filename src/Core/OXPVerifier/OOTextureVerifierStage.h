@@ -38,7 +38,7 @@ MA 02110-1301, USA.
 // Returns name to be used in -dependents by other stages; also registers stage.
 + (NSString *)nameForReverseDependencyForVerifier:(OOOXPVerifier *)verifier;
 
-/*	These can be called by other stages *before* the texture stage runs.
+/*	This can be called by other stages *before* the texture stage runs.
 	The context specifies where the texture is used; something like
 	"fooShip.dat" or "shipdata.plist materials dictionary for ship \"foo\"".
 	It should make sense with "Texture \"foo\" referenced in " in front of it.
@@ -50,6 +50,13 @@ MA 02110-1301, USA.
 
 // Convenience base class for stages that need to run before OOTextureHandlingStage.
 @interface OOTextureHandlingStage: OOFileHandlingVerifierStage
+
+@end
+
+
+@interface OOOXPVerifier(OOTextureVerifierStage)
+
+- (OOTextureVerifierStage *)textureVerifierStage;
 
 @end
 

@@ -42,9 +42,12 @@ static NSString * const kStageName	= @"Checking shipdata.plist";
 - (void)verifyShipInfo:(NSDictionary *)info withName:(NSString *)name;
 
 - (void)message:(NSString *)format, ...;
+- (void)verboseMessage:(NSString *)format, ...;
 
 - (void)getRoles;
 - (void)checkKeys;
+- (void)checkSchema;
+- (void)checkModel;
 
 - (NSSet *)rolesFromString:(NSString *)string;
 
@@ -129,6 +132,9 @@ static NSString * const kStageName	= @"Checking shipdata.plist";
 	[mergeSet unionSet:_stationKeys];
 	_allKeys = mergeSet;
 	
+	_schemaVerifier = [OOPListSchemaVerifier verifierWithSchema:[settings dictionaryForKey:@"entrySchema"]];
+	[_schemaVerifier setDelegate:self];
+	
 	shipList = [[_shipdataPList allKeys] sortedArrayUsingSelector:@selector(caseInsensitiveCompare:)];
 	for (shipEnum = [shipList objectEnumerator]; (shipKey = [shipEnum nextObject]); )
 	{
@@ -168,6 +174,8 @@ static NSString * const kStageName	= @"Checking shipdata.plist";
 	
 	[self getRoles];
 	[self checkKeys];
+	[self checkSchema];
+	[self checkModel];
 	
 	OOLogPopIndent();
 	if (!_havePrintedMessage)
@@ -194,6 +202,25 @@ static NSString * const kStageName	= @"Checking shipdata.plist";
 	
 	va_start(args, format);
 	OOLogWithFunctionFileAndLineAndArguments(@"verifyOXP.shipData", NULL, NULL, 0, format, args);
+	va_end(args);
+}
+
+
+- (void)verboseMessage:(NSString *)format, ...
+{
+	va_list						args;
+	
+	if (!OOLogWillDisplayMessagesInClass(@"verifyOXP.verbose.shipData"))  return;
+	
+	if (!_havePrintedMessage)
+	{
+		OOLog(@"verifyOXP.shipData.firstMessage", @"Ship \"%@\":", _name);
+		OOLogIndent();
+		_havePrintedMessage = YES;
+	}
+	
+	va_start(args, format);
+	OOLogWithFunctionFileAndLineAndArguments(@"verifyOXP.verbose.shipData", NULL, NULL, 0, format, args);
 	va_end(args);
 }
 
@@ -244,6 +271,30 @@ static NSString * const kStageName	= @"Checking shipdata.plist";
 }
 
 
+- (void)checkSchema
+{
+	[_schemaVerifier validatePropertyList:_info named:_name];
+}
+
+
+- (void)checkModel
+{
+	id							model = nil,
+								materials = nil,
+								shaders = nil;
+	
+	model = [_info stringForKey:@"model"];
+	materials = [_info dictionaryForKey:@"materials"];
+	shaders = [_info dictionaryForKey:@"shaders"];
+	
+	[[[self verifier] modelVerifierStage] modelNamed:model
+										usedForEntry:_name
+											  inFile:@"shipdata.plist"
+									   withMaterials:materials
+										  andShaders:shaders];
+}
+
+
 // Convert a roles string to a set of role names, discarding probabilities.
 - (NSSet *)rolesFromString:(NSString *)string
 {
@@ -272,6 +323,19 @@ static NSString * const kStageName	= @"Checking shipdata.plist";
 	}
 	
 	return result;
+}
+
+
+- (BOOL)verifier:(OOPListSchemaVerifier *)verifier withPropertyList:(id)rootPList named:(NSString *)name testProperty:(id)subPList atPath:(NSArray *)keyPath againstType:(NSString *)typeKey
+{
+	[self verboseMessage:@"- Skipping verification for type %@ at %@.%@.", typeKey, _name, [OOPListSchemaVerifier descriptionForKeyPath:keyPath]];
+	return YES;
+}
+
+- (BOOL)verifier:(OOPListSchemaVerifier *)verifier withPropertyList:(id)rootPList named:(NSString *)name failedForProperty:(id)subPList atPath:(NSArray *)keyPath expectedType:(NSDictionary *)localSchema
+{
+	[self message:@"ERROR: wrong type (%@) in shipdata.plist at %@.%@.", [subPList class], _name, [OOPListSchemaVerifier descriptionForKeyPath:keyPath]];
+	return YES;
 }
 
 @end

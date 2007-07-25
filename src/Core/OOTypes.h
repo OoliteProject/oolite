@@ -273,6 +273,8 @@ typedef enum
 typedef uint32_t	OOCargoQuantity;
 typedef int32_t		OOCargoQuantityDelta;
 
+typedef uint16_t	OOFuelQuantity;
+
 
 typedef uint32_t	OOCreditsQuantity;
 

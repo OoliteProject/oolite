@@ -1194,11 +1194,13 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 
 - (void) awardFuel:(NSString *)valueString	// add to fuel up to 7.0 LY
 {
-	fuel += 10 * [valueString floatValue];
-	if (fuel > PLAYER_MAX_FUEL)
-		fuel = PLAYER_MAX_FUEL;
-	if (fuel < 0)
-		fuel = 0;
+	int delta  = 10 * [valueString floatValue];
+	if (delta < 0 && fuel < (unsigned)-delta)  fuel = 0;
+	else
+	{
+		fuel += delta;
+		if (fuel > PLAYER_MAX_FUEL)  fuel = PLAYER_MAX_FUEL;
+	}
 }
 
 

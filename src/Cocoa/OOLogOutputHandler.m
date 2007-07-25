@@ -223,7 +223,6 @@ enum
 - (id)init
 {
 	BOOL				OK = YES;
-	NSString			*basePath = nil;
 	NSString			*logPath = nil;
 	NSString			*oldPath = nil;
 	NSFileManager		*fmgr = nil;
@@ -231,11 +230,11 @@ enum
 	// We'll need these for a couple of things.
 	fmgr = [NSFileManager defaultManager];
 	
-	basePath = GetLogBasePath();
+	logPath = OOLogHandlerGetLogPath();
 	// If there is an existing file, move it to Previous.log.
 	if ([fmgr fileExistsAtPath:logPath])
 	{
-		oldPath = [basePath stringByAppendingPathComponent:@"Previous.log"];
+		oldPath = [GetLogBasePath() stringByAppendingPathComponent:@"Previous.log"];
 		[fmgr removeFileAtPath:oldPath handler:nil];
 		if (![fmgr movePath:logPath toPath:oldPath handler:nil])
 		{
@@ -350,10 +349,10 @@ enum
 		sysModel = GetSysCtlString("hw.model");
 		Gestalt(gestaltPhysicalRAMSizeInMegabytes, (long *)&sysPhysMem);
 		
-		preamble = [NSString stringWithFormat:@"Opening log for %@ version %@ [" CPU_TYPE_STRING "] at %@.\n"
+		preamble = [NSString stringWithFormat:@"Opening log for %@ version %@ [" CPU_TYPE_STRING "] under Mac OS X %@ at %@.\n"
 											   "Machine type: %@, %u MiB memory, CPU: %@.\n"
 											   "Note that the contents of the log file can be adjusted by editing logcontrol.plist.\n",
-											   GetAppName(), versionString, [NSDate date],
+											   GetAppName(), versionString, [[NSProcessInfo processInfo] operatingSystemVersionString], [NSDate date],
 											   sysModel, sysPhysMem, GetCPUDescription()];
 		[self asyncLogMessage:preamble];
 	}

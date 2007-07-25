@@ -90,8 +90,14 @@ id OOPropertyListFromData(NSData *data, NSString *whereFrom)
 		
 		result = [NSPropertyListSerialization propertyListFromData:data mutabilityOption:NSPropertyListImmutable format:NULL errorDescription:&error];
 		if (result == nil)	// Foundation parser failed
-		{
-			[error autorelease];	// Note: it is a documented design wart that this string needs releasing.
+		{	
+#if OOLITE_MAC_OS_X
+			/*	Documented wart: this is caller responsibility in Cocoa (but not GNUstep?)
+				TODO: verify that it is correct to not do this in GNUstep.
+				In the mean time, not doing it in GNUstep seems to be avoiding a crash.
+			*/
+			[error autorelease];
+#endif
 			// Ensure we can say something sensible...
 			if (error == nil) error = @"<no error message>";
 			if (whereFrom == nil) whereFrom = @"<data in memory>";

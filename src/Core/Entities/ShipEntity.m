@@ -200,18 +200,18 @@ static NSString * const kOOLogEntityBehaviourChanged	= @"entity.behaviour.change
 	// Moved here from above upgrade loading so that ships start with full energy banks. -- Ahruman
 	energy = maxEnergy;
 	
-	fuel = [shipDict intForKey:@"fuel"];	// Does it make sense that this defaults to 0? Should it not be 70? -- Ahruman
+	fuel = [shipDict unsignedShortForKey:@"fuel"];	// Does it make sense that this defaults to 0? Should it not be 70? -- Ahruman
 	fuel_accumulator = 1.0;
 	
-	bounty = [shipDict intForKey:@"bounty"];
+	bounty = [shipDict unsignedIntForKey:@"bounty"];
 	
 	[shipAI autorelease];
 	shipAI = [[AI alloc] init];
 	[shipAI setStateMachine:[shipDict stringForKey:@"ai_type" defaultValue:@"nullAI.plist"]];
 	
-	max_cargo = [shipDict intForKey:@"max_cargo"];
-	likely_cargo = [shipDict intForKey:@"likely_cargo"];
-	extra_cargo = [shipDict intForKey:@"extra_cargo" defaultValue:15];
+	max_cargo = [shipDict unsignedIntForKey:@"max_cargo"];
+	likely_cargo = [shipDict unsignedIntForKey:@"likely_cargo"];
+	extra_cargo = [shipDict unsignedIntForKey:@"extra_cargo" defaultValue:15];
 	
 	NSString *cargoString = [shipDict stringForKey:@"cargo_carried"];
 	if (cargoString != nil)
@@ -3002,17 +3002,15 @@ static GLfloat mascem_color2[4] =	{ 0.4, 0.1, 0.4, 1.0};	// purple
 }
 
 
-- (int) fuel
+- (OOFuelQuantity) fuel
 {
 	return fuel;
 }
 
 
-- (void) setFuel:(int) amount
+- (void) setFuel:(OOFuelQuantity) amount
 {
 	fuel = amount;
-	if (fuel < 0)
-		fuel = 0;
 	if (fuel > PLAYER_MAX_FUEL)
 		fuel = PLAYER_MAX_FUEL;
 }
