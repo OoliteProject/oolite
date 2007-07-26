@@ -1006,7 +1006,6 @@ static BOOL Validate_Array(OOPListSchemaVerifier *verifier, id value, NSDictiona
 			}
 			
 			[pool release];
-			++i;
 		}
 	}
 	
@@ -1304,16 +1303,20 @@ static BOOL Validate_DelegatedType(OOPListSchemaVerifier *verifier, id value, NS
 
 static NSError *Error(OOPListSchemaVerifierErrorCode errorCode, NSString *format, ...)
 {
+	NSError				*result = nil;
 	va_list				args;
 	
 	va_start(args, format);
-	ErrorWithDictionaryAndArguments(errorCode, nil, format, args);
+	result = ErrorWithDictionaryAndArguments(errorCode, nil, format, args);
 	va_end(args);
+	
+	return result;
 }
 
 
 static NSError *ErrorWithProperty(OOPListSchemaVerifierErrorCode errorCode, NSString *propKey, id propValue, NSString *format, ...)
 {
+	NSError				*result = nil;
 	va_list				args;
 	NSDictionary		*dict = nil;
 	
@@ -1321,24 +1324,27 @@ static NSError *ErrorWithProperty(OOPListSchemaVerifierErrorCode errorCode, NSSt
 	va_start(args, format);
 	ErrorWithDictionaryAndArguments(errorCode, dict, format, args);
 	va_end(args);
+	
+	return result;
 }
 
 
 static NSError *ErrorWithDictionary(OOPListSchemaVerifierErrorCode errorCode, NSDictionary *dict, NSString *format, ...)
 {
+	NSError				*result = nil;
 	va_list				args;
-	NSDictionary		*dict = nil;
 	
 	va_start(args, format);
 	ErrorWithDictionaryAndArguments(errorCode, dict, format, args);
 	va_end(args);
+	
+	return result;
 }
 
 
 static NSError *ErrorWithDictionaryAndArguments(OOPListSchemaVerifierErrorCode errorCode, NSDictionary *dict, NSString *format, va_list arguments)
 {
 	NSString			*message = nil;
-	NSError				*result = nil;
 	id					userInfo = nil;
 	
 	message = [[NSString alloc] initWithFormat:format arguments:arguments];
@@ -1346,7 +1352,7 @@ static NSError *ErrorWithDictionaryAndArguments(OOPListSchemaVerifierErrorCode e
 	else
 	{
 		userInfo = [dict mutableCopy];
-		[dict setObject:userInfo forKey:NSLocalizedDescriptionKey];
+		[userInfo setObject:userInfo forKey:NSLocalizedDescriptionKey];
 		[userInfo autorelease];
 	}
 	[message release];

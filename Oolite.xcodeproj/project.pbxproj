@@ -336,6 +336,8 @@
 		1A5E462F0C32DACE008104B4 /* OOShaderUniformMethodType.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A5E462D0C32DACE008104B4 /* OOShaderUniformMethodType.m */; };
 		1A5E46300C32DACE008104B4 /* OOShaderUniformMethodType.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A5E462E0C32DACE008104B4 /* OOShaderUniformMethodType.h */; };
 		1A67050F0C4904ED002551AA /* oolite-cloaking-device.js in Copy Scripts */ = {isa = PBXBuildFile; fileRef = 1A67050E0C4904ED002551AA /* oolite-cloaking-device.js */; };
+		1A6DD1230C57B5BC00A892F4 /* OOPListSchemaVerifier.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A6DD1210C57B5BC00A892F4 /* OOPListSchemaVerifier.h */; };
+		1A6DD1240C57B5BC00A892F4 /* OOPListSchemaVerifier.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A6DD1220C57B5BC00A892F4 /* OOPListSchemaVerifier.m */; };
 		1A71E6F80BCE345000CD5C13 /* libpng.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 1A71E6F30BCE340C00CD5C13 /* libpng.a */; };
 		1A71E7170BCE34CF00CD5C13 /* pngconf.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A71E7030BCE34CF00CD5C13 /* pngconf.h */; };
 		1A71E7180BCE34CF00CD5C13 /* pngmem.c in Sources */ = {isa = PBXBuildFile; fileRef = 1A71E7040BCE34CF00CD5C13 /* pngmem.c */; };
@@ -1220,6 +1222,8 @@
 		1A5E462D0C32DACE008104B4 /* OOShaderUniformMethodType.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOShaderUniformMethodType.m; sourceTree = "<group>"; };
 		1A5E462E0C32DACE008104B4 /* OOShaderUniformMethodType.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOShaderUniformMethodType.h; sourceTree = "<group>"; };
 		1A67050E0C4904ED002551AA /* oolite-cloaking-device.js */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.javascript; path = "oolite-cloaking-device.js"; sourceTree = "<group>"; };
+		1A6DD1210C57B5BC00A892F4 /* OOPListSchemaVerifier.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOPListSchemaVerifier.h; sourceTree = "<group>"; };
+		1A6DD1220C57B5BC00A892F4 /* OOPListSchemaVerifier.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOPListSchemaVerifier.m; sourceTree = "<group>"; };
 		1A71E6F30BCE340C00CD5C13 /* libpng.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libpng.a; sourceTree = BUILT_PRODUCTS_DIR; };
 		1A71E7030BCE34CF00CD5C13 /* pngconf.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = pngconf.h; sourceTree = "<group>"; };
 		1A71E7040BCE34CF00CD5C13 /* pngmem.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = pngmem.c; sourceTree = "<group>"; };
@@ -2235,6 +2239,8 @@
 				1A7D41840C516B90008EDC33 /* OOModelVerifierStage.m */,
 				1A7D41E00C516E9E008EDC33 /* OOCheckShipDataPListVerifierStage.h */,
 				1A7D41E10C516E9E008EDC33 /* OOCheckShipDataPListVerifierStage.m */,
+				1A6DD1210C57B5BC00A892F4 /* OOPListSchemaVerifier.h */,
+				1A6DD1220C57B5BC00A892F4 /* OOPListSchemaVerifier.m */,
 			);
 			name = "OXP Verification";
 			path = OXPVerifier;
@@ -2544,6 +2550,7 @@
 				1A7D3D2B0C4F8D02008EDC33 /* OOTextureVerifierStage.h in Headers */,
 				1A7D41870C516B90008EDC33 /* OOModelVerifierStage.h in Headers */,
 				1A7D41E20C516E9E008EDC33 /* OOCheckShipDataPListVerifierStage.h in Headers */,
+				1A6DD1230C57B5BC00A892F4 /* OOPListSchemaVerifier.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -2829,6 +2836,7 @@
 				1A7D3D2C0C4F8D02008EDC33 /* OOTextureVerifierStage.m in Sources */,
 				1A7D41860C516B90008EDC33 /* OOModelVerifierStage.m in Sources */,
 				1A7D41E30C516E9E008EDC33 /* OOCheckShipDataPListVerifierStage.m in Sources */,
+				1A6DD1240C57B5BC00A892F4 /* OOPListSchemaVerifier.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
