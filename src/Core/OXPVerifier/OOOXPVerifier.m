@@ -119,7 +119,7 @@ static void OpenLogFile(NSString *name);
 			foundPath = [argEnum nextObject];
 			if (foundPath == nil)
 			{
-				OOLog(@"verifyOXP.noPath", @"ERROR: %@ passed without path argument; nothing to verify.");
+				OOLog(@"verifyOXP.noPath", @"ERROR: %@ passed without path argument; nothing to verify.", arg);
 				[pool release];
 				return YES;
 			}

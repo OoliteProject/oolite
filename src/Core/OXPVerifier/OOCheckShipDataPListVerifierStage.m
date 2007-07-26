@@ -260,7 +260,7 @@ static NSString * const kStageName	= @"Checking shipdata.plist";
 		{
 			if ([_allKeys member:key] != nil)
 			{
-				[self message:@"WARNING: key \"%@\" does not apply to this catgory of ship.", key];
+				[self message:@"WARNING: key \"%@\" does not apply to this category of ship.", key];
 			}
 			else
 			{
