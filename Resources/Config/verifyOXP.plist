@@ -243,6 +243,7 @@
 		entrySchema =
 		{
 			type = "dictionary";
+			requiredKeys = ( "model", "name", "roles" );
 			$definitions =
 			{
 				// "Special" types referred to above.

@@ -3,6 +3,10 @@ lowerCase
 upperCase
 truncFront:#
 truncBack:#
+subStringTo:$ (No effect if specified string is not a substring)
+subStringFrom:$ (No effect if specified string is not a substring)
+subStringToInclusive:$ (No effect if specified string is not a substring)
+subStringFromInclusive:$ (No effect if specified string is not a substring)
 Can be chained using array.
 
 Strings:

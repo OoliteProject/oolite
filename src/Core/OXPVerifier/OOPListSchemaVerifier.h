@@ -69,7 +69,7 @@
 - (void)setDelegate:(id)delegate;
 - (id)delegate;
 
-- (BOOL)validatePropertyList:(id)plist named:(NSString *)name;
+- (BOOL)verifyPropertyList:(id)plist named:(NSString *)name;
 
 /*	Convert a key path (such as provided to the delegate method
 	-verifier:withPropertyList:failedForProperty:atPath:expectedType:) to a
@@ -86,12 +86,23 @@
 @interface NSObject (OOPListSchemaVerifierDelegate)
 
 // Handle "delegated types". Return YES for valid, NO for invalid.
-- (BOOL)verifier:(OOPListSchemaVerifier *)verifier withPropertyList:(id)rootPList named:(NSString *)name testProperty:(id)subPList atPath:(NSArray *)keyPath againstType:(NSString *)typeKey;
+- (BOOL)verifier:(OOPListSchemaVerifier *)verifier
+withPropertyList:(id)rootPList
+		   named:(NSString *)name
+	testProperty:(id)subPList
+		  atPath:(NSArray *)keyPath
+	 againstType:(NSString *)typeKey
+		   error:(NSError **)outError;
 
-/*	Method notifying of validation failure.
-	Return YES to continue validating, NO to stop.
+/*	Method notifying of verification failure.
+	Return YES to continue verifying, NO to stop.
 */
-- (BOOL)verifier:(OOPListSchemaVerifier *)verifier withPropertyList:(id)rootPList named:(NSString *)name failedForProperty:(id)subPList atPath:(NSArray *)keyPath expectedType:(NSDictionary *)localSchema;
+- (BOOL)verifier:(OOPListSchemaVerifier *)verifier
+withPropertyList:(id)rootPList
+		   named:(NSString *)name
+ failedForProperty:(id)subPList
+	   withError:(NSError *)error
+	expectedType:(NSDictionary *)localSchema;
 
 @end
 
@@ -99,11 +110,16 @@
 // NSError domain and codes used to report schema verifier errors.
 extern NSString * const kOOPListSchemaVerifierErrorDomain;
 
-extern NSString * const kPListKeyPathErrorKey;
-extern NSString * const kSchemaKeyPathErrorKey;
+extern NSString * const kPListKeyPathErrorKey;			// Array specifying key path.
 
-extern NSString * const kMissingRequiredKeysErrorKey;
-extern NSString * const kUnknownTypeErrorKey;
+extern NSString * const	kExpectedClassErrorKey;			// Expected class. Nil for vector and quaternion.
+extern NSString * const	kExpectedClassNameErrorKey;		// String describing expected class. May be more specific (for instance, "boolean" or "positive integer" for NSNumber).
+extern NSString * const kUnknownKeyErrorKey;			// Unallowed key found in dictionary.
+extern NSString * const kMissingRequiredKeysErrorKey;	// Set of required keys not present in dictionary
+extern NSString * const kMissingSubStringErrorKey;		// String or array of strings not found for kPListErrorStringPrefixMissing/kPListErrorStringSuffixMissing/kPListErrorStringSubstringMissing.
+extern NSString * const kUnnownFilterErrorKey;			// Unrecognized filter specifier for kPListErrorSchemaUnknownFilter. Not specified if filter is not a string.
+
+extern NSString * const kUnknownTypeErrorKey;			// Set for kPListErrorSchemaUnknownType.
 
 
 // All plist verifier errors have a short error description in their -localizedDescription. Generally this is something that would be more suitable to -localizedFailureReason, but we need Mac OS X 10.3 compatibility.
@@ -111,33 +127,48 @@ extern NSString * const kUnknownTypeErrorKey;
 typedef enum
 {
 	kPListErrorNone,
+	kPListErrorInternal,				// PList verifier did something dumb.
 	
-	// Validation errors -- property list doesn't match schema.
+	// Verification errors -- property list doesn't match schema.
 	kPListErrorTypeMismatch,			// Basic type mismatch -- array instead of number, for instance.
 	
 	kPListErrorMinimumConstraintNotMet,	// minimum/minCount/minLength constraint violated
-	kPListErrorNumberIsNegative,		// Negative number in positiveInteger/positiveFloat
+	kPListErrorMaximumConstraintNotMet,	// maximum/maxCount/maxLength constraint violated
+	kPListErrorNumberIsNegative,		// Negative number in positiveFloat.
 	
-	kPListErrorStringPrefixMissing,		// String does not match requiredPrefix rule.
-	kPListErrorStringSuffixMissing,		// String does not match requiredSuffix rule.
-	kPListErrorStringSubstringMissing,	// String does not match requiredSuffix rule.
+	kPListErrorStringPrefixMissing,		// String does not match requiredPrefix rule. kMissingSubStringErrorKey is set.
+	kPListErrorStringSuffixMissing,		// String does not match requiredSuffix rule. kMissingSubStringErrorKey is set.
+	kPListErrorStringSubstringMissing,	// String does not match requiredSuffix rule. kMissingSubStringErrorKey is set.
 	
 	kPListErrorDictionaryUnknownKey,	// Unknown key for dictionary with allowOthers = NO.
 	kPListErrorDictionaryMissingRequiredKeys,	// requiredKeys rule is not fulfilled. The missing keys are listed in kMissingRequiredKeysErrorKey.
 	
 	kPListErrorEnumerationBadValue,		// Enumeration type contains string that isn't in permitted set.
 	
+	kPListErrorOneOfNoMatch,			// No match for oneOf type.
+	
 	kPListDelegatedTypeError,			// Delegate's verification method failed. If it returned an error, this will be in NSUnderlyingErrorKey.
 	
 	// Schema errors -- schema is broken.
-	kPListErrorSchemaMacroRecursion,	// Macro reference recursion limit hit (currently, recursion limit is 32). This can only happen on init.
-	
-	kPListErrorSchemaTypeMismatch,		// Bad type in schema.
-	kPListErrorSchemaUndefinedMacro,	// Reference to undefined macro.
 	kPListErrorSchemaNoType,			// No type specified in type specifier.
-	kPListErrorSchemaUnkownType,		// Unknown type specified in type specifier. kUnknownTypeErrorKey is set.
+	kPListErrorSchemaUnknownType,		// Unknown type specified in type specifier. kUnknownTypeErrorKey is set.
 	kPListErrorSchemaNoOneOfOptions,	// OneOf clause has no options array.
-	kPListErrorSchemaNoEnumerationValues	// Enumeration clause has no values array.
+	kPListErrorSchemaNoEnumerationValues,	// Enumeration clause has no values array.
+	kPListErrorSchemaUnknownFilter,		// Bad value for string/enumeration filter specifier.
+	kPListErrorSchemaBadComparator		// String comparision requirement value (requiredPrefix etc.) is not a string.
 } OOPListSchemaVerifierErrorCode;
+
+
+@interface NSError (OOPListSchemaVerifierConveniences)
+
+- (NSArray *)plistKeyPath;
+- (NSString *)plistKeyPathDescription;	// Result of calling +[OOPListSchemaVerifier descriptionForKeyPath:] on kPListKeyPathErrorKey.
+
+- (NSSet *)missingRequiredKeys;
+
+- (Class)expectedClass;
+- (NSString *)expectedClassName;
+
+@end
 
 #endif	// OO_OXP_VERIFIER_ENABLED

@@ -88,7 +88,7 @@ static NSString * const kStageName	= @"Checking requires.plist";
 	if ([actualKeys count] != 0)
 	{
 		
-		OOLog(@"verifyOXP.requiresPList.unknownKeys", @"WARNING: requires.plist contains unknown keys. This OXP will not be loaded by this version of Oolite. Unkown keys are: %@.", [[actualKeys allObjects] componentsJoinedByString:@", "]);
+		OOLog(@"verifyOXP.requiresPList.unknownKeys", @"WARNING: requires.plist contains unknown keys. This OXP will not be loaded by this version of Oolite. Unknown keys are: %@.", [[actualKeys allObjects] componentsJoinedByString:@", "]);
 	}
 	
 	// Sanity check the known keys.

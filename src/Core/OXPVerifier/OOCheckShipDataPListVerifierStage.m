@@ -273,7 +273,7 @@ static NSString * const kStageName	= @"Checking shipdata.plist";
 
 - (void)checkSchema
 {
-	[_schemaVerifier validatePropertyList:_info named:_name];
+	[_schemaVerifier verifyPropertyList:_info named:_name];
 }
 
 
@@ -326,15 +326,28 @@ static NSString * const kStageName	= @"Checking shipdata.plist";
 }
 
 
-- (BOOL)verifier:(OOPListSchemaVerifier *)verifier withPropertyList:(id)rootPList named:(NSString *)name testProperty:(id)subPList atPath:(NSArray *)keyPath againstType:(NSString *)typeKey
+- (BOOL)verifier:(OOPListSchemaVerifier *)verifier
+withPropertyList:(id)rootPList
+		   named:(NSString *)name
+	testProperty:(id)subPList
+		  atPath:(NSArray *)keyPath
+	 againstType:(NSString *)typeKey
+		   error:(NSError **)outError
 {
 	[self verboseMessage:@"- Skipping verification for type %@ at %@.%@.", typeKey, _name, [OOPListSchemaVerifier descriptionForKeyPath:keyPath]];
 	return YES;
 }
 
-- (BOOL)verifier:(OOPListSchemaVerifier *)verifier withPropertyList:(id)rootPList named:(NSString *)name failedForProperty:(id)subPList atPath:(NSArray *)keyPath expectedType:(NSDictionary *)localSchema
+
+- (BOOL)verifier:(OOPListSchemaVerifier *)verifier
+withPropertyList:(id)rootPList
+		   named:(NSString *)name
+ failedForProperty:(id)subPList
+	   withError:(NSError *)error
+	expectedType:(NSDictionary *)localSchema
 {
-	[self message:@"ERROR: wrong type (%@) in shipdata.plist at %@.%@.", [subPList class], _name, [OOPListSchemaVerifier descriptionForKeyPath:keyPath]];
+	// FIXME: use fancy new error codes to provide useful error descriptions.
+	[self message:@"ERROR: verification of ship \"%@\" failed at \"%@\": %@", name, [error plistKeyPathDescription], [error localizedDescription]];
 	return YES;
 }
 

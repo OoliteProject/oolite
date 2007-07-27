@@ -57,12 +57,25 @@
 #import <limits.h>
 
 
+enum
+{
+	// Largest allowable number of characters for string included in error message.
+	kMaximumLengthForStringInErrorMessage		= 100
+};
+
+
 NSString * const kOOPListSchemaVerifierErrorDomain = @"org.aegidian.oolite.OOPListSchemaVerifier.ErrorDomain";
 
 NSString * const kPListKeyPathErrorKey = @"org.aegidian.oolite.OOPListSchemaVerifier plist key path";
 NSString * const kSchemaKeyPathErrorKey = @"org.aegidian.oolite.OOPListSchemaVerifier schema key path";
 
+NSString * const kExpectedClassErrorKey = @"org.aegidian.oolite.OOPListSchemaVerifier expected class";
+NSString * const kExpectedClassNameErrorKey = @"org.aegidian.oolite.OOPListSchemaVerifier expected class name";
+NSString * const kUnknownKeyErrorKey = @"org.aegidian.oolite.OOPListSchemaVerifier unknown key";
 NSString * const kMissingRequiredKeysErrorKey = @"org.aegidian.oolite.OOPListSchemaVerifier missing required keys";
+NSString * const kMissingSubStringErrorKey = @"org.aegidian.oolite.OOPListSchemaVerifier missing substring";
+NSString * const kUnnownFilterErrorKey = @"org.aegidian.oolite.OOPListSchemaVerifier unknown filter";
+
 NSString * const kUnknownTypeErrorKey = @"org.aegidian.oolite.OOPListSchemaVerifier unknown type";
 
 
@@ -112,22 +125,40 @@ OOINLINE BackLinkChain BackLinkRoot(void)
 }
 
 
-static SchemaType StringToSchemaType(NSString *string);
-static SchemaType ResolveSchemaType(NSDictionary **typeSpec, BackLinkChain keyPath);
-static NSString *ApplyStringFilter(NSString *string, id filterSpec);
-static BOOL ApplyStringTest(NSString *string, id test, SEL testSelector, NSString *testDescription);
+static SchemaType StringToSchemaType(NSString *string, NSError **outError);
+static SchemaType ResolveSchemaType(NSDictionary **typeSpec, BackLinkChain keyPath, NSError **outError);
+static NSString *ApplyStringFilter(NSString *string, id filterSpec, BackLinkChain keyPath, NSError **outError);
+static BOOL ApplyStringTest(NSString *string, id test, SEL testSelector, NSString *testDescription, BackLinkChain keyPath, NSError **outError);
+static NSArray *KeyPathToArray(BackLinkChain keyPath);
+static NSString *KeyPathToString(BackLinkChain keyPath);
+static NSString *StringForErrorReport(NSString *string);
+static NSString *ArrayForErrorReport(NSArray *array);
+static NSString *SetForErrorReport(NSSet *set);
+static NSString *StringOrArrayForErrorReport(id value, NSString *arrayPrefix);
 
-static NSError *Error(OOPListSchemaVerifierErrorCode errorCode, NSString *format, ...);
-static NSError *ErrorWithProperty(OOPListSchemaVerifierErrorCode errorCode, NSString *propKey, id propValue, NSString *format, ...);
-static NSError *ErrorWithDictionary(OOPListSchemaVerifierErrorCode errorCode, NSDictionary *dict, NSString *format, ...);
-static NSError *ErrorWithDictionaryAndArguments(OOPListSchemaVerifierErrorCode errorCode, NSDictionary *dict, NSString *format, va_list arguments);
+static NSError *Error(OOPListSchemaVerifierErrorCode errorCode, BackLinkChain *keyPath, NSString *format, ...);
+static NSError *ErrorWithProperty(OOPListSchemaVerifierErrorCode errorCode, BackLinkChain *keyPath, NSString *propKey, id propValue, NSString *format, ...);
+static NSError *ErrorWithDictionary(OOPListSchemaVerifierErrorCode errorCode, BackLinkChain *keyPath, NSDictionary *dict, NSString *format, ...);
+static NSError *ErrorWithDictionaryAndArguments(OOPListSchemaVerifierErrorCode errorCode, BackLinkChain *keyPath, NSDictionary *dict, NSString *format, va_list arguments);
+
+static NSError *ErrorTypeMismatch(Class expectedClass, NSString *expectedClassName, id actualObject, BackLinkChain keyPath);
 
 
 @interface OOPListSchemaVerifier (OOPrivate)
 
 // Call delegate methods.
-- (BOOL)delegateVerifierWithPropertyList:(id)rootPList named:(NSString *)name testProperty:(id)subPList atPath:(NSArray *)keyPath againstType:(NSString *)typeKey;
-- (BOOL)delegateVerifierWithPropertyList:(id)rootPList named:(NSString *)name failedForProperty:(id)subPList atPath:(NSArray *)keyPath expectedType:(NSDictionary *)localSchema;
+- (BOOL)delegateVerifierWithPropertyList:(id)rootPList
+								   named:(NSString *)name
+							testProperty:(id)subPList
+								  atPath:(BackLinkChain)keyPath
+							 againstType:(NSString *)typeKey
+								   error:(NSError **)outError;
+
+- (BOOL)delegateVerifierWithPropertyList:(id)rootPList
+								   named:(NSString *)name
+					   failedForProperty:(id)subPList
+							   withError:(NSError *)error
+							expectedType:(NSDictionary *)localSchema;
 
 + (NSDictionary *)normalizedSchema:(id)schema;
 
@@ -146,35 +177,32 @@ static NSError *ErrorWithDictionaryAndArguments(OOPListSchemaVerifierErrorCode e
 						  withDefinitions:(NSDictionary *)definitions
 								  changed:(BOOL *)outChanged;
 
-+ (NSArray *)keyPathToArray:(BackLinkChain)keyPath;
-+ (NSString *)keyPathToString:(BackLinkChain)keyPath;
-
-- (BOOL)validatePList:(id)rootPList
-				named:(NSString *)name
-		  subProperty:(id)subProperty
-	againstSchemaType:(NSDictionary *)subSchema
-			   atPath:(BackLinkChain)keyPath
-			tentative:(BOOL)tentative
-				 stop:(BOOL *)outStop;
+- (BOOL)verifyPList:(id)rootPList
+			  named:(NSString *)name
+		subProperty:(id)subProperty
+  againstSchemaType:(NSDictionary *)subSchema
+			 atPath:(BackLinkChain)keyPath
+		  tentative:(BOOL)tentative
+			   stop:(BOOL *)outStop;
 
 @end
 
 
-#define VALIDATE_PROTO(T) static BOOL Validate_##T(OOPListSchemaVerifier *verifier, id value, NSDictionary *params, id rootPList, NSString *name, BackLinkChain keyPath, BOOL tentative, BOOL *outStop)
-VALIDATE_PROTO(String);
-VALIDATE_PROTO(Array);
-VALIDATE_PROTO(Dictionary);
-VALIDATE_PROTO(Integer);
-VALIDATE_PROTO(PositiveInteger);
-VALIDATE_PROTO(Float);
-VALIDATE_PROTO(PositiveFloat);
-VALIDATE_PROTO(OneOf);
-VALIDATE_PROTO(Enumeration);
-VALIDATE_PROTO(Boolean);
-VALIDATE_PROTO(FuzzyBoolean);
-VALIDATE_PROTO(Vector);
-VALIDATE_PROTO(Quaternion);
-VALIDATE_PROTO(DelegatedType);
+#define VERIFY_PROTO(T) static NSError *Verify_##T(OOPListSchemaVerifier *verifier, id value, NSDictionary *params, id rootPList, NSString *name, BackLinkChain keyPath, BOOL tentative, BOOL *outStop)
+VERIFY_PROTO(String);
+VERIFY_PROTO(Array);
+VERIFY_PROTO(Dictionary);
+VERIFY_PROTO(Integer);
+VERIFY_PROTO(PositiveInteger);
+VERIFY_PROTO(Float);
+VERIFY_PROTO(PositiveFloat);
+VERIFY_PROTO(OneOf);
+VERIFY_PROTO(Enumeration);
+VERIFY_PROTO(Boolean);
+VERIFY_PROTO(FuzzyBoolean);
+VERIFY_PROTO(Vector);
+VERIFY_PROTO(Quaternion);
+VERIFY_PROTO(DelegatedType);
 
 
 @implementation OOPListSchemaVerifier
@@ -226,7 +254,7 @@ VALIDATE_PROTO(DelegatedType);
 }
 
 
-- (BOOL)validatePropertyList:(id)plist named:(NSString *)name
+- (BOOL)verifyPropertyList:(id)plist named:(NSString *)name
 {
 	NSAutoreleasePool			*pool = nil;
 	BOOL						OK;
@@ -234,13 +262,13 @@ VALIDATE_PROTO(DelegatedType);
 	
 	pool = [[NSAutoreleasePool alloc] init];
 	
-	OK = [self validatePList:plist
-					   named:name
-				 subProperty:plist
-		   againstSchemaType:_schema
-					  atPath:BackLinkRoot()
-				   tentative:NO
-						stop:&stop];
+	OK = [self verifyPList:plist
+					 named:name
+			   subProperty:plist
+		 againstSchemaType:_schema
+					atPath:BackLinkRoot()
+				 tentative:NO
+					  stop:&stop];
 	
 	[pool release];
 	
@@ -286,23 +314,41 @@ VALIDATE_PROTO(DelegatedType);
 
 @implementation OOPListSchemaVerifier (OOPrivate)
 
-- (BOOL)delegateVerifierWithPropertyList:(id)rootPList named:(NSString *)name testProperty:(id)subPList atPath:(NSArray *)keyPath againstType:(NSString *)typeKey
+- (BOOL)delegateVerifierWithPropertyList:(id)rootPList
+								   named:(NSString *)name
+							testProperty:(id)subPList
+								  atPath:(BackLinkChain)keyPath
+							 againstType:(NSString *)typeKey
+								   error:(NSError **)outError
 {
 	BOOL					result;
+	NSError					*error = nil;
 	
-	if ([_delegate respondsToSelector:@selector(verifier:withPropertyList:named:testProperty:atPath:againstType:)])
+	if ([_delegate respondsToSelector:@selector(verifier:withPropertyList:named:testProperty:atPath:againstType:error:)])
 	{
 		NS_DURING
 			result = [_delegate verifier:self
 						withPropertyList:rootPList
 								   named:name
 							testProperty:subPList
-								  atPath:keyPath
-							 againstType:typeKey];
+								  atPath:KeyPathToArray(keyPath)
+							 againstType:typeKey
+								   error:&error];
 		NS_HANDLER
-			OOLog(@"plistVerifier.delegateException", @"Property list schema verifier: delegate threw exception (%@) in -verifier:withPropertyList:named:testProperty:atPath:againstType: for type \"%@\" at %@ in %@ -- treating as failure.", [localException name], typeKey, [OOPListSchemaVerifier descriptionForKeyPath:keyPath], name);
+			OOLog(@"plistVerifier.delegateException", @"Property list schema verifier: delegate threw exception (%@) in -verifier:withPropertyList:named:testProperty:atPath:againstType: for type \"%@\" at %@ in %@ -- treating as failure.", [localException name], typeKey,KeyPathToString(keyPath), name);
 			result = NO;
+			error = nil;
 		NS_ENDHANDLER
+		
+		if (outError != NULL)
+		{
+			if (!result || error != nil)
+			{
+				// Note: Generates an error if delegate returned NO (meaning stop) or if delegate produced an error but did not request a stop.
+				*outError = ErrorWithProperty(kPListDelegatedTypeError, &keyPath, NSUnderlyingErrorKey, error, @"Verification of property list \"%@\" failed: value at %@ does not match delegated type \"%@\".", KeyPathToString(keyPath), typeKey);
+			}
+			else *outError = nil;
+		}
 	}
 	else
 	{
@@ -312,32 +358,41 @@ VALIDATE_PROTO(DelegatedType);
 			_badDelegateWarning = YES;
 		}
 		result = NO;
+		if (outError != NULL)
+		{
+			*outError = Error(kPListDelegatedTypeError, &keyPath, @"Verification of property list \"%@\" failed: value at %@ does not match delegated type \"%@\".", KeyPathToString(keyPath), typeKey);
+		}
 	}
+	
 	return result;
 }
 
 
-- (BOOL)delegateVerifierWithPropertyList:(id)rootPList named:(NSString *)name failedForProperty:(id)subPList atPath:(NSArray *)keyPath expectedType:(NSDictionary *)localSchema
+- (BOOL)delegateVerifierWithPropertyList:(id)rootPList
+								   named:(NSString *)name
+					   failedForProperty:(id)subPList
+							   withError:(NSError *)error
+							expectedType:(NSDictionary *)localSchema
 {
 	BOOL					result;
 	
-	if ([_delegate respondsToSelector:@selector(verifier:withPropertyList:named:failedForProperty:atPath:expectedType:)])
+	if ([_delegate respondsToSelector:@selector(verifier:withPropertyList:named:failedForProperty:withError:expectedType:)])
 	{
 		NS_DURING
 			result = [_delegate verifier:self
 						withPropertyList:rootPList
 								   named:name
 					   failedForProperty:subPList
-								  atPath:keyPath
+							   withError:error
 							expectedType:localSchema];
 		NS_HANDLER
-			OOLog(@"plistVerifier.delegateException", @"Property list schema verifier: delegate threw exception (%@) in -verifier:withPropertyList:named:failedForProperty:atPath:expectedType: at %@ in %@ -- stopping.", [localException name], [OOPListSchemaVerifier descriptionForKeyPath:keyPath], name);
+			OOLog(@"plistVerifier.delegateException", @"Property list schema verifier: delegate threw exception (%@) in -verifier:withPropertyList:named:failedForProperty:atPath:expectedType: at %@ in %@ -- stopping.", [localException name], [error plistKeyPathDescription], name);
 			result = NO;
 		NS_ENDHANDLER
 	}
 	else
 	{
-		OOLog(@"plistVerifier.failed", @"Verification of property list \"%@\" failed: wrong type at %@.", name, [[self class] descriptionForKeyPath:keyPath]);
+		OOLog(@"plistVerifier.failed", @"Verification of property list \"%@\" failed at %@: %@", name, [error plistKeyPathDescription], [error localizedDescription]);
 		result = NO;
 	}
 	return result;
@@ -386,7 +441,7 @@ VALIDATE_PROTO(DelegatedType);
 		NSString *errorDesc = nil;
 		NSData *data = [NSPropertyListSerialization dataFromPropertyList:schema format:NSPropertyListXMLFormat_v1_0 errorDescription:&errorDesc];
 		if (data != nil)  [data writeToFile:@"schema.plist" atomically:YES];
-		else OOLog(@"plistVerifier.temp", @"Failed to convert schema to plist: %@", errorDesc);
+		else OOLog(@"plistVerifier.dumpSchema", @"Failed to convert schema to plist: %@", errorDesc);
 	}
 	
 	[schema retain];
@@ -410,7 +465,7 @@ VALIDATE_PROTO(DelegatedType);
 	
 	if (![subSchema isKindOfClass:[NSDictionary class]])
 	{
-		OOLog(@"plistVerifier.badSchema", @"Property list schema verifier: bad schema -- expected dictionary, got %@ at path: %@.", [subSchema class], [self keyPathToString:keyPath]);
+		OOLog(@"plistVerifier.badSchema", @"Property list schema verifier: bad schema -- expected dictionary, got %@ at path: %@.", [subSchema class], KeyPathToString(keyPath));
 		return nil;
 	}
 	
@@ -483,7 +538,7 @@ VALIDATE_PROTO(DelegatedType);
 			newType = [definitions objectForKey:schemaType];
 			if (newType == nil)
 			{
-				OOLog(@"plistVerifier.badSchema", @"Property list schema verifier: bad schema -- undefined reference %@ at path %@.", schemaType, [self keyPathToString:keyPath]);
+				OOLog(@"plistVerifier.badSchema", @"Property list schema verifier: bad schema -- undefined reference %@ at path %@.", schemaType, KeyPathToString(keyPath));
 			}
 			if (outChanged != NULL)  *outChanged = YES;
 			return newType;
@@ -498,7 +553,7 @@ VALIDATE_PROTO(DelegatedType);
 	}
 	else
 	{
-		OOLog(@"plistVerifier.badSchema", @"Property list schema verifier: bad schema -- expected string or dictionary, got %@ at path: %@.", [schemaType class], [self keyPathToString:keyPath]);
+		OOLog(@"plistVerifier.badSchema", @"Property list schema verifier: bad schema -- expected string or dictionary, got %@ at path: %@.", [schemaType class], KeyPathToString(keyPath));
 		OK = NO;
 	}
 	
@@ -508,7 +563,7 @@ VALIDATE_PROTO(DelegatedType);
 		type = [schemaType objectForKey:@"type"];
 		if (type == nil)
 		{
-			OOLog(@"plistVerifier.badSchema", @"Property list schema verifier: bad schema -- no type specified at path: %@.", [self keyPathToString:keyPath]);
+			OOLog(@"plistVerifier.badSchema", @"Property list schema verifier: bad schema -- no type specified at path: %@.", KeyPathToString(keyPath));
 			OK = NO;
 		}
 	}
@@ -518,7 +573,7 @@ VALIDATE_PROTO(DelegatedType);
 		newType = [definitions objectForKey:type];
 		if (newType == nil)
 		{
-			OOLog(@"plistVerifier.badSchema", @"Property list schema verifier: bad schema -- undefined reference %@ at path %@.", type, [self keyPathToString:keyPath]);
+			OOLog(@"plistVerifier.badSchema", @"Property list schema verifier: bad schema -- undefined reference %@ at path %@.", type, KeyPathToString(keyPath));
 			OK = NO;
 		}
 		type = newType;
@@ -615,7 +670,7 @@ VALIDATE_PROTO(DelegatedType);
 			}
 			if ([simpleTypes member:type] == nil && ![type hasPrefix:@"$"])
 			{
-				OOLog(@"plistVerifier.badSchema", @"Property list schema verifier: bad schema -- unknown type \"%@\" at path %@.", type, [self keyPathToString:keyPath]);
+				OOLog(@"plistVerifier.badSchema", @"Property list schema verifier: bad schema -- unknown type \"%@\" at path %@.", type, KeyPathToString(keyPath));
 				OK = NO;
 			}
 		}
@@ -656,7 +711,7 @@ VALIDATE_PROTO(DelegatedType);
 	
 	if (![types isKindOfClass:[NSArray class]])
 	{
-		OOLog(@"plistVerifier.badSchema", @"Property list schema verifier: bad schema -- expected array, got %@ at path: %@.", [types class], [self keyPathToString:keyPath]);
+		OOLog(@"plistVerifier.badSchema", @"Property list schema verifier: bad schema -- expected array, got %@ at path: %@.", [types class], KeyPathToString(keyPath));
 		return nil;
 	}
 	
@@ -708,82 +763,60 @@ VALIDATE_PROTO(DelegatedType);
 }
 
 
-+ (NSArray *)keyPathToArray:(BackLinkChain)keyPath
-{
-	NSMutableArray			*result = nil;
-	BackLinkChain			*curr = NULL;
-	
-	result = [NSMutableArray array];
-	for (curr = &keyPath; curr != NULL; curr = curr->link)
-	{
-		if (curr->element != nil)  [result insertObject:curr->element atIndex:0];
-	}
-	
-	return result;
-}
-
-
-+ (NSString *)keyPathToString:(BackLinkChain)keyPath
-{
-	return [self descriptionForKeyPath:[self keyPathToArray:keyPath]];
-}
-
-
-- (BOOL)validatePList:(id)rootPList
-				named:(NSString *)name
-		  subProperty:(id)subProperty
-	againstSchemaType:(NSDictionary *)subSchema
-			   atPath:(BackLinkChain)keyPath
-			tentative:(BOOL)tentative
-				 stop:(BOOL *)outStop
+- (BOOL)verifyPList:(id)rootPList
+			  named:(NSString *)name
+		subProperty:(id)subProperty
+  againstSchemaType:(NSDictionary *)subSchema
+			 atPath:(BackLinkChain)keyPath
+		  tentative:(BOOL)tentative
+			   stop:(BOOL *)outStop
 {
 	SchemaType				type;
-	BOOL					OK;
+	NSError					*error = nil;
 	
 	assert(outStop != nil);
 	
-	type = ResolveSchemaType(&subSchema, keyPath);
+	type = ResolveSchemaType(&subSchema, keyPath, &error);
 	
-	#define VALIDATE_CASE(T) case kType##T: OK = Validate_##T(self, subProperty, subSchema, rootPList, name, keyPath, tentative, outStop); break;
+	#define VERIFY_CASE(T) case kType##T: error = Verify_##T(self, subProperty, subSchema, rootPList, name, keyPath, tentative, outStop); break;
 	
 	switch (type)
 	{
-		VALIDATE_CASE(String);
-		VALIDATE_CASE(Array);
-		VALIDATE_CASE(Dictionary);
-		VALIDATE_CASE(Integer);
-		VALIDATE_CASE(PositiveInteger);
-		VALIDATE_CASE(Float);
-		VALIDATE_CASE(PositiveFloat);
-		VALIDATE_CASE(OneOf);
-		VALIDATE_CASE(Enumeration);
-		VALIDATE_CASE(Boolean);
-		VALIDATE_CASE(FuzzyBoolean);
-		VALIDATE_CASE(Vector);
-		VALIDATE_CASE(Quaternion);
-		VALIDATE_CASE(DelegatedType);
+		VERIFY_CASE(String);
+		VERIFY_CASE(Array);
+		VERIFY_CASE(Dictionary);
+		VERIFY_CASE(Integer);
+		VERIFY_CASE(PositiveInteger);
+		VERIFY_CASE(Float);
+		VERIFY_CASE(PositiveFloat);
+		VERIFY_CASE(OneOf);
+		VERIFY_CASE(Enumeration);
+		VERIFY_CASE(Boolean);
+		VERIFY_CASE(FuzzyBoolean);
+		VERIFY_CASE(Vector);
+		VERIFY_CASE(Quaternion);
+		VERIFY_CASE(DelegatedType);
 		
 		case kTypeUnknown:
 			// ResolveSchemaType() should have provided an error.
 			*outStop = YES;
-			return NO;
 	}
 	
-	if (!OK && !tentative && type != kTypeArray && type != kTypeDictionary)
+	if (error != nil && !tentative)
 	{
-		[self delegateVerifierWithPropertyList:rootPList
-										 named:name
-							 failedForProperty:subProperty
-										atPath:[OOPListSchemaVerifier keyPathToArray:keyPath]
-								  expectedType:subSchema];
+		*outStop = ![self delegateVerifierWithPropertyList:rootPList
+													 named:name
+										 failedForProperty:subProperty
+												 withError:error
+											  expectedType:subSchema];
 	}
-	return OK;
+	return error == nil;
 }
 
 @end
 
 
-static SchemaType StringToSchemaType(NSString *string)
+static SchemaType StringToSchemaType(NSString *string, NSError **outError)
 {
 	static NSDictionary			*typeMap = nil;
 	SchemaType					result;
@@ -815,11 +848,11 @@ static SchemaType StringToSchemaType(NSString *string)
 	{
 		if ([string hasPrefix:@"$"])
 		{
-			OOLog(@"plistVerifier.badSchema", @"Property list schema verifier: bad schema -- unresolved type definition reference \"%@\".", string);
+			*outError = ErrorWithProperty(kPListErrorSchemaUnknownType, NULL, kUnknownTypeErrorKey, string, @"Bad schema: unresolved macro reference \"%@\".", string);
 		}
 		else
 		{
-			OOLog(@"plistVerifier.badSchema", @"Property list schema verifier: bad schema -- unknown type \"%@\".", string);
+			*outError = ErrorWithProperty(kPListErrorSchemaUnknownType, NULL, kUnknownTypeErrorKey, string, @"Bad schema: unknown type \"%@\".", string);
 		}
 	}
 	
@@ -827,9 +860,11 @@ static SchemaType StringToSchemaType(NSString *string)
 }
 
 
-static SchemaType ResolveSchemaType(NSDictionary **typeSpec, BackLinkChain keyPath)
+static SchemaType ResolveSchemaType(NSDictionary **typeSpec, BackLinkChain keyPath, NSError **outError)
 {
 	id						typeVal = nil;
+	
+	assert(outError != NULL);
 	
 	for (;;)
 	{
@@ -838,17 +873,20 @@ static SchemaType ResolveSchemaType(NSDictionary **typeSpec, BackLinkChain keyPa
 		*typeSpec = typeVal;
 	}
 	
-	if ([typeVal isKindOfClass:[NSString class]])  return StringToSchemaType(typeVal);
+	if ([typeVal isKindOfClass:[NSString class]])  return StringToSchemaType(typeVal, outError);
 	
-	OOLog(@"plistVerifier.badSchema", @"Property list schema verifier: bad schema -- no type for path %@.", [OOPListSchemaVerifier keyPathToString:keyPath]);
+	*outError = Error(kPListErrorSchemaNoType, &keyPath, @"Property list schema verifier: bad schema -- no type for path %@.", KeyPathToString(keyPath));
 	return kTypeUnknown;
 }
 
 
-static NSString *ApplyStringFilter(NSString *string, id filterSpec)
+static NSString *ApplyStringFilter(NSString *string, id filterSpec, BackLinkChain keyPath, NSError **outError)
 {
 	NSEnumerator			*filterEnum = nil;
 	id						filter = nil;
+	NSRange					range;
+	
+	assert(outError != NULL);
 	
 	if (filterSpec == nil)  return string;
 	
@@ -863,41 +901,83 @@ static NSString *ApplyStringFilter(NSString *string, id filterSpec)
 			if ([filter isKindOfClass:[NSString class]])
 			{
 				if ([filter isEqual:@"lowerCase"])  string = [string lowercaseString];
-				if ([filter isEqual:@"upperCase"])  string = [string uppercaseString];
-				if ([filter hasPrefix:@"truncFront:"])
+				else if ([filter isEqual:@"upperCase"])  string = [string uppercaseString];
+				else if ([filter hasPrefix:@"truncFront:"])
 				{
 					string = [string substringToIndex:[[filter substringFromIndex:11] intValue]];
 				}
-				if ([filter hasPrefix:@"truncBack:"])
+				else if ([filter hasPrefix:@"truncBack:"])
 				{
 					string = [string substringToIndex:[[filter substringFromIndex:10] intValue]];
+				}
+				else if ([filter hasPrefix:@"subStringTo:"])
+				{
+					range = [string rangeOfString:[filter substringFromIndex:12]];
+					if (range.location != NSNotFound)
+					{
+						string = [string substringToIndex:range.location];
+					}
+				}
+				else if ([filter hasPrefix:@"subStringFrom:"])
+				{
+					range = [string rangeOfString:[filter substringFromIndex:14]];
+					if (range.location != NSNotFound)
+					{
+						string = [string substringFromIndex:range.location + range.length];
+					}
+				}
+				else if ([filter hasPrefix:@"subStringToInclusive:"])
+				{
+					range = [string rangeOfString:[filter substringFromIndex:12]];
+					if (range.location != NSNotFound)
+					{
+						string = [string substringToIndex:range.location + range.length];
+					}
+				}
+				else if ([filter hasPrefix:@"subStringFromInclusive:"])
+				{
+					range = [string rangeOfString:[filter substringFromIndex:14]];
+					if (range.location != NSNotFound)
+					{
+						string = [string substringFromIndex:range.location];
+					}
+				}
+				else
+				{
+					*outError = ErrorWithProperty(kPListErrorSchemaUnknownFilter, &keyPath, kUnnownFilterErrorKey, filter, @"Bad schema: unknown string filter specifier \"%@\".", filter);
 				}
 			}
 			else
 			{
-				OOLog(@"plistVerifier.badSchema", @"Property list schema verifier: unknown string filter \"%@\".", filter);
+				*outError = Error(kPListErrorSchemaUnknownFilter, &keyPath, @"Bad schema: filter specifier is not a string.");
 			}
 		}
 	}
 	else
 	{
-		OOLog(@"plistVerifier.badSchema", @"Property list schema verifier: unknown string filter \"%@\".", filterSpec);
+		*outError = Error(kPListErrorSchemaUnknownFilter, &keyPath, @"Bad schema: \"filter\" must be a string or an array.");
 	}
 	
 	return string;
 }
 
 
-static BOOL ApplyStringTest(NSString *string, id test, SEL testSelector, NSString *testDescription)
+static BOOL ApplyStringTest(NSString *string, id test, SEL testSelector, NSString *testDescription, BackLinkChain keyPath, NSError **outError)
 {
 	BOOL					(*testIMP)(id, SEL, NSString *);
 	NSEnumerator			*testEnum = nil;
-	id						subTest = nil;	
+	id						subTest = nil;
+	
+	assert(outError != NULL);
 	
 	if (test == nil)  return YES;
 	
 	testIMP = (BOOL(*)(id, SEL, NSString *))[string methodForSelector:testSelector];
-	if (testIMP == NULL)  return NO;
+	if (testIMP == NULL)
+	{
+		*outError = Error(kPListErrorInternal, &keyPath, @"OOPListSchemaVerifier internal error: NSString does not respond to test selector %@.", NSStringFromSelector(testSelector));
+		return NO;
+	}
 	
 	if ([test isKindOfClass:[NSString class]])
 	{
@@ -914,62 +994,194 @@ static BOOL ApplyStringTest(NSString *string, id test, SEL testSelector, NSStrin
 			}
 			else
 			{
-				OOLog(@"plistVerifier.badSchema", @"Property list schema verifier: bad schema -- %@ requirement \"%@\" is not a %@.", testDescription, subTest, @"string");
+				*outError = Error(kPListErrorSchemaBadComparator, &keyPath, @"Bad schema: required %@ is not a string.", testDescription);
 				return NO;
 			}
 		}
 	}
 	else
 	{
-		OOLog(@"plistVerifier.badSchema", @"Property list schema verifier: bad schema -- %@ requirement \"%@\" is not a %@.", testDescription, test, @"string or array");
+		*outError = Error(kPListErrorSchemaBadComparator, &keyPath, @"Bad schema: %@ requirement specification is not a string or array.", testDescription);
 	}
 	return NO;
 }
 
 
-static BOOL Validate_String(OOPListSchemaVerifier *verifier, id value, NSDictionary *params, id rootPList, NSString *name, BackLinkChain keyPath, BOOL tentative, BOOL *outStop)
+static NSArray *KeyPathToArray(BackLinkChain keyPath)
+{
+	NSMutableArray			*result = nil;
+	BackLinkChain			*curr = NULL;
+	
+	result = [NSMutableArray array];
+	for (curr = &keyPath; curr != NULL; curr = curr->link)
+	{
+		if (curr->element != nil)  [result insertObject:curr->element atIndex:0];
+	}
+	
+	return result;
+}
+
+
+static NSString *KeyPathToString(BackLinkChain keyPath)
+{
+	return [OOPListSchemaVerifier descriptionForKeyPath:KeyPathToArray(keyPath)];
+}
+
+
+static NSString *StringForErrorReport(NSString *string)
+{
+	id						result = nil;
+	
+	result = [NSMutableString stringWithString:[string substringToIndex:kMaximumLengthForStringInErrorMessage]];
+	[result replaceOccurrencesOfString:@"\t" withString:@"    " options:0 range:NSMakeRange(0, [string length])];
+	[result replaceOccurrencesOfString:@"\r\n" withString:@" \\ " options:0 range:NSMakeRange(0, [string length])];
+	[result replaceOccurrencesOfString:@"\n" withString:@" \\ " options:0 range:NSMakeRange(0, [string length])];
+	[result replaceOccurrencesOfString:@"\r" withString:@" \\ " options:0 range:NSMakeRange(0, [string length])];
+	
+	if (kMaximumLengthForStringInErrorMessage < [result length])
+	{
+		result = [result substringToIndex:kMaximumLengthForStringInErrorMessage - 3];
+		result = [result stringByAppendingString:@"..."];
+	}
+	
+	return result;
+}
+
+
+static NSString *ArrayForErrorReport(NSArray *array)
+{
+	NSString				*result = nil;
+	NSString				*string = nil;
+	unsigned				i, count;
+	NSAutoreleasePool		*pool = nil;
+	
+	count = [array count];
+	if (count == 0)  return @"( )";
+	
+	pool = [[NSAutoreleasePool alloc] init];
+	
+	result = [NSString stringWithFormat:@"(%@", [array objectAtIndex:0]];
+	
+	for (i = 1; i != count; ++i)
+	{
+		string = [result stringByAppendingFormat:@", %@", [array objectAtIndex:i]];
+		if (kMaximumLengthForStringInErrorMessage < [string length])
+		{
+			result = [result stringByAppendingString:@", ..."];
+			break;
+		}
+		result = string;
+	}
+	
+	result = [result stringByAppendingString:@")"];
+	
+	[result retain];
+	[pool release];
+	return [result autorelease];
+}
+
+
+static NSString *SetForErrorReport(NSSet *set)
+{
+	return ArrayForErrorReport([[set allObjects] sortedArrayUsingSelector:@selector(caseInsensitiveCompare:)]);
+}
+
+
+static NSString *StringOrArrayForErrorReport(id value, NSString *arrayPrefix)
+{
+	if ([value isKindOfClass:[NSString class]])
+	{
+		return [NSString stringWithFormat:@"\"%@\"", StringForErrorReport(value)];
+	}
+	
+	if (arrayPrefix == nil)  arrayPrefix = @"";
+	if ([value isKindOfClass:[NSArray class]])
+	{
+		return [arrayPrefix stringByAppendingString:ArrayForErrorReport(value)];
+	}
+	if ([value isKindOfClass:[NSSet class]])
+	{
+		return [arrayPrefix stringByAppendingString:SetForErrorReport(value)];
+	}
+	if (value == nil)  return @"(null)";
+	return @"<?>";
+}
+
+
+// Specific type verifiers
+
+#define REQUIRE_TYPE(CLASSNAME, NAMESTRING)	 do { \
+		if (![value isKindOfClass:[CLASSNAME class]]) \
+		{ \
+			return ErrorTypeMismatch([CLASSNAME class], NAMESTRING, value, keyPath); \
+		} \
+	} while (0)
+
+static NSError *Verify_String(OOPListSchemaVerifier *verifier, id value, NSDictionary *params, id rootPList, NSString *name, BackLinkChain keyPath, BOOL tentative, BOOL *outStop)
 {
 	NSString			*filteredString = nil;
 	id					testValue = nil;
 	unsigned			length;
 	unsigned			lengthConstraint;
+	NSError				*error = nil;
 	
-	if (![value isKindOfClass:[NSString class]])  return NO;
+	REQUIRE_TYPE(NSString, @"string");
 	
-	filteredString = ApplyStringFilter(value, [params objectForKey:@"filter"]);
-	if (filteredString == nil)  return NO;
+	// Apply filters
+	filteredString = ApplyStringFilter(value, [params objectForKey:@"filter"], keyPath, &error);
+	if (filteredString == nil)  return error;
 	
+	// Apply substring requirements
 	testValue = [params objectForKey:@"requiredPrefix"];
 	if (testValue != nil)
 	{
-		if (!ApplyStringTest(filteredString, testValue, @selector(hasPrefix:), @"prefix"))  return NO;
+		if (ApplyStringTest(filteredString, testValue, @selector(hasPrefix:), @"prefix", keyPath, &error))
+		{
+			if (error == nil)  error = ErrorWithProperty(kPListErrorStringPrefixMissing, &keyPath, kMissingSubStringErrorKey, testValue, @"String \"%@\" does not have required %@ %@.", StringForErrorReport(value), @"prefix", StringOrArrayForErrorReport(testValue, @"in "));
+			return error;
+		}
 	}
 	
 	testValue = [params objectForKey:@"requiredSuffix"];
 	if (testValue != nil)
 	{
-		if (!ApplyStringTest(filteredString, testValue, @selector(hasSuffix:), @"suffix"))  return NO;
+		if (!ApplyStringTest(filteredString, testValue, @selector(hasSuffix:), @"suffix", keyPath, &error))
+		{
+			if (error == nil)  error = ErrorWithProperty(kPListErrorStringSuffixMissing, &keyPath, kMissingSubStringErrorKey, testValue, @"String \"%@\" does not have required %@ %@.", StringForErrorReport(value), @"suffix", StringOrArrayForErrorReport(testValue, @"in "));
+			return error;
+		}
 	}
 	
 	testValue = [params objectForKey:@"requiredSubString"];
 	if (testValue != nil)
 	{
-		if (!ApplyStringTest(filteredString, testValue, @selector(ooPListVerifierHasSubString:), @"substring")
-		)  return NO;
+		if (!ApplyStringTest(filteredString, testValue, @selector(ooPListVerifierHasSubString:), @"substring", keyPath, &error))
+		{
+			if (error == nil)  error = ErrorWithProperty(kPListErrorStringSubstringMissing, &keyPath, kMissingSubStringErrorKey, testValue, @"String \"%@\" does not have required %@ %@.", StringForErrorReport(value), @"substring", StringOrArrayForErrorReport(testValue, @"in "));
+			return error;
+		}
 	}
 	
+	// Apply length bounds.
 	length = [filteredString length];
 	lengthConstraint = [params unsignedIntForKey:@"minLength"];
-	if (length < lengthConstraint)  return NO;
+	if (length < lengthConstraint)
+	{
+		return  Error(kPListErrorMinimumConstraintNotMet, &keyPath, @"String \"%@\" is too short (%u bytes, minimum is %u).", StringForErrorReport(filteredString), length, lengthConstraint);
+	}
 	
 	lengthConstraint = [params unsignedIntForKey:@"maxLength" defaultValue:UINT_MAX];
-	if (lengthConstraint < length)  return NO;
+	if (lengthConstraint < length)
+	{
+		return  Error(kPListErrorMaximumConstraintNotMet, &keyPath, @"String \"%@\" is too long (%u bytes, maximum is %u).", StringForErrorReport(filteredString), length, lengthConstraint);
+	}
 	
-	return YES;
+	// All tests passed.
+	return nil;
 }
 
 
-static BOOL Validate_Array(OOPListSchemaVerifier *verifier, id value, NSDictionary *params, id rootPList, NSString *name, BackLinkChain keyPath, BOOL tentative, BOOL *outStop)
+static NSError *Verify_Array(OOPListSchemaVerifier *verifier, id value, NSDictionary *params, id rootPList, NSString *name, BackLinkChain keyPath, BOOL tentative, BOOL *outStop)
 {
 	NSDictionary			*valueType = nil;
 	BOOL					OK = YES, stop = NO;
@@ -978,14 +1190,23 @@ static BOOL Validate_Array(OOPListSchemaVerifier *verifier, id value, NSDictiona
 	NSAutoreleasePool		*pool = nil;
 	unsigned				constraint;
 	
-	if (![value isKindOfClass:[NSArray class]])  return NO;
+	REQUIRE_TYPE(NSArray, @"array");
 	
+	// Apply count bounds.
 	count = [value count];
 	constraint = [params unsignedIntForKey:@"minCount" defaultValue:0];
-	if (count < constraint)  return NO;
-	constraint = [params unsignedIntForKey:@"maxCount" defaultValue:UINT_MAX];
-	if (constraint < count)  return NO;
+	if (count < constraint)
+	{
+		return  Error(kPListErrorMinimumConstraintNotMet, &keyPath, @"Array has too few members (%u, minimum is %u).", count, constraint);
+	}
 	
+	constraint = [params unsignedIntForKey:@"maxCount" defaultValue:UINT_MAX];
+	if (constraint < count)
+	{
+		return  Error(kPListErrorMaximumConstraintNotMet, &keyPath, @"Array has too many members (%u, maximum is %u).", count, constraint);
+	}
+	
+	// Test member objects.
 	valueType = [params objectForKey:@"valueType"];
 	if (valueType != nil)
 	{
@@ -995,26 +1216,28 @@ static BOOL Validate_Array(OOPListSchemaVerifier *verifier, id value, NSDictiona
 			
 			subProperty = [value objectAtIndex:i];
 			
-			if (![verifier validatePList:rootPList
-									  named:name
-							 subProperty:subProperty
-					   againstSchemaType:valueType
-								  atPath:BackLinkIndex(&keyPath, i)
-							   tentative:tentative stop:&stop])
+			if (![verifier verifyPList:rootPList
+								 named:name
+						   subProperty:subProperty
+					 againstSchemaType:valueType
+								atPath:BackLinkIndex(&keyPath, i)
+							 tentative:tentative
+								  stop:&stop])
 			{
 				OK = NO;
 			}
 			
 			[pool release];
+			if ((stop && !tentative) || (tentative && !OK))  break;
 		}
 	}
 	
-	*outStop = stop;
-	return OK;
+	*outStop = stop && !tentative;
+	return nil;
 }
 
 
-static BOOL Validate_Dictionary(OOPListSchemaVerifier *verifier, id value, NSDictionary *params, id rootPList, NSString *name, BackLinkChain keyPath, BOOL tentative, BOOL *outStop)
+static NSError *Verify_Dictionary(OOPListSchemaVerifier *verifier, id value, NSDictionary *params, id rootPList, NSString *name, BackLinkChain keyPath, BOOL tentative, BOOL *outStop)
 {
 	NSDictionary			*schema = nil,
 							*valueType = nil,
@@ -1022,33 +1245,44 @@ static BOOL Validate_Dictionary(OOPListSchemaVerifier *verifier, id value, NSDic
 	NSEnumerator			*keyEnum = nil;
 	NSString				*key = nil;
 	id						subProperty = nil;
-	BOOL					OK = YES, stop = NO;
+	BOOL					OK = YES, stop = NO, prematureExit = NO;
 	BOOL					allowOthers;
 	NSAutoreleasePool		*pool = nil;
 	NSMutableSet			*requiredKeys = nil;
 	NSArray					*requiredKeyList = nil;
 	unsigned				count, constraint;
+	NSError					*error = nil;
 	
-	if (![value isKindOfClass:[NSDictionary class]])  return NO;
+	REQUIRE_TYPE(NSDictionary, @"dictionary");
 	
+	// Apply count bounds.
 	count = [value count];
 	constraint = [params unsignedIntForKey:@"minCount" defaultValue:0];
-	if (count < constraint)  return NO;
+	if (count < constraint)
+	{
+		return  Error(kPListErrorMinimumConstraintNotMet, &keyPath, @"Dictionary has too few pairs (%u, minimum is %u).", count, constraint);
+	}
 	constraint = [params unsignedIntForKey:@"maxCount" defaultValue:UINT_MAX];
-	if (constraint < count)  return NO;
+	if (constraint < count)
+	{
+		return  Error(kPListErrorMaximumConstraintNotMet, &keyPath, @"Dictionary has too manu pairs (%u, maximum is %u).", count, constraint);
+	}
 	
+	// Get schema.
 	schema = [params objectForKey:@"schema"];
 	valueType = [params objectForKey:@"valueType"];
 	allowOthers = [params boolForKey:@"allowOthers" defaultValue:YES];
 	requiredKeyList = [params arrayForKey:@"requiredKeys"];
 	
-	if (schema == nil && valueType == nil && requiredKeyList == nil && allowOthers)  return YES;
+	// If these conditions are met, all members must pass:
+	if (schema == nil && valueType == nil && requiredKeyList == nil && allowOthers)  return nil;
 	
 	if (requiredKeyList != nil)
 	{
 		requiredKeys = [NSMutableSet setWithArray:requiredKeyList];
 	}
 	
+	// Test member objects.
 	for (keyEnum = [value keyEnumerator]; (key = [keyEnum nextObject]) && !stop; )
 	{
 		pool = [[NSAutoreleasePool alloc] init];
@@ -1059,34 +1293,51 @@ static BOOL Validate_Dictionary(OOPListSchemaVerifier *verifier, id value, NSDic
 		
 		if (typeSpec != nil)
 		{
-			if (![verifier validatePList:rootPList
-								   named:name
-							 subProperty:subProperty
-					   againstSchemaType:typeSpec
-								  atPath:BackLink(&keyPath, key)
-							   tentative:tentative stop:&stop])
+			if (![verifier verifyPList:rootPList
+								 named:name
+						   subProperty:subProperty
+					 againstSchemaType:typeSpec
+								atPath:BackLink(&keyPath, key)
+							 tentative:tentative
+								  stop:&stop])
 			{
 				OK = NO;
 			}
 		}
-		else if (!allowOthers && ![requiredKeys member:key])  OK = NO;
+		else if (!allowOthers && ![requiredKeys member:key])
+		{
+			// Report error now rather than returning it, since there may be several unknown keys.
+			error = ErrorWithProperty(kPListErrorDictionaryUnknownKey, &keyPath, kUnknownKeyErrorKey, key, @"Unpermitted key \"%@\" in dictionary.", StringForErrorReport(key));
+			stop = ![verifier delegateVerifierWithPropertyList:rootPList
+														 named:name
+											 failedForProperty:value
+													 withError:error
+												  expectedType:params];
+			error = nil;
+		}
 		
 		[requiredKeys removeObject:key];
 		
 		[pool release];
+		if ((stop && !tentative) || (tentative && !OK))
+		{
+			prematureExit = YES;
+			break;
+		}
 	}
 	
-	if ([requiredKeys count] != 0)
+	// Check that all required keys were present.
+	if (!prematureExit && [requiredKeys count] != 0)
 	{
-		OK = NO;
+		error = ErrorWithProperty(kPListErrorDictionaryMissingRequiredKeys, &keyPath, kMissingRequiredKeysErrorKey, requiredKeys, @"Required keys %@ missing from dictionary.", SetForErrorReport(requiredKeys));
 	}
 	
-	*outStop = stop;
-	return OK;
+	*outStop = stop && !tentative;
+	return error;
 }
 
 
-static BOOL Validate_Integer(OOPListSchemaVerifier *verifier, id value, NSDictionary *params, id rootPList, NSString *name, BackLinkChain keyPath, BOOL tentative, BOOL *outStop)
+static NSError *Verify_Integer(OOPListSchemaVerifier *verifier, id value, NSDictionary *params, id rootPList, NSString *name, BackLinkChain keyPath, BOOL tentative, BOOL *outStop)
 {
 	long long				numericValue;
 	long long				constraint;
@@ -1094,20 +1345,29 @@ static BOOL Validate_Integer(OOPListSchemaVerifier *verifier, id value, NSDictio
 	numericValue = OOLongLongFromObject(value, 0);
 	
 	// Check basic parseability. If there's inequality here, the default value is being returned.
-	if (numericValue != OOLongLongFromObject(value, 1))  return NO;
+	if (numericValue != OOLongLongFromObject(value, 1))
+	{
+		return ErrorTypeMismatch([NSNumber class], @"integer", value, keyPath);
+	}
 	
 	// Check constraints.
 	constraint = [params longLongForKey:@"minimum" defaultValue:LLONG_MIN];
-	if (numericValue < constraint)  return NO;
+	if (numericValue < constraint)
+	{
+		return  Error(kPListErrorMinimumConstraintNotMet, &keyPath, @"Number is too small (%lli, minimum is %lli).", numericValue, constraint);
+	}
 	
 	constraint = [params longLongForKey:@"maximum" defaultValue:LLONG_MAX];
-	if (constraint < numericValue)  return NO;
+	if (constraint < numericValue)
+	{
+		return  Error(kPListErrorMaximumConstraintNotMet, &keyPath, @"Number is too large (%lli, maximum is %lli).", numericValue, constraint);
+	}
 	
-	return YES;
+	return nil;
 }
 
 
-static BOOL Validate_PositiveInteger(OOPListSchemaVerifier *verifier, id value, NSDictionary *params, id rootPList, NSString *name, BackLinkChain keyPath, BOOL tentative, BOOL *outStop)
+static NSError *Verify_PositiveInteger(OOPListSchemaVerifier *verifier, id value, NSDictionary *params, id rootPList, NSString *name, BackLinkChain keyPath, BOOL tentative, BOOL *outStop)
 {
 	unsigned long long		numericValue;
 	unsigned long long		constraint;
@@ -1115,20 +1375,29 @@ static BOOL Validate_PositiveInteger(OOPListSchemaVerifier *verifier, id value, 
 	numericValue = OOUnsignedLongLongFromObject(value, 0);
 	
 	// Check basic parseability. If there's inequality here, the default value is being returned.
-	if (numericValue != OOUnsignedLongLongFromObject(value, 1))  return NO;
+	if (numericValue != OOUnsignedLongLongFromObject(value, 1))
+	{
+		return ErrorTypeMismatch([NSNumber class], @"positive integer", value, keyPath);
+	}
 	
 	// Check constraints.
-	constraint = [params unsignedLongLongForKey:@"minimum"];
-	if (numericValue < constraint)  return NO;
+	constraint = [params unsignedLongLongForKey:@"minimum" defaultValue:0];
+	if (numericValue < constraint)
+	{
+		return  Error(kPListErrorMinimumConstraintNotMet, &keyPath, @"Number is too small (%llu, minimum is %llu).", numericValue, constraint);
+	}
 	
 	constraint = [params unsignedLongLongForKey:@"maximum" defaultValue:ULLONG_MAX];
-	if (constraint < numericValue)  return NO;
+	if (constraint < numericValue)
+	{
+		return  Error(kPListErrorMaximumConstraintNotMet, &keyPath, @"Number is too large (%llu, maximum is %llu).", numericValue, constraint);
+	}
 	
-	return YES;
+	return nil;
 }
 
 
-static BOOL Validate_Float(OOPListSchemaVerifier *verifier, id value, NSDictionary *params, id rootPList, NSString *name, BackLinkChain keyPath, BOOL tentative, BOOL *outStop)
+static NSError *Verify_Float(OOPListSchemaVerifier *verifier, id value, NSDictionary *params, id rootPList, NSString *name, BackLinkChain keyPath, BOOL tentative, BOOL *outStop)
 {
 	double					numericValue;
 	double					constraint;
@@ -1136,20 +1405,29 @@ static BOOL Validate_Float(OOPListSchemaVerifier *verifier, id value, NSDictiona
 	numericValue = OODoubleFromObject(value, 0);
 	
 	// Check basic parseability. If there's inequality here, the default value is being returned.
-	if (numericValue != OODoubleFromObject(value, 1))  return NO;
+	if (numericValue != OODoubleFromObject(value, 1))
+	{
+		return ErrorTypeMismatch([NSNumber class], @"number", value, keyPath);
+	}
 	
 	// Check constraints.
 	constraint = [params doubleForKey:@"minimum" defaultValue:-INFINITY];
-	if (numericValue < constraint)  return NO;
+	if (numericValue < constraint)
+	{
+		return  Error(kPListErrorMinimumConstraintNotMet, &keyPath, @"Number is too small (%g, minimum is %g).", numericValue, constraint);
+	}
 	
 	constraint = [params doubleForKey:@"maximum" defaultValue:INFINITY];
-	if (constraint < numericValue)  return NO;
+	if (constraint < numericValue)
+	{
+		return  Error(kPListErrorMaximumConstraintNotMet, &keyPath, @"Number is too large (%g, maximum is %g).", numericValue, constraint);
+	}
 	
-	return YES;
+	return nil;
 }
 
 
-static BOOL Validate_PositiveFloat(OOPListSchemaVerifier *verifier, id value, NSDictionary *params, id rootPList, NSString *name, BackLinkChain keyPath, BOOL tentative, BOOL *outStop)
+static NSError *Verify_PositiveFloat(OOPListSchemaVerifier *verifier, id value, NSDictionary *params, id rootPList, NSString *name, BackLinkChain keyPath, BOOL tentative, BOOL *outStop)
 {
 	double					numericValue;
 	double					constraint;
@@ -1157,22 +1435,34 @@ static BOOL Validate_PositiveFloat(OOPListSchemaVerifier *verifier, id value, NS
 	numericValue = OODoubleFromObject(value, 0);
 	
 	// Check basic parseability. If there's inequality here, the default value is being returned.
-	if (numericValue != OODoubleFromObject(value, 1))  return NO;
+	if (numericValue != OODoubleFromObject(value, 1))
+	{
+		return ErrorTypeMismatch([NSNumber class], @"positive number", value, keyPath);
+	}
 	
-	if (numericValue < 0)  return NO;
+	if (numericValue < 0)
+	{
+		return Error(kPListErrorNumberIsNegative, &keyPath, @"Expected non-negative number, found %g.", numericValue);
+	}
 	
 	// Check constraints.
 	constraint = [params doubleForKey:@"minimum" defaultValue:0];
-	if (numericValue < constraint)  return NO;
+	if (numericValue < constraint)
+	{
+		return  Error(kPListErrorMinimumConstraintNotMet, &keyPath, @"Number is too small (%g, minimum is %g).", numericValue, constraint);
+	}
 	
 	constraint = [params doubleForKey:@"maximum" defaultValue:INFINITY];
-	if (constraint < numericValue)  return NO;
+	if (constraint < numericValue)
+	{
+		return  Error(kPListErrorMaximumConstraintNotMet, &keyPath, @"Number is too large (%g, maximum is %g).", numericValue, constraint);
+	}
 	
-	return YES;
+	return nil;
 }
 
 
-static BOOL Validate_OneOf(OOPListSchemaVerifier *verifier, id value, NSDictionary *params, id rootPList, NSString *name, BackLinkChain keyPath, BOOL tentative, BOOL *outStop)
+static NSError *Verify_OneOf(OOPListSchemaVerifier *verifier, id value, NSDictionary *params, id rootPList, NSString *name, BackLinkChain keyPath, BOOL tentative, BOOL *outStop)
 {
 	NSArray					*options = nil;
 	BOOL					OK = NO, stop = NO;
@@ -1183,22 +1473,21 @@ static BOOL Validate_OneOf(OOPListSchemaVerifier *verifier, id value, NSDictiona
 	options = [params arrayForKey:@"options"];
 	if (options == nil)
 	{
-		OOLog(@"plistVerifier.badSchema", @"Property list schema verifier: bad schema encountered while verifying %@ -- no options specified for oneOf clause at path %@.", name, [OOPListSchemaVerifier keyPathToString:keyPath]);
 		*outStop = YES;
-		return NO;
+		return Error(kPListErrorSchemaNoOneOfOptions, &keyPath, @"Bad schema: no options specified for oneOf type.");
 	}
 	
 	for (optionEnum = [options objectEnumerator]; (option = [optionEnum nextObject]) ;)
 	{
 		pool = [[NSAutoreleasePool alloc] init];
 		
-		if ([verifier validatePList:rootPList
-							  named:name
-						subProperty:value
-				  againstSchemaType:option
-							 atPath:keyPath
-						  tentative:YES
-							   stop:&stop])
+		if ([verifier verifyPList:rootPList
+							named:name
+					  subProperty:value
+				againstSchemaType:option
+						   atPath:keyPath
+						tentative:YES
+							 stop:&stop])
 		{
 			OK = YES;
 		}
@@ -1207,87 +1496,103 @@ static BOOL Validate_OneOf(OOPListSchemaVerifier *verifier, id value, NSDictiona
 		if (OK)  break;
 	}
 	
+	if (!OK)
+	{
+		return Error(kPListErrorOneOfNoMatch, &keyPath, @"No matching type rule could be found.");
+	}
+	
 	// Ignore stop in tentatives.
-	return OK;
+	return nil;
 }
 
 
-static BOOL Validate_Enumeration(OOPListSchemaVerifier *verifier, id value, NSDictionary *params, id rootPList, NSString *name, BackLinkChain keyPath, BOOL tentative, BOOL *outStop)
+static NSError *Verify_Enumeration(OOPListSchemaVerifier *verifier, id value, NSDictionary *params, id rootPList, NSString *name, BackLinkChain keyPath, BOOL tentative, BOOL *outStop)
 {
 	NSArray					*values = nil;
 	NSString				*filteredString = nil;
+	NSError					*error = nil;
+	
+	REQUIRE_TYPE(NSString, @"string");
 	
 	values = [params arrayForKey:@"values"];
 	if (values == nil)
 	{
-		OOLog(@"plistVerifier.badSchema", @"Property list schema verifier: bad schema encountered while verifying %@ -- no values specified for enumeration at path %@.", name, [OOPListSchemaVerifier keyPathToString:keyPath]);
 		*outStop = YES;
-		return NO;
+		return Error(kPListErrorSchemaNoEnumerationValues, &keyPath, @"Bad schema: no options specified for oneOf type.");
 	}
 	
-	filteredString = ApplyStringFilter(value, [params objectForKey:@"filter"]);
-	if (filteredString == nil)  return NO;
+	filteredString = ApplyStringFilter(value, [params objectForKey:@"filter"], keyPath, &error);
+	if (filteredString == nil)  return error;
 	
-	return [values containsObject:filteredString];
+	if ([values containsObject:filteredString])  return nil;
+	
+	return ErrorWithDictionary(kPListErrorEnumerationBadValue, &keyPath, @"Value \"%@\" not recognized, should be one of %@.", StringForErrorReport(value), ArrayForErrorReport(values));
 }
 
 
-static BOOL Validate_Boolean(OOPListSchemaVerifier *verifier, id value, NSDictionary *params, id rootPList, NSString *name, BackLinkChain keyPath, BOOL tentative, BOOL *outStop)
+static NSError *Verify_Boolean(OOPListSchemaVerifier *verifier, id value, NSDictionary *params, id rootPList, NSString *name, BackLinkChain keyPath, BOOL tentative, BOOL *outStop)
 {
 	// Check basic parseability. If there's inequality here, the default value is being returned.
-	return OOBooleanFromObject(value, 0) == OOBooleanFromObject(value, 1);
+	if (OOBooleanFromObject(value, 0) == OOBooleanFromObject(value, 1))  return nil;
+	else  return ErrorTypeMismatch([NSNumber class], @"boolean", value, keyPath);
 }
 
 
-static BOOL Validate_FuzzyBoolean(OOPListSchemaVerifier *verifier, id value, NSDictionary *params, id rootPList, NSString *name, BackLinkChain keyPath, BOOL tentative, BOOL *outStop)
+static NSError *Verify_FuzzyBoolean(OOPListSchemaVerifier *verifier, id value, NSDictionary *params, id rootPList, NSString *name, BackLinkChain keyPath, BOOL tentative, BOOL *outStop)
 {
 	// Check basic parseability. If there's inequality here, the default value is being returned.
-	return OOFuzzyBooleanFromObject(value, 0) == OOFuzzyBooleanFromObject(value, 1);
+	if (OOFuzzyBooleanFromObject(value, 0) == OOFuzzyBooleanFromObject(value, 1))  return nil;
+	else  return ErrorTypeMismatch([NSNumber class], @"fuzzy boolean", value, keyPath);
 }
 
 
-static BOOL Validate_Vector(OOPListSchemaVerifier *verifier, id value, NSDictionary *params, id rootPList, NSString *name, BackLinkChain keyPath, BOOL tentative, BOOL *outStop)
+static NSError *Verify_Vector(OOPListSchemaVerifier *verifier, id value, NSDictionary *params, id rootPList, NSString *name, BackLinkChain keyPath, BOOL tentative, BOOL *outStop)
 {
 	// Check basic parseability. If there's inequality here, the default value is being returned.
-	return vector_equal(OOVectorFromObject(value, kZeroVector), OOVectorFromObject(value, kBasisXVector));
+	if (vector_equal(OOVectorFromObject(value, kZeroVector), OOVectorFromObject(value, kBasisXVector)))  return nil;
+	else  return ErrorTypeMismatch(Nil, @"vector", value, keyPath);
 }
 
 
-static BOOL Validate_Quaternion(OOPListSchemaVerifier *verifier, id value, NSDictionary *params, id rootPList, NSString *name, BackLinkChain keyPath, BOOL tentative, BOOL *outStop)
+static NSError *Verify_Quaternion(OOPListSchemaVerifier *verifier, id value, NSDictionary *params, id rootPList, NSString *name, BackLinkChain keyPath, BOOL tentative, BOOL *outStop)
 {
 	// Check basic parseability. If there's inequality here, the default value is being returned.
-	return quaternion_equal(OOQuaternionFromObject(value, kZeroQuaternion), OOQuaternionFromObject(value, kIdentityQuaternion));
+	if (quaternion_equal(OOQuaternionFromObject(value, kZeroQuaternion), OOQuaternionFromObject(value, kIdentityQuaternion)))  return nil;
+	else  return ErrorTypeMismatch(Nil, @"quaternion", value, keyPath);
 }
 
 
-static BOOL Validate_DelegatedType(OOPListSchemaVerifier *verifier, id value, NSDictionary *params, id rootPList, NSString *name, BackLinkChain keyPath, BOOL tentative, BOOL *outStop)
+static NSError *Verify_DelegatedType(OOPListSchemaVerifier *verifier, id value, NSDictionary *params, id rootPList, NSString *name, BackLinkChain keyPath, BOOL tentative, BOOL *outStop)
 {
 	NSDictionary			*baseType = nil;
 	NSString				*key = nil;
 	BOOL					stop = NO;
+	NSError					*error = nil;
 	
 	baseType = [params objectForKey:@"baseType"];
 	if (baseType != nil)
 	{
-		if (![verifier validatePList:rootPList
-							   named:name
-						 subProperty:value
-				   againstSchemaType:baseType
-							  atPath:keyPath
-						   tentative:NO
-								stop:&stop])
+		if (![verifier verifyPList:rootPList
+							 named:name
+					   subProperty:value
+				 againstSchemaType:baseType
+							atPath:keyPath
+						 tentative:tentative
+							  stop:&stop])
 		{
 			*outStop = stop;
-			return NO;
+			return nil;
 		}
 	}
 	
 	key = [params objectForKey:@"key"];
-	return [verifier delegateVerifierWithPropertyList:rootPList
-												named:name
-										 testProperty:value
-											   atPath:[OOPListSchemaVerifier keyPathToArray:keyPath]
-										  againstType:key];
+	*outStop = [verifier delegateVerifierWithPropertyList:rootPList
+													named:name
+											 testProperty:value
+												   atPath:keyPath
+											  againstType:key
+													error:&error];
+	return error;
 }
 
 
@@ -1301,63 +1606,128 @@ static BOOL Validate_DelegatedType(OOPListSchemaVerifier *verifier, id value, NS
 @end
 
 
-static NSError *Error(OOPListSchemaVerifierErrorCode errorCode, NSString *format, ...)
+@implementation NSError (OOPListSchemaVerifierConveniences)
+
+- (NSArray *)plistKeyPath
+{
+	return [[self userInfo] arrayForKey:kPListKeyPathErrorKey];
+}
+
+
+- (NSString *)plistKeyPathDescription
+{
+	return [OOPListSchemaVerifier descriptionForKeyPath:[self plistKeyPath]];
+}
+
+
+- (NSSet *)missingRequiredKeys
+{
+	return [[self userInfo] setForKey:kMissingRequiredKeysErrorKey];
+}
+
+
+- (Class)expectedClass
+{
+	return [[self userInfo] objectForKey:kExpectedClassErrorKey];
+}
+
+
+- (NSString *)expectedClassName
+{
+	NSString *result = [[self userInfo] objectForKey:kExpectedClassNameErrorKey];
+	if (result == nil)  result = [[self expectedClass] description];
+	return result;
+}
+
+@end
+
+
+static NSError *Error(OOPListSchemaVerifierErrorCode errorCode, BackLinkChain *keyPath, NSString *format, ...)
 {
 	NSError				*result = nil;
 	va_list				args;
 	
 	va_start(args, format);
-	result = ErrorWithDictionaryAndArguments(errorCode, nil, format, args);
+	result = ErrorWithDictionaryAndArguments(errorCode, keyPath, nil, format, args);
 	va_end(args);
 	
 	return result;
 }
 
 
-static NSError *ErrorWithProperty(OOPListSchemaVerifierErrorCode errorCode, NSString *propKey, id propValue, NSString *format, ...)
+static NSError *ErrorWithProperty(OOPListSchemaVerifierErrorCode errorCode, BackLinkChain *keyPath, NSString *propKey, id propValue, NSString *format, ...)
 {
 	NSError				*result = nil;
 	va_list				args;
 	NSDictionary		*dict = nil;
 	
-	dict = [NSDictionary dictionaryWithObject:propValue forKey:propKey];
+	if (propKey != nil && propValue != nil)
+	{
+		dict = [NSDictionary dictionaryWithObject:propValue forKey:propKey];
+	}
 	va_start(args, format);
-	ErrorWithDictionaryAndArguments(errorCode, dict, format, args);
+	result = ErrorWithDictionaryAndArguments(errorCode, keyPath, dict, format, args);
 	va_end(args);
 	
 	return result;
 }
 
 
-static NSError *ErrorWithDictionary(OOPListSchemaVerifierErrorCode errorCode, NSDictionary *dict, NSString *format, ...)
+static NSError *ErrorWithDictionary(OOPListSchemaVerifierErrorCode errorCode, BackLinkChain *keyPath, NSDictionary *dict, NSString *format, ...)
 {
 	NSError				*result = nil;
 	va_list				args;
 	
 	va_start(args, format);
-	ErrorWithDictionaryAndArguments(errorCode, dict, format, args);
+	result = ErrorWithDictionaryAndArguments(errorCode, keyPath, dict, format, args);
 	va_end(args);
 	
 	return result;
 }
 
 
-static NSError *ErrorWithDictionaryAndArguments(OOPListSchemaVerifierErrorCode errorCode, NSDictionary *dict, NSString *format, va_list arguments)
+static NSError *ErrorWithDictionaryAndArguments(OOPListSchemaVerifierErrorCode errorCode, BackLinkChain *keyPath, NSDictionary *dict, NSString *format, va_list arguments)
 {
 	NSString			*message = nil;
-	id					userInfo = nil;
+	NSMutableDictionary	*userInfo = nil;
 	
 	message = [[NSString alloc] initWithFormat:format arguments:arguments];
-	if (dict == nil)  userInfo = [NSDictionary dictionaryWithObject:message forKey:NSLocalizedDescriptionKey];
-	else
+	
+	userInfo = [NSMutableDictionary dictionaryWithDictionary:dict];
+	[userInfo setObject:message forKey:NSLocalizedDescriptionKey];
+	if (keyPath != nil)
 	{
-		userInfo = [dict mutableCopy];
-		[userInfo setObject:userInfo forKey:NSLocalizedDescriptionKey];
-		[userInfo autorelease];
+		[userInfo setObject:KeyPathToArray(*keyPath) forKey:kPListKeyPathErrorKey];
 	}
+	
 	[message release];
 	
-	return [NSError errorWithDomain:kOOPListSchemaVerifierErrorDomain code:errorCode userInfo:dict];
+	return [NSError errorWithDomain:kOOPListSchemaVerifierErrorDomain code:errorCode userInfo:userInfo];
+}
+
+
+static NSError *ErrorTypeMismatch(Class expectedClass, NSString *expectedClassName, id actualObject, BackLinkChain keyPath)
+{
+	NSDictionary		*dict = nil;
+	NSString			*className = nil;
+	
+	if (expectedClassName == nil)  expectedClassName = [expectedClass description];
+	
+	dict = [NSDictionary dictionaryWithObjectsAndKeys:
+				expectedClassName, kExpectedClassNameErrorKey,
+				expectedClass, kExpectedClassErrorKey,
+				nil];
+	
+	if (actualObject == nil)  className = @"nothing";
+	else if ([actualObject isKindOfClass:[NSString class]])  className = @"string";
+	else if ([actualObject isKindOfClass:[NSNumber class]])  className = @"number";
+	else if ([actualObject isKindOfClass:[NSArray class]])  className = @"array";
+	else if ([actualObject isKindOfClass:[NSDictionary class]])  className = @"dictionary";
+	else if ([actualObject isKindOfClass:[NSData class]])  className = @"data";
+	else if ([actualObject isKindOfClass:[NSDate class]])  className = @"date";
+	else  className = [[actualObject class] description];
+	
+	return ErrorWithDictionary(kPListErrorTypeMismatch, &keyPath, dict, @"Expected %@, found %@.", expectedClassName, className);
 }
 
 #endif	// OO_OXP_VERIFIER_ENABLED
