@@ -54,11 +54,14 @@
 #if OO_OXP_VERIFIER_ENABLED
 
 #import <Foundation/Foundation.h>
+#import "OOFunctionAttributes.h"
 
 
 @interface OOPListSchemaVerifier: NSObject
 {
-	NSDictionary				*_schema;
+	id							_schema;
+	NSDictionary				*_definitions;
+	
 	id							_delegate;
 	uint32_t					_badDelegateWarning: 1;
 }
@@ -120,6 +123,7 @@ extern NSString * const kMissingSubStringErrorKey;		// String or array of string
 extern NSString * const kUnnownFilterErrorKey;			// Unrecognized filter specifier for kPListErrorSchemaUnknownFilter. Not specified if filter is not a string.
 
 extern NSString * const kUnknownTypeErrorKey;			// Set for kPListErrorSchemaUnknownType.
+extern NSString * const kUndefinedMacroErrorKey;		// Set for kPListErrorSchemaUndefiniedMacroReference.
 
 
 // All plist verifier errors have a short error description in their -localizedDescription. Generally this is something that would be more suitable to -localizedFailureReason, but we need Mac OS X 10.3 compatibility.
@@ -150,13 +154,24 @@ typedef enum
 	kPListDelegatedTypeError,			// Delegate's verification method failed. If it returned an error, this will be in NSUnderlyingErrorKey.
 	
 	// Schema errors -- schema is broken.
-	kPListErrorSchemaNoType,			// No type specified in type specifier.
+	kPListErrorStartOfSchemaErrors		= 100,
+	
+	kPListErrorSchemaBadTypeSpecifier,	// Bad type specifier - specifier is not a string or a dictionary, or is a dictionary with no type key. kUndefinedMacroErrorKey is set.
+	kPListErrorSchemaUndefiniedMacroReference,	// Reference to $macro not found in $definitions.
 	kPListErrorSchemaUnknownType,		// Unknown type specified in type specifier. kUnknownTypeErrorKey is set.
 	kPListErrorSchemaNoOneOfOptions,	// OneOf clause has no options array.
 	kPListErrorSchemaNoEnumerationValues,	// Enumeration clause has no values array.
 	kPListErrorSchemaUnknownFilter,		// Bad value for string/enumeration filter specifier.
-	kPListErrorSchemaBadComparator		// String comparision requirement value (requiredPrefix etc.) is not a string.
+	kPListErrorSchemaBadComparator,		// String comparision requirement value (requiredPrefix etc.) is not a string.
+	
+	kPListErrorLastErrorCode
 } OOPListSchemaVerifierErrorCode;
+
+
+OOINLINE BOOL OOPlistErrorIsSchemaError(OOPListSchemaVerifierErrorCode error)
+{
+	return kPListErrorStartOfSchemaErrors < error && error < kPListErrorLastErrorCode;
+}
 
 
 @interface NSError (OOPListSchemaVerifierConveniences)

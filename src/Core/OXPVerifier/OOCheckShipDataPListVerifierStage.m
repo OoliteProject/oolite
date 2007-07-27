@@ -33,6 +33,7 @@ MA 02110-1301, USA.
 #import "ResourceManager.h"
 #import "OOCollectionExtractors.h"
 #import "OOStringParsing.h"
+#import "OOPListSchemaVerifier.h"
 
 static NSString * const kStageName	= @"Checking shipdata.plist";
 

@@ -2,8 +2,8 @@
 	
 	Schema for plist schemas. Oooh, meta.
 	
-	Note: for clarity, quoted strings are used primarily for strings that will
-	appear in the file being checked. However, some exceptions are necessary.
+	Note: for clarity, quoted strings are used only for strings that will
+	appear in the file being checked. This may cause problems under GNUstep.
 */
 
 {
@@ -36,7 +36,7 @@
 			options =
 			(
 				$simpleTypeSpecifier,
-				$macroInvocation,
+				$rootMacroInvocation,
 				$stringTypeSpecifier,
 				$numberTypeSpecifier,
 				$positiveNumberTypeSpecifier,
@@ -71,6 +71,23 @@
 		};
 		
 		$macroInvocation =
+		{
+			type = oneOf;
+			options =
+			(
+				$macroInvocationString,
+				{
+					type = dictionary;
+					schema =
+					{
+						"type" = $macroInvocation;
+					};
+					allowOthers = NO;
+					requiredKeys = ( "type" );
+				}
+			);
+		};
+		$macroInvocationString =
 		{
 			type = string;
 			minLength = 2;
@@ -215,7 +232,7 @@
 			{
 				"type" =
 				{
-					enumeration = string;
+					type = enumeration;
 					values = ( "enumeration" );
 				};
 				
@@ -358,6 +375,24 @@
 			allowOthers = NO;
 			requiredKeys = ( "type", "key" );
 		};
+		$rootMacroInvocation =
+		{
+			type = oneOf;
+			options =
+			(
+				$macroInvocationString,
+				{
+					type = dictionary;
+					schema =
+					{
+						"type" = $macroInvocation;
+						"$definitions" = $definitionsDictionary;
+					};
+					allowOthers = NO;
+					requiredKeys = ( "type" );
+				}
+			);
+		};
 		
 		
 		$stringOrStringArray =
@@ -375,7 +410,7 @@
 		$filterSpecifier =
 		{
 			type = enumeration;
-			filter = "subStringToInclusive::";	// This is one of the exceptions mentioned in the header.
+			filter = subStringToInclusive::;
 			values =
 			(
 				"lowerCase",

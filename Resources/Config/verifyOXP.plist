@@ -273,7 +273,7 @@
 						shininess =
 						{
 							type = "positiveInteger";
-							max = "128";
+							maximum = "128";
 						};
 						specular = "$colorSpecifier";
 						fragment_shader = "$shaderFileName";

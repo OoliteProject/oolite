@@ -26,9 +26,10 @@ MA 02110-1301, USA.
 */
 
 #import "OOTextureVerifierStage.h"
-#import "OOPListSchemaVerifier.h"
 
 #if OO_OXP_VERIFIER_ENABLED
+
+@class OOPListSchemaVerifier;
 
 @interface OOCheckShipDataPListVerifierStage: OOTextureHandlingStage
 {

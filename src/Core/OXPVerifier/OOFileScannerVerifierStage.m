@@ -404,7 +404,7 @@ static BOOL CheckNameConflict(NSString *lcName, NSDictionary *directoryCases, NS
 		{
 			if ([_junkFileNames member:name])
 			{
-				OOLog(@"verifyOXP.scanFiles.skipJunk", @"NOTE: ignoring junk file %@", name);
+				OOLog(@"verifyOXP.scanFiles.skipJunk", @"NOTE: skipping junk file %@.", name);
 			}
 			else if ([readMeNames member:lcName])
 			{

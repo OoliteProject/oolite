@@ -146,6 +146,7 @@ static NSString * const kStageName	= @"Testing textures and images";
 	NSString					*displayName = nil;
 	void						*data = nil;
 	uint32_t					width, height, rWidth, rHeight;
+	BOOL						success;
 	
 	fileScanner = [[self verifier] fileScannerStage];
 	path = [fileScanner pathForFile:name
@@ -155,7 +156,7 @@ static NSString * const kStageName	= @"Testing textures and images";
 	
 	if (path == nil)  return;
 	
-	loader = [OOTextureLoader loaderWithPath:name
+	loader = [OOTextureLoader loaderWithPath:path
 									 options:kOOTextureMinFilterNearest |
 											 kOOTextureMinFilterNearest |
 											 kOOTextureNoShrink |
@@ -169,18 +170,25 @@ static NSString * const kStageName	= @"Testing textures and images";
 	}
 	else
 	{
-		[loader getResult:&data format:NULL width:&width height:&height];
-		free(data);
+		success = [loader getResult:&data format:NULL width:&width height:&height];
+		if (data != NULL)  free(data);
 		
-		rWidth = OORoundUpToPowerOf2((2 * width) / 3);
-		rHeight = OORoundUpToPowerOf2((2 * height) / 3);
-		if (width != rWidth || height != rHeight)
+		if (success)
 		{
-			OOLog(@"verifyOXP.texture.notPOT", @"WARNING: image %@ has non-power-of-two dimensions; it will have to be rescaled (from %ux%u pixels to %ux%u pixels) at runtime.", displayName, width, height, rWidth, rHeight);
+			rWidth = OORoundUpToPowerOf2((2 * width) / 3);
+			rHeight = OORoundUpToPowerOf2((2 * height) / 3);
+			if (width != rWidth || height != rHeight)
+			{
+				OOLog(@"verifyOXP.texture.notPOT", @"WARNING: image %@ has non-power-of-two dimensions; it will have to be rescaled (from %ux%u pixels to %ux%u pixels) at runtime.", displayName, width, height, rWidth, rHeight);
+			}
+			else
+			{
+				OOLog(@"verifyOXP.verbose.texture.OK", @"- %@ (%ux%u px) OK.", displayName, width, height);
+			}
 		}
 		else
 		{
-			OOLog(@"verifyOXP.verbose.texture.OK", @"- %@ OK.", displayName);
+			OOLog(@"verifyOXP.texture.failed", @"ERROR: texture loader failed to load %@.", displayName);
 		}
 	}
 }
