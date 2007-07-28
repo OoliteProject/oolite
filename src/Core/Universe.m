@@ -5717,8 +5717,10 @@ static BOOL MaintainLinkedLists(Universe* uni)
 	if ([local_planetinfo_overrides objectForKey:override_key] == nil)
 		[local_planetinfo_overrides setObject:[NSMutableDictionary dictionaryWithCapacity:8] forKey:override_key];
 
-	NSMutableDictionary*	local_overrides = (NSMutableDictionary*)[local_planetinfo_overrides objectForKey:override_key];
+	NSMutableDictionary*	local_overrides = [[[local_planetinfo_overrides objectForKey:override_key] mutableCopy] autorelease];
 	[local_overrides setObject:object forKey:key];
+	
+	[local_planetinfo_overrides setObject:local_overrides forKey:override_key];
 }
 
 
