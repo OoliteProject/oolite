@@ -117,6 +117,7 @@ MA 02110-1301, USA.
 - (void) setDestinationToStationBeacon;
 
 - (void) performHyperSpaceExit;
+- (void) performHyperSpaceExitWithoutReplacing;
 - (void) wormholeEscorts;
 - (void) wormholeGroup;
 - (void) wormholeEntireGroup;

@@ -563,6 +563,7 @@ BOOL	class_masslocks(int some_class);
 - (void) leaveDock:(StationEntity *)station;
 
 - (void) enterWormhole:(WormholeEntity *) w_hole;
+- (void) enterWormhole:(WormholeEntity *) w_hole replacing:(BOOL)replacing;
 - (void) enterWitchspace;
 - (void) leaveWitchspace;
 

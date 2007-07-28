@@ -6355,10 +6355,21 @@ BOOL	class_masslocks(int some_class)
 
 - (void) enterWormhole:(WormholeEntity *) w_hole
 {
-	if (![[UNIVERSE sun] willGoNova])				// if the sun's not going nova
-		[UNIVERSE witchspaceShipWithRole:roles];	// then add a new ship like this one leaving!
+	[self enterWormhole:w_hole replacing:YES];
+}
 
-	[w_hole suckInShip: self];	// removes ship from UNIVERSE
+
+- (void) enterWormhole:(WormholeEntity *) w_hole replacing:(BOOL)replacing
+{
+	if (replacing && ![[UNIVERSE sun] willGoNova])
+	{
+		/*	Add a new ship to maintain quantities of standard ships, unless
+			there's a nova in the works (or the AI asked us not to).
+		*/
+		[UNIVERSE witchspaceShipWithRole:roles];
+	}
+
+	[w_hole suckInShip: self];	// removes ship from universe
 }
 
 

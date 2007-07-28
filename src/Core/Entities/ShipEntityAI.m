@@ -38,6 +38,14 @@ MA 02110-1301, USA.
 #define kOOLogUnconvertedNSLog @"unclassified.ShipEntityAI"
 
 
+@interface ShipEntity (OOAIPrivate)
+
+
+- (void)performHyperSpaceExitReplace:(BOOL)replace;
+
+@end
+
+
 @implementation ShipEntity (AI)
 
 /*-----------------------------------------
@@ -686,6 +694,18 @@ WormholeEntity*	whole;
 //
 - (void) performHyperSpaceExit
 {
+	[self performHyperSpaceExitReplace:NO];
+}
+
+
+- (void) performHyperSpaceExitWithoutReplacing
+{
+	[self performHyperSpaceExitReplace:YES];
+}
+
+
+- (void)performHyperSpaceExitReplace:(BOOL)replace
+{
 	whole = nil;
 	
 	// get a list of destinations within range
@@ -726,7 +746,7 @@ WormholeEntity*	whole;
 	found_target = primaryTarget;
 	[shipAI reactToMessage:@"WITCHSPACE OKAY"];	// must be a reaction, the ship is about to disappear
 	
-	[self enterWormhole: whole];	// TODO
+	[self enterWormhole:whole replacing:replace];	// TODO
 }
 
 - (void) wormholeEscorts

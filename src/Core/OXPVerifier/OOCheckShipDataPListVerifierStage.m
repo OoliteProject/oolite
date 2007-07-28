@@ -178,6 +178,8 @@ static NSString * const kStageName	= @"Checking shipdata.plist";
 	[self checkSchema];
 	[self checkModel];
 	
+	// Todo: check for pirates with 0 bounty
+	
 	OOLogPopIndent();
 	if (!_havePrintedMessage)
 	{

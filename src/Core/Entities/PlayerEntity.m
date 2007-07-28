@@ -3727,7 +3727,7 @@ double scoopSoundPlayTime = 0.0;
 }
 
 
-- (void) enterWormhole:(WormholeEntity*) w_hole
+- (void) enterWormhole:(WormholeEntity *) w_hole replacing:(BOOL)replacing
 {
 	target_system_seed = [w_hole destination];
 	status = STATUS_ENTERING_WITCHSPACE;
@@ -3737,7 +3737,6 @@ double scoopSoundPlayTime = 0.0;
 
 	if (primaryTarget != NO_TARGET)
 		primaryTarget = NO_TARGET;
-
 	
 	//	reset the compass
 	

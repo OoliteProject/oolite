@@ -582,7 +582,6 @@ typedef enum
 - (void) rotateCargo;
 
 - (void) enterGalacticWitchspace;
-- (void) enterWormhole:(WormholeEntity*) w_hole;
 
 - (void) interpretAIMessage:(NSString *)ms;
 
