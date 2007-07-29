@@ -361,7 +361,7 @@ VERIFY_PROTO(DelegatedType);
 			if (!result || error != nil)
 			{
 				// Note: Generates an error if delegate returned NO (meaning stop) or if delegate produced an error but did not request a stop.
-				*outError = ErrorWithProperty(kPListDelegatedTypeError, &keyPath, NSUnderlyingErrorKey, error, @"Verification of property list \"%@\" failed: value at %@ does not match delegated type \"%@\".", KeyPathToString(keyPath), typeKey);
+				*outError = ErrorWithProperty(kPListDelegatedTypeError, &keyPath, NSUnderlyingErrorKey, error, @"Value at %@ does not match delegated type \"%@\".", KeyPathToString(keyPath), typeKey);
 			}
 			else *outError = nil;
 		}
@@ -373,11 +373,7 @@ VERIFY_PROTO(DelegatedType);
 			OOLog(@"plistVerifier.badDelegate", @"Property list schema verifier: delegate does not handle delegated types.");
 			_badDelegateWarning = YES;
 		}
-		result = NO;
-		if (outError != NULL)
-		{
-			*outError = Error(kPListDelegatedTypeError, &keyPath, @"Verification of property list \"%@\" failed: value at %@ does not match delegated type \"%@\".", KeyPathToString(keyPath), typeKey);
-		}
+		result = YES;
 	}
 	
 	return result;
@@ -606,6 +602,7 @@ static NSString *ApplyStringFilter(NSString *string, id filterSpec, BackLinkChai
 			{
 				if ([filter isEqual:@"lowerCase"])  string = [string lowercaseString];
 				else if ([filter isEqual:@"upperCase"])  string = [string uppercaseString];
+				else if ([filter isEqual:@"capitalized"])  string = [string capitalizedString];
 				else if ([filter hasPrefix:@"truncFront:"])
 				{
 					string = [string substringToIndex:[[filter substringFromIndex:11] intValue]];

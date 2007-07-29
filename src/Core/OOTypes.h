@@ -282,8 +282,16 @@ typedef uint32_t	OOCreditsQuantity;
 typedef uint16_t	OOKeyCode;
 
 
-typedef uint16_t OOUniversalID;	// Valid IDs range from 100 to 1000.
+typedef uint16_t	OOUniversalID;		// Valid IDs range from 100 to 1000.
 #define NO_TARGET	((OOUniversalID)0)
+
+
+typedef uint32_t	OOTechLevelID;		// 0..14, 99 is special. NSNotFound is used, so 32 bits required.
+typedef uint8_t		OOGovernmentID;		// 0..7
+typedef uint8_t		OOEconomyID;		// 0..7
+
+typedef uint8_t		OOGalaxyID;			// 0..7
+typedef uint16_t	OOSystemID;			// 0..255; 16 bits used to allow overflow.
 
 
 typedef double OOTimeAbsolute;

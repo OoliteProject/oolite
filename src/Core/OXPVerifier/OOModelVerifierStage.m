@@ -128,17 +128,17 @@ static id NSNULL = nil;
 }
 
 
-- (void) modelNamed:(NSString *)name
-		  usedForEntry:(NSString *)entryName
-					  inFile:(NSString *)fileName
-		 withMaterials:(NSDictionary *)materials
-			   andShaders:(NSDictionary *)shaders
+- (BOOL) modelNamed:(NSString *)name
+	   usedForEntry:(NSString *)entryName
+			 inFile:(NSString *)fileName
+	  withMaterials:(NSDictionary *)materials
+		 andShaders:(NSDictionary *)shaders
 {
 	OOFileScannerVerifierStage	*fileScanner = nil;
 	NSDictionary				*info = nil;
 	NSString					*context = nil;
 	
-	if (name == nil)  return;
+	if (name == nil)  return NO;
 	
 	if (entryName != nil)  context = [NSString stringWithFormat:@"entry \"%@\" of %@", entryName, fileName];
 	else context = fileName;
@@ -149,7 +149,7 @@ static id NSNULL = nil;
 				  referencedFrom:context
 					checkBuiltIn:YES])
 	{
-		OOLog(@"verifyOXP.model.notFound", @"WARNING: model \"%@\" referenced in %@ could not be found in %@ or in Oolite.", name, context, [[self verifier] oxpDisplayName]);
+		return NO;
 	}
 	
 	if (context == nil)  context = NSNULL;
@@ -164,6 +164,8 @@ static id NSNULL = nil;
 				nil];
 	
 	[_modelsToCheck addObject:info];
+	
+	return YES;
 }
 
 @end

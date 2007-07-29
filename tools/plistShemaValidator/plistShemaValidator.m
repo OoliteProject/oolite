@@ -20,11 +20,20 @@
 	  * legacy_random.c
 */
 
+#define OO_OXP_VERIFIER_ENABLED 1
+
 #import <stdlib.h>
 #import <Foundation/Foundation.h>
 #import "OOPListSchemaVerifier.h"
 #import "OOLogging.h"
 #import "OOMaths.h"
+
+
+@interface VerifierDelegate: NSObject
+{
+	BOOL _notedDelgatedTypes;
+}
+@end
 
 
 static void RegisterPhonyDefaults(void);
@@ -79,6 +88,7 @@ static OOPListSchemaVerifier *GetVerifier(const char *path)
 {
 	id						schema = nil;
 	OOPListSchemaVerifier	*verifier = nil;
+	VerifierDelegate		*delegate = nil;
 	
 	schema = ReadPList(path);
 	if (schema == nil)
@@ -93,6 +103,9 @@ static OOPListSchemaVerifier *GetVerifier(const char *path)
 		OOLog(@"badSchema", @"Could not interpret %s as a schema.", path);
 		exit(EXIT_FAILURE);
 	}
+	
+	delegate = [[VerifierDelegate alloc] init];
+	[verifier setDelegate:delegate];
 	
 	return verifier;
 }
@@ -156,6 +169,28 @@ static id ReadPList(const char *path)
 	
 	return result;
 }
+
+
+@implementation VerifierDelegate
+
+- (BOOL)verifier:(OOPListSchemaVerifier *)verifier
+withPropertyList:(id)rootPList
+		   named:(NSString *)name
+	testProperty:(id)subPList
+		  atPath:(NSArray *)keyPath
+	 againstType:(NSString *)typeKey
+		   error:(NSError **)outError
+{
+	if (!_notedDelgatedTypes)
+	{
+		OOLog(@"delegatedTypes", @"Plist schema uses delegated types; all delegated types will be treated as matching.");
+		_notedDelgatedTypes = YES;
+	}
+	
+	return YES;
+}
+
+@end
 
 
 /****** Shims *******

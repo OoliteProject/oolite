@@ -58,6 +58,10 @@ OOINLINE Vector vector_add(Vector a, Vector b) INLINE_CONST_FUNC;
 OOINLINE Vector vector_subtract(Vector a, Vector b) INLINE_CONST_FUNC;
 #define vector_between(a, b) vector_subtract(b, a)
 
+/* Vector linear interpolation */
+OOINLINE Vector OOVectorInterpolate(Vector a, Vector b, GLfloat where) INLINE_CONST_FUNC;
+OOINLINE Vector OOVectorTowards(Vector a, Vector b, GLfloat where) INLINE_CONST_FUNC;
+
 /* Comparison of vectors */
 OOINLINE GLboolean vector_equal(Vector a, Vector b) INLINE_CONST_FUNC;
 
@@ -150,6 +154,23 @@ OOINLINE Vector vector_add(Vector a, Vector b)
 }
 
 
+OOINLINE Vector OOVectorInterpolate(Vector a, Vector b, GLfloat where)
+{
+	GLfloat invWhere = 1.0f - where;
+	return make_vector(a.x * invWhere + b.x * where,
+					   a.y * invWhere + b.y * where,
+					   a.z * invWhere + b.z * where);
+}
+
+
+OOINLINE Vector OOVectorTowards(Vector a, Vector b, GLfloat where)
+{
+	return make_vector(a.x + b.x * where,
+					   a.y + b.y * where,
+					   a.z + b.z * where);
+}
+
+
 OOINLINE Vector vector_subtract(Vector a, Vector b)
 {
 	Vector r;
@@ -181,7 +202,7 @@ OOINLINE GLfloat magnitude(Vector vec)
 OOINLINE GLfloat fast_magnitude(Vector vec)
 {
 	#if FASTINVSQRT_ENABLED
-		float mag2 = magnitude2(vec);
+		GLfloat mag2 = magnitude2(vec);
 		return mag2 * OOFastInvSqrtf(mag2);	/* x = sqrt(x) * sqrt(x); x * 1/sqrt(x) = (sqrt(x) * sqrt(x))/sqrt(x) = sqrt(x). */
 	#else
 		return magnitude(vec);

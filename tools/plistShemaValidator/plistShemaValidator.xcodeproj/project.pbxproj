@@ -246,7 +246,7 @@
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = plistShemaValidator_Prefix.pch;
 				INSTALL_PATH = "$(HOME)/bin";
-				PRODUCT_NAME = plistShemaValidator;
+				PRODUCT_NAME = plistshemavalidator;
 			};
 			name = Release;
 		};

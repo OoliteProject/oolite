@@ -94,7 +94,7 @@ void ranrot_srand(unsigned int seed)
 }
 
 
-int ranrot_rand()
+unsigned Ranrot(void)
 {
 	sRANROT.high = (sRANROT.high << 16) + (sRANROT.high >> 16);
 	sRANROT.high += sRANROT.low;

@@ -207,7 +207,7 @@ NSString *BehaviourToString(OOBehaviour behaviour)
 }
 
 
-NSString *GovernmentToString(unsigned government)
+NSString *GovernmentToString(OOGovernmentID government)
 {
 	NSArray		*strings = nil;
 	NSString	*value = nil;
@@ -223,7 +223,7 @@ NSString *GovernmentToString(unsigned government)
 }
 
 
-NSString *EconomyToString(unsigned economy)
+NSString *EconomyToString(OOEconomyID economy)
 {
 	NSArray		*strings = nil;
 	NSString	*value = nil;

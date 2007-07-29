@@ -1107,7 +1107,7 @@ static NSMutableDictionary* currentShipyard = nil;
 	
 	if (docked_station)
 	{
-		station_tl = [docked_station equivalent_tech_level];
+		station_tl = [docked_station equivalentTechLevel];
 	}
 
 	if (![the_station localShipyard])
@@ -1414,7 +1414,7 @@ static NSMutableDictionary* currentShipyard = nil;
 	aft_weapon = WEAPON_NONE;
 	port_weapon = WEAPON_NONE;
 	starboard_weapon = WEAPON_NONE;
-	forward_weapon = EquipmentStringToWeaponType([shipDict stringForKey:@"forward_weapon_type"]);
+	forward_weapon = StringToWeaponType([shipDict stringForKey:@"forward_weapon_type"]);
 	
 	// get basic max_cargo
 	max_cargo = [UNIVERSE maxCargoForShip:ship_desc];

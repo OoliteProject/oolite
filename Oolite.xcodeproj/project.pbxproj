@@ -1183,6 +1183,10 @@
 		1A2A8E020BC67CCC001E00FB /* OOWeakReference.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOWeakReference.m; sourceTree = "<group>"; };
 		1A2A91500BC6BC66001E00FB /* OOJSQuaternion.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOJSQuaternion.h; sourceTree = "<group>"; };
 		1A2A91510BC6BC66001E00FB /* OOJSQuaternion.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOJSQuaternion.m; sourceTree = "<group>"; };
+		1A2F63950C5CC737003872C8 /* demoshipsSchema.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist; path = demoshipsSchema.plist; sourceTree = "<group>"; };
+		1A2F63960C5CC737003872C8 /* hudSchema.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist; path = hudSchema.plist; sourceTree = "<group>"; };
+		1A2F63980C5CC737003872C8 /* shipdataEntrySchema.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist; path = shipdataEntrySchema.plist; sourceTree = "<group>"; };
+		1A2F63990C5CC737003872C8 /* shipyardSchema.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist; path = shipyardSchema.plist; sourceTree = "<group>"; };
 		1A3491290BC25EAA00802DA7 /* world-scripts.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist; path = "world-scripts.plist"; sourceTree = "<group>"; };
 		1A34912D0BC25EBC00802DA7 /* oolite-legacy-script.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist; path = "oolite-legacy-script.plist"; sourceTree = "<group>"; };
 		1A3491AA0BC282DE00802DA7 /* ReleaseLockProxy.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ReleaseLockProxy.h; sourceTree = "<group>"; };
@@ -1527,6 +1531,7 @@
 				1A34912C0BC25EBC00802DA7 /* Scripts */,
 				1A2319910B9D031D00EF0852 /* Sounds */,
 				1A23181D0B9D026D00EF0852 /* Textures */,
+				1A2F63940C5CC737003872C8 /* Schemata */,
 				29B97319FDCFA39411CA2CEA /* MainMenu.nib */,
 				25F3E8B30994FE9B002F25FD /* InfoPlist.strings */,
 				25F3E8C3099500F1002F25FD /* SoundInspector.nib */,
@@ -1839,6 +1844,17 @@
 			);
 			name = Graphics;
 			sourceTree = "<group>";
+		};
+		1A2F63940C5CC737003872C8 /* Schemata */ = {
+			isa = PBXGroup;
+			children = (
+				1A2F63950C5CC737003872C8 /* demoshipsSchema.plist */,
+				1A2F63960C5CC737003872C8 /* hudSchema.plist */,
+				1A2F63980C5CC737003872C8 /* shipdataEntrySchema.plist */,
+				1A2F63990C5CC737003872C8 /* shipyardSchema.plist */,
+			);
+			path = Schemata;
+			sourceTree = SOURCE_ROOT;
 		};
 		1A34912C0BC25EBC00802DA7 /* Scripts */ = {
 			isa = PBXGroup;
@@ -2589,6 +2605,7 @@
 				1A8072280C0483FA00BA1935 /* Copy Debug Add-ons */,
 				1AD0C7890C47C1680070BD23 /* Build SCR Shim */,
 				1AD0C7300C47BDEF0070BD23 /* Copy SCR Shim (test release only) */,
+				1A2F63BD0C5CC80B003872C8 /* Copy Schemata */,
 			);
 			buildRules = (
 			);
@@ -2670,6 +2687,20 @@
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXShellScriptBuildPhase section */
+		1A2F63BD0C5CC80B003872C8 /* Copy Schemata */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+			);
+			name = "Copy Schemata";
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "TARGET_DIR=\"$BUILT_PRODUCTS_DIR/$PRODUCT_NAME.app/Contents/Resources/Schemata\"\n\nif [ $COPY_SCHEMATA ]\nthen\n\techo \"Copying schemata\"\n\t\n\tSRC_DIR=\"$SRCROOT/Schemata/\";\n\t\n\tif [ ! -e \"$TARGET_DIR\" ]\n\tthen\n\t\tmkdir \"$TARGET_DIR\"\n\tfi\n\tfor item in `ls \"$SRC_DIR\"`\n\tdo\n\t\tcp \"$SRC_DIR/$item\" \"$TARGET_DIR/\"\n\tdone\nelse\n\tif [ -e \"$TARGET_DIR\" ]\n\tthen\n\t\trmdir \"$TARGET_DIR\"\n\tfi\nfi\n";
+		};
 		1A5DB2D10BBEA46F00D57389 /* Sync logcontrol.plist.xml */ = {
 			isa = PBXShellScriptBuildPhase;
 			buildActionMask = 2147483647;
@@ -2700,7 +2731,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/bash;
-			shellScript = "TARGET_DIR=\"$BUILT_PRODUCTS_DIR/Oolite.app/Contents/Frameworks\"\n\nif [ $COPY_SCR_SHIM ]\nthen\n\techo \"Copying SCR shim\"\n\t\n\tif [ ! -e \"$TARGET_DIR\" ]\n\tthen\n\t\tmkdir \"$TARGET_DIR\"\n\tfi\n\tcp \"$SRCROOT/deps/Cocoa-deps/SCRDynamicShim/bin/SCRDynamicShim.dylib\" \"$TARGET_DIR/SCRDynamicShim.dylib\"\nelse\n\trmdir \"$TARGET_DIR\"\nfi\n";
+			shellScript = "TARGET_DIR=\"$BUILT_PRODUCTS_DIR/$PRODUCT_NAME.app/Contents/Frameworks\"\n\nif [ $COPY_SCR_SHIM ]\nthen\n\techo \"Copying SCR shim\"\n\t\n\tif [ ! -e \"$TARGET_DIR\" ]\n\tthen\n\t\tmkdir \"$TARGET_DIR\"\n\tfi\n\tcp \"$SRCROOT/deps/Cocoa-deps/SCRDynamicShim/bin/SCRDynamicShim.dylib\" \"$TARGET_DIR/SCRDynamicShim.dylib\"\nelse\n\tif [ -e \"$TARGET_DIR\" ]\n\tthen\n\t\trmdir \"$TARGET_DIR\"\n\tfi\nfi\n";
 		};
 		1AD0C7890C47C1680070BD23 /* Build SCR Shim */ = {
 			isa = PBXShellScriptBuildPhase;
@@ -2884,6 +2915,7 @@
 		08B31CAD08FE63D70038D42F /* Development */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				COPY_SCHEMATA = 1;
 				DEAD_CODE_STRIPPING = YES;
 				DEBUG_INFORMATION_FORMAT = dwarf;
 				FRAMEWORK_SEARCH_PATHS = "\"$(SRCROOT)/deps/Cocoa-deps/\"";
@@ -3041,6 +3073,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				COPY_PHASE_STRIP = NO;
+				COPY_SCHEMATA = 1;
 				COPY_SCR_SHIM = 1;
 				DEAD_CODE_STRIPPING = YES;
 				DEBUG_INFORMATION_FORMAT = dwarf;

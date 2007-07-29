@@ -144,6 +144,8 @@
 	<string>no</string>
 	<key>growl.error</key>
 	<string>$error</string>
+	<key>gui.reset</key>
+	<string>no</string>
 	<key>iTunesIntegration.failed</key>
 	<string>$error</string>
 	<key>input.keyMapping.codeOutOfRange</key>

@@ -30,6 +30,7 @@ MA 02110-1301, USA.
 #import "OOSound.h"
 #import "OOStringParsing.h"
 #import "HeadUpDisplay.h"
+#import "OOCollectionExtractors.h"
 
 
 OOINLINE BOOL RowInRange(OOGUIRow row, NSRange range)
@@ -261,7 +262,7 @@ OOINLINE BOOL RowInRange(OOGUIRow row, NSRange range)
 }
 
 
-- (void) setTitle: (NSString *) str
+- (void) setTitle:(NSString *)str
 {
 	if (str != title)
 	{
@@ -284,7 +285,7 @@ OOINLINE BOOL RowInRange(OOGUIRow row, NSRange range)
 }
 
 
-- (void) fadeOutFromTime:(OOTimeAbsolute) now_time OverDuration:(OOTimeDelta) duration
+- (void) fadeOutFromTime:(OOTimeAbsolute) now_time overDuration:(OOTimeDelta) duration
 {
 	if (fade_alpha <= 0.0)
 		return;
@@ -308,26 +309,15 @@ OOINLINE BOOL RowInRange(OOGUIRow row, NSRange range)
 
 - (void) setBackgroundColor:(OOColor*) color
 {
-	if (backgroundColor)	[backgroundColor release];
-	if (color == nil)
-	{
-		backgroundColor = nil;
-		return;
-	}
-
+	[backgroundColor release];
 	backgroundColor = [color retain];
 }
 
 
 - (void) setTextColor:(OOColor*) color
 {
-	if (textColor)	[textColor release];
-	if (color == nil)
-	{
-		textColor = [[OOColor yellowColor] retain];
-		return;
-	}
-
+	[textColor release];
+	if (color == nil)  color = [[OOColor yellowColor] retain];
 	textColor = [color retain];
 }
 
@@ -515,14 +505,14 @@ OOINLINE BOOL RowInRange(OOGUIRow row, NSRange range)
 }
 
 
-- (void) setKey: (NSString *) str forRow:(OOGUIRow)row
+- (void) setKey:(NSString *)str forRow:(OOGUIRow)row
 {
 	if (RowInRange(row, rowRange))
 		[rowKey replaceObjectAtIndex:row withObject:str];
 }
 
 
-- (void) setText: (NSString *) str forRow:(OOGUIRow)row
+- (void) setText:(NSString *)str forRow:(OOGUIRow)row
 {
 	if (RowInRange(row, rowRange))
 	{
@@ -531,7 +521,7 @@ OOINLINE BOOL RowInRange(OOGUIRow row, NSRange range)
 }
 
 
-- (void) setText: (NSString *) str forRow:(OOGUIRow)row align:(OOGUIAlignment)alignment
+- (void) setText:(NSString *)str forRow:(OOGUIRow)row align:(OOGUIAlignment)alignment
 {
 	if (str != nil && RowInRange(row, rowRange))
 	{
@@ -541,7 +531,9 @@ OOINLINE BOOL RowInRange(OOGUIRow row, NSRange range)
 }
 
 
-- (int) addLongText: (NSString *) str startingAtRow:(OOGUIRow)row align:(OOGUIAlignment)alignment
+- (int) addLongText:(NSString *)str
+	  startingAtRow:(OOGUIRow)row
+			  align:(OOGUIAlignment)alignment
 {
 	NSSize chSize = pixel_text_size;
 	NSSize strsize = rectForString(str, 0.0, 0.0, chSize).size;
@@ -572,7 +564,12 @@ OOINLINE BOOL RowInRange(OOGUIRow row, NSRange range)
 }
 
 
-- (void) printLongText: (NSString *) str Align:(int) alignment Color:(OOColor*) text_color FadeTime:(float) text_fade Key:(NSString*) text_key AddToArray:(NSMutableArray*) text_array
+- (void) printLongText:(NSString *)str
+				 align:(OOGUIAlignment) alignment
+				 color:(OOColor *)text_color
+			  fadeTime:(OOTimeDelta)text_fade
+				   key:(NSString *)text_key
+			addToArray:(NSMutableArray *)text_array
 {
 	// print a multi-line message
 	//
@@ -581,7 +578,7 @@ OOINLINE BOOL RowInRange(OOGUIRow row, NSRange range)
 		NSArray		*lines = [str componentsSeparatedByString:@"\n"];
 		unsigned	i;
 		for (i = 0; i < [lines count]; i++)
-			[self printLongText:(NSString *)[lines objectAtIndex:i] Align:alignment Color:text_color FadeTime:text_fade Key:text_key AddToArray:text_array];
+			[self printLongText:[lines stringAtIndex:i] align:alignment color:text_color fadeTime:text_fade key:text_key addToArray:text_array];
 		return;
 	}
 	
@@ -616,7 +613,7 @@ OOINLINE BOOL RowInRange(OOGUIRow row, NSRange range)
 			[words removeObjectAtIndex:0];
 			strsize = rectForString(string1, 0.0, 0.0, chSize).size;
 			if ([words count] > 0)
-				strsize.width += rectForString((NSString *)[words objectAtIndex:0], 0.0, 0.0, chSize).size.width;
+				strsize.width += rectForString([words stringAtIndex:0], 0.0, 0.0, chSize).size.width;
 		}
 		[string2 appendString:[words componentsJoinedByString:@" "]];
 		[self setText:string1		forRow:row			align:alignment];
@@ -627,12 +624,17 @@ OOINLINE BOOL RowInRange(OOGUIRow row, NSRange range)
 		if (text_array)
 			[text_array addObject:string1];
 		rowFadeTime[row] = text_fade;
-		[self printLongText:string2 Align:alignment Color:text_color FadeTime:text_fade Key:text_key AddToArray:text_array];
+		[self printLongText:string2 align:alignment color:text_color fadeTime:text_fade key:text_key addToArray:text_array];
 	}
 }
 
 
-- (void) printLineNoScroll: (NSString *) str Align:(int) alignment Color:(OOColor*) text_color FadeTime:(float) text_fade Key:(NSString*) text_key AddToArray:(NSMutableArray*) text_array
+- (void) printLineNoScroll:(NSString *)str
+					 align:(OOGUIAlignment)alignment
+					  color:(OOColor *)text_color
+				  fadeTime:(OOTimeDelta)text_fade
+					   key:(NSString *)text_key
+				addToArray:(NSMutableArray *)text_array
 {
 	[self setText:str forRow:currentRow align:alignment];
 	if (text_color)
@@ -645,7 +647,7 @@ OOINLINE BOOL RowInRange(OOGUIRow row, NSRange range)
 }
 
 
-- (void) setArray: (NSArray *) arr forRow:(OOGUIRow)row
+- (void) setArray:(NSArray *)arr forRow:(OOGUIRow)row
 {
 	if (RowInRange(row, rowRange))
 		[rowText replaceObjectAtIndex:row withObject:arr];
@@ -981,7 +983,7 @@ OOINLINE BOOL RowInRange(OOGUIRow row, NSRange range)
 {
 	NSSize		strsize;
 	unsigned	i;
-	double		delta_t = [UNIVERSE getTimeDelta];
+	OOTimeDelta	delta_t = [UNIVERSE getTimeDelta];
 	NSSize		characterSize = pixel_text_size;
 	NSSize		titleCharacterSize = pixel_title_size;
 	
@@ -1449,7 +1451,7 @@ OOINLINE BOOL RowInRange(OOGUIRow row, NSRange range)
 	// Draw route from player position to currently selected destination.
 	int planetNumber = [UNIVERSE findSystemNumberAtCoords:galaxy_coordinates withGalaxySeed:galaxy_seed];
 	int destNumber = [UNIVERSE findSystemNumberAtCoords:cursor_coordinates withGalaxySeed:galaxy_seed];
-	NSDictionary* routeInfo = [UNIVERSE routeFromSystem:planetNumber ToSystem:destNumber];
+	NSDictionary* routeInfo = [UNIVERSE routeFromSystem:planetNumber toSystem:destNumber];
 	
 	if ((destNumber != planetNumber) && routeInfo)
 	{

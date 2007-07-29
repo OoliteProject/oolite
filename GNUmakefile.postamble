@@ -25,6 +25,7 @@ after-all::
 	$(MKDIRS) $(PROGDIR)
 	$(MKDIRS) $(PROGDIR)/Resources
 	$(CP) -r Resources $(PROGDIR)
+	$(CP) -r Schemata $(PROGDIR)/Resources
 	$(CP) src/Cocoa/Info-Oolite.plist $(GNUSTEP_OW)
 	$(CP) $(BINARY) $(PROGDIR)
 	rm $(PROGDIR)/Resources/Config/logcontrol.plist

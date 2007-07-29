@@ -73,7 +73,8 @@ float cunningFee(float value) CONST_FUNC;
 // pseudo random number generator
 //
 void ranrot_srand(unsigned int seed);
-int ranrot_rand();
+unsigned Ranrot(void);
+#define ranrot_rand() ((int)Ranrot())	// Some uses perform arithmetic that does weird things if result is unsigned -- DustEntity.m, for instance.
 float randf(void);
 float bellf(int n);
 

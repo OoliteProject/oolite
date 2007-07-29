@@ -60,15 +60,15 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 }
 
 
-- (int) equivalent_tech_level
+- (OOTechLevelID) equivalentTechLevel
 {
-	return equivalent_tech_level;
+	return equivalentTechLevel;
 }
 
 
-- (void) set_equivalent_tech_level:(int) value
+- (void) setEquivalentTechLevel:(OOTechLevelID) value
 {
-	equivalent_tech_level = value;
+	equivalentTechLevel = value;
 }
 
 
@@ -100,9 +100,9 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 }
 
 
-- (double) equipment_price_factor
+- (float) equipmentPriceFactor
 {
-	return equipment_price_factor;
+	return equipmentPriceFactor;
 }
 
 
@@ -673,8 +673,8 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 	launchQueue = [[NSMutableArray alloc] init]; // retained
 	
 	// local specials
-	equivalent_tech_level = NSNotFound;
-	equipment_price_factor = 1.0;
+	equivalentTechLevel = NSNotFound;
+	equipmentPriceFactor = 1.0;
 	
 	max_scavengers = 3;
 	max_defense_ships = 3;
@@ -767,12 +767,12 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 	
 	[super setUpShipFromDictionary:dict];
 	
-	equivalent_tech_level = [dict intForKey:@"equivalent_tech_level" defaultValue:NSNotFound];
+	equivalentTechLevel = [dict intForKey:@"equivalent_tech_level" defaultValue:NSNotFound];
 	max_scavengers = [dict unsignedIntForKey:@"max_scavengers" defaultValue:3];
 	max_defense_ships = [dict unsignedIntForKey:@"max_defense_ships" defaultValue:3];
 	max_police = [dict unsignedIntForKey:@"max_police" defaultValue:STATION_MAX_POLICE];
-	equipment_price_factor = [dict nonNegativeFloatForKey:@"equipment_price_factor" defaultValue:1.0];
-	equipment_price_factor = MAX(equipment_price_factor, 0.5f);
+	equipmentPriceFactor = [dict nonNegativeFloatForKey:@"equipment_price_factor" defaultValue:1.0];
+	equipmentPriceFactor = OOMax_f(equipmentPriceFactor, 0.5f);
 	
 	if ([self isRotatingStation])
 	{
@@ -1320,7 +1320,7 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 
 - (void) launchPolice
 {
-	int techlevel = [self equivalent_tech_level];
+	OOTechLevelID techlevel = [self equivalentTechLevel];
 	if (techlevel == NSNotFound)
 		techlevel = 6;
 	int police_target = primaryTarget;
@@ -1334,7 +1334,7 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 			return;
 		}
 		
-		if ((ranrot_rand() & 7) + 6 <= techlevel)
+		if ((Ranrot() & 7) + 6 <= techlevel)
 			police_ship = [UNIVERSE newShipWithRole:@"interceptor"];   // retain count = 1
 		else
 			police_ship = [UNIVERSE newShipWithRole:@"police"];   // retain count = 1
@@ -1366,10 +1366,11 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 	ShipEntity		*defense_ship = nil;
 	NSString		*defense_ship_key = nil;
 	NSString		*defense_ship_role_key = nil;
+	OOTechLevelID	techlevel;
 	
-	int techlevel = [self equivalent_tech_level];
+	techlevel = [self equivalentTechLevel];
 	if (techlevel == NSNotFound)  techlevel = 6;
-	if ((ranrot_rand() & 7) + 6 <= techlevel)
+	if ((Ranrot() & 7) + 6 <= techlevel)
 		defense_ship_role_key	= @"interceptor";
 	else
 		defense_ship_role_key	= @"police";
@@ -1617,14 +1618,16 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 	
 	if (police_launched < max_police)
 	{
-		ShipEntity  *patrol_ship;
-		int techlevel = [self equivalent_tech_level];
+		ShipEntity		*patrol_ship = nil;
+		OOTechLevelID	techlevel;
+		
+		techlevel = [self equivalentTechLevel];
 		if (techlevel == NSNotFound)
 			techlevel = 6;
 			
 		police_launched++;
 		
-		if ((ranrot_rand() & 7) + 6 <= techlevel)
+		if ((Ranrot() & 7) + 6 <= techlevel)
 			patrol_ship = [UNIVERSE newShipWithRole:@"interceptor"];   // retain count = 1
 		else
 			patrol_ship = [UNIVERSE newShipWithRole:@"police"];   // retain count = 1
@@ -1818,8 +1821,8 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 	OOLog(@"dumpState.stationEntity", @"Scavengers launched: %u", scavengers_launched);
 	OOLog(@"dumpState.stationEntity", @"Docked shuttles: %u", docked_shuttles);
 	OOLog(@"dumpState.stationEntity", @"Docked traders: %u", docked_traders);
-	OOLog(@"dumpState.stationEntity", @"Equivalent tech level: %i", equivalent_tech_level);
-	OOLog(@"dumpState.stationEntity", @"Equipment price factor: %g", equipment_price_factor);
+	OOLog(@"dumpState.stationEntity", @"Equivalent tech level: %i", equivalentTechLevel);
+	OOLog(@"dumpState.stationEntity", @"Equipment price factor: %g", equipmentPriceFactor);
 	
 	flags = [NSMutableArray array];
 	#define ADD_FLAG_IF_SET(x)		if (x) { [flags addObject:@#x]; }

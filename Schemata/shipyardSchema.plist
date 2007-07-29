@@ -1,0 +1,73 @@
+/*
+	Schema for shipyard.plist.
+*/
+
+{
+	type = dictionary;
+	valueType =
+	{
+		type = dictionary;
+		schema =
+		{
+			"chance" = float;
+			"optional_equipment" = $equipmentKeyArray;
+			"price" = positiveInteger;
+			"standard_equipment" =
+			{
+				type = dictionary;
+				schema =
+				{
+					"forward_weapon_type" = $weaponType;
+					"extras" = $equipmentKeyArray;
+					"missiles" = positiveInteger;
+				};
+				allowOthers = NO;
+			};
+			techLevel =
+			{
+				type = positiveInteger;
+				maximum = 99;	// Normally 0..13, but 99 is special.
+			};
+			weaponFacings =
+			{
+				type = positiveInteger;
+				maximum = 15;
+			};
+			"conditions" = $scriptConditions;
+			"max_cargo" = positiveInteger;
+		};
+	};
+	$definitions =
+	{
+		$equipmentKey =
+		{
+			type = string;
+			requiredPrefix = "EQ_";
+		};
+		$equipmentKeyArray =
+		{
+			type = array;
+			valueType = $equipmentKey;
+		};
+		$weaponType =
+		{
+			type = enumeration;
+			values =
+			(
+				"EQ_WEAPON_NONE",
+			//	"EQ_WEAPON_PLASMA_CANNON",	// Currently not supported in code.
+				"EQ_WEAPON_PULSE_LASER",
+				"EQ_WEAPON_BEAM_LASER",
+				"EQ_WEAPON_MINING_LASER",
+				"EQ_WEAPON_MILITARY_LASER",
+				"EQ_WEAPON_THARGOID_LASER"
+			);
+		};
+		$scriptConditions =
+		{
+			type = delegatedType;
+			baseType = array;
+			key = scriptConditions;
+		};
+	};
+}

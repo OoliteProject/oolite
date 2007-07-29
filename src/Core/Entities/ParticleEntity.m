@@ -1296,11 +1296,11 @@ static	Vector	circleVertex[65];		// holds vector coordinates for a unit circle
 		flare_length = 1.0 + 0.25 * flare_length;
 	}
 
-	if ((ranrot_rand() % 50) < dam - 50)   // flicker the damaged engines
+	if ((int)(ranrot_rand() % 50) < dam - 50)   // flicker the damaged engines
 		red_factor = 0.0;
-	if ((ranrot_rand() % 40) < dam - 60)
+	if ((int)(ranrot_rand() % 40) < dam - 60)
 		green_factor = 0.0;
-	if ((ranrot_rand() % 25) < dam - 75)
+	if ((int)(ranrot_rand() % 25) < dam - 75)
 		flare_factor = 0.0;
 
 	if (flare_length < 0.1)   flare_length = 0.1;

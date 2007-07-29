@@ -157,9 +157,9 @@ static NSString * mission_key;
 - (BOOL) checkCouplet:(NSDictionary *) couplet onEntity:(Entity *) entity
 {
 	NSAutoreleasePool	*pool = nil;
-	NSArray				*conditions = (NSArray *)[couplet objectForKey:@"conditions"];
-	NSArray				*actions = (NSArray *)[couplet objectForKey:@"do"];
-	NSArray				*else_actions = (NSArray *)[couplet objectForKey:@"else"];
+	NSArray				*conditions = [couplet objectForKey:@"conditions"];	// No CollectionsExtractors here, because we provide more detailed info below.
+	NSArray				*actions = [couplet objectForKey:@"do"];
+	NSArray				*else_actions = [couplet objectForKey:@"else"];
 	BOOL				success = YES;
 	unsigned			i;
 	

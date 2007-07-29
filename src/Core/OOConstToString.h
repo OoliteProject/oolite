@@ -43,15 +43,16 @@ OOInstinctID StringToInstinct(NSString *string) PURE_FUNC;
 
 NSString *BehaviourToString(OOBehaviour behaviour) CONST_FUNC;
 
-NSString *GovernmentToString(unsigned government);
+NSString *GovernmentToString(OOGovernmentID government);
 
-NSString *EconomyToString(unsigned economy);
+NSString *EconomyToString(OOEconomyID economy);
 
 NSString *JSTypeToString(int /* JSType */ type) CONST_FUNC;
 
 NSString *WeaponTypeToString(OOWeaponType weapon) CONST_FUNC;
 OOWeaponType StringToWeaponType(NSString *string) PURE_FUNC;
 
+// Weapon strings prefixed with EQ_, used in shipyard.plist.
 NSString *WeaponTypeToEquipmentString(OOWeaponType weapon) CONST_FUNC;
 OOWeaponType EquipmentStringToWeaponType(NSString *string) PURE_FUNC;
 

@@ -62,8 +62,8 @@ static GLfloat	texture_uv_array[10400 * 2];
 
 - (id) init
 {
-	int		i;
-	int		percent_land;
+	unsigned		i;
+	unsigned		percent_land;
 	
 	self = [super init];
 	
@@ -98,7 +98,7 @@ static GLfloat	texture_uv_array[10400 * 2];
 	
 	for (i = 0; i < vertexCount; i++)
 	{
-		if (ranrot_rand() % 100 < percent_land)  r_seed[i] = 0;  // land
+		if (Ranrot() % 100 < percent_land)  r_seed[i] = 0;  // land
 		else  r_seed[i] = 1;  // sea
 	}
 	

@@ -387,6 +387,7 @@ static NSString * const kOOLogEntityTooManyFaces			= @"entity.loadMesh.failed.to
 	if (displayListName != 0)
 	{
 		glDeleteLists(displayListName, 1);
+		displayListName = 0;
 	}
 }
 

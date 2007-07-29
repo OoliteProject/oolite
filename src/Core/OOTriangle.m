@@ -30,8 +30,8 @@ MA 02110-1301, USA.
 
 Vector calculateNormalForTriangle(Triangle *tri)
 {
-	Vector v01 = vector_between(tri->v[0], tri->v[1]);
-	Vector v12 = vector_between(tri->v[1], tri->v[2]);
+	Vector v01 = vector_subtract(tri->v[1], tri->v[0]);
+	Vector v12 = vector_subtract(tri->v[2], tri->v[1]);
 	tri->v[3] = cross_product( v01, v12);
 	return tri->v[3];
 }

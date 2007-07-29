@@ -40,6 +40,8 @@ MA 02110-1301, USA.
 
 static void DrawSpecialOval(GLfloat x, GLfloat y, GLfloat z, NSSize siz, GLfloat step, GLfloat* color4v);
 
+static void GetRGBAArrayFromInfo(NSDictionary *info, GLfloat ioColor[4]);
+
 
 static OOTexture		*sFontTexture = nil;
 
@@ -331,32 +333,19 @@ CheckOpenGLErrors(@"HeadUpDisplay after drawHUDItem %@", info);
 
 static BOOL hostiles;
 - (void) drawScanner:(NSDictionary *) info
-{	
-    GLfloat scanner_color[4] = { 1.0, 0.0, 0.0, 1.0 };
+{
+    int				x;
+	int				y;
+	NSSize			siz;
+    GLfloat			scanner_color[4] = { 1.0, 0.0, 0.0, 1.0 };
 	
-	int x = SCANNER_CENTRE_X;
-	int y = SCANNER_CENTRE_Y;
-	double alpha = 1.0;
-	NSSize siz = NSMakeSize(SCANNER_WIDTH, SCANNER_HEIGHT);
-	//
-	if ([info objectForKey:X_KEY])
-		x =		[(NSNumber *)[info objectForKey:X_KEY] intValue];
-	if ([info objectForKey:Y_KEY])
-		y =		[(NSNumber *)[info objectForKey:Y_KEY] intValue];
-	if ([info objectForKey:ALPHA_KEY])
-		alpha = [(NSNumber *)[info objectForKey:ALPHA_KEY] doubleValue];
-	if ([info objectForKey:WIDTH_KEY])
-		siz.width = [(NSNumber *)[info objectForKey:WIDTH_KEY] floatValue];
-	if ([info objectForKey:HEIGHT_KEY])
-		siz.height = [(NSNumber *)[info objectForKey:HEIGHT_KEY] floatValue];
-	if ([info objectForKey:RGB_COLOR_KEY])
-	{
-		NSArray*	rgb_array = (NSArray*)[info objectForKey:RGB_COLOR_KEY];
-		scanner_color[0] = (GLfloat)[(NSNumber *)[rgb_array objectAtIndex:0] floatValue];
-		scanner_color[1] = (GLfloat)[(NSNumber *)[rgb_array objectAtIndex:1] floatValue];
-		scanner_color[2] = (GLfloat)[(NSNumber *)[rgb_array objectAtIndex:2] floatValue];
-	}
-	scanner_color[3] = (GLfloat)alpha;
+	x = [info intForKey:X_KEY defaultValue:SCANNER_CENTRE_X];
+	y = [info intForKey:Y_KEY defaultValue:SCANNER_CENTRE_Y];
+	siz.width = [info nonNegativeFloatForKey:WIDTH_KEY defaultValue:SCANNER_WIDTH];
+	siz.height = [info nonNegativeFloatForKey:HEIGHT_KEY defaultValue:SCANNER_HEIGHT];
+	GetRGBAArrayFromInfo(info, scanner_color);
+	
+	float alpha = scanner_color[3];
 	
 	double z_factor = siz.height / siz.width;	// approx 1/4
 	double y_factor = 1.0 - sqrt(z_factor);	// approx 1/2
@@ -641,37 +630,25 @@ static BOOL hostiles;
 
 
 - (void) drawScannerZoomIndicator:(NSDictionary *) info
-{	
-    GLfloat zoom_color[] = { 1.0f, 0.1f, 0.0f, 1.0f };
-	GLfloat x = ZOOM_INDICATOR_CENTRE_X;
-	GLfloat y = ZOOM_INDICATOR_CENTRE_Y;
-	NSSize siz = NSMakeSize(ZOOM_INDICATOR_WIDTH, ZOOM_INDICATOR_HEIGHT);
-	GLfloat alpha = 1.0;
-	if ([info objectForKey:X_KEY])
-		x =		[(NSNumber *)[info objectForKey:X_KEY] floatValue];
-	if ([info objectForKey:Y_KEY])
-		y =		[(NSNumber *)[info objectForKey:Y_KEY] floatValue];
-	if ([info objectForKey:ALPHA_KEY])
-		alpha = [(NSNumber *)[info objectForKey:ALPHA_KEY] floatValue];
-	if ([info objectForKey:WIDTH_KEY])
-		siz.width = [(NSNumber *)[info objectForKey:WIDTH_KEY] floatValue];
-	if ([info objectForKey:HEIGHT_KEY])
-		siz.height = [(NSNumber *)[info objectForKey:HEIGHT_KEY] floatValue];
-	if ([info objectForKey:RGB_COLOR_KEY])
-	{
-		NSArray*	rgb_array = (NSArray*)[info objectForKey:RGB_COLOR_KEY];
-		zoom_color[0] = (GLfloat)[(NSNumber *)[rgb_array objectAtIndex:0] floatValue];
-		zoom_color[1] = (GLfloat)[(NSNumber *)[rgb_array objectAtIndex:1] floatValue];
-		zoom_color[2] = (GLfloat)[(NSNumber *)[rgb_array objectAtIndex:2] floatValue];
-	}
+{
+    int				x;
+	int				y;
+	NSSize			siz;
+    GLfloat			zoom_color[] = { 1.0f, 0.1f, 0.0f, 1.0f };
+	
+	x = [info intForKey:X_KEY defaultValue:ZOOM_INDICATOR_CENTRE_X];
+	y = [info intForKey:Y_KEY defaultValue:ZOOM_INDICATOR_CENTRE_Y];
+	siz.width = [info nonNegativeFloatForKey:WIDTH_KEY defaultValue:ZOOM_INDICATOR_WIDTH];
+	siz.height = [info nonNegativeFloatForKey:HEIGHT_KEY defaultValue:ZOOM_INDICATOR_HEIGHT];
+	GetRGBAArrayFromInfo(info, zoom_color);
+	
 	GLfloat cx = x - 0.3 * siz.width;
 	GLfloat cy = y - 0.75 * siz.height;
 
 	int zl = scanner_zoom;
 	if (zl < 1) zl = 1;
 	if (zl > SCANNER_ZOOM_LEVELS) zl = SCANNER_ZOOM_LEVELS;
-	if (zl == 1) alpha *= 0.75;
-	zoom_color[3] = (GLfloat)alpha;
+	if (zl == 1) zoom_color[3] *= 0.75;
 	glColor4fv(zoom_color);
 	glEnable(GL_TEXTURE_2D);
 	glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
@@ -683,26 +660,22 @@ static BOOL hostiles;
 	glEnd();
 	[OOTexture applyNone];
 	glDisable(GL_TEXTURE_2D);
-	
 }
 
 
 - (void) drawCompass:(NSDictionary *) info
-{	
-	NSSize siz = NSMakeSize(COMPASS_HALF_SIZE, COMPASS_HALF_SIZE);
-    GLfloat x = COMPASS_CENTRE_X;
-	GLfloat y = COMPASS_CENTRE_Y;
-	GLfloat alpha = 1.0;
-	if ([info objectForKey:X_KEY])
-		x =		[(NSNumber *)[info objectForKey:X_KEY] floatValue];
-	if ([info objectForKey:Y_KEY])
-		y =		[(NSNumber *)[info objectForKey:Y_KEY] floatValue];
-	if ([info objectForKey:WIDTH_KEY])
-		siz.width = [(NSNumber *)[info objectForKey:WIDTH_KEY] floatValue];
-	if ([info objectForKey:HEIGHT_KEY])
-		siz.height = [(NSNumber *)[info objectForKey:HEIGHT_KEY] floatValue];
-	if ([info objectForKey:ALPHA_KEY])
-		alpha = [(NSNumber *)[info objectForKey:ALPHA_KEY] floatValue];
+{
+    int				x;
+	int				y;
+	NSSize			siz;
+	float			alpha;
+	
+	x = [info intForKey:X_KEY defaultValue:COMPASS_CENTRE_X];
+	y = [info intForKey:Y_KEY defaultValue:COMPASS_CENTRE_Y];
+	siz.width = [info nonNegativeFloatForKey:WIDTH_KEY defaultValue:COMPASS_HALF_SIZE];
+	siz.height = [info nonNegativeFloatForKey:HEIGHT_KEY defaultValue:COMPASS_HALF_SIZE];
+	alpha = [info nonNegativeFloatForKey:ALPHA_KEY defaultValue:1.0];
+	
 	// draw the compass
 	Matrix rotMatrix;
 	PlayerEntity *player = [PlayerEntity sharedPlayer];
@@ -955,20 +928,17 @@ static BOOL hostiles;
 	if (([UNIVERSE viewDirection] == VIEW_GUI_DISPLAY)||([UNIVERSE sun] == nil)||([[PlayerEntity sharedPlayer] checkForAegis] != AEGIS_IN_DOCKING_RANGE))
 		return;	// don't draw
 	
-	NSSize siz = NSMakeSize(AEGIS_WIDTH, AEGIS_HEIGHT);
-    int x = AEGIS_CENTRE_X;
-	int y = AEGIS_CENTRE_Y;
-	GLfloat alpha = 0.5;
-	if ([info objectForKey:X_KEY])
-		x =		[(NSNumber *)[info objectForKey:X_KEY] intValue];
-	if ([info objectForKey:Y_KEY])
-		y =		[(NSNumber *)[info objectForKey:Y_KEY] intValue];
-	if ([info objectForKey:ALPHA_KEY])
-		alpha *= [(NSNumber *)[info objectForKey:ALPHA_KEY] floatValue];
-	if ([info objectForKey:WIDTH_KEY])
-		siz.width = [(NSNumber *)[info objectForKey:WIDTH_KEY] intValue];
-	if ([info objectForKey:HEIGHT_KEY])
-		siz.height = [(NSNumber *)[info objectForKey:HEIGHT_KEY] intValue];
+    int				x;
+	int				y;
+	NSSize			siz;
+	GLfloat			alpha = 0.5f;
+	
+	x = [info intForKey:X_KEY defaultValue:AEGIS_CENTRE_X];
+	y = [info intForKey:Y_KEY defaultValue:AEGIS_CENTRE_Y];
+	siz.width = [info nonNegativeFloatForKey:WIDTH_KEY defaultValue:AEGIS_WIDTH];
+	siz.height = [info nonNegativeFloatForKey:HEIGHT_KEY defaultValue:AEGIS_HEIGHT];
+	siz.height = [info nonNegativeFloatForKey:HEIGHT_KEY defaultValue:AEGIS_HEIGHT];
+	alpha *= [info nonNegativeFloatForKey:ALPHA_KEY defaultValue:1.0f];
 
 	// draw the aegis indicator
 	//
@@ -989,22 +959,19 @@ static BOOL hostiles;
 
 - (void) drawSpeedBar:(NSDictionary *) info
 {
-    double ds = [[PlayerEntity sharedPlayer] dialSpeed];
+	PlayerEntity	*player = [PlayerEntity sharedPlayer];
+    int				x;
+	int				y;
+	NSSize			siz;
+	BOOL			draw_surround;
 	
-	int x = SPEED_BAR_CENTRE_X;
-	int y = SPEED_BAR_CENTRE_Y;
-	NSSize siz = NSMakeSize(SPEED_BAR_WIDTH, SPEED_BAR_HEIGHT);
-	if ([info objectForKey:X_KEY])
-		x = [(NSNumber *)[info objectForKey:X_KEY] intValue];
-	if ([info objectForKey:Y_KEY])
-		y = [(NSNumber *)[info objectForKey:Y_KEY] intValue];
-	if ([info objectForKey:WIDTH_KEY])
-		siz.width = [(NSNumber *)[info objectForKey:WIDTH_KEY] intValue];
-	if ([info objectForKey:HEIGHT_KEY])
-		siz.height = [(NSNumber *)[info objectForKey:HEIGHT_KEY] intValue];
-	BOOL draw_surround = SPEED_BAR_DRAW_SURROUND;
-	if ([info objectForKey:DRAW_SURROUND_KEY])
-		draw_surround = [(NSNumber *)[info objectForKey:DRAW_SURROUND_KEY] boolValue];
+	x = [info intForKey:X_KEY defaultValue:SPEED_BAR_CENTRE_X];
+	y = [info intForKey:Y_KEY defaultValue:SPEED_BAR_CENTRE_Y];
+	siz.width = [info nonNegativeFloatForKey:WIDTH_KEY defaultValue:SPEED_BAR_WIDTH];
+	siz.height = [info nonNegativeFloatForKey:HEIGHT_KEY defaultValue:SPEED_BAR_HEIGHT];
+	draw_surround = [info boolForKey:DRAW_SURROUND_KEY defaultValue:SPEED_BAR_DRAW_SURROUND];
+	
+    double ds = [player dialSpeed];
 
 	if (draw_surround)
 	{
@@ -1023,21 +990,18 @@ static BOOL hostiles;
 
 
 - (void) drawRollBar:(NSDictionary *) info
-{	
-    int x = ROLL_BAR_CENTRE_X;
-	int y = ROLL_BAR_CENTRE_Y;
-	NSSize siz = NSMakeSize(ROLL_BAR_WIDTH, ROLL_BAR_HEIGHT);
-	if ([info objectForKey:X_KEY])
-		x = [(NSNumber *)[info objectForKey:X_KEY] intValue];
-	if ([info objectForKey:Y_KEY])
-		y = [(NSNumber *)[info objectForKey:Y_KEY] intValue];
-	if ([info objectForKey:WIDTH_KEY])
-		siz.width = [(NSNumber *)[info objectForKey:WIDTH_KEY] intValue];
-	if ([info objectForKey:HEIGHT_KEY])
-		siz.height = [(NSNumber *)[info objectForKey:HEIGHT_KEY] intValue];
-	BOOL draw_surround = ROLL_BAR_DRAW_SURROUND;
-	if ([info objectForKey:DRAW_SURROUND_KEY])
-		draw_surround = [(NSNumber *)[info objectForKey:DRAW_SURROUND_KEY] boolValue];
+{
+	PlayerEntity	*player = [PlayerEntity sharedPlayer];
+    int				x;
+	int				y;
+	NSSize			siz;
+	BOOL			draw_surround;
+	
+	x = [info intForKey:X_KEY defaultValue:ROLL_BAR_CENTRE_X];
+	y = [info intForKey:Y_KEY defaultValue:ROLL_BAR_CENTRE_Y];
+	siz.width = [info nonNegativeFloatForKey:WIDTH_KEY defaultValue:ROLL_BAR_WIDTH];
+	siz.height = [info nonNegativeFloatForKey:HEIGHT_KEY defaultValue:ROLL_BAR_HEIGHT];
+	draw_surround = [info boolForKey:DRAW_SURROUND_KEY defaultValue:ROLL_BAR_DRAW_SURROUND];
 
 	if (draw_surround)
 	{
@@ -1047,26 +1011,23 @@ static BOOL hostiles;
 	}
 	// draw ROLL bar
 	glColor4fv(yellow_color);
-	hudDrawIndicatorAt(x, y, z1, siz, [[PlayerEntity sharedPlayer] dialRoll]);
+	hudDrawIndicatorAt(x, y, z1, siz, [player dialRoll]);
 }
 
 
 - (void) drawPitchBar:(NSDictionary *) info
-{	
-    int x = PITCH_BAR_CENTRE_X;
-	int y = PITCH_BAR_CENTRE_Y;
-	NSSize siz = NSMakeSize(PITCH_BAR_WIDTH, PITCH_BAR_HEIGHT);
-	if ([info objectForKey:X_KEY])
-		x = [(NSNumber *)[info objectForKey:X_KEY] intValue];
-	if ([info objectForKey:Y_KEY])
-		y = [(NSNumber *)[info objectForKey:Y_KEY] intValue];
-	if ([info objectForKey:WIDTH_KEY])
-		siz.width = [(NSNumber *)[info objectForKey:WIDTH_KEY] intValue];
-	if ([info objectForKey:HEIGHT_KEY])
-		siz.height = [(NSNumber *)[info objectForKey:HEIGHT_KEY] intValue];
-	BOOL draw_surround = PITCH_BAR_DRAW_SURROUND;
-	if ([info objectForKey:DRAW_SURROUND_KEY])
-		draw_surround = [(NSNumber *)[info objectForKey:DRAW_SURROUND_KEY] boolValue];
+{
+	PlayerEntity	*player = [PlayerEntity sharedPlayer];
+    int				x;
+	int				y;
+	NSSize			siz;
+	BOOL			draw_surround;
+	
+	x = [info intForKey:X_KEY defaultValue:PITCH_BAR_CENTRE_X];
+	y = [info intForKey:Y_KEY defaultValue:PITCH_BAR_CENTRE_Y];
+	siz.width = [info nonNegativeFloatForKey:WIDTH_KEY defaultValue:PITCH_BAR_WIDTH];
+	siz.height = [info nonNegativeFloatForKey:HEIGHT_KEY defaultValue:PITCH_BAR_HEIGHT];
+	draw_surround = [info boolForKey:DRAW_SURROUND_KEY defaultValue:PITCH_BAR_DRAW_SURROUND];
 
 	if (draw_surround)
 	{
@@ -1076,42 +1037,30 @@ static BOOL hostiles;
 	}
 	// draw PITCH bar
 	glColor4fv(yellow_color);
-	hudDrawIndicatorAt(x, y, z1, siz, [[PlayerEntity sharedPlayer] dialPitch]);
+	hudDrawIndicatorAt(x, y, z1, siz, [player dialPitch]);
 }
 
 
 - (void) drawEnergyGauge:(NSDictionary *) info
-{	
-	int n_bars = [[PlayerEntity sharedPlayer] dialMaxEnergy]/64.0;
-	if (n_bars < 1)
-		n_bars = 1;
-
-    int x = ENERGY_GAUGE_CENTRE_X;
-	int y = ENERGY_GAUGE_CENTRE_Y;
+{
+	PlayerEntity	*player = [PlayerEntity sharedPlayer];
+    int				x;
+	int				y;
+	NSSize			siz;
+	BOOL			draw_surround, labelled;
 	
-
-	NSSize siz = NSMakeSize(ENERGY_GAUGE_WIDTH, ENERGY_GAUGE_HEIGHT);
-	if ([info objectForKey:X_KEY])
-		x = [(NSNumber *)[info objectForKey:X_KEY] intValue];
-	if ([info objectForKey:Y_KEY])
-		y = [(NSNumber *)[info objectForKey:Y_KEY] intValue];
-	if ([info objectForKey:WIDTH_KEY])
-		siz.width = [(NSNumber *)[info objectForKey:WIDTH_KEY] intValue];
-	if ([info objectForKey:HEIGHT_KEY])
-		siz.height = [(NSNumber *)[info objectForKey:HEIGHT_KEY] intValue];
-	BOOL draw_surround = ENERGY_GAUGE_DRAW_SURROUND;
-	if ([info objectForKey:DRAW_SURROUND_KEY])
-		draw_surround = [(NSNumber *)[info objectForKey:DRAW_SURROUND_KEY] boolValue];
-	BOOL labelled = YES;
-	if ([info objectForKey:LABELLED_KEY])
-		labelled = [(NSNumber *)[info objectForKey:LABELLED_KEY] boolValue];
+	x = [info intForKey:X_KEY defaultValue:ENERGY_GAUGE_CENTRE_X];
+	y = [info intForKey:Y_KEY defaultValue:ENERGY_GAUGE_CENTRE_Y];
+	siz.width = [info nonNegativeFloatForKey:WIDTH_KEY defaultValue:ENERGY_GAUGE_WIDTH];
+	siz.height = [info nonNegativeFloatForKey:HEIGHT_KEY defaultValue:ENERGY_GAUGE_HEIGHT];
+	draw_surround = [info boolForKey:DRAW_SURROUND_KEY defaultValue:ENERGY_GAUGE_DRAW_SURROUND];
+	labelled = [info boolForKey:LABELLED_KEY defaultValue:YES];
 	
-	if ([info objectForKey:N_BARS_KEY])
-		n_bars = [(NSNumber *)[info objectForKey:N_BARS_KEY] intValue];
-		
-	if (n_bars > 8)
-		labelled = NO;
-		
+	int n_bars = [player dialMaxEnergy]/64.0;
+	n_bars = [info unsignedIntForKey:N_BARS_KEY defaultValue:n_bars];
+	if (n_bars < 1)  n_bars = 1;
+	if (n_bars > 8)  labelled = NO;
+	
 	if (draw_surround)
 	{
 		// draw energy surround
@@ -1124,8 +1073,8 @@ static BOOL hostiles;
 		int qy = siz.height / n_bars;
 		NSSize dial_size = NSMakeSize(siz.width,qy - 2);
 		int cy = y - (n_bars - 1) * qy / 2;
-		double energy = [[PlayerEntity sharedPlayer] dialEnergy]*n_bars;
-		[[PlayerEntity sharedPlayer] setAlertFlag:ALERT_FLAG_ENERGY to:((energy < 1.0)&&([[PlayerEntity sharedPlayer] status] == STATUS_IN_FLIGHT))];
+		double energy = [player dialEnergy]*n_bars;
+		[player setAlertFlag:ALERT_FLAG_ENERGY to:((energy < 1.0)&&([player status] == STATUS_IN_FLIGHT))];
 		int i;
 		for (i = 0; i < n_bars; i++)
 		{
@@ -1148,23 +1097,20 @@ static BOOL hostiles;
 
 
 - (void) drawForwardShieldBar:(NSDictionary *) info
-{	
-    int x = FORWARD_SHIELD_BAR_CENTRE_X;
-	int y = FORWARD_SHIELD_BAR_CENTRE_Y;
-	NSSize siz = NSMakeSize(FORWARD_SHIELD_BAR_WIDTH, FORWARD_SHIELD_BAR_HEIGHT);
-	if ([info objectForKey:X_KEY])
-		x = [(NSNumber *)[info objectForKey:X_KEY] intValue];
-	if ([info objectForKey:Y_KEY])
-		y = [(NSNumber *)[info objectForKey:Y_KEY] intValue];
-	if ([info objectForKey:WIDTH_KEY])
-		siz.width = [(NSNumber *)[info objectForKey:WIDTH_KEY] intValue];
-	if ([info objectForKey:HEIGHT_KEY])
-		siz.height = [(NSNumber *)[info objectForKey:HEIGHT_KEY] intValue];
-	BOOL draw_surround = FORWARD_SHIELD_BAR_DRAW_SURROUND;
-	if ([info objectForKey:DRAW_SURROUND_KEY])
-		draw_surround = [(NSNumber *)[info objectForKey:DRAW_SURROUND_KEY] boolValue];
+{
+	PlayerEntity	*player = [PlayerEntity sharedPlayer];
+    int				x;
+	int				y;
+	NSSize			siz;
+	BOOL			draw_surround;
+	
+	x = [info intForKey:X_KEY defaultValue:FORWARD_SHIELD_BAR_CENTRE_X];
+	y = [info intForKey:Y_KEY defaultValue:FORWARD_SHIELD_BAR_CENTRE_Y];
+	siz.width = [info nonNegativeFloatForKey:WIDTH_KEY defaultValue:FORWARD_SHIELD_BAR_WIDTH];
+	siz.height = [info nonNegativeFloatForKey:HEIGHT_KEY defaultValue:FORWARD_SHIELD_BAR_HEIGHT];
+	draw_surround = [info boolForKey:DRAW_SURROUND_KEY defaultValue:FORWARD_SHIELD_BAR_DRAW_SURROUND];
 
-	double shield = [[PlayerEntity sharedPlayer] dialForwardShield];
+	double shield = [player dialForwardShield];
 	if (draw_surround)
 	{
 		// draw forward_shield surround
@@ -1182,23 +1128,20 @@ static BOOL hostiles;
 
 
 - (void) drawAftShieldBar:(NSDictionary *) info
-{	
-    int x = AFT_SHIELD_BAR_CENTRE_X;
-	int y = AFT_SHIELD_BAR_CENTRE_Y;
-	NSSize siz = NSMakeSize(AFT_SHIELD_BAR_WIDTH, AFT_SHIELD_BAR_HEIGHT);
-	if ([info objectForKey:X_KEY])
-		x = [(NSNumber *)[info objectForKey:X_KEY] intValue];
-	if ([info objectForKey:Y_KEY])
-		y = [(NSNumber *)[info objectForKey:Y_KEY] intValue];
-	if ([info objectForKey:WIDTH_KEY])
-		siz.width = [(NSNumber *)[info objectForKey:WIDTH_KEY] intValue];
-	if ([info objectForKey:HEIGHT_KEY])
-		siz.height = [(NSNumber *)[info objectForKey:HEIGHT_KEY] intValue];
-	BOOL draw_surround = AFT_SHIELD_BAR_DRAW_SURROUND;
-	if ([info objectForKey:DRAW_SURROUND_KEY])
-		draw_surround = [(NSNumber *)[info objectForKey:DRAW_SURROUND_KEY] boolValue];
+{
+	PlayerEntity	*player = [PlayerEntity sharedPlayer];
+    int				x;
+	int				y;
+	NSSize			siz;
+	BOOL			draw_surround;
+	
+	x = [info intForKey:X_KEY defaultValue:AFT_SHIELD_BAR_CENTRE_X];
+	y = [info intForKey:Y_KEY defaultValue:AFT_SHIELD_BAR_CENTRE_Y];
+	siz.width = [info nonNegativeFloatForKey:WIDTH_KEY defaultValue:AFT_SHIELD_BAR_WIDTH];
+	siz.height = [info nonNegativeFloatForKey:HEIGHT_KEY defaultValue:AFT_SHIELD_BAR_HEIGHT];
+	draw_surround = [info boolForKey:DRAW_SURROUND_KEY defaultValue:AFT_SHIELD_BAR_DRAW_SURROUND];
 
-	double shield = [[PlayerEntity sharedPlayer] dialAftShield];
+	double shield = [player dialAftShield];
 	if (draw_surround)
 	{
 		// draw aft_shield surround
@@ -1216,20 +1159,20 @@ static BOOL hostiles;
 
 
 - (void) drawFuelBar:(NSDictionary *) info
-{	
-    float fu = [[PlayerEntity sharedPlayer] dialFuel];
-	float hr = [[PlayerEntity sharedPlayer] dialHyperRange];
-	int x = FUEL_BAR_CENTRE_X;
-	int y = FUEL_BAR_CENTRE_Y;
-	NSSize siz = NSMakeSize(FUEL_BAR_WIDTH, FUEL_BAR_HEIGHT);
-	if ([info objectForKey:X_KEY])
-		x = [(NSNumber *)[info objectForKey:X_KEY] intValue];
-	if ([info objectForKey:Y_KEY])
-		y = [(NSNumber *)[info objectForKey:Y_KEY] intValue];
-	if ([info objectForKey:WIDTH_KEY])
-		siz.width = [(NSNumber *)[info objectForKey:WIDTH_KEY] intValue];
-	if ([info objectForKey:HEIGHT_KEY])
-		siz.height = [(NSNumber *)[info objectForKey:HEIGHT_KEY] intValue];
+{
+	PlayerEntity	*player = [PlayerEntity sharedPlayer];
+    int				x;
+	int				y;
+	NSSize			siz;
+	float			fu, hr;
+	
+	x = [info intForKey:X_KEY defaultValue:FUEL_BAR_CENTRE_X];
+	y = [info intForKey:Y_KEY defaultValue:FUEL_BAR_CENTRE_Y];
+	siz.width = [info nonNegativeFloatForKey:WIDTH_KEY defaultValue:FUEL_BAR_WIDTH];
+	siz.height = [info nonNegativeFloatForKey:HEIGHT_KEY defaultValue:FUEL_BAR_HEIGHT];
+	
+    fu = [player dialFuel];
+	hr = [player dialHyperRange];
 
 	// draw fuel bar
 	glColor4fv(yellow_color);
@@ -1246,19 +1189,15 @@ static BOOL hostiles;
 
 - (void) drawCabinTempBar:(NSDictionary *) info
 {
-    int x = CABIN_TEMP_BAR_CENTRE_X;
-	int y = CABIN_TEMP_BAR_CENTRE_Y;
-	NSSize siz = NSMakeSize(CABIN_TEMP_BAR_WIDTH, CABIN_TEMP_BAR_HEIGHT);
-	if ([info objectForKey:X_KEY])
-		x = [(NSNumber *)[info objectForKey:X_KEY] intValue];
-	if ([info objectForKey:Y_KEY])
-		y = [(NSNumber *)[info objectForKey:Y_KEY] intValue];
-	if ([info objectForKey:WIDTH_KEY])
-		siz.width = [(NSNumber *)[info objectForKey:WIDTH_KEY] intValue];
-	if ([info objectForKey:HEIGHT_KEY])
-		siz.height = [(NSNumber *)[info objectForKey:HEIGHT_KEY] intValue];
-
-	PlayerEntity *player = [PlayerEntity sharedPlayer];
+	PlayerEntity	*player = [PlayerEntity sharedPlayer];
+    int				x;
+	int				y;
+	NSSize			siz;
+	
+	x = [info intForKey:X_KEY defaultValue:CABIN_TEMP_BAR_CENTRE_X];
+	y = [info intForKey:Y_KEY defaultValue:CABIN_TEMP_BAR_CENTRE_Y];
+	siz.width = [info nonNegativeFloatForKey:WIDTH_KEY defaultValue:CABIN_TEMP_BAR_WIDTH];
+	siz.height = [info nonNegativeFloatForKey:HEIGHT_KEY defaultValue:CABIN_TEMP_BAR_HEIGHT];
 	
 	double temp = [player hullHeatLevel];
 	int flash = (int)([UNIVERSE getTime] * 4);
@@ -1277,20 +1216,18 @@ static BOOL hostiles;
 
 
 - (void) drawWeaponTempBar:(NSDictionary *) info
-{	
-    int x = WEAPON_TEMP_BAR_CENTRE_X;
-	int y = WEAPON_TEMP_BAR_CENTRE_Y;
-	NSSize siz = NSMakeSize(WEAPON_TEMP_BAR_WIDTH, WEAPON_TEMP_BAR_HEIGHT);
-	if ([info objectForKey:X_KEY])
-		x = [(NSNumber *)[info objectForKey:X_KEY] intValue];
-	if ([info objectForKey:Y_KEY])
-		y = [(NSNumber *)[info objectForKey:Y_KEY] intValue];
-	if ([info objectForKey:WIDTH_KEY])
-		siz.width = [(NSNumber *)[info objectForKey:WIDTH_KEY] intValue];
-	if ([info objectForKey:HEIGHT_KEY])
-		siz.height = [(NSNumber *)[info objectForKey:HEIGHT_KEY] intValue];
+{
+	PlayerEntity	*player = [PlayerEntity sharedPlayer];
+    int				x;
+	int				y;
+	NSSize			siz;
+	
+	x = [info intForKey:X_KEY defaultValue:WEAPON_TEMP_BAR_CENTRE_X];
+	y = [info intForKey:Y_KEY defaultValue:WEAPON_TEMP_BAR_CENTRE_Y];
+	siz.width = [info nonNegativeFloatForKey:WIDTH_KEY defaultValue:WEAPON_TEMP_BAR_WIDTH];
+	siz.height = [info nonNegativeFloatForKey:HEIGHT_KEY defaultValue:WEAPON_TEMP_BAR_HEIGHT];
 
-	double temp = [[PlayerEntity sharedPlayer] laserHeatLevel];
+	double temp = [player laserHeatLevel];
 	// draw weapon_temp bar
 	glColor4fv(green_color);
 	if (temp > .25)
@@ -1302,20 +1239,16 @@ static BOOL hostiles;
 
 
 - (void) drawAltitudeBar:(NSDictionary *) info
-{	
-    int x = ALTITUDE_BAR_CENTRE_X;
-	int y = ALTITUDE_BAR_CENTRE_Y;
-	NSSize siz = NSMakeSize(ALTITUDE_BAR_WIDTH, ALTITUDE_BAR_HEIGHT);
-	if ([info objectForKey:X_KEY])
-		x = [(NSNumber *)[info objectForKey:X_KEY] intValue];
-	if ([info objectForKey:Y_KEY])
-		y = [(NSNumber *)[info objectForKey:Y_KEY] intValue];
-	if ([info objectForKey:WIDTH_KEY])
-		siz.width = [(NSNumber *)[info objectForKey:WIDTH_KEY] intValue];
-	if ([info objectForKey:HEIGHT_KEY])
-		siz.height = [(NSNumber *)[info objectForKey:HEIGHT_KEY] intValue];
+{
+	PlayerEntity	*player = [PlayerEntity sharedPlayer];
+    int				x;
+	int				y;
+	NSSize			siz;
 	
-	PlayerEntity *player = [PlayerEntity sharedPlayer];
+	x = [info intForKey:X_KEY defaultValue:ALTITUDE_BAR_CENTRE_X];
+	y = [info intForKey:Y_KEY defaultValue:ALTITUDE_BAR_CENTRE_Y];
+	siz.width = [info nonNegativeFloatForKey:WIDTH_KEY defaultValue:ALTITUDE_BAR_WIDTH];
+	siz.height = [info nonNegativeFloatForKey:HEIGHT_KEY defaultValue:ALTITUDE_BAR_HEIGHT];
 	
 	double alt = [player dialAltitude];
 	int flash = (int)([UNIVERSE getTime] * 4);
@@ -1334,23 +1267,18 @@ static BOOL hostiles;
 
 
 - (void) drawMissileDisplay:(NSDictionary *) info
-{	
-    int x = MISSILES_DISPLAY_X;
-	int y = MISSILES_DISPLAY_Y;
-	int sp = MISSILES_DISPLAY_SPACING;
-	NSSize siz = NSMakeSize(MISSILE_ICON_HEIGHT, MISSILE_ICON_HEIGHT);
-	if ([info objectForKey:X_KEY])
-		x = [(NSNumber *)[info objectForKey:X_KEY] intValue];
-	if ([info objectForKey:Y_KEY])
-		y = [(NSNumber *)[info objectForKey:Y_KEY] intValue];
-	if ([info objectForKey:SPACING_KEY])
-		sp = [(NSNumber *)[info objectForKey:SPACING_KEY] intValue];
-	if ([info objectForKey:WIDTH_KEY])
-		siz.width = [(NSNumber *)[info objectForKey:WIDTH_KEY] intValue];
-	if ([info objectForKey:HEIGHT_KEY])
-		siz.height = [(NSNumber *)[info objectForKey:HEIGHT_KEY] intValue];
+{
+	PlayerEntity	*player = [PlayerEntity sharedPlayer];
+    int				x;
+	int				y;
+	NSSize			siz;
+	int				sp;
 	
-	PlayerEntity *player = [PlayerEntity sharedPlayer];
+	x = [info intForKey:X_KEY defaultValue:MISSILES_DISPLAY_X];
+	y = [info intForKey:Y_KEY defaultValue:MISSILES_DISPLAY_Y];
+	sp = [info unsignedIntForKey:SPACING_KEY defaultValue:MISSILES_DISPLAY_SPACING];
+	siz.width = [info nonNegativeFloatForKey:WIDTH_KEY defaultValue:MISSILE_ICON_WIDTH];
+	siz.height = [info nonNegativeFloatForKey:HEIGHT_KEY defaultValue:MISSILE_ICON_HEIGHT];
 	
 	if (![player dialIdentEngaged])
 	{
@@ -1483,44 +1411,39 @@ static BOOL hostiles;
 
 - (void) drawStatusLight:(NSDictionary *) info
 {
+	PlayerEntity	*player = [PlayerEntity sharedPlayer];
+    int				x;
+	int				y;
+	NSSize			siz;
+	
+	x = [info intForKey:X_KEY defaultValue:STATUS_LIGHT_CENTRE_X];
+	y = [info intForKey:Y_KEY defaultValue:STATUS_LIGHT_CENTRE_Y];
+	siz.width = [info nonNegativeFloatForKey:WIDTH_KEY defaultValue:STATUS_LIGHT_HEIGHT];
+	siz.height = [info nonNegativeFloatForKey:HEIGHT_KEY defaultValue:STATUS_LIGHT_HEIGHT];
+	
 	GLfloat status_color[4] = { 0.25, 0.25, 0.25, 1.0};
-	int alertCondition = [[PlayerEntity sharedPlayer] alertCondition];
+	int alertCondition = [player alertCondition];
 	double flash_alpha = 0.333 * (2.0 + sin([UNIVERSE getTime] * 2.5 * alertCondition));
-    int x = STATUS_LIGHT_CENTRE_X;
-	int y = STATUS_LIGHT_CENTRE_Y;
-	NSSize siz = NSMakeSize(STATUS_LIGHT_HEIGHT, STATUS_LIGHT_HEIGHT);
-	if ([info objectForKey:X_KEY])
-		x = [(NSNumber *)[info objectForKey:X_KEY] intValue];
-	if ([info objectForKey:Y_KEY])
-		y = [(NSNumber *)[info objectForKey:Y_KEY] intValue];
-	if ([info objectForKey:WIDTH_KEY])
-		siz.width = [(NSNumber *)[info objectForKey:WIDTH_KEY] intValue];
-	if ([info objectForKey:HEIGHT_KEY])
-		siz.height = [(NSNumber *)[info objectForKey:HEIGHT_KEY] intValue];
-	//
+	
 	switch(alertCondition)
 	{
 		case ALERT_CONDITION_RED :
-//			glColor4fv(red_color);
 			status_color[0] = red_color[0];
 			status_color[1] = red_color[1];
 			status_color[2] = red_color[2];
 			break;
 		case ALERT_CONDITION_GREEN :
-//			glColor4fv(green_color);
 			status_color[0] = green_color[0];
 			status_color[1] = green_color[1];
 			status_color[2] = green_color[2];
 			break;
 		case ALERT_CONDITION_YELLOW :
-//			glColor4fv(yellow_color);
 			status_color[0] = yellow_color[0];
 			status_color[1] = yellow_color[1];
 			status_color[2] = yellow_color[2];
 			break;
 		default :
 		case ALERT_CONDITION_DOCKED :
-//			glColor4f(0.25, 0.25, 0.25, 1.0);
 			break;
 	}
 	status_color[3] = flash_alpha;
@@ -1536,13 +1459,13 @@ static BOOL hostiles;
 
 
 - (void) drawDirectionCue:(NSDictionary *) info
-{	
+{
 	PlayerEntity *player = [PlayerEntity sharedPlayer];
 	
  	// the direction cue is an advanced option
 	// so we need to check for its extra equipment flag first
 	if (([info objectForKey:EQUIPMENT_REQUIRED_KEY])&&
-		(![player has_extra_equipment:(NSString *)[info objectForKey:EQUIPMENT_REQUIRED_KEY]]))
+		(![player has_extra_equipment:[info stringForKey:EQUIPMENT_REQUIRED_KEY]]))
 		return;
 	
 	if ([UNIVERSE displayGUI])
@@ -1610,47 +1533,39 @@ static BOOL hostiles;
 
 - (void) drawClock:(NSDictionary *) info
 {
-    int x = CLOCK_DISPLAY_X;
-	int y = CLOCK_DISPLAY_Y;
-	NSSize siz = NSMakeSize(CLOCK_DISPLAY_WIDTH, CLOCK_DISPLAY_HEIGHT);
+	PlayerEntity	*player = [PlayerEntity sharedPlayer];
+    int				x;
+	int				y;
+	NSSize			siz;
 	
-	if ([info objectForKey:X_KEY])
-		x = [(NSNumber *)[info objectForKey:X_KEY] intValue];
-	if ([info objectForKey:Y_KEY])
-		y = [(NSNumber *)[info objectForKey:Y_KEY] intValue];
-	if ([info objectForKey:WIDTH_KEY])
-		siz.width = [(NSNumber *)[info objectForKey:WIDTH_KEY] intValue];
-	if ([info objectForKey:HEIGHT_KEY])
-		siz.height = [(NSNumber *)[info objectForKey:HEIGHT_KEY] intValue];
-
+	x = [info intForKey:X_KEY defaultValue:CLOCK_DISPLAY_X];
+	y = [info intForKey:Y_KEY defaultValue:CLOCK_DISPLAY_Y];
+	siz.width = [info nonNegativeFloatForKey:WIDTH_KEY defaultValue:CLOCK_DISPLAY_WIDTH];
+	siz.height = [info nonNegativeFloatForKey:HEIGHT_KEY defaultValue:CLOCK_DISPLAY_HEIGHT];
+	
 	glColor4f(0.0, 1.0, 0.0, 1.0);
-	drawString([[PlayerEntity sharedPlayer] dial_clock], x, y, z1, siz);
+	drawString([player dial_clock], x, y, z1, siz);
 }
 
 
 - (void) drawFPSInfoCounter:(NSDictionary *) info
 {
-	if (![UNIVERSE displayFPS])
-		return;
+	if (![UNIVERSE displayFPS])  return;
+
+	PlayerEntity	*player = [PlayerEntity sharedPlayer];
+    int				x;
+	int				y;
+	NSSize			siz;
 	
-	PlayerEntity *player = [PlayerEntity sharedPlayer];
+	x = [info intForKey:X_KEY defaultValue:FPSINFO_DISPLAY_X];
+	y = [info intForKey:Y_KEY defaultValue:FPSINFO_DISPLAY_Y];
+	siz.width = [info nonNegativeFloatForKey:WIDTH_KEY defaultValue:FPSINFO_DISPLAY_WIDTH];
+	siz.height = [info nonNegativeFloatForKey:HEIGHT_KEY defaultValue:FPSINFO_DISPLAY_HEIGHT];
 	
 	NSString* positionInfo = [UNIVERSE expressPosition:player->position inCoordinateSystem:@"pwm"];
 	NSString* collDebugInfo = [NSString stringWithFormat:@"%@ - %@", [player dial_objinfo], [UNIVERSE collisionDescription]];
 	
-	int x = FPSINFO_DISPLAY_X;
-	int y = FPSINFO_DISPLAY_Y;
-	NSSize siz = NSMakeSize(FPSINFO_DISPLAY_WIDTH, FPSINFO_DISPLAY_HEIGHT);
-	NSSize siz08 = NSMakeSize(0.8 * FPSINFO_DISPLAY_WIDTH, 0.8 * FPSINFO_DISPLAY_HEIGHT);
-	
-	if ([info objectForKey:X_KEY])
-		x = [(NSNumber *)[info objectForKey:X_KEY] intValue];
-	if ([info objectForKey:Y_KEY])
-		y = [(NSNumber *)[info objectForKey:Y_KEY] intValue];
-	if ([info objectForKey:WIDTH_KEY])
-		siz.width = [(NSNumber *)[info objectForKey:WIDTH_KEY] intValue];
-	if ([info objectForKey:HEIGHT_KEY])
-		siz.height = [(NSNumber *)[info objectForKey:HEIGHT_KEY] intValue];
+	NSSize siz08 = NSMakeSize(0.8 * siz.width, 0.8 * siz.width);
 
 	glColor4f(0.0, 1.0, 0.0, 1.0);
 	drawString([player dial_fpsinfo], x, y, z1, siz);
@@ -1662,26 +1577,23 @@ static BOOL hostiles;
 
 - (void) drawScoopStatus:(NSDictionary *) info
 {
-	NSSize siz = NSMakeSize(SCOOPSTATUS_WIDTH, SCOOPSTATUS_HEIGHT);
-    GLfloat x = SCOOPSTATUS_CENTRE_X;
-	GLfloat y = SCOOPSTATUS_CENTRE_Y;
-	GLfloat alpha = 0.75;
-	if ([info objectForKey:X_KEY])
-		x =		[(NSNumber *)[info objectForKey:X_KEY] floatValue];
-	if ([info objectForKey:Y_KEY])
-		y =		[(NSNumber *)[info objectForKey:Y_KEY] floatValue];
-	if ([info objectForKey:ALPHA_KEY])
-		alpha *= [(NSNumber *)[info objectForKey:ALPHA_KEY] floatValue];
-	if ([info objectForKey:WIDTH_KEY])
-		siz.width = [(NSNumber *)[info objectForKey:WIDTH_KEY] floatValue];
-	if ([info objectForKey:HEIGHT_KEY])
-		siz.height = [(NSNumber *)[info objectForKey:HEIGHT_KEY] floatValue];
+	PlayerEntity	*player = [PlayerEntity sharedPlayer];
+    int				x;
+	int				y;
+	NSSize			siz;
+	GLfloat			alpha;
+	
+	x = [info intForKey:X_KEY defaultValue:SCOOPSTATUS_CENTRE_X];
+	y = [info intForKey:Y_KEY defaultValue:SCOOPSTATUS_CENTRE_Y];
+	siz.width = [info nonNegativeFloatForKey:WIDTH_KEY defaultValue:SCOOPSTATUS_WIDTH];
+	siz.height = [info nonNegativeFloatForKey:HEIGHT_KEY defaultValue:SCOOPSTATUS_HEIGHT];
+	alpha = [info nonNegativeFloatForKey:ALPHA_KEY defaultValue:0.75f];
 
 	GLfloat* s0_color = red_color;
 	GLfloat	s1c[4] = { 0.0f, 0.0f, 0.0f, 0.0f };
 	GLfloat	s2c[4] = { 0.0f, 0.0f, 0.0f, 0.0f };
 	GLfloat	s3c[4] = { 0.0f, 0.0f, 0.0f, 0.0f };
-	int scoop_status = [[PlayerEntity sharedPlayer] dialFuelScoopStatus];
+	int scoop_status = [player dialFuelScoopStatus];
 	double t = [UNIVERSE getTime];
 	GLfloat a1 = alpha * 0.5f * (1.0f + sin(t * 8.0f));
 	GLfloat a2 = alpha * 0.5f * (1.0f + sin(t * 8.0f - 1.0f));
@@ -1753,62 +1665,39 @@ static BOOL hostiles;
 }
 
 
-- (void) drawGreenSurround:(NSDictionary *) info
-{	
-    int x, y;
-	NSSize siz;
-	if ([info objectForKey:X_KEY])
-		x = [(NSNumber *)[info objectForKey:X_KEY] intValue];
-	else
-		return;
-	if ([info objectForKey:Y_KEY])
-		y = [(NSNumber *)[info objectForKey:Y_KEY] intValue];
-	else
-		return;
-	if ([info objectForKey:WIDTH_KEY])
-		siz.width = [(NSNumber *)[info objectForKey:WIDTH_KEY] intValue];
-	else
-		return;
-	if ([info objectForKey:HEIGHT_KEY])
-		siz.height = [(NSNumber *)[info objectForKey:HEIGHT_KEY] intValue];
-	else
-		return;
-
-	// draw aft_shield surround
-	glColor4fv(green_color);
+- (void) drawSurround:(NSDictionary *)info color:(GLfloat[4])color
+{
+    int				x;
+	int				y;
+	NSSize			siz;
+	
+	x = [info intForKey:X_KEY defaultValue:NSNotFound];
+	y = [info intForKey:Y_KEY defaultValue:NSNotFound];
+	siz.width = [info nonNegativeFloatForKey:WIDTH_KEY defaultValue:NAN];
+	siz.height = [info nonNegativeFloatForKey:HEIGHT_KEY defaultValue:NAN];
+	
+	if (x == NSNotFound || y == NSNotFound || isnan(siz.width) || isnan(siz.height))  return;
+	
+	// draw green surround
+	glColor4fv(color);
 	hudDrawSurroundAt(x, y, z1, siz);
+}
+
+
+- (void) drawGreenSurround:(NSDictionary *) info
+{
+	[self drawSurround:info color:green_color];
 }
 
 
 - (void) drawYellowSurround:(NSDictionary *) info
-{	
-    int x, y;
-	NSSize siz;
-	if ([info objectForKey:X_KEY])
-		x = [(NSNumber *)[info objectForKey:X_KEY] intValue];
-	else
-		return;
-	if ([info objectForKey:Y_KEY])
-		y = [(NSNumber *)[info objectForKey:Y_KEY] intValue];
-	else
-		return;
-	if ([info objectForKey:WIDTH_KEY])
-		siz.width = [(NSNumber *)[info objectForKey:WIDTH_KEY] intValue];
-	else
-		return;
-	if ([info objectForKey:HEIGHT_KEY])
-		siz.height = [(NSNumber *)[info objectForKey:HEIGHT_KEY] intValue];
-	else
-		return;
-
-	// draw aft_shield surround
-	glColor4fv(yellow_color);
-	hudDrawSurroundAt(x, y, z1, siz);
+{
+	[self drawSurround:info color:yellow_color];
 }
 
 
 - (void) drawTrumbles:(NSDictionary *) info
-{	
+{
 	PlayerEntity *player = [PlayerEntity sharedPlayer];
 	
 	OOTrumble** trumbles = [player trumbleArray];
@@ -2436,3 +2325,32 @@ static void DrawSpecialOval(GLfloat x, GLfloat y, GLfloat z, NSSize siz, GLfloat
 }
 
 @end
+
+
+static void GetRGBAArrayFromInfo(NSDictionary *info, GLfloat ioColor[4])
+{
+	id						colorDesc = nil;
+	OOColor					*color = nil;
+	
+	// First, look for general colour specifier.
+	colorDesc = [info objectForKey:RGB_COLOR_KEY];
+	if (colorDesc != nil)
+	{
+		color = [OOColor colorWithDescription:colorDesc];
+		if (color != nil)
+		{
+			[color getRed:&ioColor[0] green:&ioColor[1] blue:&ioColor[2] alpha:&ioColor[3]];
+			return;
+		}
+	}
+	
+	// Failing that, look for rgb_color and alpha.
+	colorDesc = [info arrayForKey:RGB_COLOR_KEY];
+	if (colorDesc != nil && [colorDesc count] == 3)
+	{
+		ioColor[0] = [colorDesc nonNegativeFloatAtIndex:0];
+		ioColor[1] = [colorDesc nonNegativeFloatAtIndex:1];
+		ioColor[2] = [colorDesc nonNegativeFloatAtIndex:2];
+	}
+	ioColor[3] = [info nonNegativeFloatForKey:ALPHA_KEY defaultValue:ioColor[3]];
+}

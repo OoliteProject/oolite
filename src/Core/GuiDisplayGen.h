@@ -89,7 +89,7 @@ typedef OOGUITabStop OOGUITabSettings[GUI_MAX_COLUMNS];
 	
 	NSPoint			rowPosition[GUI_MAX_ROWS];
 	OOGUIAlignment	rowAlignment[GUI_MAX_ROWS];
-	float			rowFadeTime[GUI_MAX_ROWS];
+	OOTimeDelta		rowFadeTime[GUI_MAX_ROWS];
 	
 	OOGUITabSettings tabStops;
 	
@@ -131,14 +131,14 @@ typedef OOGUITabStop OOGUITabSettings[GUI_MAX_COLUMNS];
 - (int)rowStart;
 
 - (NSString *)title;
-- (void) setTitle: (NSString *) str;
+- (void) setTitle:(NSString *)str;
 
 - (void) dealloc;
 
 - (void) setDrawPosition:(Vector) vector;
 - (Vector) drawPosition;
 
-- (void) fadeOutFromTime:(OOTimeAbsolute) now_time OverDuration:(OOTimeDelta) duration;
+- (void) fadeOutFromTime:(OOTimeAbsolute) now_time overDuration:(OOTimeDelta) duration;
 
 - (GLfloat) alpha;
 - (void) setAlpha:(GLfloat) an_alpha;
@@ -175,14 +175,26 @@ typedef OOGUITabStop OOGUITabSettings[GUI_MAX_COLUMNS];
 
 - (void) clear;
 
-- (void) setKey: (NSString *) str forRow:(OOGUIRow)row;
-- (void) setText: (NSString *) str forRow:(OOGUIRow)row;
-- (void) setText: (NSString *) str forRow:(OOGUIRow)row align:(OOGUIAlignment)alignment;
-- (int) addLongText: (NSString *) str startingAtRow:(OOGUIRow)row align:(OOGUIAlignment)alignment;
-- (void) printLongText: (NSString *) str Align:(int) alignment Color:(OOColor*) text_color FadeTime:(float) text_fade Key:(NSString*) text_key AddToArray:(NSMutableArray*) text_array;
-- (void) printLineNoScroll: (NSString *) str Align:(int) alignment Color:(OOColor*) text_color FadeTime:(float) text_fade Key:(NSString*) text_key AddToArray:(NSMutableArray*) text_array;
+- (void) setKey:(NSString *)str forRow:(OOGUIRow)row;
+- (void) setText:(NSString *)str forRow:(OOGUIRow)row;
+- (void) setText:(NSString *)str forRow:(OOGUIRow)row align:(OOGUIAlignment)alignment;
+- (int) addLongText:(NSString *)str
+	  startingAtRow:(OOGUIRow)row
+			  align:(OOGUIAlignment)alignment;
+- (void) printLongText:(NSString *)str
+				 align:(OOGUIAlignment)alignment
+				 color:(OOColor *)text_color
+			  fadeTime:(OOTimeDelta)text_fade
+				   key:(NSString *)text_key
+			addToArray:(NSMutableArray *)text_array;
+- (void) printLineNoScroll:(NSString *)str
+					 align:(OOGUIAlignment)alignment
+					 color:(OOColor *)text_color
+				  fadeTime:(OOTimeDelta)text_fade
+					   key:(NSString *)text_key
+				addToArray:(NSMutableArray *)text_array;
 
-- (void) setArray: (NSArray *) arr forRow:(OOGUIRow)row;
+- (void) setArray:(NSArray *)arr forRow:(OOGUIRow)row;
 
 - (void) insertItemsFromArray:(NSArray *)items
 					 withKeys:(NSArray *)item_keys

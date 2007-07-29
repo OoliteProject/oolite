@@ -492,7 +492,7 @@ MA 02110-1301, USA.
 		PlanetEntity  *thing = (PlanetEntity *)my_entities[i];
 		if ([thing getPlanetType] == PLANET_TYPE_GREEN)
 		{
-			double range2 = distance2( position, thing->position);
+			double range2 = distance2(position, thing->position);
 			if ((!the_planet)||(range2 < nearest2))
 			{
 				the_planet = thing;
@@ -513,13 +513,13 @@ MA 02110-1301, USA.
 	{
 		Vector p_pos = the_planet->position;
 		double p_cr = the_planet->collision_radius;   // 200m above the surface
-		Vector p1 = vector_between( p_pos, position);
+		Vector p1 = vector_between(p_pos, position);
 		p1 = unit_vector(&p1);			// vector towards ship
 		p1.x += 0.5 * (randf() - 0.5);
 		p1.y += 0.5 * (randf() - 0.5);
 		p1.z += 0.5 * (randf() - 0.5);
 		p1 = unit_vector(&p1); 
-		destination = make_vector( p_pos.x + p1.x * p_cr, p_pos.y + p1.y * p_cr, p_pos.z + p1.z * p_cr);	// on surface
+		destination = make_vector(p_pos.x + p1.x * p_cr, p_pos.y + p1.y * p_cr, p_pos.z + p1.z * p_cr);	// on surface
 		desired_range = collision_radius + 50.0;   // +50m from the destination
 	}
 }
@@ -611,7 +611,7 @@ MA 02110-1301, USA.
 		Quaternion q;	quaternion_set_random(&q);
 		Vector v = vector_forward_from_quaternion(q);
 		GLfloat d = (randf() - randf()) * the_target->collision_radius;
-		destination = make_vector( pos.x + d * v.x, pos.y + d * v.y, pos.z + d * v.z);
+		destination = make_vector(pos.x + d * v.x, pos.y + d * v.y, pos.z + d * v.z);
 	}
 }
 
@@ -919,10 +919,9 @@ WormholeEntity*	whole;
 		int cargo_to_go = 0.1 * max_cargo;
 		while (cargo_to_go > 15)
 			cargo_to_go = ranrot_rand() % cargo_to_go;
-		if (cargo_flag == CARGO_FLAG_FULL_PLENTIFUL)
-			jetsam = [UNIVERSE getContainersOfPlentifulGoods:cargo_to_go];
-		else
-			jetsam = [UNIVERSE getContainersOfScarceGoods:cargo_to_go];
+		
+		jetsam = [UNIVERSE getContainersOfGoods:cargo_to_go scarce:cargo_flag == CARGO_FLAG_FULL_SCARCE];
+		
 		if (!cargo)
 			cargo = [[NSMutableArray alloc] initWithCapacity:max_cargo];
 		[cargo addObjectsFromArray:jetsam];
@@ -1204,7 +1203,7 @@ WormholeEntity*	whole;
 		if ((ship != self)&&(!ship->isPlayer)&&(ship->scanClass == scanClass))	// look for alike
 		{
 			GLfloat d2 = distance2_scanned_ships[i];
-			if ((d2 < found_d2)&&(pairOK( [ship roles], roles)))
+			if ((d2 < found_d2)&&(pairOK([ship roles], roles)))
 			{
 				found_d2 = d2;
 				found_target = ship->universalID;
@@ -1237,7 +1236,7 @@ WormholeEntity*	whole;
 - (void) setPlanetPatrolCoordinates
 {
 	// check we've arrived near the last given coordinates
-	Vector r_pos = make_vector( position.x - coordinates.x, position.y - coordinates.y, position.z - coordinates.z);
+	Vector r_pos = make_vector(position.x - coordinates.x, position.y - coordinates.y, position.z - coordinates.z);
 	if ((magnitude2(r_pos) < 1000000)||(patrol_counter == 0))
 	{
 		Entity* the_sun = [UNIVERSE sun];
@@ -1246,33 +1245,33 @@ WormholeEntity*	whole;
 			return;
 		Vector sun_pos = the_sun->position;
 		Vector stn_pos = the_station->position;
-		Vector sun_dir =  make_vector( sun_pos.x - stn_pos.x, sun_pos.y - stn_pos.y, sun_pos.z - stn_pos.z);
-		Vector vSun = make_vector( 0, 0, 1);
+		Vector sun_dir =  make_vector(sun_pos.x - stn_pos.x, sun_pos.y - stn_pos.y, sun_pos.z - stn_pos.z);
+		Vector vSun = make_vector(0, 0, 1);
 		if (sun_dir.x||sun_dir.y||sun_dir.z)
 			vSun = unit_vector(&sun_dir);
 		Vector v0 = vector_forward_from_quaternion(the_station->orientation);
-		Vector v1 = cross_product( v0, vSun);
-		Vector v2 = cross_product( v0, v1);
+		Vector v1 = cross_product(v0, vSun);
+		Vector v2 = cross_product(v0, v1);
 		switch (patrol_counter)
 		{
 			case 0:		// first go to 5km ahead of the station
-				coordinates = make_vector( stn_pos.x + 5000 * v0.x, stn_pos.y + 5000 * v0.y, stn_pos.z + 5000 * v0.z);
+				coordinates = make_vector(stn_pos.x + 5000 * v0.x, stn_pos.y + 5000 * v0.y, stn_pos.z + 5000 * v0.z);
 				desired_range = 250.0;
 				break;
 			case 1:		// go to 25km N of the station
-				coordinates = make_vector( stn_pos.x + 25000 * v1.x, stn_pos.y + 25000 * v1.y, stn_pos.z + 25000 * v1.z);
+				coordinates = make_vector(stn_pos.x + 25000 * v1.x, stn_pos.y + 25000 * v1.y, stn_pos.z + 25000 * v1.z);
 				desired_range = 250.0;
 				break;
 			case 2:		// go to 25km E of the station
-				coordinates = make_vector( stn_pos.x + 25000 * v2.x, stn_pos.y + 25000 * v2.y, stn_pos.z + 25000 * v2.z);
+				coordinates = make_vector(stn_pos.x + 25000 * v2.x, stn_pos.y + 25000 * v2.y, stn_pos.z + 25000 * v2.z);
 				desired_range = 250.0;
 				break;
 			case 3:		// go to 25km S of the station
-				coordinates = make_vector( stn_pos.x - 25000 * v1.x, stn_pos.y - 25000 * v1.y, stn_pos.z - 25000 * v1.z);
+				coordinates = make_vector(stn_pos.x - 25000 * v1.x, stn_pos.y - 25000 * v1.y, stn_pos.z - 25000 * v1.z);
 				desired_range = 250.0;
 				break;
 			case 4:		// go to 25km W of the station
-				coordinates = make_vector( stn_pos.x - 25000 * v2.x, stn_pos.y - 25000 * v2.y, stn_pos.z - 25000 * v2.z);
+				coordinates = make_vector(stn_pos.x - 25000 * v2.x, stn_pos.y - 25000 * v2.y, stn_pos.z - 25000 * v2.z);
 				desired_range = 250.0;
 				break;
 		}
@@ -1322,7 +1321,7 @@ WormholeEntity*	whole;
 		return;
 	Vector v1 = [UNIVERSE getSunSkimEndPositionForShip:self];
 	Vector vs = the_sun->position;
-	Vector vout = make_vector( v1.x - vs.x, v1.y - vs.y, v1.z - vs.z);
+	Vector vout = make_vector(v1.x - vs.x, v1.y - vs.y, v1.z - vs.z);
 	if (vout.x||vout.y||vout.z)
 		vout = unit_vector(&vout);
 	else
@@ -1347,7 +1346,7 @@ WormholeEntity*	whole;
 	}
 	StationEntity* motherStation = (StationEntity*)[self owner];
 	Vector v0 = motherStation->position;
-	Vector rpos = make_vector( position.x - v0.x, position.y - v0.y, position.z - v0.z);
+	Vector rpos = make_vector(position.x - v0.x, position.y - v0.y, position.z - v0.z);
 	double found_d2 = scannerRange * scannerRange;
 	if (magnitude2(rpos) > found_d2)
 	{
@@ -1574,7 +1573,7 @@ WormholeEntity*	whole;
 	if ([zString hasPrefix:@"rand:"])
 		zString = [NSString stringWithFormat:@"%.3f", bellf([(NSString*)[[zString componentsSeparatedByString:@":"] objectAtIndex:1] intValue])];
 	
-	Vector posn = make_vector( [xString floatValue], [yString floatValue], [zString floatValue]);
+	Vector posn = make_vector([xString floatValue], [yString floatValue], [zString floatValue]);
 	GLfloat	scalar = 1.0;
 	//
 	coordinates = [UNIVERSE coordinatesForPosition:posn withCoordinateSystem:systemString returningScalar:&scalar];
@@ -1619,7 +1618,7 @@ WormholeEntity*	whole;
 		for (i = 0; i < station_count; i++)
 		{
 			StationEntity* thing = (StationEntity *)my_entities[i];
-			double range2 = distance2( position, thing->position);
+			double range2 = distance2(position, thing->position);
 			if (range2 < nearest2)
 			{
 				station = thing;
@@ -1710,7 +1709,7 @@ WormholeEntity*	whole;
 	for (i = 0; i < wh_count ; i++)
 	{
 		WormholeEntity* wh = wormholes[i];
-		double d2 = distance2( position, wh->position);
+		double d2 = distance2(position, wh->position);
 		if (d2 < found_d2)
 		{
 			whole = wh;
@@ -1799,9 +1798,9 @@ WormholeEntity*	whole;
 	Vector k = ship->v_forward;
 	GLfloat c = ship->collision_radius;
 	Vector o = ship->position;
-	navpoints[0] = make_vector( o.x - c * k.x, o.y - c * k.y, o.z - c * k.z);
-	navpoints[1] = make_vector( o.x + c * k.x, o.y + c * k.y, o.z + c * k.z);
-	navpoints[2] = make_vector( o.x + 2.0 * c * k.x, o.y + 2.0 * c * k.y, o.z + 2.0 * c * k.z);
+	navpoints[0] = make_vector(o.x - c * k.x, o.y - c * k.y, o.z - c * k.z);
+	navpoints[1] = make_vector(o.x + c * k.x, o.y + c * k.y, o.z + c * k.z);
+	navpoints[2] = make_vector(o.x + 2.0 * c * k.x, o.y + 2.0 * c * k.y, o.z + 2.0 * c * k.z);
 	number_of_navpoints = 2;
 	next_navpoint_index = 0;
 	destination = navpoints[0];

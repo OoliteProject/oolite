@@ -59,8 +59,8 @@ typedef enum
 	unsigned				max_scavengers;				// max no. of scavenger ships allowed
 	unsigned				scavengers_launched;
 	
-	int						equivalent_tech_level;
-	float					equipment_price_factor;
+	OOTechLevelID			equivalentTechLevel;
+	float					equipmentPriceFactor;
 
 	Vector					port_position;
 	Quaternion				port_orientation;
@@ -104,8 +104,8 @@ typedef enum
 - (NSMutableArray *) initialiseLocalPassengersWithSeed: (Random_Seed) s_seed andRandomFactor: (int) random_factor;
 - (NSMutableArray *) initialiseLocalContractsWithSeed: (Random_Seed) s_seed andRandomFactor: (int) random_factor;
 
-- (int) equivalent_tech_level;
-- (void) set_equivalent_tech_level:(int) value;
+- (OOTechLevelID) equivalentTechLevel;
+- (void) setEquivalentTechLevel:(OOTechLevelID) value;
 
 - (double) port_radius;
 
@@ -113,7 +113,7 @@ typedef enum
 
 - (Vector) getBeaconPosition;
 
-- (double) equipment_price_factor;
+- (float) equipmentPriceFactor;
 
 - (void) setPlanet:(PlanetEntity *)planet_entity;
 

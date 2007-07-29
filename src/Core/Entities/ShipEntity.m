@@ -3440,7 +3440,7 @@ static GLfloat mascem_color2[4] =	{ 0.4, 0.1, 0.4, 1.0};	// purple
 		{
 			// we need to throw out cargo at this point.
 			NSArray *jetsam = nil;  // this will contain the stuff to get thrown out
-			int cargo_chance = 10;
+			unsigned cargo_chance = 10;
 			if ([[name lowercaseString] rangeOfString:@"medical"].location != NSNotFound)
 			{
 				cargo_to_go = max_cargo * cargo_chance / 100;
@@ -3467,23 +3467,23 @@ static GLfloat mascem_color2[4] =	{ 0.4, 0.1, 0.4, 1.0};	// purple
 						jetsam = [UNIVERSE getContainersOfCommodity:commodity_name :cargo_to_go];
 					}
 					break;
-
+				
 				case CARGO_FLAG_FULL_PLENTIFUL :
-					jetsam = [UNIVERSE getContainersOfPlentifulGoods:cargo_to_go];
+					jetsam = [UNIVERSE getContainersOfGoods:cargo_to_go scarce:NO];
 					break;
-
+				
 				case CARGO_FLAG_PIRATE :
 					cargo_to_go = likely_cargo;
 					while (cargo_to_go > 15)
 						cargo_to_go = ranrot_rand() % cargo_to_go;
 					cargo_chance = 65;	// 35% chance of spoilage
-					jetsam = [UNIVERSE getContainersOfScarceGoods:cargo_to_go];
+					jetsam = [UNIVERSE getContainersOfGoods:cargo_to_go scarce:YES];
 					break;
-
+				
 				case CARGO_FLAG_FULL_SCARCE :
-					jetsam = [UNIVERSE getContainersOfScarceGoods:cargo_to_go];
+					jetsam = [UNIVERSE getContainersOfGoods:cargo_to_go scarce:YES];
 					break;
-
+				
 				case CARGO_FLAG_CANISTERS:
 					jetsam = [NSArray arrayWithArray:cargo];   // what the ship is carrying
 					[cargo removeAllObjects];   // dispense with it!
@@ -3498,7 +3498,7 @@ static GLfloat mascem_color2[4] =	{ 0.4, 0.1, 0.4, 1.0};	// purple
 				//
 				for (i = 0; i < n_jetsam; i++)
 				{
-					if (ranrot_rand() % 100 < cargo_chance)  //  chance of any given piece of cargo surviving decompression
+					if (Ranrot() % 100 < cargo_chance)  //  chance of any given piece of cargo surviving decompression
 					{
 						ShipEntity* container = [jetsam objectAtIndex:i];
 						Vector  rpos = xposition;
@@ -3915,7 +3915,7 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 
 
 	// we need to throw out cargo at this point.
-	int cargo_chance = 10;
+	unsigned cargo_chance = 10;
 	if ([[name lowercaseString] rangeOfString:@"medical"].location != NSNotFound)
 	{
 		cargo_to_go = max_cargo * cargo_chance / 100;
@@ -3930,7 +3930,7 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 		cargo_to_go = max_cargo / 10;
 		while (cargo_to_go > 15)
 			cargo_to_go = ranrot_rand() % cargo_to_go;
-		[self setCargo:[UNIVERSE getContainersOfPlentifulGoods:cargo_to_go]];
+		[self setCargo:[UNIVERSE getContainersOfGoods:cargo_to_go scarce:NO]];
 		cargo_chance = 100;
 	}
 	if (cargo_flag == CARGO_FLAG_FULL_SCARCE)
@@ -3938,12 +3938,12 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 		cargo_to_go = max_cargo / 10;
 		while (cargo_to_go > 15)
 			cargo_to_go = ranrot_rand() % cargo_to_go;
-		[self setCargo:[UNIVERSE getContainersOfScarceGoods:cargo_to_go]];
+		[self setCargo:[UNIVERSE getContainersOfGoods:cargo_to_go scarce:NO]];
 		cargo_chance = 100;
 	}
 	while ([cargo count] > 0)
 	{
-		if (ranrot_rand() % 100 < cargo_chance)  //  10% chance of any given piece of cargo surviving decompression
+		if (Ranrot() % 100 < cargo_chance)  //  10% chance of any given piece of cargo surviving decompression
 		{
 			ShipEntity* container = [[cargo objectAtIndex:0] retain];
 			Vector  rpos = xposition;

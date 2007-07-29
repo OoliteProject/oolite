@@ -1,6 +1,7 @@
 String filters:
 lowerCase
 upperCase
+capitalized
 truncFront:#
 truncBack:#
 subStringTo:$ (No effect if specified string is not a substring)

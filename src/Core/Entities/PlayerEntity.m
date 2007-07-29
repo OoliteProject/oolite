@@ -357,9 +357,9 @@ static PlayerEntity *sSharedPlayer = nil;
 	}
 
 	// persistant UNIVERSE information
-	if ([UNIVERSE local_planetinfo_overrides])
+	if ([UNIVERSE localPlanetInfoOverrides])
 	{
-		[result setObject:[UNIVERSE local_planetinfo_overrides] forKey:@"local_planetinfo_overrides"];
+		[result setObject:[UNIVERSE localPlanetInfoOverrides] forKey:@"localPlanetInfoOverrides"];
 	}
 
 	// trumble information
@@ -669,9 +669,9 @@ static PlayerEntity *sSharedPlayer = nil;
 		[mission_variables addEntriesFromDictionary:(NSDictionary *)[dict objectForKey:@"mission_variables"]];
 
 	// persistant UNIVERSE info
-	if ([dict objectForKey:@"local_planetinfo_overrides"])
+	if ([dict objectForKey:@"localPlanetInfoOverrides"])
 	{
-		[UNIVERSE setLocal_planetinfo_overrides:(NSDictionary *)[dict objectForKey:@"local_planetinfo_overrides"]];
+		[UNIVERSE setLocalPlanetInfoOverrides:(NSDictionary *)[dict objectForKey:@"localPlanetInfoOverrides"]];
 	}
 
 	// communications log
@@ -3801,7 +3801,7 @@ double scoopSoundPlayTime = 0.0;
 	
 	//  perform any check here for forced witchspace encounters
 	
-	int malfunc_chance = 253;
+	unsigned malfunc_chance = 253;
     if (ship_trade_in_factor < 80)
 		malfunc_chance -= (1 + ranrot_rand() % (81-ship_trade_in_factor)) / 2;	// increase chance of misjump in worn-out craft
 	ranrot_srand([[NSDate date] timeIntervalSince1970]);	// seed randomiser by time
@@ -4089,9 +4089,9 @@ double scoopSoundPlayTime = 0.0;
 	targetSystemData =		[[UNIVERSE generateSystemData:target_system_seed] retain];  // retained
 	targetSystemName =		[[UNIVERSE getSystemName:target_system_seed] retain];  // retained
 
-	BOOL	sun_gone_nova = NO;
+	BOOL	sunGoneNova = NO;
 	if ([targetSystemData objectForKey:@"sun_gone_nova"])
-		sun_gone_nova = YES;
+		sunGoneNova = YES;
 
 	// GUI stuff
 	{
@@ -4113,8 +4113,8 @@ double scoopSoundPlayTime = 0.0;
 		NSString	*inhabitants =		[targetSystemData stringForKey:KEY_INHABITANTS];
 		NSString	*system_desc =		[targetSystemData stringForKey:KEY_DESCRIPTION];
 
-		if ((sun_gone_nova && equal_seeds(target_system_seed, system_seed) && [[UNIVERSE sun] goneNova])||
-			(sun_gone_nova && (!equal_seeds(target_system_seed, system_seed))))
+		if ((sunGoneNova && equal_seeds(target_system_seed, system_seed) && [[UNIVERSE sun] goneNova])||
+			(sunGoneNova && (!equal_seeds(target_system_seed, system_seed))))
 		{
 			population = 0;
 			productivity = 0;
@@ -4510,13 +4510,13 @@ static int last_outfitting_index;
 	OOCargoQuantity cargo_space = max_cargo - current_cargo;
 
 	double price_factor = 1.0;
-	int techlevel = [[UNIVERSE generateSystemData:system_seed] intForKey:KEY_TECHLEVEL];
+	OOTechLevelID techlevel = [[UNIVERSE generateSystemData:system_seed] intForKey:KEY_TECHLEVEL];
 
 	if (docked_station)
 	{
-		price_factor = [docked_station equipment_price_factor];
-		if ([docked_station equivalent_tech_level] != NSNotFound)
-			techlevel = [docked_station equivalent_tech_level];
+		price_factor = [docked_station equipmentPriceFactor];
+		if ([docked_station equivalentTechLevel] != NSNotFound)
+			techlevel = [docked_station equivalentTechLevel];
 	}
 
 	// build an array of all equipment - and take away that which has been bought (or is not permitted)
@@ -4530,9 +4530,9 @@ static int last_outfitting_index;
 	unsigned i,j;
 	for (i = 0; i < [equipdata count]; i++)
 	{
-		NSString	*eq_key = (NSString*)[(NSArray*)[equipdata objectAtIndex:i] objectAtIndex:EQUIPMENT_KEY_INDEX];
-		NSString	*eq_key_damaged	= [NSString stringWithFormat:@"%@_DAMAGED", eq_key];
-		int			min_techlevel   = [[equipdata arrayAtIndex:i] unsignedIntAtIndex:EQUIPMENT_TECH_LEVEL_INDEX];
+		NSString		*eq_key = (NSString*)[(NSArray*)[equipdata objectAtIndex:i] objectAtIndex:EQUIPMENT_KEY_INDEX];
+		NSString		*eq_key_damaged	= [NSString stringWithFormat:@"%@_DAMAGED", eq_key];
+		OOTechLevelID	min_techlevel   = [[equipdata arrayAtIndex:i] unsignedIntAtIndex:EQUIPMENT_TECH_LEVEL_INDEX];
 		
 		NSMutableDictionary	*eq_extra_info_dict = [NSMutableDictionary dictionary];
 		if ([(NSArray *)[equipdata objectAtIndex:i] count] > 5)
@@ -4554,16 +4554,16 @@ static int last_outfitting_index;
 		}
 		
 		// if you have a dmaged system you can get it repaired at a tech level one less than that required to buy it
-		if ([self has_extra_equipment:eq_key_damaged])
+		if (min_techlevel != 0 && [self has_extra_equipment:eq_key_damaged])
 			min_techlevel--;
 		
 		// reduce the minimum techlevel occasionally as a bonus..
 		
-		if ((![UNIVERSE strict])&&(techlevel < min_techlevel)&&(techlevel > min_techlevel - 3))
+		if ((![UNIVERSE strict])&&(techlevel < min_techlevel)&&(techlevel + 3 > min_techlevel))
 		{
 			int day = i * 13 + floor([UNIVERSE getTime] / 86400.0);
 			unsigned char day_rnd = (day & 0xff) ^ system_seed.a;
-			int original_min_techlevel = min_techlevel;
+			OOTechLevelID original_min_techlevel = min_techlevel;
 			
 			while ((min_techlevel > 0)&&(min_techlevel > original_min_techlevel - 3)&&!(day_rnd & 7))	// bargain tech days every 1/8 days
 			{
@@ -5009,7 +5009,7 @@ static int last_outfitting_index;
 
 	if (docked_station)
 	{
-		price_factor = [docked_station equipment_price_factor];
+		price_factor = [docked_station equipmentPriceFactor];
 	}
 
 	price *= price_factor;  // increased prices at some stations
@@ -5143,11 +5143,12 @@ static int last_outfitting_index;
 	// maintain ship
 	if ([eq_key isEqual:@"EQ_RENOVATION"])
 	{
-		int techlevel =		[(NSNumber *)[[UNIVERSE generateSystemData:system_seed] objectForKey:KEY_TECHLEVEL] intValue];
-		if ((docked_station)&&([docked_station equivalent_tech_level] != NSNotFound))
-			techlevel = [docked_station equivalent_tech_level];
+		OOTechLevelID techLevel = NSNotFound;
+		if (docked_station != nil)  techLevel = [docked_station equivalentTechLevel];
+		if (techLevel == NSNotFound)  techLevel = [[UNIVERSE generateSystemData:system_seed] unsignedIntForKey:KEY_TECHLEVEL];
+		
 		credits -= price;
-		ship_trade_in_factor += 5 + techlevel;	// you get better value at high-tech repair bases
+		ship_trade_in_factor += 5 + techLevel;	// you get better value at high-tech repair bases
 		if (ship_trade_in_factor > 100)
 			ship_trade_in_factor = 100;
 		

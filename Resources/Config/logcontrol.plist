@@ -122,6 +122,9 @@
 	equip.buy.mounted.failed				= $scriptError;
 	
 	
+	gui.reset								= no;
+	
+	
 	input.keyMapping.codeOutOfRange			= inherit;
 	input.keyMapping.keyPress				= no;
 	input.keyMapping.keyPress.keyDown		= inherit;

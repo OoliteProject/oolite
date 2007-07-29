@@ -120,7 +120,8 @@ MA 02110-1301, USA.
 #define MISSILES_DISPLAY_X			-228
 #define MISSILES_DISPLAY_Y			-224
 #define MISSILES_DISPLAY_SPACING	16
-#define MISSILE_ICON_HEIGHT			12
+#define MISSILE_ICON_WIDTH			12
+#define MISSILE_ICON_HEIGHT			MISSILE_ICON_WIDTH
 
 #define CLOCK_DISPLAY_X				-44
 #define CLOCK_DISPLAY_Y				-234
@@ -161,6 +162,7 @@ MA 02110-1301, USA.
 #define LABELLED_KEY			@"labelled"
 #define TEXT_KEY				@"text"
 #define RGB_COLOR_KEY			@"rgb_color"
+#define COLOR_KEY				@"color"
 #define N_BARS_KEY				@"n_bars"
 
 #define ROWS_KEY				@"rows"

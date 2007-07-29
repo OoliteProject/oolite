@@ -210,7 +210,7 @@ enum
 	
 	BOOL					no_update;
 	
-	NSMutableDictionary		*local_planetinfo_overrides;
+	NSMutableDictionary		*localPlanetInfoOverrides;
 	
 	NSException				*exception;
 	
@@ -314,8 +314,7 @@ enum
 
 - (int) legal_status_of_manifest:(NSArray *)manifest;
 
-- (NSArray *) getContainersOfPlentifulGoods:(OOCargoQuantity) how_many;
-- (NSArray *) getContainersOfScarceGoods:(OOCargoQuantity) how_many;
+- (NSArray *) getContainersOfGoods:(OOCargoQuantity)how_many scarce:(BOOL)scarce;
 - (NSArray *) getContainersOfDrugs:(OOCargoQuantity) how_many;
 - (NSArray *) getContainersOfCommodity:(NSString*) commodity_name :(OOCargoQuantity) how_many;
 
@@ -372,15 +371,15 @@ enum
 
 - (void) clearPreviousMessage;
 - (void) setMessageGuiBackgroundColor:(OOColor *) some_color;
-- (void) displayMessage:(NSString *) text forCount:(int) count;
-- (void) displayCountdownMessage:(NSString *) text forCount:(int) count;
-- (void) addDelayedMessage:(NSString *) text forCount:(int) count afterDelay:(double) delay;
+- (void) displayMessage:(NSString *) text forCount:(OOTimeDelta) count;
+- (void) displayCountdownMessage:(NSString *) text forCount:(OOTimeDelta) count;
+- (void) addDelayedMessage:(NSString *) text forCount:(OOTimeDelta) count afterDelay:(OOTimeDelta) delay;
 - (void) addDelayedMessage:(NSDictionary *) textdict;
-- (void) addMessage:(NSString *) text forCount:(int) count;
-- (void) addCommsMessage:(NSString *) text forCount:(int) count;
-- (void) showCommsLog:(double) how_long;
+- (void) addMessage:(NSString *) text forCount:(OOTimeDelta) count;
+- (void) addCommsMessage:(NSString *) text forCount:(OOTimeDelta) count;
+- (void) showCommsLog:(OOTimeDelta) how_long;
 
-- (void) update:(double) delta_t;
+- (void) update:(OOTimeDelta) delta_t;
 
 - (void) filterSortedLists;
 
@@ -406,7 +405,7 @@ enum
 - (NSDictionary *) generateSystemData:(Random_Seed) system_seed;
 - (NSDictionary *) currentSystemData;
 - (void) setSystemDataKey:(NSString*) key value:(NSObject*) object;
-- (void) setSystemDataForGalaxy:(int) gnum planet:(int) pnum key:(NSString*) key value:(NSObject*) object;
+- (void) setSystemDataForGalaxy:(OOGalaxyID) gnum planet:(OOSystemID) pnum key:(NSString *)key value:(id)object;
 - (NSString *) getSystemName:(Random_Seed) s_seed;
 - (NSString *) getSystemInhabitants:(Random_Seed) s_seed;
 - (NSString *) generateSystemName:(Random_Seed) system_seed;
@@ -420,12 +419,12 @@ enum
 - (int) findSystemNumberAtCoords:(NSPoint) coords withGalaxySeed:(Random_Seed) gal_seed;
 - (NSPoint) findSystemCoordinatesWithPrefix:(NSString *) p_fix withGalaxySeed:(Random_Seed) gal_seed;
 - (BOOL*) systems_found;
-- (NSString*) systemNameIndex:(int) index;
-- (NSDictionary *) routeFromSystem:(int) start ToSystem:(int) goal;
-- (NSArray *) neighboursToSystem:(int) system_number;
+- (NSString*) systemNameIndex:(OOSystemID) index;
+- (NSDictionary *) routeFromSystem:(OOSystemID) start toSystem:(OOSystemID) goal;
+- (NSArray *) neighboursToSystem:(OOSystemID) system_number;
 
-- (NSMutableDictionary*) local_planetinfo_overrides;
-- (void) setLocal_planetinfo_overrides:(NSDictionary*) dict;
+- (NSMutableDictionary*) localPlanetInfoOverrides;
+- (void) setLocalPlanetInfoOverrides:(NSDictionary*) dict;
 
 - (NSDictionary*) planetinfo;
 
@@ -433,17 +432,17 @@ enum
 - (NSDictionary *) commoditylists;
 - (NSArray *) commoditydata;
 
-- (BOOL) generateEconomicDataWithEconomy:(int) economy andRandomFactor:(int) random_factor;
-- (NSArray *) commodityDataForEconomy:(int) economy andStation:(StationEntity *)some_station andRandomFactor:(int) random_factor;
+- (BOOL) generateEconomicDataWithEconomy:(OOEconomyID) economy andRandomFactor:(int) random_factor;
+- (NSArray *) commodityDataForEconomy:(OOEconomyID) economy andStation:(StationEntity *)some_station andRandomFactor:(int) random_factor;
 
 double estimatedTimeForJourney(double distance, int hops);
 
-- (NSArray *) passengersForSystem:(Random_Seed) s_seed atTime:(double) current_time;
-- (NSString *) timeDescription:(double) interval;
-- (NSString *) shortTimeDescription:(double) interval;
-- (NSArray *) contractsForSystem:(Random_Seed) s_seed atTime:(double) current_time;
+- (NSArray *) passengersForSystem:(Random_Seed) s_seed atTime:(OOTimeAbsolute) current_time;
+- (NSString *) timeDescription:(OOTimeDelta) interval;
+- (NSString *) shortTimeDescription:(OOTimeDelta) interval;
+- (NSArray *) contractsForSystem:(Random_Seed) s_seed atTime:(OOTimeAbsolute) current_time;
 
-- (NSArray *) shipsForSaleForSystem:(Random_Seed) s_seed withTL:(int) specialTL atTime:(double) current_time;
+- (NSArray *) shipsForSaleForSystem:(Random_Seed) s_seed withTL:(OOTechLevelID) specialTL atTime:(OOTimeAbsolute) current_time;
 - (OOCreditsQuantity) tradeInValueForCommanderDictionary:(NSDictionary*) cmdr_dict;
 - (NSString*) brochureDescriptionWithDictionary:(NSDictionary*) dict standardEquipment:(NSArray*) extras optionalEquipment:(NSArray*) options;
 

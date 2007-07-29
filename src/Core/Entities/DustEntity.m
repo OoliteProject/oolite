@@ -27,8 +27,14 @@ MA 02110-1301, USA.
 #import "OOMaths.h"
 #import "Universe.h"
 #import "MyOpenGLView.h"
+#import "OOGraphicsResetManager.h"
 
 #import "PlayerEntity.h"
+
+
+// Declare protocol conformance
+@interface DustEntity (OOGraphicsResetClient) <OOGraphicsResetClient>
+@end
 
 
 @implementation DustEntity
@@ -36,15 +42,12 @@ MA 02110-1301, USA.
 - (id) init
 {
     int vi;
-
+	
     ranrot_srand([[NSDate date] timeIntervalSince1970]);	// seed randomiser by time
     
     self = [super init];
-    //
-    vertexCount = DUST_N_PARTICLES;
-    faceCount = 0;
-	//
-	for (vi = 0; vi < vertexCount; vi++)
+	
+	for (vi = 0; vi < DUST_N_PARTICLES; vi++)
 	{
 		vertices[vi].x = (ranrot_rand() % DUST_SCALE) - DUST_SCALE / 2;
 		vertices[vi].y = (ranrot_rand() % DUST_SCALE) - DUST_SCALE / 2;
@@ -52,19 +55,24 @@ MA 02110-1301, USA.
 	}
 	
 	dust_color = [[OOColor colorWithCalibratedRed:0.5 green:1.0 blue:1.0 alpha:1.0] retain];
-    //
     displayListName = 0;
-    //
     status = STATUS_ACTIVE;
-    //
+	
+	[[OOGraphicsResetManager sharedManager] registerClient:self];
+    
     return self;
 }
 
+
 - (void) dealloc
 {
-	if (dust_color) [dust_color release];
+	[dust_color release];
+	[[OOGraphicsResetManager sharedManager] unregisterClient:self];
+	glDeleteLists(displayListName, 1);
+	
 	[super dealloc];
 }
+
 
 - (void) setDustColor:(OOColor *) color
 {
@@ -73,15 +81,18 @@ MA 02110-1301, USA.
 	[dust_color getRed:&color_fv[0] green:&color_fv[1] blue:&color_fv[2] alpha:&color_fv[3]];
 }
 
+
 - (OOColor *) dust_color
 {
 	return dust_color;
 }
 
+
 - (BOOL) canCollide
 {
 	return NO;
 }
+
 
 - (void) update:(double) delta_t
 {
@@ -90,10 +101,10 @@ MA 02110-1301, USA.
 	
 	zero_distance = 0.0;
 			
-	Vector offset = (player)? player->position: position;
-	double  half_scale = DUST_SCALE * 0.50;
+	Vector offset = player->position;
+	GLfloat  half_scale = DUST_SCALE * 0.50;
 	int vi;
-	for (vi = 0; vi < vertexCount; vi++)
+	for (vi = 0; vi < DUST_N_PARTICLES; vi++)
 	{
 		while (vertices[vi].x - offset.x < -half_scale)
 			vertices[vi].x += DUST_SCALE;
@@ -113,6 +124,7 @@ MA 02110-1301, USA.
 						
 }
 
+
 - (void) drawEntity:(BOOL) immediate :(BOOL) translucent
 {
 	PlayerEntity* player = [PlayerEntity sharedPlayer];
@@ -122,14 +134,14 @@ MA 02110-1301, USA.
 	int vi;
 
     GLfloat *fogcolor = [UNIVERSE sky_clear_color];
-	int  dust_size = floor([(MyOpenGLView *)[UNIVERSE gameView] viewSize].width / 480.0);
+	int  dust_size = floor([[UNIVERSE gameView] viewSize].width / 480.0);
 	if (dust_size < 1.0)
 		dust_size = 1.0;
 	int  line_size = dust_size / 2;
 	if (line_size < 1.0)
 		line_size = 1.0;
-	double  half_scale = DUST_SCALE * 0.50;
-	double  quarter_scale = DUST_SCALE * 0.25;
+	GLfloat  half_scale = DUST_SCALE * 0.50;
+	GLfloat  quarter_scale = DUST_SCALE * 0.25;
 	
 	if ([UNIVERSE breakPatternHide])	return;	// DON'T DRAW
 
@@ -172,7 +184,7 @@ MA 02110-1301, USA.
 		
 		glBegin(dustMode);
 		
-		for (vi = 0; vi < vertexCount; vi++)
+		for (vi = 0; vi < DUST_N_PARTICLES; vi++)
 		{
 			glVertex3f( vertices[vi].x, vertices[vi].y, vertices[vi].z);
 			if (warp_stars)
@@ -185,9 +197,18 @@ MA 02110-1301, USA.
 		// reapply normal conditions
 		glDisable(GL_FOG);
 	}
-	//
+	
 	CheckOpenGLErrors(@"DustEntity after drawing %@", self);
-	//
+}
+
+
+- (void)resetGraphicsState
+{
+	if (displayListName != 0)
+	{
+		glDeleteLists(displayListName, 1);
+		displayListName = 0;
+	}
 }
 
 @end

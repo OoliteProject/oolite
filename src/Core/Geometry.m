@@ -47,7 +47,7 @@ MA 02110-1301, USA.
 //	OOLog(@"geometry.init", @"Geometry inited with capacity %i", amount);
 	
 	max_triangles = amount;
-	triangles = malloc( max_triangles * sizeof(Triangle));	// allocate the required space
+	triangles = malloc(max_triangles * sizeof(Triangle));	// allocate the required space
 	n_triangles = 0;
 	isConvex = NO;
 	
@@ -91,7 +91,7 @@ MA 02110-1301, USA.
 			int i;
 			max_triangles = 1 + max_triangles * 2;
 			Triangle* old_triangles = triangles;
-			Triangle* new_triangles = (Triangle *) malloc( max_triangles * sizeof(Triangle));
+			Triangle* new_triangles = (Triangle *) malloc(max_triangles * sizeof(Triangle));
 			
 			if (!new_triangles)	// couldn't allocate space
 			{
@@ -139,9 +139,9 @@ MA 02110-1301, USA.
 		{
 			if (j != i)
 			{
-				if ((dot_product( vector_between( v0, triangles[j].v[0]), vn) < -0.001)||
-					(dot_product( vector_between( v0, triangles[j].v[1]), vn) < -0.001)||
-					(dot_product( vector_between( v0, triangles[j].v[2]), vn) < -0.001))	// within 1mm tolerance
+				if ((dot_product(vector_between(v0, triangles[j].v[0]), vn) < -0.001)||
+					(dot_product(vector_between(v0, triangles[j].v[1]), vn) < -0.001)||
+					(dot_product(vector_between(v0, triangles[j].v[2]), vn) < -0.001))	// within 1mm tolerance
 				{
 					isConvex = NO;
 					return NO;
@@ -168,8 +168,8 @@ MA 02110-1301, USA.
 		//
 		for (z = -1; z < 2; z += 2) for (y = -1; y < 2; y += 2) for (x = -1; x < 2; x += 2)
 		{
-			Vector vc = make_vector( corner * x, corner * y, corner * z);
-			if (dot_product( vector_between( v0, vc), vn) < -0.001)
+			Vector vc = make_vector(corner * x, corner * y, corner * z);
+			if (dot_product(vector_between(v0, vc), vn) < -0.001)
 				return NO;
 		}
 	}
@@ -398,9 +398,9 @@ static float volumecount;
 				i20 = -1.0;
 			else
 				i20 = v2.x / (v2.x - v0.x);
-			Vector v01 = make_vector( 0.0, i01 * (v1.y - v0.y) + v0.y, i01 * (v1.z - v0.z) + v0.z);
-			Vector v12 = make_vector( 0.0, i12 * (v2.y - v1.y) + v1.y, i12 * (v2.z - v1.z) + v1.z);
-			Vector v20 = make_vector( 0.0, i20 * (v0.y - v2.y) + v2.y, i20 * (v0.z - v2.z) + v2.z);
+			Vector v01 = make_vector(0.0, i01 * (v1.y - v0.y) + v0.y, i01 * (v1.z - v0.z) + v0.z);
+			Vector v12 = make_vector(0.0, i12 * (v2.y - v1.y) + v1.y, i12 * (v2.z - v1.z) + v1.z);
+			Vector v20 = make_vector(0.0, i20 * (v0.y - v2.y) + v2.y, i20 * (v0.z - v2.z) + v2.z);
 		
 			// cases where a vertex is on the split..
 			if (v0.x == 0.0)
@@ -445,50 +445,50 @@ static float volumecount;
 			
 			if ((v0.x > 0.0)&&(v1.x > 0.0)&&(v2.x < 0.0))
 			{
-				[g_plus addTriangle:make_triangle( v0, v12, v20)];
-				[g_plus addTriangle:make_triangle( v0, v1, v12)];
-				[g_minus addTriangle:make_triangle( v20, v12, v2)];
+				[g_plus addTriangle:make_triangle(v0, v12, v20)];
+				[g_plus addTriangle:make_triangle(v0, v1, v12)];
+				[g_minus addTriangle:make_triangle(v20, v12, v2)];
 			}
 			
 			if ((v0.x > 0.0)&&(v1.x < 0.0)&&(v2.x > 0.0))
 			{
-				[g_plus addTriangle:make_triangle( v2, v01, v12)];
-				[g_plus addTriangle:make_triangle( v2, v0, v01)];
-				[g_minus addTriangle:make_triangle( v12, v01, v1)];
+				[g_plus addTriangle:make_triangle(v2, v01, v12)];
+				[g_plus addTriangle:make_triangle(v2, v0, v01)];
+				[g_minus addTriangle:make_triangle(v12, v01, v1)];
 			}
 			
 			if ((v0.x > 0.0)&&(v1.x < 0.0)&&(v2.x < 0.0))
 			{
-				[g_plus addTriangle:make_triangle( v20, v0, v01)];
-				[g_minus addTriangle:make_triangle( v2, v20, v1)];
-				[g_minus addTriangle:make_triangle( v20, v01, v1)];
+				[g_plus addTriangle:make_triangle(v20, v0, v01)];
+				[g_minus addTriangle:make_triangle(v2, v20, v1)];
+				[g_minus addTriangle:make_triangle(v20, v01, v1)];
 			}
 			
 			if ((v0.x < 0.0)&&(v1.x > 0.0)&&(v2.x > 0.0))
 			{
-				[g_minus addTriangle:make_triangle( v01, v20, v0)];
-				[g_plus addTriangle:make_triangle( v1, v20, v01)];
-				[g_plus addTriangle:make_triangle( v1, v2, v20)];
+				[g_minus addTriangle:make_triangle(v01, v20, v0)];
+				[g_plus addTriangle:make_triangle(v1, v20, v01)];
+				[g_plus addTriangle:make_triangle(v1, v2, v20)];
 			}
 			
 			if ((v0.x < 0.0)&&(v1.x > 0.0)&&(v2.x < 0.0))
 			{
-				[g_plus addTriangle:make_triangle( v01, v1, v12)];
-				[g_minus addTriangle:make_triangle( v0, v01, v2)];
-				[g_minus addTriangle:make_triangle( v01, v12, v2)];
+				[g_plus addTriangle:make_triangle(v01, v1, v12)];
+				[g_minus addTriangle:make_triangle(v0, v01, v2)];
+				[g_minus addTriangle:make_triangle(v01, v12, v2)];
 			}
 			
 			if ((v0.x < 0.0)&&(v1.x < 0.0)&&(v2.x > 0.0))
 			{
-				[g_plus addTriangle:make_triangle( v12, v2, v20)];
-				[g_minus addTriangle:make_triangle( v1, v12, v0)];
-				[g_minus addTriangle:make_triangle( v12, v20, v0)];
+				[g_plus addTriangle:make_triangle(v12, v2, v20)];
+				[g_minus addTriangle:make_triangle(v1, v12, v0)];
+				[g_minus addTriangle:make_triangle(v12, v20, v0)];
 			}			
 
 		}
 	}
-	[g_plus translate: make_vector( -x, 0.0, 0.0)];
-	[g_minus translate: make_vector( x, 0.0, 0.0)];
+	[g_plus translate: make_vector(-x, 0.0, 0.0)];
+	[g_minus translate: make_vector(x, 0.0, 0.0)];
 }
 
 - (void) y_axisSplitBetween:(Geometry*) g_plus :(Geometry*) g_minus :(GLfloat) y;
@@ -528,9 +528,9 @@ static float volumecount;
 				i20 = -1.0;
 			else
 				i20 = v2.y / (v2.y - v0.y);
-			Vector v01 = make_vector( i01 * (v1.x - v0.x) + v0.x, 0.0, i01 * (v1.z - v0.z) + v0.z);
-			Vector v12 = make_vector( i12 * (v2.x - v1.x) + v1.x, 0.0, i12 * (v2.z - v1.z) + v1.z);
-			Vector v20 = make_vector( i20 * (v0.x - v2.x) + v2.x, 0.0, i20 * (v0.z - v2.z) + v2.z);
+			Vector v01 = make_vector(i01 * (v1.x - v0.x) + v0.x, 0.0, i01 * (v1.z - v0.z) + v0.z);
+			Vector v12 = make_vector(i12 * (v2.x - v1.x) + v1.x, 0.0, i12 * (v2.z - v1.z) + v1.z);
+			Vector v20 = make_vector(i20 * (v0.x - v2.x) + v2.x, 0.0, i20 * (v0.z - v2.z) + v2.z);
 			
 			// cases where a vertex is on the split..
 			if (v0.y == 0.0)
@@ -575,49 +575,49 @@ static float volumecount;
 			
 			if ((v0.y > 0.0)&&(v1.y > 0.0)&&(v2.y < 0.0))
 			{
-				[g_plus addTriangle:make_triangle( v0, v12, v20)];
-				[g_plus addTriangle:make_triangle( v0, v1, v12)];
-				[g_minus addTriangle:make_triangle( v20, v12, v2)];
+				[g_plus addTriangle:make_triangle(v0, v12, v20)];
+				[g_plus addTriangle:make_triangle(v0, v1, v12)];
+				[g_minus addTriangle:make_triangle(v20, v12, v2)];
 			}
 			
 			if ((v0.y > 0.0)&&(v1.y < 0.0)&&(v2.y > 0.0))
 			{
-				[g_plus addTriangle:make_triangle( v2, v01, v12)];
-				[g_plus addTriangle:make_triangle( v2, v0, v01)];
-				[g_minus addTriangle:make_triangle( v12, v01, v1)];
+				[g_plus addTriangle:make_triangle(v2, v01, v12)];
+				[g_plus addTriangle:make_triangle(v2, v0, v01)];
+				[g_minus addTriangle:make_triangle(v12, v01, v1)];
 			}
 			
 			if ((v0.y > 0.0)&&(v1.y < 0.0)&&(v2.y < 0.0))
 			{
-				[g_plus addTriangle:make_triangle( v20, v0, v01)];
-				[g_minus addTriangle:make_triangle( v2, v20, v1)];
-				[g_minus addTriangle:make_triangle( v20, v01, v1)];
+				[g_plus addTriangle:make_triangle(v20, v0, v01)];
+				[g_minus addTriangle:make_triangle(v2, v20, v1)];
+				[g_minus addTriangle:make_triangle(v20, v01, v1)];
 			}
 			
 			if ((v0.y < 0.0)&&(v1.y > 0.0)&&(v2.y > 0.0))
 			{
-				[g_minus addTriangle:make_triangle( v01, v20, v0)];
-				[g_plus addTriangle:make_triangle( v1, v20, v01)];
-				[g_plus addTriangle:make_triangle( v1, v2, v20)];
+				[g_minus addTriangle:make_triangle(v01, v20, v0)];
+				[g_plus addTriangle:make_triangle(v1, v20, v01)];
+				[g_plus addTriangle:make_triangle(v1, v2, v20)];
 			}
 			
 			if ((v0.y < 0.0)&&(v1.y > 0.0)&&(v2.y < 0.0))
 			{
-				[g_plus addTriangle:make_triangle( v01, v1, v12)];
-				[g_minus addTriangle:make_triangle( v0, v01, v2)];
-				[g_minus addTriangle:make_triangle( v01, v12, v2)];
+				[g_plus addTriangle:make_triangle(v01, v1, v12)];
+				[g_minus addTriangle:make_triangle(v0, v01, v2)];
+				[g_minus addTriangle:make_triangle(v01, v12, v2)];
 			}
 			
 			if ((v0.y < 0.0)&&(v1.y < 0.0)&&(v2.y > 0.0))
 			{
-				[g_plus addTriangle:make_triangle( v12, v2, v20)];
-				[g_minus addTriangle:make_triangle( v1, v12, v0)];
-				[g_minus addTriangle:make_triangle( v12, v20, v0)];
+				[g_plus addTriangle:make_triangle(v12, v2, v20)];
+				[g_minus addTriangle:make_triangle(v1, v12, v0)];
+				[g_minus addTriangle:make_triangle(v12, v20, v0)];
 			}			
 		}
 	}
-	[g_plus translate: make_vector( 0.0, -y, 0.0)];
-	[g_minus translate: make_vector( 0.0, y, 0.0)];
+	[g_plus translate: make_vector(0.0, -y, 0.0)];
+	[g_minus translate: make_vector(0.0, y, 0.0)];
 }
 
 - (void) z_axisSplitBetween:(Geometry*) g_plus :(Geometry*) g_minus :(GLfloat) z
@@ -657,9 +657,9 @@ static float volumecount;
 				i20 = -1.0;
 			else
 				i20 = v2.z / (v2.z - v0.z);
-			Vector v01 = make_vector( i01 * (v1.x - v0.x) + v0.x, i01 * (v1.y - v0.y) + v0.y, 0.0);
-			Vector v12 = make_vector( i12 * (v2.x - v1.x) + v1.x, i12 * (v2.y - v1.y) + v1.y, 0.0);
-			Vector v20 = make_vector( i20 * (v0.x - v2.x) + v2.x, i20 * (v0.y - v2.y) + v2.y, 0.0);
+			Vector v01 = make_vector(i01 * (v1.x - v0.x) + v0.x, i01 * (v1.y - v0.y) + v0.y, 0.0);
+			Vector v12 = make_vector(i12 * (v2.x - v1.x) + v1.x, i12 * (v2.y - v1.y) + v1.y, 0.0);
+			Vector v20 = make_vector(i20 * (v0.x - v2.x) + v2.x, i20 * (v0.y - v2.y) + v2.y, 0.0);
 		
 			// cases where a vertex is on the split..
 			if (v0.z == 0.0)
@@ -704,50 +704,50 @@ static float volumecount;
 			
 			if ((v0.z > 0.0)&&(v1.z > 0.0)&&(v2.z < 0.0))
 			{
-				[g_plus addTriangle:make_triangle( v0, v12, v20)];
-				[g_plus addTriangle:make_triangle( v0, v1, v12)];
-				[g_minus addTriangle:make_triangle( v20, v12, v2)];
+				[g_plus addTriangle:make_triangle(v0, v12, v20)];
+				[g_plus addTriangle:make_triangle(v0, v1, v12)];
+				[g_minus addTriangle:make_triangle(v20, v12, v2)];
 			}
 			
 			if ((v0.z > 0.0)&&(v1.z < 0.0)&&(v2.z > 0.0))
 			{
-				[g_plus addTriangle:make_triangle( v2, v01, v12)];
-				[g_plus addTriangle:make_triangle( v2, v0, v01)];
-				[g_minus addTriangle:make_triangle( v12, v01, v1)];
+				[g_plus addTriangle:make_triangle(v2, v01, v12)];
+				[g_plus addTriangle:make_triangle(v2, v0, v01)];
+				[g_minus addTriangle:make_triangle(v12, v01, v1)];
 			}
 			
 			if ((v0.z > 0.0)&&(v1.z < 0.0)&&(v2.z < 0.0))
 			{
-				[g_plus addTriangle:make_triangle( v20, v0, v01)];
-				[g_minus addTriangle:make_triangle( v2, v20, v1)];
-				[g_minus addTriangle:make_triangle( v20, v01, v1)];
+				[g_plus addTriangle:make_triangle(v20, v0, v01)];
+				[g_minus addTriangle:make_triangle(v2, v20, v1)];
+				[g_minus addTriangle:make_triangle(v20, v01, v1)];
 			}
 			
 			if ((v0.z < 0.0)&&(v1.z > 0.0)&&(v2.z > 0.0))
 			{
-				[g_minus addTriangle:make_triangle( v01, v20, v0)];
-				[g_plus addTriangle:make_triangle( v1, v20, v01)];
-				[g_plus addTriangle:make_triangle( v1, v2, v20)];
+				[g_minus addTriangle:make_triangle(v01, v20, v0)];
+				[g_plus addTriangle:make_triangle(v1, v20, v01)];
+				[g_plus addTriangle:make_triangle(v1, v2, v20)];
 			}
 			
 			if ((v0.z < 0.0)&&(v1.z > 0.0)&&(v2.z < 0.0))
 			{
-				[g_plus addTriangle:make_triangle( v01, v1, v12)];
-				[g_minus addTriangle:make_triangle( v0, v01, v2)];
-				[g_minus addTriangle:make_triangle( v01, v12, v2)];
+				[g_plus addTriangle:make_triangle(v01, v1, v12)];
+				[g_minus addTriangle:make_triangle(v0, v01, v2)];
+				[g_minus addTriangle:make_triangle(v01, v12, v2)];
 			}
 			
 			if ((v0.z < 0.0)&&(v1.z < 0.0)&&(v2.z > 0.0))
 			{
-				[g_plus addTriangle:make_triangle( v12, v2, v20)];
-				[g_minus addTriangle:make_triangle( v1, v12, v0)];
-				[g_minus addTriangle:make_triangle( v12, v20, v0)];
+				[g_plus addTriangle:make_triangle(v12, v2, v20)];
+				[g_minus addTriangle:make_triangle(v1, v12, v0)];
+				[g_minus addTriangle:make_triangle(v12, v20, v0)];
 			}			
 
 		}
 	}
-	[g_plus translate: make_vector( 0.0, 0.0, -z)];
-	[g_minus translate: make_vector( 0.0, 0.0, z)];
+	[g_plus translate: make_vector(0.0, 0.0, -z)];
+	[g_minus translate: make_vector(0.0, 0.0, z)];
 }
 
 @end

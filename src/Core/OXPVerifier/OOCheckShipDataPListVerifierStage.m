@@ -133,7 +133,7 @@ static NSString * const kStageName	= @"Checking shipdata.plist";
 	[mergeSet unionSet:_stationKeys];
 	_allKeys = mergeSet;
 	
-	_schemaVerifier = [OOPListSchemaVerifier verifierWithSchema:[settings dictionaryForKey:@"entrySchema"]];
+	_schemaVerifier = [OOPListSchemaVerifier verifierWithSchema:[ResourceManager dictionaryFromFilesNamed:@"shipdataEntrySchema.plist" inFolder:@"Schemata" andMerge:NO]];
 	[_schemaVerifier setDelegate:self];
 	
 	shipList = [[_shipdataPList allKeys] sortedArrayUsingSelector:@selector(caseInsensitiveCompare:)];
@@ -290,11 +290,14 @@ static NSString * const kStageName	= @"Checking shipdata.plist";
 	materials = [_info dictionaryForKey:@"materials"];
 	shaders = [_info dictionaryForKey:@"shaders"];
 	
-	[[[self verifier] modelVerifierStage] modelNamed:model
-										usedForEntry:_name
-											  inFile:@"shipdata.plist"
-									   withMaterials:materials
-										  andShaders:shaders];
+	if (![[[self verifier] modelVerifierStage] modelNamed:model
+											 usedForEntry:_name
+												   inFile:@"shipdata.plist"
+											withMaterials:materials
+											   andShaders:shaders])
+	{
+		[self message:@"WARNING: model \"%@\" could not be found in %@ or in Oolite.", model, [[self verifier] oxpDisplayName]];
+	}
 }
 
 

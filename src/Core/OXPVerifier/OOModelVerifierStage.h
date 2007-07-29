@@ -38,12 +38,15 @@ MA 02110-1301, USA.
 // Returns name to be used in -dependents by other stages; also registers stage.
 + (NSString *)nameForReverseDependencyForVerifier:(OOOXPVerifier *)verifier;
 
-//	This can be called by other stages *before* the model stage runs.
-- (void) modelNamed:(NSString *)name
-	   usedForEntry:(NSString *)entryName
-			 inFile:(NSString *)fileName
-	  withMaterials:(NSDictionary *)materials
-		 andShaders:(NSDictionary *)shaders;
+/*	This can be called by other stages *before* the model stage runs.
+	returns YES if the model is found, NO if it is not. Caller is responsible
+	for complaining if it is not.
+*/
+- (BOOL)modelNamed:(NSString *)name
+	  usedForEntry:(NSString *)entryName
+			inFile:(NSString *)fileName
+	 withMaterials:(NSDictionary *)materials
+		andShaders:(NSDictionary *)shaders;
 
 @end
 

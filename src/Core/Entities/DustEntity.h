@@ -29,12 +29,14 @@ MA 02110-1301, USA.
 #define DUST_SCALE			2000
 #define DUST_N_PARTICLES	600
 
-@class Entity, OOColor;
+@class OOColor;
 
-@interface DustEntity: OOSelfDrawingEntity
+@interface DustEntity: Entity
 {
-	OOColor *dust_color;
-	GLfloat color_fv[4];
+	OOColor			*dust_color;
+	Vector			vertices[DUST_N_PARTICLES];
+	GLfloat			color_fv[4];
+	GLuint			displayListName;
 }
 
 - (void) setDustColor:(OOColor *) color;
