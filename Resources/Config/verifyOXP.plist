@@ -46,31 +46,71 @@
 		"Textures"
 	);
 	
-	knownConfigFiles =
-	(
-		"autoAImap.plist",
-		"characters.plist",
-		"commodities.plist",
-		"customsounds.plist",
-		"demoships.plist",
-		"descriptions.plist",
-		"equipment.plist",
-		"hud.plist",
-		"illegal_goods.plist",
-		"keyconfig.plist",
-		"material-defaults.plist",
-		"missiontext.plist",
-		"nebulatextures.plist",
-		"planetinfo.plist",
-		"requires.plist",
-		"script.plist",
-		"script.js",
-		"shipdata.plist",
-		"shipyard.plist",
-		"speech_pronounciation_guide.plist",
-		"startextures.plist",
-		"world-scripts.plist"
-	);
+	knownFiles =
+	{
+		// Files the game uses directly.
+		"Config" =
+		(
+			"autoAImap.plist",
+			"characters.plist",
+			"commodities.plist",
+			"customsounds.plist",
+			"demoships.plist",
+			"descriptions.plist",
+			"equipment.plist",
+			"hud.plist",
+			"illegal_goods.plist",
+			"keyconfig.plist",
+			"material-defaults.plist",
+			"missiontext.plist",
+			"nebulatextures.plist",
+			"planetinfo.plist",
+			"requires.plist",
+			"script.plist",
+			"script.js",
+			"shipdata.plist",
+			"shipyard.plist",
+			"speech_pronounciation_guide.plist",
+			"startextures.plist",
+			"world-scripts.plist"
+		);
+		"Sounds" =
+		(
+			"afterburner1.ogg",
+			"witchabort.ogg",
+			"warning.ogg",
+			"trumblesqueal.ogg",
+			"trumble.ogg",
+			"sell.ogg",
+			"hit.ogg",
+			"guiclick.ogg",
+			"ecm.ogg",
+			"buy.ogg",
+			"breakpattern.ogg",
+			"boop.ogg",
+			"bigbang.ogg",
+			"beep.ogg",
+			"afterburner2.ogg",
+			"scoop.ogg",
+			"missile.ogg",
+			"laserhits.ogg",
+			"laser.ogg",
+			"hullbang.ogg"
+		);
+		"Music" =
+		(
+			"BlueDanube.ogg",
+			"OoliteTheme.ogg"
+		);
+		"Textures" =
+		(
+			"blur256.png",
+			"asciitext.png",
+			"trumblekit.png"
+			
+			// star64.png and galaxy256.png fall into this category, but they're going to be replaced.
+		);
+	};
 	
 	junkFiles =
 	(

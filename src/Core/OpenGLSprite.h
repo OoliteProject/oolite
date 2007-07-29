@@ -44,7 +44,7 @@ MA 02110-1301, USA.
 
 - (NSSize)size;
 
-- (void)blitToX:(float)x Y:(float)y Z:(float)z Alpha:(float)a;
-- (void)blitCentredToX:(float)x Y:(float)y Z:(float)z Alpha:(float)a;
+- (void)blitToX:(float)x Y:(float)y Z:(float)z alpha:(float)a;
+- (void)blitCentredToX:(float)x Y:(float)y Z:(float)z alpha:(float)a;
 
 @end

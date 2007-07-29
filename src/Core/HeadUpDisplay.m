@@ -97,26 +97,24 @@ float char_widths[128] = {
 	legendArray = [[NSMutableArray alloc] initWithCapacity:16]; // alloc retains
 	
 	// populate arrays
-	if ([hudinfo objectForKey:DIALS_KEY])
+	NSArray *dials = [hudinfo arrayForKey:DIALS_KEY];
+	for (i = 0; i < [dials count]; i++)
 	{
-		NSArray *dials = [hudinfo objectForKey:DIALS_KEY];
-		for (i = 0; i < [dials count]; i++)
-		{
-			NSDictionary* dial_info = (NSDictionary *)[dials objectAtIndex:i];
-			areTrumblesToBeDrawn |= [(NSString*)[dial_info objectForKey:SELECTOR_KEY] isEqual:@"drawTrumbles:"];
-			[self addDial: dial_info];
-		}
+		NSDictionary	*dial_info = [dials dictionaryAtIndex:i];
+		if (!areTrumblesToBeDrawn && [[dial_info stringForKey:SELECTOR_KEY] isEqualToString:@"drawTrumbles:"])  areTrumblesToBeDrawn = YES;
+		[self addDial:dial_info];
 	}
+	
 	if (!areTrumblesToBeDrawn)	// naughty - a hud with no built-in drawTrumbles: - one must be added!
 	{
-		NSDictionary* trumble_dial_info = [NSDictionary dictionaryWithObjectsAndKeys: @"drawTrumbles:", SELECTOR_KEY, nil];
-		[self addDial: trumble_dial_info];
+		NSDictionary	*trumble_dial_info = [NSDictionary dictionaryWithObjectsAndKeys: @"drawTrumbles:", SELECTOR_KEY, nil];
+		[self addDial:trumble_dial_info];
 	}
-	if ([hudinfo objectForKey:LEGENDS_KEY])
+	
+	NSArray *legends = [hudinfo arrayForKey:LEGENDS_KEY];
+	for (i = 0; i < [legends count]; i++)
 	{
-		NSArray *legends = [hudinfo objectForKey:LEGENDS_KEY];
-		for (i = 0; i < [legends count]; i++)
-			[self addLegend:(NSDictionary *)[legends objectAtIndex:i]];
+		[self addLegend:[legends dictionaryAtIndex:i]];
 	}
 	
 	last_transmitter = NO_TARGET;
@@ -127,8 +125,8 @@ float char_widths[128] = {
 
 - (void) dealloc
 {
-    if (legendArray)			[legendArray release];
-    if (dialArray)				[dialArray release];
+	[legendArray release];
+	[dialArray release];
 
     [super dealloc];
 }
@@ -223,6 +221,7 @@ float char_widths[128] = {
 	OOTexture			*texture = nil;
 	NSSize				imageSize;
 	OpenGLSprite		*legendSprite = nil;
+	NSMutableDictionary	*legendDict = nil;
 	
 	imageName = [info stringForKey:IMAGE_KEY];
 	if (imageName != nil)
@@ -240,23 +239,24 @@ float char_widths[128] = {
 		
  		legendSprite = [[OpenGLSprite alloc] initWithTexture:texture size:imageSize];
 		
-		[legendArray addObject:[NSDictionary dictionaryWithObject:legendSprite forKey:SPRITE_KEY]];																	
+		legendDict = [info mutableCopy];
+		[legendDict setObject:legendSprite forKey:SPRITE_KEY];
+		[legendArray addObject:legendDict];																	
+		[legendDict release];
 		[legendSprite release];
-		return;
 	}
-	if ([info objectForKey:TEXT_KEY])
+	else if ([info stringForKey:TEXT_KEY] != nil)
 	{
 		[legendArray addObject:info];
-		return;
 	}
 }
 
 
 - (void) addDial:(NSDictionary *) info
 {
-	if ([info objectForKey:SELECTOR_KEY])
+	if ([info stringForKey:SELECTOR_KEY] != nil)
 	{
-		SEL _selector = NSSelectorFromString((NSString *)[info objectForKey:SELECTOR_KEY]);
+		SEL _selector = NSSelectorFromString([info stringForKey:SELECTOR_KEY]);
 		if ([self respondsToSelector:_selector])  [dialArray addObject:info];
 	}
 }
@@ -266,9 +266,9 @@ float char_widths[128] = {
 {
 	unsigned		i;
 	
-	z1 = [(MyOpenGLView *)[UNIVERSE gameView] display_z];
+	z1 = [[UNIVERSE gameView] display_z];
 	for (i = 0; i < [legendArray count]; i++)
-		[self drawLegend:(NSDictionary *)[legendArray objectAtIndex:i]];
+		[self drawLegend:[legendArray dictionaryAtIndex:i]];
 	
 	CheckOpenGLErrors(@"HeadUpDisplay after drawLegends");
 }
@@ -279,9 +279,9 @@ float char_widths[128] = {
 {
 	unsigned		i;
 	
-	z1 = [(MyOpenGLView *)[UNIVERSE gameView] display_z];
+	z1 = [[UNIVERSE gameView] display_z];
 	for (i = 0; i < [dialArray count]; i++)
-		[self drawHUDItem:(NSDictionary *)[dialArray objectAtIndex:i]];
+		[self drawHUDItem:[dialArray dictionaryAtIndex:i]];
 	
 	CheckOpenGLErrors(@"HeadUpDisplay after drawDials");
 }
@@ -289,44 +289,50 @@ float char_widths[128] = {
 
 - (void) drawLegend:(NSDictionary *) info
 {
-	if ([info objectForKey:SPRITE_KEY])
+	OpenGLSprite				*legendSprite = nil;
+	NSString					*legendText = nil;
+	float						x, y;
+	NSSize						size;
+	
+	x = [info floatForKey:X_KEY];
+	y = [info floatForKey:Y_KEY];
+	
+	legendSprite = [info objectForKey:SPRITE_KEY];
+	if (legendSprite != nil)
 	{
-		OpenGLSprite *legendSprite = (OpenGLSprite *)[info objectForKey:SPRITE_KEY];
-		int x =		[(NSNumber *)[info objectForKey:X_KEY] intValue];
-		int y =		[(NSNumber *)[info objectForKey:Y_KEY] intValue];
-		double alpha = [(NSNumber *)[info objectForKey:ALPHA_KEY] doubleValue];
-		[legendSprite blitCentredToX:x Y:y Z:z1 Alpha:alpha];
-		return;
+		float alpha = [info floatForKey:ALPHA_KEY];
+		[legendSprite blitCentredToX:x Y:y Z:z1 alpha:alpha];
 	}
-	if ([info objectForKey:TEXT_KEY])
+	else
 	{
-		NSString*	legendText = (NSString*)[info objectForKey:TEXT_KEY];
-		NSSize		siz = NSMakeSize([(NSNumber *)[info objectForKey:WIDTH_KEY] floatValue],[(NSNumber *)[info objectForKey:HEIGHT_KEY] floatValue]);
-		double x =		[(NSNumber *)[info objectForKey:X_KEY] doubleValue];
-		double y =		[(NSNumber *)[info objectForKey:Y_KEY] doubleValue];
-		glColor4f(0.0, 1.0, 0.0, 1.0);
-		drawString(legendText, x, y, z1, siz);
+		legendText = [info stringForKey:TEXT_KEY];
+		if (legendText != nil)
+		{
+			size.width = [info floatForKey:WIDTH_KEY];
+			size.height = [info floatForKey:HEIGHT_KEY];
+			glColor4f(0.0, 1.0, 0.0, 1.0);
+			drawString(legendText, x, y, z1, size);
+		}
 	}
 }
 
 
 - (void) drawHUDItem:(NSDictionary *) info
 {
-	if (([info objectForKey:EQUIPMENT_REQUIRED_KEY])&&
-		(![[PlayerEntity sharedPlayer] has_extra_equipment:(NSString *)[info objectForKey:EQUIPMENT_REQUIRED_KEY]]))
+	NSString *equipment = [info stringForKey:EQUIPMENT_REQUIRED_KEY];
+	if (equipment != nil && ![[PlayerEntity sharedPlayer] has_extra_equipment:equipment])
 		return;
 	
-	if ([info objectForKey:SELECTOR_KEY])
+	if ([info stringForKey:SELECTOR_KEY] != nil)
 	{
-		SEL _selector = NSSelectorFromString((NSString *)[info objectForKey:SELECTOR_KEY]);
+		SEL _selector = NSSelectorFromString([info stringForKey:SELECTOR_KEY]);
 		if ([self respondsToSelector:_selector])
 			[self performSelector:_selector withObject:info];
 		else
 			NSLog(@"DEBUG HeadUpDisplay does not respond to '%@'",[info objectForKey:SELECTOR_KEY]);
 	}
-//
-CheckOpenGLErrors(@"HeadUpDisplay after drawHUDItem %@", info);
-//
+	
+	CheckOpenGLErrors(@"HeadUpDisplay after drawHUDItem %@", info);
 }
 
 //---------------------------------------------------------------------//
@@ -1288,15 +1294,15 @@ static BOOL hostiles;
 		{
 			if ([player missileForStation:i])
 			{
-				NSString* miss_roles = [[player missileForStation:i] roles];
-				NSObject* miss_icon = [[UNIVERSE descriptions] objectForKey:miss_roles];
+				NSString	*miss_roles = [[player missileForStation:i] roles];
+				NSArray		*miss_icon = [[UNIVERSE descriptions] arrayForKey:miss_roles];
 				if (i == [player activeMissile])
 				{
 					glColor4fv(yellow_color);
 					glBegin(GL_POLYGON);
 					if (miss_icon)
 					{
-						hudDrawSpecialIconAt((NSArray*)miss_icon, x + i * sp + 2, y + 1, z1, NSMakeSize(siz.width + 4, siz.height + 4));
+						hudDrawSpecialIconAt(miss_icon, x + i * sp + 2, y + 1, z1, NSMakeSize(siz.width + 4, siz.height + 4));
 					}
 					else
 					{
@@ -1326,7 +1332,7 @@ static BOOL hostiles;
 				glBegin(GL_POLYGON);
 				if (miss_icon)
 				{
-					hudDrawSpecialIconAt((NSArray*)miss_icon, x + i * sp, y, z1, siz);
+					hudDrawSpecialIconAt(miss_icon, x + i * sp, y, z1, siz);
 				}
 				else
 				{
@@ -1342,7 +1348,7 @@ static BOOL hostiles;
 					glBegin(GL_LINE_LOOP);
 					if (miss_icon)
 					{
-						hudDrawSpecialIconAt((NSArray*)miss_icon, x + i * sp, y, z1, siz);
+						hudDrawSpecialIconAt(miss_icon, x + i * sp, y, z1, siz);
 					}
 					else
 					{
@@ -1395,12 +1401,6 @@ static BOOL hostiles;
 {
 	PlayerEntity *player = [PlayerEntity sharedPlayer];
 	
-	// the missile target reticle is an advanced option
-	// so we need to check for its extra equipment flag first
-//	if (([info objectForKey:EQUIPMENT_REQUIRED_KEY])&&
-//		(![player has_extra_equipment:(NSString *)[info objectForKey:EQUIPMENT_REQUIRED_KEY]]))
-//		return;
-//	
 	if ([player dialMissileStatus] == MISSILE_STATUS_TARGET_LOCKED)
 	{
 		hudDrawReticleOnTarget([player primaryTarget], player, z1);
@@ -1460,12 +1460,13 @@ static BOOL hostiles;
 
 - (void) drawDirectionCue:(NSDictionary *) info
 {
-	PlayerEntity *player = [PlayerEntity sharedPlayer];
+	PlayerEntity	*player = [PlayerEntity sharedPlayer];
+	NSString		*equipment = nil;
 	
  	// the direction cue is an advanced option
 	// so we need to check for its extra equipment flag first
-	if (([info objectForKey:EQUIPMENT_REQUIRED_KEY])&&
-		(![player has_extra_equipment:[info stringForKey:EQUIPMENT_REQUIRED_KEY]]))
+	equipment = [info stringForKey:EQUIPMENT_REQUIRED_KEY];
+	if (equipment != nil && ![player has_extra_equipment:equipment])
 		return;
 	
 	if ([UNIVERSE displayGUI])
@@ -1820,8 +1821,8 @@ void hudDrawSpecialIconAt(NSArray* ptsArray, int x, int y, int z, NSSize siz)
 	int npts = [ptsArray count] & 0xfffe;	// make sure it's an even number
 	while (i < npts)
 	{
-		int x = [(NSNumber*)[ptsArray objectAtIndex:i++] intValue];
-		int y = [(NSNumber*)[ptsArray objectAtIndex:i++] intValue];
+		int x = [ptsArray intAtIndex:i++];
+		int y = [ptsArray intAtIndex:i++];
 		glVertex3i(ox + x * w, oy + y * h, z);
 	}
 }
@@ -1895,7 +1896,7 @@ void hudDrawReticleOnTarget(Entity* target, PlayerEntity* player1, GLfloat z1)
 			int legal_i = 0;
 			if (target_legal > 0)
 				legal_i =  (target_legal <= 50) ? 1 : 2;
-			legal_desc = [[[UNIVERSE descriptions] objectForKey:@"legal_status"] objectAtIndex:legal_i];
+			legal_desc = [[[UNIVERSE descriptions] arrayForKey:@"legal_status"] stringAtIndex:legal_i];
 		}
 		break;
 	

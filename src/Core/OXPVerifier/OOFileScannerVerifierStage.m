@@ -85,7 +85,7 @@ static BOOL CheckNameConflict(NSString *lcName, NSDictionary *directoryCases, NS
 - (void)scanForFiles;
 
 - (void)checkRootFolders;
-- (void)checkConfigFiles;
+- (void)checkKnownFiles;
 
 /*	Given an array of strings, return a dictionary mapping lowercase strings
 	to the canonicial case given in the array. For instance, given
@@ -138,7 +138,7 @@ static BOOL CheckNameConflict(NSString *lcName, NSDictionary *directoryCases, NS
 	
 	pool = [[NSAutoreleasePool alloc] init];
 	[self checkRootFolders];
-	[self checkConfigFiles];
+	[self checkKnownFiles];
 	[pool release];
 }
 
@@ -470,8 +470,8 @@ static BOOL CheckNameConflict(NSString *lcName, NSDictionary *directoryCases, NS
 	NSArray					*knownNames = nil;
 	NSEnumerator			*nameEnum = nil;
 	NSString				*name = nil,
-							*lcName = nil,
-							*realFileName = nil;
+		*lcName = nil,
+		*realFileName = nil;
 	BOOL					inConfigDir;
 	
 	knownNames = [[self verifier] configurationArrayForKey:@"knownConfigFiles"];
@@ -480,7 +480,7 @@ static BOOL CheckNameConflict(NSString *lcName, NSDictionary *directoryCases, NS
 		if (![name isKindOfClass:[NSString class]])  continue;
 		
 		/*	In theory, we could use -fileExists:inFolder:referencedFrom:checkBuiltIn:
-			here, but we want a different error message.
+		here, but we want a different error message.
 		*/
 		
 		lcName = [name lowercaseString];
@@ -493,6 +493,52 @@ static BOOL CheckNameConflict(NSString *lcName, NSDictionary *directoryCases, NS
 		{
 			if (inConfigDir)  realFileName = [@"Config" stringByAppendingPathComponent:realFileName];
 			OOLog(@"verifyOXP.files.caseMismatch", @"ERROR: case mismatch: configuration file \"%@\" should be called \"%@\".", realFileName, name);
+		}
+	}
+}
+
+
+- (void)checkKnownFiles
+{
+	NSDictionary			*directories = nil;
+	NSEnumerator			*directoryEnum = nil;
+	NSString				*directory = nil,
+							*lcDirectory = nil;
+	NSArray					*fileList = nil;
+	NSEnumerator			*nameEnum = nil;
+	NSString				*name = nil,
+							*lcName = nil,
+							*realFileName = nil;
+	BOOL					inDirectory;
+	
+	directories = [[self verifier] configurationDictionaryForKey:@"knownFiles"];
+	for (directoryEnum = [directories keyEnumerator]; (directory = [directoryEnum nextObject]); )
+	{
+		fileList = [directories objectForKey:directory];
+		lcDirectory = [directory lowercaseString];
+		for (nameEnum = [fileList objectEnumerator]; (name = [nameEnum nextObject]); )
+		{
+			if (![name isKindOfClass:[NSString class]])  continue;
+			
+			/*	In theory, we could use -fileExists:inFolder:referencedFrom:checkBuiltIn:
+				here, but we want a different error message.
+			*/
+			
+			lcName = [name lowercaseString];
+			realFileName = [[_directoryListings objectForKey:lcDirectory] objectForKey:lcName];
+			inDirectory = (realFileName != nil);
+			if (!inDirectory)
+			{
+				// Allow for files in root directory of OXP
+				realFileName = [[_directoryListings objectForKey:@""] objectForKey:lcName];
+			}
+			if (realFileName == nil)  continue;
+			
+			if (![realFileName isEqualToString:name])
+			{
+				if (inDirectory)  realFileName = [directory stringByAppendingPathComponent:realFileName];
+				OOLog(@"verifyOXP.files.caseMismatch", @"ERROR: case mismatch: file \"%@\" should be called \"%@\".", realFileName, name);
+			}
 		}
 	}
 }

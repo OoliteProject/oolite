@@ -65,7 +65,7 @@ MA 02110-1301, USA.
 }
 
 
-- (void)blitToX:(float)x Y:(float)y Z:(float)z Alpha:(float)a
+- (void)blitToX:(float)x Y:(float)y Z:(float)z alpha:(float)a
 {
     if (a < 0.0)
         a = 0.0;	// clamp the alpha value
@@ -96,11 +96,11 @@ MA 02110-1301, USA.
     glDisable(GL_TEXTURE_2D);
 }
 
-- (void)blitCentredToX:(float)x Y:(float)y Z:(float)z Alpha:(float)a
+- (void)blitCentredToX:(float)x Y:(float)y Z:(float)z alpha:(float)a
 {
     float	xs = x - size.width / 2.0;
     float	ys = y - size.height / 2.0;
-    [self blitToX:xs Y:ys Z:z Alpha:a];
+    [self blitToX:xs Y:ys Z:z alpha:a];
 }
 
 @end

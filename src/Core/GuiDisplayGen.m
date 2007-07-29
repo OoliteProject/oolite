@@ -1004,7 +1004,7 @@ OOINLINE BOOL RowInRange(OOGUIRow row, NSRange range)
 	//
 	if (backgroundSprite)
 	{
-		[backgroundSprite blitCentredToX:x + 0.5 * size_in_pixels.width Y:y + 0.5 * size_in_pixels.height Z:z Alpha:alpha];
+		[backgroundSprite blitCentredToX:x + 0.5 * size_in_pixels.width Y:y + 0.5 * size_in_pixels.height Z:z alpha:alpha];
 	}
 	
 	if (!RowInRange(selectedRow, selectableRange))
