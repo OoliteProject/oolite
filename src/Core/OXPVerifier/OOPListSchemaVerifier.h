@@ -121,6 +121,7 @@ extern NSString * const kUnknownKeyErrorKey;			// Unallowed key found in diction
 extern NSString * const kMissingRequiredKeysErrorKey;	// Set of required keys not present in dictionary
 extern NSString * const kMissingSubStringErrorKey;		// String or array of strings not found for kPListErrorStringPrefixMissing/kPListErrorStringSuffixMissing/kPListErrorStringSubstringMissing.
 extern NSString * const kUnnownFilterErrorKey;			// Unrecognized filter specifier for kPListErrorSchemaUnknownFilter. Not specified if filter is not a string.
+extern NSString * const kErrorsByOptionErrorKey;		// Dictionary of errors for oneOf types.
 
 extern NSString * const kUnknownTypeErrorKey;			// Set for kPListErrorSchemaUnknownType.
 extern NSString * const kUndefinedMacroErrorKey;		// Set for kPListErrorSchemaUndefiniedMacroReference.
@@ -149,7 +150,7 @@ typedef enum
 	
 	kPListErrorEnumerationBadValue,		// Enumeration type contains string that isn't in permitted set.
 	
-	kPListErrorOneOfNoMatch,			// No match for oneOf type.
+	kPListErrorOneOfNoMatch,			// No match for oneOf type. kErrorsByOptionErrorKey is set to a dictionary of type specifiers to errors. Note that the keys in this dictionary can be either strings or dictionaries.
 	
 	kPListDelegatedTypeError,			// Delegate's verification method failed. If it returned an error, this will be in NSUnderlyingErrorKey.
 	

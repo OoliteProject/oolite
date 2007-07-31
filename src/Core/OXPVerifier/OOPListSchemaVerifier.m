@@ -103,6 +103,7 @@ NSString * const kUnknownKeyErrorKey = @"org.aegidian.oolite.OOPListSchemaVerifi
 NSString * const kMissingRequiredKeysErrorKey = @"org.aegidian.oolite.OOPListSchemaVerifier missing required keys";
 NSString * const kMissingSubStringErrorKey = @"org.aegidian.oolite.OOPListSchemaVerifier missing substring";
 NSString * const kUnnownFilterErrorKey = @"org.aegidian.oolite.OOPListSchemaVerifier unknown filter";
+NSString * const kErrorsByOptionErrorKey = @"org.aegidian.oolite.OOPListSchemaVerifier errors by option";
 
 NSString * const kUnknownTypeErrorKey = @"org.aegidian.oolite.OOPListSchemaVerifier unknown type";
 NSString * const kUndefinedMacroErrorKey = @"org.aegidian.oolite.OOPListSchemaVerifier undefined macro";
@@ -196,6 +197,7 @@ static BOOL IsFailureAlreadyReportedError(NSError *error);
   againstSchemaType:(id)subSchema
 			 atPath:(BackLinkChain)keyPath
 		  tentative:(BOOL)tentative
+			  error:(NSError **)outError
 			   stop:(BOOL *)outStop;
 
 - (NSDictionary *)resolveSchemaType:(id)specifier
@@ -286,6 +288,7 @@ VERIFY_PROTO(DelegatedType);
 		 againstSchemaType:_schema
 					atPath:BackLinkRoot()
 				 tentative:NO
+					 error:NULL
 					  stop:&stop];
 	
 	return OK;
@@ -417,6 +420,7 @@ VERIFY_PROTO(DelegatedType);
   againstSchemaType:(id)subSchema
 			 atPath:(BackLinkChain)keyPath
 		  tentative:(BOOL)tentative
+			  error:(NSError **)outError
 			   stop:(BOOL *)outStop
 {
 	SchemaType				type = kTypeUnknown;
@@ -465,16 +469,29 @@ VERIFY_PROTO(DelegatedType);
 	
 	DebugDumpPopIndent();
 	
-	if (error != nil && !tentative && !IsFailureAlreadyReportedError(error))
+	if (error != nil)
 	{
-		*outStop = ![self delegateVerifierWithPropertyList:rootPList
-													 named:name
-										 failedForProperty:subProperty
-												 withError:error
-											  expectedType:subSchema];
+		if (!tentative && !IsFailureAlreadyReportedError(error))
+		{
+			*outStop = ![self delegateVerifierWithPropertyList:rootPList
+														 named:name
+											 failedForProperty:subProperty
+													 withError:error
+												  expectedType:subSchema];
+		}
+		else if (tentative)  *outStop = YES;
 	}
 	
-	[pool release];
+	if (outError != NULL && error != nil)
+	{
+		*outError = [error retain];
+		[pool release];
+		[error autorelease];
+	}
+	else
+	{
+		[pool release];
+	}
 	
 	return error == nil;
 }
@@ -928,6 +945,7 @@ static NSError *Verify_Array(OOPListSchemaVerifier *verifier, id value, NSDictio
 					 againstSchemaType:valueType
 								atPath:BackLinkIndex(&keyPath, i)
 							 tentative:tentative
+								 error:NULL
 								  stop:&stop])
 			{
 				OK = NO;
@@ -1010,6 +1028,7 @@ static NSError *Verify_Dictionary(OOPListSchemaVerifier *verifier, id value, NSD
 					 againstSchemaType:typeSpec
 								atPath:BackLink(&keyPath, key)
 							 tentative:tentative
+								 error:NULL
 								  stop:&stop])
 			{
 				OK = NO;
@@ -1196,6 +1215,8 @@ static NSError *Verify_OneOf(OOPListSchemaVerifier *verifier, id value, NSDictio
 	BOOL					OK = NO, stop = NO;
 	NSEnumerator			*optionEnum = nil;
 	id						option = nil;
+	NSError					*error;
+	NSMutableDictionary		*errors = nil;
 	
 	DebugDump(@"* oneOf");
 	
@@ -1206,6 +1227,8 @@ static NSError *Verify_OneOf(OOPListSchemaVerifier *verifier, id value, NSDictio
 		return Error(kPListErrorSchemaNoOneOfOptions, &keyPath, @"Bad schema: no options specified for oneOf type.");
 	}
 	
+	errors = [[NSMutableDictionary alloc] initWithCapacity:[options count]];
+	
 	for (optionEnum = [options objectEnumerator]; (option = [optionEnum nextObject]) ;)
 	{
 		if ([verifier verifyPList:rootPList
@@ -1214,21 +1237,24 @@ static NSError *Verify_OneOf(OOPListSchemaVerifier *verifier, id value, NSDictio
 				againstSchemaType:option
 						   atPath:keyPath
 						tentative:YES
+							error:&error
 							 stop:&stop])
 		{
 			DebugDump(@"> Match.");
 			OK = YES;
 			break;
 		}
+		[errors setObject:error forKey:option];
 	}
 	
 	if (!OK)
 	{
 		DebugDump(@"! No match.");
-		return Error(kPListErrorOneOfNoMatch, &keyPath, @"No matching type rule could be found.");
+		return ErrorWithProperty(kPListErrorOneOfNoMatch, &keyPath, kErrorsByOptionErrorKey, [errors autorelease], @"No matching type rule could be found.");
 	}
 	
 	// Ignore stop in tentatives.
+	[errors release];
 	return nil;
 }
 
@@ -1320,6 +1346,7 @@ static NSError *Verify_DelegatedType(OOPListSchemaVerifier *verifier, id value, 
 				 againstSchemaType:baseType
 							atPath:keyPath
 						 tentative:tentative
+							 error:NULL
 							  stop:&stop])
 		{
 			*outStop = stop;

@@ -61,6 +61,7 @@ static JSBool VectorDirection(JSContext *context, JSObject *this, uintN argc, js
 static JSBool VectorMagnitude(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
 static JSBool VectorSquaredMagnitude(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
 static JSBool VectorRotationTo(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
+static JSBool VectorStaticInterpolate(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
 
 
 static JSExtendedClass sVectorClass =
@@ -126,11 +127,19 @@ static JSFunctionSpec sVectorMethods[] =
 };
 
 
+static JSFunctionSpec sVectorStaticMethods[] =
+{
+	// JS name					Function					min args
+	{ "interpolate",			VectorStaticInterpolate,	3, },
+	{ 0 }
+};
+
+
 // *** Public ***
 
 void InitOOJSVector(JSContext *context, JSObject *global)
 {
-    sVectorPrototype = JS_InitClass(context, global, NULL, &sVectorClass.base, VectorConstruct, 0, sVectorProperties, sVectorMethods, NULL, NULL);
+    sVectorPrototype = JS_InitClass(context, global, NULL, &sVectorClass.base, VectorConstruct, 0, sVectorProperties, sVectorMethods, NULL, sVectorStaticMethods);
 }
 
 
@@ -599,7 +608,7 @@ static JSBool VectorRotationTo(JSContext *context, JSObject *this, uintN argc, j
 	argv += consumed;
 	if (argc != 0)	// limit parameter is optional.
 	{
-		if (!NumberFromArgumentList(context, @"Vector", @"rotationTo", argc, argv, &limit,NULL))  return YES;
+		if (!NumberFromArgumentList(context, @"Vector", @"rotationTo", argc, argv, &limit, NULL))  return YES;
 		gotLimit = YES;
 	}
 	else gotLimit = NO;
@@ -608,4 +617,27 @@ static JSBool VectorRotationTo(JSContext *context, JSObject *this, uintN argc, j
 	else  result = quaternion_rotation_between(thisv, thatv);
 	
 	return QuaternionToJSValue(context, result, outResult);
+}
+
+
+static JSBool VectorStaticInterpolate(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
+{
+	Vector					av, bv;
+	double					interp;
+	Vector					result;
+	uintN					consumed;
+	
+	if (!VectorFromArgumentList(context, @"Vector", @"interpolate", argc, argv, &av, &consumed))  return YES;
+	argc -= consumed;
+	argv += consumed;
+	if (argc < 2)  return YES;
+	if (!VectorFromArgumentList(context, @"Vector", @"interpolate", argc, argv, &bv, &consumed))  return YES;
+	argc -= consumed;
+	argv += consumed;
+	if (argc < 1)  return YES;
+	if (!NumberFromArgumentList(context, @"Vector", @"interpolate", argc, argv, &interp, NULL))  return YES;
+	
+	result = OOVectorInterpolate(av, bv, interp);
+	
+	return VectorToJSValue(context, result, outResult);
 }
