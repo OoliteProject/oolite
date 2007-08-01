@@ -154,7 +154,7 @@ static unsigned IntegerFromString(const GLubyte **ioString);
 		OOLog(@"rendering.opengl.version", @"OpenGL renderer version: %u.%u.%u (\"%s\")\nVendor: %@\nRenderer: %@", major, minor, release, versionString, vendor, renderer);
 		OOLog(@"rendering.opengl.extensions", @"OpenGL extensions (%u):\n%@", [extensions count], extensionString);
 		
-		if (major <= 1 && minor <= 1)
+		if (major <= 1 && minor < 1)
 		{
 			/*	Ensure we have OpenGL 1.1 or later (basic stuff like
 				glBindTexture(), glDrawArrays()).
