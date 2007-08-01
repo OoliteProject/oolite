@@ -49,7 +49,7 @@
  
  */
 
-#import "OOOxpVerifier.h"
+#import "OOOXPVerifier.h"
 
 #if OO_OXP_VERIFIER_ENABLED
 
