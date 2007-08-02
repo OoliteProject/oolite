@@ -51,7 +51,8 @@ MA 02110-1301, USA.
 	
 }
 
-- (NSString*) name;
+- (NSString *) name;
+- (NSString *) state;
 
 - (void) setStateMachine:(NSString *)smName;
 - (void) setState:(NSString *)stateName;

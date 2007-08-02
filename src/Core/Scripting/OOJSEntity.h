@@ -33,6 +33,7 @@ MA 02110-1301, USA.
 
 void InitOOJSEntity(JSContext *context, JSObject *global);
 
+// Handles subclasses.
 JSObject *JSEntityWithEntity(JSContext *context, Entity *entity);
 
 BOOL EntityToJSValue(JSContext *context, Entity *entity, jsval *outValue);
@@ -40,7 +41,11 @@ BOOL JSValueToEntity(JSContext *context, jsval value, Entity **outEntity);	// Va
 
 BOOL JSEntityGetEntity(JSContext *context, JSObject *entityObj, Entity **outEntity);
 
-JSClass *EntityJSClass(void);
+JSClass *JSEntityClass(void);
+JSObject *JSEntityPrototype(void);
+
+// Hack to support psuedo-class-hierarchy.
+void JSEntityRegisterEntitySubclass(JSClass *theClass);
 
 
 /*	EntityFromArgumentList()

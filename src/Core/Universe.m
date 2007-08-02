@@ -4940,7 +4940,7 @@ static BOOL MaintainLinkedLists(Universe* uni)
 #if OOLITE_MAC_OS_X
 		PlayerEntity* player = [PlayerEntity sharedPlayer];
 		//speech synthesis
-		if ([player speech_on])
+		if ([player isSpeechOn])
 		{
 			NSString* systemName = [self generateSystemName:system_seed];
 			NSString* systemSaid = [self generatePhoneticSystemName:system_seed];
@@ -4983,7 +4983,7 @@ static BOOL MaintainLinkedLists(Universe* uni)
     {
 		PlayerEntity* player = [PlayerEntity sharedPlayer];
 		
-		if ([player speech_on])
+		if ([player isSpeechOn])
 		{
 			if ([self isSpeaking])
 				[self stopSpeaking];
@@ -6036,7 +6036,7 @@ static BOOL MaintainLinkedLists(Universe* uni)
 
 - (NSDictionary *) routeFromSystem:(OOSystemID) start toSystem:(OOSystemID) goal
 {
-	NSMutableArray *route = [NSMutableArray arrayWithCapacity:255];
+	NSMutableArray	*route = [NSMutableArray arrayWithCapacity:255];
 	
 	// range checks
 	if ((start > 255)||(goal > 255))  return nil;
@@ -6046,8 +6046,8 @@ static BOOL MaintainLinkedLists(Universe* uni)
 	// for this we need the neighbouring (<= 7LY distant) systems
 	// listed for each system[]
 	
-	NSMutableArray* neighbour_systems = [NSMutableArray arrayWithCapacity:256];
-	OOSystemID i;
+	NSMutableArray	*neighbour_systems = [NSMutableArray arrayWithCapacity:256];
+	unsigned		i;
 	for (i = 0; i < 256; i++)
 		[neighbour_systems addObject:[self neighboursToSystem:i]];	// each is retained as it goes in
 	
@@ -6066,12 +6066,12 @@ static BOOL MaintainLinkedLists(Universe* uni)
 	// the open list will be stored as an NSMutableArray of indices to node_open with additions to the priority queue
 	// being inserted into the correct position, a list of pointers also tracks each node
 	
-	NSMutableArray* open_nodes = [NSMutableArray arrayWithCapacity:256];
-	NSDictionary* node_open[256];
+	NSMutableArray	*open_nodes = [NSMutableArray arrayWithCapacity:256];
+	NSDictionary	*node_open[256];
 	
 	// the closed list is a simple array of flags
 	
-	BOOL node_closed[256];
+	BOOL			node_closed[256];
 	
 	// initialise the lists:
 	for (i = 0; i < 256; i++)
@@ -6081,13 +6081,13 @@ static BOOL MaintainLinkedLists(Universe* uni)
 	}
 	
 	// initialise the start node
-	OOSystemID location = start;
-	double cost_from_start = 0.0;
-	double cost_to_goal = distanceBetweenPlanetPositions(systems[start].d, systems[start].b, systems[goal].d, systems[goal].b);
-	double total_cost_estimate = cost_from_start + cost_to_goal;
-	NSDictionary* parent_node = nil;
+	OOSystemID		location = start;
+	double			cost_from_start = 0.0;
+	double			cost_to_goal = distanceBetweenPlanetPositions(systems[start].d, systems[start].b, systems[goal].d, systems[goal].b);
+	double			total_cost_estimate = cost_from_start + cost_to_goal;
+	NSDictionary	*parent_node = nil;
 	
-	NSDictionary* startNode = [NSDictionary dictionaryWithObjectsAndKeys:
+	NSDictionary	*startNode = [NSDictionary dictionaryWithObjectsAndKeys:
 		[NSNumber numberWithInt:location],					@"location",
 		[NSNumber numberWithDouble:cost_from_start],		@"cost_from_start",
 		[NSNumber numberWithDouble:cost_to_goal],			@"cost_to_goal",
@@ -6139,7 +6139,7 @@ static BOOL MaintainLinkedLists(Universe* uni)
 			
 			for (i = 0; i < [neighbours count]; i++)
 			{
-				int newLocation = [neighbours intAtIndex:i];
+				OOSystemID newLocation = [neighbours intAtIndex:i];
 				double newCostFromStart = cost_from_start + distanceBetweenPlanetPositions(systems[newLocation].d, systems[newLocation].b, systems[location].d, systems[location].b);
 				double newCostToGoal = distanceBetweenPlanetPositions(systems[newLocation].d, systems[newLocation].b, systems[goal].d, systems[goal].b);
 				double newTotalCostEstimate = newCostFromStart + newCostToGoal;

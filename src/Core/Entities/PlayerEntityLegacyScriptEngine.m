@@ -956,9 +956,9 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 		return;
 	}
 
-	if (![self has_extra_equipment:eq_type])
+	if (![self hasExtraEquipment:eq_type])
 	{
-		[self add_extra_equipment:eq_type];
+		[self addExtraEquipment:eq_type];
 	}
 
 }
@@ -976,9 +976,9 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 		return;
 	}
 
-	if ([self has_extra_equipment:eq_type])
+	if ([self hasExtraEquipment:eq_type])
 	{
-		[self remove_extra_equipment:eq_type];
+		[self removeExtraEquipment:eq_type];
 	}
 
 }
@@ -1188,7 +1188,7 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 
 - (void) testForEquipment:(NSString *)equipString	//eg. EQ_NAVAL_ENERGY_UNIT
 {
-	found_equipment = [self has_extra_equipment:equipString];
+	found_equipment = [self hasExtraEquipment:equipString];
 }
 
 

@@ -438,7 +438,7 @@ static NSTimeInterval	time_last_frame;
 			//
 			if ([gameView isDown:key_next_missile] || joyButtonState[BUTTON_CYCLEMISSILE])
 			{
-				if ((!ident_engaged)&&(!next_missile_pressed)&&([self has_extra_equipment:@"EQ_MULTI_TARGET"]))
+				if ((!ident_engaged)&&(!next_missile_pressed)&&([self hasExtraEquipment:@"EQ_MULTI_TARGET"]))
 				{
 					[[UNIVERSE gui] click];
 					[self selectNextMissile];
@@ -452,7 +452,7 @@ static NSTimeInterval	time_last_frame;
 			//
 			if ([gameView isDown:key_next_target])
 			{
-				if ((!next_target_pressed)&&([self has_extra_equipment:@"EQ_TARGET_MEMORY"]))
+				if ((!next_target_pressed)&&([self hasExtraEquipment:@"EQ_TARGET_MEMORY"]))
 				{
 					if ([self selectNextTargetFromMemory])
 						[[UNIVERSE gui] click];
@@ -471,7 +471,7 @@ static NSTimeInterval	time_last_frame;
 			//
 			if ([gameView isDown:key_previous_target])
 			{
-				if ((!previous_target_pressed)&&([self has_extra_equipment:@"EQ_TARGET_MEMORY"]))
+				if ((!previous_target_pressed)&&([self hasExtraEquipment:@"EQ_TARGET_MEMORY"]))
 				{
 					if ([self selectPreviousTargetFromMemory])
 						[[UNIVERSE gui] click];
@@ -601,7 +601,7 @@ static NSTimeInterval	time_last_frame;
 			{
 				// original energy bomb routine
 				[self fireEnergyBomb];
-				[self remove_extra_equipment:@"EQ_ENERGY_BOMB"];
+				[self removeExtraEquipment:@"EQ_ENERGY_BOMB"];
 			}
 			//
 			//  shoot 'escape'   // Escape pod launch
@@ -1483,7 +1483,7 @@ static BOOL			spacePressed;
 			{
 				if (!pling_pressed)
 				{
-					if ([self has_extra_equipment:@"EQ_ADVANCED_NAVIGATIONAL_ARRAY"])  [gui setShowAdvancedNavArray:YES];
+					if ([self hasExtraEquipment:@"EQ_ADVANCED_NAVIGATIONAL_ARRAY"])  [gui setShowAdvancedNavArray:YES];
 					pling_pressed = YES;
 				}
 			}
@@ -1769,10 +1769,10 @@ static BOOL			spacePressed;
 				if (([gui selectedRow] == speech_row)&&(([gameView isDown:gvArrowKeyRight])||([gameView isDown:gvArrowKeyLeft])))
 				{
 					GuiDisplayGen* gui = [UNIVERSE gui];
-					if ([gameView isDown:gvArrowKeyRight] != speech_on)
+					if ([gameView isDown:gvArrowKeyRight] != isSpeechOn)
 						[gui click];
-					speech_on = [gameView isDown:gvArrowKeyRight];
-					if (speech_on)
+					isSpeechOn = [gameView isDown:gvArrowKeyRight];
+					if (isSpeechOn)
 						[gui setText:@" Spoken messages: ON "	forRow:speech_row  align:GUI_ALIGN_CENTER];
 					else
 						[gui setText:@" Spoken messages: OFF "	forRow:speech_row  align:GUI_ALIGN_CENTER];

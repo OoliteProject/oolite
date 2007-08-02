@@ -76,6 +76,8 @@ static PlayerEntity *sSharedPlayer = nil;
 
 @interface PlayerEntity (OOPrivate)
 
+- (void) setExtraEquipmentFromFlags;
+
 @end
 
 
@@ -310,7 +312,7 @@ static PlayerEntity *sSharedPlayer = nil;
 	// extra equipment flags
 	if (extra_equipment)
 	{
-		[self set_extra_equipment_from_flags];
+		[self setExtraEquipmentFromFlags];
 		[result setObject:[NSDictionary dictionaryWithDictionary:extra_equipment] forKey:@"extra_equipment"];
 	}
 
@@ -335,7 +337,7 @@ static PlayerEntity *sSharedPlayer = nil;
 	[result setObject:[NSNumber numberWithDouble:ship_clock] forKey:@"ship_clock"];
 
 	//speech
-	[result setObject:[NSNumber numberWithBool:speech_on] forKey:@"speech_on"];
+	[result setObject:[NSNumber numberWithBool:isSpeechOn] forKey:@"speech_on"];
 
 	//ootunes
 	[result setObject:[NSNumber numberWithBool:ootunes_on] forKey:@"ootunes_on"];
@@ -471,7 +473,7 @@ static PlayerEntity *sSharedPlayer = nil;
 
 	// extra equipment flags
 	[extra_equipment removeAllObjects];
-	[self set_extra_equipment_from_flags];
+	[self setExtraEquipmentFromFlags];
 	if ([dict objectForKey:@"extra_equipment"])
 	{
 		[extra_equipment addEntriesFromDictionary:(NSDictionary *)[dict objectForKey:@"extra_equipment"]];
@@ -479,20 +481,20 @@ static PlayerEntity *sSharedPlayer = nil;
 	// bools	(mostly deprecated by use of the extra_equipment dictionary, keep for compatibility)
 	
 	if (([dict objectForKey:@"has_docking_computer"])&&([(NSNumber *)[dict objectForKey:@"has_docking_computer"] boolValue]))
-		[self add_extra_equipment:@"EQ_DOCK_COMP"];
+		[self addExtraEquipment:@"EQ_DOCK_COMP"];
 	if (([dict objectForKey:@"has_galactic_hyperdrive"])&&([(NSNumber *)[dict objectForKey:@"has_galactic_hyperdrive"] boolValue]))
-		[self add_extra_equipment:@"EQ_GAL_DRIVE"];
+		[self addExtraEquipment:@"EQ_GAL_DRIVE"];
 	if (([dict objectForKey:@"has_escape_pod"])&&([(NSNumber *)[dict objectForKey:@"has_escape_pod"] boolValue]))
-		[self add_extra_equipment:@"EQ_ESCAPE_POD"];
+		[self addExtraEquipment:@"EQ_ESCAPE_POD"];
 	if (([dict objectForKey:@"has_ecm"])&&([(NSNumber *)[dict objectForKey:@"has_ecm"] boolValue]))
-		[self add_extra_equipment:@"EQ_ECM"];
+		[self addExtraEquipment:@"EQ_ECM"];
 	if (([dict objectForKey:@"has_scoop"])&&([(NSNumber *)[dict objectForKey:@"has_scoop"] boolValue]))
-		[self add_extra_equipment:@"EQ_FUEL_SCOOPS"];
+		[self addExtraEquipment:@"EQ_FUEL_SCOOPS"];
 	if (([dict objectForKey:@"has_energy_bomb"])&&([(NSNumber *)[dict objectForKey:@"has_energy_bomb"] boolValue]))
-		[self add_extra_equipment:@"EQ_ENERGY_BOMB"];
+		[self addExtraEquipment:@"EQ_ENERGY_BOMB"];
 	
 	if (([dict objectForKey:@"has_fuel_injection"])&&([(NSNumber *)[dict objectForKey:@"has_fuel_injection"] boolValue]))
-		[self add_extra_equipment:@"EQ_FUEL_INJECTION"];
+		[self addExtraEquipment:@"EQ_FUEL_INJECTION"];
 	if (([dict objectForKey:@"has_energy_unit"])&&([(NSNumber *)[dict objectForKey:@"has_energy_unit"] boolValue]))
 	{
 		if ([dict objectForKey:@"energy_unit"])
@@ -502,10 +504,10 @@ static PlayerEntity *sSharedPlayer = nil;
 		switch (energy_unit)
 		{
 			case ENERGY_UNIT_NORMAL :
-			[self add_extra_equipment:@"EQ_ENERGY_UNIT"];
+			[self addExtraEquipment:@"EQ_ENERGY_UNIT"];
 			break;
 			case ENERGY_UNIT_NAVAL :
-			[self add_extra_equipment:@"EQ_NAVAL_ENERGY_UNIT"];
+			[self addExtraEquipment:@"EQ_NAVAL_ENERGY_UNIT"];
 			break;
 			default :
 			break;
@@ -514,7 +516,7 @@ static PlayerEntity *sSharedPlayer = nil;
 
 	// speech
 	if ([dict objectForKey:@"speech_on"])
-		speech_on = [(NSNumber *)[dict objectForKey:@"speech_on"] boolValue];
+		isSpeechOn = [(NSNumber *)[dict objectForKey:@"speech_on"] boolValue];
 
 	// reputation
 	if ([dict objectForKey:@"reputation"])
@@ -625,7 +627,7 @@ static PlayerEntity *sSharedPlayer = nil;
 	if ([dict objectForKey:@"max_cargo"])
 		max_cargo = [(NSNumber *)[dict objectForKey:@"max_cargo"]	intValue];
 	if (max_cargo > original_hold_size)
-		[self add_extra_equipment:@"EQ_CARGO_BAY"];
+		[self addExtraEquipment:@"EQ_CARGO_BAY"];
 	max_cargo -= max_passengers * 5;
 	
 	if ([dict objectForKey:@"credits"])
@@ -726,7 +728,7 @@ static PlayerEntity *sSharedPlayer = nil;
 	
 
 	
-	[self set_flags_from_extra_equipment];
+	[self setFlagsFromExtraEquipment];
 	forward_shield = PLAYER_MAX_FORWARD_SHIELD;
 	aft_shield = PLAYER_MAX_AFT_SHIELD;
 	
@@ -876,7 +878,7 @@ static PlayerEntity *sSharedPlayer = nil;
 	fps_check_time = ship_clock;
 	ship_clock_adjust = 0.0;
 	
-	speech_on = NO;
+	isSpeechOn = NO;
 	ootunes_on = NO;
 	
 	[custom_views release];
@@ -3218,7 +3220,7 @@ double scoopSoundPlayTime = 0.0;
 	position = vector_subtract(position, vector_multiply_scalar(v_up, sheight));
 	
 	//remove escape pod
-	[self remove_extra_equipment:@"EQ_ESCAPE_POD"];
+	[self removeExtraEquipment:@"EQ_ESCAPE_POD"];
 	//has_escape_pod = NO;
 
 	// reset legal status
@@ -3420,7 +3422,7 @@ double scoopSoundPlayTime = 0.0;
 		if (![UNIVERSE strict])
 		{
 			[UNIVERSE addMessage:[NSString stringWithFormat:ExpandDescriptionForCurrentSystem(@"[@-damaged]"), system_name] forCount:4.5];
-			[self add_extra_equipment:[NSString stringWithFormat:@"%@_DAMAGED", system_key]];	// for possible future repair
+			[self addExtraEquipment:[NSString stringWithFormat:@"%@_DAMAGED", system_key]];	// for possible future repair
 		}
 		else
 			[UNIVERSE addMessage:[NSString stringWithFormat:ExpandDescriptionForCurrentSystem(@"[@-destroyed]"), system_name] forCount:4.5];
@@ -3697,7 +3699,7 @@ double scoopSoundPlayTime = 0.0;
 		}
 	}
 
-	[self remove_extra_equipment:@"EQ_GAL_DRIVE"];
+	[self removeExtraEquipment:@"EQ_GAL_DRIVE"];
 
 	galaxy_number++;
 	galaxy_number &= 7;
@@ -3740,7 +3742,7 @@ double scoopSoundPlayTime = 0.0;
 	
 	//	reset the compass
 	
-	if ([self has_extra_equipment:@"EQ_ADVANCED_COMPASS"])
+	if ([self hasExtraEquipment:@"EQ_ADVANCED_COMPASS"])
 		compassMode = COMPASS_MODE_PLANET;
 	else
 		compassMode = COMPASS_MODE_BASIC;
@@ -3794,7 +3796,7 @@ double scoopSoundPlayTime = 0.0;
 	
 	//	reset the compass
 	
-	if ([self has_extra_equipment:@"EQ_ADVANCED_COMPASS"])
+	if ([self hasExtraEquipment:@"EQ_ADVANCED_COMPASS"])
 		compassMode = COMPASS_MODE_PLANET;
 	else
 		compassMode = COMPASS_MODE_BASIC;
@@ -4007,11 +4009,11 @@ double scoopSoundPlayTime = 0.0;
 	{
 		NSString *w_key = (NSString *)[(NSArray *)[equipmentinfo objectAtIndex:i] objectAtIndex:EQUIPMENT_KEY_INDEX];
 		NSString *w_key_damaged	= [NSString stringWithFormat:@"%@_DAMAGED", w_key];
-		if ([self has_extra_equipment:w_key])
+		if ([self hasExtraEquipment:w_key])
 			[quip addObject:(NSString *)[(NSArray *)[equipmentinfo objectAtIndex:i] objectAtIndex:EQUIPMENT_SHORT_DESC_INDEX]];
 		if (![UNIVERSE strict])
 		{
-			if ([self has_extra_equipment:w_key_damaged])
+			if ([self hasExtraEquipment:w_key_damaged])
 				[quip addObject:(NSString *)[[(NSArray *)[equipmentinfo objectAtIndex:i] objectAtIndex:EQUIPMENT_SHORT_DESC_INDEX] stringByAppendingString:@" (N/A)"]];
 		}
 	}
@@ -4403,7 +4405,7 @@ double scoopSoundPlayTime = 0.0;
 		}
 
 		// Speech control
-		if (speech_on)
+		if (isSpeechOn)
 			[gui setText:@" Spoken messages: ON " forRow:GUI_ROW_OPTIONS_SPEECH align:GUI_ALIGN_CENTER];
 		else
 			[gui setText:@" Spoken messages: OFF " forRow:GUI_ROW_OPTIONS_SPEECH align:GUI_ALIGN_CENTER];
@@ -4554,7 +4556,7 @@ static int last_outfitting_index;
 		}
 		
 		// if you have a dmaged system you can get it repaired at a tech level one less than that required to buy it
-		if (min_techlevel != 0 && [self has_extra_equipment:eq_key_damaged])
+		if (min_techlevel != 0 && [self hasExtraEquipment:eq_key_damaged])
 			min_techlevel--;
 		
 		// reduce the minimum techlevel occasionally as a bonus..
@@ -4586,21 +4588,19 @@ static int last_outfitting_index;
 		
 		if (isOK)
 		{
-			BOOL			requiresEmptyPylon = NO,
-							requiresMountedPylon = NO,
-							requiresClean = NO,
-							requiresNotClean = NO;
-			OOCargoQuantity	requiresCargoSpace = 0;
-			NSString		*requiresEquipment = nil;
+			BOOL					requiresEmptyPylon = NO,
+									requiresMountedPylon = NO,
+									requiresClean = NO,
+									requiresNotClean = NO;
+			OOCargoQuantity			requiresCargoSpace = 0;
+			id						requiresEquipment = nil;
+			id						incompatibleWithEquipment = nil;
 			
 			// check built-in requirements
-			if ([self has_extra_equipment:eq_key])  isOK = NO;
+			if ([self hasExtraEquipment:eq_key])  isOK = NO;
 			if (([eq_key isEqualToString:@"EQ_FUEL"])&&(fuel >= PLAYER_MAX_FUEL))  isOK = NO;	// check if fuel space free
-			if (([eq_key hasSuffix:@"MISSILE"]||[eq_key hasSuffix:@"MINE"]))  requiresEmptyPylon = YES;
-			if ([eq_key isEqualToString:@"EQ_MISSILE_REMOVAL"])  requiresMountedPylon = YES;
-			if ([eq_key isEqualToString:@"EQ_PASSENGER_BERTH"])  requiresCargoSpace = 5;
+			if (([eq_key hasSuffix:@"MISSILE"]||[eq_key hasSuffix:@"MINE"]))  requiresEmptyPylon = YES;	// Kept for compatibility with existing missiles/mines that don't specify it.
 			if (([eq_key isEqualToString:@"EQ_PASSENGER_BERTH_REMOVAL"])&&(max_passengers - [passengers count] < 1))  isOK = NO;
-			if ([eq_key isEqualToString:@"EQ_ENERGY_UNIT"])  requiresEquipment = @"EQ_NAVAL_ENERGY_UNIT";
 			if (techlevel < min_techlevel)  isOK = NO;
 			if ([eq_key isEqual:@"EQ_RENOVATION"] && !((75 <= ship_trade_in_factor)&&(ship_trade_in_factor < 85))) isOK = NO;
 			
@@ -4608,7 +4608,8 @@ static int last_outfitting_index;
 			requiresEmptyPylon = [eq_extra_info_dict boolForKey:@"requires_empty_pylon" defaultValue:requiresEmptyPylon];
 			requiresMountedPylon = [eq_extra_info_dict boolForKey:@"requires_mounted_pylon" defaultValue:requiresMountedPylon];
 			requiresCargoSpace = [eq_extra_info_dict unsignedIntForKey:@"requires_cargo_space" defaultValue:requiresCargoSpace];
-			requiresEquipment = [eq_extra_info_dict stringForKey:@"requires_equipment" defaultValue:requiresEquipment];
+			requiresEquipment = [eq_extra_info_dict objectForKey:@"requires_equipment" defaultValue:requiresEquipment];
+			incompatibleWithEquipment = [eq_extra_info_dict objectForKey:@"incompatible_with_equipment" defaultValue:requiresEquipment];
 			if ([eq_extra_info_dict objectForKey:@"requires_clean"])  requiresClean = YES;
 			if ([eq_extra_info_dict objectForKey:@"requires_not_clean"])  requiresNotClean = YES;
 			
@@ -4617,7 +4618,8 @@ static int last_outfitting_index;
 				if (requiresEmptyPylon && missiles >= max_missiles)  isOK = NO;
 				else if (requiresMountedPylon && missiles == 0)  isOK = NO;
 				else if (cargo_space < requiresCargoSpace)  isOK = NO;
-				else if (requiresEquipment != nil && ![self has_extra_equipment:requiresEquipment])  isOK = NO;
+				else if (requiresEquipment != nil && ![self hasExtraEquipment:requiresEquipment])  isOK = NO;
+				else if (incompatibleWithEquipment != nil && [self hasExtraEquipment:incompatibleWithEquipment])  isOK = NO;
 				else if (requiresClean && [self legalStatus] != 0)  isOK = NO;
 				else if (requiresNotClean && [self legalStatus] == 0)  isOK = NO;
 			}
@@ -4715,7 +4717,7 @@ static int last_outfitting_index;
 				price *= price_factor;  // increased prices at some stations
 				
 				// color repairs and renovation items orange
-				if ([self has_extra_equipment:eq_key_damaged])
+				if ([self hasExtraEquipment:eq_key_damaged])
 				{
 					desc = [NSString stringWithFormat:@" Repair:%@", desc];
 					price /= 2.0;
@@ -4822,7 +4824,7 @@ static int last_outfitting_index;
 			NSString*   desc = (NSString *)[(NSArray *)[[UNIVERSE equipmentdata] objectAtIndex:item] objectAtIndex:EQUIPMENT_LONG_DESC_INDEX];
 			NSString*   eq_key			= (NSString *)[(NSArray *)[[UNIVERSE equipmentdata] objectAtIndex:item] objectAtIndex:EQUIPMENT_KEY_INDEX];
 			NSString*	eq_key_damaged	= [NSString stringWithFormat:@"%@_DAMAGED", eq_key];
-			if ([self has_extra_equipment:eq_key_damaged])
+			if ([self hasExtraEquipment:eq_key_damaged])
 				desc = [NSString stringWithFormat:@"%@ (Price is for repairing the existing system).", desc];
 			[gui addLongText:desc startingAtRow:GUI_ROW_EQUIPMENT_DETAIL align:GUI_ALIGN_LEFT];
 		}
@@ -4997,7 +4999,7 @@ static int last_outfitting_index;
 	OOCargoQuantity	cargo_space = max_cargo - current_cargo;
 
 	// repairs cost 50%
-	if ([self has_extra_equipment:eq_key_damaged])
+	if ([self hasExtraEquipment:eq_key_damaged])
 	{
 		price /= 2.0;
 	}
@@ -5219,10 +5221,10 @@ static int last_outfitting_index;
 	for (i = 0; i < [equipdata count]; i++)
 	{
 		NSString *w_key = (NSString *)[(NSArray *)[equipdata objectAtIndex:i] objectAtIndex:EQUIPMENT_KEY_INDEX];
-		if (([eq_key isEqual:w_key])&&(![self has_extra_equipment:eq_key]))
+		if (([eq_key isEqual:w_key])&&(![self hasExtraEquipment:eq_key]))
 		{
 			credits -= price;
-			[self add_extra_equipment:eq_key];
+			[self addExtraEquipment:eq_key];
 			[self setGuiToEquipShipScreen:-1:-1];
 
 			return YES;
@@ -5491,22 +5493,32 @@ static int last_outfitting_index;
 }
 
 
-- (BOOL) speech_on
+- (BOOL) isSpeechOn
 {
-	return speech_on;
-}
-
-// new extra equipment routines
-- (BOOL) has_extra_equipment:(NSString *) eq_key
-{
-	if ([extra_equipment objectForKey:eq_key])
-		return YES;
-	else
-		return NO;
+	return isSpeechOn;
 }
 
 
-- (void) add_extra_equipment:(NSString *) eq_key
+- (BOOL) hasExtraEquipment:(id)equipmentKeys
+{
+	NSEnumerator				*keyEnum = nil;
+	id							key = nil;
+	
+	// Make sure it's an array or set, using a single-object set if it's a string.
+	if ([equipmentKeys isKindOfClass:[NSString class]])  equipmentKeys = [NSArray arrayWithObject:equipmentKeys];
+	else if (![equipmentKeys isKindOfClass:[NSArray class]] && ![equipmentKeys isKindOfClass:[NSSet class]])  return NO;
+	
+	for (keyEnum = [equipmentKeys objectEnumerator]; (key = [keyEnum nextObject]); )
+	{
+		// No class test is needed here - it'll be an object, and if it's not a string it won't be a key in the dictionary.
+		if ([extra_equipment objectForKey:key])  return YES;
+	}
+	
+	return NO;
+}
+
+
+- (void) addExtraEquipment:(NSString *) eq_key
 {
 	// if we've got a damaged one of these - remove it first
 	NSString* damaged_eq_key = [NSString stringWithFormat:@"%@_DAMAGED", eq_key];
@@ -5522,34 +5534,34 @@ static int last_outfitting_index;
 	
 	// add the equipment and set the necessary flags and data accordingly
 	[extra_equipment setObject:[NSNumber numberWithBool:YES] forKey:eq_key];
-	[self set_flags_from_extra_equipment];
+	[self setFlagsFromExtraEquipment];
 }
 
 
-- (void) remove_extra_equipment:(NSString *) eq_key
+- (void) removeExtraEquipment:(NSString *) eq_key
 {
 	if ([extra_equipment objectForKey:eq_key])
 		[extra_equipment removeObjectForKey:eq_key];
-	[self set_flags_from_extra_equipment];
+	[self setFlagsFromExtraEquipment];
 }
 
 
-- (void) set_extra_equipment_from_flags
+- (void) setExtraEquipmentFromFlags
 {
 	OOCargoQuantity original_hold_size = [UNIVERSE maxCargoForShip:ship_desc];
 	
 	if (max_cargo > original_hold_size)
-		[self add_extra_equipment:@"EQ_CARGO_BAY"];
+		[self addExtraEquipment:@"EQ_CARGO_BAY"];
 	if (has_escape_pod)
-		[self add_extra_equipment:@"EQ_ESCAPE_POD"];
+		[self addExtraEquipment:@"EQ_ESCAPE_POD"];
 	if (has_scoop)
-		[self add_extra_equipment:@"EQ_FUEL_SCOOPS"];
+		[self addExtraEquipment:@"EQ_FUEL_SCOOPS"];
 	if (has_fuel_injection)
-		[self add_extra_equipment:@"EQ_FUEL_INJECTION"];
+		[self addExtraEquipment:@"EQ_FUEL_INJECTION"];
 	if (has_ecm)
-		[self add_extra_equipment:@"EQ_ECM"];
+		[self addExtraEquipment:@"EQ_ECM"];
 	if (has_energy_bomb)
-		[self add_extra_equipment:@"EQ_ENERGY_BOMB"];
+		[self addExtraEquipment:@"EQ_ENERGY_BOMB"];
 	if (has_energy_unit)
 	{
 		switch (energy_unit)
@@ -5557,26 +5569,26 @@ static int last_outfitting_index;
 			case ENERGY_UNIT_NONE:
 				break;
 			case ENERGY_UNIT_NORMAL :
-				[self add_extra_equipment:@"EQ_ENERGY_UNIT"];
+				[self addExtraEquipment:@"EQ_ENERGY_UNIT"];
 				break;
 			case ENERGY_UNIT_NAVAL :
-				[self add_extra_equipment:@"EQ_NAVAL_ENERGY_UNIT"];
+				[self addExtraEquipment:@"EQ_NAVAL_ENERGY_UNIT"];
 				break;
 		}
 	}
 	if (has_docking_computer)
-		[self add_extra_equipment:@"EQ_DOCK_COMP"];
+		[self addExtraEquipment:@"EQ_DOCK_COMP"];
 	if (has_galactic_hyperdrive)
-		[self add_extra_equipment:@"EQ_GAL_DRIVE"];
+		[self addExtraEquipment:@"EQ_GAL_DRIVE"];
 
 	if (shield_booster > 1)
-		[self add_extra_equipment:@"EQ_SHIELD_BOOSTER"];
+		[self addExtraEquipment:@"EQ_SHIELD_BOOSTER"];
 	if (shield_enhancer)
-		[self add_extra_equipment:@"EQ_NAVAL_SHIELD_BOOSTER"];
+		[self addExtraEquipment:@"EQ_NAVAL_SHIELD_BOOSTER"];
 }
 
 
-- (void) set_flags_from_extra_equipment
+- (void) setFlagsFromExtraEquipment
 {
 	int original_hold_size = [UNIVERSE maxCargoForShip:ship_desc];
 	
@@ -5585,34 +5597,34 @@ static int last_outfitting_index;
 	else
 		extra_cargo = 15;
 	
-	if ([self has_extra_equipment:@"EQ_CARGO_BAY"])
+	if ([self hasExtraEquipment:@"EQ_CARGO_BAY"])
 		max_cargo = original_hold_size + extra_cargo - max_passengers * 5;
 	
-	has_escape_pod = [self has_extra_equipment:@"EQ_ESCAPE_POD"];
-	has_scoop = [self has_extra_equipment:@"EQ_FUEL_SCOOPS"];
-	has_fuel_injection = [self has_extra_equipment:@"EQ_FUEL_INJECTION"];
-	has_ecm = [self has_extra_equipment:@"EQ_ECM"];
-	has_energy_bomb = [self has_extra_equipment:@"EQ_ENERGY_BOMB"];
-	has_docking_computer = [self has_extra_equipment:@"EQ_DOCK_COMP"];
-	has_galactic_hyperdrive = [self has_extra_equipment:@"EQ_GAL_DRIVE"];
-	has_cloaking_device = [self has_extra_equipment:@"EQ_CLOAKING_DEVICE"];
-	has_military_jammer = [self has_extra_equipment:@"EQ_MILITARY_JAMMER"];
-	has_military_scanner_filter = [self has_extra_equipment:@"EQ_MILITARY_SCANNER_FILTER"];
+	has_escape_pod = [self hasExtraEquipment:@"EQ_ESCAPE_POD"];
+	has_scoop = [self hasExtraEquipment:@"EQ_FUEL_SCOOPS"];
+	has_fuel_injection = [self hasExtraEquipment:@"EQ_FUEL_INJECTION"];
+	has_ecm = [self hasExtraEquipment:@"EQ_ECM"];
+	has_energy_bomb = [self hasExtraEquipment:@"EQ_ENERGY_BOMB"];
+	has_docking_computer = [self hasExtraEquipment:@"EQ_DOCK_COMP"];
+	has_galactic_hyperdrive = [self hasExtraEquipment:@"EQ_GAL_DRIVE"];
+	has_cloaking_device = [self hasExtraEquipment:@"EQ_CLOAKING_DEVICE"];
+	has_military_jammer = [self hasExtraEquipment:@"EQ_MILITARY_JAMMER"];
+	has_military_scanner_filter = [self hasExtraEquipment:@"EQ_MILITARY_SCANNER_FILTER"];
 
-	has_energy_unit = ([self has_extra_equipment:@"EQ_ENERGY_UNIT"]||[self has_extra_equipment:@"EQ_NAVAL_ENERGY_UNIT"]);
+	has_energy_unit = ([self hasExtraEquipment:@"EQ_ENERGY_UNIT"]||[self hasExtraEquipment:@"EQ_NAVAL_ENERGY_UNIT"]);
 	if (has_energy_unit)
-		energy_unit = ([self has_extra_equipment:@"EQ_NAVAL_ENERGY_UNIT"])? ENERGY_UNIT_NAVAL : ENERGY_UNIT_NORMAL;
+		energy_unit = ([self hasExtraEquipment:@"EQ_NAVAL_ENERGY_UNIT"])? ENERGY_UNIT_NAVAL : ENERGY_UNIT_NORMAL;
 	else
 		energy_unit = ENERGY_UNIT_NONE;
 
-	if ([self has_extra_equipment:@"EQ_ADVANCED_COMPASS"])
+	if ([self hasExtraEquipment:@"EQ_ADVANCED_COMPASS"])
 		compassMode = COMPASS_MODE_PLANET;
 	else
 		compassMode = COMPASS_MODE_BASIC;
 
-	shield_booster = ([self has_extra_equipment:@"EQ_SHIELD_BOOSTER"])? 2:1;
-	shield_enhancer = ([self has_extra_equipment:@"EQ_NAVAL_SHIELD_BOOSTER"])? 1:0;
-	heat_insulation = ([self has_extra_equipment:@"EQ_HEAT_SHIELD"])? 2.0 : 1.0;	// new - provide extra heat_insulation
+	shield_booster = ([self hasExtraEquipment:@"EQ_SHIELD_BOOSTER"])? 2:1;
+	shield_enhancer = ([self hasExtraEquipment:@"EQ_NAVAL_SHIELD_BOOSTER"])? 1:0;
+	heat_insulation = ([self hasExtraEquipment:@"EQ_HEAT_SHIELD"])? 2.0 : 1.0;	// new - provide extra heat_insulation
 }
 
 
@@ -5995,7 +6007,7 @@ OOSound* burnersound;
 - (void) addTarget:(Entity *) targetEntity
 {
 	[super addTarget:targetEntity];
-	if ([self has_extra_equipment:@"EQ_TARGET_MEMORY"])
+	if ([self hasExtraEquipment:@"EQ_TARGET_MEMORY"])
 	{
 		int i = 0;
 		// if targetted previously use that memory space
@@ -6265,7 +6277,7 @@ OOSound* burnersound;
 	ADD_FLAG_IF_SET(yawing);
 	ADD_FLAG_IF_SET(using_mining_laser);
 	ADD_FLAG_IF_SET(mouse_control_on);
-	ADD_FLAG_IF_SET(speech_on);
+	ADD_FLAG_IF_SET(isSpeechOn);
 	ADD_FLAG_IF_SET(ootunes_on);
 	ADD_FLAG_IF_SET(docking_music_on);
 	ADD_FLAG_IF_SET(keyboardRollPitchOverride);

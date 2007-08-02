@@ -62,6 +62,9 @@ void OOReportJavaScriptWarningWithArguments(JSContext *context, NSString *format
 BOOL NumberFromArgumentList(JSContext *context, NSString *scriptClass, NSString *function, uintN argc, jsval *argv, double *outNumber, uintN *outConsumed);
 
 
+JSObject *JSPlayerObject(void);
+
+
 /*	JSArgumentsFromArray()
 	
 	Convert an ObjC array to an array of JavaScript values. For objects which
@@ -72,6 +75,12 @@ BOOL NumberFromArgumentList(JSContext *context, NSString *scriptClass, NSString 
 */
 BOOL JSArgumentsFromArray(JSContext *context, NSArray *array, uintN *outArgc, jsval **outArgv);
 
+/*	JSArrayFromArray()
+	
+	Convert an ObjC array to a JavaScript array. This is a wrapper around
+	JSArgumentsFromArray() and js_NewArrayObject().
+*/
+JSObject *JSArrayFromNSArray(JSContext *context, NSArray *array);
 
 
 @protocol OOJavaScriptConversion <NSObject>
@@ -94,6 +103,11 @@ BOOL JSArgumentsFromArray(JSContext *context, NSArray *array, uintN *outArgc, js
 
 // Concatenate sequence of arbitrary JS objects into string.
 + (id)concatenationOfStringsFromJavaScriptValues:(jsval *)values count:(size_t)count separator:(NSString *)separator inContext:(JSContext *)context;
+
+@end
+
+
+@interface NSArray (OOJavaScriptExtensions) <OOJavaScriptConversion>
 
 @end
 

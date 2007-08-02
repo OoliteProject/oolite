@@ -30,6 +30,8 @@ MA 02110-1301, USA.
 #import "NSStringOOExtensions.h"
 #import "OOJSVector.h"
 #import "OOJSEntity.h"
+#import "OOJSShip.h"
+#import "jsarray.h"
 
 #include <stdio.h>
 #include <string.h>
@@ -276,7 +278,7 @@ static JSBool PlayerSetProperty(JSContext *cx, JSObject *obj, jsval name, jsval 
 static JSClass Player_class =
 {
 	"Player",
-	0,
+	JSCLASS_HAS_PRIVATE,
 	
 	JS_PropertyStub,
 	JS_PropertyStub,
@@ -431,7 +433,7 @@ static JSBool PlayerHasEquipment(JSContext *cx, JSObject *obj, uintN argc, jsval
 	if (argc > 0 && JSVAL_IS_STRING(argv[0]))
 	{
 		NSString *key = [NSString stringWithJavaScriptValue:argv[0] inContext:cx];
-		*rval = BOOLToJSVal([player has_extra_equipment:key]);
+		*rval = BOOLToJSVal([player hasExtraEquipment:key]);
 	}
 	return JS_TRUE;
 }
@@ -1339,16 +1341,19 @@ static void ReportJSError(JSContext *cx, const char *message, JSErrorReport *rep
 	JS_DefineProperties(cx, systemObj, System_props);
 	JS_DefineFunctions(cx, systemObj, System_funcs);
 
-	playerObj = JS_DefineObject(cx, glob, "player", &Player_class, NULL, JSPROP_ENUMERATE);
-	JS_DefineProperties(cx, playerObj, Player_props);
-	JS_DefineFunctions(cx, playerObj, Player_funcs);
-
 	missionObj = JS_DefineObject(cx, glob, "mission", &Mission_class, NULL, JSPROP_ENUMERATE);
 	JS_DefineProperties(cx, missionObj, Mission_props);
 	JS_DefineFunctions(cx, missionObj, Mission_funcs);
 	
 	InitOOJSVector(cx, glob);
 	InitOOJSEntity(cx, glob);
+	InitOOJSShip(cx, glob);
+	
+	playerObj = JS_DefineObject(cx, glob, "player", &Player_class, JSShipPrototype(), JSPROP_ENUMERATE);
+	JS_DefineProperties(cx, playerObj, Player_props);
+	JS_DefineFunctions(cx, playerObj, Player_funcs);
+	JS_SetPrivate(cx, playerObj, [[PlayerEntity sharedPlayer] weakRetain]);
+	JSEntityRegisterEntitySubclass(&Player_class);
 	
 	OOLog(@"script.javaScript.init.success", @"Set up JavaScript context.");
 	
@@ -1376,9 +1381,15 @@ static void ReportJSError(JSContext *cx, const char *message, JSErrorReport *rep
 @end
 
 
+JSObject *JSPlayerObject(void)
+{
+	return playerObj;
+}
+
+
 void OOReportJavaScriptError(JSContext *context, NSString *format, ...)
 {
-	va_list				args;
+	va_list					args;
 	
 	va_start(args, format);
 	OOReportJavaScriptErrorWithArguments(context, format, args);
@@ -1388,7 +1399,7 @@ void OOReportJavaScriptError(JSContext *context, NSString *format, ...)
 
 void OOReportJavaScriptErrorWithArguments(JSContext *context, NSString *format, va_list args)
 {
-	NSString			*msg = nil;
+	NSString				*msg = nil;
 	
 	msg = [[NSString alloc] initWithFormat:format arguments:args];
 	JS_ReportWarning(context, "%s", [msg UTF8String]);
@@ -1398,7 +1409,7 @@ void OOReportJavaScriptErrorWithArguments(JSContext *context, NSString *format, 
 
 void OOReportJavaScriptWarning(JSContext *context, NSString *format, ...)
 {
-	va_list				args;
+	va_list					args;
 	
 	va_start(args, format);
 	OOReportJavaScriptWarningWithArguments(context, format, args);
@@ -1408,7 +1419,7 @@ void OOReportJavaScriptWarning(JSContext *context, NSString *format, ...)
 
 void OOReportJavaScriptWarningWithArguments(JSContext *context, NSString *format, va_list args)
 {
-	NSString			*msg = nil;
+	NSString				*msg = nil;
 	
 	msg = [[NSString alloc] initWithFormat:format arguments:args];
 	JS_ReportWarning(context, "%s", [msg UTF8String]);
@@ -1418,7 +1429,7 @@ void OOReportJavaScriptWarningWithArguments(JSContext *context, NSString *format
 
 BOOL NumberFromArgumentList(JSContext *context, NSString *scriptClass, NSString *function, uintN argc, jsval *argv, double *outNumber, uintN *outConsumed)
 {
-	double				value;
+	double					value;
 	
 	// Sanity checks.
 	if (outConsumed != NULL)  *outConsumed = 0;
@@ -1461,10 +1472,10 @@ BOOL JSArgumentsFromArray(JSContext *context, NSArray *array, uintN *outArgc, js
 	}
 	if (context == NULL) context = [[OOJavaScriptEngine sharedEngine] context];
 	
-	uintN			i = 0, argc = [array count];
-	NSEnumerator	*objectEnum = nil;
-	id				object = nil;
-	jsval			*argv = NULL;
+	uintN					i = 0, argc = [array count];
+	NSEnumerator			*objectEnum = nil;
+	id						object = nil;
+	jsval					*argv = NULL;
 	
 	if (argc == 0) return YES;
 	
@@ -1498,13 +1509,29 @@ BOOL JSArgumentsFromArray(JSContext *context, NSArray *array, uintN *outArgc, js
 }
 
 
+JSObject *JSArrayFromNSArray(JSContext *context, NSArray *array)
+{
+	uintN					count;
+	jsval					*values;
+	JSObject				*result = NULL;
+	
+	if (JSArgumentsFromArray(context, array, &count, &values))
+	{
+		result = js_NewArrayObject(context, count, values);
+	}
+	if (values != NULL)  free(values);
+	
+	return result;
+}
+
+
 @implementation NSString (OOJavaScriptExtensions)
 
 // Convert a JSString to an NSString.
 + (id)stringWithJavaScriptString:(JSString *)string
 {
-	jschar		*chars = NULL;
-	size_t		length;
+	jschar					*chars = NULL;
+	size_t					length;
 	
 	chars = JS_GetStringChars(string);
 	length = JS_GetStringLength(string);
@@ -1515,7 +1542,7 @@ BOOL JSArgumentsFromArray(JSContext *context, NSArray *array, uintN *outArgc, js
 
 + (id)stringWithJavaScriptValue:(jsval)value inContext:(JSContext *)context
 {
-	JSString	*string = NULL;
+	JSString				*string = NULL;
 	
 	string = JS_ValueToString(context, value);	// Calls the value's convert method if needed.
 	return [NSString stringWithJavaScriptString:string];
@@ -1526,10 +1553,10 @@ BOOL JSArgumentsFromArray(JSContext *context, NSArray *array, uintN *outArgc, js
 {
 	if (params == nil && count != 0) return nil;
 	
-	uintN			i;
-	jsval			val;
-	NSMutableString	*result = [NSMutableString string];
-	NSString		*valString = nil;
+	uintN					i;
+	jsval					val;
+	NSMutableString			*result = [NSMutableString string];
+	NSString				*valString = nil;
 	
 	for (i = 0; i != count; ++i)
 	{
@@ -1555,9 +1582,9 @@ BOOL JSArgumentsFromArray(JSContext *context, NSArray *array, uintN *outArgc, js
 
 - (jsval)javaScriptValueInContext:(JSContext *)context
 {
-	size_t		length;
-	unichar		*buffer = NULL;
-	JSString	*string = NULL;
+	size_t					length;
+	unichar					*buffer = NULL;
+	JSString				*string = NULL;
 	
 	length = [self length];
 	buffer = malloc(length * sizeof *buffer);
@@ -1574,9 +1601,9 @@ BOOL JSArgumentsFromArray(JSContext *context, NSArray *array, uintN *outArgc, js
 
 + (id)concatenationOfStringsFromJavaScriptValues:(jsval *)values count:(size_t)count separator:(NSString *)separator inContext:(JSContext *)context
 {
-	size_t				i;
-	NSMutableString		*result = nil;
-	NSString			*element = nil;
+	size_t					i;
+	NSMutableString			*result = nil;
+	NSString				*element = nil;
 	
 	if (count < 1) return nil;
 	if (values == NULL) return NULL;
@@ -1598,14 +1625,24 @@ BOOL JSArgumentsFromArray(JSContext *context, NSArray *array, uintN *outArgc, js
 @end
 
 
+@implementation NSArray (OOJavaScriptExtensions)
+
+- (jsval)javaScriptValueInContext:(JSContext *)context
+{
+	return OBJECT_TO_JSVAL(JSArrayFromNSArray(context, self));
+}
+
+@end
+
+
 @implementation NSNumber (OOJavaScriptExtensions)
 
 - (jsval)javaScriptValueInContext:(JSContext *)context
 {
-	jsval		result;
-	BOOL		isFloat = NO;
-	const char	*type;
-	long long	longLongValue;
+	jsval					result;
+	BOOL					isFloat = NO;
+	const char				*type;
+	long long				longLongValue;
 	
 	if (self == [NSNumber numberWithBool:YES])
 	{
@@ -1661,9 +1698,9 @@ BOOL JSArgumentsFromArray(JSContext *context, NSArray *array, uintN *outArgc, js
 
 NSString *JSPropertyAsString(JSContext *context, JSObject *object, const char *name)
 {
-	JSBool			OK;
-	jsval			returnValue;
-	NSString		*result = nil;
+	JSBool					OK;
+	jsval					returnValue;
+	NSString				*result = nil;
 	
 	if (context == NULL || object == NULL || name == NULL) return nil;
 	

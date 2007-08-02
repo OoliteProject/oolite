@@ -291,7 +291,7 @@ typedef uint8_t		OOGovernmentID;		// 0..7
 typedef uint8_t		OOEconomyID;		// 0..7
 
 typedef uint8_t		OOGalaxyID;			// 0..7
-typedef uint16_t	OOSystemID;			// 0..255; 16 bits used to allow overflow.
+typedef int16_t		OOSystemID;			// 0..255, -1 for interstellar space (?)
 
 
 typedef double OOTimeAbsolute;

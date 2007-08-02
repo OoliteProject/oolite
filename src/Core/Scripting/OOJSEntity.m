@@ -28,9 +28,11 @@ MA 02110-1301, USA.
 #import "OOJavaScriptEngine.h"
 #import "OOConstToString.h"
 #import "EntityOOJavaScriptExtensions.h"
+#import "PlayerEntity.h"
 
 
-static JSObject *sEntityPrototype;
+static JSObject		*sEntityPrototype;
+static NSMutableSet	*sEntitySubClasses;
 
 
 static JSBool EntityGetProperty(JSContext *context, JSObject *this, jsval name, jsval *outValue);
@@ -118,17 +120,24 @@ static JSFunctionSpec sEntityMethods[] =
 void InitOOJSEntity(JSContext *context, JSObject *global)
 {
     sEntityPrototype = JS_InitClass(context, global, NULL, &sEntityClass.base, NULL, 0, sEntityProperties, sEntityMethods, NULL, NULL);
+	JSEntityRegisterEntitySubclass(&sEntityClass.base);
 }
 
 
 JSObject *JSEntityWithEntity(JSContext *context, Entity *entity)
 {
+	JSClass					*class = NULL;
+	JSObject				*prototype = NULL;
 	JSObject				*result = NULL;
 	
 	if (entity == nil) return NULL;
 	if (context == NULL) context = [[OOJavaScriptEngine sharedEngine] context];
 	
-	result = JS_NewObject(context, &sEntityClass.base, sEntityPrototype, NULL);
+	if (entity == [PlayerEntity sharedPlayer])  return JSPlayerObject();
+	
+	[entity getJSClass:&class andPrototype:&prototype];
+	
+	result = JS_NewObject(context, class, prototype, NULL);
 	if (result != NULL)
 	{
 		if (!JS_SetPrivate(context, result, [entity weakRetain]))  result = NULL;
@@ -181,23 +190,42 @@ BOOL JSEntityGetEntity(JSContext *context, JSObject *entityObj, Entity **outEnti
 {
 	OOWeakReference			*proxy = nil;
 	
-	if (outEntity == NULL || entityObj == NULL) return NO;
+	if (outEntity == NULL)  return NO;
+	*outEntity = nil;
+	if (entityObj == NULL)  return NO;
 	if (EXPECT_NOT(context == NULL))  context = [[OOJavaScriptEngine sharedEngine] context];
 	
-	proxy = JS_GetInstancePrivate(context, entityObj, &sEntityClass.base, NULL);
-	if (proxy != nil)
+	// If it is an entity proxy...
+	if ([sEntitySubClasses member:[NSValue valueWithPointer:JS_GetClass(entityObj)]] != nil)
 	{
-		*outEntity = [proxy weakRefUnderlyingObject];
-		return YES;
+		proxy = JS_GetPrivate(context, entityObj);
+		if (proxy != nil)
+		{
+			*outEntity = [proxy weakRefUnderlyingObject];
+			return YES;
+		}
 	}
 	
 	return NO;
 }
 
 
-JSClass *EntityJSClass(void)
+JSClass *JSEntityClass(void)
 {
 	return &sEntityClass.base;
+}
+
+
+JSObject *JSEntityPrototype(void)
+{
+	return sEntityPrototype;
+}
+
+
+void JSEntityRegisterEntitySubclass(JSClass *theClass)
+{
+	if (sEntitySubClasses == nil)  sEntitySubClasses = [[NSMutableSet alloc] init];
+	[sEntitySubClasses addObject:[NSValue valueWithPointer:theClass]];
 }
 
 
@@ -329,7 +357,7 @@ static JSBool EntityConvert(JSContext *context, JSObject *this, JSType type, jsv
 	{
 		case JSTYPE_VOID:		// Used for string concatenation.
 		case JSTYPE_STRING:
-			// Return description of vector
+			// Return description of entity
 			if (JSEntityGetEntity(context, this, &entity))
 			{
 				*outValue = [[entity description] javaScriptValueInContext:context];
@@ -349,6 +377,7 @@ static JSBool EntityConvert(JSContext *context, JSObject *this, JSType type, jsv
 
 static void EntityFinalize(JSContext *context, JSObject *this)
 {
+	OOLog(@"js.entity.temp", @"%@ called for %p", this);
 	[(id)JS_GetInstancePrivate(context, this, &sEntityClass.base, NULL) release];
 }
 

@@ -22,6 +22,8 @@
 		<dict>
 			<key>available_to_all</key>
 			<true/>
+			<!-- NOTE: for reasons of backwards compatibility, this defaults to true for equipment whose key ends with MISSILE or MINE. -->
+			<key>requires_empty_pylon</key>
 		</dict>
 	</array>
 	<array>
@@ -65,6 +67,10 @@
 		<string>Extra Energy Unit</string>
 		<string>EQ_ENERGY_UNIT</string>
 		<string>An improved efficiency energy recharge unit.</string>
+		<dict>
+			<key>incompatible_with_equipment</key>
+			<string>EQ_NAVAL_ENERGY_UNIT</string>
+		</dict>
 	</array>
 <!-- next item has a TL too high to be available at all -->
 	<array>
@@ -73,6 +79,10 @@
 		<string>Naval Energy Unit</string>
 		<string>EQ_NAVAL_ENERGY_UNIT</string>
 		<string>A special improved efficiency energy recharge unit, as supplied to Navy vessels.</string>
+		<dict>
+			<key>incompatible_with_equipment</key>
+			<string>EQ_ENERGY_UNIT</string>
+		</dict>
 	</array>
 	<array>
 		<integer>9</integer>
@@ -158,6 +168,8 @@
 		<dict>
 			<key>available_to_all</key>
 			<true/>
+			<key>requires_cargo_space</key>
+			<integer>5</integer>
 		</dict>
 	</array>
 	<array><!-- Passenger Compartment Removal -->
@@ -180,6 +192,8 @@
 		<dict>
 			<key>available_to_all</key>
 			<true/>
+			<key>requires_mounted_pylon</key>
+			<true/>
 		</dict>
 	</array>
 	<array><!-- ecm hardened missile -->
@@ -191,6 +205,8 @@
 		<dict>
 			<key>available_to_all</key>
 			<true/>
+			<!-- NOTE: for reasons of backwards compatibility, this defaults to true for equipment whose key ends with MISSILE or MINE. -->
+			<key>requires_empty_pylon</key>
 		</dict>
 	</array>
 	<array>
@@ -262,6 +278,9 @@
 		<string>Tyley-Feynman Quirium cascade mine. Mounts in place of a missile, but deploys to the rear of your craft. Capable of massive destruction and triggering chain reactions in the witchdrives of ships caught in its blast range.</string>
 		<dict>
 			<key>available_to_all</key>
+			<true/>
+			<!-- NOTE: for reasons of backwards compatibility, this defaults to true for equipment whose key ends with MISSILE or MINE. -->
+			<key>requires_empty_pylon</key>
 			<true/>
 		</dict>
 	</array>

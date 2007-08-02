@@ -95,7 +95,7 @@ static NSString * const kOOLogGrooliteDebug	= @"growl.debug";
 	
 	[player commsMessage: displayString];
 	
-	if ([player speech_on])
+	if ([player isSpeechOn])
 	{
 		if ([UNIVERSE isSpeaking]) [UNIVERSE stopSpeaking];
 		[UNIVERSE startSpeakingString:[NSString stringWithFormat:@"%@ message: %@", notificationString, inTitle]];

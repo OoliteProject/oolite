@@ -251,9 +251,15 @@ typedef struct
 }
 
 
-- (NSString*) name
+- (NSString *) name
 {
-	return stateMachineName;
+	return [[stateMachineName retain] autorelease];
+}
+
+
+- (NSString *) state
+{
+	return [[currentState retain] autorelease];
 }
 
 

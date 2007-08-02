@@ -33,4 +33,8 @@ MA 02110-1301, USA.
 
 - (BOOL)isVisibleToScripts;
 
+
+// Internal:
+- (void)getJSClass:(JSClass **)outClass andPrototype:(JSObject **)outPrototype;
+
 @end

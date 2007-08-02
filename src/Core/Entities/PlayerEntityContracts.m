@@ -1473,12 +1473,12 @@ static NSMutableDictionary* currentShipyard = nil;
 	for (i = 0; i < [portable_equipment count]; i++)
 	{
 		NSString* eq_desc = (NSString*)[portable_equipment objectAtIndex:i];
-		[self add_extra_equipment: eq_desc];
+		[self addExtraEquipment: eq_desc];
 	}
 	
 	// final check
 	
-	[self set_flags_from_extra_equipment];
+	[self setFlagsFromExtraEquipment];
 	
 	// refill from ship_info
 	NSArray* extras = (NSArray*)[ship_info objectForKey:KEY_EQUIPMENT_EXTRAS];
@@ -1492,7 +1492,7 @@ static NSMutableDictionary* currentShipyard = nil;
 		}
 		else
 		{
-			[self add_extra_equipment:eq_key];	// BOOL flags are automatically set by this
+			[self addExtraEquipment:eq_key];	// BOOL flags are automatically set by this
 		}
 	}
 	

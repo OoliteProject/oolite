@@ -25,6 +25,7 @@ MA 02110-1301, USA.
 
 #import "EntityOOJavaScriptExtensions.h"
 #import "OOJSEntity.h"
+#import "OOJSShip.h"
 
 
 @implementation Entity (OOJavaScriptExtensions)
@@ -47,6 +48,24 @@ MA 02110-1301, USA.
 		EntityToJSValue(context, self, &result);
 	}
 	return result;
+}
+
+
+- (void)getJSClass:(JSClass **)outClass andPrototype:(JSObject **)outPrototype
+{
+	*outClass = JSEntityClass();
+	*outPrototype = JSEntityPrototype();
+}
+
+@end
+
+
+@implementation ShipEntity (OOJavaScriptExtensions)
+
+- (void)getJSClass:(JSClass **)outClass andPrototype:(JSObject **)outPrototype
+{
+	*outClass = JSShipClass();
+	*outPrototype = JSShipPrototype();
 }
 
 @end

@@ -469,7 +469,7 @@ typedef enum
 	
 							mouse_control_on: 1,
 	
-							speech_on: 1,
+							isSpeechOn: 1,
 							ootunes_on: 1,
 	
 							docking_music_on: 1,
@@ -616,13 +616,12 @@ typedef enum
 - (BOOL) tryBuyingCommodity:(int) index;
 - (BOOL) trySellingCommodity:(int) index;
 
-- (BOOL) speech_on;
+- (BOOL) isSpeechOn;
 
-- (BOOL) has_extra_equipment:(NSString *) eq_key;
-- (void) add_extra_equipment:(NSString *) eq_key;
-- (void) remove_extra_equipment:(NSString *) eq_key;
-- (void) set_extra_equipment_from_flags;
-- (void) set_flags_from_extra_equipment;
+- (BOOL) hasExtraEquipment:(id)equipmentKeys;	// This can take a string or an set or array of strings.
+- (void) addExtraEquipment:(NSString *)eq_key;
+- (void) removeExtraEquipment:(NSString *)eq_key;
+- (void) setFlagsFromExtraEquipment;
 
 - (void) loopAfterburnerSound;
 - (void) stopAfterburnerSound;
