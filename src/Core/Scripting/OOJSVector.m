@@ -22,7 +22,6 @@ MA 02110-1301, USA.
 
 */
 
-
 #import "OOJSVector.h"
 #import "OOJavaScriptEngine.h"
 
@@ -307,7 +306,8 @@ static JSBool VectorGetProperty(JSContext *context, JSObject *this, jsval name, 
 			break;
 		
 		default:
-			return YES;
+			OOReportJavaScriptBadPropertySelector(context, @"Vector", JSVAL_TO_INT(name));
+			return NO;
 	}
 	
 	return YES;
@@ -338,7 +338,8 @@ static JSBool VectorSetProperty(JSContext *context, JSObject *this, jsval name, 
 			break;
 		
 		default:
-			return YES;
+			OOReportJavaScriptBadPropertySelector(context, @"Vector", JSVAL_TO_INT(name));
+			return NO;
 	}
 	
 	return JSVectorSetVector(context, this, vector);

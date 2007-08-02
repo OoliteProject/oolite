@@ -2392,9 +2392,9 @@ static BOOL switching_equipship_screens;
 		{
 			if (!switching_equipship_screens)
 			{
-				if (!docked_station)
-					docked_station = [UNIVERSE station];
-				if ((gui_screen == GUI_SCREEN_EQUIP_SHIP)&&[docked_station hasShipyard])
+				if (!dockedStation)
+					dockedStation = [UNIVERSE station];
+				if ((gui_screen == GUI_SCREEN_EQUIP_SHIP)&&[dockedStation hasShipyard])
 				{
 					[gameView clearKeys];
 					[self setGuiToShipyardScreen:0];
@@ -2419,7 +2419,7 @@ static BOOL switching_equipship_screens;
 		{
 			if (!switching_market_screens)
 			{
-				if ((gui_screen == GUI_SCREEN_MARKET)&&(docked_station == [UNIVERSE station])&&(![UNIVERSE strict]))
+				if ((gui_screen == GUI_SCREEN_MARKET)&&(dockedStation == [UNIVERSE station])&&(![UNIVERSE strict]))
 				{
 					[gameView clearKeys];
 					[self setGuiToContractsScreen];
@@ -2550,9 +2550,9 @@ static BOOL toggling_music;
 			[gameView allowStringInput: NO];
 
 			[UNIVERSE setUpUniverseFromStation]; // launch!
-			if (!docked_station)
-				docked_station = [UNIVERSE station];
-			[self leaveDock:docked_station];
+			if (!dockedStation)
+				dockedStation = [UNIVERSE station];
+			[self leaveDock:dockedStation];
 			[UNIVERSE setDisplayCursor:NO];
 			[self sendMessageToScripts:@"willLaunch"];
 		}

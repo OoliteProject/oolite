@@ -1,8 +1,8 @@
 /*
 
-EntityOOJavaScriptExtensions.h
+OOJSPlayer.h
 
-JavaScript support methods for Entity.
+JavaScript proxy for the player.
 
 Oolite
 Copyright (C) 2004-2007 Giles C Williams and contributors
@@ -24,19 +24,26 @@ MA 02110-1301, USA.
 
 */
 
+#import <Foundation/Foundation.h>
+#import <jsapi.h>
 
-#import "Entity.h"
-#import "OOJavaScriptEngine.h"
-
-
-@interface Entity (OOJavaScriptExtensions)
-
-- (BOOL)isVisibleToScripts;
-
-- (NSString *)jsClassName;
+@class PlayerEntity;
 
 
-// Internal:
-- (void)getJSClass:(JSClass **)outClass andPrototype:(JSObject **)outPrototype;
+void InitOOJSPlayer(JSContext *context, JSObject *global);
 
-@end
+BOOL JSPlayerGetPlayerEntity(JSContext *context, JSObject *playerObj, PlayerEntity **outEntity);
+
+JSClass *JSPlayerClass(void);
+JSObject *JSPlayerPrototype(void);
+
+JSObject *JSPlayerObject(void);
+
+
+/*	All JS functions which talk to the player entity should call
+	OOPlayerForScripting() to ensure that the script target (for the legacy
+	system) is set correctly. Additionally, all such functions should _always_
+	call OPlayerForScripting(), even if they end up not using it, to ensure
+	consistent state.
+*/
+PlayerEntity *OPlayerForScripting(void);

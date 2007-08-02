@@ -574,7 +574,7 @@ static NSComparisonResult comparePrice(NSDictionary *dict1, NSDictionary *dict2,
 		// save the player
 		PlayerEntity*	player = [PlayerEntity sharedPlayer];
 		// save the docked craft
-		Entity*			docked_station = [player docked_station];
+		Entity*			dockedStation = [player dockedStation];
 		// jump to the nearest system
 		Random_Seed s_seed = [self findSystemAtCoords:[player galaxy_coordinates] withGalaxySeed:[player galaxy_seed]];
 		[player setSystem_seed:s_seed];
@@ -583,13 +583,13 @@ static NSComparisonResult comparePrice(NSDictionary *dict1, NSDictionary *dict2,
 		[self setSystemTo: s_seed];
 			
 		// remove everything except the player and the docked station
-		if (docked_station)
+		if (dockedStation)
 		{
 			int index = 0;
 			while ([entities count] > 2)
 			{
 				Entity* ent = [entities objectAtIndex:index];
-				if ((ent != player)&&(ent != docked_station))
+				if ((ent != player)&&(ent != dockedStation))
 				{
 					if (ent->isStation)  // clear out queues
 						[(StationEntity *)ent clear];
@@ -2652,6 +2652,13 @@ GLfloat docked_light_specular[]	= { (GLfloat) 1.0, (GLfloat) 1.0, (GLfloat) 0.5,
 			[my_entities[i] release];
 	}
 	return cachedSun;
+}
+
+
+- (void)unMagicMainStation
+{
+	station = NO_TARGET;
+	cachedStation = nil;
 }
 
 

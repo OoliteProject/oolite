@@ -93,7 +93,7 @@ static PlayerEntity *sSharedPlayer = nil;
 {
 	/* loads commodities from the cargo pods onto the ship's manifest */
 	unsigned i;
-	NSMutableArray* localMarket = [docked_station localMarket];
+	NSMutableArray* localMarket = [dockedStation localMarket];
 	NSMutableArray* manifest = [[NSMutableArray arrayWithArray:localMarket] retain];  // retain
 	
 	// copy the quantities in ShipCommodityData to the manifest
@@ -144,7 +144,7 @@ static PlayerEntity *sSharedPlayer = nil;
 {
 	/* loads commodities from the ships manifest into individual cargo pods */
 	unsigned i,j;
-	NSMutableArray* localMarket = [docked_station localMarket];
+	NSMutableArray* localMarket = [dockedStation localMarket];
 	NSMutableArray* manifest = [[NSMutableArray arrayWithArray:shipCommodityData] retain];  // retain
 	
 	if (cargo == nil)  cargo = [[NSMutableArray alloc] init];
@@ -347,7 +347,7 @@ static PlayerEntity *sSharedPlayer = nil;
 	[result setObject:[[UNIVERSE getDictionaryForShip:ship_desc] stringForKey:KEY_NAME] forKey:@"ship_name"];
 	
 	//local market
-	if ([docked_station localMarket])  [result setObject:[docked_station localMarket] forKey:@"localMarket"];
+	if ([dockedStation localMarket])  [result setObject:[dockedStation localMarket] forKey:@"localMarket"];
 
 	// reduced detail option
 	[result setObject:[NSNumber numberWithBool:[UNIVERSE reducedDetail]] forKey:@"reducedDetail"];
@@ -950,7 +950,7 @@ static PlayerEntity *sSharedPlayer = nil;
 	
 	[UNIVERSE clearGUIs];
 	
-	docked_station = [UNIVERSE station];
+	dockedStation = [UNIVERSE station];
 	
 	[comm_log release];
 	comm_log = [[NSMutableArray alloc] init];	// retained
@@ -984,6 +984,8 @@ static PlayerEntity *sSharedPlayer = nil;
 	[shipAI release];
 	shipAI = [[AI alloc] initWithStateMachine:PLAYER_DOCKING_AI_NAME andState:@"GLOBAL"];
 	[shipAI setOwner:self];
+	
+	lastScriptAlertCondition = [self alertCondition];
 	
 	[self sendMessageToScripts:@"reset"];
 }
@@ -1293,6 +1295,18 @@ double scoopSoundPlayTime = 0.0;
 	hasRotated = !quaternion_equal(orientation, lastOrientation);
 	lastPosition = position;
 	lastOrientation = orientation;
+	
+	/*	Moved here from -alertCondition to avoid alert condition checks in
+		scripts triggering running of scripts. This wouldn't cause recursion,
+		but did cause JS warnings.
+		TODO: update alert condition once per frame. Tried this before, but
+		there turned out to be complications. See mailing list archive.
+		-- Ahruman 20070802
+	*/
+	if ([self alertCondition] != lastScriptAlertCondition)
+	{
+		[self sendMessageToScripts:@"alertConditionChanged"];
+	}
 
 	if (scoopsActive)
 	{
@@ -1404,7 +1418,7 @@ double scoopSoundPlayTime = 0.0;
 		return;
 	}
 
-	if (!docked_station)
+	if (!dockedStation)
 	{
 		// do flight routines
 		//// velocity stuff
@@ -2107,9 +2121,9 @@ double scoopSoundPlayTime = 0.0;
 }
 
 
-- (StationEntity *) docked_station
+- (StationEntity *) dockedStation
 {
-	return docked_station;
+	return dockedStation;
 }
 
 
@@ -2579,9 +2593,6 @@ double scoopSoundPlayTime = 0.0;
 	{
 		[self playAlertConditionRed];
 	}
-	
-	if (alertCondition != old_alert_condition)
-		[self sendMessageToScripts:@"alertConditionChanged"];
 	
 	return alertCondition;
 }
@@ -3527,7 +3538,7 @@ double scoopSoundPlayTime = 0.0;
 	[self playBreakPattern];
 
 	[station noteDockedShip:self];
-	docked_station = station;
+	dockedStation = station;
 
 	[[UNIVERSE gameView] clearKeys];	// try to stop key bounces
 
@@ -3541,9 +3552,9 @@ double scoopSoundPlayTime = 0.0;
 
 	[self loseTargetStatus];
 
-	if (docked_station)
+	if (dockedStation)
 	{
-		Vector launchPos = docked_station->position;
+		Vector launchPos = dockedStation->position;
 		position = launchPos;
 
 		[self setOrientation: kIdentityQuaternion];	// reset orientation to dock
@@ -3572,8 +3583,8 @@ double scoopSoundPlayTime = 0.0;
 
 	[self setAlertFlag:ALERT_FLAG_DOCKED to:YES];
 
-	if (![docked_station localMarket])
-		[docked_station initialiseLocalMarketWithSeed:system_seed andRandomFactor:market_rnd];
+	if (![dockedStation localMarket])
+		[dockedStation initialiseLocalMarketWithSeed:system_seed andRandomFactor:market_rnd];
 
 	NSString*	escapepodReport = [self processEscapePods];
 	if ([escapepodReport length])
@@ -3619,10 +3630,12 @@ double scoopSoundPlayTime = 0.0;
 
 - (void) leaveDock:(StationEntity *)station
 {
+	if (station == nil)  return;	
+	
 	if (station == [UNIVERSE station])
 		legalStatus |= [UNIVERSE legal_status_of_manifest:shipCommodityData];  // 'leaving with those guns were you sir?'
 	[self loadCargoPods];
-
+	
 	// clear the way
 	[station autoDockShipsOnApproach];
 	[station clearDockingCorridor];
@@ -3655,7 +3668,7 @@ double scoopSoundPlayTime = 0.0;
 
 	ship_clock_adjust = 600.0;			// 10 minutes to leave dock
 
-	docked_station = nil;
+	dockedStation = nil;
 }
 
 
@@ -3921,8 +3934,8 @@ double scoopSoundPlayTime = 0.0;
 	systemName = [UNIVERSE getSystemName:system_seed];
 	if (status == STATUS_DOCKED)
 	{
-		if ((docked_station != [UNIVERSE station])&&(docked_station != nil))
-			systemName = [NSString stringWithFormat:@"%@ : %@", systemName, [(ShipEntity*)docked_station name]];
+		if ((dockedStation != [UNIVERSE station])&&(dockedStation != nil))
+			systemName = [NSString stringWithFormat:@"%@ : %@", systemName, [(ShipEntity*)dockedStation name]];
 	}
 
 	targetSystemName =	[UNIVERSE getSystemName:target_system_seed];
@@ -4290,9 +4303,9 @@ double scoopSoundPlayTime = 0.0;
 
 	if (status == STATUS_DOCKED)
 	{
-		if (!docked_station)
-			docked_station = [UNIVERSE station];
-		canLoadOrSave = (docked_station == [UNIVERSE station]);
+		if (!dockedStation)
+			dockedStation = [UNIVERSE station];
+		canLoadOrSave = (dockedStation == [UNIVERSE station]);
 	}
 
 	BOOL canQuickSave = (canLoadOrSave && ([[gameView gameController] playerFileToLoad] != nil));
@@ -4514,11 +4527,11 @@ static int last_outfitting_index;
 	double price_factor = 1.0;
 	OOTechLevelID techlevel = [[UNIVERSE generateSystemData:system_seed] intForKey:KEY_TECHLEVEL];
 
-	if (docked_station)
+	if (dockedStation)
 	{
-		price_factor = [docked_station equipmentPriceFactor];
-		if ([docked_station equivalentTechLevel] != NSNotFound)
-			techlevel = [docked_station equivalentTechLevel];
+		price_factor = [dockedStation equipmentPriceFactor];
+		if ([dockedStation equivalentTechLevel] != NSNotFound)
+			techlevel = [dockedStation equivalentTechLevel];
 	}
 
 	// build an array of all equipment - and take away that which has been bought (or is not permitted)
@@ -5009,9 +5022,9 @@ static int last_outfitting_index;
 		price = cunningFee(0.1 * [UNIVERSE tradeInValueForCommanderDictionary:[self commanderDataDictionary]]);
 	}
 
-	if (docked_station)
+	if (dockedStation)
 	{
-		price_factor = [docked_station equipmentPriceFactor];
+		price_factor = [dockedStation equipmentPriceFactor];
 	}
 
 	price *= price_factor;  // increased prices at some stations
@@ -5146,7 +5159,7 @@ static int last_outfitting_index;
 	if ([eq_key isEqual:@"EQ_RENOVATION"])
 	{
 		OOTechLevelID techLevel = NSNotFound;
-		if (docked_station != nil)  techLevel = [docked_station equivalentTechLevel];
+		if (dockedStation != nil)  techLevel = [dockedStation equivalentTechLevel];
 		if (techLevel == NSNotFound)  techLevel = [[UNIVERSE generateSystemData:system_seed] unsignedIntForKey:KEY_TECHLEVEL];
 		
 		credits -= price;
@@ -5266,8 +5279,8 @@ static int last_outfitting_index;
 	NSArray				*localMarket;
 	StationEntity		*station = nil;
 	
-	if (status != STATUS_DOCKED || docked_station == nil)  station = [UNIVERSE station];
-	else  station = docked_station;
+	if (status != STATUS_DOCKED || dockedStation == nil)  station = [UNIVERSE station];
+	else  station = dockedStation;
 	localMarket = [station localMarket];
 	if (localMarket == nil)
 	{
@@ -5384,12 +5397,12 @@ static int last_outfitting_index;
 - (BOOL) marketFlooded:(int) index
 {
 	NSMutableArray*			localMarket;
-	if (docked_station == nil)
-		docked_station = [UNIVERSE station];
-	if ([docked_station localMarket])
-		localMarket = [docked_station localMarket];
+	if (dockedStation == nil)
+		dockedStation = [UNIVERSE station];
+	if ([dockedStation localMarket])
+		localMarket = [dockedStation localMarket];
 	else
-		localMarket = [docked_station initialiseLocalMarketWithSeed:system_seed andRandomFactor:market_rnd];
+		localMarket = [dockedStation initialiseLocalMarketWithSeed:system_seed andRandomFactor:market_rnd];
 	NSArray *commodityArray = (NSArray *)[localMarket objectAtIndex:index];
 	int available_units =   [(NSNumber *)[commodityArray objectAtIndex:MARKET_QUANTITY] intValue];
 	return (available_units >= 127);
@@ -5401,12 +5414,12 @@ static int last_outfitting_index;
 	NSMutableArray*			localMarket;
 	if (status == STATUS_DOCKED)
 	{
-		if (docked_station == nil)
-			docked_station = [UNIVERSE station];
-		if ([docked_station localMarket])
-			localMarket = [docked_station localMarket];
+		if (dockedStation == nil)
+			dockedStation = [UNIVERSE station];
+		if ([dockedStation localMarket])
+			localMarket = [dockedStation localMarket];
 		else
-			localMarket = [docked_station initialiseLocalMarketWithSeed:system_seed andRandomFactor:market_rnd];
+			localMarket = [dockedStation initialiseLocalMarketWithSeed:system_seed andRandomFactor:market_rnd];
 	}
 	else
 	{
@@ -5450,12 +5463,12 @@ static int last_outfitting_index;
 	NSMutableArray*			localMarket;
 	if (status == STATUS_DOCKED)
 	{
-		if (docked_station == nil)
-			docked_station = [UNIVERSE station];
-		if ([docked_station localMarket])
-			localMarket = [docked_station localMarket];
+		if (dockedStation == nil)
+			dockedStation = [UNIVERSE station];
+		if ([dockedStation localMarket])
+			localMarket = [dockedStation localMarket];
 		else
-			localMarket = [docked_station initialiseLocalMarketWithSeed:system_seed andRandomFactor:market_rnd];
+			localMarket = [dockedStation initialiseLocalMarketWithSeed:system_seed andRandomFactor:market_rnd];
 	}
 	else
 	{
@@ -6099,18 +6112,6 @@ OOSound* burnersound;
 	return NO;
 }
 
-// Start of JavaScript object model helpers
-- (void) setCredits: (int)newCredits
-{
-	credits = 10 * newCredits;
-}
-
-
-- (void) setKills: (int)newKills
-{
-	ship_kills = newKills;
-}
-// End of JavaScript object model helpers
 
 - (Quaternion)customViewQuaternion
 {

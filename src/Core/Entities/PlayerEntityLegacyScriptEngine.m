@@ -82,7 +82,6 @@ static NSString * const kOOLogDebugSetSunNovaIn				= @"script.debug.setSunNovaIn
 
 static NSString * const kOOLogNoteScriptAction				= @"script.debug.note.scriptAction";
 static NSString * const kOOLogNoteTestCondition				= @"script.debug.note.testCondition";
-static NSString * const kOOLogNoteAwardCargo				= @"script.debug.note.awardCargo";
 static NSString * const kOOLogNoteRemoveAllCargo			= @"script.debug.note.removeAllCargo";
 static NSString * const kOOLogNoteUseSpecialCargo			= @"script.debug.note.useSpecialCargo";
 	   NSString * const kOOLogNoteAddShips					= @"script.debug.note.addShips";
@@ -628,13 +627,13 @@ static NSString * mission_key;
 
 - (NSNumber *) score_number
 {
-	return [NSNumber numberWithInt:ship_kills];
+	return [NSNumber numberWithUnsignedInt:[self score]];
 }
 
 
 - (NSNumber *) credits_number
 {
-	return [NSNumber numberWithFloat: 0.1 * credits];
+	return [NSNumber numberWithDouble:[self creditBalance]];
 }
 
 
@@ -653,7 +652,7 @@ static int shipsFound;
 
 - (NSNumber *) legalStatus_number
 {
-	return [NSNumber numberWithInt:legalStatus];
+	return [NSNumber numberWithInt:[self legalStatus]];
 }
 
 
@@ -734,10 +733,8 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 
 - (NSString *) dockedAtMainStation_bool
 {
-	if ((status == STATUS_DOCKED)&&(docked_station == [UNIVERSE station]))
-		return @"YES";
-	else
-		return @"NO";
+	if ([self dockedAtMainStation])  return @"YES";
+	else  return @"NO";
 }
 
 
@@ -767,11 +764,12 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 
 - (NSString *) dockedStationName_string	// returns 'NONE' if the player isn't docked, [station name] if it is, 'UNKNOWN' otherwise
 {
-	if (status != STATUS_DOCKED)
-		return @"NONE";
-	if (docked_station)
-		return [docked_station name];
-	return @"UNKNOWN";
+	NSString			*result = nil;
+	if (status != STATUS_DOCKED)  return @"NONE";
+	
+	result = [self dockedStationName];
+	if (result == nil)  result = @"UNKNOWN";
+	return result;
 }
 
 
@@ -832,7 +830,7 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 
 - (NSString *) commanderName_string
 {
-	return [NSString stringWithString: player_name];
+	return [self playerName];
 }
 
 
@@ -951,8 +949,7 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 
 	if ([eq_type hasSuffix:@"MISSILE"]||[eq_type hasSuffix:@"MINE"])
 	{
-		if ([self mountMissile:[[UNIVERSE newShipWithRole:eq_type] autorelease]])
-			missiles++;
+		[self mountMissile:[[UNIVERSE newShipWithRole:eq_type] autorelease]];
 		return;
 	}
 
@@ -1034,13 +1031,11 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 	NSString				*typeString = nil;
 	OOCargoQuantityDelta	amount;
 	OOCargoType				type;
-	OOMassUnit				unit;
 	NSArray					*commodityArray = nil;
-	NSString				*cargoString = nil;
 
 	if ([tokens count] != 2)
 	{
-		OOLog(kOOLogSyntaxAwardCargo, @"***** CANNOT awardCargo: '%@' (%@)",amount_typeString, @"bad parameter count");
+		OOLog(kOOLogSyntaxAwardCargo, @"***** CANNOT awardCargo: '%@' (%@)", amount_typeString, @"bad parameter count");
 		return;
 	}
 	
@@ -1063,80 +1058,7 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 		return;
 	}
 	
-	cargoString = [commodityArray objectAtIndex:MARKET_NAME];
-
-	OOLog(kOOLogNoteAwardCargo, @"Going to award cargo: %d x '%@'", amount, cargoString);
-
-	unit = [commodityArray intAtIndex:MARKET_UNITS];
-	
-	if (status != STATUS_DOCKED)
-	{	// in-flight
-		while (amount)
-		{
-			if (unit != UNITS_TONS)
-			{
-				int amount_per_container = (unit == UNITS_KILOGRAMS)? 1000 : 1000000;
-				while (amount > 0)
-				{
-					int smaller_quantity = 1 + ((amount - 1) % amount_per_container);
-					if ([cargo count] < max_cargo)
-					{
-						ShipEntity* container = [UNIVERSE newShipWithRole:@"cargopod"];
-						if (container)
-						{
-							// Shouldn't there be a [UNIVERSE addEntity:] here? -- Ahruman
-							[container wasAddedToUniverse];
-							[container setScanClass: CLASS_CARGO];
-							[container setCommodity:type andAmount:smaller_quantity];
-							[cargo addObject:container];
-							[container release];
-						}
-					}
-					amount -= smaller_quantity;
-				}
-			}
-			else
-			{
-				// put each ton in a separate container
-				while (amount)
-				{
-					if ([cargo count] < max_cargo)
-					{
-						ShipEntity* container = [UNIVERSE newShipWithRole:@"cargopod"];
-						if (container)
-						{
-							// Shouldn't there be a [UNIVERSE addEntity:] here? -- Ahruman
-							[container wasAddedToUniverse];
-							[container setScanClass: CLASS_CARGO];
-							[container setStatus:STATUS_IN_HOLD];
-							[container setCommodity:type andAmount:1];
-							[cargo addObject:container];
-							[container release];
-						}
-					}
-					amount--;
-				}
-			}
-		}
-	}
-	else
-	{	// docked
-		// like purchasing a commodity
-		NSMutableArray* manifest =  [NSMutableArray arrayWithArray:shipCommodityData];
-		NSMutableArray* manifest_commodity =	[NSMutableArray arrayWithArray:(NSArray *)[manifest objectAtIndex:type]];
-		int manifest_quantity = [(NSNumber *)[manifest_commodity objectAtIndex:MARKET_QUANTITY] intValue];
-		while ((amount)&&(current_cargo < max_cargo))
-		{
-			manifest_quantity++;
-			amount--;
-			if (unit == UNITS_TONS)
-				current_cargo++;
-		}
-		[manifest_commodity replaceObjectAtIndex:MARKET_QUANTITY withObject:[NSNumber numberWithInt:manifest_quantity]];
-		[manifest replaceObjectAtIndex:type withObject:[NSArray arrayWithArray:manifest_commodity]];
-		[shipCommodityData release];
-		shipCommodityData = [[NSArray arrayWithArray:manifest] retain];
-	}
+	[self awardCargoType:type amount:amount];
 }
 
 
@@ -1176,13 +1098,12 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 
 - (void) useSpecialCargo:(NSString *)descriptionString;
 {
-
 	if (script_target != self)  return;
-
+	
+	OOLog(kOOLogNoteUseSpecialCargo, @"Going to useSpecialCargo:'%@'", specialCargo);
+	
 	[self removeAllCargo];
 	specialCargo = [ExpandDescriptionForCurrentSystem(descriptionString) retain];
-	//
-	OOLog(kOOLogNoteUseSpecialCargo, @"Going to useSpecialCargo:'%@'", specialCargo);
 }
 
 
@@ -1784,7 +1705,7 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 {
 	ShipEntity		*ship;
 
-	if (!docked_station)
+	if (!dockedStation)
 		return;
 
 	[UNIVERSE removeDemoShips];	// get rid of any pre-existing models on display
@@ -1853,7 +1774,7 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 
 - (NSNumber *) fuel_leak_rate_number
 {
-    return [NSNumber numberWithFloat:fuel_leak_rate];
+    return [NSNumber numberWithFloat:[self fuelLeakRate]];
 }
 
 
@@ -1867,7 +1788,7 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 
 - (void) launchFromStation
 {
-	[self leaveDock:docked_station];
+	[self leaveDock:dockedStation];
 	[UNIVERSE setDisplayCursor:NO];
 	[breakPatternSound play];
 }
@@ -1875,7 +1796,14 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 
 - (void) blowUpStation
 {
-	[[UNIVERSE station] takeEnergyDamage:500000000.0 from:nil becauseOf:nil];	// 500 million should do it!
+	StationEntity		*mainStation = nil;
+	
+	mainStation = [UNIVERSE station];
+	if (mainStation != nil)
+	{
+		[UNIVERSE unMagicMainStation];
+		[mainStation takeEnergyDamage:500000000.0 from:nil becauseOf:nil];	// 500 million should do it!
+	}
 }
 
 

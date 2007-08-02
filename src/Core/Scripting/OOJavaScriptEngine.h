@@ -31,10 +31,9 @@ MA 02110-1301, USA.
 
 @interface OOJavaScriptEngine : NSObject
 {
-	JSRuntime *rt;
-	JSContext *cx;
-	JSObject *glob;
-	JSBool builtins;
+	JSRuntime			*runtime;
+	JSContext			*context;
+	JSObject			*globalObject;
 }
 
 + (OOJavaScriptEngine *)sharedEngine;
@@ -48,6 +47,7 @@ void OOReportJavaScriptError(JSContext *context, NSString *format, ...);
 void OOReportJavaScriptErrorWithArguments(JSContext *context, NSString *format, va_list args);
 void OOReportJavaScriptWarning(JSContext *context, NSString *format, ...);
 void OOReportJavaScriptWarningWithArguments(JSContext *context, NSString *format, va_list args);
+void OOReportJavaScriptBadPropertySelector(JSContext *context, NSString *className, jsint selector);
 
 /*	NumberFromArgumentList()
 	
@@ -60,9 +60,6 @@ void OOReportJavaScriptWarningWithArguments(JSContext *context, NSString *format
 	log.
 */
 BOOL NumberFromArgumentList(JSContext *context, NSString *scriptClass, NSString *function, uintN argc, jsval *argv, double *outNumber, uintN *outConsumed);
-
-
-JSObject *JSPlayerObject(void);
 
 
 /*	JSArgumentsFromArray()
@@ -83,14 +80,27 @@ BOOL JSArgumentsFromArray(JSContext *context, NSArray *array, uintN *outArgc, js
 JSObject *JSArrayFromNSArray(JSContext *context, NSArray *array);
 
 
-@protocol OOJavaScriptConversion <NSObject>
+OOINLINE jsval BOOLToJSVal(BOOL b) INLINE_CONST_FUNC;
+OOINLINE jsval BOOLToJSVal(BOOL b)
+{
+	return BOOLEAN_TO_JSVAL(b != NO);
+}
 
+
+@interface NSObject (OOJavaScriptConversion)
+
+/*	-javaScriptValueInContext:
+	
+	Return the JavaScript object representation of an object. The default
+	implementation returns JSVAL_NULL. At this time, NSString, NSNumber,
+	NSArray and Entity override this.
+*/
 - (jsval)javaScriptValueInContext:(JSContext *)context;
 
 @end
 
 
-@interface NSString (OOJavaScriptExtensions) <OOJavaScriptConversion>
+@interface NSString (OOJavaScriptExtensions)
 
 // Convert a JSString to an NSString.
 + (id)stringWithJavaScriptString:(JSString *)string;
@@ -107,19 +117,10 @@ JSObject *JSArrayFromNSArray(JSContext *context, NSArray *array);
 @end
 
 
-@interface NSArray (OOJavaScriptExtensions) <OOJavaScriptConversion>
-
-@end
-
-
-@interface NSNumber (OOJavaScriptExtensions) <OOJavaScriptConversion>
-
-@end
-
-
-@interface NSNull (OOJavaScriptExtensions) <OOJavaScriptConversion>
-
-@end
+OOINLINE NSString *JSValToNSString(JSContext *context, jsval value)
+{
+	return [NSString stringWithJavaScriptValue:value inContext:context];
+}
 
 
 NSString *JSPropertyAsString(JSContext *context, JSObject *object, const char *name);

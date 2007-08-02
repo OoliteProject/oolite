@@ -26,6 +26,8 @@ MA 02110-1301, USA.
 #import "EntityOOJavaScriptExtensions.h"
 #import "OOJSEntity.h"
 #import "OOJSShip.h"
+#import "OOJSStation.h"
+#import "StationEntity.h"
 
 
 @implementation Entity (OOJavaScriptExtensions)
@@ -37,6 +39,12 @@ MA 02110-1301, USA.
 		//	self->isStation ||	// Stations are always ships
 		//	self->isPlayer ||	// The player is also a ship
 			self->isPlanet;
+}
+
+
+- (NSString *)jsClassName
+{
+	return @"Entity";
 }
 
 
@@ -66,6 +74,39 @@ MA 02110-1301, USA.
 {
 	*outClass = JSShipClass();
 	*outPrototype = JSShipPrototype();
+}
+
+
+- (NSString *)jsClassName
+{
+	return @"Ship";
+}
+
+@end
+
+
+@implementation PlayerEntity (OOJavaScriptExtensions)
+
+- (NSString *)jsClassName
+{
+	return @"Player";
+}
+
+@end
+
+
+@implementation StationEntity (OOJavaScriptExtensions)
+
+- (void)getJSClass:(JSClass **)outClass andPrototype:(JSObject **)outPrototype
+{
+	*outClass = JSStationClass();
+	*outPrototype = JSStationPrototype();
+}
+
+
+- (NSString *)jsClassName
+{
+	return @"Station";
 }
 
 @end

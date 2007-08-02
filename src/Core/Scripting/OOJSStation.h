@@ -1,8 +1,8 @@
 /*
 
-EntityOOJavaScriptExtensions.h
+OOJSStation.h
 
-JavaScript support methods for Entity.
+JavaScript proxy for StationEntities.
 
 Oolite
 Copyright (C) 2004-2007 Giles C Williams and contributors
@@ -24,19 +24,15 @@ MA 02110-1301, USA.
 
 */
 
+#import <Foundation/Foundation.h>
+#import <jsapi.h>
 
-#import "Entity.h"
-#import "OOJavaScriptEngine.h"
-
-
-@interface Entity (OOJavaScriptExtensions)
-
-- (BOOL)isVisibleToScripts;
-
-- (NSString *)jsClassName;
+@class StationEntity;
 
 
-// Internal:
-- (void)getJSClass:(JSClass **)outClass andPrototype:(JSObject **)outPrototype;
+void InitOOJSStation(JSContext *context, JSObject *global);
 
-@end
+BOOL JSStationGetStationEntity(JSContext *context, JSObject *stationObj, StationEntity **outEntity);
+
+JSClass *JSStationClass(void);
+JSObject *JSStationPrototype(void);

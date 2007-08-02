@@ -22,7 +22,6 @@ MA 02110-1301, USA.
 
 */
 
-
 #import "OOJSQuaternion.h"
 #import "OOJavaScriptEngine.h"
 
@@ -298,7 +297,8 @@ static JSBool QuaternionGetProperty(JSContext *context, JSObject *this, jsval na
 			break;
 		
 		default:
-			return YES;
+			OOReportJavaScriptBadPropertySelector(context, @"Quaternion", JSVAL_TO_INT(name));
+			return NO;
 	}
 	
 	return YES;
@@ -333,7 +333,8 @@ static JSBool QuaternionSetProperty(JSContext *context, JSObject *this, jsval na
 			break;
 		
 		default:
-			return YES;
+			OOReportJavaScriptBadPropertySelector(context, @"Quaternion", JSVAL_TO_INT(name));
+			return NO;
 	}
 	
 	return JSQuaternionSetQuaternion(context, this, quaternion);

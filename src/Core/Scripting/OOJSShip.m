@@ -1,27 +1,26 @@
 /*
- 
- OOJSShip.m
- 
- Oolite
- Copyright (C) 2004-2007 Giles C Williams and contributors
- 
- This program is free software; you can redistribute it and/or
- modify it under the terms of the GNU General Public License
- as published by the Free Software Foundation; either version 2
- of the License, or (at your option) any later version.
- 
- This program is distributed in the hope that it will be useful,
- but WITHOUT ANY WARRANTY; without even the implied warranty of
- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- GNU General Public License for more details.
- 
- You should have received a copy of the GNU General Public License
- along with this program; if not, write to the Free Software
- Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
- MA 02110-1301, USA.
- 
- */
 
+OOJSShip.m
+
+Oolite
+Copyright (C) 2004-2007 Giles C Williams and contributors
+
+This program is free software; you can redistribute it and/or
+modify it under the terms of the GNU General Public License
+as published by the Free Software Foundation; either version 2
+of the License, or (at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program; if not, write to the Free Software
+Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
+MA 02110-1301, USA.
+
+*/
 
 #import "OOJSShip.h"
 #import "OOJSEntity.h"
@@ -46,44 +45,46 @@ static NSArray *ArrayOfRoles(NSString *rolesString);
 
 static JSExtendedClass sShipClass =
 {
-{
-	"Ship",
-	JSCLASS_HAS_PRIVATE | JSCLASS_IS_EXTENDED,
-	
-	JS_PropertyStub,		// addProperty
-	JS_PropertyStub,		// delProperty
-	ShipGetProperty,		// getProperty
-	ShipSetProperty,		// setProperty
-	JS_EnumerateStub,		// enumerate
-	JS_ResolveStub,			// resolve
-	JS_ConvertStub,			// convert
-	JS_FinalizeStub,		// finalize
-	JSCLASS_NO_OPTIONAL_MEMBERS
-},
-NULL,						// equality
-NULL,						// outerObject
-NULL,						// innerObject
-JSCLASS_NO_RESERVED_MEMBERS
+	{
+		"Ship",
+		JSCLASS_HAS_PRIVATE | JSCLASS_IS_EXTENDED,
+		
+		JS_PropertyStub,		// addProperty
+		JS_PropertyStub,		// delProperty
+		ShipGetProperty,		// getProperty
+		ShipSetProperty,		// setProperty
+		JS_EnumerateStub,		// enumerate
+		JS_ResolveStub,			// resolve
+		JS_ConvertStub,			// convert
+		JS_FinalizeStub,		// finalize
+		JSCLASS_NO_OPTIONAL_MEMBERS
+	},
+	NULL,						// equality
+	NULL,						// outerObject
+	NULL,						// innerObject
+	JSCLASS_NO_RESERVED_MEMBERS
 };
 
 
 enum
 {
 	// Property IDs
-	kShip_shipDescription,	// name, string, read-only
+	kShip_shipDescription,		// name, string, read-only
 	kShip_roles,				// roles, array, read-only
 	kShip_AI,					// AI state machine name, string, read/write
-	kShip_AIState				// AI state machine state, string, read/write
+	kShip_AIState,				// AI state machine state, string, read/write
+	kShip_fuel					// fuel, float, read/write
 };
 
 
 static JSPropertySpec sShipProperties[] =
 {
 	// JS name					ID							flags
-	{ "shipDescription",		kShip_shipDescription,	JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
+	{ "shipDescription",		kShip_shipDescription,		JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
 	{ "roles",					kShip_roles,				JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
 	{ "AI",						kShip_AI,					JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
-	{ "AIState",				kShip_AIState,			JSPROP_PERMANENT | JSPROP_ENUMERATE },
+	{ "AIState",				kShip_AIState,				JSPROP_PERMANENT | JSPROP_ENUMERATE },
+	{ "fuel",					kShip_fuel,					JSPROP_PERMANENT | JSPROP_ENUMERATE },
 	{ 0 }
 };
 
@@ -91,7 +92,7 @@ static JSPropertySpec sShipProperties[] =
 static JSFunctionSpec sShipMethods[] =
 {
 	// JS name					Function					min args
-	{ "setAI",					ShipSetAI,				1 },
+	{ "setAI",					ShipSetAI,					1 },
 	{ "switchAI",				ShipSwitchAI,				1 },
 	{ 0 }
 };
@@ -104,14 +105,14 @@ void InitOOJSShip(JSContext *context, JSObject *global)
 }
 
 
-BOOL JSShipGetShipEntity(JSContext *context, JSObject *ShipObj, ShipEntity **outEntity)
+BOOL JSShipGetShipEntity(JSContext *context, JSObject *shipObj, ShipEntity **outEntity)
 {
 	BOOL						result;
 	Entity						*entity = nil;
 	
 	if (outEntity != NULL)  *outEntity = nil;
 	
-	result = JSEntityGetEntity(context, ShipObj, &entity);
+	result = JSEntityGetEntity(context, shipObj, &entity);
 	if (!result)  return NO;
 	
 	if (![entity isKindOfClass:[ShipEntity class]])  return NO;
@@ -136,7 +137,7 @@ JSObject *JSShipPrototype(void)
 static JSBool ShipGetProperty(JSContext *context, JSObject *this, jsval name, jsval *outValue)
 {
 	ShipEntity					*entity = nil;
-	id<OOJavaScriptConversion>	result = nil;
+	id							result = nil;
 	
 	if (!JSVAL_IS_INT(name))  return YES;
 	if (!JSShipGetShipEntity(context, this, &entity)) return NO;
@@ -158,8 +159,13 @@ static JSBool ShipGetProperty(JSContext *context, JSObject *this, jsval name, js
 		case kShip_AIState:
 			result = [[entity getAI] state];
 			break;
+		
+		case kShip_fuel:
+			JS_NewDoubleValue(context, [entity fuel] * 0.1, outValue);
+			break;
 			
 		default:
+			OOReportJavaScriptBadPropertySelector(context, @"Ship", JSVAL_TO_INT(name));
 			return NO;
 	}
 	
@@ -170,11 +176,10 @@ static JSBool ShipGetProperty(JSContext *context, JSObject *this, jsval name, js
 
 static JSBool ShipSetProperty(JSContext *context, JSObject *this, jsval name, jsval *value)
 {
-	ShipEntity				*entity = nil;
-	NSString				*strVal = nil;
-	
-	if (!JSVAL_IS_INT(name))  return YES;
-	if (!JSShipGetShipEntity(context, this, &entity)) return NO;
+	ShipEntity					*entity = nil;
+	NSString					*strVal = nil;
+	BOOL						validConversion;
+	jsdouble					fValue;
 	
 	switch (name)
 	{
@@ -182,6 +187,19 @@ static JSBool ShipSetProperty(JSContext *context, JSObject *this, jsval name, js
 			strVal = [NSString stringWithJavaScriptValue:*value inContext:context];
 			if (strVal != nil)  [[entity getAI] setState:strVal];
 			break;
+		
+		case kShip_fuel:
+			validConversion = JS_ValueToNumber(context, *value, &fValue);
+			if (validConversion)
+			{
+				fValue = OOClamp_0_max_d(fValue, 7.0);
+				[entity setFuel:lround(fValue * 10.0)];
+			}
+			break;
+		
+		default:
+			OOReportJavaScriptBadPropertySelector(context, @"Ship", JSVAL_TO_INT(name));
+			return NO;
 	}
 	
 	return YES;
@@ -204,12 +222,12 @@ static JSBool ShipSetAI(JSContext *context, JSObject *this, uintN argc, jsval *a
 		}
 		else
 		{
-			OOReportJavaScriptWarning(context, @"Ship.%@(\"%@\"): cannot set AI for player.", @"setAI", name);
+			OOReportJavaScriptError(context, @"Ship.%@(\"%@\"): cannot set AI for player.", @"setAI", name);
 		}
 	}
 	else
 	{
-		OOReportJavaScriptWarning(context, @"Ship.%@(): no AI state machine specified.", @"setAI");
+		OOReportJavaScriptError(context, @"Ship.%@(): no AI state machine specified.", @"setAI");
 	}
 	return YES;
 }

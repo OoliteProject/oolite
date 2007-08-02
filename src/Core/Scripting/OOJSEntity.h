@@ -24,7 +24,6 @@ MA 02110-1301, USA.
 
 */
 
-
 #import <Foundation/Foundation.h>
 #import <jsapi.h>
 

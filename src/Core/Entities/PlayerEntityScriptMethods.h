@@ -29,6 +29,24 @@ MA 02110-1301, USA.
 
 @interface PlayerEntity (ScriptMethods)
 
+- (NSString *) playerName;
 
+- (unsigned) score;
+- (void) setScore:(unsigned)value;
+
+- (double) creditBalance;
+- (void) setCreditBalance:(double)value;
+
+- (int) legalStatus;
+- (void) setLegalStatusValue:(int)value;	// NOTE: setLegalStatus: is a legacy script method and takes a string.
+
+- (float)fuelLeakRate;
+- (void)setFuelLeakRate:(float)value;
+
+- (BOOL) isDocked;
+- (NSString *) dockedStationName;
+- (BOOL) dockedAtMainStation;
+
+- (void) awardCargoType:(OOCargoType)type amount:(OOCargoQuantity)amount;
 
 @end

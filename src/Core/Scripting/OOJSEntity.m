@@ -22,12 +22,15 @@ MA 02110-1301, USA.
 
 */
 
-
 #import "OOJSEntity.h"
 #import "OOJSVector.h"
+#import "OOJSQuaternion.h"
 #import "OOJavaScriptEngine.h"
 #import "OOConstToString.h"
 #import "EntityOOJavaScriptExtensions.h"
+#import "OOJSCall.h"
+
+#import "OOJSPlayer.h"
 #import "PlayerEntity.h"
 
 
@@ -43,8 +46,9 @@ static JSBool EntityEquality(JSContext *context, JSObject *this, jsval value, JS
 
 // Methods
 static JSBool EntitySetPosition(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
-// static JSBool EntitySetOrientation(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
+static JSBool EntitySetOrientation(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
 static JSBool EntityValid(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
+static JSBool EntityCall(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
 
 
 static JSExtendedClass sEntityClass =
@@ -95,7 +99,7 @@ static JSPropertySpec sEntityProperties[] =
 	{ "position",				kEntity_position,			JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
 	{ "velocity",				kEntity_velocity,			JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
 	{ "speed",					kEntity_speed,				JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
-//	{ "orientation",			kEntity_orientation,		JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
+	{ "orientation",			kEntity_orientation,		JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
 	{ "heading",				kEntity_heading,			JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
 	{ "status",					kEntity_status,				JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
 	{ "scanClass",				kEntity_scanClass,			JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
@@ -110,9 +114,10 @@ static JSPropertySpec sEntityProperties[] =
 static JSFunctionSpec sEntityMethods[] =
 {
 	// JS name					Function					min args
-	{ "setPosition",			EntitySetPosition,			1, },
-//	{ "setOrientation",			EntitySetOrientation,		1, },
-	{ "valid",					EntityValid,				0, },
+	{ "setPosition",			EntitySetPosition,			1 },
+	{ "setOrientation",			EntitySetOrientation,		1 },
+	{ "valid",					EntityValid,				0 },
+	{ "call",					EntityCall,					1 },
 	{ 0 }
 };
 
@@ -259,7 +264,7 @@ BOOL EntityFromArgumentList(JSContext *context, NSString *scriptClass, NSString 
 static JSBool EntityGetProperty(JSContext *context, JSObject *this, jsval name, jsval *outValue)
 {
 	Entity						*entity = nil;
-	id<OOJavaScriptConversion>	result = nil;
+	id							result = nil;
 	
 	if (!JSVAL_IS_INT(name))  return YES;
 	if (!JSEntityGetEntity(context, this, &entity)) return NO;
@@ -282,7 +287,9 @@ static JSBool EntityGetProperty(JSContext *context, JSObject *this, jsval name, 
 			JS_NewDoubleValue(context, magnitude([entity velocity]), outValue);
 			break;
 		
-	//	case kEntity_orientation:	TODO: implement JS quaternions
+		case kEntity_orientation:
+			QuaternionToJSValue(context, [entity orientation], outValue);
+			break;
 		
 		case kEntity_heading:
 			VectorToJSValue(context, vector_forward_from_quaternion(entity->orientation), outValue);
@@ -318,6 +325,7 @@ static JSBool EntityGetProperty(JSContext *context, JSObject *this, jsval name, 
 			break;
 		
 		default:
+			OOReportJavaScriptBadPropertySelector(context, @"Entity", JSVAL_TO_INT(name));
 			return NO;
 	}
 	
@@ -329,7 +337,7 @@ static JSBool EntityGetProperty(JSContext *context, JSObject *this, jsval name, 
 static JSBool EntitySetProperty(JSContext *context, JSObject *this, jsval name, jsval *value)
 {
 	Entity				*entity = nil;
-	double				dval;
+	double				fValue;
 	
 	if (!JSVAL_IS_INT(name))  return YES;
 	if (!JSEntityGetEntity(context, this, &entity)) return NO;
@@ -337,12 +345,15 @@ static JSBool EntitySetProperty(JSContext *context, JSObject *this, jsval name, 
 	switch (name)
 	{
 		case kEntity_energy:
-			if (JS_ValueToNumber(context, *value, &dval))
+			if (JS_ValueToNumber(context, *value, &fValue))
 			{
-				dval = fmin(dval, 0.0);
-				dval = fmax(dval, [entity maxEnergy]);
-				[entity setEnergy:dval];
+				fValue == OOClamp_0_max_d(fValue, [entity maxEnergy]);
+				[entity setEnergy:fValue];
 			}
+		
+		default:
+			OOReportJavaScriptBadPropertySelector(context, @"Entity", JSVAL_TO_INT(name));
+			return NO;
 	}
 	
 	return YES;
@@ -408,10 +419,34 @@ static JSBool EntitySetPosition(JSContext *context, JSObject *this, uintN argc, 
 }
 
 
+static JSBool EntitySetOrientation(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
+{
+	Entity					*thisEnt;
+	Quaternion				quaternion;
+	
+	if (!JSEntityGetEntity(context, this, &thisEnt)) return YES;	// stale reference, no-op.
+	if (!QuaternionFromArgumentList(context, @"Entity", @"setOrientation", argc, argv, &quaternion, NULL))  return YES;
+	
+	[thisEnt setOrientation:quaternion];
+	return YES;
+}
+
+
 static JSBool EntityValid(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
 {
 	Entity					*thisEnt;
 	
-	*outResult = BOOLEAN_TO_JSVAL(JSEntityGetEntity(context, this, &thisEnt));
+	*outResult = BOOLToJSVal(JSEntityGetEntity(context, this, &thisEnt));
 	return YES;
+}
+
+
+static JSBool EntityCall(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
+{
+	Entity					*entity = nil;
+	
+	if (!JSEntityGetEntity(context, this, &entity))  return YES;
+	if (entity == nil)  return YES;	// Stale entity
+	
+	return OOJSCallObjCObjectMethod(context, entity, [entity jsClassName], argc, argv, outResult);
 }

@@ -418,10 +418,10 @@
 	status = STATUS_DOCKED;
 	[UNIVERSE setViewDirection:VIEW_GUI_DISPLAY];
 	
-	docked_station = [UNIVERSE station];
-	if (docked_station)
+	dockedStation = [UNIVERSE station];
+	if (dockedStation)
 	{
-		position = [docked_station position];
+		position = [dockedStation position];
 		[self setOrientation: kIdentityQuaternion];
 		v_forward = vector_forward_from_quaternion(orientation);
 		v_right = vector_right_from_quaternion(orientation);
@@ -433,11 +433,11 @@
 	flightYaw = 0.0;
 	flightSpeed = 0.0;
 	
-	if (![docked_station localMarket])
+	if (![dockedStation localMarket])
 	{
 		NSArray *market = [fileDic arrayForKey:@"localMarket"];
-		if (market != nil)  [docked_station setLocalMarket:market];
-		else  [docked_station initialiseLocalMarketWithSeed:system_seed andRandomFactor:market_rnd];
+		if (market != nil)  [dockedStation setLocalMarket:market];
+		else  [dockedStation initialiseLocalMarketWithSeed:system_seed andRandomFactor:market_rnd];
 	}
 	[self setGuiToStatusScreen];
 }
@@ -848,7 +848,7 @@
 	if (![cdr boolForKey:@"isSavedGame"])	// don't show things that aren't saved games
 		return;
 	
-	if(!docked_station)  docked_station = [UNIVERSE station];
+	if(!dockedStation)  dockedStation = [UNIVERSE station];
 	
 	// Display the commander's ship.
 	NSString		*shipDesc = [cdr stringForKey:@"ship_desc"];

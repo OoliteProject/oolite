@@ -1675,7 +1675,7 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 {
 	// launch docked ships if possible
 	PlayerEntity* player = [PlayerEntity sharedPlayer];
-	if ((player)&&(player->status == STATUS_DOCKED)&&([player docked_station] == self))
+	if ((player)&&(player->status == STATUS_DOCKED)&&([player dockedStation] == self))
 	{
 		// undock the player!
 		[player leaveDock:self];

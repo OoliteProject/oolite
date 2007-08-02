@@ -24,14 +24,18 @@ MA 02110-1301, USA.
 
 #import "OOJavaScriptEngine.h"
 #import "OOJSScript.h"
+
+#import "OOJSVector.h"
+#import "OOJSQuaternion.h"
+#import "OOJSEntity.h"
+#import "OOJSShip.h"
+#import "OOJSPlayer.h"
+#import "jsarray.h"
+
 #import "OOCollectionExtractors.h"
 #import "Universe.h"
 #import "PlanetEntity.h"
 #import "NSStringOOExtensions.h"
-#import "OOJSVector.h"
-#import "OOJSEntity.h"
-#import "OOJSShip.h"
-#import "jsarray.h"
 
 #include <stdio.h>
 #include <string.h>
@@ -41,17 +45,10 @@ extern NSString * const kOOLogDebugMessage;
 
 
 static OOJavaScriptEngine *sSharedEngine = nil;
-static JSObject *xglob, *systemObj, *playerObj, *missionObj;
+static JSObject *xglob, *systemObj, *missionObj;
 
 
 extern OOJSScript *currentOOJSScript;
-
-
-OOINLINE jsval BOOLToJSVal(BOOL b) INLINE_CONST_FUNC;
-OOINLINE jsval BOOLToJSVal(BOOL b)
-{
-	return BOOLEAN_TO_JSVAL(b != NO);
-}
 
 
 // For _bool scripting methods which always return @"YES" or @"NO" and nothing else.
@@ -62,32 +59,15 @@ OOINLINE jsval BooleanStringToJSVal(NSString *string)
 }
 
 
-/*	All JS functions which talk to the player entity should call Player() to
-	ensure that the script target (for the legacy system) is set correctly.
-	Additionally, all such functions should _always_ call Player(), to ensure
-	consistent state.
-*/
-OOINLINE PlayerEntity *Player(void)
-{
-	PlayerEntity *player = [PlayerEntity sharedPlayer];
-	[player setScriptTarget:player];
-	
-	return player;
-}
-
-
-#define JSValToNSString(cx, val) [NSString stringWithJavaScriptValue:val inContext:cx]
-
-
-static void ReportJSError(JSContext *cx, const char *message, JSErrorReport *report);
+static void ReportJSError(JSContext *context, const char *message, JSErrorReport *report);
 
 
 //===========================================================================
 // MissionVars class
 //===========================================================================
 
-static JSBool MissionVarsGetProperty(JSContext *cx, JSObject *obj, jsval name, jsval *vp);
-static JSBool MissionVarsSetProperty(JSContext *cx, JSObject *obj, jsval name, jsval *vp);
+static JSBool MissionVarsGetProperty(JSContext *context, JSObject *obj, jsval name, jsval *vp);
+static JSBool MissionVarsSetProperty(JSContext *context, JSObject *obj, jsval name, jsval *vp);
 
 
 static JSClass MissionVars_class =
@@ -106,13 +86,13 @@ static JSClass MissionVars_class =
 };
 
 
-static JSBool MissionVarsGetProperty(JSContext *cx, JSObject *obj, jsval name, jsval *vp)
+static JSBool MissionVarsGetProperty(JSContext *context, JSObject *obj, jsval name, jsval *vp)
 {
-	NSDictionary	*mission_variables = [Player() mission_variables];
+	NSDictionary	*mission_variables = [OPlayerForScripting() mission_variables];
 	
 	if (JSVAL_IS_STRING(name))
 	{
-		NSString	*key = [@"mission_" stringByAppendingString:[NSString stringWithJavaScriptValue:name inContext:cx]];
+		NSString	*key = [@"mission_" stringByAppendingString:[NSString stringWithJavaScriptValue:name inContext:context]];
 		NSString	*value = [mission_variables objectForKey:key];
 		
 		if (value == nil)
@@ -139,24 +119,24 @@ static JSBool MissionVarsGetProperty(JSContext *cx, JSObject *obj, jsval name, j
 			if (isNumber)
 			{
 				jsdouble ds = [value doubleValue];
-				JSBool ok = JS_NewDoubleValue(cx, ds, vp);
+				JSBool ok = JS_NewDoubleValue(context, ds, vp);
 				if (!ok) *vp = JSVAL_VOID;
 			}
-			else *vp = [value javaScriptValueInContext:cx];
+			else *vp = [value javaScriptValueInContext:context];
 		}
 	}
 	return JS_TRUE;
 }
 
 
-static JSBool MissionVarsSetProperty(JSContext *cx, JSObject *obj, jsval name, jsval *vp)
+static JSBool MissionVarsSetProperty(JSContext *context, JSObject *obj, jsval name, jsval *vp)
 {
-	NSDictionary *mission_variables = [Player() mission_variables];
+	NSDictionary *mission_variables = [OPlayerForScripting() mission_variables];
 
 	if (JSVAL_IS_STRING(name))
 	{
-		NSString	*key = [@"mission_" stringByAppendingString:[NSString stringWithJavaScriptValue:name inContext:cx]];
-		NSString	*value = [NSString stringWithJavaScriptValue:*vp inContext:cx];
+		NSString	*key = [@"mission_" stringByAppendingString:[NSString stringWithJavaScriptValue:name inContext:context]];
+		NSString	*value = [NSString stringWithJavaScriptValue:*vp inContext:context];
 		[mission_variables setValue:value forKey:key];
 	}
 	return JS_TRUE;
@@ -166,7 +146,7 @@ static JSBool MissionVarsSetProperty(JSContext *cx, JSObject *obj, jsval name, j
 // Global object class
 //===========================================================================
 
-static JSBool GlobalGetProperty(JSContext *cx, JSObject *obj, jsval name, jsval *vp);
+static JSBool GlobalGetProperty(JSContext *context, JSObject *obj, jsval name, jsval *vp);
 
 
 static JSClass global_class =
@@ -194,7 +174,6 @@ enum global_propertyIDs
 };
 
 
-// TODO: most of these should be properties of Player class.
 static JSPropertySpec Global_props[] =
 {
 	// JS name					ID							flags
@@ -206,8 +185,8 @@ static JSPropertySpec Global_props[] =
 };
 
 
-static JSBool GlobalLog(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval);
-static JSBool GlobalLogWithClass(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval);
+static JSBool GlobalLog(JSContext *context, JSObject *obj, uintN argc, jsval *argv, jsval *rval);
+static JSBool GlobalLogWithClass(JSContext *context, JSObject *obj, uintN argc, jsval *argv, jsval *rval);
 
 
 static JSFunctionSpec Global_funcs[] =
@@ -218,28 +197,28 @@ static JSFunctionSpec Global_funcs[] =
 };
 
 
-static JSBool GlobalLog(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval)
+static JSBool GlobalLog(JSContext *context, JSObject *obj, uintN argc, jsval *argv, jsval *rval)
 {
-	NSString *logString = [NSString concatenationOfStringsFromJavaScriptValues:argv count:argc separator:@", " inContext:cx];
+	NSString *logString = [NSString concatenationOfStringsFromJavaScriptValues:argv count:argc separator:@", " inContext:context];
 	OOLog(kOOLogDebugMessage, logString);
 	return JS_TRUE;
 }
 
 
-static JSBool GlobalLogWithClass(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval)
+static JSBool GlobalLogWithClass(JSContext *context, JSObject *obj, uintN argc, jsval *argv, jsval *rval)
 {
-	NSString *logString = [NSString concatenationOfStringsFromJavaScriptValues:argv + 1 count:argc - 1 separator:@", " inContext:cx];
-	OOLog([NSString stringWithJavaScriptValue:argv[0] inContext:cx], logString);
+	NSString *logString = [NSString concatenationOfStringsFromJavaScriptValues:argv + 1 count:argc - 1 separator:@", " inContext:context];
+	OOLog([NSString stringWithJavaScriptValue:argv[0] inContext:context], logString);
 	return JS_TRUE;
 }
 
 
-static JSBool GlobalGetProperty(JSContext *cx, JSObject *obj, jsval name, jsval *vp)
+static JSBool GlobalGetProperty(JSContext *context, JSObject *obj, jsval name, jsval *vp)
 {
 	if (!JSVAL_IS_INT(name)) return JS_TRUE;
 	
-	PlayerEntity				*player = Player();
-	id<OOJavaScriptConversion>	result = nil;
+	PlayerEntity				*player = OPlayerForScripting();
+	id							result = nil;
 	
 	switch (JSVAL_TO_INT(name))
 	{
@@ -255,343 +234,19 @@ static JSBool GlobalGetProperty(JSContext *cx, JSObject *obj, jsval name, jsval 
 			result = [player gui_screen_string];
 			break;
 
-		case GLOBAL_MISSION_VARS: {
-			JSObject *mv = JS_DefineObject(cx, xglob, "missionVariables", &MissionVars_class, 0x00, JSPROP_ENUMERATE | JSPROP_READONLY | JSPROP_PERMANENT);
+		case GLOBAL_MISSION_VARS:
+		{
+			JSObject *mv = JS_DefineObject(context, xglob, "missionVariables", &MissionVars_class, 0x00, JSPROP_ENUMERATE | JSPROP_READONLY | JSPROP_PERMANENT);
 			*vp = OBJECT_TO_JSVAL(mv);
 			break;
 		}
-	}
-	
-	if (result != nil) *vp = [result javaScriptValueInContext:cx];
-	return JS_TRUE;
-}
-
-
-//===========================================================================
-// Player proxy
-//===========================================================================
-
-static JSBool PlayerGetProperty(JSContext *cx, JSObject *obj, jsval name, jsval *vp);
-static JSBool PlayerSetProperty(JSContext *cx, JSObject *obj, jsval name, jsval *vp);
-
-
-static JSClass Player_class =
-{
-	"Player",
-	JSCLASS_HAS_PRIVATE,
-	
-	JS_PropertyStub,
-	JS_PropertyStub,
-	PlayerGetProperty,
-	PlayerSetProperty,
-	JS_EnumerateStub,
-	JS_ResolveStub,
-	JS_ConvertStub,
-	JS_FinalizeStub
-};
-
-
-enum Player_propertyIDs
-{
-	PE_SHIP_DESCRIPTION,
-	PE_COMMANDER_NAME,
-	PE_SCORE,
-	PE_CREDITS,
-	PE_LEGAL_STATUS,
-	PE_FUEL_LEVEL,
-	PE_FUEL_LEAK_RATE,
-	PE_ALERT_CONDITION,
-	PE_STATUS_STRING,
-	PE_DOCKED_AT_MAIN_STATION,
-	PE_DOCKED_STATION_NAME,
-	PE_POSITION,
-	PE_VELOCITY,
-	
-	// Special handling -- these correspond to ALERT_FLAG_FOO (PlayerEntity.h). 0x10 is shifted left by the low nybble to get the alert mask.
-	PE_DOCKED					= 0xA0,
-	PE_ALERT_MASS_LOCKED		= 0xA1,
-	PE_ALERT_TEMPERATURE		= 0xA2,
-	PE_ALERT_ALTITUTE			= 0xA3,
-	PE_ALERT_ENERGY				= 0xA4,
-	PE_ALERT_HOSTILES			= 0xA5
-};
-
-
-static JSPropertySpec Player_props[] =
-{
-	// JS name					ID							flags
-	{ "shipDescription",		PE_SHIP_DESCRIPTION,		JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
-	{ "name",					PE_COMMANDER_NAME,			JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
-	{ "score",					PE_SCORE,					JSPROP_PERMANENT | JSPROP_ENUMERATE },
-	{ "credits",				PE_CREDITS,					JSPROP_PERMANENT | JSPROP_ENUMERATE },
-	{ "legalStatus",			PE_LEGAL_STATUS,			JSPROP_PERMANENT | JSPROP_ENUMERATE },
-	{ "fuel",					PE_FUEL_LEVEL,				JSPROP_PERMANENT | JSPROP_ENUMERATE },
-	{ "fuelLeakRate",			PE_FUEL_LEAK_RATE,			JSPROP_PERMANENT | JSPROP_ENUMERATE },
-	{ "alertCondition",			PE_ALERT_CONDITION,			JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
-	{ "docked",					PE_DOCKED,					JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
-	{ "alertTemperature",		PE_ALERT_TEMPERATURE,		JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
-	{ "alertMassLocked",		PE_ALERT_MASS_LOCKED,		JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
-	{ "alertAltitude",			PE_ALERT_ALTITUTE,			JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
-	{ "alertEnergy",			PE_ALERT_ENERGY,			JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
-	{ "alertHostiles",			PE_ALERT_HOSTILES,			JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
-	{ "status",					PE_STATUS_STRING,			JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
-	{ "dockedAtMainStation",	PE_DOCKED_AT_MAIN_STATION,	JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
-	{ "stationName",			PE_DOCKED_STATION_NAME,		JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
-	{ "position",				PE_POSITION,				JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
-	{ "velocity",				PE_VELOCITY,				JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
-	{ 0 }
-};
-
-
-static JSBool PlayerAwardEquipment(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval);
-static JSBool PlayerRemoveEquipment(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval);
-static JSBool PlayerHasEquipment(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval);
-static JSBool PlayerLaunch(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval);
-static JSBool PlayerCall(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval);
-static JSBool PlayerAwardCargo(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval);
-static JSBool PlayerRemoveAllCargo(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval);
-static JSBool PlayerUseSpecialCargo(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval);
-
-
-static JSFunctionSpec Player_funcs[] =
-{
-	// JS name					Function					min args
-	{ "awardEquipment",			PlayerAwardEquipment,		1 },
-	{ "removeEquipment",		PlayerRemoveEquipment,		1 },
-	{ "hasEquipment",			PlayerHasEquipment,			1 },
-	{ "launch",					PlayerLaunch,				0 },
-	{ "call",					PlayerCall,					1 },
-	{ "awardCargo",				PlayerAwardCargo,			2 },
-	{ "removeAllCargo",			PlayerRemoveAllCargo,		0 },
-	{ "useSpecialCargo",		PlayerUseSpecialCargo,		1 },
-	{ 0 }
-};
-
-
-static JSBool PlayerAwardCargo(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval)
-{
-	PlayerEntity		*player = Player();
-	NSString			*amount_type = nil;
-	
-	amount_type = [NSString stringWithFormat:@"%@ %@", JSValToNSString(cx, argv[1]), JSValToNSString(cx, argv[0])];
-	[player awardCargo:amount_type];
-	
-	return JS_TRUE;
-}
-
-static JSBool PlayerRemoveAllCargo(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval)
-{
-	PlayerEntity		*player = Player();
-	
-	[player removeAllCargo];
-	
-	return JS_TRUE;
-}
-
-
-static JSBool PlayerUseSpecialCargo(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval)
-{
-	PlayerEntity		*player = Player();
-	
-	if (argc == 1)
-	{
-		[player useSpecialCargo:JSValToNSString(cx, argv[0])];
-	}
-	return JS_TRUE;
-}
-
-static JSBool PlayerAwardEquipment(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval)
-{
-	PlayerEntity		*player = Player();
-	
-	if (argc > 0 && JSVAL_IS_STRING(argv[0]))
-	{
-		JSString *jskey = JS_ValueToString(cx, argv[0]);
-		[player awardEquipment: [NSString stringWithCString:JS_GetStringBytes(jskey)]];
-	}
-	return JS_TRUE;
-}
-
-
-static JSBool PlayerRemoveEquipment(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval)
-{
-	PlayerEntity		*player = Player();
-	
-	if (argc > 0 && JSVAL_IS_STRING(argv[0]))
-	{
-		JSString *jskey = JS_ValueToString(cx, argv[0]);
-		[player removeEquipment: [NSString stringWithCString:JS_GetStringBytes(jskey)]];
-	}
-	return JS_TRUE;
-}
-
-
-static JSBool PlayerHasEquipment(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval)
-{
-	PlayerEntity		*player = Player();
-	
-	if (argc > 0 && JSVAL_IS_STRING(argv[0]))
-	{
-		NSString *key = [NSString stringWithJavaScriptValue:argv[0] inContext:cx];
-		*rval = BOOLToJSVal([player hasExtraEquipment:key]);
-	}
-	return JS_TRUE;
-}
-
-
-static JSBool PlayerLaunch(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval)
-{
-	PlayerEntity *player = Player();
-	
-	[player launchFromStation];
-	
-	return JS_TRUE;
-}
-
-
-static JSBool PlayerCall(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval)
-{
-	PlayerEntity	*player = Player();
-	NSString		*selectorString = nil;
-	SEL				selector = NULL;
-	NSString		*paramString = nil;
-	BOOL			haveParameter = NO;
-	
-	selectorString = [NSString stringWithJavaScriptValue:argv[0] inContext:cx];
-	
-	// Join all parameters together with spaces.
-	if (1 < argc && [selectorString hasSuffix:@":"])
-	{
-		haveParameter = YES;
-		paramString = [NSString concatenationOfStringsFromJavaScriptValues:argv + 1 count:argc - 1 separator:@" " inContext:cx];
-	}
-	
-	selector = NSSelectorFromString(selectorString);
-	if ([player respondsToSelector:selector])
-	{
-		OOLog(@"script.trace.javaScript.call", @"Player.call: selector = %@, paramters = \"%@\"", selectorString, paramString);
-		OOLogIndentIf(@"script.trace.javaScript.call");
-		
-		if (haveParameter)  [player performSelector:selector withObject:paramString];
-		else  [player performSelector:selector];
-		
-		OOLogOutdentIf(@"script.trace.javaScript.call");
-		return JS_TRUE;
-	}
-	else
-	{
-		OOLog(@"script.javaScript.call.badSelector", @"**** Error in script %@: Player does not respond to call(%@).", [currentOOJSScript displayName], selectorString);
-		return JS_FALSE;
-	}
-}
-
-
-static JSBool PlayerGetProperty(JSContext *cx, JSObject *obj, jsval name, jsval *vp)
-{
-
-	if (!JSVAL_IS_INT(name))  return JS_TRUE;
-	
-	PlayerEntity				*player = Player();
-	id<OOJavaScriptConversion>	result = nil;
-	
-	uint8_t ID = JSVAL_TO_INT(name);
-	switch (ID)
-	{
-		case PE_SHIP_DESCRIPTION:
-			result = [player commanderShip_string];
-			break;
-
-		case PE_COMMANDER_NAME:
-			result = [player commanderName_string];
-			break;
-
-		case PE_SCORE:
-			result = [player score_number];
-			break;
-
-		case PE_LEGAL_STATUS:
-			result = [player legalStatus_number];
-			break;
-
-		case PE_CREDITS:
-			result = [player credits_number];
-			break;
-
-		case PE_FUEL_LEVEL:
-			result = [player fuel_level_number];
-			break;
-
-		case PE_FUEL_LEAK_RATE:
-			result = [player fuel_leak_rate_number];
-			break;
-
-		case PE_ALERT_CONDITION:
-			*vp = INT_TO_JSVAL([player alertCondition]);
-			break;
-		
-		case PE_DOCKED_AT_MAIN_STATION:
-			*vp = BooleanStringToJSVal([player dockedAtMainStation_bool]);
-			break;
-		
-		case PE_DOCKED_STATION_NAME:
-			result = [player dockedStationName_string];
-			break;
-
-		case PE_STATUS_STRING:
-			result = [player status_string];
-			break;
-		
-		case PE_POSITION:
-			VectorToJSValue(cx, [player position], vp);
-			break;
-		
-		case PE_VELOCITY:
-			VectorToJSValue(cx, [player velocity], vp);
-			break;
 		
 		default:
-			if ((ID & 0xF0) == 0xA0)
-			{
-				unsigned flags = [player alertFlags];
-				unsigned mask = 0x10 << ((unsigned)ID & 0xF);
-				*vp = BOOLToJSVal((flags & mask) != 0);
-			}
+			OOReportJavaScriptBadPropertySelector(context, @"Global", JSVAL_TO_INT(name));
+			return NO;
 	}
 	
-	if (result != nil) *vp = [result javaScriptValueInContext:cx];
-	return JS_TRUE;
-}
-
-
-static JSBool PlayerSetProperty(JSContext *cx, JSObject *obj, jsval name, jsval *vp)
-{
-	if (!JSVAL_IS_INT(name))  return JS_TRUE;
-	
-	PlayerEntity	*player = Player();
-	NSString		*value = [NSString stringWithJavaScriptValue:*vp inContext:cx];
-	
-	switch (JSVAL_TO_INT(name))
-	{
-		case PE_SCORE:
-			[player setKills:[value intValue]];
-			break;
-
-		case PE_LEGAL_STATUS:
-			[player setLegalStatus:value];
-			break;
-		
-		case PE_CREDITS:
-			[player setCredits:[value intValue]];
-			break;
-
-		case PE_FUEL_LEVEL:
-			[player setCredits:(int)([value doubleValue] * 10.0)];
-			break;
-
-		case PE_FUEL_LEAK_RATE:
-			[player setFuelLeak:value];
-			break;
-	}
+	if (result != nil) *vp = [result javaScriptValueInContext:context];
 	return JS_TRUE;
 }
 
@@ -600,8 +255,8 @@ static JSBool PlayerSetProperty(JSContext *cx, JSObject *obj, jsval name, jsval 
 // Universe (solar system) proxy
 //===========================================================================
 
-static JSBool SystemGetProperty(JSContext *cx, JSObject *obj, jsval name, jsval *vp);
-static JSBool SystemSetProperty(JSContext *cx, JSObject *obj, jsval name, jsval *vp);
+static JSBool SystemGetProperty(JSContext *context, JSObject *obj, jsval name, jsval *vp);
+static JSBool SystemSetProperty(JSContext *context, JSObject *obj, jsval name, jsval *vp);
 
 static JSClass System_class =
 {
@@ -657,18 +312,18 @@ static JSPropertySpec System_props[] =
 };
 
 
-static JSBool SystemAddPlanet(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval);
-static JSBool SystemAddMoon(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval);
-static JSBool SystemSendAllShipsAway(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval);
-static JSBool SystemSetSunNova(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval);
-static JSBool SystemCountShipsWithRole(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval);
-static JSBool SystemAddShips(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval);
-static JSBool SystemAddSystemShips(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval);
-static JSBool SystemAddShipsAt(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval);
-static JSBool SystemAddShipsAtPrecisely(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval);
-static JSBool SystemAddShipsWithinRadius(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval);
-static JSBool SystemSpawn(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval);
-static JSBool SystemSpawnShip(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval);
+static JSBool SystemAddPlanet(JSContext *context, JSObject *obj, uintN argc, jsval *argv, jsval *rval);
+static JSBool SystemAddMoon(JSContext *context, JSObject *obj, uintN argc, jsval *argv, jsval *rval);
+static JSBool SystemSendAllShipsAway(JSContext *context, JSObject *obj, uintN argc, jsval *argv, jsval *rval);
+static JSBool SystemSetSunNova(JSContext *context, JSObject *obj, uintN argc, jsval *argv, jsval *rval);
+static JSBool SystemCountShipsWithRole(JSContext *context, JSObject *obj, uintN argc, jsval *argv, jsval *rval);
+static JSBool SystemAddShips(JSContext *context, JSObject *obj, uintN argc, jsval *argv, jsval *rval);
+static JSBool SystemAddSystemShips(JSContext *context, JSObject *obj, uintN argc, jsval *argv, jsval *rval);
+static JSBool SystemAddShipsAt(JSContext *context, JSObject *obj, uintN argc, jsval *argv, jsval *rval);
+static JSBool SystemAddShipsAtPrecisely(JSContext *context, JSObject *obj, uintN argc, jsval *argv, jsval *rval);
+static JSBool SystemAddShipsWithinRadius(JSContext *context, JSObject *obj, uintN argc, jsval *argv, jsval *rval);
+static JSBool SystemSpawn(JSContext *context, JSObject *obj, uintN argc, jsval *argv, jsval *rval);
+static JSBool SystemSpawnShip(JSContext *context, JSObject *obj, uintN argc, jsval *argv, jsval *rval);
 
 
 static JSFunctionSpec System_funcs[] =
@@ -690,35 +345,35 @@ static JSFunctionSpec System_funcs[] =
 };
 
 
-static JSBool SystemAddPlanet(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval)
+static JSBool SystemAddPlanet(JSContext *context, JSObject *obj, uintN argc, jsval *argv, jsval *rval)
 {
-	PlayerEntity *player = Player();
+	PlayerEntity *player = OPlayerForScripting();
 	
 	if (argc > 0 && JSVAL_IS_STRING(argv[0]))
 	{
-		NSString *key = JSValToNSString(cx, argv[0]);
+		NSString *key = JSValToNSString(context, argv[0]);
 		[player addPlanet:key];
 	}
 	return JS_TRUE;
 }
 
 
-static JSBool SystemAddMoon(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval)
+static JSBool SystemAddMoon(JSContext *context, JSObject *obj, uintN argc, jsval *argv, jsval *rval)
 {
-	PlayerEntity *player = Player();
+	PlayerEntity *player = OPlayerForScripting();
 	
 	if (argc > 0 && JSVAL_IS_STRING(argv[0]))
 	{
-		NSString *key = JSValToNSString(cx, argv[0]);
+		NSString *key = JSValToNSString(context, argv[0]);
 		[player addMoon:key];
 	}
 	return JS_TRUE;
 }
 
 
-static JSBool SystemSendAllShipsAway(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval)
+static JSBool SystemSendAllShipsAway(JSContext *context, JSObject *obj, uintN argc, jsval *argv, jsval *rval)
 {
-	PlayerEntity *player = Player();
+	PlayerEntity *player = OPlayerForScripting();
 	
 	[player sendAllShipsAway];
 	
@@ -726,13 +381,13 @@ static JSBool SystemSendAllShipsAway(JSContext *cx, JSObject *obj, uintN argc, j
 }
 
 
-static JSBool SystemSetSunNova(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval)
+static JSBool SystemSetSunNova(JSContext *context, JSObject *obj, uintN argc, jsval *argv, jsval *rval)
 {
-	PlayerEntity *player = Player();
+	PlayerEntity *player = OPlayerForScripting();
 	
 	if (argc > 0)
 	 {
-		NSString *key = JSValToNSString(cx, argv[0]);
+		NSString *key = JSValToNSString(context, argv[0]);
 		[player setSunNovaIn:key];
 	}
 	return JS_TRUE;
@@ -742,12 +397,12 @@ static JSBool SystemSetSunNova(JSContext *cx, JSObject *obj, uintN argc, jsval *
 static Random_Seed currentSystem;
 static NSDictionary *planetinfo = nil;
 
-static JSBool SystemGetProperty(JSContext *cx, JSObject *obj, jsval name, jsval *vp)
+static JSBool SystemGetProperty(JSContext *context, JSObject *obj, jsval name, jsval *vp)
 {
 	if (!JSVAL_IS_INT(name))  return JS_TRUE;
 
-	PlayerEntity				*player = Player();
-	id<OOJavaScriptConversion>	result = nil;
+	PlayerEntity				*player = OPlayerForScripting();
+	id							result = nil;
 	
 	if (!equal_seeds(currentSystem, player->system_seed))
 	{
@@ -821,18 +476,22 @@ static JSBool SystemGetProperty(JSContext *cx, JSObject *obj, jsval name, jsval 
 		case SYS_PRODUCTIVITY:
 			result = [player systemProductivity_number];
 			break;
+		
+		default:
+			OOReportJavaScriptBadPropertySelector(context, @"System", JSVAL_TO_INT(name));
+			return NO;
 	}
 	
-	if (result != nil)  *vp = [result javaScriptValueInContext:cx];
+	if (result != nil)  *vp = [result javaScriptValueInContext:context];
 	return JS_TRUE;
 }
 
 
-static JSBool SystemSetProperty(JSContext *cx, JSObject *obj, jsval name, jsval *vp)
+static JSBool SystemSetProperty(JSContext *context, JSObject *obj, jsval name, jsval *vp)
 {
 	if (!JSVAL_IS_INT(name))  return JS_TRUE;
 	
-	PlayerEntity	*player = Player();
+	PlayerEntity	*player = OPlayerForScripting();
 	
 	if (!equal_seeds(currentSystem, player->system_seed))
 	{
@@ -847,15 +506,15 @@ static JSBool SystemSetProperty(JSContext *cx, JSObject *obj, jsval name, jsval 
 	switch (JSVAL_TO_INT(name))
 	{
 		case SYS_NAME:
-			[UNIVERSE setSystemDataForGalaxy:gn planet:pn key:KEY_NAME value:JSValToNSString(cx, *vp)];
+			[UNIVERSE setSystemDataForGalaxy:gn planet:pn key:KEY_NAME value:JSValToNSString(context, *vp)];
 			break;
 
 			case SYS_DESCRIPTION:
-			[UNIVERSE setSystemDataForGalaxy:gn planet:pn key:KEY_DESCRIPTION value:JSValToNSString(cx, *vp)];
+			[UNIVERSE setSystemDataForGalaxy:gn planet:pn key:KEY_DESCRIPTION value:JSValToNSString(context, *vp)];
 			break;
 
 		case SYS_INHABITANTS:
-			[UNIVERSE setSystemDataForGalaxy:gn planet:pn key:KEY_INHABITANTS value:JSValToNSString(cx, *vp)];
+			[UNIVERSE setSystemDataForGalaxy:gn planet:pn key:KEY_INHABITANTS value:JSValToNSString(context, *vp)];
 			break;
 
 		case SYS_GOING_NOVA:
@@ -867,37 +526,41 @@ static JSBool SystemSetProperty(JSContext *cx, JSObject *obj, jsval name, jsval 
 			break;
 
 		case SYS_GOVT_ID:
-			[UNIVERSE setSystemDataForGalaxy:gn planet:pn key:KEY_GOVERNMENT value:[NSNumber numberWithInt:[JSValToNSString(cx, *vp) intValue]]];
+			[UNIVERSE setSystemDataForGalaxy:gn planet:pn key:KEY_GOVERNMENT value:[NSNumber numberWithInt:[JSValToNSString(context, *vp) intValue]]];
 			break;
 
 		case SYS_ECONOMY_ID:
-			[UNIVERSE setSystemDataForGalaxy:gn planet:pn key:KEY_ECONOMY value:[NSNumber numberWithInt:[JSValToNSString(cx, *vp) intValue]]];
+			[UNIVERSE setSystemDataForGalaxy:gn planet:pn key:KEY_ECONOMY value:[NSNumber numberWithInt:[JSValToNSString(context, *vp) intValue]]];
 			break;
 
 		case SYS_TECH_LVL:
-			[UNIVERSE setSystemDataForGalaxy:gn planet:pn key:KEY_TECHLEVEL value:[NSNumber numberWithInt:[JSValToNSString(cx, *vp) intValue]]];
+			[UNIVERSE setSystemDataForGalaxy:gn planet:pn key:KEY_TECHLEVEL value:[NSNumber numberWithInt:[JSValToNSString(context, *vp) intValue]]];
 			break;
 
 		case SYS_POPULATION:
-			[UNIVERSE setSystemDataForGalaxy:gn planet:pn key:KEY_POPULATION value:[NSNumber numberWithInt:[JSValToNSString(cx, *vp) intValue]]];
+			[UNIVERSE setSystemDataForGalaxy:gn planet:pn key:KEY_POPULATION value:[NSNumber numberWithInt:[JSValToNSString(context, *vp) intValue]]];
 			break;
 
 		case SYS_PRODUCTIVITY:
-			[UNIVERSE setSystemDataForGalaxy:gn planet:pn key:KEY_PRODUCTIVITY value:[NSNumber numberWithInt:[JSValToNSString(cx, *vp) intValue]]];
+			[UNIVERSE setSystemDataForGalaxy:gn planet:pn key:KEY_PRODUCTIVITY value:[NSNumber numberWithInt:[JSValToNSString(context, *vp) intValue]]];
 			break;
+		
+		default:
+			OOReportJavaScriptBadPropertySelector(context, @"System", JSVAL_TO_INT(name));
+			return NO;
 	}
 	return JS_TRUE;
 }
 
 
-static JSBool SystemCountShipsWithRole(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval)
+static JSBool SystemCountShipsWithRole(JSContext *context, JSObject *obj, uintN argc, jsval *argv, jsval *rval)
 {
 	NSString			*role = nil;
 	int					count;
 	
 	if (argc == 1)
 	{
-		role = JSValToNSString(cx, argv[0]);
+		role = JSValToNSString(context, argv[0]);
 		count = [UNIVERSE countShipsWithRole:role];
 		*rval = INT_TO_JSVAL(count);
 	}
@@ -905,14 +568,14 @@ static JSBool SystemCountShipsWithRole(JSContext *cx, JSObject *obj, uintN argc,
 }
 
 
-static JSBool SystemAddShips(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval)
+static JSBool SystemAddShips(JSContext *context, JSObject *obj, uintN argc, jsval *argv, jsval *rval)
 {
 	NSString			*role = nil;
 	int					count;
 	
 	if (argc == 2)
 	{
-		role = JSValToNSString(cx, argv[0]);
+		role = JSValToNSString(context, argv[0]);
 		count = JSVAL_TO_INT(argv[1]);
 
 		while (count--)  [UNIVERSE witchspaceShipWithRole:role];
@@ -921,7 +584,7 @@ static JSBool SystemAddShips(JSContext *cx, JSObject *obj, uintN argc, jsval *ar
 }
 
 
-static JSBool SystemAddSystemShips(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval)
+static JSBool SystemAddSystemShips(JSContext *context, JSObject *obj, uintN argc, jsval *argv, jsval *rval)
 {
 	jsdouble			position;
 	NSString			*role = nil;
@@ -929,19 +592,19 @@ static JSBool SystemAddSystemShips(JSContext *cx, JSObject *obj, uintN argc, jsv
 	
 	if (argc == 3)
 	{
-		role = JSValToNSString(cx, argv[0]);
+		role = JSValToNSString(context, argv[0]);
 		count = JSVAL_TO_INT(argv[1]);
 		
-		JS_ValueToNumber(cx, argv[2], &position);
+		JS_ValueToNumber(context, argv[2], &position);
 		while (count--)  [UNIVERSE addShipWithRole:role nearRouteOneAt:position];
 	}
 	return JS_TRUE;
 }
 
 
-static JSBool SystemAddShipsAt(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval)
+static JSBool SystemAddShipsAt(JSContext *context, JSObject *obj, uintN argc, jsval *argv, jsval *rval)
 {
-	PlayerEntity		*player = Player();
+	PlayerEntity		*player = OPlayerForScripting();
 	jsdouble			x, y, z;
 	NSString			*role = nil;
 	int					count;
@@ -950,13 +613,13 @@ static JSBool SystemAddShipsAt(JSContext *cx, JSObject *obj, uintN argc, jsval *
 	
 	if (argc == 6)
 	{
-		role = JSValToNSString(cx, argv[0]);
+		role = JSValToNSString(context, argv[0]);
 		count = JSVAL_TO_INT(argv[1]);
-		coordScheme = JSValToNSString(cx, argv[2]);
+		coordScheme = JSValToNSString(context, argv[2]);
 		
-		JS_ValueToNumber(cx, argv[3], &x);
-		JS_ValueToNumber(cx, argv[4], &y);
-		JS_ValueToNumber(cx, argv[5], &z);
+		JS_ValueToNumber(context, argv[3], &x);
+		JS_ValueToNumber(context, argv[4], &y);
+		JS_ValueToNumber(context, argv[5], &z);
 		
 		arg = [NSString stringWithFormat:@"%@ %d %@ %f %f %f", role, count, coordScheme, x, y, z];
 		[player addShipsAt:arg];
@@ -965,9 +628,9 @@ static JSBool SystemAddShipsAt(JSContext *cx, JSObject *obj, uintN argc, jsval *
 }
 
 
-static JSBool SystemAddShipsAtPrecisely(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval)
+static JSBool SystemAddShipsAtPrecisely(JSContext *context, JSObject *obj, uintN argc, jsval *argv, jsval *rval)
 {
-	PlayerEntity		*player = Player();
+	PlayerEntity		*player = OPlayerForScripting();
 	jsdouble			x, y, z;
 	NSString			*role = nil;
 	int					count;
@@ -976,13 +639,13 @@ static JSBool SystemAddShipsAtPrecisely(JSContext *cx, JSObject *obj, uintN argc
 	
 	if (argc == 6)
 	{
-		role = JSValToNSString(cx, argv[0]);
+		role = JSValToNSString(context, argv[0]);
 		count = JSVAL_TO_INT(argv[1]);
-		coordScheme = JSValToNSString(cx, argv[2]);
+		coordScheme = JSValToNSString(context, argv[2]);
 		
-		JS_ValueToNumber(cx, argv[3], &x);
-		JS_ValueToNumber(cx, argv[4], &y);
-		JS_ValueToNumber(cx, argv[5], &z);
+		JS_ValueToNumber(context, argv[3], &x);
+		JS_ValueToNumber(context, argv[4], &y);
+		JS_ValueToNumber(context, argv[5], &z);
 		
 		arg = [NSString stringWithFormat:@"%@ %d %@ %f %f %f", role, count, coordScheme, x, y, z];
 		[player addShipsAtPrecisely:arg];
@@ -991,9 +654,9 @@ static JSBool SystemAddShipsAtPrecisely(JSContext *cx, JSObject *obj, uintN argc
 }
 
 
-static JSBool SystemAddShipsWithinRadius(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval)
+static JSBool SystemAddShipsWithinRadius(JSContext *context, JSObject *obj, uintN argc, jsval *argv, jsval *rval)
 {
-	PlayerEntity		*player = Player();
+	PlayerEntity		*player = OPlayerForScripting();
 	jsdouble			x, y, z, radius;
 	NSString			*role = nil;
 	int					count;
@@ -1002,14 +665,14 @@ static JSBool SystemAddShipsWithinRadius(JSContext *cx, JSObject *obj, uintN arg
 	
 	if (argc == 7)
 	{
-		role = JSValToNSString(cx, argv[0]);
+		role = JSValToNSString(context, argv[0]);
 		count = JSVAL_TO_INT(argv[1]);
-		coordScheme = JSValToNSString(cx, argv[2]);
+		coordScheme = JSValToNSString(context, argv[2]);
 		
-		JS_ValueToNumber(cx, argv[3], &x);
-		JS_ValueToNumber(cx, argv[4], &y);
-		JS_ValueToNumber(cx, argv[5], &z);
-		JS_ValueToNumber(cx, argv[6], &radius);
+		JS_ValueToNumber(context, argv[3], &x);
+		JS_ValueToNumber(context, argv[4], &y);
+		JS_ValueToNumber(context, argv[5], &z);
+		JS_ValueToNumber(context, argv[6], &radius);
 		
 		arg = [NSString stringWithFormat:@"%@ %d %@ %f %f %f %d", role, count, coordScheme, x, y, z, radius];
 		[player addShipsWithinRadius:arg];
@@ -1018,16 +681,16 @@ static JSBool SystemAddShipsWithinRadius(JSContext *cx, JSObject *obj, uintN arg
 }
 
 
-static JSBool SystemSpawn(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval)
+static JSBool SystemSpawn(JSContext *context, JSObject *obj, uintN argc, jsval *argv, jsval *rval)
 {
-	PlayerEntity		*player = Player();
+	PlayerEntity		*player = OPlayerForScripting();
 	NSString			*role = nil;
 	int					count;
 	NSString			*arg = nil;
 	
 	if (argc == 2)
 	{
-		role = JSValToNSString(cx, argv[0]);
+		role = JSValToNSString(context, argv[0]);
 		count = JSVAL_TO_INT(argv[1]);
 		
 		arg = [NSString stringWithFormat:@"%@ %d", role, count];
@@ -1037,13 +700,13 @@ static JSBool SystemSpawn(JSContext *cx, JSObject *obj, uintN argc, jsval *argv,
 }
 
 
-static JSBool SystemSpawnShip(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval)
+static JSBool SystemSpawnShip(JSContext *context, JSObject *obj, uintN argc, jsval *argv, jsval *rval)
 {
-	PlayerEntity		*player = Player();
+	PlayerEntity		*player = OPlayerForScripting();
 	
 	if (argc == 1)
 	{
-		[player spawnShip:JSValToNSString(cx, argv[0])];
+		[player spawnShip:JSValToNSString(context, argv[0])];
 	}
 	return JS_TRUE;
 }
@@ -1053,8 +716,8 @@ static JSBool SystemSpawnShip(JSContext *cx, JSObject *obj, uintN argc, jsval *a
 // Mission class
 //===========================================================================
 
-static JSBool MissionGetProperty(JSContext *cx, JSObject *obj, jsval name, jsval *vp);
-static JSBool MissionSetProperty(JSContext *cx, JSObject *obj, jsval name, jsval *vp);
+static JSBool MissionGetProperty(JSContext *context, JSObject *obj, jsval name, jsval *vp);
+static JSBool MissionSetProperty(JSContext *context, JSObject *obj, jsval name, jsval *vp);
 
 
 static JSClass Mission_class =
@@ -1090,11 +753,11 @@ static JSPropertySpec Mission_props[] =
 };
 
 
-static JSBool MissionShowMissionScreen(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval);
-static JSBool MissionShowShipModel(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval);
-static JSBool MissionResetMissionChoice(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval);
-static JSBool MissionMarkSystem(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval);
-static JSBool MissionUnmarkSystem(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval);
+static JSBool MissionShowMissionScreen(JSContext *context, JSObject *obj, uintN argc, jsval *argv, jsval *rval);
+static JSBool MissionShowShipModel(JSContext *context, JSObject *obj, uintN argc, jsval *argv, jsval *rval);
+static JSBool MissionResetMissionChoice(JSContext *context, JSObject *obj, uintN argc, jsval *argv, jsval *rval);
+static JSBool MissionMarkSystem(JSContext *context, JSObject *obj, uintN argc, jsval *argv, jsval *rval);
+static JSBool MissionUnmarkSystem(JSContext *context, JSObject *obj, uintN argc, jsval *argv, jsval *rval);
 
 
 static JSFunctionSpec Mission_funcs[] =
@@ -1108,12 +771,12 @@ static JSFunctionSpec Mission_funcs[] =
 };
 
 
-static JSBool MissionGetProperty(JSContext *cx, JSObject *obj, jsval name, jsval *vp)
+static JSBool MissionGetProperty(JSContext *context, JSObject *obj, jsval name, jsval *vp)
 {
 	if (!JSVAL_IS_INT(name))  return JS_TRUE;
 
-	PlayerEntity				*player = Player();
-	id<OOJavaScriptConversion>	result = nil;
+	PlayerEntity				*player = OPlayerForScripting();
+	id							result = nil;
 
 	switch (JSVAL_TO_INT(name))
 	{
@@ -1121,53 +784,64 @@ static JSBool MissionGetProperty(JSContext *cx, JSObject *obj, jsval name, jsval
 			result = [player missionChoice_string];
 			if (result == nil) result = @"None";
 			break;
+		
+		default:
+			OOReportJavaScriptBadPropertySelector(context, @"Mission", JSVAL_TO_INT(name));
+			return NO;
 	}
 	
-	if (result != nil) *vp = [result javaScriptValueInContext:cx];
+	if (result != nil) *vp = [result javaScriptValueInContext:context];
 	return JS_TRUE;
 }
 
 
-static JSBool MissionSetProperty(JSContext *cx, JSObject *obj, jsval name, jsval *vp)
+static JSBool MissionSetProperty(JSContext *context, JSObject *obj, jsval name, jsval *vp)
 {
 	if (!JSVAL_IS_INT(name))  return JS_TRUE;
 
-	PlayerEntity				*player = Player();
+	PlayerEntity				*player = OPlayerForScripting();
 
-	switch (JSVAL_TO_INT(name)) {
-		case MISSION_TEXT: {
-			if (JSVAL_IS_STRING(*vp)) {
-				JSString *jskey = JS_ValueToString(cx, *vp);
+	switch (JSVAL_TO_INT(name))
+	{
+		case MISSION_TEXT:
+			if (JSVAL_IS_STRING(*vp))
+			{
+				JSString *jskey = JS_ValueToString(context, *vp);
 				[player addMissionText: [NSString stringWithCString:JS_GetStringBytes(jskey)]];
 			}
 			break;
-		}
-		case MISSION_MUSIC: {
-			if (JSVAL_IS_STRING(*vp)) {
-				JSString *jskey = JS_ValueToString(cx, *vp);
+		
+		case MISSION_MUSIC:
+			if (JSVAL_IS_STRING(*vp))
+			{
+				JSString *jskey = JS_ValueToString(context, *vp);
 				[player setMissionMusic: [NSString stringWithCString:JS_GetStringBytes(jskey)]];
 			}
 			break;
-		}
-		case MISSION_IMAGE: {
-			if (JSVAL_IS_STRING(*vp)) {
-				NSString *str = JSValToNSString(cx, *vp);
+		
+		case MISSION_IMAGE:
+			if (JSVAL_IS_STRING(*vp))
+			{
+				NSString *str = JSValToNSString(context, *vp);
 				if ([str length] == 0)
 					str = @"none";
 				[player setMissionImage:str];
 			}
 			break;
-		}
-		case MISSION_CHOICES: {
-			if (JSVAL_IS_STRING(*vp)) {
-				JSString *jskey = JS_ValueToString(cx, *vp);
+		
+		case MISSION_CHOICES:
+			if (JSVAL_IS_STRING(*vp))
+			{
+				JSString *jskey = JS_ValueToString(context, *vp);
 				[player setMissionChoices: [NSString stringWithCString:JS_GetStringBytes(jskey)]];
 			}
 			break;
-		}
-		case MISSION_INSTRUCTIONS: {
-			if (JSVAL_IS_STRING(*vp)) {
-				JSString *jskey = JS_ValueToString(cx, *vp);
+		
+		case MISSION_INSTRUCTIONS:
+		
+			if (JSVAL_IS_STRING(*vp))
+			{
+				JSString *jskey = JS_ValueToString(context, *vp);
 				NSString *ins = [NSString stringWithCString:JS_GetStringBytes(jskey)];
 				if ([ins length])
 					[player setMissionDescription:ins forMission:[currentOOJSScript name]];
@@ -1175,15 +849,18 @@ static JSBool MissionSetProperty(JSContext *cx, JSObject *obj, jsval name, jsval
 					[player clearMissionDescriptionForMission:[currentOOJSScript name]];
 			}
 			break;
-		}
+		
+		default:
+			OOReportJavaScriptBadPropertySelector(context, @"Mission", JSVAL_TO_INT(name));
+			return NO;
 	}
 	return JS_TRUE;
 }
 
 
-static JSBool MissionShowMissionScreen(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval)
+static JSBool MissionShowMissionScreen(JSContext *context, JSObject *obj, uintN argc, jsval *argv, jsval *rval)
 {
-	PlayerEntity		*player = Player();
+	PlayerEntity		*player = OPlayerForScripting();
 	
 	[player setGuiToMissionScreen];
 	
@@ -1191,23 +868,23 @@ static JSBool MissionShowMissionScreen(JSContext *cx, JSObject *obj, uintN argc,
 }
 
 
-static JSBool MissionShowShipModel(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval)
+static JSBool MissionShowShipModel(JSContext *context, JSObject *obj, uintN argc, jsval *argv, jsval *rval)
 {
-	PlayerEntity		*player = Player();
+	PlayerEntity		*player = OPlayerForScripting();
 	JSString			*jskey = NULL;
 	
 	if (argc > 0 && JSVAL_IS_STRING(argv[0]))
 	{
-		jskey = JS_ValueToString(cx, argv[0]);
+		jskey = JS_ValueToString(context, argv[0]);
 		[player showShipModel: [NSString stringWithCString:JS_GetStringBytes(jskey)]];
 	}
 	return JS_TRUE;
 }
 
 
-static JSBool MissionResetMissionChoice(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval)
+static JSBool MissionResetMissionChoice(JSContext *context, JSObject *obj, uintN argc, jsval *argv, jsval *rval)
 {
-	PlayerEntity		*player = Player();
+	PlayerEntity		*player = OPlayerForScripting();
 	
 	[player resetMissionChoice];
 	
@@ -1215,31 +892,31 @@ static JSBool MissionResetMissionChoice(JSContext *cx, JSObject *obj, uintN argc
 }
 
 
-static JSBool MissionMarkSystem(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval)
+static JSBool MissionMarkSystem(JSContext *context, JSObject *obj, uintN argc, jsval *argv, jsval *rval)
 {
-	PlayerEntity		*player = Player();
+	PlayerEntity		*player = OPlayerForScripting();
 	NSString			*params = nil;
 	
-	params = [NSString concatenationOfStringsFromJavaScriptValues:argv count:argc separator:@" " inContext:cx];
+	params = [NSString concatenationOfStringsFromJavaScriptValues:argv count:argc separator:@" " inContext:context];
 	[player addMissionDestination:params];
 	
 	return JS_TRUE;
 }
 
 
-static JSBool MissionUnmarkSystem(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval)
+static JSBool MissionUnmarkSystem(JSContext *context, JSObject *obj, uintN argc, jsval *argv, jsval *rval)
 {
-	PlayerEntity		*player = Player();
+	PlayerEntity		*player = OPlayerForScripting();
 	NSString			*params = nil;
 	
-	player = [NSString concatenationOfStringsFromJavaScriptValues:argv count:argc separator:@" " inContext:cx];
+	player = [NSString concatenationOfStringsFromJavaScriptValues:argv count:argc separator:@" " inContext:context];
 	[player removeMissionDestination:params];
 	
 	return JS_TRUE;
 }
 
 
-static void ReportJSError(JSContext *cx, const char *message, JSErrorReport *report)
+static void ReportJSError(JSContext *context, const char *message, JSErrorReport *report)
 {
 	NSString		*severity = nil;
 	NSString		*messageText = nil;
@@ -1305,55 +982,51 @@ static void ReportJSError(JSContext *cx, const char *message, JSErrorReport *rep
 
 	/*set up global JS variables, including global and custom objects */
 
-	/* initialize the JS run time, and return result in rt */
-	rt = JS_NewRuntime(8L * 1024L * 1024L);
+	/* initialize the JS run time, and return result in runtime */
+	runtime = JS_NewRuntime(8L * 1024L * 1024L);
 
-	/* if rt does not have a value, end the program here */
-	if (!rt)
+	/* if runtime does not have a value, end the program here */
+	if (!runtime)
 	{
 		OOLog(@"script.javaScript.init.error", @"FATAL ERROR: failed to create JavaScript %@.", @"runtime");
 		exit(1);
 	}
 
 	/* create a context and associate it with the JS run time */
-	cx = JS_NewContext(rt, 8192);
-	JS_SetOptions(cx, JSOPTION_VAROBJFIX | JSOPTION_STRICT | JSOPTION_NATIVE_BRANCH_CALLBACK);
+	context = JS_NewContext(runtime, 8192);
+	JS_SetOptions(context, JSOPTION_VAROBJFIX | JSOPTION_STRICT | JSOPTION_NATIVE_BRANCH_CALLBACK);
 	
-	/* if cx does not have a value, end the program here */
-	if (!cx)
+	/* if context does not have a value, end the program here */
+	if (!context)
 	{
 		OOLog(@"script.javaScript.init.error", @"FATAL ERROR: failed to create JavaScript %@.", @"context");
 		exit(1);
 	}
 
-	JS_SetErrorReporter(cx, ReportJSError);
+	JS_SetErrorReporter(context, ReportJSError);
 
 	/* create the global object here */
-	glob = JS_NewObject(cx, &global_class, NULL, NULL);
-	xglob = glob;
+	globalObject = JS_NewObject(context, &global_class, NULL, NULL);
+	xglob = globalObject;
 
 	/* initialize the built-in JS objects and the global object */
-	builtins = JS_InitStandardClasses(cx, glob);
-	JS_DefineProperties(cx, glob, Global_props);
-	JS_DefineFunctions(cx, glob, Global_funcs);
+	JS_InitStandardClasses(context, globalObject);
+	JS_DefineProperties(context, globalObject, Global_props);
+	JS_DefineFunctions(context, globalObject, Global_funcs);
 
-	systemObj = JS_DefineObject(cx, glob, "system", &System_class, NULL, JSPROP_ENUMERATE);
-	JS_DefineProperties(cx, systemObj, System_props);
-	JS_DefineFunctions(cx, systemObj, System_funcs);
+	systemObj = JS_DefineObject(context, globalObject, "system", &System_class, NULL, JSPROP_ENUMERATE | JSPROP_READONLY | JSPROP_PERMANENT);
+	JS_DefineProperties(context, systemObj, System_props);
+	JS_DefineFunctions(context, systemObj, System_funcs);
 
-	missionObj = JS_DefineObject(cx, glob, "mission", &Mission_class, NULL, JSPROP_ENUMERATE);
-	JS_DefineProperties(cx, missionObj, Mission_props);
-	JS_DefineFunctions(cx, missionObj, Mission_funcs);
+	missionObj = JS_DefineObject(context, globalObject, "mission", &Mission_class, NULL, JSPROP_ENUMERATE | JSPROP_READONLY | JSPROP_PERMANENT);
+	JS_DefineProperties(context, missionObj, Mission_props);
+	JS_DefineFunctions(context, missionObj, Mission_funcs);
 	
-	InitOOJSVector(cx, glob);
-	InitOOJSEntity(cx, glob);
-	InitOOJSShip(cx, glob);
-	
-	playerObj = JS_DefineObject(cx, glob, "player", &Player_class, JSShipPrototype(), JSPROP_ENUMERATE);
-	JS_DefineProperties(cx, playerObj, Player_props);
-	JS_DefineFunctions(cx, playerObj, Player_funcs);
-	JS_SetPrivate(cx, playerObj, [[PlayerEntity sharedPlayer] weakRetain]);
-	JSEntityRegisterEntitySubclass(&Player_class);
+	InitOOJSVector(context, globalObject);
+	InitOOJSQuaternion(context, globalObject);
+	InitOOJSEntity(context, globalObject);
+	InitOOJSShip(context, globalObject);
+	InitOOJSPlayer(context, globalObject);
 	
 	OOLog(@"script.javaScript.init.success", @"Set up JavaScript context.");
 	
@@ -1366,8 +1039,8 @@ static void ReportJSError(JSContext *cx, const char *message, JSErrorReport *rep
 {
 	sSharedEngine = nil;
 	
-	JS_DestroyContext(cx);
-	JS_DestroyRuntime(rt);
+	JS_DestroyContext(context);
+	JS_DestroyRuntime(runtime);
 	
 	[super dealloc];
 }
@@ -1375,16 +1048,10 @@ static void ReportJSError(JSContext *cx, const char *message, JSErrorReport *rep
 
 - (JSContext *) context
 {
-	return cx;
+	return context;
 }
 
 @end
-
-
-JSObject *JSPlayerObject(void)
-{
-	return playerObj;
-}
 
 
 void OOReportJavaScriptError(JSContext *context, NSString *format, ...)
@@ -1424,6 +1091,12 @@ void OOReportJavaScriptWarningWithArguments(JSContext *context, NSString *format
 	msg = [[NSString alloc] initWithFormat:format arguments:args];
 	JS_ReportWarning(context, "%s", [msg UTF8String]);
 	[msg release];
+}
+
+
+void OOReportJavaScriptBadPropertySelector(JSContext *context, NSString *className, jsint selector)
+{
+	OOReportJavaScriptError(context, @"Internal error: bad property identifier %i in property accessor for class %@.", selector, className);
 }
 
 
@@ -1523,6 +1196,16 @@ JSObject *JSArrayFromNSArray(JSContext *context, NSArray *array)
 	
 	return result;
 }
+
+
+@implementation NSObject (OOJavaScriptConversion)
+
+- (jsval)javaScriptValueInContext:(JSContext *)context
+{
+	return JSVAL_NULL;
+}
+
+@end
 
 
 @implementation NSString (OOJavaScriptExtensions)
@@ -1625,7 +1308,7 @@ JSObject *JSArrayFromNSArray(JSContext *context, NSArray *array)
 @end
 
 
-@implementation NSArray (OOJavaScriptExtensions)
+@implementation NSArray (OOJavaScriptConversion)
 
 - (jsval)javaScriptValueInContext:(JSContext *)context
 {
@@ -1635,7 +1318,7 @@ JSObject *JSArrayFromNSArray(JSContext *context, NSArray *array)
 @end
 
 
-@implementation NSNumber (OOJavaScriptExtensions)
+@implementation NSNumber (OOJavaScriptConversion)
 
 - (jsval)javaScriptValueInContext:(JSContext *)context
 {
@@ -1686,7 +1369,7 @@ JSObject *JSArrayFromNSArray(JSContext *context, NSArray *array)
 @end
 
 
-@implementation NSNull (OOJavaScriptExtensions)
+@implementation NSNull (OOJavaScriptConversion)
 
 - (jsval)javaScriptValueInContext:(JSContext *)context
 {

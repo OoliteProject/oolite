@@ -6334,17 +6334,16 @@ BOOL	class_masslocks(int some_class)
 
 - (void) leaveDock:(StationEntity *)station
 {
-	if (station)
-	{
-		Vector launchPos = station->position;
-		Vector stat_f = vector_forward_from_quaternion(station->orientation);
-		launchPos.x += 500.0*stat_f.x;
-		launchPos.y += 500.0*stat_f.y;
-		launchPos.z += 500.0*stat_f.z;
-		position = launchPos;
-		orientation = station->orientation;
-		flightRoll = [station flightRoll];
-	}
+	if (station == nil)  return;
+	
+	Vector launchPos = station->position;
+	Vector stat_f = vector_forward_from_quaternion(station->orientation);
+	launchPos.x += 500.0*stat_f.x;
+	launchPos.y += 500.0*stat_f.y;
+	launchPos.z += 500.0*stat_f.z;
+	position = launchPos;
+	orientation = station->orientation;
+	flightRoll = [station flightRoll];
 	flightPitch = 0.0;
 	flightSpeed = maxFlightSpeed * 0.5;
 	status = STATUS_LAUNCHING;

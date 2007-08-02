@@ -118,7 +118,7 @@ static NSString * const kOOLogNoteShowShipyardModel = @"script.debug.note.showSh
 {
 	NSString* result = nil;
 	
-	if (docked_station != [UNIVERSE station])	// only drop off passengers or fulfil contracts at main station
+	if (dockedStation != [UNIVERSE station])	// only drop off passengers or fulfil contracts at main station
 		return nil;
 	
 	// check escape pods...
@@ -1105,9 +1105,9 @@ static NSMutableDictionary* currentShipyard = nil;
 
 	int station_tl = NSNotFound;
 	
-	if (docked_station)
+	if (dockedStation)
 	{
-		station_tl = [docked_station equivalentTechLevel];
+		station_tl = [dockedStation equivalentTechLevel];
 	}
 
 	if (![the_station localShipyard])
@@ -1305,7 +1305,7 @@ static NSMutableDictionary* currentShipyard = nil;
 {
 	ShipEntity		*ship;
 		
-	if (!docked_station)
+	if (!dockedStation)
 		return;
 	
 	Quaternion		q2 = { (GLfloat)0.707, (GLfloat)0.707, (GLfloat)0.0, (GLfloat)0.0};
@@ -1500,7 +1500,7 @@ static NSMutableDictionary* currentShipyard = nil;
 	[shipyard_record setObject:ship_desc forKey:[ship_info objectForKey:SHIPYARD_KEY_ID]];
 	
 	// remove the ship from the localShipyard
-	[[docked_station localShipyard] removeObjectAtIndex:sel_row - GUI_ROW_SHIPYARD_START];
+	[[dockedStation localShipyard] removeObjectAtIndex:sel_row - GUI_ROW_SHIPYARD_START];
 	
 	// perform the transformation
 	NSDictionary* cmdr_dict = [self commanderDataDictionary];	// gather up all the info

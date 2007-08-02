@@ -255,7 +255,7 @@ typedef enum
 	BOOL					pollControls;
 // ...end save screen   
 
-	StationEntity			*docked_station;
+	StationEntity			*dockedStation;
 	
 	HeadUpDisplay			*hud;
 	
@@ -300,6 +300,7 @@ typedef enum
 	OOGUIScreenID			gui_screen;
 	OOAlertFlags			alertFlags;
 	OOAlertCondition		alertCondition;
+	OOAlertCondition		lastScriptAlertCondition;
 	OOMissileStatus			missile_status;
 	unsigned				activeMissile;
 	
@@ -516,7 +517,7 @@ typedef enum
 
 - (NSString *) ship_desc;
 
-- (StationEntity *) docked_station;
+- (StationEntity *) dockedStation;
 
 - (HeadUpDisplay *) hud;
 
@@ -656,8 +657,6 @@ typedef enum
 - (BOOL) selectPreviousTargetFromMemory;
 
 - (void) applyYaw:(GLfloat) yaw;
-- (void) setCredits: (int)newCredits;
-- (void) setKills: (int)newKills;
 
 /* GILES custom viewpoints */
 

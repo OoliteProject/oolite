@@ -293,6 +293,9 @@ enum
 - (PlanetEntity *) sun;
 // FIXME: lists of all planets and stations would be useful in, e.g., -[CollisionRegion findShadowedEntities]
 
+// Turn main station into just another station, for blowUpStation.
+- (void) unMagicMainStation;
+
 - (void) resetBeacons;
 - (ShipEntity *) firstBeacon;
 - (ShipEntity *) lastBeacon;

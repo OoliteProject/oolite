@@ -49,9 +49,6 @@ JSClass script_class =
 };
 
 
-#define JSValToNSString(context, val) [NSString stringWithJavaScriptValue:val inContext:context]
-
-
 @interface OOJSScript (OOPrivate)
 
 - (NSString *)scriptNameFromPath:(NSString *)path;
