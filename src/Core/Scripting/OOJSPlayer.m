@@ -79,7 +79,7 @@ enum
 	kPlayer_name,				// Player name, string, read-only
 	kPlayer_score,				// kill count, integer, read/write
 	kPlayer_credits,			// credit balance, float, read/write
-	kPlayer_legalStatus,		// legal status, integer, read/write
+	kPlayer_legalStatus,		// Deprecated synonym for bounty
 	kPlayer_fuelLeakRate,		// fuel leak rate, float, read/write
 	kPlayer_alertCondition,		// alert level, integer, read-only
 	kPlayer_docked,				// docked, boolean, read-only
@@ -207,6 +207,7 @@ static JSBool PlayerGetProperty(JSContext *context, JSObject *this, jsval name, 
 			break;
 			
 		case kPlayer_legalStatus:
+			OOReportJavaScriptWarning(context, @"Player.%@ is deprecated, use Player.%@ instead.", @"legalStatus", @"bounty");
 			*outValue = INT_TO_JSVAL([player legalStatus]);
 			break;
 			
@@ -227,12 +228,12 @@ static JSBool PlayerGetProperty(JSContext *context, JSObject *this, jsval name, 
 			break;
 		
 		case kPlayer_dockedStationName:
-			OOReportJavaScriptWarning(context, @"Player.dockedStationName is deprecated, use Player.dockedStation.shipDescription instead.");
+			OOReportJavaScriptWarning(context, @"Player.%@ is deprecated, use Player.%@ instead.", @"dockedStationName", @"dockedStation.shipDescription");
 			result = [player dockedStationName];
 			break;
 			
 		case kPlayer_dockedAtMainStation:
-			OOReportJavaScriptWarning(context, @"Player.dockedAtMainStation is deprecated, use Player.dockedStation.isMainStation instead.");
+			OOReportJavaScriptWarning(context, @"Player.%@ is deprecated, use Player.%@ instead.", @"dockedAtMainStation", @"dockedStation.isMainStation");
 			*outValue = BOOLToJSVal([player dockedAtMainStation]);
 			break;
 			
@@ -284,9 +285,10 @@ static JSBool PlayerSetProperty(JSContext *context, JSObject *this, jsval name, 
 			break;
 			
 		case kPlayer_legalStatus:
-			if (JS_ValueToInt32(context, *value, &iValue))
+			OOReportJavaScriptWarning(context, @"Player.%@ is deprecated, use Player.%@ instead.", @"legalStatus", @"bounty");
+			if (JS_ValueToInt32(context, *value, &iValue) && 0 < iValue)
 			{
-				[player setLegalStatusValue:iValue];
+				[player setBounty:iValue];
 			}
 			break;
 			

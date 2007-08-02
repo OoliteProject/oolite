@@ -37,9 +37,6 @@ MA 02110-1301, USA.
 - (double) creditBalance;
 - (void) setCreditBalance:(double)value;
 
-- (int) legalStatus;
-- (void) setLegalStatusValue:(int)value;	// NOTE: setLegalStatus: is a legacy script method and takes a string.
-
 - (float)fuelLeakRate;
 - (void)setFuelLeakRate:(float)value;
 

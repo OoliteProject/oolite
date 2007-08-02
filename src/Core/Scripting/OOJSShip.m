@@ -73,7 +73,8 @@ enum
 	kShip_roles,				// roles, array, read-only
 	kShip_AI,					// AI state machine name, string, read/write
 	kShip_AIState,				// AI state machine state, string, read/write
-	kShip_fuel					// fuel, float, read/write
+	kShip_fuel,					// fuel, float, read/write
+	kShip_bounty				// bounty, unsigned int, read/write
 };
 
 
@@ -85,6 +86,7 @@ static JSPropertySpec sShipProperties[] =
 	{ "AI",						kShip_AI,					JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
 	{ "AIState",				kShip_AIState,				JSPROP_PERMANENT | JSPROP_ENUMERATE },
 	{ "fuel",					kShip_fuel,					JSPROP_PERMANENT | JSPROP_ENUMERATE },
+	{ "bounty",					kShip_bounty,				JSPROP_PERMANENT | JSPROP_ENUMERATE },
 	{ 0 }
 };
 
@@ -159,9 +161,13 @@ static JSBool ShipGetProperty(JSContext *context, JSObject *this, jsval name, js
 		case kShip_AIState:
 			result = [[entity getAI] state];
 			break;
-		
+			
 		case kShip_fuel:
 			JS_NewDoubleValue(context, [entity fuel] * 0.1, outValue);
+			break;
+		
+		case kShip_bounty:
+			*outValue = INT_TO_JSVAL([entity legalStatus]);
 			break;
 			
 		default:
@@ -178,22 +184,38 @@ static JSBool ShipSetProperty(JSContext *context, JSObject *this, jsval name, js
 {
 	ShipEntity					*entity = nil;
 	NSString					*strVal = nil;
-	BOOL						validConversion;
 	jsdouble					fValue;
+	int32						iValue;
+	
+	if (!JSVAL_IS_INT(name))  return YES;
+	if (!JSShipGetShipEntity(context, this, &entity)) return NO;
 	
 	switch (name)
 	{
 		case kShip_AIState:
-			strVal = [NSString stringWithJavaScriptValue:*value inContext:context];
-			if (strVal != nil)  [[entity getAI] setState:strVal];
+			if (entity->isPlayer)
+			{
+				OOReportJavaScriptError(context, @"Ship.AIState [setter]: cannot set AI state for player.");
+			}
+			else
+			{
+				strVal = [NSString stringWithJavaScriptValue:*value inContext:context];
+				if (strVal != nil)  [[entity getAI] setState:strVal];
+			}
 			break;
 		
 		case kShip_fuel:
-			validConversion = JS_ValueToNumber(context, *value, &fValue);
-			if (validConversion)
+			if (JS_ValueToNumber(context, *value, &fValue))
 			{
 				fValue = OOClamp_0_max_d(fValue, 7.0);
 				[entity setFuel:lround(fValue * 10.0)];
+			}
+			break;
+		
+		case kShip_bounty:
+			if (JS_ValueToInt32(context, *value, &iValue) && 0 < iValue)
+			{
+				[entity setBounty:iValue];
 			}
 			break;
 		

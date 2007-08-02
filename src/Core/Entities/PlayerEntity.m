@@ -3235,7 +3235,6 @@ double scoopSoundPlayTime = 0.0;
 	//has_escape_pod = NO;
 
 	// reset legal status
-	legalStatus = 0;
 	bounty = 0;
 
 	// reset trumbles
@@ -3302,7 +3301,7 @@ double scoopSoundPlayTime = 0.0;
 	int i;
 	for (i = 1; i < (n_cargo - rotates); i++)
 	{
-		pod = (ShipEntity*)[cargo objectAtIndex:i];
+		pod = [cargo objectAtIndex:i];
 		if ([pod commodityType] == current_contents)
 		{
 			[pod retain];
@@ -3312,7 +3311,12 @@ double scoopSoundPlayTime = 0.0;
 			rotates++;
 		}
 	}
-	
+}
+
+
+- (void) setBounty:(OOCreditsQuantity) amount
+{
+	legalStatus = amount;
 }
 
 

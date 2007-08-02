@@ -414,6 +414,7 @@ MA 02110-1301, USA.
 
 - (void) setBounty:(OOCreditsQuantity) amount;
 - (OOCreditsQuantity) bounty;
+
 - (int) legalStatus;
 
 - (void) setCommodity:(OOCargoType)co_type andAmount:(OOCargoQuantity)co_amount;

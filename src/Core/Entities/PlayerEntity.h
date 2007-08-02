@@ -329,7 +329,7 @@ typedef enum
 	
 	unsigned				max_missiles;		// no. of missile pylons
 	ShipEntity				*missile_entity[SHIPENTITY_MAX_MISSILES];	// holds the actual missile entities or equivalents
-
+	
 	int						legalStatus;
 	int						market_rnd;
 	unsigned				ship_kills;

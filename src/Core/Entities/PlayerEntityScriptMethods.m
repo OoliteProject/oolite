@@ -60,17 +60,6 @@ MA 02110-1301, USA.
 	credits = OOClamp_0_max_d(value, (double)ULONG_MAX);
 }
 
-- (int) legalStatus
-{
-	return legalStatus;
-}
-
-
-- (void) setLegalStatusValue:(int)value
-{
-	legalStatus = value;
-}
-
 
 - (float)fuelLeakRate
 {

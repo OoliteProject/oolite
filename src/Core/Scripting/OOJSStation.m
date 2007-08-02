@@ -63,14 +63,14 @@ static JSExtendedClass sStationClass =
 enum
 {
 	// Property IDs
-	kStation_isMain				// Is [UNIVERSE station], boolean, read-only
+	kStation_isMainStation		// Is [UNIVERSE station], boolean, read-only
 };
 
 
 static JSPropertySpec sStationProperties[] =
 {
 	// JS name					ID							flags
-	{ "isMain",					kStation_isMain,			JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
+	{ "isMainStation",			kStation_isMainStation,		JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
 	{ 0 }
 };
 
@@ -133,7 +133,7 @@ static JSBool StationGetProperty(JSContext *context, JSObject *this, jsval name,
 	
 	switch (JSVAL_TO_INT(name))
 	{
-		case kStation_isMain:
+		case kStation_isMainStation:
 			*outValue = BOOLToJSVal(entity == [UNIVERSE station]);
 			break;
 		

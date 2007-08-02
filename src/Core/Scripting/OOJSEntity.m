@@ -79,9 +79,7 @@ enum
 	// Property IDs
 	kEntity_ID,					// universalID, int, read-only
 	kEntity_position,			// position in system space, Vector, read-only
-	kEntity_velocity,			// velocity, Vector, read-only
-	kEntity_speed,				// speed, double, read-only (magnitude of velocity)
-	kEntity_orientation,		// orientation, quaternion, read-write (unimplemented)
+	kEntity_orientation,		// orientation, quaternion, read-write
 	kEntity_heading,			// heading, vector, read-only (like orientation but ignoring twist angle)
 	kEntity_status,				// entity status, string, read-only
 	kEntity_scanClass,			// scan class, string, read-only
@@ -97,8 +95,6 @@ static JSPropertySpec sEntityProperties[] =
 	// JS name					ID							flags
 	{ "ID",						kEntity_ID,					JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
 	{ "position",				kEntity_position,			JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
-	{ "velocity",				kEntity_velocity,			JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
-	{ "speed",					kEntity_speed,				JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
 	{ "orientation",			kEntity_orientation,		JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
 	{ "heading",				kEntity_heading,			JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
 	{ "status",					kEntity_status,				JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
@@ -279,14 +275,6 @@ static JSBool EntityGetProperty(JSContext *context, JSObject *this, jsval name, 
 			VectorToJSValue(context, [entity position], outValue);
 			break;
 		
-		case kEntity_velocity:
-			VectorToJSValue(context, [entity velocity], outValue);
-			break;
-		
-		case kEntity_speed:
-			JS_NewDoubleValue(context, magnitude([entity velocity]), outValue);
-			break;
-		
 		case kEntity_orientation:
 			QuaternionToJSValue(context, [entity orientation], outValue);
 			break;
@@ -309,11 +297,8 @@ static JSBool EntityGetProperty(JSContext *context, JSObject *this, jsval name, 
 		
 		case kEntity_owner:
 			result = [entity owner];
-			if (result == entity)
-			{
-				result = nil;
-				*outValue = JSVAL_NULL;
-			}
+			if (result == entity)  result = nil;
+			if (result == nil)  *outValue = JSVAL_NULL;
 			break;
 		
 		case kEntity_energy:
