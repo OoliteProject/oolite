@@ -29,6 +29,7 @@ MA 02110-1301, USA.
 #import "OOJSQuaternion.h"
 #import "OOJSEntity.h"
 #import "OOJSShip.h"
+#import "OOJSStation.h"
 #import "OOJSPlayer.h"
 #import "jsarray.h"
 
@@ -1026,6 +1027,7 @@ static void ReportJSError(JSContext *context, const char *message, JSErrorReport
 	InitOOJSQuaternion(context, globalObject);
 	InitOOJSEntity(context, globalObject);
 	InitOOJSShip(context, globalObject);
+	InitOOJSStation(context, globalObject);
 	InitOOJSPlayer(context, globalObject);
 	
 	OOLog(@"script.javaScript.init.success", @"Set up JavaScript context.");
