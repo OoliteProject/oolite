@@ -1071,7 +1071,7 @@ void OOReportJavaScriptErrorWithArguments(JSContext *context, NSString *format, 
 	NSString				*msg = nil;
 	
 	msg = [[NSString alloc] initWithFormat:format arguments:args];
-	JS_ReportWarning(context, "%s", [msg UTF8String]);
+	JS_ReportError(context, "%s", [msg UTF8String]);
 	[msg release];
 }
 

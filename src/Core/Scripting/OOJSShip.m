@@ -29,6 +29,7 @@ MA 02110-1301, USA.
 #import "ShipEntityAI.h"
 #import "AI.h"
 #import "OOStringParsing.h"
+#import "EntityOOJavaScriptExtensions.h"
 
 
 static JSObject *sShipPrototype;
@@ -55,11 +56,11 @@ static JSExtendedClass sShipClass =
 		ShipSetProperty,		// setProperty
 		JS_EnumerateStub,		// enumerate
 		JS_ResolveStub,			// resolve
-		JS_ConvertStub,			// convert
-		JS_FinalizeStub,		// finalize
+		JSEntityConvert,		// convert
+		JSEntityFinalize,		// finalize
 		JSCLASS_NO_OPTIONAL_MEMBERS
 	},
-	NULL,						// equality
+	JSEntityEquality,			// equality
 	NULL,						// outerObject
 	NULL,						// innerObject
 	JSCLASS_NO_RESERVED_MEMBERS
@@ -74,7 +75,8 @@ enum
 	kShip_AI,					// AI state machine name, string, read/write
 	kShip_AIState,				// AI state machine state, string, read/write
 	kShip_fuel,					// fuel, float, read/write
-	kShip_bounty				// bounty, unsigned int, read/write
+	kShip_bounty,				// bounty, unsigned int, read/write
+	kShip_subEntities,			// subentities, array of Ship, read-only
 };
 
 
@@ -87,6 +89,7 @@ static JSPropertySpec sShipProperties[] =
 	{ "AIState",				kShip_AIState,				JSPROP_PERMANENT | JSPROP_ENUMERATE },
 	{ "fuel",					kShip_fuel,					JSPROP_PERMANENT | JSPROP_ENUMERATE },
 	{ "bounty",					kShip_bounty,				JSPROP_PERMANENT | JSPROP_ENUMERATE },
+	{ "subEntities",			kShip_subEntities,			JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
 	{ 0 }
 };
 
@@ -142,7 +145,7 @@ static JSBool ShipGetProperty(JSContext *context, JSObject *this, jsval name, js
 	id							result = nil;
 	
 	if (!JSVAL_IS_INT(name))  return YES;
-	if (!JSShipGetShipEntity(context, this, &entity)) return NO;
+	if (!JSShipGetShipEntity(context, this, &entity)) return NO;	// NOTE: entity may be nil.
 	
 	switch (JSVAL_TO_INT(name))
 	{
@@ -168,6 +171,11 @@ static JSBool ShipGetProperty(JSContext *context, JSObject *this, jsval name, js
 		
 		case kShip_bounty:
 			*outValue = INT_TO_JSVAL([entity legalStatus]);
+			break;
+		
+		case kShip_subEntities:
+			result = [entity subEntitiesForScript];
+			if (result == nil)  *outValue = JSVAL_NULL;	// We want null, not undefined.
 			break;
 			
 		default:

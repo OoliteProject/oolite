@@ -62,11 +62,11 @@ static JSExtendedClass sPlayerClass =
 		PlayerSetProperty,		// setProperty
 		JS_EnumerateStub,		// enumerate
 		JS_ResolveStub,			// resolve
-		JS_ConvertStub,			// convert
-		JS_FinalizeStub,		// finalize
+		JSEntityConvert,		// convert
+		JSEntityFinalize,		// finalize
 		JSCLASS_NO_OPTIONAL_MEMBERS
 	},
-	NULL,						// equality
+	JSEntityEquality,			// equality
 	NULL,						// outerObject
 	NULL,						// innerObject
 	JSCLASS_NO_RESERVED_MEMBERS
@@ -225,6 +225,7 @@ static JSBool PlayerGetProperty(JSContext *context, JSObject *this, jsval name, 
 			
 		case kPlayer_dockedStation:
 			result = [player dockedStation];
+			if (result == nil)  *outValue = JSVAL_NULL;	// We want null, not undefined.
 			break;
 		
 		case kPlayer_dockedStationName:

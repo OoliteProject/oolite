@@ -499,6 +499,12 @@ static NSString * const kOOLogEntityBehaviourChanged	= @"entity.behaviour.change
 }
 
 
+- (NSArray *)subEntities
+{
+	return [[sub_entities copy] autorelease];
+}
+
+
 - (BoundingBox)findBoundingBoxRelativeToPosition:(Vector)opv InVectors:(Vector) _i :(Vector) _j :(Vector) _k
 {
 	return [[self mesh] findBoundingBoxRelativeToPosition:opv

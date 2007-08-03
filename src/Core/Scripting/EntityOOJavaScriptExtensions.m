@@ -28,6 +28,7 @@ MA 02110-1301, USA.
 #import "OOJSShip.h"
 #import "OOJSStation.h"
 #import "StationEntity.h"
+#import "PlanetEntity.h"
 
 
 @implementation Entity (OOJavaScriptExtensions)
@@ -82,6 +83,30 @@ MA 02110-1301, USA.
 	return @"Ship";
 }
 
+
+- (NSArray *)subEntitiesForScript
+{
+	unsigned			i, count;
+	NSMutableArray		*result = nil;
+	id					object = nil;
+	
+	count = [sub_entities count];
+	if (count == 0)  return nil;
+	
+	result = [NSMutableArray arrayWithCapacity:count];
+	for (i = 0; i != count; ++i)
+	{
+		object = [sub_entities objectAtIndex:i];
+		if ([object isKindOfClass:[ShipEntity class]])
+		{
+			[result addObject:object];
+		}
+	}
+	
+	if ([result count] == 0)  result = nil;
+	return result;
+}
+
 @end
 
 
@@ -107,6 +132,16 @@ MA 02110-1301, USA.
 - (NSString *)jsClassName
 {
 	return @"Station";
+}
+
+@end
+
+
+@implementation PlanetEntity (OOJavaScriptExtensions)
+
+- (NSString *)jsClassName
+{
+	return @"Planet";
 }
 
 @end

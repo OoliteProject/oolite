@@ -40,3 +40,11 @@ MA 02110-1301, USA.
 - (void)getJSClass:(JSClass **)outClass andPrototype:(JSObject **)outPrototype;
 
 @end
+
+
+@interface ShipEntity (OOJavaScriptExtensions)
+
+// "Normal" subentities, excluding flashers and exhaust plumes.
+- (NSArray *)subEntitiesForScript;
+
+@end

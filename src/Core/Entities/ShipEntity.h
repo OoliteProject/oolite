@@ -295,6 +295,8 @@ MA 02110-1301, USA.
 - (OOMesh *)mesh;
 - (void)setMesh:(OOMesh *)mesh;
 
+- (NSArray *)subEntities;
+
 // octree collision hunting
 - (GLfloat)doesHitLine:(Vector) v0: (Vector) v1;
 - (GLfloat)doesHitLine:(Vector) v0: (Vector) v1 :(ShipEntity**) hitEntity;
@@ -304,7 +306,7 @@ MA 02110-1301, USA.
 
 - (Vector)absoluteTractorPosition;
 
-	// beacons
+// beacons
 - (NSString *)beaconCode;
 - (BOOL)isBeacon;
 - (char)beaconChar;

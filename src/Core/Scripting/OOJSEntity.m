@@ -40,15 +40,15 @@ static NSMutableSet	*sEntitySubClasses;
 
 static JSBool EntityGetProperty(JSContext *context, JSObject *this, jsval name, jsval *outValue);
 static JSBool EntitySetProperty(JSContext *context, JSObject *this, jsval name, jsval *value);
-static JSBool EntityConvert(JSContext *context, JSObject *this, JSType type, jsval *outValue);
-static void EntityFinalize(JSContext *context, JSObject *this);
-static JSBool EntityEquality(JSContext *context, JSObject *this, jsval value, JSBool *outEqual);
 
 // Methods
 static JSBool EntitySetPosition(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
 static JSBool EntitySetOrientation(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
 static JSBool EntityValid(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
 static JSBool EntityCall(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
+
+// Static methods
+static JSBool EntityStaticEntityWithID(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
 
 
 static JSExtendedClass sEntityClass =
@@ -63,11 +63,11 @@ static JSExtendedClass sEntityClass =
 		EntitySetProperty,		// setProperty
 		JS_EnumerateStub,		// enumerate
 		JS_ResolveStub,			// resolve
-		EntityConvert,			// convert
-		EntityFinalize,			// finalize
+		JSEntityConvert,		// convert
+		JSEntityFinalize,		// finalize
 		JSCLASS_NO_OPTIONAL_MEMBERS
 	},
-	EntityEquality,				// equality
+	JSEntityEquality,			// equality
 	NULL,						// outerObject
 	NULL,						// innerObject
 	JSCLASS_NO_RESERVED_MEMBERS
@@ -86,7 +86,12 @@ enum
 	kEntity_mass,				// mass, double, read-only
 	kEntity_owner,				// owner, Entity, read-only. (Parent ship for subentities, station for defense ships, launching ship for missiles etc)
 	kEntity_energy,				// energy, double, read-write.
-	kEntity_maxEnergy			// maxEnergy, double, read-only.
+	kEntity_maxEnergy,			// maxEnergy, double, read-only.
+	kEntity_isValid,			// is not stale, boolean, read-only.
+	kEntity_isShip,				// is ship, boolean, read-only.
+	kEntity_isStation,			// is station, boolean, read-only.
+	kEntity_isPlayer,			// is player, boolean, read-only.
+	kEntity_isPlanet,			// is planet, boolean, read-only.
 };
 
 
@@ -103,6 +108,11 @@ static JSPropertySpec sEntityProperties[] =
 	{ "owner",					kEntity_owner,				JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
 	{ "energy",					kEntity_energy,				JSPROP_PERMANENT | JSPROP_ENUMERATE },
 	{ "maxEnergy",				kEntity_maxEnergy,			JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
+	{ "isValid",				kEntity_isValid,			JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
+	{ "isShip",					kEntity_isShip,				JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
+	{ "isStation",				kEntity_isStation,			JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
+	{ "isPlayer",				kEntity_isPlayer,			JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
+	{ "isPlanet",				kEntity_isPlanet,			JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
 	{ 0 }
 };
 
@@ -118,9 +128,17 @@ static JSFunctionSpec sEntityMethods[] =
 };
 
 
+static JSFunctionSpec sEntityStaticMethods[] =
+{
+	// JS name					Function					min args
+	{ "entityWithID",			EntityStaticEntityWithID,	1 },
+	{ 0 }
+};
+
+
 void InitOOJSEntity(JSContext *context, JSObject *global)
 {
-    sEntityPrototype = JS_InitClass(context, global, NULL, &sEntityClass.base, NULL, 0, sEntityProperties, sEntityMethods, NULL, NULL);
+    sEntityPrototype = JS_InitClass(context, global, NULL, &sEntityClass.base, NULL, 0, sEntityProperties, sEntityMethods, NULL, sEntityStaticMethods);
 	JSEntityRegisterEntitySubclass(&sEntityClass.base);
 }
 
@@ -257,13 +275,60 @@ BOOL EntityFromArgumentList(JSContext *context, NSString *scriptClass, NSString 
 }
 
 
+JSBool JSEntityConvert(JSContext *context, JSObject *this, JSType type, jsval *outValue)
+{
+	Entity					*entity = nil;
+	
+	switch (type)
+	{
+		case JSTYPE_VOID:		// Used for string concatenation.
+		case JSTYPE_STRING:
+			// Return description of entity
+			if (JSEntityGetEntity(context, this, &entity))
+			{
+				*outValue = [[entity description] javaScriptValueInContext:context];
+			}
+			else
+			{
+				*outValue = STRING_TO_JSVAL(JS_InternString(context, "[stale Entity]"));
+			}
+			return YES;
+			
+		default:
+			// Contrary to what passes for documentation, JS_ConvertStub is not a no-op.
+			return JS_ConvertStub(context, this, type, outValue);
+	}
+}
+
+
+void JSEntityFinalize(JSContext *context, JSObject *this)
+{
+	OOLog(@"js.entity.temp", @"%@ called for %p", this);
+	[(id)JS_GetPrivate(context, this) release];
+	JS_SetPrivate(context, this, nil);
+}
+
+
+JSBool JSEntityEquality(JSContext *context, JSObject *this, jsval value, JSBool *outEqual)
+{
+	Entity					*thisEnt, *thatEnt;
+	
+	// No failures or diagnostic messages.
+	JSEntityGetEntity(context, this, &thisEnt);
+	JSValueToEntity(context, value, &thatEnt);
+	
+	*outEqual = [thisEnt isEqual:thatEnt];	// Note ![nil isEqual:nil], so two stale entity refs will not be equal.
+	return YES;
+}
+
+
 static JSBool EntityGetProperty(JSContext *context, JSObject *this, jsval name, jsval *outValue)
 {
 	Entity						*entity = nil;
 	id							result = nil;
 	
 	if (!JSVAL_IS_INT(name))  return YES;
-	if (!JSEntityGetEntity(context, this, &entity)) return NO;
+	if (!JSEntityGetEntity(context, this, &entity)) return NO;	// NOTE: entity may be nil.
 	
 	switch (JSVAL_TO_INT(name))
 	{
@@ -280,7 +345,10 @@ static JSBool EntityGetProperty(JSContext *context, JSObject *this, jsval name, 
 			break;
 		
 		case kEntity_heading:
-			VectorToJSValue(context, vector_forward_from_quaternion(entity->orientation), outValue);
+			if (entity != nil)
+			{
+				VectorToJSValue(context, vector_forward_from_quaternion(entity->orientation), outValue);
+			}
 			break;
 		
 		case kEntity_status:
@@ -288,7 +356,7 @@ static JSBool EntityGetProperty(JSContext *context, JSObject *this, jsval name, 
 			break;
 		
 		case kEntity_scanClass:
-			result = EntityStatusToString([entity scanClass]);
+			result = ScanClassToString([entity scanClass]);
 			break;
 		
 		case kEntity_mass:
@@ -307,6 +375,26 @@ static JSBool EntityGetProperty(JSContext *context, JSObject *this, jsval name, 
 		
 		case kEntity_maxEnergy:
 			JS_NewDoubleValue(context, [entity maxEnergy], outValue);
+			break;
+		
+		case kEntity_isValid:
+			*outValue = BOOLToJSVal(entity != nil);
+			break;
+		
+		case kEntity_isShip:
+			*outValue = BOOLToJSVal(entity != nil && entity->isShip);
+			break;
+		
+		case kEntity_isStation:
+			*outValue = BOOLToJSVal(entity != nil && entity->isStation);
+			break;
+		
+		case kEntity_isPlayer:
+			*outValue = BOOLToJSVal(entity != nil && entity->isPlayer);
+			break;
+		
+		case kEntity_isPlanet:
+			*outValue = BOOLToJSVal(entity != nil && entity->isPlanet);
 			break;
 		
 		default:
@@ -345,52 +433,6 @@ static JSBool EntitySetProperty(JSContext *context, JSObject *this, jsval name, 
 }
 
 
-static JSBool EntityConvert(JSContext *context, JSObject *this, JSType type, jsval *outValue)
-{
-	Entity					*entity = nil;
-	
-	switch (type)
-	{
-		case JSTYPE_VOID:		// Used for string concatenation.
-		case JSTYPE_STRING:
-			// Return description of entity
-			if (JSEntityGetEntity(context, this, &entity))
-			{
-				*outValue = [[entity description] javaScriptValueInContext:context];
-			}
-			else
-			{
-				*outValue = STRING_TO_JSVAL(JS_InternString(context, "[stale Entity]"));
-			}
-			return YES;
-		
-		default:
-			// Contrary to what passes for documentation, JS_ConvertStub is not a no-op.
-			return JS_ConvertStub(context, this, type, outValue);
-	}
-}
-
-
-static void EntityFinalize(JSContext *context, JSObject *this)
-{
-	OOLog(@"js.entity.temp", @"%@ called for %p", this);
-	[(id)JS_GetInstancePrivate(context, this, &sEntityClass.base, NULL) release];
-}
-
-
-static JSBool EntityEquality(JSContext *context, JSObject *this, jsval value, JSBool *outEqual)
-{
-	Entity					*thisEnt, *thatEnt;
-	
-	// No failures or diagnostic messages.
-	JSEntityGetEntity(context, this, &thisEnt);
-	JSEntityGetEntity(context, JSVAL_TO_OBJECT(value), &thatEnt);
-	
-	*outEqual = [thisEnt isEqual:thatEnt];	// Note ![nil isEqual:nil], so two stale entity refs will not be equal.
-	return YES;
-}
-
-
 static JSBool EntitySetPosition(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
 {
 	Entity					*thisEnt;
@@ -421,7 +463,8 @@ static JSBool EntityValid(JSContext *context, JSObject *this, uintN argc, jsval 
 {
 	Entity					*thisEnt;
 	
-	*outResult = BOOLToJSVal(JSEntityGetEntity(context, this, &thisEnt));
+	OOReportJavaScriptWarning(context, @"Player.%@ is deprecated, use Player.%@ instead.", @"valid()", @"isValid property");
+	*outResult = BOOLToJSVal(JSEntityGetEntity(context, this, &thisEnt) && thisEnt != nil);
 	return YES;
 }
 
@@ -434,4 +477,19 @@ static JSBool EntityCall(JSContext *context, JSObject *this, uintN argc, jsval *
 	if (entity == nil)  return YES;	// Stale entity
 	
 	return OOJSCallObjCObjectMethod(context, entity, [entity jsClassName], argc, argv, outResult);
+}
+
+
+static JSBool EntityStaticEntityWithID(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
+{
+	Entity					*result = nil;
+	int32					ID;
+	
+	if (JS_ValueToInt32(context, *argv, &ID))
+	{
+		result = [UNIVERSE entityForUniversalID:ID];
+	}
+	
+	if (result != nil)  *outResult = [result javaScriptValueInContext:context];
+	return YES;
 }
