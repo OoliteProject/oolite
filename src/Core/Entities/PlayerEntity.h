@@ -204,7 +204,7 @@ typedef enum
 	
 	NSDictionary			*script;
 	NSMutableDictionary		*mission_variables;
-	NSMutableDictionary		*local_variables;
+	NSMutableDictionary		*localVariables;
 	int						missionTextRow;
 	ShipEntity				*script_target;
 	NSString				*missionChoice;

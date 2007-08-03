@@ -344,7 +344,7 @@ NSString *ExpandDescriptionsWithLocalsForSystemSeed(NSString *text, Random_Seed 
 		else
 		{
 			// do replacement of mission and local variables here instead
-			part = ReplaceVariables(middle, NULL, NULL);
+			part = ReplaceVariables(middle, NULL, locals);
 		}
 		
 		partial = [NSMutableString stringWithFormat:@"%@%@%@",before,part,after];

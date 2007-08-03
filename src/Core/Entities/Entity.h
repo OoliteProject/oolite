@@ -156,6 +156,7 @@ typedef struct
 	OOTimeAbsolute			spawnTime;
 }
 
+- (BOOL) validForAddToUniverse;
 - (void) addToLinkedLists;
 - (void) removeFromLinkedLists;
 

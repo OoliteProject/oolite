@@ -815,11 +815,9 @@ static PlayerEntity *sSharedPlayer = nil;
 	
 	[mission_variables release];
 	mission_variables = [[NSMutableDictionary alloc] init];
-	[local_variables release];
-	// TODO: local_variable subdicts should be set up on the fly. -- Ahruman
-	local_variables = [[NSMutableDictionary alloc] init];
-	NSArray *scriptKeys = [script allKeys];
-	for (i = 0; i < [scriptKeys count]; i++)  [local_variables setObject:[NSMutableDictionary dictionary] forKey:[scriptKeys objectAtIndex:i]];
+	
+	[localVariables release];
+	localVariables = [[NSMutableDictionary alloc] init];
 	
 	[self setScriptTarget:nil];
 	[self resetMissionChoice];
@@ -1219,7 +1217,7 @@ static PlayerEntity *sSharedPlayer = nil;
     [script release];
     [mission_variables release];
 
-	[local_variables release];
+	[localVariables release];
 
 	[lastTextKey release];
 
@@ -1284,6 +1282,13 @@ static PlayerEntity *sSharedPlayer = nil;
 {
 	return NSOrderedDescending;  // always the most near
 }
+
+
+- (BOOL) validForAddToUniverse
+{
+	return YES;
+}
+
 
 double scoopSoundPlayTime = 0.0;
 - (void) update:(double) delta_t

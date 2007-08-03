@@ -101,6 +101,10 @@ static NSString * const kOOLogSyntaxMessageShipAIs			= @"script.debug.syntax.mes
 	   NSString * const kOOLogSyntaxAddShips				= @"script.debug.syntax.addShips";
 static NSString * const kOOLogSyntaxSet						= @"script.debug.syntax.set";
 static NSString * const kOOLogSyntaxReset					= @"script.debug.syntax.reset";
+static NSString * const kOOLogSyntaxIncrement				= @"script.debug.syntax.increment";
+static NSString * const kOOLogSyntaxDecrement				= @"script.debug.syntax.decrement";
+static NSString * const kOOLogSyntaxAdd						= @"script.debug.syntax.add";
+static NSString * const kOOLogSyntaxSubtract				= @"script.debug.syntax.subtract";
 
 static NSString * const kOOLogRemoveAllCargoNotDocked		= @"script.error.removeAllCargo.notDocked";
 
@@ -144,7 +148,7 @@ static NSString * mission_key;
 	
 	for (i = 0; i < [some_actions count]; i++)
 	{
-		NSObject* action = [some_actions objectAtIndex:i];
+		id action = [some_actions objectAtIndex:i];
 		if ([action isKindOfClass:[NSDictionary class]])
 			[self checkCouplet:(NSDictionary *)action onEntity: a_target];
 		if ([action isKindOfClass:[NSString class]])
@@ -239,7 +243,7 @@ static NSString * mission_key;
 
 	*/
 	NSMutableArray*	tokens = ScanTokensFromString(scriptAction);
-	NSMutableDictionary* locals = [local_variables objectForKey:mission_key];
+	NSMutableDictionary* locals = [self localVariablesForMission:mission_key];
 	NSString*   selectorString = nil;
 	NSString*	valueString = nil;
 	SEL			_selector;
@@ -252,7 +256,7 @@ static NSString * mission_key;
 		return;
 	}
 
-	selectorString = (NSString *)[tokens objectAtIndex:0];
+	selectorString = [tokens objectAtIndex:0];
 
 	if ([tokens count] > 1)
 	{
@@ -316,7 +320,7 @@ static NSString * mission_key;
 
 	*/
 	NSArray*	tokens = ScanTokensFromString(scriptCondition);
-	NSMutableDictionary* locals = [local_variables objectForKey:mission_key];
+	NSMutableDictionary* locals = [self localVariablesForMission:mission_key];
 	NSString*   selectorString = nil;
 	NSString*	comparisonString = nil;
 	NSString*	valueString = nil;
@@ -504,7 +508,7 @@ static NSString * mission_key;
 - (NSString *)missionVariableForKey:(NSString *)key
 {
 	NSString *result = nil;
-	if (key != nil) result = [mission_variables objectForKey:key];
+	if (key != nil)  result = [mission_variables objectForKey:key];
 	return result;
 }
 
@@ -513,8 +517,50 @@ static NSString * mission_key;
 {
 	if (key != nil)
 	{
-		if (value != nil) [mission_variables setObject:value forKey:key];
+		if (value != nil)  [mission_variables setObject:value forKey:key];
 		else [mission_variables removeObjectForKey:key];
+	}
+}
+
+
+- (NSMutableDictionary *)localVariablesForMission:(NSString *)missionKey
+{
+	NSMutableDictionary		*result = nil;
+	
+	if (missionKey == nil)  return nil;
+	
+	result = [localVariables objectForKey:missionKey];
+	if (result == nil)
+	{
+		result = [NSMutableDictionary dictionary];
+		[localVariables setObject:result forKey:missionKey];
+	}
+	
+	return result;
+}
+
+
+- (NSString *)localVariableForKey:(NSString *)variableName andMission:(NSString *)missionKey
+{
+	return [[localVariables objectForKey:missionKey] objectForKey:variableName];
+}
+
+
+- (void)setLocalVariable:(NSString *)value forKey:(NSString *)variableName andMission:(NSString *)missionKey
+{
+	NSMutableDictionary		*locals = nil;
+	
+	if (variableName != nil && missionKey != nil)
+	{
+		locals = [self localVariablesForMission:missionKey];
+		if (value != nil)
+		{
+			[locals setObject:value forKey:variableName];
+		}
+		else
+		{
+			[locals removeObjectForKey:variableName];
+		}
 	}
 }
 
@@ -1349,11 +1395,10 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 
 - (void) set:(NSString *)missionvariable_value
 {
-	NSMutableArray*	tokens = ScanTokensFromString(missionvariable_value);
-	NSMutableDictionary* locals = [local_variables objectForKey:mission_key];
-	NSString*   missionVariableString = nil;
-	NSString*	valueString = nil;
-	BOOL hasMissionPrefix, hasLocalPrefix;
+	NSMutableArray		*tokens = ScanTokensFromString(missionvariable_value);
+	NSString			*missionVariableString = nil;
+	NSString			*valueString = nil;
+	BOOL				hasMissionPrefix, hasLocalPrefix;
 
 	if ([tokens count] < 2)
 	{
@@ -1361,7 +1406,7 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 		return;
 	}
 
-	missionVariableString = (NSString *)[tokens objectAtIndex:0];
+	missionVariableString = [tokens objectAtIndex:0];
 	[tokens removeObjectAtIndex:0];
 	valueString = [tokens componentsJoinedByString:@" "];
 
@@ -1377,9 +1422,13 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 	OOLog(kOOLogNoteSet, @"SCRIPT %@ is set to %@", missionVariableString, valueString);
 	
 	if (hasMissionPrefix)
-		[mission_variables setObject:valueString forKey:missionVariableString];
+	{
+		[self setMissionVariable:valueString forKey:missionVariableString];
+	}
 	else
-		[locals setObject:valueString forKey:missionVariableString];
+	{
+		[self setLocalVariable:valueString forKey:missionVariableString andMission:mission_key];
+	}
 }
 
 
@@ -1393,12 +1442,11 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 
 	if (hasMissionPrefix)
 	{
-		[mission_variables removeObjectForKey:missionVariableString];
+		[self setMissionVariable:nil forKey:missionVariableString];
 	}
 	else if (hasLocalPrefix)
 	{
-		NSMutableDictionary* locals = [local_variables objectForKey:mission_key];
-		[locals removeObjectForKey:missionVariableString];
+		[self setLocalVariable:nil forKey:missionVariableString andMission:mission_key];
 	}
 	else
 	{
@@ -1417,18 +1465,19 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 
 	if (hasMissionPrefix)
 	{
-		if ([mission_variables objectForKey:missionVariableString])
-			value = [(NSString *)[mission_variables objectForKey:missionVariableString] intValue];
+		value = [[self missionVariableForKey:missionVariableString] intValue];
 		value++;
-		[mission_variables setObject:[NSString stringWithFormat:@"%d", value] forKey:missionVariableString];
+		[self setMissionVariable:[NSString stringWithFormat:@"%d", value] forKey:missionVariableString];
 	}
 	else if (hasLocalPrefix)
 	{
-		NSMutableDictionary* locals = [local_variables objectForKey:mission_key];
-		if ([locals objectForKey:missionVariableString])
-			value = [(NSString *)[locals objectForKey:missionVariableString] intValue];
+		value = [[self localVariableForKey:missionVariableString andMission:mission_key] intValue];
 		value++;
-		[locals setObject:[NSString stringWithFormat:@"%d", value] forKey:missionVariableString];
+		[self setLocalVariable:[NSString stringWithFormat:@"%d", value] forKey:missionVariableString andMission:mission_key];
+	}
+	else
+	{
+		OOLog(kOOLogSyntaxIncrement, @"***** IDENTIFIER '%@' DOES NOT BEGIN WITH 'mission_' or 'local_'", missionVariableString);
 	}
 }
 
@@ -1440,21 +1489,22 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 
 	hasMissionPrefix = [missionVariableString hasPrefix:@"mission_"];
 	hasLocalPrefix = [missionVariableString hasPrefix:@"local_"];
-
+	
 	if (hasMissionPrefix)
 	{
-		if ([mission_variables objectForKey:missionVariableString])
-			value = [(NSString *)[mission_variables objectForKey:missionVariableString] intValue];
+		value = [[self missionVariableForKey:missionVariableString] intValue];
 		value--;
-		[mission_variables setObject:[NSString stringWithFormat:@"%d", value] forKey:missionVariableString];
+		[self setMissionVariable:[NSString stringWithFormat:@"%d", value] forKey:missionVariableString];
 	}
 	else if (hasLocalPrefix)
 	{
-		NSMutableDictionary* locals = [local_variables objectForKey:mission_key];
-		if ([locals objectForKey:missionVariableString])
-			value = [(NSString *)[locals objectForKey:missionVariableString] intValue];
+		value = [[self localVariableForKey:missionVariableString andMission:mission_key] intValue];
 		value--;
-		[locals setObject:[NSString stringWithFormat:@"%d", value] forKey:missionVariableString];
+		[self setLocalVariable:[NSString stringWithFormat:@"%d", value] forKey:missionVariableString andMission:mission_key];
+	}
+	else
+	{
+		OOLog(kOOLogSyntaxDecrement, @"***** IDENTIFIER '%@' DOES NOT BEGIN WITH 'mission_' or 'local_'", missionVariableString);
 	}
 }
 
@@ -1465,16 +1515,15 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 	NSString*   valueString;
 	double	value;
 	NSMutableArray*	tokens = ScanTokensFromString(missionVariableString_value);
-	NSMutableDictionary* locals = [local_variables objectForKey:mission_key];
 	BOOL hasMissionPrefix, hasLocalPrefix;
 
 	if ([tokens count] < 2)
 	{
-		NSLog(@"***** CANNOT ADD: '%@'",missionVariableString_value);
+		OOLog(kOOLogSyntaxAdd, @"***** CANNOT ADD: '%@'",missionVariableString_value);
 		return;
 	}
 
-	missionVariableString = (NSString *)[tokens objectAtIndex:0];
+	missionVariableString = [tokens objectAtIndex:0];
 	[tokens removeObjectAtIndex:0];
 	valueString = [tokens componentsJoinedByString:@" "];
 
@@ -1483,22 +1532,19 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 
 	if (hasMissionPrefix)
 	{
-		value = [[mission_variables objectForKey:missionVariableString] doubleValue];
+		value = [[self missionVariableForKey:missionVariableString] doubleValue];
 		value += [valueString doubleValue];
-
-		[mission_variables setObject:[NSString stringWithFormat:@"%f", value] forKey:missionVariableString];
+		[self setMissionVariable:[NSString stringWithFormat:@"%f", value] forKey:missionVariableString];
 	}
 	else if (hasLocalPrefix)
 	{
-		value = [[locals objectForKey:missionVariableString] doubleValue];
+		value = [[self localVariableForKey:missionVariableString andMission:mission_key] doubleValue];
 		value += [valueString doubleValue];
-
-		[locals setObject:[NSString stringWithFormat:@"%f", value] forKey:missionVariableString];
+		[self setLocalVariable:[NSString stringWithFormat:@"%f", value] forKey:missionVariableString andMission:mission_key];
 	}
 	else
 	{
-		NSLog(@"***** CANNOT ADD: '%@'",missionVariableString_value);
-		NSLog(@"***** IDENTIFIER '%@' DOES NOT BEGIN WITH 'mission_' or 'local_'",missionVariableString);
+		OOLog(kOOLogSyntaxAdd, @"***** CANNOT ADD: '%@' -- IDENTIFIER '%@' DOES NOT BEGIN WITH 'mission_' or 'local_'", missionVariableString_value);
 	}
 }
 
@@ -1509,7 +1555,6 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 	NSString*   valueString;
 	double	value;
 	NSMutableArray*	tokens = ScanTokensFromString(missionVariableString_value);
-	NSMutableDictionary* locals = [local_variables objectForKey:mission_key];
 	BOOL hasMissionPrefix, hasLocalPrefix;
 
 	if ([tokens count] < 2)
@@ -1524,25 +1569,22 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 
 	hasMissionPrefix = [missionVariableString hasPrefix:@"mission_"];
 	hasLocalPrefix = [missionVariableString hasPrefix:@"local_"];
-
+	
 	if (hasMissionPrefix)
 	{
-		value = [[mission_variables objectForKey:missionVariableString] doubleValue];
+		value = [[self missionVariableForKey:missionVariableString] doubleValue];
 		value -= [valueString doubleValue];
-
-		[mission_variables setObject:[NSString stringWithFormat:@"%f", value] forKey:missionVariableString];
+		[self setMissionVariable:[NSString stringWithFormat:@"%f", value] forKey:missionVariableString];
 	}
 	else if (hasLocalPrefix)
 	{
-		value = [[locals objectForKey:missionVariableString] doubleValue];
+		value = [[self localVariableForKey:missionVariableString andMission:mission_key] doubleValue];
 		value -= [valueString doubleValue];
-
-		[locals setObject:[NSString stringWithFormat:@"%f", value] forKey:missionVariableString];
+		[self setLocalVariable:[NSString stringWithFormat:@"%f", value] forKey:missionVariableString andMission:mission_key];
 	}
 	else
 	{
-		NSLog(@"***** CANNOT SUBTRACT: '%@'",missionVariableString_value);
-		NSLog(@"***** IDENTIFIER '%@' DOES NOT BEGIN WITH 'mission_' or 'local_'",missionVariableString);
+		OOLog(kOOLogSyntaxAdd, @"***** CANNOT ADD: '%@' -- IDENTIFIER '%@' DOES NOT BEGIN WITH 'mission_' or 'local_'", missionVariableString_value);
 	}
 }
 
@@ -1956,7 +1998,7 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 
 - (NSString*) replaceVariablesInString:(NSString*) args
 {
-	NSMutableDictionary	*locals = [local_variables objectForKey:mission_key];
+	NSMutableDictionary	*locals = [self localVariablesForMission:mission_key];
 	NSMutableString		*resultString = [NSMutableString stringWithString: args];
 	NSString			*valueString;
 	unsigned			i;

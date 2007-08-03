@@ -97,6 +97,12 @@ static NSString * const kOOLogEntityUpdateError				= @"entity.linkedList.update.
 }
 
 
+- (BOOL) validForAddToUniverse
+{
+	return YES;
+}
+
+
 - (void) addToLinkedLists
 {
 #ifndef NDEBUG

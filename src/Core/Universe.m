@@ -3980,6 +3980,8 @@ static BOOL MaintainLinkedLists(Universe* uni)
 			OOLog(@"universe.addEntity", @"Adding entity: %@", entity);
 #endif
 		
+		if (![entity validForAddToUniverse])  return NO;
+		
 		int index = n_entities;
 		
 		// don't add things twice!

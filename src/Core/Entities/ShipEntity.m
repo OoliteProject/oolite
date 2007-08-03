@@ -1046,11 +1046,24 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 }
 
 
+- (BOOL) validForAddToUniverse
+{
+	if (shipinfoDictionary == nil)
+	{
+		OOLog(@"shipEntity.notDict", @"Ship %@ was not set up from dictionary.", self);
+		return NO;
+	}
+	return YES;
+}
+
+
 - (void) update:(double) delta_t
 {
 	if (shipinfoDictionary == nil)
 	{
 		OOLog(@"shipEntity.notDict", @"Ship %@ was not set up from dictionary.", self);
+		[UNIVERSE removeEntity:self];
+		return;
 	}
 	
 	//

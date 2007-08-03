@@ -24,6 +24,7 @@
 			<true/>
 			<!-- NOTE: for reasons of backwards compatibility, this defaults to true for equipment whose key ends with MISSILE or MINE. -->
 			<key>requires_empty_pylon</key>
+			<true/>
 		</dict>
 	</array>
 	<array>
@@ -207,6 +208,7 @@
 			<true/>
 			<!-- NOTE: for reasons of backwards compatibility, this defaults to true for equipment whose key ends with MISSILE or MINE. -->
 			<key>requires_empty_pylon</key>
+			<true/>
 		</dict>
 	</array>
 	<array>

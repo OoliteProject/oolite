@@ -45,6 +45,10 @@ MA 02110-1301, USA.
 - (NSString *)missionVariableForKey:(NSString *)key;
 - (void)setMissionVariable:(NSString *)value forKey:(NSString *)key;
 
+- (NSMutableDictionary *)localVariablesForMission:(NSString *)missionKey;
+- (NSString *)localVariableForKey:(NSString *)variableName andMission:(NSString *)missionKey;
+- (void)setLocalVariable:(NSString *)value forKey:(NSString *)variableName andMission:(NSString *)missionKey;
+
 /*-----------------------------------------------------*/
 
 - (NSString *) mission_string;
