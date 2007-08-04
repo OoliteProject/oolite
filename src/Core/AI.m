@@ -149,7 +149,7 @@ typedef struct
 					format:@"AI stack overflow for %@", _owner];
 	}
 	
-	if ([[self owner] reportAImessages])  OOLog(@"ai.stack.push", @"Pushing state machine for %@", self);
+	if ([[self owner] reportAIMessages])  OOLog(@"ai.stack.push", @"Pushing state machine for %@", self);
 	[aiStack insertObject:pickledMachine atIndex:0];	//  PUSH
 }
 
@@ -160,7 +160,7 @@ typedef struct
 	
 	NSMutableDictionary *pickledMachine = [aiStack objectAtIndex:0];
 	
-	if ([[self owner] reportAImessages])  OOLog(@"ai.stack.pop", @"Popping previous state machine for %@", self);
+	if ([[self owner] reportAIMessages])  OOLog(@"ai.stack.pop", @"Popping previous state machine for %@", self);
 	
 	[stateMachine release];
 	stateMachine = [[pickledMachine objectForKey:@"stateMachine"] retain];
@@ -175,6 +175,12 @@ typedef struct
 	pendingMessages = [[pickledMachine objectForKey:@"pendingMessages"] mutableCopy];  // restore a MUTABLE array
 	
 	[aiStack removeObjectAtIndex:0];   //  POP
+}
+
+
+- (BOOL) hasSuspendedStateMachines
+{
+	return [aiStack count] != 0;
 }
 
 
@@ -286,7 +292,7 @@ typedef struct
 	messagesForState = [stateMachine objectForKey:currentState];
 	if (messagesForState == nil)  return;
 	
-	if (currentState != nil && ![message isEqual:@"UPDATE"] && [owner reportAImessages])
+	if (currentState != nil && ![message isEqual:@"UPDATE"] && [owner reportAIMessages])
 	{
 		OOLog(@"ai.message.receive", @"AI for %@ in state '%@' receives message '%@'", ownerDesc, currentState, message);
 	}
@@ -327,9 +333,9 @@ typedef struct
 	NSString		*selectorStr;
 	SEL				selector;
 	ShipEntity		*owner = [self owner];
-	BOOL			report = [owner reportAImessages];
+	BOOL			report = [owner reportAIMessages];
 	
-	report = [owner reportAImessages];
+	report = [owner reportAIMessages];
 	if (report)
 	{
 		OOLog(@"ai.takeAction.takeAction", @"%@ to take action %@", ownerDesc, action);

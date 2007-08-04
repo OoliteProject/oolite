@@ -985,6 +985,8 @@ static PlayerEntity *sSharedPlayer = nil;
 	
 	lastScriptAlertCondition = [self alertCondition];
 	
+	entity_personality = ranrot_rand() & 0x7FFF;
+	
 	[self sendMessageToScripts:@"reset"];
 }
 
@@ -2760,7 +2762,7 @@ double scoopSoundPlayTime = 0.0;
 	[missile setOwner:self];
 	[missile setDistanceTravelled:0.0];
 	//debug
-	[missile setReportAImessages:YES];
+	[missile setReportAIMessages:YES];
 	
 	[UNIVERSE addEntity:missile];
 	[missile release];

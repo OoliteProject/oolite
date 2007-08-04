@@ -1010,11 +1010,11 @@ static GLfloat	texture_uv_array[10400 * 2];
 		if ([[ship roles] isEqual:@"shuttle"])
 		{
 			[ship landOnPlanet];
-			if ([ship reportAImessages])
+			if ([ship reportAIMessages])
 				NSLog(@"DEBUG %@ landed on planet %@", other, self);
 			return NO;
 		}
-		if ([ship reportAImessages])
+		if ([ship reportAIMessages])
 		{
 			Vector p1 = ship->position;
 			NSLog(@"DEBUG %@ %d collided with planet at (%.1f,%.1f,%.1f)",[ship name], [ship universalID], p1.x,p1.y,p1.z);
@@ -1673,7 +1673,7 @@ void drawActiveCorona(GLfloat inner_radius, GLfloat outer_radius, GLfloat step, 
 
 		[shuttle_ship setStatus:STATUS_IN_FLIGHT];
 
-		//[shuttle_ship setReportAImessages:YES]; // debug
+		//[shuttle_ship setReportAIMessages:YES]; // debug
 
 		[UNIVERSE addEntity:shuttle_ship];
 		[[shuttle_ship getAI] setStateMachine:@"risingShuttleAI.plist"];	// must happen after adding to the universe!

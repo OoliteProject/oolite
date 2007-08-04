@@ -7636,18 +7636,18 @@ static NSComparisonResult comparePrice(NSDictionary *dict1, NSDictionary *dict2,
 					firstBeacon = [se nextBeaconID];
 				else
 				{
-					ShipEntity* beacon = (ShipEntity*)[self entityForUniversalID:bid];
+					ShipEntity* beacon = [self entityForUniversalID:bid];
 					while ((beacon != nil)&&([beacon nextBeaconID] != old_id))
-						beacon = (ShipEntity*)[self entityForUniversalID:[beacon nextBeaconID]];
+						beacon = [self entityForUniversalID:[beacon nextBeaconID]];
 					
-					[beacon setNextBeacon:(ShipEntity*)[self entityForUniversalID:[se nextBeaconID]]];
+					[beacon setNextBeacon:[self entityForUniversalID:[se nextBeaconID]]];
 					
 					while ([beacon nextBeaconID] != NO_TARGET)
-						beacon = (ShipEntity*)[self entityForUniversalID:[beacon nextBeaconID]];
+						beacon = [self entityForUniversalID:[beacon nextBeaconID]];
 					lastBeacon = [beacon universalID];
 				}
+				[se setBeaconCode:nil];
 			}
-			[se setBeaconChar:0];
 		}
 		
 		

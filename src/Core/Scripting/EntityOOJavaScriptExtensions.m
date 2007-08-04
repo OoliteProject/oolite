@@ -49,6 +49,36 @@ MA 02110-1301, USA.
 }
 
 
+- (BOOL)isShip
+{
+	return isShip;
+}
+
+
+- (BOOL)isStation
+{
+	return isStation;
+}
+
+
+- (BOOL)isSubEntity
+{
+	return isSubentity;
+}
+
+
+- (BOOL)isPlayer
+{
+	return isPlayer;
+}
+
+
+- (BOOL)isPlanet
+{
+	return isPlanet;
+}
+
+
 - (jsval)javaScriptValueInContext:(JSContext *)context
 {
 	jsval result = JSVAL_NULL;
@@ -93,7 +123,7 @@ MA 02110-1301, USA.
 	count = [sub_entities count];
 	if (count == 0)  return nil;
 	
-	result = [NSMutableArray arrayWithCapacity:count];
+	result = [[NSMutableArray alloc] initWithCapacity:count];
 	for (i = 0; i != count; ++i)
 	{
 		object = [sub_entities objectAtIndex:i];
@@ -103,8 +133,59 @@ MA 02110-1301, USA.
 		}
 	}
 	
-	if ([result count] == 0)  result = nil;
-	return result;
+	if ([result count] == 0)
+	{
+		[result release];
+		return nil;
+	}
+	else
+	{
+		return [result autorelease];
+	}
+}
+
+
+- (NSArray *)escorts
+{
+	unsigned			i;
+	NSMutableArray		*result = nil;
+	id					object = nil;
+	
+	if (escortCount == 0)  return nil;
+	result = [NSMutableArray arrayWithCapacity:escortCount];
+	
+	for (i = 0; i != escortCount; ++i)
+	{
+		object = [UNIVERSE entityForUniversalID:escort_ids[i]];
+		if ([object isKindOfClass:[ShipEntity class]])
+		{
+			[result addObject:object];
+		}
+	}
+	
+	if ([result count] == 0)
+	{
+		[result release];
+		return nil;
+	}
+	else
+	{
+		return [result autorelease];
+	}
+}
+
+
+- (void)setTargetForScript:(ShipEntity *)target
+{
+	ShipEntity			*me = self;
+	
+	// Ensure coherence by not fiddling with subentities
+	while ([me isSubEntity])  me = (ShipEntity *)[me owner];
+	while ([target isSubEntity])  target = (ShipEntity *)[target owner];
+	
+	if (![me isKindOfClass:[ShipEntity class]])  return;
+	if (target != nil)  [me addTarget:target];
+	else  [me removeTarget:[me primaryTarget]];
 }
 
 @end

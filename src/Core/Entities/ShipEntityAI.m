@@ -59,6 +59,7 @@ MA 02110-1301, USA.
 	[shipAI setNextThinkTime:[UNIVERSE getTime] + [intervalString doubleValue]];
 }
 
+
 - (void) setDestinationToCurrentLocation
 {
 	destination = position;
@@ -67,10 +68,12 @@ MA 02110-1301, USA.
 	destination.z += (ranrot_rand() % 100)*0.01 - 0.5;
 }
 
+
 - (void) setDesiredRangeTo:(NSString *)rangeString
 {
 	desired_range = [rangeString doubleValue];
 }
+
 
 - (void) performFlyToRangeFromDestination
 {
@@ -78,21 +81,25 @@ MA 02110-1301, USA.
 	frustration = 0.0;
 }
 
+
 - (void) setSpeedTo:(NSString *)speedString
 {
 	desired_speed = [speedString doubleValue];
 }
+
 
 - (void) setSpeedFactorTo:(NSString *)speedString
 {
 	desired_speed = maxFlightSpeed * [speedString doubleValue];
 }
 
+
 - (void) performIdle
 {
 	behaviour = BEHAVIOUR_IDLE;
 	frustration = 0.0;
 }
+
 
 - (void) performStop
 {
@@ -101,12 +108,14 @@ MA 02110-1301, USA.
 	frustration = 0.0;
 }
 
+
 - (void) performHold
 {
 	desired_speed = 0.0;
 	behaviour = BEHAVIOUR_TRACK_TARGET;
 	frustration = 0.0;
 }
+
 
 - (void) setTargetToPrimaryAggressor
 {
@@ -143,11 +152,13 @@ MA 02110-1301, USA.
 	[self addTarget:[UNIVERSE entityForUniversalID:primaryAggressor]];
 }
 
+
 - (void) performAttack
 {
 	behaviour = BEHAVIOUR_ATTACK_TARGET;
 	frustration = 0.0;
 }
+
 
 - (void) scanForNearestMerchantmen
 {
@@ -179,6 +190,7 @@ MA 02110-1301, USA.
 		[shipAI message:@"NOTHING_FOUND"];
 }
 
+
 - (void) scanForRandomMerchantmen
 {
 	//-- Locates one of the merchantman in range --//
@@ -204,6 +216,7 @@ MA 02110-1301, USA.
 	[shipAI message:@"TARGET_FOUND"];
 	return;
 }
+
 
 - (void) scanForLoot
 {
@@ -260,6 +273,7 @@ MA 02110-1301, USA.
 		[shipAI message:@"NOTHING_FOUND"];
 }
 
+
 - (void) scanForRandomLoot
 {
 	/*-- Locates the all debris in range and chooses a piece at random from the first sixteen found --*/
@@ -294,11 +308,13 @@ MA 02110-1301, USA.
 		[shipAI message:@"NOTHING_FOUND"];
 }
 
+
 - (void) setTargetToFoundTarget
 {
 	if ([UNIVERSE entityForUniversalID:found_target])
 		[self addTarget:[UNIVERSE entityForUniversalID:found_target]];
 }
+
 
 - (void) checkForFullHold
 {
@@ -306,11 +322,13 @@ MA 02110-1301, USA.
 		[shipAI message:@"HOLD_FULL"];
 }
 
+
 - (void) performCollect
 {
 	behaviour = BEHAVIOUR_COLLECT_TARGET;
 	frustration = 0.0;
 }
+
 
 - (void) performIntercept
 {
@@ -318,11 +336,13 @@ MA 02110-1301, USA.
 	frustration = 0.0;
 }
 
+
 - (void) performFlee
 {
 	behaviour = BEHAVIOUR_FLEE_TARGET;
 	frustration = 0.0;
 }
+
 
 - (void) getWitchspaceEntryCoordinates
 {
@@ -374,21 +394,25 @@ MA 02110-1301, USA.
 	}
 }
 
+
 - (void) setDestinationFromCoordinates
 {
 	destination = coordinates;
 }
+
 
 - (void) performDocking
 {
 	NSLog(@"ShipEntity.performDocking NOT IMPLEMENTED!");
 }
 
+
 - (void) performFaceDestination
 {
 	behaviour = BEHAVIOUR_FACE_DESTINATION;
 	frustration = 0.0;
 }
+
 
 - (void) performTumble
 {
@@ -397,6 +421,7 @@ MA 02110-1301, USA.
 	behaviour = BEHAVIOUR_TUMBLE;
 	frustration = 0.0;
 }
+
 
 - (void) fightOrFleeMissile
 {
@@ -505,6 +530,7 @@ MA 02110-1301, USA.
 	return the_planet;
 }
 
+
 - (void) setCourseToPlanet
 {
 	/*- selects the nearest planet it can find -*/
@@ -524,6 +550,7 @@ MA 02110-1301, USA.
 	}
 }
 
+
 - (void) setTakeOffFromPlanet
 {
 	/*- selects the nearest planet it can find -*/
@@ -537,6 +564,7 @@ MA 02110-1301, USA.
 		NSLog(@"***** Ackk!! planet not found!!!");
 }
 
+
 - (void) landOnPlanet
 {
 	/*- selects the nearest planet it can find -*/
@@ -549,16 +577,19 @@ MA 02110-1301, USA.
 	[UNIVERSE removeEntity:self];
 }
 
+
 - (void) setAITo:(NSString *)aiString
 {
 	[[self getAI] setStateMachine:aiString];
 }
+
 
 - (void) switchAITo:(NSString *)aiString
 {
 	[[self getAI] setStateMachine:aiString];
 	[[self getAI] clearStack];
 }
+
 
 - (void) checkTargetLegalStatus
 {
@@ -590,10 +621,12 @@ MA 02110-1301, USA.
 	}
 }
 
+
 - (void) exitAI
 {
 	[shipAI exitStateMachine];
 }
+
 
 - (void) setDestinationToTarget
 {
@@ -601,6 +634,7 @@ MA 02110-1301, USA.
 	if (the_target)
 		destination = the_target->position;
 }
+
 
 - (void) setDestinationWithinTarget
 {
@@ -614,6 +648,7 @@ MA 02110-1301, USA.
 		destination = make_vector(pos.x + d * v.x, pos.y + d * v.y, pos.z + d * v.z);
 	}
 }
+
 
 - (void) checkCourseToDestination
 {
@@ -630,6 +665,7 @@ MA 02110-1301, USA.
 		[shipAI message:@"WAYPOINT_SET"];
 	}
 }
+
 
 - (void) scanForOffenders
 {
@@ -670,6 +706,7 @@ MA 02110-1301, USA.
 		[shipAI message:@"NOTHING_FOUND"];
 }
 
+
 - (void) setCourseToWitchpoint
 {
 	if (UNIVERSE)
@@ -678,6 +715,7 @@ MA 02110-1301, USA.
 		desired_range = 10000.0;   // 10km away
 	}
 }
+
 
 - (void) setDestinationToWitchpoint
 {
@@ -749,6 +787,7 @@ WormholeEntity*	whole;
 	[self enterWormhole:whole replacing:replace];	// TODO
 }
 
+
 - (void) wormholeEscorts
 {
 	if (escortCount < 1)
@@ -780,6 +819,7 @@ WormholeEntity*	whole;
 
 }
 
+
 - (void) wormholeGroup
 {
 	NSArray* group = [self shipsInGroup: universalID];	// ships in group of which this is a leader
@@ -798,6 +838,7 @@ WormholeEntity*	whole;
 		}
 	}
 }
+
 
 - (void) wormholeEntireGroup
 {
@@ -818,6 +859,7 @@ WormholeEntity*	whole;
 	}
 }
 
+
 - (void) commsMessage:(NSString *)valueString
 {
 	Random_Seed very_random_seed;
@@ -833,6 +875,7 @@ WormholeEntity*	whole;
 
 	[self broadcastMessage:expandedMessage];
 }
+
 
 - (void) broadcastDistressMessage
 {
@@ -886,6 +929,7 @@ WormholeEntity*	whole;
 	}
 }
 
+
 - (void) acceptDistressMessageFrom:(ShipEntity *)other
 {
 	found_target = [[other primaryTarget] universalID];
@@ -908,6 +952,7 @@ WormholeEntity*	whole;
 			break;
 	}
 }
+
 
 - (void) ejectCargo
 {
@@ -933,6 +978,7 @@ WormholeEntity*	whole;
 		[self performSelector:_dumpCargoSelector withObject:nil afterDelay:0.75 * i];	// drop 3 canisters per 2 seconds
 	}
 }
+
 
 - (void) scanForThargoid
 {
@@ -961,6 +1007,7 @@ WormholeEntity*	whole;
 		[shipAI message:@"NOTHING_FOUND"];
 }
 
+
 - (void) scanForNonThargoid
 {
 	/*-- Locates all the non thargoid ships in range and chooses the nearest --*/
@@ -986,6 +1033,7 @@ WormholeEntity*	whole;
 		[shipAI message:@"NOTHING_FOUND"];
 }
 
+
 - (void) becomeUncontrolledThargon
 {
 	int			ent_count =		UNIVERSE->n_entities;
@@ -1002,11 +1050,12 @@ WormholeEntity*	whole;
 	}
 	// now we're just a bunch of alien artefacts!
 	scanClass = CLASS_CARGO;
-	reportAImessages = NO;
+	reportAIMessages = NO;
 	[shipAI setStateMachine:@"dumbAI.plist"];
 	primaryTarget = NO_TARGET;
 	[self setSpeed: 0.0];
 }
+
 
 - (void) initialiseTurret
 {
@@ -1015,11 +1064,13 @@ WormholeEntity*	whole;
 	[self setStatus: STATUS_ACTIVE];
 }
 
+
 - (void) checkDistanceTravelled
 {
 	if (distanceTravelled > desired_range)
 		[shipAI message:@"GONE_BEYOND_RANGE"];
 }
+
 
 - (void) scanForHostiles
 {
@@ -1045,6 +1096,7 @@ WormholeEntity*	whole;
 	if (found_target != NO_TARGET)  [shipAI message:@"TARGET_FOUND"];
 	else  [shipAI message:@"NOTHING_FOUND"];
 }
+
 
 - (void) fightOrFleeHostiles
 {
@@ -1085,12 +1137,13 @@ WormholeEntity*	whole;
 	[shipAI message:@"FLEEING"];
 }
 
+
 - (void) suggestEscort
 {
 	ShipEntity   *mother = [UNIVERSE entityForUniversalID:primaryTarget];
 	if (mother)
 	{
-		if (reportAImessages)
+		if (reportAIMessages)
 			NSLog(@"DEBUG %@ suggests escorting %@", self, mother);
 
 		if ([mother acceptAsEscort:self])
@@ -1108,13 +1161,14 @@ WormholeEntity*	whole;
 			return;
 		}
 		
-		if (reportAImessages)
+		if (reportAIMessages)
 			NSLog(@"DEBUG %@ refused by %@", self, mother);
 
 	}
 	[self setOwner:NULL];
 	[shipAI message:@"NOT_ESCORTING"];
 }
+
 
 - (void) escortCheckMother
 {
@@ -1132,11 +1186,13 @@ WormholeEntity*	whole;
 	[shipAI message:@"NOT_ESCORTING"];
 }
 
+
 - (void) performEscort
 {
 	behaviour = BEHAVIOUR_FORMATION_FORM_UP;
 	frustration = 0.0;
 }
+
 
 - (int) numberOfShipsInGroup:(int) ship_group_id
 {
@@ -1144,6 +1200,7 @@ WormholeEntity*	whole;
 		return 1;
 	return [[self shipsInGroup:ship_group_id] count];
 }
+
 
 - (void) checkGroupOddsVersusTarget
 {
@@ -1164,6 +1221,7 @@ WormholeEntity*	whole;
 		[shipAI message:@"ODDS_BAD"];
 	return;
 }
+
 
 - (void) groupAttackTarget
 {
@@ -1189,6 +1247,7 @@ WormholeEntity*	whole;
 	}
 	return;
 }
+
 
 - (void) scanForFormationLeader
 {
@@ -1224,6 +1283,7 @@ WormholeEntity*	whole;
 
 }
 
+
 - (void) messageMother:(NSString *)msgString
 {
 	ShipEntity   *mother = [UNIVERSE entityForUniversalID:owner];
@@ -1232,6 +1292,7 @@ WormholeEntity*	whole;
 		[[mother getAI] reactToMessage:msgString];
 	}
 }
+
 
 - (void) setPlanetPatrolCoordinates
 {
@@ -1293,6 +1354,7 @@ WormholeEntity*	whole;
 	[shipAI message:@"APPROACH_COORDINATES"];
 }
 
+
 - (void) setSunSkimStartCoordinates
 {
 	Vector v0 = [UNIVERSE getSunSkimStartPositionForShip:self];
@@ -1308,11 +1370,13 @@ WormholeEntity*	whole;
 	}
 }
 
+
 - (void) setSunSkimEndCoordinates
 {
 	coordinates = [UNIVERSE getSunSkimEndPositionForShip:self];
 	[shipAI message:@"APPROACH_COORDINATES"];
 }
+
 
 - (void) setSunSkimExitCoordinates
 {
@@ -1331,10 +1395,12 @@ WormholeEntity*	whole;
 	[shipAI message:@"APPROACH_COORDINATES"];
 }
 
+
 - (void) patrolReportIn
 {
 	[[UNIVERSE station] acceptPatrolReportFrom:self];
 }
+
 
 - (void) checkForMotherStation
 {
@@ -1356,6 +1422,7 @@ WormholeEntity*	whole;
 	[shipAI message:@"STATION_FOUND"];		
 }
 
+
 - (void) sendTargetCommsMessage:(NSString*) message
 {
 	ShipEntity* ship = (ShipEntity*)[self primaryTarget];
@@ -1367,6 +1434,7 @@ WormholeEntity*	whole;
 	}
 	[self sendExpandedMessage:message toShip:(ShipEntity*)[self primaryTarget]];
 }
+
 
 - (void) markTargetForFines
 {
@@ -1380,6 +1448,7 @@ WormholeEntity*	whole;
 	if ([(ShipEntity*)[self primaryTarget] markForFines])
 		[shipAI message:@"TARGET_MARKED"];
 }
+
 
 - (void) markTargetForOffence:(NSString*) valueString
 {
@@ -1396,6 +1465,7 @@ WormholeEntity*	whole;
 		[ship markAsOffender:[finalValue intValue]];
 	}
 }
+
 
 - (void) scanForRocks
 {
@@ -1443,11 +1513,13 @@ WormholeEntity*	whole;
 		[shipAI message:@"NOTHING_FOUND"];
 }
 
+
 - (void) performMining
 {
 	behaviour = BEHAVIOUR_ATTACK_MINING_TARGET;
 	frustration = 0.0;
 }
+
 
 - (void) setDestinationToDockingAbort
 {
@@ -1466,6 +1538,7 @@ WormholeEntity*	whole;
 	coordinates = v0;
 	destination = v0;
 }
+
 
 - (void) requestNewTarget
 {
@@ -1509,6 +1582,7 @@ WormholeEntity*	whole;
 		[shipAI message:@"NOTHING_FOUND"];
 }
 
+
 - (void) rollD:(NSString*) die_number
 {
 	int die_sides = [die_number intValue];
@@ -1523,6 +1597,7 @@ WormholeEntity*	whole;
 		NSLog(@"***** AI_ERROR - invalid value supplied to rollD: '%@'", die_number);
 	}
 }
+
 
 - (void) scanForNearestShipWithRole:(NSString*) scanRole
 {
@@ -1547,6 +1622,7 @@ WormholeEntity*	whole;
 	else
 		[shipAI message:@"NOTHING_FOUND"];
 }
+
 
 - (void) setCoordinates:(NSString *)system_x_y_z
 {
@@ -1581,6 +1657,7 @@ WormholeEntity*	whole;
 	[shipAI message:@"APPROACH_COORDINATES"];
 }
 
+
 - (void) checkForNormalSpace
 {
 	if ([UNIVERSE sun] && [UNIVERSE planet])
@@ -1588,6 +1665,7 @@ WormholeEntity*	whole;
 	else
 		[shipAI message:@"INTERSTELLAR_SPACE"];
 }
+
 
 - (void) requestDockingCoordinates
 {
@@ -1662,6 +1740,7 @@ WormholeEntity*	whole;
 	}
 }
 
+
 - (void) recallDockingInstructions
 {
 	if (dockingInstructions)
@@ -1683,6 +1762,7 @@ WormholeEntity*	whole;
 	}
 }
 
+
 - (void) addFuel:(NSString*) fuel_number
 {
 	int	extra_fuel = [fuel_number intValue];
@@ -1690,6 +1770,7 @@ WormholeEntity*	whole;
 	if (fuel > PLAYER_MAX_FUEL)
 		fuel = PLAYER_MAX_FUEL;
 }
+
 
 - (void) enterTargetWormhole
 {
@@ -1750,6 +1831,7 @@ WormholeEntity*	whole;
 		[shipAI message:@"NOTHING_FOUND"];
 }
 
+
 - (void) targetNextBeaconWithCode:(NSString*) code
 {
 	NSArray* all_beacons = [UNIVERSE listBeaconsWithCode: code];
@@ -1786,6 +1868,7 @@ WormholeEntity*	whole;
 	}
 }
 
+
 - (void) setRacepointsFromTarget
 {
 	// two point - one at z - cr one at z + cr
@@ -1806,6 +1889,7 @@ WormholeEntity*	whole;
 	destination = navpoints[0];
 	[shipAI message:@"RACEPOINTS_SET"];
 }
+
 
 - (void) performFlyRacepoints
 {

@@ -150,7 +150,7 @@ MA 02110-1301, USA.
 	
 	
 							pitching_over: 1,			// set to YES if executing a sharp loop
-							reportAImessages: 1,		// normally NO, suppressing AI message reporting
+							reportAIMessages: 1,		// normally NO, suppressing AI message reporting
 	
 							being_mined: 1,				// normally NO, set to Yes when fired on by mining laser
 	
@@ -243,6 +243,7 @@ MA 02110-1301, USA.
 	Vector					collision_vector;			// direction of colliding thing.
 	
 	// beacons
+	NSString				*beaconCode;
 	char					beaconChar;					// character displayed for this beacon
 	int						nextBeaconID;				// next beacon in sequence
 	
@@ -283,8 +284,6 @@ MA 02110-1301, USA.
 	// DEBUGGING
 	OOBehaviour				debug_condition;
 	
-	NSMutableDictionary		*materials;
-	
 	uint16_t				entity_personality;	// Per-entity random number. Used for shaders, maybe scripting at some point.
 }
 
@@ -308,9 +307,9 @@ MA 02110-1301, USA.
 
 // beacons
 - (NSString *)beaconCode;
+- (void)setBeaconCode:(NSString *)bcode;
 - (BOOL)isBeacon;
 - (char)beaconChar;
-- (void)setBeaconChar:(char) bchar;
 - (int)nextBeaconID;
 - (void)setNextBeacon:(ShipEntity*) beaconShip;
 
@@ -323,7 +322,6 @@ MA 02110-1301, USA.
 - (void) setDefaultWeaponOffsets;
 
 - (BOOL)isFrangible;
-- (BOOL)isCloaked;
 
 // Behaviours
 - (void) behaviour_stop_still:(double) delta_t;
@@ -354,7 +352,11 @@ MA 02110-1301, USA.
 
 - (GLfloat *) scannerDisplayColorForShip:(ShipEntity*)otherShip :(BOOL)isHostile :(BOOL)flash;
 
+- (BOOL)isCloaked;
+- (void)setCloaked:(BOOL)cloak;
+
 - (BOOL) isJammingScanning;
+
 - (BOOL) hasMilitaryScannerFilter;
 
 - (void) addExhaust:(ParticleEntity *) exhaust;
@@ -393,8 +395,8 @@ MA 02110-1301, USA.
 - (Vector) reference;
 - (void) setReference:(Vector) v;
 
-- (BOOL) reportAImessages;
-- (void) setReportAImessages:(BOOL) yn;
+- (BOOL) reportAIMessages;
+- (void) setReportAIMessages:(BOOL) yn;
 
 - (OOAegisStatus) checkForAegis;
 - (BOOL) withinStationAegis;
@@ -450,7 +452,9 @@ MA 02110-1301, USA.
 - (GLfloat) maxFlightSpeed;
 - (GLfloat) speedFactor;
 
+- (GLfloat) temperature;
 - (void) setTemperature:(GLfloat) value;
+- (GLfloat) heatInsulation;
 - (void) setHeatInsulation:(GLfloat) value;
 
 - (int) damage;

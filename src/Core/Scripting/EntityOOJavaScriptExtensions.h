@@ -35,6 +35,11 @@ MA 02110-1301, USA.
 
 - (NSString *)jsClassName;
 
+- (BOOL)isShip;
+- (BOOL)isStation;
+- (BOOL)isSubEntity;
+- (BOOL)isPlayer;
+- (BOOL)isPlanet;
 
 // Internal:
 - (void)getJSClass:(JSClass **)outClass andPrototype:(JSObject **)outPrototype;
@@ -46,5 +51,9 @@ MA 02110-1301, USA.
 
 // "Normal" subentities, excluding flashers and exhaust plumes.
 - (NSArray *)subEntitiesForScript;
+
+- (NSArray *)escorts;
+
+- (void)setTargetForScript:(ShipEntity *)target;
 
 @end

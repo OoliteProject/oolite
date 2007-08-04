@@ -90,8 +90,11 @@ enum
 	kEntity_isValid,			// is not stale, boolean, read-only.
 	kEntity_isShip,				// is ship, boolean, read-only.
 	kEntity_isStation,			// is station, boolean, read-only.
+	kEntity_isSubEntity,		// is subentity, boolean, read-only.
 	kEntity_isPlayer,			// is player, boolean, read-only.
 	kEntity_isPlanet,			// is planet, boolean, read-only.
+	kEntity_distanceTravelled,	// distance travelled, double, read-only.
+	kEntity_spawnTime,			// spawn time, double, read-only.
 };
 
 
@@ -111,8 +114,11 @@ static JSPropertySpec sEntityProperties[] =
 	{ "isValid",				kEntity_isValid,			JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
 	{ "isShip",					kEntity_isShip,				JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
 	{ "isStation",				kEntity_isStation,			JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
+	{ "isSubEntity",			kEntity_isSubEntity,		JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
 	{ "isPlayer",				kEntity_isPlayer,			JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
 	{ "isPlanet",				kEntity_isPlanet,			JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
+	{ "distanceTravelled",		kEntity_distanceTravelled,	JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
+	{ "spawnTime",				kEntity_spawnTime,			JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
 	{ 0 }
 };
 
@@ -382,19 +388,31 @@ static JSBool EntityGetProperty(JSContext *context, JSObject *this, jsval name, 
 			break;
 		
 		case kEntity_isShip:
-			*outValue = BOOLToJSVal(entity != nil && entity->isShip);
+			*outValue = BOOLToJSVal([entity isShip]);
 			break;
 		
 		case kEntity_isStation:
-			*outValue = BOOLToJSVal(entity != nil && entity->isStation);
+			*outValue = BOOLToJSVal([entity isStation]);
+			break;
+			
+		case kEntity_isSubEntity:
+			*outValue = BOOLToJSVal([entity isSubEntity]);
 			break;
 		
 		case kEntity_isPlayer:
-			*outValue = BOOLToJSVal(entity != nil && entity->isPlayer);
+			*outValue = BOOLToJSVal([entity isPlayer]);
 			break;
 		
 		case kEntity_isPlanet:
-			*outValue = BOOLToJSVal(entity != nil && entity->isPlanet);
+			*outValue = BOOLToJSVal([entity isPlanet]);
+			break;
+		
+		case kEntity_distanceTravelled:
+			JS_NewDoubleValue(context, [entity distanceTravelled], outValue);
+			break;
+		
+		case kEntity_spawnTime:
+			JS_NewDoubleValue(context, [entity spawnTime], outValue);
 			break;
 		
 		default:

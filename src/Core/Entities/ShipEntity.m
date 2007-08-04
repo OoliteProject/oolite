@@ -372,9 +372,7 @@ static NSString * const kOOLogEntityBehaviourChanged	= @"entity.behaviour.change
 	escortsAreSetUp = (escortCount == 0);
 
 	// beacons
-	NSString *beaconCode = [shipDict stringForKey:@"beacon"];
-	if (beaconCode == nil)  beaconChar = '\0';
-	else  beaconChar = [beaconCode lossyCString][0];
+	[self setBeaconCode:[shipDict stringForKey:@"beacon"]];
 	
 	// rotating subentities
 	subentityRotationalVelocity = kIdentityQuaternion;
@@ -386,7 +384,7 @@ static NSString * const kOOLogEntityBehaviourChanged	= @"entity.behaviour.change
 	{
 		[self setTrackCloseContacts:[shipDict boolForKey:@"track_contacts"]];
 		// DEBUG....
-		[self setReportAImessages:YES];
+		[self setReportAIMessages:YES];
 	}
 	else
 	{
@@ -453,8 +451,6 @@ static NSString * const kOOLogEntityBehaviourChanged	= @"entity.behaviour.change
 	[lastRadioMessage autorelease];
 
 	[octree autorelease];
-	
-	[materials release];
 
 	[super dealloc];
 }
@@ -647,7 +643,27 @@ static NSString * const kOOLogEntityBehaviourChanged	= @"entity.behaviour.change
 
 - (NSString *)beaconCode
 {
-	return [shipinfoDictionary stringForKey:@"beacon"];
+	return beaconCode;
+}
+
+
+- (void)setBeaconCode:(NSString *)bcode
+{
+	if ([beaconCode length] == 0)  beaconCode = nil;
+	
+	if (beaconCode != bcode)
+	{
+		[beaconCode release];
+		beaconCode = [bcode copy];
+		if (beaconCode == nil)
+		{
+			beaconChar = [bcode lossyCString][0];
+		}
+		else
+		{
+			beaconChar = '\0';
+		}
+	}
 }
 
 
@@ -660,12 +676,6 @@ static NSString * const kOOLogEntityBehaviourChanged	= @"entity.behaviour.change
 - (char)beaconChar
 {
 	return beaconChar;
-}
-
-
-- (void)setBeaconChar:(char)bchar
-{
-	beaconChar = bchar;
 }
 
 
@@ -788,12 +798,6 @@ static NSString * const kOOLogEntityBehaviourChanged	= @"entity.behaviour.change
 - (BOOL)isFrangible
 {
 	return isFrangible;
-}
-
-
-- (BOOL)isCloaked
-{
-	return cloaking_device_active;
 }
 
 
@@ -1146,7 +1150,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	[super update:delta_t];
 
 	// DEBUGGING
-	if (reportAImessages && (debug_condition != behaviour))
+	if (reportAIMessages && (debug_condition != behaviour))
 	{
 		OOLog(kOOLogEntityBehaviourChanged, @"%@ behaviour is now %@", self, BehaviourToString(behaviour));
 		debug_condition = behaviour;
@@ -2540,6 +2544,19 @@ static GLfloat mascem_color2[4] =	{ 0.4, 0.1, 0.4, 1.0};	// purple
 }
 
 
+- (BOOL)isCloaked
+{
+	return cloaking_device_active;
+}
+
+
+- (void)setCloaked:(BOOL)cloak
+{
+	if (cloak)  [self activateCloakingDevice];
+	else  [self deactivateCloakingDevice];
+}
+
+
 - (BOOL) isJammingScanning
 {
 	return (has_military_jammer && military_jammer_active);
@@ -2896,15 +2913,15 @@ static GLfloat mascem_color2[4] =	{ 0.4, 0.1, 0.4, 1.0};	// purple
 }
 
 
-- (BOOL) reportAImessages
+- (BOOL) reportAIMessages
 {
-	return reportAImessages;
+	return reportAIMessages;
 }
 
 
-- (void) setReportAImessages:(BOOL) yn
+- (void) setReportAIMessages:(BOOL) yn
 {
-	reportAImessages = yn;
+	reportAIMessages = yn;
 }
 
 
@@ -3257,9 +3274,21 @@ static GLfloat mascem_color2[4] =	{ 0.4, 0.1, 0.4, 1.0};	// purple
 }
 
 
+- (GLfloat) temperature
+{
+	return ship_temperature;
+}
+
+
 - (void) setTemperature:(GLfloat) value
 {
 	ship_temperature = value;
+}
+
+
+- (GLfloat) heatInsulation
+{
+	return heat_insulation;
 }
 
 
@@ -7120,7 +7149,7 @@ inline BOOL pairOK(NSString* my_role, NSString* their_role)
 	StationEntity *station = (StationEntity *)[UNIVERSE entityForUniversalID:primaryTarget];
 	NSLog(@"claimAsSalvage asking station to launch a pilot boat");
 	[station launchShipWithRole:@"pilot"];
-	[self setReportAImessages:YES];
+	[self setReportAIMessages:YES];
 	NSLog(@"claimAsSalvage setting own state machine to capturedShipAI.plist");
 	[self setStateMachine:@"capturedShipAI.plist"];
 }
@@ -7163,7 +7192,7 @@ inline BOOL pairOK(NSString* my_role, NSString* their_role)
 	if (pilot != nil)
 	{
 		NSLog(@"becoming pilot target and setting AI");
-		[pilot setReportAImessages:YES];
+		[pilot setReportAIMessages:YES];
 		[pilot addTarget:self];
 		[pilot setStateMachine:@"pilotAI.plist"];
 		[[self getAI] reactToMessage:@"FOUND_PILOT"];
@@ -7244,7 +7273,7 @@ inline BOOL pairOK(NSString* my_role, NSString* their_role)
 	ADD_FLAG_IF_SET(docking_match_rotation);
 	ADD_FLAG_IF_SET(escortsAreSetUp);
 	ADD_FLAG_IF_SET(pitching_over);
-	ADD_FLAG_IF_SET(reportAImessages);
+	ADD_FLAG_IF_SET(reportAIMessages);
 	ADD_FLAG_IF_SET(being_mined);
 	ADD_FLAG_IF_SET(being_fined);
 	ADD_FLAG_IF_SET(is_hulk);
