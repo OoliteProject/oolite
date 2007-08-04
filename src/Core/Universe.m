@@ -5079,10 +5079,14 @@ static BOOL MaintainLinkedLists(Universe* uni)
 							demo_ship_index = (demo_ship_index + 1) % [demo_ships count];
 							shipDesc = [demo_ships stringAtIndex:demo_ship_index];
 							shipDict = [self getDictionaryForShip:shipDesc];
-							if (shipDict == nil)
+							if (shipDict != nil)
 							{
 								// Failure means we don't change demo_stage, so we'll automatically try again.
 								demo_ship = [[ShipEntity alloc] initWithDictionary:shipDict];
+							}
+							else
+							{
+								OOLog(@"demo.loadShip.failed", @"Could not load ship \"%@\" for demo screen.", shipDesc);
 							}
 							
 							if (demo_ship != nil)
