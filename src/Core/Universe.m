@@ -3074,7 +3074,10 @@ GLfloat docked_light_specular[]	= { (GLfloat) 1.0, (GLfloat) 1.0, (GLfloat) 0.5,
 		{
 			// choose a random filling
 			// select a random point in the histogram
-			int qr = Ranrot() % total_quantity;
+			int qr=0;
+			if(total_quantity)
+				qr = Ranrot() % total_quantity;
+
 			co_type = 0;
 			while (qr > 0)
 			{
