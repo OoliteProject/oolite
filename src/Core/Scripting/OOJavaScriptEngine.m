@@ -1192,7 +1192,7 @@ JSObject *JSArrayFromNSArray(JSContext *context, NSArray *array)
 	
 	if (JSArgumentsFromArray(context, array, &count, &values))
 	{
-		result = js_NewArrayObject(context, count, values);
+		result = JS_NewArrayObject(context, count, values);
 	}
 	if (values != NULL)  free(values);
 	
