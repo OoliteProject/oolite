@@ -26,7 +26,7 @@ MA 02110-1301, USA.
 #import "OOMaths.h"
 #import "Entity.h"
 #import "OOOpenGL.h"
-#import "legacy_random.h"
+#include "legacy_random.h"
 
 
 #ifndef NDEBUG

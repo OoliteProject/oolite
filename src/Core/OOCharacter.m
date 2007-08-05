@@ -28,6 +28,7 @@ MA 02110-1301, USA.
 #import "OOBrain.h"
 #import "OOStringParsing.h"
 
+#include "legacy_random.h"
 
 @implementation OOCharacter
 
@@ -88,6 +89,7 @@ MA 02110-1301, USA.
 + (OOCharacter *) randomCharacterWithRole:(NSString *) c_role andOriginalSystem:(Random_Seed) o_seed
 {
 	Random_Seed r_seed;
+	
 	r_seed.a = (ranrot_rand() & 0xff);
 	r_seed.b = (ranrot_rand() & 0xff);
 	r_seed.c = (ranrot_rand() & 0xff);
