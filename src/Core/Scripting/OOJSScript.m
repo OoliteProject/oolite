@@ -31,11 +31,25 @@ MA 02110-1301, USA.
 #import "EntityOOJavaScriptExtensions.h"
 
 
-OOJSScript *currentOOJSScript;
-
-JSClass script_class =
+typedef struct RunningStack RunningStack;
+struct RunningStack
 {
-	"JSScript",
+	RunningStack		*back;
+	OOJSScript			*current;
+};
+
+
+static JSObject			*sScriptPrototype;
+static RunningStack		*sRunningStack = NULL;
+
+
+static JSBool JSScriptConvert(JSContext *context, JSObject *this, JSType type, jsval *outValue);
+static void JSScriptFinalize(JSContext *context, JSObject *this);
+
+
+static JSClass sScriptClass =
+{
+	"Script",
 	JSCLASS_HAS_PRIVATE,
 	
 	JS_PropertyStub,
@@ -44,8 +58,8 @@ JSClass script_class =
 	JS_PropertyStub,
 	JS_EnumerateStub,
 	JS_ResolveStub,
-	JS_ConvertStub,
-	JS_FinalizeStub
+	JSScriptConvert,
+	JSScriptFinalize
 };
 
 
@@ -58,25 +72,28 @@ JSClass script_class =
 
 @implementation OOJSScript
 
-+ (id)scriptWithPath:(NSString *)path
++ (id)scriptWithPath:(NSString *)path properties:(NSDictionary *)properties
 {
-	return [[[self alloc] initWithPath:path] autorelease];
+	return [[[self alloc] initWithPath:path properties:properties] autorelease];
 }
 
 
-- (id)initWithPath:(NSString *)path
+- (id)initWithPath:(NSString *)path properties:(NSDictionary *)properties
 {
-	return [self initWithPath:path andContext:[[OOJavaScriptEngine sharedEngine] context]];
+	return [self initWithPath:path properties:properties context:[[OOJavaScriptEngine sharedEngine] context]];
 }
 
 
-- (id)initWithPath:(NSString *)path andContext:(JSContext *)inContext
+- (id)initWithPath:(NSString *)path properties:(NSDictionary *)properties context:(JSContext *)inContext
 {
-	NSString		*problem = nil;		// Acts as error flag.
-	NSString		*fileContents = nil;
-	NSData			*data = nil;
-	JSScript		*script = NULL;
-	jsval			returnValue;
+	NSString				*problem = nil;		// Acts as error flag.
+	NSString				*fileContents = nil;
+	NSData					*data = nil;
+	JSScript				*script = NULL;
+	jsval					returnValue;
+	NSEnumerator			*keyEnum = nil;
+	NSString				*key = nil;
+	id						property = nil;
 	
 	self = [super init];
 	if (self == nil) problem = @"allocation failure";
@@ -85,9 +102,16 @@ JSClass script_class =
 	if (!problem)
 	{
 		context = inContext;
-		object = JS_NewObject(context, &script_class, 0x00, JS_GetGlobalObject(context));
+		// Do we actually want parent to be the global object here?
+		object = JS_NewObject(context, &sScriptClass, sScriptPrototype, JS_GetGlobalObject(context));
 		if (object == NULL) problem = @"allocation failure";
 	}
+	
+	if (!problem)
+	{
+		if (!JS_SetPrivate(context, object, [self weakRetain]))  problem = @"could not set private backreference";
+	}
+	
 	if (!problem)
 	{
 		if (!JS_AddRoot(context, &object)) // note 2nd arg is a pointer-to-pointer
@@ -110,6 +134,19 @@ JSClass script_class =
 		if (script == NULL) problem = @"compilation failed";
 	}
 	
+	// Set properties.
+	if (!problem && properties != nil)
+	{
+		for (keyEnum = [properties keyEnumerator]; (key = [keyEnum nextObject]); )
+		{
+			if ([key isKindOfClass:[NSString class]])
+			{
+				property = [properties objectForKey:key];
+				[self defineProperty:property named:key];
+			}
+		}
+	}
+	
 	// Run the script (allowing it to set up the properties we need, as well as setting up those event handlers)
     if (!problem)
 	{
@@ -126,7 +163,11 @@ JSClass script_class =
 	{
 		// Get display attributes from script
 		name = [JSPropertyAsString(context, object, "name") retain];
-		if (name == nil) name = [[self scriptNameFromPath:path] retain];
+		if (name == nil)
+		{
+			name = [[self scriptNameFromPath:path] retain];
+			[self setProperty:name named:@"name"];
+		}
 		
 		version = [JSPropertyAsString(context, object, "version") retain];
 		description = [JSPropertyAsString(context, object, "description") retain];
@@ -144,20 +185,55 @@ JSClass script_class =
 	return self;
 }
 
+
+- (void) dealloc
+{
+	[name release];
+	[description release];
+	[version release];
+	[weakSelf weakRefDrop];
+	
+	[super dealloc];
+}
+
+
++ (OOJSScript *)currentlyRunningScript
+{
+	if (sRunningStack == NULL)  return NULL;
+	return sRunningStack->current;
+}
+
+
+- (id) weakRetain
+{
+	if (weakSelf == nil)  weakSelf = [OOWeakReference weakRefWithObject:self];
+	return [weakSelf retain];
+}
+
+
+- (void) weakRefDied:(OOWeakReference *)weakRef
+{
+	if (weakRef == weakSelf)  weakSelf = nil;
+}
+
+
 - (NSString *) name
 {
 	return name;
 }
+
 
 - (NSString *) scriptDescription
 {
 	return description;
 }
 
+
 - (NSString *) version
 {
 	return version;
 }
+
 
 - (void)runWithTarget:(Entity *)target
 {
@@ -172,6 +248,7 @@ JSClass script_class =
 	JSFunction		*function;
 	uintN			argc;
 	jsval			*argv = NULL;
+	RunningStack	stackElement;
 
 	OK = JS_GetProperty(context, object, [eventName cString], &value);
 	if (OK && !JSVAL_IS_VOID(value))
@@ -179,14 +256,66 @@ JSClass script_class =
 		function = JS_ValueToFunction(context, value);
 		if (function != NULL)
 		{
-			currentOOJSScript = self;
+			// Push self on stack of running scripts
+			stackElement.back = sRunningStack;
+			stackElement.current = self;
+			sRunningStack = &stackElement;
+			
 			JSArgumentsFromArray(context, arguments, &argc, &argv);
 			OK = JS_CallFunction(context, object, function, argc, argv, &value);
 			if (argv != NULL) free(argv);
+			
+			// Pop running scripts stack
+			sRunningStack = stackElement.back;
+			
 			return OK;
 		}
 	}
 
+	return NO;
+}
+
+
+- (id)propertyNamed:(NSString *)propName
+{
+	BOOL						OK;
+	jsval						value = nil;
+	
+	if (propName == nil)  return nil;
+	
+	OK = JS_GetProperty(context, object, [propName UTF8String], &value);
+	if (!OK || JSVAL_IS_VOID(value))  return nil;
+	
+	return JSValueToObject(context, value);
+}
+
+
+- (BOOL)setProperty:(id)value named:(NSString *)propName
+{
+	jsval						jsValue;
+	
+	if (value == nil || propName == nil)  return NO;
+	
+	jsValue = [value javaScriptValueInContext:context];
+	if (!JSVAL_IS_VOID(jsValue))
+	{
+		return JS_DefineProperty(context, object, [propName UTF8String], jsValue, NULL, NULL, JSPROP_ENUMERATE);
+	}
+	return NO;
+}
+
+
+- (BOOL)defineProperty:(id)value named:(NSString *)propName
+{
+	jsval						jsValue;
+	
+	if (value == nil || propName == nil)  return NO;
+	
+	jsValue = [value javaScriptValueInContext:context];
+	if (!JSVAL_IS_VOID(jsValue))
+	{
+		return JS_DefineProperty(context, object, [propName UTF8String], jsValue, NULL, NULL, JSPROP_ENUMERATE | JSPROP_READONLY | JSPROP_PERMANENT);
+	}
 	return NO;
 }
 
@@ -238,4 +367,63 @@ JSClass script_class =
 	return [theName stringByAppendingString:@".anon-script"];
 }
 
+
+- (jsval)javaScriptValueInContext:(JSContext *)context
+{
+	return OBJECT_TO_JSVAL(object);
+}
+
 @end
+
+
+@implementation OOScript(OOJavaScriptConversion)
+
+- (jsval)javaScriptValueInContext:(JSContext *)context
+{
+	return JSVAL_NULL;
+}
+
+@end
+
+
+void InitOOJSScript(JSContext *context, JSObject *global)
+{
+	sScriptPrototype = JS_InitClass(context, global, NULL, &sScriptClass, NULL, 0, NULL, NULL, NULL, NULL);
+	JSRegisterObjectConverter(&sScriptClass, JSBasicPrivateObjectConverter);
+}
+
+
+static JSBool JSScriptConvert(JSContext *context, JSObject *this, JSType type, jsval *outValue)
+{
+	OOJSScript					*script = nil;
+	
+	switch (type)
+	{
+		case JSTYPE_VOID:		// Used for string concatenation.
+		case JSTYPE_STRING:
+			// Return description of script
+			script = JS_GetInstancePrivate(context, this, &sScriptClass, NULL);
+			script = [script weakRefUnderlyingObject];
+			if (script != nil)
+			{
+				*outValue = [[script description] javaScriptValueInContext:context];
+			}
+			else
+			{
+				*outValue = STRING_TO_JSVAL(JS_InternString(context, "[stale Script]"));
+			}
+			return YES;
+			
+		default:
+			// Contrary to what passes for documentation, JS_ConvertStub is not a no-op.
+			return JS_ConvertStub(context, this, type, outValue);
+	}
+}
+
+
+static void JSScriptFinalize(JSContext *context, JSObject *this)
+{
+	OOLog(@"js.script.temp", @"%@ called for %p", this);
+	[(id)JS_GetPrivate(context, this) release];
+	JS_SetPrivate(context, this, nil);
+}

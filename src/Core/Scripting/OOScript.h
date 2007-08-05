@@ -51,6 +51,12 @@ MA 02110-1301, USA.
 
 + (NSArray *)scriptsFromFileAtPath:(NSString *)filePath;
 
+//	Load a single JavaScript script. Or, y'know, a future-scripting-language script.
++ (id)nonLegacyScriptFromFileNamed:(NSString *)fileName properties:(NSDictionary *)properties;
+
+//	Convert one or more plist script actions to a script with event handlers.
++ (id)scriptWithLegacyEventHandlers:(NSDictionary *)handlers forOwner:(Entity *)owner;
+
 - (void)resetState;	// Clear local variables, for instance.
 
 - (NSString *)name;
@@ -61,6 +67,13 @@ MA 02110-1301, USA.
 - (void)runWithTarget:(Entity *)target;
 
 - (BOOL)doEvent:(NSString *)eventName;
-- (BOOL)doEvent:(NSString *)eventName withArguments:(NSArray *)argument;
+- (BOOL)doEvent:(NSString *)eventName withArguments:(NSArray *)arguments;
+- (BOOL)doEvent:(NSString *)eventName withArgument:(id)argument;
+
+- (id)propertyNamed:(NSString *)name;
+// Set a property which can be modified or deleted by the script.
+- (BOOL)setProperty:(id)value named:(NSString *)name;
+// Set a special property which cannot be modified or deleted by the script.
+- (BOOL)defineProperty:(id)value named:(NSString *)name;
 
 @end

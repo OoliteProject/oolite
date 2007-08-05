@@ -5665,6 +5665,8 @@ static BOOL MaintainLinkedLists(Universe* uni)
 {
 	NSMutableDictionary	*overrideDict = nil;
 	
+	if (key == nil || planetKey == nil)  return;
+	
 	overrideDict = [localPlanetInfoOverrides objectForKey:planetKey];
 	if (overrideDict != nil)
 	{
@@ -5690,7 +5692,8 @@ static BOOL MaintainLinkedLists(Universe* uni)
 	
 	if (overrideDict == nil)  overrideDict = [NSMutableDictionary dictionary];
 	
-	[overrideDict setObject:object forKey:key];
+	if (object != nil)  [overrideDict setObject:object forKey:key];
+	else  [overrideDict removeObjectForKey:key];
 	
 	[localPlanetInfoOverrides setObject:overrideDict forKey:planetKey];
 }

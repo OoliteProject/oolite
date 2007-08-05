@@ -37,6 +37,7 @@ MA 02110-1301, USA.
 #import "AI.h"
 #import "OOCharacter.h"
 
+#import "OOScript.h"
 #import "OODebugGLDrawing.h"
 
 #define kOOLogUnconvertedNSLog @"unclassified.StationEntity"
@@ -1176,6 +1177,8 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 
 - (void) noteDockedShip:(ShipEntity *) ship
 {
+	if (ship == nil)  return;	
+	
 	// set last launch time to avoid clashes with outgoing ships
 	last_launch_time = [UNIVERSE getTime];
 	if ([[ship roles] isEqual:@"shuttle"])
@@ -1202,14 +1205,14 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 		if ((id_lock[i] == ship_id)||([UNIVERSE entityForUniversalID:id_lock[i]] == nil))
 			id_lock[i] = NO_TARGET;
 	
-	if (ship == [PlayerEntity sharedPlayer])	// ie. the player
+	if (script != nil)
 	{
-		//scripting
-		if ([script_actions count])
-		{
-			[(PlayerEntity *)ship setScriptTarget:self];
-			[(PlayerEntity *)ship scriptActions: script_actions forTarget: ship];
-		}
+		PlayerEntity *player = [PlayerEntity sharedPlayer];
+		[player setScriptTarget:self];
+		
+		// Two actions here. playerDidDock is equivalent to legacy script_actions. shipDidDock is more general.
+		if (ship == player)  [script doEvent:@"playerDidDock"];
+		[script doEvent:@"shipDidDock" withArgument:ship];
 	}
 }
 

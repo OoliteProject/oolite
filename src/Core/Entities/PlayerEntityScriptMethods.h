@@ -46,4 +46,7 @@ MA 02110-1301, USA.
 
 - (void) awardCargoType:(OOCargoType)type amount:(OOCargoQuantity)amount;
 
+- (OOGalaxyID)currentGalaxyID;
+- (OOSystemID)currentSystemID;
+
 @end

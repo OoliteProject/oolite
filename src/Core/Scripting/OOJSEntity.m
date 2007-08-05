@@ -213,13 +213,13 @@ BOOL JSValueToEntity(JSContext *context, jsval value, Entity **outEntity)
 
 BOOL JSEntityGetEntity(JSContext *context, JSObject *entityObj, Entity **outEntity)
 {
-	OOWeakReference			*proxy = nil;
+//	OOWeakReference			*proxy = nil;
 	
 	if (outEntity == NULL)  return NO;
 	*outEntity = nil;
 	if (entityObj == NULL)  return NO;
 	if (EXPECT_NOT(context == NULL))  context = [[OOJavaScriptEngine sharedEngine] context];
-	
+	/*
 	// If it is an entity proxy...
 	if ([sEntitySubClasses member:[NSValue valueWithPointer:JS_GetClass(entityObj)]] != nil)
 	{
@@ -229,8 +229,11 @@ BOOL JSEntityGetEntity(JSContext *context, JSObject *entityObj, Entity **outEnti
 			*outEntity = [proxy weakRefUnderlyingObject];
 			return YES;
 		}
-	}
+	}*/
+	*outEntity = JSObjectToObject(context, entityObj);
+	if ([*outEntity isKindOfClass:[Entity class]])  return YES;
 	
+	*outEntity = nil;
 	return NO;
 }
 
@@ -251,6 +254,7 @@ void JSEntityRegisterEntitySubclass(JSClass *theClass)
 {
 	if (sEntitySubClasses == nil)  sEntitySubClasses = [[NSMutableSet alloc] init];
 	[sEntitySubClasses addObject:[NSValue valueWithPointer:theClass]];
+	JSRegisterObjectConverter(theClass, JSBasicPrivateObjectConverter);
 }
 
 

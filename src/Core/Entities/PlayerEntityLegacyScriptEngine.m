@@ -125,7 +125,7 @@ static NSString * mission_key;
 	OOLog(@"script.trace.runWorld", @"----- Running world script with state %@", [self status_string]);
 	OOLogIndentIf(@"script.trace.runWorld");
 	
-	for (scriptEnum = [script objectEnumerator]; (theScript = [scriptEnum nextObject]); )
+	for (scriptEnum = [worldScripts objectEnumerator]; (theScript = [scriptEnum nextObject]); )
 	{
 		[theScript runWithTarget:self];
 	}
@@ -575,7 +575,7 @@ static NSString * mission_key;
 	
 	result = [NSMutableArray array];
 	
-	for (scriptEnum = [script keyEnumerator]; (scriptName = [scriptEnum nextObject]); )
+	for (scriptEnum = [worldScripts keyEnumerator]; (scriptName = [scriptEnum nextObject]); )
 	{
 		vars = [mission_variables objectForKey:scriptName];
 		
@@ -665,9 +665,7 @@ static NSString * mission_key;
 
 - (NSNumber *) planet_number
 {
-	if (![UNIVERSE sun])
-		return [NSNumber numberWithInt:-1];
-	return [NSNumber numberWithInt:[UNIVERSE findSystemNumberAtCoords:galaxy_coordinates withGalaxySeed:galaxy_seed]];
+	return [NSNumber numberWithInt:[self currentSystemID]];
 }
 
 

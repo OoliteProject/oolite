@@ -55,6 +55,8 @@ MA 02110-1301, USA.
 
 #import "OODebugGLDrawing.h"
 
+#import "OOScript.h"
+
 #define kOOLogUnconvertedNSLog @"unclassified.ShipEntity"
 
 
@@ -355,18 +357,6 @@ static NSString * const kOOLogEntityBehaviourChanged	= @"entity.behaviour.change
 	// scan class. NOTE: non-standard capitalization is documented and entrenched.
 	scanClass = StringToScanClass([shipDict objectForKey:@"scanClass"]);
 	
-	// scripting
-	// TODO: use OOScript here. -- Ahruman
-	launch_actions = [[shipDict arrayForKey:@"launch_actions"] copy];
-	script_actions = [[shipDict arrayForKey:@"script_actions"] copy];
-	death_actions = [[shipDict arrayForKey:@"death_actions"] copy];
-	NSArray *setUpActions = [shipDict arrayForKey:@"setup_actions"];
-	if (setUpActions != nil)
-	{
-		[player setScriptTarget:self];
-		[player scriptActions:setUpActions forTarget:self];
-	}
-	
 	//  escorts
 	escortCount = [shipDict unsignedIntForKey:@"escorts"];
 	escortsAreSetUp = (escortCount == 0);
@@ -417,6 +407,42 @@ static NSString * const kOOLogEntityBehaviourChanged	= @"entity.behaviour.change
 	// unpiloted (like missiles asteroids etc.)
 	if ([shipDict fuzzyBooleanForKey:@"unpiloted"])  [self setCrew:nil];
 	
+	// Load (or synthesize) script
+	script = [OOScript nonLegacyScriptFromFileNamed:[shipDict stringForKey:@"script"] 
+										  properties:[NSDictionary dictionaryWithObject:self forKey:@"ship"]];
+	if (script == nil)
+	{
+		NSArray					*launchActions = nil,
+								*scriptActions = nil,
+								*deathActions = nil,
+								*setUpActions = nil;
+		NSMutableDictionary		*scriptHandlers = nil;
+		
+		launchActions = [shipDict arrayForKey:@"launch_actions"];
+		scriptActions = [shipDict arrayForKey:@"script_actions"];
+		deathActions = [shipDict arrayForKey:@"death_actions"];
+		if (launchActions != nil || scriptActions != nil || deathActions != nil)
+		{
+			scriptHandlers = [NSMutableDictionary dictionary];
+			if (launchActions != nil)  [scriptHandlers setObject:launchActions forKey:@"didSpawn"];
+			if (deathActions != nil)  [scriptHandlers setObject:deathActions forKey:@"didDie"];
+			if (scriptActions != nil)
+			{
+				[scriptHandlers setObject:scriptActions forKey:@"wasScooped"];
+				[scriptHandlers setObject:scriptActions forKey:@"playerDidDock"];
+			}
+			script = [OOScript scriptWithLegacyEventHandlers:scriptHandlers forOwner:self];
+		}
+		
+		setUpActions = [shipDict arrayForKey:@"setup_actions"];
+		if (setUpActions != nil)
+		{
+			[player setScriptTarget:self];
+			[player scriptActions:setUpActions forTarget:self];
+		}
+	}
+	[script retain];
+	
 	return YES;
 }
 
@@ -437,10 +463,7 @@ static NSString * const kOOLogEntityBehaviourChanged	= @"entity.behaviour.change
 	[roles release];
 	[sub_entities release];
 	[laser_color release];
-	//scripting
-	[launch_actions release];
-	[script_actions release];
-	[death_actions release];
+	[script release];
 
 	[previousCondition release];
 
@@ -498,6 +521,12 @@ static NSString * const kOOLogEntityBehaviourChanged	= @"entity.behaviour.change
 - (NSArray *)subEntities
 {
 	return [[sub_entities copy] autorelease];
+}
+
+
+- (OOScript *)shipScript
+{
+	return script;
 }
 
 
@@ -1255,12 +1284,10 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	aegis_status = [self checkForAegis];   // is a station or something nearby??
 
 	//scripting
-	if (launch_actions != nil && status == STATUS_IN_FLIGHT)
+	if (!haveExecutedSpawnAction && script != nil && status == STATUS_IN_FLIGHT)
 	{
 		[[PlayerEntity sharedPlayer] setScriptTarget:self];
-		[[PlayerEntity sharedPlayer] scriptActions:launch_actions forTarget:self];
-		[launch_actions release];
-		launch_actions = nil;
+		[script doEvent:@"didSpawn"];
 	}
 
 	// behaviours according to status and behaviour
@@ -3435,15 +3462,10 @@ static GLfloat mascem_color2[4] =	{ 0.4, 0.1, 0.4, 1.0};	// purple
 	status = STATUS_DEAD;
 	
 	//scripting
-	if (death_actions != nil)
+	if (script != nil)
 	{
-		PlayerEntity* player = [PlayerEntity sharedPlayer];
-
-		[player setScriptTarget:self];
-		[player scriptActions:death_actions forTarget:self];
-		
-		[death_actions release];
-		death_actions = nil;
+		[[PlayerEntity sharedPlayer] setScriptTarget:self];
+		[script doEvent:@"didDie"];
 	}
 	
 	if ([roles isEqual:@"thargoid"])
@@ -3925,20 +3947,14 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 	OOCargoQuantity n_cargo = (ranrot_rand() % (likely_cargo + 1));
 	OOCargoQuantity cargo_to_go;
 
-	if (status == STATUS_DEAD)
-		return;
-
+	if (status == STATUS_DEAD)  return;
 	status = STATUS_DEAD;
+	
 	//scripting
-	if (death_actions != nil)
+	if (script != nil)
 	{
-		PlayerEntity* player = [PlayerEntity sharedPlayer];
-
-		[player setScriptTarget:self];
-		[player scriptActions:death_actions forTarget:self];
-		
-		[death_actions release];
-		death_actions = nil;
+		[[PlayerEntity sharedPlayer] setScriptTarget:self];
+		[script doEvent:@"didDie"];
 	}
 
 	// two parts to the explosion:
@@ -6073,16 +6089,12 @@ BOOL	class_masslocks(int some_class)
 		
 		case CARGO_SCRIPTED_ITEM:
 			{
-				NSArray* actions = other->script_actions;
 				//scripting
-				if (actions != nil)
-				{
-					PlayerEntity* player = [PlayerEntity sharedPlayer];
-					
-					[player setScriptTarget:self];
-					[player scriptActions:actions forTarget:other];
-
-				}
+				PlayerEntity *player = [PlayerEntity sharedPlayer];
+				[player setScriptTarget:self];
+				[other->script doEvent:@"wasScooped" withArgument:self];
+				[script doEvent:@"didScoop" withArgument:other];
+				
 				if (isPlayer)
 				{
 					NSString* scoopedMS = [NSString stringWithFormat:ExpandDescriptionForCurrentSystem(@"[@-scooped]"), [other name]];

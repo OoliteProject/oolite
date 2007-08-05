@@ -5,6 +5,119 @@
 {
 	type = "dictionary";
 	requiredKeys = ( "model", "name", "roles" );
+	schema =
+	{
+		like_ship = "$shipRole";
+		max_flight_speed = "positiveFloat";
+		max_flight_roll = "positiveFloat";
+		max_flight_pitch = "positiveFloat";
+		max_flight_yaw = "positiveFloat";
+		thrust = "positiveFloat";
+		accuracy = "float";
+		max_energy = "positiveFloat";
+		energy_recharge_rate = "positiveFloat";
+		forward_weapon_type = "$weaponType";
+		aft_weapon_type = "$weaponType";
+		weapon_energy = "positiveFloat";
+		scanner_range = "positiveFloat";
+		missiles = "positiveInteger";
+		has_ecm = "fuzzyBoolean";
+		has_scoop = "fuzzyBoolean";
+		has_escape_pod = "positiveInteger";
+		has_energy_bomb = "fuzzyBoolean";
+		has_fuel_injection = "fuzzyBoolean";
+		has_cloaking_device = "fuzzyBoolean";
+		has_military_jammer = "fuzzyBoolean";
+		has_military_scanner_filter = "fuzzyBoolean";
+		fragment_chance = "fuzzyBoolean";
+		has_shield_booster = "fuzzyBoolean";
+		has_shield_enhancer = "fuzzyBoolean";
+		fuel = "positiveInteger";
+		bounty = "positiveInteger";
+		ai_type = "$aiFileName";
+		max_cargo = "positiveInteger";
+		likely_cargo = "positiveInteger";
+		extra_cargo = "positiveInteger";
+		cargo_carried = "$cargoCarried";
+		cargo_type = "$cargoType";
+		model = "$modelName";
+		materials = "$materialDict";
+		shaders = "$materialDict";
+		smooth = "boolean";
+		density = "positiveFloat";
+		name = "string";
+		roles = "$roles";
+		exhaust =
+		{
+			type = "array";
+			valueType = "$exhaustSpecifier";
+		};
+		is_hulk = "boolean";
+		subentities =
+		{
+			type = "array";
+			valueType = "$subEntitySpecifier";
+		};
+		frangible = "boolean";
+		laser_color = "$colorSpecifier";
+		scanClass = "$scanClass";
+		launch_actions = "$scriptActions";
+		script_actions = "$scriptActions";
+		death_actions = "$scriptActions";
+		setup_actions = "$scriptActions";
+		escorts = "positiveInteger";
+		beacon = "string";
+		rotational_velocity = "quaternion";
+		track_contacts = "boolean";
+		weapon_position_forward = "vector";
+		weapon_position_aft = "vector";
+		weapon_position_port = "vector";
+		weapon_position_starboard = "vector";
+		scoop_position = "vector";
+		heat_insulation = "positiveFloat";
+		pilot = "$characterKey";
+		unpiloted = "fuzzyBoolean";
+		escort-role = "$shipRole";
+		escort-ship = "$shipKey";
+		missile_launch_position = "vector";
+		missile_role = "$shipRole";
+		escape_pod_model = "$modelName";
+		aft_eject_position = "vector";
+		auto_ai = "boolean";
+		rotating = "boolean";
+		defense_ship = "$shipKey";
+		defense_ship_role = "$shipRole";
+		hasShipyard =
+		{
+			type = "oneOf";
+			options =
+			(
+				"$scriptCondition",
+				"boolean"
+			);
+		};
+		conditions = "$scriptCouplet";
+		port_radius = "positiveFloat";
+		port_dimensions = "$portDimensions";
+		equivalent_tech_level = "integer";
+		max_scavengers = "positiveInteger";
+		max_defense_ships = "positiveInteger";
+		max_police = "positiveInteger";
+		equipment_price_factor = "positiveFloat";
+		extra_equipment = "$extraEquipmentDictionary";
+		hud = "$hudFileName";
+		view_position_forward = "vector";
+		view_position_aft = "vector";
+		view_position_port = "vector";
+		view_position_starboard = "vector";
+		custom_views =
+		{
+			type = "array";
+			valueType = "$customViewSpec";
+		};
+		max_missiles = "positiveInteger";
+		script = "$scriptFileName";
+	};
 	$definitions =
 	{
 		// "Special" types referred to above.
@@ -320,117 +433,11 @@
 			baseType = "string";
 			key = "cargoCarried";
 		};
-	};
-	schema =
-	{
-		like_ship = "$shipRole";
-		max_flight_speed = "positiveFloat";
-		max_flight_roll = "positiveFloat";
-		max_flight_pitch = "positiveFloat";
-		max_flight_yaw = "positiveFloat";
-		thrust = "positiveFloat";
-		accuracy = "float";
-		max_energy = "positiveFloat";
-		energy_recharge_rate = "positiveFloat";
-		forward_weapon_type = "$weaponType";
-		aft_weapon_type = "$weaponType";
-		weapon_energy = "positiveFloat";
-		scanner_range = "positiveFloat";
-		missiles = "positiveInteger";
-		has_ecm = "fuzzyBoolean";
-		has_scoop = "fuzzyBoolean";
-		has_escape_pod = "positiveInteger";
-		has_energy_bomb = "fuzzyBoolean";
-		has_fuel_injection = "fuzzyBoolean";
-		has_cloaking_device = "fuzzyBoolean";
-		has_military_jammer = "fuzzyBoolean";
-		has_military_scanner_filter = "fuzzyBoolean";
-		fragment_chance = "fuzzyBoolean";
-		has_shield_booster = "fuzzyBoolean";
-		has_shield_enhancer = "fuzzyBoolean";
-		fuel = "positiveInteger";
-		bounty = "positiveInteger";
-		ai_type = "$aiFileName";
-		max_cargo = "positiveInteger";
-		likely_cargo = "positiveInteger";
-		extra_cargo = "positiveInteger";
-		cargo_carried = "$cargoCarried";
-		cargo_type = "$cargoType";
-		model = "$modelName";
-		materials = "$materialDict";
-		shaders = "$materialDict";
-		smooth = "boolean";
-		density = "positiveFloat";
-		name = "string";
-		roles = "$roles";
-		exhaust =
+		$scriptFileName =
 		{
-			type = "array";
-			valueType = "$exhaustSpecifier";
+			type = "delegatedType";
+			baseType = "string";
+			key = "$scriptFileName";
 		};
-		is_hulk = "boolean";
-		subentities =
-		{
-			type = "array";
-			valueType = "$subEntitySpecifier";
-		};
-		frangible = "boolean";
-		laser_color = "$colorSpecifier";
-		scanClass = "$scanClass";
-		launch_actions = "$scriptActions";
-		script_actions = "$scriptActions";
-		death_actions = "$scriptActions";
-		setup_actions = "$scriptActions";
-		escorts = "positiveInteger";
-		beacon = "string";
-		rotational_velocity = "quaternion";
-		track_contacts = "boolean";
-		weapon_position_forward = "vector";
-		weapon_position_aft = "vector";
-		weapon_position_port = "vector";
-		weapon_position_starboard = "vector";
-		scoop_position = "vector";
-		heat_insulation = "positiveFloat";
-		pilot = "$characterKey";
-		unpiloted = "fuzzyBoolean";
-		escort-role = "$shipRole";
-		escort-ship = "$shipKey";
-		missile_launch_position = "vector";
-		missile_role = "$shipRole";
-		escape_pod_model = "$modelName";
-		aft_eject_position = "vector";
-		auto_ai = "boolean";
-		rotating = "boolean";
-		defense_ship = "$shipKey";
-		defense_ship_role = "$shipRole";
-		hasShipyard =
-		{
-			type = "oneOf";
-			options =
-			(
-				"$scriptCondition",
-				"boolean"
-			);
-		};
-		conditions = "$scriptCouplet";
-		port_radius = "positiveFloat";
-		port_dimensions = "$portDimensions";
-		equivalent_tech_level = "integer";
-		max_scavengers = "positiveInteger";
-		max_defense_ships = "positiveInteger";
-		max_police = "positiveInteger";
-		equipment_price_factor = "positiveFloat";
-		extra_equipment = "$extraEquipmentDictionary";
-		hud = "$hudFileName";
-		view_position_forward = "vector";
-		view_position_aft = "vector";
-		view_position_port = "vector";
-		view_position_starboard = "vector";
-		custom_views =
-		{
-			type = "array";
-			valueType = "$customViewSpec";
-		};
-		max_missiles = "positiveInteger";
 	};
 }

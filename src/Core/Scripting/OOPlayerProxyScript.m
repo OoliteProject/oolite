@@ -1,13 +1,6 @@
 /*
 
-OOPListScript.h
-
-Property list-based script.
-
-I started off reimplementing plist scripting here, in order to remove one of
-PlayerEntity's many overloaded functions. The scale of the task was such that
-I've stepped back, and this simply wraps the old plist scripting in
-PlayerEntity.
+OOPlayerProxyScript.m
 
 
 Oolite
@@ -30,15 +23,52 @@ MA 02110-1301, USA.
 
 */
 
-#import "OOScript.h"
+#import "OOPlayerProxyScript.h"
+#import "PlayerEntity.h"
 
 
-@interface OOPListScript: OOScript
+@implementation OOPlayerProxyScript
+
+- (void)resetState
 {
-	NSArray					*_script;
-	NSDictionary			*_metadata;
+	OOLog(@"temp", @"FIXME!");
 }
 
-+ (NSArray *)scriptsInPListFile:(NSString *)filePath;
+
+- (NSString *)name
+{
+	return @"<player proxy script>";
+}
+
+
+- (NSString *)scriptDescription
+{
+	return @"Pseudo-script which passes all messages to all world scripts.";
+}
+
+
+- (NSString *)version
+{
+	return nil;
+}
+
+- (void)runWithTarget:(Entity *)target
+{
+	OOLog(@"temp", @"FIXME!");
+}
+
+
+- (BOOL)doEvent:(NSString *)eventName
+{
+	OOLog(@"temp", @"FIXME!");
+	return NO;
+}
+
+
+- (BOOL)doEvent:(NSString *)eventName withArguments:(NSArray *)arguments
+{
+	OOLog(@"temp", @"FIXME!");
+	return NO;
+}
 
 @end

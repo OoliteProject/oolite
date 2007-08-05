@@ -1,9 +1,13 @@
 /*
 
-OOJSScript.h
+OOLegacyEventHandlerScript.h
 
-JavaScript support for Oolite
-Copyright (C) 2007 David Taylor and Jens Ayton.
+Script class which manages a set of event handlers implemented as legacy plist
+scripts. This is used, for example, for the various event handlers for ships.
+
+
+Oolite
+Copyright (C) 2004-2007 Giles C Williams and contributors
 
 This program is free software; you can redistribute it and/or
 modify it under the terms of the GNU General Public License
@@ -22,33 +26,16 @@ MA 02110-1301, USA.
 
 */
 
-
 #import "OOScript.h"
 #import "OOWeakReference.h"
-#import <jsapi.h>
 
 
-@interface OOJSScript: OOScript <OOWeakReferenceSupport>
+@interface OOLegacyEventHandlerScript: OOScript
 {
-	JSContext			*context;
-	JSObject			*object;
-	
-	NSString			*name;
-	NSString			*description;
-	NSString			*version;
-	
-	OOWeakReference		*weakSelf;
+	NSDictionary				*_eventHandlers;
+	id							_owner;
 }
 
-+ (id)scriptWithPath:(NSString *)path properties:(NSDictionary *)properties;
-
-- (id)initWithPath:(NSString *)path properties:(NSDictionary *)properties;
-- (id)initWithPath:(NSString *)path properties:(NSDictionary *)properties context:(JSContext *)context;
-
-+ (OOJSScript *)currentlyRunningScript;
+- (id)initWithEventHandlers:(NSDictionary *)eventHandlers forOwner:(id<OOWeakReferenceSupport>)owner;
 
 @end
-
-
-void InitOOJSScript(JSContext *context, JSObject *global);
-

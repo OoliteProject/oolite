@@ -225,7 +225,7 @@ static JSBool PlayerGetProperty(JSContext *context, JSObject *this, jsval name, 
 			
 		case kPlayer_dockedStation:
 			result = [player dockedStation];
-			if (result == nil)  *outValue = JSVAL_NULL;	// We want null, not undefined.
+			if (result == nil)  result = [NSNull null];
 			break;
 		
 		case kPlayer_dockedStationName:

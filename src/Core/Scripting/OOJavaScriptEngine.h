@@ -92,8 +92,8 @@ OOINLINE jsval BOOLToJSVal(BOOL b)
 /*	-javaScriptValueInContext:
 	
 	Return the JavaScript object representation of an object. The default
-	implementation returns JSVAL_NULL. At this time, NSString, NSNumber,
-	NSArray and Entity override this.
+	implementation returns JSVAL_VOID. At this time, NSString, NSNumber,
+	NSArray, NSNull, Entity and OOScript override this.
 */
 - (jsval)javaScriptValueInContext:(JSContext *)context;
 
@@ -124,3 +124,25 @@ OOINLINE NSString *JSValToNSString(JSContext *context, jsval value)
 
 
 NSString *JSPropertyAsString(JSContext *context, JSObject *object, const char *name);
+
+
+id JSValueToObject(JSContext *context, jsval value);
+id JSObjectToObject(JSContext *context, JSObject *object);
+
+
+/*	Support for JSValueToObject()
+	
+	JSClassConverterCallback specifies the prototype for a callback function
+	which converts a JavaScript object to an Objective-C object.
+	
+	JSBasicPrivateObjectConverter() is a JSClassConverterCallback which
+	returns the JS object's private storage value. It automatically unpacks
+	OOWeakReferences if relevant.
+	
+	JSRegisterObjectConverter() registers a callback for a specific JS class.
+	It is not automatically propagated to subclasses.
+*/
+typedef id (*JSClassConverterCallback)(JSContext *context, JSObject *object);
+id JSBasicPrivateObjectConverter(JSContext *context, JSObject *object);
+
+void JSRegisterObjectConverter(JSClass *theClass, JSClassConverterCallback converter);

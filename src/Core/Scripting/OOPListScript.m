@@ -90,7 +90,7 @@ static NSString * const kKeyMetadata		= @"!metadata!";
 	OOLog(@"script.trace.plist.run", @"Running script %@", [self displayName]);
 	OOLogIndentIf(@"script.trace.plist.run");
 	
-	[[PlayerEntity sharedPlayer] runScript:_script withName:[self name]	forTarget:(ShipEntity *)target];
+	[[PlayerEntity sharedPlayer] runScript:_script withName:[self name] forTarget:(ShipEntity *)target];
 	
 	OOLogOutdentIf(@"script.trace.plist.run");
 }
@@ -144,7 +144,7 @@ static NSString * const kKeyMetadata		= @"!metadata!";
 	self = [super init];
 	if (self != nil)
 	{
-		_script = [script retain];
+		script = [script retain];
 		if (name != nil)
 		{
 			if (metadata == nil)  metadata = [NSDictionary dictionaryWithObject:name forKey:kMDKeyName];

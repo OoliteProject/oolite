@@ -202,7 +202,7 @@ typedef enum
 	NSString				*ship_desc;
 	int						ship_trade_in_factor;
 	
-	NSDictionary			*script;
+	NSDictionary			*worldScripts;
 	NSMutableDictionary		*mission_variables;
 	NSMutableDictionary		*localVariables;
 	int						missionTextRow;
@@ -316,7 +316,7 @@ typedef enum
 	Random_Seed				galaxy_seed;
 	
 	OOCreditsQuantity		credits;	
-	uint8_t					galaxy_number;
+	OOGalaxyID				galaxy_number;
 	OOWeaponType			forward_weapon;		// Is there a reason for having both this and forward_weapon_type? -- ahruman
 	OOWeaponType			aft_weapon;			// ditto
 	OOWeaponType			port_weapon;

@@ -102,6 +102,7 @@ enum
 	kShip_maxCargo,				// maximum cargo, integer, read-only
 	kShip_speed,				// current flight speed, double, read-only (should probably be read/write, but may interfere with AI behaviour)
 	kShip_maxSpeed,				// maximum flight speed, double, read-only
+	kShip_script				// script, Script, read-only
 };
 
 
@@ -136,6 +137,7 @@ static JSPropertySpec sShipProperties[] =
 	{ "maxCargo",				kShip_maxCargo,				JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
 	{ "speed",					kShip_speed,				JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
 	{ "maxSpeed",				kShip_maxSpeed,				JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
+	{ "script",					kShip_script,				JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
 	{ 0 }
 };
 
@@ -225,7 +227,7 @@ static JSBool ShipGetProperty(JSContext *context, JSObject *this, jsval name, js
 		
 		case kShip_subEntities:
 			result = [entity subEntitiesForScript];
-			if (result == nil)  *outValue = JSVAL_NULL;	// We want null, not undefined.
+			if (result == nil)  result = [NSNull null];
 			break;
 		
 		case kShip_hasSuspendedAI:
@@ -234,12 +236,12 @@ static JSBool ShipGetProperty(JSContext *context, JSObject *this, jsval name, js
 			
 		case kShip_target:
 			result = [entity primaryTarget];
-			if (result == nil)  *outValue = JSVAL_NULL;	// We want null, not undefined.
+			if (result == nil)  result = [NSNull null];
 			break;
 		
 		case kShip_escorts:
 			result = [entity escorts];
-			if (result == nil)  *outValue = JSVAL_NULL;	// We want null, not undefined.
+			if (result == nil)  result = [NSNull null];
 			break;
 		
 		case kShip_temperature:
@@ -260,7 +262,7 @@ static JSBool ShipGetProperty(JSContext *context, JSObject *this, jsval name, js
 			
 		case kShip_beaconCode:
 			result = [entity beaconCode];
-			if (result == nil)  *outValue = JSVAL_NULL;	// We want null, not undefined.
+			if (result == nil)  result = [NSNull null];
 			break;
 		
 		case kShip_isFrangible:
@@ -281,7 +283,7 @@ static JSBool ShipGetProperty(JSContext *context, JSObject *this, jsval name, js
 		
 		case kShip_potentialCollider:
 			result = [entity proximity_alert];
-			if (result == nil)  *outValue = JSVAL_NULL;	// We want null, not undefined.
+			if (result == nil)  result = [NSNull null];
 			break;
 		
 		case kShip_hasHostileTarget:
@@ -314,6 +316,11 @@ static JSBool ShipGetProperty(JSContext *context, JSObject *this, jsval name, js
 			
 		case kShip_maxSpeed:
 			JS_NewDoubleValue(context, [entity maxFlightSpeed], outValue);
+			break;
+			
+		case kShip_script:
+			result = [entity shipScript];
+			if (result == nil)  result = [NSNull null];
 			break;
 		
 		default:

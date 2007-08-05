@@ -51,6 +51,7 @@ MA 02110-1301, USA.
 #import "OOConstToString.h"
 
 #import "OOScript.h"
+#import "OOPlayerProxyScript.h"
 #import "HeadUpDisplay.h"
 
 #ifndef GNUSTEP
@@ -785,7 +786,7 @@ static PlayerEntity *sSharedPlayer = nil;
 	
 	dockingReport = [[NSMutableString string] retain];
 	
-	script = [[ResourceManager loadScripts] retain];
+	worldScripts = [[ResourceManager loadScripts] retain];
 
 	[self initControls];
 	
@@ -986,6 +987,8 @@ static PlayerEntity *sSharedPlayer = nil;
 	lastScriptAlertCondition = [self alertCondition];
 	
 	entity_personality = ranrot_rand() & 0x7FFF;
+	
+	[self setSystem_seed:[UNIVERSE findSystemAtCoords:[self galaxy_coordinates] withGalaxySeed:[self galaxy_seed]]];
 	
 	[self sendMessageToScripts:@"reset"];
 }
@@ -1206,6 +1209,9 @@ static PlayerEntity *sSharedPlayer = nil;
 	subentityRotationalVelocity = kIdentityQuaternion;
 	ScanQuaternionFromString([shipDict objectForKey:@"rotational_velocity"], &subentityRotationalVelocity);
 	
+	[script release];
+	script = [[OOPlayerProxyScript alloc] init];
+	
 	return YES;
 }
 
@@ -1216,7 +1222,7 @@ static PlayerEntity *sSharedPlayer = nil;
 	[hud release];
 	[comm_log release];
 
-    [script release];
+    [worldScripts release];
     [mission_variables release];
 
 	[localVariables release];
@@ -6231,7 +6237,7 @@ OOSound* burnersound;
 	NSEnumerator	*scriptEnum;
 	OOScript		*theScript;
 	
-	for (scriptEnum = [script objectEnumerator]; (theScript = [scriptEnum nextObject]); )
+	for (scriptEnum = [worldScripts objectEnumerator]; (theScript = [scriptEnum nextObject]); )
 	{
 		[theScript doEvent:message withArguments:arguments];
 	}

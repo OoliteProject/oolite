@@ -1,13 +1,8 @@
 /*
 
-OOPListScript.h
+OOJSSystem.h
 
-Property list-based script.
-
-I started off reimplementing plist scripting here, in order to remove one of
-PlayerEntity's many overloaded functions. The scale of the task was such that
-I've stepped back, and this simply wraps the old plist scripting in
-PlayerEntity.
+JavaScript proxy for the current system.
 
 
 Oolite
@@ -30,15 +25,8 @@ MA 02110-1301, USA.
 
 */
 
-#import "OOScript.h"
+#import <Foundation/Foundation.h>
+#import <jsapi.h>
 
 
-@interface OOPListScript: OOScript
-{
-	NSArray					*_script;
-	NSDictionary			*_metadata;
-}
-
-+ (NSArray *)scriptsInPListFile:(NSString *)filePath;
-
-@end
+void InitOOJSSystem(JSContext *context, JSObject *global);

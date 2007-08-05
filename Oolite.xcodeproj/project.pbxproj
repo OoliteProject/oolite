@@ -370,6 +370,12 @@
 		1A736C800C61FD220097AC37 /* OOJSCall.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A736C7E0C61FD220097AC37 /* OOJSCall.m */; };
 		1A73712D0C623DAE0097AC37 /* OOJSStation.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A73712B0C623DAE0097AC37 /* OOJSStation.h */; };
 		1A73712E0C623DAE0097AC37 /* OOJSStation.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A73712C0C623DAE0097AC37 /* OOJSStation.m */; };
+		1A7376BE0C64AE330097AC37 /* OOJSSystem.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A7376BC0C64AE330097AC37 /* OOJSSystem.h */; };
+		1A7376BF0C64AE330097AC37 /* OOJSSystem.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A7376BD0C64AE330097AC37 /* OOJSSystem.m */; };
+		1A7378E40C6515720097AC37 /* OOPlayerProxyScript.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A7378E20C6515720097AC37 /* OOPlayerProxyScript.h */; };
+		1A7378E50C6515720097AC37 /* OOPlayerProxyScript.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A7378E30C6515720097AC37 /* OOPlayerProxyScript.m */; };
+		1A73795D0C65CF090097AC37 /* OOLegacyEventHandlerScript.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A73795B0C65CF090097AC37 /* OOLegacyEventHandlerScript.h */; };
+		1A73795E0C65CF090097AC37 /* OOLegacyEventHandlerScript.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A73795C0C65CF090097AC37 /* OOLegacyEventHandlerScript.m */; };
 		1A7D3A180C4F6162008EDC33 /* OOCheckRequiresPListVerifierStage.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A7D3A160C4F6162008EDC33 /* OOCheckRequiresPListVerifierStage.h */; };
 		1A7D3A190C4F6162008EDC33 /* OOCheckRequiresPListVerifierStage.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A7D3A170C4F6162008EDC33 /* OOCheckRequiresPListVerifierStage.m */; };
 		1A7D3B9B0C4F7843008EDC33 /* OOCheckDemoShipsPListVerifierStage.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A7D3B990C4F7843008EDC33 /* OOCheckDemoShipsPListVerifierStage.h */; };
@@ -1266,6 +1272,12 @@
 		1A736C7E0C61FD220097AC37 /* OOJSCall.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOJSCall.m; sourceTree = "<group>"; };
 		1A73712B0C623DAE0097AC37 /* OOJSStation.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOJSStation.h; sourceTree = "<group>"; };
 		1A73712C0C623DAE0097AC37 /* OOJSStation.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOJSStation.m; sourceTree = "<group>"; };
+		1A7376BC0C64AE330097AC37 /* OOJSSystem.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOJSSystem.h; sourceTree = "<group>"; };
+		1A7376BD0C64AE330097AC37 /* OOJSSystem.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOJSSystem.m; sourceTree = "<group>"; };
+		1A7378E20C6515720097AC37 /* OOPlayerProxyScript.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOPlayerProxyScript.h; sourceTree = "<group>"; };
+		1A7378E30C6515720097AC37 /* OOPlayerProxyScript.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOPlayerProxyScript.m; sourceTree = "<group>"; };
+		1A73795B0C65CF090097AC37 /* OOLegacyEventHandlerScript.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOLegacyEventHandlerScript.h; sourceTree = "<group>"; };
+		1A73795C0C65CF090097AC37 /* OOLegacyEventHandlerScript.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOLegacyEventHandlerScript.m; sourceTree = "<group>"; };
 		1A7D3A160C4F6162008EDC33 /* OOCheckRequiresPListVerifierStage.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOCheckRequiresPListVerifierStage.h; sourceTree = "<group>"; };
 		1A7D3A170C4F6162008EDC33 /* OOCheckRequiresPListVerifierStage.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOCheckRequiresPListVerifierStage.m; sourceTree = "<group>"; };
 		1A7D3B990C4F7843008EDC33 /* OOCheckDemoShipsPListVerifierStage.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOCheckDemoShipsPListVerifierStage.h; sourceTree = "<group>"; };
@@ -1904,6 +1916,10 @@
 				1A5DBAA20BC000DC00D57389 /* OOScript.m */,
 				1A5DBA9E0BC000DC00D57389 /* OOPListScript.h */,
 				1A5DBA9F0BC000DC00D57389 /* OOPListScript.m */,
+				1A7378E20C6515720097AC37 /* OOPlayerProxyScript.h */,
+				1A7378E30C6515720097AC37 /* OOPlayerProxyScript.m */,
+				1A73795B0C65CF090097AC37 /* OOLegacyEventHandlerScript.h */,
+				1A73795C0C65CF090097AC37 /* OOLegacyEventHandlerScript.m */,
 				1A5DBAB50BC000E700D57389 /* JavaScript */,
 			);
 			path = Scripting;
@@ -1932,6 +1948,8 @@
 				1A736BD20C61E9370097AC37 /* OOJSPlayer.m */,
 				1A2A8D380BC6765F001E00FB /* EntityOOJavaScriptExtensions.h */,
 				1A2A8D390BC6765F001E00FB /* EntityOOJavaScriptExtensions.m */,
+				1A7376BC0C64AE330097AC37 /* OOJSSystem.h */,
+				1A7376BD0C64AE330097AC37 /* OOJSSystem.m */,
 			);
 			name = JavaScript;
 			sourceTree = "<group>";
@@ -2588,6 +2606,9 @@
 				1A736BD30C61E9370097AC37 /* OOJSPlayer.h in Headers */,
 				1A736C7F0C61FD220097AC37 /* OOJSCall.h in Headers */,
 				1A73712D0C623DAE0097AC37 /* OOJSStation.h in Headers */,
+				1A7376BE0C64AE330097AC37 /* OOJSSystem.h in Headers */,
+				1A7378E40C6515720097AC37 /* OOPlayerProxyScript.h in Headers */,
+				1A73795D0C65CF090097AC37 /* OOLegacyEventHandlerScript.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -2892,6 +2913,9 @@
 				1A736BD40C61E9370097AC37 /* OOJSPlayer.m in Sources */,
 				1A736C800C61FD220097AC37 /* OOJSCall.m in Sources */,
 				1A73712E0C623DAE0097AC37 /* OOJSStation.m in Sources */,
+				1A7376BF0C64AE330097AC37 /* OOJSSystem.m in Sources */,
+				1A7378E50C6515720097AC37 /* OOPlayerProxyScript.m in Sources */,
+				1A73795E0C65CF090097AC37 /* OOLegacyEventHandlerScript.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

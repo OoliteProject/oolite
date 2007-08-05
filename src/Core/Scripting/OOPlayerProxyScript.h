@@ -1,9 +1,14 @@
 /*
 
-OOJSScript.h
+OOPlayerProxyScript.h
 
-JavaScript support for Oolite
-Copyright (C) 2007 David Taylor and Jens Ayton.
+Script which passes messages on to all world scripts, acting as the player's
+ship script. This ensures all ship script messages for the player are passed
+to the world scripts without needing special treatment.
+
+
+Oolite
+Copyright (C) 2004-2007 Giles C Williams and contributors
 
 This program is free software; you can redistribute it and/or
 modify it under the terms of the GNU General Public License
@@ -22,33 +27,8 @@ MA 02110-1301, USA.
 
 */
 
-
 #import "OOScript.h"
-#import "OOWeakReference.h"
-#import <jsapi.h>
 
 
-@interface OOJSScript: OOScript <OOWeakReferenceSupport>
-{
-	JSContext			*context;
-	JSObject			*object;
-	
-	NSString			*name;
-	NSString			*description;
-	NSString			*version;
-	
-	OOWeakReference		*weakSelf;
-}
-
-+ (id)scriptWithPath:(NSString *)path properties:(NSDictionary *)properties;
-
-- (id)initWithPath:(NSString *)path properties:(NSDictionary *)properties;
-- (id)initWithPath:(NSString *)path properties:(NSDictionary *)properties context:(JSContext *)context;
-
-+ (OOJSScript *)currentlyRunningScript;
-
+@interface OOPlayerProxyScript: OOScript
 @end
-
-
-void InitOOJSScript(JSContext *context, JSObject *global);
-

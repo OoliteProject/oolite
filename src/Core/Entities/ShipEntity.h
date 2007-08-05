@@ -28,7 +28,7 @@ MA 02110-1301, USA.
 #import "OOEntityWithDrawable.h"
 
 @class	OOBrain, OOColor, StationEntity, ParticleEntity, PlanetEntity,
-		WormholeEntity, AI, Octree, OOMesh;
+		WormholeEntity, AI, Octree, OOMesh, OOScript;
 
 
 #define MAX_TARGETS						24
@@ -107,9 +107,7 @@ MA 02110-1301, USA.
 	Quaternion				subentityRotationalVelocity;
 	
 	//scripting
-	NSArray					*launch_actions;
-	NSArray					*script_actions;			// used by cargo-containers with CARGO_SCRIPT_ACTION when you scoop them, used by Stations when you dock with them, used during custom system set up too
-	NSArray					*death_actions;
+	OOScript				*script;
 	
 	//docking instructions
 	NSDictionary			*dockingInstructions;
@@ -164,7 +162,10 @@ MA 02110-1301, USA.
 							isFrangible: 1,				// frangible => subentities can be damaged individually
 							cloaking_device_active: 1,	// cloaking_device
 							canFragment: 1,				// Can it break into wreckage?
-							suppressExplosion: 1;		// Avoid exploding on death (script hook)
+							suppressExplosion: 1,		// Avoid exploding on death (script hook)
+	
+	// scripting
+							haveExecutedSpawnAction: 1;
 	
 	OOFuelQuantity			fuel;						// witch-space fuel
 	GLfloat					fuel_accumulator;
@@ -295,6 +296,8 @@ MA 02110-1301, USA.
 - (void)setMesh:(OOMesh *)mesh;
 
 - (NSArray *)subEntities;
+
+- (OOScript *)shipScript;
 
 // octree collision hunting
 - (GLfloat)doesHitLine:(Vector) v0: (Vector) v1;
