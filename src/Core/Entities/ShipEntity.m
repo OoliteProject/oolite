@@ -684,7 +684,7 @@ static NSString * const kOOLogEntityBehaviourChanged	= @"entity.behaviour.change
 	{
 		[beaconCode release];
 		beaconCode = [bcode copy];
-		if (beaconCode == nil)
+		if (beaconCode != nil)
 		{
 			beaconChar = [bcode lossyCString][0];
 		}
