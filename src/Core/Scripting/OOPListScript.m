@@ -144,7 +144,7 @@ static NSString * const kKeyMetadata		= @"!metadata!";
 	self = [super init];
 	if (self != nil)
 	{
-		script = [script retain];
+		_script = [script retain];
 		if (name != nil)
 		{
 			if (metadata == nil)  metadata = [NSDictionary dictionaryWithObject:name forKey:kMDKeyName];
