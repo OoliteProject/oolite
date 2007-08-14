@@ -676,6 +676,11 @@ static PlayerEntity *sSharedPlayer = nil;
 	{
 		[UNIVERSE setLocalPlanetInfoOverrides:(NSDictionary *)[dict objectForKey:@"localPlanetInfoOverrides"]];
 	}
+	// Nikos - Maintain compatibility with older saved games that contain local planetinfo overrides.
+	else if ([dict objectForKey:@"local_planetinfo_overrides"])
+	{
+		[UNIVERSE setLocalPlanetInfoOverrides:(NSDictionary *)[dict objectForKey:@"local_planetinfo_overrides"]];
+	}	
 
 	// communications log
 	if ([dict objectForKey:@"comm_log"])
