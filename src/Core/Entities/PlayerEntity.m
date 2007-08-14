@@ -672,7 +672,7 @@ static PlayerEntity *sSharedPlayer = nil;
 		[mission_variables addEntriesFromDictionary:(NSDictionary *)[dict objectForKey:@"mission_variables"]];
 
 	// persistant UNIVERSE info
-	if ([dict objectForKey:@"localPlanetInfoOverrides"])
+	if ([dict objectForKey:@"local_planetinfo_overrides"])
 	{
 		[UNIVERSE setLocalPlanetInfoOverrides:(NSDictionary *)[dict objectForKey:@"local_planetinfo_overrides"]];
 	}
