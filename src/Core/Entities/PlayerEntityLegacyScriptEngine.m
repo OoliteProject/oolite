@@ -1749,6 +1749,7 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 		return;
 
 	[UNIVERSE removeDemoShips];	// get rid of any pre-existing models on display
+	[[PlayerEntity sharedPlayer] setShowDemoShips: YES];
 
 	Quaternion		q2 = { (GLfloat)0.707, (GLfloat)0.707, (GLfloat)0.0, (GLfloat)0.0};
 
@@ -1758,13 +1759,13 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 		double cr = ship->collision_radius;
 		OOLog(kOOLogNoteShowShipModel, @"::::: showShipModel:'%@' (%@) (%@)", shipKey, ship, [ship name]);
 		[ship setOrientation: q2];
-		[ship setStatus: STATUS_COCKPIT_DISPLAY];
 		[ship setPositionX:0.0f y:0.0f z:3.6f * cr];
 		[ship setScanClass: CLASS_NO_DRAW];
 		[ship setRoll: M_PI/5.0];
 		[ship setPitch: M_PI/10.0];
-		[UNIVERSE addEntity: ship];
 		[[ship getAI] setStateMachine: @"nullAI.plist"];
+		[UNIVERSE addEntity: ship];
+		[ship setStatus: STATUS_COCKPIT_DISPLAY];
 
 		[ship release];
 	}
