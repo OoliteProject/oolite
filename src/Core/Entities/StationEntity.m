@@ -1253,7 +1253,7 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 				found_target = primaryAggressor;
 			}
 			[self increaseAlertLevel];
-			[shipAI reactToMessage:@"ATTACKED"];	// note use the reactToMessage: method NOT the think-delayed message: method
+			[self respondToAttackFrom:ent becauseOf:other];
 			
 			// ...and don't blow up.
 			return;

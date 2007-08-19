@@ -290,13 +290,23 @@ static NSString * const kStageName	= @"Checking shipdata.plist";
 	materials = [_info dictionaryForKey:@"materials"];
 	shaders = [_info dictionaryForKey:@"shaders"];
 	
-	if (![[[self verifier] modelVerifierStage] modelNamed:model
-											 usedForEntry:_name
-												   inFile:@"shipdata.plist"
-											withMaterials:materials
-											   andShaders:shaders])
+	if (model != nil)
 	{
-		[self message:@"WARNING: model \"%@\" could not be found in %@ or in Oolite.", model, [[self verifier] oxpDisplayName]];
+		if (![[[self verifier] modelVerifierStage] modelNamed:model
+												 usedForEntry:_name
+													   inFile:@"shipdata.plist"
+												withMaterials:materials
+												   andShaders:shaders])
+		{
+			[self message:@"WARNING: model \"%@\" could not be found in %@ or in Oolite.", model, [[self verifier] oxpDisplayName]];
+		}
+	}
+	else
+	{
+		if ([_info stringForKey:@"like_ship"] == nil)
+		{
+			[self message:@"ERROR: ship does not specify model or like_ship."];
+		}
 	}
 }
 

@@ -211,7 +211,7 @@ typedef enum
 	
 	NSString				*specialCargo;
 	
-	NSMutableArray			*comm_log;
+	NSMutableArray			*commLog;
 
 	NSMutableDictionary		*oxpKeys;
 	
@@ -550,7 +550,7 @@ typedef enum
 - (NSString *) dial_fpsinfo;
 - (NSString *) dial_objinfo;
 
-- (NSMutableArray *) comm_log;
+- (NSMutableArray *) commLog;
 
 - (OOCompassMode) compassMode;
 - (void) setCompassMode:(OOCompassMode)value;
@@ -670,11 +670,10 @@ typedef enum
 - (NSString *)customViewDescription;
 - (void)setCustomViewDataFromDictionary:(NSDictionary*) viewDict;
 
-/* -- */
-
-- (void) sendMessageToScripts:(NSString *)message;
-- (void) sendMessageToScripts:(NSString *)message withString:(NSString *)argument;
-- (void) sendMessageToScripts:(NSString *)message withArguments:(NSArray *)arguments;
+// *** World cript events.
+// In general, script events should be sent through doScriptEvent:..., which
+// will forward to the world scripts.
+- (void) doWorldScriptEvent:(NSString *)message withArguments:(NSArray *)arguments;
 
 - (BOOL)showInfoFlag;
 

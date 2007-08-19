@@ -1673,8 +1673,6 @@ void drawActiveCorona(GLfloat inner_radius, GLfloat outer_radius, GLfloat step, 
 
 		[shuttle_ship setStatus:STATUS_IN_FLIGHT];
 
-		//[shuttle_ship setReportAIMessages:YES]; // debug
-
 		[UNIVERSE addEntity:shuttle_ship];
 		[[shuttle_ship getAI] setStateMachine:@"risingShuttleAI.plist"];	// must happen after adding to the universe!
 

@@ -82,4 +82,10 @@ MA 02110-1301, USA.
 	else  [drawable renderOpaqueParts];
 }
 
+
+- (void)setShaderBindingTarget:(Entity *)ent
+{
+	[[self drawable] setBindingTarget:ent];
+}
+
 @end

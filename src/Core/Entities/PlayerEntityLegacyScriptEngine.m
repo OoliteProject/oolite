@@ -1745,10 +1745,11 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 {
 	ShipEntity		*ship;
 
-	if (!dockedStation)
-		return;
+	if (!dockedStation)  return;
 
 	[UNIVERSE removeDemoShips];	// get rid of any pre-existing models on display
+	if ([shipKey isEqualToString:@"none"] || [shipKey length] == 0)  return;
+	
 	[[PlayerEntity sharedPlayer] setShowDemoShips: YES];
 
 	Quaternion		q2 = { (GLfloat)0.707, (GLfloat)0.707, (GLfloat)0.0, (GLfloat)0.0};
@@ -1769,7 +1770,6 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 
 		[ship release];
 	}
-	//
 }
 
 

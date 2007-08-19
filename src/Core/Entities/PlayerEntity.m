@@ -51,7 +51,6 @@ MA 02110-1301, USA.
 #import "OOConstToString.h"
 
 #import "OOScript.h"
-#import "OOPlayerProxyScript.h"
 #import "HeadUpDisplay.h"
 
 #ifndef GNUSTEP
@@ -66,6 +65,14 @@ MA 02110-1301, USA.
 
 // 10m/s forward drift
 #define	OG_ELITE_FORWARD_DRIFT			10.0f
+
+
+enum
+{
+	// If comm log is kCommLogTrimThreshold or more lines long, it will be cut to kCommLogTrimSize.
+	kCommLogTrimThreshold				= 125,
+	kCommLogTrimSize					= 100
+};
 
 
 static NSString * const kOOLogBuyMountedOK			= @"equip.buy.mounted";
@@ -303,12 +310,8 @@ static PlayerEntity *sSharedPlayer = nil;
 		[result setObject:[NSDictionary dictionaryWithDictionary:mission_variables] forKey:@"mission_variables"];
 
 	// communications log
-	if (comm_log)
-	{
-		while ([comm_log count] > 200)			// only keep the last 200 lines
-			[comm_log removeObjectAtIndex:0];
-		[result setObject:comm_log forKey:@"comm_log"];
-	}
+	NSArray *log = [self commLog];
+	if (log != nil)  [result setObject:commLog forKey:@"comm_log"];
 
 	// extra equipment flags
 	if (extra_equipment)
@@ -678,11 +681,8 @@ static PlayerEntity *sSharedPlayer = nil;
 	}
 
 	// communications log
-	if ([dict objectForKey:@"comm_log"])
-	{
-		if (comm_log)	[comm_log release];
-		comm_log = [[NSMutableArray alloc] initWithArray:(NSArray*)[dict objectForKey:@"comm_log"]];	// retained
-	}
+	[commLog release];
+	commLog = [[dict arrayForKey:@"comm_log"] mutableCopy];
 
 	// set up missiles
 	unsigned i;
@@ -951,8 +951,8 @@ static PlayerEntity *sSharedPlayer = nil;
 	
 	dockedStation = [UNIVERSE station];
 	
-	[comm_log release];
-	comm_log = [[NSMutableArray alloc] init];	// retained
+	[commLog release];
+	commLog = nil;
 	
 	[specialCargo release];
 	specialCargo = nil;
@@ -990,7 +990,7 @@ static PlayerEntity *sSharedPlayer = nil;
 	
 	[self setSystem_seed:[UNIVERSE findSystemAtCoords:[self galaxy_coordinates] withGalaxySeed:[self galaxy_seed]]];
 	
-	[self sendMessageToScripts:@"reset"];
+	[self doScriptEvent:@"reset"];
 }
 
 
@@ -1167,7 +1167,7 @@ static PlayerEntity *sSharedPlayer = nil;
 				if (subent == nil)
 				{
 					// Failing to find a subentity could result in a partial ship, which'd be, y'know, weird.
-					return nil;
+					return NO;
 				}
 
 				if ((self->isStation)&&([subdesc rangeOfString:@"dock"].location != NSNotFound))
@@ -1209,8 +1209,10 @@ static PlayerEntity *sSharedPlayer = nil;
 	subentityRotationalVelocity = kIdentityQuaternion;
 	ScanQuaternionFromString([shipDict objectForKey:@"rotational_velocity"], &subentityRotationalVelocity);
 	
-	[script release];
-	script = [[OOPlayerProxyScript alloc] init];
+	// Load script
+	[script release];			
+	script = [OOScript nonLegacyScriptFromFileNamed:[shipDict stringForKey:@"script"] 
+										 properties:[NSDictionary dictionaryWithObject:self forKey:@"ship"]];
 	
 	return YES;
 }
@@ -1220,7 +1222,7 @@ static PlayerEntity *sSharedPlayer = nil;
 {
     [ship_desc release];
 	[hud release];
-	[comm_log release];
+	[commLog release];
 
     [worldScripts release];
     [mission_variables release];
@@ -1318,7 +1320,8 @@ double scoopSoundPlayTime = 0.0;
 	*/
 	if ([self alertCondition] != lastScriptAlertCondition)
 	{
-		[self sendMessageToScripts:@"alertConditionChanged"];
+		[self doScriptEvent:@"alertConditionChanged"];
+		lastScriptAlertCondition = [self alertCondition];
 	}
 
 	if (scoopsActive)
@@ -1478,7 +1481,7 @@ double scoopSoundPlayTime = 0.0;
 			// next check in 10s
 
 			status = STATUS_IN_FLIGHT;
-			[self sendMessageToScripts:@"didLaunch"];
+			[self doScriptEvent:@"didLaunch"];
 		}
 	}
 
@@ -1504,7 +1507,7 @@ double scoopSoundPlayTime = 0.0;
 				if (![UNIVERSE playCustomSound:@"[witch-blocked-by-@]"])
 					[witchAbortSound play];
 				status = STATUS_IN_FLIGHT;
-				[self sendMessageToScripts:@"didFailToJump" withString:@"blocked"];
+				[self doScriptEvent:@"didFailToJump" withArgument:@"blocked"];
 				go = NO;
 			}
 			
@@ -1520,7 +1523,7 @@ double scoopSoundPlayTime = 0.0;
 					if (![UNIVERSE playCustomSound:@"[witch-too-far]"])
 						[witchAbortSound play];
 					status = STATUS_IN_FLIGHT;
-					[self sendMessageToScripts:@"didFailToJump" withString:@"too far"];
+					[self doScriptEvent:@"didFailToJump" withArgument:@"too far"];
 					go = NO;
 				}
 			}
@@ -1536,7 +1539,7 @@ double scoopSoundPlayTime = 0.0;
 				if (![UNIVERSE playCustomSound:@"[witch-no-fuel]"])
 					[witchAbortSound play];
 				status = STATUS_IN_FLIGHT;
-				[self sendMessageToScripts:@"didFailToJump" withString:@"insufficient fuel"];
+				[self doScriptEvent:@"didFailToJump" withArgument:@"insufficient fuel"];
 				go = NO;
 			}
 
@@ -1569,7 +1572,7 @@ double scoopSoundPlayTime = 0.0;
 				[UNIVERSE addMessage:ExpandDescriptionForCurrentSystem(@"[witch-engine-malfunction]") forCount:3.0];
 
 			status = STATUS_IN_FLIGHT;
-			[self sendMessageToScripts:@"didExitWitchSpace"];
+			[self doScriptEvent:@"didExitWitchSpace"];
 		}
 	}
 
@@ -2353,9 +2356,26 @@ double scoopSoundPlayTime = 0.0;
 }
 
 
-- (NSMutableArray*) comm_log
+- (NSMutableArray*) commLog
 {
-	return comm_log;
+	unsigned			count;
+	
+	assert(kCommLogTrimSize < kCommLogTrimThreshold);
+	
+	if (commLog != nil)
+	{
+		count = [commLog count];
+		if (count >= kCommLogTrimThreshold)
+		{
+			[commLog removeObjectsInRange:NSMakeRange(kCommLogTrimSize, count - kCommLogTrimSize)];
+		}
+	}
+	else
+	{
+		commLog = [[NSMutableArray alloc] init];
+	}
+	
+	return commLog;
 }
 
 
@@ -2649,7 +2669,7 @@ double scoopSoundPlayTime = 0.0;
 			[[UNIVERSE gameController] playiTunesPlaylist:@"Oolite-Inflight"];
 			docking_music_on = NO;
 		}
-		[self sendMessageToScripts:@"didRecieveDockingRefusal"];
+		[self doScriptEvent:@"didRecieveDockingRefusal"];
 	}
 
 	// aegis messages to advanced compass so in planet mode it behaves like the old compass
@@ -3260,7 +3280,7 @@ double scoopSoundPlayTime = 0.0;
 	[UNIVERSE addMessage:ExpandDescriptionForCurrentSystem(@"[escape-sequence]") forCount:4.5];
 	shot_time = 0.0;
 	
-	[self sendMessageToScripts:@"didLaunchEscapePod"];
+	[self doScriptEvent:@"didLaunchEscapePod"];
 
 	return result;
 }
@@ -3497,7 +3517,7 @@ double scoopSoundPlayTime = 0.0;
 	shot_time = 0.0;
 	
 	if (whom == nil)  whom = (id)[NSNull null];
-	[self sendMessageToScripts:@"didBecomeDead" withArguments:[NSArray arrayWithObjects:whom, why, nil]];
+	[self doScriptEvent:@"didBecomeDead" withArguments:[NSArray arrayWithObjects:whom, why, nil]];
 	[self loseTargetStatus];
 }
 
@@ -3535,7 +3555,7 @@ double scoopSoundPlayTime = 0.0;
 		return;
 	
 	status = STATUS_DOCKING;
-	[self sendMessageToScripts:@"willDock"];
+	[self doScriptEvent:@"willDock"];
 
 	afterburner_engaged = NO;
 
@@ -3641,7 +3661,7 @@ double scoopSoundPlayTime = 0.0;
 	
 	[[OOCacheManager sharedCache] flush];
 	
-	[self sendMessageToScripts:@"didDock"];
+	[self doScriptEvent:@"didDock"];
 }
 
 
@@ -3671,9 +3691,8 @@ double scoopSoundPlayTime = 0.0;
 	[UNIVERSE setDisplayText:NO];
 	[UNIVERSE setDisplayCursor:NO];
 	[UNIVERSE set_up_break_pattern:position quaternion:orientation];
-	[self playBreakPattern];
 
-	[(MyOpenGLView *)[UNIVERSE gameView] clearKeys];	// try to stop keybounces
+	[[UNIVERSE gameView] clearKeys];	// try to stop keybounces
 
 	if (ootunes_on)
 	{
@@ -3692,7 +3711,7 @@ double scoopSoundPlayTime = 0.0;
 - (void) enterGalacticWitchspace
 {
 	status = STATUS_ENTERING_WITCHSPACE;
-	[self sendMessageToScripts:@"willEnterWitchSpace" withString:@"galactic jump"];
+	[self doScriptEvent:@"willEnterWitchSpace" withArgument:@"galactic jump"];
 
 	if (primaryTarget != NO_TARGET)
 		primaryTarget = NO_TARGET;
@@ -3763,7 +3782,7 @@ double scoopSoundPlayTime = 0.0;
 {
 	target_system_seed = [w_hole destination];
 	status = STATUS_ENTERING_WITCHSPACE;
-	[self sendMessageToScripts:@"willEnterWitchSpace" withString:@"wormhole"];
+	[self doScriptEvent:@"willEnterWitchSpace" withArgument:@"wormhole"];
 
 	hyperspeed_engaged = NO;
 
@@ -3808,7 +3827,7 @@ double scoopSoundPlayTime = 0.0;
 	double		distance = distanceBetweenPlanetPositions(target_system_seed.d,target_system_seed.b,galaxy_coordinates.x,galaxy_coordinates.y);
 
 	status = STATUS_ENTERING_WITCHSPACE;
-	[self sendMessageToScripts:@"willEnterWitchSpace" withString:@"standard jump"];
+	[self doScriptEvent:@"willEnterWitchSpace" withArgument:@"standard jump"];
 
 	hyperspeed_engaged = NO;
 
@@ -3917,7 +3936,7 @@ double scoopSoundPlayTime = 0.0;
 	[UNIVERSE setDisplayText:NO];
 	[UNIVERSE set_up_break_pattern:position quaternion:orientation];
 	[self playBreakPattern];
-	[self sendMessageToScripts:@"willExitWitchSpace"];
+	[self doScriptEvent:@"willExitWitchSpace"];
 }
 
 
@@ -5025,8 +5044,10 @@ static int last_outfitting_index;
 	NSString			*eq_key			= [[equipdata objectAtIndex:index] objectAtIndex:EQUIPMENT_KEY_INDEX];
 	NSString			*eq_key_damaged	= [NSString stringWithFormat:@"%@_DAMAGED", eq_key];
 	double				price			= ([eq_key isEqual:@"EQ_FUEL"]) ? ((PLAYER_MAX_FUEL - fuel) * price_per_unit) : (price_per_unit) ;
-	double			price_factor	= 1.0;
-	OOCargoQuantity	cargo_space = max_cargo - current_cargo;
+	double				price_factor	= 1.0;
+	OOCargoQuantity		cargo_space = max_cargo - current_cargo;
+	OOCreditsQuantity	tradeIn = 0;
+	BOOL				done = NO;
 
 	// repairs cost 50%
 	if ([self hasExtraEquipment:eq_key_damaged])
@@ -5051,13 +5072,13 @@ static int last_outfitting_index;
 		return NO;
 	}
 
-	if (([eq_key hasPrefix:@"EQ_WEAPON"])&&(chosen_weapon_facing == WEAPON_FACING_NONE))
+	if ([eq_key hasPrefix:@"EQ_WEAPON"] && chosen_weapon_facing == WEAPON_FACING_NONE)
 	{
-		[self setGuiToEquipShipScreen:-1:index];											// reset
+		[self setGuiToEquipShipScreen:-1:index];	// reset
 		return YES;
 	}
 
-	if (([eq_key hasPrefix:@"EQ_WEAPON"])&&(chosen_weapon_facing != WEAPON_FACING_NONE))
+	if ([eq_key hasPrefix:@"EQ_WEAPON"] && chosen_weapon_facing != WEAPON_FACING_NONE)
 	{
 		int chosen_weapon = WEAPON_NONE;
 		int current_weapon = WEAPON_NONE;
@@ -5105,7 +5126,6 @@ static int last_outfitting_index;
 			Acknowledgment: bug and fix both reported by Cmdr James on forum.
 			-- Ahruman 20070724
 		*/
-		OOCreditsQuantity tradeIn = 0;
 		switch (current_weapon)
 		{
 			case WEAPON_PLASMA_CANNON :
@@ -5129,41 +5149,43 @@ static int last_outfitting_index;
 			case WEAPON_NONE :
 				break;
 		}
-		if (price_factor < 1.0f)  credits += tradeIn * price_factor;
-
+		
 		[self setGuiToEquipShipScreen:-1:-1];
-		return YES;
+		done = YES;
 	}
 
-	if (([eq_key hasSuffix:@"MISSILE"]||[eq_key hasSuffix:@"MINE"])&&(missiles >= max_missiles)) {
+	if (([eq_key hasSuffix:@"MISSILE"] || [eq_key hasSuffix:@"MINE"]) && missiles >= max_missiles)
+	{
 		NSLog(@"rejecting missile because already full");
 		return NO;
 	}
 
-	if (([eq_key isEqual:@"EQ_PASSENGER_BERTH"])&&(cargo_space < 5))
+	if ([eq_key isEqual:@"EQ_PASSENGER_BERTH"] && cargo_space < 5)
+	{
 		return NO;
-
+	}
+	
 	if ([eq_key isEqual:@"EQ_FUEL"])
 	{
 		fuel = PLAYER_MAX_FUEL;
 		credits -= price;
 		[self setGuiToEquipShipScreen:-1:-1];
-		return YES;
+		done = YES;
 	}
-
+	
 	// check energy unit replacement
-	if ([eq_key hasSuffix:@"ENERGY_UNIT"]&&(energy_unit != ENERGY_UNIT_NONE))
+	if ([eq_key hasSuffix:@"ENERGY_UNIT"] && energy_unit != ENERGY_UNIT_NONE)
 	{
 		switch (energy_unit)
 		{
 			case ENERGY_UNIT_NAVAL :
 				[self removeEquipment:@"EQ_NAVAL_ENERGY_UNIT"];
-				credits += [UNIVERSE getPriceForWeaponSystemWithKey:@"EQ_NAVAL_ENERGY_UNIT"] / 2;	// 50 % refund
+				tradeIn = [UNIVERSE getPriceForWeaponSystemWithKey:@"EQ_NAVAL_ENERGY_UNIT"] / 2;	// 50 % refund
 				break;
 
 			case ENERGY_UNIT_NORMAL :
 				[self removeEquipment:@"EQ_ENERGY_UNIT"];
-				credits += [UNIVERSE getPriceForWeaponSystemWithKey:@"EQ_ENERGY_UNIT"] * 3 / 4;	// 75 % refund
+				tradeIn = [UNIVERSE getPriceForWeaponSystemWithKey:@"EQ_ENERGY_UNIT"] * 3 / 4;	// 75 % refund
 				break;
 
 			case ENERGY_UNIT_NONE :
@@ -5171,7 +5193,7 @@ static int last_outfitting_index;
 				break;
 		}
 	}
-
+	
 	// maintain ship
 	if ([eq_key isEqual:@"EQ_RENOVATION"])
 	{
@@ -5185,10 +5207,10 @@ static int last_outfitting_index;
 			ship_trade_in_factor = 100;
 		
 		[self setGuiToEquipShipScreen:-1:-1];
-		return YES;
+		done = YES;
 	}
 
-	if ([eq_key hasSuffix:@"MISSILE"]||[eq_key hasSuffix:@"MINE"])
+	if ([eq_key hasSuffix:@"MISSILE"] || [eq_key hasSuffix:@"MINE"])
 	{
 		ShipEntity* weapon = [[UNIVERSE newShipWithRole:eq_key] autorelease];
 		if (weapon)  OOLog(kOOLogBuyMountedOK, @"Got ship for mounted weapon role %@", eq_key);
@@ -5212,7 +5234,7 @@ static int last_outfitting_index;
 		max_cargo -= 5;
 		credits -= price;
 		[self setGuiToEquipShipScreen:-1:-1];
-		return YES;
+		done = YES;
 	}
 
 	if ([eq_key isEqual:@"EQ_PASSENGER_BERTH_REMOVAL"])
@@ -5221,7 +5243,7 @@ static int last_outfitting_index;
 		max_cargo += 5;
 		credits -= price;
 		[self setGuiToEquipShipScreen:-1:-1];
-		return YES;
+		done = YES;
 	}
 
 	if ([eq_key isEqual:@"EQ_MISSILE_REMOVAL"])
@@ -5238,13 +5260,13 @@ static int last_outfitting_index;
 			{
 				NSString* weapon_key = [weapon roles];
 				int weapon_value = [UNIVERSE getPriceForWeaponSystemWithKey:weapon_key];
-				credits += weapon_value;
+				tradeIn += weapon_value;
 				[weapon release];
 			}
 		}
 		missiles = 0;
 		[self setGuiToEquipShipScreen:-1:-1];
-		return YES;
+		done = YES;
 	}
 
 	unsigned i;
@@ -5257,11 +5279,18 @@ static int last_outfitting_index;
 			[self addExtraEquipment:eq_key];
 			[self setGuiToEquipShipScreen:-1:-1];
 
-			return YES;
+			done = YES;
+			break;
 		}
 	}
+	
+	if (tradeIn != 0)
+	{
+		if (price_factor < 1.0f)  tradeIn *= price_factor;
+		credits += tradeIn;
+	}
 
-	return NO;
+	return done;
 }
 
 
@@ -6217,22 +6246,14 @@ OOSound* burnersound;
 }
 
 
-- (void) sendMessageToScripts:(NSString *)message
+- (void) doScriptEvent:(NSString *)message withArguments:(NSArray *)arguments
 {
-	[self sendMessageToScripts:message withArguments:nil];
+	[super doScriptEvent:message withArguments:arguments];
+	[self doWorldScriptEvent:message withArguments:arguments];
 }
 
 
-- (void) sendMessageToScripts:(NSString *)message withString:(NSString *)argument
-{
-	NSArray			*arguments = nil;
-	
-	if (argument != nil) arguments = [NSArray arrayWithObject:argument];
-	[self sendMessageToScripts:message withArguments:arguments];
-}
-
-
-- (void) sendMessageToScripts:(NSString *)message withArguments:(NSArray *)arguments
+- (void) doWorldScriptEvent:(NSString *)message withArguments:(NSArray *)arguments
 {
 	NSEnumerator	*scriptEnum;
 	OOScript		*theScript;

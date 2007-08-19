@@ -254,4 +254,6 @@ typedef struct
 - (GLfloat)spawnTime;
 - (GLfloat)timeElapsedSinceSpawn;
 
+- (void)setShaderBindingTarget:(Entity *)ent;
+
 @end

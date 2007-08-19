@@ -87,8 +87,8 @@ static OOBasicMaterial *sDefaultMaterial = nil;
 	
 	colorDesc = [configuration objectForKey:@"ambient"];
 	if (colorDesc != nil)  [self setAmbientColor:[OOColor colorWithDescription:colorDesc]];
-	
 	else  [self setAmbientColor:[self diffuseColor]];
+	
 	colorDesc = [configuration objectForKey:@"emission"];
 	if (colorDesc != nil)  [self setEmissionColor:[OOColor colorWithDescription:colorDesc]];
 	

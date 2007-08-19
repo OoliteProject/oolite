@@ -667,7 +667,7 @@ static NSTimeInterval	time_last_frame;
 						if (![UNIVERSE playCustomSound:@"[autopilot-on]"])
 							[self beep];
 						[UNIVERSE addMessage:ExpandDescriptionForCurrentSystem(@"[autopilot-on]") forCount:4.5];
-						[self sendMessageToScripts:@"didStartAutoPilot"];
+						[self doScriptEvent:@"didStartAutoPilot"];
 						//
 						if (ootunes_on)
 						{
@@ -710,7 +710,7 @@ static NSTimeInterval	time_last_frame;
 						if (![UNIVERSE playCustomSound:@"[autopilot-on]"])
 							[self beep];
 						[UNIVERSE addMessage:ExpandDescriptionForCurrentSystem(@"[autopilot-on]") forCount:4.5];
-						[self sendMessageToScripts:@"didStartAutoPilot"];
+						[self doScriptEvent:@"didStartAutoPilot"];
 						//
 						if (ootunes_on)
 						{
@@ -831,7 +831,7 @@ static NSTimeInterval	time_last_frame;
 						[UNIVERSE clearPreviousMessage];
 						[UNIVERSE addMessage:ExpandDescriptionForCurrentSystem(@"[witch-user-abort]") forCount:3.0];
 						
-						[self sendMessageToScripts:@"didCancelJumpCountDown"];
+						[self doScriptEvent:@"didCancelJumpCountDown"];
 					}
 
 					if (jumpOK)
@@ -845,7 +845,7 @@ static NSTimeInterval	time_last_frame;
 						[UNIVERSE clearPreviousMessage];
 						[UNIVERSE addMessage:[NSString stringWithFormat:ExpandDescriptionForCurrentSystem(@"[witch-to-@-in-f-seconds]"), [UNIVERSE getSystemName:target_system_seed], witchspaceCountdown] forCount:1.0];
 						
-						[self sendMessageToScripts:@"didBeginJumpCountDown"withString:@"standard"];
+						[self doScriptEvent:@"didBeginJumpCountDown" withArgument:@"standard"];
 					}
 				}
 				hyperspace_pressed = YES;
@@ -877,7 +877,7 @@ static NSTimeInterval	time_last_frame;
 						[UNIVERSE clearPreviousMessage];
 						[UNIVERSE addMessage:ExpandDescriptionForCurrentSystem(@"[witch-user-abort]") forCount:3.0];
 						
-						[self sendMessageToScripts:@"didCancelJumpCountDown"];
+						[self doScriptEvent:@"didCancelJumpCountDown"];
 					}
 
 					if (jumpOK)
@@ -891,7 +891,7 @@ static NSTimeInterval	time_last_frame;
 						// say it!
 						[UNIVERSE addMessage:[NSString stringWithFormat:ExpandDescriptionForCurrentSystem(@"[witch-galactic-in-f-seconds]"), witchspaceCountdown] forCount:1.0];
 						
-						[self sendMessageToScripts:@"didBeginJumpCountDown" withString:@"galactic"];
+						[self doScriptEvent:@"didBeginJumpCountDown" withArgument:@"galactic"];
 					}
 				}
 				galhyperspace_pressed = YES;
@@ -2507,7 +2507,7 @@ static BOOL toggling_music;
 			if (![UNIVERSE playCustomSound:@"[autopilot-off]"])
 				[self beep];
 			[UNIVERSE addMessage:ExpandDescriptionForCurrentSystem(@"[autopilot-off]") forCount:4.5];
-			[self sendMessageToScripts:@"didAbortAutoPilot"];
+			[self doScriptEvent:@"didAbortAutoPilot"];
 			//
 			if (ootunes_on)
 			{
@@ -2554,7 +2554,8 @@ static BOOL toggling_music;
 				dockedStation = [UNIVERSE station];
 			[self leaveDock:dockedStation];
 			[UNIVERSE setDisplayCursor:NO];
-			[self sendMessageToScripts:@"willLaunch"];
+			[self doScriptEvent:@"willLaunch"];
+			[self playBreakPattern];
 		}
 	}
 	//

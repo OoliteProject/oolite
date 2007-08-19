@@ -373,7 +373,6 @@ static NSString *MacrosToString(NSDictionary *macros);
 	for (i = 0; i != texCount; ++i)
 	{
 		glActiveTextureARB(GL_TEXTURE0_ARB + i);
-		/*glBindTexture(GL_TEXTURE_2D, textures[i]);*/
 		[textures[i] apply];
 	}
 	glActiveTextureARB(GL_TEXTURE0_ARB);
@@ -410,9 +409,28 @@ static NSString *MacrosToString(NSDictionary *macros);
 
 - (void)unapplyWithNext:(OOMaterial *)next
 {
+	uint32_t				i, count;
+	
 	if (![next isKindOfClass:[OOShaderMaterial class]])	// Avoid redundant state change
 	{
+		OO_ENTER_OPENGL();
 		[OOShaderProgram applyNone];
+		
+		/*	BUG: unapplyWithNext: was failing to clear texture state. If a
+			shader material was followed by a basic material (with no texture),
+			the shader's #0 texture would be used.
+			It is necessary to clear at least one texture for the case where a
+			shader material with textures is followed by a shader material
+			without textures, then a basic material.
+			-- Ahruman 2007-08-13
+		*/
+		count = texCount ? texCount : 1;
+		for (i = 0; i != count; ++i)
+		{
+			glActiveTextureARB(GL_TEXTURE0_ARB + i);
+			glBindTexture(GL_TEXTURE_2D, 0);
+		}
+		glActiveTextureARB(GL_TEXTURE0_ARB);
 	}
 }
 

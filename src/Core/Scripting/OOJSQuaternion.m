@@ -58,6 +58,8 @@ static JSBool QuaternionVectorForward(JSContext *context, JSObject *this, uintN 
 static JSBool QuaternionVectorUp(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
 static JSBool QuaternionVectorRight(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
 
+static JSBool QuaternionStaticRandom(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
+
 
 static JSExtendedClass sQuaternionClass =
 {
@@ -120,11 +122,19 @@ static JSFunctionSpec sQuaternionMethods[] =
 };
 
 
+static JSFunctionSpec sQuaternionStaticMethods[] =
+{
+	// JS name					Function					min args
+	{ "random",					QuaternionStaticRandom,		0, },
+	{ 0 }
+};
+
+
 // *** Public ***
 
 void InitOOJSQuaternion(JSContext *context, JSObject *global)
 {
-    sQuaternionPrototype = JS_InitClass(context, global, NULL, &sQuaternionClass.base, QuaternionConstruct, 4, sQuaternionProperties, sQuaternionMethods, NULL, NULL);
+    sQuaternionPrototype = JS_InitClass(context, global, NULL, &sQuaternionClass.base, QuaternionConstruct, 4, sQuaternionProperties, sQuaternionMethods, NULL, sQuaternionStaticMethods);
 }
 
 
@@ -554,4 +564,11 @@ static JSBool QuaternionVectorRight(JSContext *context, JSObject *this, uintN ar
 	result = vector_right_from_quaternion(thisq);
 	
 	return VectorToJSValue(context, result, outResult);
+}
+
+
+// Quaternion random()
+static JSBool QuaternionStaticRandom(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
+{
+	return QuaternionToJSValue(context, OORandomQuaternion(), outResult);
 }

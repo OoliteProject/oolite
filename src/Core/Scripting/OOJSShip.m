@@ -117,7 +117,7 @@ static JSPropertySpec sShipProperties[] =
 	{ "bounty",					kShip_bounty,				JSPROP_PERMANENT | JSPROP_ENUMERATE },
 	{ "subEntities",			kShip_subEntities,			JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
 	{ "hasSuspendedAI",			kShip_hasSuspendedAI,		JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
-	{ "target",					kShip_target,				JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
+	{ "target",					kShip_target,				JSPROP_PERMANENT | JSPROP_ENUMERATE },
 	{ "escorts",				kShip_escorts,				JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
 	{ "temperature",			kShip_temperature,			JSPROP_PERMANENT | JSPROP_ENUMERATE },
 	{ "heatInsulation",			kShip_heatInsulation,		JSPROP_PERMANENT | JSPROP_ENUMERATE },
@@ -158,7 +158,7 @@ static JSFunctionSpec sShipMethods[] =
 void InitOOJSShip(JSContext *context, JSObject *global)
 {
     sShipPrototype = JS_InitClass(context, global, JSEntityPrototype(), &sShipClass.base, NULL, 0, sShipProperties, sShipMethods, NULL, NULL);
-	JSEntityRegisterEntitySubclass(&sShipClass.base);
+	JSRegisterObjectConverter(&sShipClass.base, JSBasicPrivateObjectConverter);
 }
 
 
@@ -345,7 +345,7 @@ static JSBool ShipSetProperty(JSContext *context, JSObject *this, jsval name, js
 	if (!JSVAL_IS_INT(name))  return YES;
 	if (!JSShipGetShipEntity(context, this, &entity)) return NO;
 	
-	switch (name)
+	switch (JSVAL_TO_INT(name))
 	{
 		case kShip_AIState:
 			if (entity->isPlayer)

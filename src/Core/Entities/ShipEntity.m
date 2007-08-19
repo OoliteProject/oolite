@@ -95,6 +95,7 @@ static NSString * const kOOLogEntityBehaviourChanged	= @"entity.behaviour.change
 	
 	isShip = YES;
 	entity_personality = ranrot_rand() & 0x7FFF;
+	status = STATUS_IN_FLIGHT;
 	
 	zero_distance = SCANNER_MAX_RANGE2 * 2.0;
 	weapon_recharge_rate = 6.0;
@@ -291,14 +292,14 @@ static NSString * const kOOLogEntityBehaviourChanged	= @"entity.behaviour.change
 			Vector sub_pos, ref;
 			Quaternion sub_q;
 			Entity* subent;
-			NSString* subdesc = (NSString *)[details objectAtIndex:0];
-			sub_pos.x = [(NSString *)[details objectAtIndex:1] floatValue];
-			sub_pos.y = [(NSString *)[details objectAtIndex:2] floatValue];
-			sub_pos.z = [(NSString *)[details objectAtIndex:3] floatValue];
-			sub_q.w = [(NSString *)[details objectAtIndex:4] floatValue];
-			sub_q.x = [(NSString *)[details objectAtIndex:5] floatValue];
-			sub_q.y = [(NSString *)[details objectAtIndex:6] floatValue];
-			sub_q.z = [(NSString *)[details objectAtIndex:7] floatValue];
+			NSString* subdesc = [details stringAtIndex:0];
+			sub_pos.x = [details floatAtIndex:1];
+			sub_pos.y = [details floatAtIndex:2];
+			sub_pos.z = [details floatAtIndex:3];
+			sub_q.w = [details floatAtIndex:4];
+			sub_q.x = [details floatAtIndex:5];
+			sub_q.y = [details floatAtIndex:6];
+			sub_q.z = [details floatAtIndex:7];
 
 			if ([subdesc isEqual:@"*FLASHER*"])
 			{
@@ -322,7 +323,7 @@ static NSString * const kOOLogEntityBehaviourChanged	= @"entity.behaviour.change
 				if (subent == nil)
 				{
 					// Failing to find a subentity could result in a partial ship, which'd be, y'know, weird.
-					return nil;
+					return NO;
 				}
 				
 				if ((self->isStation)&&([subdesc rangeOfString:@"dock"].location != NSNotFound))
@@ -343,7 +344,7 @@ static NSString * const kOOLogEntityBehaviourChanged	= @"entity.behaviour.change
 			if (sub_entities == nil)  sub_entities = [[NSMutableArray alloc] init];
 			[sub_entities addObject:subent];
 			[subent setOwner: self];
-
+			
 			[subent release];
 		}
 	}
@@ -524,6 +525,24 @@ static NSString * const kOOLogEntityBehaviourChanged	= @"entity.behaviour.change
 }
 
 
+- (void)setOwner:(Entity *)ent
+{
+	[super setOwner:ent];
+	if (isSubentity)
+	{
+		// Ensure shader bindings have correct target.
+		[self setShaderBindingTarget:ent];
+	}
+}
+
+
+- (void)setShaderBindingTarget:(Entity *)ent
+{
+	[super setShaderBindingTarget:ent];
+	[sub_entities makeObjectsPerformSelector:@selector(setShaderBindingTarget:) withObject:ent];
+}
+
+
 - (OOScript *)shipScript
 {
 	return script;
@@ -624,7 +643,6 @@ static NSString * const kOOLogEntityBehaviourChanged	= @"entity.behaviour.change
 	if (universalID != NO_TARGET)
 	{
 		// set up escorts
-		//
 		if (status == STATUS_IN_FLIGHT)	// just popped into existence
 		{
 			if ((!escortsAreSetUp) && (escortCount > 0))  [self setUpEscorts];
@@ -735,7 +753,7 @@ static NSString * const kOOLogEntityBehaviourChanged	= @"entity.behaviour.change
 	
 	if ([shipinfoDictionary objectForKey:@"escort-role"])
 	{
-		escortRole = [shipinfoDictionary stringForKey:@"escort-role"];
+		escortRole = [shipinfoDictionary stringForKey:@"escort-role" defaultValue:escortRole];
 		if (![[UNIVERSE newShipWithRole:escortRole] autorelease])
 			escortRole = @"escort";
 	}
@@ -1287,7 +1305,8 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	if (!haveExecutedSpawnAction && script != nil && status == STATUS_IN_FLIGHT)
 	{
 		[[PlayerEntity sharedPlayer] setScriptTarget:self];
-		[script doEvent:@"didSpawn"];
+		[self doScriptEvent:@"didSpawn"];
+		haveExecutedSpawnAction = YES;
 	}
 
 	// behaviours according to status and behaviour
@@ -1549,6 +1568,20 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 - (double) speed
 {
 	return sqrt(velocity.x * velocity.x + velocity.y * velocity.y + velocity.z * velocity.z + flightSpeed * flightSpeed);
+}
+
+
+
+- (void)respondToAttackFrom:(Entity *)from becauseOf:(Entity *)other
+{
+	Entity					*source = nil;
+	
+	[shipAI reactToMessage:@"ATTACKED"];
+	
+	if ([other isKindOfClass:[ShipEntity class]])  source = other;
+	else  source = from;
+	
+	[self doScriptEvent:@"beingAttacked" withArgument:source];
 }
 
 
@@ -3465,7 +3498,7 @@ static GLfloat mascem_color2[4] =	{ 0.4, 0.1, 0.4, 1.0};	// purple
 	if (script != nil)
 	{
 		[[PlayerEntity sharedPlayer] setScriptTarget:self];
-		[script doEvent:@"didDie"];
+		[self doScriptEvent:@"didDie"];
 	}
 	
 	if ([roles isEqual:@"thargoid"])
@@ -3954,7 +3987,7 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 	if (script != nil)
 	{
 		[[PlayerEntity sharedPlayer] setScriptTarget:self];
-		[script doEvent:@"didDie"];
+		[self doScriptEvent:@"didDie"];
 	}
 
 	// two parts to the explosion:
@@ -6092,8 +6125,8 @@ BOOL	class_masslocks(int some_class)
 				//scripting
 				PlayerEntity *player = [PlayerEntity sharedPlayer];
 				[player setScriptTarget:self];
-				[other->script doEvent:@"wasScooped" withArgument:self];
-				[script doEvent:@"didScoop" withArgument:other];
+				[other doScriptEvent:@"wasScooped" withArgument:self];
+				[self doScriptEvent:@"didScoop" withArgument:other];
 				
 				if (isPlayer)
 				{
@@ -6216,7 +6249,7 @@ BOOL	class_masslocks(int some_class)
 
 		// tell ourselves we've been attacked
 		if (energy > 0)
-			[shipAI reactToMessage:@"ATTACKED"];	// note use the reactToMessage: method NOT the think-delayed message: method
+			[self respondToAttackFrom:ent becauseOf:other];
 
 		// firing on an innocent ship is an offence
 		[self broadcastHitByLaserFrom:(ShipEntity*) other];
@@ -6231,7 +6264,7 @@ BOOL	class_masslocks(int some_class)
 				{
 					[group_leader setFound_target:hunter];
 					[group_leader setPrimaryAggressor:hunter];
-					[[group_leader getAI] reactToMessage:@"ATTACKED"];
+					[group_leader respondToAttackFrom:ent becauseOf:hunter];
 				}
 				else
 					groupID = NO_TARGET;
@@ -6246,7 +6279,7 @@ BOOL	class_masslocks(int some_class)
 					{
 						[other_pirate setFound_target:hunter];
 						[other_pirate setPrimaryAggressor:hunter];
-						[[other_pirate getAI] reactToMessage:@"ATTACKED"];
+						[other_pirate respondToAttackFrom:ent becauseOf:hunter];
 					}
 				}
 			}
@@ -6258,7 +6291,7 @@ BOOL	class_masslocks(int some_class)
 					ShipEntity *other_police = (ShipEntity *)[fellow_police objectAtIndex:i];
 					[other_police setFound_target:hunter];
 					[other_police setPrimaryAggressor:hunter];
-					[[other_police getAI] reactToMessage:@"ATTACKED"];
+					[other_police respondToAttackFrom:ent becauseOf:hunter];
 				}
 			}
 		}
@@ -6609,6 +6642,8 @@ inline BOOL pairOK(NSString* my_role, NSString* their_role)
 {
 	if (escortCount < 1)
 		return;
+	
+	if (!escortsAreSetUp)  return;
 
 	if (![self primaryTarget])
 		return;
@@ -6631,12 +6666,7 @@ inline BOOL pairOK(NSString* my_role, NSString* their_role)
 		int escort_id = escort_ids[i_deploy];
 		ShipEntity  *escorter = [UNIVERSE entityForUniversalID:escort_id];
 		// check it's still an escort ship
-		BOOL escorter_okay = YES;
-		if (!escorter)
-			escorter_okay = NO;
-		else
-			escorter_okay = escorter->isShip;
-		if (escorter_okay)
+		if (escorter != nil && escorter->isShip)
 		{
 			[escorter setGroupID:NO_TARGET];	// act individually now!
 			[escorter addTarget:[self primaryTarget]];
@@ -7227,8 +7257,8 @@ inline BOOL pairOK(NSString* my_role, NSString* their_role)
 	
 	OOLog(@"dumpState.shipEntity", @"Name: %@", name);
 	OOLog(@"dumpState.shipEntity", @"Roles: %@", roles);
+	OOLog(@"dumpState.shipEntity", @"Script: %@", script);
 	if (sub_entities != nil)  OOLog(@"dumpState.shipEntity", @"Subentity count: %u", [sub_entities count]);
-	OOLog(@"dumpState.shipEntity", @"Time since shot: %g", shot_time);
 	OOLog(@"dumpState.shipEntity", @"Behaviour: %@", BehaviourToString(behaviour));
 	if (primaryTarget != NO_TARGET)  OOLog(@"dumpState.shipEntity", @"Target: %@", [self primaryTarget]);
 	OOLog(@"dumpState.shipEntity", @"Destination: %@", VectorDescription(destination));
@@ -7264,6 +7294,8 @@ inline BOOL pairOK(NSString* my_role, NSString* their_role)
 	OOLog(@"dumpState.shipEntity", @"Frustration: %g", frustration);
 	OOLog(@"dumpState.shipEntity", @"Success factor: %g", success_factor);
 	OOLog(@"dumpState.shipEntity", @"Shots fired: %u", shot_counter);
+	OOLog(@"dumpState.shipEntity", @"Time since shot: %g", shot_time);
+	OOLog(@"dumpState.shipEntity", @"Spawn time: %g (%g seconds ago)", [self spawnTime], [self timeElapsedSinceSpawn]);
 	if (beaconChar != '\0')
 	{
 		OOLog(@"dumpState.shipEntity", @"Beacon character: '%c'", beaconChar);
@@ -7304,6 +7336,26 @@ inline BOOL pairOK(NSString* my_role, NSString* their_role)
 {
 	if (!isSubentity)  return self;
 	else  return [self owner];
+}
+
+
+// *** Script event dispatch.
+// For ease of overriding, these all go through doScriptEvent:withArguments:.
+- (void) doScriptEvent:(NSString *)message
+{
+	[self doScriptEvent:message withArguments:nil];
+}
+
+
+- (void) doScriptEvent:(NSString *)message withArgument:(id)argument
+{
+	[self doScriptEvent:message withArguments:[NSArray arrayWithObject:argument]];
+}
+
+
+- (void) doScriptEvent:(NSString *)message withArguments:(NSArray *)arguments
+{
+	[script doEvent:message withArguments:arguments];
 }
 
 @end

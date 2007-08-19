@@ -35,7 +35,6 @@ MA 02110-1301, USA.
 
 
 static JSObject		*sEntityPrototype;
-static NSMutableSet	*sEntitySubClasses;
 
 
 static JSBool EntityGetProperty(JSContext *context, JSObject *this, jsval name, jsval *outValue);
@@ -145,7 +144,7 @@ static JSFunctionSpec sEntityStaticMethods[] =
 void InitOOJSEntity(JSContext *context, JSObject *global)
 {
     sEntityPrototype = JS_InitClass(context, global, NULL, &sEntityClass.base, NULL, 0, sEntityProperties, sEntityMethods, NULL, sEntityStaticMethods);
-	JSEntityRegisterEntitySubclass(&sEntityClass.base);
+	JSRegisterObjectConverter(&sEntityClass.base, JSBasicPrivateObjectConverter);
 }
 
 
@@ -213,23 +212,11 @@ BOOL JSValueToEntity(JSContext *context, jsval value, Entity **outEntity)
 
 BOOL JSEntityGetEntity(JSContext *context, JSObject *entityObj, Entity **outEntity)
 {
-//	OOWeakReference			*proxy = nil;
-	
 	if (outEntity == NULL)  return NO;
 	*outEntity = nil;
 	if (entityObj == NULL)  return NO;
 	if (EXPECT_NOT(context == NULL))  context = [[OOJavaScriptEngine sharedEngine] context];
-	/*
-	// If it is an entity proxy...
-	if ([sEntitySubClasses member:[NSValue valueWithPointer:JS_GetClass(entityObj)]] != nil)
-	{
-		proxy = JS_GetPrivate(context, entityObj);
-		if (proxy != nil)
-		{
-			*outEntity = [proxy weakRefUnderlyingObject];
-			return YES;
-		}
-	}*/
+	
 	*outEntity = JSObjectToObject(context, entityObj);
 	if ([*outEntity isKindOfClass:[Entity class]])  return YES;
 	
@@ -247,14 +234,6 @@ JSClass *JSEntityClass(void)
 JSObject *JSEntityPrototype(void)
 {
 	return sEntityPrototype;
-}
-
-
-void JSEntityRegisterEntitySubclass(JSClass *theClass)
-{
-	if (sEntitySubClasses == nil)  sEntitySubClasses = [[NSMutableSet alloc] init];
-	[sEntitySubClasses addObject:[NSValue valueWithPointer:theClass]];
-	JSRegisterObjectConverter(theClass, JSBasicPrivateObjectConverter);
 }
 
 

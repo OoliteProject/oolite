@@ -114,7 +114,7 @@ static JSClass sScriptClass =
 	
 	if (!problem)
 	{
-		if (!JS_AddRoot(context, &object)) // note 2nd arg is a pointer-to-pointer
+		if (!JS_AddNamedRoot(context, &object, "Script object")) // note 2nd arg is a pointer-to-pointer
 		{
 			problem = @"could not add JavaScript root object";
 		}
@@ -246,10 +246,10 @@ static JSClass sScriptClass =
 	BOOL			OK;
 	jsval			value;
 	JSFunction		*function;
-	uintN			argc;
+	uintN			i, argc;
 	jsval			*argv = NULL;
 	RunningStack	stackElement;
-
+	
 	OK = JS_GetProperty(context, object, [eventName cString], &value);
 	if (OK && !JSVAL_IS_VOID(value))
 	{
@@ -261,9 +261,34 @@ static JSClass sScriptClass =
 			stackElement.current = self;
 			sRunningStack = &stackElement;
 			
-			JSArgumentsFromArray(context, arguments, &argc, &argv);
+			// Convert arguments to JS values and make them temporarily un-garbage-collectable
+			argc = [arguments count];
+			if (argc != 0)
+			{
+				argv = malloc(sizeof *argv * argc);
+				if (argv != NULL)
+				{
+					for (i = 0; i != argc; ++i)
+					{
+						argv[i] = [arguments javaScriptValueInContext:context];
+						if (JSVAL_IS_GCTHING(argv[i]))  JS_AddNamedRoot(context, &argv[i], "JSScript event parameter");
+					}
+				}
+				else  argc = 0;
+			}
+			
+			// Actually call the function
 			OK = JS_CallFunction(context, object, function, argc, argv, &value);
-			if (argv != NULL) free(argv);
+			
+			// Re-garbage-collectibalize the arguments and free the array
+			if (argv != NULL)
+			{
+				for (i = 0; i != argc; ++i)
+				{
+					if (JSVAL_IS_GCTHING(argv[i]))  JS_RemoveRoot(context, &argv[i]);
+				}
+				free(argv);
+			}
 			
 			// Pop running scripts stack
 			sRunningStack = stackElement.back;
@@ -279,7 +304,7 @@ static JSClass sScriptClass =
 - (id)propertyNamed:(NSString *)propName
 {
 	BOOL						OK;
-	jsval						value = nil;
+	jsval						value = JSVAL_VOID;
 	
 	if (propName == nil)  return nil;
 	

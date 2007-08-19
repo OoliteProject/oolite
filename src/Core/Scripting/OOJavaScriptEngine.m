@@ -674,67 +674,54 @@ BOOL NumberFromArgumentList(JSContext *context, NSString *scriptClass, NSString 
 }
 
 
-BOOL JSArgumentsFromArray(JSContext *context, NSArray *array, uintN *outArgc, jsval **outArgv)
+JSObject *JSArrayFromNSArray(JSContext *context, NSArray *array)
 {
-	if (outArgc != NULL) *outArgc = 0;
-	if (outArgv != NULL) *outArgv = NULL;
+	JSObject				*result = NULL;
+	unsigned				i, count;
+	jsval					value;
+	BOOL					OK = YES;
 	
-	if (array == nil)  return YES;
+	if (array == nil)  return NULL;
 	
-	// Sanity checks.
-	if (outArgc == NULL || outArgv == NULL)
-	{
-		OOLogGenericParameterError();
-		return NO;
-	}
-	if (context == NULL) context = [[OOJavaScriptEngine sharedEngine] context];
+	result = JS_NewArrayObject(context, 0, NULL);
+	if (result == NULL)  return NULL;
 	
-	uintN					i = 0, argc = [array count];
-	NSEnumerator			*objectEnum = nil;
-	id						object = nil;
-	jsval					*argv = NULL;
-	
-	if (argc == 0) return YES;
-	
-	// Allocate result buffer
-	argv = malloc(sizeof *argv * argc);
-	if (argv == NULL)
-	{
-		OOLog(kOOLogAllocationFailure, @"Failed to allocate space for %u JavaScript parameters.", argc);
-		return NO;
-	}
-	
-	// Convert objects
-	JSContext * volatile vCtxt = context;
-	for (objectEnum = [array objectEnumerator]; (object = [objectEnum nextObject]); )
+	count = [array count];
+	for (i = 0; i != count; ++i)
 	{
 		NS_DURING
-			argv[i] = [object javaScriptValueInContext:vCtxt];
+			value = [[array objectAtIndex:i] javaScriptValueInContext:context];
 		NS_HANDLER
-			argv[i] = JSVAL_VOID;
+			value = JSVAL_VOID;
 		NS_ENDHANDLER
-		++i;
+		OK = JS_SetElement(context, result, i, &value);
+		if (!OK)  return NULL;
 	}
 	
-	*outArgc = argc;
-	*outArgv = argv;
-	return YES;
+	return result;
 }
 
 
-JSObject *JSArrayFromNSArray(JSContext *context, NSArray *array)
+BOOL JSNewNSArrayValue(JSContext *context, NSArray *array, jsval *value)
 {
-	uintN					count;
-	jsval					*values;
-	JSObject				*result = NULL;
+	JSObject				*object = NULL;
 	
-	if (JSArgumentsFromArray(context, array, &count, &values))
+	if (value == NULL)  return NO;
+	if ([array count] == 0)
 	{
-		result = JS_NewArrayObject(context, count, values);
+		*value = JSVAL_NULL;
+		return YES;
 	}
-	if (values != NULL)  free(values);
 	
-	return result;
+	object = JSArrayFromNSArray(context, array);
+	if (object == NULL)
+	{
+		*value = JSVAL_VOID;
+		return NO;
+	}
+	
+	*value = OBJECT_TO_JSVAL(object);
+	return YES;
 }
 
 
@@ -852,7 +839,9 @@ JSObject *JSArrayFromNSArray(JSContext *context, NSArray *array)
 
 - (jsval)javaScriptValueInContext:(JSContext *)context
 {
-	return OBJECT_TO_JSVAL(JSArrayFromNSArray(context, self));
+	jsval value;
+	JSNewNSArrayValue(context, self, &value);
+	return value;
 }
 
 @end

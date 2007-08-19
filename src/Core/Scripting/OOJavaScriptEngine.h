@@ -62,22 +62,17 @@ void OOReportJavaScriptBadPropertySelector(JSContext *context, NSString *classNa
 BOOL NumberFromArgumentList(JSContext *context, NSString *scriptClass, NSString *function, uintN argc, jsval *argv, double *outNumber, uintN *outConsumed);
 
 
-/*	JSArgumentsFromArray()
-	
-	Convert an ObjC array to an array of JavaScript values. For objects which
-	don't respond to -javaScriptValueInContext:, JSVAL_VOID will be used.
-	
-	*outArgv will be NULL if *outArgc is 0. If *outArgv is not NULL, it should
-	be free()d when finished with.
-*/
-BOOL JSArgumentsFromArray(JSContext *context, NSArray *array, uintN *outArgc, jsval **outArgv);
-
 /*	JSArrayFromArray()
+	JSNewNSArrayValue()
 	
-	Convert an ObjC array to a JavaScript array. This is a wrapper around
-	JSArgumentsFromArray() and js_NewArrayObject().
+	Convert an ObjC array to a JavaScript array.
+	
+	JSNewNSArrayValue() will return YES and set value to JSVAL_NULL if passed
+	a nil array, but return NO and set value to JSVAL_VOID on failure.
+	JSArrayFromArray() will return NULL if the count is 0 or if it fails.
 */
 JSObject *JSArrayFromNSArray(JSContext *context, NSArray *array);
+BOOL JSNewNSArrayValue(JSContext *context, NSArray *array, jsval *value);
 
 
 OOINLINE jsval BOOLToJSVal(BOOL b) INLINE_CONST_FUNC;

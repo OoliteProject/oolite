@@ -43,9 +43,6 @@ BOOL JSEntityGetEntity(JSContext *context, JSObject *entityObj, Entity **outEnti
 JSClass *JSEntityClass(void);
 JSObject *JSEntityPrototype(void);
 
-// Hack to support psuedo-class-hierarchy.
-void JSEntityRegisterEntitySubclass(JSClass *theClass);
-
 // For subclasses. SUBCLASSES MUST USE THESE or scripts will crash.
 JSBool JSEntityConvert(JSContext *context, JSObject *this, JSType type, jsval *outValue);
 void JSEntityFinalize(JSContext *context, JSObject *this);

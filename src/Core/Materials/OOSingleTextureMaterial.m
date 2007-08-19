@@ -60,7 +60,7 @@ SOFTWARE.
 	self = [super initWithName:name configuration:configuration];
 	if (name != nil && self != nil)
 	{
-		if (texSpec != nil)
+		if (configuration != nil)
 		{
 			texSpec = [configuration textureSpecifierForKey:@"diffuse_map" defaultName:name];
 		}

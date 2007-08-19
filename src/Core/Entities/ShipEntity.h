@@ -326,6 +326,8 @@ MA 02110-1301, USA.
 
 - (BOOL)isFrangible;
 
+- (void)respondToAttackFrom:(Entity *)from becauseOf:(Entity *)other;
+
 // Behaviours
 - (void) behaviour_stop_still:(double) delta_t;
 - (void) behaviour_idle:(double) delta_t;
@@ -626,6 +628,13 @@ inline BOOL pairOK(NSString* my_role, NSString* their_role);
 - (void) pilotArrived;
 
 - (Entity *)entityForShaderProperties;
+
+// *** Script events.
+// For NPC ships, these call doEvent: on the ship script.
+// For the player, they do that and also call doWorldScriptEvent:.
+- (void) doScriptEvent:(NSString *)message;
+- (void) doScriptEvent:(NSString *)message withArgument:(id)argument;
+- (void) doScriptEvent:(NSString *)message withArguments:(NSArray *)arguments;
 
 @end
 

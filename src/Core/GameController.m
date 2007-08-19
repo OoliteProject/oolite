@@ -443,8 +443,8 @@ static int CompareDisplayModes(id arg1, id arg2, void *context)
 {
 	CGLContextObj	cglContext;
 	CGDisplayErr	err;
-	long			oldSwapInterval;
-	long			newSwapInterval;
+	GLint			oldSwapInterval;
+	GLint			newSwapInterval;
 	CGMouseDelta	mouse_dx, mouse_dy;
 	
 	// empty the event queue and strip all keys - stop problems with hangover keys
@@ -503,7 +503,7 @@ static int CompareDisplayModes(id arg1, id arg2, void *context)
 			NSOpenGLPFAAccelerated,
 			0
 		};
-		long rendererID;
+		GLint rendererID;
 
 		// Create the FullScreen NSOpenGLContext with the attributes listed above.
 		NSOpenGLPixelFormat *pixelFormat = [[NSOpenGLPixelFormat alloc] initWithAttributes:attrs];

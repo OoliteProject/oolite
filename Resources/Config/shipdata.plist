@@ -1410,6 +1410,8 @@
 				<key>do</key>
 				<array>
 					<string>awardEquipment: EQ_CLOAKING_DEVICE</string>
+					<!-- To consider:
+					<string>set: mission_TL_FOR_EQ_CLOAKING_DEVICE 14</string> -->
 				</array>
 			</dict>
 			<dict>

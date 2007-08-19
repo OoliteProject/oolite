@@ -86,6 +86,7 @@ static NSComparisonResult comparePrice(NSDictionary *dict1, NSDictionary *dict2,
 @interface Universe (OOPrivate)
 
 - (BOOL)doRemoveEntity:(Entity *)entity;
+- (NSDictionary *)getDictionaryForShip:(NSString *)desc recursionLimit:(uint32_t)recursionLimit;
 
 @end
 
@@ -260,8 +261,8 @@ static NSComparisonResult comparePrice(NSDictionary *dict1, NSDictionary *dict2,
 	doProcedurallyTexturedPlanets = NO;
 #endif
 	
-	[player sendMessageToScripts:@"startUp"];
-		
+	[player doWorldScriptEvent:@"startUp" withArguments:nil];
+	
     return self;
 }
 
@@ -647,7 +648,7 @@ static NSComparisonResult comparePrice(NSDictionary *dict1, NSDictionary *dict2,
 	[self setViewDirection:VIEW_FORWARD];
 	
 	[comm_log_gui printLongText:[NSString stringWithFormat:@"%@ %@", [self generateSystemName:system_seed], [player dial_clock_adjusted]]
-		align:GUI_ALIGN_CENTER color:[OOColor whiteColor] fadeTime:0 key:nil addToArray:[player comm_log]];
+		align:GUI_ALIGN_CENTER color:[OOColor whiteColor] fadeTime:0 key:nil addToArray:[player commLog]];
 	
     //
 	/* test stuff */
@@ -2831,7 +2832,7 @@ GLfloat docked_light_specular[]	= { (GLfloat) 1.0, (GLfloat) 1.0, (GLfloat) 0.5,
 		[ship setRoles:search];						// set its roles to this one particular chosen role
 		
 		shipDict = [shipdata dictionaryForKey:shipKey];
-		if ([shipDict fuzzyBooleanForKey:@"auto_ai"])
+		if ([shipDict fuzzyBooleanForKey:@"auto_ai" defaultValue:YES])
 		{
 			// Set AI based on role
 			autoAIMap = [ResourceManager dictionaryFromFilesNamed:@"autoAImap.plist" inFolder:@"Config" andMerge:YES];
@@ -2905,64 +2906,7 @@ GLfloat docked_light_specular[]	= { (GLfloat) 1.0, (GLfloat) 1.0, (GLfloat) 0.5,
 
 - (NSDictionary *)getDictionaryForShip:(NSString *)desc
 {
-	static NSDictionary		*cachedResult = nil;
-	static NSString			*cachedKey = nil;
-	
-	if (desc == nil)  return nil;
-	if ([desc isEqualToString:cachedKey])  return [[cachedResult retain] autorelease];
-	
-	NSMutableDictionary *shipdict = [[[shipdata dictionaryForKey:desc] mutableCopy] autorelease];
-	if (shipdict == nil)
-	{
-		/*	There used to be an attempt to throw a OOLITE_EXCEPTION_SHIP_NOT_FOUND
-			exception here. However, it never worked -- the line above was
-			broken so an empty dictionary was created instead, which was
-			rather pointless. Once this was fixed, it turned out there are OXPs
-			causing bad ships to be created, which wasn't noticed because the
-			exception wasn't handled.
-			-- Ahruman
-		*/	 
-		return nil;
-	}
-	// check if this is based upon a different ship
-	// TODO: move all like_ship handling into one place. (Actually, it may be that this already _is_ that place and all others are redundant.) Should probably fold resolved like_ships back into dictionary. -- Ahruman
-	unsigned recursionLimiter = 0;
-	
-	while ([shipdict stringForKey:@"like_ship"])
-	{
-		NSString*		other_shipdesc = [shipdict stringForKey:@"like_ship"];
-		NSDictionary*	other_shipdict = nil;
-		
-		if (++recursionLimiter == 30)
-		{
-			OOLog(@"universe.getShip.badReference", @"Failed to construct ship dictionary for \"%@\" -- hit safety limit of %u like_ship redirections.", desc, recursionLimiter);
-			return nil;
-		}
-		
-		if (other_shipdesc != nil)
-		{
-			other_shipdict = [self getDictionaryForShip:other_shipdesc];
-		}
-		if (other_shipdict != nil)
-		{
-			[shipdict removeObjectForKey:@"like_ship"];	// so it may inherit a new one from the like_ship
-			NSMutableDictionary* this_shipdict = [NSMutableDictionary dictionaryWithDictionary:other_shipdict]; // basics from that one
-			[this_shipdict addEntriesFromDictionary:shipdict];	// overrides from this one
-			shipdict = [NSMutableDictionary dictionaryWithDictionary:this_shipdict];	// synthesis'
-		}
-		else
-		{
-			OOLog(@"universe.getShip.badReference", @"Failed to construct ship dictionary for \"%@\" -- like_ship reference to unknown ship type \"%@\".", desc, other_shipdesc);
-			return nil;
-		}
-	}
-	
-	[cachedResult release];
-	cachedResult = [shipdict copy];
-	[cachedKey release];
-	cachedKey = [desc copy];
-	
-	return shipdict;
+	return [self getDictionaryForShip:desc recursionLimit:32];
 }
 
 
@@ -5004,7 +4948,7 @@ static BOOL MaintainLinkedLists(Universe* uni)
 		
 		[message_gui printLongText:text align:GUI_ALIGN_CENTER color:[OOColor greenColor] fadeTime:(float)count key:nil addToArray:nil];
 		
-		[comm_log_gui printLongText:text align:GUI_ALIGN_LEFT color:nil fadeTime:0.0 key:nil addToArray:[player comm_log]];
+		[comm_log_gui printLongText:text align:GUI_ALIGN_LEFT color:nil fadeTime:0.0 key:nil addToArray:[player commLog]];
 		[comm_log_gui setAlpha:1.0];
 		[comm_log_gui fadeOutFromTime:[self getTime] overDuration:6.0];
 		
@@ -7669,6 +7613,68 @@ static NSComparisonResult comparePrice(NSDictionary *dict1, NSDictionary *dict2,
 	}
 	
 	return NO;
+}
+
+
+- (NSDictionary *)getDictionaryForShip:(NSString *)desc recursionLimit:(uint32_t)recursionLimit
+{
+	static NSDictionary		*cachedResult = nil;
+	static NSString			*cachedKey = nil;
+	
+	if (desc == nil)  return nil;
+	if ([desc isEqualToString:cachedKey])  return [[cachedResult retain] autorelease];
+	
+	NSMutableDictionary *shipdict = [[[shipdata dictionaryForKey:desc] mutableCopy] autorelease];
+	if (shipdict == nil)
+	{
+		/*	There used to be an attempt to throw a OOLITE_EXCEPTION_SHIP_NOT_FOUND
+		exception here. However, it never worked -- the line above was
+		broken so an empty dictionary was created instead, which was
+		rather pointless. Once this was fixed, it turned out there are OXPs
+		causing bad ships to be created, which wasn't noticed because the
+		exception wasn't handled.
+		-- Ahruman
+		*/	 
+		return nil;
+	}
+	// check if this is based upon a different ship
+	// TODO: move all like_ship handling into one place. (Actually, it may be that this already _is_ that place and all others are redundant.) Should probably fold resolved like_ships back into dictionary. -- Ahruman
+	
+	while ([shipdict stringForKey:@"like_ship"])
+	{
+		NSString*		other_shipdesc = [shipdict stringForKey:@"like_ship"];
+		NSDictionary*	other_shipdict = nil;
+		
+		if (recursionLimit == 0)
+		{
+			OOLog(@"universe.getShip.badReference", @"Failed to construct ship dictionary for \"%@\" -- hit safety limit for like_ship redirections.", desc);
+			return nil;
+		}
+		
+		if (other_shipdesc != nil)
+		{
+			other_shipdict = [self getDictionaryForShip:other_shipdesc recursionLimit:recursionLimit - 1];
+		}
+		if (other_shipdict != nil)
+		{
+			[shipdict removeObjectForKey:@"like_ship"];	// so it may inherit a new one from the like_ship
+			NSMutableDictionary* this_shipdict = [NSMutableDictionary dictionaryWithDictionary:other_shipdict]; // basics from that one
+			[this_shipdict addEntriesFromDictionary:shipdict];	// overrides from this one
+			shipdict = [NSMutableDictionary dictionaryWithDictionary:this_shipdict];	// synthesis'
+		}
+		else
+		{
+			OOLog(@"universe.getShip.badReference", @"Failed to construct ship dictionary for \"%@\" -- like_ship reference to unknown ship type \"%@\".", desc, other_shipdesc);
+			return nil;
+		}
+	}
+	
+	[cachedResult release];
+	cachedResult = [shipdict copy];
+	[cachedKey release];
+	cachedKey = [desc copy];
+	
+	return shipdict;
 }
 
 @end

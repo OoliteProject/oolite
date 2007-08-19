@@ -1045,4 +1045,10 @@ static NSString * const kOOLogEntityUpdateError				= @"entity.linkedList.update.
 	return [UNIVERSE getTime] - spawnTime;
 }
 
+
+- (void)setShaderBindingTarget:(Entity *)ent
+{
+	
+}
+
 @end
