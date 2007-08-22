@@ -123,7 +123,6 @@ double		corona_stage;			// 0.0 -> 1.0
 GLfloat		rvalue[729];			// stores random values for adjusting colors in the corona
 	
 - (id) initAsSunWithColor:(OOColor *) sun_color;
-- (id) initAsAtmosphereForPlanet:(PlanetEntity *) planet;
 - (id) initWithSeed:(Random_Seed) p_seed;
 - (id) initMiniatureFromPlanet:(PlanetEntity*) planet;
 
