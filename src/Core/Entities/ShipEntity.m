@@ -5674,6 +5674,13 @@ BOOL	class_masslocks(int some_class)
 	ShipEntity			*pod = nil;
 	unsigned			n_pods;
 	
+	/*	BUG: player can't launch escape pod in interstellar space (because
+		there is no standard place for ressurection), but NPCs can.
+		FIX: don't let NPCs do it either. Submitted by Cmdr James.
+		-- Ahruman 20070822
+	*/
+	if ([UNIVERSE station] == nil)  return NO_TARGET;
+	
 	// check number of pods aboard -- require at least one.
 	n_pods = [shipinfoDictionary unsignedIntForKey:@"has_escape_pod"];
 	
