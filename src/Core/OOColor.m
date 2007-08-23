@@ -443,38 +443,4 @@ MA 02110-1301, USA.
 									 alpha:rgba[3]];
 }
 
-
-- (GLfloat *) RGBA;
-{
-	return rgba;
-}
-
-
-#ifndef GNUSTEP
-
-- (NSColor *)asNSColor
-{
-	return [NSColor colorWithCalibratedRed:rgba[0] green:rgba[1] blue:rgba[2] alpha:rgba[3]];
-}
-
-
-- (void)set
-{
-	[[self asNSColor] set];
-}
-
-
-- (void)setFill
-{
-	[[self asNSColor] setFill];
-}
-
-
-- (void)setStroke
-{
-	[[self asNSColor] setStroke];
-}
-
-#endif
-
 @end

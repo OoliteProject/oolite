@@ -523,7 +523,7 @@ static void ReportJSError(JSContext *context, const char *message, JSErrorReport
 
 	/* initialize the JS run time, and return result in runtime */
 	runtime = JS_NewRuntime(8L * 1024L * 1024L);
-
+	
 	/* if runtime does not have a value, end the program here */
 	if (!runtime)
 	{
@@ -533,7 +533,9 @@ static void ReportJSError(JSContext *context, const char *message, JSErrorReport
 
 	/* create a context and associate it with the JS run time */
 	context = JS_NewContext(runtime, 8192);
-	JS_SetOptions(context, JSOPTION_VAROBJFIX | JSOPTION_STRICT | JSOPTION_NATIVE_BRANCH_CALLBACK);
+	JS_SetOptions(context, JSOPTION_VAROBJFIX | JSOPTION_STRICT | JSOPTION_COMPILE_N_GO | JSOPTION_NATIVE_BRANCH_CALLBACK);
+	
+	OOLog(@"script.jsVersion", @"Running JavaScript version %s", JS_VersionToString(JS_GetVersion(context)));
 	
 	/* if context does not have a value, end the program here */
 	if (!context)
@@ -676,8 +678,9 @@ BOOL NumberFromArgumentList(JSContext *context, NSString *scriptClass, NSString 
 
 JSObject *JSArrayFromNSArray(JSContext *context, NSArray *array)
 {
-	JSObject				*result = NULL;
-	unsigned				i, count;
+	volatile JSObject		*result = NULL;
+	volatile unsigned		i;
+	unsigned				count;
 	jsval					value;
 	BOOL					OK = YES;
 	
@@ -694,11 +697,11 @@ JSObject *JSArrayFromNSArray(JSContext *context, NSArray *array)
 		NS_HANDLER
 			value = JSVAL_VOID;
 		NS_ENDHANDLER
-		OK = JS_SetElement(context, result, i, &value);
+		OK = JS_SetElement(context, (JSObject *)result, i, &value);
 		if (!OK)  return NULL;
 	}
 	
-	return result;
+	return (JSObject *)result;
 }
 
 

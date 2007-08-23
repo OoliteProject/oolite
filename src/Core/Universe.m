@@ -1170,7 +1170,7 @@ GLfloat docked_light_specular[]	= { (GLfloat) 1.0, (GLfloat) 1.0, (GLfloat) 0.5,
 	OOGovernmentID		government;
 	OOEconomyID			economy;
 	unsigned			thargoidChance;
-	Vector				lastPiratePosition;
+	Vector				lastPiratePosition = kZeroVector;
 	unsigned			wolfPackCounter = 0;
 	OOUniversalID		wolfPackGroup_id = NO_TARGET;
 	

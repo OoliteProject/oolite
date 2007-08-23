@@ -18,7 +18,9 @@
 		0865431C06B8447D000CA0AB /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1058C7A1FEA54F0111CA2CBB /* Cocoa.framework */; };
 		0865431D06B8447D000CA0AB /* OpenGL.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 06AFA01500A58FB77F000001 /* OpenGL.framework */; };
 		0878FD30086EF845004CB752 /* Carbon.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0878FD2F086EF845004CB752 /* Carbon.framework */; };
-		1A08317D0C2EED9700E3AE25 /* debugLogMessageClassesMenu.plist in Copy Debug Add-ons */ = {isa = PBXBuildFile; fileRef = 1A08317C0C2EED9700E3AE25 /* debugLogMessageClassesMenu.plist */; };
+		1A0255750C7E1F8D00F622D4 /* DebugOXP.bundle in Copy Debug OXP */ = {isa = PBXBuildFile; fileRef = 1A0519390C7CCAC900BA5CCA /* DebugOXP.bundle */; };
+		1A0518EA0C7CC79B00BA5CCA /* OODebugBundleLoader.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A0518E80C7CC79B00BA5CCA /* OODebugBundleLoader.h */; };
+		1A0518EB0C7CC79B00BA5CCA /* OODebugBundleLoader.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A0518E90C7CC79B00BA5CCA /* OODebugBundleLoader.m */; };
 		1A1502F60C1201C30032F3E8 /* oolite-unknown-ship.dat in Copy Models */ = {isa = PBXBuildFile; fileRef = 1A1502F50C1201C30032F3E8 /* oolite-unknown-ship.dat */; };
 		1A15049E0C12CA070032F3E8 /* OOProbabilisticTextureManager.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A15049C0C12CA070032F3E8 /* OOProbabilisticTextureManager.h */; };
 		1A15049F0C12CA070032F3E8 /* OOProbabilisticTextureManager.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A15049D0C12CA070032F3E8 /* OOProbabilisticTextureManager.m */; };
@@ -390,7 +392,6 @@
 		1A7D83020C40111B00E4A5F5 /* OOLogOutputHandler.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A7D83000C40111B00E4A5F5 /* OOLogOutputHandler.m */; };
 		1A7D833A0C40147800E4A5F5 /* OOAsyncQueue.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A7D83380C40147700E4A5F5 /* OOAsyncQueue.h */; };
 		1A7D833B0C40147800E4A5F5 /* OOAsyncQueue.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A7D83390C40147700E4A5F5 /* OOAsyncQueue.m */; };
-		1A8072230C0483E800BA1935 /* OODebugController.nib in Copy Debug Add-ons */ = {isa = PBXBuildFile; fileRef = 1A8072220C0483E800BA1935 /* OODebugController.nib */; };
 		1A81F7090A7BAC4D006580AD /* OOCAMusic.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A81F7070A7BAC4D006580AD /* OOCAMusic.m */; };
 		1A81F70A0A7BAC4D006580AD /* OOCAMusic.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A81F7080A7BAC4D006580AD /* OOCAMusic.h */; };
 		1A8A37560B960337007D20B8 /* NSMutableDictionaryOOExtensions.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A8A37540B960337007D20B8 /* NSMutableDictionaryOOExtensions.m */; };
@@ -489,8 +490,6 @@
 		1AEAACCC0BA457E7000705D0 /* jsapi.h in Headers */ = {isa = PBXBuildFile; fileRef = 1AEAAC9D0BA457E7000705D0 /* jsapi.h */; };
 		1AED2D0C0C04586C004A1118 /* OOGraphicsResetManager.h in Headers */ = {isa = PBXBuildFile; fileRef = 1AED2D0A0C04586C004A1118 /* OOGraphicsResetManager.h */; };
 		1AED2D0D0C04586C004A1118 /* OOGraphicsResetManager.m in Sources */ = {isa = PBXBuildFile; fileRef = 1AED2D0B0C04586C004A1118 /* OOGraphicsResetManager.m */; };
-		1AED2DE70C046BA2004A1118 /* OODebugController.h in Headers */ = {isa = PBXBuildFile; fileRef = 1AED2DE50C046BA2004A1118 /* OODebugController.h */; };
-		1AED2DE80C046BA2004A1118 /* OODebugController.m in Sources */ = {isa = PBXBuildFile; fileRef = 1AED2DE60C046BA2004A1118 /* OODebugController.m */; };
 		2512833E09BA27C100F43D55 /* Octree.m in Sources */ = {isa = PBXBuildFile; fileRef = 2512833C09BA27C100F43D55 /* Octree.m */; settings = {COMPILER_FLAGS = "-O3 -falign-loops=32 -falign-loops-max-skip=31 -falign-functions=32"; }; };
 		2512833F09BA27C100F43D55 /* Octree.h in Headers */ = {isa = PBXBuildFile; fileRef = 2512833D09BA27C100F43D55 /* Octree.h */; };
 		2512834209BA27EC00F43D55 /* Geometry.h in Headers */ = {isa = PBXBuildFile; fileRef = 2512834009BA27EC00F43D55 /* Geometry.h */; };
@@ -557,6 +556,20 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
+		1A0519380C7CCAC900BA5CCA /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 1A0519340C7CCAC900BA5CCA /* DebugOXP.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = 8D5B49B6048680CD000E48DA;
+			remoteInfo = DebugOXP;
+		};
+		1A05193C0C7CCAE300BA5CCA /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 1A0519340C7CCAC900BA5CCA /* DebugOXP.xcodeproj */;
+			proxyType = 1;
+			remoteGlobalIDString = 8D5B49AC048680CD000E48DA;
+			remoteInfo = DebugOXP;
+		};
 		1A5BF2760916D47300BF238F /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 1A5BF2720916D47300BF238F /* Oolite-importer.xcodeproj */;
@@ -883,16 +896,15 @@
 			name = "Copy MDImporter";
 			runOnlyForDeploymentPostprocessing = 0;
 		};
-		1A8072280C0483FA00BA1935 /* Copy Debug Add-ons */ = {
+		1A8072280C0483FA00BA1935 /* Copy Debug OXP */ = {
 			isa = PBXCopyFilesBuildPhase;
 			buildActionMask = 2147483647;
 			dstPath = AddOns;
 			dstSubfolderSpec = 16;
 			files = (
-				1A08317D0C2EED9700E3AE25 /* debugLogMessageClassesMenu.plist in Copy Debug Add-ons */,
-				1A8072230C0483E800BA1935 /* OODebugController.nib in Copy Debug Add-ons */,
+				1A0255750C7E1F8D00F622D4 /* DebugOXP.bundle in Copy Debug OXP */,
 			);
-			name = "Copy Debug Add-ons";
+			name = "Copy Debug OXP";
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXCopyFilesBuildPhase section */
@@ -909,7 +921,10 @@
 		0865432206B8447D000CA0AB /* OoliteDev.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = OoliteDev.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		0878FD2F086EF845004CB752 /* Carbon.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Carbon.framework; path = /System/Library/Frameworks/Carbon.framework; sourceTree = "<absolute>"; };
 		1058C7A1FEA54F0111CA2CBB /* Cocoa.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Cocoa.framework; path = /System/Library/Frameworks/Cocoa.framework; sourceTree = "<absolute>"; };
-		1A08317C0C2EED9700E3AE25 /* debugLogMessageClassesMenu.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist; path = debugLogMessageClassesMenu.plist; sourceTree = "<group>"; };
+		1A0517D10C7B376700BA5CCA /* debug-exports.exp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.exports; path = "debug-exports.exp"; sourceTree = "<group>"; };
+		1A0518E80C7CC79B00BA5CCA /* OODebugBundleLoader.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OODebugBundleLoader.h; sourceTree = "<group>"; };
+		1A0518E90C7CC79B00BA5CCA /* OODebugBundleLoader.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OODebugBundleLoader.m; sourceTree = "<group>"; };
+		1A0519340C7CCAC900BA5CCA /* DebugOXP.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = DebugOXP.xcodeproj; path = "Mac-DebugOXP/DebugOXP.xcodeproj"; sourceTree = SOURCE_ROOT; };
 		1A1502F50C1201C30032F3E8 /* oolite-unknown-ship.dat */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = "oolite-unknown-ship.dat"; sourceTree = "<group>"; };
 		1A1504490C12C50D0032F3E8 /* OOSkyDrawable.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOSkyDrawable.h; sourceTree = "<group>"; };
 		1A15044A0C12C50D0032F3E8 /* OOSkyDrawable.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOSkyDrawable.m; sourceTree = "<group>"; };
@@ -1291,7 +1306,6 @@
 		1A7D83000C40111B00E4A5F5 /* OOLogOutputHandler.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOLogOutputHandler.m; sourceTree = "<group>"; };
 		1A7D83380C40147700E4A5F5 /* OOAsyncQueue.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOAsyncQueue.h; sourceTree = "<group>"; };
 		1A7D83390C40147700E4A5F5 /* OOAsyncQueue.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOAsyncQueue.m; sourceTree = "<group>"; };
-		1A8072220C0483E800BA1935 /* OODebugController.nib */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; path = OODebugController.nib; sourceTree = "<group>"; };
 		1A81F7070A7BAC4D006580AD /* OOCAMusic.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOCAMusic.m; sourceTree = "<group>"; };
 		1A81F7080A7BAC4D006580AD /* OOCAMusic.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOCAMusic.h; sourceTree = "<group>"; };
 		1A8A37540B960337007D20B8 /* NSMutableDictionaryOOExtensions.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = NSMutableDictionaryOOExtensions.m; sourceTree = "<group>"; };
@@ -1395,8 +1409,6 @@
 		1AEAAC9D0BA457E7000705D0 /* jsapi.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = jsapi.h; sourceTree = "<group>"; };
 		1AED2D0A0C04586C004A1118 /* OOGraphicsResetManager.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOGraphicsResetManager.h; sourceTree = "<group>"; };
 		1AED2D0B0C04586C004A1118 /* OOGraphicsResetManager.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOGraphicsResetManager.m; sourceTree = "<group>"; };
-		1AED2DE50C046BA2004A1118 /* OODebugController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OODebugController.h; sourceTree = "<group>"; };
-		1AED2DE60C046BA2004A1118 /* OODebugController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OODebugController.m; sourceTree = "<group>"; };
 		1AED74C70BBA3CAA009410CD /* logcontrol.plist.xml */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xml; path = logcontrol.plist.xml; sourceTree = "<group>"; };
 		2512833C09BA27C100F43D55 /* Octree.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = Octree.m; sourceTree = "<group>"; };
 		2512833D09BA27C100F43D55 /* Octree.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Octree.h; sourceTree = "<group>"; };
@@ -1534,6 +1546,14 @@
 			children = (
 				0865432206B8447D000CA0AB /* OoliteDev.app */,
 				1A71E6F30BCE340C00CD5C13 /* libpng.a */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		1A0519350C7CCAC900BA5CCA /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				1A0519390C7CCAC900BA5CCA /* DebugOXP.bundle */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -2022,15 +2042,16 @@
 			name = Shaders;
 			sourceTree = "<group>";
 		};
-		1A8071D70C0480AC00BA1935 /* Debug */ = {
+		1A8071D70C0480AC00BA1935 /* Debug OXP */ = {
 			isa = PBXGroup;
 			children = (
-				1AED2DE50C046BA2004A1118 /* OODebugController.h */,
-				1AED2DE60C046BA2004A1118 /* OODebugController.m */,
-				1A08317C0C2EED9700E3AE25 /* debugLogMessageClassesMenu.plist */,
-				1A8072220C0483E800BA1935 /* OODebugController.nib */,
+				1A0519340C7CCAC900BA5CCA /* DebugOXP.xcodeproj */,
+				1A0517D10C7B376700BA5CCA /* debug-exports.exp */,
+				1A0518E80C7CC79B00BA5CCA /* OODebugBundleLoader.h */,
+				1A0518E90C7CC79B00BA5CCA /* OODebugBundleLoader.m */,
 			);
-			name = Debug;
+			name = "Debug OXP";
+			path = src/Cocoa;
 			sourceTree = "<group>";
 		};
 		1A8A3BE90B963F02007D20B8 /* Source */ = {
@@ -2071,7 +2092,6 @@
 				1A8A3D9E0B9B05C400AB7625 /* Groolite */,
 				1ADF5F110B9E374B00FDB2A3 /* JoystickHandler.h */,
 				1AE546300C19A2E2005B89F3 /* JoystickHandler.m */,
-				1A8071D70C0480AC00BA1935 /* Debug */,
 				1A7D82FF0C40111B00E4A5F5 /* OOLogOutputHandler.h */,
 				1A7D83000C40111B00E4A5F5 /* OOLogOutputHandler.m */,
 			);
@@ -2400,6 +2420,7 @@
 				1A8A3BE90B963F02007D20B8 /* Source */,
 				1AC0E9380B974D8700C46994 /* Documentation */,
 				1A5BF2710916D45B00BF238F /* MDImporter */,
+				1A8071D70C0480AC00BA1935 /* Debug OXP */,
 				1A2314300B9C667F00EF0852 /* Resources */,
 				29B97323FDCFA39411CA2CEA /* Frameworks */,
 				19C28FACFE9D520D11CA2CBB /* Products */,
@@ -2577,7 +2598,6 @@
 				1A2A1CAC0BD2914F00152975 /* OOMesh.h in Headers */,
 				1A2A1DEC0BD2A28E00152975 /* OOMacroOpenGL.h in Headers */,
 				1AED2D0C0C04586C004A1118 /* OOGraphicsResetManager.h in Headers */,
-				1AED2DE70C046BA2004A1118 /* OODebugController.h in Headers */,
 				1A15049E0C12CA070032F3E8 /* OOProbabilisticTextureManager.h in Headers */,
 				1AC775E20C2DD4E900ECFF3B /* OODebugGLDrawing.h in Headers */,
 				1A5E46300C32DACE008104B4 /* OOShaderUniformMethodType.h in Headers */,
@@ -2602,6 +2622,7 @@
 				1A73712D0C623DAE0097AC37 /* OOJSStation.h in Headers */,
 				1A7376BE0C64AE330097AC37 /* OOJSSystem.h in Headers */,
 				1A73795D0C65CF090097AC37 /* OOLegacyEventHandlerScript.h in Headers */,
+				1A0518EA0C7CC79B00BA5CCA /* OODebugBundleLoader.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -2636,7 +2657,7 @@
 				1A2319780B9D030400EF0852 /* Copy Music */,
 				1A2319BA0B9D032700EF0852 /* Copy Sounds */,
 				1A3491320BC25ED400802DA7 /* Copy Scripts */,
-				1A8072280C0483FA00BA1935 /* Copy Debug Add-ons */,
+				1A8072280C0483FA00BA1935 /* Copy Debug OXP */,
 				1AD0C7890C47C1680070BD23 /* Build SCR Shim */,
 				1AD0C7300C47BDEF0070BD23 /* Copy SCR Shim (test release only) */,
 				1A2F63BD0C5CC80B003872C8 /* Copy Schemata */,
@@ -2646,6 +2667,7 @@
 			dependencies = (
 				1A5BF3080916D8F700BF238F /* PBXTargetDependency */,
 				1A71E6F70BCE343400CD5C13 /* PBXTargetDependency */,
+				1A05193D0C7CCAE300BA5CCA /* PBXTargetDependency */,
 			);
 			name = Oolite;
 			productInstallPath = "$(HOME)/Applications";
@@ -2681,6 +2703,10 @@
 			projectDirPath = "";
 			projectReferences = (
 				{
+					ProductGroup = 1A0519350C7CCAC900BA5CCA /* Products */;
+					ProjectRef = 1A0519340C7CCAC900BA5CCA /* DebugOXP.xcodeproj */;
+				},
+				{
 					ProductGroup = 1A5BF2730916D47300BF238F /* Products */;
 					ProjectRef = 1A5BF2720916D47300BF238F /* Oolite-importer.xcodeproj */;
 				},
@@ -2693,6 +2719,13 @@
 /* End PBXProject section */
 
 /* Begin PBXReferenceProxy section */
+		1A0519390C7CCAC900BA5CCA /* DebugOXP.bundle */ = {
+			isa = PBXReferenceProxy;
+			fileType = wrapper.cfbundle;
+			path = DebugOXP.bundle;
+			remoteRef = 1A0519380C7CCAC900BA5CCA /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
 		1A5BF2770916D47300BF238F /* Oolite.mdimporter */ = {
 			isa = PBXReferenceProxy;
 			fileType = wrapper.cfbundle;
@@ -2883,7 +2916,6 @@
 				1A2A1CAD0BD2914F00152975 /* OOMesh.m in Sources */,
 				1A5AA3230C0098AF0029C78A /* OOOpenGL.m in Sources */,
 				1AED2D0D0C04586C004A1118 /* OOGraphicsResetManager.m in Sources */,
-				1AED2DE80C046BA2004A1118 /* OODebugController.m in Sources */,
 				1A15049F0C12CA070032F3E8 /* OOProbabilisticTextureManager.m in Sources */,
 				1AE546310C19A2E2005B89F3 /* JoystickHandler.m in Sources */,
 				1AC775E30C2DD4E900ECFF3B /* OODebugGLDrawing.m in Sources */,
@@ -2908,6 +2940,7 @@
 				1A73712E0C623DAE0097AC37 /* OOJSStation.m in Sources */,
 				1A7376BF0C64AE330097AC37 /* OOJSSystem.m in Sources */,
 				1A73795E0C65CF090097AC37 /* OOLegacyEventHandlerScript.m in Sources */,
+				1A0518EB0C7CC79B00BA5CCA /* OODebugBundleLoader.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -2939,6 +2972,11 @@
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
+		1A05193D0C7CCAE300BA5CCA /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			name = DebugOXP;
+			targetProxy = 1A05193C0C7CCAE300BA5CCA /* PBXContainerItemProxy */;
+		};
 		1A5BF3080916D8F700BF238F /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
 			name = "Oolite-importer";
@@ -2958,6 +2996,7 @@
 				COPY_SCHEMATA = 1;
 				DEAD_CODE_STRIPPING = YES;
 				DEBUG_INFORMATION_FORMAT = dwarf;
+				EXPORTED_SYMBOLS_FILE = "src/Cocoa/debug-exports.exp";
 				FRAMEWORK_SEARCH_PATHS = "\"$(SRCROOT)/deps/Cocoa-deps/\"";
 				GCC_DEBUGGING_SYMBOLS = full;
 				GCC_DYNAMIC_NO_PIC = NO;
@@ -2967,6 +3006,7 @@
 				GCC_PREPROCESSOR_DEFINITIONS = XP_UNIX;
 				GCC_PREPROCESSOR_DEFINITIONS_NOT_USED_IN_PRECOMPS = OO_DEBUG;
 				GCC_REUSE_STRINGS = YES;
+				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
 				GCC_TREAT_WARNINGS_AS_ERRORS = YES;
 				HEADER_SEARCH_PATHS = (
 					"$(HEADER_SEARCH_PATHS_QUOTED_1)",
@@ -3092,7 +3132,7 @@
 			};
 			name = Deployment;
 		};
-		1A0832D60C2F105000E3AE25 /* Deployment – Test Release */ = {
+		1A0832D60C2F105000E3AE25 /* TestRelease */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				COPY_PHASE_STRIP = YES;
@@ -3107,9 +3147,9 @@
 				PRODUCT_NAME = png;
 				ZERO_LINK = NO;
 			};
-			name = "Deployment – Test Release";
+			name = TestRelease;
 		};
-		1A0832D70C2F105000E3AE25 /* Deployment – Test Release */ = {
+		1A0832D70C2F105000E3AE25 /* TestRelease */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				COPY_PHASE_STRIP = NO;
@@ -3117,6 +3157,7 @@
 				COPY_SCR_SHIM = 1;
 				DEAD_CODE_STRIPPING = YES;
 				DEBUG_INFORMATION_FORMAT = dwarf;
+				EXPORTED_SYMBOLS_FILE = "src/Cocoa/debug-exports.exp";
 				FRAMEWORK_SEARCH_PATHS = "\"$(SRCROOT)/deps/Cocoa-deps/\"";
 				GCC_DEBUGGING_SYMBOLS = used;
 				GCC_ENABLE_FIX_AND_CONTINUE = NO;
@@ -3126,6 +3167,7 @@
 					"OO_SMART_CRASH_REPORT_INSTALL=1",
 				);
 				GCC_REUSE_STRINGS = YES;
+				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
 				GCC_TREAT_WARNINGS_AS_ERRORS = YES;
 				HEADER_SEARCH_PATHS = (
 					"$(HEADER_SEARCH_PATHS_QUOTED_1)",
@@ -3163,9 +3205,9 @@
 				WRAPPER_EXTENSION = app;
 				ZERO_LINK = NO;
 			};
-			name = "Deployment – Test Release";
+			name = TestRelease;
 		};
-		1A0832D80C2F105000E3AE25 /* Deployment – Test Release */ = {
+		1A0832D80C2F105000E3AE25 /* TestRelease */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ARCHS = (
@@ -3182,7 +3224,7 @@
 				OTHER_CFLAGS = "-DLOADSAVEGUI";
 				SDKROOT = /Developer/SDKs/MacOSX10.3.9.sdk;
 			};
-			name = "Deployment – Test Release";
+			name = TestRelease;
 		};
 		1A71E6FD0BCE345800CD5C13 /* Development */ = {
 			isa = XCBuildConfiguration;
@@ -3228,7 +3270,7 @@
 			buildConfigurations = (
 				08B31CAD08FE63D70038D42F /* Development */,
 				08B31CAE08FE63D70038D42F /* Deployment */,
-				1A0832D70C2F105000E3AE25 /* Deployment – Test Release */,
+				1A0832D70C2F105000E3AE25 /* TestRelease */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Deployment;
@@ -3238,7 +3280,7 @@
 			buildConfigurations = (
 				08B31CB108FE63D70038D42F /* Development */,
 				08B31CB208FE63D70038D42F /* Deployment */,
-				1A0832D80C2F105000E3AE25 /* Deployment – Test Release */,
+				1A0832D80C2F105000E3AE25 /* TestRelease */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Deployment;
@@ -3248,7 +3290,7 @@
 			buildConfigurations = (
 				1A71E6FD0BCE345800CD5C13 /* Development */,
 				1A71E6FE0BCE345800CD5C13 /* Deployment */,
-				1A0832D60C2F105000E3AE25 /* Deployment – Test Release */,
+				1A0832D60C2F105000E3AE25 /* TestRelease */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Deployment;
