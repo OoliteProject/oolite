@@ -316,7 +316,7 @@ static GLfloat	texture_uv_array[10400 * 2];
 	}
 	else if (clearSkyColor != nil)
 	{
-		bcopy(amb_land, amb_polar_land, sizeof amb_polar_land);
+		memmove(amb_polar_land, amb_land, sizeof amb_polar_land);
 		amb_polar_land[3] = OOClamp_0_1_f(amb_polar_land[3] * (POLAR_CLEAR_SKY_ALPHA / CLEAR_SKY_ALPHA));
 	}
 	
@@ -327,7 +327,7 @@ static GLfloat	texture_uv_array[10400 * 2];
 	}
 	else if (cloudColor != nil)
 	{
-		bcopy(amb_sea, amb_polar_sea, sizeof amb_polar_sea);
+		memmove(amb_polar_sea, amb_sea, sizeof amb_polar_sea);
 		amb_polar_sea[3] *= (POLAR_CLOUD_ALPHA / CLOUD_ALPHA);
 	}
 	
