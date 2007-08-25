@@ -424,15 +424,13 @@ void OOLogWithFunctionFileAndLineAndArguments(NSString *inMessageClass, const ch
 	NSString			*formattedMessage = nil;
 	unsigned			indentLevel;
 	
-	pool = [[NSAutoreleasePool alloc] init];
+	if (inFormat == nil)  return;
 	
-	#if !OOLOG_SHORT_CIRCUIT
-		if (!OOLogWillDisplayMessagesInClass(inMessageClass))
-		{
-			[pool release];
-			return;
-		}
-	#endif
+#if !OOLOG_SHORT_CIRCUIT
+	if (!OOLogWillDisplayMessagesInClass(inMessageClass))  return;
+#endif
+	
+	pool = [[NSAutoreleasePool alloc] init];
 	
 	// Do argument substitution
 	formattedMessage = [[[NSString alloc] initWithFormat:inFormat arguments:inArguments] autorelease];

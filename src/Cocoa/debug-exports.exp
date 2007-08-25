@@ -6,6 +6,9 @@
 .objc_class_name_ResourceManager
 .objc_class_name_OOJavaScriptEngine
 .objc_class_name_OOColor
+.objc_class_name_OOWeakRefObject
+.objc_class_name_OOScript
+.objc_class_name_OOJSScript
 _OOLogWithFunctionFileAndLine
 _OOLogInsertMarker
 _OOLogSetDisplayMessagesInClass
@@ -23,6 +26,20 @@ _OOLogIndent
 _OOLogOutdent
 _gDebugFlags
 _gSharedUniverse
+_JSBasicPrivateObjectConverter
+_JSObjectToObject
+_JSRegisterObjectConverter
+_JS_ConvertStub
+_JS_EnumerateStub
+_JS_GetPrivate
+_JS_SetPrivate
+_JS_InitClass
+_JS_NewObject
+_JS_PropertyStub
+_JS_ResolveStub
+_OOReportJavaScriptBadPropertySelector
+_OOReportJavaScriptError
+_JS_InternString
 
 # Symbols exported for warning supression. Without these, we get lines like
 # /usr/bin/ld: warning symbol: _NXArgc referenced dynamically and must be exported

@@ -54,7 +54,7 @@ BOOL CheckOpenGLErrors(NSString *format, ...)
 			va_start(args, format);
 			format = [[NSString alloc] initWithFormat:format arguments:args];
 			va_end(args);
-			OOLog(kOOLogOpenGLError, @"OpenGL error: \"%s\" (%u), context: %@", errString, errCode, format);
+			OOLog(kOOLogOpenGLError, @"OpenGL error: \"%s\" (%#x), context: %@", errString, errCode, format);
 		}
 	}
 	return errorOccurred;

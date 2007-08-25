@@ -46,6 +46,8 @@ static RunningStack		*sRunningStack = NULL;
 static JSBool JSScriptConvert(JSContext *context, JSObject *this, JSType type, jsval *outValue);
 static void JSScriptFinalize(JSContext *context, JSObject *this);
 
+static void AddStackToArrayReversed(NSMutableArray *array, RunningStack *stack);
+
 
 static JSClass sScriptClass =
 {
@@ -204,6 +206,16 @@ static JSClass sScriptClass =
 }
 
 
++ (NSArray *)scriptStack
+{
+	NSMutableArray			*result = nil;
+	
+	result = [NSMutableArray array];
+	AddStackToArrayReversed(result, sRunningStack);
+	return result;
+}
+
+
 - (id) weakRetain
 {
 	if (weakSelf == nil)  weakSelf = [OOWeakReference weakRefWithObject:self];
@@ -270,7 +282,7 @@ static JSClass sScriptClass =
 				{
 					for (i = 0; i != argc; ++i)
 					{
-						argv[i] = [arguments javaScriptValueInContext:context];
+						argv[i] = [[arguments objectAtIndex:i] javaScriptValueInContext:context];
 						if (JSVAL_IS_GCTHING(argv[i]))  JS_AddNamedRoot(context, &argv[i], "JSScript event parameter");
 					}
 				}
@@ -438,6 +450,10 @@ static JSBool JSScriptConvert(JSContext *context, JSObject *this, JSType type, j
 				*outValue = STRING_TO_JSVAL(JS_InternString(context, "[stale Script]"));
 			}
 			return YES;
+		
+		case JSTYPE_OBJECT:
+			*outValue = OBJECT_TO_JSVAL(this);
+			return YES;
 			
 		default:
 			// Contrary to what passes for documentation, JS_ConvertStub is not a no-op.
@@ -451,4 +467,14 @@ static void JSScriptFinalize(JSContext *context, JSObject *this)
 	OOLog(@"js.script.temp", @"%@ called for %p", this);
 	[(id)JS_GetPrivate(context, this) release];
 	JS_SetPrivate(context, this, nil);
+}
+
+
+static void AddStackToArrayReversed(NSMutableArray *array, RunningStack *stack)
+{
+	if (stack != NULL)
+	{
+		AddStackToArrayReversed(array, stack->back);
+		[array addObject:stack->current];
+	}
 }

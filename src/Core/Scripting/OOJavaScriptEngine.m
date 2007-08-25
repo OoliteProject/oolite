@@ -173,7 +173,7 @@ static JSClass global_class =
 	
 	JS_PropertyStub,
 	JS_PropertyStub,
-	JS_PropertyStub,
+	GlobalGetProperty,
 	JS_PropertyStub,
 	JS_EnumerateStub,
 	JS_ResolveStub,
@@ -194,10 +194,10 @@ enum global_propertyIDs
 static JSPropertySpec Global_props[] =
 {
 	// JS name					ID							flags
-	{ "galaxyNumber",			GLOBAL_GALAXY_NUMBER,		JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY, GlobalGetProperty },
-	{ "planetNumber",			GLOBAL_PLANET_NUMBER,		JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY, GlobalGetProperty },
-	{ "missionVariables",		GLOBAL_MISSION_VARS,		JSPROP_PERMANENT | JSPROP_ENUMERATE, GlobalGetProperty },
-	{ "guiScreen",				GLOBAL_GUI_SCREEN,			JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY, GlobalGetProperty },
+	{ "galaxyNumber",			GLOBAL_GALAXY_NUMBER,		JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
+	{ "planetNumber",			GLOBAL_PLANET_NUMBER,		JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
+	{ "missionVariables",		GLOBAL_MISSION_VARS,		JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
+	{ "guiScreen",				GLOBAL_GUI_SCREEN,			JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
 	{ 0 }
 };
 
@@ -633,6 +633,12 @@ static void ReportJSError(JSContext *context, const char *message, JSErrorReport
 	return context;
 }
 
+
+- (JSObject *) globalObject
+{
+	return globalObject;
+}
+
 @end
 
 
@@ -834,6 +840,7 @@ BOOL JSNewNSArrayValue(JSContext *context, NSArray *array, jsval *value)
 {
 	JSString				*string = NULL;
 	
+	if (JSVAL_IS_NULL(value) || JSVAL_IS_VOID(value))  return nil;
 	string = JS_ValueToString(context, value);	// Calls the value's convert method if needed.
 	return [NSString stringWithJavaScriptString:string];
 }

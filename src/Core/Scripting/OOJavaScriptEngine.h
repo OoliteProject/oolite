@@ -47,7 +47,8 @@ MA 02110-1301, USA.
 
 + (OOJavaScriptEngine *)sharedEngine;
 
-- (JSContext *) context;
+- (JSContext *)context;
+- (JSObject *)globalObject;
 
 @end
 

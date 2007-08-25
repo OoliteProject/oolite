@@ -46,6 +46,7 @@ MA 02110-1301, USA.
 - (id)initWithPath:(NSString *)path properties:(NSDictionary *)properties context:(JSContext *)context;
 
 + (OOJSScript *)currentlyRunningScript;
++ (NSArray *)scriptStack;
 
 @end
 
