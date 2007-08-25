@@ -262,9 +262,7 @@ static NSComparisonResult comparePrice(NSDictionary *dict1, NSDictionary *dict2,
 	doProcedurallyTexturedPlanets = NO;
 #endif
 	
-#if OO_USE_DEBUG_BUNDLE
 	OOLoadDebugBundle();
-#endif
 	
 	[player doWorldScriptEvent:@"startUp" withArguments:nil];
 	
