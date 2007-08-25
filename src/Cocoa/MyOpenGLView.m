@@ -30,7 +30,6 @@ MA 02110-1301, USA.
 #import "PlanetEntity.h"
 #import "ResourceManager.h"
 #import "GuiDisplayGen.h"
-#import "OODebugBundleLoader.h"
 #import <Carbon/Carbon.h>
 #import "JoystickHandler.h"
 #import "SmartCrashReportsInstall.h"
@@ -117,9 +116,6 @@ static NSString * kOOLogKeyDown				= @"input.keyMapping.keyPress.keyDown";
 
 - (void)performLateSetup
 {
-#if OO_INCLUDE_DEBUG_CONTROLLER
-	OOLoadDebugBundle();
-#endif
 #if OO_SMART_CRASH_REPORT_INSTALL
 	Boolean authenticationWillBeRequired = NO;
 	if (UnsanitySCR_CanInstall(&authenticationWillBeRequired))

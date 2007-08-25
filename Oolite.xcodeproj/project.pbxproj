@@ -18,7 +18,7 @@
 		0865431C06B8447D000CA0AB /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1058C7A1FEA54F0111CA2CBB /* Cocoa.framework */; };
 		0865431D06B8447D000CA0AB /* OpenGL.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 06AFA01500A58FB77F000001 /* OpenGL.framework */; };
 		0878FD30086EF845004CB752 /* Carbon.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0878FD2F086EF845004CB752 /* Carbon.framework */; };
-		1A0255750C7E1F8D00F622D4 /* DebugOXP.bundle in Copy Debug OXP */ = {isa = PBXBuildFile; fileRef = 1A0519390C7CCAC900BA5CCA /* DebugOXP.bundle */; };
+		1A0255750C7E1F8D00F622D4 /* Debug.oxp in Copy Debug OXP */ = {isa = PBXBuildFile; fileRef = 1A0519390C7CCAC900BA5CCA /* Debug.oxp */; };
 		1A0518EA0C7CC79B00BA5CCA /* OODebugBundleLoader.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A0518E80C7CC79B00BA5CCA /* OODebugBundleLoader.h */; };
 		1A0518EB0C7CC79B00BA5CCA /* OODebugBundleLoader.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A0518E90C7CC79B00BA5CCA /* OODebugBundleLoader.m */; };
 		1A1502F60C1201C30032F3E8 /* oolite-unknown-ship.dat in Copy Models */ = {isa = PBXBuildFile; fileRef = 1A1502F50C1201C30032F3E8 /* oolite-unknown-ship.dat */; };
@@ -902,7 +902,7 @@
 			dstPath = AddOns;
 			dstSubfolderSpec = 16;
 			files = (
-				1A0255750C7E1F8D00F622D4 /* DebugOXP.bundle in Copy Debug OXP */,
+				1A0255750C7E1F8D00F622D4 /* Debug.oxp in Copy Debug OXP */,
 			);
 			name = "Copy Debug OXP";
 			runOnlyForDeploymentPostprocessing = 0;
@@ -1553,7 +1553,7 @@
 		1A0519350C7CCAC900BA5CCA /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				1A0519390C7CCAC900BA5CCA /* DebugOXP.bundle */,
+				1A0519390C7CCAC900BA5CCA /* Debug.oxp */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -2719,10 +2719,10 @@
 /* End PBXProject section */
 
 /* Begin PBXReferenceProxy section */
-		1A0519390C7CCAC900BA5CCA /* DebugOXP.bundle */ = {
+		1A0519390C7CCAC900BA5CCA /* Debug.oxp */ = {
 			isa = PBXReferenceProxy;
 			fileType = wrapper.cfbundle;
-			path = DebugOXP.bundle;
+			path = Debug.oxp;
 			remoteRef = 1A0519380C7CCAC900BA5CCA /* PBXContainerItemProxy */;
 			sourceTree = BUILT_PRODUCTS_DIR;
 		};

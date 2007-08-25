@@ -29,11 +29,20 @@ MA 02110-1301, USA.
 #import "PlayerEntityLegacyScriptEngine.h"
 #import <jsapi.h>
 
+#define OOJSENGINE_MONITOR_SUPPORT	(!defined(NDEBUG))
+
+
+@protocol OOJavaScriptEngineMonitor;
+
+
 @interface OOJavaScriptEngine : NSObject
 {
-	JSRuntime			*runtime;
-	JSContext			*context;
-	JSObject			*globalObject;
+	JSRuntime						*runtime;
+	JSContext						*context;
+	JSObject						*globalObject;
+#if OOJSENGINE_MONITOR_SUPPORT
+	id<OOJavaScriptEngineMonitor>	monitor;
+#endif
 }
 
 + (OOJavaScriptEngine *)sharedEngine;
@@ -141,3 +150,37 @@ typedef id (*JSClassConverterCallback)(JSContext *context, JSObject *object);
 id JSBasicPrivateObjectConverter(JSContext *context, JSObject *object);
 
 void JSRegisterObjectConverter(JSClass *theClass, JSClassConverterCallback converter);
+
+
+#if OOJSENGINE_MONITOR_SUPPORT
+
+/*	Protocol for debugging "monitor" object.
+	The monitor is an object -- in Oolite, or via Distributed Objects -- which
+	is provided with debugging information by the OOJavaScriptEngine.
+	Currently, this is implemented in the Debug OXP for Mac OS X only.
+*/
+
+@protocol OOJavaScriptEngineMonitor <NSObject>
+
+// Sent for JS errors or warnings.
+- (oneway void)jsEngine:(in byref OOJavaScriptEngine *)engine
+				context:(in JSContext *)context
+				  error:(in JSErrorReport *)errorReport
+			withMessage:(in NSString *)message;
+
+// Sent for JS log messages. Note: messageClass will be nil of Log() is used rather than LogWithClass().
+- (oneway void)jsEngine:(in byref OOJavaScriptEngine *)engine
+				context:(in JSContext *)context
+			 logMessage:(in NSString *)message
+				ofClass:(in NSString *)messageClass;
+
+@end
+
+
+@interface OOJavaScriptEngine (OOMonitorSupport)
+
+- (void)setMonitor:(id<OOJavaScriptEngineMonitor>)monitor;
+
+@end
+
+#endif

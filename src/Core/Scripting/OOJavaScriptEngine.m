@@ -51,6 +51,23 @@ static OOJavaScriptEngine *sSharedEngine = nil;
 static JSObject *xglob, *missionObj;
 
 
+#if OOJSENGINE_MONITOR_SUPPORT
+
+@interface OOJavaScriptEngine (OOMonitorSupportInternal)
+
+- (void)sendMonitorError:(JSErrorReport *)errorReport
+			 withMessage:(NSString *)message
+			   inContext:(JSContext *)context;
+
+- (void)sendMonitorLogMessage:(NSString *)message
+			 withMessageClass:(NSString *)messageClass
+					inContext:(JSContext *)context;
+
+@end
+
+#endif
+
+
 // For _bool scripting methods which always return @"YES" or @"NO" and nothing else.
 OOINLINE jsval BooleanStringToJSVal(NSString *string) INLINE_PURE_FUNC;
 OOINLINE jsval BooleanStringToJSVal(NSString *string)
@@ -199,16 +216,35 @@ static JSFunctionSpec Global_funcs[] =
 
 static JSBool GlobalLog(JSContext *context, JSObject *obj, uintN argc, jsval *argv, jsval *rval)
 {
-	NSString *logString = [NSString concatenationOfStringsFromJavaScriptValues:argv count:argc separator:@", " inContext:context];
-	OOLog(kOOLogDebugMessage, logString);
+	NSString			*message = nil;
+	
+	message = [NSString concatenationOfStringsFromJavaScriptValues:argv count:argc separator:@", " inContext:context];
+	OOLog(kOOLogDebugMessage, message);
+	
+#if OOJSENGINE_MONITOR_SUPPORT
+	[[OOJavaScriptEngine sharedEngine] sendMonitorLogMessage:message
+											withMessageClass:nil
+												   inContext:context];
+#endif
+	
 	return JS_TRUE;
 }
 
 
 static JSBool GlobalLogWithClass(JSContext *context, JSObject *obj, uintN argc, jsval *argv, jsval *rval)
 {
-	NSString *logString = [NSString concatenationOfStringsFromJavaScriptValues:argv + 1 count:argc - 1 separator:@", " inContext:context];
-	OOLog([NSString stringWithJavaScriptValue:argv[0] inContext:context], logString);
+	NSString			*msgClass = nil, *message = nil;
+	
+	msgClass = [NSString stringWithJavaScriptValue:argv[0] inContext:context];
+	message = [NSString concatenationOfStringsFromJavaScriptValues:argv + 1 count:argc - 1 separator:@", " inContext:context];
+	OOLog(msgClass, message);
+	
+#if OOJSENGINE_MONITOR_SUPPORT
+	[[OOJavaScriptEngine sharedEngine] sendMonitorLogMessage:message
+											withMessageClass:msgClass
+												   inContext:context];
+#endif
+	
 	return JS_TRUE;
 }
 
@@ -494,6 +530,12 @@ static void ReportJSError(JSContext *context, const char *message, JSErrorReport
 	{
 		OOLog(messageClass, @"      %s, line %d.", report->filename, report->lineno);
 	}
+	
+#if OOJSENGINE_MONITOR_SUPPORT
+	[[OOJavaScriptEngine sharedEngine] sendMonitorError:report
+											withMessage:messageText
+											  inContext:context];
+#endif
 }
 
 
@@ -555,12 +597,6 @@ static void ReportJSError(JSContext *context, const char *message, JSErrorReport
 	JS_DefineProperties(context, globalObject, Global_props);
 	JS_DefineFunctions(context, globalObject, Global_funcs);
 	
-	/*
-	systemObj = JS_DefineObject(context, globalObject, "system", &System_class, NULL, JSPROP_ENUMERATE | JSPROP_READONLY | JSPROP_PERMANENT);
-	JS_DefineProperties(context, systemObj, System_props);
-	JS_DefineFunctions(context, systemObj, System_funcs);
-	 */
-	
 	missionObj = JS_DefineObject(context, globalObject, "mission", &Mission_class, NULL, JSPROP_ENUMERATE | JSPROP_READONLY | JSPROP_PERMANENT);
 	JS_DefineProperties(context, missionObj, Mission_props);
 	JS_DefineFunctions(context, missionObj, Mission_funcs);
@@ -598,6 +634,47 @@ static void ReportJSError(JSContext *context, const char *message, JSErrorReport
 }
 
 @end
+
+
+#if OOJSENGINE_MONITOR_SUPPORT
+
+@implementation OOJavaScriptEngine (OOMonitorSupport)
+
+- (void)setMonitor:(id<OOJavaScriptEngineMonitor>)inMonitor
+{
+	[monitor autorelease];
+	monitor = [inMonitor retain];
+}
+
+@end
+
+
+@implementation OOJavaScriptEngine (OOMonitorSupportInternal)
+
+- (void)sendMonitorError:(JSErrorReport *)errorReport
+			 withMessage:(NSString *)message
+			   inContext:(JSContext *)theContext
+{
+	if ([monitor respondsToSelector:@selector(jsEngine:context:error:withMessage:)])
+	{
+		[monitor jsEngine:self context:theContext error:errorReport withMessage:message];
+	}
+}
+
+
+- (void)sendMonitorLogMessage:(NSString *)message
+			 withMessageClass:(NSString *)messageClass
+					inContext:(JSContext *)theContext
+{
+	if ([monitor respondsToSelector:@selector(jsEngine:context:logMessage:ofClass:)])
+	{
+		[monitor jsEngine:self context:theContext logMessage:message ofClass:messageClass];
+	}
+}
+
+@end
+
+#endif
 
 
 void OOReportJavaScriptError(JSContext *context, NSString *format, ...)

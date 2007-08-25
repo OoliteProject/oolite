@@ -4,6 +4,8 @@
 .objc_class_name_OOGraphicsResetManager
 .objc_class_name_OOTexture
 .objc_class_name_ResourceManager
+.objc_class_name_OOJavaScriptEngine
+.objc_class_name_OOColor
 _OOLogWithFunctionFileAndLine
 _OOLogInsertMarker
 _OOLogSetDisplayMessagesInClass
@@ -16,6 +18,9 @@ _OOLogShowFileAndLine
 _OOLogShowFunction
 _OOLogShowMessageClass
 _OOLogWillDisplayMessagesInClass
+_OOLogHandlerGetLogPath
+_OOLogIndent
+_OOLogOutdent
 _gDebugFlags
 _gSharedUniverse
 

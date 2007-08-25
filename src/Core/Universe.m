@@ -45,6 +45,7 @@ MA 02110-1301, USA.
 #import "Octree.h"
 #import "CollisionRegion.h"
 #import "OOGraphicsResetManager.h"
+#import "OODebugBundleLoader.h"
 
 #import "OOCharacter.h"
 
@@ -259,6 +260,10 @@ static NSComparisonResult comparePrice(NSDictionary *dict1, NSDictionary *dict2,
 	
 #ifdef ALLOW_PROCEDURAL_PLANETS	
 	doProcedurallyTexturedPlanets = NO;
+#endif
+	
+#if OO_USE_DEBUG_BUNDLE
+	OOLoadDebugBundle();
 #endif
 	
 	[player doWorldScriptEvent:@"startUp" withArguments:nil];
