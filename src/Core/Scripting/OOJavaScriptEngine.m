@@ -577,8 +577,6 @@ static void ReportJSError(JSContext *context, const char *message, JSErrorReport
 	context = JS_NewContext(runtime, 8192);
 	JS_SetOptions(context, JSOPTION_VAROBJFIX | JSOPTION_STRICT | JSOPTION_COMPILE_N_GO | JSOPTION_NATIVE_BRANCH_CALLBACK);
 	
-	OOLog(@"script.jsVersion", @"Running JavaScript version %s", JS_VersionToString(JS_GetVersion(context)));
-	
 	/* if context does not have a value, end the program here */
 	if (!context)
 	{

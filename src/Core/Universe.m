@@ -264,7 +264,7 @@ static NSComparisonResult comparePrice(NSDictionary *dict1, NSDictionary *dict2,
 	
 	OOLoadDebugBundle();
 	
-	[player doWorldScriptEvent:@"startUp" withArguments:nil];
+	[player completeInitialSetUp];
 	
     return self;
 }

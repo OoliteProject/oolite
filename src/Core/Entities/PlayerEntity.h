@@ -490,6 +490,8 @@ typedef enum
 
 + (id)sharedPlayer;
 
+- (void)completeInitialSetUp;
+
 - (void) warnAboutHostiles;
 
 - (void) unloadCargoPods;

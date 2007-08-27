@@ -97,6 +97,13 @@ static PlayerEntity *sSharedPlayer = nil;
 }
 
 
+- (void)completeInitialSetUp
+{
+	dockedStation = [UNIVERSE station];
+	[self doWorldScriptEvent:@"startUp" withArguments:nil];
+}
+
+
 - (void) unloadCargoPods
 {
 	/* loads commodities from the cargo pods onto the ship's manifest */

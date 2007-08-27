@@ -6,6 +6,22 @@
 	objectVersion = 42;
 	objects = {
 
+/* Begin PBXAggregateTarget section */
+		1AD267500C83050800B4BFD1 /* Build All */ = {
+			isa = PBXAggregateTarget;
+			buildConfigurationList = 1AD267680C8305A200B4BFD1 /* Build configuration list for PBXAggregateTarget "Build All" */;
+			buildPhases = (
+				1AD267610C83057F00B4BFD1 /* Copy Debug OXP */,
+			);
+			dependencies = (
+				1AD267560C83052600B4BFD1 /* PBXTargetDependency */,
+				1AD267540C83052200B4BFD1 /* PBXTargetDependency */,
+			);
+			name = "Build All";
+			productName = "Build All";
+		};
+/* End PBXAggregateTarget section */
+
 /* Begin PBXBuildFile section */
 		08125F0909F9083F00AB9BF9 /* OOGLDefs.h in Headers */ = {isa = PBXBuildFile; fileRef = 08125F0809F9083F00AB9BF9 /* OOGLDefs.h */; };
 		081329B50A6D534900A5C2CE /* OOInstinct.h in Headers */ = {isa = PBXBuildFile; fileRef = 081329B30A6D534900A5C2CE /* OOInstinct.h */; };
@@ -18,7 +34,6 @@
 		0865431C06B8447D000CA0AB /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1058C7A1FEA54F0111CA2CBB /* Cocoa.framework */; };
 		0865431D06B8447D000CA0AB /* OpenGL.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 06AFA01500A58FB77F000001 /* OpenGL.framework */; };
 		0878FD30086EF845004CB752 /* Carbon.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0878FD2F086EF845004CB752 /* Carbon.framework */; };
-		1A0255750C7E1F8D00F622D4 /* Debug.oxp in Copy Debug OXP */ = {isa = PBXBuildFile; fileRef = 1A0519390C7CCAC900BA5CCA /* Debug.oxp */; };
 		1A1502F60C1201C30032F3E8 /* oolite-unknown-ship.dat in Copy Models */ = {isa = PBXBuildFile; fileRef = 1A1502F50C1201C30032F3E8 /* oolite-unknown-ship.dat */; };
 		1A15049E0C12CA070032F3E8 /* OOProbabilisticTextureManager.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A15049C0C12CA070032F3E8 /* OOProbabilisticTextureManager.h */; };
 		1A15049F0C12CA070032F3E8 /* OOProbabilisticTextureManager.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A15049D0C12CA070032F3E8 /* OOProbabilisticTextureManager.m */; };
@@ -435,6 +450,7 @@
 		1AD0C3300C463FCC0070BD23 /* autoAImap.plist in Copy Config */ = {isa = PBXBuildFile; fileRef = 1AD0C32F0C463FCB0070BD23 /* autoAImap.plist */; };
 		1AD0C6C90C47B77E0070BD23 /* SCRDynamicShim.m in Sources */ = {isa = PBXBuildFile; fileRef = 1AD0C6C80C47B76F0070BD23 /* SCRDynamicShim.m */; };
 		1AD0C6E60C47B82C0070BD23 /* SmartCrashReportsInstall.h in Headers */ = {isa = PBXBuildFile; fileRef = 1AD0C6E40C47B82C0070BD23 /* SmartCrashReportsInstall.h */; };
+		1AD267650C83058C00B4BFD1 /* Debug.oxp in Copy Debug OXP */ = {isa = PBXBuildFile; fileRef = 1A0519390C7CCAC900BA5CCA /* Debug.oxp */; };
 		1ADBA5500BD0F173008FC99C /* OOBasicMaterial.h in Headers */ = {isa = PBXBuildFile; fileRef = 1ADBA54E0BD0F173008FC99C /* OOBasicMaterial.h */; };
 		1ADBA5510BD0F173008FC99C /* OOBasicMaterial.m in Sources */ = {isa = PBXBuildFile; fileRef = 1ADBA54F0BD0F173008FC99C /* OOBasicMaterial.m */; };
 		1ADF5CEC0B9DF59A00FDB2A3 /* OOCacheManager.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A231A170B9D8B1B00EF0852 /* OOCacheManager.m */; };
@@ -563,13 +579,6 @@
 			remoteGlobalIDString = 8D5B49B6048680CD000E48DA;
 			remoteInfo = DebugOXP;
 		};
-		1A05193C0C7CCAE300BA5CCA /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = 1A0519340C7CCAC900BA5CCA /* DebugOXP.xcodeproj */;
-			proxyType = 1;
-			remoteGlobalIDString = 8D5B49AC048680CD000E48DA;
-			remoteInfo = DebugOXP;
-		};
 		1A5BF2760916D47300BF238F /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 1A5BF2720916D47300BF238F /* Oolite-importer.xcodeproj */;
@@ -590,6 +599,20 @@
 			proxyType = 1;
 			remoteGlobalIDString = 1A71E6F20BCE340C00CD5C13;
 			remoteInfo = "libpng-custom";
+		};
+		1AD267530C83052200B4BFD1 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 1A0519340C7CCAC900BA5CCA /* DebugOXP.xcodeproj */;
+			proxyType = 1;
+			remoteGlobalIDString = 8D5B49AC048680CD000E48DA /* DebugOXP */;
+			remoteInfo = DebugOXP;
+		};
+		1AD267550C83052600B4BFD1 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 29B97313FDCFA39411CA2CEA /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 0865423506B8447D000CA0AB /* Oolite */;
+			remoteInfo = Oolite;
 		};
 /* End PBXContainerItemProxy section */
 
@@ -896,13 +919,13 @@
 			name = "Copy MDImporter";
 			runOnlyForDeploymentPostprocessing = 0;
 		};
-		1A8072280C0483FA00BA1935 /* Copy Debug OXP */ = {
+		1AD267610C83057F00B4BFD1 /* Copy Debug OXP */ = {
 			isa = PBXCopyFilesBuildPhase;
 			buildActionMask = 2147483647;
 			dstPath = AddOns;
 			dstSubfolderSpec = 16;
 			files = (
-				1A0255750C7E1F8D00F622D4 /* Debug.oxp in Copy Debug OXP */,
+				1AD267650C83058C00B4BFD1 /* Debug.oxp in Copy Debug OXP */,
 			);
 			name = "Copy Debug OXP";
 			runOnlyForDeploymentPostprocessing = 0;
@@ -2657,7 +2680,6 @@
 				1A2319780B9D030400EF0852 /* Copy Music */,
 				1A2319BA0B9D032700EF0852 /* Copy Sounds */,
 				1A3491320BC25ED400802DA7 /* Copy Scripts */,
-				1A8072280C0483FA00BA1935 /* Copy Debug OXP */,
 				1AD0C7890C47C1680070BD23 /* Build SCR Shim */,
 				1AD0C7300C47BDEF0070BD23 /* Copy SCR Shim (test release only) */,
 				1A2F63BD0C5CC80B003872C8 /* Copy Schemata */,
@@ -2667,7 +2689,6 @@
 			dependencies = (
 				1A5BF3080916D8F700BF238F /* PBXTargetDependency */,
 				1A71E6F70BCE343400CD5C13 /* PBXTargetDependency */,
-				1A05193D0C7CCAE300BA5CCA /* PBXTargetDependency */,
 			);
 			name = Oolite;
 			productInstallPath = "$(HOME)/Applications";
@@ -2712,6 +2733,7 @@
 				},
 			);
 			targets = (
+				1AD267500C83050800B4BFD1 /* Build All */,
 				0865423506B8447D000CA0AB /* Oolite */,
 				1A71E6F20BCE340C00CD5C13 /* libpng-custom */,
 			);
@@ -2972,11 +2994,6 @@
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
-		1A05193D0C7CCAE300BA5CCA /* PBXTargetDependency */ = {
-			isa = PBXTargetDependency;
-			name = DebugOXP;
-			targetProxy = 1A05193C0C7CCAE300BA5CCA /* PBXContainerItemProxy */;
-		};
 		1A5BF3080916D8F700BF238F /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
 			name = "Oolite-importer";
@@ -2987,12 +3004,23 @@
 			target = 1A71E6F20BCE340C00CD5C13 /* libpng-custom */;
 			targetProxy = 1A71E6F60BCE343400CD5C13 /* PBXContainerItemProxy */;
 		};
+		1AD267540C83052200B4BFD1 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			name = DebugOXP;
+			targetProxy = 1AD267530C83052200B4BFD1 /* PBXContainerItemProxy */;
+		};
+		1AD267560C83052600B4BFD1 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 0865423506B8447D000CA0AB /* Oolite */;
+			targetProxy = 1AD267550C83052600B4BFD1 /* PBXContainerItemProxy */;
+		};
 /* End PBXTargetDependency section */
 
 /* Begin XCBuildConfiguration section */
 		08B31CAD08FE63D70038D42F /* Development */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				COPY_PHASE_STRIP = NO;
 				COPY_SCHEMATA = 1;
 				DEAD_CODE_STRIPPING = YES;
 				DEBUG_INFORMATION_FORMAT = dwarf;
@@ -3262,6 +3290,35 @@
 			};
 			name = Deployment;
 		};
+		1AD267690C8305A200B4BFD1 /* Development */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				COPY_PHASE_STRIP = NO;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				PRODUCT_NAME = "Build All";
+			};
+			name = Development;
+		};
+		1AD2676A0C8305A200B4BFD1 /* Deployment */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				COPY_PHASE_STRIP = YES;
+				GCC_ENABLE_FIX_AND_CONTINUE = NO;
+				GCC_GENERATE_DEBUGGING_SYMBOLS = NO;
+				PRODUCT_NAME = "Build All";
+				ZERO_LINK = NO;
+			};
+			name = Deployment;
+		};
+		1AD2676B0C8305A200B4BFD1 /* TestRelease */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				PRODUCT_NAME = "Build All";
+			};
+			name = TestRelease;
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -3291,6 +3348,16 @@
 				1A71E6FD0BCE345800CD5C13 /* Development */,
 				1A71E6FE0BCE345800CD5C13 /* Deployment */,
 				1A0832D60C2F105000E3AE25 /* TestRelease */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Deployment;
+		};
+		1AD267680C8305A200B4BFD1 /* Build configuration list for PBXAggregateTarget "Build All" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				1AD267690C8305A200B4BFD1 /* Development */,
+				1AD2676A0C8305A200B4BFD1 /* Deployment */,
+				1AD2676B0C8305A200B4BFD1 /* TestRelease */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Deployment;
