@@ -2816,7 +2816,7 @@
 			);
 			name = "Copy SCR Shim (test release only)";
 			outputPaths = (
-				$BUILT_PRODUCTS_DIR/Oolite.app/Contents/Frameworks/SCRDynamicShim.dylib,
+				"$(BUILT_PRODUCTS_DIR)/$(PRODUCT_NAME).app/Contents/Frameworks/SCRDynamicShim.dylib",
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/bash;
