@@ -5177,7 +5177,7 @@ static int last_outfitting_index;
 		fuel = PLAYER_MAX_FUEL;
 		credits -= price;
 		[self setGuiToEquipShipScreen:-1:-1];
-		done = YES;
+		return YES;
 	}
 	
 	// check energy unit replacement

@@ -5051,6 +5051,7 @@ static BOOL MaintainLinkedLists(Universe* uni)
 								[demo_ship setScanClass: CLASS_NO_DRAW];
 								[demo_ship setRoll:M_PI/5.0];
 								[demo_ship setPitch:M_PI/10.0];
+								[demo_ship setStatus:STATUS_COCKPIT_DISPLAY];
 								[gui setText:[demo_ship name] forRow:19 align:GUI_ALIGN_CENTER];
 								
 								demo_stage = DEMO_FLY_IN;
@@ -5061,6 +5062,11 @@ static BOOL MaintainLinkedLists(Universe* uni)
 				}
 			}
 						
+			// Don't let incoming ships "overshoot" us. Stop them on the spot if they go past the desired z coordinate.
+			if ((demo_stage)&&(player)&&(inGUIMode)&&([player guiScreen] == GUI_SCREEN_INTRO2)&&([demo_ship position].z <= [demo_ship destination].z))
+			{
+				[demo_ship setPosition:[demo_ship destination]];
+			}
 			
 			update_stage = @"update:entity";
 			for (i = 0; i < ent_count; i++)
