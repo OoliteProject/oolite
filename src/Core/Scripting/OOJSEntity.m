@@ -41,6 +41,7 @@ static JSBool EntityGetProperty(JSContext *context, JSObject *this, jsval name, 
 static JSBool EntitySetProperty(JSContext *context, JSObject *this, jsval name, jsval *value);
 
 // Methods
+static JSBool EntityToString(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
 static JSBool EntitySetPosition(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
 static JSBool EntitySetOrientation(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
 static JSBool EntityValid(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
@@ -62,7 +63,7 @@ static JSExtendedClass sEntityClass =
 		EntitySetProperty,		// setProperty
 		JS_EnumerateStub,		// enumerate
 		JS_ResolveStub,			// resolve
-		JSEntityConvert,		// convert
+		JS_ConvertStub,			// convert
 		JSEntityFinalize,		// finalize
 		JSCLASS_NO_OPTIONAL_MEMBERS
 	},
@@ -125,6 +126,7 @@ static JSPropertySpec sEntityProperties[] =
 static JSFunctionSpec sEntityMethods[] =
 {
 	// JS name					Function					min args
+	{ "toString",				EntityToString,				0 },
 	{ "setPosition",			EntitySetPosition,			1 },
 	{ "setOrientation",			EntitySetOrientation,		1 },
 	{ "valid",					EntityValid,				0 },
@@ -261,32 +263,6 @@ BOOL EntityFromArgumentList(JSContext *context, NSString *scriptClass, NSString 
 	// Success.
 	if (outConsumed != NULL)  *outConsumed = 1;
 	return YES;
-}
-
-
-JSBool JSEntityConvert(JSContext *context, JSObject *this, JSType type, jsval *outValue)
-{
-	Entity					*entity = nil;
-	
-	switch (type)
-	{
-		case JSTYPE_VOID:		// Used for string concatenation.
-		case JSTYPE_STRING:
-			// Return description of entity
-			if (JSEntityGetEntity(context, this, &entity))
-			{
-				*outValue = [[entity description] javaScriptValueInContext:context];
-			}
-			else
-			{
-				*outValue = STRING_TO_JSVAL(JS_InternString(context, "[stale Entity]"));
-			}
-			return YES;
-			
-		default:
-			// Contrary to what passes for documentation, JS_ConvertStub is not a no-op.
-			return JS_ConvertStub(context, this, type, outValue);
-	}
 }
 
 
@@ -430,6 +406,24 @@ static JSBool EntitySetProperty(JSContext *context, JSObject *this, jsval name, 
 			return NO;
 	}
 	
+	return YES;
+}
+
+
+// *** Methods ***
+
+static JSBool EntityToString(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
+{
+	Entity					*thisEnt = nil;
+	
+	if (JSEntityGetEntity(context, this, &thisEnt))
+	{
+		*outResult = [[thisEnt description] javaScriptValueInContext:context];
+	}
+	else
+	{
+		*outResult = STRING_TO_JSVAL(JS_InternString(context, "[stale Entity]"));
+	}
 	return YES;
 }
 

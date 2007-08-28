@@ -41,12 +41,12 @@ static JSObject *sVectorPrototype;
 
 static JSBool VectorGetProperty(JSContext *context, JSObject *this, jsval name, jsval *outValue);
 static JSBool VectorSetProperty(JSContext *context, JSObject *this, jsval name, jsval *value);
-static JSBool VectorConvert(JSContext *context, JSObject *this, JSType type, jsval *outValue);
 static void VectorFinalize(JSContext *context, JSObject *this);
 static JSBool VectorConstruct(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
 static JSBool VectorEquality(JSContext *context, JSObject *this, jsval value, JSBool *outEqual);
 
 // Methods
+static JSBool VectorToString(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
 static JSBool VectorAdd(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
 static JSBool VectorSubtract(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
 static JSBool VectorDistanceTo(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
@@ -75,7 +75,7 @@ static JSExtendedClass sVectorClass =
 		VectorSetProperty,		// setProperty
 		JS_EnumerateStub,		// enumerate
 		JS_ResolveStub,			// resolve
-		VectorConvert,			// convert
+		JS_ConvertStub,			// convert
 		VectorFinalize,			// finalize
 		JSCLASS_NO_OPTIONAL_MEMBERS
 	},
@@ -108,6 +108,7 @@ static JSPropertySpec sVectorProperties[] =
 static JSFunctionSpec sVectorMethods[] =
 {
 	// JS name					Function					min args
+	{ "toString",				VectorToString,				0, },
 	{ "add",					VectorAdd,					1, },
 	{ "subtract",				VectorSubtract,				1, },
 	{ "distanceTo",				VectorDistanceTo,			1, },
@@ -346,26 +347,6 @@ static JSBool VectorSetProperty(JSContext *context, JSObject *this, jsval name, 
 }
 
 
-static JSBool VectorConvert(JSContext *context, JSObject *this, JSType type, jsval *outValue)
-{
-	Vector					vector;
-	
-	switch (type)
-	{
-		case JSTYPE_VOID:		// Used for string concatenation.
-		case JSTYPE_STRING:
-			// Return description of vector
-			if (!JSVectorGetVector(context, this, &vector))  return NO;
-			*outValue = [VectorDescription(vector) javaScriptValueInContext:context];
-			return YES;
-		
-		default:
-			// Contrary to what passes for documentation, JS_ConvertStub is not a no-op.
-			return JS_ConvertStub(context, this, type, outValue);
-	}
-}
-
-
 static void VectorFinalize(JSContext *context, JSObject *this)
 {
 	Vector					*private = NULL;
@@ -415,6 +396,18 @@ static JSBool VectorEquality(JSContext *context, JSObject *this, jsval value, JS
 
 
 // *** Methods ***
+
+// string toString()
+static JSBool VectorToString(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
+{
+	Vector					thisv;
+	
+	if (!JSVectorGetVector(context, this, &thisv)) return NO;
+	
+	*outResult = [VectorDescription(thisv) javaScriptValueInContext:context];
+	return YES;
+}
+
 
 // Vector add(vectorExpression)
 static JSBool VectorAdd(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
@@ -605,7 +598,7 @@ static JSBool VectorRotationTo(JSContext *context, JSObject *this, uintN argc, j
 	if (!JSVectorGetVector(context, this, &thisv)) return NO;
 	if (!VectorFromArgumentList(context, @"Vector", @"rotationTo", argc, argv, &thatv, &consumed))  return YES;
 	
-	argc += consumed;
+	argc -= consumed;
 	argv += consumed;
 	if (argc != 0)	// limit parameter is optional.
 	{

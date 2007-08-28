@@ -44,7 +44,6 @@ JSClass *JSEntityClass(void);
 JSObject *JSEntityPrototype(void);
 
 // For subclasses. SUBCLASSES MUST USE THESE or scripts will crash.
-JSBool JSEntityConvert(JSContext *context, JSObject *this, JSType type, jsval *outValue);
 void JSEntityFinalize(JSContext *context, JSObject *this);
 JSBool JSEntityEquality(JSContext *context, JSObject *this, jsval value, JSBool *outEqual);
 

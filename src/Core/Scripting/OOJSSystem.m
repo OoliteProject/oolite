@@ -46,6 +46,7 @@ static NSDictionary *sPlanetInfo;
 static JSBool SystemGetProperty(JSContext *context, JSObject *this, jsval name, jsval *outValue);
 static JSBool SystemSetProperty(JSContext *context, JSObject *this, jsval name, jsval *value);
 
+static JSBool SystemToString(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
 static JSBool SystemAddPlanet(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
 static JSBool SystemAddMoon(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
 static JSBool SystemSendAllShipsAway(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
@@ -124,6 +125,7 @@ static JSPropertySpec sSystemProperties[] =
 static JSFunctionSpec sSystemMethods[] =
 {
 	// JS name					Function					min args
+	{ "toString",				SystemToString,				0 },
 	{ "addPlanet",				SystemAddPlanet,			1 },
 	{ "addMoon",				SystemAddMoon,				1 },
 	{ "sendAllShipsAway",		SystemSendAllShipsAway,		1 },
@@ -338,6 +340,20 @@ static JSBool SystemSetProperty(JSContext *context, JSObject *this, jsval name, 
 			return NO;
 	}
 	
+	return YES;
+}
+
+
+// *** Methods ***
+
+static JSBool SystemToString(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
+{
+	NSString					*systemDesc = nil;
+	PlayerEntity				*player = nil;
+	
+	player = [PlayerEntity sharedPlayer];
+	systemDesc = [NSString stringWithFormat:@"<System %u:%u \"%@\">", [player currentGalaxyID], [player currentSystemID], [[UNIVERSE currentSystemData] objectForKey:KEY_NAME]];
+	*outResult = [systemDesc javaScriptValueInContext:context];
 	return YES;
 }
 

@@ -49,7 +49,7 @@ static JSExtendedClass sStationClass =
 		StationSetProperty,		// setProperty
 		JS_EnumerateStub,		// enumerate
 		JS_ResolveStub,			// resolve
-		JSEntityConvert,		// convert
+		JS_ConvertStub,			// convert
 		JSEntityFinalize,		// finalize
 		JSCLASS_NO_OPTIONAL_MEMBERS
 	},

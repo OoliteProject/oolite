@@ -43,8 +43,8 @@ static JSObject			*sScriptPrototype;
 static RunningStack		*sRunningStack = NULL;
 
 
-static JSBool JSScriptConvert(JSContext *context, JSObject *this, JSType type, jsval *outValue);
 static void JSScriptFinalize(JSContext *context, JSObject *this);
+static JSBool ScriptToString(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
 
 static void AddStackToArrayReversed(NSMutableArray *array, RunningStack *stack);
 
@@ -60,8 +60,16 @@ static JSClass sScriptClass =
 	JS_PropertyStub,
 	JS_EnumerateStub,
 	JS_ResolveStub,
-	JSScriptConvert,
+	JS_ConvertStub,
 	JSScriptFinalize
+};
+
+
+static JSFunctionSpec sScriptMethods[] =
+{
+	// JS name					Function					min args
+	{ "toString",				ScriptToString,				0, },
+	{ 0 }
 };
 
 
@@ -425,40 +433,8 @@ static JSClass sScriptClass =
 
 void InitOOJSScript(JSContext *context, JSObject *global)
 {
-	sScriptPrototype = JS_InitClass(context, global, NULL, &sScriptClass, NULL, 0, NULL, NULL, NULL, NULL);
+	sScriptPrototype = JS_InitClass(context, global, NULL, &sScriptClass, NULL, 0, NULL, sScriptMethods, NULL, NULL);
 	JSRegisterObjectConverter(&sScriptClass, JSBasicPrivateObjectConverter);
-}
-
-
-static JSBool JSScriptConvert(JSContext *context, JSObject *this, JSType type, jsval *outValue)
-{
-	OOJSScript					*script = nil;
-	
-	switch (type)
-	{
-		case JSTYPE_VOID:		// Used for string concatenation.
-		case JSTYPE_STRING:
-			// Return description of script
-			script = JS_GetInstancePrivate(context, this, &sScriptClass, NULL);
-			script = [script weakRefUnderlyingObject];
-			if (script != nil)
-			{
-				*outValue = [[script description] javaScriptValueInContext:context];
-			}
-			else
-			{
-				*outValue = STRING_TO_JSVAL(JS_InternString(context, "[stale Script]"));
-			}
-			return YES;
-		
-		case JSTYPE_OBJECT:
-			*outValue = OBJECT_TO_JSVAL(this);
-			return YES;
-			
-		default:
-			// Contrary to what passes for documentation, JS_ConvertStub is not a no-op.
-			return JS_ConvertStub(context, this, type, outValue);
-	}
 }
 
 
@@ -467,6 +443,24 @@ static void JSScriptFinalize(JSContext *context, JSObject *this)
 	OOLog(@"js.script.temp", @"%@ called for %p", this);
 	[(id)JS_GetPrivate(context, this) release];
 	JS_SetPrivate(context, this, nil);
+}
+
+
+static JSBool ScriptToString(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
+{
+	OOJSScript					*script = nil;
+	
+	script = JS_GetInstancePrivate(context, this, &sScriptClass, NULL);
+	script = [script weakRefUnderlyingObject];
+	if (script != nil)
+	{
+		*outResult = [[script description] javaScriptValueInContext:context];
+	}
+	else
+	{
+		*outResult = STRING_TO_JSVAL(JS_InternString(context, "[stale Script]"));
+	}
+	return YES;
 }
 
 

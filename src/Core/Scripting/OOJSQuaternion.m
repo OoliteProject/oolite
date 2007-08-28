@@ -41,12 +41,12 @@ static JSObject *sQuaternionPrototype;
 
 static JSBool QuaternionGetProperty(JSContext *context, JSObject *this, jsval name, jsval *outValue);
 static JSBool QuaternionSetProperty(JSContext *context, JSObject *this, jsval name, jsval *value);
-static JSBool QuaternionConvert(JSContext *context, JSObject *this, JSType type, jsval *outValue);
 static void QuaternionFinalize(JSContext *context, JSObject *this);
 static JSBool QuaternionConstruct(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
 static JSBool QuaternionEquality(JSContext *context, JSObject *this, jsval value, JSBool *outEqual);
 
 // Methods
+static JSBool QuaternionToString(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
 static JSBool QuaternionMultiply(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
 static JSBool QuaternionDot(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
 static JSBool QuaternionRotate(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
@@ -73,7 +73,7 @@ static JSExtendedClass sQuaternionClass =
 		QuaternionSetProperty,	// setProperty
 		JS_EnumerateStub,		// enumerate
 		JS_ResolveStub,			// resolve
-		QuaternionConvert,		// convert
+		JS_ConvertStub,			// convert
 		QuaternionFinalize,		// finalize
 		JSCLASS_NO_OPTIONAL_MEMBERS
 	},
@@ -108,6 +108,7 @@ static JSPropertySpec sQuaternionProperties[] =
 static JSFunctionSpec sQuaternionMethods[] =
 {
 	// JS name					Function					min args
+	{ "toString",				QuaternionToString,			0, },
 	{ "multiply",				QuaternionMultiply,			1, },
 	{ "dot",					QuaternionDot,				1, },
 	{ "rotate",					QuaternionRotate,			2, },
@@ -351,26 +352,6 @@ static JSBool QuaternionSetProperty(JSContext *context, JSObject *this, jsval na
 }
 
 
-static JSBool QuaternionConvert(JSContext *context, JSObject *this, JSType type, jsval *outValue)
-{
-	Quaternion				quaternion;
-	
-	switch (type)
-	{
-		case JSTYPE_VOID:		// Used for string concatenation.
-		case JSTYPE_STRING:
-			// Return description of vector
-			if (!JSQuaternionGetQuaternion(context, this, &quaternion))  return NO;
-			*outValue = [QuaternionDescription(quaternion) javaScriptValueInContext:context];
-			return YES;
-		
-		default:
-			// Contrary to what passes for documentation, JS_ConvertStub is not a no-op.
-			return JS_ConvertStub(context, this, type, outValue);
-	}
-}
-
-
 static void QuaternionFinalize(JSContext *context, JSObject *this)
 {
 	Quaternion				*private = NULL;
@@ -420,6 +401,18 @@ static JSBool QuaternionEquality(JSContext *context, JSObject *this, jsval value
 
 
 // *** Methods ***
+
+// string toString()
+static JSBool QuaternionToString(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
+{
+	Quaternion				thisq;
+	
+	if (!JSQuaternionGetQuaternion(context, this, &thisq)) return NO;
+	
+	*outResult = [QuaternionDescription(thisq) javaScriptValueInContext:context];
+	return YES;
+}
+
 
 // Quaternion multiply(quaternionExpression)
 static JSBool QuaternionMultiply(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)

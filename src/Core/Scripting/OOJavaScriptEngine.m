@@ -839,7 +839,7 @@ BOOL JSNewNSArrayValue(JSContext *context, NSArray *array, jsval *value)
 	JSString				*string = NULL;
 	
 	if (JSVAL_IS_NULL(value) || JSVAL_IS_VOID(value))  return nil;
-	string = JS_ValueToString(context, value);	// Calls the value's convert method if needed.
+	string = JS_ValueToString(context, value);	// Calls the value's toString method if needed.
 	return [NSString stringWithJavaScriptString:string];
 }
 
@@ -866,6 +866,11 @@ BOOL JSNewNSArrayValue(JSContext *context, NSArray *array, jsval *value)
 		}
 		else
 		{
+			if (valString == nil)
+			{
+				if (JSVAL_IS_VOID(val))  valString = @"undefined";
+				else valString = @"null";
+			}
 			[result appendString:valString];
 		}
 	}
