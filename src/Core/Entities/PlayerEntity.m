@@ -372,7 +372,7 @@ static PlayerEntity *sSharedPlayer = nil;
 	// persistant UNIVERSE information
 	if ([UNIVERSE localPlanetInfoOverrides])
 	{
-		[result setObject:[UNIVERSE localPlanetInfoOverrides] forKey:@"localPlanetInfoOverrides"];
+		[result setObject:[UNIVERSE localPlanetInfoOverrides] forKey:@"local_planetinfo_overrides"];
 	}
 
 	// trumble information
@@ -3275,6 +3275,7 @@ double scoopSoundPlayTime = 0.0;
 	//has_escape_pod = NO;
 
 	// reset legal status
+	legalStatus = 0;
 	bounty = 0;
 
 	// reset trumbles
