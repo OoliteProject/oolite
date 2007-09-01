@@ -747,25 +747,25 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 
 - (NSNumber *) clock_secs_number		// returns the game time in seconds
 {
-	return [NSNumber numberWithInt:floor(ship_clock)];
+	return [NSNumber numberWithUnsignedLongLong:ship_clock];
 }
 
 
 - (NSNumber *) clock_mins_number		// returns the game time in minutes
 {
-	return [NSNumber numberWithInt:floor(ship_clock / 60.0)];
+	return [NSNumber numberWithUnsignedLongLong:ship_clock / 60.0];
 }
 
 
 - (NSNumber *) clock_hours_number		// returns the game time in hours
 {
-	return [NSNumber numberWithInt:floor(ship_clock / 3600.0)];
+	return [NSNumber numberWithUnsignedLongLong:ship_clock / 3600.0];
 }
 
 
 - (NSNumber *) clock_days_number		// returns the game time in days
 {
-	return [NSNumber numberWithInt:floor(ship_clock / 86400.0)];
+	return [NSNumber numberWithUnsignedLongLong:ship_clock / 86400.0];
 }
 
 

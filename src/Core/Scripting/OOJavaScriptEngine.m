@@ -96,7 +96,7 @@ static JSClass MissionVars_class =
 	JS_PropertyStub,
 	MissionVarsGetProperty,
 	MissionVarsSetProperty,
-	JS_EnumerateStub,
+	JS_EnumerateStub,	// FIXME: should have an enumerate callback
 	JS_ResolveStub,
 	JS_ConvertStub,
 	JS_FinalizeStub
@@ -1020,6 +1020,7 @@ static NSMutableDictionary *sObjectConverters;
 
 id JSValueToObject(JSContext *context, jsval value)
 {
+	// FIXME: add handler for arrays.
 	if (JSVAL_IS_NULL(value) || JSVAL_IS_VOID(value))  return nil;
 	
 	if (JSVAL_IS_INT(value))
@@ -1051,8 +1052,10 @@ id JSObjectToObject(JSContext *context, JSObject *object)
 	NSValue					*wrappedClass = nil;
 	NSValue					*wrappedConverter = nil;
 	JSClassConverterCallback converter = NULL;
+	JSClass					*class = NULL;
 	
-	wrappedClass = [NSValue valueWithPointer:JS_GetClass(object)];
+	class = JS_GetClass(object);
+	wrappedClass = [NSValue valueWithPointer:class];
 	if (wrappedClass != nil)  wrappedConverter = [sObjectConverters objectForKey:wrappedClass];
 	if (wrappedConverter != nil)
 	{

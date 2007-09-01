@@ -313,6 +313,12 @@ static JSFunctionSpec sScriptMethods[] =
 			// Pop running scripts stack
 			sRunningStack = stackElement.back;
 			
+			JS_ClearNewbornRoots(context);
+			
+			// FIXME: should probably be JS_MaybeGC(), and moved to a higher level.
+			// Here for stress testing of sorts.
+			JS_GC(context);
+			
 			return OK;
 		}
 	}

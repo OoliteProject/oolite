@@ -29,6 +29,7 @@ MA 02110-1301, USA.
 
 @implementation OOColor
 
+// Set methods are internal, because OOColor is immutable (as seen from outside).
 - (void) setRGBA:(GLfloat)r:(GLfloat)g:(GLfloat)b:(GLfloat)a
 {
 	rgba[0] = r;
@@ -77,6 +78,13 @@ MA 02110-1301, USA.
 }
 
 
+- (id)copyWithZone:(NSZone *)zone
+{
+	// Copy is implemented as retain since OOColor is immutable.
+	return [self retain];
+}
+
+
 /* Create NSCalibratedRGBColorSpace colors.
 */
 + (OOColor *)colorWithCalibratedHue:(float)hue saturation:(float)saturation brightness:(float)brightness alpha:(float)alpha
@@ -105,7 +113,11 @@ MA 02110-1301, USA.
 {
 	if (description == nil) return nil;
 	
-	if ([description isKindOfClass:[NSString class]])
+	if ([description isKindOfClass:[OOColor class]])
+	{
+		return [[description copy] autorelease];
+	}
+	else if ([description isKindOfClass:[NSString class]])
 	{
 		if ([description hasSuffix:@"Color"])
 		{

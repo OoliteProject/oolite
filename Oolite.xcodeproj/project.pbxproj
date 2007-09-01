@@ -604,14 +604,14 @@
 			isa = PBXContainerItemProxy;
 			containerPortal = 1A0519340C7CCAC900BA5CCA /* DebugOXP.xcodeproj */;
 			proxyType = 1;
-			remoteGlobalIDString = 8D5B49AC048680CD000E48DA /* DebugOXP */;
+			remoteGlobalIDString = 8D5B49AC048680CD000E48DA;
 			remoteInfo = DebugOXP;
 		};
 		1AD267550C83052600B4BFD1 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 29B97313FDCFA39411CA2CEA /* Project object */;
 			proxyType = 1;
-			remoteGlobalIDString = 0865423506B8447D000CA0AB /* Oolite */;
+			remoteGlobalIDString = 0865423506B8447D000CA0AB;
 			remoteInfo = Oolite;
 		};
 /* End PBXContainerItemProxy section */

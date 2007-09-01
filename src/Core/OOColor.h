@@ -29,7 +29,7 @@ MA 02110-1301, USA.
 #import "OOOpenGL.h"
 
 
-@interface OOColor : NSObject
+@interface OOColor : NSObject <NSCopying>
 {
 	GLfloat	rgba[4];
 }
