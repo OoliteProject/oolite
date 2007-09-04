@@ -45,6 +45,7 @@ _JS_RemoveRoot
 _JSValueToObject
 _JS_SetProperty
 _OOReportJavaScriptWarning
+_OOBooleanFromObject
 
 # Symbols exported for warning supression. Without these, we get lines like
 # /usr/bin/ld: warning symbol: _NXArgc referenced dynamically and must be exported

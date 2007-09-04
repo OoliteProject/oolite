@@ -67,7 +67,8 @@ typedef enum
 	Vector  				port_dimensions;
 	ShipEntity				*port_model;
 	
-	BOOL					no_docking_while_launching;
+	unsigned				no_docking_while_launching: 1,
+							hasNPCTraffic: 1;
 	
 	OOUniversalID			planet;
 	
@@ -149,6 +150,9 @@ typedef enum
 - (void) launchShip:(ShipEntity *) ship;
 
 - (void) noteDockedShip:(ShipEntity *) ship;
+
+- (BOOL)hasNPCTraffic;
+- (void)setHasNPCTraffic:(BOOL)flag;
 
 ////////////////////////////////////////////////////////////// AI methods...
 

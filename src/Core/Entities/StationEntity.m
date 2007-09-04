@@ -667,34 +667,13 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 
 - (id) initWithDictionary:(NSDictionary *) dict
 {
-	self = [super initWithDictionary:dict];
-	
-	shipsOnApproach = [[NSMutableDictionary alloc] init]; // alloc retains
-	shipsOnHold = [[NSMutableDictionary alloc] init]; // alloc retains
-	launchQueue = [[NSMutableArray alloc] init]; // retained
-	
-	// local specials
-	equivalentTechLevel = NSNotFound;
-	equipmentPriceFactor = 1.0;
-	
-	max_scavengers = 3;
-	max_defense_ships = 3;
-	max_police = STATION_MAX_POLICE;
-	
-	docked_shuttles = ranrot_rand() % 4;   // 0..3;
-	shuttle_launch_interval = 15.0 * 60.0;  // every 15 minutes
-	last_shuttle_launch_time = - (ranrot_rand() % 60) * shuttle_launch_interval / 60.0;
-
-	docked_traders = 3 + (ranrot_rand() & 7);   // 1..3;
-	trader_launch_interval = 3600.0 / docked_traders;  // every few minutes
-	last_trader_launch_time = 60.0 - trader_launch_interval; // in one minute's time
-	
-	last_patrol_report_time = 0.0;
-	patrol_launch_interval = 300.0;	// 5 minutes
-	last_patrol_report_time -= patrol_launch_interval;
-	//
-	isShip = YES;
 	isStation = YES;
+	
+	shipsOnApproach = [[NSMutableDictionary alloc] init];
+	shipsOnHold = [[NSMutableDictionary alloc] init];
+	launchQueue = [[NSMutableArray alloc] init];
+	
+	self = [super initWithDictionary:dict];
 	
 	return self;
 }
@@ -774,14 +753,15 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 	max_police = [dict unsignedIntForKey:@"max_police" defaultValue:STATION_MAX_POLICE];
 	equipmentPriceFactor = [dict nonNegativeFloatForKey:@"equipment_price_factor" defaultValue:1.0];
 	equipmentPriceFactor = OOMax_f(equipmentPriceFactor, 0.5f);
+	hasNPCTraffic = [dict fuzzyBooleanForKey:@"has_npc_traffic" defaultValue:YES];
 	
-	if ([self isRotatingStation])
+	if ([self isRotatingStation] && [self hasNPCTraffic])
 	{
 		docked_shuttles = ranrot_rand() & 3;   // 0..3;
 		last_shuttle_launch_time = 0.0;
 		shuttle_launch_interval = 15.0 * 60.0;  // every 15 minutes
 		last_shuttle_launch_time = - (ranrot_rand() & 63) * shuttle_launch_interval / 60.0;
-
+		
 		docked_traders = 3 + (ranrot_rand() & 7);   // 1..3;
 		trader_launch_interval = 3600.0 / docked_traders;  // every few minutes
 		last_trader_launch_time = 60.0 - trader_launch_interval; // in one minute's time
@@ -1076,8 +1056,11 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 	{
 		if (unitime > last_shuttle_launch_time + shuttle_launch_interval)
 		{
-			[self launchShuttle];
-			docked_shuttles--;
+			if ([self hasNPCTraffic])
+			{
+				[self launchShuttle];
+				docked_shuttles--;
+			}
 			last_shuttle_launch_time = unitime;
 		}
 	}
@@ -1086,8 +1069,11 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 	{
 		if (unitime > last_trader_launch_time + trader_launch_interval)
 		{
-			[self launchTrader];
-			docked_traders--;
+			if ([self hasNPCTraffic])
+			{
+				[self launchTrader];
+				docked_traders--;
+			}
 			last_trader_launch_time = unitime;
 		}
 	}
@@ -1095,7 +1081,7 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 	// testing patrols
 	if ((unitime > last_patrol_report_time + patrol_launch_interval)&&(isMainStation))
 	{
-		if (![self launchPatrol])
+		if (![self hasNPCTraffic] || ![self launchPatrol])
 			last_patrol_report_time = unitime;
 	}
 	
@@ -1214,6 +1200,18 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 		if (ship == player)  [script doEvent:@"playerDidDock"];
 		[script doEvent:@"shipDidDock" withArgument:ship];
 	}
+}
+
+
+- (BOOL)hasNPCTraffic
+{
+	return hasNPCTraffic;
+}
+
+
+- (void)setHasNPCTraffic:(BOOL)flag
+{
+	hasNPCTraffic = flag != NO;
 }
 
 
@@ -1818,7 +1816,7 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 	
 	OOLog(@"dumpState.stationEntity", @"Alert level: %@", alertString);
 	OOLog(@"dumpState.stationEntity", @"Max police: %u", max_police);
-	OOLog(@"dumpState.stationEntity", @"Max defence ships: %u", max_defense_ships);
+	OOLog(@"dumpState.stationEntity", @"Max defense ships: %u", max_defense_ships);
 	OOLog(@"dumpState.stationEntity", @"Police launched: %u", police_launched);
 	OOLog(@"dumpState.stationEntity", @"Max scavengers: %u", max_scavengers);
 	OOLog(@"dumpState.stationEntity", @"Scavengers launched: %u", scavengers_launched);

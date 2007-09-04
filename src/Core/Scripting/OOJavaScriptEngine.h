@@ -72,24 +72,20 @@ void OOReportJavaScriptBadPropertySelector(JSContext *context, NSString *classNa
 BOOL NumberFromArgumentList(JSContext *context, NSString *scriptClass, NSString *function, uintN argc, jsval *argv, double *outNumber, uintN *outConsumed);
 
 
-/*	JSArrayFromArray()
-	JSNewNSArrayValue()
-	
-	Convert an ObjC array to a JavaScript array.
-	
-	JSNewNSArrayValue() will return YES and set value to JSVAL_NULL if passed
-	a nil array, but return NO and set value to JSVAL_VOID on failure.
-	JSArrayFromArray() will return NULL if the count is 0 or if it fails.
-*/
-JSObject *JSArrayFromNSArray(JSContext *context, NSArray *array);
-BOOL JSNewNSArrayValue(JSContext *context, NSArray *array, jsval *value);
-
-
 OOINLINE jsval BOOLToJSVal(BOOL b) INLINE_CONST_FUNC;
 OOINLINE jsval BOOLToJSVal(BOOL b)
 {
 	return BOOLEAN_TO_JSVAL(b != NO);
 }
+
+
+/*	JSFooNSBar()
+	
+	Wrappers to corresponding JS_FooBar()/JS_FooUCBar() functions, but taking
+	an NSString.
+*/
+BOOL JSGetNSProperty(JSContext *context, JSObject *object, NSString *name, jsval *value);
+BOOL JSSetNSProperty(JSContext *context, JSObject *object, NSString *name, jsval *value);
 
 
 @interface NSObject (OOJavaScriptConversion)

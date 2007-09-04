@@ -117,6 +117,7 @@
 		};
 		max_missiles = "positiveInteger";
 		script = "$scriptFileName";
+		has_npc_traffic = fuzzyBoolean;
 	};
 	$definitions =
 	{

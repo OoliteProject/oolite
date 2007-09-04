@@ -150,44 +150,6 @@ void InitOOJSEntity(JSContext *context, JSObject *global)
 }
 
 
-JSObject *JSEntityWithEntity(JSContext *context, Entity *entity)
-{
-	JSClass					*class = NULL;
-	JSObject				*prototype = NULL;
-	JSObject				*result = NULL;
-	
-	if (entity == nil) return NULL;
-	if (context == NULL) context = [[OOJavaScriptEngine sharedEngine] context];
-	
-	if (entity == [PlayerEntity sharedPlayer])  return JSPlayerObject();
-	
-	[entity getJSClass:&class andPrototype:&prototype];
-	
-	result = JS_NewObject(context, class, prototype, NULL);
-	if (result != NULL)
-	{
-		if (!JS_SetPrivate(context, result, [entity weakRetain]))  result = NULL;
-	}
-	
-	return result;
-}
-
-
-BOOL EntityToJSValue(JSContext *context, Entity *entity, jsval *outValue)
-{
-	JSObject				*object = NULL;
-	
-	if (outValue == NULL) return NO;
-	if (EXPECT_NOT(context == NULL))  context = [[OOJavaScriptEngine sharedEngine] context];
-	
-	object = JSEntityWithEntity(context, entity);
-	if (object == NULL) return NO;
-	
-	*outValue = OBJECT_TO_JSVAL(object);
-	return YES;
-}
-
-
 BOOL JSValueToEntity(JSContext *context, jsval value, Entity **outEntity)
 {
 	Entity		*entity = nil;
@@ -268,7 +230,7 @@ BOOL EntityFromArgumentList(JSContext *context, NSString *scriptClass, NSString 
 
 void JSEntityFinalize(JSContext *context, JSObject *this)
 {
-	OOLog(@"js.entity.temp", @"%@ called for %p", this);
+	OOLog(@"js.entity.temp", @"%s called for %p", __PRETTY_FUNCTION__, this);
 	[(id)JS_GetPrivate(context, this) release];
 	JS_SetPrivate(context, this, nil);
 }

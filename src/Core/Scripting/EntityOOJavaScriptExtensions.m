@@ -33,7 +33,6 @@ MA 02110-1301, USA.
 
 @implementation Entity (OOJavaScriptExtensions)
 
-
 - (BOOL)isVisibleToScripts
 {
 	return	self->isShip ||
@@ -81,11 +80,26 @@ MA 02110-1301, USA.
 
 - (jsval)javaScriptValueInContext:(JSContext *)context
 {
-	jsval result = JSVAL_NULL;
-	if ([self isVisibleToScripts])
+	JSClass					*class = NULL;
+	JSObject				*prototype = NULL;
+	jsval					result = JSVAL_NULL;
+	
+	if (jsSelf == NULL && [self isVisibleToScripts])
 	{
-		EntityToJSValue(context, self, &result);
+		// Create JS object
+		[self getJSClass:&class andPrototype:&prototype];
+		
+		jsSelf = JS_NewObject(context, class, prototype, NULL);
+		if (jsSelf != NULL)
+		{
+			if (!JS_SetPrivate(context, jsSelf, [self weakRetain]))  jsSelf = NULL;
+		}
+		
+		if (jsSelf != NULL)  JS_AddNamedRoot(context, &jsSelf, "Entity jsSelf");
 	}
+	
+	if (jsSelf != NULL)  result = OBJECT_TO_JSVAL(jsSelf);
+	
 	return result;
 }
 
@@ -94,6 +108,16 @@ MA 02110-1301, USA.
 {
 	*outClass = JSEntityClass();
 	*outPrototype = JSEntityPrototype();
+}
+
+
+- (void)deleteJSSelf
+{
+	if (jsSelf != NULL)
+	{
+		JS_RemoveRoot([[OOJavaScriptEngine sharedEngine] context], jsSelf);
+		jsSelf = NULL;
+	}
 }
 
 @end
@@ -123,7 +147,7 @@ MA 02110-1301, USA.
 	count = [sub_entities count];
 	if (count == 0)  return nil;
 	
-	result = [[NSMutableArray alloc] initWithCapacity:count];
+	result = [NSMutableArray arrayWithCapacity:count];
 	for (i = 0; i != count; ++i)
 	{
 		object = [sub_entities objectAtIndex:i];
@@ -133,15 +157,8 @@ MA 02110-1301, USA.
 		}
 	}
 	
-	if ([result count] == 0)
-	{
-		[result release];
-		return nil;
-	}
-	else
-	{
-		return [result autorelease];
-	}
+	if ([result count] == 0)  result = nil;
+	return result;
 }
 
 
@@ -163,15 +180,8 @@ MA 02110-1301, USA.
 		}
 	}
 	
-	if ([result count] == 0)
-	{
-		[result release];
-		return nil;
-	}
-	else
-	{
-		return [result autorelease];
-	}
+	if ([result count] == 0)  result = nil;
+	return result;
 }
 
 
@@ -196,6 +206,13 @@ MA 02110-1301, USA.
 - (NSString *)jsClassName
 {
 	return @"Player";
+}
+
+
+- (void)setJSSelf:(JSObject *)val context:(JSContext *)context
+{
+	jsSelf = val;
+	JS_AddNamedRoot(context, &jsSelf, "Player jsSelf");
 }
 
 @end

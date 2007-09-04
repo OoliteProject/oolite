@@ -154,6 +154,8 @@ typedef struct
 	OOUniversalID			owner;
 	
 	OOTimeAbsolute			spawnTime;
+	
+	struct JSObject			*jsSelf;
 }
 
 - (BOOL) validForAddToUniverse;

@@ -31,7 +31,14 @@ MA 02110-1301, USA.
 
 #import "OOCocoa.h"
 
+@class GameController;
+
 
 @interface OoliteApp: NSApplication
+{
+	IBOutlet NSWindow			*_gameWindow;
+	IBOutlet GameController		*_gameController;
+}
+
 
 @end

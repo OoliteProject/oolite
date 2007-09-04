@@ -202,6 +202,7 @@ static JSFunctionSpec sScriptMethods[] =
 	[description release];
 	[version release];
 	[weakSelf weakRefDrop];
+	JS_RemoveRoot(context, &object);
 	
 	[super dealloc];
 }
@@ -446,7 +447,7 @@ void InitOOJSScript(JSContext *context, JSObject *global)
 
 static void JSScriptFinalize(JSContext *context, JSObject *this)
 {
-	OOLog(@"js.script.temp", @"%@ called for %p", this);
+	OOLog(@"js.script.temp", @"%s called for %p", __PRETTY_FUNCTION__, this);
 	[(id)JS_GetPrivate(context, this) release];
 	JS_SetPrivate(context, this, nil);
 }

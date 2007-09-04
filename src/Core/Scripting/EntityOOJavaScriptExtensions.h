@@ -2,7 +2,7 @@
 
 EntityOOJavaScriptExtensions.h
 
-JavaScript support methods for Entity.
+JavaScript support methods for entities.
 
 Oolite
 Copyright (C) 2004-2007 Giles C Williams and contributors
@@ -43,6 +43,7 @@ MA 02110-1301, USA.
 
 // Internal:
 - (void)getJSClass:(JSClass **)outClass andPrototype:(JSObject **)outPrototype;
+- (void)deleteJSSelf;
 
 @end
 
@@ -55,5 +56,12 @@ MA 02110-1301, USA.
 - (NSArray *)escorts;
 
 - (void)setTargetForScript:(ShipEntity *)target;
+
+@end
+
+
+@interface PlayerEntity (OOJavaScriptExtensions)
+
+- (void)setJSSelf:(JSObject *)val context:(JSContext *)context;
 
 @end

@@ -23,6 +23,7 @@ MA 02110-1301, USA.
 */
 
 #import "Entity.h"
+#import "EntityOOJavaScriptExtensions.h"
 #import "PlayerEntity.h"
 
 #import "OOMaths.h"
@@ -86,6 +87,7 @@ static NSString * const kOOLogEntityUpdateError				= @"entity.linkedList.update.
 	[collidingEntities release];
 	[trackLock release];
 	[collisionRegion release];
+	[self deleteJSSelf];
 	
 	[super dealloc];
 }

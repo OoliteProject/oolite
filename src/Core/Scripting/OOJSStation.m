@@ -63,7 +63,8 @@ static JSExtendedClass sStationClass =
 enum
 {
 	// Property IDs
-	kStation_isMainStation		// Is [UNIVERSE station], boolean, read-only
+	kStation_isMainStation,		// Is [UNIVERSE station], boolean, read-only
+	kStation_hasNPCTraffic
 };
 
 
@@ -71,6 +72,7 @@ static JSPropertySpec sStationProperties[] =
 {
 	// JS name					ID							flags
 	{ "isMainStation",			kStation_isMainStation,		JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
+	{ "hasNPCTraffic",			kStation_hasNPCTraffic,		JSPROP_PERMANENT | JSPROP_ENUMERATE },
 	{ 0 }
 };
 
@@ -137,6 +139,10 @@ static JSBool StationGetProperty(JSContext *context, JSObject *this, jsval name,
 			*outValue = BOOLToJSVal(entity == [UNIVERSE station]);
 			break;
 		
+		case kStation_hasNPCTraffic:
+			*outValue = BOOLToJSVal([entity hasNPCTraffic]);
+			break;
+		
 		default:
 			OOReportJavaScriptBadPropertySelector(context, @"Station", JSVAL_TO_INT(name));
 			return NO;
@@ -147,5 +153,25 @@ static JSBool StationGetProperty(JSContext *context, JSObject *this, jsval name,
 
 static JSBool StationSetProperty(JSContext *context, JSObject *this, jsval name, jsval *value)
 {
+	StationEntity				*entity = nil;
+	JSBool						bValue;
+	
+	if (!JSVAL_IS_INT(name))  return YES;
+	if (!JSStationGetStationEntity(context, this, &entity)) return NO;
+	
+	switch (JSVAL_TO_INT(name))
+	{
+		case kStation_hasNPCTraffic:
+			if (JS_ValueToBoolean(context, *value, &bValue))
+			{
+				[entity setHasNPCTraffic:bValue];
+			}
+			break;
+		
+		default:
+			OOReportJavaScriptBadPropertySelector(context, @"Station", JSVAL_TO_INT(name));
+			return NO;
+	}
+	
 	return YES;
 }

@@ -32,18 +32,24 @@ MA 02110-1301, USA.
 - (void)sendEvent:(NSEvent *)theEvent
 {
 	NSEventType		etype = [theEvent type];
-	GameController*	gameController = (GameController*)[self delegate];
-	MyOpenGLView*	gameView = (MyOpenGLView*)[gameController gameView];
-	switch (etype)
+	MyOpenGLView*	gameView = [_gameController gameView];
+	
+	if ([NSApp keyWindow] == _gameWindow)
 	{
-		case NSKeyDown:
-			[gameView keyDown:theEvent];	// ensure this gets called at least once
-			break;
-		case NSKeyUp:
-			[gameView keyUp:theEvent];		// ensure this gets called at least once
-			break;
-		default:
-			break;
+		// Ensure key events are handled at least once when game window is key
+		switch (etype)
+		{
+			case NSKeyDown:
+				[gameView keyDown:theEvent];
+				break;
+			
+			case NSKeyUp:
+				[gameView keyUp:theEvent];
+				break;
+			
+			default:
+				break;
+		}
 	}
 	[super sendEvent:theEvent];				// perform the default event behaviour
 }

@@ -37,7 +37,6 @@
 
 
 static JSObject *sSystemPrototype;
-static JSObject *sSystemObject;
 
 static Random_Seed sCurrentSystem;
 static NSDictionary *sPlanetInfo;
@@ -148,8 +147,8 @@ void InitOOJSSystem(JSContext *context, JSObject *global)
 {
     sSystemPrototype = JS_InitClass(context, global, NULL, &sSystemClass, NULL, 0, sSystemProperties, sSystemMethods, NULL, NULL);
 	
-	// Create player object as a property of the global object.
-	sSystemObject = JS_DefineObject(context, global, "system", &sSystemClass, sSystemPrototype, JSPROP_ENUMERATE | JSPROP_READONLY | JSPROP_PERMANENT);
+	// Create system object as a property of the global object.
+	JS_DefineObject(context, global, "system", &sSystemClass, sSystemPrototype, JSPROP_ENUMERATE | JSPROP_READONLY | JSPROP_PERMANENT);
 }
 
 

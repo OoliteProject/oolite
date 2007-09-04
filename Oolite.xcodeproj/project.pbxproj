@@ -337,6 +337,13 @@
 		1A472917096B5454000E78D8 /* CoreAudio.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1A472916096B5454000E78D8 /* CoreAudio.framework */; };
 		1A472921096B5468000E78D8 /* AudioToolbox.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1A47291F096B5468000E78D8 /* AudioToolbox.framework */; };
 		1A472922096B5468000E78D8 /* AudioUnit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1A472920096B5468000E78D8 /* AudioUnit.framework */; };
+		1A4FB23A0C8D6A9A00DC8E1F /* jsautocfg.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A4FB2390C8D6A9A00DC8E1F /* jsautocfg.h */; };
+		1A4FB23C0C8D6AA900DC8E1F /* jsapi.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A4FB23B0C8D6AA900DC8E1F /* jsapi.h */; };
+		1A4FB23F0C8D6AB400DC8E1F /* jspubtd.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A4FB23E0C8D6AB400DC8E1F /* jspubtd.h */; };
+		1A4FB2410C8D6ABA00DC8E1F /* jstypes.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A4FB2400C8D6ABA00DC8E1F /* jstypes.h */; };
+		1A4FB3350C8DC86800DC8E1F /* OOJSOolite.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A4FB3330C8DC86800DC8E1F /* OOJSOolite.h */; };
+		1A4FB3360C8DC86800DC8E1F /* OOJSOolite.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A4FB3340C8DC86800DC8E1F /* OOJSOolite.m */; };
+		1A4FB4BA0C8E11D800DC8E1F /* libjs.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 1A4FB2380C8D6A7500DC8E1F /* libjs.a */; };
 		1A5AA3230C0098AF0029C78A /* OOOpenGL.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A5AA3220C0098AF0029C78A /* OOOpenGL.m */; };
 		1A5DB1EA0BBD8F0000D57389 /* OOConstToString.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A5DB1E80BBD8F0000D57389 /* OOConstToString.h */; };
 		1A5DB1EB0BBD8F0000D57389 /* OOConstToString.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A5DB1E90BBD8F0000D57389 /* OOConstToString.m */; };
@@ -353,6 +360,7 @@
 		1A5E462F0C32DACE008104B4 /* OOShaderUniformMethodType.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A5E462D0C32DACE008104B4 /* OOShaderUniformMethodType.m */; };
 		1A5E46300C32DACE008104B4 /* OOShaderUniformMethodType.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A5E462E0C32DACE008104B4 /* OOShaderUniformMethodType.h */; };
 		1A67050F0C4904ED002551AA /* oolite-cloaking-device.js in Copy Scripts */ = {isa = PBXBuildFile; fileRef = 1A67050E0C4904ED002551AA /* oolite-cloaking-device.js */; };
+		1A6B50430C8B42AC0035DFCC /* libOgg.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 25F3E8E9099502BB002F25FD /* libOgg.a */; };
 		1A6DD1230C57B5BC00A892F4 /* OOPListSchemaVerifier.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A6DD1210C57B5BC00A892F4 /* OOPListSchemaVerifier.h */; };
 		1A6DD1240C57B5BC00A892F4 /* OOPListSchemaVerifier.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A6DD1220C57B5BC00A892F4 /* OOPListSchemaVerifier.m */; };
 		1A71E6F80BCE345000CD5C13 /* libpng.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 1A71E6F30BCE340C00CD5C13 /* libpng.a */; };
@@ -456,54 +464,6 @@
 		1ADF5CEC0B9DF59A00FDB2A3 /* OOCacheManager.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A231A170B9D8B1B00EF0852 /* OOCacheManager.m */; };
 		1ADF5F130B9E374B00FDB2A3 /* JoystickHandler.h in Headers */ = {isa = PBXBuildFile; fileRef = 1ADF5F110B9E374B00FDB2A3 /* JoystickHandler.h */; };
 		1AE546310C19A2E2005B89F3 /* JoystickHandler.m in Sources */ = {isa = PBXBuildFile; fileRef = 1AE546300C19A2E2005B89F3 /* JoystickHandler.m */; };
-		1AEAAB8F0BA45248000705D0 /* libjs.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 1AEAAB8E0BA45248000705D0 /* libjs.a */; };
-		1AEAAC9E0BA457E7000705D0 /* jsarena.h in Headers */ = {isa = PBXBuildFile; fileRef = 1AEAAC6F0BA457E6000705D0 /* jsarena.h */; };
-		1AEAAC9F0BA457E7000705D0 /* jsarray.h in Headers */ = {isa = PBXBuildFile; fileRef = 1AEAAC700BA457E6000705D0 /* jsarray.h */; };
-		1AEAACA00BA457E7000705D0 /* jsatom.h in Headers */ = {isa = PBXBuildFile; fileRef = 1AEAAC710BA457E6000705D0 /* jsatom.h */; };
-		1AEAACA10BA457E7000705D0 /* jsbit.h in Headers */ = {isa = PBXBuildFile; fileRef = 1AEAAC720BA457E6000705D0 /* jsbit.h */; };
-		1AEAACA20BA457E7000705D0 /* jsbool.h in Headers */ = {isa = PBXBuildFile; fileRef = 1AEAAC730BA457E6000705D0 /* jsbool.h */; };
-		1AEAACA30BA457E7000705D0 /* jsclist.h in Headers */ = {isa = PBXBuildFile; fileRef = 1AEAAC740BA457E6000705D0 /* jsclist.h */; };
-		1AEAACA40BA457E7000705D0 /* jscntxt.h in Headers */ = {isa = PBXBuildFile; fileRef = 1AEAAC750BA457E6000705D0 /* jscntxt.h */; };
-		1AEAACA50BA457E7000705D0 /* jscompat.h in Headers */ = {isa = PBXBuildFile; fileRef = 1AEAAC760BA457E6000705D0 /* jscompat.h */; };
-		1AEAACA60BA457E7000705D0 /* jsconfig.h in Headers */ = {isa = PBXBuildFile; fileRef = 1AEAAC770BA457E6000705D0 /* jsconfig.h */; };
-		1AEAACA70BA457E7000705D0 /* jscpucfg.h in Headers */ = {isa = PBXBuildFile; fileRef = 1AEAAC780BA457E6000705D0 /* jscpucfg.h */; };
-		1AEAACA80BA457E7000705D0 /* jsdate.h in Headers */ = {isa = PBXBuildFile; fileRef = 1AEAAC790BA457E6000705D0 /* jsdate.h */; };
-		1AEAACA90BA457E7000705D0 /* jsdbgapi.h in Headers */ = {isa = PBXBuildFile; fileRef = 1AEAAC7A0BA457E6000705D0 /* jsdbgapi.h */; };
-		1AEAACAA0BA457E7000705D0 /* jsdhash.h in Headers */ = {isa = PBXBuildFile; fileRef = 1AEAAC7B0BA457E6000705D0 /* jsdhash.h */; };
-		1AEAACAB0BA457E7000705D0 /* jsdtoa.h in Headers */ = {isa = PBXBuildFile; fileRef = 1AEAAC7C0BA457E6000705D0 /* jsdtoa.h */; };
-		1AEAACAC0BA457E7000705D0 /* jsemit.h in Headers */ = {isa = PBXBuildFile; fileRef = 1AEAAC7D0BA457E6000705D0 /* jsemit.h */; };
-		1AEAACAD0BA457E7000705D0 /* jsexn.h in Headers */ = {isa = PBXBuildFile; fileRef = 1AEAAC7E0BA457E6000705D0 /* jsexn.h */; };
-		1AEAACAE0BA457E7000705D0 /* jsfile.h in Headers */ = {isa = PBXBuildFile; fileRef = 1AEAAC7F0BA457E6000705D0 /* jsfile.h */; };
-		1AEAACAF0BA457E7000705D0 /* jsfun.h in Headers */ = {isa = PBXBuildFile; fileRef = 1AEAAC800BA457E6000705D0 /* jsfun.h */; };
-		1AEAACB00BA457E7000705D0 /* jsgc.h in Headers */ = {isa = PBXBuildFile; fileRef = 1AEAAC810BA457E6000705D0 /* jsgc.h */; };
-		1AEAACB10BA457E7000705D0 /* jshash.h in Headers */ = {isa = PBXBuildFile; fileRef = 1AEAAC820BA457E6000705D0 /* jshash.h */; };
-		1AEAACB20BA457E7000705D0 /* jsinterp.h in Headers */ = {isa = PBXBuildFile; fileRef = 1AEAAC830BA457E6000705D0 /* jsinterp.h */; };
-		1AEAACB30BA457E7000705D0 /* jslibmath.h in Headers */ = {isa = PBXBuildFile; fileRef = 1AEAAC840BA457E6000705D0 /* jslibmath.h */; };
-		1AEAACB40BA457E7000705D0 /* jslock.h in Headers */ = {isa = PBXBuildFile; fileRef = 1AEAAC850BA457E6000705D0 /* jslock.h */; };
-		1AEAACB50BA457E7000705D0 /* jslong.h in Headers */ = {isa = PBXBuildFile; fileRef = 1AEAAC860BA457E6000705D0 /* jslong.h */; };
-		1AEAACB60BA457E7000705D0 /* jsmath.h in Headers */ = {isa = PBXBuildFile; fileRef = 1AEAAC870BA457E6000705D0 /* jsmath.h */; };
-		1AEAACB70BA457E7000705D0 /* jsnum.h in Headers */ = {isa = PBXBuildFile; fileRef = 1AEAAC880BA457E6000705D0 /* jsnum.h */; };
-		1AEAACB80BA457E7000705D0 /* jsobj.h in Headers */ = {isa = PBXBuildFile; fileRef = 1AEAAC890BA457E6000705D0 /* jsobj.h */; };
-		1AEAACB90BA457E7000705D0 /* jsopcode.h in Headers */ = {isa = PBXBuildFile; fileRef = 1AEAAC8A0BA457E6000705D0 /* jsopcode.h */; };
-		1AEAACBA0BA457E7000705D0 /* jsosdep.h in Headers */ = {isa = PBXBuildFile; fileRef = 1AEAAC8B0BA457E6000705D0 /* jsosdep.h */; };
-		1AEAACBB0BA457E7000705D0 /* jsotypes.h in Headers */ = {isa = PBXBuildFile; fileRef = 1AEAAC8C0BA457E6000705D0 /* jsotypes.h */; };
-		1AEAACBC0BA457E7000705D0 /* jsparse.h in Headers */ = {isa = PBXBuildFile; fileRef = 1AEAAC8D0BA457E6000705D0 /* jsparse.h */; };
-		1AEAACBD0BA457E7000705D0 /* jsprf.h in Headers */ = {isa = PBXBuildFile; fileRef = 1AEAAC8E0BA457E6000705D0 /* jsprf.h */; };
-		1AEAACBE0BA457E7000705D0 /* jsprvtd.h in Headers */ = {isa = PBXBuildFile; fileRef = 1AEAAC8F0BA457E6000705D0 /* jsprvtd.h */; };
-		1AEAACBF0BA457E7000705D0 /* jspubtd.h in Headers */ = {isa = PBXBuildFile; fileRef = 1AEAAC900BA457E6000705D0 /* jspubtd.h */; };
-		1AEAACC00BA457E7000705D0 /* jsregexp.h in Headers */ = {isa = PBXBuildFile; fileRef = 1AEAAC910BA457E6000705D0 /* jsregexp.h */; };
-		1AEAACC10BA457E7000705D0 /* jsscan.h in Headers */ = {isa = PBXBuildFile; fileRef = 1AEAAC920BA457E6000705D0 /* jsscan.h */; };
-		1AEAACC20BA457E7000705D0 /* jsscope.h in Headers */ = {isa = PBXBuildFile; fileRef = 1AEAAC930BA457E6000705D0 /* jsscope.h */; };
-		1AEAACC30BA457E7000705D0 /* jsscript.h in Headers */ = {isa = PBXBuildFile; fileRef = 1AEAAC940BA457E6000705D0 /* jsscript.h */; };
-		1AEAACC40BA457E7000705D0 /* jsstddef.h in Headers */ = {isa = PBXBuildFile; fileRef = 1AEAAC950BA457E6000705D0 /* jsstddef.h */; };
-		1AEAACC50BA457E7000705D0 /* jsstr.h in Headers */ = {isa = PBXBuildFile; fileRef = 1AEAAC960BA457E6000705D0 /* jsstr.h */; };
-		1AEAACC60BA457E7000705D0 /* jstypes.h in Headers */ = {isa = PBXBuildFile; fileRef = 1AEAAC970BA457E6000705D0 /* jstypes.h */; };
-		1AEAACC70BA457E7000705D0 /* jsutil.h in Headers */ = {isa = PBXBuildFile; fileRef = 1AEAAC980BA457E6000705D0 /* jsutil.h */; };
-		1AEAACC80BA457E7000705D0 /* jsxdrapi.h in Headers */ = {isa = PBXBuildFile; fileRef = 1AEAAC990BA457E6000705D0 /* jsxdrapi.h */; };
-		1AEAACC90BA457E7000705D0 /* jsxml.h in Headers */ = {isa = PBXBuildFile; fileRef = 1AEAAC9A0BA457E7000705D0 /* jsxml.h */; };
-		1AEAACCA0BA457E7000705D0 /* prmjtime.h in Headers */ = {isa = PBXBuildFile; fileRef = 1AEAAC9B0BA457E7000705D0 /* prmjtime.h */; };
-		1AEAACCB0BA457E7000705D0 /* resource.h in Headers */ = {isa = PBXBuildFile; fileRef = 1AEAAC9C0BA457E7000705D0 /* resource.h */; };
-		1AEAACCC0BA457E7000705D0 /* jsapi.h in Headers */ = {isa = PBXBuildFile; fileRef = 1AEAAC9D0BA457E7000705D0 /* jsapi.h */; };
 		1AED2D0C0C04586C004A1118 /* OOGraphicsResetManager.h in Headers */ = {isa = PBXBuildFile; fileRef = 1AED2D0A0C04586C004A1118 /* OOGraphicsResetManager.h */; };
 		1AED2D0D0C04586C004A1118 /* OOGraphicsResetManager.m in Sources */ = {isa = PBXBuildFile; fileRef = 1AED2D0B0C04586C004A1118 /* OOGraphicsResetManager.m */; };
 		2512833E09BA27C100F43D55 /* Octree.m in Sources */ = {isa = PBXBuildFile; fileRef = 2512833C09BA27C100F43D55 /* Octree.m */; settings = {COMPILER_FLAGS = "-O3 -falign-loops=32 -falign-loops-max-skip=31 -falign-functions=32"; }; };
@@ -564,7 +524,6 @@
 		25F3E8A80994FE65002F25FD /* oolite-expansion-document.icns in Resources */ = {isa = PBXBuildFile; fileRef = 25F3E8A50994FE65002F25FD /* oolite-expansion-document.icns */; };
 		25F3E8A90994FE65002F25FD /* oolite-icon.icns in Resources */ = {isa = PBXBuildFile; fileRef = 25F3E8A60994FE65002F25FD /* oolite-icon.icns */; };
 		25F3E8B40994FE9B002F25FD /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 25F3E8B30994FE9B002F25FD /* InfoPlist.strings */; };
-		25F3E8EB099502BB002F25FD /* libOgg.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 25F3E8E9099502BB002F25FD /* libOgg.a */; };
 		25F3E8EC099502BB002F25FD /* libVorbisAll.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 25F3E8EA099502BB002F25FD /* libVorbisAll.a */; };
 		25F46752099695D5009483BF /* OoliteApp.h in Headers */ = {isa = PBXBuildFile; fileRef = 25F46750099695D5009483BF /* OoliteApp.h */; };
 		25F46753099695D5009483BF /* OoliteApp.m in Sources */ = {isa = PBXBuildFile; fileRef = 25F46751099695D5009483BF /* OoliteApp.m */; };
@@ -578,6 +537,20 @@
 			proxyType = 2;
 			remoteGlobalIDString = 8D5B49B6048680CD000E48DA;
 			remoteInfo = DebugOXP;
+		};
+		1A4FB2370C8D6A7500DC8E1F /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 1A6B50370C8B42480035DFCC /* libjs.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = D2AAC046055464E500DB518D /* libjs.a */;
+			remoteInfo = libjs;
+		};
+		1A4FB4CF0C8E130E00DC8E1F /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 1A6B50370C8B42480035DFCC /* libjs.xcodeproj */;
+			proxyType = 1;
+			remoteGlobalIDString = D2AAC045055464E500DB518D /* libjs */;
+			remoteInfo = libjs;
 		};
 		1A5BF2760916D47300BF238F /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
@@ -967,7 +940,7 @@
 		1A2316E70B9CFAD700EF0852 /* keyconfig.plist */ = {isa = PBXFileReference; fileEncoding = 4; languageSpecificationIdentifier = plist; lastKnownFileType = text.xml; path = keyconfig.plist; sourceTree = "<group>"; };
 		1A2316E80B9CFAD700EF0852 /* logcontrol.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist; path = logcontrol.plist; sourceTree = "<group>"; };
 		1A2316E90B9CFAD700EF0852 /* missiontext.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xml; path = missiontext.plist; sourceTree = "<group>"; };
-		1A2316EB0B9CFAD700EF0852 /* shipdata.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xml; path = shipdata.plist; sourceTree = "<group>"; };
+		1A2316EB0B9CFAD700EF0852 /* shipdata.plist */ = {isa = PBXFileReference; fileEncoding = 4; languageSpecificationIdentifier = plist; lastKnownFileType = text.xml; path = shipdata.plist; sourceTree = "<group>"; };
 		1A2316EC0B9CFAD700EF0852 /* shipyard.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xml; path = shipyard.plist; sourceTree = "<group>"; };
 		1A2316ED0B9CFAD700EF0852 /* speech_pronunciation_guide.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xml; path = speech_pronunciation_guide.plist; sourceTree = "<group>"; };
 		1A2317910B9D022400EF0852 /* buoyAI.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist; path = buoyAI.plist; sourceTree = "<group>"; };
@@ -1258,6 +1231,12 @@
 		1A472916096B5454000E78D8 /* CoreAudio.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreAudio.framework; path = /System/Library/Frameworks/CoreAudio.framework; sourceTree = "<absolute>"; };
 		1A47291F096B5468000E78D8 /* AudioToolbox.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AudioToolbox.framework; path = /System/Library/Frameworks/AudioToolbox.framework; sourceTree = "<absolute>"; };
 		1A472920096B5468000E78D8 /* AudioUnit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AudioUnit.framework; path = /System/Library/Frameworks/AudioUnit.framework; sourceTree = "<absolute>"; };
+		1A4FB2390C8D6A9A00DC8E1F /* jsautocfg.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = jsautocfg.h; path = xcode/jsautocfg.h; sourceTree = "<group>"; };
+		1A4FB23B0C8D6AA900DC8E1F /* jsapi.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = jsapi.h; path = src/jsapi.h; sourceTree = "<group>"; };
+		1A4FB23E0C8D6AB400DC8E1F /* jspubtd.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = jspubtd.h; path = src/jspubtd.h; sourceTree = "<group>"; };
+		1A4FB2400C8D6ABA00DC8E1F /* jstypes.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = jstypes.h; path = src/jstypes.h; sourceTree = "<group>"; };
+		1A4FB3330C8DC86800DC8E1F /* OOJSOolite.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOJSOolite.h; sourceTree = "<group>"; };
+		1A4FB3340C8DC86800DC8E1F /* OOJSOolite.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOJSOolite.m; sourceTree = "<group>"; };
 		1A5AA3220C0098AF0029C78A /* OOOpenGL.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOOpenGL.m; sourceTree = "<group>"; };
 		1A5BF2720916D47300BF238F /* Oolite-importer.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = "Oolite-importer.xcodeproj"; path = "Oolite-importer/Oolite-importer.xcodeproj"; sourceTree = "<group>"; };
 		1A5DB1E80BBD8F0000D57389 /* OOConstToString.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOConstToString.h; sourceTree = "<group>"; };
@@ -1275,6 +1254,7 @@
 		1A5E462D0C32DACE008104B4 /* OOShaderUniformMethodType.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOShaderUniformMethodType.m; sourceTree = "<group>"; };
 		1A5E462E0C32DACE008104B4 /* OOShaderUniformMethodType.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOShaderUniformMethodType.h; sourceTree = "<group>"; };
 		1A67050E0C4904ED002551AA /* oolite-cloaking-device.js */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.javascript; path = "oolite-cloaking-device.js"; sourceTree = "<group>"; };
+		1A6B50370C8B42480035DFCC /* libjs.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = libjs.xcodeproj; path = xcode/libjs.xcodeproj; sourceTree = "<group>"; };
 		1A6DD1210C57B5BC00A892F4 /* OOPListSchemaVerifier.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOPListSchemaVerifier.h; sourceTree = "<group>"; };
 		1A6DD1220C57B5BC00A892F4 /* OOPListSchemaVerifier.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOPListSchemaVerifier.m; sourceTree = "<group>"; };
 		1A6DD19E0C5924A300A892F4 /* plist verifier design.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = "plist verifier design.txt"; sourceTree = "<group>"; };
@@ -1383,53 +1363,6 @@
 		1ADF5F110B9E374B00FDB2A3 /* JoystickHandler.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = JoystickHandler.h; sourceTree = "<group>"; };
 		1AE546300C19A2E2005B89F3 /* JoystickHandler.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = JoystickHandler.m; sourceTree = "<group>"; };
 		1AEAAB8E0BA45248000705D0 /* libjs.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libjs.a; path = "deps/Cocoa-deps/js/libjs.a"; sourceTree = "<group>"; };
-		1AEAAC6F0BA457E6000705D0 /* jsarena.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = jsarena.h; sourceTree = "<group>"; };
-		1AEAAC700BA457E6000705D0 /* jsarray.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = jsarray.h; sourceTree = "<group>"; };
-		1AEAAC710BA457E6000705D0 /* jsatom.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = jsatom.h; sourceTree = "<group>"; };
-		1AEAAC720BA457E6000705D0 /* jsbit.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = jsbit.h; sourceTree = "<group>"; };
-		1AEAAC730BA457E6000705D0 /* jsbool.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = jsbool.h; sourceTree = "<group>"; };
-		1AEAAC740BA457E6000705D0 /* jsclist.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = jsclist.h; sourceTree = "<group>"; };
-		1AEAAC750BA457E6000705D0 /* jscntxt.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = jscntxt.h; sourceTree = "<group>"; };
-		1AEAAC760BA457E6000705D0 /* jscompat.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = jscompat.h; sourceTree = "<group>"; };
-		1AEAAC770BA457E6000705D0 /* jsconfig.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = jsconfig.h; sourceTree = "<group>"; };
-		1AEAAC780BA457E6000705D0 /* jscpucfg.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = jscpucfg.h; sourceTree = "<group>"; };
-		1AEAAC790BA457E6000705D0 /* jsdate.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = jsdate.h; sourceTree = "<group>"; };
-		1AEAAC7A0BA457E6000705D0 /* jsdbgapi.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = jsdbgapi.h; sourceTree = "<group>"; };
-		1AEAAC7B0BA457E6000705D0 /* jsdhash.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = jsdhash.h; sourceTree = "<group>"; };
-		1AEAAC7C0BA457E6000705D0 /* jsdtoa.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = jsdtoa.h; sourceTree = "<group>"; };
-		1AEAAC7D0BA457E6000705D0 /* jsemit.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = jsemit.h; sourceTree = "<group>"; };
-		1AEAAC7E0BA457E6000705D0 /* jsexn.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = jsexn.h; sourceTree = "<group>"; };
-		1AEAAC7F0BA457E6000705D0 /* jsfile.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = jsfile.h; sourceTree = "<group>"; };
-		1AEAAC800BA457E6000705D0 /* jsfun.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = jsfun.h; sourceTree = "<group>"; };
-		1AEAAC810BA457E6000705D0 /* jsgc.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = jsgc.h; sourceTree = "<group>"; };
-		1AEAAC820BA457E6000705D0 /* jshash.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = jshash.h; sourceTree = "<group>"; };
-		1AEAAC830BA457E6000705D0 /* jsinterp.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = jsinterp.h; sourceTree = "<group>"; };
-		1AEAAC840BA457E6000705D0 /* jslibmath.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = jslibmath.h; sourceTree = "<group>"; };
-		1AEAAC850BA457E6000705D0 /* jslock.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = jslock.h; sourceTree = "<group>"; };
-		1AEAAC860BA457E6000705D0 /* jslong.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = jslong.h; sourceTree = "<group>"; };
-		1AEAAC870BA457E6000705D0 /* jsmath.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = jsmath.h; sourceTree = "<group>"; };
-		1AEAAC880BA457E6000705D0 /* jsnum.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = jsnum.h; sourceTree = "<group>"; };
-		1AEAAC890BA457E6000705D0 /* jsobj.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = jsobj.h; sourceTree = "<group>"; };
-		1AEAAC8A0BA457E6000705D0 /* jsopcode.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = jsopcode.h; sourceTree = "<group>"; };
-		1AEAAC8B0BA457E6000705D0 /* jsosdep.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = jsosdep.h; sourceTree = "<group>"; };
-		1AEAAC8C0BA457E6000705D0 /* jsotypes.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = jsotypes.h; sourceTree = "<group>"; };
-		1AEAAC8D0BA457E6000705D0 /* jsparse.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = jsparse.h; sourceTree = "<group>"; };
-		1AEAAC8E0BA457E6000705D0 /* jsprf.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = jsprf.h; sourceTree = "<group>"; };
-		1AEAAC8F0BA457E6000705D0 /* jsprvtd.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = jsprvtd.h; sourceTree = "<group>"; };
-		1AEAAC900BA457E6000705D0 /* jspubtd.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = jspubtd.h; sourceTree = "<group>"; };
-		1AEAAC910BA457E6000705D0 /* jsregexp.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = jsregexp.h; sourceTree = "<group>"; };
-		1AEAAC920BA457E6000705D0 /* jsscan.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = jsscan.h; sourceTree = "<group>"; };
-		1AEAAC930BA457E6000705D0 /* jsscope.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = jsscope.h; sourceTree = "<group>"; };
-		1AEAAC940BA457E6000705D0 /* jsscript.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = jsscript.h; sourceTree = "<group>"; };
-		1AEAAC950BA457E6000705D0 /* jsstddef.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = jsstddef.h; sourceTree = "<group>"; };
-		1AEAAC960BA457E6000705D0 /* jsstr.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = jsstr.h; sourceTree = "<group>"; };
-		1AEAAC970BA457E6000705D0 /* jstypes.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = jstypes.h; sourceTree = "<group>"; };
-		1AEAAC980BA457E6000705D0 /* jsutil.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = jsutil.h; sourceTree = "<group>"; };
-		1AEAAC990BA457E6000705D0 /* jsxdrapi.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = jsxdrapi.h; sourceTree = "<group>"; };
-		1AEAAC9A0BA457E7000705D0 /* jsxml.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = jsxml.h; sourceTree = "<group>"; };
-		1AEAAC9B0BA457E7000705D0 /* prmjtime.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = prmjtime.h; sourceTree = "<group>"; };
-		1AEAAC9C0BA457E7000705D0 /* resource.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = resource.h; sourceTree = "<group>"; };
-		1AEAAC9D0BA457E7000705D0 /* jsapi.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = jsapi.h; sourceTree = "<group>"; };
 		1AED2D0A0C04586C004A1118 /* OOGraphicsResetManager.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOGraphicsResetManager.h; sourceTree = "<group>"; };
 		1AED2D0B0C04586C004A1118 /* OOGraphicsResetManager.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOGraphicsResetManager.m; sourceTree = "<group>"; };
 		1AED74C70BBA3CAA009410CD /* logcontrol.plist.xml */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xml; path = logcontrol.plist.xml; sourceTree = "<group>"; };
@@ -1520,11 +1453,11 @@
 				1A472917096B5454000E78D8 /* CoreAudio.framework in Frameworks */,
 				1A472921096B5468000E78D8 /* AudioToolbox.framework in Frameworks */,
 				1A472922096B5468000E78D8 /* AudioUnit.framework in Frameworks */,
-				25F3E8EB099502BB002F25FD /* libOgg.a in Frameworks */,
 				25F3E8EC099502BB002F25FD /* libVorbisAll.a in Frameworks */,
-				1AEAAB8F0BA45248000705D0 /* libjs.a in Frameworks */,
 				1A71E6F80BCE345000CD5C13 /* libpng.a in Frameworks */,
 				1A71E8790BCE8EB100CD5C13 /* libz.dylib in Frameworks */,
+				1A6B50430C8B42AC0035DFCC /* libOgg.a in Frameworks */,
+				1A4FB4BA0C8E11D800DC8E1F /* libjs.a in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1932,6 +1865,14 @@
 			path = Scripts;
 			sourceTree = "<group>";
 		};
+		1A4FB2340C8D6A7500DC8E1F /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				1A4FB2380C8D6A7500DC8E1F /* libjs.a */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
 		1A5BF2710916D45B00BF238F /* MDImporter */ = {
 			isa = PBXGroup;
 			children = (
@@ -1987,6 +1928,8 @@
 				1A2A8D390BC6765F001E00FB /* EntityOOJavaScriptExtensions.m */,
 				1A7376BC0C64AE330097AC37 /* OOJSSystem.h */,
 				1A7376BD0C64AE330097AC37 /* OOJSSystem.m */,
+				1A4FB3330C8DC86800DC8E1F /* OOJSOolite.h */,
+				1A4FB3340C8DC86800DC8E1F /* OOJSOolite.m */,
 			);
 			name = JavaScript;
 			sourceTree = "<group>";
@@ -2381,59 +2324,17 @@
 			name = Drawables;
 			sourceTree = "<group>";
 		};
-		1AEAAC6C0BA457C3000705D0 /* SpiderMonkey headers */ = {
+		1AEAAC6C0BA457C3000705D0 /* SpiderMonkey */ = {
 			isa = PBXGroup;
 			children = (
-				1AEAAC6F0BA457E6000705D0 /* jsarena.h */,
-				1AEAAC700BA457E6000705D0 /* jsarray.h */,
-				1AEAAC710BA457E6000705D0 /* jsatom.h */,
-				1AEAAC720BA457E6000705D0 /* jsbit.h */,
-				1AEAAC730BA457E6000705D0 /* jsbool.h */,
-				1AEAAC740BA457E6000705D0 /* jsclist.h */,
-				1AEAAC750BA457E6000705D0 /* jscntxt.h */,
-				1AEAAC760BA457E6000705D0 /* jscompat.h */,
-				1AEAAC770BA457E6000705D0 /* jsconfig.h */,
-				1AEAAC780BA457E6000705D0 /* jscpucfg.h */,
-				1AEAAC790BA457E6000705D0 /* jsdate.h */,
-				1AEAAC7A0BA457E6000705D0 /* jsdbgapi.h */,
-				1AEAAC7B0BA457E6000705D0 /* jsdhash.h */,
-				1AEAAC7C0BA457E6000705D0 /* jsdtoa.h */,
-				1AEAAC7D0BA457E6000705D0 /* jsemit.h */,
-				1AEAAC7E0BA457E6000705D0 /* jsexn.h */,
-				1AEAAC7F0BA457E6000705D0 /* jsfile.h */,
-				1AEAAC800BA457E6000705D0 /* jsfun.h */,
-				1AEAAC810BA457E6000705D0 /* jsgc.h */,
-				1AEAAC820BA457E6000705D0 /* jshash.h */,
-				1AEAAC830BA457E6000705D0 /* jsinterp.h */,
-				1AEAAC840BA457E6000705D0 /* jslibmath.h */,
-				1AEAAC850BA457E6000705D0 /* jslock.h */,
-				1AEAAC860BA457E6000705D0 /* jslong.h */,
-				1AEAAC870BA457E6000705D0 /* jsmath.h */,
-				1AEAAC880BA457E6000705D0 /* jsnum.h */,
-				1AEAAC890BA457E6000705D0 /* jsobj.h */,
-				1AEAAC8A0BA457E6000705D0 /* jsopcode.h */,
-				1AEAAC8B0BA457E6000705D0 /* jsosdep.h */,
-				1AEAAC8C0BA457E6000705D0 /* jsotypes.h */,
-				1AEAAC8D0BA457E6000705D0 /* jsparse.h */,
-				1AEAAC8E0BA457E6000705D0 /* jsprf.h */,
-				1AEAAC8F0BA457E6000705D0 /* jsprvtd.h */,
-				1AEAAC900BA457E6000705D0 /* jspubtd.h */,
-				1AEAAC910BA457E6000705D0 /* jsregexp.h */,
-				1AEAAC920BA457E6000705D0 /* jsscan.h */,
-				1AEAAC930BA457E6000705D0 /* jsscope.h */,
-				1AEAAC940BA457E6000705D0 /* jsscript.h */,
-				1AEAAC950BA457E6000705D0 /* jsstddef.h */,
-				1AEAAC960BA457E6000705D0 /* jsstr.h */,
-				1AEAAC970BA457E6000705D0 /* jstypes.h */,
-				1AEAAC980BA457E6000705D0 /* jsutil.h */,
-				1AEAAC990BA457E6000705D0 /* jsxdrapi.h */,
-				1AEAAC9A0BA457E7000705D0 /* jsxml.h */,
-				1AEAAC9B0BA457E7000705D0 /* prmjtime.h */,
-				1AEAAC9C0BA457E7000705D0 /* resource.h */,
-				1AEAAC9D0BA457E7000705D0 /* jsapi.h */,
+				1A4FB23B0C8D6AA900DC8E1F /* jsapi.h */,
+				1A4FB2390C8D6A9A00DC8E1F /* jsautocfg.h */,
+				1A4FB23E0C8D6AB400DC8E1F /* jspubtd.h */,
+				1A4FB2400C8D6ABA00DC8E1F /* jstypes.h */,
+				1A6B50370C8B42480035DFCC /* libjs.xcodeproj */,
 			);
-			name = "SpiderMonkey headers";
-			path = "deps/Cocoa-deps/js/headers";
+			name = SpiderMonkey;
+			path = "deps/Cross-platform-deps/SpiderMonkey/js";
 			sourceTree = "<group>";
 		};
 		29B97314FDCFA39411CA2CEA /* Oolite_GUSTO */ = {
@@ -2454,10 +2355,10 @@
 		29B97323FDCFA39411CA2CEA /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				1AEAAC6C0BA457C3000705D0 /* SpiderMonkey */,
 				1AD0C6B90C47B70F0070BD23 /* Smart Crash Reports */,
 				1A71E6FB0BCE345800CD5C13 /* libpng */,
 				1A71E8780BCE8EB100CD5C13 /* libz.dylib */,
-				1AEAAC6C0BA457C3000705D0 /* SpiderMonkey headers */,
 				1058C7A0FEA54F0111CA2CBB /* Linked Frameworks */,
 				1058C7A2FEA54F0111CA2CBB /* Other Frameworks */,
 			);
@@ -2513,53 +2414,6 @@
 				1A231A180B9D8B1B00EF0852 /* OOCacheManager.h in Headers */,
 				1ADF5F130B9E374B00FDB2A3 /* JoystickHandler.h in Headers */,
 				1A29967E0B9F064C002D2149 /* OOCache.h in Headers */,
-				1AEAAC9E0BA457E7000705D0 /* jsarena.h in Headers */,
-				1AEAAC9F0BA457E7000705D0 /* jsarray.h in Headers */,
-				1AEAACA00BA457E7000705D0 /* jsatom.h in Headers */,
-				1AEAACA10BA457E7000705D0 /* jsbit.h in Headers */,
-				1AEAACA20BA457E7000705D0 /* jsbool.h in Headers */,
-				1AEAACA30BA457E7000705D0 /* jsclist.h in Headers */,
-				1AEAACA40BA457E7000705D0 /* jscntxt.h in Headers */,
-				1AEAACA50BA457E7000705D0 /* jscompat.h in Headers */,
-				1AEAACA60BA457E7000705D0 /* jsconfig.h in Headers */,
-				1AEAACA70BA457E7000705D0 /* jscpucfg.h in Headers */,
-				1AEAACA80BA457E7000705D0 /* jsdate.h in Headers */,
-				1AEAACA90BA457E7000705D0 /* jsdbgapi.h in Headers */,
-				1AEAACAA0BA457E7000705D0 /* jsdhash.h in Headers */,
-				1AEAACAB0BA457E7000705D0 /* jsdtoa.h in Headers */,
-				1AEAACAC0BA457E7000705D0 /* jsemit.h in Headers */,
-				1AEAACAD0BA457E7000705D0 /* jsexn.h in Headers */,
-				1AEAACAE0BA457E7000705D0 /* jsfile.h in Headers */,
-				1AEAACAF0BA457E7000705D0 /* jsfun.h in Headers */,
-				1AEAACB00BA457E7000705D0 /* jsgc.h in Headers */,
-				1AEAACB10BA457E7000705D0 /* jshash.h in Headers */,
-				1AEAACB20BA457E7000705D0 /* jsinterp.h in Headers */,
-				1AEAACB30BA457E7000705D0 /* jslibmath.h in Headers */,
-				1AEAACB40BA457E7000705D0 /* jslock.h in Headers */,
-				1AEAACB50BA457E7000705D0 /* jslong.h in Headers */,
-				1AEAACB60BA457E7000705D0 /* jsmath.h in Headers */,
-				1AEAACB70BA457E7000705D0 /* jsnum.h in Headers */,
-				1AEAACB80BA457E7000705D0 /* jsobj.h in Headers */,
-				1AEAACB90BA457E7000705D0 /* jsopcode.h in Headers */,
-				1AEAACBA0BA457E7000705D0 /* jsosdep.h in Headers */,
-				1AEAACBB0BA457E7000705D0 /* jsotypes.h in Headers */,
-				1AEAACBC0BA457E7000705D0 /* jsparse.h in Headers */,
-				1AEAACBD0BA457E7000705D0 /* jsprf.h in Headers */,
-				1AEAACBE0BA457E7000705D0 /* jsprvtd.h in Headers */,
-				1AEAACBF0BA457E7000705D0 /* jspubtd.h in Headers */,
-				1AEAACC00BA457E7000705D0 /* jsregexp.h in Headers */,
-				1AEAACC10BA457E7000705D0 /* jsscan.h in Headers */,
-				1AEAACC20BA457E7000705D0 /* jsscope.h in Headers */,
-				1AEAACC30BA457E7000705D0 /* jsscript.h in Headers */,
-				1AEAACC40BA457E7000705D0 /* jsstddef.h in Headers */,
-				1AEAACC50BA457E7000705D0 /* jsstr.h in Headers */,
-				1AEAACC60BA457E7000705D0 /* jstypes.h in Headers */,
-				1AEAACC70BA457E7000705D0 /* jsutil.h in Headers */,
-				1AEAACC80BA457E7000705D0 /* jsxdrapi.h in Headers */,
-				1AEAACC90BA457E7000705D0 /* jsxml.h in Headers */,
-				1AEAACCA0BA457E7000705D0 /* prmjtime.h in Headers */,
-				1AEAACCB0BA457E7000705D0 /* resource.h in Headers */,
-				1AEAACCC0BA457E7000705D0 /* jsapi.h in Headers */,
 				1A9400C00BAF0EDB005F6CF3 /* OOStringParsing.h in Headers */,
 				1A9403D00BAF36C3005F6CF3 /* OOFunctionAttributes.h in Headers */,
 				1A9404270BAF3DED005F6CF3 /* OOCollectionExtractors.h in Headers */,
@@ -2646,6 +2500,11 @@
 				1A7376BE0C64AE330097AC37 /* OOJSSystem.h in Headers */,
 				1A73795D0C65CF090097AC37 /* OOLegacyEventHandlerScript.h in Headers */,
 				1A95905A0C7FC94200C112A9 /* OODebugBundleLoader.h in Headers */,
+				1A4FB23A0C8D6A9A00DC8E1F /* jsautocfg.h in Headers */,
+				1A4FB23C0C8D6AA900DC8E1F /* jsapi.h in Headers */,
+				1A4FB23F0C8D6AB400DC8E1F /* jspubtd.h in Headers */,
+				1A4FB2410C8D6ABA00DC8E1F /* jstypes.h in Headers */,
+				1A4FB3350C8DC86800DC8E1F /* OOJSOolite.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -2689,6 +2548,7 @@
 			dependencies = (
 				1A5BF3080916D8F700BF238F /* PBXTargetDependency */,
 				1A71E6F70BCE343400CD5C13 /* PBXTargetDependency */,
+				1A4FB4D00C8E130E00DC8E1F /* PBXTargetDependency */,
 			);
 			name = Oolite;
 			productInstallPath = "$(HOME)/Applications";
@@ -2728,6 +2588,10 @@
 					ProjectRef = 1A0519340C7CCAC900BA5CCA /* DebugOXP.xcodeproj */;
 				},
 				{
+					ProductGroup = 1A4FB2340C8D6A7500DC8E1F /* Products */;
+					ProjectRef = 1A6B50370C8B42480035DFCC /* libjs.xcodeproj */;
+				},
+				{
 					ProductGroup = 1A5BF2730916D47300BF238F /* Products */;
 					ProjectRef = 1A5BF2720916D47300BF238F /* Oolite-importer.xcodeproj */;
 				},
@@ -2746,6 +2610,13 @@
 			fileType = wrapper.cfbundle;
 			path = Debug.oxp;
 			remoteRef = 1A0519380C7CCAC900BA5CCA /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+		1A4FB2380C8D6A7500DC8E1F /* libjs.a */ = {
+			isa = PBXReferenceProxy;
+			fileType = archive.ar;
+			path = libjs.a;
+			remoteRef = 1A4FB2370C8D6A7500DC8E1F /* PBXContainerItemProxy */;
 			sourceTree = BUILT_PRODUCTS_DIR;
 		};
 		1A5BF2770916D47300BF238F /* Oolite.mdimporter */ = {
@@ -2963,6 +2834,7 @@
 				1A7376BF0C64AE330097AC37 /* OOJSSystem.m in Sources */,
 				1A73795E0C65CF090097AC37 /* OOLegacyEventHandlerScript.m in Sources */,
 				1A9590590C7FC94200C112A9 /* OODebugBundleLoader.m in Sources */,
+				1A4FB3360C8DC86800DC8E1F /* OOJSOolite.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -2994,6 +2866,11 @@
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
+		1A4FB4D00C8E130E00DC8E1F /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			name = libjs;
+			targetProxy = 1A4FB4CF0C8E130E00DC8E1F /* PBXContainerItemProxy */;
+		};
 		1A5BF3080916D8F700BF238F /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
 			name = "Oolite-importer";
@@ -3041,19 +2918,25 @@
 					"$(HEADER_SEARCH_PATHS_QUOTED_2)",
 					"$(HEADER_SEARCH_PATHS_QUOTED_3)",
 					"$(HEADER_SEARCH_PATHS_QUOTED_4)",
+					"$(HEADER_SEARCH_PATHS_QUOTED_5)",
+					"$(HEADER_SEARCH_PATHS_QUOTED_6)",
 				);
 				HEADER_SEARCH_PATHS_QUOTED_1 = "\"$(SRCROOT)/deps/Cocoa-deps/Ogg Vorbis\"";
 				HEADER_SEARCH_PATHS_QUOTED_2 = "\"$(SRCROOT)/src/Core/\"";
 				HEADER_SEARCH_PATHS_QUOTED_3 = "\"$(SRCROOT)/src/Core/Entites/\"";
 				HEADER_SEARCH_PATHS_QUOTED_4 = "\"$(SRCROOT)/src/Core/Materials/\"";
+				HEADER_SEARCH_PATHS_QUOTED_5 = "\"$(SRCROOT)/deps/Cross-platform-deps/SpiderMonkey/js/src\"";
+				HEADER_SEARCH_PATHS_QUOTED_6 = "\"$(SRCROOT)/deps/Cross-platform-deps/SpiderMonkey/js/xcode\"";
 				INFOPLIST_FILE = "src/Cocoa/Info-OoliteDev.plist";
 				INSTALL_PATH = "$(HOME)/Applications";
 				LIBRARY_SEARCH_PATHS = (
 					"$(LIBRARY_SEARCH_PATHS_QUOTED_1)",
 					"$(LIBRARY_SEARCH_PATHS_QUOTED_2)",
+					"$(LIBRARY_SEARCH_PATHS_QUOTED_3)",
 				);
 				LIBRARY_SEARCH_PATHS_QUOTED_1 = "\"$(SRCROOT)/deps/Cocoa-deps/Ogg\\ Vorbis\"";
 				LIBRARY_SEARCH_PATHS_QUOTED_2 = "\"$(SRCROOT)/deps/Cocoa-deps/js\"";
+				LIBRARY_SEARCH_PATHS_QUOTED_3 = "\"$(SRCROOT)/deps/Cocoa-deps/Ogg Vorbis\"";
 				MACOSX_DEPLOYMENT_TARGET = 10.3;
 				OTHER_CFLAGS = "-DLOADSAVEGUIXX";
 				OTHER_LDFLAGS = "";
@@ -3105,9 +2988,11 @@
 				LIBRARY_SEARCH_PATHS = (
 					"$(LIBRARY_SEARCH_PATHS_QUOTED_1)",
 					"$(LIBRARY_SEARCH_PATHS_QUOTED_2)",
+					"$(LIBRARY_SEARCH_PATHS_QUOTED_3)",
 				);
 				LIBRARY_SEARCH_PATHS_QUOTED_1 = "\"$(SRCROOT)/deps/Cocoa-deps/Ogg\\ Vorbis\"";
 				LIBRARY_SEARCH_PATHS_QUOTED_2 = "\"$(SRCROOT)/deps/Cocoa-deps/js\"";
+				LIBRARY_SEARCH_PATHS_QUOTED_3 = "\"$(SRCROOT)/deps/Cocoa-deps/Ogg Vorbis\"";
 				MACOSX_DEPLOYMENT_TARGET = 10.3;
 				OTHER_LDFLAGS = "-lSystem";
 				PREBINDING = NO;
@@ -3214,9 +3099,11 @@
 				LIBRARY_SEARCH_PATHS = (
 					"$(LIBRARY_SEARCH_PATHS_QUOTED_1)",
 					"$(LIBRARY_SEARCH_PATHS_QUOTED_2)",
+					"$(LIBRARY_SEARCH_PATHS_QUOTED_3)",
 				);
 				LIBRARY_SEARCH_PATHS_QUOTED_1 = "\"$(SRCROOT)/deps/Cocoa-deps/Ogg\\ Vorbis\"";
 				LIBRARY_SEARCH_PATHS_QUOTED_2 = "\"$(SRCROOT)/deps/Cocoa-deps/js\"";
+				LIBRARY_SEARCH_PATHS_QUOTED_3 = "\"$(SRCROOT)/deps/Cocoa-deps/Ogg Vorbis\"";
 				MACOSX_DEPLOYMENT_TARGET = 10.3;
 				OTHER_LDFLAGS_i386 = "\"$(SRCROOT)/deps/Cocoa-deps/Smart Crash Reports SDK/SmartCrashReportsInstall.o\" -framework Security";
 				PREBINDING = NO;

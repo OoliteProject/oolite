@@ -32,10 +32,6 @@ MA 02110-1301, USA.
 
 void InitOOJSEntity(JSContext *context, JSObject *global);
 
-// Handles subclasses.
-JSObject *JSEntityWithEntity(JSContext *context, Entity *entity);
-
-BOOL EntityToJSValue(JSContext *context, Entity *entity, jsval *outValue);
 BOOL JSValueToEntity(JSContext *context, jsval value, Entity **outEntity);	// Value may be Entity or integer (OOUniversalID).
 
 BOOL JSEntityGetEntity(JSContext *context, JSObject *entityObj, Entity **outEntity);

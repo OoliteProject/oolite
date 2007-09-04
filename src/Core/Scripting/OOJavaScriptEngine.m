@@ -33,6 +33,7 @@ MA 02110-1301, USA.
 #import "OOJSPlayer.h"
 #import "OOJSSystem.h"
 #import "jsarray.h"
+#import "OOJSOolite.h"
 
 #import "OOCollectionExtractors.h"
 #import "Universe.h"
@@ -77,6 +78,12 @@ OOINLINE jsval BooleanStringToJSVal(NSString *string)
 
 
 static void ReportJSError(JSContext *context, const char *message, JSErrorReport *report);
+
+
+static void RegisterStandardObjectConverters(JSContext *context);
+
+static id JSArrayConverter(JSContext *context, JSObject *object);
+static id JSGenericObjectConverter(JSContext *context, JSObject *object);
 
 
 //===========================================================================
@@ -168,7 +175,7 @@ static JSBool GlobalGetProperty(JSContext *context, JSObject *obj, jsval name, j
 
 static JSClass global_class =
 {
-	"Oolite",
+	"Global",
 	0,
 	
 	JS_PropertyStub,
@@ -556,6 +563,7 @@ static void ReportJSError(JSContext *context, const char *message, JSErrorReport
 - (id) init
 {
 	assert(sSharedEngine == nil);
+	assert(JS_CStringsAreUTF8());
 	
 	self = [super init];
 	
@@ -576,6 +584,7 @@ static void ReportJSError(JSContext *context, const char *message, JSErrorReport
 	/* create a context and associate it with the JS run time */
 	context = JS_NewContext(runtime, 8192);
 	JS_SetOptions(context, JSOPTION_VAROBJFIX | JSOPTION_STRICT | JSOPTION_COMPILE_N_GO | JSOPTION_NATIVE_BRANCH_CALLBACK);
+	JS_SetVersion(context, JSVERSION_1_7);
 	
 	/* if context does not have a value, end the program here */
 	if (!context)
@@ -583,9 +592,9 @@ static void ReportJSError(JSContext *context, const char *message, JSErrorReport
 		OOLog(@"script.javaScript.init.error", @"FATAL ERROR: failed to create JavaScript %@.", @"context");
 		exit(1);
 	}
-
+	
 	JS_SetErrorReporter(context, ReportJSError);
-
+	
 	/* create the global object here */
 	globalObject = JS_NewObject(context, &global_class, NULL, NULL);
 	xglob = globalObject;
@@ -595,10 +604,13 @@ static void ReportJSError(JSContext *context, const char *message, JSErrorReport
 	JS_DefineProperties(context, globalObject, Global_props);
 	JS_DefineFunctions(context, globalObject, Global_funcs);
 	
+	RegisterStandardObjectConverters(context);
+	
 	missionObj = JS_DefineObject(context, globalObject, "mission", &Mission_class, NULL, JSPROP_ENUMERATE | JSPROP_READONLY | JSPROP_PERMANENT);
 	JS_DefineProperties(context, missionObj, Mission_props);
 	JS_DefineFunctions(context, missionObj, Mission_funcs);
 	
+	InitOOJSOolite(context, globalObject);
 	InitOOJSVector(context, globalObject);
 	InitOOJSQuaternion(context, globalObject);
 	InitOOJSSystem(context, globalObject);
@@ -757,7 +769,53 @@ BOOL NumberFromArgumentList(JSContext *context, NSString *scriptClass, NSString 
 }
 
 
-JSObject *JSArrayFromNSArray(JSContext *context, NSArray *array)
+static BOOL ExtractString(NSString *string, jschar **outString, size_t *outLength)
+{
+	assert(outString != NULL && outLength != NULL);
+	assert(sizeof (unichar) == sizeof (jschar));	// Should both be 16 bits
+	
+	*outLength = [string length];
+	if (*outLength == 0)  return NO;	// nil/empty strings not accepted.
+	
+	*outString = malloc(sizeof (unichar) * *outLength);
+	if (*outString == NULL)  return NO;
+	
+	[string getCharacters:(unichar *)*outString];
+	return YES;
+}
+
+
+BOOL JSSetNSProperty(JSContext *context, JSObject *object, NSString *name, jsval *value)
+{
+	jschar					*buffer = NULL;
+	size_t					length;
+	BOOL					OK = NO;
+	
+	if (ExtractString(name, &buffer, &length))
+	{
+		OK = JS_SetUCProperty(context, object, buffer, length, value);
+		free(buffer);
+	}
+	return OK;
+}
+
+
+BOOL JSGetNSProperty(JSContext *context, JSObject *object, NSString *name, jsval *value)
+{
+	jschar					*buffer = NULL;
+	size_t					length;
+	BOOL					OK = NO;
+	
+	if (ExtractString(name, &buffer, &length))
+	{
+		OK = JS_GetUCProperty(context, object, buffer, length, value);
+		free(buffer);
+	}
+	return OK;
+}
+
+
+static JSObject *JSArrayFromNSArray(JSContext *context, NSArray *array)
 {
 	volatile JSObject		*result = NULL;
 	volatile unsigned		i;
@@ -770,42 +828,123 @@ JSObject *JSArrayFromNSArray(JSContext *context, NSArray *array)
 	result = JS_NewArrayObject(context, 0, NULL);
 	if (result == NULL)  return NULL;
 	
-	count = [array count];
-	for (i = 0; i != count; ++i)
-	{
-		NS_DURING
+	NS_DURING
+		count = [array count];
+		for (i = 0; i != count; ++i)
+		{
 			value = [[array objectAtIndex:i] javaScriptValueInContext:context];
-		NS_HANDLER
-			value = JSVAL_VOID;
-		NS_ENDHANDLER
-		OK = JS_SetElement(context, (JSObject *)result, i, &value);
-		if (!OK)  return NULL;
-	}
+			OK = JS_SetElement(context, (JSObject *)result, i, &value);
+			if (!OK)  return NULL;
+		}
+	NS_HANDLER
+		result = NULL;
+	NS_ENDHANDLER
 	
 	return (JSObject *)result;
 }
 
 
-BOOL JSNewNSArrayValue(JSContext *context, NSArray *array, jsval *value)
+static BOOL JSNewNSArrayValue(JSContext *context, NSArray *array, jsval *value)
 {
 	JSObject				*object = NULL;
+	BOOL					OK = YES;
 	
 	if (value == NULL)  return NO;
-	if ([array count] == 0)
-	{
-		*value = JSVAL_NULL;
-		return YES;
-	}
+	
+	// NOTE: should be called within a local root scope or have *value be a set root for GC reasons.
+	if (!JS_EnterLocalRootScope(context))  return NO;
 	
 	object = JSArrayFromNSArray(context, array);
 	if (object == NULL)
 	{
 		*value = JSVAL_VOID;
-		return NO;
+		OK = NO;
+	}
+	else
+	{
+		*value = OBJECT_TO_JSVAL(object);
 	}
 	
-	*value = OBJECT_TO_JSVAL(object);
-	return YES;
+	JS_LeaveLocalRootScope(context);
+	return OK;
+}
+
+
+/*	Convert an NSDictionary to a JavaScript Object.
+	Only properties whose keys are either strings or non-negative NSNumbers,
+	and	whose values have a non-void JS representation, are converted.
+*/
+static JSObject *JSObjectFromNSDictionary(JSContext *context, NSDictionary *dictionary)
+{
+	volatile JSObject		*result = NULL;
+	BOOL					OK = YES;
+	NSEnumerator			*keyEnum = nil;
+	id						key = nil;
+	jsval					value;
+	jsint					index;
+	
+	if (dictionary == nil)  return NULL;
+	
+	result = JS_NewObject(context, NULL, NULL, NULL);	// create object of class Object
+	if (result == NULL)  return NULL;
+	
+	NS_DURING
+		for (keyEnum = [dictionary keyEnumerator]; (key = [keyEnum nextObject]); )
+		{
+			if ([key isKindOfClass:[NSString class]] && [key length] != 0)
+			{
+				value = [[dictionary objectForKey:key] javaScriptValueInContext:context];
+				if (value != JSVAL_VOID)
+				{
+					OK = JSSetNSProperty(context, (JSObject *)result, key, &value);
+					if (!OK)  return NULL;
+				}
+			}
+			else if ([key isKindOfClass:[NSNumber class]])
+			{
+				index = [key intValue];
+				if (0 < index)
+				{
+					value = [[dictionary objectForKey:key] javaScriptValueInContext:context];
+					if (value != JSVAL_VOID)
+					{
+						OK = JS_SetElement(context, (JSObject *)result, index, &value);
+						if (!OK)  return NULL;
+					}
+				}
+			}
+		}
+	NS_HANDLER
+		result = NULL;
+	NS_ENDHANDLER
+	
+	return (JSObject *)result;
+}
+
+
+static BOOL JSNewNSDictionaryValue(JSContext *context, NSDictionary *dictionary, jsval *value)
+{
+	JSObject				*object = NULL;
+	BOOL					OK = YES;
+	
+	if (value == NULL)  return NO;
+	
+	// NOTE: should be called within a local root scope or have *value be a set root for GC reasons.
+	if (!JS_EnterLocalRootScope(context))  return NO;
+	
+	object = JSObjectFromNSDictionary(context, dictionary);
+	if (object == NULL)
+	{
+		*value = JSVAL_VOID;
+		OK = NO;
+	}
+	else
+	{
+		*value = OBJECT_TO_JSVAL(object);
+	}
+	
+	JS_LeaveLocalRootScope(context);
+	return OK;
 }
 
 
@@ -929,8 +1068,20 @@ BOOL JSNewNSArrayValue(JSContext *context, NSArray *array, jsval *value)
 
 - (jsval)javaScriptValueInContext:(JSContext *)context
 {
-	jsval value;
+	jsval value = JSVAL_VOID;
 	JSNewNSArrayValue(context, self, &value);
+	return value;
+}
+
+@end
+
+
+@implementation NSDictionary (OOJavaScriptConversion)
+
+- (jsval)javaScriptValueInContext:(JSContext *)context
+{
+	jsval value = JSVAL_VOID;
+	JSNewNSDictionaryValue(context, self, &value);
 	return value;
 }
 
@@ -1020,7 +1171,6 @@ static NSMutableDictionary *sObjectConverters;
 
 id JSValueToObject(JSContext *context, jsval value)
 {
-	// FIXME: add handler for arrays.
 	if (JSVAL_IS_NULL(value) || JSVAL_IS_VOID(value))  return nil;
 	
 	if (JSVAL_IS_INT(value))
@@ -1097,4 +1247,122 @@ void JSRegisterObjectConverter(JSClass *theClass, JSClassConverterCallback conve
 	{
 		[sObjectConverters removeObjectForKey:wrappedClass];
 	}
+}
+
+
+static void RegisterStandardObjectConverters(JSContext *context)
+{
+	JSObject				*templateObject = NULL;
+	JSClass					*class = NULL;
+	
+	// Create an array in order to get array class.
+	templateObject = JS_NewArrayObject(context, 0, NULL);
+	class = JS_GetClass(templateObject);
+	JSRegisterObjectConverter(class, JSArrayConverter);
+	
+	// Likewise, create a blank object to get its class.
+	// This is not documented (not much is) but JS_NewObject falls back to Object if passed a NULL class.
+	templateObject = JS_NewObject(context, NULL, NULL, NULL);
+	class = JS_GetClass(templateObject);
+	JSRegisterObjectConverter(class, JSGenericObjectConverter);
+}
+
+static id JSArrayConverter(JSContext *context, JSObject *array)
+{
+	jsuint						i, count;
+	id							*values = NULL;
+	jsval						value = JSVAL_VOID;
+	id							object = nil;
+	NSArray						*result = nil;
+	
+	// Convert a JS array to an NSArray by calling JSValueToObject() on all its elements.
+	if (!JS_IsArrayObject(context, array)) return nil;
+	if (!JS_GetArrayLength(context, array, &count)) return nil;
+	
+	if (count == 0)  return [NSArray array];
+	
+	values = calloc(count, sizeof *values);
+	if (values == NULL)  return nil;
+	
+	for (i = 0; i != count; ++i)
+	{
+		value = JSVAL_VOID;
+		if (!JS_GetElement(context, array, i, &value))  value = JSVAL_VOID;
+		
+		object = JSValueToObject(context, value);
+		if (object == nil)  object = [NSNull null];
+		values[i] = object;
+	}
+	
+	result = [NSArray arrayWithObjects:values count:count];
+	free(values);
+	return result;
+}
+
+
+static id JSGenericObjectConverter(JSContext *context, JSObject *object)
+{
+	JSIdArray					*ids;
+	jsint						i;
+	NSMutableDictionary			*result = nil;
+	jsval						propKey = JSVAL_VOID,
+								value = JSVAL_VOID;
+	id							objKey = nil;
+	id							objValue = nil;
+	jsint						intKey;
+	JSString					*stringKey = NULL;
+	
+	/*	Convert a JS Object to an NSDictionary by calling
+		JSValueToObject() on all its enumerable properties. This is desireable
+		because it allows objects declared with JavaScript property list
+		syntax to be converted to native property lists.
+		
+		This won't convert all objects, since JS has no concept of a class
+		heirarchy. Also, note that prototype properties are not included.
+	*/
+	
+	ids = JS_Enumerate(context, object);
+	if (ids == NULL)  return nil;
+	
+	result = [NSMutableDictionary dictionaryWithCapacity:ids->length];
+	for (i = 0; i != ids->length; ++i)
+	{
+		propKey = value = JSVAL_VOID;
+		objKey = nil;
+		
+		if (JS_IdToValue(context, ids->vector[i], &propKey))
+		{
+			// Properties with string keys
+			if (JSVAL_IS_STRING(propKey))
+			{
+				stringKey = JSVAL_TO_STRING(propKey);
+				if (JS_LookupProperty(context, object, JS_GetStringBytes(stringKey), &value))
+				{
+					objKey = [NSString stringWithJavaScriptString:stringKey];
+				}
+			}
+			
+			// Properties with int keys
+			else if (JSVAL_IS_INT(propKey))
+			{
+				intKey = JSVAL_TO_INT(propKey);
+				if (JS_GetElement(context, object, intKey, &value))
+				{
+					objKey = [NSNumber numberWithInt:intKey];
+				}
+			}
+		}
+		
+		if (objKey != nil && value != JSVAL_VOID)
+		{
+			objValue = JSValueToObject(context, value);
+			if (objValue != nil)
+			{
+				[result setObject:objValue forKey:objKey];
+			}
+		}
+	}
+	
+	JS_DestroyIdArray(context, ids);
+	return result;
 }

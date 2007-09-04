@@ -26,6 +26,7 @@ MA 02110-1301, USA.
 #import "OOJSEntity.h"
 #import "OOJSShip.h"
 #import "OOJavaScriptEngine.h"
+#import "EntityOOJavaScriptExtensions.h"
 
 #import "PlayerEntity.h"
 #import "PlayerEntityScriptMethods.h"
@@ -138,6 +139,7 @@ void InitOOJSPlayer(JSContext *context, JSObject *global)
 	// Create player object as a property of the global object.
 	sPlayerObject = JS_DefineObject(context, global, "player", &sPlayerClass.base, sPlayerPrototype, JSPROP_ENUMERATE | JSPROP_READONLY | JSPROP_PERMANENT);
 	JS_SetPrivate(context, sPlayerObject, [[PlayerEntity sharedPlayer] weakRetain]);
+	[[PlayerEntity sharedPlayer] setJSSelf:sPlayerObject context:context];
 }
 
 
@@ -167,12 +169,6 @@ JSClass *JSPlayerClass(void)
 JSObject *JSPlayerPrototype(void)
 {
 	return sPlayerPrototype;
-}
-
-
-JSObject *JSPlayerObject(void)
-{
-	return sPlayerObject;
 }
 
 

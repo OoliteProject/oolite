@@ -198,6 +198,7 @@ static JSBool ShipGetProperty(JSContext *context, JSObject *this, jsval name, js
 	
 	if (!JSVAL_IS_INT(name))  return YES;
 	if (!JSShipGetShipEntity(context, this, &entity)) return NO;	// NOTE: entity may be nil.
+	if (!JS_EnterLocalRootScope(context))  return NO;
 	
 	switch (JSVAL_TO_INT(name))
 	{
@@ -329,6 +330,7 @@ static JSBool ShipGetProperty(JSContext *context, JSObject *this, jsval name, js
 	}
 	
 	if (result != nil)  *outValue = [result javaScriptValueInContext:context];
+	JS_LeaveLocalRootScope(context);
 	return YES;
 }
 
