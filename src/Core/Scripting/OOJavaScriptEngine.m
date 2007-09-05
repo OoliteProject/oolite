@@ -32,7 +32,6 @@ MA 02110-1301, USA.
 #import "OOJSStation.h"
 #import "OOJSPlayer.h"
 #import "OOJSSystem.h"
-#import "jsarray.h"
 #import "OOJSOolite.h"
 
 #import "OOCollectionExtractors.h"
