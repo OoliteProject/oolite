@@ -43,6 +43,7 @@ _JS_InternString
 _JS_AddNamedRoot
 _JS_RemoveRoot
 _JSValueToObject
+_JS_ValueToNumber
 _JS_SetProperty
 _OOReportJavaScriptWarning
 _OOBooleanFromObject
