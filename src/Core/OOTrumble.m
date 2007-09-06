@@ -195,6 +195,7 @@ MA 02110-1301, USA.
 								 options:kOOTextureDefaultOptions | kOOTextureNoShrink
 							  anisotropy:0.0f
 								 lodBias:kOOTextureDefaultLODBias];
+	[texture retain];
 	
 	prootSound = [[ResourceManager ooSoundNamed:@"trumble.ogg" inFolder:@"Sounds"] retain];
 	squealSound = [[ResourceManager ooSoundNamed:@"trumblesqueal.ogg" inFolder:@"Sounds"] retain];
@@ -206,6 +207,7 @@ MA 02110-1301, USA.
 {
 	[prootSound release];
 	[squealSound release];
+	[texture release];
 	
 	[super dealloc];
 }
