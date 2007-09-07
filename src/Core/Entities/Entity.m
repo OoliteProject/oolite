@@ -99,6 +99,36 @@ static NSString * const kOOLogEntityUpdateError				= @"entity.linkedList.update.
 }
 
 
+- (BOOL)isShip
+{
+	return isShip;
+}
+
+
+- (BOOL)isStation
+{
+	return isStation;
+}
+
+
+- (BOOL)isSubEntity
+{
+	return isSubentity;
+}
+
+
+- (BOOL)isPlayer
+{
+	return isPlayer;
+}
+
+
+- (BOOL)isPlanet
+{
+	return isPlanet;
+}
+
+
 - (BOOL) validForAddToUniverse
 {
 	return YES;
@@ -476,7 +506,7 @@ static NSString * const kOOLogEntityUpdateError				= @"entity.linkedList.update.
 }
 
 
-- (Entity *) owner
+- (id) owner
 {
 	return [UNIVERSE entityForUniversalID:owner];
 }

@@ -294,10 +294,12 @@ static PlayerEntity *sSharedPlayer = nil;
 	{
 		if (missile_entity[i])
 		{
-			[missile_roles addObject:[missile_entity[i] roles]];
+			[missile_roles addObject:[missile_entity[i] primaryRole]];
 		}
 		else
+		{
 			[missile_roles addObject:@"NONE"];
+		}
 	}
 	[result setObject:missile_roles forKey:@"missile_roles"];
 //	[self safeAllMissiles];	// affects missile_status!!
@@ -1054,7 +1056,9 @@ static PlayerEntity *sSharedPlayer = nil;
 	[name autorelease];
 	name = [[shipDict stringForKey:@"name" defaultValue:name] copy];
 	
-	[self setRoles:@"player"];
+	[roleSet release];
+	roleSet = nil;
+	[self setPrimaryRole:@"player"];
 	
 	OOColor *color = [OOColor brightColorWithDescription:[shipDict objectForKey:@"laser_color"]];
 	if (color == nil)  color = [OOColor redColor];
@@ -1653,7 +1657,7 @@ double scoopSoundPlayTime = 0.0;
 		}
 	}
 
-	if ((missile_status == MISSILE_STATUS_ARMED)&&(ident_engaged||[[missile_entity[activeMissile] roles] hasSuffix:@"MISSILE"])&&((status == STATUS_IN_FLIGHT)||(status == STATUS_WITCHSPACE_COUNTDOWN)))
+	if ((missile_status == MISSILE_STATUS_ARMED)&&(ident_engaged||[missile_entity[activeMissile] isMissile])&&((status == STATUS_IN_FLIGHT)||(status == STATUS_WITCHSPACE_COUNTDOWN)))
 	{
 		int first_target_id = [UNIVERSE getFirstEntityTargettedByPlayer:self];
 		if (first_target_id != NO_TARGET)
@@ -2568,11 +2572,10 @@ double scoopSoundPlayTime = 0.0;
 		if (missile_entity[next_missile])
 		{
 			// if this is a missile then select it
-//			if ([[missile_entity[next_missile] roles] isEqual:@"EQ_MISSILE"])
 			if (missile_entity[next_missile])	// if it exists
 			{
 				[self setActiveMissile:next_missile];
-				if (([[missile_entity[next_missile] roles] hasSuffix:@"MISSILE"])&&([missile_entity[next_missile] primaryTarget] != nil))
+				if (([missile_entity[next_missile] isMissile])&&([missile_entity[next_missile] primaryTarget] != nil))
 				{
 					// copy the missile's target
 					[self addTarget:[missile_entity[next_missile] primaryTarget]];
@@ -2727,7 +2730,7 @@ double scoopSoundPlayTime = 0.0;
 
 	double mcr = missile->collision_radius;
 
-	if ([[missile roles] hasSuffix:@"MINE"]&&((missile_status == MISSILE_STATUS_ARMED)||(missile_status == MISSILE_STATUS_TARGET_LOCKED)))
+	if ([missile isMine]&&((missile_status == MISSILE_STATUS_ARMED)||(missile_status == MISSILE_STATUS_TARGET_LOCKED)))
 	{
 		BOOL launchedOK = [self launchMine:missile];
 		if (launchedOK)
@@ -3387,15 +3390,15 @@ double scoopSoundPlayTime = 0.0;
 	int killClass = other->scanClass; // **tgape** change (+line)
 	int kill_award = 1;
 	
-	if ([[other roles] isEqual:@"police"])   // oops, we shot a copper!
+	if ([other isPolice])   // oops, we shot a copper!
 		legalStatus |= 64;
 	
 	if (![UNIVERSE strict])	// only mess with the scores if we're not in 'strict' mode
 	{
-		BOOL killIsCargo = ((killClass == CLASS_CARGO)&&([other commodityAmount] > 0));
-		if ((killIsCargo)||(killClass == CLASS_BUOY)||(killClass == CLASS_ROCK))
+		BOOL killIsCargo = ((killClass == CLASS_CARGO) && ([other commodityAmount] > 0));
+		if ((killIsCargo) || (killClass == CLASS_BUOY) || (killClass == CLASS_ROCK))
 		{
-			if (![[other roles] isEqual:@"tharglet"])	// okay, we'll count tharglets as proper kills
+			if (![other hasRole:@"tharglet"])	// okay, we'll count tharglets as proper kills
 			{
 				score /= 10;	// reduce bounty awarded
 				kill_award = 0;	// don't award a kill
@@ -5266,7 +5269,7 @@ static int last_outfitting_index;
 			missile_entity[i] = nil;
 			if (weapon)
 			{
-				NSString* weapon_key = [weapon roles];
+				NSString* weapon_key = [weapon primaryRole];
 				int weapon_value = [UNIVERSE getPriceForWeaponSystemWithKey:weapon_key];
 				tradeIn += weapon_value;
 				[weapon release];

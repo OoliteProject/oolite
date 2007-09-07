@@ -1294,7 +1294,8 @@ static BOOL hostiles;
 		{
 			if ([player missileForStation:i])
 			{
-				NSString	*miss_roles = [[player missileForStation:i] roles];
+				// TODO: copy icon data into missile object instead of looking it up each time. Possibly make weapon stores a ShipEntity subclass?
+				NSString	*miss_roles = [[player missileForStation:i] primaryRole];
 				NSArray		*miss_icon = [[UNIVERSE descriptions] arrayForKey:miss_roles];
 				if (i == [player activeMissile])
 				{

@@ -1185,7 +1185,7 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 	[tokens removeObjectAtIndex:0];
 	messageString = [tokens componentsJoinedByString:@" "];
 
-	[UNIVERSE sendShipsWithRole:roleString messageToAI:messageString];
+	[UNIVERSE sendShipsWithPrimaryRole:roleString messageToAI:messageString];
 }
 
 
@@ -1204,16 +1204,16 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 	NSMutableArray*	tokens = ScanTokensFromString(roles_number);
 	NSString*   roleString = nil;
 	NSString*	numberString = nil;
-
+	
 	if ([tokens count] != 2)
 	{
 		OOLog(kOOLogSyntaxAddShips, @"***** CANNOT addShips: '%@' - MUST BE '<role> <number>'",roles_number);
 		return;
 	}
-
+	
 	roleString = (NSString *)[tokens objectAtIndex:0];
 	numberString = (NSString *)[tokens objectAtIndex:1];
-
+	
 	int number = [numberString intValue];
 	if (number < 0)
 	{
@@ -1222,9 +1222,9 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 	}
 	
 	OOLog(kOOLogNoteAddShips, @"DEBUG ..... Going to add %d ships with role '%@'", number, roleString);
-
+	
 	while (number--)
-		[UNIVERSE witchspaceShipWithRole:roleString];
+		[UNIVERSE witchspaceShipWithPrimaryRole:roleString];
 }
 
 
@@ -1873,7 +1873,7 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 				[se1AI setStateMachine:@"exitingTraderAI.plist"];
 				[se1AI setState:@"EXIT_SYSTEM"];
 				[se1AI reactToMessage:[NSString stringWithFormat:@"pauseAI: %d", 3 + (ranrot_rand() & 15)]];
-				[se1 setRoles:@"none"];	// prevents new ship from appearing at witchpoint when this one leaves!
+				[se1 setPrimaryRole:@"none"];	// prevents new ship from appearing at witchpoint when this one leaves!
 			}
 		}
 	}

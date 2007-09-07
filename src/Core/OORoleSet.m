@@ -49,6 +49,8 @@ SOFTWARE.
 #import "OORoleSet.h"
 
 #import "OOStringParsing.h"
+#import "OOCollectionExtractors.h"
+#import "OOLogging.h"
 
 
 @interface OORoleSet (OOPrivate)
@@ -109,6 +111,22 @@ SOFTWARE.
 }
 
 
+- (BOOL)isEqual:(id)other
+{
+	if ([other isKindOfClass:[OORoleSet class]])
+	{
+		return [_rolesAndProbabilities isEqual:[other rolesAndProbabilities]];
+	}
+	else  return NO;
+}
+
+
+- (unsigned)hash
+{
+	return [_rolesAndProbabilities hash];
+}
+
+
 - (id)copyWithZone:(NSZone *)zone
 {
 	// Note: since object is immutable, a copy is no different from the original.
@@ -159,11 +177,7 @@ SOFTWARE.
 
 - (float)probabilityForRole:(NSString *)role
 {
-	NSNumber				*value = nil;
-	
-	if (role != nil)  value = [_rolesAndProbabilities objectForKey:role];
-	if (value != nil)  return [value floatValue];
-	else  return 0.0f;
+	return [_rolesAndProbabilities floatForKey:role defaultValue:0.0f];
 }
 
 
@@ -189,11 +203,52 @@ SOFTWARE.
 }
 
 
+- (NSString *)anyRole
+{
+	NSEnumerator			*roleEnum = nil;
+	NSString				*role;
+	float					prob, selected;
+	
+	selected = randf() * _totalProb;
+	prob = 0.0f;
+	
+	for (roleEnum = [_rolesAndProbabilities objectEnumerator]; (role = [roleEnum nextObject]); )
+	{
+		prob += [_rolesAndProbabilities floatForKey:role];
+		if (selected <= prob)  break;
+	}
+	if (role == nil)
+	{
+		role = [[self roles] anyObject];
+		OOLog(@"roleSet.anyRole.failed", @"Could not get a weighted-random role from role set %@, returning unweighted selection %@. TotalProb: %g, selected: %g, prob at end: %@", self, role, _totalProb, selected, prob);
+	}
+	return role;
+}
+
+
+- (id)roleSetWithAddedRoleIfNotSet:(NSString *)role probability:(float)probability
+{
+	NSMutableDictionary		*dict = nil;
+	
+	if (role == nil || probability < 0 || ([self hasRole:role] && [self probabilityForRole:role] == probability))
+	{
+		return [[self copy] autorelease];
+	}
+	
+	dict = [[_rolesAndProbabilities mutableCopy] autorelease];
+	[dict setObject:[NSNumber numberWithFloat:probability] forKey:role];
+	return [[[[self class] alloc] initWithRolesAndProbabilities:dict] autorelease];
+}
+
+
 - (id)roleSetWithAddedRole:(NSString *)role probability:(float)probability
 {
 	NSMutableDictionary		*dict = nil;
 	
-	if (role == nil || probability < 0 || [self hasRole:role])  return [[self copy] autorelease];
+	if (role == nil || probability < 0 || [self hasRole:role])
+	{
+		return [[self copy] autorelease];
+	}
 	
 	dict = [[_rolesAndProbabilities mutableCopy] autorelease];
 	[dict setObject:[NSNumber numberWithFloat:probability] forKey:role];
@@ -219,6 +274,10 @@ SOFTWARE.
 
 - (id)initWithRolesAndProbabilities:(NSDictionary *)dict
 {
+	NSEnumerator			*roleEnum = nil;
+	NSString				*role;
+	float					prob;
+	
 	if (dict == nil)
 	{
 		[self release];
@@ -229,6 +288,20 @@ SOFTWARE.
 	
 	// Note: _roles and _roleString are derived on the fly as needed.
 	_rolesAndProbabilities = [dict copy];
+	
+	for (roleEnum = [dict keyEnumerator]; (role = [roleEnum nextObject]); )
+	{
+		prob = [dict floatForKey:role defaultValue:-1];
+		if (prob < 0)
+		{
+			OOLog(@"roleSet.badValue", @"Attempt to create a role set with negative or non-numerical probability for role %@.", role);
+			[self release];
+			return nil;
+		}
+		
+		_totalProb += prob;
+	}
+	
 	return self;
 }
 

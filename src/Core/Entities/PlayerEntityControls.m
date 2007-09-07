@@ -423,7 +423,7 @@ static NSTimeInterval	time_last_frame;
 				// launch here
 				if (!fire_missile_pressed)
 				{
-					BOOL missile_noise = [[missile_entity[activeMissile] roles] hasSuffix:@"MISSILE"];
+					BOOL missile_noise = [missile_entity[activeMissile] isMissile];
 					if ([self fireMissile])
 					{
 						if (missile_noise)  [missileSound play];
@@ -515,7 +515,7 @@ static NSTimeInterval	time_last_frame;
 					missile_status = MISSILE_STATUS_ARMED;
 					if ((ident_engaged) && ([self primaryTarget]))
 					{
-						if ([[missile_entity[activeMissile] roles] hasSuffix:@"MISSILE"])
+						if ([missile_entity[activeMissile] isMissile])
 						{
 							missile_status = MISSILE_STATUS_TARGET_LOCKED;
 							[missile_entity[activeMissile] addTarget:[self primaryTarget]];
@@ -527,7 +527,7 @@ static NSTimeInterval	time_last_frame;
 					else
 					{
 						primaryTarget = NO_TARGET;
-						if ([[missile_entity[activeMissile] roles] hasSuffix:@"MISSILE"])
+						if ([missile_entity[activeMissile] isMissile])
 						{
 							if (missile_entity[activeMissile])
 								[missile_entity[activeMissile] removeTarget:nil];
@@ -536,7 +536,7 @@ static NSTimeInterval	time_last_frame;
 								[self beep];
 						}
 					}
-					if ([[missile_entity[activeMissile] roles] hasSuffix:@"MINE"])
+					if ([missile_entity[activeMissile] isMine])
 					{
 						[UNIVERSE addMessage:ExpandDescriptionForCurrentSystem(@"[mine-armed]") forCount:4.5];
 						if (![UNIVERSE playCustomSound:@"[mine-armed]"])

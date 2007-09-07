@@ -443,6 +443,7 @@ static JSBool SystemAddShips(JSContext *context, JSObject *this, uintN argc, jsv
 		
 	}
 	
+	// Note: need a way to specify the use of witchspace-in effects (as in legacy_addShips).
 	OOReportJavaScriptError(context, @"System.addShips(): not implemented.");
 	
 	return YES;
@@ -461,7 +462,7 @@ static JSBool SystemLegacyAddShips(JSContext *context, JSObject *this, uintN arg
 		return YES;
 	}
 	
-	while (count--)  [UNIVERSE witchspaceShipWithRole:role];
+	while (count--)  [UNIVERSE witchspaceShipWithPrimaryRole:role];
 	
 	return YES;
 }

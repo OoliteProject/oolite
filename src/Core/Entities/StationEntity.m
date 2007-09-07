@@ -525,18 +525,16 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 	int			corridor_count = 9;
 	int			corridor_final_approach = 3;
 	
-	int			ship_id = [ship universalID];
-	NSString*   shipID = [NSString stringWithFormat:@"%d", ship_id];
-
+	NSNumber	*shipID = [NSNumber numberWithUnsignedShort:[ship universalID]];
+	
 	Vector launchVector = vector_forward_from_quaternion(quaternion_multiply(port_orientation, orientation));
 	Vector temp = (fabsf(launchVector.x) < 0.8)? make_vector(1,0,0) : make_vector(0,1,0);
 	temp = cross_product(launchVector, temp);	// 90 deg to launchVector & temp
 	Vector rightVector = cross_product(launchVector, temp);
 	Vector upVector = cross_product(launchVector, rightVector);
 	
-	// will select a direction for offset based on the shipID
-	//
-	int offset_id = ship_id & 0xf;	// 16  point compass
+	// will select a direction for offset based on the entity personality (was ship ID)
+	int offset_id = [ship entityPersonalityInt] & 0xf;	// 16  point compass
 	double c = cos(offset_id * M_PI * ONE_EIGHTH);
 	double s = sin(offset_id * M_PI * ONE_EIGHTH);
 	
@@ -1109,15 +1107,14 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 }
 
 
-- (unsigned) countShipsInLaunchQueueWithRole:(NSString *) a_role
+- (unsigned) countShipsInLaunchQueueWithPrimaryRole:(NSString *)role
 {
-	if ([launchQueue count] == 0)
-		return 0;
-	unsigned i;
-	unsigned result = 0;
+	unsigned i, count, result = 0;
+	count = [launchQueue count];
+	
 	for (i = 0; i < [launchQueue count]; i++)
 	{
-		if ([[(ShipEntity *)[launchQueue objectAtIndex:i] roles] isEqual:a_role])
+		if ([[launchQueue objectAtIndex:i] hasPrimaryRole:role])
 			result++;
 	}
 	return result;
@@ -1167,26 +1164,25 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 	
 	// set last launch time to avoid clashes with outgoing ships
 	last_launch_time = [UNIVERSE getTime];
-	if ([[ship roles] isEqual:@"shuttle"])
-		docked_shuttles++;
-	if ([[ship roles] isEqual:@"trader"])
-		docked_traders++;
-	if ([[ship roles] isEqual:@"police"])
-		police_launched--;
-	if ([[ship roles] isEqual:@"hermit-ship"])
-		police_launched--;
-	if ([[ship roles] isEqual:@"defense_ship"])
-		police_launched--;
-	if ([[ship roles] isEqual:@"scavenger"]||[[ship roles] isEqual:@"miner"])	// treat miners and scavengers alike!
-		scavengers_launched--;
-
-	int			ship_id = [ship universalID];
-	NSString*   shipID = [NSString stringWithFormat:@"%d", ship_id];
+	if ([ship isShuttle])  docked_shuttles++;
+	else if ([ship isTrader] && ![ship isPlayer])  docked_traders++;
+	else if (([ship isPolice] && ![ship isEscort]) || [ship hasPrimaryRole:@"hermit-ship"] || [ship hasPrimaryRole:@"defense_ship"])
+	{
+		if (0 < police_launched)  police_launched--;
+	}
+	else if ([ship hasPrimaryRole:@"scavenger"] || [ship hasPrimaryRole:@"miner"])	// treat miners and scavengers alike!
+	{
+		if (0 < scavengers_launched)  scavengers_launched--;
+	}
+	
+	OOUniversalID	ship_id = [ship universalID];
+	NSNumber		*shipID = [NSNumber numberWithUnsignedShort:ship_id];
+	
 	[shipsOnApproach removeObjectForKey:shipID];
 	if ([shipsOnApproach count] == 0)
 		[shipAI message:@"DOCKING_COMPLETE"];
 	
-	int i;	// clear any previously owned docking stages
+	unsigned i;	// clear any previously owned docking stages
 	for (i = 0; i < MAX_DOCKING_STAGES; i++)
 		if ((id_lock[i] == ship_id)||([UNIVERSE entityForUniversalID:id_lock[i]] == nil))
 			id_lock[i] = NO_TARGET;
@@ -1346,7 +1342,7 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 					[OOCharacter randomCharacterWithRole: @"police"
 					andOriginalSystem: [UNIVERSE systemSeed]]]];
 				
-			[police_ship setRoles:@"police"];
+			[police_ship setPrimaryRole:@"police"];
 			[police_ship addTarget:[UNIVERSE entityForUniversalID:police_target]];
 			[police_ship setScanClass: CLASS_POLICE];
 			[police_ship setBounty:0];
@@ -1399,7 +1395,7 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 	if (!defense_ship)
 		return;
 	
-	[defense_ship setRoles:@"defense_ship"];
+	[defense_ship setPrimaryRole:@"defense_ship"];
 	
 	police_launched++;
 	
@@ -1429,7 +1425,7 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 {
 	ShipEntity  *scavenger_ship;
 	
-	unsigned scavs = [UNIVERSE countShipsWithRole:@"scavenger" inRange:SCANNER_MAX_RANGE ofEntity:self] + [self countShipsInLaunchQueueWithRole:@"scavenger"];
+	unsigned scavs = [UNIVERSE countShipsWithRole:@"scavenger" inRange:SCANNER_MAX_RANGE ofEntity:self] + [self countShipsInLaunchQueueWithPrimaryRole:@"scavenger"];
 	
 	if (scavs >= max_scavengers)  return;
 	if (scavengers_launched >= max_scavengers)  return;
@@ -1457,7 +1453,7 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 {
 	ShipEntity  *miner_ship;
 	
-	int		n_miners = [UNIVERSE countShipsWithRole:@"miner" inRange:SCANNER_MAX_RANGE ofEntity:self] + [self countShipsInLaunchQueueWithRole:@"miner"];
+	int		n_miners = [UNIVERSE countShipsWithRole:@"miner" inRange:SCANNER_MAX_RANGE ofEntity:self] + [self countShipsInLaunchQueueWithPrimaryRole:@"miner"];
 	
 	if (n_miners >= 1)	// just the one
 		return;
@@ -1565,7 +1561,7 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 				[OOCharacter randomCharacterWithRole: @"trader"
 				andOriginalSystem: [UNIVERSE systemSeed]]]];
 				
-		[trader_ship setRoles:@"trader"];
+		[trader_ship setPrimaryRole:@"trader"];
 		[trader_ship setScanClass: CLASS_NEUTRAL];
 		[trader_ship setCargoFlag:CARGO_FLAG_FULL_PLENTIFUL];
 		
@@ -1641,7 +1637,7 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 				
 			[patrol_ship switchLightsOff];
 			[patrol_ship setScanClass: CLASS_POLICE];
-			[patrol_ship setRoles:@"police"];
+			[patrol_ship setPrimaryRole:@"police"];
 			[patrol_ship setBounty:0];
 			[patrol_ship setGroupID:universalID];	// who's your Daddy
 			[[patrol_ship getAI] setStateMachine:@"planetPatrolAI.plist"];
@@ -1664,8 +1660,8 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 			[ship setCrew:[NSArray arrayWithObject:
 				[OOCharacter randomCharacterWithRole: role
 				andOriginalSystem: [UNIVERSE systemSeed]]]];
-		[ship setRoles: role];
-		[ship setGroupID: universalID];	// who's your Daddy
+		[ship setPrimaryRole:role];
+		[ship setGroupID:universalID];	// who's your Daddy
 		[self addShipToLaunchQueue:ship];
 		[ship release];
 	}
@@ -1687,8 +1683,8 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 	
 	if (scanClass == CLASS_ROCK)	// ie we're a rock hermit or similar
 	{
-		// set the roles so that we break up into rocks!
-		roles = @"asteroid";
+		// set the role so that we break up into rocks!
+		[self setPrimaryRole:@"asteroid"];
 		being_mined = YES;
 	}
 	
@@ -1780,7 +1776,7 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 	if (gDebugFlags & DEBUG_ENTITIES)
 	{
 		NSString* result = [[NSString alloc] initWithFormat:@"<StationEntity %@ %d (%@)%@%@ // %@>",
-			name, universalID, roles, (UNIVERSE == nil)? @" (not in UNIVERSE)":@"", ([self isRotatingStation])? @" (rotating)":@"", collisionRegion];
+			name, universalID, roleSet, (UNIVERSE == nil)? @" (not in UNIVERSE)":@"", ([self isRotatingStation])? @" (rotating)":@"", collisionRegion];
 		return [result autorelease];
 	}
 #endif

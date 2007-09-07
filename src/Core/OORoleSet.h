@@ -58,6 +58,7 @@ SOFTWARE.
 	NSString					*_roleString;
 	NSDictionary				*_rolesAndProbabilities;
 	NSSet						*_roles;
+	float						_totalProb;
 }
 
 + (id)roleSetWithString:(NSString *)roleString;
@@ -75,8 +76,12 @@ SOFTWARE.
 - (NSArray *)sortedRoles;
 - (NSDictionary *)rolesAndProbabilities;
 
-// Creating modified copies of role sets:
+// Returns a random role, taking probabilities into account.
+- (NSString *)anyRole;
+
+	// Creating modified copies of role sets:
 - (id)roleSetWithAddedRole:(NSString *)role probability:(float)probability;
+- (id)roleSetWithAddedRoleIfNotSet:(NSString *)role probability:(float)probability;	// Unlike the above, does not change probability if role exists.
 - (id)roleSetWithRemovedRole:(NSString *)role;
 
 @end

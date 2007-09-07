@@ -32,6 +32,11 @@ MA 02110-1301, USA.
 #import "OOWeakReference.h"
 #import "OOTypes.h"
 
+@class	GameController, CollisionRegion, MyOpenGLView, GuiDisplayGen,
+		Entity, ShipEntity, StationEntity, PlanetEntity, PlayerEntity,
+		OORoleSet;
+
+
 #define CROSSHAIR_SIZE						32.0
 
 enum
@@ -107,9 +112,6 @@ enum
 #define OOLITE_EXCEPTION_FATAL				@"OoliteFatalException"
 
 #define BILLBOARD_DEPTH						50000.0
-
-@class GameController, CollisionRegion, MyOpenGLView, GuiDisplayGen;
-@class Entity, ShipEntity, StationEntity, PlanetEntity, PlayerEntity;
 
 
 @interface Universe: NSObject <OOWeakReferenceSupport>
@@ -277,7 +279,7 @@ enum
 - (BOOL) addShips:(int) howMany withRole:(NSString *) desc nearPosition:(Vector) pos withCoordinateSystem:(NSString *) system withinRadius:(GLfloat) radius;
 - (BOOL) addShips:(int) howMany withRole:(NSString *) desc intoBoundingBox:(BoundingBox) bbox;
 - (BOOL) spawnShip:(NSString *) shipdesc;
-- (void) witchspaceShipWithRole:(NSString *) desc;
+- (void) witchspaceShipWithPrimaryRole:(NSString *)role;
 - (void) spawnShipWithRole:(NSString *) desc near:(Entity *) entity;
 
 - (void) set_up_break_pattern:(Vector) pos quaternion:(Quaternion) q;
@@ -353,10 +355,12 @@ enum
 - (int) getFirstEntityHitByLaserFromEntity:(Entity *) e1 inView:(int) viewdir offset:(Vector) offset rangeFound:(GLfloat*)range_ptr;
 - (int) getFirstEntityTargettedByPlayer:(PlayerEntity*) player;
 
-- (NSArray *) getEntitiesWithinRange:(double) range1 ofEntity:(Entity *) e1;
-- (unsigned) countShipsWithRole:(NSString *) desc inRange:(double) range1 ofEntity:(Entity *)e1;
-- (unsigned) countShipsWithRole:(NSString *) desc;
-- (void) sendShipsWithRole:(NSString *) desc messageToAI:(NSString *) ms;
+- (NSArray *) getEntitiesWithinRange:(double)range ofEntity:(Entity *)entity;
+- (unsigned) countShipsWithRole:(NSString *)role inRange:(double)range ofEntity:(Entity *)entity;
+- (unsigned) countShipsWithRole:(NSString *)role;
+- (unsigned) countShipsWithPrimaryRole:(NSString *)role inRange:(double)range ofEntity:(Entity *)entity;
+- (unsigned) countShipsWithPrimaryRole:(NSString *)role;
+- (void) sendShipsWithPrimaryRole:(NSString *)role messageToAI:(NSString *)message;
 
 - (OOTimeAbsolute) getTime;
 - (OOTimeDelta) getTimeDelta;

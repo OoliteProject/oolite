@@ -48,36 +48,6 @@ MA 02110-1301, USA.
 }
 
 
-- (BOOL)isShip
-{
-	return isShip;
-}
-
-
-- (BOOL)isStation
-{
-	return isStation;
-}
-
-
-- (BOOL)isSubEntity
-{
-	return isSubentity;
-}
-
-
-- (BOOL)isPlayer
-{
-	return isPlayer;
-}
-
-
-- (BOOL)isPlanet
-{
-	return isPlanet;
-}
-
-
 - (jsval)javaScriptValueInContext:(JSContext *)context
 {
 	JSClass					*class = NULL;

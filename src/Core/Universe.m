@@ -85,10 +85,20 @@ static NSComparisonResult compareName(NSDictionary *dict1, NSDictionary *dict2, 
 static NSComparisonResult comparePrice(NSDictionary *dict1, NSDictionary *dict2, void * context);
 
 
+typedef BOOL (*ShipFilterPredicate)(ShipEntity *ship, id parameter);
+static BOOL HasRolePredicate(ShipEntity *ship, id parameter);
+static BOOL HasPrimaryRolePredicate(ShipEntity *ship, id parameter);
+
+
 @interface Universe (OOPrivate)
 
 - (BOOL)doRemoveEntity:(Entity *)entity;
 - (NSDictionary *)getDictionaryForShip:(NSString *)desc recursionLimit:(uint32_t)recursionLimit;
+
+- (unsigned) countShipsWithPredicate:(ShipFilterPredicate)predicate
+						   parameter:(id)parameter
+							 inRange:(double)range1
+							ofEntity:(Entity *)e1;
 
 @end
 
@@ -1398,7 +1408,7 @@ GLfloat docked_light_specular[]	= { (GLfloat) 1.0, (GLfloat) 1.0, (GLfloat) 0.5,
 						[OOCharacter randomCharacterWithRole:@"police"
 						andOriginalSystem: (randf() > 0.05)? systems[Ranrot() & 255]:system_seed]]];
 				
-				[hunter_ship setRoles:@"police"];
+				[hunter_ship setPrimaryRole:@"police"];
 				if (hunter_ship->scanClass == CLASS_NOT_SET)
 					[hunter_ship setScanClass: CLASS_POLICE];
 				while (((Ranrot() & 7) + 2 < government)&&([hunter_ship escortCount] < 6))
@@ -1523,7 +1533,7 @@ GLfloat docked_light_specular[]	= { (GLfloat) 1.0, (GLfloat) 1.0, (GLfloat) 0.5,
 					[OOCharacter randomCharacterWithRole:@"trader"
 					andOriginalSystem: (randf() > 0.85)? systems[Ranrot() & 255]:system_seed]]];
 				
-			[trader_ship setRoles:@"trader"];	// set this to allow escorts to pair with the ship
+			[trader_ship setPrimaryRole:@"trader"];	// set this to allow escorts to pair with the ship
 			if ((trader_ship)&&(trader_ship->scanClass == CLASS_NOT_SET))
 				[trader_ship setScanClass: CLASS_NEUTRAL];
 			[trader_ship setPosition:launchPos];
@@ -1635,7 +1645,7 @@ GLfloat docked_light_specular[]	= { (GLfloat) 1.0, (GLfloat) 1.0, (GLfloat) 0.5,
 						[OOCharacter randomCharacterWithRole:@"police"
 						andOriginalSystem: (randf() > 0.05)? systems[Ranrot() & 255]:system_seed]]];
 				
-				[hunter_ship setRoles:@"police"];
+				[hunter_ship setPrimaryRole:@"police"];
 				if (hunter_ship->scanClass == CLASS_NOT_SET)
 					[hunter_ship setScanClass: CLASS_POLICE];
 				while (((Ranrot() & 7) + 2 < government)&&([hunter_ship escortCount] < 6))
@@ -2335,16 +2345,17 @@ GLfloat docked_light_specular[]	= { (GLfloat) 1.0, (GLfloat) 1.0, (GLfloat) 0.5,
 }
 
 
-- (void) witchspaceShipWithRole:(NSString *)desc
+- (void) witchspaceShipWithPrimaryRole:(NSString *)role
 {
 	// adds a ship exiting witchspace (corollary of when ships leave the system)
-	ShipEntity  *ship;
-	ship = [self newShipWithRole:desc];   // retain count = 1
+	ShipEntity		*ship = nil;
+	
+	ship = [self newShipWithRole:role];   // retain count = 1
 	if (ship)
 	{
 		if ((ship->scanClass == CLASS_NO_DRAW)||(ship->scanClass == CLASS_NOT_SET))
 			[ship setScanClass: CLASS_NEUTRAL];
-		if ([desc isEqual:@"trader"])
+		if ([role isEqual:@"trader"])
 		{
 			[ship setCargoFlag: CARGO_FLAG_FULL_SCARCE];
 			if (randf() > 0.10)
@@ -2352,14 +2363,14 @@ GLfloat docked_light_specular[]	= { (GLfloat) 1.0, (GLfloat) 1.0, (GLfloat) 0.5,
 			else
 				[[ship getAI] setStateMachine:@"route2sunskimAI.plist"];	// route3 really, but the AI's the same
 		}
-		if ([desc isEqual:@"pirate"])
+		if ([role isEqual:@"pirate"])
 		{
 			[ship setCargoFlag: CARGO_FLAG_PIRATE];
 			[ship setBounty: (Ranrot() & 7) + (Ranrot() & 7) + ((randf() < 0.05)? 63 : 23)];	// they already have a price on their heads
 		}
 		if (![ship crew])
 			[ship setCrew:[NSArray arrayWithObject:
-				[OOCharacter randomCharacterWithRole: desc
+				[OOCharacter randomCharacterWithRole:role
 				andOriginalSystem: systems[Ranrot() & 255]]]];
 		
 		[ship leaveWitchspace];				// gets added to the universe here!
@@ -2784,46 +2795,7 @@ GLfloat docked_light_specular[]	= { (GLfloat) 1.0, (GLfloat) 1.0, (GLfloat) 0.5,
 			foundf += chance;
 		}
 	}
-	/*for (shipEnum = [shipdata keyEnumerator]; (shipKey = [shipEnum nextObject]); )
-	{
-		shipDict = [shipdata dictionaryForKey:shipKey];
-		shipRoles = ScanTokensFromString([shipDict stringForKey:@"roles"]);
-		
-		if ([shipDict arrayForKey:@"conditions"])
-		{
-			PlayerEntity* player = [PlayerEntity sharedPlayer];
-			if ((player) && (player->isPlayer) && (![player checkCouplet:shipDict onEntity:player]))
-				shipRoles = [NSArray array];	// empty array - ship does not meet conditions listed
-		}
-		
-		for (j = 0; j < [shipRoles count]; j++)
-		{
-			NSString *putative_roles = [shipRoles stringAtIndex:j];
-			
-			GLfloat chance = 1.0;
-			if (putative_roles)
-			{
-				if ([putative_roles hasPrefix:search] && ([putative_roles rangeOfString:@"("].location != NSNotFound))
-				{
-					NSScanner* scanner = [NSScanner scannerWithString:putative_roles];	// scanner
-					[scanner scanUpToString:@"(" intoString:&putative_roles];			// look for '('
-					[scanner scanString:@"(" intoString:NULL];							// skip over it
-					if (![scanner scanFloat:&chance])	chance = 1.0;					// try to scan a float
-																						// ignore from '(' onwards (lazy)
-					
-				}
-				
-				if ([putative_roles isEqual:search] && (chance > 0.0))
-				{
-					[foundShips addObject:shipKey];
-					[foundChance addObject:[NSNumber numberWithFloat:chance]];
-					found++;
-					foundf += chance;
-				}
-			}
-		}
-	}*/
-
+	
 	i = 0;
 	
 	if (found > 1)
@@ -2845,7 +2817,7 @@ GLfloat docked_light_specular[]	= { (GLfloat) 1.0, (GLfloat) 1.0, (GLfloat) 0.5,
 		shipKey = [foundShips stringAtIndex:i];
 		
 		ship = [self newShipWithName:shipKey];		// may return nil if not found!
-		[ship setRoles:search];						// set its roles to this one particular chosen role
+		[ship setPrimaryRole:search];
 		
 		shipDict = [shipdata dictionaryForKey:shipKey];
 		if ([shipDict fuzzyBooleanForKey:@"auto_ai" defaultValue:YES])
@@ -2876,7 +2848,7 @@ GLfloat docked_light_specular[]	= { (GLfloat) 1.0, (GLfloat) 1.0, (GLfloat) 0.5,
 	[pool release];	// tidy everything up
 	
 	// check a trader has fuel
-	if ([ship fuel] == 0 &&([[ship roles] rangeOfString:@"trader"].location != NSNotFound))
+	if ([ship fuel] == 0 && [[ship primaryRole] isEqual:@"trader"])
 	{
 		[ship setFuel: PLAYER_MAX_FUEL];
 	}
@@ -2915,7 +2887,11 @@ GLfloat docked_light_specular[]	= { (GLfloat) 1.0, (GLfloat) 1.0, (GLfloat) 0.5,
 		}
 		else  [localException raise];
 	NS_ENDHANDLER
-
+	
+	// Set primary role to same as ship name, if ship name is also a role.
+	// Otherwise, if caller doesn't set a role, one will be selected randomly.
+	if ([ship hasRole:desc])  [ship setPrimaryRole:desc];
+	
 	return ship;   // retain count = 1
 }
 
@@ -4602,65 +4578,37 @@ static BOOL MaintainLinkedLists(Universe* uni)
 }
 
 
-- (unsigned) countShipsWithRole:(NSString *) desc inRange:(double) range1 ofEntity:(Entity *)e1
+- (unsigned) countShipsWithRole:(NSString *)role inRange:(double)range ofEntity:(Entity *)entity
 {
-	if (!e1)  return 0;
-	
-	unsigned	i, found;
-	unsigned	ent_count = n_entities;
-	unsigned	ship_count = 0;
-	Entity		*my_entities[ent_count];
-	
-	for (i = 0; i < ent_count; i++)
-		if (sortedEntities[i]->isShip)
-			my_entities[ship_count++] = [sortedEntities[i] retain];	// retained
-
-	found = 0;
-	Vector p1 = e1->position;
-	for (i = 0; i < ship_count; i++)
-	{
-		Entity *e2 = my_entities[i];
-		if ((e2 != e1)&&([[(ShipEntity *)e2 roles] isEqual:desc]))
-		{
-			Vector p2 = e2->position;
-			p2.x -= p1.x;	p2.y -= p1.y;	p2.z -= p1.z;
-			double cr = range1 + e2->collision_radius;
-			double d2 = p2.x*p2.x + p2.y*p2.y + p2.z*p2.z - cr*cr;
-			if (d2 < 0)
-				found++;
-		}
-	}
-	for (i = 0; i < ship_count; i++)
-		[my_entities[i] release]; //	released
-	return  found;
+	return [self countShipsWithPredicate:HasRolePredicate
+							   parameter:role
+								 inRange:range
+								ofEntity:entity];
 }
 
 
-- (unsigned) countShipsWithRole:(NSString *) desc
+- (unsigned) countShipsWithRole:(NSString *)role
 {
-	unsigned	i, found;
-	unsigned	ent_count = n_entities;
-	unsigned	ship_count = 0;
-	Entity		*my_entities[ent_count];
-	
-	for (i = 0; i < ent_count; i++)
-		if (sortedEntities[i]->isShip)
-			my_entities[ship_count++] = [sortedEntities[i] retain];	// retained
-
-	found = 0;
-	for (i = 0; i < ship_count; i++)
-	{
-		Entity *e2 = my_entities[i];
-		if (([[(ShipEntity *)e2 roles] isEqual:desc]))
-			found++;
-	}
-	for (i = 0; i < ship_count; i++)
-		[my_entities[i] release]; //	released
-	return  found;
+	return [self countShipsWithRole:role inRange:-1 ofEntity:nil];
 }
 
 
-- (void) sendShipsWithRole:(NSString *) desc messageToAI:(NSString *) ms
+- (unsigned) countShipsWithPrimaryRole:(NSString *)role inRange:(double)range ofEntity:(Entity *)entity
+{
+	return [self countShipsWithPredicate:HasPrimaryRolePredicate
+							   parameter:role
+								 inRange:range
+								ofEntity:entity];
+}
+
+
+- (unsigned) countShipsWithPrimaryRole:(NSString *)role
+{
+	return [self countShipsWithPrimaryRole:role inRange:-1 ofEntity:nil];
+}
+
+
+- (void) sendShipsWithPrimaryRole:(NSString *)role messageToAI:(NSString *)ms
 {
 	int i, found;
 	int ent_count = n_entities;
@@ -4674,7 +4622,7 @@ static BOOL MaintainLinkedLists(Universe* uni)
 	for (i = 0; i < ship_count; i++)
 	{
 		Entity *e2 = my_entities[i];
-		if ([[(ShipEntity *)e2 roles] isEqual:desc])
+		if ([[(ShipEntity *)e2 primaryRole] isEqual:role])
 			[[(ShipEntity *)e2 getAI] reactToMessage:ms];
 	}
 	for (i = 0; i < ship_count; i++)
@@ -6260,8 +6208,8 @@ static BOOL MaintainLinkedLists(Universe* uni)
 - (BOOL) generateEconomicDataWithEconomy:(OOEconomyID) economy andRandomFactor:(int) random_factor
 {
 	StationEntity *some_station = [self station];
-	NSString *station_roles = [some_station roles];
-	if ([commoditylists arrayForKey:station_roles] == nil)  station_roles = @"default";
+	NSString *stationRole = [some_station primaryRole];
+	if ([commoditylists arrayForKey:stationRole] == nil)  stationRole = @"default";
 	
 	[commoditydata release];
 	commoditydata = [[self commodityDataForEconomy:economy andStation:some_station andRandomFactor:random_factor] retain];
@@ -6276,8 +6224,8 @@ static BOOL MaintainLinkedLists(Universe* uni)
 	unsigned		i;
 	
 	station_roles = [[self currentSystemData] stringForKey:@"market"];
-	if (station_roles == nil)  station_roles = [some_station roles];
-	if ([commoditylists arrayForKey:station_roles] == nil)  station_roles = @"default";
+	NSString *stationRole = [some_station primaryRole];
+	if ([commoditylists arrayForKey:stationRole] == nil)  stationRole = @"default";
 	
 	ourEconomy = [NSMutableArray arrayWithArray:[commoditylists arrayForKey:station_roles]];
 	
@@ -7699,4 +7647,64 @@ static NSComparisonResult comparePrice(NSDictionary *dict1, NSDictionary *dict2,
 	return shipdict;
 }
 
+
+- (unsigned) countShipsWithPredicate:(ShipFilterPredicate)predicate
+						   parameter:(id)parameter
+							 inRange:(double)range1
+							ofEntity:(Entity *)e1
+{
+	if (e1 == nil || predicate == NULL)  return 0;
+	
+	unsigned	i, found;
+	unsigned	ent_count = n_entities;
+	unsigned	ship_count = 0;
+	ShipEntity	*my_entities[ent_count];
+	Vector		p1;
+	
+	for (i = 0; i < ent_count; i++)
+		if (sortedEntities[i]->isShip)
+			my_entities[ship_count++] = [sortedEntities[i] retain];	// retained
+	
+	found = 0;
+	if (e1 != nil)  p1 = e1->position;
+	else  p1 = kZeroVector;
+	
+	for (i = 0; i < ship_count; i++)
+	{
+		ShipEntity *e2 = my_entities[i];
+		if (e2 != e1 && predicate(e2, parameter))
+		{
+			double d2;
+			if (range1 < 0)  d2 = -1;	// Negative range means infinity
+			else
+			{
+				Vector p2 = e2->position;
+				p2.x -= p1.x;	p2.y -= p1.y;	p2.z -= p1.z;
+				double cr = range1 + e2->collision_radius;
+				d2 = p2.x*p2.x + p2.y*p2.y + p2.z*p2.z - cr*cr;
+			}
+			if (d2 < 0)
+			{
+				found++;
+			}
+		}
+	}
+	for (i = 0; i < ship_count; i++)
+		[my_entities[i] release]; //	released
+	
+	return found;
+}
+
 @end
+
+
+static BOOL HasRolePredicate(ShipEntity *ship, id parameter)
+{
+	return [ship hasRole:parameter];
+}
+
+
+static BOOL HasPrimaryRolePredicate(ShipEntity *ship, id parameter)
+{
+	return [ship hasPrimaryRole:parameter];
+}

@@ -35,6 +35,7 @@ MA 02110-1301, USA.
 #import "OOCollectionExtractors.h"
 #import "OOConstToString.h"
 #import "NSScannerOOExtensions.h"
+#import "OORoleSet.h"
 
 #import "OOCharacter.h"
 #import "OOBrain.h"
@@ -267,8 +268,10 @@ static NSString * const kOOLogEntityBehaviourChanged	= @"entity.behaviour.change
 	[name autorelease];
 	name = [[shipDict stringForKey:@"name" defaultValue:name] copy];
 	
-	[roles release];
-	roles = [[shipDict stringForKey:@"roles"] copy];
+	[roleSet release];
+	roleSet = [[OORoleSet alloc] initWithRoleString:[shipDict stringForKey:@"roles"]];
+	[primaryRole release];
+	primaryRole = nil;
 	
 	[self setOwner:self];
 	
@@ -454,14 +457,15 @@ static NSString * const kOOLogEntityBehaviourChanged	= @"entity.behaviour.change
 	
 	if (isSubentity)
 	{
-		[(ShipEntity *)[self owner] subEntityReallyDied:self];
+		[[self owner] subEntityReallyDied:self];
 	}
 	
 	[shipinfoDictionary release];
 	[shipAI release];
 	[cargo release];
 	[name release];
-	[roles release];
+	[roleSet release];
+	[primaryRole release];
 	[sub_entities release];
 	[laser_color release];
 	[script release];
@@ -744,12 +748,8 @@ static NSString * const kOOLogEntityBehaviourChanged	= @"entity.behaviour.change
 	NSString *escortRole = @"escort";
 	NSString *escortShipKey = nil;
 	
-	// FIXME: should look for substring, or in more sensible role manager
-	if ([roles isEqual:@"trader"])
-		escortRole = @"escort";
-	
-	if ([roles isEqual:@"police"])
-		escortRole = @"wingman";
+//	if ([self isTrader])  escortRole = @"escort";
+	if ([self isPolice])  escortRole = @"wingman";
 	
 	if ([shipinfoDictionary objectForKey:@"escort-role"])
 	{
@@ -796,7 +796,7 @@ static NSString * const kOOLogEntityBehaviourChanged	= @"entity.behaviour.change
 		
 		[escorter setStatus:STATUS_IN_FLIGHT];
 		
-		[escorter setRoles:escortRole];
+		[escorter setPrimaryRole:escortRole];
 		
 		[escorter setScanClass:scanClass];		// you are the same as I
 		
@@ -2867,17 +2867,123 @@ static GLfloat mascem_color2[4] =	{ 0.4, 0.1, 0.4, 1.0};	// purple
 }
 
 
-- (NSString *) roles
+- (BOOL) hasRole:(NSString *)role
 {
-	return roles;
+	return [roleSet hasRole:role] || [role isEqual:primaryRole];
 }
 
 
-- (void) setRoles:(NSString *) value
+- (OORoleSet *)roleSet
 {
-	if (roles)
+	if (roleSet == nil)  roleSet = [[OORoleSet alloc] initWithRoleString:primaryRole];
+	return [roleSet roleSetWithAddedRoleIfNotSet:primaryRole probability:1.0];
+}
+
+/*
+- (void) setRoles:(OORoleSet *)inRoles
+{
+	if (inRoles != nil && ![inRoles isEqual:roles])
+	{
 		[roles release];
-	roles = value ? [value copy] : @"";
+		roles = [inRoles copy];
+	}
+}
+
+
+- (void) setRoleString:(NSString *)string
+{
+	[self setRoles:[OORoleSet roleSetWithString:string]];
+}*/
+
+
+- (NSString *)primaryRole
+{
+	if (primaryRole == nil)
+	{
+		primaryRole = [roleSet anyRole];
+		if (primaryRole == nil)  primaryRole = @"trader";
+		[primaryRole retain];
+		OOLog(@"ship.noPrimaryRole", @"%@ had no primary role, randomly selected \"%@\".", primaryRole);
+	}
+	
+	return primaryRole;
+}
+
+
+- (void)setPrimaryRole:(NSString *)role
+{
+	if (![role isEqual:primaryRole])
+	{
+		[primaryRole release];
+		primaryRole = [role copy];
+	}
+}
+
+
+- (BOOL)hasPrimaryRole:(NSString *)role
+{
+	return [[self primaryRole] isEqual:role];
+}
+
+
+- (BOOL)isPolice
+{
+#if 0
+	return [self hasPrimaryRole:@"police"] || [self hasPrimaryRole:@"interceptor"] || [self hasPrimaryRole:@"wingman"];
+#else
+	return [self scanClass] == CLASS_POLICE;
+#endif
+}
+
+- (BOOL)isThargoid
+{
+#if 0
+	return [self hasPrimaryRole:@"thargoid"];
+#else
+	return [self scanClass] == CLASS_THARGOID;
+#endif
+}
+
+
+- (BOOL)isTrader
+{
+	return isPlayer || [self hasPrimaryRole:@"trader"];
+}
+
+
+- (BOOL)isPirate
+{
+	return [self hasPrimaryRole:@"pirate"];
+}
+
+
+- (BOOL)isMissile
+{
+	return [[self primaryRole] hasSuffix:@"MISSILE"];
+}
+
+
+- (BOOL)isMine
+{
+	return [[self primaryRole] hasSuffix:@"MINE"];
+}
+
+
+- (BOOL)isWeapon
+{
+	return [self isMissile] || [self isMine];
+}
+
+
+- (BOOL)isEscort
+{
+	return [self hasPrimaryRole:@"escort"] || [self hasPrimaryRole:@"wingman"];
+}
+
+
+- (BOOL)isShuttle
+{
+	return [self hasPrimaryRole:@"shuttle"];
 }
 
 
@@ -3501,8 +3607,7 @@ static GLfloat mascem_color2[4] =	{ 0.4, 0.1, 0.4, 1.0};	// purple
 		[self doScriptEvent:@"didDie"];
 	}
 	
-	if ([roles isEqual:@"thargoid"])
-		[self broadcastThargoidDestroyed];
+	if ([self isThargoid])  [self broadcastThargoidDestroyed];
 	
 	if (!suppressExplosion)
 	{
@@ -3627,7 +3732,7 @@ static GLfloat mascem_color2[4] =	{ 0.4, 0.1, 0.4, 1.0};	// purple
 
 			//  Throw out rocks and alloys to be scooped up
 			//
-			if ([roles isEqual:@"asteroid"])
+			if ([self hasPrimaryRole:@"asteroid"])
 			{
 				if ((being_mined)||(randf() < 0.20))
 				{
@@ -3663,7 +3768,7 @@ static GLfloat mascem_color2[4] =	{ 0.4, 0.1, 0.4, 1.0};	// purple
 				return; // don't do anything more
 			}
 
-			if ([roles isEqual:@"boulder"])
+			if ([self hasPrimaryRole:@"boulder"])
 			{
 				if ((being_mined)||(ranrot_rand() % 100 < 20))
 				{
@@ -4069,8 +4174,7 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 
 - (void) collectBountyFor:(ShipEntity *)other
 {
-	if ([roles isEqual:@"pirate"])
-		bounty += [other bounty];
+	if ([self isPirate])  bounty += [other bounty];
 }
 
 
@@ -4258,7 +4362,7 @@ BOOL	class_masslocks(int some_class)
 }
 
 
-- (Entity *) primaryTarget
+- (id) primaryTarget
 {
 	return [UNIVERSE entityForUniversalID:primaryTarget];
 }
@@ -6229,25 +6333,29 @@ BOOL	class_masslocks(int some_class)
 		}
 	}
 	
-	BOOL iAmTheLaw = (scanClass == CLASS_POLICE);
-	BOOL uAreTheLaw = ((other)&&(other->scanClass == CLASS_POLICE));
-	
 	energy -= amount;
 	being_mined = NO;
-	//
+	ShipEntity *hunter = nil;
+	
 	if ((other)&&(other->isShip))
 	{
-		ShipEntity* hunter = (ShipEntity *)other;
-		if ([hunter isCloaked])  other = nil;	// lose it!
+		hunter = (ShipEntity *)other;
+		if ([hunter isCloaked])
+		{
+			// lose it!
+			other = nil;
+			hunter = nil;
+		}
 	}
-	//
+	
 	// if the other entity is a ship note it as an aggressor
-	if ((other)&&(other->isShip))
+	if (hunter != nil)
 	{
-		ShipEntity* hunter = (ShipEntity *)other;
-		//
+		BOOL iAmTheLaw = [self isPolice];
+		BOOL uAreTheLaw = [hunter isPolice];
+		
 		last_escort_target = NO_TARGET;	// we're being attacked, escorts can scramble!
-		//
+		
 		primaryAggressor = [hunter universalID];
 		found_target = primaryAggressor;
 
@@ -6264,7 +6372,7 @@ BOOL	class_masslocks(int some_class)
 		// tell our group we've been attacked
 		if (groupID != NO_TARGET)
 		{
-			if ([roles isEqual:@"escort"]||[roles isEqual:@"trader"])
+			if ([self isTrader]|| [self isEscort])
 			{
 				ShipEntity *group_leader = [UNIVERSE entityForUniversalID:groupID];
 				if ((group_leader)&&(group_leader->isShip))
@@ -6276,7 +6384,7 @@ BOOL	class_masslocks(int some_class)
 				else
 					groupID = NO_TARGET;
 			}
-			if ([roles isEqual:@"pirate"])
+			if ([self isPirate])
 			{
 				NSArray	*fellow_pirates = [self shipsInGroup:groupID];
 				for (i = 0; i < [fellow_pirates count]; i++)
@@ -6323,13 +6431,12 @@ BOOL	class_masslocks(int some_class)
 	// die if I'm out of energy
 	if (energy <= 0.0)
 	{
-		if ((other)&&(other->isShip))
+		if (hunter != nil)
 		{
-			ShipEntity* hunter = (ShipEntity *)other;
 			[hunter collectBountyFor:self];
-			if ([hunter primaryTarget] == (Entity *)self)
+			if ([hunter primaryTarget] == self)
 			{
-				[hunter removeTarget:(Entity *)self];
+				[hunter removeTarget:self];
 				[[hunter getAI] message:@"TARGET_DESTROYED"];
 			}
 		}
@@ -6465,7 +6572,7 @@ BOOL	class_masslocks(int some_class)
 		/*	Add a new ship to maintain quantities of standard ships, unless
 			there's a nova in the works (or the AI asked us not to).
 		*/
-		[UNIVERSE witchspaceShipWithRole:roles];
+		[UNIVERSE witchspaceShipWithPrimaryRole:[self primaryRole]];
 	}
 
 	[w_hole suckInShip: self];	// removes ship from universe
@@ -6486,8 +6593,8 @@ BOOL	class_masslocks(int some_class)
 	[shipAI message:@"ENTERED_WITCHSPACE"];
 
 	if (![[UNIVERSE sun] willGoNova])				// if the sun's not going nova
-		[UNIVERSE witchspaceShipWithRole:roles];	// then add a new ship like this one leaving!
-
+		[UNIVERSE witchspaceShipWithPrimaryRole:[self primaryRole]];	// then add a new ship like this one leaving!
+	
 	[UNIVERSE removeEntity:self];
 }
 
@@ -6575,16 +6682,21 @@ int w_space_seed = 1234567;
 	frustration = 0.0;	// new destination => no frustration!
 }
 
-inline BOOL pairOK(NSString* my_role, NSString* their_role)
+
+- (BOOL) canAcceptEscort:(ShipEntity *)potentialEscort
 {
-	BOOL pairing_okay = NO;
-
-	pairing_okay |= (![my_role isEqual:@"escort"] && ![my_role isEqual:@"wingman"] && [their_role isEqual:@"escort"]);
-	pairing_okay |= (([my_role isEqual:@"police"]||[my_role isEqual:@"interceptor"]) && [their_role isEqual:@"wingman"]);
-
-	return pairing_okay;
+	if (![self isEscort])
+	{
+		return [potentialEscort hasRole:@"escort"];
+	}
+	if (([self hasRole:@"police"] || [self hasRole:@"interceptor"]))
+	{
+		return [potentialEscort hasRole:@"wingman"];
+	}
+	
+	return NO;
 }
-
+	
 
 - (BOOL) acceptAsEscort:(ShipEntity *) other_ship
 {
@@ -6594,8 +6706,8 @@ inline BOOL pairOK(NSString* my_role, NSString* their_role)
 	// if not in standard ai mode reject approach
 	if ([shipAI ai_stack_depth] > 1)
 		return NO;
-
-	if (pairOK(roles, [other_ship roles]))
+	
+	if ([self canAcceptEscort:other_ship])
 	{
 		unsigned i;
 		// check it's not already been accepted
@@ -6864,7 +6976,7 @@ inline BOOL pairOK(NSString* my_role, NSString* their_role)
 	{
 		ShipEntity* ship = (ShipEntity *)my_entities[i];
 		d2 = distance2(position, ship->position);
-		if ((d2 < found_d2)&&([[ship roles] isEqual:@"tharglet"]))
+		if ((d2 < found_d2)&&([ship hasPrimaryRole:@"tharglet"]))
 			[[ship getAI] message:@"THARGOID_DESTROYED"];
 	}
 	for (i = 0; i < ship_count; i++)
@@ -7045,7 +7157,7 @@ inline BOOL pairOK(NSString* my_role, NSString* their_role)
 
 - (void) setNumberOfMinedRocks:(int) value
 {
-	if (![roles isEqual:@"asteroid"])
+	if (![self hasPrimaryRole:@"asteroid"])
 		return;
 	likely_cargo = value;
 }
@@ -7170,7 +7282,7 @@ inline BOOL pairOK(NSString* my_role, NSString* their_role)
 {
 	// Create a bouy and beacon where the hulk is.
 	// Get the main GalCop station to launch a pilot boat to deliver a pilot to the hulk.
-	NSLog(@"claimAsSalvage called on %@ %@", [self name], [self roles]);
+	NSLog(@"claimAsSalvage called on %@ %@", [self name], [self roleSet]);
 /*
 	// Won't work in interstellar space because there is no GalCop station
 	if ([[self planet_number] intValue] < 0)
@@ -7211,7 +7323,7 @@ inline BOOL pairOK(NSString* my_role, NSString* their_role)
 	
 	n_scanned_ships = 0;
 	scan = z_previous;
-	NSLog(@"searching for pilot boat");
+	OOLog(@"ship.pilotage", @"searching for pilot boat");
 	while (scan &&(scan->isShip == NO))
 		scan = scan->z_previous;	// skip non-ships
 
@@ -7221,14 +7333,14 @@ inline BOOL pairOK(NSString* my_role, NSString* their_role)
 		if (scan->isShip)
 		{
 			scanShip = (ShipEntity *)scan;
-			NSArray *scanRoles = ScanTokensFromString([scanShip roles]);
 			
-			if ([scanRoles containsObject:@"pilot"] == YES)
+			if ([self hasRole:@"pilot"] == YES)
 			{
 				if ([scanShip primaryTargetID] == NO_TARGET)
 				{
-					NSLog(@"found pilot boat with no target, will use this one");
+					OOLog(@"ship.pilotage", @"found pilot boat with no target, will use this one");
 					pilot = scanShip;
+					[pilot setPrimaryRole:@"pilot"];
 					break;
 				}
 			}
@@ -7240,7 +7352,7 @@ inline BOOL pairOK(NSString* my_role, NSString* their_role)
 
 	if (pilot != nil)
 	{
-		NSLog(@"becoming pilot target and setting AI");
+		OOLog(@"ship.pilotage", @"becoming pilot target and setting AI");
 		[pilot setReportAIMessages:YES];
 		[pilot addTarget:self];
 		[pilot setStateMachine:@"pilotAI.plist"];
@@ -7263,7 +7375,7 @@ inline BOOL pairOK(NSString* my_role, NSString* their_role)
 	[super dumpSelfState];
 	
 	OOLog(@"dumpState.shipEntity", @"Name: %@", name);
-	OOLog(@"dumpState.shipEntity", @"Roles: %@", roles);
+	OOLog(@"dumpState.shipEntity", @"Roles: %@", roleSet);
 	OOLog(@"dumpState.shipEntity", @"Script: %@", script);
 	if (sub_entities != nil)  OOLog(@"dumpState.shipEntity", @"Subentity count: %u", [sub_entities count]);
 	OOLog(@"dumpState.shipEntity", @"Behaviour: %@", BehaviourToString(behaviour));

@@ -141,10 +141,10 @@ MA 02110-1301, USA.
 	
 	// inform our old target of our new target
 	//
-	Entity* primeTarget = [UNIVERSE entityForUniversalID:primaryTarget];
+	Entity *primeTarget = [UNIVERSE entityForUniversalID:primaryTarget];
 	if ((primeTarget)&&(primeTarget->isShip))
 	{
-		ShipEntity* currentShip = [UNIVERSE entityForUniversalID:primaryTarget];
+		ShipEntity *currentShip = [UNIVERSE entityForUniversalID:primaryTarget];
 		[[currentShip getAI] message:[NSString stringWithFormat:@"%@ %d %d", AIMS_AGGRESSOR_SWITCHED_TARGET, universalID, primaryAggressor]];
 	}
 	
@@ -171,11 +171,11 @@ MA 02110-1301, USA.
 	unsigned i;
 	for (i = 0; i < n_scanned_ships ; i++)
 	{
-		ShipEntity* ship = scanned_ships[i];
-		if ((([[ship roles] isEqual:@"trader"])||(ship->isPlayer))&&(ship->status != STATUS_DEAD)&&(ship->status != STATUS_DOCKED))
+		ShipEntity *ship = scanned_ships[i];
+		if ([ship isTrader] && (ship->status != STATUS_DEAD) && (ship->status != STATUS_DOCKED))
 		{
 			GLfloat d2 = distance2_scanned_ships[i];
-			if (([roles isEqual:@"pirate"])&&(d2 < desired_range * desired_range)&&(ship->isPlayer)&&(PIRATES_PREFER_PLAYER))
+			if (PIRATES_PREFER_PLAYER && ship->isPlayer && [self isPirate] && (d2 < desired_range * desired_range))
 				d2 = 0.0;
 			if (d2 < found_d2)
 			{
@@ -202,8 +202,8 @@ MA 02110-1301, USA.
 	unsigned i;
 	for (i = 0; i < n_scanned_ships ; i++)
 	{
-		ShipEntity* ship = scanned_ships[i];
-		if ((([[ship roles] isEqual:@"trader"])||(ship->isPlayer))&&(ship->status != STATUS_DEAD)&&(ship->status != STATUS_DOCKED))
+		ShipEntity *ship = scanned_ships[i];
+		if ([ship isTrader] && (ship->status != STATUS_DEAD) && (ship->status != STATUS_DOCKED))
 			ids_found[n_found++] = ship->universalID;
 	}
 	if (n_found == 0)
@@ -243,20 +243,18 @@ MA 02110-1301, USA.
 			return;
 		}
 	}
-
-	BOOL isPolice = (scanClass == CLASS_POLICE);
-	//
+	
 	[self checkScanner];
-	//
+	
 	double found_d2 = scannerRange * scannerRange;
 	found_target = NO_TARGET;
 	unsigned i;
 	for (i = 0; i < n_scanned_ships; i++)
 	{
-		ShipEntity* other = (ShipEntity *)scanned_ships[i];
+		ShipEntity *other = (ShipEntity *)scanned_ships[i];
 		if ((other->scanClass == CLASS_CARGO)&&([other cargoType] != CARGO_NOT_CARGO))
 		{
-			if ((!isPolice) || ([other commodityType] == 3)) // police only rescue lifepods and slaves
+			if ((![self isPolice]) || ([other commodityType] == 3)) // police only rescue lifepods and slaves
 			{
 				GLfloat d2 = distance2_scanned_ships[i];
 				if (d2 < found_d2)
@@ -291,7 +289,7 @@ MA 02110-1301, USA.
 	unsigned i;
 	for (i = 0; (i < n_scanned_ships)&&(things_found < 16) ; i++)
 	{
-		ShipEntity* other = scanned_ships[i];
+		ShipEntity *other = scanned_ships[i];
 		if ((other->scanClass == CLASS_CARGO)&&([other cargoType] != CARGO_NOT_CARGO))
 		{
 			found_target = [other universalID];
@@ -360,14 +358,14 @@ MA 02110-1301, USA.
 	//
 	[self checkScanner];
 	//
-	StationEntity* station =  nil;
+	StationEntity *station =  nil;
 	double nearest2 = SCANNER_MAX_RANGE2 * 1000000.0; // 1000x scanner range (25600 km), squared.
 	unsigned i;
 	for (i = 0; i < n_scanned_ships; i++)
 	{
 		if (scanned_ships[i]->isStation)
 		{
-			StationEntity* thing = (StationEntity *)scanned_ships[i];
+			StationEntity *thing = (StationEntity *)scanned_ships[i];
 			GLfloat range2 = distance2_scanned_ships[i];
 			if (range2 < nearest2)
 			{
@@ -432,7 +430,7 @@ MA 02110-1301, USA.
 	unsigned i;
 	for (i = 0; (i < n_scanned_ships)&&(missile == nil); i++)
 	{
-		ShipEntity* thing = scanned_ships[i];
+		ShipEntity *thing = scanned_ships[i];
 		if (thing->scanClass == CLASS_MISSILE)
 		{
 			if ([thing primaryTarget] == self)
@@ -457,12 +455,12 @@ MA 02110-1301, USA.
 	if (has_ecm)
 	{
 		// use the ECM and battle on
-		ShipEntity* hunter = (ShipEntity*)[missile owner];
+		ShipEntity *hunter = [missile owner];
 		
 		[self setPrimaryAggressor:hunter];	// lets get them now for that!
 		found_target = primaryAggressor;
 		
-		if ([roles isEqual:@"police"]||[roles isEqual:@"interceptor"]||[roles isEqual:@"wingman"])
+		if ([self isPolice])
 		{
 			NSArray	*fellow_police = [self shipsInGroup:groupID];
 			unsigned i;
@@ -475,17 +473,13 @@ MA 02110-1301, USA.
 		}
 		
 		// if I'm a copper and you're not, then mark the other as an offender!
-		BOOL iAmTheLaw = ([roles isEqual:@"police"]||[roles isEqual:@"wingman"]||[roles isEqual:@"interceptor"]);
-		BOOL uAreTheLaw = ([[hunter roles] isEqual:@"police"]||[[hunter roles] isEqual:@"wingman"]||[[hunter roles] isEqual:@"interceptor"]);
-		if ((iAmTheLaw)&&(!uAreTheLaw))
-			[hunter markAsOffender:64];
+		if ([self isPolice] && ![hunter isPolice])  [hunter markAsOffender:64];
 		
 		[self fireECM];
 		return;
 	}
 	
 	// RUN AWAY !!
-	//
 	jink.x = 0.0;
 	jink.y = 0.0;
 	jink.z = 1000.0;
@@ -630,7 +624,7 @@ MA 02110-1301, USA.
 
 - (void) setDestinationToTarget
 {
-	Entity* the_target = [UNIVERSE entityForUniversalID:primaryTarget];
+	Entity *the_target = [UNIVERSE entityForUniversalID:primaryTarget];
 	if (the_target)
 		destination = the_target->position;
 }
@@ -638,7 +632,7 @@ MA 02110-1301, USA.
 
 - (void) setDestinationWithinTarget
 {
-	Entity* the_target = [UNIVERSE entityForUniversalID:primaryTarget];
+	Entity *the_target = [UNIVERSE entityForUniversalID:primaryTarget];
 	if (the_target)
 	{
 		Vector pos = the_target->position;
@@ -652,7 +646,7 @@ MA 02110-1301, USA.
 
 - (void) checkCourseToDestination
 {
-	Entity* hazard = [UNIVERSE hazardOnRouteFromEntity: self toDistance: desired_range fromPoint: destination];
+	Entity *hazard = [UNIVERSE hazardOnRouteFromEntity: self toDistance: desired_range fromPoint: destination];
 	
 	if (!hazard)
 		[shipAI message:@"COURSE_OK"];
@@ -686,7 +680,7 @@ MA 02110-1301, USA.
 	GLfloat found_d2 = scannerRange * scannerRange;
 	for (i = 0; i < n_scanned_ships ; i++)
 	{
-		ShipEntity* ship = scanned_ships[i];
+		ShipEntity *ship = scanned_ships[i];
 		if ((ship->scanClass != CLASS_CARGO)&&(ship->status != STATUS_DEAD)&&(ship->status != STATUS_DOCKED))
 		{
 			GLfloat	d2 = distance2_scanned_ships[i];
@@ -758,7 +752,7 @@ WormholeEntity*	whole;
 	}
 	
 	// check if we're clear of nearby masses
-	ShipEntity* blocker = [UNIVERSE entityForUniversalID:[self checkShipsInVicinityForWitchJumpExit]];
+	ShipEntity *blocker = [UNIVERSE entityForUniversalID:[self checkShipsInVicinityForWitchJumpExit]];
 	if (blocker)
 	{
 		found_target = [blocker universalID];
@@ -921,9 +915,9 @@ WormholeEntity*	whole;
 			}
 			if (ship->isStation)
 				[ship acceptDistressMessageFrom:self];
-			if ([[ship roles] isEqual:@"police"])
+			if ([ship hasPrimaryRole:@"police"])	// Not isPolice because we don't want wingmen shooting off... but what about interceptors?
 				[ship acceptDistressMessageFrom:self];
-			if ([[ship roles] isEqual:@"hunter"])
+			if ([ship hasPrimaryRole:@"hunter"])
 				[ship acceptDistressMessageFrom:self];
 		}
 	}
@@ -946,7 +940,7 @@ WormholeEntity*	whole;
 			break;
 			
 		default:
-			if ((scanClass == CLASS_POLICE)||[roles isEqual:@"police"]||[roles isEqual:@"interceptor"]||[roles isEqual:@"wingman"])
+			if ([self isPolice])
 				[[UNIVERSE entityForUniversalID:found_target] markAsOffender:8];  // you have been warned!!
 			[shipAI reactToMessage:@"ACCEPT_DISTRESS_CALL"];
 			break;
@@ -985,13 +979,13 @@ WormholeEntity*	whole;
 	/*-- Locates all the thargoid warships in range and chooses the nearest --*/
 	[self checkScanner];
 	unsigned i;
-	//
+	
 	GLfloat found_d2 = scannerRange * scannerRange;
 	found_target = NO_TARGET;
 	for (i = 0; i < n_scanned_ships; i++)
 	{
 		ShipEntity *ship = scanned_ships[i];
-		if ([[ship roles] isEqual:@"thargoid"])
+		if ([ship isThargoid])
 		{
 			GLfloat d2 = distance2_scanned_ships[i];
 			if (d2< found_d2)
@@ -1001,10 +995,8 @@ WormholeEntity*	whole;
 			}
 		}
 	}
-	if (found_target != NO_TARGET)
-		[shipAI message:@"TARGET_FOUND"];
-	else
-		[shipAI message:@"NOTHING_FOUND"];
+	if (found_target != NO_TARGET)  [shipAI message:@"TARGET_FOUND"];
+	else  [shipAI message:@"NOTHING_FOUND"];
 }
 
 
@@ -1018,19 +1010,17 @@ WormholeEntity*	whole;
 	GLfloat	found_d2 = scannerRange * scannerRange;
 	for (i = 0; i < n_scanned_ships ; i++)
 	{
-		ShipEntity* thing = scanned_ships[i];
+		ShipEntity *thing = scanned_ships[i];
 		GLfloat d2 = distance2_scanned_ships[i];
-		if ((thing->scanClass != CLASS_CARGO)&&(thing->status != STATUS_DOCKED)&&(![[thing roles] hasPrefix:@"tharg"])&&(d2 < found_d2))
+		if ((thing->scanClass != CLASS_CARGO) && (thing->status != STATUS_DOCKED) && ![thing isThargoid] && (d2 < found_d2))
 		{
 			found_target = [thing universalID];
 			if (thing->isPlayer) d2 = 0.0;   // prefer the player
 			found_d2 = d2;
 		}
 	}
-	if (found_target != NO_TARGET)
-		[shipAI message:@"TARGET_FOUND"];
-	else
-		[shipAI message:@"NOTHING_FOUND"];
+	if (found_target != NO_TARGET)  [shipAI message:@"TARGET_FOUND"];
+	else  [shipAI message:@"NOTHING_FOUND"];
 }
 
 
@@ -1041,7 +1031,7 @@ WormholeEntity*	whole;
 	int i;
 	for (i = 0; i < ent_count; i++) if (uni_entities[i]->isShip)
 	{
-		ShipEntity* other = (ShipEntity*)uni_entities[i];
+		ShipEntity *other = (ShipEntity*)uni_entities[i];
 		if ([other primaryTarget] == self)
 		{
 			[[other getAI] message:@"TARGET_LOST"];	// lose targetting
@@ -1083,9 +1073,9 @@ WormholeEntity*	whole;
 	GLfloat found_d2 = scannerRange * scannerRange;
 	for (i = 0; i < n_scanned_ships ; i++)
 	{
-		ShipEntity* thing = scanned_ships[i];
+		ShipEntity *thing = scanned_ships[i];
 		GLfloat d2 = distance2_scanned_ships[i];
-		if (((thing->scanClass == CLASS_THARGOID)||(([thing primaryTarget] == self)&&([thing hasHostileTarget])))&&(d2 < found_d2))
+		if ((d2 < found_d2) && ([thing isThargoid] || (([thing primaryTarget] == self) && [thing hasHostileTarget])))
 		{
 			found_target = [thing universalID];
 			found_d2 = d2;
@@ -1233,7 +1223,7 @@ WormholeEntity*	whole;
 	}
 	
 	NSArray* fellow_ships = [self shipsInGroup:groupID];
-	ShipEntity* target_ship = (ShipEntity*) [UNIVERSE entityForUniversalID:primaryTarget];
+	ShipEntity *target_ship = (ShipEntity*) [UNIVERSE entityForUniversalID:primaryTarget];
 	
 	if ((!target_ship)||(target_ship->isShip != YES))
 		return;
@@ -1258,26 +1248,27 @@ WormholeEntity*	whole;
 	GLfloat	found_d2 = scannerRange * scannerRange;
 	for (i = 0; i < n_scanned_ships; i++)
 	{
-		ShipEntity* ship = scanned_ships[i];
-		if ((ship != self)&&(!ship->isPlayer)&&(ship->scanClass == scanClass))	// look for alike
+		ShipEntity *ship = scanned_ships[i];
+		if ((ship != self) && (!ship->isPlayer) && (ship->scanClass == scanClass))	// look for alike
 		{
 			GLfloat d2 = distance2_scanned_ships[i];
-			if ((d2 < found_d2)&&(pairOK([ship roles], roles)))
+			if ((d2 < found_d2) && [ship canAcceptEscort:self])
 			{
 				found_d2 = d2;
 				found_target = ship->universalID;
 			}
 		}
 	}
-	if (found_target != NO_TARGET)
-		[shipAI message:@"TARGET_FOUND"];
+	
+	if (found_target != NO_TARGET)  [shipAI message:@"TARGET_FOUND"];
 	else
 	{
 		[shipAI message:@"NOTHING_FOUND"];
-		if ([roles isEqual:@"wingman"])
+		if ([self hasPrimaryRole:@"wingman"])
 		{
 			// become free-lance police :)
 			[shipAI setStateMachine:@"route1patrolAI.plist"];	// use this to avoid referencing a released AI
+			[self setPrimaryRole:@"police"];
 		}
 	}
 
@@ -1300,8 +1291,8 @@ WormholeEntity*	whole;
 	Vector r_pos = make_vector(position.x - coordinates.x, position.y - coordinates.y, position.z - coordinates.z);
 	if ((magnitude2(r_pos) < 1000000)||(patrol_counter == 0))
 	{
-		Entity* the_sun = [UNIVERSE sun];
-		Entity* the_station = [UNIVERSE station];
+		Entity *the_sun = [UNIVERSE sun];
+		Entity *the_station = [UNIVERSE station];
 		if ((!the_sun)||(!the_station))
 			return;
 		Vector sun_pos = the_sun->position;
@@ -1380,7 +1371,7 @@ WormholeEntity*	whole;
 
 - (void) setSunSkimExitCoordinates
 {
-	Entity* the_sun = [UNIVERSE sun];
+	Entity *the_sun = [UNIVERSE sun];
 	if (!the_sun)
 		return;
 	Vector v1 = [UNIVERSE getSunSkimEndPositionForShip:self];
@@ -1404,13 +1395,12 @@ WormholeEntity*	whole;
 
 - (void) checkForMotherStation
 {
-	Entity* my_owner = [self owner];
-	if ((!my_owner) || (!(my_owner->isStation)))
+	StationEntity *motherStation = [self owner];
+	if ((!motherStation) || (!(motherStation->isStation)))
 	{
 		[shipAI message:@"NOTHING_FOUND"];
 		return;
 	}
-	StationEntity* motherStation = (StationEntity*)[self owner];
 	Vector v0 = motherStation->position;
 	Vector rpos = make_vector(position.x - v0.x, position.y - v0.y, position.z - v0.z);
 	double found_d2 = scannerRange * scannerRange;
@@ -1425,28 +1415,27 @@ WormholeEntity*	whole;
 
 - (void) sendTargetCommsMessage:(NSString*) message
 {
-	ShipEntity* ship = (ShipEntity*)[self primaryTarget];
-	if ((!ship)||(ship->status == STATUS_DEAD)||(ship->status == STATUS_DOCKED))
+	ShipEntity *ship = [self primaryTarget];
+	if ((ship == nil) || (ship->status == STATUS_DEAD) || (ship->status == STATUS_DOCKED))
 	{
 		primaryTarget = NO_TARGET;
 		[shipAI reactToMessage:@"TARGET_LOST"];
 		return;
 	}
-	[self sendExpandedMessage:message toShip:(ShipEntity*)[self primaryTarget]];
+	[self sendExpandedMessage:message toShip:[self primaryTarget]];
 }
 
 
 - (void) markTargetForFines
 {
-	ShipEntity* ship = (ShipEntity*)[self primaryTarget];
-	if ((!ship)||(ship->status == STATUS_DEAD)||(ship->status == STATUS_DOCKED))
+	ShipEntity *ship = [self primaryTarget];
+	if ((ship == nil) || (ship->status == STATUS_DEAD) || (ship->status == STATUS_DOCKED))
 	{
 		primaryTarget = NO_TARGET;
 		[shipAI reactToMessage:@"TARGET_LOST"];
 		return;
 	}
-	if ([(ShipEntity*)[self primaryTarget] markForFines])
-		[shipAI message:@"TARGET_MARKED"];
+	if ([ship markForFines])  [shipAI message:@"TARGET_MARKED"];
 }
 
 
@@ -1454,8 +1443,8 @@ WormholeEntity*	whole;
 {
 	if ((isStation)||(scanClass == CLASS_POLICE))
 	{
-		ShipEntity* ship = (ShipEntity*)[self primaryTarget];
-		if ((!ship)||(ship->status == STATUS_DEAD)||(ship->status == STATUS_DOCKED))
+		ShipEntity *ship = [self primaryTarget];
+		if ((ship == nil) || (ship->status == STATUS_DEAD) || (ship->status == STATUS_DOCKED))
 		{
 			primaryTarget = NO_TARGET;
 			[shipAI reactToMessage:@"TARGET_LOST"];
@@ -1479,8 +1468,8 @@ WormholeEntity*	whole;
 	GLfloat found_d2 = scannerRange * scannerRange;
 	for (i = 0; i < n_scanned_ships; i++)
 	{
-		ShipEntity* thing = scanned_ships[i];
-		if ([[thing roles] rangeOfString:@"boulder"].location != NSNotFound)
+		ShipEntity *thing = scanned_ships[i];
+		if ([thing hasRole:@"boulder"])
 		{
 			GLfloat d2 = distance2_scanned_ships[i];
 			if (d2 < found_d2)
@@ -1494,8 +1483,8 @@ WormholeEntity*	whole;
 	{
 		for (i = 0; i < n_scanned_ships; i++)
 		{
-			ShipEntity* thing = scanned_ships[i];
-			if ([[thing roles] rangeOfString:@"asteroid"].location != NSNotFound)
+			ShipEntity *thing = scanned_ships[i];
+			if ([thing hasRole:@"boulder"])
 			{
 				GLfloat d2 = distance2_scanned_ships[i];
 				if (d2 < found_d2)
@@ -1507,10 +1496,8 @@ WormholeEntity*	whole;
 		}
 	}
 
-	if (found_target != NO_TARGET)
-		[shipAI message:@"TARGET_FOUND"];
-	else
-		[shipAI message:@"NOTHING_FOUND"];
+	if (found_target != NO_TARGET)  [shipAI message:@"TARGET_FOUND"];
+	else  [shipAI message:@"NOTHING_FOUND"];
 }
 
 
@@ -1523,16 +1510,14 @@ WormholeEntity*	whole;
 
 - (void) setDestinationToDockingAbort
 {
-	Entity* the_target = [self primaryTarget];
+	Entity *the_target = [self primaryTarget];
 	double bo_distance = 8000; //	8km back off
 	Vector v0 = position;
-	Vector d0 = (the_target)? the_target->position : kZeroVector;
+	Vector d0 = (the_target) ? the_target->position : kZeroVector;
 	v0.x += (randf() - 0.5)*collision_radius;	v0.y += (randf() - 0.5)*collision_radius;	v0.z += (randf() - 0.5)*collision_radius;
 	v0.x -= d0.x;	v0.y -= d0.y;	v0.z -= d0.z;
-	if (v0.x||v0.y||v0.z)
-		v0 = unit_vector(&v0);
-	else
-		v0.z = -1.0;
+	v0 = vector_normal_or_fallback(v0, make_vector(0, 0, -1));
+	
 	v0.x *= bo_distance;	v0.y *= bo_distance;	v0.z *= bo_distance;
 	v0.x += d0.x;	v0.y += d0.y;	v0.z += d0.z;
 	coordinates = v0;
@@ -1542,9 +1527,7 @@ WormholeEntity*	whole;
 
 - (void) requestNewTarget
 {
-	ShipEntity* mother = nil;
-	if ([self owner])
-		mother = (ShipEntity*)[self owner];
+	ShipEntity *mother = [self owner];
 	if ((mother == nil)&&([UNIVERSE entityForUniversalID:groupID]))
 		mother = [UNIVERSE entityForUniversalID:groupID];
 	if (!mother)
@@ -1562,10 +1545,10 @@ WormholeEntity*	whole;
 	GLfloat max_e = 0;
 	for (i = 0; i < n_scanned_ships ; i++)
 	{
-		ShipEntity* thing = scanned_ships[i];
+		ShipEntity *thing = scanned_ships[i];
 		GLfloat d2 = distance2_scanned_ships[i];
 		GLfloat e1 = [thing energy];
-		if (((thing->scanClass == CLASS_THARGOID)||(([thing primaryTarget] == mother)&&([thing hasHostileTarget])))&&(d2 < found_d2))
+		if ((d2 < found_d2) && ([thing isThargoid] || (([thing primaryTarget] == mother) && [thing hasHostileTarget])))
 		{
 			if (e1 > max_e)
 			{
@@ -1576,10 +1559,8 @@ WormholeEntity*	whole;
 		}
 	}
 		
-	if (found_target != NO_TARGET)
-		[shipAI message:@"TARGET_FOUND"];
-	else
-		[shipAI message:@"NOTHING_FOUND"];
+	if (found_target != NO_TARGET)  [shipAI message:@"TARGET_FOUND"];
+	else  [shipAI message:@"NOTHING_FOUND"];
 }
 
 
@@ -1608,9 +1589,9 @@ WormholeEntity*	whole;
 	GLfloat found_d2 = scannerRange * scannerRange;
 	for (i = 0; i < n_scanned_ships ; i++)
 	{
-		ShipEntity* thing = scanned_ships[i];
+		ShipEntity *thing = scanned_ships[i];
 		GLfloat d2 = distance2_scanned_ships[i];
-		if ((thing->scanClass != CLASS_CARGO)&&(thing->status != STATUS_DOCKED)&&([[thing roles] isEqual:scanRole])&&(d2 < found_d2))
+		if ((d2 < found_d2) && (thing->scanClass != CLASS_CARGO) && (thing->status != STATUS_DOCKED) && ([thing hasPrimaryRole:scanRole]))
 		{
 			found_target = thing->universalID;
 			found_d2 = d2;
@@ -1673,8 +1654,8 @@ WormholeEntity*	whole;
 	if the target station can't be found
 	then use the nearest it can find (which may be a rock hermit) -*/
 	
-	StationEntity* station =  nil;
-	Entity* targStation = [UNIVERSE entityForUniversalID:targetStation];
+	StationEntity *station =  nil;
+	Entity *targStation = [UNIVERSE entityForUniversalID:targetStation];
 	if ((targStation)&&(targStation->isStation))
 	{
 		station = (StationEntity*)[UNIVERSE entityForUniversalID:targetStation];
@@ -1695,7 +1676,7 @@ WormholeEntity*	whole;
 		double nearest2 = SCANNER_MAX_RANGE2 * 1000000.0; // 1000x scanner range (25600 km), squared.
 		for (i = 0; i < station_count; i++)
 		{
-			StationEntity* thing = (StationEntity *)my_entities[i];
+			StationEntity *thing = (StationEntity *)my_entities[i];
 			double range2 = distance2(position, thing->position);
 			if (range2 < nearest2)
 			{
@@ -1774,7 +1755,7 @@ WormholeEntity*	whole;
 
 - (void) enterTargetWormhole
 {
-	WormholeEntity* whole = nil;
+	WormholeEntity *whole = nil;
 
 	// locate nearest wormhole
 	int				ent_count =		UNIVERSE->n_entities;
@@ -1789,7 +1770,7 @@ WormholeEntity*	whole;
 	double found_d2 = scannerRange * scannerRange;
 	for (i = 0; i < wh_count ; i++)
 	{
-		WormholeEntity* wh = wormholes[i];
+		WormholeEntity *wh = wormholes[i];
 		double d2 = distance2(position, wh->position);
 		if (d2 < found_d2)
 		{
@@ -1835,7 +1816,7 @@ WormholeEntity*	whole;
 - (void) targetNextBeaconWithCode:(NSString*) code
 {
 	NSArray* all_beacons = [UNIVERSE listBeaconsWithCode: code];
-	ShipEntity* current_beacon = [UNIVERSE entityForUniversalID:primaryTarget];
+	ShipEntity *current_beacon = [UNIVERSE entityForUniversalID:primaryTarget];
 	
 	if ((!current_beacon)||(![current_beacon isBeacon]))
 	{
@@ -1872,8 +1853,8 @@ WormholeEntity*	whole;
 - (void) setRacepointsFromTarget
 {
 	// two point - one at z - cr one at z + cr
-	ShipEntity* ship = [UNIVERSE entityForUniversalID:primaryTarget];
-	if (!ship)
+	ShipEntity *ship = [UNIVERSE entityForUniversalID:primaryTarget];
+	if (ship == nil)
 	{
 		[shipAI message:@"NOTHING_FOUND"];
 		return;

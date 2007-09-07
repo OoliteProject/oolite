@@ -1042,7 +1042,7 @@ static GLfloat	texture_uv_array[10400 * 2];
 	if (other->isShip)
 	{
 		ShipEntity *ship = (ShipEntity *)other;
-		if ([[ship roles] isEqual:@"shuttle"])
+		if ([ship isShuttle])
 		{
 			[ship landOnPlanet];
 			if ([ship reportAIMessages])

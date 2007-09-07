@@ -145,7 +145,7 @@ typedef enum
 
 - (void) addShipToLaunchQueue:(ShipEntity *) ship;
 
-- (unsigned) countShipsInLaunchQueueWithRole:(NSString *) a_role;
+- (unsigned) countShipsInLaunchQueueWithPrimaryRole:(NSString *)role;
 
 - (void) launchShip:(ShipEntity *) ship;
 

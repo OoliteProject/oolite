@@ -30,6 +30,7 @@ MA 02110-1301, USA.
 #import "AI.h"
 #import "OOStringParsing.h"
 #import "EntityOOJavaScriptExtensions.h"
+#import "OORoleSet.h"
 
 
 static JSObject *sShipPrototype;
@@ -44,8 +45,6 @@ static JSBool ShipExitAI(JSContext *context, JSObject *this, uintN argc, jsval *
 static JSBool ShipReactToAIMessage(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
 static JSBool ShipDeployEscorts(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
 static JSBool ShipDockEscorts(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
-
-static NSArray *ArrayOfRoles(NSString *rolesString);
 
 
 static JSExtendedClass sShipClass =
@@ -76,6 +75,8 @@ enum
 	// Property IDs
 	kShip_shipDescription,		// name, string, read-only
 	kShip_roles,				// roles, array, read-only
+	kShip_roleProbabilities,	// roles and probabilities, dictionary, read-only
+	kShip_primaryRole,			// Primary role, string, read-only
 	kShip_AI,					// AI state machine name, string, read/write
 	kShip_AIState,				// AI state machine state, string, read/write
 	kShip_fuel,					// fuel, float, read/write
@@ -102,7 +103,11 @@ enum
 	kShip_maxCargo,				// maximum cargo, integer, read-only
 	kShip_speed,				// current flight speed, double, read-only (should probably be read/write, but may interfere with AI behaviour)
 	kShip_maxSpeed,				// maximum flight speed, double, read-only
-	kShip_script				// script, Script, read-only
+	kShip_script,				// script, Script, read-only
+	kShip_isPirate,				// is pirate, boolean, read-only
+	kShip_isPolice,				// is police, boolean, read-only
+	kShip_isThargoid,			// is thargoid, boolean, read-only
+	kShip_isTrader				// is trader, boolean, read-only
 };
 
 
@@ -111,6 +116,8 @@ static JSPropertySpec sShipProperties[] =
 	// JS name					ID							flags
 	{ "shipDescription",		kShip_shipDescription,		JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
 	{ "roles",					kShip_roles,				JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
+	{ "roleProbabilities",		kShip_roleProbabilities,	JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
+	{ "primaryRole",			kShip_primaryRole,			JSPROP_PERMANENT | JSPROP_ENUMERATE },
 	{ "AI",						kShip_AI,					JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
 	{ "AIState",				kShip_AIState,				JSPROP_PERMANENT | JSPROP_ENUMERATE },
 	{ "fuel",					kShip_fuel,					JSPROP_PERMANENT | JSPROP_ENUMERATE },
@@ -138,6 +145,10 @@ static JSPropertySpec sShipProperties[] =
 	{ "speed",					kShip_speed,				JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
 	{ "maxSpeed",				kShip_maxSpeed,				JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
 	{ "script",					kShip_script,				JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
+	{ "isPirate",				kShip_isPirate,				JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
+	{ "isPolice",				kShip_isPolice,				JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
+	{ "isThargoid",				kShip_isThargoid,			JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
+	{ "isTrader",				kShip_isTrader,				JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
 	{ 0 }
 };
 
@@ -207,7 +218,15 @@ static JSBool ShipGetProperty(JSContext *context, JSObject *this, jsval name, js
 			break;
 		
 		case kShip_roles:
-			result = ArrayOfRoles([entity roles]);
+			result = [[entity roleSet] sortedRoles];
+			break;
+		
+		case kShip_roleProbabilities:
+			result = [[entity roleSet] rolesAndProbabilities];
+			break;
+		
+		case kShip_primaryRole:
+			result = [entity primaryRole];
 			break;
 			
 		case kShip_AI:
@@ -323,6 +342,22 @@ static JSBool ShipGetProperty(JSContext *context, JSObject *this, jsval name, js
 			result = [entity shipScript];
 			if (result == nil)  result = [NSNull null];
 			break;
+			
+		case kShip_isPirate:
+			*outValue = BOOLToJSVal([entity isPirate]);
+			break;
+			
+		case kShip_isPolice:
+			*outValue = BOOLToJSVal([entity isPolice]);
+			break;
+			
+		case kShip_isThargoid:
+			*outValue = BOOLToJSVal([entity isThargoid]);
+			break;
+			
+		case kShip_isTrader:
+			*outValue = BOOLToJSVal([entity isTrader]);
+			break;
 		
 		default:
 			OOReportJavaScriptBadPropertySelector(context, @"Ship", JSVAL_TO_INT(name));
@@ -349,10 +384,22 @@ static JSBool ShipSetProperty(JSContext *context, JSObject *this, jsval name, js
 	
 	switch (JSVAL_TO_INT(name))
 	{
+		case kShip_primaryRole:
+			if (entity->isPlayer)
+			{
+				OOReportJavaScriptError(context, @"Ship.AIState [setter]: cannot set %@ for player.", "primary role");
+			}
+			else
+			{
+				strVal = [NSString stringWithJavaScriptValue:*value inContext:context];
+				if (strVal != nil)  [entity setPrimaryRole:strVal];
+			}
+			break;
+		
 		case kShip_AIState:
 			if (entity->isPlayer)
 			{
-				OOReportJavaScriptError(context, @"Ship.AIState [setter]: cannot set AI state for player.");
+				OOReportJavaScriptError(context, @"Ship.AIState [setter]: cannot set %@ for player.", "AI state");
 			}
 			else
 			{
@@ -549,37 +596,4 @@ static JSBool ShipDockEscorts(JSContext *context, JSObject *this, uintN argc, js
 	
 	[thisEnt dockEscorts];
 	return YES;
-}
-
-
-static NSArray *ArrayOfRoles(NSString *rolesString)
-{
-	NSArray					*rawRoles = nil;
-	NSMutableArray			*filteredRoles = nil;
-	NSAutoreleasePool		*pool = nil;
-	unsigned				i, count;
-	NSString				*role = nil;
-	NSRange					parenRange;
-	
-	pool = [[NSAutoreleasePool alloc] init];
-	
-	rawRoles = ScanTokensFromString(rolesString);
-	count = [rawRoles count];
-	filteredRoles = [NSMutableArray arrayWithCapacity:count];
-	
-	for (i = 0; i != count; ++i)
-	{
-		role = [rawRoles objectAtIndex:i];
-		// Strip probability from string
-		parenRange = [role rangeOfString:@"("];
-		if (parenRange.location != NSNotFound)
-		{
-			role = [role substringToIndex:parenRange.location];
-		}
-		[filteredRoles addObject:role];
-	}
-	
-	[filteredRoles retain];
-	[pool release];
-	return filteredRoles;
 }

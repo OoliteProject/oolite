@@ -28,7 +28,7 @@ MA 02110-1301, USA.
 #import "OOEntityWithDrawable.h"
 
 @class	OOBrain, OOColor, StationEntity, ParticleEntity, PlanetEntity,
-		WormholeEntity, AI, Octree, OOMesh, OOScript;
+		WormholeEntity, AI, Octree, OOMesh, OOScript, OORoleSet;
 
 
 #define MAX_TARGETS						24
@@ -192,7 +192,8 @@ MA 02110-1301, USA.
 	AI						*shipAI;					// ship's AI system
 	
 	NSString				*name;						// descriptive name
-	NSString				*roles;						// names fo roles a ship can take, eg. trader, hunter, police, pirate, scavenger &c.
+	OORoleSet				*roleSet;					// Roles a ship can take, eg. trader, hunter, police, pirate, scavenger &c.
+	NSString				*primaryRole;				// "Main" role of the ship.
 	
 	// AI stuff
 	Vector					jink;						// x and y set factors for offsetting a pursuing ship's position
@@ -385,8 +386,23 @@ MA 02110-1301, USA.
 
 - (NSString *) name;
 - (NSString *) identFromShip:(ShipEntity*) otherShip; // name displayed to other ships
-- (NSString *) roles;
-- (void) setRoles:(NSString *) value;
+
+- (BOOL) hasRole:(NSString *)role;
+- (OORoleSet *)roleSet;
+
+- (NSString *)primaryRole;
+- (void)setPrimaryRole:(NSString *)role;
+- (BOOL)hasPrimaryRole:(NSString *)role;
+
+- (BOOL)isPolice;	// Scan class is CLASS_POLICE
+- (BOOL)isThargoid;	// Scan class is CLASS_THARGOID
+- (BOOL)isTrader;	// Primary role is "trader" || isPlayer
+- (BOOL)isPirate;	// Primary role is "pirate"
+- (BOOL)isMissile;	// Primary role has suffix "MISSILE"
+- (BOOL)isMine;		// Primary role has suffix "MINE"
+- (BOOL)isWeapon;	// isMissile || isWeapon
+- (BOOL)isEscort;	// Primary role is "escort" or "wingman"
+- (BOOL)isShuttle;	// Primary role is "shuttle"
 
 - (BOOL) hasHostileTarget;
 
@@ -515,7 +531,7 @@ BOOL	class_masslocks(int some_class);
 - (void) setPrimaryAggressor:(Entity *) targetEntity;
 - (void) addTarget:(Entity *) targetEntity;
 - (void) removeTarget:(Entity *) targetEntity;
-- (Entity *) primaryTarget;
+- (id) primaryTarget;
 - (int) primaryTargetID;
 
 - (OOBehaviour) behaviour;
@@ -586,7 +602,7 @@ BOOL	class_masslocks(int some_class);
 
 - (void) setDestination:(Vector) dest;
 
-inline BOOL pairOK(NSString* my_role, NSString* their_role);
+- (BOOL) canAcceptEscort:(ShipEntity *)potentialEscort;
 - (BOOL) acceptAsEscort:(ShipEntity *) other_ship;
 - (Vector) coordinatesForEscortPosition:(int) f_pos;
 - (void) deployEscorts;

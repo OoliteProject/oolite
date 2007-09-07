@@ -158,6 +158,12 @@ typedef struct
 	struct JSObject			*jsSelf;
 }
 
+- (BOOL)isShip;
+- (BOOL)isStation;
+- (BOOL)isSubEntity;
+- (BOOL)isPlayer;
+- (BOOL)isPlanet;
+
 - (BOOL) validForAddToUniverse;
 - (void) addToLinkedLists;
 - (void) removeFromLinkedLists;
@@ -180,7 +186,7 @@ typedef struct
 - (void) throwSparks;
 
 - (void) setOwner:(Entity *)ent;
-- (Entity *)owner;
+- (id)owner;
 
 - (void) setPosition:(Vector)posn;
 - (void) setPositionX:(GLfloat)x y:(GLfloat)y z:(GLfloat)z;

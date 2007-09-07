@@ -35,12 +35,6 @@ MA 02110-1301, USA.
 
 - (NSString *)jsClassName;
 
-- (BOOL)isShip;
-- (BOOL)isStation;
-- (BOOL)isSubEntity;
-- (BOOL)isPlayer;
-- (BOOL)isPlanet;
-
 // Internal:
 - (void)getJSClass:(JSClass **)outClass andPrototype:(JSObject **)outPrototype;
 - (void)deleteJSSelf;
