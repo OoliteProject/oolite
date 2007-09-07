@@ -41,6 +41,7 @@ MA 02110-1301, USA.
 #import "OOCPUInfo.h"
 #import "OOMaterial.h"
 #import "OOTexture.h"
+#import "OORoleSet.h"
 
 #import "Octree.h"
 #import "CollisionRegion.h"
@@ -2741,7 +2742,7 @@ GLfloat docked_light_specular[]	= { (GLfloat) 1.0, (GLfloat) 1.0, (GLfloat) 0.5,
 
 - (ShipEntity *) newShipWithRole:(NSString *) desc
 {
-	unsigned				i, j, found = 0;
+	unsigned				i, found = 0;
 	ShipEntity				*ship = nil;
 	NSString				*search = nil;
 	NSAutoreleasePool		*pool = nil;
@@ -2749,11 +2750,11 @@ GLfloat docked_light_specular[]	= { (GLfloat) 1.0, (GLfloat) 1.0, (GLfloat) 0.5,
 	NSString				*shipKey = nil;
 	NSMutableArray			*foundShips = nil;
 	NSMutableArray			*foundChance = nil;
-	float					foundf = 0.0, selectedf;
+	float					foundf = 0.0, chance, selectedf;
 	NSDictionary			*shipDict = nil;
-	NSArray					*shipRoles = nil;
 	NSString				*autoAI = nil;
 	NSDictionary			*autoAIMap = nil;
+	OORoleSet				*roles = nil;
 	
 	pool = [[NSAutoreleasePool alloc] init];
 	
@@ -2761,16 +2762,29 @@ GLfloat docked_light_specular[]	= { (GLfloat) 1.0, (GLfloat) 1.0, (GLfloat) 0.5,
 	foundShips = [NSMutableArray array];
 	foundChance = [NSMutableArray array];
 	
-	/*	FIXME: this sucks.
-		Checking conditions if there's no role match seems pointless, for one.
-		Also, the search is silly. We ought to have a dictionary of roles to
-		sets of ship definitions. Ship definitions should be a class, not just
-		raw dictionaries. And roles within each ship definition/ship class
-		should be something better than a string, too.
-		-- Ahruman
-	*/
-	
 	for (shipEnum = [shipdata keyEnumerator]; (shipKey = [shipEnum nextObject]); )
+	{
+		shipDict = [shipdata dictionaryForKey:shipKey];
+		
+		roles = [OORoleSet roleSetWithString:[shipDict stringForKey:@"roles"]];
+		chance = [roles probabilityForRole:search];
+		if (0.0f < chance && [shipDict arrayForKey:@"conditions"])
+		{
+			PlayerEntity* player = [PlayerEntity sharedPlayer];
+			if ((player) && (player->isPlayer) && (![player checkCouplet:shipDict onEntity:player]))
+			{
+				chance = 0.0f;
+			}
+		}
+		if (0.0f < chance)
+		{
+			[foundShips addObject:shipKey];
+			[foundChance addObject:[NSNumber numberWithFloat:chance]];
+			found++;
+			foundf += chance;
+		}
+	}
+	/*for (shipEnum = [shipdata keyEnumerator]; (shipKey = [shipEnum nextObject]); )
 	{
 		shipDict = [shipdata dictionaryForKey:shipKey];
 		shipRoles = ScanTokensFromString([shipDict stringForKey:@"roles"]);
@@ -2792,14 +2806,13 @@ GLfloat docked_light_specular[]	= { (GLfloat) 1.0, (GLfloat) 1.0, (GLfloat) 0.5,
 				if ([putative_roles hasPrefix:search] && ([putative_roles rangeOfString:@"("].location != NSNotFound))
 				{
 					NSScanner* scanner = [NSScanner scannerWithString:putative_roles];	// scanner
-					NSString* scanrole;
-					[scanner scanUpToString:@"(" intoString:&scanrole];					// look for '('
-					[scanner scanString:@"(" intoString:(NSString**)nil];				// skip over it
+					[scanner scanUpToString:@"(" intoString:&putative_roles];			// look for '('
+					[scanner scanString:@"(" intoString:NULL];							// skip over it
 					if (![scanner scanFloat:&chance])	chance = 1.0;					// try to scan a float
-					putative_roles = [NSString stringWithString:scanrole];				// ignore from '(' onwards (lazy)
+																						// ignore from '(' onwards (lazy)
 					
 				}
-		
+				
 				if ([putative_roles isEqual:search] && (chance > 0.0))
 				{
 					[foundShips addObject:shipKey];
@@ -2809,7 +2822,7 @@ GLfloat docked_light_specular[]	= { (GLfloat) 1.0, (GLfloat) 1.0, (GLfloat) 0.5,
 				}
 			}
 		}
-	}
+	}*/
 
 	i = 0;
 	
