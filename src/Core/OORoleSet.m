@@ -220,7 +220,7 @@ SOFTWARE.
 	if (role == nil)
 	{
 		role = [[self roles] anyObject];
-		OOLog(@"roleSet.anyRole.failed", @"Could not get a weighted-random role from role set %@, returning unweighted selection %@. TotalProb: %g, selected: %g, prob at end: %@", self, role, _totalProb, selected, prob);
+		OOLog(@"roleSet.anyRole.failed", @"Could not get a weighted-random role from role set %@, returning unweighted selection %@. TotalProb: %g, selected: %g, prob at end: %f", self, role, _totalProb, selected, prob);
 	}
 	return role;
 }
@@ -347,7 +347,7 @@ SOFTWARE.
 		}
 	}
 	
-	if ([result count] == nil)  result = nil;
+	if ([result count] == 0)  result = nil;
 	return result;
 }
 

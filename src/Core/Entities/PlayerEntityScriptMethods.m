@@ -80,7 +80,7 @@ MA 02110-1301, USA.
 
 - (NSString *) dockedStationName
 {
-	return [dockedStation name];
+	return [(ShipEntity *)dockedStation name];
 }
 
 

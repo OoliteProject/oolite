@@ -2903,7 +2903,7 @@ static GLfloat mascem_color2[4] =	{ 0.4, 0.1, 0.4, 1.0};	// purple
 		primaryRole = [roleSet anyRole];
 		if (primaryRole == nil)  primaryRole = @"trader";
 		[primaryRole retain];
-		OOLog(@"ship.noPrimaryRole", @"%@ had no primary role, randomly selected \"%@\".", primaryRole);
+		OOLog(@"ship.noPrimaryRole", @"%@ had no primary role, randomly selected \"%@\".", [self name], primaryRole);
 	}
 	
 	return primaryRole;
