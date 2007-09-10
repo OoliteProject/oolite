@@ -6219,15 +6219,15 @@ static BOOL MaintainLinkedLists(Universe* uni)
 
 - (NSArray *) commodityDataForEconomy:(OOEconomyID) economy andStation:(StationEntity *)some_station andRandomFactor:(int) random_factor
 {
-	NSString		*station_roles = nil;
-	NSMutableArray	*ourEconomy = nil;
+	NSString		*stationRole = nil;
+	NSMutableArray		*ourEconomy = nil;
 	unsigned		i;
 	
-	station_roles = [[self currentSystemData] stringForKey:@"market"];
-	NSString *stationRole = [some_station primaryRole];
+	stationRole = [[self currentSystemData] stringForKey:@"market"];
+	if (stationRole == nil) stationRole = [some_station primaryRole];
 	if ([commoditylists arrayForKey:stationRole] == nil)  stationRole = @"default";
 	
-	ourEconomy = [NSMutableArray arrayWithArray:[commoditylists arrayForKey:station_roles]];
+	ourEconomy = [NSMutableArray arrayWithArray:[commoditylists arrayForKey:stationRole]];
 	
 	for (i = 0; i < [ourEconomy count]; i++)
 	{

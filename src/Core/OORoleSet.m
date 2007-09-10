@@ -212,7 +212,7 @@ SOFTWARE.
 	selected = randf() * _totalProb;
 	prob = 0.0f;
 	
-	for (roleEnum = [_rolesAndProbabilities objectEnumerator]; (role = [roleEnum nextObject]); )
+	for (roleEnum = [_rolesAndProbabilities keyEnumerator]; (role = [roleEnum nextObject]); )
 	{
 		prob += [_rolesAndProbabilities floatForKey:role];
 		if (selected <= prob)  break;

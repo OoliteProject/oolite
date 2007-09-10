@@ -49,6 +49,8 @@ MA 02110-1301, USA.
 #import "OOPListParsing.h"
 #import "OOCollectionExtractors.h"
 #import "OOConstToString.h"
+#import "OOTexture.h"	// Required to properly release missionBackgroundTexture.
+#import "OORoleSet.h"	// Required to properly release roleSet.
 
 #import "OOScript.h"
 #import "HeadUpDisplay.h"
