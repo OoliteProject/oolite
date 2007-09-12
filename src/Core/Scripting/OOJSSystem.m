@@ -159,7 +159,7 @@ static JSBool SystemGetProperty(JSContext *context, JSObject *this, jsval name, 
 	
 	if (!JSVAL_IS_INT(name))  return YES;
 	
-	player = OPlayerForScripting();
+	player = OOPlayerForScripting();
 	if (!equal_seeds(sCurrentSystem, player->system_seed))
 	{
 		sCurrentSystem = player->system_seed;
@@ -262,7 +262,7 @@ static JSBool SystemSetProperty(JSContext *context, JSObject *this, jsval name, 
 	
 	if (!JSVAL_IS_INT(name))  return YES;
 	
-	player = OPlayerForScripting();
+	player = OOPlayerForScripting();
 	if (!equal_seeds(sCurrentSystem, player->system_seed))
 	{
 		sCurrentSystem = player->system_seed;
@@ -359,7 +359,7 @@ static JSBool SystemToString(JSContext *context, JSObject *this, uintN argc, jsv
 
 static JSBool SystemAddPlanet(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
 {
-	PlayerEntity *player = OPlayerForScripting();
+	PlayerEntity *player = OOPlayerForScripting();
 	
 	if (argc > 0 && JSVAL_IS_STRING(argv[0]))
 	{
@@ -372,7 +372,7 @@ static JSBool SystemAddPlanet(JSContext *context, JSObject *this, uintN argc, js
 
 static JSBool SystemAddMoon(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
 {
-	PlayerEntity *player = OPlayerForScripting();
+	PlayerEntity *player = OOPlayerForScripting();
 	
 	if (argc > 0 && JSVAL_IS_STRING(argv[0]))
 	{
@@ -385,7 +385,7 @@ static JSBool SystemAddMoon(JSContext *context, JSObject *this, uintN argc, jsva
 
 static JSBool SystemSendAllShipsAway(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
 {
-	PlayerEntity *player = OPlayerForScripting();
+	PlayerEntity *player = OOPlayerForScripting();
 	
 	[player sendAllShipsAway];
 	
@@ -395,7 +395,7 @@ static JSBool SystemSendAllShipsAway(JSContext *context, JSObject *this, uintN a
 
 static JSBool SystemSetSunNova(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
 {
-	PlayerEntity *player = OPlayerForScripting();
+	PlayerEntity *player = OOPlayerForScripting();
 	
 	NSString *key = JSValToNSString(context, argv[0]);
 	[player setSunNovaIn:key];
@@ -490,7 +490,7 @@ static JSBool SystemLegacyAddSystemShips(JSContext *context, JSObject *this, uin
 
 static JSBool SystemLegacyAddShipsAt(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
 {
-	PlayerEntity		*player = OPlayerForScripting();
+	PlayerEntity		*player = OOPlayerForScripting();
 	Vector				where;
 	NSString			*role = nil;
 	int32				count;
@@ -517,7 +517,7 @@ static JSBool SystemLegacyAddShipsAt(JSContext *context, JSObject *this, uintN a
 
 static JSBool SystemLegacyAddShipsAtPrecisely(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
 {
-	PlayerEntity		*player = OPlayerForScripting();
+	PlayerEntity		*player = OOPlayerForScripting();
 	Vector				where;
 	NSString			*role = nil;
 	int32				count;
@@ -544,7 +544,7 @@ static JSBool SystemLegacyAddShipsAtPrecisely(JSContext *context, JSObject *this
 
 static JSBool SystemLegacyAddShipsWithinRadius(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
 {
-	PlayerEntity		*player = OPlayerForScripting();
+	PlayerEntity		*player = OOPlayerForScripting();
 	Vector				where;
 	jsdouble			radius;
 	NSString			*role = nil;
@@ -576,7 +576,7 @@ static JSBool SystemLegacyAddShipsWithinRadius(JSContext *context, JSObject *thi
 
 static JSBool SystemLegacySpawn(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
 {
-	PlayerEntity		*player = OPlayerForScripting();
+	PlayerEntity		*player = OOPlayerForScripting();
 	NSString			*role = nil;
 	int32				count;
 	NSString			*arg = nil;
@@ -597,7 +597,7 @@ static JSBool SystemLegacySpawn(JSContext *context, JSObject *this, uintN argc, 
 
 static JSBool SystemLegacySpawnShip(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
 {
-	PlayerEntity		*player = OPlayerForScripting();
+	PlayerEntity		*player = OOPlayerForScripting();
 	
 	[player spawnShip:JSValToNSString(context, argv[0])];
 	return YES;

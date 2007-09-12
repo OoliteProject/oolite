@@ -2403,7 +2403,7 @@
 		weapon_position_port = "-19.0 -4.5 4.5";
 		weapon_position_starboard = "19.0 -4.5 4.5";
 	};
-	thargoid =
+	"thargoid" =
 	{
 		aft_eject_position = "0.0 0.0 -20.5";
 		aft_weapon_type = "WEAPON_THARGOID_LASER";
@@ -2427,7 +2427,7 @@
 		missiles = 5;
 		model = "thargoid_redux.dat";
 		name = "Thargoid Warship";
-		roles = "thargoid oolite-thargoid";
+		roles = "thargoid oolite-thargoid thargoid-mothership";
 		scanClass = "CLASS_THARGOID";
 		scanner_range = 60000;
 		thrust = 50;

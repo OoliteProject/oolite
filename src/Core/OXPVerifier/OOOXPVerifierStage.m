@@ -152,7 +152,7 @@ SOFTWARE.
 	if (stage == nil)  return NO;
 	
 	// Direct dependency check.
-	if ([_dependencies member:stage] != nil)  return YES;
+	if ([_dependencies containsObject:stage])  return YES;
 	
 	// Recursive dependency check.
 	for (directDepEnum = [_dependencies objectEnumerator]; (directDep = [directDepEnum nextObject]); )

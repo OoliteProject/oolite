@@ -394,15 +394,16 @@ MA 02110-1301, USA.
 - (void)setPrimaryRole:(NSString *)role;
 - (BOOL)hasPrimaryRole:(NSString *)role;
 
-- (BOOL)isPolice;	// Scan class is CLASS_POLICE
-- (BOOL)isThargoid;	// Scan class is CLASS_THARGOID
-- (BOOL)isTrader;	// Primary role is "trader" || isPlayer
-- (BOOL)isPirate;	// Primary role is "pirate"
-- (BOOL)isMissile;	// Primary role has suffix "MISSILE"
-- (BOOL)isMine;		// Primary role has suffix "MINE"
-- (BOOL)isWeapon;	// isMissile || isWeapon
-- (BOOL)isEscort;	// Primary role is "escort" or "wingman"
-- (BOOL)isShuttle;	// Primary role is "shuttle"
+- (BOOL)isPolice;		// Scan class is CLASS_POLICE
+- (BOOL)isThargoid;		// Scan class is CLASS_THARGOID
+- (BOOL)isTrader;		// Primary role is "trader" || isPlayer
+- (BOOL)isPirate;		// Primary role is "pirate"
+- (BOOL)isMissile;		// Primary role has suffix "MISSILE"
+- (BOOL)isMine;			// Primary role has suffix "MINE"
+- (BOOL)isWeapon;		// isMissile || isWeapon
+- (BOOL)isEscort;		// Primary role is "escort" or "wingman"
+- (BOOL)isShuttle;		// Primary role is "shuttle"
+- (BOOL)isPirateVictim;	// Primary role is listed in pirate-victim-roles.plist
 
 - (BOOL) hasHostileTarget;
 
@@ -653,6 +654,17 @@ BOOL	class_masslocks(int some_class);
 - (void) doScriptEvent:(NSString *)message withArguments:(NSArray *)arguments;
 
 @end
+
+
+// Filters used in varous ship-counting and ship-selecting methods
+typedef BOOL (*ShipFilterPredicate)(ShipEntity *ship, void *parameter);
+BOOL HasRolePredicate(ShipEntity *ship, void *parameter);				// Parameter: NSString
+BOOL HasPrimaryRolePredicate(ShipEntity *ship, void *parameter);		// Parameter: NSString
+BOOL HasRoleInSetPredicate(ShipEntity *ship, void *parameter);			// Parameter: NSSet
+BOOL HasPrimaryRoleInSetPredicate(ShipEntity *ship, void *parameter);	// Parameter: NSSet
+BOOL HasScanClassPredicate(ShipEntity *ship, void *parameter);			// Parameter: NSNumber (int)
+typedef struct { ShipFilterPredicate predicate; void *parameter; } NegatedShipFilterPredicateParam;
+BOOL NegatedShipFilterPredicate(ShipEntity *ship, void *parameter);		// Parameter: NegatedShipFilterPredicateParam
 
 
 BOOL ship_canCollide (ShipEntity* ship);

@@ -25,6 +25,9 @@ MA 02110-1301, USA.
 #import "OOJavaScriptEngine.h"
 #import "OOJSScript.h"
 
+#import "OOJSGlobal.h"
+#import "OOJSMissionVariables.h"
+#import "OOJSMission.h"
 #import "OOJSVector.h"
 #import "OOJSQuaternion.h"
 #import "OOJSEntity.h"
@@ -44,11 +47,7 @@ MA 02110-1301, USA.
 #include <string.h>
 
 
-extern NSString * const kOOLogDebugMessage;
-
-
 static OOJavaScriptEngine *sSharedEngine = nil;
-static JSObject *xglob, *missionObj;
 
 
 #if OOJSENGINE_MONITOR_SUPPORT
@@ -68,14 +67,6 @@ static JSObject *xglob, *missionObj;
 #endif
 
 
-// For _bool scripting methods which always return @"YES" or @"NO" and nothing else.
-OOINLINE jsval BooleanStringToJSVal(NSString *string) INLINE_PURE_FUNC;
-OOINLINE jsval BooleanStringToJSVal(NSString *string)
-{
-	return BOOLEAN_TO_JSVAL([string isEqualToString:@"YES"]);
-}
-
-
 static void ReportJSError(JSContext *context, const char *message, JSErrorReport *report);
 
 
@@ -83,418 +74,6 @@ static void RegisterStandardObjectConverters(JSContext *context);
 
 static id JSArrayConverter(JSContext *context, JSObject *object);
 static id JSGenericObjectConverter(JSContext *context, JSObject *object);
-
-
-//===========================================================================
-// MissionVars class
-//===========================================================================
-
-static JSBool MissionVarsGetProperty(JSContext *context, JSObject *obj, jsval name, jsval *vp);
-static JSBool MissionVarsSetProperty(JSContext *context, JSObject *obj, jsval name, jsval *vp);
-
-
-static JSClass MissionVars_class =
-{
-	"MissionVariables",
-	0,
-	
-	JS_PropertyStub,
-	JS_PropertyStub,
-	MissionVarsGetProperty,
-	MissionVarsSetProperty,
-	JS_EnumerateStub,	// FIXME: should have an enumerate callback
-	JS_ResolveStub,
-	JS_ConvertStub,
-	JS_FinalizeStub
-};
-
-
-static JSBool MissionVarsGetProperty(JSContext *context, JSObject *obj, jsval name, jsval *vp)
-{
-	NSDictionary	*mission_variables = [OPlayerForScripting() mission_variables];
-	
-	if (JSVAL_IS_STRING(name))
-	{
-		NSString	*key = [@"mission_" stringByAppendingString:[NSString stringWithJavaScriptValue:name inContext:context]];
-		NSString	*value = [mission_variables objectForKey:key];
-		
-		if (value == nil)
-		{
-			*vp = JSVAL_VOID;
-		}
-		else
-		{
-			/*	The point of this code is to try and tell the JS interpreter to treat numeric strings
-				as numbers where possible so that standard arithmetic works as you'd expect rather than
-				1+1 == "11". So a JSVAL_DOUBLE is returned if possible, otherwise a JSVAL_STRING is returned.
-			*/
-			
-			BOOL	isNumber = NO;
-			double	dVal;
-			
-			dVal = [value doubleValue];
-			if (dVal != 0) isNumber = YES;
-			else
-			{
-				NSCharacterSet *notZeroSet = [[NSCharacterSet characterSetWithCharactersInString:@"-0. "] invertedSet];
-				if ([value rangeOfCharacterFromSet:notZeroSet].location == NSNotFound) isNumber = YES;
-			}
-			if (isNumber)
-			{
-				jsdouble ds = [value doubleValue];
-				JSBool ok = JS_NewDoubleValue(context, ds, vp);
-				if (!ok) *vp = JSVAL_VOID;
-			}
-			else *vp = [value javaScriptValueInContext:context];
-		}
-	}
-	return JS_TRUE;
-}
-
-
-static JSBool MissionVarsSetProperty(JSContext *context, JSObject *obj, jsval name, jsval *vp)
-{
-	NSDictionary *mission_variables = [OPlayerForScripting() mission_variables];
-
-	if (JSVAL_IS_STRING(name))
-	{
-		NSString	*key = [@"mission_" stringByAppendingString:[NSString stringWithJavaScriptValue:name inContext:context]];
-		NSString	*value = [NSString stringWithJavaScriptValue:*vp inContext:context];
-		[mission_variables setValue:value forKey:key];
-	}
-	return JS_TRUE;
-}
-
-//===========================================================================
-// Global object class
-//===========================================================================
-
-static JSBool GlobalGetProperty(JSContext *context, JSObject *obj, jsval name, jsval *vp);
-
-
-static JSClass global_class =
-{
-	"Global",
-	0,
-	
-	JS_PropertyStub,
-	JS_PropertyStub,
-	GlobalGetProperty,
-	JS_PropertyStub,
-	JS_EnumerateStub,
-	JS_ResolveStub,
-	JS_ConvertStub,
-	JS_FinalizeStub
-};
-
-
-enum global_propertyIDs
-{
-	GLOBAL_GALAXY_NUMBER,
-	GLOBAL_PLANET_NUMBER,
-	GLOBAL_MISSION_VARS,
-	GLOBAL_GUI_SCREEN
-};
-
-
-static JSPropertySpec Global_props[] =
-{
-	// JS name					ID							flags
-	{ "galaxyNumber",			GLOBAL_GALAXY_NUMBER,		JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
-	{ "planetNumber",			GLOBAL_PLANET_NUMBER,		JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
-	{ "missionVariables",		GLOBAL_MISSION_VARS,		JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
-	{ "guiScreen",				GLOBAL_GUI_SCREEN,			JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
-	{ 0 }
-};
-
-
-static JSBool GlobalLog(JSContext *context, JSObject *obj, uintN argc, jsval *argv, jsval *rval);
-static JSBool GlobalLogWithClass(JSContext *context, JSObject *obj, uintN argc, jsval *argv, jsval *rval);
-
-
-static JSFunctionSpec Global_funcs[] =
-{
-	{ "Log", GlobalLog, 1, 0 },
-	{ "LogWithClass", GlobalLogWithClass, 2, 0 },
-	{ 0 }
-};
-
-
-static JSBool GlobalLog(JSContext *context, JSObject *obj, uintN argc, jsval *argv, jsval *rval)
-{
-	NSString			*message = nil;
-	
-	message = [NSString concatenationOfStringsFromJavaScriptValues:argv count:argc separator:@", " inContext:context];
-	OOLog(kOOLogDebugMessage, message);
-	
-#if OOJSENGINE_MONITOR_SUPPORT
-	[[OOJavaScriptEngine sharedEngine] sendMonitorLogMessage:message
-											withMessageClass:nil
-												   inContext:context];
-#endif
-	
-	return JS_TRUE;
-}
-
-
-static JSBool GlobalLogWithClass(JSContext *context, JSObject *obj, uintN argc, jsval *argv, jsval *rval)
-{
-	NSString			*msgClass = nil, *message = nil;
-	
-	msgClass = [NSString stringWithJavaScriptValue:argv[0] inContext:context];
-	message = [NSString concatenationOfStringsFromJavaScriptValues:argv + 1 count:argc - 1 separator:@", " inContext:context];
-	OOLog(msgClass, message);
-	
-#if OOJSENGINE_MONITOR_SUPPORT
-	[[OOJavaScriptEngine sharedEngine] sendMonitorLogMessage:message
-											withMessageClass:msgClass
-												   inContext:context];
-#endif
-	
-	return JS_TRUE;
-}
-
-
-static JSBool GlobalGetProperty(JSContext *context, JSObject *obj, jsval name, jsval *vp)
-{
-	if (!JSVAL_IS_INT(name)) return JS_TRUE;
-	
-	PlayerEntity				*player = OPlayerForScripting();
-	id							result = nil;
-	
-	switch (JSVAL_TO_INT(name))
-	{
-		case GLOBAL_GALAXY_NUMBER:
-			result = [player galaxy_number];
-			break;
-		
-		case GLOBAL_PLANET_NUMBER:
-			result = [player planet_number];
-			break;
-
-		case GLOBAL_GUI_SCREEN:
-			result = [player gui_screen_string];
-			break;
-
-		case GLOBAL_MISSION_VARS:
-		{
-			JSObject *mv = JS_DefineObject(context, xglob, "missionVariables", &MissionVars_class, 0x00, JSPROP_ENUMERATE | JSPROP_READONLY | JSPROP_PERMANENT);
-			*vp = OBJECT_TO_JSVAL(mv);
-			break;
-		}
-		
-		default:
-			OOReportJavaScriptBadPropertySelector(context, @"Global", JSVAL_TO_INT(name));
-			return NO;
-	}
-	
-	if (result != nil) *vp = [result javaScriptValueInContext:context];
-	return JS_TRUE;
-}
-
-
-//===========================================================================
-// Mission class
-//===========================================================================
-
-static JSBool MissionGetProperty(JSContext *context, JSObject *obj, jsval name, jsval *vp);
-static JSBool MissionSetProperty(JSContext *context, JSObject *obj, jsval name, jsval *vp);
-
-
-static JSClass Mission_class =
-{
-	"Mission",
-	0,
-	
-	JS_PropertyStub,
-	JS_PropertyStub,
-	MissionGetProperty,
-	MissionSetProperty,
-	JS_EnumerateStub,
-	JS_ResolveStub,
-	JS_ConvertStub,
-	JS_FinalizeStub
-};
-
-
-enum Mission_propertyIDs
-{
-	MISSION_TEXT, MISSION_MUSIC, MISSION_IMAGE, MISSION_CHOICES, MISSION_CHOICE, MISSION_INSTRUCTIONS
-};
-
-static JSPropertySpec Mission_props[] =
-{
-	{ "missionScreenTextKey", MISSION_TEXT, JSPROP_ENUMERATE },
-	{ "musicFileName", MISSION_MUSIC, JSPROP_ENUMERATE },
-	{ "imageFileName", MISSION_IMAGE, JSPROP_ENUMERATE },
-	{ "choicesKey", MISSION_CHOICES, JSPROP_ENUMERATE },
-	{ "choice", MISSION_CHOICE, JSPROP_ENUMERATE },
-	{ "instructionsKey", MISSION_INSTRUCTIONS, JSPROP_ENUMERATE },
-	{ 0 }
-};
-
-
-static JSBool MissionShowMissionScreen(JSContext *context, JSObject *obj, uintN argc, jsval *argv, jsval *rval);
-static JSBool MissionShowShipModel(JSContext *context, JSObject *obj, uintN argc, jsval *argv, jsval *rval);
-static JSBool MissionResetMissionChoice(JSContext *context, JSObject *obj, uintN argc, jsval *argv, jsval *rval);
-static JSBool MissionMarkSystem(JSContext *context, JSObject *obj, uintN argc, jsval *argv, jsval *rval);
-static JSBool MissionUnmarkSystem(JSContext *context, JSObject *obj, uintN argc, jsval *argv, jsval *rval);
-
-
-static JSFunctionSpec Mission_funcs[] =
-{
-	{ "showMissionScreen", MissionShowMissionScreen, 0, 0 },
-	{ "showShipModel", MissionShowShipModel, 1, 0 },
-	{ "resetMissionChoice", MissionResetMissionChoice, 0, 0 },
-	{ "markSystem", MissionMarkSystem, 1, 0 },
-	{ "unmarkSystem", MissionUnmarkSystem, 1, 0 },
-	{ 0 }
-};
-
-
-static JSBool MissionGetProperty(JSContext *context, JSObject *obj, jsval name, jsval *vp)
-{
-	if (!JSVAL_IS_INT(name))  return JS_TRUE;
-
-	PlayerEntity				*player = OPlayerForScripting();
-	id							result = nil;
-
-	switch (JSVAL_TO_INT(name))
-	{
-		case MISSION_CHOICE:
-			result = [player missionChoice_string];
-			if (result == nil) result = @"None";
-			break;
-		
-		default:
-			OOReportJavaScriptBadPropertySelector(context, @"Mission", JSVAL_TO_INT(name));
-			return NO;
-	}
-	
-	if (result != nil) *vp = [result javaScriptValueInContext:context];
-	return JS_TRUE;
-}
-
-
-static JSBool MissionSetProperty(JSContext *context, JSObject *obj, jsval name, jsval *vp)
-{
-	if (!JSVAL_IS_INT(name))  return JS_TRUE;
-
-	PlayerEntity				*player = OPlayerForScripting();
-
-	switch (JSVAL_TO_INT(name))
-	{
-		case MISSION_TEXT:
-			if (JSVAL_IS_STRING(*vp))
-			{
-				JSString *jskey = JS_ValueToString(context, *vp);
-				[player addMissionText: [NSString stringWithCString:JS_GetStringBytes(jskey)]];
-			}
-			break;
-		
-		case MISSION_MUSIC:
-			if (JSVAL_IS_STRING(*vp))
-			{
-				JSString *jskey = JS_ValueToString(context, *vp);
-				[player setMissionMusic: [NSString stringWithCString:JS_GetStringBytes(jskey)]];
-			}
-			break;
-		
-		case MISSION_IMAGE:
-			if (JSVAL_IS_STRING(*vp))
-			{
-				NSString *str = JSValToNSString(context, *vp);
-				if ([str length] == 0)
-					str = @"none";
-				[player setMissionImage:str];
-			}
-			break;
-		
-		case MISSION_CHOICES:
-			if (JSVAL_IS_STRING(*vp))
-			{
-				JSString *jskey = JS_ValueToString(context, *vp);
-				[player setMissionChoices: [NSString stringWithCString:JS_GetStringBytes(jskey)]];
-			}
-			break;
-		
-		case MISSION_INSTRUCTIONS:
-		
-			if (JSVAL_IS_STRING(*vp))
-			{
-				JSString *jskey = JS_ValueToString(context, *vp);
-				NSString *ins = [NSString stringWithCString:JS_GetStringBytes(jskey)];
-				if ([ins length])
-					[player setMissionDescription:ins forMission:[[OOJSScript currentlyRunningScript] name]];
-				else
-					[player clearMissionDescriptionForMission:[[OOJSScript currentlyRunningScript] name]];
-			}
-			break;
-		
-		default:
-			OOReportJavaScriptBadPropertySelector(context, @"Mission", JSVAL_TO_INT(name));
-			return NO;
-	}
-	return JS_TRUE;
-}
-
-
-static JSBool MissionShowMissionScreen(JSContext *context, JSObject *obj, uintN argc, jsval *argv, jsval *rval)
-{
-	PlayerEntity		*player = OPlayerForScripting();
-	
-	[player setGuiToMissionScreen];
-	
-	return JS_TRUE;
-}
-
-
-static JSBool MissionShowShipModel(JSContext *context, JSObject *obj, uintN argc, jsval *argv, jsval *rval)
-{
-	PlayerEntity		*player = OPlayerForScripting();
-	JSString			*jskey = NULL;
-	
-	if (argc > 0 && JSVAL_IS_STRING(argv[0]))
-	{
-		jskey = JS_ValueToString(context, argv[0]);
-		[player showShipModel: [NSString stringWithCString:JS_GetStringBytes(jskey)]];
-	}
-	return JS_TRUE;
-}
-
-
-static JSBool MissionResetMissionChoice(JSContext *context, JSObject *obj, uintN argc, jsval *argv, jsval *rval)
-{
-	PlayerEntity		*player = OPlayerForScripting();
-	
-	[player resetMissionChoice];
-	
-	return JS_TRUE;
-}
-
-
-static JSBool MissionMarkSystem(JSContext *context, JSObject *obj, uintN argc, jsval *argv, jsval *rval)
-{
-	PlayerEntity		*player = OPlayerForScripting();
-	NSString			*params = nil;
-	
-	params = [NSString concatenationOfStringsFromJavaScriptValues:argv count:argc separator:@" " inContext:context];
-	[player addMissionDestination:params];
-	
-	return JS_TRUE;
-}
-
-
-static JSBool MissionUnmarkSystem(JSContext *context, JSObject *obj, uintN argc, jsval *argv, jsval *rval)
-{
-	PlayerEntity		*player = OPlayerForScripting();
-	NSString			*params = nil;
-	
-	player = [NSString concatenationOfStringsFromJavaScriptValues:argv count:argc separator:@" " inContext:context];
-	[player removeMissionDestination:params];
-	
-	return JS_TRUE;
-}
 
 
 static void ReportJSError(JSContext *context, const char *message, JSErrorReport *report)
@@ -568,24 +147,24 @@ static void ReportJSError(JSContext *context, const char *message, JSErrorReport
 	
 	assert(sizeof(jschar) == sizeof(unichar));
 
-	/*set up global JS variables, including global and custom objects */
+	// set up global JS variables, including global and custom objects
 
-	/* initialize the JS run time, and return result in runtime */
+	// initialize the JS run time, and return result in runtime
 	runtime = JS_NewRuntime(8L * 1024L * 1024L);
 	
-	/* if runtime does not have a value, end the program here */
+	// if runtime does not have a value, end the program here
 	if (!runtime)
 	{
 		OOLog(@"script.javaScript.init.error", @"FATAL ERROR: failed to create JavaScript %@.", @"runtime");
 		exit(1);
 	}
 
-	/* create a context and associate it with the JS run time */
+	// create a context and associate it with the JS run time
 	context = JS_NewContext(runtime, 8192);
 	JS_SetOptions(context, JSOPTION_VAROBJFIX | JSOPTION_STRICT | JSOPTION_COMPILE_N_GO | JSOPTION_NATIVE_BRANCH_CALLBACK);
 	JS_SetVersion(context, JSVERSION_1_7);
 	
-	/* if context does not have a value, end the program here */
+	// if context does not have a value, end the program here
 	if (!context)
 	{
 		OOLog(@"script.javaScript.init.error", @"FATAL ERROR: failed to create JavaScript %@.", @"context");
@@ -594,21 +173,18 @@ static void ReportJSError(JSContext *context, const char *message, JSErrorReport
 	
 	JS_SetErrorReporter(context, ReportJSError);
 	
-	/* create the global object here */
-	globalObject = JS_NewObject(context, &global_class, NULL, NULL);
-	xglob = globalObject;
+	// Create the global object.
+	CreateOOJSGlobal(context, &globalObject);
 
-	/* initialize the built-in JS objects and the global object */
+	// Initialize the built-in JS objects and the global object.
 	JS_InitStandardClasses(context, globalObject);
-	JS_DefineProperties(context, globalObject, Global_props);
-	JS_DefineFunctions(context, globalObject, Global_funcs);
-	
 	RegisterStandardObjectConverters(context);
 	
-	missionObj = JS_DefineObject(context, globalObject, "mission", &Mission_class, NULL, JSPROP_ENUMERATE | JSPROP_READONLY | JSPROP_PERMANENT);
-	JS_DefineProperties(context, missionObj, Mission_props);
-	JS_DefineFunctions(context, missionObj, Mission_funcs);
+	SetUpOOJSGlobal(context, globalObject);
 	
+	// Initialize Oolite classes.
+	InitOOJSMissionVariables(context, globalObject);
+	InitOOJSMission(context, globalObject);
 	InitOOJSOolite(context, globalObject);
 	InitOOJSVector(context, globalObject);
 	InitOOJSQuaternion(context, globalObject);

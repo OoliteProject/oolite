@@ -1,0 +1,12 @@
+/*	List of roles pirates will attack.
+	
+	Ships whose primary role is among those listed can be located with the AI
+	methods scanForNearestMerchantmen and scanForRandomMerchantmen. They can
+	also be identified with the JavaScript property isPirateVictim.
+*/
+
+(
+	"player",
+	"trader",
+	"shuttle"
+)

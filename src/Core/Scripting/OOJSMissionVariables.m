@@ -1,0 +1,115 @@
+/*
+
+OOJSMissionVariables.h
+
+JavaScript mission variables object.
+
+
+Oolite
+Copyright (C) 2004-2007 Giles C Williams and contributors
+
+This program is free software; you can redistribute it and/or
+modify it under the terms of the GNU General Public License
+as published by the Free Software Foundation; either version 2
+of the License, or (at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program; if not, write to the Free Software
+Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
+MA 02110-1301, USA.
+
+*/
+
+#import "OOJSMissionVariables.h"
+#import "OOJavaScriptEngine.h"
+
+#import "OOJSPlayer.h"
+
+
+static JSBool MissionVariablesGetProperty(JSContext *context, JSObject *this, jsval name, jsval *outValue);
+static JSBool MissionVariablesSetProperty(JSContext *context, JSObject *this, jsval name, jsval *value);
+
+
+static JSClass sMissionVariablesClass =
+{
+	"MissionVariables",
+	0,
+	
+	JS_PropertyStub,
+	JS_PropertyStub,
+	MissionVariablesGetProperty,
+	MissionVariablesSetProperty,
+	JS_EnumerateStub,
+	JS_ResolveStub,
+	JS_ConvertStub,
+	JS_FinalizeStub
+};
+
+
+void InitOOJSMissionVariables(JSContext *context, JSObject *global)
+{
+	JS_DefineObject(context, global, "missionVariables", &sMissionVariablesClass, NULL, JSPROP_ENUMERATE | JSPROP_READONLY | JSPROP_PERMANENT);
+}
+
+
+static JSBool MissionVariablesGetProperty(JSContext *context, JSObject *this, jsval name, jsval *outValue)
+{
+	PlayerEntity				*player = OOPlayerForScripting();
+	
+	if (JSVAL_IS_STRING(name))
+	{
+		NSString	*key = [@"mission_" stringByAppendingString:[NSString stringWithJavaScriptValue:name inContext:context]];
+		id			value = [player missionVariableForKey:key];
+		
+		*outValue = JSVAL_VOID;
+		if ([value isKindOfClass:[NSString class]])	// Currently there should only be strings, but we may want to change this.
+		{
+			/*	The point of this code is to try and tell the JS interpreter to treat numeric strings
+				as numbers where possible so that standard arithmetic works as you'd expect rather than
+				1+1 == "11". So a JSVAL_DOUBLE is returned if possible, otherwise a JSVAL_STRING is returned.
+			*/
+			
+			BOOL	isNumber = NO;
+			double	dVal;
+			
+			dVal = [value doubleValue];
+			if (dVal != 0) isNumber = YES;
+			else
+			{
+				NSCharacterSet *notZeroSet = [[NSCharacterSet characterSetWithCharactersInString:@"-0. "] invertedSet];
+				if ([value rangeOfCharacterFromSet:notZeroSet].location == NSNotFound) isNumber = YES;
+			}
+			if (isNumber)
+			{
+				JSBool ok = JS_NewDoubleValue(context, [value doubleValue], outValue);
+				if (!ok) *outValue = JSVAL_VOID;
+			}
+		}
+		
+		if (value != nil && *outValue == JSVAL_VOID)
+		{
+			*outValue = [value javaScriptValueInContext:context];
+		}
+	}
+	return JS_TRUE;
+}
+
+
+static JSBool MissionVariablesSetProperty(JSContext *context, JSObject *this, jsval name, jsval *value)
+{
+	PlayerEntity				*player = OOPlayerForScripting();
+	
+	if (JSVAL_IS_STRING(name))
+	{
+		NSString	*key = [@"mission_" stringByAppendingString:[NSString stringWithJavaScriptValue:name inContext:context]];
+		NSString	*objValue = [NSString stringWithJavaScriptValue:*value inContext:context];
+		
+		[player setMissionVariable:objValue forKey:key];
+	}
+	return JS_TRUE;
+}

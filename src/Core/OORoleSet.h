@@ -71,6 +71,7 @@ SOFTWARE.
 
 - (BOOL)hasRole:(NSString *)role;
 - (float)probabilityForRole:(NSString *)role;
+- (BOOL)intersectsSet:(id)set;	// set may be an OORoleSet or an NSSet.
 
 - (NSSet *)roles;
 - (NSArray *)sortedRoles;

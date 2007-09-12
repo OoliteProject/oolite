@@ -172,7 +172,7 @@ JSObject *JSPlayerPrototype(void)
 }
 
 
-PlayerEntity *OPlayerForScripting(void)
+PlayerEntity *OOPlayerForScripting(void)
 {
 	PlayerEntity *player = [PlayerEntity sharedPlayer];
 	[player setScriptTarget:player];
@@ -184,7 +184,7 @@ PlayerEntity *OPlayerForScripting(void)
 static JSBool PlayerGetProperty(JSContext *context, JSObject *this, jsval name, jsval *outValue)
 {
 	id							result = nil;
-	PlayerEntity				*player = OPlayerForScripting();
+	PlayerEntity				*player = OOPlayerForScripting();
 	
 	if (!JSVAL_IS_INT(name))  return YES;
 	
@@ -266,7 +266,7 @@ static JSBool PlayerGetProperty(JSContext *context, JSObject *this, jsval name, 
 
 static JSBool PlayerSetProperty(JSContext *context, JSObject *this, jsval name, jsval *value)
 {
-	PlayerEntity				*player = OPlayerForScripting();
+	PlayerEntity				*player = OOPlayerForScripting();
 	jsdouble					fValue;
 	int32						iValue;
 	
@@ -314,28 +314,28 @@ static JSBool PlayerSetProperty(JSContext *context, JSObject *this, jsval name, 
 
 static JSBool PlayerAwardEquipment(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
 {
-	[OPlayerForScripting() awardEquipment:JSValToNSString(context, argv[0])];
+	[OOPlayerForScripting() awardEquipment:JSValToNSString(context, argv[0])];
 	return YES;
 }
 
 
 static JSBool PlayerRemoveEquipment(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
 {
-	[OPlayerForScripting() removeEquipment:JSValToNSString(context, argv[0])];
+	[OOPlayerForScripting() removeEquipment:JSValToNSString(context, argv[0])];
 	return YES;
 }
 
 
 static JSBool PlayerHasEquipment(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
 {
-	*outResult = BOOLToJSVal([OPlayerForScripting() hasExtraEquipment:JSValToNSString(context, argv[0])]);
+	*outResult = BOOLToJSVal([OOPlayerForScripting() hasExtraEquipment:JSValToNSString(context, argv[0])]);
 	return YES;
 }
 
 
 static JSBool PlayerLaunch(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
 {
-	[OPlayerForScripting() launchFromStation];
+	[OOPlayerForScripting() launchFromStation];
 	return YES;
 }
 
@@ -366,7 +366,7 @@ static JSBool PlayerAwardCargo(JSContext *context, JSObject *this, uintN argc, j
 		return YES;
 	}
 	
-	[OPlayerForScripting() awardCargoType:type amount:amount];
+	[OOPlayerForScripting() awardCargoType:type amount:amount];
 	
 	return YES;
 }
@@ -374,7 +374,7 @@ static JSBool PlayerAwardCargo(JSContext *context, JSObject *this, uintN argc, j
 
 static JSBool PlayerRemoveAllCargo(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
 {
-	PlayerEntity			*player = OPlayerForScripting();
+	PlayerEntity			*player = OOPlayerForScripting();
 	
 	if ([player isDocked])
 	{
@@ -390,6 +390,6 @@ static JSBool PlayerRemoveAllCargo(JSContext *context, JSObject *this, uintN arg
 
 static JSBool PlayerUseSpecialCargo(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
 {
-	[OPlayerForScripting() useSpecialCargo:JSValToNSString(context, argv[0])];
+	[OOPlayerForScripting() useSpecialCargo:JSValToNSString(context, argv[0])];
 	return YES;
 }

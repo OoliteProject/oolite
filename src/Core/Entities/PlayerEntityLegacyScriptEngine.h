@@ -40,7 +40,7 @@ MA 02110-1301, USA.
 - (void) scriptAction:(NSString *) scriptAction onEntity:(Entity *) entity;
 - (BOOL) scriptTestCondition:(NSString *) scriptCondition;
 
-- (NSDictionary*) mission_variables;
+- (NSDictionary*) missionVariables;
 
 - (NSString *)missionVariableForKey:(NSString *)key;
 - (void)setMissionVariable:(NSString *)value forKey:(NSString *)key;

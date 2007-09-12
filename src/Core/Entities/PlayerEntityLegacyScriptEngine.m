@@ -499,7 +499,7 @@ static NSString * mission_key;
 }
 
 
-- (NSDictionary*) mission_variables
+- (NSDictionary *) missionVariables
 {
 	return mission_variables;
 }
@@ -659,7 +659,7 @@ static NSString * mission_key;
 
 - (NSNumber *) galaxy_number
 {
-	return [NSNumber numberWithInt:galaxy_number];
+	return [NSNumber numberWithInt:[self currentGalaxyID]];
 }
 
 

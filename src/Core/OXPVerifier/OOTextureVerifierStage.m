@@ -120,7 +120,7 @@ static NSString * const kStageName	= @"Testing textures and images";
 	OOFileScannerVerifierStage	*fileScanner = nil;
 	
 	if (name == nil)  return;
-	if ([_usedTextures member:name] != nil)  return;
+	if ([_usedTextures containsObject:name])  return;
 	[_usedTextures addObject:name];
 	
 	fileScanner = [[self verifier] fileScannerStage];

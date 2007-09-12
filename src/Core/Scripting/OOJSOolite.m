@@ -31,9 +31,6 @@ MA 02110-1301, USA.
 #import "OOStringParsing.h"
 
 
-static JSObject *sOolitePrototype;
-
-
 static JSBool OoliteGetProperty(JSContext *context, JSObject *this, jsval name, jsval *outValue);
 
 static NSString *VersionString(void);
@@ -90,8 +87,8 @@ static JSFunctionSpec sOoliteMethods[] =
 
 void InitOOJSOolite(JSContext *context, JSObject *global)
 {
-    sOolitePrototype = JS_InitClass(context, global, NULL, &sOoliteClass, NULL, 0, sOoliteProperties, sOoliteMethods, NULL, NULL);
-	JS_DefineObject(context, global, "oolite", &sOoliteClass, sOolitePrototype, JSPROP_ENUMERATE | JSPROP_READONLY | JSPROP_PERMANENT);
+	JSObject *oolitePrototype = JS_InitClass(context, global, NULL, &sOoliteClass, NULL, 0, sOoliteProperties, sOoliteMethods, NULL, NULL);
+	JS_DefineObject(context, global, "oolite", &sOoliteClass, oolitePrototype, JSPROP_ENUMERATE | JSPROP_READONLY | JSPROP_PERMANENT);
 }
 
 

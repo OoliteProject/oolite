@@ -168,11 +168,11 @@ MA 02110-1301, USA.
 
 - (void) checkForMotherStation;
 
-- (void) sendTargetCommsMessage:(NSString*) message;
+- (void) sendTargetCommsMessage:(NSString *) message;
 
 - (void) markTargetForFines;
 
-- (void) markTargetForOffence:(NSString*) valueString;
+- (void) markTargetForOffence:(NSString *) valueString;
 
 - (void) scanForRocks;
 
@@ -182,9 +182,19 @@ MA 02110-1301, USA.
 
 - (void) requestNewTarget;
 
-- (void) rollD:(NSString*) die_number;
+- (void) rollD:(NSString *) die_number;
 
-- (void) scanForNearestShipWithRole:(NSString*) scanRole;
+- (void) scanForNearestShipWithPrimaryRole:(NSString *)scanRole;
+- (void) scanForNearestShipHavingRole:(NSString *)scanRole;
+- (void) scanForNearestShipWithAnyPrimaryRole:(NSString *)scanRoles;
+- (void) scanForNearestShipHavingAnyRole:(NSString *)scanRoles;
+- (void) scanForNearestShipWithScanClass:(NSString *)scanScanClass;
+
+- (void) scanForNearestShipWithoutPrimaryRole:(NSString *)scanRole;
+- (void) scanForNearestShipNotHavingRole:(NSString *)scanRole;
+- (void) scanForNearestShipWithoutAnyPrimaryRole:(NSString *)scanRoles;
+- (void) scanForNearestShipNotHavingAnyRole:(NSString *)scanRoles;
+- (void) scanForNearestShipWithoutScanClass:(NSString *)scanScanClass;
 
 - (void) setCoordinates:(NSString *)system_x_y_z;
 
@@ -192,15 +202,15 @@ MA 02110-1301, USA.
 
 - (void) recallDockingInstructions;
 
-- (void) addFuel:(NSString*) fuel_number;
+- (void) addFuel:(NSString *) fuel_number;
 
 - (void) enterTargetWormhole;
 
-- (void) scriptActionOnTarget:(NSString*) action;
+- (void) scriptActionOnTarget:(NSString *) action;
 
 // racing code.
-- (void) targetFirstBeaconWithCode:(NSString*) code;
-- (void) targetNextBeaconWithCode:(NSString*) code;
+- (void) targetFirstBeaconWithCode:(NSString *) code;
+- (void) targetNextBeaconWithCode:(NSString *) code;
 - (void) setRacepointsFromTarget;
 - (void) performFlyRacepoints;
 

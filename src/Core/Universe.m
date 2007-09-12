@@ -85,11 +85,6 @@ static NSComparisonResult compareName(NSDictionary *dict1, NSDictionary *dict2, 
 static NSComparisonResult comparePrice(NSDictionary *dict1, NSDictionary *dict2, void * context);
 
 
-typedef BOOL (*ShipFilterPredicate)(ShipEntity *ship, id parameter);
-static BOOL HasRolePredicate(ShipEntity *ship, id parameter);
-static BOOL HasPrimaryRolePredicate(ShipEntity *ship, id parameter);
-
-
 @interface Universe (OOPrivate)
 
 - (BOOL)doRemoveEntity:(Entity *)entity;
@@ -224,6 +219,8 @@ static BOOL HasPrimaryRolePredicate(ShipEntity *ship, id parameter);
 	
 	demo_ships = [[ResourceManager arrayFromFilesNamed:@"demoships.plist" inFolder:@"Config" andMerge:YES] retain];
 	demo_ship_index = 0;
+	
+	pirateVictimRoles = [[NSSet alloc] initWithArray:[ResourceManager arrayFromFilesNamed:@"pirate-victim-roles.plist" inFolder:@"Config" andMerge:YES]];
 	
 	breakPatternCounter = 0;
 	
@@ -471,6 +468,9 @@ static BOOL HasPrimaryRolePredicate(ShipEntity *ship, id parameter);
 	
 	[planetinfo autorelease];
 	planetinfo = [[ResourceManager dictionaryFromFilesNamed:@"planetinfo.plist" inFolder:@"Config" mergeMode:MERGE_SMART cache:YES] retain];
+	
+	[pirateVictimRoles autorelease];
+	pirateVictimRoles = [[NSSet alloc] initWithArray:[ResourceManager arrayFromFilesNamed:@"pirate-victim-roles.plist" inFolder:@"Config" andMerge:YES]];
 	
 	[equipmentdata autorelease];
 	equipmentdata = [[ResourceManager arrayFromFilesNamed:@"equipment.plist" inFolder:@"Config" andMerge:YES] retain];
@@ -2410,6 +2410,12 @@ GLfloat docked_light_specular[]	= { (GLfloat) 1.0, (GLfloat) 1.0, (GLfloat) 0.5,
 		[ship setStatus:STATUS_IN_FLIGHT];
 		[ship release];
 	}
+}
+
+
+- (BOOL) roleIsPirateVictim:(NSString *)role
+{
+	return [pirateVictimRoles containsObject:role];
 }
 
 
@@ -7696,15 +7702,3 @@ static NSComparisonResult comparePrice(NSDictionary *dict1, NSDictionary *dict2,
 }
 
 @end
-
-
-static BOOL HasRolePredicate(ShipEntity *ship, id parameter)
-{
-	return [ship hasRole:parameter];
-}
-
-
-static BOOL HasPrimaryRolePredicate(ShipEntity *ship, id parameter)
-{
-	return [ship hasPrimaryRole:parameter];
-}

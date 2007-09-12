@@ -453,8 +453,15 @@
 		1AB2AB130C4CE4070008CF4E /* verifyOXP.plist in Copy Config */ = {isa = PBXBuildFile; fileRef = 1AB2AB120C4CE4070008CF4E /* verifyOXP.plist */; };
 		1AC775E20C2DD4E900ECFF3B /* OODebugGLDrawing.h in Headers */ = {isa = PBXBuildFile; fileRef = 1AC775E00C2DD4E900ECFF3B /* OODebugGLDrawing.h */; };
 		1AC775E30C2DD4E900ECFF3B /* OODebugGLDrawing.m in Sources */ = {isa = PBXBuildFile; fileRef = 1AC775E10C2DD4E900ECFF3B /* OODebugGLDrawing.m */; };
+		1AC973FA0C9847850010C42B /* pirate-victim-roles.plist in Resources */ = {isa = PBXBuildFile; fileRef = 1AC973F90C9847850010C42B /* pirate-victim-roles.plist */; };
 		1ACEA3490C91507000C7CE97 /* OORoleSet.h in Headers */ = {isa = PBXBuildFile; fileRef = 1ACEA3470C91507000C7CE97 /* OORoleSet.h */; };
 		1ACEA34A0C91507000C7CE97 /* OORoleSet.m in Sources */ = {isa = PBXBuildFile; fileRef = 1ACEA3480C91507000C7CE97 /* OORoleSet.m */; };
+		1ACEA6BF0C91DA3E00C7CE97 /* OOJSGlobal.h in Headers */ = {isa = PBXBuildFile; fileRef = 1ACEA6BD0C91DA3E00C7CE97 /* OOJSGlobal.h */; };
+		1ACEA6C00C91DA3E00C7CE97 /* OOJSGlobal.m in Sources */ = {isa = PBXBuildFile; fileRef = 1ACEA6BE0C91DA3E00C7CE97 /* OOJSGlobal.m */; };
+		1ACEA7280C91DF2800C7CE97 /* OOJSMissionVariables.h in Headers */ = {isa = PBXBuildFile; fileRef = 1ACEA7260C91DF2800C7CE97 /* OOJSMissionVariables.h */; };
+		1ACEA7290C91DF2800C7CE97 /* OOJSMissionVariables.m in Sources */ = {isa = PBXBuildFile; fileRef = 1ACEA7270C91DF2800C7CE97 /* OOJSMissionVariables.m */; };
+		1ACEA7AA0C91E32800C7CE97 /* OOJSMission.h in Headers */ = {isa = PBXBuildFile; fileRef = 1ACEA7A80C91E32800C7CE97 /* OOJSMission.h */; };
+		1ACEA7AB0C91E32800C7CE97 /* OOJSMission.m in Sources */ = {isa = PBXBuildFile; fileRef = 1ACEA7A90C91E32800C7CE97 /* OOJSMission.m */; };
 		1AD0C1C30C44DF230070BD23 /* TextureStore.m in Sources */ = {isa = PBXBuildFile; fileRef = 25161145099544390037C2E1 /* TextureStore.m */; };
 		1AD0C1C40C44DF240070BD23 /* TextureStore.h in Headers */ = {isa = PBXBuildFile; fileRef = 25161134099544390037C2E1 /* TextureStore.h */; };
 		1AD0C3300C463FCC0070BD23 /* autoAImap.plist in Copy Config */ = {isa = PBXBuildFile; fileRef = 1AD0C32F0C463FCB0070BD23 /* autoAImap.plist */; };
@@ -1356,8 +1363,15 @@
 		1AC0E94B0B974DC200C46994 /* README_LINUX.TXT */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = README_LINUX.TXT; sourceTree = "<group>"; };
 		1AC775E00C2DD4E900ECFF3B /* OODebugGLDrawing.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OODebugGLDrawing.h; sourceTree = "<group>"; };
 		1AC775E10C2DD4E900ECFF3B /* OODebugGLDrawing.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OODebugGLDrawing.m; sourceTree = "<group>"; };
+		1AC973F90C9847850010C42B /* pirate-victim-roles.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist; path = "pirate-victim-roles.plist"; sourceTree = "<group>"; };
 		1ACEA3470C91507000C7CE97 /* OORoleSet.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OORoleSet.h; sourceTree = "<group>"; };
 		1ACEA3480C91507000C7CE97 /* OORoleSet.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OORoleSet.m; sourceTree = "<group>"; };
+		1ACEA6BD0C91DA3E00C7CE97 /* OOJSGlobal.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOJSGlobal.h; sourceTree = "<group>"; };
+		1ACEA6BE0C91DA3E00C7CE97 /* OOJSGlobal.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOJSGlobal.m; sourceTree = "<group>"; };
+		1ACEA7260C91DF2800C7CE97 /* OOJSMissionVariables.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOJSMissionVariables.h; sourceTree = "<group>"; };
+		1ACEA7270C91DF2800C7CE97 /* OOJSMissionVariables.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOJSMissionVariables.m; sourceTree = "<group>"; };
+		1ACEA7A80C91E32800C7CE97 /* OOJSMission.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOJSMission.h; sourceTree = "<group>"; };
+		1ACEA7A90C91E32800C7CE97 /* OOJSMission.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOJSMission.m; sourceTree = "<group>"; };
 		1AD0C32F0C463FCB0070BD23 /* autoAImap.plist */ = {isa = PBXFileReference; fileEncoding = 4; languageSpecificationIdentifier = plist; lastKnownFileType = text.xml; path = autoAImap.plist; sourceTree = "<group>"; };
 		1AD0C6C80C47B76F0070BD23 /* SCRDynamicShim.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = SCRDynamicShim.m; sourceTree = "<group>"; };
 		1AD0C6E30C47B82C0070BD23 /* SmartCrashReportsInstall.o */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.objfile"; path = SmartCrashReportsInstall.o; sourceTree = "<group>"; };
@@ -1366,7 +1380,6 @@
 		1ADBA54F0BD0F173008FC99C /* OOBasicMaterial.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOBasicMaterial.m; sourceTree = "<group>"; };
 		1ADF5F110B9E374B00FDB2A3 /* JoystickHandler.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = JoystickHandler.h; sourceTree = "<group>"; };
 		1AE546300C19A2E2005B89F3 /* JoystickHandler.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = JoystickHandler.m; sourceTree = "<group>"; };
-		1AEAAB8E0BA45248000705D0 /* libjs.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libjs.a; path = "deps/Cocoa-deps/js/libjs.a"; sourceTree = "<group>"; };
 		1AED2D0A0C04586C004A1118 /* OOGraphicsResetManager.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOGraphicsResetManager.h; sourceTree = "<group>"; };
 		1AED2D0B0C04586C004A1118 /* OOGraphicsResetManager.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOGraphicsResetManager.m; sourceTree = "<group>"; };
 		1AED74C70BBA3CAA009410CD /* logcontrol.plist.xml */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xml; path = logcontrol.plist.xml; sourceTree = "<group>"; };
@@ -1478,7 +1491,6 @@
 		1058C7A0FEA54F0111CA2CBB /* Linked Frameworks */ = {
 			isa = PBXGroup;
 			children = (
-				1AEAAB8E0BA45248000705D0 /* libjs.a */,
 				25F3E8E9099502BB002F25FD /* libOgg.a */,
 				25F3E8EA099502BB002F25FD /* libVorbisAll.a */,
 				0878FD2F086EF845004CB752 /* Carbon.framework */,
@@ -1573,6 +1585,7 @@
 				1A9533890C02089E004EBB58 /* material-defaults.plist */,
 				1A2316E90B9CFAD700EF0852 /* missiontext.plist */,
 				1A3591810C1C382700E52220 /* nebulatextures.plist */,
+				1AC973F90C9847850010C42B /* pirate-victim-roles.plist */,
 				1A95338A0C02089E004EBB58 /* planetinfo.plist */,
 				1A2316EB0B9CFAD700EF0852 /* shipdata.plist */,
 				1A2316EC0B9CFAD700EF0852 /* shipyard.plist */,
@@ -1934,6 +1947,12 @@
 				1A7376BD0C64AE330097AC37 /* OOJSSystem.m */,
 				1A4FB3330C8DC86800DC8E1F /* OOJSOolite.h */,
 				1A4FB3340C8DC86800DC8E1F /* OOJSOolite.m */,
+				1ACEA6BD0C91DA3E00C7CE97 /* OOJSGlobal.h */,
+				1ACEA6BE0C91DA3E00C7CE97 /* OOJSGlobal.m */,
+				1ACEA7260C91DF2800C7CE97 /* OOJSMissionVariables.h */,
+				1ACEA7270C91DF2800C7CE97 /* OOJSMissionVariables.m */,
+				1ACEA7A80C91E32800C7CE97 /* OOJSMission.h */,
+				1ACEA7A90C91E32800C7CE97 /* OOJSMission.m */,
 			);
 			name = JavaScript;
 			sourceTree = "<group>";
@@ -2520,6 +2539,9 @@
 				1A4FB2410C8D6ABA00DC8E1F /* jstypes.h in Headers */,
 				1A4FB3350C8DC86800DC8E1F /* OOJSOolite.h in Headers */,
 				1ACEA3490C91507000C7CE97 /* OORoleSet.h in Headers */,
+				1ACEA6BF0C91DA3E00C7CE97 /* OOJSGlobal.h in Headers */,
+				1ACEA7280C91DF2800C7CE97 /* OOJSMissionVariables.h in Headers */,
+				1ACEA7AA0C91E32800C7CE97 /* OOJSMission.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -2656,6 +2678,7 @@
 				25F3E8A90994FE65002F25FD /* oolite-icon.icns in Resources */,
 				25F3E8B40994FE9B002F25FD /* InfoPlist.strings in Resources */,
 				1A358CE20C1AB80D00E52220 /* ReadMe.rtfd in Resources */,
+				1AC973FA0C9847850010C42B /* pirate-victim-roles.plist in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -2851,6 +2874,9 @@
 				1A9590590C7FC94200C112A9 /* OODebugBundleLoader.m in Sources */,
 				1A4FB3360C8DC86800DC8E1F /* OOJSOolite.m in Sources */,
 				1ACEA34A0C91507000C7CE97 /* OORoleSet.m in Sources */,
+				1ACEA6C00C91DA3E00C7CE97 /* OOJSGlobal.m in Sources */,
+				1ACEA7290C91DF2800C7CE97 /* OOJSMissionVariables.m in Sources */,
+				1ACEA7AB0C91E32800C7CE97 /* OOJSMission.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

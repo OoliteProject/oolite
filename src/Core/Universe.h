@@ -137,7 +137,6 @@ enum
 	
 	GLfloat					airResistanceFactor;
 	
-	@protected
 	MyOpenGLView			*gameView;
 	
 	int						next_universal_id;
@@ -191,6 +190,7 @@ enum
 	NSDictionary			*planetinfo;			// holds overrides for individual planets, keyed by "g# p#" where g# is the galaxy number 0..7 and p# the planet number 0..255
 	NSDictionary			*missiontext;			// holds descriptive text for missions, loaded at initialisation
 	NSArray					*equipmentdata;			// holds data on available equipment, loaded at initialisation
+	NSSet					*pirateVictimRoles;		// Roles listed in pirateVictimRoles.plist.
 	
 	Random_Seed				galaxy_seed;
 	Random_Seed				system_seed;
@@ -281,6 +281,8 @@ enum
 - (BOOL) spawnShip:(NSString *) shipdesc;
 - (void) witchspaceShipWithPrimaryRole:(NSString *)role;
 - (void) spawnShipWithRole:(NSString *) desc near:(Entity *) entity;
+
+- (BOOL) roleIsPirateVictim:(NSString *)role;
 
 - (void) set_up_break_pattern:(Vector) pos quaternion:(Quaternion) q;
 - (void) game_over;

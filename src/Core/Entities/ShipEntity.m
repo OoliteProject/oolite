@@ -2987,6 +2987,12 @@ static GLfloat mascem_color2[4] =	{ 0.4, 0.1, 0.4, 1.0};	// purple
 }
 
 
+- (BOOL)isPirateVictim
+{
+	return [UNIVERSE roleIsPirateVictim:[self primaryRole]];
+}
+
+
 - (BOOL) hasHostileTarget
 {
 	if (primaryTarget == NO_TARGET)
@@ -7492,4 +7498,43 @@ NSDictionary *DefaultShipShaderMacros(void)
 	}
 	
 	return macros;
+}
+
+
+BOOL HasRolePredicate(ShipEntity *ship, void *parameter)
+{
+	return [ship hasRole:(NSString *)parameter];
+}
+
+
+BOOL HasPrimaryRolePredicate(ShipEntity *ship, void *parameter)
+{
+	return [ship hasPrimaryRole:(NSString *)parameter];
+}
+
+
+BOOL HasRoleInSetPredicate(ShipEntity *ship, void *parameter)
+{
+	return [[ship roleSet] intersectsSet:(NSSet *)parameter];
+}
+
+
+BOOL HasPrimaryRoleInSetPredicate(ShipEntity *ship, void *parameter)
+{
+	return [(NSSet *)parameter containsObject:[ship primaryRole]];
+}
+
+
+BOOL HasScanClassPredicate(ShipEntity *ship, void *parameter)
+{
+	return [(id)parameter intValue] == [ship scanClass];
+}
+
+
+BOOL NegatedShipFilterPredicate(ShipEntity *ship, void *parameter)
+{
+	NegatedShipFilterPredicateParam *param = parameter;
+	if (param == NULL || param->predicate == NULL)  return NO;
+	
+	return !param->predicate(ship, param->parameter);
 }

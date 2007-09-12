@@ -40,8 +40,10 @@ MA 02110-1301, USA.
 
 @interface ShipEntity (OOAIPrivate)
 
-
 - (void)performHyperSpaceExitReplace:(BOOL)replace;
+
+- (void)scanForNearestShipWithPredicate:(ShipFilterPredicate)predicate parameter:(void *)parameter;
+- (void)scanForNearestShipWithNegatedPredicate:(ShipFilterPredicate)predicate parameter:(void *)parameter;
 
 @end
 
@@ -162,21 +164,27 @@ MA 02110-1301, USA.
 
 - (void) scanForNearestMerchantmen
 {
-	//-- Locates the nearest merchantman in range --//
-	//--     new version using scanned_ships[]    --//
+	float				d2, found_d2;
+	unsigned			i;
+	ShipEntity			*ship = nil;
+	
+	//-- Locates the nearest merchantman in range.
 	[self checkScanner];
-	//
-	GLfloat found_d2 = scannerRange * scannerRange;
+	
+	found_d2 = scannerRange * scannerRange;
 	found_target = NO_TARGET;
-	unsigned i;
+	
 	for (i = 0; i < n_scanned_ships ; i++)
 	{
-		ShipEntity *ship = scanned_ships[i];
-		if ([ship isTrader] && (ship->status != STATUS_DEAD) && (ship->status != STATUS_DOCKED))
+		ship = scanned_ships[i];
+		if ([ship isPirateVictim] && (ship->status != STATUS_DEAD) && (ship->status != STATUS_DOCKED))
 		{
-			GLfloat d2 = distance2_scanned_ships[i];
-			if (PIRATES_PREFER_PLAYER && ship->isPlayer && [self isPirate] && (d2 < desired_range * desired_range))
+			d2 = distance2_scanned_ships[i];
+			if (PIRATES_PREFER_PLAYER && (d2 < desired_range * desired_range) && ship->isPlayer && [self isPirate])
+			{
 				d2 = 0.0;
+			}
+			else d2 = distance2_scanned_ships[i];
 			if (d2 < found_d2)
 			{
 				found_d2 = d2;
@@ -184,37 +192,37 @@ MA 02110-1301, USA.
 			}
 		}
 	}
-	if (found_target != NO_TARGET)
-		[shipAI message:@"TARGET_FOUND"];
-	else
-		[shipAI message:@"NOTHING_FOUND"];
+	if (found_target != NO_TARGET)  [shipAI message:@"TARGET_FOUND"];
+	else  [shipAI message:@"NOTHING_FOUND"];
 }
 
 
 - (void) scanForRandomMerchantmen
 {
-	//-- Locates one of the merchantman in range --//
+	unsigned			n_found, i;
+	
+	//-- Locates one of the merchantman in range.
 	[self checkScanner];
-	//
-	OOUniversalID ids_found[n_scanned_ships];
-	unsigned n_found = 0;
+	OOUniversalID		ids_found[n_scanned_ships];
+	
+	n_found = 0;
 	found_target = NO_TARGET;
-	unsigned i;
 	for (i = 0; i < n_scanned_ships ; i++)
 	{
 		ShipEntity *ship = scanned_ships[i];
-		if ([ship isTrader] && (ship->status != STATUS_DEAD) && (ship->status != STATUS_DOCKED))
+		if ((ship->status != STATUS_DEAD) && (ship->status != STATUS_DOCKED) && [ship isPirateVictim])
 			ids_found[n_found++] = ship->universalID;
 	}
 	if (n_found == 0)
 	{
 		[shipAI message:@"NOTHING_FOUND"];
-		return;
 	}
-	i = ranrot_rand() % n_found;	// pick a number from 0 -> (n_found - 1)
-	found_target = ids_found[i];
-	[shipAI message:@"TARGET_FOUND"];
-	return;
+	else
+	{
+		i = ranrot_rand() % n_found;	// pick a number from 0 -> (n_found - 1)
+		found_target = ids_found[i];
+		[shipAI message:@"TARGET_FOUND"];
+	}
 }
 
 
@@ -736,52 +744,6 @@ WormholeEntity*	whole;
 }
 
 
-- (void)performHyperSpaceExitReplace:(BOOL)replace
-{
-	whole = nil;
-	
-	// get a list of destinations within range
-	NSArray* dests = [UNIVERSE nearbyDestinationsWithinRange: 0.1 * fuel];
-	int n_dests = [dests count];
-	
-	// if none available report to the AI and exit
-	if (!n_dests)
-	{
-		[shipAI reactToMessage:@"WITCHSPACE UNAVAILABLE"];
-		return;
-	}
-	
-	// check if we're clear of nearby masses
-	ShipEntity *blocker = [UNIVERSE entityForUniversalID:[self checkShipsInVicinityForWitchJumpExit]];
-	if (blocker)
-	{
-		found_target = [blocker universalID];
-		[shipAI reactToMessage:@"WITCHSPACE BLOCKED"];
-		return;
-	}
-	
-	// select one at random
-	int i = 0;
-	if (n_dests > 1)
-		i = ranrot_rand() % n_dests;
-	
-	NSString* systemSeedKey = [(NSDictionary*)[dests objectAtIndex:i] objectForKey:@"system_seed"];
-	Random_Seed targetSystem = RandomSeedFromString(systemSeedKey);
-	fuel -= 10 * [[(NSDictionary*)[dests objectAtIndex:i] objectForKey:@"distance"] doubleValue];
-		
-	// create wormhole
-	whole = [[[WormholeEntity alloc] initWormholeTo: targetSystem fromShip: self] autorelease];
-	[UNIVERSE addEntity: whole];
-	
-	// tell the ship we're about to jump (so it can inform escorts etc).
-	primaryTarget = [whole universalID];
-	found_target = primaryTarget;
-	[shipAI reactToMessage:@"WITCHSPACE OKAY"];	// must be a reaction, the ship is about to disappear
-	
-	[self enterWormhole:whole replacing:replace];	// TODO
-}
-
-
 - (void) wormholeEscorts
 {
 	if (escortCount < 1)
@@ -976,27 +938,7 @@ WormholeEntity*	whole;
 
 - (void) scanForThargoid
 {
-	/*-- Locates all the thargoid warships in range and chooses the nearest --*/
-	[self checkScanner];
-	unsigned i;
-	
-	GLfloat found_d2 = scannerRange * scannerRange;
-	found_target = NO_TARGET;
-	for (i = 0; i < n_scanned_ships; i++)
-	{
-		ShipEntity *ship = scanned_ships[i];
-		if ([ship isThargoid])
-		{
-			GLfloat d2 = distance2_scanned_ships[i];
-			if (d2< found_d2)
-			{
-				found_target = [ship universalID];
-				found_d2 = d2;
-			}
-		}
-	}
-	if (found_target != NO_TARGET)  [shipAI message:@"TARGET_FOUND"];
-	else  [shipAI message:@"NOTHING_FOUND"];
+	return [self scanForNearestShipWithPrimaryRole:@"thargoid"];
 }
 
 
@@ -1580,28 +1522,74 @@ WormholeEntity*	whole;
 }
 
 
-- (void) scanForNearestShipWithRole:(NSString*) scanRole
+// Old name for -scanForNearestShipWithPrimaryRole:
+- (void) scanForNearestShipWithRole:(NSString *)scanRole
 {
-	/*-- Locates all the ships in range and chooses the nearest --*/
-	found_target = NO_TARGET;
-	[self checkScanner];
-	unsigned i;
-	GLfloat found_d2 = scannerRange * scannerRange;
-	for (i = 0; i < n_scanned_ships ; i++)
-	{
-		ShipEntity *thing = scanned_ships[i];
-		GLfloat d2 = distance2_scanned_ships[i];
-		if ((d2 < found_d2) && (thing->scanClass != CLASS_CARGO) && (thing->status != STATUS_DOCKED) && ([thing hasPrimaryRole:scanRole]))
-		{
-			found_target = thing->universalID;
-			found_d2 = d2;
-		}
-	}
+	return [self scanForNearestShipWithPrimaryRole:scanRole];
+}
 
-	if (found_target != NO_TARGET)
-		[shipAI message:@"TARGET_FOUND"];
-	else
-		[shipAI message:@"NOTHING_FOUND"];
+
+- (void) scanForNearestShipWithPrimaryRole:(NSString *)scanRole
+{
+	[self scanForNearestShipWithPredicate:HasPrimaryRolePredicate parameter:scanRole];
+}
+
+
+- (void) scanForNearestShipHavingRole:(NSString *)scanRole
+{
+	[self scanForNearestShipWithPredicate:HasRolePredicate parameter:scanRole];
+}
+
+
+- (void) scanForNearestShipWithAnyPrimaryRole:(NSString *)scanRoles
+{
+	NSSet *set = [NSSet setWithArray:ScanTokensFromString(scanRoles)];
+	[self scanForNearestShipWithPredicate:HasPrimaryRoleInSetPredicate parameter:set];
+}
+
+
+- (void) scanForNearestShipHavingAnyRole:(NSString *)scanRoles
+{
+	NSSet *set = [NSSet setWithArray:ScanTokensFromString(scanRoles)];
+	[self scanForNearestShipWithPredicate:HasRoleInSetPredicate parameter:set];
+}
+
+
+- (void) scanForNearestShipWithScanClass:(NSString *)scanScanClass
+{
+	[self scanForNearestShipWithPredicate:HasScanClassPredicate parameter:scanScanClass];
+}
+
+
+- (void) scanForNearestShipWithoutPrimaryRole:(NSString *)scanRole
+{
+	[self scanForNearestShipWithNegatedPredicate:HasPrimaryRolePredicate parameter:scanRole];
+}
+
+
+- (void) scanForNearestShipNotHavingRole:(NSString *)scanRole
+{
+	[self scanForNearestShipWithNegatedPredicate:HasRolePredicate parameter:scanRole];
+}
+
+
+- (void) scanForNearestShipWithoutAnyPrimaryRole:(NSString *)scanRoles
+{
+	NSSet *set = [NSSet setWithArray:ScanTokensFromString(scanRoles)];
+	[self scanForNearestShipWithNegatedPredicate:HasPrimaryRoleInSetPredicate parameter:set];
+}
+
+
+- (void) scanForNearestShipNotHavingAnyRole:(NSString *)scanRoles
+{
+	NSSet *set = [NSSet setWithArray:ScanTokensFromString(scanRoles)];
+	[self scanForNearestShipWithNegatedPredicate:HasRoleInSetPredicate parameter:set];
+}
+
+
+- (void) scanForNearestShipWithoutScanClass:(NSString *)scanScanClass
+{
+	[self scanForNearestShipWithNegatedPredicate:HasScanClassPredicate parameter:scanScanClass];
 }
 
 
@@ -1877,6 +1865,91 @@ WormholeEntity*	whole;
 	next_navpoint_index = 0;
 	desired_range = collision_radius;
 	behaviour = BEHAVIOUR_FLY_THRU_NAVPOINTS;
+}
+
+@end
+
+
+@implementation ShipEntity (OOAIPrivate)
+
+- (void)performHyperSpaceExitReplace:(BOOL)replace
+{
+	whole = nil;
+	
+	// get a list of destinations within range
+	NSArray* dests = [UNIVERSE nearbyDestinationsWithinRange: 0.1 * fuel];
+	int n_dests = [dests count];
+	
+	// if none available report to the AI and exit
+	if (!n_dests)
+	{
+		[shipAI reactToMessage:@"WITCHSPACE UNAVAILABLE"];
+		return;
+	}
+	
+	// check if we're clear of nearby masses
+	ShipEntity *blocker = [UNIVERSE entityForUniversalID:[self checkShipsInVicinityForWitchJumpExit]];
+	if (blocker)
+	{
+		found_target = [blocker universalID];
+		[shipAI reactToMessage:@"WITCHSPACE BLOCKED"];
+		return;
+	}
+	
+	// select one at random
+	int i = 0;
+	if (n_dests > 1)
+		i = ranrot_rand() % n_dests;
+	
+	NSString* systemSeedKey = [(NSDictionary*)[dests objectAtIndex:i] objectForKey:@"system_seed"];
+	Random_Seed targetSystem = RandomSeedFromString(systemSeedKey);
+	fuel -= 10 * [[(NSDictionary*)[dests objectAtIndex:i] objectForKey:@"distance"] doubleValue];
+	
+	// create wormhole
+	whole = [[[WormholeEntity alloc] initWormholeTo: targetSystem fromShip: self] autorelease];
+	[UNIVERSE addEntity: whole];
+	
+	// tell the ship we're about to jump (so it can inform escorts etc).
+	primaryTarget = [whole universalID];
+	found_target = primaryTarget;
+	[shipAI reactToMessage:@"WITCHSPACE OKAY"];	// must be a reaction, the ship is about to disappear
+	
+	[self enterWormhole:whole replacing:replace];	// TODO
+}
+
+
+- (void)scanForNearestShipWithPredicate:(ShipFilterPredicate)predicate parameter:(void *)parameter
+{
+	// Locates all the ships in range for which predicate returns YES, and chooses the nearest.
+	unsigned		i;
+	ShipEntity		*candidate;
+	float			d2, found_d2 = scannerRange * scannerRange;
+	
+	found_target = NO_TARGET;
+	[self checkScanner];
+	
+	if (predicate == NULL)  return;
+	
+	for (i = 0; i < n_scanned_ships ; i++)
+	{
+		candidate = scanned_ships[i];
+		d2 = distance2_scanned_ships[i];
+		if ((d2 < found_d2) && (candidate->scanClass != CLASS_CARGO) && (candidate->status != STATUS_DOCKED) && predicate(candidate, parameter))
+		{
+			found_target = candidate->universalID;
+			found_d2 = d2;
+		}
+	}
+	
+	if (found_target != NO_TARGET)  [shipAI message:@"TARGET_FOUND"];
+	else  [shipAI message:@"NOTHING_FOUND"];
+}
+
+
+- (void)scanForNearestShipWithNegatedPredicate:(ShipFilterPredicate)predicate parameter:(void *)parameter
+{
+	NegatedShipFilterPredicateParam param = { predicate, parameter };
+	[self scanForNearestShipWithPredicate:NegatedShipFilterPredicate parameter:&param];
 }
 
 @end

@@ -209,7 +209,7 @@ static BOOL CheckNameConflict(NSString *lcName, NSDictionary *directoryCases, NS
 		if (realDirName != nil && ![realDirName isEqual:folder])
 		{
 			// Case mismatch for folder name
-			if ([_caseWarnings member:lcDirName] == nil)
+			if (![_caseWarnings containsObject:lcDirName])
 			{
 				[_caseWarnings addObject:lcDirName];
 				OOLog(@"verifyOXP.files.caseMismatch", @"ERROR: case mismatch: directory \"%@\" should be called \"%@\".", realDirName, folder);
@@ -219,7 +219,7 @@ static BOOL CheckNameConflict(NSString *lcName, NSDictionary *directoryCases, NS
 		if (![realFileName isEqual:file])
 		{
 			// Case mismatch for file name
-			if ([_caseWarnings member:lcName] == nil)
+			if (![_caseWarnings containsObject:lcName])
 			{
 				[_caseWarnings addObject:lcName];
 				
@@ -302,7 +302,7 @@ static BOOL CheckNameConflict(NSString *lcName, NSDictionary *directoryCases, NS
 		*/
 		displayName = [self displayNameForFile:file andFolder:folder];
 		errorKey = [displayName lowercaseString];
-		if ([_badPLists member:errorKey] == nil)
+		if (![_badPLists containsObject:errorKey])
 		{
 			[_badPLists addObject:errorKey];
 			OOLog(@"verifyOXP.plist.parseError", @"Could not interpret property list %@.", displayName);
@@ -381,7 +381,7 @@ static BOOL CheckNameConflict(NSString *lcName, NSDictionary *directoryCases, NS
 		{
 			[dirEnum skipDescendents];
 			
-			if ([_skipDirectoryNames member:name] != nil)
+			if ([_skipDirectoryNames containsObject:name])
 			{
 				// Silently skip .svn and CVS
 				OOLog(@"verifyOXP.verbose.listFiles", @"- Skipping %@/", name);
@@ -402,11 +402,11 @@ static BOOL CheckNameConflict(NSString *lcName, NSDictionary *directoryCases, NS
 		}
 		else if ([type isEqualToString:NSFileTypeRegular])
 		{
-			if ([_junkFileNames member:name])
+			if ([_junkFileNames containsObject:name])
 			{
 				OOLog(@"verifyOXP.scanFiles.skipJunk", @"NOTE: skipping junk file %@.", name);
 			}
-			else if ([readMeNames member:lcName])
+			else if ([readMeNames containsObject:lcName])
 			{
 				OOLog(@"verifyOXP.scanFiles.readMe", @"WARNING: apparent Read Me file (\"%@\") inside OXP. This is the wrong place for a Read Me file, because it will not be read.", name);
 			}
@@ -589,7 +589,7 @@ static BOOL CheckNameConflict(NSString *lcName, NSDictionary *directoryCases, NS
 		type = [[dirEnum fileAttributes] fileType];
 		relativeName = [dirName stringByAppendingPathComponent:name];
 		
-		if ([_junkFileNames member:name])
+		if ([_junkFileNames containsObject:name])
 		{
 			OOLog(@"verifyOXP.scanFiles.skipJunk", @"NOTE: skipping junk file %@/%@.", dirName, name);
 		}
@@ -613,7 +613,7 @@ static BOOL CheckNameConflict(NSString *lcName, NSDictionary *directoryCases, NS
 			if ([type isEqualToString:NSFileTypeDirectory])
 			{
 				[dirEnum skipDescendents];
-				if ([_skipDirectoryNames member:name] == nil)
+				if (![_skipDirectoryNames containsObject:name])
 				{
 					OOLog(@"verifyOXP.scanFiles.directory", @"WARNING: \"%@\" is a nested directory, ignoring.", relativeName);
 				}
@@ -648,7 +648,7 @@ static BOOL CheckNameConflict(NSString *lcName, NSDictionary *directoryCases, NS
 		displayPath = [self displayNameForFile:file andFolder:folder];
 		weirdnessKey = [displayPath lowercaseString];
 		
-		if ([_badPLists member:weirdnessKey] == nil)
+		if (![_badPLists containsObject:weirdnessKey])
 		{
 			// Warn about "non-standard" format
 			[_badPLists addObject:weirdnessKey];

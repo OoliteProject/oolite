@@ -1,8 +1,9 @@
 /*
 
-OOJSPlayer.h
+OOJSGlobal.h
 
-JavaScript proxy for the player.
+JavaScript global object.
+
 
 Oolite
 Copyright (C) 2004-2007 Giles C Williams and contributors
@@ -27,21 +28,6 @@ MA 02110-1301, USA.
 #import <Foundation/Foundation.h>
 #import <jsapi.h>
 
-@class PlayerEntity;
 
-
-void InitOOJSPlayer(JSContext *context, JSObject *global);
-
-BOOL JSPlayerGetPlayerEntity(JSContext *context, JSObject *playerObj, PlayerEntity **outEntity);
-
-JSClass *JSPlayerClass(void);
-JSObject *JSPlayerPrototype(void);
-
-
-/*	All JS functions which talk to the player entity should call
-	OOOPlayerForScripting() to ensure that the script target (for the legacy
-	system) is set correctly. Additionally, all such functions should _always_
-	call OOPlayerForScripting(), even if they end up not using it, to ensure
-	consistent state.
-*/
-PlayerEntity *OOPlayerForScripting(void);
+void CreateOOJSGlobal(JSContext *context, JSObject **outGlobal);
+void SetUpOOJSGlobal(JSContext *context, JSObject *global);

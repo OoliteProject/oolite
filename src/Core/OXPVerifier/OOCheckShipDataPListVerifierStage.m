@@ -234,7 +234,7 @@ static NSString * const kStageName	= @"Checking shipdata.plist";
 	
 	rolesString = [_info objectForKey:@"roles"];
 	_roles = [self rolesFromString:rolesString];
-	_isPlayer = [_roles member:@"player"] != nil;
+	_isPlayer = [_roles containsObject:@"player"];
 	_isStation = [_info boolForKey:@"isCarrier" defaultValue:NO] ||
 				 [rolesString rangeOfString:@"station"].location != NSNotFound ||
 				 [rolesString rangeOfString:@"carrier"].location != NSNotFound;
@@ -259,9 +259,9 @@ static NSString * const kStageName	= @"Checking shipdata.plist";
 	
 	for (keyEnum = [_info keyEnumerator]; (key = [keyEnum nextObject]); )
 	{
-		if ([referenceSet member:key] == nil)
+		if (![referenceSet containsObject:key])
 		{
-			if ([_allKeys member:key] != nil)
+			if ([_allKeys containsObject:key])
 			{
 				[self message:@"WARNING: key \"%@\" does not apply to this category of ship.", key];
 			}

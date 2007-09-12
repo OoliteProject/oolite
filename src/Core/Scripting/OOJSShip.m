@@ -107,7 +107,8 @@ enum
 	kShip_isPirate,				// is pirate, boolean, read-only
 	kShip_isPolice,				// is police, boolean, read-only
 	kShip_isThargoid,			// is thargoid, boolean, read-only
-	kShip_isTrader				// is trader, boolean, read-only
+	kShip_isTrader,				// is trader, boolean, read-only
+	kShip_isPirateVictim		// is pirate victim, boolean, read-only
 };
 
 
@@ -149,6 +150,7 @@ static JSPropertySpec sShipProperties[] =
 	{ "isPolice",				kShip_isPolice,				JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
 	{ "isThargoid",				kShip_isThargoid,			JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
 	{ "isTrader",				kShip_isTrader,				JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
+	{ "isPirateVictim",			kShip_isPirateVictim,		JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
 	{ 0 }
 };
 
@@ -357,6 +359,10 @@ static JSBool ShipGetProperty(JSContext *context, JSObject *this, jsval name, js
 			
 		case kShip_isTrader:
 			*outValue = BOOLToJSVal([entity isTrader]);
+			break;
+			
+		case kShip_isPirateVictim:
+			*outValue = BOOLToJSVal([entity isPirateVictim]);
 			break;
 		
 		default:

@@ -1034,7 +1034,7 @@ static NSError *Verify_Dictionary(OOPListSchemaVerifier *verifier, id value, NSD
 				OK = NO;
 			}
 		}
-		else if (!allowOthers && ![requiredKeys member:key] && [schema objectForKey:key] == nil)
+		else if (!allowOthers && ![requiredKeys containsObject:key] && [schema objectForKey:key] == nil)
 		{
 			// Report error now rather than returning it, since there may be several unknown keys.
 			if (!tentative)

@@ -181,6 +181,15 @@ SOFTWARE.
 }
 
 
+- (BOOL)intersectsSet:(id)set
+{
+	if ([set isKindOfClass:[OORoleSet class]])  set = [set roles];
+	else  if (![set isKindOfClass:[NSSet class]])  return NO;
+	
+	return [[self roles] intersectsSet:set];
+}
+
+
 - (NSSet *)roles
 {
 	if (_roles == nil)

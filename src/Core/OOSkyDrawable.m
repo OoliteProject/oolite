@@ -477,7 +477,7 @@ static OOColor *SaturatedColorInRange(OOColor *color1, OOColor *color2);
 		texture = quads[i].texture;
 		
 		// If we haven't seen this quad's texture before...
-		if ([seenTextures member:texture] == nil)
+		if ([seenTextures containsObject:texture])
 		{
 			[seenTextures addObject:texture];
 			
