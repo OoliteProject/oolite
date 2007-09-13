@@ -267,8 +267,8 @@ MA 02110-1301, USA.
 	Vector					tractor_position;
 	
 	// from player entity moved here now we're doing more complex heat stuff
-	GLfloat					ship_temperature;
-	GLfloat					heat_insulation;
+	float					ship_temperature;
+	float					heat_insulation;
 	
 	// for advanced scanning etc.
 	ShipEntity*				scanned_ships[MAX_SCAN_NUMBER + 1];

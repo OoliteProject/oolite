@@ -398,7 +398,7 @@ static NSString * const kOOLogEntityBehaviourChanged	= @"entity.behaviour.change
 	ScanVectorFromString([shipDict objectForKey:@"scoop_position"], &tractor_position);
 	
 	// ship skin insulation factor (1.0 is normal)
-	heat_insulation = [shipDict doubleForKey:@"heat_insulation"	defaultValue:1.0];
+	heat_insulation = [shipDict floatForKey:@"heat_insulation"	defaultValue:1.0];
 	
 	// crew and passengers
 	NSDictionary* cdict = [[UNIVERSE characters] objectForKey:[shipDict stringForKey:@"pilot"]];
