@@ -360,6 +360,10 @@
 		1A5E462F0C32DACE008104B4 /* OOShaderUniformMethodType.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A5E462D0C32DACE008104B4 /* OOShaderUniformMethodType.m */; };
 		1A5E46300C32DACE008104B4 /* OOShaderUniformMethodType.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A5E462E0C32DACE008104B4 /* OOShaderUniformMethodType.h */; };
 		1A67050F0C4904ED002551AA /* oolite-cloaking-device.js in Copy Scripts */ = {isa = PBXBuildFile; fileRef = 1A67050E0C4904ED002551AA /* oolite-cloaking-device.js */; };
+		1A6B1EF00C9AA5C6000717CF /* OOScriptTimer.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A6B1EEE0C9AA5C6000717CF /* OOScriptTimer.h */; };
+		1A6B1EF10C9AA5C6000717CF /* OOScriptTimer.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A6B1EEF0C9AA5C6000717CF /* OOScriptTimer.m */; };
+		1A6B1F360C9AAA60000717CF /* OOPriorityQueue.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A6B1F340C9AAA60000717CF /* OOPriorityQueue.m */; };
+		1A6B1F370C9AAA60000717CF /* OOPriorityQueue.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A6B1F350C9AAA60000717CF /* OOPriorityQueue.h */; };
 		1A6B50430C8B42AC0035DFCC /* libOgg.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 25F3E8E9099502BB002F25FD /* libOgg.a */; };
 		1A6DD1230C57B5BC00A892F4 /* OOPListSchemaVerifier.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A6DD1210C57B5BC00A892F4 /* OOPListSchemaVerifier.h */; };
 		1A6DD1240C57B5BC00A892F4 /* OOPListSchemaVerifier.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A6DD1220C57B5BC00A892F4 /* OOPListSchemaVerifier.m */; };
@@ -1263,6 +1267,10 @@
 		1A5E462D0C32DACE008104B4 /* OOShaderUniformMethodType.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOShaderUniformMethodType.m; sourceTree = "<group>"; };
 		1A5E462E0C32DACE008104B4 /* OOShaderUniformMethodType.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOShaderUniformMethodType.h; sourceTree = "<group>"; };
 		1A67050E0C4904ED002551AA /* oolite-cloaking-device.js */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.javascript; path = "oolite-cloaking-device.js"; sourceTree = "<group>"; };
+		1A6B1EEE0C9AA5C6000717CF /* OOScriptTimer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOScriptTimer.h; sourceTree = "<group>"; };
+		1A6B1EEF0C9AA5C6000717CF /* OOScriptTimer.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOScriptTimer.m; sourceTree = "<group>"; };
+		1A6B1F340C9AAA60000717CF /* OOPriorityQueue.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOPriorityQueue.m; sourceTree = "<group>"; };
+		1A6B1F350C9AAA60000717CF /* OOPriorityQueue.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOPriorityQueue.h; sourceTree = "<group>"; };
 		1A6B50370C8B42480035DFCC /* libjs.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = libjs.xcodeproj; path = xcode/libjs.xcodeproj; sourceTree = "<group>"; };
 		1A6DD1210C57B5BC00A892F4 /* OOPListSchemaVerifier.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOPListSchemaVerifier.h; sourceTree = "<group>"; };
 		1A6DD1220C57B5BC00A892F4 /* OOPListSchemaVerifier.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOPListSchemaVerifier.m; sourceTree = "<group>"; };
@@ -1915,6 +1923,8 @@
 				1A5DBA9F0BC000DC00D57389 /* OOPListScript.m */,
 				1A73795B0C65CF090097AC37 /* OOLegacyEventHandlerScript.h */,
 				1A73795C0C65CF090097AC37 /* OOLegacyEventHandlerScript.m */,
+				1A6B1EEE0C9AA5C6000717CF /* OOScriptTimer.h */,
+				1A6B1EEF0C9AA5C6000717CF /* OOScriptTimer.m */,
 				1A5DBAB50BC000E700D57389 /* JavaScript */,
 			);
 			path = Scripting;
@@ -2122,6 +2132,8 @@
 				1A2A17D50BD1587D00152975 /* OOCPUInfo.m */,
 				1A7D83380C40147700E4A5F5 /* OOAsyncQueue.h */,
 				1A7D83390C40147700E4A5F5 /* OOAsyncQueue.m */,
+				1A6B1F340C9AAA60000717CF /* OOPriorityQueue.m */,
+				1A6B1F350C9AAA60000717CF /* OOPriorityQueue.h */,
 			);
 			name = Utilities;
 			sourceTree = "<group>";
@@ -2542,6 +2554,8 @@
 				1ACEA6BF0C91DA3E00C7CE97 /* OOJSGlobal.h in Headers */,
 				1ACEA7280C91DF2800C7CE97 /* OOJSMissionVariables.h in Headers */,
 				1ACEA7AA0C91E32800C7CE97 /* OOJSMission.h in Headers */,
+				1A6B1EF00C9AA5C6000717CF /* OOScriptTimer.h in Headers */,
+				1A6B1F370C9AAA60000717CF /* OOPriorityQueue.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -2877,6 +2891,8 @@
 				1ACEA6C00C91DA3E00C7CE97 /* OOJSGlobal.m in Sources */,
 				1ACEA7290C91DF2800C7CE97 /* OOJSMissionVariables.m in Sources */,
 				1ACEA7AB0C91E32800C7CE97 /* OOJSMission.m in Sources */,
+				1A6B1EF10C9AA5C6000717CF /* OOScriptTimer.m in Sources */,
+				1A6B1F360C9AAA60000717CF /* OOPriorityQueue.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
