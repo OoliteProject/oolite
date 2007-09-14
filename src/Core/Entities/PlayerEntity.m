@@ -5220,7 +5220,7 @@ static int last_outfitting_index;
 			ship_trade_in_factor = 100;
 		
 		[self setGuiToEquipShipScreen:-1:-1];
-		done = YES;
+		return YES;
 	}
 
 	if ([eq_key hasSuffix:@"MISSILE"] || [eq_key hasSuffix:@"MINE"])
@@ -5247,7 +5247,7 @@ static int last_outfitting_index;
 		max_cargo -= 5;
 		credits -= price;
 		[self setGuiToEquipShipScreen:-1:-1];
-		done = YES;
+		return YES;
 	}
 
 	if ([eq_key isEqual:@"EQ_PASSENGER_BERTH_REMOVAL"])
@@ -5256,7 +5256,7 @@ static int last_outfitting_index;
 		max_cargo += 5;
 		credits -= price;
 		[self setGuiToEquipShipScreen:-1:-1];
-		done = YES;
+		return YES;
 	}
 
 	if ([eq_key isEqual:@"EQ_MISSILE_REMOVAL"])
@@ -5279,7 +5279,7 @@ static int last_outfitting_index;
 		}
 		missiles = 0;
 		[self setGuiToEquipShipScreen:-1:-1];
-		done = YES;
+		return YES;
 	}
 
 	unsigned i;
