@@ -2637,8 +2637,9 @@ static BOOL toggling_music;
 						[UNIVERSE removeDemoShips];
 						[gui clearBackground];
 						[self setGuiToStatusScreen];
-						if (missionMusic)
-							[missionMusic stop];
+						[missionMusic stop];
+						
+						[self doScriptEvent:@"missionScreenEnded"];
 					}
 					spacePressed = YES;
 				}
@@ -2682,9 +2683,11 @@ static BOOL toggling_music;
 						[UNIVERSE removeDemoShips];
 						[gui clearBackground];
 						[self setGuiToStatusScreen];
-						if (missionMusic)
-							[missionMusic stop];
-						//
+						[missionMusic stop];
+						[missionMusic release];
+						missionMusic = nil;
+						
+						[self doScriptEvent:@"missionScreenEnded"];
 						[self checkScript];
 					}
 					enterSelectKeyPressed = YES;

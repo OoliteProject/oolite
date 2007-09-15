@@ -28,6 +28,7 @@ MA 02110-1301, USA.
 #import "Universe.h"
 #import "OOJSPlayer.h"
 #import "PlayerEntity.h"
+#import "OOStringParsing.h"
 
 
 // Minimum allowable interval for repeating timers.
@@ -37,7 +38,8 @@ MA 02110-1301, USA.
 static JSBool ClockGetProperty(JSContext *context, JSObject *this, jsval name, jsval *outValue);
 
 // Methods
-static JSBool ClockToString(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
+static JSBool JSClockToString(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
+static JSBool ClockClockStringForTime(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
 
 
 static JSClass sClockClass =
@@ -95,7 +97,8 @@ static JSPropertySpec sClockProperties[] =
 static JSFunctionSpec sClockMethods[] =
 {
 	// JS name					Function					min args
-	{ "toString",				ClockToString,				0 },
+	{ "toString",				JSClockToString,			0 },
+	{ "clockStringForTime",		ClockClockStringForTime,	1 },
 	{ 0 }
 };
 
@@ -168,8 +171,20 @@ static JSBool ClockGetProperty(JSContext *context, JSObject *this, jsval name, j
 }
 
 
-static JSBool ClockToString(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
+static JSBool JSClockToString(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
 {
 	*outResult = [[OOPlayerForScripting() dial_clock] javaScriptValueInContext:context];
+	return YES;
+}
+
+
+static JSBool ClockClockStringForTime(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
+{
+	double						time;
+	
+	if (JS_ValueToNumber(context, argv[0], &time))
+	{
+		*outResult = [ClockToString(time, NO) javaScriptValueInContext:context];
+	}
 	return YES;
 }

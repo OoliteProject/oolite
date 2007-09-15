@@ -770,6 +770,10 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 		docked_traders = 0;   // 1..3;
 	}
 	
+	last_patrol_report_time = 0.0;
+	patrol_launch_interval = 300.0;	// 5 minutes
+	last_patrol_report_time -= patrol_launch_interval;
+	
 	[self setCrew:[NSArray arrayWithObject:[OOCharacter characterWithRole:@"police" andOriginalSystem:[UNIVERSE systemSeed]]]];
 	
 	return YES;
@@ -1077,12 +1081,11 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 	}
 	
 	// testing patrols
-	if ((unitime > last_patrol_report_time + patrol_launch_interval)&&(isMainStation))
+	if ((unitime > (last_patrol_report_time + patrol_launch_interval))&&(isMainStation))
 	{
-		if (![self hasNPCTraffic] || ![self launchPatrol])
+		if (![self hasNPCTraffic] || [self launchPatrol])
 			last_patrol_report_time = unitime;
 	}
-	
 }
 
 
@@ -1612,7 +1615,6 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 
 - (BOOL) launchPatrol
 {
-	
 	if (police_launched < max_police)
 	{
 		ShipEntity		*patrol_ship = nil;

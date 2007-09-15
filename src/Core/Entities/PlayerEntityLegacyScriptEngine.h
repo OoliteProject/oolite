@@ -165,6 +165,7 @@ MA 02110-1301, USA.
 - (void) checkForShips: (NSString *)roleString;
 - (void) resetScriptTimer;
 - (void) addMissionText: (NSString *)textKey;
+- (void) addLiteralMissionText: (NSString *)text;
 
 - (void) setMissionChoices:(NSString *)choicesKey;	// choicesKey is a key for a dictionary of
 													// choices/choice phrases in missiontext.plist and also..

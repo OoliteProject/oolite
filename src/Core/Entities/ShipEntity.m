@@ -7382,6 +7382,7 @@ int w_space_seed = 1234567;
 	
 	OOLog(@"dumpState.shipEntity", @"Name: %@", name);
 	OOLog(@"dumpState.shipEntity", @"Roles: %@", roleSet);
+	OOLog(@"dumpState.shipEntity", @"Primary role: %@", primaryRole);
 	OOLog(@"dumpState.shipEntity", @"Script: %@", script);
 	if (sub_entities != nil)  OOLog(@"dumpState.shipEntity", @"Subentity count: %u", [sub_entities count]);
 	OOLog(@"dumpState.shipEntity", @"Behaviour: %@", BehaviourToString(behaviour));

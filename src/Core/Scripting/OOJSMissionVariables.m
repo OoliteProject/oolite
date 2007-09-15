@@ -31,6 +31,7 @@ MA 02110-1301, USA.
 #import "OOJSPlayer.h"
 
 
+static JSBool MissionVariablesDeleteProperty(JSContext *context, JSObject *this, jsval name, jsval *outValue);
 static JSBool MissionVariablesGetProperty(JSContext *context, JSObject *this, jsval name, jsval *outValue);
 static JSBool MissionVariablesSetProperty(JSContext *context, JSObject *this, jsval name, jsval *value);
 
@@ -41,7 +42,7 @@ static JSClass sMissionVariablesClass =
 	0,
 	
 	JS_PropertyStub,
-	JS_PropertyStub,
+	MissionVariablesDeleteProperty,
 	MissionVariablesGetProperty,
 	MissionVariablesSetProperty,
 	JS_EnumerateStub,
@@ -54,6 +55,19 @@ static JSClass sMissionVariablesClass =
 void InitOOJSMissionVariables(JSContext *context, JSObject *global)
 {
 	JS_DefineObject(context, global, "missionVariables", &sMissionVariablesClass, NULL, JSPROP_ENUMERATE | JSPROP_READONLY | JSPROP_PERMANENT);
+}
+
+
+static JSBool MissionVariablesDeleteProperty(JSContext *context, JSObject *this, jsval name, jsval *value)
+{
+	PlayerEntity				*player = OOPlayerForScripting();
+	
+	if (JSVAL_IS_STRING(name))
+	{
+		NSString	*key = [@"mission_" stringByAppendingString:[NSString stringWithJavaScriptValue:name inContext:context]];
+		[player setMissionVariable:nil forKey:key];
+	}
+	return YES;
 }
 
 

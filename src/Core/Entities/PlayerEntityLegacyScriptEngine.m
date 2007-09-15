@@ -72,7 +72,7 @@ static NSString * const kOOLogDebugTestConditionCheckingVariable = @"script.debu
 static NSString * const kOOLogDebugTestConditionValues		= @"script.debug.testCondition.testValues";
 static NSString * const kOOLogDebugTestConditionOnOf		= @"script.debug.testCondition.oneOf";
 static NSString * const kOOLogDebugAddPlanet				= @"script.debug.addPlanet";
-static NSString * const kOOLogDebugReplaceVaraiblesInString	= @"script.debug.replaceVariablesInString";
+static NSString * const kOOLogDebugReplaceVariablesInString	= @"script.debug.replaceVariablesInString";
 static NSString * const kOOLogDebugProcessSceneStringAddScene = @"script.debug.processSceneString.addScene";
 static NSString * const kOOLogDebugProcessSceneStringAddModel = @"script.debug.processSceneString.addModel";
 static NSString * const kOOLogDebugProcessSceneStringAddLocalPlanet = @"script.debug.processSceneString.addLocalPlanet";
@@ -1603,24 +1603,39 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 
 - (void) addMissionText: (NSString *)textKey
 {
-	if ([textKey isEqual:lastTextKey])
-		return; // don't repeatedly add the same text
-	//
-	GuiDisplayGen   *gui =  [UNIVERSE gui];
-	NSString		*text = (NSString *)[[UNIVERSE missiontext] objectForKey:textKey];
-	text = ExpandDescriptionForCurrentSystem(text);
-	text = [self replaceVariablesInString: text];
+	NSString			*text = nil;
+	NSArray				*paras = nil;
 	
-	NSArray			*paras = [text componentsSeparatedByString:@"\\n"];
-	if (text)
+	if ([textKey isEqual:lastTextKey])  return; // don't repeatedly add the same text
+	[lastTextKey release];
+	lastTextKey = [textKey copy];
+	
+	// Replace literal \n in strings with line breaks and perform expansions.
+	text = [[UNIVERSE missiontext] stringForKey:textKey];
+	if (text == nil)  return;
+	text = ExpandDescriptionForCurrentSystem(text);
+	paras = [text componentsSeparatedByString:@"\\n"];
+	text = [paras componentsJoinedByString:@"\n"];
+	text = [self replaceVariablesInString:text];
+	
+	[self addLiteralMissionText:text];
+}
+
+
+- (void) addLiteralMissionText:(NSString *)text
+{
+	GuiDisplayGen		*gui = [UNIVERSE gui];
+	NSArray				*paras = [text componentsSeparatedByString:@"\n"];
+	unsigned			i, count;
+	
+	if (text != nil)
 	{
-		unsigned i;
-		for (i = 0; i < [paras count]; i++)
-			missionTextRow = [gui addLongText:[self replaceVariablesInString:(NSString *)[paras objectAtIndex:i]] startingAtRow:missionTextRow align:GUI_ALIGN_LEFT];
+		count = [paras count];
+		for (i = 0; i < count; i++)
+		{
+			missionTextRow = [gui addLongText:[paras objectAtIndex:i] startingAtRow:missionTextRow align:GUI_ALIGN_LEFT];
+		}
 	}
-	if (lastTextKey)
-		[lastTextKey release];
-	lastTextKey = [[NSString stringWithString:textKey] retain];  //
 }
 
 
@@ -1671,8 +1686,7 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 
 - (void) resetMissionChoice							// resets MissionChoice to nil
 {
-	if (missionChoice)
-		[missionChoice release];
+	[missionChoice release];
 	missionChoice = nil;
 }
 
@@ -1776,7 +1790,8 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 - (void) setMissionMusic: (NSString *)value
 {
 	[missionMusic release];
-	if (NSOrderedSame == [value caseInsensitiveCompare:@"none"])
+	
+	if ([value length] == 0 || [[value lowercaseString] isEqual:@"none"])
 	{
 		missionMusic = nil;
 	}
@@ -1792,7 +1807,7 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 	[missionBackgroundTexture release];
 	missionBackgroundTexture = nil;
 	
-	if (![[value lowercaseString] isEqual:@"none"])
+	if ([value length] != 0 && ![[value lowercaseString] isEqual:@"none"])
  	{
 		missionBackgroundTexture = [OOTexture textureWithName:value inFolder:@"Images"];
 		[missionBackgroundTexture retain];
@@ -2005,7 +2020,7 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 
 	for (i = 0; i < [tokens  count]; i++)
 	{
-		valueString = (NSString *)[tokens objectAtIndex:i];
+		valueString = [tokens objectAtIndex:i];
 
 		if ([mission_variables objectForKey:valueString])
 		{
@@ -2030,7 +2045,7 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 		}
 	}
 
-	OOLog(kOOLogDebugReplaceVaraiblesInString, @"EXPANSION: \"%@\" becomes \"%@\"", args, resultString);
+	OOLog(kOOLogDebugReplaceVariablesInString, @"EXPANSION: \"%@\" becomes \"%@\"", args, resultString);
 
 	return [NSString stringWithString: resultString];
 }
@@ -2081,7 +2096,7 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 #ifdef GNUSTEP
 //TODO: 3.???? 4. Profit!
 #else
-	if ((missionMusic)&&(!ootunes_on))
+	if (!ootunes_on)
 	{
 		[missionMusic play];
 	}
