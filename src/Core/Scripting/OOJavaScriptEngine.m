@@ -37,6 +37,7 @@ MA 02110-1301, USA.
 #import "OOJSSystem.h"
 #import "OOJSOolite.h"
 #import "OOJSTimer.h"
+#import "OOJSClock.h"
 
 #import "OOCollectionExtractors.h"
 #import "Universe.h"
@@ -196,6 +197,7 @@ static void ReportJSError(JSContext *context, const char *message, JSErrorReport
 	InitOOJSPlayer(context, globalObject);
 	InitOOJSScript(context, globalObject);
 	InitOOJSTimer(context, globalObject);
+	InitOOJSClock(context, globalObject);
 	
 	OOLog(@"script.javaScript.init.success", @"Set up JavaScript context.");
 	

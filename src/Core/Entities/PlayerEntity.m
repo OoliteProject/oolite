@@ -2315,6 +2315,18 @@ double scoopSoundPlayTime = 0.0;
 }
 
 
+- (double) clockTime
+{
+	return ship_clock;
+}
+
+
+- (BOOL) clockAdjusting
+{
+	return ship_clock_adjust != 0;
+}
+
+
 - (NSString*) dial_clock
 {
 	return ClockToString(ship_clock, ship_clock_adjust != 0);

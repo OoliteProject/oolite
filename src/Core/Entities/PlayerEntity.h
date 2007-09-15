@@ -547,6 +547,9 @@ typedef enum
 
 - (int) dialFuelScoopStatus;
 
+- (double) clockTime;	// Note that this is not an OOTimeAbsolute
+- (BOOL) clockAdjusting;
+
 - (NSString *) dial_clock;
 - (NSString *) dial_clock_adjusted;
 - (NSString *) dial_fpsinfo;
