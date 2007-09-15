@@ -73,7 +73,6 @@ enum
 	// Property IDs
 	kGlobal_galaxyNumber,		// galaxy number, integer, read-only
 	kGlobal_planetNumber,		// planet number, integer, read-only
-	kGlobal_missionVariables,	// mission variables, custom object, read-only
 	kGlobal_guiScreen,			// current GUI screen, string, read-only
 };
 
@@ -83,7 +82,6 @@ static JSPropertySpec sGlobalProperties[] =
 	// JS name					ID							flags
 	{ "galaxyNumber",			kGlobal_galaxyNumber,		JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
 	{ "planetNumber",			kGlobal_planetNumber,		JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
-//	{ "missionVariables",		kGlobal_missionVariables,	JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
 	{ "guiScreen",				kGlobal_guiScreen,			JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
 	{ 0 }
 };

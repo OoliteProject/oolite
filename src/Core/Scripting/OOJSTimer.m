@@ -202,8 +202,8 @@ static JSClass sTimerClass =
 enum
 {
 	// Property IDs
-	kTimer_nextFireTime,		// next fire time, double, read/write
-	kTimer_fireInterval,		// next fire time, double, read/write
+	kTimer_nextTime,			// next fire time, double, read/write
+	kTimer_interval,			// interval, double, read/write
 	kTimer_isPersistent,		// is persistent, boolean, read/write
 	kTimer_isRunning			// is scheduled, boolean, read-only
 };
@@ -212,8 +212,8 @@ enum
 static JSPropertySpec sTimerProperties[] =
 {
 	// JS name					ID							flags
-	{ "nextFireTime",			kTimer_nextFireTime,		JSPROP_PERMANENT | JSPROP_ENUMERATE },
-	{ "fireInterval",			kTimer_fireInterval,		JSPROP_PERMANENT | JSPROP_ENUMERATE },
+	{ "nextTime",				kTimer_nextTime,			JSPROP_PERMANENT | JSPROP_ENUMERATE },
+	{ "interval",				kTimer_interval,			JSPROP_PERMANENT | JSPROP_ENUMERATE },
 	{ "isPersistent",			kTimer_isPersistent,		JSPROP_PERMANENT | JSPROP_ENUMERATE },
 	{ "isRunning",				kTimer_isRunning,			JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
 	{ 0 }
@@ -260,11 +260,11 @@ static JSBool TimerGetProperty(JSContext *context, JSObject *this, jsval name, j
 	
 	switch (JSVAL_TO_INT(name))
 	{
-		case kTimer_nextFireTime:
+		case kTimer_nextTime:
 			JS_NewDoubleValue(context, [timer nextTime], outValue);
 			break;
 			
-		case kTimer_fireInterval:
+		case kTimer_interval:
 			JS_NewDoubleValue(context, [timer interval], outValue);
 			break;
 			
@@ -296,7 +296,7 @@ static JSBool TimerSetProperty(JSContext *context, JSObject *this, jsval name, j
 	
 	switch (JSVAL_TO_INT(name))
 	{
-		case kTimer_nextFireTime:
+		case kTimer_nextTime:
 			if (JS_ValueToNumber(context, *value, &fValue))
 			{
 				if (![timer setNextTime:fValue])
@@ -306,7 +306,7 @@ static JSBool TimerSetProperty(JSContext *context, JSObject *this, jsval name, j
 			}
 			break;
 			
-		case kTimer_fireInterval:
+		case kTimer_interval:
 			if (JS_ValueToNumber(context, *value, &fValue))
 			{
 				[timer setInterval:fValue];
