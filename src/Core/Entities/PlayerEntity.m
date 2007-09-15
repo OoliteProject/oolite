@@ -51,9 +51,10 @@ MA 02110-1301, USA.
 #import "OOConstToString.h"
 #import "OOTexture.h"	// Required to properly release missionBackgroundTexture.
 #import "OORoleSet.h"	// Required to properly release roleSet.
+#import "HeadUpDisplay.h"
 
 #import "OOScript.h"
-#import "HeadUpDisplay.h"
+#import "OOScriptTimer.h"
 
 #ifndef GNUSTEP
 #import "Groolite.h"
@@ -1001,6 +1002,7 @@ static PlayerEntity *sSharedPlayer = nil;
 	
 	[self setSystem_seed:[UNIVERSE findSystemAtCoords:[self galaxy_coordinates] withGalaxySeed:[self galaxy_seed]]];
 	
+	[OOScriptTimer noteGameReset];
 	[self doScriptEvent:@"reset"];
 }
 
@@ -1382,6 +1384,8 @@ double scoopSoundPlayTime = 0.0;
 	}
 	
 	// scripting
+	[OOScriptTimer updateTimers];
+	
 	if (script_time > script_time_check)
 	{
 		if (status == STATUS_IN_FLIGHT)	// check as we're flying

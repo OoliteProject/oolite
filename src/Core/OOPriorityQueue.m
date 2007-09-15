@@ -232,7 +232,8 @@ OOINLINE NSComparisonResult PQCompare(id a, id b, SEL comparator)
 
 - (unsigned) hash
 {
-	return _count;
+	if (_count == 0)  return NSNotFound;
+	return _count ^ [_buffer[0] hash];
 }
 
 

@@ -219,9 +219,9 @@ static NSString * const kOOLogLoadScriptNone				= @"script.load.none";
 }
 
 
-- (NSString *)description
+- (NSString *)descriptionComponents
 {
-	return [NSString stringWithFormat:@"<%@ %p>{\"%@\" version %@}", [self class], self, [self name], [self version]];
+	return [NSString stringWithFormat:@"\"%@\" version %@", [self name], [self version]];
 }
 
 

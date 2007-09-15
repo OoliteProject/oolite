@@ -28,6 +28,7 @@
 		
 		verifyOXP = "yes";
 		verifyOXP.stage = "yes";
+		verifyOXP.verbose = "no";
 	};
 	logShowMessageClassOverride = "no";
 	

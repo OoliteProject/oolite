@@ -44,7 +44,6 @@ static RunningStack		*sRunningStack = NULL;
 
 
 static void JSScriptFinalize(JSContext *context, JSObject *this);
-static JSBool ScriptToString(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
 
 static void AddStackToArrayReversed(NSMutableArray *array, RunningStack *stack);
 
@@ -68,7 +67,7 @@ static JSClass sScriptClass =
 static JSFunctionSpec sScriptMethods[] =
 {
 	// JS name					Function					min args
-	{ "toString",				ScriptToString,				0, },
+	{ "toString",				JSObjectWrapperToString,	0, },
 	{ 0 }
 };
 
@@ -172,15 +171,15 @@ static JSFunctionSpec sScriptMethods[] =
 	if (!problem)
 	{
 		// Get display attributes from script
-		name = [JSPropertyAsString(context, object, "name") retain];
+		name = [[[self propertyNamed:@"name"] description] copy];
 		if (name == nil)
 		{
 			name = [[self scriptNameFromPath:path] retain];
 			[self setProperty:name named:@"name"];
 		}
 		
-		version = [JSPropertyAsString(context, object, "version") retain];
-		description = [JSPropertyAsString(context, object, "description") retain];
+		version = [[[self propertyNamed:@"version"] description] copy];
+		description = [[[self propertyNamed:@"description"] description] copy];
 		
 		OOLog(@"script.javaScript.load.success", @"Loaded JavaScript OXP: %@ -- %@", [self displayName], description ? description : @"(no description)");
 	}
@@ -425,6 +424,34 @@ static JSFunctionSpec sScriptMethods[] =
 	return OBJECT_TO_JSVAL(object);
 }
 
+
++ (void)pushScript:(OOJSScript *)script
+{
+	RunningStack			*element = NULL;
+	
+	if (script == nil)  return;
+	
+	element = malloc(sizeof *element);
+	if (element == NULL)  exit(EXIT_FAILURE);
+	
+	element->back = sRunningStack;
+	element->current = script;
+	sRunningStack = element;
+}
+
+
++ (void)popScript:(OOJSScript *)script
+{
+	RunningStack			*element = NULL;
+	
+	if (script == nil)  return;
+	assert(sRunningStack->current == script);
+	
+	element = sRunningStack;
+	sRunningStack = sRunningStack->back;
+	free(element);
+}
+
 @end
 
 
@@ -447,27 +474,8 @@ void InitOOJSScript(JSContext *context, JSObject *global)
 
 static void JSScriptFinalize(JSContext *context, JSObject *this)
 {
-	OOLog(@"js.script.temp", @"%s called for %p", __PRETTY_FUNCTION__, this);
 	[(id)JS_GetPrivate(context, this) release];
 	JS_SetPrivate(context, this, nil);
-}
-
-
-static JSBool ScriptToString(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
-{
-	OOJSScript					*script = nil;
-	
-	script = JS_GetInstancePrivate(context, this, &sScriptClass, NULL);
-	script = [script weakRefUnderlyingObject];
-	if (script != nil)
-	{
-		*outResult = [[script description] javaScriptValueInContext:context];
-	}
-	else
-	{
-		*outResult = STRING_TO_JSVAL(JS_InternString(context, "[stale Script]"));
-	}
-	return YES;
 }
 
 

@@ -38,8 +38,10 @@ MA 02110-1301, USA.
 
 @interface OOScriptTimer: NSObject
 {
+@private
 	OOTimeAbsolute				_nextTime;
 	OOTimeDelta					_interval;
+	BOOL						_isScheduled;
 }
 
 - (id) initWithNextTime:(OOTimeAbsolute)nextTime
@@ -49,6 +51,9 @@ MA 02110-1301, USA.
 - (id) initOneShotTimerWithDelay:(OOTimeDelta)delay;
 
 - (OOTimeAbsolute)nextTime;
+- (BOOL)setNextTime:(OOTimeAbsolute)nextTime;	// Only works when timer is not scheduled.
+- (OOTimeDelta)interval;
+- (void)setInterval:(OOTimeDelta)interval;
 
 // Subclass responsibility:
 - (void) timerFired;
@@ -56,6 +61,7 @@ MA 02110-1301, USA.
 
 - (BOOL) scheduleTimer;
 - (void) unscheduleTimer;
+- (BOOL) isScheduled;
 
 
 + (void) updateTimers;

@@ -527,7 +527,7 @@ static void OpenLogFile(NSString *name);
 		}
 		else
 		{
-			OOLog(@"verifyOXP.verbose.skipStage", @"- Skipping stage: %@.", stageName);
+			OOLog(@"verifyOXP.verbose.skipStage", @"- Skipping stage: %@ (nothing to do).", stageName);
 			[stageToRun noteSkipped];
 		}
 		

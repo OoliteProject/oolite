@@ -48,6 +48,9 @@ MA 02110-1301, USA.
 + (OOJSScript *)currentlyRunningScript;
 + (NSArray *)scriptStack;
 
++ (void)pushScript:(OOJSScript *)script;	// Used, for instance, by timers. Failing to balance these will crash!
++ (void)popScript:(OOJSScript *)script;
+
 @end
 
 

@@ -364,6 +364,8 @@
 		1A6B1EF10C9AA5C6000717CF /* OOScriptTimer.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A6B1EEF0C9AA5C6000717CF /* OOScriptTimer.m */; };
 		1A6B1F360C9AAA60000717CF /* OOPriorityQueue.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A6B1F340C9AAA60000717CF /* OOPriorityQueue.m */; };
 		1A6B1F370C9AAA60000717CF /* OOPriorityQueue.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A6B1F350C9AAA60000717CF /* OOPriorityQueue.h */; };
+		1A6B228D0C9B40D4000717CF /* OOJSTimer.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A6B228B0C9B40D4000717CF /* OOJSTimer.h */; };
+		1A6B228E0C9B40D4000717CF /* OOJSTimer.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A6B228C0C9B40D4000717CF /* OOJSTimer.m */; };
 		1A6B50430C8B42AC0035DFCC /* libOgg.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 25F3E8E9099502BB002F25FD /* libOgg.a */; };
 		1A6DD1230C57B5BC00A892F4 /* OOPListSchemaVerifier.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A6DD1210C57B5BC00A892F4 /* OOPListSchemaVerifier.h */; };
 		1A6DD1240C57B5BC00A892F4 /* OOPListSchemaVerifier.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A6DD1220C57B5BC00A892F4 /* OOPListSchemaVerifier.m */; };
@@ -1271,6 +1273,8 @@
 		1A6B1EEF0C9AA5C6000717CF /* OOScriptTimer.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOScriptTimer.m; sourceTree = "<group>"; };
 		1A6B1F340C9AAA60000717CF /* OOPriorityQueue.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOPriorityQueue.m; sourceTree = "<group>"; };
 		1A6B1F350C9AAA60000717CF /* OOPriorityQueue.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOPriorityQueue.h; sourceTree = "<group>"; };
+		1A6B228B0C9B40D4000717CF /* OOJSTimer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOJSTimer.h; sourceTree = "<group>"; };
+		1A6B228C0C9B40D4000717CF /* OOJSTimer.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOJSTimer.m; sourceTree = "<group>"; };
 		1A6B50370C8B42480035DFCC /* libjs.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = libjs.xcodeproj; path = xcode/libjs.xcodeproj; sourceTree = "<group>"; };
 		1A6DD1210C57B5BC00A892F4 /* OOPListSchemaVerifier.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOPListSchemaVerifier.h; sourceTree = "<group>"; };
 		1A6DD1220C57B5BC00A892F4 /* OOPListSchemaVerifier.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOPListSchemaVerifier.m; sourceTree = "<group>"; };
@@ -1963,6 +1967,8 @@
 				1ACEA7270C91DF2800C7CE97 /* OOJSMissionVariables.m */,
 				1ACEA7A80C91E32800C7CE97 /* OOJSMission.h */,
 				1ACEA7A90C91E32800C7CE97 /* OOJSMission.m */,
+				1A6B228B0C9B40D4000717CF /* OOJSTimer.h */,
+				1A6B228C0C9B40D4000717CF /* OOJSTimer.m */,
 			);
 			name = JavaScript;
 			sourceTree = "<group>";
@@ -2556,6 +2562,7 @@
 				1ACEA7AA0C91E32800C7CE97 /* OOJSMission.h in Headers */,
 				1A6B1EF00C9AA5C6000717CF /* OOScriptTimer.h in Headers */,
 				1A6B1F370C9AAA60000717CF /* OOPriorityQueue.h in Headers */,
+				1A6B228D0C9B40D4000717CF /* OOJSTimer.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -2893,6 +2900,7 @@
 				1ACEA7AB0C91E32800C7CE97 /* OOJSMission.m in Sources */,
 				1A6B1EF10C9AA5C6000717CF /* OOScriptTimer.m in Sources */,
 				1A6B1F360C9AAA60000717CF /* OOPriorityQueue.m in Sources */,
+				1A6B228E0C9B40D4000717CF /* OOJSTimer.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

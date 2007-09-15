@@ -42,6 +42,8 @@ static OOPriorityQueue *sTimers = nil;
 	self = [super init];
 	if (self != nil)
 	{
+		if (interval <= 0.0)  interval = -1.0;
+		
 		now = [UNIVERSE getTime];
 		if (nextTime < 0.0)  nextTime = now + interval;
 		if (nextTime < now)
@@ -50,6 +52,9 @@ static OOPriorityQueue *sTimers = nil;
 			[self release];
 			self = nil;
 		}
+		
+		_nextTime = nextTime;
+		_interval = interval;
 	}
 	
 	return self;
@@ -62,9 +67,50 @@ static OOPriorityQueue *sTimers = nil;
 }
 
 
+- (void) dealloc
+{
+	if (_isScheduled)  [self unscheduleTimer];
+	
+	[super dealloc];
+}
+
+
+- (NSString *) descriptionComponents
+{
+	NSString					*intervalDesc = nil;
+	
+	if (_interval <= 0.0)  intervalDesc = @"one-shot";
+	else  intervalDesc = [NSString stringWithFormat:@"interval: %g", _interval];
+		
+	return [NSString stringWithFormat:@"nextTime: %g, %@, %srunning", _nextTime, intervalDesc, _isScheduled ? "" : "not "];
+}
+
+
 - (OOTimeAbsolute)nextTime
 {
 	return _nextTime;
+}
+
+
+- (BOOL)setNextTime:(OOTimeAbsolute)nextTime
+{
+	if (_isScheduled)  return NO;
+	
+	_nextTime = nextTime;
+	return YES;
+}
+
+
+- (OOTimeDelta)interval
+{
+	return _interval;
+}
+
+
+- (void)setInterval:(OOTimeDelta)interval
+{
+	if (interval <= 0.0)  interval = -1.0;
+	_interval = interval;
 }
 
 
@@ -82,10 +128,12 @@ static OOPriorityQueue *sTimers = nil;
 
 - (BOOL) scheduleTimer
 {
+	if (_isScheduled)  return YES;
 	if (![self isValidForScheduling])  return NO;
 	
 	if (sTimers == nil)  sTimers = [[OOPriorityQueue alloc] initWithComparator:@selector(compareByNextFireTime:)];
 	[sTimers addObject:self];
+	_isScheduled = YES;
 	return YES;
 }
 
@@ -93,6 +141,13 @@ static OOPriorityQueue *sTimers = nil;
 - (void) unscheduleTimer
 {
 	[sTimers removeExactObject:self];
+	_isScheduled = NO;
+}
+
+
+- (BOOL) isScheduled
+{
+	return _isScheduled;
 }
 
 
@@ -105,11 +160,13 @@ static OOPriorityQueue *sTimers = nil;
 	for (;;)
 	{
 		timer = [sTimers peekAtNextObject];
-		if (now < [timer nextTime])  break;
+		if (timer == nil || now < [timer nextTime])  break;
 		
 		[sTimers removeNextObject];
+		timer->_isScheduled = NO;
+		[timer scheduleTimer];	// Must reschedule before firing so that unscheduling works.
+		
 		[timer timerFired];
-		[timer scheduleTimer];
 	}
 }
 
@@ -124,6 +181,7 @@ static OOPriorityQueue *sTimers = nil;
 	timers = [sTimers sortedObjects];
 	for (timerEnum = [timers objectEnumerator]; (timer = [timerEnum nextObject]); )
 	{
+		timer->_isScheduled = NO;
 		if ([timer isPersistent])  [timer scheduleTimer];
 	}
 }
@@ -135,7 +193,7 @@ static OOPriorityQueue *sTimers = nil;
 	double				scaled;
 	
 	now = [UNIVERSE getTime];
-	if (_nextTime < now)
+	if (_nextTime <= now)
 	{
 		if (_interval <= 0.0)  return NO;	// One-shot timer which has expired
 		
@@ -143,6 +201,7 @@ static OOPriorityQueue *sTimers = nil;
 		scaled = (now - _nextTime) / _interval;
 		scaled = ceil(scaled);
 		_nextTime += scaled * _interval;
+		if (_nextTime <= now)  _nextTime += _interval;	// Should only happen if _nextTime is exactly equal to now after previous stuff
 	}
 	
 	return YES;

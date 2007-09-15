@@ -36,6 +36,7 @@ MA 02110-1301, USA.
 #import "OOJSPlayer.h"
 #import "OOJSSystem.h"
 #import "OOJSOolite.h"
+#import "OOJSTimer.h"
 
 #import "OOCollectionExtractors.h"
 #import "Universe.h"
@@ -194,6 +195,7 @@ static void ReportJSError(JSContext *context, const char *message, JSErrorReport
 	InitOOJSStation(context, globalObject);
 	InitOOJSPlayer(context, globalObject);
 	InitOOJSScript(context, globalObject);
+	InitOOJSTimer(context, globalObject);
 	
 	OOLog(@"script.javaScript.init.success", @"Set up JavaScript context.");
 	
@@ -530,6 +532,61 @@ static BOOL JSNewNSDictionaryValue(JSContext *context, NSDictionary *dictionary,
 	return JSVAL_VOID;
 }
 
+
+- (NSString *)descriptionComponents
+{
+	return nil;
+}
+
+
+- (NSString *)jsClassName
+{
+	return nil;
+}
+
+
+- (NSString *)javaScriptDescription
+{
+	return [self javaScriptDescriptionWithClassName:[self jsClassName]];
+}
+
+
+- (NSString *)javaScriptDescriptionWithClassName:(NSString *)className
+{
+	NSString				*components = nil;
+	NSString				*description = nil;
+	
+	components = [self descriptionComponents];
+	if (className == nil)  className = [[self class] description];
+	
+	if (components != nil)
+	{
+		description = [NSString stringWithFormat:@"[%@ %@]", className, components];
+	}
+	else
+	{
+		description = [NSString stringWithFormat:@"[object %@]", className];
+	}
+	
+	return description;
+}
+
+
+- (NSString *)description
+{
+	NSString				*components = nil;
+	
+	components = [self descriptionComponents];
+	if (components != nil)
+	{
+		return [NSString stringWithFormat:@"<%@ %p>{%@}", [self class], self, components];
+	}
+	else
+	{
+		return [NSString stringWithFormat:@"<%@ %p>", [self class], self];
+	}
+}
+
 @end
 
 
@@ -724,21 +781,30 @@ static BOOL JSNewNSDictionaryValue(JSContext *context, NSDictionary *dictionary,
 @end
 
 
-NSString *JSPropertyAsString(JSContext *context, JSObject *object, const char *name)
+JSBool JSObjectWrapperToString(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
 {
-	JSBool					OK;
-	jsval					returnValue;
-	NSString				*result = nil;
+	id						object = nil;
+	NSString				*description = nil;
+	JSClass					*jsClass = NULL;
 	
-	if (context == NULL || object == NULL || name == NULL) return nil;
-	
-	OK = JS_GetProperty(context, object, name, &returnValue);
-	if (OK && !JSVAL_IS_VOID(returnValue))
+	object = JSObjectToObject(context, this);
+	if (object != nil)
 	{
-		result = [NSString stringWithJavaScriptValue:returnValue inContext:context];
+		description = [object javaScriptDescription];
+		if (description == nil)  description = [object description];
 	}
+	if (description == nil)
+	{
+		jsClass = JS_GetClass(this);
+		if (jsClass != NULL)
+		{
+			description = [NSString stringWithFormat:@"[object %@]", [NSString stringWithUTF8String:jsClass->name]];
+		}
+	}
+	if (description == nil)  description = @"[object]";
 	
-	return result;
+	*outResult = [description javaScriptValueInContext:context];
+	return YES;
 }
 
 
@@ -778,6 +844,8 @@ id JSObjectToObject(JSContext *context, JSObject *object)
 	NSValue					*wrappedConverter = nil;
 	JSClassConverterCallback converter = NULL;
 	JSClass					*class = NULL;
+	
+	if (object == NULL)  return nil;
 	
 	class = JS_GetClass(object);
 	wrappedClass = [NSValue valueWithPointer:class];

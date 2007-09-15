@@ -94,11 +94,42 @@ BOOL JSSetNSProperty(JSContext *context, JSObject *object, NSString *name, jsval
 	
 	Return the JavaScript object representation of an object. The default
 	implementation returns JSVAL_VOID. At this time, NSString, NSNumber,
-	NSArray, NSNull, Entity and OOScript override this.
+	NSArray, NSDictionary, NSNull, Entity, OOScript and OOJSTimer override this.
 */
 - (jsval)javaScriptValueInContext:(JSContext *)context;
 
+/*	-javaScriptDescription
+	-javaScriptDescriptionWithClassName:
+	-descriptionComponents
+	-jsClassName
+	
+	In order to support idiomatic debug descriptions in both Objective-C and
+	JavaScript while minimizing code duplication, a custom mechanism is used.
+	-[NSObject description] will call -descriptionComponents and append the
+	result, if non-nil, as in <Frob 0xNNNN>{descriptionComponents}. Similarly,
+	-javaScriptDescriptionWithClassName: will call -descriptionComponents and
+	construct a string such as [Frob descriptionComponents], or just
+	[Object Frob] if descriptionComponents is nil. -javaScriptDescription will
+	call -javaScriptDescriptionWithClassName: using [self jsClassName], if
+	non-nil, otherwise the Objective-C class name ([[self class] description]).
+	
+	A fringe benefit of this approach is that it allows subclasses to include
+	their superclasses' -descriptionComponents in the trivial way.
+*/
+- (NSString *)javaScriptDescription;
+- (NSString *)javaScriptDescriptionWithClassName:(NSString *)className;
+- (NSString *)descriptionComponents;
+- (NSString *)jsClassName;
+
 @end
+
+
+/*	JSObjectWrapperToString
+	
+	Implements JavaScript toString method by calling -javaScriptDescription
+	and, if that fails, -description is called.
+*/
+JSBool JSObjectWrapperToString(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
 
 
 @interface NSString (OOJavaScriptExtensions)
@@ -122,9 +153,6 @@ OOINLINE NSString *JSValToNSString(JSContext *context, jsval value)
 {
 	return [NSString stringWithJavaScriptValue:value inContext:context];
 }
-
-
-NSString *JSPropertyAsString(JSContext *context, JSObject *object, const char *name);
 
 
 id JSValueToObject(JSContext *context, jsval value);
