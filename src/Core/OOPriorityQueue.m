@@ -471,7 +471,7 @@ OOINLINE NSComparisonResult PQCompare(id a, id b, SEL comparator)
 		newCapacity = _capacity + 1;
 		newBuffer = realloc(_buffer, newCapacity * sizeof(id));
 		
-		if (newBuffer == nil)
+		if (newBuffer == NULL)
 		{
 			// Failed to grow.
 			[NSException raise:NSMallocException

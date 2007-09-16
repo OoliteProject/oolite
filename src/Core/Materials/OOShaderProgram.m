@@ -171,7 +171,7 @@ static NSString *GetGLSLInfoLog(GLhandleARB shaderObject);
 - (id)initWithVertexShaderSource:(NSString *)vertexSource fragmentShaderSource:(NSString *)fragmentSource key:(NSString *)inKey
 {
 	BOOL					OK = YES;
-	const GLcharARB			*sourceString = nil;
+	const GLcharARB			*sourceString = NULL;
 	GLint					compileStatus;
 	
 	OO_ENTER_OPENGL();
@@ -311,7 +311,7 @@ static BOOL GetShaderSource(NSString *fileName, NSString *shaderType, NSString *
 static NSString *GetGLSLInfoLog(GLhandleARB shaderObject)
 {
 	GLint					length;
-	GLcharARB				*log = nil;
+	GLcharARB				*log = NULL;
 	NSString				*result = nil;
 	
 	OO_ENTER_OPENGL();

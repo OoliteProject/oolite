@@ -643,7 +643,7 @@ static NSMutableDictionary *string_cache;
 	path = [self pathForFileNamed:fileName inFolder:folderName];
 	if (path != nil)  result = [[[class alloc] initWithContentsOfFile:path] autorelease];
 	
-	if (result != nil && ioCache != nil)
+	if (result != nil && ioCache != NULL)
 	{
 		if (*ioCache == nil)  *ioCache = [[NSMutableDictionary alloc] init];
 		[*ioCache setObject:result forKey:key];

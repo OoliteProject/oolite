@@ -36,7 +36,7 @@
  The above copyright notice and this permission notice shall be included in all
  copies or substantial portions of the Software.
  
- THE SOFTWARE IS PROVIDED ‚ÄúAS IS‚Äù, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ THE SOFTWARE IS PROVIDED ìAS ISî, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
@@ -428,7 +428,7 @@ VERIFY_PROTO(DelegatedType);
 	NSDictionary			*resolvedSpecifier = nil;
 	NSAutoreleasePool		*pool = nil;
 	
-	assert(outStop != nil);
+	assert(outStop != NULL);
 	
 	pool = [[NSAutoreleasePool alloc] init];
 	
@@ -1464,7 +1464,7 @@ static NSError *ErrorWithDictionaryAndArguments(OOPListSchemaVerifierErrorCode e
 	
 	userInfo = [NSMutableDictionary dictionaryWithDictionary:dict];
 	[userInfo setObject:message forKey:NSLocalizedDescriptionKey];
-	if (keyPath != nil)
+	if (keyPath != NULL)
 	{
 		[userInfo setObject:KeyPathToArray(*keyPath) forKey:kPListKeyPathErrorKey];
 	}

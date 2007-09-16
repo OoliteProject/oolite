@@ -114,7 +114,7 @@ static unsigned IntegerFromString(const GLubyte **ioString);
 {
 	NSString			*extensionString = nil;
 	NSArray				*components = nil;
-	const GLubyte		*versionString = nil, *curr = nil;
+	const GLubyte		*versionString = NULL, *curr = NULL;
 	
 	self = [super init];
 	if (self != nil)

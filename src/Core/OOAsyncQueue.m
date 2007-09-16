@@ -159,7 +159,7 @@ OOINLINE void FreeElement(OOAsyncQueueElement *element)
 	[_lock lock];
 	
 	// Get an element.
-	if (_pool != nil)
+	if (_pool != NULL)
 	{
 		element = _pool;
 		_pool = element->next;
@@ -176,7 +176,7 @@ OOINLINE void FreeElement(OOAsyncQueueElement *element)
 	element->next = NULL;
 	
 	// Insert in queue.
-	if (_head == nil)
+	if (_head == NULL)
 	{
 		// Queue was empty, element is entire queue.
 		_head = _tail = element;

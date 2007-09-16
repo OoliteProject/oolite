@@ -619,7 +619,7 @@ static BOOL JSNewNSDictionaryValue(JSContext *context, NSDictionary *dictionary,
 
 + (id)stringWithJavaScriptParameters:(jsval *)params count:(uintN)count inContext:(JSContext *)context
 {
-	if (params == nil && count != 0) return nil;
+	if (params == NULL && count != 0) return nil;
 	
 	uintN					i;
 	jsval					val;
@@ -883,7 +883,7 @@ void JSRegisterObjectConverter(JSClass *theClass, JSClassConverterCallback conve
 	if (sObjectConverters == nil)  sObjectConverters = [[NSMutableDictionary alloc] init];
 	
 	wrappedClass = [NSValue valueWithPointer:theClass];
-	if (converter != nil)
+	if (converter != NULL)
 	{
 		wrappedConverter = [NSValue valueWithPointer:converter];
 		[sObjectConverters setObject:wrappedConverter forKey:wrappedClass];
