@@ -192,6 +192,7 @@ static OOColor *SaturatedColorInRange(OOColor *color1, OOColor *color2);
 	glDisable(GL_DEPTH_TEST);	// don't read the depth buffer
 	glDepthMask(GL_FALSE);		// don't write to depth buffer
 	glDisable(GL_CULL_FACE);
+	glDisable(GL_FOG);
 	
 	if (_displayListName != 0)
 	{

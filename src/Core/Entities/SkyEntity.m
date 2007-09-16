@@ -37,6 +37,7 @@ MA 02110-1301, USA.
 #import "OOColor.h"
 #import "OOStringParsing.h"
 #import "OOCollectionExtractors.h"
+#omport "OOMaterial.h"
 
 
 #define SKY_MAX_STARS			4800
@@ -369,6 +370,8 @@ static OOTexture		*sStarTexture, *sBlobTexture;
 {
 	if ([UNIVERSE breakPatternHide])   return; // DON'T DRAW
 	
+	[OOMaterial applyNone];
+	
 #if CHECK_ERROR_AT_EACH_STEP
 	BOOL wasShowingOpenGLErrors = OOLogWillDisplayMessagesInClass(kOOLogOpenGLError);
 	OOLogSetDisplayMessagesInClass(kOOLogOpenGLError, YES);
@@ -383,6 +386,7 @@ static OOTexture		*sStarTexture, *sBlobTexture;
 		CHECK(glDisable(GL_DEPTH_TEST));	// don't read the depth buffer
 		CHECK(glDepthMask(GL_FALSE));		// don't write to depth buffer
 		CHECK(glDisable(GL_CULL_FACE));		// face culling
+		glDisable(GL_FOG);
 		
 		if (immediate)
 		{
