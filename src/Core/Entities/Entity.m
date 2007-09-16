@@ -93,9 +93,9 @@ static NSString * const kOOLogEntityUpdateError				= @"entity.linkedList.update.
 }
 
 
-- (NSString *)description
+- (NSString *)descriptionComponents
 {
-	return [NSString stringWithFormat:@"<%@ %p>{%u position=%@ scanClass=%@ status=%@}", [self class], self, [self universalID], VectorDescription([self position]), ScanClassToString([self scanClass]), EntityStatusToString([self status])];
+	return [NSString stringWithFormat:@"ID: %u position: %@ scanClass: %@ status: %@", [self universalID], VectorDescription([self position]), ScanClassToString([self scanClass]), EntityStatusToString([self status])];
 }
 
 

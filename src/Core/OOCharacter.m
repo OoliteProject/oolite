@@ -32,11 +32,15 @@ MA 02110-1301, USA.
 
 @implementation OOCharacter
 
-- (NSString *) description
+- (NSString *) descriptionComponents
 {
-	NSString* result = [[NSString alloc] initWithFormat:@"<OOCharacter : %@, %@. %@. Bounty %d.  Insurance %d.>",
-		[self name], [self shortDescription], [self longDescription], [self legalStatus], [self insuranceCredits]];
-	return [result autorelease];
+	return [NSString stringWithFormat:@"%@, %@. bounty: %i insurance:%i", [self name], [self shortDescription], [self legalStatus], [self insuranceCredits]];
+}
+
+
+- (NSString *) jsClassName
+{
+	return @"Character";
 }
 
 

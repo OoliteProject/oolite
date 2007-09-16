@@ -100,25 +100,12 @@ BOOL JSSetNSProperty(JSContext *context, JSObject *object, NSString *name, jsval
 
 /*	-javaScriptDescription
 	-javaScriptDescriptionWithClassName:
-	-descriptionComponents
 	-jsClassName
 	
-	In order to support idiomatic debug descriptions in both Objective-C and
-	JavaScript while minimizing code duplication, a custom mechanism is used.
-	-[NSObject description] will call -descriptionComponents and append the
-	result, if non-nil, as in <Frob 0xNNNN>{descriptionComponents}. Similarly,
-	-javaScriptDescriptionWithClassName: will call -descriptionComponents and
-	construct a string such as [Frob descriptionComponents], or just
-	[Object Frob] if descriptionComponents is nil. -javaScriptDescription will
-	call -javaScriptDescriptionWithClassName: using [self jsClassName], if
-	non-nil, otherwise the Objective-C class name ([[self class] description]).
-	
-	A fringe benefit of this approach is that it allows subclasses to include
-	their superclasses' -descriptionComponents in the trivial way.
+	See comments for -descriptionComponents in OOCocoa.h.
 */
 - (NSString *)javaScriptDescription;
 - (NSString *)javaScriptDescriptionWithClassName:(NSString *)className;
-- (NSString *)descriptionComponents;
 - (NSString *)jsClassName;
 
 @end

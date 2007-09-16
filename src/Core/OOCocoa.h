@@ -188,3 +188,20 @@ enum {
 
 
 #import "OOLogging.h"
+
+
+@interface NSObject (OODescriptionComponents)
+
+/*	In order to allow implementations of -description to inherit description
+	components from superclasses, and to allow implementations of -description
+	and -javaScriptDescription to share code, both are implemented as wrappers
+	around -descriptionComponents. -descriptionComponents should provide
+	information about an object without a class name or surrounding
+	punctuation. -description will wrap the components like this:
+		<ClassName 0xnnnnnnnn>{descriptionComponents}
+	and -javaScriptDescription will wrap them like this:
+		[JSClassName descriptionComponents]
+*/
+- (NSString *)descriptionComponents;
+
+@end

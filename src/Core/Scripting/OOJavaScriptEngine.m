@@ -336,7 +336,7 @@ BOOL NumberFromArgumentList(JSContext *context, NSString *scriptClass, NSString 
 		// Failed; report bad parameters, if given a class and function.
 		if (scriptClass != nil && function != nil)
 		{
-			OOReportJavaScriptWarning(context, @"%@.%@(): expected number, got %@.", scriptClass, function, [NSString stringWithJavaScriptParameters:argv count:1 inContext:context]);
+			OOReportJavaScriptError(context, @"%@.%@(): expected number, got %@.", scriptClass, function, [NSString stringWithJavaScriptParameters:argv count:1 inContext:context]);
 			return NO;
 		}
 	}

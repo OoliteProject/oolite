@@ -1772,17 +1772,9 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 }
 
 
-- (NSString*) description
+- (NSString *) descriptionComponents
 {
-#ifndef NDEBUG
-	if (gDebugFlags & DEBUG_ENTITIES)
-	{
-		NSString* result = [[NSString alloc] initWithFormat:@"<StationEntity %@ %d (%@)%@%@ // %@>",
-			name, universalID, roleSet, (UNIVERSE == nil)? @" (not in UNIVERSE)":@"", ([self isRotatingStation])? @" (rotating)":@"", collisionRegion];
-		return [result autorelease];
-	}
-#endif
-	return [NSString stringWithFormat:@"<StationEntity %@ %d>", name, universalID];
+	return [NSString stringWithFormat:@"\"%@\" %@", name, [super descriptionComponents]];
 }
 
 

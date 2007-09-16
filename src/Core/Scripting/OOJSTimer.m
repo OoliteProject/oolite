@@ -268,11 +268,11 @@ static JSBool TimerGetProperty(JSContext *context, JSObject *this, jsval name, j
 			break;
 			
 		case kTimer_isPersistent:
-			*outValue = BOOLEAN_TO_JSVAL([timer isPersistent]);
+			*outValue = BOOLToJSVal([timer isPersistent]);
 			break;
 			
 		case kTimer_isRunning:
-			*outValue = BOOLEAN_TO_JSVAL([timer isScheduled]);
+			*outValue = BOOLToJSVal([timer isScheduled]);
 			break;
 			
 		default:
@@ -401,7 +401,7 @@ static JSBool TimerStart(JSContext *context, JSObject *this, uintN argc, jsval *
 {
 	OOJSTimer					*thisTimer = nil;
 	
-	if (JSTimerGetTimer(context, this, &thisTimer))  *outResult = BOOLEAN_TO_JSVAL([thisTimer scheduleTimer]);
+	if (JSTimerGetTimer(context, this, &thisTimer))  *outResult = BOOLToJSVal([thisTimer scheduleTimer]);
 	else  *outResult = JSVAL_TRUE;
 	
 	return YES;

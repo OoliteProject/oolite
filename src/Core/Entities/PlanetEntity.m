@@ -992,7 +992,7 @@ static GLfloat	texture_uv_array[10400 * 2];
 }
 
 
-- (NSString*) description
+- (NSString*) descriptionComponents
 {
 	NSString* type_string;
 	switch (planet_type)
@@ -1008,8 +1008,7 @@ static GLfloat	texture_uv_array[10400 * 2];
 		default :
 			type_string = @"UNKNOWN";
 	}
-	NSString* result = [[NSString alloc] initWithFormat:@"<PlanetEntity %@ diameter %.3fkm>", type_string, 0.001 * collision_radius];
-	return [result autorelease];
+	return [NSString stringWithFormat:@"%@ type: %@ diameter: %.3fkm", [super descriptionComponents], type_string, 0.001 * collision_radius];
 }
 
 

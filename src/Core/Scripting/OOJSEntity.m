@@ -354,7 +354,7 @@ static JSBool EntitySetProperty(JSContext *context, JSObject *this, jsval name, 
 	if (!JSVAL_IS_INT(name))  return YES;
 	if (!JSEntityGetEntity(context, this, &entity)) return NO;
 	
-	switch (name)
+	switch (JSVAL_TO_INT(name))
 	{
 		case kEntity_energy:
 			if (JS_ValueToNumber(context, *value, &fValue))

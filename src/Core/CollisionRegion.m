@@ -34,11 +34,10 @@ MA 02110-1301, USA.
 
 @implementation CollisionRegion
 
-- (NSString*) description
+- (NSString *) description
 {
 	int n_subs = [subregions count];
-	NSString* result = [NSString stringWithFormat:@"<CollisionRegion %d (%d subregions, %d ents) >", crid, n_subs, n_entities];
-	return result;
+	return [NSString stringWithFormat:@"ID: %d, %d subregions, %d ents", crid, n_subs, n_entities];
 }
 
 // basic alloc/ dealloc routines

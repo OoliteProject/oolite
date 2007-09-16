@@ -159,7 +159,7 @@ static JSBool ClockGetProperty(JSContext *context, JSObject *this, jsval name, j
 			break;
 			
 		case kClock_isAdjusting:
-			*outValue = BOOLEAN_TO_JSVAL([player clockAdjusting]);
+			*outValue = BOOLToJSVal([player clockAdjusting]);
 			break;
 			
 		default:

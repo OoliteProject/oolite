@@ -32,10 +32,9 @@ MA 02110-1301, USA.
 
 @implementation Geometry
 
-- (NSString*) description
+- (NSString *) descriptionComponents
 {
-	NSString* result = [[NSString alloc] initWithFormat:@"<Geometry with %d triangles currently %@.>", n_triangles, [self testIsConvex]? @"Convex":@"not convex"];
-	return [result autorelease];
+	return [NSString stringWithFormat:@"%u triangles, %@", n_triangles, [self testIsConvex]?@"convex":@"not convex"];
 }
 
 - (id)initWithCapacity:(unsigned)amount

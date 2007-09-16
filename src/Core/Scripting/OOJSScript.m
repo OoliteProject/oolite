@@ -207,6 +207,12 @@ static JSFunctionSpec sScriptMethods[] =
 }
 
 
+- (NSString *)jsClassName
+{
+	return @"Script";
+}
+
+
 + (OOJSScript *)currentlyRunningScript
 {
 	if (sRunningStack == NULL)  return NULL;

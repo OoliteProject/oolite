@@ -95,9 +95,9 @@ typedef struct
 }
 
 
-- (NSString*) description
+- (NSString *) descriptionComponents
 {
-	return [NSString stringWithFormat:@"<%@ %p>{'%@' in state: '%@' for %@}", [self class], self, stateMachineName, currentState, ownerDesc];
+	return [NSString stringWithFormat:@"\"%@\" in state: \"%@\" for %@", stateMachineName, currentState, ownerDesc];
 }
 
 

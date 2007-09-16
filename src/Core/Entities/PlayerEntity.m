@@ -783,9 +783,6 @@ static PlayerEntity *sSharedPlayer = nil;
 		missile_entity[i] = nil;
 	[self set_up];
 	
-	drawDebugParticle = [[ParticleEntity alloc] init];
-	[drawDebugParticle setParticleType:PARTICLE_MARKER];
-	
 	isPlayer = YES;
 	
 	save_path = nil;
@@ -968,8 +965,6 @@ static PlayerEntity *sSharedPlayer = nil;
 	
 	[specialCargo release];
 	specialCargo = nil;
-	
-	debugShipID = NO_TARGET;
 	
 	// views
 	forwardViewOffset		= kZeroVector;
@@ -1165,14 +1160,17 @@ static PlayerEntity *sSharedPlayer = nil;
 
 			if ([subdesc isEqual:@"*FLASHER*"])
 			{
-				subent = [[ParticleEntity alloc] init];	// retained
-				[(ParticleEntity*)subent setColor:[OOColor colorWithCalibratedHue: sub_q.w/360.0 saturation:1.0 brightness:1.0 alpha:1.0]];
-				[(ParticleEntity*)subent setDuration: sub_q.x];
-				[(ParticleEntity*)subent setEnergy: 2.0 * sub_q.y];
-				[(ParticleEntity*)subent setSize:NSMakeSize(sub_q.z, sub_q.z)];
-				[(ParticleEntity*)subent setParticleType:PARTICLE_FLASHER];
-				[(ParticleEntity*)subent setStatus:STATUS_EFFECT];
-				[(ParticleEntity*)subent setPosition:sub_pos];
+				ParticleEntity *flasher;
+				flasher = [[ParticleEntity alloc]
+							initFlasherWithSize:sub_q.z
+									  frequency:sub_q.x
+										  phase:2.0 * sub_q.y];
+				[flasher setColor:[OOColor colorWithCalibratedHue:sub_q.w/360.0
+														saturation:1.0
+														brightness:1.0
+															 alpha:1.0]];
+				[flasher setPosition:sub_pos];
+				subent = flasher;
 			}
 			else
 			{
@@ -2976,16 +2974,15 @@ double scoopSoundPlayTime = 0.0;
 			return YES;
 			break;
 
-		case WEAPON_PULSE_LASER :
-		case WEAPON_BEAM_LASER :
-		case WEAPON_MINING_LASER :
-		case WEAPON_MILITARY_LASER :
+		case WEAPON_PULSE_LASER:
+		case WEAPON_BEAM_LASER:
+		case WEAPON_MINING_LASER:
+		case WEAPON_MILITARY_LASER:
 			[self fireLaserShotInDirection: currentWeaponFacing];
 			return YES;
 			break;
-		case WEAPON_THARGOID_LASER :
-			[self fireDirectLaserShot];
-			return YES;
+		
+		case WEAPON_THARGOID_LASER:
 			break;
 	}
 	return NO;

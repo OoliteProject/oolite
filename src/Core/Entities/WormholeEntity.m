@@ -163,10 +163,10 @@ static void DrawWormholeCorona(GLfloat inner_radius, GLfloat outer_radius, int s
 }
 
 
-- (NSString*) description
+- (NSString *) descriptionComponents
 {
 	NSString* whereto = (UNIVERSE) ? [UNIVERSE getSystemName:destination] : StringFromRandomSeed(destination);
-	return [NSString stringWithFormat:@"<WormholeEntity to %@ ttl: %.2fs>", whereto, WORMHOLE_EXPIRES_TIMEINTERVAL - time_counter];
+	return [NSString stringWithFormat:@"destination: %@ ttl: %.2fs", whereto, WORMHOLE_EXPIRES_TIMEINTERVAL - time_counter];
 }
 
 

@@ -407,10 +407,6 @@ typedef enum
         // position of viewports
 	Vector					forwardViewOffset, aftViewOffset, portViewOffset, starboardViewOffset;
         
-        // DEBUG
-	ParticleEntity			*drawDebugParticle;
-	OOUniversalID			debugShipID;
-        
         // trumbles
 	int						trumbleCount;
 	OOTrumble				*trumble[PLAYER_MAX_TRUMBLES];

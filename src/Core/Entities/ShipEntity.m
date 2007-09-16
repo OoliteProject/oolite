@@ -303,20 +303,20 @@ static NSString * const kOOLogEntityBehaviourChanged	= @"entity.behaviour.change
 			sub_q.x = [details floatAtIndex:5];
 			sub_q.y = [details floatAtIndex:6];
 			sub_q.z = [details floatAtIndex:7];
-
+			
 			if ([subdesc isEqual:@"*FLASHER*"])
 			{
-				ParticleEntity *particle = nil;
-				particle = [[ParticleEntity alloc] init];	// retained
-				[particle setColor:[OOColor colorWithCalibratedHue: sub_q.w/360.0 saturation:1.0 brightness:1.0 alpha:1.0]];
-				[particle setDuration: sub_q.x];
-				[particle setEnergy: 2.0 * sub_q.y];
-				[particle setSize:NSMakeSize(sub_q.z, sub_q.z)];
-				[particle setParticleType:PARTICLE_FLASHER];
-				[particle setStatus:STATUS_EFFECT];
-				[particle setPosition:sub_pos];
-				
-				subent = particle;
+				ParticleEntity *flasher;
+				flasher = [[ParticleEntity alloc]
+							initFlasherWithSize:sub_q.z
+									  frequency:sub_q.x
+										  phase:2.0 * sub_q.y];
+				[flasher setColor:[OOColor colorWithCalibratedHue:sub_q.w/360.0
+													   saturation:1.0
+													   brightness:1.0
+															alpha:1.0]];
+				[flasher setPosition:sub_pos];
+				subent = flasher;
 			}
 			else
 			{
@@ -481,28 +481,6 @@ static NSString * const kOOLogEntityBehaviourChanged	= @"entity.behaviour.change
 	[octree autorelease];
 
 	[super dealloc];
-}
-
-
-- (NSString*) description
-{
-#ifndef NDEBUG
-	if (gDebugFlags & DEBUG_ENTITIES)
-	{
-		NSMutableString* result = [NSMutableString stringWithFormat:@"\n<%@ %@ %d>", [self class], name, universalID];
-		[result appendFormat:@"\n isPlayer: %@", (isPlayer)? @"YES":@"NO"];
-		[result appendFormat:@"\n isShip: %@", (isShip)? @"YES":@"NO"];
-		[result appendFormat:@"\n isStation: %@", (isStation)? @"YES":@"NO"];
-		[result appendFormat:@"\n isSubentity: %@", (isSubentity)? @"YES":@"NO"];
-		[result appendFormat:@"\n canCollide: %@", ([self canCollide])? @"YES":@"NO"];
-		[result appendFormat:@"\n behaviour: %d %@", behaviour, BehaviourToString(behaviour)];
-		[result appendFormat:@"\n status: %d %@", status, EntityStatusToString(status)];
-		[result appendFormat:@"\n collisionRegion: %@", collisionRegion];
-		return result;
-	}
-#endif
-	
-	return [NSString stringWithFormat:@"<%@ %@ %d>", [self class], name, universalID];
 }
 
 
@@ -2372,9 +2350,9 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 			thisFrame.k = v_forward;
 			for (i = 0; i < n; i++)
 			{
-				Entity* se = (Entity*)[sub_entities objectAtIndex:i];
+				Entity* se = [sub_entities objectAtIndex:i];
 				Vector	sepos = se->position;
-				if ((se->isParticle)&&([(ParticleEntity*)se particleType] == PARTICLE_EXHAUST))
+				if ([se isExhaust])
 				{
 					thisFrame.position = make_vector(
 						position.x + v_right.x * sepos.x + v_up.x * sepos.y + v_forward.x * sepos.z,
@@ -2422,7 +2400,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 		{
 			Entity* se = (Entity*)[sub_entities objectAtIndex:i];
 			Vector	sepos = se->position;
-			if ((se->isParticle)&&([(ParticleEntity*)se particleType] == PARTICLE_EXHAUST))
+			if ([se isExhaust])
 			{
 #ifndef NDEBUG
 				if ((isPlayer)&&(gDebugFlags & DEBUG_MISC))
@@ -3630,15 +3608,15 @@ static GLfloat mascem_color2[4] =	{ 0.4, 0.1, 0.4, 1.0};	// purple
 		
 		// several parts to the explosion:
 		// 1. fast sparks
-		fragment = [[ParticleEntity alloc] initFragburstSize:collision_radius FromPosition:xposition];
+		fragment = [[ParticleEntity alloc] initFragburstSize:collision_radius fromPosition:xposition];
 		[UNIVERSE addEntity:fragment];
 		[fragment release];
 		// 2. slow clouds
-		fragment = [[ParticleEntity alloc] initBurst2Size:collision_radius FromPosition:xposition];
+		fragment = [[ParticleEntity alloc] initBurst2Size:collision_radius fromPosition:xposition];
 		[UNIVERSE addEntity:fragment];
 		[fragment release];
 		// 3. flash
-		fragment = [[ParticleEntity alloc] initFlashSize:collision_radius FromPosition:xposition];
+		fragment = [[ParticleEntity alloc] initFlashSize:collision_radius fromPosition:xposition];
 		[UNIVERSE addEntity:fragment];
 		[fragment release];
 
@@ -4106,7 +4084,7 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 	float how_many = factor;
 	while (how_many > 0.5f)
 	{
-		fragment = [[ParticleEntity alloc] initFragburstSize: collision_radius FromPosition:xposition];
+		fragment = [[ParticleEntity alloc] initFragburstSize: collision_radius fromPosition:xposition];
 		[UNIVERSE addEntity:fragment];
 		[fragment release];
 		how_many -= 1.0f;
@@ -4115,7 +4093,7 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 	how_many = factor;
 	while (how_many > 0.5f)
 	{
-		fragment = [[ParticleEntity alloc] initBurst2Size: collision_radius FromPosition:xposition];
+		fragment = [[ParticleEntity alloc] initBurst2Size: collision_radius fromPosition:xposition];
 		[UNIVERSE addEntity:fragment];
 		[fragment release];
 		how_many -= 1.0f;
@@ -5203,33 +5181,24 @@ BOOL	class_masslocks(int some_class)
 		r_mat = [father drawRotationMatrix];
 	}
 	double  start = collision_radius + 0.5;
-	double  speed = TURRET_SHOT_SPEED;
-	OOColor* color = laser_color;
 
 	origin.x += vel.x * start;
 	origin.y += vel.y * start;
 	origin.z += vel.z * start;
 
-	vel.x *= speed;
-	vel.y *= speed;
-	vel.z *= speed;
+	vel.x *= TURRET_SHOT_SPEED;
+	vel.y *= TURRET_SHOT_SPEED;
+	vel.z *= TURRET_SHOT_SPEED;
 
-	shot = [[ParticleEntity alloc] init];	// alloc retains!
-	[shot setPosition:origin]; // directly ahead
-	[shot setScanClass: CLASS_NO_DRAW];
-	[shot setVelocity: vel];
-	[shot setDuration: 3.0];
-	[shot setCollisionRadius: 2.0];
-	[shot setEnergy: weapon_energy];
-	[shot setParticleType: PARTICLE_SHOT_PLASMA];
-	[shot setColor:color];
-	[shot setSize:NSMakeSize(12,12)];
+	shot = [[ParticleEntity alloc] initPlasmaShotAt:origin
+										   velocity:vel
+											 energy:weapon_energy
+										   duration:3.0
+											  color:laser_color];
 	[UNIVERSE addEntity:shot];
-
 	[shot setOwner:[self owner]];	// has to be done AFTER adding shot to the UNIVERSE
-
-	[shot release]; //release
-
+	[shot release];
+	
 	shot_time = 0.0;
 	return YES;
 }
@@ -5273,7 +5242,7 @@ BOOL	class_masslocks(int some_class)
 	hit_at_range = weaponRange;
 	target_laser_hit = [UNIVERSE getFirstEntityHitByLaserFromEntity:self inView:direction offset: make_vector(0,0,0) rangeFound: &hit_at_range];
 
-	shot = [[ParticleEntity alloc] initLaserFromSubentity:self view:direction];	// alloc retains!
+	shot = [[ParticleEntity alloc] initLaserFromShip:self view:direction offset:kZeroVector];
 	[shot setColor:laser_color];
 	[shot setScanClass: CLASS_NO_DRAW];
 	ShipEntity *victim = [UNIVERSE entityForUniversalID:target_laser_hit];
@@ -5298,14 +5267,14 @@ BOOL	class_masslocks(int some_class)
 			Vector flash_pos = shot->position;
 			Vector vd = vector_forward_from_quaternion(shot->orientation);
 			flash_pos.x += vd.x * hit_at_range;	flash_pos.y += vd.y * hit_at_range;	flash_pos.z += vd.z * hit_at_range;
-			ParticleEntity* laserFlash = [[ParticleEntity alloc] initFlashSize:1.0 FromPosition: flash_pos Color:laser_color];
+			ParticleEntity* laserFlash = [[ParticleEntity alloc] initFlashSize:1.0 fromPosition: flash_pos color:laser_color];
 			[laserFlash setVelocity:[victim velocity]];
 			[UNIVERSE addEntity:laserFlash];
 			[laserFlash release];
 		}
 	}
 	[UNIVERSE addEntity:shot];
-	[shot release]; //release
+	[shot release];
 
 	shot_time = 0.0;
 
@@ -5342,7 +5311,7 @@ BOOL	class_masslocks(int some_class)
 	Vector  vel = make_vector(v_forward.x * flightSpeed, v_forward.y * flightSpeed, v_forward.z * flightSpeed);
 
 	// do special effects laser line
-	shot = [[ParticleEntity alloc] initLaserFromShip:self view:VIEW_FORWARD];	// alloc retains!
+	shot = [[ParticleEntity alloc] initLaserFromShip:self view:VIEW_FORWARD offset:kZeroVector];
 	[shot setColor:laser_color];
 	[shot setScanClass: CLASS_NO_DRAW];
 	[shot setPosition: position];
@@ -5370,14 +5339,14 @@ BOOL	class_masslocks(int some_class)
 			Vector flash_pos = shot->position;
 			Vector vd = vector_forward_from_quaternion(shot->orientation);
 			flash_pos.x += vd.x * hit_at_range;	flash_pos.y += vd.y * hit_at_range;	flash_pos.z += vd.z * hit_at_range;
-			ParticleEntity* laserFlash = [[ParticleEntity alloc] initFlashSize:1.0 FromPosition: flash_pos Color:laser_color];
+			ParticleEntity* laserFlash = [[ParticleEntity alloc] initFlashSize:1.0 fromPosition: flash_pos color:laser_color];
 			[laserFlash setVelocity:[victim velocity]];
 			[UNIVERSE addEntity:laserFlash];
 			[laserFlash release];
 		}
 	}
 	[UNIVERSE addEntity:shot];
-	[shot release]; //release
+	[shot release];
 
 	shot_time = 0.0;
 
@@ -5455,7 +5424,7 @@ BOOL	class_masslocks(int some_class)
 			Vector flash_pos = shot->position;
 			Vector vd = vector_forward_from_quaternion(shot->orientation);
 			flash_pos.x += vd.x * hit_at_range;	flash_pos.y += vd.y * hit_at_range;	flash_pos.z += vd.z * hit_at_range;
-			ParticleEntity* laserFlash = [[ParticleEntity alloc] initFlashSize:1.0 FromPosition: flash_pos Color:laser_color];
+			ParticleEntity* laserFlash = [[ParticleEntity alloc] initFlashSize:1.0 fromPosition: flash_pos color:laser_color];
 			[laserFlash setVelocity:[victim velocity]];
 			[UNIVERSE addEntity:laserFlash];
 			[laserFlash release];
@@ -5503,20 +5472,17 @@ BOOL	class_masslocks(int some_class)
 	float	sz = m * (1 + randf() + randf());	// half minimum dimension on average
 
 	vel = make_vector(2.0 * (origin.x - position.x), 2.0 * (origin.y - position.y), 2.0 * (origin.z - position.z));
-
-	spark = [[ParticleEntity alloc] init];	// alloc retains!
-	[spark setPosition:origin]; // directly ahead
-	[spark setScanClass: CLASS_NO_DRAW];
-	[spark setVelocity: vel];
-	[spark setDuration: 2.0 + 3.0 * randf()];
-	[spark setCollisionRadius: 2.0];
-	[spark setSize:NSMakeSize(sz, sz)];
-	[spark setEnergy: 0.0];
-	[spark setParticleType: PARTICLE_SPARK];
-	[spark setColor:[OOColor colorWithCalibratedHue:0.08 + 0.17 * randf() saturation:1.0 brightness:1.0 alpha:1.0]];
+	
+	OOColor *color = [OOColor colorWithCalibratedHue:0.08 + 0.17 * randf() saturation:1.0 brightness:1.0 alpha:1.0];
+	
+	spark = [[ParticleEntity alloc] initSparkAt:origin
+									   velocity:vel
+									   duration:2.0 + 3.0 * randf()
+										   size:sz
+										  color:color];
 	[spark setOwner:self];
 	[UNIVERSE addEntity:spark];
-	[spark release]; //release
+	[spark release];
 
 	next_spark_time = randf();
 }
@@ -5574,19 +5540,16 @@ BOOL	class_masslocks(int some_class)
 	vel.x *= speed;
 	vel.y *= speed;
 	vel.z *= speed;
-
-	shot = [[ParticleEntity alloc] init];	// alloc retains!
-	[shot setPosition:origin]; // directly ahead
-	[shot setScanClass: CLASS_NO_DRAW];
-	[shot setVelocity: vel];
-	[shot setDuration: 5.0];
-	[shot setCollisionRadius: 2.0];
-	[shot setEnergy: weapon_energy];
-	[shot setParticleType: PARTICLE_SHOT_GREEN_PLASMA];
-	[shot setColor:color];
+	
+	shot = [[ParticleEntity alloc] initPlasmaShotAt:origin
+										   velocity:vel
+											 energy:weapon_energy
+										   duration:5.0
+											  color:color];
+	
 	[shot setOwner:self];
 	[UNIVERSE addEntity:shot];
-	[shot release]; //release
+	[shot release];
 
 	shot_time = 0.0;
 
@@ -6656,11 +6619,10 @@ int w_space_seed = 1234567;
 	unsigned i;
 	for (i = 0; i < [sub_entities count]; i++)
 	{
-		Entity* subent = (Entity*)[sub_entities objectAtIndex:i];
-		if (subent->isParticle)
+		Entity* subent = [sub_entities objectAtIndex:i];
+		if ([subent isFlasher])
 		{
-			if ([(ParticleEntity*)subent particleType] == PARTICLE_FLASHER)
-				[subent setStatus:STATUS_EFFECT];
+			[subent setStatus:STATUS_EFFECT];
 		}
 	}
 }
@@ -6673,10 +6635,9 @@ int w_space_seed = 1234567;
 	for (i = 0; i < [sub_entities count]; i++)
 	{
 		Entity* subent = (Entity*)[sub_entities objectAtIndex:i];
-		if (subent->isParticle)
+		if ([subent isFlasher])
 		{
-			if ([(ParticleEntity*)subent particleType] == PARTICLE_FLASHER)
-				[subent setStatus:STATUS_INACTIVE];
+			[subent setStatus:STATUS_INACTIVE];
 		}
 	}
 }
