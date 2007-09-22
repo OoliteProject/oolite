@@ -41,7 +41,6 @@ static JSBool EntityGetProperty(JSContext *context, JSObject *this, jsval name, 
 static JSBool EntitySetProperty(JSContext *context, JSObject *this, jsval name, jsval *value);
 
 // Methods
-static JSBool EntityToString(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
 static JSBool EntitySetPosition(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
 static JSBool EntitySetOrientation(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
 static JSBool EntityValid(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
@@ -126,7 +125,7 @@ static JSPropertySpec sEntityProperties[] =
 static JSFunctionSpec sEntityMethods[] =
 {
 	// JS name					Function					min args
-	{ "toString",				EntityToString,				0 },
+	{ "toString",				JSObjectWrapperToString,	0 },
 	{ "setPosition",			EntitySetPosition,			1 },
 	{ "setOrientation",			EntitySetOrientation,		1 },
 	{ "valid",					EntityValid,				0 },
@@ -373,22 +372,6 @@ static JSBool EntitySetProperty(JSContext *context, JSObject *this, jsval name, 
 
 
 // *** Methods ***
-
-static JSBool EntityToString(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
-{
-	Entity					*thisEnt = nil;
-	
-	if (JSEntityGetEntity(context, this, &thisEnt))
-	{
-		*outResult = [[thisEnt description] javaScriptValueInContext:context];
-	}
-	else
-	{
-		*outResult = STRING_TO_JSVAL(JS_InternString(context, "[stale Entity]"));
-	}
-	return YES;
-}
-
 
 static JSBool EntitySetPosition(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
 {

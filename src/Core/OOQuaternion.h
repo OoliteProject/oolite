@@ -97,6 +97,9 @@ NSString *QuaternionDescription(Quaternion quaternion);	// @"(w + xi + yj + zk)"
 #endif
 
 
+Vector quaternion_rotate_vector(Quaternion q, Vector vector) CONST_FUNC;
+
+
 
 /*** Only inline definitions beyond this point ***/
 

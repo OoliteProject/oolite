@@ -32,6 +32,7 @@ MA 02110-1301, USA.
 {
 	JSContext			*context;
 	JSObject			*object;
+	JSObject			*scriptObject;
 	
 	NSString			*name;
 	NSString			*description;

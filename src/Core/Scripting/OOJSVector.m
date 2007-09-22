@@ -60,6 +60,7 @@ static JSBool VectorDirection(JSContext *context, JSObject *this, uintN argc, js
 static JSBool VectorMagnitude(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
 static JSBool VectorSquaredMagnitude(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
 static JSBool VectorRotationTo(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
+static JSBool VectorRotateBy(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
 static JSBool VectorStaticInterpolate(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
 
 
@@ -121,7 +122,7 @@ static JSFunctionSpec sVectorMethods[] =
 	{ "direction",				VectorDirection,			0, },
 	{ "magnitude",				VectorMagnitude,			0, },
 	{ "squaredMagnitude",		VectorSquaredMagnitude,		0, },
-//	{ "rotateBy",				VectorRotateBy,				1, },	// TODO: Vector rotateBy(quaternionExpression)
+	{ "rotateBy",				VectorRotateBy,				1, },
 	{ "rotationTo",				VectorRotationTo,			1, },
 	{ 0 }
 };
@@ -611,6 +612,21 @@ static JSBool VectorRotationTo(JSContext *context, JSObject *this, uintN argc, j
 	else  result = quaternion_rotation_between(thisv, thatv);
 	
 	return QuaternionToJSValue(context, result, outResult);
+}
+
+
+// rotateBy(q : quaternionExpression) : Vector
+static JSBool VectorRotateBy(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
+{
+	Vector					thisv, result;
+	Quaternion				q;
+	
+	if (!JSVectorGetVector(context, this, &thisv)) return NO;
+	if (!QuaternionFromArgumentList(context, @"Vector", @"rotateBy", argc, argv, &q, NULL))  return YES;
+	
+	result = quaternion_rotate_vector(q, thisv);
+	
+	return VectorToJSValue(context, result, outResult);
 }
 
 

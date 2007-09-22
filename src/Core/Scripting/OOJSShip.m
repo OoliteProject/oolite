@@ -105,6 +105,7 @@ enum
 	kShip_maxSpeed,				// maximum flight speed, double, read-only
 	kShip_script,				// script, Script, read-only
 	kShip_isPirate,				// is pirate, boolean, read-only
+	kShip_isPlayer,				// is player, boolean, read-only
 	kShip_isPolice,				// is police, boolean, read-only
 	kShip_isThargoid,			// is thargoid, boolean, read-only
 	kShip_isTrader,				// is trader, boolean, read-only
@@ -147,6 +148,7 @@ static JSPropertySpec sShipProperties[] =
 	{ "maxSpeed",				kShip_maxSpeed,				JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
 	{ "script",					kShip_script,				JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
 	{ "isPirate",				kShip_isPirate,				JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
+	{ "isPlayer",				kShip_isPlayer,				JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
 	{ "isPolice",				kShip_isPolice,				JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
 	{ "isThargoid",				kShip_isThargoid,			JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
 	{ "isTrader",				kShip_isTrader,				JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
@@ -343,10 +345,14 @@ static JSBool ShipGetProperty(JSContext *context, JSObject *this, jsval name, js
 		case kShip_script:
 			result = [entity shipScript];
 			if (result == nil)  result = [NSNull null];
-			break;
+				break;
 			
 		case kShip_isPirate:
 			*outValue = BOOLToJSVal([entity isPirate]);
+			break;
+			
+		case kShip_isPlayer:
+			*outValue = BOOLToJSVal([entity isPlayer]);
 			break;
 			
 		case kShip_isPolice:

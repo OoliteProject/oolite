@@ -660,6 +660,8 @@ static BOOL JSNewNSDictionaryValue(JSContext *context, NSDictionary *dictionary,
 	JSString				*string = NULL;
 	
 	length = [self length];
+	if (length == 0)  return JS_GetEmptyStringValue(context);
+	
 	buffer = malloc(length * sizeof *buffer);
 	if (buffer == NULL) return JSVAL_VOID;
 	

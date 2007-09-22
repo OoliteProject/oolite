@@ -22,6 +22,11 @@ MA 02110-1301, USA.
 
 */
 
+#ifndef OO_CACHE_JS_SCRIPTS
+#define OO_CACHE_JS_SCRIPTS		1
+#endif
+
+
 #import "OOJSScript.h"
 #import "OOLogging.h"
 #import "OOConstToString.h"
@@ -29,6 +34,11 @@ MA 02110-1301, USA.
 #import "OOJavaScriptEngine.h"
 #import "NSStringOOExtensions.h"
 #import "EntityOOJavaScriptExtensions.h"
+
+#if OO_CACHE_JS_SCRIPTS
+#import <jsxdrapi.h>
+#import "OOCacheManager.h"
+#endif
 
 
 typedef struct RunningStack RunningStack;
@@ -46,6 +56,13 @@ static RunningStack		*sRunningStack = NULL;
 static void JSScriptFinalize(JSContext *context, JSObject *this);
 
 static void AddStackToArrayReversed(NSMutableArray *array, RunningStack *stack);
+
+static JSScript *LoadScriptWithName(JSContext *context, NSString *name, JSObject *object, NSString **outErrorMessage);
+
+#if OO_CACHE_JS_SCRIPTS
+static NSData *CompiledScriptData(JSContext *context, JSScript *script);
+static JSScript *ScriptWithCompiledData(JSContext *context, NSData *data);
+#endif
 
 
 static JSClass sScriptClass =
@@ -96,8 +113,6 @@ static JSFunctionSpec sScriptMethods[] =
 - (id)initWithPath:(NSString *)path properties:(NSDictionary *)properties context:(JSContext *)inContext
 {
 	NSString				*problem = nil;		// Acts as error flag.
-	NSString				*fileContents = nil;
-	NSData					*data = nil;
 	JSScript				*script = NULL;
 	jsval					returnValue;
 	NSEnumerator			*keyEnum = nil;
@@ -112,7 +127,7 @@ static JSFunctionSpec sScriptMethods[] =
 	{
 		context = inContext;
 		// Do we actually want parent to be the global object here?
-		object = JS_NewObject(context, &sScriptClass, sScriptPrototype, JS_GetGlobalObject(context));
+		object = JS_NewObject(context, &sScriptClass, sScriptPrototype, NULL /*JS_GetGlobalObject(context)*/);
 		if (object == NULL) problem = @"allocation failure";
 	}
 	
@@ -131,16 +146,15 @@ static JSFunctionSpec sScriptMethods[] =
 	
 	if (!problem)
 	{
-		fileContents = [NSString stringWithContentsOfUnicodeFile:path];
-		if (fileContents != nil)  data = [fileContents utf16DataWithBOM:NO];
-		if (data == nil) problem = @"could not load file";
-	}
-	
-	// Compile
-	if (!problem)
-	{
-		script = JS_CompileUCScript(context, object, [data bytes], [data length] / sizeof(unichar), [path UTF8String], 1);
-		if (script == NULL) problem = @"compilation failed";
+		script = LoadScriptWithName(context, path, object, &problem);
+		if (JS_GetScriptObject(script) == NULL)
+		{
+			/*scriptObject = JS_NewScriptObject(context, script);
+			if (!JS_AddNamedRoot(context, &scriptObject, "Cached script reference object")) 
+			{
+				problem = @"could not add JavaScript root object";
+			}*/
+		}
 	}
 	
 	// Set properties.
@@ -202,6 +216,7 @@ static JSFunctionSpec sScriptMethods[] =
 	[version release];
 	[weakSelf weakRefDrop];
 	JS_RemoveRoot(context, &object);
+//	if (scriptObject != NULL)  JS_RemoveRoot(context, &scriptObject);
 	
 	[super dealloc];
 }
@@ -377,54 +392,6 @@ static JSFunctionSpec sScriptMethods[] =
 }
 
 
-/*	Generate default name for script which doesn't set its name property when
-	first run.
-	
-	The generated name is <name>.anon-script, where <name> is selected as
-	follows:
-	  * If path is nil (futureproofing), use the address of the script object.
-	  * If the file's name is something other than script.*, use the file name.
-	  * If the containing directory is something other than Config, use the
-		containing directory's name.
-	  * Otherwise, use the containing directory's parent (which will generally
-		be an OXP root directory).
-	  * If either of the two previous steps results in an empty string, fall
-		back on the full path.
-*/
-- (NSString *)scriptNameFromPath:(NSString *)path
-{
-	NSString		*lastComponent = nil;
-	NSString		*truncatedPath = nil;
-	NSString		*theName = nil;
-	
-	if (path == nil) theName = [NSString stringWithFormat:@"%p", self];
-	else
-	{
-		lastComponent = [path lastPathComponent];
-		if (![lastComponent hasPrefix:@"script."]) theName = lastComponent;
-		else
-		{
-			truncatedPath = [path stringByDeletingLastPathComponent];
-			if (NSOrderedSame == [[truncatedPath lastPathComponent] caseInsensitiveCompare:@"Config"])
-			{
-				truncatedPath = [truncatedPath stringByDeletingLastPathComponent];
-			}
-			if (NSOrderedSame == [[truncatedPath pathExtension] caseInsensitiveCompare:@"oxp"])
-			{
-				truncatedPath = [truncatedPath stringByDeletingPathExtension];
-			}
-			
-			lastComponent = [truncatedPath lastPathComponent];
-			theName = lastComponent;
-		}
-	}
-	
-	if (0 == [theName length]) theName = path;
-	
-	return [theName stringByAppendingString:@".anon-script"];
-}
-
-
 - (jsval)javaScriptValueInContext:(JSContext *)context
 {
 	return OBJECT_TO_JSVAL(object);
@@ -461,7 +428,61 @@ static JSFunctionSpec sScriptMethods[] =
 @end
 
 
-@implementation OOScript(OOJavaScriptConversion)
+@implementation OOJSScript (OOPrivate)
+
+
+
+/*	Generate default name for script which doesn't set its name property when
+first run.
+
+The generated name is <name>.anon-script, where <name> is selected as
+follows:
+* If path is nil (futureproofing), use the address of the script object.
+* If the file's name is something other than script.*, use the file name.
+* If the containing directory is something other than Config, use the
+containing directory's name.
+* Otherwise, use the containing directory's parent (which will generally
+													be an OXP root directory).
+* If either of the two previous steps results in an empty string, fall
+back on the full path.
+*/
+- (NSString *)scriptNameFromPath:(NSString *)path
+{
+	NSString		*lastComponent = nil;
+	NSString		*truncatedPath = nil;
+	NSString		*theName = nil;
+	
+	if (path == nil) theName = [NSString stringWithFormat:@"%p", self];
+	else
+	{
+		lastComponent = [path lastPathComponent];
+		if (![lastComponent hasPrefix:@"script."]) theName = lastComponent;
+		else
+		{
+			truncatedPath = [path stringByDeletingLastPathComponent];
+			if (NSOrderedSame == [[truncatedPath lastPathComponent] caseInsensitiveCompare:@"Config"])
+			{
+				truncatedPath = [truncatedPath stringByDeletingLastPathComponent];
+			}
+			if (NSOrderedSame == [[truncatedPath pathExtension] caseInsensitiveCompare:@"oxp"])
+			{
+				truncatedPath = [truncatedPath stringByDeletingPathExtension];
+			}
+			
+			lastComponent = [truncatedPath lastPathComponent];
+			theName = lastComponent;
+		}
+	}
+	
+	if (0 == [theName length]) theName = path;
+	
+	return [theName stringByAppendingString:@".anon-script"];
+}
+
+@end
+
+
+@implementation OOScript (OOJavaScriptConversion)
 
 - (jsval)javaScriptValueInContext:(JSContext *)context
 {
@@ -493,3 +514,98 @@ static void AddStackToArrayReversed(NSMutableArray *array, RunningStack *stack)
 		[array addObject:stack->current];
 	}
 }
+
+
+static JSScript *LoadScriptWithName(JSContext *context, NSString *path, JSObject *object, NSString **outErrorMessage)
+{
+#if OO_CACHE_JS_SCRIPTS
+	OOCacheManager				*cache = nil;
+#endif
+	NSString					*fileContents = nil;
+	NSData						*data = nil;
+	JSScript					*script = NULL;
+	
+	assert(outErrorMessage != NULL);
+	*outErrorMessage = nil;
+	
+#if OO_CACHE_JS_SCRIPTS
+	// Look for cached compiled script
+	cache = [OOCacheManager sharedCache];
+	data = [cache objectForKey:path inCache:@"compiled JavaScript scripts"];
+	if (data != nil)
+	{
+		script = ScriptWithCompiledData(context, data);
+	}
+#endif
+	
+	if (script == NULL)
+	{
+		fileContents = [NSString stringWithContentsOfUnicodeFile:path];
+		if (fileContents != nil)  data = [fileContents utf16DataWithBOM:NO];
+		if (data == nil)  *outErrorMessage = @"could not load file";
+		else
+		{
+			script = JS_CompileUCScript(context, object, [data bytes], [data length] / sizeof(unichar), [path UTF8String], 1);
+			if (script == NULL)  *outErrorMessage = @"compilation failed";
+		}
+		
+#if OO_CACHE_JS_SCRIPTS
+		if (script != NULL)
+		{
+			// Write compiled script to cache
+			data = CompiledScriptData(context, script);
+			[cache setObject:data forKey:path inCache:@"compiled JavaScript scripts"];
+		}
+#endif
+	}
+	
+	return script;
+}
+
+
+#if OO_CACHE_JS_SCRIPTS
+static NSData *CompiledScriptData(JSContext *context, JSScript *script)
+{
+	JSXDRState					*xdr = NULL;
+	NSData						*result = nil;
+	uint32						length;
+	void						*bytes = NULL;
+	
+	xdr = JS_XDRNewMem(context, JSXDR_ENCODE);
+	if (xdr != NULL)
+	{
+		if (JS_XDRScript(xdr, &script))
+		{
+			bytes = JS_XDRMemGetData(xdr, &length);
+			if (bytes != NULL)
+			{
+				result = [NSData dataWithBytes:bytes length:length];
+			}
+		}
+		JS_XDRDestroy(xdr);
+	}
+	
+	return result;
+}
+
+
+static JSScript *ScriptWithCompiledData(JSContext *context, NSData *data)
+{
+	JSXDRState					*xdr = NULL;
+	JSScript					*result = NULL;
+	
+	if (data == nil)  return NULL;
+	
+	xdr = JS_XDRNewMem(context, JSXDR_DECODE);
+	if (xdr != NULL)
+	{
+		JS_XDRMemSetData(xdr, (void *)[data bytes], [data length]);
+		if (!JS_XDRScript(xdr, &result))  result = NULL;
+		
+		JS_XDRMemSetData(xdr, NULL, 0);	// Don't let it be freed by XDRDestroy
+		JS_XDRDestroy(xdr);
+	}
+	
+	return result;
+}
+#endif

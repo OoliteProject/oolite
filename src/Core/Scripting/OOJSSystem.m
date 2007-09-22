@@ -351,7 +351,7 @@ static JSBool SystemToString(JSContext *context, JSObject *this, uintN argc, jsv
 	PlayerEntity				*player = nil;
 	
 	player = [PlayerEntity sharedPlayer];
-	systemDesc = [NSString stringWithFormat:@"<System %u:%u \"%@\">", [player currentGalaxyID], [player currentSystemID], [[UNIVERSE currentSystemData] objectForKey:KEY_NAME]];
+	systemDesc = [NSString stringWithFormat:@"[System %u:%u \"%@\"]", [player currentGalaxyID], [player currentSystemID], [[UNIVERSE currentSystemData] objectForKey:KEY_NAME]];
 	*outResult = [systemDesc javaScriptValueInContext:context];
 	return YES;
 }

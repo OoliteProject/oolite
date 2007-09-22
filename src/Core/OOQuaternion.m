@@ -375,3 +375,12 @@ NSString *QuaternionDescription(Quaternion quaternion)
 	
 	return [NSString stringWithFormat:@"(%g %c %gi %c %gj %c %gk)", quaternion.w, xs, x, ys, y, zs, z];
 }
+
+
+Vector quaternion_rotate_vector(Quaternion q, Vector vector)
+{
+	Vector			u, v, w;
+	
+	basis_vectors_from_quaternion(q, &u, &v, &w);
+	return make_vector(dot_product(u, vector), dot_product(v, vector), dot_product(w, vector));
+}
