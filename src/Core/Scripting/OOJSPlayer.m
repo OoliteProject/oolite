@@ -49,6 +49,8 @@ static JSBool PlayerLaunch(JSContext *context, JSObject *this, uintN argc, jsval
 static JSBool PlayerAwardCargo(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
 static JSBool PlayerRemoveAllCargo(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
 static JSBool PlayerUseSpecialCargo(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
+static JSBool PlayerCommsMessage(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
+static JSBool PlayerConsoleMessage(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
 
 
 static JSExtendedClass sPlayerClass =
@@ -127,6 +129,8 @@ static JSFunctionSpec sPlayerMethods[] =
 	{ "awardCargo",				PlayerAwardCargo,			2 },
 	{ "removeAllCargo",			PlayerRemoveAllCargo,		0 },
 	{ "useSpecialCargo",		PlayerUseSpecialCargo,		1 },
+	{ "commsMessage",			PlayerCommsMessage,			1 },
+	{ "consoleMessage",			PlayerConsoleMessage,		1 },
 	{ 0 }
 };
 
@@ -391,5 +395,51 @@ static JSBool PlayerRemoveAllCargo(JSContext *context, JSObject *this, uintN arg
 static JSBool PlayerUseSpecialCargo(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
 {
 	[OOPlayerForScripting() useSpecialCargo:JSValToNSString(context, argv[0])];
+	return YES;
+}
+
+
+// commsMessage(message : String [, time : Number]) : void
+static JSBool PlayerCommsMessage(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
+{
+	const double			kDefaultTime = 4.5;
+	NSString				*message = nil;
+	double					time = kDefaultTime;
+	
+	message = [NSString stringWithJavaScriptValue:argv[0] inContext:context];
+	if (message != nil)
+	{
+		if (1 < argc)
+		{
+			if (!JS_ValueToNumber(context, argv[1], &time))  time = kDefaultTime;
+			if (time < 1.0)  time = 1.0;
+			if (12.0 < time)  time = 10.0;
+		}
+		
+		[UNIVERSE addCommsMessage:message forCount:time];
+	}
+	return YES;
+}
+
+
+// consoleMessage(message : String [, time : Number]) : void
+static JSBool PlayerConsoleMessage(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
+{
+	const double			kDefaultTime = 3;
+	NSString				*message = nil;
+	double					time = kDefaultTime;
+	
+	message = [NSString stringWithJavaScriptValue:argv[0] inContext:context];
+	if (message != nil)
+	{
+		if (1 < argc)
+		{
+			if (!JS_ValueToNumber(context, argv[1], &time))  time = kDefaultTime;
+			if (time < 1.0)  time = 1.0;
+			if (12.0 < time)  time = 10.0;
+		}
+		
+		[UNIVERSE addMessage:message forCount:time];
+	}
 	return YES;
 }

@@ -4682,58 +4682,48 @@ static BOOL MaintainLinkedLists(Universe* uni)
 
 - (void) setViewDirection:(OOViewID) vd
 {
-	NSString	*ms = nil;
+	NSString		*ms = nil;
+	BOOL			mouseDelta = YES;
 	
 	if ((viewDirection == vd)&&(vd != VIEW_CUSTOM)&&(!displayGUI))
 		return;
 	
 	switch (vd)
 	{
-		case VIEW_FORWARD :
-#ifdef GNUSTEP
-         [gameView setMouseInDeltaMode: YES];
-#endif
+		case VIEW_FORWARD:
 			ms = @"Forward View";
 			displayGUI = NO;   // switch off any text displays
 			break;
-		case VIEW_AFT :
-#ifdef GNUSTEP
-         [gameView setMouseInDeltaMode: YES];
-#endif
+			
+		case VIEW_AFT:
 			ms = @"Aft View";
 			displayGUI = NO;   // switch off any text displays
 			break;
-		case VIEW_PORT :
-#ifdef GNUSTEP
-         [gameView setMouseInDeltaMode: YES];
-#endif
+			
+		case VIEW_PORT:
 			ms = @"Port View";
 			displayGUI = NO;   // switch off any text displays
 			break;
-		case VIEW_STARBOARD :
-#ifdef GNUSTEP
-         [gameView setMouseInDeltaMode: YES];
-#endif
+			
+		case VIEW_STARBOARD:
 			ms = @"Starboard View";
 			displayGUI = NO;   // switch off any text displays
 			break;
 		/* GILES custom views */
 		
-		case VIEW_CUSTOM :
-#ifdef GNUSTEP
-         [gameView setMouseInDeltaMode: YES];
-#endif
+		case VIEW_CUSTOM:
 			ms = [[PlayerEntity sharedPlayer] customViewDescription];
 			displayGUI = NO;   // switch off any text displays
 			break;
 			
 		/* -- */
-		default :
-#ifdef GNUSTEP
-         [gameView setMouseInDeltaMode: NO];
-#endif
+		default:
+			mouseDelta = NO;
 			break;
 	}
+#ifdef GNUSTEP
+	[gameView setMouseInDeltaMode: mouseDelta];
+#endif
 	if ((viewDirection != vd)|(viewDirection = VIEW_CUSTOM))
 	{
 		viewDirection = vd;

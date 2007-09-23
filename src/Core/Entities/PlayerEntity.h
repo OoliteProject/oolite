@@ -399,7 +399,9 @@ typedef enum
 	
 	OOKeyCode				key_custom_view;
 	
+#ifndef NDEBUG
 	OOKeyCode				key_dump_target_state;
+#endif
         
         // save-file
 	NSString				*save_path;

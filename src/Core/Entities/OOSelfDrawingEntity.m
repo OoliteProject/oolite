@@ -1232,6 +1232,7 @@ static NSString * const kOOLogEntityTooManyFaces			= @"entity.loadMesh.failed.to
 }
 
 
+#ifndef NDEBUG
 - (void)dumpSelfState
 {
 	NSMutableArray		*flags = nil;
@@ -1248,6 +1249,7 @@ static NSString * const kOOLogEntityTooManyFaces			= @"entity.loadMesh.failed.to
 	flagsString = [flags count] ? [flags componentsJoinedByString:@", "] : @"none";
 	OOLog(@"dumpState.selfDrawingEntity", @"Flags: %@", flagsString);
 }
+#endif
 
 @end
 

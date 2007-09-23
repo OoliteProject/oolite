@@ -392,6 +392,7 @@ shaderBindingTarget:(id<OOWeakReferenceSupport>)object
 }
 
 
+#ifndef NDEBUG
 - (void)dumpSelfState
 {
 	NSMutableArray		*flags = nil;
@@ -408,6 +409,7 @@ shaderBindingTarget:(id<OOWeakReferenceSupport>)object
 	flagsString = [flags count] ? [flags componentsJoinedByString:@", "] : @"none";
 	OOLog(@"dumpState.mesh", @"Flags: %@", flagsString);
 }
+#endif
 
 @end
 

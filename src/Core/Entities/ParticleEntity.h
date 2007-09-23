@@ -51,9 +51,9 @@ MA 02110-1301, USA.
 	double			duration;
 	double			activation_time;
 	double			growth_rate;
-		
+	
 	double			ring_inner_radius, ring_outer_radius;
-		
+	
 	int				particle_type;
 	
 	double			alpha_for_vertex[MAX_VERTICES_PER_ENTITY];

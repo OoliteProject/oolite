@@ -7334,6 +7334,7 @@ int w_space_seed = 1234567;
 }
 
 
+#ifndef NDEBUG
 - (void)dumpSelfState
 {
 	NSMutableArray		*flags = nil;
@@ -7417,6 +7418,7 @@ int w_space_seed = 1234567;
 	flagsString = [flags count] ? [flags componentsJoinedByString:@", "] : @"none";
 	OOLog(@"dumpState.shipEntity", @"Flags: %@", flagsString);
 }
+#endif
 
 
 - (Entity *)entityForShaderProperties

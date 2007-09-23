@@ -6291,6 +6291,7 @@ OOSound* burnersound;
 }
 
 
+#ifndef NDEBUG
 - (void)dumpSelfState
 {
 	NSMutableArray		*flags = nil;
@@ -6350,5 +6351,6 @@ OOSound* burnersound;
 	flagsString = [flags count] ? [flags componentsJoinedByString:@", "] : @"none";
 	OOLog(@"dumpState.playerEntity", @"Flags: %@", flagsString);
 }
+#endif
 
 @end

@@ -152,7 +152,9 @@ static NSString * const kOOLogFlightTrainingBeacons		= @"beacon.list.flightTrain
 	
 	LOAD_KEY_SETTING(key_custom_view,			'v'					);
 	
-	LOAD_KEY_SETTING(key_dump_target_state,		NUM_KEYS + 1		);	// Default to no assignment.
+#ifndef NDEBUG
+	LOAD_KEY_SETTING(key_dump_target_state,		'H'					);
+#endif
 	
 	// other keys are SET and cannot be varied
 	

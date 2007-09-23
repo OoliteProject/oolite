@@ -1319,13 +1319,7 @@ FAIL:
 
 - (void) drawEntity:(BOOL) immediate:(BOOL) translucent;
 {
-	NSString* debug_type = @"PLAIN";
-
-	if (!UNIVERSE)
-		return;
-
-	if ([UNIVERSE breakPatternHide])
-		return;		// DON'T DRAW DURING BREAK PATTERN
+	if (UNIVERSE == nil || [UNIVERSE breakPatternHide])  return;
 
 	if ((particle_type == PARTICLE_FLASHER)&&(zero_distance > no_draw_distance))	return;	// TOO FAR AWAY TO SEE
 
@@ -1335,46 +1329,37 @@ FAIL:
 		{
 			case PARTICLE_LASER_BEAM:
 				[self drawLaser];
-				debug_type = @"PARTICLE_LASER_BEAM";
 				break;
 
 			case PARTICLE_EXHAUST:
 				[self drawExhaust2];
-				debug_type = @"PARTICLE_EXHAUST";
 				break;
 
 			case PARTICLE_HYPERRING:
 				[self drawHyperring];
-				debug_type = @"PARTICLE_HYPERRING";
 				break;
 
 			case PARTICLE_ECM_MINE:
 				// not a visible entity
-				debug_type = @"PARTICLE_ECM_MINE";
 				break;
 
 			case PARTICLE_ENERGY_MINE:
 				[self drawEnergyMine];
-				debug_type = @"PARTICLE_ENERGY_MINE";
 				break;
 
 			case PARTICLE_FRAGBURST:
 				[self drawFragburst];
-				debug_type = @"PARTICLE_FRAGBURST";
 				break;
 
 			case PARTICLE_BURST2:
 				[self drawBurst2];
-				debug_type = @"PARTICLE_BURST2";
 				break;
 
 			case PARTICLE_FLASH:
-				debug_type = @"PARTICLE_FLASH";
 				[self drawParticle];
 				break;
 
 			case PARTICLE_BILLBOARD:
-				debug_type = @"PARTICLE_BILLBOARD";
 				[self drawBillboard];
 				break;
 
@@ -1383,7 +1368,7 @@ FAIL:
 				break;
 		}
 	}
-	CheckOpenGLErrors(@"ParticleEntity after drawing %@ %@", self, debug_type);
+	CheckOpenGLErrors(@"ParticleEntity after drawing %@ %@", self);
 }
 
 
@@ -1614,9 +1599,6 @@ FAIL:
 	color_fv[3]		= 0.75;  // set alpha
 
 	glDisable(GL_CULL_FACE);			// face culling
-
-	// movies:
-	// draw data required collision_radius, color_fv[0], color_fv[1], color_fv[2]
 
 	glDisable(GL_TEXTURE_2D);
 
