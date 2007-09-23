@@ -377,10 +377,37 @@ NSString *QuaternionDescription(Quaternion quaternion)
 }
 
 
+#if 0
 Vector quaternion_rotate_vector(Quaternion q, Vector vector)
 {
-	Vector			u, v, w;
+	Quaternion				v, cq, qv;
 	
-	basis_vectors_from_quaternion(q, &u, &v, &w);
-	return make_vector(dot_product(u, vector), dot_product(v, vector), dot_product(w, vector));
+	/*
+		Quaternion rotation formula:
+		r(q, v) = q * v * q^-1, where q^-1 is the spacial inverse of q.
+	 */
+	
+	v = make_quaternion(0, vector.x, vector.y, vector.z);
+	
+	cq = quaternion_conjugate(q);
+	qv = quaternion_multiply(q, v);
+	v = quaternion_multiply(qv, cq);
+	
+	return make_vector(v.x, v.y, v.z);	// w will be zero
 }
+#else
+Vector quaternion_rotate_vector(Quaternion q, Vector v)
+{
+	Quaternion				qv;
+	
+	qv.w = 0 - q.x * v.x - q.y * v.y - q.z * v.z;
+    qv.x = q.w * v.x + q.y * v.z - q.z * v.y;
+    qv.y = q.w * v.y + q.z * v.x - q.x * v.z;
+    qv.z = q.w * v.z + q.x * v.y - q.y * v.x;
+	// w is ignored.
+    v.x = qv.w * -q.x + qv.x * q.w + qv.y * -q.z - qv.z * -q.y;
+    v.y = qv.w * -q.y + qv.y * q.w + qv.z * -q.x - qv.x * -q.z;
+    v.z = qv.w * -q.z + qv.z * q.w + qv.x * -q.y - qv.y * -q.x;
+	return v;
+}
+#endif

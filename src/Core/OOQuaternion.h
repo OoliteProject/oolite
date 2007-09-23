@@ -52,6 +52,12 @@ OOINLINE GLboolean quaternion_equal(Quaternion a, Quaternion b) INLINE_CONST_FUN
 /* Multiply quaternions */
 Quaternion quaternion_multiply(Quaternion q1, Quaternion q2) CONST_FUNC;
 
+/* Negation, or additive inverse -- negate all components */
+OOINLINE Quaternion quaternion_negate(Quaternion q) INLINE_CONST_FUNC;
+
+/* Conjugate, or spacial inverse -- negate x, y, z components */
+OOINLINE Quaternion quaternion_conjugate(Quaternion q) INLINE_CONST_FUNC;
+
 /* Obsolete function equivalent to *quat = kIdentityQuaternion */
 OOINLINE void quaternion_set_identity(Quaternion *quat) ALWAYS_INLINE_FUNC NONNULL_FUNC DEPRECATED_FUNC;
 
@@ -117,6 +123,18 @@ OOINLINE Quaternion make_quaternion(GLfloat qw, GLfloat qx, GLfloat qy, GLfloat 
 OOINLINE GLboolean quaternion_equal(Quaternion a, Quaternion b)
 {
 	return a.w == b.w && a.x == b.x && a.y == b.y && a.z == b.z;
+}
+
+
+OOINLINE Quaternion quaternion_negate(Quaternion q)
+{
+	return make_quaternion(-q.w, -q.x, -q.y, -q.z);
+}
+
+
+OOINLINE Quaternion quaternion_conjugate(Quaternion q)
+{
+	return make_quaternion(q.w, -q.x, -q.y, -q.z);
 }
 
 
