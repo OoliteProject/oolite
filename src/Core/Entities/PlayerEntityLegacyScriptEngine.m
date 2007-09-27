@@ -905,6 +905,8 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 
 - (void) commsMessage:(NSString *)valueString
 {
+	if (script_target != self)  return;
+	
 	Random_Seed very_random_seed;
 	very_random_seed.a = rand() & 255;
 	very_random_seed.b = rand() & 255;
@@ -1160,11 +1162,13 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 - (void) awardFuel:(NSString *)valueString	// add to fuel up to 7.0 LY
 {
 	int delta  = 10 * [valueString floatValue];
-	if (delta < 0 && fuel < (unsigned)-delta)  fuel = 0;
+	OOFuelQuantity scriptTargetFuelBeforeAward = [script_target fuel];
+
+	if (delta < 0 && scriptTargetFuelBeforeAward < (unsigned)-delta)  [script_target setFuel:0];
 	else
 	{
-		fuel += delta;
-		if (fuel > PLAYER_MAX_FUEL)  fuel = PLAYER_MAX_FUEL;
+		[script_target setFuel:(scriptTargetFuelBeforeAward + delta)];
+		if ([script_target fuel] > PLAYER_MAX_FUEL)  [script_target setFuel:PLAYER_MAX_FUEL];
 	}
 }
 
@@ -1816,7 +1820,13 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 
 
 - (void) setFuelLeak: (NSString *)value
-{
+{	
+	if (script_target != self)
+	{
+		[script_target setFuel:0];
+		return;
+	}
+	
 	fuel_leak_rate = [value doubleValue];
 	if (fuel_leak_rate > 0)
 	{
