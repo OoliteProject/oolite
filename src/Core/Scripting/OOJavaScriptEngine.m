@@ -824,6 +824,13 @@ JSBool JSObjectWrapperToString(JSContext *context, JSObject *this, uintN argc, j
 }
 
 
+void JSObjectWrapperFinalize(JSContext *context, JSObject *this)
+{
+	[(id)JS_GetPrivate(context, this) release];
+	JS_SetPrivate(context, this, nil);
+}
+
+
 static NSMutableDictionary *sObjectConverters;
 
 id JSValueToObject(JSContext *context, jsval value)

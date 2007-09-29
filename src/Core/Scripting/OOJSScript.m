@@ -53,8 +53,6 @@ static JSObject			*sScriptPrototype;
 static RunningStack		*sRunningStack = NULL;
 
 
-static void JSScriptFinalize(JSContext *context, JSObject *this);
-
 static void AddStackToArrayReversed(NSMutableArray *array, RunningStack *stack);
 
 static JSScript *LoadScriptWithName(JSContext *context, NSString *name, JSObject *object, NSString **outErrorMessage);
@@ -77,7 +75,7 @@ static JSClass sScriptClass =
 	JS_EnumerateStub,
 	JS_ResolveStub,
 	JS_ConvertStub,
-	JSScriptFinalize
+	JSObjectWrapperFinalize
 };
 
 
@@ -496,13 +494,6 @@ void InitOOJSScript(JSContext *context, JSObject *global)
 {
 	sScriptPrototype = JS_InitClass(context, global, NULL, &sScriptClass, NULL, 0, NULL, sScriptMethods, NULL, NULL);
 	JSRegisterObjectConverter(&sScriptClass, JSBasicPrivateObjectConverter);
-}
-
-
-static void JSScriptFinalize(JSContext *context, JSObject *this)
-{
-	[(id)JS_GetPrivate(context, this) release];
-	JS_SetPrivate(context, this, nil);
 }
 
 

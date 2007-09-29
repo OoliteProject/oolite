@@ -174,13 +174,13 @@ MA 02110-1301, USA.
 }
 
 
-- (OOGalaxyID)currentGalaxyID
+- (OOGalaxyID) currentGalaxyID
 {
 	return galaxy_number;
 }
 
 
-- (OOSystemID)currentSystemID
+- (OOSystemID) currentSystemID
 {
 	// You'd think we'd have the current system ID stored somewhere...
 	

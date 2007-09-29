@@ -484,6 +484,12 @@ static NSString * const kOOLogEntityBehaviourChanged	= @"entity.behaviour.change
 }
 
 
+- (NSString *)descriptionComponents
+{
+	return [NSString stringWithFormat:@"\"%@\" %@", [self name], [super descriptionComponents]];
+}
+
+
 - (OOMesh *)mesh
 {
 	return (OOMesh *)[self drawable];

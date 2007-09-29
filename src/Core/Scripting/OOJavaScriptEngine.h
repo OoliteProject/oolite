@@ -113,10 +113,20 @@ BOOL JSSetNSProperty(JSContext *context, JSObject *object, NSString *name, jsval
 
 /*	JSObjectWrapperToString
 	
-	Implements JavaScript toString method by calling -javaScriptDescription
-	and, if that fails, -description is called.
+	Implementation of toString() for JS classes whose private storage is an
+	Objective-C object reference (generally an OOWeakReference).
+	
+	Calls -javaScriptDescription and, if that fails, -description.
 */
 JSBool JSObjectWrapperToString(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
+
+
+/*	JSObjectWrapperFinalize
+	
+	Finalizer for JS classes whose private storage is a retained object
+	reference (generally an OOWeakReference).
+*/
+void JSObjectWrapperFinalize(JSContext *context, JSObject *this);
 
 
 @interface NSString (OOJavaScriptExtensions)

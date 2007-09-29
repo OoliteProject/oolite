@@ -66,7 +66,7 @@ static JSExtendedClass sPlayerClass =
 		JS_EnumerateStub,		// enumerate
 		JS_ResolveStub,			// resolve
 		JS_ConvertStub,			// convert
-		JSEntityFinalize,		// finalize
+		JSObjectWrapperFinalize,// finalize
 		JSCLASS_NO_OPTIONAL_MEMBERS
 	},
 	JSEntityEquality,			// equality

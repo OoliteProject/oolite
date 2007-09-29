@@ -63,7 +63,7 @@ static JSExtendedClass sEntityClass =
 		JS_EnumerateStub,		// enumerate
 		JS_ResolveStub,			// resolve
 		JS_ConvertStub,			// convert
-		JSEntityFinalize,		// finalize
+		JSObjectWrapperFinalize,// finalize
 		JSCLASS_NO_OPTIONAL_MEMBERS
 	},
 	JSEntityEquality,			// equality
@@ -224,14 +224,6 @@ BOOL EntityFromArgumentList(JSContext *context, NSString *scriptClass, NSString 
 	// Success.
 	if (outConsumed != NULL)  *outConsumed = 1;
 	return YES;
-}
-
-
-void JSEntityFinalize(JSContext *context, JSObject *this)
-{
-	OOLog(@"js.entity.temp", @"%s called for %p", __PRETTY_FUNCTION__, this);
-	[(id)JS_GetPrivate(context, this) release];
-	JS_SetPrivate(context, this, nil);
 }
 
 

@@ -1,4 +1,5 @@
 (
 	"oolite-legacy-script.plist",
-	"oolite-cloaking-device.js"
+	"oolite-cloaking-device.js",
+	"oolite-trumbles.js"
 )

@@ -44,6 +44,7 @@ static JSBool MissionSetBackgroundImage(JSContext *context, JSObject *this, uint
 static JSBool MissionSetMusic(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
 static JSBool MissionSetChoicesKey(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
 static JSBool MissionSetInstructionsKey(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
+static JSBool MissionClearMissionScreen(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
 
 static JSClass sMissionClass =
 {
@@ -100,6 +101,7 @@ static JSFunctionSpec sMissionMethods[] =
 	{ "setMusic",				MissionSetMusic,			1 },
 	{ "setChoicesKey",			MissionSetChoicesKey,		1 },
 	{ "setInstructionsKey",		MissionSetInstructionsKey,	1 },
+	{ "clearMissionScreen",		MissionClearMissionScreen,	0 },
 	{ 0 }
 };
 
@@ -337,5 +339,14 @@ static JSBool MissionSetInstructionsKey(JSContext *context, JSObject *this, uint
 		[player clearMissionDescriptionForMission:[[OOJSScript currentlyRunningScript] name]];
 	}
 	
+	return YES;
+}
+
+
+static JSBool MissionClearMissionScreen(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
+{
+	PlayerEntity		*player = OOPlayerForScripting();
+	
+	[player clearMissionScreen];
 	return YES;
 }

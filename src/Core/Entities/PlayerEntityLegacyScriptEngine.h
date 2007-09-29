@@ -171,6 +171,8 @@ MA 02110-1301, USA.
 													// choices/choice phrases in missiontext.plist and also..
 - (void) resetMissionChoice;						// resets MissionChoice to nil
 
+- (void) clearMissionScreen;
+
 - (void) addMissionDestination:(NSString *)destinations;	// mark a system on the star charts
 - (void) removeMissionDestination:(NSString *)destinations; // stop a system being marked on star charts
 

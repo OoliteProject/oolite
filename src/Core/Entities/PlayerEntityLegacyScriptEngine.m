@@ -1655,11 +1655,11 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 	// and only if the selectable range is not present ask:
 	// Press Space Commander...
 	//
-	NSDictionary* choices_dict = (NSDictionary *)[[UNIVERSE missiontext] objectForKey:choicesKey];
-	if ((choices_dict == nil)||([choices_dict count] == 0))
+	NSDictionary *choices_dict = [[UNIVERSE missiontext] dictionaryForKey:choicesKey];
+	if ([choices_dict count] == 0)
 		return;
 	//
-	NSArray* choice_keys = [choices_dict allKeys];
+	NSArray *choice_keys = [choices_dict allKeys];
 	//
 	[gui setText:@"" forRow:21];			// clears out the 'Press spacebar' message
 	[gui setKey:@"" forRow:21];				// clears the key to enable pollDemoControls to check for a selection
@@ -1692,6 +1692,15 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 {
 	[missionChoice release];
 	missionChoice = nil;
+}
+
+
+- (void) clearMissionScreen
+{
+	[self resetMissionChoice];
+	[self setMissionImage:nil];
+	[self setMissionMusic:nil];
+	[self showShipModel:nil];
 }
 
 

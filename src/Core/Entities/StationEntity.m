@@ -317,7 +317,7 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 	Vector		coords;
 	
 	int			ship_id = [ship universalID];
-	NSString*   shipID = [NSString stringWithFormat:@"%d", ship_id];
+	NSNumber	*shipID = [NSNumber numberWithUnsignedShort:ship_id];
 
 	Vector launchVector = vector_forward_from_quaternion(quaternion_multiply(port_orientation, orientation));
 	Vector temp = (fabsf(launchVector.x) < 0.8)? make_vector(1,0,0) : make_vector(0,1,0);
@@ -402,7 +402,7 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 	if (![shipsOnApproach objectForKey:shipID])
 	{
 		// some error has occurred - log it, and send the try-again message
-		NSLog(@"ERROR - couldn't addShipToShipsOnApproach:%@ in %@ for some reason.", ship, self);
+		NSLog(@"ERROR - couldn't addShipToShipsOnApproach:%@ in %@ for some reason -- shipsOnApproach:\n%@", ship, self, shipsOnApproach);
 		//
 		return instructions(universalID, ship->position, 0, 100, @"TRY_AGAIN_LATER", nil, NO);
 	}
@@ -594,7 +594,7 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 
 		[coordinatesStack addObject:nextCoords];
 	}
-					
+	
 	[shipsOnApproach setObject:coordinatesStack forKey:shipID];
 	
 	approach_spacing += 500;  // space out incoming ships by 500m
@@ -610,8 +610,8 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 
 - (void) abortDockingForShip:(ShipEntity *) ship
 {
-	int ship_id = [ship universalID];
-	NSString*   shipID = [NSString stringWithFormat:@"%d",ship_id];
+	int			ship_id = [ship universalID];
+	NSNumber	*shipID = [NSNumber numberWithUnsignedShort:ship_id];
 	if ([UNIVERSE entityForUniversalID:[ship universalID]])
 		[[[UNIVERSE entityForUniversalID:[ship universalID]] getAI] message:@"DOCKING_ABORTED"];
 	

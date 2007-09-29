@@ -39,8 +39,6 @@ BOOL JSEntityGetEntity(JSContext *context, JSObject *entityObj, Entity **outEnti
 JSClass *JSEntityClass(void);
 JSObject *JSEntityPrototype(void);
 
-// For subclasses. SUBCLASSES MUST USE THESE or scripts will crash.
-void JSEntityFinalize(JSContext *context, JSObject *this);
 JSBool JSEntityEquality(JSContext *context, JSObject *this, jsval value, JSBool *outEqual);
 
 
