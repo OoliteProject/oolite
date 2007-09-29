@@ -45,8 +45,7 @@ MA 02110-1301, USA.
 #import "NSStringOOExtensions.h"
 #import "OOWeakReference.h"
 
-#include <stdio.h>
-#include <string.h>
+#import <stdlib.h>
 
 
 static OOJavaScriptEngine *sSharedEngine = nil;
@@ -143,7 +142,20 @@ static void ReportJSError(JSContext *context, const char *message, JSErrorReport
 - (id) init
 {
 	assert(sSharedEngine == nil);
-	assert(JS_CStringsAreUTF8());
+	
+#ifndef NDEBUG
+	// This one is causing trouble for the Linux crowd. :-/
+	if (!JS_CStringsAreUTF8())
+	{
+#ifdef MOZILLA_1_8_BRANCH
+#define kMoz18State "defined"
+#else
+#define kMoz18State "undefined"
+#endif
+		OOLog(@"script.javaScript.init.badSpiderMonkey", @"SpiderMonkey (libjs/libmozjs) must be built with the JS_C_STRINGS_ARE_UTF8 macro defined. Additionally, MOZILLA_1_8_BRANCH must either be defined for both the library and for Oolite, or undefined for both; it is currently " kMoz18State " for Oolite.");
+		exit(EXIT_FAILURE);
+	}
+#endif
 	
 	self = [super init];
 	

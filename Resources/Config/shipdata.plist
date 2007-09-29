@@ -470,6 +470,7 @@
 		model = "barrel.dat";
 		name = "Cargo container";
 		roles = "cargopod 1t-cargopod oolite-barrel";
+		scanClass = "CLASS_CARGO";
 		thrust = 0;
 		unpiloted = yes;
 		weapon_energy = 0;
