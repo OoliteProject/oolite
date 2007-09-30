@@ -417,8 +417,7 @@ BOOL	isHitByLine(int* octbuffer, unsigned char* collbuffer, int level, GLfloat r
 	
 	OctreeDebugLogVerbose(@"----> testing octants...");
 	
-//	int nextlevel = octbuffer[level];			// previous absolute reference
-	int nextlevel = level + octbuffer[level];	// now a relative reference
+	int nextlevel = level + octbuffer[level];
 		
 	GLfloat rd2 = 0.5 * rad;
 	
@@ -435,7 +434,6 @@ BOOL	isHitByLine(int* octbuffer, unsigned char* collbuffer, int level, GLfloat r
 	if (octbuffer[nextlevel + oct0])
 	{
 		moveLine = offsetForOctant( oct0, rad);
-//		moveLine = make_vector(rd2 - ((oct0 >> 2) & 1) * rad, rd2 - ((oct0 >> 1) & 1) * rad, rd2 - (oct0 & 1) * rad);
 		if (isHitByLine(octbuffer, collbuffer, nextlevel + oct0, rd2, u0, u1, moveLine, faces)) return YES;	// first octant
 	}
 		
@@ -446,19 +444,16 @@ BOOL	isHitByLine(int* octbuffer, unsigned char* collbuffer, int level, GLfloat r
 	if (octbuffer[nextlevel + oct1])
 	{
 		moveLine = offsetForOctant( oct1, rad);
-//		moveLine = make_vector(rd2 - ((oct1 >> 2) & 1) * rad, rd2 - ((oct1 >> 1) & 1) * rad, rd2 - (oct2 & 1) * rad);
 		if (isHitByLine(octbuffer, collbuffer, nextlevel + oct1, rd2, u0, u1, moveLine, 0)) return YES;	// second octant
 	}
 	if (octbuffer[nextlevel + oct2])
 	{
 		moveLine = offsetForOctant( oct2, rad);
-//		moveLine = make_vector(rd2 - ((oct2 >> 2) & 1) * rad, rd2 - ((oct2 >> 1) & 1) * rad, rd2 - (oct2 & 1) * rad);
 		if (isHitByLine(octbuffer, collbuffer, nextlevel + oct2, rd2, u0, u1, moveLine, 0)) return YES;	// third octant
 	}
 	if (octbuffer[nextlevel + oct3])
 	{
 		moveLine = offsetForOctant( oct3, rad);
-//		moveLine = make_vector(rd2 - ((oct3 >> 2) & 1) * rad, rd2 - ((oct3 >> 1) & 1) * rad, rd2 - (oct3 & 1) * rad);
 		if (isHitByLine(octbuffer, collbuffer, nextlevel + oct3, rd2, u0, u1, moveLine, 0)) return YES;	// fourth octant
 	}
 	
@@ -471,19 +466,16 @@ BOOL	isHitByLine(int* octbuffer, unsigned char* collbuffer, int level, GLfloat r
 	if (octbuffer[nextlevel + oct1])
 	{
 		moveLine = offsetForOctant( oct1, rad);
-//		moveLine = make_vector(rd2 - ((oct1 >> 2) & 1) * rad, rd2 - ((oct1 >> 1) & 1) * rad, rd2 - (oct1 & 1) * rad);
 		if (isHitByLine(octbuffer, collbuffer, nextlevel + oct1, rd2, u0, u1, moveLine, 0)) return YES;	// fifth octant
 	}
 	if (octbuffer[nextlevel + oct2])
 	{
 		moveLine = offsetForOctant( oct2, rad);
-//		moveLine = make_vector(rd2 - ((oct2 >> 2) & 1) * rad, rd2 - ((oct2 >> 1) & 1) * rad, rd2 - (oct2 & 1) * rad);
 		if (isHitByLine(octbuffer, collbuffer, nextlevel + oct2, rd2, u0, u1, moveLine, 0)) return YES;	// sixth octant
 	}
 	if (octbuffer[nextlevel + oct3])
 	{
 		moveLine = offsetForOctant( oct3, rad);
-//		moveLine = make_vector(rd2 - ((oct3 >> 2) & 1) * rad, rd2 - ((oct3 >> 1) & 1) * rad, rd2 - (oct3 & 1) * rad);
 		if (isHitByLine(octbuffer, collbuffer, nextlevel + oct3, rd2, u0, u1, moveLine, 0)) return YES;	// seventh octant
 	}
 	
@@ -493,7 +485,6 @@ BOOL	isHitByLine(int* octbuffer, unsigned char* collbuffer, int level, GLfloat r
 	if (octbuffer[nextlevel + oct0])
 	{
 		moveLine = offsetForOctant( oct0, rad);
-//		moveLine = make_vector(rd2 - ((oct0 >> 2) & 1) * rad, rd2 - ((oct0 >> 1) & 1) * rad, rd2 - (oct0 & 1) * rad);
 		if (isHitByLine(octbuffer, collbuffer, nextlevel + oct0, rd2, u0, u1, moveLine, 0)) return YES;	// last octant
 	}
 	
@@ -505,7 +496,7 @@ BOOL	isHitByLine(int* octbuffer, unsigned char* collbuffer, int level, GLfloat r
 	int i;
 	for (i = 0; i< leafs; i++) octree_collision[i] = (char)0;
 	hasCollided = NO;
-	//
+	
 	if (isHitByLine(octree, octree_collision, 0, radius, v0, v1, kZeroVector, 0))
 	{
 		OctreeDebugLogVerbose(@"DEBUG Hit at distance %.2f", hit_dist);
@@ -585,7 +576,7 @@ BOOL	isHitByOctree(	Octree_details axialDetails,
 			// YES so octrees collide
 			axialCollisionBuffer[0] = (unsigned char)255;	// mark
 			otherCollisionBuffer[0] = (unsigned char)255;	// mark
-			//
+			
 			OctreeDebugLog(@"DEBUG Octrees collide!");
 			return YES;
 		}
@@ -593,12 +584,12 @@ BOOL	isHitByOctree(	Octree_details axialDetails,
 		// and each of its octants tested against the axial octree
 		// if any of them collides with this octant
 		// then we have a solid collision
-		//
+		
 		OctreeDebugLogVerbose(@"----> testing other octants...");
-		//
+		
 		// work out the nearest octant to the axial octree
 		int	nearest_oct = ((otherPosition.x > 0.0)? 0:4)|((otherPosition.y > 0.0)? 0:2)|((otherPosition.z > 0.0)? 0:1);
-		//
+		
 		int				nextLevel			= otherBuffer[0];
 		int*			nextBuffer			= &otherBuffer[nextLevel];
 		unsigned char*	nextCollisionBuffer	= &otherCollisionBuffer[nextLevel];
@@ -612,7 +603,7 @@ BOOL	isHitByOctree(	Octree_details axialDetails,
 			{
 				nextDetails.octree = &nextBuffer[oct];
 				nextDetails.octree_collision = &nextCollisionBuffer[oct];
-				//
+				
 				voff = resolveVectorInIJK( offsetForOctant( oct, otherRadius), other_ijk);
 				nextPosition.x = otherPosition.x - voff.x;
 				nextPosition.y = otherPosition.y - voff.y;
@@ -621,7 +612,7 @@ BOOL	isHitByOctree(	Octree_details axialDetails,
 					return YES;
 			}
 		}
-		//
+		
 		// otherwise
 		return NO;
 	}
@@ -629,12 +620,12 @@ BOOL	isHitByOctree(	Octree_details axialDetails,
 	// we must test each of our octants against
 	// the other octree, if any of them collide
 	// we have a solid collision
-	//
+	
 	OctreeDebugLogVerbose(@"----> testing axial octants...");
-	//
+	
 	// work out the nearest octant to the other octree
 	int	nearest_oct = ((otherPosition.x > 0.0)? 4:0)|((otherPosition.y > 0.0)? 2:0)|((otherPosition.z > 0.0)? 1:0);
-	//
+	
 	int		nextLevel = axialBuffer[0];
 	int*	nextBuffer = &axialBuffer[nextLevel];
 	unsigned char* nextCollisionBuffer = &axialCollisionBuffer[nextLevel];
@@ -648,7 +639,7 @@ BOOL	isHitByOctree(	Octree_details axialDetails,
 		{
 			nextDetails.octree = &nextBuffer[oct];
 			nextDetails.octree_collision = &nextCollisionBuffer[oct];
-			//
+			
 			voff = offsetForOctant(oct, axialRadius);
 			nextPosition.x = otherPosition.x + voff.x;
 			nextPosition.y = otherPosition.y + voff.y;
@@ -664,10 +655,10 @@ BOOL	isHitByOctree(	Octree_details axialDetails,
 - (BOOL) isHitByOctree:(Octree*) other withOrigin: (Vector) v0 andIJK: (Triangle) ijk
 {
 	BOOL hit = isHitByOctree( [self octreeDetails], [other octreeDetails], v0, ijk);
-	//
+	
 	hasCollision = hasCollision | hit;
 	[other setHasCollision: [other hasCollision] | hit];
-	//
+	
 	return hit; 
 }
 
@@ -680,10 +671,10 @@ BOOL	isHitByOctree(	Octree_details axialDetails,
 	details2.radius *= s2;
 	
 	BOOL hit = isHitByOctree( details1, details2, v0, ijk);
-	//
+	
 	hasCollision = hasCollision | hit;
 	[other setHasCollision: [other hasCollision] | hit];
-	//
+	
 	return hit; 
 }
 

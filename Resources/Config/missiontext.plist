@@ -59,16 +59,6 @@
 		<string>No, sorry.</string>
 	</dict>
 	<!-- /Nova -->
-	<!-- trumbles (legacy, left in in case OXPs use them -- seems unlikely.) -->
-	<key>trumble_offer</key>
-	<string>Commander [commander_name],\n\nYou look like someone who could use a Trumble on your [commander_shipname]!\n\nThis is yours for only 30 credits.</string>
-	<key>trumble_offer_yesno</key>
-	<dict>
-		<key>NO</key>
-		<string>No thanks. No pets on my ship.</string>
-		<key>YES</key>
-		<string>Okay, I'll take one, it looks cute.</string>
-	</dict>
 	<!-- trumbles (JavaScript) -->
 	<key>oolite_trumble_offer_yesno</key>
 	<dict>
@@ -78,5 +68,16 @@
 		<string>Okay, I'll take one, it looks cute.</string>
 	</dict>
 	<!-- /trumbles -->
+	
+	<!-- Legacy bits that are no longer used. Left in in case OXPs use them, although it seems unlikely. -->
+	<key>trumble_offer</key>
+	<string>Commander [commander_name],\n\nYou look like someone who could use a Trumble on your [commander_shipname]!\n\nThis is yours for only 30 credits.</string>
+	<key>trumble_offer_yesno</key>
+	<dict>
+		<key>NO</key>
+		<string>No thanks. No pets on my ship.</string>
+		<key>YES</key>
+		<string>Okay, I'll take one, it looks cute.</string>
+	</dict>
 </dict>
 </plist>
