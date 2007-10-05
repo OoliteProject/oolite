@@ -62,6 +62,7 @@ SOFTWARE.
 
 #import <Foundation/Foundation.h>
 #import "OOFunctionAttributes.h"
+#import "OOMaths.h"	// Eliminates GCC warning 'parameter has incomplete type' for Vector and Quaternion structs.
 #include <limits.h>
 
 
