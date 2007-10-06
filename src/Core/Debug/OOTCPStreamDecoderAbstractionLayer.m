@@ -6,6 +6,7 @@
 	Foundation implementation.
 */
 
+#ifndef OO_EXCLUDE_DEBUG_SUPPORT
 
 #import "OOTCPStreamDecoderAbstractionLayer.h"
 #import "OOCocoa.h"
@@ -27,8 +28,8 @@ OOALStringRef OOALGetConstantString(const char *string)
 	value = [sStrings objectForKey:key];
 	if (value == nil)
 	{
-		// For portability and compatibility with CoreFoundation and Foundation, non-ASCII characters are not permitted.
-		value = [NSString stringWithCString:string encoding:NSASCIIStringEncoding];
+		// Note: non-ASCII strings are not permitted, but we don't bother to detect them.
+		value = [NSString stringWithUTF8String:string];
 		if (value != nil)  [sStrings setObject:value forKey:key];
 	}
 	
@@ -122,3 +123,5 @@ OOALObjectRef OOALPropertyListFromData(OOALMutableDataRef data, OOALStringRef *e
 	
 	return result;
 }
+
+#endif /* OO_EXCLUDE_DEBUG_SUPPORT */

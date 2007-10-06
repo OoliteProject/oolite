@@ -2,10 +2,6 @@
 
 OOMaterial.m
 
-This is an abstract class; actual materials should be subclasses.
-
-Currently, only shader materials are supported. Direct use of textures should
-also be replaced with an OOMaterial subclass.
 
 Oolite
 Copyright (C) 2004-2007 Giles C Williams and contributors

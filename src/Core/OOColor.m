@@ -455,4 +455,17 @@ MA 02110-1301, USA.
 									 alpha:rgba[3]];
 }
 
+
+- (NSArray *)normalizedArray
+{
+	float r, g, b, a;
+	[self getRed:&r green:&g blue:&b alpha:&a];
+	return [NSArray arrayWithObjects:
+		[NSNumber numberWithFloat:r],
+		[NSNumber numberWithFloat:g],
+		[NSNumber numberWithFloat:b],
+		[NSNumber numberWithFloat:a],
+		nil];
+}
+
 @end

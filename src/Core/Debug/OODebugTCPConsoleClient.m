@@ -27,6 +27,9 @@ SOFTWARE.
 
 */
 
+#ifndef OO_EXCLUDE_DEBUG_SUPPORT
+
+
 #import "OODebugTCPConsoleClient.h"
 #import "OODebugTCPConsoleProtocol.h"
 #import "OODebugMonitor.h"
@@ -609,3 +612,5 @@ static void DecoderError(void *cbInfo, OOALStringRef errorDesc)
 {
 	[(OODebugTCPConsoleClient *)cbInfo breakConnectionWithMessage:errorDesc];
 }
+
+#endif /* OO_EXCLUDE_DEBUG_SUPPORT */

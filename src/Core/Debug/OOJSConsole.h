@@ -1,6 +1,8 @@
 /*
 
-OODebugTCPConsoleClient.h
+OOJSConsole.h
+
+JavaScript object representing the JavaScript console.
 
 
 Oolite Debug OXP
@@ -27,34 +29,10 @@ SOFTWARE.
 
 */
 
-
-#import <Cocoa/Cocoa.h>
-#import "OODebuggerInterface.h"
+#import <Foundation/Foundation.h>
+#import <jsapi.h>
 
 @class OODebugMonitor;
 
 
-typedef enum
-{
-	kOOTCPClientNotConnected,
-	kOOTCPClientStartedConnectionStage1,
-	kOOTCPClientStartedConnectionStage2,
-	kOOTCPClientConnected,
-	kOOTCPClientConnectionRefused,
-	kOOTCPClientDisconnected
-} OOTCPClientConnectionStatus;
-
-
-@interface OODebugTCPConsoleClient: NSObject <OODebuggerInterface>
-{
-	NSOutputStream				*_outStream;
-	NSInputStream				*_inStream;
-	OOTCPClientConnectionStatus	_status;
-	OODebugMonitor				*_monitor;
-	struct OOTCPStreamDecoder	*_decoder;
-}
-
-- (id) initWithAddress:(NSString *)address	// Pass nil for localhost
-				  port:(uint16_t)port;		// Pass 0 for default port
-
-@end
+JSObject *DebugMonitorToJSConsole(JSContext *context, OODebugMonitor *monitor);

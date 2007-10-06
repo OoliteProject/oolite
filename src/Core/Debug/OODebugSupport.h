@@ -1,8 +1,8 @@
 /*
 
-OODebugBundleLoader.h
+OODebugSupport.h
 
-Load external bundle with debug features.
+Set up debug support.
 
 
 Oolite
@@ -48,18 +48,12 @@ SOFTWARE.
 
 */
 
-#import "OOCocoa.h"
+#ifndef OO_EXCLUDE_DEBUG_SUPPORT
 
-
-#define OO_USE_DEBUG_BUNDLE		(!defined (NDEBUG) && OOLITE_MAC_OS_X)
-
-
-#if OO_USE_DEBUG_BUNDLE
-
-void OOLoadDebugBundle(void);
+void OOInitDebugSupport(void);
 
 #else
 
-#define OOLoadDebugBundle() do {} while (0)
+#define OOInitDebugSupport() do {} while (0)
 
-#endif	// OO_USE_DEBUG_BUNDLE
+#endif

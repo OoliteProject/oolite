@@ -175,7 +175,7 @@ static void ReportJSError(JSContext *context, const char *message, JSErrorReport
 
 	// create a context and associate it with the JS run time
 	context = JS_NewContext(runtime, 8192);
-	JS_SetOptions(context, JSOPTION_VAROBJFIX | JSOPTION_STRICT | JSOPTION_COMPILE_N_GO | JSOPTION_NATIVE_BRANCH_CALLBACK);
+	JS_SetOptions(context, JSOPTION_VAROBJFIX | JSOPTION_STRICT | JSOPTION_NATIVE_BRANCH_CALLBACK);
 	JS_SetVersion(context, JSVERSION_1_7);
 	
 	// if context does not have a value, end the program here

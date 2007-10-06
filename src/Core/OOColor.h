@@ -98,4 +98,7 @@ MA 02110-1301, USA.
 // Multiply r, g and b components of a colour by specified factor, clamped to [0..1].
 - (OOColor *)colorWithBrightnessFactor:(float)factor;
 
+// r,g,b,a array in 0..1 range.
+- (NSArray *)normalizedArray;
+
 @end

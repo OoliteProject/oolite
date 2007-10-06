@@ -315,6 +315,20 @@
 		1A2A8E040BC67CCC001E00FB /* OOWeakReference.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A2A8E020BC67CCC001E00FB /* OOWeakReference.m */; };
 		1A2A91520BC6BC66001E00FB /* OOJSQuaternion.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A2A91500BC6BC66001E00FB /* OOJSQuaternion.h */; };
 		1A2A91530BC6BC66001E00FB /* OOJSQuaternion.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A2A91510BC6BC66001E00FB /* OOJSQuaternion.m */; };
+		1A2DA2AB0CB4CB5C00DE6823 /* OODebugTCPConsoleProtocol.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A2DA2A40CB4CB5C00DE6823 /* OODebugTCPConsoleProtocol.h */; };
+		1A2DA2AE0CB4CB5C00DE6823 /* OODebugTCPConsoleClient.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A2DA2A70CB4CB5C00DE6823 /* OODebugTCPConsoleClient.h */; };
+		1A2DA2AF0CB4CB5C00DE6823 /* OOTCPStreamDecoderAbstractionLayer.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A2DA2A80CB4CB5C00DE6823 /* OOTCPStreamDecoderAbstractionLayer.h */; };
+		1A2DA2B00CB4CB5C00DE6823 /* OOTCPStreamDecoder.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A2DA2A90CB4CB5C00DE6823 /* OOTCPStreamDecoder.h */; };
+		1A2DA34D0CB4D0D800DE6823 /* OOJSConsole.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A2DA3490CB4D0D800DE6823 /* OOJSConsole.h */; };
+		1A2DA34E0CB4D0D800DE6823 /* OODebugMonitor.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A2DA34A0CB4D0D800DE6823 /* OODebugMonitor.h */; };
+		1A2DA3550CB4D10800DE6823 /* OODebuggerInterface.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A2DA3540CB4D10800DE6823 /* OODebuggerInterface.h */; };
+		1A2DA3830CB4D25D00DE6823 /* OOTCPStreamDecoderAbstractionLayer.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A2DA2AA0CB4CB5C00DE6823 /* OOTCPStreamDecoderAbstractionLayer.m */; };
+		1A2DA3870CB4D27400DE6823 /* OOTCPStreamDecoder.c in Sources */ = {isa = PBXBuildFile; fileRef = 1A2DA2A60CB4CB5C00DE6823 /* OOTCPStreamDecoder.c */; };
+		1A2DA3920CB4D29300DE6823 /* OODebugTCPConsoleClient.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A2DA2A50CB4CB5C00DE6823 /* OODebugTCPConsoleClient.m */; };
+		1A2DA39E0CB4D2BB00DE6823 /* OODebugMonitor.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A2DA34C0CB4D0D800DE6823 /* OODebugMonitor.m */; };
+		1A2DA3A40CB4D35800DE6823 /* OOJSConsole.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A2DA34B0CB4D0D800DE6823 /* OOJSConsole.m */; };
+		1A2DA3EE0CB4E84900DE6823 /* OODebugSupport.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A2DA3EC0CB4E84900DE6823 /* OODebugSupport.m */; };
+		1A2DA3EF0CB4E84900DE6823 /* OODebugSupport.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A2DA3ED0CB4E84900DE6823 /* OODebugSupport.h */; };
 		1A34912A0BC25EAA00802DA7 /* world-scripts.plist in Copy Config */ = {isa = PBXBuildFile; fileRef = 1A3491290BC25EAA00802DA7 /* world-scripts.plist */; };
 		1A34912E0BC25EBC00802DA7 /* oolite-legacy-script.plist in Copy Scripts */ = {isa = PBXBuildFile; fileRef = 1A34912D0BC25EBC00802DA7 /* oolite-legacy-script.plist */; };
 		1A358CE20C1AB80D00E52220 /* ReadMe.rtfd in Resources */ = {isa = PBXBuildFile; fileRef = 1A358CE10C1AB80D00E52220 /* ReadMe.rtfd */; };
@@ -451,8 +465,6 @@
 		1A9406B50BAF67BF005F6CF3 /* OOTriangle.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A9406B30BAF67BF005F6CF3 /* OOTriangle.m */; settings = {COMPILER_FLAGS = "-O3 -falign-loops=32 -falign-loops-max-skip=31 -falign-functions=32"; }; };
 		1A95338B0C02089E004EBB58 /* material-defaults.plist in Copy Config */ = {isa = PBXBuildFile; fileRef = 1A9533890C02089E004EBB58 /* material-defaults.plist */; };
 		1A95338C0C02089E004EBB58 /* planetinfo.plist in Copy Config */ = {isa = PBXBuildFile; fileRef = 1A95338A0C02089E004EBB58 /* planetinfo.plist */; };
-		1A9590590C7FC94200C112A9 /* OODebugBundleLoader.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A9590570C7FC94200C112A9 /* OODebugBundleLoader.m */; };
-		1A95905A0C7FC94200C112A9 /* OODebugBundleLoader.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A9590580C7FC94200C112A9 /* OODebugBundleLoader.h */; };
 		1AB01ABE0BB15AED00F1B949 /* OOTextureScaling.h in Headers */ = {isa = PBXBuildFile; fileRef = 1AB01ABC0BB15AED00F1B949 /* OOTextureScaling.h */; };
 		1AB01B5F0BB1639600F1B949 /* OOTextureScaling.m in Sources */ = {isa = PBXBuildFile; fileRef = 1AB01ABD0BB15AED00F1B949 /* OOTextureScaling.m */; };
 		1AB01BBB0BB16A8A00F1B949 /* OOFastArithmetic.h in Headers */ = {isa = PBXBuildFile; fileRef = 1AB01BB90BB16A8A00F1B949 /* OOFastArithmetic.h */; };
@@ -1223,6 +1235,20 @@
 		1A2A8E020BC67CCC001E00FB /* OOWeakReference.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOWeakReference.m; sourceTree = "<group>"; };
 		1A2A91500BC6BC66001E00FB /* OOJSQuaternion.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOJSQuaternion.h; sourceTree = "<group>"; };
 		1A2A91510BC6BC66001E00FB /* OOJSQuaternion.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOJSQuaternion.m; sourceTree = "<group>"; };
+		1A2DA2A40CB4CB5C00DE6823 /* OODebugTCPConsoleProtocol.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OODebugTCPConsoleProtocol.h; sourceTree = "<group>"; };
+		1A2DA2A50CB4CB5C00DE6823 /* OODebugTCPConsoleClient.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OODebugTCPConsoleClient.m; sourceTree = "<group>"; };
+		1A2DA2A60CB4CB5C00DE6823 /* OOTCPStreamDecoder.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = OOTCPStreamDecoder.c; sourceTree = "<group>"; };
+		1A2DA2A70CB4CB5C00DE6823 /* OODebugTCPConsoleClient.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OODebugTCPConsoleClient.h; sourceTree = "<group>"; };
+		1A2DA2A80CB4CB5C00DE6823 /* OOTCPStreamDecoderAbstractionLayer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOTCPStreamDecoderAbstractionLayer.h; sourceTree = "<group>"; };
+		1A2DA2A90CB4CB5C00DE6823 /* OOTCPStreamDecoder.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOTCPStreamDecoder.h; sourceTree = "<group>"; };
+		1A2DA2AA0CB4CB5C00DE6823 /* OOTCPStreamDecoderAbstractionLayer.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOTCPStreamDecoderAbstractionLayer.m; sourceTree = "<group>"; };
+		1A2DA3490CB4D0D800DE6823 /* OOJSConsole.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOJSConsole.h; sourceTree = "<group>"; };
+		1A2DA34A0CB4D0D800DE6823 /* OODebugMonitor.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OODebugMonitor.h; sourceTree = "<group>"; };
+		1A2DA34B0CB4D0D800DE6823 /* OOJSConsole.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOJSConsole.m; sourceTree = "<group>"; };
+		1A2DA34C0CB4D0D800DE6823 /* OODebugMonitor.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OODebugMonitor.m; sourceTree = "<group>"; };
+		1A2DA3540CB4D10800DE6823 /* OODebuggerInterface.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OODebuggerInterface.h; sourceTree = "<group>"; };
+		1A2DA3EC0CB4E84900DE6823 /* OODebugSupport.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OODebugSupport.m; sourceTree = "<group>"; };
+		1A2DA3ED0CB4E84900DE6823 /* OODebugSupport.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OODebugSupport.h; sourceTree = "<group>"; };
 		1A2F63950C5CC737003872C8 /* demoshipsSchema.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist; path = demoshipsSchema.plist; sourceTree = "<group>"; };
 		1A2F63960C5CC737003872C8 /* hudSchema.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist; path = hudSchema.plist; sourceTree = "<group>"; };
 		1A2F63980C5CC737003872C8 /* shipdataEntrySchema.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist; path = shipdataEntrySchema.plist; sourceTree = "<group>"; };
@@ -1365,8 +1391,6 @@
 		1A9407BF0BAF7032005F6CF3 /* GNUmakefile */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = GNUmakefile; sourceTree = "<group>"; };
 		1A9533890C02089E004EBB58 /* material-defaults.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xml; path = "material-defaults.plist"; sourceTree = "<group>"; };
 		1A95338A0C02089E004EBB58 /* planetinfo.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xml; path = planetinfo.plist; sourceTree = "<group>"; };
-		1A9590570C7FC94200C112A9 /* OODebugBundleLoader.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = OODebugBundleLoader.m; path = src/Core/OODebugBundleLoader.m; sourceTree = SOURCE_ROOT; };
-		1A9590580C7FC94200C112A9 /* OODebugBundleLoader.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = OODebugBundleLoader.h; path = src/Core/OODebugBundleLoader.h; sourceTree = SOURCE_ROOT; };
 		1AB01ABC0BB15AED00F1B949 /* OOTextureScaling.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = OOTextureScaling.h; path = ../OOTextureScaling.h; sourceTree = "<group>"; };
 		1AB01ABD0BB15AED00F1B949 /* OOTextureScaling.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = OOTextureScaling.m; path = ../OOTextureScaling.m; sourceTree = "<group>"; };
 		1AB01BB90BB16A8A00F1B949 /* OOFastArithmetic.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOFastArithmetic.h; sourceTree = "<group>"; };
@@ -1881,6 +1905,27 @@
 			name = Graphics;
 			sourceTree = "<group>";
 		};
+		1A2DA2A00CB4CB3500DE6823 /* Debug */ = {
+			isa = PBXGroup;
+			children = (
+				1A2DA3ED0CB4E84900DE6823 /* OODebugSupport.h */,
+				1A2DA3EC0CB4E84900DE6823 /* OODebugSupport.m */,
+				1A2DA3540CB4D10800DE6823 /* OODebuggerInterface.h */,
+				1A2DA34A0CB4D0D800DE6823 /* OODebugMonitor.h */,
+				1A2DA34C0CB4D0D800DE6823 /* OODebugMonitor.m */,
+				1A2DA3490CB4D0D800DE6823 /* OOJSConsole.h */,
+				1A2DA34B0CB4D0D800DE6823 /* OOJSConsole.m */,
+				1A2DA2A40CB4CB5C00DE6823 /* OODebugTCPConsoleProtocol.h */,
+				1A2DA2A70CB4CB5C00DE6823 /* OODebugTCPConsoleClient.h */,
+				1A2DA2A50CB4CB5C00DE6823 /* OODebugTCPConsoleClient.m */,
+				1A2DA2A90CB4CB5C00DE6823 /* OOTCPStreamDecoder.h */,
+				1A2DA2A60CB4CB5C00DE6823 /* OOTCPStreamDecoder.c */,
+				1A2DA2A80CB4CB5C00DE6823 /* OOTCPStreamDecoderAbstractionLayer.h */,
+				1A2DA2AA0CB4CB5C00DE6823 /* OOTCPStreamDecoderAbstractionLayer.m */,
+			);
+			path = Debug;
+			sourceTree = "<group>";
+		};
 		1A2F63940C5CC737003872C8 /* Schemata */ = {
 			isa = PBXGroup;
 			children = (
@@ -2062,8 +2107,6 @@
 			children = (
 				1A0519340C7CCAC900BA5CCA /* DebugOXP.xcodeproj */,
 				1A0517D10C7B376700BA5CCA /* debug-exports.exp */,
-				1A9590580C7FC94200C112A9 /* OODebugBundleLoader.h */,
-				1A9590570C7FC94200C112A9 /* OODebugBundleLoader.m */,
 			);
 			name = "Debug OXP";
 			path = src/Cocoa;
@@ -2089,6 +2132,7 @@
 				2516110C099544390037C2E1 /* GameController.m */,
 				1A2A1B020BD2768300152975 /* Graphics */,
 				1A5DBA980BC000DC00D57389 /* Scripting */,
+				1A2DA2A00CB4CB3500DE6823 /* Debug */,
 				1AB2AAE70C4CDF890008CF4E /* OXP Verification */,
 			);
 			name = Source;
@@ -2560,7 +2604,6 @@
 				1A73712D0C623DAE0097AC37 /* OOJSStation.h in Headers */,
 				1A7376BE0C64AE330097AC37 /* OOJSSystem.h in Headers */,
 				1A73795D0C65CF090097AC37 /* OOLegacyEventHandlerScript.h in Headers */,
-				1A95905A0C7FC94200C112A9 /* OODebugBundleLoader.h in Headers */,
 				1A4FB23A0C8D6A9A00DC8E1F /* jsautocfg.h in Headers */,
 				1A4FB23C0C8D6AA900DC8E1F /* jsapi.h in Headers */,
 				1A4FB23F0C8D6AB400DC8E1F /* jspubtd.h in Headers */,
@@ -2574,6 +2617,14 @@
 				1A6B1F370C9AAA60000717CF /* OOPriorityQueue.h in Headers */,
 				1A6B228D0C9B40D4000717CF /* OOJSTimer.h in Headers */,
 				1A6B25EE0C9C2746000717CF /* OOJSClock.h in Headers */,
+				1A2DA2AB0CB4CB5C00DE6823 /* OODebugTCPConsoleProtocol.h in Headers */,
+				1A2DA2AE0CB4CB5C00DE6823 /* OODebugTCPConsoleClient.h in Headers */,
+				1A2DA2AF0CB4CB5C00DE6823 /* OOTCPStreamDecoderAbstractionLayer.h in Headers */,
+				1A2DA2B00CB4CB5C00DE6823 /* OOTCPStreamDecoder.h in Headers */,
+				1A2DA34D0CB4D0D800DE6823 /* OOJSConsole.h in Headers */,
+				1A2DA34E0CB4D0D800DE6823 /* OODebugMonitor.h in Headers */,
+				1A2DA3550CB4D10800DE6823 /* OODebuggerInterface.h in Headers */,
+				1A2DA3EF0CB4E84900DE6823 /* OODebugSupport.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -2903,7 +2954,6 @@
 				1A73712E0C623DAE0097AC37 /* OOJSStation.m in Sources */,
 				1A7376BF0C64AE330097AC37 /* OOJSSystem.m in Sources */,
 				1A73795E0C65CF090097AC37 /* OOLegacyEventHandlerScript.m in Sources */,
-				1A9590590C7FC94200C112A9 /* OODebugBundleLoader.m in Sources */,
 				1A4FB3360C8DC86800DC8E1F /* OOJSOolite.m in Sources */,
 				1ACEA34A0C91507000C7CE97 /* OORoleSet.m in Sources */,
 				1ACEA6C00C91DA3E00C7CE97 /* OOJSGlobal.m in Sources */,
@@ -2913,6 +2963,12 @@
 				1A6B1F360C9AAA60000717CF /* OOPriorityQueue.m in Sources */,
 				1A6B228E0C9B40D4000717CF /* OOJSTimer.m in Sources */,
 				1A6B25EF0C9C2746000717CF /* OOJSClock.m in Sources */,
+				1A2DA3830CB4D25D00DE6823 /* OOTCPStreamDecoderAbstractionLayer.m in Sources */,
+				1A2DA3870CB4D27400DE6823 /* OOTCPStreamDecoder.c in Sources */,
+				1A2DA3920CB4D29300DE6823 /* OODebugTCPConsoleClient.m in Sources */,
+				1A2DA39E0CB4D2BB00DE6823 /* OODebugMonitor.m in Sources */,
+				1A2DA3A40CB4D35800DE6823 /* OOJSConsole.m in Sources */,
+				1A2DA3EE0CB4E84900DE6823 /* OODebugSupport.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -3042,7 +3098,7 @@
 				GCC_PREPROCESSOR_DEFINITIONS = XP_UNIX;
 				GCC_PREPROCESSOR_DEFINITIONS_NOT_USED_IN_PRECOMPS = (
 					NDEBUG,
-					OOLOG_NO_FILE_NAME,
+					OO_EXCLUDE_DEBUG_SUPPORT,
 				);
 				GCC_REUSE_STRINGS = YES;
 				GCC_TREAT_WARNINGS_AS_ERRORS = YES;
@@ -3147,10 +3203,8 @@
 				GCC_DEBUGGING_SYMBOLS = used;
 				GCC_ENABLE_FIX_AND_CONTINUE = NO;
 				GCC_OPTIMIZATION_LEVEL = s;
-				GCC_PREPROCESSOR_DEFINITIONS = (
-					XP_UNIX,
-					"OO_SMART_CRASH_REPORT_INSTALL=1",
-				);
+				GCC_PREPROCESSOR_DEFINITIONS = XP_UNIX;
+				GCC_PREPROCESSOR_DEFINITIONS_NOT_USED_IN_PRECOMPS = "OO_SMART_CRASH_REPORT_INSTALL=1";
 				GCC_REUSE_STRINGS = YES;
 				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
 				GCC_TREAT_WARNINGS_AS_ERRORS = YES;

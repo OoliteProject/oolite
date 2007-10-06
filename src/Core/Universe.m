@@ -46,7 +46,7 @@ MA 02110-1301, USA.
 #import "Octree.h"
 #import "CollisionRegion.h"
 #import "OOGraphicsResetManager.h"
-#import "OODebugBundleLoader.h"
+#import "OODebugSupport.h"
 
 #import "OOCharacter.h"
 
@@ -270,7 +270,7 @@ static NSComparisonResult comparePrice(NSDictionary *dict1, NSDictionary *dict2,
 	doProcedurallyTexturedPlanets = NO;
 #endif
 	
-	OOLoadDebugBundle();
+	OOInitDebugSupport();
 	
 	[player completeInitialSetUp];
 	
@@ -365,7 +365,7 @@ static NSComparisonResult comparePrice(NSDictionary *dict1, NSDictionary *dict2,
 {
 	if (strict == value)  return;
 	
-	strict = value;
+	strict = !!value;
 	[OOTexture clearCache];	// Force reload of texutres, since search paths effectively change
 	
 	[self reinit];
