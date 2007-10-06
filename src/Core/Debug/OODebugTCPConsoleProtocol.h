@@ -240,7 +240,7 @@ enum
 	a space and additional information in unspecified format. Sent with
 	kOOTCPPacket_RequestConnection.
 */
-#define kOOTCPOoliteVersion					OOSTR("oolite version")
+#define kOOTCPOoliteVersion					OOSTR("Oolite version")
 
 /*	kOOTCPMessage
 	Textual message sent with various packet types. No specified format.
