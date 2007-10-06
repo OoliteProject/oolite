@@ -98,7 +98,8 @@ typedef struct
 							isSunlit: 1,
 							collisionTestFilter: 1,
 							throw_sparks: 1,
-							isImmuneToBreakPatternHide: 1;
+							isImmuneToBreakPatternHide: 1,
+							isExplicitlyNotMainStation: 1;
 	
 	OOScanClass				scanClass;
 	OOEntityStatus			status;

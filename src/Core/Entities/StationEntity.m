@@ -1672,6 +1672,8 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 
 - (void) becomeExplosion
 {
+	if (self == [UNIVERSE station])  return;
+	
 	// launch docked ships if possible
 	PlayerEntity* player = [PlayerEntity sharedPlayer];
 	if ((player)&&(player->status == STATUS_DOCKED)&&([player dockedStation] == self))
@@ -1692,6 +1694,20 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 	
 	// finally bite the bullet
 	[super becomeExplosion];
+}
+
+
+- (void) becomeEnergyBlast
+{
+	if (self == [UNIVERSE station])  return;
+	[super becomeEnergyBlast];
+}
+
+
+- (void) becomeLargeExplosion:(double) factor
+{
+	if (self == [UNIVERSE station])  return;
+	[super becomeLargeExplosion:factor];
 }
 
 

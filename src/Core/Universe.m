@@ -2583,7 +2583,10 @@ GLfloat docked_light_specular[]	= { (GLfloat) 1.0, (GLfloat) 1.0, (GLfloat) 0.5,
 - (StationEntity *) station
 {
 	if (cachedStation)
+	{
+		if (cachedStation->isExplicitlyNotMainStation)  return nil;
 		return cachedStation;
+	}
 	
 	if (![self entityForUniversalID:station])
 	{
@@ -2679,14 +2682,14 @@ GLfloat docked_light_specular[]	= { (GLfloat) 1.0, (GLfloat) 1.0, (GLfloat) 0.5,
 
 - (void)unMagicMainStation
 {
-	station = NO_TARGET;
-	cachedStation = nil;
+	StationEntity *theStation = [self station];
+	if (theStation != nil)  theStation->isExplicitlyNotMainStation = YES;
 }
 
 
 - (void) resetBeacons
 {
-	ShipEntity* beaconShip = [self firstBeacon];
+	ShipEntity *beaconShip = [self firstBeacon];
 	while (beaconShip)
 	{
 		firstBeacon = [beaconShip nextBeaconID];
