@@ -9,6 +9,7 @@
 .objc_class_name_OOWeakRefObject
 .objc_class_name_OOScript
 .objc_class_name_OOJSScript
+.objc_class_name_OODebugMonitor
 _OOLogWithFunctionFileAndLine
 _OOLogInsertMarker
 _OOLogSetDisplayMessagesInClass

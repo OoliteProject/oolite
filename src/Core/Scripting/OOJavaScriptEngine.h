@@ -143,6 +143,9 @@ void JSObjectWrapperFinalize(JSContext *context, JSObject *this);
 // Concatenate sequence of arbitrary JS objects into string.
 + (id)concatenationOfStringsFromJavaScriptValues:(jsval *)values count:(size_t)count separator:(NSString *)separator inContext:(JSContext *)context;
 
+// Add escape codes for string so that it's a valid JavaScript literal (if you put "" or '' around it).
+- (NSString *)escapedForJavaScriptLiteral;
+
 @end
 
 

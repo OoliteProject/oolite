@@ -302,6 +302,12 @@ static OODebugMonitor *sSingleton = nil;
 }
 
 
+- (BOOL) debuggerConnected
+{
+	return _debugger != nil;
+}
+
+
 - (NSString *)sourceCodeForFile:(in NSString *)filePath line:(in unsigned)line
 {
 	id							linesForFile = nil;

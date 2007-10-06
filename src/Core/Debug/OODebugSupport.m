@@ -95,7 +95,7 @@ void OOInitDebugSupport(void)
 		consolePort = [debugSettings unsignedShortForKey:@"console-port"];
 		
 		// If consoleHost is nil, and the debug plug-in can set up a debugger, use that.
-		if (consoleHost == nil && [plugInController respondsToSelector:@selector(registerIntegratedDebugConsole)])
+		if (consoleHost == nil && [plugInController respondsToSelector:@selector(setUpDebugger)])
 		{
 			debugger = [plugInController setUpDebugger];
 		}

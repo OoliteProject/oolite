@@ -98,5 +98,7 @@ SOFTWARE.
 
 - (NSArray *)configurationKeys;
 
+- (BOOL) debuggerConnected;
+
 @end
 
