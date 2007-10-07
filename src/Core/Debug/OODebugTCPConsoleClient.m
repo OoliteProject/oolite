@@ -36,7 +36,13 @@ SOFTWARE.
 #import "OOFunctionAttributes.h"
 #import "OOLogging.h"
 #import <stdint.h>
+
+#if OOLITE_WINDOWS
+#import <winsock2.h>
+#else
 #import <arpa/inet.h>	// For htonl
+#endif
+
 #import "OOCollectionExtractors.h"
 #import "OOTCPStreamDecoder.h"
 

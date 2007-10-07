@@ -75,7 +75,7 @@ void OOInitDebugSupport(void)
 	id						plugInController = nil;
 	NSDictionary			*debugSettings = nil;
 	NSString				*consoleHost = nil;
-	unsigned short			consolePort = nil;
+	unsigned short			consolePort = 0;
 	id<OODebuggerInterface>	debugger = nil;
 	
 	// Check that the debug OXP is installed. If not, we don't enable debug support.

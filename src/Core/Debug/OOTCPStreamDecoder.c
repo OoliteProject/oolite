@@ -52,6 +52,7 @@ SOFTWARE.
 #include "OOTCPStreamDecoder.h"
 #include <stdlib.h>
 #include <stdarg.h>
+#include <stdint.h>
 #include "OODebugTCPConsoleProtocol.h"
 
 
@@ -136,7 +137,7 @@ void OOTCPStreamDecoderReceiveBytes(OOTCPStreamDecoderRef decoder, const void *i
 	
 	if (bytes == NULL && remaining != 0)
 	{
-		Error(decoder, FALSE, OOALSTR("Invalid data -- NULL bytes but %u byte count."), remaining);
+		Error(decoder, OOALSTR("Invalid data -- NULL bytes but %u byte count."), remaining);
 		return;
 	}
 	

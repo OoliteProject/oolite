@@ -33,6 +33,8 @@ SOFTWARE.
 #ifdef __OBJC__
 #import <Foundation/Foundation.h>
 #define OOSTR(x) @""x
+#elif (defined GNUSTEP)
+#define OOSTR(x) (x)
 #else
 #include <CoreFoundation/CoreFoundation.h>
 #define OOSTR(x) CFSTR(x)

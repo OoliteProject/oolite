@@ -27,8 +27,7 @@ SOFTWARE.
 
 */
 
-
-#import <Cocoa/Cocoa.h>
+#import "OOCocoa.h"
 #import "OODebuggerInterface.h"
 
 @class OODebugMonitor;
