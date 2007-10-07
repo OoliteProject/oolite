@@ -30,7 +30,8 @@ MA 02110-1301, USA.
 
 
 static JSObject		*sStationPrototype;
-static JSObject		*sStationObject;
+
+static BOOL JSStationGetStationEntity(JSContext *context, JSObject *stationObj, StationEntity **outEntity);
 
 
 static JSBool StationGetProperty(JSContext *context, JSObject *this, jsval name, jsval *outValue);
@@ -91,7 +92,7 @@ void InitOOJSStation(JSContext *context, JSObject *global)
 }
 
 
-BOOL JSStationGetStationEntity(JSContext *context, JSObject *stationObj, StationEntity **outEntity)
+static BOOL JSStationGetStationEntity(JSContext *context, JSObject *stationObj, StationEntity **outEntity)
 {
 	BOOL						result;
 	Entity						*entity = nil;
@@ -108,22 +109,21 @@ BOOL JSStationGetStationEntity(JSContext *context, JSObject *stationObj, Station
 }
 
 
-JSClass *JSStationClass(void)
+@implementation StationEntity (OOJavaScriptExtensions)
+
+- (void)getJSClass:(JSClass **)outClass andPrototype:(JSObject **)outPrototype
 {
-	return &sStationClass.base;
+	*outClass = &sStationClass.base;
+	*outPrototype = sStationPrototype;
 }
 
 
-JSObject *JSStationPrototype(void)
+- (NSString *)jsClassName
 {
-	return sStationPrototype;
+	return @"Station";
 }
 
-
-JSObject *JSStationObject(void)
-{
-	return sStationObject;
-}
+@end
 
 
 static JSBool StationGetProperty(JSContext *context, JSObject *this, jsval name, jsval *outValue)

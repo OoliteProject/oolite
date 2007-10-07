@@ -34,6 +34,7 @@ MA 02110-1301, USA.
 #import "OOJSShip.h"
 #import "OOJSStation.h"
 #import "OOJSPlayer.h"
+#import "OOJSPlanet.h"
 #import "OOJSSystem.h"
 #import "OOJSOolite.h"
 #import "OOJSTimer.h"
@@ -207,6 +208,7 @@ static void ReportJSError(JSContext *context, const char *message, JSErrorReport
 	InitOOJSShip(context, globalObject);
 	InitOOJSStation(context, globalObject);
 	InitOOJSPlayer(context, globalObject);
+	InitOOJSPlanet(context, globalObject);
 	InitOOJSScript(context, globalObject);
 	InitOOJSTimer(context, globalObject);
 	InitOOJSClock(context, globalObject);
@@ -890,6 +892,23 @@ void JSObjectWrapperFinalize(JSContext *context, JSObject *this)
 {
 	[(id)JS_GetPrivate(context, this) release];
 	JS_SetPrivate(context, this, nil);
+}
+
+
+BOOL JSFunctionPredicate(Entity *entity, void *parameter)
+{
+	JSFunctionPredicateParameter	*param = parameter;
+	jsval							args[1];
+	jsval							rval = JSVAL_VOID;
+	JSBool							result = NO;
+	
+	args[0] = [entity javaScriptValueInContext:param->context];
+	if (JS_CallFunction(param->context, param->jsThis, param->function, 1, args, &rval))
+	{
+		if (!JS_ValueToBoolean(param->context, rval, &result))  result = NO;
+	}
+	
+	return result;
 }
 
 

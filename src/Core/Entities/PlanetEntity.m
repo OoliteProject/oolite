@@ -1008,7 +1008,7 @@ static GLfloat	texture_uv_array[10400 * 2];
 		default :
 			type_string = @"UNKNOWN";
 	}
-	return [NSString stringWithFormat:@"%@ type: %@ diameter: %.3fkm", [super descriptionComponents], type_string, 0.001 * collision_radius];
+	return [NSString stringWithFormat:@"%@ type: %@ radius: %.3fkm", [super descriptionComponents], type_string, 0.001 * [self radius]];
 }
 
 
@@ -1617,19 +1617,19 @@ void drawActiveCorona(GLfloat inner_radius, GLfloat outer_radius, GLfloat step, 
 }
 
 
-- (int) getPlanetType
+- (OOPlanetType) planetType
 {
 	return planet_type;
 }
 
 
-- (void) setPlanetType:(int) pt
+- (void) setPlanetType:(OOPlanetType) pt
 {
 	planet_type = pt;
 }
 
 
-- (double) getRadius
+- (double) radius
 {
 	return collision_radius;
 }
@@ -1644,7 +1644,7 @@ void drawActiveCorona(GLfloat inner_radius, GLfloat outer_radius, GLfloat step, 
 }
 
 
-- (double) getSqrt_zero_distance
+- (double) sqrtZeroDistance
 {
 	return sqrt_zero_distance;
 }
@@ -1666,6 +1666,12 @@ void drawActiveCorona(GLfloat inner_radius, GLfloat outer_radius, GLfloat step, 
 		vert.z *= rad;
 		vertices[i] = vert;
 	}
+}
+
+
+- (BOOL) hasAtmosphere
+{
+	return atmosphere != nil;
 }
 
 

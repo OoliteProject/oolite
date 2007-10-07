@@ -185,6 +185,7 @@ static OODebugMonitor *sSingleton = nil;
 				   colorKey:(NSString *)colorKey
 			  emphasisRange:(NSRange)emphasisRange
 {
+	if (string == nil)  return;
 	NS_DURING
 		[_debugger debugMonitor:self
 				jsConsoleOutput:string

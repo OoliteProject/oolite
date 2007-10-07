@@ -272,9 +272,16 @@ static JSBool ConsoleConsoleMessage(JSContext *context, JSObject *this, uintN ar
 		}
 	}
 	
-	[monitor appendJSConsoleLine:message
-						colorKey:colorKey
-				   emphasisRange:emphasisRange];
+	if (message == nil)
+	{
+		OOReportJavaScriptWarning(context, @"Console.consoleMessage() called with insufficient parameters. Did you forget to specify a colour key?");
+	}
+	else
+	{
+		[monitor appendJSConsoleLine:message
+							colorKey:colorKey
+					   emphasisRange:emphasisRange];
+	}
 	return YES;
 }
 

@@ -37,6 +37,9 @@ MA 02110-1301, USA.
 		OORoleSet;
 
 
+typedef BOOL (*EntityFilterPredicate)(Entity *entity, void *parameter);
+
+
 #define CROSSHAIR_SIZE						32.0
 
 enum
@@ -295,7 +298,7 @@ enum
 - (StationEntity *) station;
 - (PlanetEntity *) planet;
 - (PlanetEntity *) sun;
-// FIXME: lists of all planets and stations would be useful in, e.g., -[CollisionRegion findShadowedEntities]
+- (NSArray *) planets;
 
 // Turn main station into just another station, for blowUpStation.
 - (void) unMagicMainStation;
@@ -328,7 +331,7 @@ enum
 - (OOCargoType) getRandomCommodity;
 - (OOCargoQuantity) getRandomAmountOfCommodity:(OOCargoType) co_type;
 
-- (NSArray *)commidityDataForType:(OOCargoType)type;
+- (NSArray *) commidityDataForType:(OOCargoType)type;
 - (OOCargoType) commodityForName:(NSString *) co_name;
 - (NSString *) nameForCommodity:(OOCargoType) co_type;
 - (OOMassUnit) unitsForCommodity:(OOCargoType) co_type;
@@ -342,7 +345,7 @@ enum
 - (void) drawCrosshairs;
 - (void) drawMessage;
 
-- (id)entityForUniversalID:(OOUniversalID)u_id;
+- (id) entityForUniversalID:(OOUniversalID)u_id;
 
 - (BOOL) addEntity:(Entity *) entity;
 - (BOOL) removeEntity:(Entity *) entity;
@@ -363,6 +366,26 @@ enum
 - (unsigned) countShipsWithPrimaryRole:(NSString *)role inRange:(double)range ofEntity:(Entity *)entity;
 - (unsigned) countShipsWithPrimaryRole:(NSString *)role;
 - (void) sendShipsWithPrimaryRole:(NSString *)role messageToAI:(NSString *)message;
+
+
+// General count/search methods. Pass range of -1 and entity of nil to search all of system.
+- (unsigned) countEntitiesMatchingPredicate:(EntityFilterPredicate)predicate
+								  parameter:(void *)parameter
+									inRange:(double)range
+								   ofEntity:(Entity *)entity;
+- (unsigned) countShipsMatchingPredicate:(EntityFilterPredicate)predicate
+							   parameter:(void *)parameter
+								 inRange:(double)range
+								ofEntity:(Entity *)entity;
+- (NSArray *) findEntitiesMatchingPredicate:(EntityFilterPredicate)predicate
+								  parameter:(void *)parameter
+									inRange:(double)range
+								   ofEntity:(Entity *)entity;
+- (NSArray *) findShipsMatchingPredicate:(EntityFilterPredicate)predicate
+							   parameter:(void *)parameter
+								 inRange:(double)range
+								ofEntity:(Entity *)entity;
+
 
 - (OOTimeAbsolute) getTime;
 - (OOTimeDelta) getTimeDelta;

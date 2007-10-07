@@ -428,7 +428,7 @@ static BOOL hostiles;
 				PlanetEntity* planet = (PlanetEntity *)drawthing;
 				double dist =   planet->zero_distance;
 				double rad =	planet->collision_radius;
-				double factor = ([planet getPlanetType] == PLANET_TYPE_SUN) ? 2.0 : 4.0;
+				double factor = ([planet planetType] == PLANET_TYPE_SUN) ? 2.0 : 4.0;
 				if (dist < rad*rad*factor)
 				{
 					mass_locked = YES;

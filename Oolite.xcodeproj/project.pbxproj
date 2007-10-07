@@ -347,6 +347,10 @@
 		1A3AFF200BC4462200B5E2D9 /* OOJSVector.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A3AFF1E0BC4462200B5E2D9 /* OOJSVector.m */; };
 		1A43234E0BCFC9BB00F65914 /* OOOpenGLExtensionManager.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A43234A0BCFC9BB00F65914 /* OOOpenGLExtensionManager.h */; };
 		1A43234F0BCFC9BB00F65914 /* OOOpenGLExtensionManager.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A43234B0BCFC9BB00F65914 /* OOOpenGLExtensionManager.m */; };
+		1A43A0CC0CB91D2C00D0E239 /* OOJSPlanet.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A43A0CA0CB91D2C00D0E239 /* OOJSPlanet.h */; };
+		1A43A0CD0CB91D2C00D0E239 /* OOJSPlanet.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A43A0CB0CB91D2C00D0E239 /* OOJSPlanet.m */; };
+		1A43A1860CB9243B00D0E239 /* OOEntityFilterPredicate.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A43A1840CB9243B00D0E239 /* OOEntityFilterPredicate.h */; };
+		1A43A1870CB9243B00D0E239 /* OOEntityFilterPredicate.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A43A1850CB9243B00D0E239 /* OOEntityFilterPredicate.m */; };
 		1A451D8D0BB1BD2A004CD72F /* OOMaths.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A9404920BAF4582005F6CF3 /* OOMaths.h */; };
 		1A472917096B5454000E78D8 /* CoreAudio.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1A472916096B5454000E78D8 /* CoreAudio.framework */; };
 		1A472921096B5468000E78D8 /* AudioToolbox.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1A47291F096B5468000E78D8 /* AudioToolbox.framework */; };
@@ -1273,6 +1277,10 @@
 		1A3AFF1E0BC4462200B5E2D9 /* OOJSVector.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOJSVector.m; sourceTree = "<group>"; };
 		1A43234A0BCFC9BB00F65914 /* OOOpenGLExtensionManager.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOOpenGLExtensionManager.h; sourceTree = "<group>"; };
 		1A43234B0BCFC9BB00F65914 /* OOOpenGLExtensionManager.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOOpenGLExtensionManager.m; sourceTree = "<group>"; };
+		1A43A0CA0CB91D2C00D0E239 /* OOJSPlanet.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOJSPlanet.h; sourceTree = "<group>"; };
+		1A43A0CB0CB91D2C00D0E239 /* OOJSPlanet.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOJSPlanet.m; sourceTree = "<group>"; };
+		1A43A1840CB9243B00D0E239 /* OOEntityFilterPredicate.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOEntityFilterPredicate.h; sourceTree = "<group>"; };
+		1A43A1850CB9243B00D0E239 /* OOEntityFilterPredicate.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOEntityFilterPredicate.m; sourceTree = "<group>"; };
 		1A472916096B5454000E78D8 /* CoreAudio.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreAudio.framework; path = /System/Library/Frameworks/CoreAudio.framework; sourceTree = "<absolute>"; };
 		1A47291F096B5468000E78D8 /* AudioToolbox.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AudioToolbox.framework; path = /System/Library/Frameworks/AudioToolbox.framework; sourceTree = "<absolute>"; };
 		1A472920096B5468000E78D8 /* AudioUnit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AudioUnit.framework; path = /System/Library/Frameworks/AudioUnit.framework; sourceTree = "<absolute>"; };
@@ -1947,6 +1955,25 @@
 			path = Scripts;
 			sourceTree = "<group>";
 		};
+		1A43A0D10CB91D3600D0E239 /* Entities */ = {
+			isa = PBXGroup;
+			children = (
+				1A2A8C130BC65FFD001E00FB /* OOJSEntity.h */,
+				1A2A8C140BC65FFD001E00FB /* OOJSEntity.m */,
+				1A3ACFE90C5FF33A00EC50A7 /* OOJSShip.h */,
+				1A3ACFEA0C5FF33A00EC50A7 /* OOJSShip.m */,
+				1A73712B0C623DAE0097AC37 /* OOJSStation.h */,
+				1A73712C0C623DAE0097AC37 /* OOJSStation.m */,
+				1A736BD10C61E9370097AC37 /* OOJSPlayer.h */,
+				1A736BD20C61E9370097AC37 /* OOJSPlayer.m */,
+				1A43A0CA0CB91D2C00D0E239 /* OOJSPlanet.h */,
+				1A43A0CB0CB91D2C00D0E239 /* OOJSPlanet.m */,
+				1A2A8D380BC6765F001E00FB /* EntityOOJavaScriptExtensions.h */,
+				1A2A8D390BC6765F001E00FB /* EntityOOJavaScriptExtensions.m */,
+			);
+			name = Entities;
+			sourceTree = "<group>";
+		};
 		1A4FB2340C8D6A7500DC8E1F /* Products */ = {
 			isa = PBXGroup;
 			children = (
@@ -2000,16 +2027,7 @@
 				1A3AFF1E0BC4462200B5E2D9 /* OOJSVector.m */,
 				1A2A91500BC6BC66001E00FB /* OOJSQuaternion.h */,
 				1A2A91510BC6BC66001E00FB /* OOJSQuaternion.m */,
-				1A2A8C130BC65FFD001E00FB /* OOJSEntity.h */,
-				1A2A8C140BC65FFD001E00FB /* OOJSEntity.m */,
-				1A3ACFE90C5FF33A00EC50A7 /* OOJSShip.h */,
-				1A3ACFEA0C5FF33A00EC50A7 /* OOJSShip.m */,
-				1A73712B0C623DAE0097AC37 /* OOJSStation.h */,
-				1A73712C0C623DAE0097AC37 /* OOJSStation.m */,
-				1A736BD10C61E9370097AC37 /* OOJSPlayer.h */,
-				1A736BD20C61E9370097AC37 /* OOJSPlayer.m */,
-				1A2A8D380BC6765F001E00FB /* EntityOOJavaScriptExtensions.h */,
-				1A2A8D390BC6765F001E00FB /* EntityOOJavaScriptExtensions.m */,
+				1A43A0D10CB91D3600D0E239 /* Entities */,
 				1A7376BC0C64AE330097AC37 /* OOJSSystem.h */,
 				1A7376BD0C64AE330097AC37 /* OOJSSystem.m */,
 				1A4FB3330C8DC86800DC8E1F /* OOJSOolite.h */,
@@ -2194,6 +2212,8 @@
 				1A7D83390C40147700E4A5F5 /* OOAsyncQueue.m */,
 				1A6B1F340C9AAA60000717CF /* OOPriorityQueue.m */,
 				1A6B1F350C9AAA60000717CF /* OOPriorityQueue.h */,
+				1A43A1840CB9243B00D0E239 /* OOEntityFilterPredicate.h */,
+				1A43A1850CB9243B00D0E239 /* OOEntityFilterPredicate.m */,
 			);
 			name = Utilities;
 			sourceTree = "<group>";
@@ -2625,6 +2645,8 @@
 				1A2DA34E0CB4D0D800DE6823 /* OODebugMonitor.h in Headers */,
 				1A2DA3550CB4D10800DE6823 /* OODebuggerInterface.h in Headers */,
 				1A2DA3EF0CB4E84900DE6823 /* OODebugSupport.h in Headers */,
+				1A43A0CC0CB91D2C00D0E239 /* OOJSPlanet.h in Headers */,
+				1A43A1860CB9243B00D0E239 /* OOEntityFilterPredicate.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -2969,6 +2991,8 @@
 				1A2DA39E0CB4D2BB00DE6823 /* OODebugMonitor.m in Sources */,
 				1A2DA3A40CB4D35800DE6823 /* OOJSConsole.m in Sources */,
 				1A2DA3EE0CB4E84900DE6823 /* OODebugSupport.m in Sources */,
+				1A43A0CD0CB91D2C00D0E239 /* OOJSPlanet.m in Sources */,
+				1A43A1870CB9243B00D0E239 /* OOEntityFilterPredicate.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

@@ -35,7 +35,6 @@ typedef enum
 	PLANET_TYPE_GREEN		= 100,
 	PLANET_TYPE_SUN			= 200,
 	PLANET_TYPE_ATMOSPHERE  = 300,
-//	PLANET_TYPE_CORONA		= 400,
 	PLANET_TYPE_MINIATURE	= 111
 } OOPlanetType;
 
@@ -142,15 +141,16 @@ void drawActiveCorona(GLfloat inner_radius, GLfloat outer_radius, GLfloat step, 
 - (GLfloat *) amb_sea;
 - (GLfloat *) amb_polar_sea;
 
-- (int) getPlanetType;
-- (void) setPlanetType:(int) pt;
+- (OOPlanetType) planetType;
+- (void) setPlanetType:(OOPlanetType) pt;
 
-- (double) getRadius;
-- (double) getSqrt_zero_distance;
-
+- (double) radius;	// metres
 - (void) setRadius:(double) rad;
-
 - (void) rescaleTo:(double) rad;
+
+- (double) sqrtZeroDistance;
+
+- (BOOL) hasAtmosphere;
 
 - (void) drawModelWithVertexArraysAndSubdivision: (int) subdivide;
 

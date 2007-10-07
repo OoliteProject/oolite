@@ -1,8 +1,9 @@
 /*
 
-OOJSStation.h
+OOJSPlanet.h
 
-JavaScript proxy for StationEntities.
+JavaScript proxy for PlanetEntities.
+
 
 Oolite
 Copyright (C) 2004-2007 Giles C Williams and contributors
@@ -27,7 +28,7 @@ MA 02110-1301, USA.
 #import <Foundation/Foundation.h>
 #import <jsapi.h>
 
-@class StationEntity;
+@class PlanetEntity;
 
 
-void InitOOJSStation(JSContext *context, JSObject *global);
+void InitOOJSPlanet(JSContext *context, JSObject *global);

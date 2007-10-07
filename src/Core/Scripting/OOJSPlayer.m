@@ -185,6 +185,23 @@ PlayerEntity *OOPlayerForScripting(void)
 }
 
 
+@implementation PlayerEntity (OOJavaScriptExtensions)
+
+- (NSString *)jsClassName
+{
+	return @"Player";
+}
+
+
+- (void)setJSSelf:(JSObject *)val context:(JSContext *)context
+{
+	jsSelf = val;
+	JS_AddNamedRoot(context, &jsSelf, "Player jsSelf");
+}
+
+@end
+
+
 static JSBool PlayerGetProperty(JSContext *context, JSObject *this, jsval name, jsval *outValue)
 {
 	id							result = nil;

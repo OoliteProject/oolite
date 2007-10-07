@@ -5270,8 +5270,8 @@ BOOL	class_masslocks(int some_class)
 			[victim takeEnergyDamage:weapon_energy from:self becauseOf: parent];	// a very palpable hit
 
 			[shot setCollisionRadius: hit_at_range];
-			Vector flash_pos = shot->position;
-			Vector vd = vector_forward_from_quaternion(shot->orientation);
+			Vector flash_pos = [shot position];
+			Vector vd = vector_forward_from_quaternion([shot orientation]);
 			flash_pos.x += vd.x * hit_at_range;	flash_pos.y += vd.y * hit_at_range;	flash_pos.z += vd.z * hit_at_range;
 			ParticleEntity* laserFlash = [[ParticleEntity alloc] initFlashSize:1.0 fromPosition: flash_pos color:laser_color];
 			[laserFlash setVelocity:[victim velocity]];
@@ -7468,43 +7468,4 @@ NSDictionary *DefaultShipShaderMacros(void)
 	}
 	
 	return macros;
-}
-
-
-BOOL HasRolePredicate(ShipEntity *ship, void *parameter)
-{
-	return [ship hasRole:(NSString *)parameter];
-}
-
-
-BOOL HasPrimaryRolePredicate(ShipEntity *ship, void *parameter)
-{
-	return [ship hasPrimaryRole:(NSString *)parameter];
-}
-
-
-BOOL HasRoleInSetPredicate(ShipEntity *ship, void *parameter)
-{
-	return [[ship roleSet] intersectsSet:(NSSet *)parameter];
-}
-
-
-BOOL HasPrimaryRoleInSetPredicate(ShipEntity *ship, void *parameter)
-{
-	return [(NSSet *)parameter containsObject:[ship primaryRole]];
-}
-
-
-BOOL HasScanClassPredicate(ShipEntity *ship, void *parameter)
-{
-	return [(id)parameter intValue] == [ship scanClass];
-}
-
-
-BOOL NegatedShipFilterPredicate(ShipEntity *ship, void *parameter)
-{
-	NegatedShipFilterPredicateParam *param = parameter;
-	if (param == NULL || param->predicate == NULL)  return NO;
-	
-	return !param->predicate(ship, param->parameter);
 }

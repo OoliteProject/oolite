@@ -34,6 +34,11 @@
 
 #import "OOCollectionExtractors.h"
 #import "OOConstToString.h"
+#import "OOEntityFilterPredicate.h"
+
+
+// system.filteredEntities crashes -- need to deel with additional JS contexts for nested calls.
+#define FILTERED_ENTITIES	0
 
 
 static JSObject *sSystemPrototype;
@@ -51,6 +56,14 @@ static JSBool SystemAddMoon(JSContext *context, JSObject *this, uintN argc, jsva
 static JSBool SystemSendAllShipsAway(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
 static JSBool SystemSetSunNova(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
 static JSBool SystemCountShipsWithRole(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
+static JSBool SystemShipsWithPrimaryRole(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
+static JSBool SystemShipsWithRole(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
+static JSBool SystemEntitiesWithScanClass(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
+
+#if FILTERED_ENTITIES
+static JSBool SystemFilteredEntities(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
+#endif
+
 static JSBool SystemAddShips(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
 
 static JSBool SystemLegacyAddShips(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
@@ -95,7 +108,11 @@ enum
 	kSystem_population,			// population, integer, read/write
 	kSystem_productivity,		// productivity, integer, read/write
 	kSystem_isInterstellarSpace, // is interstellar space, boolean, read-only
-	kSystem_mainStation			// system's main station, Station, read-only
+	kSystem_mainStation,		// system's main station, Station, read-only
+	kSystem_mainPlanet,			// system's main planet, Planet, read-only
+	kSystem_sun,				// system's sun, Planet, read-only
+	kSystem_planets,			// planets in system, array of Planet, read-only
+	kSystem_allShips			// ships in system, array of Ship, read-only
 };
 
 
@@ -117,6 +134,10 @@ static JSPropertySpec sSystemProperties[] =
 	{ "productivity",			kSystem_productivity,		JSPROP_PERMANENT | JSPROP_ENUMERATE },
 	{ "isInterstellarSpace",	kSystem_isInterstellarSpace, JSPROP_PERMANENT | JSPROP_ENUMERATE },
 	{ "mainStation",			kSystem_mainStation,		JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
+	{ "mainPlanet",				kSystem_mainPlanet,			JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
+	{ "sun",					kSystem_sun,				JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
+	{ "planets",				kSystem_planets,			JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
+	{ "allShips",				kSystem_allShips,			JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
 	{ 0 }
 };
 
@@ -130,6 +151,13 @@ static JSFunctionSpec sSystemMethods[] =
 	{ "sendAllShipsAway",		SystemSendAllShipsAway,		1 },
 	{ "setSunNova",				SystemSetSunNova,			1 },
 	{ "countShipsWithRole",		SystemCountShipsWithRole,	1 },
+	{ "shipsWithPrimaryRole",	SystemShipsWithPrimaryRole,	1 },
+	{ "shipsWithRole",			SystemShipsWithRole,		1 },
+	{ "entitiesWithScanClass",	SystemEntitiesWithScanClass, 1 },
+#if FILTERED_ENTITIES
+	{ "filteredEntities",		SystemFilteredEntities,		2 },
+#endif
+	
 	{ "addShips",				SystemAddShips,				3 },
 	
 	{ "legacy_addShips",		SystemLegacyAddShips,		2 },
@@ -237,11 +265,27 @@ static JSBool SystemGetProperty(JSContext *context, JSObject *this, jsval name, 
 		case kSystem_isInterstellarSpace:
 			*outValue = BOOLToJSVal([UNIVERSE sun] == nil);
 			break;
-		
+			
 		case kSystem_mainStation:
 			result = [UNIVERSE station];
 			break;
-		
+			
+		case kSystem_mainPlanet:
+			result = [UNIVERSE planet];
+			break;
+			
+		case kSystem_sun:
+			result = [UNIVERSE sun];
+			break;
+			
+		case kSystem_planets:
+			result = [UNIVERSE planets];
+			break;
+			
+		case kSystem_allShips:
+			result = [UNIVERSE findShipsMatchingPredicate:NULL parameter:NULL inRange:-1 ofEntity:nil];
+			break;
+			
 		default:
 			OOReportJavaScriptBadPropertySelector(context, @"System", JSVAL_TO_INT(name));
 			return NO;
@@ -415,6 +459,128 @@ static JSBool SystemCountShipsWithRole(JSContext *context, JSObject *this, uintN
 	
 	return YES;
 }
+
+
+static JSBool SystemShipsWithPrimaryRole(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
+{
+	NSString			*role = nil;
+	Entity				*reference = nil;
+	double				range = -1;
+	NSArray				*result = nil;
+	
+	role = JSValToNSString(context, argv[0]);
+	if (role != nil && argc >= 3)
+	{
+		reference = JSValueToObject(context, argv[1]);
+		if (reference == nil || !JS_ValueToNumber(context, argv[2], &range))  role = nil;
+	}
+	if (role != nil)
+	{
+		result = [UNIVERSE findShipsMatchingPredicate:HasPrimaryRolePredicate
+											parameter:role
+											  inRange:range
+											 ofEntity:reference];
+	}
+	
+	if (result != nil)  *outResult = [result javaScriptValueInContext:context];
+	
+	return YES;
+}
+
+
+static JSBool SystemShipsWithRole(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
+{
+	NSString			*role = nil;
+	Entity				*reference = nil;
+	double				range = -1;
+	NSArray				*result = nil;
+	
+	role = JSValToNSString(context, argv[0]);
+	if (role != nil && argc >= 3)
+	{
+		reference = JSValueToObject(context, argv[1]);
+		if (reference == nil || !JS_ValueToNumber(context, argv[2], &range))  role = nil;
+	}
+	if (role != nil)
+	{
+		result = [UNIVERSE findShipsMatchingPredicate:HasRolePredicate
+											parameter:role
+											  inRange:range
+											 ofEntity:reference];
+	}
+	
+	if (result != nil)  *outResult = [result javaScriptValueInContext:context];
+	
+	return YES;
+}
+
+
+static JSBool SystemEntitiesWithScanClass(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
+{
+	NSString			*scString = nil;
+	Entity				*reference = nil;
+	double				range = -1;
+	NSArray				*result = nil;
+	OOScanClass			scanClass = CLASS_NOT_SET;
+	
+	scString = JSValToNSString(context, argv[0]);
+	if (scString != nil)
+	{
+		scanClass = StringToScanClass(scString);
+		if (scanClass == CLASS_NOT_SET)
+		{
+			OOReportJavaScriptError(context, @"Invalid scan class specifier \"%@\"", scString);
+		}
+	}
+	if (scanClass != CLASS_NOT_SET && argc >= 3)
+	{
+		reference = JSValueToObject(context, argv[1]);
+		if (reference == nil || !JS_ValueToNumber(context, argv[2], &range))  scanClass = CLASS_NOT_SET;
+	}
+	if (scanClass != CLASS_NOT_SET)
+	{
+		result = [UNIVERSE findEntitiesMatchingPredicate:HasScanClassPredicate
+											   parameter:[NSNumber numberWithInt:scanClass]
+												 inRange:range
+												ofEntity:reference];
+	}
+	
+	if (result != nil)  *outResult = [result javaScriptValueInContext:context];
+	
+	return YES;
+}
+
+
+#if FILTERED_ENTITIES
+static JSBool SystemFilteredEntities(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
+{
+	JSFunction			*function = NULL;
+	JSObject			*jsThis = NULL;
+	Entity				*reference = nil;
+	double				range = -1;
+	NSArray				*result = nil;
+	
+	function = JS_ValueToFunction(context, argv[1]);
+	if (function != NULL)  JS_ValueToObject(context, argv[0], &jsThis);
+	if (function != NULL && argc >= 4)
+	{
+		reference = JSValueToObject(context, argv[2]);
+		if (reference == nil || !JS_ValueToNumber(context, argv[3], &range))  function = NULL;
+	}
+	if (function != NULL)
+	{
+		JSFunctionPredicateParameter param = { context, function, jsThis };
+		result = [UNIVERSE findEntitiesMatchingPredicate:JSFunctionPredicate
+											   parameter:&param
+												 inRange:range
+												ofEntity:reference];
+	}
+	
+	if (result != nil)  *outResult = [result javaScriptValueInContext:context];
+	
+	return YES;
+}
+#endif
 
 
 #define DEFAULT_RADIUS 500.0

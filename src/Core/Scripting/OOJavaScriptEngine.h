@@ -155,6 +155,16 @@ OOINLINE NSString *JSValToNSString(JSContext *context, jsval value)
 }
 
 
+// OOEntityFilterPredicate wrapping a JavaScript function.
+typedef struct
+{
+	JSContext				*context;
+	JSFunction				*function;
+	JSObject				*jsThis;
+} JSFunctionPredicateParameter;
+BOOL JSFunctionPredicate(Entity *entity, void *parameter);
+
+
 id JSValueToObject(JSContext *context, jsval value);
 id JSObjectToObject(JSContext *context, JSObject *object);
 

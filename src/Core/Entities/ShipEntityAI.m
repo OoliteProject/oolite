@@ -34,6 +34,7 @@ MA 02110-1301, USA.
 #import "PlayerEntityLegacyScriptEngine.h"
 
 #import "OOStringParsing.h"
+#import "OOEntityFilterPredicate.h"
 
 #define kOOLogUnconvertedNSLog @"unclassified.ShipEntityAI"
 
@@ -42,8 +43,8 @@ MA 02110-1301, USA.
 
 - (void)performHyperSpaceExitReplace:(BOOL)replace;
 
-- (void)scanForNearestShipWithPredicate:(ShipFilterPredicate)predicate parameter:(void *)parameter;
-- (void)scanForNearestShipWithNegatedPredicate:(ShipFilterPredicate)predicate parameter:(void *)parameter;
+- (void)scanForNearestShipWithPredicate:(EntityFilterPredicate)predicate parameter:(void *)parameter;
+- (void)scanForNearestShipWithNegatedPredicate:(EntityFilterPredicate)predicate parameter:(void *)parameter;
 
 @end
 
@@ -517,7 +518,7 @@ MA 02110-1301, USA.
 	for (i = 0; i < planet_count; i++)
 	{
 		PlanetEntity  *thing = (PlanetEntity *)my_entities[i];
-		if ([thing getPlanetType] == PLANET_TYPE_GREEN)
+		if ([thing planetType] == PLANET_TYPE_GREEN)
 		{
 			double range2 = distance2(position, thing->position);
 			if ((!the_planet)||(range2 < nearest2))
@@ -1918,7 +1919,7 @@ WormholeEntity*	whole;
 }
 
 
-- (void)scanForNearestShipWithPredicate:(ShipFilterPredicate)predicate parameter:(void *)parameter
+- (void)scanForNearestShipWithPredicate:(EntityFilterPredicate)predicate parameter:(void *)parameter
 {
 	// Locates all the ships in range for which predicate returns YES, and chooses the nearest.
 	unsigned		i;
@@ -1946,10 +1947,10 @@ WormholeEntity*	whole;
 }
 
 
-- (void)scanForNearestShipWithNegatedPredicate:(ShipFilterPredicate)predicate parameter:(void *)parameter
+- (void)scanForNearestShipWithNegatedPredicate:(EntityFilterPredicate)predicate parameter:(void *)parameter
 {
-	NegatedShipFilterPredicateParam param = { predicate, parameter };
-	[self scanForNearestShipWithPredicate:NegatedShipFilterPredicate parameter:&param];
+	ChainedEntityPredicateParameter param = { predicate, parameter };
+	[self scanForNearestShipWithPredicate:NOTPredicate parameter:&param];
 }
 
 @end

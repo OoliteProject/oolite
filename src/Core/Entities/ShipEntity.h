@@ -656,17 +656,6 @@ BOOL	class_masslocks(int some_class);
 @end
 
 
-// Filters used in varous ship-counting and ship-selecting methods
-typedef BOOL (*ShipFilterPredicate)(ShipEntity *ship, void *parameter);
-BOOL HasRolePredicate(ShipEntity *ship, void *parameter);				// Parameter: NSString
-BOOL HasPrimaryRolePredicate(ShipEntity *ship, void *parameter);		// Parameter: NSString
-BOOL HasRoleInSetPredicate(ShipEntity *ship, void *parameter);			// Parameter: NSSet
-BOOL HasPrimaryRoleInSetPredicate(ShipEntity *ship, void *parameter);	// Parameter: NSSet
-BOOL HasScanClassPredicate(ShipEntity *ship, void *parameter);			// Parameter: NSNumber (int)
-typedef struct { ShipFilterPredicate predicate; void *parameter; } NegatedShipFilterPredicateParam;
-BOOL NegatedShipFilterPredicate(ShipEntity *ship, void *parameter);		// Parameter: NegatedShipFilterPredicateParam
-
-
 BOOL ship_canCollide (ShipEntity* ship);
 
 

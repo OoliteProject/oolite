@@ -47,6 +47,7 @@ MA 02110-1301, USA.
 #import "CollisionRegion.h"
 #import "OOGraphicsResetManager.h"
 #import "OODebugSupport.h"
+#import "OOEntityFilterPredicate.h"
 
 #import "OOCharacter.h"
 
@@ -84,16 +85,13 @@ static BOOL MaintainLinkedLists(Universe* uni);
 static NSComparisonResult compareName(NSDictionary *dict1, NSDictionary *dict2, void * context);
 static NSComparisonResult comparePrice(NSDictionary *dict1, NSDictionary *dict2, void * context);
 
+static BOOL IsPlanetPredicate(Entity *entity, void *parameter);
+
 
 @interface Universe (OOPrivate)
 
 - (BOOL)doRemoveEntity:(Entity *)entity;
 - (NSDictionary *)getDictionaryForShip:(NSString *)desc recursionLimit:(uint32_t)recursionLimit;
-
-- (unsigned) countShipsWithPredicate:(ShipFilterPredicate)predicate
-						   parameter:(id)parameter
-							 inRange:(double)range1
-							ofEntity:(Entity *)e1;
 
 @end
 
@@ -880,7 +878,7 @@ static NSComparisonResult comparePrice(NSDictionary *dict1, NSDictionary *dict2,
 	
 	/*- space planet -*/
 	a_planet = [[PlanetEntity alloc] initWithSeed: system_seed];	// alloc retains!
-	double planet_radius = [a_planet getRadius];
+	double planet_radius = [a_planet radius];
 	double planet_zpos = (12.0 + (Ranrot() & 3) - (Ranrot() & 3) ) * planet_radius; // 10..14 pr (planet radii) ahead
 	
 	[a_planet setPlanetType:PLANET_TYPE_GREEN];
@@ -1517,8 +1515,8 @@ GLfloat docked_light_specular[]	= { (GLfloat) 1.0, (GLfloat) 1.0, (GLfloat) 0.5,
 		
 		ShipEntity*	trader_ship;
 		Vector		launchPos = p1_pos;
-		double		start = 4.0 * [[self planet] getRadius];
-		double		end = 3.0 * [[self sun] getRadius];
+		double		start = 4.0 * [[self planet] radius];
+		double		end = 3.0 * [[self sun] radius];
 		double		maxLength = d_route2 - (start + end);
 		double		ship_location = randf() * maxLength + start;
 //
@@ -1575,8 +1573,8 @@ GLfloat docked_light_specular[]	= { (GLfloat) 1.0, (GLfloat) 1.0, (GLfloat) 0.5,
 		else
 		{
 			// random position along route2
-			double		start = 4.0 * [[self planet] getRadius];
-			double		end = 3.0 * [[self sun] getRadius];
+			double		start = 4.0 * [[self planet] radius];
+			double		end = 3.0 * [[self sun] radius];
 			double		maxLength = d_route2 - (start + end);
 			double		ship_location = randf() * maxLength + start;
 			launchPos.x += ship_location * v_route2.x + SCANNER_MAX_RANGE*((Ranrot() & 255)/256.0 - 0.5);
@@ -1621,8 +1619,8 @@ GLfloat docked_light_specular[]	= { (GLfloat) 1.0, (GLfloat) 1.0, (GLfloat) 0.5,
 		
 		ShipEntity*	hunter_ship;
 		Vector		launchPos = p1_pos;
-		double		start = 4.0 * [[self planet] getRadius];
-		double		end = 3.0 * [[self sun] getRadius];
+		double		start = 4.0 * [[self planet] radius];
+		double		end = 3.0 * [[self sun] radius];
 		double		maxLength = d_route2 - (start + end);
 		double		ship_location = randf() * maxLength + start;
 
@@ -1695,8 +1693,8 @@ GLfloat docked_light_specular[]	= { (GLfloat) 1.0, (GLfloat) 1.0, (GLfloat) 0.5,
 	{
 		pool = [[NSAutoreleasePool alloc] init];
 		
-		start = 6.0 * [[self planet] getRadius];
-		end = 4.5 * [[self sun] getRadius];
+		start = 6.0 * [[self planet] radius];
+		end = 4.5 * [[self sun] radius];
 		maxLength = d_route2 - (start + end);
 		
 		asteroidLocation = randf() * maxLength + start;
@@ -2635,7 +2633,7 @@ GLfloat docked_light_specular[]	= { (GLfloat) 1.0, (GLfloat) 1.0, (GLfloat) 0.5,
 		for (i = 0; ((i < planet_count)&&(planet == NO_TARGET)) ; i++)
 		{
 			PlanetEntity* thing = (PlanetEntity *)my_entities[i];
-			if ([thing getPlanetType] == PLANET_TYPE_GREEN)
+			if ([thing planetType] == PLANET_TYPE_GREEN)
 			{
 				cachedPlanet = thing;
 				planet = [cachedPlanet universalID];
@@ -2667,7 +2665,7 @@ GLfloat docked_light_specular[]	= { (GLfloat) 1.0, (GLfloat) 1.0, (GLfloat) 0.5,
 		for (i = 0; ((i < planet_count)&&(sun == NO_TARGET)) ; i++)
 		{
 			PlanetEntity* thing = (PlanetEntity *)my_entities[i];
-			if ([thing getPlanetType] == PLANET_TYPE_SUN)
+			if ([thing planetType] == PLANET_TYPE_SUN)
 			{
 				cachedSun = (PlanetEntity*)thing;
 				sun = [cachedSun universalID];
@@ -2680,7 +2678,16 @@ GLfloat docked_light_specular[]	= { (GLfloat) 1.0, (GLfloat) 1.0, (GLfloat) 0.5,
 }
 
 
-- (void)unMagicMainStation
+- (NSArray *) planets
+{
+	return [self findEntitiesMatchingPredicate:IsPlanetPredicate
+									 parameter:NULL
+									   inRange:-1
+									  ofEntity:nil];
+}
+
+
+- (void) unMagicMainStation
 {
 	StationEntity *theStation = [self station];
 	if (theStation != nil)  theStation->isExplicitlyNotMainStation = YES;
@@ -4556,40 +4563,20 @@ static BOOL MaintainLinkedLists(Universe* uni)
 }
 
 
-- (NSArray *) getEntitiesWithinRange:(double) range1 ofEntity:(Entity *) e1
+- (NSArray *) getEntitiesWithinRange:(double)range ofEntity:(Entity *)entity
 {
-	if (!e1)
-		return nil;
-	NSMutableArray *hitlist = [NSMutableArray arrayWithCapacity:4];
-	int i;
-	int ent_count = n_entities;
-	Entity* my_entities[ent_count];
-	for (i = 0; i < ent_count; i++)
-		my_entities[i] = [sortedEntities[i] retain];	// retained
-
-	Vector p1 = e1->position;
-	for (i = 0; i < ent_count; i++)
-	{
-		Entity *e2 = my_entities[i];
-		if ((e2 != e1)&&([e2 canCollide]))
-		{
-			Vector p2 = e2->position;
-			p2.x -= p1.x;	p2.y -= p1.y;	p2.z -= p1.z;
-			double cr = range1 + e2->collision_radius;
-			double d2 = p2.x*p2.x + p2.y*p2.y + p2.z*p2.z - cr*cr;
-			if (d2 < 0)
-				[hitlist addObject:e2];
-		}
-	}
-	for (i = 0; i < ent_count; i++)
-		[my_entities[i] release]; //	released
-	return  [NSArray arrayWithArray:hitlist];
+	if (entity == nil)  return nil;
+	
+	return [self findShipsMatchingPredicate:YESPredicate
+								  parameter:NULL
+									inRange:range
+								   ofEntity:entity];
 }
 
 
 - (unsigned) countShipsWithRole:(NSString *)role inRange:(double)range ofEntity:(Entity *)entity
 {
-	return [self countShipsWithPredicate:HasRolePredicate
+	return [self countShipsMatchingPredicate:HasRolePredicate
 							   parameter:role
 								 inRange:range
 								ofEntity:entity];
@@ -4604,7 +4591,7 @@ static BOOL MaintainLinkedLists(Universe* uni)
 
 - (unsigned) countShipsWithPrimaryRole:(NSString *)role inRange:(double)range ofEntity:(Entity *)entity
 {
-	return [self countShipsWithPredicate:HasPrimaryRolePredicate
+	return [self countShipsMatchingPredicate:HasPrimaryRolePredicate
 							   parameter:role
 								 inRange:range
 								ofEntity:entity];
@@ -4619,23 +4606,147 @@ static BOOL MaintainLinkedLists(Universe* uni)
 
 - (void) sendShipsWithPrimaryRole:(NSString *)role messageToAI:(NSString *)ms
 {
-	int i, found;
-	int ent_count = n_entities;
-	int ship_count = 0;
-	Entity* my_entities[ent_count];
-	for (i = 0; i < ent_count; i++)
-		if (sortedEntities[i]->isShip)
-			my_entities[ship_count++] = [sortedEntities[i] retain];	// retained
+	NSArray			*targets = nil;
+	
+	targets = [self findShipsMatchingPredicate:HasPrimaryRolePredicate
+									 parameter:role
+									   inRange:-1
+									  ofEntity:nil];
+	
+	[targets makeObjectsPerformSelector:@selector(reactToMessage:) withObject:ms];
+}
 
-	found = 0;
-	for (i = 0; i < ship_count; i++)
+
+- (unsigned) countEntitiesMatchingPredicate:(EntityFilterPredicate)predicate
+								  parameter:(void *)parameter
+									inRange:(double)range
+								   ofEntity:(Entity *)e1
+{
+	unsigned		i, found = 0;
+	Vector			p1, p2;
+	double			distance, cr;
+	
+	if (predicate == NULL)  predicate = YESPredicate;
+	
+	if (e1 != nil)  p1 = e1->position;
+	else  p1 = kZeroVector;
+	
+	for (i = 0; i < n_entities; i++)
 	{
-		Entity *e2 = my_entities[i];
-		if ([[(ShipEntity *)e2 primaryRole] isEqual:role])
-			[[(ShipEntity *)e2 getAI] reactToMessage:ms];
+		Entity *e2 = sortedEntities[i];
+		if (e2 != e1 && predicate(e2, parameter))
+		{
+			if (range < 0)  distance = -1;	// Negative range means infinity
+			else
+			{
+				p2 = vector_subtract(e2->position, p1);
+				cr = range + e2->collision_radius;
+				distance = magnitude2(p2) - cr * cr;
+			}
+			if (distance < 0)
+			{
+				found++;
+			}
+		}
 	}
-	for (i = 0; i < ship_count; i++)
-		[my_entities[i] release]; //	released
+	
+	return found;
+}
+
+
+- (unsigned) countShipsMatchingPredicate:(EntityFilterPredicate)predicate
+							   parameter:(void *)parameter
+								 inRange:(double)range
+								ofEntity:(Entity *)entity
+{
+	if (predicate != NULL)
+	{
+		BinaryOperationPredicateParameter param =
+	{
+		IsShipPredicate, NULL,
+		predicate, parameter
+	};
+		
+		return [self countEntitiesMatchingPredicate:ANDPredicate
+										  parameter:&param
+											inRange:range
+										   ofEntity:entity];
+	}
+	else
+	{
+		return [self countEntitiesMatchingPredicate:IsShipPredicate
+										  parameter:NULL
+											inRange:range
+										   ofEntity:entity];
+	}
+}
+
+
+- (NSArray *) findEntitiesMatchingPredicate:(EntityFilterPredicate)predicate
+								  parameter:(void *)parameter
+									inRange:(double)range
+								   ofEntity:(Entity *)e1
+{
+	unsigned		i;
+	Vector			p1, p2;
+	double			distance, cr;
+	NSMutableArray	*result = nil;
+	
+	if (predicate == NULL)  predicate = YESPredicate;
+	
+	result = [NSMutableArray arrayWithCapacity:n_entities];
+	
+	if (e1 != nil)  p1 = e1->position;
+	else  p1 = kZeroVector;
+	
+	for (i = 0; i < n_entities; i++)
+	{
+		Entity *e2 = sortedEntities[i];
+		if (e2 != e1 && predicate(e2, parameter))
+		{
+			if (range < 0)  distance = -1;	// Negative range means infinity
+			else
+			{
+				p2 = vector_subtract(e2->position, p1);
+				cr = range + e2->collision_radius;
+				distance = magnitude2(p2) - cr * cr;
+			}
+			if (distance < 0)
+			{
+				[result addObject:e2];
+			}
+		}
+	}
+	
+	return result;
+}
+
+
+- (NSArray *) findShipsMatchingPredicate:(EntityFilterPredicate)predicate
+							   parameter:(void *)parameter
+								 inRange:(double)range
+								ofEntity:(Entity *)entity
+{
+	if (predicate != NULL)
+	{
+		BinaryOperationPredicateParameter param =
+		{
+			IsShipPredicate, NULL,
+			predicate, parameter
+		};
+		
+		return [self findEntitiesMatchingPredicate:ANDPredicate
+										 parameter:&param
+										   inRange:range
+										  ofEntity:entity];
+	}
+	else
+	{
+		return [self findEntitiesMatchingPredicate:IsShipPredicate
+										 parameter:NULL
+										   inRange:range
+										  ofEntity:entity];
+	}
 }
 
 
@@ -7646,52 +7757,24 @@ static NSComparisonResult comparePrice(NSDictionary *dict1, NSDictionary *dict2,
 	return shipdict;
 }
 
+@end
 
-- (unsigned) countShipsWithPredicate:(ShipFilterPredicate)predicate
-						   parameter:(id)parameter
-							 inRange:(double)range1
-							ofEntity:(Entity *)e1
+
+static BOOL IsPlanetPredicate(Entity *entity, void *parameter)
 {
-	if (e1 == nil || predicate == NULL)  return 0;
-	
-	unsigned	i, found;
-	unsigned	ent_count = n_entities;
-	unsigned	ship_count = 0;
-	ShipEntity	*my_entities[ent_count];
-	Vector		p1;
-	
-	for (i = 0; i < ent_count; i++)
-		if (sortedEntities[i]->isShip)
-			my_entities[ship_count++] = [sortedEntities[i] retain];	// retained
-	
-	found = 0;
-	if (e1 != nil)  p1 = e1->position;
-	else  p1 = kZeroVector;
-	
-	for (i = 0; i < ship_count; i++)
+	if (entity->isPlanet)
 	{
-		ShipEntity *e2 = my_entities[i];
-		if (e2 != e1 && predicate(e2, parameter))
+		switch ([(PlanetEntity *)entity planetType])
 		{
-			double d2;
-			if (range1 < 0)  d2 = -1;	// Negative range means infinity
-			else
-			{
-				Vector p2 = e2->position;
-				p2.x -= p1.x;	p2.y -= p1.y;	p2.z -= p1.z;
-				double cr = range1 + e2->collision_radius;
-				d2 = p2.x*p2.x + p2.y*p2.y + p2.z*p2.z - cr*cr;
-			}
-			if (d2 < 0)
-			{
-				found++;
-			}
+			case PLANET_TYPE_GREEN:
+			case PLANET_TYPE_SUN:
+				return YES;
+			
+			case PLANET_TYPE_ATMOSPHERE:
+			case PLANET_TYPE_MINIATURE:
+				return NO;
 		}
 	}
-	for (i = 0; i < ship_count; i++)
-		[my_entities[i] release]; //	released
 	
-	return found;
+	return NO;
 }
-
-@end
