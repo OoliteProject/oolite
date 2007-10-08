@@ -164,6 +164,12 @@ typedef struct
 } JSFunctionPredicateParameter;
 BOOL JSFunctionPredicate(Entity *entity, void *parameter);
 
+// YES for ships and planets. Parameter: ignored.
+BOOL JSEntityIsJavaScriptVisiblePredicate(Entity *entity, void *parameter);
+
+// YES for ships other than sub-entities and menu-display ships, and planets other than atmospheres and menu miniatures. Parameter: ignored.
+BOOL JSEntityIsJavaScriptSearchablePredicate(Entity *entity, void *parameter);
+
 
 id JSValueToObject(JSContext *context, jsval value);
 id JSObjectToObject(JSContext *context, JSObject *object);

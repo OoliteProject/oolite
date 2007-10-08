@@ -45,6 +45,7 @@ MA 02110-1301, USA.
 #import "PlanetEntity.h"
 #import "NSStringOOExtensions.h"
 #import "OOWeakReference.h"
+#import "EntityOOJavaScriptExtensions.h"
 
 #import <stdlib.h>
 
@@ -909,6 +910,39 @@ BOOL JSFunctionPredicate(Entity *entity, void *parameter)
 	}
 	
 	return result;
+}
+
+
+BOOL JSEntityIsJavaScriptVisiblePredicate(Entity *entity, void *parameter)
+{
+	return [entity isVisibleToScripts];
+}
+
+
+BOOL JSEntityIsJavaScriptSearchablePredicate(Entity *entity, void *parameter)
+{
+	if (![entity isVisibleToScripts])  return NO;
+	if ([entity isShip])
+	{
+		if ([entity isSubEntity])  return NO;
+		if ([entity status] == STATUS_COCKPIT_DISPLAY)  return NO;	// Demo ship
+		return YES;
+	}
+	else if ([entity isPlanet])
+	{
+		switch ([(PlanetEntity *)entity planetType])
+		{
+			case PLANET_TYPE_GREEN:
+			case PLANET_TYPE_SUN:
+				return YES;
+				
+			case PLANET_TYPE_ATMOSPHERE:
+			case PLANET_TYPE_MINIATURE:
+				return NO;
+		}
+	}
+	
+	return YES;	// would happen if we added a new script-visible class
 }
 
 

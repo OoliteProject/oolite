@@ -4682,7 +4682,9 @@ static BOOL MaintainLinkedLists(Universe* uni)
 }
 
 
-- (NSArray *) findEntitiesMatchingPredicate:(EntityFilterPredicate)predicate
+// NOTE: OOJSSystem relies on this returning entities in distance-from-player order.
+// This can be easily changed by removing the [reference isPlayer] conditions in FindJSVisibleEntities().
+- (NSMutableArray *) findEntitiesMatchingPredicate:(EntityFilterPredicate)predicate
 								  parameter:(void *)parameter
 									inRange:(double)range
 								   ofEntity:(Entity *)e1
@@ -4722,10 +4724,10 @@ static BOOL MaintainLinkedLists(Universe* uni)
 }
 
 
-- (NSArray *) findShipsMatchingPredicate:(EntityFilterPredicate)predicate
-							   parameter:(void *)parameter
-								 inRange:(double)range
-								ofEntity:(Entity *)entity
+- (NSMutableArray *) findShipsMatchingPredicate:(EntityFilterPredicate)predicate
+									  parameter:(void *)parameter
+										inRange:(double)range
+									   ofEntity:(Entity *)entity
 {
 	if (predicate != NULL)
 	{

@@ -377,14 +377,14 @@ enum
 							   parameter:(void *)parameter
 								 inRange:(double)range
 								ofEntity:(Entity *)entity;
-- (NSArray *) findEntitiesMatchingPredicate:(EntityFilterPredicate)predicate
-								  parameter:(void *)parameter
-									inRange:(double)range
-								   ofEntity:(Entity *)entity;
-- (NSArray *) findShipsMatchingPredicate:(EntityFilterPredicate)predicate
-							   parameter:(void *)parameter
-								 inRange:(double)range
-								ofEntity:(Entity *)entity;
+- (NSMutableArray *) findEntitiesMatchingPredicate:(EntityFilterPredicate)predicate
+										 parameter:(void *)parameter
+										   inRange:(double)range
+										  ofEntity:(Entity *)entity;
+- (NSMutableArray *) findShipsMatchingPredicate:(EntityFilterPredicate)predicate
+									  parameter:(void *)parameter
+										inRange:(double)range
+									   ofEntity:(Entity *)entity;
 
 
 - (OOTimeAbsolute) getTime;

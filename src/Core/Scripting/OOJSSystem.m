@@ -27,6 +27,7 @@
 #import "OOJavaScriptEngine.h"
 
 #import "OOJSVector.h"
+#import "OOJSEntity.h"
 #import "OOJSPlayer.h"
 #import "Universe.h"
 #import "PlanetEntity.h"
@@ -40,11 +41,21 @@
 // system.filteredEntities crashes -- need to deel with additional JS contexts for nested calls.
 #define FILTERED_ENTITIES	0
 
+// system.addShips not yet implemented
+#define ADD_SHIPS			0
+
 
 static JSObject *sSystemPrototype;
 
 static Random_Seed sCurrentSystem;
 static NSDictionary *sPlanetInfo;
+
+
+// Support functions for entity search methods.
+static BOOL GetRelativeToAndRange(JSContext *context, uintN *ioArgc, jsval **ioArgv, Entity **outRelativeTo, double *outRange) NONNULL_FUNC;
+static NSArray *FindJSVisibleEntities(EntityFilterPredicate predicate, void *parameter, Entity *relativeTo, double range);
+static NSArray *FindShips(EntityFilterPredicate predicate, void *parameter, Entity *relativeTo, double range);
+static int CompareEntitiesByDistance(id a, id b, void *relativeTo);
 
 
 static JSBool SystemGetProperty(JSContext *context, JSObject *this, jsval name, jsval *outValue);
@@ -64,7 +75,9 @@ static JSBool SystemEntitiesWithScanClass(JSContext *context, JSObject *this, ui
 static JSBool SystemFilteredEntities(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
 #endif
 
+#if ADD_SHIPS
 static JSBool SystemAddShips(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
+#endif
 
 static JSBool SystemLegacyAddShips(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
 static JSBool SystemLegacyAddSystemShips(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
@@ -158,7 +171,9 @@ static JSFunctionSpec sSystemMethods[] =
 	{ "filteredEntities",		SystemFilteredEntities,		2 },
 #endif
 	
+#if ADD_SHIPS
 	{ "addShips",				SystemAddShips,				3 },
+#endif
 	
 	{ "legacy_addShips",		SystemLegacyAddShips,		2 },
 	{ "legacy_addSystemShips",	SystemLegacyAddSystemShips,	3 },
@@ -461,123 +476,124 @@ static JSBool SystemCountShipsWithRole(JSContext *context, JSObject *this, uintN
 }
 
 
+// function shipsWithPrimaryRole(role : String [, relativeTo : Entity [, range : Number]]) : Array (Entity)
 static JSBool SystemShipsWithPrimaryRole(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
 {
 	NSString			*role = nil;
-	Entity				*reference = nil;
+	Entity				*relativeTo = nil;
 	double				range = -1;
 	NSArray				*result = nil;
 	
-	role = JSValToNSString(context, argv[0]);
-	if (role != nil && argc >= 3)
+	// Get role argument
+	if (argc >= 1)
 	{
-		reference = JSValueToObject(context, argv[1]);
-		if (reference == nil || !JS_ValueToNumber(context, argv[2], &range))  role = nil;
+		role = JSValToNSString(context, *argv);
+		argv++; argc--;
 	}
-	if (role != nil)
-	{
-		result = [UNIVERSE findShipsMatchingPredicate:HasPrimaryRolePredicate
-											parameter:role
-											  inRange:range
-											 ofEntity:reference];
-	}
+	
+	// Get optional arguments
+	if (role != nil && !GetRelativeToAndRange(context, &argc, &argv, &relativeTo, &range))  role = nil;
+	
+	// Search for entities
+	if (role != nil)  result = FindShips(HasPrimaryRolePredicate, role, relativeTo, range);
 	
 	if (result != nil)  *outResult = [result javaScriptValueInContext:context];
-	
 	return YES;
 }
 
 
+// function shipsWithRole(role : String [, relativeTo : Entity [, range : Number]]) : Array (Entity)
 static JSBool SystemShipsWithRole(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
 {
 	NSString			*role = nil;
-	Entity				*reference = nil;
+	Entity				*relativeTo = nil;
 	double				range = -1;
 	NSArray				*result = nil;
 	
-	role = JSValToNSString(context, argv[0]);
-	if (role != nil && argc >= 3)
+	// Get role argument
+	if (argc >= 1)
 	{
-		reference = JSValueToObject(context, argv[1]);
-		if (reference == nil || !JS_ValueToNumber(context, argv[2], &range))  role = nil;
+		role = JSValToNSString(context, *argv);
+		argv++; argc--;
 	}
-	if (role != nil)
-	{
-		result = [UNIVERSE findShipsMatchingPredicate:HasRolePredicate
-											parameter:role
-											  inRange:range
-											 ofEntity:reference];
-	}
+	
+	// Get optional arguments
+	if (role != nil && !GetRelativeToAndRange(context, &argc, &argv, &relativeTo, &range))  role = nil;
+	
+	// Search for entities
+	if (role != nil)  result = FindShips(HasRolePredicate, role, relativeTo, range);
 	
 	if (result != nil)  *outResult = [result javaScriptValueInContext:context];
-	
 	return YES;
 }
 
 
+// function entitiesWithScanClass(scanClass : String [, relativeTo : Entity [, range : Number]]) : Array (Entity)
 static JSBool SystemEntitiesWithScanClass(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
 {
 	NSString			*scString = nil;
-	Entity				*reference = nil;
+	OOScanClass			scanClass = CLASS_NOT_SET;
+	Entity				*relativeTo = nil;
 	double				range = -1;
 	NSArray				*result = nil;
-	OOScanClass			scanClass = CLASS_NOT_SET;
 	
-	scString = JSValToNSString(context, argv[0]);
+	// Get scan class argument
+	if (argc >= 1)
+	{
+		scString = JSValToNSString(context, *argv);
+		argv++; argc--;
+	}
+	
 	if (scString != nil)
 	{
 		scanClass = StringToScanClass(scString);
 		if (scanClass == CLASS_NOT_SET)
 		{
 			OOReportJavaScriptError(context, @"Invalid scan class specifier \"%@\"", scString);
+			return YES;
 		}
 	}
-	if (scanClass != CLASS_NOT_SET && argc >= 3)
-	{
-		reference = JSValueToObject(context, argv[1]);
-		if (reference == nil || !JS_ValueToNumber(context, argv[2], &range))  scanClass = CLASS_NOT_SET;
-	}
-	if (scanClass != CLASS_NOT_SET)
-	{
-		result = [UNIVERSE findEntitiesMatchingPredicate:HasScanClassPredicate
-											   parameter:[NSNumber numberWithInt:scanClass]
-												 inRange:range
-												ofEntity:reference];
-	}
+	
+	// Get optional arguments
+	if (scanClass != CLASS_NOT_SET && !GetRelativeToAndRange(context, &argc, &argv, &relativeTo, &range))  scanClass = CLASS_NOT_SET;
+	
+	// Search for entities
+	if (scanClass != CLASS_NOT_SET)  result = FindJSVisibleEntities(HasScanClassPredicate, [NSNumber numberWithInt:scanClass], relativeTo, range);
 	
 	if (result != nil)  *outResult = [result javaScriptValueInContext:context];
-	
 	return YES;
 }
 
 
 #if FILTERED_ENTITIES
+// function filteredEntities(this : Object, predicate : Function [, relativeTo : Entity [, range : Number]]) : Array (Entity)
 static JSBool SystemFilteredEntities(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
 {
-	JSFunction			*function = NULL;
 	JSObject			*jsThis = NULL;
-	Entity				*reference = nil;
+	JSFunction			*function = NULL;
+	Entity				*relativeTo = nil;
 	double				range = -1;
 	NSArray				*result = nil;
 	
-	function = JS_ValueToFunction(context, argv[1]);
-	if (function != NULL)  JS_ValueToObject(context, argv[0], &jsThis);
-	if (function != NULL && argc >= 4)
+	// Get this and predicate arguments
+	if (argc >= 2)
 	{
-		reference = JSValueToObject(context, argv[2]);
-		if (reference == nil || !JS_ValueToNumber(context, argv[3], &range))  function = NULL;
+		function = JS_ValueToFunction(context, argv[1]);
+		if (function != NULL && !JS_ValueToObject(context, argv[0], &jsThis))  function = NULL;
+		argv += 2; argc += 2;
 	}
+	
+	// Get optional arguments
+	if (function != NULL && !GetRelativeToAndRange(context, &argc, &argv, &relativeTo, &range))  function = NULL;
+	
+	// Search for entities
 	if (function != NULL)
 	{
 		JSFunctionPredicateParameter param = { context, function, jsThis };
-		result = [UNIVERSE findEntitiesMatchingPredicate:JSFunctionPredicate
-											   parameter:&param
-												 inRange:range
-												ofEntity:reference];
+		result = FindJSVisibleEntities(JSFunctionPredicate, &param, relativeTo, range);
 	}
 	
 	if (result != nil)  *outResult = [result javaScriptValueInContext:context];
-	
 	return YES;
 }
 #endif
@@ -585,6 +601,7 @@ static JSBool SystemFilteredEntities(JSContext *context, JSObject *this, uintN a
 
 #define DEFAULT_RADIUS 500.0
 
+#if ADD_SHIPS
 static JSBool SystemAddShips(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
 {
 	NSString			*role = nil;
@@ -614,6 +631,7 @@ static JSBool SystemAddShips(JSContext *context, JSObject *this, uintN argc, jsv
 	
 	return YES;
 }
+#endif
 
 
 static JSBool SystemLegacyAddShips(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
@@ -767,4 +785,77 @@ static JSBool SystemLegacySpawnShip(JSContext *context, JSObject *this, uintN ar
 	
 	[player spawnShip:JSValToNSString(context, argv[0])];
 	return YES;
+}
+
+
+static BOOL GetRelativeToAndRange(JSContext *context, uintN *ioArgc, jsval **ioArgv, Entity **outRelativeTo, double *outRange)
+{
+	// No NULL arguments accepted.
+	assert(ioArgc && ioArgv && outRelativeTo && outRange);
+	
+	// Get optional argument relativeTo : Entity
+	if (*ioArgc != 0)
+	{
+		if (!JSValueToEntity(context, **ioArgv, outRelativeTo))  return NO;
+		(*ioArgv)++; (*ioArgc)--;
+	}
+	
+	// Get optional argument range : Number
+	if (*ioArgc != 0)
+	{
+		if (!JS_ValueToNumber(context, **ioArgv, outRange))  return NO;
+		(*ioArgv)++; (*ioArgc)--;
+	}
+	
+	return YES;
+}
+
+
+static NSArray *FindJSVisibleEntities(EntityFilterPredicate predicate, void *parameter, Entity *relativeTo, double range)
+{
+	NSMutableArray						*result = nil;
+	BinaryOperationPredicateParameter	param =
+	{
+		JSEntityIsJavaScriptSearchablePredicate, NULL,
+		predicate, parameter
+	};
+	
+	result = [UNIVERSE findEntitiesMatchingPredicate:ANDPredicate
+										   parameter:&param
+											 inRange:range
+											ofEntity:relativeTo];
+	
+	if (result != nil && relativeTo != nil && ![relativeTo isPlayer])
+	{
+		[result sortUsingFunction:CompareEntitiesByDistance context:relativeTo];
+	}
+	if (result == nil)  result = [NSArray array];
+	return result;
+}
+
+
+static NSArray *FindShips(EntityFilterPredicate predicate, void *parameter, Entity *relativeTo, double range)
+{
+	BinaryOperationPredicateParameter	param =
+	{
+		IsShipPredicate, NULL,
+		predicate, parameter
+	};
+	return FindJSVisibleEntities(ANDPredicate, &param, relativeTo, range);
+}
+
+
+static int CompareEntitiesByDistance(id a, id b, void *relativeTo)
+{
+	Entity				*ea = a,
+						*eb = b,
+						*r = (id)relativeTo;
+	float				d1, d2;
+	
+	d1 = distance2(ea->position, r->position);
+	d2 = distance2(eb->position, r->position);
+	
+	if (d1 < d2)  return NSOrderedAscending;
+	else if (d1 > d2)  return NSOrderedDescending;
+	else return NSOrderedSame;
 }
