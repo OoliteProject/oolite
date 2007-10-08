@@ -108,7 +108,7 @@ OOINLINE BOOL StatusIsSendable(OOTCPClientConnectionStatus status)
 	self = [super init];
 	if (self != nil)
 	{
-		host = [NSHost hostWithAddress:address];
+		host = [NSHost hostWithName:address];
 		if (host != nil)
 		{
 			[NSStream getStreamsToHost:host
