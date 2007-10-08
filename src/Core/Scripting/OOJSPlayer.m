@@ -416,7 +416,7 @@ static JSBool PlayerUseSpecialCargo(JSContext *context, JSObject *this, uintN ar
 }
 
 
-// commsMessage(message : String [, time : Number]) : void
+// commsMessage(message : String [, duration : Number]) : void
 static JSBool PlayerCommsMessage(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
 {
 	const double			kDefaultTime = 4.5;
@@ -439,7 +439,7 @@ static JSBool PlayerCommsMessage(JSContext *context, JSObject *this, uintN argc,
 }
 
 
-// consoleMessage(message : String [, time : Number]) : void
+// consoleMessage(message : String [, duration : Number]) : void
 static JSBool PlayerConsoleMessage(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
 {
 	const double			kDefaultTime = 3;

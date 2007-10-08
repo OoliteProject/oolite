@@ -283,18 +283,22 @@ static JSBool SystemGetProperty(JSContext *context, JSObject *this, jsval name, 
 			
 		case kSystem_mainStation:
 			result = [UNIVERSE station];
+			if (result == nil)  result = [NSNull null];
 			break;
 			
 		case kSystem_mainPlanet:
 			result = [UNIVERSE planet];
+			if (result == nil)  result = [NSNull null];
 			break;
 			
 		case kSystem_sun:
 			result = [UNIVERSE sun];
+			if (result == nil)  result = [NSNull null];
 			break;
 			
 		case kSystem_planets:
 			result = [UNIVERSE planets];
+			if (result == nil)  result = [NSArray array];
 			break;
 			
 		case kSystem_allShips:
