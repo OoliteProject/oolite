@@ -30,14 +30,14 @@ SOFTWARE.
 */
 
 
+#ifndef OOALSTR
 #ifdef __OBJC__
 #import <Foundation/Foundation.h>
-#define OOSTR(x) @""x
-#elif (defined GNUSTEP)
-#define OOSTR(x) (x)
-#else
+#define OOALSTR(x) @""x
+#else	// C
 #include <CoreFoundation/CoreFoundation.h>
-#define OOSTR(x) CFSTR(x)
+#define OOALSTR(x) CFSTR(x)
+#endif
 #endif
 
 
@@ -82,7 +82,7 @@ enum
 			OR
 		kOOTCPacket_RejectConnection
 */
-#define kOOTCPPacket_RequestConnection		OOSTR("Request Connection")
+#define kOOTCPPacket_RequestConnection		OOALSTR("Request Connection")
 
 /*	kOOTCPPacket_ApproveConnection
 	client <-- server
@@ -92,7 +92,7 @@ enum
 	Optional values:
 		kOOTCPConsoleIdentity
 */
-#define kOOTCPPacket_ApproveConnection		OOSTR("Approve Connection")
+#define kOOTCPPacket_ApproveConnection		OOALSTR("Approve Connection")
 
 /*	kOOTCPPacket_RejectConnection
 	client <-- server
@@ -105,7 +105,7 @@ enum
 	Expected responses:
 		None permitted.
 */
-#define kOOTCPPacket_RejectConnection		OOSTR("Reject Connection")
+#define kOOTCPPacket_RejectConnection		OOALSTR("Reject Connection")
 
 /*	kOOTCPPacket_CloseConnection
 	client <-> server
@@ -116,7 +116,7 @@ enum
 	Expected responses:
 		None permitted.
 */
-#define kOOTCPPacket_CloseConnection		OOSTR("Close Connection")
+#define kOOTCPPacket_CloseConnection		OOALSTR("Close Connection")
 
 /*	kOOTCPPacket_ConsoleOutput
 	client --> server
@@ -128,20 +128,20 @@ enum
 	Optional values:
 		kOOTCPEmphasisRanges
 */
-#define kOOTCPPacket_ConsoleOutput			OOSTR("Console Output")
+#define kOOTCPPacket_ConsoleOutput			OOALSTR("Console Output")
 
 /*	kOOTCPPacket_ClearConsole
 	client --> server
 	Message sent by Oolite to clear console output.
 */
-#define kOOTCPPacket_ClearConsole			OOSTR("Clear Console")
+#define kOOTCPPacket_ClearConsole			OOALSTR("Clear Console")
 
 /*	kOOTCPPacket_ShowConsole
 	client --> server
 	Message sent by Oolite to request that the cosole makes itself visible and
 	active.
 */
-#define kOOTCPPacket_ShowConsole			OOSTR("Show Console")
+#define kOOTCPPacket_ShowConsole			OOALSTR("Show Console")
 
 /*	kOOTCPPacket_NoteConfiguration
 	client --> server
@@ -151,7 +151,7 @@ enum
 	Required values:
 		kOOTCPConfiguration
 */
-#define kOOTCPPacket_NoteConfiguration		OOSTR("Note Configuration")
+#define kOOTCPPacket_NoteConfiguration		OOALSTR("Note Configuration")
 
 /*	kOOTCPPacket_NoteConfigurationChange
 	client <-> server
@@ -170,7 +170,7 @@ enum
 		kOOTCPConfiguration
 		kOOTCPRemovedConfigurationKeys
 */
-#define kOOTCPPacket_NoteConfigurationChange OOSTR("Note Configuration Change")
+#define kOOTCPPacket_NoteConfigurationChange OOALSTR("Note Configuration Change")
 
 /*	kOOTCPPacket_PerformCommand
 	client <-- server
@@ -179,7 +179,7 @@ enum
 	Required values:
 		kOOTCPMessage
 */
-#define kOOTCPPacket_PerformCommand			OOSTR("Perform Command")
+#define kOOTCPPacket_PerformCommand			OOALSTR("Perform Command")
 
 /*	kOOTCPPacket_RequestConfigurationValue
 	client <-- server
@@ -192,7 +192,7 @@ enum
 	Expected response:
 		kOOTCPPacket_NoteConfigurationChange
 */
-#define kOOTCPPacket_RequestConfigurationValue OOSTR("Request Configuration Value")
+#define kOOTCPPacket_RequestConfigurationValue OOALSTR("Request Configuration Value")
 
 /*	kOOTCPPacket_Ping
 	client <-> server
@@ -204,7 +204,7 @@ enum
 	Expected response:
 		kOOTCPPacket_Pong
 */
-#define kOOTCPPacket_Ping OOSTR("Ping")
+#define kOOTCPPacket_Ping OOALSTR("Ping")
 
 /*	kOOTCPPacket_Pong
 	client <-> server
@@ -215,7 +215,7 @@ enum
 	Optional values:
 		kOOTCPMessage (required if included in ping)
 */
-#define kOOTCPPacket_Pong OOSTR("Pong")
+#define kOOTCPPacket_Pong OOALSTR("Pong")
 
 
 
@@ -226,7 +226,7 @@ enum
 
 	See constants below under *** Packet types ***.
 */
-#define kOOTCPPacketType					OOSTR("packet type")
+#define kOOTCPPacketType					OOALSTR("packet type")
 
 /*	kOOTCPProtocolVersion
 	Number indicating version of debug console TCP protocol. Sent with
@@ -234,7 +234,7 @@ enum
 	
 	See constants below under *** Version constants ***.
 */
-#define kOOTCPProtocolVersion				OOSTR("protocol version")
+#define kOOTCPProtocolVersion				OOALSTR("protocol version")
 
 /*	kOOTCPOoliteVersion
 	String indicating the version of Oolite, for example "1.70" or "1.71.1 b2".
@@ -242,17 +242,17 @@ enum
 	a space and additional information in unspecified format. Sent with
 	kOOTCPPacket_RequestConnection.
 */
-#define kOOTCPOoliteVersion					OOSTR("Oolite version")
+#define kOOTCPOoliteVersion					OOALSTR("Oolite version")
 
 /*	kOOTCPMessage
 	Textual message sent with various packet types. No specified format.
 */
-#define kOOTCPMessage						OOSTR("message")
+#define kOOTCPMessage						OOALSTR("message")
 
 /*	kOOTCPConsoleIdentity
 	String identifying console software. No specified format.
 */
-#define kOOTCPConsoleIdentity				OOSTR("console identity")
+#define kOOTCPConsoleIdentity				OOALSTR("console identity")
 
 /*	kOOTCPColorKey
 	String identifying colour/formatting to be used. The configuration
@@ -271,33 +271,33 @@ enum
 	the colour key "foo" maps to the background colour (1,0,0) and the
 	foreground color (0,0,0). Sent with kOOTCPPacket_ConsoleOutput.
 */
-#define kOOTCPColorKey						OOSTR("color key")
+#define kOOTCPColorKey						OOALSTR("color key")
 
 /*	kOOTCPEmphasisRanges
 	An array containing an even number of integers. Each pair of integers
 	specifies a range (in the form offset, length) which should be emphasized.
 	Sent with kOOTCPPacket_ConsoleOutput.
 */
-#define kOOTCPEmphasisRanges				OOSTR("emphasis ranges")
+#define kOOTCPEmphasisRanges				OOALSTR("emphasis ranges")
 
 /*	kOOTCPConfiguration
 	A dictionary of key/value pairs to add/set in the configuration
 	dictionary. Sent with kOOTCPPacket_NoteConfiguration and
 	kOOTCPPacket_NoteConfiguration.
 */
-#define kOOTCPConfiguration					OOSTR("configuration")
+#define kOOTCPConfiguration					OOALSTR("configuration")
 
 /*	kOOTCPConfiguration
 	An array of keys to remove from the configuration dictionary. Sent with
 	kOOTCPPacket_NoteConfiguration.
 */
-#define kOOTCPRemovedConfigurationKeys		OOSTR("removed configuration keys")
+#define kOOTCPRemovedConfigurationKeys		OOALSTR("removed configuration keys")
 
 /*	kOOTCPConfigurationKey
 	A string specifying the configuration key for which a value is requested.
 	Sent with kOOTCPPacket_RequestConfigurationValue.
 */
-#define kOOTCPConfigurationKey				OOSTR("configuration key")
+#define kOOTCPConfigurationKey				OOALSTR("configuration key")
 
 
 
