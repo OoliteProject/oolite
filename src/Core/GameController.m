@@ -821,6 +821,9 @@ static int CompareDisplayModes(id arg1, id arg2, void *context)
 
 - (void) exitApp
 {
+#if OOLITE_GNUSTEP
+	[[NSNotificationCenter defaultCenter] postNotificationName:@"ApplicationWillTerminate" object:self];
+#endif
 	[NSApp terminate:self];
 }
 
