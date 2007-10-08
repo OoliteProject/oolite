@@ -70,10 +70,8 @@ static OODebugMonitor *sSingleton = nil;
 	NSUserDefaults				*defaults = nil;
 	NSDictionary				*jsProps = nil;
 	NSDictionary				*config = nil;
-	// The line below has been copied from gnustep-gui's externs.m source file. Pasted here so that we will not
-	// have to link against gnustep-gui.dll just for this one definition.
 #if OOLITE_GNUSTEP
-	NSString 				*NSApplicationWillTerminateNotification = @"ApplicationWillTerminate";
+	NSString					*NSApplicationWillTerminateNotification = @"ApplicationWillTerminate";
 #endif
 	
 	self = [super init];
@@ -116,7 +114,7 @@ static OODebugMonitor *sSingleton = nil;
 	
 	if (_jsSelf != NULL)
 	{
-		JS_RemoveRoot([[OOJavaScriptEngine sharedEngine] context], &_jsSelf);
+		[[OOJavaScriptEngine sharedEngine] removeGCRoot:&_jsSelf];
 	}
 	
 	[super dealloc];
@@ -552,7 +550,6 @@ FIXME: this works with CRLF and LF, but not CR.
 
 - (jsval)javaScriptValueInContext:(JSContext *)context
 {
-	if (context != [[OOJavaScriptEngine sharedEngine] context])  return JSVAL_VOID;
 	if (_jsSelf == NULL)
 	{
 		_jsSelf = DebugMonitorToJSConsole(context, self);

@@ -47,6 +47,13 @@ SOFTWARE.
 #import "OOTCPStreamDecoder.h"
 
 
+#ifdef OO_LOG_DEBUG_PROTOCOL_PACKETS
+static void LogSendPacket(NSDictionary *packet);
+#else
+#define LogSendPacket(packet) do {} while (0)
+#endif
+
+
 static void DecoderPacket(void *cbInfo, OOALStringRef packetType, OOALDictionaryRef packet);
 static void DecoderError(void *cbInfo, OOALStringRef errorDesc);
 
@@ -342,6 +349,8 @@ noteChangedConfigrationValue:(in id)newValue
 		return;
 	}
 	
+	LogSendPacket(dictionary);
+	
 	count = [data length];
 	if (count == 0)  return;
 	header = htonl(count);
@@ -618,5 +627,29 @@ static void DecoderError(void *cbInfo, OOALStringRef errorDesc)
 {
 	[(OODebugTCPConsoleClient *)cbInfo breakConnectionWithMessage:errorDesc];
 }
+
+
+#ifdef OO_LOG_DEBUG_PROTOCOL_PACKETS
+void LogOOTCPStreamDecoderPacket(NSDictionary *packet)
+{
+	NSData					*data = nil;
+	NSString				*xml = nil;
+	
+	data = [NSPropertyListSerialization dataFromPropertyList:packet format:NSPropertyListXMLFormat_v1_0 errorDescription:NULL];
+	xml = [[NSString alloc] initWithData:data encoding:NSUTF8StringEncoding];
+	OOLog(@"debugTCP.receive", @"Received packet:\n%@", xml);
+}
+
+
+static void LogSendPacket(NSDictionary *packet)
+{
+	NSData					*data = nil;
+	NSString				*xml = nil;
+	
+	data = [NSPropertyListSerialization dataFromPropertyList:packet format:NSPropertyListXMLFormat_v1_0 errorDescription:NULL];
+	xml = [[NSString alloc] initWithData:data encoding:NSUTF8StringEncoding];
+	OOLog(@"debugTCP.send", @"Sent packet:\n%@", xml);
+}
+#endif
 
 #endif /* OO_EXCLUDE_DEBUG_SUPPORT */

@@ -56,6 +56,13 @@ SOFTWARE.
 #include "OODebugTCPConsoleProtocol.h"
 
 
+#ifdef OO_LOG_DEBUG_PROTOCOL_PACKETS
+extern void LogOOTCPStreamDecoderPacket(OOALDictionaryRef packet);
+#else
+#define LogOOTCPStreamDecoderPacket(packet) do {} while (0)
+#endif
+
+
 struct OOTCPStreamDecoder
 {
 	uint8_t								header[4];
@@ -217,6 +224,8 @@ static void PacketReady(OOTCPStreamDecoderRef decoder)
 		Error(decoder, OOALSTR("Protocol error: packet is a %@, not a dictionary."), OOTypeDescription(packet));
 		return;
 	}
+	
+	LogOOTCPStreamDecoderPacket(packet);
 	
 	// Get packet type (and ensure that there is one).
 	packetType = OOALDictionaryGetValue(packet, kOOTCPPacketType);
