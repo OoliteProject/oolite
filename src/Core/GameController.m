@@ -230,9 +230,7 @@ static GameController *sSharedController = nil;
 		[self loadPlayerIfRequired];
 		
 		// get the run loop and add the call to performGameTick:
-		NSTimeInterval ti = 0.01;
-		timer = [[NSTimer timerWithTimeInterval:ti target:self selector:@selector(performGameTick:) userInfo:nil repeats:YES] retain];
-		[[NSRunLoop currentRunLoop] addTimer:timer forMode:NSDefaultRunLoopMode];
+		[self startAnimationTimer];
 		
 		[self endSplashScreen];
 	NS_HANDLER

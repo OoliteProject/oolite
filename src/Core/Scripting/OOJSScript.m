@@ -104,12 +104,8 @@ static JSFunctionSpec sScriptMethods[] =
 
 - (id)initWithPath:(NSString *)path properties:(NSDictionary *)properties
 {
-	return [self initWithPath:path properties:properties context:[[OOJavaScriptEngine sharedEngine] context]];
-}
-
-
-- (id)initWithPath:(NSString *)path properties:(NSDictionary *)properties context:(JSContext *)inContext
-{
+	OOJavaScriptEngine		*engine = nil;
+	JSContext				*context = NULL;
 	NSString				*problem = nil;		// Acts as error flag.
 	JSScript				*script = NULL;
 	jsval					returnValue;
@@ -120,10 +116,12 @@ static JSFunctionSpec sScriptMethods[] =
 	self = [super init];
 	if (self == nil) problem = @"allocation failure";
 	
+	engine = [OOJavaScriptEngine sharedEngine];
+	context = [engine acquireContext];
+	
 	// Set up JS object
 	if (!problem)
 	{
-		context = inContext;
 		// Do we actually want parent to be the global object here?
 		object = JS_NewObject(context, &sScriptClass, sScriptPrototype, NULL /*JS_GetGlobalObject(context)*/);
 		if (object == NULL) problem = @"allocation failure";
@@ -136,7 +134,7 @@ static JSFunctionSpec sScriptMethods[] =
 	
 	if (!problem)
 	{
-		if (!JS_AddNamedRoot(context, &object, "Script object")) // note 2nd arg is a pointer-to-pointer
+		if (![engine addGCRoot:&object named:"Script object"])
 		{
 			problem = @"could not add JavaScript root object";
 		}
@@ -145,14 +143,6 @@ static JSFunctionSpec sScriptMethods[] =
 	if (!problem)
 	{
 		script = LoadScriptWithName(context, path, object, &problem);
-		if (JS_GetScriptObject(script) == NULL)
-		{
-			/*scriptObject = JS_NewScriptObject(context, script);
-			if (!JS_AddNamedRoot(context, &scriptObject, "Cached script reference object")) 
-			{
-				problem = @"could not add JavaScript root object";
-			}*/
-		}
 	}
 	
 	// Set properties.
@@ -202,6 +192,8 @@ static JSFunctionSpec sScriptMethods[] =
 		[self release];
 		self = nil;
 	}
+	
+	[engine releaseContext:context];
 
 	return self;
 }
@@ -213,8 +205,8 @@ static JSFunctionSpec sScriptMethods[] =
 	[description release];
 	[version release];
 	[weakSelf weakRefDrop];
-	JS_RemoveRoot(context, &object);
-//	if (scriptObject != NULL)  JS_RemoveRoot(context, &scriptObject);
+	
+	[[OOJavaScriptEngine sharedEngine] removeGCRoot:object];
 	
 	[super dealloc];
 }
@@ -282,12 +274,17 @@ static JSFunctionSpec sScriptMethods[] =
 
 - (BOOL)doEvent:(NSString *)eventName withArguments:(NSArray *)arguments
 {
-	BOOL			OK;
-	jsval			value;
-	JSFunction		*function;
-	uintN			i, argc;
-	jsval			*argv = NULL;
-	RunningStack	stackElement;
+	BOOL					OK;
+	jsval					value;
+	JSFunction				*function;
+	uintN					i, argc;
+	jsval					*argv = NULL;
+	RunningStack			stackElement;
+	OOJavaScriptEngine		*engine = nil;
+	JSContext				*context = NULL;
+	
+	engine = [OOJavaScriptEngine sharedEngine];
+	context = [engine acquireContext];
 	
 	OK = JS_GetProperty(context, object, [eventName cString], &value);
 	if (OK && !JSVAL_IS_VOID(value))
@@ -334,15 +331,16 @@ static JSFunctionSpec sScriptMethods[] =
 			
 			JS_ClearNewbornRoots(context);
 			
-			// FIXME: should probably be JS_MaybeGC(), and moved to a higher level.
-			// Here for stress testing of sorts.
+#ifndef NDEBUG
+			// Do extra garbage collection for stress testing.
 			JS_GC(context);
-			
-			return OK;
+#endif
 		}
 	}
-
-	return NO;
+	
+	[engine releaseContext:context];
+	
+	return OK;
 }
 
 
@@ -350,43 +348,55 @@ static JSFunctionSpec sScriptMethods[] =
 {
 	BOOL						OK;
 	jsval						value = JSVAL_VOID;
+	JSContext					*context = NULL;
+	id							result = nil;
 	
 	if (propName == nil)  return nil;
 	
-	OK = JS_GetProperty(context, object, [propName UTF8String], &value);
-	if (!OK || JSVAL_IS_VOID(value))  return nil;
+	context = [[OOJavaScriptEngine sharedEngine] acquireContext];
+	OK = JSGetNSProperty(NULL, object, propName, &value);
+	if (OK && !JSVAL_IS_VOID(value))  result = JSValueToObject(context, value);
+	[[OOJavaScriptEngine sharedEngine] releaseContext:context];
 	
-	return JSValueToObject(context, value);
+	return result;
 }
 
 
 - (BOOL)setProperty:(id)value named:(NSString *)propName
 {
 	jsval						jsValue;
+	JSContext					*context = NULL;
+	BOOL						result = NO;
 	
 	if (value == nil || propName == nil)  return NO;
 	
+	context = [[OOJavaScriptEngine sharedEngine] acquireContext];
 	jsValue = [value javaScriptValueInContext:context];
 	if (!JSVAL_IS_VOID(jsValue))
 	{
-		return JS_DefineProperty(context, object, [propName UTF8String], jsValue, NULL, NULL, JSPROP_ENUMERATE);
+		result = JSDefineNSProperty(context, object, propName, jsValue, NULL, NULL, JSPROP_ENUMERATE);
 	}
-	return NO;
+	[[OOJavaScriptEngine sharedEngine] releaseContext:context];
+	return result;
 }
 
 
 - (BOOL)defineProperty:(id)value named:(NSString *)propName
 {
 	jsval						jsValue;
+	JSContext					*context = NULL;
 	
 	if (value == nil || propName == nil)  return NO;
+	BOOL						result = NO;
 	
+	context = [[OOJavaScriptEngine sharedEngine] acquireContext];
 	jsValue = [value javaScriptValueInContext:context];
 	if (!JSVAL_IS_VOID(jsValue))
 	{
-		return JS_DefineProperty(context, object, [propName UTF8String], jsValue, NULL, NULL, JSPROP_ENUMERATE | JSPROP_READONLY | JSPROP_PERMANENT);
+		result = JSDefineNSProperty(context, object, propName, jsValue, NULL, NULL, JSPROP_ENUMERATE | JSPROP_READONLY | JSPROP_PERMANENT);
 	}
-	return NO;
+	[[OOJavaScriptEngine sharedEngine] releaseContext:context];
+	return result;
 }
 
 

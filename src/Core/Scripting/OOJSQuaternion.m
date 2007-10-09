@@ -144,8 +144,6 @@ JSObject *JSQuaternionWithQuaternion(JSContext *context, Quaternion quaternion)
 	JSObject				*result = NULL;
 	Quaternion				*private = NULL;
 	
-	if (context == NULL) context = [[OOJavaScriptEngine sharedEngine] context];
-	
 	private = malloc(sizeof *private);
 	if (private == NULL)  return NULL;
 	
@@ -168,7 +166,6 @@ BOOL QuaternionToJSValue(JSContext *context, Quaternion quaternion, jsval *outVa
 	JSObject				*object = NULL;
 	
 	if (outValue == NULL) return NO;
-	if (EXPECT_NOT(context == NULL))  context = [[OOJavaScriptEngine sharedEngine] context];
 	
 	object = JSQuaternionWithQuaternion(context, quaternion);
 	if (object == NULL) return NO;
@@ -192,7 +189,6 @@ BOOL JSQuaternionGetQuaternion(JSContext *context, JSObject *quaternionObj, Quat
 	Entity					*entity = nil;
 	
 	if (outQuaternion == NULL || quaternionObj == NULL) return NO;
-	if (EXPECT_NOT(context == NULL))  context = [[OOJavaScriptEngine sharedEngine] context];
 	
 	private = JS_GetInstancePrivate(context, quaternionObj, &sQuaternionClass.base, NULL);
 	if (private != NULL)	// If this is a (JS) Quaternion...
@@ -217,7 +213,6 @@ BOOL JSQuaternionSetQuaternion(JSContext *context, JSObject *quaternionObj, Quat
 	Quaternion				*private = NULL;
 	
 	if (quaternionObj == NULL) return NO;
-	if (EXPECT_NOT(context == NULL))  context = [[OOJavaScriptEngine sharedEngine] context];
 	
 	private = JS_GetInstancePrivate(context, quaternionObj, &sQuaternionClass.base, NULL);
 	if (private != NULL)	// If this is a (JS) Quaternion...
@@ -242,7 +237,6 @@ BOOL QuaternionFromArgumentList(JSContext *context, NSString *scriptClass, NSStr
 		return NO;
 	}
 	
-	if (EXPECT_NOT(context == NULL))  context = [[OOJavaScriptEngine sharedEngine] context];
 	
 	// Is first object a quaternion or entity?
 	if (JSVAL_IS_OBJECT(argv[0]))

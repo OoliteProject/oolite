@@ -45,6 +45,7 @@ static JSBool ShipExitAI(JSContext *context, JSObject *this, uintN argc, jsval *
 static JSBool ShipReactToAIMessage(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
 static JSBool ShipDeployEscorts(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
 static JSBool ShipDockEscorts(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
+static JSBool ShipHasRole(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
 
 
 static JSExtendedClass sShipClass =
@@ -166,6 +167,7 @@ static JSFunctionSpec sShipMethods[] =
 	{ "reactToAIMessage",		ShipReactToAIMessage,		1 },
 	{ "deployEscorts",			ShipDeployEscorts,			0 },
 	{ "dockEscorts",			ShipDockEscorts,			0 },
+	{ "hasRole",				ShipHasRole,				1 },
 	{ 0 }
 };
 
@@ -607,5 +609,18 @@ static JSBool ShipDockEscorts(JSContext *context, JSObject *this, uintN argc, js
 	if (!JSShipGetShipEntity(context, this, &thisEnt)) return YES;	// stale reference, no-op.
 	
 	[thisEnt dockEscorts];
+	return YES;
+}
+
+
+static JSBool ShipHasRole(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
+{
+	ShipEntity				*thisEnt = nil;
+	NSString				*role;
+	
+	if (!JSShipGetShipEntity(context, this, &thisEnt)) return YES;	// stale reference, no-op.
+	role = [NSString stringWithJavaScriptValue:*argv inContext:context];
+	
+	*outResult = BOOLToJSVal([thisEnt hasRole:role]);
 	return YES;
 }

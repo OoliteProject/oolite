@@ -168,51 +168,52 @@ static void ReportJSError(JSContext *context, const char *message, JSErrorReport
 	// initialize the JS run time, and return result in runtime
 	runtime = JS_NewRuntime(8L * 1024L * 1024L);
 	
-	// if runtime does not have a value, end the program here
-	if (!runtime)
+	// if runtime creation failed, end the program here
+	if (runtime == NULL)
 	{
 		OOLog(@"script.javaScript.init.error", @"FATAL ERROR: failed to create JavaScript %@.", @"runtime");
 		exit(1);
 	}
 
 	// create a context and associate it with the JS run time
-	context = JS_NewContext(runtime, 8192);
-	JS_SetOptions(context, JSOPTION_VAROBJFIX | JSOPTION_STRICT | JSOPTION_NATIVE_BRANCH_CALLBACK);
-	JS_SetVersion(context, JSVERSION_1_7);
+	mainContext = JS_NewContext(runtime, 8192);
 	
-	// if context does not have a value, end the program here
-	if (!context)
+	// if context creation failed, end the program here
+	if (mainContext == NULL)
 	{
 		OOLog(@"script.javaScript.init.error", @"FATAL ERROR: failed to create JavaScript %@.", @"context");
 		exit(1);
 	}
 	
-	JS_SetErrorReporter(context, ReportJSError);
+	JS_SetOptions(mainContext, JSOPTION_VAROBJFIX | JSOPTION_STRICT | JSOPTION_NATIVE_BRANCH_CALLBACK);
+	JS_SetVersion(mainContext, JSVERSION_1_7);
+	
+	JS_SetErrorReporter(mainContext, ReportJSError);
 	
 	// Create the global object.
-	CreateOOJSGlobal(context, &globalObject);
+	CreateOOJSGlobal(mainContext, &globalObject);
 
 	// Initialize the built-in JS objects and the global object.
-	JS_InitStandardClasses(context, globalObject);
-	RegisterStandardObjectConverters(context);
+	JS_InitStandardClasses(mainContext, globalObject);
+	RegisterStandardObjectConverters(mainContext);
 	
-	SetUpOOJSGlobal(context, globalObject);
+	SetUpOOJSGlobal(mainContext, globalObject);
 	
 	// Initialize Oolite classes.
-	InitOOJSMissionVariables(context, globalObject);
-	InitOOJSMission(context, globalObject);
-	InitOOJSOolite(context, globalObject);
-	InitOOJSVector(context, globalObject);
-	InitOOJSQuaternion(context, globalObject);
-	InitOOJSSystem(context, globalObject);
-	InitOOJSEntity(context, globalObject);
-	InitOOJSShip(context, globalObject);
-	InitOOJSStation(context, globalObject);
-	InitOOJSPlayer(context, globalObject);
-	InitOOJSPlanet(context, globalObject);
-	InitOOJSScript(context, globalObject);
-	InitOOJSTimer(context, globalObject);
-	InitOOJSClock(context, globalObject);
+	InitOOJSMissionVariables(mainContext, globalObject);
+	InitOOJSMission(mainContext, globalObject);
+	InitOOJSOolite(mainContext, globalObject);
+	InitOOJSVector(mainContext, globalObject);
+	InitOOJSQuaternion(mainContext, globalObject);
+	InitOOJSSystem(mainContext, globalObject);
+	InitOOJSEntity(mainContext, globalObject);
+	InitOOJSShip(mainContext, globalObject);
+	InitOOJSStation(mainContext, globalObject);
+	InitOOJSPlayer(mainContext, globalObject);
+	InitOOJSPlanet(mainContext, globalObject);
+	InitOOJSScript(mainContext, globalObject);
+	InitOOJSTimer(mainContext, globalObject);
+	InitOOJSClock(mainContext, globalObject);
 	
 	OOLog(@"script.javaScript.init.success", @"Set up JavaScript context.");
 	
@@ -223,24 +224,123 @@ static void ReportJSError(JSContext *context, const char *message, JSErrorReport
 
 - (void) dealloc
 {
+	unsigned					i;
+	
 	sSharedEngine = nil;
 	
-	JS_DestroyContext(context);
+	for (i = 0; i != contextPoolCount; ++i)
+	{
+		JS_DestroyContext(contextPool[i]);
+	}
+	JS_DestroyContext(mainContext);
 	JS_DestroyRuntime(runtime);
 	
 	[super dealloc];
 }
 
 
-- (JSContext *) context
+- (JSObject *) globalObject
 {
+	return globalObject;
+}
+
+
+- (BOOL) callJSFunction:(JSFunction *)function
+			  forObject:(JSObject *)jsThis
+				   argc:(uintN)argc
+				   argv:(jsval *)argv
+				 result:(jsval *)outResult
+{
+	JSContext					*context = NULL;
+	BOOL						result;
+	
+	context = [self acquireContext];
+	result = JS_CallFunction(context, jsThis, function, argc, argv, outResult);
+	[self releaseContext:context];
+	
+	return result;
+}
+
+
+- (JSContext *)acquireContext
+{
+	JSContext				*context = NULL;
+	
+	if (!mainContextInUse)
+	{
+		/*	Favour the main context.
+		There's overhead to using objects from a different context. By
+		having one preferred context, most objects will belong to that
+		context and that context will be the one used in the common case
+		of only one script running.
+		*/
+		mainContextInUse = YES;
+		context = mainContext;
+	}
+	else if (contextPoolCount != 0)
+	{
+		context = contextPool[--contextPoolCount];
+	}
+	else
+	{
+		context = JS_NewContext(runtime, 8192);
+		// if context creation failed, end the program here
+		if (context == NULL)
+		{
+			OOLog(@"script.javaScript.error", @"FATAL ERROR: failed to create JavaScript %@.", @"context");
+			exit(1);
+		}
+		
+		JS_SetOptions(context, JSOPTION_VAROBJFIX | JSOPTION_STRICT | JSOPTION_NATIVE_BRANCH_CALLBACK);
+		JS_SetVersion(context, JSVERSION_1_7);
+		JS_SetErrorReporter(context, ReportJSError);
+		CreateOOJSGlobal(context, &globalObject);
+		JS_InitStandardClasses(context, globalObject);
+	}
+	
 	return context;
 }
 
 
-- (JSObject *) globalObject
+- (void)releaseContext:(JSContext *)context
 {
-	return globalObject;
+	if (context == NULL)  return;
+	
+	if (context == mainContext)
+	{
+		mainContextInUse = NO;
+	}
+	else if (contextPoolCount < kOOJavaScriptEngineContextPoolCount)
+	{
+		contextPool[contextPoolCount++] = context;
+	}
+	else
+	{
+		JS_DestroyContextMaybeGC(context);
+	}
+}
+
+
+- (BOOL) addGCRoot:(void *)rootPtr
+			 named:(const char *)name
+{
+	BOOL					result;
+	JSContext				*context = NULL;
+	
+	context = [self acquireContext];
+	result = JS_AddNamedRoot(context, rootPtr, name);
+	[self releaseContext:context];
+	return result;
+}
+
+
+- (void) removeGCRoot:(void *)rootPtr
+{
+	JSContext				*context = NULL;
+	
+	context = [self acquireContext];
+	JS_RemoveRoot(context, rootPtr);
+	[self releaseContext:context];
 }
 
 @end
@@ -379,32 +479,71 @@ static BOOL ExtractString(NSString *string, jschar **outString, size_t *outLengt
 }
 
 
-BOOL JSSetNSProperty(JSContext *context, JSObject *object, NSString *name, jsval *value)
-{
-	jschar					*buffer = NULL;
-	size_t					length;
-	BOOL					OK = NO;
-	
-	if (ExtractString(name, &buffer, &length))
-	{
-		OK = JS_SetUCProperty(context, object, buffer, length, value);
-		free(buffer);
-	}
-	return OK;
-}
-
-
 BOOL JSGetNSProperty(JSContext *context, JSObject *object, NSString *name, jsval *value)
 {
 	jschar					*buffer = NULL;
 	size_t					length;
 	BOOL					OK = NO;
+	BOOL					tempCtxt = NO;
 	
+	if (context == NULL)
+	{
+		context = [[OOJavaScriptEngine sharedEngine] acquireContext];
+		tempCtxt = YES;
+	}
 	if (ExtractString(name, &buffer, &length))
 	{
 		OK = JS_GetUCProperty(context, object, buffer, length, value);
 		free(buffer);
 	}
+	
+	if (tempCtxt)  [[OOJavaScriptEngine sharedEngine] releaseContext:context];
+	return OK;
+}
+
+
+BOOL JSSetNSProperty(JSContext *context, JSObject *object, NSString *name, jsval *value)
+{
+	jschar					*buffer = NULL;
+	size_t					length;
+	BOOL					OK = NO;
+	BOOL					tempCtxt = NO;
+	
+	if (context == NULL)
+	{
+		context = [[OOJavaScriptEngine sharedEngine] acquireContext];
+		tempCtxt = YES;
+	}
+	if (ExtractString(name, &buffer, &length))
+	{
+		OK = JS_SetUCProperty(context, object, buffer, length, value);
+		free(buffer);
+	}
+	
+	if (tempCtxt)  [[OOJavaScriptEngine sharedEngine] releaseContext:context];
+	return OK;
+}
+
+
+BOOL JSDefineNSProperty(JSContext *context, JSObject *object, NSString *name, jsval value, JSPropertyOp getter, JSPropertyOp setter, uintN attrs)
+{
+	jschar					*buffer = NULL;
+	size_t					length;
+	BOOL					OK = NO;
+	BOOL					tempCtxt = NO;
+	
+	if (context == NULL)
+	{
+		context = [[OOJavaScriptEngine sharedEngine] acquireContext];
+		tempCtxt = YES;
+	}
+	if (ExtractString(name, &buffer, &length))
+	{
+		OK = JS_DefineUCProperty(context, object, buffer, length, value, getter, setter, attrs);
+		free(buffer);
+	}
+	
+	if (tempCtxt)  [[OOJavaScriptEngine sharedEngine] releaseContext:context];
 	return OK;
 }
 
@@ -625,9 +764,18 @@ static BOOL JSNewNSDictionaryValue(JSContext *context, NSDictionary *dictionary,
 + (id)stringWithJavaScriptValue:(jsval)value inContext:(JSContext *)context
 {
 	JSString				*string = NULL;
+	BOOL					tempCtxt = NO;
 	
 	if (JSVAL_IS_NULL(value) || JSVAL_IS_VOID(value))  return nil;
+	
+	if (context == NULL)
+	{
+		context = [[OOJavaScriptEngine sharedEngine] acquireContext];
+		tempCtxt = YES;
+	}
 	string = JS_ValueToString(context, value);	// Calls the value's toString method if needed.
+	if (tempCtxt)  [[OOJavaScriptEngine sharedEngine] releaseContext:context];
+	
 	return [NSString stringWithJavaScriptString:string];
 }
 

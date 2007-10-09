@@ -149,8 +149,6 @@ JSObject *JSVectorWithVector(JSContext *context, Vector vector)
 	JSObject				*result = NULL;
 	Vector					*private = NULL;
 	
-	if (context == NULL) context = [[OOJavaScriptEngine sharedEngine] context];
-	
 	private = malloc(sizeof *private);
 	if (private == NULL)  return NULL;
 	
@@ -173,7 +171,6 @@ BOOL VectorToJSValue(JSContext *context, Vector vector, jsval *outValue)
 	JSObject				*object = NULL;
 	
 	if (outValue == NULL) return NO;
-	if (EXPECT_NOT(context == NULL))  context = [[OOJavaScriptEngine sharedEngine] context];
 	
 	object = JSVectorWithVector(context, vector);
 	if (object == NULL) return NO;
@@ -197,7 +194,6 @@ BOOL JSVectorGetVector(JSContext *context, JSObject *vectorObj, Vector *outVecto
 	Entity					*entity = nil;
 	
 	if (outVector == NULL || vectorObj == NULL) return NO;
-	if (EXPECT_NOT(context == NULL))  context = [[OOJavaScriptEngine sharedEngine] context];
 	
 	private = JS_GetInstancePrivate(context, vectorObj, &sVectorClass.base, NULL);
 	if (private != NULL)	// If this is a (JS) Vector...
@@ -222,7 +218,6 @@ BOOL JSVectorSetVector(JSContext *context, JSObject *vectorObj, Vector vector)
 	Vector					*private = NULL;
 	
 	if (vectorObj == NULL) return NO;
-	if (EXPECT_NOT(context == NULL))  context = [[OOJavaScriptEngine sharedEngine] context];
 	
 	private = JS_GetInstancePrivate(context, vectorObj, &sVectorClass.base, NULL);
 	if (private != NULL)	// If this is a (JS) Vector...
@@ -246,8 +241,6 @@ BOOL VectorFromArgumentList(JSContext *context, NSString *scriptClass, NSString 
 		OOLogGenericParameterError();
 		return NO;
 	}
-	
-	if (EXPECT_NOT(context == NULL))  context = [[OOJavaScriptEngine sharedEngine] context];
 	
 	// Is first object a vector or entity?
 	if (JSVAL_IS_OBJECT(argv[0]))

@@ -35,10 +35,19 @@ MA 02110-1301, USA.
 @protocol OOJavaScriptEngineMonitor;
 
 
+enum
+{
+	kOOJavaScriptEngineContextPoolCount = 3
+};
+
+
 @interface OOJavaScriptEngine : NSObject
 {
 	JSRuntime						*runtime;
-	JSContext						*context;
+	JSContext						*mainContext;
+	JSContext						*contextPool[kOOJavaScriptEngineContextPoolCount];
+	uint8_t							contextPoolCount;
+	uint8_t							mainContextInUse;
 	JSObject						*globalObject;
 #if OOJSENGINE_MONITOR_SUPPORT
 	id<OOJavaScriptEngineMonitor>	monitor;
@@ -47,8 +56,25 @@ MA 02110-1301, USA.
 
 + (OOJavaScriptEngine *)sharedEngine;
 
-- (JSContext *)context;
 - (JSObject *)globalObject;
+
+// The current context. NULL if nothing executing.
+// - (JSContext *)context;
+
+// Call a JS function, setting up new contexts as necessary.
+- (BOOL) callJSFunction:(JSFunction *)function
+			  forObject:(JSObject *)jsThis
+				   argc:(uintN)argc
+				   argv:(jsval *)argv
+				 result:(jsval *)outResult;
+
+// Get a context for doing something other than calling a function.
+- (JSContext *)acquireContext;
+- (void)releaseContext:(JSContext *)context;
+
+- (BOOL) addGCRoot:(void *)rootPtr
+			 named:(const char *)name;
+- (void) removeGCRoot:(void *)rootPtr;
 
 @end
 
@@ -82,10 +108,11 @@ OOINLINE jsval BOOLToJSVal(BOOL b)
 /*	JSFooNSBar()
 	
 	Wrappers to corresponding JS_FooBar()/JS_FooUCBar() functions, but taking
-	an NSString.
+	an NSString. Additionally, a NULL context parameter may be used.
 */
 BOOL JSGetNSProperty(JSContext *context, JSObject *object, NSString *name, jsval *value);
 BOOL JSSetNSProperty(JSContext *context, JSObject *object, NSString *name, jsval *value);
+BOOL JSDefineNSProperty(JSContext *context, JSObject *object, NSString *name, jsval value, JSPropertyOp getter, JSPropertyOp setter, uintN attrs);
 
 
 @interface NSObject (OOJavaScriptConversion)

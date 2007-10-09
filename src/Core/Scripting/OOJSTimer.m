@@ -64,7 +64,7 @@ static JSClass sTimerClass;
 	self = [super initWithNextTime:[UNIVERSE getTime] + delay interval:interval];
 	if (self != nil)
 	{
-		context = [[OOJavaScriptEngine sharedEngine] context];
+		context = [[OOJavaScriptEngine sharedEngine] acquireContext];
 		
 		_jsThis = jsThis;
 		JS_AddNamedRoot(context, &_jsThis, "OOJSTimer this");
@@ -75,7 +75,6 @@ static JSClass sTimerClass;
 		JS_AddNamedRoot(context, &_functionObject, "OOJSTimer function");
 		
 		_jsSelf = JS_NewObject(context, &sTimerClass, sTimerPrototype, NULL);
-		JS_AddNamedRoot(context, &_jsSelf, "OOJSTimer jsSelf");
 		if (_jsSelf != NULL)
 		{
 			if (!JS_SetPrivate(context, _jsSelf, [self retain]))  _jsSelf = NULL;
@@ -87,6 +86,7 @@ static JSClass sTimerClass;
 		}
 		
 		_owningScript = [OOJSScript currentlyRunningScript];
+		[[OOJavaScriptEngine sharedEngine] releaseContext:context];
 	}
 	
 	return self;
@@ -95,12 +95,9 @@ static JSClass sTimerClass;
 
 - (void) dealloc
 {
-	JSContext				*context = NULL;
-	
-	// Allow GCing of function and this.
-	context = [[OOJavaScriptEngine sharedEngine] context];
-	JS_RemoveRoot(context, &_jsThis);
-	JS_RemoveRoot(context, _functionObject);
+	// Allow garbage collection.
+	[[OOJavaScriptEngine sharedEngine] removeGCRoot:&_jsThis];
+	[[OOJavaScriptEngine sharedEngine] removeGCRoot:&_functionObject];
 	
 	[super dealloc];
 }
@@ -123,7 +120,7 @@ static JSClass sTimerClass;
 	else
 	{
 		thisDesc = [NSString stringWithJavaScriptValue:OBJECT_TO_JSVAL(_jsThis)
-											 inContext:[[OOJavaScriptEngine sharedEngine] context]];
+											 inContext:NULL];
 	}
 	
 	return [NSString stringWithFormat:@"%@, %spersistent, function: %@", [super descriptionComponents], [self isPersistent] ? "" : "not ", funcName];
@@ -138,15 +135,14 @@ static JSClass sTimerClass;
 
 - (void) timerFired
 {
-	JSContext				*context = NULL;
 	jsval					rval = JSVAL_VOID;
 	
 	[OOJSScript pushScript:_owningScript];
-	context = [[OOJavaScriptEngine sharedEngine] context];
-	if (!JS_CallFunction(context, _jsThis, _function, 0, NULL, &rval))
-	{
-		[self unscheduleTimer];
-	}
+	[[OOJavaScriptEngine sharedEngine] callJSFunction:_function
+											forObject:_jsThis
+												 argc:0
+												 argv:NULL
+											   result:&rval];
 	[OOJSScript popScript:_owningScript];
 }
 

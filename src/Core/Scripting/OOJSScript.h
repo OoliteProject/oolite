@@ -30,9 +30,7 @@ MA 02110-1301, USA.
 
 @interface OOJSScript: OOScript <OOWeakReferenceSupport>
 {
-	JSContext			*context;
 	JSObject			*object;
-	JSObject			*scriptObject;
 	
 	NSString			*name;
 	NSString			*description;
@@ -44,7 +42,6 @@ MA 02110-1301, USA.
 + (id)scriptWithPath:(NSString *)path properties:(NSDictionary *)properties;
 
 - (id)initWithPath:(NSString *)path properties:(NSDictionary *)properties;
-- (id)initWithPath:(NSString *)path properties:(NSDictionary *)properties context:(JSContext *)context;
 
 + (OOJSScript *)currentlyRunningScript;
 + (NSArray *)scriptStack;

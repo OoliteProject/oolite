@@ -116,7 +116,6 @@ JSObject *DebugMonitorToJSConsole(JSContext *context, OODebugMonitor *monitor)
 	jsval					value;
 	
 	engine = [OOJavaScriptEngine sharedEngine];
-	if (context == NULL) context = [engine context];
 	
 	if (sConsolePrototype == NULL)
 	{

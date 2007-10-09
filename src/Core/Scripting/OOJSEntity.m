@@ -178,7 +178,6 @@ BOOL JSEntityGetEntity(JSContext *context, JSObject *entityObj, Entity **outEnti
 	if (outEntity == NULL)  return NO;
 	*outEntity = nil;
 	if (entityObj == NULL)  return NO;
-	if (EXPECT_NOT(context == NULL))  context = [[OOJavaScriptEngine sharedEngine] context];
 	
 	*outEntity = JSObjectToObject(context, entityObj);
 	if ([*outEntity isKindOfClass:[Entity class]])  return YES;

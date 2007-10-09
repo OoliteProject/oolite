@@ -38,9 +38,6 @@
 #import "OOEntityFilterPredicate.h"
 
 
-// system.filteredEntities crashes -- need to deel with additional JS contexts for nested calls.
-#define FILTERED_ENTITIES	0
-
 // system.addShips not yet implemented
 #define ADD_SHIPS			0
 
@@ -70,10 +67,7 @@ static JSBool SystemCountShipsWithRole(JSContext *context, JSObject *this, uintN
 static JSBool SystemShipsWithPrimaryRole(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
 static JSBool SystemShipsWithRole(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
 static JSBool SystemEntitiesWithScanClass(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
-
-#if FILTERED_ENTITIES
 static JSBool SystemFilteredEntities(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
-#endif
 
 #if ADD_SHIPS
 static JSBool SystemAddShips(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
@@ -167,9 +161,7 @@ static JSFunctionSpec sSystemMethods[] =
 	{ "shipsWithPrimaryRole",	SystemShipsWithPrimaryRole,	1 },
 	{ "shipsWithRole",			SystemShipsWithRole,		1 },
 	{ "entitiesWithScanClass",	SystemEntitiesWithScanClass, 1 },
-#if FILTERED_ENTITIES
 	{ "filteredEntities",		SystemFilteredEntities,		2 },
-#endif
 	
 #if ADD_SHIPS
 	{ "addShips",				SystemAddShips,				3 },
@@ -569,7 +561,6 @@ static JSBool SystemEntitiesWithScanClass(JSContext *context, JSObject *this, ui
 }
 
 
-#if FILTERED_ENTITIES
 // function filteredEntities(this : Object, predicate : Function [, relativeTo : Entity [, range : Number]]) : Array (Entity)
 static JSBool SystemFilteredEntities(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
 {
@@ -584,7 +575,7 @@ static JSBool SystemFilteredEntities(JSContext *context, JSObject *this, uintN a
 	{
 		function = JS_ValueToFunction(context, argv[1]);
 		if (function != NULL && !JS_ValueToObject(context, argv[0], &jsThis))  function = NULL;
-		argv += 2; argc += 2;
+		argv += 2; argc -= 2;
 	}
 	
 	// Get optional arguments
@@ -600,7 +591,6 @@ static JSBool SystemFilteredEntities(JSContext *context, JSObject *this, uintN a
 	if (result != nil)  *outResult = [result javaScriptValueInContext:context];
 	return YES;
 }
-#endif
 
 
 #define DEFAULT_RADIUS 500.0
