@@ -108,7 +108,6 @@ OOINLINE BOOL StatusIsSendable(OOTCPClientConnectionStatus status)
 	NSHost					*host = nil;
 	BOOL					OK = NO;
 	NSDictionary			*parameters = nil;
-	NSRunLoop				*runLoop = nil;
 	
 	if (address == nil)  address = @"127.0.0.1";
 	if (port == 0)  port = kOOTCPConsolePort;
@@ -123,17 +122,17 @@ OOINLINE BOOL StatusIsSendable(OOTCPClientConnectionStatus status)
 								  port:port
 						   inputStream:&_inStream
 						  outputStream:&_outStream];
-			[_inStream retain];
-			[_outStream retain];
-			
-			[_inStream setDelegate:self];
-			[_outStream setDelegate:self];
-			[_inStream open];
-			[_outStream open];
 		}
 		
 		if (_inStream != nil && _outStream != nil)
 		{
+			[_inStream setDelegate:self];
+			[_outStream setDelegate:self];
+			[_inStream scheduleInRunLoop:[NSRunLoop currentRunLoop] forMode:NSDefaultRunLoopMode];
+			[_outStream scheduleInRunLoop:[NSRunLoop currentRunLoop] forMode:NSDefaultRunLoopMode];
+			[_inStream open];
+			[_outStream open];
+			
 			_decoder = OOTCPStreamDecoderCreate(DecoderPacket, DecoderError, NULL, self);
 		}
 		
@@ -142,9 +141,6 @@ OOINLINE BOOL StatusIsSendable(OOTCPClientConnectionStatus status)
 			OK = YES;
 			_status = kOOTCPClientStartedConnectionStage1;
 			
-			runLoop = [NSRunLoop currentRunLoop];
-			[_inStream scheduleInRunLoop:runLoop forMode:NSDefaultRunLoopMode];
-			[_outStream scheduleInRunLoop:runLoop forMode:NSDefaultRunLoopMode];
 			
 			// Attempt to connect
 			parameters = [NSDictionary dictionaryWithObjectsAndKeys:
