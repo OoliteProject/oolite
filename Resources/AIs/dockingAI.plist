@@ -1,65 +1,79 @@
 {
     GLOBAL = {
-        ENTER = ("setSpeedTo: 0.0", requestDockingCoordinates, "setStateTo: AWAIT_COORDS"); 
-        EXIT = (); 
-        UPDATE = (); 
-    }; 
+        ENTER = ("setSpeedTo: 0.0", requestDockingCoordinates, "setStateTo: AWAIT_COORDS");
+        EXIT = ();
+        UPDATE = ();
+    };
     "AWAIT_COORDS" = {
-        "APPROACH" = ("setStateTo: APPROACH"); 
-        "APPROACH_COORDINATES" = ("setStateTo: GO_TO_COORDS"); 
-        "BACK_OFF" = ("setStateTo: RETREAT"); 
-        "HOLD_POSITION" = ("setStateTo: STATIONKEEPING"); 
-        "DOCKING_ABORTED" = ("setStateTo: ABORT"); 
-        "TRY_AGAIN_LATER" = ("pauseAI: 30.0", "setStateTo: ABORT"); 
-        "COLLISION" = ("setStateTo: ABORT"); 
-        "RESTART_DOCKING" = ("setStateTo: GLOBAL"); 
-        DOCKED = ("setStateTo: EXIT_SYSTEM"); 
-        ENTER = (); 
-        EXIT = (); 
-        UPDATE = (); 
-    }; 
+        "APPROACH" = ("setStateTo: APPROACH");
+        "APPROACH_COORDINATES" = ("setStateTo: GO_TO_COORDS");
+        "BACK_OFF" = ("setStateTo: RETREAT");
+        "HOLD_POSITION" = ("setStateTo: STATIONKEEPING");
+        "DOCKING_ABORTED" = ("setStateTo: ABORT");
+        "TRY_AGAIN_LATER" = ("pauseAI: 30.0", "setStateTo: ABORT");
+        "COLLISION" = ("setStateTo: ABORT");
+        "RESTART_DOCKING" = ("setStateTo: GLOBAL");
+        DOCKED = ("setStateTo: EXIT_SYSTEM");
+        ENTER = ();
+        EXIT = ();
+        UPDATE = ();
+    };
     STATIONKEEPING = {
-        ENTER = (performIdle, "setSpeedTo: 0.0", "pauseAI: 10.0"); 
-        EXIT = (); 
-        UPDATE = (requestDockingCoordinates, "setStateTo: AWAIT_COORDS"); 
-    }; 
+        ENTER = (performIdle, "setSpeedTo: 0.0", "pauseAI: 10.0");
+        EXIT = ();
+        UPDATE = (requestDockingCoordinates, "setStateTo: AWAIT_COORDS");
+    };
     APPROACH = {
-        ENTER = (recallDockingInstructions, setTargetToStation, setDestinationToTarget, "setDesiredRangeTo: 10000.0", "setSpeedFactorTo: 1.0", performFlyToRangeFromDestination); 
-        "DESIRED_RANGE_ACHIEVED" = (requestDockingCoordinates, "setStateTo: AWAIT_COORDS"); 
-        "DOCKING_ABORTED" = ("setStateTo: ABORT"); 
-        "COLLISION" = ("setStateTo: ABORT"); 
-        "RESTART_DOCKING" = ("setStateTo: GLOBAL"); 
-        EXIT = (); 
-        UPDATE = (); 
-    }; 
+        ENTER = (recallDockingInstructions, setTargetToStation, setDestinationToTarget, "setDesiredRangeTo: 10000.0", "setSpeedFactorTo: 1.0", performFlyToRangeFromDestination);
+        "DESIRED_RANGE_ACHIEVED" = (requestDockingCoordinates, "setStateTo: AWAIT_COORDS");
+        "DOCKING_ABORTED" = ("setStateTo: ABORT");
+        "COLLISION" = ("setStateTo: ABORT");
+        "RESTART_DOCKING" = ("setStateTo: GLOBAL");
+        EXIT = ();
+        UPDATE = ();
+    };
+	/*
+	// Old code.
     RETREAT = {
-        ENTER = (recallDockingInstructions, setTargetToStation, setDestinationToTarget, "setSpeedFactorTo: 0.5", "setDesiredRangeTo: 5000.0", performFlyToRangeFromDestination); 
-        "DESIRED_RANGE_ACHIEVED" = (requestDockingCoordinates, "setStateTo: AWAIT_COORDS"); 
-        "DOCKING_ABORTED" = ("setStateTo: ABORT"); 
-        "COLLISION" = ("setStateTo: ABORT"); 
-        "RESTART_DOCKING" = ("setStateTo: GLOBAL"); 
-        EXIT = (); 
-        UPDATE = (); 
-    }; 
+        ENTER = (recallDockingInstructions, setTargetToStation, setDestinationToTarget, "setSpeedFactorTo: 0.5", "setDesiredRangeTo: 5000.0", performFlyToRangeFromDestination);
+        "DESIRED_RANGE_ACHIEVED" = (requestDockingCoordinates, "setStateTo: AWAIT_COORDS");
+        "DOCKING_ABORTED" = ("setStateTo: ABORT");
+        "COLLISION" = ("setStateTo: ABORT");
+        "RESTART_DOCKING" = ("setStateTo: GLOBAL");
+        EXIT = ();
+        UPDATE = ();
+    };
+	*/
+	// Updated code submitted by Eric Walch. Avoids colliding with station when asked to retreat.
+	RETREAT = {
+        ENTER = (recallDockingInstructions, "setSpeedTo: 0.0", setDestinationToDockingAbort, performFaceDestination);
+        "FACING_DESTINATION" =  ("setSpeedFactorTo: 1.0", "setDesiredRangeTo: 500.0", performFlyToRangeFromDestination);
+        "DESIRED_RANGE_ACHIEVED" = ("setSpeedTo: 0.0", requestDockingCoordinates, "setStateTo: AWAIT_COORDS");
+        "DOCKING_ABORTED" = ("setStateTo: ABORT");
+        "COLLISION" = ("setStateTo: ABORT");
+        "RESTART_DOCKING" = ("setStateTo: GLOBAL");
+        EXIT = ();
+        UPDATE = ();
+    };
     "GO_TO_COORDS" = {
         ENTER = (performFaceDestination);
-        FRUSTRATED = ("setSpeedTo: 0.0", performFaceDestination); 
-        "FACING_DESTINATION" = (recallDockingInstructions, performFlyToRangeFromDestination); 
-        "DESIRED_RANGE_ACHIEVED" = (requestDockingCoordinates, "setStateTo: AWAIT_COORDS"); 
-        "DOCKING_ABORTED" = ("setStateTo: ABORT"); 
-        "COLLISION" = ("setStateTo: ABORT"); 
-        "RESTART_DOCKING" = ("setStateTo: GLOBAL"); 
-        EXIT = (); 
+        FRUSTRATED = ("setSpeedTo: 0.0", performFaceDestination);
+        "FACING_DESTINATION" = (recallDockingInstructions, performFlyToRangeFromDestination);
+        "DESIRED_RANGE_ACHIEVED" = (requestDockingCoordinates, "setStateTo: AWAIT_COORDS");
+        "DOCKING_ABORTED" = ("setStateTo: ABORT");
+        "COLLISION" = ("setStateTo: ABORT");
+        "RESTART_DOCKING" = ("setStateTo: GLOBAL");
+        EXIT = ();
         UPDATE = ();
 	};
     ABORT = {
-        ENTER = (abortDocking, "setSpeedTo: 0.0", setDestinationToDockingAbort, "setDesiredRangeTo: 500.0", performFaceDestination); 
-        "FACING_DESTINATION" = ("setSpeedFactorTo: 1.0", "setDesiredRangeTo: 500.0", performFlyToRangeFromDestination); 
-        EXIT = (); 
-        "RESTART_DOCKING" = ("setStateTo: GLOBAL"); 
-        "REACHED_SAFETY" = (performIdle, "setStateTo: GLOBAL"); 
-        "DESIRED_RANGE_ACHIEVED" = (performIdle, "setStateTo: GLOBAL"); 
-        UPDATE = (); 
-    }; 
-    "EXIT_SYSTEM" = {ENTER = (performDocking, exitAI); EXIT = (); UPDATE = (); }; 
+        ENTER = (abortDocking, "setSpeedTo: 0.0", setDestinationToDockingAbort, "setDesiredRangeTo: 500.0", performFaceDestination);
+        "FACING_DESTINATION" = ("setSpeedFactorTo: 1.0", "setDesiredRangeTo: 500.0", performFlyToRangeFromDestination);
+        EXIT = ();
+        "RESTART_DOCKING" = ("setStateTo: GLOBAL");
+        "REACHED_SAFETY" = (performIdle, "setStateTo: GLOBAL");
+        "DESIRED_RANGE_ACHIEVED" = (performIdle, "setStateTo: GLOBAL");
+        UPDATE = ();
+    };
+    "EXIT_SYSTEM" = {ENTER = (performDocking, exitAI); EXIT = (); UPDATE = (); };
 }
