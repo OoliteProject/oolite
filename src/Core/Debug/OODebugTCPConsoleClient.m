@@ -126,6 +126,8 @@ OOINLINE BOOL StatusIsSendable(OOTCPClientConnectionStatus status)
 		
 		if (_inStream != nil && _outStream != nil)
 		{
+			[_inStream retain];
+			[_outStream retain];
 			[_inStream setDelegate:self];
 			[_outStream setDelegate:self];
 			[_inStream scheduleInRunLoop:[NSRunLoop currentRunLoop] forMode:NSDefaultRunLoopMode];
