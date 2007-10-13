@@ -44,7 +44,7 @@
         EXIT = ();
 		ESCORTING = ("setDesiredRangeTo: 0.0", "setStateTo: FLYING_ESCORT");
         "TARGET_FOUND" = (setTargetToFoundTarget, suggestEscort); 
-        "NOTHING_FOUND" = ("setStateMachine: route1patrolAI.plist"); 
+        "NOTHING_FOUND" = ("switchAITo: route1patrolAI.plist"); 
         UPDATE = ("pauseAI: 7.5", scanForFormationLeader); 
     }; 
     GLOBAL = {ENTER = ("setStateTo: BEGIN_BUSINESS"); EXIT = (); UPDATE = (); }; 

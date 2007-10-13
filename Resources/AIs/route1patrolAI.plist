@@ -31,7 +31,7 @@
 	}; 
     "OUTBOUND_LOOT" = {
         "GROUP_ATTACK_TARGET" = (setTargetToFoundTarget, "setAITo: interceptAI.plist"); 
-        "DOCKING_REQUESTED" = ("setSpeedFactorTo: 0.0", "setStateTo: DOCKING_WITCHPOINT"); 
+        "DOCKING_REQUESTED" = ("setSpeedFactorTo: 0.0", "setAITo: receivingDockingAI.plist"); 
         ATTACKED = (setTargetToPrimaryAggressor, groupAttackTarget); 
         ENTER = ("setSpeedTo: 0.0", performIdle); 
         EXIT = (); 
@@ -42,7 +42,7 @@
     }; 
     "INBOUND_LOOT" = {
         "GROUP_ATTACK_TARGET" = (setTargetToFoundTarget, "setAITo: interceptAI.plist"); 
-        "DOCKING_REQUESTED" = ("setSpeedFactorTo: 0.0", "setStateTo: DOCKING_PLANET"); 
+        "DOCKING_REQUESTED" = ("setSpeedFactorTo: 0.0", "setAITo: receivingDockingAI.plist"); 
         ATTACKED = (setTargetToPrimaryAggressor, groupAttackTarget); 
         ENTER = ("setSpeedTo: 0.0", performIdle); 
         EXIT = (); 

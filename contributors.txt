@@ -1,0 +1,30 @@
+Contributors
+============
+This list is in alphabetical order, and almost certainly incomplete.
+
+The Man: Giles Williams (aegidian)
+
+Jens Ayton (ahruman)
+Nikos Barkas (another_commander)
+Chris Crowther (hikari)
+Dylan Smith (winston)
+David Taylor (dajt)
+Eric Walch
+? (Commander McLane)
+? (Jester)
+Nigel ? (NoSleep)
+
+
+Library credits:
+----------------
+GNUstep: various and numerous.
+libpng: Glenn Randers-Pehrson, Andreas Dilger, Guy Eric Schalnat
+        and contributors.
+
+
+Mac OS X-specific libraries:
+----------------------------
+F-Script: Philippe Mougin and contributors.
+RBSplitView: Rainer Brockerhoff
+SpiderMonkey: Brendan Eich et al, Mozilla Foundation.
+VirtualRingBuffer: Kurt Revis
