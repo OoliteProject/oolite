@@ -25,8 +25,8 @@ MA 02110-1301, USA.
 #import "PlanetEntity.h"
 #import "OOOpenGL.h"
 
-#import "AI.h"
 #import "Universe.h"
+#import "AI.h"
 #import "TextureStore.h"
 #import "MyOpenGLView.h"
 #import "ShipEntityAI.h"
@@ -1095,7 +1095,11 @@ static GLfloat	texture_uv_array[10400 * 2];
 				double aleph = (atmo - alt) / atmo;
 				if (aleph < 0.0) aleph = 0.0;
 				if (aleph > 1.0) aleph = 1.0;
-				[UNIVERSE setSky_clear_color:0.8 * aleph * aleph :0.8 * aleph * aleph :0.9 * aleph :aleph];	// test - blue
+				
+				[UNIVERSE setSkyColorRed:0.8 * aleph * aleph
+								   green:0.8 * aleph * aleph
+									blue:0.9 * aleph
+								   alpha:aleph];
 			}
 		}
 		break;
@@ -1155,9 +1159,19 @@ static GLfloat	texture_uv_array[10400 * 2];
 					{
 						double sky_bri = 1.0 - 1.5 * velocity.y;
 						if (sky_bri < 0)
-							[UNIVERSE setSky_clear_color:0 :0 :0 :0];	// back to black
+						{
+							[UNIVERSE setSkyColorRed:0.0f		// back to black
+											   green:0.0f
+												blue:0.0f
+											   alpha:0.0f];
+						}
 						else
-							[UNIVERSE setSky_clear_color:sky_bri :sky_bri :sky_bri : 1];	// whiteout
+						{
+							[UNIVERSE setSkyColorRed:sky_bri	// whiteout
+											   green:sky_bri
+												blue:sky_bri
+											   alpha:1.0f];
+						}
 						if (sky_bri == 1.0)
 							NSLog(@"DEBUG NOVA original radius %.1f", collision_radius);
 						amb_land[0] = 1.0;	amb_land[1] = 1.0;	amb_land[2] = 1.0;	amb_land[3] = 1.0;

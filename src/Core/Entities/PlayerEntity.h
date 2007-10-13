@@ -673,6 +673,9 @@ typedef enum
 - (NSString *)customViewDescription;
 - (void)setCustomViewDataFromDictionary:(NSDictionary*) viewDict;
 
+- (NSArray *) worldScriptNames;
+- (NSDictionary *) worldScriptsByName;
+
 // *** World cript events.
 // In general, script events should be sent through doScriptEvent:..., which
 // will forward to the world scripts.

@@ -23,7 +23,6 @@ MA 02110-1301, USA.
 */
 
 #import "OOOpenGL.h"
-#import "OOGLDefs.h"
 #import "Universe.h"
 #import "MyOpenGLView.h"
 #import "GameController.h"
@@ -66,6 +65,9 @@ MA 02110-1301, USA.
 
 #define MAX_NUMBER_OF_ENTITIES				200
 #define MAX_NUMBER_OF_SOLAR_SYSTEM_ENTITIES 20
+
+
+#define DEMO_LIGHT_POSITION 5000.0f, 25000.0f, -10000.0f
 
 
 static NSString * const kOOLogUniversePopulate				= @"universe.populate";
@@ -837,7 +839,10 @@ static BOOL IsPlanetPredicate(Entity *entity, void *parameter);
 	[universeRegion clearSubregions];
 	
 	// fixed entities (part of the graphics system really) come first...
-	[self setSky_clear_color:0.0 :0.0 :0.0 :0.0];
+	[self setSkyColorRed:0.0f
+				   green:0.0f
+					blue:0.0f
+				   alpha:0.0f];
 	
 	// set the system seed for random number generation
 	seed_for_planet_description(system_seed);
@@ -1065,11 +1070,11 @@ static BOOL IsPlanetPredicate(Entity *entity, void *parameter);
 // track the position and status of the lights
 BOOL	sun_light_on = NO;
 BOOL	demo_light_on = NO;
-GLfloat	demo_light_position[] = DEMO_LIGHT_POSITION;
+GLfloat	demo_light_position[4] = { DEMO_LIGHT_POSITION, 1.0 };
 //
-GLfloat docked_light_ambient[]	= { (GLfloat) 0.05, (GLfloat) 0.05, (GLfloat) 0.05, (GLfloat) 1.0};	// dark gray (low ambient)
-GLfloat docked_light_diffuse[]	= { (GLfloat) 1.0, (GLfloat) 1.0, (GLfloat) 1.0, (GLfloat) 1.0};	// white
-GLfloat docked_light_specular[]	= { (GLfloat) 1.0, (GLfloat) 1.0, (GLfloat) 0.5, (GLfloat) 1.0};	// yellow-white
+GLfloat docked_light_ambient[4]	= { (GLfloat) 0.05, (GLfloat) 0.05, (GLfloat) 0.05, (GLfloat) 1.0};	// dark gray (low ambient)
+GLfloat docked_light_diffuse[4]	= { (GLfloat) 1.0, (GLfloat) 1.0, (GLfloat) 1.0, (GLfloat) 1.0};	// white
+GLfloat docked_light_specular[4]	= { (GLfloat) 1.0, (GLfloat) 1.0, (GLfloat) 0.5, (GLfloat) 1.0};	// yellow-white
 - (void) setLighting
 {
 	/*
@@ -2738,20 +2743,20 @@ GLfloat docked_light_specular[]	= { (GLfloat) 1.0, (GLfloat) 1.0, (GLfloat) 0.5,
 }
 
 
-- (GLfloat *) sky_clear_color
+- (GLfloat *) skyClearColor
 {
-	return sky_clear_color;
+	return skyClearColor;
 }
 
 
-- (void) setSky_clear_color:(GLfloat) red :(GLfloat) green :(GLfloat) blue :(GLfloat) alpha
+- (void) setSkyColorRed:(GLfloat)red green:(GLfloat)green blue:(GLfloat)blue alpha:(GLfloat)alpha
 {
-	sky_clear_color[0] = red;
-	sky_clear_color[1] = green;
-	sky_clear_color[2] = blue;
-	sky_clear_color[3] = alpha;
+	skyClearColor[0] = red;
+	skyClearColor[1] = green;
+	skyClearColor[2] = blue;
+	skyClearColor[3] = alpha;
 	airResistanceFactor = alpha;
-}  
+}
 
 
 - (BOOL) breakPatternOver
@@ -3363,7 +3368,7 @@ GLfloat* custom_matrix;
 			glDepthMask(GL_TRUE);	// restore write to depth buffer
 
 			if (!displayGUI)
-				glClearColor(sky_clear_color[0], sky_clear_color[1], sky_clear_color[2], sky_clear_color[3]);
+				glClearColor(skyClearColor[0], skyClearColor[1], skyClearColor[2], skyClearColor[3]);
 			else
 				glClearColor(0.0, 0.0, 0.0, 0.0);
 
@@ -3406,9 +3411,7 @@ GLfloat* custom_matrix;
 			if ((!displayGUI) || (inGUIMode))
 			{
 				// set up the light for demo ships
-				Vector demo_light_origin = DEMO_LIGHT_POSITION;
-				
-				////
+				Vector demo_light_origin = { DEMO_LIGHT_POSITION };
 				
 				if (!inGUIMode)
 				{
@@ -3417,8 +3420,6 @@ GLfloat* custom_matrix;
 					// translate the view
 					glTranslatef(-position.x, -position.y, -position.z);
 				}
-				
-				////
 				
 				// position the sun and docked lights correctly
 				glLightfv(GL_LIGHT1, GL_POSITION, sun_center_position);	// this is necessary or the sun will move with the player
@@ -3502,7 +3503,7 @@ GLfloat* custom_matrix;
 							double half_scale = fog_scale * 0.50;
 							glEnable(GL_FOG);
 							glFogi(GL_FOG_MODE, GL_LINEAR);
-							glFogfv(GL_FOG_COLOR, sky_clear_color);
+							glFogfv(GL_FOG_COLOR, skyClearColor);
 							glHint(GL_FOG_HINT, GL_NICEST);
 							glFogf(GL_FOG_START, half_scale);
 							glFogf(GL_FOG_END, fog_scale);
@@ -3579,7 +3580,7 @@ GLfloat* custom_matrix;
 							double half_scale = fog_scale * 0.50;
 							glEnable(GL_FOG);
 							glFogi(GL_FOG_MODE, GL_LINEAR);
-							glFogfv(GL_FOG_COLOR, sky_clear_color);
+							glFogfv(GL_FOG_COLOR, skyClearColor);
 							glHint(GL_FOG_HINT, GL_NICEST);
 							glFogf(GL_FOG_START, half_scale);
 							glFogf(GL_FOG_END, fog_scale);
@@ -5053,10 +5054,10 @@ static BOOL MaintainLinkedLists(Universe* uni)
 			Entity*			my_entities[ent_count];
 			BOOL			inGUIMode = [player showDemoShips];
 			
-			sky_clear_color[0] = 0.0;
-			sky_clear_color[1] = 0.0;
-			sky_clear_color[2] = 0.0;
-			sky_clear_color[3] = 0.0;
+			skyClearColor[0] = 0.0;
+			skyClearColor[1] = 0.0;
+			skyClearColor[2] = 0.0;
+			skyClearColor[3] = 0.0;
 			
 			// use a retained copy so this can't be changed under us.
 			for (i = 0; i < ent_count; i++)

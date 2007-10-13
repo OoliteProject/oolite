@@ -153,7 +153,7 @@ enum
 	
 	OOUniversalID			firstBeacon, lastBeacon;
 	
-	GLfloat					sky_clear_color[4];
+	GLfloat					skyClearColor[4];
 	
 	NSString				*currentMessage;
 	
@@ -308,8 +308,9 @@ enum
 - (ShipEntity *) lastBeacon;
 - (void) setNextBeacon:(ShipEntity *) beaconShip;
 
-- (GLfloat *) sky_clear_color;
-- (void) setSky_clear_color:(GLfloat) red :(GLfloat) green :(GLfloat) blue :(GLfloat) alpha;
+- (GLfloat *) skyClearColor;
+// Note: the alpha value is also air resistance!
+- (void) setSkyColorRed:(GLfloat)red green:(GLfloat)green blue:(GLfloat)blue alpha:(GLfloat)alpha;
 
 - (BOOL) breakPatternOver;
 - (BOOL) breakPatternHide;
@@ -411,7 +412,7 @@ enum
 - (void) addCommsMessage:(NSString *) text forCount:(OOTimeDelta) count;
 - (void) showCommsLog:(OOTimeDelta) how_long;
 
-- (void) update:(OOTimeDelta) delta_t;
+- (void) update:(OOTimeDelta)delta_t;
 
 - (void) filterSortedLists;
 

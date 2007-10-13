@@ -109,6 +109,24 @@ MA 02110-1301, USA.
 }
 
 
++ (OOColor *)colorWithRGBAComponents:(OORGBAComponents)components
+{
+	return [self colorWithCalibratedRed:components.r
+								  green:components.g
+								   blue:components.b
+								  alpha:components.a];
+}
+
+
++ (OOColor *)colorWithHSBAComponents:(OOHSBAComponents)components
+{
+	return [self colorWithCalibratedHue:components.h / 360.0f
+							 saturation:components.s
+							 brightness:components.b
+								  alpha:components.a];
+}
+
+
 + (OOColor *)colorWithDescription:(id)description
 {
 	if (description == nil) return nil;
@@ -367,6 +385,13 @@ MA 02110-1301, USA.
 }
 
 
+- (OORGBAComponents)rgbaComponents
+{
+	OORGBAComponents c = { rgba[0], rgba[1], rgba[2], rgba[3] };
+	return c;
+}
+
+
 // Get the components as hue, saturation, or brightness.
 - (float)hueComponent
 {
@@ -430,6 +455,17 @@ MA 02110-1301, USA.
 }
 
 
+- (OOHSBAComponents)hsbaComponents
+{
+	OOHSBAComponents c;
+	[self getHue:&c.h
+	  saturation:&c.s
+	  brightness:&c.b
+		   alpha:&c.a];
+	return c;
+}
+
+
 // Get the alpha component.
 - (float)alphaComponent
 {
@@ -469,3 +505,15 @@ MA 02110-1301, USA.
 }
 
 @end
+
+
+NSString *OORGBAComponentsDescription(OORGBAComponents components)
+{
+	return [NSString stringWithFormat:@"{%.3g, %.3g, %.3g, %.3g}", components.r, components.g, components.b, components.a];
+}
+
+
+NSString *OOHSBAComponentsDescription(OOHSBAComponents components)
+{
+	return [NSString stringWithFormat:@"{%i, %.3g, %.3g, %.3g}", (int)components.h, components.s, components.b, components.a];
+}

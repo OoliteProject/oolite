@@ -29,14 +29,28 @@ MA 02110-1301, USA.
 #import "OOOpenGL.h"
 
 
+typedef struct
+{
+	GLfloat				r, g, b, a;
+} OORGBAComponents;
+
+
+typedef struct
+{
+	GLfloat				h, s, b, a;
+} OOHSBAComponents;
+
+
 @interface OOColor : NSObject <NSCopying>
 {
 	GLfloat	rgba[4];
 }
 
-+ (OOColor *)colorWithCalibratedHue:(float)hue saturation:(float)saturation brightness:(float)brightness alpha:(float)alpha;
++ (OOColor *)colorWithCalibratedHue:(float)hue saturation:(float)saturation brightness:(float)brightness alpha:(float)alpha;	// Note: hue in 0..1
 + (OOColor *)colorWithCalibratedRed:(float)red green:(float)green blue:(float)blue alpha:(float)alpha;
 + (OOColor *)colorWithCalibratedWhite:(float)white alpha:(float)alpha;
++ (OOColor *)colorWithRGBAComponents:(OORGBAComponents)components;
++ (OOColor *)colorWithHSBAComponents:(OOHSBAComponents)components;	// Note: hue in 0..360
 
 // Flexible color creator; takes a selector name, a string with components, or an array.
 + (OOColor *)colorWithDescription:(id)description;
@@ -77,6 +91,8 @@ MA 02110-1301, USA.
 - (float)blueComponent;
 - (void)getRed:(float *)red green:(float *)green blue:(float *)blue alpha:(float *)alpha;
 
+- (OORGBAComponents)rgbaComponents;
+
 /*	Get the components of NSCalibratedRGB or NSDeviceRGB colors as hue, saturation, or brightness.
 	
 	IMPORTANT: for reasons of bugwards compatibility, these return hue values
@@ -87,6 +103,8 @@ MA 02110-1301, USA.
 - (float)saturationComponent;
 - (float)brightnessComponent;
 - (void)getHue:(float *)hue saturation:(float *)saturation brightness:(float *)brightness alpha:(float *)alpha;
+
+- (OOHSBAComponents)hsbaComponents;
 
 
 // Get the alpha component.
@@ -102,3 +120,7 @@ MA 02110-1301, USA.
 - (NSArray *)normalizedArray;
 
 @end
+
+
+NSString *OORGBAComponentsDescription(OORGBAComponents components);
+NSString *OOHSBAComponentsDescription(OOHSBAComponents components);

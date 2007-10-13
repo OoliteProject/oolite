@@ -39,7 +39,7 @@ static JSBool MissionVariablesSetProperty(JSContext *context, JSObject *this, js
 static JSClass sMissionVariablesClass =
 {
 	"MissionVariables",
-	0,
+	JSCLASS_IS_ANONYMOUS,
 	
 	JS_PropertyStub,
 	MissionVariablesDeleteProperty,

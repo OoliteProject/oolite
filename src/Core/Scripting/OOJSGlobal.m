@@ -55,7 +55,7 @@ static JSBool GlobalLogWithClass(JSContext *context, JSObject *this, uintN argc,
 static JSClass sGlobalClass =
 {
 	"Global",
-	0,
+	JSCLASS_GLOBAL_FLAGS,
 	
 	JS_PropertyStub,
 	JS_PropertyStub,

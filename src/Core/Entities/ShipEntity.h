@@ -286,7 +286,8 @@ MA 02110-1301, USA.
 	// DEBUGGING
 	OOBehaviour				debug_condition;
 	
-	uint16_t				entity_personality;	// Per-entity random number. Used for shaders, maybe scripting at some point.
+	uint16_t				entity_personality;	// Per-entity random number. Exposed to shaders and scripts.
+	NSDictionary			*scriptInfo;		// script_info dictionary from shipdata.plist, exposed to scripts.
 }
 
 // ship brains
@@ -643,6 +644,8 @@ BOOL	class_masslocks(int some_class);
 - (void) claimAsSalvage;
 - (void) sendCoordinatesToPilot;
 - (void) pilotArrived;
+
+- (NSDictionary *)scriptInfo;
 
 - (Entity *)entityForShaderProperties;
 

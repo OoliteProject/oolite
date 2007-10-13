@@ -57,7 +57,7 @@ static JSBool ConsoleSettingsSetProperty(JSContext *context, JSObject *this, jsv
 static JSClass sConsoleClass =
 {
 	"Console",
-	JSCLASS_HAS_PRIVATE,
+	JSCLASS_HAS_PRIVATE | JSCLASS_IS_ANONYMOUS,
 	
 	JS_PropertyStub,		// addProperty
 	JS_PropertyStub,		// delProperty

@@ -373,7 +373,6 @@ static NSString * const kOOLogEntityBehaviourChanged	= @"entity.behaviour.change
 	ScanQuaternionFromString([shipDict objectForKey:@"rotational_velocity"], &subentityRotationalVelocity);
 
 	// contact tracking entities
-	//
 	if ([shipDict objectForKey:@"track_contacts"])
 	{
 		[self setTrackCloseContacts:[shipDict boolForKey:@"track_contacts"]];
@@ -410,6 +409,9 @@ static NSString * const kOOLogEntityBehaviourChanged	= @"entity.behaviour.change
 	
 	// unpiloted (like missiles asteroids etc.)
 	if ([shipDict fuzzyBooleanForKey:@"unpiloted"])  [self setCrew:nil];
+	
+	// Get scriptInfo dictionary, containing arbitrary stuff scripts might be interested in.
+	scriptInfo = [[shipDict dictionaryForKey:@"script_info" defaultValue:nil] retain];
 	
 	// Load (or synthesize) script
 	script = [OOScript nonLegacyScriptFromFileNamed:[shipDict stringForKey:@"script"] 
@@ -1098,7 +1100,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 }
 
 
-- (void) update:(double) delta_t
+- (void) update:(double)delta_t
 {
 	if (shipinfoDictionary == nil)
 	{
@@ -7425,6 +7427,12 @@ int w_space_seed = 1234567;
 	OOLog(@"dumpState.shipEntity", @"Flags: %@", flagsString);
 }
 #endif
+
+
+- (NSDictionary *)scriptInfo
+{
+	return (scriptInfo != nil) ? scriptInfo : [NSDictionary dictionary];
+}
 
 
 - (Entity *)entityForShaderProperties

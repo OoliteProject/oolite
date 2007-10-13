@@ -105,7 +105,6 @@ OOINLINE BOOL StatusIsSendable(OOTCPClientConnectionStatus status)
 
 - (id) initWithAddress:(NSString *)address port:(uint16_t)port
 {
-	NSHost					*host = nil;
 	BOOL					OK = NO;
 	NSDictionary			*parameters = nil;
 	
@@ -115,10 +114,11 @@ OOINLINE BOOL StatusIsSendable(OOTCPClientConnectionStatus status)
 	self = [super init];
 	if (self != nil)
 	{
-		host = [NSHost hostWithName:address];
-		if (host != nil)
+		_host = [NSHost hostWithName:address];
+		if (_host != nil)
 		{
-			[NSStream getStreamsToHost:host
+			[_host retain];
+			[NSStream getStreamsToHost:_host
 								  port:port
 						   inputStream:&_inStream
 						  outputStream:&_outStream];
@@ -183,6 +183,7 @@ OOINLINE BOOL StatusIsSendable(OOTCPClientConnectionStatus status)
 	
 	[_inStream release];
 	[_outStream release];
+	[_host release];
 	
 	[super dealloc];
 }
@@ -446,14 +447,31 @@ noteChangedConfigrationValue:(in id)newValue
 
 - (void) handleApproveConnectionPacket:(NSDictionary *)packet
 {
+	NSMutableString			*connectedMessage = nil;
 	NSString				*consoleIdentity = nil;
+	NSString				*hostName = nil;
 	
 	if (_status == kOOTCPClientStartedConnectionStage2)
 	{
 		_status = kOOTCPClientConnected;
+		hostName = [_host name];
+		
+		// Build "Connected..." message with two optional parts, console identity and host name.
+		connectedMessage = [NSMutableString stringWithString:@"Connected to external debug console"];
+		
 		consoleIdentity = [packet stringForKey:kOOTCPConsoleIdentity];
-		if (consoleIdentity != nil)  OOLog(@"debugTCP.connected", @"Connected to remote debug console \"%@\".", consoleIdentity);
-		else  OOLog(@"debugTCP.connected", @"Connected to remote debug console.");
+		if (consoleIdentity != nil)  [connectedMessage appendFormat:@" \"%@\"", consoleIdentity];
+		
+		hostName = [_host name];
+		if ([hostName length] != 0 &&
+			![hostName isEqual:@"localhost"] &&
+			![hostName isEqual:@"127.0.0.1"] &&
+			![hostName isEqual:@"::1"])
+		{
+			[connectedMessage appendFormat:@" at %@", hostName];
+		}
+		
+		OOLog(@"debugTCP.connected", @"%@.", connectedMessage);
 	}
 	else
 	{

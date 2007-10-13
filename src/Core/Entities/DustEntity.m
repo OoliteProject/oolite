@@ -133,7 +133,7 @@ MA 02110-1301, USA.
     int ct;
 	int vi;
 
-    GLfloat *fogcolor = [UNIVERSE sky_clear_color];
+    GLfloat *fogcolor = [UNIVERSE skyClearColor];
 	int  dust_size = floor([[UNIVERSE gameView] viewSize].width / 480.0);
 	if (dust_size < 1.0)
 		dust_size = 1.0;

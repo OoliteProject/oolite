@@ -46,6 +46,7 @@ typedef enum
 
 @interface OODebugTCPConsoleClient: NSObject <OODebuggerInterface>
 {
+	NSHost						*_host;
 	NSOutputStream				*_outStream;
 	NSInputStream				*_inStream;
 	OOTCPClientConnectionStatus	_status;

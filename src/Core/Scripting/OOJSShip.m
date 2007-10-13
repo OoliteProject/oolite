@@ -110,7 +110,8 @@ enum
 	kShip_isPolice,				// is police, boolean, read-only
 	kShip_isThargoid,			// is thargoid, boolean, read-only
 	kShip_isTrader,				// is trader, boolean, read-only
-	kShip_isPirateVictim		// is pirate victim, boolean, read-only
+	kShip_isPirateVictim,		// is pirate victim, boolean, read-only
+	kShip_scriptInfo			// arbitrary data for scripts, dictionary, read-only
 };
 
 
@@ -154,6 +155,7 @@ static JSPropertySpec sShipProperties[] =
 	{ "isThargoid",				kShip_isThargoid,			JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
 	{ "isTrader",				kShip_isTrader,				JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
 	{ "isPirateVictim",			kShip_isPirateVictim,		JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
+	{ "scriptInfo",				kShip_scriptInfo,			JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
 	{ 0 }
 };
 
@@ -371,6 +373,11 @@ static JSBool ShipGetProperty(JSContext *context, JSObject *this, jsval name, js
 			
 		case kShip_isPirateVictim:
 			*outValue = BOOLToJSVal([entity isPirateVictim]);
+			break;
+			
+		case kShip_scriptInfo:
+			result = [entity scriptInfo];
+			if (result == nil)  result = [NSDictionary dictionary];	// empty rather than NULL
 			break;
 		
 		default:

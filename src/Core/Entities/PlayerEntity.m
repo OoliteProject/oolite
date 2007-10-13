@@ -1314,7 +1314,7 @@ static PlayerEntity *sSharedPlayer = nil;
 
 
 double scoopSoundPlayTime = 0.0;
-- (void) update:(double) delta_t
+- (void) update:(double)delta_t
 {
 	unsigned i;
 	// update flags
@@ -6269,6 +6269,18 @@ OOSound* burnersound;
 - (BOOL)showInfoFlag
 {
 	return show_info_flag;
+}
+
+
+- (NSArray *) worldScriptNames
+{
+	return [worldScripts allKeys];
+}
+
+
+- (NSDictionary *) worldScriptsByName
+{
+	return [[worldScripts copy] autorelease];
 }
 
 
