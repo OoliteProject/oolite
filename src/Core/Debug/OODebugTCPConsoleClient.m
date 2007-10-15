@@ -413,6 +413,9 @@ noteChangedConfigrationValue:(in id)newValue
 		length = [_inStream read:buffer maxLength:kBufferSize];
 		if (length < 1)
 		{
+			// Under GNUstep, but not OS X (currently), -hasBytesAvailable will return YES when the buffer is in fact empty.
+			if ([_inStream streamStatus] == NSStreamStatusReading) break;
+			
 			[self breakConnectionWithBadStream:_inStream];
 			return;
 		}
