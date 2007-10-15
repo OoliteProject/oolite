@@ -39,6 +39,7 @@ MA 02110-1301, USA.
 #import "OOJSOolite.h"
 #import "OOJSTimer.h"
 #import "OOJSClock.h"
+#import "OOJSSun.h"
 #import "OOJSWorldScripts.h"
 
 #import "OOCollectionExtractors.h"
@@ -211,6 +212,7 @@ static void ReportJSError(JSContext *context, const char *message, JSErrorReport
 	InitOOJSShip(mainContext, globalObject);
 	InitOOJSStation(mainContext, globalObject);
 	InitOOJSPlayer(mainContext, globalObject);
+	InitOOJSSun(mainContext, globalObject);
 	InitOOJSPlanet(mainContext, globalObject);
 	InitOOJSScript(mainContext, globalObject);
 	InitOOJSTimer(mainContext, globalObject);

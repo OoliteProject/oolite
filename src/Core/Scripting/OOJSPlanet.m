@@ -26,6 +26,7 @@ MA 02110-1301, USA.
 #import "OOJSPlanet.h"
 #import "OOJSEntity.h"
 #import "OOJavaScriptEngine.h"
+#import "OOJSSun.h"
 
 #import "PlanetEntity.h"
 
@@ -66,7 +67,6 @@ enum
 {
 	// Property IDs
 	kPlanet_isMainPlanet,		// Is [UNIVERSE planet], boolean, read-only
-	kPlanet_isSun,				// Is of type sun, boolean, read-only
 	kPlanet_hasAtmosphere,
 	kPlanet_radius,				// Radius of planet in metres.
 };
@@ -76,7 +76,6 @@ static JSPropertySpec sPlanetProperties[] =
 {
 	// JS name					ID							flags
 	{ "isMainPlanet",			kPlanet_isMainPlanet,		JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
-	{ "isSun",					kPlanet_isSun,				JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
 	{ "hasAtmosphere",			kPlanet_hasAtmosphere,		JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
 	{ "radius",					kPlanet_radius,				JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
 	{ 0 }
@@ -118,14 +117,28 @@ static BOOL JSPlanetGetPlanetEntity(JSContext *context, JSObject *stationObj, Pl
 
 - (void)getJSClass:(JSClass **)outClass andPrototype:(JSObject **)outPrototype
 {
-	*outClass = &sPlanetClass.base;
-	*outPrototype = sPlanetPrototype;
+	if ([self planetType] == PLANET_TYPE_SUN)
+	{
+		OOSunGetClassAndPrototype(outClass, outPrototype);
+	}
+	else
+	{
+		*outClass = &sPlanetClass.base;
+		*outPrototype = sPlanetPrototype;
+	}
 }
 
 
 - (NSString *)jsClassName
 {
-	return @"Planet";
+	if ([self planetType] == PLANET_TYPE_SUN)
+	{
+		return @"Sun";
+	}
+	else
+	{
+		return @"Planet";
+	}
 }
 
 @end
@@ -142,10 +155,6 @@ static JSBool PlanetGetProperty(JSContext *context, JSObject *this, jsval name, 
 	{
 		case kPlanet_isMainPlanet:
 			*outValue = BOOLToJSVal(planet == [UNIVERSE planet]);
-			break;
-			
-		case kPlanet_isSun:
-			*outValue = BOOLToJSVal([planet planetType] == PLANET_TYPE_SUN);
 			break;
 			
 		case kPlanet_radius:

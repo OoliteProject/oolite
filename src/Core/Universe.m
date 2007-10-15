@@ -7770,9 +7770,9 @@ static BOOL IsPlanetPredicate(Entity *entity, void *parameter)
 		switch ([(PlanetEntity *)entity planetType])
 		{
 			case PLANET_TYPE_GREEN:
-			case PLANET_TYPE_SUN:
 				return YES;
-			
+				
+			case PLANET_TYPE_SUN:
 			case PLANET_TYPE_ATMOSPHERE:
 			case PLANET_TYPE_MINIATURE:
 				return NO;

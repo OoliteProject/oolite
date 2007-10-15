@@ -4,15 +4,18 @@ This list is in alphabetical order, and almost certainly incomplete.
 
 The Man: Giles Williams (aegidian)
 
-Jens Ayton (ahruman)
+Jens Ayton (Ahruman)
 Nikos Barkas (another_commander)
 Chris Crowther (hikari)
+Dave MacLachlan (Jester)
 Dylan Smith (winston)
 David Taylor (dajt)
 Eric Walch
 ? (Commander McLane)
 ? (Jester)
+Nic ?
 Nigel ? (NoSleep)
+? (Mad Dan Eccles)
 
 
 Library credits:
