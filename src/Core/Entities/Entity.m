@@ -25,6 +25,7 @@ MA 02110-1301, USA.
 #import "Entity.h"
 #import "EntityOOJavaScriptExtensions.h"
 #import "PlayerEntity.h"
+#import "PlanetEntity.h"
 
 #import "OOMaths.h"
 #import "Geometry.h"
@@ -126,6 +127,12 @@ static NSString * const kOOLogEntityUpdateError				= @"entity.linkedList.update.
 - (BOOL)isPlanet
 {
 	return isPlanet;
+}
+
+
+- (BOOL)isSun
+{
+	return isPlanet && [(PlanetEntity *)self planetType] == PLANET_TYPE_SUN;
 }
 
 

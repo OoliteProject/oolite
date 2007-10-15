@@ -92,6 +92,7 @@ enum
 	kEntity_isSubEntity,		// is subentity, boolean, read-only.
 	kEntity_isPlayer,			// is player, boolean, read-only.
 	kEntity_isPlanet,			// is planet, boolean, read-only.
+	kEntity_isSun,				// is sun, boolean, read-only.
 	kEntity_distanceTravelled,	// distance travelled, double, read-only.
 	kEntity_spawnTime,			// spawn time, double, read-only.
 };
@@ -116,6 +117,7 @@ static JSPropertySpec sEntityProperties[] =
 	{ "isSubEntity",			kEntity_isSubEntity,		JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
 	{ "isPlayer",				kEntity_isPlayer,			JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
 	{ "isPlanet",				kEntity_isPlanet,			JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
+	{ "isSun",					kEntity_isSun,				JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
 	{ "distanceTravelled",		kEntity_distanceTravelled,	JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
 	{ "spawnTime",				kEntity_spawnTime,			JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
 	{ 0 }
@@ -313,9 +315,13 @@ static JSBool EntityGetProperty(JSContext *context, JSObject *this, jsval name, 
 		case kEntity_isPlayer:
 			*outValue = BOOLToJSVal([entity isPlayer]);
 			break;
-		
+			
 		case kEntity_isPlanet:
-			*outValue = BOOLToJSVal([entity isPlanet]);
+			*outValue = BOOLToJSVal([entity isPlanet] && ![entity isSun]);
+			break;
+			
+		case kEntity_isSun:
+			*outValue = BOOLToJSVal([entity isSun]);
 			break;
 		
 		case kEntity_distanceTravelled:

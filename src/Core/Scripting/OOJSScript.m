@@ -206,7 +206,7 @@ static JSFunctionSpec sScriptMethods[] =
 	[version release];
 	[weakSelf weakRefDrop];
 	
-	[[OOJavaScriptEngine sharedEngine] removeGCRoot:object];
+	[[OOJavaScriptEngine sharedEngine] removeGCRoot:&object];
 	
 	[super dealloc];
 }
