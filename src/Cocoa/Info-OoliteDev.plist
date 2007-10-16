@@ -80,7 +80,7 @@
 			<string>Oolite Expansion Pack</string>
 			<key>UTTypeConformsTo</key>
 			<array>
-				<string>public.data</string>
+				<string>public.item</string>
 				<string>com.apple.package</string>
 			</array>
 			<key>UTTypeTagSpecification</key>

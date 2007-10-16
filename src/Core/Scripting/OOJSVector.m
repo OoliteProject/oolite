@@ -61,6 +61,9 @@ static JSBool VectorMagnitude(JSContext *context, JSObject *this, uintN argc, js
 static JSBool VectorSquaredMagnitude(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
 static JSBool VectorRotationTo(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
 static JSBool VectorRotateBy(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
+static JSBool VectorToArray(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
+
+// Static methods
 static JSBool VectorStaticInterpolate(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
 
 
@@ -124,6 +127,7 @@ static JSFunctionSpec sVectorMethods[] =
 	{ "squaredMagnitude",		VectorSquaredMagnitude,		0, },
 	{ "rotateBy",				VectorRotateBy,				1, },
 	{ "rotationTo",				VectorRotationTo,			1, },
+	{ "toArray",				VectorToArray,				0, },
 	{ 0 }
 };
 
@@ -184,14 +188,17 @@ BOOL JSValueToVector(JSContext *context, jsval value, Vector *outVector)
 {
 	if (!JSVAL_IS_OBJECT(value))  return NO;
 	
-	return JSVectorGetVector(context, JSVAL_TO_OBJECT(value), outVector);
+	return JSObjectGetVector(context, JSVAL_TO_OBJECT(value), outVector);
 }
 
 
-BOOL JSVectorGetVector(JSContext *context, JSObject *vectorObj, Vector *outVector)
+BOOL JSObjectGetVector(JSContext *context, JSObject *vectorObj, Vector *outVector)
 {
 	Vector					*private = NULL;
 	Entity					*entity = nil;
+	jsuint					arrayLength;
+	jsval					arrayX, arrayY, arrayZ;
+	jsdouble				dVal;
 	
 	if (outVector == NULL || vectorObj == NULL) return NO;
 	
@@ -207,6 +214,34 @@ BOOL JSVectorGetVector(JSContext *context, JSObject *vectorObj, Vector *outVecto
 	{
 		*outVector = [entity position];
 		return YES;
+	}
+	
+	// If it's an array...
+	if (JS_IsArrayObject(context, vectorObj))
+	{
+		// ...and it has exactly three elements...
+		if (JS_GetArrayLength(context, vectorObj, &arrayLength) && arrayLength == 3)
+		{
+			if (JS_LookupElement(context, vectorObj, 0, &arrayX) &&
+				JS_LookupElement(context, vectorObj, 1, &arrayY) &&
+				JS_LookupElement(context, vectorObj, 2, &arrayZ))
+			{
+				// ...and all three elements are numbers...
+				if (JSVAL_IS_NUMBER(arrayX) &&
+					JSVAL_IS_NUMBER(arrayY) &&
+					JSVAL_IS_NUMBER(arrayZ))
+				{
+					// Use the three numbers as [x, y, z]
+					if (!JS_ValueToNumber(context, arrayX, &dVal))  return NO;
+					outVector->x = dVal;
+					if (!JS_ValueToNumber(context, arrayY, &dVal))  return NO;
+					outVector->y = dVal;
+					if (!JS_ValueToNumber(context, arrayZ, &dVal))  return NO;
+					outVector->z = dVal;
+					return YES;
+				}
+			}
+		}
 	}
 	
 	return NO;
@@ -245,7 +280,7 @@ BOOL VectorFromArgumentList(JSContext *context, NSString *scriptClass, NSString 
 	// Is first object a vector or entity?
 	if (JSVAL_IS_OBJECT(argv[0]))
 	{
-		if (JSVectorGetVector(context, JSVAL_TO_OBJECT(argv[0]), outVector))
+		if (JSObjectGetVector(context, JSVAL_TO_OBJECT(argv[0]), outVector))
 		{
 			if (outConsumed != NULL)  *outConsumed = 1;
 			return YES;
@@ -271,7 +306,7 @@ FAIL:
 	// Report bad parameters, if given a class and function.
 	if (scriptClass != nil && function != nil)
 	{
-		OOReportJavaScriptWarning(context, @"%@.%@(): could not construct vector from parameters %@ -- expected Vector, Entity or three numbers.", scriptClass, function, [NSString stringWithJavaScriptParameters:argv count:argc inContext:context]);
+		OOReportJavaScriptError(context, @"%@.%@(): could not construct vector from parameters %@ -- expected Vector, Entity or three numbers.", scriptClass, function, [NSString stringWithJavaScriptParameters:argv count:argc inContext:context]);
 	}
 	return NO;
 }
@@ -284,7 +319,7 @@ static JSBool VectorGetProperty(JSContext *context, JSObject *this, jsval name, 
 	Vector				vector;
 	
 	if (!JSVAL_IS_INT(name))  return YES;
-	if (!JSVectorGetVector(context, this, &vector)) return NO;
+	if (!JSObjectGetVector(context, this, &vector)) return NO;
 	
 	switch (JSVAL_TO_INT(name))
 	{
@@ -315,7 +350,7 @@ static JSBool VectorSetProperty(JSContext *context, JSObject *this, jsval name, 
 	jsdouble			dval;
 	
 	if (!JSVAL_IS_INT(name))  return YES;
-	if (!JSVectorGetVector(context, this, &vector)) return NO;
+	if (!JSObjectGetVector(context, this, &vector)) return NO;
 	JS_ValueToNumber(context, *value, &dval);
 	
 	switch (JSVAL_TO_INT(name))
@@ -380,9 +415,9 @@ static JSBool VectorEquality(JSContext *context, JSObject *this, jsval value, JS
 	Vector					thisv, thatv;
 	
 	*outEqual = NO;
-	if (!JSVectorGetVector(context, this, &thisv)) return NO;
+	if (!JSObjectGetVector(context, this, &thisv)) return NO;
 	if (!JSVAL_IS_OBJECT(value)) return YES;
-	if (!JSVectorGetVector(context, JSVAL_TO_OBJECT(value), &thatv)) return YES;
+	if (!JSObjectGetVector(context, JSVAL_TO_OBJECT(value), &thatv)) return YES;
 	
 	*outEqual = vector_equal(thisv, thatv);
 	return YES;
@@ -396,7 +431,7 @@ static JSBool VectorToString(JSContext *context, JSObject *this, uintN argc, jsv
 {
 	Vector					thisv;
 	
-	if (!JSVectorGetVector(context, this, &thisv)) return NO;
+	if (!JSObjectGetVector(context, this, &thisv)) return NO;
 	
 	*outResult = [VectorDescription(thisv) javaScriptValueInContext:context];
 	return YES;
@@ -408,7 +443,7 @@ static JSBool VectorAdd(JSContext *context, JSObject *this, uintN argc, jsval *a
 {
 	Vector					thisv, thatv, result;
 	
-	if (!JSVectorGetVector(context, this, &thisv)) return NO;
+	if (!JSObjectGetVector(context, this, &thisv)) return NO;
 	if (!VectorFromArgumentList(context, @"Vector", @"add", argc, argv, &thatv, NULL))  return YES;
 	
 	result = vector_add(thisv, thatv);
@@ -422,7 +457,7 @@ static JSBool VectorSubtract(JSContext *context, JSObject *this, uintN argc, jsv
 {
 	Vector					thisv, thatv, result;
 	
-	if (!JSVectorGetVector(context, this, &thisv)) return NO;
+	if (!JSObjectGetVector(context, this, &thisv)) return NO;
 	if (!VectorFromArgumentList(context, @"Vector", @"subtract", argc, argv, &thatv, NULL))  return YES;
 	
 	result = vector_subtract(thisv, thatv);
@@ -437,7 +472,7 @@ static JSBool VectorDistanceTo(JSContext *context, JSObject *this, uintN argc, j
 	Vector					thisv, thatv;
 	GLfloat					result;
 	
-	if (!JSVectorGetVector(context, this, &thisv)) return NO;
+	if (!JSObjectGetVector(context, this, &thisv)) return NO;
 	if (!VectorFromArgumentList(context, @"Vector", @"distanceTo", argc, argv, &thatv, NULL))  return YES;
 	
 	result = distance(thisv, thatv);
@@ -452,7 +487,7 @@ static JSBool VectorSquaredDistanceTo(JSContext *context, JSObject *this, uintN 
 	Vector					thisv, thatv;
 	GLfloat					result;
 	
-	if (!JSVectorGetVector(context, this, &thisv)) return NO;
+	if (!JSObjectGetVector(context, this, &thisv)) return NO;
 	if (!VectorFromArgumentList(context, @"Vector", @"squaredDistanceTo", argc, argv, &thatv, NULL))  return YES;
 	
 	result = distance2(thisv, thatv);
@@ -467,7 +502,7 @@ static JSBool VectorMultiply(JSContext *context, JSObject *this, uintN argc, jsv
 	Vector					thisv, result;
 	double					scalar;
 	
-	if (!JSVectorGetVector(context, this, &thisv)) return NO;
+	if (!JSObjectGetVector(context, this, &thisv)) return NO;
 	if (!NumberFromArgumentList(context, @"Vector", @"multiply", argc, argv, &scalar, NULL))  return YES;
 	
 	result = vector_multiply_scalar(thisv, scalar);
@@ -482,7 +517,7 @@ static JSBool VectorDot(JSContext *context, JSObject *this, uintN argc, jsval *a
 	Vector					thisv, thatv;
 	GLfloat					result;
 	
-	if (!JSVectorGetVector(context, this, &thisv)) return NO;
+	if (!JSObjectGetVector(context, this, &thisv)) return NO;
 	if (!VectorFromArgumentList(context, @"Vector", @"dot", argc, argv, &thatv, NULL))  return YES;
 	
 	result = dot_product(thisv, thatv);
@@ -497,7 +532,7 @@ static JSBool VectorAngleTo(JSContext *context, JSObject *this, uintN argc, jsva
 	Vector					thisv, thatv;
 	GLfloat					result;
 	
-	if (!JSVectorGetVector(context, this, &thisv)) return NO;
+	if (!JSObjectGetVector(context, this, &thisv)) return NO;
 	if (!VectorFromArgumentList(context, @"Vector", @"angleTo", argc, argv, &thatv, NULL))  return YES;
 	
 	result = acosf(dot_product(vector_normal(thisv), vector_normal(thatv)));
@@ -511,7 +546,7 @@ static JSBool VectorCross(JSContext *context, JSObject *this, uintN argc, jsval 
 {
 	Vector					thisv, thatv, result;
 	
-	if (!JSVectorGetVector(context, this, &thisv)) return NO;
+	if (!JSObjectGetVector(context, this, &thisv)) return NO;
 	if (!VectorFromArgumentList(context, @"Vector", @"cross", argc, argv, &thatv, NULL))  return YES;
 	
 	result = true_cross_product(thisv, thatv);
@@ -527,7 +562,7 @@ static JSBool VectorTripleProduct(JSContext *context, JSObject *this, uintN argc
 	GLfloat					result;
 	uintN					consumed;
 	
-	if (!JSVectorGetVector(context, this, &thisv)) return NO;
+	if (!JSObjectGetVector(context, this, &thisv)) return NO;
 	if (!VectorFromArgumentList(context, @"Vector", @"tripleProduct", argc, argv, &thatv, &consumed))  return YES;
 	argc += consumed;
 	argv += consumed;
@@ -544,7 +579,7 @@ static JSBool VectorDirection(JSContext *context, JSObject *this, uintN argc, js
 {
 	Vector					thisv, result;
 	
-	if (!JSVectorGetVector(context, this, &thisv)) return NO;
+	if (!JSObjectGetVector(context, this, &thisv)) return NO;
 	
 	result = vector_normal(thisv);
 	
@@ -558,7 +593,7 @@ static JSBool VectorMagnitude(JSContext *context, JSObject *this, uintN argc, js
 	Vector					thisv;
 	GLfloat					result;
 	
-	if (!JSVectorGetVector(context, this, &thisv)) return NO;
+	if (!JSObjectGetVector(context, this, &thisv)) return NO;
 	
 	result = magnitude(thisv);
 	
@@ -572,7 +607,7 @@ static JSBool VectorSquaredMagnitude(JSContext *context, JSObject *this, uintN a
 	Vector					thisv;
 	GLfloat					result;
 	
-	if (!JSVectorGetVector(context, this, &thisv)) return NO;
+	if (!JSObjectGetVector(context, this, &thisv)) return NO;
 	
 	result = magnitude2(thisv);
 	
@@ -589,7 +624,7 @@ static JSBool VectorRotationTo(JSContext *context, JSObject *this, uintN argc, j
 	Quaternion				result;
 	uintN					consumed;
 	
-	if (!JSVectorGetVector(context, this, &thisv)) return NO;
+	if (!JSObjectGetVector(context, this, &thisv)) return NO;
 	if (!VectorFromArgumentList(context, @"Vector", @"rotationTo", argc, argv, &thatv, &consumed))  return YES;
 	
 	argc -= consumed;
@@ -614,7 +649,7 @@ static JSBool VectorRotateBy(JSContext *context, JSObject *this, uintN argc, jsv
 	Vector					thisv, result;
 	Quaternion				q;
 	
-	if (!JSVectorGetVector(context, this, &thisv)) return NO;
+	if (!JSObjectGetVector(context, this, &thisv)) return NO;
 	if (!QuaternionFromArgumentList(context, @"Vector", @"rotateBy", argc, argv, &q, NULL))  return YES;
 	
 	result = quaternion_rotate_vector(q, thisv);
@@ -623,6 +658,36 @@ static JSBool VectorRotateBy(JSContext *context, JSObject *this, uintN argc, jsv
 }
 
 
+// toArray() : Array
+static JSBool VectorToArray(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
+{
+	Vector					thisv;
+	JSObject				*result = NULL;
+	BOOL					OK = YES;
+	jsval					nVal;
+	
+	if (!JSObjectGetVector(context, this, &thisv)) return NO;
+	
+	result = JS_NewArrayObject(context, 0, NULL);
+	if (result != NULL)
+	{
+		// We do this at the top because *outResult is a GC root.
+		*outResult = OBJECT_TO_JSVAL(result);
+		
+		if (JS_NewNumberValue(context, thisv.x, &nVal))  JS_SetElement(context, result, 0, &nVal);
+		else  OK = NO;
+		if (JS_NewNumberValue(context, thisv.y, &nVal))  JS_SetElement(context, result, 1, &nVal);
+		else  OK = NO;
+		if (JS_NewNumberValue(context, thisv.z, &nVal))  JS_SetElement(context, result, 2, &nVal);
+		else  OK = NO;
+	}
+	
+	if (!OK)  *outResult = JSVAL_VOID;
+	return YES;
+}
+
+
+// interpolate(v : Vector, u : Vector, alpha : Number) : Vector
 static JSBool VectorStaticInterpolate(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
 {
 	Vector					av, bv;
