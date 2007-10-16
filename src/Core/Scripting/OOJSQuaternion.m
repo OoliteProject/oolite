@@ -221,23 +221,16 @@ BOOL JSObjectGetQuaternion(JSContext *context, JSObject *quaternionObj, Quaterni
 				JS_LookupElement(context, quaternionObj, 2, &arrayY) &&
 				JS_LookupElement(context, quaternionObj, 3, &arrayZ))
 			{
-				// ...and all four elements are numbers...
-				if (JSVAL_IS_NUMBER(arrayW) &&
-					JSVAL_IS_NUMBER(arrayX) &&
-					JSVAL_IS_NUMBER(arrayY) &&
-					JSVAL_IS_NUMBER(arrayZ))
-				{
-					// Use the four numbers as [w, x, y, z]
-					if (!JS_ValueToNumber(context, arrayW, &dVal))  return NO;
-					outQuaternion->w = dVal;
-					if (!JS_ValueToNumber(context, arrayX, &dVal))  return NO;
-					outQuaternion->x = dVal;
-					if (!JS_ValueToNumber(context, arrayY, &dVal))  return NO;
-					outQuaternion->y = dVal;
-					if (!JS_ValueToNumber(context, arrayZ, &dVal))  return NO;
-					outQuaternion->z = dVal;
-					return YES;
-				}
+				// ...se the four numbers as [w, x, y, z]
+				if (!JS_ValueToNumber(context, arrayW, &dVal))  return NO;
+				outQuaternion->w = dVal;
+				if (!JS_ValueToNumber(context, arrayX, &dVal))  return NO;
+				outQuaternion->x = dVal;
+				if (!JS_ValueToNumber(context, arrayY, &dVal))  return NO;
+				outQuaternion->y = dVal;
+				if (!JS_ValueToNumber(context, arrayZ, &dVal))  return NO;
+				outQuaternion->z = dVal;
+				return YES;
 			}
 		}
 	}

@@ -226,20 +226,14 @@ BOOL JSObjectGetVector(JSContext *context, JSObject *vectorObj, Vector *outVecto
 				JS_LookupElement(context, vectorObj, 1, &arrayY) &&
 				JS_LookupElement(context, vectorObj, 2, &arrayZ))
 			{
-				// ...and all three elements are numbers...
-				if (JSVAL_IS_NUMBER(arrayX) &&
-					JSVAL_IS_NUMBER(arrayY) &&
-					JSVAL_IS_NUMBER(arrayZ))
-				{
-					// Use the three numbers as [x, y, z]
-					if (!JS_ValueToNumber(context, arrayX, &dVal))  return NO;
-					outVector->x = dVal;
-					if (!JS_ValueToNumber(context, arrayY, &dVal))  return NO;
-					outVector->y = dVal;
-					if (!JS_ValueToNumber(context, arrayZ, &dVal))  return NO;
-					outVector->z = dVal;
-					return YES;
-				}
+				// ...use the three numbers as [x, y, z]
+				if (!JS_ValueToNumber(context, arrayX, &dVal))  return NO;
+				outVector->x = dVal;
+				if (!JS_ValueToNumber(context, arrayY, &dVal))  return NO;
+				outVector->y = dVal;
+				if (!JS_ValueToNumber(context, arrayZ, &dVal))  return NO;
+				outVector->z = dVal;
+				return YES;
 			}
 		}
 	}
