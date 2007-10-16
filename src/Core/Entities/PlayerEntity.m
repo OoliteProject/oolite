@@ -4280,6 +4280,7 @@ double scoopSoundPlayTime = 0.0;
 {
 	NSString	*targetSystemName;
 	double		distance = distanceBetweenPlanetPositions(target_system_seed.d,target_system_seed.b,galaxy_coordinates.x,galaxy_coordinates.y);
+	double		estimatedTravelTime = distance * distance;
 
 	if ((target_system_seed.d != cursor_coordinates.x)||(target_system_seed.b != cursor_coordinates.y))
 		target_system_seed =	[UNIVERSE findSystemAtCoords:cursor_coordinates withGalaxySeed:galaxy_seed];
@@ -4292,8 +4293,9 @@ double scoopSoundPlayTime = 0.0;
 		[gui clear];
 		[gui setTitle:[NSString stringWithFormat:@"Galactic Chart %d",   galaxy_number+1]];
 		
-		[gui setText:targetSystemName														forRow:17];
+		[gui setText:targetSystemName	forRow:17];
 		[gui setText:[NSString stringWithFormat:@"Distance:\t%.1f Light Years", distance]   forRow:18];
+		[gui setText:(distance <= (PLAYER_MAX_FUEL/10.0f) ? [NSString stringWithFormat:@"Estimated Travel Time:\t%.1f Hours", estimatedTravelTime] : @"") forRow:19];
 		
 		if (planetSearchString)
 			[gui setText:[NSString stringWithFormat:@"Find planet: %@", [planetSearchString capitalizedString]]  forRow:16];
@@ -4323,6 +4325,7 @@ double scoopSoundPlayTime = 0.0;
 {
 	NSString*   targetSystemName;
 	double		distance = distanceBetweenPlanetPositions(target_system_seed.d,target_system_seed.b,galaxy_coordinates.x,galaxy_coordinates.y);
+	double		estimatedTravelTime = distance * distance;
 
 	if ((target_system_seed.d != cursor_coordinates.x)||(target_system_seed.b != cursor_coordinates.y))
 		target_system_seed =	[UNIVERSE findSystemAtCoords:cursor_coordinates withGalaxySeed:galaxy_seed];
@@ -4340,6 +4343,7 @@ double scoopSoundPlayTime = 0.0;
 		
 		[gui setText:targetSystemName														forRow:19];
 		[gui setText:[NSString stringWithFormat:@"Distance:\t%.1f Light Years", distance]   forRow:20];
+		[gui setText:(distance <= (PLAYER_MAX_FUEL/10.0f) ? [NSString stringWithFormat:@"Estimated Travel Time:\t%.1f Hours", estimatedTravelTime] : @"") forRow:21];
 		
 
 		[gui setShowTextCursor:NO];
