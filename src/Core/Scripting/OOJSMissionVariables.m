@@ -109,6 +109,16 @@ static JSBool MissionVariablesGetProperty(JSContext *context, JSObject *this, js
 		{
 			*outValue = [value javaScriptValueInContext:context];
 		}
+		
+		if (*outValue == JSVAL_VOID)
+		{
+			/*	"undefined" is the normal JS expectation, but "null" is easier
+				to deal with. For instance, foo = missionVaraibles.undefinedThing
+				is an error if JSVAL_VOID is used, but fine if JSVAL_NULL is
+				used.
+			*/
+			*outValue = JSVAL_NULL;
+		}
 	}
 	return JS_TRUE;
 }

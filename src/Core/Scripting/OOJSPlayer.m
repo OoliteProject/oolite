@@ -93,7 +93,8 @@ enum
 	kPlayer_alertMassLocked,	// mass lock alert flag, boolean, read-only
 	kPlayer_alertAltitude,		// low altitude alert flag, boolean, read-only
 	kPlayer_alertEnergy,		// low energy alert flag, boolean, read-only
-	kPlayer_alertHostiles		// hostiles present alert flag, boolean, read-only
+	kPlayer_alertHostiles,		// hostiles present alert flag, boolean, read-only
+	kPlayer_trumbleCount		// number of trumbles, integer, read-only
 };
 
 
@@ -115,6 +116,7 @@ static JSPropertySpec sPlayerProperties[] =
 	{ "alertAltitude",			kPlayer_alertAltitude,		JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
 	{ "alertEnergy",			kPlayer_alertEnergy,		JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
 	{ "alertHostiles",			kPlayer_alertHostiles,		JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
+	{ "trumbleCount",			kPlayer_trumbleCount,		JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
 	{ 0 }
 };
 
@@ -273,6 +275,10 @@ static JSBool PlayerGetProperty(JSContext *context, JSObject *this, jsval name, 
 			
 		case kPlayer_alertHostiles:
 			*outValue = BOOLToJSVal([player alertFlags] & ALERT_FLAG_HOSTILES);
+			break;
+			
+		case kPlayer_trumbleCount:
+			JS_NewNumberValue(context, [player trumbleCount], outValue);
 			break;
 		
 		default:

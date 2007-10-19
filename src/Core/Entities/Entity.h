@@ -83,7 +83,7 @@ typedef struct
 @public
 	OOUniversalID			universalID;			// used to reference the entity
 	
-	uint32_t				isParticle: 1,
+	unsigned				isParticle: 1,
 							isRing: 1,
 							isShip: 1,
 							isStation: 1,

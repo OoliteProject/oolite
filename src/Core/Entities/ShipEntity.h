@@ -130,7 +130,7 @@ MA 02110-1301, USA.
 	GLfloat					thrust;						// acceleration
 	
 	// TODO: stick all equipment in a list, and move list from playerEntity to shipEntity. -- Ahruman
-	uint32_t				has_ecm: 1,					// anti-missile system
+	unsigned				has_ecm: 1,					// anti-missile system
 							has_scoop: 1,				// fuel/cargo scoops
 							has_escape_pod: 1,			// escape pod
 							has_energy_bomb: 1,			// energy_bomb
