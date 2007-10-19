@@ -1026,6 +1026,12 @@ static NSTimeInterval	time_last_frame;
 			gDebugFlags |= DEBUG_OCTREE;
 			[UNIVERSE addMessage:@"Octree debug ON" forCount:3];
 		}
+		
+		if ([gameView isDown:'w'])
+		{
+			gDebugFlags |= DEBUG_WIREFRAME_GRAPHICS;
+			[UNIVERSE addMessage:@"Wireframe graphics ON" forCount:3];
+		}
 #endif
 #ifdef ALLOW_PROCEDURAL_PLANETS
 		if ([gameView isDown:'t'])// look for the 't' key

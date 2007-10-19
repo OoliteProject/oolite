@@ -78,8 +78,14 @@ MA 02110-1301, USA.
 		return;
 	}
 	
+	if (gDebugFlags & DEBUG_WIREFRAME_GRAPHICS)
+		GLDebugWireframeModeOn();
+		
 	if (translucent)  [drawable renderTranslucentParts];
 	else  [drawable renderOpaqueParts];
+	
+	if (gDebugFlags & DEBUG_WIREFRAME_GRAPHICS)
+		GLDebugWireframeModeOff();
 }
 
 
