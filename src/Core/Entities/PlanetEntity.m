@@ -1284,6 +1284,14 @@ static GLfloat	texture_uv_array[10400 * 2];
 			glMultMatrixf(rotMatrix);	// rotate the clouds!
 		case PLANET_TYPE_GREEN:
 		case PLANET_TYPE_MINIATURE:
+			if (gDebugFlags & DEBUG_WIREFRAME_GRAPHICS)
+			{
+				// Drop the detail level a bit, it still looks OK in wireframe and does not penalize
+				// the system that much.
+				subdivideLevel = 2;
+				GLDebugWireframeModeOn();
+			}
+				
 			if (!translucent)
 			{
 				GLfloat mat1[]		= { 1.0, 1.0, 1.0, 1.0 };	// opaque white
@@ -1462,6 +1470,9 @@ static GLfloat	texture_uv_array[10400 * 2];
 					glEnable(GL_DEPTH_TEST);
 
 			}
+			
+			if (gDebugFlags & DEBUG_WIREFRAME_GRAPHICS)
+				GLDebugWireframeModeOff();
 			break;
 
 		case PLANET_TYPE_SUN:
