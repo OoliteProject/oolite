@@ -164,6 +164,7 @@ enum
 	BOOL					displayGUI;
 	BOOL					displayCursor;
 	
+	BOOL					wireframeGraphics;
 	BOOL					reducedDetail;
 	
 	BOOL					displayFPS;		
@@ -507,6 +508,9 @@ double estimatedTimeForJourney(double distance, int hops);
 
 - (void) setDisplayFPS:(BOOL) value;
 - (BOOL) displayFPS;
+
+- (void) setWireframeGraphics:(BOOL) value;
+- (BOOL) wireframeGraphics;
 
 - (void) setReducedDetail:(BOOL) value;
 - (BOOL) reducedDetail;

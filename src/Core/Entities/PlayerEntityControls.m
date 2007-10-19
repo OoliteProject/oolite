@@ -1027,11 +1027,15 @@ static NSTimeInterval	time_last_frame;
 			[UNIVERSE addMessage:@"Octree debug ON" forCount:3];
 		}
 		
+#if 0		
+		// Disabled - Wireframe graphics has been implemented as game option.
 		if ([gameView isDown:'w'])
 		{
 			gDebugFlags |= DEBUG_WIREFRAME_GRAPHICS;
 			[UNIVERSE addMessage:@"Wireframe graphics ON" forCount:3];
 		}
+#endif
+
 #endif
 #ifdef ALLOW_PROCEDURAL_PLANETS
 		if ([gameView isDown:'t'])// look for the 't' key
@@ -1050,8 +1054,10 @@ static NSTimeInterval	time_last_frame;
 		if ([gameView isDown:'n'])// look for the 'n' key
 		{
 #ifndef NDEBUG
+#if 0
 			gDebugFlags = 0;
 			[UNIVERSE addMessage:@"All debug flags OFF" forCount:3];
+#endif
 #else
 			[UNIVERSE addMessage:@"Procedural textures OFF" forCount:3];
 #endif
@@ -1653,6 +1659,7 @@ static BOOL			spacePressed;
 				int load_row =			GUI_ROW_OPTIONS_LOAD;
 				int begin_new_row =	GUI_ROW_OPTIONS_BEGIN_NEW;
 				int strict_row =	GUI_ROW_OPTIONS_STRICT;
+				int wireframe_row =	GUI_ROW_OPTIONS_WIREFRAMEGRAPHICS;
 				int detail_row =	GUI_ROW_OPTIONS_DETAIL;
 #if OOLITE_SDL
 				// quit only appears in GNUstep as users aren't
@@ -1868,6 +1875,18 @@ static BOOL			spacePressed;
 					leftRightKeyPressed = NO;
 #endif
 
+				if (([gui selectedRow] == wireframe_row)&&(([gameView isDown:gvArrowKeyRight])||([gameView isDown:gvArrowKeyLeft])))
+				{
+					GuiDisplayGen* gui = [UNIVERSE gui];
+					if ([gameView isDown:gvArrowKeyRight] != [UNIVERSE wireframeGraphics])
+						[gui click];
+					[UNIVERSE setWireframeGraphics:[gameView isDown:gvArrowKeyRight]];
+					if ([UNIVERSE wireframeGraphics])
+						[gui setText:@"Wireframe graphics: ON "  forRow:wireframe_row  align:GUI_ALIGN_CENTER];
+					else
+						[gui setText:@"Wireframe graphics: OFF "  forRow:wireframe_row  align:GUI_ALIGN_CENTER];
+				}
+				
 				if (([gui selectedRow] == detail_row)&&(([gameView isDown:gvArrowKeyRight])||([gameView isDown:gvArrowKeyLeft])))
 				{
 					GuiDisplayGen* gui = [UNIVERSE gui];

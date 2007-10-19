@@ -137,6 +137,7 @@ static BOOL IsPlanetPredicate(Entity *entity, void *parameter);
 	// init the Resource Manager
 	[ResourceManager paths];
 	
+	wireframeGraphics = NO;
 	reducedDetail = NO;
 	
 #if OOLITE_MAC_OS_X
@@ -7522,6 +7523,18 @@ static NSComparisonResult comparePrice(NSDictionary *dict1, NSDictionary *dict2,
 - (BOOL) displayFPS
 {
 	return displayFPS;
+}
+
+
+- (void) setWireframeGraphics:(BOOL) value
+{
+	wireframeGraphics = value;
+}
+
+
+- (BOOL) wireframeGraphics
+{
+	return wireframeGraphics;
 }
 
 

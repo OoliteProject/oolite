@@ -1284,7 +1284,8 @@ static GLfloat	texture_uv_array[10400 * 2];
 			glMultMatrixf(rotMatrix);	// rotate the clouds!
 		case PLANET_TYPE_GREEN:
 		case PLANET_TYPE_MINIATURE:
-			if (gDebugFlags & DEBUG_WIREFRAME_GRAPHICS)
+			//if ((gDebugFlags & DEBUG_WIREFRAME_GRAPHICS)
+			if ([UNIVERSE wireframeGraphics])
 			{
 				// Drop the detail level a bit, it still looks OK in wireframe and does not penalize
 				// the system that much.
@@ -1471,7 +1472,8 @@ static GLfloat	texture_uv_array[10400 * 2];
 
 			}
 			
-			if (gDebugFlags & DEBUG_WIREFRAME_GRAPHICS)
+			//if ((gDebugFlags & DEBUG_WIREFRAME_GRAPHICS)
+			if ([UNIVERSE wireframeGraphics])
 				GLDebugWireframeModeOff();
 			break;
 

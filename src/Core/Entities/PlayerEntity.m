@@ -4533,6 +4533,12 @@ double scoopSoundPlayTime = 0.0;
 		}
 #endif
 
+		if ([UNIVERSE wireframeGraphics])
+			[gui setText:@"Wireframe graphics: ON " forRow:GUI_ROW_OPTIONS_WIREFRAMEGRAPHICS align:GUI_ALIGN_CENTER];
+		else
+			[gui setText:@"Wireframe graphics: OFF " forRow:GUI_ROW_OPTIONS_WIREFRAMEGRAPHICS align:GUI_ALIGN_CENTER];
+		[gui setKey:GUI_KEY_OK forRow:GUI_ROW_OPTIONS_WIREFRAMEGRAPHICS];
+		
 		if ([UNIVERSE reducedDetail])
 			[gui setText:@" Reduced detail: ON " forRow:GUI_ROW_OPTIONS_DETAIL align:GUI_ALIGN_CENTER];
 		else
