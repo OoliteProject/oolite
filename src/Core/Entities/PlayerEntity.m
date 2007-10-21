@@ -4463,7 +4463,7 @@ double scoopSoundPlayTime = 0.0;
 		// window/fullscreen
 		if([gameView inFullScreenMode])
 		{
-			[gui setText:@" Play in Window" forRow:GUI_ROW_GAMEOPTIONS_DISPLAYSTYLE align:GUI_ALIGN_CENTER];
+			[gui setText:@" Play in Window " forRow:GUI_ROW_GAMEOPTIONS_DISPLAYSTYLE align:GUI_ALIGN_CENTER];
 		}
 		else
 		{
@@ -4472,7 +4472,7 @@ double scoopSoundPlayTime = 0.0;
 		[gui setKey: GUI_KEY_OK forRow: GUI_ROW_GAMEOPTIONS_DISPLAYSTYLE];
 
 
-		[gui setText:@" Joystick setup" forRow: GUI_ROW_GAMEOPTIONS_STICKMAPPER align: GUI_ALIGN_CENTER];
+		[gui setText:@" Joystick Configuration " forRow: GUI_ROW_GAMEOPTIONS_STICKMAPPER align: GUI_ALIGN_CENTER];
 		if ([[gameView getStickHandler] getNumSticks])
 		{
 			// TODO: Modify input code to put this in a better place
@@ -4491,7 +4491,7 @@ double scoopSoundPlayTime = 0.0;
 		if ([UNIVERSE wireframeGraphics])
 			[gui setText:@" Wireframe Graphics: YES " forRow:GUI_ROW_GAMEOPTIONS_WIREFRAMEGRAPHICS align:GUI_ALIGN_CENTER];
 		else
-			[gui setText:@" Wireframe graphics: NO " forRow:GUI_ROW_GAMEOPTIONS_WIREFRAMEGRAPHICS align:GUI_ALIGN_CENTER];
+			[gui setText:@" Wireframe Graphics: NO " forRow:GUI_ROW_GAMEOPTIONS_WIREFRAMEGRAPHICS align:GUI_ALIGN_CENTER];
 		[gui setKey:GUI_KEY_OK forRow:GUI_ROW_GAMEOPTIONS_WIREFRAMEGRAPHICS];
 		
 		if ([UNIVERSE reducedDetail])
