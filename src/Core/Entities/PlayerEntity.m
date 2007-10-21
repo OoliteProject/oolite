@@ -52,6 +52,7 @@ MA 02110-1301, USA.
 #import "OOTexture.h"	// Required to properly release missionBackgroundTexture.
 #import "OORoleSet.h"	// Required to properly release roleSet.
 #import "HeadUpDisplay.h"
+#import "OOOpenGLExtensionManager.h"
 
 #import "OOScript.h"
 #import "OOScriptTimer.h"
@@ -4361,6 +4362,188 @@ double scoopSoundPlayTime = 0.0;
 }
 
 
+
+
+
+- (void) setGuiToGameOptionsScreen
+{
+	MyOpenGLView	*gameView = [UNIVERSE gameView];
+	GameController	*controller = [UNIVERSE gameController];
+
+	int displayModeIndex = [controller indexOfCurrentDisplayMode];
+	if (displayModeIndex == NSNotFound)
+	{
+		NSLog(@"***** couldn't find current display mode switching to basic 640x480");
+		displayModeIndex = 0;
+	}
+
+	// oolite-linux:
+	// Check that there are display modes listed before trying to
+	// get them or an exception occurs.
+	NSArray			*modeList;
+	NSDictionary	*mode = nil;
+
+	modeList = [controller displayModes];
+	if ([modeList count])
+	{
+		mode = [modeList objectAtIndex:displayModeIndex];
+	}
+	int modeWidth = [[mode objectForKey:kOODisplayWidth] intValue];
+	int modeHeight = [[mode objectForKey:kOODisplayHeight] intValue];
+	float modeRefresh = [[mode objectForKey:kOODisplayRefreshRate] doubleValue];
+
+	NSString *displayModeString = [self screenModeStringForWidth:modeWidth height:modeHeight refreshRate:modeRefresh];
+
+	// GUI stuff
+	{
+		GuiDisplayGen* gui = [UNIVERSE gui];
+
+		int first_sel_row = GUI_ROW_GAMEOPTIONS_VOLUME;
+
+		[gui clear];
+		[gui setTitle:[NSString stringWithFormat:@"Commander %@",   player_name]];
+		
+		[gui setText:displayModeString forRow:GUI_ROW_GAMEOPTIONS_DISPLAY align:GUI_ALIGN_CENTER];
+		[gui setKey:GUI_KEY_OK forRow:GUI_ROW_GAMEOPTIONS_DISPLAY];
+
+		// volume control
+		if ([OOSound respondsToSelector:@selector(masterVolume)])
+		{
+			int volume = 20 * [OOSound masterVolume];
+			NSString* v1_string = @"|||||||||||||||||||||||||";
+			NSString* v0_string = @".........................";
+			v1_string = [v1_string substringToIndex:volume];
+			v0_string = [v0_string substringToIndex:20 - volume];
+			if (volume > 0)
+				[gui setText:[NSString stringWithFormat:@" Sound Volume: %@%@ ", v1_string, v0_string] forRow:GUI_ROW_GAMEOPTIONS_VOLUME align:GUI_ALIGN_CENTER];
+			else
+				[gui setText:@" Sound Volume: MUTE " forRow:GUI_ROW_GAMEOPTIONS_VOLUME align:GUI_ALIGN_CENTER];
+			[gui setKey:GUI_KEY_OK forRow:GUI_ROW_GAMEOPTIONS_VOLUME];
+		}
+		else
+		{
+			[gui setText:@" Sound Volume: External Control Only" forRow:GUI_ROW_GAMEOPTIONS_VOLUME align:GUI_ALIGN_CENTER];
+			[gui setColor:[OOColor grayColor] forRow:GUI_ROW_GAMEOPTIONS_VOLUME];
+		}
+
+#ifndef GNUSTEP
+		// Growl priority control
+		{
+			NSUserDefaults* prefs = [NSUserDefaults standardUserDefaults];
+			NSString* growl_priority_desc;
+			int growl_min_priority = 3;
+			if ([prefs objectForKey:@"groolite-min-priority"])
+				growl_min_priority = [prefs integerForKey:@"groolite-min-priority"];
+			if ((growl_min_priority < -2)||(growl_min_priority > 3))
+			{
+				growl_min_priority = 3;
+				[prefs setInteger:3 forKey:@"groolite-min-priority"];
+			}
+			growl_priority_desc = [Groolite priorityDescription:growl_min_priority];
+			[gui setText:[NSString stringWithFormat:@" Show Growl messages: %@ ", growl_priority_desc] forRow:GUI_ROW_GAMEOPTIONS_GROWL align:GUI_ALIGN_CENTER];
+			[gui setKey:GUI_KEY_OK forRow:GUI_ROW_GAMEOPTIONS_GROWL];
+		}
+
+		// Speech control
+		if (isSpeechOn)
+			[gui setText:@" Spoken messages: ON " forRow:GUI_ROW_GAMEOPTIONS_SPEECH align:GUI_ALIGN_CENTER];
+		else
+			[gui setText:@" Spoken messages: OFF " forRow:GUI_ROW_GAMEOPTIONS_SPEECH align:GUI_ALIGN_CENTER];
+		[gui setKey:GUI_KEY_OK forRow:GUI_ROW_GAMEOPTIONS_SPEECH];
+
+		// iTunes integration control
+		if (ootunes_on)
+			[gui setText:@" iTunes integration: ON " forRow:GUI_ROW_GAMEOPTIONS_OOTUNES align:GUI_ALIGN_CENTER];
+		else
+			[gui setText:@" iTunes integration: OFF " forRow:GUI_ROW_GAMEOPTIONS_OOTUNES align:GUI_ALIGN_CENTER];
+		[gui setKey:GUI_KEY_OK forRow:GUI_ROW_GAMEOPTIONS_OOTUNES];
+
+#else
+
+		// window/fullscreen
+		if([gameView inFullScreenMode])
+		{
+			[gui setText:@" Windowed mode " forRow:GUI_ROW_GAMEOPTIONS_DISPLAYSTYLE align:GUI_ALIGN_CENTER];
+		}
+		else
+		{
+			[gui setText:@" Fullscreen mode " forRow:GUI_ROW_GAMEOPTIONS_DISPLAYSTYLE align:GUI_ALIGN_CENTER];
+		}
+		[gui setKey: GUI_KEY_OK forRow: GUI_ROW_GAMEOPTIONS_DISPLAYSTYLE];
+
+
+		[gui setText:@" Joystick setup" forRow: GUI_ROW_GAMEOPTIONS_STICKMAPPER align: GUI_ALIGN_CENTER];
+		if ([[gameView getStickHandler] getNumSticks])
+		{
+			// TODO: Modify input code to put this in a better place
+			stickHandler=[gameView getStickHandler];
+			numSticks=[stickHandler getNumSticks];
+			// end TODO
+
+			[gui setKey: GUI_KEY_OK forRow: GUI_ROW_GAMEOPTIONS_STICKMAPPER];
+		}
+		else
+		{
+			[gui setColor:[OOColor grayColor] forRow:GUI_ROW_GAMEOPTIONS_STICKMAPPER];
+		}
+#endif
+
+		if ([UNIVERSE wireframeGraphics])
+			[gui setText:@" Wireframe graphics: ON " forRow:GUI_ROW_GAMEOPTIONS_WIREFRAMEGRAPHICS align:GUI_ALIGN_CENTER];
+		else
+			[gui setText:@" Wireframe graphics: OFF " forRow:GUI_ROW_GAMEOPTIONS_WIREFRAMEGRAPHICS align:GUI_ALIGN_CENTER];
+		[gui setKey:GUI_KEY_OK forRow:GUI_ROW_GAMEOPTIONS_WIREFRAMEGRAPHICS];
+		
+		if ([UNIVERSE reducedDetail])
+			[gui setText:@" Reduced detail: ON " forRow:GUI_ROW_GAMEOPTIONS_DETAIL align:GUI_ALIGN_CENTER];
+		else
+			[gui setText:@" Reduced detail: OFF " forRow:GUI_ROW_GAMEOPTIONS_DETAIL align:GUI_ALIGN_CENTER];
+		[gui setKey:GUI_KEY_OK forRow:GUI_ROW_GAMEOPTIONS_DETAIL];
+	
+		// Shader effects level.	
+		int shaderEffects = [UNIVERSE shaderEffectsLevel];
+		NSString* shaderEffectsOptionsString = nil;
+		NSArray* shaderEffectsPossibilities = [NSArray arrayWithObjects:@"Off", @"Simple", @"Full", nil];
+		if (shaderEffects == OOSHADEREFFECTSLEVEL_SHADERS_UNAVAILABLE)
+		{
+			[gui setText:@" Shader effects: OFF " forRow:GUI_ROW_GAMEOPTIONS_SHADEREFFECTS align:GUI_ALIGN_CENTER];
+			[gui setColor:[OOColor grayColor] forRow:GUI_ROW_GAMEOPTIONS_SHADEREFFECTS];
+		}
+		else
+		{
+			shaderEffectsOptionsString = [NSString stringWithFormat:@" Shader effects: %@ ", [shaderEffectsPossibilities objectAtIndex:shaderEffects]];
+			[gui setText:shaderEffectsOptionsString forRow:GUI_ROW_GAMEOPTIONS_SHADEREFFECTS align:GUI_ALIGN_CENTER];
+			[gui setKey:GUI_KEY_OK forRow:GUI_ROW_GAMEOPTIONS_SHADEREFFECTS];
+		}
+		
+		// Back menu option
+		[gui setText:@" Back " forRow:GUI_ROW_GAMEOPTIONS_BACK align:GUI_ALIGN_CENTER];
+		[gui setKey:GUI_KEY_OK forRow:GUI_ROW_GAMEOPTIONS_BACK];
+
+			
+		[gui setSelectableRange:NSMakeRange(first_sel_row, GUI_ROW_GAMEOPTIONS_END_OF_LIST - first_sel_row)];
+		[gui setSelectedRow: first_sel_row];
+		
+
+		[gui setShowTextCursor:NO];
+	}
+	/* ends */
+
+	[self setShowDemoShips:NO];
+	gui_screen = GUI_SCREEN_GAMEOPTIONS;
+
+	[self setShowDemoShips: NO];
+	[UNIVERSE setDisplayText: YES];
+	[UNIVERSE setDisplayCursor: YES];
+	[UNIVERSE setViewDirection: VIEW_GUI_DISPLAY];
+}
+
+
+
+
+
+
+
 - (void) setGuiToLoadSaveScreen
 {
 	BOOL			canLoadOrSave = NO;
@@ -4403,18 +4586,18 @@ double scoopSoundPlayTime = 0.0;
 	{
 		GuiDisplayGen* gui = [UNIVERSE gui];
 
-		int first_sel_row = (canLoadOrSave)? GUI_ROW_OPTIONS_SAVE : GUI_ROW_OPTIONS_DISPLAY;
+		int first_sel_row = (canLoadOrSave)? GUI_ROW_OPTIONS_SAVE : GUI_ROW_OPTIONS_GAMEOPTIONS;
 		if (canQuickSave)
 			first_sel_row = GUI_ROW_OPTIONS_QUICKSAVE;
 
 		[gui clear];
 		[gui setTitle:[NSString stringWithFormat:@"Commander %@",   player_name]];
 		
+		[gui setText:@" Quick-Save " forRow:GUI_ROW_OPTIONS_QUICKSAVE align:GUI_ALIGN_CENTER];		
 		if (canQuickSave)
-		{
-			[gui setText:@" Quick-Save " forRow:GUI_ROW_OPTIONS_QUICKSAVE align:GUI_ALIGN_CENTER];
 			[gui setKey:GUI_KEY_OK forRow:GUI_ROW_OPTIONS_QUICKSAVE];
-		}
+		else
+			[gui setColor:[OOColor grayColor] forRow:GUI_ROW_OPTIONS_QUICKSAVE];
 		
 		[gui setText:@" Save Commander " forRow:GUI_ROW_OPTIONS_SAVE align:GUI_ALIGN_CENTER];
 		[gui setText:@" Load Commander " forRow:GUI_ROW_OPTIONS_LOAD align:GUI_ALIGN_CENTER];
@@ -4439,66 +4622,10 @@ double scoopSoundPlayTime = 0.0;
 			[gui setColor:[OOColor grayColor] forRow:GUI_ROW_OPTIONS_BEGIN_NEW];
 		}
 		
-		[gui setText:@"Game Options:" forRow:GUI_ROW_OPTIONS_OPTIONS align:GUI_ALIGN_CENTER];
-		[gui setColor:[OOColor grayColor] forRow:GUI_ROW_OPTIONS_OPTIONS];
-		
-		[gui setText:displayModeString forRow:GUI_ROW_OPTIONS_DISPLAY align:GUI_ALIGN_CENTER];
-		[gui setKey:GUI_KEY_OK forRow:GUI_ROW_OPTIONS_DISPLAY];
+		[gui setText:@" Game Options... " forRow:GUI_ROW_OPTIONS_GAMEOPTIONS align:GUI_ALIGN_CENTER];
+		[gui setKey:GUI_KEY_OK forRow:GUI_ROW_OPTIONS_GAMEOPTIONS];
 
-		// volume control
-		if ([OOSound respondsToSelector:@selector(masterVolume)])
-		{
-			int volume = 20 * [OOSound masterVolume];
-			NSString* v1_string = @"|||||||||||||||||||||||||";
-			NSString* v0_string = @".........................";
-			v1_string = [v1_string substringToIndex:volume];
-			v0_string = [v0_string substringToIndex:20 - volume];
-			if (volume > 0)
-				[gui setText:[NSString stringWithFormat:@" Sound Volume: %@%@", v1_string, v0_string] forRow:GUI_ROW_OPTIONS_VOLUME align:GUI_ALIGN_CENTER];
-			else
-				[gui setText:@" Sound Volume: MUTE " forRow:GUI_ROW_OPTIONS_VOLUME align:GUI_ALIGN_CENTER];
-			[gui setKey:GUI_KEY_OK forRow:GUI_ROW_OPTIONS_VOLUME];
-		}
-		else
-		{
-			[gui setText:@" Sound Volume: External Control Only" forRow:GUI_ROW_OPTIONS_VOLUME align:GUI_ALIGN_CENTER];
-			[gui setColor:[OOColor grayColor] forRow:GUI_ROW_OPTIONS_VOLUME];
-		}
-
-#ifndef GNUSTEP
-		// Growl priority control
-		{
-			NSUserDefaults* prefs = [NSUserDefaults standardUserDefaults];
-			NSString* growl_priority_desc;
-			int growl_min_priority = 3;
-			if ([prefs objectForKey:@"groolite-min-priority"])
-				growl_min_priority = [prefs integerForKey:@"groolite-min-priority"];
-			if ((growl_min_priority < -2)||(growl_min_priority > 3))
-			{
-				growl_min_priority = 3;
-				[prefs setInteger:3 forKey:@"groolite-min-priority"];
-			}
-			growl_priority_desc = [Groolite priorityDescription:growl_min_priority];
-			[gui setText:[NSString stringWithFormat:@" Show Growl messages: %@ ", growl_priority_desc] forRow:GUI_ROW_OPTIONS_GROWL align:GUI_ALIGN_CENTER];
-			[gui setKey:GUI_KEY_OK forRow:GUI_ROW_OPTIONS_GROWL];
-		}
-
-		// Speech control
-		if (isSpeechOn)
-			[gui setText:@" Spoken messages: ON " forRow:GUI_ROW_OPTIONS_SPEECH align:GUI_ALIGN_CENTER];
-		else
-			[gui setText:@" Spoken messages: OFF " forRow:GUI_ROW_OPTIONS_SPEECH align:GUI_ALIGN_CENTER];
-		[gui setKey:GUI_KEY_OK forRow:GUI_ROW_OPTIONS_SPEECH];
-
-		// iTunes integration control
-		if (ootunes_on)
-			[gui setText:@" iTunes integration: ON " forRow:GUI_ROW_OPTIONS_OOTUNES align:GUI_ALIGN_CENTER];
-		else
-			[gui setText:@" iTunes integration: OFF " forRow:GUI_ROW_OPTIONS_OOTUNES align:GUI_ALIGN_CENTER];
-		[gui setKey:GUI_KEY_OK forRow:GUI_ROW_OPTIONS_OOTUNES];
-
-#else
-
+\
 		// GNUstep needs a quit option at present (no Cmd-Q) but
 		// doesn't need speech.
 
@@ -4506,49 +4633,11 @@ double scoopSoundPlayTime = 0.0;
 		[gui setText:@" Exit game " forRow:GUI_ROW_OPTIONS_QUIT align:GUI_ALIGN_CENTER];
 		[gui setKey:GUI_KEY_OK forRow:GUI_ROW_OPTIONS_QUIT];
 
-		// window/fullscreen
-		if([gameView inFullScreenMode])
-		{
-			[gui setText:@" Windowed mode " forRow:GUI_ROW_OPTIONS_DISPLAYSTYLE align:GUI_ALIGN_CENTER];
-		}
-		else
-		{
-			[gui setText:@" Fullscreen mode " forRow:GUI_ROW_OPTIONS_DISPLAYSTYLE align:GUI_ALIGN_CENTER];
-		}
-		[gui setKey: GUI_KEY_OK forRow: GUI_ROW_OPTIONS_DISPLAYSTYLE];
-
-		[gui setText:@" Joystick setup" forRow: GUI_ROW_OPTIONS_STICKMAPPER align: GUI_ALIGN_CENTER];
-		if ([[gameView getStickHandler] getNumSticks])
-		{
-			// TODO: Modify input code to put this in a better place
-			stickHandler=[gameView getStickHandler];
-			numSticks=[stickHandler getNumSticks];
-			// end TODO
-
-			[gui setKey: GUI_KEY_OK forRow: GUI_ROW_OPTIONS_STICKMAPPER];
-		}
-		else
-		{
-			[gui setColor:[OOColor grayColor] forRow:GUI_ROW_OPTIONS_STICKMAPPER];
-		}
-#endif
-
-		if ([UNIVERSE wireframeGraphics])
-			[gui setText:@"Wireframe graphics: ON " forRow:GUI_ROW_OPTIONS_WIREFRAMEGRAPHICS align:GUI_ALIGN_CENTER];
-		else
-			[gui setText:@"Wireframe graphics: OFF " forRow:GUI_ROW_OPTIONS_WIREFRAMEGRAPHICS align:GUI_ALIGN_CENTER];
-		[gui setKey:GUI_KEY_OK forRow:GUI_ROW_OPTIONS_WIREFRAMEGRAPHICS];
-		
-		if ([UNIVERSE reducedDetail])
-			[gui setText:@" Reduced detail: ON " forRow:GUI_ROW_OPTIONS_DETAIL align:GUI_ALIGN_CENTER];
-		else
-			[gui setText:@" Reduced detail: OFF " forRow:GUI_ROW_OPTIONS_DETAIL align:GUI_ALIGN_CENTER];
-		[gui setKey:GUI_KEY_OK forRow:GUI_ROW_OPTIONS_DETAIL];
 		
 		if ([UNIVERSE strict])
-			[gui setText:@" Reset to unrestricted play. " forRow:GUI_ROW_OPTIONS_STRICT align:GUI_ALIGN_CENTER];
+			[gui setText:@" Reset to unrestricted play " forRow:GUI_ROW_OPTIONS_STRICT align:GUI_ALIGN_CENTER];
 		else
-			[gui setText:@" Reset to strict gameplay. " forRow:GUI_ROW_OPTIONS_STRICT align:GUI_ALIGN_CENTER];
+			[gui setText:@" Reset to strict gameplay " forRow:GUI_ROW_OPTIONS_STRICT align:GUI_ALIGN_CENTER];
 		[gui setKey:GUI_KEY_OK forRow:GUI_ROW_OPTIONS_STRICT];
 
 		

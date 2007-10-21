@@ -67,6 +67,7 @@ enum
 	EQUIPMENT_EXTRA_INFO_INDEX				= 5
 };
 
+
 #define MAX_MESSAGES						5
 
 #define PROXIMITY_WARN_DISTANCE				10.0
@@ -514,6 +515,9 @@ double estimatedTimeForJourney(double distance, int hops);
 
 - (void) setReducedDetail:(BOOL) value;
 - (BOOL) reducedDetail;
+
+- (void) setShaderEffectsLevel:(int) value;
+- (int) shaderEffectsLevel;
 
 - (void) handleOoliteException:(NSException*) ooliteException;
 

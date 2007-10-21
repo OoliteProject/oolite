@@ -7549,6 +7549,25 @@ static NSComparisonResult comparePrice(NSDictionary *dict1, NSDictionary *dict2,
 	return reducedDetail;
 }
 
+//---- Placeholder method ----
+- (int) shaderEffectsLevel
+{
+	if (![[OOOpenGLExtensionManager sharedManager] shadersSupported])
+		return -1;
+	
+	// Temporary. This should be a variable and there should be a corresponding setShaderEffectsLevel
+	// method, too.
+	return 1;
+}
+
+
+//---- Placeholder method ----
+- (void) setShaderEffectsLevel:(int) value
+{
+	// Temporary. Will need to actually do something shaders related.
+	OOLog(@"temporaryFunction.setShaderEffectsLevel", @"Setting shaderEffectsLevel to %d.", value);
+}
+
 
 - (void) handleOoliteException:(NSException*) ooliteException
 {

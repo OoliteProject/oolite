@@ -40,6 +40,7 @@ MA 02110-1301, USA.
 #import "OOCollectionExtractors.h"
 #import "ResourceManager.h"
 #import "HeadUpDisplay.h"
+#import "OOOpenGLExtensionManager.h"
 
 #import "JoystickHandler.h"
 
@@ -968,7 +969,7 @@ static NSTimeInterval	time_last_frame;
 			[self setGuiToLoadSaveScreen];
 		}
 		
-		if (gui_screen == GUI_SCREEN_OPTIONS || gui_screen == GUI_SCREEN_STICKMAPPER)
+		if (gui_screen == GUI_SCREEN_OPTIONS || gui_screen == GUI_SCREEN_GAMEOPTIONS || gui_screen == GUI_SCREEN_STICKMAPPER)
 		{
 			NSTimeInterval	time_this_frame = [NSDate timeIntervalSinceReferenceDate];
 			OOTimeDelta		time_delta;
@@ -1652,31 +1653,25 @@ static BOOL			spacePressed;
 			break;
 #endif
 
-		case	GUI_SCREEN_OPTIONS :
+
+		case	GUI_SCREEN_GAMEOPTIONS:
 			{
-				int quicksave_row =		GUI_ROW_OPTIONS_QUICKSAVE;
-				int save_row =			GUI_ROW_OPTIONS_SAVE;
-				int load_row =			GUI_ROW_OPTIONS_LOAD;
-				int begin_new_row =	GUI_ROW_OPTIONS_BEGIN_NEW;
-				int strict_row =	GUI_ROW_OPTIONS_STRICT;
-				int wireframe_row =	GUI_ROW_OPTIONS_WIREFRAMEGRAPHICS;
-				int detail_row =	GUI_ROW_OPTIONS_DETAIL;
+				int wireframe_row =	GUI_ROW_GAMEOPTIONS_WIREFRAMEGRAPHICS;
+				int detail_row =	GUI_ROW_GAMEOPTIONS_DETAIL;
+				int shaderfx_row = 	GUI_ROW_GAMEOPTIONS_SHADEREFFECTS;
 #if OOLITE_SDL
-				// quit only appears in GNUstep as users aren't
-				// used to Cmd-Q equivs. Same goes for window
-				// vs fullscreen.
-				int quit_row = GUI_ROW_OPTIONS_QUIT;
-				int display_style_row = GUI_ROW_OPTIONS_DISPLAYSTYLE;
-				int stickmap_row = GUI_ROW_OPTIONS_STICKMAPPER;
+				int display_style_row = GUI_ROW_GAMEOPTIONS_DISPLAYSTYLE;
+				int stickmap_row = GUI_ROW_GAMEOPTIONS_STICKMAPPER;
+				int back_row = GUI_ROW_GAMEOPTIONS_BACK;
 #endif
 #if OOLITE_MAC_OS_X
 				// Macintosh only
-				int ootunes_row =	GUI_ROW_OPTIONS_OOTUNES;
-				int speech_row =	GUI_ROW_OPTIONS_SPEECH;
-				int growl_row =		GUI_ROW_OPTIONS_GROWL;
+				int ootunes_row =	GUI_ROW_GAMEOPTIONS_OOTUNES;
+				int speech_row =	GUI_ROW_GAMEOPTIONS_SPEECH;
+				int growl_row =		GUI_ROW_GAMEOPTIONS_GROWL;
 #endif
-				int volume_row = GUI_ROW_OPTIONS_VOLUME;
-				int display_row =   GUI_ROW_OPTIONS_DISPLAY;
+				int volume_row = GUI_ROW_GAMEOPTIONS_VOLUME;
+				int display_row =   GUI_ROW_GAMEOPTIONS_DISPLAY;
 
 				GameController  *controller = [UNIVERSE gameController];
 				NSArray *modes = [controller displayModes];
@@ -1688,55 +1683,13 @@ static BOOL			spacePressed;
 
 				if (selectKeyPress)   // 'enter'
 				{
-					if (([gui selectedRow] == quicksave_row)&&(!disc_operation_in_progress))
-					{
-						NS_DURING
-							disc_operation_in_progress = YES;
-							[self quicksavePlayer];
-						NS_HANDLER
-							OOLog(kOOLogException, @"\n\n***** Handling localException: %@ : %@ *****\n\n",[localException name], [localException reason]);
-							if ([[localException name] isEqual:@"GameNotSavedException"])	// try saving game instead
-							{
-								OOLog(kOOLogException, @"\n\n***** Trying a normal save instead *****\n\n");
-								if ([[UNIVERSE gameController] inFullScreenMode])
-									[[UNIVERSE gameController] pauseFullScreenModeToPerform:@selector(savePlayer) onTarget:self];
-								else
-									[self savePlayer];
-							}
-							else
-							{
-								[localException raise];
-							}
-						NS_ENDHANDLER
-					}
-					if (([gui selectedRow] == save_row)&&(!disc_operation_in_progress))
-					{
-						disc_operation_in_progress = YES;
-						[self savePlayer];
-					}
-					if (([gui selectedRow] == load_row)&&(!disc_operation_in_progress))
-					{
-						disc_operation_in_progress = YES;
-						[self loadPlayer];
-					}
-
 #if OOLITE_HAVE_JOYSTICK
 					if ([gui selectedRow] == stickmap_row)
 					{
 						[self setGuiToStickMapperScreen];
 					}
+				}
 #endif
-					
-					if (([gui selectedRow] == begin_new_row)&&(!disc_operation_in_progress))
-					{
-						disc_operation_in_progress = YES;
-						[UNIVERSE reinit];
-					}
-				}
-				else
-				{
-					disc_operation_in_progress = NO;
-				}
 
 				if (([gui selectedRow] == display_row)&&(([gameView isDown:gvArrowKeyRight])||([gameView isDown:gvArrowKeyLeft]))&&(!switching_resolution))
 				{
@@ -1772,7 +1725,7 @@ static BOOL			spacePressed;
 					[gui click];
 					{
 						GuiDisplayGen* gui = [UNIVERSE gui];
-						int display_row =   GUI_ROW_OPTIONS_DISPLAY;
+						int display_row =   GUI_ROW_GAMEOPTIONS_DISPLAY;
 						[gui setText:displayModeString	forRow:display_row  align:GUI_ALIGN_CENTER];
 					}
 					switching_resolution = YES;
@@ -1882,9 +1835,9 @@ static BOOL			spacePressed;
 						[gui click];
 					[UNIVERSE setWireframeGraphics:[gameView isDown:gvArrowKeyRight]];
 					if ([UNIVERSE wireframeGraphics])
-						[gui setText:@"Wireframe graphics: ON "  forRow:wireframe_row  align:GUI_ALIGN_CENTER];
+						[gui setText:@" Wireframe graphics: ON "  forRow:wireframe_row  align:GUI_ALIGN_CENTER];
 					else
-						[gui setText:@"Wireframe graphics: OFF "  forRow:wireframe_row  align:GUI_ALIGN_CENTER];
+						[gui setText:@" Wireframe graphics: OFF "  forRow:wireframe_row  align:GUI_ALIGN_CENTER];
 				}
 				
 				if (([gui selectedRow] == detail_row)&&(([gameView isDown:gvArrowKeyRight])||([gameView isDown:gvArrowKeyLeft])))
@@ -1898,6 +1851,114 @@ static BOOL			spacePressed;
 					else
 						[gui setText:@" Reduced detail: OFF "	forRow:detail_row  align:GUI_ALIGN_CENTER];
 				}
+				
+				
+				if ([gui selectedRow] == shaderfx_row && ([gameView isDown:gvArrowKeyRight] || [gameView isDown:gvArrowKeyLeft]))
+				{
+					int direction = ([gameView isDown:gvArrowKeyRight]) ? 1 : -1;
+					int shaderEffects = [UNIVERSE shaderEffectsLevel];
+					NSArray* shaderEffectsPossibilities = [NSArray arrayWithObjects:@"Off", @"Simple", @"Full", nil];
+					shaderEffects = shaderEffects + direction;
+					if (shaderEffects > OOSHADEREFFECTSLEVEL_SHADERS_FULL)
+						shaderEffects = OOSHADEREFFECTSLEVEL_SHADERS_OFF;
+					if (shaderEffects < OOSHADEREFFECTSLEVEL_SHADERS_OFF)
+						shaderEffects = OOSHADEREFFECTSLEVEL_SHADERS_FULL;
+					[UNIVERSE setShaderEffectsLevel:shaderEffects];
+					[gui setText:[NSString stringWithFormat:@" Shader effects: %@ ",
+												[shaderEffectsPossibilities objectAtIndex:shaderEffects]]
+												forRow:shaderfx_row
+												align:GUI_ALIGN_CENTER];
+				}
+						
+
+            			if (([gui selectedRow] == back_row) && [gameView isDown:13])
+            			{
+            				[gameView clearKeys];
+            				[self setGuiToLoadSaveScreen];
+            			}
+            			
+#if OOLITE_SDL
+            			if (([gui selectedRow] == display_style_row) && [gameView isDown: 13])
+            			{
+               				[gameView toggleScreenMode];
+               				// redraw GUI
+               				[self setGuiToGameOptionsScreen];
+            			}
+#endif
+	    		}
+			break;
+
+
+
+
+		case	GUI_SCREEN_OPTIONS :
+			{
+				int quicksave_row =		GUI_ROW_OPTIONS_QUICKSAVE;
+				int save_row =			GUI_ROW_OPTIONS_SAVE;
+				int load_row =			GUI_ROW_OPTIONS_LOAD;
+				int begin_new_row =	GUI_ROW_OPTIONS_BEGIN_NEW;
+				int gameoptions_row = 	GUI_ROW_OPTIONS_GAMEOPTIONS;
+				int strict_row =	GUI_ROW_OPTIONS_STRICT;
+#if OOLITE_SDL
+				// quit only appears in GNUstep as users aren't
+				// used to Cmd-Q equivs. Same goes for window
+				// vs fullscreen.
+				int quit_row = GUI_ROW_OPTIONS_QUIT;
+#endif
+
+				GameController  *controller = [UNIVERSE gameController];
+				NSArray *modes = [controller displayModes];
+
+				[self handleGUIUpDownArrowKeys: gui :gameView];
+				BOOL selectKeyPress = ([gameView isDown:13]||[gameView isDown:gvMouseDoubleClick]);
+				if ([gameView isDown:gvMouseDoubleClick])
+					[gameView clearMouse];
+
+				if (selectKeyPress)   // 'enter'
+				{
+					if (([gui selectedRow] == quicksave_row)&&(!disc_operation_in_progress))
+					{
+						NS_DURING
+							disc_operation_in_progress = YES;
+							[self quicksavePlayer];
+						NS_HANDLER
+							OOLog(kOOLogException, @"\n\n***** Handling localException: %@ : %@ *****\n\n",[localException name], [localException reason]);
+							if ([[localException name] isEqual:@"GameNotSavedException"])	// try saving game instead
+							{
+								OOLog(kOOLogException, @"\n\n***** Trying a normal save instead *****\n\n");
+								if ([[UNIVERSE gameController] inFullScreenMode])
+									[[UNIVERSE gameController] pauseFullScreenModeToPerform:@selector(savePlayer) onTarget:self];
+								else
+									[self savePlayer];
+							}
+							else
+							{
+								[localException raise];
+							}
+						NS_ENDHANDLER
+					}
+					if (([gui selectedRow] == save_row)&&(!disc_operation_in_progress))
+					{
+						disc_operation_in_progress = YES;
+						[self savePlayer];
+					}
+					if (([gui selectedRow] == load_row)&&(!disc_operation_in_progress))
+					{
+						disc_operation_in_progress = YES;
+						[self loadPlayer];
+					}
+
+					
+					if (([gui selectedRow] == begin_new_row)&&(!disc_operation_in_progress))
+					{
+						disc_operation_in_progress = YES;
+						[UNIVERSE reinit];
+					}
+				}
+				else
+				{
+					disc_operation_in_progress = NO;
+				}
 
 #if OOLITE_SDL
             // SDL-only menu quit item
@@ -1905,14 +1966,14 @@ static BOOL			spacePressed;
             {
 			      [[gameView gameController] exitApp];
             }
-            if (([gui selectedRow] == display_style_row) && [gameView isDown: 13])
-            {
-               [gameView toggleScreenMode];
-
-               // redraw GUI
-               [self setGuiToLoadSaveScreen];
-            }
 #endif
+
+	    if (([gui selectedRow] == gameoptions_row) && [gameView isDown:13])
+	    {
+	    	[gameView clearKeys];
+	    	[self setGuiToGameOptionsScreen];
+	    }
+	    
             // TODO: Investigate why this has to be handled last (if the
             // quit item and this are swapped, the game crashes if
             // strict mode is selected with SIGSEGV in the ObjC runtime
