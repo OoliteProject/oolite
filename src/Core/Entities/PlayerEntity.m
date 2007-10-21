@@ -4440,22 +4440,22 @@ double scoopSoundPlayTime = 0.0;
 				[prefs setInteger:3 forKey:@"groolite-min-priority"];
 			}
 			growl_priority_desc = [Groolite priorityDescription:growl_min_priority];
-			[gui setText:[NSString stringWithFormat:@" Show Growl messages: %@ ", growl_priority_desc] forRow:GUI_ROW_GAMEOPTIONS_GROWL align:GUI_ALIGN_CENTER];
+			[gui setText:[NSString stringWithFormat:@" Show Growl Messages: %@ ", growl_priority_desc] forRow:GUI_ROW_GAMEOPTIONS_GROWL align:GUI_ALIGN_CENTER];
 			[gui setKey:GUI_KEY_OK forRow:GUI_ROW_GAMEOPTIONS_GROWL];
 		}
 
 		// Speech control
 		if (isSpeechOn)
-			[gui setText:@" Spoken messages: ON " forRow:GUI_ROW_GAMEOPTIONS_SPEECH align:GUI_ALIGN_CENTER];
+			[gui setText:@" Spoken Messages: YES " forRow:GUI_ROW_GAMEOPTIONS_SPEECH align:GUI_ALIGN_CENTER];
 		else
-			[gui setText:@" Spoken messages: OFF " forRow:GUI_ROW_GAMEOPTIONS_SPEECH align:GUI_ALIGN_CENTER];
+			[gui setText:@" Spoken Messages: NO " forRow:GUI_ROW_GAMEOPTIONS_SPEECH align:GUI_ALIGN_CENTER];
 		[gui setKey:GUI_KEY_OK forRow:GUI_ROW_GAMEOPTIONS_SPEECH];
 
 		// iTunes integration control
 		if (ootunes_on)
-			[gui setText:@" iTunes integration: ON " forRow:GUI_ROW_GAMEOPTIONS_OOTUNES align:GUI_ALIGN_CENTER];
+			[gui setText:@" iTunes Integration: YES " forRow:GUI_ROW_GAMEOPTIONS_OOTUNES align:GUI_ALIGN_CENTER];
 		else
-			[gui setText:@" iTunes integration: OFF " forRow:GUI_ROW_GAMEOPTIONS_OOTUNES align:GUI_ALIGN_CENTER];
+			[gui setText:@" iTunes Integration: NO " forRow:GUI_ROW_GAMEOPTIONS_OOTUNES align:GUI_ALIGN_CENTER];
 		[gui setKey:GUI_KEY_OK forRow:GUI_ROW_GAMEOPTIONS_OOTUNES];
 
 #else
@@ -4463,11 +4463,11 @@ double scoopSoundPlayTime = 0.0;
 		// window/fullscreen
 		if([gameView inFullScreenMode])
 		{
-			[gui setText:@" Windowed mode " forRow:GUI_ROW_GAMEOPTIONS_DISPLAYSTYLE align:GUI_ALIGN_CENTER];
+			[gui setText:@" Play in Window" forRow:GUI_ROW_GAMEOPTIONS_DISPLAYSTYLE align:GUI_ALIGN_CENTER];
 		}
 		else
 		{
-			[gui setText:@" Fullscreen mode " forRow:GUI_ROW_GAMEOPTIONS_DISPLAYSTYLE align:GUI_ALIGN_CENTER];
+			[gui setText:@" Play in Full Screen " forRow:GUI_ROW_GAMEOPTIONS_DISPLAYSTYLE align:GUI_ALIGN_CENTER];
 		}
 		[gui setKey: GUI_KEY_OK forRow: GUI_ROW_GAMEOPTIONS_DISPLAYSTYLE];
 
@@ -4489,15 +4489,15 @@ double scoopSoundPlayTime = 0.0;
 #endif
 
 		if ([UNIVERSE wireframeGraphics])
-			[gui setText:@" Wireframe graphics: ON " forRow:GUI_ROW_GAMEOPTIONS_WIREFRAMEGRAPHICS align:GUI_ALIGN_CENTER];
+			[gui setText:@" Wireframe Graphics: YES " forRow:GUI_ROW_GAMEOPTIONS_WIREFRAMEGRAPHICS align:GUI_ALIGN_CENTER];
 		else
-			[gui setText:@" Wireframe graphics: OFF " forRow:GUI_ROW_GAMEOPTIONS_WIREFRAMEGRAPHICS align:GUI_ALIGN_CENTER];
+			[gui setText:@" Wireframe graphics: NO " forRow:GUI_ROW_GAMEOPTIONS_WIREFRAMEGRAPHICS align:GUI_ALIGN_CENTER];
 		[gui setKey:GUI_KEY_OK forRow:GUI_ROW_GAMEOPTIONS_WIREFRAMEGRAPHICS];
 		
 		if ([UNIVERSE reducedDetail])
-			[gui setText:@" Reduced detail: ON " forRow:GUI_ROW_GAMEOPTIONS_DETAIL align:GUI_ALIGN_CENTER];
+			[gui setText:@" Reduced Detail: YES " forRow:GUI_ROW_GAMEOPTIONS_DETAIL align:GUI_ALIGN_CENTER];
 		else
-			[gui setText:@" Reduced detail: OFF " forRow:GUI_ROW_GAMEOPTIONS_DETAIL align:GUI_ALIGN_CENTER];
+			[gui setText:@" Reduced Detail: NO " forRow:GUI_ROW_GAMEOPTIONS_DETAIL align:GUI_ALIGN_CENTER];
 		[gui setKey:GUI_KEY_OK forRow:GUI_ROW_GAMEOPTIONS_DETAIL];
 	
 		// Shader effects level.	
@@ -4506,12 +4506,12 @@ double scoopSoundPlayTime = 0.0;
 		NSArray* shaderEffectsPossibilities = [NSArray arrayWithObjects:@"Off", @"Simple", @"Full", nil];
 		if (shaderEffects == OOSHADEREFFECTSLEVEL_SHADERS_UNAVAILABLE)
 		{
-			[gui setText:@" Shader effects: OFF " forRow:GUI_ROW_GAMEOPTIONS_SHADEREFFECTS align:GUI_ALIGN_CENTER];
+			[gui setText:@" Shader Effects: OFF " forRow:GUI_ROW_GAMEOPTIONS_SHADEREFFECTS align:GUI_ALIGN_CENTER];
 			[gui setColor:[OOColor grayColor] forRow:GUI_ROW_GAMEOPTIONS_SHADEREFFECTS];
 		}
 		else
 		{
-			shaderEffectsOptionsString = [NSString stringWithFormat:@" Shader effects: %@ ", [shaderEffectsPossibilities objectAtIndex:shaderEffects]];
+			shaderEffectsOptionsString = [NSString stringWithFormat:@" Shader Effects: %@ ", [shaderEffectsPossibilities objectAtIndex:shaderEffects]];
 			[gui setText:shaderEffectsOptionsString forRow:GUI_ROW_GAMEOPTIONS_SHADEREFFECTS align:GUI_ALIGN_CENTER];
 			[gui setKey:GUI_KEY_OK forRow:GUI_ROW_GAMEOPTIONS_SHADEREFFECTS];
 		}
@@ -4630,14 +4630,14 @@ double scoopSoundPlayTime = 0.0;
 		// doesn't need speech.
 
 		// quit menu option
-		[gui setText:@" Exit game " forRow:GUI_ROW_OPTIONS_QUIT align:GUI_ALIGN_CENTER];
+		[gui setText:@" Exit Game " forRow:GUI_ROW_OPTIONS_QUIT align:GUI_ALIGN_CENTER];
 		[gui setKey:GUI_KEY_OK forRow:GUI_ROW_OPTIONS_QUIT];
 
 		
 		if ([UNIVERSE strict])
-			[gui setText:@" Reset to unrestricted play " forRow:GUI_ROW_OPTIONS_STRICT align:GUI_ALIGN_CENTER];
+			[gui setText:@" Reset to Unrestricted Play " forRow:GUI_ROW_OPTIONS_STRICT align:GUI_ALIGN_CENTER];
 		else
-			[gui setText:@" Reset to strict gameplay " forRow:GUI_ROW_OPTIONS_STRICT align:GUI_ALIGN_CENTER];
+			[gui setText:@" Reset to Strict Play " forRow:GUI_ROW_OPTIONS_STRICT align:GUI_ALIGN_CENTER];
 		[gui setKey:GUI_KEY_OK forRow:GUI_ROW_OPTIONS_STRICT];
 
 		
@@ -6167,11 +6167,11 @@ OOSound* burnersound;
 {
 	if (0.0f != inRate)
 	{
-		return [NSString stringWithFormat:@" Fullscreen: %d x %d at %.3g Hz ", inWidth, inHeight, inRate];
+		return [NSString stringWithFormat:@" Full Screen Mode: %d x %d at %.3g Hz ", inWidth, inHeight, inRate];
 	}
 	else
 	{
-		return [NSString stringWithFormat:@" Fullscreen: %d x %d ", inWidth, inHeight];
+		return [NSString stringWithFormat:@" Full Screen Mode: %d x %d ", inWidth, inHeight];
 	}
 }
 

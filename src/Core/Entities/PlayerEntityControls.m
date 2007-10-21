@@ -1741,9 +1741,9 @@ static BOOL			spacePressed;
 						[gui click];
 					isSpeechOn = [gameView isDown:gvArrowKeyRight];
 					if (isSpeechOn)
-						[gui setText:@" Spoken messages: ON "	forRow:speech_row  align:GUI_ALIGN_CENTER];
+						[gui setText:@" Spoken Messages: YES "	forRow:speech_row  align:GUI_ALIGN_CENTER];
 					else
-						[gui setText:@" Spoken messages: OFF "	forRow:speech_row  align:GUI_ALIGN_CENTER];
+						[gui setText:@" Spoken Messages: NO "	forRow:speech_row  align:GUI_ALIGN_CENTER];
 				}
 
 
@@ -1754,9 +1754,9 @@ static BOOL			spacePressed;
 						[gui click];
 					ootunes_on = [gameView isDown:gvArrowKeyRight];
 					if (ootunes_on)
-						[gui setText:@" iTunes integration: ON "	forRow:ootunes_row  align:GUI_ALIGN_CENTER];
+						[gui setText:@" iTunes Integration: YES "	forRow:ootunes_row  align:GUI_ALIGN_CENTER];
 					else
-						[gui setText:@" iTunes integration: OFF "	forRow:ootunes_row  align:GUI_ALIGN_CENTER];
+						[gui setText:@" iTunes Integration: NO "	forRow:ootunes_row  align:GUI_ALIGN_CENTER];
 				}
 #endif
 				if (([gui selectedRow] == volume_row)
@@ -1816,7 +1816,7 @@ static BOOL			spacePressed;
 						{
 							growl_min_priority = new_priority;
 							NSString* growl_priority_desc = [Groolite priorityDescription:growl_min_priority];
-							[gui setText:[NSString stringWithFormat:@" Show Growl messages: %@ ", growl_priority_desc] forRow:growl_row align:GUI_ALIGN_CENTER];
+							[gui setText:[NSString stringWithFormat:@" Show Growl Messages: %@ ", growl_priority_desc] forRow:growl_row align:GUI_ALIGN_CENTER];
 							[gui click];
 							[prefs setInteger:growl_min_priority forKey:@"groolite-min-priority"];
 						}
@@ -1835,9 +1835,9 @@ static BOOL			spacePressed;
 						[gui click];
 					[UNIVERSE setWireframeGraphics:[gameView isDown:gvArrowKeyRight]];
 					if ([UNIVERSE wireframeGraphics])
-						[gui setText:@" Wireframe graphics: ON "  forRow:wireframe_row  align:GUI_ALIGN_CENTER];
+						[gui setText:@" Wireframe Graphics: YES "  forRow:wireframe_row  align:GUI_ALIGN_CENTER];
 					else
-						[gui setText:@" Wireframe graphics: OFF "  forRow:wireframe_row  align:GUI_ALIGN_CENTER];
+						[gui setText:@" Wireframe Graphics: NO "  forRow:wireframe_row  align:GUI_ALIGN_CENTER];
 				}
 				
 				if (([gui selectedRow] == detail_row)&&(([gameView isDown:gvArrowKeyRight])||([gameView isDown:gvArrowKeyLeft])))
@@ -1847,9 +1847,9 @@ static BOOL			spacePressed;
 						[gui click];
 					[UNIVERSE setReducedDetail:[gameView isDown:gvArrowKeyRight]];
 					if ([UNIVERSE reducedDetail])
-						[gui setText:@" Reduced detail: ON "	forRow:detail_row  align:GUI_ALIGN_CENTER];
+						[gui setText:@" Reduced Detail: YES "	forRow:detail_row  align:GUI_ALIGN_CENTER];
 					else
-						[gui setText:@" Reduced detail: OFF "	forRow:detail_row  align:GUI_ALIGN_CENTER];
+						[gui setText:@" Reduced Detail: NO "	forRow:detail_row  align:GUI_ALIGN_CENTER];
 				}
 				
 				
@@ -1864,7 +1864,7 @@ static BOOL			spacePressed;
 					if (shaderEffects < OOSHADEREFFECTSLEVEL_SHADERS_OFF)
 						shaderEffects = OOSHADEREFFECTSLEVEL_SHADERS_FULL;
 					[UNIVERSE setShaderEffectsLevel:shaderEffects];
-					[gui setText:[NSString stringWithFormat:@" Shader effects: %@ ",
+					[gui setText:[NSString stringWithFormat:@" Shader Effects: %@ ",
 												[shaderEffectsPossibilities objectAtIndex:shaderEffects]]
 												forRow:shaderfx_row
 												align:GUI_ALIGN_CENTER];
