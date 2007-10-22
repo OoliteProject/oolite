@@ -101,6 +101,12 @@ static PlayerEntity *sSharedPlayer = nil;
 }
 
 
+- (void) setName:(NSString *)inName
+{
+	// Block super method; player ship can't be renamed.
+}
+
+
 - (void)completeInitialSetUp
 {
 	dockedStation = [UNIVERSE station];
@@ -1414,6 +1420,7 @@ double scoopSoundPlayTime = 0.0;
 				case GUI_SCREEN_INTRO2:
 				case GUI_SCREEN_MARKET:
 				case GUI_SCREEN_OPTIONS:
+				case GUI_SCREEN_GAMEOPTIONS:
 				case GUI_SCREEN_LOAD:
 				case GUI_SCREEN_SAVE:
 				case GUI_SCREEN_SAVE_OVERWRITE:
@@ -4367,7 +4374,9 @@ double scoopSoundPlayTime = 0.0;
 
 - (void) setGuiToGameOptionsScreen
 {
+#ifdef GNUSTEP
 	MyOpenGLView	*gameView = [UNIVERSE gameView];
+#endif
 	GameController	*controller = [UNIVERSE gameController];
 
 	int displayModeIndex = [controller indexOfCurrentDisplayMode];
@@ -4503,15 +4512,14 @@ double scoopSoundPlayTime = 0.0;
 		// Shader effects level.	
 		int shaderEffects = [UNIVERSE shaderEffectsLevel];
 		NSString* shaderEffectsOptionsString = nil;
-		NSArray* shaderEffectsPossibilities = [NSArray arrayWithObjects:@"Off", @"Simple", @"Full", nil];
-		if (shaderEffects == OOSHADEREFFECTSLEVEL_SHADERS_UNAVAILABLE)
+		if (shaderEffects == SHADERS_NOT_SUPPORTED)
 		{
-			[gui setText:@" Shader Effects: OFF " forRow:GUI_ROW_GAMEOPTIONS_SHADEREFFECTS align:GUI_ALIGN_CENTER];
+			[gui setText:@" Shader Effects: Not available " forRow:GUI_ROW_GAMEOPTIONS_SHADEREFFECTS align:GUI_ALIGN_CENTER];
 			[gui setColor:[OOColor grayColor] forRow:GUI_ROW_GAMEOPTIONS_SHADEREFFECTS];
 		}
 		else
 		{
-			shaderEffectsOptionsString = [NSString stringWithFormat:@" Shader Effects: %@ ", [shaderEffectsPossibilities objectAtIndex:shaderEffects]];
+			shaderEffectsOptionsString = [NSString stringWithFormat:@" Shader Effects: %@ ", ShaderSettingToDisplayString(shaderEffects)];
 			[gui setText:shaderEffectsOptionsString forRow:GUI_ROW_GAMEOPTIONS_SHADEREFFECTS align:GUI_ALIGN_CENTER];
 			[gui setKey:GUI_KEY_OK forRow:GUI_ROW_GAMEOPTIONS_SHADEREFFECTS];
 		}
@@ -4576,11 +4584,6 @@ double scoopSoundPlayTime = 0.0;
 	{
 		mode = [modeList objectAtIndex:displayModeIndex];
 	}
-	int modeWidth = [[mode objectForKey:kOODisplayWidth] intValue];
-	int modeHeight = [[mode objectForKey:kOODisplayHeight] intValue];
-	float modeRefresh = [[mode objectForKey:kOODisplayRefreshRate] doubleValue];
-
-	NSString *displayModeString = [self screenModeStringForWidth:modeWidth height:modeHeight refreshRate:modeRefresh];
 
 	// GUI stuff
 	{
@@ -4624,15 +4627,15 @@ double scoopSoundPlayTime = 0.0;
 		
 		[gui setText:@" Game Options... " forRow:GUI_ROW_OPTIONS_GAMEOPTIONS align:GUI_ALIGN_CENTER];
 		[gui setKey:GUI_KEY_OK forRow:GUI_ROW_OPTIONS_GAMEOPTIONS];
-
-\
+		
+#if !OOLITE_SDL
 		// GNUstep needs a quit option at present (no Cmd-Q) but
 		// doesn't need speech.
-
+		
 		// quit menu option
 		[gui setText:@" Exit Game " forRow:GUI_ROW_OPTIONS_QUIT align:GUI_ALIGN_CENTER];
 		[gui setKey:GUI_KEY_OK forRow:GUI_ROW_OPTIONS_QUIT];
-
+#endif
 		
 		if ([UNIVERSE strict])
 			[gui setText:@" Reset to Unrestricted Play " forRow:GUI_ROW_OPTIONS_STRICT align:GUI_ALIGN_CENTER];

@@ -396,6 +396,7 @@ NSString *GUIScreenIDToString(OOGUIScreenID screen)
 		CASE(GUI_SCREEN_MARKET);
 		CASE(GUI_SCREEN_CONTRACTS);
 		CASE(GUI_SCREEN_OPTIONS);
+		CASE(GUI_SCREEN_GAMEOPTIONS);
 		CASE(GUI_SCREEN_LOAD);
 		CASE(GUI_SCREEN_SAVE);
 		CASE(GUI_SCREEN_SAVE_OVERWRITE);
@@ -508,4 +509,18 @@ NSString *AlertConditionToString(OOAlertCondition alertCondition)
 	}
 	
 	return [conditionNames stringAtIndex:alertCondition];
+}
+
+
+NSString *ShaderSettingToDisplayString(OOShaderSetting setting)
+{
+	switch (setting)
+	{
+		case SHADERS_NOT_SUPPORTED:	return @"Not available";
+		case SHADERS_OFF:			return @"Off";
+		case SHADERS_SIMPLE:		return @"Simple";
+		case SHADERS_FULL:			return @"Full";
+	}
+	
+	return @"??";
 }

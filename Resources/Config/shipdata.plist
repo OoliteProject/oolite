@@ -446,6 +446,14 @@
 		thrust = 0;
 		unpiloted = yes;
 		weapon_energy = 0;
+		materials =
+		{
+			"asteroid.png" =
+			{
+				shininess = 2;
+				specular = (0.1, 0.1, 0.1, 1.0);
+			};
+		};
 	};
 	"asteroid-alternative" =
 	{
@@ -750,6 +758,14 @@
 		thrust = 0;
 		unpiloted = yes;
 		weapon_energy = 0;
+		materials =
+		{
+			"asteroid.png" =
+			{
+				shininess = 2;
+				specular = (0.1, 0.1, 0.1, 1.0);
+			};
+		};
 	};
 	"boulder-alternative" =
 	{
@@ -2233,6 +2249,14 @@
 		);
 		thrust = 100;
 		weapon_energy = 0;
+		materials =
+		{
+			"asteroid.png" =
+			{
+				shininess = 2;
+				specular = (0.1, 0.1, 0.1, 1.0);
+			};
+		};
 	};
 	"scarred-alloy" =
 	{
@@ -2362,6 +2386,14 @@
 		thrust = 0;
 		unpiloted = yes;
 		weapon_energy = 0;
+		materials =
+		{
+			"asteroid.png" =
+			{
+				shininess = 2;
+				specular = (0.1, 0.1, 0.1, 1.0);
+			};
+		};
 	};
 	"splinter-alternative" =
 	{

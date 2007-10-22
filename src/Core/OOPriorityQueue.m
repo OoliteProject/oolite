@@ -165,7 +165,7 @@ OOINLINE NSComparisonResult PQCompare(id a, id b, SEL comparator)
 - (void) dealloc
 {
 	[self makeObjectsPerformSelector:@selector(release)];
-	free(_buffer);
+	free(_heap);
 	
 	[super dealloc];
 }
@@ -233,7 +233,7 @@ OOINLINE NSComparisonResult PQCompare(id a, id b, SEL comparator)
 - (unsigned) hash
 {
 	if (_count == 0)  return NSNotFound;
-	return _count ^ [_buffer[0] hash];
+	return _count ^ [_heap[0] hash];
 }
 
 
@@ -248,10 +248,10 @@ OOINLINE NSComparisonResult PQCompare(id a, id b, SEL comparator)
 		copy->_count = _count;
 		copy->_capacity = _count;
 		
-		copy->_buffer = malloc(_count * sizeof(id));
-		if (copy->_buffer != NULL)
+		copy->_heap = malloc(_count * sizeof(id));
+		if (copy->_heap != NULL)
 		{
-			memcpy(copy->_buffer, _buffer, _count * sizeof(id));
+			memcpy(copy->_heap, _heap, _count * sizeof(id));
 			[copy makeObjectsPerformSelector:@selector(retain)];
 		}
 		else  if (_count != 0)
@@ -288,7 +288,7 @@ OOINLINE NSComparisonResult PQCompare(id a, id b, SEL comparator)
 	
 	// insert object at end of buffer.
 	i = _count++;
-	_buffer[i] = object;
+	_heap[i] = object;
 	
 	[self bubbleUpFrom:i];
 	[object retain];
@@ -308,7 +308,7 @@ OOINLINE NSComparisonResult PQCompare(id a, id b, SEL comparator)
 	
 	for (i = 0; i < _count; ++i)
 	{
-		if (PQCompare(object, _buffer[i], _comparator) == 0)
+		if (PQCompare(object, _heap[i], _comparator) == 0)
 		{
 			[self removeObjectAtIndex:i];
 		}
@@ -324,7 +324,7 @@ OOINLINE NSComparisonResult PQCompare(id a, id b, SEL comparator)
 	
 	for (i = 0; i < _count; ++i)
 	{
-		if (object == _buffer[i])
+		if (object == _heap[i])
 		{
 			[self removeObjectAtIndex:i];
 		}
@@ -349,7 +349,7 @@ OOINLINE NSComparisonResult PQCompare(id a, id b, SEL comparator)
 - (id) peekAtNextObject
 {
 	if (_count == 0)  return nil;
-	return [[_buffer[0] retain] autorelease];
+	return [[_heap[0] retain] autorelease];
 }
 
 
@@ -394,7 +394,7 @@ OOINLINE NSComparisonResult PQCompare(id a, id b, SEL comparator)
 	
 	for (i = 0; i != _count; ++i)
 	{
-		[_buffer[i] performSelector:selector];
+		[_heap[i] performSelector:selector];
 	}
 }
 
@@ -407,13 +407,13 @@ OOINLINE NSComparisonResult PQCompare(id a, id b, SEL comparator)
 	while (0 < i)
 	{
 		pi = PQParent(i);
-		obj = _buffer[i];
-		par = _buffer[pi];
+		obj = _heap[i];
+		par = _heap[pi];
 		
 		if (PQCompare(obj, par, _comparator) < 0)
 		{
-			_buffer[i] = par;
-			_buffer[pi] = obj;
+			_heap[i] = par;
+			_heap[pi] = obj;
 			i = pi;
 		}
 		else  break;
@@ -427,14 +427,14 @@ OOINLINE NSComparisonResult PQCompare(id a, id b, SEL comparator)
 	unsigned				li, ri, next;
 	id						obj = nil;
 	
-	obj = _buffer[i];
+	obj = _heap[i];
 	while (PQLeftChild(i) <= end)
 	{
 		li = PQLeftChild(i);
 		ri = PQRightChild(i);
 		
 		// If left child has lower priority than right child, or there is only one child...
-		if (li == end || PQCompare(_buffer[li], _buffer[ri], _comparator) < 0)
+		if (li == end || PQCompare(_heap[li], _heap[ri], _comparator) < 0)
 		{
 			next = li;
 		}
@@ -443,11 +443,11 @@ OOINLINE NSComparisonResult PQCompare(id a, id b, SEL comparator)
 			next = ri;
 		}
 		
-		if (PQCompare(_buffer[next], obj, _comparator) < 0)
+		if (PQCompare(_heap[next], obj, _comparator) < 0)
 		{
 			// Exchange parent with lowest-priority child
-			_buffer[i] = _buffer[next];
-			_buffer[next] = obj;
+			_heap[i] = _heap[next];
+			_heap[next] = obj;
 			i = next;
 		}
 		else  break;
@@ -464,12 +464,12 @@ OOINLINE NSComparisonResult PQCompare(id a, id b, SEL comparator)
 	if (newCapacity < kMinCapacity)  newCapacity = kMinCapacity;
 	
 	// Note: realloc(NULL, size) with non-zero size is equivalent to malloc(size), so this is OK starting from a NULL buffer.
-	newBuffer = realloc(_buffer, newCapacity * sizeof(id));
+	newBuffer = realloc(_heap, newCapacity * sizeof(id));
 	if (newBuffer == NULL)
 	{
 		// Attempt to grow by just one waffer-thin slot.
 		newCapacity = _capacity + 1;
-		newBuffer = realloc(_buffer, newCapacity * sizeof(id));
+		newBuffer = realloc(_heap, newCapacity * sizeof(id));
 		
 		if (newBuffer == NULL)
 		{
@@ -479,7 +479,7 @@ OOINLINE NSComparisonResult PQCompare(id a, id b, SEL comparator)
 		}
 	}
 	
-	_buffer = newBuffer;
+	_heap = newBuffer;
 	_capacity = newCapacity;
 	
 	assert(_count < _capacity);
@@ -499,10 +499,10 @@ OOINLINE NSComparisonResult PQCompare(id a, id b, SEL comparator)
 		if (2 < amountToRemove)
 		{
 			newCapacity = _capacity = amountToRemove;
-			newBuffer = realloc(_buffer, newCapacity * sizeof(id));
+			newBuffer = realloc(_heap, newCapacity * sizeof(id));
 			if (newBuffer != NULL)
 			{
-				_buffer = newBuffer;
+				_heap = newBuffer;
 				_capacity = newCapacity;
 			}
 		}
@@ -516,11 +516,11 @@ OOINLINE NSComparisonResult PQCompare(id a, id b, SEL comparator)
 	
 	if (_count <= i)  return;
 	
-	object = _buffer[i];
+	object = _heap[i];
 	if (i < --_count)
 	{
 		// Overwrite object with last object in array
-		_buffer[i] = _buffer[_count];
+		_heap[i] = _heap[_count];
 		
 		// Push previously-last object down until tree is partially ordered.
 		[self bubbleDownFrom:i];
@@ -544,7 +544,7 @@ OOINLINE NSComparisonResult PQCompare(id a, id b, SEL comparator)
 	
 	spaces = 2 + depth;
 	while (spaces--)  [string appendString:@"  "];
-	[string appendString:[_buffer[i] description]];
+	[string appendString:[_heap[i] description]];
 	[string appendString:@"\n"];
 	
 	[self appendDebugDataToString:string index:PQLeftChild(i) depth:depth + 1];
@@ -595,3 +595,117 @@ OOINLINE NSComparisonResult PQCompare(id a, id b, SEL comparator)
 }
 
 @end
+
+
+#ifdef DEBUG_GRAPHVIZ
+@implementation OOPriorityQueue (DebugGraphViz)
+
+// Workaround for Xcode auto-indent bug
+static NSString * const kQuotationMark = @"\"";
+static NSString * const kEscapedQuotationMark = @"\\\"";
+
+
+static NSString *EscapedString(NSString *string)
+{
+	const NSString			*srcStrings[] =
+	{
+		//Note: backslash must be first.
+		@"\\", @"\"", @"\'", @"\r", @"\n", @"\t", nil
+	};
+	const NSString			*subStrings[] =
+	{
+		//Note: must be same order.
+		@"\\\\", @"\\\"", @"\\\'", @"\\r", @"\\n", @"\\t", nil
+	};
+	
+	NSString				**src = srcStrings, **sub = subStrings;
+	NSMutableString			*mutable = nil;
+	NSString				*result = nil;
+	
+	mutable = [string mutableCopy];
+	while (*src != nil)
+	{
+		[mutable replaceOccurrencesOfString:*src++
+								withString:*sub++
+								   options:0
+									 range:NSMakeRange(0, [mutable length])];
+	}
+	
+	if ([mutable length] == [string length])
+	{
+		result = string;
+	}
+	else
+	{
+		result = [[mutable copy] autorelease];
+	}
+	[mutable release];
+	return result;
+}
+
+
+- (NSString *) generateGraphViz
+{
+	NSMutableString			*result = nil;
+	unsigned				i;
+	id						node = nil;
+	NSString				*desc = nil;
+	
+	result = [NSMutableString string];
+	
+	// Header
+	[result appendString:
+		@"// OOPriorityQueue partially ordered tree dump\n\n"
+		"digraph heap\n"
+		"{\n"
+		"\tgraph [charset=\"UTF-8\", label=\"OOPriorityQueue heap dump\", labelloc=t, labeljust=l];\n"
+		"\tnode [shape=record];\n\t\n\t"];
+	
+	// Nodes
+	for (i = 0; i < _count; ++i)
+	{
+		node = _heap[i];
+		desc = [node description];
+		if ([desc length] > 70)
+		{
+			desc = [[desc substringToIndex:64] stringByAppendingString:@"..."];
+		}
+		
+		[result appendFormat:@"\tnode_%u [label=\"<f0> | <f1> %@ | <f2>\"];\n", i, EscapedString(desc)];
+	}
+	
+	// Arcs
+	for (i = 0; PQLeftChild(i) < _count; ++i)
+		{
+		[result appendFormat:@"\tnode_%u:f0 -> node_%u:f1;\n", i, PQLeftChild(i)];
+		if (PQRightChild(i) < _count)  [result appendFormat:@"\tnode_%u:f2 -> node_%u:f1;\n", i, PQRightChild(i)];
+	}
+	
+	[result appendString:@"}\n"];
+	
+	return result;
+}
+
+
+- (void) writeGraphVizToURL:(NSURL *)url
+{
+	NSString			*graphViz = nil;
+	NSData				*data = nil;
+	
+	graphViz = [self generateGraphViz];
+	data = [graphViz dataUsingEncoding:NSUTF8StringEncoding];
+	
+	if (data != nil)
+	{
+		[data writeToURL:url atomically:YES];
+	}
+}
+
+
+- (void) writeGraphVizToPath:(NSString *)path
+{
+	[self writeGraphVizToURL:[NSURL fileURLWithPath:path]];
+}
+
+@end
+#endif

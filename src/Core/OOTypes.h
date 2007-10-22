@@ -110,6 +110,18 @@ typedef enum
 
 typedef enum
 {
+	SHADERS_NOT_SUPPORTED,
+	SHADERS_OFF,
+	SHADERS_SIMPLE,
+	SHADERS_FULL
+} OOShaderSetting;
+
+#define SHADERS_MIN SHADERS_OFF
+#define SHADERS_MAX SHADERS_FULL
+
+
+typedef enum
+{
 	INSTINCT_NULL					= 0U,
 	
 	// basic behavioural instincts

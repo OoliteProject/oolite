@@ -93,6 +93,8 @@ typedef struct
 
 - (OORGBAComponents)rgbaComponents;
 
+- (BOOL)isBlack;
+
 /*	Get the components of NSCalibratedRGB or NSDeviceRGB colors as hue, saturation, or brightness.
 	
 	IMPORTANT: for reasons of bugwards compatibility, these return hue values

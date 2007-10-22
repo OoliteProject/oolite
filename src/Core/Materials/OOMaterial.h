@@ -95,17 +95,19 @@ SOFTWARE.
 + (id)materialWithName:(NSString *)name
 		 configuration:(NSDictionary *)configuration
 				macros:(NSDictionary *)macros
-		 bindingTarget:(id<OOWeakReferenceSupport>)object;
+		 bindingTarget:(id<OOWeakReferenceSupport>)object
+	   forSmoothedMesh:(BOOL)smooth;
 
 /*	Select an appropriate material description (based on availability of
 	shaders and content of dictionaries, which may be nil) and call
-	+materialWithDescription:.
+	+materialWithName:configuration:macros:bindTarget:forSmoothedMesh:.
 */
 + (id)materialWithName:(NSString *)name
 	materialDictionary:(NSDictionary *)materialDict
 	 shadersDictionary:(NSDictionary *)shadersDict
 				macros:(NSDictionary *)macros
-		 bindingTarget:(id<OOWeakReferenceSupport>)object;
+		 bindingTarget:(id<OOWeakReferenceSupport>)object
+	   forSmoothedMesh:(BOOL)smooth;
 
 @end
 

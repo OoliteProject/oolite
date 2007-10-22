@@ -44,7 +44,7 @@ SOFTWARE.
 @interface OOPriorityQueue: NSObject <NSCopying>
 {
 	SEL						_comparator;
-	id						*_buffer;
+	id						*_heap;
 	unsigned				_count,
 							_capacity;
 }

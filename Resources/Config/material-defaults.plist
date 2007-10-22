@@ -8,12 +8,6 @@
 	// Macros prepended to shader source code for ship entities.
 	"ship-prefix-macros" =
 	{
-		"OO_ENGINE_LEVEL" = 1;
-		"OO_ENTITY_PERSONALITY" = 1;
-		"OO_ENTITY_PERSONALITY_INT" = 1;
-		"OO_ENTITY_LASER_HEAT_LEVEL" = 1;
-		"OO_HULL_HEAT_LEVEL" = 1;
-		"OO_TIME" = 1;
 		"OO_USER_DEFINED_BINDINGS" = 1;
 	};
 

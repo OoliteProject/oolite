@@ -358,6 +358,8 @@
 	<string>inherit</string>
 	<key>shader.vessel.init</key>
 	<string>$shaderDebug</string>
+	<key>ship.noPrimaryRole</key>
+	<string>no</string>
 	<key>sound.channel.cleanup.failed</key>
 	<string>$soundError</string>
 	<key>sound.channel.cleanup.failed.badState</key>

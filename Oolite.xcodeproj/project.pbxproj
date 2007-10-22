@@ -377,6 +377,8 @@
 		1A5DBD590BC17F0900D57389 /* NSStringOOExtensions.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A5DBD570BC17F0900D57389 /* NSStringOOExtensions.m */; };
 		1A5E462F0C32DACE008104B4 /* OOShaderUniformMethodType.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A5E462D0C32DACE008104B4 /* OOShaderUniformMethodType.m */; };
 		1A5E46300C32DACE008104B4 /* OOShaderUniformMethodType.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A5E462E0C32DACE008104B4 /* OOShaderUniformMethodType.h */; };
+		1A6515100CCC9E2E0054D01B /* oolite-standard-vertex.vertex in Copy Shaders */ = {isa = PBXBuildFile; fileRef = 1A65150D0CCC9E220054D01B /* oolite-standard-vertex.vertex */; };
+		1A6515110CCC9E2E0054D01B /* oolite-default-shader.fragment in Copy Shaders */ = {isa = PBXBuildFile; fileRef = 1A65150E0CCC9E220054D01B /* oolite-default-shader.fragment */; };
 		1A67050F0C4904ED002551AA /* oolite-cloaking-device.js in Copy Scripts */ = {isa = PBXBuildFile; fileRef = 1A67050E0C4904ED002551AA /* oolite-cloaking-device.js */; };
 		1A6B1EF00C9AA5C6000717CF /* OOScriptTimer.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A6B1EEE0C9AA5C6000717CF /* OOScriptTimer.h */; };
 		1A6B1EF10C9AA5C6000717CF /* OOScriptTimer.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A6B1EEF0C9AA5C6000717CF /* OOScriptTimer.m */; };
@@ -929,6 +931,18 @@
 			name = "Copy MDImporter";
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		1A6514FE0CCC9D7A0054D01B /* Copy Shaders */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = Shaders;
+			dstSubfolderSpec = 7;
+			files = (
+				1A6515100CCC9E2E0054D01B /* oolite-standard-vertex.vertex in Copy Shaders */,
+				1A6515110CCC9E2E0054D01B /* oolite-default-shader.fragment in Copy Shaders */,
+			);
+			name = "Copy Shaders";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		1AD267610C83057F00B4BFD1 /* Copy Debug OXP */ = {
 			isa = PBXCopyFilesBuildPhase;
 			buildActionMask = 2147483647;
@@ -1308,6 +1322,8 @@
 		1A5DBD570BC17F0900D57389 /* NSStringOOExtensions.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = NSStringOOExtensions.m; sourceTree = "<group>"; };
 		1A5E462D0C32DACE008104B4 /* OOShaderUniformMethodType.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOShaderUniformMethodType.m; sourceTree = "<group>"; };
 		1A5E462E0C32DACE008104B4 /* OOShaderUniformMethodType.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOShaderUniformMethodType.h; sourceTree = "<group>"; };
+		1A65150D0CCC9E220054D01B /* oolite-standard-vertex.vertex */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.frag; path = "oolite-standard-vertex.vertex"; sourceTree = "<group>"; };
+		1A65150E0CCC9E220054D01B /* oolite-default-shader.fragment */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.vert; path = "oolite-default-shader.fragment"; sourceTree = "<group>"; };
 		1A67050E0C4904ED002551AA /* oolite-cloaking-device.js */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.javascript; path = "oolite-cloaking-device.js"; sourceTree = "<group>"; };
 		1A6B1EEE0C9AA5C6000717CF /* OOScriptTimer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOScriptTimer.h; sourceTree = "<group>"; };
 		1A6B1EEF0C9AA5C6000717CF /* OOScriptTimer.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOScriptTimer.m; sourceTree = "<group>"; };
@@ -1602,9 +1618,10 @@
 				1A2318A50B9D02A900EF0852 /* Models */,
 				1A2319730B9D02F900EF0852 /* Music */,
 				1A34912C0BC25EBC00802DA7 /* Scripts */,
+				1A2F63940C5CC737003872C8 /* Schemata */,
+				1A6514F90CCC9D670054D01B /* Shaders */,
 				1A2319910B9D031D00EF0852 /* Sounds */,
 				1A23181D0B9D026D00EF0852 /* Textures */,
-				1A2F63940C5CC737003872C8 /* Schemata */,
 				29B97319FDCFA39411CA2CEA /* MainMenu.nib */,
 				25F3E8B30994FE9B002F25FD /* InfoPlist.strings */,
 				25F3E8C3099500F1002F25FD /* SoundInspector.nib */,
@@ -2053,6 +2070,15 @@
 				1AA82C820CC10E3D0023B797 /* OOJSWorldScripts.m */,
 			);
 			name = JavaScript;
+			sourceTree = "<group>";
+		};
+		1A6514F90CCC9D670054D01B /* Shaders */ = {
+			isa = PBXGroup;
+			children = (
+				1A65150D0CCC9E220054D01B /* oolite-standard-vertex.vertex */,
+				1A65150E0CCC9E220054D01B /* oolite-default-shader.fragment */,
+			);
+			path = Shaders;
 			sourceTree = "<group>";
 		};
 		1A71DDD30BCC0EEF00CD5C13 /* Materials */ = {
@@ -2691,6 +2717,7 @@
 				1A2319780B9D030400EF0852 /* Copy Music */,
 				1A2319BA0B9D032700EF0852 /* Copy Sounds */,
 				1A3491320BC25ED400802DA7 /* Copy Scripts */,
+				1A6514FE0CCC9D7A0054D01B /* Copy Shaders */,
 				1AD0C7890C47C1680070BD23 /* Build SCR Shim */,
 				1AD0C7300C47BDEF0070BD23 /* Copy SCR Shim (test release only) */,
 				1A2F63BD0C5CC80B003872C8 /* Copy Schemata */,
@@ -3079,7 +3106,10 @@
 				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
 				GCC_OPTIMIZATION_LEVEL = 0;
 				GCC_PREPROCESSOR_DEFINITIONS = XP_UNIX;
-				GCC_PREPROCESSOR_DEFINITIONS_NOT_USED_IN_PRECOMPS = OO_DEBUG;
+				GCC_PREPROCESSOR_DEFINITIONS_NOT_USED_IN_PRECOMPS = (
+					OO_DEBUG,
+					DEBUG_GRAPHVIZ,
+				);
 				GCC_REUSE_STRINGS = YES;
 				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
 				GCC_TREAT_WARNINGS_AS_ERRORS = YES;

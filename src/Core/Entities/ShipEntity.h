@@ -386,6 +386,7 @@ MA 02110-1301, USA.
 - (void) setProximity_alert:(ShipEntity*) other;
 
 - (NSString *) name;
+- (void) setName:(NSString *)name;
 - (NSString *) identFromShip:(ShipEntity*) otherShip; // name displayed to other ships
 
 - (BOOL) hasRole:(NSString *)role;

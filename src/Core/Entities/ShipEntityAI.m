@@ -497,40 +497,18 @@ MA 02110-1301, USA.
 	[shipAI message:@"FLEEING"];
 }
 
-// new
 
 - (PlanetEntity *) findNearestPlanet
 {
-	/*- selects the nearest planet it can find -*/
-	if (!UNIVERSE)
-		return nil;
-	int			ent_count =		UNIVERSE->n_entities;
-	Entity**	uni_entities =	UNIVERSE->sortedEntities;	// grab the public sorted list
-	Entity*		my_entities[ent_count];
-	int i;
-	int planet_count = 0;
-	for (i = 0; i < ent_count; i++)
-		if (uni_entities[i]->isPlanet)
-			my_entities[planet_count++] = [uni_entities[i] retain];		//	retained
-	//
-	PlanetEntity	*the_planet =  nil;
-	double nearest2 = SCANNER_MAX_RANGE2 * 10000000000.0; // 100 000x scanner range (2 560 000 km), squared.
-	for (i = 0; i < planet_count; i++)
-	{
-		PlanetEntity  *thing = (PlanetEntity *)my_entities[i];
-		if ([thing planetType] == PLANET_TYPE_GREEN)
-		{
-			double range2 = distance2(position, thing->position);
-			if ((!the_planet)||(range2 < nearest2))
-			{
-				the_planet = thing;
-				nearest2 = range2;
-			}
-		}
-	}
-	for (i = 0; i < planet_count; i++)
-		[my_entities[i] release];	//		released
-	return the_planet;
+	NSArray				*planets = nil;
+	
+	planets = [UNIVERSE findEntitiesMatchingPredicate:IsPlanetPredicate
+											parameter:NULL
+											  inRange:-1
+											 ofEntity:self];
+	
+	if ([planets count] == 0)  return nil;
+	return [planets objectAtIndex:0];
 }
 
 
@@ -735,13 +713,13 @@ WormholeEntity*	whole;
 //
 - (void) performHyperSpaceExit
 {
-	[self performHyperSpaceExitReplace:NO];
+	[self performHyperSpaceExitReplace:YES];
 }
 
 
 - (void) performHyperSpaceExitWithoutReplacing
 {
-	[self performHyperSpaceExitReplace:YES];
+	[self performHyperSpaceExitReplace:NO];
 }
 
 

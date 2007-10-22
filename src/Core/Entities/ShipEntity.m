@@ -2845,6 +2845,13 @@ static GLfloat mascem_color2[4] =	{ 0.4, 0.1, 0.4, 1.0};	// purple
 }
 
 
+- (void) setName:(NSString *)inName
+{
+	[name release];
+	name = [inName copy];
+}
+
+
 - (NSString *) identFromShip:(ShipEntity*) otherShip
 {
 	if (has_military_jammer && military_jammer_active && (![otherShip hasMilitaryScannerFilter]))
@@ -4212,28 +4219,26 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 
 -----------------------------------------*/
 
-BOOL	class_masslocks(int some_class)
+BOOL class_masslocks(int some_class)
 {
 	switch (some_class)
 	{
-		case CLASS_BUOY :
-		case CLASS_ROCK :
-		case CLASS_CARGO :
-		case CLASS_MINE :
-		case CLASS_NO_DRAW :
+		case CLASS_BUOY:
+		case CLASS_ROCK:
+		case CLASS_CARGO:
+		case CLASS_MINE:
+		case CLASS_NO_DRAW:
 			return NO;
-			break;
-		case CLASS_THARGOID :
-		case CLASS_MISSILE :
-		case CLASS_STATION :
-		case CLASS_POLICE :
-		case CLASS_MILITARY :
-		case CLASS_WORMHOLE :
-		default :
+		
+		case CLASS_THARGOID:
+		case CLASS_MISSILE:
+		case CLASS_STATION:
+		case CLASS_POLICE:
+		case CLASS_MILITARY:
+		case CLASS_WORMHOLE:
 			return YES;
-			break;
 	}
-	return YES;
+	return NO;
 }
 
 
@@ -6544,10 +6549,11 @@ BOOL	class_masslocks(int some_class)
 
 - (void) enterWormhole:(WormholeEntity *) w_hole replacing:(BOOL)replacing
 {
-	if (replacing && ![[UNIVERSE sun] willGoNova])
+	if (replacing && ![[UNIVERSE sun] willGoNova] && [UNIVERSE sun] != nil)
 	{
 		/*	Add a new ship to maintain quantities of standard ships, unless
-			there's a nova in the works (or the AI asked us not to).
+			there's a nova in the works, the AI asked us not to, or we're in
+			interstellar space.
 		*/
 		[UNIVERSE witchspaceShipWithPrimaryRole:[self primaryRole]];
 	}

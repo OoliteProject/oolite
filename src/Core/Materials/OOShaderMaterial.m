@@ -118,6 +118,11 @@ static NSString *MacrosToString(NSDictionary *macros);
 		glGetIntegerv(GL_MAX_TEXTURE_UNITS_ARB, &textureUnits);
 		[modifiedMacros setObject:[NSNumber numberWithInt:textureUnits] forKey:@"OO_TEXTURE_UNIT_COUNT"];
 		
+		if ([UNIVERSE shaderEffectsLevel] == SHADERS_SIMPLE)
+		{
+			[modifiedMacros setObject:[NSNumber numberWithInt:1] forKey:@"OO_REDUCED_COMPLEXITY"];
+		}
+		
 		macroString = MacrosToString(modifiedMacros);
 	}
 	
@@ -368,6 +373,7 @@ static NSString *MacrosToString(NSDictionary *macros);
 	
 	OO_ENTER_OPENGL();
 	
+	[super doApply];
 	[shaderProgram apply];
 	
 	for (i = 0; i != texCount; ++i)

@@ -401,7 +401,7 @@ static NSMutableDictionary *string_cache;
 								  inFolder:(NSString *)folderName
 								  andMerge:(BOOL) mergeFiles
 {
-	return [ResourceManager dictionaryFromFilesNamed:fileName inFolder:folderName mergeMode:mergeFiles ? MERGE_BASIC : MERGE_NONE cache:NO];
+	return [ResourceManager dictionaryFromFilesNamed:fileName inFolder:folderName mergeMode:mergeFiles ? MERGE_BASIC : MERGE_NONE cache:YES];
 }
 
 

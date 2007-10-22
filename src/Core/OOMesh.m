@@ -466,7 +466,8 @@ shaderBindingTarget:(id<OOWeakReferenceSupport>)target
 								 materialDictionary:materialDict
 								  shadersDictionary:shadersDict
 											 macros:macros
-									  bindingTarget:target];
+									  bindingTarget:target
+									forSmoothedMesh:isSmoothShaded];
 			materials[i] = [material retain];
 		}
 	}

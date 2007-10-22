@@ -118,7 +118,7 @@ enum
 static JSPropertySpec sShipProperties[] =
 {
 	// JS name					ID							flags
-	{ "shipDescription",		kShip_shipDescription,		JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
+	{ "shipDescription",		kShip_shipDescription,		JSPROP_PERMANENT | JSPROP_ENUMERATE },
 	{ "roles",					kShip_roles,				JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
 	{ "roleProbabilities",		kShip_roleProbabilities,	JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
 	{ "primaryRole",			kShip_primaryRole,			JSPROP_PERMANENT | JSPROP_ENUMERATE },
@@ -395,7 +395,7 @@ static JSBool ShipSetProperty(JSContext *context, JSObject *this, jsval name, js
 {
 	ShipEntity					*entity = nil;
 	ShipEntity					*target = nil;
-	NSString					*strVal = nil;
+	NSString					*sValue = nil;
 	jsdouble					fValue;
 	int32						iValue;
 	JSBool						bValue;
@@ -405,27 +405,39 @@ static JSBool ShipSetProperty(JSContext *context, JSObject *this, jsval name, js
 	
 	switch (JSVAL_TO_INT(name))
 	{
-		case kShip_primaryRole:
+		case kShip_shipDescription:
 			if (entity->isPlayer)
 			{
-				OOReportJavaScriptError(context, @"Ship.AIState [setter]: cannot set %@ for player.", "primary role");
+				OOReportJavaScriptError(context, @"Ship.%@ [setter]: cannot set %@ for player.", @"name", @"name");
 			}
 			else
 			{
-				strVal = [NSString stringWithJavaScriptValue:*value inContext:context];
-				if (strVal != nil)  [entity setPrimaryRole:strVal];
+				sValue = [NSString stringWithJavaScriptValue:*value inContext:context];
+				if (sValue != nil)  [entity setName:sValue];
+			}
+			break;
+		
+		case kShip_primaryRole:
+			if (entity->isPlayer)
+			{
+				OOReportJavaScriptError(context, @"Ship.%@ [setter]: cannot set %@ for player.", @"primaryRole", @"primary role");
+			}
+			else
+			{
+				sValue = [NSString stringWithJavaScriptValue:*value inContext:context];
+				if (sValue != nil)  [entity setPrimaryRole:sValue];
 			}
 			break;
 		
 		case kShip_AIState:
 			if (entity->isPlayer)
 			{
-				OOReportJavaScriptError(context, @"Ship.AIState [setter]: cannot set %@ for player.", "AI state");
+				OOReportJavaScriptError(context, @"Ship.%@ [setter]: cannot set %@ for player.", @"AIState", @"AI state");
 			}
 			else
 			{
-				strVal = [NSString stringWithJavaScriptValue:*value inContext:context];
-				if (strVal != nil)  [[entity getAI] setState:strVal];
+				sValue = [NSString stringWithJavaScriptValue:*value inContext:context];
+				if (sValue != nil)  [[entity getAI] setState:sValue];
 			}
 			break;
 		

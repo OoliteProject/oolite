@@ -54,6 +54,7 @@ SOFTWARE.
 #import "OOShaderMaterial.h"
 #import "OOSingleTextureMaterial.h"
 #import "OOCollectionExtractors.h"
+#import "Universe.h"
 
 
 static OOMaterial *sActiveMaterial = nil;
@@ -127,19 +128,161 @@ static OOMaterial *sActiveMaterial = nil;
 
 @implementation OOMaterial (OOConvenienceCreators)
 
++ (id)defaultShaderMaterialWithName:(NSString *)name
+					  configuration:(NSDictionary *)configuration
+							 macros:(NSDictionary *)macros
+{
+	OOColor					*ambient = nil,
+							*diffuse = nil,
+							*specular = nil,
+							*emission = nil;
+	int						shininess = nil;
+	NSString				*diffuseMap = nil,
+							*specularMap = nil,
+							*emissionMap = nil,
+							*emissionAndIlluminationMap = nil,
+							*illuminationMap = nil;
+	NSMutableDictionary		*modifiedMacros = nil;
+	NSMutableArray			*textures = nil;
+	NSMutableDictionary		*newConfig = nil;
+	NSMutableDictionary		*uniforms = nil;
+	
+	// Avoid looping, even though it shouldn't happen.
+	if ([configuration objectForKey:@"_oo_is_synthesized_config"] != nil)
+	{
+		OOLog(@"material.synthesize.loop", @"Synthesis loop for material %@.", name);
+		return nil;
+	}
+	
+	if (configuration == nil)  configuration = [NSDictionary dictionary];
+	ambient = [OOColor colorWithDescription:[configuration objectForKey:@"ambient"]];
+	diffuse = [OOColor colorWithDescription:[configuration objectForKey:@"diffuse"]];
+	specular = [OOColor colorWithDescription:[configuration objectForKey:@"specular"]];
+	emission = [OOColor colorWithDescription:[configuration objectForKey:@"emission"]];
+	shininess = [configuration intForKey:@"shininess" defaultValue:-1];
+	diffuseMap = [configuration stringForKey:@"diffuse_map"];
+	specularMap = [configuration stringForKey:@"specular_map"];
+	emissionMap = [configuration stringForKey:@"emission_map"];
+	emissionAndIlluminationMap = [configuration stringForKey:@"emission_and_illumination_map"];
+	illuminationMap = [configuration stringForKey:@"illumination_map"];
+	
+	if (diffuseMap == nil)  diffuseMap = name;
+	
+	if (diffuse == nil)  diffuse = [OOColor whiteColor];
+	if (emissionAndIlluminationMap != nil && illuminationMap != nil)
+	{
+		// Can't have both emissionAndIlluminationMap and illuminationMap
+		if (emissionMap == nil)  emissionMap = emissionAndIlluminationMap;
+		emissionAndIlluminationMap = nil;
+	}
+	
+	// Shininess 0 or nil/black specular colour means no specular.
+	if (shininess == 0 || specular == nil || [specular isBlack])
+	{
+		specular = nil;
+	}
+	
+	// No specular means no specular map.
+	if (specular == nil)  specularMap = nil;
+	
+	if ([emission isBlack])  emission = nil;
+	
+	modifiedMacros = macros ? [[macros mutableCopy] autorelease] : [NSMutableDictionary dictionaryWithCapacity:8];
+	
+	// Create a synthetic configuration dictionary.
+	textures = [NSMutableArray arrayWithCapacity:4];
+	newConfig = [NSMutableDictionary dictionaryWithCapacity:16];
+	uniforms = [NSMutableDictionary dictionaryWithCapacity:4];
+	
+	[newConfig setObject:[NSNumber numberWithBool:YES] forKey:@"_oo_is_synthesized_config"];
+	[newConfig setObject:@"oolite-standard-vertex.vertex" forKey:@"vertex_shader"];
+	[newConfig setObject:@"oolite-default-shader.fragment" forKey:@"fragment_shader"];
+	
+	if (ambient != nil)  [newConfig setObject:[ambient normalizedArray] forKey:@"ambient"];
+	if (diffuse != nil)  [newConfig setObject:[diffuse normalizedArray] forKey:@"diffuse"];
+	if (emission != nil)
+	{
+		[modifiedMacros setObject:[NSNumber numberWithInt:1] forKey:@"OOSTD_EMISSION"];
+		[newConfig setObject:[specular normalizedArray] forKey:@"emission"];
+	}
+	if (shininess != 0)
+	{
+		[modifiedMacros setObject:[NSNumber numberWithInt:1] forKey:@"OOSTD_SPECULAR"];
+		if (specular != nil)  [newConfig setObject:[specular normalizedArray] forKey:@"specular"];
+		if (shininess > 0)  [newConfig setObject:[NSNumber numberWithUnsignedInt:shininess] forKey:@"shininess"];
+		if (specularMap != nil)
+		{
+			[modifiedMacros setObject:[NSNumber numberWithInt:1] forKey:@"OOSTD_SPECULAR_MAP"];
+			[uniforms setObject:[NSDictionary dictionaryWithObjectsAndKeys:@"texture", @"type", [NSNumber numberWithInt:[textures count]], @"value", nil] forKey:@"uSpecularMap"];
+			[textures addObject:specularMap];
+		}
+	}
+	[newConfig setObject:diffuseMap forKey:@"diffuse_map"];
+	if (![diffuseMap isEqualToString:@""])	// empty string, not nil, means no diffuse map
+	{
+		[modifiedMacros setObject:[NSNumber numberWithInt:1] forKey:@"OOSTD_DIFFUSE_MAP"];
+		[uniforms setObject:[NSDictionary dictionaryWithObjectsAndKeys:@"texture", @"type", [NSNumber numberWithInt:[textures count]], @"value", nil] forKey:@"uDiffuseMap"];
+		[textures addObject:diffuseMap];
+	}
+	if (emissionMap != nil)
+	{
+		[modifiedMacros setObject:[NSNumber numberWithInt:1] forKey:@"OOSTD_EMISSION_MAP"];
+		[uniforms setObject:[NSDictionary dictionaryWithObjectsAndKeys:@"texture", @"type", [NSNumber numberWithInt:[textures count]], @"value", nil] forKey:@"uEmissionMap"];
+		[textures addObject:emissionMap];
+	}
+	else if (emissionAndIlluminationMap != nil)
+	{
+		[modifiedMacros setObject:[NSNumber numberWithInt:1] forKey:@"OOSTD_EMISSION_AND_ILLUMINATION_MAP"];
+		[uniforms setObject:[NSDictionary dictionaryWithObjectsAndKeys:@"texture", @"type", [NSNumber numberWithInt:[textures count]], @"value", nil] forKey:@"uEmissionMap"];
+		[textures addObject:emissionAndIlluminationMap];
+	}
+	if (illuminationMap != nil)
+	{
+		[modifiedMacros setObject:[NSNumber numberWithInt:1] forKey:@"OOSTD_ILLUMINATION_MAP"];
+		[uniforms setObject:[NSDictionary dictionaryWithObjectsAndKeys:@"texture", @"type", [NSNumber numberWithInt:[textures count]], @"value", nil] forKey:@"uIlluminationMap"];
+		[textures addObject:illuminationMap];
+	}
+	
+	if ([textures count] != 0)  [newConfig setObject:textures forKey:@"textures"];
+	if ([uniforms count] != 0)  [newConfig setObject:uniforms forKey:@"uniforms"];
+	
+	return [self materialWithName:name
+					configuration:newConfig
+						   macros:modifiedMacros
+					bindingTarget:nil
+				  forSmoothedMesh:YES];
+}
+
+
 + (id)materialWithName:(NSString *)name
 		 configuration:(NSDictionary *)configuration
 				macros:(NSDictionary *)macros
 		 bindingTarget:(id<OOWeakReferenceSupport>)object
+	   forSmoothedMesh:(BOOL)smooth
 {
 	id						result = nil;
 	
 #ifndef NO_SHADERS
-	if ([[OOOpenGLExtensionManager sharedManager] shadersSupported])
+	if ([UNIVERSE useShaders])
 	{
 		if ([OOShaderMaterial configurationDictionarySpecifiesShaderMaterial:configuration])
 		{
 			result = [OOShaderMaterial shaderMaterialWithName:name configuration:configuration macros:macros bindingTarget:object];
+		}
+		
+		// Use default shader if smoothing is on, or shader detail is full, or material uses an effect map.
+		if (result == nil &&
+				(smooth ||
+				 [UNIVERSE shaderEffectsLevel] == SHADERS_FULL ||
+				 [configuration objectForKey:@"specular_map"] != nil ||
+				 [configuration objectForKey:@"emission_map"] != nil ||
+				 [configuration objectForKey:@"illumination_map"] != nil ||
+				 [configuration objectForKey:@"emission_and_illumination_map"] != nil
+				 ))
+		{
+			result = [self defaultShaderMaterialWithName:name
+										   configuration:configuration
+												  macros:macros];
 		}
 	}
 #endif
@@ -170,11 +313,12 @@ static OOMaterial *sActiveMaterial = nil;
 	 shadersDictionary:(NSDictionary *)shadersDict
 				macros:(NSDictionary *)macros
 		 bindingTarget:(id<OOWeakReferenceSupport>)object
+	   forSmoothedMesh:(BOOL)smooth
 {
 	NSDictionary			*configuration = nil;
 	
 #ifndef NO_SHADERS
-	if ([[OOOpenGLExtensionManager sharedManager] shadersSupported])
+	if ([UNIVERSE useShaders])
 	{
 		configuration = [shadersDict dictionaryForKey:name];
 	}
@@ -185,7 +329,11 @@ static OOMaterial *sActiveMaterial = nil;
 		configuration = [materialDict dictionaryForKey:name];
 	}
 	
-	return [self materialWithName:name configuration:configuration macros:macros bindingTarget:object];
+	return [self materialWithName:name
+					configuration:configuration
+						   macros:macros
+					bindingTarget:object
+				  forSmoothedMesh:smooth];
 }
 
 @end

@@ -28,6 +28,7 @@ MA 02110-1301, USA.
 
 #import "OOJSPlayer.h"
 #import "PlayerEntityScriptMethods.h"
+#import "OOStringParsing.h"
 
 
 #if OOJSENGINE_MONITOR_SUPPORT
@@ -50,6 +51,8 @@ static JSBool GlobalGetProperty(JSContext *context, JSObject *this, jsval name, 
 
 static JSBool GlobalLog(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
 static JSBool GlobalLogWithClass(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
+static JSBool GlobalExpandDescription(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
+static JSBool GlobalRandomName(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
 
 
 static JSClass sGlobalClass =
@@ -92,6 +95,8 @@ static JSFunctionSpec sGlobalMethods[] =
 	// JS name					Function					min args
 	{ "Log",					GlobalLog,					1 },
 	{ "LogWithClass",			GlobalLogWithClass,			2 },
+	{ "ExpandDescription",		GlobalExpandDescription,	1 },
+	{ "RandomName",				GlobalRandomName,			0 },
 	{ 0 }
 };
 
@@ -156,7 +161,7 @@ static JSBool GlobalLog(JSContext *context, JSObject *this, uintN argc, jsval *a
 												   inContext:context];
 #endif
 	
-	return JS_TRUE;
+	return YES;
 }
 
 
@@ -174,5 +179,28 @@ static JSBool GlobalLogWithClass(JSContext *context, JSObject *obj, uintN argc, 
 												   inContext:context];
 #endif
 	
-	return JS_TRUE;
+	return YES;
+}
+
+
+static JSBool GlobalExpandDescription(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
+{
+	NSString			*string = nil;
+	
+	string = [NSString stringWithJavaScriptValue:argv[0] inContext:context];
+	string = ExpandDescriptionForCurrentSystem(string);
+	*outResult = [string javaScriptValueInContext:context];
+	
+	return YES;
+}
+
+
+static JSBool GlobalRandomName(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
+{
+	NSString			*string = nil;
+	
+	string = RandomDigrams();
+	*outResult = [string javaScriptValueInContext:context];
+	
+	return YES;
 }

@@ -392,6 +392,12 @@ MA 02110-1301, USA.
 }
 
 
+- (BOOL)isBlack
+{
+	return rgba[0] == 0.0f && rgba[1] == 0.0f && rgba[2] == 0.0f;
+}
+
+
 // Get the components as hue, saturation, or brightness.
 - (float)hueComponent
 {

@@ -87,8 +87,6 @@ static BOOL MaintainLinkedLists(Universe* uni);
 static NSComparisonResult compareName(NSDictionary *dict1, NSDictionary *dict2, void * context);
 static NSComparisonResult comparePrice(NSDictionary *dict1, NSDictionary *dict2, void * context);
 
-static BOOL IsPlanetPredicate(Entity *entity, void *parameter);
-
 
 @interface Universe (OOPrivate)
 
@@ -137,8 +135,11 @@ static BOOL IsPlanetPredicate(Entity *entity, void *parameter);
 	// init the Resource Manager
 	[ResourceManager paths];
 	
-	wireframeGraphics = NO;
-	reducedDetail = NO;
+	NSUserDefaults *prefs = [NSUserDefaults standardUserDefaults];
+	reducedDetail = [prefs boolForKey:@"reduced-detail-graphics" defaultValue:NO];
+	wireframeGraphics = [prefs boolForKey:@"wireframe-graphics" defaultValue:NO];
+	shaderEffectsLevel = SHADERS_SIMPLE;
+	[self setShaderEffectsLevel:[prefs intForKey:@"shader-effects-level" defaultValue:shaderEffectsLevel]];
 	
 #if OOLITE_MAC_OS_X
 	//// speech stuff
@@ -7475,7 +7476,7 @@ static NSComparisonResult comparePrice(NSDictionary *dict1, NSDictionary *dict2,
 
 - (void) setDisplayCursor:(BOOL) value
 {
-	displayCursor = value;
+	displayCursor = !!value;
 	
 #ifdef GNUSTEP
 	if ([gameView inFullScreenMode])
@@ -7504,7 +7505,7 @@ static NSComparisonResult comparePrice(NSDictionary *dict1, NSDictionary *dict2,
 
 - (void) setDisplayText:(BOOL) value
 {
-	displayGUI = value;
+	displayGUI = !!value;
 }
 
 
@@ -7516,7 +7517,7 @@ static NSComparisonResult comparePrice(NSDictionary *dict1, NSDictionary *dict2,
 
 - (void) setDisplayFPS:(BOOL) value
 {
-	displayFPS = value;
+	displayFPS = !!value;
 }
 
 
@@ -7528,7 +7529,8 @@ static NSComparisonResult comparePrice(NSDictionary *dict1, NSDictionary *dict2,
 
 - (void) setWireframeGraphics:(BOOL) value
 {
-	wireframeGraphics = value;
+	wireframeGraphics = !!value;
+	[[NSUserDefaults standardUserDefaults] setBool:wireframeGraphics forKey:@"wireframe-graphics"];
 }
 
 
@@ -7540,7 +7542,8 @@ static NSComparisonResult comparePrice(NSDictionary *dict1, NSDictionary *dict2,
 
 - (void) setReducedDetail:(BOOL) value
 {
-	reducedDetail = value;
+	reducedDetail = !!value;
+	[[NSUserDefaults standardUserDefaults] setBool:reducedDetail forKey:@"reduced-detail-graphics"];
 }
 
 
@@ -7549,23 +7552,27 @@ static NSComparisonResult comparePrice(NSDictionary *dict1, NSDictionary *dict2,
 	return reducedDetail;
 }
 
-//---- Placeholder method ----
-- (int) shaderEffectsLevel
+
+- (void) setShaderEffectsLevel:(OOShaderSetting)value
 {
-	if (![[OOOpenGLExtensionManager sharedManager] shadersSupported])
-		return -1;
-	
-	// Temporary. This should be a variable and there should be a corresponding setShaderEffectsLevel
-	// method, too.
-	return 1;
+	if (SHADERS_MIN <= value && value <= SHADERS_MAX)
+	{
+		shaderEffectsLevel = value;
+		[[NSUserDefaults standardUserDefaults] setInteger:shaderEffectsLevel forKey:@"shader-effects-level"];
+	}
 }
 
 
-//---- Placeholder method ----
-- (void) setShaderEffectsLevel:(int) value
+- (OOShaderSetting) shaderEffectsLevel
 {
-	// Temporary. Will need to actually do something shaders related.
-	OOLog(@"temporaryFunction.setShaderEffectsLevel", @"Setting shaderEffectsLevel to %d.", value);
+	if (![[OOOpenGLExtensionManager sharedManager] shadersSupported])  return SHADERS_NOT_SUPPORTED;
+	return shaderEffectsLevel;
+}
+
+
+- (BOOL) useShaders
+{
+	return [self shaderEffectsLevel] > SHADERS_OFF;
 }
 
 
@@ -7793,23 +7800,3 @@ static NSComparisonResult comparePrice(NSDictionary *dict1, NSDictionary *dict2,
 }
 
 @end
-
-
-static BOOL IsPlanetPredicate(Entity *entity, void *parameter)
-{
-	if (entity->isPlanet)
-	{
-		switch ([(PlanetEntity *)entity planetType])
-		{
-			case PLANET_TYPE_GREEN:
-				return YES;
-				
-			case PLANET_TYPE_SUN:
-			case PLANET_TYPE_ATMOSPHERE:
-			case PLANET_TYPE_MINIATURE:
-				return NO;
-		}
-	}
-	
-	return NO;
-}

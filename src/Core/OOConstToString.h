@@ -69,3 +69,5 @@ NSString *KillCountToRatingString(unsigned kills) CONST_FUNC;
 NSString *KillCountToRatingAndKillString(unsigned kills) CONST_FUNC;
 NSString *LegalStatusToString(int legalStatus) CONST_FUNC;
 NSString *AlertConditionToString(OOAlertCondition alertCondition) CONST_FUNC;
+
+NSString *ShaderSettingToDisplayString(OOShaderSetting setting) CONST_FUNC;

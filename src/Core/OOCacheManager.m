@@ -702,3 +702,71 @@ static OOCacheManager *sSingleton = nil;
 }
 
 @end
+
+
+#ifdef DEBUG_GRAPHVIZ
+@interface OOCache (DebugGraphViz)
+- (NSString *) generateGraphVizBodyWithRootNamed:(NSString *)rootName;
+@end
+
+
+@implementation OOCacheManager (DebugGraphViz)
+
+- (NSString *) generateGraphViz
+{
+	NSMutableString			*result = nil;
+	NSEnumerator			*cacheEnum = nil;
+	OOCache					*cache = nil;
+	NSString				*cacheRootName = nil;
+	NSString				*cacheGraphViz = nil;
+	
+	result = [NSMutableString string];
+	
+	// Header
+	[result appendString:
+		@"// OOCacheManager dump\n\n"
+		"digraph caches\n"
+		"{\n"
+		"\tgraph [charset=\"UTF-8\", label=\"OOCacheManager debug dump\", labelloc=t, labeljust=l];\n\t\n"];
+	
+	// Node representing cache manager
+	[result appendString:@"\tcacheManger [label=OOCacheManager shape=Mdiamond];\n"];
+	
+	// Nodes and arcs for individual caches, and arcs from cache manager to each cache.
+	for (cacheEnum = [_caches objectEnumerator]; (cache = [cacheEnum nextObject]); )
+	{
+		cacheRootName = [NSString stringWithFormat:@"cache_%p", cache];
+		cacheGraphViz = [cache generateGraphVizBodyWithRootNamed:cacheRootName];
+		[result appendString:@"\t\n"];
+		[result appendString:cacheGraphViz];
+		[result appendFormat:@"\tcacheManger -> %@ [color=green constraint=true];\n", cacheRootName];
+	}
+	
+	[result appendString:@"}\n"];
+	
+	return result;
+}
+
+
+- (void) writeGraphVizToURL:(NSURL *)url
+{
+	NSString			*graphViz = nil;
+	NSData				*data = nil;
+	
+	graphViz = [self generateGraphViz];
+	data = [graphViz dataUsingEncoding:NSUTF8StringEncoding];
+	
+	if (data != nil)
+	{
+		[data writeToURL:url atomically:YES];
+	}
+}
+
+
+- (void) writeGraphVizToPath:(NSString *)path
+{
+	[self writeGraphVizToURL:[NSURL fileURLWithPath:path]];
+}
+
+@end
+#endif

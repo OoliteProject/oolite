@@ -40,7 +40,7 @@ MA 02110-1301, USA.
 #import "OOCollectionExtractors.h"
 #import "ResourceManager.h"
 #import "HeadUpDisplay.h"
-#import "OOOpenGLExtensionManager.h"
+#import "OOConstToString.h"
 
 #import "JoystickHandler.h"
 
@@ -1415,6 +1415,7 @@ static BOOL			upDownKeyPressed;
 static BOOL			leftRightKeyPressed;
 static BOOL			enterSelectKeyPressed;
 static BOOL			volumeControlPressed;
+static BOOL			shaderSelectKeyPressed;
 static OOGUIRow		oldSelection;
 static BOOL			selectPressed;
 static BOOL			queryPressed;
@@ -1659,10 +1660,10 @@ static BOOL			spacePressed;
 				int wireframe_row =	GUI_ROW_GAMEOPTIONS_WIREFRAMEGRAPHICS;
 				int detail_row =	GUI_ROW_GAMEOPTIONS_DETAIL;
 				int shaderfx_row = 	GUI_ROW_GAMEOPTIONS_SHADEREFFECTS;
+				int back_row = GUI_ROW_GAMEOPTIONS_BACK;
 #if OOLITE_SDL
 				int display_style_row = GUI_ROW_GAMEOPTIONS_DISPLAYSTYLE;
 				int stickmap_row = GUI_ROW_GAMEOPTIONS_STICKMAPPER;
-				int back_row = GUI_ROW_GAMEOPTIONS_BACK;
 #endif
 #if OOLITE_MAC_OS_X
 				// Macintosh only
@@ -1680,10 +1681,10 @@ static BOOL			spacePressed;
 				BOOL selectKeyPress = ([gameView isDown:13]||[gameView isDown:gvMouseDoubleClick]);
 				if ([gameView isDown:gvMouseDoubleClick])
 					[gameView clearMouse];
-
+				
+#if OOLITE_HAVE_JOYSTICK
 				if (selectKeyPress)   // 'enter'
 				{
-#if OOLITE_HAVE_JOYSTICK
 					if ([gui selectedRow] == stickmap_row)
 					{
 						[self setGuiToStickMapperScreen];
@@ -1855,39 +1856,41 @@ static BOOL			spacePressed;
 				
 				if ([gui selectedRow] == shaderfx_row && ([gameView isDown:gvArrowKeyRight] || [gameView isDown:gvArrowKeyLeft]))
 				{
-					int direction = ([gameView isDown:gvArrowKeyRight]) ? 1 : -1;
-					int shaderEffects = [UNIVERSE shaderEffectsLevel];
-					NSArray* shaderEffectsPossibilities = [NSArray arrayWithObjects:@"Off", @"Simple", @"Full", nil];
-					shaderEffects = shaderEffects + direction;
-					if (shaderEffects > OOSHADEREFFECTSLEVEL_SHADERS_FULL)
-						shaderEffects = OOSHADEREFFECTSLEVEL_SHADERS_OFF;
-					if (shaderEffects < OOSHADEREFFECTSLEVEL_SHADERS_OFF)
-						shaderEffects = OOSHADEREFFECTSLEVEL_SHADERS_FULL;
-					[UNIVERSE setShaderEffectsLevel:shaderEffects];
-					[gui setText:[NSString stringWithFormat:@" Shader Effects: %@ ",
-												[shaderEffectsPossibilities objectAtIndex:shaderEffects]]
-												forRow:shaderfx_row
-												align:GUI_ALIGN_CENTER];
+					if (!shaderSelectKeyPressed || (script_time > timeLastKeyPress + KEY_REPEAT_INTERVAL))
+					{
+						int direction = ([gameView isDown:gvArrowKeyRight]) ? 1 : -1;
+						int shaderEffects = [UNIVERSE shaderEffectsLevel];
+						shaderEffects = shaderEffects + direction;
+						if (shaderEffects < SHADERS_MIN)
+							shaderEffects = SHADERS_MIN;
+						if (shaderEffects > SHADERS_MAX)
+							shaderEffects = SHADERS_MAX;
+						[UNIVERSE setShaderEffectsLevel:shaderEffects];
+						[gui setText:[NSString stringWithFormat:@" Shader Effects: %@ ", ShaderSettingToDisplayString(shaderEffects)]
+							  forRow:shaderfx_row
+							   align:GUI_ALIGN_CENTER];
+						timeLastKeyPress = script_time;
+					}
+					shaderSelectKeyPressed = YES;
 				}
-						
+				else shaderSelectKeyPressed = NO;
 
-            			if (([gui selectedRow] == back_row) && [gameView isDown:13])
-            			{
-            				[gameView clearKeys];
-            				[self setGuiToLoadSaveScreen];
-            			}
+				if (([gui selectedRow] == back_row) && [gameView isDown:13])
+				{
+					[gameView clearKeys];
+					[self setGuiToLoadSaveScreen];
+				}
             			
 #if OOLITE_SDL
-            			if (([gui selectedRow] == display_style_row) && [gameView isDown: 13])
-            			{
-               				[gameView toggleScreenMode];
-               				// redraw GUI
-               				[self setGuiToGameOptionsScreen];
-            			}
+				if (([gui selectedRow] == display_style_row) && [gameView isDown: 13])
+				{
+					[gameView toggleScreenMode];
+					// redraw GUI
+					[self setGuiToGameOptionsScreen];
+				}
 #endif
-	    		}
+			}
 			break;
-
 
 
 
@@ -1907,7 +1910,6 @@ static BOOL			spacePressed;
 #endif
 
 				GameController  *controller = [UNIVERSE gameController];
-				NSArray *modes = [controller displayModes];
 
 				[self handleGUIUpDownArrowKeys: gui :gameView];
 				BOOL selectKeyPress = ([gameView isDown:13]||[gameView isDown:gvMouseDoubleClick]);
@@ -1926,8 +1928,8 @@ static BOOL			spacePressed;
 							if ([[localException name] isEqual:@"GameNotSavedException"])	// try saving game instead
 							{
 								OOLog(kOOLogException, @"\n\n***** Trying a normal save instead *****\n\n");
-								if ([[UNIVERSE gameController] inFullScreenMode])
-									[[UNIVERSE gameController] pauseFullScreenModeToPerform:@selector(savePlayer) onTarget:self];
+								if ([controller inFullScreenMode])
+									[controller pauseFullScreenModeToPerform:@selector(savePlayer) onTarget:self];
 								else
 									[self savePlayer];
 							}

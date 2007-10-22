@@ -48,6 +48,7 @@ SOFTWARE.
 #import "OOBasicMaterial.h"
 #import "OOCollectionExtractors.h"
 #import "OOFunctionAttributes.h"
+#import "Universe.h"
 
 
 static OOBasicMaterial *sDefaultMaterial = nil;
@@ -82,6 +83,8 @@ static OOBasicMaterial *sDefaultMaterial = nil;
 	self = [self initWithName:name];
 	if (EXPECT_NOT(self == nil))  return nil;
 	
+	if (configuration == nil)  configuration = [NSDictionary dictionary];
+	
 	colorDesc = [configuration objectForKey:@"diffuse"];
 	if (colorDesc != nil)  [self setDiffuseColor:[OOColor colorWithDescription:colorDesc]];
 	
@@ -92,11 +95,16 @@ static OOBasicMaterial *sDefaultMaterial = nil;
 	colorDesc = [configuration objectForKey:@"emission"];
 	if (colorDesc != nil)  [self setEmissionColor:[OOColor colorWithDescription:colorDesc]];
 	
-	shininessVal = [configuration intForKey:@"shininess"];
-	if (0 < shininessVal)
+	shininessVal = [configuration intForKey:@"shininess" defaultValue:-1];
+	if (shininessVal != 0 && ![UNIVERSE reducedDetail])
 	{
-		[self setShininess:shininessVal];
 		colorDesc = [configuration objectForKey:@"specular"];
+		if (shininessVal < 0)
+		{
+			shininessVal = 10;
+			if (colorDesc == nil)  colorDesc = @"0.2 0.2 0.2 1.0";
+		}
+		[self setShininess:shininessVal];
 		if (colorDesc != nil)  [self setSpecularColor:[OOColor colorWithDescription:colorDesc]];
 	}
 	
@@ -339,7 +347,7 @@ static OOBasicMaterial *sDefaultMaterial = nil;
 
 - (void)setShininess:(uint8_t)value
 {
-	shininess = MAX(value, 128);
+	shininess = MIN(value, 128);
 }
 
 @end

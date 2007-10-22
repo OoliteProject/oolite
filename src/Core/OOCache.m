@@ -393,7 +393,7 @@ struct OOCacheImpl
 struct OOCacheNode
 {
 	// Payload
-	id			key;
+	id						key;
 	id						value;
 	
 	// Splay tree
@@ -938,3 +938,156 @@ static void AgeListCheckIntegrity(OOCacheImpl *cache, NSString *context)
 }
 
 #endif	// OOCACHE_PERFORM_INTEGRITY_CHECKS
+
+
+#ifdef DEBUG_GRAPHVIZ
+
+/*	NOTE: enabling AGE_LIST can result in graph rendering times of many hours,
+	because determining paths for non-constraint arcs is NP-hard. In particular,
+	I have up on rendering a dump of a fairly minimal cache manager after
+	three and a half hours. Individual caches were fine.
+*/
+#define AGE_LIST 0
+
+// Workaround for Xcode auto-indent bug
+static NSString * const kQuotationMark = @"\"";
+static NSString * const kEscapedQuotationMark = @"\\\"";
+
+
+static NSString *EscapedString(NSString *string)
+{
+	const NSString			*srcStrings[] =
+	{
+		//Note: backslash must be first.
+		@"\\", @"\"", @"\'", @"\r", @"\n", @"\t", nil
+	};
+	const NSString			*subStrings[] =
+	{
+		//Note: must be same order.
+		@"\\\\", @"\\\"", @"\\\'", @"\\r", @"\\n", @"\\t", nil
+	};
+	
+	NSString				**src = srcStrings, **sub = subStrings;
+	NSMutableString			*mutable = nil;
+	NSString				*result = nil;
+
+	mutable = [string mutableCopy];
+	while (*src != nil)
+	{
+		[mutable replaceOccurrencesOfString:*src++
+								 withString:*sub++
+									options:0
+									  range:NSMakeRange(0, [mutable length])];
+	}
+
+	if ([mutable length] == [string length])
+	{
+		result = string;
+	}
+	else
+	{
+		result = [[mutable copy] autorelease];
+	}
+	[mutable release];
+	return result;
+}
+
+
+@implementation OOCache (DebugGraphViz)
+
+- (void) appendNodesFromSubTree:(OOCacheNode *)subTree toString:(NSMutableString *)ioString
+{
+	[ioString appendFormat:@"\tn%p [label=\"<f0> | <f1> %@ | <f2>\"];\n", subTree, EscapedString([subTree->key description])];
+	
+	if (subTree->leftChild != NULL)
+	{
+		[self appendNodesFromSubTree:subTree->leftChild toString:ioString];
+		[ioString appendFormat:@"\tn%p:f0 -> n%p:f1;\n", subTree, subTree->leftChild];
+	}
+	if (subTree->rightChild != NULL)
+	{
+		[self appendNodesFromSubTree:subTree->rightChild toString:ioString];
+		[ioString appendFormat:@"\tn%p:f2 -> n%p:f1;\n", subTree, subTree->rightChild];
+	}
+}
+
+
+- (NSString *) generateGraphVizBodyWithRootNamed:(NSString *)rootName
+{
+	NSMutableString			*result = nil;
+	
+	result = [NSMutableString string];
+	
+	// Root node representing cache
+	[result appendFormat:@"\t%@ [label=\"Cache \\\"%@\\\"\" shape=box];\n"
+		"\tnode [shape=record];\n\t\n", rootName, EscapedString([self name])];
+	
+	if (cache == NULL)  return result;
+	
+	// Cache
+	[self appendNodesFromSubTree:cache->root toString:result];
+	
+	// Arc from cache object to root node
+	[result appendString:@"\tedge [color=black constraint=true];\n"];
+	[result appendFormat:@"\t%@ -> n%p:f1;\n", rootName, cache->root];
+	
+#if AGE_LIST
+	OOCacheNode				*node = NULL;
+	// Arcs representing age list
+	[result appendString:@"\t\n\t// Age-sorted list in blue\n\tedge [color=blue constraint=false];\n"];
+	node = cache->oldest;
+	while (node->younger != NULL)
+	{
+		[result appendFormat:@"\tn%p:f2 -> n%p:f0;\n", node, node->younger];
+		node = node->younger;
+	}
+#endif
+	
+	return result;
+}
+
+
+- (NSString *) generateGraphViz
+{
+	NSMutableString			*result = nil;
+	
+	result = [NSMutableString string];
+	
+	// Header
+	[result appendFormat:
+		@"// OOCache dump\n\n"
+		"digraph cache\n"
+		"{\n"
+		"\tgraph [charset=\"UTF-8\", label=\"OOCache \"%@\" debug dump\", labelloc=t, labeljust=l];\n\t\n", [self name]];
+	
+	[result appendString:[self generateGraphVizBodyWithRootNamed:@"cache"]];
+	
+	[result appendString:@"}\n"];
+	
+	return result;
+}
+
+
+- (void) writeGraphVizToURL:(NSURL *)url
+{
+	NSString			*graphViz = nil;
+	NSData				*data = nil;
+	
+	graphViz = [self generateGraphViz];
+	data = [graphViz dataUsingEncoding:NSUTF8StringEncoding];
+	
+	if (data != nil)
+	{
+		[data writeToURL:url atomically:YES];
+	}
+}
+
+
+- (void) writeGraphVizToPath:(NSString *)path
+{
+	[self writeGraphVizToURL:[NSURL fileURLWithPath:path]];
+}
+
+@end
+#endif
+

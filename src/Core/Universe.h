@@ -167,6 +167,7 @@ enum
 	
 	BOOL					wireframeGraphics;
 	BOOL					reducedDetail;
+	OOShaderSetting			shaderEffectsLevel;
 	
 	BOOL					displayFPS;		
 			
@@ -516,8 +517,9 @@ double estimatedTimeForJourney(double distance, int hops);
 - (void) setReducedDetail:(BOOL) value;
 - (BOOL) reducedDetail;
 
-- (void) setShaderEffectsLevel:(int) value;
-- (int) shaderEffectsLevel;
+- (void) setShaderEffectsLevel:(OOShaderSetting)value;
+- (OOShaderSetting) shaderEffectsLevel;
+- (BOOL) useShaders;
 
 - (void) handleOoliteException:(NSException*) ooliteException;
 

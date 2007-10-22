@@ -30,6 +30,7 @@ MA 02110-1301, USA.
 #import "PlayerEntity.h"
 #import "PlayerEntityLegacyScriptEngine.h"
 #import "OOFunctionAttributes.h"
+#import "OOCollectionExtractors.h"
 
 
 static NSString * const kOOLogStringVectorConversion			= @"strings.conversion.vector";
@@ -38,6 +39,9 @@ static NSString * const kOOLogStringVecAndQuatConversion		= @"strings.conversion
 static NSString * const kOOLogStringRandomSeedConversion		= @"strings.conversion.randomSeed";
 static NSString * const kOOLogExpandDescriptionsRecursionLimitExceeded	= @"strings.expand.recursionLimit";
 static NSString * const kOOLogDebugReplaceVariablesInString		= @"script.debug.replaceVariablesInString";
+
+static NSString *OldRandomDigrams(void);
+static NSString *NewRandomDigrams(void);
 
 
 NSMutableArray *ScanTokensFromString(NSString *values)
@@ -316,7 +320,8 @@ NSString *ExpandDescriptionsWithLocalsForSystemSeed(NSString *text, Random_Seed 
 		if ([value isKindOfClass:[NSArray class]])
 		{
 			rnd = gen_rnd_number() % [value count];
-			part = [NSString stringWithString:(NSString *)[value objectAtIndex:rnd]];
+			part = [value stringAtIndex:rnd];
+			if (part == nil)  part = @"";
 		}
 		else if ([value isKindOfClass:[NSString class]])
 		{
@@ -356,11 +361,15 @@ NSString *ExpandDescriptionsWithLocalsForSystemSeed(NSString *text, Random_Seed 
 	
 	[partial	replaceOccurrencesOfString:@"%I"
 				withString:[NSString stringWithFormat:@"%@ian",[UNIVERSE generateSystemName:seed]]
-				options:NSLiteralSearch range:NSMakeRange(0, [partial length])];
+								   options:NSLiteralSearch range:NSMakeRange(0, [partial length])];
 	
 	[partial	replaceOccurrencesOfString:@"%R"
-				withString:RandomDigrams()
-				options:NSLiteralSearch range:NSMakeRange(0, [partial length])];
+								withString:OldRandomDigrams()
+								   options:NSLiteralSearch range:NSMakeRange(0, [partial length])];
+	
+	[partial	replaceOccurrencesOfString:@"%X"
+								withString:NewRandomDigrams()
+								   options:NSLiteralSearch range:NSMakeRange(0, [partial length])];
 
 	return partial; 
 }
@@ -430,7 +439,11 @@ NSString *ReplaceVariables(NSString *string, Entity *target, NSDictionary *local
 }
 
 
-NSString *RandomDigrams(void)
+/*	Generates pseudo-random digram string using gen_rnd_number()
+	(world-generation consistent PRNG), but misses some possibilities. Used
+	for "%R" description string for backwards compatibility.
+*/
+static NSString *OldRandomDigrams(void)
 {
 	int i;
 	int len = gen_rnd_number() & 3;	
@@ -442,6 +455,50 @@ NSString *RandomDigrams(void)
 		[name appendString:[digrams substringWithRange:NSMakeRange(x,2)]];
 	}
 	return [name capitalizedString]; 
+}
+
+
+/*	Generates pseudo-random digram string using gen_rnd_number()
+	(world-generation consistent PRNG). Used for "%X" description string.
+*/
+static NSString *NewRandomDigrams(void)
+{
+	unsigned			i, length, count;
+	NSString			*digrams = nil;
+	NSMutableString		*name = nil;
+	
+	length = (gen_rnd_number() % 4) + 1;
+	if ((Ranrot() % 5) < ((length == 1) ? 3 : 1))  ++length;	// Make two-letter names rarer and 10-letter names happen sometimes
+	digrams = [[UNIVERSE descriptions] objectForKey:@"digrams"];
+	count = [digrams length] / 2;
+	name = [NSMutableString stringWithCapacity:length * 2];
+	
+	for (i = 0; i != length; ++i)
+	{
+		[name appendString:[digrams substringWithRange:NSMakeRange((gen_rnd_number() % count) * 2, 2)]];
+	}
+	return [name capitalizedString];
+}
+
+
+// Similar to NewRandomDigrams(), but uses Ranrot() (the "really random" PRNG).
+NSString *RandomDigrams(void)
+{
+	unsigned			i, length, count;
+	NSString			*digrams = nil;
+	NSMutableString		*name = nil;
+	
+	length = (Ranrot() % 4) + 1;
+	if ((Ranrot() % 5) < ((length == 1) ? 3 : 1))  ++length;	// Make two-letter names rarer and 10-letter names happen sometimes
+	digrams = [[UNIVERSE descriptions] objectForKey:@"digrams"];
+	count = [digrams length] / 2;
+	name = [NSMutableString stringWithCapacity:length * 2];
+	
+	for (i = 0; i != length; ++i)
+	{
+		[name appendString:[digrams substringWithRange:NSMakeRange((Ranrot() % count) * 2, 2)]];
+	}
+	return [name capitalizedString];
 }
 
 
