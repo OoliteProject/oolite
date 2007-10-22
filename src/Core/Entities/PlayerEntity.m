@@ -4628,7 +4628,7 @@ double scoopSoundPlayTime = 0.0;
 		[gui setText:@" Game Options... " forRow:GUI_ROW_OPTIONS_GAMEOPTIONS align:GUI_ALIGN_CENTER];
 		[gui setKey:GUI_KEY_OK forRow:GUI_ROW_OPTIONS_GAMEOPTIONS];
 		
-#if !OOLITE_SDL
+#if OOLITE_SDL
 		// GNUstep needs a quit option at present (no Cmd-Q) but
 		// doesn't need speech.
 		

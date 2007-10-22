@@ -1683,12 +1683,9 @@ static BOOL			spacePressed;
 					[gameView clearMouse];
 				
 #if OOLITE_HAVE_JOYSTICK
-				if (selectKeyPress)   // 'enter'
+				if (([gui selectedRow] == stickmap_row) && selectKeyPress)
 				{
-					if ([gui selectedRow] == stickmap_row)
-					{
-						[self setGuiToStickMapperScreen];
-					}
+					[self setGuiToStickMapperScreen];
 				}
 #endif
 
@@ -1875,14 +1872,14 @@ static BOOL			spacePressed;
 				}
 				else shaderSelectKeyPressed = NO;
 
-				if (([gui selectedRow] == back_row) && [gameView isDown:13])
+				if (([gui selectedRow] == back_row) && selectKeyPress)
 				{
 					[gameView clearKeys];
 					[self setGuiToLoadSaveScreen];
 				}
             			
 #if OOLITE_SDL
-				if (([gui selectedRow] == display_style_row) && [gameView isDown: 13])
+				if (([gui selectedRow] == display_style_row) && selectKeyPress)
 				{
 					[gameView toggleScreenMode];
 					// redraw GUI
@@ -1963,25 +1960,25 @@ static BOOL			spacePressed;
 				}
 
 #if OOLITE_SDL
-            // SDL-only menu quit item
-            if (([gui selectedRow] == quit_row) && [gameView isDown:13])
-            {
-			      [[gameView gameController] exitApp];
-            }
+            			// SDL-only menu quit item
+            			if (([gui selectedRow] == quit_row) && selectKeyPress)
+            			{
+					[[gameView gameController] exitApp];
+            			}
 #endif
 
-	    if (([gui selectedRow] == gameoptions_row) && [gameView isDown:13])
-	    {
-	    	[gameView clearKeys];
-	    	[self setGuiToGameOptionsScreen];
-	    }
+	    			if (([gui selectedRow] == gameoptions_row) && selectKeyPress)
+	    			{
+	    				[gameView clearKeys];
+	    				[self setGuiToGameOptionsScreen];
+	    			}
 	    
-            // TODO: Investigate why this has to be handled last (if the
-            // quit item and this are swapped, the game crashes if
-            // strict mode is selected with SIGSEGV in the ObjC runtime
-            // system. The stack trace shows it crashes when it hits
-            // the if statement, trying to send the message to one of
-            // the things contained.
+            			// TODO: Investigate why this has to be handled last (if the
+            			// quit item and this are swapped, the game crashes if
+            			// strict mode is selected with SIGSEGV in the ObjC runtime
+            			// system. The stack trace shows it crashes when it hits
+            			// the if statement, trying to send the message to one of
+            			// the things contained.
 				if (([gui selectedRow] == strict_row)&& selectKeyPress)
 				{
 					[UNIVERSE setStrict:![UNIVERSE strict]];

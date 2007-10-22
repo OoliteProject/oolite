@@ -722,8 +722,15 @@ MA 02110-1301, USA.
 
          case SDL_MOUSEBUTTONUP:
             mbtn_event = (SDL_MouseButtonEvent*)&event;
+            NSTimeInterval timeBetweenClicks = [NSDate timeIntervalSinceReferenceDate] - timeIntervalAtLastClick;
+	    timeIntervalAtLastClick += timeBetweenClicks;
             if (mbtn_event->button == SDL_BUTTON_LEFT)
             {
+            	if (!doubleClick)
+		{
+			doubleClick = (timeBetweenClicks < MOUSE_DOUBLE_CLICK_INTERVAL);	// One fifth of a second
+			keys[gvMouseDoubleClick] = doubleClick;
+		}
                //NSLog(@"LMB up");
                keys[gvMouseLeftButton] = NO;
             }
