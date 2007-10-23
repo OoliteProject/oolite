@@ -7,7 +7,7 @@
 	to the default shader.
 	
 	
-	å©2007 Jens Ayton
+	?©2007 Jens Ayton
 
 	This program is free software; you can redistribute it and/or
 	modify it under the terms of the GNU General Public License
@@ -26,7 +26,7 @@
 */
 
 varying vec3			vNormal;
-varying vec3			vPosition;
+varying vec3			vEyeVector;
 
 
 #ifndef OOSTD_DIFFUSE_MAP
@@ -135,7 +135,7 @@ void main(void)
 	vec4 totalColor = vec4(0);
 	vec3 normal = normalize(vNormal);
 #ifdef NEED_EYE_VECTOR
-	vec3 eyeVector = normalize(-vPosition);
+	vec3 eyeVector = normalize(vEyeVector);
 #endif
 #ifdef NEED_TEX_COORD
 	vec2 texCoord = gl_TexCoord[0].st;
@@ -147,7 +147,7 @@ void main(void)
 	vec4 emissionColor = vec4(1.0);
 #endif
 #if OOSTD_EMISSION
-	emissionColor *= gl_FrontMaterial.emission.rgb;
+	emissionColor *= gl_FrontMaterial.emission;
 #endif
 #if OOSTD_EMISSION_MAP
 	vec4 emissionMapColor = texture2D(uEmissionMap, texCoord);

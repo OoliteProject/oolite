@@ -55,6 +55,7 @@ SOFTWARE.
 #import "OOSingleTextureMaterial.h"
 #import "OOCollectionExtractors.h"
 #import "Universe.h"
+#import "OOCacheManager.h"
 
 
 static OOMaterial *sActiveMaterial = nil;
@@ -128,9 +129,10 @@ static OOMaterial *sActiveMaterial = nil;
 
 @implementation OOMaterial (OOConvenienceCreators)
 
-+ (id)defaultShaderMaterialWithName:(NSString *)name
-					  configuration:(NSDictionary *)configuration
-							 macros:(NSDictionary *)macros
++ (NSDictionary *)synthesizeMaterialDictionaryWithName:(NSString *)name
+										 forModelNamed:(NSString *)modelName
+										 configuration:(NSDictionary *)configuration
+												macros:(NSDictionary *)macros
 {
 	OOColor					*ambient = nil,
 							*diffuse = nil,
@@ -146,13 +148,6 @@ static OOMaterial *sActiveMaterial = nil;
 	NSMutableArray			*textures = nil;
 	NSMutableDictionary		*newConfig = nil;
 	NSMutableDictionary		*uniforms = nil;
-	
-	// Avoid looping, even though it shouldn't happen.
-	if ([configuration objectForKey:@"_oo_is_synthesized_config"] != nil)
-	{
-		OOLog(@"material.synthesize.loop", @"Synthesis loop for material %@.", name);
-		return nil;
-	}
 	
 	if (configuration == nil)  configuration = [NSDictionary dictionary];
 	ambient = [OOColor colorWithDescription:[configuration objectForKey:@"ambient"]];
@@ -246,15 +241,64 @@ static OOMaterial *sActiveMaterial = nil;
 	if ([textures count] != 0)  [newConfig setObject:textures forKey:@"textures"];
 	if ([uniforms count] != 0)  [newConfig setObject:uniforms forKey:@"uniforms"];
 	
-	return [self materialWithName:name
-					configuration:newConfig
-						   macros:modifiedMacros
-					bindingTarget:nil
-				  forSmoothedMesh:YES];
+	[newConfig setObject:modifiedMacros forKey:@"_synthesized_material_macros"];
+	return newConfig;
+}
+
++ (OOMaterial *)defaultShaderMaterialWithName:(NSString *)name
+								forModelNamed:(NSString *)modelName
+								configuration:(NSDictionary *)configuration
+									   macros:(NSDictionary *)macros
+{
+	OOCacheManager			*cache = nil;
+	NSString				*cacheKey = nil;
+	NSDictionary			*synthesizedConfig = nil;
+	OOMaterial				*result = nil;
+	
+	// Avoid looping (can happen if shader fails to compile).
+	if ([configuration objectForKey:@"_oo_is_synthesized_config"] != nil)
+	{
+		OOLog(@"material.synthesize.loop", @"Synthesis loop for material %@.", name);
+		return nil;
+	}
+	
+	if (modelName != nil)
+	{
+		cache = [OOCacheManager sharedCache];
+		cacheKey = [NSString stringWithFormat:@"%@/%@", modelName, name];
+		synthesizedConfig = [cache objectForKey:cacheKey inCache:@"synthesized shader materials"];
+	}
+	
+	if (synthesizedConfig == nil)
+	{
+		synthesizedConfig = [self synthesizeMaterialDictionaryWithName:name
+														 forModelNamed:modelName
+														 configuration:configuration
+																macros:macros];
+		if (synthesizedConfig != nil && modelName != nil)
+		{
+			[cache setObject:synthesizedConfig
+					  forKey:cacheKey
+					 inCache:@"synthesized shader materials"];
+		}
+	}
+	
+	if (synthesizedConfig != nil)
+	{
+		result =  [self materialWithName:name
+						   forModelNamed:modelName
+						   configuration:synthesizedConfig
+								  macros:[synthesizedConfig objectForKey:@"_synthesized_material_macros"]
+							bindingTarget:nil
+					  forSmoothedMesh:YES];
+	}
+	
+	return result;
 }
 
 
 + (id)materialWithName:(NSString *)name
+		 forModelNamed:(NSString *)modelName
 		 configuration:(NSDictionary *)configuration
 				macros:(NSDictionary *)macros
 		 bindingTarget:(id<OOWeakReferenceSupport>)object
@@ -267,7 +311,10 @@ static OOMaterial *sActiveMaterial = nil;
 	{
 		if ([OOShaderMaterial configurationDictionarySpecifiesShaderMaterial:configuration])
 		{
-			result = [OOShaderMaterial shaderMaterialWithName:name configuration:configuration macros:macros bindingTarget:object];
+			result = [OOShaderMaterial shaderMaterialWithName:name
+												configuration:configuration
+													   macros:macros
+												bindingTarget:object];
 		}
 		
 		// Use default shader if smoothing is on, or shader detail is full, or material uses an effect map.
@@ -281,6 +328,7 @@ static OOMaterial *sActiveMaterial = nil;
 				 ))
 		{
 			result = [self defaultShaderMaterialWithName:name
+										   forModelNamed:modelName
 										   configuration:configuration
 												  macros:macros];
 		}
@@ -309,6 +357,7 @@ static OOMaterial *sActiveMaterial = nil;
 
 
 + (id)materialWithName:(NSString *)name
+		 forModelNamed:(NSString *)modelName
 	materialDictionary:(NSDictionary *)materialDict
 	 shadersDictionary:(NSDictionary *)shadersDict
 				macros:(NSDictionary *)macros
@@ -330,6 +379,7 @@ static OOMaterial *sActiveMaterial = nil;
 	}
 	
 	return [self materialWithName:name
+					forModelNamed:modelName
 					configuration:configuration
 						   macros:macros
 					bindingTarget:object

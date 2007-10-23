@@ -3,7 +3,7 @@
 	Basic vertex shader for Oolite ships.
 	
 	
-	Â©2007 Jens Ayton
+	å©2007 Jens Ayton
  
 	This program is free software; you can redistribute it and/or
 	modify it under the terms of the GNU General Public License
@@ -22,13 +22,13 @@
  */
 
 varying vec3			vNormal;
-varying vec3			vPosition;
+varying vec3			vEyeVector;
 
 
 void main(void)
 {
 	vNormal = normalize(gl_NormalMatrix * gl_Normal);
-	vPosition = vec3(gl_ModelViewMatrix * gl_Vertex);
+	vEyeVector = -vec3(gl_ModelViewMatrix * gl_Vertex);
 	
 	gl_TexCoord[0] = gl_TextureMatrix[0] * gl_MultiTexCoord0;
 	gl_Position = gl_ModelViewProjectionMatrix * gl_Vertex;

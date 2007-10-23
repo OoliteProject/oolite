@@ -1766,6 +1766,14 @@ WormholeEntity*	whole;
 	}
 }
 
+
+// Send own ship script a message.
+- (void) sendScriptMessage:(NSString *)message
+{
+	[self doScriptEvent:message];
+}
+
+
 // racing code TODO
 - (void) targetFirstBeaconWithCode:(NSString*) code
 {

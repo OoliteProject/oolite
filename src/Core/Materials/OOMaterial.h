@@ -90,9 +90,11 @@ SOFTWARE.
 
 /*	Get a material based on configuration. The result will be an
 	OOBasicMaterial, OOSingleTextureMaterial or OOShaderMaterial (the latter
-	only if shaders are available).
+	only if shaders are available). modelName is used for caching of synthesized
+	shader materials; nil may be passed for no caching.
 */
 + (id)materialWithName:(NSString *)name
+		 forModelNamed:(NSString *)modelName
 		 configuration:(NSDictionary *)configuration
 				macros:(NSDictionary *)macros
 		 bindingTarget:(id<OOWeakReferenceSupport>)object
@@ -100,9 +102,10 @@ SOFTWARE.
 
 /*	Select an appropriate material description (based on availability of
 	shaders and content of dictionaries, which may be nil) and call
-	+materialWithName:configuration:macros:bindTarget:forSmoothedMesh:.
+	+materialWithName:forModelNamed:configuration:macros:bindTarget:forSmoothedMesh:.
 */
 + (id)materialWithName:(NSString *)name
+		 forModelNamed:(NSString *)modelName
 	materialDictionary:(NSDictionary *)materialDict
 	 shadersDictionary:(NSDictionary *)shadersDict
 				macros:(NSDictionary *)macros

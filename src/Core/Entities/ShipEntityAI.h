@@ -208,6 +208,8 @@ MA 02110-1301, USA.
 
 - (void) scriptActionOnTarget:(NSString *) action;
 
+- (void) sendScriptMessage:(NSString *)message;
+
 // racing code.
 - (void) targetFirstBeaconWithCode:(NSString *) code;
 - (void) targetNextBeaconWithCode:(NSString *) code;

@@ -463,6 +463,7 @@ shaderBindingTarget:(id<OOWeakReferenceSupport>)target
 		for (i = 0; i != materialCount; ++i)
 		{
 			material = [OOMaterial materialWithName:materialKeys[i]
+									  forModelNamed:baseFile
 								 materialDictionary:materialDict
 								  shadersDictionary:shadersDict
 											 macros:macros
