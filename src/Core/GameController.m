@@ -843,6 +843,8 @@ static int CompareDisplayModes(id arg1, id arg2, void *context)
 
 - (void) exitApp
 {
+	[[NSUserDefaults standardUserDefaults] synchronize];
+	OOLog(@"gameController.exitApp",@".GNUstepDefaults synchronized. Exiting.");
 	OOLoggingTerminate();
 	SDL_Quit();
 	exit(0);
