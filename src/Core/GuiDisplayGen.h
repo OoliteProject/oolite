@@ -89,7 +89,7 @@ typedef OOGUITabStop OOGUITabSettings[GUI_MAX_COLUMNS];
 	
 	NSPoint			rowPosition[GUI_MAX_ROWS];
 	OOGUIAlignment	rowAlignment[GUI_MAX_ROWS];
-	OOTimeDelta		rowFadeTime[GUI_MAX_ROWS];
+	float		rowFadeTime[GUI_MAX_ROWS];
 	
 	OOGUITabSettings tabStops;
 	
@@ -184,13 +184,13 @@ typedef OOGUITabStop OOGUITabSettings[GUI_MAX_COLUMNS];
 - (void) printLongText:(NSString *)str
 				 align:(OOGUIAlignment)alignment
 				 color:(OOColor *)text_color
-			  fadeTime:(OOTimeDelta)text_fade
+			  fadeTime:(float)text_fade
 				   key:(NSString *)text_key
 			addToArray:(NSMutableArray *)text_array;
 - (void) printLineNoScroll:(NSString *)str
 					 align:(OOGUIAlignment)alignment
 					 color:(OOColor *)text_color
-				  fadeTime:(OOTimeDelta)text_fade
+				  fadeTime:(float)text_fade
 					   key:(NSString *)text_key
 				addToArray:(NSMutableArray *)text_array;
 
