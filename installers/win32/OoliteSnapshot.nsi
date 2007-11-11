@@ -2,10 +2,11 @@ SetCompress auto
 SetCompressor LZMA
 SetCompressorDictSize 32
 SetDatablockOptimize on
+AddBrandingImage top 57
 OutFile "OoliteInstall-r$%SVNREV%.exe"
 BrandingText "Oolite"
 Name "Oolite"
-Caption "Oolite snapshot installer from svn revision $%SVNREV%"
+Caption "Oolite v$%VER% SVN Revision $%SVNREV% Installer"
 SubCaption 0 " "
 SubCaption 1 " "
 SubCaption 2 " "
@@ -13,6 +14,7 @@ SubCaption 3 " "
 SubCaption 4 " "
 Icon Oolite.ico
 UninstallIcon Oolite.ico
+WindowIcon off
 InstallDirRegKey HKLM Software\Oolite "Install_Dir"
 InstallDir $PROGRAMFILES\Oolite
 DirText "Choose a directory to install Oolite"
@@ -22,6 +24,27 @@ InstProgressFlags smooth
 AutoCloseWindow false
 SetOverwrite on
 
+; The pages we are creating with this installer.
+; On the first page, set the branding image on the top of the window.
+Page directory setImage
+Page instfiles
+UninstPage instfiles un.setImage
+
+; Set the branding image for the installer screen.
+Function setImage
+GetTempFileName $0
+File /oname=$0 .\OoliteInstallerHeaderBitmap.bmp
+SetBrandingImage $0
+Delete $0
+FunctionEnd
+
+; Set the branding image for the uninstaller screen.
+Function un.setImage
+GetTempFileName $0
+File /oname=$0 .\OoliteInstallerHeaderBitmap.bmp
+SetBrandingImage $0
+Delete $0
+FunctionEnd
 Function RegSetup
 FunctionEnd
 
@@ -78,7 +101,7 @@ FileWrite $0 "set HOMEPATH=$INSTDIR\oolite.app"
 FileWriteByte $0 "13"
 FileWriteByte $0 "10"
 
-FileWrite $0 "oolite.app\oolite.exe"
+FileWrite $0 "oolite.app\oolite.exe %1 %2 %3 %4"
 FileWriteByte $0 "13"
 FileWriteByte $0 "10"
 
