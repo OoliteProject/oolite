@@ -155,7 +155,7 @@
 	plist.homebrew.success					= yes;
 	
 	
-	rendering.opengl.error					= $error;				// Test for and display OpenGL errors
+	rendering.opengl.error					= no;				// Test for and display OpenGL errors
 	rendering.opengl.version				= $troubleShootingDump;	// Display renderer version information at startup
 	rendering.opengl.extensions				= $troubleShootingDump;	// List OpenGL extensions at startup
 	rendering.opengl.shader.support			= $troubleShootingDump;	// Messages about factors influencing availability of OpenGL shaders

@@ -185,7 +185,7 @@
 	<key>plist.wrongType</key>
 	<string>$plistError</string>
 	<key>rendering.opengl.error</key>
-	<string>$error</string>
+	<string>no</string>
 	<key>rendering.opengl.extensions</key>
 	<string>$troubleShootingDump</string>
 	<key>rendering.opengl.shader.support</key>
