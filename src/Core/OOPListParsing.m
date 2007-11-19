@@ -91,11 +91,7 @@ id OOPropertyListFromData(NSData *data, NSString *whereFrom)
 		result = [NSPropertyListSerialization propertyListFromData:data mutabilityOption:NSPropertyListImmutable format:NULL errorDescription:&error];
 		if (result == nil)	// Foundation parser failed
 		{	
-#if OOLITE_MAC_OS_X
-			/*	Documented wart: this is caller responsibility in Cocoa (but not GNUstep?)
-				TODO: verify that it is correct to not do this in GNUstep.
-				In the mean time, not doing it in GNUstep seems to be avoiding a crash.
-			*/
+#if OOLITE_RELEASE_PLIST_ERROR_STRINGS
 			[error autorelease];
 #endif
 			// Ensure we can say something sensible...
@@ -148,11 +144,19 @@ static NSData *ChangeDTDIfApplicable(NSData *data)
 						offset = 0,
 						newOffset = 0;
 	const char			xmlDeclLine[] = "<\?xml version=\"1.0\" encoding=\"UTF-8\"\?>";
-	const char			appleDTDLine[] = "<!DOCTYPE plist PUBLIC \"-//Apple Computer//DTD PLIST 1.0//EN\" \"http://www.apple.com/DTDs/PropertyList-1.0.dtd\">";
+	const char			*appleDTDLines[] = 
+						{
+							"<!DOCTYPE plist PUBLIC \"-//Apple Computer//DTD PLIST 1.0//EN\" \"http://www.apple.com/DTDs/PropertyList-1.0.dtd\">",
+							"<!DOCTYPE plist PUBLIC \"-//Apple//DTD PLIST 1.0//EN\" \"http://www.apple.com/DTDs/PropertyList-1.0.dtd\">",
+							NULL
+						};
 	const char			gstepDTDLine[] = "<!DOCTYPE plist PUBLIC \"-//GNUstep//DTD plist 0.9//EN\" \"http://www.gnustep.org/plist-0_9.xml\">";
+	const char			*srcDTDLine = NULL;
+	size_t				srcDTDLineSize = 0;
+	unsigned			i;
 	
 	length = [data length];
-	if (length < sizeof xmlDeclLine + sizeof appleDTDLine) return data;
+	if (length < sizeof xmlDeclLine) return data;
 	
 	bytes = [data bytes];
 	
@@ -162,12 +166,24 @@ static NSData *ChangeDTDIfApplicable(NSData *data)
 	offset += sizeof xmlDeclLine - 1;
 	while (offset < length && isspace(bytes[offset]))  ++offset;
 	
-	// Check if first non-blank stuff after XML declaration is Apple plist DTD. Also somewhat bogus.
-	if (length - offset < sizeof appleDTDLine) return data;
-	if (memcmp(bytes + offset, appleDTDLine, sizeof appleDTDLine - 1) != 0) return data;
+	// Check if first non-blank stuff after XML declaration is any known Apple plist DTD. Also somewhat bogus.
+	for (i = 0; ; i++)
+	{
+		srcDTDLine = appleDTDLines[i];
+		if (srcDTDLine == NULL)  return data;  // No matches
+		
+		srcDTDLineSize = strlen(appleDTDLines[i]);
+		OOLog(@"temp.plistParsing", @"srcDTDLineSize[%i] = %zu", i, srcDTDLineSize);
+		
+		if (srcDTDLineSize <= length - offset &&
+			memcmp(bytes + offset, srcDTDLine, srcDTDLineSize) == 0)
+		{
+			// Match
+			break;
+		}
+	}
 	
-	// If we get here, it's a match.
-	offset += sizeof appleDTDLine - 1;
+	offset += srcDTDLineSize;
 	
 	newLength = length - offset + sizeof xmlDeclLine + sizeof gstepDTDLine - 1;
 	newBytes = malloc(newLength);
