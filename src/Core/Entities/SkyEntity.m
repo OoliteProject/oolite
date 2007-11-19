@@ -37,7 +37,7 @@ MA 02110-1301, USA.
 #import "OOColor.h"
 #import "OOStringParsing.h"
 #import "OOCollectionExtractors.h"
-#omport "OOMaterial.h"
+#import "OOMaterial.h"
 
 
 #define SKY_MAX_STARS			4800
@@ -246,6 +246,7 @@ MA 02110-1301, USA.
 #import "OOTexture.h"
 #import "OOCollectionExtractors.h"
 #import "OOGraphicsResetManager.h"
+#import "OOMaterial.h"
 
 
 #define MULTI_TEXTURE_BLOBS			0		// Not fully implemented yet

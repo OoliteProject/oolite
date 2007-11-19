@@ -205,3 +205,26 @@ enum {
 - (NSString *)descriptionComponents;
 
 @end
+
+
+/*	Under Mac OS X 10.4 and earlier, but not GNUstep, the error string
+	parameters for the property list parsing primitive methods in
+	NSPropertyListSerialization would contain unreleased strings. To avoid
+	leaking, it is necessary to release them. This does not affect programs
+	linked against the Mac OS X 10.5 SDK.
+	
+	It is not expected that Oolite will require 10.5 any time soon, but this
+	should ensure that such a transition is smooth if it happens.
+*/
+#if OOLITE_MAC_OS_X
+#if defined MAC_OS_X_VERSION_10_5 && MAC_OS_X_VERSION_MAX_ALLOWED >= MAC_OS_X_VERSION_10_5
+// Leopard SDK
+#define OOLITE_RELEASE_PLIST_ERROR_STRINGS 0
+#else
+// Tiger or earlier SDK
+#define OOLITE_RELEASE_PLIST_ERROR_STRINGS 1
+#endif
+#else
+// Not Mac OS X
+#define OOLITE_RELEASE_PLIST_ERROR_STRINGS 0
+#endif
