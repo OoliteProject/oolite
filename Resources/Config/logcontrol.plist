@@ -36,7 +36,7 @@
 	/*** Metaclasses ***/
 	$error									= yes;					// Most errors, ranging from minor to major. Should probably always be enabled.
 	$scriptError							= $error;
-	$shaderError							= $scriptError;
+	$shaderError							= $error;
 	$troubleShootingDump					= yes;
 	$entityState							= no;
 	$scriptDebugOn							= no;					// This metaclass is set by the debugOn and debugOff script actions.
@@ -71,6 +71,7 @@
 	ai.takeAction.debugMessage				= inherit;
 	ai.takeAction.badSelector				= inherit;
 	ai.pop									= inherit;
+	ai.error.recursion						= $scriptError;
 	
 	
 	beacon.list								= $scriptDebugOn;
@@ -155,7 +156,7 @@
 	plist.homebrew.success					= yes;
 	
 	
-	rendering.opengl.error					= no;				// Test for and display OpenGL errors
+	rendering.opengl.error					= no;					// Test for and display OpenGL errors
 	rendering.opengl.version				= $troubleShootingDump;	// Display renderer version information at startup
 	rendering.opengl.extensions				= $troubleShootingDump;	// List OpenGL extensions at startup
 	rendering.opengl.shader.support			= $troubleShootingDump;	// Messages about factors influencing availability of OpenGL shaders

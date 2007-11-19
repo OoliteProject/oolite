@@ -281,6 +281,7 @@ typedef struct
 	NSArray			*actions = nil;
 	NSDictionary	*messagesForState = nil;
 	ShipEntity		*owner = [self owner];
+	static unsigned	recursionLimiter = 0;
 	
 	/*	CRASH in _freedHandler when called via -setState: __NSFireDelayedPerform (1.69, OS X/x86).
 		Analysis: owner invalid.
@@ -288,6 +289,19 @@ typedef struct
 		 -- Ahruman, 20070706
 	*/
 	if (message == nil || owner == nil || [owner universalID] == NO_TARGET)  return;
+	
+	
+	/*	CRASH when calling reactToMessage: FOO in state FOO causes infinite
+		recursion.
+		FIX: recursion limiter. Alternative is to explicitly catch this case
+		in takeAction:, but that could potentially miss indirect recursion via
+		scripts.
+	*/
+	if (recursionLimiter > 32)
+	{
+		OOLog(@"ai.error.recursion", @"ERROR: AI reactToMessage: recursion in AI %@, state %@, aborting. It is not valid to call reactToMessage: FOO in state FOO.", stateMachineName, currentState);
+		return;
+	}
 	
 	messagesForState = [stateMachine objectForKey:currentState];
 	if (messagesForState == nil)  return;
@@ -303,10 +317,16 @@ typedef struct
 
 	if ([actions count] > 0)
 	{
-		for (i = 0; i < [actions count]; i++)
-		{
-			[self takeAction:[actions objectAtIndex:i]];
-		}
+		NS_DURING
+			++recursionLimiter;
+			for (i = 0; i < [actions count]; i++)
+			{
+				[self takeAction:[actions objectAtIndex:i]];
+			}
+			--recursionLimiter;
+		NS_HANDLER
+			--recursionLimiter;
+		NS_ENDHANDLER
 	}
 	else
 	{
