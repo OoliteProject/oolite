@@ -223,8 +223,8 @@ OOINLINE void PerformScriptActions(NSArray *actions, Entity *target)
 		return YES;
 	}
 	
+	conditionsPassed = YES;
 	NS_DURING
-		conditionsPassed = YES;
 		count = [conditions count];
 		for (i = 0; i < count; i++)
 		{
@@ -2227,7 +2227,7 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 
 - (BOOL) processSceneDictionary:(NSDictionary *) couplet atOffset:(Vector) off
 {
-	NSArray *conditions = (NSArray *)[couplet objectForKey:@"conditions"];
+	NSArray *conditions = [couplet objectForKey:@"conditions"];
 	NSArray *actions = nil;
 	if ([couplet objectForKey:@"do"])
 		actions = [NSArray arrayWithObject: [couplet objectForKey:@"do"]];
